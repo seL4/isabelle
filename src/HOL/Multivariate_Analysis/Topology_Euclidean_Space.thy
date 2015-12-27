@@ -1259,14 +1259,14 @@ qed
 
 lemma UN_box_eq_UNIV: "(\<Union>i::nat. box (- (real i *\<^sub>R One)) (real i *\<^sub>R One)) = UNIV"
 proof -
-  have "\<bar>x \<bullet> b\<bar> < real_of_int (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)"
+  have "\<bar>x \<bullet> b\<bar> < real_of_int (\<lceil>Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)\<rceil> + 1)"
     if [simp]: "b \<in> Basis" for x b :: 'a
   proof -
-    have "\<bar>x \<bullet> b\<bar> \<le> real_of_int (ceiling \<bar>x \<bullet> b\<bar>)"
+    have "\<bar>x \<bullet> b\<bar> \<le> real_of_int \<lceil>\<bar>x \<bullet> b\<bar>\<rceil>"
       by (rule le_of_int_ceiling)
-    also have "\<dots> \<le> real_of_int (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)))"
+    also have "\<dots> \<le> real_of_int \<lceil>Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)\<rceil>"
       by (auto intro!: ceiling_mono)
-    also have "\<dots> < real_of_int (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)"
+    also have "\<dots> < real_of_int (\<lceil>Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)\<rceil> + 1)"
       by simp
     finally show ?thesis .
   qed
@@ -4612,9 +4612,9 @@ lemma nat_approx_posE:
   assumes "0 < e"
   obtains n :: nat where "1 / (Suc n) < e"
 proof atomize_elim
-  have "1 / real (Suc (nat (ceiling (1/e)))) < 1 / (ceiling (1/e))"
+  have "1 / real (Suc (nat \<lceil>1/e\<rceil>)) < 1 / \<lceil>1/e\<rceil>"
     by (rule divide_strict_left_mono) (auto simp: \<open>0 < e\<close>)
-  also have "1 / (ceiling (1/e)) \<le> 1 / (1/e)"
+  also have "1 / \<lceil>1/e\<rceil> \<le> 1 / (1/e)"
     by (rule divide_left_mono) (auto simp: \<open>0 < e\<close> ceiling_correct)
   also have "\<dots> = e" by simp
   finally show  "\<exists>n. 1 / real (Suc n) < e" ..

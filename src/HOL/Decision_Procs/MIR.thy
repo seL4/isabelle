@@ -29,17 +29,17 @@ definition rdvd:: "real \<Rightarrow> real \<Rightarrow> bool" (infixl "rdvd" 50
   where "x rdvd y \<longleftrightarrow> (\<exists>k::int. y = x * real_of_int k)"
 
 lemma int_rdvd_real:
-  "real_of_int (i::int) rdvd x = (i dvd (floor x) \<and> real_of_int (floor x) = x)" (is "?l = ?r")
+  "real_of_int (i::int) rdvd x = (i dvd \<lfloor>x\<rfloor> \<and> real_of_int \<lfloor>x\<rfloor> = x)" (is "?l = ?r")
 proof
   assume "?l"
   hence th: "\<exists> k. x=real_of_int (i*k)" by (simp add: rdvd_def)
-  hence th': "real_of_int (floor x) = x" by (auto simp del: of_int_mult)
-  with th have "\<exists> k. real_of_int (floor x) = real_of_int (i*k)" by simp
-  hence "\<exists> k. floor x = i*k" by presburger
-  thus ?r  using th' by (simp add: dvd_def)
+  hence th': "real_of_int \<lfloor>x\<rfloor> = x" by (auto simp del: of_int_mult)
+  with th have "\<exists> k. real_of_int \<lfloor>x\<rfloor> = real_of_int (i*k)" by simp
+  hence "\<exists>k. \<lfloor>x\<rfloor> = i*k" by presburger
+  thus ?r using th' by (simp add: dvd_def)
 next
   assume "?r" hence "(i::int) dvd \<lfloor>x::real\<rfloor>" ..
-  hence "\<exists> k. real_of_int (floor x) = real_of_int (i*k)"
+  hence "\<exists>k. real_of_int \<lfloor>x\<rfloor> = real_of_int (i*k)"
     by (metis (no_types) dvd_def)
   thus ?l using \<open>?r\<close> by (simp add: rdvd_def)
 qed
@@ -51,17 +51,18 @@ lemma int_rdvd_iff: "(real_of_int (i::int) rdvd real_of_int t) = (i dvd t)"
 lemma rdvd_abs1: "(abs (real_of_int d) rdvd t) = (real_of_int (d ::int) rdvd t)"
 proof
   assume d: "real_of_int d rdvd t"
-  from d int_rdvd_real have d2: "d dvd (floor t)" and ti: "real_of_int (floor t) = t"
+  from d int_rdvd_real have d2: "d dvd \<lfloor>t\<rfloor>" and ti: "real_of_int \<lfloor>t\<rfloor> = t"
     by auto
 
-  from iffD2[OF abs_dvd_iff] d2 have "(abs d) dvd (floor t)" by blast
+  from iffD2[OF abs_dvd_iff] d2 have "(abs d) dvd \<lfloor>t\<rfloor>" by blast
   with ti int_rdvd_real[symmetric] have "real_of_int (abs d) rdvd t" by blast
   thus "abs (real_of_int d) rdvd t" by simp
 next
   assume "abs (real_of_int d) rdvd t" hence "real_of_int (abs d) rdvd t" by simp
-  with int_rdvd_real[where i="abs d" and x="t"] have d2: "abs d dvd floor t" and ti: "real_of_int (floor t) =t"
+  with int_rdvd_real[where i="abs d" and x="t"]
+  have d2: "abs d dvd \<lfloor>t\<rfloor>" and ti: "real_of_int \<lfloor>t\<rfloor> = t"
     by auto
-  from iffD1[OF abs_dvd_iff] d2 have "d dvd floor t" by blast
+  from iffD1[OF abs_dvd_iff] d2 have "d dvd \<lfloor>t\<rfloor>" by blast
   with ti int_rdvd_real[symmetric] show "real_of_int d rdvd t" by blast
 qed
 
@@ -107,11 +108,11 @@ primrec Inum :: "real list \<Rightarrow> num \<Rightarrow> real" where
 | "Inum bs (Add a b) = Inum bs a + Inum bs b"
 | "Inum bs (Sub a b) = Inum bs a - Inum bs b"
 | "Inum bs (Mul c a) = (real_of_int c) * Inum bs a"
-| "Inum bs (Floor a) = real_of_int (floor (Inum bs a))"
-| "Inum bs (CF c a b) = real_of_int c * real_of_int (floor (Inum bs a)) + Inum bs b"
-definition "isint t bs \<equiv> real_of_int (floor (Inum bs t)) = Inum bs t"
+| "Inum bs (Floor a) = real_of_int \<lfloor>Inum bs a\<rfloor>"
+| "Inum bs (CF c a b) = real_of_int c * real_of_int \<lfloor>Inum bs a\<rfloor> + Inum bs b"
+definition "isint t bs \<equiv> real_of_int \<lfloor>Inum bs t\<rfloor> = Inum bs t"
 
-lemma isint_iff: "isint n bs = (real_of_int (floor (Inum bs n)) = Inum bs n)"
+lemma isint_iff: "isint n bs = (real_of_int \<lfloor>Inum bs n\<rfloor> = Inum bs n)"
   by (simp add: isint_def)
 
 lemma isint_Floor: "isint (Floor n) bs"
@@ -120,10 +121,10 @@ lemma isint_Floor: "isint (Floor n) bs"
 lemma isint_Mul: "isint e bs \<Longrightarrow> isint (Mul c e) bs"
 proof-
   let ?e = "Inum bs e"
-  let ?fe = "floor ?e"
-  assume be: "isint e bs" hence efe:"real_of_int ?fe = ?e" by (simp add: isint_iff)
-  have "real_of_int ((floor (Inum bs (Mul c e)))) = real_of_int (floor (real_of_int (c * ?fe)))" using efe by simp
-  also have "\<dots> = real_of_int (c* ?fe)"  by (metis floor_of_int)
+  assume be: "isint e bs" hence efe:"real_of_int \<lfloor>?e\<rfloor> = ?e" by (simp add: isint_iff)
+  have "real_of_int \<lfloor>Inum bs (Mul c e)\<rfloor> = real_of_int \<lfloor>real_of_int (c * \<lfloor>?e\<rfloor>)\<rfloor>"
+    using efe by simp
+  also have "\<dots> = real_of_int (c* \<lfloor>?e\<rfloor>)" by (metis floor_of_int)
   also have "\<dots> = real_of_int c * ?e" using efe by simp
   finally show ?thesis using isint_iff by simp
 qed
@@ -132,9 +133,10 @@ lemma isint_neg: "isint e bs \<Longrightarrow> isint (Neg e) bs"
 proof-
   let ?I = "\<lambda> t. Inum bs t"
   assume ie: "isint e bs"
-  hence th: "real_of_int (floor (?I e)) = ?I e" by (simp add: isint_def)
-  have "real_of_int (floor (?I (Neg e))) = real_of_int (floor (- (real_of_int (floor (?I e)))))" by (simp add: th)
-  also have "\<dots> = - real_of_int (floor (?I e))" by simp
+  hence th: "real_of_int \<lfloor>?I e\<rfloor> = ?I e" by (simp add: isint_def)
+  have "real_of_int \<lfloor>?I (Neg e)\<rfloor> = real_of_int \<lfloor>- (real_of_int \<lfloor>?I e\<rfloor>)\<rfloor>"
+    by (simp add: th)
+  also have "\<dots> = - real_of_int \<lfloor>?I e\<rfloor>" by simp
   finally show "isint (Neg e) bs" by (simp add: isint_def th)
 qed
 
@@ -142,9 +144,10 @@ lemma isint_sub:
   assumes ie: "isint e bs" shows "isint (Sub (C c) e) bs"
 proof-
   let ?I = "\<lambda> t. Inum bs t"
-  from ie have th: "real_of_int (floor (?I e)) = ?I e" by (simp add: isint_def)
-  have "real_of_int (floor (?I (Sub (C c) e))) = real_of_int (floor ((real_of_int (c -floor (?I e)))))" by (simp add: th)
-  also have "\<dots> = real_of_int (c- floor (?I e))" by simp
+  from ie have th: "real_of_int \<lfloor>?I e\<rfloor> = ?I e" by (simp add: isint_def)
+  have "real_of_int \<lfloor>?I (Sub (C c) e)\<rfloor> = real_of_int \<lfloor>real_of_int (c - \<lfloor>?I e\<rfloor>)\<rfloor>"
+    by (simp add: th)
+  also have "\<dots> = real_of_int (c - \<lfloor>?I e\<rfloor>)" by simp
   finally show "isint (Sub (C c) e) bs" by (simp add: isint_def th)
 qed
 
@@ -154,9 +157,9 @@ lemma isint_add:
 proof-
   let ?a = "Inum bs a"
   let ?b = "Inum bs b"
-  from ai bi isint_iff have "real_of_int (floor (?a + ?b)) = real_of_int (floor (real_of_int (floor ?a) + real_of_int (floor ?b)))"
+  from ai bi isint_iff have "real_of_int \<lfloor>?a + ?b\<rfloor> = real_of_int \<lfloor>real_of_int \<lfloor>?a\<rfloor> + real_of_int \<lfloor>?b\<rfloor>\<rfloor>"
     by simp
-  also have "\<dots> = real_of_int (floor ?a) + real_of_int (floor ?b)" by simp
+  also have "\<dots> = real_of_int \<lfloor>?a\<rfloor> + real_of_int \<lfloor>?b\<rfloor>" by simp
   also have "\<dots> = ?a + ?b" using ai bi isint_iff by simp
   finally show "isint (Add a b) bs" by (simp add: isint_iff)
 qed
@@ -830,15 +833,15 @@ proof-
     hence th1: "?n t = ?N (Add (Floor ?tv) ?ti)"
       by (cases ?tv) (auto simp add: numfloor_def Let_def split_def)
     from split_int[OF tvti] have "?N (Floor t) = ?N (Floor(Add ?tv ?ti))" and tii:"isint ?ti bs" by simp+
-    hence "?N (Floor t) = real_of_int (floor (?N (Add ?tv ?ti)))" by simp
-    also have "\<dots> = real_of_int (floor (?N ?tv) + (floor (?N ?ti)))"
+    hence "?N (Floor t) = real_of_int \<lfloor>?N (Add ?tv ?ti)\<rfloor>" by simp
+    also have "\<dots> = real_of_int (\<lfloor>?N ?tv\<rfloor> + \<lfloor>?N ?ti\<rfloor>)"
       by (simp,subst tii[simplified isint_iff, symmetric]) simp
     also have "\<dots> = ?N (Add (Floor ?tv) ?ti)" by (simp add: tii[simplified isint_iff])
     finally have ?thesis using th1 by simp}
   moreover {fix v assume H:"?tv = C v"
     from split_int[OF tvti] have "?N (Floor t) = ?N (Floor(Add ?tv ?ti))" and tii:"isint ?ti bs" by simp+
-    hence "?N (Floor t) = real_of_int (floor (?N (Add ?tv ?ti)))" by simp
-    also have "\<dots> = real_of_int (floor (?N ?tv) + (floor (?N ?ti)))"
+    hence "?N (Floor t) = real_of_int \<lfloor>?N (Add ?tv ?ti)\<rfloor>" by simp
+    also have "\<dots> = real_of_int (\<lfloor>?N ?tv\<rfloor> + \<lfloor>?N ?ti\<rfloor>)"
       by (simp,subst tii[simplified isint_iff, symmetric]) simp
     also have "\<dots> = ?N (Add (Floor ?tv) ?ti)" by (simp add: tii[simplified isint_iff])
     finally have ?thesis by (simp add: H numfloor_def Let_def split_def) }
@@ -1520,11 +1523,11 @@ next
   hence na: "?N a" using th by simp
   have th': "(real_of_int ?nt)*(real_of_int x) = real_of_int (?nt * x)" by simp
   have "?I x (Floor t) = ?I x (Floor (CN 0 ?nt ?at))" using th2 by simp
-  also have "\<dots> = real_of_int (floor ((real_of_int ?nt)* real_of_int(x) + ?I x ?at))" by simp
-  also have "\<dots> = real_of_int (floor (?I x ?at + real_of_int (?nt* x)))" by (simp add: ac_simps)
-  also have "\<dots> = real_of_int (floor (?I x ?at) + (?nt* x))"
-    using floor_add_of_int[of "?I x ?at" "?nt* x"] by simp
-  also have "\<dots> = real_of_int (?nt)*(real_of_int x) + real_of_int (floor (?I x ?at))" by (simp add: ac_simps)
+  also have "\<dots> = real_of_int \<lfloor>real_of_int ?nt * real_of_int x + ?I x ?at\<rfloor>" by simp
+  also have "\<dots> = real_of_int \<lfloor>?I x ?at + real_of_int (?nt * x)\<rfloor>" by (simp add: ac_simps)
+  also have "\<dots> = real_of_int (\<lfloor>?I x ?at\<rfloor> + (?nt * x))"
+    using floor_add_of_int[of "?I x ?at" "?nt * x"] by simp
+  also have "\<dots> = real_of_int (?nt)*(real_of_int x) + real_of_int \<lfloor>?I x ?at\<rfloor>" by (simp add: ac_simps)
   finally have "?I x (Floor t) = ?I x (CN 0 n a)" using th by simp
   with na show ?case by simp
 qed
@@ -1622,26 +1625,28 @@ recdef zlfm "measure fmsize"
   "zlfm p = p" (hints simp add: fmsize_pos)
 
 lemma split_int_less_real:
-  "(real_of_int (a::int) < b) = (a < floor b \<or> (a = floor b \<and> real_of_int (floor b) < b))"
+  "(real_of_int (a::int) < b) = (a < \<lfloor>b\<rfloor> \<or> (a = \<lfloor>b\<rfloor> \<and> real_of_int \<lfloor>b\<rfloor> < b))"
 proof( auto)
-  assume alb: "real_of_int a < b" and agb: "\<not> a < floor b"
-  from agb have "floor b \<le> a" by simp hence th: "b < real_of_int a + 1" by (simp only: floor_le_iff)
-  from floor_eq[OF alb th] show "a= floor b" by simp
+  assume alb: "real_of_int a < b" and agb: "\<not> a < \<lfloor>b\<rfloor>"
+  from agb have "\<lfloor>b\<rfloor> \<le> a" by simp
+  hence th: "b < real_of_int a + 1" by (simp only: floor_le_iff)
+  from floor_eq[OF alb th] show "a = \<lfloor>b\<rfloor>" by simp
 next
-  assume alb: "a < floor b"
-  hence "real_of_int a < real_of_int (floor b)" by simp
-  moreover have "real_of_int (floor b) \<le> b" by simp ultimately show  "real_of_int a < b" by arith
+  assume alb: "a < \<lfloor>b\<rfloor>"
+  hence "real_of_int a < real_of_int \<lfloor>b\<rfloor>" by simp
+  moreover have "real_of_int \<lfloor>b\<rfloor> \<le> b" by simp
+  ultimately show  "real_of_int a < b" by arith
 qed
 
 lemma split_int_less_real':
-  "(real_of_int (a::int) + b < 0) = (real_of_int a - real_of_int (floor(-b)) < 0 \<or> (real_of_int a - real_of_int (floor (-b)) = 0 \<and> real_of_int (floor (-b)) + b < 0))"
+  "(real_of_int (a::int) + b < 0) = (real_of_int a - real_of_int \<lfloor>- b\<rfloor> < 0 \<or> (real_of_int a - real_of_int \<lfloor>- b\<rfloor> = 0 \<and> real_of_int \<lfloor>- b\<rfloor> + b < 0))"
 proof-
   have "(real_of_int a + b <0) = (real_of_int a < -b)" by arith
   with split_int_less_real[where a="a" and b="-b"] show ?thesis by arith
 qed
 
 lemma split_int_gt_real':
-  "(real_of_int (a::int) + b > 0) = (real_of_int a + real_of_int (floor b) > 0 \<or> (real_of_int a + real_of_int (floor b) = 0 \<and> real_of_int (floor b) - b < 0))"
+  "(real_of_int (a::int) + b > 0) = (real_of_int a + real_of_int \<lfloor>b\<rfloor> > 0 \<or> (real_of_int a + real_of_int \<lfloor>b\<rfloor> = 0 \<and> real_of_int \<lfloor>b\<rfloor> - b < 0))"
 proof-
   have th: "(real_of_int a + b >0) = (real_of_int (-a) + (-b)< 0)" by arith
   show ?thesis 
@@ -1649,36 +1654,36 @@ proof-
 qed
 
 lemma split_int_le_real:
-  "(real_of_int (a::int) \<le> b) = (a \<le> floor b \<or> (a = floor b \<and> real_of_int (floor b) < b))"
+  "(real_of_int (a::int) \<le> b) = (a \<le> \<lfloor>b\<rfloor> \<or> (a = \<lfloor>b\<rfloor> \<and> real_of_int \<lfloor>b\<rfloor> < b))"
 proof( auto)
-  assume alb: "real_of_int a \<le> b" and agb: "\<not> a \<le> floor b"
-  from alb have "floor (real_of_int a) \<le> floor b " by (simp only: floor_mono)
-  hence "a \<le> floor b" by simp with agb show "False" by simp
+  assume alb: "real_of_int a \<le> b" and agb: "\<not> a \<le> \<lfloor>b\<rfloor>"
+  from alb have "\<lfloor>real_of_int a\<rfloor> \<le> \<lfloor>b\<rfloor>" by (simp only: floor_mono)
+  hence "a \<le> \<lfloor>b\<rfloor>" by simp with agb show "False" by simp
 next
-  assume alb: "a \<le> floor b"
-  hence "real_of_int a \<le> real_of_int (floor b)" by (simp only: floor_mono)
+  assume alb: "a \<le> \<lfloor>b\<rfloor>"
+  hence "real_of_int a \<le> real_of_int \<lfloor>b\<rfloor>" by (simp only: floor_mono)
   also have "\<dots>\<le> b" by simp  finally show  "real_of_int a \<le> b" .
 qed
 
 lemma split_int_le_real':
-  "(real_of_int (a::int) + b \<le> 0) = (real_of_int a - real_of_int (floor(-b)) \<le> 0 \<or> (real_of_int a - real_of_int (floor (-b)) = 0 \<and> real_of_int (floor (-b)) + b < 0))"
+  "(real_of_int (a::int) + b \<le> 0) = (real_of_int a - real_of_int \<lfloor>- b\<rfloor> \<le> 0 \<or> (real_of_int a - real_of_int \<lfloor>- b\<rfloor> = 0 \<and> real_of_int \<lfloor>- b\<rfloor> + b < 0))"
 proof-
   have "(real_of_int a + b \<le>0) = (real_of_int a \<le> -b)" by arith
   with split_int_le_real[where a="a" and b="-b"] show ?thesis by arith
 qed
 
 lemma split_int_ge_real':
-  "(real_of_int (a::int) + b \<ge> 0) = (real_of_int a + real_of_int (floor b) \<ge> 0 \<or> (real_of_int a + real_of_int (floor b) = 0 \<and> real_of_int (floor b) - b < 0))"
+  "(real_of_int (a::int) + b \<ge> 0) = (real_of_int a + real_of_int \<lfloor>b\<rfloor> \<ge> 0 \<or> (real_of_int a + real_of_int \<lfloor>b\<rfloor> = 0 \<and> real_of_int \<lfloor>b\<rfloor> - b < 0))"
 proof-
   have th: "(real_of_int a + b \<ge>0) = (real_of_int (-a) + (-b) \<le> 0)" by arith
   show ?thesis by (simp only: th split_int_le_real'[where a="-a" and b="-b"])
     (simp add: algebra_simps ,arith)
 qed
 
-lemma split_int_eq_real: "(real_of_int (a::int) = b) = ( a = floor b \<and> b = real_of_int (floor b))" (is "?l = ?r")
+lemma split_int_eq_real: "(real_of_int (a::int) = b) = ( a = \<lfloor>b\<rfloor> \<and> b = real_of_int \<lfloor>b\<rfloor>)" (is "?l = ?r")
 by auto
 
-lemma split_int_eq_real': "(real_of_int (a::int) + b = 0) = ( a - floor (-b) = 0 \<and> real_of_int (floor (-b)) + b = 0)" (is "?l = ?r")
+lemma split_int_eq_real': "(real_of_int (a::int) + b = 0) = ( a - \<lfloor>- b\<rfloor> = 0 \<and> real_of_int \<lfloor>- b\<rfloor> + b = 0)" (is "?l = ?r")
 proof-
   have "?l = (real_of_int a = -b)" by arith
   with split_int_eq_real[where a="a" and b="-b"] show ?thesis by simp arith
@@ -1862,8 +1867,8 @@ next
       using Ia by (simp add: Let_def split_def)
     also have "\<dots> = (real_of_int (abs j) rdvd real_of_int (?c*i) + (?N ?r))"
       by (simp only: rdvd_abs1[where d="j" and t="real_of_int (?c*i) + ?N ?r", symmetric]) simp
-    also have "\<dots> = ((abs j) dvd (floor ((?N ?r) + real_of_int (?c*i))) \<and>
-       (real_of_int (floor ((?N ?r) + real_of_int (?c*i))) = (real_of_int (?c*i) + (?N ?r))))"
+    also have "\<dots> = ((abs j) dvd \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> \<and>
+       (real_of_int \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> = (real_of_int (?c*i) + (?N ?r))))"
       by(simp only: int_rdvd_real[where i="abs j" and x="real_of_int (?c*i) + (?N ?r)"]) (simp only: ac_simps)
     also have "\<dots> = (?I (?l (Dvd j a)))" using cp cnz jnz
       by (simp add: Let_def split_def int_rdvd_iff[symmetric]
@@ -1876,11 +1881,11 @@ next
       using Ia by (simp add: Let_def split_def)
     also have "\<dots> = (real_of_int (abs j) rdvd real_of_int (?c*i) + (?N ?r))"
       by (simp only: rdvd_abs1[where d="j" and t="real_of_int (?c*i) + ?N ?r", symmetric]) simp
-    also have "\<dots> = ((abs j) dvd (floor ((?N ?r) + real_of_int (?c*i))) \<and>
-       (real_of_int (floor ((?N ?r) + real_of_int (?c*i))) = (real_of_int (?c*i) + (?N ?r))))"
+    also have "\<dots> = ((abs j) dvd \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> \<and>
+       (real_of_int \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> = (real_of_int (?c*i) + (?N ?r))))"
       by(simp only: int_rdvd_real[where i="abs j" and x="real_of_int (?c*i) + (?N ?r)"]) (simp only: ac_simps)
     also have "\<dots> = (?I (?l (Dvd j a)))" using cn cnz jnz
-      using rdvd_minus [where d="abs j" and t="real_of_int (?c*i + floor (?N ?r))", simplified, symmetric]
+      using rdvd_minus [where d="abs j" and t="real_of_int (?c*i + \<lfloor>?N ?r\<rfloor>)", simplified, symmetric]
       by (simp add: Let_def split_def int_rdvd_iff[symmetric]
         del: of_int_mult) (auto simp add: ac_simps)
     finally have ?case using l jnz by blast }
@@ -1908,8 +1913,8 @@ next
       using Ia by (simp add: Let_def split_def)
     also have "\<dots> = (\<not> (real_of_int (abs j) rdvd real_of_int (?c*i) + (?N ?r)))"
       by (simp only: rdvd_abs1[where d="j" and t="real_of_int (?c*i) + ?N ?r", symmetric]) simp
-    also have "\<dots> = (\<not> ((abs j) dvd (floor ((?N ?r) + real_of_int (?c*i))) \<and>
-       (real_of_int (floor ((?N ?r) + real_of_int (?c*i))) = (real_of_int (?c*i) + (?N ?r)))))"
+    also have "\<dots> = (\<not> ((abs j) dvd \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> \<and>
+       (real_of_int \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> = (real_of_int (?c*i) + (?N ?r)))))"
       by(simp only: int_rdvd_real[where i="abs j" and x="real_of_int (?c*i) + (?N ?r)"]) (simp only: ac_simps)
     also have "\<dots> = (?I (?l (NDvd j a)))" using cp cnz jnz
       by (simp add: Let_def split_def int_rdvd_iff[symmetric]
@@ -1922,11 +1927,11 @@ next
       using Ia by (simp add: Let_def split_def)
     also have "\<dots> = (\<not> (real_of_int (abs j) rdvd real_of_int (?c*i) + (?N ?r)))"
       by (simp only: rdvd_abs1[where d="j" and t="real_of_int (?c*i) + ?N ?r", symmetric]) simp
-    also have "\<dots> = (\<not> ((abs j) dvd (floor ((?N ?r) + real_of_int (?c*i))) \<and>
-       (real_of_int (floor ((?N ?r) + real_of_int (?c*i))) = (real_of_int (?c*i) + (?N ?r)))))"
+    also have "\<dots> = (\<not> ((abs j) dvd \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> \<and>
+       (real_of_int \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> = (real_of_int (?c*i) + (?N ?r)))))"
       by(simp only: int_rdvd_real[where i="abs j" and x="real_of_int (?c*i) + (?N ?r)"]) (simp only: ac_simps)
     also have "\<dots> = (?I (?l (NDvd j a)))" using cn cnz jnz
-      using rdvd_minus [where d="abs j" and t="real_of_int (?c*i + floor (?N ?r))", simplified, symmetric]
+      using rdvd_minus [where d="abs j" and t="real_of_int (?c*i + \<lfloor>?N ?r\<rfloor>)", simplified, symmetric]
       by (simp add: Let_def split_def int_rdvd_iff[symmetric]
         del: of_int_mult) (auto simp add: ac_simps)
     finally have ?case using l jnz by blast }
@@ -2045,7 +2050,7 @@ next
   hence rcpos: "real_of_int c > 0" by simp
   from 3 have nbe: "numbound0 e" by simp
   fix y
-  have "\<forall> x < (floor (- (Inum (y#bs) e) / (real_of_int c))). ?I x (?M (Eq (CN 0 c e))) = ?I x (Eq (CN 0 c e))"
+  have "\<forall> x < \<lfloor>- (Inum (y#bs) e) / (real_of_int c)\<rfloor>. ?I x (?M (Eq (CN 0 c e))) = ?I x (Eq (CN 0 c e))"
   proof (simp add: less_floor_iff , rule allI, rule impI)
     fix x :: int
     assume A: "real_of_int x + 1 \<le> - (Inum (y # bs) e / real_of_int c)"
@@ -2062,7 +2067,7 @@ next
   then have "c > 0" by simp hence rcpos: "real_of_int c > 0" by simp
   from 4 have nbe: "numbound0 e" by simp
   fix y
-  have "\<forall> x < (floor (- (Inum (y#bs) e) / (real_of_int c))). ?I x (?M (NEq (CN 0 c e))) = ?I x (NEq (CN 0 c e))"
+  have "\<forall> x < \<lfloor>- (Inum (y#bs) e) / (real_of_int c)\<rfloor>. ?I x (?M (NEq (CN 0 c e))) = ?I x (NEq (CN 0 c e))"
   proof (simp add: less_floor_iff , rule allI, rule impI)
     fix x :: int
     assume A: "real_of_int x + 1 \<le> - (Inum (y # bs) e / real_of_int c)"
@@ -2079,7 +2084,7 @@ next
   then have "c > 0" by simp hence rcpos: "real_of_int c > 0" by simp
   from 5 have nbe: "numbound0 e" by simp
   fix y
-  have "\<forall> x < (floor (- (Inum (y#bs) e) / (real_of_int c))). ?I x (?M (Lt (CN 0 c e))) = ?I x (Lt (CN 0 c e))"
+  have "\<forall> x < \<lfloor>- (Inum (y#bs) e) / (real_of_int c)\<rfloor>. ?I x (?M (Lt (CN 0 c e))) = ?I x (Lt (CN 0 c e))"
   proof (simp add: less_floor_iff , rule allI, rule impI)
     fix x :: int
     assume A: "real_of_int x + 1 \<le> - (Inum (y # bs) e / real_of_int c)"
@@ -2095,7 +2100,7 @@ next
   then have "c > 0" by simp hence rcpos: "real_of_int c > 0" by simp
   from 6 have nbe: "numbound0 e" by simp
   fix y
-  have "\<forall> x < (floor (- (Inum (y#bs) e) / (real_of_int c))). ?I x (?M (Le (CN 0 c e))) = ?I x (Le (CN 0 c e))"
+  have "\<forall> x < \<lfloor>- (Inum (y#bs) e) / (real_of_int c)\<rfloor>. ?I x (?M (Le (CN 0 c e))) = ?I x (Le (CN 0 c e))"
   proof (simp add: less_floor_iff , rule allI, rule impI)
     fix x :: int
     assume A: "real_of_int x + 1 \<le> - (Inum (y # bs) e / real_of_int c)"
@@ -2111,7 +2116,7 @@ next
   then have "c > 0" by simp hence rcpos: "real_of_int c > 0" by simp
   from 7 have nbe: "numbound0 e" by simp
   fix y
-  have "\<forall> x < (floor (- (Inum (y#bs) e) / (real_of_int c))). ?I x (?M (Gt (CN 0 c e))) = ?I x (Gt (CN 0 c e))"
+  have "\<forall> x < \<lfloor>- (Inum (y#bs) e) / (real_of_int c)\<rfloor>. ?I x (?M (Gt (CN 0 c e))) = ?I x (Gt (CN 0 c e))"
   proof (simp add: less_floor_iff , rule allI, rule impI)
     fix x :: int
     assume A: "real_of_int x + 1 \<le> - (Inum (y # bs) e / real_of_int c)"
@@ -2127,7 +2132,7 @@ next
   then have "c > 0" by simp hence rcpos: "real_of_int c > 0" by simp
   from 8 have nbe: "numbound0 e" by simp
   fix y
-  have "\<forall> x < (floor (- (Inum (y#bs) e) / (real_of_int c))). ?I x (?M (Ge (CN 0 c e))) = ?I x (Ge (CN 0 c e))"
+  have "\<forall> x < \<lfloor>- (Inum (y#bs) e) / (real_of_int c)\<rfloor>. ?I x (?M (Ge (CN 0 c e))) = ?I x (Ge (CN 0 c e))"
   proof (simp add: less_floor_iff , rule allI, rule impI)
     fix x :: int
     assume A: "real_of_int x + 1 \<le> - (Inum (y # bs) e / real_of_int c)"
@@ -2580,7 +2585,7 @@ next
   case (7 c e) hence p: "Ifm (real_of_int x #bs) (Gt (CN 0 c e))" and c1: "c=1"
     and bn:"numbound0 e" and ie1:"isint e (a#bs)" using dvd1_eq1[where x="c"] by simp_all
   let ?e = "Inum (real_of_int x # bs) e"
-  from ie1 have ie: "real_of_int (floor ?e) = ?e" using isint_iff[where n="e" and bs="a#bs"]
+  from ie1 have ie: "real_of_int \<lfloor>?e\<rfloor> = ?e" using isint_iff[where n="e" and bs="a#bs"]
       numbound0_I[OF bn,where b="a" and b'="real_of_int x" and bs="bs"]
     by (simp add: isint_iff)
     {assume "real_of_int (x-d) +?e > 0" hence ?case using c1
@@ -2593,11 +2598,11 @@ next
       from 7(5)[simplified simp_thms Inum.simps \<beta>.simps list.set bex_simps numbound0_I[OF bn,where b="a" and b'="real_of_int x" and bs="bs"]]
       have nob: "\<not> (\<exists> j\<in> {1 ..d}. real_of_int x =  - ?e + real_of_int j)" by auto
       from H p have "real_of_int x + ?e > 0 \<and> real_of_int x + ?e \<le> real_of_int d" by (simp add: c1)
-      hence "real_of_int (x + floor ?e) > real_of_int (0::int) \<and> real_of_int (x + floor ?e) \<le> real_of_int d"
+      hence "real_of_int (x + \<lfloor>?e\<rfloor>) > real_of_int (0::int) \<and> real_of_int (x + \<lfloor>?e\<rfloor>) \<le> real_of_int d"
         using ie by simp
-      hence "x + floor ?e \<ge> 1 \<and> x + floor ?e \<le> d"  by simp
-      hence "\<exists> (j::int) \<in> {1 .. d}. j = x + floor ?e" by simp
-      hence "\<exists> (j::int) \<in> {1 .. d}. real_of_int x = real_of_int (- floor ?e + j)" by force
+      hence "x + \<lfloor>?e\<rfloor> \<ge> 1 \<and> x + \<lfloor>?e\<rfloor> \<le> d"  by simp
+      hence "\<exists> (j::int) \<in> {1 .. d}. j = x + \<lfloor>?e\<rfloor>" by simp
+      hence "\<exists> (j::int) \<in> {1 .. d}. real_of_int x = real_of_int (- \<lfloor>?e\<rfloor> + j)" by force
       hence "\<exists> (j::int) \<in> {1 .. d}. real_of_int x = - ?e + real_of_int j"
         by (simp add: ie[simplified isint_iff])
       with nob have ?case by auto}
@@ -2606,7 +2611,7 @@ next
   case (8 c e) hence p: "Ifm (real_of_int x #bs) (Ge (CN 0 c e))" and c1: "c=1" and bn:"numbound0 e"
     and ie1:"isint e (a #bs)" using dvd1_eq1[where x="c"] by simp+
     let ?e = "Inum (real_of_int x # bs) e"
-    from ie1 have ie: "real_of_int (floor ?e) = ?e" using numbound0_I[OF bn,where b="real_of_int x" and b'="a" and bs="bs"] isint_iff[where n="e" and bs="(real_of_int x)#bs"]
+    from ie1 have ie: "real_of_int \<lfloor>?e\<rfloor> = ?e" using numbound0_I[OF bn,where b="real_of_int x" and b'="a" and bs="bs"] isint_iff[where n="e" and bs="(real_of_int x)#bs"]
       by (simp add: isint_iff)
     {assume "real_of_int (x-d) +?e \<ge> 0" hence ?case using  c1
       numbound0_I[OF bn,where b="real_of_int (x-d)" and b'="real_of_int x" and bs="bs"]
@@ -2618,12 +2623,12 @@ next
       from 8(5)[simplified simp_thms Inum.simps \<beta>.simps list.set bex_simps numbound0_I[OF bn,where b="a" and b'="real_of_int x" and bs="bs"]]
       have nob: "\<not> (\<exists> j\<in> {1 ..d}. real_of_int x =  - ?e - 1 + real_of_int j)" by auto
       from H p have "real_of_int x + ?e \<ge> 0 \<and> real_of_int x + ?e < real_of_int d" by (simp add: c1)
-      hence "real_of_int (x + floor ?e) \<ge> real_of_int (0::int) \<and> real_of_int (x + floor ?e) < real_of_int d"
+      hence "real_of_int (x + \<lfloor>?e\<rfloor>) \<ge> real_of_int (0::int) \<and> real_of_int (x + \<lfloor>?e\<rfloor>) < real_of_int d"
         using ie by simp
-      hence "x + floor ?e +1 \<ge> 1 \<and> x + floor ?e + 1 \<le> d"  by simp
-      hence "\<exists> (j::int) \<in> {1 .. d}. j = x + floor ?e + 1" by simp
-      hence "\<exists> (j::int) \<in> {1 .. d}. x= - floor ?e - 1 + j" by (simp add: algebra_simps)
-      hence "\<exists> (j::int) \<in> {1 .. d}. real_of_int x= real_of_int (- floor ?e - 1 + j)" by presburger
+      hence "x + \<lfloor>?e\<rfloor> + 1 \<ge> 1 \<and> x + \<lfloor>?e\<rfloor> + 1 \<le> d" by simp
+      hence "\<exists> (j::int) \<in> {1 .. d}. j = x + \<lfloor>?e\<rfloor> + 1" by simp
+      hence "\<exists> (j::int) \<in> {1 .. d}. x= - \<lfloor>?e\<rfloor> - 1 + j" by (simp add: algebra_simps)
+      hence "\<exists> (j::int) \<in> {1 .. d}. real_of_int x= real_of_int (- \<lfloor>?e\<rfloor> - 1 + j)" by presburger
       hence "\<exists> (j::int) \<in> {1 .. d}. real_of_int x= - ?e - 1 + real_of_int j"
         by (simp add: ie[simplified isint_iff])
       with nob have ?case by simp }
@@ -2657,16 +2662,16 @@ next
     and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
   let ?e = "Inum (real_of_int x # bs) e"
   from 9 have "isint e (a #bs)"  by simp
-  hence ie: "real_of_int (floor ?e) = ?e" using isint_iff[where n="e" and bs="(real_of_int x)#bs"] numbound0_I[OF bn,where b="real_of_int x" and b'="a" and bs="bs"]
+  hence ie: "real_of_int \<lfloor>?e\<rfloor> = ?e" using isint_iff[where n="e" and bs="(real_of_int x)#bs"] numbound0_I[OF bn,where b="real_of_int x" and b'="a" and bs="bs"]
     by (simp add: isint_iff)
   from 9 have id: "j dvd d" by simp
-  from c1 ie[symmetric] have "?p x = (real_of_int j rdvd real_of_int (x+ floor ?e))" by simp
-  also have "\<dots> = (j dvd x + floor ?e)"
-    using int_rdvd_real[where i="j" and x="real_of_int (x+ floor ?e)"] by simp
-  also have "\<dots> = (j dvd x - d + floor ?e)"
-    using dvd_period[OF id, where x="x" and c="-1" and t="floor ?e"] by simp
-  also have "\<dots> = (real_of_int j rdvd real_of_int (x - d + floor ?e))"
-    using int_rdvd_real[where i="j" and x="real_of_int (x-d + floor ?e)",symmetric, simplified]
+  from c1 ie[symmetric] have "?p x = (real_of_int j rdvd real_of_int (x + \<lfloor>?e\<rfloor>))" by simp
+  also have "\<dots> = (j dvd x + \<lfloor>?e\<rfloor>)"
+    using int_rdvd_real[where i="j" and x="real_of_int (x + \<lfloor>?e\<rfloor>)"] by simp
+  also have "\<dots> = (j dvd x - d + \<lfloor>?e\<rfloor>)"
+    using dvd_period[OF id, where x="x" and c="-1" and t="\<lfloor>?e\<rfloor>"] by simp
+  also have "\<dots> = (real_of_int j rdvd real_of_int (x - d + \<lfloor>?e\<rfloor>))"
+    using int_rdvd_real[where i="j" and x="real_of_int (x - d + \<lfloor>?e\<rfloor>)",symmetric, simplified]
       ie by simp
   also have "\<dots> = (real_of_int j rdvd real_of_int x - real_of_int d + ?e)"
     using ie by simp
@@ -2676,16 +2681,16 @@ next
   case (10 j c e) hence p: "Ifm (real_of_int x #bs) (NDvd j (CN 0 c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
   let ?e = "Inum (real_of_int x # bs) e"
   from 10 have "isint e (a#bs)"  by simp
-  hence ie: "real_of_int (floor ?e) = ?e" using numbound0_I[OF bn,where b="real_of_int x" and b'="a" and bs="bs"] isint_iff[where n="e" and bs="(real_of_int x)#bs"]
+  hence ie: "real_of_int \<lfloor>?e\<rfloor> = ?e" using numbound0_I[OF bn,where b="real_of_int x" and b'="a" and bs="bs"] isint_iff[where n="e" and bs="(real_of_int x)#bs"]
     by (simp add: isint_iff)
   from 10 have id: "j dvd d" by simp
-  from c1 ie[symmetric] have "?p x = (\<not> real_of_int j rdvd real_of_int (x+ floor ?e))" by simp
-  also have "\<dots> = (\<not> j dvd x + floor ?e)"
-    using int_rdvd_real[where i="j" and x="real_of_int (x+ floor ?e)"] by simp
-  also have "\<dots> = (\<not> j dvd x - d + floor ?e)"
-    using dvd_period[OF id, where x="x" and c="-1" and t="floor ?e"] by simp
-  also have "\<dots> = (\<not> real_of_int j rdvd real_of_int (x - d + floor ?e))"
-    using int_rdvd_real[where i="j" and x="real_of_int (x-d + floor ?e)",symmetric, simplified]
+  from c1 ie[symmetric] have "?p x = (\<not> real_of_int j rdvd real_of_int (x + \<lfloor>?e\<rfloor>))" by simp
+  also have "\<dots> = (\<not> j dvd x + \<lfloor>?e\<rfloor>)"
+    using int_rdvd_real[where i="j" and x="real_of_int (x + \<lfloor>?e\<rfloor>)"] by simp
+  also have "\<dots> = (\<not> j dvd x - d + \<lfloor>?e\<rfloor>)"
+    using dvd_period[OF id, where x="x" and c="-1" and t="\<lfloor>?e\<rfloor>"] by simp
+  also have "\<dots> = (\<not> real_of_int j rdvd real_of_int (x - d + \<lfloor>?e\<rfloor>))"
+    using int_rdvd_real[where i="j" and x="real_of_int (x - d + \<lfloor>?e\<rfloor>)",symmetric, simplified]
       ie by simp
   also have "\<dots> = (\<not> real_of_int j rdvd real_of_int x - real_of_int d + ?e)"
     using ie by simp
@@ -2745,12 +2750,12 @@ theorem cp_thm:
 proof-
   from minusinf_inf[OF lp]
   have th: "\<exists>(z::int). \<forall>x<z. ?P (real_of_int x) = ?M x" by blast
-  let ?B' = "{floor (?I b) | b. b\<in> ?B}"
-  from \<beta>_int[OF lp] isint_iff[where bs="a # bs"] have B: "\<forall> b\<in> ?B. real_of_int (floor (?I b)) = ?I b" by simp
+  let ?B' = "{\<lfloor>?I b\<rfloor> | b. b\<in> ?B}"
+  from \<beta>_int[OF lp] isint_iff[where bs="a # bs"] have B: "\<forall> b\<in> ?B. real_of_int \<lfloor>?I b\<rfloor> = ?I b" by simp
   from B[rule_format]
-  have "(\<exists>j\<in>?D. \<exists>b\<in> ?B. ?P (?I b + real_of_int j)) = (\<exists>j\<in>?D. \<exists>b\<in> ?B. ?P (real_of_int (floor (?I b)) + real_of_int j))"
+  have "(\<exists>j\<in>?D. \<exists>b\<in> ?B. ?P (?I b + real_of_int j)) = (\<exists>j\<in>?D. \<exists>b\<in> ?B. ?P (real_of_int \<lfloor>?I b\<rfloor> + real_of_int j))"
     by simp
-  also have "\<dots> = (\<exists>j\<in>?D. \<exists>b\<in> ?B. ?P (real_of_int (floor (?I b) + j)))" by simp
+  also have "\<dots> = (\<exists>j\<in>?D. \<exists>b\<in> ?B. ?P (real_of_int (\<lfloor>?I b\<rfloor> + j)))" by simp
   also have"\<dots> = (\<exists> j \<in> ?D. \<exists> b \<in> ?B'. ?P (real_of_int (b + j)))"  by blast
   finally have BB':
     "(\<exists>j\<in>?D. \<exists>b\<in> ?B. ?P (?I b + real_of_int j)) = (\<exists> j \<in> ?D. \<exists> b \<in> ?B'. ?P (real_of_int (b + j)))"
@@ -2820,23 +2825,22 @@ lemma \<sigma>_\<rho>:
   and kpos: "real_of_int k > 0"
   and tnb: "numbound0 t"
   and tint: "isint t (real_of_int x#bs)"
-  and kdt: "k dvd floor (Inum (b'#bs) t)"
-  shows "Ifm (real_of_int x#bs) (\<sigma>_\<rho> p (t,k)) =
-  (Ifm ((real_of_int ((floor (Inum (b'#bs) t)) div k))#bs) p)"
-  (is "?I (real_of_int x) (?s p) = (?I (real_of_int ((floor (?N b' t)) div k)) p)" is "_ = (?I ?tk p)")
+  and kdt: "k dvd \<lfloor>Inum (b'#bs) t\<rfloor>"
+  shows "Ifm (real_of_int x#bs) (\<sigma>_\<rho> p (t,k)) = (Ifm ((real_of_int (\<lfloor>Inum (b'#bs) t\<rfloor> div k))#bs) p)"
+  (is "?I (real_of_int x) (?s p) = (?I (real_of_int (\<lfloor>?N b' t\<rfloor> div k)) p)" is "_ = (?I ?tk p)")
 using linp kpos tnb
 proof(induct p rule: \<sigma>_\<rho>.induct)
   case (3 c e)
   from 3 have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c"
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from kdc have ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real_of_int x"] by (simp add: ti) }
   moreover
   { assume *: "\<not> k dvd c"
     from kpos have knz': "real_of_int k \<noteq> 0" by simp
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t"
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t"
       using isint_def by simp
     from assms * have "?I (real_of_int x) (?s (Eq (CN 0 c e))) = ((real_of_int c * (?N (real_of_int x) t / real_of_int k) + ?N (real_of_int x) e)* real_of_int k = 0)"
       using real_of_int_div[OF kdt]
@@ -2855,14 +2859,14 @@ next
   case (4 c e)
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c"
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from kdc have  ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real_of_int x"] by (simp add: ti) }
   moreover
   { assume *: "\<not> k dvd c"
     from kpos have knz': "real_of_int k \<noteq> 0" by simp
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from assms * have "?I (real_of_int x) (?s (NEq (CN 0 c e))) = ((real_of_int c * (?N (real_of_int x) t / real_of_int k) + ?N (real_of_int x) e)* real_of_int k \<noteq> 0)"
       using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
@@ -2880,13 +2884,13 @@ next
   case (5 c e)
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c"
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from kdc have  ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real_of_int x"] by (simp add: ti) }
   moreover
   { assume *: "\<not> k dvd c"
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from assms * have "?I (real_of_int x) (?s (Lt (CN 0 c e))) = ((real_of_int c * (?N (real_of_int x) t / real_of_int k) + ?N (real_of_int x) e)* real_of_int k < 0)"
       using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
@@ -2904,13 +2908,13 @@ next
   case (6 c e)
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c"
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from kdc have  ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real_of_int x"] by (simp add: ti) }
   moreover
   { assume *: "\<not> k dvd c"
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from assms * have "?I (real_of_int x) (?s (Le (CN 0 c e))) = ((real_of_int c * (?N (real_of_int x) t / real_of_int k) + ?N (real_of_int x) e)* real_of_int k \<le> 0)"
       using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
@@ -2928,13 +2932,13 @@ next
   case (7 c e)
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c"
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from kdc have  ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real_of_int x"] by (simp add: ti) }
   moreover
   { assume *: "\<not> k dvd c"
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from assms * have "?I (real_of_int x) (?s (Gt (CN 0 c e))) = ((real_of_int c * (?N (real_of_int x) t / real_of_int k) + ?N (real_of_int x) e)* real_of_int k > 0)"
       using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
@@ -2952,13 +2956,13 @@ next
   case (8 c e)
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c"
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from kdc have  ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real_of_int x"] by (simp add: ti) }
   moreover
   { assume *: "\<not> k dvd c"
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from assms * have "?I (real_of_int x) (?s (Ge (CN 0 c e))) = ((real_of_int c * (?N (real_of_int x) t / real_of_int k) + ?N (real_of_int x) e)* real_of_int k \<ge> 0)"
       using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
@@ -2976,14 +2980,14 @@ next
   case (9 i c e)
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c"
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from kdc have ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real_of_int x"] by (simp add: ti) }
   moreover
   { assume *: "\<not> k dvd c"
     from kpos have knz: "k\<noteq>0" by simp hence knz': "real_of_int k \<noteq> 0" by simp
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from assms * have "?I (real_of_int x) (?s (Dvd i (CN 0 c e))) = (real_of_int i * real_of_int k rdvd (real_of_int c * (?N (real_of_int x) t / real_of_int k) + ?N (real_of_int x) e)* real_of_int k)"
       using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
@@ -3000,14 +3004,14 @@ next
   case (10 i c e)
   then have cp: "c > 0" and nb: "numbound0 e" by auto
   { assume kdc: "k dvd c"
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from kdc have  ?case using real_of_int_div[OF kdc] real_of_int_div[OF kdt]
       numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
       numbound0_I[OF nb, where bs="bs" and b="?tk" and b'="real_of_int x"] by (simp add: ti) }
   moreover
   { assume *: "\<not> k dvd c"
     from kpos have knz: "k\<noteq>0" by simp hence knz': "real_of_int k \<noteq> 0" by simp
-    from tint have ti: "real_of_int (floor (?N (real_of_int x) t)) = ?N (real_of_int x) t" using isint_def by simp
+    from tint have ti: "real_of_int \<lfloor>?N (real_of_int x) t\<rfloor> = ?N (real_of_int x) t" using isint_def by simp
     from assms * have "?I (real_of_int x) (?s (NDvd i (CN 0 c e))) = (\<not> (real_of_int i * real_of_int k rdvd (real_of_int c * (?N (real_of_int x) t / real_of_int k) + ?N (real_of_int x) e)* real_of_int k))"
       using real_of_int_div[OF kdt]
         numbound0_I[OF tnb, where bs="bs" and b="b'" and b'="real_of_int x"]
@@ -3020,8 +3024,8 @@ next
       by (simp add: ti)
     finally have ?case . }
   ultimately show ?case by blast
-qed (simp_all add: bound0_I[where bs="bs" and b="real_of_int ((floor (?N b' t)) div k)" and b'="real_of_int x"]
-  numbound0_I[where bs="bs" and b="real_of_int ((floor (?N b' t)) div k)" and b'="real_of_int x"])
+qed (simp_all add: bound0_I[where bs="bs" and b="real_of_int (\<lfloor>?N b' t\<rfloor> div k)" and b'="real_of_int x"]
+  numbound0_I[where bs="bs" and b="real_of_int (\<lfloor>?N b' t\<rfloor> div k)" and b'="real_of_int x"])
 
 
 lemma \<sigma>_\<rho>_nb: assumes lp:"iszlfm p (a#bs)" and nb: "numbound0 t"
@@ -3088,7 +3092,7 @@ next
     and nob: "\<forall> j\<in> {1 .. c*d}. real_of_int (c*i) \<noteq> - ?N i e + real_of_int j"
     and pi: "real_of_int (c*i) + ?N i e > 0" and cp': "real_of_int c >0"
     by simp+
-  let ?fe = "floor (?N i e)"
+  let ?fe = "\<lfloor>?N i e\<rfloor>"
   from pi cp have th:"(real_of_int i +?N i e / real_of_int c)*real_of_int c > 0" by (simp add: algebra_simps)
   from pi ei[simplified isint_iff] have "real_of_int (c*i + ?fe) > real_of_int (0::int)" by simp
   hence pi': "c*i + ?fe > 0" by (simp only: of_int_less_iff[symmetric])
@@ -3111,7 +3115,7 @@ next
     and nob: "\<forall> j\<in> {1 .. c*d}. real_of_int (c*i) \<noteq> - 1 - ?N i e + real_of_int j"
     and pi: "real_of_int (c*i) + ?N i e \<ge> 0" and cp': "real_of_int c >0"
     by simp+
-  let ?fe = "floor (?N i e)"
+  let ?fe = "\<lfloor>?N i e\<rfloor>"
   from pi cp have th:"(real_of_int i +?N i e / real_of_int c)*real_of_int c \<ge> 0" by (simp add: algebra_simps)
   from pi ei[simplified isint_iff] have "real_of_int (c*i + ?fe) \<ge> real_of_int (0::int)" by simp
   hence pi': "c*i + 1 + ?fe \<ge> 1" by (simp only: of_int_le_iff[symmetric])
@@ -3137,16 +3141,16 @@ next
   case (9 j c e)  hence p: "real_of_int j rdvd real_of_int (c*i) + ?N i e" (is "?p x") and cp: "c > 0" and bn:"numbound0 e"  by simp+
   let ?e = "Inum (real_of_int i # bs) e"
   from 9 have "isint e (real_of_int i #bs)"  by simp
-  hence ie: "real_of_int (floor ?e) = ?e" using isint_iff[where n="e" and bs="(real_of_int i)#bs"] numbound0_I[OF bn,where b="real_of_int i" and b'="real_of_int i" and bs="bs"]
+  hence ie: "real_of_int \<lfloor>?e\<rfloor> = ?e" using isint_iff[where n="e" and bs="(real_of_int i)#bs"] numbound0_I[OF bn,where b="real_of_int i" and b'="real_of_int i" and bs="bs"]
     by (simp add: isint_iff)
   from 9 have id: "j dvd d" by simp
-  from ie[symmetric] have "?p i = (real_of_int j rdvd real_of_int (c*i+ floor ?e))" by simp
-  also have "\<dots> = (j dvd c*i + floor ?e)"
-    using int_rdvd_iff [where i="j" and t="c*i+ floor ?e"] by simp
-  also have "\<dots> = (j dvd c*i - c*d + floor ?e)"
-    using dvd_period[OF id, where x="c*i" and c="-c" and t="floor ?e"] by simp
-  also have "\<dots> = (real_of_int j rdvd real_of_int (c*i - c*d + floor ?e))"
-    using int_rdvd_iff[where i="j" and t="(c*i - c*d + floor ?e)",symmetric, simplified]
+  from ie[symmetric] have "?p i = (real_of_int j rdvd real_of_int (c*i + \<lfloor>?e\<rfloor>))" by simp
+  also have "\<dots> = (j dvd c*i + \<lfloor>?e\<rfloor>)"
+    using int_rdvd_iff [where i="j" and t="c*i + \<lfloor>?e\<rfloor>"] by simp
+  also have "\<dots> = (j dvd c*i - c*d + \<lfloor>?e\<rfloor>)"
+    using dvd_period[OF id, where x="c*i" and c="-c" and t="\<lfloor>?e\<rfloor>"] by simp
+  also have "\<dots> = (real_of_int j rdvd real_of_int (c*i - c*d + \<lfloor>?e\<rfloor>))"
+    using int_rdvd_iff[where i="j" and t="(c*i - c*d + \<lfloor>?e\<rfloor>)",symmetric, simplified]
       ie by simp
   also have "\<dots> = (real_of_int j rdvd real_of_int (c*(i - d)) + ?e)"
     using ie by (simp add:algebra_simps)
@@ -3159,17 +3163,17 @@ next
     by simp+
   let ?e = "Inum (real_of_int i # bs) e"
   from 10 have "isint e (real_of_int i #bs)"  by simp
-  hence ie: "real_of_int (floor ?e) = ?e"
+  hence ie: "real_of_int \<lfloor>?e\<rfloor> = ?e"
     using isint_iff[where n="e" and bs="(real_of_int i)#bs"] numbound0_I[OF bn,where b="real_of_int i" and b'="real_of_int i" and bs="bs"]
     by (simp add: isint_iff)
   from 10 have id: "j dvd d" by simp
-  from ie[symmetric] have "?p i = (\<not> (real_of_int j rdvd real_of_int (c*i+ floor ?e)))" by simp
-  also have "\<dots> = Not (j dvd c*i + floor ?e)"
-    using int_rdvd_iff [where i="j" and t="c*i+ floor ?e"] by simp
-  also have "\<dots> = Not (j dvd c*i - c*d + floor ?e)"
-    using dvd_period[OF id, where x="c*i" and c="-c" and t="floor ?e"] by simp
-  also have "\<dots> = Not (real_of_int j rdvd real_of_int (c*i - c*d + floor ?e))"
-    using int_rdvd_iff[where i="j" and t="(c*i - c*d + floor ?e)",symmetric, simplified]
+  from ie[symmetric] have "?p i = (\<not> (real_of_int j rdvd real_of_int (c*i + \<lfloor>?e\<rfloor>)))" by simp
+  also have "\<dots> = Not (j dvd c*i + \<lfloor>?e\<rfloor>)"
+    using int_rdvd_iff [where i="j" and t="c*i + \<lfloor>?e\<rfloor>"] by simp
+  also have "\<dots> = Not (j dvd c*i - c*d + \<lfloor>?e\<rfloor>)"
+    using dvd_period[OF id, where x="c*i" and c="-c" and t="\<lfloor>?e\<rfloor>"] by simp
+  also have "\<dots> = Not (real_of_int j rdvd real_of_int (c*i - c*d + \<lfloor>?e\<rfloor>))"
+    using int_rdvd_iff[where i="j" and t="(c*i - c*d + \<lfloor>?e\<rfloor>)",symmetric, simplified]
       ie by simp
   also have "\<dots> = Not (real_of_int j rdvd real_of_int (c*(i - d)) + ?e)"
     using ie by (simp add:algebra_simps)
@@ -3195,20 +3199,19 @@ proof(clarify)
     fix e c j assume ecR: "(e,c) \<in> set (\<rho> p)" and jD: "j\<in> {1 .. c*d}"
       and cx: "real_of_int (c*x) = Inum (real_of_int x#bs) e + real_of_int j"
     let ?e = "Inum (real_of_int x#bs) e"
-    let ?fe = "floor ?e"
     from \<rho>_l[OF lp'] ecR have ei:"isint e (real_of_int x#bs)" and cp:"c>0" and nb:"numbound0 e"
       by auto
     from numbound0_gen [OF nb ei, rule_format,where y="a"] have "isint e (a#bs)" .
-    from cx ei[simplified isint_iff] have "real_of_int (c*x) = real_of_int (?fe + j)" by simp
-    hence cx: "c*x = ?fe + j" by (simp only: of_int_eq_iff)
-    hence cdej:"c dvd ?fe + j" by (simp add: dvd_def) (rule_tac x="x" in exI, simp)
-    hence "real_of_int c rdvd real_of_int (?fe + j)" by (simp only: int_rdvd_iff)
+    from cx ei[simplified isint_iff] have "real_of_int (c*x) = real_of_int (\<lfloor>?e\<rfloor> + j)" by simp
+    hence cx: "c*x = \<lfloor>?e\<rfloor> + j" by (simp only: of_int_eq_iff)
+    hence cdej:"c dvd \<lfloor>?e\<rfloor> + j" by (simp add: dvd_def) (rule_tac x="x" in exI, simp)
+    hence "real_of_int c rdvd real_of_int (\<lfloor>?e\<rfloor> + j)" by (simp only: int_rdvd_iff)
     hence rcdej: "real_of_int c rdvd ?e + real_of_int j" by (simp add: ei[simplified isint_iff])
-    from cx have "(c*x) div c = (?fe + j) div c" by simp
-    with cp have "x = (?fe + j) div c" by simp
-    with px have th: "?P ((?fe + j) div c)" by auto
+    from cx have "(c*x) div c = (\<lfloor>?e\<rfloor> + j) div c" by simp
+    with cp have "x = (\<lfloor>?e\<rfloor> + j) div c" by simp
+    with px have th: "?P ((\<lfloor>?e\<rfloor> + j) div c)" by auto
     from cp have cp': "real_of_int c > 0" by simp
-    from cdej have cdej': "c dvd floor (Inum (real_of_int x#bs) (Add e (C j)))" by simp
+    from cdej have cdej': "c dvd \<lfloor>Inum (real_of_int x#bs) (Add e (C j))\<rfloor>" by simp
     from nb have nb': "numbound0 (Add e (C j))" by simp
     have ji: "isint (C j) (real_of_int x#bs)" by (simp add: isint_def)
     from isint_add[OF ei ji] have ei':"isint (Add e (C j)) (real_of_int x#bs)" .
@@ -3246,8 +3249,8 @@ proof-
     from spx' have rcdej:"real_of_int c rdvd (Inum (real_of_int i#bs) (Add e (C j)))"
       and sr:"Ifm (real_of_int i#bs) (\<sigma>_\<rho> p (Add e (C j),c))" by (simp add: \<sigma>_def)+
     from rcdej eji[simplified isint_iff]
-    have "real_of_int c rdvd real_of_int (floor (Inum (real_of_int i#bs) (Add e (C j))))" by simp
-    hence cdej:"c dvd floor (Inum (real_of_int i#bs) (Add e (C j)))" by (simp only: int_rdvd_iff)
+    have "real_of_int c rdvd real_of_int \<lfloor>Inum (real_of_int i#bs) (Add e (C j))\<rfloor>" by simp
+    hence cdej:"c dvd \<lfloor>Inum (real_of_int i#bs) (Add e (C j))\<rfloor>" by (simp only: int_rdvd_iff)
     from cp have cp': "real_of_int c > 0" by simp
     from \<sigma>_\<rho>[OF lp cp' nb' eji cdej] spx' have "?P (\<lfloor>Inum (real_of_int i # bs) (Add e (C j))\<rfloor> div c)"
       by (simp add: \<sigma>_def)
@@ -3413,12 +3416,12 @@ proof(induct t rule: rsplit0.induct)
       hence nb: "numbound0 s'" by simp
       from H have nf: "isrlfm (?p (p',n',s') j)" using fp_def np by simp
       let ?nxs = "CN 0 n' s'"
-      let ?l = "floor (?N s') + j"
+      let ?l = "\<lfloor>?N s'\<rfloor> + j"
       from H
       have "?I (?p (p',n',s') j) \<longrightarrow>
           (((?N ?nxs \<ge> real_of_int ?l) \<and> (?N ?nxs < real_of_int (?l + 1))) \<and> (?N a = ?N ?nxs ))"
         by (simp add: fp_def np algebra_simps)
-      also have "\<dots> \<longrightarrow> ((floor (?N ?nxs) = ?l) \<and> (?N a = ?N ?nxs ))"
+      also have "\<dots> \<longrightarrow> \<lfloor>?N ?nxs\<rfloor> = ?l \<and> ?N a = ?N ?nxs"
         using floor_unique_iff[where x="?N ?nxs" and a="?l"] by simp
       moreover
       have "\<dots> \<longrightarrow> (?N (Floor a) = ?N ((Add (Floor s') (C j))))" by simp
@@ -3439,12 +3442,12 @@ proof(induct t rule: rsplit0.induct)
       hence nb: "numbound0 s'" by simp
       from H have nf: "isrlfm (?p (p',n',s') j)" using fp_def np by simp
       let ?nxs = "CN 0 n' s'"
-      let ?l = "floor (?N s') + j"
+      let ?l = "\<lfloor>?N s'\<rfloor> + j"
       from H
       have "?I (?p (p',n',s') j) \<longrightarrow>
           (((?N ?nxs \<ge> real_of_int ?l) \<and> (?N ?nxs < real_of_int (?l + 1))) \<and> (?N a = ?N ?nxs ))"
         by (simp add: np fp_def algebra_simps)
-      also have "\<dots> \<longrightarrow> ((floor (?N ?nxs) = ?l) \<and> (?N a = ?N ?nxs ))"
+      also have "\<dots> \<longrightarrow> \<lfloor>?N ?nxs\<rfloor> = ?l \<and> ?N a = ?N ?nxs"
         using floor_unique_iff[where x="?N ?nxs" and a="?l"] by simp
       moreover
       have "\<dots> \<longrightarrow> (?N (Floor a) = ?N ((Add (Floor s') (C j))))"  by simp
@@ -3461,7 +3464,7 @@ qed (auto simp add: Let_def split_def algebra_simps)
 lemma real_in_int_intervals:
   assumes xb: "real_of_int m \<le> x \<and> x < real_of_int ((n::int) + 1)"
   shows "\<exists> j\<in> {m.. n}. real_of_int j \<le> x \<and> x < real_of_int (j+1)" (is "\<exists> j\<in> ?N. ?P j")
-by (rule bexI[where P="?P" and x="floor x" and A="?N"])
+by (rule bexI[where P="?P" and x="\<lfloor>x\<rfloor>" and A="?N"])
 (auto simp add: floor_less_iff[where x="x" and z="n+1", simplified]
   xb[simplified] floor_mono[where x="real_of_int m" and y="x", OF conjunct1[OF xb], simplified floor_of_int[where z="m"]])
 
@@ -3760,9 +3763,9 @@ using u0 u1  by auto
 
 lemma rdvd01_cs:
   assumes up: "u \<ge> 0" and u1: "u<1" and np: "real_of_int n > 0"
-  shows "(real_of_int (i::int) rdvd real_of_int (n::int) * u - s) = (\<exists> j\<in> {0 .. n - 1}. real_of_int n * u = s - real_of_int (floor s) + real_of_int j \<and> real_of_int i rdvd real_of_int (j - floor s))" (is "?lhs = ?rhs")
+  shows "(real_of_int (i::int) rdvd real_of_int (n::int) * u - s) = (\<exists> j\<in> {0 .. n - 1}. real_of_int n * u = s - real_of_int \<lfloor>s\<rfloor> + real_of_int j \<and> real_of_int i rdvd real_of_int (j - \<lfloor>s\<rfloor>))" (is "?lhs = ?rhs")
 proof-
-  let ?ss = "s - real_of_int (floor s)"
+  let ?ss = "s - real_of_int \<lfloor>s\<rfloor>"
   from real_of_int_floor_add_one_gt[where r="s", simplified myless[of "s"]]
     of_int_floor_le  have ss0:"?ss \<ge> 0" and ss1:"?ss < 1" by (auto simp: floor_less_cancel)
   from np have n0: "real_of_int n \<ge> 0" by simp
@@ -3770,10 +3773,10 @@ proof-
   have nu0:"real_of_int n * u - s \<ge> -s" and nun:"real_of_int n * u -s < real_of_int n - s" by auto
   from int_rdvd_real[where i="i" and x="real_of_int (n::int) * u - s"]
   have "real_of_int i rdvd real_of_int n * u - s =
-    (i dvd floor (real_of_int n * u -s) \<and> (real_of_int (floor (real_of_int n * u - s)) = real_of_int n * u - s ))"
+    (i dvd \<lfloor>real_of_int n * u - s\<rfloor> \<and> (real_of_int \<lfloor>real_of_int n * u - s\<rfloor> = real_of_int n * u - s ))"
     (is "_ = (?DE)" is "_ = (?D \<and> ?E)") by simp
-  also have "\<dots> = (?DE \<and> real_of_int(floor (real_of_int n * u - s) + floor s)\<ge> -?ss
-    \<and> real_of_int(floor (real_of_int n * u - s) + floor s)< real_of_int n - ?ss)" (is "_=(?DE \<and>real_of_int ?a \<ge> _ \<and> real_of_int ?a < _)")
+  also have "\<dots> = (?DE \<and> real_of_int (\<lfloor>real_of_int n * u - s\<rfloor> + \<lfloor>s\<rfloor>) \<ge> -?ss
+    \<and> real_of_int (\<lfloor>real_of_int n * u - s\<rfloor> + \<lfloor>s\<rfloor>) < real_of_int n - ?ss)" (is "_=(?DE \<and>real_of_int ?a \<ge> _ \<and> real_of_int ?a < _)")
     using nu0 nun  by auto
   also have "\<dots> = (?DE \<and> ?a \<ge> 0 \<and> ?a < n)" by(simp only: small_le[OF ss0 ss1] small_lt[OF ss0 ss1])
   also have "\<dots> = (?DE \<and> (\<exists> j\<in> {0 .. (n - 1)}. ?a = j))" by simp
@@ -3804,7 +3807,7 @@ proof-
   from foldr_disj_map[where xs="[0..n - 1]" and bs="x#bs" and f="?f"]
   have "Ifm (x#bs) (DVDJ i n s) = (\<exists> j\<in> {0 .. (n - 1)}. Ifm (x#bs) (?f j))"
     by (simp add: np DVDJ_def)
-  also have "\<dots> = (\<exists> j\<in> {0 .. (n - 1)}. real_of_int n * x = (- ?s) - real_of_int (floor (- ?s)) + real_of_int j \<and> real_of_int i rdvd real_of_int (j - floor (- ?s)))"
+  also have "\<dots> = (\<exists> j\<in> {0 .. (n - 1)}. real_of_int n * x = (- ?s) - real_of_int \<lfloor>- ?s\<rfloor> + real_of_int j \<and> real_of_int i rdvd real_of_int (j - \<lfloor>- ?s\<rfloor>))"
     by (simp add: algebra_simps)
   also from rdvd01_cs[OF xp x1 np, where i="i" and s="-?s"]
   have "\<dots> = (real_of_int i rdvd real_of_int n * x - (-?s))" by simp
@@ -3820,7 +3823,7 @@ proof-
   from foldr_conj_map[where xs="[0..n - 1]" and bs="x#bs" and f="?f"]
   have "Ifm (x#bs) (NDVDJ i n s) = (\<forall> j\<in> {0 .. (n - 1)}. Ifm (x#bs) (?f j))"
     by (simp add: np NDVDJ_def)
-  also have "\<dots> = (\<not> (\<exists> j\<in> {0 .. (n - 1)}. real_of_int n * x = (- ?s) - real_of_int (floor (- ?s)) + real_of_int j \<and> real_of_int i rdvd real_of_int (j - floor (- ?s))))"
+  also have "\<dots> = (\<not> (\<exists> j\<in> {0 .. (n - 1)}. real_of_int n * x = (- ?s) - real_of_int \<lfloor>- ?s\<rfloor> + real_of_int j \<and> real_of_int i rdvd real_of_int (j - \<lfloor>- ?s\<rfloor>)))"
     by (simp add: algebra_simps)
   also from rdvd01_cs[OF xp x1 np, where i="i" and s="-?s"]
   have "\<dots> = (\<not> (real_of_int i rdvd real_of_int n * x - (-?s)))" by simp
@@ -4752,7 +4755,7 @@ lemma real_ex_int_real01:
 proof(auto)
   fix x
   assume Px: "P x"
-  let ?i = "floor x"
+  let ?i = "\<lfloor>x\<rfloor>"
   let ?u = "x - real_of_int ?i"
   have "x = real_of_int ?i + ?u" by simp
   hence "P (real_of_int ?i + ?u)" using Px by simp

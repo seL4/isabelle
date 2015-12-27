@@ -220,21 +220,22 @@ lemma borel_measurable_implies_simple_function_sequence:
   shows "\<exists>f. incseq f \<and> (\<forall>i. \<infinity> \<notin> range (f i) \<and> simple_function M (f i)) \<and>
              (\<forall>x. (SUP i. f i x) = max 0 (u x)) \<and> (\<forall>i x. 0 \<le> f i x)"
 proof -
-  def f \<equiv> "\<lambda>x i. if real i \<le> u x then i * 2 ^ i else nat(floor (real_of_ereal (u x) * 2 ^ i))"
+  def f \<equiv> "\<lambda>x i. if real i \<le> u x then i * 2 ^ i else nat \<lfloor>real_of_ereal (u x) * 2 ^ i\<rfloor>"
   { fix x j have "f x j \<le> j * 2 ^ j" unfolding f_def
     proof (split split_if, intro conjI impI)
       assume "\<not> real j \<le> u x"
-      then have "nat(floor (real_of_ereal (u x) * 2 ^ j)) \<le> nat(floor (j * 2 ^ j))"
+      then have "nat \<lfloor>real_of_ereal (u x) * 2 ^ j\<rfloor> \<le> nat \<lfloor>j * 2 ^ j\<rfloor>"
          by (cases "u x") (auto intro!: nat_mono floor_mono)
-      moreover have "real (nat(floor (j * 2 ^ j))) \<le> j * 2^j"
+      moreover have "real (nat \<lfloor>j * 2 ^ j\<rfloor>) \<le> j * 2^j"
         by linarith
-      ultimately show "nat(floor (real_of_ereal (u x) * 2 ^ j)) \<le> j * 2 ^ j"
+      ultimately show "nat \<lfloor>real_of_ereal (u x) * 2 ^ j\<rfloor> \<le> j * 2 ^ j"
         unfolding of_nat_le_iff by auto
     qed auto }
   note f_upper = this
 
   have real_f:
-    "\<And>i x. real (f x i) = (if real i \<le> u x then i * 2 ^ i else real (nat(floor (real_of_ereal (u x) * 2 ^ i))))"
+    "\<And>i x. real (f x i) =
+      (if real i \<le> u x then i * 2 ^ i else real (nat \<lfloor>real_of_ereal (u x) * 2 ^ i\<rfloor>))"
     unfolding f_def by auto
 
   let ?g = "\<lambda>j x. real (f x j) / 2^j :: ereal"
@@ -259,17 +260,17 @@ proof -
       have "f x i * 2 \<le> f x (Suc i)" unfolding f_def
       proof ((split split_if)+, intro conjI impI)
         assume "ereal (real i) \<le> u x" "\<not> ereal (real (Suc i)) \<le> u x"
-        then show "i * 2 ^ i * 2 \<le> nat(floor (real_of_ereal (u x) * 2 ^ Suc i))"
+        then show "i * 2 ^ i * 2 \<le> nat \<lfloor>real_of_ereal (u x) * 2 ^ Suc i\<rfloor>"
           by (cases "u x") (auto intro!: le_nat_floor)
       next
         assume "\<not> ereal (real i) \<le> u x" "ereal (real (Suc i)) \<le> u x"
-        then show "nat(floor (real_of_ereal (u x) * 2 ^ i)) * 2 \<le> Suc i * 2 ^ Suc i"
+        then show "nat \<lfloor>real_of_ereal (u x) * 2 ^ i\<rfloor> * 2 \<le> Suc i * 2 ^ Suc i"
           by (cases "u x") auto
       next
         assume "\<not> ereal (real i) \<le> u x" "\<not> ereal (real (Suc i)) \<le> u x"
-        have "nat(floor (real_of_ereal (u x) * 2 ^ i)) * 2 = nat(floor (real_of_ereal (u x) * 2 ^ i)) * nat(floor(2::real))"
+        have "nat \<lfloor>real_of_ereal (u x) * 2 ^ i\<rfloor> * 2 = nat \<lfloor>real_of_ereal (u x) * 2 ^ i\<rfloor> * nat \<lfloor>2::real\<rfloor>"
           by simp
-        also have "\<dots> \<le> nat(floor (real_of_ereal (u x) * 2 ^ i * 2))"
+        also have "\<dots> \<le> nat \<lfloor>real_of_ereal (u x) * 2 ^ i * 2\<rfloor>"
         proof cases
           assume "0 \<le> u x" then show ?thesis
             by (intro le_mult_nat_floor)
@@ -277,9 +278,9 @@ proof -
           assume "\<not> 0 \<le> u x" then show ?thesis
             by (cases "u x") (auto simp: nat_floor_neg mult_nonpos_nonneg)
         qed
-        also have "\<dots> = nat(floor (real_of_ereal (u x) * 2 ^ Suc i))"
+        also have "\<dots> = nat \<lfloor>real_of_ereal (u x) * 2 ^ Suc i\<rfloor>"
           by (simp add: ac_simps)
-        finally show "nat(floor (real_of_ereal (u x) * 2 ^ i)) * 2 \<le> nat(floor (real_of_ereal (u x) * 2 ^ Suc i))" .
+        finally show "nat \<lfloor>real_of_ereal (u x) * 2 ^ i\<rfloor> * 2 \<le> nat \<lfloor>real_of_ereal (u x) * 2 ^ Suc i\<rfloor>" .
       qed simp
       then show "?g i x \<le> ?g (Suc i) x"
         by (auto simp: field_simps)
@@ -308,7 +309,7 @@ proof -
           obtain N where "\<forall>n\<ge>N. r * 2^n < p * 2^n - 1" by (auto simp: field_simps)
           then have "r * 2^max N m < p * 2^max N m - 1" by simp
           moreover
-          have "real (nat(floor (p * 2 ^ max N m))) \<le> r * 2 ^ max N m"
+          have "real (nat \<lfloor>p * 2 ^ max N m\<rfloor>) \<le> r * 2 ^ max N m"
             using *[of "max N m"] m unfolding real_f using ux
             by (cases "0 \<le> u x") (simp_all add: max_def split: split_if_asm)
           then have "p * 2 ^ max N m - 1 < r * 2 ^ max N m"

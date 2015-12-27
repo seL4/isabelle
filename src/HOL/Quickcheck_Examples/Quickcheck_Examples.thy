@@ -393,23 +393,19 @@ oops
 
 subsubsection {* floor and ceiling functions *}
 
-lemma
-  "floor x + floor y = floor (x + y :: rat)"
+lemma "\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor> = \<lfloor>x + y :: rat\<rfloor>"
 quickcheck[expect = counterexample]
 oops
 
-lemma
-  "floor x + floor y = floor (x + y :: real)"
+lemma "\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor> = \<lfloor>x + y :: real\<rfloor>"
 quickcheck[expect = counterexample]
 oops
 
-lemma
-  "ceiling x + ceiling y = ceiling (x + y :: rat)"
+lemma "\<lceil>x\<rceil> + \<lceil>y\<rceil> = \<lceil>x + y :: rat\<rceil>"
 quickcheck[expect = counterexample]
 oops
 
-lemma
-  "ceiling x + ceiling y = ceiling (x + y :: real)"
+lemma "\<lceil>x\<rceil> + \<lceil>y\<rceil> = \<lceil>x + y :: real\<rceil>"
 quickcheck[expect = counterexample]
 oops
 

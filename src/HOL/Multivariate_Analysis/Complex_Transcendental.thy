@@ -1595,7 +1595,7 @@ proof (simp add: lim_sequentially dist_norm, clarify)
     using e   by (auto simp: field_simps)
   with e show "\<exists>no. \<forall>n\<ge>no. norm (Ln (of_nat n) / of_nat n powr s) < e"
     apply (auto simp: norm_divide norm_powr_real divide_simps)
-    apply (rule_tac x="nat (ceiling (exp xo))" in exI)
+    apply (rule_tac x="nat \<lceil>exp xo\<rceil>" in exI)
     apply clarify
     apply (drule_tac x="ln n" in spec)
     apply (auto simp: exp_less_mono nat_ceiling_le_eq not_le)

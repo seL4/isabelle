@@ -667,7 +667,7 @@ proof
   show "\<exists>z. x \<le> of_int z"
     apply (induct x)
     apply (frule cauchy_imp_bounded, clarify)
-    apply (rule_tac x="ceiling b + 1" in exI)
+    apply (rule_tac x="\<lceil>b\<rceil> + 1" in exI)
     apply (rule less_imp_le)
     apply (simp add: of_int_Real less_real_def diff_Real positive_Real)
     apply (rule_tac x=1 in exI, simp add: algebra_simps)
@@ -682,11 +682,12 @@ instantiation real :: floor_ceiling
 begin
 
 definition [code del]:
-  "floor (x::real) = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))"
+  "\<lfloor>x::real\<rfloor> = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))"
 
-instance proof
+instance
+proof
   fix x :: real
-  show "of_int (floor x) \<le> x \<and> x < of_int (floor x + 1)"
+  show "of_int \<lfloor>x\<rfloor> \<le> x \<and> x < of_int (\<lfloor>x\<rfloor> + 1)"
     unfolding floor_real_def using floor_exists1 by (rule theI')
 qed
 
@@ -777,22 +778,22 @@ proof -
   def P \<equiv> "\<lambda>x. \<forall>y\<in>S. y \<le> of_rat x"
   obtain a where a: "\<not> P a"
   proof
-    have "of_int (floor (x - 1)) \<le> x - 1" by (rule of_int_floor_le)
+    have "of_int \<lfloor>x - 1\<rfloor> \<le> x - 1" by (rule of_int_floor_le)
     also have "x - 1 < x" by simp
-    finally have "of_int (floor (x - 1)) < x" .
-    hence "\<not> x \<le> of_int (floor (x - 1))" by (simp only: not_le)
-    then show "\<not> P (of_int (floor (x - 1)))"
+    finally have "of_int \<lfloor>x - 1\<rfloor> < x" .
+    hence "\<not> x \<le> of_int \<lfloor>x - 1\<rfloor>" by (simp only: not_le)
+    then show "\<not> P (of_int \<lfloor>x - 1\<rfloor>)"
       unfolding P_def of_rat_of_int_eq using x by blast
   qed
   obtain b where b: "P b"
   proof
-    show "P (of_int (ceiling z))"
+    show "P (of_int \<lceil>z\<rceil>)"
     unfolding P_def of_rat_of_int_eq
     proof
       fix y assume "y \<in> S"
       hence "y \<le> z" using z by simp
-      also have "z \<le> of_int (ceiling z)" by (rule le_of_int_ceiling)
-      finally show "y \<le> of_int (ceiling z)" .
+      also have "z \<le> of_int \<lceil>z\<rceil>" by (rule le_of_int_ceiling)
+      finally show "y \<le> of_int \<lceil>z\<rceil>" .
     qed
   qed
 
@@ -1245,7 +1246,7 @@ proof -
   from \<open>x<y\<close> have "0 < y-x" by simp
   with reals_Archimedean obtain q::nat
     where q: "inverse (real q) < y-x" and "0 < q" by blast
-  def p \<equiv> "ceiling (y * real q) - 1"
+  def p \<equiv> "\<lceil>y * real q\<rceil> - 1"
   def r \<equiv> "of_int p / real q"
   from q have "x < y - inverse (real q)" by simp
   also have "y - inverse (real q) \<le> r"
@@ -1445,40 +1446,40 @@ by (metis not_le real_of_nat_less_numeral_iff)
 declare of_int_floor_le [simp] (* FIXME*)
 
 lemma of_int_floor_cancel [simp]:
-    "(of_int (floor x) = x) = (\<exists>n::int. x = of_int n)"
+    "(of_int \<lfloor>x\<rfloor> = x) = (\<exists>n::int. x = of_int n)"
   by (metis floor_of_int)
 
-lemma floor_eq: "[| real_of_int n < x; x < real_of_int n + 1 |] ==> floor x = n"
+lemma floor_eq: "[| real_of_int n < x; x < real_of_int n + 1 |] ==> \<lfloor>x\<rfloor> = n"
   by linarith
 
-lemma floor_eq2: "[| real_of_int n \<le> x; x < real_of_int n + 1 |] ==> floor x = n"
+lemma floor_eq2: "[| real_of_int n \<le> x; x < real_of_int n + 1 |] ==> \<lfloor>x\<rfloor> = n"
   by linarith
 
-lemma floor_eq3: "[| real n < x; x < real (Suc n) |] ==> nat(floor x) = n"
+lemma floor_eq3: "[| real n < x; x < real (Suc n) |] ==> nat \<lfloor>x\<rfloor> = n"
   by linarith
 
-lemma floor_eq4: "[| real n \<le> x; x < real (Suc n) |] ==> nat(floor x) = n"
+lemma floor_eq4: "[| real n \<le> x; x < real (Suc n) |] ==> nat \<lfloor>x\<rfloor> = n"
   by linarith
 
-lemma real_of_int_floor_ge_diff_one [simp]: "r - 1 \<le> real_of_int(floor r)"
+lemma real_of_int_floor_ge_diff_one [simp]: "r - 1 \<le> real_of_int \<lfloor>r\<rfloor>"
   by linarith
 
-lemma real_of_int_floor_gt_diff_one [simp]: "r - 1 < real_of_int(floor r)"
+lemma real_of_int_floor_gt_diff_one [simp]: "r - 1 < real_of_int \<lfloor>r\<rfloor>"
   by linarith
 
-lemma real_of_int_floor_add_one_ge [simp]: "r \<le> real_of_int(floor r) + 1"
+lemma real_of_int_floor_add_one_ge [simp]: "r \<le> real_of_int \<lfloor>r\<rfloor> + 1"
   by linarith
 
-lemma real_of_int_floor_add_one_gt [simp]: "r < real_of_int(floor r) + 1"
+lemma real_of_int_floor_add_one_gt [simp]: "r < real_of_int \<lfloor>r\<rfloor> + 1"
   by linarith
 
-lemma floor_eq_iff: "floor x = b \<longleftrightarrow> of_int b \<le> x \<and> x < of_int (b + 1)"
-by (simp add: floor_unique_iff)
+lemma floor_eq_iff: "\<lfloor>x\<rfloor> = b \<longleftrightarrow> of_int b \<le> x \<and> x < of_int (b + 1)"
+  by (simp add: floor_unique_iff)
 
-lemma floor_add2[simp]: "floor (of_int a + x) = a + floor x"
+lemma floor_add2[simp]: "\<lfloor>of_int a + x\<rfloor> = a + \<lfloor>x\<rfloor>"
   by (simp add: add.commute)
 
-lemma floor_divide_real_eq_div: "0 \<le> b \<Longrightarrow> floor (a / real_of_int b) = floor a div b"
+lemma floor_divide_real_eq_div: "0 \<le> b \<Longrightarrow> \<lfloor>a / real_of_int b\<rfloor> = \<lfloor>a\<rfloor> div b"
 proof cases
   assume "0 < b"
   { fix i j :: int assume "real_of_int i \<le> a" "a < 1 + real_of_int i"
@@ -1509,20 +1510,19 @@ lemma floor_divide_eq_div_numeral[simp]: "\<lfloor>numeral a / numeral b::real\<
 lemma floor_minus_divide_eq_div_numeral[simp]: "\<lfloor>- (numeral a / numeral b)::real\<rfloor> = - numeral a div numeral b"
   by (metis divide_minus_left floor_divide_of_int_eq of_int_neg_numeral of_int_numeral)
 
-lemma of_int_ceiling_cancel [simp]:
-     "(of_int (ceiling x) = x) = (\<exists>n::int. x = of_int n)"
+lemma of_int_ceiling_cancel [simp]: "(of_int \<lceil>x\<rceil> = x) = (\<exists>n::int. x = of_int n)"
   using ceiling_of_int by metis
 
-lemma ceiling_eq: "[| of_int n < x; x \<le> of_int n + 1 |] ==> ceiling x = n + 1"
+lemma ceiling_eq: "[| of_int n < x; x \<le> of_int n + 1 |] ==> \<lceil>x\<rceil> = n + 1"
   by (simp add: ceiling_unique)
 
-lemma of_int_ceiling_diff_one_le [simp]: "of_int (ceiling r) - 1 \<le> r"
+lemma of_int_ceiling_diff_one_le [simp]: "of_int \<lceil>r\<rceil> - 1 \<le> r"
   by linarith
 
-lemma of_int_ceiling_le_add_one [simp]: "of_int (ceiling r) \<le> r + 1"
+lemma of_int_ceiling_le_add_one [simp]: "of_int \<lceil>r\<rceil> \<le> r + 1"
   by linarith
 
-lemma ceiling_le: "x <= of_int a ==> ceiling x <= a"
+lemma ceiling_le: "x <= of_int a ==> \<lceil>x\<rceil> <= a"
   by (simp add: ceiling_le_iff)
 
 lemma ceiling_divide_eq_div: "\<lceil>of_int a / of_int b\<rceil> = - (- a div b)"
@@ -1539,28 +1539,27 @@ lemma ceiling_minus_divide_eq_div_numeral [simp]:
 text\<open>The following lemmas are remnants of the erstwhile functions natfloor
 and natceiling.\<close>
 
-lemma nat_floor_neg: "(x::real) <= 0 ==> nat(floor x) = 0"
+lemma nat_floor_neg: "(x::real) <= 0 ==> nat \<lfloor>x\<rfloor> = 0"
   by linarith
 
-lemma le_nat_floor: "real x <= a ==> x <= nat(floor a)"
+lemma le_nat_floor: "real x <= a ==> x <= nat \<lfloor>a\<rfloor>"
   by linarith
 
-lemma le_mult_nat_floor:
-  shows "nat(floor a) * nat(floor b) \<le> nat(floor (a * b))"
+lemma le_mult_nat_floor: "nat \<lfloor>a\<rfloor> * nat \<lfloor>b\<rfloor> \<le> nat \<lfloor>a * b\<rfloor>"
   by (cases "0 <= a & 0 <= b")
      (auto simp add: nat_mult_distrib[symmetric] nat_mono le_mult_floor)
 
-lemma nat_ceiling_le_eq [simp]: "(nat(ceiling x) <= a) = (x <= real a)"
+lemma nat_ceiling_le_eq [simp]: "(nat \<lceil>x\<rceil> <= a) = (x <= real a)"
   by linarith
 
-lemma real_nat_ceiling_ge: "x <= real(nat(ceiling x))"
+lemma real_nat_ceiling_ge: "x <= real (nat \<lceil>x\<rceil>)"
   by linarith
 
 lemma Rats_no_top_le: "\<exists> q \<in> \<rat>. (x :: real) \<le> q"
-  by (auto intro!: bexI[of _ "of_nat (nat(ceiling x))"]) linarith
+  by (auto intro!: bexI[of _ "of_nat (nat \<lceil>x\<rceil>)"]) linarith
 
 lemma Rats_no_bot_less: "\<exists> q \<in> \<rat>. q < (x :: real)"
-  apply (auto intro!: bexI[of _ "of_int (floor x - 1)"])
+  apply (auto intro!: bexI[of _ "of_int (\<lfloor>x\<rfloor> - 1)"])
   apply (rule less_le_trans[OF _ of_int_floor_le])
   apply simp
   done
@@ -1568,10 +1567,10 @@ lemma Rats_no_bot_less: "\<exists> q \<in> \<rat>. q < (x :: real)"
 subsection \<open>Exponentiation with floor\<close>
 
 lemma floor_power:
-  assumes "x = of_int (floor x)"
-  shows "floor (x ^ n) = floor x ^ n"
+  assumes "x = of_int \<lfloor>x\<rfloor>"
+  shows "\<lfloor>x ^ n\<rfloor> = \<lfloor>x\<rfloor> ^ n"
 proof -
-  have "x ^ n = of_int (floor x ^ n)"
+  have "x ^ n = of_int (\<lfloor>x\<rfloor> ^ n)"
     using assms by (induct n arbitrary: x) simp_all
   then show ?thesis by (metis floor_of_int) 
 qed
@@ -1681,7 +1680,7 @@ lemma real_inverse_code [code]: "inverse (Ratreal x) = Ratreal (inverse x)"
 lemma real_divide_code [code]: "Ratreal x / Ratreal y = Ratreal (x / y)"
   by (simp add: of_rat_divide)
 
-lemma real_floor_code [code]: "floor (Ratreal x) = floor x"
+lemma real_floor_code [code]: "\<lfloor>Ratreal x\<rfloor> = \<lfloor>x\<rfloor>"
   by (metis Ratreal_def floor_le_iff floor_unique le_floor_iff of_int_floor_le of_rat_of_int_eq real_less_eq_code)
 
 

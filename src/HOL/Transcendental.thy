@@ -2378,7 +2378,7 @@ lemma compute_powr[code]:
   fixes i::real
   shows "b powr i =
     (if b \<le> 0 then Code.abort (STR ''op powr with nonpositive base'') (\<lambda>_. b powr i)
-    else if floor i = i then (if 0 \<le> i then b ^ nat(floor i) else 1 / b ^ nat(floor (- i)))
+    else if \<lfloor>i\<rfloor> = i then (if 0 \<le> i then b ^ nat \<lfloor>i\<rfloor> else 1 / b ^ nat \<lfloor>- i\<rfloor>)
     else Code.abort (STR ''op powr with non-integer exponent'') (\<lambda>_. b powr i))"
   by (auto simp: powr_int)
 
@@ -3568,7 +3568,7 @@ proof -
     using floor_correct [of "x/pi"]
     by (simp add: add.commute divide_less_eq)
   obtain n where "real n * pi \<le> x" "x < real (Suc n) * pi"
-    apply (rule that [of "nat (floor (x/pi))"] )
+    apply (rule that [of "nat \<lfloor>x/pi\<rfloor>"])
     using assms
     apply (simp_all add: xle)
     apply (metis floor_less_iff less_irrefl mult_imp_div_pos_less not_le pi_gt_zero)

@@ -36,12 +36,12 @@ consts
 
 overloading rat_to_int \<equiv> "to_int :: rat \<Rightarrow> int"
 begin
-  definition "rat_to_int (q::rat) = floor q"
+  definition "rat_to_int (q::rat) = \<lfloor>q\<rfloor>"
 end
 
 overloading real_to_int \<equiv> "to_int :: real \<Rightarrow> int"
 begin
-  definition "real_to_int (x::real) = floor x"
+  definition "real_to_int (x::real) = \<lfloor>x\<rfloor>"
 end
 
 overloading int_to_rat \<equiv> "to_rat :: int \<Rightarrow> rat"

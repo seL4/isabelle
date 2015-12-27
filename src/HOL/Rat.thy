@@ -599,17 +599,18 @@ instantiation rat :: floor_ceiling
 begin
 
 definition [code del]:
-  "floor (x::rat) = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))"
+  "\<lfloor>x::rat\<rfloor> = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))"
 
-instance proof
+instance
+proof
   fix x :: rat
-  show "of_int (floor x) \<le> x \<and> x < of_int (floor x + 1)"
+  show "of_int \<lfloor>x\<rfloor> \<le> x \<and> x < of_int (\<lfloor>x\<rfloor> + 1)"
     unfolding floor_rat_def using floor_exists1 by (rule theI')
 qed
 
 end
 
-lemma floor_Fract: "floor (Fract a b) = a div b"
+lemma floor_Fract: "\<lfloor>Fract a b\<rfloor> = a div b"
   by (simp add: Fract_of_int_quotient floor_divide_of_int_eq)
 
 
@@ -1017,8 +1018,8 @@ proof (cases p)
 qed
 
 lemma rat_floor_code [code]:
-  "floor p = (let (a, b) = quotient_of p in a div b)"
-by (cases p) (simp add: quotient_of_Fract floor_Fract)
+  "\<lfloor>p\<rfloor> = (let (a, b) = quotient_of p in a div b)"
+  by (cases p) (simp add: quotient_of_Fract floor_Fract)
 
 instantiation rat :: equal
 begin

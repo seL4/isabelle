@@ -138,13 +138,10 @@ qed
 subsection \<open>Floor function\<close>
 
 class floor_ceiling = archimedean_field +
-  fixes floor :: "'a \<Rightarrow> int"
-  assumes floor_correct: "of_int (floor x) \<le> x \<and> x < of_int (floor x + 1)"
+  fixes floor :: "'a \<Rightarrow> int"  ("\<lfloor>_\<rfloor>")
+  assumes floor_correct: "of_int \<lfloor>x\<rfloor> \<le> x \<and> x < of_int (\<lfloor>x\<rfloor> + 1)"
 
-notation (xsymbols)
-  floor  ("\<lfloor>_\<rfloor>")
-
-lemma floor_unique: "\<lbrakk>of_int z \<le> x; x < of_int z + 1\<rbrakk> \<Longrightarrow> floor x = z"
+lemma floor_unique: "\<lbrakk>of_int z \<le> x; x < of_int z + 1\<rbrakk> \<Longrightarrow> \<lfloor>x\<rfloor> = z"
   using floor_correct [of x] floor_exists1 [of x] by auto
 
 lemma floor_unique_iff:
@@ -152,156 +149,158 @@ lemma floor_unique_iff:
   shows  "\<lfloor>x\<rfloor> = a \<longleftrightarrow> of_int a \<le> x \<and> x < of_int a + 1"
 using floor_correct floor_unique by auto
 
-lemma of_int_floor_le [simp]: "of_int (floor x) \<le> x"
+lemma of_int_floor_le [simp]: "of_int \<lfloor>x\<rfloor> \<le> x"
   using floor_correct ..
 
-lemma le_floor_iff: "z \<le> floor x \<longleftrightarrow> of_int z \<le> x"
+lemma le_floor_iff: "z \<le> \<lfloor>x\<rfloor> \<longleftrightarrow> of_int z \<le> x"
 proof
-  assume "z \<le> floor x"
-  then have "(of_int z :: 'a) \<le> of_int (floor x)" by simp
-  also have "of_int (floor x) \<le> x" by (rule of_int_floor_le)
+  assume "z \<le> \<lfloor>x\<rfloor>"
+  then have "(of_int z :: 'a) \<le> of_int \<lfloor>x\<rfloor>" by simp
+  also have "of_int \<lfloor>x\<rfloor> \<le> x" by (rule of_int_floor_le)
   finally show "of_int z \<le> x" .
 next
   assume "of_int z \<le> x"
-  also have "x < of_int (floor x + 1)" using floor_correct ..
-  finally show "z \<le> floor x" by (simp del: of_int_add)
+  also have "x < of_int (\<lfloor>x\<rfloor> + 1)" using floor_correct ..
+  finally show "z \<le> \<lfloor>x\<rfloor>" by (simp del: of_int_add)
 qed
 
-lemma floor_less_iff: "floor x < z \<longleftrightarrow> x < of_int z"
+lemma floor_less_iff: "\<lfloor>x\<rfloor> < z \<longleftrightarrow> x < of_int z"
   by (simp add: not_le [symmetric] le_floor_iff)
 
-lemma less_floor_iff: "z < floor x \<longleftrightarrow> of_int z + 1 \<le> x"
+lemma less_floor_iff: "z < \<lfloor>x\<rfloor> \<longleftrightarrow> of_int z + 1 \<le> x"
   using le_floor_iff [of "z + 1" x] by auto
 
-lemma floor_le_iff: "floor x \<le> z \<longleftrightarrow> x < of_int z + 1"
+lemma floor_le_iff: "\<lfloor>x\<rfloor> \<le> z \<longleftrightarrow> x < of_int z + 1"
   by (simp add: not_less [symmetric] less_floor_iff)
 
-lemma floor_split[arith_split]: "P (floor t) \<longleftrightarrow> (\<forall>i. of_int i \<le> t \<and> t < of_int i + 1 \<longrightarrow> P i)"
+lemma floor_split[arith_split]: "P \<lfloor>t\<rfloor> \<longleftrightarrow> (\<forall>i. of_int i \<le> t \<and> t < of_int i + 1 \<longrightarrow> P i)"
   by (metis floor_correct floor_unique less_floor_iff not_le order_refl)
 
-lemma floor_mono: assumes "x \<le> y" shows "floor x \<le> floor y"
+lemma floor_mono:
+  assumes "x \<le> y"
+  shows "\<lfloor>x\<rfloor> \<le> \<lfloor>y\<rfloor>"
 proof -
-  have "of_int (floor x) \<le> x" by (rule of_int_floor_le)
+  have "of_int \<lfloor>x\<rfloor> \<le> x" by (rule of_int_floor_le)
   also note \<open>x \<le> y\<close>
   finally show ?thesis by (simp add: le_floor_iff)
 qed
 
-lemma floor_less_cancel: "floor x < floor y \<Longrightarrow> x < y"
+lemma floor_less_cancel: "\<lfloor>x\<rfloor> < \<lfloor>y\<rfloor> \<Longrightarrow> x < y"
   by (auto simp add: not_le [symmetric] floor_mono)
 
-lemma floor_of_int [simp]: "floor (of_int z) = z"
+lemma floor_of_int [simp]: "\<lfloor>of_int z\<rfloor> = z"
   by (rule floor_unique) simp_all
 
-lemma floor_of_nat [simp]: "floor (of_nat n) = int n"
+lemma floor_of_nat [simp]: "\<lfloor>of_nat n\<rfloor> = int n"
   using floor_of_int [of "of_nat n"] by simp
 
-lemma le_floor_add: "floor x + floor y \<le> floor (x + y)"
+lemma le_floor_add: "\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor> \<le> \<lfloor>x + y\<rfloor>"
   by (simp only: le_floor_iff of_int_add add_mono of_int_floor_le)
 
 text \<open>Floor with numerals\<close>
 
-lemma floor_zero [simp]: "floor 0 = 0"
+lemma floor_zero [simp]: "\<lfloor>0\<rfloor> = 0"
   using floor_of_int [of 0] by simp
 
-lemma floor_one [simp]: "floor 1 = 1"
+lemma floor_one [simp]: "\<lfloor>1\<rfloor> = 1"
   using floor_of_int [of 1] by simp
 
-lemma floor_numeral [simp]: "floor (numeral v) = numeral v"
+lemma floor_numeral [simp]: "\<lfloor>numeral v\<rfloor> = numeral v"
   using floor_of_int [of "numeral v"] by simp
 
-lemma floor_neg_numeral [simp]: "floor (- numeral v) = - numeral v"
+lemma floor_neg_numeral [simp]: "\<lfloor>- numeral v\<rfloor> = - numeral v"
   using floor_of_int [of "- numeral v"] by simp
 
-lemma zero_le_floor [simp]: "0 \<le> floor x \<longleftrightarrow> 0 \<le> x"
+lemma zero_le_floor [simp]: "0 \<le> \<lfloor>x\<rfloor> \<longleftrightarrow> 0 \<le> x"
   by (simp add: le_floor_iff)
 
-lemma one_le_floor [simp]: "1 \<le> floor x \<longleftrightarrow> 1 \<le> x"
+lemma one_le_floor [simp]: "1 \<le> \<lfloor>x\<rfloor> \<longleftrightarrow> 1 \<le> x"
   by (simp add: le_floor_iff)
 
 lemma numeral_le_floor [simp]:
-  "numeral v \<le> floor x \<longleftrightarrow> numeral v \<le> x"
+  "numeral v \<le> \<lfloor>x\<rfloor> \<longleftrightarrow> numeral v \<le> x"
   by (simp add: le_floor_iff)
 
 lemma neg_numeral_le_floor [simp]:
-  "- numeral v \<le> floor x \<longleftrightarrow> - numeral v \<le> x"
+  "- numeral v \<le> \<lfloor>x\<rfloor> \<longleftrightarrow> - numeral v \<le> x"
   by (simp add: le_floor_iff)
 
-lemma zero_less_floor [simp]: "0 < floor x \<longleftrightarrow> 1 \<le> x"
+lemma zero_less_floor [simp]: "0 < \<lfloor>x\<rfloor> \<longleftrightarrow> 1 \<le> x"
   by (simp add: less_floor_iff)
 
-lemma one_less_floor [simp]: "1 < floor x \<longleftrightarrow> 2 \<le> x"
+lemma one_less_floor [simp]: "1 < \<lfloor>x\<rfloor> \<longleftrightarrow> 2 \<le> x"
   by (simp add: less_floor_iff)
 
 lemma numeral_less_floor [simp]:
-  "numeral v < floor x \<longleftrightarrow> numeral v + 1 \<le> x"
+  "numeral v < \<lfloor>x\<rfloor> \<longleftrightarrow> numeral v + 1 \<le> x"
   by (simp add: less_floor_iff)
 
 lemma neg_numeral_less_floor [simp]:
-  "- numeral v < floor x \<longleftrightarrow> - numeral v + 1 \<le> x"
+  "- numeral v < \<lfloor>x\<rfloor> \<longleftrightarrow> - numeral v + 1 \<le> x"
   by (simp add: less_floor_iff)
 
-lemma floor_le_zero [simp]: "floor x \<le> 0 \<longleftrightarrow> x < 1"
+lemma floor_le_zero [simp]: "\<lfloor>x\<rfloor> \<le> 0 \<longleftrightarrow> x < 1"
   by (simp add: floor_le_iff)
 
-lemma floor_le_one [simp]: "floor x \<le> 1 \<longleftrightarrow> x < 2"
+lemma floor_le_one [simp]: "\<lfloor>x\<rfloor> \<le> 1 \<longleftrightarrow> x < 2"
   by (simp add: floor_le_iff)
 
 lemma floor_le_numeral [simp]:
-  "floor x \<le> numeral v \<longleftrightarrow> x < numeral v + 1"
+  "\<lfloor>x\<rfloor> \<le> numeral v \<longleftrightarrow> x < numeral v + 1"
   by (simp add: floor_le_iff)
 
 lemma floor_le_neg_numeral [simp]:
-  "floor x \<le> - numeral v \<longleftrightarrow> x < - numeral v + 1"
+  "\<lfloor>x\<rfloor> \<le> - numeral v \<longleftrightarrow> x < - numeral v + 1"
   by (simp add: floor_le_iff)
 
-lemma floor_less_zero [simp]: "floor x < 0 \<longleftrightarrow> x < 0"
+lemma floor_less_zero [simp]: "\<lfloor>x\<rfloor> < 0 \<longleftrightarrow> x < 0"
   by (simp add: floor_less_iff)
 
-lemma floor_less_one [simp]: "floor x < 1 \<longleftrightarrow> x < 1"
+lemma floor_less_one [simp]: "\<lfloor>x\<rfloor> < 1 \<longleftrightarrow> x < 1"
   by (simp add: floor_less_iff)
 
 lemma floor_less_numeral [simp]:
-  "floor x < numeral v \<longleftrightarrow> x < numeral v"
+  "\<lfloor>x\<rfloor> < numeral v \<longleftrightarrow> x < numeral v"
   by (simp add: floor_less_iff)
 
 lemma floor_less_neg_numeral [simp]:
-  "floor x < - numeral v \<longleftrightarrow> x < - numeral v"
+  "\<lfloor>x\<rfloor> < - numeral v \<longleftrightarrow> x < - numeral v"
   by (simp add: floor_less_iff)
 
 text \<open>Addition and subtraction of integers\<close>
 
-lemma floor_add_of_int [simp]: "floor (x + of_int z) = floor x + z"
+lemma floor_add_of_int [simp]: "\<lfloor>x + of_int z\<rfloor> = \<lfloor>x\<rfloor> + z"
   using floor_correct [of x] by (simp add: floor_unique)
 
 lemma floor_add_numeral [simp]:
-    "floor (x + numeral v) = floor x + numeral v"
+    "\<lfloor>x + numeral v\<rfloor> = \<lfloor>x\<rfloor> + numeral v"
   using floor_add_of_int [of x "numeral v"] by simp
 
-lemma floor_add_one [simp]: "floor (x + 1) = floor x + 1"
+lemma floor_add_one [simp]: "\<lfloor>x + 1\<rfloor> = \<lfloor>x\<rfloor> + 1"
   using floor_add_of_int [of x 1] by simp
 
-lemma floor_diff_of_int [simp]: "floor (x - of_int z) = floor x - z"
+lemma floor_diff_of_int [simp]: "\<lfloor>x - of_int z\<rfloor> = \<lfloor>x\<rfloor> - z"
   using floor_add_of_int [of x "- z"] by (simp add: algebra_simps)
 
-lemma floor_uminus_of_int [simp]: "floor (- (of_int z)) = - z"
+lemma floor_uminus_of_int [simp]: "\<lfloor>- (of_int z)\<rfloor> = - z"
   by (metis floor_diff_of_int [of 0] diff_0 floor_zero)
 
 lemma floor_diff_numeral [simp]:
-  "floor (x - numeral v) = floor x - numeral v"
+  "\<lfloor>x - numeral v\<rfloor> = \<lfloor>x\<rfloor> - numeral v"
   using floor_diff_of_int [of x "numeral v"] by simp
 
-lemma floor_diff_one [simp]: "floor (x - 1) = floor x - 1"
+lemma floor_diff_one [simp]: "\<lfloor>x - 1\<rfloor> = \<lfloor>x\<rfloor> - 1"
   using floor_diff_of_int [of x 1] by simp
 
 lemma le_mult_floor:
   assumes "0 \<le> a" and "0 \<le> b"
-  shows "floor a * floor b \<le> floor (a * b)"
+  shows "\<lfloor>a\<rfloor> * \<lfloor>b\<rfloor> \<le> \<lfloor>a * b\<rfloor>"
 proof -
-  have "of_int (floor a) \<le> a"
-    and "of_int (floor b) \<le> b" by (auto intro: of_int_floor_le)
-  hence "of_int (floor a * floor b) \<le> a * b"
+  have "of_int \<lfloor>a\<rfloor> \<le> a"
+    and "of_int \<lfloor>b\<rfloor> \<le> b" by (auto intro: of_int_floor_le)
+  hence "of_int (\<lfloor>a\<rfloor> * \<lfloor>b\<rfloor>) \<le> a * b"
     using assms by (auto intro!: mult_mono)
-  also have "a * b < of_int (floor (a * b) + 1)"  
+  also have "a * b < of_int (\<lfloor>a * b\<rfloor> + 1)"
     using floor_correct[of "a * b"] by auto
   finally show ?thesis unfolding of_int_less_iff by simp
 qed
@@ -373,150 +372,145 @@ qed
 
 subsection \<open>Ceiling function\<close>
 
-definition
-  ceiling :: "'a::floor_ceiling \<Rightarrow> int" where
-  "ceiling x = - floor (- x)"
+definition ceiling :: "'a::floor_ceiling \<Rightarrow> int"  ("\<lceil>_\<rceil>")
+  where "\<lceil>x\<rceil> = - \<lfloor>- x\<rfloor>"
 
-notation (xsymbols)
-  ceiling  ("\<lceil>_\<rceil>")
-
-lemma ceiling_correct: "of_int (ceiling x) - 1 < x \<and> x \<le> of_int (ceiling x)"
+lemma ceiling_correct: "of_int \<lceil>x\<rceil> - 1 < x \<and> x \<le> of_int \<lceil>x\<rceil>"
   unfolding ceiling_def using floor_correct [of "- x"] by (simp add: le_minus_iff) 
 
-lemma ceiling_unique: "\<lbrakk>of_int z - 1 < x; x \<le> of_int z\<rbrakk> \<Longrightarrow> ceiling x = z"
+lemma ceiling_unique: "\<lbrakk>of_int z - 1 < x; x \<le> of_int z\<rbrakk> \<Longrightarrow> \<lceil>x\<rceil> = z"
   unfolding ceiling_def using floor_unique [of "- z" "- x"] by simp
 
-lemma le_of_int_ceiling [simp]: "x \<le> of_int (ceiling x)"
+lemma le_of_int_ceiling [simp]: "x \<le> of_int \<lceil>x\<rceil>"
   using ceiling_correct ..
 
-lemma ceiling_le_iff: "ceiling x \<le> z \<longleftrightarrow> x \<le> of_int z"
+lemma ceiling_le_iff: "\<lceil>x\<rceil> \<le> z \<longleftrightarrow> x \<le> of_int z"
   unfolding ceiling_def using le_floor_iff [of "- z" "- x"] by auto
 
-lemma less_ceiling_iff: "z < ceiling x \<longleftrightarrow> of_int z < x"
+lemma less_ceiling_iff: "z < \<lceil>x\<rceil> \<longleftrightarrow> of_int z < x"
   by (simp add: not_le [symmetric] ceiling_le_iff)
 
-lemma ceiling_less_iff: "ceiling x < z \<longleftrightarrow> x \<le> of_int z - 1"
+lemma ceiling_less_iff: "\<lceil>x\<rceil> < z \<longleftrightarrow> x \<le> of_int z - 1"
   using ceiling_le_iff [of x "z - 1"] by simp
 
-lemma le_ceiling_iff: "z \<le> ceiling x \<longleftrightarrow> of_int z - 1 < x"
+lemma le_ceiling_iff: "z \<le> \<lceil>x\<rceil> \<longleftrightarrow> of_int z - 1 < x"
   by (simp add: not_less [symmetric] ceiling_less_iff)
 
-lemma ceiling_mono: "x \<ge> y \<Longrightarrow> ceiling x \<ge> ceiling y"
+lemma ceiling_mono: "x \<ge> y \<Longrightarrow> \<lceil>x\<rceil> \<ge> \<lceil>y\<rceil>"
   unfolding ceiling_def by (simp add: floor_mono)
 
-lemma ceiling_less_cancel: "ceiling x < ceiling y \<Longrightarrow> x < y"
+lemma ceiling_less_cancel: "\<lceil>x\<rceil> < \<lceil>y\<rceil> \<Longrightarrow> x < y"
   by (auto simp add: not_le [symmetric] ceiling_mono)
 
-lemma ceiling_of_int [simp]: "ceiling (of_int z) = z"
+lemma ceiling_of_int [simp]: "\<lceil>of_int z\<rceil> = z"
   by (rule ceiling_unique) simp_all
 
-lemma ceiling_of_nat [simp]: "ceiling (of_nat n) = int n"
+lemma ceiling_of_nat [simp]: "\<lceil>of_nat n\<rceil> = int n"
   using ceiling_of_int [of "of_nat n"] by simp
 
-lemma ceiling_add_le: "ceiling (x + y) \<le> ceiling x + ceiling y"
+lemma ceiling_add_le: "\<lceil>x + y\<rceil> \<le> \<lceil>x\<rceil> + \<lceil>y\<rceil>"
   by (simp only: ceiling_le_iff of_int_add add_mono le_of_int_ceiling)
 
 text \<open>Ceiling with numerals\<close>
 
-lemma ceiling_zero [simp]: "ceiling 0 = 0"
+lemma ceiling_zero [simp]: "\<lceil>0\<rceil> = 0"
   using ceiling_of_int [of 0] by simp
 
-lemma ceiling_one [simp]: "ceiling 1 = 1"
+lemma ceiling_one [simp]: "\<lceil>1\<rceil> = 1"
   using ceiling_of_int [of 1] by simp
 
-lemma ceiling_numeral [simp]: "ceiling (numeral v) = numeral v"
+lemma ceiling_numeral [simp]: "\<lceil>numeral v\<rceil> = numeral v"
   using ceiling_of_int [of "numeral v"] by simp
 
-lemma ceiling_neg_numeral [simp]: "ceiling (- numeral v) = - numeral v"
+lemma ceiling_neg_numeral [simp]: "\<lceil>- numeral v\<rceil> = - numeral v"
   using ceiling_of_int [of "- numeral v"] by simp
 
-lemma ceiling_le_zero [simp]: "ceiling x \<le> 0 \<longleftrightarrow> x \<le> 0"
+lemma ceiling_le_zero [simp]: "\<lceil>x\<rceil> \<le> 0 \<longleftrightarrow> x \<le> 0"
   by (simp add: ceiling_le_iff)
 
-lemma ceiling_le_one [simp]: "ceiling x \<le> 1 \<longleftrightarrow> x \<le> 1"
+lemma ceiling_le_one [simp]: "\<lceil>x\<rceil> \<le> 1 \<longleftrightarrow> x \<le> 1"
   by (simp add: ceiling_le_iff)
 
 lemma ceiling_le_numeral [simp]:
-  "ceiling x \<le> numeral v \<longleftrightarrow> x \<le> numeral v"
+  "\<lceil>x\<rceil> \<le> numeral v \<longleftrightarrow> x \<le> numeral v"
   by (simp add: ceiling_le_iff)
 
 lemma ceiling_le_neg_numeral [simp]:
-  "ceiling x \<le> - numeral v \<longleftrightarrow> x \<le> - numeral v"
+  "\<lceil>x\<rceil> \<le> - numeral v \<longleftrightarrow> x \<le> - numeral v"
   by (simp add: ceiling_le_iff)
 
-lemma ceiling_less_zero [simp]: "ceiling x < 0 \<longleftrightarrow> x \<le> -1"
+lemma ceiling_less_zero [simp]: "\<lceil>x\<rceil> < 0 \<longleftrightarrow> x \<le> -1"
   by (simp add: ceiling_less_iff)
 
-lemma ceiling_less_one [simp]: "ceiling x < 1 \<longleftrightarrow> x \<le> 0"
+lemma ceiling_less_one [simp]: "\<lceil>x\<rceil> < 1 \<longleftrightarrow> x \<le> 0"
   by (simp add: ceiling_less_iff)
 
 lemma ceiling_less_numeral [simp]:
-  "ceiling x < numeral v \<longleftrightarrow> x \<le> numeral v - 1"
+  "\<lceil>x\<rceil> < numeral v \<longleftrightarrow> x \<le> numeral v - 1"
   by (simp add: ceiling_less_iff)
 
 lemma ceiling_less_neg_numeral [simp]:
-  "ceiling x < - numeral v \<longleftrightarrow> x \<le> - numeral v - 1"
+  "\<lceil>x\<rceil> < - numeral v \<longleftrightarrow> x \<le> - numeral v - 1"
   by (simp add: ceiling_less_iff)
 
-lemma zero_le_ceiling [simp]: "0 \<le> ceiling x \<longleftrightarrow> -1 < x"
+lemma zero_le_ceiling [simp]: "0 \<le> \<lceil>x\<rceil> \<longleftrightarrow> -1 < x"
   by (simp add: le_ceiling_iff)
 
-lemma one_le_ceiling [simp]: "1 \<le> ceiling x \<longleftrightarrow> 0 < x"
+lemma one_le_ceiling [simp]: "1 \<le> \<lceil>x\<rceil> \<longleftrightarrow> 0 < x"
   by (simp add: le_ceiling_iff)
 
 lemma numeral_le_ceiling [simp]:
-  "numeral v \<le> ceiling x \<longleftrightarrow> numeral v - 1 < x"
+  "numeral v \<le> \<lceil>x\<rceil> \<longleftrightarrow> numeral v - 1 < x"
   by (simp add: le_ceiling_iff)
 
 lemma neg_numeral_le_ceiling [simp]:
-  "- numeral v \<le> ceiling x \<longleftrightarrow> - numeral v - 1 < x"
+  "- numeral v \<le> \<lceil>x\<rceil> \<longleftrightarrow> - numeral v - 1 < x"
   by (simp add: le_ceiling_iff)
 
-lemma zero_less_ceiling [simp]: "0 < ceiling x \<longleftrightarrow> 0 < x"
+lemma zero_less_ceiling [simp]: "0 < \<lceil>x\<rceil> \<longleftrightarrow> 0 < x"
   by (simp add: less_ceiling_iff)
 
-lemma one_less_ceiling [simp]: "1 < ceiling x \<longleftrightarrow> 1 < x"
+lemma one_less_ceiling [simp]: "1 < \<lceil>x\<rceil> \<longleftrightarrow> 1 < x"
   by (simp add: less_ceiling_iff)
 
 lemma numeral_less_ceiling [simp]:
-  "numeral v < ceiling x \<longleftrightarrow> numeral v < x"
+  "numeral v < \<lceil>x\<rceil> \<longleftrightarrow> numeral v < x"
   by (simp add: less_ceiling_iff)
 
 lemma neg_numeral_less_ceiling [simp]:
-  "- numeral v < ceiling x \<longleftrightarrow> - numeral v < x"
+  "- numeral v < \<lceil>x\<rceil> \<longleftrightarrow> - numeral v < x"
   by (simp add: less_ceiling_iff)
 
-lemma ceiling_altdef: "ceiling x = (if x = of_int (floor x) then floor x else floor x + 1)"
+lemma ceiling_altdef: "\<lceil>x\<rceil> = (if x = of_int \<lfloor>x\<rfloor> then \<lfloor>x\<rfloor> else \<lfloor>x\<rfloor> + 1)"
   by (intro ceiling_unique, (simp, linarith?)+)
 
-lemma floor_le_ceiling [simp]: "floor x \<le> ceiling x" by (simp add: ceiling_altdef)
+lemma floor_le_ceiling [simp]: "\<lfloor>x\<rfloor> \<le> \<lceil>x\<rceil>"
+  by (simp add: ceiling_altdef)
 
 text \<open>Addition and subtraction of integers\<close>
 
-lemma ceiling_add_of_int [simp]: "ceiling (x + of_int z) = ceiling x + z"
+lemma ceiling_add_of_int [simp]: "\<lceil>x + of_int z\<rceil> = \<lceil>x\<rceil> + z"
   using ceiling_correct [of x] by (simp add: ceiling_def)
 
-lemma ceiling_add_numeral [simp]:
-    "ceiling (x + numeral v) = ceiling x + numeral v"
+lemma ceiling_add_numeral [simp]: "\<lceil>x + numeral v\<rceil> = \<lceil>x\<rceil> + numeral v"
   using ceiling_add_of_int [of x "numeral v"] by simp
 
-lemma ceiling_add_one [simp]: "ceiling (x + 1) = ceiling x + 1"
+lemma ceiling_add_one [simp]: "\<lceil>x + 1\<rceil> = \<lceil>x\<rceil> + 1"
   using ceiling_add_of_int [of x 1] by simp
 
-lemma ceiling_diff_of_int [simp]: "ceiling (x - of_int z) = ceiling x - z"
+lemma ceiling_diff_of_int [simp]: "\<lceil>x - of_int z\<rceil> = \<lceil>x\<rceil> - z"
   using ceiling_add_of_int [of x "- z"] by (simp add: algebra_simps)
 
-lemma ceiling_diff_numeral [simp]:
-  "ceiling (x - numeral v) = ceiling x - numeral v"
+lemma ceiling_diff_numeral [simp]: "\<lceil>x - numeral v\<rceil> = \<lceil>x\<rceil> - numeral v"
   using ceiling_diff_of_int [of x "numeral v"] by simp
 
-lemma ceiling_diff_one [simp]: "ceiling (x - 1) = ceiling x - 1"
+lemma ceiling_diff_one [simp]: "\<lceil>x - 1\<rceil> = \<lceil>x\<rceil> - 1"
   using ceiling_diff_of_int [of x 1] by simp
 
-lemma ceiling_split[arith_split]: "P (ceiling t) \<longleftrightarrow> (\<forall>i. of_int i - 1 < t \<and> t \<le> of_int i \<longrightarrow> P i)"
+lemma ceiling_split[arith_split]: "P \<lceil>t\<rceil> \<longleftrightarrow> (\<forall>i. of_int i - 1 < t \<and> t \<le> of_int i \<longrightarrow> P i)"
   by (auto simp add: ceiling_unique ceiling_correct)
 
-lemma ceiling_diff_floor_le_1: "ceiling x - floor x \<le> 1"
+lemma ceiling_diff_floor_le_1: "\<lceil>x\<rceil> - \<lfloor>x\<rfloor> \<le> 1"
 proof -
   have "of_int \<lceil>x\<rceil> - 1 < x" 
     using ceiling_correct[of x] by simp
@@ -530,14 +524,14 @@ qed
 
 subsection \<open>Negation\<close>
 
-lemma floor_minus: "floor (- x) = - ceiling x"
+lemma floor_minus: "\<lfloor>- x\<rfloor> = - \<lceil>x\<rceil>"
   unfolding ceiling_def by simp
 
-lemma ceiling_minus: "ceiling (- x) = - floor x"
+lemma ceiling_minus: "\<lceil>- x\<rceil> = - \<lfloor>x\<rfloor>"
   unfolding ceiling_def by simp
+
 
 subsection \<open>Frac Function\<close>
-
 
 definition frac :: "'a \<Rightarrow> 'a::floor_ceiling" where
   "frac x \<equiv> x - of_int \<lfloor>x\<rfloor>"
@@ -642,7 +636,7 @@ proof (rule floor_unique)
   from add_strict_left_mono[OF this, of 1] show "x + 1 / 2 < of_int y + 1" by simp
 qed
 
-lemma round_altdef: "round x = (if frac x \<ge> 1/2 then ceiling x else floor x)"
+lemma round_altdef: "round x = (if frac x \<ge> 1/2 then \<lceil>x\<rceil> else \<lfloor>x\<rfloor>)"
   by (cases "frac x \<ge> 1/2")
      (rule round_unique, ((simp add: frac_def field_simps ceiling_altdef, linarith?)+)[2])+
 
@@ -656,18 +650,18 @@ lemma round_diff_minimal:
   shows "abs (z - of_int (round z)) \<le> abs (z - of_int m)"
 proof (cases "of_int m \<ge> z")
   case True
-  hence "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int (ceiling z) - z\<bar>"
+  hence "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int \<lceil>z\<rceil> - z\<bar>"
     unfolding round_altdef by (simp add: field_simps ceiling_altdef frac_def) linarith?
   also have "of_int \<lceil>z\<rceil> - z \<ge> 0" by linarith
-  with True have "\<bar>of_int (ceiling z) - z\<bar> \<le> \<bar>z - of_int m\<bar>"
+  with True have "\<bar>of_int \<lceil>z\<rceil> - z\<bar> \<le> \<bar>z - of_int m\<bar>"
     by (simp add: ceiling_le_iff)
   finally show ?thesis .
 next
   case False
-  hence "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int (floor z) - z\<bar>"
+  hence "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int \<lfloor>z\<rfloor> - z\<bar>"
     unfolding round_altdef by (simp add: field_simps ceiling_altdef frac_def) linarith?
   also have "z - of_int \<lfloor>z\<rfloor> \<ge> 0" by linarith
-  with False have "\<bar>of_int (floor z) - z\<bar> \<le> \<bar>z - of_int m\<bar>"
+  with False have "\<bar>of_int \<lfloor>z\<rfloor> - z\<bar> \<le> \<bar>z - of_int m\<bar>"
     by (simp add: le_floor_iff)
   finally show ?thesis .
 qed

@@ -619,10 +619,10 @@ lemmas int_of_reals = real_of_ints[symmetric]
 subsection \<open>Rounding Real Numbers\<close>
 
 definition round_down :: "int \<Rightarrow> real \<Rightarrow> real"
-  where "round_down prec x = floor (x * 2 powr prec) * 2 powr -prec"
+  where "round_down prec x = \<lfloor>x * 2 powr prec\<rfloor> * 2 powr -prec"
 
 definition round_up :: "int \<Rightarrow> real \<Rightarrow> real"
-  where "round_up prec x = ceiling (x * 2 powr prec) * 2 powr -prec"
+  where "round_up prec x = \<lceil>x * 2 powr prec\<rceil> * 2 powr -prec"
 
 lemma round_down_float[simp]: "round_down prec x \<in> float"
   unfolding round_down_def
@@ -648,7 +648,7 @@ lemma round_up_diff_round_down:
   "round_up prec x - round_down prec x \<le> 2 powr -prec"
 proof -
   have "round_up prec x - round_down prec x =
-    (ceiling (x * 2 powr prec) - floor (x * 2 powr prec)) * 2 powr -prec"
+    (\<lceil>x * 2 powr prec\<rceil> - \<lfloor>x * 2 powr prec\<rfloor>) * 2 powr -prec"
     by (simp add: round_up_def round_down_def field_simps)
   also have "\<dots> \<le> 1 * 2 powr -prec"
     by (rule mult_mono)
@@ -889,7 +889,7 @@ lemma bitlen_bounds:
 proof
   show "2 ^ nat (bitlen x - 1) \<le> x"
   proof -
-    have "(2::real) ^ nat \<lfloor>log 2 (real_of_int x)\<rfloor> = 2 powr real_of_int (floor (log 2 (real_of_int x)))"
+    have "(2::real) ^ nat \<lfloor>log 2 (real_of_int x)\<rfloor> = 2 powr real_of_int \<lfloor>log 2 (real_of_int x)\<rfloor>"
       using powr_realpow[symmetric, of 2 "nat \<lfloor>log 2 (real_of_int x)\<rfloor>"] \<open>x > 0\<close>
       by simp
     also have "\<dots> \<le> 2 powr log 2 (real_of_int x)"
@@ -2244,15 +2244,18 @@ qualified lemma compute_int_floor_fl[code]:
   "int_floor_fl (Float m e) = (if 0 \<le> e then m * 2 ^ nat e else m div (2 ^ (nat (-e))))"
   apply transfer
   apply (simp add: powr_int floor_divide_of_int_eq)
-  by (metis (no_types, hide_lams)floor_divide_of_int_eq of_int_numeral of_int_power floor_of_int of_int_mult)
+  apply (metis (no_types, hide_lams)floor_divide_of_int_eq of_int_numeral of_int_power floor_of_int of_int_mult)
+  done
 
-lift_definition floor_fl :: "float \<Rightarrow> float" is "\<lambda>x. real_of_int (floor x)" by simp
+lift_definition floor_fl :: "float \<Rightarrow> float" is "\<lambda>x. real_of_int \<lfloor>x\<rfloor>"
+  by simp
 
 qualified lemma compute_floor_fl[code]:
   "floor_fl (Float m e) = (if 0 \<le> e then Float m e else Float (m div (2 ^ (nat (-e)))) 0)"
   apply transfer
   apply (simp add: powr_int floor_divide_of_int_eq)
-  by (metis (no_types, hide_lams)floor_divide_of_int_eq of_int_numeral of_int_power of_int_mult)
+  apply (metis (no_types, hide_lams)floor_divide_of_int_eq of_int_numeral of_int_power of_int_mult)
+  done
 
 end
 

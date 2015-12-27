@@ -4830,7 +4830,7 @@ next
   case False
   have *: "finite {x. cmod (complex_of_real (2 * real_of_int x * pi) * \<i>) \<le> b + cmod (Ln w)}"
     apply (simp add: norm_mult finite_int_iff_bounded_le)
-    apply (rule_tac x="floor ((b + cmod (Ln w)) / (2*pi))" in exI)
+    apply (rule_tac x="\<lfloor>(b + cmod (Ln w)) / (2*pi)\<rfloor>" in exI)
     apply (auto simp: divide_simps le_floor_iff)
     done
   have [simp]: "\<And>P f. {z. P z \<and> (\<exists>n. z = f n)} = f ` {n. P (f n)}"
