@@ -624,25 +624,25 @@ session "HOL-Isar_Examples" in Isar_Examples = HOL +
   description {*
     Miscellaneous Isabelle/Isar examples.
   *}
+  options [quick_and_dirty]
   theories [document = false]
     "~~/src/HOL/Library/Lattice_Syntax"
     "../Number_Theory/Primes"
-  theories [quick_and_dirty]
-    Structured_Statements
   theories
-    Basic_Logic
+    Knaster_Tarski
+    Peirce
+    Drinker
     Cantor
     Schroeder_Bernstein
-    Drinker
+    Structured_Statements
+    Basic_Logic
     Expr_Compiler
     Fibonacci
     Group
     Group_Context
     Group_Notepad
     Hoare_Ex
-    Knaster_Tarski
     Mutilated_Checkerboard
-    Peirce
     Puzzle
     Summation
     First_Order_Logic
