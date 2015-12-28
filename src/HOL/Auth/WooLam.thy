@@ -52,13 +52,13 @@ inductive_set woolam :: "event list set"
  | WL4:  "[| evs4 \<in> woolam;
              Says A'  B X         \<in> set evs4;
              Says A'' B (Agent A) \<in> set evs4 |]
-          ==> Says B Server {|Agent A, Agent B, X|} # evs4 \<in> woolam"
+          ==> Says B Server \<lbrace>Agent A, Agent B, X\<rbrace> # evs4 \<in> woolam"
 
          (*Server decrypts Alice's response for Bob.*)
  | WL5:  "[| evs5 \<in> woolam;
-             Says B' Server {|Agent A, Agent B, Crypt (shrK A) (Nonce NB)|}
+             Says B' Server \<lbrace>Agent A, Agent B, Crypt (shrK A) (Nonce NB)\<rbrace>
                \<in> set evs5 |]
-          ==> Says Server B (Crypt (shrK B) {|Agent A, Nonce NB|})
+          ==> Says Server B (Crypt (shrK B) \<lbrace>Agent A, Nonce NB\<rbrace>)
                  # evs5 \<in> woolam"
 
 
@@ -70,7 +70,7 @@ declare Fake_parts_insert_in_Un  [dest]
 
 (*A "possibility property": there are traces that reach the end*)
 lemma "\<exists>NB. \<exists>evs \<in> woolam.
-             Says Server B (Crypt (shrK B) {|Agent A, Nonce NB|}) \<in> set evs"
+             Says Server B (Crypt (shrK B) \<lbrace>Agent A, Nonce NB\<rbrace>) \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] woolam.Nil
                     [THEN woolam.WL1, THEN woolam.WL2, THEN woolam.WL3,
@@ -113,7 +113,7 @@ by (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
   Alice, then she originated that certificate.  But we DO NOT know that B
   ever saw it: the Spy may have rerouted the message to the Server.*)
 lemma Server_trusts_WL4 [dest]:
-     "[| Says B' Server {|Agent A, Agent B, Crypt (shrK A) (Nonce NB)|}
+     "[| Says B' Server \<lbrace>Agent A, Agent B, Crypt (shrK A) (Nonce NB)\<rbrace>
            \<in> set evs;
          A \<notin> bad;  evs \<in> woolam |]
       ==> \<exists>B. Says A B (Crypt (shrK A) (Nonce NB)) \<in> set evs"
@@ -124,17 +124,17 @@ by (blast intro!: NB_Crypt_imp_Alice_msg)
 
 (*Server sent WL5 only if it received the right sort of message*)
 lemma Server_sent_WL5 [dest]:
-     "[| Says Server B (Crypt (shrK B) {|Agent A, NB|}) \<in> set evs;
+     "[| Says Server B (Crypt (shrK B) \<lbrace>Agent A, NB\<rbrace>) \<in> set evs;
          evs \<in> woolam |]
-      ==> \<exists>B'. Says B' Server {|Agent A, Agent B, Crypt (shrK A) NB|}
+      ==> \<exists>B'. Says B' Server \<lbrace>Agent A, Agent B, Crypt (shrK A) NB\<rbrace>
              \<in> set evs"
 by (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
 
 (*If the encrypted message appears then it originated with the Server!*)
 lemma NB_Crypt_imp_Server_msg [rule_format]:
-     "[| Crypt (shrK B) {|Agent A, NB|} \<in> parts (spies evs);
+     "[| Crypt (shrK B) \<lbrace>Agent A, NB\<rbrace> \<in> parts (spies evs);
          B \<notin> bad;  evs \<in> woolam |]
-      ==> Says Server B (Crypt (shrK B) {|Agent A, NB|}) \<in> set evs"
+      ==> Says Server B (Crypt (shrK B) \<lbrace>Agent A, NB\<rbrace>) \<in> set evs"
 by (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
 
 (*Guarantee for B.  If B gets the Server's certificate then A has encrypted
@@ -142,7 +142,7 @@ by (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
   But A may have sent the nonce to some other agent and it could have reached
   the Server via the Spy.*)
 lemma B_trusts_WL5:
-     "[| Says S B (Crypt (shrK B) {|Agent A, Nonce NB|}): set evs;
+     "[| Says S B (Crypt (shrK B) \<lbrace>Agent A, Nonce NB\<rbrace>): set evs;
          A \<notin> bad;  B \<notin> bad;  evs \<in> woolam  |]
       ==> \<exists>B. Says A B (Crypt (shrK A) (Nonce NB)) \<in> set evs"
 by (blast dest!: NB_Crypt_imp_Server_msg)

@@ -51,11 +51,11 @@ primrec agt_nb :: "msg => agent" where
 subsubsection\<open>messages that are pairs\<close>
 
 definition is_MPair :: "msg => bool" where
-"is_MPair X == EX Y Z. X = {|Y,Z|}"
+"is_MPair X == EX Y Z. X = \<lbrace>Y,Z\<rbrace>"
 
 declare is_MPair_def [simp]
 
-lemma MPair_is_MPair [iff]: "is_MPair {|X,Y|}"
+lemma MPair_is_MPair [iff]: "is_MPair \<lbrace>X,Y\<rbrace>"
 by simp
 
 lemma Agent_isnt_MPair [iff]: "~ is_MPair (Agent A)"
@@ -86,7 +86,7 @@ by auto
 declare is_MPair_def [simp del]
 
 definition has_no_pair :: "msg set => bool" where
-"has_no_pair H == ALL X Y. {|X,Y|} ~:H"
+"has_no_pair H == ALL X Y. \<lbrace>X,Y\<rbrace> \<notin> H"
 
 declare has_no_pair_def [simp]
 
@@ -218,7 +218,7 @@ subsubsection\<open>greatest nonce used in a message\<close>
 fun greatest_msg :: "msg => nat"
 where
   "greatest_msg (Nonce n) = n"
-| "greatest_msg {|X,Y|} = max (greatest_msg X) (greatest_msg Y)"
+| "greatest_msg \<lbrace>X,Y\<rbrace> = max (greatest_msg X) (greatest_msg Y)"
 | "greatest_msg (Crypt K X) = greatest_msg X"
 | "greatest_msg other = 0"
 
@@ -233,7 +233,7 @@ definition keyset :: "msg set => bool" where
 lemma keyset_in [dest]: "[| keyset G; X:G |] ==> EX K. X = Key K"
 by (auto simp: keyset_def)
 
-lemma MPair_notin_keyset [simp]: "keyset G ==> {|X,Y|} ~:G"
+lemma MPair_notin_keyset [simp]: "keyset G ==> \<lbrace>X,Y\<rbrace> \<notin> G"
 by auto
 
 lemma Crypt_notin_keyset [simp]: "keyset G ==> Crypt K X ~:G"
@@ -332,7 +332,7 @@ by (auto simp: has_only_Says_def Gets_correct_def)
 
 subsubsection\<open>lemma on knows\<close>
 
-lemma Says_imp_spies2: "Says A B {|X,Y|}:set evs ==> Y:parts (spies evs)"
+lemma Says_imp_spies2: "Says A B \<lbrace>X,Y\<rbrace> \<in> set evs ==> Y \<in> parts (spies evs)"
 by (drule Says_imp_spies, drule parts.Inj, drule parts.Snd, simp)
 
 lemma Says_not_parts: "[| Says A B X:set evs; Y ~:parts (spies evs) |]

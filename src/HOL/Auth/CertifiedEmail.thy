@@ -25,7 +25,7 @@ consts
 
 text\<open>We formalize a fixed way of computing responses.  Could be better.\<close>
 definition "response" :: "agent => agent => nat => msg" where
-   "response S R q == Hash {|Agent S, Key (shrK R), Nonce q|}"
+   "response S R q == Hash \<lbrace>Agent S, Key (shrK R), Nonce q\<rbrace>"
 
 
 inductive_set certified_mail :: "event list set"
@@ -42,28 +42,28 @@ inductive_set certified_mail :: "event list set"
 | FakeSSL: \<comment>\<open>The Spy may open SSL sessions with TTP, who is the only agent
     equipped with the necessary credentials to serve as an SSL server.\<close>
          "[| evsfssl \<in> certified_mail; X \<in> synth(analz(spies evsfssl))|]
-          ==> Notes TTP {|Agent Spy, Agent TTP, X|} # evsfssl \<in> certified_mail"
+          ==> Notes TTP \<lbrace>Agent Spy, Agent TTP, X\<rbrace> # evsfssl \<in> certified_mail"
 
 | CM1: \<comment>\<open>The sender approaches the recipient.  The message is a number.\<close>
  "[|evs1 \<in> certified_mail;
     Key K \<notin> used evs1;
     K \<in> symKeys;
     Nonce q \<notin> used evs1;
-    hs = Hash{|Number cleartext, Nonce q, response S R q, Crypt K (Number m)|};
-    S2TTP = Crypt(pubEK TTP) {|Agent S, Number BothAuth, Key K, Agent R, hs|}|]
-  ==> Says S R {|Agent S, Agent TTP, Crypt K (Number m), Number BothAuth, 
-                 Number cleartext, Nonce q, S2TTP|} # evs1 
+    hs = Hash\<lbrace>Number cleartext, Nonce q, response S R q, Crypt K (Number m)\<rbrace>;
+    S2TTP = Crypt(pubEK TTP) \<lbrace>Agent S, Number BothAuth, Key K, Agent R, hs\<rbrace>|]
+  ==> Says S R \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number BothAuth, 
+                 Number cleartext, Nonce q, S2TTP\<rbrace> # evs1 
         \<in> certified_mail"
 
 | CM2: \<comment>\<open>The recipient records @{term S2TTP} while transmitting it and her
      password to @{term TTP} over an SSL channel.\<close>
  "[|evs2 \<in> certified_mail;
-    Gets R {|Agent S, Agent TTP, em, Number BothAuth, Number cleartext, 
-             Nonce q, S2TTP|} \<in> set evs2;
+    Gets R \<lbrace>Agent S, Agent TTP, em, Number BothAuth, Number cleartext, 
+             Nonce q, S2TTP\<rbrace> \<in> set evs2;
     TTP \<noteq> R;  
-    hr = Hash {|Number cleartext, Nonce q, response S R q, em|} |]
+    hr = Hash \<lbrace>Number cleartext, Nonce q, response S R q, em\<rbrace> |]
   ==> 
-   Notes TTP {|Agent R, Agent TTP, S2TTP, Key(RPwd R), hr|} # evs2
+   Notes TTP \<lbrace>Agent R, Agent TTP, S2TTP, Key(RPwd R), hr\<rbrace> # evs2
       \<in> certified_mail"
 
 | CM3: \<comment>\<open>@{term TTP} simultaneously reveals the key to the recipient and gives
@@ -72,12 +72,12 @@ inductive_set certified_mail :: "event list set"
          if the given password is that of the claimed sender, @{term R}.
          He replies over the established SSL channel.\<close>
  "[|evs3 \<in> certified_mail;
-    Notes TTP {|Agent R, Agent TTP, S2TTP, Key(RPwd R), hr|} \<in> set evs3;
+    Notes TTP \<lbrace>Agent R, Agent TTP, S2TTP, Key(RPwd R), hr\<rbrace> \<in> set evs3;
     S2TTP = Crypt (pubEK TTP) 
-                     {|Agent S, Number BothAuth, Key k, Agent R, hs|};
+                     \<lbrace>Agent S, Number BothAuth, Key k, Agent R, hs\<rbrace>;
     TTP \<noteq> R;  hs = hr;  k \<in> symKeys|]
   ==> 
-   Notes R {|Agent TTP, Agent R, Key k, hr|} # 
+   Notes R \<lbrace>Agent TTP, Agent R, Key k, hr\<rbrace> # 
    Gets S (Crypt (priSK TTP) S2TTP) # 
    Says TTP S (Crypt (priSK TTP) S2TTP) # evs3 \<in> certified_mail"
 
@@ -116,8 +116,8 @@ apply (blast dest: Says_imp_knows_Spy parts.Inj)
 done
 
 lemma CM2_S2TTP_analz_knows_Spy:
- "[|Gets R {|Agent A, Agent B, em, Number AO, Number cleartext, 
-              Nonce q, S2TTP|} \<in> set evs;
+ "[|Gets R \<lbrace>Agent A, Agent B, em, Number AO, Number cleartext, 
+              Nonce q, S2TTP\<rbrace> \<in> set evs;
     evs \<in> certified_mail|] 
   ==> S2TTP \<in> analz(spies evs)"
 apply (drule Gets_imp_Says, simp) 
@@ -130,9 +130,9 @@ lemmas CM2_S2TTP_parts_knows_Spy =
 lemma hr_form_lemma [rule_format]:
  "evs \<in> certified_mail
   ==> hr \<notin> synth (analz (spies evs)) --> 
-      (\<forall>S2TTP. Notes TTP {|Agent R, Agent TTP, S2TTP, pwd, hr|}
+      (\<forall>S2TTP. Notes TTP \<lbrace>Agent R, Agent TTP, S2TTP, pwd, hr\<rbrace>
           \<in> set evs --> 
-      (\<exists>clt q S em. hr = Hash {|Number clt, Nonce q, response S R q, em|}))"
+      (\<exists>clt q S em. hr = Hash \<lbrace>Number clt, Nonce q, response S R q, em\<rbrace>))"
 apply (erule certified_mail.induct)
 apply (synth_analz_mono_contra, simp_all, blast+)
 done 
@@ -141,10 +141,10 @@ text\<open>Cannot strengthen the first disjunct to @{term "R\<noteq>Spy"} becaus
 the fakessl rule allows Spy to spoof the sender's name.  Maybe can
 strengthen the second disjunct with @{term "R\<noteq>Spy"}.\<close>
 lemma hr_form:
- "[|Notes TTP {|Agent R, Agent TTP, S2TTP, pwd, hr|} \<in> set evs;
+ "[|Notes TTP \<lbrace>Agent R, Agent TTP, S2TTP, pwd, hr\<rbrace> \<in> set evs;
     evs \<in> certified_mail|]
   ==> hr \<in> synth (analz (spies evs)) | 
-      (\<exists>clt q S em. hr = Hash {|Number clt, Nonce q, response S R q, em|})"
+      (\<exists>clt q S em. hr = Hash \<lbrace>Number clt, Nonce q, response S R q, em\<rbrace>)"
 by (blast intro: hr_form_lemma) 
 
 lemma Spy_dont_know_private_keys [dest!]:
@@ -184,9 +184,9 @@ declare Spy_dont_know_TTPKey_parts [THEN [2] rev_notE, elim!]
 
 lemma CM3_k_parts_knows_Spy:
  "[| evs \<in> certified_mail;
-     Notes TTP {|Agent A, Agent TTP,
-                 Crypt (pubEK TTP) {|Agent S, Number AO, Key K, 
-                 Agent R, hs|}, Key (RPwd R), hs|} \<in> set evs|]
+     Notes TTP \<lbrace>Agent A, Agent TTP,
+                 Crypt (pubEK TTP) \<lbrace>Agent S, Number AO, Key K, 
+                 Agent R, hs\<rbrace>, Key (RPwd R), hs\<rbrace> \<in> set evs|]
   ==> Key K \<in> parts(spies evs)"
 apply (rotate_tac 1)
 apply (erule rev_mp)
@@ -273,7 +273,7 @@ text\<open>@{term S2TTP} must have originated from a valid sender
     provided @{term K} is secure.  Proof is surprisingly hard.\<close>
 
 lemma Notes_SSL_imp_used:
-     "[|Notes B {|Agent A, Agent B, X|} \<in> set evs|] ==> X \<in> used evs"
+     "[|Notes B \<lbrace>Agent A, Agent B, X\<rbrace> \<in> set evs|] ==> X \<in> used evs"
 by (blast dest!: Notes_imp_used)
 
 
@@ -283,14 +283,14 @@ lemma S2TTP_sender_lemma [rule_format]:
  "evs \<in> certified_mail ==>
     Key K \<notin> analz (spies evs) -->
     (\<forall>AO. Crypt (pubEK TTP)
-           {|Agent S, Number AO, Key K, Agent R, hs|} \<in> used evs -->
+           \<lbrace>Agent S, Number AO, Key K, Agent R, hs\<rbrace> \<in> used evs -->
     (\<exists>m ctxt q. 
-        hs = Hash{|Number ctxt, Nonce q, response S R q, Crypt K (Number m)|} &
+        hs = Hash\<lbrace>Number ctxt, Nonce q, response S R q, Crypt K (Number m)\<rbrace> &
         Says S R
-           {|Agent S, Agent TTP, Crypt K (Number m), Number AO,
+           \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number AO,
              Number ctxt, Nonce q,
              Crypt (pubEK TTP)
-              {|Agent S, Number AO, Key K, Agent R, hs |}|} \<in> set evs))" 
+              \<lbrace>Agent S, Number AO, Key K, Agent R, hs \<rbrace>\<rbrace> \<in> set evs))" 
 apply (erule certified_mail.induct, analz_mono_contra)
 apply (drule_tac [5] CM2_S2TTP_parts_knows_Spy, simp)
 apply (simp add: used_Nil Crypt_notin_initState, simp_all)
@@ -310,16 +310,16 @@ apply (blast dest: Notes_SSL_imp_used used_parts_subset_parts)
 done 
 
 lemma S2TTP_sender:
- "[|Crypt (pubEK TTP) {|Agent S, Number AO, Key K, Agent R, hs|} \<in> used evs;
+ "[|Crypt (pubEK TTP) \<lbrace>Agent S, Number AO, Key K, Agent R, hs\<rbrace> \<in> used evs;
     Key K \<notin> analz (spies evs);
     evs \<in> certified_mail|]
   ==> \<exists>m ctxt q. 
-        hs = Hash{|Number ctxt, Nonce q, response S R q, Crypt K (Number m)|} &
+        hs = Hash\<lbrace>Number ctxt, Nonce q, response S R q, Crypt K (Number m)\<rbrace> &
         Says S R
-           {|Agent S, Agent TTP, Crypt K (Number m), Number AO,
+           \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number AO,
              Number ctxt, Nonce q,
              Crypt (pubEK TTP)
-              {|Agent S, Number AO, Key K, Agent R, hs |}|} \<in> set evs" 
+              \<lbrace>Agent S, Number AO, Key K, Agent R, hs\<rbrace>\<rbrace> \<in> set evs" 
 by (blast intro: S2TTP_sender_lemma) 
 
 
@@ -348,15 +348,15 @@ lemma Key_unique_lemma [rule_format]:
        Key K \<notin> analz (spies evs) -->
        (\<forall>m cleartext q hs.
         Says S R
-           {|Agent S, Agent TTP, Crypt K (Number m), Number AO,
+           \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number AO,
              Number cleartext, Nonce q,
-             Crypt (pubEK TTP) {|Agent S, Number AO, Key K, Agent R, hs|}|}
+             Crypt (pubEK TTP) \<lbrace>Agent S, Number AO, Key K, Agent R, hs\<rbrace>\<rbrace>
           \<in> set evs -->
        (\<forall>m' cleartext' q' hs'.
        Says S' R'
-           {|Agent S', Agent TTP, Crypt K (Number m'), Number AO',
+           \<lbrace>Agent S', Agent TTP, Crypt K (Number m'), Number AO',
              Number cleartext', Nonce q',
-             Crypt (pubEK TTP) {|Agent S', Number AO', Key K, Agent R', hs'|}|}
+             Crypt (pubEK TTP) \<lbrace>Agent S', Number AO', Key K, Agent R', hs'\<rbrace>\<rbrace>
           \<in> set evs --> R' = R & S' = S & AO' = AO & hs' = hs))" 
 apply (erule certified_mail.induct, analz_mono_contra, simp_all)
  prefer 2
@@ -369,14 +369,14 @@ done
 text\<open>The key determines the sender, recipient and protocol options.\<close>
 lemma Key_unique:
       "[|Says S R
-           {|Agent S, Agent TTP, Crypt K (Number m), Number AO,
+           \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number AO,
              Number cleartext, Nonce q,
-             Crypt (pubEK TTP) {|Agent S, Number AO, Key K, Agent R, hs|}|}
+             Crypt (pubEK TTP) \<lbrace>Agent S, Number AO, Key K, Agent R, hs\<rbrace>\<rbrace>
           \<in> set evs;
          Says S' R'
-           {|Agent S', Agent TTP, Crypt K (Number m'), Number AO',
+           \<lbrace>Agent S', Agent TTP, Crypt K (Number m'), Number AO',
              Number cleartext', Nonce q',
-             Crypt (pubEK TTP) {|Agent S', Number AO', Key K, Agent R', hs'|}|}
+             Crypt (pubEK TTP) \<lbrace>Agent S', Number AO', Key K, Agent R', hs'\<rbrace>\<rbrace>
           \<in> set evs;
          Key K \<notin> analz (spies evs);
          evs \<in> certified_mail|]
@@ -390,9 +390,9 @@ text\<open>A Sender's guarantee:
       If Spy gets the key then @{term R} is bad and @{term S} moreover
       gets his return receipt (and therefore has no grounds for complaint).\<close>
 theorem S_fairness_bad_R:
-      "[|Says S R {|Agent S, Agent TTP, Crypt K (Number m), Number AO, 
-                     Number cleartext, Nonce q, S2TTP|} \<in> set evs;
-         S2TTP = Crypt (pubEK TTP) {|Agent S, Number AO, Key K, Agent R, hs|};
+      "[|Says S R \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number AO, 
+                     Number cleartext, Nonce q, S2TTP\<rbrace> \<in> set evs;
+         S2TTP = Crypt (pubEK TTP) \<lbrace>Agent S, Number AO, Key K, Agent R, hs\<rbrace>;
          Key K \<in> analz (spies evs);
          evs \<in> certified_mail;
          S\<noteq>Spy|]
@@ -418,9 +418,9 @@ done
 
 text\<open>Confidentially for the symmetric key\<close>
 theorem Spy_not_see_encrypted_key:
-      "[|Says S R {|Agent S, Agent TTP, Crypt K (Number m), Number AO, 
-                     Number cleartext, Nonce q, S2TTP|} \<in> set evs;
-         S2TTP = Crypt (pubEK TTP) {|Agent S, Number AO, Key K, Agent R, hs|};
+      "[|Says S R \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number AO, 
+                     Number cleartext, Nonce q, S2TTP\<rbrace> \<in> set evs;
+         S2TTP = Crypt (pubEK TTP) \<lbrace>Agent S, Number AO, Key K, Agent R, hs\<rbrace>;
          evs \<in> certified_mail;
          S\<noteq>Spy; R \<notin> bad|]
       ==> Key K \<notin> analz(spies evs)"
@@ -430,10 +430,10 @@ by (blast dest: S_fairness_bad_R)
 text\<open>Agent @{term R}, who may be the Spy, doesn't receive the key
  until @{term S} has access to the return receipt.\<close> 
 theorem S_guarantee:
-     "[|Says S R {|Agent S, Agent TTP, Crypt K (Number m), Number AO, 
-                    Number cleartext, Nonce q, S2TTP|} \<in> set evs;
-        S2TTP = Crypt (pubEK TTP) {|Agent S, Number AO, Key K, Agent R, hs|};
-        Notes R {|Agent TTP, Agent R, Key K, hs|} \<in> set evs;
+     "[|Says S R \<lbrace>Agent S, Agent TTP, Crypt K (Number m), Number AO, 
+                    Number cleartext, Nonce q, S2TTP\<rbrace> \<in> set evs;
+        S2TTP = Crypt (pubEK TTP) \<lbrace>Agent S, Number AO, Key K, Agent R, hs\<rbrace>;
+        Notes R \<lbrace>Agent TTP, Agent R, Key K, hs\<rbrace> \<in> set evs;
         S\<noteq>Spy;  evs \<in> certified_mail|]
      ==> Gets S (Crypt (priSK TTP) S2TTP) \<in> set evs"
 apply (erule rev_mp)
@@ -453,11 +453,11 @@ text\<open>If @{term R} sends message 2, and a delivery certificate exists,
 theorem RR_validity:
   "[|Crypt (priSK TTP) S2TTP \<in> used evs;
      S2TTP = Crypt (pubEK TTP)
-               {|Agent S, Number AO, Key K, Agent R, 
-                 Hash {|Number cleartext, Nonce q, r, em|}|};
-     hr = Hash {|Number cleartext, Nonce q, r, em|};
+               \<lbrace>Agent S, Number AO, Key K, Agent R, 
+                 Hash \<lbrace>Number cleartext, Nonce q, r, em\<rbrace>\<rbrace>;
+     hr = Hash \<lbrace>Number cleartext, Nonce q, r, em\<rbrace>;
      R\<noteq>Spy;  evs \<in> certified_mail|]
-  ==> Notes R {|Agent TTP, Agent R, Key K, hr|} \<in> set evs"
+  ==> Notes R \<lbrace>Agent TTP, Agent R, Key K, hr\<rbrace> \<in> set evs"
 apply (erule rev_mp)
 apply (erule ssubst)
 apply (erule ssubst)

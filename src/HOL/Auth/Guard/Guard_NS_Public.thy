@@ -13,19 +13,19 @@ subsection\<open>messages used in the protocol\<close>
 
 abbreviation (input)
   ns1 :: "agent => agent => nat => event" where
-  "ns1 A B NA == Says A B (Crypt (pubK B) {|Nonce NA, Agent A|})"
+  "ns1 A B NA == Says A B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>)"
 
 abbreviation (input)
   ns1' :: "agent => agent => agent => nat => event" where
-  "ns1' A' A B NA == Says A' B (Crypt (pubK B) {|Nonce NA, Agent A|})"
+  "ns1' A' A B NA == Says A' B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>)"
 
 abbreviation (input)
   ns2 :: "agent => agent => nat => nat => event" where
-  "ns2 B A NA NB == Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|})"
+  "ns2 B A NA NB == Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>)"
 
 abbreviation (input)
   ns2' :: "agent => agent => agent => nat => nat => event" where
-  "ns2' B' B A NA NB == Says B' A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|})"
+  "ns2' B' B A NA NB == Says B' A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>)"
 
 abbreviation (input)
   ns3 :: "agent => agent => nat => event" where
@@ -80,28 +80,28 @@ by (erule nsp.induct, auto simp: initState.simps knows.simps)
 subsection\<open>nonce are used only once\<close>
 
 lemma NA_is_uniq [rule_format]: "evs:nsp ==>
-Crypt (pubK B) {|Nonce NA, Agent A|}:parts (spies evs)
---> Crypt (pubK B') {|Nonce NA, Agent A'|}:parts (spies evs)
+Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>:parts (spies evs)
+--> Crypt (pubK B') \<lbrace>Nonce NA, Agent A'\<rbrace>:parts (spies evs)
 --> Nonce NA ~:analz (spies evs) --> A=A' & B=B'"
 apply (erule nsp.induct, simp_all)
 by (blast intro: analz_insertI)+
 
 lemma no_Nonce_NS1_NS2 [rule_format]: "evs:nsp ==>
-Crypt (pubK B') {|Nonce NA', Nonce NA, Agent A'|}:parts (spies evs)
---> Crypt (pubK B) {|Nonce NA, Agent A|}:parts (spies evs)
+Crypt (pubK B') \<lbrace>Nonce NA', Nonce NA, Agent A'\<rbrace>:parts (spies evs)
+--> Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>:parts (spies evs)
 --> Nonce NA:analz (spies evs)"
 apply (erule nsp.induct, simp_all)
 by (blast intro: analz_insertI)+
 
 lemma no_Nonce_NS1_NS2' [rule_format]:
-"[| Crypt (pubK B') {|Nonce NA', Nonce NA, Agent A'|}:parts (spies evs);
-Crypt (pubK B) {|Nonce NA, Agent A|}:parts (spies evs); evs:nsp |]
+"[| Crypt (pubK B') \<lbrace>Nonce NA', Nonce NA, Agent A'\<rbrace>:parts (spies evs);
+Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>:parts (spies evs); evs:nsp |]
 ==> Nonce NA:analz (spies evs)"
 by (rule no_Nonce_NS1_NS2, auto)
  
 lemma NB_is_uniq [rule_format]: "evs:nsp ==>
-Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}:parts (spies evs)
---> Crypt (pubK A') {|Nonce NA', Nonce NB, Agent B'|}:parts (spies evs)
+Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>:parts (spies evs)
+--> Crypt (pubK A') \<lbrace>Nonce NA', Nonce NB, Agent B'\<rbrace>:parts (spies evs)
 --> Nonce NB ~:analz (spies evs) --> A=A' & B=B' & NA=NA'"
 apply (erule nsp.induct, simp_all)
 by (blast intro: analz_insertI)+
@@ -166,13 +166,13 @@ done
 subsection\<open>Agents' Authentication\<close>
 
 lemma B_trusts_NS1: "[| evs:nsp; A ~:bad; B ~:bad |] ==>
-Crypt (pubK B) {|Nonce NA, Agent A|}:parts (spies evs)
+Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>:parts (spies evs)
 --> Nonce NA ~:analz (spies evs) --> ns1 A B NA:set evs"
 apply (erule nsp.induct, simp_all)
 by (blast intro: analz_insertI)+
 
 lemma A_trusts_NS2: "[| evs:nsp; A ~:bad; B ~:bad |] ==> ns1 A B NA:set evs
---> Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}:parts (spies evs)
+--> Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>:parts (spies evs)
 --> ns2 B A NA NB:set evs"
 apply (erule nsp.induct, simp_all, safe)
 apply (frule_tac B=B in ns1_imp_Guard, simp+)

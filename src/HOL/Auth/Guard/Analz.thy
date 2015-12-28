@@ -17,8 +17,8 @@ inductive_set
   for H :: "msg set"
 where
   Inj [intro]: "[| X:H; is_MPair X |] ==> X:pparts H"
-| Fst [dest]: "[| {|X,Y|}:pparts H; is_MPair X |] ==> X:pparts H"
-| Snd [dest]: "[| {|X,Y|}:pparts H; is_MPair Y |] ==> Y:pparts H"
+| Fst [dest]: "[| \<lbrace>X,Y\<rbrace>:pparts H; is_MPair X |] ==> X:pparts H"
+| Snd [dest]: "[| \<lbrace>X,Y\<rbrace>:pparts H; is_MPair Y |] ==> Y:pparts H"
 
 subsection\<open>basic facts about @{term pparts}\<close>
 
@@ -53,8 +53,8 @@ lemma pparts_insert2 [iff]: "pparts (insert X (insert Y H))
 = pparts {X} Un pparts {Y} Un pparts H"
 by (rule eq, (erule pparts.induct, auto)+)
 
-lemma pparts_insert_MPair [iff]: "pparts (insert {|X,Y|} H)
-= insert {|X,Y|} (pparts ({X,Y} Un H))"
+lemma pparts_insert_MPair [iff]: "pparts (insert \<lbrace>X,Y\<rbrace> H)
+= insert \<lbrace>X,Y\<rbrace> (pparts ({X,Y} \<union> H))"
 apply (rule eq, (erule pparts.induct, auto)+)
 apply (rule_tac Y=Y in pparts.Fst, auto)
 apply (erule pparts.induct, auto)
@@ -119,8 +119,8 @@ inductive_set
   for H :: "msg set"
 where
   Inj [intro]: "[| X:H; not_MPair X |] ==> X:kparts H"
-| Fst [intro]: "[| {|X,Y|}:pparts H; not_MPair X |] ==> X:kparts H"
-| Snd [intro]: "[| {|X,Y|}:pparts H; not_MPair Y |] ==> Y:kparts H"
+| Fst [intro]: "[| \<lbrace>X,Y\<rbrace> \<in> pparts H; not_MPair X |] ==> X:kparts H"
+| Snd [intro]: "[| \<lbrace>X,Y\<rbrace> \<in> pparts H; not_MPair Y |] ==> Y:kparts H"
 
 subsection\<open>basic facts about @{term kparts}\<close>
 
@@ -137,8 +137,8 @@ lemma kparts_insert2 [iff]: "kparts (insert X (insert Y H))
 = kparts {X} Un kparts {Y} Un kparts H"
 by (rule eq, (erule kparts.induct, auto)+)
 
-lemma kparts_insert_MPair [iff]: "kparts (insert {|X,Y|} H)
-= kparts ({X,Y} Un H)"
+lemma kparts_insert_MPair [iff]: "kparts (insert \<lbrace>X,Y\<rbrace> H)
+= kparts ({X,Y} \<union> H)"
 by (rule eq, (erule kparts.induct, auto)+)
 
 lemma kparts_insert_Nonce [iff]: "kparts (insert (Nonce n) H)

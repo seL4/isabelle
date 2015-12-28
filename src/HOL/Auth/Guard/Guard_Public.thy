@@ -14,7 +14,7 @@ declare initState.simps [simp del]
 subsubsection\<open>signature\<close>
 
 definition sign :: "agent => msg => msg" where
-"sign A X == {|Agent A, X, Crypt (priK A) (Hash X)|}"
+"sign A X == \<lbrace>Agent A, X, Crypt (priK A) (Hash X)\<rbrace>"
 
 lemma sign_inj [iff]: "(sign A X = sign A' X') = (A=A' & X=X')"
 by (auto simp: sign_def)

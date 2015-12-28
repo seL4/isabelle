@@ -36,17 +36,17 @@ inductive_set otway :: "event list set"
 
  | OR1:  \<comment>\<open>Alice initiates a protocol run\<close>
          "[| evs1 \<in> otway;  Nonce NA \<notin> used evs1 |]
-          ==> Says A B {|Nonce NA, Agent A, Agent B,
-                         Crypt (shrK A) {|Nonce NA, Agent A, Agent B|} |}
+          ==> Says A B \<lbrace>Nonce NA, Agent A, Agent B,
+                         Crypt (shrK A) \<lbrace>Nonce NA, Agent A, Agent B\<rbrace>\<rbrace>
                  # evs1 \<in> otway"
 
  | OR2:  \<comment>\<open>Bob's response to Alice's message.
              This variant of the protocol does NOT encrypt NB.\<close>
          "[| evs2 \<in> otway;  Nonce NB \<notin> used evs2;
-             Gets B {|Nonce NA, Agent A, Agent B, X|} \<in> set evs2 |]
+             Gets B \<lbrace>Nonce NA, Agent A, Agent B, X\<rbrace> \<in> set evs2 |]
           ==> Says B Server
-                  {|Nonce NA, Agent A, Agent B, X, Nonce NB,
-                    Crypt (shrK B) {|Nonce NA, Agent A, Agent B|}|}
+                  \<lbrace>Nonce NA, Agent A, Agent B, X, Nonce NB,
+                    Crypt (shrK B) \<lbrace>Nonce NA, Agent A, Agent B\<rbrace>\<rbrace>
                  # evs2 \<in> otway"
 
  | OR3:  \<comment>\<open>The Server receives Bob's message and checks that the three NAs
@@ -54,34 +54,34 @@ inductive_set otway :: "event list set"
            forwarding to Alice.\<close>
          "[| evs3 \<in> otway;  Key KAB \<notin> used evs3;
              Gets Server
-                  {|Nonce NA, Agent A, Agent B,
-                    Crypt (shrK A) {|Nonce NA, Agent A, Agent B|},
+                  \<lbrace>Nonce NA, Agent A, Agent B,
+                    Crypt (shrK A) \<lbrace>Nonce NA, Agent A, Agent B\<rbrace>,
                     Nonce NB,
-                    Crypt (shrK B) {|Nonce NA, Agent A, Agent B|}|}
+                    Crypt (shrK B) \<lbrace>Nonce NA, Agent A, Agent B\<rbrace>\<rbrace>
                \<in> set evs3 |]
           ==> Says Server B
-                  {|Nonce NA,
-                    Crypt (shrK A) {|Nonce NA, Key KAB|},
-                    Crypt (shrK B) {|Nonce NB, Key KAB|}|}
+                  \<lbrace>Nonce NA,
+                    Crypt (shrK A) \<lbrace>Nonce NA, Key KAB\<rbrace>,
+                    Crypt (shrK B) \<lbrace>Nonce NB, Key KAB\<rbrace>\<rbrace>
                  # evs3 \<in> otway"
 
  | OR4:  \<comment>\<open>Bob receives the Server's (?) message and compares the Nonces with
              those in the message he previously sent the Server.
              Need @{term "B \<noteq> Server"} because we allow messages to self.\<close>
          "[| evs4 \<in> otway;  B \<noteq> Server;
-             Says B Server {|Nonce NA, Agent A, Agent B, X', Nonce NB,
-                             Crypt (shrK B) {|Nonce NA, Agent A, Agent B|}|}
+             Says B Server \<lbrace>Nonce NA, Agent A, Agent B, X', Nonce NB,
+                             Crypt (shrK B) \<lbrace>Nonce NA, Agent A, Agent B\<rbrace>\<rbrace>
                \<in> set evs4;
-             Gets B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
+             Gets B \<lbrace>Nonce NA, X, Crypt (shrK B) \<lbrace>Nonce NB, Key K\<rbrace>\<rbrace>
                \<in> set evs4 |]
-          ==> Says B A {|Nonce NA, X|} # evs4 \<in> otway"
+          ==> Says B A \<lbrace>Nonce NA, X\<rbrace> # evs4 \<in> otway"
 
  | Oops: \<comment>\<open>This message models possible leaks of session keys.  The nonces
              identify the protocol run.\<close>
          "[| evso \<in> otway;
-             Says Server B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
+             Says Server B \<lbrace>Nonce NA, X, Crypt (shrK B) \<lbrace>Nonce NB, Key K\<rbrace>\<rbrace>
                \<in> set evso |]
-          ==> Notes Spy {|Nonce NA, Nonce NB, Key K|} # evso \<in> otway"
+          ==> Notes Spy \<lbrace>Nonce NA, Nonce NB, Key K\<rbrace> # evso \<in> otway"
 
 
 declare Says_imp_knows_Spy [THEN analz.Inj, dest]
@@ -92,7 +92,7 @@ declare Fake_parts_insert_in_Un  [dest]
 text\<open>A "possibility property": there are traces that reach the end\<close>
 lemma "[| B \<noteq> Server; Key K \<notin> used [] |]
       ==> \<exists>NA. \<exists>evs \<in> otway.
-            Says B A {|Nonce NA, Crypt (shrK A) {|Nonce NA, Key K|}|}
+            Says B A \<lbrace>Nonce NA, Crypt (shrK A) \<lbrace>Nonce NA, Key K\<rbrace>\<rbrace>
               \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] otway.Nil
@@ -112,17 +112,17 @@ done
 subsection\<open>For reasoning about the encrypted portion of messages\<close>
 
 lemma OR2_analz_knows_Spy:
-     "[| Gets B {|N, Agent A, Agent B, X|} \<in> set evs;  evs \<in> otway |]
+     "[| Gets B \<lbrace>N, Agent A, Agent B, X\<rbrace> \<in> set evs;  evs \<in> otway |]
       ==> X \<in> analz (knows Spy evs)"
 by blast
 
 lemma OR4_analz_knows_Spy:
-     "[| Gets B {|N, X, Crypt (shrK B) X'|} \<in> set evs;  evs \<in> otway |]
+     "[| Gets B \<lbrace>N, X, Crypt (shrK B) X'\<rbrace> \<in> set evs;  evs \<in> otway |]
       ==> X \<in> analz (knows Spy evs)"
 by blast
 
 lemma Oops_parts_knows_Spy:
-     "Says Server B {|NA, X, Crypt K' {|NB,K|}|} \<in> set evs
+     "Says Server B \<lbrace>NA, X, Crypt K' \<lbrace>NB,K\<rbrace>\<rbrace> \<in> set evs
       ==> K \<in> parts (knows Spy evs)"
 by blast
 
@@ -155,7 +155,7 @@ subsection\<open>Proofs involving analz\<close>
 text\<open>Describes the form of K and NA when the Server sends this message.  Also
   for Oops case.\<close>
 lemma Says_Server_message_form:
-     "[| Says Server B {|NA, X, Crypt (shrK B) {|NB, Key K|}|} \<in> set evs;
+     "[| Says Server B \<lbrace>NA, X, Crypt (shrK B) \<lbrace>NB, Key K\<rbrace>\<rbrace> \<in> set evs;
          evs \<in> otway |]
       ==> K \<notin> range shrK & (\<exists>i. NA = Nonce i) & (\<exists>j. NB = Nonce j)"
 apply (erule rev_mp)
@@ -196,8 +196,8 @@ by (simp only: analz_image_freshK analz_image_freshK_simps)
 
 text\<open>The Key K uniquely identifies the Server's  message.\<close>
 lemma unique_session_keys:
-     "[| Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|}   \<in> set evs;
-         Says Server B' {|NA',X',Crypt (shrK B') {|NB',K|}|} \<in> set evs;
+     "[| Says Server B \<lbrace>NA, X, Crypt (shrK B) \<lbrace>NB, K\<rbrace>\<rbrace>   \<in> set evs;
+         Says Server B' \<lbrace>NA',X',Crypt (shrK B') \<lbrace>NB',K\<rbrace>\<rbrace> \<in> set evs;
          evs \<in> otway |] ==> X=X' & B=B' & NA=NA' & NB=NB'"
 apply (erule rev_mp)
 apply (erule rev_mp)
@@ -212,9 +212,9 @@ text\<open>Crucial secrecy property: Spy does not see the keys sent in msg OR3
 lemma secrecy_lemma:
  "[| A \<notin> bad;  B \<notin> bad;  evs \<in> otway |]
   ==> Says Server B
-        {|NA, Crypt (shrK A) {|NA, Key K|},
-          Crypt (shrK B) {|NB, Key K|}|} \<in> set evs -->
-      Notes Spy {|NA, NB, Key K|} \<notin> set evs -->
+        \<lbrace>NA, Crypt (shrK A) \<lbrace>NA, Key K\<rbrace>,
+          Crypt (shrK B) \<lbrace>NB, Key K\<rbrace>\<rbrace> \<in> set evs -->
+      Notes Spy \<lbrace>NA, NB, Key K\<rbrace> \<notin> set evs -->
       Key K \<notin> analz (knows Spy evs)"
 apply (erule otway.induct, force)
 apply (frule_tac [7] Says_Server_message_form)
@@ -228,9 +228,9 @@ done
 
 lemma Spy_not_see_encrypted_key:
      "[| Says Server B
-          {|NA, Crypt (shrK A) {|NA, Key K|},
-                Crypt (shrK B) {|NB, Key K|}|} \<in> set evs;
-         Notes Spy {|NA, NB, Key K|} \<notin> set evs;
+          \<lbrace>NA, Crypt (shrK A) \<lbrace>NA, Key K\<rbrace>,
+                Crypt (shrK B) \<lbrace>NB, Key K\<rbrace>\<rbrace> \<in> set evs;
+         Notes Spy \<lbrace>NA, NB, Key K\<rbrace> \<notin> set evs;
          A \<notin> bad;  B \<notin> bad;  evs \<in> otway |]
       ==> Key K \<notin> analz (knows Spy evs)"
 by (blast dest: Says_Server_message_form secrecy_lemma)
@@ -243,9 +243,9 @@ text\<open>Only OR1 can have caused such a part of a message to appear. The prem
   up. Original Otway-Rees doesn't need it.\<close>
 lemma Crypt_imp_OR1 [rule_format]:
      "[| A \<notin> bad;  A \<noteq> B;  evs \<in> otway |]
-      ==> Crypt (shrK A) {|NA, Agent A, Agent B|} \<in> parts (knows Spy evs) -->
-          Says A B {|NA, Agent A, Agent B,
-                     Crypt (shrK A) {|NA, Agent A, Agent B|}|}  \<in> set evs"
+      ==> Crypt (shrK A) \<lbrace>NA, Agent A, Agent B\<rbrace> \<in> parts (knows Spy evs) -->
+          Says A B \<lbrace>NA, Agent A, Agent B,
+                     Crypt (shrK A) \<lbrace>NA, Agent A, Agent B\<rbrace>\<rbrace>  \<in> set evs"
 by (erule otway.induct, force,
     drule_tac [4] OR2_parts_knows_Spy, simp_all, blast+)
 
@@ -256,14 +256,14 @@ text\<open>Crucial property: If the encrypted message appears, and A has used NA
 text\<open>Only it is FALSE.  Somebody could make a fake message to Server
           substituting some other nonce NA' for NB.\<close>
 lemma "[| A \<notin> bad;  A \<noteq> B;  evs \<in> otway |]
-       ==> Crypt (shrK A) {|NA, Key K|} \<in> parts (knows Spy evs) -->
-           Says A B {|NA, Agent A, Agent B,
-                      Crypt (shrK A) {|NA, Agent A, Agent B|}|}
+       ==> Crypt (shrK A) \<lbrace>NA, Key K\<rbrace> \<in> parts (knows Spy evs) -->
+           Says A B \<lbrace>NA, Agent A, Agent B,
+                      Crypt (shrK A) \<lbrace>NA, Agent A, Agent B\<rbrace>\<rbrace>
             \<in> set evs -->
            (\<exists>B NB. Says Server B
-                {|NA,
-                  Crypt (shrK A) {|NA, Key K|},
-                  Crypt (shrK B) {|NB, Key K|}|}  \<in> set evs)"
+                \<lbrace>NA,
+                  Crypt (shrK A) \<lbrace>NA, Key K\<rbrace>,
+                  Crypt (shrK B) \<lbrace>NB, Key K\<rbrace>\<rbrace> \<in> set evs)"
 apply (erule otway.induct, force,
        drule_tac [4] OR2_parts_knows_Spy, simp_all)
 apply blast  \<comment>\<open>Fake\<close>
@@ -276,13 +276,13 @@ apply clarify
 (*The hypotheses at this point suggest an attack in which nonce NB is used
   in two different roles:
           Gets Server
-           {|Nonce NA, Agent Aa, Agent A,
-             Crypt (shrK Aa) {|Nonce NA, Agent Aa, Agent A|}, Nonce NB,
-             Crypt (shrK A) {|Nonce NA, Agent Aa, Agent A|}|}
+           \<lbrace>Nonce NA, Agent Aa, Agent A,
+             Crypt (shrK Aa) \<lbrace>Nonce NA, Agent Aa, Agent A\<rbrace>, Nonce NB,
+             Crypt (shrK A) \<lbrace>Nonce NA, Agent Aa, Agent A\<rbrace>\<rbrace>
           \<in> set evs3
           Says A B
-           {|Nonce NB, Agent A, Agent B,
-             Crypt (shrK A) {|Nonce NB, Agent A, Agent B|}|}
+           \<lbrace>Nonce NB, Agent A, Agent B,
+             Crypt (shrK A) \<lbrace>Nonce NB, Agent A, Agent B\<rbrace>\<rbrace>
           \<in> set evs3;
 *)
 

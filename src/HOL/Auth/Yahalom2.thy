@@ -36,44 +36,44 @@ inductive_set yahalom :: "event list set"
 
          (*Alice initiates a protocol run*)
  | YM1:  "[| evs1 \<in> yahalom;  Nonce NA \<notin> used evs1 |]
-          ==> Says A B {|Agent A, Nonce NA|} # evs1 \<in> yahalom"
+          ==> Says A B \<lbrace>Agent A, Nonce NA\<rbrace> # evs1 \<in> yahalom"
 
          (*Bob's response to Alice's message.*)
  | YM2:  "[| evs2 \<in> yahalom;  Nonce NB \<notin> used evs2;
-             Gets B {|Agent A, Nonce NA|} \<in> set evs2 |]
+             Gets B \<lbrace>Agent A, Nonce NA\<rbrace> \<in> set evs2 |]
           ==> Says B Server
-                  {|Agent B, Nonce NB, Crypt (shrK B) {|Agent A, Nonce NA|}|}
+                  \<lbrace>Agent B, Nonce NB, Crypt (shrK B) \<lbrace>Agent A, Nonce NA\<rbrace>\<rbrace>
                 # evs2 \<in> yahalom"
 
          (*The Server receives Bob's message.  He responds by sending a
            new session key to Alice, with a certificate for forwarding to Bob.
            Both agents are quoted in the 2nd certificate to prevent attacks!*)
  | YM3:  "[| evs3 \<in> yahalom;  Key KAB \<notin> used evs3;
-             Gets Server {|Agent B, Nonce NB,
-                           Crypt (shrK B) {|Agent A, Nonce NA|}|}
+             Gets Server \<lbrace>Agent B, Nonce NB,
+                           Crypt (shrK B) \<lbrace>Agent A, Nonce NA\<rbrace>\<rbrace>
                \<in> set evs3 |]
           ==> Says Server A
-               {|Nonce NB,
-                 Crypt (shrK A) {|Agent B, Key KAB, Nonce NA|},
-                 Crypt (shrK B) {|Agent A, Agent B, Key KAB, Nonce NB|}|}
+               \<lbrace>Nonce NB,
+                 Crypt (shrK A) \<lbrace>Agent B, Key KAB, Nonce NA\<rbrace>,
+                 Crypt (shrK B) \<lbrace>Agent A, Agent B, Key KAB, Nonce NB\<rbrace>\<rbrace>
                  # evs3 \<in> yahalom"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and
            uses the new session key to send Bob his Nonce.*)
  | YM4:  "[| evs4 \<in> yahalom;
-             Gets A {|Nonce NB, Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
-                      X|}  \<in> set evs4;
-             Says A B {|Agent A, Nonce NA|} \<in> set evs4 |]
-          ==> Says A B {|X, Crypt K (Nonce NB)|} # evs4 \<in> yahalom"
+             Gets A \<lbrace>Nonce NB, Crypt (shrK A) \<lbrace>Agent B, Key K, Nonce NA\<rbrace>,
+                      X\<rbrace>  \<in> set evs4;
+             Says A B \<lbrace>Agent A, Nonce NA\<rbrace> \<in> set evs4 |]
+          ==> Says A B \<lbrace>X, Crypt K (Nonce NB)\<rbrace> # evs4 \<in> yahalom"
 
          (*This message models possible leaks of session keys.  The nonces
            identify the protocol run.  Quoting Server here ensures they are
            correct. *)
  | Oops: "[| evso \<in> yahalom;
-             Says Server A {|Nonce NB,
-                             Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
-                             X|}  \<in> set evso |]
-          ==> Notes Spy {|Nonce NA, Nonce NB, Key K|} # evso \<in> yahalom"
+             Says Server A \<lbrace>Nonce NB,
+                             Crypt (shrK A) \<lbrace>Agent B, Key K, Nonce NA\<rbrace>,
+                             X\<rbrace>  \<in> set evso |]
+          ==> Notes Spy \<lbrace>Nonce NA, Nonce NB, Key K\<rbrace> # evso \<in> yahalom"
 
 
 declare Says_imp_knows_Spy [THEN analz.Inj, dest]
@@ -84,7 +84,7 @@ declare analz_into_parts [dest]
 text\<open>A "possibility property": there are traces that reach the end\<close>
 lemma "Key K \<notin> used []
        ==> \<exists>X NB. \<exists>evs \<in> yahalom.
-             Says A B {|X, Crypt K (Nonce NB)|} \<in> set evs"
+             Says A B \<lbrace>X, Crypt K (Nonce NB)\<rbrace> \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] yahalom.Nil
                     [THEN yahalom.YM1, THEN yahalom.Reception,
@@ -111,7 +111,7 @@ subsection\<open>Inductive Proofs\<close>
 text\<open>Result for reasoning about the encrypted portion of messages.
 Lets us treat YM4 using a similar argument as for the Fake case.\<close>
 lemma YM4_analz_knows_Spy:
-     "[| Gets A {|NB, Crypt (shrK A) Y, X|} \<in> set evs;  evs \<in> yahalom |]
+     "[| Gets A \<lbrace>NB, Crypt (shrK A) Y, X\<rbrace> \<in> set evs;  evs \<in> yahalom |]
       ==> X \<in> analz (knows Spy evs)"
 by blast
 
@@ -157,7 +157,7 @@ done
 text\<open>Describes the form of K when the Server sends this message.  Useful for
   Oops as well as main secrecy property.\<close>
 lemma Says_Server_message_form:
-     "[| Says Server A {|nb', Crypt (shrK A) {|Agent B, Key K, na|}, X|}
+     "[| Says Server A \<lbrace>nb', Crypt (shrK A) \<lbrace>Agent B, Key K, na\<rbrace>, X\<rbrace>
           \<in> set evs;  evs \<in> yahalom |]
       ==> K \<notin> range shrK"
 by (erule rev_mp, erule yahalom.induct, simp_all)
@@ -194,9 +194,9 @@ by (simp only: analz_image_freshK analz_image_freshK_simps)
 text\<open>The Key K uniquely identifies the Server's  message\<close>
 lemma unique_session_keys:
      "[| Says Server A
-          {|nb, Crypt (shrK A) {|Agent B, Key K, na|}, X|} \<in> set evs;
+          \<lbrace>nb, Crypt (shrK A) \<lbrace>Agent B, Key K, na\<rbrace>, X\<rbrace> \<in> set evs;
         Says Server A'
-          {|nb', Crypt (shrK A') {|Agent B', Key K, na'|}, X'|} \<in> set evs;
+          \<lbrace>nb', Crypt (shrK A') \<lbrace>Agent B', Key K, na'\<rbrace>, X'\<rbrace> \<in> set evs;
         evs \<in> yahalom |]
      ==> A=A' & B=B' & na=na' & nb=nb'"
 apply (erule rev_mp, erule rev_mp)
@@ -211,10 +211,10 @@ subsection\<open>Crucial Secrecy Property: Spy Does Not See Key @{term KAB}\<clo
 lemma secrecy_lemma:
      "[| A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
       ==> Says Server A
-            {|nb, Crypt (shrK A) {|Agent B, Key K, na|},
-                  Crypt (shrK B) {|Agent A, Agent B, Key K, nb|}|}
+            \<lbrace>nb, Crypt (shrK A) \<lbrace>Agent B, Key K, na\<rbrace>,
+                  Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, nb\<rbrace>\<rbrace>
            \<in> set evs -->
-          Notes Spy {|na, nb, Key K|} \<notin> set evs -->
+          Notes Spy \<lbrace>na, nb, Key K\<rbrace> \<notin> set evs -->
           Key K \<notin> analz (knows Spy evs)"
 apply (erule yahalom.induct, force, frule_tac [7] Says_Server_message_form,
        drule_tac [6] YM4_analz_knows_Spy)
@@ -226,10 +226,10 @@ done
 text\<open>Final version\<close>
 lemma Spy_not_see_encrypted_key:
      "[| Says Server A
-            {|nb, Crypt (shrK A) {|Agent B, Key K, na|},
-                  Crypt (shrK B) {|Agent A, Agent B, Key K, nb|}|}
+            \<lbrace>nb, Crypt (shrK A) \<lbrace>Agent B, Key K, na\<rbrace>,
+                  Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, nb\<rbrace>\<rbrace>
          \<in> set evs;
-         Notes Spy {|na, nb, Key K|} \<notin> set evs;
+         Notes Spy \<lbrace>na, nb, Key K\<rbrace> \<notin> set evs;
          A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
       ==> Key K \<notin> analz (knows Spy evs)"
 by (blast dest: secrecy_lemma Says_Server_message_form)
@@ -245,10 +245,10 @@ other than Fake are trivial, while Fake requires
 @{term "Key K \<notin> analz (knows Spy evs)"}.\<close>
 lemma Spy_not_know_encrypted_key:
      "[| Says Server A
-            {|nb, Crypt (shrK A) {|Agent B, Key K, na|},
-                  Crypt (shrK B) {|Agent A, Agent B, Key K, nb|}|}
+            \<lbrace>nb, Crypt (shrK A) \<lbrace>Agent B, Key K, na\<rbrace>,
+                  Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, nb\<rbrace>\<rbrace>
          \<in> set evs;
-         Notes Spy {|na, nb, Key K|} \<notin> set evs;
+         Notes Spy \<lbrace>na, nb, Key K\<rbrace> \<notin> set evs;
          A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
       ==> Key K \<notin> knows Spy evs"
 by (blast dest: Spy_not_see_encrypted_key)
@@ -259,11 +259,11 @@ subsection\<open>Security Guarantee for A upon receiving YM3\<close>
 text\<open>If the encrypted message appears then it originated with the Server.
   May now apply \<open>Spy_not_see_encrypted_key\<close>, subject to its conditions.\<close>
 lemma A_trusts_YM3:
-     "[| Crypt (shrK A) {|Agent B, Key K, na|} \<in> parts (knows Spy evs);
+     "[| Crypt (shrK A) \<lbrace>Agent B, Key K, na\<rbrace> \<in> parts (knows Spy evs);
          A \<notin> bad;  evs \<in> yahalom |]
       ==> \<exists>nb. Says Server A
-                    {|nb, Crypt (shrK A) {|Agent B, Key K, na|},
-                          Crypt (shrK B) {|Agent A, Agent B, Key K, nb|}|}
+                    \<lbrace>nb, Crypt (shrK A) \<lbrace>Agent B, Key K, na\<rbrace>,
+                          Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, nb\<rbrace>\<rbrace>
                   \<in> set evs"
 apply (erule rev_mp)
 apply (erule yahalom.induct, force,
@@ -275,8 +275,8 @@ done
 text\<open>The obvious combination of \<open>A_trusts_YM3\<close> with 
 \<open>Spy_not_see_encrypted_key\<close>\<close>
 theorem A_gets_good_key:
-     "[| Crypt (shrK A) {|Agent B, Key K, na|} \<in> parts (knows Spy evs);
-         \<forall>nb. Notes Spy {|na, nb, Key K|} \<notin> set evs;
+     "[| Crypt (shrK A) \<lbrace>Agent B, Key K, na\<rbrace> \<in> parts (knows Spy evs);
+         \<forall>nb. Notes Spy \<lbrace>na, nb, Key K\<rbrace> \<notin> set evs;
          A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
       ==> Key K \<notin> analz (knows Spy evs)"
 by (blast dest!: A_trusts_YM3 Spy_not_see_encrypted_key)
@@ -287,13 +287,13 @@ subsection\<open>Security Guarantee for B upon receiving YM4\<close>
 text\<open>B knows, by the first part of A's message, that the Server distributed
   the key for A and B, and has associated it with NB.\<close>
 lemma B_trusts_YM4_shrK:
-     "[| Crypt (shrK B) {|Agent A, Agent B, Key K, Nonce NB|}
+     "[| Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, Nonce NB\<rbrace>
            \<in> parts (knows Spy evs);
          B \<notin> bad;  evs \<in> yahalom |]
   ==> \<exists>NA. Says Server A
-             {|Nonce NB,
-               Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
-               Crypt (shrK B) {|Agent A, Agent B, Key K, Nonce NB|}|}
+             \<lbrace>Nonce NB,
+               Crypt (shrK A) \<lbrace>Agent B, Key K, Nonce NA\<rbrace>,
+               Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, Nonce NB\<rbrace>\<rbrace>
              \<in> set evs"
 apply (erule rev_mp)
 apply (erule yahalom.induct, force,
@@ -309,13 +309,13 @@ text\<open>With this protocol variant, we don't need the 2nd part of YM4 at all:
 text\<open>What can B deduce from receipt of YM4?  Stronger and simpler than Yahalom
   because we do not have to show that NB is secret.\<close>
 lemma B_trusts_YM4:
-     "[| Gets B {|Crypt (shrK B) {|Agent A, Agent B, Key K, Nonce NB|},  X|}
+     "[| Gets B \<lbrace>Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, Nonce NB\<rbrace>,  X\<rbrace>
            \<in> set evs;
          A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
   ==> \<exists>NA. Says Server A
-             {|Nonce NB,
-               Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
-               Crypt (shrK B) {|Agent A, Agent B, Key K, Nonce NB|}|}
+             \<lbrace>Nonce NB,
+               Crypt (shrK A) \<lbrace>Agent B, Key K, Nonce NA\<rbrace>,
+               Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, Nonce NB\<rbrace>\<rbrace>
             \<in> set evs"
 by (blast dest!: B_trusts_YM4_shrK)
 
@@ -323,9 +323,9 @@ by (blast dest!: B_trusts_YM4_shrK)
 text\<open>The obvious combination of \<open>B_trusts_YM4\<close> with 
 \<open>Spy_not_see_encrypted_key\<close>\<close>
 theorem B_gets_good_key:
-     "[| Gets B {|Crypt (shrK B) {|Agent A, Agent B, Key K, Nonce NB|}, X|}
+     "[| Gets B \<lbrace>Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, Nonce NB\<rbrace>, X\<rbrace>
            \<in> set evs;
-         \<forall>na. Notes Spy {|na, Nonce NB, Key K|} \<notin> set evs;
+         \<forall>na. Notes Spy \<lbrace>na, Nonce NB, Key K\<rbrace> \<notin> set evs;
          A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
       ==> Key K \<notin> analz (knows Spy evs)"
 by (blast dest!: B_trusts_YM4 Spy_not_see_encrypted_key)
@@ -335,10 +335,10 @@ subsection\<open>Authenticating B to A\<close>
 
 text\<open>The encryption in message YM2 tells us it cannot be faked.\<close>
 lemma B_Said_YM2:
-     "[| Crypt (shrK B) {|Agent A, Nonce NA|} \<in> parts (knows Spy evs);
+     "[| Crypt (shrK B) \<lbrace>Agent A, Nonce NA\<rbrace> \<in> parts (knows Spy evs);
          B \<notin> bad;  evs \<in> yahalom |]
-      ==> \<exists>NB. Says B Server {|Agent B, Nonce NB,
-                               Crypt (shrK B) {|Agent A, Nonce NA|}|}
+      ==> \<exists>NB. Says B Server \<lbrace>Agent B, Nonce NB,
+                               Crypt (shrK B) \<lbrace>Agent A, Nonce NA\<rbrace>\<rbrace>
                       \<in> set evs"
 apply (erule rev_mp)
 apply (erule yahalom.induct, force,
@@ -350,11 +350,11 @@ done
 
 text\<open>If the server sends YM3 then B sent YM2, perhaps with a different NB\<close>
 lemma YM3_auth_B_to_A_lemma:
-     "[| Says Server A {|nb, Crypt (shrK A) {|Agent B, Key K, Nonce NA|}, X|}
+     "[| Says Server A \<lbrace>nb, Crypt (shrK A) \<lbrace>Agent B, Key K, Nonce NA\<rbrace>, X\<rbrace>
            \<in> set evs;
          B \<notin> bad;  evs \<in> yahalom |]
-      ==> \<exists>nb'. Says B Server {|Agent B, nb',
-                                   Crypt (shrK B) {|Agent A, Nonce NA|}|}
+      ==> \<exists>nb'. Says B Server \<lbrace>Agent B, nb',
+                                   Crypt (shrK B) \<lbrace>Agent A, Nonce NA\<rbrace>\<rbrace>
                        \<in> set evs"
 apply (erule rev_mp)
 apply (erule yahalom.induct, simp_all)
@@ -364,11 +364,11 @@ done
 
 text\<open>If A receives YM3 then B has used nonce NA (and therefore is alive)\<close>
 theorem YM3_auth_B_to_A:
-     "[| Gets A {|nb, Crypt (shrK A) {|Agent B, Key K, Nonce NA|}, X|}
+     "[| Gets A \<lbrace>nb, Crypt (shrK A) \<lbrace>Agent B, Key K, Nonce NA\<rbrace>, X\<rbrace>
            \<in> set evs;
          A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
  ==> \<exists>nb'. Says B Server
-                  {|Agent B, nb', Crypt (shrK B) {|Agent A, Nonce NA|}|}
+                  \<lbrace>Agent B, nb', Crypt (shrK B) \<lbrace>Agent A, Nonce NA\<rbrace>\<rbrace>
                \<in> set evs"
 by (blast dest!: A_trusts_YM3 YM3_auth_B_to_A_lemma)
 
@@ -385,8 +385,8 @@ text\<open>Assuming the session key is secure, if both certificates are present 
 text\<open>This lemma allows a use of \<open>unique_session_keys\<close> in the next proof,
   which otherwise is extremely slow.\<close>
 lemma secure_unique_session_keys:
-     "[| Crypt (shrK A) {|Agent B, Key K, na|} \<in> analz (spies evs);
-         Crypt (shrK A') {|Agent B', Key K, na'|} \<in> analz (spies evs);
+     "[| Crypt (shrK A) \<lbrace>Agent B, Key K, na\<rbrace> \<in> analz (spies evs);
+         Crypt (shrK A') \<lbrace>Agent B', Key K, na'\<rbrace> \<in> analz (spies evs);
          Key K \<notin> analz (knows Spy evs);  evs \<in> yahalom |]
      ==> A=A' & B=B'"
 by (blast dest!: A_trusts_YM3 dest: unique_session_keys Crypt_Spy_analz_bad)
@@ -397,10 +397,10 @@ lemma Auth_A_to_B_lemma [rule_format]:
       ==> Key K \<notin> analz (knows Spy evs) -->
           K \<in> symKeys -->
           Crypt K (Nonce NB) \<in> parts (knows Spy evs) -->
-          Crypt (shrK B) {|Agent A, Agent B, Key K, Nonce NB|}
+          Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, Nonce NB\<rbrace>
             \<in> parts (knows Spy evs) -->
           B \<notin> bad -->
-          (\<exists>X. Says A B {|X, Crypt K (Nonce NB)|} \<in> set evs)"
+          (\<exists>X. Says A B \<lbrace>X, Crypt K (Nonce NB)\<rbrace> \<in> set evs)"
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy)
 apply (analz_mono_contra, simp_all)
@@ -419,11 +419,11 @@ text\<open>If B receives YM4 then A has used nonce NB (and therefore is alive).
   Moreover, A associates K with NB (thus is talking about the same run).
   Other premises guarantee secrecy of K.\<close>
 theorem YM4_imp_A_Said_YM3 [rule_format]:
-     "[| Gets B {|Crypt (shrK B) {|Agent A, Agent B, Key K, Nonce NB|},
-                  Crypt K (Nonce NB)|} \<in> set evs;
-         (\<forall>NA. Notes Spy {|Nonce NA, Nonce NB, Key K|} \<notin> set evs);
+     "[| Gets B \<lbrace>Crypt (shrK B) \<lbrace>Agent A, Agent B, Key K, Nonce NB\<rbrace>,
+                  Crypt K (Nonce NB)\<rbrace> \<in> set evs;
+         (\<forall>NA. Notes Spy \<lbrace>Nonce NA, Nonce NB, Key K\<rbrace> \<notin> set evs);
          K \<in> symKeys;  A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
-      ==> \<exists>X. Says A B {|X, Crypt K (Nonce NB)|} \<in> set evs"
+      ==> \<exists>X. Says A B \<lbrace>X, Crypt K (Nonce NB)\<rbrace> \<in> set evs"
 by (blast intro: Auth_A_to_B_lemma
           dest: Spy_not_see_encrypted_key B_trusts_YM4_shrK)
 

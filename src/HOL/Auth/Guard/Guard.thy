@@ -19,7 +19,7 @@ where
   No_Nonce [intro]: "Nonce n ~:parts {X} ==> X:guard n Ks"
 | Guard_Nonce [intro]: "invKey K:Ks ==> Crypt K X:guard n Ks"
 | Crypt [intro]: "X:guard n Ks ==> Crypt K X:guard n Ks"
-| Pair [intro]: "[| X:guard n Ks; Y:guard n Ks |] ==> {|X,Y|}:guard n Ks"
+| Pair [intro]: "[| X:guard n Ks; Y:guard n Ks |] ==> \<lbrace>X,Y\<rbrace> \<in> guard n Ks"
 
 subsection\<open>basic facts about @{term guard}\<close>
 
@@ -58,8 +58,8 @@ by (erule guard.induct, auto)
 lemma guard_Crypt: "[| Crypt K Y:guard n Ks; K ~:invKey`Ks |] ==> Y:guard n Ks"
   by (ind_cases "Crypt K Y:guard n Ks") (auto intro!: image_eqI)
 
-lemma guard_MPair [iff]: "({|X,Y|}:guard n Ks) = (X:guard n Ks & Y:guard n Ks)"
-by (auto, (ind_cases "{|X,Y|}:guard n Ks", auto)+)
+lemma guard_MPair [iff]: "(\<lbrace>X,Y\<rbrace> \<in> guard n Ks) = (X \<in> guard n Ks \<and> Y \<in> guard n Ks)"
+by (auto, (ind_cases "\<lbrace>X,Y\<rbrace> \<in> guard n Ks", auto)+)
 
 lemma guard_not_guard [rule_format]: "X:guard n Ks ==>
 Crypt K Y:kparts {X} --> Nonce n:kparts {Y} --> Y ~:guard n Ks"
@@ -175,7 +175,7 @@ subsection\<open>number of Crypt's in a message\<close>
 fun crypt_nb :: "msg => nat"
 where
   "crypt_nb (Crypt K X) = Suc (crypt_nb X)"
-| "crypt_nb {|X,Y|} = crypt_nb X + crypt_nb Y"
+| "crypt_nb \<lbrace>X,Y\<rbrace> = crypt_nb X + crypt_nb Y"
 | "crypt_nb X = 0" (* otherwise *)
 
 subsection\<open>basic facts about @{term crypt_nb}\<close>

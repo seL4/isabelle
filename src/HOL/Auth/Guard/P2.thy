@@ -23,8 +23,8 @@ B chains his offer for A with the head offer of L for sending it to C\<close>
 definition chain :: "agent => nat => agent => msg => agent => msg" where
 "chain B ofr A L C ==
 let m1= sign B (Nonce ofr) in
-let m2= Hash {|head L, Agent C|} in
-{|Crypt (pubK A) m1, m2|}"
+let m2= Hash \<lbrace>head L, Agent C\<rbrace> in
+\<lbrace>Crypt (pubK A) m1, m2\<rbrace>"
 
 declare Let_def [simp]
 
@@ -38,7 +38,7 @@ by (auto simp: chain_def sign_def)
 subsubsection\<open>agent whose key is used to sign an offer\<close>
 
 fun shop :: "msg => msg" where
-"shop {|Crypt K {|B,ofr,Crypt K' H|},m2|} = Agent (agt K')"
+"shop \<lbrace>Crypt K \<lbrace>B,ofr,Crypt K' H\<rbrace>,m2\<rbrace> = Agent (agt K')"
 
 lemma shop_chain [simp]: "shop (chain B ofr A L C) = Agent B"
 by (simp add: chain_def sign_def)
@@ -46,7 +46,7 @@ by (simp add: chain_def sign_def)
 subsubsection\<open>nonce used in an offer\<close>
 
 fun nonce :: "msg => msg" where
-"nonce {|Crypt K {|B,ofr,CryptH|},m2|} = ofr"
+"nonce \<lbrace>Crypt K \<lbrace>B,ofr,CryptH\<rbrace>,m2\<rbrace> = ofr"
 
 lemma nonce_chain [simp]: "nonce (chain B ofr A L C) = Nonce ofr"
 by (simp add: chain_def sign_def)
@@ -54,7 +54,7 @@ by (simp add: chain_def sign_def)
 subsubsection\<open>next shop\<close>
 
 fun next_shop :: "msg => agent" where
-"next_shop {|m1,Hash {|headL,Agent C|}|} = C"
+"next_shop \<lbrace>m1,Hash \<lbrace>headL,Agent C\<rbrace>\<rbrace> = C"
 
 lemma "next_shop (chain B ofr A L C) = C"
 by (simp add: chain_def sign_def)
@@ -77,8 +77,8 @@ by (simp add: anchor_def)
 subsubsection\<open>request event\<close>
 
 definition reqm :: "agent => nat => nat => msg => agent => msg" where
-"reqm A r n I B == {|Agent A, Number r, cons (Agent A) (cons (Agent B) I),
-cons (anchor A n B) nil|}"
+"reqm A r n I B == \<lbrace>Agent A, Number r, cons (Agent A) (cons (Agent B) I),
+cons (anchor A n B) nil\<rbrace>"
 
 lemma reqm_inj [iff]: "(reqm A r n I B = reqm A' r' n' I' B')
 = (A=A' & r=r' & n=n' & I=I' & B=B')"
@@ -98,8 +98,8 @@ subsubsection\<open>propose event\<close>
 
 definition prom :: "agent => nat => agent => nat => msg => msg =>
 msg => agent => msg" where
-"prom B ofr A r I L J C == {|Agent A, Number r,
-app (J, del (Agent B, I)), cons (chain B ofr A L C) L|}"
+"prom B ofr A r I L J C == \<lbrace>Agent A, Number r,
+app (J, del (Agent B, I)), cons (chain B ofr A L C) L\<rbrace>"
 
 lemma prom_inj [dest]: "prom B ofr A r I L J C = prom B' ofr' A' r' I' L' J' C'
 ==> B=B' & ofr=ofr' & A=A' & r=r' & L=L' & C=C'"
@@ -127,7 +127,7 @@ where
 
 | Request: "[| evsr:p2; Nonce n ~:used evsr; I:agl |] ==> req A r n I B # evsr : p2"
 
-| Propose: "[| evsp:p2; Says A' B {|Agent A,Number r,I,cons M L|}:set evsp;
+| Propose: "[| evsp:p2; Says A' B \<lbrace>Agent A,Number r,I,cons M L\<rbrace>:set evsp;
   I:agl; J:agl; isin (Agent C, app (J, del (Agent B, I)));
   Nonce ofr ~:used evsp |] ==> pro B ofr A r I (cons M L) J C # evsp : p2"
 
@@ -154,7 +154,7 @@ subsubsection\<open>list of offers\<close>
 
 fun offers :: "msg => msg"
 where
-  "offers (cons M L) = cons {|shop M, nonce M|} (offers L)"
+  "offers (cons M L) = cons \<lbrace>shop M, nonce M\<rbrace> (offers L)"
 | "offers other = nil"
 
 
@@ -173,15 +173,15 @@ apply (induct i)
 apply clarify
 apply (frule len_not_empty, clarsimp)
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,xa,l'a|}:valid A n B" for x xa l'a)
-apply (ind_cases "{|x,M,l'a|}:valid A n B" for x l'a)
+apply (ind_cases "\<lbrace>x,xa,l'a\<rbrace>:valid A n B" for x xa l'a)
+apply (ind_cases "\<lbrace>x,M,l'a\<rbrace>:valid A n B" for x l'a)
 apply (simp add: chain_def)
 (* i > 0 *)
 apply clarify
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,repl(l',Suc na,M)|}:valid A n B" for x l' na)
+apply (ind_cases "\<lbrace>x,repl(l',Suc na,M)\<rbrace>:valid A n B" for x l' na)
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,l'|}:valid A n B" for x l')
+apply (ind_cases "\<lbrace>x,l'\<rbrace>:valid A n B" for x l')
 by (drule_tac x=l' in spec, simp, blast)
 
 subsection\<open>insertion resilience:
@@ -197,15 +197,15 @@ apply (induct i)
 (* i = 0 *)
 apply clarify
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,l'|}:valid A n B" for x l', simp)
-apply (ind_cases "{|x,M,l'|}:valid A n B" for x l', clarsimp)
-apply (ind_cases "{|head l',l'|}:valid A n B" for l', simp, simp)
+apply (ind_cases "\<lbrace>x,l'\<rbrace>:valid A n B" for x l', simp)
+apply (ind_cases "\<lbrace>x,M,l'\<rbrace>:valid A n B" for x l', clarsimp)
+apply (ind_cases "\<lbrace>head l',l'\<rbrace>:valid A n B" for l', simp, simp)
 (* i > 0 *)
 apply clarify
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,l'|}:valid A n B" for x l')
+apply (ind_cases "\<lbrace>x,l'\<rbrace>:valid A n B" for x l')
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,ins(l',Suc na,M)|}:valid A n B" for x l' na)
+apply (ind_cases "\<lbrace>x,ins(l',Suc na,M)\<rbrace>:valid A n B" for x l' na)
 apply (frule len_not_empty, clarsimp)
 by (drule_tac x=l' in spec, clarsimp)
 
@@ -218,14 +218,14 @@ apply (induct i)
 (* i = 0 *)
 apply clarify
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,l'|}:valid A n B" for x l')
+apply (ind_cases "\<lbrace>x,l'\<rbrace>:valid A n B" for x l')
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|M,l'|}:valid A n B" for l')
+apply (ind_cases "\<lbrace>M,l'\<rbrace>:valid A n B" for l')
 apply (frule len_not_empty, clarsimp, simp)
 (* i > 0 *)
 apply clarify
 apply (frule len_not_empty, clarsimp)
-apply (ind_cases "{|x,l'|}:valid A n B" for x l')
+apply (ind_cases "\<lbrace>x,l'\<rbrace>:valid A n B" for x l')
 apply (frule len_not_empty, clarsimp)
 by (drule_tac x=l' in spec, clarsimp)
 
@@ -237,7 +237,7 @@ declare initState.simps [simp del]
 
 subsection\<open>get components of a message\<close>
 
-lemma get_ML [dest]: "Says A' B {|A,R,I,M,L|}:set evs ==>
+lemma get_ML [dest]: "Says A' B \<lbrace>A,R,I,M,L\<rbrace>:set evs ==>
 M:parts (spies evs) & L:parts (spies evs)"
 by blast
 
@@ -312,15 +312,15 @@ subsection\<open>general guardedness properties\<close>
 lemma agl_guard [intro]: "I:agl ==> I:guard n Ks"
 by (erule agl.induct, auto)
 
-lemma Says_to_knows_max'_guard: "[| Says A' C {|A'',r,I,L|}:set evs;
+lemma Says_to_knows_max'_guard: "[| Says A' C \<lbrace>A'',r,I,L\<rbrace>:set evs;
 Guard n Ks (knows_max' C evs) |] ==> L:guard n Ks"
 by (auto dest: Says_to_knows_max')
 
-lemma Says_from_knows_max'_guard: "[| Says C A' {|A'',r,I,L|}:set evs;
+lemma Says_from_knows_max'_guard: "[| Says C A' \<lbrace>A'',r,I,L\<rbrace>:set evs;
 Guard n Ks (knows_max' C evs) |] ==> L:guard n Ks"
 by (auto dest: Says_from_knows_max')
 
-lemma Says_Nonce_not_used_guard: "[| Says A' B {|A'',r,I,L|}:set evs;
+lemma Says_Nonce_not_used_guard: "[| Says A' B \<lbrace>A'',r,I,L\<rbrace>:set evs;
 Nonce n ~:used evs |] ==> L:guard n Ks"
 by (drule not_used_not_parts, auto)
 

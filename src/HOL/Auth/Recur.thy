@@ -21,18 +21,18 @@ inductive_set (*Server's response to the nested message*)
   for evs :: "event list"
   where
    One:  "Key KAB \<notin> used evs
-          ==> (Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, END|},
-               {|Crypt (shrK A) {|Key KAB, Agent B, Nonce NA|}, END|},
+          ==> (Hash[Key(shrK A)] \<lbrace>Agent A, Agent B, Nonce NA, END\<rbrace>,
+               \<lbrace>Crypt (shrK A) \<lbrace>Key KAB, Agent B, Nonce NA\<rbrace>, END\<rbrace>,
                KAB)   \<in> respond evs"
 
     (*The most recent session key is passed up to the caller*)
  | Cons: "[| (PA, RA, KAB) \<in> respond evs;
              Key KBC \<notin> used evs;  Key KBC \<notin> parts {RA};
-             PA = Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, P|} |]
-          ==> (Hash[Key(shrK B)] {|Agent B, Agent C, Nonce NB, PA|},
-               {|Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|},
-                 Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|},
-                 RA|},
+             PA = Hash[Key(shrK A)] \<lbrace>Agent A, Agent B, Nonce NA, P\<rbrace> |]
+          ==> (Hash[Key(shrK B)] \<lbrace>Agent B, Agent C, Nonce NB, PA\<rbrace>,
+               \<lbrace>Crypt (shrK B) \<lbrace>Key KBC, Agent C, Nonce NB\<rbrace>,
+                 Crypt (shrK B) \<lbrace>Key KAB, Agent A, Nonce NB\<rbrace>,
+                 RA\<rbrace>,
                KBC)
               \<in> respond evs"
 
@@ -48,8 +48,8 @@ inductive_set
    Nil:  "END \<in> responses evs"
 
  | Cons: "[| RA \<in> responses evs;  Key KAB \<notin> used evs |]
-          ==> {|Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|},
-                RA|}  \<in> responses evs"
+          ==> \<lbrace>Crypt (shrK B) \<lbrace>Key KAB, Agent A, Nonce NB\<rbrace>,
+                RA\<rbrace>  \<in> responses evs"
 
 
 inductive_set recur :: "event list set"
@@ -65,15 +65,15 @@ inductive_set recur :: "event list set"
          (*Alice initiates a protocol run.
            END is a placeholder to terminate the nesting.*)
  | RA1:  "[| evs1 \<in> recur;  Nonce NA \<notin> used evs1 |]
-          ==> Says A B (Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, END|})
+          ==> Says A B (Hash[Key(shrK A)] \<lbrace>Agent A, Agent B, Nonce NA, END\<rbrace>)
               # evs1 \<in> recur"
 
          (*Bob's response to Alice's message.  C might be the Server.
-           We omit PA = {|XA, Agent A, Agent B, Nonce NA, P|} because
+           We omit PA = \<lbrace>XA, Agent A, Agent B, Nonce NA, P\<rbrace> because
            it complicates proofs, so B may respond to any message at all!*)
  | RA2:  "[| evs2 \<in> recur;  Nonce NB \<notin> used evs2;
              Says A' B PA \<in> set evs2 |]
-          ==> Says B C (Hash[Key(shrK B)] {|Agent B, Agent C, Nonce NB, PA|})
+          ==> Says B C (Hash[Key(shrK B)] \<lbrace>Agent B, Agent C, Nonce NB, PA\<rbrace>)
               # evs2 \<in> recur"
 
          (*The Server receives Bob's message and prepares a response.*)
@@ -84,11 +84,11 @@ inductive_set recur :: "event list set"
          (*Bob receives the returned message and compares the Nonces with
            those in the message he previously sent the Server.*)
  | RA4:  "[| evs4 \<in> recur;
-             Says B  C {|XH, Agent B, Agent C, Nonce NB,
-                         XA, Agent A, Agent B, Nonce NA, P|} \<in> set evs4;
-             Says C' B {|Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|},
-                         Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|},
-                         RA|} \<in> set evs4 |]
+             Says B  C \<lbrace>XH, Agent B, Agent C, Nonce NB,
+                         XA, Agent A, Agent B, Nonce NA, P\<rbrace> \<in> set evs4;
+             Says C' B \<lbrace>Crypt (shrK B) \<lbrace>Key KBC, Agent C, Nonce NB\<rbrace>,
+                         Crypt (shrK B) \<lbrace>Key KAB, Agent A, Nonce NB\<rbrace>,
+                         RA\<rbrace> \<in> set evs4 |]
           ==> Says B A RA # evs4 \<in> recur"
 
    (*No "oops" message can easily be expressed.  Each session key is
@@ -101,7 +101,7 @@ inductive_set recur :: "event list set"
 
    Oops:  "[| evso \<in> recur;  Says Server B RB \<in> set evso;
               RB \<in> responses evs';  Key K \<in> parts {RB} |]
-           ==> Notes Spy {|Key K, RB|} # evso \<in> recur"
+           ==> Notes Spy \<lbrace>Key K, RB\<rbrace> # evso \<in> recur"
   *)
 
 
@@ -120,8 +120,8 @@ declare Fake_parts_insert_in_Un  [dest]
 text\<open>Simplest case: Alice goes directly to the server\<close>
 lemma "Key K \<notin> used [] 
        ==> \<exists>NA. \<exists>evs \<in> recur.
-              Says Server A {|Crypt (shrK A) {|Key K, Agent Server, Nonce NA|},
-                    END|}  \<in> set evs"
+              Says Server A \<lbrace>Crypt (shrK A) \<lbrace>Key K, Agent Server, Nonce NA\<rbrace>,
+                    END\<rbrace>  \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] recur.Nil [THEN recur.RA1, 
                              THEN recur.RA3 [OF _ _ respond.One]])
@@ -133,8 +133,8 @@ text\<open>Case two: Alice, Bob and the server\<close>
 lemma "[| Key K \<notin> used []; Key K' \<notin> used []; K \<noteq> K';
           Nonce NA \<notin> used []; Nonce NB \<notin> used []; NA < NB |]
        ==> \<exists>NA. \<exists>evs \<in> recur.
-        Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},
-                   END|}  \<in> set evs"
+        Says B A \<lbrace>Crypt (shrK A) \<lbrace>Key K, Agent B, Nonce NA\<rbrace>,
+                   END\<rbrace>  \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] 
           recur.Nil
@@ -152,8 +152,8 @@ lemma "[| Key K \<notin> used []; Key K' \<notin> used [];
           Nonce NA \<notin> used []; Nonce NB \<notin> used []; Nonce NC \<notin> used []; 
           NA < NB; NB < NC |]
        ==> \<exists>K. \<exists>NA. \<exists>evs \<in> recur.
-             Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},
-                        END|}  \<in> set evs"
+             Says B A \<lbrace>Crypt (shrK A) \<lbrace>Key K, Agent B, Nonce NA\<rbrace>,
+                        END\<rbrace>  \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] 
           recur.Nil [THEN recur.RA1, 
@@ -189,7 +189,7 @@ done
 lemmas RA2_analz_spies = Says_imp_spies [THEN analz.Inj]
 
 lemma RA4_analz_spies:
-     "Says C' B {|Crypt K X, X', RA|} \<in> set evs ==> RA \<in> analz (spies evs)"
+     "Says C' B \<lbrace>Crypt K X, X', RA\<rbrace> \<in> set evs ==> RA \<in> analz (spies evs)"
 by blast
 
 
@@ -278,7 +278,7 @@ by (simp del: image_insert
 
 text\<open>Everything that's hashed is already in past traffic.\<close>
 lemma Hash_imp_body:
-     "[| Hash {|Key(shrK A), X|} \<in> parts (spies evs);
+     "[| Hash \<lbrace>Key(shrK A), X\<rbrace> \<in> parts (spies evs);
          evs \<in> recur;  A \<notin> bad |] ==> X \<in> parts (spies evs)"
 apply (erule rev_mp)
 apply (erule recur.induct,
@@ -299,8 +299,8 @@ done
 **)
 
 lemma unique_NA:
-  "[| Hash {|Key(shrK A), Agent A, B, NA, P|} \<in> parts (spies evs);
-      Hash {|Key(shrK A), Agent A, B',NA, P'|} \<in> parts (spies evs);
+  "[| Hash \<lbrace>Key(shrK A), Agent A, B, NA, P\<rbrace> \<in> parts (spies evs);
+      Hash \<lbrace>Key(shrK A), Agent A, B',NA, P'\<rbrace> \<in> parts (spies evs);
       evs \<in> recur;  A \<notin> bad |]
     ==> B=B' & P=P'"
 apply (erule rev_mp, erule rev_mp)
@@ -348,8 +348,8 @@ lemmas resp_analz_insert =
 
 text\<open>The last key returned by respond indeed appears in a certificate\<close>
 lemma respond_certificate:
-     "(Hash[Key(shrK A)] {|Agent A, B, NA, P|}, RA, K) \<in> respond evs
-      ==> Crypt (shrK A) {|Key K, B, NA|} \<in> parts {RA}"
+     "(Hash[Key(shrK A)] \<lbrace>Agent A, B, NA, P\<rbrace>, RA, K) \<in> respond evs
+      ==> Crypt (shrK A) \<lbrace>Key K, B, NA\<rbrace> \<in> parts {RA}"
 apply (ind_cases "(Hash[Key (shrK A)] \<lbrace>Agent A, B, NA, P\<rbrace>, RA, K) \<in> respond evs")
 apply simp_all
 done
@@ -361,8 +361,8 @@ done
   the quantifiers appear to be necessary.*)
 lemma unique_lemma [rule_format]:
      "(PB,RB,KXY) \<in> respond evs ==>
-      \<forall>A B N. Crypt (shrK A) {|Key K, Agent B, N|} \<in> parts {RB} -->
-      (\<forall>A' B' N'. Crypt (shrK A') {|Key K, Agent B', N'|} \<in> parts {RB} -->
+      \<forall>A B N. Crypt (shrK A) \<lbrace>Key K, Agent B, N\<rbrace> \<in> parts {RB} -->
+      (\<forall>A' B' N'. Crypt (shrK A') \<lbrace>Key K, Agent B', N'\<rbrace> \<in> parts {RB} -->
       (A'=A & B'=B) | (A'=B & B'=A))"
 apply (erule respond.induct)
 apply (simp_all add: all_conj_distrib)
@@ -370,8 +370,8 @@ apply (blast dest: respond_certificate)
 done
 
 lemma unique_session_keys:
-     "[| Crypt (shrK A) {|Key K, Agent B, N|} \<in> parts {RB};
-         Crypt (shrK A') {|Key K, Agent B', N'|} \<in> parts {RB};
+     "[| Crypt (shrK A) \<lbrace>Key K, Agent B, N\<rbrace> \<in> parts {RB};
+         Crypt (shrK A') \<lbrace>Key K, Agent B', N'\<rbrace> \<in> parts {RB};
          (PB,RB,KXY) \<in> respond evs |]
       ==> (A'=A & B'=B) | (A'=B & B'=A)"
 by (rule unique_lemma, auto)
@@ -384,7 +384,7 @@ by (rule unique_lemma, auto)
 lemma respond_Spy_not_see_session_key [rule_format]:
      "[| (PB,RB,KAB) \<in> respond evs;  evs \<in> recur |]
       ==> \<forall>A A' N. A \<notin> bad & A' \<notin> bad -->
-          Crypt (shrK A) {|Key K, Agent A', N|} \<in> parts{RB} -->
+          Crypt (shrK A) \<lbrace>Key K, Agent A', N\<rbrace> \<in> parts{RB} -->
           Key K \<notin> analz (insert RB (spies evs))"
 apply (erule respond.induct)
 apply (frule_tac [2] respond_imp_responses)
@@ -405,7 +405,7 @@ done
 
 
 lemma Spy_not_see_session_key:
-     "[| Crypt (shrK A) {|Key K, Agent A', N|} \<in> parts (spies evs);
+     "[| Crypt (shrK A) \<lbrace>Key K, Agent A', N\<rbrace> \<in> parts (spies evs);
          A \<notin> bad;  A' \<notin> bad;  evs \<in> recur |]
       ==> Key K \<notin> analz (spies evs)"
 apply (erule rev_mp)
@@ -430,9 +430,9 @@ done
 
 text\<open>The response never contains Hashes\<close>
 lemma Hash_in_parts_respond:
-     "[| Hash {|Key (shrK B), M|} \<in> parts (insert RB H);
+     "[| Hash \<lbrace>Key (shrK B), M\<rbrace> \<in> parts (insert RB H);
          (PB,RB,K) \<in> respond evs |]
-      ==> Hash {|Key (shrK B), M|} \<in> parts H"
+      ==> Hash \<lbrace>Key (shrK B), M\<rbrace> \<in> parts H"
 apply (erule rev_mp)
 apply (erule respond_imp_responses [THEN responses.induct], auto)
 done
@@ -442,9 +442,9 @@ text\<open>Only RA1 or RA2 can have caused such a part of a message to appear.
   it can say nothing about how recent A's message is.  It might later be
   used to prove B's presence to A at the run's conclusion.\<close>
 lemma Hash_auth_sender [rule_format]:
-     "[| Hash {|Key(shrK A), Agent A, Agent B, NA, P|} \<in> parts(spies evs);
+     "[| Hash \<lbrace>Key(shrK A), Agent A, Agent B, NA, P\<rbrace> \<in> parts(spies evs);
          A \<notin> bad;  evs \<in> recur |]
-      ==> Says A B (Hash[Key(shrK A)] {|Agent A, Agent B, NA, P|}) \<in> set evs"
+      ==> Says A B (Hash[Key(shrK A)] \<lbrace>Agent A, Agent B, NA, P\<rbrace>) \<in> set evs"
 apply (unfold HPair_def)
 apply (erule rev_mp)
 apply (erule recur.induct,

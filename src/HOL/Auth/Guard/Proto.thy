@@ -39,7 +39,7 @@ primrec apm :: "subs => msg => msg" where
 if (EX A. K = pubK A) then Crypt (pubK (agent s (agt K))) (apm s X)
 else if (EX A. K = priK A) then Crypt (priK (agent s (agt K))) (apm s X)
 else Crypt (key s K) (apm s X))"
-| "apm s {|X,Y|} = {|apm s X, apm s Y|}"
+| "apm s \<lbrace>X,Y\<rbrace> = \<lbrace>apm s X, apm s Y\<rbrace>"
 
 lemma apm_parts: "X:parts {Y} ==> apm s X:parts {apm s Y}"
 apply (erule parts.induct, simp_all, blast)
@@ -371,17 +371,17 @@ definition Nb :: nat where "Nb == 1"
 
 abbreviation
   ns1 :: rule where
-  "ns1 == ({}, Says a b (Crypt (pubK b) {|Nonce Na, Agent a|}))"
+  "ns1 == ({}, Says a b (Crypt (pubK b) \<lbrace>Nonce Na, Agent a\<rbrace>))"
 
 abbreviation
   ns2 :: rule where
-  "ns2 == ({Says a' b (Crypt (pubK b) {|Nonce Na, Agent a|})},
-    Says b a (Crypt (pubK a) {|Nonce Na, Nonce Nb, Agent b|}))"
+  "ns2 == ({Says a' b (Crypt (pubK b) \<lbrace>Nonce Na, Agent a\<rbrace>)},
+    Says b a (Crypt (pubK a) \<lbrace>Nonce Na, Nonce Nb, Agent b\<rbrace>))"
 
 abbreviation
   ns3 :: rule where
-  "ns3 == ({Says a b (Crypt (pubK b) {|Nonce Na, Agent a|}),
-    Says b' a (Crypt (pubK a) {|Nonce Na, Nonce Nb, Agent b|})},
+  "ns3 == ({Says a b (Crypt (pubK b) \<lbrace>Nonce Na, Agent a\<rbrace>),
+    Says b' a (Crypt (pubK a) \<lbrace>Nonce Na, Nonce Nb, Agent b\<rbrace>)},
     Says a b (Crypt (pubK b) (Nonce Nb)))"
 
 inductive_set ns :: proto where
@@ -391,11 +391,11 @@ inductive_set ns :: proto where
 
 abbreviation (input)
   ns3a :: event where
-  "ns3a == Says a b (Crypt (pubK b) {|Nonce Na, Agent a|})"
+  "ns3a == Says a b (Crypt (pubK b) \<lbrace>Nonce Na, Agent a\<rbrace>)"
 
 abbreviation (input)
   ns3b :: event where
-  "ns3b == Says b' a (Crypt (pubK a) {|Nonce Na, Nonce Nb, Agent b|})"
+  "ns3b == Says b' a (Crypt (pubK a) \<lbrace>Nonce Na, Nonce Nb, Agent b\<rbrace>)"
 
 definition keys :: "keyfun" where
 "keys R' s' n evs == {priK' s' a, priK' s' b}"
@@ -405,8 +405,8 @@ by (simp add: keys_def monoton_def)
 
 definition secret :: "secfun" where
 "secret R n s Ks ==
-(if R=ns1 then apm s (Crypt (pubK b) {|Nonce Na, Agent a|})
-else if R=ns2 then apm s (Crypt (pubK a) {|Nonce Na, Nonce Nb, Agent b|})
+(if R=ns1 then apm s (Crypt (pubK b) \<lbrace>Nonce Na, Agent a\<rbrace>)
+else if R=ns2 then apm s (Crypt (pubK a) \<lbrace>Nonce Na, Nonce Nb, Agent b\<rbrace>)
 else Number 0)"
 
 definition inf :: "rule => rule => bool" where

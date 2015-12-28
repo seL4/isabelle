@@ -16,43 +16,43 @@ abbreviation
 abbreviation
   or1 :: "agent => agent => nat => event" where
   "or1 A B NA ==
-    Says A B {|Nonce NA, Agent A, Agent B, Ciph A {|Nonce NA, Agent A, Agent B|}|}"
+    Says A B \<lbrace>Nonce NA, Agent A, Agent B, Ciph A \<lbrace>Nonce NA, Agent A, Agent B\<rbrace>\<rbrace>"
 
 abbreviation
   or1' :: "agent => agent => agent => nat => msg => event" where
-  "or1' A' A B NA X == Says A' B {|Nonce NA, Agent A, Agent B, X|}"
+  "or1' A' A B NA X == Says A' B \<lbrace>Nonce NA, Agent A, Agent B, X\<rbrace>"
 
 abbreviation
   or2 :: "agent => agent => nat => nat => msg => event" where
   "or2 A B NA NB X ==
-    Says B Server {|Nonce NA, Agent A, Agent B, X,
-                    Ciph B {|Nonce NA, Nonce NB, Agent A, Agent B|}|}"
+    Says B Server \<lbrace>Nonce NA, Agent A, Agent B, X,
+                    Ciph B \<lbrace>Nonce NA, Nonce NB, Agent A, Agent B\<rbrace>\<rbrace>"
 
 abbreviation
   or2' :: "agent => agent => agent => nat => nat => event" where
   "or2' B' A B NA NB ==
-    Says B' Server {|Nonce NA, Agent A, Agent B,
-                     Ciph A {|Nonce NA, Agent A, Agent B|},
-                     Ciph B {|Nonce NA, Nonce NB, Agent A, Agent B|}|}"
+    Says B' Server \<lbrace>Nonce NA, Agent A, Agent B,
+                     Ciph A \<lbrace>Nonce NA, Agent A, Agent B\<rbrace>,
+                     Ciph B \<lbrace>Nonce NA, Nonce NB, Agent A, Agent B\<rbrace>\<rbrace>"
 
 abbreviation
   or3 :: "agent => agent => nat => nat => key => event" where
   "or3 A B NA NB K ==
-    Says Server B {|Nonce NA, Ciph A {|Nonce NA, Key K|},
-                    Ciph B {|Nonce NB, Key K|}|}"
+    Says Server B \<lbrace>Nonce NA, Ciph A \<lbrace>Nonce NA, Key K\<rbrace>,
+                    Ciph B \<lbrace>Nonce NB, Key K\<rbrace>\<rbrace>"
 
 abbreviation
   or3':: "agent => msg => agent => agent => nat => nat => key => event" where
   "or3' S Y A B NA NB K ==
-    Says S B {|Nonce NA, Y, Ciph B {|Nonce NB, Key K|}|}"
+    Says S B \<lbrace>Nonce NA, Y, Ciph B \<lbrace>Nonce NB, Key K\<rbrace>\<rbrace>"
 
 abbreviation
   or4 :: "agent => agent => nat => msg => event" where
-  "or4 A B NA X == Says B A {|Nonce NA, X, nil|}"
+  "or4 A B NA X == Says B A \<lbrace>Nonce NA, X, nil\<rbrace>"
 
 abbreviation
   or4' :: "agent => agent => nat => key => event" where
-  "or4' B' A NA K == Says B' A {|Nonce NA, Ciph A {|Nonce NA, Key K|}, nil|}"
+  "or4' B' A NA K == Says B' A \<lbrace>Nonce NA, Ciph A \<lbrace>Nonce NA, Key K\<rbrace>, nil\<rbrace>"
 
 subsection\<open>definition of the protocol\<close>
 
@@ -108,7 +108,7 @@ lemma or2_parts_spies [dest]: "or2 A B NA NB X:set evs
 ==> X:parts (spies evs)"
 by blast
 
-lemma or3_parts_spies [dest]: "Says S B {|NA, Y, Ciph B {|NB, K|}|}:set evs
+lemma or3_parts_spies [dest]: "Says S B \<lbrace>NA, Y, Ciph B \<lbrace>NB, K\<rbrace>\<rbrace>:set evs
 ==> K:parts (spies evs)"
 by blast
 
@@ -169,13 +169,13 @@ apply (frule_tac n'=NAa in in_Guard_kparts_neq, simp+, rule No_Nonce, simp)
 apply (case_tac "Aa=B", clarsimp)
 apply (case_tac "NAa=NB", clarsimp)
 apply (drule Says_imp_spies)
-apply (drule_tac Y="{|Nonce NB, Agent Aa, Agent Ba|}"
+apply (drule_tac Y="\<lbrace>Nonce NB, Agent Aa, Agent Ba\<rbrace>"
                  and K="shrK Aa" in in_Guard_kparts_Crypt, simp+)
 apply (simp add: No_Nonce) 
 apply (case_tac "Ba=B", clarsimp)
 apply (case_tac "NBa=NB", clarify)
 apply (drule Says_imp_spies)
-apply (drule_tac Y="{|Nonce NAa, Nonce NB, Agent Aa, Agent Ba|}"
+apply (drule_tac Y="\<lbrace>Nonce NAa, Nonce NB, Agent Aa, Agent Ba\<rbrace>"
                  and K="shrK Ba" in in_Guard_kparts_Crypt, simp+)
 apply (simp add: No_Nonce) 
 (* OR4 *)

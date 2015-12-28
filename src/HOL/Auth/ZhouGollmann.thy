@@ -43,24 +43,24 @@ inductive_set zg :: "event list set"
     rather than to keep M secret.*)
 | ZG1: "[| evs1 \<in> zg;  Nonce L \<notin> used evs1; C = Crypt K (Number m);
            K \<in> symKeys;
-           NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|}|]
-       ==> Says A B {|Number f_nro, Agent B, Nonce L, C, NRO|} # evs1 \<in> zg"
+           NRO = Crypt (priK A) \<lbrace>Number f_nro, Agent B, Nonce L, C\<rbrace>|]
+       ==> Says A B \<lbrace>Number f_nro, Agent B, Nonce L, C, NRO\<rbrace> # evs1 \<in> zg"
 
   (*B must check that NRO is A's signature to learn the sender's name*)
 | ZG2: "[| evs2 \<in> zg;
-           Gets B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs2;
-           NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
-           NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|}|]
-       ==> Says B A {|Number f_nrr, Agent A, Nonce L, NRR|} # evs2  \<in>  zg"
+           Gets B \<lbrace>Number f_nro, Agent B, Nonce L, C, NRO\<rbrace> \<in> set evs2;
+           NRO = Crypt (priK A) \<lbrace>Number f_nro, Agent B, Nonce L, C\<rbrace>;
+           NRR = Crypt (priK B) \<lbrace>Number f_nrr, Agent A, Nonce L, C\<rbrace>|]
+       ==> Says B A \<lbrace>Number f_nrr, Agent A, Nonce L, NRR\<rbrace> # evs2  \<in>  zg"
 
   (*A must check that NRR is B's signature to learn the sender's name;
     without spy, the matching label would be enough*)
 | ZG3: "[| evs3 \<in> zg; C = Crypt K M; K \<in> symKeys;
-           Says A B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs3;
-           Gets A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs3;
-           NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
-           sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|}|]
-       ==> Says A TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|}
+           Says A B \<lbrace>Number f_nro, Agent B, Nonce L, C, NRO\<rbrace> \<in> set evs3;
+           Gets A \<lbrace>Number f_nrr, Agent A, Nonce L, NRR\<rbrace> \<in> set evs3;
+           NRR = Crypt (priK B) \<lbrace>Number f_nrr, Agent A, Nonce L, C\<rbrace>;
+           sub_K = Crypt (priK A) \<lbrace>Number f_sub, Agent B, Nonce L, Key K\<rbrace>|]
+       ==> Says A TTP \<lbrace>Number f_sub, Agent B, Nonce L, Key K, sub_K\<rbrace>
              # evs3 \<in> zg"
 
  (*TTP checks that sub_K is A's signature to learn who issued K, then
@@ -70,14 +70,14 @@ inductive_set zg :: "event list set"
    also allowing lemma @{text Crypt_used_imp_spies} to omit the condition
    @{term "K \<noteq> priK TTP"}. *)
 | ZG4: "[| evs4 \<in> zg; K \<in> symKeys;
-           Gets TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|}
+           Gets TTP \<lbrace>Number f_sub, Agent B, Nonce L, Key K, sub_K\<rbrace>
              \<in> set evs4;
-           sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
-           con_K = Crypt (priK TTP) {|Number f_con, Agent A, Agent B,
-                                      Nonce L, Key K|}|]
+           sub_K = Crypt (priK A) \<lbrace>Number f_sub, Agent B, Nonce L, Key K\<rbrace>;
+           con_K = Crypt (priK TTP) \<lbrace>Number f_con, Agent A, Agent B,
+                                      Nonce L, Key K\<rbrace>|]
        ==> Says TTP Spy con_K
            #
-           Notes TTP {|Number f_con, Agent A, Agent B, Nonce L, Key K, con_K|}
+           Notes TTP \<lbrace>Number f_con, Agent A, Agent B, Nonce L, Key K, con_K\<rbrace>
            # evs4 \<in> zg"
 
 
@@ -92,8 +92,8 @@ declare symKey_neq_priEK [THEN not_sym, simp]
 text\<open>A "possibility property": there are traces that reach the end\<close>
 lemma "[|A \<noteq> B; TTP \<noteq> A; TTP \<noteq> B; K \<in> symKeys|] ==>
      \<exists>L. \<exists>evs \<in> zg.
-           Notes TTP {|Number f_con, Agent A, Agent B, Nonce L, Key K,
-               Crypt (priK TTP) {|Number f_con, Agent A, Agent B, Nonce L, Key K|} |}
+           Notes TTP \<lbrace>Number f_con, Agent A, Agent B, Nonce L, Key K,
+               Crypt (priK TTP) \<lbrace>Number f_con, Agent A, Agent B, Nonce L, Key K\<rbrace>\<rbrace>
                \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] zg.Nil
@@ -128,18 +128,18 @@ apply (simp_all add: parts_insert_knows_A)
 done
 
 lemma Notes_TTP_imp_Gets:
-     "[|Notes TTP {|Number f_con, Agent A, Agent B, Nonce L, Key K, con_K |}
+     "[|Notes TTP \<lbrace>Number f_con, Agent A, Agent B, Nonce L, Key K, con_K\<rbrace>
            \<in> set evs;
-        sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
+        sub_K = Crypt (priK A) \<lbrace>Number f_sub, Agent B, Nonce L, Key K\<rbrace>;
         evs \<in> zg|]
-    ==> Gets TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs"
+    ==> Gets TTP \<lbrace>Number f_sub, Agent B, Nonce L, Key K, sub_K\<rbrace> \<in> set evs"
 apply (erule rev_mp)
 apply (erule zg.induct, auto)
 done
 
 text\<open>For reasoning about C, which is encrypted in message ZG2\<close>
 lemma ZG2_msg_in_parts_spies:
-     "[|Gets B {|F, B', L, C, X|} \<in> set evs; evs \<in> zg|]
+     "[|Gets B \<lbrace>F, B', L, C, X\<rbrace> \<in> set evs; evs \<in> zg|]
       ==> C \<in> parts (spies evs)"
 by (blast dest: Gets_imp_Says)
 
@@ -165,10 +165,10 @@ sent it, provided @{term A} is not broken.\<close>
 
 text\<open>Strong conclusion for a good agent\<close>
 lemma NRO_validity_good:
-     "[|NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
+     "[|NRO = Crypt (priK A) \<lbrace>Number f_nro, Agent B, Nonce L, C\<rbrace>;
         NRO \<in> parts (spies evs);
         A \<notin> bad;  evs \<in> zg |]
-     ==> Says A B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs"
+     ==> Says A B \<lbrace>Number f_nro, Agent B, Nonce L, C, NRO\<rbrace> \<in> set evs"
 apply clarify
 apply (erule rev_mp)
 apply (erule zg.induct)
@@ -176,7 +176,7 @@ apply (frule_tac [5] ZG2_msg_in_parts_spies, auto)
 done
 
 lemma NRO_sender:
-     "[|Says A' B {|n, b, l, C, Crypt (priK A) X|} \<in> set evs; evs \<in> zg|]
+     "[|Says A' B \<lbrace>n, b, l, C, Crypt (priK A) X\<rbrace> \<in> set evs; evs \<in> zg|]
     ==> A' \<in> {A,Spy}"
 apply (erule rev_mp)  
 apply (erule zg.induct, simp_all)
@@ -184,10 +184,10 @@ done
 
 text\<open>Holds also for @{term "A = Spy"}!\<close>
 theorem NRO_validity:
-     "[|Gets B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs;
-        NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
+     "[|Gets B \<lbrace>Number f_nro, Agent B, Nonce L, C, NRO\<rbrace> \<in> set evs;
+        NRO = Crypt (priK A) \<lbrace>Number f_nro, Agent B, Nonce L, C\<rbrace>;
         A \<notin> broken;  evs \<in> zg |]
-     ==> Says A B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs"
+     ==> Says A B \<lbrace>Number f_nro, Agent B, Nonce L, C, NRO\<rbrace> \<in> set evs"
 apply (drule Gets_imp_Says, assumption) 
 apply clarify 
 apply (frule NRO_sender, auto)
@@ -205,10 +205,10 @@ sent it, provided @{term B} is not broken.\<close>
 
 text\<open>Strong conclusion for a good agent\<close>
 lemma NRR_validity_good:
-     "[|NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
+     "[|NRR = Crypt (priK B) \<lbrace>Number f_nrr, Agent A, Nonce L, C\<rbrace>;
         NRR \<in> parts (spies evs);
         B \<notin> bad;  evs \<in> zg |]
-     ==> Says B A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs"
+     ==> Says B A \<lbrace>Number f_nrr, Agent A, Nonce L, NRR\<rbrace> \<in> set evs"
 apply clarify
 apply (erule rev_mp)
 apply (erule zg.induct) 
@@ -216,7 +216,7 @@ apply (frule_tac [5] ZG2_msg_in_parts_spies, auto)
 done
 
 lemma NRR_sender:
-     "[|Says B' A {|n, a, l, Crypt (priK B) X|} \<in> set evs; evs \<in> zg|]
+     "[|Says B' A \<lbrace>n, a, l, Crypt (priK B) X\<rbrace> \<in> set evs; evs \<in> zg|]
     ==> B' \<in> {B,Spy}"
 apply (erule rev_mp)  
 apply (erule zg.induct, simp_all)
@@ -224,10 +224,10 @@ done
 
 text\<open>Holds also for @{term "B = Spy"}!\<close>
 theorem NRR_validity:
-     "[|Says B' A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs;
-        NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
+     "[|Says B' A \<lbrace>Number f_nrr, Agent A, Nonce L, NRR\<rbrace> \<in> set evs;
+        NRR = Crypt (priK B) \<lbrace>Number f_nrr, Agent A, Nonce L, C\<rbrace>;
         B \<notin> broken; evs \<in> zg|]
-    ==> Says B A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs"
+    ==> Says B A \<lbrace>Number f_nrr, Agent A, Nonce L, NRR\<rbrace> \<in> set evs"
 apply clarify 
 apply (frule NRR_sender, auto)
 txt\<open>We are left with the case where @{term "B' = Spy"} and  @{term "B' \<noteq> B"},
@@ -243,10 +243,10 @@ sent it, provided @{term A} is not broken.\<close>
 
 text\<open>Strong conclusion for a good agent\<close>
 lemma sub_K_validity_good:
-     "[|sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
+     "[|sub_K = Crypt (priK A) \<lbrace>Number f_sub, Agent B, Nonce L, Key K\<rbrace>;
         sub_K \<in> parts (spies evs);
         A \<notin> bad;  evs \<in> zg |]
-     ==> Says A TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs"
+     ==> Says A TTP \<lbrace>Number f_sub, Agent B, Nonce L, Key K, sub_K\<rbrace> \<in> set evs"
 apply clarify
 apply (erule rev_mp)
 apply (erule zg.induct)
@@ -256,7 +256,7 @@ apply (blast dest!: Fake_parts_sing_imp_Un)
 done
 
 lemma sub_K_sender:
-     "[|Says A' TTP {|n, b, l, k, Crypt (priK A) X|} \<in> set evs;  evs \<in> zg|]
+     "[|Says A' TTP \<lbrace>n, b, l, k, Crypt (priK A) X\<rbrace> \<in> set evs;  evs \<in> zg|]
     ==> A' \<in> {A,Spy}"
 apply (erule rev_mp)  
 apply (erule zg.induct, simp_all)
@@ -264,10 +264,10 @@ done
 
 text\<open>Holds also for @{term "A = Spy"}!\<close>
 theorem sub_K_validity:
-     "[|Gets TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs;
-        sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
+     "[|Gets TTP \<lbrace>Number f_sub, Agent B, Nonce L, Key K, sub_K\<rbrace> \<in> set evs;
+        sub_K = Crypt (priK A) \<lbrace>Number f_sub, Agent B, Nonce L, Key K\<rbrace>;
         A \<notin> broken;  evs \<in> zg |]
-     ==> Says A TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs"
+     ==> Says A TTP \<lbrace>Number f_sub, Agent B, Nonce L, Key K, sub_K\<rbrace> \<in> set evs"
 apply (drule Gets_imp_Says, assumption) 
 apply clarify 
 apply (frule sub_K_sender, auto)
@@ -288,9 +288,9 @@ that @{term A} sent @{term sub_K}\<close>
 lemma con_K_validity:
      "[|con_K \<in> used evs;
         con_K = Crypt (priK TTP)
-                  {|Number f_con, Agent A, Agent B, Nonce L, Key K|};
+                  \<lbrace>Number f_con, Agent A, Agent B, Nonce L, Key K\<rbrace>;
         evs \<in> zg |]
-    ==> Notes TTP {|Number f_con, Agent A, Agent B, Nonce L, Key K, con_K|}
+    ==> Notes TTP \<lbrace>Number f_con, Agent A, Agent B, Nonce L, Key K, con_K\<rbrace>
           \<in> set evs"
 apply clarify
 apply (erule rev_mp)
@@ -306,11 +306,11 @@ text\<open>If @{term TTP} holds @{term con_K} then @{term A} sent
  @{term sub_K}.  We assume that @{term A} is not broken.  Importantly, nothing
   needs to be assumed about the form of @{term con_K}!\<close>
 lemma Notes_TTP_imp_Says_A:
-     "[|Notes TTP {|Number f_con, Agent A, Agent B, Nonce L, Key K, con_K|}
+     "[|Notes TTP \<lbrace>Number f_con, Agent A, Agent B, Nonce L, Key K, con_K\<rbrace>
            \<in> set evs;
-        sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
+        sub_K = Crypt (priK A) \<lbrace>Number f_sub, Agent B, Nonce L, Key K\<rbrace>;
         A \<notin> broken; evs \<in> zg|]
-     ==> Says A TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs"
+     ==> Says A TTP \<lbrace>Number f_sub, Agent B, Nonce L, Key K, sub_K\<rbrace> \<in> set evs"
 apply clarify
 apply (erule rev_mp)
 apply (erule zg.induct)
@@ -324,11 +324,11 @@ text\<open>If @{term con_K} exists, then @{term A} sent @{term sub_K}.  We again
    assume that @{term A} is not broken.\<close>
 theorem B_sub_K_validity:
      "[|con_K \<in> used evs;
-        con_K = Crypt (priK TTP) {|Number f_con, Agent A, Agent B,
-                                   Nonce L, Key K|};
-        sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
+        con_K = Crypt (priK TTP) \<lbrace>Number f_con, Agent A, Agent B,
+                                   Nonce L, Key K\<rbrace>;
+        sub_K = Crypt (priK A) \<lbrace>Number f_sub, Agent B, Nonce L, Key K\<rbrace>;
         A \<notin> broken; evs \<in> zg|]
-     ==> Says A TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs"
+     ==> Says A TTP \<lbrace>Number f_sub, Agent B, Nonce L, Key K, sub_K\<rbrace> \<in> set evs"
 by (blast dest: con_K_validity Notes_TTP_imp_Says_A)
 
 
@@ -340,9 +340,9 @@ useless to win disputes: @{term B} needs to present @{term con_K} as well.\<clos
 
 text\<open>Strange: unicity of the label protects @{term A}?\<close>
 lemma A_unicity: 
-     "[|NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, Crypt K M|};
+     "[|NRO = Crypt (priK A) \<lbrace>Number f_nro, Agent B, Nonce L, Crypt K M\<rbrace>;
         NRO \<in> parts (spies evs);
-        Says A B {|Number f_nro, Agent B, Nonce L, Crypt K M', NRO'|}
+        Says A B \<lbrace>Number f_nro, Agent B, Nonce L, Crypt K M', NRO'\<rbrace>
           \<in> set evs;
         A \<notin> bad; evs \<in> zg |]
      ==> M'=M"
@@ -359,13 +359,13 @@ done
 text\<open>Fairness lemma: if @{term sub_K} exists, then @{term A} holds 
 NRR.  Relies on unicity of labels.\<close>
 lemma sub_K_implies_NRR:
-     "[| NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, Crypt K M|};
-         NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, Crypt K M|};
+     "[| NRO = Crypt (priK A) \<lbrace>Number f_nro, Agent B, Nonce L, Crypt K M\<rbrace>;
+         NRR = Crypt (priK B) \<lbrace>Number f_nrr, Agent A, Nonce L, Crypt K M\<rbrace>;
          sub_K \<in> parts (spies evs);
          NRO \<in> parts (spies evs);
-         sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
+         sub_K = Crypt (priK A) \<lbrace>Number f_sub, Agent B, Nonce L, Key K\<rbrace>;
          A \<notin> bad;  evs \<in> zg |]
-     ==> Gets A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs"
+     ==> Gets A \<lbrace>Number f_nrr, Agent A, Nonce L, NRR\<rbrace> \<in> set evs"
 apply clarify
 apply hypsubst_thin
 apply (erule rev_mp)
@@ -382,7 +382,7 @@ done
 
 
 lemma Crypt_used_imp_L_used:
-     "[| Crypt (priK TTP) {|F, A, B, L, K|} \<in> used evs; evs \<in> zg |]
+     "[| Crypt (priK TTP) \<lbrace>F, A, B, L, K\<rbrace> \<in> used evs; evs \<in> zg |]
       ==> L \<in> used evs"
 apply (erule rev_mp)
 apply (erule zg.induct, auto)
@@ -400,11 +400,11 @@ theorem A_fairness_NRO:
      "[|con_K \<in> used evs;
         NRO \<in> parts (spies evs);
         con_K = Crypt (priK TTP)
-                      {|Number f_con, Agent A, Agent B, Nonce L, Key K|};
-        NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, Crypt K M|};
-        NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, Crypt K M|};
+                      \<lbrace>Number f_con, Agent A, Agent B, Nonce L, Key K\<rbrace>;
+        NRO = Crypt (priK A) \<lbrace>Number f_nro, Agent B, Nonce L, Crypt K M\<rbrace>;
+        NRR = Crypt (priK B) \<lbrace>Number f_nrr, Agent A, Nonce L, Crypt K M\<rbrace>;
         A \<notin> bad;  evs \<in> zg |]
-    ==> Gets A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs"
+    ==> Gets A \<lbrace>Number f_nrr, Agent A, Nonce L, NRR\<rbrace> \<in> set evs"
 apply clarify
 apply (erule rev_mp)
 apply (erule rev_mp)
@@ -427,10 +427,10 @@ text\<open>Fairness for @{term B}: NRR exists at all, then @{term B} holds NRO.
 A}.\<close>
 theorem B_fairness_NRR:
      "[|NRR \<in> used evs;
-        NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
-        NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
+        NRR = Crypt (priK B) \<lbrace>Number f_nrr, Agent A, Nonce L, C\<rbrace>;
+        NRO = Crypt (priK A) \<lbrace>Number f_nro, Agent B, Nonce L, C\<rbrace>;
         B \<notin> bad; evs \<in> zg |]
-    ==> Gets B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs"
+    ==> Gets B \<lbrace>Number f_nro, Agent B, Nonce L, C, NRO\<rbrace> \<in> set evs"
 apply clarify
 apply (erule rev_mp)
 apply (erule zg.induct)

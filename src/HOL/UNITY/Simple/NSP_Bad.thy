@@ -33,7 +33,7 @@ definition
   NS1 :: "(state*state) set"
   where "NS1 = {(s1,s').
              \<exists>A1 B NA.
-                 s' = Says A1 B (Crypt (pubK B) {|Nonce NA, Agent A1|}) # s1
+                 s' = Says A1 B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A1\<rbrace>) # s1
                & Nonce NA \<notin> used s1}"
 
   (*Bob responds to Alice's message with a further nonce*)
@@ -41,8 +41,8 @@ definition
   NS2 :: "(state*state) set"
   where "NS2 = {(s2,s').
              \<exists>A' A2 B NA NB.
-                 s' = Says B A2 (Crypt (pubK A2) {|Nonce NA, Nonce NB|}) # s2
-               & Says A' B (Crypt (pubK B) {|Nonce NA, Agent A2|}) \<in> set s2
+                 s' = Says B A2 (Crypt (pubK A2) \<lbrace>Nonce NA, Nonce NB\<rbrace>) # s2
+               & Says A' B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A2\<rbrace>) \<in> set s2
                & Nonce NB \<notin> used s2}"
 
   (*Alice proves her existence by sending NB back to Bob.*)
@@ -51,8 +51,8 @@ definition
   where "NS3 = {(s3,s').
              \<exists>A3 B' B NA NB.
                  s' = Says A3 B (Crypt (pubK B) (Nonce NB)) # s3
-               & Says A3  B (Crypt (pubK B) {|Nonce NA, Agent A3|}) \<in> set s3
-               & Says B' A3 (Crypt (pubK A3) {|Nonce NA, Nonce NB|}) \<in> set s3}"
+               & Says A3  B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A3\<rbrace>) \<in> set s3
+               & Says B' A3 (Crypt (pubK A3) \<lbrace>Nonce NA, Nonce NB\<rbrace>) \<in> set s3}"
 
 
 definition Nprg :: "state program" where
@@ -151,8 +151,8 @@ text{*It is impossible to re-use a nonce in both NS1 and NS2 provided the
      nonce is secret.  (Honest users generate fresh nonces.)*}
 lemma no_nonce_NS1_NS2:
  "Nprg
-  \<in> Always {s. Crypt (pubK C) {|NA', Nonce NA|} \<in> parts (spies s) -->
-                Crypt (pubK B) {|Nonce NA, Agent A|} \<in> parts (spies s) -->
+  \<in> Always {s. Crypt (pubK C) \<lbrace>NA', Nonce NA\<rbrace> \<in> parts (spies s) -->
+                Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies s) -->
                 Nonce NA \<in> analz (spies s)}"
 apply ns_induct
 apply (blast intro: analz_insertI)+
@@ -167,8 +167,8 @@ text{*Unicity for NS1: nonce NA identifies agents A and B*}
 lemma unique_NA_lemma:
      "Nprg
   \<in> Always {s. Nonce NA \<notin> analz (spies s) -->
-                Crypt(pubK B) {|Nonce NA, Agent A|} \<in> parts(spies s) -->
-                Crypt(pubK B') {|Nonce NA, Agent A'|} \<in> parts(spies s) -->
+                Crypt(pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts(spies s) -->
+                Crypt(pubK B') \<lbrace>Nonce NA, Agent A'\<rbrace> \<in> parts(spies s) -->
                 A=A' & B=B'}"
 apply ns_induct
 apply auto
@@ -177,8 +177,8 @@ done
 
 text{*Unicity for NS1: nonce NA identifies agents A and B*}
 lemma unique_NA:
-     "[| Crypt(pubK B)  {|Nonce NA, Agent A|} \<in> parts(spies s);
-         Crypt(pubK B') {|Nonce NA, Agent A'|} \<in> parts(spies s);
+     "[| Crypt(pubK B)  \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts(spies s);
+         Crypt(pubK B') \<lbrace>Nonce NA, Agent A'\<rbrace> \<in> parts(spies s);
          Nonce NA \<notin> analz (spies s);
          s \<in> reachable Nprg |]
       ==> A=A' & B=B'"
@@ -189,7 +189,7 @@ text{*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure*
 lemma Spy_not_see_NA:
      "[| A \<notin> bad;  B \<notin> bad |]
   ==> Nprg \<in> Always
-              {s. Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) \<in> set s
+              {s. Says A B (Crypt(pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set s
                   --> Nonce NA \<notin> analz (spies s)}"
 apply ns_induct
 txt{*NS3*}
@@ -208,9 +208,9 @@ text{*Authentication for A: if she receives message 2 and has used NA
 lemma A_trusts_NS2:
  "[| A \<notin> bad;  B \<notin> bad |]
   ==> Nprg \<in> Always
-              {s. Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) \<in> set s &
-                  Crypt(pubK A) {|Nonce NA, Nonce NB|} \<in> parts (knows Spy s)
-         --> Says B A (Crypt(pubK A) {|Nonce NA, Nonce NB|}) \<in> set s}"
+              {s. Says A B (Crypt(pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set s &
+                  Crypt(pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace> \<in> parts (knows Spy s)
+         --> Says B A (Crypt(pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>) \<in> set s}"
   (*insert an invariant for use in some of the subgoals*)
 apply (insert Spy_not_see_NA [of A B NA], simp, ns_induct)
 apply (auto dest: unique_NA)
@@ -221,8 +221,8 @@ text{*If the encrypted message appears then it originated with Alice in NS1*}
 lemma B_trusts_NS1:
      "Nprg \<in> Always
               {s. Nonce NA \<notin> analz (spies s) -->
-                  Crypt (pubK B) {|Nonce NA, Agent A|} \<in> parts (spies s)
-         --> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) \<in> set s}"
+                  Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts (spies s)
+         --> Says A B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set s}"
 apply ns_induct
 apply blast
 done
@@ -235,8 +235,8 @@ text{*Unicity for NS2: nonce NB identifies nonce NA and agent A.
 lemma unique_NB_lemma:
  "Nprg
   \<in> Always {s. Nonce NB \<notin> analz (spies s)  -->
-                Crypt (pubK A) {|Nonce NA, Nonce NB|} \<in> parts (spies s) -->
-                Crypt(pubK A'){|Nonce NA', Nonce NB|} \<in> parts(spies s) -->
+                Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace> \<in> parts (spies s) -->
+                Crypt(pubK A') \<lbrace>Nonce NA', Nonce NB\<rbrace> \<in> parts(spies s) -->
                 A=A' & NA=NA'}"
 apply ns_induct
 apply auto
@@ -244,8 +244,8 @@ txt{*Fake, NS2 are non-trivial*}
 done
 
 lemma unique_NB:
-     "[| Crypt(pubK A) {|Nonce NA, Nonce NB|} \<in> parts(spies s);
-         Crypt(pubK A'){|Nonce NA', Nonce NB|} \<in> parts(spies s);
+     "[| Crypt(pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace> \<in> parts(spies s);
+         Crypt(pubK A') \<lbrace>Nonce NA', Nonce NB\<rbrace> \<in> parts(spies s);
          Nonce NB \<notin> analz (spies s);
          s \<in> reachable Nprg |]
       ==> A=A' & NA=NA'"
@@ -257,7 +257,7 @@ text{*NB remains secret PROVIDED Alice never responds with round 3*}
 lemma Spy_not_see_NB:
      "[| A \<notin> bad;  B \<notin> bad |]
   ==> Nprg \<in> Always
-              {s. Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) \<in> set s &
+              {s. Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>) \<in> set s &
                   (ALL C. Says A C (Crypt (pubK C) (Nonce NB)) \<notin> set s)
                   --> Nonce NB \<notin> analz (spies s)}"
 apply ns_induct
@@ -280,7 +280,7 @@ lemma B_trusts_NS3:
      "[| A \<notin> bad;  B \<notin> bad |]
   ==> Nprg \<in> Always
               {s. Crypt (pubK B) (Nonce NB) \<in> parts (spies s) &
-                  Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB|}) \<in> set s
+                  Says B A  (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>) \<in> set s
                   --> (\<exists>C. Says A C (Crypt (pubK C) (Nonce NB)) \<in> set s)}"
   (*insert an invariant for use in some of the subgoals*)
 apply (insert Spy_not_see_NB [of A B NA NB], simp, ns_induct)
@@ -294,7 +294,7 @@ done
 text{*Can we strengthen the secrecy theorem?  NO*}
 lemma "[| A \<notin> bad;  B \<notin> bad |]
   ==> Nprg \<in> Always
-              {s. Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) \<in> set s
+              {s. Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>) \<in> set s
                   --> Nonce NB \<notin> analz (spies s)}"
 apply ns_induct
 apply auto
@@ -317,13 +317,13 @@ THIS IS THE ATTACK!
 [| A \<notin> bad; B \<notin> bad |]
 ==> Nprg
    \<in> Always
-       {s. Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) \<in> set s -->
+       {s. Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>) \<in> set s -->
            Nonce NB \<notin> analz (knows Spy s)}
  1. !!s B' C.
        [| A \<notin> bad; B \<notin> bad; s \<in> reachable Nprg
-          Says A C (Crypt (pubK C) {|Nonce NA, Agent A|}) \<in> set s;
-          Says B' A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) \<in> set s;
-          C \<in> bad; Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) \<in> set s;
+          Says A C (Crypt (pubK C) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set s;
+          Says B' A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>) \<in> set s;
+          C \<in> bad; Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>) \<in> set s;
           Nonce NB \<notin> analz (knows Spy s) |]
        ==> False
 *)

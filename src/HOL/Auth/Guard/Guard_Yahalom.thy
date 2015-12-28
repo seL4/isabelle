@@ -11,38 +11,38 @@ subsection\<open>messages used in the protocol\<close>
 
 abbreviation (input)
   ya1 :: "agent => agent => nat => event" where
-  "ya1 A B NA == Says A B {|Agent A, Nonce NA|}"
+  "ya1 A B NA == Says A B \<lbrace>Agent A, Nonce NA\<rbrace>"
 
 abbreviation (input)
   ya1' :: "agent => agent => agent => nat => event" where
-  "ya1' A' A B NA == Says A' B {|Agent A, Nonce NA|}"
+  "ya1' A' A B NA == Says A' B \<lbrace>Agent A, Nonce NA\<rbrace>"
 
 abbreviation (input)
   ya2 :: "agent => agent => nat => nat => event" where
-  "ya2 A B NA NB == Says B Server {|Agent B, Ciph B {|Agent A, Nonce NA, Nonce NB|}|}"
+  "ya2 A B NA NB == Says B Server \<lbrace>Agent B, Ciph B \<lbrace>Agent A, Nonce NA, Nonce NB\<rbrace>\<rbrace>"
 
 abbreviation (input)
   ya2' :: "agent => agent => agent => nat => nat => event" where
-  "ya2' B' A B NA NB == Says B' Server {|Agent B, Ciph B {|Agent A, Nonce NA, Nonce NB|}|}"
+  "ya2' B' A B NA NB == Says B' Server \<lbrace>Agent B, Ciph B \<lbrace>Agent A, Nonce NA, Nonce NB\<rbrace>\<rbrace>"
 
 abbreviation (input)
   ya3 :: "agent => agent => nat => nat => key => event" where
   "ya3 A B NA NB K ==
-    Says Server A {|Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|},
-                    Ciph B {|Agent A, Key K|}|}"
+    Says Server A \<lbrace>Ciph A \<lbrace>Agent B, Key K, Nonce NA, Nonce NB\<rbrace>,
+                    Ciph B \<lbrace>Agent A, Key K\<rbrace>\<rbrace>"
 
 abbreviation (input)
   ya3':: "agent => msg => agent => agent => nat => nat => key => event" where
   "ya3' S Y A B NA NB K ==
-    Says S A {|Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|}, Y|}"
+    Says S A \<lbrace>Ciph A \<lbrace>Agent B, Key K, Nonce NA, Nonce NB\<rbrace>, Y\<rbrace>"
 
 abbreviation (input)
   ya4 :: "agent => agent => nat => nat => msg => event" where
-  "ya4 A B K NB Y == Says A B {|Y, Crypt K (Nonce NB)|}"
+  "ya4 A B K NB Y == Says A B \<lbrace>Y, Crypt K (Nonce NB)\<rbrace>"
 
 abbreviation (input)
   ya4' :: "agent => agent => nat => nat => msg => event" where
-  "ya4' A' B K NB Y == Says A' B {|Y, Crypt K (Nonce NB)|}"
+  "ya4' A' B K NB Y == Says A' B \<lbrace>Y, Crypt K (Nonce NB)\<rbrace>"
 
 
 subsection\<open>definition of the protocol\<close>
@@ -128,19 +128,19 @@ subsection\<open>ya2' implies ya1'\<close>
 
 lemma ya2'_parts_imp_ya1'_parts [rule_format]:
      "[| evs:ya; B ~:bad |] ==>
-      Ciph B {|Agent A, Nonce NA, Nonce NB|}:parts (spies evs) -->
-      {|Agent A, Nonce NA|}:spies evs"
+      Ciph B \<lbrace>Agent A, Nonce NA, Nonce NB\<rbrace>:parts (spies evs) -->
+      \<lbrace>Agent A, Nonce NA\<rbrace>:spies evs"
 by (erule ya.induct, auto dest: Says_imp_spies intro: parts_parts)
 
 lemma ya2'_imp_ya1'_parts: "[| ya2' B' A B NA NB:set evs; evs:ya; B ~:bad |]
-==> {|Agent A, Nonce NA|}:spies evs"
+==> \<lbrace>Agent A, Nonce NA\<rbrace>:spies evs"
 by (blast dest: Says_imp_spies ya2'_parts_imp_ya1'_parts)
 
 subsection\<open>uniqueness of NB\<close>
 
 lemma NB_is_uniq_in_ya2'_parts [rule_format]: "[| evs:ya; B ~:bad; B' ~:bad |] ==>
-Ciph B {|Agent A, Nonce NA, Nonce NB|}:parts (spies evs) -->
-Ciph B' {|Agent A', Nonce NA', Nonce NB|}:parts (spies evs) -->
+Ciph B \<lbrace>Agent A, Nonce NA, Nonce NB\<rbrace>:parts (spies evs) -->
+Ciph B' \<lbrace>Agent A', Nonce NA', Nonce NB\<rbrace>:parts (spies evs) -->
 A=A' & B=B' & NA=NA'"
 apply (erule ya.induct, simp_all, clarify)
 apply (drule Crypt_synth_insert, simp+)
@@ -156,15 +156,15 @@ by (drule NB_is_uniq_in_ya2'_parts, auto dest: Says_imp_spies)
 subsection\<open>ya3' implies ya2'\<close>
 
 lemma ya3'_parts_imp_ya2'_parts [rule_format]: "[| evs:ya; A ~:bad |] ==>
-Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|}:parts (spies evs)
---> Ciph B {|Agent A, Nonce NA, Nonce NB|}:parts (spies evs)"
+Ciph A \<lbrace>Agent B, Key K, Nonce NA, Nonce NB\<rbrace>:parts (spies evs)
+--> Ciph B \<lbrace>Agent A, Nonce NA, Nonce NB\<rbrace>:parts (spies evs)"
 apply (erule ya.induct, simp_all)
 apply (clarify, drule Crypt_synth_insert, simp+)
 apply (blast intro: parts_sub, blast)
 by (auto dest: Says_imp_spies parts_parts)
 
 lemma ya3'_parts_imp_ya2' [rule_format]: "[| evs:ya; A ~:bad |] ==>
-Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|}:parts (spies evs)
+Ciph A \<lbrace>Agent B, Key K, Nonce NA, Nonce NB\<rbrace>:parts (spies evs)
 --> (EX B'. ya2' B' A B NA NB:set evs)"
 apply (erule ya.induct, simp_all, safe)
 apply (drule Crypt_synth_insert, simp+)
@@ -180,7 +180,7 @@ by (drule ya3'_parts_imp_ya2', auto dest: Says_imp_spies)
 subsection\<open>ya3' implies ya3\<close>
 
 lemma ya3'_parts_imp_ya3 [rule_format]: "[| evs:ya; A ~:bad |] ==>
-Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|}:parts(spies evs)
+Ciph A \<lbrace>Agent B, Key K, Nonce NA, Nonce NB\<rbrace>:parts(spies evs)
 --> ya3 A B NA NB K:set evs"
 apply (erule ya.induct, simp_all, safe)
 apply (drule Crypt_synth_insert, simp+)

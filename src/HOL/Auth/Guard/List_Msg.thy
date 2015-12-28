@@ -13,7 +13,7 @@ subsubsection\<open>nil is represented by any message which is not a pair\<close
 
 abbreviation (input)
   cons :: "msg => msg => msg" where
-  "cons x l == {|x,l|}"
+  "cons x l == \<lbrace>x,l\<rbrace>"
 
 subsubsection\<open>induction principle\<close>
 

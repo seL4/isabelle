@@ -239,13 +239,13 @@ txt\<open>Base case\<close>
 apply (auto dest!: parts_cut simp add: used_Nil) 
 done
 
-lemma MPair_used_D: "{|X,Y|} \<in> used H ==> X \<in> used H & Y \<in> used H"
+lemma MPair_used_D: "\<lbrace>X,Y\<rbrace> \<in> used H ==> X \<in> used H & Y \<in> used H"
 by (drule used_parts_subset_parts, simp, blast)
 
 text\<open>There was a similar theorem in Event.thy, so perhaps this one can
   be moved up if proved directly by induction.\<close>
 lemma MPair_used [elim!]:
-     "[| {|X,Y|} \<in> used H;
+     "[| \<lbrace>X,Y\<rbrace> \<in> used H;
          [| X \<in> used H; Y \<in> used H |] ==> P |] 
       ==> P"
 by (blast dest: MPair_used_D) 
