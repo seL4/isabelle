@@ -638,7 +638,7 @@ lemma complex_is_Real_iff: "z \<in> \<real> \<longleftrightarrow> Im z = 0"
 lemma Reals_cnj_iff: "z \<in> \<real> \<longleftrightarrow> cnj z = z"
   by (auto simp: complex_is_Real_iff complex_eq_iff)
 
-lemma in_Reals_norm: "z \<in> \<real> \<Longrightarrow> norm(z) = abs(Re z)"
+lemma in_Reals_norm: "z \<in> \<real> \<Longrightarrow> norm z = \<bar>Re z\<bar>"
   by (simp add: complex_is_Real_iff norm_complex_def)
 
 lemma series_comparison_complex:
@@ -719,7 +719,7 @@ lemma Im_rcis [simp]: "Im(rcis r a) = r * sin a"
 lemma rcis_Ex: "\<exists>r a. z = rcis r a"
   by (simp add: complex_eq_iff polar_Ex)
 
-lemma complex_mod_rcis [simp]: "cmod(rcis r a) = abs r"
+lemma complex_mod_rcis [simp]: "cmod (rcis r a) = \<bar>r\<bar>"
   by (simp add: rcis_def norm_mult)
 
 lemma cis_rcis_eq: "cis a = rcis 1 a"

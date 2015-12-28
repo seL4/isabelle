@@ -780,7 +780,7 @@ qed
 
 lemma setsum_abs[iff]: 
   fixes f :: "'a => ('b::ordered_ab_group_add_abs)"
-  shows "abs (setsum f A) \<le> setsum (%i. abs(f i)) A"
+  shows "\<bar>setsum f A\<bar> \<le> setsum (%i. \<bar>f i\<bar>) A"
 proof (cases "finite A")
   case True
   thus ?thesis
@@ -796,12 +796,12 @@ qed
 
 lemma setsum_abs_ge_zero[iff]:
   fixes f :: "'a => ('b::ordered_ab_group_add_abs)"
-  shows "0 \<le> setsum (%i. abs(f i)) A"
+  shows "0 \<le> setsum (%i. \<bar>f i\<bar>) A"
   by (simp add: setsum_nonneg)
 
 lemma abs_setsum_abs[simp]: 
   fixes f :: "'a => ('b::ordered_ab_group_add_abs)"
-  shows "abs (\<Sum>a\<in>A. abs(f a)) = (\<Sum>a\<in>A. abs(f a))"
+  shows "\<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar> = (\<Sum>a\<in>A. \<bar>f a\<bar>)"
 proof (cases "finite A")
   case True
   thus ?thesis

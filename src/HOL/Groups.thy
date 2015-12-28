@@ -1203,13 +1203,7 @@ lemma minus_min_eq_max:
 end
 
 class abs =
-  fixes abs :: "'a \<Rightarrow> 'a"
-begin
-
-notation (xsymbols)
-  abs  ("\<bar>_\<bar>")
-
-end
+  fixes abs :: "'a \<Rightarrow> 'a"  ("\<bar>_\<bar>")
 
 class sgn =
   fixes sgn :: "'a \<Rightarrow> 'a"
@@ -1375,7 +1369,7 @@ end
 lemma dense_eq0_I:
   fixes x::"'a::{dense_linorder,ordered_ab_group_add_abs}"
   shows "(\<And>e. 0 < e \<Longrightarrow> \<bar>x\<bar> \<le> e) ==> x = 0"
-  apply (cases "abs x=0", simp)
+  apply (cases "\<bar>x\<bar> = 0", simp)
   apply (simp only: zero_less_abs_iff [symmetric])
   apply (drule dense)
   apply (auto simp add: not_less [symmetric])

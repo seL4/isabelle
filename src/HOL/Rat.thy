@@ -451,7 +451,7 @@ definition
   "x \<le> (y::rat) \<longleftrightarrow> x < y \<or> x = y"
 
 definition
-  "abs (a::rat) = (if a < 0 then - a else a)"
+  "\<bar>a::rat\<bar> = (if a < 0 then - a else a)"
 
 definition
   "sgn (a::rat) = (if a = 0 then 0 else if 0 < a then 1 else - 1)"

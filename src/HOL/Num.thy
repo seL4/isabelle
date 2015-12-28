@@ -954,14 +954,13 @@ lemma less_minus_one_simps [simp]:
   "\<not> 1 < - 1"
   by (simp_all add: less_le)
 
-lemma abs_numeral [simp]: "abs (numeral n) = numeral n"
+lemma abs_numeral [simp]: "\<bar>numeral n\<bar> = numeral n"
   by simp
 
-lemma abs_neg_numeral [simp]: "abs (- numeral n) = numeral n"
+lemma abs_neg_numeral [simp]: "\<bar>- numeral n\<bar> = numeral n"
   by (simp only: abs_minus_cancel abs_numeral)
 
-lemma abs_neg_one [simp]:
-  "abs (- 1) = 1"
+lemma abs_neg_one [simp]: "\<bar>- 1\<bar> = 1"
   by simp
 
 end

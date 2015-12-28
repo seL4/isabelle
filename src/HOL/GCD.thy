@@ -605,14 +605,14 @@ begin
 definition
   gcd_int  :: "int \<Rightarrow> int \<Rightarrow> int"
 where
-  "gcd_int x y = int (gcd (nat (abs x)) (nat (abs y)))"
+  "gcd_int x y = int (gcd (nat \<bar>x\<bar>) (nat \<bar>y\<bar>))"
 
 definition
   lcm_int :: "int \<Rightarrow> int \<Rightarrow> int"
 where
-  "lcm_int x y = int (lcm (nat (abs x)) (nat (abs y)))"
+  "lcm_int x y = int (lcm (nat \<bar>x\<bar>) (nat \<bar>y\<bar>))"
 
-instance proof qed
+instance ..
 
 end
 
@@ -676,16 +676,16 @@ lemma gcd_neg_numeral_2_int [simp]:
   "gcd x (- numeral n :: int) = gcd x (numeral n)"
   by (fact gcd_neg2_int)
 
-lemma abs_gcd_int[simp]: "abs(gcd (x::int) y) = gcd x y"
+lemma abs_gcd_int[simp]: "\<bar>gcd (x::int) y\<bar> = gcd x y"
 by(simp add: gcd_int_def)
 
-lemma gcd_abs_int: "gcd (x::int) y = gcd (abs x) (abs y)"
+lemma gcd_abs_int: "gcd (x::int) y = gcd \<bar>x\<bar> \<bar>y\<bar>"
 by (simp add: gcd_int_def)
 
-lemma gcd_abs1_int[simp]: "gcd (abs x) (y::int) = gcd x y"
+lemma gcd_abs1_int[simp]: "gcd \<bar>x\<bar> (y::int) = gcd x y"
 by (metis abs_idempotent gcd_abs_int)
 
-lemma gcd_abs2_int[simp]: "gcd x (abs y::int) = gcd x y"
+lemma gcd_abs2_int[simp]: "gcd x \<bar>y::int\<bar> = gcd x y"
 by (metis abs_idempotent gcd_abs_int)
 
 lemma gcd_cases_int:
@@ -695,7 +695,7 @@ lemma gcd_cases_int:
       and "x <= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> P (gcd (-x) y)"
       and "x <= 0 \<Longrightarrow> y <= 0 \<Longrightarrow> P (gcd (-x) (-y))"
   shows "P (gcd x y)"
-by (insert assms, auto, arith)
+  by (insert assms, auto, arith)
 
 lemma gcd_ge_0_int [simp]: "gcd (x::int) y >= 0"
   by (simp add: gcd_int_def)
@@ -706,17 +706,17 @@ lemma lcm_neg1_int: "lcm (-x::int) y = lcm x y"
 lemma lcm_neg2_int: "lcm (x::int) (-y) = lcm x y"
   by (simp add: lcm_int_def)
 
-lemma lcm_abs_int: "lcm (x::int) y = lcm (abs x) (abs y)"
+lemma lcm_abs_int: "lcm (x::int) y = lcm \<bar>x\<bar> \<bar>y\<bar>"
   by (simp add: lcm_int_def)
 
-lemma abs_lcm_int [simp]: "abs (lcm i j::int) = lcm i j"
-by(simp add:lcm_int_def)
+lemma abs_lcm_int [simp]: "\<bar>lcm i j::int\<bar> = lcm i j"
+  by (simp add:lcm_int_def)
 
-lemma lcm_abs1_int[simp]: "lcm (abs x) (y::int) = lcm x y"
-by (metis abs_idempotent lcm_int_def)
+lemma lcm_abs1_int[simp]: "lcm \<bar>x\<bar> (y::int) = lcm x y"
+  by (metis abs_idempotent lcm_int_def)
 
-lemma lcm_abs2_int[simp]: "lcm x (abs y::int) = lcm x y"
-by (metis abs_idempotent lcm_int_def)
+lemma lcm_abs2_int[simp]: "lcm x \<bar>y::int\<bar> = lcm x y"
+  by (metis abs_idempotent lcm_int_def)
 
 lemma lcm_cases_int:
   fixes x :: int and y
@@ -735,13 +735,13 @@ lemma gcd_0_nat: "gcd (x::nat) 0 = x"
   by simp
 
 (* was igcd_0, etc. *)
-lemma gcd_0_int [simp]: "gcd (x::int) 0 = abs x"
+lemma gcd_0_int [simp]: "gcd (x::int) 0 = \<bar>x\<bar>"
   by (unfold gcd_int_def, auto)
 
 lemma gcd_0_left_nat: "gcd 0 (x::nat) = x"
   by simp
 
-lemma gcd_0_left_int [simp]: "gcd 0 (x::int) = abs x"
+lemma gcd_0_left_int [simp]: "gcd 0 (x::int) = \<bar>x\<bar>"
   by (unfold gcd_int_def, auto)
 
 lemma gcd_red_nat: "gcd (x::nat) y = gcd y (x mod y)"
@@ -764,7 +764,7 @@ lemma gcd_1_int [simp]: "gcd (m::int) 1 = 1"
 lemma gcd_idem_nat: "gcd (x::nat) x = x"
 by simp
 
-lemma gcd_idem_int: "gcd (x::int) x = abs x"
+lemma gcd_idem_int: "gcd (x::int) x = \<bar>x\<bar>"
 by (auto simp add: gcd_int_def)
 
 declare gcd_nat.simps [simp del]
@@ -882,10 +882,10 @@ lemma gcd_proj1_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> gcd x y = x
 lemma gcd_proj2_if_dvd_nat [simp]: "(y::nat) dvd x \<Longrightarrow> gcd x y = y"
   by (fact gcd_nat.absorb2)
 
-lemma gcd_proj1_if_dvd_int [simp]: "x dvd y \<Longrightarrow> gcd (x::int) y = abs x"
+lemma gcd_proj1_if_dvd_int [simp]: "x dvd y \<Longrightarrow> gcd (x::int) y = \<bar>x\<bar>"
   by (metis abs_dvd_iff gcd_0_left_int gcd_abs_int gcd_unique_int)
 
-lemma gcd_proj2_if_dvd_int [simp]: "y dvd x \<Longrightarrow> gcd (x::int) y = abs y"
+lemma gcd_proj2_if_dvd_int [simp]: "y dvd x \<Longrightarrow> gcd (x::int) y = \<bar>y\<bar>"
   by (metis gcd_proj1_if_dvd_int gcd_commute_int)
 
 text \<open>
@@ -900,7 +900,7 @@ lemma gcd_mult_distrib_nat: "(k::nat) * gcd m n = gcd (k * m) (k * n)"
   apply (simp_all add: gcd_non_0_nat)
 done
 
-lemma gcd_mult_distrib_int: "abs (k::int) * gcd m n = gcd (k * m) (k * n)"
+lemma gcd_mult_distrib_int: "\<bar>k::int\<bar> * gcd m n = gcd (k * m) (k * n)"
   apply (subst (1 2) gcd_abs_int)
   apply (subst (1 2) abs_mult)
   apply (rule gcd_mult_distrib_nat [transferred])
@@ -1064,8 +1064,8 @@ qed
 lemma finite_divisors_int[simp]:
   assumes "(i::int) ~= 0" shows "finite{d. d dvd i}"
 proof-
-  have "{d. abs d <= abs i} = {- abs i .. abs i}" by(auto simp:abs_if)
-  hence "finite{d. abs d <= abs i}" by simp
+  have "{d. \<bar>d\<bar> <= \<bar>i\<bar>} = {- \<bar>i\<bar> .. \<bar>i\<bar>}" by(auto simp:abs_if)
+  hence "finite {d. \<bar>d\<bar> <= \<bar>i\<bar>}" by simp
   from finite_subset[OF _ this] show ?thesis using assms
     by (simp add: dvd_imp_le_int subset_iff)
 qed
@@ -1076,7 +1076,7 @@ apply(rule antisym)
 apply simp
 done
 
-lemma Max_divisors_self_int[simp]: "n\<noteq>0 \<Longrightarrow> Max{d::int. d dvd n} = abs n"
+lemma Max_divisors_self_int[simp]: "n\<noteq>0 \<Longrightarrow> Max{d::int. d dvd n} = \<bar>n\<bar>"
 apply(rule antisym)
  apply(rule Max_le_iff [THEN iffD2])
   apply (auto intro: abs_le_D1 dvd_imp_le_int)
@@ -1507,7 +1507,7 @@ lemma coprime_common_divisor_nat:
   by (metis gcd_greatest_iff_nat nat_dvd_1_iff_1)
 
 lemma coprime_common_divisor_int:
-  "coprime (a::int) b \<Longrightarrow> x dvd a \<Longrightarrow> x dvd b \<Longrightarrow> abs x = 1"
+  "coprime (a::int) b \<Longrightarrow> x dvd a \<Longrightarrow> x dvd b \<Longrightarrow> \<bar>x\<bar> = 1"
   using gcd_greatest_iff [of x a b] by auto
 
 lemma coprime_divisors_nat:
@@ -1763,7 +1763,7 @@ qed
 
 subsection \<open>LCM properties\<close>
 
-lemma lcm_altdef_int [code]: "lcm (a::int) b = (abs a) * (abs b) div gcd a b"
+lemma lcm_altdef_int [code]: "lcm (a::int) b = \<bar>a\<bar> * \<bar>b\<bar> div gcd a b"
   by (simp add: lcm_int_def lcm_nat_def zdiv_int
     of_nat_mult gcd_int_def)
 
@@ -1771,7 +1771,7 @@ lemma prod_gcd_lcm_nat: "(m::nat) * n = gcd m n * lcm m n"
   unfolding lcm_nat_def
   by (simp add: dvd_mult_div_cancel [OF gcd_dvd_prod_nat])
 
-lemma prod_gcd_lcm_int: "abs(m::int) * abs n = gcd m n * lcm m n"
+lemma prod_gcd_lcm_int: "\<bar>m::int\<bar> * \<bar>n\<bar> = gcd m n * lcm m n"
   unfolding lcm_int_def gcd_int_def
   apply (subst int_mult [symmetric])
   apply (subst prod_gcd_lcm_nat [symmetric])
@@ -1871,7 +1871,7 @@ lemma lcm_proj2_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> lcm x y = y
   apply auto
 done
 
-lemma lcm_proj2_if_dvd_int [simp]: "(x::int) dvd y \<Longrightarrow> lcm x y = abs y"
+lemma lcm_proj2_if_dvd_int [simp]: "(x::int) dvd y \<Longrightarrow> lcm x y = \<bar>y\<bar>"
   apply (rule sym)
   apply (subst lcm_unique_int [symmetric])
   apply auto
@@ -1880,7 +1880,7 @@ done
 lemma lcm_proj1_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> lcm y x = y"
 by (subst lcm_commute_nat, erule lcm_proj2_if_dvd_nat)
 
-lemma lcm_proj1_if_dvd_int [simp]: "(x::int) dvd y \<Longrightarrow> lcm y x = abs y"
+lemma lcm_proj1_if_dvd_int [simp]: "(x::int) dvd y \<Longrightarrow> lcm y x = \<bar>y\<bar>"
 by (subst lcm_commute_int, erule lcm_proj2_if_dvd_int)
 
 lemma lcm_proj1_iff_nat[simp]: "lcm m n = (m::nat) \<longleftrightarrow> n dvd m"
@@ -1889,10 +1889,10 @@ by (metis lcm_proj1_if_dvd_nat lcm_unique_nat)
 lemma lcm_proj2_iff_nat[simp]: "lcm m n = (n::nat) \<longleftrightarrow> m dvd n"
 by (metis lcm_proj2_if_dvd_nat lcm_unique_nat)
 
-lemma lcm_proj1_iff_int[simp]: "lcm m n = abs(m::int) \<longleftrightarrow> n dvd m"
+lemma lcm_proj1_iff_int[simp]: "lcm m n = \<bar>m::int\<bar> \<longleftrightarrow> n dvd m"
 by (metis dvd_abs_iff lcm_proj1_if_dvd_int lcm_unique_int)
 
-lemma lcm_proj2_iff_int[simp]: "lcm m n = abs(n::int) \<longleftrightarrow> m dvd n"
+lemma lcm_proj2_iff_int[simp]: "lcm m n = \<bar>n::int\<bar> \<longleftrightarrow> m dvd n"
 by (metis dvd_abs_iff lcm_proj2_if_dvd_int lcm_unique_int)
 
 lemma (in semiring_gcd) comp_fun_idem_gcd:
@@ -2162,7 +2162,7 @@ lemma Lcm_insert_int [simp]:
   "Lcm (insert (n::int) N) = lcm n (Lcm N)"
   by (fact Lcm_insert)
 
-lemma dvd_int_iff: "x dvd y \<longleftrightarrow> nat (abs x) dvd nat (abs y)"
+lemma dvd_int_iff: "x dvd y \<longleftrightarrow> nat \<bar>x\<bar> dvd nat \<bar>y\<bar>"
   by (fact dvd_int_unfold_dvd_nat)
 
 lemma dvd_Lcm_int [simp]:
@@ -2223,7 +2223,7 @@ lemma gcd_code_integer [code]:
   "gcd k l = \<bar>if l = (0::integer) then k else gcd l (\<bar>k\<bar> mod \<bar>l\<bar>)\<bar>"
 by transfer(fact gcd_code_int)
 
-lemma lcm_code_integer [code]: "lcm (a::integer) b = (abs a) * (abs b) div gcd a b"
+lemma lcm_code_integer [code]: "lcm (a::integer) b = \<bar>a\<bar> * \<bar>b\<bar> div gcd a b"
 by transfer(fact lcm_altdef_int)
 
 end

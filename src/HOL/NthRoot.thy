@@ -10,7 +10,7 @@ theory NthRoot
 imports Deriv Binomial
 begin
 
-lemma abs_sgn_eq: "abs (sgn x :: real) = (if x = 0 then 0 else 1)"
+lemma abs_sgn_eq: "\<bar>sgn x :: real\<bar> = (if x = 0 then 0 else 1)"
   by (simp add: sgn_real_def)
 
 lemma inverse_sgn: "sgn (inverse a) = inverse (sgn a :: real)"

@@ -122,11 +122,12 @@ Auxiliary definitions used to provide an alternative representation for
 function nat_gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "nat_gcd x y = (if y = 0 then x else nat_gcd y (x mod y))"
   by auto
-  termination
+termination
   apply (relation "measure (\<lambda>(x, y). x + y + (if y > x then 1 else 0))")
    apply auto
    apply (metis mod_less_divisor xt1(9))
-  by (metis mod_mod_trivial mod_self nat_neq_iff xt1(10))
+  apply (metis mod_mod_trivial mod_self nat_neq_iff xt1(10))
+  done
 
 declare nat_gcd.simps[simp del]
 
@@ -134,10 +135,10 @@ definition nat_lcm :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "nat_lcm x y = x * y div (nat_gcd x y)"
 
 definition int_gcd :: "int \<Rightarrow> int \<Rightarrow> int" where
-  "int_gcd x y = int (nat_gcd (nat (abs x)) (nat (abs y)))"
+  "int_gcd x y = int (nat_gcd (nat \<bar>x\<bar>) (nat \<bar>y\<bar>))"
 
 definition int_lcm :: "int \<Rightarrow> int \<Rightarrow> int" where
-  "int_lcm x y = int (nat_lcm (nat (abs x)) (nat (abs y)))"
+  "int_lcm x y = int (nat_lcm (nat \<bar>x\<bar>) (nat \<bar>y\<bar>))"
 
 definition Frac :: "int \<times> int \<Rightarrow> bool" where
   "Frac \<equiv> \<lambda>(a, b). b > 0 \<and> int_gcd a b = 1"

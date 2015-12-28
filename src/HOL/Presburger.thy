@@ -211,11 +211,11 @@ qed auto
 
 subsubsection\<open>The \<open>-\<infinity>\<close> Version\<close>
 
-lemma decr_lemma: "0 < (d::int) \<Longrightarrow> x - (abs(x-z)+1) * d < z"
-by(induct rule: int_gr_induct,simp_all add:int_distrib)
+lemma decr_lemma: "0 < (d::int) \<Longrightarrow> x - (\<bar>x - z\<bar> + 1) * d < z"
+  by (induct rule: int_gr_induct) (simp_all add: int_distrib)
 
-lemma incr_lemma: "0 < (d::int) \<Longrightarrow> z < x + (abs(x-z)+1) * d"
-by(induct rule: int_gr_induct, simp_all add:int_distrib)
+lemma incr_lemma: "0 < (d::int) \<Longrightarrow> z < x + (\<bar>x - z\<bar> + 1) * d"
+  by (induct rule: int_gr_induct) (simp_all add: int_distrib)
 
 lemma decr_mult_lemma:
   assumes dpos: "(0::int) < d" and minus: "\<forall>x. P x \<longrightarrow> P(x - d)" and knneg: "0 <= k"
@@ -241,7 +241,7 @@ proof
   assume eP1: "EX x. P1 x"
   then obtain x where P1: "P1 x" ..
   from ePeqP1 obtain z where P1eqP: "ALL x. x < z \<longrightarrow> (P x = P1 x)" ..
-  let ?w = "x - (abs(x-z)+1) * d"
+  let ?w = "x - (\<bar>x - z\<bar> + 1) * d"
   from dpos have w: "?w < z" by(rule decr_lemma)
   have "P1 x = P1 ?w" using P1eqP1 by blast
   also have "\<dots> = P(?w)" using w P1eqP by blast
@@ -287,8 +287,8 @@ proof
   assume eP1: "EX x. P' x"
   then obtain x where P1: "P' x" ..
   from ePeqP1 obtain z where P1eqP: "\<forall>x>z. P x = P' x" ..
-  let ?w' = "x + (abs(x-z)+1) * d"
-  let ?w = "x - (-(abs(x-z) + 1))*d"
+  let ?w' = "x + (\<bar>x - z\<bar> + 1) * d"
+  let ?w = "x - (- (\<bar>x - z\<bar> + 1)) * d"
   have ww'[simp]: "?w = ?w'" by (simp add: algebra_simps)
   from dpos have w: "?w > z" by(simp only: ww' incr_lemma)
   hence "P' x = P' ?w" using P1eqP1 by blast

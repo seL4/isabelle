@@ -529,7 +529,7 @@ text\<open>This version is proved for all ordered rings, not just integers!
       in theory \<open>Rings\<close>.
       But is it really better than just rewriting with \<open>abs_if\<close>?\<close>
 lemma abs_split [arith_split, no_atp]:
-     "P(abs(a::'a::linordered_idom)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
+     "P \<bar>a::'a::linordered_idom\<bar> = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
 by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 
 lemma negD: "x < 0 \<Longrightarrow> \<exists>n. x = - (int (Suc n))"
@@ -944,7 +944,7 @@ apply (rule trans)
 apply (rule_tac [2] nat_mult_distrib, auto)
 done
 
-lemma nat_abs_mult_distrib: "nat (abs (w * z)) = nat (abs w) * nat (abs z)"
+lemma nat_abs_mult_distrib: "nat \<bar>w * z\<bar> = nat \<bar>w\<bar> * nat \<bar>z\<bar>"
 apply (cases "z=0 | w=0")
 apply (auto simp add: abs_if nat_mult_distrib [symmetric]
                       nat_mult_distrib_neg [symmetric] mult_less_0_iff)
@@ -1115,7 +1115,7 @@ qed
 subsection\<open>Intermediate value theorems\<close>
 
 lemma int_val_lemma:
-     "(\<forall>i<n::nat. abs(f(i+1) - f i) \<le> 1) -->
+     "(\<forall>i<n::nat. \<bar>f(i+1) - f i\<bar> \<le> 1) -->
       f 0 \<le> k --> k \<le> f n --> (\<exists>i \<le> n. f i = (k::int))"
 unfolding One_nat_def
 apply (induct n)
@@ -1133,7 +1133,7 @@ done
 lemmas nat0_intermed_int_val = int_val_lemma [rule_format (no_asm)]
 
 lemma nat_intermed_int_val:
-     "[| \<forall>i. m \<le> i & i < n --> abs(f(i + 1::nat) - f i) \<le> 1; m < n;
+     "[| \<forall>i. m \<le> i & i < n --> \<bar>f(i + 1::nat) - f i\<bar> \<le> 1; m < n;
          f m \<le> k; k \<le> f n |] ==> ? i. m \<le> i & i \<le> n & f i = (k::int)"
 apply (cut_tac n = "n-m" and f = "%i. f (i+m) " and k = k
        in int_val_lemma)
@@ -1432,10 +1432,10 @@ next
   from zdvd_mult_cancel[OF H2 mp] show "\<bar>n\<bar> = 1" by (simp only: zdvd1_eq)
 qed
 
-lemma int_dvd_iff: "(int m dvd z) = (m dvd nat (abs z))"
+lemma int_dvd_iff: "(int m dvd z) = (m dvd nat \<bar>z\<bar>)"
   unfolding zdvd_int by (cases "z \<ge> 0") simp_all
 
-lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
+lemma dvd_int_iff: "(z dvd int m) = (nat \<bar>z\<bar> dvd m)"
   unfolding zdvd_int by (cases "z \<ge> 0") simp_all
 
 lemma dvd_int_unfold_dvd_nat:

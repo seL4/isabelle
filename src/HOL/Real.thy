@@ -593,7 +593,7 @@ definition
   "x \<le> (y::real) \<longleftrightarrow> x < y \<or> x = y"
 
 definition
-  "abs (a::real) = (if a < 0 then - a else a)"
+  "\<bar>a::real\<bar> = (if a < 0 then - a else a)"
 
 definition
   "sgn (a::real) = (if a = 0 then 0 else if 0 < a then 1 else - 1)"
@@ -1037,7 +1037,7 @@ declare of_int_0_le_iff [algebra, presburger]
 declare of_int_1_less_iff [algebra, presburger]
 declare of_int_1_le_iff [algebra, presburger]
 
-lemma of_int_abs [simp]: "of_int (abs x) = (abs(of_int x) :: 'a::linordered_idom)"
+lemma of_int_abs [simp]: "of_int \<bar>x\<bar> = (\<bar>of_int x\<bar> :: 'a::linordered_idom)"
   by (auto simp add: abs_if)
 
 lemma int_less_real_le: "(n < m) = (real_of_int n + 1 <= real_of_int m)"
@@ -1199,7 +1199,7 @@ lemma Rats_abs_nat_div_natE:
 proof -
   from \<open>x \<in> \<rat>\<close> obtain i::int and n::nat where "n \<noteq> 0" and "x = real_of_int i / real n"
     by(auto simp add: Rats_eq_int_div_nat)
-  hence "\<bar>x\<bar> = real(nat(abs i)) / real n" by (simp add: of_nat_nat)
+  hence "\<bar>x\<bar> = real (nat \<bar>i\<bar>) / real n" by (simp add: of_nat_nat)
   then obtain m :: nat where x_rat: "\<bar>x\<bar> = real m / real n" by blast
   let ?gcd = "gcd m n"
   from \<open>n\<noteq>0\<close> have gcd: "?gcd \<noteq> 0" by simp
@@ -1414,17 +1414,17 @@ lemma real_sum_of_halves: "x/2 + x/2 = (x::real)"
 
 subsection\<open>Absolute Value Function for the Reals\<close>
 
-lemma abs_minus_add_cancel: "abs(x + (-y)) = abs (y + (-(x::real)))"
-by (simp add: abs_if)
+lemma abs_minus_add_cancel: "\<bar>x + (- y)\<bar> = \<bar>y + (- (x::real))\<bar>"
+  by (simp add: abs_if)
 
-lemma abs_add_one_gt_zero: "(0::real) < 1 + abs(x)"
-by (simp add: abs_if)
+lemma abs_add_one_gt_zero: "(0::real) < 1 + \<bar>x\<bar>"
+  by (simp add: abs_if)
 
-lemma abs_add_one_not_less_self: "~ abs(x) + (1::real) < x"
-by simp
+lemma abs_add_one_not_less_self: "~ \<bar>x\<bar> + (1::real) < x"
+  by simp
 
-lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
-by simp
+lemma abs_sum_triangle_ineq: "\<bar>(x::real) + y + (-l + -m)\<bar> \<le> \<bar>x + -l\<bar> + \<bar>y + -m\<bar>"
+  by simp
 
 
 subsection\<open>Floor and Ceiling Functions from the Reals to the Integers\<close>

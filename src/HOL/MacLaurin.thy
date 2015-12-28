@@ -259,8 +259,8 @@ by (induct "n") auto
 
 lemma Maclaurin_bi_le:
    assumes "diff 0 = f"
-   and DERIV : "\<forall>m t::real. m < n & abs t \<le> abs x --> DERIV (diff m) t :> diff (Suc m) t"
-   shows "\<exists>t. abs t \<le> abs x &
+   and DERIV : "\<forall>m t::real. m < n & \<bar>t\<bar> \<le> \<bar>x\<bar> --> DERIV (diff m) t :> diff (Suc m) t"
+   shows "\<exists>t. \<bar>t\<bar> \<le> \<bar>x\<bar> &
               f x =
               (\<Sum>m<n. diff m 0 / (fact m) * x ^ m) +
      diff n t / (fact n) * x ^ n" (is "\<exists>t. _ \<and> f x = ?f x t")
@@ -294,7 +294,7 @@ lemma Maclaurin_all_lt:
   fixes x::real
   assumes INIT1: "diff 0 = f" and INIT2: "0 < n" and INIT3: "x \<noteq> 0"
   and DERIV: "\<forall>m x. DERIV (diff m) x :> diff(Suc m) x"
-  shows "\<exists>t. 0 < abs t & abs t < abs x & f x =
+  shows "\<exists>t. 0 < \<bar>t\<bar> & \<bar>t\<bar> < \<bar>x\<bar> & f x =
     (\<Sum>m<n. (diff m 0 / (fact m)) * x ^ m) +
                 (diff n t / (fact n)) * x ^ n" (is "\<exists>t. _ \<and> _ \<and> f x = ?f x t")
 proof (cases rule: linorder_cases)
@@ -320,7 +320,7 @@ lemma Maclaurin_all_lt_objl:
      "diff 0 = f &
       (\<forall>m x. DERIV (diff m) x :> diff(Suc m) x) &
       x ~= 0 & n > 0
-      --> (\<exists>t. 0 < abs t & abs t < abs x &
+      --> (\<exists>t. 0 < \<bar>t\<bar> & \<bar>t\<bar> < \<bar>x\<bar> &
                f x = (\<Sum>m<n. (diff m 0 / (fact m)) * x ^ m) +
                      (diff n t / (fact n)) * x ^ n)"
 by (blast intro: Maclaurin_all_lt)
@@ -336,7 +336,7 @@ by (induct n, auto)
 lemma Maclaurin_all_le:
   assumes INIT: "diff 0 = f"
   and DERIV: "\<forall>m x::real. DERIV (diff m) x :> diff (Suc m) x"
-  shows "\<exists>t. abs t \<le> abs x & f x =
+  shows "\<exists>t. \<bar>t\<bar> \<le> \<bar>x\<bar> & f x =
     (\<Sum>m<n. (diff m 0 / (fact m)) * x ^ m) +
     (diff n t / (fact n)) * x ^ n" (is "\<exists>t. _ \<and> f x = ?f x t")
 proof cases
@@ -363,7 +363,7 @@ qed
 lemma Maclaurin_all_le_objl:
   "diff 0 = f &
       (\<forall>m x. DERIV (diff m) x :> diff (Suc m) x)
-      --> (\<exists>t::real. abs t \<le> abs x &
+      --> (\<exists>t::real. \<bar>t\<bar> \<le> \<bar>x\<bar> &
               f x = (\<Sum>m<n. (diff m 0 / (fact m)) * x ^ m) +
                     (diff n t / (fact n)) * x ^ n)"
 by (blast intro: Maclaurin_all_le)
@@ -375,15 +375,15 @@ lemma Maclaurin_exp_lt:
   fixes x::real
   shows
   "[| x ~= 0; n > 0 |]
-      ==> (\<exists>t. 0 < abs t &
-                abs t < abs x &
+      ==> (\<exists>t. 0 < \<bar>t\<bar> &
+                \<bar>t\<bar> < \<bar>x\<bar> &
                 exp x = (\<Sum>m<n. (x ^ m) / (fact m)) +
                         (exp t / (fact n)) * x ^ n)"
 by (cut_tac diff = "%n. exp" and f = exp and x = x and n = n in Maclaurin_all_lt_objl, auto)
 
 
 lemma Maclaurin_exp_le:
-     "\<exists>t::real. abs t \<le> abs x &
+     "\<exists>t::real. \<bar>t\<bar> \<le> \<bar>x\<bar> &
             exp x = (\<Sum>m<n. (x ^ m) / (fact m)) +
                        (exp t / (fact n)) * x ^ n"
 by (cut_tac diff = "%n. exp" and f = exp and x = x and n = n in Maclaurin_all_le_objl, auto)
@@ -422,7 +422,7 @@ lemma sin_expansion_lemma:
 by (simp only: cos_add sin_add of_nat_Suc add_divide_distrib distrib_right, auto)
 
 lemma Maclaurin_sin_expansion2:
-     "\<exists>t. abs t \<le> abs x &
+     "\<exists>t. \<bar>t\<bar> \<le> \<bar>x\<bar> &
        sin x =
        (\<Sum>m<n. sin_coeff m * x ^ m)
       + ((sin(t + 1/2 * real (n) *pi) / (fact n)) * x ^ n)"
@@ -495,7 +495,7 @@ lemma cos_expansion_lemma:
 by (simp only: cos_add sin_add of_nat_Suc distrib_right add_divide_distrib, auto)
 
 lemma Maclaurin_cos_expansion:
-     "\<exists>t::real. abs t \<le> abs x &
+     "\<exists>t::real. \<bar>t\<bar> \<le> \<bar>x\<bar> &
        cos x =
        (\<Sum>m<n. cos_coeff m * x ^ m)
       + ((cos(t + 1/2 * real (n) *pi) / (fact n)) * x ^ n)"
@@ -550,12 +550,11 @@ done
 (* ------------------------------------------------------------------------- *)
 
 lemma sin_bound_lemma:
-    "[|x = y; abs u \<le> (v::real) |] ==> \<bar>(x + u) - y\<bar> \<le> v"
+    "[|x = y; \<bar>u\<bar> \<le> (v::real) |] ==> \<bar>(x + u) - y\<bar> \<le> v"
 by auto
 
 lemma Maclaurin_sin_bound:
-  "abs(sin x - (\<Sum>m<n. sin_coeff m * x ^ m))
-  \<le> inverse((fact n)) * \<bar>x\<bar> ^ n"
+  "\<bar>sin x - (\<Sum>m<n. sin_coeff m * x ^ m)\<bar> \<le> inverse((fact n)) * \<bar>x\<bar> ^ n"
 proof -
   have "!! x (y::real). x \<le> 1 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x * y \<le> 1 * y"
     by (rule_tac mult_right_mono,simp_all)

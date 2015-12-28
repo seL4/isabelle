@@ -647,7 +647,7 @@ lemma ceiling_ge_round: "\<lceil>x\<rceil> \<ge> round x" unfolding round_altdef
      
 lemma round_diff_minimal: 
   fixes z :: "'a :: floor_ceiling"
-  shows "abs (z - of_int (round z)) \<le> abs (z - of_int m)"
+  shows "\<bar>z - of_int (round z)\<bar> \<le> \<bar>z - of_int m\<bar>"
 proof (cases "of_int m \<ge> z")
   case True
   hence "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int \<lceil>z\<rceil> - z\<bar>"

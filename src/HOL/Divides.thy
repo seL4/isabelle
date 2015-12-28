@@ -2436,7 +2436,7 @@ lemma int_mod_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> 
   by (rule mod_int_unique [of a b q r],
     simp add: divmod_int_rel_def)
 
-lemma abs_div: "(y::int) dvd x \<Longrightarrow> abs (x div y) = abs x div abs y"
+lemma abs_div: "(y::int) dvd x \<Longrightarrow> \<bar>x div y\<bar> = \<bar>x\<bar> div \<bar>y\<bar>"
 by (unfold dvd_def, cases "y=0", auto simp add: abs_mult)
 
 text\<open>Suggested by Matthias Daum\<close>

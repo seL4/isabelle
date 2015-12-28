@@ -1872,7 +1872,7 @@ lemma ln_add_one_self_le_self2:
   done
 
 lemma abs_ln_one_plus_x_minus_x_bound_nonneg:
-  fixes x::real shows "0 <= x \<Longrightarrow> x <= 1 \<Longrightarrow> abs(ln (1 + x) - x) <= x\<^sup>2"
+  fixes x::real shows "0 <= x \<Longrightarrow> x <= 1 \<Longrightarrow> \<bar>ln (1 + x) - x\<bar> <= x\<^sup>2"
 proof -
   assume x: "0 <= x"
   assume x1: "x <= 1"
@@ -1880,7 +1880,7 @@ proof -
     by (rule ln_add_one_self_le_self)
   then have "ln (1 + x) - x <= 0"
     by simp
-  then have "abs(ln(1 + x) - x) = - (ln(1 + x) - x)"
+  then have "\<bar>ln(1 + x) - x\<bar> = - (ln(1 + x) - x)"
     by (rule abs_of_nonpos)
   also have "... = x - ln (1 + x)"
     by simp
@@ -1895,11 +1895,11 @@ proof -
 qed
 
 lemma abs_ln_one_plus_x_minus_x_bound_nonpos:
-  fixes x::real shows "-(1 / 2) <= x \<Longrightarrow> x <= 0 \<Longrightarrow> abs(ln (1 + x) - x) <= 2 * x\<^sup>2"
+  fixes x::real shows "-(1 / 2) <= x \<Longrightarrow> x <= 0 \<Longrightarrow> \<bar>ln (1 + x) - x\<bar> <= 2 * x\<^sup>2"
 proof -
   assume a: "-(1 / 2) <= x"
   assume b: "x <= 0"
-  have "abs(ln (1 + x) - x) = x - ln(1 - (-x))"
+  have "\<bar>ln (1 + x) - x\<bar> = x - ln(1 - (-x))"
     apply (subst abs_of_nonpos)
     apply simp
     apply (rule ln_add_one_self_le_self2)
@@ -1915,7 +1915,7 @@ proof -
 qed
 
 lemma abs_ln_one_plus_x_minus_x_bound:
-  fixes x::real shows "abs x <= 1 / 2 \<Longrightarrow> abs(ln (1 + x) - x) <= 2 * x\<^sup>2"
+  fixes x::real shows "\<bar>x\<bar> <= 1 / 2 \<Longrightarrow> \<bar>ln (1 + x) - x\<bar> <= 2 * x\<^sup>2"
   apply (case_tac "0 <= x")
   apply (rule order_trans)
   apply (rule abs_ln_one_plus_x_minus_x_bound_nonneg)
@@ -2648,7 +2648,7 @@ lemma tendsto_exp_limit_sequentially:
   fixes x :: real
   shows "(\<lambda>n. (1 + x / n) ^ n) ----> exp x"
 proof (rule filterlim_mono_eventually)
-  from reals_Archimedean2 [of "abs x"] obtain n :: nat where *: "real n > abs x" ..
+  from reals_Archimedean2 [of "\<bar>x\<bar>"] obtain n :: nat where *: "real n > \<bar>x\<bar>" ..
   hence "eventually (\<lambda>n :: nat. 0 < 1 + x / real n) at_top"
     apply (intro eventually_sequentiallyI [of n])
     apply (case_tac "x \<ge> 0")
@@ -3100,7 +3100,7 @@ lemma cos_double:
   by (simp add: power2_eq_square)
 
 lemma sin_cos_le1:
-  fixes x::real shows "abs (sin x * sin y + cos x * cos y) \<le> 1"
+  fixes x::real shows "\<bar>sin x * sin y + cos x * cos y\<bar> \<le> 1"
   using cos_diff [of x y]
   by (metis abs_cos_le_one add.commute)
 
@@ -4225,11 +4225,11 @@ lemma tan_diff:
 lemma tan_pos_pi2_le: "0 \<le> x ==> x < pi/2 \<Longrightarrow> 0 \<le> tan x"
   using less_eq_real_def tan_gt_zero by auto
 
-lemma cos_tan: "abs(x) < pi/2 \<Longrightarrow> cos(x) = 1 / sqrt(1 + tan(x) ^ 2)"
+lemma cos_tan: "\<bar>x\<bar> < pi/2 \<Longrightarrow> cos(x) = 1 / sqrt(1 + tan(x) ^ 2)"
   using cos_gt_zero_pi [of x]
   by (simp add: divide_simps tan_def real_sqrt_divide abs_if split: split_if_asm)
 
-lemma sin_tan: "abs(x) < pi/2 \<Longrightarrow> sin(x) = tan(x) / sqrt(1 + tan(x) ^ 2)"
+lemma sin_tan: "\<bar>x\<bar> < pi/2 \<Longrightarrow> sin(x) = tan(x) / sqrt(1 + tan(x) ^ 2)"
   using cos_gt_zero [of "x"] cos_gt_zero [of "-x"]
   by (force simp add: divide_simps tan_def real_sqrt_divide abs_if split: split_if_asm)
 
@@ -4244,7 +4244,7 @@ lemma tan_mono_le_eq: "-(pi/2) < x ==> x < pi/2 ==> -(pi/2) < y ==> y < pi/2
          \<Longrightarrow> (tan(x) \<le> tan(y) \<longleftrightarrow> x \<le> y)"
   by (meson tan_mono_le not_le tan_monotone)
 
-lemma tan_bound_pi2: "abs(x) < pi/4 \<Longrightarrow> abs(tan x) < 1"
+lemma tan_bound_pi2: "\<bar>x\<bar> < pi/4 \<Longrightarrow> \<bar>tan x\<bar> < 1"
   using tan_45 tan_monotone [of x "pi/4"] tan_monotone [of "-x" "pi/4"]
   by (auto simp: abs_if split: split_if_asm)
 
@@ -4404,7 +4404,7 @@ lemma arcsin_minus_1 [simp]: "arcsin (-1) = - (pi/2)"
 lemma arcsin_minus: "-1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arcsin(-x) = -arcsin x"
   by (metis (no_types, hide_lams) arcsin arcsin_sin minus_minus neg_le_iff_le sin_minus)
 
-lemma arcsin_eq_iff: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrightarrow> (arcsin x = arcsin y \<longleftrightarrow> x = y)"
+lemma arcsin_eq_iff: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> \<bar>y\<bar> \<le> 1 \<Longrightarrow> (arcsin x = arcsin y \<longleftrightarrow> x = y)"
   by (metis abs_le_iff arcsin minus_le_iff)
 
 lemma cos_arcsin_nonzero: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> cos(arcsin x) \<noteq> 0"
@@ -4820,13 +4820,13 @@ proof -
     done
 qed
 
-lemma arcsin_less_mono: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrightarrow> arcsin x < arcsin y \<longleftrightarrow> x < y"
+lemma arcsin_less_mono: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> \<bar>y\<bar> \<le> 1 \<Longrightarrow> arcsin x < arcsin y \<longleftrightarrow> x < y"
   apply (rule trans [OF sin_mono_less_eq [symmetric]])
   using arcsin_ubound arcsin_lbound
   apply auto
   done
 
-lemma arcsin_le_mono: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrightarrow> arcsin x \<le> arcsin y \<longleftrightarrow> x \<le> y"
+lemma arcsin_le_mono: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> \<bar>y\<bar> \<le> 1 \<Longrightarrow> arcsin x \<le> arcsin y \<longleftrightarrow> x \<le> y"
   using arcsin_less_mono not_le by blast
 
 lemma arcsin_less_arcsin: "-1 \<le> x \<Longrightarrow> x < y \<Longrightarrow> y \<le> 1 \<Longrightarrow> arcsin x < arcsin y"
@@ -4835,13 +4835,13 @@ lemma arcsin_less_arcsin: "-1 \<le> x \<Longrightarrow> x < y \<Longrightarrow> 
 lemma arcsin_le_arcsin: "-1 \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> arcsin x \<le> arcsin y"
   using arcsin_le_mono by auto
 
-lemma arccos_less_mono: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrightarrow> (arccos x < arccos y \<longleftrightarrow> y < x)"
+lemma arccos_less_mono: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> \<bar>y\<bar> \<le> 1 \<Longrightarrow> (arccos x < arccos y \<longleftrightarrow> y < x)"
   apply (rule trans [OF cos_mono_less_eq [symmetric]])
   using arccos_ubound arccos_lbound
   apply auto
   done
 
-lemma arccos_le_mono: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrightarrow> arccos x \<le> arccos y \<longleftrightarrow> y \<le> x"
+lemma arccos_le_mono: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> \<bar>y\<bar> \<le> 1 \<Longrightarrow> arccos x \<le> arccos y \<longleftrightarrow> y \<le> x"
   using arccos_less_mono [of y x]
   by (simp add: not_le [symmetric])
 
@@ -4851,7 +4851,7 @@ lemma arccos_less_arccos: "-1 \<le> x \<Longrightarrow> x < y \<Longrightarrow> 
 lemma arccos_le_arccos: "-1 \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> arccos y \<le> arccos x"
   using arccos_le_mono by auto
 
-lemma arccos_eq_iff: "abs x \<le> 1 & abs y \<le> 1 \<Longrightarrow> (arccos x = arccos y \<longleftrightarrow> x = y)"
+lemma arccos_eq_iff: "\<bar>x\<bar> \<le> 1 & \<bar>y\<bar> \<le> 1 \<Longrightarrow> (arccos x = arccos y \<longleftrightarrow> x = y)"
   using cos_arccos_abs by fastforce
 
 subsection \<open>Machins formula\<close>
