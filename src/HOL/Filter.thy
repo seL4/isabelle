@@ -39,9 +39,8 @@ subsubsection \<open>Eventually\<close>
 definition eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> bool"
   where "eventually P F \<longleftrightarrow> Rep_filter F P"
 
-syntax (xsymbols)
-  "_eventually"  :: "pttrn => 'a filter => bool => bool"      ("(3\<forall>\<^sub>F _ in _./ _)" [0, 0, 10] 10)
-
+syntax
+  "_eventually" :: "pttrn => 'a filter => bool => bool"  ("(3\<forall>\<^sub>F _ in _./ _)" [0, 0, 10] 10)
 translations
   "\<forall>\<^sub>Fx in F. P" == "CONST eventually (\<lambda>x. P) F"
 
@@ -150,9 +149,8 @@ subsection \<open> Frequently as dual to eventually \<close>
 definition frequently :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> bool"
   where "frequently P F \<longleftrightarrow> \<not> eventually (\<lambda>x. \<not> P x) F"
 
-syntax (xsymbols)
-  "_frequently"  :: "pttrn \<Rightarrow> 'a filter \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>\<^sub>F _ in _./ _)" [0, 0, 10] 10)
-
+syntax
+  "_frequently" :: "pttrn \<Rightarrow> 'a filter \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<exists>\<^sub>F _ in _./ _)" [0, 0, 10] 10)
 translations
   "\<exists>\<^sub>Fx in F. P" == "CONST frequently (\<lambda>x. P) F"
 
