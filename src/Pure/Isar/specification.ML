@@ -11,16 +11,18 @@ sig
     term list * Proof.context
   val read_prop: string -> (binding * string option * mixfix) list -> Proof.context ->
     term * Proof.context
+  val check_free_spec:
+    (binding * typ option * mixfix) list -> (Attrib.binding * term) list -> Proof.context ->
+    ((((binding * typ) * mixfix) list * (Attrib.binding * term) list) * (string -> Position.T))
+      * Proof.context
+  val read_free_spec:
+    (binding * string option * mixfix) list -> (Attrib.binding * string) list -> Proof.context ->
+    ((((binding * typ) * mixfix) list * (Attrib.binding * term) list) * (string -> Position.T))
+      * Proof.context
   val check_spec:
     (binding * typ option * mixfix) list -> (Attrib.binding * term) list -> Proof.context ->
     (((binding * typ) * mixfix) list * (Attrib.binding * term) list) * Proof.context
   val read_spec:
-    (binding * string option * mixfix) list -> (Attrib.binding * string) list -> Proof.context ->
-    (((binding * typ) * mixfix) list * (Attrib.binding * term) list) * Proof.context
-  val check_free_spec:
-    (binding * typ option * mixfix) list -> (Attrib.binding * term) list -> Proof.context ->
-    (((binding * typ) * mixfix) list * (Attrib.binding * term) list) * Proof.context
-  val read_free_spec:
     (binding * string option * mixfix) list -> (Attrib.binding * string) list -> Proof.context ->
     (((binding * typ) * mixfix) list * (Attrib.binding * term) list) * Proof.context
   val check_specification: (binding * typ option * mixfix) list ->
@@ -112,6 +114,19 @@ fun close_forms ctxt i As =
     val close = fold_rev (Logic.dependent_all_constraint uniform_typing) (xs ~~ xs);
   in map close As end;
 
+fun get_positions ctxt x =
+  let
+    fun get Cs (Const ("_type_constraint_", C) $ t) = get (C :: Cs) t
+      | get _ (t $ u) = get [] t @ get [] u
+      | get _ (Abs (_, _, t)) = get [] t
+      | get Cs (Free (y, T)) =
+          if x = y then
+            map_filter Term_Position.decode_positionT
+              (T :: map (Type.constraint_type ctxt) Cs)
+          else []
+      | get _ _ = [];
+  in get [] end;
+
 fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
   let
     val (vars, vars_ctxt) = ctxt |> fold_map prep_var raw_vars;
@@ -124,6 +139,7 @@ fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
       |> fold Name.declare xs;
     val Asss' = #1 ((fold_map o fold_map o fold_map) Term.free_dummy_patterns Asss names);
     val idx = (fold o fold o fold) Term.maxidx_term Asss' ~1 + 1;
+
     val specs =
       (if do_close then
         #1 (fold_map
@@ -134,8 +150,16 @@ fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
 
     val ps = specs_ctxt |> fold_map Proof_Context.inferred_param xs |> fst;
     val params = map2 (fn (b, _, mx) => fn (_, T) => ((b, T), mx)) vars ps;
-    val name_atts = map (fn ((name, atts), _) => (name, map (prep_att ctxt) atts)) (flat raw_specss);
-  in ((params, name_atts ~~ specs), specs_ctxt) end;
+    val name_atts: Attrib.binding list =
+      map (fn ((name, atts), _) => (name, map (prep_att ctxt) atts)) (flat raw_specss);
+
+    fun get_pos x =
+      if do_close then Position.none
+      else
+        (case (maps o maps o maps) (get_positions specs_ctxt x) Asss' of
+          [] => Position.none
+        | pos :: _ => pos);
+  in (((params, name_atts ~~ specs), get_pos), specs_ctxt) end;
 
 
 fun single_spec (a, prop) = [(a, [prop])];
@@ -143,21 +167,27 @@ fun the_spec (a, [prop]) = (a, prop);
 
 fun prep_spec prep_var parse_prop prep_att do_close vars specs =
   prepare prep_var parse_prop prep_att do_close
-    vars (map single_spec specs) #>> apsnd (map the_spec);
+    vars (map single_spec specs) #>> (apfst o apsnd) (map the_spec);
 
 in
 
-fun check_spec x = prep_spec Proof_Context.cert_var (K I) (K I) true x;
-fun read_spec x = prep_spec Proof_Context.read_var Syntax.parse_prop Attrib.check_src true x;
+fun check_free_spec vars specs =
+  prep_spec Proof_Context.cert_var (K I) (K I) false vars specs;
 
-fun check_free_spec x = prep_spec Proof_Context.cert_var (K I) (K I) false x;
-fun read_free_spec x = prep_spec Proof_Context.read_var Syntax.parse_prop Attrib.check_src false x;
+fun read_free_spec vars specs =
+  prep_spec Proof_Context.read_var Syntax.parse_prop Attrib.check_src false vars specs;
+
+fun check_spec vars specs =
+  prep_spec Proof_Context.cert_var (K I) (K I) true vars specs #> apfst fst;
+
+fun read_spec vars specs =
+  prep_spec Proof_Context.read_var Syntax.parse_prop Attrib.check_src true vars specs #> apfst fst;
 
 fun check_specification vars specs =
-  prepare Proof_Context.cert_var (K I) (K I) true vars [specs];
+  prepare Proof_Context.cert_var (K I) (K I) true vars [specs] #> apfst fst
 
 fun read_specification vars specs =
-  prepare Proof_Context.read_var Syntax.parse_prop Attrib.check_src true vars [specs];
+  prepare Proof_Context.read_var Syntax.parse_prop Attrib.check_src true vars [specs] #> apfst fst;
 
 end;
 
@@ -198,12 +228,13 @@ fun axiom (b, ax) = axiomatization [] [(b, [ax])] #>> (hd o hd o snd);
 
 fun gen_def prep (raw_var, raw_spec) int lthy =
   let
-    val (vars, [((raw_name, atts), prop)]) = fst (prep (the_list raw_var) [raw_spec] lthy);
+    val ((vars, [((raw_name, atts), prop)]), get_pos) =
+      fst (prep (the_list raw_var) [raw_spec] lthy);
     val (((x, T), rhs), prove) = Local_Defs.derived_def lthy true prop;
     val _ = Name.reject_internal (x, []);
     val var as (b, _) =
       (case vars of
-        [] => (Binding.name x, NoSyn)
+        [] => (Binding.make (x, get_pos x), NoSyn)
       | [((b, _), mx)] =>
           let
             val y = Variable.check_name b;
@@ -239,14 +270,14 @@ fun gen_abbrev prep mode (raw_var, raw_prop) int lthy =
   let
     val lthy1 = lthy
       |> Proof_Context.set_syntax_mode mode;
-    val ((vars, [(_, prop)]), _) =
+    val (((vars, [(_, prop)]), get_pos), _) =
       prep (the_list raw_var) [(Attrib.empty_binding, raw_prop)]
         (lthy1 |> Proof_Context.set_mode Proof_Context.mode_abbrev);
     val ((x, T), rhs) = Local_Defs.abs_def (#2 (Local_Defs.cert_def lthy1 prop));
     val _ = Name.reject_internal (x, []);
     val var =
       (case vars of
-        [] => (Binding.name x, NoSyn)
+        [] => (Binding.make (x, get_pos x), NoSyn)
       | [((b, _), mx)] =>
           let
             val y = Variable.check_name b;
