@@ -16,6 +16,7 @@ sig
   val make: bstring * Position.T -> binding
   val pos_of: binding -> Position.T
   val set_pos: Position.T -> binding -> binding
+  val reset_pos: binding -> binding
   val name: bstring -> binding
   val name_of: binding -> bstring
   val map_name: (bstring -> bstring) -> binding -> binding
@@ -84,6 +85,7 @@ fun pos_of (Binding {pos, ...}) = pos;
 fun set_pos pos =
   map_binding (fn (restricted, concealed, prefix, qualifier, name, _) =>
     (restricted, concealed, prefix, qualifier, name, pos));
+val reset_pos = set_pos Position.none;
 
 fun name name = make (name, Position.none);
 fun name_of (Binding {name, ...}) = name;

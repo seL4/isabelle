@@ -242,7 +242,7 @@ fun gen_def prep (raw_var, raw_spec) int lthy =
               error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote y ^
                 Position.here (Binding.pos_of b));
           in (b, mx) end);
-    val name = Thm.def_binding_optional b raw_name;
+    val name = Binding.reset_pos (Thm.def_binding_optional b raw_name);
     val ((lhs, (_, raw_th)), lthy2) = lthy
       |> Local_Theory.define_internal (var, ((Binding.suffix_name "_raw" name, []), rhs));
 
