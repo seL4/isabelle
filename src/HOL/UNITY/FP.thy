@@ -10,7 +10,7 @@ section{*Fixed Point of a Program*}
 theory FP imports UNITY begin
 
 definition FP_Orig :: "'a program => 'a set" where
-    "FP_Orig F == Union{A. ALL B. F : stable (A Int B)}"
+    "FP_Orig F == \<Union>{A. ALL B. F : stable (A Int B)}"
 
 definition FP :: "'a program => 'a set" where
     "FP F == {s. F : stable {s}}"

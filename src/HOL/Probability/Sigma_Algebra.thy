@@ -75,7 +75,7 @@ locale ring_of_sets = semiring_of_sets +
   assumes Un [intro]: "\<And>a b. a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> a \<union> b \<in> M"
 
 lemma (in ring_of_sets) finite_Union [intro]:
-  "finite X \<Longrightarrow> X \<subseteq> M \<Longrightarrow> Union X \<in> M"
+  "finite X \<Longrightarrow> X \<subseteq> M \<Longrightarrow> \<Union>X \<in> M"
   by (induct set: finite) (auto simp add: Un)
 
 lemma (in ring_of_sets) finite_UN[intro]:
@@ -261,7 +261,7 @@ proof -
 qed
 
 lemma (in sigma_algebra) countable_Union [intro]:
-  assumes "countable X" "X \<subseteq> M" shows "Union X \<in> M"
+  assumes "countable X" "X \<subseteq> M" shows "\<Union>X \<in> M"
 proof cases
   assume "X \<noteq> {}"
   hence "\<Union>X = (\<Union>n. from_nat_into X n)"

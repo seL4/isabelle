@@ -441,15 +441,15 @@ lemma ofilter_INTER:
 unfolding ofilter_def by blast
 
 lemma ofilter_Inter:
-"\<lbrakk>S \<noteq> {}; \<And> A. A \<in> S \<Longrightarrow> ofilter A\<rbrakk> \<Longrightarrow> ofilter (Inter S)"
+"\<lbrakk>S \<noteq> {}; \<And> A. A \<in> S \<Longrightarrow> ofilter A\<rbrakk> \<Longrightarrow> ofilter (\<Inter>S)"
 unfolding ofilter_def by blast
 
 lemma ofilter_Union:
-"(\<And> A. A \<in> S \<Longrightarrow> ofilter A) \<Longrightarrow> ofilter (Union S)"
+"(\<And> A. A \<in> S \<Longrightarrow> ofilter A) \<Longrightarrow> ofilter (\<Union>S)"
 unfolding ofilter_def by blast
 
 lemma ofilter_under_Union:
-"ofilter A \<Longrightarrow> A = Union {under a| a. a \<in> A}"
+"ofilter A \<Longrightarrow> A = \<Union>{under a| a. a \<in> A}"
 using ofilter_under_UNION[of A]
 by(unfold Union_eq, auto)
 

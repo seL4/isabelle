@@ -118,7 +118,7 @@ lift_definition cUNION :: "'a cset \<Rightarrow> ('a \<Rightarrow> 'b cset) \<Ri
   is "UNION" parametric UNION_transfer by simp
 definition cUnion :: "'a cset cset \<Rightarrow> 'a cset" where "cUnion A = cUNION A id"
 
-lemma Union_conv_UNION: "Union A = UNION A id"
+lemma Union_conv_UNION: "\<Union>A = UNION A id"
 by auto
 
 lemma cUnion_transfer [transfer_rule]:

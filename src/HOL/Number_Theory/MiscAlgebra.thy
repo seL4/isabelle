@@ -257,7 +257,7 @@ lemma (in comm_monoid) finprod_UN_disjoint:
 lemma (in comm_monoid) finprod_Union_disjoint:
   "[| finite C; (ALL A:C. finite A & (ALL x:A. f x : carrier G));
       (ALL A:C. ALL B:C. A ~= B --> A Int B = {}) |]
-   ==> finprod G f (Union C) = finprod G (finprod G f) C"
+   ==> finprod G f (\<Union>C) = finprod G (finprod G f) C"
   apply (frule finprod_UN_disjoint [of C id f])
   apply (auto simp add: SUP_def)
   done

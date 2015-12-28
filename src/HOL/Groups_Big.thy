@@ -172,7 +172,7 @@ done
 
 lemma Union_disjoint:
   assumes "\<forall>A\<in>C. finite A" "\<forall>A\<in>C. \<forall>B\<in>C. A \<noteq> B \<longrightarrow> A \<inter> B = {}"
-  shows "F g (Union C) = (F \<circ> F) g C"
+  shows "F g (\<Union>C) = (F \<circ> F) g C"
 proof cases
   assume "finite C"
   from UNION_disjoint [OF this assms]
@@ -994,7 +994,7 @@ qed
 lemma card_Union_disjoint:
   "finite C ==> (ALL A:C. finite A) ==>
    (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {})
-   ==> card (Union C) = setsum card C"
+   ==> card (\<Union>C) = setsum card C"
 apply (frule card_UN_disjoint [of C id])
 apply simp_all
 done

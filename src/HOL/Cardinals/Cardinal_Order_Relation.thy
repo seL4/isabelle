@@ -785,9 +785,9 @@ qed
 lemma Card_order_lists: "Card_order r \<Longrightarrow> r \<le>o |lists(Field r) |"
 using card_of_lists card_of_Field_ordIso ordIso_ordLeq_trans ordIso_symmetric by blast
 
-lemma Union_set_lists:
-"Union(set ` (lists A)) = A"
-unfolding lists_def2 proof(auto)
+lemma Union_set_lists: "\<Union>(set ` (lists A)) = A"
+  unfolding lists_def2
+proof(auto)
   fix a assume "a \<in> A"
   hence "set [a] \<le> A \<and> a \<in> set [a]" by auto
   thus "\<exists>l. set l \<le> A \<and> a \<in> set l" by blast

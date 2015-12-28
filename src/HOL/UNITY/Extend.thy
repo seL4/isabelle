@@ -255,7 +255,7 @@ lemma extend_set_INT_distrib: "extend_set h (INTER A B) = (\<Inter>x \<in> A. ex
 lemma extend_set_Diff_distrib: "extend_set h (A - B) = extend_set h A - extend_set h B"
   by auto
 
-lemma extend_set_Union: "extend_set h (Union A) = (\<Union>X \<in> A. extend_set h X)"
+lemma extend_set_Union: "extend_set h (\<Union>A) = (\<Union>X \<in> A. extend_set h X)"
   by blast
 
 lemma extend_set_subset_Compl_eq: "(extend_set h A \<subseteq> - extend_set h B) = (A \<subseteq> - B)"
@@ -361,7 +361,7 @@ done
 lemma (in -) project_set_UNIV [simp]: "project_set h UNIV = UNIV"
   by auto
 
-lemma (in -) project_set_Union: "project_set h (Union A) = (\<Union>X \<in> A. project_set h X)"
+lemma (in -) project_set_Union: "project_set h (\<Union>A) = (\<Union>X \<in> A. project_set h X)"
   by blast
 
 
@@ -561,7 +561,7 @@ subsection{*Proving the converse takes some doing!*}
 lemma slice_iff [iff]: "(x \<in> slice C y) = (h(x,y) \<in> C)"
   by (simp add: slice_def)
 
-lemma slice_Union: "slice (Union S) y = (\<Union>x \<in> S. slice x y)"
+lemma slice_Union: "slice (\<Union>S) y = (\<Union>x \<in> S. slice x y)"
   by auto
 
 lemma slice_extend_set: "slice (extend_set h A) y = A"

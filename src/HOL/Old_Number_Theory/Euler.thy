@@ -49,7 +49,7 @@ lemma MultInvPair_prop1c: "[| zprime p; 2 < p; ~([a = 0](mod p)) |] ==>
   by (auto simp add: MultInvPair_prop1b)
 
 lemma MultInvPair_prop2: "[| zprime p; 2 < p; ~([a = 0](mod p)) |] ==> 
-                          Union ( SetS a p) = SRStar p"
+                          \<Union>(SetS a p) = SRStar p"
   apply (auto simp add: SetS_def MultInvPair_def StandardRes_SRStar_prop4 
     SRStar_mult_prop2)
   apply (frule StandardRes_SRStar_prop3)
@@ -105,7 +105,7 @@ lemma SetS_elems_card: "[| zprime p; 2 < p; ~([a = 0] (mod p));
   apply (rule MultInvPair_card_two, auto)
   done
 
-lemma Union_SetS_finite: "2 < p ==> finite (Union (SetS a p))"
+lemma Union_SetS_finite: "2 < p ==> finite (\<Union>(SetS a p))"
   by (auto simp add: SetS_finite SetS_elems_finite)
 
 lemma card_setsum_aux: "[| finite S; \<forall>X \<in> S. finite (X::int set); 
@@ -118,7 +118,7 @@ lemma SetS_card:
 proof -
   have "(p - 1) = 2 * int(card(SetS a p))"
   proof -
-    have "p - 1 = int(card(Union (SetS a p)))"
+    have "p - 1 = int(card(\<Union>(SetS a p)))"
       by (auto simp add: assms MultInvPair_prop2 SRStar_card)
     also have "... = int (setsum card (SetS a p))"
       by (auto simp add: assms SetS_finite SetS_elems_finite
@@ -177,9 +177,9 @@ lemma SRStar_d22set_prop: "2 < p \<Longrightarrow> (SRStar p) = {1} \<union> (d2
 lemma Union_SetS_setprod_prop1:
   assumes "zprime p" and "2 < p" and "~([a = 0] (mod p))" and
     "~(QuadRes p a)"
-  shows "[\<Prod>(Union (SetS a p)) = a ^ nat ((p - 1) div 2)] (mod p)"
+  shows "[\<Prod>(\<Union>(SetS a p)) = a ^ nat ((p - 1) div 2)] (mod p)"
 proof -
-  from assms have "[\<Prod>(Union (SetS a p)) = setprod (setprod (%x. x)) (SetS a p)] (mod p)"
+  from assms have "[\<Prod>(\<Union>(SetS a p)) = setprod (setprod (%x. x)) (SetS a p)] (mod p)"
     by (auto simp add: SetS_finite SetS_elems_finite
       MultInvPair_prop1c setprod.Union_disjoint)
   also have "[setprod (setprod (%x. x)) (SetS a p) = 
@@ -199,9 +199,9 @@ qed
 
 lemma Union_SetS_setprod_prop2:
   assumes "zprime p" and "2 < p" and "~([a = 0](mod p))"
-  shows "\<Prod>(Union (SetS a p)) = zfact (p - 1)"
+  shows "\<Prod>(\<Union>(SetS a p)) = zfact (p - 1)"
 proof -
-  from assms have "\<Prod>(Union (SetS a p)) = \<Prod>(SRStar p)"
+  from assms have "\<Prod>(\<Union>(SetS a p)) = \<Prod>(SRStar p)"
     by (auto simp add: MultInvPair_prop2)
   also have "... = \<Prod>({1} \<union> (d22set (p - 1)))"
     by (auto simp add: assms SRStar_d22set_prop)

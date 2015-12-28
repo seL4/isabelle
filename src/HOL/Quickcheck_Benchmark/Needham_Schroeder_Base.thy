@@ -105,7 +105,7 @@ abbreviation (input)
 
 primrec used :: "event list => msg set"
 where
-  used_Nil:   "used []         = Union (parts ` initState ` agents)"
+  used_Nil:   "used []         = \<Union>(parts ` initState ` agents)"
 | used_Cons:  "used (ev # evs) =
                      (case ev of
                         Says A B X => parts {X} \<union> used evs
@@ -172,13 +172,13 @@ subsection {* Derived equations for analz, parts and synth *}
 
 lemma [code]:
   "analz H = (let
-     H' = H \<union> (Union ((%m. case m of {|X, Y|} => {X, Y} | Crypt K X => if Key (invKey K) : H then {X} else {} | _ => {}) ` H))
+     H' = H \<union> (\<Union>((%m. case m of {|X, Y|} => {X, Y} | Crypt K X => if Key (invKey K) : H then {X} else {} | _ => {}) ` H))
    in if H' = H then H else analz H')"
 sorry
 
 lemma [code]:
   "parts H = (let
-     H' = H \<union> (Union ((%m. case m of {|X, Y|} => {X, Y} | Crypt K X => {X} | _ => {}) ` H))
+     H' = H \<union> (\<Union>((%m. case m of {|X, Y|} => {X, Y} | Crypt K X => {X} | _ => {}) ` H))
    in if H' = H then H else parts H')"
 sorry
 

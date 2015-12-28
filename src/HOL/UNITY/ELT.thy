@@ -133,7 +133,7 @@ by (simp add: Un_ac)
 
 (*The Union introduction rule as we should have liked to state it*)
 lemma leadsETo_Union:
-    "(!!A. A : S ==> F : A leadsTo[CC] B) ==> F : (Union S) leadsTo[CC] B"
+    "(!!A. A : S ==> F : A leadsTo[CC] B) ==> F : (\<Union>S) leadsTo[CC] B"
 apply (unfold leadsETo_def)
 apply (blast intro: elt.Union)
 done
@@ -151,7 +151,7 @@ lemma leadsETo_induct:
       !!A B. [| F : A ensures B;  A-B : insert {} CC |] ==> P A B;  
       !!A B C. [| F : A leadsTo[CC] B; P A B; F : B leadsTo[CC] C; P B C |]  
                ==> P A C;  
-      !!B S. ALL A:S. F : A leadsTo[CC] B & P A B ==> P (Union S) B  
+      !!B S. ALL A:S. F : A leadsTo[CC] B & P A B ==> P (\<Union>S) B  
    |] ==> P za zb"
 apply (unfold leadsETo_def)
 apply (drule CollectD) 
@@ -176,7 +176,7 @@ by (blast intro: leadsETo_mono [THEN subsetD] leadsETo_Trans)
 
 lemma leadsETo_Union_Int:
  "(!!A. A : S ==> F : (A Int C) leadsTo[CC] B) 
-  ==> F : (Union S Int C) leadsTo[CC] B"
+  ==> F : (\<Union>S Int C) leadsTo[CC] B"
 apply (unfold leadsETo_def)
 apply (simp only: Int_Union_Union)
 apply (blast intro: elt.Union)
@@ -223,7 +223,7 @@ lemma leadsETo_UN_distrib:
 by (blast intro: leadsETo_UN leadsETo_weaken_L)
 
 lemma leadsETo_Union_distrib:
-     "F : (Union S) leadsTo[CC] B  =  (ALL A : S. F : A leadsTo[CC] B)"
+     "F : (\<Union>S) leadsTo[CC] B  =  (ALL A : S. F : A leadsTo[CC] B)"
 by (blast intro: leadsETo_Union leadsETo_weaken_L)
 
 lemma leadsETo_weaken:
@@ -388,7 +388,7 @@ apply (blast intro: leadsETo_Trans)
 done
 
 lemma LeadsETo_Union:
-     "(!!A. A : S ==> F : A LeadsTo[CC] B) ==> F : (Union S) LeadsTo[CC] B"
+     "(!!A. A : S ==> F : A LeadsTo[CC] B) ==> F : (\<Union>S) LeadsTo[CC] B"
 apply (simp add: LeadsETo_def)
 apply (subst Int_Union)
 apply (blast intro: leadsETo_UN)

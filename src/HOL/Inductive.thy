@@ -87,16 +87,16 @@ qed (auto intro: mono Sup_least)
 
 lemma lfp_induct_set:
   assumes lfp: "a: lfp(f)"
-      and mono: "mono(f)"
-      and indhyp: "!!x. [| x: f(lfp(f) Int {x. P(x)}) |] ==> P(x)"
+    and mono: "mono(f)"
+    and indhyp: "!!x. [| x: f(lfp(f) Int {x. P(x)}) |] ==> P(x)"
   shows "P(a)"
   by (rule lfp_induct [THEN subsetD, THEN CollectD, OF mono _ lfp])
      (auto simp: intro: indhyp)
 
 lemma lfp_ordinal_induct_set: 
   assumes mono: "mono f"
-  and P_f: "!!S. P S ==> P(f S)"
-  and P_Union: "!!M. !S:M. P S ==> P(Union M)"
+    and P_f: "!!S. P S ==> P(f S)"
+    and P_Union: "!!M. !S:M. P S ==> P (\<Union>M)"
   shows "P(lfp f)"
   using assms by (rule lfp_ordinal_induct)
 

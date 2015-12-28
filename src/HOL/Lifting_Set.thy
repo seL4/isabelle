@@ -237,7 +237,7 @@ lemma Compl_transfer [transfer_rule]:
 
 lemma right_total_Inter_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A" and [transfer_rule]: "right_total A"
-  shows "(rel_set (rel_set A) ===> rel_set A) (\<lambda>S. Inter S \<inter> Collect (Domainp A)) Inter"
+  shows "(rel_set (rel_set A) ===> rel_set A) (\<lambda>S. \<Inter>S \<inter> Collect (Domainp A)) Inter"
   unfolding Inter_eq[abs_def]
   by (subst Collect_conj_eq[symmetric]) transfer_prover
 

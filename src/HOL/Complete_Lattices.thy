@@ -901,12 +901,9 @@ qed (auto simp add: INF_def SUP_def Inf_set_def Sup_set_def image_def)
 
 subsubsection \<open>Inter\<close>
 
-abbreviation Inter :: "'a set set \<Rightarrow> 'a set" where
-  "Inter S \<equiv> \<Sqinter>S"
+abbreviation Inter :: "'a set set \<Rightarrow> 'a set"  ("\<Inter>_" [900] 900)
+  where "\<Inter>S \<equiv> \<Sqinter>S"
   
-notation (xsymbols)
-  Inter  ("\<Inter>_" [900] 900)
-
 lemma Inter_eq:
   "\<Inter>A = {x. \<forall>B \<in> A. x \<in> B}"
 proof (rule set_eqI)
@@ -944,7 +941,7 @@ lemma Inter_subset:
   "(\<And>X. X \<in> A \<Longrightarrow> X \<subseteq> B) \<Longrightarrow> A \<noteq> {} \<Longrightarrow> \<Inter>A \<subseteq> B"
   by (fact Inf_less_eq)
 
-lemma Inter_greatest: "(\<And>X. X \<in> A \<Longrightarrow> C \<subseteq> X) \<Longrightarrow> C \<subseteq> Inter A"
+lemma Inter_greatest: "(\<And>X. X \<in> A \<Longrightarrow> C \<subseteq> X) \<Longrightarrow> C \<subseteq> \<Inter>A"
   by (fact Inf_greatest)
 
 lemma Inter_empty: "\<Inter>{} = UNIV"
@@ -1080,11 +1077,8 @@ lemma vimage_INT: "f -` (\<Inter>x\<in>A. B x) = (\<Inter>x\<in>A. f -` B x)"
 
 subsubsection \<open>Union\<close>
 
-abbreviation Union :: "'a set set \<Rightarrow> 'a set" where
-  "Union S \<equiv> \<Squnion>S"
-
-notation (xsymbols)
-  Union  ("\<Union>_" [900] 900)
+abbreviation Union :: "'a set set \<Rightarrow> 'a set"  ("\<Union>_" [900] 900)
+  where "\<Union>S \<equiv> \<Squnion>S"
 
 lemma Union_eq:
   "\<Union>A = {x. \<exists>B \<in> A. x \<in> B}"

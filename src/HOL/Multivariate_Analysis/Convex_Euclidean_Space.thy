@@ -74,7 +74,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma subspace_Inter: "\<forall>s \<in> f. subspace s \<Longrightarrow> subspace (Inter f)"
+lemma subspace_Inter: "\<forall>s \<in> f. subspace s \<Longrightarrow> subspace (\<Inter>f)"
   unfolding subspace_def by auto
 
 lemma span_eq[simp]: "span s = s \<longleftrightarrow> subspace s"
@@ -1110,7 +1110,7 @@ qed
 lemma cone_0: "cone {0}"
   unfolding cone_def by auto
 
-lemma cone_Union[intro]: "(\<forall>s\<in>f. cone s) \<longrightarrow> cone (Union f)"
+lemma cone_Union[intro]: "(\<forall>s\<in>f. cone s) \<longrightarrow> cone (\<Union>f)"
   unfolding cone_def by blast
 
 lemma cone_iff:
@@ -8075,7 +8075,7 @@ proof -
       assume z: "z \<in> \<Inter>{rel_interior S |S. S \<in> I}"
       {
         fix x
-        assume x: "x \<in> Inter I"
+        assume x: "x \<in> \<Inter>I"
         {
           fix S
           assume S: "S \<in> I"

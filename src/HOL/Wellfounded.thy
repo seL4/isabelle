@@ -305,7 +305,7 @@ lemma wfP_SUP:
 lemma wf_Union: 
  "[| ALL r:R. wf r;  
      ALL r:R. ALL s:R. r ~= s --> Domain r Int Range s = {}  
-  |] ==> wf(Union R)"
+  |] ==> wf (\<Union> R)"
   using wf_UN[of R "\<lambda>i. i"] by simp
 
 (*Intuition: we find an (R u S)-min element of a nonempty subset A

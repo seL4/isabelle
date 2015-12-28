@@ -45,11 +45,11 @@ definition guar :: "['a program set, 'a program set] => 'a program set" (infixl 
 
   (* Weakest guarantees *)
 definition wg :: "['a program, 'a program set] => 'a program set" where
-  "wg F Y == Union({X. F \<in> X guarantees Y})"
+  "wg F Y == \<Union>({X. F \<in> X guarantees Y})"
 
    (* Weakest existential property stronger than X *)
 definition wx :: "('a program) set => ('a program)set" where
-   "wx X == Union({Y. Y \<subseteq> X & ex_prop Y})"
+   "wx X == \<Union>({Y. Y \<subseteq> X & ex_prop Y})"
   
   (*Ill-defined programs can arise through "Join"*)
 definition welldef :: "'a program set" where

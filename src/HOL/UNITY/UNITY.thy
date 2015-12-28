@@ -48,7 +48,7 @@ definition stable     :: "'a set => 'a program set" where
     "stable A == A co A"
 
 definition strongest_rhs :: "['a program, 'a set] => 'a set" where
-    "strongest_rhs F A == Inter {B. F \<in> A co B}"
+    "strongest_rhs F A == \<Inter>{B. F \<in> A co B}"
 
 definition invariant :: "'a set => 'a program set" where
     "invariant A == {F. Init F \<subseteq> A} \<inter> stable A"
@@ -343,7 +343,7 @@ subsubsection{*Ad-hoc set-theory rules*}
 lemma Un_Diff_Diff [simp]: "A \<union> B - (A - B) = B"
 by blast
 
-lemma Int_Union_Union: "Union(B) \<inter> A = Union((%C. C \<inter> A)`B)"
+lemma Int_Union_Union: "\<Union>B \<inter> A = \<Union>((%C. C \<inter> A)`B)"
 by blast
 
 text{*Needed for WF reasoning in WFair.thy*}

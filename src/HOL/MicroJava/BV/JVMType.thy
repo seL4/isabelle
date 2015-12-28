@@ -62,7 +62,7 @@ notation (xsymbols)
                    
 
 lemma JVM_states_unfold: 
-  "states S maxs maxr == err(opt((Union {list n (types S) |n. n <= maxs}) \<times>
+  "states S maxs maxr == err(opt((\<Union>{list n (types S) |n. n <= maxs}) \<times>
                                   list maxr (err(types S))))"
   apply (unfold states_def sl_def Opt.esl_def Err.sl_def
          stk_esl_def reg_sl_def Product.esl_def

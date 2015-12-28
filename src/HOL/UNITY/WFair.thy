@@ -65,7 +65,7 @@ definition leadsTo :: "['a set, 'a set] => 'a program set" (infixl "leadsTo" 60)
   
 definition wlt :: "['a program, 'a set] => 'a set" where
      --{*predicate transformer: the largest set that leads to @{term B}*}
-    "wlt F B == Union {A. F \<in> A leadsTo B}"
+    "wlt F B == \<Union>{A. F \<in> A leadsTo B}"
 
 notation leadsTo  (infixl "\<longmapsto>" 60)
 
@@ -189,13 +189,13 @@ by (simp add: Un_ac)
 
 text{*The Union introduction rule as we should have liked to state it*}
 lemma leadsTo_Union: 
-    "(!!A. A \<in> S ==> F \<in> A leadsTo B) ==> F \<in> (Union S) leadsTo B"
+    "(!!A. A \<in> S ==> F \<in> A leadsTo B) ==> F \<in> (\<Union>S) leadsTo B"
 apply (unfold leadsTo_def)
 apply (blast intro: leads.Union)
 done
 
 lemma leadsTo_Union_Int: 
- "(!!A. A \<in> S ==> F \<in> (A \<inter> C) leadsTo B) ==> F \<in> (Union S \<inter> C) leadsTo B"
+ "(!!A. A \<in> S ==> F \<in> (A \<inter> C) leadsTo B) ==> F \<in> (\<Union>S \<inter> C) leadsTo B"
 apply (unfold leadsTo_def)
 apply (simp only: Int_Union_Union)
 apply (blast intro: leads.Union)
@@ -223,7 +223,7 @@ lemma leadsTo_induct:
       !!A B. F \<in> A ensures B ==> P A B;  
       !!A B C. [| F \<in> A leadsTo B; P A B; F \<in> B leadsTo C; P B C |]  
                ==> P A C;  
-      !!B S. \<forall>A \<in> S. F \<in> A leadsTo B & P A B ==> P (Union S) B  
+      !!B S. \<forall>A \<in> S. F \<in> A leadsTo B & P A B ==> P (\<Union>S) B  
    |] ==> P za zb"
 apply (unfold leadsTo_def)
 apply (drule CollectD, erule leads.induct)
@@ -251,7 +251,7 @@ lemma leadsTo_induct_pre_lemma:
   "[| F \<in> za leadsTo zb;   
       P zb;  
       !!A B. [| F \<in> A ensures B;  P B |] ==> P A;  
-      !!S. \<forall>A \<in> S. P A ==> P (Union S)  
+      !!S. \<forall>A \<in> S. P A ==> P (\<Union>S)  
    |] ==> P za"
 txt{*by induction on this formula*}
 apply (subgoal_tac "P zb --> P za")
@@ -265,7 +265,7 @@ lemma leadsTo_induct_pre:
   "[| F \<in> za leadsTo zb;   
       P zb;  
       !!A B. [| F \<in> A ensures B;  F \<in> B leadsTo zb;  P B |] ==> P A;  
-      !!S. \<forall>A \<in> S. F \<in> A leadsTo zb & P A ==> P (Union S)  
+      !!S. \<forall>A \<in> S. F \<in> A leadsTo zb & P A ==> P (\<Union>S)  
    |] ==> P za"
 apply (subgoal_tac "F \<in> za leadsTo zb & P za")
 apply (erule conjunct2)
@@ -293,7 +293,7 @@ lemma leadsTo_UN_distrib:
 by (blast intro: leadsTo_UN leadsTo_weaken_L)
 
 lemma leadsTo_Union_distrib:
-     "F \<in> (Union S) leadsTo B  =  (\<forall>A \<in> S. F \<in> A leadsTo B)"
+     "F \<in> (\<Union>S) leadsTo B  =  (\<forall>A \<in> S. F \<in> A leadsTo B)"
 by (blast intro: leadsTo_Union leadsTo_weaken_L)
 
 

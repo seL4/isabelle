@@ -203,13 +203,13 @@ begin
 
 lemma open_countable_basis_ex:
   assumes "open X"
-  shows "\<exists>B' \<subseteq> B. X = Union B'"
+  shows "\<exists>B' \<subseteq> B. X = \<Union>B'"
   using assms countable_basis is_basis
   unfolding topological_basis_def by blast
 
 lemma open_countable_basisE:
   assumes "open X"
-  obtains B' where "B' \<subseteq> B" "X = Union B'"
+  obtains B' where "B' \<subseteq> B" "X = \<Union>B'"
   using assms open_countable_basis_ex
   by (atomize_elim) simp
 
@@ -1885,7 +1885,7 @@ lemma connected_component_trans:
 lemma connected_component_of_subset: "\<lbrakk>connected_component s x y; s \<subseteq> t\<rbrakk> \<Longrightarrow> connected_component t x y"
   by (auto simp: connected_component_def)
 
-lemma connected_component_Union: "connected_component_set s x = Union {t. connected t \<and> x \<in> t \<and> t \<subseteq> s}"
+lemma connected_component_Union: "connected_component_set s x = \<Union>{t. connected t \<and> x \<in> t \<and> t \<subseteq> s}"
   by (auto simp: connected_component_def)
 
 lemma connected_connected_component [iff]: "connected (connected_component_set s x)"
@@ -2024,7 +2024,7 @@ apply (rule connected_component_eq)
 by (metis (no_types, hide_lams) connected_component_eq_eq connected_component_in connected_component_maximal subsetD mem_Collect_eq)
 
 
-lemma Union_connected_component: "Union (connected_component_set s ` s) = s"
+lemma Union_connected_component: "\<Union>(connected_component_set s ` s) = s"
   apply (rule subset_antisym)
   apply (simp add: SUP_least connected_component_subset)
   using connected_component_refl_eq
@@ -2033,7 +2033,7 @@ lemma Union_connected_component: "Union (connected_component_set s ` s) = s"
 
 lemma complement_connected_component_unions:
     "s - connected_component_set s x =
-     Union (connected_component_set s ` s - {connected_component_set s x})"
+     \<Union>(connected_component_set s ` s - {connected_component_set s x})"
   apply (subst Union_connected_component [symmetric], auto)
   apply (metis connected_component_eq_eq connected_component_in)
   by (metis connected_component_eq mem_Collect_eq)
@@ -2053,7 +2053,7 @@ definition components:: "'a::topological_space set \<Rightarrow> 'a set set" whe
 lemma components_iff: "s \<in> components u \<longleftrightarrow> (\<exists>x. x \<in> u \<and> s = connected_component_set u x)"
   by (auto simp: components_def)
 
-lemma Union_components: "u = Union (components u)"
+lemma Union_components: "u = \<Union>(components u)"
   apply (rule subset_antisym)
   apply (metis Union_connected_component components_def set_eq_subset)
   using Union_connected_component components_def by fastforce
@@ -2142,7 +2142,7 @@ lemma components_intermediate_subset: "\<lbrakk>s \<in> components u; s \<subset
   apply (auto simp: components_iff)
   by (metis connected_component_eq_empty connected_component_intermediate_subset)
 
-lemma in_components_unions_complement: "c \<in> components s \<Longrightarrow> s - c = Union(components s - {c})"
+lemma in_components_unions_complement: "c \<in> components s \<Longrightarrow> s - c = \<Union>(components s - {c})"
   by (metis complement_connected_component_unions components_def components_iff)
 
 lemma connected_intermediate_closure:

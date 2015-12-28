@@ -61,7 +61,7 @@ apply (blast intro: leadsTo_Trans)
 done
 
 lemma LeadsTo_Union: 
-     "(!!A. A \<in> S ==> F \<in> A LeadsTo B) ==> F \<in> (Union S) LeadsTo B"
+     "(!!A. A \<in> S ==> F \<in> A LeadsTo B) ==> F \<in> (\<Union>S) LeadsTo B"
 apply (simp add: LeadsTo_def)
 apply (subst Int_Union)
 apply (blast intro: leadsTo_UN)
@@ -152,7 +152,7 @@ lemma LeadsTo_UN_distrib:
 by (blast intro: LeadsTo_UN LeadsTo_weaken_L)
 
 lemma LeadsTo_Union_distrib:
-     "(F \<in> (Union S) LeadsTo B)  =  (\<forall>A \<in> S. F \<in> A LeadsTo B)"
+     "(F \<in> (\<Union>S) LeadsTo B)  =  (\<forall>A \<in> S. F \<in> A LeadsTo B)"
 by (blast intro: LeadsTo_Union LeadsTo_weaken_L)
 
 

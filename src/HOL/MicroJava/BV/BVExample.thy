@@ -424,7 +424,7 @@ proof -
     apply (case_tac "\<not> stable r step ss p")
     apply simp_all
     done
-  also have "\<And>f. (UN p:{..<size ss}. f p) = Union (set (map f [0..<size ss]))" by auto
+  also have "\<And>f. (UN p:{..<size ss}. f p) = \<Union>(set (map f [0..<size ss]))" by auto
   also note Sup_set_fold also note fold_map
   also have "op \<union> \<circ> (\<lambda>p. if \<not> stable r step ss p then {p} else {}) = 
             (\<lambda>p A. if \<not>stable r step ss p then insert p A else A)"

@@ -108,7 +108,7 @@ lemma quotientE:
   "X \<in> A//r ==> (!!x. X = r``{x} ==> x \<in> A ==> P) ==> P"
   by (unfold quotient_def) blast
 
-lemma Union_quotient: "equiv A r ==> Union (A//r) = A"
+lemma Union_quotient: "equiv A r ==> \<Union>(A//r) = A"
   by (unfold equiv_def refl_on_def quotient_def) blast
 
 lemma quotient_disj:

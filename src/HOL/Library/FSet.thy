@@ -79,7 +79,7 @@ interpretation lifting_syntax .
 lemma right_total_Inf_fset_transfer:
   assumes [transfer_rule]: "bi_unique A" and [transfer_rule]: "right_total A"
   shows "(rel_set (rel_set A) ===> rel_set A) 
-    (\<lambda>S. if finite (Inter S \<inter> Collect (Domainp A)) then Inter S \<inter> Collect (Domainp A) else {}) 
+    (\<lambda>S. if finite (\<Inter>S \<inter> Collect (Domainp A)) then \<Inter>S \<inter> Collect (Domainp A) else {}) 
       (\<lambda>S. if finite (Inf S) then Inf S else {})"
     by transfer_prover
 

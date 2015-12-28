@@ -44,7 +44,7 @@ definition sup :: "('a \<Rightarrow> 'b \<Rightarrow> 'c err) \<Rightarrow> 'a l
 "sup f == %xs ys. if size xs = size ys then coalesce(xs +[f] ys) else Err"
 
 definition upto_esl :: "nat \<Rightarrow> 'a esl \<Rightarrow> 'a list esl" where
-"upto_esl m == %(A,r,f). (Union{list n A |n. n <= m}, le r, sup f)"
+"upto_esl m == %(A,r,f). (\<Union>{list n A |n. n <= m}, le r, sup f)"
 
 lemmas [simp] = set_update_subsetI
 

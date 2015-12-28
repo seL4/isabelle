@@ -283,7 +283,7 @@ proof -
   done 
 qed
 
-subsection \<open>semilat (err(Union AS))\<close>
+subsection \<open>semilat (err (Union AS))\<close>
 
 (* FIXME? *)
 lemma all_bex_swap_lemma [iff]:
@@ -293,7 +293,7 @@ lemma all_bex_swap_lemma [iff]:
 lemma closed_err_Union_lift2I: 
   "\<lbrakk> !A:AS. closed (err A) (lift2 f); AS ~= {}; 
       !A:AS.!B:AS. A~=B \<longrightarrow> (!a:A.!b:B. a +_f b = Err) \<rbrakk> 
-  \<Longrightarrow> closed (err(Union AS)) (lift2 f)"
+  \<Longrightarrow> closed (err (\<Union>AS)) (lift2 f)"
 apply (unfold closed_def err_def)
 apply simp
 apply clarify
@@ -309,7 +309,7 @@ text \<open>
 lemma err_semilat_UnionI:
   "\<lbrakk> !A:AS. err_semilat(A, r, f); AS ~= {}; 
       !A:AS.!B:AS. A~=B \<longrightarrow> (!a:A.!b:B. ~ a <=_r b & a +_f b = Err) \<rbrakk> 
-  \<Longrightarrow> err_semilat(Union AS, r, f)"
+  \<Longrightarrow> err_semilat (\<Union>AS, r, f)"
 apply (unfold semilat_def sl_def)
 apply (simp add: closed_err_Union_lift2I)
 apply (rule conjI)
