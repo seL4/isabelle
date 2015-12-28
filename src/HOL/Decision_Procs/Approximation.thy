@@ -170,10 +170,10 @@ definition float_power_bnds :: "nat \<Rightarrow> nat \<Rightarrow> float \<Righ
 "float_power_bnds prec n l u =
   (if 0 < l then (power_down_fl prec l n, power_up_fl prec u n)
   else if odd n then
-    (- power_up_fl prec (abs l) n,
-      if u < 0 then - power_down_fl prec (abs u) n else power_up_fl prec u n)
-  else if u < 0 then (power_down_fl prec (abs u) n, power_up_fl prec (abs l) n)
-  else (0, power_up_fl prec (max (abs l) (abs u)) n))"
+    (- power_up_fl prec \<bar>l\<bar> n,
+      if u < 0 then - power_down_fl prec \<bar>u\<bar> n else power_up_fl prec u n)
+  else if u < 0 then (power_down_fl prec \<bar>u\<bar> n, power_up_fl prec \<bar>l\<bar> n)
+  else (0, power_up_fl prec (max \<bar>l\<bar> \<bar>u\<bar>) n))"
 
 lemma le_minus_power_downI: "0 \<le> x \<Longrightarrow> x ^ n \<le> - a \<Longrightarrow> a \<le> - power_down prec x n"
   by (subst le_minus_iff) (auto intro: power_down_le power_mono_odd)
@@ -2679,7 +2679,7 @@ fun interpret_floatarith :: "floatarith \<Rightarrow> real list \<Rightarrow> re
 "interpret_floatarith (Arctan a) vs   = arctan (interpret_floatarith a vs)" |
 "interpret_floatarith (Min a b) vs    = min (interpret_floatarith a vs) (interpret_floatarith b vs)" |
 "interpret_floatarith (Max a b) vs    = max (interpret_floatarith a vs) (interpret_floatarith b vs)" |
-"interpret_floatarith (Abs a) vs      = abs (interpret_floatarith a vs)" |
+"interpret_floatarith (Abs a) vs      = \<bar>interpret_floatarith a vs\<bar>" |
 "interpret_floatarith Pi vs           = pi" |
 "interpret_floatarith (Sqrt a) vs     = sqrt (interpret_floatarith a vs)" |
 "interpret_floatarith (Exp a) vs      = exp (interpret_floatarith a vs)" |

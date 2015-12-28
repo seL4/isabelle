@@ -65,7 +65,7 @@ translations
 *)
 
 (*
-lemma indicator_abs_eq: "\<And>A x. abs (indicator A x) = ((indicator A x) :: real)"
+lemma indicator_abs_eq: "\<And>A x. \<bar>indicator A x\<bar> = ((indicator A x) :: real)"
   by (auto simp add: indicator_def)
 *)
 
@@ -517,7 +517,7 @@ translations
 "CLINT x:A|M. f" == "CONST complex_set_lebesgue_integral M A (\<lambda>x. f)"
 
 (*
-lemma cmod_mult: "cmod ((a :: real) * (x :: complex)) = abs a * cmod x"
+lemma cmod_mult: "cmod ((a :: real) * (x :: complex)) = \<bar>a\<bar> * cmod x"
   apply (simp add: norm_mult)
   by (subst norm_mult, auto)
 *)

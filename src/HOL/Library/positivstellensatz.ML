@@ -221,12 +221,12 @@ val prenex_simps =
       @{thms "HOL.all_simps"(1-4)} @ @{thms "ex_simps"(1-4)});
 
 val real_abs_thms1 = @{lemma
-  "((-1 * abs(x::real) >= r) = (-1 * x >= r & 1 * x >= r))" and
-  "((-1 * abs(x) + a >= r) = (a + -1 * x >= r & a + 1 * x >= r))" and
-  "((a + -1 * abs(x) >= r) = (a + -1 * x >= r & a + 1 * x >= r))" and
-  "((a + -1 * abs(x) + b >= r) = (a + -1 * x + b >= r & a + 1 * x + b >= r))" and
-  "((a + b + -1 * abs(x) >= r) = (a + b + -1 * x >= r & a + b + 1 * x >= r))" and
-  "((a + b + -1 * abs(x) + c >= r) = (a + b + -1 * x + c >= r & a + b + 1 * x + c >= r))" and
+  "((-1 * \<bar>x::real\<bar> >= r) = (-1 * x >= r & 1 * x >= r))" and
+  "((-1 * \<bar>x\<bar> + a >= r) = (a + -1 * x >= r & a + 1 * x >= r))" and
+  "((a + -1 * \<bar>x\<bar> >= r) = (a + -1 * x >= r & a + 1 * x >= r))" and
+  "((a + -1 * \<bar>x\<bar> + b >= r) = (a + -1 * x + b >= r & a + 1 * x + b >= r))" and
+  "((a + b + -1 * \<bar>x\<bar> >= r) = (a + b + -1 * x >= r & a + b + 1 * x >= r))" and
+  "((a + b + -1 * \<bar>x\<bar> + c >= r) = (a + b + -1 * x + c >= r & a + b + 1 * x + c >= r))" and
   "((-1 * max x y >= r) = (-1 * x >= r & -1 * y >= r))" and
   "((-1 * max x y + a >= r) = (a + -1 * x >= r & a + -1 * y >= r))" and
   "((a + -1 * max x y >= r) = (a + -1 * x >= r & a + -1 * y >= r))" and
@@ -245,12 +245,12 @@ val real_abs_thms1 = @{lemma
   "((a + min x y + b >= r) = (a + x + b >= r & a + y  + b >= r))" and
   "((a + b + min x y >= r) = (a + b + x >= r & a + b + y >= r))" and
   "((a + b + min x y + c >= r) = (a + b + x + c >= r & a + b + y + c >= r))" and
-  "((-1 * abs(x) > r) = (-1 * x > r & 1 * x > r))" and
-  "((-1 * abs(x) + a > r) = (a + -1 * x > r & a + 1 * x > r))" and
-  "((a + -1 * abs(x) > r) = (a + -1 * x > r & a + 1 * x > r))" and
-  "((a + -1 * abs(x) + b > r) = (a + -1 * x + b > r & a + 1 * x + b > r))" and
-  "((a + b + -1 * abs(x) > r) = (a + b + -1 * x > r & a + b + 1 * x > r))" and
-  "((a + b + -1 * abs(x) + c > r) = (a + b + -1 * x + c > r & a + b + 1 * x + c > r))" and
+  "((-1 * \<bar>x\<bar> > r) = (-1 * x > r & 1 * x > r))" and
+  "((-1 * \<bar>x\<bar> + a > r) = (a + -1 * x > r & a + 1 * x > r))" and
+  "((a + -1 * \<bar>x\<bar> > r) = (a + -1 * x > r & a + 1 * x > r))" and
+  "((a + -1 * \<bar>x\<bar> + b > r) = (a + -1 * x + b > r & a + 1 * x + b > r))" and
+  "((a + b + -1 * \<bar>x\<bar> > r) = (a + b + -1 * x > r & a + b + 1 * x > r))" and
+  "((a + b + -1 * \<bar>x\<bar> + c > r) = (a + b + -1 * x + c > r & a + b + 1 * x + c > r))" and
   "((-1 * max x y > r) = ((-1 * x > r) & -1 * y > r))" and
   "((-1 * max x y + a > r) = (a + -1 * x > r & a + -1 * y > r))" and
   "((a + -1 * max x y > r) = (a + -1 * x > r & a + -1 * y > r))" and
@@ -265,7 +265,7 @@ val real_abs_thms1 = @{lemma
   "((a + b + min x y + c > r) = (a + b + x + c > r & a + b + y + c > r))"
   by auto};
 
-val abs_split' = @{lemma "P (abs (x::'a::linordered_idom)) == (x >= 0 & P x | x < 0 & P (-x))"
+val abs_split' = @{lemma "P \<bar>x::'a::linordered_idom\<bar> == (x >= 0 & P x | x < 0 & P (-x))"
   by (atomize (full)) (auto split add: abs_split)};
 
 val max_split = @{lemma "P (max x y) == ((x::'a::linorder) <= y & P y | x > y & P x)"

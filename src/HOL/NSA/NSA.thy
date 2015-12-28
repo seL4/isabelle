@@ -181,7 +181,7 @@ done
 lemma Reals_add_cancel: "\<lbrakk>x + y \<in> \<real>; y \<in> \<real>\<rbrakk> \<Longrightarrow> x \<in> \<real>"
 by (drule (1) Reals_diff, simp)
 
-lemma SReal_hrabs: "(x::hypreal) \<in> \<real> ==> abs x \<in> \<real>"
+lemma SReal_hrabs: "(x::hypreal) \<in> \<real> ==> \<bar>x\<bar> \<in> \<real>"
 by (simp add: Reals_eq_Standard)
 
 lemma SReal_hypreal_of_real [simp]: "hypreal_of_real x \<in> \<real>"
@@ -280,7 +280,7 @@ by (auto simp add: SReal_def)
 lemma HFiniteD: "x \<in> HFinite ==> \<exists>t \<in> Reals. hnorm x < t"
 by (simp add: HFinite_def)
 
-lemma HFinite_hrabs_iff [iff]: "(abs (x::hypreal) \<in> HFinite) = (x \<in> HFinite)"
+lemma HFinite_hrabs_iff [iff]: "(\<bar>x::hypreal\<bar> \<in> HFinite) = (x \<in> HFinite)"
 by (simp add: HFinite_def)
 
 lemma HFinite_hnorm_iff [iff]:
@@ -355,7 +355,7 @@ lemma Infinitesimal_hnorm_iff:
 by (simp add: Infinitesimal_def)
 
 lemma Infinitesimal_hrabs_iff [iff]:
-  "(abs (x::hypreal) \<in> Infinitesimal) = (x \<in> Infinitesimal)"
+  "(\<bar>x::hypreal\<bar> \<in> Infinitesimal) = (x \<in> Infinitesimal)"
 by (simp add: abs_if)
 
 lemma Infinitesimal_of_hypreal_iff [simp]:
@@ -509,7 +509,7 @@ lemma not_Infinitesimal_not_zero2: "x \<in> HFinite - Infinitesimal ==> x \<note
 by auto
 
 lemma HFinite_diff_Infinitesimal_hrabs:
-  "(x::hypreal) \<in> HFinite - Infinitesimal ==> abs x \<in> HFinite - Infinitesimal"
+  "(x::hypreal) \<in> HFinite - Infinitesimal ==> \<bar>x\<bar> \<in> HFinite - Infinitesimal"
 by blast
 
 lemma hnorm_le_Infinitesimal:
@@ -521,11 +521,11 @@ lemma hnorm_less_Infinitesimal:
 by (erule hnorm_le_Infinitesimal, erule order_less_imp_le)
 
 lemma hrabs_le_Infinitesimal:
-     "[| e \<in> Infinitesimal; abs (x::hypreal) \<le> e |] ==> x \<in> Infinitesimal"
+     "[| e \<in> Infinitesimal; \<bar>x::hypreal\<bar> \<le> e |] ==> x \<in> Infinitesimal"
 by (erule hnorm_le_Infinitesimal, simp)
 
 lemma hrabs_less_Infinitesimal:
-      "[| e \<in> Infinitesimal; abs (x::hypreal) < e |] ==> x \<in> Infinitesimal"
+      "[| e \<in> Infinitesimal; \<bar>x::hypreal\<bar> < e |] ==> x \<in> Infinitesimal"
 by (erule hnorm_less_Infinitesimal, simp)
 
 lemma Infinitesimal_interval:
@@ -540,7 +540,7 @@ by (auto intro: Infinitesimal_interval simp add: order_le_less)
 
 
 lemma lemma_Infinitesimal_hyperpow:
-     "[| (x::hypreal) \<in> Infinitesimal; 0 < N |] ==> abs (x pow N) \<le> abs x"
+     "[| (x::hypreal) \<in> Infinitesimal; 0 < N |] ==> \<bar>x pow N\<bar> \<le> \<bar>x\<bar>"
 apply (unfold Infinitesimal_def)
 apply (auto intro!: hyperpow_Suc_le_self2
           simp add: hyperpow_hrabs [symmetric] hypnat_gt_zero_iff2 abs_ge_zero)
@@ -1239,7 +1239,7 @@ lemma lemma_st_part_major:
      "[| (x::hypreal) \<in> HFinite;
          isLub \<real> {s. s \<in> \<real> & s < x} t;
          r \<in> \<real>; 0 < r |]
-      ==> abs (x - t) < r"
+      ==> \<bar>x - t\<bar> < r"
 apply (frule lemma_st_part1a)
 apply (frule_tac [4] lemma_st_part2a, auto)
 apply (drule order_le_imp_less_or_eq)+
@@ -1250,7 +1250,7 @@ done
 
 lemma lemma_st_part_major2:
      "[| (x::hypreal) \<in> HFinite; isLub \<real> {s. s \<in> \<real> & s < x} t |]
-      ==> \<forall>r \<in> Reals. 0 < r --> abs (x - t) < r"
+      ==> \<forall>r \<in> Reals. 0 < r --> \<bar>x - t\<bar> < r"
 by (blast dest!: lemma_st_part_major)
 
 
@@ -1258,7 +1258,7 @@ by (blast dest!: lemma_st_part_major)
 text{*Existence of real and Standard Part Theorem*}
 lemma lemma_st_part_Ex:
      "(x::hypreal) \<in> HFinite
-       ==> \<exists>t \<in> Reals. \<forall>r \<in> Reals. 0 < r --> abs (x - t) < r"
+       ==> \<exists>t \<in> Reals. \<forall>r \<in> Reals. 0 < r --> \<bar>x - t\<bar> < r"
 apply (frule lemma_st_part_lub, safe)
 apply (frule isLubD1a)
 apply (blast dest: lemma_st_part_major2)
@@ -1483,13 +1483,13 @@ lemma not_HInfinite_one [simp]: "1 \<notin> HInfinite"
 apply (simp (no_asm) add: HInfinite_HFinite_iff)
 done
 
-lemma approx_hrabs_disj: "abs (x::hypreal) @= x | abs x @= -x"
+lemma approx_hrabs_disj: "\<bar>x::hypreal\<bar> @= x \<or> \<bar>x\<bar> @= -x"
 by (cut_tac x = x in hrabs_disj, auto)
 
 
 subsection{*Theorems about Monads*}
 
-lemma monad_hrabs_Un_subset: "monad (abs x) \<le> monad(x::hypreal) Un monad(-x)"
+lemma monad_hrabs_Un_subset: "monad \<bar>x\<bar> \<le> monad(x::hypreal) Un monad(-x)"
 by (rule_tac x1 = x in hrabs_disj [THEN disjE], auto)
 
 lemma Infinitesimal_monad_eq: "e \<in> Infinitesimal ==> monad (x+e) = monad x"
@@ -1505,7 +1505,7 @@ lemma monad_zero_minus_iff: "(x \<in> monad 0) = (-x \<in> monad 0)"
 apply (simp (no_asm) add: Infinitesimal_monad_zero_iff [symmetric])
 done
 
-lemma monad_zero_hrabs_iff: "((x::hypreal) \<in> monad 0) = (abs x \<in> monad 0)"
+lemma monad_zero_hrabs_iff: "((x::hypreal) \<in> monad 0) = (\<bar>x\<bar> \<in> monad 0)"
 apply (rule_tac x1 = x in hrabs_disj [THEN disjE])
 apply (auto simp add: monad_zero_minus_iff [symmetric])
 done
@@ -1543,7 +1543,7 @@ apply (fast intro: approx_mem_monad approx_trans)
 done
 
 lemma Infinitesimal_approx_hrabs:
-     "[| x @= y; (x::hypreal) \<in> Infinitesimal |] ==> abs x @= abs y"
+     "[| x @= y; (x::hypreal) \<in> Infinitesimal |] ==> \<bar>x\<bar> @= \<bar>y\<bar>"
 apply (drule Infinitesimal_monad_zero_iff [THEN iffD1])
 apply (blast intro: approx_mem_monad_zero monad_zero_hrabs_iff [THEN iffD1] mem_monad_approx approx_trans3)
 done
@@ -1577,25 +1577,25 @@ lemma lemma_approx_less_zero:
      "[|(x::hypreal) < 0; x \<notin> Infinitesimal; x @= y|] ==> y < 0"
 by (blast dest: Ball_mem_monad_less_zero approx_subset_monad)
 
-theorem approx_hrabs: "(x::hypreal) @= y ==> abs x @= abs y"
+theorem approx_hrabs: "(x::hypreal) @= y ==> \<bar>x\<bar> @= \<bar>y\<bar>"
 by (drule approx_hnorm, simp)
 
-lemma approx_hrabs_zero_cancel: "abs(x::hypreal) @= 0 ==> x @= 0"
+lemma approx_hrabs_zero_cancel: "\<bar>x::hypreal\<bar> @= 0 ==> x @= 0"
 apply (cut_tac x = x in hrabs_disj)
 apply (auto dest: approx_minus)
 done
 
 lemma approx_hrabs_add_Infinitesimal:
-  "(e::hypreal) \<in> Infinitesimal ==> abs x @= abs(x+e)"
+  "(e::hypreal) \<in> Infinitesimal ==> \<bar>x\<bar> @= \<bar>x + e\<bar>"
 by (fast intro: approx_hrabs Infinitesimal_add_approx_self)
 
 lemma approx_hrabs_add_minus_Infinitesimal:
-     "(e::hypreal) \<in> Infinitesimal ==> abs x @= abs(x + -e)"
+     "(e::hypreal) \<in> Infinitesimal ==> \<bar>x\<bar> @= \<bar>x + -e\<bar>"
 by (fast intro: approx_hrabs Infinitesimal_add_minus_approx_self)
 
 lemma hrabs_add_Infinitesimal_cancel:
      "[| (e::hypreal) \<in> Infinitesimal; e' \<in> Infinitesimal;
-         abs(x+e) = abs(y+e')|] ==> abs x @= abs y"
+         \<bar>x + e\<bar> = \<bar>y + e'\<bar>|] ==> \<bar>x\<bar> @= \<bar>y\<bar>"
 apply (drule_tac x = x in approx_hrabs_add_Infinitesimal)
 apply (drule_tac x = y in approx_hrabs_add_Infinitesimal)
 apply (auto intro: approx_trans2)
@@ -1603,7 +1603,7 @@ done
 
 lemma hrabs_add_minus_Infinitesimal_cancel:
      "[| (e::hypreal) \<in> Infinitesimal; e' \<in> Infinitesimal;
-         abs(x + -e) = abs(y + -e')|] ==> abs x @= abs y"
+         \<bar>x + -e\<bar> = \<bar>y + -e'\<bar>|] ==> \<bar>x\<bar> @= \<bar>y\<bar>"
 apply (drule_tac x = x in approx_hrabs_add_minus_Infinitesimal)
 apply (drule_tac x = y in approx_hrabs_add_minus_Infinitesimal)
 apply (auto intro: approx_trans2)
@@ -1623,8 +1623,8 @@ apply (simp add: abs_less_iff)
 done
 
 lemma Infinitesimal_add_hrabs_hypreal_of_real_less:
-     "[| x \<in> Infinitesimal; abs(hypreal_of_real r) < hypreal_of_real y |]
-      ==> abs (hypreal_of_real r + x) < hypreal_of_real y"
+     "[| x \<in> Infinitesimal; \<bar>hypreal_of_real r\<bar> < hypreal_of_real y |]
+      ==> \<bar>hypreal_of_real r + x\<bar> < hypreal_of_real y"
 apply (drule_tac x = "hypreal_of_real r" in approx_hrabs_add_Infinitesimal)
 apply (drule approx_sym [THEN bex_Infinitesimal_iff2 [THEN iffD2]])
 apply (auto intro!: Infinitesimal_add_hypreal_of_real_less
@@ -1633,8 +1633,8 @@ apply (auto intro!: Infinitesimal_add_hypreal_of_real_less
 done
 
 lemma Infinitesimal_add_hrabs_hypreal_of_real_less2:
-     "[| x \<in> Infinitesimal;  abs(hypreal_of_real r) < hypreal_of_real y |]
-      ==> abs (x + hypreal_of_real r) < hypreal_of_real y"
+     "[| x \<in> Infinitesimal;  \<bar>hypreal_of_real r\<bar> < hypreal_of_real y |]
+      ==> \<bar>x + hypreal_of_real r\<bar> < hypreal_of_real y"
 apply (rule add.commute [THEN subst])
 apply (erule Infinitesimal_add_hrabs_hypreal_of_real_less, assumption)
 done
@@ -1738,7 +1738,7 @@ done
 
 lemma monad_hrabs_less:
      "[| y \<in> monad x; 0 < hypreal_of_real e |]
-      ==> abs (y - x) < hypreal_of_real e"
+      ==> \<bar>y - x\<bar> < hypreal_of_real e"
 apply (drule mem_monad_approx [THEN approx_sym])
 apply (drule bex_Infinitesimal_iff [THEN iffD2])
 apply (auto dest!: InfinitesimalD)
@@ -1901,7 +1901,7 @@ apply (subst st_0 [symmetric])
 apply (rule st_le, auto)
 done
 
-lemma st_hrabs: "x \<in> HFinite ==> abs(st x) = st(abs x)"
+lemma st_hrabs: "x \<in> HFinite ==> \<bar>st x\<bar> = st \<bar>x\<bar>"
 apply (simp add: linorder_not_le st_zero_le abs_if st_minus
    linorder_not_less)
 apply (auto dest!: st_zero_ge [OF order_less_imp_le])
@@ -2077,12 +2077,12 @@ by (auto dest: order_le_imp_less_or_eq simp add: order_less_imp_le)
 lemma finite_real_of_nat_le_real: "finite {n::nat. real n \<le> u}"
 by (auto simp add: lemma_real_le_Un_eq lemma_finite_omega_set finite_real_of_nat_less_real)
 
-lemma finite_rabs_real_of_nat_le_real: "finite {n::nat. abs(real n) \<le> u}"
+lemma finite_rabs_real_of_nat_le_real: "finite {n::nat. \<bar>real n\<bar> \<le> u}"
 apply (simp (no_asm) add: finite_real_of_nat_le_real)
 done
 
 lemma rabs_real_of_nat_le_real_FreeUltrafilterNat:
-     "\<not> eventually (\<lambda>n. abs(real n) \<le> u) FreeUltrafilterNat"
+     "\<not> eventually (\<lambda>n. \<bar>real n\<bar> \<le> u) FreeUltrafilterNat"
 by (blast intro!: FreeUltrafilterNat.finite finite_rabs_real_of_nat_le_real)
 
 lemma FreeUltrafilterNat_nat_gt_real: "eventually (\<lambda>n. u < real n) FreeUltrafilterNat"
@@ -2092,8 +2092,8 @@ apply (auto simp add: finite_real_of_nat_le_real)
 done
 
 (*--------------------------------------------------------------
- The complement of {n. abs(real n) \<le> u} =
- {n. u < abs (real n)} is in FreeUltrafilterNat
+ The complement of {n. \<bar>real n\<bar> \<le> u} =
+ {n. u < \<bar>real n\<bar>} is in FreeUltrafilterNat
  by property of (free) ultrafilters
  --------------------------------------------------------------*)
 

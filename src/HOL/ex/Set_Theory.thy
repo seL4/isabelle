@@ -193,8 +193,8 @@ lemma "\<exists>A. a \<notin> A"
   \<comment> \<open>Example 7.\<close>
   by force
 
-lemma "(\<forall>u v. u < (0::int) \<longrightarrow> u \<noteq> abs v)
-    \<longrightarrow> (\<exists>A::int set. -2 \<in> A & (\<forall>y. abs y \<notin> A))"
+lemma "(\<forall>u v. u < (0::int) \<longrightarrow> u \<noteq> \<bar>v\<bar>)
+    \<longrightarrow> (\<exists>A::int set. -2 \<in> A & (\<forall>y. \<bar>y\<bar> \<notin> A))"
   \<comment> \<open>Example 8 needs a small hint.\<close>
   by force
     \<comment> \<open>not \<open>blast\<close>, which can't simplify \<open>-2 < 0\<close>\<close>

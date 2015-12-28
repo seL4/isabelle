@@ -96,7 +96,7 @@ by (transfer, simp)
 
 text{*Nonstandard extension with absolute value*}
 
-lemma starfun_abs: "!!N. ( *f* (%n. abs (f n))) N = abs(( *f* f) N)"
+lemma starfun_abs: "!!N. ( *f* (%n. \<bar>f n\<bar>)) N = \<bar>( *f* f) N\<bar>"
 by (transfer, rule refl)
 
 text{*The hyperpow function as a nonstandard extension of realpow*}

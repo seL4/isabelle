@@ -106,7 +106,7 @@ by (rule zdiv_int)
 lemma int_mod_zmod: "int (a mod b) = (int a) mod (int b)"
 by (rule zmod_int)
 
-lemma abs_div_2_less: "a \<noteq> 0 \<Longrightarrow> a \<noteq> -1 \<Longrightarrow> abs((a::int) div 2) < abs a"
+lemma abs_div_2_less: "a \<noteq> 0 \<Longrightarrow> a \<noteq> -1 \<Longrightarrow> \<bar>(a::int) div 2\<bar> < \<bar>a\<bar>"
 by arith
 
 lemma norm_0_1: "(1::_::numeral) = Numeral1"
@@ -195,7 +195,7 @@ lemma float_le_zero:
   by (simp add: float_def mult_le_0_iff) (simp add: not_less [symmetric])
 
 lemma float_abs:
-  "abs (float (a,b)) = (if 0 <= a then (float (a,b)) else (float (-a,b)))"
+  "\<bar>float (a,b)\<bar> = (if 0 <= a then (float (a,b)) else (float (-a,b)))"
   by (simp add: float_def abs_if mult_less_0_iff not_less)
 
 lemma float_zero:

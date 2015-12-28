@@ -1118,7 +1118,7 @@ lemma (in idom_char_0) poly_roots_finite_set:
 text \<open>Bound for polynomial.\<close>
 lemma poly_mono:
   fixes x :: "'a::linordered_idom"
-  shows "abs x \<le> k \<Longrightarrow> abs (poly p x) \<le> poly (map abs p) k"
+  shows "\<bar>x\<bar> \<le> k \<Longrightarrow> \<bar>poly p x\<bar> \<le> poly (map abs p) k"
 proof (induct p)
   case Nil
   then show ?case by simp
@@ -1126,7 +1126,7 @@ next
   case (Cons a p)
   then show ?case
     apply auto
-    apply (rule_tac y = "abs a + abs (x * poly p x)" in order_trans)
+    apply (rule_tac y = "\<bar>a\<bar> + \<bar>x * poly p x\<bar>" in order_trans)
     apply (rule abs_triangle_ineq)
     apply (auto intro!: mult_mono simp add: abs_mult)
     done

@@ -695,13 +695,13 @@ qed
 
 lemma lborel_distr_mult':
   assumes "(c::real) \<noteq> 0"
-  shows "lborel = density (distr lborel borel (op * c)) (\<lambda>_. abs c)"
+  shows "lborel = density (distr lborel borel (op * c)) (\<lambda>_. \<bar>c\<bar>)"
 proof-
   have "lborel = density lborel (\<lambda>_. 1)" by (rule density_1[symmetric])
-  also from assms have "(\<lambda>_. 1 :: ereal) = (\<lambda>_. inverse (abs c) * abs c)" by (intro ext) simp
-  also have "density lborel ... = density (density lborel (\<lambda>_. inverse (abs c))) (\<lambda>_. abs c)"
+  also from assms have "(\<lambda>_. 1 :: ereal) = (\<lambda>_. inverse \<bar>c\<bar> * \<bar>c\<bar>)" by (intro ext) simp
+  also have "density lborel ... = density (density lborel (\<lambda>_. inverse \<bar>c\<bar>)) (\<lambda>_. \<bar>c\<bar>)"
     by (subst density_density_eq) auto
-  also from assms have "density lborel (\<lambda>_. inverse (abs c)) = distr lborel borel (op * c)"
+  also from assms have "density lborel (\<lambda>_. inverse \<bar>c\<bar>) = distr lborel borel (op * c)"
     by (rule lborel_distr_mult[symmetric])
   finally show ?thesis .
 qed

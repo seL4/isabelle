@@ -792,7 +792,7 @@ lemma dot_matrix_vector_mul:
     dot_rowvector_columnvector matrix_transpose_mul matrix_mul_assoc ..
 
 
-lemma infnorm_cart:"infnorm (x::real^'n) = Sup {abs(x$i) |i. i\<in>UNIV}"
+lemma infnorm_cart:"infnorm (x::real^'n) = Sup {\<bar>x$i\<bar> |i. i\<in>UNIV}"
   by (simp add: infnorm_def inner_axis Basis_vec_def) (metis (lifting) inner_axis real_inner_1_right)
 
 lemma component_le_infnorm_cart: "\<bar>x$i\<bar> \<le> infnorm (x::real^'n)"
@@ -1243,10 +1243,10 @@ lemma forall_one: "(\<forall>(x::'a ^1). P x) \<longleftrightarrow> (\<forall>x.
 lemma norm_vector_1: "norm (x :: _^1) = norm (x$1)"
   by (simp add: norm_vec_def)
 
-lemma norm_real: "norm(x::real ^ 1) = abs(x$1)"
+lemma norm_real: "norm(x::real ^ 1) = \<bar>x$1\<bar>"
   by (simp add: norm_vector_1)
 
-lemma dist_real: "dist(x::real ^ 1) y = abs((x$1) - (y$1))"
+lemma dist_real: "dist(x::real ^ 1) y = \<bar>(x$1) - (y$1)\<bar>"
   by (auto simp add: norm_real dist_norm)
 
 

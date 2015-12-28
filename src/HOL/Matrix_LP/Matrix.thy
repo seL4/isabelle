@@ -918,8 +918,8 @@ lemma Rep_move_matrix[simp]:
 apply (simp add: move_matrix_def)
 apply (auto)
 by (subst RepAbs_matrix,
-  rule exI[of _ "(nrows A)+(nat (abs y))"], auto, rule nrows, arith,
-  rule exI[of _ "(ncols A)+(nat (abs x))"], auto, rule ncols, arith)+
+  rule exI[of _ "(nrows A)+(nat \<bar>y\<bar>)"], auto, rule nrows, arith,
+  rule exI[of _ "(ncols A)+(nat \<bar>x\<bar>)"], auto, rule ncols, arith)+
 
 lemma move_matrix_0_0[simp]: "move_matrix A 0 0 = A"
 by (simp add: move_matrix_def)
@@ -1496,7 +1496,7 @@ instantiation matrix :: ("{lattice, uminus, zero}") abs
 begin
 
 definition
-  abs_matrix_def: "abs (A :: 'a matrix) = sup A (- A)"
+  abs_matrix_def: "\<bar>A :: 'a matrix\<bar> = sup A (- A)"
 
 instance ..
 
@@ -1613,7 +1613,7 @@ qed
 instance matrix :: (lattice_ring) lattice_ring
 proof
   fix A B C :: "('a :: lattice_ring) matrix"
-  show "abs A = sup A (-A)" 
+  show "\<bar>A\<bar> = sup A (-A)" 
     by (simp add: abs_matrix_def)
 qed
 
@@ -1814,7 +1814,7 @@ done
 lemma Rep_minus[simp]: "Rep_matrix (-(A::_::group_add)) x y = - (Rep_matrix A x y)"
 by (simp add: minus_matrix_def)
 
-lemma Rep_abs[simp]: "Rep_matrix (abs (A::_::lattice_ab_group_add)) x y = abs (Rep_matrix A x y)"
+lemma Rep_abs[simp]: "Rep_matrix \<bar>A::_::lattice_ab_group_add\<bar> x y = \<bar>Rep_matrix A x y\<bar>"
 by (simp add: abs_lattice sup_matrix_def)
 
 end

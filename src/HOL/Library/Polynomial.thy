@@ -1062,7 +1062,7 @@ definition
   "x \<le> y \<longleftrightarrow> x = y \<or> pos_poly (y - x)"
 
 definition
-  "abs (x::'a poly) = (if x < 0 then - x else x)"
+  "\<bar>x::'a poly\<bar> = (if x < 0 then - x else x)"
 
 definition
   "sgn (x::'a poly) = (if x = 0 then 0 else if 0 < x then 1 else - 1)"

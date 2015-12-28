@@ -136,9 +136,9 @@ proof -
   proof -
     from that z xy have "2 * x \<le> 1" "2 * x \<ge> -1" "2 * y \<le> 1" "2 * y \<ge> -1"
       by (simp_all add: cmod_def power2_eq_square algebra_simps)
-    then have "abs (2 * x) \<le> 1" "abs (2 * y) \<le> 1"
+    then have "\<bar>2 * x\<bar> \<le> 1" "\<bar>2 * y\<bar> \<le> 1"
       by simp_all
-    then have "(abs (2 * x))\<^sup>2 \<le> 1\<^sup>2" "(abs (2 * y))\<^sup>2 \<le> 1\<^sup>2"
+    then have "\<bar>2 * x\<bar>\<^sup>2 \<le> 1\<^sup>2" "\<bar>2 * y\<bar>\<^sup>2 \<le> 1\<^sup>2"
       by - (rule power_mono, simp, simp)+
     then have th0: "4 * x\<^sup>2 \<le> 1" "4 * y\<^sup>2 \<le> 1"
       by (simp_all add: power_mult_distrib)

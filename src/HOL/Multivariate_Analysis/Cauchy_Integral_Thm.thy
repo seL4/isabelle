@@ -3862,7 +3862,7 @@ qed
 
 lemma winding_number_big_meets:
   fixes z::complex
-  assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>" and "abs (Re (winding_number \<gamma> z)) \<ge> 1"
+  assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>" and "\<bar>Re (winding_number \<gamma> z)\<bar> \<ge> 1"
       and w: "w \<noteq> z"
   shows "\<exists>a::real. 0 < a \<and> z + a*(w - z) \<in> path_image \<gamma>"
 proof -
@@ -3888,7 +3888,7 @@ lemma winding_number_less_1:
   shows
   "\<lbrakk>valid_path \<gamma>; z \<notin> path_image \<gamma>; w \<noteq> z;
     \<And>a::real. 0 < a \<Longrightarrow> z + a*(w - z) \<notin> path_image \<gamma>\<rbrakk>
-   \<Longrightarrow> abs (Re(winding_number \<gamma> z)) < 1"
+   \<Longrightarrow> \<bar>Re(winding_number \<gamma> z)\<bar> < 1"
    by (auto simp: not_less dest: winding_number_big_meets)
 
 text\<open>One way of proving that WN=1 for a loop.\<close>
@@ -4319,7 +4319,7 @@ proof -
   { assume wnz_12: "\<bar>Re (winding_number \<gamma> z)\<bar> > 1/2"
     have "isCont (winding_number \<gamma>) z"
       by (metis continuous_at_winding_number valid_path_imp_path \<gamma> z)
-    then obtain d where "d>0" and d: "\<And>x'. dist x' z < d \<Longrightarrow> dist (winding_number \<gamma> x') (winding_number \<gamma> z) < abs(Re(winding_number \<gamma> z)) - 1/2"
+    then obtain d where "d>0" and d: "\<And>x'. dist x' z < d \<Longrightarrow> dist (winding_number \<gamma> x') (winding_number \<gamma> z) < \<bar>Re(winding_number \<gamma> z)\<bar> - 1/2"
       using continuous_at_eps_delta wnz_12 diff_gt_0_iff_gt by blast
     def z' \<equiv> "z - (d / (2 * cmod a)) *\<^sub>R a"
     have *: "a \<bullet> z' \<le> b - d / 3 * cmod a"
@@ -4479,7 +4479,7 @@ proof -
         done
     }
     then have "\<exists>e. 0 < e \<and>
-              (\<forall>t1 t2. t1 \<in> {0..1} \<and> t2 \<in> {0..1} \<and> abs(t1 - t) < e \<and> abs(t2 - t) < e
+              (\<forall>t1 t2. t1 \<in> {0..1} \<and> t2 \<in> {0..1} \<and> \<bar>t1 - t\<bar> < e \<and> \<bar>t2 - t\<bar> < e
                 \<longrightarrow> (\<exists>d. 0 < d \<and>
                      (\<forall>g1 g2. valid_path g1 \<and> valid_path g2 \<and>
                        (\<forall>u \<in> {0..1}.
@@ -4490,7 +4490,7 @@ proof -
   }
   then obtain ee where ee:
        "\<And>t. t \<in> {0..1} \<Longrightarrow> ee t > 0 \<and>
-          (\<forall>t1 t2. t1 \<in> {0..1} \<longrightarrow> t2 \<in> {0..1} \<longrightarrow> abs(t1 - t) < ee t \<longrightarrow> abs(t2 - t) < ee t
+          (\<forall>t1 t2. t1 \<in> {0..1} \<longrightarrow> t2 \<in> {0..1} \<longrightarrow> \<bar>t1 - t\<bar> < ee t \<longrightarrow> \<bar>t2 - t\<bar> < ee t
             \<longrightarrow> (\<exists>d. 0 < d \<and>
                  (\<forall>g1 g2. valid_path g1 \<and> valid_path g2 \<and>
                    (\<forall>u \<in> {0..1}.
@@ -4867,7 +4867,7 @@ proof -
     with assms show ?thesis by simp
   next
     case 2
-    have [simp]: "abs r = r" using \<open>r > 0\<close> by linarith
+    have [simp]: "\<bar>r\<bar> = r" using \<open>r > 0\<close> by linarith
     have [simp]: "cmod (complex_of_real t - complex_of_real s) = t-s"
       by (metis "2" abs_of_pos diff_gt_0_iff_gt norm_of_real of_real_diff)
     have "finite (part_circlepath z r s t -` {y} \<inter> {0..1})" if "y \<in> k" for y
@@ -4940,7 +4940,7 @@ proof -
 qed
 
 proposition simple_path_part_circlepath:
-    "simple_path(part_circlepath z r s t) \<longleftrightarrow> (r \<noteq> 0 \<and> s \<noteq> t \<and> abs(s - t) \<le> 2*pi)"
+    "simple_path(part_circlepath z r s t) \<longleftrightarrow> (r \<noteq> 0 \<and> s \<noteq> t \<and> \<bar>s - t\<bar> \<le> 2*pi)"
 proof (cases "r = 0 \<or> s = t")
   case True
   then show ?thesis
@@ -4952,17 +4952,17 @@ next
   have *: "\<And>x y z s t. ii*((1 - x) * s + x * t) = ii*(((1 - y) * s + y * t)) + z  \<longleftrightarrow> ii*(x - y) * (t - s) = z"
     by (simp add: algebra_simps)
   have abs01: "\<And>x y::real. 0 \<le> x \<and> x \<le> 1 \<and> 0 \<le> y \<and> y \<le> 1
-                      \<Longrightarrow> (x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0 \<longleftrightarrow> abs(x - y) \<in> {0,1})"
+                      \<Longrightarrow> (x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0 \<longleftrightarrow> \<bar>x - y\<bar> \<in> {0,1})"
     by auto
-  have abs_away: "\<And>P. (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. P(abs(x - y))) \<longleftrightarrow> (\<forall>x::real. 0 \<le> x \<and> x \<le> 1 \<longrightarrow> P x)"
+  have abs_away: "\<And>P. (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. P \<bar>x - y\<bar>) \<longleftrightarrow> (\<forall>x::real. 0 \<le> x \<and> x \<le> 1 \<longrightarrow> P x)"
     by force
   have **: "\<And>x y. (\<exists>n. (complex_of_real x - of_real y) * (of_real t - of_real s) = 2 * (of_int n * of_real pi)) \<longleftrightarrow>
-                  (\<exists>n. abs(x - y) * (t - s) = 2 * (of_int n * pi))"
+                  (\<exists>n. \<bar>x - y\<bar> * (t - s) = 2 * (of_int n * pi))"
     by (force simp: algebra_simps abs_if dest: arg_cong [where f=Re] arg_cong [where f=complex_of_real]
                     intro: exI [where x = "-n" for n])
   have 1: "\<forall>x. 0 \<le> x \<and> x \<le> 1 \<longrightarrow> (\<exists>n. x * (t - s) = 2 * (real_of_int n * pi)) \<longrightarrow> x = 0 \<or> x = 1 \<Longrightarrow> \<bar>s - t\<bar> \<le> 2 * pi"
     apply (rule ccontr)
-    apply (drule_tac x="2*pi / abs(t-s)" in spec)
+    apply (drule_tac x="2*pi / \<bar>t - s\<bar>" in spec)
     using False
     apply (simp add: abs_minus_commute divide_simps)
     apply (frule_tac x=1 in spec)
@@ -4986,7 +4986,7 @@ next
 qed
 
 proposition arc_part_circlepath:
-  assumes "r \<noteq> 0" "s \<noteq> t" "abs(s - t) < 2*pi"
+  assumes "r \<noteq> 0" "s \<noteq> t" "\<bar>s - t\<bar> < 2*pi"
     shows "arc (part_circlepath z r s t)"
 proof -
   have *: "x = y" if eq: "\<i> * (linepath s t x) = \<i> * (linepath s t y) + 2 * of_int n * complex_of_real pi * \<i>"
@@ -5111,7 +5111,7 @@ proof -
 qed
 
 proposition path_image_circlepath [simp]:
-    "path_image (circlepath z r) = sphere z (abs r)"
+    "path_image (circlepath z r) = sphere z \<bar>r\<bar>"
   using path_image_circlepath_minus
   by (force simp add: path_image_circlepath_nonneg abs_if)
 
@@ -6163,7 +6163,7 @@ proof (rule ccontr)
   with inf [unfolded Lim_at_infinity, rule_format, of "norm(f z)/2"]
   obtain B where B: "\<And>x. B \<le> cmod x \<Longrightarrow> norm (f x) * 2 < cmod (f z)"
     by (auto simp: dist_norm)
-  def R \<equiv> "1 + abs B + norm z"
+  def R \<equiv> "1 + \<bar>B\<bar> + norm z"
   have "R > 0" unfolding R_def by (meson abs_add_one_gt_zero le_less_trans less_add_same_cancel2 norm_ge_zero)
   have *: "((\<lambda>u. f u / (u - z)) has_contour_integral 2 * complex_of_real pi * \<i> * f z) (circlepath z R)"
     apply (rule Cauchy_integral_circlepath)

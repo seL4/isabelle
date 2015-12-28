@@ -455,8 +455,8 @@ qed
 
 fun maxcoeff:: "num \<Rightarrow> int"
 where
-  "maxcoeff (C i) = abs i"
-| "maxcoeff (CN n c t) = max (abs c) (maxcoeff t)"
+  "maxcoeff (C i) = \<bar>i\<bar>"
+| "maxcoeff (CN n c t) = max \<bar>c\<bar> (maxcoeff t)"
 | "maxcoeff t = 1"
 
 lemma maxcoeff_pos: "maxcoeff t \<ge> 0"
@@ -498,7 +498,7 @@ lemma dvdnumcoeff_trans:
 
 declare dvd_trans [trans add]
 
-lemma natabs0: "nat (abs x) = 0 \<longleftrightarrow> x = 0"
+lemma natabs0: "nat \<bar>x\<bar> = 0 \<longleftrightarrow> x = 0"
   by arith
 
 lemma numgcd0:
@@ -536,8 +536,8 @@ qed (auto simp add: numgcd_def gp)
 
 fun ismaxcoeff:: "num \<Rightarrow> int \<Rightarrow> bool"
 where
-  "ismaxcoeff (C i) = (\<lambda>x. abs i \<le> x)"
-| "ismaxcoeff (CN n c t) = (\<lambda>x. abs c \<le> x \<and> ismaxcoeff t x)"
+  "ismaxcoeff (C i) = (\<lambda>x. \<bar>i\<bar> \<le> x)"
+| "ismaxcoeff (CN n c t) = (\<lambda>x. \<bar>c\<bar> \<le> x \<and> ismaxcoeff t x)"
 | "ismaxcoeff t = (\<lambda>x. True)"
 
 lemma ismaxcoeff_mono: "ismaxcoeff t c \<Longrightarrow> c \<le> c' \<Longrightarrow> ismaxcoeff t c'"
@@ -547,18 +547,18 @@ lemma maxcoeff_ismaxcoeff: "ismaxcoeff t (maxcoeff t)"
 proof (induct t rule: maxcoeff.induct)
   case (2 n c t)
   then have H:"ismaxcoeff t (maxcoeff t)" .
-  have thh: "maxcoeff t \<le> max (abs c) (maxcoeff t)"
+  have thh: "maxcoeff t \<le> max \<bar>c\<bar> (maxcoeff t)"
     by simp
   from ismaxcoeff_mono[OF H thh] show ?case
     by simp
 qed simp_all
 
 lemma zgcd_gt1: "gcd i j > (1::int) \<Longrightarrow>
-  abs i > 1 \<and> abs j > 1 \<or> abs i = 0 \<and> abs j > 1 \<or> abs i > 1 \<and> abs j = 0"
-  apply (cases "abs i = 0", simp_all add: gcd_int_def)
-  apply (cases "abs j = 0", simp_all)
-  apply (cases "abs i = 1", simp_all)
-  apply (cases "abs j = 1", simp_all)
+  \<bar>i\<bar> > 1 \<and> \<bar>j\<bar> > 1 \<or> \<bar>i\<bar> = 0 \<and> \<bar>j\<bar> > 1 \<or> \<bar>i\<bar> > 1 \<and> \<bar>j\<bar> = 0"
+  apply (cases "\<bar>i\<bar> = 0", simp_all add: gcd_int_def)
+  apply (cases "\<bar>j\<bar> = 0", simp_all)
+  apply (cases "\<bar>i\<bar> = 1", simp_all)
+  apply (cases "\<bar>j\<bar> = 1", simp_all)
   apply auto
   done
 
@@ -577,7 +577,7 @@ proof (induct t rule: numgcdh.induct)
   from 2 have th: "gcd c ?g > 1"
     by simp
   from zgcd_gt1[OF th] numgcdh_pos[OF mp, where t="t"]
-  consider "abs c > 1" "?g > 1" | "abs c = 0" "?g > 1" | "?g = 0"
+  consider "\<bar>c\<bar> > 1" "?g > 1" | "\<bar>c\<bar> = 0" "?g > 1" | "?g = 0"
     by auto
   then show ?case
   proof cases
@@ -744,11 +744,11 @@ lemma simpnum_nz: "nozerocoeff (simpnum t)"
 lemma maxcoeff_nz: "nozerocoeff t \<Longrightarrow> maxcoeff t = 0 \<Longrightarrow> t = C 0"
 proof (induct t rule: maxcoeff.induct)
   case (2 n c t)
-  then have cnz: "c \<noteq> 0" and mx: "max (abs c) (maxcoeff t) = 0"
+  then have cnz: "c \<noteq> 0" and mx: "max \<bar>c\<bar> (maxcoeff t) = 0"
     by simp_all
-  have "max (abs c) (maxcoeff t) \<ge> abs c"
+  have "max \<bar>c\<bar> (maxcoeff t) \<ge> \<bar>c\<bar>"
     by simp
-  with cnz have "max (abs c) (maxcoeff t) > 0"
+  with cnz have "max \<bar>c\<bar> (maxcoeff t) > 0"
     by arith
   with 2 show ?case
     by simp

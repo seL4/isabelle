@@ -82,19 +82,19 @@ subsection \<open>Fashoda meet theorem\<close>
 
 lemma infnorm_2:
   fixes x :: "real^2"
-  shows "infnorm x = max (abs (x$1)) (abs (x$2))"
+  shows "infnorm x = max \<bar>x$1\<bar> \<bar>x$2\<bar>"
   unfolding infnorm_cart UNIV_2 by (rule cSup_eq) auto
 
 lemma infnorm_eq_1_2:
   fixes x :: "real^2"
   shows "infnorm x = 1 \<longleftrightarrow>
-    abs (x$1) \<le> 1 \<and> abs (x$2) \<le> 1 \<and> (x$1 = -1 \<or> x$1 = 1 \<or> x$2 = -1 \<or> x$2 = 1)"
+    \<bar>x$1\<bar> \<le> 1 \<and> \<bar>x$2\<bar> \<le> 1 \<and> (x$1 = -1 \<or> x$1 = 1 \<or> x$2 = -1 \<or> x$2 = 1)"
   unfolding infnorm_2 by auto
 
 lemma infnorm_eq_1_imp:
   fixes x :: "real^2"
   assumes "infnorm x = 1"
-  shows "abs (x$1) \<le> 1" and "abs (x$2) \<le> 1"
+  shows "\<bar>x$1\<bar> \<le> 1" and "\<bar>x$2\<bar> \<le> 1"
   using assms unfolding infnorm_eq_1_2 by auto
 
 lemma fashoda_unit:

@@ -63,13 +63,13 @@ lemma "(i::nat) < j ==> min i j < max i j"
 lemma "(i::int) < j ==> min i j < max i j"
   by linarith
 
-lemma "(0::int) <= abs i"
+lemma "(0::int) <= \<bar>i\<bar>"
   by linarith
 
-lemma "(i::int) <= abs i"
+lemma "(i::int) <= \<bar>i\<bar>"
   by linarith
 
-lemma "abs (abs (i::int)) = abs i"
+lemma "\<bar>\<bar>i::int\<bar>\<bar> = \<bar>i\<bar>"
   by linarith
 
 text \<open>Also testing subgoals with bound variables.\<close>
@@ -127,7 +127,7 @@ lemma "(i::int) mod 42 <= 41"
 lemma "-(i::int) * 1 = 0 ==> i = 0"
   by linarith
 
-lemma "[| (0::int) < abs i; abs i * 1 < abs i * j |] ==> 1 < abs i * j"
+lemma "[| (0::int) < \<bar>i\<bar>; \<bar>i\<bar> * 1 < \<bar>i\<bar> * j |] ==> 1 < \<bar>i\<bar> * j"
   by linarith
 
 
@@ -227,13 +227,13 @@ lemma "(47::int) + 11 < 8 * 15"
 text \<open>Splitting of inequalities of different type.\<close>
 
 lemma "[| (a::nat) ~= b; (i::int) ~= j; a < 2; b < 2 |] ==>
-  a + b <= nat (max (abs i) (abs j))"
+  a + b <= nat (max \<bar>i\<bar> \<bar>j\<bar>)"
   by linarith
 
 text \<open>Again, but different order.\<close>
 
 lemma "[| (i::int) ~= j; (a::nat) ~= b; a < 2; b < 2 |] ==>
-  a + b <= nat (max (abs i) (abs j))"
+  a + b <= nat (max \<bar>i\<bar> \<bar>j\<bar>)"
   by linarith
 
 end

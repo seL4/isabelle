@@ -3201,7 +3201,7 @@ lemma bdd_above_norm: "bdd_above (norm ` X) \<longleftrightarrow> bounded X"
   by (simp add: bounded_iff bdd_above_def)
 
 lemma bounded_realI:
-  assumes "\<forall>x\<in>s. abs (x::real) \<le> B"
+  assumes "\<forall>x\<in>s. \<bar>x::real\<bar> \<le> B"
   shows "bounded s"
   unfolding bounded_def dist_real_def
   by (metis abs_minus_commute assms diff_0_right)
@@ -3275,7 +3275,7 @@ lemma finite_imp_bounded [intro]: "finite S \<Longrightarrow> bounded S"
 
 lemma bounded_pos: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<in> S. norm x \<le> b)"
   apply (simp add: bounded_iff)
-  apply (subgoal_tac "\<And>x (y::real). 0 < 1 + abs y \<and> (x \<le> y \<longrightarrow> x \<le> 1 + abs y)")
+  apply (subgoal_tac "\<And>x (y::real). 0 < 1 + \<bar>y\<bar> \<and> (x \<le> y \<longrightarrow> x \<le> 1 + \<bar>y\<bar>)")
   apply metis
   apply arith
   done
@@ -5905,7 +5905,7 @@ proof -
     then obtain e where "e>0"
       and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> s" using assms(2)[unfolded open_dist, THEN bspec[where x=x]]
       by auto
-    have "e * abs c > 0"
+    have "e * \<bar>c\<bar> > 0"
       using assms(1)[unfolded zero_less_abs_iff[symmetric]] \<open>e>0\<close> by auto
     moreover
     {
@@ -5923,7 +5923,7 @@ proof -
         by auto
     }
     ultimately have "\<exists>e>0. \<forall>x'. dist x' (c *\<^sub>R x) < e \<longrightarrow> x' \<in> op *\<^sub>R c ` s"
-      apply (rule_tac x="e * abs c" in exI)
+      apply (rule_tac x="e * \<bar>c\<bar>" in exI)
       apply auto
       done
   }
@@ -6221,22 +6221,22 @@ subsection \<open>Topological stuff lifted from and dropped to R\<close>
 
 lemma open_real:
   fixes s :: "real set"
-  shows "open s \<longleftrightarrow> (\<forall>x \<in> s. \<exists>e>0. \<forall>x'. abs(x' - x) < e --> x' \<in> s)"
+  shows "open s \<longleftrightarrow> (\<forall>x \<in> s. \<exists>e>0. \<forall>x'. \<bar>x' - x\<bar> < e --> x' \<in> s)"
   unfolding open_dist dist_norm by simp
 
 lemma islimpt_approachable_real:
   fixes s :: "real set"
-  shows "x islimpt s \<longleftrightarrow> (\<forall>e>0.  \<exists>x'\<in> s. x' \<noteq> x \<and> abs(x' - x) < e)"
+  shows "x islimpt s \<longleftrightarrow> (\<forall>e>0. \<exists>x'\<in> s. x' \<noteq> x \<and> \<bar>x' - x\<bar> < e)"
   unfolding islimpt_approachable dist_norm by simp
 
 lemma closed_real:
   fixes s :: "real set"
-  shows "closed s \<longleftrightarrow> (\<forall>x. (\<forall>e>0.  \<exists>x' \<in> s. x' \<noteq> x \<and> abs(x' - x) < e) \<longrightarrow> x \<in> s)"
+  shows "closed s \<longleftrightarrow> (\<forall>x. (\<forall>e>0.  \<exists>x' \<in> s. x' \<noteq> x \<and> \<bar>x' - x\<bar> < e) \<longrightarrow> x \<in> s)"
   unfolding closed_limpt islimpt_approachable dist_norm by simp
 
 lemma continuous_at_real_range:
   fixes f :: "'a::real_normed_vector \<Rightarrow> real"
-  shows "continuous (at x) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x'. norm(x' - x) < d --> abs(f x' - f x) < e)"
+  shows "continuous (at x) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x'. norm(x' - x) < d --> \<bar>f x' - f x\<bar> < e)"
   unfolding continuous_at
   unfolding Lim_at
   unfolding dist_nz[symmetric]
@@ -6255,7 +6255,7 @@ lemma continuous_at_real_range:
 lemma continuous_on_real_range:
   fixes f :: "'a::real_normed_vector \<Rightarrow> real"
   shows "continuous_on s f \<longleftrightarrow>
-    (\<forall>x \<in> s. \<forall>e>0. \<exists>d>0. (\<forall>x' \<in> s. norm(x' - x) < d \<longrightarrow> abs(f x' - f x) < e))"
+    (\<forall>x \<in> s. \<forall>e>0. \<exists>d>0. (\<forall>x' \<in> s. norm(x' - x) < d \<longrightarrow> \<bar>f x' - f x\<bar> < e))"
   unfolding continuous_on_iff dist_norm by simp
 
 text \<open>Hence some handy theorems on distance, diameter etc. of/from a set.\<close>

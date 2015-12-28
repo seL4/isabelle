@@ -35,19 +35,19 @@ rather than as an \<open>intro!\<close> rule, for example, using
 subsection \<open>Definitions\<close>
 
 definition bigo :: "('a \<Rightarrow> 'b::linordered_idom) \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(1O'(_'))")
-  where "O(f:: 'a \<Rightarrow> 'b) = {h. \<exists>c. \<forall>x. abs (h x) \<le> c * abs (f x)}"
+  where "O(f:: 'a \<Rightarrow> 'b) = {h. \<exists>c. \<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>}"
 
 lemma bigo_pos_const:
-  "(\<exists>c::'a::linordered_idom. \<forall>x. abs (h x) \<le> c * abs (f x)) \<longleftrightarrow>
-    (\<exists>c. 0 < c \<and> (\<forall>x. abs (h x) \<le> c * abs (f x)))"
+  "(\<exists>c::'a::linordered_idom. \<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>) \<longleftrightarrow>
+    (\<exists>c. 0 < c \<and> (\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>))"
   apply auto
   apply (case_tac "c = 0")
   apply simp
   apply (rule_tac x = "1" in exI)
   apply simp
-  apply (rule_tac x = "abs c" in exI)
+  apply (rule_tac x = "\<bar>c\<bar>" in exI)
   apply auto
-  apply (subgoal_tac "c * abs (f x) \<le> abs c * abs (f x)")
+  apply (subgoal_tac "c * \<bar>f x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>")
   apply (erule_tac x = x in allE)
   apply force
   apply (rule mult_right_mono)
@@ -55,7 +55,7 @@ lemma bigo_pos_const:
   apply (rule abs_ge_zero)
   done
 
-lemma bigo_alt_def: "O(f) = {h. \<exists>c. 0 < c \<and> (\<forall>x. abs (h x) \<le> c * abs (f x))}"
+lemma bigo_alt_def: "O(f) = {h. \<exists>c. 0 < c \<and> (\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>)}"
   by (auto simp add: bigo_def bigo_pos_const)
 
 lemma bigo_elt_subset [intro]: "f \<in> O(g) \<Longrightarrow> O(f) \<le> O(g)"
@@ -65,7 +65,7 @@ lemma bigo_elt_subset [intro]: "f \<in> O(g) \<Longrightarrow> O(f) \<le> O(g)"
   apply simp
   apply (rule allI)
   apply (drule_tac x = "xa" in spec)+
-  apply (subgoal_tac "ca * abs (f xa) \<le> ca * (c * abs (g xa))")
+  apply (subgoal_tac "ca * \<bar>f xa\<bar> \<le> ca * (c * \<bar>g xa\<bar>)")
   apply (erule order_trans)
   apply (simp add: ac_simps)
   apply (rule mult_left_mono, assumption)
@@ -110,29 +110,29 @@ lemma bigo_plus_subset [intro]: "O(f + g) \<subseteq> O(f) + O(g)"
   apply (rule subsetI)
   apply (auto simp add: bigo_def bigo_pos_const func_plus set_plus_def)
   apply (subst bigo_pos_const [symmetric])+
-  apply (rule_tac x = "\<lambda>n. if abs (g n) \<le> (abs (f n)) then x n else 0" in exI)
+  apply (rule_tac x = "\<lambda>n. if \<bar>g n\<bar> \<le> \<bar>f n\<bar> then x n else 0" in exI)
   apply (rule conjI)
   apply (rule_tac x = "c + c" in exI)
   apply (clarsimp)
-  apply (subgoal_tac "c * abs (f xa + g xa) \<le> (c + c) * abs (f xa)")
+  apply (subgoal_tac "c * \<bar>f xa + g xa\<bar> \<le> (c + c) * \<bar>f xa\<bar>")
   apply (erule_tac x = xa in allE)
   apply (erule order_trans)
   apply (simp)
-  apply (subgoal_tac "c * abs (f xa + g xa) \<le> c * (abs (f xa) + abs (g xa))")
+  apply (subgoal_tac "c * \<bar>f xa + g xa\<bar> \<le> c * (\<bar>f xa\<bar> + \<bar>g xa\<bar>)")
   apply (erule order_trans)
   apply (simp add: ring_distribs)
   apply (rule mult_left_mono)
   apply (simp add: abs_triangle_ineq)
   apply (simp add: order_less_le)
-  apply (rule_tac x = "\<lambda>n. if (abs (f n)) < abs (g n) then x n else 0" in exI)
+  apply (rule_tac x = "\<lambda>n. if \<bar>f n\<bar> < \<bar>g n\<bar> then x n else 0" in exI)
   apply (rule conjI)
   apply (rule_tac x = "c + c" in exI)
   apply auto
-  apply (subgoal_tac "c * abs (f xa + g xa) \<le> (c + c) * abs (g xa)")
+  apply (subgoal_tac "c * \<bar>f xa + g xa\<bar> \<le> (c + c) * \<bar>g xa\<bar>")
   apply (erule_tac x = xa in allE)
   apply (erule order_trans)
   apply simp
-  apply (subgoal_tac "c * abs (f xa + g xa) \<le> c * (abs (f xa) + abs (g xa))")
+  apply (subgoal_tac "c * \<bar>f xa + g xa\<bar> \<le> c * (\<bar>f xa\<bar> + \<bar>g xa\<bar>)")
   apply (erule order_trans)
   apply (simp add: ring_distribs)
   apply (rule mult_left_mono)
@@ -162,8 +162,8 @@ lemma bigo_plus_eq: "\<forall>x. 0 \<le> f x \<Longrightarrow> \<forall>x. 0 \<l
   apply (drule_tac x = "xa" in spec)+
   apply (subgoal_tac "0 \<le> f xa + g xa")
   apply (simp add: ring_distribs)
-  apply (subgoal_tac "abs (a xa + b xa) \<le> abs (a xa) + abs (b xa)")
-  apply (subgoal_tac "abs (a xa) + abs (b xa) \<le> max c ca * f xa + max c ca * g xa")
+  apply (subgoal_tac "\<bar>a xa + b xa\<bar> \<le> \<bar>a xa\<bar> + \<bar>b xa\<bar>")
+  apply (subgoal_tac "\<bar>a xa\<bar> + \<bar>b xa\<bar> \<le> max c ca * f xa + max c ca * g xa")
   apply force
   apply (rule add_mono)
   apply (subgoal_tac "c * f xa \<le> max c ca * f xa")
@@ -183,7 +183,7 @@ lemma bigo_plus_eq: "\<forall>x. 0 \<le> f x \<Longrightarrow> \<forall>x. 0 \<l
 
 lemma bigo_bounded_alt: "\<forall>x. 0 \<le> f x \<Longrightarrow> \<forall>x. f x \<le> c * g x \<Longrightarrow> f \<in> O(g)"
   apply (auto simp add: bigo_def)
-  apply (rule_tac x = "abs c" in exI)
+  apply (rule_tac x = "\<bar>c\<bar>" in exI)
   apply auto
   apply (drule_tac x = x in spec)+
   apply (simp add: abs_mult [symmetric])
@@ -202,21 +202,21 @@ lemma bigo_bounded2: "\<forall>x. lb x \<le> f x \<Longrightarrow> \<forall>x. f
   apply force
   done
 
-lemma bigo_abs: "(\<lambda>x. abs (f x)) =o O(f)"
+lemma bigo_abs: "(\<lambda>x. \<bar>f x\<bar>) =o O(f)"
   apply (unfold bigo_def)
   apply auto
   apply (rule_tac x = 1 in exI)
   apply auto
   done
 
-lemma bigo_abs2: "f =o O(\<lambda>x. abs (f x))"
+lemma bigo_abs2: "f =o O(\<lambda>x. \<bar>f x\<bar>)"
   apply (unfold bigo_def)
   apply auto
   apply (rule_tac x = 1 in exI)
   apply auto
   done
 
-lemma bigo_abs3: "O(f) = O(\<lambda>x. abs (f x))"
+lemma bigo_abs3: "O(f) = O(\<lambda>x. \<bar>f x\<bar>)"
   apply (rule equalityI)
   apply (rule bigo_elt_subset)
   apply (rule bigo_abs2)
@@ -224,15 +224,15 @@ lemma bigo_abs3: "O(f) = O(\<lambda>x. abs (f x))"
   apply (rule bigo_abs)
   done
 
-lemma bigo_abs4: "f =o g +o O(h) \<Longrightarrow> (\<lambda>x. abs (f x)) =o (\<lambda>x. abs (g x)) +o O(h)"
+lemma bigo_abs4: "f =o g +o O(h) \<Longrightarrow> (\<lambda>x. \<bar>f x\<bar>) =o (\<lambda>x. \<bar>g x\<bar>) +o O(h)"
   apply (drule set_plus_imp_minus)
   apply (rule set_minus_imp_plus)
   apply (subst fun_diff_def)
 proof -
   assume a: "f - g \<in> O(h)"
-  have "(\<lambda>x. abs (f x) - abs (g x)) =o O(\<lambda>x. abs (abs (f x) - abs (g x)))"
+  have "(\<lambda>x. \<bar>f x\<bar> - \<bar>g x\<bar>) =o O(\<lambda>x. \<bar>\<bar>f x\<bar> - \<bar>g x\<bar>\<bar>)"
     by (rule bigo_abs2)
-  also have "\<dots> \<subseteq> O(\<lambda>x. abs (f x - g x))"
+  also have "\<dots> \<subseteq> O(\<lambda>x. \<bar>f x - g x\<bar>)"
     apply (rule bigo_elt_subset)
     apply (rule bigo_bounded)
     apply force
@@ -246,10 +246,10 @@ proof -
     done
   also from a have "\<dots> \<subseteq> O(h)"
     by (rule bigo_elt_subset)
-  finally show "(\<lambda>x. abs (f x) - abs (g x)) \<in> O(h)".
+  finally show "(\<lambda>x. \<bar>f x\<bar> - \<bar>g x\<bar>) \<in> O(h)".
 qed
 
-lemma bigo_abs5: "f =o O(g) \<Longrightarrow> (\<lambda>x. abs (f x)) =o O(g)"
+lemma bigo_abs5: "f =o O(g) \<Longrightarrow> (\<lambda>x. \<bar>f x\<bar>) =o O(g)"
   by (unfold bigo_def, auto)
 
 lemma bigo_elt_subset2 [intro]: "f \<in> g +o O(h) \<Longrightarrow> O(f) \<subseteq> O(g) + O(h)"
@@ -257,16 +257,16 @@ proof -
   assume "f \<in> g +o O(h)"
   also have "\<dots> \<subseteq> O(g) + O(h)"
     by (auto del: subsetI)
-  also have "\<dots> = O(\<lambda>x. abs (g x)) + O(\<lambda>x. abs (h x))"
+  also have "\<dots> = O(\<lambda>x. \<bar>g x\<bar>) + O(\<lambda>x. \<bar>h x\<bar>)"
     apply (subst bigo_abs3 [symmetric])+
     apply (rule refl)
     done
-  also have "\<dots> = O((\<lambda>x. abs (g x)) + (\<lambda>x. abs (h x)))"
+  also have "\<dots> = O((\<lambda>x. \<bar>g x\<bar>) + (\<lambda>x. \<bar>h x\<bar>))"
     by (rule bigo_plus_eq [symmetric]) auto
   finally have "f \<in> \<dots>" .
   then have "O(f) \<subseteq> \<dots>"
     by (elim bigo_elt_subset)
-  also have "\<dots> = O(\<lambda>x. abs (g x)) + O(\<lambda>x. abs (h x))"
+  also have "\<dots> = O(\<lambda>x. \<bar>g x\<bar>) + O(\<lambda>x. \<bar>h x\<bar>)"
     by (rule bigo_plus_eq, auto)
   finally show ?thesis
     by (simp add: bigo_abs3 [symmetric])
@@ -279,7 +279,7 @@ lemma bigo_mult [intro]: "O(f)*O(g) \<subseteq> O(f * g)"
   apply (rule_tac x = "c * ca" in exI)
   apply (rule allI)
   apply (erule_tac x = x in allE)+
-  apply (subgoal_tac "c * ca * abs (f x * g x) = (c * abs (f x)) * (ca * abs (g x))")
+  apply (subgoal_tac "c * ca * \<bar>f x * g x\<bar> = (c * \<bar>f x\<bar>) * (ca * \<bar>g x\<bar>)")
   apply (erule ssubst)
   apply (subst abs_mult)
   apply (rule mult_mono)
@@ -293,7 +293,7 @@ lemma bigo_mult2 [intro]: "f *o O(g) \<subseteq> O(f * g)"
   apply (rule_tac x = c in exI)
   apply auto
   apply (drule_tac x = x in spec)
-  apply (subgoal_tac "abs (f x) * abs (b x) \<le> abs (f x) * (c * abs (g x))")
+  apply (subgoal_tac "\<bar>f x\<bar> * \<bar>b x\<bar> \<le> \<bar>f x\<bar> * (c * \<bar>g x\<bar>)")
   apply (force simp add: ac_simps)
   apply (rule mult_left_mono, assumption)
   apply (rule abs_ge_zero)
@@ -450,7 +450,7 @@ lemma bigo_const3:
   fixes c :: "'a::linordered_field"
   shows "c \<noteq> 0 \<Longrightarrow> (\<lambda>x. 1) \<in> O(\<lambda>x. c)"
   apply (simp add: bigo_def)
-  apply (rule_tac x = "abs (inverse c)" in exI)
+  apply (rule_tac x = "\<bar>inverse c\<bar>" in exI)
   apply (simp add: abs_mult [symmetric])
   done
 
@@ -473,7 +473,7 @@ lemma bigo_const [simp]:
 
 lemma bigo_const_mult1: "(\<lambda>x. c * f x) \<in> O(f)"
   apply (simp add: bigo_def)
-  apply (rule_tac x = "abs c" in exI)
+  apply (rule_tac x = "\<bar>c\<bar>" in exI)
   apply (auto simp add: abs_mult [symmetric])
   done
 
@@ -486,7 +486,7 @@ lemma bigo_const_mult3:
   fixes c :: "'a::linordered_field"
   shows "c \<noteq> 0 \<Longrightarrow> f \<in> O(\<lambda>x. c * f x)"
   apply (simp add: bigo_def)
-  apply (rule_tac x = "abs (inverse c)" in exI)
+  apply (rule_tac x = "\<bar>inverse c\<bar>" in exI)
   apply (simp add: abs_mult mult.assoc [symmetric])
   done
 
@@ -516,15 +516,15 @@ lemma bigo_const_mult5 [simp]:
   apply (auto intro!: simp add: bigo_def elt_set_times_def func_times)
   apply (rule_tac x = "\<lambda>y. inverse c * x y" in exI)
   apply (simp add: mult.assoc [symmetric] abs_mult)
-  apply (rule_tac x = "abs (inverse c) * ca" in exI)
+  apply (rule_tac x = "\<bar>inverse c\<bar> * ca" in exI)
   apply auto
   done
 
 lemma bigo_const_mult6 [intro]: "(\<lambda>x. c) *o O(f) \<subseteq> O(f)"
   apply (auto intro!: simp add: bigo_def elt_set_times_def func_times)
-  apply (rule_tac x = "ca * abs c" in exI)
+  apply (rule_tac x = "ca * \<bar>c\<bar>" in exI)
   apply (rule allI)
-  apply (subgoal_tac "ca * abs c * abs (f x) = abs c * (ca * abs (f x))")
+  apply (subgoal_tac "ca * \<bar>c\<bar> * \<bar>f x\<bar> = \<bar>c\<bar> * (ca * \<bar>f x\<bar>)")
   apply (erule ssubst)
   apply (subst abs_mult)
   apply (rule mult_left_mono)
@@ -559,10 +559,10 @@ lemma bigo_compose2: "f =o g +o O(h) \<Longrightarrow>
 subsection \<open>Setsum\<close>
 
 lemma bigo_setsum_main: "\<forall>x. \<forall>y \<in> A x. 0 \<le> h x y \<Longrightarrow>
-    \<exists>c. \<forall>x. \<forall>y \<in> A x. abs (f x y) \<le> c * (h x y) \<Longrightarrow>
+    \<exists>c. \<forall>x. \<forall>y \<in> A x. \<bar>f x y\<bar> \<le> c * h x y \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. f x y) =o O(\<lambda>x. \<Sum>y \<in> A x. h x y)"
   apply (auto simp add: bigo_def)
-  apply (rule_tac x = "abs c" in exI)
+  apply (rule_tac x = "\<bar>c\<bar>" in exI)
   apply (subst abs_of_nonneg) back back
   apply (rule setsum_nonneg)
   apply force
@@ -583,7 +583,7 @@ lemma bigo_setsum_main: "\<forall>x. \<forall>y \<in> A x. 0 \<le> h x y \<Longr
   done
 
 lemma bigo_setsum1: "\<forall>x y. 0 \<le> h x y \<Longrightarrow>
-    \<exists>c. \<forall>x y. abs (f x y) \<le> c * h x y \<Longrightarrow>
+    \<exists>c. \<forall>x y. \<bar>f x y\<bar> \<le> c * h x y \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. f x y) =o O(\<lambda>x. \<Sum>y \<in> A x. h x y)"
   apply (rule bigo_setsum_main)
   apply force
@@ -593,12 +593,12 @@ lemma bigo_setsum1: "\<forall>x y. 0 \<le> h x y \<Longrightarrow>
   done
 
 lemma bigo_setsum2: "\<forall>y. 0 \<le> h y \<Longrightarrow>
-    \<exists>c. \<forall>y. abs (f y) \<le> c * (h y) \<Longrightarrow>
+    \<exists>c. \<forall>y. \<bar>f y\<bar> \<le> c * (h y) \<Longrightarrow>
       (\<lambda>x. \<Sum>y \<in> A x. f y) =o O(\<lambda>x. \<Sum>y \<in> A x. h y)"
   by (rule bigo_setsum1) auto
 
 lemma bigo_setsum3: "f =o O(h) \<Longrightarrow>
-    (\<lambda>x. \<Sum>y \<in> A x. l x y * f (k x y)) =o O(\<lambda>x. \<Sum>y \<in> A x. abs (l x y * h (k x y)))"
+    (\<lambda>x. \<Sum>y \<in> A x. l x y * f (k x y)) =o O(\<lambda>x. \<Sum>y \<in> A x. \<bar>l x y * h (k x y)\<bar>)"
   apply (rule bigo_setsum1)
   apply (rule allI)+
   apply (rule abs_ge_zero)
@@ -616,7 +616,7 @@ lemma bigo_setsum3: "f =o O(h) \<Longrightarrow>
 lemma bigo_setsum4: "f =o g +o O(h) \<Longrightarrow>
     (\<lambda>x. \<Sum>y \<in> A x. l x y * f (k x y)) =o
       (\<lambda>x. \<Sum>y \<in> A x. l x y * g (k x y)) +o
-        O(\<lambda>x. \<Sum>y \<in> A x. abs (l x y * h (k x y)))"
+        O(\<lambda>x. \<Sum>y \<in> A x. \<bar>l x y * h (k x y)\<bar>)"
   apply (rule set_minus_imp_plus)
   apply (subst fun_diff_def)
   apply (subst setsum_subtractf [symmetric])
@@ -631,7 +631,7 @@ lemma bigo_setsum5: "f =o O(h) \<Longrightarrow> \<forall>x y. 0 \<le> l x y \<L
       (\<lambda>x. \<Sum>y \<in> A x. l x y * f (k x y)) =o
         O(\<lambda>x. \<Sum>y \<in> A x. l x y * h (k x y))"
   apply (subgoal_tac "(\<lambda>x. \<Sum>y \<in> A x. l x y * h (k x y)) =
-      (\<lambda>x. \<Sum>y \<in> A x. abs (l x y * h (k x y)))")
+      (\<lambda>x. \<Sum>y \<in> A x. \<bar>l x y * h (k x y)\<bar>)")
   apply (erule ssubst)
   apply (erule bigo_setsum3)
   apply (rule ext)
@@ -715,7 +715,7 @@ subsection \<open>Less than or equal to\<close>
 definition lesso :: "('a \<Rightarrow> 'b::linordered_idom) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"  (infixl "<o" 70)
   where "f <o g = (\<lambda>x. max (f x - g x) 0)"
 
-lemma bigo_lesseq1: "f =o O(h) \<Longrightarrow> \<forall>x. abs (g x) \<le> abs (f x) \<Longrightarrow> g =o O(h)"
+lemma bigo_lesseq1: "f =o O(h) \<Longrightarrow> \<forall>x. \<bar>g x\<bar> \<le> \<bar>f x\<bar> \<Longrightarrow> g =o O(h)"
   apply (unfold bigo_def)
   apply clarsimp
   apply (rule_tac x = c in exI)
@@ -724,7 +724,7 @@ lemma bigo_lesseq1: "f =o O(h) \<Longrightarrow> \<forall>x. abs (g x) \<le> abs
   apply (erule spec)+
   done
 
-lemma bigo_lesseq2: "f =o O(h) \<Longrightarrow> \<forall>x. abs (g x) \<le> f x \<Longrightarrow> g =o O(h)"
+lemma bigo_lesseq2: "f =o O(h) \<Longrightarrow> \<forall>x. \<bar>g x\<bar> \<le> f x \<Longrightarrow> g =o O(h)"
   apply (erule bigo_lesseq1)
   apply (rule allI)
   apply (drule_tac x = x in spec)
@@ -741,7 +741,7 @@ lemma bigo_lesseq3: "f =o O(h) \<Longrightarrow> \<forall>x. 0 \<le> g x \<Longr
   done
 
 lemma bigo_lesseq4: "f =o O(h) \<Longrightarrow>
-    \<forall>x. 0 \<le> g x \<Longrightarrow> \<forall>x. g x \<le> abs (f x) \<Longrightarrow> g =o O(h)"
+    \<forall>x. 0 \<le> g x \<Longrightarrow> \<forall>x. g x \<le> \<bar>f x\<bar> \<Longrightarrow> g =o O(h)"
   apply (erule bigo_lesseq1)
   apply (rule allI)
   apply (subst abs_of_nonneg)
@@ -819,13 +819,13 @@ lemma bigo_lesso4:
   apply (auto simp add: func_plus fun_diff_def algebra_simps split: split_max abs_split)
   done
 
-lemma bigo_lesso5: "f <o g =o O(h) \<Longrightarrow> \<exists>C. \<forall>x. f x \<le> g x + C * abs (h x)"
+lemma bigo_lesso5: "f <o g =o O(h) \<Longrightarrow> \<exists>C. \<forall>x. f x \<le> g x + C * \<bar>h x\<bar>"
   apply (simp only: lesso_def bigo_alt_def)
   apply clarsimp
   apply (rule_tac x = c in exI)
   apply (rule allI)
   apply (drule_tac x = x in spec)
-  apply (subgoal_tac "abs (max (f x - g x) 0) = max (f x - g x) 0")
+  apply (subgoal_tac "\<bar>max (f x - g x) 0\<bar> = max (f x - g x) 0")
   apply (clarsimp simp add: algebra_simps)
   apply (rule abs_of_nonneg)
   apply (rule max.cobounded2)
@@ -856,7 +856,7 @@ lemma bigo_LIMSEQ1: "f =o O(g) \<Longrightarrow> g ----> 0 \<Longrightarrow> f -
   apply (rule order_le_less_trans)
   apply assumption
   apply (rule order_less_le_trans)
-  apply (subgoal_tac "c * abs (g n) < c * (r / c)")
+  apply (subgoal_tac "c * \<bar>g n\<bar> < c * (r / c)")
   apply assumption
   apply (erule mult_strict_left_mono)
   apply assumption

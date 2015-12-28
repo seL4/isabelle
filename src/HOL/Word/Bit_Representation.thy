@@ -172,7 +172,7 @@ primrec bin_nth where
 
 lemma bin_abs_lem:
   "bin = (w BIT b) ==> bin ~= -1 --> bin ~= 0 -->
-    nat (abs w) < nat (abs bin)"
+    nat \<bar>w\<bar> < nat \<bar>bin\<bar>"
   apply clarsimp
   apply (unfold Bit_def)
   apply (cases b)

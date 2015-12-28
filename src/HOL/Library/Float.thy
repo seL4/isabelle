@@ -110,7 +110,7 @@ lemma times_float[simp]: "x \<in> float \<Longrightarrow> y \<in> float \<Longri
 lemma minus_float[simp]: "x \<in> float \<Longrightarrow> y \<in> float \<Longrightarrow> x - y \<in> float"
   using plus_float [of x "- y"] by simp
 
-lemma abs_float[simp]: "x \<in> float \<Longrightarrow> abs x \<in> float"
+lemma abs_float[simp]: "x \<in> float \<Longrightarrow> \<bar>x\<bar> \<in> float"
   by (cases x rule: linorder_cases[of 0]) auto
 
 lemma sgn_of_float[simp]: "x \<in> float \<Longrightarrow> sgn x \<in> float"
@@ -594,7 +594,7 @@ lift_definition is_float_zero :: "float \<Rightarrow> bool"  is "op = 0 :: real 
 qualified lemma compute_is_float_zero[code]: "is_float_zero (Float m e) \<longleftrightarrow> 0 = m"
   by transfer (auto simp add: is_float_zero_def)
 
-qualified lemma compute_float_abs[code]: "abs (Float m e) = Float (abs m) e"
+qualified lemma compute_float_abs[code]: "\<bar>Float m e\<bar> = Float \<bar>m\<bar> e"
   by transfer (simp add: abs_mult)
 
 qualified lemma compute_float_eq[code]: "equal_class.equal f g = is_float_zero (f - g)"
@@ -1186,7 +1186,7 @@ context
 begin
 
 qualified lemma compute_float_round_down[code]:
-  "float_round_down prec (Float m e) = (let d = bitlen (abs m) - int prec in
+  "float_round_down prec (Float m e) = (let d = bitlen \<bar>m\<bar> - int prec in
     if 0 < d then Float (div_twopow m (nat d)) (e + d)
              else Float m e)"
   using Float.compute_float_down[of "prec - bitlen \<bar>m\<bar> - e" m e, symmetric]
@@ -1543,8 +1543,8 @@ lemma bitlen_eq_zero_iff: "bitlen x = 0 \<longleftrightarrow> x \<le> 0"
 
 lemma sum_neq_zeroI:
   fixes a k :: real
-  shows "abs a \<ge> k \<Longrightarrow> abs b < k \<Longrightarrow> a + b \<noteq> 0"
-    and "abs a > k \<Longrightarrow> abs b \<le> k \<Longrightarrow> a + b \<noteq> 0"
+  shows "\<bar>a\<bar> \<ge> k \<Longrightarrow> \<bar>b\<bar> < k \<Longrightarrow> a + b \<noteq> 0"
+    and "\<bar>a\<bar> > k \<Longrightarrow> \<bar>b\<bar> \<le> k \<Longrightarrow> a + b \<noteq> 0"
   by auto
 
 lemma abs_real_le_2_powr_bitlen[simp]: "\<bar>real_of_int m2\<bar> < 2 powr real_of_int (bitlen \<bar>m2\<bar>)"
@@ -1564,7 +1564,7 @@ lemma floor_sum_times_2_powr_sgn_eq:
   fixes ai p q :: int
     and a b :: real
   assumes "a * 2 powr p = ai"
-    and b_le_1: "abs (b * 2 powr (p + 1)) \<le> 1"
+    and b_le_1: "\<bar>b * 2 powr (p + 1)\<bar> \<le> 1"
     and leqp: "q \<le> p"
   shows "\<lfloor>(a + b) * 2 powr q\<rfloor> = \<lfloor>(2 * ai + sgn b) * 2 powr (q - p - 1)\<rfloor>"
 proof -
@@ -1576,7 +1576,7 @@ proof -
       by (simp add: assms(1)[symmetric] powr_add[symmetric] algebra_simps powr_mult_base)
   next
     case 2
-    then have "b * 2 powr p < abs (b * 2 powr (p + 1))"
+    then have "b * 2 powr p < \<bar>b * 2 powr (p + 1)\<bar>"
       by simp
     also note b_le_1
     finally have b_less_1: "b * 2 powr real_of_int p < 1" .
@@ -1635,7 +1635,7 @@ qed
 lemma log2_abs_int_add_less_half_sgn_eq:
   fixes ai :: int
     and b :: real
-  assumes "abs b \<le> 1/2"
+  assumes "\<bar>b\<bar> \<le> 1/2"
     and "ai \<noteq> 0"
   shows "\<lfloor>log 2 \<bar>real_of_int ai + b\<bar>\<rfloor> = \<lfloor>log 2 \<bar>ai + sgn b / 2\<bar>\<rfloor>"
 proof (cases "b = 0")
@@ -1664,21 +1664,21 @@ next
   have "\<bar>ai\<bar> = 2 powr k + r"
     using \<open>k \<ge> 0\<close> by (auto simp: k_def r_def powr_realpow[symmetric])
 
-  have pos: "abs b < 1 \<Longrightarrow> 0 < 2 powr k + (r + b)" for b :: real
+  have pos: "\<bar>b\<bar> < 1 \<Longrightarrow> 0 < 2 powr k + (r + b)" for b :: real
     using \<open>0 \<le> k\<close> \<open>ai \<noteq> 0\<close>
     by (auto simp add: r_def powr_realpow[symmetric] abs_if sgn_if algebra_simps
       split: split_if_asm)
   have less: "\<bar>sgn ai * b\<bar> < 1"
     and less': "\<bar>sgn (sgn ai * b) / 2\<bar> < 1"
-    using \<open>abs b \<le> _\<close> by (auto simp: abs_if sgn_if split: split_if_asm)
+    using \<open>\<bar>b\<bar> \<le> _\<close> by (auto simp: abs_if sgn_if split: split_if_asm)
 
-  have floor_eq: "\<And>b::real. abs b \<le> 1 / 2 \<Longrightarrow>
+  have floor_eq: "\<And>b::real. \<bar>b\<bar> \<le> 1 / 2 \<Longrightarrow>
       \<lfloor>log 2 (1 + (r + b) / 2 powr k)\<rfloor> = (if r = 0 \<and> b < 0 then -1 else 0)"
     using \<open>k \<ge> 0\<close> r r_le
     by (auto simp: floor_log_eq_powr_iff powr_minus_divide field_simps sgn_if)
 
   from \<open>real_of_int \<bar>ai\<bar> = _\<close> have "\<bar>ai + b\<bar> = 2 powr k + (r + sgn ai * b)"
-    using \<open>abs b <= _\<close> \<open>0 \<le> k\<close> r
+    using \<open>\<bar>b\<bar> <= _\<close> \<open>0 \<le> k\<close> r
     by (auto simp add: sgn_if abs_if)
   also have "\<lfloor>log 2 \<dots>\<rfloor> = \<lfloor>log 2 (2 powr k + r + sgn (sgn ai * b) / 2)\<rfloor>"
   proof -
@@ -1690,14 +1690,14 @@ next
     also
     let ?if = "if r = 0 \<and> sgn ai * b < 0 then -1 else 0"
     have "\<lfloor>log 2 (1 + (r + sgn ai * b) / 2 powr k)\<rfloor> = ?if"
-      using \<open>abs b <= _\<close>
+      using \<open>\<bar>b\<bar> <= _\<close>
       by (intro floor_eq) (auto simp: abs_mult sgn_if)
     also
     have "\<dots> = \<lfloor>log 2 (1 + (r + sgn (sgn ai * b) / 2) / 2 powr k)\<rfloor>"
       by (subst floor_eq) (auto simp: sgn_if)
     also have "k + \<dots> = \<lfloor>log 2 (2 powr k * (1 + (r + sgn (sgn ai * b) / 2) / 2 powr k))\<rfloor>"
       unfolding floor_add2[symmetric]
-      using pos[OF less'] \<open>abs b \<le> _\<close>
+      using pos[OF less'] \<open>\<bar>b\<bar> \<le> _\<close>
       by (simp add: field_simps add_log_eq_powr)
     also have "2 powr k * (1 + (r + sgn (sgn ai * b) / 2) / 2 powr k) =
         2 powr k + r + sgn (sgn ai * b) / 2"
@@ -1885,7 +1885,7 @@ lemma real_of_Float_int[simp]: "real_of_float (Float n 0) = real n"
 lemma float_zero[simp]: "real_of_float (Float 0 e) = 0"
   by simp
 
-lemma abs_div_2_less: "a \<noteq> 0 \<Longrightarrow> a \<noteq> -1 \<Longrightarrow> abs((a::int) div 2) < abs a"
+lemma abs_div_2_less: "a \<noteq> 0 \<Longrightarrow> a \<noteq> -1 \<Longrightarrow> \<bar>(a::int) div 2\<bar> < \<bar>a\<bar>"
   by arith
 
 lemma lapprox_rat: "real_of_float (lapprox_rat prec x y) \<le> real_of_int x / real_of_int y"

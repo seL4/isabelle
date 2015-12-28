@@ -228,8 +228,8 @@ by (rule hcomplex_surj [THEN subst], blast)
 subsection{*Modulus (Absolute Value) of Nonstandard Complex Number*}
 
 lemma hcomplex_of_hypreal_abs:
-     "hcomplex_of_hypreal (abs x) =
-      hcomplex_of_hypreal(hcmod(hcomplex_of_hypreal x))"
+     "hcomplex_of_hypreal \<bar>x\<bar> =
+      hcomplex_of_hypreal (hcmod (hcomplex_of_hypreal x))"
 by simp
 
 lemma HComplex_inject [simp]:
@@ -447,10 +447,10 @@ lemma hIm_mult_i_eq [simp]:
     "!!y. hIm (iii * hcomplex_of_hypreal y) = y"
 by transfer simp
 
-lemma hcmod_mult_i [simp]: "!!y. hcmod (iii * hcomplex_of_hypreal y) = abs y"
+lemma hcmod_mult_i [simp]: "!!y. hcmod (iii * hcomplex_of_hypreal y) = \<bar>y\<bar>"
 by transfer (simp add: norm_complex_def)
 
-lemma hcmod_mult_i2 [simp]: "!!y. hcmod (hcomplex_of_hypreal y * iii) = abs y"
+lemma hcmod_mult_i2 [simp]: "!!y. hcmod (hcomplex_of_hypreal y * iii) = \<bar>y\<bar>"
 by transfer (simp add: norm_complex_def)
 
 (*---------------------------------------------------------------------------*)
@@ -506,11 +506,10 @@ lemma hcmod_unit_one [simp]:
 by transfer (simp add: cmod_unit_one)
 
 lemma hcmod_complex_polar [simp]:
-  "!!r a. hcmod (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) =
-      abs r"
+  "!!r a. hcmod (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) = \<bar>r\<bar>"
 by transfer (simp add: cmod_complex_polar)
 
-lemma hcmod_hrcis [simp]: "!!r a. hcmod(hrcis r a) = abs r"
+lemma hcmod_hrcis [simp]: "!!r a. hcmod(hrcis r a) = \<bar>r\<bar>"
 by transfer (rule complex_mod_rcis)
 
 (*---------------------------------------------------------------------------*)

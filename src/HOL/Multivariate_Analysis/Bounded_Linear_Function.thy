@@ -398,7 +398,7 @@ lemma blinfun_of_matrix_minus: "blinfun_of_matrix x - blinfun_of_matrix y = blin
   by transfer (auto simp: algebra_simps setsum_subtractf)
 
 lemma norm_blinfun_of_matrix:
-  "norm (blinfun_of_matrix a) \<le> (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. abs (a i j))"
+  "norm (blinfun_of_matrix a) \<le> (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. \<bar>a i j\<bar>)"
   apply (rule norm_blinfun_bound)
    apply (simp add: setsum_nonneg)
   apply (simp only: blinfun_of_matrix_apply setsum_left_distrib)
@@ -413,7 +413,7 @@ lemma tendsto_blinfun_of_matrix:
 proof -
   have "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> Zfun (\<lambda>x. norm (b x i j - a i j)) F"
     using assms unfolding tendsto_Zfun_iff Zfun_norm_iff .
-  hence "Zfun (\<lambda>x. (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. abs (b x i j - a i j))) F"
+  hence "Zfun (\<lambda>x. (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. \<bar>b x i j - a i j\<bar>)) F"
     by (auto intro!: Zfun_setsum)
   thus ?thesis
     unfolding tendsto_Zfun_iff blinfun_of_matrix_minus

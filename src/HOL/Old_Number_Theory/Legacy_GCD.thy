@@ -566,7 +566,7 @@ subsection \<open>GCD and LCM on integers\<close>
 
 definition
   zgcd :: "int \<Rightarrow> int \<Rightarrow> int" where
-  "zgcd i j = int (gcd (nat (abs i)) (nat (abs j)))"
+  "zgcd i j = int (gcd (nat \<bar>i\<bar>) (nat \<bar>j\<bar>))"
 
 lemma zgcd_zdvd1 [iff, algebra]: "zgcd i j dvd i"
 by (simp add: zgcd_def int_dvd_iff)
@@ -611,7 +611,7 @@ proof -
     done
 qed
 
-lemma int_nat_abs: "int (nat (abs x)) = abs x" by arith
+lemma int_nat_abs: "int (nat \<bar>x\<bar>) = \<bar>x\<bar>" by arith
 
 lemma zgcd_greatest:
   assumes "k dvd m" and "k dvd n"
@@ -654,10 +654,10 @@ proof -
   with zgcd_pos show "?g' = 1" by simp
 qed
 
-lemma zgcd_0 [simp, algebra]: "zgcd m 0 = abs m"
+lemma zgcd_0 [simp, algebra]: "zgcd m 0 = \<bar>m\<bar>"
   by (simp add: zgcd_def abs_if)
 
-lemma zgcd_0_left [simp, algebra]: "zgcd 0 m = abs m"
+lemma zgcd_0_left [simp, algebra]: "zgcd 0 m = \<bar>m\<bar>"
   by (simp add: zgcd_def abs_if)
 
 lemma zgcd_non_0: "0 < n ==> zgcd m n = zgcd n (m mod n)"
@@ -704,7 +704,7 @@ lemma zgcd_zmult_distrib2: "0 \<le> k ==> k * zgcd m n = zgcd (k * m) (k * n)"
       add: minus_mult_right nat_mult_distrib zgcd_def abs_if
           mult_less_0_iff gcd_mult_distrib2 [symmetric] of_nat_mult)
 
-lemma zgcd_zmult_distrib2_abs: "zgcd (k * m) (k * n) = abs k * zgcd m n"
+lemma zgcd_zmult_distrib2_abs: "zgcd (k * m) (k * n) = \<bar>k\<bar> * zgcd m n"
   by (simp add: abs_if zgcd_zmult_distrib2)
 
 lemma zgcd_self [simp]: "0 \<le> m ==> zgcd m m = m"
@@ -717,7 +717,7 @@ lemma zgcd_zmult_eq_self2 [simp]: "0 \<le> k ==> zgcd (k * n) k = k"
   by (cut_tac k = k and m = n and n = 1 in zgcd_zmult_distrib2, simp_all)
 
 
-definition "zlcm i j = int (lcm(nat(abs i)) (nat(abs j)))"
+definition "zlcm i j = int (lcm (nat \<bar>i\<bar>) (nat \<bar>j\<bar>))"
 
 lemma dvd_zlcm_self1[simp, algebra]: "i dvd zlcm i j"
 by(simp add:zlcm_def dvd_int_iff)
@@ -729,7 +729,7 @@ by(simp add:zlcm_def dvd_int_iff)
 lemma dvd_imp_dvd_zlcm1:
   assumes "k dvd i" shows "k dvd (zlcm i j)"
 proof -
-  have "nat(abs k) dvd nat(abs i)" using \<open>k dvd i\<close>
+  have "nat \<bar>k\<bar> dvd nat \<bar>i\<bar>" using \<open>k dvd i\<close>
     by(simp add:int_dvd_iff[symmetric] dvd_int_iff[symmetric])
   thus ?thesis by(simp add:zlcm_def dvd_int_iff)(blast intro: dvd_trans)
 qed
@@ -737,16 +737,16 @@ qed
 lemma dvd_imp_dvd_zlcm2:
   assumes "k dvd j" shows "k dvd (zlcm i j)"
 proof -
-  have "nat(abs k) dvd nat(abs j)" using \<open>k dvd j\<close>
+  have "nat \<bar>k\<bar> dvd nat \<bar>j\<bar>" using \<open>k dvd j\<close>
     by(simp add:int_dvd_iff[symmetric] dvd_int_iff[symmetric])
   thus ?thesis by(simp add:zlcm_def dvd_int_iff)(blast intro: dvd_trans)
 qed
 
 
-lemma zdvd_self_abs1: "(d::int) dvd (abs d)"
+lemma zdvd_self_abs1: "(d::int) dvd \<bar>d\<bar>"
 by (case_tac "d <0", simp_all)
 
-lemma zdvd_self_abs2: "(abs (d::int)) dvd d"
+lemma zdvd_self_abs2: "\<bar>d::int\<bar> dvd d"
 by (case_tac "d<0", simp_all)
 
 (* lcm a b is positive for positive a and b *)
@@ -776,8 +776,8 @@ lemma zlcm_pos:
   and bnz: "b \<noteq> 0" 
   shows "0 < zlcm a b"
 proof-
-  let ?na = "nat (abs a)"
-  let ?nb = "nat (abs b)"
+  let ?na = "nat \<bar>a\<bar>"
+  let ?nb = "nat \<bar>b\<bar>"
   have nap: "?na >0" using anz by simp
   have nbp: "?nb >0" using bnz by simp
   have "0 < lcm ?na ?nb" by (rule lcm_pos[OF nap nbp])

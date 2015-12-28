@@ -103,14 +103,14 @@ done
 lemma hypreal_sqrt_ge_zero: "0 \<le> x ==> 0 \<le> ( *f* sqrt)(x)"
 by (auto intro: hypreal_sqrt_gt_zero simp add: order_le_less)
 
-lemma hypreal_sqrt_hrabs [simp]: "!!x. ( *f* sqrt)(x\<^sup>2) = abs(x)"
+lemma hypreal_sqrt_hrabs [simp]: "!!x. ( *f* sqrt)(x\<^sup>2) = \<bar>x\<bar>"
 by (transfer, simp)
 
-lemma hypreal_sqrt_hrabs2 [simp]: "!!x. ( *f* sqrt)(x*x) = abs(x)"
+lemma hypreal_sqrt_hrabs2 [simp]: "!!x. ( *f* sqrt)(x*x) = \<bar>x\<bar>"
 by (transfer, simp)
 
 lemma hypreal_sqrt_hyperpow_hrabs [simp]:
-     "!!x. ( *f* sqrt)(x pow (hypnat_of_nat 2)) = abs(x)"
+     "!!x. ( *f* sqrt)(x pow (hypnat_of_nat 2)) = \<bar>x\<bar>"
 by (transfer, simp)
 
 lemma star_sqrt_HFinite: "\<lbrakk>x \<in> HFinite; 0 \<le> x\<rbrakk> \<Longrightarrow> ( *f* sqrt) x \<in> HFinite"

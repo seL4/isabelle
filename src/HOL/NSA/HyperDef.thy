@@ -216,8 +216,7 @@ by (simp only: star_zero_def star_of_def)
 lemma star_n_one_num: "1 = star_n (%n. 1)"
 by (simp only: star_one_def star_of_def)
 
-lemma star_n_abs:
-     "abs (star_n X) = star_n (%n. abs (X n))"
+lemma star_n_abs: "\<bar>star_n X\<bar> = star_n (%n. \<bar>X n\<bar>)"
 by (simp only: star_abs_def starfun_star_n)
 
 lemma hypreal_omega_gt_zero [simp]: "0 < omega"
@@ -280,17 +279,16 @@ by (simp add: hypreal_epsilon_inverse_omega)
 
 subsection{*Absolute Value Function for the Hyperreals*}
 
-lemma hrabs_add_less:
-     "[| abs x < r; abs y < s |] ==> abs(x+y) < r + (s::hypreal)"
+lemma hrabs_add_less: "[| \<bar>x\<bar> < r; \<bar>y\<bar> < s |] ==> \<bar>x + y\<bar> < r + (s::hypreal)"
 by (simp add: abs_if split: split_if_asm)
 
-lemma hrabs_less_gt_zero: "abs x < r ==> (0::hypreal) < r"
+lemma hrabs_less_gt_zero: "\<bar>x\<bar> < r ==> (0::hypreal) < r"
 by (blast intro!: order_le_less_trans abs_ge_zero)
 
-lemma hrabs_disj: "abs x = (x::'a::abs_if) | abs x = -x"
+lemma hrabs_disj: "\<bar>x\<bar> = (x::'a::abs_if) \<or> \<bar>x\<bar> = -x"
 by (simp add: abs_if)
 
-lemma hrabs_add_lemma_disj: "(y::hypreal) + - x + (y + - z) = abs (x + - z) ==> y = z | x = y"
+lemma hrabs_add_lemma_disj: "(y::hypreal) + - x + (y + - z) = \<bar>x + - z\<bar> ==> y = z | x = y"
 by (simp add: abs_if split add: split_if_asm)
 
 
@@ -364,8 +362,7 @@ by (simp only: hypreal_three_squares_add_zero_iff hrealpow_two)
 
 (*FIXME: This and RealPow.abs_realpow_two should be replaced by an abstract
   result proved in Rings or Fields*)
-lemma hrabs_hrealpow_two [simp]:
-     "abs(x ^ Suc (Suc 0)) = (x::hypreal) ^ Suc (Suc 0)"
+lemma hrabs_hrealpow_two [simp]: "\<bar>x ^ Suc (Suc 0)\<bar> = (x::hypreal) ^ Suc (Suc 0)"
 by (simp add: abs_mult)
 
 lemma two_hrealpow_ge_one [simp]: "(1::hypreal) \<le> 2 ^ n"
@@ -427,7 +424,7 @@ lemma hyperpow_inverse:
 by transfer (rule power_inverse [symmetric])
 
 lemma hyperpow_hrabs:
-  "\<And>r n. abs (r::'a::{linordered_idom} star) pow n = abs (r pow n)"
+  "\<And>r n. \<bar>r::'a::{linordered_idom} star\<bar> pow n = \<bar>r pow n\<bar>"
 by transfer (rule power_abs [symmetric])
 
 lemma hyperpow_add:
@@ -460,7 +457,7 @@ lemma hyperpow_eq_one [simp]:
 by transfer (rule power_one)
 
 lemma hrabs_hyperpow_minus [simp]:
-  "\<And>(a::'a::{linordered_idom} star) n. abs((-a) pow n) = abs (a pow n)"
+  "\<And>(a::'a::{linordered_idom} star) n. \<bar>(-a) pow n\<bar> = \<bar>a pow n\<bar>"
 by transfer (rule abs_power_minus)
 
 lemma hyperpow_mult:
@@ -473,12 +470,12 @@ lemma hyperpow_two_le [simp]:
 by (auto simp add: hyperpow_two zero_le_mult_iff)
 
 lemma hrabs_hyperpow_two [simp]:
-  "abs(x pow 2) =
+  "\<bar>x pow 2\<bar> =
    (x::'a::{monoid_mult,linordered_ring_strict} star) pow 2"
 by (simp only: abs_of_nonneg hyperpow_two_le)
 
 lemma hyperpow_two_hrabs [simp]:
-  "abs(x::'a::{linordered_idom} star) pow 2 = x pow 2"
+  "\<bar>x::'a::{linordered_idom} star\<bar> pow 2 = x pow 2"
 by (simp add: hyperpow_hrabs)
 
 text{*The precondition could be weakened to @{term "0\<le>x"}*}

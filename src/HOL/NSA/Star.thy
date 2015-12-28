@@ -282,8 +282,7 @@ by (transfer, simp)
 text{*Alternative definition for hrabs with rabs function
    applied entrywise to equivalence class representative.
    This is easily proved using starfun and ns extension thm*}
-lemma hypreal_hrabs:
-     "abs (star_n X) = star_n (%n. abs (X n))"
+lemma hypreal_hrabs: "\<bar>star_n X\<bar> = star_n (%n. \<bar>X n\<bar>)"
 by (simp only: starfun_rabs_hrabs [symmetric] starfun)
 
 text{*nonstandard extension of set through nonstandard extension
@@ -291,13 +290,12 @@ text{*nonstandard extension of set through nonstandard extension
    where we replace rabs by some arbitrary function f and hrabs
    by its NS extenson. See second NS set extension below.*}
 lemma STAR_rabs_add_minus:
-   "*s* {x. abs (x + - y) < r} =
-     {x. abs(x + -star_of y) < star_of r}"
+   "*s* {x. \<bar>x + - y\<bar> < r} = {x. \<bar>x + -star_of y\<bar> < star_of r}"
 by (transfer, rule refl)
 
 lemma STAR_starfun_rabs_add_minus:
-  "*s* {x. abs (f x + - y) < r} =
-       {x. abs(( *f* f) x + -star_of y) < star_of r}"
+  "*s* {x. \<bar>f x + - y\<bar> < r} =
+       {x. \<bar>( *f* f) x + -star_of y\<bar> < star_of r}"
 by (transfer, rule refl)
 
 text{*Another characterization of Infinitesimal and one of @= relation.

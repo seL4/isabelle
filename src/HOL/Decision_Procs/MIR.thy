@@ -48,19 +48,19 @@ lemma int_rdvd_iff: "(real_of_int (i::int) rdvd real_of_int t) = (i dvd t)"
   by (auto simp add: rdvd_def dvd_def) (rule_tac x="k" in exI, simp only: of_int_mult[symmetric])
 
 
-lemma rdvd_abs1: "(abs (real_of_int d) rdvd t) = (real_of_int (d ::int) rdvd t)"
+lemma rdvd_abs1: "(\<bar>real_of_int d\<bar> rdvd t) = (real_of_int (d ::int) rdvd t)"
 proof
   assume d: "real_of_int d rdvd t"
   from d int_rdvd_real have d2: "d dvd \<lfloor>t\<rfloor>" and ti: "real_of_int \<lfloor>t\<rfloor> = t"
     by auto
 
-  from iffD2[OF abs_dvd_iff] d2 have "(abs d) dvd \<lfloor>t\<rfloor>" by blast
-  with ti int_rdvd_real[symmetric] have "real_of_int (abs d) rdvd t" by blast
-  thus "abs (real_of_int d) rdvd t" by simp
+  from iffD2[OF abs_dvd_iff] d2 have "\<bar>d\<bar> dvd \<lfloor>t\<rfloor>" by blast
+  with ti int_rdvd_real[symmetric] have "real_of_int \<bar>d\<bar> rdvd t" by blast
+  thus "\<bar>real_of_int d\<bar> rdvd t" by simp
 next
-  assume "abs (real_of_int d) rdvd t" hence "real_of_int (abs d) rdvd t" by simp
-  with int_rdvd_real[where i="abs d" and x="t"]
-  have d2: "abs d dvd \<lfloor>t\<rfloor>" and ti: "real_of_int \<lfloor>t\<rfloor> = t"
+  assume "\<bar>real_of_int d\<bar> rdvd t" hence "real_of_int \<bar>d\<bar> rdvd t" by simp
+  with int_rdvd_real[where i="\<bar>d\<bar>" and x="t"]
+  have d2: "\<bar>d\<bar> dvd \<lfloor>t\<rfloor>" and ti: "real_of_int \<lfloor>t\<rfloor> = t"
     by auto
   from iffD1[OF abs_dvd_iff] d2 have "d dvd \<lfloor>t\<rfloor>" by blast
   with ti int_rdvd_real[symmetric] show "real_of_int d rdvd t" by blast
@@ -528,9 +528,9 @@ definition lex_bnd :: "num \<Rightarrow> num \<Rightarrow> bool" where
   "lex_bnd t s \<equiv> lex_ns (bnds t) (bnds s)"
 
 fun maxcoeff:: "num \<Rightarrow> int" where
-  "maxcoeff (C i) = abs i"
-| "maxcoeff (CN n c t) = max (abs c) (maxcoeff t)"
-| "maxcoeff (CF c t s) = max (abs c) (maxcoeff s)"
+  "maxcoeff (C i) = \<bar>i\<bar>"
+| "maxcoeff (CN n c t) = max \<bar>c\<bar> (maxcoeff t)"
+| "maxcoeff (CF c t s) = max \<bar>c\<bar> (maxcoeff s)"
 | "maxcoeff t = 1"
 
 lemma maxcoeff_pos: "maxcoeff t \<ge> 0"
@@ -602,9 +602,9 @@ next
 qed (auto simp add: numgcd_def gp)
 
 fun ismaxcoeff:: "num \<Rightarrow> int \<Rightarrow> bool" where
-  "ismaxcoeff (C i) = (\<lambda> x. abs i \<le> x)"
-| "ismaxcoeff (CN n c t) = (\<lambda>x. abs c \<le> x \<and> (ismaxcoeff t x))"
-| "ismaxcoeff (CF c s t) = (\<lambda>x. abs c \<le> x \<and> (ismaxcoeff t x))"
+  "ismaxcoeff (C i) = (\<lambda> x. \<bar>i\<bar> \<le> x)"
+| "ismaxcoeff (CN n c t) = (\<lambda>x. \<bar>c\<bar> \<le> x \<and> (ismaxcoeff t x))"
+| "ismaxcoeff (CF c s t) = (\<lambda>x. \<bar>c\<bar> \<le> x \<and> (ismaxcoeff t x))"
 | "ismaxcoeff t = (\<lambda>x. True)"
 
 lemma ismaxcoeff_mono: "ismaxcoeff t c \<Longrightarrow> c \<le> c' \<Longrightarrow> ismaxcoeff t c'"
@@ -614,7 +614,7 @@ lemma maxcoeff_ismaxcoeff: "ismaxcoeff t (maxcoeff t)"
 proof (induct t rule: maxcoeff.induct)
   case (2 n c t)
   hence H:"ismaxcoeff t (maxcoeff t)" .
-  have thh: "maxcoeff t \<le> max (abs c) (maxcoeff t)" by simp
+  have thh: "maxcoeff t \<le> max \<bar>c\<bar> (maxcoeff t)" by simp
   from ismaxcoeff_mono[OF H thh] show ?case by simp
 next
   case (3 c t s)
@@ -623,12 +623,12 @@ next
   from ismaxcoeff_mono[OF H1 thh1] show ?case by simp
 qed simp_all
 
-lemma zgcd_gt1: "gcd i j > (1::int) \<Longrightarrow> ((abs i > 1 \<and> abs j > 1) \<or> (abs i = 0 \<and> abs j > 1) \<or> (abs i > 1 \<and> abs j = 0))"
+lemma zgcd_gt1: "gcd i j > (1::int) \<Longrightarrow> ((\<bar>i\<bar> > 1 \<and> \<bar>j\<bar> > 1) \<or> (\<bar>i\<bar> = 0 \<and> \<bar>j\<bar> > 1) \<or> (\<bar>i\<bar> > 1 \<and> \<bar>j\<bar> = 0))"
   apply (unfold gcd_int_def)
   apply (cases "i = 0", simp_all)
   apply (cases "j = 0", simp_all)
-  apply (cases "abs i = 1", simp_all)
-  apply (cases "abs j = 1", simp_all)
+  apply (cases "\<bar>i\<bar> = 1", simp_all)
+  apply (cases "\<bar>j\<bar> = 1", simp_all)
   apply auto
   done
 
@@ -644,17 +644,17 @@ proof(induct t rule: numgcdh.induct)
   let ?g = "numgcdh t m"
   from 2 have th:"gcd c ?g > 1" by simp
   from zgcd_gt1[OF th] numgcdh_pos[OF mp, where t="t"]
-  have "(abs c > 1 \<and> ?g > 1) \<or> (abs c = 0 \<and> ?g > 1) \<or> (abs c > 1 \<and> ?g = 0)" by simp
-  moreover {assume "abs c > 1" and gp: "?g > 1" with 2
+  have "(\<bar>c\<bar> > 1 \<and> ?g > 1) \<or> (\<bar>c\<bar> = 0 \<and> ?g > 1) \<or> (\<bar>c\<bar> > 1 \<and> ?g = 0)" by simp
+  moreover {assume "\<bar>c\<bar> > 1" and gp: "?g > 1" with 2
     have th: "dvdnumcoeff t ?g" by simp
     have th': "gcd c ?g dvd ?g" by simp
     from dvdnumcoeff_trans[OF th' th] have ?case by simp }
-  moreover {assume "abs c = 0 \<and> ?g > 1"
+  moreover {assume "\<bar>c\<bar> = 0 \<and> ?g > 1"
     with 2 have th: "dvdnumcoeff t ?g" by simp
     have th': "gcd c ?g dvd ?g" by simp
     from dvdnumcoeff_trans[OF th' th] have ?case by simp
     hence ?case by simp }
-  moreover {assume "abs c > 1" and g0:"?g = 0"
+  moreover {assume "\<bar>c\<bar> > 1" and g0:"?g = 0"
     from numgcdh0[OF g0] have "m=0". with 2 g0 have ?case by simp }
   ultimately show ?case by blast
 next
@@ -662,17 +662,17 @@ next
   let ?g = "numgcdh t m"
   from 3 have th:"gcd c ?g > 1" by simp
   from zgcd_gt1[OF th] numgcdh_pos[OF mp, where t="t"]
-  have "(abs c > 1 \<and> ?g > 1) \<or> (abs c = 0 \<and> ?g > 1) \<or> (abs c > 1 \<and> ?g = 0)" by simp
-  moreover {assume "abs c > 1" and gp: "?g > 1" with 3
+  have "(\<bar>c\<bar> > 1 \<and> ?g > 1) \<or> (\<bar>c\<bar> = 0 \<and> ?g > 1) \<or> (\<bar>c\<bar> > 1 \<and> ?g = 0)" by simp
+  moreover {assume "\<bar>c\<bar> > 1" and gp: "?g > 1" with 3
     have th: "dvdnumcoeff t ?g" by simp
     have th': "gcd c ?g dvd ?g" by simp
     from dvdnumcoeff_trans[OF th' th] have ?case by simp }
-  moreover {assume "abs c = 0 \<and> ?g > 1"
+  moreover {assume "\<bar>c\<bar> = 0 \<and> ?g > 1"
     with 3 have th: "dvdnumcoeff t ?g" by simp
     have th': "gcd c ?g dvd ?g" by simp
     from dvdnumcoeff_trans[OF th' th] have ?case by simp
     hence ?case by simp }
-  moreover {assume "abs c > 1" and g0:"?g = 0"
+  moreover {assume "\<bar>c\<bar> > 1" and g0:"?g = 0"
     from numgcdh0[OF g0] have "m=0". with 3 g0 have ?case by simp }
   ultimately show ?case by blast
 qed auto
@@ -904,15 +904,15 @@ lemma simpnum_nz: "nozerocoeff (simpnum t)"
 lemma maxcoeff_nz: "nozerocoeff t \<Longrightarrow> maxcoeff t = 0 \<Longrightarrow> t = C 0"
 proof (induct t rule: maxcoeff.induct)
   case (2 n c t)
-  hence cnz: "c \<noteq>0" and mx: "max (abs c) (maxcoeff t) = 0" by simp+
-  have "max (abs c) (maxcoeff t) \<ge> abs c" by simp
-  with cnz have "max (abs c) (maxcoeff t) > 0" by arith
+  hence cnz: "c \<noteq>0" and mx: "max \<bar>c\<bar> (maxcoeff t) = 0" by simp+
+  have "max \<bar>c\<bar> (maxcoeff t) \<ge> \<bar>c\<bar>" by simp
+  with cnz have "max \<bar>c\<bar> (maxcoeff t) > 0" by arith
   with 2 show ?case by simp
 next
   case (3 c s t)
-  hence cnz: "c \<noteq>0" and mx: "max (abs c) (maxcoeff t) = 0" by simp+
-  have "max (abs c) (maxcoeff t) \<ge> abs c" by simp
-  with cnz have "max (abs c) (maxcoeff t) > 0" by arith
+  hence cnz: "c \<noteq>0" and mx: "max \<bar>c\<bar> (maxcoeff t) = 0" by simp+
+  have "max \<bar>c\<bar> (maxcoeff t) \<ge> \<bar>c\<bar>" by simp
+  with cnz have "max \<bar>c\<bar> (maxcoeff t) > 0" by arith
   with 3 show ?case by simp
 qed auto
 
@@ -1152,10 +1152,10 @@ function (sequential) simpfm :: "fm \<Rightarrow> fm" where
 | "simpfm (Eq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v = 0)  then T else F | _ \<Rightarrow> Eq (reducecoeff a'))"
 | "simpfm (NEq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<noteq> 0)  then T else F | _ \<Rightarrow> NEq (reducecoeff a'))"
 | "simpfm (Dvd i a) = (if i=0 then simpfm (Eq a)
-             else if (abs i = 1) \<and> check_int a then T
+             else if (\<bar>i\<bar> = 1) \<and> check_int a then T
              else let a' = simpnum a in case a' of C v \<Rightarrow> if (i dvd v)  then T else F | _ \<Rightarrow> (let (d,t) = simpdvd i a' in Dvd d t))"
 | "simpfm (NDvd i a) = (if i=0 then simpfm (NEq a)
-             else if (abs i = 1) \<and> check_int a then F
+             else if (\<bar>i\<bar> = 1) \<and> check_int a then F
              else let a' = simpnum a in case a' of C v \<Rightarrow> if (\<not>(i dvd v)) then T else F | _ \<Rightarrow> (let (d,t) = simpdvd i a' in NDvd d t))"
 | "simpfm p = p"
 by pat_completeness auto
@@ -1266,10 +1266,10 @@ next
   ultimately show ?case by blast
 next
   case (12 i a)  let ?sa = "simpnum a"   have sa: "Inum bs ?sa = Inum bs a" by simp
-  have "i=0 \<or> (abs i = 1 \<and> check_int a) \<or> (i\<noteq>0 \<and> ((abs i \<noteq> 1) \<or> (\<not> check_int a)))" by auto
+  have "i=0 \<or> (\<bar>i\<bar> = 1 \<and> check_int a) \<or> (i\<noteq>0 \<and> ((\<bar>i\<bar> \<noteq> 1) \<or> (\<not> check_int a)))" by auto
   {assume "i=0" hence ?case using "12.hyps" by (simp add: rdvd_left_0_eq Let_def)}
   moreover
-  {assume ai1: "abs i = 1" and ai: "check_int a"
+  {assume ai1: "\<bar>i\<bar> = 1" and ai: "check_int a"
     hence "i=1 \<or> i= - 1" by arith
     moreover {assume i1: "i = 1"
       from rdvd_left1_int[OF check_int[OF ai, simplified isint_iff]]
@@ -1280,9 +1280,9 @@ next
       have ?case using i1 ai by simp }
     ultimately have ?case by blast}
   moreover
-  {assume inz: "i\<noteq>0" and cond: "(abs i \<noteq> 1) \<or> (\<not> check_int a)"
+  {assume inz: "i\<noteq>0" and cond: "(\<bar>i\<bar> \<noteq> 1) \<or> (\<not> check_int a)"
     {fix v assume "?sa = C v" hence ?case using sa[symmetric] inz cond
-        by (cases "abs i = 1", auto simp add: int_rdvd_iff) }
+        by (cases "\<bar>i\<bar> = 1", auto simp add: int_rdvd_iff) }
     moreover {assume H:"\<not> (\<exists> v. ?sa = C v)"
       hence th: "simpfm (Dvd i a) = Dvd (fst (simpdvd i ?sa)) (snd (simpdvd i ?sa))" using inz cond by (cases ?sa, auto simp add: Let_def split_def)
       from simpnum_nz have nz:"nozerocoeff ?sa" by simp
@@ -1291,10 +1291,10 @@ next
   ultimately show ?case by blast
 next
   case (13 i a)  let ?sa = "simpnum a"   have sa: "Inum bs ?sa = Inum bs a" by simp
-  have "i=0 \<or> (abs i = 1 \<and> check_int a) \<or> (i\<noteq>0 \<and> ((abs i \<noteq> 1) \<or> (\<not> check_int a)))" by auto
+  have "i=0 \<or> (\<bar>i\<bar> = 1 \<and> check_int a) \<or> (i\<noteq>0 \<and> ((\<bar>i\<bar> \<noteq> 1) \<or> (\<not> check_int a)))" by auto
   {assume "i=0" hence ?case using "13.hyps" by (simp add: rdvd_left_0_eq Let_def)}
   moreover
-  {assume ai1: "abs i = 1" and ai: "check_int a"
+  {assume ai1: "\<bar>i\<bar> = 1" and ai: "check_int a"
     hence "i=1 \<or> i= - 1" by arith
     moreover {assume i1: "i = 1"
       from rdvd_left1_int[OF check_int[OF ai, simplified isint_iff]]
@@ -1305,9 +1305,9 @@ next
       have ?case using i1 ai by simp }
     ultimately have ?case by blast}
   moreover
-  {assume inz: "i\<noteq>0" and cond: "(abs i \<noteq> 1) \<or> (\<not> check_int a)"
+  {assume inz: "i\<noteq>0" and cond: "(\<bar>i\<bar> \<noteq> 1) \<or> (\<not> check_int a)"
     {fix v assume "?sa = C v" hence ?case using sa[symmetric] inz cond
-        by (cases "abs i = 1", auto simp add: int_rdvd_iff) }
+        by (cases "\<bar>i\<bar> = 1", auto simp add: int_rdvd_iff) }
     moreover {assume H:"\<not> (\<exists> v. ?sa = C v)"
       hence th: "simpfm (NDvd i a) = NDvd (fst (simpdvd i ?sa)) (snd (simpdvd i ?sa))" using inz cond
         by (cases ?sa, auto simp add: Let_def split_def)
@@ -1599,14 +1599,14 @@ recdef zlfm "measure fmsize"
       else (Or (NEq (CN 0 (-c) (Floor (Neg r)))) (NEq (Add (Floor (Neg r)) r))))"
   "zlfm (Dvd i a) = (if i=0 then zlfm (Eq a)
   else (let (c,r) = zsplit0 a in
-              if c=0 then Dvd (abs i) r else
-      if c>0 then And (Eq (Sub (Floor r) r)) (Dvd (abs i) (CN 0 c (Floor r)))
-      else And (Eq (Sub (Floor r) r)) (Dvd (abs i) (CN 0 (-c) (Neg (Floor r))))))"
+              if c=0 then Dvd \<bar>i\<bar> r else
+      if c>0 then And (Eq (Sub (Floor r) r)) (Dvd \<bar>i\<bar> (CN 0 c (Floor r)))
+      else And (Eq (Sub (Floor r) r)) (Dvd \<bar>i\<bar> (CN 0 (-c) (Neg (Floor r))))))"
   "zlfm (NDvd i a) = (if i=0 then zlfm (NEq a)
   else (let (c,r) = zsplit0 a in
-              if c=0 then NDvd (abs i) r else
-      if c>0 then Or (NEq (Sub (Floor r) r)) (NDvd (abs i) (CN 0 c (Floor r)))
-      else Or (NEq (Sub (Floor r) r)) (NDvd (abs i) (CN 0 (-c) (Neg (Floor r))))))"
+              if c=0 then NDvd \<bar>i\<bar> r else
+      if c>0 then Or (NEq (Sub (Floor r) r)) (NDvd \<bar>i\<bar> (CN 0 c (Floor r)))
+      else Or (NEq (Sub (Floor r) r)) (NDvd \<bar>i\<bar> (CN 0 (-c) (Neg (Floor r))))))"
   "zlfm (NOT (And p q)) = disj (zlfm (NOT p)) (zlfm (NOT q))"
   "zlfm (NOT (Or p q)) = conj (zlfm (NOT p)) (zlfm (NOT q))"
   "zlfm (NOT (Imp p q)) = conj (zlfm p) (zlfm (NOT q))"
@@ -1865,11 +1865,11 @@ next
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Dvd j a) = (real_of_int j rdvd (real_of_int (?c * i) + (?N ?r)))"
       using Ia by (simp add: Let_def split_def)
-    also have "\<dots> = (real_of_int (abs j) rdvd real_of_int (?c*i) + (?N ?r))"
+    also have "\<dots> = (real_of_int \<bar>j\<bar> rdvd real_of_int (?c*i) + (?N ?r))"
       by (simp only: rdvd_abs1[where d="j" and t="real_of_int (?c*i) + ?N ?r", symmetric]) simp
-    also have "\<dots> = ((abs j) dvd \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> \<and>
+    also have "\<dots> = (\<bar>j\<bar> dvd \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> \<and>
        (real_of_int \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> = (real_of_int (?c*i) + (?N ?r))))"
-      by(simp only: int_rdvd_real[where i="abs j" and x="real_of_int (?c*i) + (?N ?r)"]) (simp only: ac_simps)
+      by(simp only: int_rdvd_real[where i="\<bar>j\<bar>" and x="real_of_int (?c*i) + (?N ?r)"]) (simp only: ac_simps)
     also have "\<dots> = (?I (?l (Dvd j a)))" using cp cnz jnz
       by (simp add: Let_def split_def int_rdvd_iff[symmetric]
         del: of_int_mult) (auto simp add: ac_simps)
@@ -1879,13 +1879,13 @@ next
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Dvd j a) = (real_of_int j rdvd (real_of_int (?c * i) + (?N ?r)))"
       using Ia by (simp add: Let_def split_def)
-    also have "\<dots> = (real_of_int (abs j) rdvd real_of_int (?c*i) + (?N ?r))"
+    also have "\<dots> = (real_of_int \<bar>j\<bar> rdvd real_of_int (?c*i) + (?N ?r))"
       by (simp only: rdvd_abs1[where d="j" and t="real_of_int (?c*i) + ?N ?r", symmetric]) simp
-    also have "\<dots> = ((abs j) dvd \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> \<and>
+    also have "\<dots> = (\<bar>j\<bar> dvd \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> \<and>
        (real_of_int \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> = (real_of_int (?c*i) + (?N ?r))))"
-      by(simp only: int_rdvd_real[where i="abs j" and x="real_of_int (?c*i) + (?N ?r)"]) (simp only: ac_simps)
+      by(simp only: int_rdvd_real[where i="\<bar>j\<bar>" and x="real_of_int (?c*i) + (?N ?r)"]) (simp only: ac_simps)
     also have "\<dots> = (?I (?l (Dvd j a)))" using cn cnz jnz
-      using rdvd_minus [where d="abs j" and t="real_of_int (?c*i + \<lfloor>?N ?r\<rfloor>)", simplified, symmetric]
+      using rdvd_minus [where d="\<bar>j\<bar>" and t="real_of_int (?c*i + \<lfloor>?N ?r\<rfloor>)", simplified, symmetric]
       by (simp add: Let_def split_def int_rdvd_iff[symmetric]
         del: of_int_mult) (auto simp add: ac_simps)
     finally have ?case using l jnz by blast }
@@ -1911,11 +1911,11 @@ next
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (NDvd j a) = (\<not> (real_of_int j rdvd (real_of_int (?c * i) + (?N ?r))))"
       using Ia by (simp add: Let_def split_def)
-    also have "\<dots> = (\<not> (real_of_int (abs j) rdvd real_of_int (?c*i) + (?N ?r)))"
+    also have "\<dots> = (\<not> (real_of_int \<bar>j\<bar> rdvd real_of_int (?c*i) + (?N ?r)))"
       by (simp only: rdvd_abs1[where d="j" and t="real_of_int (?c*i) + ?N ?r", symmetric]) simp
-    also have "\<dots> = (\<not> ((abs j) dvd \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> \<and>
+    also have "\<dots> = (\<not> (\<bar>j\<bar> dvd \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> \<and>
        (real_of_int \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> = (real_of_int (?c*i) + (?N ?r)))))"
-      by(simp only: int_rdvd_real[where i="abs j" and x="real_of_int (?c*i) + (?N ?r)"]) (simp only: ac_simps)
+      by(simp only: int_rdvd_real[where i="\<bar>j\<bar>" and x="real_of_int (?c*i) + (?N ?r)"]) (simp only: ac_simps)
     also have "\<dots> = (?I (?l (NDvd j a)))" using cp cnz jnz
       by (simp add: Let_def split_def int_rdvd_iff[symmetric]
         del: of_int_mult) (auto simp add: ac_simps)
@@ -1925,13 +1925,13 @@ next
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (NDvd j a) = (\<not> (real_of_int j rdvd (real_of_int (?c * i) + (?N ?r))))"
       using Ia by (simp add: Let_def split_def)
-    also have "\<dots> = (\<not> (real_of_int (abs j) rdvd real_of_int (?c*i) + (?N ?r)))"
+    also have "\<dots> = (\<not> (real_of_int \<bar>j\<bar> rdvd real_of_int (?c*i) + (?N ?r)))"
       by (simp only: rdvd_abs1[where d="j" and t="real_of_int (?c*i) + ?N ?r", symmetric]) simp
-    also have "\<dots> = (\<not> ((abs j) dvd \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> \<and>
+    also have "\<dots> = (\<not> (\<bar>j\<bar> dvd \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> \<and>
        (real_of_int \<lfloor>(?N ?r) + real_of_int (?c*i)\<rfloor> = (real_of_int (?c*i) + (?N ?r)))))"
-      by(simp only: int_rdvd_real[where i="abs j" and x="real_of_int (?c*i) + (?N ?r)"]) (simp only: ac_simps)
+      by(simp only: int_rdvd_real[where i="\<bar>j\<bar>" and x="real_of_int (?c*i) + (?N ?r)"]) (simp only: ac_simps)
     also have "\<dots> = (?I (?l (NDvd j a)))" using cn cnz jnz
-      using rdvd_minus [where d="abs j" and t="real_of_int (?c*i + \<lfloor>?N ?r\<rfloor>)", simplified, symmetric]
+      using rdvd_minus [where d="\<bar>j\<bar>" and t="real_of_int (?c*i + \<lfloor>?N ?r\<rfloor>)", simplified, symmetric]
       by (simp add: Let_def split_def int_rdvd_iff[symmetric]
         del: of_int_mult) (auto simp add: ac_simps)
     finally have ?case using l jnz by blast }
@@ -3261,7 +3261,7 @@ proof-
     from iszlfm_gen [OF lp,rule_format, where y="a"] have lp':"iszlfm p (a#bs)" .
     from \<rho>'[OF lp' d dp, rule_format, OF nob] have th:"\<forall> x. ?P x \<longrightarrow> ?P (x - ?d)" by blast
     from minusinf_inf[OF lp] obtain z where z:"\<forall> x<z. ?MP x = ?P x" by blast
-    have zp: "abs (x - z) + 1 \<ge> 0" by arith
+    have zp: "\<bar>x - z\<bar> + 1 \<ge> 0" by arith
     from decr_lemma[OF dp,where x="x" and z="z"]
       decr_mult_lemma[OF dp th zp, rule_format, OF px] z have th:"\<exists> x. ?MP x" by auto
     with minusinf_bex[OF lp] px nob have ?thesis by blast}
@@ -3860,12 +3860,12 @@ qed
 definition DVD :: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm" where
   DVD_def: "DVD i c t =
   (if i=0 then eq c t else
-  if c = 0 then (Dvd i t) else if c >0 then DVDJ (abs i) c t else DVDJ (abs i) (-c) (Neg t))"
+  if c = 0 then (Dvd i t) else if c >0 then DVDJ \<bar>i\<bar> c t else DVDJ \<bar>i\<bar> (-c) (Neg t))"
 
 definition  NDVD :: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm" where
   "NDVD i c t =
   (if i=0 then neq c t else
-  if c = 0 then (NDvd i t) else if c >0 then NDVDJ (abs i) c t else NDVDJ (abs i) (-c) (Neg t))"
+  if c = 0 then (NDvd i t) else if c >0 then NDVDJ \<bar>i\<bar> c t else NDVDJ \<bar>i\<bar> (-c) (Neg t))"
 
 lemma DVD_mono:
   assumes xp: "0\<le> x" and x1: "x < 1"
@@ -5671,7 +5671,7 @@ lemma "\<forall>x::real. 2*\<lfloor>x\<rfloor> \<le> \<lfloor>2*x\<rfloor> \<and
 lemma "\<forall>x::real. \<exists>y \<le> x. (\<lfloor>x\<rfloor> = \<lceil>y\<rceil>)"
   by mir
 
-lemma "\<forall>(x::real) (y::real). \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<longrightarrow> 0 \<le> abs (y - x) \<and> abs (y - x) \<le> 1"
+lemma "\<forall>(x::real) (y::real). \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<longrightarrow> 0 \<le> \<bar>y - x\<bar> \<and> \<bar>y - x\<bar> \<le> 1"
   by mir
 
 end

@@ -499,7 +499,7 @@ lemma content_cbox':
 lemma content_real: "a \<le> b \<Longrightarrow> content {a..b} = b - a"
   by (auto simp: interval_upperbound_def interval_lowerbound_def SUP_def INF_def content_def)
 
-lemma abs_eq_content: "abs (y - x) = (if x\<le>y then content {x .. y} else content {y..x})"
+lemma abs_eq_content: "\<bar>y - x\<bar> = (if x\<le>y then content {x .. y} else content {y..x})"
   by (auto simp: content_real)
 
 lemma content_singleton[simp]: "content {a} = 0"
@@ -2116,7 +2116,7 @@ proof -
     proof (rule exI [where x=n], clarify)
       fix x y
       assume xy: "x\<in>cbox (A n) (B n)" "y\<in>cbox (A n) (B n)"
-      have "dist x y \<le> setsum (\<lambda>i. abs((x - y)\<bullet>i)) Basis"
+      have "dist x y \<le> setsum (\<lambda>i. \<bar>(x - y)\<bullet>i\<bar>) Basis"
         unfolding dist_norm by(rule norm_le_l1)
       also have "\<dots> \<le> setsum (\<lambda>i. B n\<bullet>i - A n\<bullet>i) Basis"
       proof (rule setsum_mono)
@@ -3140,7 +3140,7 @@ proof (unfold has_integral, rule, rule, goal_cases)
        apply (rule has_integralD[OF fj[unfolded interval_split[OF k]] e])
        apply (simp add: interval_split[symmetric] k)
        done
-  let ?d = "\<lambda>x. if x\<bullet>k = c then (d1 x \<inter> d2 x) else ball x (abs(x\<bullet>k - c)) \<inter> d1 x \<inter> d2 x"
+  let ?d = "\<lambda>x. if x\<bullet>k = c then (d1 x \<inter> d2 x) else ball x \<bar>x\<bullet>k - c\<bar> \<inter> d1 x \<inter> d2 x"
   have "gauge ?d"
     using d1 d2 unfolding gauge_def by auto
   then show ?case
@@ -4659,11 +4659,11 @@ lemma setsum_nonzero_image_lemma:
 lemma interval_doublesplit:
   fixes a :: "'a::euclidean_space"
   assumes "k \<in> Basis"
-  shows "cbox a b \<inter> {x . abs(x\<bullet>k - c) \<le> (e::real)} =
+  shows "cbox a b \<inter> {x . \<bar>x\<bullet>k - c\<bar> \<le> (e::real)} =
     cbox (\<Sum>i\<in>Basis. (if i = k then max (a\<bullet>k) (c - e) else a\<bullet>i) *\<^sub>R i)
      (\<Sum>i\<in>Basis. (if i = k then min (b\<bullet>k) (c + e) else b\<bullet>i) *\<^sub>R i)"
 proof -
-  have *: "\<And>x c e::real. abs(x - c) \<le> e \<longleftrightarrow> x \<ge> c - e \<and> x \<le> c + e"
+  have *: "\<And>x c e::real. \<bar>x - c\<bar> \<le> e \<longleftrightarrow> x \<ge> c - e \<and> x \<le> c + e"
     by auto
   have **: "\<And>s P Q. s \<inter> {x. P x \<and> Q x} = (s \<inter> {x. Q x}) \<inter> {x. P x}"
     by blast
@@ -4675,10 +4675,10 @@ lemma division_doublesplit:
   fixes a :: "'a::euclidean_space"
   assumes "p division_of (cbox a b)"
     and k: "k \<in> Basis"
-  shows "{l \<inter> {x. abs(x\<bullet>k - c) \<le> e} |l. l \<in> p \<and> l \<inter> {x. abs(x\<bullet>k - c) \<le> e} \<noteq> {}}
-         division_of  (cbox a b \<inter> {x. abs(x\<bullet>k - c) \<le> e})"
+  shows "{l \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> e} |l. l \<in> p \<and> l \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> e} \<noteq> {}}
+         division_of  (cbox a b \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> e})"
 proof -
-  have *: "\<And>x c. abs (x - c) \<le> e \<longleftrightarrow> x \<ge> c - e \<and> x \<le> c + e"
+  have *: "\<And>x c. \<bar>x - c\<bar> \<le> e \<longleftrightarrow> x \<ge> c - e \<and> x \<le> c + e"
     by auto
   have **: "\<And>p q p' q'. p division_of q \<Longrightarrow> p = p' \<Longrightarrow> q = q' \<Longrightarrow> p' division_of q'"
     by auto
@@ -4700,7 +4700,7 @@ lemma content_doublesplit:
   fixes a :: "'a::euclidean_space"
   assumes "0 < e"
     and k: "k \<in> Basis"
-  obtains d where "0 < d" and "content (cbox a b \<inter> {x. abs(x\<bullet>k - c) \<le> d}) < e"
+  obtains d where "0 < d" and "content (cbox a b \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d}) < e"
 proof (cases "content (cbox a b) = 0")
   case True
   then have ce: "content (cbox a b) < e"
@@ -4780,7 +4780,7 @@ proof (clarify, goal_cases)
     fix p
     assume p: "p tagged_division_of (cbox a b) \<and> (\<lambda>x. ball x d) fine p"
     have *: "(\<Sum>(x, ka)\<in>p. content ka *\<^sub>R ?i x) =
-      (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. abs(x\<bullet>k - c) \<le> d}) *\<^sub>R ?i x)"
+      (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d}) *\<^sub>R ?i x)"
       apply (rule setsum.cong)
       apply (rule refl)
       unfolding split_paired_all real_scaleR_def mult_cancel_right split_conv
@@ -6695,7 +6695,7 @@ lemma interval_image_affinity_interval:
 
 lemma content_image_affinity_cbox:
   "content((\<lambda>x::'a::euclidean_space. m *\<^sub>R x + c) ` cbox a b) =
-    abs m ^ DIM('a) * content (cbox a b)" (is "?l = ?r")
+    \<bar>m\<bar> ^ DIM('a) * content (cbox a b)" (is "?l = ?r")
 proof -
   {
     presume *: "cbox a b \<noteq> {} \<Longrightarrow> ?thesis"
@@ -6743,7 +6743,7 @@ lemma has_integral_affinity:
   fixes a :: "'a::euclidean_space"
   assumes "(f has_integral i) (cbox a b)"
       and "m \<noteq> 0"
-  shows "((\<lambda>x. f(m *\<^sub>R x + c)) has_integral ((1 / (abs(m) ^ DIM('a))) *\<^sub>R i)) ((\<lambda>x. (1 / m) *\<^sub>R x + -((1 / m) *\<^sub>R c)) ` cbox a b)"
+  shows "((\<lambda>x. f(m *\<^sub>R x + c)) has_integral ((1 / (\<bar>m\<bar> ^ DIM('a))) *\<^sub>R i)) ((\<lambda>x. (1 / m) *\<^sub>R x + -((1 / m) *\<^sub>R c)) ` cbox a b)"
   apply (rule has_integral_twiddle)
   using assms
   apply (safe intro!: interval_image_affinity_interval content_image_affinity_cbox)
@@ -6807,7 +6807,7 @@ lemma interval_image_stretch_interval:
 
 lemma content_image_stretch_interval:
   "content ((\<lambda>x::'a::euclidean_space. (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)::'a) ` cbox a b) =
-    abs (setprod m Basis) * content (cbox a b)"
+    \<bar>setprod m Basis\<bar> * content (cbox a b)"
 proof (cases "cbox a b = {}")
   case True
   then show ?thesis
@@ -6847,7 +6847,7 @@ lemma has_integral_stretch:
   assumes "(f has_integral i) (cbox a b)"
     and "\<forall>k\<in>Basis. m k \<noteq> 0"
   shows "((\<lambda>x. f (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)) has_integral
-    ((1/(abs(setprod m Basis))) *\<^sub>R i)) ((\<lambda>x. (\<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k)) ` cbox a b)"
+    ((1/ \<bar>setprod m Basis\<bar>) *\<^sub>R i)) ((\<lambda>x. (\<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k)) ` cbox a b)"
   apply (rule has_integral_twiddle[where f=f])
   unfolding zero_less_abs_iff content_image_stretch_interval
   unfolding image_stretch_interval empty_as_interval euclidean_eq_iff[where 'a='a]
@@ -8829,8 +8829,8 @@ proof (subst integrable_cauchy, safe, goal_cases)
     unfolding fine_inter
   proof (safe, goal_cases)
     have **: "\<And>i j g1 g2 h1 h2 f1 f2. g1 - h2 \<le> f1 - f2 \<Longrightarrow> f1 - f2 \<le> h1 - g2 \<Longrightarrow>
-      abs (i - j) < e / 3 \<Longrightarrow> abs (g2 - i) < e / 3 \<Longrightarrow>  abs (g1 - i) < e / 3 \<Longrightarrow>
-      abs (h2 - j) < e / 3 \<Longrightarrow> abs (h1 - j) < e / 3 \<Longrightarrow> abs (f1 - f2) < e"
+      \<bar>i - j\<bar> < e / 3 \<Longrightarrow> \<bar>g2 - i\<bar> < e / 3 \<Longrightarrow> \<bar>g1 - i\<bar> < e / 3 \<Longrightarrow>
+      \<bar>h2 - j\<bar> < e / 3 \<Longrightarrow> \<bar>h1 - j\<bar> < e / 3 \<Longrightarrow> \<bar>f1 - f2\<bar> < e"
     using \<open>e > 0\<close> by arith
     case prems: (1 p1 p2)
     note tagged_division_ofD(2-4) note * = this[OF prems(1)] this[OF prems(4)]
@@ -8996,9 +8996,9 @@ proof -
       have **: "ball 0 B1 \<subseteq> ball (0::'n) (max B1 B2)" "ball 0 B2 \<subseteq> ball (0::'n) (max B1 B2)"
         by auto
       have *: "\<And>ga gc ha hc fa fc::real.
-        abs (ga - i) < e / 3 \<and> abs (gc - i) < e / 3 \<and> abs (ha - j) < e / 3 \<and>
-        abs (hc - j) < e / 3 \<and> abs (i - j) < e / 3 \<and> ga \<le> fa \<and> fa \<le> ha \<and> gc \<le> fc \<and> fc \<le> hc \<Longrightarrow>
-        abs (fa - fc) < e"
+        \<bar>ga - i\<bar> < e / 3 \<and> \<bar>gc - i\<bar> < e / 3 \<and> \<bar>ha - j\<bar> < e / 3 \<and>
+        \<bar>hc - j\<bar> < e / 3 \<and> \<bar>i - j\<bar> < e / 3 \<and> ga \<le> fa \<and> fa \<le> ha \<and> gc \<le> fc \<and> fc \<le> hc \<Longrightarrow>
+        \<bar>fa - fc\<bar> < e"
         by (simp add: abs_real_def split: split_if_asm)
       show "norm (integral (cbox a b) (\<lambda>x. if x \<in> s then f x else 0) - integral (cbox c d)
         (\<lambda>x. if x \<in> s then f x else 0)) < e"
@@ -9875,7 +9875,7 @@ next
         case 3
         note comb = integral_combine_tagged_division_topdown[OF assms(1)[rule_format] p(1)]
         have *: "\<And>sr sx ss ks kr::real. kr = sr \<longrightarrow> ks = ss \<longrightarrow>
-          ks \<le> i \<and> sr \<le> sx \<and> sx \<le> ss \<and> 0 \<le> i\<bullet>1 - kr\<bullet>1 \<and> i\<bullet>1 - kr\<bullet>1 < e/4 \<longrightarrow> abs (sx - i) < e/4"
+          ks \<le> i \<and> sr \<le> sx \<and> sx \<le> ss \<and> 0 \<le> i\<bullet>1 - kr\<bullet>1 \<and> i\<bullet>1 - kr\<bullet>1 < e/4 \<longrightarrow> \<bar>sx - i\<bar> < e/4"
           by auto
         show ?case
           unfolding real_norm_def
@@ -10087,8 +10087,8 @@ proof -
           apply (subst norm_minus_commute)
           apply auto
           done
-        have *: "\<And>f1 f2 g. abs (f1 - i) < e / 2 \<longrightarrow> abs (f2 - g) < e / 2 \<longrightarrow>
-          f1 \<le> f2 \<longrightarrow> f2 \<le> i \<longrightarrow> abs (g - i) < e"
+        have *: "\<And>f1 f2 g. \<bar>f1 - i\<bar> < e / 2 \<longrightarrow> \<bar>f2 - g\<bar> < e / 2 \<longrightarrow>
+          f1 \<le> f2 \<longrightarrow> f2 \<le> i \<longrightarrow> \<bar>g - i\<bar> < e"
           unfolding real_inner_1_right by arith
         show "norm (integral (cbox a b) (\<lambda>x. if x \<in> s then g x else 0) - i) < e"
           unfolding real_norm_def
@@ -10305,7 +10305,7 @@ proof -
     done
   have norm: "norm ig < dia + e"
     if "norm sg \<le> dsa"
-    and "abs (dsa - dia) < e / 2"
+    and "\<bar>dsa - dia\<bar> < e / 2"
     and "norm (sg - ig) < e / 2"
     for e dsa dia and sg ig :: 'a
     apply (rule le_less_trans[OF norm_triangle_sub[of ig sg]])
@@ -10445,7 +10445,7 @@ lemma absolutely_integrable_cmul[intro]:
     (\<lambda>x. c *\<^sub>R f x) absolutely_integrable_on s"
   unfolding absolutely_integrable_on_def
   using integrable_cmul[of f s c]
-  using integrable_cmul[of "\<lambda>x. norm (f x)" s "abs c"]
+  using integrable_cmul[of "\<lambda>x. norm (f x)" s "\<bar>c\<bar>"]
   by auto
 
 lemma absolutely_integrable_neg[intro]:
@@ -10463,7 +10463,7 @@ lemma absolutely_integrable_norm[intro]:
 
 lemma absolutely_integrable_abs[intro]:
   "f absolutely_integrable_on s \<Longrightarrow>
-    (\<lambda>x. abs(f x::real)) absolutely_integrable_on s"
+    (\<lambda>x. \<bar>f x::real\<bar>) absolutely_integrable_on s"
   apply (drule absolutely_integrable_norm)
   unfolding real_norm_def
   apply assumption
@@ -10510,7 +10510,7 @@ qed
 lemma helplemma:
   assumes "setsum (\<lambda>x. norm (f x - g x)) s < e"
     and "finite s"
-  shows "abs (setsum (\<lambda>x. norm(f x)) s - setsum (\<lambda>x. norm(g x)) s) < e"
+  shows "\<bar>setsum (\<lambda>x. norm(f x)) s - setsum (\<lambda>x. norm(g x)) s\<bar> < e"
   unfolding setsum_subtractf[symmetric]
   apply (rule le_less_trans[OF setsum_abs])
   apply (rule le_less_trans[OF _ assms(1)])
@@ -10709,8 +10709,8 @@ proof -
         done
       note snd_p = division_ofD[OF division_of_tagged_division[OF p(1)]]
 
-      have *: "\<And>sni sni' sf sf'. abs (sf' - sni') < e / 2 \<longrightarrow> ?S - e / 2 < sni \<and> sni' \<le> ?S \<and>
-        sni \<le> sni' \<and> sf' = sf \<longrightarrow> abs (sf - ?S) < e"
+      have *: "\<And>sni sni' sf sf'. \<bar>sf' - sni'\<bar> < e / 2 \<longrightarrow> ?S - e / 2 < sni \<and> sni' \<le> ?S \<and>
+        sni \<le> sni' \<and> sf' = sf \<longrightarrow> \<bar>sf - ?S\<bar> < e"
         by arith
       show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - ?S) < e"
         unfolding real_norm_def
@@ -11061,7 +11061,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
     proof -
       fix a b :: 'n
       assume ab: "ball 0 (K + 1) \<subseteq> cbox a b"
-      have *: "\<forall>s s1. ?S - e < s1 \<and> s1 \<le> s \<and> s < ?S + e \<longrightarrow> abs (s - ?S) < e"
+      have *: "\<forall>s s1. ?S - e < s1 \<and> s1 \<le> s \<and> s < ?S + e \<longrightarrow> \<bar>s - ?S\<bar> < e"
         by arith
       show "norm (integral (cbox a b) (\<lambda>x. if x \<in> UNIV then norm (f x) else 0) - ?S) < e"
         unfolding real_norm_def
@@ -11121,8 +11121,8 @@ proof (rule absolutely_integrable_onI, fact, rule)
           p: "p tagged_division_of (cbox a b)" "d1 fine p" "d2 fine p"
           by (rule fine_division_exists [OF gauge_inter [OF d1(1) d2(1)], of a b])
             (auto simp add: fine_inter)
-        have *: "\<And>sf sf' si di. sf' = sf \<longrightarrow> si \<le> ?S \<longrightarrow> abs (sf - si) < e / 2 \<longrightarrow>
-          abs (sf' - di) < e / 2 \<longrightarrow> di < ?S + e"
+        have *: "\<And>sf sf' si di. sf' = sf \<longrightarrow> si \<le> ?S \<longrightarrow> \<bar>sf - si\<bar> < e / 2 \<longrightarrow>
+          \<bar>sf' - di\<bar> < e / 2 \<longrightarrow> di < ?S + e"
           by arith
         show "integral (cbox a b) (\<lambda>x. if x \<in> UNIV then norm (f x) else 0) < ?S + e"
           apply (subst if_P)
@@ -11136,7 +11136,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
             unfolding tagged_division_of_def split_def
             apply auto
             done
-          show "abs ((\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm(f x))) < e / 2"
+          show "\<bar>(\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm(f x))\<bar> < e / 2"
             using d1(2)[rule_format,OF conjI[OF p(1,2)]]
             by (simp only: real_norm_def)
           show "(\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) = (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x))"
@@ -11295,7 +11295,7 @@ lemma absolutely_integrable_vector_abs:
   fixes f :: "'a::euclidean_space => 'b::euclidean_space"
     and T :: "'c::euclidean_space \<Rightarrow> 'b"
   assumes f: "f absolutely_integrable_on s"
-  shows "(\<lambda>x. (\<Sum>i\<in>Basis. abs(f x\<bullet>T i) *\<^sub>R i)) absolutely_integrable_on s"
+  shows "(\<lambda>x. (\<Sum>i\<in>Basis. \<bar>f x\<bullet>T i\<bar> *\<^sub>R i)) absolutely_integrable_on s"
   (is "?Tf absolutely_integrable_on s")
 proof -
   have if_distrib: "\<And>P A B x. (if P then A else B) *\<^sub>R x = (if P then A *\<^sub>R x else B *\<^sub>R x)"
@@ -11350,7 +11350,7 @@ qed
 lemma absolutely_integrable_abs_eq:
   fixes f::"'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   shows "f absolutely_integrable_on s \<longleftrightarrow> f integrable_on s \<and>
-    (\<lambda>x. (\<Sum>i\<in>Basis. abs(f x\<bullet>i) *\<^sub>R i)::'m) integrable_on s"
+    (\<lambda>x. (\<Sum>i\<in>Basis. \<bar>f x\<bullet>i\<bar> *\<^sub>R i)::'m) integrable_on s"
   (is "?l = ?r")
 proof
   assume ?l
@@ -11976,7 +11976,7 @@ proof -
         apply safe
       proof goal_cases
         case prems: (1 n)
-        have *: "\<And>y ix. y < Inf ?S + r \<longrightarrow> Inf ?S \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> abs(ix - Inf ?S) < r"
+        have *: "\<And>y ix. y < Inf ?S + r \<longrightarrow> Inf ?S \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> \<bar>ix - Inf ?S\<bar> < r"
           by arith
         show ?case
           unfolding real_norm_def
@@ -12046,7 +12046,7 @@ proof -
         apply safe
       proof goal_cases
         case prems: (1 n)
-        have *: "\<And>y ix. Sup ?S - r < y \<longrightarrow> ix \<le> Sup ?S \<longrightarrow> y \<le> ix \<longrightarrow> abs(ix - Sup ?S) < r"
+        have *: "\<And>y ix. Sup ?S - r < y \<longrightarrow> ix \<le> Sup ?S \<longrightarrow> y \<le> ix \<longrightarrow> \<bar>ix - Sup ?S\<bar> < r"
           by arith
         show ?case
           apply simp

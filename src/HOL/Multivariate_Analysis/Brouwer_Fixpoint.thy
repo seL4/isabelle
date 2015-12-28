@@ -1473,7 +1473,7 @@ proof (rule ccontr)
     using kuhn_labelling_lemma[OF *] by blast
   note label = this [rule_format]
   have lem1: "\<forall>x\<in>unit_cube. \<forall>y\<in>unit_cube. \<forall>i\<in>Basis. label x i \<noteq> label y i \<longrightarrow>
-    abs (f x \<bullet> i - x \<bullet> i) \<le> norm (f y - f x) + norm (y - x)"
+    \<bar>f x \<bullet> i - x \<bullet> i\<bar> \<le> norm (f y - f x) + norm (y - x)"
   proof safe
     fix x y :: 'a
     assume x: "x \<in> unit_cube"
@@ -1481,8 +1481,8 @@ proof (rule ccontr)
     fix i
     assume i: "label x i \<noteq> label y i" "i \<in> Basis"
     have *: "\<And>x y fx fy :: real. x \<le> fx \<and> fy \<le> y \<or> fx \<le> x \<and> y \<le> fy \<Longrightarrow>
-      abs (fx - x) \<le> abs (fy - fx) + abs (y - x)" by auto
-    have "\<bar>(f x - x) \<bullet> i\<bar> \<le> abs ((f y - f x)\<bullet>i) + abs ((y - x)\<bullet>i)"
+      \<bar>fx - x\<bar> \<le> \<bar>fy - fx\<bar> + \<bar>y - x\<bar>" by auto
+    have "\<bar>(f x - x) \<bullet> i\<bar> \<le> \<bar>(f y - f x)\<bullet>i\<bar> + \<bar>(y - x)\<bullet>i\<bar>"
       unfolding inner_simps
       apply (rule *)
       apply (cases "label x i = 0")
@@ -1531,7 +1531,7 @@ proof (rule ccontr)
   qed
   have "\<exists>e>0. \<forall>x\<in>unit_cube. \<forall>y\<in>unit_cube. \<forall>z\<in>unit_cube. \<forall>i\<in>Basis.
     norm (x - z) < e \<and> norm (y - z) < e \<and> label x i \<noteq> label y i \<longrightarrow>
-      abs ((f(z) - z)\<bullet>i) < d / (real n)"
+      \<bar>(f(z) - z)\<bullet>i\<bar> < d / (real n)"
   proof -
     have d': "d / real n / 8 > 0"
       using d(1) by (simp add: n_def DIM_positive)
@@ -1559,10 +1559,10 @@ proof (rule ccontr)
         "norm (y - z) < min (e / 2) (d / real n / 8)"
         "label x i \<noteq> label y i"
       assume i: "i \<in> Basis"
-      have *: "\<And>z fz x fx n1 n2 n3 n4 d4 d :: real. abs(fx - x) \<le> n1 + n2 \<Longrightarrow>
-        abs (fx - fz) \<le> n3 \<Longrightarrow> abs (x - z) \<le> n4 \<Longrightarrow>
+      have *: "\<And>z fz x fx n1 n2 n3 n4 d4 d :: real. \<bar>fx - x\<bar> \<le> n1 + n2 \<Longrightarrow>
+        \<bar>fx - fz\<bar> \<le> n3 \<Longrightarrow> \<bar>x - z\<bar> \<le> n4 \<Longrightarrow>
         n1 < d4 \<Longrightarrow> n2 < 2 * d4 \<Longrightarrow> n3 < d4 \<Longrightarrow> n4 < d4 \<Longrightarrow>
-        (8 * d4 = d) \<Longrightarrow> abs(fz - z) < d"
+        (8 * d4 = d) \<Longrightarrow> \<bar>fz - z\<bar> < d"
         by auto
       show "\<bar>(f z - z) \<bullet> i\<bar> < d / real n"
         unfolding inner_simps
@@ -1669,7 +1669,7 @@ proof (rule ccontr)
                (label (\<Sum>i\<in>Basis. (real (s (b' i)) / real p) *\<^sub>R i) \<circ> b) i"
     by (rule kuhn_lemma[OF q1 q2 q3])
   def z \<equiv> "(\<Sum>i\<in>Basis. (real (q (b' i)) / real p) *\<^sub>R i)::'a"
-  have "\<exists>i\<in>Basis. d / real n \<le> abs ((f z - z)\<bullet>i)"
+  have "\<exists>i\<in>Basis. d / real n \<le> \<bar>(f z - z)\<bullet>i\<bar>"
   proof (rule ccontr)
     have "\<forall>i\<in>Basis. q (b' i) \<in> {0..p}"
       using q(1) b'

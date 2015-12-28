@@ -583,7 +583,7 @@ by (simp add: star_divide_def)
 lemma Standard_inverse: "x \<in> Standard \<Longrightarrow> inverse x \<in> Standard"
 by (simp add: star_inverse_def)
 
-lemma Standard_abs: "x \<in> Standard \<Longrightarrow> abs x \<in> Standard"
+lemma Standard_abs: "x \<in> Standard \<Longrightarrow> \<bar>x\<bar> \<in> Standard"
 by (simp add: star_abs_def)
 
 lemma Standard_mod: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x mod y \<in> Standard"
@@ -618,7 +618,7 @@ by transfer (rule refl)
 lemma star_of_mod: "star_of (x mod y) = star_of x mod star_of y"
 by transfer (rule refl)
 
-lemma star_of_abs: "star_of (abs x) = abs (star_of x)"
+lemma star_of_abs: "star_of \<bar>x\<bar> = \<bar>star_of x\<bar>"
 by transfer (rule refl)
 
 text {* @{term star_of} preserves numerals *}

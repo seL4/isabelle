@@ -3328,13 +3328,13 @@ proof -
     ultimately have **: "(1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x \<in> affine hull S"
       using as affine_affine_hull[of S] mem_affine[of "affine hull S" y x "(1 / e)" "-((1 - e) / e)"]
       by (simp add: algebra_simps)
-    have "dist c ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) = abs(1/e) * norm (e *\<^sub>R c - y + (1 - e) *\<^sub>R x)"
+    have "dist c ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) = \<bar>1/e\<bar> * norm (e *\<^sub>R c - y + (1 - e) *\<^sub>R x)"
       unfolding dist_norm norm_scaleR[symmetric]
       apply (rule arg_cong[where f=norm])
       using \<open>e > 0\<close>
       apply (auto simp add: euclidean_eq_iff[where 'a='a] field_simps inner_simps)
       done
-    also have "\<dots> = abs (1/e) * norm (x - e *\<^sub>R (x - c) - y)"
+    also have "\<dots> = \<bar>1/e\<bar> * norm (x - e *\<^sub>R (x - c) - y)"
       by (auto intro!:arg_cong[where f=norm] simp add: algebra_simps)
     also have "\<dots> < d"
       using as[unfolded dist_norm] and \<open>e > 0\<close>
@@ -6076,15 +6076,15 @@ lemma convex_on_bounded_continuous:
   fixes s :: "('a::real_normed_vector) set"
   assumes "open s"
     and "convex_on s f"
-    and "\<forall>x\<in>s. abs(f x) \<le> b"
+    and "\<forall>x\<in>s. \<bar>f x\<bar> \<le> b"
   shows "continuous_on s f"
   apply (rule continuous_at_imp_continuous_on)
   unfolding continuous_at_real_range
 proof (rule,rule,rule)
   fix x and e :: real
   assume "x \<in> s" "e > 0"
-  def B \<equiv> "abs b + 1"
-  have B: "0 < B" "\<And>x. x\<in>s \<Longrightarrow> abs (f x) \<le> B"
+  def B \<equiv> "\<bar>b\<bar> + 1"
+  have B: "0 < B" "\<And>x. x\<in>s \<Longrightarrow> \<bar>f x\<bar> \<le> B"
     unfolding B_def
     defer
     apply (drule assms(3)[rule_format])
@@ -6193,7 +6193,7 @@ lemma convex_bounds_lemma:
   fixes x :: "'a::real_normed_vector"
   assumes "convex_on (cball x e) f"
     and "\<forall>y \<in> cball x e. f y \<le> b"
-  shows "\<forall>y \<in> cball x e. abs (f y) \<le> b + 2 * abs (f x)"
+  shows "\<forall>y \<in> cball x e. \<bar>f y\<bar> \<le> b + 2 * \<bar>f x\<bar>"
   apply rule
 proof (cases "0 \<le> e")
   case True
@@ -6310,7 +6310,7 @@ proof
     apply (rule e(1))
     apply (rule dsube)
     done
-  then have "\<forall>y\<in>cball x d. abs (f y) \<le> k + 2 * abs (f x)"
+  then have "\<forall>y\<in>cball x d. \<bar>f y\<bar> \<le> k + 2 * \<bar>f x\<bar>"
     apply (rule convex_bounds_lemma)
     apply (rule ballI)
     apply (rule k [rule_format])
@@ -6751,13 +6751,13 @@ proof -
     assume as: "dist (x - e *\<^sub>R (x - c)) y < e * d"
     have *: "y = (1 - (1 - e)) *\<^sub>R ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) + (1 - e) *\<^sub>R x"
       using \<open>e > 0\<close> by (auto simp add: scaleR_left_diff_distrib scaleR_right_diff_distrib)
-    have "dist c ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) = abs(1/e) * norm (e *\<^sub>R c - y + (1 - e) *\<^sub>R x)"
+    have "dist c ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) = \<bar>1/e\<bar> * norm (e *\<^sub>R c - y + (1 - e) *\<^sub>R x)"
       unfolding dist_norm
       unfolding norm_scaleR[symmetric]
       apply (rule arg_cong[where f=norm])
       using \<open>e > 0\<close>
       by (auto simp add: euclidean_eq_iff[where 'a='a] field_simps inner_simps)
-    also have "\<dots> = abs (1/e) * norm (x - e *\<^sub>R (x - c) - y)"
+    also have "\<dots> = \<bar>1/e\<bar> * norm (x - e *\<^sub>R (x - c) - y)"
       by (auto intro!:arg_cong[where f=norm] simp add: algebra_simps)
     also have "\<dots> < d"
       using as[unfolded dist_norm] and \<open>e > 0\<close>
@@ -7001,7 +7001,7 @@ next
     proof (rule setsum_mono)
       fix i :: 'a
       assume i: "i \<in> Basis"
-      then have "abs (y\<bullet>i - x\<bullet>i) < ?d"
+      then have "\<bar>y\<bullet>i - x\<bullet>i\<bar> < ?d"
         apply -
         apply (rule le_less_trans)
         using Basis_le_norm[OF i, of "y - x"]
@@ -7186,7 +7186,7 @@ proof -
           assume "i \<in> d"
           with d have i: "i \<in> Basis"
             by auto
-          have "abs (y\<bullet>i - x\<bullet>i) < ?d"
+          have "\<bar>y\<bullet>i - x\<bullet>i\<bar> < ?d"
             apply (rule le_less_trans)
             using Basis_le_norm[OF i, of "y - x"]
             using y[unfolded min_less_iff_conj dist_norm, THEN conjunct2]
@@ -9860,7 +9860,7 @@ qed
 lemma setdist_singletons [simp]: "setdist {x} {y} = dist x y"
   by (simp add: setdist_def)
 
-lemma setdist_Lipschitz: "abs(setdist {x} s - setdist {y} s) \<le> dist x y"
+lemma setdist_Lipschitz: "\<bar>setdist {x} s - setdist {y} s\<bar> \<le> dist x y"
   apply (subst setdist_singletons [symmetric])
   by (metis abs_diff_le_iff diff_le_eq setdist_triangle setdist_sym)
 

@@ -2352,7 +2352,7 @@ qed
 
 lemma integral_0_iff:
   fixes f :: "'a \<Rightarrow> real"
-  shows "integrable M f \<Longrightarrow> (\<integral>x. abs (f x) \<partial>M) = 0 \<longleftrightarrow> emeasure M {x\<in>space M. f x \<noteq> 0} = 0"
+  shows "integrable M f \<Longrightarrow> (\<integral>x. \<bar>f x\<bar> \<partial>M) = 0 \<longleftrightarrow> emeasure M {x\<in>space M. f x \<noteq> 0} = 0"
   using integral_norm_eq_0_iff[of M f] by simp
 
 lemma (in finite_measure) integrable_const[intro!, simp]: "integrable M (\<lambda>x. a)"

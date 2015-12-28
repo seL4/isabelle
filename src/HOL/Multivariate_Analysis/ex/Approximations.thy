@@ -24,7 +24,7 @@ proof -
 qed
 
 (*32-bit approximation. SLOW simplification steps: big calculations with the rewriting engine*)
-lemma pi_approx_32: "abs(pi - 13493037705/4294967296) \<le> inverse(2 ^ 32)"
+lemma pi_approx_32: "\<bar>pi - 13493037705/4294967296\<bar> \<le> inverse(2 ^ 32)"
   apply (simp only: abs_diff_le_iff)
   apply (rule sin_pi6_straddle, simp_all)
    using Taylor_sin [of "1686629713/3221225472" 11]

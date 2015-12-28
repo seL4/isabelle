@@ -13,7 +13,7 @@ class ordered_euclidean_space = ord + inf + sup + abs + Inf + Sup + euclidean_sp
   assumes eucl_sup: "sup x y = (\<Sum>i\<in>Basis. sup (x \<bullet> i) (y \<bullet> i) *\<^sub>R i)"
   assumes eucl_Inf: "Inf X = (\<Sum>i\<in>Basis. (INF x:X. x \<bullet> i) *\<^sub>R i)"
   assumes eucl_Sup: "Sup X = (\<Sum>i\<in>Basis. (SUP x:X. x \<bullet> i) *\<^sub>R i)"
-  assumes eucl_abs: "abs x = (\<Sum>i\<in>Basis. abs (x \<bullet> i) *\<^sub>R i)"
+  assumes eucl_abs: "\<bar>x\<bar> = (\<Sum>i\<in>Basis. \<bar>x \<bullet> i\<bar> *\<^sub>R i)"
 begin
 
 subclass order
@@ -55,7 +55,7 @@ lemma inner_Basis_INF_left: "i \<in> Basis \<Longrightarrow> (INF x:X. f x) \<bu
   and inner_Basis_SUP_left: "i \<in> Basis \<Longrightarrow> (SUP x:X. f x) \<bullet> i = (SUP x:X. f x \<bullet> i)"
   using eucl_Sup [of "f ` X"] eucl_Inf [of "f ` X"] by (simp_all add: comp_def)
 
-lemma abs_inner: "i \<in> Basis \<Longrightarrow> abs x \<bullet> i = abs (x \<bullet> i)"
+lemma abs_inner: "i \<in> Basis \<Longrightarrow> \<bar>x\<bar> \<bullet> i = \<bar>x \<bullet> i\<bar>"
   by (auto simp: eucl_abs)
 
 lemma
@@ -159,12 +159,13 @@ lemma in_Basis_prod_iff:
   shows "i \<in> Basis \<longleftrightarrow> fst i = 0 \<and> snd i \<in> Basis \<or> snd i = 0 \<and> fst i \<in> Basis"
   by (cases i) (auto simp: Basis_prod_def)
 
-instantiation prod::(abs, abs) abs
+instantiation prod :: (abs, abs) abs
 begin
 
-definition "abs x = (abs (fst x), abs (snd x))"
+definition "\<bar>x\<bar> = (\<bar>fst x\<bar>, \<bar>snd x\<bar>)"
 
-instance proof qed
+instance ..
+
 end
 
 instance prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_euclidean_space
@@ -269,7 +270,7 @@ definition "inf x y = (\<chi> i. inf (x $ i) (y $ i))"
 definition "sup x y = (\<chi> i. sup (x $ i) (y $ i))"
 definition "Inf X = (\<chi> i. (INF x:X. x $ i))"
 definition "Sup X = (\<chi> i. (SUP x:X. x $ i))"
-definition "abs x = (\<chi> i. abs (x $ i))"
+definition "\<bar>x\<bar> = (\<chi> i. \<bar>x $ i\<bar>)"
 
 instance
   apply standard

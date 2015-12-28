@@ -1231,7 +1231,7 @@ definition
   real_less_def: "x < (y::real) \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
 
 definition
-  real_abs_def:  "abs (r::real) = (if r < 0 then - r else r)"
+  real_abs_def: "\<bar>r::real\<bar> = (if r < 0 then - r else r)"
 
 definition
   real_sgn_def: "sgn (x::real) = (if x=0 then 0 else if 0<x then 1 else - 1)"

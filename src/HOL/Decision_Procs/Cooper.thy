@@ -618,11 +618,11 @@ where
 | "simpfm (NEq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if v \<noteq> 0 then T else F | _ \<Rightarrow> NEq a')"
 | "simpfm (Dvd i a) =
     (if i = 0 then simpfm (Eq a)
-     else if abs i = 1 then T
+     else if \<bar>i\<bar> = 1 then T
      else let a' = simpnum a in case a' of C v \<Rightarrow> if i dvd v then T else F | _ \<Rightarrow> Dvd i a')"
 | "simpfm (NDvd i a) =
     (if i = 0 then simpfm (NEq a)
-     else if abs i = 1 then F
+     else if \<bar>i\<bar> = 1 then F
      else let a' = simpnum a in case a' of C v \<Rightarrow> if \<not>( i dvd v) then T else F | _ \<Rightarrow> NDvd i a')"
 | "simpfm p = p"
   by pat_completeness auto
@@ -718,7 +718,7 @@ next
   let ?sa = "simpnum a"
   from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
     by simp
-  consider "i = 0" | "abs i = 1" | "i \<noteq> 0" "abs i \<noteq> 1" by blast
+  consider "i = 0" | "\<bar>i\<bar> = 1" | "i \<noteq> 0" "\<bar>i\<bar> \<noteq> 1" by blast
   then show ?case
   proof cases
     case 1
@@ -740,7 +740,7 @@ next
     proof cases
       case 1
       with sa[symmetric] i show ?thesis
-        by (cases "abs i = 1") auto
+        by (cases "\<bar>i\<bar> = 1") auto
     next
       case 2
       then have "simpfm (Dvd i a) = Dvd i ?sa"
@@ -753,7 +753,7 @@ next
   let ?sa = "simpnum a"
   from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
     by simp
-  consider "i = 0" | "abs i = 1" | "i \<noteq> 0" "abs i \<noteq> 1" by blast
+  consider "i = 0" | "\<bar>i\<bar> = 1" | "i \<noteq> 0" "\<bar>i\<bar> \<noteq> 1" by blast
   then show ?case
   proof cases
     case 1
@@ -775,7 +775,7 @@ next
     proof cases
       case 1
       with sa[symmetric] i show ?thesis
-        by (cases "abs i = 1") auto
+        by (cases "\<bar>i\<bar> = 1") auto
     next
       case 2
       then have "simpfm (NDvd i a) = NDvd i ?sa"
@@ -1046,16 +1046,16 @@ recdef zlfm "measure fmsize"
     (if i = 0 then zlfm (Eq a)
      else
       let (c, r) = zsplit0 a in
-        if c = 0 then Dvd (abs i) r
-        else if c > 0 then Dvd (abs i) (CN 0 c r)
-        else Dvd (abs i) (CN 0 (- c) (Neg r)))"
+        if c = 0 then Dvd \<bar>i\<bar> r
+        else if c > 0 then Dvd \<bar>i\<bar> (CN 0 c r)
+        else Dvd \<bar>i\<bar> (CN 0 (- c) (Neg r)))"
   "zlfm (NDvd i a) =
     (if i = 0 then zlfm (NEq a)
      else
       let (c, r) = zsplit0 a in
-        if c = 0 then NDvd (abs i) r
-        else if c > 0 then NDvd (abs i) (CN 0 c r)
-        else NDvd (abs i) (CN 0 (- c) (Neg r)))"
+        if c = 0 then NDvd \<bar>i\<bar> r
+        else if c > 0 then NDvd \<bar>i\<bar> (CN 0 c r)
+        else NDvd \<bar>i\<bar> (CN 0 (- c) (Neg r)))"
   "zlfm (NOT (And p q)) = Or (zlfm (NOT p)) (zlfm (NOT q))"
   "zlfm (NOT (Or p q)) = And (zlfm (NOT p)) (zlfm (NOT q))"
   "zlfm (NOT (Imp p q)) = And (zlfm p) (zlfm (NOT q))"
@@ -1213,7 +1213,7 @@ next
     case 4
     then have l: "?L (?l (Dvd j a))"
       by (simp add: nb Let_def split_def)
-    with Ia 4 dvd_minus_iff[of "abs j" "?c*i + ?N ?r"] show ?thesis
+    with Ia 4 dvd_minus_iff[of "\<bar>j\<bar>" "?c*i + ?N ?r"] show ?thesis
       by (simp add: Let_def split_def)
   qed
 next
@@ -1253,7 +1253,7 @@ next
     case 4
     then have l: "?L (?l (Dvd j a))"
       by (simp add: nb Let_def split_def)
-    with Ia 4 dvd_minus_iff[of "abs j" "?c*i + ?N ?r"] show ?thesis
+    with Ia 4 dvd_minus_iff[of "\<bar>j\<bar>" "?c*i + ?N ?r"] show ?thesis
       by (simp add: Let_def split_def)
   qed
 qed auto

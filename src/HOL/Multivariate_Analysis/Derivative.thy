@@ -372,7 +372,7 @@ lemma frechet_derivative_unique_within:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "(f has_derivative f') (at x within s)"
     and "(f has_derivative f'') (at x within s)"
-    and "\<forall>i\<in>Basis. \<forall>e>0. \<exists>d. 0 < abs d \<and> abs d < e \<and> (x + d *\<^sub>R i) \<in> s"
+    and "\<forall>i\<in>Basis. \<forall>e>0. \<exists>d. 0 < \<bar>d\<bar> \<and> \<bar>d\<bar> < e \<and> (x + d *\<^sub>R i) \<in> s"
   shows "f' = f''"
 proof -
   note as = assms(1,2)[unfolded has_derivative_def]
@@ -415,9 +415,9 @@ proof -
     obtain c where c: "0 < \<bar>c\<bar>" "\<bar>c\<bar> < d \<and> x + c *\<^sub>R i \<in> s"
       using assms(3) i d(1) by blast
     have *: "norm (- ((1 / \<bar>c\<bar>) *\<^sub>R f' (c *\<^sub>R i)) + (1 / \<bar>c\<bar>) *\<^sub>R f'' (c *\<^sub>R i)) =
-        norm ((1 / abs c) *\<^sub>R (- (f' (c *\<^sub>R i)) + f'' (c *\<^sub>R i)))"
+        norm ((1 / \<bar>c\<bar>) *\<^sub>R (- (f' (c *\<^sub>R i)) + f'' (c *\<^sub>R i)))"
       unfolding scaleR_right_distrib by auto
-    also have "\<dots> = norm ((1 / abs c) *\<^sub>R (c *\<^sub>R (- (f' i) + f'' i)))"
+    also have "\<dots> = norm ((1 / \<bar>c\<bar>) *\<^sub>R (c *\<^sub>R (- (f' i) + f'' i)))"
       unfolding f'.scaleR f''.scaleR
       unfolding scaleR_right_distrib scaleR_minus_right
       by auto

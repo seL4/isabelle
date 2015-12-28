@@ -100,9 +100,9 @@ quantifier-free linear arithmetic and holds for the rationals as well.
 
 Warning: it takes (in 2006) over 4.2 minutes!\<close>
 
-lemma "\<lbrakk> x3 = abs x2 - x1; x4 = abs x3 - x2; x5 = abs x4 - x3;
-         x6 = abs x5 - x4; x7 = abs x6 - x5; x8 = abs x7 - x6;
-         x9 = abs x8 - x7; x10 = abs x9 - x8; x11 = abs x10 - x9 \<rbrakk>
+lemma "\<lbrakk> x3 = \<bar>x2\<bar> - x1; x4 = \<bar>x3\<bar> - x2; x5 = \<bar>x4\<bar> - x3;
+         x6 = \<bar>x5\<bar> - x4; x7 = \<bar>x6\<bar> - x5; x8 = \<bar>x7\<bar> - x6;
+         x9 = \<bar>x8\<bar> - x7; x10 = \<bar>x9\<bar> - x8; x11 = \<bar>x10\<bar> - x9 \<rbrakk>
  \<Longrightarrow> x1 = x10 & x2 = (x11::int)"
 by arith
 

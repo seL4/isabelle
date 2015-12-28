@@ -92,14 +92,14 @@ lemma "last ([a, b, c] @ xs) = last (c # xs)" by normalization
 
 lemma "(2::int) + 3 - 1 + (- k) * 2 = 4 + - k * 2" by normalization
 lemma "(-4::int) * 2 = -8" by normalization
-lemma "abs ((-4::int) + 2 * 1) = 2" by normalization
+lemma "\<bar>(-4::int) + 2 * 1\<bar> = 2" by normalization
 lemma "(2::int) + 3 = 5" by normalization
 lemma "(2::int) + 3 * (- 4) * (- 1) = 14" by normalization
 lemma "(2::int) + 3 * (- 4) * 1 + 0 = -10" by normalization
 lemma "(2::int) < 3" by normalization
 lemma "(2::int) <= 3" by normalization
-lemma "abs ((-4::int) + 2 * 1) = 2" by normalization
-lemma "4 - 42 * abs (3 + (-7::int)) = -164" by normalization
+lemma "\<bar>(-4::int) + 2 * 1\<bar> = 2" by normalization
+lemma "4 - 42 * \<bar>3 + (-7::int)\<bar> = -164" by normalization
 lemma "(if (0::nat) \<le> (x::nat) then 0::nat else x) = 0" by normalization
 lemma "4 = Suc (Suc (Suc (Suc 0)))" by normalization
 lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization

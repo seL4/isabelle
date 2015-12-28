@@ -19,47 +19,47 @@ lemma linprog_dual_estimate:
   assumes
   "A * x \<le> (b::'a::lattice_ring)"
   "0 \<le> y"
-  "abs (A - A') \<le> \<delta>_A"
+  "\<bar>A - A'\<bar> \<le> \<delta>_A"
   "b \<le> b'"
-  "abs (c - c') \<le> \<delta>_c"
-  "abs x \<le> r"
+  "\<bar>c - c'\<bar> \<le> \<delta>_c"
+  "\<bar>x\<bar> \<le> r"
   shows
-  "c * x \<le> y * b' + (y * \<delta>_A + abs (y * A' - c') + \<delta>_c) * r"
+  "c * x \<le> y * b' + (y * \<delta>_A + \<bar>y * A' - c'\<bar> + \<delta>_c) * r"
 proof -
   from assms have 1: "y * b <= y * b'" by (simp add: mult_left_mono)
   from assms have 2: "y * (A * x) <= y * b" by (simp add: mult_left_mono) 
   have 3: "y * (A * x) = c * x + (y * (A - A') + (y * A' - c') + (c'-c)) * x" by (simp add: algebra_simps)  
   from 1 2 3 have 4: "c * x + (y * (A - A') + (y * A' - c') + (c'-c)) * x <= y * b'" by simp
-  have 5: "c * x <= y * b' + abs((y * (A - A') + (y * A' - c') + (c'-c)) * x)"
+  have 5: "c * x <= y * b' + \<bar>(y * (A - A') + (y * A' - c') + (c'-c)) * x\<bar>"
     by (simp only: 4 estimate_by_abs)  
-  have 6: "abs((y * (A - A') + (y * A' - c') + (c'-c)) * x) <= abs (y * (A - A') + (y * A' - c') + (c'-c)) * abs x"
+  have 6: "\<bar>(y * (A - A') + (y * A' - c') + (c'-c)) * x\<bar> <= \<bar>y * (A - A') + (y * A' - c') + (c'-c)\<bar> * \<bar>x\<bar>"
     by (simp add: abs_le_mult)
-  have 7: "(abs (y * (A - A') + (y * A' - c') + (c'-c))) * abs x <= (abs (y * (A-A') + (y*A'-c')) + abs(c'-c)) * abs x"
+  have 7: "(\<bar>y * (A - A') + (y * A' - c') + (c'-c)\<bar>) * \<bar>x\<bar> <= (\<bar>y * (A-A') + (y*A'-c')\<bar> + \<bar>c' - c\<bar>) * \<bar>x\<bar>"
     by(rule abs_triangle_ineq [THEN mult_right_mono]) simp
-  have 8: " (abs (y * (A-A') + (y*A'-c')) + abs(c'-c)) * abs x <=  (abs (y * (A-A')) + abs (y*A'-c') + abs(c'-c)) * abs x"
+  have 8: "(\<bar>y * (A-A') + (y*A'-c')\<bar> + \<bar>c' - c\<bar>) * \<bar>x\<bar> <= (\<bar>y * (A-A')\<bar> + \<bar>y*A'-c'\<bar> + \<bar>c' - c\<bar>) * \<bar>x\<bar>"
     by (simp add: abs_triangle_ineq mult_right_mono)    
-  have 9: "(abs (y * (A-A')) + abs (y*A'-c') + abs(c'-c)) * abs x <= (abs y * abs (A-A') + abs (y*A'-c') + abs (c'-c)) * abs x"
+  have 9: "(\<bar>y * (A-A')\<bar> + \<bar>y*A'-c'\<bar> + \<bar>c'-c\<bar>) * \<bar>x\<bar> <= (\<bar>y\<bar> * \<bar>A-A'\<bar> + \<bar>y*A'-c'\<bar> + \<bar>c'-c\<bar>) * \<bar>x\<bar>"
     by (simp add: abs_le_mult mult_right_mono)  
   have 10: "c'-c = -(c-c')" by (simp add: algebra_simps)
-  have 11: "abs (c'-c) = abs (c-c')" 
+  have 11: "\<bar>c'-c\<bar> = \<bar>c-c'\<bar>"
     by (subst 10, subst abs_minus_cancel, simp)
-  have 12: "(abs y * abs (A-A') + abs (y*A'-c') + abs (c'-c)) * abs x <= (abs y * abs (A-A') + abs (y*A'-c') + \<delta>_c) * abs x"
+  have 12: "(\<bar>y\<bar> * \<bar>A-A'\<bar> + \<bar>y*A'-c'\<bar> + \<bar>c'-c\<bar>) * \<bar>x\<bar> <= (\<bar>y\<bar> * \<bar>A-A'\<bar> + \<bar>y*A'-c'\<bar> + \<delta>_c) * \<bar>x\<bar>"
     by (simp add: 11 assms mult_right_mono)
-  have 13: "(abs y * abs (A-A') + abs (y*A'-c') + \<delta>_c) * abs x <= (abs y * \<delta>_A + abs (y*A'-c') + \<delta>_c) * abs x"
+  have 13: "(\<bar>y\<bar> * \<bar>A-A'\<bar> + \<bar>y*A'-c'\<bar> + \<delta>_c) * \<bar>x\<bar> <= (\<bar>y\<bar> * \<delta>_A + \<bar>y*A'-c'\<bar> + \<delta>_c) * \<bar>x\<bar>"
     by (simp add: assms mult_right_mono mult_left_mono)  
-  have r: "(abs y * \<delta>_A + abs (y*A'-c') + \<delta>_c) * abs x <=  (abs y * \<delta>_A + abs (y*A'-c') + \<delta>_c) * r"
+  have r: "(\<bar>y\<bar> * \<delta>_A + \<bar>y*A'-c'\<bar> + \<delta>_c) * \<bar>x\<bar> <= (\<bar>y\<bar> * \<delta>_A + \<bar>y*A'-c'\<bar> + \<delta>_c) * r"
     apply (rule mult_left_mono)
     apply (simp add: assms)
     apply (rule_tac add_mono[of "0::'a" _ "0", simplified])+
     apply (rule mult_left_mono[of "0" "\<delta>_A", simplified])
     apply (simp_all)
-    apply (rule order_trans[where y="abs (A-A')"], simp_all add: assms)
-    apply (rule order_trans[where y="abs (c-c')"], simp_all add: assms)
+    apply (rule order_trans[where y="\<bar>A-A'\<bar>"], simp_all add: assms)
+    apply (rule order_trans[where y="\<bar>c-c'\<bar>"], simp_all add: assms)
     done    
-  from 6 7 8 9 12 13 r have 14:" abs((y * (A - A') + (y * A' - c') + (c'-c)) * x) <=(abs y * \<delta>_A + abs (y*A'-c') + \<delta>_c) * r"     
+  from 6 7 8 9 12 13 r have 14: "\<bar>(y * (A - A') + (y * A' - c') + (c'-c)) * x\<bar> <= (\<bar>y\<bar> * \<delta>_A + \<bar>y*A'-c'\<bar> + \<delta>_c) * r"
     by (simp)
   show ?thesis
-    apply (rule le_add_right_mono[of _ _ "abs((y * (A - A') + (y * A' - c') + (c'-c)) * x)"])
+    apply (rule le_add_right_mono[of _ _ "\<bar>(y * (A - A') + (y * A' - c') + (c'-c)) * x\<bar>"])
     apply (simp_all only: 5 14[simplified abs_of_nonneg[of y, simplified assms]])
     done
 qed
@@ -68,14 +68,14 @@ lemma le_ge_imp_abs_diff_1:
   assumes
   "A1 <= (A::'a::lattice_ring)"
   "A <= A2" 
-  shows "abs (A-A1) <= A2-A1"
+  shows "\<bar>A-A1\<bar> <= A2-A1"
 proof -
   have "0 <= A - A1"    
   proof -
     from assms add_right_mono [of A1 A "- A1"] show ?thesis by simp
   qed
-  then have "abs (A-A1) = A-A1" by (rule abs_of_nonneg)
-  with assms show "abs (A-A1) <= (A2-A1)" by simp
+  then have "\<bar>A-A1\<bar> = A-A1" by (rule abs_of_nonneg)
+  with assms show "\<bar>A-A1\<bar> <= (A2-A1)" by simp
 qed
 
 lemma mult_le_prts:

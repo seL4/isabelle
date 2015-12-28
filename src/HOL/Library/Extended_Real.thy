@@ -3484,7 +3484,7 @@ lemma bounded_abs:
   fixes a :: real
   assumes "a \<le> x"
     and "x \<le> b"
-  shows "abs x \<le> max (abs a) (abs b)"
+  shows "\<bar>x\<bar> \<le> max \<bar>a\<bar> \<bar>b\<bar>"
   by (metis abs_less_iff assms leI le_max_iff_disj
     less_eq_real_def less_le_not_le less_minus_iff minus_minus)
 

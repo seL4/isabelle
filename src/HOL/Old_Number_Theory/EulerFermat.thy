@@ -53,7 +53,7 @@ definition RRset2norRR :: "int set => int => int => int"
 definition zcongm :: "int => int => int => bool"
   where "zcongm m = (\<lambda>a b. zcong a b m)"
 
-lemma abs_eq_1_iff [iff]: "(abs z = (1::int)) = (z = 1 \<or> z = -1)"
+lemma abs_eq_1_iff [iff]: "(\<bar>z\<bar> = (1::int)) = (z = 1 \<or> z = -1)"
   -- \<open>LCP: not sure why this lemma is needed now\<close>
   by (auto simp add: abs_if)
 

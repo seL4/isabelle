@@ -56,12 +56,12 @@ text \<open>The set of integers is also infinite.\<close>
 lemma infinite_int_iff_infinite_nat_abs: "infinite (S::int set) \<longleftrightarrow> infinite ((nat o abs) ` S)"
   by (auto simp: transfer_nat_int_set_relations o_def image_comp dest: finite_image_absD)
 
-proposition infinite_int_iff_unbounded_le: "infinite (S::int set) \<longleftrightarrow> (\<forall>m. \<exists>n. abs n \<ge> m \<and> n \<in> S)"
+proposition infinite_int_iff_unbounded_le: "infinite (S::int set) \<longleftrightarrow> (\<forall>m. \<exists>n. \<bar>n\<bar> \<ge> m \<and> n \<in> S)"
   apply (simp add: infinite_int_iff_infinite_nat_abs infinite_nat_iff_unbounded_le o_def image_def)
   apply (metis abs_ge_zero nat_le_eq_zle le_nat_iff)
   done
 
-proposition infinite_int_iff_unbounded: "infinite (S::int set) \<longleftrightarrow> (\<forall>m. \<exists>n. abs n > m \<and> n \<in> S)"
+proposition infinite_int_iff_unbounded: "infinite (S::int set) \<longleftrightarrow> (\<forall>m. \<exists>n. \<bar>n\<bar> > m \<and> n \<in> S)"
   apply (simp add: infinite_int_iff_infinite_nat_abs infinite_nat_iff_unbounded o_def image_def)
   apply (metis (full_types) nat_le_iff nat_mono not_le)
   done

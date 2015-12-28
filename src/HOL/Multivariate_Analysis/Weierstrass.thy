@@ -65,7 +65,7 @@ lemma Bernstein_Weierstrass:
   fixes f :: "real \<Rightarrow> real"
   assumes contf: "continuous_on {0..1} f" and e: "0 < e"
     shows "\<exists>N. \<forall>n x. N \<le> n \<and> x \<in> {0..1}
-                    \<longrightarrow> abs(f x - (\<Sum>k = 0..n. f(k/n) * Bernstein n k x)) < e"
+                    \<longrightarrow> \<bar>f x - (\<Sum>k = 0..n. f(k/n) * Bernstein n k x)\<bar> < e"
 proof -
   have "bounded (f ` {0..1})"
     using compact_continuous_image compact_imp_bounded contf by blast
@@ -110,7 +110,7 @@ proof -
       assume k: "k \<le> n"
       then have kn: "0 \<le> k / n" "k / n \<le> 1"
         by (auto simp: divide_simps)
-      consider (lessd) "abs(x - k / n) < d" | (ged) "d \<le> abs(x - k / n)"
+      consider (lessd) "\<bar>x - k / n\<bar> < d" | (ged) "d \<le> \<bar>x - k / n\<bar>"
         by linarith
       then have "\<bar>(f x - f (k/n))\<bar> \<le> e/2 + 2 * M / d\<^sup>2 * (x - k/n)\<^sup>2"
       proof cases
@@ -758,7 +758,7 @@ corollary Stone_Weierstrass_HOL:
           "\<And>x y. x \<in> s \<and> y \<in> s \<and> ~(x = y) \<Longrightarrow> \<exists>f. P(f) \<and> ~(f x = f y)"
           "continuous_on s f"
        "0 < e"
-    shows "\<exists>g. P(g) \<and> (\<forall>x \<in> s. abs(f x - g x) < e)"
+    shows "\<exists>g. P(g) \<and> (\<forall>x \<in> s. \<bar>f x - g x\<bar> < e)"
 proof -
   interpret PR: function_ring_on "Collect P"
     apply unfold_locales
@@ -1081,7 +1081,7 @@ qed
 lemma Stone_Weierstrass_real_polynomial_function:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
   assumes "compact s" "continuous_on s f" "0 < e"
-    shows "\<exists>g. real_polynomial_function g \<and> (\<forall>x \<in> s. abs(f x - g x) < e)"
+    shows "\<exists>g. real_polynomial_function g \<and> (\<forall>x \<in> s. \<bar>f x - g x\<bar> < e)"
 proof -
   interpret PR: function_ring_on "Collect real_polynomial_function"
     apply unfold_locales
@@ -1102,14 +1102,14 @@ lemma Stone_Weierstrass_polynomial_function:
 proof -
   { fix b :: 'b
     assume "b \<in> Basis"
-    have "\<exists>p. real_polynomial_function p \<and> (\<forall>x \<in> s. abs(f x \<bullet> b - p x) < e / DIM('b))"
+    have "\<exists>p. real_polynomial_function p \<and> (\<forall>x \<in> s. \<bar>f x \<bullet> b - p x\<bar> < e / DIM('b))"
       apply (rule exE [OF Stone_Weierstrass_real_polynomial_function [OF s _, of "\<lambda>x. f x \<bullet> b" "e / card Basis"]])
       using e f
       apply (auto simp: Euclidean_Space.DIM_positive intro: continuous_intros)
       done
   }
   then obtain pf where pf:
-      "\<And>b. b \<in> Basis \<Longrightarrow> real_polynomial_function (pf b) \<and> (\<forall>x \<in> s. abs(f x \<bullet> b - pf b x) < e / DIM('b))"
+      "\<And>b. b \<in> Basis \<Longrightarrow> real_polynomial_function (pf b) \<and> (\<forall>x \<in> s. \<bar>f x \<bullet> b - pf b x\<bar> < e / DIM('b))"
       apply (rule bchoice [rule_format, THEN exE])
       apply assumption
       apply (force simp add: intro: that)

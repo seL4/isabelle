@@ -68,7 +68,7 @@ unfolding sumhr_app by transfer (simp add: setsum_add_nat_ivl)
 lemma sumhr_split_diff: "n<p ==> sumhr(0,p,f) - sumhr(0,n,f) = sumhr(n,p,f)"
 by (drule_tac f = f in sumhr_split_add [symmetric], simp)
 
-lemma sumhr_hrabs: "!!m n. abs(sumhr(m,n,f)) \<le> sumhr(m,n,%i. abs(f i))"
+lemma sumhr_hrabs: "!!m n. \<bar>sumhr(m,n,f)\<bar> \<le> sumhr(m,n,%i. \<bar>f i\<bar>)"
 unfolding sumhr_app by transfer (rule setsum_abs)
 
 text{* other general version also needed *}
@@ -130,7 +130,7 @@ lemma starfunNat_sumr: "!!N. ( *f* (%n. setsum f {0..<n})) N = sumhr(0,N,f)"
 unfolding sumhr_app by transfer (rule refl)
 
 lemma sumhr_hrabs_approx [simp]: "sumhr(0, M, f) @= sumhr(0, N, f)
-      ==> abs (sumhr(M, N, f)) @= 0"
+      ==> \<bar>sumhr(M, N, f)\<bar> @= 0"
 apply (cut_tac x = M and y = N in linorder_less_linear)
 apply (auto simp add: approx_refl)
 apply (drule approx_sym [THEN approx_minus_iff [THEN iffD1]])
@@ -167,7 +167,7 @@ by (auto simp add: sums_NSsums_iff [symmetric] not_le[symmetric] intro!: sums_fi
 
 lemma NSsummable_NSCauchy:
      "NSsummable f =
-      (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. abs (sumhr(M,N,f)) @= 0)"
+      (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. \<bar>sumhr(M,N,f)\<bar> @= 0)"
 apply (auto simp add: summable_NSsummable_iff [symmetric]
        summable_iff_convergent convergent_NSconvergent_iff atLeast0LessThan[symmetric]
        NSCauchy_NSconvergent_iff [symmetric] NSCauchy_def starfunNat_sumr)
@@ -189,14 +189,14 @@ done
 
 text{*Nonstandard comparison test*}
 lemma NSsummable_comparison_test:
-     "[| \<exists>N. \<forall>n. N \<le> n --> abs(f n) \<le> g n; NSsummable g |] ==> NSsummable f"
+     "[| \<exists>N. \<forall>n. N \<le> n --> \<bar>f n\<bar> \<le> g n; NSsummable g |] ==> NSsummable f"
 apply (fold summable_NSsummable_iff)
 apply (rule summable_comparison_test, simp, assumption)
 done
 
 lemma NSsummable_rabs_comparison_test:
-     "[| \<exists>N. \<forall>n. N \<le> n --> abs(f n) \<le> g n; NSsummable g |]
-      ==> NSsummable (%k. abs (f k))"
+     "[| \<exists>N. \<forall>n. N \<le> n --> \<bar>f n\<bar> \<le> g n; NSsummable g |]
+      ==> NSsummable (%k. \<bar>f k\<bar>)"
 apply (rule NSsummable_comparison_test)
 apply (auto)
 done

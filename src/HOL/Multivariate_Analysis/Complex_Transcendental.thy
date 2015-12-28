@@ -8,7 +8,7 @@ begin
 
 lemma cmod_add_real_less:
   assumes "Im z \<noteq> 0" "r\<noteq>0"
-    shows "cmod (z + r) < cmod z + abs r"
+    shows "cmod (z + r) < cmod z + \<bar>r\<bar>"
 proof (cases z)
   case (Complex x y)
   have "r * x / \<bar>r\<bar> < sqrt (x*x + y*y)"
@@ -23,7 +23,7 @@ proof (cases z)
     done
 qed
 
-lemma cmod_diff_real_less: "Im z \<noteq> 0 \<Longrightarrow> x\<noteq>0 \<Longrightarrow> cmod (z - x) < cmod z + abs x"
+lemma cmod_diff_real_less: "Im z \<noteq> 0 \<Longrightarrow> x\<noteq>0 \<Longrightarrow> cmod (z - x) < cmod z + \<bar>x\<bar>"
   using cmod_add_real_less [of z "-x"]
   by simp
 
@@ -205,7 +205,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma exp_complex_eqI: "abs(Im w - Im z) < 2*pi \<Longrightarrow> exp w = exp z \<Longrightarrow> w = z"
+lemma exp_complex_eqI: "\<bar>Im w - Im z\<bar> < 2*pi \<Longrightarrow> exp w = exp z \<Longrightarrow> w = z"
   by (auto simp: exp_eq abs_mult)
 
 lemma exp_integer_2pi:
@@ -361,7 +361,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma dist_exp_ii_1: "norm(exp(ii * of_real t) - 1) = 2 * abs(sin(t / 2))"
+lemma dist_exp_ii_1: "norm(exp(ii * of_real t) - 1) = 2 * \<bar>sin(t / 2)\<bar>"
   apply (simp add: exp_Euler cmod_def power2_diff sin_of_real cos_of_real algebra_simps)
   using cos_double_sin [of "t/2"]
   apply (simp add: real_sqrt_mult)
@@ -579,7 +579,7 @@ qed
 declare power_Suc [simp]
 
 text\<open>32-bit Approximation to e\<close>
-lemma e_approx_32: "abs(exp(1) - 5837465777 / 2147483648) \<le> (inverse(2 ^ 32)::real)"
+lemma e_approx_32: "\<bar>exp(1) - 5837465777 / 2147483648\<bar> \<le> (inverse(2 ^ 32)::real)"
   using Taylor_exp [of 1 14] exp_le
   apply (simp add: setsum_left_distrib in_Reals_norm Re_exp atMost_nat_numeral fact_numeral)
   apply (simp only: pos_le_divide_eq [symmetric], linarith)
@@ -1055,14 +1055,14 @@ lemma cos_lt_zero_pi: "pi/2 < x \<Longrightarrow> x < 3*pi/2 \<Longrightarrow> c
 
 lemma Re_Ln_pos_lt:
   assumes "z \<noteq> 0"
-    shows "abs(Im(Ln z)) < pi/2 \<longleftrightarrow> 0 < Re(z)"
+    shows "\<bar>Im(Ln z)\<bar> < pi/2 \<longleftrightarrow> 0 < Re(z)"
 proof -
   { fix w
     assume "w = Ln z"
     then have w: "Im w \<le> pi" "- pi < Im w"
       using Im_Ln_le_pi [of z]  mpi_less_Im_Ln [of z]  assms
       by auto
-    then have "abs(Im w) < pi/2 \<longleftrightarrow> 0 < Re(exp w)"
+    then have "\<bar>Im w\<bar> < pi/2 \<longleftrightarrow> 0 < Re(exp w)"
       apply (auto simp: Re_exp zero_less_mult_iff cos_gt_zero_pi)
       using cos_lt_zero_pi [of "-(Im w)"] cos_lt_zero_pi [of "(Im w)"]
       apply (simp add: abs_if split: split_if_asm)
@@ -1077,14 +1077,14 @@ qed
 
 lemma Re_Ln_pos_le:
   assumes "z \<noteq> 0"
-    shows "abs(Im(Ln z)) \<le> pi/2 \<longleftrightarrow> 0 \<le> Re(z)"
+    shows "\<bar>Im(Ln z)\<bar> \<le> pi/2 \<longleftrightarrow> 0 \<le> Re(z)"
 proof -
   { fix w
     assume "w = Ln z"
     then have w: "Im w \<le> pi" "- pi < Im w"
       using Im_Ln_le_pi [of z]  mpi_less_Im_Ln [of z]  assms
       by auto
-    then have "abs(Im w) \<le> pi/2 \<longleftrightarrow> 0 \<le> Re(exp w)"
+    then have "\<bar>Im w\<bar> \<le> pi/2 \<longleftrightarrow> 0 \<le> Re(exp w)"
       apply (auto simp: Re_exp zero_le_mult_iff cos_ge_zero)
       using cos_lt_zero_pi [of "- (Im w)"] cos_lt_zero_pi [of "(Im w)"] not_le
       apply (auto simp: abs_if split: split_if_asm)
@@ -1132,7 +1132,7 @@ proof -
     by auto
 qed
 
-lemma Re_Ln_pos_lt_imp: "0 < Re(z) \<Longrightarrow> abs(Im(Ln z)) < pi/2"
+lemma Re_Ln_pos_lt_imp: "0 < Re(z) \<Longrightarrow> \<bar>Im(Ln z)\<bar> < pi/2"
   by (metis Re_Ln_pos_lt less_irrefl zero_complex.simps(1))
 
 lemma Im_Ln_pos_lt_imp: "0 < Im(z) \<Longrightarrow> 0 < Im(Ln z) \<and> Im(Ln z) < pi"
@@ -1834,7 +1834,7 @@ lemma Arctan_tan [simp]:
   assumes "\<bar>Re z\<bar> < pi/2"
     shows "Arctan(tan z) = z"
 proof -
-  have ge_pi2: "\<And>n::int. abs (of_int (2*n + 1) * pi/2) \<ge> pi/2"
+  have ge_pi2: "\<And>n::int. \<bar>of_int (2*n + 1) * pi/2\<bar> \<ge> pi/2"
     by (case_tac n rule: int_cases) (auto simp: abs_mult)
   have "exp (\<i>*z)*exp (\<i>*z) = -1 \<longleftrightarrow> exp (2*\<i>*z) = -1"
     by (metis distrib_right exp_add mult_2)
@@ -1863,8 +1863,8 @@ proof -
 qed
 
 lemma
-  assumes "Re z = 0 \<Longrightarrow> abs(Im z) < 1"
-  shows Re_Arctan_bounds: "abs(Re(Arctan z)) < pi/2"
+  assumes "Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1"
+  shows Re_Arctan_bounds: "\<bar>Re(Arctan z)\<bar> < pi/2"
     and has_field_derivative_Arctan: "(Arctan has_field_derivative inverse(1 + z\<^sup>2)) (at z)"
 proof -
   have nz0: "1 + \<i>*z \<noteq> 0"
@@ -1889,7 +1889,7 @@ proof -
     using assms
     apply (auto simp: algebra_simps abs_square_less_1 [unfolded power2_eq_square])
     done
-  show "abs(Re(Arctan z)) < pi/2"
+  show "\<bar>Re(Arctan z)\<bar> < pi/2"
     unfolding Arctan_def divide_complex_def
     using mpi_less_Im_Ln [OF nzi]
     by (auto simp: abs_if intro: Im_Ln_less_pi * [unfolded divide_complex_def])
@@ -1903,31 +1903,31 @@ proof -
     done
 qed
 
-lemma complex_differentiable_at_Arctan: "(Re z = 0 \<Longrightarrow> abs(Im z) < 1) \<Longrightarrow> Arctan complex_differentiable at z"
+lemma complex_differentiable_at_Arctan: "(Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> Arctan complex_differentiable at z"
   using has_field_derivative_Arctan
   by (auto simp: complex_differentiable_def)
 
 lemma complex_differentiable_within_Arctan:
-    "(Re z = 0 \<Longrightarrow> abs(Im z) < 1) \<Longrightarrow> Arctan complex_differentiable (at z within s)"
+    "(Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> Arctan complex_differentiable (at z within s)"
   using complex_differentiable_at_Arctan complex_differentiable_at_within by blast
 
 declare has_field_derivative_Arctan [derivative_intros]
 declare has_field_derivative_Arctan [THEN DERIV_chain2, derivative_intros]
 
 lemma continuous_at_Arctan:
-    "(Re z = 0 \<Longrightarrow> abs(Im z) < 1) \<Longrightarrow> continuous (at z) Arctan"
+    "(Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> continuous (at z) Arctan"
   by (simp add: complex_differentiable_imp_continuous_at complex_differentiable_within_Arctan)
 
 lemma continuous_within_Arctan:
-    "(Re z = 0 \<Longrightarrow> abs(Im z) < 1) \<Longrightarrow> continuous (at z within s) Arctan"
+    "(Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> continuous (at z within s) Arctan"
   using continuous_at_Arctan continuous_at_imp_continuous_within by blast
 
 lemma continuous_on_Arctan [continuous_intros]:
-    "(\<And>z. z \<in> s \<Longrightarrow> Re z = 0 \<Longrightarrow> abs \<bar>Im z\<bar> < 1) \<Longrightarrow> continuous_on s Arctan"
+    "(\<And>z. z \<in> s \<Longrightarrow> Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> continuous_on s Arctan"
   by (auto simp: continuous_at_imp_continuous_on continuous_within_Arctan)
 
 lemma holomorphic_on_Arctan:
-    "(\<And>z. z \<in> s \<Longrightarrow> Re z = 0 \<Longrightarrow> abs \<bar>Im z\<bar> < 1) \<Longrightarrow> Arctan holomorphic_on s"
+    "(\<And>z. z \<in> s \<Longrightarrow> Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> Arctan holomorphic_on s"
   by (simp add: complex_differentiable_within_Arctan holomorphic_on_def)
 
 
@@ -1988,17 +1988,17 @@ lemma arctan_less_pi4_pos: "x < 1 \<Longrightarrow> arctan x < pi/4"
 lemma arctan_less_pi4_neg: "-1 < x \<Longrightarrow> -(pi/4) < arctan x"
   by (metis arctan_less_iff arctan_minus arctan_one)
 
-lemma arctan_less_pi4: "abs x < 1 \<Longrightarrow> abs(arctan x) < pi/4"
+lemma arctan_less_pi4: "\<bar>x\<bar> < 1 \<Longrightarrow> \<bar>arctan x\<bar> < pi/4"
   by (metis abs_less_iff arctan_less_pi4_pos arctan_minus)
 
-lemma arctan_le_pi4: "abs x \<le> 1 \<Longrightarrow> abs(arctan x) \<le> pi/4"
+lemma arctan_le_pi4: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> \<bar>arctan x\<bar> \<le> pi/4"
   by (metis abs_le_iff arctan_le_iff arctan_minus arctan_one)
 
-lemma abs_arctan: "abs(arctan x) = arctan(abs x)"
+lemma abs_arctan: "\<bar>arctan x\<bar> = arctan \<bar>x\<bar>"
   by (simp add: abs_if arctan_minus)
 
 lemma arctan_add_raw:
-  assumes "abs(arctan x + arctan y) < pi/2"
+  assumes "\<bar>arctan x + arctan y\<bar> < pi/2"
     shows "arctan x + arctan y = arctan((x + y) / (1 - x * y))"
 proof (rule arctan_unique [symmetric])
   show 12: "- (pi / 2) < arctan x + arctan y" "arctan x + arctan y < pi / 2"
@@ -2027,7 +2027,7 @@ proof -
 qed
 
 lemma arctan_add_small:
-  assumes "abs(x * y) < 1"
+  assumes "\<bar>x * y\<bar> < 1"
     shows "(arctan x + arctan y = arctan((x + y) / (1 - x * y)))"
 proof (cases "x = 0 \<or> y = 0")
   case True then show ?thesis
@@ -2044,7 +2044,7 @@ next
 qed
 
 lemma abs_arctan_le:
-  fixes x::real shows "abs(arctan x) \<le> abs x"
+  fixes x::real shows "\<bar>arctan x\<bar> \<le> \<bar>x\<bar>"
 proof -
   { fix w::complex and z::complex
     assume *: "w \<in> \<real>" "z \<in> \<real>"
@@ -2064,7 +2064,7 @@ qed
 lemma arctan_le_self: "0 \<le> x \<Longrightarrow> arctan x \<le> x"
   by (metis abs_arctan_le abs_of_nonneg zero_le_arctan_iff)
 
-lemma abs_tan_ge: "abs x < pi/2 \<Longrightarrow> abs x \<le> abs(tan x)"
+lemma abs_tan_ge: "\<bar>x\<bar> < pi/2 \<Longrightarrow> \<bar>x\<bar> \<le> \<bar>tan x\<bar>"
   by (metis abs_arctan_le abs_less_iff arctan_tan minus_less_iff)
 
 
@@ -2078,7 +2078,7 @@ lemma Arcsin_body_lemma: "\<i> * z + csqrt(1 - z\<^sup>2) \<noteq> 0"
   apply auto
   by (metis complex_i_mult_minus diff_add_cancel diff_minus_eq_add diff_self mult.assoc mult.left_commute numeral_One power2_csqrt power2_eq_square zero_neq_numeral)
 
-lemma Arcsin_range_lemma: "abs (Re z) < 1 \<Longrightarrow> 0 < Re(\<i> * z + csqrt(1 - z\<^sup>2))"
+lemma Arcsin_range_lemma: "\<bar>Re z\<bar> < 1 \<Longrightarrow> 0 < Re(\<i> * z + csqrt(1 - z\<^sup>2))"
   using Complex.cmod_power2 [of z, symmetric]
   by (simp add: real_less_rsqrt algebra_simps Re_power2 cmod_square_less_1_plus)
 
@@ -2393,7 +2393,7 @@ lemma holomorphic_on_Arccos: "(\<And>z. z \<in> s \<Longrightarrow> Im z = 0 \<L
 
 subsection\<open>Upper and Lower Bounds for Inverse Sine and Cosine\<close>
 
-lemma Arcsin_bounds: "\<bar>Re z\<bar> < 1 \<Longrightarrow> abs(Re(Arcsin z)) < pi/2"
+lemma Arcsin_bounds: "\<bar>Re z\<bar> < 1 \<Longrightarrow> \<bar>Re(Arcsin z)\<bar> < pi/2"
   unfolding Re_Arcsin
   by (blast intro: Re_Ln_pos_lt_imp Arcsin_range_lemma)
 
@@ -2405,14 +2405,14 @@ lemma Re_Arccos_bounds: "-pi < Re(Arccos z) \<and> Re(Arccos z) \<le> pi"
   unfolding Re_Arccos
   by (blast intro!: mpi_less_Im_Ln Im_Ln_le_pi Arccos_body_lemma)
 
-lemma Re_Arccos_bound: "abs(Re(Arccos z)) \<le> pi"
+lemma Re_Arccos_bound: "\<bar>Re(Arccos z)\<bar> \<le> pi"
   by (meson Re_Arccos_bounds abs_le_iff less_eq_real_def minus_less_iff)
 
 lemma Re_Arcsin_bounds: "-pi < Re(Arcsin z) & Re(Arcsin z) \<le> pi"
   unfolding Re_Arcsin
   by (blast intro!: mpi_less_Im_Ln Im_Ln_le_pi Arcsin_body_lemma)
 
-lemma Re_Arcsin_bound: "abs(Re(Arcsin z)) \<le> pi"
+lemma Re_Arcsin_bound: "\<bar>Re(Arcsin z)\<bar> \<le> pi"
   by (meson Re_Arcsin_bounds abs_le_iff less_eq_real_def minus_less_iff)
 
 
@@ -2521,7 +2521,7 @@ lemma cos_Arcsin:
 subsection\<open>Relationship with Arcsin on the Real Numbers\<close>
 
 lemma Im_Arcsin_of_real:
-  assumes "abs x \<le> 1"
+  assumes "\<bar>x\<bar> \<le> 1"
     shows "Im (Arcsin (of_real x)) = 0"
 proof -
   have "csqrt (1 - (of_real x)\<^sup>2) = (if x^2 \<le> 1 then sqrt (1 - x^2) else \<i> * sqrt (x^2 - 1))"
@@ -2539,7 +2539,7 @@ corollary Arcsin_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> \<bar>Re z\
   by (metis Im_Arcsin_of_real Re_complex_of_real Reals_cases complex_is_Real_iff)
 
 lemma arcsin_eq_Re_Arcsin:
-  assumes "abs x \<le> 1"
+  assumes "\<bar>x\<bar> \<le> 1"
     shows "arcsin x = Re (Arcsin (of_real x))"
 unfolding arcsin_def
 proof (rule the_equality, safe)
@@ -2564,14 +2564,14 @@ next
     done
 qed
 
-lemma of_real_arcsin: "abs x \<le> 1 \<Longrightarrow> of_real(arcsin x) = Arcsin(of_real x)"
+lemma of_real_arcsin: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> of_real(arcsin x) = Arcsin(of_real x)"
   by (metis Im_Arcsin_of_real add.right_neutral arcsin_eq_Re_Arcsin complex_eq mult_zero_right of_real_0)
 
 
 subsection\<open>Relationship with Arccos on the Real Numbers\<close>
 
 lemma Im_Arccos_of_real:
-  assumes "abs x \<le> 1"
+  assumes "\<bar>x\<bar> \<le> 1"
     shows "Im (Arccos (of_real x)) = 0"
 proof -
   have "csqrt (1 - (of_real x)\<^sup>2) = (if x^2 \<le> 1 then sqrt (1 - x^2) else \<i> * sqrt (x^2 - 1))"
@@ -2589,7 +2589,7 @@ corollary Arccos_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> \<bar>Re z\
   by (metis Im_Arccos_of_real Re_complex_of_real Reals_cases complex_is_Real_iff)
 
 lemma arccos_eq_Re_Arccos:
-  assumes "abs x \<le> 1"
+  assumes "\<bar>x\<bar> \<le> 1"
     shows "arccos x = Re (Arccos (of_real x))"
 unfolding arccos_def
 proof (rule the_equality, safe)
@@ -2614,7 +2614,7 @@ next
     done
 qed
 
-lemma of_real_arccos: "abs x \<le> 1 \<Longrightarrow> of_real(arccos x) = Arccos(of_real x)"
+lemma of_real_arccos: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> of_real(arccos x) = Arccos(of_real x)"
   by (metis Im_Arccos_of_real add.right_neutral arccos_eq_Re_Arccos complex_eq mult_zero_right of_real_0)
 
 subsection\<open>Some interrelationships among the real inverse trig functions.\<close>

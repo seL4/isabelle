@@ -336,11 +336,11 @@ lemma
   by smt+
 
 lemma
-  "abs (x::int) \<ge> 0"
-  "(abs x = 0) = (x = 0)"
-  "(x \<ge> 0) = (abs x = x)"
-  "(x \<le> 0) = (abs x = -x)"
-  "abs (abs x) = abs x"
+  "\<bar>x::int\<bar> \<ge> 0"
+  "(\<bar>x\<bar> = 0) = (x = 0)"
+  "(x \<ge> 0) = (\<bar>x\<bar> = x)"
+  "(x \<le> 0) = (\<bar>x\<bar> = -x)"
+  "\<bar>\<bar>x\<bar>\<bar> = \<bar>x\<bar>"
   by smt+
 
 lemma
@@ -349,7 +349,7 @@ lemma
   "z < x \<and> z < y \<longrightarrow> z < min x y"
   "min x y = min y x"
   "x \<ge> 0 \<longrightarrow> min x 0 = 0"
-  "min x y \<le> abs (x + y)"
+  "min x y \<le> \<bar>x + y\<bar>"
   by smt+
 
 lemma
@@ -358,7 +358,7 @@ lemma
   "z > x \<and> z > y \<longrightarrow> z > max x y"
   "max x y = max y x"
   "x \<ge> 0 \<longrightarrow> max x 0 = x"
-  "max x y \<ge> - abs x - abs y"
+  "max x y \<ge> - \<bar>x\<bar> - \<bar>y\<bar>"
   by smt+
 
 lemma
@@ -448,11 +448,11 @@ lemma
   by smt+
 
 lemma
-  "abs (x::real) \<ge> 0"
-  "(abs x = 0) = (x = 0)"
-  "(x \<ge> 0) = (abs x = x)"
-  "(x \<le> 0) = (abs x = -x)"
-  "abs (abs x) = abs x"
+  "\<bar>x::real\<bar> \<ge> 0"
+  "(\<bar>x\<bar> = 0) = (x = 0)"
+  "(x \<ge> 0) = (\<bar>x\<bar> = x)"
+  "(x \<le> 0) = (\<bar>x\<bar> = -x)"
+  "\<bar>\<bar>x\<bar>\<bar> = \<bar>x\<bar>"
   by smt+
 
 lemma
@@ -461,7 +461,7 @@ lemma
   "z < x \<and> z < y \<longrightarrow> z < min x y"
   "min x y = min y x"
   "x \<ge> 0 \<longrightarrow> min x 0 = 0"
-  "min x y \<le> abs (x + y)"
+  "min x y \<le> \<bar>x + y\<bar>"
   by smt+
 
 lemma
@@ -470,7 +470,7 @@ lemma
   "z > x \<and> z > y \<longrightarrow> z > max x y"
   "max x y = max y x"
   "x \<ge> 0 \<longrightarrow> max x 0 = x"
-  "max x y \<ge> - abs x - abs y"
+  "max x y \<ge> - \<bar>x\<bar> - \<bar>y\<bar>"
   by smt+
 
 lemma

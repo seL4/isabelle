@@ -13,7 +13,7 @@ subsection \<open>Some properties of @{typ int}\<close>
 
 lemma dvds_eq_abseq:
   fixes k :: int
-  shows "l dvd k \<and> k dvd l \<longleftrightarrow> abs l = abs k"
+  shows "l dvd k \<and> k dvd l \<longleftrightarrow> \<bar>l\<bar> = \<bar>k\<bar>"
 apply rule
  apply (simp add: zdvd_antisym_abs)
 apply (simp add: dvd_if_abs_eq)
@@ -281,7 +281,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Idl_eq_abs: "Idl\<^bsub>\<Z>\<^esub> {k} = Idl\<^bsub>\<Z>\<^esub> {l} \<longleftrightarrow> abs l = abs k"
+lemma Idl_eq_abs: "Idl\<^bsub>\<Z>\<^esub> {k} = Idl\<^bsub>\<Z>\<^esub> {l} \<longleftrightarrow> \<bar>l\<bar> = \<bar>k\<bar>"
   apply (subst dvds_eq_abseq[symmetric])
   apply (rule dvds_eq_Idl[symmetric])
   done

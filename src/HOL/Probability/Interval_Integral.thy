@@ -1087,7 +1087,7 @@ lemma interval_integral_norm:
 
 lemma interval_integral_norm2:
   "interval_lebesgue_integrable lborel a b f \<Longrightarrow> 
-    norm (LBINT t=a..b. f t) \<le> abs (LBINT t=a..b. norm (f t))"
+    norm (LBINT t=a..b. f t) \<le> \<bar>LBINT t=a..b. norm (f t)\<bar>"
 proof (induct a b rule: linorder_wlog)
   case (sym a b) then show ?case
     by (simp add: interval_integral_endpoints_reverse[of a b] interval_integrable_endpoints_reverse[of a b])

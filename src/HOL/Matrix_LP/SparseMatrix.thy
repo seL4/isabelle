@@ -108,7 +108,7 @@ where
 primrec abs_spvec :: "('a::lattice_ab_group_add_abs) spvec \<Rightarrow> 'a spvec"
 where
   "abs_spvec [] = []"
-| "abs_spvec (a#as) = (fst a, abs (snd a))#(abs_spvec as)"
+| "abs_spvec (a#as) = (fst a, \<bar>snd a\<bar>)#(abs_spvec as)"
 
 lemma sparse_row_vector_minus: 
   "sparse_row_vector (minus_spvec v) = - (sparse_row_vector v)"
@@ -127,7 +127,7 @@ instance matrix :: (lattice_ab_group_add_abs) lattice_ab_group_add_abs
   (*FIXME move*)
 
 lemma sparse_row_vector_abs:
-  "sorted_spvec (v :: 'a::lattice_ring spvec) \<Longrightarrow> sparse_row_vector (abs_spvec v) = abs (sparse_row_vector v)"
+  "sorted_spvec (v :: 'a::lattice_ring spvec) \<Longrightarrow> sparse_row_vector (abs_spvec v) = \<bar>sparse_row_vector v\<bar>"
   apply (induct v)
   apply simp_all
   apply (frule_tac sorted_spvec_cons1, simp)
@@ -770,7 +770,7 @@ proof -
 qed
     
 lemma sparse_row_matrix_abs:
-  "sorted_spvec A \<Longrightarrow> sorted_spmat A \<Longrightarrow> sparse_row_matrix (abs_spmat A) = abs (sparse_row_matrix A)"
+  "sorted_spvec A \<Longrightarrow> sorted_spmat A \<Longrightarrow> sparse_row_matrix (abs_spmat A) = \<bar>sparse_row_matrix A\<bar>"
   apply (induct A)
   apply (simp_all add: sparse_row_vector_abs sparse_row_matrix_cons)
   apply (frule_tac sorted_spvec_cons1, simp)
@@ -1060,7 +1060,7 @@ lemmas sparse_row_matrix_arith_simps =
   "A <= sparse_row_matrix A2"
   "sparse_row_matrix c1 <= c"
   "c <= sparse_row_matrix c2"
-  "abs x \<le> sparse_row_matrix r"
+  "\<bar>x\<bar> \<le> sparse_row_matrix r"
   shows
   "c * x \<le> sparse_row_matrix (add_spmat (mult_spmat y b, mult_spmat (add_spmat (add_spmat (mult_spmat y (diff_spmat A2 A1), 
   abs_spmat (diff_spmat (mult_spmat y A1) c1)), diff_spmat c2 c1)) r))"

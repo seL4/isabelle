@@ -307,7 +307,7 @@ proof -
   proof (intro bcontfunI)
     fix x
     assume "\<And>x. dist (f x) 0 \<le> y"
-    then show "dist (a *\<^sub>R f x) 0 \<le> abs a * y"
+    then show "dist (a *\<^sub>R f x) 0 \<le> \<bar>a\<bar> * y"
       by (metis norm_cmul_rule_thm norm_conv_dist)
   qed (simp add: continuous_intros)
 qed

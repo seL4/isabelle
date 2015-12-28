@@ -169,7 +169,7 @@ next
     qed
 qed
 
-lemma norm_lemma_xy: "\<lbrakk>abs b + 1 \<le> norm(y) - a; norm(x) \<le> a\<rbrakk> \<Longrightarrow> b \<le> norm(x + y)"
+lemma norm_lemma_xy: "\<lbrakk>\<bar>b\<bar> + 1 \<le> norm(y) - a; norm(x) \<le> a\<rbrakk> \<Longrightarrow> b \<le> norm(x + y)"
   by (metis abs_add_one_not_less_self add.commute diff_le_eq dual_order.trans le_less_linear
          norm_diff_ineq)
 
@@ -196,7 +196,7 @@ next
       by auto
     show ?thesis
     unfolding eventually_at_infinity
-    proof (rule exI [where x="max M (max 1 ((abs B + 1) / (norm (c (Suc n)) / 2)))"], clarsimp)
+    proof (rule exI [where x="max M (max 1 ((\<bar>B\<bar> + 1) / (norm (c (Suc n)) / 2)))"], clarsimp)
       fix z::'a
       assume les: "M \<le> norm z"  "1 \<le> norm z"  "(\<bar>B\<bar> * 2 + 2) / norm (c (Suc n)) \<le> norm z"
       then have "\<bar>B\<bar> * 2 + 2 \<le> norm z * norm (c (Suc n))"

@@ -117,7 +117,7 @@ done
 
 lemma hlog_hrabs_HInfinite_Infinitesimal:
      "[| x : HFinite - Infinitesimal; a : HInfinite; 0 < a |]  
-      ==> hlog a (abs x) : Infinitesimal"
+      ==> hlog a \<bar>x\<bar> : Infinitesimal"
 apply (frule HInfinite_gt_zero_gt_one)
 apply (auto intro!: starfun_ln_HFinite_not_Infinitesimal
             HInfinite_inverse_Infinitesimal Infinitesimal_HFinite_mult2 
