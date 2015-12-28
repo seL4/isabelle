@@ -226,15 +226,15 @@ next
       apply (subgoal_tac "delta i > 0")
       apply arith
       by (rule deltai_gt0)
-    also have "... \<le> (SUM i : S. F(r i) - F(l i) + epsilon / 2^(i+2))"
+    also have "... \<le> (\<Sum>i \<in> S. F(r i) - F(l i) + epsilon / 2^(i+2))"
       apply (rule setsum_mono)
       apply simp
       apply (rule order_trans)
       apply (rule less_imp_le)
       apply (rule deltai_prop)
       by auto
-    also have "... = (SUM i : S. F(r i) - F(l i)) +
-        (epsilon / 4) * (SUM i : S. (1 / 2)^i)" (is "_ = ?t + _")
+    also have "... = (\<Sum>i \<in> S. F(r i) - F(l i)) +
+        (epsilon / 4) * (\<Sum>i \<in> S. (1 / 2)^i)" (is "_ = ?t + _")
       by (subst setsum.distrib) (simp add: field_simps setsum_right_distrib)
     also have "... \<le> ?t + (epsilon / 4) * (\<Sum> i < Suc n. (1 / 2)^i)"
       apply (rule add_left_mono)

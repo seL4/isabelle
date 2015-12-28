@@ -72,7 +72,7 @@ lemma
 
 lemma setsum_indicator_eq_card:
   assumes "finite A"
-  shows "(SUM x : A. indicator B x) = card (A Int B)"
+  shows "(\<Sum>x \<in> A. indicator B x) = card (A Int B)"
   using setsum_mult_indicator[OF assms, of "%x. 1::nat"]
   unfolding card_eq_setsum by simp
 

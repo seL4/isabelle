@@ -1489,14 +1489,14 @@ lemma coprime_minus_one_int: "coprime ((n::int) - 1) n"
     gcd_commute_int [of "n - 1" n] by auto
 
 lemma setprod_coprime_nat [rule_format]:
-    "(ALL i: A. coprime (f i) (x::nat)) --> coprime (PROD i:A. f i) x"
+    "(ALL i: A. coprime (f i) (x::nat)) --> coprime (\<Prod>i\<in>A. f i) x"
   apply (case_tac "finite A")
   apply (induct set: finite)
   apply (auto simp add: gcd_mult_cancel_nat)
 done
 
 lemma setprod_coprime_int [rule_format]:
-    "(ALL i: A. coprime (f i) (x::int)) --> coprime (PROD i:A. f i) x"
+    "(ALL i: A. coprime (f i) (x::int)) --> coprime (\<Prod>i\<in>A. f i) x"
   apply (case_tac "finite A")
   apply (induct set: finite)
   apply (auto simp add: gcd_mult_cancel_int)

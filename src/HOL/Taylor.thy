@@ -70,7 +70,7 @@ proof -
   qed
   ultimately obtain x where 
          "a - c < x & x < 0 &
-      f (a - c + c) = (SUM m<n. diff m (0 + c) / (fact m) * (a - c) ^ m) +
+      f (a - c + c) = (\<Sum>m<n. diff m (0 + c) / (fact m) * (a - c) ^ m) +
         diff n (x + c) / (fact n) * (a - c) ^ n"
      by (rule Maclaurin_minus [THEN exE])
   then have "a<x+c & x+c<c \<and> f a = (\<Sum>m<n. diff m c / (fact m) * (a - c) ^ m) +

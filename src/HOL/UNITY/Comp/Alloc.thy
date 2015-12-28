@@ -53,8 +53,8 @@ definition
   --{*spec (1)*}
   system_safety :: "'a systemState program set"
   where "system_safety =
-     Always {s. (SUM i: lessThan Nclients. (tokens o giv o sub i o client)s)
-     \<le> NbT + (SUM i: lessThan Nclients. (tokens o rel o sub i o client)s)}"
+     Always {s. (\<Sum>i \<in> lessThan Nclients. (tokens o giv o sub i o client)s)
+     \<le> NbT + (\<Sum>i \<in> lessThan Nclients. (tokens o rel o sub i o client)s)}"
 
 definition
   --{*spec (2)*}
@@ -120,8 +120,8 @@ definition
   where "alloc_safety =
          (INT i : lessThan Nclients. Increasing (sub i o allocRel))
          guarantees
-         Always {s. (SUM i: lessThan Nclients. (tokens o sub i o allocGiv)s)
-         \<le> NbT + (SUM i: lessThan Nclients. (tokens o sub i o allocRel)s)}"
+         Always {s. (\<Sum>i \<in> lessThan Nclients. (tokens o sub i o allocGiv)s)
+         \<le> NbT + (\<Sum>i \<in> lessThan Nclients. (tokens o sub i o allocRel)s)}"
 
 definition
   --{*spec (8)*}

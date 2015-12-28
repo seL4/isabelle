@@ -123,7 +123,7 @@ next
   qed
 qed
 
-lemma dvd_prod [iff]: "n dvd (PROD m::nat:#mset (n # ns). m)"
+lemma dvd_prod [iff]: "n dvd (\<Prod>m::nat \<in># mset (n # ns). m)"
   by (simp add: msetprod_Un msetprod_singleton)
 
 definition all_prime :: "nat list \<Rightarrow> bool" where
@@ -140,13 +140,13 @@ lemma all_prime_append:
 
 lemma split_all_prime:
   assumes "all_prime ms" and "all_prime ns"
-  shows "\<exists>qs. all_prime qs \<and> (PROD m::nat:#mset qs. m) =
-    (PROD m::nat:#mset ms. m) * (PROD m::nat:#mset ns. m)" (is "\<exists>qs. ?P qs \<and> ?Q qs")
+  shows "\<exists>qs. all_prime qs \<and> (\<Prod>m::nat \<in># mset qs. m) =
+    (\<Prod>m::nat \<in># mset ms. m) * (\<Prod>m::nat \<in># mset ns. m)" (is "\<exists>qs. ?P qs \<and> ?Q qs")
 proof -
   from assms have "all_prime (ms @ ns)"
     by (simp add: all_prime_append)
-  moreover from assms have "(PROD m::nat:#mset (ms @ ns). m) =
-    (PROD m::nat:#mset ms. m) * (PROD m::nat:#mset ns. m)"
+  moreover from assms have "(\<Prod>m::nat \<in># mset (ms @ ns). m) =
+    (\<Prod>m::nat \<in># mset ms. m) * (\<Prod>m::nat \<in># mset ns. m)"
     by (simp add: msetprod_Un)
   ultimately have "?P (ms @ ns) \<and> ?Q (ms @ ns)" ..
   then show ?thesis ..
@@ -154,11 +154,11 @@ qed
 
 lemma all_prime_nempty_g_one:
   assumes "all_prime ps" and "ps \<noteq> []"
-  shows "Suc 0 < (PROD m::nat:#mset ps. m)"
+  shows "Suc 0 < (\<Prod>m::nat \<in># mset ps. m)"
   using `ps \<noteq> []` `all_prime ps` unfolding One_nat_def [symmetric] by (induct ps rule: list_nonempty_induct)
     (simp_all add: all_prime_simps msetprod_singleton msetprod_Un prime_gt_1_nat less_1_mult del: One_nat_def)
 
-lemma factor_exists: "Suc 0 < n \<Longrightarrow> (\<exists>ps. all_prime ps \<and> (PROD m::nat:#mset ps. m) = n)"
+lemma factor_exists: "Suc 0 < n \<Longrightarrow> (\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) = n)"
 proof (induct n rule: nat_wf_ind)
   case (1 n)
   from `Suc 0 < n`
@@ -169,21 +169,21 @@ proof (induct n rule: nat_wf_ind)
     assume "\<exists>m k. Suc 0 < m \<and> Suc 0 < k \<and> m < n \<and> k < n \<and> n = m * k"
     then obtain m k where m: "Suc 0 < m" and k: "Suc 0 < k" and mn: "m < n"
       and kn: "k < n" and nmk: "n = m * k" by iprover
-    from mn and m have "\<exists>ps. all_prime ps \<and> (PROD m::nat:#mset ps. m) = m" by (rule 1)
-    then obtain ps1 where "all_prime ps1" and prod_ps1_m: "(PROD m::nat:#mset ps1. m) = m"
+    from mn and m have "\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) = m" by (rule 1)
+    then obtain ps1 where "all_prime ps1" and prod_ps1_m: "(\<Prod>m::nat \<in># mset ps1. m) = m"
       by iprover
-    from kn and k have "\<exists>ps. all_prime ps \<and> (PROD m::nat:#mset ps. m) = k" by (rule 1)
-    then obtain ps2 where "all_prime ps2" and prod_ps2_k: "(PROD m::nat:#mset ps2. m) = k"
+    from kn and k have "\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) = k" by (rule 1)
+    then obtain ps2 where "all_prime ps2" and prod_ps2_k: "(\<Prod>m::nat \<in># mset ps2. m) = k"
       by iprover
     from `all_prime ps1` `all_prime ps2`
-    have "\<exists>ps. all_prime ps \<and> (PROD m::nat:#mset ps. m) =
-      (PROD m::nat:#mset ps1. m) * (PROD m::nat:#mset ps2. m)"
+    have "\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) =
+      (\<Prod>m::nat \<in># mset ps1. m) * (\<Prod>m::nat \<in># mset ps2. m)"
       by (rule split_all_prime)
     with prod_ps1_m prod_ps2_k nmk show ?thesis by simp
   next
     assume "prime n" then have "all_prime [n]" by (simp add: all_prime_simps)
-    moreover have "(PROD m::nat:#mset [n]. m) = n" by (simp add: msetprod_singleton)
-    ultimately have "all_prime [n] \<and> (PROD m::nat:#mset [n]. m) = n" ..
+    moreover have "(\<Prod>m::nat \<in># mset [n]. m) = n" by (simp add: msetprod_singleton)
+    ultimately have "all_prime [n] \<and> (\<Prod>m::nat \<in># mset [n]. m) = n" ..
     then show ?thesis ..
   qed
 qed
@@ -193,7 +193,7 @@ lemma prime_factor_exists:
   shows "\<exists>p. prime p \<and> p dvd n"
 proof -
   from N obtain ps where "all_prime ps"
-    and prod_ps: "n = (PROD m::nat:#mset ps. m)" using factor_exists
+    and prod_ps: "n = (\<Prod>m::nat \<in># mset ps. m)" using factor_exists
     by simp iprover
   with N have "ps \<noteq> []"
     by (auto simp add: all_prime_nempty_g_one msetprod_empty)

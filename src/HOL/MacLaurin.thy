@@ -223,7 +223,7 @@ proof -
   have "(- 1) ^ n * diff n (- t) * (- h) ^ n / (fact n) = diff n (- t) * h ^ n / (fact n)"
     by (auto simp add: power_mult_distrib[symmetric])
   moreover
-  have "(SUM m<n. (- 1) ^ m * diff m 0 * (- h) ^ m / (fact m)) = (SUM m<n. diff m 0 * h ^ m / (fact m))"
+  have "(\<Sum>m<n. (- 1) ^ m * diff m 0 * (- h) ^ m / (fact m)) = (\<Sum>m<n. diff m 0 * h ^ m / (fact m))"
     by (auto intro: setsum.cong simp add: power_mult_distrib[symmetric])
   ultimately have " h < - t \<and>
     - t < 0 \<and>

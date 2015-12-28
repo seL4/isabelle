@@ -178,32 +178,32 @@ lemma cong_exp_int: "[(x::int) = y] (mod n) \<Longrightarrow> [x^k = y^k] (mod n
   by (induct k) (auto simp add: cong_mult_int)
 
 lemma cong_setsum_nat [rule_format]:
-    "(ALL x: A. [((f x)::nat) = g x] (mod m)) \<longrightarrow>
-      [(SUM x:A. f x) = (SUM x:A. g x)] (mod m)"
+    "(\<forall>x\<in>A. [((f x)::nat) = g x] (mod m)) \<longrightarrow>
+      [(\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. g x)] (mod m)"
   apply (cases "finite A")
   apply (induct set: finite)
   apply (auto intro: cong_add_nat)
   done
 
 lemma cong_setsum_int [rule_format]:
-    "(ALL x: A. [((f x)::int) = g x] (mod m)) \<longrightarrow>
-      [(SUM x:A. f x) = (SUM x:A. g x)] (mod m)"
+    "(\<forall>x\<in>A. [((f x)::int) = g x] (mod m)) \<longrightarrow>
+      [(\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. g x)] (mod m)"
   apply (cases "finite A")
   apply (induct set: finite)
   apply (auto intro: cong_add_int)
   done
 
 lemma cong_setprod_nat [rule_format]:
-    "(ALL x: A. [((f x)::nat) = g x] (mod m)) \<longrightarrow>
-      [(PROD x:A. f x) = (PROD x:A. g x)] (mod m)"
+    "(\<forall>x\<in>A. [((f x)::nat) = g x] (mod m)) \<longrightarrow>
+      [(\<Prod>x\<in>A. f x) = (\<Prod>x\<in>A. g x)] (mod m)"
   apply (cases "finite A")
   apply (induct set: finite)
   apply (auto intro: cong_mult_nat)
   done
 
 lemma cong_setprod_int [rule_format]:
-    "(ALL x: A. [((f x)::int) = g x] (mod m)) \<longrightarrow>
-      [(PROD x:A. f x) = (PROD x:A. g x)] (mod m)"
+    "(\<forall>x\<in>A. [((f x)::int) = g x] (mod m)) \<longrightarrow>
+      [(\<Prod>x\<in>A. f x) = (\<Prod>x\<in>A. g x)] (mod m)"
   apply (cases "finite A")
   apply (induct set: finite)
   apply (auto intro: cong_mult_int)
@@ -566,18 +566,18 @@ lemma cong_cong_lcm_int: "[(x::int) = y] (mod a) \<Longrightarrow>
   by (auto simp add: cong_altdef_int lcm_least_int) [1]
 
 lemma cong_cong_setprod_coprime_nat [rule_format]: "finite A \<Longrightarrow>
-    (ALL i:A. (ALL j:A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))) \<longrightarrow>
-    (ALL i:A. [(x::nat) = y] (mod m i)) \<longrightarrow>
-      [x = y] (mod (PROD i:A. m i))"
+    (\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))) \<longrightarrow>
+    (\<forall>i\<in>A. [(x::nat) = y] (mod m i)) \<longrightarrow>
+      [x = y] (mod (\<Prod>i\<in>A. m i))"
   apply (induct set: finite)
   apply auto
   apply (metis One_nat_def coprime_cong_mult_nat gcd.commute setprod_coprime_nat)
   done
 
 lemma cong_cong_setprod_coprime_int [rule_format]: "finite A \<Longrightarrow>
-    (ALL i:A. (ALL j:A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))) \<longrightarrow>
-    (ALL i:A. [(x::int) = y] (mod m i)) \<longrightarrow>
-      [x = y] (mod (PROD i:A. m i))"
+    (\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))) \<longrightarrow>
+    (\<forall>i\<in>A. [(x::int) = y] (mod m i)) \<longrightarrow>
+      [x = y] (mod (\<Prod>i\<in>A. m i))"
   apply (induct set: finite)
   apply auto
   apply (metis coprime_cong_mult_int gcd.commute setprod_coprime_int)
@@ -758,18 +758,18 @@ lemma chinese_remainder_aux_nat:
     and m :: "'a \<Rightarrow> nat"
   assumes fin: "finite A"
     and cop: "ALL i : A. (ALL j : A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))"
-  shows "EX b. (ALL i : A. [b i = 1] (mod m i) \<and> [b i = 0] (mod (PROD j : A - {i}. m j)))"
+  shows "EX b. (ALL i : A. [b i = 1] (mod m i) \<and> [b i = 0] (mod (\<Prod>j \<in> A - {i}. m j)))"
 proof (rule finite_set_choice, rule fin, rule ballI)
   fix i
   assume "i : A"
-  with cop have "coprime (PROD j : A - {i}. m j) (m i)"
+  with cop have "coprime (\<Prod>j \<in> A - {i}. m j) (m i)"
     by (intro setprod_coprime_nat, auto)
-  then have "EX x. [(PROD j : A - {i}. m j) * x = 1] (mod m i)"
+  then have "EX x. [(\<Prod>j \<in> A - {i}. m j) * x = 1] (mod m i)"
     by (elim cong_solve_coprime_nat)
-  then obtain x where "[(PROD j : A - {i}. m j) * x = 1] (mod m i)"
+  then obtain x where "[(\<Prod>j \<in> A - {i}. m j) * x = 1] (mod m i)"
     by auto
-  moreover have "[(PROD j : A - {i}. m j) * x = 0]
-    (mod (PROD j : A - {i}. m j))"
+  moreover have "[(\<Prod>j \<in> A - {i}. m j) * x = 0]
+    (mod (\<Prod>j \<in> A - {i}. m j))"
     by (subst mult.commute, rule cong_mult_self_nat)
   ultimately show "\<exists>a. [a = 1] (mod m i) \<and> [a = 0]
       (mod setprod m (A - {i}))"
@@ -786,22 +786,22 @@ lemma chinese_remainder_nat:
 proof -
   from chinese_remainder_aux_nat [OF fin cop] obtain b where
     bprop: "ALL i:A. [b i = 1] (mod m i) \<and>
-      [b i = 0] (mod (PROD j : A - {i}. m j))"
+      [b i = 0] (mod (\<Prod>j \<in> A - {i}. m j))"
     by blast
-  let ?x = "SUM i:A. (u i) * (b i)"
+  let ?x = "\<Sum>i\<in>A. (u i) * (b i)"
   show "?thesis"
   proof (rule exI, clarify)
     fix i
     assume a: "i : A"
     show "[?x = u i] (mod m i)"
     proof -
-      from fin a have "?x = (SUM j:{i}. u j * b j) +
-          (SUM j:A-{i}. u j * b j)"
+      from fin a have "?x = (\<Sum>j \<in> {i}. u j * b j) +
+          (\<Sum>j \<in> A - {i}. u j * b j)"
         by (subst setsum.union_disjoint [symmetric], auto intro: setsum.cong)
-      then have "[?x = u i * b i + (SUM j:A-{i}. u j * b j)] (mod m i)"
+      then have "[?x = u i * b i + (\<Sum>j \<in> A - {i}. u j * b j)] (mod m i)"
         by auto
-      also have "[u i * b i + (SUM j:A-{i}. u j * b j) =
-                  u i * 1 + (SUM j:A-{i}. u j * 0)] (mod m i)"
+      also have "[u i * b i + (\<Sum>j \<in> A - {i}. u j * b j) =
+                  u i * 1 + (\<Sum>j \<in> A - {i}. u j * 0)] (mod m i)"
         apply (rule cong_add_nat)
         apply (rule cong_scalar2_nat)
         using bprop a apply blast
@@ -822,9 +822,9 @@ proof -
 qed
 
 lemma coprime_cong_prod_nat [rule_format]: "finite A \<Longrightarrow>
-    (ALL i: A. (ALL j: A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))) \<longrightarrow>
-      (ALL i: A. [(x::nat) = y] (mod m i)) \<longrightarrow>
-         [x = y] (mod (PROD i:A. m i))"
+    (\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))) \<longrightarrow>
+      (\<forall>i\<in>A. [(x::nat) = y] (mod m i)) \<longrightarrow>
+         [x = y] (mod (\<Prod>i\<in>A. m i))"
   apply (induct set: finite)
   apply auto
   apply (metis One_nat_def coprime_cong_mult_nat gcd.commute setprod_coprime_nat)
@@ -835,17 +835,17 @@ lemma chinese_remainder_unique_nat:
     and m :: "'a \<Rightarrow> nat"
     and u :: "'a \<Rightarrow> nat"
   assumes fin: "finite A"
-    and nz: "ALL i:A. m i \<noteq> 0"
-    and cop: "ALL i:A. (ALL j : A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))"
-  shows "EX! x. x < (PROD i:A. m i) \<and> (ALL i:A. [x = u i] (mod m i))"
+    and nz: "\<forall>i\<in>A. m i \<noteq> 0"
+    and cop: "\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))"
+  shows "EX! x. x < (\<Prod>i\<in>A. m i) \<and> (\<forall>i\<in>A. [x = u i] (mod m i))"
 proof -
   from chinese_remainder_nat [OF fin cop]
   obtain y where one: "(ALL i:A. [y = u i] (mod m i))"
     by blast
-  let ?x = "y mod (PROD i:A. m i)"
-  from fin nz have prodnz: "(PROD i:A. m i) \<noteq> 0"
+  let ?x = "y mod (\<Prod>i\<in>A. m i)"
+  from fin nz have prodnz: "(\<Prod>i\<in>A. m i) \<noteq> 0"
     by auto
-  then have less: "?x < (PROD i:A. m i)"
+  then have less: "?x < (\<Prod>i\<in>A. m i)"
     by auto
   have cong: "ALL i:A. [?x = u i] (mod m i)"
     apply auto
@@ -859,11 +859,11 @@ proof -
     apply (rule fin)
     apply assumption
     done
-  have unique: "ALL z. z < (PROD i:A. m i) \<and>
+  have unique: "ALL z. z < (\<Prod>i\<in>A. m i) \<and>
       (ALL i:A. [z = u i] (mod m i)) \<longrightarrow> z = ?x"
   proof (clarify)
     fix z
-    assume zless: "z < (PROD i:A. m i)"
+    assume zless: "z < (\<Prod>i\<in>A. m i)"
     assume zcong: "(ALL i:A. [z = u i] (mod m i))"
     have "ALL i:A. [?x = z] (mod m i)"
       apply clarify
@@ -872,7 +872,7 @@ proof -
       apply (rule cong_sym_nat)
       using zcong apply auto
       done
-    with fin cop have "[?x = z] (mod (PROD i:A. m i))"
+    with fin cop have "[?x = z] (mod (\<Prod>i\<in>A. m i))"
       apply (intro coprime_cong_prod_nat)
       apply auto
       done
