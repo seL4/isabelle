@@ -470,10 +470,11 @@ fun add_ind_set_def
     (* define inductive sets using previously defined predicates *)
     val (defs, lthy2) = lthy1
       |> fold_map Local_Theory.define
-        (map (fn (((c, syn), (fs, U, _)), p) => ((c, syn), ((Thm.def_binding c, []),
-           fold_rev lambda params (HOLogic.Collect_const U $
-             HOLogic.mk_ptupleabs fs U HOLogic.boolT (list_comb (p, params3))))))
-           (cnames_syn ~~ cs_info ~~ preds));
+        (map (fn (((b, mx), (fs, U, _)), p) =>
+          ((b, mx), ((Binding.reset_pos (Thm.def_binding b), []),
+            fold_rev lambda params (HOLogic.Collect_const U $
+              HOLogic.mk_ptupleabs fs U HOLogic.boolT (list_comb (p, params3))))))
+            (cnames_syn ~~ cs_info ~~ preds));
 
     (* prove theorems for converting predicate to set notation *)
     val lthy3 = fold

@@ -843,18 +843,22 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
 
     val rec_binding =
       if Binding.is_empty alt_name then
-        Binding.name (space_implode "_" (map (Binding.name_of o fst) cnames_syn))
+        (case cnames_syn of
+          [(b, _)] => b
+        | _ => Binding.name (space_implode "_" (map (Binding.name_of o fst) cnames_syn)))
       else alt_name;
     val rec_name = Binding.name_of rec_binding;
 
     val inductive_defs = Config.get lthy inductive_defs;
+    fun cond_def_binding b =
+      if inductive_defs then Binding.reset_pos (Thm.def_binding b)
+      else Binding.empty;
 
     val ((rec_const, (_, fp_def)), lthy') = lthy
       |> is_auxiliary ? Proof_Context.concealed
       |> Local_Theory.define
-        ((rec_binding, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
-         ((if inductive_defs then Thm.def_binding rec_binding else Binding.empty,
-           @{attributes [nitpick_unfold]}),
+        ((rec_binding, case cnames_syn of [(_, mx)] => mx | _ => NoSyn),
+         ((cond_def_binding rec_binding, @{attributes [nitpick_unfold]}),
            fold_rev lambda params
              (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
       ||> Proof_Context.restore_naming lthy;
@@ -863,15 +867,16 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
         (Thm.cterm_of lthy' (list_comb (rec_const, params)));
     val specs =
       if is_auxiliary then
-        map_index (fn (i, (name_mx, c)) =>
+        map_index (fn (i, ((b, mx), c)) =>
           let
             val Ts = arg_types_of (length params) c;
             val xs =
               map Free (Variable.variant_frees lthy' intr_ts (mk_names "x" (length Ts) ~~ Ts));
           in
-            (name_mx, (Attrib.empty_binding, fold_rev lambda (params @ xs)
-              (list_comb (rec_const, params @ make_bool_args' bs i @
-                make_args argTs (xs ~~ Ts)))))
+            ((b, mx),
+              ((cond_def_binding b, []), fold_rev lambda (params @ xs)
+                (list_comb (rec_const, params @ make_bool_args' bs i @
+                  make_args argTs (xs ~~ Ts)))))
           end) (cnames_syn ~~ cs)
       else [];
     val (consts_defs, lthy'') = lthy'
