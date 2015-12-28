@@ -409,7 +409,9 @@ fun new_fixed ((x, x'), pos) ctxt =
   else
     let
       val proper = Config.get ctxt proper_fixes;
-      val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.global_naming);
+      val context = Context.Proof ctxt
+        |> Name_Space.map_naming (K Name_Space.global_naming)
+        |> Context_Position.set_visible_generic false;
     in
       ctxt
       |> map_fixes
