@@ -471,35 +471,28 @@ sublocale setsum: comm_monoid_set plus 0
 defines
   setsum = setsum.F ..
 
-abbreviation
-  Setsum ("\<Sum>_" [1000] 999) where
-  "\<Sum>A \<equiv> setsum (%x. x) A"
+abbreviation Setsum ("\<Sum>_" [1000] 999)
+  where "\<Sum>A \<equiv> setsum (\<lambda>x. x) A"
 
 end
 
-text\<open>Now: lot's of fancy syntax. First, @{term "setsum (%x. e) A"} is
-written \<open>\<Sum>x\<in>A. e\<close>.\<close>
+text \<open>Now: lot's of fancy syntax. First, @{term "setsum (\<lambda>x. e) A"} is written \<open>\<Sum>x\<in>A. e\<close>.\<close>
 
+syntax (ASCII)
+  "_setsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(3SUM _:_./ _)" [0, 51, 10] 10)
 syntax
-  "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(3SUM _:_./ _)" [0, 51, 10] 10)
-syntax (xsymbols)
-  "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(2\<Sum>_\<in>_./ _)" [0, 51, 10] 10)
-
+  "_setsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(2\<Sum>_\<in>_./ _)" [0, 51, 10] 10)
 translations \<comment> \<open>Beware of argument permutation!\<close>
-  "SUM i:A. b" == "CONST setsum (%i. b) A"
-  "\<Sum>i\<in>A. b" == "CONST setsum (%i. b) A"
+  "\<Sum>i\<in>A. b" \<rightleftharpoons> "CONST setsum (\<lambda>i. b) A"
 
-text\<open>Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter
- \<open>\<Sum>x|P. e\<close>.\<close>
+text \<open>Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter \<open>\<Sum>x|P. e\<close>.\<close>
 
+syntax (ASCII)
+  "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3SUM _ |/ _./ _)" [0, 0, 10] 10)
 syntax
-  "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SUM _ |/ _./ _)" [0,0,10] 10)
-syntax (xsymbols)
-  "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(2\<Sum>_ | (_)./ _)" [0,0,10] 10)
-
+  "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(2\<Sum>_ | (_)./ _)" [0, 0, 10] 10)
 translations
-  "SUM x|P. t" => "CONST setsum (%x. t) {x. P}"
-  "\<Sum>x|P. t" => "CONST setsum (%x. t) {x. P}"
+  "\<Sum>x|P. t" => "CONST setsum (\<lambda>x. t) {x. P}"
 
 print_translation \<open>
 let
@@ -1059,26 +1052,21 @@ abbreviation
 
 end
 
-syntax
+syntax (ASCII)
   "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(4PROD _:_./ _)" [0, 51, 10] 10)
-syntax (xsymbols)
-  "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>_\<in>_./ _)" [0, 51, 10] 10)
-
-translations \<comment> \<open>Beware of argument permutation!\<close>
-  "PROD i:A. b" == "CONST setprod (%i. b) A" 
-  "\<Prod>i\<in>A. b" == "CONST setprod (%i. b) A" 
-
-text\<open>Instead of @{term"\<Prod>x\<in>{x. P}. e"} we introduce the shorter
- \<open>\<Prod>x|P. e\<close>.\<close>
-
 syntax
-  "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(4PROD _ |/ _./ _)" [0,0,10] 10)
-syntax (xsymbols)
-  "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(2\<Prod>_ | (_)./ _)" [0,0,10] 10)
+  "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>_\<in>_./ _)" [0, 51, 10] 10)
+translations \<comment> \<open>Beware of argument permutation!\<close>
+  "\<Prod>i\<in>A. b" == "CONST setprod (\<lambda>i. b) A" 
 
+text \<open>Instead of @{term"\<Prod>x\<in>{x. P}. e"} we introduce the shorter \<open>\<Prod>x|P. e\<close>.\<close>
+
+syntax (ASCII)
+  "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(4PROD _ |/ _./ _)" [0, 0, 10] 10)
+syntax
+  "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(2\<Prod>_ | (_)./ _)" [0, 0, 10] 10)
 translations
-  "PROD x|P. t" => "CONST setprod (%x. t) {x. P}"
-  "\<Prod>x|P. t" => "CONST setprod (%x. t) {x. P}"
+  "\<Prod>x|P. t" => "CONST setprod (\<lambda>x. t) {x. P}"
 
 context comm_monoid_mult
 begin

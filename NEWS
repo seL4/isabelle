@@ -375,6 +375,11 @@ INCOMPATIBILITY in exotic situations.
 
 *** HOL ***
 
+* Former "xsymbols" syntax with Isabelle symbols is used by default,
+without any special print mode. Important ASCII replacement syntax
+remains available under print mode "ASCII", but less important syntax
+has been removed (see below).
+
 * Combinator to represent case distinction on products is named "case_prod",
 uniformly, discontinuing any input aliasses.  Very popular theorem aliasses
 have been retained.

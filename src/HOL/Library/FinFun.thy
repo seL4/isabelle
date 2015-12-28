@@ -907,10 +907,11 @@ by(auto simp add: expand_finfun_eq fun_eq_iff finfun_upd_apply)
 
 subsection \<open>Function composition\<close>
 
-definition finfun_comp :: "('a \<Rightarrow> 'b) \<Rightarrow> 'c \<Rightarrow>f 'a \<Rightarrow> 'c \<Rightarrow>f 'b" (infixr "o$" 55)
-where [code del]: "g o$ f  = finfun_rec (\<lambda>b. (K$ g b)) (\<lambda>a b c. c(a $:= g b)) f"
+definition finfun_comp :: "('a \<Rightarrow> 'b) \<Rightarrow> 'c \<Rightarrow>f 'a \<Rightarrow> 'c \<Rightarrow>f 'b"  (infixr "\<circ>$" 55)
+where [code del]: "g \<circ>$ f  = finfun_rec (\<lambda>b. (K$ g b)) (\<lambda>a b c. c(a $:= g b)) f"
 
-notation (xsymbols) finfun_comp (infixr "\<circ>$" 55)
+notation (ASCII)
+  finfun_comp (infixr "o$" 55)
 
 interpretation finfun_comp_aux: finfun_rec_wf_aux "(\<lambda>b. (K$ g b))" "(\<lambda>a b c. c(a $:= g b))"
 by(unfold_locales)(auto simp add: finfun_upd_apply intro: finfun_ext)
@@ -968,10 +969,11 @@ proof -
   thus ?thesis by(auto simp add: fun_eq_iff)
 qed
 
-definition finfun_comp2 :: "'b \<Rightarrow>f 'c \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow>f 'c" (infixr "$o" 55)
-where [code del]: "g $o f = Abs_finfun (op $ g \<circ> f)"
+definition finfun_comp2 :: "'b \<Rightarrow>f 'c \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow>f 'c"  (infixr "$\<circ>" 55)
+where [code del]: "g $\<circ> f = Abs_finfun (op $ g \<circ> f)"
 
-notation (xsymbol) finfun_comp2 (infixr "$\<circ>" 55)
+notation (ASCII)
+  finfun_comp2  (infixr "$o" 55)
 
 lemma finfun_comp2_const [code, simp]: "finfun_comp2 (K$ c) f = (K$ c)"
   including finfun
@@ -1534,12 +1536,12 @@ no_notation
   finfun_const ("K$/ _" [0] 1) and
   finfun_update ("_'(_ $:= _')" [1000,0,0] 1000) and
   finfun_apply (infixl "$" 999) and
-  finfun_comp (infixr "o$" 55) and
-  finfun_comp2 (infixr "$o" 55) and
+  finfun_comp (infixr "\<circ>$" 55) and
+  finfun_comp2 (infixr "$\<circ>" 55) and
   finfun_Diag ("(1'($_,/ _$'))" [0, 0] 1000)
 
-no_notation (xsymbols) 
-  finfun_comp (infixr "\<circ>$" 55) and
-  finfun_comp2 (infixr "$\<circ>" 55)
+no_notation (ASCII) 
+  finfun_comp (infixr "o$" 55) and
+  finfun_comp2 (infixr "$o" 55)
 
 end

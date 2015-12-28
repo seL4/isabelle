@@ -27,21 +27,17 @@ subsection \<open>Powers for Arbitrary Monoids\<close>
 class power = one + times
 begin
 
-primrec power :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infixr "^" 80) where
-    power_0: "a ^ 0 = 1"
-  | power_Suc: "a ^ Suc n = a * a ^ n"
+primrec power :: "'a \<Rightarrow> nat \<Rightarrow> 'a"  (infixr "^" 80)
+where
+  power_0: "a ^ 0 = 1"
+| power_Suc: "a ^ Suc n = a * a ^ n"
 
 notation (latex output)
   power ("(_\<^bsup>_\<^esup>)" [1000] 1000)
 
 text \<open>Special syntax for squares.\<close>
-
-abbreviation (xsymbols)
-  power2 :: "'a \<Rightarrow> 'a"  ("(_\<^sup>2)" [1000] 999) where
-  "x\<^sup>2 \<equiv> x ^ 2"
-
-notation (latex output)
-  power2  ("(_\<^sup>2)" [1000] 999)
+abbreviation power2 :: "'a \<Rightarrow> 'a"  ("(_\<^sup>2)" [1000] 999)
+  where "x\<^sup>2 \<equiv> x ^ 2"
 
 end
 

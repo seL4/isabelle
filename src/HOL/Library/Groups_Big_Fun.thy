@@ -233,12 +233,12 @@ qed
 
 end
 
-syntax
+syntax (ASCII)
   "_Sum_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"    ("(3SUM _. _)" [0, 10] 10)
-syntax (xsymbols)
+syntax
   "_Sum_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"    ("(3\<Sum>_. _)" [0, 10] 10)
 translations
-  "\<Sum>a. b" == "CONST Sum_any (\<lambda>a. b)"
+  "\<Sum>a. b" \<rightleftharpoons> "CONST Sum_any (\<lambda>a. b)"
 
 lemma Sum_any_left_distrib:
   fixes r :: "'a :: semiring_0"
@@ -302,10 +302,10 @@ qed
 
 end
 
+syntax (ASCII)
+  "_Prod_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3PROD _. _)" [0, 10] 10)
 syntax
-  "_Prod_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"    ("(3PROD _. _)" [0, 10] 10)
-syntax (xsymbols)
-  "_Prod_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"    ("(3\<Prod>_. _)" [0, 10] 10)
+  "_Prod_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3\<Prod>_. _)" [0, 10] 10)
 translations
   "\<Prod>a. b" == "CONST Prod_any (\<lambda>a. b)"
 

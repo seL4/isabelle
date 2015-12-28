@@ -85,27 +85,27 @@ text \<open>
   with the plain constant names.
 \<close>
 
-syntax
+syntax (ASCII)
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
   "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3INF _:_./ _)" [0, 0, 10] 10)
   "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3SUP _./ _)" [0, 10] 10)
   "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3SUP _:_./ _)" [0, 0, 10] 10)
 
-syntax (xsymbols)
+syntax
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
   "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
   "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
   "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
 
 translations
-  "INF x y. B"   == "INF x. INF y. B"
-  "INF x. B"     == "CONST INFIMUM CONST UNIV (%x. B)"
-  "INF x. B"     == "INF x:CONST UNIV. B"
-  "INF x:A. B"   == "CONST INFIMUM A (%x. B)"
-  "SUP x y. B"   == "SUP x. SUP y. B"
-  "SUP x. B"     == "CONST SUPREMUM CONST UNIV (%x. B)"
-  "SUP x. B"     == "SUP x:CONST UNIV. B"
-  "SUP x:A. B"   == "CONST SUPREMUM A (%x. B)"
+  "\<Sqinter>x y. B"   \<rightleftharpoons> "\<Sqinter>x. \<Sqinter>y. B"
+  "\<Sqinter>x. B"     \<rightleftharpoons> "CONST INFIMUM CONST UNIV (\<lambda>x. B)"
+  "\<Sqinter>x. B"     \<rightleftharpoons> "\<Sqinter>x \<in> CONST UNIV. B"
+  "\<Sqinter>x\<in>A. B"   \<rightleftharpoons> "CONST INFIMUM A (\<lambda>x. B)"
+  "\<Squnion>x y. B"   \<rightleftharpoons> "\<Squnion>x. \<Squnion>y. B"
+  "\<Squnion>x. B"     \<rightleftharpoons> "CONST SUPREMUM CONST UNIV (\<lambda>x. B)"
+  "\<Squnion>x. B"     \<rightleftharpoons> "\<Squnion>x \<in> CONST UNIV. B"
+  "\<Squnion>x\<in>A. B"   \<rightleftharpoons> "CONST SUPREMUM A (\<lambda>x. B)"
 
 print_translation \<open>
   [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFIMUM} @{syntax_const "_INF"},
@@ -970,31 +970,31 @@ lemma Inter_anti_mono: "B \<subseteq> A \<Longrightarrow> \<Inter>A \<subseteq> 
 
 subsubsection \<open>Intersections of families\<close>
 
-abbreviation INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
-  "INTER \<equiv> INFIMUM"
+abbreviation INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"
+  where "INTER \<equiv> INFIMUM"
 
 text \<open>
   Note: must use name @{const INTER} here instead of \<open>INT\<close>
   to allow the following syntax coexist with the plain constant name.
 \<close>
 
-syntax
-  "_INTER1"     :: "pttrns => 'b set => 'b set"           ("(3INT _./ _)" [0, 10] 10)
-  "_INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3INT _:_./ _)" [0, 0, 10] 10)
-
-syntax (xsymbols)
-  "_INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>_./ _)" [0, 10] 10)
-  "_INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>_\<in>_./ _)" [0, 0, 10] 10)
+syntax (ASCII)
+  "_INTER1"     :: "pttrns \<Rightarrow> 'b set \<Rightarrow> 'b set"           ("(3INT _./ _)" [0, 10] 10)
+  "_INTER"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> 'b set"  ("(3INT _:_./ _)" [0, 0, 10] 10)
 
 syntax (latex output)
-  "_INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>(00\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
-  "_INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>(00\<^bsub>_\<in>_\<^esub>)/ _)" [0, 0, 10] 10)
+  "_INTER1"     :: "pttrns \<Rightarrow> 'b set \<Rightarrow> 'b set"           ("(3\<Inter>(00\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
+  "_INTER"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> 'b set"  ("(3\<Inter>(00\<^bsub>_\<in>_\<^esub>)/ _)" [0, 0, 10] 10)
+
+syntax
+  "_INTER1"     :: "pttrns \<Rightarrow> 'b set \<Rightarrow> 'b set"           ("(3\<Inter>_./ _)" [0, 10] 10)
+  "_INTER"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> 'b set"  ("(3\<Inter>_\<in>_./ _)" [0, 0, 10] 10)
 
 translations
-  "INT x y. B"  == "INT x. INT y. B"
-  "INT x. B"    == "CONST INTER CONST UNIV (%x. B)"
-  "INT x. B"    == "INT x:CONST UNIV. B"
-  "INT x:A. B"  == "CONST INTER A (%x. B)"
+  "\<Inter>x y. B"  \<rightleftharpoons> "\<Inter>x. \<Inter>y. B"
+  "\<Inter>x. B"    \<rightleftharpoons> "CONST INTER CONST UNIV (\<lambda>x. B)"
+  "\<Inter>x. B"    \<rightleftharpoons> "\<Inter>x \<in> CONST UNIV. B"
+  "\<Inter>x\<in>A. B"  \<rightleftharpoons> "CONST INTER A (\<lambda>x. B)"
 
 print_translation \<open>
   [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INTER} @{syntax_const "_INTER"}]
@@ -1143,39 +1143,36 @@ lemma Union_mono: "A \<subseteq> B \<Longrightarrow> \<Union>A \<subseteq> \<Uni
 
 subsubsection \<open>Unions of families\<close>
 
-abbreviation UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
-  "UNION \<equiv> SUPREMUM"
+abbreviation UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"
+  where "UNION \<equiv> SUPREMUM"
 
 text \<open>
   Note: must use name @{const UNION} here instead of \<open>UN\<close>
   to allow the following syntax coexist with the plain constant name.
 \<close>
 
-syntax
+syntax (ASCII)
   "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" [0, 10] 10)
   "_UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3UN _:_./ _)" [0, 0, 10] 10)
-
-syntax (xsymbols)
-  "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>_./ _)" [0, 10] 10)
-  "_UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>_\<in>_./ _)" [0, 0, 10] 10)
 
 syntax (latex output)
   "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>(00\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
   "_UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>(00\<^bsub>_\<in>_\<^esub>)/ _)" [0, 0, 10] 10)
 
+syntax
+  "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>_./ _)" [0, 10] 10)
+  "_UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>_\<in>_./ _)" [0, 0, 10] 10)
+
 translations
-  "UN x y. B"   == "UN x. UN y. B"
-  "UN x. B"     == "CONST UNION CONST UNIV (%x. B)"
-  "UN x. B"     == "UN x:CONST UNIV. B"
-  "UN x:A. B"   == "CONST UNION A (%x. B)"
+  "\<Union>x y. B"   \<rightleftharpoons> "\<Union>x. \<Union>y. B"
+  "\<Union>x. B"     \<rightleftharpoons> "CONST UNION CONST UNIV (\<lambda>x. B)"
+  "\<Union>x. B"     \<rightleftharpoons> "\<Union>x \<in> CONST UNIV. B"
+  "\<Union>x\<in>A. B"   \<rightleftharpoons> "CONST UNION A (\<lambda>x. B)"
 
 text \<open>
-  Note the difference between ordinary xsymbol syntax of indexed
+  Note the difference between ordinary syntax of indexed
   unions and intersections (e.g.\ \<open>\<Union>a\<^sub>1\<in>A\<^sub>1. B\<close>)
-  and their \LaTeX\ rendition: @{term"\<Union>a\<^sub>1\<in>A\<^sub>1. B"}. The
-  former does not make the index expression a subscript of the
-  union/intersection symbol because this leads to problems with nested
-  subscripts in Proof General.
+  and their \LaTeX\ rendition: @{term"\<Union>a\<^sub>1\<in>A\<^sub>1. B"}.
 \<close>
 
 print_translation \<open>

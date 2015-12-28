@@ -93,25 +93,25 @@ class ord =
 begin
 
 notation
-  less_eq  ("op <=") and
-  less_eq  ("(_/ <= _)" [51, 51] 50) and
+  less_eq  ("op \<le>") and
+  less_eq  ("(_/ \<le> _)"  [51, 51] 50) and
   less  ("op <") and
   less  ("(_/ < _)"  [51, 51] 50)
 
-notation (xsymbols)
-  less_eq  ("op \<le>") and
-  less_eq  ("(_/ \<le> _)"  [51, 51] 50)
+abbreviation (input)
+  greater_eq  (infix "\<ge>" 50)
+  where "x \<ge> y \<equiv> y \<le> x"
 
 abbreviation (input)
-  greater_eq  (infix ">=" 50) where
-  "x >= y \<equiv> y <= x"
+  greater  (infix ">" 50)
+  where "x > y \<equiv> y < x"
+
+notation (ASCII)
+  less_eq  ("op <=") and
+  less_eq  ("(_/ <= _)" [51, 51] 50)
 
 notation (input)
-  greater_eq  (infix "\<ge>" 50)
-
-abbreviation (input)
-  greater  (infix ">" 50) where
-  "x > y \<equiv> y < x"
+  greater_eq  (infix ">=" 50)
 
 end
 
@@ -652,7 +652,7 @@ simproc_setup antisym_less ("\<not> (x::'a::linorder) < y") = "K antisym_less_si
 
 subsection \<open>Bounded quantifiers\<close>
 
-syntax
+syntax (ASCII)
   "_All_less" :: "[idt, 'a, bool] => bool"    ("(3ALL _<_./ _)"  [0, 0, 10] 10)
   "_Ex_less" :: "[idt, 'a, bool] => bool"    ("(3EX _<_./ _)"  [0, 0, 10] 10)
   "_All_less_eq" :: "[idt, 'a, bool] => bool"    ("(3ALL _<=_./ _)" [0, 0, 10] 10)
@@ -663,7 +663,7 @@ syntax
   "_All_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3ALL _>=_./ _)" [0, 0, 10] 10)
   "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3EX _>=_./ _)" [0, 0, 10] 10)
 
-syntax (xsymbols)
+syntax
   "_All_less" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
   "_Ex_less" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
   "_All_less_eq" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)

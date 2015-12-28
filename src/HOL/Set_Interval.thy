@@ -59,17 +59,11 @@ text\<open>A note of warning when using @{term"{..<n}"} on type @{typ
 nat}: it is equivalent to @{term"{0::nat..<n}"} but some lemmas involving
 @{term"{m..<n}"} may not exist in @{term"{..<n}"}-form as well.\<close>
 
-syntax
+syntax (ASCII)
   "_UNION_le"   :: "'a => 'a => 'b set => 'b set"       ("(3UN _<=_./ _)" [0, 0, 10] 10)
   "_UNION_less" :: "'a => 'a => 'b set => 'b set"       ("(3UN _<_./ _)" [0, 0, 10] 10)
   "_INTER_le"   :: "'a => 'a => 'b set => 'b set"       ("(3INT _<=_./ _)" [0, 0, 10] 10)
   "_INTER_less" :: "'a => 'a => 'b set => 'b set"       ("(3INT _<_./ _)" [0, 0, 10] 10)
-
-syntax (xsymbols)
-  "_UNION_le"   :: "'a => 'a => 'b set => 'b set"       ("(3\<Union>_\<le>_./ _)" [0, 0, 10] 10)
-  "_UNION_less" :: "'a => 'a => 'b set => 'b set"       ("(3\<Union>_<_./ _)" [0, 0, 10] 10)
-  "_INTER_le"   :: "'a => 'a => 'b set => 'b set"       ("(3\<Inter>_\<le>_./ _)" [0, 0, 10] 10)
-  "_INTER_less" :: "'a => 'a => 'b set => 'b set"       ("(3\<Inter>_<_./ _)" [0, 0, 10] 10)
 
 syntax (latex output)
   "_UNION_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Union>(00_ \<le> _)/ _)" [0, 0, 10] 10)
@@ -77,11 +71,17 @@ syntax (latex output)
   "_INTER_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Inter>(00_ \<le> _)/ _)" [0, 0, 10] 10)
   "_INTER_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Inter>(00_ < _)/ _)" [0, 0, 10] 10)
 
+syntax
+  "_UNION_le"   :: "'a => 'a => 'b set => 'b set"       ("(3\<Union>_\<le>_./ _)" [0, 0, 10] 10)
+  "_UNION_less" :: "'a => 'a => 'b set => 'b set"       ("(3\<Union>_<_./ _)" [0, 0, 10] 10)
+  "_INTER_le"   :: "'a => 'a => 'b set => 'b set"       ("(3\<Inter>_\<le>_./ _)" [0, 0, 10] 10)
+  "_INTER_less" :: "'a => 'a => 'b set => 'b set"       ("(3\<Inter>_<_./ _)" [0, 0, 10] 10)
+
 translations
-  "UN i<=n. A"  == "UN i:{..n}. A"
-  "UN i<n. A"   == "UN i:{..<n}. A"
-  "INT i<=n. A" == "INT i:{..n}. A"
-  "INT i<n. A"  == "INT i:{..<n}. A"
+  "\<Union>i\<le>n. A" \<rightleftharpoons> "\<Union>i\<in>{..n}. A"
+  "\<Union>i<n. A" \<rightleftharpoons> "\<Union>i\<in>{..<n}. A"
+  "\<Inter>i\<le>n. A" \<rightleftharpoons> "\<Inter>i\<in>{..n}. A"
+  "\<Inter>i<n. A" \<rightleftharpoons> "\<Inter>i\<in>{..<n}. A"
 
 
 subsection \<open>Various equivalences\<close>
@@ -1427,16 +1427,12 @@ done
 
 subsection \<open>Summation indexed over intervals\<close>
 
-syntax
-  "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(SUM _ = _.._./ _)" [0,0,0,10] 10)
-  "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(SUM _ = _..<_./ _)" [0,0,0,10] 10)
-  "_upt_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(SUM _<_./ _)" [0,0,10] 10)
-  "_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(SUM _<=_./ _)" [0,0,10] 10)
-syntax (xsymbols)
-  "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Sum>_ = _.._./ _)" [0,0,0,10] 10)
-  "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Sum>_ = _..<_./ _)" [0,0,0,10] 10)
-  "_upt_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Sum>_<_./ _)" [0,0,10] 10)
-  "_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Sum>_\<le>_./ _)" [0,0,10] 10)
+syntax (ASCII)
+  "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(SUM _ = _.._./ _)" [0,0,0,10] 10)
+  "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(SUM _ = _..<_./ _)" [0,0,0,10] 10)
+  "_upt_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(SUM _<_./ _)" [0,0,10] 10)
+  "_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(SUM _<=_./ _)" [0,0,10] 10)
+
 syntax (latex_sum output)
   "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^raw:$\sum_{>_ = _\<^raw:}^{>_\<^raw:}$> _)" [0,0,0,10] 10)
@@ -1447,9 +1443,15 @@ syntax (latex_sum output)
   "_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^raw:$\sum_{>_ \<le> _\<^raw:}$> _)" [0,0,10] 10)
 
+syntax
+  "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_ = _.._./ _)" [0,0,0,10] 10)
+  "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_ = _..<_./ _)" [0,0,0,10] 10)
+  "_upt_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_<_./ _)" [0,0,10] 10)
+  "_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_\<le>_./ _)" [0,0,10] 10)
+
 translations
-  "\<Sum>x=a..b. t" == "CONST setsum (%x. t) {a..b}"
-  "\<Sum>x=a..<b. t" == "CONST setsum (%x. t) {a..<b}"
+  "\<Sum>x=a..b. t" == "CONST setsum (\<lambda>x. t) {a..b}"
+  "\<Sum>x=a..<b. t" == "CONST setsum (\<lambda>x. t) {a..<b}"
   "\<Sum>i\<le>n. t" == "CONST setsum (\<lambda>i. t) {..n}"
   "\<Sum>i<n. t" == "CONST setsum (\<lambda>i. t) {..<n}"
 
@@ -1783,18 +1785,15 @@ lemma arith_series_int:
 lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x :: nat)"
   by (subst setsum_subtractf_nat) auto
 
+
 subsection \<open>Products indexed over intervals\<close>
 
-syntax
-  "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(PROD _ = _.._./ _)" [0,0,0,10] 10)
-  "_from_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(PROD _ = _..<_./ _)" [0,0,0,10] 10)
-  "_upt_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(PROD _<_./ _)" [0,0,10] 10)
-  "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(PROD _<=_./ _)" [0,0,10] 10)
-syntax (xsymbols)
-  "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Prod>_ = _.._./ _)" [0,0,0,10] 10)
-  "_from_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Prod>_ = _..<_./ _)" [0,0,0,10] 10)
-  "_upt_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Prod>_<_./ _)" [0,0,10] 10)
-  "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Prod>_\<le>_./ _)" [0,0,10] 10)
+syntax (ASCII)
+  "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(PROD _ = _.._./ _)" [0,0,0,10] 10)
+  "_from_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(PROD _ = _..<_./ _)" [0,0,0,10] 10)
+  "_upt_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(PROD _<_./ _)" [0,0,10] 10)
+  "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(PROD _<=_./ _)" [0,0,10] 10)
+
 syntax (latex_prod output)
   "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^raw:$\prod_{>_ = _\<^raw:}^{>_\<^raw:}$> _)" [0,0,0,10] 10)
@@ -1805,11 +1804,18 @@ syntax (latex_prod output)
   "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^raw:$\prod_{>_ \<le> _\<^raw:}$> _)" [0,0,10] 10)
 
+syntax
+  "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_ = _.._./ _)" [0,0,0,10] 10)
+  "_from_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_ = _..<_./ _)" [0,0,0,10] 10)
+  "_upt_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_<_./ _)" [0,0,10] 10)
+  "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_\<le>_./ _)" [0,0,10] 10)
+
 translations
-  "\<Prod>x=a..b. t" == "CONST setprod (%x. t) {a..b}"
-  "\<Prod>x=a..<b. t" == "CONST setprod (%x. t) {a..<b}"
-  "\<Prod>i\<le>n. t" == "CONST setprod (\<lambda>i. t) {..n}"
-  "\<Prod>i<n. t" == "CONST setprod (\<lambda>i. t) {..<n}"
+  "\<Prod>x=a..b. t" \<rightleftharpoons> "CONST setprod (\<lambda>x. t) {a..b}"
+  "\<Prod>x=a..<b. t" \<rightleftharpoons> "CONST setprod (\<lambda>x. t) {a..<b}"
+  "\<Prod>i\<le>n. t" \<rightleftharpoons> "CONST setprod (\<lambda>i. t) {..n}"
+  "\<Prod>i<n. t" \<rightleftharpoons> "CONST setprod (\<lambda>i. t) {..<n}"
+
 
 subsection \<open>Transfer setup\<close>
 

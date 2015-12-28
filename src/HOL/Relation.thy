@@ -684,19 +684,17 @@ by blast
 
 subsubsection \<open>Converse\<close>
 
-inductive_set converse :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'a) set" ("(_^-1)" [1000] 999)
+inductive_set converse :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'a) set"  ("(_\<inverse>)" [1000] 999)
   for r :: "('a \<times> 'b) set"
 where
-  "(a, b) \<in> r \<Longrightarrow> (b, a) \<in> r^-1"
-
-notation (xsymbols)
-  converse  ("(_\<inverse>)" [1000] 999)
+  "(a, b) \<in> r \<Longrightarrow> (b, a) \<in> r\<inverse>"
 
 notation
-  conversep ("(_^--1)" [1000] 1000)
-
-notation (xsymbols)
   conversep  ("(_\<inverse>\<inverse>)" [1000] 1000)
+
+notation (ASCII)
+  converse  ("(_^-1)" [1000] 999) and
+  conversep ("(_^--1)" [1000] 1000)
 
 lemma converseI [sym]:
   "(a, b) \<in> r \<Longrightarrow> (b, a) \<in> r\<inverse>"

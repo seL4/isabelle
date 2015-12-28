@@ -63,7 +63,7 @@ syntax (output)
 
 (* sorts as intersections *)
 
-syntax (xsymbols output)
+syntax (output)
   "_topsort" :: "sort"  ("\<top>" 1000)
   "_sort" :: "classes => sort"  ("'(_')" 1000)
   "_classes" :: "id => classes => classes"  ("_ \<inter> _" 1000)

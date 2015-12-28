@@ -73,48 +73,45 @@ judgment
   Trueprop      :: "bool \<Rightarrow> prop"                   ("(_)" 5)
 
 axiomatization
-  implies       :: "[bool, bool] \<Rightarrow> bool"           (infixr "-->" 25)  and
+  implies       :: "[bool, bool] \<Rightarrow> bool"           (infixr "\<longrightarrow>" 25)  and
   eq            :: "['a, 'a] \<Rightarrow> bool"               (infixl "=" 50)  and
   The           :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
 
 consts
   True          :: bool
   False         :: bool
-  Not           :: "bool \<Rightarrow> bool"                   ("~ _" [40] 40)
+  Not           :: "bool \<Rightarrow> bool"                   ("\<not> _" [40] 40)
 
-  conj          :: "[bool, bool] \<Rightarrow> bool"           (infixr "&" 35)
-  disj          :: "[bool, bool] \<Rightarrow> bool"           (infixr "|" 30)
+  conj          :: "[bool, bool] \<Rightarrow> bool"           (infixr "\<and>" 35)
+  disj          :: "[bool, bool] \<Rightarrow> bool"           (infixr "\<or>" 30)
 
-  All           :: "('a \<Rightarrow> bool) \<Rightarrow> bool"           (binder "ALL " 10)
-  Ex            :: "('a \<Rightarrow> bool) \<Rightarrow> bool"           (binder "EX " 10)
-  Ex1           :: "('a \<Rightarrow> bool) \<Rightarrow> bool"           (binder "EX! " 10)
+  All           :: "('a \<Rightarrow> bool) \<Rightarrow> bool"           (binder "\<forall>" 10)
+  Ex            :: "('a \<Rightarrow> bool) \<Rightarrow> bool"           (binder "\<exists>" 10)
+  Ex1           :: "('a \<Rightarrow> bool) \<Rightarrow> bool"           (binder "\<exists>!" 10)
 
 
 subsubsection \<open>Additional concrete syntax\<close>
 
-notation (output)
-  eq  (infix "=" 50)
-
-abbreviation
-  not_equal :: "['a, 'a] \<Rightarrow> bool"  (infixl "~=" 50) where
-  "x ~= y \<equiv> ~ (x = y)"
+abbreviation not_equal :: "['a, 'a] \<Rightarrow> bool"  (infixl "\<noteq>" 50)
+  where "x \<noteq> y \<equiv> \<not> (x = y)"
 
 notation (output)
-  not_equal  (infix "~=" 50)
-
-notation (xsymbols)
-  Not  ("\<not> _" [40] 40) and
-  conj  (infixr "\<and>" 35) and
-  disj  (infixr "\<or>" 30) and
-  implies  (infixr "\<longrightarrow>" 25) and
-  not_equal  (infixl "\<noteq>" 50)
-
-notation (xsymbols output)
+  eq  (infix "=" 50) and
   not_equal  (infix "\<noteq>" 50)
 
+notation (ASCII output)
+  not_equal  (infix "~=" 50)
+
+notation (ASCII)
+  Not  ("~ _" [40] 40) and
+  conj  (infixr "&" 35) and
+  disj  (infixr "|" 30) and
+  implies  (infixr "-->" 25) and
+  not_equal  (infixl "~=" 50)
+
 abbreviation (iff)
-  iff :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<longleftrightarrow>" 25) where
-  "A \<longleftrightarrow> B \<equiv> A = B"
+  iff :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<longleftrightarrow>" 25)
+  where "A \<longleftrightarrow> B \<equiv> A = B"
 
 syntax "_The" :: "[pttrn, bool] \<Rightarrow> 'a"  ("(3THE _./ _)" [0, 10] 10)
 translations "THE x. P" \<rightleftharpoons> "CONST The (\<lambda>x. P)"
@@ -134,16 +131,16 @@ syntax
 nonterminal case_syn and cases_syn
 syntax
   "_case_syntax" :: "['a, cases_syn] \<Rightarrow> 'b"  ("(case _ of/ _)" 10)
-  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  ("(2_ =>/ _)" 10)
+  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  ("(2_ \<Rightarrow>/ _)" 10)
   "" :: "case_syn \<Rightarrow> cases_syn"  ("_")
   "_case2" :: "[case_syn, cases_syn] \<Rightarrow> cases_syn"  ("_/ | _")
-syntax (xsymbols)
-  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  ("(2_ \<Rightarrow>/ _)" 10)
+syntax (ASCII)
+  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  ("(2_ =>/ _)" 10)
 
-notation (xsymbols)
-  All  (binder "\<forall>" 10) and
-  Ex  (binder "\<exists>" 10) and
-  Ex1  (binder "\<exists>!" 10)
+notation (ASCII)
+  All  (binder "ALL " 10) and
+  Ex  (binder "EX " 10) and
+  Ex1  (binder "EX! " 10)
 
 notation (HOL)
   All  (binder "! " 10) and

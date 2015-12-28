@@ -42,11 +42,11 @@ code_printing
 
 subsection \<open>The Composition Operator \<open>f \<circ> g\<close>\<close>
 
-definition comp :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "o" 55) where
-  "f o g = (\<lambda>x. f (g x))"
+definition comp :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c"  (infixl "\<circ>" 55)
+  where "f \<circ> g = (\<lambda>x. f (g x))"
 
-notation (xsymbols)
-  comp  (infixl "\<circ>" 55)
+notation (ASCII)
+  comp  (infixl "o" 55)
 
 lemma comp_apply [simp]: "(f o g) x = f (g x)"
   by (simp add: comp_def)

@@ -93,15 +93,12 @@ qed
 end
 
 text \<open>Some syntactic sugar for summing a function over a list:\<close>
-
-syntax
+syntax (ASCII)
   "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3SUM _<-_. _)" [0, 51, 10] 10)
-syntax (xsymbols)
+syntax
   "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
-
 translations \<comment> \<open>Beware of argument permutation!\<close>
-  "SUM x<-xs. b" == "CONST listsum (CONST map (%x. b) xs)"
-  "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (CONST map (%x. b) xs)"
+  "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (CONST map (\<lambda>x. b) xs)"
 
 text \<open>TODO duplicates\<close>
 lemmas listsum_simps = listsum.Nil listsum.Cons
@@ -352,13 +349,11 @@ end
 
 text \<open>Some syntactic sugar:\<close>
 
-syntax
+syntax (ASCII)
   "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3PROD _<-_. _)" [0, 51, 10] 10)
-syntax (xsymbols)
+syntax
   "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Prod>_\<leftarrow>_. _)" [0, 51, 10] 10)
-
 translations \<comment> \<open>Beware of argument permutation!\<close>
-  "PROD x<-xs. b" == "CONST listprod (CONST map (%x. b) xs)"
-  "\<Prod>x\<leftarrow>xs. b" == "CONST listprod (CONST map (%x. b) xs)"
+  "\<Prod>x\<leftarrow>xs. b" \<rightleftharpoons> "CONST listprod (CONST map (\<lambda>x. b) xs)"
 
 end

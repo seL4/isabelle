@@ -24,46 +24,43 @@ context
   notes [[inductive_defs]]
 begin
 
-inductive_set
-  rtrancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"   ("(_^*)" [1000] 999)
+inductive_set rtrancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  ("(_\<^sup>*)" [1000] 999)
   for r :: "('a \<times> 'a) set"
 where
-    rtrancl_refl [intro!, Pure.intro!, simp]: "(a, a) : r^*"
-  | rtrancl_into_rtrancl [Pure.intro]: "(a, b) : r^* ==> (b, c) : r ==> (a, c) : r^*"
+  rtrancl_refl [intro!, Pure.intro!, simp]: "(a, a) \<in> r\<^sup>*"
+| rtrancl_into_rtrancl [Pure.intro]: "(a, b) \<in> r\<^sup>* \<Longrightarrow> (b, c) \<in> r \<Longrightarrow> (a, c) \<in> r\<^sup>*"
 
-inductive_set
-  trancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  ("(_^+)" [1000] 999)
+inductive_set trancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  ("(_\<^sup>+)" [1000] 999)
   for r :: "('a \<times> 'a) set"
 where
-    r_into_trancl [intro, Pure.intro]: "(a, b) : r ==> (a, b) : r^+"
-  | trancl_into_trancl [Pure.intro]: "(a, b) : r^+ ==> (b, c) : r ==> (a, c) : r^+"
+  r_into_trancl [intro, Pure.intro]: "(a, b) \<in> r \<Longrightarrow> (a, b) \<in> r\<^sup>+"
+| trancl_into_trancl [Pure.intro]: "(a, b) \<in> r\<^sup>+ \<Longrightarrow> (b, c) \<in> r \<Longrightarrow> (a, c) \<in> r\<^sup>+"
 
-declare rtrancl_def [nitpick_unfold del]
-        rtranclp_def [nitpick_unfold del]
-        trancl_def [nitpick_unfold del]
-        tranclp_def [nitpick_unfold del]
+notation
+  rtranclp  ("(_\<^sup>*\<^sup>*)" [1000] 1000) and
+  tranclp  ("(_\<^sup>+\<^sup>+)" [1000] 1000)
+
+declare
+  rtrancl_def [nitpick_unfold del]
+  rtranclp_def [nitpick_unfold del]
+  trancl_def [nitpick_unfold del]
+  tranclp_def [nitpick_unfold del]
 
 end
 
-notation
+abbreviation reflcl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  ("(_\<^sup>=)" [1000] 999)
+  where "r\<^sup>= \<equiv> r \<union> Id"
+
+abbreviation reflclp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  ("(_\<^sup>=\<^sup>=)" [1000] 1000)
+  where "r\<^sup>=\<^sup>= \<equiv> sup r op ="
+
+notation (ASCII)
+  rtrancl  ("(_^*)" [1000] 999) and
+  trancl  ("(_^+)" [1000] 999) and
+  reflcl  ("(_^=)" [1000] 999) and
   rtranclp  ("(_^**)" [1000] 1000) and
-  tranclp  ("(_^++)" [1000] 1000)
-
-abbreviation
-  reflclp :: "('a => 'a => bool) => 'a => 'a => bool"  ("(_^==)" [1000] 1000) where
-  "r^== \<equiv> sup r op ="
-
-abbreviation
-  reflcl :: "('a \<times> 'a) set => ('a \<times> 'a) set"  ("(_^=)" [1000] 999) where
-  "r^= \<equiv> r \<union> Id"
-
-notation (xsymbols)
-  rtranclp  ("(_\<^sup>*\<^sup>*)" [1000] 1000) and
-  tranclp  ("(_\<^sup>+\<^sup>+)" [1000] 1000) and
-  reflclp  ("(_\<^sup>=\<^sup>=)" [1000] 1000) and
-  rtrancl  ("(_\<^sup>*)" [1000] 999) and
-  trancl  ("(_\<^sup>+)" [1000] 999) and
-  reflcl  ("(_\<^sup>=)" [1000] 999)
+  tranclp  ("(_^++)" [1000] 1000) and
+  reflclp  ("(_^==)" [1000] 1000)
 
 
 subsection \<open>Reflexive closure\<close>

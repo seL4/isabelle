@@ -77,13 +77,13 @@ primrec filter:: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a
 "filter P [] = []" |
 "filter P (x # xs) = (if P x then x # filter P xs else filter P xs)"
 
+text \<open>Special syntax for filter:\<close>
+syntax (ASCII)
+  "_filter" :: "[pttrn, 'a list, bool] => 'a list"  ("(1[_<-_./ _])")
 syntax
-  \<comment> \<open>Special syntax for filter\<close>
-  "_filter" :: "[pttrn, 'a list, bool] => 'a list"    ("(1[_<-_./ _])")
-syntax (xsymbols)
-  "_filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
+  "_filter" :: "[pttrn, 'a list, bool] => 'a list"  ("(1[_\<leftarrow>_ ./ _])")
 translations
-  "[x<-xs . P]"== "CONST filter (%x. P) xs"
+  "[x<-xs . P]" \<rightleftharpoons> "CONST filter (\<lambda>x. P) xs"
 
 primrec fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
 fold_Nil:  "fold f [] = id" |
@@ -395,12 +395,15 @@ nonterminal lc_qual and lc_quals
 
 syntax
   "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  ("[_ . __")
-  "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ <- _")
+  "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ \<leftarrow> _")
   "_lc_test" :: "bool \<Rightarrow> lc_qual" ("_")
   (*"_lc_let" :: "letbinds => lc_qual"  ("let _")*)
   "_lc_end" :: "lc_quals" ("]")
   "_lc_quals" :: "lc_qual \<Rightarrow> lc_quals \<Rightarrow> lc_quals"  (", __")
   "_lc_abs" :: "'a => 'b list => 'b list"
+
+syntax (ASCII)
+  "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ <- _")
 
 (* These are easier than ML code but cannot express the optimized
    translation of [e. p<-xs]
@@ -414,9 +417,6 @@ translations
   "_listcompr e (_lc_let b) (_lc_quals Q Qs)"
    => "_Let b (_listcompr e Q Qs)"
 *)
-
-syntax (xsymbols)
-  "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ \<leftarrow> _")
 
 parse_translation \<open>
   let

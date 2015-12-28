@@ -370,13 +370,11 @@ ML_file "Tools/Old_Datatype/old_primrec.ML"
 ML_file "Tools/BNF/bnf_fp_rec_sugar_util.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar.ML"
 
-text\<open>Lambda-abstractions with pattern matching:\<close>
-
+text \<open>Lambda-abstractions with pattern matching:\<close>
+syntax (ASCII)
+  "_lam_pats_syntax" :: "cases_syn \<Rightarrow> 'a \<Rightarrow> 'b"  ("(%_)" 10)
 syntax
-  "_lam_pats_syntax" :: "cases_syn => 'a => 'b"               ("(%_)" 10)
-syntax (xsymbols)
-  "_lam_pats_syntax" :: "cases_syn => 'a => 'b"               ("(\<lambda>_)" 10)
-
+  "_lam_pats_syntax" :: "cases_syn \<Rightarrow> 'a \<Rightarrow> 'b"  ("(\<lambda>_)" 10)
 parse_translation \<open>
   let
     fun fun_tr ctxt [cs] =

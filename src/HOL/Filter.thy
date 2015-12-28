@@ -693,19 +693,20 @@ lemma eventually_sequentially_Suc: "eventually (\<lambda>i. P (Suc i)) sequentia
 lemma eventually_sequentially_seg: "eventually (\<lambda>n. P (n + k)) sequentially \<longleftrightarrow> eventually P sequentially"
   using eventually_sequentially_Suc[of "\<lambda>n. P (n + k)" for k] by (induction k) auto
 
-subsection \<open> The cofinite filter \<close>
+
+subsection \<open>The cofinite filter\<close>
 
 definition "cofinite = Abs_filter (\<lambda>P. finite {x. \<not> P x})"
 
-abbreviation Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "INFM " 10) where
-  "Inf_many P \<equiv> frequently P cofinite"
+abbreviation Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<exists>\<^sub>\<infinity>" 10)
+  where "Inf_many P \<equiv> frequently P cofinite"
 
-abbreviation Alm_all :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "MOST " 10) where
-  "Alm_all P \<equiv> eventually P cofinite"
+abbreviation Alm_all :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<forall>\<^sub>\<infinity>" 10)
+  where "Alm_all P \<equiv> eventually P cofinite"
 
-notation (xsymbols)
-  Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
-  Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
+notation (ASCII)
+  Inf_many  (binder "INFM " 10) and
+  Alm_all  (binder "MOST " 10)
 
 lemma eventually_cofinite: "eventually P cofinite \<longleftrightarrow> finite {x. \<not> P x}"
   unfolding cofinite_def

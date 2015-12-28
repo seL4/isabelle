@@ -226,11 +226,11 @@ definition Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<
 
 definition "prod = {f. \<exists>a b. f = Pair_Rep (a::'a) (b::'b)}"
 
-typedef ('a, 'b) prod (infixr "*" 20) = "prod :: ('a \<Rightarrow> 'b \<Rightarrow> bool) set"
+typedef ('a, 'b) prod ("(_ \<times>/ _)" [21, 20] 20) = "prod :: ('a \<Rightarrow> 'b \<Rightarrow> bool) set"
   unfolding prod_def by auto
 
-type_notation (xsymbols)
-  "prod"  ("(_ \<times>/ _)" [21, 20] 20)
+type_notation (ASCII)
+  prod  (infixr "*" 20)
 
 definition Pair :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b" where
   "Pair a b = Abs_prod (Pair_Rep a b)"

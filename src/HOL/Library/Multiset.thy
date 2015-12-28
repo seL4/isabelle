@@ -25,11 +25,11 @@ qed
 
 setup_lifting type_definition_multiset
 
-abbreviation Melem :: "'a \<Rightarrow> 'a multiset \<Rightarrow> bool"  ("(_/ :# _)" [50, 51] 50) where
-  "a :# M == 0 < count M a"
+abbreviation Melem :: "'a \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<in>#" 50)
+  where "a \<in># M \<equiv> 0 < count M a"
 
-notation (xsymbols)
-  Melem (infix "\<in>#" 50)
+notation (ASCII)
+  Melem  ("(_/ :# _)" [50, 51] 50)  (* FIXME !? *)
 
 lemma multiset_eq_iff: "M = N \<longleftrightarrow> (\<forall>a. count M a = count N a)"
   by (simp only: count_inject [symmetric] fun_eq_iff)
@@ -265,16 +265,18 @@ qed
 
 subsubsection \<open>Pointwise ordering induced by count\<close>
 
-definition subseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "<=#" 50) where
-"subseteq_mset A B = (\<forall>a. count A a \<le> count B a)"
+definition subseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<subseteq>#" 50)
+  where "A \<subseteq># B = (\<forall>a. count A a \<le> count B a)"
 
-definition subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "<#" 50) where
-"subset_mset A B = (A <=# B \<and> A \<noteq> B)"
+definition subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "\<subset>#" 50)
+  where "A \<subset># B = (A \<subseteq># B \<and> A \<noteq> B)"
 
-notation subseteq_mset (infix "\<le>#" 50)
-notation (xsymbols) subseteq_mset (infix "\<subseteq>#" 50)
+notation (input)
+  subseteq_mset  (infix "\<le>#" 50)
 
-notation (xsymbols) subset_mset (infix "\<subset>#" 50)
+notation (ASCII)
+  subseteq_mset  (infix "<=#" 50) and
+  subset_mset  (infix "<#" 50)
 
 interpretation subset_mset: ordered_ab_semigroup_add_imp_le "op +" "op -" "op \<subseteq>#" "op \<subset>#"
   by standard (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order_trans antisym)
@@ -504,9 +506,9 @@ proof -
   show ?thesis unfolding B by auto
 qed
 
-syntax
+syntax (ASCII)
   "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{# _ :# _./ _#})")
-syntax (xsymbol)
+syntax
   "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{# _ \<in># _./ _#})")
 translations
   "{#x \<in># M. P#}" == "CONST filter_mset (\<lambda>x. P) M"
@@ -855,27 +857,17 @@ lemma size_image_mset [simp]: "size (image_mset f M) = size M"
 lemma image_mset_is_empty_iff [simp]: "image_mset f M = {#} \<longleftrightarrow> M = {#}"
   by (cases M) auto
 
+syntax (ASCII)
+  "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  ("({#_/. _ :# _#})")
 syntax
-  "_comprehension1_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"
-      ("({#_/. _ :# _#})")
+  "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  ("({#_/. _ \<in># _#})")
 translations
-  "{#e. x:#M#}" == "CONST image_mset (\<lambda>x. e) M"
+  "{#e. x \<in># M#}" \<rightleftharpoons> "CONST image_mset (\<lambda>x. e) M"
 
-syntax (xsymbols)
-  "_comprehension2_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"
-      ("({#_/. _ \<in># _#})")
-translations
-  "{#e. x \<in># M#}" == "CONST image_mset (\<lambda>x. e) M"
-
+syntax (ASCII)
+  "_comprehension_mset'" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"  ("({#_/ | _ :# _./ _#})")
 syntax
-  "_comprehension3_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
-      ("({#_/ | _ :# _./ _#})")
-translations
-  "{#e | x:#M. P#}" \<rightharpoonup> "{#e. x :# {# x:#M. P#}#}"
-
-syntax
-  "_comprehension4_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
-      ("({#_/ | _ \<in># _./ _#})")
+  "_comprehension_mset'" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"  ("({#_/ | _ \<in># _./ _#})")
 translations
   "{#e | x\<in>#M. P#}" \<rightharpoonup> "{#e. x \<in># {# x\<in>#M. P#}#}"
 
@@ -1235,10 +1227,8 @@ next
 qed
 
 
-abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset" where
-  "Union_mset MM \<equiv> msetsum MM"
-
-notation (xsymbols) Union_mset ("\<Union>#_" [900] 900)
+abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset"  ("\<Union>#_" [900] 900)
+  where "\<Union># MM \<equiv> msetsum MM"
 
 lemma set_mset_Union_mset[simp]: "set_mset (\<Union># MM) = (\<Union>M \<in> set_mset MM. set_mset M)"
   by (induct MM) auto
@@ -1246,14 +1236,12 @@ lemma set_mset_Union_mset[simp]: "set_mset (\<Union># MM) = (\<Union>M \<in> set
 lemma in_Union_mset_iff[iff]: "x \<in># \<Union># MM \<longleftrightarrow> (\<exists>M. M \<in># MM \<and> x \<in># M)"
   by (induct MM) auto
 
+syntax (ASCII)
+  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)
 syntax
-  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"
-      ("(3SUM _:#_. _)" [0, 51, 10] 10)
-syntax (xsymbols)
-  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"
-      ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
+  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
 translations
-  "SUM i :# A. b" == "CONST msetsum (CONST image_mset (\<lambda>i. b) A)"
+  "\<Sum>i \<in># A. b" \<rightleftharpoons> "CONST msetsum (CONST image_mset (\<lambda>i. b) A)"
 
 context comm_monoid_mult
 begin
@@ -1287,14 +1275,12 @@ lemma msetprod_multiplicity:
 
 end
 
+syntax (ASCII)
+  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3PROD _:#_. _)" [0, 51, 10] 10)
 syntax
-  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"
-      ("(3PROD _:#_. _)" [0, 51, 10] 10)
-syntax (xsymbols)
-  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"
-      ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
+  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
 translations
-  "PROD i :# A. b" == "CONST msetprod (CONST image_mset (\<lambda>i. b) A)"
+  "\<Prod>i \<in># A. b" \<rightleftharpoons> "CONST msetprod (CONST image_mset (\<lambda>i. b) A)"
 
 lemma (in comm_semiring_1) dvd_msetprod:
   assumes "x \<in># A"
@@ -1718,14 +1704,15 @@ using one_step_implies_mult_aux by blast
 
 subsubsection \<open>Partial-order properties\<close>
 
-definition less_multiset :: "'a::order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "#<#" 50) where
-  "M' #<# M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
+definition less_multiset :: "'a::order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "#\<subset>#" 50)
+  where "M' #\<subset># M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
 
-definition le_multiset :: "'a::order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "#<=#" 50) where
-  "M' #<=# M \<longleftrightarrow> M' #<# M \<or> M' = M"
+definition le_multiset :: "'a::order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "#\<subseteq>#" 50)
+  where "M' #\<subseteq># M \<longleftrightarrow> M' #\<subset># M \<or> M' = M"
 
-notation (xsymbols) less_multiset (infix "#\<subset>#" 50)
-notation (xsymbols) le_multiset (infix "#\<subseteq>#" 50)
+notation (ASCII)
+  less_multiset (infix "#<#" 50) and
+  le_multiset (infix "#<=#" 50)
 
 interpretation multiset_order: order le_multiset less_multiset
 proof -
