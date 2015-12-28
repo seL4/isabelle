@@ -839,6 +839,8 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
 
     (* add definition of recursive predicates to theory *)
 
+    val is_auxiliary = length cs > 1;
+
     val rec_binding =
       if Binding.is_empty alt_name then
         Binding.name (space_implode "_" (map (Binding.name_of o fst) cnames_syn))
@@ -846,7 +848,6 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
     val rec_name = Binding.name_of rec_binding;
 
     val inductive_defs = Config.get lthy inductive_defs;
-    val is_auxiliary = length cs >= 2;
 
     val ((rec_const, (_, fp_def)), lthy') = lthy
       |> is_auxiliary ? Proof_Context.concealed
