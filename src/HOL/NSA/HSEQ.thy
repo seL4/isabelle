@@ -14,19 +14,19 @@ begin
 
 definition
   NSLIMSEQ :: "[nat => 'a::real_normed_vector, 'a] => bool"
-    ("((_)/ ----NS> (_))" [60, 60] 60) where
+    ("((_)/ \<longlonglongrightarrow>\<^sub>N\<^sub>S (_))" [60, 60] 60) where
     --{*Nonstandard definition of convergence of sequence*}
-  "X ----NS> L = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
+  "X \<longlonglongrightarrow>\<^sub>N\<^sub>S L = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
 
 definition
   nslim :: "(nat => 'a::real_normed_vector) => 'a" where
     --{*Nonstandard definition of limit using choice operator*}
-  "nslim X = (THE L. X ----NS> L)"
+  "nslim X = (THE L. X \<longlonglongrightarrow>\<^sub>N\<^sub>S L)"
 
 definition
   NSconvergent :: "(nat => 'a::real_normed_vector) => bool" where
     --{*Nonstandard definition of convergence*}
-  "NSconvergent X = (\<exists>L. X ----NS> L)"
+  "NSconvergent X = (\<exists>L. X \<longlonglongrightarrow>\<^sub>N\<^sub>S L)"
 
 definition
   NSBseq :: "(nat => 'a::real_normed_vector) => bool" where
@@ -41,69 +41,69 @@ definition
 subsection {* Limits of Sequences *}
 
 lemma NSLIMSEQ_iff:
-    "(X ----NS> L) = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
+    "(X \<longlonglongrightarrow>\<^sub>N\<^sub>S L) = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
 by (simp add: NSLIMSEQ_def)
 
 lemma NSLIMSEQ_I:
-  "(\<And>N. N \<in> HNatInfinite \<Longrightarrow> starfun X N \<approx> star_of L) \<Longrightarrow> X ----NS> L"
+  "(\<And>N. N \<in> HNatInfinite \<Longrightarrow> starfun X N \<approx> star_of L) \<Longrightarrow> X \<longlonglongrightarrow>\<^sub>N\<^sub>S L"
 by (simp add: NSLIMSEQ_def)
 
 lemma NSLIMSEQ_D:
-  "\<lbrakk>X ----NS> L; N \<in> HNatInfinite\<rbrakk> \<Longrightarrow> starfun X N \<approx> star_of L"
+  "\<lbrakk>X \<longlonglongrightarrow>\<^sub>N\<^sub>S L; N \<in> HNatInfinite\<rbrakk> \<Longrightarrow> starfun X N \<approx> star_of L"
 by (simp add: NSLIMSEQ_def)
 
-lemma NSLIMSEQ_const: "(%n. k) ----NS> k"
+lemma NSLIMSEQ_const: "(%n. k) \<longlonglongrightarrow>\<^sub>N\<^sub>S k"
 by (simp add: NSLIMSEQ_def)
 
 lemma NSLIMSEQ_add:
-      "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n + Y n) ----NS> a + b"
+      "[| X \<longlonglongrightarrow>\<^sub>N\<^sub>S a; Y \<longlonglongrightarrow>\<^sub>N\<^sub>S b |] ==> (%n. X n + Y n) \<longlonglongrightarrow>\<^sub>N\<^sub>S a + b"
 by (auto intro: approx_add simp add: NSLIMSEQ_def starfun_add [symmetric])
 
-lemma NSLIMSEQ_add_const: "f ----NS> a ==> (%n.(f n + b)) ----NS> a + b"
+lemma NSLIMSEQ_add_const: "f \<longlonglongrightarrow>\<^sub>N\<^sub>S a ==> (%n.(f n + b)) \<longlonglongrightarrow>\<^sub>N\<^sub>S a + b"
 by (simp only: NSLIMSEQ_add NSLIMSEQ_const)
 
 lemma NSLIMSEQ_mult:
   fixes a b :: "'a::real_normed_algebra"
-  shows "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n * Y n) ----NS> a * b"
+  shows "[| X \<longlonglongrightarrow>\<^sub>N\<^sub>S a; Y \<longlonglongrightarrow>\<^sub>N\<^sub>S b |] ==> (%n. X n * Y n) \<longlonglongrightarrow>\<^sub>N\<^sub>S a * b"
 by (auto intro!: approx_mult_HFinite simp add: NSLIMSEQ_def)
 
-lemma NSLIMSEQ_minus: "X ----NS> a ==> (%n. -(X n)) ----NS> -a"
+lemma NSLIMSEQ_minus: "X \<longlonglongrightarrow>\<^sub>N\<^sub>S a ==> (%n. -(X n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S -a"
 by (auto simp add: NSLIMSEQ_def)
 
-lemma NSLIMSEQ_minus_cancel: "(%n. -(X n)) ----NS> -a ==> X ----NS> a"
+lemma NSLIMSEQ_minus_cancel: "(%n. -(X n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S -a ==> X \<longlonglongrightarrow>\<^sub>N\<^sub>S a"
 by (drule NSLIMSEQ_minus, simp)
 
 lemma NSLIMSEQ_diff:
-     "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n - Y n) ----NS> a - b"
+     "[| X \<longlonglongrightarrow>\<^sub>N\<^sub>S a; Y \<longlonglongrightarrow>\<^sub>N\<^sub>S b |] ==> (%n. X n - Y n) \<longlonglongrightarrow>\<^sub>N\<^sub>S a - b"
   using NSLIMSEQ_add [of X a "- Y" "- b"] by (simp add: NSLIMSEQ_minus fun_Compl_def)
 
 (* FIXME: delete *)
 lemma NSLIMSEQ_add_minus:
-     "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n + -Y n) ----NS> a + -b"
+     "[| X \<longlonglongrightarrow>\<^sub>N\<^sub>S a; Y \<longlonglongrightarrow>\<^sub>N\<^sub>S b |] ==> (%n. X n + -Y n) \<longlonglongrightarrow>\<^sub>N\<^sub>S a + -b"
   by (simp add: NSLIMSEQ_diff)
 
-lemma NSLIMSEQ_diff_const: "f ----NS> a ==> (%n.(f n - b)) ----NS> a - b"
+lemma NSLIMSEQ_diff_const: "f \<longlonglongrightarrow>\<^sub>N\<^sub>S a ==> (%n.(f n - b)) \<longlonglongrightarrow>\<^sub>N\<^sub>S a - b"
 by (simp add: NSLIMSEQ_diff NSLIMSEQ_const)
 
 lemma NSLIMSEQ_inverse:
   fixes a :: "'a::real_normed_div_algebra"
-  shows "[| X ----NS> a;  a ~= 0 |] ==> (%n. inverse(X n)) ----NS> inverse(a)"
+  shows "[| X \<longlonglongrightarrow>\<^sub>N\<^sub>S a;  a ~= 0 |] ==> (%n. inverse(X n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S inverse(a)"
 by (simp add: NSLIMSEQ_def star_of_approx_inverse)
 
 lemma NSLIMSEQ_mult_inverse:
   fixes a b :: "'a::real_normed_field"
   shows
-     "[| X ----NS> a;  Y ----NS> b;  b ~= 0 |] ==> (%n. X n / Y n) ----NS> a/b"
+     "[| X \<longlonglongrightarrow>\<^sub>N\<^sub>S a;  Y \<longlonglongrightarrow>\<^sub>N\<^sub>S b;  b ~= 0 |] ==> (%n. X n / Y n) \<longlonglongrightarrow>\<^sub>N\<^sub>S a/b"
 by (simp add: NSLIMSEQ_mult NSLIMSEQ_inverse divide_inverse)
 
 lemma starfun_hnorm: "\<And>x. hnorm (( *f* f) x) = ( *f* (\<lambda>x. norm (f x))) x"
 by transfer simp
 
-lemma NSLIMSEQ_norm: "X ----NS> a \<Longrightarrow> (\<lambda>n. norm (X n)) ----NS> norm a"
+lemma NSLIMSEQ_norm: "X \<longlonglongrightarrow>\<^sub>N\<^sub>S a \<Longrightarrow> (\<lambda>n. norm (X n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S norm a"
 by (simp add: NSLIMSEQ_def starfun_hnorm [symmetric] approx_hnorm)
 
 text{*Uniqueness of limit*}
-lemma NSLIMSEQ_unique: "[| X ----NS> a; X ----NS> b |] ==> a = b"
+lemma NSLIMSEQ_unique: "[| X \<longlonglongrightarrow>\<^sub>N\<^sub>S a; X \<longlonglongrightarrow>\<^sub>N\<^sub>S b |] ==> a = b"
 apply (simp add: NSLIMSEQ_def)
 apply (drule HNatInfinite_whn [THEN [2] bspec])+
 apply (auto dest: approx_trans3)
@@ -111,7 +111,7 @@ done
 
 lemma NSLIMSEQ_pow [rule_format]:
   fixes a :: "'a::{real_normed_algebra,power}"
-  shows "(X ----NS> a) --> ((%n. (X n) ^ m) ----NS> a ^ m)"
+  shows "(X \<longlonglongrightarrow>\<^sub>N\<^sub>S a) --> ((%n. (X n) ^ m) \<longlonglongrightarrow>\<^sub>N\<^sub>S a ^ m)"
 apply (induct "m")
 apply (auto simp add: power_Suc intro: NSLIMSEQ_mult NSLIMSEQ_const)
 done
@@ -120,7 +120,7 @@ text{*We can now try and derive a few properties of sequences,
      starting with the limit comparison property for sequences.*}
 
 lemma NSLIMSEQ_le:
-       "[| f ----NS> l; g ----NS> m;
+       "[| f \<longlonglongrightarrow>\<^sub>N\<^sub>S l; g \<longlonglongrightarrow>\<^sub>N\<^sub>S m;
            \<exists>N. \<forall>n \<ge> N. f(n) \<le> g(n)
         |] ==> l \<le> (m::real)"
 apply (simp add: NSLIMSEQ_def, safe)
@@ -132,37 +132,37 @@ apply clarify
 apply (auto intro: hypreal_of_real_le_add_Infininitesimal_cancel2)
 done
 
-lemma NSLIMSEQ_le_const: "[| X ----NS> (r::real); \<forall>n. a \<le> X n |] ==> a \<le> r"
+lemma NSLIMSEQ_le_const: "[| X \<longlonglongrightarrow>\<^sub>N\<^sub>S (r::real); \<forall>n. a \<le> X n |] ==> a \<le> r"
 by (erule NSLIMSEQ_le [OF NSLIMSEQ_const], auto)
 
-lemma NSLIMSEQ_le_const2: "[| X ----NS> (r::real); \<forall>n. X n \<le> a |] ==> r \<le> a"
+lemma NSLIMSEQ_le_const2: "[| X \<longlonglongrightarrow>\<^sub>N\<^sub>S (r::real); \<forall>n. X n \<le> a |] ==> r \<le> a"
 by (erule NSLIMSEQ_le [OF _ NSLIMSEQ_const], auto)
 
 text{*Shift a convergent series by 1:
   By the equivalence between Cauchiness and convergence and because
   the successor of an infinite hypernatural is also infinite.*}
 
-lemma NSLIMSEQ_Suc: "f ----NS> l ==> (%n. f(Suc n)) ----NS> l"
+lemma NSLIMSEQ_Suc: "f \<longlonglongrightarrow>\<^sub>N\<^sub>S l ==> (%n. f(Suc n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S l"
 apply (unfold NSLIMSEQ_def, safe)
 apply (drule_tac x="N + 1" in bspec)
 apply (erule HNatInfinite_add)
 apply (simp add: starfun_shift_one)
 done
 
-lemma NSLIMSEQ_imp_Suc: "(%n. f(Suc n)) ----NS> l ==> f ----NS> l"
+lemma NSLIMSEQ_imp_Suc: "(%n. f(Suc n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S l ==> f \<longlonglongrightarrow>\<^sub>N\<^sub>S l"
 apply (unfold NSLIMSEQ_def, safe)
 apply (drule_tac x="N - 1" in bspec) 
 apply (erule Nats_1 [THEN [2] HNatInfinite_diff])
 apply (simp add: starfun_shift_one one_le_HNatInfinite)
 done
 
-lemma NSLIMSEQ_Suc_iff: "((%n. f(Suc n)) ----NS> l) = (f ----NS> l)"
+lemma NSLIMSEQ_Suc_iff: "((%n. f(Suc n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S l) = (f \<longlonglongrightarrow>\<^sub>N\<^sub>S l)"
 by (blast intro: NSLIMSEQ_imp_Suc NSLIMSEQ_Suc)
 
 subsubsection {* Equivalence of @{term LIMSEQ} and @{term NSLIMSEQ} *}
 
 lemma LIMSEQ_NSLIMSEQ:
-  assumes X: "X \<longlonglongrightarrow> L" shows "X ----NS> L"
+  assumes X: "X \<longlonglongrightarrow> L" shows "X \<longlonglongrightarrow>\<^sub>N\<^sub>S L"
 proof (rule NSLIMSEQ_I)
   fix N assume N: "N \<in> HNatInfinite"
   have "starfun X N - star_of L \<in> Infinitesimal"
@@ -180,7 +180,7 @@ proof (rule NSLIMSEQ_I)
 qed
 
 lemma NSLIMSEQ_LIMSEQ:
-  assumes X: "X ----NS> L" shows "X \<longlonglongrightarrow> L"
+  assumes X: "X \<longlonglongrightarrow>\<^sub>N\<^sub>S L" shows "X \<longlonglongrightarrow> L"
 proof (rule LIMSEQ_I)
   fix r::real assume r: "0 < r"
   have "\<exists>no. \<forall>n\<ge>no. hnorm (starfun X n - star_of L) < star_of r"
@@ -199,21 +199,21 @@ proof (rule LIMSEQ_I)
     by transfer
 qed
 
-theorem LIMSEQ_NSLIMSEQ_iff: "(f \<longlonglongrightarrow> L) = (f ----NS> L)"
+theorem LIMSEQ_NSLIMSEQ_iff: "(f \<longlonglongrightarrow> L) = (f \<longlonglongrightarrow>\<^sub>N\<^sub>S L)"
 by (blast intro: LIMSEQ_NSLIMSEQ NSLIMSEQ_LIMSEQ)
 
 subsubsection {* Derived theorems about @{term NSLIMSEQ} *}
 
 text{*We prove the NS version from the standard one, since the NS proof
    seems more complicated than the standard one above!*}
-lemma NSLIMSEQ_norm_zero: "((\<lambda>n. norm (X n)) ----NS> 0) = (X ----NS> 0)"
+lemma NSLIMSEQ_norm_zero: "((\<lambda>n. norm (X n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0) = (X \<longlonglongrightarrow>\<^sub>N\<^sub>S 0)"
 by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] tendsto_norm_zero_iff)
 
-lemma NSLIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) ----NS> 0) = (f ----NS> (0::real))"
+lemma NSLIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0) = (f \<longlonglongrightarrow>\<^sub>N\<^sub>S (0::real))"
 by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] tendsto_rabs_zero_iff)
 
 text{*Generalization to other limits*}
-lemma NSLIMSEQ_imp_rabs: "f ----NS> (l::real) ==> (%n. \<bar>f n\<bar>) ----NS> \<bar>l\<bar>"
+lemma NSLIMSEQ_imp_rabs: "f \<longlonglongrightarrow>\<^sub>N\<^sub>S (l::real) ==> (%n. \<bar>f n\<bar>) \<longlonglongrightarrow>\<^sub>N\<^sub>S \<bar>l\<bar>"
 apply (simp add: NSLIMSEQ_def)
 apply (auto intro: approx_hrabs 
             simp add: starfun_abs)
@@ -221,28 +221,28 @@ done
 
 lemma NSLIMSEQ_inverse_zero:
      "\<forall>y::real. \<exists>N. \<forall>n \<ge> N. y < f(n)
-      ==> (%n. inverse(f n)) ----NS> 0"
+      ==> (%n. inverse(f n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
 by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_zero)
 
-lemma NSLIMSEQ_inverse_real_of_nat: "(%n. inverse(real(Suc n))) ----NS> 0"
+lemma NSLIMSEQ_inverse_real_of_nat: "(%n. inverse(real(Suc n))) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
 by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat del: of_nat_Suc)
 
 lemma NSLIMSEQ_inverse_real_of_nat_add:
-     "(%n. r + inverse(real(Suc n))) ----NS> r"
+     "(%n. r + inverse(real(Suc n))) \<longlonglongrightarrow>\<^sub>N\<^sub>S r"
 by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add del: of_nat_Suc)
 
 lemma NSLIMSEQ_inverse_real_of_nat_add_minus:
-     "(%n. r + -inverse(real(Suc n))) ----NS> r"
+     "(%n. r + -inverse(real(Suc n))) \<longlonglongrightarrow>\<^sub>N\<^sub>S r"
   using LIMSEQ_inverse_real_of_nat_add_minus by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric])
 
 lemma NSLIMSEQ_inverse_real_of_nat_add_minus_mult:
-     "(%n. r*( 1 + -inverse(real(Suc n)))) ----NS> r"
+     "(%n. r*( 1 + -inverse(real(Suc n)))) \<longlonglongrightarrow>\<^sub>N\<^sub>S r"
   using LIMSEQ_inverse_real_of_nat_add_minus_mult by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric])
 
 
 subsection {* Convergence *}
 
-lemma nslimI: "X ----NS> L ==> nslim X = L"
+lemma nslimI: "X \<longlonglongrightarrow>\<^sub>N\<^sub>S L ==> nslim X = L"
 apply (simp add: nslim_def)
 apply (blast intro: NSLIMSEQ_unique)
 done
@@ -250,16 +250,16 @@ done
 lemma lim_nslim_iff: "lim X = nslim X"
 by (simp add: lim_def nslim_def LIMSEQ_NSLIMSEQ_iff)
 
-lemma NSconvergentD: "NSconvergent X ==> \<exists>L. (X ----NS> L)"
+lemma NSconvergentD: "NSconvergent X ==> \<exists>L. (X \<longlonglongrightarrow>\<^sub>N\<^sub>S L)"
 by (simp add: NSconvergent_def)
 
-lemma NSconvergentI: "(X ----NS> L) ==> NSconvergent X"
+lemma NSconvergentI: "(X \<longlonglongrightarrow>\<^sub>N\<^sub>S L) ==> NSconvergent X"
 by (auto simp add: NSconvergent_def)
 
 lemma convergent_NSconvergent_iff: "convergent X = NSconvergent X"
 by (simp add: convergent_def NSconvergent_def LIMSEQ_NSLIMSEQ_iff)
 
-lemma NSconvergent_NSLIMSEQ_iff: "NSconvergent X = (X ----NS> nslim X)"
+lemma NSconvergent_NSLIMSEQ_iff: "NSconvergent X = (X \<longlonglongrightarrow>\<^sub>N\<^sub>S nslim X)"
 by (auto intro: theI NSLIMSEQ_unique simp add: NSconvergent_def nslim_def)
 
 
@@ -360,7 +360,7 @@ text{* The best of both worlds: Easier to prove this result as a standard
    theorem and then use equivalence to "transfer" it into the
    equivalent nonstandard form if needed!*}
 
-lemma Bmonoseq_NSLIMSEQ: "\<forall>n \<ge> m. X n = X m ==> \<exists>L. (X ----NS> L)"
+lemma Bmonoseq_NSLIMSEQ: "\<forall>n \<ge> m. X n = X m ==> \<exists>L. (X \<longlonglongrightarrow>\<^sub>N\<^sub>S L)"
 by (auto dest!: Bmonoseq_LIMSEQ simp add: LIMSEQ_NSLIMSEQ_iff)
 
 lemma NSBseq_mono_NSconvergent:
@@ -488,7 +488,7 @@ text{*The sequence @{term "x^n"} tends to 0 if @{term "0\<le>x"} and @{term
 text{* We now use NS criterion to bring proof of theorem through *}
 
 lemma NSLIMSEQ_realpow_zero:
-  "[| 0 \<le> (x::real); x < 1 |] ==> (%n. x ^ n) ----NS> 0"
+  "[| 0 \<le> (x::real); x < 1 |] ==> (%n. x ^ n) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
 apply (simp add: NSLIMSEQ_def)
 apply (auto dest!: convergent_realpow simp add: convergent_NSconvergent_iff)
 apply (frule NSconvergentD)
@@ -503,10 +503,10 @@ apply (drule approx_trans3, assumption)
 apply (auto simp del: star_of_mult simp add: star_of_mult [symmetric])
 done
 
-lemma NSLIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < (1::real) ==> (%n. \<bar>c\<bar> ^ n) ----NS> 0"
+lemma NSLIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < (1::real) ==> (%n. \<bar>c\<bar> ^ n) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
 by (simp add: LIMSEQ_rabs_realpow_zero LIMSEQ_NSLIMSEQ_iff [symmetric])
 
-lemma NSLIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < (1::real) ==> (%n. c ^ n) ----NS> 0"
+lemma NSLIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < (1::real) ==> (%n. c ^ n) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
 by (simp add: LIMSEQ_rabs_realpow_zero2 LIMSEQ_NSLIMSEQ_iff [symmetric])
 
 (***---------------------------------------------------------------

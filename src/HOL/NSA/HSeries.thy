@@ -18,7 +18,7 @@ definition
 
 definition
   NSsums  :: "[nat=>real,real] => bool"     (infixr "NSsums" 80) where
-  "f NSsums s = (%n. setsum f {..<n}) ----NS> s"
+  "f NSsums s = (%n. setsum f {..<n}) \<longlonglongrightarrow>\<^sub>N\<^sub>S s"
 
 definition
   NSsummable :: "(nat=>real) => bool" where
@@ -180,7 +180,7 @@ apply (auto dest: approx_hrabs_zero_cancel
 done
 
 text{*Terms of a convergent series tend to zero*}
-lemma NSsummable_NSLIMSEQ_zero: "NSsummable f ==> f ----NS> 0"
+lemma NSsummable_NSLIMSEQ_zero: "NSsummable f ==> f \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
 apply (auto simp add: NSLIMSEQ_def NSsummable_NSCauchy)
 apply (drule bspec, auto)
 apply (drule_tac x = "N + 1 " in bspec)
