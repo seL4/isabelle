@@ -249,7 +249,7 @@ proof
       by (subst xy) (simp add: blinfun.bilinear_simps)
     finally have "convergent (\<lambda>n. X n x)" .
   }
-  then obtain v where v: "\<And>x. (\<lambda>n. X n x) ----> v x"
+  then obtain v where v: "\<And>x. (\<lambda>n. X n x) \<longlonglongrightarrow> v x"
     unfolding convergent_def
     by metis
 
@@ -269,7 +269,7 @@ proof
       finally show "norm (norm (X m) - norm (X n)) < e" .
     qed
   qed
-  then obtain K where K: "(\<lambda>n. norm (X n)) ----> K"
+  then obtain K where K: "(\<lambda>n. norm (X n)) \<longlonglongrightarrow> K"
     unfolding Cauchy_convergent_iff convergent_def
     by metis
 
@@ -290,10 +290,10 @@ proof
         by (simp add: ac_simps)
     qed
   qed
-  hence Bv: "\<And>x. (\<lambda>n. X n x) ----> Blinfun v x"
+  hence Bv: "\<And>x. (\<lambda>n. X n x) \<longlonglongrightarrow> Blinfun v x"
     by (auto simp: bounded_linear_Blinfun_apply v)
 
-  have "X ----> Blinfun v"
+  have "X \<longlonglongrightarrow> Blinfun v"
   proof (rule LIMSEQ_I)
     fix r::real assume "r > 0"
     def r' \<equiv> "r / 2"
@@ -320,7 +320,7 @@ proof
             using M[OF n elim] by (simp add: mult_right_mono)
           finally show ?case .
         qed
-        have tendsto_v: "(\<lambda>m. norm (X n x - X m x)) ----> norm (X n x - Blinfun v x)"
+        have tendsto_v: "(\<lambda>m. norm (X n x - X m x)) \<longlonglongrightarrow> norm (X n x - Blinfun v x)"
           by (auto intro!: tendsto_intros Bv)
         show "norm ((X n - Blinfun v) x) \<le> r' * norm x"
           by (auto intro!: tendsto_ge_const tendsto_v ev_le simp: blinfun.bilinear_simps)

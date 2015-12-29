@@ -383,13 +383,13 @@ subsection \<open>Product is a complete metric space\<close>
 instance prod :: (complete_space, complete_space) complete_space
 proof
   fix X :: "nat \<Rightarrow> 'a \<times> 'b" assume "Cauchy X"
-  have 1: "(\<lambda>n. fst (X n)) ----> lim (\<lambda>n. fst (X n))"
+  have 1: "(\<lambda>n. fst (X n)) \<longlonglongrightarrow> lim (\<lambda>n. fst (X n))"
     using Cauchy_fst [OF \<open>Cauchy X\<close>]
     by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
-  have 2: "(\<lambda>n. snd (X n)) ----> lim (\<lambda>n. snd (X n))"
+  have 2: "(\<lambda>n. snd (X n)) \<longlonglongrightarrow> lim (\<lambda>n. snd (X n))"
     using Cauchy_snd [OF \<open>Cauchy X\<close>]
     by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
-  have "X ----> (lim (\<lambda>n. fst (X n)), lim (\<lambda>n. snd (X n)))"
+  have "X \<longlonglongrightarrow> (lim (\<lambda>n. fst (X n)), lim (\<lambda>n. snd (X n)))"
     using tendsto_Pair [OF 1 2] by simp
   then show "convergent X"
     by (rule convergentI)

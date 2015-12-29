@@ -540,7 +540,7 @@ qed
 
 lemma (in ring_of_sets) caratheodory_empty_continuous:
   assumes f: "positive M f" "additive M f" and fin: "\<And>A. A \<in> M \<Longrightarrow> f A \<noteq> \<infinity>"
-  assumes cont: "\<And>A. range A \<subseteq> M \<Longrightarrow> decseq A \<Longrightarrow> (\<Inter>i. A i) = {} \<Longrightarrow> (\<lambda>i. f (A i)) ----> 0"
+  assumes cont: "\<And>A. range A \<subseteq> M \<Longrightarrow> decseq A \<Longrightarrow> (\<Inter>i. A i) = {} \<Longrightarrow> (\<lambda>i. f (A i)) \<longlonglongrightarrow> 0"
   shows "\<exists>\<mu> :: 'a set \<Rightarrow> ereal. (\<forall>s \<in> M. \<mu> s = f s) \<and> measure_space \<Omega> (sigma_sets \<Omega> M) \<mu>"
 proof (intro caratheodory' empty_continuous_imp_countably_additive f)
   show "\<forall>A\<in>M. f A \<noteq> \<infinity>" using fin by auto

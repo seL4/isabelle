@@ -840,7 +840,7 @@ lemma lesso_add: "f <o g =o O(h) \<Longrightarrow> k <o l =o O(h) \<Longrightarr
   apply (auto split: split_max simp add: func_plus)
   done
 
-lemma bigo_LIMSEQ1: "f =o O(g) \<Longrightarrow> g ----> 0 \<Longrightarrow> f ----> (0::real)"
+lemma bigo_LIMSEQ1: "f =o O(g) \<Longrightarrow> g \<longlonglongrightarrow> 0 \<Longrightarrow> f \<longlonglongrightarrow> (0::real)"
   apply (simp add: LIMSEQ_iff bigo_alt_def)
   apply clarify
   apply (drule_tac x = "r / c" in spec)
@@ -863,7 +863,7 @@ lemma bigo_LIMSEQ1: "f =o O(g) \<Longrightarrow> g ----> 0 \<Longrightarrow> f -
   apply simp
   done
 
-lemma bigo_LIMSEQ2: "f =o g +o O(h) \<Longrightarrow> h ----> 0 \<Longrightarrow> f ----> a \<Longrightarrow> g ----> (a::real)"
+lemma bigo_LIMSEQ2: "f =o g +o O(h) \<Longrightarrow> h \<longlonglongrightarrow> 0 \<Longrightarrow> f \<longlonglongrightarrow> a \<Longrightarrow> g \<longlonglongrightarrow> (a::real)"
   apply (drule set_plus_imp_minus)
   apply (drule bigo_LIMSEQ1)
   apply assumption

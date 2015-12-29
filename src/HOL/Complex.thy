@@ -415,7 +415,7 @@ instance complex :: banach
 proof
   fix X :: "nat \<Rightarrow> complex"
   assume X: "Cauchy X"
-  then have "(\<lambda>n. Complex (Re (X n)) (Im (X n))) ----> Complex (lim (\<lambda>n. Re (X n))) (lim (\<lambda>n. Im (X n)))"
+  then have "(\<lambda>n. Complex (Re (X n)) (Im (X n))) \<longlonglongrightarrow> Complex (lim (\<lambda>n. Re (X n))) (lim (\<lambda>n. Im (X n)))"
     by (intro tendsto_Complex convergent_LIMSEQ_iff[THEN iffD1] Cauchy_convergent_iff[THEN iffD1] Cauchy_Re Cauchy_Im)
   then show "convergent X"
     unfolding complex.collapse by (rule convergentI)

@@ -63,7 +63,7 @@ subsection "Extend binary sets"
 
 lemma LIMSEQ_binaryset:
   assumes f: "f {} = 0"
-  shows  "(\<lambda>n. \<Sum>i<n. f (binaryset A B i)) ----> f A + f B"
+  shows  "(\<lambda>n. \<Sum>i<n. f (binaryset A B i)) \<longlonglongrightarrow> f A + f B"
 proof -
   have "(\<lambda>n. \<Sum>i < Suc (Suc n). f (binaryset A B i)) = (\<lambda>n. f A + f B)"
     proof
@@ -72,11 +72,11 @@ proof -
         by (induct n)  (auto simp add: binaryset_def f)
     qed
   moreover
-  have "... ----> f A + f B" by (rule tendsto_const)
+  have "... \<longlonglongrightarrow> f A + f B" by (rule tendsto_const)
   ultimately
-  have "(\<lambda>n. \<Sum>i< Suc (Suc n). f (binaryset A B i)) ----> f A + f B"
+  have "(\<lambda>n. \<Sum>i< Suc (Suc n). f (binaryset A B i)) \<longlonglongrightarrow> f A + f B"
     by metis
-  hence "(\<lambda>n. \<Sum>i< n+2. f (binaryset A B i)) ----> f A + f B"
+  hence "(\<lambda>n. \<Sum>i< n+2. f (binaryset A B i)) \<longlonglongrightarrow> f A + f B"
     by simp
   thus ?thesis by (rule LIMSEQ_offset [where k=2])
 qed
@@ -281,7 +281,7 @@ qed
 lemma (in ring_of_sets) countably_additive_iff_continuous_from_below:
   assumes f: "positive M f" "additive M f"
   shows "countably_additive M f \<longleftrightarrow>
-    (\<forall>A. range A \<subseteq> M \<longrightarrow> incseq A \<longrightarrow> (\<Union>i. A i) \<in> M \<longrightarrow> (\<lambda>i. f (A i)) ----> f (\<Union>i. A i))"
+    (\<forall>A. range A \<subseteq> M \<longrightarrow> incseq A \<longrightarrow> (\<Union>i. A i) \<in> M \<longrightarrow> (\<lambda>i. f (A i)) \<longlonglongrightarrow> f (\<Union>i. A i))"
   unfolding countably_additive_def
 proof safe
   assume count_sum: "\<forall>A. range A \<subseteq> M \<longrightarrow> disjoint_family A \<longrightarrow> UNION UNIV A \<in> M \<longrightarrow> (\<Sum>i. f (A i)) = f (UNION UNIV A)"
@@ -290,20 +290,20 @@ proof safe
   with count_sum[THEN spec, of "disjointed A"] A(3)
   have f_UN: "(\<Sum>i. f (disjointed A i)) = f (\<Union>i. A i)"
     by (auto simp: UN_disjointed_eq disjoint_family_disjointed)
-  moreover have "(\<lambda>n. (\<Sum>i<n. f (disjointed A i))) ----> (\<Sum>i. f (disjointed A i))"
+  moreover have "(\<lambda>n. (\<Sum>i<n. f (disjointed A i))) \<longlonglongrightarrow> (\<Sum>i. f (disjointed A i))"
     using f(1)[unfolded positive_def] dA
     by (auto intro!: summable_LIMSEQ summable_ereal_pos)
   from LIMSEQ_Suc[OF this]
-  have "(\<lambda>n. (\<Sum>i\<le>n. f (disjointed A i))) ----> (\<Sum>i. f (disjointed A i))"
+  have "(\<lambda>n. (\<Sum>i\<le>n. f (disjointed A i))) \<longlonglongrightarrow> (\<Sum>i. f (disjointed A i))"
     unfolding lessThan_Suc_atMost .
   moreover have "\<And>n. (\<Sum>i\<le>n. f (disjointed A i)) = f (A n)"
     using disjointed_additive[OF f A(1,2)] .
-  ultimately show "(\<lambda>i. f (A i)) ----> f (\<Union>i. A i)" by simp
+  ultimately show "(\<lambda>i. f (A i)) \<longlonglongrightarrow> f (\<Union>i. A i)" by simp
 next
-  assume cont: "\<forall>A. range A \<subseteq> M \<longrightarrow> incseq A \<longrightarrow> (\<Union>i. A i) \<in> M \<longrightarrow> (\<lambda>i. f (A i)) ----> f (\<Union>i. A i)"
+  assume cont: "\<forall>A. range A \<subseteq> M \<longrightarrow> incseq A \<longrightarrow> (\<Union>i. A i) \<in> M \<longrightarrow> (\<lambda>i. f (A i)) \<longlonglongrightarrow> f (\<Union>i. A i)"
   fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> M" "disjoint_family A" "(\<Union>i. A i) \<in> M"
   have *: "(\<Union>n. (\<Union>i<n. A i)) = (\<Union>i. A i)" by auto
-  have "(\<lambda>n. f (\<Union>i<n. A i)) ----> f (\<Union>i. A i)"
+  have "(\<lambda>n. f (\<Union>i<n. A i)) \<longlonglongrightarrow> f (\<Union>i. A i)"
   proof (unfold *[symmetric], intro cont[rule_format])
     show "range (\<lambda>i. \<Union>i<i. A i) \<subseteq> M" "(\<Union>i. \<Union>i<i. A i) \<in> M"
       using A * by auto
@@ -321,15 +321,15 @@ qed
 
 lemma (in ring_of_sets) continuous_from_above_iff_empty_continuous:
   assumes f: "positive M f" "additive M f"
-  shows "(\<forall>A. range A \<subseteq> M \<longrightarrow> decseq A \<longrightarrow> (\<Inter>i. A i) \<in> M \<longrightarrow> (\<forall>i. f (A i) \<noteq> \<infinity>) \<longrightarrow> (\<lambda>i. f (A i)) ----> f (\<Inter>i. A i))
-     \<longleftrightarrow> (\<forall>A. range A \<subseteq> M \<longrightarrow> decseq A \<longrightarrow> (\<Inter>i. A i) = {} \<longrightarrow> (\<forall>i. f (A i) \<noteq> \<infinity>) \<longrightarrow> (\<lambda>i. f (A i)) ----> 0)"
+  shows "(\<forall>A. range A \<subseteq> M \<longrightarrow> decseq A \<longrightarrow> (\<Inter>i. A i) \<in> M \<longrightarrow> (\<forall>i. f (A i) \<noteq> \<infinity>) \<longrightarrow> (\<lambda>i. f (A i)) \<longlonglongrightarrow> f (\<Inter>i. A i))
+     \<longleftrightarrow> (\<forall>A. range A \<subseteq> M \<longrightarrow> decseq A \<longrightarrow> (\<Inter>i. A i) = {} \<longrightarrow> (\<forall>i. f (A i) \<noteq> \<infinity>) \<longrightarrow> (\<lambda>i. f (A i)) \<longlonglongrightarrow> 0)"
 proof safe
-  assume cont: "(\<forall>A. range A \<subseteq> M \<longrightarrow> decseq A \<longrightarrow> (\<Inter>i. A i) \<in> M \<longrightarrow> (\<forall>i. f (A i) \<noteq> \<infinity>) \<longrightarrow> (\<lambda>i. f (A i)) ----> f (\<Inter>i. A i))"
+  assume cont: "(\<forall>A. range A \<subseteq> M \<longrightarrow> decseq A \<longrightarrow> (\<Inter>i. A i) \<in> M \<longrightarrow> (\<forall>i. f (A i) \<noteq> \<infinity>) \<longrightarrow> (\<lambda>i. f (A i)) \<longlonglongrightarrow> f (\<Inter>i. A i))"
   fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> M" "decseq A" "(\<Inter>i. A i) = {}" "\<forall>i. f (A i) \<noteq> \<infinity>"
-  with cont[THEN spec, of A] show "(\<lambda>i. f (A i)) ----> 0"
+  with cont[THEN spec, of A] show "(\<lambda>i. f (A i)) \<longlonglongrightarrow> 0"
     using \<open>positive M f\<close>[unfolded positive_def] by auto
 next
-  assume cont: "\<forall>A. range A \<subseteq> M \<longrightarrow> decseq A \<longrightarrow> (\<Inter>i. A i) = {} \<longrightarrow> (\<forall>i. f (A i) \<noteq> \<infinity>) \<longrightarrow> (\<lambda>i. f (A i)) ----> 0"
+  assume cont: "\<forall>A. range A \<subseteq> M \<longrightarrow> decseq A \<longrightarrow> (\<Inter>i. A i) = {} \<longrightarrow> (\<forall>i. f (A i) \<noteq> \<infinity>) \<longrightarrow> (\<lambda>i. f (A i)) \<longlonglongrightarrow> 0"
   fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> M" "decseq A" "(\<Inter>i. A i) \<in> M" "\<forall>i. f (A i) \<noteq> \<infinity>"
 
   have f_mono: "\<And>a b. a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> a \<subseteq> b \<Longrightarrow> f a \<le> f b"
@@ -350,7 +350,7 @@ next
     then have "f (A i - (\<Inter>i. A i)) \<noteq> \<infinity>"
       using A by auto }
   note f_fin = this
-  have "(\<lambda>i. f (A i - (\<Inter>i. A i))) ----> 0"
+  have "(\<lambda>i. f (A i - (\<Inter>i. A i))) \<longlonglongrightarrow> 0"
   proof (intro cont[rule_format, OF _ decseq _ f_fin])
     show "range (\<lambda>i. A i - (\<Inter>i. A i)) \<subseteq> M" "(\<Inter>i. A i - (\<Inter>i. A i)) = {}"
       using A by auto
@@ -372,14 +372,14 @@ next
   ultimately have "(INF n. f (A n)) = f (\<Inter>i. A i)"
     by simp
   with LIMSEQ_INF[OF decseq_fA]
-  show "(\<lambda>i. f (A i)) ----> f (\<Inter>i. A i)" by simp
+  show "(\<lambda>i. f (A i)) \<longlonglongrightarrow> f (\<Inter>i. A i)" by simp
 qed
 
 lemma (in ring_of_sets) empty_continuous_imp_continuous_from_below:
   assumes f: "positive M f" "additive M f" "\<forall>A\<in>M. f A \<noteq> \<infinity>"
-  assumes cont: "\<forall>A. range A \<subseteq> M \<longrightarrow> decseq A \<longrightarrow> (\<Inter>i. A i) = {} \<longrightarrow> (\<lambda>i. f (A i)) ----> 0"
+  assumes cont: "\<forall>A. range A \<subseteq> M \<longrightarrow> decseq A \<longrightarrow> (\<Inter>i. A i) = {} \<longrightarrow> (\<lambda>i. f (A i)) \<longlonglongrightarrow> 0"
   assumes A: "range A \<subseteq> M" "incseq A" "(\<Union>i. A i) \<in> M"
-  shows "(\<lambda>i. f (A i)) ----> f (\<Union>i. A i)"
+  shows "(\<lambda>i. f (A i)) \<longlonglongrightarrow> f (\<Union>i. A i)"
 proof -
   have "\<forall>A\<in>M. \<exists>x. f A = ereal x"
   proof
@@ -387,7 +387,7 @@ proof -
       unfolding positive_def by (cases "f A") auto
   qed
   from bchoice[OF this] guess f' .. note f' = this[rule_format]
-  from A have "(\<lambda>i. f ((\<Union>i. A i) - A i)) ----> 0"
+  from A have "(\<lambda>i. f ((\<Union>i. A i) - A i)) \<longlonglongrightarrow> 0"
     by (intro cont[rule_format]) (auto simp: decseq_def incseq_def)
   moreover
   { fix i
@@ -399,17 +399,17 @@ proof -
       using A by (subst (asm) (1 2 3) f') auto
     then have "f ((\<Union>i. A i) - A i) = ereal (f' (\<Union>i. A i) - f' (A i))"
       using A f' by auto }
-  ultimately have "(\<lambda>i. f' (\<Union>i. A i) - f' (A i)) ----> 0"
+  ultimately have "(\<lambda>i. f' (\<Union>i. A i) - f' (A i)) \<longlonglongrightarrow> 0"
     by (simp add: zero_ereal_def)
-  then have "(\<lambda>i. f' (A i)) ----> f' (\<Union>i. A i)"
+  then have "(\<lambda>i. f' (A i)) \<longlonglongrightarrow> f' (\<Union>i. A i)"
     by (rule Lim_transform2[OF tendsto_const])
-  then show "(\<lambda>i. f (A i)) ----> f (\<Union>i. A i)"
+  then show "(\<lambda>i. f (A i)) \<longlonglongrightarrow> f (\<Union>i. A i)"
     using A by (subst (1 2) f') auto
 qed
 
 lemma (in ring_of_sets) empty_continuous_imp_countably_additive:
   assumes f: "positive M f" "additive M f" and fin: "\<forall>A\<in>M. f A \<noteq> \<infinity>"
-  assumes cont: "\<And>A. range A \<subseteq> M \<Longrightarrow> decseq A \<Longrightarrow> (\<Inter>i. A i) = {} \<Longrightarrow> (\<lambda>i. f (A i)) ----> 0"
+  assumes cont: "\<And>A. range A \<subseteq> M \<Longrightarrow> decseq A \<Longrightarrow> (\<Inter>i. A i) = {} \<Longrightarrow> (\<lambda>i. f (A i)) \<longlonglongrightarrow> 0"
   shows "countably_additive M f"
   using countably_additive_iff_continuous_from_below[OF f]
   using empty_continuous_imp_continuous_from_below[OF f fin] cont
@@ -503,7 +503,7 @@ proof -
 qed
 
 lemma Lim_emeasure_incseq:
-  "range A \<subseteq> sets M \<Longrightarrow> incseq A \<Longrightarrow> (\<lambda>i. (emeasure M (A i))) ----> emeasure M (\<Union>i. A i)"
+  "range A \<subseteq> sets M \<Longrightarrow> incseq A \<Longrightarrow> (\<lambda>i. (emeasure M (A i))) \<longlonglongrightarrow> emeasure M (\<Union>i. A i)"
   using emeasure_countably_additive
   by (auto simp add: sets.countably_additive_iff_continuous_from_below emeasure_positive
     emeasure_additive)
@@ -604,7 +604,7 @@ qed
 
 lemma Lim_emeasure_decseq:
   assumes A: "range A \<subseteq> sets M" "decseq A" and fin: "\<And>i. emeasure M (A i) \<noteq> \<infinity>"
-  shows "(\<lambda>i. emeasure M (A i)) ----> emeasure M (\<Inter>i. A i)"
+  shows "(\<lambda>i. emeasure M (A i)) \<longlonglongrightarrow> emeasure M (\<Inter>i. A i)"
   using LIMSEQ_INF[OF decseq_emeasure, OF A]
   using INF_emeasure_decseq[OF A fin] by simp
 
@@ -1525,7 +1525,7 @@ lemma measure_eq_setsum_singleton:
 
 lemma Lim_measure_incseq:
   assumes A: "range A \<subseteq> sets M" "incseq A" and fin: "emeasure M (\<Union>i. A i) \<noteq> \<infinity>"
-  shows "(\<lambda>i. (measure M (A i))) ----> (measure M (\<Union>i. A i))"
+  shows "(\<lambda>i. (measure M (A i))) \<longlonglongrightarrow> (measure M (\<Union>i. A i))"
 proof -
   have "ereal ((measure M (\<Union>i. A i))) = emeasure M (\<Union>i. A i)"
     using fin by (auto simp: emeasure_eq_ereal_measure)
@@ -1537,7 +1537,7 @@ qed
 
 lemma Lim_measure_decseq:
   assumes A: "range A \<subseteq> sets M" "decseq A" and fin: "\<And>i. emeasure M (A i) \<noteq> \<infinity>"
-  shows "(\<lambda>n. measure M (A n)) ----> measure M (\<Inter>i. A i)"
+  shows "(\<lambda>n. measure M (A n)) \<longlonglongrightarrow> measure M (\<Inter>i. A i)"
 proof -
   have "emeasure M (\<Inter>i. A i) \<le> emeasure M (A 0)"
     using A by (auto intro!: emeasure_mono)
@@ -1624,12 +1624,12 @@ lemma (in finite_measure) finite_measure_eq_setsum_singleton:
 
 lemma (in finite_measure) finite_Lim_measure_incseq:
   assumes A: "range A \<subseteq> sets M" "incseq A"
-  shows "(\<lambda>i. measure M (A i)) ----> measure M (\<Union>i. A i)"
+  shows "(\<lambda>i. measure M (A i)) \<longlonglongrightarrow> measure M (\<Union>i. A i)"
   using Lim_measure_incseq[OF A] by simp
 
 lemma (in finite_measure) finite_Lim_measure_decseq:
   assumes A: "range A \<subseteq> sets M" "decseq A"
-  shows "(\<lambda>n. measure M (A n)) ----> measure M (\<Inter>i. A i)"
+  shows "(\<lambda>n. measure M (A n)) \<longlonglongrightarrow> measure M (\<Inter>i. A i)"
   using Lim_measure_decseq[OF A] by simp
 
 lemma (in finite_measure) finite_measure_compl:
@@ -1805,7 +1805,7 @@ proof (rule emeasure_measure_of_sigma)
     unfolding countably_additive_iff_continuous_from_below[OF positive additive]
   proof safe
     fix F :: "nat \<Rightarrow> 'a set" assume "incseq F"
-    show "(\<lambda>i. ?M (F i)) ----> ?M (\<Union>i. F i)"
+    show "(\<lambda>i. ?M (F i)) \<longlonglongrightarrow> ?M (\<Union>i. F i)"
     proof cases
       assume "\<exists>i. \<forall>j\<ge>i. F i = F j"
       then guess i .. note i = this
@@ -1823,7 +1823,7 @@ proof (rule emeasure_measure_of_sigma)
 
       have "incseq (\<lambda>i. ?M (F i))"
         using \<open>incseq F\<close> unfolding incseq_def by (auto simp: card_mono dest: finite_subset)
-      then have "(\<lambda>i. ?M (F i)) ----> (SUP n. ?M (F n))"
+      then have "(\<lambda>i. ?M (F i)) \<longlonglongrightarrow> (SUP n. ?M (F n))"
         by (rule LIMSEQ_SUP)
 
       moreover have "(SUP n. ?M (F n)) = \<infinity>"

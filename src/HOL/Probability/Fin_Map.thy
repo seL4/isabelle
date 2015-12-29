@@ -420,8 +420,8 @@ subsection \<open>Complete Space of Finite Maps\<close>
 lemma tendsto_finmap:
   fixes f::"nat \<Rightarrow> ('i \<Rightarrow>\<^sub>F ('a::metric_space))"
   assumes ind_f:  "\<And>n. domain (f n) = domain g"
-  assumes proj_g:  "\<And>i. i \<in> domain g \<Longrightarrow> (\<lambda>n. (f n) i) ----> g i"
-  shows "f ----> g"
+  assumes proj_g:  "\<And>i. i \<in> domain g \<Longrightarrow> (\<lambda>n. (f n) i) \<longlonglongrightarrow> g i"
+  shows "f \<longlonglongrightarrow> g"
   unfolding tendsto_iff
 proof safe
   fix e::real assume "0 < e"
@@ -472,9 +472,9 @@ proof
       qed
     qed
     hence "convergent (p i)" by (metis Cauchy_convergent_iff)
-    hence "p i ----> q i" unfolding q_def convergent_def by (metis limI)
+    hence "p i \<longlonglongrightarrow> q i" unfolding q_def convergent_def by (metis limI)
   } note p = this
-  have "P ----> Q"
+  have "P \<longlonglongrightarrow> Q"
   proof (rule metric_LIMSEQ_I)
     fix e::real assume "0 < e"
     have "\<exists>ni. \<forall>i\<in>d. \<forall>n\<ge>ni i. dist (p i n) (q i) < e"

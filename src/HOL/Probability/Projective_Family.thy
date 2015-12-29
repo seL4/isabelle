@@ -207,7 +207,7 @@ proof -
       with \<open>(\<Inter>i. A i) = {}\<close> * show False
         by (subst (asm) prod_emb_trans) (auto simp: A[abs_def])
     qed
-    moreover have "(\<lambda>i. P (J i) (X i)) ----> (INF i. P (J i) (X i))"
+    moreover have "(\<lambda>i. P (J i) (X i)) \<longlonglongrightarrow> (INF i. P (J i) (X i))"
     proof (intro LIMSEQ_INF antimonoI)
       fix x y :: nat assume "x \<le> y"
       have "P (J y \<union> J x) (emb (J y \<union> J x) (J y) (X y)) \<le> P (J y \<union> J x) (emb (J y \<union> J x) (J x) (X x))"
@@ -217,7 +217,7 @@ proof -
       then show "P (J y) (X y) \<le> P (J x) (X x)"
         using * by (simp add: emeasure_P)
     qed
-    ultimately show "(\<lambda>i. \<mu>G (A i)) ----> 0"
+    ultimately show "(\<lambda>i. \<mu>G (A i)) \<longlonglongrightarrow> 0"
       by (auto simp: A[abs_def] mu_G_spec *)
   qed
   then obtain \<mu> where eq: "\<forall>s\<in>generator. \<mu> s = \<mu>G s"

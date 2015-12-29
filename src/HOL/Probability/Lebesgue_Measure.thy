@@ -325,8 +325,8 @@ proof (rule tendsto_unique)
   show "((\<lambda>a. F b - F a) ---> emeasure ?F {a..b}) (at_left a)"
   proof (rule tendsto_at_left_sequentially)
     show "a - 1 < a" by simp
-    fix X assume "\<And>n. X n < a" "incseq X" "X ----> a"
-    with \<open>a \<le> b\<close> have "(\<lambda>n. emeasure ?F {X n<..b}) ----> emeasure ?F (\<Inter>n. {X n <..b})"
+    fix X assume "\<And>n. X n < a" "incseq X" "X \<longlonglongrightarrow> a"
+    with \<open>a \<le> b\<close> have "(\<lambda>n. emeasure ?F {X n<..b}) \<longlonglongrightarrow> emeasure ?F (\<Inter>n. {X n <..b})"
       apply (intro Lim_emeasure_decseq)
       apply (auto simp: decseq_def incseq_def emeasure_interval_measure_Ioc *)
       apply force
@@ -336,13 +336,13 @@ proof (rule tendsto_unique)
     also have "(\<Inter>n. {X n <..b}) = {a..b}"
       using \<open>\<And>n. X n < a\<close>
       apply auto
-      apply (rule LIMSEQ_le_const2[OF \<open>X ----> a\<close>])
+      apply (rule LIMSEQ_le_const2[OF \<open>X \<longlonglongrightarrow> a\<close>])
       apply (auto intro: less_imp_le)
       apply (auto intro: less_le_trans)
       done
     also have "(\<lambda>n. emeasure ?F {X n<..b}) = (\<lambda>n. F b - F (X n))"
       using \<open>\<And>n. X n < a\<close> \<open>a \<le> b\<close> by (subst *) (auto intro: less_imp_le less_le_trans)
-    finally show "(\<lambda>n. F b - F (X n)) ----> emeasure ?F {a..b}" .
+    finally show "(\<lambda>n. F b - F (X n)) \<longlonglongrightarrow> emeasure ?F {a..b}" .
   qed
   show "((\<lambda>a. ereal (F b - F a)) ---> F b - F a) (at_left a)"
     using cont_F
@@ -808,7 +808,7 @@ proof -
           by (intro setsum_mono2) auto
         from union(1) have *: "\<And>x i j. x \<in> F i \<Longrightarrow> x \<in> F j \<longleftrightarrow> j = i"
           by (auto simp add: disjoint_family_on_def)
-        show "\<And>x. (\<lambda>k. ?f k x) ----> (if x \<in> UNION UNIV F \<inter> box a b then 1 else 0)"
+        show "\<And>x. (\<lambda>k. ?f k x) \<longlonglongrightarrow> (if x \<in> UNION UNIV F \<inter> box a b then 1 else 0)"
           apply (auto simp: * setsum.If_cases Iio_Int_singleton)
           apply (rule_tac k="Suc xa" in LIMSEQ_offset)
           apply (simp add: tendsto_const)
@@ -816,7 +816,7 @@ proof -
         have *: "emeasure lborel ((\<Union>x. F x) \<inter> box a b) \<le> emeasure lborel (box a b)"
           by (intro emeasure_mono) auto
 
-        with union(1) show "(\<lambda>k. \<Sum>i<k. ?M (F i)) ----> ?M (\<Union>i. F i)"
+        with union(1) show "(\<lambda>k. \<Sum>i<k. ?M (F i)) \<longlonglongrightarrow> ?M (\<Union>i. F i)"
           unfolding sums_def[symmetric] UN_extend_simps
           by (intro measure_UNION) (auto simp: disjoint_family_on_def emeasure_lborel_box_eq)
       qed
@@ -836,12 +836,12 @@ proof -
     show "\<And>k x. ?f k x \<le> ?f (Suc k) x"
       by (auto simp: box_def)
     { fix x assume "x \<in> A"
-      moreover have "(\<lambda>k. indicator (A \<inter> ?B k) x :: real) ----> indicator (\<Union>k::nat. A \<inter> ?B k) x"
+      moreover have "(\<lambda>k. indicator (A \<inter> ?B k) x :: real) \<longlonglongrightarrow> indicator (\<Union>k::nat. A \<inter> ?B k) x"
         by (intro LIMSEQ_indicator_incseq) (auto simp: incseq_def box_def)
-      ultimately show "(\<lambda>k. if x \<in> A \<inter> ?B k then 1 else 0::real) ----> 1"
+      ultimately show "(\<lambda>k. if x \<in> A \<inter> ?B k then 1 else 0::real) \<longlonglongrightarrow> 1"
         by (simp add: indicator_def UN_box_eq_UNIV) }
 
-    have "(\<lambda>n. emeasure lborel (A \<inter> ?B n)) ----> emeasure lborel (\<Union>n::nat. A \<inter> ?B n)"
+    have "(\<lambda>n. emeasure lborel (A \<inter> ?B n)) \<longlonglongrightarrow> emeasure lborel (\<Union>n::nat. A \<inter> ?B n)"
       by (intro Lim_emeasure_incseq) (auto simp: incseq_def box_def)
     also have "(\<lambda>n. emeasure lborel (A \<inter> ?B n)) = (\<lambda>n. measure lborel (A \<inter> ?B n))"
     proof (intro ext emeasure_eq_ereal_measure)
@@ -850,7 +850,7 @@ proof -
       then show "emeasure lborel (A \<inter> ?B n) \<noteq> \<infinity>"
         by auto
     qed
-    finally show "(\<lambda>n. measure lborel (A \<inter> ?B n)) ----> measure lborel A"
+    finally show "(\<lambda>n. measure lborel (A \<inter> ?B n)) \<longlonglongrightarrow> measure lborel A"
       using emeasure_eq_ereal_measure[of lborel A] finite
       by (simp add: UN_box_eq_UNIV)
   qed
@@ -912,16 +912,16 @@ next
 
   have int_eq: "\<And>i. integral UNIV (U i) = p i" using U_int by (rule integral_unique)
 
-  have *: "f integrable_on UNIV \<and> (\<lambda>k. integral UNIV (U k)) ----> integral UNIV f"
+  have *: "f integrable_on UNIV \<and> (\<lambda>k. integral UNIV (U k)) \<longlonglongrightarrow> integral UNIV f"
   proof (rule monotone_convergence_increasing)
     show "\<forall>k. U k integrable_on UNIV" using U_int by auto
     show "\<forall>k. \<forall>x\<in>UNIV. U k x \<le> U (Suc k) x" using \<open>incseq U\<close> by (auto simp: incseq_def le_fun_def)
     then show "bounded {integral UNIV (U k) |k. True}"
       using bnd int_eq by (auto simp: bounded_real intro!: exI[of _ r])
-    show "\<forall>x\<in>UNIV. (\<lambda>k. U k x) ----> f x"
+    show "\<forall>x\<in>UNIV. (\<lambda>k. U k x) \<longlonglongrightarrow> f x"
       using seq by auto
   qed
-  moreover have "(\<lambda>i. (\<integral>\<^sup>+x. U i x \<partial>lborel)) ----> (\<integral>\<^sup>+x. f x \<partial>lborel)"
+  moreover have "(\<lambda>i. (\<integral>\<^sup>+x. U i x \<partial>lborel)) \<longlonglongrightarrow> (\<integral>\<^sup>+x. f x \<partial>lborel)"
     using seq U_le_f by (intro nn_integral_dominated_convergence[where w=f]) auto
   ultimately have "integral UNIV f = r"
     by (auto simp add: int_eq p seq intro: LIMSEQ_unique)
@@ -1073,9 +1073,9 @@ next
                simp del: times_ereal.simps)
     show "\<And>k. \<forall>x\<in>UNIV. norm (s k x) \<le> norm (2 * f x)"
       using lim by (auto simp add: abs_mult)
-    show "\<forall>x\<in>UNIV. (\<lambda>k. s k x) ----> f x"
+    show "\<forall>x\<in>UNIV. (\<lambda>k. s k x) \<longlonglongrightarrow> f x"
       using lim by auto
-    show "(\<lambda>k. integral\<^sup>L lborel (s k)) ----> integral\<^sup>L lborel f"
+    show "(\<lambda>k. integral\<^sup>L lborel (s k)) \<longlonglongrightarrow> integral\<^sup>L lborel f"
       using lim lim(1)[THEN borel_measurable_integrable]
       by (intro integral_dominated_convergence[where w="\<lambda>x. 2 * norm (f x)"]) auto
   qed
@@ -1258,7 +1258,7 @@ proof -
     from reals_Archimedean2[of "x - a"] guess n ..
     then have "eventually (\<lambda>n. ?f n x = ?fR x) sequentially"
       by (auto intro!: eventually_sequentiallyI[where c=n] split: split_indicator)
-    then show "(\<lambda>n. ?f n x) ----> ?fR x"
+    then show "(\<lambda>n. ?f n x) \<longlonglongrightarrow> ?fR x"
       by (rule Lim_eventually)
   qed
   then have "integral\<^sup>N lborel ?fR = (\<integral>\<^sup>+ x. (SUP i::nat. ?f i x) \<partial>lborel)"
@@ -1281,12 +1281,12 @@ proof -
         by (intro DERIV_nonneg_imp_nondecreasing[where f=F])
            (simp, metis add_increasing2 order_refl order_trans of_nat_0_le_iff)
     qed
-    have "(\<lambda>x. F (a + real x)) ----> T"
+    have "(\<lambda>x. F (a + real x)) \<longlonglongrightarrow> T"
       apply (rule filterlim_compose[OF lim filterlim_tendsto_add_at_top])
       apply (rule LIMSEQ_const_iff[THEN iffD2, OF refl])
       apply (rule filterlim_real_sequentially)
       done
-    then show "(\<lambda>n. ereal (F (a + real n) - F a)) ----> ereal (T - F a)"
+    then show "(\<lambda>n. ereal (F (a + real n) - F a)) \<longlonglongrightarrow> ereal (T - F a)"
       unfolding lim_ereal
       by (intro tendsto_diff) auto
   qed

@@ -366,10 +366,10 @@ qed
 instance vec :: (complete_space, finite) complete_space
 proof
   fix X :: "nat \<Rightarrow> 'a ^ 'b" assume "Cauchy X"
-  have "\<And>i. (\<lambda>n. X n $ i) ----> lim (\<lambda>n. X n $ i)"
+  have "\<And>i. (\<lambda>n. X n $ i) \<longlonglongrightarrow> lim (\<lambda>n. X n $ i)"
     using Cauchy_vec_nth [OF \<open>Cauchy X\<close>]
     by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
-  hence "X ----> vec_lambda (\<lambda>i. lim (\<lambda>n. X n $ i))"
+  hence "X \<longlonglongrightarrow> vec_lambda (\<lambda>i. lim (\<lambda>n. X n $ i))"
     by (simp add: vec_tendstoI)
   then show "convergent X"
     by (rule convergentI)

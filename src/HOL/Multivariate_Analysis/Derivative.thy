@@ -1957,7 +1957,7 @@ proof -
       qed
     qed
   qed
-  then obtain g where g: "\<forall>x\<in>s. (\<lambda>n. f n x) ----> g x" ..
+  then obtain g where g: "\<forall>x\<in>s. (\<lambda>n. f n x) \<longlonglongrightarrow> g x" ..
   have lem2: "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm ((f n x - f n y) - (g x - g y)) \<le> e * norm (x - y)"
   proof (rule, rule)
     fix e :: real

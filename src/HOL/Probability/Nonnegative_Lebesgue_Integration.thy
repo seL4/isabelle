@@ -1450,10 +1450,10 @@ qed
 
 lemma nn_integral_LIMSEQ:
   assumes f: "incseq f" "\<And>i. f i \<in> borel_measurable M" "\<And>n x. 0 \<le> f n x"
-    and u: "\<And>x. (\<lambda>i. f i x) ----> u x"
-  shows "(\<lambda>n. integral\<^sup>N M (f n)) ----> integral\<^sup>N M u"
+    and u: "\<And>x. (\<lambda>i. f i x) \<longlonglongrightarrow> u x"
+  shows "(\<lambda>n. integral\<^sup>N M (f n)) \<longlonglongrightarrow> integral\<^sup>N M u"
 proof -
-  have "(\<lambda>n. integral\<^sup>N M (f n)) ----> (SUP n. integral\<^sup>N M (f n))"
+  have "(\<lambda>n. integral\<^sup>N M (f n)) \<longlonglongrightarrow> (SUP n. integral\<^sup>N M (f n))"
     using f by (intro LIMSEQ_SUP[of "\<lambda>n. integral\<^sup>N M (f n)"] incseq_nn_integral)
   also have "(SUP n. integral\<^sup>N M (f n)) = integral\<^sup>N M (\<lambda>x. SUP n. f n x)"
     using f by (intro nn_integral_monotone_convergence_SUP[symmetric])
@@ -1467,8 +1467,8 @@ lemma nn_integral_dominated_convergence:
        "\<And>i. u i \<in> borel_measurable M" "u' \<in> borel_measurable M" "w \<in> borel_measurable M"
     and bound: "\<And>j. AE x in M. 0 \<le> u j x" "\<And>j. AE x in M. u j x \<le> w x"
     and w: "(\<integral>\<^sup>+x. w x \<partial>M) < \<infinity>"
-    and u': "AE x in M. (\<lambda>i. u i x) ----> u' x"
-  shows "(\<lambda>i. (\<integral>\<^sup>+x. u i x \<partial>M)) ----> (\<integral>\<^sup>+x. u' x \<partial>M)"
+    and u': "AE x in M. (\<lambda>i. u i x) \<longlonglongrightarrow> u' x"
+  shows "(\<lambda>i. (\<integral>\<^sup>+x. u i x \<partial>M)) \<longlonglongrightarrow> (\<integral>\<^sup>+x. u' x \<partial>M)"
 proof -
   have "limsup (\<lambda>n. integral\<^sup>N M (u n)) \<le> (\<integral>\<^sup>+ x. limsup (\<lambda>n. u n x) \<partial>M)"
     by (intro nn_integral_limsup[OF _ _ bound w]) auto
@@ -1489,9 +1489,9 @@ lemma nn_integral_monotone_convergence_INF':
   assumes "(\<integral>\<^sup>+ x. f 0 x \<partial>M) < \<infinity>" and nn: "\<And>x i. 0 \<le> f i x"
   shows "(\<integral>\<^sup>+ x. (INF i. f i x) \<partial>M) = (INF i. integral\<^sup>N M (f i))"
 proof (rule LIMSEQ_unique)
-  show "(\<lambda>i. integral\<^sup>N M (f i)) ----> (INF i. integral\<^sup>N M (f i))"
+  show "(\<lambda>i. integral\<^sup>N M (f i)) \<longlonglongrightarrow> (INF i. integral\<^sup>N M (f i))"
     using f by (intro LIMSEQ_INF) (auto intro!: nn_integral_mono simp: decseq_def le_fun_def)
-  show "(\<lambda>i. integral\<^sup>N M (f i)) ----> \<integral>\<^sup>+ x. (INF i. f i x) \<partial>M"
+  show "(\<lambda>i. integral\<^sup>N M (f i)) \<longlonglongrightarrow> \<integral>\<^sup>+ x. (INF i. f i x) \<partial>M"
   proof (rule nn_integral_dominated_convergence)
     show "(\<integral>\<^sup>+ x. f 0 x \<partial>M) < \<infinity>" "\<And>i. f i \<in> borel_measurable M" "f 0 \<in> borel_measurable M"
       by fact+
@@ -1499,7 +1499,7 @@ proof (rule LIMSEQ_unique)
       using nn by auto
     show "\<And>j. AE x in M. f j x \<le> f 0 x"
       using f by (auto simp: decseq_def le_fun_def)
-    show "AE x in M. (\<lambda>i. f i x) ----> (INF i. f i x)"
+    show "AE x in M. (\<lambda>i. f i x) \<longlonglongrightarrow> (INF i. f i x)"
       using f by (auto intro!: LIMSEQ_INF simp: decseq_def le_fun_def)
     show "(\<lambda>x. INF i. f i x) \<in> borel_measurable M"
       by auto

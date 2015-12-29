@@ -649,12 +649,12 @@ lemma lemma_sqrt_hcomplex_capprox:
   apply auto
   done
 
-lemma LIMSEQ_root: "(\<lambda>n. root n n) ----> 1"
+lemma LIMSEQ_root: "(\<lambda>n. root n n) \<longlonglongrightarrow> 1"
 proof -
   def x \<equiv> "\<lambda>n. root n n - 1"
-  have "x ----> sqrt 0"
+  have "x \<longlonglongrightarrow> sqrt 0"
   proof (rule tendsto_sandwich[OF _ _ tendsto_const])
-    show "(\<lambda>x. sqrt (2 / x)) ----> sqrt 0"
+    show "(\<lambda>x. sqrt (2 / x)) \<longlonglongrightarrow> sqrt 0"
       by (intro tendsto_intros tendsto_divide_0[OF tendsto_const] filterlim_mono[OF filterlim_real_sequentially])
          (simp_all add: at_infinity_eq_at_top_bot)
     { fix n :: nat assume "2 < n"
@@ -686,13 +686,13 @@ qed
 
 lemma LIMSEQ_root_const:
   assumes "0 < c"
-  shows "(\<lambda>n. root n c) ----> 1"
+  shows "(\<lambda>n. root n c) \<longlonglongrightarrow> 1"
 proof -
   { fix c :: real assume "1 \<le> c"
     def x \<equiv> "\<lambda>n. root n c - 1"
-    have "x ----> 0"
+    have "x \<longlonglongrightarrow> 0"
     proof (rule tendsto_sandwich[OF _ _ tendsto_const])
-      show "(\<lambda>n. c / n) ----> 0"
+      show "(\<lambda>n. c / n) \<longlonglongrightarrow> 0"
         by (intro tendsto_divide_0[OF tendsto_const] filterlim_mono[OF filterlim_real_sequentially])
            (simp_all add: at_infinity_eq_at_top_bot)
       { fix n :: nat assume "1 < n"
@@ -713,7 +713,7 @@ proof -
       show "eventually (\<lambda>n. 0 \<le> x n) sequentially"
         using \<open>1 \<le> c\<close> by (auto intro!: exI[of _ 1] simp: eventually_sequentially le_diff_eq x_def)
     qed
-    from tendsto_add[OF this tendsto_const[of 1]] have "(\<lambda>n. root n c) ----> 1"
+    from tendsto_add[OF this tendsto_const[of 1]] have "(\<lambda>n. root n c) \<longlonglongrightarrow> 1"
       by (simp add: x_def) }
   note ge_1 = this
 
@@ -724,7 +724,7 @@ proof -
     assume "\<not> 1 \<le> c"
     with \<open>0 < c\<close> have "1 \<le> 1 / c"
       by simp
-    then have "(\<lambda>n. 1 / root n (1 / c)) ----> 1 / 1"
+    then have "(\<lambda>n. 1 / root n (1 / c)) \<longlonglongrightarrow> 1 / 1"
       by (intro tendsto_divide tendsto_const ge_1 \<open>1 \<le> 1 / c\<close> one_neq_zero)
     then show ?thesis
       by (rule filterlim_cong[THEN iffD1, rotated 3])

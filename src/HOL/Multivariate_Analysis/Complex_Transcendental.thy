@@ -1636,7 +1636,7 @@ proof -
   have "\<forall>n>0. 3 \<le> n \<longrightarrow> 1 \<le> ln (real_of_nat n)"
     using ln3_gt_1
     by (force intro: order_trans [of _ "ln 3"] ln3_gt_1)
-  moreover have "(\<lambda>n. cmod (Ln (of_nat n) / of_nat n powr s)) ----> 0"
+  moreover have "(\<lambda>n. cmod (Ln (of_nat n) / of_nat n powr s)) \<longlonglongrightarrow> 0"
     using lim_Ln_over_power [OF assms]
     by (metis tendsto_norm_zero_iff)
   ultimately show ?thesis

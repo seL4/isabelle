@@ -162,7 +162,7 @@ by (blast intro: NSLIMSEQ_imp_Suc NSLIMSEQ_Suc)
 subsubsection {* Equivalence of @{term LIMSEQ} and @{term NSLIMSEQ} *}
 
 lemma LIMSEQ_NSLIMSEQ:
-  assumes X: "X ----> L" shows "X ----NS> L"
+  assumes X: "X \<longlonglongrightarrow> L" shows "X ----NS> L"
 proof (rule NSLIMSEQ_I)
   fix N assume N: "N \<in> HNatInfinite"
   have "starfun X N - star_of L \<in> Infinitesimal"
@@ -180,7 +180,7 @@ proof (rule NSLIMSEQ_I)
 qed
 
 lemma NSLIMSEQ_LIMSEQ:
-  assumes X: "X ----NS> L" shows "X ----> L"
+  assumes X: "X ----NS> L" shows "X \<longlonglongrightarrow> L"
 proof (rule LIMSEQ_I)
   fix r::real assume r: "0 < r"
   have "\<exists>no. \<forall>n\<ge>no. hnorm (starfun X n - star_of L) < star_of r"
@@ -199,7 +199,7 @@ proof (rule LIMSEQ_I)
     by transfer
 qed
 
-theorem LIMSEQ_NSLIMSEQ_iff: "(f ----> L) = (f ----NS> L)"
+theorem LIMSEQ_NSLIMSEQ_iff: "(f \<longlonglongrightarrow> L) = (f ----NS> L)"
 by (blast intro: LIMSEQ_NSLIMSEQ NSLIMSEQ_LIMSEQ)
 
 subsubsection {* Derived theorems about @{term NSLIMSEQ} *}

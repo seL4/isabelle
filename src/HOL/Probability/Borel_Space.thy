@@ -1300,7 +1300,7 @@ qed
 
 lemma borel_measurable_ereal_LIMSEQ:
   fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> ereal"
-  assumes u': "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. u i x) ----> u' x"
+  assumes u': "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. u i x) \<longlonglongrightarrow> u' x"
   and u: "\<And>i. u i \<in> borel_measurable M"
   shows "u' \<in> borel_measurable M"
 proof -
@@ -1319,7 +1319,7 @@ subsection \<open>LIMSEQ is borel measurable\<close>
 
 lemma borel_measurable_LIMSEQ:
   fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> real"
-  assumes u': "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. u i x) ----> u' x"
+  assumes u': "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. u i x) \<longlonglongrightarrow> u' x"
   and u: "\<And>i. u i \<in> borel_measurable M"
   shows "u' \<in> borel_measurable M"
 proof -
@@ -1333,7 +1333,7 @@ qed
 lemma borel_measurable_LIMSEQ_metric:
   fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b :: metric_space"
   assumes [measurable]: "\<And>i. f i \<in> borel_measurable M"
-  assumes lim: "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. f i x) ----> g x"
+  assumes lim: "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. f i x) \<longlonglongrightarrow> g x"
   shows "g \<in> borel_measurable M"
   unfolding borel_eq_closed
 proof (safe intro!: measurable_measure_of)
@@ -1341,7 +1341,7 @@ proof (safe intro!: measurable_measure_of)
 
   have [measurable]: "(\<lambda>x. infdist (g x) A) \<in> borel_measurable M"
   proof (rule borel_measurable_LIMSEQ)
-    show "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. infdist (f i x) A) ----> infdist (g x) A"
+    show "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. infdist (f i x) A) \<longlonglongrightarrow> infdist (g x) A"
       by (intro tendsto_infdist lim)
     show "\<And>i. (\<lambda>x. infdist (f i x) A) \<in> borel_measurable M"
       by (intro borel_measurable_continuous_on[where f="\<lambda>x. infdist x A"]
@@ -1381,7 +1381,7 @@ proof -
     have "convergent (\<lambda>i. if Cauchy (\<lambda>i. f i x) then f i x else 0)"
       by (cases "Cauchy (\<lambda>i. f i x)")
          (auto simp add: convergent_eq_cauchy[symmetric] convergent_def)
-    then show "(\<lambda>i. if Cauchy (\<lambda>i. f i x) then f i x else 0) ----> u' x"
+    then show "(\<lambda>i. if Cauchy (\<lambda>i. f i x) then f i x else 0) \<longlonglongrightarrow> u' x"
       unfolding u'_def 
       by (rule convergent_LIMSEQ_iff[THEN iffD1])
   qed measurable

@@ -327,7 +327,7 @@ lemma pos_integrable_to_top:
   assumes "\<And>i. A i \<in> sets M" "mono A"
   assumes nneg: "\<And>x i. x \<in> A i \<Longrightarrow> 0 \<le> f x"
   and intgbl: "\<And>i::nat. set_integrable M (A i) f"
-  and lim: "(\<lambda>i::nat. LINT x:A i|M. f x) ----> l"
+  and lim: "(\<lambda>i::nat. LINT x:A i|M. f x) \<longlonglongrightarrow> l"
   shows "set_integrable M (\<Union>i. A i) f"
   apply (rule integrable_monotone_convergence[where f = "\<lambda>i::nat. \<lambda>x. indicator (A i) x *\<^sub>R f x" and x = l])
   apply (rule intgbl)
@@ -336,7 +336,7 @@ lemma pos_integrable_to_top:
   using \<open>mono A\<close> apply (auto simp: mono_def nneg split: split_indicator) []
 proof (rule AE_I2)
   { fix x assume "x \<in> space M"
-    show "(\<lambda>i. indicator (A i) x *\<^sub>R f x) ----> indicator (\<Union>i. A i) x *\<^sub>R f x"
+    show "(\<lambda>i. indicator (A i) x *\<^sub>R f x) \<longlonglongrightarrow> indicator (\<Union>i. A i) x *\<^sub>R f x"
     proof cases
       assume "\<exists>i. x \<in> A i"
       then guess i ..
@@ -409,7 +409,7 @@ lemma set_integral_cont_up:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"
   assumes [measurable]: "\<And>i. A i \<in> sets M" and A: "incseq A"
   and intgbl: "set_integrable M (\<Union>i. A i) f"
-  shows "(\<lambda>i. LINT x:(A i)|M. f x) ----> LINT x:(\<Union>i. A i)|M. f x"
+  shows "(\<lambda>i. LINT x:(A i)|M. f x) \<longlonglongrightarrow> LINT x:(\<Union>i. A i)|M. f x"
 proof (intro integral_dominated_convergence[where w="\<lambda>x. indicator (\<Union>i. A i) x *\<^sub>R norm (f x)"])
   have int_A: "\<And>i. set_integrable M (A i) f"
     using intgbl by (rule set_integrable_subset) auto
@@ -418,10 +418,10 @@ proof (intro integral_dominated_convergence[where w="\<lambda>x. indicator (\<Un
     using intgbl integrable_norm[OF intgbl] by auto
 
   { fix x i assume "x \<in> A i"
-    with A have "(\<lambda>xa. indicator (A xa) x::real) ----> 1 \<longleftrightarrow> (\<lambda>xa. 1::real) ----> 1"
+    with A have "(\<lambda>xa. indicator (A xa) x::real) \<longlonglongrightarrow> 1 \<longleftrightarrow> (\<lambda>xa. 1::real) \<longlonglongrightarrow> 1"
       by (intro filterlim_cong refl)
          (fastforce simp: eventually_sequentially incseq_def subset_eq intro!: exI[of _ i]) }
-  then show "AE x in M. (\<lambda>i. indicator (A i) x *\<^sub>R f x) ----> indicator (\<Union>i. A i) x *\<^sub>R f x"
+  then show "AE x in M. (\<lambda>i. indicator (A i) x *\<^sub>R f x) \<longlonglongrightarrow> indicator (\<Union>i. A i) x *\<^sub>R f x"
     by (intro AE_I2 tendsto_intros) (auto split: split_indicator)
 qed (auto split: split_indicator)
 
@@ -430,7 +430,7 @@ lemma set_integral_cont_down:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"
   assumes [measurable]: "\<And>i. A i \<in> sets M" and A: "decseq A"
   and int0: "set_integrable M (A 0) f"
-  shows "(\<lambda>i::nat. LINT x:(A i)|M. f x) ----> LINT x:(\<Inter>i. A i)|M. f x"
+  shows "(\<lambda>i::nat. LINT x:(A i)|M. f x) \<longlonglongrightarrow> LINT x:(\<Inter>i. A i)|M. f x"
 proof (rule integral_dominated_convergence)
   have int_A: "\<And>i. set_integrable M (A i) f"
     using int0 by (rule set_integrable_subset) (insert A, auto simp: decseq_def)
@@ -443,10 +443,10 @@ proof (rule integral_dominated_convergence)
   show "\<And>i. AE x in M. norm (indicator (A i) x *\<^sub>R f x) \<le> indicator (A 0) x *\<^sub>R norm (f x)"
     using A by (auto split: split_indicator simp: decseq_def)
   { fix x i assume "x \<in> space M" "x \<notin> A i"
-    with A have "(\<lambda>i. indicator (A i) x::real) ----> 0 \<longleftrightarrow> (\<lambda>i. 0::real) ----> 0"
+    with A have "(\<lambda>i. indicator (A i) x::real) \<longlonglongrightarrow> 0 \<longleftrightarrow> (\<lambda>i. 0::real) \<longlonglongrightarrow> 0"
       by (intro filterlim_cong refl)
          (auto split: split_indicator simp: eventually_sequentially decseq_def intro!: exI[of _ i]) }
-  then show "AE x in M. (\<lambda>i. indicator (A i) x *\<^sub>R f x) ----> indicator (\<Inter>i. A i) x *\<^sub>R f x"
+  then show "AE x in M. (\<lambda>i. indicator (A i) x *\<^sub>R f x) \<longlonglongrightarrow> indicator (\<Inter>i. A i) x *\<^sub>R f x"
     by (intro AE_I2 tendsto_intros) (auto split: split_indicator)
 qed
 

@@ -898,8 +898,8 @@ lemma fps_sum_rep_nth: "(setsum (\<lambda>i. fps_const(a$i)*X^i) {0..m})$n =
   apply (simp add: setsum.delta')
   done
 
-lemma fps_notation: "(\<lambda>n. setsum (\<lambda>i. fps_const(a$i) * X^i) {0..n}) ----> a"
-  (is "?s ----> a")
+lemma fps_notation: "(\<lambda>n. setsum (\<lambda>i. fps_const(a$i) * X^i) {0..n}) \<longlonglongrightarrow> a"
+  (is "?s \<longlonglongrightarrow> a")
 proof -
   have "\<exists>n0. \<forall>n \<ge> n0. dist (?s n) a < r" if "r > 0" for r
   proof -
@@ -4413,11 +4413,11 @@ proof
 
   show "convergent X"
   proof (rule convergentI)
-    show "X ----> Abs_fps (\<lambda>i. X (M i) $ i)"
+    show "X \<longlonglongrightarrow> Abs_fps (\<lambda>i. X (M i) $ i)"
       unfolding tendsto_iff
     proof safe
       fix e::real assume e: "0 < e"
-      have "(\<lambda>n. inverse (2 ^ n) :: real) ----> 0" by (rule LIMSEQ_inverse_realpow_zero) simp_all
+      have "(\<lambda>n. inverse (2 ^ n) :: real) \<longlonglongrightarrow> 0" by (rule LIMSEQ_inverse_realpow_zero) simp_all
       from this and e have "eventually (\<lambda>i. inverse (2 ^ i) < e) sequentially"
         by (rule order_tendstoD)
       then obtain i where "inverse (2 ^ i) < e"

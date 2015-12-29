@@ -53,12 +53,12 @@ proof atomize_elim
   have "subseq (op + m)" by (simp add: subseq_def)
   have "\<forall>n. (f o (\<lambda>i. m + i)) n \<in> S" using assms by auto
   from seq_compactE[OF \<open>compact S\<close>[unfolded compact_eq_seq_compact_metric] this] guess l r .
-  hence "l \<in> S" "subseq ((\<lambda>i. m + i) o r) \<and> (f \<circ> ((\<lambda>i. m + i) o r)) ----> l"
+  hence "l \<in> S" "subseq ((\<lambda>i. m + i) o r) \<and> (f \<circ> ((\<lambda>i. m + i) o r)) \<longlonglongrightarrow> l"
     using subseq_o[OF \<open>subseq (op + m)\<close> \<open>subseq r\<close>] by (auto simp: o_def)
-  thus "\<exists>l r. l \<in> S \<and> subseq r \<and> (f \<circ> r) ----> l" by blast
+  thus "\<exists>l r. l \<in> S \<and> subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> l" by blast
 qed
 
-sublocale finmap_seqs_into_compact \<subseteq> subseqs "\<lambda>n s. (\<exists>l. (\<lambda>i. ((f o s) i)\<^sub>F n) ----> l)"
+sublocale finmap_seqs_into_compact \<subseteq> subseqs "\<lambda>n s. (\<exists>l. (\<lambda>i. ((f o s) i)\<^sub>F n) \<longlonglongrightarrow> l)"
 proof
   fix n s
   assume "subseq s"
@@ -72,24 +72,24 @@ proof
       by auto
   qed
   from compactE'[OF compact_projset this] guess ls rs .
-  thus "\<exists>r'. subseq r' \<and> (\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r')) i)\<^sub>F n) ----> l)" by (auto simp: o_def)
+  thus "\<exists>r'. subseq r' \<and> (\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r')) i)\<^sub>F n) \<longlonglongrightarrow> l)" by (auto simp: o_def)
 qed
 
-lemma (in finmap_seqs_into_compact) diagonal_tendsto: "\<exists>l. (\<lambda>i. (f (diagseq i))\<^sub>F n) ----> l"
+lemma (in finmap_seqs_into_compact) diagonal_tendsto: "\<exists>l. (\<lambda>i. (f (diagseq i))\<^sub>F n) \<longlonglongrightarrow> l"
 proof -
-  obtain l where "(\<lambda>i. ((f o (diagseq o op + (Suc n))) i)\<^sub>F n) ----> l"
+  obtain l where "(\<lambda>i. ((f o (diagseq o op + (Suc n))) i)\<^sub>F n) \<longlonglongrightarrow> l"
   proof (atomize_elim, rule diagseq_holds)
     fix r s n
     assume "subseq r"
-    assume "\<exists>l. (\<lambda>i. ((f \<circ> s) i)\<^sub>F n) ----> l"
-    then obtain l where "((\<lambda>i. (f i)\<^sub>F n) o s) ----> l"
+    assume "\<exists>l. (\<lambda>i. ((f \<circ> s) i)\<^sub>F n) \<longlonglongrightarrow> l"
+    then obtain l where "((\<lambda>i. (f i)\<^sub>F n) o s) \<longlonglongrightarrow> l"
       by (auto simp: o_def)
-    hence "((\<lambda>i. (f i)\<^sub>F n) o s o r) ----> l" using \<open>subseq r\<close>
+    hence "((\<lambda>i. (f i)\<^sub>F n) o s o r) \<longlonglongrightarrow> l" using \<open>subseq r\<close>
       by (rule LIMSEQ_subseq_LIMSEQ)
-    thus "\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r)) i)\<^sub>F n) ----> l" by (auto simp add: o_def)
+    thus "\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r)) i)\<^sub>F n) \<longlonglongrightarrow> l" by (auto simp add: o_def)
   qed
-  hence "(\<lambda>i. ((f (diagseq (i + Suc n))))\<^sub>F n) ----> l" by (simp add: ac_simps)
-  hence "(\<lambda>i. (f (diagseq i))\<^sub>F n) ----> l" by (rule LIMSEQ_offset)
+  hence "(\<lambda>i. ((f (diagseq (i + Suc n))))\<^sub>F n) \<longlonglongrightarrow> l" by (simp add: ac_simps)
+  hence "(\<lambda>i. (f (diagseq i))\<^sub>F n) \<longlonglongrightarrow> l" by (rule LIMSEQ_offset)
   thus ?thesis ..
 qed
 
@@ -362,10 +362,10 @@ proof (rule emeasure_lim)
       using \<open>j \<in> J (Suc n)\<close> \<open>j \<in> J (Suc m)\<close>
       unfolding j by (subst proj_fm, auto)+
   qed
-  have "\<forall>t. \<exists>z. (\<lambda>i. (fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^sub>F t) ----> z"
+  have "\<forall>t. \<exists>z. (\<lambda>i. (fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^sub>F t) \<longlonglongrightarrow> z"
     using diagonal_tendsto ..
   then obtain z where z:
-    "\<And>t. (\<lambda>i. (fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^sub>F t) ----> z t"
+    "\<And>t. (\<lambda>i. (fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^sub>F t) \<longlonglongrightarrow> z t"
     unfolding choice_iff by blast
   {
     fix n :: nat assume "n \<ge> 1"
@@ -377,7 +377,7 @@ proof (rule emeasure_lim)
       assume t: "t \<in> domain (finmap_of (Utn ` J n) z)"
       hence "t \<in> Utn ` J n" by simp
       then obtain j where j: "t = Utn j" "j \<in> J n" by auto
-      have "(\<lambda>i. (fm n (y (Suc (diagseq i))))\<^sub>F t) ----> z t"
+      have "(\<lambda>i. (fm n (y (Suc (diagseq i))))\<^sub>F t) \<longlonglongrightarrow> z t"
         apply (subst (2) tendsto_iff, subst eventually_sequentially)
       proof safe
         fix e :: real assume "0 < e"
@@ -407,12 +407,12 @@ proof (rule emeasure_lim)
           finally show "dist ((fm n (y (Suc (diagseq na))))\<^sub>F t) (z t) < e" .
         qed
       qed
-      hence "(\<lambda>i. (fm n (y (Suc (diagseq i))))\<^sub>F t) ----> (finmap_of (Utn ` J n) z)\<^sub>F t"
+      hence "(\<lambda>i. (fm n (y (Suc (diagseq i))))\<^sub>F t) \<longlonglongrightarrow> (finmap_of (Utn ` J n) z)\<^sub>F t"
         by (simp add: tendsto_intros)
     } ultimately
-    have "(\<lambda>i. fm n (y (Suc (diagseq i)))) ----> finmap_of (Utn ` J n) z"
+    have "(\<lambda>i. fm n (y (Suc (diagseq i)))) \<longlonglongrightarrow> finmap_of (Utn ` J n) z"
       by (rule tendsto_finmap)
-    hence "((\<lambda>i. fm n (y (Suc (diagseq i)))) o (\<lambda>i. i + n)) ----> finmap_of (Utn ` J n) z"
+    hence "((\<lambda>i. fm n (y (Suc (diagseq i)))) o (\<lambda>i. i + n)) \<longlonglongrightarrow> finmap_of (Utn ` J n) z"
       by (intro lim_subseq) (simp add: subseq_def)
     moreover
     have "(\<forall>i. ((\<lambda>i. fm n (y (Suc (diagseq i)))) o (\<lambda>i. i + n)) i \<in> K' n)"

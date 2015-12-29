@@ -138,7 +138,7 @@ lemma closed_Pi_bcontfun:
   unfolding closed_sequential_limits
 proof safe
   fix f l
-  assume seq: "\<forall>n. f n \<in> Abs_bcontfun ` (Pi I X \<inter> bcontfun)" and lim: "f ----> l"
+  assume seq: "\<forall>n. f n \<in> Abs_bcontfun ` (Pi I X \<inter> bcontfun)" and lim: "f \<longlonglongrightarrow> l"
   have lim_fun: "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x. dist (Rep_bcontfun (f n) x) (Rep_bcontfun l x) < e"
     using LIMSEQ_imp_Cauchy[OF lim, simplified Cauchy_def] metric_LIMSEQ_D[OF lim]
     by (intro uniformly_cauchy_imp_uniformly_convergent[where P="\<lambda>_. True", simplified])
@@ -156,7 +156,7 @@ proof safe
         by (auto simp: Abs_bcontfun_inverse)
     qed
     moreover note sequentially_bot
-    moreover have "(\<lambda>n. Rep_bcontfun (f n) x) ----> Rep_bcontfun l x"
+    moreover have "(\<lambda>n. Rep_bcontfun (f n) x) \<longlonglongrightarrow> Rep_bcontfun l x"
       using lim_fun by (blast intro!: metric_LIMSEQ_I)
     ultimately show "Rep_bcontfun l x \<in> X x"
       by (rule Lim_in_closed_set)

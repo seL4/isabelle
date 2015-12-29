@@ -216,7 +216,7 @@ proof -
     have A: "incseq A" by (auto intro!: incseq_SucI)
     from finite_Lim_measure_incseq[OF _ A] \<open>range A \<subseteq> sets M\<close>
       M'.finite_Lim_measure_incseq[OF _ A]
-    have convergent: "(\<lambda>i. ?d (A i)) ----> ?d (\<Union>i. A i)"
+    have convergent: "(\<lambda>i. ?d (A i)) \<longlonglongrightarrow> ?d (\<Union>i. A i)"
       by (auto intro!: tendsto_diff simp: sets_eq)
     obtain n :: nat where "- ?d (\<Union>i. A i) / e < real n" using reals_Archimedean2 by auto
     moreover from order_trans[OF decseq_le[OF decseq convergent] dA_less]
@@ -261,7 +261,7 @@ proof -
     show "(\<Inter>i. A i) \<in> sets M" using \<open>\<And>n. A n \<in> sets M\<close> by auto
     have "decseq A" using A by (auto intro!: decseq_SucI)
     from A(1) finite_Lim_measure_decseq[OF _ this] N.finite_Lim_measure_decseq[OF _ this]
-    have "(\<lambda>i. ?d (A i)) ----> ?d (\<Inter>i. A i)" by (auto intro!: tendsto_diff simp: sets_eq)
+    have "(\<lambda>i. ?d (A i)) \<longlonglongrightarrow> ?d (\<Inter>i. A i)" by (auto intro!: tendsto_diff simp: sets_eq)
     thus "?d (space M) \<le> ?d (\<Inter>i. A i)" using mono_dA[THEN monoD, of 0 _]
       by (rule_tac LIMSEQ_le_const) auto
   next

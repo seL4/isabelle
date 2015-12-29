@@ -83,7 +83,7 @@ lemma setsum_indicator_scaleR[simp]:
 
 lemma LIMSEQ_indicator_incseq:
   assumes "incseq A"
-  shows "(\<lambda>i. indicator (A i) x :: 'a :: {topological_space, one, zero}) ----> indicator (\<Union>i. A i) x"
+  shows "(\<lambda>i. indicator (A i) x :: 'a :: {topological_space, one, zero}) \<longlonglongrightarrow> indicator (\<Union>i. A i) x"
 proof cases
   assume "\<exists>i. x \<in> A i"
   then obtain i where "x \<in> A i"
@@ -97,9 +97,9 @@ proof cases
 qed (auto simp: indicator_def)
 
 lemma LIMSEQ_indicator_UN:
-  "(\<lambda>k. indicator (\<Union>i<k. A i) x :: 'a :: {topological_space, one, zero}) ----> indicator (\<Union>i. A i) x"
+  "(\<lambda>k. indicator (\<Union>i<k. A i) x :: 'a :: {topological_space, one, zero}) \<longlonglongrightarrow> indicator (\<Union>i. A i) x"
 proof -
-  have "(\<lambda>k. indicator (\<Union>i<k. A i) x::'a) ----> indicator (\<Union>k. \<Union>i<k. A i) x"
+  have "(\<lambda>k. indicator (\<Union>i<k. A i) x::'a) \<longlonglongrightarrow> indicator (\<Union>k. \<Union>i<k. A i) x"
     by (intro LIMSEQ_indicator_incseq) (auto simp: incseq_def intro: less_le_trans)
   also have "(\<Union>k. \<Union>i<k. A i) = (\<Union>i. A i)"
     by auto
@@ -108,7 +108,7 @@ qed
 
 lemma LIMSEQ_indicator_decseq:
   assumes "decseq A"
-  shows "(\<lambda>i. indicator (A i) x :: 'a :: {topological_space, one, zero}) ----> indicator (\<Inter>i. A i) x"
+  shows "(\<lambda>i. indicator (A i) x :: 'a :: {topological_space, one, zero}) \<longlonglongrightarrow> indicator (\<Inter>i. A i) x"
 proof cases
   assume "\<exists>i. x \<notin> A i"
   then obtain i where "x \<notin> A i"
@@ -122,9 +122,9 @@ proof cases
 qed (auto simp: indicator_def)
 
 lemma LIMSEQ_indicator_INT:
-  "(\<lambda>k. indicator (\<Inter>i<k. A i) x :: 'a :: {topological_space, one, zero}) ----> indicator (\<Inter>i. A i) x"
+  "(\<lambda>k. indicator (\<Inter>i<k. A i) x :: 'a :: {topological_space, one, zero}) \<longlonglongrightarrow> indicator (\<Inter>i. A i) x"
 proof -
-  have "(\<lambda>k. indicator (\<Inter>i<k. A i) x::'a) ----> indicator (\<Inter>k. \<Inter>i<k. A i) x"
+  have "(\<lambda>k. indicator (\<Inter>i<k. A i) x::'a) \<longlonglongrightarrow> indicator (\<Inter>k. \<Inter>i<k. A i) x"
     by (intro LIMSEQ_indicator_decseq) (auto simp: decseq_def intro: less_le_trans)
   also have "(\<Inter>k. \<Inter>i<k. A i) = (\<Inter>i. A i)"
     by auto

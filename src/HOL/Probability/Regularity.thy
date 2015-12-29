@@ -131,7 +131,7 @@ proof -
     have x: "space M = (\<Union>x\<in>X. cball x r)"
       by (auto simp add: sU) (metis dist_commute order_less_imp_le)
     let ?U = "\<Union>k. (\<Union>n\<in>{0..k}. cball (from_nat_into X n) r)"
-    have "(\<lambda>k. emeasure M (\<Union>n\<in>{0..k}. cball (from_nat_into X n) r)) ----> M ?U"
+    have "(\<lambda>k. emeasure M (\<Union>n\<in>{0..k}. cball (from_nat_into X n) r)) \<longlonglongrightarrow> M ?U"
       by (rule Lim_emeasure_incseq)
         (auto intro!: borel_closed bexI simp: closed_cball incseq_def Us sb)
     also have "?U = space M"
@@ -140,13 +140,13 @@ proof -
       show "x \<in> ?U"
         using X(1) d by (auto intro!: exI[where x="to_nat_on X d"] simp: dist_commute Bex_def)
     qed (simp add: sU)
-    finally have "(\<lambda>k. M (\<Union>n\<in>{0..k}. cball (from_nat_into X n) r)) ----> M (space M)" .
+    finally have "(\<lambda>k. M (\<Union>n\<in>{0..k}. cball (from_nat_into X n) r)) \<longlonglongrightarrow> M (space M)" .
   } note M_space = this
   {
     fix e ::real and n :: nat assume "e > 0" "n > 0"
     hence "1/n > 0" "e * 2 powr - n > 0" by (auto)
     from M_space[OF \<open>1/n>0\<close>]
-    have "(\<lambda>k. measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n))) ----> measure M (space M)"
+    have "(\<lambda>k. measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n))) \<longlonglongrightarrow> measure M (space M)"
       unfolding emeasure_eq_measure by simp
     from metric_LIMSEQ_D[OF this \<open>0 < e * 2 powr -n\<close>]
     obtain k where "dist (measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n))) (measure M (space M)) <
@@ -351,9 +351,9 @@ proof -
     case (union D)
     then have "range D \<subseteq> sets M" by (auto simp: sb borel_eq_closed)
     with union have M[symmetric]: "(\<Sum>i. M (D i)) = M (\<Union>i. D i)" by (intro suminf_emeasure)
-    also have "(\<lambda>n. \<Sum>i<n. M (D i)) ----> (\<Sum>i. M (D i))"
+    also have "(\<lambda>n. \<Sum>i<n. M (D i)) \<longlonglongrightarrow> (\<Sum>i. M (D i))"
       by (intro summable_LIMSEQ summable_ereal_pos emeasure_nonneg)
-    finally have measure_LIMSEQ: "(\<lambda>n. \<Sum>i<n. measure M (D i)) ----> measure M (\<Union>i. D i)"
+    finally have measure_LIMSEQ: "(\<lambda>n. \<Sum>i<n. measure M (D i)) \<longlonglongrightarrow> measure M (\<Union>i. D i)"
       by (simp add: emeasure_eq_measure)
     have "(\<Union>i. D i) \<in> sets M" using \<open>range D \<subseteq> sets M\<close> by auto
 

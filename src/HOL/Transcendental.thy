@@ -41,7 +41,7 @@ qed
 
 lemma root_test_convergence:
   fixes f :: "nat \<Rightarrow> 'a::banach"
-  assumes f: "(\<lambda>n. root n (norm (f n))) ----> x" \<comment> "could be weakened to lim sup"
+  assumes f: "(\<lambda>n. root n (norm (f n))) \<longlonglongrightarrow> x" \<comment> "could be weakened to lim sup"
   assumes "x < 1"
   shows "summable f"
 proof -
@@ -92,7 +92,7 @@ lemma powser_insidea:
   shows "summable (\<lambda>n. norm (f n * z ^ n))"
 proof -
   from 2 have x_neq_0: "x \<noteq> 0" by clarsimp
-  from 1 have "(\<lambda>n. f n * x^n) ----> 0"
+  from 1 have "(\<lambda>n. f n * x^n) \<longlonglongrightarrow> 0"
     by (rule summable_LIMSEQ_zero)
   hence "convergent (\<lambda>n. f n * x^n)"
     by (rule convergentI)
@@ -148,7 +148,7 @@ lemma powser_inside:
 lemma powser_times_n_limit_0:
   fixes x :: "'a::{real_normed_div_algebra,banach}"
   assumes "norm x < 1"
-    shows "(\<lambda>n. of_nat n * x ^ n) ----> 0"
+    shows "(\<lambda>n. of_nat n * x ^ n) \<longlonglongrightarrow> 0"
 proof -
   have "norm x / (1 - norm x) \<ge> 0"
     using assms
@@ -270,9 +270,9 @@ text\<open>FIXME: generalise these results from the reals via type classes?\<clo
 
 lemma sums_alternating_upper_lower:
   fixes a :: "nat \<Rightarrow> real"
-  assumes mono: "\<And>n. a (Suc n) \<le> a n" and a_pos: "\<And>n. 0 \<le> a n" and "a ----> 0"
-  shows "\<exists>l. ((\<forall>n. (\<Sum>i<2*n. (- 1)^i*a i) \<le> l) \<and> (\<lambda> n. \<Sum>i<2*n. (- 1)^i*a i) ----> l) \<and>
-             ((\<forall>n. l \<le> (\<Sum>i<2*n + 1. (- 1)^i*a i)) \<and> (\<lambda> n. \<Sum>i<2*n + 1. (- 1)^i*a i) ----> l)"
+  assumes mono: "\<And>n. a (Suc n) \<le> a n" and a_pos: "\<And>n. 0 \<le> a n" and "a \<longlonglongrightarrow> 0"
+  shows "\<exists>l. ((\<forall>n. (\<Sum>i<2*n. (- 1)^i*a i) \<le> l) \<and> (\<lambda> n. \<Sum>i<2*n. (- 1)^i*a i) \<longlonglongrightarrow> l) \<and>
+             ((\<forall>n. l \<le> (\<Sum>i<2*n + 1. (- 1)^i*a i)) \<and> (\<lambda> n. \<Sum>i<2*n + 1. (- 1)^i*a i) \<longlonglongrightarrow> l)"
   (is "\<exists>l. ((\<forall>n. ?f n \<le> l) \<and> _) \<and> ((\<forall>n. l \<le> ?g n) \<and> _)")
 proof (rule nested_sequence_unique)
   have fg_diff: "\<And>n. ?f n - ?g n = - a (2 * n)" unfolding One_nat_def by auto
@@ -294,11 +294,11 @@ proof (rule nested_sequence_unique)
     show "?f n \<le> ?g n" using fg_diff a_pos
       unfolding One_nat_def by auto
   qed
-  show "(\<lambda>n. ?f n - ?g n) ----> 0" unfolding fg_diff
+  show "(\<lambda>n. ?f n - ?g n) \<longlonglongrightarrow> 0" unfolding fg_diff
   proof (rule LIMSEQ_I)
     fix r :: real
     assume "0 < r"
-    with \<open>a ----> 0\<close>[THEN LIMSEQ_D] obtain N where "\<And> n. n \<ge> N \<Longrightarrow> norm (a n - 0) < r"
+    with \<open>a \<longlonglongrightarrow> 0\<close>[THEN LIMSEQ_D] obtain N where "\<And> n. n \<ge> N \<Longrightarrow> norm (a n - 0) < r"
       by auto
     hence "\<forall>n \<ge> N. norm (- a (2 * n) - 0) < r" by auto
     thus "\<exists>N. \<forall>n \<ge> N. norm (- a (2 * n) - 0) < r" by auto
@@ -307,14 +307,14 @@ qed
 
 lemma summable_Leibniz':
   fixes a :: "nat \<Rightarrow> real"
-  assumes a_zero: "a ----> 0"
+  assumes a_zero: "a \<longlonglongrightarrow> 0"
     and a_pos: "\<And> n. 0 \<le> a n"
     and a_monotone: "\<And> n. a (Suc n) \<le> a n"
   shows summable: "summable (\<lambda> n. (-1)^n * a n)"
     and "\<And>n. (\<Sum>i<2*n. (-1)^i*a i) \<le> (\<Sum>i. (-1)^i*a i)"
-    and "(\<lambda>n. \<Sum>i<2*n. (-1)^i*a i) ----> (\<Sum>i. (-1)^i*a i)"
+    and "(\<lambda>n. \<Sum>i<2*n. (-1)^i*a i) \<longlonglongrightarrow> (\<Sum>i. (-1)^i*a i)"
     and "\<And>n. (\<Sum>i. (-1)^i*a i) \<le> (\<Sum>i<2*n+1. (-1)^i*a i)"
-    and "(\<lambda>n. \<Sum>i<2*n+1. (-1)^i*a i) ----> (\<Sum>i. (-1)^i*a i)"
+    and "(\<lambda>n. \<Sum>i<2*n+1. (-1)^i*a i) \<longlonglongrightarrow> (\<Sum>i. (-1)^i*a i)"
 proof -
   let ?S = "\<lambda>n. (-1)^n * a n"
   let ?P = "\<lambda>n. \<Sum>i<n. ?S i"
@@ -322,20 +322,20 @@ proof -
   let ?g = "\<lambda>n. ?P (2 * n + 1)"
   obtain l :: real
     where below_l: "\<forall> n. ?f n \<le> l"
-      and "?f ----> l"
+      and "?f \<longlonglongrightarrow> l"
       and above_l: "\<forall> n. l \<le> ?g n"
-      and "?g ----> l"
+      and "?g \<longlonglongrightarrow> l"
     using sums_alternating_upper_lower[OF a_monotone a_pos a_zero] by blast
 
   let ?Sa = "\<lambda>m. \<Sum>n<m. ?S n"
-  have "?Sa ----> l"
+  have "?Sa \<longlonglongrightarrow> l"
   proof (rule LIMSEQ_I)
     fix r :: real
     assume "0 < r"
-    with \<open>?f ----> l\<close>[THEN LIMSEQ_D]
+    with \<open>?f \<longlonglongrightarrow> l\<close>[THEN LIMSEQ_D]
     obtain f_no where f: "\<And> n. n \<ge> f_no \<Longrightarrow> norm (?f n - l) < r" by auto
 
-    from \<open>0 < r\<close> \<open>?g ----> l\<close>[THEN LIMSEQ_D]
+    from \<open>0 < r\<close> \<open>?g \<longlonglongrightarrow> l\<close>[THEN LIMSEQ_D]
     obtain g_no where g: "\<And> n. n \<ge> g_no \<Longrightarrow> norm (?g n - l) < r" by auto
 
     {
@@ -377,22 +377,22 @@ proof -
     unfolding sums_unique[OF sums_l, symmetric] using above_l by auto
   show "?f n \<le> suminf ?S"
     unfolding sums_unique[OF sums_l, symmetric] using below_l by auto
-  show "?g ----> suminf ?S"
-    using \<open>?g ----> l\<close> \<open>l = suminf ?S\<close> by auto
-  show "?f ----> suminf ?S"
-    using \<open>?f ----> l\<close> \<open>l = suminf ?S\<close> by auto
+  show "?g \<longlonglongrightarrow> suminf ?S"
+    using \<open>?g \<longlonglongrightarrow> l\<close> \<open>l = suminf ?S\<close> by auto
+  show "?f \<longlonglongrightarrow> suminf ?S"
+    using \<open>?f \<longlonglongrightarrow> l\<close> \<open>l = suminf ?S\<close> by auto
 qed
 
 theorem summable_Leibniz:
   fixes a :: "nat \<Rightarrow> real"
-  assumes a_zero: "a ----> 0" and "monoseq a"
+  assumes a_zero: "a \<longlonglongrightarrow> 0" and "monoseq a"
   shows "summable (\<lambda> n. (-1)^n * a n)" (is "?summable")
     and "0 < a 0 \<longrightarrow>
       (\<forall>n. (\<Sum>i. (- 1)^i*a i) \<in> { \<Sum>i<2*n. (- 1)^i * a i .. \<Sum>i<2*n+1. (- 1)^i * a i})" (is "?pos")
     and "a 0 < 0 \<longrightarrow>
       (\<forall>n. (\<Sum>i. (- 1)^i*a i) \<in> { \<Sum>i<2*n+1. (- 1)^i * a i .. \<Sum>i<2*n. (- 1)^i * a i})" (is "?neg")
-    and "(\<lambda>n. \<Sum>i<2*n. (- 1)^i*a i) ----> (\<Sum>i. (- 1)^i*a i)" (is "?f")
-    and "(\<lambda>n. \<Sum>i<2*n+1. (- 1)^i*a i) ----> (\<Sum>i. (- 1)^i*a i)" (is "?g")
+    and "(\<lambda>n. \<Sum>i<2*n. (- 1)^i*a i) \<longlonglongrightarrow> (\<Sum>i. (- 1)^i*a i)" (is "?f")
+    and "(\<lambda>n. \<Sum>i<2*n+1. (- 1)^i*a i) \<longlonglongrightarrow> (\<Sum>i. (- 1)^i*a i)" (is "?g")
 proof -
   have "?summable \<and> ?pos \<and> ?neg \<and> ?f \<and> ?g"
   proof (cases "(\<forall> n. 0 \<le> a n) \<and> (\<forall>m. \<forall>n\<ge>m. a n \<le> a m)")
@@ -404,13 +404,13 @@ proof -
       have "a (Suc n) \<le> a n"
         using ord[where n="Suc n" and m=n] by auto
     } note mono = this
-    note leibniz = summable_Leibniz'[OF \<open>a ----> 0\<close> ge0]
+    note leibniz = summable_Leibniz'[OF \<open>a \<longlonglongrightarrow> 0\<close> ge0]
     from leibniz[OF mono]
     show ?thesis using \<open>0 \<le> a 0\<close> by auto
   next
     let ?a = "\<lambda> n. - a n"
     case False
-    with monoseq_le[OF \<open>monoseq a\<close> \<open>a ----> 0\<close>]
+    with monoseq_le[OF \<open>monoseq a\<close> \<open>a \<longlonglongrightarrow> 0\<close>]
     have "(\<forall> n. a n \<le> 0) \<and> (\<forall>m. \<forall>n\<ge>m. a m \<le> a n)" by auto
     hence ord: "\<And>n m. m \<le> n \<Longrightarrow> ?a n \<le> ?a m" and ge0: "\<And> n. 0 \<le> ?a n"
       by auto
@@ -421,7 +421,7 @@ proof -
     } note monotone = this
     note leibniz =
       summable_Leibniz'[OF _ ge0, of "\<lambda>x. x",
-        OF tendsto_minus[OF \<open>a ----> 0\<close>, unfolded minus_zero] monotone]
+        OF tendsto_minus[OF \<open>a \<longlonglongrightarrow> 0\<close>, unfolded minus_zero] monotone]
     have "summable (\<lambda> n. (-1)^n * ?a n)"
       using leibniz(1) by auto
     then obtain l where "(\<lambda> n. (-1)^n * ?a n) sums l"
@@ -724,7 +724,7 @@ next
   then obtain r::real where r: "norm x < norm r" "norm r < K" "r>0"
     using K False
     by (auto simp: field_simps abs_less_iff add_pos_pos intro: that [of "(norm x + K) / 2"])
-  have "(\<lambda>n. of_nat n * (x / of_real r) ^ n) ----> 0"
+  have "(\<lambda>n. of_nat n * (x / of_real r) ^ n) \<longlonglongrightarrow> 0"
     using r by (simp add: norm_divide powser_times_n_limit_0 [of "x / of_real r"])
   then obtain N where N: "\<And>n. n\<ge>N \<Longrightarrow> real_of_nat n * norm x ^ n < r ^ n"
     using r unfolding LIMSEQ_iff
@@ -2646,7 +2646,7 @@ lemma tendsto_exp_limit_at_top:
 
 lemma tendsto_exp_limit_sequentially:
   fixes x :: real
-  shows "(\<lambda>n. (1 + x / n) ^ n) ----> exp x"
+  shows "(\<lambda>n. (1 + x / n) ^ n) \<longlonglongrightarrow> exp x"
 proof (rule filterlim_mono_eventually)
   from reals_Archimedean2 [of "\<bar>x\<bar>"] obtain n :: nat where *: "real n > \<bar>x\<bar>" ..
   hence "eventually (\<lambda>n :: nat. 0 < 1 + x / real n) at_top"
@@ -2658,7 +2658,7 @@ proof (rule filterlim_mono_eventually)
     done
   then show "eventually (\<lambda>n. (1 + x / n) powr n = (1 + x / n) ^ n) at_top"
     by (rule eventually_mono) (erule powr_realpow)
-  show "(\<lambda>n. (1 + x / real n) powr real n) ----> exp x"
+  show "(\<lambda>n. (1 + x / real n) powr real n) \<longlonglongrightarrow> exp x"
     by (rule filterlim_compose [OF tendsto_exp_limit_at_top filterlim_real_sequentially])
 qed auto
 
@@ -4986,7 +4986,7 @@ qed
 lemma zeroseq_arctan_series:
   fixes x :: real
   assumes "\<bar>x\<bar> \<le> 1"
-  shows "(\<lambda> n. 1 / real (n*2+1) * x^(n*2+1)) ----> 0" (is "?a ----> 0")
+  shows "(\<lambda> n. 1 / real (n*2+1) * x^(n*2+1)) \<longlonglongrightarrow> 0" (is "?a \<longlonglongrightarrow> 0")
 proof (cases "x = 0")
   case True
   thus ?thesis
@@ -4994,12 +4994,12 @@ proof (cases "x = 0")
 next
   case False
   have "norm x \<le> 1" and "x \<le> 1" and "-1 \<le> x" using assms by auto
-  show "?a ----> 0"
+  show "?a \<longlonglongrightarrow> 0"
   proof (cases "\<bar>x\<bar> < 1")
     case True
     hence "norm x < 1" by auto
     from tendsto_mult[OF LIMSEQ_inverse_real_of_nat LIMSEQ_power_zero[OF \<open>norm x < 1\<close>, THEN LIMSEQ_Suc]]
-    have "(\<lambda>n. 1 / real (n + 1) * x ^ (n + 1)) ----> 0"
+    have "(\<lambda>n. 1 / real (n + 1) * x ^ (n + 1)) \<longlonglongrightarrow> 0"
       unfolding inverse_eq_divide Suc_eq_plus1 by simp
     then show ?thesis using pos2 by (rule LIMSEQ_linear)
   next
@@ -5252,15 +5252,15 @@ proof -
         by (rule LIM_less_bound)
       hence "?diff 1 n \<le> ?a 1 n" by auto
     }
-    have "?a 1 ----> 0"
+    have "?a 1 \<longlonglongrightarrow> 0"
       unfolding tendsto_rabs_zero_iff power_one divide_inverse One_nat_def
       by (auto intro!: tendsto_mult LIMSEQ_linear LIMSEQ_inverse_real_of_nat simp del: of_nat_Suc)
-    have "?diff 1 ----> 0"
+    have "?diff 1 \<longlonglongrightarrow> 0"
     proof (rule LIMSEQ_I)
       fix r :: real
       assume "0 < r"
       obtain N :: nat where N_I: "\<And>n. N \<le> n \<Longrightarrow> ?a 1 n < r"
-        using LIMSEQ_D[OF \<open>?a 1 ----> 0\<close> \<open>0 < r\<close>] by auto
+        using LIMSEQ_D[OF \<open>?a 1 \<longlonglongrightarrow> 0\<close> \<open>0 < r\<close>] by auto
       {
         fix n
         assume "N \<le> n" from \<open>?diff 1 n \<le> ?a 1 n\<close> N_I[OF this]

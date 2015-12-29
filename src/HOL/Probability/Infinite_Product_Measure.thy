@@ -187,7 +187,7 @@ qed
 
 lemma measure_PiM_countable:
   fixes E :: "nat \<Rightarrow> 'a set" assumes E: "\<And>i. E i \<in> sets M"
-  shows "(\<lambda>n. \<Prod>i\<le>n. measure M (E i)) ----> measure S (Pi UNIV E)"
+  shows "(\<lambda>n. \<Prod>i\<le>n. measure M (E i)) \<longlonglongrightarrow> measure S (Pi UNIV E)"
 proof -
   let ?E = "\<lambda>n. emb UNIV {..n} (Pi\<^sub>E {.. n} E)"
   have "\<And>n. (\<Prod>i\<le>n. measure M (E i)) = measure S (?E n)"

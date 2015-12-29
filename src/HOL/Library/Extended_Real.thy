@@ -40,10 +40,10 @@ next
   show ?thesis
     unfolding continuous_within
   proof (intro tendsto_at_left_sequentially[of bot])
-    fix S :: "nat \<Rightarrow> 'a" assume S: "incseq S" and S_x: "S ----> x"
+    fix S :: "nat \<Rightarrow> 'a" assume S: "incseq S" and S_x: "S \<longlonglongrightarrow> x"
     from S_x have x_eq: "x = (SUP i. S i)"
       by (rule LIMSEQ_unique) (intro LIMSEQ_SUP S)
-    show "(\<lambda>n. f (S n)) ----> f x"
+    show "(\<lambda>n. f (S n)) \<longlonglongrightarrow> f x"
       unfolding x_eq sup_continuousD[OF f S]
       using S sup_continuous_mono[OF f] by (intro LIMSEQ_SUP) (auto simp: mono_def)
   qed (insert x, auto simp: bot_less)
@@ -77,10 +77,10 @@ next
   show ?thesis
     unfolding continuous_within
   proof (intro tendsto_at_right_sequentially[of _ top])
-    fix S :: "nat \<Rightarrow> 'a" assume S: "decseq S" and S_x: "S ----> x"
+    fix S :: "nat \<Rightarrow> 'a" assume S: "decseq S" and S_x: "S \<longlonglongrightarrow> x"
     from S_x have x_eq: "x = (INF i. S i)"
       by (rule LIMSEQ_unique) (intro LIMSEQ_INF S)
-    show "(\<lambda>n. f (S n)) ----> f x"
+    show "(\<lambda>n. f (S n)) \<longlonglongrightarrow> f x"
       unfolding x_eq inf_continuousD[OF f S]
       using S inf_continuous_mono[OF f] by (intro LIMSEQ_INF) (auto simp: mono_def antimono_def)
   qed (insert x, auto simp: less_top)
@@ -2118,10 +2118,10 @@ qed
 lemma countable_approach:
   fixes x :: ereal
   assumes "x \<noteq> -\<infinity>"
-  shows "\<exists>f. incseq f \<and> (\<forall>i::nat. f i < x) \<and> (f ----> x)"
+  shows "\<exists>f. incseq f \<and> (\<forall>i::nat. f i < x) \<and> (f \<longlonglongrightarrow> x)"
 proof (cases x)
   case (real r)
-  moreover have "(\<lambda>n. r - inverse (real (Suc n))) ----> r - 0"
+  moreover have "(\<lambda>n. r - inverse (real (Suc n))) \<longlonglongrightarrow> r - 0"
     by (intro tendsto_intros LIMSEQ_inverse_real_of_nat)
   ultimately show ?thesis
     by (intro exI[of _ "\<lambda>n. x - inverse (Suc n)"]) (auto simp: incseq_def)
@@ -2141,7 +2141,7 @@ proof cases
     by (auto intro!: exI[of _ "\<lambda>_. -\<infinity>"] simp: bot_ereal_def)
 next
   assume "Sup A \<noteq> -\<infinity>"
-  then obtain l where "incseq l" and l: "\<And>i::nat. l i < Sup A" and l_Sup: "l ----> Sup A"
+  then obtain l where "incseq l" and l: "\<And>i::nat. l i < Sup A" and l_Sup: "l \<longlonglongrightarrow> Sup A"
     by (auto dest: countable_approach)
 
   have "\<exists>f. \<forall>n. (f n \<in> A \<and> l n \<le> f n) \<and> (f n \<le> f (Suc n))"
@@ -2161,9 +2161,9 @@ next
   moreover
   have "(SUP i. f i) = Sup A"
   proof (rule tendsto_unique)
-    show "f ----> (SUP i. f i)"
+    show "f \<longlonglongrightarrow> (SUP i. f i)"
       by (rule LIMSEQ_SUP \<open>incseq f\<close>)+
-    show "f ----> Sup A"
+    show "f \<longlonglongrightarrow> Sup A"
       using l f
       by (intro tendsto_sandwich[OF _ _ l_Sup tendsto_const])
          (auto simp: Sup_upper)
@@ -2454,8 +2454,8 @@ lemma convergent_real_imp_convergent_ereal:
   assumes "convergent a"
   shows "convergent (\<lambda>n. ereal (a n))" and "lim (\<lambda>n. ereal (a n)) = ereal (lim a)"
 proof -
-  from assms obtain L where L: "a ----> L" unfolding convergent_def ..
-  hence lim: "(\<lambda>n. ereal (a n)) ----> ereal L" using lim_ereal by auto
+  from assms obtain L where L: "a \<longlonglongrightarrow> L" unfolding convergent_def ..
+  hence lim: "(\<lambda>n. ereal (a n)) \<longlonglongrightarrow> ereal L" using lim_ereal by auto
   thus "convergent (\<lambda>n. ereal (a n))" unfolding convergent_def ..
   thus "lim (\<lambda>n. ereal (a n)) = ereal (lim a)" using lim L limI by metis
 qed
@@ -2495,7 +2495,7 @@ next
     by auto
 qed
 
-lemma Lim_PInfty: "f ----> \<infinity> \<longleftrightarrow> (\<forall>B. \<exists>N. \<forall>n\<ge>N. f n \<ge> ereal B)"
+lemma Lim_PInfty: "f \<longlonglongrightarrow> \<infinity> \<longleftrightarrow> (\<forall>B. \<exists>N. \<forall>n\<ge>N. f n \<ge> ereal B)"
   unfolding tendsto_PInfty eventually_sequentially
 proof safe
   fix r
@@ -2508,7 +2508,7 @@ proof safe
     by (blast intro: less_le_trans)
 qed (blast intro: less_imp_le)
 
-lemma Lim_MInfty: "f ----> -\<infinity> \<longleftrightarrow> (\<forall>B. \<exists>N. \<forall>n\<ge>N. ereal B \<ge> f n)"
+lemma Lim_MInfty: "f \<longlonglongrightarrow> -\<infinity> \<longleftrightarrow> (\<forall>B. \<exists>N. \<forall>n\<ge>N. ereal B \<ge> f n)"
   unfolding tendsto_MInfty eventually_sequentially
 proof safe
   fix r
@@ -2521,24 +2521,24 @@ proof safe
     by (blast intro: le_less_trans)
 qed (blast intro: less_imp_le)
 
-lemma Lim_bounded_PInfty: "f ----> l \<Longrightarrow> (\<And>n. f n \<le> ereal B) \<Longrightarrow> l \<noteq> \<infinity>"
+lemma Lim_bounded_PInfty: "f \<longlonglongrightarrow> l \<Longrightarrow> (\<And>n. f n \<le> ereal B) \<Longrightarrow> l \<noteq> \<infinity>"
   using LIMSEQ_le_const2[of f l "ereal B"] by auto
 
-lemma Lim_bounded_MInfty: "f ----> l \<Longrightarrow> (\<And>n. ereal B \<le> f n) \<Longrightarrow> l \<noteq> -\<infinity>"
+lemma Lim_bounded_MInfty: "f \<longlonglongrightarrow> l \<Longrightarrow> (\<And>n. ereal B \<le> f n) \<Longrightarrow> l \<noteq> -\<infinity>"
   using LIMSEQ_le_const[of f l "ereal B"] by auto
 
 lemma tendsto_explicit:
-  "f ----> f0 \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> f0 \<in> S \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> S))"
+  "f \<longlonglongrightarrow> f0 \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> f0 \<in> S \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> S))"
   unfolding tendsto_def eventually_sequentially by auto
 
-lemma Lim_bounded_PInfty2: "f ----> l \<Longrightarrow> \<forall>n\<ge>N. f n \<le> ereal B \<Longrightarrow> l \<noteq> \<infinity>"
+lemma Lim_bounded_PInfty2: "f \<longlonglongrightarrow> l \<Longrightarrow> \<forall>n\<ge>N. f n \<le> ereal B \<Longrightarrow> l \<noteq> \<infinity>"
   using LIMSEQ_le_const2[of f l "ereal B"] by fastforce
 
-lemma Lim_bounded_ereal: "f ----> (l :: 'a::linorder_topology) \<Longrightarrow> \<forall>n\<ge>M. f n \<le> C \<Longrightarrow> l \<le> C"
+lemma Lim_bounded_ereal: "f \<longlonglongrightarrow> (l :: 'a::linorder_topology) \<Longrightarrow> \<forall>n\<ge>M. f n \<le> C \<Longrightarrow> l \<le> C"
   by (intro LIMSEQ_le_const2) auto
 
 lemma Lim_bounded2_ereal:
-  assumes lim:"f ----> (l :: 'a::linorder_topology)"
+  assumes lim:"f \<longlonglongrightarrow> (l :: 'a::linorder_topology)"
     and ge: "\<forall>n\<ge>N. f n \<ge> C"
   shows "l \<ge> C"
   using ge
@@ -2696,7 +2696,7 @@ lemma ereal_LimI_finite:
   fixes x :: ereal
   assumes "\<bar>x\<bar> \<noteq> \<infinity>"
     and "\<And>r. 0 < r \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. u n < x + r \<and> x < u n + r"
-  shows "u ----> x"
+  shows "u \<longlonglongrightarrow> x"
 proof (rule topological_tendstoI, unfold eventually_sequentially)
   obtain rx where rx: "x = ereal rx"
     using assms by (cases x) auto
@@ -2732,7 +2732,7 @@ proof (rule topological_tendstoI, unfold eventually_sequentially)
 qed
 
 lemma tendsto_obtains_N:
-  assumes "f ----> f0"
+  assumes "f \<longlonglongrightarrow> f0"
   assumes "open S"
     and "f0 \<in> S"
   obtains N where "\<forall>n\<ge>N. f n \<in> S"
@@ -2742,10 +2742,10 @@ lemma tendsto_obtains_N:
 lemma ereal_LimI_finite_iff:
   fixes x :: ereal
   assumes "\<bar>x\<bar> \<noteq> \<infinity>"
-  shows "u ----> x \<longleftrightarrow> (\<forall>r. 0 < r \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. u n < x + r \<and> x < u n + r))"
+  shows "u \<longlonglongrightarrow> x \<longleftrightarrow> (\<forall>r. 0 < r \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. u n < x + r \<and> x < u n + r))"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume lim: "u ----> x"
+  assume lim: "u \<longlonglongrightarrow> x"
   {
     fix r :: ereal
     assume "r > 0"
@@ -2762,7 +2762,7 @@ proof
     by auto
 next
   assume ?rhs
-  then show "u ----> x"
+  then show "u \<longlonglongrightarrow> x"
     using ereal_LimI_finite[of x] assms by auto
 qed
 
@@ -2924,7 +2924,7 @@ lemma suminf_bound:
   shows "suminf f \<le> x"
 proof (rule Lim_bounded_ereal)
   have "summable f" using pos[THEN summable_ereal_pos] .
-  then show "(\<lambda>N. \<Sum>n<N. f n) ----> suminf f"
+  then show "(\<lambda>N. \<Sum>n<N. f n) \<longlonglongrightarrow> suminf f"
     by (auto dest!: summable_sums simp: sums_def atLeast0LessThan)
   show "\<forall>n\<ge>0. setsum f {..<n} \<le> x"
     using assms by auto
@@ -3195,11 +3195,11 @@ lemma suminf_ereal_offset_le:
   assumes f: "\<And>i. 0 \<le> f i"
   shows "(\<Sum>i. f (i + k)) \<le> suminf f"
 proof -
-  have "(\<lambda>n. \<Sum>i<n. f (i + k)) ----> (\<Sum>i. f (i + k))"
+  have "(\<lambda>n. \<Sum>i<n. f (i + k)) \<longlonglongrightarrow> (\<Sum>i. f (i + k))"
     using summable_sums[OF summable_ereal_pos] by (simp add: sums_def atLeast0LessThan f)
-  moreover have "(\<lambda>n. \<Sum>i<n. f i) ----> (\<Sum>i. f i)"
+  moreover have "(\<lambda>n. \<Sum>i<n. f i) \<longlonglongrightarrow> (\<Sum>i. f i)"
     using summable_sums[OF summable_ereal_pos] by (simp add: sums_def atLeast0LessThan f)
-  then have "(\<lambda>n. \<Sum>i<n + k. f i) ----> (\<Sum>i. f i)"
+  then have "(\<lambda>n. \<Sum>i<n + k. f i) \<longlonglongrightarrow> (\<Sum>i. f i)"
     by (rule LIMSEQ_ignore_initial_segment)
   ultimately show ?thesis
   proof (rule LIMSEQ_le, safe intro!: exI[of _ k])
@@ -3430,7 +3430,7 @@ lemma convergent_ereal:
 lemma limsup_le_liminf_real:
   fixes X :: "nat \<Rightarrow> real" and L :: real
   assumes 1: "limsup X \<le> L" and 2: "L \<le> liminf X"
-  shows "X ----> L"
+  shows "X \<longlonglongrightarrow> L"
 proof -
   from 1 2 have "limsup X \<le> liminf X" by auto
   hence 3: "limsup X = liminf X"
@@ -3442,7 +3442,7 @@ proof -
     by (rule convergent_limsup_cl)
   also from 1 2 3 have "limsup X = L" by auto
   finally have "lim (\<lambda>n. ereal(X n)) = L" ..
-  hence "(\<lambda>n. ereal (X n)) ----> L"
+  hence "(\<lambda>n. ereal (X n)) \<longlonglongrightarrow> L"
     apply (elim subst)
     by (subst convergent_LIMSEQ_iff [symmetric], rule 4)
   thus ?thesis by simp
@@ -3450,33 +3450,33 @@ qed
 
 lemma liminf_PInfty:
   fixes X :: "nat \<Rightarrow> ereal"
-  shows "X ----> \<infinity> \<longleftrightarrow> liminf X = \<infinity>"
+  shows "X \<longlonglongrightarrow> \<infinity> \<longleftrightarrow> liminf X = \<infinity>"
   by (metis Liminf_PInfty trivial_limit_sequentially)
 
 lemma limsup_MInfty:
   fixes X :: "nat \<Rightarrow> ereal"
-  shows "X ----> -\<infinity> \<longleftrightarrow> limsup X = -\<infinity>"
+  shows "X \<longlonglongrightarrow> -\<infinity> \<longleftrightarrow> limsup X = -\<infinity>"
   by (metis Limsup_MInfty trivial_limit_sequentially)
 
 lemma ereal_lim_mono:
   fixes X Y :: "nat \<Rightarrow> 'a::linorder_topology"
   assumes "\<And>n. N \<le> n \<Longrightarrow> X n \<le> Y n"
-    and "X ----> x"
-    and "Y ----> y"
+    and "X \<longlonglongrightarrow> x"
+    and "Y \<longlonglongrightarrow> y"
   shows "x \<le> y"
   using assms(1) by (intro LIMSEQ_le[OF assms(2,3)]) auto
 
 lemma incseq_le_ereal:
   fixes X :: "nat \<Rightarrow> 'a::linorder_topology"
   assumes inc: "incseq X"
-    and lim: "X ----> L"
+    and lim: "X \<longlonglongrightarrow> L"
   shows "X N \<le> L"
   using inc
   by (intro ereal_lim_mono[of N, OF _ tendsto_const lim]) (simp add: incseq_def)
 
 lemma decseq_ge_ereal:
   assumes dec: "decseq X"
-    and lim: "X ----> (L::'a::linorder_topology)"
+    and lim: "X \<longlonglongrightarrow> (L::'a::linorder_topology)"
   shows "X N \<ge> L"
   using dec by (intro ereal_lim_mono[of N, OF _ lim tendsto_const]) (simp add: decseq_def)
 
@@ -3491,21 +3491,21 @@ lemma bounded_abs:
 lemma ereal_Sup_lim:
   fixes a :: "'a::{complete_linorder,linorder_topology}"
   assumes "\<And>n. b n \<in> s"
-    and "b ----> a"
+    and "b \<longlonglongrightarrow> a"
   shows "a \<le> Sup s"
   by (metis Lim_bounded_ereal assms complete_lattice_class.Sup_upper)
 
 lemma ereal_Inf_lim:
   fixes a :: "'a::{complete_linorder,linorder_topology}"
   assumes "\<And>n. b n \<in> s"
-    and "b ----> a"
+    and "b \<longlonglongrightarrow> a"
   shows "Inf s \<le> a"
   by (metis Lim_bounded2_ereal assms complete_lattice_class.Inf_lower)
 
 lemma SUP_Lim_ereal:
   fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
   assumes inc: "incseq X"
-    and l: "X ----> l"
+    and l: "X \<longlonglongrightarrow> l"
   shows "(SUP n. X n) = l"
   using LIMSEQ_SUP[OF inc] tendsto_unique[OF trivial_limit_sequentially l]
   by simp
@@ -3513,25 +3513,25 @@ lemma SUP_Lim_ereal:
 lemma INF_Lim_ereal:
   fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
   assumes dec: "decseq X"
-    and l: "X ----> l"
+    and l: "X \<longlonglongrightarrow> l"
   shows "(INF n. X n) = l"
   using LIMSEQ_INF[OF dec] tendsto_unique[OF trivial_limit_sequentially l]
   by simp
 
 lemma SUP_eq_LIMSEQ:
   assumes "mono f"
-  shows "(SUP n. ereal (f n)) = ereal x \<longleftrightarrow> f ----> x"
+  shows "(SUP n. ereal (f n)) = ereal x \<longleftrightarrow> f \<longlonglongrightarrow> x"
 proof
   have inc: "incseq (\<lambda>i. ereal (f i))"
     using \<open>mono f\<close> unfolding mono_def incseq_def by auto
   {
-    assume "f ----> x"
-    then have "(\<lambda>i. ereal (f i)) ----> ereal x"
+    assume "f \<longlonglongrightarrow> x"
+    then have "(\<lambda>i. ereal (f i)) \<longlonglongrightarrow> ereal x"
       by auto
     from SUP_Lim_ereal[OF inc this] show "(SUP n. ereal (f n)) = ereal x" .
   next
     assume "(SUP n. ereal (f n)) = ereal x"
-    with LIMSEQ_SUP[OF inc] show "f ----> x" by auto
+    with LIMSEQ_SUP[OF inc] show "f \<longlonglongrightarrow> x" by auto
   }
 qed
 

@@ -39,7 +39,7 @@ lemma dist_double: "dist x y < d / 2 \<Longrightarrow> dist x z < d / 2 \<Longri
   using dist_triangle[of y z x] by (simp add: dist_commute)
 
 (* LEGACY *)
-lemma lim_subseq: "subseq r \<Longrightarrow> s ----> l \<Longrightarrow> (s \<circ> r) ----> l"
+lemma lim_subseq: "subseq r \<Longrightarrow> s \<longlonglongrightarrow> l \<Longrightarrow> (s \<circ> r) \<longlonglongrightarrow> l"
   by (rule LIMSEQ_subseq_LIMSEQ)
 
 lemma countable_PiE:
@@ -2365,7 +2365,7 @@ lemma at_within_interior:
 
 lemma Lim_within_LIMSEQ:
   fixes a :: "'a::first_countable_topology"
-  assumes "\<forall>S. (\<forall>n. S n \<noteq> a \<and> S n \<in> T) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
+  assumes "\<forall>S. (\<forall>n. S n \<noteq> a \<and> S n \<in> T) \<and> S \<longlonglongrightarrow> a \<longrightarrow> (\<lambda>n. X (S n)) \<longlonglongrightarrow> L"
   shows "(X ---> L) (at a within T)"
   using assms unfolding tendsto_def [where l=L]
   by (simp add: sequentially_imp_eventually_within)
@@ -2430,7 +2430,7 @@ proof
     then have "f n \<in> S" "f n \<in> A n" "x \<noteq> f n" by auto
   }
   then have "\<forall>n. f n \<in> S - {x}" by auto
-  moreover have "(\<lambda>n. f n) ----> x"
+  moreover have "(\<lambda>n. f n) \<longlonglongrightarrow> x"
   proof (rule topological_tendstoI)
     fix S
     assume "open S" "x \<in> S"
@@ -2441,7 +2441,7 @@ proof
   ultimately show ?rhs by fast
 next
   assume ?rhs
-  then obtain f :: "nat \<Rightarrow> 'a" where f: "\<And>n. f n \<in> S - {x}" and lim: "f ----> x"
+  then obtain f :: "nat \<Rightarrow> 'a" where f: "\<And>n. f n \<in> S - {x}" and lim: "f \<longlonglongrightarrow> x"
     by auto
   show ?lhs
     unfolding islimpt_def
@@ -3515,7 +3515,7 @@ qed
 lemma acc_point_range_imp_convergent_subsequence:
   fixes l :: "'a :: first_countable_topology"
   assumes l: "\<forall>U. l\<in>U \<longrightarrow> open U \<longrightarrow> infinite (U \<inter> range f)"
-  shows "\<exists>r. subseq r \<and> (f \<circ> r) ----> l"
+  shows "\<exists>r. subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> l"
 proof -
   from countable_basis_at_decseq[of l]
   obtain A where A:
@@ -3542,7 +3542,7 @@ proof -
   have "subseq r"
     by (auto simp: r_def s subseq_Suc_iff)
   moreover
-  have "(\<lambda>n. f (r n)) ----> l"
+  have "(\<lambda>n. f (r n)) \<longlonglongrightarrow> l"
   proof (rule topological_tendstoI)
     fix S
     assume "open S" "l \<in> S"
@@ -3560,7 +3560,7 @@ proof -
     ultimately show "eventually (\<lambda>i. f (r i) \<in> S) sequentially"
       by eventually_elim auto
   qed
-  ultimately show "\<exists>r. subseq r \<and> (f \<circ> r) ----> l"
+  ultimately show "\<exists>r. subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> l"
     by (auto simp: convergent_def comp_def)
 qed
 
@@ -3658,7 +3658,7 @@ qed
 lemma islimpt_range_imp_convergent_subsequence:
   fixes l :: "'a :: {t1_space, first_countable_topology}"
   assumes l: "l islimpt (range f)"
-  shows "\<exists>r. subseq r \<and> (f \<circ> r) ----> l"
+  shows "\<exists>r. subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> l"
   using l unfolding islimpt_eq_acc_point
   by (rule acc_point_range_imp_convergent_subsequence)
 
@@ -3987,11 +3987,11 @@ lemma seq_compactE:
   using assms unfolding seq_compact_def by fast
 
 lemma closed_sequentially: (* TODO: move upwards *)
-  assumes "closed s" and "\<forall>n. f n \<in> s" and "f ----> l"
+  assumes "closed s" and "\<forall>n. f n \<in> s" and "f \<longlonglongrightarrow> l"
   shows "l \<in> s"
 proof (rule ccontr)
   assume "l \<notin> s"
-  with \<open>closed s\<close> and \<open>f ----> l\<close> have "eventually (\<lambda>n. f n \<in> - s) sequentially"
+  with \<open>closed s\<close> and \<open>f \<longlonglongrightarrow> l\<close> have "eventually (\<lambda>n. f n \<in> - s) sequentially"
     by (fast intro: topological_tendstoD)
   with \<open>\<forall>n. f n \<in> s\<close> show "False"
     by simp
@@ -4005,13 +4005,13 @@ proof (rule seq_compactI)
   hence "\<forall>n. f n \<in> s" and "\<forall>n. f n \<in> t"
     by simp_all
   from \<open>seq_compact s\<close> and \<open>\<forall>n. f n \<in> s\<close>
-  obtain l r where "l \<in> s" and r: "subseq r" and l: "(f \<circ> r) ----> l"
+  obtain l r where "l \<in> s" and r: "subseq r" and l: "(f \<circ> r) \<longlonglongrightarrow> l"
     by (rule seq_compactE)
   from \<open>\<forall>n. f n \<in> t\<close> have "\<forall>n. (f \<circ> r) n \<in> t"
     by simp
   from \<open>closed t\<close> and this and l have "l \<in> t"
     by (rule closed_sequentially)
-  with \<open>l \<in> s\<close> and r and l show "\<exists>l\<in>s \<inter> t. \<exists>r. subseq r \<and> (f \<circ> r) ----> l"
+  with \<open>l \<in> s\<close> and r and l show "\<exists>l\<in>s \<inter> t. \<exists>r. subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> l"
     by fast
 qed
 
@@ -4027,7 +4027,7 @@ lemma seq_compact_imp_countably_compact:
 proof (safe intro!: countably_compactI)
   fix A
   assume A: "\<forall>a\<in>A. open a" "U \<subseteq> \<Union>A" "countable A"
-  have subseq: "\<And>X. range X \<subseteq> U \<Longrightarrow> \<exists>r x. x \<in> U \<and> subseq r \<and> (X \<circ> r) ----> x"
+  have subseq: "\<And>X. range X \<subseteq> U \<Longrightarrow> \<exists>r x. x \<in> U \<and> subseq r \<and> (X \<circ> r) \<longlonglongrightarrow> x"
     using \<open>seq_compact U\<close> by (fastforce simp: seq_compact_def subset_eq)
   show "\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T"
   proof cases
@@ -4048,7 +4048,7 @@ proof (safe intro!: countably_compactI)
         using \<open>A \<noteq> {}\<close> unfolding X_def SUP_def by (intro T) (auto intro: from_nat_into)
       then have "range X \<subseteq> U"
         by auto
-      with subseq[of X] obtain r x where "x \<in> U" and r: "subseq r" "(X \<circ> r) ----> x"
+      with subseq[of X] obtain r x where "x \<in> U" and r: "subseq r" "(X \<circ> r) \<longlonglongrightarrow> x"
         by auto
       from \<open>x\<in>U\<close> \<open>U \<subseteq> \<Union>A\<close> from_nat_into_surj[OF \<open>countable A\<close>]
       obtain n where "x \<in> from_nat_into A n" by auto
@@ -4115,7 +4115,7 @@ proof safe
   have "subseq r"
     by (auto simp: r_def s subseq_Suc_iff)
   moreover
-  have "(\<lambda>n. X (r n)) ----> x"
+  have "(\<lambda>n. X (r n)) \<longlonglongrightarrow> x"
   proof (rule topological_tendstoI)
     fix S
     assume "open S" "x \<in> S"
@@ -4133,7 +4133,7 @@ proof safe
     ultimately show "eventually (\<lambda>i. X (r i) \<in> S) sequentially"
       by eventually_elim auto
   qed
-  ultimately show "\<exists>x \<in> U. \<exists>r. subseq r \<and> (X \<circ> r) ----> x"
+  ultimately show "\<exists>x \<in> U. \<exists>r. subseq r \<and> (X \<circ> r) \<longlonglongrightarrow> x"
     using \<open>x \<in> U\<close> by (auto simp: convergent_def comp_def)
 qed
 
@@ -4191,9 +4191,9 @@ proof -
         using pigeonhole_infinite[OF _ True] by auto
       then obtain r where "subseq r" and fr: "\<forall>n. f (r n) = f l"
         using infinite_enumerate by blast
-      then have "subseq r \<and> (f \<circ> r) ----> f l"
+      then have "subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> f l"
         by (simp add: fr o_def)
-      with f show "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) ----> l"
+      with f show "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> l"
         by auto
     next
       case False
@@ -4326,7 +4326,7 @@ lemma compact_eq_seq_compact_metric:
 
 lemma compact_def:
   "compact (S :: 'a::metric_space set) \<longleftrightarrow>
-   (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r. subseq r \<and> (f \<circ> r) ----> l))"
+   (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r. subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> l))"
   unfolding compact_eq_seq_compact_metric seq_compact_def by auto
 
 subsubsection \<open>Complete the chain of compactness variants\<close>
@@ -4405,7 +4405,7 @@ by (meson bounded_subset closed_components in_components_subset compact_eq_bound
 (* TODO: is this lemma necessary? *)
 lemma bounded_increasing_convergent:
   fixes s :: "nat \<Rightarrow> real"
-  shows "bounded {s n| n. True} \<Longrightarrow> \<forall>n. s n \<le> s (Suc n) \<Longrightarrow> \<exists>l. s ----> l"
+  shows "bounded {s n| n. True} \<Longrightarrow> \<forall>n. s n \<le> s (Suc n) \<Longrightarrow> \<exists>l. s \<longlonglongrightarrow> l"
   using Bseq_mono_convergent[of s] incseq_Suc_iff[of s]
   by (auto simp: image_def Bseq_eq_bounded convergent_def incseq_def)
 
@@ -4417,7 +4417,7 @@ proof
     unfolding comp_def by (metis seq_monosub)
   then have "Bseq (f \<circ> r)"
     unfolding Bseq_eq_bounded using f by (force intro: bounded_subset)
-  with r show "\<exists>l r. subseq r \<and> (f \<circ> r) ----> l"
+  with r show "\<exists>l r. subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> l"
     using Bseq_monoseq_convergent[of "f \<circ> r"] by (auto simp: convergent_def)
 qed
 
@@ -4531,7 +4531,7 @@ proof
     by (rule bounded_fst)
   then have s1: "bounded (range (fst \<circ> f))"
     by (simp add: image_comp)
-  obtain l1 r1 where r1: "subseq r1" and l1: "(\<lambda>n. fst (f (r1 n))) ----> l1"
+  obtain l1 r1 where r1: "subseq r1" and l1: "(\<lambda>n. fst (f (r1 n))) \<longlonglongrightarrow> l1"
     using bounded_imp_convergent_subsequence [OF s1] unfolding o_def by fast
   from f have s2: "bounded (range (snd \<circ> f \<circ> r1))"
     by (auto simp add: image_comp intro: bounded_snd bounded_subset)
@@ -4551,16 +4551,16 @@ qed
 subsubsection \<open>Completeness\<close>
 
 definition complete :: "'a::metric_space set \<Rightarrow> bool"
-  where "complete s \<longleftrightarrow> (\<forall>f. (\<forall>n. f n \<in> s) \<and> Cauchy f \<longrightarrow> (\<exists>l\<in>s. f ----> l))"
+  where "complete s \<longleftrightarrow> (\<forall>f. (\<forall>n. f n \<in> s) \<and> Cauchy f \<longrightarrow> (\<exists>l\<in>s. f \<longlonglongrightarrow> l))"
 
 lemma completeI:
-  assumes "\<And>f. \<forall>n. f n \<in> s \<Longrightarrow> Cauchy f \<Longrightarrow> \<exists>l\<in>s. f ----> l"
+  assumes "\<And>f. \<forall>n. f n \<in> s \<Longrightarrow> Cauchy f \<Longrightarrow> \<exists>l\<in>s. f \<longlonglongrightarrow> l"
   shows "complete s"
   using assms unfolding complete_def by fast
 
 lemma completeE:
   assumes "complete s" and "\<forall>n. f n \<in> s" and "Cauchy f"
-  obtains l where "l \<in> s" and "f ----> l"
+  obtains l where "l \<in> s" and "f \<longlonglongrightarrow> l"
   using assms unfolding complete_def by fast
 
 lemma compact_imp_complete:
@@ -4570,7 +4570,7 @@ proof -
   {
     fix f
     assume as: "(\<forall>n::nat. f n \<in> s)" "Cauchy f"
-    from as(1) obtain l r where lr: "l\<in>s" "subseq r" "(f \<circ> r) ----> l"
+    from as(1) obtain l r where lr: "l\<in>s" "subseq r" "(f \<circ> r) \<longlonglongrightarrow> l"
       using assms unfolding compact_def by blast
 
     note lr' = seq_suble [OF lr(2)]
@@ -4706,7 +4706,7 @@ proof
           by (simp add: dist_commute)
       qed
 
-      ultimately show "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) ----> l"
+      ultimately show "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) \<longlonglongrightarrow> l"
         using assms unfolding complete_def by blast
     qed
   qed
@@ -4789,19 +4789,19 @@ lemma complete_UNIV: "complete (UNIV :: ('a::complete_space) set)"
 proof (rule completeI)
   fix f :: "nat \<Rightarrow> 'a" assume "Cauchy f"
   then have "convergent f" by (rule Cauchy_convergent)
-  then show "\<exists>l\<in>UNIV. f ----> l" unfolding convergent_def by simp
+  then show "\<exists>l\<in>UNIV. f \<longlonglongrightarrow> l" unfolding convergent_def by simp
 qed
 
 lemma complete_imp_closed:
   assumes "complete s"
   shows "closed s"
 proof (unfold closed_sequential_limits, clarify)
-  fix f x assume "\<forall>n. f n \<in> s" and "f ----> x"
-  from \<open>f ----> x\<close> have "Cauchy f"
+  fix f x assume "\<forall>n. f n \<in> s" and "f \<longlonglongrightarrow> x"
+  from \<open>f \<longlonglongrightarrow> x\<close> have "Cauchy f"
     by (rule LIMSEQ_imp_Cauchy)
-  with \<open>complete s\<close> and \<open>\<forall>n. f n \<in> s\<close> obtain l where "l \<in> s" and "f ----> l"
+  with \<open>complete s\<close> and \<open>\<forall>n. f n \<in> s\<close> obtain l where "l \<in> s" and "f \<longlonglongrightarrow> l"
     by (rule completeE)
-  from \<open>f ----> x\<close> and \<open>f ----> l\<close> have "x = l"
+  from \<open>f \<longlonglongrightarrow> x\<close> and \<open>f \<longlonglongrightarrow> l\<close> have "x = l"
     by (rule LIMSEQ_unique)
   with \<open>l \<in> s\<close> show "x \<in> s"
     by simp
@@ -4814,11 +4814,11 @@ proof (rule completeI)
   fix f assume "\<forall>n. f n \<in> s \<inter> t" and "Cauchy f"
   then have "\<forall>n. f n \<in> s" and "\<forall>n. f n \<in> t"
     by simp_all
-  from \<open>complete s\<close> obtain l where "l \<in> s" and "f ----> l"
+  from \<open>complete s\<close> obtain l where "l \<in> s" and "f \<longlonglongrightarrow> l"
     using \<open>\<forall>n. f n \<in> s\<close> and \<open>Cauchy f\<close> by (rule completeE)
-  from \<open>closed t\<close> and \<open>\<forall>n. f n \<in> t\<close> and \<open>f ----> l\<close> have "l \<in> t"
+  from \<open>closed t\<close> and \<open>\<forall>n. f n \<in> t\<close> and \<open>f \<longlonglongrightarrow> l\<close> have "l \<in> t"
     by (rule closed_sequentially)
-  with \<open>l \<in> s\<close> and \<open>f ----> l\<close> show "\<exists>l\<in>s \<inter> t. f ----> l"
+  with \<open>l \<in> s\<close> and \<open>f \<longlonglongrightarrow> l\<close> show "\<exists>l\<in>s \<inter> t. f \<longlonglongrightarrow> l"
     by fast
 qed
 
@@ -4887,7 +4887,7 @@ proof -
     using choice[of "\<lambda>n x. x \<in> s n"] by auto
   from assms(4,1) have "seq_compact (s 0)"
     by (simp add: bounded_closed_imp_seq_compact)
-  then obtain l r where lr: "l \<in> s 0" "subseq r" "(x \<circ> r) ----> l"
+  then obtain l r where lr: "l \<in> s 0" "subseq r" "(x \<circ> r) \<longlonglongrightarrow> l"
     using x and assms(3) unfolding seq_compact_def by blast
   have "\<forall>n. l \<in> s n"
   proof
@@ -4898,7 +4898,7 @@ proof -
       using x and assms(3) and lr(2) [THEN seq_suble] by auto
     then have "\<forall>i. (x \<circ> r) (i + n) \<in> s n"
       using assms(3) by (fast intro!: le_add2)
-    moreover have "(\<lambda>i. (x \<circ> r) (i + n)) ----> l"
+    moreover have "(\<lambda>i. (x \<circ> r) (i + n)) \<longlonglongrightarrow> l"
       using lr(3) by (rule LIMSEQ_ignore_initial_segment)
     ultimately show "l \<in> s n"
       by (rule closed_sequentially)
@@ -5497,9 +5497,9 @@ proof -
   } note le = this
   {
     fix x y
-    assume f: "(\<lambda>n. dist (f (x n)) (f (y n))) ----> 0"
-    assume g: "(\<lambda>n. dist (g (x n)) (g (y n))) ----> 0"
-    have "(\<lambda>n. \<bar>dist (f (x n)) (g (x n)) - dist (f (y n)) (g (y n))\<bar>) ----> 0"
+    assume f: "(\<lambda>n. dist (f (x n)) (f (y n))) \<longlonglongrightarrow> 0"
+    assume g: "(\<lambda>n. dist (g (x n)) (g (y n))) \<longlonglongrightarrow> 0"
+    have "(\<lambda>n. \<bar>dist (f (x n)) (g (x n)) - dist (f (y n)) (g (y n))\<bar>) \<longlonglongrightarrow> 0"
       by (rule Lim_transform_bound [OF _ tendsto_add_zero [OF f g]],
         simp add: le)
   }
@@ -5589,8 +5589,8 @@ lemma continuous_at_open:
 
 lemma continuous_imp_tendsto:
   assumes "continuous (at x0) f"
-    and "x ----> x0"
-  shows "(f \<circ> x) ----> (f x0)"
+    and "x \<longlonglongrightarrow> x0"
+  shows "(f \<circ> x) \<longlonglongrightarrow> (f x0)"
 proof (rule topological_tendstoI)
   fix S
   assume "open S" "f x0 \<in> S"

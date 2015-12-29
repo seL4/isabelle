@@ -207,7 +207,7 @@ proof safe
     show "\<forall>x\<in>X. dist (f n x) (?f x) < e"
     proof
       fix x assume x: "x \<in> X"
-      with assms have "(\<lambda>n. f n x) ----> ?f x" 
+      with assms have "(\<lambda>n. f n x) \<longlonglongrightarrow> ?f x" 
         by (auto dest!: Cauchy_convergent uniformly_Cauchy_imp_Cauchy simp: convergent_LIMSEQ_iff)
       with \<open>e/2 > 0\<close> have "eventually (\<lambda>m. m \<ge> N \<and> dist (f m x) (?f x) < e/2) sequentially"
         by (intro tendstoD eventually_conj eventually_ge_at_top)

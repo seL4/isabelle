@@ -2103,7 +2103,7 @@ proof -
     using ln_series[of "x + 1"] \<open>0 \<le> x\<close> \<open>x < 1\<close> by auto
 
   have "norm x < 1" using assms by auto
-  have "?a ----> 0" unfolding Suc_eq_plus1[symmetric] inverse_eq_divide[symmetric]
+  have "?a \<longlonglongrightarrow> 0" unfolding Suc_eq_plus1[symmetric] inverse_eq_divide[symmetric]
     using tendsto_mult[OF LIMSEQ_inverse_real_of_nat LIMSEQ_Suc[OF LIMSEQ_power_zero[OF \<open>norm x < 1\<close>]]] by auto
   have "0 \<le> ?a n" for n
     by (rule mult_nonneg_nonneg) (auto simp: \<open>0 \<le> x\<close>)
@@ -2117,7 +2117,7 @@ proof -
       by (rule mult_left_mono, fact less_imp_le[OF \<open>x < 1\<close>]) (auto simp: \<open>0 \<le> x\<close>)
     thus "x ^ Suc (Suc n) \<le> x ^ Suc n" by auto
   qed auto
-  from summable_Leibniz'(2,4)[OF \<open>?a ----> 0\<close> \<open>\<And>n. 0 \<le> ?a n\<close>, OF \<open>\<And>n. ?a (Suc n) \<le> ?a n\<close>, unfolded ln_eq]
+  from summable_Leibniz'(2,4)[OF \<open>?a \<longlonglongrightarrow> 0\<close> \<open>\<And>n. 0 \<le> ?a n\<close>, OF \<open>\<And>n. ?a (Suc n) \<le> ?a n\<close>, unfolded ln_eq]
   show ?lb and ?ub
     unfolding atLeast0LessThan by auto
 qed

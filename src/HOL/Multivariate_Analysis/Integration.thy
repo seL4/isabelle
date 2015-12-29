@@ -4580,7 +4580,7 @@ next
         by (auto intro!: triangle3)
     qed
   qed
-  then obtain s where s: "i ----> s"
+  then obtain s where s: "i \<longlonglongrightarrow> s"
     using convergent_eq_cauchy[symmetric] by blast
   show ?thesis
     unfolding integrable_on_def has_integral
@@ -10201,8 +10201,8 @@ lemma has_integral_monotone_convergence_increasing:
   fixes f :: "nat \<Rightarrow> 'a::euclidean_space \<Rightarrow> real"
   assumes f: "\<And>k. (f k has_integral x k) s"
   assumes "\<And>k x. x \<in> s \<Longrightarrow> f k x \<le> f (Suc k) x"
-  assumes "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>k. f k x) ----> g x"
-  assumes "x ----> x'"
+  assumes "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>k. f k x) \<longlonglongrightarrow> g x"
+  assumes "x \<longlonglongrightarrow> x'"
   shows "(g has_integral x') s"
 proof -
   have x_eq: "x = (\<lambda>i. integral s (f i))"
@@ -10210,13 +10210,13 @@ proof -
   then have x: "{integral s (f k) |k. True} = range x"
     by auto
 
-  have "g integrable_on s \<and> (\<lambda>k. integral s (f k)) ----> integral s g"
+  have "g integrable_on s \<and> (\<lambda>k. integral s (f k)) \<longlonglongrightarrow> integral s g"
   proof (intro monotone_convergence_increasing allI ballI assms)
     show "bounded {integral s (f k) |k. True}"
       unfolding x by (rule convergent_imp_bounded) fact
   qed (auto intro: f)
   moreover then have "integral s g = x'"
-    by (intro LIMSEQ_unique[OF _ \<open>x ----> x'\<close>]) (simp add: x_eq)
+    by (intro LIMSEQ_unique[OF _ \<open>x \<longlonglongrightarrow> x'\<close>]) (simp add: x_eq)
   ultimately show ?thesis
     by (simp add: has_integral_integral)
 qed
@@ -12087,7 +12087,7 @@ proof -
     show "Inf {f j x |j. k \<le> j} \<le> Inf {f j x |j. Suc k \<le> j}"
       by (intro cInf_superset_mono) (auto simp: \<open>x\<in>s\<close>)
 
-    show "(\<lambda>k::nat. Inf {f j x |j. k \<le> j}) ----> g x"
+    show "(\<lambda>k::nat. Inf {f j x |j. k \<le> j}) \<longlonglongrightarrow> g x"
     proof (rule LIMSEQ_I, goal_cases)
       case r: (1 r)
       then have "0<r/2"
@@ -12183,8 +12183,8 @@ qed
 lemma has_integral_dominated_convergence:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
   assumes "\<And>k. (f k has_integral y k) s" "h integrable_on s"
-    "\<And>k. \<forall>x\<in>s. norm (f k x) \<le> h x" "\<forall>x\<in>s. (\<lambda>k. f k x) ----> g x"
-    and x: "y ----> x"
+    "\<And>k. \<forall>x\<in>s. norm (f k x) \<le> h x" "\<forall>x\<in>s. (\<lambda>k. f k x) \<longlonglongrightarrow> g x"
+    and x: "y \<longlonglongrightarrow> x"
   shows "(g has_integral x) s"
 proof -
   have int_f: "\<And>k. (f k) integrable_on s"
@@ -12193,9 +12193,9 @@ proof -
     by (intro integrable_integral dominated_convergence[OF int_f assms(2)]) fact+
   moreover have "integral s g = x"
   proof (rule LIMSEQ_unique)
-    show "(\<lambda>i. integral s (f i)) ----> x"
+    show "(\<lambda>i. integral s (f i)) \<longlonglongrightarrow> x"
       using integral_unique[OF assms(1)] x by simp
-    show "(\<lambda>i. integral s (f i)) ----> integral s g"
+    show "(\<lambda>i. integral s (f i)) \<longlonglongrightarrow> integral s g"
       by (intro dominated_convergence[OF int_f assms(2)]) fact+
   qed
   ultimately show ?thesis

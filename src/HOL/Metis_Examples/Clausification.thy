@@ -115,7 +115,7 @@ declare [[metis_new_skolem]]
 
 lemma
   fixes x :: real
-  assumes fn_le: "!!n. f n \<le> x" and 1: "f ----> lim f"
+  assumes fn_le: "!!n. f n \<le> x" and 1: "f \<longlonglongrightarrow> lim f"
   shows "lim f \<le> x"
 by (metis 1 LIMSEQ_le_const2 fn_le)
 

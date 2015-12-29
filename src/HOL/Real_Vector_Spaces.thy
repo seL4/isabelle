@@ -1708,20 +1708,20 @@ lemma filterlim_real_sequentially: "LIM x sequentially. real x :> at_top"
 
 subsubsection \<open>Limits of Sequences\<close>
 
-lemma lim_sequentially: "X ----> (L::'a::metric_space) \<longleftrightarrow> (\<forall>r>0. \<exists>no. \<forall>n\<ge>no. dist (X n) L < r)"
+lemma lim_sequentially: "X \<longlonglongrightarrow> (L::'a::metric_space) \<longleftrightarrow> (\<forall>r>0. \<exists>no. \<forall>n\<ge>no. dist (X n) L < r)"
   unfolding tendsto_iff eventually_sequentially ..
 
 lemmas LIMSEQ_def = lim_sequentially  (*legacy binding*)
 
-lemma LIMSEQ_iff_nz: "X ----> (L::'a::metric_space) = (\<forall>r>0. \<exists>no>0. \<forall>n\<ge>no. dist (X n) L < r)"
+lemma LIMSEQ_iff_nz: "X \<longlonglongrightarrow> (L::'a::metric_space) = (\<forall>r>0. \<exists>no>0. \<forall>n\<ge>no. dist (X n) L < r)"
   unfolding lim_sequentially by (metis Suc_leD zero_less_Suc)
 
 lemma metric_LIMSEQ_I:
-  "(\<And>r. 0 < r \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. dist (X n) L < r) \<Longrightarrow> X ----> (L::'a::metric_space)"
+  "(\<And>r. 0 < r \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. dist (X n) L < r) \<Longrightarrow> X \<longlonglongrightarrow> (L::'a::metric_space)"
 by (simp add: lim_sequentially)
 
 lemma metric_LIMSEQ_D:
-  "\<lbrakk>X ----> (L::'a::metric_space); 0 < r\<rbrakk> \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. dist (X n) L < r"
+  "\<lbrakk>X \<longlonglongrightarrow> (L::'a::metric_space); 0 < r\<rbrakk> \<Longrightarrow> \<exists>no. \<forall>n\<ge>no. dist (X n) L < r"
 by (simp add: lim_sequentially)
 
 
@@ -1840,7 +1840,7 @@ apply (blast intro: le_trans [OF _ seq_suble] dest!: spec)
 done
 
 theorem LIMSEQ_imp_Cauchy:
-  assumes X: "X ----> a" shows "Cauchy X"
+  assumes X: "X \<longlonglongrightarrow> a" shows "Cauchy X"
 proof (rule metric_CauchyI)
   fix e::real assume "0 < e"
   hence "0 < e/2" by simp
@@ -1890,7 +1890,7 @@ lemma increasing_LIMSEQ:
   assumes inc: "\<And>n. f n \<le> f (Suc n)"
       and bdd: "\<And>n. f n \<le> l"
       and en: "\<And>e. 0 < e \<Longrightarrow> \<exists>n. l \<le> f n + e"
-  shows "f ----> l"
+  shows "f \<longlonglongrightarrow> l"
 proof (rule increasing_tendsto)
   fix x assume "x < l"
   with dense[of 0 "l - x"] obtain e where "0 < e" "e < l - x"
@@ -1937,7 +1937,7 @@ proof -
     thus "\<And>s. s \<in> S \<Longrightarrow>  s \<le> X N + 1"
       by (rule bound_isUb)
   qed
-  have "X ----> Sup S"
+  have "X \<longlonglongrightarrow> Sup S"
   proof (rule metric_LIMSEQ_I)
   fix r::real assume "0 < r"
   hence r: "0 < r/2" by simp
@@ -1976,7 +1976,7 @@ instance real :: banach ..
 
 lemma tendsto_at_topI_sequentially:
   fixes f :: "real \<Rightarrow> 'b::first_countable_topology"
-  assumes *: "\<And>X. filterlim X at_top sequentially \<Longrightarrow> (\<lambda>n. f (X n)) ----> y"
+  assumes *: "\<And>X. filterlim X at_top sequentially \<Longrightarrow> (\<lambda>n. f (X n)) \<longlonglongrightarrow> y"
   shows "(f ---> y) at_top"
 proof -
   from nhds_countable[of y] guess A . note A = this
@@ -2008,7 +2008,7 @@ qed
 lemma tendsto_at_topI_sequentially_real:
   fixes f :: "real \<Rightarrow> real"
   assumes mono: "mono f"
-  assumes limseq: "(\<lambda>n. f (real n)) ----> y"
+  assumes limseq: "(\<lambda>n. f (real n)) \<longlonglongrightarrow> y"
   shows "(f ---> y) at_top"
 proof (rule tendstoI)
   fix e :: real assume "0 < e"

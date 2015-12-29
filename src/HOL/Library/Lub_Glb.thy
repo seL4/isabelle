@@ -223,9 +223,9 @@ lemma isLub_mono_imp_LIMSEQ:
   fixes X :: "nat \<Rightarrow> real"
   assumes u: "isLub UNIV {x. \<exists>n. X n = x} u" (* FIXME: use 'range X' *)
   assumes X: "\<forall>m n. m \<le> n \<longrightarrow> X m \<le> X n"
-  shows "X ----> u"
+  shows "X \<longlonglongrightarrow> u"
 proof -
-  have "X ----> (SUP i. X i)"
+  have "X \<longlonglongrightarrow> (SUP i. X i)"
     using u[THEN isLubD1] X
     by (intro LIMSEQ_incseq_SUP) (auto simp: incseq_def image_def eq_commute bdd_above_setle)
   also have "(SUP i. X i) = u"

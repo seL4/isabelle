@@ -838,7 +838,7 @@ proof -
   proof (rule has_derivative_sequence [OF cvs _ _ x])
     show "\<forall>n. \<forall>x\<in>s. (f n has_derivative (op * (f' n x))) (at x within s)"
       by (metis has_field_derivative_def df)
-  next show "(\<lambda>n. f n x) ----> l"
+  next show "(\<lambda>n. f n x) \<longlonglongrightarrow> l"
     by (rule tf)
   next show "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. cmod (f' n x * h - g' x * h) \<le> e * cmod h"
     by (blast intro: **)
