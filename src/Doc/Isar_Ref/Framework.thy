@@ -283,7 +283,7 @@ text \<open>
   collection of axioms:
 
   \[
-  \infer{\<open>\<turnstile> A\<close>}{(\<open>A\<close> \text{~axiom})}
+  \infer{\<open>\<turnstile> A\<close>}{(\<open>A\<close> \mbox{~axiom})}
   \qquad
   \infer{\<open>A \<turnstile> A\<close>}{}
   \]
@@ -397,7 +397,7 @@ text \<open>
   {\begin{tabular}{rl}
     \<open>goal:\<close> &
     \<open>(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> A \<^vec>x) \<Longrightarrow> C\<close> \\
-    \<open>assm unifier:\<close> & \<open>A\<vartheta> = H\<^sub>i\<vartheta>\<close>~~\text{(for some~\<open>H\<^sub>i\<close>)} \\
+    \<open>assm unifier:\<close> & \<open>A\<vartheta> = H\<^sub>i\<vartheta>\<close>~~\mbox{(for some~\<open>H\<^sub>i\<close>)} \\
    \end{tabular}}
   \]
 

@@ -1011,7 +1011,7 @@ text \<open>
   (again modulo unification):
   \[
   \infer[(@{inference_def assumption})]{\<open>C\<vartheta>\<close>}
-  {\<open>(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> A \<^vec>x) \<Longrightarrow> C\<close> & \<open>A\<vartheta> = H\<^sub>i\<vartheta>\<close>~~\text{(for some~\<open>i\<close>)}}
+  {\<open>(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> A \<^vec>x) \<Longrightarrow> C\<close> & \<open>A\<vartheta> = H\<^sub>i\<vartheta>\<close>~~\mbox{(for some~\<open>i\<close>)}}
   \]
 
   %FIXME @{inference_def elim_resolution}, @{inference_def dest_resolution}
