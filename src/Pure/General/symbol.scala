@@ -285,7 +285,12 @@ object Symbol
   /** symbol interpretation **/
 
   private lazy val symbols =
-    new Interpretation(File.try_read(Path.split(Isabelle_System.getenv("ISABELLE_SYMBOLS"))))
+  {
+    val contents =
+      for (path <- Path.split(Isabelle_System.getenv("ISABELLE_SYMBOLS")) if path.is_file)
+        yield (File.read(path))
+    new Interpretation(cat_lines(contents))
+  }
 
   private class Interpretation(symbols_spec: String)
   {

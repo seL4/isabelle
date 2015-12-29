@@ -164,19 +164,6 @@ object File
   }
 
 
-  /* try_read */
-
-  def try_read(paths: Seq[Path]): String =
-  {
-    val buf = new StringBuilder
-    for (path <- paths if path.is_file) {
-      buf.append(read(path))
-      buf.append('\n')
-    }
-    buf.toString
-  }
-
-
   /* write */
 
   def write_file(file: JFile, text: Iterable[CharSequence],
