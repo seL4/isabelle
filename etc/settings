@@ -121,10 +121,11 @@ DVI_VIEWER="$ISABELLE_OPEN"
 
 
 ###
-### Rendering information
+### Symbol rendering and abbreviations
 ###
 
 ISABELLE_SYMBOLS="$ISABELLE_HOME/etc/symbols:$ISABELLE_HOME_USER/etc/symbols"
+ISABELLE_ABBREVS="$ISABELLE_HOME/etc/abbrevs:$ISABELLE_HOME_USER/etc/abbrevs"
 
 
 ###

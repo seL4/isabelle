@@ -244,7 +244,7 @@ object Completion
   /* init */
 
   val empty: Completion = new Completion()
-  def init(): Completion = empty.add_symbols()
+  def init(): Completion = empty.load()
 
 
   /* word parsers */
@@ -294,6 +294,36 @@ object Completion
 
 
   /* abbreviations */
+
+  private object Abbrevs_Parser extends Parse.Parser
+  {
+    private val syntax = Outer_Syntax.empty + "="
+
+    private val entry: Parser[(String, String)] =
+      text ~ ($$$("=") ~! text) ^^ { case a ~ (_ ~ b) => (a, b) }
+
+    def parse_file(file: Path): List[(String, String)] =
+    {
+      val toks = Token.explode(syntax.keywords, File.read(file))
+      parse_all(rep(entry), Token.reader(toks, Token.Pos.file(file.implode))) match {
+        case Success(result, _) => result
+        case bad => error(bad.toString)
+      }
+    }
+  }
+
+  def load_abbrevs(): List[(String, String)] =
+  {
+    val symbol_abbrevs =
+      for ((sym, abbr) <- Symbol.abbrevs.toList) yield (abbr, sym)
+    val more_abbrevs =
+      for {
+        path <- Path.split(Isabelle_System.getenv("ISABELLE_ABBREVS"))
+        if path.is_file
+        entry <- Abbrevs_Parser.parse_file(path)
+      } yield entry
+    symbol_abbrevs ::: more_abbrevs
+  }
 
   private val caret_indicator = '\u0007'
   private val antiquote = "@{"
@@ -356,23 +386,24 @@ final class Completion private(
   def + (keyword: String): Completion = this + (keyword, keyword)
 
 
-  /* symbols with abbreviations */
+  /* load symbols and abbrevs */
 
-  private def add_symbols(): Completion =
+  private def load(): Completion =
   {
+    val abbrevs = Completion.load_abbrevs()
+
     val words =
       (for ((sym, _) <- Symbol.names.toList) yield (sym, sym)) :::
       (for ((sym, name) <- Symbol.names.toList) yield ("\\" + name, sym)) :::
-      (for ((sym, abbr) <- Symbol.abbrevs.toList if Completion.Word_Parsers.is_word(abbr))
-        yield (abbr, sym))
+      (for ((abbr, text) <- abbrevs if Completion.Word_Parsers.is_word(abbr)) yield (abbr, text))
 
-    val symbol_abbrs =
-      (for ((sym, abbr) <- Symbol.abbrevs.iterator if !Completion.Word_Parsers.is_word(abbr))
-        yield (abbr, sym)).toList
+    val non_word_abbrs =
+      (for ((abbr, text) <- abbrevs if !Completion.Word_Parsers.is_word(abbr))
+        yield (abbr, text)).toList
 
     val abbrs =
-      for ((abbr, sym) <- symbol_abbrs ::: Completion.default_abbrs)
-        yield (abbr.reverse, (abbr, sym))
+      for ((abbr, text) <- non_word_abbrs ::: Completion.default_abbrs)
+        yield (abbr.reverse, (abbr, text))
 
     new Completion(
       keywords,

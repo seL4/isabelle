@@ -1167,6 +1167,16 @@ text \<open>
   aggressively, except for single-character abbreviations like \<^verbatim>\<open>!\<close> above.
 
   \<^medskip>
+  Additional abbreviations may be specified in @{file
+  "$ISABELLE_HOME/etc/abbrevs"} and @{file_unchecked
+  "$ISABELLE_HOME_USER/etc/abbrevs"}. The file content follows general Isar
+  outer syntax @{cite "isabelle-isar-ref"}. Abbreviations are specified as
+  ``\<open>abbrev\<close>~\<^verbatim>\<open>=\<close>~\<open>text\<close>'' pairs. The replacement \<open>text\<close> may consist of more
+  than just one symbol; otherwise the meaning is the same as a symbol
+  specification ``\<open>sym\<close>~\<^verbatim>\<open>abbrev:\<close>~\<open>abbrev\<close>'' within @{file_unchecked
+  "etc/symbols"}.
+
+  \<^medskip>
   Symbol completion depends on the semantic language context
   (\secref{sec:completion-context}), to enable or disable that aspect for a
   particular sub-language of Isabelle. For example, symbol completion is
