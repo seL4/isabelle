@@ -406,7 +406,7 @@ by (auto intro!: starfun_ln_gt_zero simp add: HInfinite_def)
 
 
 (*
-Goalw [NSLIM_def] "(%h. ((x powr h) - 1) / h) -- 0 --NS> ln x"
+Goalw [NSLIM_def] "(%h. ((x powr h) - 1) / h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S ln x"
 *)
 
 lemma HFinite_sin [simp]: "sumhr (0, whn, %n. sin_coeff n * x ^ n) \<in> HFinite"

@@ -33,10 +33,10 @@ definition
 subsection {* Derivatives *}
 
 lemma DERIV_NS_iff:
-      "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --NS> D)"
+      "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S D)"
 by (simp add: DERIV_def LIM_NSLIM_iff)
 
-lemma NS_DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/h) -- 0 --NS> D"
+lemma NS_DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S D"
 by (simp add: DERIV_def LIM_NSLIM_iff)
 
 lemma hnorm_of_hypreal:
@@ -70,7 +70,7 @@ text {*First NSDERIV in terms of NSLIM*}
 
 text{*first equivalence *}
 lemma NSDERIV_NSLIM_iff:
-      "(NSDERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --NS> D)"
+      "(NSDERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S D)"
 apply (simp add: nsderiv_def NSLIM_def, auto)
 apply (drule_tac x = xa in bspec)
 apply (rule_tac [3] ccontr)
@@ -80,7 +80,7 @@ done
 
 text{*second equivalence *}
 lemma NSDERIV_NSLIM_iff2:
-     "(NSDERIV f x :> D) = ((%z. (f(z) - f(x)) / (z-x)) -- x --NS> D)"
+     "(NSDERIV f x :> D) = ((%z. (f(z) - f(x)) / (z-x)) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S D)"
   by (simp add: NSDERIV_NSLIM_iff DERIV_LIM_iff LIM_NSLIM_iff [symmetric])
 
 (* while we're at it! *)
@@ -227,15 +227,15 @@ done
 text{*Negation of function*}
 lemma NSDERIV_minus: "NSDERIV f x :> D ==> NSDERIV (%x. -(f x)) x :> -D"
 proof (simp add: NSDERIV_NSLIM_iff)
-  assume "(\<lambda>h. (f (x + h) - f x) / h) -- 0 --NS> D"
-  hence deriv: "(\<lambda>h. - ((f(x+h) - f x) / h)) -- 0 --NS> - D"
+  assume "(\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S D"
+  hence deriv: "(\<lambda>h. - ((f(x+h) - f x) / h)) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S - D"
     by (rule NSLIM_minus)
   have "\<forall>h. - ((f (x + h) - f x) / h) = (- f (x + h) + f x) / h"
     by (simp add: minus_divide_left)
   with deriv
-  have "(\<lambda>h. (- f (x + h) + f x) / h) -- 0 --NS> - D" by simp
-  then show "(\<lambda>h. (f (x + h) - f x) / h) -- 0 --NS> D \<Longrightarrow>
-    (\<lambda>h. (f x - f (x + h)) / h) -- 0 --NS> - D" by simp
+  have "(\<lambda>h. (- f (x + h) + f x) / h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S - D" by simp
+  then show "(\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S D \<Longrightarrow>
+    (\<lambda>h. (f x - f (x + h)) / h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S - D" by simp
 qed
 
 text{*Subtraction*}

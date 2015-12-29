@@ -13,8 +13,8 @@ text{*Nonstandard Definitions*}
 
 definition
   NSLIM :: "['a::real_normed_vector => 'b::real_normed_vector, 'a, 'b] => bool"
-            ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60) where
-  "f -- a --NS> L =
+            ("((_)/ \<midarrow>(_)/\<rightarrow>\<^sub>N\<^sub>S (_))" [60, 0, 60] 60) where
+  "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L =
     (\<forall>x. (x \<noteq> star_of a & x @= star_of a --> ( *f* f) x @= star_of L))"
 
 definition
@@ -32,11 +32,11 @@ subsection {* Limits of Functions *}
 
 lemma NSLIM_I:
   "(\<And>x. \<lbrakk>x \<noteq> star_of a; x \<approx> star_of a\<rbrakk> \<Longrightarrow> starfun f x \<approx> star_of L)
-   \<Longrightarrow> f -- a --NS> L"
+   \<Longrightarrow> f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L"
 by (simp add: NSLIM_def)
 
 lemma NSLIM_D:
-  "\<lbrakk>f -- a --NS> L; x \<noteq> star_of a; x \<approx> star_of a\<rbrakk>
+  "\<lbrakk>f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L; x \<noteq> star_of a; x \<approx> star_of a\<rbrakk>
    \<Longrightarrow> starfun f x \<approx> star_of L"
 by (simp add: NSLIM_def)
 
@@ -45,8 +45,8 @@ text{*Proving properties of limits using nonstandard definition.
 
 lemma NSLIM_mult:
   fixes l m :: "'a::real_normed_algebra"
-  shows "[| f -- x --NS> l; g -- x --NS> m |]
-      ==> (%x. f(x) * g(x)) -- x --NS> (l * m)"
+  shows "[| f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S l; g \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S m |]
+      ==> (%x. f(x) * g(x)) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S (l * m)"
 by (auto simp add: NSLIM_def intro!: approx_mult_HFinite)
 
 lemma starfun_scaleR [simp]:
@@ -54,53 +54,53 @@ lemma starfun_scaleR [simp]:
 by transfer (rule refl)
 
 lemma NSLIM_scaleR:
-  "[| f -- x --NS> l; g -- x --NS> m |]
-      ==> (%x. f(x) *\<^sub>R g(x)) -- x --NS> (l *\<^sub>R m)"
+  "[| f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S l; g \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S m |]
+      ==> (%x. f(x) *\<^sub>R g(x)) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S (l *\<^sub>R m)"
 by (auto simp add: NSLIM_def intro!: approx_scaleR_HFinite)
 
 lemma NSLIM_add:
-     "[| f -- x --NS> l; g -- x --NS> m |]
-      ==> (%x. f(x) + g(x)) -- x --NS> (l + m)"
+     "[| f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S l; g \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S m |]
+      ==> (%x. f(x) + g(x)) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S (l + m)"
 by (auto simp add: NSLIM_def intro!: approx_add)
 
-lemma NSLIM_const [simp]: "(%x. k) -- x --NS> k"
+lemma NSLIM_const [simp]: "(%x. k) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S k"
 by (simp add: NSLIM_def)
 
-lemma NSLIM_minus: "f -- a --NS> L ==> (%x. -f(x)) -- a --NS> -L"
+lemma NSLIM_minus: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L ==> (%x. -f(x)) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S -L"
 by (simp add: NSLIM_def)
 
 lemma NSLIM_diff:
-  "\<lbrakk>f -- x --NS> l; g -- x --NS> m\<rbrakk> \<Longrightarrow> (\<lambda>x. f x - g x) -- x --NS> (l - m)"
+  "\<lbrakk>f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S l; g \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S m\<rbrakk> \<Longrightarrow> (\<lambda>x. f x - g x) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S (l - m)"
   by (simp only: NSLIM_add NSLIM_minus diff_conv_add_uminus)
 
-lemma NSLIM_add_minus: "[| f -- x --NS> l; g -- x --NS> m |] ==> (%x. f(x) + -g(x)) -- x --NS> (l + -m)"
+lemma NSLIM_add_minus: "[| f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S l; g \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S m |] ==> (%x. f(x) + -g(x)) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S (l + -m)"
 by (simp only: NSLIM_add NSLIM_minus)
 
 lemma NSLIM_inverse:
   fixes L :: "'a::real_normed_div_algebra"
-  shows "[| f -- a --NS> L;  L \<noteq> 0 |]
-      ==> (%x. inverse(f(x))) -- a --NS> (inverse L)"
+  shows "[| f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L;  L \<noteq> 0 |]
+      ==> (%x. inverse(f(x))) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S (inverse L)"
 apply (simp add: NSLIM_def, clarify)
 apply (drule spec)
 apply (auto simp add: star_of_approx_inverse)
 done
 
 lemma NSLIM_zero:
-  assumes f: "f -- a --NS> l" shows "(%x. f(x) - l) -- a --NS> 0"
+  assumes f: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S l" shows "(%x. f(x) - l) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S 0"
 proof -
-  have "(\<lambda>x. f x - l) -- a --NS> l - l"
+  have "(\<lambda>x. f x - l) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S l - l"
     by (rule NSLIM_diff [OF f NSLIM_const])
   thus ?thesis by simp
 qed
 
-lemma NSLIM_zero_cancel: "(%x. f(x) - l) -- x --NS> 0 ==> f -- x --NS> l"
+lemma NSLIM_zero_cancel: "(%x. f(x) - l) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S 0 ==> f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S l"
 apply (drule_tac g = "%x. l" and m = l in NSLIM_add)
 apply (auto simp add: add.assoc)
 done
 
 lemma NSLIM_const_not_eq:
   fixes a :: "'a::real_normed_algebra_1"
-  shows "k \<noteq> L \<Longrightarrow> \<not> (\<lambda>x. k) -- a --NS> L"
+  shows "k \<noteq> L \<Longrightarrow> \<not> (\<lambda>x. k) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L"
 apply (simp add: NSLIM_def)
 apply (rule_tac x="star_of a + of_hypreal epsilon" in exI)
 apply (simp add: hypreal_epsilon_not_zero approx_def)
@@ -108,35 +108,35 @@ done
 
 lemma NSLIM_not_zero:
   fixes a :: "'a::real_normed_algebra_1"
-  shows "k \<noteq> 0 \<Longrightarrow> \<not> (\<lambda>x. k) -- a --NS> 0"
+  shows "k \<noteq> 0 \<Longrightarrow> \<not> (\<lambda>x. k) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S 0"
 by (rule NSLIM_const_not_eq)
 
 lemma NSLIM_const_eq:
   fixes a :: "'a::real_normed_algebra_1"
-  shows "(\<lambda>x. k) -- a --NS> L \<Longrightarrow> k = L"
+  shows "(\<lambda>x. k) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L \<Longrightarrow> k = L"
 apply (rule ccontr)
 apply (blast dest: NSLIM_const_not_eq)
 done
 
 lemma NSLIM_unique:
   fixes a :: "'a::real_normed_algebra_1"
-  shows "\<lbrakk>f -- a --NS> L; f -- a --NS> M\<rbrakk> \<Longrightarrow> L = M"
+  shows "\<lbrakk>f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L; f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S M\<rbrakk> \<Longrightarrow> L = M"
 apply (drule (1) NSLIM_diff)
 apply (auto dest!: NSLIM_const_eq)
 done
 
 lemma NSLIM_mult_zero:
   fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
-  shows "[| f -- x --NS> 0; g -- x --NS> 0 |] ==> (%x. f(x)*g(x)) -- x --NS> 0"
+  shows "[| f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S 0; g \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S 0 |] ==> (%x. f(x)*g(x)) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S 0"
 by (drule NSLIM_mult, auto)
 
-lemma NSLIM_self: "(%x. x) -- a --NS> a"
+lemma NSLIM_self: "(%x. x) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S a"
 by (simp add: NSLIM_def)
 
 subsubsection {* Equivalence of @{term filterlim} and @{term NSLIM} *}
 
 lemma LIM_NSLIM:
-  assumes f: "f -- a --> L" shows "f -- a --NS> L"
+  assumes f: "f -- a --> L" shows "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L"
 proof (rule NSLIM_I)
   fix x
   assume neq: "x \<noteq> star_of a"
@@ -164,7 +164,7 @@ proof (rule NSLIM_I)
 qed
 
 lemma NSLIM_LIM:
-  assumes f: "f -- a --NS> L" shows "f -- a --> L"
+  assumes f: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L" shows "f -- a --> L"
 proof (rule LIM_I)
   fix r::real assume r: "0 < r"
   have "\<exists>s>0. \<forall>x. x \<noteq> star_of a \<and> hnorm (x - star_of a) < s
@@ -190,7 +190,7 @@ proof (rule LIM_I)
     by transfer
 qed
 
-theorem LIM_NSLIM_iff: "(f -- x --> L) = (f -- x --NS> L)"
+theorem LIM_NSLIM_iff: "(f -- x --> L) = (f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S L)"
 by (blast intro: LIM_NSLIM NSLIM_LIM)
 
 
@@ -200,17 +200,17 @@ lemma isNSContD:
   "\<lbrakk>isNSCont f a; y \<approx> star_of a\<rbrakk> \<Longrightarrow> ( *f* f) y \<approx> star_of (f a)"
 by (simp add: isNSCont_def)
 
-lemma isNSCont_NSLIM: "isNSCont f a ==> f -- a --NS> (f a) "
+lemma isNSCont_NSLIM: "isNSCont f a ==> f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S (f a) "
 by (simp add: isNSCont_def NSLIM_def)
 
-lemma NSLIM_isNSCont: "f -- a --NS> (f a) ==> isNSCont f a"
+lemma NSLIM_isNSCont: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S (f a) ==> isNSCont f a"
 apply (simp add: isNSCont_def NSLIM_def, auto)
 apply (case_tac "y = star_of a", auto)
 done
 
 text{*NS continuity can be defined using NS Limit in
     similar fashion to standard def of continuity*}
-lemma isNSCont_NSLIM_iff: "(isNSCont f a) = (f -- a --NS> (f a))"
+lemma isNSCont_NSLIM_iff: "(isNSCont f a) = (f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S (f a))"
 by (blast intro: isNSCont_NSLIM NSLIM_isNSCont)
 
 text{*Hence, NS continuity can be given
@@ -237,7 +237,7 @@ text{*Alternative definition of continuity*}
 
 (* Prove equivalence between NS limits - *)
 (* seems easier than using standard def  *)
-lemma NSLIM_h_iff: "(f -- a --NS> L) = ((%h. f(a + h)) -- 0 --NS> L)"
+lemma NSLIM_h_iff: "(f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L) = ((%h. f(a + h)) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S L)"
 apply (simp add: NSLIM_def, auto)
 apply (drule_tac x = "star_of a + x" in spec)
 apply (drule_tac [2] x = "- star_of a + x" in spec, safe, simp)
@@ -249,7 +249,7 @@ apply (rule_tac [2] x = x in star_cases)
 apply (auto simp add: starfun star_of_def star_n_minus star_n_add add.assoc star_n_zero_num)
 done
 
-lemma NSLIM_isCont_iff: "(f -- a --NS> f a) = ((%h. f(a + h)) -- 0 --NS> f a)"
+lemma NSLIM_isCont_iff: "(f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S f a) = ((%h. f(a + h)) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S f a)"
   by (fact NSLIM_h_iff)
 
 lemma isNSCont_minus: "isNSCont f a ==> isNSCont (%x. - f x) a"

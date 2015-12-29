@@ -505,6 +505,7 @@ simplify porting old theories:
   notation (in topological_space) LIMSEQ ("((_)/ ----> (_))" [60, 60] 60)
 
   notation NSLIMSEQ ("((_)/ ----NS> (_))" [60, 60] 60)
+  notation NSLIM ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
 
 * The alternative notation "\<Colon>" for type and sort constraints has been
 removed: in LaTeX document output it looks the same as "::".

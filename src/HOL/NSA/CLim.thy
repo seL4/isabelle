@@ -36,11 +36,11 @@ done
 
 subsection{*Limit of Complex to Complex Function*}
 
-lemma NSLIM_Re: "f -- a --NS> L ==> (%x. Re(f x)) -- a --NS> Re(L)"
+lemma NSLIM_Re: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L ==> (%x. Re(f x)) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S Re(L)"
 by (simp add: NSLIM_def starfunC_approx_Re_Im_iff 
               hRe_hcomplex_of_complex)
 
-lemma NSLIM_Im: "f -- a --NS> L ==> (%x. Im(f x)) -- a --NS> Im(L)"
+lemma NSLIM_Im: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L ==> (%x. Im(f x)) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S Im(L)"
 by (simp add: NSLIM_def starfunC_approx_Re_Im_iff 
               hIm_hcomplex_of_complex)
 
@@ -77,7 +77,7 @@ by transfer (rule refl)
 text""
 (** another equivalence result **)
 lemma NSCLIM_NSCRLIM_iff:
-   "(f -- x --NS> L) = ((%y. cmod(f y - L)) -- x --NS> 0)"
+   "(f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S L) = ((%y. cmod(f y - L)) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S 0)"
 by (simp add: NSLIM_def starfun_norm
     approx_approx_zero_iff [symmetric] approx_minus_iff [symmetric])
 
@@ -89,12 +89,12 @@ by (simp add: LIM_eq)
 
 (* so this is nicer nonstandard proof *)
 lemma NSCLIM_NSCRLIM_iff2:
-     "(f -- x --NS> L) = ((%y. cmod(f y - L)) -- x --NS> 0)"
+     "(f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S L) = ((%y. cmod(f y - L)) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S 0)"
 by (simp add: LIM_NSLIM_iff [symmetric] CLIM_CRLIM_iff)
 
 lemma NSLIM_NSCRLIM_Re_Im_iff:
-     "(f -- a --NS> L) = ((%x. Re(f x)) -- a --NS> Re(L) &
-                            (%x. Im(f x)) -- a --NS> Im(L))"
+     "(f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L) = ((%x. Re(f x)) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S Re(L) &
+                            (%x. Im(f x)) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S Im(L))"
 apply (auto intro: NSLIM_Re NSLIM_Im)
 apply (auto simp add: NSLIM_def starfun_Re starfun_Im)
 apply (auto dest!: spec)
@@ -111,7 +111,7 @@ by (simp add: LIM_NSLIM_iff NSLIM_NSCRLIM_Re_Im_iff)
 subsection{*Continuity*}
 
 lemma NSLIM_isContc_iff:
-     "(f -- a --NS> f a) = ((%h. f(a + h)) -- 0 --NS> f a)"
+     "(f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S f a) = ((%h. f(a + h)) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S f a)"
 by (rule NSLIM_h_iff)
 
 subsection{*Functions from Complex to Reals*}

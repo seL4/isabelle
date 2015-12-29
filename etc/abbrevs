@@ -8,3 +8,4 @@
 
 (*HOL-NSA*)
 "---->" = "\<longlonglongrightarrow>\<^sub>N\<^sub>S"
+"---->" = "\<midarrow>\<rightarrow>\<^sub>N\<^sub>S"
