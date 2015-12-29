@@ -26,6 +26,11 @@ accordingly.
 form "\<comment> text". Command-line tool "isabelle update_cartouches -c" helps
 to update old sources.
 
+* Former "xsymbols" syntax with Isabelle symbols is used by default,
+without any special print mode. Important ASCII replacement syntax
+remains available under print mode "ASCII", but less important syntax
+has been removed (see below).
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
@@ -375,11 +380,6 @@ INCOMPATIBILITY in exotic situations.
 
 *** HOL ***
 
-* Former "xsymbols" syntax with Isabelle symbols is used by default,
-without any special print mode. Important ASCII replacement syntax
-remains available under print mode "ASCII", but less important syntax
-has been removed (see below).
-
 * Combinator to represent case distinction on products is named "case_prod",
 uniformly, discontinuing any input aliasses.  Very popular theorem aliasses
 have been retained.
@@ -693,6 +693,8 @@ system are available:
 
 
 *** System ***
+
+* Command-line tool "isabelle console" enables print mode "ASCII".
 
 * Global session timeout is multiplied by timeout_scale factor. This
 allows to adjust large-scale tests (e.g. AFP) to overall hardware

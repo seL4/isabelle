@@ -44,7 +44,7 @@ function usage()
 
 # options
 
-declare -a ISABELLE_OPTIONS=()
+declare -a ISABELLE_OPTIONS=(-m ASCII)
 
 declare -a INCLUDE_DIRS=()
 LOGIC="$ISABELLE_LOGIC"
