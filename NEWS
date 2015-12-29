@@ -31,17 +31,8 @@ without any special print mode. Important ASCII replacement syntax
 remains available under print mode "ASCII", but less important syntax
 has been removed (see below).
 
-* Support for arrows of various lengths, with rendering in LaTeX and
-Isabelle fonts:
-
-  \<leftarrow>
-  \<longleftarrow>
-  \<longlongleftarrow>
-  \<longlonglongleftarrow>
-  \<rightarrow>
-  \<longrightarrow>
-  \<longlongrightarrow>
-  \<longlonglongrightarrow>
+* Support for more arrow symbols, with rendering in LaTeX and
+Isabelle fonts: \<Lleftarrow> \<Rrightarrow> \<longlongleftarrow> \<longlongrightarrow> \<longlonglongleftarrow> \<longlonglongrightarrow>
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***

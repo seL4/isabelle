@@ -164,8 +164,10 @@
 \<longlonglongrightarrow> code: 0x0021e2 group: arrow abbrev: .>  abbrev: ---->
 \<Leftarrow>            code: 0x0021d0  group: arrow  abbrev: <.
 \<Longleftarrow>        code: 0x0027f8  group: arrow  abbrev: <.
+\<Lleftarrow>           code: 0x0021da  group: arrow  abbrev: <.
 \<Rightarrow>           code: 0x0021d2  group: arrow  abbrev: .>  abbrev: =>
 \<Longrightarrow>       code: 0x0027f9  group: arrow  abbrev: .>  abbrev: ==>
+\<Rrightarrow>          code: 0x0021db  group: arrow  abbrev: .>
 \<leftrightarrow>       code: 0x002194  group: arrow  abbrev: <>  abbrev: <->
 \<longleftrightarrow>   code: 0x0027f7  group: arrow  abbrev: <>  abbrev: <->  abbrev: <-->
 \<Leftrightarrow>       code: 0x0021d4  group: arrow  abbrev: <>
