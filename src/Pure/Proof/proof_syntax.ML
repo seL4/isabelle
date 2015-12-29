@@ -46,8 +46,8 @@ fun add_proof_syntax thy =
   |> Sign.add_types_global
     [(Binding.make ("proof", @{here}), 0, NoSyn)]
   |> fold (snd oo Sign.declare_const_global)
-    [((Binding.make ("Appt", @{here}), [proofT, aT] ---> proofT), Mixfix ("(1_ %/ _)", [4, 5], 4)),
-     ((Binding.make ("AppP", @{here}), [proofT, proofT] ---> proofT), Mixfix ("(1_ %%/ _)", [4, 5], 4)),
+    [((Binding.make ("Appt", @{here}), [proofT, aT] ---> proofT), Mixfix ("(1_ \<cdot>/ _)", [4, 5], 4)),
+     ((Binding.make ("AppP", @{here}), [proofT, proofT] ---> proofT), Mixfix ("(1_ \<bullet>/ _)", [4, 5], 4)),
      ((Binding.make ("Abst", @{here}), (aT --> proofT) --> proofT), NoSyn),
      ((Binding.make ("AbsP", @{here}), [propT, proofT --> proofT] ---> proofT), NoSyn),
      ((Binding.make ("Hyp", @{here}), propT --> proofT), NoSyn),
@@ -58,17 +58,17 @@ fun add_proof_syntax thy =
     [Binding.make ("param", @{here}),
      Binding.make ("params", @{here})]
   |> Sign.add_syntax Syntax.mode_default
-    [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
+    [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\<^bold>\<lambda>_./ _)", [0, 3], 3)),
      ("_Lam0", [paramT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
      ("_Lam0", [idtT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
      ("_Lam1", [idtT, propT] ---> paramT, Mixfix ("_: _", [0, 0], 0)),
      ("", paramT --> paramT, Delimfix "'(_')"),
      ("", idtT --> paramsT, Delimfix "_"),
      ("", paramT --> paramsT, Delimfix "_")]
-  |> Sign.add_syntax (Symbol.xsymbolsN, true)
-    [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\<^bold>\<lambda>_./ _)", [0, 3], 3)),
-     (Lexicon.mark_const "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \<cdot>/ _)", [4, 5], 4)),
-     (Lexicon.mark_const "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \<bullet>/ _)", [4, 5], 4))]
+  |> Sign.add_syntax (Print_Mode.ASCII, true)
+    [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
+     (Lexicon.mark_const "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ %/ _)", [4, 5], 4)),
+     (Lexicon.mark_const "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ %%/ _)", [4, 5], 4))]
   |> Sign.add_trrules (map Syntax.Parse_Print_Rule
     [(Ast.mk_appl (Ast.Constant "_Lam")
         [Ast.mk_appl (Ast.Constant "_Lam0")
