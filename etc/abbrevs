@@ -1,11 +1,8 @@
 (* additional abbreviations for syntactic completion *)
 
 (*prevent replacement of very long arrows*)
-"--->" = "--->"
-"---->" = "---->"
-"----->" = "----->"
 "===>" = "===>"
 
 (*HOL-NSA*)
-"---->" = "\<longlonglongrightarrow>\<^sub>N\<^sub>S"
-"---->" = "\<midarrow>\<rightarrow>\<^sub>N\<^sub>S"
+"--->" = "\<longlonglongrightarrow>\<^sub>N\<^sub>S"
+"--->" = "\<midarrow>\<rightarrow>\<^sub>N\<^sub>S"

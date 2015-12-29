@@ -161,7 +161,7 @@
 \<rightarrow>           code: 0x002192  group: arrow  abbrev: .>  abbrev: ->
 \<longrightarrow>       code: 0x0027f6  group: arrow  abbrev: .>  abbrev: -->
 \<longlongrightarrow>   code: 0x00290f  group: arrow  abbrev: .>  abbrev: --->
-\<longlonglongrightarrow> code: 0x0021e2 group: arrow abbrev: .>  abbrev: ---->
+\<longlonglongrightarrow> code: 0x0021e2 group: arrow abbrev: .>  abbrev: --->
 \<Leftarrow>            code: 0x0021d0  group: arrow  abbrev: <.
 \<Longleftarrow>        code: 0x0027f8  group: arrow  abbrev: <.
 \<Lleftarrow>           code: 0x0021da  group: arrow  abbrev: <.
