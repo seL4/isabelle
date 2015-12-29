@@ -156,8 +156,12 @@
 \<int>                  code: 0x002124  group: letter
 \<leftarrow>            code: 0x002190  group: arrow  abbrev: <.
 \<longleftarrow>        code: 0x0027f5  group: arrow  abbrev: <.
+\<longlongleftarrow>    code: 0x00290e  group: arrow  abbrev: <.
+\<longlonglongleftarrow> code: 0x0021e0 group: arrow  abbrev: <.
 \<rightarrow>           code: 0x002192  group: arrow  abbrev: .>  abbrev: ->
 \<longrightarrow>       code: 0x0027f6  group: arrow  abbrev: .>  abbrev: -->
+\<longlongrightarrow>   code: 0x00290f  group: arrow  abbrev: .>  abbrev: --->
+\<longlonglongrightarrow> code: 0x0021e2 group: arrow abbrev: .>  abbrev: ---->
 \<Leftarrow>            code: 0x0021d0  group: arrow  abbrev: <.
 \<Longleftarrow>        code: 0x0027f8  group: arrow  abbrev: <.
 \<Rightarrow>           code: 0x0021d2  group: arrow  abbrev: .>  abbrev: =>
