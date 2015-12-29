@@ -512,15 +512,15 @@ method_setup eval = \<open>
 lemmas eval_rls [eval] = trueV falseV pairV lamV caseVtrue caseVfalse caseVpair caseVlam
 
 lemma applyV [eval]:
-  assumes "f ---> lam x. b(x)"
-    and "b(a) ---> c"
-  shows "f ` a ---> c"
+  assumes "f \<longlongrightarrow> lam x. b(x)"
+    and "b(a) \<longlongrightarrow> c"
+  shows "f ` a \<longlongrightarrow> c"
   unfolding apply_def by (eval assms)
 
 lemma letV:
-  assumes 1: "t ---> a"
-    and 2: "f(a) ---> c"
-  shows "let x be t in f(x) ---> c"
+  assumes 1: "t \<longlongrightarrow> a"
+    and 2: "f(a) \<longlongrightarrow> c"
+  shows "let x be t in f(x) \<longlongrightarrow> c"
   apply (unfold let_def)
   apply (rule 1 [THEN canonical])
   apply (tactic \<open>
@@ -528,7 +528,7 @@ lemma letV:
       eresolve_tac @{context} @{thms substitute} 1))\<close>)
   done
 
-lemma fixV: "f(fix(f)) ---> c \<Longrightarrow> fix(f) ---> c"
+lemma fixV: "f(fix(f)) \<longlongrightarrow> c \<Longrightarrow> fix(f) \<longlongrightarrow> c"
   apply (unfold fix_def)
   apply (rule applyV)
    apply (rule lamV)
@@ -536,8 +536,8 @@ lemma fixV: "f(fix(f)) ---> c \<Longrightarrow> fix(f) ---> c"
   done
 
 lemma letrecV:
-  "h(t,\<lambda>y. letrec g x be h(x,g) in g(y)) ---> c \<Longrightarrow>  
-                 letrec g x be h(x,g) in g(t) ---> c"
+  "h(t,\<lambda>y. letrec g x be h(x,g) in g(y)) \<longlongrightarrow> c \<Longrightarrow>  
+                 letrec g x be h(x,g) in g(t) \<longlongrightarrow> c"
   apply (unfold letrec_def)
   apply (assumption | rule fixV applyV  lamV)+
   done
@@ -545,24 +545,24 @@ lemma letrecV:
 lemmas [eval] = letV letrecV fixV
 
 lemma V_rls [eval]:
-  "true ---> true"
-  "false ---> false"
-  "\<And>b c t u. \<lbrakk>b--->true; t--->c\<rbrakk> \<Longrightarrow> if b then t else u ---> c"
-  "\<And>b c t u. \<lbrakk>b--->false; u--->c\<rbrakk> \<Longrightarrow> if b then t else u ---> c"
-  "\<And>a b. <a,b> ---> <a,b>"
-  "\<And>a b c t h. \<lbrakk>t ---> <a,b>; h(a,b) ---> c\<rbrakk> \<Longrightarrow> split(t,h) ---> c"
-  "zero ---> zero"
-  "\<And>n. succ(n) ---> succ(n)"
-  "\<And>c n t u. \<lbrakk>n ---> zero; t ---> c\<rbrakk> \<Longrightarrow> ncase(n,t,u) ---> c"
-  "\<And>c n t u x. \<lbrakk>n ---> succ(x); u(x) ---> c\<rbrakk> \<Longrightarrow> ncase(n,t,u) ---> c"
-  "\<And>c n t u. \<lbrakk>n ---> zero; t ---> c\<rbrakk> \<Longrightarrow> nrec(n,t,u) ---> c"
-  "\<And>c n t u x. \<lbrakk>n--->succ(x); u(x,nrec(x,t,u))--->c\<rbrakk> \<Longrightarrow> nrec(n,t,u)--->c"
-  "[] ---> []"
-  "\<And>h t. h$t ---> h$t"
-  "\<And>c l t u. \<lbrakk>l ---> []; t ---> c\<rbrakk> \<Longrightarrow> lcase(l,t,u) ---> c"
-  "\<And>c l t u x xs. \<lbrakk>l ---> x$xs; u(x,xs) ---> c\<rbrakk> \<Longrightarrow> lcase(l,t,u) ---> c"
-  "\<And>c l t u. \<lbrakk>l ---> []; t ---> c\<rbrakk> \<Longrightarrow> lrec(l,t,u) ---> c"
-  "\<And>c l t u x xs. \<lbrakk>l--->x$xs; u(x,xs,lrec(xs,t,u))--->c\<rbrakk> \<Longrightarrow> lrec(l,t,u)--->c"
+  "true \<longlongrightarrow> true"
+  "false \<longlongrightarrow> false"
+  "\<And>b c t u. \<lbrakk>b\<longlongrightarrow>true; t\<longlongrightarrow>c\<rbrakk> \<Longrightarrow> if b then t else u \<longlongrightarrow> c"
+  "\<And>b c t u. \<lbrakk>b\<longlongrightarrow>false; u\<longlongrightarrow>c\<rbrakk> \<Longrightarrow> if b then t else u \<longlongrightarrow> c"
+  "\<And>a b. <a,b> \<longlongrightarrow> <a,b>"
+  "\<And>a b c t h. \<lbrakk>t \<longlongrightarrow> <a,b>; h(a,b) \<longlongrightarrow> c\<rbrakk> \<Longrightarrow> split(t,h) \<longlongrightarrow> c"
+  "zero \<longlongrightarrow> zero"
+  "\<And>n. succ(n) \<longlongrightarrow> succ(n)"
+  "\<And>c n t u. \<lbrakk>n \<longlongrightarrow> zero; t \<longlongrightarrow> c\<rbrakk> \<Longrightarrow> ncase(n,t,u) \<longlongrightarrow> c"
+  "\<And>c n t u x. \<lbrakk>n \<longlongrightarrow> succ(x); u(x) \<longlongrightarrow> c\<rbrakk> \<Longrightarrow> ncase(n,t,u) \<longlongrightarrow> c"
+  "\<And>c n t u. \<lbrakk>n \<longlongrightarrow> zero; t \<longlongrightarrow> c\<rbrakk> \<Longrightarrow> nrec(n,t,u) \<longlongrightarrow> c"
+  "\<And>c n t u x. \<lbrakk>n\<longlongrightarrow>succ(x); u(x,nrec(x,t,u))\<longlongrightarrow>c\<rbrakk> \<Longrightarrow> nrec(n,t,u)\<longlongrightarrow>c"
+  "[] \<longlongrightarrow> []"
+  "\<And>h t. h$t \<longlongrightarrow> h$t"
+  "\<And>c l t u. \<lbrakk>l \<longlongrightarrow> []; t \<longlongrightarrow> c\<rbrakk> \<Longrightarrow> lcase(l,t,u) \<longlongrightarrow> c"
+  "\<And>c l t u x xs. \<lbrakk>l \<longlongrightarrow> x$xs; u(x,xs) \<longlongrightarrow> c\<rbrakk> \<Longrightarrow> lcase(l,t,u) \<longlongrightarrow> c"
+  "\<And>c l t u. \<lbrakk>l \<longlongrightarrow> []; t \<longlongrightarrow> c\<rbrakk> \<Longrightarrow> lrec(l,t,u) \<longlongrightarrow> c"
+  "\<And>c l t u x xs. \<lbrakk>l\<longlongrightarrow>x$xs; u(x,xs,lrec(xs,t,u))\<longlongrightarrow>c\<rbrakk> \<Longrightarrow> lrec(l,t,u)\<longlongrightarrow>c"
   unfolding data_defs by eval+
 
 
@@ -570,29 +570,29 @@ subsection \<open>Factorial\<close>
 
 schematic_goal
   "letrec f n be ncase(n,succ(zero),\<lambda>x. nrec(n,zero,\<lambda>y g. nrec(f(x),g,\<lambda>z h. succ(h))))  
-   in f(succ(succ(zero))) ---> ?a"
+   in f(succ(succ(zero))) \<longlongrightarrow> ?a"
   by eval
 
 schematic_goal
   "letrec f n be ncase(n,succ(zero),\<lambda>x. nrec(n,zero,\<lambda>y g. nrec(f(x),g,\<lambda>z h. succ(h))))  
-   in f(succ(succ(succ(zero)))) ---> ?a"
+   in f(succ(succ(succ(zero)))) \<longlongrightarrow> ?a"
   by eval
 
 subsection \<open>Less Than Or Equal\<close>
 
 schematic_goal
   "letrec f p be split(p,\<lambda>m n. ncase(m,true,\<lambda>x. ncase(n,false,\<lambda>y. f(<x,y>))))
-   in f(<succ(zero), succ(zero)>) ---> ?a"
+   in f(<succ(zero), succ(zero)>) \<longlongrightarrow> ?a"
   by eval
 
 schematic_goal
   "letrec f p be split(p,\<lambda>m n. ncase(m,true,\<lambda>x. ncase(n,false,\<lambda>y. f(<x,y>))))
-   in f(<succ(zero), succ(succ(succ(succ(zero))))>) ---> ?a"
+   in f(<succ(zero), succ(succ(succ(succ(zero))))>) \<longlongrightarrow> ?a"
   by eval
 
 schematic_goal
   "letrec f p be split(p,\<lambda>m n. ncase(m,true,\<lambda>x. ncase(n,false,\<lambda>y. f(<x,y>))))
-   in f(<succ(succ(succ(succ(succ(zero))))), succ(succ(succ(succ(zero))))>) ---> ?a"
+   in f(<succ(succ(succ(succ(succ(zero))))), succ(succ(succ(succ(zero))))>) \<longlongrightarrow> ?a"
   by eval
 
 
@@ -600,12 +600,12 @@ subsection \<open>Reverse\<close>
 
 schematic_goal
   "letrec id l be lcase(l,[],\<lambda>x xs. x$id(xs))  
-   in id(zero$succ(zero)$[]) ---> ?a"
+   in id(zero$succ(zero)$[]) \<longlongrightarrow> ?a"
   by eval
 
 schematic_goal
   "letrec rev l be lcase(l,[],\<lambda>x xs. lrec(rev(xs),x$[],\<lambda>y ys g. y$g))  
-   in rev(zero$succ(zero)$(succ((lam x. x)`succ(zero)))$([])) ---> ?a"
+   in rev(zero$succ(zero)$(succ((lam x. x)`succ(zero)))$([])) \<longlongrightarrow> ?a"
   by eval
 
 end

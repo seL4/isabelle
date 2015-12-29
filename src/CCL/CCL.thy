@@ -27,7 +27,7 @@ instance i :: prog ..
 
 consts
   (*** Evaluation Judgement ***)
-  Eval      ::       "[i,i]\<Rightarrow>prop"          (infixl "--->" 20)
+  Eval      ::       "[i,i]\<Rightarrow>prop"          (infixl "\<longlongrightarrow>" 20)
 
   (*** Bisimulations for pre-order and equality ***)
   po          ::       "['a,'a]\<Rightarrow>o"           (infixl "[=" 50)
@@ -48,28 +48,28 @@ consts
   (**  inference in the theory CCL.                                                **)
 
 axiomatization where
-  trueV:       "true ---> true" and
-  falseV:      "false ---> false" and
-  pairV:       "<a,b> ---> <a,b>" and
-  lamV:        "\<And>b. lam x. b(x) ---> lam x. b(x)" and
+  trueV:       "true \<longlongrightarrow> true" and
+  falseV:      "false \<longlongrightarrow> false" and
+  pairV:       "<a,b> \<longlongrightarrow> <a,b>" and
+  lamV:        "\<And>b. lam x. b(x) \<longlongrightarrow> lam x. b(x)" and
 
-  caseVtrue:   "\<lbrakk>t ---> true; d ---> c\<rbrakk> \<Longrightarrow> case(t,d,e,f,g) ---> c" and
-  caseVfalse:  "\<lbrakk>t ---> false; e ---> c\<rbrakk> \<Longrightarrow> case(t,d,e,f,g) ---> c" and
-  caseVpair:   "\<lbrakk>t ---> <a,b>; f(a,b) ---> c\<rbrakk> \<Longrightarrow> case(t,d,e,f,g) ---> c" and
-  caseVlam:    "\<And>b. \<lbrakk>t ---> lam x. b(x); g(b) ---> c\<rbrakk> \<Longrightarrow> case(t,d,e,f,g) ---> c"
+  caseVtrue:   "\<lbrakk>t \<longlongrightarrow> true; d \<longlongrightarrow> c\<rbrakk> \<Longrightarrow> case(t,d,e,f,g) \<longlongrightarrow> c" and
+  caseVfalse:  "\<lbrakk>t \<longlongrightarrow> false; e \<longlongrightarrow> c\<rbrakk> \<Longrightarrow> case(t,d,e,f,g) \<longlongrightarrow> c" and
+  caseVpair:   "\<lbrakk>t \<longlongrightarrow> <a,b>; f(a,b) \<longlongrightarrow> c\<rbrakk> \<Longrightarrow> case(t,d,e,f,g) \<longlongrightarrow> c" and
+  caseVlam:    "\<And>b. \<lbrakk>t \<longlongrightarrow> lam x. b(x); g(b) \<longlongrightarrow> c\<rbrakk> \<Longrightarrow> case(t,d,e,f,g) \<longlongrightarrow> c"
 
-  (*** Properties of evaluation: note that "t ---> c" impies that c is canonical ***)
+  (*** Properties of evaluation: note that "t \<longlongrightarrow> c" impies that c is canonical ***)
 
 axiomatization where
-  canonical:  "\<lbrakk>t ---> c; c==true \<Longrightarrow> u--->v;
-                          c==false \<Longrightarrow> u--->v;
-                    \<And>a b. c==<a,b> \<Longrightarrow> u--->v;
-                      \<And>f. c==lam x. f(x) \<Longrightarrow> u--->v\<rbrakk> \<Longrightarrow>
-             u--->v"
+  canonical:  "\<lbrakk>t \<longlongrightarrow> c; c==true \<Longrightarrow> u\<longlongrightarrow>v;
+                          c==false \<Longrightarrow> u\<longlongrightarrow>v;
+                    \<And>a b. c==<a,b> \<Longrightarrow> u\<longlongrightarrow>v;
+                      \<And>f. c==lam x. f(x) \<Longrightarrow> u\<longlongrightarrow>v\<rbrakk> \<Longrightarrow>
+             u\<longlongrightarrow>v"
 
   (* Should be derivable - but probably a bitch! *)
 axiomatization where
-  substitute: "\<lbrakk>a==a'; t(a)--->c(a)\<rbrakk> \<Longrightarrow> t(a')--->c(a')"
+  substitute: "\<lbrakk>a==a'; t(a)\<longlongrightarrow>c(a)\<rbrakk> \<Longrightarrow> t(a')\<longlongrightarrow>c(a')"
 
   (************** LOGIC ***************)
 
