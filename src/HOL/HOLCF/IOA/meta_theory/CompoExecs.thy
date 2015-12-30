@@ -81,7 +81,7 @@ lemma ProjA2_nil: "ProjA2$nil = nil"
 apply (simp add: ProjA2_def)
 done
 
-lemma ProjA2_cons: "ProjA2$((a,t)>>xs) = (a,fst t) >> ProjA2$xs"
+lemma ProjA2_cons: "ProjA2$((a,t)\<leadsto>xs) = (a,fst t) \<leadsto> ProjA2$xs"
 apply (simp add: ProjA2_def)
 done
 
@@ -99,7 +99,7 @@ lemma ProjB2_nil: "ProjB2$nil = nil"
 apply (simp add: ProjB2_def)
 done
 
-lemma ProjB2_cons: "ProjB2$((a,t)>>xs) = (a,snd t) >> ProjB2$xs"
+lemma ProjB2_cons: "ProjB2$((a,t)\<leadsto>xs) = (a,snd t) \<leadsto> ProjB2$xs"
 apply (simp add: ProjB2_def)
 done
 
@@ -118,9 +118,9 @@ lemma Filter_ex2_nil: "Filter_ex2 sig$nil=nil"
 apply (simp add: Filter_ex2_def)
 done
 
-lemma Filter_ex2_cons: "Filter_ex2 sig$(at >> xs) =
+lemma Filter_ex2_cons: "Filter_ex2 sig$(at \<leadsto> xs) =
              (if (fst at:actions sig)
-                  then at >> (Filter_ex2 sig$xs)
+                  then at \<leadsto> (Filter_ex2 sig$xs)
                   else        Filter_ex2 sig$xs)"
 
 apply (simp add: Filter_ex2_def)
@@ -158,7 +158,7 @@ apply (subst stutter2_unfold)
 apply simp
 done
 
-lemma stutter2_cons: "(stutter2 sig$(at>>xs)) s =
+lemma stutter2_cons: "(stutter2 sig$(at\<leadsto>xs)) s =
                ((if (fst at)~:actions sig then Def (s=snd at) else TT)
                  andalso (stutter2 sig$xs) (snd at))"
 apply (rule trans)
@@ -183,7 +183,7 @@ lemma stutter_nil: "stutter sig (s, nil)"
 apply (simp add: stutter_def)
 done
 
-lemma stutter_cons: "stutter sig (s, (a,t)>>ex) =
+lemma stutter_cons: "stutter sig (s, (a,t)\<leadsto>ex) =
       ((a~:actions sig --> (s=t)) & stutter sig (t,ex))"
 apply (simp add: stutter_def)
 done

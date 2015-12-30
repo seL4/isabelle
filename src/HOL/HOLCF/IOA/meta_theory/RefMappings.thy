@@ -15,7 +15,7 @@ definition
   "move ioa ex s a t =
     (is_exec_frag ioa (s,ex) &  Finite ex &
      laststate (s,ex)=t  &
-     mk_trace ioa$ex = (if a:ext(ioa) then a>>nil else nil))"
+     mk_trace ioa$ex = (if a:ext(ioa) then a\<leadsto>nil else nil))"
 
 definition
   is_ref_map :: "[('s1=>'s2),('a,'s1)ioa,('a,'s2)ioa] => bool" where
@@ -40,7 +40,7 @@ subsection "transitions and moves"
 
 
 lemma transition_is_ex: "s -a--A-> t ==> ? ex. move A ex s a t"
-apply (rule_tac x = " (a,t) >>nil" in exI)
+apply (rule_tac x = " (a,t) \<leadsto>nil" in exI)
 apply (simp add: move_def)
 done
 
@@ -53,7 +53,7 @@ done
 
 lemma ei_transitions_are_ex: "(s -a--A-> s') & (s' -a'--A-> s'') & (~a':ext A)  
          ==> ? ex. move A ex s a s''"
-apply (rule_tac x = " (a,s') >> (a',s'') >>nil" in exI)
+apply (rule_tac x = " (a,s') \<leadsto> (a',s'') \<leadsto>nil" in exI)
 apply (simp add: move_def)
 done
 
@@ -61,7 +61,7 @@ done
 lemma eii_transitions_are_ex: "(s1 -a1--A-> s2) & (s2 -a2--A-> s3) & (s3 -a3--A-> s4) & 
       (~a2:ext A) & (~a3:ext A) ==>  
       ? ex. move A ex s1 a1 s4"
-apply (rule_tac x = " (a1,s2) >> (a2,s3) >> (a3,s4) >>nil" in exI)
+apply (rule_tac x = " (a1,s2) \<leadsto> (a2,s3) \<leadsto> (a3,s4) \<leadsto>nil" in exI)
 apply (simp add: move_def)
 done
 

@@ -21,7 +21,7 @@ definition
       (case x of
         UU => UU
       | Def y => (Takewhile (%x. \<not>P x)$s)
-                  @@ (y>>(h$(TL$(Dropwhile (%x. \<not> P x)$s))$xs))
+                  @@ (y\<leadsto>(h$(TL$(Dropwhile (%x. \<not> P x)$s))$xs))
       )
     ))"
 
@@ -65,7 +65,7 @@ lemma oraclebuild_unfold:
       (case x of
         UU => UU
       | Def y => (Takewhile (%a. \<not> P a)$s)
-                  @@ (y>>(oraclebuild P$(TL$(Dropwhile (%a. \<not> P a)$s))$xs))
+                  @@ (y\<leadsto>(oraclebuild P$(TL$(Dropwhile (%a. \<not> P a)$s))$xs))
       )
     )"
 apply (rule trans)
@@ -85,9 +85,9 @@ apply (subst oraclebuild_unfold)
 apply simp
 done
 
-lemma oraclebuild_cons: "oraclebuild P$s$(x>>t) =
+lemma oraclebuild_cons: "oraclebuild P$s$(x\<leadsto>t) =
           (Takewhile (%a. \<not> P a)$s)
-           @@ (x>>(oraclebuild P$(TL$(Dropwhile (%a. \<not> P a)$s))$t))"
+           @@ (x\<leadsto>(oraclebuild P$(TL$(Dropwhile (%a. \<not> P a)$s))$t))"
 apply (rule trans)
 apply (subst oraclebuild_unfold)
 apply (simp add: Consq_def)
@@ -119,8 +119,8 @@ done
 
 lemma Cut_Cons:
 "[| P t;  Forall (%x. \<not> P x) ss; Finite ss|]
-            ==> Cut P (ss @@ (t>> rs))
-                 = ss @@ (t >> Cut P rs)"
+            ==> Cut P (ss @@ (t\<leadsto> rs))
+                 = ss @@ (t \<leadsto> Cut P rs)"
 apply (unfold Cut_def)
 apply (simp add: ForallQFilterPnil oraclebuild_cons TakewhileConc DropwhileConc)
 done

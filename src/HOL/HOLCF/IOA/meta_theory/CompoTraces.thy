@@ -27,20 +27,20 @@ mksch_def:
              (if y:act B then 
                    ((Takewhile (%a. a:int A)$schA)
                       @@ (Takewhile (%a. a:int B)$schB)
-                           @@ (y>>(h$xs
+                           @@ (y\<leadsto>(h$xs
                                     $(TL$(Dropwhile (%a. a:int A)$schA))
                                     $(TL$(Dropwhile (%a. a:int B)$schB))
                     )))
               else
                  ((Takewhile (%a. a:int A)$schA)
-                  @@ (y>>(h$xs
+                  @@ (y\<leadsto>(h$xs
                            $(TL$(Dropwhile (%a. a:int A)$schA))
                            $schB)))
               )
           else 
              (if y:act B then 
                  ((Takewhile (%a. a:int B)$schB)
-                     @@ (y>>(h$xs
+                     @@ (y\<leadsto>(h$xs
                               $schA
                               $(TL$(Dropwhile (%a. a:int B)$schB))
                               )))
@@ -86,20 +86,20 @@ lemma mksch_unfold:
              (if y:act B then 
                    ((Takewhile (%a. a:int A)$schA) 
                          @@(Takewhile (%a. a:int B)$schB) 
-                              @@(y>>(mksch A B$xs   
+                              @@(y\<leadsto>(mksch A B$xs   
                                        $(TL$(Dropwhile (%a. a:int A)$schA))  
                                        $(TL$(Dropwhile (%a. a:int B)$schB))  
                     )))   
               else  
                  ((Takewhile (%a. a:int A)$schA)  
-                      @@ (y>>(mksch A B$xs  
+                      @@ (y\<leadsto>(mksch A B$xs  
                               $(TL$(Dropwhile (%a. a:int A)$schA))  
                               $schB)))  
               )   
           else    
              (if y:act B then  
                  ((Takewhile (%a. a:int B)$schB)  
-                       @@ (y>>(mksch A B$xs   
+                       @@ (y\<leadsto>(mksch A B$xs   
                               $schA   
                               $(TL$(Dropwhile (%a. a:int B)$schB))  
                               )))  
@@ -126,9 +126,9 @@ apply simp
 done
 
 lemma mksch_cons1: "[|x:act A;x~:act B|]   
-    ==> mksch A B$(x>>tr)$schA$schB =  
+    ==> mksch A B$(x\<leadsto>tr)$schA$schB =  
           (Takewhile (%a. a:int A)$schA)  
-          @@ (x>>(mksch A B$tr$(TL$(Dropwhile (%a. a:int A)$schA))  
+          @@ (x\<leadsto>(mksch A B$tr$(TL$(Dropwhile (%a. a:int A)$schA))  
                               $schB))"
 apply (rule trans)
 apply (subst mksch_unfold)
@@ -137,9 +137,9 @@ apply (simp add: Consq_def)
 done
 
 lemma mksch_cons2: "[|x~:act A;x:act B|]  
-    ==> mksch A B$(x>>tr)$schA$schB =  
+    ==> mksch A B$(x\<leadsto>tr)$schA$schB =  
          (Takewhile (%a. a:int B)$schB)   
-          @@ (x>>(mksch A B$tr$schA$(TL$(Dropwhile (%a. a:int B)$schB))   
+          @@ (x\<leadsto>(mksch A B$tr$schA$(TL$(Dropwhile (%a. a:int B)$schB))   
                              ))"
 apply (rule trans)
 apply (subst mksch_unfold)
@@ -148,10 +148,10 @@ apply (simp add: Consq_def)
 done
 
 lemma mksch_cons3: "[|x:act A;x:act B|]  
-    ==> mksch A B$(x>>tr)$schA$schB =  
+    ==> mksch A B$(x\<leadsto>tr)$schA$schB =  
              (Takewhile (%a. a:int A)$schA)  
           @@ ((Takewhile (%a. a:int B)$schB)   
-          @@ (x>>(mksch A B$tr$(TL$(Dropwhile (%a. a:int A)$schA))  
+          @@ (x\<leadsto>(mksch A B$tr$(TL$(Dropwhile (%a. a:int A)$schA))  
                              $(TL$(Dropwhile (%a. a:int B)$schB))))   
               )"
 apply (rule trans)
@@ -194,7 +194,7 @@ lemma subst_lemma1: "[| f << (g x) ; x=(h x) |] ==> f << g (h x)"
 by (erule subst)
 
 (* Lemma for substitution of looping assumption in another specific assumption *)
-lemma subst_lemma2: "[| (f x) = y >> g; x=(h x) |] ==> (f (h x)) = y >> g"
+lemma subst_lemma2: "[| (f x) = y \<leadsto> g; x=(h x) |] ==> (f (h x)) = y \<leadsto> g"
 by (erule subst)
 
 lemma ForallAorB_mksch [rule_format]:
@@ -345,7 +345,7 @@ apply (simp add: FilterConc)
 (* for replacing IH in conclusion *)
 apply (rotate_tac -2)
 (* instantiate y1a and y2a *)
-apply (rule_tac x = "Takewhile (%a. a:int B) $y @@ a>>y1" in exI)
+apply (rule_tac x = "Takewhile (%a. a:int B) $y @@ a\<leadsto>y1" in exI)
 apply (rule_tac x = "y2" in exI)
 (* elminate all obligations up to two depending on Conc_assoc *)
 apply (simp add: intA_is_not_actB int_is_act int_is_not_ext FilterConc)
@@ -391,7 +391,7 @@ apply (simp add: FilterConc)
 (* for replacing IH in conclusion *)
 apply (rotate_tac -2)
 (* instantiate y1a and y2a *)
-apply (rule_tac x = "Takewhile (%a. a:int A) $x @@ a>>x1" in exI)
+apply (rule_tac x = "Takewhile (%a. a:int A) $x @@ a\<leadsto>x1" in exI)
 apply (rule_tac x = "x2" in exI)
 (* elminate all obligations up to two depending on Conc_assoc *)
 apply (simp add: intA_is_not_actB int_is_act int_is_not_ext FilterConc)
@@ -671,7 +671,7 @@ apply fast
 (* case x~:A & x~:B  *)
 (* cannot occur because of assumption: Forall (a:ext A | a:ext B) *)
 apply (rotate_tac -9)
-(* reduce forall assumption from tr to (x>>rs) *)
+(* reduce forall assumption from tr to (x\<leadsto>rs) *)
 apply (simp add: externals_of_par)
 apply (fast intro!: ext_is_act)
 
@@ -888,7 +888,7 @@ apply fast
 (* case x~:B & x~:A  *)
 (* cannot occur because of assumption: Forall (a:ext A | a:ext B) *)
 apply (rotate_tac -9)
-(* reduce forall assumption from tr to (x>>rs) *)
+(* reduce forall assumption from tr to (x\<leadsto>rs) *)
 apply (simp add: externals_of_par)
 apply (fast intro!: ext_is_act)
 

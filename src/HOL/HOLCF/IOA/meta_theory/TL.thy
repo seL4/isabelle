@@ -148,7 +148,7 @@ lemma tsuffix_TL [rule_format (no_asm)]:
 apply (unfold tsuffix_def suffix_def)
 apply auto
 apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
-apply (rule_tac x = "a>>s1" in exI)
+apply (rule_tac x = "a\<leadsto>s1" in exI)
 apply auto
 done
 

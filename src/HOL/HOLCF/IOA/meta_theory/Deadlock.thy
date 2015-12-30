@@ -12,7 +12,7 @@ text {* input actions may always be added to a schedule *}
 
 lemma scheds_input_enabled:
   "[| Filter (%x. x:act A)$sch : schedules A; a:inp A; input_enabled A; Finite sch|]  
-          ==> Filter (%x. x:act A)$sch @@ a>>nil : schedules A"
+          ==> Filter (%x. x:act A)$sch @@ a\<leadsto>nil : schedules A"
 apply (simp add: schedules_def has_schedule_def)
 apply auto
 apply (frule inp_is_act)
@@ -39,7 +39,7 @@ apply simp
 apply (erule_tac x = "u" in allE)
 apply (erule exE)
 (* instantiate execution *)
-apply (rule_tac x = " (s,ex @@ (a,s2) >>nil) " in exI)
+apply (rule_tac x = " (s,ex @@ (a,s2) \<leadsto>nil) " in exI)
 apply (simp add: filter_act_def MapConc)
 apply (erule_tac t = "u" in lemma_2_1)
 apply simp
@@ -56,8 +56,8 @@ text {*
 
 declare split_if [split del]
 lemma IOA_deadlock_free: "[| a : local A; Finite sch; sch : schedules (A\<parallel>B);  
-             Filter (%x. x:act A)$(sch @@ a>>nil) : schedules A; compatible A B; input_enabled B |]  
-           ==> (sch @@ a>>nil) : schedules (A\<parallel>B)"
+             Filter (%x. x:act A)$(sch @@ a\<leadsto>nil) : schedules A; compatible A B; input_enabled B |]  
+           ==> (sch @@ a\<leadsto>nil) : schedules (A\<parallel>B)"
 apply (simp add: compositionality_sch locals_def)
 apply (rule conjI)
 (* a : act (A\<parallel>B) *)

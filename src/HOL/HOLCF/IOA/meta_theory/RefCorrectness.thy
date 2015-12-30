@@ -87,7 +87,7 @@ apply (subst corresp_exC_unfold)
 apply simp
 done
 
-lemma corresp_exC_cons: "(corresp_exC A f$(at>>xs)) s =
+lemma corresp_exC_cons: "(corresp_exC A f$(at\<leadsto>xs)) s =
            (@cex. move A cex (f s) (fst at) (f (snd at)))
            @@ ((corresp_exC A f$xs) (snd at))"
 apply (rule trans)
@@ -145,7 +145,7 @@ done
 lemma move_subprop4:
    "[|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>
       mk_trace A$((@x. move A x (f s) a (f t))) =
-        (if a:ext A then a>>nil else nil)"
+        (if a:ext A then a\<leadsto>nil else nil)"
 apply (cut_tac move_is_move)
 defer
 apply assumption+

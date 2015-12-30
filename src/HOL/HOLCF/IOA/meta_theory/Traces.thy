@@ -224,7 +224,7 @@ lemma filter_act_nil: "filter_act$nil = nil"
 apply (simp add: filter_act_def)
 done
 
-lemma filter_act_cons: "filter_act$(x>>xs) = (fst x) >> filter_act$xs"
+lemma filter_act_cons: "filter_act$(x\<leadsto>xs) = (fst x) \<leadsto> filter_act$xs"
 apply (simp add: filter_act_def)
 done
 
@@ -243,9 +243,9 @@ lemma mk_trace_nil: "mk_trace A$nil=nil"
 apply (simp add: mk_trace_def)
 done
 
-lemma mk_trace_cons: "mk_trace A$(at >> xs) =     
+lemma mk_trace_cons: "mk_trace A$(at \<leadsto> xs) =     
              (if ((fst at):ext A)            
-                  then (fst at) >> (mk_trace A$xs)     
+                  then (fst at) \<leadsto> (mk_trace A$xs)     
                   else mk_trace A$xs)"
 
 apply (simp add: mk_trace_def)
@@ -281,7 +281,7 @@ apply (subst is_exec_fragC_unfold)
 apply simp
 done
 
-lemma is_exec_fragC_cons: "(is_exec_fragC A$(pr>>xs)) s =  
+lemma is_exec_fragC_cons: "(is_exec_fragC A$(pr\<leadsto>xs)) s =  
                          (Def ((s,pr):trans_of A)  
                  andalso (is_exec_fragC A$xs)(snd pr))"
 apply (rule trans)
@@ -306,7 +306,7 @@ lemma is_exec_frag_nil: "is_exec_frag A (s, nil)"
 apply (simp add: is_exec_frag_def)
 done
 
-lemma is_exec_frag_cons: "is_exec_frag A (s, (a,t)>>ex) =  
+lemma is_exec_frag_cons: "is_exec_frag A (s, (a,t)\<leadsto>ex) =  
                                 (((s,a,t):trans_of A) &  
                                 is_exec_frag A (t, ex))"
 apply (simp add: is_exec_frag_def)
@@ -328,7 +328,7 @@ lemma laststate_nil: "laststate (s,nil) = s"
 apply (simp add: laststate_def)
 done
 
-lemma laststate_cons: "!! ex. Finite ex ==> laststate (s,at>>ex) = laststate (snd at,ex)"
+lemma laststate_cons: "!! ex. Finite ex ==> laststate (s,at\<leadsto>ex) = laststate (snd at,ex)"
 apply (simp (no_asm) add: laststate_def)
 apply (case_tac "ex=nil")
 apply (simp (no_asm_simp))

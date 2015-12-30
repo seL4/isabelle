@@ -75,7 +75,7 @@ lemma cex_abs_UU: "cex_abs f (s,UU) = (f s, UU)"
 lemma cex_abs_nil: "cex_abs f (s,nil) = (f s, nil)"
   by (simp add: cex_abs_def)
 
-lemma cex_abs_cons: "cex_abs f (s,(a,t)>>ex) = (f s, (a,f t) >> (snd (cex_abs f (t,ex))))"
+lemma cex_abs_cons: "cex_abs f (s,(a,t)\<leadsto>ex) = (f s, (a,f t) \<leadsto> (snd (cex_abs f (t,ex))))"
   by (simp add: cex_abs_def)
 
 declare cex_abs_UU [simp] cex_abs_nil [simp] cex_abs_cons [simp]
@@ -177,7 +177,7 @@ lemma abstraction_is_ref_map:
 "is_abstraction h C A ==> is_ref_map h C A"
 apply (unfold is_abstraction_def is_ref_map_def)
 apply auto
-apply (rule_tac x = "(a,h t) >>nil" in exI)
+apply (rule_tac x = "(a,h t) \<leadsto>nil" in exI)
 apply (simp add: move_def)
 done
 

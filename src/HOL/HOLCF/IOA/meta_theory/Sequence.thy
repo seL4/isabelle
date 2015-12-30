@@ -27,11 +27,8 @@ consts
   Filter2          ::"('a => bool)  => 'a Seq -> 'a Seq"
 
 abbreviation
-  Consq_syn  ("(_/>>_)"  [66,65] 65) where
-  "a>>s == Consq a$s"
-
-notation (xsymbols)
-  Consq_syn  ("(_\<leadsto>_)"  [66,65] 65)
+  Consq_syn  ("(_/\<leadsto>_)"  [66,65] 65) where
+  "a\<leadsto>s == Consq a$s"
 
 
 (* list Enumeration *)
@@ -39,10 +36,10 @@ syntax
   "_totlist"      :: "args => 'a Seq"              ("[(_)!]")
   "_partlist"     :: "args => 'a Seq"              ("[(_)?]")
 translations
-  "[x, xs!]"     == "x>>[xs!]"
-  "[x!]"         == "x>>nil"
-  "[x, xs?]"     == "x>>[xs?]"
-  "[x?]"         == "x>>CONST bottom"
+  "[x, xs!]"     == "x\<leadsto>[xs!]"
+  "[x!]"         == "x\<leadsto>nil"
+  "[x, xs?]"     == "x\<leadsto>[xs?]"
+  "[x?]"         == "x\<leadsto>CONST bottom"
 
 defs
 
@@ -92,7 +89,7 @@ by (simp add: Map_def)
 lemma Map_nil: "Map f$nil =nil"
 by (simp add: Map_def)
 
-lemma Map_cons: "Map f$(x>>xs)=(f x) >> Map f$xs"
+lemma Map_cons: "Map f$(x\<leadsto>xs)=(f x) \<leadsto> Map f$xs"
 by (simp add: Map_def Consq_def flift2_def)
 
 
@@ -105,7 +102,7 @@ lemma Filter_nil: "Filter P$nil =nil"
 by (simp add: Filter_def)
 
 lemma Filter_cons:
-  "Filter P$(x>>xs)= (if P x then x>>(Filter P$xs) else Filter P$xs)"
+  "Filter P$(x\<leadsto>xs)= (if P x then x\<leadsto>(Filter P$xs) else Filter P$xs)"
 by (simp add: Filter_def Consq_def flift2_def If_and_if)
 
 
@@ -117,13 +114,13 @@ by (simp add: Forall_def sforall_def)
 lemma Forall_nil: "Forall P nil"
 by (simp add: Forall_def sforall_def)
 
-lemma Forall_cons: "Forall P (x>>xs)= (P x & Forall P xs)"
+lemma Forall_cons: "Forall P (x\<leadsto>xs)= (P x & Forall P xs)"
 by (simp add: Forall_def sforall_def Consq_def flift2_def)
 
 
 subsubsection {* Conc *}
 
-lemma Conc_cons: "(x>>xs) @@ y = x>>(xs @@y)"
+lemma Conc_cons: "(x\<leadsto>xs) @@ y = x\<leadsto>(xs @@y)"
 by (simp add: Consq_def)
 
 
@@ -136,7 +133,7 @@ lemma Takewhile_nil: "Takewhile P$nil =nil"
 by (simp add: Takewhile_def)
 
 lemma Takewhile_cons:
-  "Takewhile P$(x>>xs)= (if P x then x>>(Takewhile P$xs) else nil)"
+  "Takewhile P$(x\<leadsto>xs)= (if P x then x\<leadsto>(Takewhile P$xs) else nil)"
 by (simp add: Takewhile_def Consq_def flift2_def If_and_if)
 
 
@@ -149,7 +146,7 @@ lemma Dropwhile_nil: "Dropwhile P$nil =nil"
 by (simp add: Dropwhile_def)
 
 lemma Dropwhile_cons:
-  "Dropwhile P$(x>>xs)= (if P x then Dropwhile P$xs else x>>xs)"
+  "Dropwhile P$(x\<leadsto>xs)= (if P x then Dropwhile P$xs else x\<leadsto>xs)"
 by (simp add: Dropwhile_def Consq_def flift2_def If_and_if)
 
 
@@ -161,7 +158,7 @@ by (simp add: Last_def)
 lemma Last_nil: "Last$nil =UU"
 by (simp add: Last_def)
 
-lemma Last_cons: "Last$(x>>xs)= (if xs=nil then Def x else Last$xs)"
+lemma Last_cons: "Last$(x\<leadsto>xs)= (if xs=nil then Def x else Last$xs)"
 apply (simp add: Last_def Consq_def)
 apply (cases xs)
 apply simp_all
@@ -216,12 +213,12 @@ apply (subst Zip_unfold)
 apply simp
 done
 
-lemma Zip_cons_nil: "Zip$(x>>xs)$nil= UU"
+lemma Zip_cons_nil: "Zip$(x\<leadsto>xs)$nil= UU"
 apply (subst Zip_unfold)
 apply (simp add: Consq_def)
 done
 
-lemma Zip_cons: "Zip$(x>>xs)$(y>>ys)= (x,y) >> Zip$xs$ys"
+lemma Zip_cons: "Zip$(x\<leadsto>xs)$(y\<leadsto>ys)= (x,y) \<leadsto> Zip$xs$ys"
 apply (rule trans)
 apply (subst Zip_unfold)
 apply simp
@@ -252,11 +249,11 @@ lemmas [simp] =
 
 section "Cons"
 
-lemma Consq_def2: "a>>s = (Def a)##s"
+lemma Consq_def2: "a\<leadsto>s = (Def a)##s"
 apply (simp add: Consq_def)
 done
 
-lemma Seq_exhaust: "x = UU | x = nil | (? a s. x = a >> s)"
+lemma Seq_exhaust: "x = UU | x = nil | (? a s. x = a \<leadsto> s)"
 apply (simp add: Consq_def2)
 apply (cut_tac seq.nchotomy)
 apply (fast dest: not_Undef_is_Def [THEN iffD1])
@@ -264,7 +261,7 @@ done
 
 
 lemma Seq_cases:
-"!!P. [| x = UU ==> P; x = nil ==> P; !!a s. x = a >> s  ==> P |] ==> P"
+"!!P. [| x = UU ==> P; x = nil ==> P; !!a s. x = a \<leadsto> s  ==> P |] ==> P"
 apply (cut_tac x="x" in Seq_exhaust)
 apply (erule disjE)
 apply simp
@@ -278,48 +275,48 @@ done
 fun Seq_case_tac s i = rule_tac x",s)] Seq_cases i
           THEN hyp_subst_tac i THEN hyp_subst_tac (i+1) THEN hyp_subst_tac (i+2);
 *)
-(* on a>>s only simp_tac, as full_simp_tac is uncomplete and often causes errors *)
+(* on a\<leadsto>s only simp_tac, as full_simp_tac is uncomplete and often causes errors *)
 (*
 fun Seq_case_simp_tac s i = Seq_case_tac s i THEN Asm_simp_tac (i+2)
                                              THEN Asm_full_simp_tac (i+1)
                                              THEN Asm_full_simp_tac i;
 *)
 
-lemma Cons_not_UU: "a>>s ~= UU"
+lemma Cons_not_UU: "a\<leadsto>s ~= UU"
 apply (subst Consq_def2)
 apply simp
 done
 
 
-lemma Cons_not_less_UU: "~(a>>x) << UU"
+lemma Cons_not_less_UU: "~(a\<leadsto>x) << UU"
 apply (rule notI)
 apply (drule below_antisym)
 apply simp
 apply (simp add: Cons_not_UU)
 done
 
-lemma Cons_not_less_nil: "~a>>s << nil"
+lemma Cons_not_less_nil: "~a\<leadsto>s << nil"
 apply (simp add: Consq_def2)
 done
 
-lemma Cons_not_nil: "a>>s ~= nil"
+lemma Cons_not_nil: "a\<leadsto>s ~= nil"
 apply (simp add: Consq_def2)
 done
 
-lemma Cons_not_nil2: "nil ~= a>>s"
+lemma Cons_not_nil2: "nil ~= a\<leadsto>s"
 apply (simp add: Consq_def2)
 done
 
-lemma Cons_inject_eq: "(a>>s = b>>t) = (a = b & s = t)"
+lemma Cons_inject_eq: "(a\<leadsto>s = b\<leadsto>t) = (a = b & s = t)"
 apply (simp only: Consq_def2)
 apply (simp add: scons_inject_eq)
 done
 
-lemma Cons_inject_less_eq: "(a>>s<<b>>t) = (a = b & s<<t)"
+lemma Cons_inject_less_eq: "(a\<leadsto>s<<b\<leadsto>t) = (a = b & s<<t)"
 apply (simp add: Consq_def2)
 done
 
-lemma seq_take_Cons: "seq_take (Suc n)$(a>>x) = a>> (seq_take n$x)"
+lemma seq_take_Cons: "seq_take (Suc n)$(a\<leadsto>x) = a\<leadsto> (seq_take n$x)"
 apply (simp add: Consq_def)
 done
 
@@ -331,14 +328,14 @@ lemmas [simp] =
 subsection "induction"
 
 lemma Seq_induct:
-"!! P. [| adm P; P UU; P nil; !! a s. P s ==> P (a>>s)|] ==> P x"
+"!! P. [| adm P; P UU; P nil; !! a s. P s ==> P (a\<leadsto>s)|] ==> P x"
 apply (erule (2) seq.induct)
 apply defined
 apply (simp add: Consq_def)
 done
 
 lemma Seq_FinitePartial_ind:
-"!! P.[|P UU;P nil; !! a s. P s ==> P(a>>s) |]
+"!! P.[|P UU;P nil; !! a s. P s ==> P(a\<leadsto>s) |]
                 ==> seq_finite x --> P x"
 apply (erule (1) seq_finite_ind)
 apply defined
@@ -346,7 +343,7 @@ apply (simp add: Consq_def)
 done
 
 lemma Seq_Finite_ind:
-"!! P.[| Finite x; P nil; !! a s. [| Finite s; P s|] ==> P (a>>s) |] ==> P x"
+"!! P.[| Finite x; P nil; !! a s. [| Finite s; P s|] ==> P (a\<leadsto>s) |] ==> P x"
 apply (erule (1) Finite.induct)
 apply defined
 apply (simp add: Consq_def)
@@ -379,11 +376,11 @@ fun pair_induct_tac s rws i =
 
 subsection "HD,TL"
 
-lemma HD_Cons [simp]: "HD$(x>>y) = Def x"
+lemma HD_Cons [simp]: "HD$(x\<leadsto>y) = Def x"
 apply (simp add: Consq_def)
 done
 
-lemma TL_Cons [simp]: "TL$(x>>y) = y"
+lemma TL_Cons [simp]: "TL$(x\<leadsto>y) = y"
 apply (simp add: Consq_def)
 done
 
@@ -391,7 +388,7 @@ done
 
 subsection "Finite, Partial, Infinite"
 
-lemma Finite_Cons [simp]: "Finite (a>>xs) = Finite xs"
+lemma Finite_Cons [simp]: "Finite (a\<leadsto>xs) = Finite xs"
 apply (simp add: Consq_def2 Finite_cons)
 done
 
@@ -792,7 +789,7 @@ subsection "coinductive characterizations of Filter"
 
 lemma divide_Seq_lemma:
  "HD$(Filter P$y) = Def x
-    --> y = ((Takewhile (%x. ~P x)$y) @@ (x >> TL$(Dropwhile (%a. ~P a)$y)))
+    --> y = ((Takewhile (%x. ~P x)$y) @@ (x \<leadsto> TL$(Dropwhile (%a. ~P a)$y)))
              & Finite (Takewhile (%x. ~ P x)$y)  & P x"
 
 (* FIX: pay attention: is only admissible with chain-finite package to be added to
@@ -808,11 +805,11 @@ apply (case_tac "P a")
 apply simp
 done
 
-lemma divide_Seq: "(x>>xs) << Filter P$y 
-   ==> y = ((Takewhile (%a. ~ P a)$y) @@ (x >> TL$(Dropwhile (%a. ~ P a)$y)))
+lemma divide_Seq: "(x\<leadsto>xs) << Filter P$y 
+   ==> y = ((Takewhile (%a. ~ P a)$y) @@ (x \<leadsto> TL$(Dropwhile (%a. ~ P a)$y)))
       & Finite (Takewhile (%a. ~ P a)$y)  & P x"
 apply (rule divide_Seq_lemma [THEN mp])
-apply (drule_tac f="HD" and x="x>>xs" in  monofun_cfun_arg)
+apply (drule_tac f="HD" and x="x\<leadsto>xs" in  monofun_cfun_arg)
 apply simp
 done
 
@@ -827,7 +824,7 @@ done
 
 
 lemma divide_Seq2: "~Forall P y
-  ==> ? x. y= (Takewhile P$y @@ (x >> TL$(Dropwhile P$y))) &
+  ==> ? x. y= (Takewhile P$y @@ (x \<leadsto> TL$(Dropwhile P$y))) &
       Finite (Takewhile P$y) & (~ P x)"
 apply (drule nForall_HDFilter [THEN mp])
 apply safe
@@ -838,7 +835,7 @@ done
 
 
 lemma divide_Seq3: "~Forall P y
-  ==> ? x bs rs. y= (bs @@ (x>>rs)) & Finite bs & Forall P bs & (~ P x)"
+  ==> ? x bs rs. y= (bs @@ (x\<leadsto>rs)) & Finite bs & Forall P bs & (~ P x)"
 apply (drule divide_Seq2)
 (*Auto_tac no longer proves it*)
 apply fastforce
@@ -860,7 +857,7 @@ done
 
 lemma take_reduction1:
 "  ! n. ((! k. k < n --> seq_take k$y1 = seq_take k$y2)
-    --> seq_take n$(x @@ (t>>y1)) =  seq_take n$(x @@ (t>>y2)))"
+    --> seq_take n$(x @@ (t\<leadsto>y1)) =  seq_take n$(x @@ (t\<leadsto>y2)))"
 apply (rule_tac x="x" in Seq_induct)
 apply simp_all
 apply (intro strip)
@@ -873,7 +870,7 @@ done
 
 lemma take_reduction:
  "!! n.[| x=y; s=t; !! k. k<n ==> seq_take k$y1 = seq_take k$y2|]
-  ==> seq_take n$(x @@ (s>>y1)) =  seq_take n$(y @@ (t>>y2))"
+  ==> seq_take n$(x @@ (s\<leadsto>y1)) =  seq_take n$(y @@ (t\<leadsto>y2))"
 apply (auto intro!: take_reduction1 [rule_format])
 done
 
@@ -883,7 +880,7 @@ done
 
 lemma take_reduction_less1:
 "  ! n. ((! k. k < n --> seq_take k$y1 << seq_take k$y2)
-    --> seq_take n$(x @@ (t>>y1)) <<  seq_take n$(x @@ (t>>y2)))"
+    --> seq_take n$(x @@ (t\<leadsto>y1)) <<  seq_take n$(x @@ (t\<leadsto>y2)))"
 apply (rule_tac x="x" in Seq_induct)
 apply simp_all
 apply (intro strip)
@@ -896,7 +893,7 @@ done
 
 lemma take_reduction_less:
  "!! n.[| x=y; s=t;!! k. k<n ==> seq_take k$y1 << seq_take k$y2|]
-  ==> seq_take n$(x @@ (s>>y1)) <<  seq_take n$(y @@ (t>>y2))"
+  ==> seq_take n$(x @@ (s\<leadsto>y1)) <<  seq_take n$(y @@ (t\<leadsto>y2))"
 apply (auto intro!: take_reduction_less1 [rule_format])
 done
 
@@ -925,8 +922,8 @@ done
 
 lemma take_lemma_principle1:
  "!! Q. [|!! s. [| Forall Q s; A s |] ==> (f s) = (g s) ;
-            !! s1 s2 y. [| Forall Q s1; Finite s1; ~ Q y; A (s1 @@ y>>s2)|]
-                          ==> (f (s1 @@ y>>s2)) = (g (s1 @@ y>>s2)) |]
+            !! s1 s2 y. [| Forall Q s1; Finite s1; ~ Q y; A (s1 @@ y\<leadsto>s2)|]
+                          ==> (f (s1 @@ y\<leadsto>s2)) = (g (s1 @@ y\<leadsto>s2)) |]
                ==> A x --> (f x)=(g x)"
 apply (case_tac "Forall Q x")
 apply (auto dest!: divide_Seq3)
@@ -934,9 +931,9 @@ done
 
 lemma take_lemma_principle2:
   "!! Q. [|!! s. [| Forall Q s; A s |] ==> (f s) = (g s) ;
-           !! s1 s2 y. [| Forall Q s1; Finite s1; ~ Q y; A (s1 @@ y>>s2)|]
-                          ==> ! n. seq_take n$(f (s1 @@ y>>s2))
-                                 = seq_take n$(g (s1 @@ y>>s2)) |]
+           !! s1 s2 y. [| Forall Q s1; Finite s1; ~ Q y; A (s1 @@ y\<leadsto>s2)|]
+                          ==> ! n. seq_take n$(f (s1 @@ y\<leadsto>s2))
+                                 = seq_take n$(g (s1 @@ y\<leadsto>s2)) |]
                ==> A x --> (f x)=(g x)"
 apply (case_tac "Forall Q x")
 apply (auto dest!: divide_Seq3)
@@ -956,9 +953,9 @@ done
 lemma take_lemma_induct:
 "!! Q. [|!! s. [| Forall Q s; A s |] ==> (f s) = (g s) ;
          !! s1 s2 y n. [| ! t. A t --> seq_take n$(f t) = seq_take n$(g t);
-                          Forall Q s1; Finite s1; ~ Q y; A (s1 @@ y>>s2) |]
-                          ==>   seq_take (Suc n)$(f (s1 @@ y>>s2))
-                              = seq_take (Suc n)$(g (s1 @@ y>>s2)) |]
+                          Forall Q s1; Finite s1; ~ Q y; A (s1 @@ y\<leadsto>s2) |]
+                          ==>   seq_take (Suc n)$(f (s1 @@ y\<leadsto>s2))
+                              = seq_take (Suc n)$(g (s1 @@ y\<leadsto>s2)) |]
                ==> A x --> (f x)=(g x)"
 apply (rule impI)
 apply (rule seq.take_lemma)
@@ -977,9 +974,9 @@ done
 lemma take_lemma_less_induct:
 "!! Q. [|!! s. [| Forall Q s; A s |] ==> (f s) = (g s) ;
         !! s1 s2 y n. [| ! t m. m < n --> A t --> seq_take m$(f t) = seq_take m$(g t);
-                          Forall Q s1; Finite s1; ~ Q y; A (s1 @@ y>>s2) |]
-                          ==>   seq_take n$(f (s1 @@ y>>s2))
-                              = seq_take n$(g (s1 @@ y>>s2)) |]
+                          Forall Q s1; Finite s1; ~ Q y; A (s1 @@ y\<leadsto>s2) |]
+                          ==>   seq_take n$(f (s1 @@ y\<leadsto>s2))
+                              = seq_take n$(g (s1 @@ y\<leadsto>s2)) |]
                ==> A x --> (f x)=(g x)"
 apply (rule impI)
 apply (rule seq.take_lemma)
@@ -999,9 +996,9 @@ lemma take_lemma_in_eq_out:
 "!! Q. [| A UU  ==> (f UU) = (g UU) ;
           A nil ==> (f nil) = (g nil) ;
           !! s y n. [| ! t. A t --> seq_take n$(f t) = seq_take n$(g t);
-                     A (y>>s) |]
-                     ==>   seq_take (Suc n)$(f (y>>s))
-                         = seq_take (Suc n)$(g (y>>s)) |]
+                     A (y\<leadsto>s) |]
+                     ==>   seq_take (Suc n)$(f (y\<leadsto>s))
+                         = seq_take (Suc n)$(g (y\<leadsto>s)) |]
                ==> A x --> (f x)=(g x)"
 apply (rule impI)
 apply (rule seq.take_lemma)
@@ -1084,7 +1081,7 @@ fun Seq_case_tac ctxt s i =
   Rule_Insts.res_inst_tac ctxt [((("x", 0), Position.none), s)] [] @{thm Seq_cases} i
   THEN hyp_subst_tac ctxt i THEN hyp_subst_tac ctxt (i+1) THEN hyp_subst_tac ctxt (i+2);
 
-(* on a>>s only simp_tac, as full_simp_tac is uncomplete and often causes errors *)
+(* on a\<leadsto>s only simp_tac, as full_simp_tac is uncomplete and often causes errors *)
 fun Seq_case_simp_tac ctxt s i =
   Seq_case_tac ctxt s i
   THEN asm_simp_tac ctxt (i+2)

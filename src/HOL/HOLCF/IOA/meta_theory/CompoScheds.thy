@@ -25,20 +25,20 @@ definition
                  | Def a => (case HD$exB of
                               UU => UU
                             | Def b =>
-                   (y,(snd a,snd b))>>
+                   (y,(snd a,snd b))\<leadsto>
                      (h$xs$(TL$exA)$(TL$exB)) (snd a) (snd b)))
               else
                 (case HD$exA of
                    UU => UU
                  | Def a =>
-                   (y,(snd a,t))>>(h$xs$(TL$exA)$exB) (snd a) t)
+                   (y,(snd a,t))\<leadsto>(h$xs$(TL$exA)$exB) (snd a) t)
               )
           else
              (if y:act B then
                 (case HD$exB of
                    UU => UU
                  | Def b =>
-                   (y,(s,snd b))>>(h$xs$exA$(TL$exB)) s (snd b))
+                   (y,(s,snd b))\<leadsto>(h$xs$exA$(TL$exB)) s (snd b))
              else
                UU
              )
@@ -81,20 +81,20 @@ lemma mkex2_unfold:
                 | Def a => (case HD$exB of
                              UU => UU
                            | Def b =>
-                  (y,(snd a,snd b))>>
+                  (y,(snd a,snd b))\<leadsto>
                     (mkex2 A B$xs$(TL$exA)$(TL$exB)) (snd a) (snd b)))
              else
                (case HD$exA of
                   UU => UU
                 | Def a =>
-                  (y,(snd a,t))>>(mkex2 A B$xs$(TL$exA)$exB) (snd a) t)
+                  (y,(snd a,t))\<leadsto>(mkex2 A B$xs$(TL$exA)$exB) (snd a) t)
              )
          else
             (if y:act B then
                (case HD$exB of
                   UU => UU
                 | Def b =>
-                  (y,(s,snd b))>>(mkex2 A B$xs$exA$(TL$exB)) s (snd b))
+                  (y,(s,snd b))\<leadsto>(mkex2 A B$xs$exA$(TL$exB)) s (snd b))
             else
               UU
             )
@@ -118,8 +118,8 @@ apply simp
 done
 
 lemma mkex2_cons_1: "[| x:act A; x~:act B; HD$exA=Def a|]
-    ==> (mkex2 A B$(x>>sch)$exA$exB) s t =
-        (x,snd a,t) >> (mkex2 A B$sch$(TL$exA)$exB) (snd a) t"
+    ==> (mkex2 A B$(x\<leadsto>sch)$exA$exB) s t =
+        (x,snd a,t) \<leadsto> (mkex2 A B$sch$(TL$exA)$exB) (snd a) t"
 apply (rule trans)
 apply (subst mkex2_unfold)
 apply (simp add: Consq_def If_and_if)
@@ -127,8 +127,8 @@ apply (simp add: Consq_def)
 done
 
 lemma mkex2_cons_2: "[| x~:act A; x:act B; HD$exB=Def b|]
-    ==> (mkex2 A B$(x>>sch)$exA$exB) s t =
-        (x,s,snd b) >> (mkex2 A B$sch$exA$(TL$exB)) s (snd b)"
+    ==> (mkex2 A B$(x\<leadsto>sch)$exA$exB) s t =
+        (x,s,snd b) \<leadsto> (mkex2 A B$sch$exA$(TL$exB)) s (snd b)"
 apply (rule trans)
 apply (subst mkex2_unfold)
 apply (simp add: Consq_def If_and_if)
@@ -136,8 +136,8 @@ apply (simp add: Consq_def)
 done
 
 lemma mkex2_cons_3: "[| x:act A; x:act B; HD$exA=Def a;HD$exB=Def b|]
-    ==> (mkex2 A B$(x>>sch)$exA$exB) s t =
-         (x,snd a,snd b) >>
+    ==> (mkex2 A B$(x\<leadsto>sch)$exA$exB) s t =
+         (x,snd a,snd b) \<leadsto>
             (mkex2 A B$sch$(TL$exA)$(TL$exB)) (snd a) (snd b)"
 apply (rule trans)
 apply (subst mkex2_unfold)
@@ -160,26 +160,26 @@ apply (simp add: mkex_def)
 done
 
 lemma mkex_cons_1: "[| x:act A; x~:act B |]
-    ==> mkex A B (x>>sch) (s,a>>exA) (t,exB)  =
-        ((s,t), (x,snd a,t) >> snd (mkex A B sch (snd a,exA) (t,exB)))"
+    ==> mkex A B (x\<leadsto>sch) (s,a\<leadsto>exA) (t,exB)  =
+        ((s,t), (x,snd a,t) \<leadsto> snd (mkex A B sch (snd a,exA) (t,exB)))"
 apply (simp (no_asm) add: mkex_def)
-apply (cut_tac exA = "a>>exA" in mkex2_cons_1)
+apply (cut_tac exA = "a\<leadsto>exA" in mkex2_cons_1)
 apply auto
 done
 
 lemma mkex_cons_2: "[| x~:act A; x:act B |]
-    ==> mkex A B (x>>sch) (s,exA) (t,b>>exB) =
-        ((s,t), (x,s,snd b) >> snd (mkex A B sch (s,exA) (snd b,exB)))"
+    ==> mkex A B (x\<leadsto>sch) (s,exA) (t,b\<leadsto>exB) =
+        ((s,t), (x,s,snd b) \<leadsto> snd (mkex A B sch (s,exA) (snd b,exB)))"
 apply (simp (no_asm) add: mkex_def)
-apply (cut_tac exB = "b>>exB" in mkex2_cons_2)
+apply (cut_tac exB = "b\<leadsto>exB" in mkex2_cons_2)
 apply auto
 done
 
 lemma mkex_cons_3: "[| x:act A; x:act B |]
-    ==>  mkex A B (x>>sch) (s,a>>exA) (t,b>>exB) =
-         ((s,t), (x,snd a,snd b) >> snd (mkex A B sch (snd a,exA) (snd b,exB)))"
+    ==>  mkex A B (x\<leadsto>sch) (s,a\<leadsto>exA) (t,b\<leadsto>exB) =
+         ((s,t), (x,snd a,snd b) \<leadsto> snd (mkex A B sch (snd a,exA) (snd b,exB)))"
 apply (simp (no_asm) add: mkex_def)
-apply (cut_tac exB = "b>>exB" and exA = "a>>exA" in mkex2_cons_3)
+apply (cut_tac exB = "b\<leadsto>exB" and exA = "a\<leadsto>exA" in mkex2_cons_3)
 apply auto
 done
 
@@ -262,10 +262,10 @@ apply auto
 apply (tactic {* Seq_case_simp_tac @{context} "exA" 1 *})
 (* Case exA=UU, Case exA=nil*)
 (* These UU and nil cases are the only places where the assumption filter A sch<<f_act exA
-   is used! --> to generate a contradiction using  ~a>>ss<< UU(nil), using theorems
+   is used! --> to generate a contradiction using  ~a\<leadsto>ss<< UU(nil), using theorems
    Cons_not_less_UU and Cons_not_less_nil  *)
 apply (tactic {* Seq_case_simp_tac @{context} "exB" 1 *})
-(* Case exA=a>>x, exB=b>>y *)
+(* Case exA=a\<leadsto>x, exB=b\<leadsto>y *)
 (* here it is important that Seq_case_simp_tac uses no !full!_simp_tac for the cons case,
    as otherwise mkex_cons_3 would  not be rewritten without use of rotate_tac: then tactic
    would not be generally applicable *)

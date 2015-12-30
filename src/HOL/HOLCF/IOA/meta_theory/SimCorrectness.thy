@@ -56,7 +56,7 @@ apply (subst corresp_ex_simC_unfold)
 apply simp
 done
 
-lemma corresp_ex_simC_cons: "(corresp_ex_simC A R$((a,t)>>xs)) s =
+lemma corresp_ex_simC_cons: "(corresp_ex_simC A R$((a,t)\<leadsto>xs)) s =
            (let T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t'
             in
              (@cex. move A cex s a T')
@@ -138,7 +138,7 @@ lemma move_subprop4_sim:
    "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>
     let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
       mk_trace A$((@x. move A x s' a T')) =
-        (if a:ext A then a>>nil else nil)"
+        (if a:ext A then a\<leadsto>nil else nil)"
 apply (cut_tac move_is_move_sim)
 defer
 apply assumption+

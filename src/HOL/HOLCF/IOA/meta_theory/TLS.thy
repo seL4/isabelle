@@ -65,9 +65,9 @@ ex2seq_def:
 
 ex2seqC_def:
   "ex2seqC == (fix$(LAM h ex. (%s. case ex of
-      nil =>  (s,None,s)>>nil
+      nil =>  (s,None,s)\<leadsto>nil
     | x##xs => (flift1 (%pr.
-                (s,Some (fst pr), snd pr)>> (h$xs) (snd pr))
+                (s,Some (fst pr), snd pr)\<leadsto> (h$xs) (snd pr))
                 $x)
       )))"
 
@@ -87,7 +87,7 @@ mkfin_nil:
   "mkfin nil =nil" and
 
 mkfin_cons:
-  "(mkfin (a>>s)) = (a>>(mkfin s))"
+  "(mkfin (a\<leadsto>s)) = (a\<leadsto>(mkfin s))"
 
 
 lemmas [simp del] = HOL.ex_simps HOL.all_simps split_paired_Ex
@@ -98,9 +98,9 @@ setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
 subsection {* ex2seqC *}
 
 lemma ex2seqC_unfold: "ex2seqC  = (LAM ex. (%s. case ex of  
-       nil =>  (s,None,s)>>nil    
+       nil =>  (s,None,s)\<leadsto>nil    
      | x##xs => (flift1 (%pr.  
-                 (s,Some (fst pr), snd pr)>> (ex2seqC$xs) (snd pr))   
+                 (s,Some (fst pr), snd pr)\<leadsto> (ex2seqC$xs) (snd pr))   
                  $x)   
        ))"
 apply (rule trans)
@@ -115,13 +115,13 @@ apply (subst ex2seqC_unfold)
 apply simp
 done
 
-lemma ex2seqC_nil: "(ex2seqC $nil) s = (s,None,s)>>nil"
+lemma ex2seqC_nil: "(ex2seqC $nil) s = (s,None,s)\<leadsto>nil"
 apply (subst ex2seqC_unfold)
 apply simp
 done
 
-lemma ex2seqC_cons: "(ex2seqC $((a,t)>>xs)) s =  
-           (s,Some a,t)>> ((ex2seqC$xs) t)"
+lemma ex2seqC_cons: "(ex2seqC $((a,t)\<leadsto>xs)) s =  
+           (s,Some a,t)\<leadsto> ((ex2seqC$xs) t)"
 apply (rule trans)
 apply (subst ex2seqC_unfold)
 apply (simp add: Consq_def flift1_def)
@@ -134,15 +134,15 @@ declare ex2seqC_UU [simp] ex2seqC_nil [simp] ex2seqC_cons [simp]
 
 declare mkfin_UU [simp] mkfin_nil [simp] mkfin_cons [simp]
 
-lemma ex2seq_UU: "ex2seq (s, UU) = (s,None,s)>>nil"
+lemma ex2seq_UU: "ex2seq (s, UU) = (s,None,s)\<leadsto>nil"
 apply (simp add: ex2seq_def)
 done
 
-lemma ex2seq_nil: "ex2seq (s, nil) = (s,None,s)>>nil"
+lemma ex2seq_nil: "ex2seq (s, nil) = (s,None,s)\<leadsto>nil"
 apply (simp add: ex2seq_def)
 done
 
-lemma ex2seq_cons: "ex2seq (s, (a,t)>>ex) = (s,Some a,t) >> ex2seq (t, ex)"
+lemma ex2seq_cons: "ex2seq (s, (a,t)\<leadsto>ex) = (s,Some a,t) \<leadsto> ex2seq (t, ex)"
 apply (simp add: ex2seq_def)
 done
 
