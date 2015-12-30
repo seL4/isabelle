@@ -1564,7 +1564,7 @@ subsection\<open>Some Limits involving Logarithms\<close>
 lemma lim_Ln_over_power:
   fixes s::complex
   assumes "0 < Re s"
-    shows "((\<lambda>n. Ln n / (n powr s)) ---> 0) sequentially"
+    shows "((\<lambda>n. Ln n / (n powr s)) \<longlongrightarrow> 0) sequentially"
 proof (simp add: lim_sequentially dist_norm, clarify)
   fix e::real
   assume e: "0 < e"
@@ -1603,7 +1603,7 @@ proof (simp add: lim_sequentially dist_norm, clarify)
     done
 qed
 
-lemma lim_Ln_over_n: "((\<lambda>n. Ln(of_nat n) / of_nat n) ---> 0) sequentially"
+lemma lim_Ln_over_n: "((\<lambda>n. Ln(of_nat n) / of_nat n) \<longlongrightarrow> 0) sequentially"
   using lim_Ln_over_power [of 1]
   by simp
 
@@ -1616,14 +1616,14 @@ lemma powr_Reals_eq: "x \<in> \<real> \<Longrightarrow> Re x > 0 \<Longrightarro
 lemma lim_ln_over_power:
   fixes s :: real
   assumes "0 < s"
-    shows "((\<lambda>n. ln n / (n powr s)) ---> 0) sequentially"
+    shows "((\<lambda>n. ln n / (n powr s)) \<longlongrightarrow> 0) sequentially"
   using lim_Ln_over_power [of "of_real s", THEN filterlim_sequentially_Suc [THEN iffD2]] assms
   apply (subst filterlim_sequentially_Suc [symmetric])
   apply (simp add: lim_sequentially dist_norm
           Ln_Reals_eq norm_powr_real_powr norm_divide)
   done
 
-lemma lim_ln_over_n: "((\<lambda>n. ln(real_of_nat n) / of_nat n) ---> 0) sequentially"
+lemma lim_ln_over_n: "((\<lambda>n. ln(real_of_nat n) / of_nat n) \<longlongrightarrow> 0) sequentially"
   using lim_ln_over_power [of 1, THEN filterlim_sequentially_Suc [THEN iffD2]]
   apply (subst filterlim_sequentially_Suc [symmetric])
   apply (simp add: lim_sequentially dist_norm)
@@ -1631,7 +1631,7 @@ lemma lim_ln_over_n: "((\<lambda>n. ln(real_of_nat n) / of_nat n) ---> 0) sequen
 
 lemma lim_1_over_complex_power:
   assumes "0 < Re s"
-    shows "((\<lambda>n. 1 / (of_nat n powr s)) ---> 0) sequentially"
+    shows "((\<lambda>n. 1 / (of_nat n powr s)) \<longlongrightarrow> 0) sequentially"
 proof -
   have "\<forall>n>0. 3 \<le> n \<longrightarrow> 1 \<le> ln (real_of_nat n)"
     using ln3_gt_1
@@ -1648,14 +1648,14 @@ qed
 lemma lim_1_over_real_power:
   fixes s :: real
   assumes "0 < s"
-    shows "((\<lambda>n. 1 / (of_nat n powr s)) ---> 0) sequentially"
+    shows "((\<lambda>n. 1 / (of_nat n powr s)) \<longlongrightarrow> 0) sequentially"
   using lim_1_over_complex_power [of "of_real s", THEN filterlim_sequentially_Suc [THEN iffD2]] assms
   apply (subst filterlim_sequentially_Suc [symmetric])
   apply (simp add: lim_sequentially dist_norm)
   apply (simp add: Ln_Reals_eq norm_powr_real_powr norm_divide)
   done
 
-lemma lim_1_over_Ln: "((\<lambda>n. 1 / Ln(of_nat n)) ---> 0) sequentially"
+lemma lim_1_over_Ln: "((\<lambda>n. 1 / Ln(of_nat n)) \<longlongrightarrow> 0) sequentially"
 proof (clarsimp simp add: lim_sequentially dist_norm norm_divide divide_simps)
   fix r::real
   assume "0 < r"
@@ -1680,7 +1680,7 @@ proof (clarsimp simp add: lim_sequentially dist_norm norm_divide divide_simps)
     done
 qed
 
-lemma lim_1_over_ln: "((\<lambda>n. 1 / ln(real_of_nat n)) ---> 0) sequentially"
+lemma lim_1_over_ln: "((\<lambda>n. 1 / ln(real_of_nat n)) \<longlongrightarrow> 0) sequentially"
   using lim_1_over_Ln [THEN filterlim_sequentially_Suc [THEN iffD2]] assms
   apply (subst filterlim_sequentially_Suc [symmetric])
   apply (simp add: lim_sequentially dist_norm)

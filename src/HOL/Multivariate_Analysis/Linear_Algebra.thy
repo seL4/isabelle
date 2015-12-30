@@ -2881,8 +2881,8 @@ proof -
 qed
 
 lemma tendsto_infnorm [tendsto_intros]:
-  assumes "(f ---> a) F"
-  shows "((\<lambda>x. infnorm (f x)) ---> infnorm a) F"
+  assumes "(f \<longlongrightarrow> a) F"
+  shows "((\<lambda>x. infnorm (f x)) \<longlongrightarrow> infnorm a) F"
 proof (rule tendsto_compose [OF LIM_I assms])
   fix r :: real
   assume "r > 0"

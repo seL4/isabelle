@@ -382,14 +382,14 @@ lemmas sums_Re = bounded_linear.sums [OF bounded_linear_Re]
 lemmas sums_Im = bounded_linear.sums [OF bounded_linear_Im]
 
 lemma tendsto_Complex [tendsto_intros]:
-  "(f ---> a) F \<Longrightarrow> (g ---> b) F \<Longrightarrow> ((\<lambda>x. Complex (f x) (g x)) ---> Complex a b) F"
+  "(f \<longlongrightarrow> a) F \<Longrightarrow> (g \<longlongrightarrow> b) F \<Longrightarrow> ((\<lambda>x. Complex (f x) (g x)) \<longlongrightarrow> Complex a b) F"
   by (auto intro!: tendsto_intros)
 
 lemma tendsto_complex_iff:
-  "(f ---> x) F \<longleftrightarrow> (((\<lambda>x. Re (f x)) ---> Re x) F \<and> ((\<lambda>x. Im (f x)) ---> Im x) F)"
+  "(f \<longlongrightarrow> x) F \<longleftrightarrow> (((\<lambda>x. Re (f x)) \<longlongrightarrow> Re x) F \<and> ((\<lambda>x. Im (f x)) \<longlongrightarrow> Im x) F)"
 proof safe
-  assume "((\<lambda>x. Re (f x)) ---> Re x) F" "((\<lambda>x. Im (f x)) ---> Im x) F"
-  from tendsto_Complex[OF this] show "(f ---> x) F"
+  assume "((\<lambda>x. Re (f x)) \<longlongrightarrow> Re x) F" "((\<lambda>x. Im (f x)) \<longlongrightarrow> Im x) F"
+  from tendsto_Complex[OF this] show "(f \<longlongrightarrow> x) F"
     unfolding complex.collapse .
 qed (auto intro: tendsto_intros)
 
@@ -530,7 +530,7 @@ lemmas continuous_cnj [simp, continuous_intros] = bounded_linear.continuous [OF 
 lemmas continuous_on_cnj [simp, continuous_intros] = bounded_linear.continuous_on [OF bounded_linear_cnj]
 lemmas has_derivative_cnj [simp, derivative_intros] = bounded_linear.has_derivative [OF bounded_linear_cnj]
 
-lemma lim_cnj: "((\<lambda>x. cnj(f x)) ---> cnj l) F \<longleftrightarrow> (f ---> l) F"
+lemma lim_cnj: "((\<lambda>x. cnj(f x)) \<longlongrightarrow> cnj l) F \<longleftrightarrow> (f \<longlongrightarrow> l) F"
   by (simp add: tendsto_iff dist_complex_def complex_cnj_diff [symmetric] del: complex_cnj_diff)
 
 lemma sums_cnj: "((\<lambda>x. cnj(f x)) sums cnj l) \<longleftrightarrow> (f sums l)"

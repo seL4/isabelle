@@ -9665,9 +9665,9 @@ lemma monotone_convergence_interval:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
   assumes "\<forall>k. (f k) integrable_on cbox a b"
     and "\<forall>k. \<forall>x\<in>cbox a b.(f k x) \<le> f (Suc k) x"
-    and "\<forall>x\<in>cbox a b. ((\<lambda>k. f k x) ---> g x) sequentially"
+    and "\<forall>x\<in>cbox a b. ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
     and "bounded {integral (cbox a b) (f k) | k . k \<in> UNIV}"
-  shows "g integrable_on cbox a b \<and> ((\<lambda>k. integral (cbox a b) (f k)) ---> integral (cbox a b) g) sequentially"
+  shows "g integrable_on cbox a b \<and> ((\<lambda>k. integral (cbox a b) (f k)) \<longlongrightarrow> integral (cbox a b) g) sequentially"
 proof (cases "content (cbox a b) = 0")
   case True
   show ?thesis
@@ -9692,7 +9692,7 @@ next
       apply auto
       done
   qed
-  have "\<exists>i. ((\<lambda>k. integral (cbox a b) (f k)) ---> i) sequentially"
+  have "\<exists>i. ((\<lambda>k. integral (cbox a b) (f k)) \<longlongrightarrow> i) sequentially"
     apply (rule bounded_increasing_convergent)
     defer
     apply rule
@@ -9935,15 +9935,15 @@ lemma monotone_convergence_increasing:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
   assumes "\<forall>k. (f k) integrable_on s"
     and "\<forall>k. \<forall>x\<in>s. (f k x) \<le> (f (Suc k) x)"
-    and "\<forall>x\<in>s. ((\<lambda>k. f k x) ---> g x) sequentially"
+    and "\<forall>x\<in>s. ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
     and "bounded {integral s (f k)| k. True}"
-  shows "g integrable_on s \<and> ((\<lambda>k. integral s (f k)) ---> integral s g) sequentially"
+  shows "g integrable_on s \<and> ((\<lambda>k. integral s (f k)) \<longlongrightarrow> integral s g) sequentially"
 proof -
-  have lem: "g integrable_on s \<and> ((\<lambda>k. integral s (f k)) ---> integral s g) sequentially"
+  have lem: "g integrable_on s \<and> ((\<lambda>k. integral s (f k)) \<longlongrightarrow> integral s g) sequentially"
     if "\<forall>k. \<forall>x\<in>s. 0 \<le> f k x"
     and "\<forall>k. (f k) integrable_on s"
     and "\<forall>k. \<forall>x\<in>s. f k x \<le> f (Suc k) x"
-    and "\<forall>x\<in>s. ((\<lambda>k. f k x) ---> g x) sequentially"
+    and "\<forall>x\<in>s. ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
     and "bounded {integral s (f k)| k. True}"
     for f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real" and g s
   proof -
@@ -9962,7 +9962,7 @@ proof -
       done
     note fg=this[rule_format]
 
-    have "\<exists>i. ((\<lambda>k. integral s (f k)) ---> i) sequentially"
+    have "\<exists>i. ((\<lambda>k. integral s (f k)) \<longlongrightarrow> i) sequentially"
       apply (rule bounded_increasing_convergent)
       apply (rule that(5))
       apply rule
@@ -10004,7 +10004,7 @@ proof -
       apply (rule int)
       done
     have "\<And>a b. (\<lambda>x. if x \<in> s then g x else 0) integrable_on cbox a b \<and>
-      ((\<lambda>k. integral (cbox a b) (\<lambda>x. if x \<in> s then f k x else 0)) --->
+      ((\<lambda>k. integral (cbox a b) (\<lambda>x. if x \<in> s then f k x else 0)) \<longlongrightarrow>
       integral (cbox a b) (\<lambda>x. if x \<in> s then g x else 0)) sequentially"
     proof (rule monotone_convergence_interval, safe, goal_cases)
       case 1
@@ -10140,7 +10140,7 @@ proof -
     apply auto
     done
   note * = this[rule_format]
-  have "(\<lambda>x. g x - f 0 x) integrable_on s \<and> ((\<lambda>k. integral s (\<lambda>x. f (Suc k) x - f 0 x)) --->
+  have "(\<lambda>x. g x - f 0 x) integrable_on s \<and> ((\<lambda>k. integral s (\<lambda>x. f (Suc k) x - f 0 x)) \<longlongrightarrow>
     integral s (\<lambda>x. g x - f 0 x)) sequentially"
     apply (rule lem)
     apply safe
@@ -10225,9 +10225,9 @@ lemma monotone_convergence_decreasing:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
   assumes "\<forall>k. (f k) integrable_on s"
     and "\<forall>k. \<forall>x\<in>s. f (Suc k) x \<le> f k x"
-    and "\<forall>x\<in>s. ((\<lambda>k. f k x) ---> g x) sequentially"
+    and "\<forall>x\<in>s. ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
     and "bounded {integral s (f k)| k. True}"
-  shows "g integrable_on s \<and> ((\<lambda>k. integral s (f k)) ---> integral s g) sequentially"
+  shows "g integrable_on s \<and> ((\<lambda>k. integral s (f k)) \<longlongrightarrow> integral s g) sequentially"
 proof -
   note assm = assms[rule_format]
   have *: "{integral s (\<lambda>x. - f k x) |k. True} = op *\<^sub>R (- 1) ` {integral s (f k)| k. True}"
@@ -10240,7 +10240,7 @@ proof -
     apply auto
     done
   have "(\<lambda>x. - g x) integrable_on s \<and>
-    ((\<lambda>k. integral s (\<lambda>x. - f k x)) ---> integral s (\<lambda>x. - g x)) sequentially"
+    ((\<lambda>k. integral s (\<lambda>x. - f k x)) \<longlongrightarrow> integral s (\<lambda>x. - g x)) sequentially"
     apply (rule monotone_convergence_increasing)
     apply safe
     apply (rule integrable_neg)
@@ -11842,7 +11842,7 @@ lemma
   obtains I J where
     "\<And>n. (f n has_integral I n) (cbox a b)"
     "(g has_integral J) (cbox a b)"
-    "(I ---> J) F"
+    "(I \<longlongrightarrow> J) F"
 proof -
   have fi[simp]: "f n integrable_on (cbox a b)" for n
     by (auto intro!: integrable_continuous assms)
@@ -11858,7 +11858,7 @@ proof -
 
   moreover
 
-  have "(I ---> J) F"
+  have "(I \<longlongrightarrow> J) F"
   proof cases
     assume "content (cbox a b) = 0"
     hence "I = (\<lambda>_. 0)" "J = 0"
@@ -11906,9 +11906,9 @@ lemma dominated_convergence:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
   assumes "\<And>k. (f k) integrable_on s" "h integrable_on s"
     and "\<And>k. \<forall>x \<in> s. norm (f k x) \<le> h x"
-    and "\<forall>x \<in> s. ((\<lambda>k. f k x) ---> g x) sequentially"
+    and "\<forall>x \<in> s. ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
   shows "g integrable_on s"
-    and "((\<lambda>k. integral s (f k)) ---> integral s g) sequentially"
+    and "((\<lambda>k. integral s (f k)) \<longlongrightarrow> integral s g) sequentially"
 proof -
   have bdd_below[simp]: "\<And>x P. x \<in> s \<Longrightarrow> bdd_below {f n x |n. P n}"
   proof (safe intro!: bdd_belowI)
@@ -11922,7 +11922,7 @@ proof -
   qed
 
   have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<and>
-    ((\<lambda>k. integral s (\<lambda>x. Inf {f j x |j. j \<in> {m..m + k}})) --->
+    ((\<lambda>k. integral s (\<lambda>x. Inf {f j x |j. j \<in> {m..m + k}})) \<longlongrightarrow>
     integral s (\<lambda>x. Inf {f j x |j. m \<le> j}))sequentially"
   proof (rule monotone_convergence_decreasing, safe)
     fix m :: nat
@@ -11962,7 +11962,7 @@ proof -
     show "Inf {f j x |j. j \<in> {m..m + Suc k}} \<le> Inf {f j x |j. j \<in> {m..m + k}}"
       by (rule cInf_superset_mono) auto
     let ?S = "{f j x| j. m \<le> j}"
-    show "((\<lambda>k. Inf {f j x |j. j \<in> {m..m + k}}) ---> Inf ?S) sequentially"
+    show "((\<lambda>k. Inf {f j x |j. j \<in> {m..m + k}}) \<longlongrightarrow> Inf ?S) sequentially"
     proof (rule LIMSEQ_I, goal_cases)
       case r: (1 r)
 
@@ -11993,7 +11993,7 @@ proof -
   note dec1 = conjunctD2[OF this]
 
   have "\<And>m. (\<lambda>x. Sup {f j x |j. m \<le> j}) integrable_on s \<and>
-    ((\<lambda>k. integral s (\<lambda>x. Sup {f j x |j. j \<in> {m..m + k}})) --->
+    ((\<lambda>k. integral s (\<lambda>x. Sup {f j x |j. j \<in> {m..m + k}})) \<longlongrightarrow>
     integral s (\<lambda>x. Sup {f j x |j. m \<le> j})) sequentially"
   proof (rule monotone_convergence_increasing,safe)
     fix m :: nat
@@ -12033,7 +12033,7 @@ proof -
     show "Sup {f j x |j. j \<in> {m..m + Suc k}} \<ge> Sup {f j x |j. j \<in> {m..m + k}}"
       by (rule cSup_subset_mono) auto
     let ?S = "{f j x| j. m \<le> j}"
-    show "((\<lambda>k. Sup {f j x |j. j \<in> {m..m + k}}) ---> Sup ?S) sequentially"
+    show "((\<lambda>k. Sup {f j x |j. j \<in> {m..m + k}}) \<longlongrightarrow> Sup ?S) sequentially"
     proof (rule LIMSEQ_I, goal_cases)
       case r: (1 r)
       have "\<exists>y\<in>?S. Sup ?S - r < y"
@@ -12062,7 +12062,7 @@ proof -
   note inc1 = conjunctD2[OF this]
 
   have "g integrable_on s \<and>
-    ((\<lambda>k. integral s (\<lambda>x. Inf {f j x |j. k \<le> j})) ---> integral s g) sequentially"
+    ((\<lambda>k. integral s (\<lambda>x. Inf {f j x |j. k \<le> j})) \<longlongrightarrow> integral s g) sequentially"
     apply (rule monotone_convergence_increasing,safe)
     apply fact
   proof -
@@ -12110,7 +12110,7 @@ proof -
   note inc2 = conjunctD2[OF this]
 
   have "g integrable_on s \<and>
-    ((\<lambda>k. integral s (\<lambda>x. Sup {f j x |j. k \<le> j})) ---> integral s g) sequentially"
+    ((\<lambda>k. integral s (\<lambda>x. Sup {f j x |j. k \<le> j})) \<longlongrightarrow> integral s g) sequentially"
     apply (rule monotone_convergence_decreasing,safe)
     apply fact
   proof -
@@ -12135,7 +12135,7 @@ proof -
 
     show "Sup {f j x |j. k \<le> j} \<ge> Sup {f j x |j. Suc k \<le> j}"
       by (rule cSup_subset_mono) (auto simp: \<open>x\<in>s\<close>)
-    show "((\<lambda>k. Sup {f j x |j. k \<le> j}) ---> g x) sequentially"
+    show "((\<lambda>k. Sup {f j x |j. k \<le> j}) \<longlongrightarrow> g x) sequentially"
     proof (rule LIMSEQ_I, goal_cases)
       case r: (1 r)
       then have "0<r/2"
@@ -12157,7 +12157,7 @@ proof -
   note dec2 = conjunctD2[OF this]
 
   show "g integrable_on s" by fact
-  show "((\<lambda>k. integral s (f k)) ---> integral s g) sequentially"
+  show "((\<lambda>k. integral s (f k)) \<longlongrightarrow> integral s g) sequentially"
   proof (rule LIMSEQ_I, goal_cases)
     case r: (1 r)
     from LIMSEQ_D [OF inc2(2) r] guess N1 .. note N1=this[unfolded real_norm_def]

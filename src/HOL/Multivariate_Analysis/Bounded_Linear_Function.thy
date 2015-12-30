@@ -355,8 +355,8 @@ lemma norm_blinfun_euclidean_le:
 lemma tendsto_componentwise1:
   fixes a::"'a::euclidean_space \<Rightarrow>\<^sub>L 'b::real_normed_vector"
     and b::"'c \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b"
-  assumes "(\<And>j. j \<in> Basis \<Longrightarrow> ((\<lambda>n. b n j) ---> a j) F)"
-  shows "(b ---> a) F"
+  assumes "(\<And>j. j \<in> Basis \<Longrightarrow> ((\<lambda>n. b n j) \<longlongrightarrow> a j) F)"
+  shows "(b \<longlongrightarrow> a) F"
 proof -
   have "\<And>j. j \<in> Basis \<Longrightarrow> Zfun (\<lambda>x. norm (b x j - a j)) F"
     using assms unfolding tendsto_Zfun_iff Zfun_norm_iff .
@@ -408,8 +408,8 @@ lemma norm_blinfun_of_matrix:
   done
 
 lemma tendsto_blinfun_of_matrix:
-  assumes "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> ((\<lambda>n. b n i j) ---> a i j) F"
-  shows "((\<lambda>n. blinfun_of_matrix (b n)) ---> blinfun_of_matrix a) F"
+  assumes "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> ((\<lambda>n. b n i j) \<longlongrightarrow> a i j) F"
+  shows "((\<lambda>n. blinfun_of_matrix (b n)) \<longlongrightarrow> blinfun_of_matrix a) F"
 proof -
   have "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> Zfun (\<lambda>x. norm (b x i j - a i j)) F"
     using assms unfolding tendsto_Zfun_iff Zfun_norm_iff .
@@ -423,7 +423,7 @@ qed
 lemma tendsto_componentwise:
   fixes a::"'a::euclidean_space \<Rightarrow>\<^sub>L 'b::euclidean_space"
     and b::"'c \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b"
-  shows "(\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> ((\<lambda>n. b n j \<bullet> i) ---> a j \<bullet> i) F) \<Longrightarrow> (b ---> a) F"
+  shows "(\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> ((\<lambda>n. b n j \<bullet> i) \<longlongrightarrow> a j \<bullet> i) F) \<Longrightarrow> (b \<longlongrightarrow> a) F"
   apply (subst blinfun_of_matrix_works[of a, symmetric])
   apply (subst blinfun_of_matrix_works[of "b x" for x, symmetric, abs_def])
   by (rule tendsto_blinfun_of_matrix)
@@ -495,7 +495,7 @@ proof safe
       by (metis (lifting) bounded_subset f' image_subsetI s')
     then obtain l2 r2
       where r2: "subseq r2"
-      and lr2: "((\<lambda>i. f (r1 (r2 i)) k) ---> l2) sequentially"
+      and lr2: "((\<lambda>i. f (r1 (r2 i)) k) \<longlongrightarrow> l2) sequentially"
       using bounded_imp_convergent_subsequence[of "\<lambda>i. f (r1 i) k"]
       by (auto simp: o_def)
     def r \<equiv> "r1 \<circ> r2"
@@ -585,9 +585,9 @@ proof
     ultimately have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially"
       using eventually_elim2 by force
   }
-  then have *: "((f \<circ> r) ---> l) sequentially"
+  then have *: "((f \<circ> r) \<longlongrightarrow> l) sequentially"
     unfolding o_def tendsto_iff by simp
-  with r show "\<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+  with r show "\<exists>l r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
     by auto
 qed
 

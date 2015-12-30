@@ -54,11 +54,11 @@ lemma uniform_limit_at_le_iff:
   by (fastforce dest: spec[where x = "e / 2" for e])
 
 lemma swap_uniform_limit:
-  assumes f: "\<forall>\<^sub>F n in F. (f n ---> g n) (at x within S)"
-  assumes g: "(g ---> l) F"
+  assumes f: "\<forall>\<^sub>F n in F. (f n \<longlongrightarrow> g n) (at x within S)"
+  assumes g: "(g \<longlongrightarrow> l) F"
   assumes uc: "uniform_limit S f h F"
   assumes "\<not>trivial_limit F"
-  shows "(h ---> l) (at x within S)"
+  shows "(h \<longlongrightarrow> l) (at x within S)"
 proof (rule tendstoI)
   fix e :: real
   def e' \<equiv> "e/3"
@@ -101,7 +101,7 @@ lemma
   tendsto_uniform_limitI:
   assumes "uniform_limit S f l F"
   assumes "x \<in> S"
-  shows "((\<lambda>y. f y x) ---> l x) F"
+  shows "((\<lambda>y. f y x) \<longlongrightarrow> l x) F"
   using assms
   by (auto intro!: tendstoI simp: eventually_mono dest!: uniform_limitD)
 
@@ -113,10 +113,10 @@ lemma uniform_limit_theorem:
   unfolding continuous_on_def
 proof safe
   fix x assume "x \<in> A"
-  then have "\<forall>\<^sub>F n in F. (f n ---> f n x) (at x within A)" "((\<lambda>n. f n x) ---> l x) F"
+  then have "\<forall>\<^sub>F n in F. (f n \<longlongrightarrow> f n x) (at x within A)" "((\<lambda>n. f n x) \<longlongrightarrow> l x) F"
     using c ul
     by (auto simp: continuous_on_def eventually_mono tendsto_uniform_limitI)
-  then show "(l ---> l x) (at x within A)"
+  then show "(l \<longlongrightarrow> l x) (at x within A)"
     by (rule swap_uniform_limit) fact+
 qed
 

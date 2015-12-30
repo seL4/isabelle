@@ -48,7 +48,7 @@ lemma countable_PiE:
 
 lemma Lim_within_open:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
-  shows "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f ---> l)(at a within S) \<longleftrightarrow> (f ---> l)(at a)"
+  shows "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f \<longlongrightarrow> l)(at a within S) \<longleftrightarrow> (f \<longlongrightarrow> l)(at a)"
   by (fact tendsto_within_open)
 
 lemma continuous_on_union:
@@ -2293,48 +2293,48 @@ lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. ev
 subsection \<open>Limits\<close>
 
 lemma Lim:
-  "(f ---> l) net \<longleftrightarrow>
+  "(f \<longlongrightarrow> l) net \<longleftrightarrow>
         trivial_limit net \<or>
         (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
   unfolding tendsto_iff trivial_limit_eq by auto
 
 text\<open>Show that they yield usual definitions in the various cases.\<close>
 
-lemma Lim_within_le: "(f ---> l)(at a within S) \<longleftrightarrow>
+lemma Lim_within_le: "(f \<longlongrightarrow> l)(at a within S) \<longleftrightarrow>
     (\<forall>e>0. \<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a \<le> d \<longrightarrow> dist (f x) l < e)"
   by (auto simp add: tendsto_iff eventually_at_le dist_nz)
 
-lemma Lim_within: "(f ---> l) (at a within S) \<longleftrightarrow>
+lemma Lim_within: "(f \<longlongrightarrow> l) (at a within S) \<longleftrightarrow>
     (\<forall>e >0. \<exists>d>0. \<forall>x \<in> S. 0 < dist x a \<and> dist x a  < d \<longrightarrow> dist (f x) l < e)"
   by (auto simp add: tendsto_iff eventually_at dist_nz)
 
-lemma Lim_at: "(f ---> l) (at a) \<longleftrightarrow>
+lemma Lim_at: "(f \<longlongrightarrow> l) (at a) \<longleftrightarrow>
     (\<forall>e >0. \<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d  \<longrightarrow> dist (f x) l < e)"
   by (auto simp add: tendsto_iff eventually_at2)
 
 lemma Lim_at_infinity:
-  "(f ---> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x. norm x \<ge> b \<longrightarrow> dist (f x) l < e)"
+  "(f \<longlongrightarrow> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x. norm x \<ge> b \<longrightarrow> dist (f x) l < e)"
   by (auto simp add: tendsto_iff eventually_at_infinity)
 
-lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
+lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f \<longlongrightarrow> l) net"
   by (rule topological_tendstoI, auto elim: eventually_mono)
 
 text\<open>The expected monotonicity property.\<close>
 
 lemma Lim_Un:
-  assumes "(f ---> l) (at x within S)" "(f ---> l) (at x within T)"
-  shows "(f ---> l) (at x within (S \<union> T))"
+  assumes "(f \<longlongrightarrow> l) (at x within S)" "(f \<longlongrightarrow> l) (at x within T)"
+  shows "(f \<longlongrightarrow> l) (at x within (S \<union> T))"
   using assms unfolding at_within_union by (rule filterlim_sup)
 
 lemma Lim_Un_univ:
-  "(f ---> l) (at x within S) \<Longrightarrow> (f ---> l) (at x within T) \<Longrightarrow>
-    S \<union> T = UNIV \<Longrightarrow> (f ---> l) (at x)"
+  "(f \<longlongrightarrow> l) (at x within S) \<Longrightarrow> (f \<longlongrightarrow> l) (at x within T) \<Longrightarrow>
+    S \<union> T = UNIV \<Longrightarrow> (f \<longlongrightarrow> l) (at x)"
   by (metis Lim_Un)
 
 text\<open>Interrelations between restricted and unrestricted limits.\<close>
 
 lemma Lim_at_imp_Lim_at_within:
-  "(f ---> l) (at x) \<Longrightarrow> (f ---> l) (at x within S)"
+  "(f \<longlongrightarrow> l) (at x) \<Longrightarrow> (f \<longlongrightarrow> l) (at x within S)"
   by (metis order_refl filterlim_mono subset_UNIV at_le)
 
 lemma eventually_within_interior:
@@ -2366,7 +2366,7 @@ lemma at_within_interior:
 lemma Lim_within_LIMSEQ:
   fixes a :: "'a::first_countable_topology"
   assumes "\<forall>S. (\<forall>n. S n \<noteq> a \<and> S n \<in> T) \<and> S \<longlonglongrightarrow> a \<longrightarrow> (\<lambda>n. X (S n)) \<longlonglongrightarrow> L"
-  shows "(X ---> L) (at a within T)"
+  shows "(X \<longlongrightarrow> L) (at a within T)"
   using assms unfolding tendsto_def [where l=L]
   by (simp add: sequentially_imp_eventually_within)
 
@@ -2375,7 +2375,7 @@ lemma Lim_right_bound:
     'b::{linorder_topology, conditionally_complete_linorder}"
   assumes mono: "\<And>a b. a \<in> I \<Longrightarrow> b \<in> I \<Longrightarrow> x < a \<Longrightarrow> a \<le> b \<Longrightarrow> f a \<le> f b"
     and bnd: "\<And>a. a \<in> I \<Longrightarrow> x < a \<Longrightarrow> K \<le> f a"
-  shows "(f ---> Inf (f ` ({x<..} \<inter> I))) (at x within ({x<..} \<inter> I))"
+  shows "(f \<longlongrightarrow> Inf (f ` ({x<..} \<inter> I))) (at x within ({x<..} \<inter> I))"
 proof (cases "{x<..} \<inter> I = {}")
   case True
   then show ?thesis by simp
@@ -2411,7 +2411,7 @@ text\<open>Another limit point characterization.\<close>
 
 lemma islimpt_sequential:
   fixes x :: "'a::first_countable_topology"
-  shows "x islimpt S \<longleftrightarrow> (\<exists>f. (\<forall>n::nat. f n \<in> S - {x}) \<and> (f ---> x) sequentially)"
+  shows "x islimpt S \<longleftrightarrow> (\<exists>f. (\<forall>n::nat. f n \<in> S - {x}) \<and> (f \<longlongrightarrow> x) sequentially)"
     (is "?lhs = ?rhs")
 proof
   assume ?lhs
@@ -2456,13 +2456,13 @@ qed
 
 lemma Lim_null:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  shows "(f ---> l) net \<longleftrightarrow> ((\<lambda>x. f(x) - l) ---> 0) net"
+  shows "(f \<longlongrightarrow> l) net \<longleftrightarrow> ((\<lambda>x. f(x) - l) \<longlongrightarrow> 0) net"
   by (simp add: Lim dist_norm)
 
 lemma Lim_null_comparison:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes "eventually (\<lambda>x. norm (f x) \<le> g x) net" "(g ---> 0) net"
-  shows "(f ---> 0) net"
+  assumes "eventually (\<lambda>x. norm (f x) \<le> g x) net" "(g \<longlongrightarrow> 0) net"
+  shows "(f \<longlongrightarrow> 0) net"
   using assms(2)
 proof (rule metric_tendsto_imp_tendsto)
   show "eventually (\<lambda>x. dist (f x) 0 \<le> dist (g x) 0) net"
@@ -2473,8 +2473,8 @@ lemma Lim_transform_bound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
     and g :: "'a \<Rightarrow> 'c::real_normed_vector"
   assumes "eventually (\<lambda>n. norm (f n) \<le> norm (g n)) net"
-    and "(g ---> 0) net"
-  shows "(f ---> 0) net"
+    and "(g \<longlongrightarrow> 0) net"
+  shows "(f \<longlongrightarrow> 0) net"
   using assms(1) tendsto_norm_zero [OF assms(2)]
   by (rule Lim_null_comparison)
 
@@ -2483,7 +2483,7 @@ text\<open>Deducing things about the limit from the elements.\<close>
 lemma Lim_in_closed_set:
   assumes "closed S"
     and "eventually (\<lambda>x. f(x) \<in> S) net"
-    and "\<not> trivial_limit net" "(f ---> l) net"
+    and "\<not> trivial_limit net" "(f \<longlongrightarrow> l) net"
   shows "l \<in> S"
 proof (rule ccontr)
   assume "l \<notin> S"
@@ -2501,21 +2501,21 @@ text\<open>Need to prove closed(cball(x,e)) before deducing this as a corollary.
 
 lemma Lim_dist_ubound:
   assumes "\<not>(trivial_limit net)"
-    and "(f ---> l) net"
+    and "(f \<longlongrightarrow> l) net"
     and "eventually (\<lambda>x. dist a (f x) \<le> e) net"
   shows "dist a l \<le> e"
   using assms by (fast intro: tendsto_le tendsto_intros)
 
 lemma Lim_norm_ubound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes "\<not>(trivial_limit net)" "(f ---> l) net" "eventually (\<lambda>x. norm(f x) \<le> e) net"
+  assumes "\<not>(trivial_limit net)" "(f \<longlongrightarrow> l) net" "eventually (\<lambda>x. norm(f x) \<le> e) net"
   shows "norm(l) \<le> e"
   using assms by (fast intro: tendsto_le tendsto_intros)
 
 lemma Lim_norm_lbound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "\<not> trivial_limit net"
-    and "(f ---> l) net"
+    and "(f \<longlongrightarrow> l) net"
     and "eventually (\<lambda>x. e \<le> norm (f x)) net"
   shows "e \<le> norm l"
   using assms by (fast intro: tendsto_le tendsto_intros)
@@ -2523,25 +2523,25 @@ lemma Lim_norm_lbound:
 text\<open>Limit under bilinear function\<close>
 
 lemma Lim_bilinear:
-  assumes "(f ---> l) net"
-    and "(g ---> m) net"
+  assumes "(f \<longlongrightarrow> l) net"
+    and "(g \<longlongrightarrow> m) net"
     and "bounded_bilinear h"
-  shows "((\<lambda>x. h (f x) (g x)) ---> (h l m)) net"
-  using \<open>bounded_bilinear h\<close> \<open>(f ---> l) net\<close> \<open>(g ---> m) net\<close>
+  shows "((\<lambda>x. h (f x) (g x)) \<longlongrightarrow> (h l m)) net"
+  using \<open>bounded_bilinear h\<close> \<open>(f \<longlongrightarrow> l) net\<close> \<open>(g \<longlongrightarrow> m) net\<close>
   by (rule bounded_bilinear.tendsto)
 
 text\<open>These are special for limits out of the same vector space.\<close>
 
-lemma Lim_within_id: "(id ---> a) (at a within s)"
+lemma Lim_within_id: "(id \<longlongrightarrow> a) (at a within s)"
   unfolding id_def by (rule tendsto_ident_at)
 
-lemma Lim_at_id: "(id ---> a) (at a)"
+lemma Lim_at_id: "(id \<longlongrightarrow> a) (at a)"
   unfolding id_def by (rule tendsto_ident_at)
 
 lemma Lim_at_zero:
   fixes a :: "'a::real_normed_vector"
     and l :: "'b::topological_space"
-  shows "(f ---> l) (at a) \<longleftrightarrow> ((\<lambda>x. f(a + x)) ---> l) (at 0)"
+  shows "(f \<longlongrightarrow> l) (at a) \<longleftrightarrow> ((\<lambda>x. f(a + x)) \<longlongrightarrow> l) (at 0)"
   using LIM_offset_zero LIM_offset_zero_cancel ..
 
 text\<open>It's also sometimes useful to extract the limit point from the filter.\<close>
@@ -2558,7 +2558,7 @@ lemma netlimit_at:
   using netlimit_within [of a UNIV] by simp
 
 lemma lim_within_interior:
-  "x \<in> interior S \<Longrightarrow> (f ---> l) (at x within S) \<longleftrightarrow> (f ---> l) (at x)"
+  "x \<in> interior S \<Longrightarrow> (f \<longlongrightarrow> l) (at x within S) \<longleftrightarrow> (f \<longlongrightarrow> l) (at x)"
   by (metis at_within_interior)
 
 lemma netlimit_within_interior:
@@ -2587,7 +2587,7 @@ text\<open>Useful lemmas on closure and set of possible sequential limits.\<clos
 
 lemma closure_sequential:
   fixes l :: "'a::first_countable_topology"
-  shows "l \<in> closure S \<longleftrightarrow> (\<exists>x. (\<forall>n. x n \<in> S) \<and> (x ---> l) sequentially)"
+  shows "l \<in> closure S \<longleftrightarrow> (\<exists>x. (\<forall>n. x n \<in> S) \<and> (x \<longlongrightarrow> l) sequentially)"
   (is "?lhs = ?rhs")
 proof
   assume "?lhs"
@@ -2610,7 +2610,7 @@ qed
 
 lemma closed_sequential_limits:
   fixes S :: "'a::first_countable_topology set"
-  shows "closed S \<longleftrightarrow> (\<forall>x l. (\<forall>n. x n \<in> S) \<and> (x ---> l) sequentially \<longrightarrow> l \<in> S)"
+  shows "closed S \<longleftrightarrow> (\<forall>x l. (\<forall>n. x n \<in> S) \<and> (x \<longlongrightarrow> l) sequentially \<longrightarrow> l \<in> S)"
 by (metis closure_sequential closure_subset_eq subset_iff)
 
 lemma closure_approachable:
@@ -2795,8 +2795,8 @@ proof -
 qed
 
 lemma tendsto_infdist [tendsto_intros]:
-  assumes f: "(f ---> l) F"
-  shows "((\<lambda>x. infdist (f x) A) ---> infdist l A) F"
+  assumes f: "(f \<longlongrightarrow> l) F"
+  shows "((\<lambda>x. infdist (f x) A) \<longlongrightarrow> infdist l A) F"
 proof (rule tendstoI)
   fix e ::real
   assume "e > 0"
@@ -2820,13 +2820,13 @@ lemma sequentially_offset: (* TODO: move to Topological_Spaces.thy *)
   using assms by (rule eventually_sequentially_seg [THEN iffD2])
 
 lemma seq_offset_neg: (* TODO: move to Topological_Spaces.thy *)
-  "(f ---> l) sequentially \<Longrightarrow> ((\<lambda>i. f(i - k)) ---> l) sequentially"
+  "(f \<longlongrightarrow> l) sequentially \<Longrightarrow> ((\<lambda>i. f(i - k)) \<longlongrightarrow> l) sequentially"
   apply (erule filterlim_compose)
   apply (simp add: filterlim_def le_sequentially eventually_filtermap eventually_sequentially)
   apply arith
   done
 
-lemma seq_harmonic: "((\<lambda>n. inverse (real n)) ---> 0) sequentially"
+lemma seq_harmonic: "((\<lambda>n. inverse (real n)) \<longlongrightarrow> 0) sequentially"
   using LIMSEQ_inverse_real_of_nat by (rule LIMSEQ_imp_Suc) (* TODO: move to Limits.thy *)
 
 subsection \<open>More properties of closed balls\<close>
@@ -3224,7 +3224,7 @@ proof -
   {
     fix y
     assume "y \<in> closure S"
-    then obtain f where f: "\<forall>n. f n \<in> S"  "(f ---> y) sequentially"
+    then obtain f where f: "\<forall>n. f n \<in> S"  "(f \<longlongrightarrow> y) sequentially"
       unfolding closure_sequential by auto
     have "\<forall>n. f n \<in> S \<longrightarrow> dist x (f n) \<le> a" using a by simp
     then have "eventually (\<lambda>n. dist x (f n) \<le> a) sequentially"
@@ -3567,7 +3567,7 @@ qed
 lemma sequence_infinite_lemma:
   fixes f :: "nat \<Rightarrow> 'a::t1_space"
   assumes "\<forall>n. f n \<noteq> l"
-    and "(f ---> l) sequentially"
+    and "(f \<longlongrightarrow> l) sequentially"
   shows "infinite (range f)"
 proof
   assume "finite (range f)"
@@ -3664,7 +3664,7 @@ lemma islimpt_range_imp_convergent_subsequence:
 
 lemma sequence_unique_limpt:
   fixes f :: "nat \<Rightarrow> 'a::t2_space"
-  assumes "(f ---> l) sequentially"
+  assumes "(f \<longlongrightarrow> l) sequentially"
     and "l' islimpt (range f)"
   shows "l' = l"
 proof (rule ccontr)
@@ -3701,7 +3701,7 @@ lemma bolzano_weierstrass_imp_closed:
 proof -
   {
     fix x l
-    assume as: "\<forall>n::nat. x n \<in> s" "(x ---> l) sequentially"
+    assume as: "\<forall>n::nat. x n \<in> s" "(x \<longlongrightarrow> l) sequentially"
     then have "l \<in> s"
     proof (cases "\<forall>n. x n \<noteq> l")
       case False
@@ -3974,16 +3974,16 @@ subsubsection\<open>Sequential compactness\<close>
 
 definition seq_compact :: "'a::topological_space set \<Rightarrow> bool"
   where "seq_compact S \<longleftrightarrow>
-    (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially))"
+    (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially))"
 
 lemma seq_compactI:
-  assumes "\<And>f. \<forall>n. f n \<in> S \<Longrightarrow> \<exists>l\<in>S. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+  assumes "\<And>f. \<forall>n. f n \<in> S \<Longrightarrow> \<exists>l\<in>S. \<exists>r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
   shows "seq_compact S"
   unfolding seq_compact_def using assms by fast
 
 lemma seq_compactE:
   assumes "seq_compact S" "\<forall>n. f n \<in> S"
-  obtains l r where "l \<in> S" "subseq r" "((f \<circ> r) ---> l) sequentially"
+  obtains l r where "l \<in> S" "subseq r" "((f \<circ> r) \<longlongrightarrow> l) sequentially"
   using assms unfolding seq_compact_def by fast
 
 lemma closed_sequentially: (* TODO: move upwards *)
@@ -4184,7 +4184,7 @@ proof -
   {
     fix f :: "nat \<Rightarrow> 'a"
     assume f: "\<forall>n. f n \<in> s"
-    have "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+    have "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
     proof (cases "finite (range f)")
       case True
       obtain l where "infinite {n. f n = f l}"
@@ -4200,9 +4200,9 @@ proof -
       with f assms have "\<exists>x\<in>s. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> range f)"
         by auto
       then obtain l where "l \<in> s" "\<forall>U. l\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> range f)" ..
-      from this(2) have "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+      from this(2) have "\<exists>r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
         using acc_point_range_imp_convergent_subsequence[of l f] by auto
-      with \<open>l \<in> s\<close> show "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially" ..
+      with \<open>l \<in> s\<close> show "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially" ..
     qed
   }
   then show ?thesis
@@ -4261,7 +4261,7 @@ proof -
     qed simp
     then obtain x where "\<forall>n::nat. x n \<in> s" and x:"\<And>n m. m < n \<Longrightarrow> \<not> (dist (x m) (x n) < e)"
       by blast
-    then obtain l r where "l \<in> s" and r:"subseq r" and "((x \<circ> r) ---> l) sequentially"
+    then obtain l r where "l \<in> s" and r:"subseq r" and "((x \<circ> r) \<longlongrightarrow> l) sequentially"
       using assms by (metis seq_compact_def)
     from this(3) have "Cauchy (x \<circ> r)"
       using LIMSEQ_imp_Cauchy by auto
@@ -4358,7 +4358,7 @@ text \<open>
 
 class heine_borel = metric_space +
   assumes bounded_imp_convergent_subsequence:
-    "bounded (range f) \<Longrightarrow> \<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+    "bounded (range f) \<Longrightarrow> \<exists>l r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
 
 lemma bounded_closed_imp_seq_compact:
   fixes s::"'a::heine_borel set"
@@ -4370,13 +4370,13 @@ proof (unfold seq_compact_def, clarify)
   assume f: "\<forall>n. f n \<in> s"
   with \<open>bounded s\<close> have "bounded (range f)"
     by (auto intro: bounded_subset)
-  obtain l r where r: "subseq r" and l: "((f \<circ> r) ---> l) sequentially"
+  obtain l r where r: "subseq r" and l: "((f \<circ> r) \<longlongrightarrow> l) sequentially"
     using bounded_imp_convergent_subsequence [OF \<open>bounded (range f)\<close>] by auto
   from f have fr: "\<forall>n. (f \<circ> r) n \<in> s"
     by simp
   have "l \<in> s" using \<open>closed s\<close> fr l
     by (rule closed_sequentially)
-  show "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+  show "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
     using \<open>l \<in> s\<close> r l by blast
 qed
 
@@ -4451,7 +4451,7 @@ proof safe
       by simp
     have "bounded (range (\<lambda>i. f (r1 i) \<bullet> k))"
       by (metis (lifting) bounded_subset f' image_subsetI s')
-    then obtain l2 r2 where r2:"subseq r2" and lr2:"((\<lambda>i. f (r1 (r2 i)) \<bullet> k) ---> l2) sequentially"
+    then obtain l2 r2 where r2:"subseq r2" and lr2:"((\<lambda>i. f (r1 (r2 i)) \<bullet> k) \<longlongrightarrow> l2) sequentially"
       using bounded_imp_convergent_subsequence[of "\<lambda>i. f (r1 i) \<bullet> k"]
       by (auto simp: o_def)
     def r \<equiv> "r1 \<circ> r2"
@@ -4509,9 +4509,9 @@ proof
     ultimately have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially"
       by (rule eventually_mono)
   }
-  then have *: "((f \<circ> r) ---> l) sequentially"
+  then have *: "((f \<circ> r) \<longlongrightarrow> l) sequentially"
     unfolding o_def tendsto_iff by simp
-  with r show "\<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+  with r show "\<exists>l r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
     by auto
 qed
 
@@ -4535,16 +4535,16 @@ proof
     using bounded_imp_convergent_subsequence [OF s1] unfolding o_def by fast
   from f have s2: "bounded (range (snd \<circ> f \<circ> r1))"
     by (auto simp add: image_comp intro: bounded_snd bounded_subset)
-  obtain l2 r2 where r2: "subseq r2" and l2: "((\<lambda>n. snd (f (r1 (r2 n)))) ---> l2) sequentially"
+  obtain l2 r2 where r2: "subseq r2" and l2: "((\<lambda>n. snd (f (r1 (r2 n)))) \<longlongrightarrow> l2) sequentially"
     using bounded_imp_convergent_subsequence [OF s2]
     unfolding o_def by fast
-  have l1': "((\<lambda>n. fst (f (r1 (r2 n)))) ---> l1) sequentially"
+  have l1': "((\<lambda>n. fst (f (r1 (r2 n)))) \<longlongrightarrow> l1) sequentially"
     using LIMSEQ_subseq_LIMSEQ [OF l1 r2] unfolding o_def .
-  have l: "((f \<circ> (r1 \<circ> r2)) ---> (l1, l2)) sequentially"
+  have l: "((f \<circ> (r1 \<circ> r2)) \<longlongrightarrow> (l1, l2)) sequentially"
     using tendsto_Pair [OF l1' l2] unfolding o_def by simp
   have r: "subseq (r1 \<circ> r2)"
     using r1 r2 unfolding subseq_def by simp
-  show "\<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+  show "\<exists>l r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
     using l r by fast
 qed
 
@@ -4601,7 +4601,7 @@ proof -
       }
       then have "\<exists>N. \<forall>n\<ge>N. dist (f n) l < e" by blast
     }
-    then have "\<exists>l\<in>s. (f ---> l) sequentially" using \<open>l\<in>s\<close>
+    then have "\<exists>l\<in>s. (f \<longlongrightarrow> l) sequentially" using \<open>l\<in>s\<close>
       unfolding lim_sequentially by auto
   }
   then show ?thesis unfolding complete_def by auto
@@ -4777,7 +4777,7 @@ proof
     by (rule compact_imp_complete)
   moreover have "\<forall>n. f n \<in> closure (range f)"
     using closure_subset [of "range f"] by auto
-  ultimately have "\<exists>l\<in>closure (range f). (f ---> l) sequentially"
+  ultimately have "\<exists>l\<in>closure (range f). (f \<longlongrightarrow> l) sequentially"
     using \<open>Cauchy f\<close> unfolding complete_def by auto
   then show "convergent f"
     unfolding convergent_def by auto
@@ -4840,12 +4840,12 @@ qed
 
 lemma convergent_eq_cauchy:
   fixes s :: "nat \<Rightarrow> 'a::complete_space"
-  shows "(\<exists>l. (s ---> l) sequentially) \<longleftrightarrow> Cauchy s"
+  shows "(\<exists>l. (s \<longlongrightarrow> l) sequentially) \<longleftrightarrow> Cauchy s"
   unfolding Cauchy_convergent_iff convergent_def ..
 
 lemma convergent_imp_bounded:
   fixes s :: "nat \<Rightarrow> 'a::metric_space"
-  shows "(s ---> l) sequentially \<Longrightarrow> bounded (range s)"
+  shows "(s \<longlongrightarrow> l) sequentially \<Longrightarrow> bounded (range s)"
   by (intro cauchy_imp_bounded LIMSEQ_imp_Cauchy)
 
 lemma compact_cball[simp]:
@@ -4940,7 +4940,7 @@ proof -
   }
   then have "Cauchy t"
     unfolding cauchy_def by auto
-  then obtain l where l:"(t ---> l) sequentially"
+  then obtain l where l:"(t \<longlongrightarrow> l) sequentially"
     using complete_UNIV unfolding complete_def by auto
   {
     fix n :: nat
@@ -5035,9 +5035,9 @@ next
     apply (erule_tac x=e in allE)
     apply auto
     done
-  then obtain l where l: "\<forall>x. P x \<longrightarrow> ((\<lambda>n. s n x) ---> l x) sequentially"
+  then obtain l where l: "\<forall>x. P x \<longrightarrow> ((\<lambda>n. s n x) \<longlongrightarrow> l x) sequentially"
     unfolding convergent_eq_cauchy[symmetric]
-    using choice[of "\<lambda>x l. P x \<longrightarrow> ((\<lambda>n. s n x) ---> l) sequentially"]
+    using choice[of "\<lambda>x l. P x \<longrightarrow> ((\<lambda>n. s n x) \<longlongrightarrow> l) sequentially"]
     by auto
   {
     fix e :: real
@@ -5230,7 +5230,7 @@ lemma continuous_at_imp_continuous_within:
   "continuous (at x) f \<Longrightarrow> continuous (at x within s) f"
   unfolding continuous_within continuous_at using Lim_at_imp_Lim_at_within by auto
 
-lemma Lim_trivial_limit: "trivial_limit net \<Longrightarrow> (f ---> l) net"
+lemma Lim_trivial_limit: "trivial_limit net \<Longrightarrow> (f \<longlongrightarrow> l) net"
   by simp
 
 lemmas continuous_on = continuous_on_def \<comment> "legacy theorem name"
@@ -5253,8 +5253,8 @@ text \<open>Characterization of various kinds of continuity in terms of sequence
 lemma continuous_within_sequentially:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
   shows "continuous (at a within s) f \<longleftrightarrow>
-    (\<forall>x. (\<forall>n::nat. x n \<in> s) \<and> (x ---> a) sequentially
-         \<longrightarrow> ((f \<circ> x) ---> f a) sequentially)"
+    (\<forall>x. (\<forall>n::nat. x n \<in> s) \<and> (x \<longlongrightarrow> a) sequentially
+         \<longrightarrow> ((f \<circ> x) \<longlongrightarrow> f a) sequentially)"
   (is "?lhs = ?rhs")
 proof
   assume ?lhs
@@ -5286,14 +5286,14 @@ qed
 lemma continuous_at_sequentially:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
   shows "continuous (at a) f \<longleftrightarrow>
-    (\<forall>x. (x ---> a) sequentially --> ((f \<circ> x) ---> f a) sequentially)"
+    (\<forall>x. (x \<longlongrightarrow> a) sequentially --> ((f \<circ> x) \<longlongrightarrow> f a) sequentially)"
   using continuous_within_sequentially[of a UNIV f] by simp
 
 lemma continuous_on_sequentially:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
   shows "continuous_on s f \<longleftrightarrow>
-    (\<forall>x. \<forall>a \<in> s. (\<forall>n. x(n) \<in> s) \<and> (x ---> a) sequentially
-      --> ((f \<circ> x) ---> f a) sequentially)"
+    (\<forall>x. \<forall>a \<in> s. (\<forall>n. x(n) \<in> s) \<and> (x \<longlongrightarrow> a) sequentially
+      --> ((f \<circ> x) \<longlongrightarrow> f a) sequentially)"
   (is "?lhs = ?rhs")
 proof
   assume ?rhs
@@ -5311,15 +5311,15 @@ qed
 
 lemma uniformly_continuous_on_sequentially:
   "uniformly_continuous_on s f \<longleftrightarrow> (\<forall>x y. (\<forall>n. x n \<in> s) \<and> (\<forall>n. y n \<in> s) \<and>
-                    ((\<lambda>n. dist (x n) (y n)) ---> 0) sequentially
-                    \<longrightarrow> ((\<lambda>n. dist (f(x n)) (f(y n))) ---> 0) sequentially)" (is "?lhs = ?rhs")
+                    ((\<lambda>n. dist (x n) (y n)) \<longlongrightarrow> 0) sequentially
+                    \<longrightarrow> ((\<lambda>n. dist (f(x n)) (f(y n))) \<longlongrightarrow> 0) sequentially)" (is "?lhs = ?rhs")
 proof
   assume ?lhs
   {
     fix x y
     assume x: "\<forall>n. x n \<in> s"
       and y: "\<forall>n. y n \<in> s"
-      and xy: "((\<lambda>n. dist (x n) (y n)) ---> 0) sequentially"
+      and xy: "((\<lambda>n. dist (x n) (y n)) \<longlongrightarrow> 0) sequentially"
     {
       fix e :: real
       assume "e > 0"
@@ -5340,7 +5340,7 @@ proof
       then have "\<exists>N. \<forall>n\<ge>N. dist (f (x n)) (f (y n)) < e"
         by auto
     }
-    then have "((\<lambda>n. dist (f(x n)) (f(y n))) ---> 0) sequentially"
+    then have "((\<lambda>n. dist (f(x n)) (f(y n))) \<longlongrightarrow> 0) sequentially"
       unfolding lim_sequentially and dist_real_def by auto
   }
   then show ?rhs by auto
@@ -5390,14 +5390,14 @@ qed
 
 lemma continuous_on_tendsto_compose:
   assumes f_cont: "continuous_on s f"
-  assumes g: "(g ---> l) F"
+  assumes g: "(g \<longlongrightarrow> l) F"
   assumes l: "l \<in> s"
   assumes ev: "\<forall>\<^sub>F x in F. g x \<in> s"
-  shows "((\<lambda>x. f (g x)) ---> f l) F"
+  shows "((\<lambda>x. f (g x)) \<longlongrightarrow> f l) F"
 proof -
-  from f_cont have f: "(f ---> f l) (at l within s)"
+  from f_cont have f: "(f \<longlongrightarrow> f l) (at l within s)"
     by (auto simp: l continuous_on)
-  have i: "((\<lambda>x. if g x = l then f l else f (g x)) ---> f l) F"
+  have i: "((\<lambda>x. if g x = l then f l else f (g x)) \<longlongrightarrow> f l) F"
     by (rule filterlim_If)
       (auto intro!: filterlim_compose[OF f] eventually_conj tendsto_mono[OF _ g]
         simp: filterlim_at eventually_inf_principal eventually_mono[OF ev])
@@ -5422,7 +5422,7 @@ proof (rule Lim_transform_within)
     using assms(3) by auto
   have "f x = g x"
     using assms(1,2,3) by auto
-  then show "(f ---> g x) (at x within s)"
+  then show "(f \<longlongrightarrow> g x) (at x within s)"
     using assms(4) unfolding continuous_within by simp
 qed
 
@@ -5822,7 +5822,7 @@ lemma continuous_within_avoid:
 proof -
   obtain U where "open U" and "f x \<in> U" and "a \<notin> U"
     using t1_space [OF \<open>f x \<noteq> a\<close>] by fast
-  have "(f ---> f x) (at x within s)"
+  have "(f \<longlongrightarrow> f x) (at x within s)"
     using assms(1) by (simp add: continuous_within)
   then have "eventually (\<lambda>y. f y \<in> U) (at x within s)"
     using \<open>open U\<close> and \<open>f x \<in> U\<close>
@@ -6015,10 +6015,10 @@ text \<open>Topological properties of linear functions.\<close>
 
 lemma linear_lim_0:
   assumes "bounded_linear f"
-  shows "(f ---> 0) (at (0))"
+  shows "(f \<longlongrightarrow> 0) (at (0))"
 proof -
   interpret f: bounded_linear f by fact
-  have "(f ---> f 0) (at 0)"
+  have "(f \<longlongrightarrow> f 0) (at 0)"
     using tendsto_ident_at by (rule f.tendsto)
   then show ?thesis unfolding f.zero .
 qed
@@ -6267,7 +6267,7 @@ proof (rule continuous_attains_sup [OF assms])
   {
     fix x
     assume "x\<in>s"
-    have "(dist a ---> dist a x) (at x within s)"
+    have "(dist a \<longlongrightarrow> dist a x) (at x within s)"
       by (intro tendsto_dist tendsto_const tendsto_ident_at)
   }
   then show "continuous_on s (dist a)"
@@ -6570,12 +6570,12 @@ proof -
   let ?S = "{x + y |x y. x \<in> s \<and> y \<in> t}"
   {
     fix x l
-    assume as: "\<forall>n. x n \<in> ?S"  "(x ---> l) sequentially"
+    assume as: "\<forall>n. x n \<in> ?S"  "(x \<longlongrightarrow> l) sequentially"
     from as(1) obtain f where f: "\<forall>n. x n = fst (f n) + snd (f n)"  "\<forall>n. fst (f n) \<in> s"  "\<forall>n. snd (f n) \<in> t"
       using choice[of "\<lambda>n y. x n = (fst y) + (snd y) \<and> fst y \<in> s \<and> snd y \<in> t"] by auto
-    obtain l' r where "l'\<in>s" and r: "subseq r" and lr: "(((\<lambda>n. fst (f n)) \<circ> r) ---> l') sequentially"
+    obtain l' r where "l'\<in>s" and r: "subseq r" and lr: "(((\<lambda>n. fst (f n)) \<circ> r) \<longlongrightarrow> l') sequentially"
       using assms(1)[unfolded compact_def, THEN spec[where x="\<lambda> n. fst (f n)"]] using f(2) by auto
-    have "((\<lambda>n. snd (f (r n))) ---> l - l') sequentially"
+    have "((\<lambda>n. snd (f (r n))) \<longlongrightarrow> l - l') sequentially"
       using tendsto_diff[OF LIMSEQ_subseq_LIMSEQ[OF as(2) r] lr] and f(1)
       unfolding o_def
       by auto
@@ -6906,7 +6906,7 @@ text \<open>This gives a simple derivation of limit component bounds.\<close>
 
 lemma Lim_component_le:
   fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
-  assumes "(f ---> l) net"
+  assumes "(f \<longlongrightarrow> l) net"
     and "\<not> (trivial_limit net)"
     and "eventually (\<lambda>x. f(x)\<bullet>i \<le> b) net"
   shows "l\<bullet>i \<le> b"
@@ -6914,7 +6914,7 @@ lemma Lim_component_le:
 
 lemma Lim_component_ge:
   fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
-  assumes "(f ---> l) net"
+  assumes "(f \<longlongrightarrow> l) net"
     and "\<not> (trivial_limit net)"
     and "eventually (\<lambda>x. b \<le> (f x)\<bullet>i) net"
   shows "b \<le> l\<bullet>i"
@@ -6922,7 +6922,7 @@ lemma Lim_component_ge:
 
 lemma Lim_component_eq:
   fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
-  assumes net: "(f ---> l) net" "\<not> trivial_limit net"
+  assumes net: "(f \<longlongrightarrow> l) net" "\<not> trivial_limit net"
     and ev:"eventually (\<lambda>x. f(x)\<bullet>i = b) net"
   shows "l\<bullet>i = b"
   using ev[unfolded order_eq_iff eventually_conj_iff]
@@ -6939,13 +6939,13 @@ lemma eventually_within_Un:
   by (auto elim!: eventually_rev_mp)
 
 lemma Lim_within_union:
- "(f ---> l) (at x within (s \<union> t)) \<longleftrightarrow>
-  (f ---> l) (at x within s) \<and> (f ---> l) (at x within t)"
+ "(f \<longlongrightarrow> l) (at x within (s \<union> t)) \<longleftrightarrow>
+  (f \<longlongrightarrow> l) (at x within s) \<and> (f \<longlongrightarrow> l) (at x within t)"
   unfolding tendsto_def
   by (auto simp add: eventually_within_Un)
 
 lemma Lim_topological:
-  "(f ---> l) net \<longleftrightarrow>
+  "(f \<longlongrightarrow> l) net \<longleftrightarrow>
     trivial_limit net \<or> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
   unfolding tendsto_def trivial_limit_eq by auto
 
@@ -7266,7 +7266,7 @@ proof -
     }
     moreover
     {
-      assume "\<not> (f ---> x) sequentially"
+      assume "\<not> (f \<longlongrightarrow> x) sequentially"
       {
         fix e :: real
         assume "e > 0"
@@ -7281,9 +7281,9 @@ proof -
           by (auto intro!: that le_less_trans [OF _ N])
         then have "\<exists>N::nat. \<forall>n\<ge>N. inverse (real n + 1) < e" by auto
       }
-      then have "((\<lambda>n. inverse (real n + 1)) ---> 0) sequentially"
+      then have "((\<lambda>n. inverse (real n + 1)) \<longlongrightarrow> 0) sequentially"
         unfolding lim_sequentially by(auto simp add: dist_norm)
-      then have "(f ---> x) sequentially"
+      then have "(f \<longlongrightarrow> x) sequentially"
         unfolding f_def
         using tendsto_add[OF tendsto_const, of "\<lambda>n::nat. (inverse (real n + 1)) *\<^sub>R ((1 / 2) *\<^sub>R (a + b) - x)" 0 sequentially x]
         using tendsto_scaleR [OF _ tendsto_const, of "\<lambda>n::nat. inverse (real n + 1)" 0 sequentially "((1 / 2) *\<^sub>R (a + b) - x)"]
@@ -7815,11 +7815,11 @@ proof -
     then have "f \<circ> x = g"
       unfolding fun_eq_iff
       by auto
-    then obtain l where "l\<in>s" and l:"(x ---> l) sequentially"
+    then obtain l where "l\<in>s" and l:"(x \<longlongrightarrow> l) sequentially"
       using cs[unfolded complete_def, THEN spec[where x="x"]]
       using cauchy_isometric[OF \<open>0 < e\<close> s f normf] and cfg and x(1)
       by auto
-    then have "\<exists>l\<in>f ` s. (g ---> l) sequentially"
+    then have "\<exists>l\<in>f ` s. (g \<longlongrightarrow> l) sequentially"
       using linear_continuous_at[OF f, unfolded continuous_at_sequentially, THEN spec[where x=x], of l]
       unfolding \<open>f \<circ> x = g\<close>
       by auto
@@ -8186,7 +8186,7 @@ proof -
   }
   then have "Cauchy z"
     unfolding cauchy_def by auto
-  then obtain x where "x\<in>s" and x:"(z ---> x) sequentially"
+  then obtain x where "x\<in>s" and x:"(z \<longlongrightarrow> x) sequentially"
     using s(1)[unfolded compact_def complete_def, THEN spec[where x=z]] and z_in_s by auto
 
   def e \<equiv> "dist (f x) x"

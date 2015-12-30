@@ -20,7 +20,7 @@ definition
 where
   "(f has_derivative f') F \<longleftrightarrow>
     (bounded_linear f' \<and>
-     ((\<lambda>y. ((f y - f (Lim F (\<lambda>x. x))) - f' (y - Lim F (\<lambda>x. x))) /\<^sub>R norm (y - Lim F (\<lambda>x. x))) ---> 0) F)"
+     ((\<lambda>y. ((f y - f (Lim F (\<lambda>x. x))) - f' (y - Lim F (\<lambda>x. x))) /\<^sub>R norm (y - Lim F (\<lambda>x. x))) \<longlongrightarrow> 0) F)"
 
 text \<open>
   Usually the filter @{term F} is @{term "at x within s"}.  @{term "(f has_derivative D)
@@ -115,9 +115,9 @@ lemma has_derivative_add[simp, derivative_intros]:
 proof safe
   let ?x = "Lim F (\<lambda>x. x)"
   let ?D = "\<lambda>f f' y. ((f y - f ?x) - f' (y - ?x)) /\<^sub>R norm (y - ?x)"
-  have "((\<lambda>x. ?D f f' x + ?D g g' x) ---> (0 + 0)) F"
+  have "((\<lambda>x. ?D f f' x + ?D g g' x) \<longlongrightarrow> (0 + 0)) F"
     using f g by (intro tendsto_add) (auto simp: has_derivative_def)
-  then show "(?D (\<lambda>x. f x + g x) (\<lambda>x. f' x + g' x) ---> 0) F"
+  then show "(?D (\<lambda>x. f x + g x) (\<lambda>x. f' x + g' x) \<longlongrightarrow> 0) F"
     by (simp add: field_simps scaleR_add_right scaleR_diff_right)
 qed (blast intro: bounded_linear_add f g has_derivative_bounded_linear)
 
@@ -138,12 +138,12 @@ lemma has_derivative_diff[simp, derivative_intros]:
 
 lemma has_derivative_at_within:
   "(f has_derivative f') (at x within s) \<longleftrightarrow>
-    (bounded_linear f' \<and> ((\<lambda>y. ((f y - f x) - f' (y - x)) /\<^sub>R norm (y - x)) ---> 0) (at x within s))"
+    (bounded_linear f' \<and> ((\<lambda>y. ((f y - f x) - f' (y - x)) /\<^sub>R norm (y - x)) \<longlongrightarrow> 0) (at x within s))"
   by (cases "at x within s = bot") (simp_all add: has_derivative_def Lim_ident_at)
 
 lemma has_derivative_iff_norm:
   "(f has_derivative f') (at x within s) \<longleftrightarrow>
-    (bounded_linear f' \<and> ((\<lambda>y. norm ((f y - f x) - f' (y - x)) / norm (y - x)) ---> 0) (at x within s))"
+    (bounded_linear f' \<and> ((\<lambda>y. norm ((f y - f x) - f' (y - x)) / norm (y - x)) \<longlongrightarrow> 0) (at x within s))"
   using tendsto_norm_zero_iff[of _ "at x within s", where 'b="'b", symmetric]
   by (simp add: has_derivative_at_within divide_inverse ac_simps)
 
@@ -164,20 +164,20 @@ lemma field_has_derivative_at:
   done
 
 lemma has_derivativeI:
-  "bounded_linear f' \<Longrightarrow> ((\<lambda>y. ((f y - f x) - f' (y - x)) /\<^sub>R norm (y - x)) ---> 0) (at x within s) \<Longrightarrow>
+  "bounded_linear f' \<Longrightarrow> ((\<lambda>y. ((f y - f x) - f' (y - x)) /\<^sub>R norm (y - x)) \<longlongrightarrow> 0) (at x within s) \<Longrightarrow>
   (f has_derivative f') (at x within s)"
   by (simp add: has_derivative_at_within)
 
 lemma has_derivativeI_sandwich:
   assumes e: "0 < e" and bounded: "bounded_linear f'"
     and sandwich: "(\<And>y. y \<in> s \<Longrightarrow> y \<noteq> x \<Longrightarrow> dist y x < e \<Longrightarrow> norm ((f y - f x) - f' (y - x)) / norm (y - x) \<le> H y)"
-    and "(H ---> 0) (at x within s)"
+    and "(H \<longlongrightarrow> 0) (at x within s)"
   shows "(f has_derivative f') (at x within s)"
   unfolding has_derivative_iff_norm
 proof safe
-  show "((\<lambda>y. norm (f y - f x - f' (y - x)) / norm (y - x)) ---> 0) (at x within s)"
+  show "((\<lambda>y. norm (f y - f x - f' (y - x)) / norm (y - x)) \<longlongrightarrow> 0) (at x within s)"
   proof (rule tendsto_sandwich[where f="\<lambda>x. 0"])
-    show "(H ---> 0) (at x within s)" by fact
+    show "(H \<longlongrightarrow> 0) (at x within s)" by fact
     show "eventually (\<lambda>n. norm (f n - f x - f' (n - x)) / norm (n - x) \<le> H n) (at x within s)"
       unfolding eventually_at using e sandwich by auto
   qed (auto simp: le_divide_eq)
@@ -197,7 +197,7 @@ lemma has_derivative_continuous:
 proof -
   from f interpret F: bounded_linear f' by (rule has_derivative_bounded_linear)
   note F.tendsto[tendsto_intros]
-  let ?L = "\<lambda>f. (f ---> 0) (at x within s)"
+  let ?L = "\<lambda>f. (f \<longlongrightarrow> 0) (at x within s)"
   have "?L (\<lambda>y. norm ((f y - f x) - f' (y - x)) / norm (y - x))"
     using f unfolding has_derivative_iff_norm by blast
   then have "?L (\<lambda>y. norm ((f y - f x) - f' (y - x)) / norm (y - x) * norm (y - x))" (is ?m)
@@ -216,7 +216,7 @@ qed
 
 subsection \<open>Composition\<close>
 
-lemma tendsto_at_iff_tendsto_nhds_within: "f x = y \<Longrightarrow> (f ---> y) (at x within s) \<longleftrightarrow> (f ---> y) (inf (nhds x) (principal s))"
+lemma tendsto_at_iff_tendsto_nhds_within: "f x = y \<Longrightarrow> (f \<longlongrightarrow> y) (at x within s) \<longleftrightarrow> (f \<longlongrightarrow> y) (inf (nhds x) (principal s))"
   unfolding tendsto_def eventually_inf_principal eventually_at_filter
   by (intro ext all_cong imp_cong) (auto elim!: eventually_mono)
 
@@ -231,7 +231,7 @@ proof -
   from G.bounded obtain kG where kG: "\<And>x. norm (g' x) \<le> norm x * kG" by fast
   note G.tendsto[tendsto_intros]
 
-  let ?L = "\<lambda>f. (f ---> 0) (at x within s)"
+  let ?L = "\<lambda>f. (f \<longlongrightarrow> 0) (at x within s)"
   let ?D = "\<lambda>f f' x y. (f y - f x) - f' (y - x)"
   let ?N = "\<lambda>f f' x y. norm (?D f f' x y) / norm (y - x)"
   let ?gf = "\<lambda>x. g (f x)" and ?gf' = "\<lambda>x. g' (f' x)"
@@ -263,20 +263,20 @@ proof -
   next
     have [tendsto_intros]: "?L Nf"
       using f unfolding has_derivative_iff_norm Nf_def ..
-    from f have "(f ---> f x) (at x within s)"
+    from f have "(f \<longlongrightarrow> f x) (at x within s)"
       by (blast intro: has_derivative_continuous continuous_within[THEN iffD1])
     then have f': "LIM x at x within s. f x :> inf (nhds (f x)) (principal (f`s))"
       unfolding filterlim_def
       by (simp add: eventually_filtermap eventually_at_filter le_principal)
 
-    have "((?N g  g' (f x)) ---> 0) (at (f x) within f`s)"
+    have "((?N g  g' (f x)) \<longlongrightarrow> 0) (at (f x) within f`s)"
       using g unfolding has_derivative_iff_norm ..
-    then have g': "((?N g  g' (f x)) ---> 0) (inf (nhds (f x)) (principal (f`s)))"
+    then have g': "((?N g  g' (f x)) \<longlongrightarrow> 0) (inf (nhds (f x)) (principal (f`s)))"
       by (rule tendsto_at_iff_tendsto_nhds_within[THEN iffD1, rotated]) simp
 
     have [tendsto_intros]: "?L Ng"
       unfolding Ng_def by (rule filterlim_compose[OF g' f'])
-    show "((\<lambda>y. Nf y * kG + Ng y * (Nf y + kF)) ---> 0) (at x within s)"
+    show "((\<lambda>y. Nf y * kG + Ng y * (Nf y + kF)) \<longlongrightarrow> 0) (at x within s)"
       by (intro tendsto_eq_intros) auto
   qed simp
 qed
@@ -310,13 +310,13 @@ proof -
         bounded_linear_compose [OF bounded_linear_right] bounded_linear_compose [OF bounded_linear_left]
         has_derivative_bounded_linear [OF g] has_derivative_bounded_linear [OF f])
   next
-    from g have "(g ---> g x) ?F"
+    from g have "(g \<longlongrightarrow> g x) ?F"
       by (intro continuous_within[THEN iffD1] has_derivative_continuous)
-    moreover from f g have "(Nf ---> 0) ?F" "(Ng ---> 0) ?F"
+    moreover from f g have "(Nf \<longlongrightarrow> 0) ?F" "(Ng \<longlongrightarrow> 0) ?F"
       by (simp_all add: has_derivative_iff_norm Ng_def Nf_def)
-    ultimately have "(?fun2 ---> norm (f x) * 0 * K + 0 * norm (g x) * K + KF * norm (0::'b) * K) ?F"
+    ultimately have "(?fun2 \<longlongrightarrow> norm (f x) * 0 * K + 0 * norm (g x) * K + KF * norm (0::'b) * K) ?F"
       by (intro tendsto_intros) (simp_all add: LIM_zero_iff)
-    then show "(?fun2 ---> 0) ?F"
+    then show "(?fun2 \<longlongrightarrow> 0) ?F"
       by simp
   next
     fix y::'d assume "y \<noteq> x"
@@ -377,7 +377,7 @@ proof (rule has_derivativeI_sandwich)
 next
   show "0 < norm x" using x by simp
 next
-  show "((\<lambda>y. norm (?inv y - ?inv x) * norm (?inv x)) ---> 0) (at x within s)"
+  show "((\<lambda>y. norm (?inv y - ?inv x) * norm (?inv x)) \<longlongrightarrow> 0) (at x within s)"
     apply (rule tendsto_mult_left_zero)
     apply (rule tendsto_norm_zero)
     apply (rule LIM_zero)
@@ -1438,7 +1438,7 @@ qed
 lemma DERIV_pos_imp_increasing_at_bot:
   fixes f :: "real => real"
   assumes "\<And>x. x \<le> b \<Longrightarrow> (EX y. DERIV f x :> y & y > 0)"
-      and lim: "(f ---> flim) at_bot"
+      and lim: "(f \<longlongrightarrow> flim) at_bot"
   shows "flim < f b"
 proof -
   have "flim \<le> f (b - 1)"
@@ -1455,7 +1455,7 @@ qed
 lemma DERIV_neg_imp_decreasing_at_top:
   fixes f :: "real => real"
   assumes der: "\<And>x. x \<ge> b \<Longrightarrow> (EX y. DERIV f x :> y & y < 0)"
-      and lim: "(f ---> flim) at_top"
+      and lim: "(f \<longlongrightarrow> flim) at_top"
   shows "flim < f b"
   apply (rule DERIV_pos_imp_increasing_at_bot [where f = "\<lambda>i. f (-i)" and b = "-b", simplified])
   apply (metis DERIV_mirror der le_minus_iff neg_0_less_iff_less)
@@ -1592,7 +1592,7 @@ subsection \<open>L'Hopitals rule\<close>
 
 lemma isCont_If_ge:
   fixes a :: "'a :: linorder_topology"
-  shows "continuous (at_left a) g \<Longrightarrow> (f ---> g a) (at_right a) \<Longrightarrow> isCont (\<lambda>x. if x \<le> a then g x else f x) a"
+  shows "continuous (at_left a) g \<Longrightarrow> (f \<longlongrightarrow> g a) (at_right a) \<Longrightarrow> isCont (\<lambda>x. if x \<le> a then g x else f x) a"
   unfolding isCont_def continuous_within
   apply (intro filterlim_split_at)
   apply (subst filterlim_cong[OF refl refl, where g=g])
@@ -1603,15 +1603,15 @@ lemma isCont_If_ge:
 
 lemma lhopital_right_0:
   fixes f0 g0 :: "real \<Rightarrow> real"
-  assumes f_0: "(f0 ---> 0) (at_right 0)"
-  assumes g_0: "(g0 ---> 0) (at_right 0)"
+  assumes f_0: "(f0 \<longlongrightarrow> 0) (at_right 0)"
+  assumes g_0: "(g0 \<longlongrightarrow> 0) (at_right 0)"
   assumes ev:
     "eventually (\<lambda>x. g0 x \<noteq> 0) (at_right 0)"
     "eventually (\<lambda>x. g' x \<noteq> 0) (at_right 0)"
     "eventually (\<lambda>x. DERIV f0 x :> f' x) (at_right 0)"
     "eventually (\<lambda>x. DERIV g0 x :> g' x) (at_right 0)"
-  assumes lim: "((\<lambda> x. (f' x / g' x)) ---> x) (at_right 0)"
-  shows "((\<lambda> x. f0 x / g0 x) ---> x) (at_right 0)"
+  assumes lim: "((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> x) (at_right 0)"
+  shows "((\<lambda> x. f0 x / g0 x) \<longlongrightarrow> x) (at_right 0)"
 proof -
   def f \<equiv> "\<lambda>x. if x \<le> 0 then 0 else f0 x"
   then have "f 0 = 0" by simp
@@ -1674,15 +1674,15 @@ proof -
   moreover
   from \<zeta> have "eventually (\<lambda>x. norm (\<zeta> x) \<le> x) (at_right 0)"
     by eventually_elim auto
-  then have "((\<lambda>x. norm (\<zeta> x)) ---> 0) (at_right 0)"
+  then have "((\<lambda>x. norm (\<zeta> x)) \<longlongrightarrow> 0) (at_right 0)"
     by (rule_tac real_tendsto_sandwich[where f="\<lambda>x. 0" and h="\<lambda>x. x"]) auto
-  then have "(\<zeta> ---> 0) (at_right 0)"
+  then have "(\<zeta> \<longlongrightarrow> 0) (at_right 0)"
     by (rule tendsto_norm_zero_cancel)
   with \<zeta> have "filterlim \<zeta> (at_right 0) (at_right 0)"
     by (auto elim!: eventually_mono simp: filterlim_at)
-  from this lim have "((\<lambda>t. f' (\<zeta> t) / g' (\<zeta> t)) ---> x) (at_right 0)"
+  from this lim have "((\<lambda>t. f' (\<zeta> t) / g' (\<zeta> t)) \<longlongrightarrow> x) (at_right 0)"
     by (rule_tac filterlim_compose[of _ _ _ \<zeta>])
-  ultimately have "((\<lambda>t. f t / g t) ---> x) (at_right 0)" (is ?P)
+  ultimately have "((\<lambda>t. f t / g t) \<longlongrightarrow> x) (at_right 0)" (is ?P)
     by (rule_tac filterlim_cong[THEN iffD1, OF refl refl])
        (auto elim: eventually_mono)
   also have "?P \<longleftrightarrow> ?thesis"
@@ -1691,35 +1691,35 @@ proof -
 qed
 
 lemma lhopital_right:
-  "((f::real \<Rightarrow> real) ---> 0) (at_right x) \<Longrightarrow> (g ---> 0) (at_right x) \<Longrightarrow>
+  "((f::real \<Rightarrow> real) \<longlongrightarrow> 0) (at_right x) \<Longrightarrow> (g \<longlongrightarrow> 0) (at_right x) \<Longrightarrow>
     eventually (\<lambda>x. g x \<noteq> 0) (at_right x) \<Longrightarrow>
     eventually (\<lambda>x. g' x \<noteq> 0) (at_right x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV f x :> f' x) (at_right x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV g x :> g' x) (at_right x) \<Longrightarrow>
-    ((\<lambda> x. (f' x / g' x)) ---> y) (at_right x) \<Longrightarrow>
-  ((\<lambda> x. f x / g x) ---> y) (at_right x)"
+    ((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> y) (at_right x) \<Longrightarrow>
+  ((\<lambda> x. f x / g x) \<longlongrightarrow> y) (at_right x)"
   unfolding eventually_at_right_to_0[of _ x] filterlim_at_right_to_0[of _ _ x] DERIV_shift
   by (rule lhopital_right_0)
 
 lemma lhopital_left:
-  "((f::real \<Rightarrow> real) ---> 0) (at_left x) \<Longrightarrow> (g ---> 0) (at_left x) \<Longrightarrow>
+  "((f::real \<Rightarrow> real) \<longlongrightarrow> 0) (at_left x) \<Longrightarrow> (g \<longlongrightarrow> 0) (at_left x) \<Longrightarrow>
     eventually (\<lambda>x. g x \<noteq> 0) (at_left x) \<Longrightarrow>
     eventually (\<lambda>x. g' x \<noteq> 0) (at_left x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV f x :> f' x) (at_left x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV g x :> g' x) (at_left x) \<Longrightarrow>
-    ((\<lambda> x. (f' x / g' x)) ---> y) (at_left x) \<Longrightarrow>
-  ((\<lambda> x. f x / g x) ---> y) (at_left x)"
+    ((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> y) (at_left x) \<Longrightarrow>
+  ((\<lambda> x. f x / g x) \<longlongrightarrow> y) (at_left x)"
   unfolding eventually_at_left_to_right filterlim_at_left_to_right DERIV_mirror
   by (rule lhopital_right[where f'="\<lambda>x. - f' (- x)"]) (auto simp: DERIV_mirror)
 
 lemma lhopital:
-  "((f::real \<Rightarrow> real) ---> 0) (at x) \<Longrightarrow> (g ---> 0) (at x) \<Longrightarrow>
+  "((f::real \<Rightarrow> real) \<longlongrightarrow> 0) (at x) \<Longrightarrow> (g \<longlongrightarrow> 0) (at x) \<Longrightarrow>
     eventually (\<lambda>x. g x \<noteq> 0) (at x) \<Longrightarrow>
     eventually (\<lambda>x. g' x \<noteq> 0) (at x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV f x :> f' x) (at x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV g x :> g' x) (at x) \<Longrightarrow>
-    ((\<lambda> x. (f' x / g' x)) ---> y) (at x) \<Longrightarrow>
-  ((\<lambda> x. f x / g x) ---> y) (at x)"
+    ((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> y) (at x) \<Longrightarrow>
+  ((\<lambda> x. f x / g x) \<longlongrightarrow> y) (at x)"
   unfolding eventually_at_split filterlim_at_split
   by (auto intro!: lhopital_right[of f x g g' f'] lhopital_left[of f x g g' f'])
 
@@ -1730,8 +1730,8 @@ lemma lhopital_right_0_at_top:
     "eventually (\<lambda>x. g' x \<noteq> 0) (at_right 0)"
     "eventually (\<lambda>x. DERIV f x :> f' x) (at_right 0)"
     "eventually (\<lambda>x. DERIV g x :> g' x) (at_right 0)"
-  assumes lim: "((\<lambda> x. (f' x / g' x)) ---> x) (at_right 0)"
-  shows "((\<lambda> x. f x / g x) ---> x) (at_right 0)"
+  assumes lim: "((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> x) (at_right 0)"
+  shows "((\<lambda> x. f x / g x) \<longlongrightarrow> x) (at_right 0)"
   unfolding tendsto_iff
 proof safe
   fix e :: real assume "0 < e"
@@ -1756,21 +1756,21 @@ proof safe
     using g_0 by (auto elim: eventually_mono simp: filterlim_at_top_dense)
 
   moreover
-  have inv_g: "((\<lambda>x. inverse (g x)) ---> 0) (at_right 0)"
+  have inv_g: "((\<lambda>x. inverse (g x)) \<longlongrightarrow> 0) (at_right 0)"
     using tendsto_inverse_0 filterlim_mono[OF g_0 at_top_le_at_infinity order_refl]
     by (rule filterlim_compose)
-  then have "((\<lambda>x. norm (1 - g a * inverse (g x))) ---> norm (1 - g a * 0)) (at_right 0)"
+  then have "((\<lambda>x. norm (1 - g a * inverse (g x))) \<longlongrightarrow> norm (1 - g a * 0)) (at_right 0)"
     by (intro tendsto_intros)
-  then have "((\<lambda>x. norm (1 - g a / g x)) ---> 1) (at_right 0)"
+  then have "((\<lambda>x. norm (1 - g a / g x)) \<longlongrightarrow> 1) (at_right 0)"
     by (simp add: inverse_eq_divide)
   from this[unfolded tendsto_iff, rule_format, of 1]
   have "eventually (\<lambda>x. norm (1 - g a / g x) < 2) (at_right 0)"
     by (auto elim!: eventually_mono simp: dist_real_def)
 
   moreover
-  from inv_g have "((\<lambda>t. norm ((f a - x * g a) * inverse (g t))) ---> norm ((f a - x * g a) * 0)) (at_right 0)"
+  from inv_g have "((\<lambda>t. norm ((f a - x * g a) * inverse (g t))) \<longlongrightarrow> norm ((f a - x * g a) * 0)) (at_right 0)"
     by (intro tendsto_intros)
-  then have "((\<lambda>t. norm (f a - x * g a) / norm (g t)) ---> 0) (at_right 0)"
+  then have "((\<lambda>t. norm (f a - x * g a) / norm (g t)) \<longlongrightarrow> 0) (at_right 0)"
     by (simp add: inverse_eq_divide)
   from this[unfolded tendsto_iff, rule_format, of "e / 2"] \<open>0 < e\<close>
   have "eventually (\<lambda>t. norm (f a - x * g a) / norm (g t) < e / 2) (at_right 0)"
@@ -1808,8 +1808,8 @@ lemma lhopital_right_at_top:
     eventually (\<lambda>x. g' x \<noteq> 0) (at_right x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV f x :> f' x) (at_right x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV g x :> g' x) (at_right x) \<Longrightarrow>
-    ((\<lambda> x. (f' x / g' x)) ---> y) (at_right x) \<Longrightarrow>
-    ((\<lambda> x. f x / g x) ---> y) (at_right x)"
+    ((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> y) (at_right x) \<Longrightarrow>
+    ((\<lambda> x. f x / g x) \<longlongrightarrow> y) (at_right x)"
   unfolding eventually_at_right_to_0[of _ x] filterlim_at_right_to_0[of _ _ x] DERIV_shift
   by (rule lhopital_right_0_at_top)
 
@@ -1818,8 +1818,8 @@ lemma lhopital_left_at_top:
     eventually (\<lambda>x. g' x \<noteq> 0) (at_left x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV f x :> f' x) (at_left x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV g x :> g' x) (at_left x) \<Longrightarrow>
-    ((\<lambda> x. (f' x / g' x)) ---> y) (at_left x) \<Longrightarrow>
-    ((\<lambda> x. f x / g x) ---> y) (at_left x)"
+    ((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> y) (at_left x) \<Longrightarrow>
+    ((\<lambda> x. f x / g x) \<longlongrightarrow> y) (at_left x)"
   unfolding eventually_at_left_to_right filterlim_at_left_to_right DERIV_mirror
   by (rule lhopital_right_at_top[where f'="\<lambda>x. - f' (- x)"]) (auto simp: DERIV_mirror)
 
@@ -1828,8 +1828,8 @@ lemma lhopital_at_top:
     eventually (\<lambda>x. g' x \<noteq> 0) (at x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV f x :> f' x) (at x) \<Longrightarrow>
     eventually (\<lambda>x. DERIV g x :> g' x) (at x) \<Longrightarrow>
-    ((\<lambda> x. (f' x / g' x)) ---> y) (at x) \<Longrightarrow>
-    ((\<lambda> x. f x / g x) ---> y) (at x)"
+    ((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> y) (at x) \<Longrightarrow>
+    ((\<lambda> x. f x / g x) \<longlongrightarrow> y) (at x)"
   unfolding eventually_at_split filterlim_at_split
   by (auto intro!: lhopital_right_at_top[of g x g' f f'] lhopital_left_at_top[of g x g' f f'])
 
@@ -1839,8 +1839,8 @@ lemma lhospital_at_top_at_top:
   assumes g': "eventually (\<lambda>x. g' x \<noteq> 0) at_top"
   assumes Df: "eventually (\<lambda>x. DERIV f x :> f' x) at_top"
   assumes Dg: "eventually (\<lambda>x. DERIV g x :> g' x) at_top"
-  assumes lim: "((\<lambda> x. (f' x / g' x)) ---> x) at_top"
-  shows "((\<lambda> x. f x / g x) ---> x) at_top"
+  assumes lim: "((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> x) at_top"
+  shows "((\<lambda> x. f x / g x) \<longlongrightarrow> x) at_top"
   unfolding filterlim_at_top_to_right
 proof (rule lhopital_right_0_at_top)
   let ?F = "\<lambda>x. f (inverse x)"
@@ -1874,7 +1874,7 @@ proof (rule lhopital_right_0_at_top)
     using g' eventually_ge_at_top[where c="1::real"]
     by eventually_elim auto
     
-  show "((\<lambda>x. ?D f' x / ?D g' x) ---> x) ?R"
+  show "((\<lambda>x. ?D f' x / ?D g' x) \<longlongrightarrow> x) ?R"
     unfolding filterlim_at_right_to_top
     apply (intro filterlim_cong[THEN iffD2, OF refl refl _ lim])
     using eventually_ge_at_top[where c="1::real"]

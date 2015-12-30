@@ -322,7 +322,7 @@ proof (rule tendsto_unique)
   note * = this
 
   let ?F = "interval_measure F"
-  show "((\<lambda>a. F b - F a) ---> emeasure ?F {a..b}) (at_left a)"
+  show "((\<lambda>a. F b - F a) \<longlongrightarrow> emeasure ?F {a..b}) (at_left a)"
   proof (rule tendsto_at_left_sequentially)
     show "a - 1 < a" by simp
     fix X assume "\<And>n. X n < a" "incseq X" "X \<longlonglongrightarrow> a"
@@ -344,7 +344,7 @@ proof (rule tendsto_unique)
       using \<open>\<And>n. X n < a\<close> \<open>a \<le> b\<close> by (subst *) (auto intro: less_imp_le less_le_trans)
     finally show "(\<lambda>n. F b - F (X n)) \<longlonglongrightarrow> emeasure ?F {a..b}" .
   qed
-  show "((\<lambda>a. ereal (F b - F a)) ---> F b - F a) (at_left a)"
+  show "((\<lambda>a. ereal (F b - F a)) \<longlongrightarrow> F b - F a) (at_left a)"
     using cont_F
     by (intro lim_ereal[THEN iffD2] tendsto_intros )
        (auto simp: continuous_on_def intro: tendsto_within_subset)
@@ -1244,7 +1244,7 @@ lemma nn_integral_FTC_atLeast:
   assumes f_borel: "f \<in> borel_measurable borel"
   assumes f: "\<And>x. a \<le> x \<Longrightarrow> DERIV F x :> f x"
   assumes nonneg: "\<And>x. a \<le> x \<Longrightarrow> 0 \<le> f x"
-  assumes lim: "(F ---> T) at_top"
+  assumes lim: "(F \<longlongrightarrow> T) at_top"
   shows "(\<integral>\<^sup>+x. ereal (f x) * indicator {a ..} x \<partial>lborel) = T - F a"
 proof -
   let ?f = "\<lambda>(i::nat) (x::real). ereal (f x) * indicator {a..a + real i} x"

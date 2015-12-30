@@ -480,13 +480,13 @@ lemma eventually_at_split:
 subsubsection \<open>Tendsto\<close>
 
 abbreviation (in topological_space)
-  tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "--->" 55) where
-  "(f ---> l) F \<equiv> filterlim f (nhds l) F"
+  tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "\<longlongrightarrow>" 55) where
+  "(f \<longlongrightarrow> l) F \<equiv> filterlim f (nhds l) F"
 
 definition (in t2_space) Lim :: "'f filter \<Rightarrow> ('f \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "Lim A f = (THE l. (f ---> l) A)"
+  "Lim A f = (THE l. (f \<longlongrightarrow> l) A)"
 
-lemma tendsto_eq_rhs: "(f ---> x) F \<Longrightarrow> x = y \<Longrightarrow> (f ---> y) F"
+lemma tendsto_eq_rhs: "(f \<longlongrightarrow> x) F \<Longrightarrow> x = y \<Longrightarrow> (f \<longlongrightarrow> y) F"
   by simp
 
 named_theorems tendsto_intros "introduction rules for tendsto"
@@ -498,55 +498,55 @@ setup \<open>
 \<close>
 
 lemma (in topological_space) tendsto_def:
-   "(f ---> l) F \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F)"
+   "(f \<longlongrightarrow> l) F \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F)"
    unfolding nhds_def filterlim_INF filterlim_principal by auto
 
 lemma tendsto_cong:
   assumes "eventually (\<lambda>x. f x = g x) F"
-  shows   "(f ---> c) F \<longleftrightarrow> (g ---> c) F"
+  shows   "(f \<longlongrightarrow> c) F \<longleftrightarrow> (g \<longlongrightarrow> c) F"
   by (rule filterlim_cong[OF refl refl assms])
 
 
-lemma tendsto_mono: "F \<le> F' \<Longrightarrow> (f ---> l) F' \<Longrightarrow> (f ---> l) F"
+lemma tendsto_mono: "F \<le> F' \<Longrightarrow> (f \<longlongrightarrow> l) F' \<Longrightarrow> (f \<longlongrightarrow> l) F"
   unfolding tendsto_def le_filter_def by fast
 
-lemma tendsto_within_subset: "(f ---> l) (at x within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f ---> l) (at x within T)"
+lemma tendsto_within_subset: "(f \<longlongrightarrow> l) (at x within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f \<longlongrightarrow> l) (at x within T)"
   by (blast intro: tendsto_mono at_le)
 
 lemma filterlim_at:
-  "(LIM x F. f x :> at b within s) \<longleftrightarrow> (eventually (\<lambda>x. f x \<in> s \<and> f x \<noteq> b) F \<and> (f ---> b) F)"
+  "(LIM x F. f x :> at b within s) \<longleftrightarrow> (eventually (\<lambda>x. f x \<in> s \<and> f x \<noteq> b) F \<and> (f \<longlongrightarrow> b) F)"
   by (simp add: at_within_def filterlim_inf filterlim_principal conj_commute)
 
 lemma (in topological_space) topological_tendstoI:
-  "(\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) F) \<Longrightarrow> (f ---> l) F"
+  "(\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) F) \<Longrightarrow> (f \<longlongrightarrow> l) F"
   unfolding tendsto_def by auto
 
 lemma (in topological_space) topological_tendstoD:
-  "(f ---> l) F \<Longrightarrow> open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) F"
+  "(f \<longlongrightarrow> l) F \<Longrightarrow> open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) F"
   unfolding tendsto_def by auto
 
 lemma (in order_topology) order_tendsto_iff:
-  "(f ---> x) F \<longleftrightarrow> (\<forall>l<x. eventually (\<lambda>x. l < f x) F) \<and> (\<forall>u>x. eventually (\<lambda>x. f x < u) F)"
+  "(f \<longlongrightarrow> x) F \<longleftrightarrow> (\<forall>l<x. eventually (\<lambda>x. l < f x) F) \<and> (\<forall>u>x. eventually (\<lambda>x. f x < u) F)"
   unfolding nhds_order filterlim_inf filterlim_INF filterlim_principal by auto
 
 lemma (in order_topology) order_tendstoI:
   "(\<And>a. a < y \<Longrightarrow> eventually (\<lambda>x. a < f x) F) \<Longrightarrow> (\<And>a. y < a \<Longrightarrow> eventually (\<lambda>x. f x < a) F) \<Longrightarrow>
-    (f ---> y) F"
+    (f \<longlongrightarrow> y) F"
   unfolding order_tendsto_iff by auto
 
 lemma (in order_topology) order_tendstoD:
-  assumes "(f ---> y) F"
+  assumes "(f \<longlongrightarrow> y) F"
   shows "a < y \<Longrightarrow> eventually (\<lambda>x. a < f x) F"
     and "y < a \<Longrightarrow> eventually (\<lambda>x. f x < a) F"
   using assms unfolding order_tendsto_iff by auto
 
-lemma tendsto_bot [simp]: "(f ---> a) bot"
+lemma tendsto_bot [simp]: "(f \<longlongrightarrow> a) bot"
   unfolding tendsto_def by simp
 
 lemma (in linorder_topology) tendsto_max:
-  assumes X: "(X ---> x) net"
-  assumes Y: "(Y ---> y) net"
-  shows "((\<lambda>x. max (X x) (Y x)) ---> max x y) net"
+  assumes X: "(X \<longlongrightarrow> x) net"
+  assumes Y: "(Y \<longlongrightarrow> y) net"
+  shows "((\<lambda>x. max (X x) (Y x)) \<longlongrightarrow> max x y) net"
 proof (rule order_tendstoI)
   fix a assume "a < max x y"
   then show "eventually (\<lambda>x. a < max (X x) (Y x)) net"
@@ -560,9 +560,9 @@ next
 qed
 
 lemma (in linorder_topology) tendsto_min:
-  assumes X: "(X ---> x) net"
-  assumes Y: "(Y ---> y) net"
-  shows "((\<lambda>x. min (X x) (Y x)) ---> min x y) net"
+  assumes X: "(X \<longlongrightarrow> x) net"
+  assumes Y: "(Y \<longlongrightarrow> y) net"
+  shows "((\<lambda>x. min (X x) (Y x)) \<longlongrightarrow> min x y) net"
 proof (rule order_tendstoI)
   fix a assume "a < min x y"
   then show "eventually (\<lambda>x. a < min (X x) (Y x)) net"
@@ -575,24 +575,24 @@ next
     by (auto simp: min_less_iff_disj elim: eventually_mono)
 qed
 
-lemma tendsto_ident_at [tendsto_intros, simp, intro]: "((\<lambda>x. x) ---> a) (at a within s)"
+lemma tendsto_ident_at [tendsto_intros, simp, intro]: "((\<lambda>x. x) \<longlongrightarrow> a) (at a within s)"
   unfolding tendsto_def eventually_at_topological by auto
 
-lemma (in topological_space) tendsto_const [tendsto_intros, simp, intro]: "((\<lambda>x. k) ---> k) F"
+lemma (in topological_space) tendsto_const [tendsto_intros, simp, intro]: "((\<lambda>x. k) \<longlongrightarrow> k) F"
   by (simp add: tendsto_def)
 
 lemma (in t2_space) tendsto_unique:
-  assumes "F \<noteq> bot" and "(f ---> a) F" and "(f ---> b) F"
+  assumes "F \<noteq> bot" and "(f \<longlongrightarrow> a) F" and "(f \<longlongrightarrow> b) F"
   shows "a = b"
 proof (rule ccontr)
   assume "a \<noteq> b"
   obtain U V where "open U" "open V" "a \<in> U" "b \<in> V" "U \<inter> V = {}"
     using hausdorff [OF \<open>a \<noteq> b\<close>] by fast
   have "eventually (\<lambda>x. f x \<in> U) F"
-    using \<open>(f ---> a) F\<close> \<open>open U\<close> \<open>a \<in> U\<close> by (rule topological_tendstoD)
+    using \<open>(f \<longlongrightarrow> a) F\<close> \<open>open U\<close> \<open>a \<in> U\<close> by (rule topological_tendstoD)
   moreover
   have "eventually (\<lambda>x. f x \<in> V) F"
-    using \<open>(f ---> b) F\<close> \<open>open V\<close> \<open>b \<in> V\<close> by (rule topological_tendstoD)
+    using \<open>(f \<longlongrightarrow> b) F\<close> \<open>open V\<close> \<open>b \<in> V\<close> by (rule topological_tendstoD)
   ultimately
   have "eventually (\<lambda>x. False) F"
   proof eventually_elim
@@ -605,28 +605,28 @@ proof (rule ccontr)
 qed
 
 lemma (in t2_space) tendsto_const_iff:
-  assumes "\<not> trivial_limit F" shows "((\<lambda>x. a :: 'a) ---> b) F \<longleftrightarrow> a = b"
+  assumes "\<not> trivial_limit F" shows "((\<lambda>x. a :: 'a) \<longlongrightarrow> b) F \<longleftrightarrow> a = b"
   by (auto intro!: tendsto_unique [OF assms tendsto_const])
 
 lemma increasing_tendsto:
   fixes f :: "_ \<Rightarrow> 'a::order_topology"
   assumes bdd: "eventually (\<lambda>n. f n \<le> l) F"
       and en: "\<And>x. x < l \<Longrightarrow> eventually (\<lambda>n. x < f n) F"
-  shows "(f ---> l) F"
+  shows "(f \<longlongrightarrow> l) F"
   using assms by (intro order_tendstoI) (auto elim!: eventually_mono)
 
 lemma decreasing_tendsto:
   fixes f :: "_ \<Rightarrow> 'a::order_topology"
   assumes bdd: "eventually (\<lambda>n. l \<le> f n) F"
       and en: "\<And>x. l < x \<Longrightarrow> eventually (\<lambda>n. f n < x) F"
-  shows "(f ---> l) F"
+  shows "(f \<longlongrightarrow> l) F"
   using assms by (intro order_tendstoI) (auto elim!: eventually_mono)
 
 lemma tendsto_sandwich:
   fixes f g h :: "'a \<Rightarrow> 'b::order_topology"
   assumes ev: "eventually (\<lambda>n. f n \<le> g n) net" "eventually (\<lambda>n. g n \<le> h n) net"
-  assumes lim: "(f ---> c) net" "(h ---> c) net"
-  shows "(g ---> c) net"
+  assumes lim: "(f \<longlongrightarrow> c) net" "(h \<longlongrightarrow> c) net"
+  shows "(g \<longlongrightarrow> c) net"
 proof (rule order_tendstoI)
   fix a show "a < c \<Longrightarrow> eventually (\<lambda>x. a < g x) net"
     using order_tendstoD[OF lim(1), of a] ev by (auto elim: eventually_elim2)
@@ -638,7 +638,7 @@ qed
 lemma limit_frequently_eq:
   assumes "F \<noteq> bot"
   assumes "frequently (\<lambda>x. f x = c) F"
-  assumes "(f ---> d) F"
+  assumes "(f \<longlongrightarrow> d) F"
   shows   "d = (c :: 'a :: t1_space)"
 proof (rule ccontr)
   assume "d \<noteq> c"
@@ -649,7 +649,7 @@ proof (rule ccontr)
 qed
 
 lemma tendsto_imp_eventually_ne:
-  assumes "F \<noteq> bot" "(f ---> c) F" "c \<noteq> (c' :: 'a :: t1_space)"
+  assumes "F \<noteq> bot" "(f \<longlongrightarrow> c) F" "c \<noteq> (c' :: 'a :: t1_space)"
   shows   "eventually (\<lambda>z. f z \<noteq> c') F"
 proof (rule ccontr)
   assume "\<not>eventually (\<lambda>z. f z \<noteq> c') F"
@@ -660,7 +660,7 @@ qed
 lemma tendsto_le:
   fixes f g :: "'a \<Rightarrow> 'b::linorder_topology"
   assumes F: "\<not> trivial_limit F"
-  assumes x: "(f ---> x) F" and y: "(g ---> y) F"
+  assumes x: "(f \<longlongrightarrow> x) F" and y: "(g \<longlongrightarrow> y) F"
   assumes ev: "eventually (\<lambda>x. g x \<le> f x) F"
   shows "y \<le> x"
 proof (rule ccontr)
@@ -678,14 +678,14 @@ qed
 lemma tendsto_le_const:
   fixes f :: "'a \<Rightarrow> 'b::linorder_topology"
   assumes F: "\<not> trivial_limit F"
-  assumes x: "(f ---> x) F" and a: "eventually (\<lambda>i. a \<le> f i) F"
+  assumes x: "(f \<longlongrightarrow> x) F" and a: "eventually (\<lambda>i. a \<le> f i) F"
   shows "a \<le> x"
   using F x tendsto_const a by (rule tendsto_le)
 
 lemma tendsto_ge_const:
   fixes f :: "'a \<Rightarrow> 'b::linorder_topology"
   assumes F: "\<not> trivial_limit F"
-  assumes x: "(f ---> x) F" and a: "eventually (\<lambda>i. a \<ge> f i) F"
+  assumes x: "(f \<longlongrightarrow> x) F" and a: "eventually (\<lambda>i. a \<ge> f i) F"
   shows "a \<ge> x"
   by (rule tendsto_le [OF F tendsto_const x a])
 
@@ -695,7 +695,7 @@ lemma tendsto_ge_const:
 subsubsection \<open>Rules about @{const Lim}\<close>
 
 lemma tendsto_Lim:
-  "\<not>(trivial_limit net) \<Longrightarrow> (f ---> l) net \<Longrightarrow> Lim net f = l"
+  "\<not>(trivial_limit net) \<Longrightarrow> (f \<longlongrightarrow> l) net \<Longrightarrow> Lim net f = l"
   unfolding Lim_def using tendsto_unique[of net f] by auto
 
 lemma Lim_ident_at: "\<not> trivial_limit (at x within s) \<Longrightarrow> Lim (at x within s) (\<lambda>x. x) = x"
@@ -771,7 +771,7 @@ next
 qed
 
 lemma tendsto_at_within_iff_tendsto_nhds:
-  "(g ---> g l) (at l within S) \<longleftrightarrow> (g ---> g l) (inf (nhds l) (principal S))"
+  "(g \<longlongrightarrow> g l) (at l within S) \<longleftrightarrow> (g \<longlongrightarrow> g l) (inf (nhds l) (principal S))"
   unfolding tendsto_def eventually_at_filter eventually_inf_principal
   by (intro ext all_cong imp_cong) (auto elim!: eventually_mono)
 
@@ -780,7 +780,7 @@ subsection \<open>Limits on sequences\<close>
 abbreviation (in topological_space)
   LIMSEQ :: "[nat \<Rightarrow> 'a, 'a] \<Rightarrow> bool"
     ("((_)/ \<longlonglongrightarrow> (_))" [60, 60] 60) where
-  "X \<longlonglongrightarrow> L \<equiv> (X ---> L) sequentially"
+  "X \<longlonglongrightarrow> L \<equiv> (X \<longlongrightarrow> L) sequentially"
 
 abbreviation (in t2_space) lim :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "lim X \<equiv> Lim sequentially X"
@@ -1196,7 +1196,7 @@ lemma (in first_countable_topology) eventually_nhds_iff_sequentially:
 
 lemma tendsto_at_iff_sequentially:
   fixes f :: "'a :: first_countable_topology \<Rightarrow> _"
-  shows "(f ---> a) (at x within s) \<longleftrightarrow> (\<forall>X. (\<forall>i. X i \<in> s - {x}) \<longrightarrow> X \<longlonglongrightarrow> x \<longrightarrow> ((f \<circ> X) \<longlonglongrightarrow> a))"
+  shows "(f \<longlongrightarrow> a) (at x within s) \<longleftrightarrow> (\<forall>X. (\<forall>i. X i \<in> s - {x}) \<longrightarrow> X \<longlonglongrightarrow> x \<longrightarrow> ((f \<circ> X) \<longlonglongrightarrow> a))"
   unfolding filterlim_def[of _ "nhds a"] le_filter_def eventually_filtermap at_within_def eventually_nhds_within_iff_sequentially comp_def
   by metis
 
@@ -1205,9 +1205,9 @@ subsection \<open>Function limit at a point\<close>
 abbreviation
   LIM :: "('a::topological_space \<Rightarrow> 'b::topological_space) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
         ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60) where
-  "f -- a --> L \<equiv> (f ---> L) (at a)"
+  "f -- a --> L \<equiv> (f \<longlongrightarrow> L) (at a)"
 
-lemma tendsto_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f ---> l) (at a within S) \<longleftrightarrow> (f -- a --> l)"
+lemma tendsto_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f \<longlongrightarrow> l) (at a within S) \<longleftrightarrow> (f -- a --> l)"
   unfolding tendsto_def by (simp add: at_within_open[where S=S])
 
 lemma LIM_const_not_eq[tendsto_intros]:
@@ -1241,19 +1241,19 @@ lemma LIM_cong_limit: "f -- x --> L \<Longrightarrow> K = L \<Longrightarrow> f 
   by simp
 
 lemma tendsto_at_iff_tendsto_nhds:
-  "g -- l --> g l \<longleftrightarrow> (g ---> g l) (nhds l)"
+  "g -- l --> g l \<longleftrightarrow> (g \<longlongrightarrow> g l) (nhds l)"
   unfolding tendsto_def eventually_at_filter
   by (intro ext all_cong imp_cong) (auto elim!: eventually_mono)
 
 lemma tendsto_compose:
-  "g -- l --> g l \<Longrightarrow> (f ---> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) ---> g l) F"
+  "g -- l --> g l \<Longrightarrow> (f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) \<longlongrightarrow> g l) F"
   unfolding tendsto_at_iff_tendsto_nhds by (rule filterlim_compose[of g])
 
 lemma LIM_o: "\<lbrakk>g -- l --> g l; f -- a --> l\<rbrakk> \<Longrightarrow> (g \<circ> f) -- a --> g l"
   unfolding o_def by (rule tendsto_compose)
 
 lemma tendsto_compose_eventually:
-  "g -- l --> m \<Longrightarrow> (f ---> l) F \<Longrightarrow> eventually (\<lambda>x. f x \<noteq> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) ---> m) F"
+  "g -- l --> m \<Longrightarrow> (f \<longlongrightarrow> l) F \<Longrightarrow> eventually (\<lambda>x. f x \<noteq> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) \<longlongrightarrow> m) F"
   by (rule filterlim_compose[of g _ "at l"]) (auto simp add: filterlim_at)
 
 lemma LIM_compose_eventually:
@@ -1263,7 +1263,7 @@ lemma LIM_compose_eventually:
   shows "(\<lambda>x. g (f x)) -- a --> c"
   using g f inj by (rule tendsto_compose_eventually)
 
-lemma tendsto_compose_filtermap: "((g \<circ> f) ---> T) F \<longleftrightarrow> (g ---> T) (filtermap f F)"
+lemma tendsto_compose_filtermap: "((g \<circ> f) \<longlongrightarrow> T) F \<longleftrightarrow> (g \<longlongrightarrow> T) (filtermap f F)"
   by (simp add: filterlim_def filtermap_filtermap comp_def)
 
 subsubsection \<open>Relation of LIM and LIMSEQ\<close>
@@ -1329,7 +1329,7 @@ lemma tendsto_at_left_sequentially:
   fixes a :: "_ :: {linorder_topology, first_countable_topology}"
   assumes "b < a"
   assumes *: "\<And>S. (\<And>n. S n < a) \<Longrightarrow> (\<And>n. b < S n) \<Longrightarrow> incseq S \<Longrightarrow> S \<longlonglongrightarrow> a \<Longrightarrow> (\<lambda>n. X (S n)) \<longlonglongrightarrow> L"
-  shows "(X ---> L) (at_left a)"
+  shows "(X \<longlongrightarrow> L) (at_left a)"
   using assms unfolding tendsto_def [where l=L]
   by (simp add: sequentially_imp_eventually_at_left)
 
@@ -1367,7 +1367,7 @@ lemma tendsto_at_right_sequentially:
   fixes a :: "_ :: {linorder_topology, first_countable_topology}"
   assumes "a < b"
   assumes *: "\<And>S. (\<And>n. a < S n) \<Longrightarrow> (\<And>n. S n < b) \<Longrightarrow> decseq S \<Longrightarrow> S \<longlonglongrightarrow> a \<Longrightarrow> (\<lambda>n. X (S n)) \<longlonglongrightarrow> L"
-  shows "(X ---> L) (at_right a)"
+  shows "(X \<longlongrightarrow> L) (at_right a)"
   using assms unfolding tendsto_def [where l=L]
   by (simp add: sequentially_imp_eventually_at_right)
 
@@ -1376,7 +1376,7 @@ subsection \<open>Continuity\<close>
 subsubsection \<open>Continuity on a set\<close>
 
 definition continuous_on :: "'a set \<Rightarrow> ('a :: topological_space \<Rightarrow> 'b :: topological_space) \<Rightarrow> bool" where
-  "continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. (f ---> f x) (at x within s))"
+  "continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. (f \<longlongrightarrow> f x) (at x within s))"
 
 lemma continuous_on_cong [cong]:
   "s = t \<Longrightarrow> (\<And>x. x \<in> t \<Longrightarrow> f x = g x) \<Longrightarrow> continuous_on s f \<longleftrightarrow> continuous_on t g"
@@ -1559,7 +1559,7 @@ qed
 subsubsection \<open>Continuity at a point\<close>
 
 definition continuous :: "'a::t2_space filter \<Rightarrow> ('a \<Rightarrow> 'b::topological_space) \<Rightarrow> bool" where
-  "continuous F f \<longleftrightarrow> (f ---> f (Lim F (\<lambda>x. x))) F"
+  "continuous F f \<longleftrightarrow> (f \<longlongrightarrow> f (Lim F (\<lambda>x. x))) F"
 
 lemma continuous_bot[continuous_intros, simp]: "continuous bot f"
   unfolding continuous_def by auto
@@ -1567,7 +1567,7 @@ lemma continuous_bot[continuous_intros, simp]: "continuous bot f"
 lemma continuous_trivial_limit: "trivial_limit net \<Longrightarrow> continuous net f"
   by simp
 
-lemma continuous_within: "continuous (at x within s) f \<longleftrightarrow> (f ---> f x) (at x within s)"
+lemma continuous_within: "continuous (at x within s) f \<longleftrightarrow> (f \<longlongrightarrow> f x) (at x within s)"
   by (cases "trivial_limit (at x within s)") (auto simp add: Lim_ident_at continuous_def)
 
 lemma continuous_within_topological:
@@ -1619,7 +1619,7 @@ lemma isCont_o2: "isCont f a \<Longrightarrow> isCont g (f a) \<Longrightarrow> 
 lemma isCont_o[continuous_intros]: "isCont f a \<Longrightarrow> isCont g (f a) \<Longrightarrow> isCont (g \<circ> f) a"
   unfolding o_def by (rule isCont_o2)
 
-lemma isCont_tendsto_compose: "isCont g l \<Longrightarrow> (f ---> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) ---> g l) F"
+lemma isCont_tendsto_compose: "isCont g l \<Longrightarrow> (f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) \<longlongrightarrow> g l) F"
   unfolding isCont_def by (rule tendsto_compose)
 
 lemma continuous_within_compose3:
@@ -2271,7 +2271,7 @@ lemma continuous_at_Sup_mono:
   assumes S: "S \<noteq> {}" "bdd_above S"
   shows "f (Sup S) = (SUP s:S. f s)"
 proof (rule antisym)
-  have f: "(f ---> f (Sup S)) (at_left (Sup S))"
+  have f: "(f \<longlongrightarrow> f (Sup S)) (at_left (Sup S))"
     using cont unfolding continuous_within .
 
   show "f (Sup S) \<le> (SUP s:S. f s)"
@@ -2308,7 +2308,7 @@ lemma continuous_at_Sup_antimono:
   assumes S: "S \<noteq> {}" "bdd_above S"
   shows "f (Sup S) = (INF s:S. f s)"
 proof (rule antisym)
-  have f: "(f ---> f (Sup S)) (at_left (Sup S))"
+  have f: "(f \<longlongrightarrow> f (Sup S)) (at_left (Sup S))"
     using cont unfolding continuous_within .
 
   show "(INF s:S. f s) \<le> f (Sup S)"
@@ -2345,7 +2345,7 @@ lemma continuous_at_Inf_mono:
   assumes S: "S \<noteq> {}" "bdd_below S"
   shows "f (Inf S) = (INF s:S. f s)"
 proof (rule antisym)
-  have f: "(f ---> f (Inf S)) (at_right (Inf S))"
+  have f: "(f \<longlongrightarrow> f (Inf S)) (at_right (Inf S))"
     using cont unfolding continuous_within .
 
   show "(INF s:S. f s) \<le> f (Inf S)"
@@ -2382,7 +2382,7 @@ lemma continuous_at_Inf_antimono:
   assumes S: "S \<noteq> {}" "bdd_below S"
   shows "f (Inf S) = (SUP s:S. f s)"
 proof (rule antisym)
-  have f: "(f ---> f (Inf S)) (at_right (Inf S))"
+  have f: "(f \<longlongrightarrow> f (Inf S)) (at_right (Inf S))"
     using cont unfolding continuous_within .
 
   show "f (Inf S) \<le> (SUP s:S. f s)"

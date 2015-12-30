@@ -842,7 +842,7 @@ proof
     have "bounded (range (\<lambda>i. f (r1 i) $ k))"
       by (metis (lifting) bounded_subset image_subsetI f' s')
     then obtain l2 r2 where r2: "subseq r2"
-      and lr2: "((\<lambda>i. f (r1 (r2 i)) $ k) ---> l2) sequentially"
+      and lr2: "((\<lambda>i. f (r1 (r2 i)) $ k) \<longlongrightarrow> l2) sequentially"
       using bounded_imp_convergent_subsequence[of "\<lambda>i. f (r1 i) $ k"] by (auto simp: o_def)
     def r \<equiv> "r1 \<circ> r2"
     have r: "subseq r"
@@ -888,8 +888,8 @@ proof
     ultimately have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially"
       by (rule eventually_mono)
   }
-  hence "((f \<circ> r) ---> l) sequentially" unfolding o_def tendsto_iff by simp
-  with r show "\<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially" by auto
+  hence "((f \<circ> r) \<longlongrightarrow> l) sequentially" unfolding o_def tendsto_iff by simp
+  with r show "\<exists>l r. subseq r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially" by auto
 qed
 
 lemma interval_cart:
@@ -1014,19 +1014,19 @@ lemma open_halfspace_component_gt_cart: "open {x::real^'n. x$i  > a}"
 
 lemma Lim_component_le_cart:
   fixes f :: "'a \<Rightarrow> real^'n"
-  assumes "(f ---> l) net" "\<not> (trivial_limit net)"  "eventually (\<lambda>x. f x $i \<le> b) net"
+  assumes "(f \<longlongrightarrow> l) net" "\<not> (trivial_limit net)"  "eventually (\<lambda>x. f x $i \<le> b) net"
   shows "l$i \<le> b"
   by (rule tendsto_le[OF assms(2) tendsto_const tendsto_vec_nth, OF assms(1, 3)])
 
 lemma Lim_component_ge_cart:
   fixes f :: "'a \<Rightarrow> real^'n"
-  assumes "(f ---> l) net"  "\<not> (trivial_limit net)"  "eventually (\<lambda>x. b \<le> (f x)$i) net"
+  assumes "(f \<longlongrightarrow> l) net"  "\<not> (trivial_limit net)"  "eventually (\<lambda>x. b \<le> (f x)$i) net"
   shows "b \<le> l$i"
   by (rule tendsto_le[OF assms(2) tendsto_vec_nth tendsto_const, OF assms(1, 3)])
 
 lemma Lim_component_eq_cart:
   fixes f :: "'a \<Rightarrow> real^'n"
-  assumes net: "(f ---> l) net" "~(trivial_limit net)" and ev:"eventually (\<lambda>x. f(x)$i = b) net"
+  assumes net: "(f \<longlongrightarrow> l) net" "~(trivial_limit net)" and ev:"eventually (\<lambda>x. f(x)$i = b) net"
   shows "l$i = b"
   using ev[unfolded order_eq_iff eventually_conj_iff] and
     Lim_component_ge_cart[OF net, of b i] and

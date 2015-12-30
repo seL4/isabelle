@@ -324,7 +324,7 @@ proof clarsimp
     by (auto simp: filter_eq_iff eventually_at_filter le_less)
   moreover have "0 < x \<Longrightarrow> at x within {0 ..} = at x"
     using at_within_interior[of x "{0 ..}"] by (simp add: interior_Ici[of "- \<infinity>"])
-  ultimately show "(inverse ---> inverse x) (at x within {0..})"
+  ultimately show "(inverse \<longlongrightarrow> inverse x) (at x within {0..})"
     by (auto simp: le_less inverse_ereal_tendsto_at_right_0 inverse_ereal_tendsto_pos)
 qed
 

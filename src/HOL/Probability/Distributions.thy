@@ -123,7 +123,7 @@ proof (rule LIMSEQ_unique)
     apply (metis nat_ceiling_le_eq)
     done
 
-  have "((\<lambda>x::real. (1 - (\<Sum>n\<le>k. (x ^ n / exp x) / (fact n))) * fact k) --->
+  have "((\<lambda>x::real. (1 - (\<Sum>n\<le>k. (x ^ n / exp x) / (fact n))) * fact k) \<longlongrightarrow>
         (1 - (\<Sum>n\<le>k. 0 / (fact n))) * fact k) at_top"
     by (intro tendsto_intros tendsto_power_div_exp_0) simp
   then show "?X \<longlonglongrightarrow> real_of_nat (fact k)"
@@ -865,20 +865,20 @@ proof -
   proof (intro nn_integral_cong ereal_right_mult_cong)
     fix s :: real show "?pI (\<lambda>x. ?ff x s) = ereal (1 / (2 * (1 + s\<^sup>2)))"
     proof (subst nn_integral_FTC_atLeast)
-      have "((\<lambda>a. - (exp (- (a\<^sup>2 * (1 + s\<^sup>2))) / (2 + 2 * s\<^sup>2))) ---> (- (0 / (2 + 2 * s\<^sup>2)))) at_top"
+      have "((\<lambda>a. - (exp (- (a\<^sup>2 * (1 + s\<^sup>2))) / (2 + 2 * s\<^sup>2))) \<longlongrightarrow> (- (0 / (2 + 2 * s\<^sup>2)))) at_top"
         apply (intro tendsto_intros filterlim_compose[OF exp_at_bot] filterlim_compose[OF filterlim_uminus_at_bot_at_top])
         apply (subst mult.commute)
         apply (auto intro!: filterlim_tendsto_pos_mult_at_top
                             filterlim_at_top_mult_at_top[OF filterlim_ident filterlim_ident]
                     simp: add_pos_nonneg  power2_eq_square add_nonneg_eq_0_iff)
         done
-      then show "((\<lambda>a. - (exp (- a\<^sup>2 - s\<^sup>2 * a\<^sup>2) / (2 + 2 * s\<^sup>2))) ---> 0) at_top"
+      then show "((\<lambda>a. - (exp (- a\<^sup>2 - s\<^sup>2 * a\<^sup>2) / (2 + 2 * s\<^sup>2))) \<longlongrightarrow> 0) at_top"
         by (simp add: field_simps)
     qed (auto intro!: derivative_eq_intros simp: field_simps add_nonneg_eq_0_iff)
   qed rule
   also have "... = ereal (pi / 4)"
   proof (subst nn_integral_FTC_atLeast)
-    show "((\<lambda>a. arctan a / 2) ---> (pi / 2) / 2 ) at_top"
+    show "((\<lambda>a. arctan a / 2) \<longlongrightarrow> (pi / 2) / 2 ) at_top"
       by (intro tendsto_intros) (simp_all add: tendsto_arctan_at_top)
   qed (auto intro!: derivative_eq_intros simp: add_nonneg_eq_0_iff field_simps power2_eq_square)
   finally have "?pI ?gauss^2 = pi / 4"
@@ -904,12 +904,12 @@ proof -
        (auto simp: ac_simps times_ereal.simps(1)[symmetric] ereal_indicator simp del: times_ereal.simps)
   also have "\<dots> = ereal (0 - (- exp (- 0\<^sup>2) / 2))"
   proof (rule nn_integral_FTC_atLeast)
-    have "((\<lambda>x::real. - exp (- x\<^sup>2) / 2) ---> - 0 / 2) at_top"
+    have "((\<lambda>x::real. - exp (- x\<^sup>2) / 2) \<longlongrightarrow> - 0 / 2) at_top"
       by (intro tendsto_divide tendsto_minus filterlim_compose[OF exp_at_bot]
                    filterlim_compose[OF filterlim_uminus_at_bot_at_top]
                    filterlim_pow_at_top filterlim_ident)
          auto
-    then show "((\<lambda>a::real. - exp (- a\<^sup>2) / 2) ---> 0) at_top"
+    then show "((\<lambda>a::real. - exp (- a\<^sup>2) / 2) \<longlongrightarrow> 0) at_top"
       by simp
   qed (auto intro!: derivative_eq_intros)
   also have "\<dots> = ereal (1 / 2)"
@@ -934,13 +934,13 @@ proof -
     have "2 \<noteq> (0::real)"
       by linarith
     let ?f = "\<lambda>b. \<integral>x. indicator {0..} x *\<^sub>R ?M (k + 2) x * indicator {..b} x \<partial>lborel"
-    have "((\<lambda>b. (k + 1) / 2 * (\<integral>x. indicator {..b} x *\<^sub>R (indicator {0..} x *\<^sub>R ?M k x) \<partial>lborel) - ?M (k + 1) b / 2) --->
+    have "((\<lambda>b. (k + 1) / 2 * (\<integral>x. indicator {..b} x *\<^sub>R (indicator {0..} x *\<^sub>R ?M k x) \<partial>lborel) - ?M (k + 1) b / 2) \<longlongrightarrow>
         (k + 1) / 2 * (\<integral>x. indicator {0..} x *\<^sub>R ?M k x \<partial>lborel) - 0 / 2) at_top" (is ?tendsto)
     proof (intro tendsto_intros \<open>2 \<noteq> 0\<close> tendsto_integral_at_top sets_lborel Mk[THEN integrable.intros])
-      show "(?M (k + 1) ---> 0) at_top"
+      show "(?M (k + 1) \<longlongrightarrow> 0) at_top"
       proof cases
         assume "even k"
-        have "((\<lambda>x. ((x\<^sup>2)^(k div 2 + 1) / exp (x\<^sup>2)) * (1 / x) :: real) ---> 0 * 0) at_top"
+        have "((\<lambda>x. ((x\<^sup>2)^(k div 2 + 1) / exp (x\<^sup>2)) * (1 / x) :: real) \<longlongrightarrow> 0 * 0) at_top"
           by (intro tendsto_intros tendsto_divide_0[OF tendsto_const] filterlim_compose[OF tendsto_power_div_exp_0]
                    filterlim_at_top_imp_at_infinity filterlim_ident filterlim_pow_at_top filterlim_ident)
              auto
@@ -949,7 +949,7 @@ proof -
         finally show ?thesis by simp
       next
         assume "odd k"
-        have "((\<lambda>x. ((x\<^sup>2)^((k - 1) div 2 + 1) / exp (x\<^sup>2)) :: real) ---> 0) at_top"
+        have "((\<lambda>x. ((x\<^sup>2)^((k - 1) div 2 + 1) / exp (x\<^sup>2)) :: real) \<longlongrightarrow> 0) at_top"
           by (intro filterlim_compose[OF tendsto_power_div_exp_0] filterlim_at_top_imp_at_infinity
                     filterlim_ident filterlim_pow_at_top)
              auto
@@ -958,7 +958,7 @@ proof -
         finally show ?thesis by simp
       qed
     qed
-    also have "?tendsto \<longleftrightarrow> ((?f ---> (k + 1) / 2 * (\<integral>x. indicator {0..} x *\<^sub>R ?M k x \<partial>lborel) - 0 / 2) at_top)"
+    also have "?tendsto \<longleftrightarrow> ((?f \<longlongrightarrow> (k + 1) / 2 * (\<integral>x. indicator {0..} x *\<^sub>R ?M k x \<partial>lborel) - 0 / 2) at_top)"
     proof (intro filterlim_cong refl eventually_at_top_linorder[THEN iffD2] exI[of _ 0] allI impI)
       fix b :: real assume b: "0 \<le> b"
       have "Suc k * (\<integral>x. indicator {0..b} x *\<^sub>R ?M k x \<partial>lborel) = (\<integral>x. indicator {0..b} x *\<^sub>R (exp (- x\<^sup>2) * ((Suc k) * x ^ k)) \<partial>lborel)"
@@ -977,7 +977,7 @@ proof -
       then show "(k + 1) / 2 * (\<integral>x. indicator {..b} x *\<^sub>R (indicator {0..} x *\<^sub>R ?M k x)\<partial>lborel) - exp (- b\<^sup>2) * b ^ (k + 1) / 2 = ?f b"
         by (simp add: field_simps atLeastAtMost_def indicator_inter_arith)
     qed
-    finally have int_M_at_top: "((?f ---> (k + 1) / 2 * (\<integral>x. indicator {0..} x *\<^sub>R ?M k x \<partial>lborel)) at_top)"
+    finally have int_M_at_top: "((?f \<longlongrightarrow> (k + 1) / 2 * (\<integral>x. indicator {0..} x *\<^sub>R ?M k x \<partial>lborel)) at_top)"
       by simp
 
     have "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R ?M (k + 2) x) ((k + 1) / 2 * I)"
@@ -988,7 +988,7 @@ proof -
         by rule (simp split: split_indicator)
       show "integrable lborel (\<lambda>x. indicator {0..} x *\<^sub>R (?M (k + 2) x) * indicator {..y} x::real)"
         unfolding * by (rule borel_integrable_compact) (auto intro!: continuous_intros)
-      show "((?f ---> (k + 1) / 2 * I) at_top)"
+      show "((?f \<longlongrightarrow> (k + 1) / 2 * I) at_top)"
         using int_M_at_top has_bochner_integral_integral_eq[OF Mk] by simp
     qed (auto split: split_indicator) }
   note step = this

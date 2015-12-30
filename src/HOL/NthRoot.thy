@@ -268,7 +268,7 @@ proof cases
 qed (simp add: root_def[abs_def])
 
 lemma tendsto_real_root[tendsto_intros]:
-  "(f ---> x) F \<Longrightarrow> ((\<lambda>x. root n (f x)) ---> root n x) F"
+  "(f \<longlongrightarrow> x) F \<Longrightarrow> ((\<lambda>x. root n (f x)) \<longlongrightarrow> root n x) F"
   using isCont_tendsto_compose[OF isCont_real_root, of f x F] .
 
 lemma continuous_real_root[continuous_intros]:
@@ -457,7 +457,7 @@ lemma isCont_real_sqrt: "isCont sqrt x"
 unfolding sqrt_def by (rule isCont_real_root)
 
 lemma tendsto_real_sqrt[tendsto_intros]:
-  "(f ---> x) F \<Longrightarrow> ((\<lambda>x. sqrt (f x)) ---> sqrt x) F"
+  "(f \<longlongrightarrow> x) F \<Longrightarrow> ((\<lambda>x. sqrt (f x)) \<longlongrightarrow> sqrt x) F"
   unfolding sqrt_def by (rule tendsto_real_root)
 
 lemma continuous_real_sqrt[continuous_intros]:

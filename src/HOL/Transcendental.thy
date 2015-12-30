@@ -181,7 +181,7 @@ qed
 
 corollary lim_n_over_pown:
   fixes x :: "'a::{real_normed_field,banach}"
-  shows "1 < norm x \<Longrightarrow> ((\<lambda>n. of_nat n / x^n) ---> 0) sequentially"
+  shows "1 < norm x \<Longrightarrow> ((\<lambda>n. of_nat n / x^n) \<longlongrightarrow> 0) sequentially"
 using powser_times_n_limit_0 [of "inverse x"]
 by (simp add: norm_divide divide_simps)
 
@@ -811,7 +811,7 @@ lemma powser_limit_0:
   fixes a :: "nat \<Rightarrow> 'a::{real_normed_field,banach}"
   assumes s: "0 < s"
       and sm: "\<And>x. norm x < s \<Longrightarrow> (\<lambda>n. a n * x ^ n) sums (f x)"
-    shows "(f ---> a 0) (at 0)"
+    shows "(f \<longlongrightarrow> a 0) (at 0)"
 proof -
   have "summable (\<lambda>n. a n * (of_real s / 2) ^ n)"
     apply (rule sums_summable [where l = "f (of_real s / 2)", OF sm])
@@ -825,7 +825,7 @@ proof -
     done
   then have "isCont (\<lambda>x. \<Sum>n. a n * x ^ n) 0"
     by (blast intro: DERIV_continuous)
-  then have "((\<lambda>x. \<Sum>n. a n * x ^ n) ---> a 0) (at 0)"
+  then have "((\<lambda>x. \<Sum>n. a n * x ^ n) \<longlongrightarrow> a 0) (at 0)"
     by (simp add: continuous_within powser_zero)
   then show ?thesis
     apply (rule Lim_transform)
@@ -840,9 +840,9 @@ lemma powser_limit_0_strong:
   fixes a :: "nat \<Rightarrow> 'a::{real_normed_field,banach}"
   assumes s: "0 < s"
       and sm: "\<And>x. x \<noteq> 0 \<Longrightarrow> norm x < s \<Longrightarrow> (\<lambda>n. a n * x ^ n) sums (f x)"
-    shows "(f ---> a 0) (at 0)"
+    shows "(f \<longlongrightarrow> a 0) (at 0)"
 proof -
-  have *: "((\<lambda>x. if x = 0 then a 0 else f x) ---> a 0) (at 0)"
+  have *: "((\<lambda>x. if x = 0 then a 0 else f x) \<longlongrightarrow> a 0) (at 0)"
     apply (rule powser_limit_0 [OF s])
     apply (case_tac "x=0")
     apply (auto simp add: powser_sums_zero sm)
@@ -1208,7 +1208,7 @@ lemma isCont_exp' [simp]:
 
 lemma tendsto_exp [tendsto_intros]:
   fixes f:: "_ \<Rightarrow>'a::{real_normed_field,banach}"
-  shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. exp (f x)) ---> exp a) F"
+  shows "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. exp (f x)) \<longlongrightarrow> exp a) F"
   by (rule isCont_tendsto_compose [OF isCont_exp])
 
 lemma continuous_exp [continuous_intros]:
@@ -1597,7 +1597,7 @@ qed
 
 lemma tendsto_ln [tendsto_intros]:
   fixes a::real shows
-  "(f ---> a) F \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> ((\<lambda>x. ln (f x)) ---> ln a) F"
+  "(f \<longlongrightarrow> a) F \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> ((\<lambda>x. ln (f x)) \<longlongrightarrow> ln a) F"
   by (rule isCont_tendsto_compose [OF isCont_ln])
 
 lemma continuous_ln:
@@ -2015,7 +2015,7 @@ proof -
   qed
 qed
 
-lemma exp_at_bot: "(exp ---> (0::real)) at_bot"
+lemma exp_at_bot: "(exp \<longlongrightarrow> (0::real)) at_bot"
   unfolding tendsto_Zfun_iff
 proof (rule ZfunI, simp add: eventually_at_bot_dense)
   fix r :: real assume "0 < r"
@@ -2036,7 +2036,7 @@ lemma exp_at_top: "LIM x at_top. exp x :: real :> at_top"
 
 lemma lim_exp_minus_1:
   fixes x :: "'a::{real_normed_field,banach}"
-  shows "((\<lambda>z::'a. (exp(z) - 1) / z) ---> 1) (at 0)"
+  shows "((\<lambda>z::'a. (exp(z) - 1) / z) \<longlongrightarrow> 1) (at 0)"
 proof -
   have "((\<lambda>z::'a. exp(z) - 1) has_field_derivative 1) (at 0)"
     by (intro derivative_eq_intros | simp)+
@@ -2059,10 +2059,10 @@ lemma filtermap_exp_at_top: "filtermap (exp::real \<Rightarrow> real) at_top = a
   by (intro filtermap_fun_inverse[of ln] exp_at_top ln_at_top)
      (auto simp: eventually_at_top_dense)
 
-lemma tendsto_power_div_exp_0: "((\<lambda>x. x ^ k / exp x) ---> (0::real)) at_top"
+lemma tendsto_power_div_exp_0: "((\<lambda>x. x ^ k / exp x) \<longlongrightarrow> (0::real)) at_top"
 proof (induct k)
   case 0
-  show "((\<lambda>x. x ^ 0 / exp x) ---> (0::real)) at_top"
+  show "((\<lambda>x. x ^ 0 / exp x) \<longlongrightarrow> (0::real)) at_top"
     by (simp add: inverse_eq_divide[symmetric])
        (metis filterlim_compose[OF tendsto_inverse_0] exp_at_top filterlim_mono
               at_top_le_at_infinity order_refl)
@@ -2077,7 +2077,7 @@ next
     show "eventually (\<lambda>x. exp x \<noteq> 0) at_top"
       by auto
     from tendsto_mult[OF tendsto_const Suc, of "real (Suc k)"]
-    show "((\<lambda>x. real (Suc k) * x ^ k / exp x) ---> 0) at_top"
+    show "((\<lambda>x. real (Suc k) * x ^ k / exp x) \<longlongrightarrow> 0) at_top"
       by simp
   qed (rule exp_at_top)
 qed
@@ -2089,7 +2089,7 @@ definition log :: "[real,real] => real"
 
 
 lemma tendsto_log [tendsto_intros]:
-  "\<lbrakk>(f ---> a) F; (g ---> b) F; 0 < a; a \<noteq> 1; 0 < b\<rbrakk> \<Longrightarrow> ((\<lambda>x. log (f x) (g x)) ---> log a b) F"
+  "\<lbrakk>(f \<longlongrightarrow> a) F; (g \<longlongrightarrow> b) F; 0 < a; a \<noteq> 1; 0 < b\<rbrakk> \<Longrightarrow> ((\<lambda>x. log (f x) (g x)) \<longlongrightarrow> log a b) F"
   unfolding log_def by (intro tendsto_intros) auto
 
 lemma continuous_log:
@@ -2505,11 +2505,11 @@ qed
 
 lemma tendsto_powr [tendsto_intros]:
   fixes a::real
-  assumes f: "(f ---> a) F" and g: "(g ---> b) F" and a: "a \<noteq> 0"
-  shows "((\<lambda>x. f x powr g x) ---> a powr b) F"
+  assumes f: "(f \<longlongrightarrow> a) F" and g: "(g \<longlongrightarrow> b) F" and a: "a \<noteq> 0"
+  shows "((\<lambda>x. f x powr g x) \<longlongrightarrow> a powr b) F"
   unfolding powr_def
 proof (rule filterlim_If)
-  from f show "((\<lambda>x. 0) ---> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x = 0}))"
+  from f show "((\<lambda>x. 0) \<longlongrightarrow> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x = 0}))"
     by simp (auto simp: filterlim_iff eventually_inf_principal elim: eventually_mono dest: t1_space_nhds)
 qed (insert f g a, auto intro!: tendsto_intros intro: tendsto_mono inf_le1)
 
@@ -2539,22 +2539,22 @@ lemma continuous_on_powr[continuous_intros]:
 
 lemma tendsto_powr2:
   fixes a::real
-  assumes f: "(f ---> a) F" and g: "(g ---> b) F" and f_nonneg: "\<forall>\<^sub>F x in F. 0 \<le> f x" and b: "0 < b"
-  shows "((\<lambda>x. f x powr g x) ---> a powr b) F"
+  assumes f: "(f \<longlongrightarrow> a) F" and g: "(g \<longlongrightarrow> b) F" and f_nonneg: "\<forall>\<^sub>F x in F. 0 \<le> f x" and b: "0 < b"
+  shows "((\<lambda>x. f x powr g x) \<longlongrightarrow> a powr b) F"
   unfolding powr_def
 proof (rule filterlim_If)
-  from f show "((\<lambda>x. 0) ---> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x = 0}))"
+  from f show "((\<lambda>x. 0) \<longlongrightarrow> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x = 0}))"
     by simp (auto simp: filterlim_iff eventually_inf_principal elim: eventually_mono dest: t1_space_nhds)
 next
   { assume "a = 0"
     with f f_nonneg have "LIM x inf F (principal {x. f x \<noteq> 0}). f x :> at_right 0"
       by (auto simp add: filterlim_at eventually_inf_principal le_less
                elim: eventually_mono intro: tendsto_mono inf_le1)
-    then have "((\<lambda>x. exp (g x * ln (f x))) ---> 0) (inf F (principal {x. f x \<noteq> 0}))"
+    then have "((\<lambda>x. exp (g x * ln (f x))) \<longlongrightarrow> 0) (inf F (principal {x. f x \<noteq> 0}))"
       by (auto intro!: filterlim_compose[OF exp_at_bot] filterlim_compose[OF ln_at_0]
                        filterlim_tendsto_pos_mult_at_bot[OF _ \<open>0 < b\<close>]
                intro: tendsto_mono inf_le1 g) }
-  then show "((\<lambda>x. exp (g x * ln (f x))) ---> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x \<noteq> 0}))"
+  then show "((\<lambda>x. exp (g x * ln (f x))) \<longlongrightarrow> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x \<noteq> 0}))"
     using f g by (auto intro!: tendsto_intros intro: tendsto_mono inf_le1)
 qed
 
@@ -2596,19 +2596,19 @@ qed
 declare has_real_derivative_powr[THEN DERIV_chain2, derivative_intros]
 
 lemma tendsto_zero_powrI:
-  assumes "(f ---> (0::real)) F" "(g ---> b) F" "\<forall>\<^sub>F x in F. 0 \<le> f x" "0 < b"
-  shows "((\<lambda>x. f x powr g x) ---> 0) F"
+  assumes "(f \<longlongrightarrow> (0::real)) F" "(g \<longlongrightarrow> b) F" "\<forall>\<^sub>F x in F. 0 \<le> f x" "0 < b"
+  shows "((\<lambda>x. f x powr g x) \<longlongrightarrow> 0) F"
   using tendsto_powr2[OF assms] by simp
 
 lemma tendsto_neg_powr:
   assumes "s < 0"
     and f: "LIM x F. f x :> at_top"
-  shows "((\<lambda>x. f x powr s) ---> (0::real)) F"
+  shows "((\<lambda>x. f x powr s) \<longlongrightarrow> (0::real)) F"
 proof -
-  have "((\<lambda>x. exp (s * ln (f x))) ---> (0::real)) F" (is "?X")
+  have "((\<lambda>x. exp (s * ln (f x))) \<longlongrightarrow> (0::real)) F" (is "?X")
     by (auto intro!: filterlim_compose[OF exp_at_bot] filterlim_compose[OF ln_at_top]
                      filterlim_tendsto_neg_mult_at_bot assms)
-  also have "?X \<longleftrightarrow> ((\<lambda>x. f x powr s) ---> (0::real)) F"
+  also have "?X \<longleftrightarrow> ((\<lambda>x. f x powr s) \<longlongrightarrow> (0::real)) F"
     using f filterlim_at_top_dense[of f F]
     by (intro filterlim_cong[OF refl refl]) (auto simp: neq_iff powr_def elim: eventually_mono)
   finally show ?thesis .
@@ -2616,14 +2616,14 @@ qed
 
 lemma tendsto_exp_limit_at_right:
   fixes x :: real
-  shows "((\<lambda>y. (1 + x * y) powr (1 / y)) ---> exp x) (at_right 0)"
+  shows "((\<lambda>y. (1 + x * y) powr (1 / y)) \<longlongrightarrow> exp x) (at_right 0)"
 proof cases
   assume "x \<noteq> 0"
   have "((\<lambda>y. ln (1 + x * y)::real) has_real_derivative 1 * x) (at 0)"
     by (auto intro!: derivative_eq_intros)
-  then have "((\<lambda>y. ln (1 + x * y) / y) ---> x) (at 0)"
+  then have "((\<lambda>y. ln (1 + x * y) / y) \<longlongrightarrow> x) (at 0)"
     by (auto simp add: has_field_derivative_def field_has_derivative_at)
-  then have *: "((\<lambda>y. exp (ln (1 + x * y) / y)) ---> exp x) (at 0)"
+  then have *: "((\<lambda>y. exp (ln (1 + x * y) / y)) \<longlongrightarrow> exp x) (at 0)"
     by (rule tendsto_intros)
   then show ?thesis
   proof (rule filterlim_mono_eventually)
@@ -2638,7 +2638,7 @@ qed simp
 
 lemma tendsto_exp_limit_at_top:
   fixes x :: real
-  shows "((\<lambda>y. (1 + x / y) powr y) ---> exp x) at_top"
+  shows "((\<lambda>y. (1 + x / y) powr y) \<longlongrightarrow> exp x) at_top"
   apply (subst filterlim_at_top_to_right)
   apply (simp add: inverse_eq_divide)
   apply (rule tendsto_exp_limit_at_right)
@@ -2819,12 +2819,12 @@ lemma isCont_cos' [simp]:
 
 lemma tendsto_sin [tendsto_intros]:
   fixes f:: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
-  shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. sin (f x)) ---> sin a) F"
+  shows "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. sin (f x)) \<longlongrightarrow> sin a) F"
   by (rule isCont_tendsto_compose [OF isCont_sin])
 
 lemma tendsto_cos [tendsto_intros]:
   fixes f:: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
-  shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. cos (f x)) ---> cos a) F"
+  shows "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. cos (f x)) \<longlongrightarrow> cos a) F"
   by (rule isCont_tendsto_compose [OF isCont_cos])
 
 lemma continuous_sin [continuous_intros]:
@@ -4049,7 +4049,7 @@ lemma isCont_tan' [simp,continuous_intros]:
 
 lemma tendsto_tan [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
-  shows "\<lbrakk>(f ---> a) F; cos a \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. tan (f x)) ---> tan a) F"
+  shows "\<lbrakk>(f \<longlongrightarrow> a) F; cos a \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. tan (f x)) \<longlongrightarrow> tan a) F"
   by (rule isCont_tendsto_compose [OF isCont_tan])
 
 lemma continuous_tan:
@@ -4318,7 +4318,7 @@ lemma isCont_cot' [simp,continuous_intros]:
 
 lemma tendsto_cot [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
-  shows "\<lbrakk>(f ---> a) F; sin a \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. cot (f x)) ---> cot a) F"
+  shows "\<lbrakk>(f \<longlongrightarrow> a) F; sin a \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. cot (f x)) \<longlongrightarrow> cot a) F"
   by (rule isCont_tendsto_compose [OF isCont_cot])
 
 lemma continuous_cot:
@@ -4631,7 +4631,7 @@ lemma isCont_arctan: "isCont arctan x"
   apply (metis cos_gt_zero_pi isCont_tan order_less_le_trans less_le)
   done
 
-lemma tendsto_arctan [tendsto_intros]: "(f ---> x) F \<Longrightarrow> ((\<lambda>x. arctan (f x)) ---> arctan x) F"
+lemma tendsto_arctan [tendsto_intros]: "(f \<longlongrightarrow> x) F \<Longrightarrow> ((\<lambda>x. arctan (f x)) \<longlongrightarrow> arctan x) F"
   by (rule isCont_tendsto_compose [OF isCont_arctan])
 
 lemma continuous_arctan [continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. arctan (f x))"
@@ -4690,7 +4690,7 @@ lemma filterlim_tan_at_left: "filterlim tan at_top (at_left (pi/2))"
      (auto simp: arctan le_less eventually_at dist_real_def simp del: less_divide_eq_numeral1
            intro!: tan_monotone exI[of _ "pi/2"])
 
-lemma tendsto_arctan_at_top: "(arctan ---> (pi/2)) at_top"
+lemma tendsto_arctan_at_top: "(arctan \<longlongrightarrow> (pi/2)) at_top"
 proof (rule tendstoI)
   fix e :: real
   assume "0 < e"
@@ -4712,7 +4712,7 @@ proof (rule tendstoI)
   qed
 qed
 
-lemma tendsto_arctan_at_bot: "(arctan ---> - (pi/2)) at_bot"
+lemma tendsto_arctan_at_bot: "(arctan \<longlongrightarrow> - (pi/2)) at_bot"
   unfolding filterlim_at_bot_mirror arctan_minus
   by (intro tendsto_minus tendsto_arctan_at_top)
 

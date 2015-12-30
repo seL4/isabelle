@@ -1524,11 +1524,11 @@ context
   fixes s :: "real \<Rightarrow> 'a \<Rightarrow> 'b::{banach, second_countable_topology}" and w :: "'a \<Rightarrow> real"
     and f :: "'a \<Rightarrow> 'b" and M
   assumes "f \<in> borel_measurable M" "\<And>t. s t \<in> borel_measurable M" "integrable M w"
-  assumes lim: "AE x in M. ((\<lambda>i. s i x) ---> f x) at_top"
+  assumes lim: "AE x in M. ((\<lambda>i. s i x) \<longlongrightarrow> f x) at_top"
   assumes bound: "\<forall>\<^sub>F i in at_top. AE x in M. norm (s i x) \<le> w x"
 begin
 
-lemma integral_dominated_convergence_at_top: "((\<lambda>t. integral\<^sup>L M (s t)) ---> integral\<^sup>L M f) at_top"
+lemma integral_dominated_convergence_at_top: "((\<lambda>t. integral\<^sup>L M (s t)) \<longlongrightarrow> integral\<^sup>L M f) at_top"
 proof (rule tendsto_at_topI_sequentially)
   fix X :: "nat \<Rightarrow> real" assume X: "filterlim X at_top sequentially"
   from filterlim_iff[THEN iffD1, OF this, rule_format, OF bound]
@@ -1542,7 +1542,7 @@ proof (rule tendsto_at_topI_sequentially)
     show "AE x in M. (\<lambda>n. s (X (n + N)) x) \<longlonglongrightarrow> f x"
       using lim
     proof eventually_elim
-      fix x assume "((\<lambda>i. s i x) ---> f x) at_top"
+      fix x assume "((\<lambda>i. s i x) \<longlongrightarrow> f x) at_top"
       then show "(\<lambda>n. s (X (n + N)) x) \<longlonglongrightarrow> f x"
         by (intro LIMSEQ_ignore_initial_segment filterlim_compose[OF _ X])
     qed
@@ -1560,7 +1560,7 @@ proof -
     show "AE x in M. (\<lambda>i. s (N + real i) x) \<longlonglongrightarrow> f x"
       using lim
     proof eventually_elim
-      fix x assume "((\<lambda>i. s i x) ---> f x) at_top"
+      fix x assume "((\<lambda>i. s i x) \<longlongrightarrow> f x) at_top"
       then show "(\<lambda>n. s (N + n) x) \<longlonglongrightarrow> f x"
         by (rule filterlim_compose)
            (auto intro!: filterlim_tendsto_add_at_top filterlim_real_sequentially)
@@ -2459,7 +2459,7 @@ lemma (in finite_measure) integral_less_AE_space:
 lemma tendsto_integral_at_top:
   fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
   assumes [measurable_cong]: "sets M = sets borel" and f[measurable]: "integrable M f"
-  shows "((\<lambda>y. \<integral> x. indicator {.. y} x *\<^sub>R f x \<partial>M) ---> \<integral> x. f x \<partial>M) at_top"
+  shows "((\<lambda>y. \<integral> x. indicator {.. y} x *\<^sub>R f x \<partial>M) \<longlongrightarrow> \<integral> x. f x \<partial>M) at_top"
 proof (rule tendsto_at_topI_sequentially)
   fix X :: "nat \<Rightarrow> real" assume "filterlim X at_top sequentially"
   show "(\<lambda>n. \<integral>x. indicator {..X n} x *\<^sub>R f x \<partial>M) \<longlonglongrightarrow> integral\<^sup>L M f"
@@ -2486,7 +2486,7 @@ lemma
   assumes nonneg: "AE x in M. 0 \<le> f x"
   assumes borel: "f \<in> borel_measurable borel"
   assumes int: "\<And>y. integrable M (\<lambda>x. f x * indicator {.. y} x)"
-  assumes conv: "((\<lambda>y. \<integral> x. f x * indicator {.. y} x \<partial>M) ---> x) at_top"
+  assumes conv: "((\<lambda>y. \<integral> x. f x * indicator {.. y} x \<partial>M) \<longlongrightarrow> x) at_top"
   shows has_bochner_integral_monotone_convergence_at_top: "has_bochner_integral M f x"
     and integrable_monotone_convergence_at_top: "integrable M f"
     and integral_monotone_convergence_at_top:"integral\<^sup>L M f = x"

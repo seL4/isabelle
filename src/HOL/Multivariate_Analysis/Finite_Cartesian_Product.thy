@@ -196,8 +196,8 @@ proof -
 qed
 
 lemma tendsto_vec_nth [tendsto_intros]:
-  assumes "((\<lambda>x. f x) ---> a) net"
-  shows "((\<lambda>x. f x $ i) ---> a $ i) net"
+  assumes "((\<lambda>x. f x) \<longlongrightarrow> a) net"
+  shows "((\<lambda>x. f x $ i) \<longlongrightarrow> a $ i) net"
 proof (rule topological_tendstoI)
   fix S assume "open S" "a $ i \<in> S"
   then have "open ((\<lambda>y. y $ i) -` S)" "a \<in> ((\<lambda>y. y $ i) -` S)"
@@ -212,8 +212,8 @@ lemma isCont_vec_nth [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. f
   unfolding isCont_def by (rule tendsto_vec_nth)
 
 lemma vec_tendstoI:
-  assumes "\<And>i. ((\<lambda>x. f x $ i) ---> a $ i) net"
-  shows "((\<lambda>x. f x) ---> a) net"
+  assumes "\<And>i. ((\<lambda>x. f x $ i) \<longlongrightarrow> a $ i) net"
+  shows "((\<lambda>x. f x) \<longlongrightarrow> a) net"
 proof (rule topological_tendstoI)
   fix S assume "open S" and "a \<in> S"
   then obtain A where A: "\<And>i. open (A i)" "\<And>i. a $ i \<in> A i"
@@ -228,8 +228,8 @@ proof (rule topological_tendstoI)
 qed
 
 lemma tendsto_vec_lambda [tendsto_intros]:
-  assumes "\<And>i. ((\<lambda>x. f x i) ---> a i) net"
-  shows "((\<lambda>x. \<chi> i. f x i) ---> (\<chi> i. a i)) net"
+  assumes "\<And>i. ((\<lambda>x. f x i) \<longlongrightarrow> a i) net"
+  shows "((\<lambda>x. \<chi> i. f x i) \<longlongrightarrow> (\<chi> i. a i)) net"
   using assms by (simp add: vec_tendstoI)
 
 lemma open_image_vec_nth: assumes "open S" shows "open ((\<lambda>x. x $ i) ` S)"

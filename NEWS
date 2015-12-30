@@ -502,6 +502,7 @@ simplify porting old theories:
   notation Preorder.equiv ("op ~~")
     and Preorder.equiv ("(_/ ~~ _)" [51, 51] 50)
 
+  notation (in topological_space) tendsto (infixr "--->" 55)
   notation (in topological_space) LIMSEQ ("((_)/ ----> (_))" [60, 60] 60)
 
   notation NSLIMSEQ ("((_)/ ----NS> (_))" [60, 60] 60)

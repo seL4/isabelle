@@ -1749,11 +1749,11 @@ lemma continuous_on_ereal[continuous_intros]:
   assumes f: "continuous_on s f" shows "continuous_on s (\<lambda>x. ereal (f x))"
   by (rule continuous_on_compose2 [OF continuous_onI_mono[of ereal UNIV] f]) auto
 
-lemma tendsto_ereal[tendsto_intros, simp, intro]: "(f ---> x) F \<Longrightarrow> ((\<lambda>x. ereal (f x)) ---> ereal x) F"
+lemma tendsto_ereal[tendsto_intros, simp, intro]: "(f \<longlongrightarrow> x) F \<Longrightarrow> ((\<lambda>x. ereal (f x)) \<longlongrightarrow> ereal x) F"
   using isCont_tendsto_compose[of x ereal f F] continuous_on_ereal[of UNIV "\<lambda>x. x"]
   by (simp add: continuous_on_eq_continuous_at)
 
-lemma tendsto_uminus_ereal[tendsto_intros, simp, intro]: "(f ---> x) F \<Longrightarrow> ((\<lambda>x. - f x::ereal) ---> - x) F"
+lemma tendsto_uminus_ereal[tendsto_intros, simp, intro]: "(f \<longlongrightarrow> x) F \<Longrightarrow> ((\<lambda>x. - f x::ereal) \<longlongrightarrow> - x) F"
   apply (rule tendsto_compose[where g=uminus])
   apply (auto intro!: order_tendstoI simp: eventually_at_topological)
   apply (rule_tac x="{..< -a}" in exI)
@@ -1770,7 +1770,7 @@ lemma at_infty_ereal_eq_at_top: "at \<infinity> = filtermap ereal at_top"
   apply (metis PInfty_neq_ereal(2) ereal_less_eq(3) ereal_top le_cases order_trans)
   done
 
-lemma ereal_Lim_uminus: "(f ---> f0) net \<longleftrightarrow> ((\<lambda>x. - f x::ereal) ---> - f0) net"
+lemma ereal_Lim_uminus: "(f \<longlongrightarrow> f0) net \<longleftrightarrow> ((\<lambda>x. - f x::ereal) \<longlongrightarrow> - f0) net"
   using tendsto_uminus_ereal[of f f0 net] tendsto_uminus_ereal[of "\<lambda>x. - f x" "- f0" net]
   by auto
 
@@ -1781,10 +1781,10 @@ lemma ereal_less_divide_iff: "0 < (c::ereal) \<Longrightarrow> c < \<infinity> \
   by (cases a b c rule: ereal3_cases) (auto simp: field_simps)
 
 lemma tendsto_cmult_ereal[tendsto_intros, simp, intro]:
-  assumes c: "\<bar>c\<bar> \<noteq> \<infinity>" and f: "(f ---> x) F" shows "((\<lambda>x. c * f x::ereal) ---> c * x) F"
+  assumes c: "\<bar>c\<bar> \<noteq> \<infinity>" and f: "(f \<longlongrightarrow> x) F" shows "((\<lambda>x. c * f x::ereal) \<longlongrightarrow> c * x) F"
 proof -
   { fix c :: ereal assume "0 < c" "c < \<infinity>"
-    then have "((\<lambda>x. c * f x::ereal) ---> c * x) F"
+    then have "((\<lambda>x. c * f x::ereal) \<longlongrightarrow> c * x) F"
       apply (intro tendsto_compose[OF _ f])
       apply (auto intro!: order_tendstoI simp: eventually_at_topological)
       apply (rule_tac x="{a/c <..}" in exI)
@@ -1801,7 +1801,7 @@ proof -
     assume "- \<infinity> < c" "c < 0"
     then have "0 < - c" "- c < \<infinity>"
       by (auto simp: ereal_uminus_reorder ereal_less_uminus_reorder[of 0])
-    then have "((\<lambda>x. (- c) * f x) ---> (- c) * x) F"
+    then have "((\<lambda>x. (- c) * f x) \<longlongrightarrow> (- c) * x) F"
       by (rule *)
     from tendsto_uminus_ereal[OF this] show ?thesis
       by simp
@@ -1809,7 +1809,7 @@ proof -
 qed
 
 lemma tendsto_cmult_ereal_not_0[tendsto_intros, simp, intro]:
-  assumes "x \<noteq> 0" and f: "(f ---> x) F" shows "((\<lambda>x. c * f x::ereal) ---> c * x) F"
+  assumes "x \<noteq> 0" and f: "(f \<longlongrightarrow> x) F" shows "((\<lambda>x. c * f x::ereal) \<longlongrightarrow> c * x) F"
 proof cases
   assume "\<bar>c\<bar> = \<infinity>"
   show ?thesis
@@ -1828,7 +1828,7 @@ proof cases
 qed (rule tendsto_cmult_ereal[OF _ f])
 
 lemma tendsto_cadd_ereal[tendsto_intros, simp, intro]:
-  assumes c: "y \<noteq> - \<infinity>" "x \<noteq> - \<infinity>" and f: "(f ---> x) F" shows "((\<lambda>x. f x + y::ereal) ---> x + y) F"
+  assumes c: "y \<noteq> - \<infinity>" "x \<noteq> - \<infinity>" and f: "(f \<longlongrightarrow> x) F" shows "((\<lambda>x. f x + y::ereal) \<longlongrightarrow> x + y) F"
   apply (intro tendsto_compose[OF _ f])
   apply (auto intro!: order_tendstoI simp: eventually_at_topological)
   apply (rule_tac x="{a - y <..}" in exI)
@@ -1838,7 +1838,7 @@ lemma tendsto_cadd_ereal[tendsto_intros, simp, intro]:
   done
 
 lemma tendsto_add_left_ereal[tendsto_intros, simp, intro]:
-  assumes c: "\<bar>y\<bar> \<noteq> \<infinity>" and f: "(f ---> x) F" shows "((\<lambda>x. f x + y::ereal) ---> x + y) F"
+  assumes c: "\<bar>y\<bar> \<noteq> \<infinity>" and f: "(f \<longlongrightarrow> x) F" shows "((\<lambda>x. f x + y::ereal) \<longlongrightarrow> x + y) F"
   apply (intro tendsto_compose[OF _ f])
   apply (auto intro!: order_tendstoI simp: eventually_at_topological)
   apply (rule_tac x="{a - y <..}" in exI)
@@ -2337,10 +2337,10 @@ qed (auto simp add: image_Union image_Int)
 
 lemma eventually_finite:
   fixes x :: ereal
-  assumes "\<bar>x\<bar> \<noteq> \<infinity>" "(f ---> x) F"
+  assumes "\<bar>x\<bar> \<noteq> \<infinity>" "(f \<longlongrightarrow> x) F"
   shows "eventually (\<lambda>x. \<bar>f x\<bar> \<noteq> \<infinity>) F"
 proof -
-  have "(f ---> ereal (real_of_ereal x)) F"
+  have "(f \<longlongrightarrow> ereal (real_of_ereal x)) F"
     using assms by (cases x) auto
   then have "eventually (\<lambda>x. f x \<in> ereal ` UNIV) F"
     by (rule topological_tendstoD) (auto intro: open_ereal)
@@ -2436,8 +2436,8 @@ qed
 subsubsection \<open>Convergent sequences\<close>
 
 lemma lim_real_of_ereal[simp]:
-  assumes lim: "(f ---> ereal x) net"
-  shows "((\<lambda>x. real_of_ereal (f x)) ---> x) net"
+  assumes lim: "(f \<longlongrightarrow> ereal x) net"
+  shows "((\<lambda>x. real_of_ereal (f x)) \<longlongrightarrow> x) net"
 proof (intro topological_tendstoI)
   fix S
   assume "open S" and "x \<in> S"
@@ -2447,7 +2447,7 @@ proof (intro topological_tendstoI)
     by (auto intro: eventually_mono [OF lim[THEN topological_tendstoD, OF open_ereal, OF S]])
 qed
 
-lemma lim_ereal[simp]: "((\<lambda>n. ereal (f n)) ---> ereal x) net \<longleftrightarrow> (f ---> x) net"
+lemma lim_ereal[simp]: "((\<lambda>n. ereal (f n)) \<longlongrightarrow> ereal x) net \<longleftrightarrow> (f \<longlongrightarrow> x) net"
   by (auto dest!: lim_real_of_ereal)
 
 lemma convergent_real_imp_convergent_ereal:
@@ -2460,7 +2460,7 @@ proof -
   thus "lim (\<lambda>n. ereal (a n)) = ereal (lim a)" using lim L limI by metis
 qed
 
-lemma tendsto_PInfty: "(f ---> \<infinity>) F \<longleftrightarrow> (\<forall>r. eventually (\<lambda>x. ereal r < f x) F)"
+lemma tendsto_PInfty: "(f \<longlongrightarrow> \<infinity>) F \<longleftrightarrow> (\<forall>r. eventually (\<lambda>x. ereal r < f x) F)"
 proof -
   {
     fix l :: ereal
@@ -2473,10 +2473,10 @@ proof -
 qed
 
 lemma tendsto_PInfty_eq_at_top:
-  "((\<lambda>z. ereal (f z)) ---> \<infinity>) F \<longleftrightarrow> (LIM z F. f z :> at_top)"
+  "((\<lambda>z. ereal (f z)) \<longlongrightarrow> \<infinity>) F \<longleftrightarrow> (LIM z F. f z :> at_top)"
   unfolding tendsto_PInfty filterlim_at_top_dense by simp
 
-lemma tendsto_MInfty: "(f ---> -\<infinity>) F \<longleftrightarrow> (\<forall>r. eventually (\<lambda>x. f x < ereal r) F)"
+lemma tendsto_MInfty: "(f \<longlongrightarrow> -\<infinity>) F \<longleftrightarrow> (\<forall>r. eventually (\<lambda>x. f x < ereal r) F)"
   unfolding tendsto_def
 proof safe
   fix S :: "ereal set"
@@ -2558,8 +2558,8 @@ lemma real_of_ereal_eq_0:
 lemma tendsto_ereal_realD:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes "x \<noteq> 0"
-    and tendsto: "((\<lambda>x. ereal (real_of_ereal (f x))) ---> x) net"
-  shows "(f ---> x) net"
+    and tendsto: "((\<lambda>x. ereal (real_of_ereal (f x))) \<longlongrightarrow> x) net"
+  shows "(f \<longlongrightarrow> x) net"
 proof (intro topological_tendstoI)
   fix S
   assume S: "open S" "x \<in> S"
@@ -2572,8 +2572,8 @@ qed
 
 lemma tendsto_ereal_realI:
   fixes f :: "'a \<Rightarrow> ereal"
-  assumes x: "\<bar>x\<bar> \<noteq> \<infinity>" and tendsto: "(f ---> x) net"
-  shows "((\<lambda>x. ereal (real_of_ereal (f x))) ---> x) net"
+  assumes x: "\<bar>x\<bar> \<noteq> \<infinity>" and tendsto: "(f \<longlongrightarrow> x) net"
+  shows "((\<lambda>x. ereal (real_of_ereal (f x))) \<longlongrightarrow> x) net"
 proof (intro topological_tendstoI)
   fix S
   assume "open S" and "x \<in> S"
@@ -2592,15 +2592,15 @@ lemma ereal_mult_cancel_left:
 lemma tendsto_add_ereal:
   fixes x y :: ereal
   assumes x: "\<bar>x\<bar> \<noteq> \<infinity>" and y: "\<bar>y\<bar> \<noteq> \<infinity>"
-  assumes f: "(f ---> x) F" and g: "(g ---> y) F"
-  shows "((\<lambda>x. f x + g x) ---> x + y) F"
+  assumes f: "(f \<longlongrightarrow> x) F" and g: "(g \<longlongrightarrow> y) F"
+  shows "((\<lambda>x. f x + g x) \<longlongrightarrow> x + y) F"
 proof -
   from x obtain r where x': "x = ereal r" by (cases x) auto
-  with f have "((\<lambda>i. real_of_ereal (f i)) ---> r) F" by simp
+  with f have "((\<lambda>i. real_of_ereal (f i)) \<longlongrightarrow> r) F" by simp
   moreover
   from y obtain p where y': "y = ereal p" by (cases y) auto
-  with g have "((\<lambda>i. real_of_ereal (g i)) ---> p) F" by simp
-  ultimately have "((\<lambda>i. real_of_ereal (f i) + real_of_ereal (g i)) ---> r + p) F"
+  with g have "((\<lambda>i. real_of_ereal (g i)) \<longlongrightarrow> p) F" by simp
+  ultimately have "((\<lambda>i. real_of_ereal (f i) + real_of_ereal (g i)) \<longlongrightarrow> r + p) F"
     by (rule tendsto_add)
   moreover
   from eventually_finite[OF x f] eventually_finite[OF y g]
@@ -3408,7 +3408,7 @@ lemma ereal_Liminf_uminus:
 lemma Liminf_PInfty:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes "\<not> trivial_limit net"
-  shows "(f ---> \<infinity>) net \<longleftrightarrow> Liminf net f = \<infinity>"
+  shows "(f \<longlongrightarrow> \<infinity>) net \<longleftrightarrow> Liminf net f = \<infinity>"
   unfolding tendsto_iff_Liminf_eq_Limsup[OF assms]
   using Liminf_le_Limsup[OF assms, of f]
   by auto
@@ -3416,7 +3416,7 @@ lemma Liminf_PInfty:
 lemma Limsup_MInfty:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes "\<not> trivial_limit net"
-  shows "(f ---> -\<infinity>) net \<longleftrightarrow> Limsup net f = -\<infinity>"
+  shows "(f \<longlongrightarrow> -\<infinity>) net \<longleftrightarrow> Limsup net f = -\<infinity>"
   unfolding tendsto_iff_Liminf_eq_Limsup[OF assms]
   using Liminf_le_Limsup[OF assms, of f]
   by auto
@@ -3582,23 +3582,23 @@ lemma
   by (auto simp add: ereal_all_split ereal_ex_split)
 
 lemma ereal_tendsto_simps1:
-  "((f \<circ> real_of_ereal) ---> y) (at_left (ereal x)) \<longleftrightarrow> (f ---> y) (at_left x)"
-  "((f \<circ> real_of_ereal) ---> y) (at_right (ereal x)) \<longleftrightarrow> (f ---> y) (at_right x)"
-  "((f \<circ> real_of_ereal) ---> y) (at_left (\<infinity>::ereal)) \<longleftrightarrow> (f ---> y) at_top"
-  "((f \<circ> real_of_ereal) ---> y) (at_right (-\<infinity>::ereal)) \<longleftrightarrow> (f ---> y) at_bot"
+  "((f \<circ> real_of_ereal) \<longlongrightarrow> y) (at_left (ereal x)) \<longleftrightarrow> (f \<longlongrightarrow> y) (at_left x)"
+  "((f \<circ> real_of_ereal) \<longlongrightarrow> y) (at_right (ereal x)) \<longleftrightarrow> (f \<longlongrightarrow> y) (at_right x)"
+  "((f \<circ> real_of_ereal) \<longlongrightarrow> y) (at_left (\<infinity>::ereal)) \<longleftrightarrow> (f \<longlongrightarrow> y) at_top"
+  "((f \<circ> real_of_ereal) \<longlongrightarrow> y) (at_right (-\<infinity>::ereal)) \<longleftrightarrow> (f \<longlongrightarrow> y) at_bot"
   unfolding tendsto_compose_filtermap at_left_ereal at_right_ereal at_left_PInf at_right_MInf
   by (auto simp: filtermap_filtermap filtermap_ident)
 
 lemma ereal_tendsto_simps2:
-  "((ereal \<circ> f) ---> ereal a) F \<longleftrightarrow> (f ---> a) F"
-  "((ereal \<circ> f) ---> \<infinity>) F \<longleftrightarrow> (LIM x F. f x :> at_top)"
-  "((ereal \<circ> f) ---> -\<infinity>) F \<longleftrightarrow> (LIM x F. f x :> at_bot)"
+  "((ereal \<circ> f) \<longlongrightarrow> ereal a) F \<longleftrightarrow> (f \<longlongrightarrow> a) F"
+  "((ereal \<circ> f) \<longlongrightarrow> \<infinity>) F \<longleftrightarrow> (LIM x F. f x :> at_top)"
+  "((ereal \<circ> f) \<longlongrightarrow> -\<infinity>) F \<longleftrightarrow> (LIM x F. f x :> at_bot)"
   unfolding tendsto_PInfty filterlim_at_top_dense tendsto_MInfty filterlim_at_bot_dense
   using lim_ereal by (simp_all add: comp_def)
 
 lemma inverse_infty_ereal_tendsto_0: "inverse -- \<infinity> --> (0::ereal)"
 proof -
-  have **: "((\<lambda>x. ereal (inverse x)) ---> ereal 0) at_infinity"
+  have **: "((\<lambda>x. ereal (inverse x)) \<longlongrightarrow> ereal 0) at_infinity"
     by (intro tendsto_intros tendsto_inverse_0)
 
   show ?thesis
@@ -3619,7 +3619,7 @@ proof (cases x)
              intro!: Lim_transform_eventually[OF _ **] t1_space_nhds)
 qed (insert \<open>0 < x\<close>, auto intro!: inverse_infty_ereal_tendsto_0)
 
-lemma inverse_ereal_tendsto_at_right_0: "(inverse ---> \<infinity>) (at_right (0::ereal))"
+lemma inverse_ereal_tendsto_at_right_0: "(inverse \<longlongrightarrow> \<infinity>) (at_right (0::ereal))"
   unfolding tendsto_compose_filtermap[symmetric] at_right_ereal zero_ereal_def
   by (subst filterlim_cong[OF refl refl, where g="\<lambda>x. ereal (inverse x)"])
      (auto simp: eventually_at_filter tendsto_PInfty_eq_at_top filterlim_inverse_at_top_right)

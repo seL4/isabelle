@@ -70,12 +70,12 @@ lemma has_derivative_bilinear_at:
 text \<open>These are the only cases we'll care about, probably.\<close>
 
 lemma has_derivative_within: "(f has_derivative f') (at x within s) \<longleftrightarrow>
-    bounded_linear f' \<and> ((\<lambda>y. (1 / norm(y - x)) *\<^sub>R (f y - (f x + f' (y - x)))) ---> 0) (at x within s)"
+    bounded_linear f' \<and> ((\<lambda>y. (1 / norm(y - x)) *\<^sub>R (f y - (f x + f' (y - x)))) \<longlongrightarrow> 0) (at x within s)"
   unfolding has_derivative_def Lim
   by (auto simp add: netlimit_within field_simps)
 
 lemma has_derivative_at: "(f has_derivative f') (at x) \<longleftrightarrow>
-    bounded_linear f' \<and> ((\<lambda>y. (1 / (norm(y - x))) *\<^sub>R (f y - (f x + f' (y - x)))) ---> 0) (at x)"
+    bounded_linear f' \<and> ((\<lambda>y. (1 / (norm(y - x))) *\<^sub>R (f y - (f x + f' (y - x)))) \<longlongrightarrow> 0) (at x)"
   using has_derivative_within [of f f' x UNIV]
   by simp
 
@@ -111,14 +111,14 @@ lemma has_derivative_right:
   fixes f :: "real \<Rightarrow> real"
     and y :: "real"
   shows "(f has_derivative (op * y)) (at x within ({x <..} \<inter> I)) \<longleftrightarrow>
-    ((\<lambda>t. (f x - f t) / (x - t)) ---> y) (at x within ({x <..} \<inter> I))"
+    ((\<lambda>t. (f x - f t) / (x - t)) \<longlongrightarrow> y) (at x within ({x <..} \<inter> I))"
 proof -
-  have "((\<lambda>t. (f t - (f x + y * (t - x))) / \<bar>t - x\<bar>) ---> 0) (at x within ({x<..} \<inter> I)) \<longleftrightarrow>
-    ((\<lambda>t. (f t - f x) / (t - x) - y) ---> 0) (at x within ({x<..} \<inter> I))"
+  have "((\<lambda>t. (f t - (f x + y * (t - x))) / \<bar>t - x\<bar>) \<longlongrightarrow> 0) (at x within ({x<..} \<inter> I)) \<longleftrightarrow>
+    ((\<lambda>t. (f t - f x) / (t - x) - y) \<longlongrightarrow> 0) (at x within ({x<..} \<inter> I))"
     by (intro Lim_cong_within) (auto simp add: diff_divide_distrib add_divide_distrib)
-  also have "\<dots> \<longleftrightarrow> ((\<lambda>t. (f t - f x) / (t - x)) ---> y) (at x within ({x<..} \<inter> I))"
+  also have "\<dots> \<longleftrightarrow> ((\<lambda>t. (f t - f x) / (t - x)) \<longlongrightarrow> y) (at x within ({x<..} \<inter> I))"
     by (simp add: Lim_null[symmetric])
-  also have "\<dots> \<longleftrightarrow> ((\<lambda>t. (f x - f t) / (x - t)) ---> y) (at x within ({x<..} \<inter> I))"
+  also have "\<dots> \<longleftrightarrow> ((\<lambda>t. (f x - f t) / (x - t)) \<longlongrightarrow> y) (at x within ({x<..} \<inter> I))"
     by (intro Lim_cong_within) (simp_all add: field_simps)
   finally show ?thesis
     by (simp add: bounded_linear_mult_right has_derivative_within)
@@ -127,7 +127,7 @@ qed
 subsubsection \<open>Caratheodory characterization\<close>
 
 lemma DERIV_within_iff:
-  "(f has_field_derivative D) (at a within s) \<longleftrightarrow> ((\<lambda>z. (f z - f a) / (z - a)) ---> D) (at a within s)"
+  "(f has_field_derivative D) (at a within s) \<longleftrightarrow> ((\<lambda>z. (f z - f a) / (z - a)) \<longlongrightarrow> D) (at a within s)"
 proof -
   have 1: "\<And>w y. ~(w = a) ==> y / (w - a) - D = (y - (w - a)*D)/(w - a)"
     by (metis divide_diff_eq_iff eq_iff_diff_eq_0 mult.commute)
@@ -816,8 +816,8 @@ proof -
           using \<open>a < x2\<close>
           by (auto simp: trivial_limit_within islimpt_in_closure)
         moreover
-        have "((\<lambda>x1. (\<phi> x1 - \<phi> a) + e * (x1 - a) + e) ---> (\<phi> x2 - \<phi> a) + e * (x2 - a) + e) (at x2 within {a <..<x2})"
-          "((\<lambda>x1. norm (f x1 - f a)) ---> norm (f x2 - f a)) (at x2 within {a <..<x2})"
+        have "((\<lambda>x1. (\<phi> x1 - \<phi> a) + e * (x1 - a) + e) \<longlongrightarrow> (\<phi> x2 - \<phi> a) + e * (x2 - a) + e) (at x2 within {a <..<x2})"
+          "((\<lambda>x1. norm (f x1 - f a)) \<longlongrightarrow> norm (f x2 - f a)) (at x2 within {a <..<x2})"
           using a
           by (auto intro!: tendsto_eq_intros f_tendsto phi_tendsto
             intro: tendsto_within_subset[where S="{a .. b}"])
@@ -1899,13 +1899,13 @@ lemma has_derivative_sequence:
     and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
     and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
     and "x0 \<in> s"
-    and "((\<lambda>n. f n x0) ---> l) sequentially"
-  shows "\<exists>g. \<forall>x\<in>s. ((\<lambda>n. f n x) ---> g x) sequentially \<and> (g has_derivative g'(x)) (at x within s)"
+    and "((\<lambda>n. f n x0) \<longlongrightarrow> l) sequentially"
+  shows "\<exists>g. \<forall>x\<in>s. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially \<and> (g has_derivative g'(x)) (at x within s)"
 proof -
   have lem1: "\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s.
       norm ((f m x - f n x) - (f m y - f n y)) \<le> e * norm (x - y)"
     using assms(1,2,3) by (rule has_derivative_sequence_lipschitz)
-  have "\<exists>g. \<forall>x\<in>s. ((\<lambda>n. f n x) ---> g x) sequentially"
+  have "\<exists>g. \<forall>x\<in>s. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially"
     apply (rule bchoice)
     unfolding convergent_eq_cauchy
   proof
@@ -1970,7 +1970,7 @@ proof -
     proof rule+
       fix n x y
       assume as: "N \<le> n" "x \<in> s" "y \<in> s"
-      have "((\<lambda>m. norm (f n x - f n y - (f m x - f m y))) ---> norm (f n x - f n y - (g x - g y))) sequentially"
+      have "((\<lambda>m. norm (f n x - f n y - (f m x - f m y))) \<longlongrightarrow> norm (f n x - f n y - (g x - g y))) sequentially"
         by (intro tendsto_intros g[rule_format] as)
       moreover have "eventually (\<lambda>m. norm (f n x - f n y - (f m x - f m y)) \<le> e * norm (x - y)) sequentially"
         unfolding eventually_sequentially
@@ -1988,14 +1988,14 @@ proof -
         by (rule tendsto_ge_const[OF trivial_limit_sequentially])
     qed
   qed
-  have "\<forall>x\<in>s. ((\<lambda>n. f n x) ---> g x) sequentially \<and> (g has_derivative g' x) (at x within s)"
+  have "\<forall>x\<in>s. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially \<and> (g has_derivative g' x) (at x within s)"
     unfolding has_derivative_within_alt2
   proof (intro ballI conjI)
     fix x
     assume "x \<in> s"
-    then show "((\<lambda>n. f n x) ---> g x) sequentially"
+    then show "((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially"
       by (simp add: g)
-    have lem3: "\<forall>u. ((\<lambda>n. f' n x u) ---> g' x u) sequentially"
+    have lem3: "\<forall>u. ((\<lambda>n. f' n x u) \<longlongrightarrow> g' x u) sequentially"
       unfolding filterlim_def le_nhds_metric_le eventually_filtermap dist_norm
     proof (intro allI impI)
       fix u
@@ -2554,7 +2554,7 @@ proof (cases x c rule: linorder_cases)
   from c have "c \<in> interior A \<inter> closure {c<..}" by auto
   also have "\<dots> \<subseteq> closure (interior A \<inter> {c<..})" by (intro open_inter_closure_subset) auto
   finally have "at c within ?A' \<noteq> bot" by (subst at_within_eq_bot_iff) auto
-  moreover from deriv have "((\<lambda>y. (f y - f c) / (y - c)) ---> f') (at c within ?A')"
+  moreover from deriv have "((\<lambda>y. (f y - f c) / (y - c)) \<longlongrightarrow> f') (at c within ?A')"
     unfolding DERIV_within_iff using interior_subset[of A] by (blast intro: tendsto_mono at_le)
   moreover from eventually_at_right_real[OF xc]
     have "eventually (\<lambda>y. (f y - f c) / (y - c) \<le> (f x - f c) / (x - c)) (at_right c)"
@@ -2576,7 +2576,7 @@ next
   from c have "c \<in> interior A \<inter> closure {..<c}" by auto
   also have "\<dots> \<subseteq> closure (interior A \<inter> {..<c})" by (intro open_inter_closure_subset) auto
   finally have "at c within ?A' \<noteq> bot" by (subst at_within_eq_bot_iff) auto
-  moreover from deriv have "((\<lambda>y. (f y - f c) / (y - c)) ---> f') (at c within ?A')"
+  moreover from deriv have "((\<lambda>y. (f y - f c) / (y - c)) \<longlongrightarrow> f') (at c within ?A')"
     unfolding DERIV_within_iff using interior_subset[of A] by (blast intro: tendsto_mono at_le)
   moreover from eventually_at_left_real[OF xc]
     have "eventually (\<lambda>y. (f y - f c) / (y - c) \<ge> (f x - f c) / (x - c)) (at_left c)"

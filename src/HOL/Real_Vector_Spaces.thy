@@ -1651,13 +1651,13 @@ proof (safe intro!: INF_eq)
 qed (auto intro!: exI[of _ "{y. dist x y < e}" for e] open_ball simp: dist_commute)
 
 lemma (in metric_space) tendsto_iff:
-  "(f ---> l) F \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) F)"
+  "(f \<longlongrightarrow> l) F \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) F)"
   unfolding nhds_metric filterlim_INF filterlim_principal by auto
 
-lemma (in metric_space) tendstoI: "(\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F) \<Longrightarrow> (f ---> l) F"
+lemma (in metric_space) tendstoI: "(\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F) \<Longrightarrow> (f \<longlongrightarrow> l) F"
   by (auto simp: tendsto_iff)
 
-lemma (in metric_space) tendstoD: "(f ---> l) F \<Longrightarrow> 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F"
+lemma (in metric_space) tendstoD: "(f \<longlongrightarrow> l) F \<Longrightarrow> 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F"
   by (auto simp: tendsto_iff)
 
 lemma (in metric_space) eventually_nhds_metric:
@@ -1688,9 +1688,9 @@ lemma eventually_at_right_real: "a < (b :: real) \<Longrightarrow> eventually (\
 
 lemma metric_tendsto_imp_tendsto:
   fixes a :: "'a :: metric_space" and b :: "'b :: metric_space"
-  assumes f: "(f ---> a) F"
+  assumes f: "(f \<longlongrightarrow> a) F"
   assumes le: "eventually (\<lambda>x. dist (g x) b \<le> dist (f x) a) F"
-  shows "(g ---> b) F"
+  shows "(g \<longlongrightarrow> b) F"
 proof (rule tendstoI)
   fix e :: real assume "0 < e"
   with f have "eventually (\<lambda>x. dist (f x) a < e) F" by (rule tendstoD)
@@ -1977,7 +1977,7 @@ instance real :: banach ..
 lemma tendsto_at_topI_sequentially:
   fixes f :: "real \<Rightarrow> 'b::first_countable_topology"
   assumes *: "\<And>X. filterlim X at_top sequentially \<Longrightarrow> (\<lambda>n. f (X n)) \<longlonglongrightarrow> y"
-  shows "(f ---> y) at_top"
+  shows "(f \<longlongrightarrow> y) at_top"
 proof -
   from nhds_countable[of y] guess A . note A = this
 
@@ -2009,7 +2009,7 @@ lemma tendsto_at_topI_sequentially_real:
   fixes f :: "real \<Rightarrow> real"
   assumes mono: "mono f"
   assumes limseq: "(\<lambda>n. f (real n)) \<longlonglongrightarrow> y"
-  shows "(f ---> y) at_top"
+  shows "(f \<longlongrightarrow> y) at_top"
 proof (rule tendstoI)
   fix e :: real assume "0 < e"
   with limseq obtain N :: nat where N: "\<And>n. N \<le> n \<Longrightarrow> \<bar>f (real n) - y\<bar> < e"

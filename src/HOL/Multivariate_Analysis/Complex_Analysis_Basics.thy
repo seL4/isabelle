@@ -42,28 +42,28 @@ lemma linear_cnj: "linear cnj"
 
 lemma tendsto_Re_upper:
   assumes "~ (trivial_limit F)"
-          "(f ---> l) F"
+          "(f \<longlongrightarrow> l) F"
           "eventually (\<lambda>x. Re(f x) \<le> b) F"
     shows  "Re(l) \<le> b"
   by (metis assms tendsto_le [OF _ tendsto_const]  tendsto_Re)
 
 lemma tendsto_Re_lower:
   assumes "~ (trivial_limit F)"
-          "(f ---> l) F"
+          "(f \<longlongrightarrow> l) F"
           "eventually (\<lambda>x. b \<le> Re(f x)) F"
     shows  "b \<le> Re(l)"
   by (metis assms tendsto_le [OF _ _ tendsto_const]  tendsto_Re)
 
 lemma tendsto_Im_upper:
   assumes "~ (trivial_limit F)"
-          "(f ---> l) F"
+          "(f \<longlongrightarrow> l) F"
           "eventually (\<lambda>x. Im(f x) \<le> b) F"
     shows  "Im(l) \<le> b"
   by (metis assms tendsto_le [OF _ tendsto_const]  tendsto_Im)
 
 lemma tendsto_Im_lower:
   assumes "~ (trivial_limit F)"
-          "(f ---> l) F"
+          "(f \<longlongrightarrow> l) F"
           "eventually (\<lambda>x. b \<le> Im(f x)) F"
     shows  "b \<le> Im(l)"
   by (metis assms tendsto_le [OF _ _ tendsto_const]  tendsto_Im)
@@ -237,7 +237,7 @@ qed
 
 lemma real_lim:
   fixes l::complex
-  assumes "(f ---> l) F" and "~(trivial_limit F)" and "eventually P F" and "\<And>a. P a \<Longrightarrow> f a \<in> \<real>"
+  assumes "(f \<longlongrightarrow> l) F" and "~(trivial_limit F)" and "eventually P F" and "\<And>a. P a \<Longrightarrow> f a \<in> \<real>"
   shows  "l \<in> \<real>"
 proof (rule Lim_in_closed_set[OF closed_complex_Reals _ assms(2,1)])
   show "eventually (\<lambda>x. f x \<in> \<real>) F"
@@ -246,7 +246,7 @@ qed
 
 lemma real_lim_sequentially:
   fixes l::complex
-  shows "(f ---> l) sequentially \<Longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> \<real>) \<Longrightarrow> l \<in> \<real>"
+  shows "(f \<longlongrightarrow> l) sequentially \<Longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> \<real>) \<Longrightarrow> l \<in> \<real>"
 by (rule real_lim [where F=sequentially]) (auto simp: eventually_sequentially)
 
 lemma real_series:
@@ -256,7 +256,7 @@ unfolding sums_def
 by (metis real_lim_sequentially setsum_in_Reals)
 
 lemma Lim_null_comparison_Re:
-  assumes "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F" "(g ---> 0) F" shows "(f ---> 0) F"
+  assumes "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F" "(g \<longlongrightarrow> 0) F" shows "(f \<longlongrightarrow> 0) F"
   by (rule Lim_null_comparison[OF assms(1)] tendsto_eq_intros assms(2))+ simp
 
 subsection\<open>Holomorphic functions\<close>
@@ -812,11 +812,11 @@ lemma has_complex_derivative_sequence:
   assumes cvs: "convex s"
       and df:  "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x within s)"
       and conv: "\<And>e. 0 < e \<Longrightarrow> \<exists>N. \<forall>n x. n \<ge> N \<longrightarrow> x \<in> s \<longrightarrow> norm (f' n x - g' x) \<le> e"
-      and "\<exists>x l. x \<in> s \<and> ((\<lambda>n. f n x) ---> l) sequentially"
-    shows "\<exists>g. \<forall>x \<in> s. ((\<lambda>n. f n x) ---> g x) sequentially \<and>
+      and "\<exists>x l. x \<in> s \<and> ((\<lambda>n. f n x) \<longlongrightarrow> l) sequentially"
+    shows "\<exists>g. \<forall>x \<in> s. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially \<and>
                        (g has_field_derivative (g' x)) (at x within s)"
 proof -
-  from assms obtain x l where x: "x \<in> s" and tf: "((\<lambda>n. f n x) ---> l) sequentially"
+  from assms obtain x l where x: "x \<in> s" and tf: "((\<lambda>n. f n x) \<longlongrightarrow> l) sequentially"
     by blast
   { fix e::real assume e: "e > 0"
     then obtain N where N: "\<forall>n\<ge>N. \<forall>x. x \<in> s \<longrightarrow> cmod (f' n x - g' x) \<le> e"

@@ -43,7 +43,7 @@ lemma filterlim_at_top_imp_at_infinity:
   by (rule filterlim_mono[OF _ at_top_le_at_infinity order_refl])
 
 lemma lim_infinity_imp_sequentially:
-  "(f ---> l) at_infinity \<Longrightarrow> ((\<lambda>n. f(n)) ---> l) sequentially"
+  "(f \<longlongrightarrow> l) at_infinity \<Longrightarrow> ((\<lambda>n. f(n)) \<longlongrightarrow> l) sequentially"
 by (simp add: filterlim_at_top_imp_at_infinity filterlim_compose filterlim_real_sequentially)
 
 
@@ -485,19 +485,19 @@ lemmas Zfun_mult = bounded_bilinear.Zfun [OF bounded_bilinear_mult]
 lemmas Zfun_mult_right = bounded_bilinear.Zfun_right [OF bounded_bilinear_mult]
 lemmas Zfun_mult_left = bounded_bilinear.Zfun_left [OF bounded_bilinear_mult]
 
-lemma tendsto_Zfun_iff: "(f ---> a) F = Zfun (\<lambda>x. f x - a) F"
+lemma tendsto_Zfun_iff: "(f \<longlongrightarrow> a) F = Zfun (\<lambda>x. f x - a) F"
   by (simp only: tendsto_iff Zfun_def dist_norm)
 
-lemma tendsto_0_le: "\<lbrakk>(f ---> 0) F; eventually (\<lambda>x. norm (g x) \<le> norm (f x) * K) F\<rbrakk>
-                     \<Longrightarrow> (g ---> 0) F"
+lemma tendsto_0_le: "\<lbrakk>(f \<longlongrightarrow> 0) F; eventually (\<lambda>x. norm (g x) \<le> norm (f x) * K) F\<rbrakk>
+                     \<Longrightarrow> (g \<longlongrightarrow> 0) F"
   by (simp add: Zfun_imp_Zfun tendsto_Zfun_iff)
 
 subsubsection \<open>Distance and norms\<close>
 
 lemma tendsto_dist [tendsto_intros]:
   fixes l m :: "'a :: metric_space"
-  assumes f: "(f ---> l) F" and g: "(g ---> m) F"
-  shows "((\<lambda>x. dist (f x) (g x)) ---> dist l m) F"
+  assumes f: "(f \<longlongrightarrow> l) F" and g: "(g \<longlongrightarrow> m) F"
+  shows "((\<lambda>x. dist (f x) (g x)) \<longlongrightarrow> dist l m) F"
 proof (rule tendstoI)
   fix e :: real assume "0 < e"
   hence e2: "0 < e/2" by simp
@@ -526,7 +526,7 @@ lemma continuous_on_dist[continuous_intros]:
   unfolding continuous_on_def by (auto intro: tendsto_dist)
 
 lemma tendsto_norm [tendsto_intros]:
-  "(f ---> a) F \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> norm a) F"
+  "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. norm (f x)) \<longlongrightarrow> norm a) F"
   unfolding norm_conv_dist by (intro tendsto_intros)
 
 lemma continuous_norm [continuous_intros]:
@@ -538,19 +538,19 @@ lemma continuous_on_norm [continuous_intros]:
   unfolding continuous_on_def by (auto intro: tendsto_norm)
 
 lemma tendsto_norm_zero:
-  "(f ---> 0) F \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> 0) F"
+  "(f \<longlongrightarrow> 0) F \<Longrightarrow> ((\<lambda>x. norm (f x)) \<longlongrightarrow> 0) F"
   by (drule tendsto_norm, simp)
 
 lemma tendsto_norm_zero_cancel:
-  "((\<lambda>x. norm (f x)) ---> 0) F \<Longrightarrow> (f ---> 0) F"
+  "((\<lambda>x. norm (f x)) \<longlongrightarrow> 0) F \<Longrightarrow> (f \<longlongrightarrow> 0) F"
   unfolding tendsto_iff dist_norm by simp
 
 lemma tendsto_norm_zero_iff:
-  "((\<lambda>x. norm (f x)) ---> 0) F \<longleftrightarrow> (f ---> 0) F"
+  "((\<lambda>x. norm (f x)) \<longlongrightarrow> 0) F \<longleftrightarrow> (f \<longlongrightarrow> 0) F"
   unfolding tendsto_iff dist_norm by simp
 
 lemma tendsto_rabs [tendsto_intros]:
-  "(f ---> (l::real)) F \<Longrightarrow> ((\<lambda>x. \<bar>f x\<bar>) ---> \<bar>l\<bar>) F"
+  "(f \<longlongrightarrow> (l::real)) F \<Longrightarrow> ((\<lambda>x. \<bar>f x\<bar>) \<longlongrightarrow> \<bar>l\<bar>) F"
   by (fold real_norm_def, rule tendsto_norm)
 
 lemma continuous_rabs [continuous_intros]:
@@ -562,22 +562,22 @@ lemma continuous_on_rabs [continuous_intros]:
   unfolding real_norm_def[symmetric] by (rule continuous_on_norm)
 
 lemma tendsto_rabs_zero:
-  "(f ---> (0::real)) F \<Longrightarrow> ((\<lambda>x. \<bar>f x\<bar>) ---> 0) F"
+  "(f \<longlongrightarrow> (0::real)) F \<Longrightarrow> ((\<lambda>x. \<bar>f x\<bar>) \<longlongrightarrow> 0) F"
   by (fold real_norm_def, rule tendsto_norm_zero)
 
 lemma tendsto_rabs_zero_cancel:
-  "((\<lambda>x. \<bar>f x\<bar>) ---> (0::real)) F \<Longrightarrow> (f ---> 0) F"
+  "((\<lambda>x. \<bar>f x\<bar>) \<longlongrightarrow> (0::real)) F \<Longrightarrow> (f \<longlongrightarrow> 0) F"
   by (fold real_norm_def, rule tendsto_norm_zero_cancel)
 
 lemma tendsto_rabs_zero_iff:
-  "((\<lambda>x. \<bar>f x\<bar>) ---> (0::real)) F \<longleftrightarrow> (f ---> 0) F"
+  "((\<lambda>x. \<bar>f x\<bar>) \<longlongrightarrow> (0::real)) F \<longleftrightarrow> (f \<longlongrightarrow> 0) F"
   by (fold real_norm_def, rule tendsto_norm_zero_iff)
 
 subsubsection \<open>Addition and subtraction\<close>
 
 lemma tendsto_add [tendsto_intros]:
   fixes a b :: "'a::real_normed_vector"
-  shows "\<lbrakk>(f ---> a) F; (g ---> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> a + b) F"
+  shows "\<lbrakk>(f \<longlongrightarrow> a) F; (g \<longlongrightarrow> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) \<longlongrightarrow> a + b) F"
   by (simp only: tendsto_Zfun_iff add_diff_add Zfun_add)
 
 lemma continuous_add [continuous_intros]:
@@ -592,12 +592,12 @@ lemma continuous_on_add [continuous_intros]:
 
 lemma tendsto_add_zero:
   fixes f g :: "_ \<Rightarrow> 'b::real_normed_vector"
-  shows "\<lbrakk>(f ---> 0) F; (g ---> 0) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> 0) F"
+  shows "\<lbrakk>(f \<longlongrightarrow> 0) F; (g \<longlongrightarrow> 0) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) \<longlongrightarrow> 0) F"
   by (drule (1) tendsto_add, simp)
 
 lemma tendsto_minus [tendsto_intros]:
   fixes a :: "'a::real_normed_vector"
-  shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. - f x) ---> - a) F"
+  shows "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. - f x) \<longlongrightarrow> - a) F"
   by (simp only: tendsto_Zfun_iff minus_diff_minus Zfun_minus)
 
 lemma continuous_minus [continuous_intros]:
@@ -612,17 +612,17 @@ lemma continuous_on_minus [continuous_intros]:
 
 lemma tendsto_minus_cancel:
   fixes a :: "'a::real_normed_vector"
-  shows "((\<lambda>x. - f x) ---> - a) F \<Longrightarrow> (f ---> a) F"
+  shows "((\<lambda>x. - f x) \<longlongrightarrow> - a) F \<Longrightarrow> (f \<longlongrightarrow> a) F"
   by (drule tendsto_minus, simp)
 
 lemma tendsto_minus_cancel_left:
-    "(f ---> - (y::_::real_normed_vector)) F \<longleftrightarrow> ((\<lambda>x. - f x) ---> y) F"
+    "(f \<longlongrightarrow> - (y::_::real_normed_vector)) F \<longleftrightarrow> ((\<lambda>x. - f x) \<longlongrightarrow> y) F"
   using tendsto_minus_cancel[of f "- y" F]  tendsto_minus[of f "- y" F]
   by auto
 
 lemma tendsto_diff [tendsto_intros]:
   fixes a b :: "'a::real_normed_vector"
-  shows "\<lbrakk>(f ---> a) F; (g ---> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x - g x) ---> a - b) F"
+  shows "\<lbrakk>(f \<longlongrightarrow> a) F; (g \<longlongrightarrow> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x - g x) \<longlongrightarrow> a - b) F"
   using tendsto_add [of f a F "\<lambda>x. - g x" "- b"] by (simp add: tendsto_minus)
 
 lemma continuous_diff [continuous_intros]:
@@ -640,8 +640,8 @@ lemma continuous_on_op_minus: "continuous_on (s::'a::real_normed_vector set) (op
 
 lemma tendsto_setsum [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::real_normed_vector"
-  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i ---> a i) F"
-  shows "((\<lambda>x. \<Sum>i\<in>S. f i x) ---> (\<Sum>i\<in>S. a i)) F"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i \<longlongrightarrow> a i) F"
+  shows "((\<lambda>x. \<Sum>i\<in>S. f i x) \<longlongrightarrow> (\<Sum>i\<in>S. a i)) F"
 proof (cases "finite S")
   assume "finite S" thus ?thesis using assms
     by (induct, simp, simp add: tendsto_add)
@@ -666,7 +666,7 @@ lemma linear_times:
   by (auto simp: linearI distrib_left)
 
 lemma (in bounded_linear) tendsto:
-  "(g ---> a) F \<Longrightarrow> ((\<lambda>x. f (g x)) ---> f a) F"
+  "(g \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. f (g x)) \<longlongrightarrow> f a) F"
   by (simp only: tendsto_Zfun_iff diff [symmetric] Zfun)
 
 lemma (in bounded_linear) continuous:
@@ -678,11 +678,11 @@ lemma (in bounded_linear) continuous_on:
   using tendsto[of g] by (auto simp: continuous_on_def)
 
 lemma (in bounded_linear) tendsto_zero:
-  "(g ---> 0) F \<Longrightarrow> ((\<lambda>x. f (g x)) ---> 0) F"
+  "(g \<longlongrightarrow> 0) F \<Longrightarrow> ((\<lambda>x. f (g x)) \<longlongrightarrow> 0) F"
   by (drule tendsto, simp only: zero)
 
 lemma (in bounded_bilinear) tendsto:
-  "\<lbrakk>(f ---> a) F; (g ---> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x ** g x) ---> a ** b) F"
+  "\<lbrakk>(f \<longlongrightarrow> a) F; (g \<longlongrightarrow> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x ** g x) \<longlongrightarrow> a ** b) F"
   by (simp only: tendsto_Zfun_iff prod_diff_prod
                  Zfun_add Zfun Zfun_left Zfun_right)
 
@@ -695,17 +695,17 @@ lemma (in bounded_bilinear) continuous_on:
   using tendsto[of f _ _ g] by (auto simp: continuous_on_def)
 
 lemma (in bounded_bilinear) tendsto_zero:
-  assumes f: "(f ---> 0) F"
-  assumes g: "(g ---> 0) F"
-  shows "((\<lambda>x. f x ** g x) ---> 0) F"
+  assumes f: "(f \<longlongrightarrow> 0) F"
+  assumes g: "(g \<longlongrightarrow> 0) F"
+  shows "((\<lambda>x. f x ** g x) \<longlongrightarrow> 0) F"
   using tendsto [OF f g] by (simp add: zero_left)
 
 lemma (in bounded_bilinear) tendsto_left_zero:
-  "(f ---> 0) F \<Longrightarrow> ((\<lambda>x. f x ** c) ---> 0) F"
+  "(f \<longlongrightarrow> 0) F \<Longrightarrow> ((\<lambda>x. f x ** c) \<longlongrightarrow> 0) F"
   by (rule bounded_linear.tendsto_zero [OF bounded_linear_left])
 
 lemma (in bounded_bilinear) tendsto_right_zero:
-  "(f ---> 0) F \<Longrightarrow> ((\<lambda>x. c ** f x) ---> 0) F"
+  "(f \<longlongrightarrow> 0) F \<Longrightarrow> ((\<lambda>x. c ** f x) \<longlongrightarrow> 0) F"
   by (rule bounded_linear.tendsto_zero [OF bounded_linear_right])
 
 lemmas tendsto_of_real [tendsto_intros] =
@@ -719,12 +719,12 @@ lemmas tendsto_mult [tendsto_intros] =
 
 lemma tendsto_mult_left:
   fixes c::"'a::real_normed_algebra"
-  shows "(f ---> l) F \<Longrightarrow> ((\<lambda>x. c * (f x)) ---> c * l) F"
+  shows "(f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. c * (f x)) \<longlongrightarrow> c * l) F"
 by (rule tendsto_mult [OF tendsto_const])
 
 lemma tendsto_mult_right:
   fixes c::"'a::real_normed_algebra"
-  shows "(f ---> l) F \<Longrightarrow> ((\<lambda>x. (f x) * c) ---> l * c) F"
+  shows "(f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. (f x) * c) \<longlongrightarrow> l * c) F"
 by (rule tendsto_mult [OF _ tendsto_const])
 
 lemmas continuous_of_real [continuous_intros] =
@@ -756,7 +756,7 @@ lemmas tendsto_mult_right_zero =
 
 lemma tendsto_power [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b::{power,real_normed_algebra}"
-  shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. f x ^ n) ---> a ^ n) F"
+  shows "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. f x ^ n) \<longlongrightarrow> a ^ n) F"
   by (induct n) (simp_all add: tendsto_mult)
 
 lemma continuous_power [continuous_intros]:
@@ -771,8 +771,8 @@ lemma continuous_on_power [continuous_intros]:
 
 lemma tendsto_setprod [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::{real_normed_algebra,comm_ring_1}"
-  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i ---> L i) F"
-  shows "((\<lambda>x. \<Prod>i\<in>S. f i x) ---> (\<Prod>i\<in>S. L i)) F"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i \<longlongrightarrow> L i) F"
+  shows "((\<lambda>x. \<Prod>i\<in>S. f i x) \<longlongrightarrow> (\<Prod>i\<in>S. L i)) F"
 proof (cases "finite S")
   assume "finite S" thus ?thesis using assms
     by (induct, simp, simp add: tendsto_mult)
@@ -789,11 +789,11 @@ lemma continuous_on_setprod [continuous_intros]:
   unfolding continuous_on_def by (auto intro: tendsto_setprod)
 
 lemma tendsto_of_real_iff:
-  "((\<lambda>x. of_real (f x) :: 'a :: real_normed_div_algebra) ---> of_real c) F \<longleftrightarrow> (f ---> c) F"
+  "((\<lambda>x. of_real (f x) :: 'a :: real_normed_div_algebra) \<longlongrightarrow> of_real c) F \<longleftrightarrow> (f \<longlongrightarrow> c) F"
   unfolding tendsto_iff by simp
 
 lemma tendsto_add_const_iff:
-  "((\<lambda>x. c + f x :: 'a :: real_normed_vector) ---> c + d) F \<longleftrightarrow> (f ---> d) F"
+  "((\<lambda>x. c + f x :: 'a :: real_normed_vector) \<longlongrightarrow> c + d) F \<longleftrightarrow> (f \<longlongrightarrow> d) F"
   using tendsto_add[OF tendsto_const[of c], of f d] 
         tendsto_add[OF tendsto_const[of "-c"], of "\<lambda>x. c + f x" "c + d"] by auto
 
@@ -842,7 +842,7 @@ lemma Bfun_inverse_lemma:
 
 lemma Bfun_inverse:
   fixes a :: "'a::real_normed_div_algebra"
-  assumes f: "(f ---> a) F"
+  assumes f: "(f \<longlongrightarrow> a) F"
   assumes a: "a \<noteq> 0"
   shows "Bfun (\<lambda>x. inverse (f x)) F"
 proof -
@@ -877,9 +877,9 @@ qed
 
 lemma tendsto_inverse [tendsto_intros]:
   fixes a :: "'a::real_normed_div_algebra"
-  assumes f: "(f ---> a) F"
+  assumes f: "(f \<longlongrightarrow> a) F"
   assumes a: "a \<noteq> 0"
-  shows "((\<lambda>x. inverse (f x)) ---> inverse a) F"
+  shows "((\<lambda>x. inverse (f x)) \<longlongrightarrow> inverse a) F"
 proof -
   from a have "0 < norm a" by simp
   with f have "eventually (\<lambda>x. dist (f x) a < norm a) F"
@@ -923,8 +923,8 @@ lemma continuous_on_inverse[continuous_intros]:
 
 lemma tendsto_divide [tendsto_intros]:
   fixes a b :: "'a::real_normed_field"
-  shows "\<lbrakk>(f ---> a) F; (g ---> b) F; b \<noteq> 0\<rbrakk>
-    \<Longrightarrow> ((\<lambda>x. f x / g x) ---> a / b) F"
+  shows "\<lbrakk>(f \<longlongrightarrow> a) F; (g \<longlongrightarrow> b) F; b \<noteq> 0\<rbrakk>
+    \<Longrightarrow> ((\<lambda>x. f x / g x) \<longlongrightarrow> a / b) F"
   by (simp add: tendsto_mult tendsto_inverse divide_inverse)
 
 lemma continuous_divide:
@@ -953,7 +953,7 @@ lemma continuous_on_divide[continuous_intros]:
 
 lemma tendsto_sgn [tendsto_intros]:
   fixes l :: "'a::real_normed_vector"
-  shows "\<lbrakk>(f ---> l) F; l \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. sgn (f x)) ---> sgn l) F"
+  shows "\<lbrakk>(f \<longlongrightarrow> l) F; l \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. sgn (f x)) \<longlongrightarrow> sgn l) F"
   unfolding sgn_div_norm by (simp add: tendsto_intros)
 
 lemma continuous_sgn:
@@ -1001,7 +1001,7 @@ qed force
 
 lemma not_tendsto_and_filterlim_at_infinity:
   assumes "F \<noteq> bot"
-  assumes "(f ---> (c :: 'a :: real_normed_vector)) F" 
+  assumes "(f \<longlongrightarrow> (c :: 'a :: real_normed_vector)) F" 
   assumes "filterlim f at_infinity F"
   shows   False
 proof -
@@ -1142,7 +1142,7 @@ qed
 
 lemma tendsto_inverse_0:
   fixes x :: "_ \<Rightarrow> 'a::real_normed_div_algebra"
-  shows "(inverse ---> (0::'a)) at_infinity"
+  shows "(inverse \<longlongrightarrow> (0::'a)) at_infinity"
   unfolding tendsto_Zfun_iff diff_0_right Zfun_def eventually_at_infinity
 proof safe
   fix r :: real assume "0 < r"
@@ -1157,12 +1157,12 @@ proof safe
 qed
 
 lemma tendsto_add_filterlim_at_infinity:
-  assumes "(f ---> (c :: 'b :: real_normed_vector)) (F :: 'a filter)"
+  assumes "(f \<longlongrightarrow> (c :: 'b :: real_normed_vector)) (F :: 'a filter)"
   assumes "filterlim g at_infinity F"
   shows   "filterlim (\<lambda>x. f x + g x) at_infinity F"
 proof (subst filterlim_at_infinity[OF order_refl], safe)
   fix r :: real assume r: "r > 0"
-  from assms(1) have "((\<lambda>x. norm (f x)) ---> norm c) F" by (rule tendsto_norm)
+  from assms(1) have "((\<lambda>x. norm (f x)) \<longlongrightarrow> norm c) F" by (rule tendsto_norm)
   hence "eventually (\<lambda>x. norm (f x) < norm c + 1) F" by (rule order_tendstoD) simp_all
   moreover from r have "r + norm c + 1 > 0" by (intro add_pos_nonneg) simp_all 
   with assms(2) have "eventually (\<lambda>x. norm (g x) \<ge> r + norm c + 1) F"
@@ -1178,7 +1178,7 @@ qed
 
 lemma tendsto_add_filterlim_at_infinity':
   assumes "filterlim f at_infinity F"
-  assumes "(g ---> (c :: 'b :: real_normed_vector)) (F :: 'a filter)"
+  assumes "(g \<longlongrightarrow> (c :: 'b :: real_normed_vector)) (F :: 'a filter)"
   shows   "filterlim (\<lambda>x. f x + g x) at_infinity F"
   by (subst add.commute) (rule tendsto_add_filterlim_at_infinity assms)+
 
@@ -1188,7 +1188,7 @@ lemma filterlim_inverse_at_right_top: "LIM x at_top. inverse x :> at_right (0::r
      (metis tendsto_inverse_0 filterlim_mono at_top_le_at_infinity order_refl)
 
 lemma filterlim_inverse_at_top:
-  "(f ---> (0 :: real)) F \<Longrightarrow> eventually (\<lambda>x. 0 < f x) F \<Longrightarrow> LIM x F. inverse (f x) :> at_top"
+  "(f \<longlongrightarrow> (0 :: real)) F \<Longrightarrow> eventually (\<lambda>x. 0 < f x) F \<Longrightarrow> LIM x F. inverse (f x) :> at_top"
   by (intro filterlim_compose[OF filterlim_inverse_at_top_right])
      (simp add: filterlim_def eventually_filtermap eventually_mono at_within_def le_principal)
 
@@ -1197,7 +1197,7 @@ lemma filterlim_inverse_at_bot_neg:
   by (simp add: filterlim_inverse_at_top_right filterlim_uminus_at_bot filterlim_at_left_to_right)
 
 lemma filterlim_inverse_at_bot:
-  "(f ---> (0 :: real)) F \<Longrightarrow> eventually (\<lambda>x. f x < 0) F \<Longrightarrow> LIM x F. inverse (f x) :> at_bot"
+  "(f \<longlongrightarrow> (0 :: real)) F \<Longrightarrow> eventually (\<lambda>x. f x < 0) F \<Longrightarrow> LIM x F. inverse (f x) :> at_bot"
   unfolding filterlim_uminus_at_bot inverse_minus_eq[symmetric]
   by (rule filterlim_inverse_at_top) (simp_all add: tendsto_minus_cancel_left[symmetric])
 
@@ -1258,11 +1258,11 @@ next
 qed
 
 lemma tendsto_mult_filterlim_at_infinity:
-  assumes "F \<noteq> bot" "(f ---> (c :: 'a :: real_normed_field)) F" "c \<noteq> 0"
+  assumes "F \<noteq> bot" "(f \<longlongrightarrow> (c :: 'a :: real_normed_field)) F" "c \<noteq> 0"
   assumes "filterlim g at_infinity F"
   shows   "filterlim (\<lambda>x. f x * g x) at_infinity F"
 proof -
-  have "((\<lambda>x. inverse (f x) * inverse (g x)) ---> inverse c * 0) F"
+  have "((\<lambda>x. inverse (f x) * inverse (g x)) \<longlongrightarrow> inverse c * 0) F"
     by (intro tendsto_mult tendsto_inverse assms filterlim_compose[OF tendsto_inverse_0])
   hence "filterlim (\<lambda>x. inverse (f x) * inverse (g x)) (at (inverse c * 0)) F"
     unfolding filterlim_at using assms
@@ -1270,7 +1270,7 @@ proof -
   thus ?thesis by (subst filterlim_inverse_at_iff[symmetric]) simp_all
 qed
 
-lemma tendsto_inverse_0_at_top: "LIM x F. f x :> at_top \<Longrightarrow> ((\<lambda>x. inverse (f x) :: real) ---> 0) F"
+lemma tendsto_inverse_0_at_top: "LIM x F. f x :> at_top \<Longrightarrow> ((\<lambda>x. inverse (f x) :: real) \<longlongrightarrow> 0) F"
  by (metis filterlim_at filterlim_mono[OF _ at_top_le_at_infinity order_refl] filterlim_inverse_at_iff)
 
 lemma mult_nat_left_at_top: "c > 0 \<Longrightarrow> filterlim (\<lambda>x. c * x :: nat) at_top sequentially"
@@ -1283,7 +1283,7 @@ lemma at_to_infinity:
   fixes x :: "'a :: {real_normed_field,field}"
   shows "(at (0::'a)) = filtermap inverse at_infinity"
 proof (rule antisym)
-  have "(inverse ---> (0::'a)) at_infinity"
+  have "(inverse \<longlongrightarrow> (0::'a)) at_infinity"
     by (fact tendsto_inverse_0)
   then show "filtermap inverse at_infinity \<le> at (0::'a)"
     apply (simp add: le_principal eventually_filtermap eventually_at_infinity filterlim_def at_within_def)
@@ -1299,12 +1299,12 @@ qed
 
 lemma lim_at_infinity_0:
   fixes l :: "'a :: {real_normed_field,field}"
-  shows "(f ---> l) at_infinity \<longleftrightarrow> ((f o inverse) ---> l) (at (0::'a))"
+  shows "(f \<longlongrightarrow> l) at_infinity \<longleftrightarrow> ((f o inverse) \<longlongrightarrow> l) (at (0::'a))"
 by (simp add: tendsto_compose_filtermap at_to_infinity filtermap_filtermap)
 
 lemma lim_zero_infinity:
   fixes l :: "'a :: {real_normed_field,field}"
-  shows "((\<lambda>x. f(1 / x)) ---> l) (at (0::'a)) \<Longrightarrow> (f ---> l) at_infinity"
+  shows "((\<lambda>x. f(1 / x)) \<longlongrightarrow> l) (at (0::'a)) \<Longrightarrow> (f \<longlongrightarrow> l) at_infinity"
 by (simp add: inverse_eq_divide lim_at_infinity_0 comp_def)
 
 
@@ -1316,7 +1316,7 @@ value or against infinity. Further rules are easy to derive by using @{thm filte
 \<close>
 
 lemma filterlim_tendsto_pos_mult_at_top:
-  assumes f: "(f ---> c) F" and c: "0 < c"
+  assumes f: "(f \<longlongrightarrow> c) F" and c: "0 < c"
   assumes g: "LIM x F. g x :> at_top"
   shows "LIM x F. (f x * g x :: real) :> at_top"
   unfolding filterlim_at_top_gt[where c=0]
@@ -1359,13 +1359,13 @@ proof safe
 qed
 
 lemma filterlim_tendsto_pos_mult_at_bot:
-  assumes "(f ---> c) F" "0 < (c::real)" "filterlim g at_bot F"
+  assumes "(f \<longlongrightarrow> c) F" "0 < (c::real)" "filterlim g at_bot F"
   shows "LIM x F. f x * g x :> at_bot"
   using filterlim_tendsto_pos_mult_at_top[OF assms(1,2), of "\<lambda>x. - g x"] assms(3)
   unfolding filterlim_uminus_at_bot by simp
 
 lemma filterlim_tendsto_neg_mult_at_bot:
-  assumes c: "(f ---> c) F" "(c::real) < 0" and g: "filterlim g at_top F"
+  assumes c: "(f \<longlongrightarrow> c) F" "(c::real) < 0" and g: "filterlim g at_top F"
   shows "LIM x F. f x * g x :> at_bot"
   using c filterlim_tendsto_pos_mult_at_top[of "\<lambda>x. - f x" "- c" F, OF _ _ g]
   unfolding filterlim_uminus_at_bot tendsto_minus_cancel_left by simp
@@ -1390,7 +1390,7 @@ lemma filterlim_pow_at_bot_odd:
   using filterlim_pow_at_top[of n "\<lambda>x. - f x" F] by (simp add: filterlim_uminus_at_bot)
 
 lemma filterlim_tendsto_add_at_top:
-  assumes f: "(f ---> c) F"
+  assumes f: "(f \<longlongrightarrow> c) F"
   assumes g: "LIM x F. g x :> at_top"
   shows "LIM x F. (f x + g x :: real) :> at_top"
   unfolding filterlim_at_top_gt[where c=0]
@@ -1406,8 +1406,8 @@ qed
 
 lemma LIM_at_top_divide:
   fixes f g :: "'a \<Rightarrow> real"
-  assumes f: "(f ---> a) F" "0 < a"
-  assumes g: "(g ---> 0) F" "eventually (\<lambda>x. 0 < g x) F"
+  assumes f: "(f \<longlongrightarrow> a) F" "0 < a"
+  assumes g: "(g \<longlongrightarrow> 0) F" "eventually (\<lambda>x. 0 < g x) F"
   shows "LIM x F. f x / g x :> at_top"
   unfolding divide_inverse
   by (rule filterlim_tendsto_pos_mult_at_top[OF f]) (rule filterlim_inverse_at_top[OF g])
@@ -1429,9 +1429,9 @@ qed
 
 lemma tendsto_divide_0:
   fixes f :: "_ \<Rightarrow> 'a::{real_normed_div_algebra, division_ring}"
-  assumes f: "(f ---> c) F"
+  assumes f: "(f \<longlongrightarrow> c) F"
   assumes g: "LIM x F. g x :> at_infinity"
-  shows "((\<lambda>x. f x / g x) ---> 0) F"
+  shows "((\<lambda>x. f x / g x) \<longlongrightarrow> 0) F"
   using tendsto_mult[OF f filterlim_compose[OF tendsto_inverse_0 g]] by (simp add: divide_inverse)
 
 lemma linear_plus_1_le_power:
@@ -1510,16 +1510,16 @@ lemma eventually_at2:
 
 lemma Lim_transform:
   fixes a b :: "'a::real_normed_vector"
-  shows "\<lbrakk>(g ---> a) F; ((\<lambda>x. f x - g x) ---> 0) F\<rbrakk> \<Longrightarrow> (f ---> a) F"
+  shows "\<lbrakk>(g \<longlongrightarrow> a) F; ((\<lambda>x. f x - g x) \<longlongrightarrow> 0) F\<rbrakk> \<Longrightarrow> (f \<longlongrightarrow> a) F"
   using tendsto_add [of g a F "\<lambda>x. f x - g x" 0] by simp
 
 lemma Lim_transform2:
   fixes a b :: "'a::real_normed_vector"
-  shows "\<lbrakk>(f ---> a) F; ((\<lambda>x. f x - g x) ---> 0) F\<rbrakk> \<Longrightarrow> (g ---> a) F"
+  shows "\<lbrakk>(f \<longlongrightarrow> a) F; ((\<lambda>x. f x - g x) \<longlongrightarrow> 0) F\<rbrakk> \<Longrightarrow> (g \<longlongrightarrow> a) F"
   by (erule Lim_transform) (simp add: tendsto_minus_cancel)
 
 lemma Lim_transform_eventually:
-  "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f ---> l) net \<Longrightarrow> (g ---> l) net"
+  "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f \<longlongrightarrow> l) net \<Longrightarrow> (g \<longlongrightarrow> l) net"
   apply (rule topological_tendstoI)
   apply (drule (2) topological_tendstoD)
   apply (erule (1) eventually_elim2, simp)
@@ -1528,19 +1528,19 @@ lemma Lim_transform_eventually:
 lemma Lim_transform_within:
   assumes "0 < d"
     and "\<forall>x'\<in>S. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x'"
-    and "(f ---> l) (at x within S)"
-  shows "(g ---> l) (at x within S)"
+    and "(f \<longlongrightarrow> l) (at x within S)"
+  shows "(g \<longlongrightarrow> l) (at x within S)"
 proof (rule Lim_transform_eventually)
   show "eventually (\<lambda>x. f x = g x) (at x within S)"
     using assms(1,2) by (auto simp: dist_nz eventually_at)
-  show "(f ---> l) (at x within S)" by fact
+  show "(f \<longlongrightarrow> l) (at x within S)" by fact
 qed
 
 lemma Lim_transform_at:
   assumes "0 < d"
     and "\<forall>x'. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x'"
-    and "(f ---> l) (at x)"
-  shows "(g ---> l) (at x)"
+    and "(f \<longlongrightarrow> l) (at x)"
+  shows "(g \<longlongrightarrow> l) (at x)"
   using _ assms(3)
 proof (rule Lim_transform_eventually)
   show "eventually (\<lambda>x. f x = g x) (at x)"
@@ -1554,10 +1554,10 @@ lemma Lim_transform_away_within:
   fixes a b :: "'a::t1_space"
   assumes "a \<noteq> b"
     and "\<forall>x\<in>S. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
-    and "(f ---> l) (at a within S)"
-  shows "(g ---> l) (at a within S)"
+    and "(f \<longlongrightarrow> l) (at a within S)"
+  shows "(g \<longlongrightarrow> l) (at a within S)"
 proof (rule Lim_transform_eventually)
-  show "(f ---> l) (at a within S)" by fact
+  show "(f \<longlongrightarrow> l) (at a within S)" by fact
   show "eventually (\<lambda>x. f x = g x) (at a within S)"
     unfolding eventually_at_topological
     by (rule exI [where x="- {b}"], simp add: open_Compl assms)
@@ -1567,8 +1567,8 @@ lemma Lim_transform_away_at:
   fixes a b :: "'a::t1_space"
   assumes ab: "a\<noteq>b"
     and fg: "\<forall>x. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
-    and fl: "(f ---> l) (at a)"
-  shows "(g ---> l) (at a)"
+    and fl: "(f \<longlongrightarrow> l) (at a)"
+  shows "(g \<longlongrightarrow> l) (at a)"
   using Lim_transform_away_within[OF ab, of UNIV f g l] fg fl by simp
 
 text\<open>Alternatively, within an open set.\<close>
@@ -1576,13 +1576,13 @@ text\<open>Alternatively, within an open set.\<close>
 lemma Lim_transform_within_open:
   assumes "open S" and "a \<in> S"
     and "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> f x = g x"
-    and "(f ---> l) (at a)"
-  shows "(g ---> l) (at a)"
+    and "(f \<longlongrightarrow> l) (at a)"
+  shows "(g \<longlongrightarrow> l) (at a)"
 proof (rule Lim_transform_eventually)
   show "eventually (\<lambda>x. f x = g x) (at a)"
     unfolding eventually_at_topological
     using assms(1,2,3) by auto
-  show "(f ---> l) (at a)" by fact
+  show "(f \<longlongrightarrow> l) (at a)" by fact
 qed
 
 text\<open>A congruence rule allowing us to transform limits assuming not at point.\<close>
@@ -1594,14 +1594,14 @@ lemma Lim_cong_within(*[cong add]*):
     and "x = y"
     and "S = T"
     and "\<And>x. x \<noteq> b \<Longrightarrow> x \<in> T \<Longrightarrow> f x = g x"
-  shows "(f ---> x) (at a within S) \<longleftrightarrow> (g ---> y) (at b within T)"
+  shows "(f \<longlongrightarrow> x) (at a within S) \<longleftrightarrow> (g \<longlongrightarrow> y) (at b within T)"
   unfolding tendsto_def eventually_at_topological
   using assms by simp
 
 lemma Lim_cong_at(*[cong add]*):
   assumes "a = b" "x = y"
     and "\<And>x. x \<noteq> a \<Longrightarrow> f x = g x"
-  shows "((\<lambda>x. f x) ---> x) (at a) \<longleftrightarrow> ((g ---> y) (at a))"
+  shows "((\<lambda>x. f x) \<longlongrightarrow> x) (at a) \<longleftrightarrow> ((g \<longlongrightarrow> y) (at a))"
   unfolding tendsto_def eventually_at_topological
   using assms by simp
 text\<open>An unbounded sequence's inverse tends to 0\<close>
@@ -1636,7 +1636,7 @@ lemma LIMSEQ_inverse_real_of_nat_add_minus_mult:
   using tendsto_mult [OF tendsto_const LIMSEQ_inverse_real_of_nat_add_minus [of 1]]
   by auto
 
-lemma lim_1_over_n: "((\<lambda>n. 1 / of_nat n) ---> (0::'a::real_normed_field)) sequentially"
+lemma lim_1_over_n: "((\<lambda>n. 1 / of_nat n) \<longlongrightarrow> (0::'a::real_normed_field)) sequentially"
 proof (subst lim_sequentially, intro allI impI exI)
   fix e :: real assume e: "e > 0"
   fix n :: nat assume n: "n \<ge> nat \<lceil>inverse e + 1\<rceil>"
@@ -1646,7 +1646,7 @@ proof (subst lim_sequentially, intro allI impI exI)
     by (simp add: divide_simps mult.commute norm_conv_dist[symmetric] norm_divide)
 qed
 
-lemma lim_inverse_n: "((\<lambda>n. inverse(of_nat n)) ---> (0::'a::real_normed_field)) sequentially"
+lemma lim_inverse_n: "((\<lambda>n. inverse(of_nat n)) \<longlongrightarrow> (0::'a::real_normed_field)) sequentially"
   using lim_1_over_n by (simp add: inverse_eq_divide)
 
 lemma LIMSEQ_Suc_n_over_n: "(\<lambda>n. of_nat (Suc n) / of_nat n :: 'a :: real_normed_field) \<longlonglongrightarrow> 1"
@@ -1979,17 +1979,17 @@ lemma LIM_offset_zero_iff:
 
 lemma LIM_zero:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "(f ---> l) F \<Longrightarrow> ((\<lambda>x. f x - l) ---> 0) F"
+  shows "(f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. f x - l) \<longlongrightarrow> 0) F"
 unfolding tendsto_iff dist_norm by simp
 
 lemma LIM_zero_cancel:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "((\<lambda>x. f x - l) ---> 0) F \<Longrightarrow> (f ---> l) F"
+  shows "((\<lambda>x. f x - l) \<longlongrightarrow> 0) F \<Longrightarrow> (f \<longlongrightarrow> l) F"
 unfolding tendsto_iff dist_norm by simp
 
 lemma LIM_zero_iff:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
-  shows "((\<lambda>x. f x - l) ---> 0) F = (f ---> l) F"
+  shows "((\<lambda>x. f x - l) \<longlongrightarrow> 0) F = (f \<longlongrightarrow> l) F"
 unfolding tendsto_iff dist_norm by simp
 
 lemma LIM_imp_LIM:
@@ -2152,7 +2152,7 @@ lemma LIM_less_bound:
   assumes ev: "b < x" "\<forall> x' \<in> { b <..< x}. 0 \<le> f x'" and "isCont f x"
   shows "0 \<le> f x"
 proof (rule tendsto_le_const)
-  show "(f ---> f x) (at_left x)"
+  show "(f \<longlongrightarrow> f x) (at_left x)"
     using \<open>isCont f x\<close> by (simp add: filterlim_at_split isCont_def)
   show "eventually (\<lambda>x. 0 \<le> f x) (at_left x)"
     using ev by (auto simp: eventually_at dist_real_def intro!: exI[of _ "x - b"])

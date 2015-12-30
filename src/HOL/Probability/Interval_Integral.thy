@@ -622,8 +622,8 @@ lemma interval_integral_FTC_nonneg:
   assumes F: "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> DERIV F x :> f x" 
   assumes f: "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> isCont f x" 
   assumes f_nonneg: "AE x in lborel. a < ereal x \<longrightarrow> ereal x < b \<longrightarrow> 0 \<le> f x"
-  assumes A: "((F \<circ> real_of_ereal) ---> A) (at_right a)"
-  assumes B: "((F \<circ> real_of_ereal) ---> B) (at_left b)"
+  assumes A: "((F \<circ> real_of_ereal) \<longlongrightarrow> A) (at_right a)"
+  assumes B: "((F \<circ> real_of_ereal) \<longlongrightarrow> B) (at_left b)"
   shows
     "set_integrable lborel (einterval a b) f" 
     "(LBINT x=a..b. f x) = B - A"
@@ -669,8 +669,8 @@ lemma interval_integral_FTC_integrable:
   assumes F: "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> (F has_vector_derivative f x) (at x)" 
   assumes f: "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> isCont f x" 
   assumes f_integrable: "set_integrable lborel (einterval a b) f"
-  assumes A: "((F \<circ> real_of_ereal) ---> A) (at_right a)"
-  assumes B: "((F \<circ> real_of_ereal) ---> B) (at_left b)"
+  assumes A: "((F \<circ> real_of_ereal) \<longlongrightarrow> A) (at_right a)"
+  assumes B: "((F \<circ> real_of_ereal) \<longlongrightarrow> B) (at_left b)"
   shows "(LBINT x=a..b. f x) = B - A"
 proof -
   from einterval_Icc_approximation[OF \<open>a < b\<close>] guess u l . note approx = this
@@ -834,8 +834,8 @@ lemma interval_integral_substitution_integrable:
   and contf: "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> isCont f (g x)"
   and contg': "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> isCont g' x"
   and g'_nonneg: "\<And>x. a \<le> ereal x \<Longrightarrow> ereal x \<le> b \<Longrightarrow> 0 \<le> g' x"
-  and A: "((ereal \<circ> g \<circ> real_of_ereal) ---> A) (at_right a)"
-  and B: "((ereal \<circ> g \<circ> real_of_ereal) ---> B) (at_left b)"
+  and A: "((ereal \<circ> g \<circ> real_of_ereal) \<longlongrightarrow> A) (at_right a)"
+  and B: "((ereal \<circ> g \<circ> real_of_ereal) \<longlongrightarrow> B) (at_left b)"
   and integrable: "set_integrable lborel (einterval a b) (\<lambda>x. g' x *\<^sub>R f (g x))"
   and integrable2: "set_integrable lborel (einterval A B) (\<lambda>x. f x)"
   shows "(LBINT x=A..B. f x) = (LBINT x=a..b. g' x *\<^sub>R f (g x))"
@@ -935,8 +935,8 @@ lemma interval_integral_substitution_nonneg:
   and contg': "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> isCont g' x"
   and f_nonneg: "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> 0 \<le> f (g x)" (* TODO: make this AE? *)
   and g'_nonneg: "\<And>x. a \<le> ereal x \<Longrightarrow> ereal x \<le> b \<Longrightarrow> 0 \<le> g' x"
-  and A: "((ereal \<circ> g \<circ> real_of_ereal) ---> A) (at_right a)"
-  and B: "((ereal \<circ> g \<circ> real_of_ereal) ---> B) (at_left b)"
+  and A: "((ereal \<circ> g \<circ> real_of_ereal) \<longlongrightarrow> A) (at_right a)"
+  and B: "((ereal \<circ> g \<circ> real_of_ereal) \<longlongrightarrow> B) (at_left b)"
   and integrable_fg: "set_integrable lborel (einterval a b) (\<lambda>x. f (g x) * g' x)"
   shows 
     "set_integrable lborel (einterval A B) f"

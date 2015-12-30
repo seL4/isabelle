@@ -187,7 +187,7 @@ lemma closed_restricted_space:
   using open_restricted_space[of "\<lambda>x. \<not> P x"]
   unfolding closed_def by (rule back_subst) auto
 
-lemma tendsto_proj: "((\<lambda>x. x) ---> a) F \<Longrightarrow> ((\<lambda>x. (x)\<^sub>F i) ---> (a)\<^sub>F i) F"
+lemma tendsto_proj: "((\<lambda>x. x) \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. (x)\<^sub>F i) \<longlongrightarrow> (a)\<^sub>F i) F"
   unfolding tendsto_def
 proof safe
   fix S::"'b set"

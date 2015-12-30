@@ -152,8 +152,8 @@ qed
 subsubsection \<open>Continuity of operations\<close>
 
 lemma tendsto_fst [tendsto_intros]:
-  assumes "(f ---> a) F"
-  shows "((\<lambda>x. fst (f x)) ---> fst a) F"
+  assumes "(f \<longlongrightarrow> a) F"
+  shows "((\<lambda>x. fst (f x)) \<longlongrightarrow> fst a) F"
 proof (rule topological_tendstoI)
   fix S assume "open S" and "fst a \<in> S"
   then have "open (fst -` S)" and "a \<in> fst -` S"
@@ -165,8 +165,8 @@ proof (rule topological_tendstoI)
 qed
 
 lemma tendsto_snd [tendsto_intros]:
-  assumes "(f ---> a) F"
-  shows "((\<lambda>x. snd (f x)) ---> snd a) F"
+  assumes "(f \<longlongrightarrow> a) F"
+  shows "((\<lambda>x. snd (f x)) \<longlongrightarrow> snd a) F"
 proof (rule topological_tendstoI)
   fix S assume "open S" and "snd a \<in> S"
   then have "open (snd -` S)" and "a \<in> snd -` S"
@@ -178,18 +178,18 @@ proof (rule topological_tendstoI)
 qed
 
 lemma tendsto_Pair [tendsto_intros]:
-  assumes "(f ---> a) F" and "(g ---> b) F"
-  shows "((\<lambda>x. (f x, g x)) ---> (a, b)) F"
+  assumes "(f \<longlongrightarrow> a) F" and "(g \<longlongrightarrow> b) F"
+  shows "((\<lambda>x. (f x, g x)) \<longlongrightarrow> (a, b)) F"
 proof (rule topological_tendstoI)
   fix S assume "open S" and "(a, b) \<in> S"
   then obtain A B where "open A" "open B" "a \<in> A" "b \<in> B" "A \<times> B \<subseteq> S"
     unfolding open_prod_def by fast
   have "eventually (\<lambda>x. f x \<in> A) F"
-    using \<open>(f ---> a) F\<close> \<open>open A\<close> \<open>a \<in> A\<close>
+    using \<open>(f \<longlongrightarrow> a) F\<close> \<open>open A\<close> \<open>a \<in> A\<close>
     by (rule topological_tendstoD)
   moreover
   have "eventually (\<lambda>x. g x \<in> B) F"
-    using \<open>(g ---> b) F\<close> \<open>open B\<close> \<open>b \<in> B\<close>
+    using \<open>(g \<longlongrightarrow> b) F\<close> \<open>open B\<close> \<open>b \<in> B\<close>
     by (rule topological_tendstoD)
   ultimately
   show "eventually (\<lambda>x. (f x, g x) \<in> S) F"
@@ -491,7 +491,7 @@ proof (rule has_derivativeI_sandwich[of 1])
   let ?Rg = "\<lambda>y. g y - g x - g' (y - x)"
   let ?R = "\<lambda>y. ((f y, g y) - (f x, g x) - (f' (y - x), g' (y - x)))"
 
-  show "((\<lambda>y. norm (?Rf y) / norm (y - x) + norm (?Rg y) / norm (y - x)) ---> 0) (at x within s)"
+  show "((\<lambda>y. norm (?Rf y) / norm (y - x) + norm (?Rg y) / norm (y - x)) \<longlongrightarrow> 0) (at x within s)"
     using f g by (intro tendsto_add_zero) (auto simp: has_derivative_iff_norm)
 
   fix y :: 'a assume "y \<noteq> x"

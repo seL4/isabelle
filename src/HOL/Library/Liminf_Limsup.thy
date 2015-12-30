@@ -192,7 +192,7 @@ qed
 lemma lim_imp_Liminf:
   fixes f :: "'a \<Rightarrow> _ :: {complete_linorder,linorder_topology}"
   assumes ntriv: "\<not> trivial_limit F"
-  assumes lim: "(f ---> f0) F"
+  assumes lim: "(f \<longlongrightarrow> f0) F"
   shows "Liminf F f = f0"
 proof (intro Liminf_eqI)
   fix P assume P: "eventually P F"
@@ -231,7 +231,7 @@ qed
 lemma lim_imp_Limsup:
   fixes f :: "'a \<Rightarrow> _ :: {complete_linorder,linorder_topology}"
   assumes ntriv: "\<not> trivial_limit F"
-  assumes lim: "(f ---> f0) F"
+  assumes lim: "(f \<longlongrightarrow> f0) F"
   shows "Limsup F f = f0"
 proof (intro Limsup_eqI)
   fix P assume P: "eventually P F"
@@ -271,7 +271,7 @@ lemma Liminf_eq_Limsup:
   fixes f0 :: "'a :: {complete_linorder,linorder_topology}"
   assumes ntriv: "\<not> trivial_limit F"
     and lim: "Liminf F f = f0" "Limsup F f = f0"
-  shows "(f ---> f0) F"
+  shows "(f \<longlongrightarrow> f0) F"
 proof (rule order_tendstoI)
   fix a assume "f0 < a"
   with assms have "Limsup F f < a" by simp
@@ -290,7 +290,7 @@ qed
 
 lemma tendsto_iff_Liminf_eq_Limsup:
   fixes f0 :: "'a :: {complete_linorder,linorder_topology}"
-  shows "\<not> trivial_limit F \<Longrightarrow> (f ---> f0) F \<longleftrightarrow> (Liminf F f = f0 \<and> Limsup F f = f0)"
+  shows "\<not> trivial_limit F \<Longrightarrow> (f \<longlongrightarrow> f0) F \<longleftrightarrow> (Liminf F f = f0 \<and> Limsup F f = f0)"
   by (metis Liminf_eq_Limsup lim_imp_Limsup lim_imp_Liminf)
 
 lemma liminf_subseq_mono:

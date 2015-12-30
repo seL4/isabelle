@@ -2664,7 +2664,7 @@ proof -
     then have "\<exists>d>0. \<forall>y\<in>s. y \<noteq> x \<and> cmod (y-x) < d \<longrightarrow> cmod (?pathint x y - f x * (y-x)) / cmod (y-x) < e"
       using d1 by blast
   }
-  then have *: "((\<lambda>y. (contour_integral (linepath x y) f - f x * (y - x)) /\<^sub>R cmod (y - x)) ---> 0) (at x within s)"
+  then have *: "((\<lambda>y. (contour_integral (linepath x y) f - f x * (y - x)) /\<^sub>R cmod (y - x)) \<longlongrightarrow> 0) (at x within s)"
     by (simp add: Lim_within dist_norm inverse_eq_divide)
   show ?thesis
     apply (simp add: has_field_derivative_def has_derivative_within bounded_linear_mult_right)
@@ -5237,7 +5237,7 @@ proposition contour_integral_uniform_limit:
       and noleB: "\<And>t. t \<in> {0..1} \<Longrightarrow> norm (vector_derivative \<gamma> (at t)) \<le> B"
       and \<gamma>: "valid_path \<gamma>"
       and [simp]: "~ (trivial_limit F)"
-  shows "l contour_integrable_on \<gamma>" "((\<lambda>n. contour_integral \<gamma> (f n)) ---> contour_integral \<gamma> l) F"
+  shows "l contour_integrable_on \<gamma>" "((\<lambda>n. contour_integral \<gamma> (f n)) \<longlongrightarrow> contour_integral \<gamma> l) F"
 proof -
   have "0 \<le> B" by (meson noleB [of 0] atLeastAtMost_iff norm_ge_zero order_refl order_trans zero_le_one)
   { fix e::real
@@ -5292,7 +5292,7 @@ proof -
       apply (blast intro: *)+
       done
   }
-  then show "((\<lambda>n. contour_integral \<gamma> (f n)) ---> contour_integral \<gamma> l) F"
+  then show "((\<lambda>n. contour_integral \<gamma> (f n)) \<longlongrightarrow> contour_integral \<gamma> l) F"
     by (rule tendstoI)
 qed
 
@@ -5300,7 +5300,7 @@ proposition contour_integral_uniform_limit_circlepath:
   assumes ev_fint: "eventually (\<lambda>n::'a. (f n) contour_integrable_on (circlepath z r)) F"
       and ev_no: "\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>n. \<forall>x \<in> path_image (circlepath z r). norm(f n x - l x) < e) F"
       and [simp]: "~ (trivial_limit F)" "0 < r"
-  shows "l contour_integrable_on (circlepath z r)" "((\<lambda>n. contour_integral (circlepath z r) (f n)) ---> contour_integral (circlepath z r) l) F"
+  shows "l contour_integrable_on (circlepath z r)" "((\<lambda>n. contour_integral (circlepath z r) (f n)) \<longlongrightarrow> contour_integral (circlepath z r) l) F"
 by (auto simp: vector_derivative_circlepath norm_mult intro: contour_integral_uniform_limit assms)
 
 
@@ -6156,7 +6156,7 @@ subsection\<open>The Liouville theorem and the Fundamental Theorem of Algebra.\<
 text\<open> These weak Liouville versions don't even need the derivative formula.\<close>
 
 lemma Liouville_weak_0: 
-  assumes holf: "f holomorphic_on UNIV" and inf: "(f ---> 0) at_infinity"
+  assumes holf: "f holomorphic_on UNIV" and inf: "(f \<longlongrightarrow> 0) at_infinity"
     shows "f z = 0"
 proof (rule ccontr)
   assume fz: "f z \<noteq> 0"
@@ -6182,7 +6182,7 @@ proof (rule ccontr)
 qed
 
 proposition Liouville_weak: 
-  assumes "f holomorphic_on UNIV" and "(f ---> l) at_infinity"
+  assumes "f holomorphic_on UNIV" and "(f \<longlongrightarrow> l) at_infinity"
     shows "f z = l"
   using Liouville_weak_0 [of "\<lambda>z. f z - l"]
   by (simp add: assms holomorphic_on_const holomorphic_on_diff LIM_zero)
@@ -6195,7 +6195,7 @@ proof -
   { assume f: "\<And>z. f z \<noteq> 0"
     have 1: "(\<lambda>x. 1 / f x) holomorphic_on UNIV"
       by (simp add: holomorphic_on_divide holomorphic_on_const assms f)
-    have 2: "((\<lambda>x. 1 / f x) ---> 0) at_infinity"
+    have 2: "((\<lambda>x. 1 / f x) \<longlongrightarrow> 0) at_infinity"
       apply (rule tendstoI [OF eventually_mono])
       apply (rule_tac B="2/e" in unbounded)
       apply (simp add: dist_norm norm_divide divide_simps mult_ac)
@@ -6274,16 +6274,16 @@ next
       done
     have g_cint: "(\<lambda>u. g u/(u - w)) contour_integrable_on circlepath z r"
       by (rule contour_integral_uniform_limit_circlepath [OF ev_int ev_less F \<open>0 < r\<close>])
-    have cif_tends_cig: "((\<lambda>n. contour_integral(circlepath z r) (\<lambda>u. f n u / (u - w))) ---> contour_integral(circlepath z r) (\<lambda>u. g u/(u - w))) F"
+    have cif_tends_cig: "((\<lambda>n. contour_integral(circlepath z r) (\<lambda>u. f n u / (u - w))) \<longlongrightarrow> contour_integral(circlepath z r) (\<lambda>u. g u/(u - w))) F"
       by (rule contour_integral_uniform_limit_circlepath [OF ev_int ev_less F \<open>0 < r\<close>])
-    have f_tends_cig: "((\<lambda>n. 2 * of_real pi * ii * f n w) ---> contour_integral (circlepath z r) (\<lambda>u. g u / (u - w))) F"
+    have f_tends_cig: "((\<lambda>n. 2 * of_real pi * ii * f n w) \<longlongrightarrow> contour_integral (circlepath z r) (\<lambda>u. g u / (u - w))) F"
       apply (rule Lim_transform_eventually [where f = "\<lambda>n. contour_integral (circlepath z r) (\<lambda>u. f n u/(u - w))"])
       apply (rule eventually_mono [OF cont])
       apply (rule contour_integral_unique [OF Cauchy_integral_circlepath])
       using w
       apply (auto simp: norm_minus_commute dist_norm cif_tends_cig)
       done
-    have "((\<lambda>n. 2 * of_real pi * \<i> * f n w) ---> 2 * of_real pi * \<i> * g w) F"
+    have "((\<lambda>n. 2 * of_real pi * \<i> * f n w) \<longlongrightarrow> 2 * of_real pi * \<i> * g w) F"
       apply (rule tendsto_mult_left [OF tendstoI])
       apply (rule eventually_mono [OF lim], assumption)
       using w
@@ -6314,7 +6314,7 @@ proposition has_complex_derivative_uniform_limit:
       and F:  "~ trivial_limit F" and "0 < r"
   obtains g' where
       "continuous_on (cball z r) g" 
-      "\<And>w. w \<in> ball z r \<Longrightarrow> (g has_field_derivative (g' w)) (at w) \<and> ((\<lambda>n. f' n w) ---> g' w) F"
+      "\<And>w. w \<in> ball z r \<Longrightarrow> (g has_field_derivative (g' w)) (at w) \<and> ((\<lambda>n. f' n w) \<longlongrightarrow> g' w) F"
 proof -
   let ?conint = "contour_integral (circlepath z r)"
   have g: "continuous_on (cball z r) g" "g holomorphic_on ball z r"
@@ -6325,7 +6325,7 @@ proof -
     by (fastforce simp add: holomorphic_on_open)
   then have derg: "\<And>x. x \<in> ball z r \<Longrightarrow> deriv g x = g' x"
     by (simp add: DERIV_imp_deriv)
-  have tends_f'n_g': "((\<lambda>n. f' n w) ---> g' w) F" if w: "w \<in> ball z r" for w
+  have tends_f'n_g': "((\<lambda>n. f' n w) \<longlongrightarrow> g' w) F" if w: "w \<in> ball z r" for w
   proof -
     have eq_f': "?conint (\<lambda>x. f n x / (x - w)\<^sup>2) - ?conint (\<lambda>x. g x / (x - w)\<^sup>2) = (f' n w - g' w) * (2 * of_real pi * \<i>)" 
              if cont_fn: "continuous_on (cball z r) (f n)" 
@@ -6359,17 +6359,17 @@ proof -
       apply (force simp add: dist_norm dle intro: less_le_trans)
       done
     have "((\<lambda>n. contour_integral (circlepath z r) (\<lambda>x. f n x / (x - w)\<^sup>2)) 
-             ---> contour_integral (circlepath z r) ((\<lambda>x. g x / (x - w)\<^sup>2))) F"
+             \<longlongrightarrow> contour_integral (circlepath z r) ((\<lambda>x. g x / (x - w)\<^sup>2))) F"
       by (rule Cauchy_Integral_Thm.contour_integral_uniform_limit_circlepath [OF 1 2 F \<open>0 < r\<close>])
-    then have tendsto_0: "((\<lambda>n. 1 / (2 * of_real pi * \<i>) * (?conint (\<lambda>x. f n x / (x - w)\<^sup>2) - ?conint (\<lambda>x. g x / (x - w)\<^sup>2))) ---> 0) F"
+    then have tendsto_0: "((\<lambda>n. 1 / (2 * of_real pi * \<i>) * (?conint (\<lambda>x. f n x / (x - w)\<^sup>2) - ?conint (\<lambda>x. g x / (x - w)\<^sup>2))) \<longlongrightarrow> 0) F"
       using Lim_null by (force intro!: tendsto_mult_right_zero)
-    have "((\<lambda>n. f' n w - g' w) ---> 0) F"
+    have "((\<lambda>n. f' n w - g' w) \<longlongrightarrow> 0) F"
       apply (rule Lim_transform_eventually [OF _ tendsto_0])
       apply (force simp add: divide_simps intro: eq_f' eventually_mono [OF cont])
       done
     then show ?thesis using Lim_null by blast
   qed
-  obtain g' where "\<And>w. w \<in> ball z r \<Longrightarrow> (g has_field_derivative (g' w)) (at w) \<and> ((\<lambda>n. f' n w) ---> g' w) F"
+  obtain g' where "\<And>w. w \<in> ball z r \<Longrightarrow> (g has_field_derivative (g' w)) (at w) \<and> ((\<lambda>n. f' n w) \<longlongrightarrow> g' w) F"
       by (blast intro: tends_f'n_g' g' )
   then show ?thesis using g
     using that by blast

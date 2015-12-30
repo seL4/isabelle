@@ -48,7 +48,7 @@ end
 lemma compactE':
   fixes S :: "'a :: metric_space set"
   assumes "compact S" "\<forall>n\<ge>m. f n \<in> S"
-  obtains l r where "l \<in> S" "subseq r" "((f \<circ> r) ---> l) sequentially"
+  obtains l r where "l \<in> S" "subseq r" "((f \<circ> r) \<longlongrightarrow> l) sequentially"
 proof atomize_elim
   have "subseq (op + m)" by (simp add: subseq_def)
   have "\<forall>n. (f o (\<lambda>i. m + i)) n \<in> S" using assms by auto

@@ -148,7 +148,7 @@ lemma mono_on_imp_deriv_nonneg:
   shows "D \<ge> 0"
 proof (rule tendsto_le_const)
   let ?A' = "(\<lambda>y. y - x) ` interior A"
-  from deriv show "((\<lambda>h. (f (x + h) - f x) / h) ---> D) (at 0)"
+  from deriv show "((\<lambda>h. (f (x + h) - f x) / h) \<longlongrightarrow> D) (at 0)"
       by (simp add: field_has_derivative_at has_field_derivative_def)
   from mono have mono': "mono_on f (interior A)" by (rule mono_on_subset) (rule interior_subset)
 
