@@ -2471,7 +2471,7 @@ proof -
     unfolding has_vector_derivative_def has_derivative_iff_norm
     using assms by (intro conj_cong Lim_cong_within refl) auto
   then show ?thesis
-    using has_vector_derivative_within_subset[OF f `s \<subseteq> t`] by simp
+    using has_vector_derivative_within_subset[OF f \<open>s \<subseteq> t\<close>] by simp
 qed
 
 lemma has_vector_derivative_transform_within:

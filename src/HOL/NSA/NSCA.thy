@@ -3,7 +3,7 @@
     Copyright   : 2001,2002 University of Edinburgh
 *)
 
-section{*Non-Standard Complex Analysis*}
+section\<open>Non-Standard Complex Analysis\<close>
 
 theory NSCA
 imports NSComplex HTranscendental
@@ -14,12 +14,12 @@ abbreviation
    SComplex  :: "hcomplex set" where
    "SComplex \<equiv> Standard"
 
-definition --{* standard part map*}
+definition \<comment>\<open>standard part map\<close>
   stc :: "hcomplex => hcomplex" where 
   "stc x = (SOME r. x \<in> HFinite & r:SComplex & r @= x)"
 
 
-subsection{*Closure Laws for SComplex, the Standard Complex Numbers*}
+subsection\<open>Closure Laws for SComplex, the Standard Complex Numbers\<close>
 
 lemma SComplex_minus_iff [simp]: "(-x \<in> SComplex) = (x \<in> SComplex)"
 by (auto, drule Standard_minus, auto)
@@ -68,7 +68,7 @@ apply (auto intro: SReal_dense simp add: SReal_hcmod_SComplex)
 done
 
 
-subsection{*The Finite Elements form a Subring*}
+subsection\<open>The Finite Elements form a Subring\<close>
 
 lemma HFinite_hcmod_hcomplex_of_complex [simp]:
      "hcmod (hcomplex_of_complex r) \<in> HFinite"
@@ -82,7 +82,7 @@ lemma HFinite_bounded_hcmod:
 by (auto intro: HFinite_bounded simp add: HFinite_hcmod_iff)
 
 
-subsection{*The Complex Infinitesimals form a Subring*}
+subsection\<open>The Complex Infinitesimals form a Subring\<close>
 
 lemma hcomplex_sum_of_halves: "x/(2::hcomplex) + x/(2::hcomplex) = x"
 by auto
@@ -121,7 +121,7 @@ lemma Infinitesimal_interval2_hcmod:
 by (auto intro: Infinitesimal_interval2 simp add: Infinitesimal_hcmod_iff)
 
 
-subsection{*The ``Infinitely Close'' Relation*}
+subsection\<open>The ``Infinitely Close'' Relation\<close>
 
 (*
 Goalw [capprox_def,approx_def] "(z @c= w) = (hcmod z @= hcmod w)"
@@ -183,7 +183,7 @@ apply (auto intro: Infinitesimal_hcmod_add_diff simp add: mem_infmal_iff [symmet
 done
 
 
-subsection{*Zero is the Only Infinitesimal Complex Number*}
+subsection\<open>Zero is the Only Infinitesimal Complex Number\<close>
 
 lemma Infinitesimal_less_SComplex:
    "[| x \<in> SComplex; y \<in> Infinitesimal; 0 < hcmod x |] ==> hcmod y < hcmod x"
@@ -229,7 +229,7 @@ lemma approx_unique_complex:
      "[| r \<in> SComplex; s \<in> SComplex; r @= x; s @= x|] ==> r = s"
 by (blast intro: SComplex_approx_iff [THEN iffD1] approx_trans2)
 
-subsection {* Properties of @{term hRe}, @{term hIm} and @{term HComplex} *}
+subsection \<open>Properties of @{term hRe}, @{term hIm} and @{term HComplex}\<close>
 
 
 lemma abs_hRe_le_hcmod: "\<And>x. \<bar>hRe x\<bar> \<le> hcmod x"
@@ -360,13 +360,13 @@ lemmas hcomplex_of_complex_approx_inverse =
   hcomplex_of_complex_HFinite_diff_Infinitesimal [THEN [2] approx_inverse]
 
 
-subsection{*Theorems About Monads*}
+subsection\<open>Theorems About Monads\<close>
 
 lemma monad_zero_hcmod_iff: "(x \<in> monad 0) = (hcmod x:monad 0)"
 by (simp add: Infinitesimal_monad_zero_iff [symmetric] Infinitesimal_hcmod_iff)
 
 
-subsection{*Theorems About Standard Part*}
+subsection\<open>Theorems About Standard Part\<close>
 
 lemma stc_approx_self: "x \<in> HFinite ==> stc x @= x"
 apply (simp add: stc_def)

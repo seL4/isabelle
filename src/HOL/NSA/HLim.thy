@@ -3,13 +3,13 @@
     Author:     Lawrence C Paulson
 *)
 
-section{* Limits and Continuity (Nonstandard) *}
+section\<open>Limits and Continuity (Nonstandard)\<close>
 
 theory HLim
 imports Star
 begin
 
-text{*Nonstandard Definitions*}
+text\<open>Nonstandard Definitions\<close>
 
 definition
   NSLIM :: "['a::real_normed_vector => 'b::real_normed_vector, 'a, 'b] => bool"
@@ -19,7 +19,7 @@ definition
 
 definition
   isNSCont :: "['a::real_normed_vector => 'b::real_normed_vector, 'a] => bool" where
-    --{*NS definition dispenses with limit notions*}
+    \<comment>\<open>NS definition dispenses with limit notions\<close>
   "isNSCont f a = (\<forall>y. y @= star_of a -->
          ( *f* f) y @= star_of (f a))"
 
@@ -28,7 +28,7 @@ definition
   "isNSUCont f = (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
 
 
-subsection {* Limits of Functions *}
+subsection \<open>Limits of Functions\<close>
 
 lemma NSLIM_I:
   "(\<And>x. \<lbrakk>x \<noteq> star_of a; x \<approx> star_of a\<rbrakk> \<Longrightarrow> starfun f x \<approx> star_of L)
@@ -40,8 +40,8 @@ lemma NSLIM_D:
    \<Longrightarrow> starfun f x \<approx> star_of L"
 by (simp add: NSLIM_def)
 
-text{*Proving properties of limits using nonstandard definition.
-      The properties hold for standard limits as well!*}
+text\<open>Proving properties of limits using nonstandard definition.
+      The properties hold for standard limits as well!\<close>
 
 lemma NSLIM_mult:
   fixes l m :: "'a::real_normed_algebra"
@@ -133,7 +133,7 @@ by (drule NSLIM_mult, auto)
 lemma NSLIM_self: "(%x. x) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S a"
 by (simp add: NSLIM_def)
 
-subsubsection {* Equivalence of @{term filterlim} and @{term NSLIM} *}
+subsubsection \<open>Equivalence of @{term filterlim} and @{term NSLIM}\<close>
 
 lemma LIM_NSLIM:
   assumes f: "f -- a --> L" shows "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L"
@@ -194,7 +194,7 @@ theorem LIM_NSLIM_iff: "(f -- x --> L) = (f \<midarrow>x\<rightarrow>\<^sub>N\<^
 by (blast intro: LIM_NSLIM NSLIM_LIM)
 
 
-subsection {* Continuity *}
+subsection \<open>Continuity\<close>
 
 lemma isNSContD:
   "\<lbrakk>isNSCont f a; y \<approx> star_of a\<rbrakk> \<Longrightarrow> ( *f* f) y \<approx> star_of (f a)"
@@ -208,32 +208,32 @@ apply (simp add: isNSCont_def NSLIM_def, auto)
 apply (case_tac "y = star_of a", auto)
 done
 
-text{*NS continuity can be defined using NS Limit in
-    similar fashion to standard def of continuity*}
+text\<open>NS continuity can be defined using NS Limit in
+    similar fashion to standard def of continuity\<close>
 lemma isNSCont_NSLIM_iff: "(isNSCont f a) = (f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S (f a))"
 by (blast intro: isNSCont_NSLIM NSLIM_isNSCont)
 
-text{*Hence, NS continuity can be given
-  in terms of standard limit*}
+text\<open>Hence, NS continuity can be given
+  in terms of standard limit\<close>
 lemma isNSCont_LIM_iff: "(isNSCont f a) = (f -- a --> (f a))"
 by (simp add: LIM_NSLIM_iff isNSCont_NSLIM_iff)
 
-text{*Moreover, it's trivial now that NS continuity
-  is equivalent to standard continuity*}
+text\<open>Moreover, it's trivial now that NS continuity
+  is equivalent to standard continuity\<close>
 lemma isNSCont_isCont_iff: "(isNSCont f a) = (isCont f a)"
 apply (simp add: isCont_def)
 apply (rule isNSCont_LIM_iff)
 done
 
-text{*Standard continuity ==> NS continuity*}
+text\<open>Standard continuity ==> NS continuity\<close>
 lemma isCont_isNSCont: "isCont f a ==> isNSCont f a"
 by (erule isNSCont_isCont_iff [THEN iffD2])
 
-text{*NS continuity ==> Standard continuity*}
+text\<open>NS continuity ==> Standard continuity\<close>
 lemma isNSCont_isCont: "isNSCont f a ==> isCont f a"
 by (erule isNSCont_isCont_iff [THEN iffD1])
 
-text{*Alternative definition of continuity*}
+text\<open>Alternative definition of continuity\<close>
 
 (* Prove equivalence between NS limits - *)
 (* seems easier than using standard def  *)
@@ -269,7 +269,7 @@ apply (auto intro: approx_hrabs simp add: starfun_rabs_hrabs)
 done
 
 
-subsection {* Uniform Continuity *}
+subsection \<open>Uniform Continuity\<close>
 
 lemma isNSUContD: "[| isNSUCont f; x \<approx> y|] ==> ( *f* f) x \<approx> ( *f* f) y"
 by (simp add: isNSUCont_def)

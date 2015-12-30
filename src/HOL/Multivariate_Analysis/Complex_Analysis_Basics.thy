@@ -261,7 +261,7 @@ lemma Lim_null_comparison_Re:
 
 subsection\<open>Holomorphic functions\<close>
 
-text{*Could be generalized to real normed fields, but in practice that would only include the reals*}
+text\<open>Could be generalized to real normed fields, but in practice that would only include the reals\<close>
 definition complex_differentiable :: "[complex \<Rightarrow> complex, complex filter] \<Rightarrow> bool"
            (infixr "(complex'_differentiable)" 50)
   where "f complex_differentiable F \<equiv> \<exists>f'. (f has_field_derivative f') F"

@@ -5,7 +5,7 @@
 Converted to Isar and polished by lcp
 *)
 
-section{*Star-transforms for the Hypernaturals*}
+section\<open>Star-transforms for the Hypernaturals\<close>
 
 theory NatStar
 imports Star
@@ -72,10 +72,10 @@ apply (subgoal_tac "UNIV - X = - X")
 by (auto intro: InternalSets_Compl)
 
 
-subsection{*Nonstandard Extensions of Functions*}
+subsection\<open>Nonstandard Extensions of Functions\<close>
 
-text{* Example of transfer of a property from reals to hyperreals
-    --- used for limit comparison of sequences*}
+text\<open>Example of transfer of a property from reals to hyperreals
+    --- used for limit comparison of sequences\<close>
 
 lemma starfun_le_mono:
      "\<forall>n. N \<le> n --> f n \<le> g n
@@ -88,18 +88,18 @@ lemma starfun_less_mono:
       ==> \<forall>n. hypnat_of_nat N \<le> n --> ( *f* f) n < ( *f* g) n"
 by transfer
 
-text{*Nonstandard extension when we increment the argument by one*}
+text\<open>Nonstandard extension when we increment the argument by one\<close>
 
 lemma starfun_shift_one:
      "!!N. ( *f* (%n. f (Suc n))) N = ( *f* f) (N + (1::hypnat))"
 by (transfer, simp)
 
-text{*Nonstandard extension with absolute value*}
+text\<open>Nonstandard extension with absolute value\<close>
 
 lemma starfun_abs: "!!N. ( *f* (%n. \<bar>f n\<bar>)) N = \<bar>( *f* f) N\<bar>"
 by (transfer, rule refl)
 
-text{*The hyperpow function as a nonstandard extension of realpow*}
+text\<open>The hyperpow function as a nonstandard extension of realpow\<close>
 
 lemma starfun_pow: "!!N. ( *f* (%n. r ^ n)) N = (hypreal_of_real r) pow N"
 by (transfer, rule refl)
@@ -111,8 +111,8 @@ by (transfer, rule refl)
 lemma starfun_pow3: "!!R. ( *f* (%r. r ^ n)) R = (R) pow hypnat_of_nat n"
 by (transfer, rule refl)
 
-text{*The @{term hypreal_of_hypnat} function as a nonstandard extension of
-  @{term real_of_nat} *}
+text\<open>The @{term hypreal_of_hypnat} function as a nonstandard extension of
+  @{term real_of_nat}\<close>
 
 lemma starfunNat_real_of_nat: "( *f* real) = hypreal_of_hypnat"
 by transfer (simp add: fun_eq_iff)
@@ -125,12 +125,12 @@ apply (subgoal_tac "hypreal_of_hypnat N ~= 0")
 apply (simp_all add: zero_less_HNatInfinite starfunNat_real_of_nat starfun_inverse_inverse)
 done
 
-text{*Internal functions - some redundancy with *f* now*}
+text\<open>Internal functions - some redundancy with *f* now\<close>
 
 lemma starfun_n: "( *fn* f) (star_n X) = star_n (%n. f n (X n))"
 by (simp add: starfun_n_def Ifun_star_n)
 
-text{*Multiplication: @{text "( *fn) x ( *gn) = *(fn x gn)"}*}
+text\<open>Multiplication: \<open>( *fn) x ( *gn) = *(fn x gn)\<close>\<close>
 
 lemma starfun_n_mult:
      "( *fn* f) z * ( *fn* g) z = ( *fn* (% i x. f i x * g i x)) z"
@@ -138,7 +138,7 @@ apply (cases z)
 apply (simp add: starfun_n star_n_mult)
 done
 
-text{*Addition: @{text "( *fn) + ( *gn) = *(fn + gn)"}*}
+text\<open>Addition: \<open>( *fn) + ( *gn) = *(fn + gn)\<close>\<close>
 
 lemma starfun_n_add:
      "( *fn* f) z + ( *fn* g) z = ( *fn* (%i x. f i x + g i x)) z"
@@ -146,7 +146,7 @@ apply (cases z)
 apply (simp add: starfun_n star_n_add)
 done
 
-text{*Subtraction: @{text "( *fn) - ( *gn) = *(fn + - gn)"}*}
+text\<open>Subtraction: \<open>( *fn) - ( *gn) = *(fn + - gn)\<close>\<close>
 
 lemma starfun_n_add_minus:
      "( *fn* f) z + -( *fn* g) z = ( *fn* (%i x. f i x + -g i x)) z"
@@ -155,7 +155,7 @@ apply (simp add: starfun_n star_n_minus star_n_add)
 done
 
 
-text{*Composition: @{text "( *fn) o ( *gn) = *(fn o gn)"}*}
+text\<open>Composition: \<open>( *fn) o ( *gn) = *(fn o gn)\<close>\<close>
 
 lemma starfun_n_const_fun [simp]:
      "( *fn* (%i x. k)) z = star_of k"
@@ -183,7 +183,7 @@ apply (simp_all add: zero_less_HNatInfinite starfunNat_real_of_nat)
 done
 
 
-subsection{*Nonstandard Characterization of Induction*}
+subsection\<open>Nonstandard Characterization of Induction\<close>
 
 lemma hypnat_induct_obj:
     "!!n. (( *p* P) (0::hypnat) &
@@ -221,7 +221,7 @@ apply (clarsimp simp add: InternalSets_def starset_n_def)
 apply (erule nonempty_set_star_has_least)
 done
 
-text{* Goldblatt page 129 Thm 11.3.2*}
+text\<open>Goldblatt page 129 Thm 11.3.2\<close>
 lemma internal_induct_lemma:
      "!!X::nat set star. [| (0::hypnat) \<in> Iset X; \<forall>n. n \<in> Iset X --> n + 1 \<in> Iset X |]
       ==> Iset X = (UNIV:: hypnat set)"

@@ -5,7 +5,7 @@
 Converted to Isar and polished by lcp
 *)
 
-section{*Finite Summation and Infinite Series for Hyperreals*}
+section\<open>Finite Summation and Infinite Series for Hyperreals\<close>
 
 theory HSeries
 imports HSEQ
@@ -31,11 +31,11 @@ definition
 lemma sumhr_app: "sumhr(M,N,f) = ( *f2* (\<lambda>m n. setsum f {m..<n})) M N"
 by (simp add: sumhr_def)
 
-text{*Base case in definition of @{term sumr}*}
+text\<open>Base case in definition of @{term sumr}\<close>
 lemma sumhr_zero [simp]: "!!m. sumhr (m,0,f) = 0"
 unfolding sumhr_app by transfer simp
 
-text{*Recursive case in definition of @{term sumr}*}
+text\<open>Recursive case in definition of @{term sumr}\<close>
 lemma sumhr_if:
      "!!m n. sumhr(m,n+1,f) =
       (if n + 1 \<le> m then 0 else sumhr(m,n,f) + ( *f* f) n)"
@@ -71,7 +71,7 @@ by (drule_tac f = f in sumhr_split_add [symmetric], simp)
 lemma sumhr_hrabs: "!!m n. \<bar>sumhr(m,n,f)\<bar> \<le> sumhr(m,n,%i. \<bar>f i\<bar>)"
 unfolding sumhr_app by transfer (rule setsum_abs)
 
-text{* other general version also needed *}
+text\<open>other general version also needed\<close>
 lemma sumhr_fun_hypnat_eq:
    "(\<forall>r. m \<le> r & r < n --> f r = g r) -->
       sumhr(hypnat_of_nat m, hypnat_of_nat n, f) =
@@ -94,10 +94,10 @@ lemma sumhr_shift_bounds:
 unfolding sumhr_app by transfer (rule setsum_shift_bounds_nat_ivl)
 
 
-subsection{*Nonstandard Sums*}
+subsection\<open>Nonstandard Sums\<close>
 
-text{*Infinite sums are obtained by summing to some infinite hypernatural
- (such as @{term whn})*}
+text\<open>Infinite sums are obtained by summing to some infinite hypernatural
+ (such as @{term whn})\<close>
 lemma sumhr_hypreal_of_hypnat_omega:
       "sumhr(0,whn,%i. 1) = hypreal_of_hypnat whn"
 by (simp add: sumhr_const)
@@ -179,7 +179,7 @@ apply (auto dest: approx_hrabs_zero_cancel
             simp add: sumhr_split_diff atLeast0LessThan[symmetric])
 done
 
-text{*Terms of a convergent series tend to zero*}
+text\<open>Terms of a convergent series tend to zero\<close>
 lemma NSsummable_NSLIMSEQ_zero: "NSsummable f ==> f \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
 apply (auto simp add: NSLIMSEQ_def NSsummable_NSCauchy)
 apply (drule bspec, auto)
@@ -187,7 +187,7 @@ apply (drule_tac x = "N + 1 " in bspec)
 apply (auto intro: HNatInfinite_add_one approx_hrabs_zero_cancel)
 done
 
-text{*Nonstandard comparison test*}
+text\<open>Nonstandard comparison test\<close>
 lemma NSsummable_comparison_test:
      "[| \<exists>N. \<forall>n. N \<le> n --> \<bar>f n\<bar> \<le> g n; NSsummable g |] ==> NSsummable f"
 apply (fold summable_NSsummable_iff)

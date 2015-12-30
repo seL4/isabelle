@@ -4,14 +4,14 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
-section{*The Nonstandard Primes as an Extension of the Prime Numbers*}
+section\<open>The Nonstandard Primes as an Extension of the Prime Numbers\<close>
 
 theory NSPrimes
 imports "~~/src/HOL/Number_Theory/UniqueFactorization" "../Hyperreal"
 begin
 
-text{*These can be used to derive an alternative proof of the infinitude of
-primes by considering a property of nonstandard sets.*}
+text\<open>These can be used to derive an alternative proof of the infinitude of
+primes by considering a property of nonstandard sets.\<close>
 
 definition
   starprime :: "hypnat set" where
@@ -55,8 +55,8 @@ apply (auto simp add: linorder_not_less)
 done
 
 
-text{*The nonstandard extension of the set prime numbers consists of precisely
-those hypernaturals exceeding 1 that have no nontrivial factors*}
+text\<open>The nonstandard extension of the set prime numbers consists of precisely
+those hypernaturals exceeding 1 that have no nontrivial factors\<close>
 
 (* Goldblatt: Exercise 5.11(3a) - p 57  *)
 lemma starprime:
@@ -73,7 +73,7 @@ lemma NatStar_hypnat_of_nat: "finite A ==> *s* A = hypnat_of_nat ` A"
 by (rule starset_finite)
 
 
-subsection{*Another characterization of infinite set of natural numbers*}
+subsection\<open>Another characterization of infinite set of natural numbers\<close>
 
 lemma finite_nat_set_bounded: "finite N ==> \<exists>n. (\<forall>i \<in> N. i<(n::nat))"
 apply (erule_tac F = N in finite_induct, auto)
@@ -103,7 +103,7 @@ lemma not_finite_nat_set_iff2: "(~ finite N) = (\<forall>n. \<exists>i \<in> N. 
 by (auto simp add: finite_nat_set_bounded_iff2 not_le)
 
 
-subsection{*An injective function cannot define an embedded natural number*}
+subsection\<open>An injective function cannot define an embedded natural number\<close>
 
 lemma lemma_infinite_set_singleton: "\<forall>m n. m \<noteq> n --> f n \<noteq> f m
       ==>  {n. f n = N} = {} |  (\<exists>m. {n. f n = N} = {m})"
@@ -197,7 +197,7 @@ apply (rule_tac [3] inj_injf_max)
 apply (rule_tac [4] injf_max_order_preserving, auto)
 done
 
-text{*Only need the existence of an injective function from N to A for proof*}
+text\<open>Only need the existence of an injective function from N to A for proof\<close>
 
 lemma hypnat_infinite_has_nonstandard:
      "~ finite A ==> hypnat_of_nat ` A < ( *s* A)"
@@ -223,7 +223,7 @@ apply (blast intro!: hypnat_infinite_has_nonstandard)
 apply (auto simp add: finite_starsetNat_iff [symmetric])
 done
 
-subsection{*Existence of Infinitely Many Primes: a Nonstandard Proof*}
+subsection\<open>Existence of Infinitely Many Primes: a Nonstandard Proof\<close>
 
 lemma lemma_not_dvd_hypnat_one [simp]: "~ (\<forall>n \<in> - {0}. hypnat_of_nat n dvd 1)"
 apply auto
@@ -259,7 +259,7 @@ by (transfer, rule dvd_diff_nat)
 lemma hdvd_one_eq_one: "!!x. x dvd (1::hypnat) ==> x = 1"
 by (transfer, rule gcd_lcm_complete_lattice_nat.le_bot)
 
-text{*Already proved as @{text primes_infinite}, but now using non-standard naturals.*}
+text\<open>Already proved as \<open>primes_infinite\<close>, but now using non-standard naturals.\<close>
 theorem not_finite_prime: "~ finite {p::nat. prime p}"
 apply (rule hypnat_infinite_has_nonstandard_iff [THEN iffD2])
 using hypnat_dvd_all_hypnat_of_nat

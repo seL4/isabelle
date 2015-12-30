@@ -20,7 +20,7 @@ lemma log_induct [consumes 1, case_names one double]:
   assumes one: "P 1"
   assumes double: "\<And>n. n \<ge> 2 \<Longrightarrow> P (n div 2) \<Longrightarrow> P n"
   shows "P n"
-using `n > 0` proof (induct n rule: log.induct)
+using \<open>n > 0\<close> proof (induct n rule: log.induct)
   fix n
   assume "\<not> n < 2 \<Longrightarrow>
           0 < n div 2 \<Longrightarrow> P (n div 2)"
@@ -30,7 +30,7 @@ using `n > 0` proof (induct n rule: log.induct)
   proof (cases "n = 1")
     case True with one show ?thesis by simp
   next
-    case False with `n > 0` have "n \<ge> 2" by auto
+    case False with \<open>n > 0\<close> have "n \<ge> 2" by auto
     moreover with * have "P (n div 2)" .
     ultimately show ?thesis by (rule double)
   qed
@@ -82,7 +82,7 @@ proof
       with mn2 have "n \<ge> 2" by arith
       from True have m2_0: "m div 2 \<noteq> 0" by arith
       with mn2 have n2_0: "n div 2 \<noteq> 0" by arith
-      from `\<not> m < 2` "1.hyps" mn2 have "log (m div 2) \<le> log (n div 2)" by blast
+      from \<open>\<not> m < 2\<close> "1.hyps" mn2 have "log (m div 2) \<le> log (n div 2)" by blast
       with m2_0 n2_0 have "log (2 * (m div 2)) \<le> log (2 * (n div 2))" by simp
       with m2_0 n2_0 \<open>m \<ge> 2\<close> \<open>n \<ge> 2\<close> show ?thesis by (simp only: log_rec [of m] log_rec [of n]) simp
     qed
@@ -100,9 +100,9 @@ next
   with log_mono have "log n \<ge> Suc 0"
     by (simp add: log.simps)
   assume "2 ^ log (n div 2) \<le> n div 2"
-  with `n \<ge> 2` have "2 ^ (log n - Suc 0) \<le> n div 2" by simp
+  with \<open>n \<ge> 2\<close> have "2 ^ (log n - Suc 0) \<le> n div 2" by simp
   then have "2 ^ (log n - Suc 0) * 2 ^ 1 \<le> n div 2 * 2" by simp
-  with `log n \<ge> Suc 0` have "2 ^ log n \<le> n div 2 * 2"
+  with \<open>log n \<ge> Suc 0\<close> have "2 ^ log n \<le> n div 2 * 2"
     unfolding power_add [symmetric] by simp
   also have "n div 2 * 2 \<le> n" by (cases "even n") simp_all
   finally show "2 ^ log n \<le> n" .

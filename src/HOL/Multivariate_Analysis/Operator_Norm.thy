@@ -189,13 +189,13 @@ proof (cases "f = 0")
       by (metis bounded_linear_mult_const f)
     from onorm_scaleR_left_lemma[OF this, of "inverse (norm f)"]
     have "onorm r \<le> onorm (\<lambda>x. r x * norm f) * inverse (norm f)"
-      using `f \<noteq> 0`
+      using \<open>f \<noteq> 0\<close>
       by (simp add: inverse_eq_divide)
     also have "onorm (\<lambda>x. r x * norm f) \<le> onorm (\<lambda>x. r x *\<^sub>R f)"
       by (rule onorm_bound)
         (auto simp: abs_mult bl1 onorm_pos_le intro!: order_trans[OF _ onorm])
     finally show "onorm r * norm f \<le> onorm (\<lambda>x. r x *\<^sub>R f)"
-      using `f \<noteq> 0`
+      using \<open>f \<noteq> 0\<close>
       by (simp add: inverse_eq_divide pos_le_divide_eq mult.commute)
   qed
 qed (simp add: onorm_zero)

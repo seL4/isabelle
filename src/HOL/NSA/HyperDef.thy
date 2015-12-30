@@ -4,7 +4,7 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
-section{*Construction of Hyperreals Using Ultrafilters*}
+section\<open>Construction of Hyperreals Using Ultrafilters\<close>
 
 theory HyperDef
 imports Complex_Main HyperNat
@@ -22,12 +22,12 @@ abbreviation
 
 definition
   omega :: hypreal where
-   -- {*an infinite number @{text "= [<1,2,3,...>]"} *}
+   \<comment> \<open>an infinite number \<open>= [<1,2,3,...>]\<close>\<close>
   "omega = star_n (\<lambda>n. real (Suc n))"
 
 definition
   epsilon :: hypreal where
-   -- {*an infinitesimal number @{text "= [<1,1/2,1/3,...>]"} *}
+   \<comment> \<open>an infinitesimal number \<open>= [<1,1/2,1/3,...>]\<close>\<close>
   "epsilon = star_n (\<lambda>n. inverse (real (Suc n)))"
 
 notation (xsymbols)
@@ -35,7 +35,7 @@ notation (xsymbols)
   epsilon  ("\<epsilon>")
 
 
-subsection {* Real vector class instances *}
+subsection \<open>Real vector class instances\<close>
 
 instantiation star :: (scaleR) scaleR
 begin
@@ -103,7 +103,7 @@ lemma Reals_eq_Standard: "(\<real> :: hypreal set) = Standard"
 by (simp add: Reals_def Standard_def)
 
 
-subsection {* Injection from @{typ hypreal} *}
+subsection \<open>Injection from @{typ hypreal}\<close>
 
 definition
   of_hypreal :: "hypreal \<Rightarrow> 'a::real_algebra_1 star" where
@@ -153,7 +153,7 @@ lemma of_hypreal_eq_0_iff [simp]:
 by transfer (rule of_real_eq_0_iff)
 
 
-subsection{*Properties of @{term starrel}*}
+subsection\<open>Properties of @{term starrel}\<close>
 
 lemma lemma_starrel_refl [simp]: "x \<in> starrel `` {x}"
 by (simp add: starrel_def)
@@ -164,8 +164,8 @@ by (simp add: star_def starrel_def quotient_def, blast)
 declare Abs_star_inject [simp] Abs_star_inverse [simp]
 declare equiv_starrel [THEN eq_equiv_class_iff, simp]
 
-subsection{*@{term hypreal_of_real}:
-            the Injection from @{typ real} to @{typ hypreal}*}
+subsection\<open>@{term hypreal_of_real}:
+            the Injection from @{typ real} to @{typ hypreal}\<close>
 
 lemma inj_star_of: "inj star_of"
 by (rule inj_onI, simp)
@@ -180,7 +180,7 @@ by (simp add: star_n_def)
 lemma Rep_star_star_n: "X \<in> Rep_star (star_n X)"
 by simp
 
-subsection{* Properties of @{term star_n} *}
+subsection\<open>Properties of @{term star_n}\<close>
 
 lemma star_n_add:
   "star_n X + star_n Y = star_n (%n. X n + Y n)"
@@ -222,13 +222,13 @@ by (simp only: star_abs_def starfun_star_n)
 lemma hypreal_omega_gt_zero [simp]: "0 < omega"
 by (simp add: omega_def star_n_zero_num star_n_less)
 
-subsection{*Existence of Infinite Hyperreal Number*}
+subsection\<open>Existence of Infinite Hyperreal Number\<close>
 
-text{*Existence of infinite number not corresponding to any real number.
-Use assumption that member @{term FreeUltrafilterNat} is not finite.*}
+text\<open>Existence of infinite number not corresponding to any real number.
+Use assumption that member @{term FreeUltrafilterNat} is not finite.\<close>
 
 
-text{*A few lemmas first*}
+text\<open>A few lemmas first\<close>
 
 lemma lemma_omega_empty_singleton_disj:
   "{n::nat. x = real n} = {} \<or> (\<exists>y. {n::nat. x = real n} = {y})"
@@ -249,8 +249,8 @@ done
 lemma hypreal_of_real_not_eq_omega: "hypreal_of_real x \<noteq> omega"
 by (insert not_ex_hypreal_of_real_eq_omega, auto)
 
-text{*Existence of infinitesimal number also not corresponding to any
- real number*}
+text\<open>Existence of infinitesimal number also not corresponding to any
+ real number\<close>
 
 lemma lemma_epsilon_empty_singleton_disj:
      "{n::nat. x = inverse(real(Suc n))} = {} |
@@ -277,7 +277,7 @@ by (simp add: epsilon_def omega_def star_n_inverse)
 lemma hypreal_epsilon_gt_zero: "0 < epsilon"
 by (simp add: hypreal_epsilon_inverse_omega)
 
-subsection{*Absolute Value Function for the Hyperreals*}
+subsection\<open>Absolute Value Function for the Hyperreals\<close>
 
 lemma hrabs_add_less: "[| \<bar>x\<bar> < r; \<bar>y\<bar> < s |] ==> \<bar>x + y\<bar> < r + (s::hypreal)"
 by (simp add: abs_if split: split_if_asm)
@@ -292,7 +292,7 @@ lemma hrabs_add_lemma_disj: "(y::hypreal) + - x + (y + - z) = \<bar>x + - z\<bar
 by (simp add: abs_if split add: split_if_asm)
 
 
-subsection{*Embedding the Naturals into the Hyperreals*}
+subsection\<open>Embedding the Naturals into the Hyperreals\<close>
 
 abbreviation
   hypreal_of_nat :: "nat => hypreal" where
@@ -309,20 +309,20 @@ by (simp add: Nats_def image_def)
 lemma hypreal_of_nat: "hypreal_of_nat m = star_n (%n. real m)"
 by (simp add: star_of_def [symmetric])
 
-declaration {*
+declaration \<open>
   K (Lin_Arith.add_inj_thms [@{thm star_of_le} RS iffD2,
     @{thm star_of_less} RS iffD2, @{thm star_of_eq} RS iffD2]
   #> Lin_Arith.add_simps [@{thm star_of_zero}, @{thm star_of_one},
       @{thm star_of_numeral}, @{thm star_of_add},
       @{thm star_of_minus}, @{thm star_of_diff}, @{thm star_of_mult}]
   #> Lin_Arith.add_inj_const (@{const_name "StarDef.star_of"}, @{typ "real \<Rightarrow> hypreal"}))
-*}
+\<close>
 
 simproc_setup fast_arith_hypreal ("(m::hypreal) < n" | "(m::hypreal) <= n" | "(m::hypreal) = n") =
-  {* K Lin_Arith.simproc *}
+  \<open>K Lin_Arith.simproc\<close>
 
 
-subsection {* Exponentials on the Hyperreals *}
+subsection \<open>Exponentials on the Hyperreals\<close>
 
 lemma hpowr_0 [simp]:   "r ^ 0       = (1::hypreal)"
 by (rule power_0)
@@ -349,7 +349,7 @@ lemma hypreal_add_nonneg_eq_0_iff:
 by arith
 
 
-text{*FIXME: DELETE THESE*}
+text\<open>FIXME: DELETE THESE\<close>
 lemma hypreal_three_squares_add_zero_iff:
      "(x*x + y*y + z*z = 0) = (x = 0 & y = 0 & z = (0::hypreal))"
 apply (simp only: zero_le_square add_nonneg_nonneg hypreal_add_nonneg_eq_0_iff, auto)
@@ -397,7 +397,7 @@ apply (auto simp add: power_Suc intro: HFinite_mult)
 done
 *)
 
-subsection{*Powers with Hypernatural Exponents*}
+subsection\<open>Powers with Hypernatural Exponents\<close>
 
 definition pow :: "['a::power star, nat star] \<Rightarrow> 'a star" (infixr "pow" 80) where
   hyperpow_def [transfer_unfold]: "R pow N = ( *f2* op ^) R N"
@@ -478,7 +478,7 @@ lemma hyperpow_two_hrabs [simp]:
   "\<bar>x::'a::{linordered_idom} star\<bar> pow 2 = x pow 2"
 by (simp add: hyperpow_hrabs)
 
-text{*The precondition could be weakened to @{term "0\<le>x"}*}
+text\<open>The precondition could be weakened to @{term "0\<le>x"}\<close>
 lemma hypreal_mult_less_mono:
      "[| u<v;  x<y;  (0::hypreal) < v;  0 < x |] ==> u*x < v* y"
  by (simp add: mult_strict_mono order_less_imp_le)

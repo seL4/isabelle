@@ -5,7 +5,7 @@
 Converted to Isar and polished by lcp    
 *)
 
-section{*Hypernatural numbers*}
+section\<open>Hypernatural numbers\<close>
 
 theory HyperNat
 imports StarDef
@@ -21,7 +21,7 @@ definition
   hSuc :: "hypnat => hypnat" where
   hSuc_def [transfer_unfold]: "hSuc = *f* Suc"
 
-subsection{*Properties Transferred from Naturals*}
+subsection\<open>Properties Transferred from Naturals\<close>
 
 lemma hSuc_not_zero [iff]: "\<And>m. hSuc m \<noteq> 0"
 by transfer (rule Suc_not_Zero)
@@ -128,7 +128,7 @@ by (simp add: linorder_not_le [symmetric] add.commute [of x])
 
 lemma hypnat_diff_split:
     "P(a - b::hypnat) = ((a<b --> P 0) & (ALL d. a = b + d --> P d))"
-    -- {* elimination of @{text -} on @{text hypnat} *}
+    \<comment> \<open>elimination of \<open>-\<close> on \<open>hypnat\<close>\<close>
 proof (cases "a<b" rule: case_split)
   case True
     thus ?thesis
@@ -140,7 +140,7 @@ next
       by (auto simp add: linorder_not_less dest: order_le_less_trans) 
 qed
 
-subsection{*Properties of the set of embedded natural numbers*}
+subsection\<open>Properties of the set of embedded natural numbers\<close>
 
 lemma of_nat_eq_star_of [simp]: "of_nat = star_of"
 proof
@@ -173,7 +173,7 @@ lemma Nats_diff [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> (a-b :: hypnat) \<in
 by (simp add: Nats_eq_Standard)
 
 
-subsection{*Infinite Hypernatural Numbers -- @{term HNatInfinite}*}
+subsection\<open>Infinite Hypernatural Numbers -- @{term HNatInfinite}\<close>
 
 definition
   (* the set of infinite hypernatural numbers *)
@@ -209,7 +209,7 @@ qed
 lemma star_of_le_HNatInfinite: "N \<in> HNatInfinite \<Longrightarrow> star_of n \<le> N"
 by (rule star_of_less_HNatInfinite [THEN order_less_imp_le])
 
-subsubsection {* Closure Rules *}
+subsubsection \<open>Closure Rules\<close>
 
 lemma Nats_less_HNatInfinite: "\<lbrakk>x \<in> Nats; y \<in> HNatInfinite\<rbrakk> \<Longrightarrow> x < y"
 by (auto simp add: Nats_def star_of_less_HNatInfinite)
@@ -266,7 +266,7 @@ apply (simp add: Nats_le_HNatInfinite)
 done
 
 
-subsection{*Existence of an infinite hypernatural number*}
+subsection\<open>Existence of an infinite hypernatural number\<close>
 
 definition
   (* omega is in fact an infinite hypernatural number = [<1,2,3,...>] *)
@@ -315,9 +315,9 @@ lemma hypnat_one_less_hypnat_omega [simp]: "1 < whn"
 by (simp add: Nats_less_whn)
 
 
-subsubsection{*Alternative characterization of the set of infinite hypernaturals*}
+subsubsection\<open>Alternative characterization of the set of infinite hypernaturals\<close>
 
-text{* @{term "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"}*}
+text\<open>@{term "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"}\<close>
 
 (*??delete? similar reasoning in hypnat_omega_gt_SHNat above*)
 lemma HNatInfinite_FreeUltrafilterNat_lemma:
@@ -337,8 +337,8 @@ apply (auto simp add: HNatInfinite_def)
 done
 
 
-subsubsection{*Alternative Characterization of @{term HNatInfinite} using 
-Free Ultrafilter*}
+subsubsection\<open>Alternative Characterization of @{term HNatInfinite} using 
+Free Ultrafilter\<close>
 
 lemma HNatInfinite_FreeUltrafilterNat:
      "star_n X \<in> HNatInfinite ==> \<forall>u. eventually (\<lambda>n. u < X n) FreeUltrafilterNat"
@@ -356,7 +356,7 @@ lemma HNatInfinite_FreeUltrafilterNat_iff:
 by (rule iffI [OF HNatInfinite_FreeUltrafilterNat 
                  FreeUltrafilterNat_HNatInfinite])
 
-subsection {* Embedding of the Hypernaturals into other types *}
+subsection \<open>Embedding of the Hypernaturals into other types\<close>
 
 definition
   of_hypnat :: "hypnat \<Rightarrow> 'a::semiring_1_cancel star" where

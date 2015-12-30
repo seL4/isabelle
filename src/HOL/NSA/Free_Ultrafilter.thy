@@ -4,15 +4,15 @@
     Author:     Brian Huffman
 *) 
 
-section {* Filters and Ultrafilters *}
+section \<open>Filters and Ultrafilters\<close>
 
 theory Free_Ultrafilter
 imports "~~/src/HOL/Library/Infinite_Set"
 begin
 
-subsection {* Definitions and basic properties *}
+subsection \<open>Definitions and basic properties\<close>
 
-subsubsection {* Ultrafilters *}
+subsubsection \<open>Ultrafilters\<close>
 
 locale ultrafilter =
   fixes F :: "'a filter"
@@ -43,17 +43,17 @@ lemma eventually_not_iff: "eventually (\<lambda>x. \<not> P x) F \<longleftright
 
 end
 
-subsection {* Maximal filter = Ultrafilter *}
+subsection \<open>Maximal filter = Ultrafilter\<close>
 
-text {*
+text \<open>
    A filter F is an ultrafilter iff it is a maximal filter,
    i.e. whenever G is a filter and @{term "F \<subseteq> G"} then @{term "F = G"}
-*}
-text {*
+\<close>
+text \<open>
   Lemmas that shows existence of an extension to what was assumed to
   be a maximal filter. Will be used to derive contradiction in proof of
   property of ultrafilter.
-*}
+\<close>
 
 lemma extend_filter:
   "frequently P F \<Longrightarrow> inf F (principal {x. P x}) \<noteq> bot"
@@ -92,7 +92,7 @@ proof (rule antisym)
              intro!: eventually_frequently G proper)
 qed fact
 
-subsection {* Ultrafilter Theorem *}
+subsection \<open>Ultrafilter Theorem\<close>
 
 text "A local context makes proof of ultrafilter Theorem more modular"
 
@@ -124,7 +124,7 @@ proof -
           unfolding trivial_limit_def by (intro eventually_Inf_base) (auto simp: Chains_def)
         with c have 1: "Inf c \<noteq> bot"
           by (simp add: bot_notin_R)
-        from `c \<noteq> {}` obtain x where "x \<in> c" by auto
+        from \<open>c \<noteq> {}\<close> obtain x where "x \<in> c" by auto
         with c have 2: "Inf c \<le> F"
           by (auto intro!: Inf_lower2[of x] simp: Chains_def)
         note 1 2 }
@@ -148,9 +148,9 @@ proof -
     by (intro exI[of _ U] conjI max_filter_ultrafilter) auto
 qed
 
-subsubsection {* Free Ultrafilters *}
+subsubsection \<open>Free Ultrafilters\<close>
 
-text {* There exists a free ultrafilter on any infinite set *}
+text \<open>There exists a free ultrafilter on any infinite set\<close>
 
 locale freeultrafilter = ultrafilter +
   assumes infinite: "eventually P F \<Longrightarrow> infinite {x. P x}"
@@ -190,7 +190,7 @@ proof -
     with proper have "frequently P U"
       by (rule eventually_frequently)
     then have "frequently P cofinite"
-      using `U \<le> cofinite` by (simp add: le_filter_frequently)
+      using \<open>U \<le> cofinite\<close> by (simp add: le_filter_frequently)
     then show "infinite {x. P x}"
       by (simp add: frequently_cofinite)
   qed

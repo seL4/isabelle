@@ -5,7 +5,7 @@
 Converted to Isar and polished by lcp
 *)
 
-section{*Nonstandard Extensions of Transcendental Functions*}
+section\<open>Nonstandard Extensions of Transcendental Functions\<close>
 
 theory HTranscendental
 imports Transcendental HSeries HDeriv
@@ -13,7 +13,7 @@ begin
 
 definition
   exphr :: "real => hypreal" where
-    --{*define exponential function using standard part *}
+    \<comment>\<open>define exponential function using standard part\<close>
   "exphr x =  st(sumhr (0, whn, %n. inverse (fact n) * (x ^ n)))"
 
 definition
@@ -25,7 +25,7 @@ definition
   "coshr x = st(sumhr (0, whn, %n. cos_coeff n * x ^ n))"
 
 
-subsection{*Nonstandard Extension of Square Root Function*}
+subsection\<open>Nonstandard Extension of Square Root Function\<close>
 
 lemma STAR_sqrt_zero [simp]: "( *f* sqrt) 0 = 0"
 by (simp add: starfun star_n_zero_num)
@@ -592,7 +592,7 @@ lemma NSLIMSEQ_sin_cos_pi:
 by (insert NSLIMSEQ_mult [OF NSLIMSEQ_sin_pi NSLIMSEQ_cos_one], simp)
 
 
-text{*A familiar approximation to @{term "cos x"} when @{term x} is small*}
+text\<open>A familiar approximation to @{term "cos x"} when @{term x} is small\<close>
 
 lemma STAR_cos_Infinitesimal_approx:
   fixes x :: "'a::{real_normed_field,banach} star"
@@ -603,7 +603,7 @@ apply (auto simp add: Infinitesimal_approx_minus [symmetric]
 done
 
 lemma STAR_cos_Infinitesimal_approx2:
-  fixes x :: hypreal  --{*perhaps could be generalised, like many other hypreal results*}
+  fixes x :: hypreal  \<comment>\<open>perhaps could be generalised, like many other hypreal results\<close>
   shows "x \<in> Infinitesimal ==> ( *f* cos) x @= 1 - (x\<^sup>2)/2"
 apply (rule STAR_cos_Infinitesimal [THEN approx_trans])
 apply (auto intro: Infinitesimal_SReal_divide Infinitesimal_mult

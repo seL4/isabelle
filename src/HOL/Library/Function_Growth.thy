@@ -37,7 +37,7 @@ lemma (in semidom_divide) power_diff:
 proof -
   def q == "m - n"
   moreover with assms have "m = q + n" by (simp add: q_def)
-  ultimately show ?thesis using `a \<noteq> 0` by (simp add: power_add)
+  ultimately show ?thesis using \<open>a \<noteq> 0\<close> by (simp add: power_add)
 qed
 
 
@@ -335,14 +335,14 @@ next
   proof
     show "(\<lambda>n. f n + k) \<lesssim> f"
     proof
-      from `\<exists>n. f n > 0` obtain n where "f n > 0" ..
+      from \<open>\<exists>n. f n > 0\<close> obtain n where "f n > 0" ..
       have "\<forall>m>n. f m + k \<le> Suc k * f m"
       proof (rule allI, rule impI)
         fix m
         assume "n < m"
-        with `mono f` have "f n \<le> f m"
+        with \<open>mono f\<close> have "f n \<le> f m"
           using less_imp_le_nat monoE by blast
-        with  `0 < f n` have "0 < f m" by auto
+        with  \<open>0 < f n\<close> have "0 < f m" by auto
         then obtain l where "f m = Suc l" by (cases "f m") simp_all
         then show "f m + k \<le> Suc k * f m" by simp
       qed
@@ -366,7 +366,7 @@ proof (rule equiv_fun_mono_const)
     assume "\<not> (\<exists>n. 0 < f n)"
     then have "\<And>n. f n = 0" by simp
     then have "f 0 = f 1" by simp
-    moreover from `strict_mono f` have "f 0 < f 1"
+    moreover from \<open>strict_mono f\<close> have "f 0 < f 1"
       by (simp add: strict_mono_def) 
     ultimately show False by simp
   qed

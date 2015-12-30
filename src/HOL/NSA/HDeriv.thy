@@ -4,13 +4,13 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
-section{* Differentiation (Nonstandard) *}
+section\<open>Differentiation (Nonstandard)\<close>
 
 theory HDeriv
 imports HLim
 begin
 
-text{*Nonstandard Definitions*}
+text\<open>Nonstandard Definitions\<close>
 
 definition
   nsderiv :: "['a::real_normed_field \<Rightarrow> 'a, 'a, 'a] \<Rightarrow> bool"
@@ -30,7 +30,7 @@ definition
            inc = ( *f* f)(hypreal_of_real x + h) - hypreal_of_real (f x))"
 
 
-subsection {* Derivatives *}
+subsection \<open>Derivatives\<close>
 
 lemma DERIV_NS_iff:
       "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S D)"
@@ -66,9 +66,9 @@ apply (simp add: Infinitesimal_of_hypreal Infinitesimal_epsilon)
 apply (simp add: of_hypreal_eq_0_iff hypreal_epsilon_not_zero)
 done
 
-text {*First NSDERIV in terms of NSLIM*}
+text \<open>First NSDERIV in terms of NSLIM\<close>
 
-text{*first equivalence *}
+text\<open>first equivalence\<close>
 lemma NSDERIV_NSLIM_iff:
       "(NSDERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S D)"
 apply (simp add: nsderiv_def NSLIM_def, auto)
@@ -78,7 +78,7 @@ apply (drule_tac [3] x = h in spec)
 apply (auto simp add: mem_infmal_iff starfun_lambda_cancel)
 done
 
-text{*second equivalence *}
+text\<open>second equivalence\<close>
 lemma NSDERIV_NSLIM_iff2:
      "(NSDERIV f x :> D) = ((%z. (f(z) - f(x)) / (z-x)) \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S D)"
   by (simp add: NSDERIV_NSLIM_iff DERIV_LIM_iff LIM_NSLIM_iff [symmetric])
@@ -136,8 +136,8 @@ apply (drule_tac [2] c = h in approx_mult1)
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD] simp add: mult.assoc)
 done
 
-text{*Differentiability implies continuity
-         nice and simple "algebraic" proof*}
+text\<open>Differentiability implies continuity
+         nice and simple "algebraic" proof\<close>
 lemma NSDERIV_isNSCont: "NSDERIV f x :> D ==> isNSCont f x"
 apply (auto simp add: nsderiv_def isNSCont_NSLIM_iff NSLIM_def)
 apply (drule approx_minus_iff [THEN iffD1])
@@ -155,16 +155,16 @@ apply (auto simp add: mult.commute
             intro: approx_trans approx_minus_iff [THEN iffD2])
 done
 
-text{*Differentiation rules for combinations of functions
+text\<open>Differentiation rules for combinations of functions
       follow from clear, straightforard, algebraic
-      manipulations*}
-text{*Constant function*}
+      manipulations\<close>
+text\<open>Constant function\<close>
 
 (* use simple constant nslimit theorem *)
 lemma NSDERIV_const [simp]: "(NSDERIV (%x. k) x :> 0)"
 by (simp add: NSDERIV_NSLIM_iff)
 
-text{*Sum of functions- proved easily*}
+text\<open>Sum of functions- proved easily\<close>
 
 lemma NSDERIV_add: "[| NSDERIV f x :> Da;  NSDERIV g x :> Db |]
       ==> NSDERIV (%x. f x + g x) x :> Da + Db"
@@ -174,8 +174,8 @@ apply (drule_tac b = "star_of Da" and d = "star_of Db" in approx_add)
 apply (auto simp add: ac_simps algebra_simps)
 done
 
-text{*Product of functions - Proof is trivial but tedious
-  and long due to rearrangement of terms*}
+text\<open>Product of functions - Proof is trivial but tedious
+  and long due to rearrangement of terms\<close>
 
 lemma lemma_nsderiv1:
   fixes a b c d :: "'a::comm_ring star"
@@ -216,7 +216,7 @@ apply (auto intro!: Infinitesimal_add_approx_self2 [THEN approx_sym]
           simp add: add.assoc [symmetric])
 done
 
-text{*Multiplying by a constant*}
+text\<open>Multiplying by a constant\<close>
 lemma NSDERIV_cmult: "NSDERIV f x :> D
       ==> NSDERIV (%x. c * f x) x :> c*D"
 apply (simp only: times_divide_eq_right [symmetric] NSDERIV_NSLIM_iff
@@ -224,7 +224,7 @@ apply (simp only: times_divide_eq_right [symmetric] NSDERIV_NSLIM_iff
 apply (erule NSLIM_const [THEN NSLIM_mult])
 done
 
-text{*Negation of function*}
+text\<open>Negation of function\<close>
 lemma NSDERIV_minus: "NSDERIV f x :> D ==> NSDERIV (%x. -(f x)) x :> -D"
 proof (simp add: NSDERIV_NSLIM_iff)
   assume "(\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S D"
@@ -238,7 +238,7 @@ proof (simp add: NSDERIV_NSLIM_iff)
     (\<lambda>h. (f x - f (x + h)) / h) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S - D" by simp
 qed
 
-text{*Subtraction*}
+text\<open>Subtraction\<close>
 lemma NSDERIV_add_minus: "[| NSDERIV f x :> Da; NSDERIV g x :> Db |] ==> NSDERIV (%x. f x + -g x) x :> Da + -Db"
 by (blast dest: NSDERIV_add NSDERIV_minus)
 
@@ -246,12 +246,12 @@ lemma NSDERIV_diff:
   "NSDERIV f x :> Da \<Longrightarrow> NSDERIV g x :> Db \<Longrightarrow> NSDERIV (\<lambda>x. f x - g x) x :> Da-Db"
   using NSDERIV_add_minus [of f x Da g Db] by simp
 
-text{*  Similarly to the above, the chain rule admits an entirely
+text\<open>Similarly to the above, the chain rule admits an entirely
    straightforward derivation. Compare this with Harrison's
    HOL proof of the chain rule, which proved to be trickier and
    required an alternative characterisation of differentiability-
    the so-called Carathedory derivative. Our main problem is
-   manipulation of terms.*}
+   manipulation of terms.\<close>
 
 (* lemmas *)
 
@@ -312,7 +312,7 @@ proof -
   thus ?thesis by (simp add: mult.assoc)
 qed
 
-text{*This proof uses both definitions of differentiability.*}
+text\<open>This proof uses both definitions of differentiability.\<close>
 lemma NSDERIV_chain: "[| NSDERIV f (g x) :> Da; NSDERIV g x :> Db |]
       ==> NSDERIV (f o g) x :> Da * Db"
 apply (simp (no_asm_simp) add: NSDERIV_NSLIM_iff NSLIM_def
@@ -331,7 +331,7 @@ apply (blast intro: NSDERIVD1 approx_minus_iff [THEN iffD2])
 apply (blast intro: NSDERIVD2)
 done
 
-text{*Differentiation of natural number powers*}
+text\<open>Differentiation of natural number powers\<close>
 lemma NSDERIV_Id [simp]: "NSDERIV (%x. x) x :> 1"
 by (simp add: NSDERIV_NSLIM_iff NSLIM_def del: divide_self_if)
 
@@ -340,7 +340,7 @@ by (cut_tac c = c and x = x in NSDERIV_Id [THEN NSDERIV_cmult], simp)
 
 lemma NSDERIV_inverse:
   fixes x :: "'a::real_normed_field"
-  assumes "x \<noteq> 0" -- {* can't get rid of @{term "x \<noteq> 0"} because it isn't continuous at zero *}
+  assumes "x \<noteq> 0" \<comment> \<open>can't get rid of @{term "x \<noteq> 0"} because it isn't continuous at zero\<close>
   shows "NSDERIV (\<lambda>x. inverse x) x :> - (inverse x ^ Suc (Suc 0))"
 proof -
   { fix h :: "'a star"
@@ -355,7 +355,7 @@ proof -
         dest!: hypreal_of_real_HFinite_diff_Infinitesimal
         simp add: inverse_minus_eq [symmetric] HFinite_minus_iff)
       done
-    moreover from not_0 `h \<noteq> 0` assms
+    moreover from not_0 \<open>h \<noteq> 0\<close> assms
       have "inverse (- (h * star_of x) + - (star_of x * star_of x)) =
         (inverse (star_of x + h) - inverse (star_of x)) / h"
       apply (simp add: division_ring_inverse_diff nonzero_inverse_mult_distrib [symmetric]
@@ -370,12 +370,12 @@ proof -
   } then show ?thesis by (simp add: nsderiv_def)
 qed
 
-subsubsection {* Equivalence of NS and Standard definitions *}
+subsubsection \<open>Equivalence of NS and Standard definitions\<close>
 
 lemma divideR_eq_divide: "x /\<^sub>R y = x / y"
 by (simp add: divide_inverse mult.commute)
 
-text{*Now equivalence between NSDERIV and DERIV*}
+text\<open>Now equivalence between NSDERIV and DERIV\<close>
 lemma NSDERIV_DERIV_iff: "(NSDERIV f x :> D) = (DERIV f x :> D)"
 by (simp add: DERIV_def NSDERIV_NSLIM_iff LIM_NSLIM_iff)
 
@@ -383,7 +383,7 @@ by (simp add: DERIV_def NSDERIV_NSLIM_iff LIM_NSLIM_iff)
 lemma NSDERIV_pow: "NSDERIV (%x. x ^ n) x :> real n * (x ^ (n - Suc 0))"
 by (simp add: NSDERIV_DERIV_iff DERIV_pow)
 
-text{*Derivative of inverse*}
+text\<open>Derivative of inverse\<close>
 
 lemma NSDERIV_inverse_fun:
   fixes x :: "'a::{real_normed_field}"
@@ -391,7 +391,7 @@ lemma NSDERIV_inverse_fun:
       ==> NSDERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))"
 by (simp add: NSDERIV_DERIV_iff DERIV_inverse_fun del: power_Suc)
 
-text{*Derivative of quotient*}
+text\<open>Derivative of quotient\<close>
 
 lemma NSDERIV_quotient:
   fixes x :: "'a::{real_normed_field}"
@@ -422,7 +422,7 @@ proof -
     by (simp add: NSDERIV_iff2 starfun_if_eq cong: if_cong)
 qed
 
-subsubsection {* Differentiability predicate *}
+subsubsection \<open>Differentiability predicate\<close>
 
 lemma NSdifferentiableD: "f NSdifferentiable x ==> \<exists>D. NSDERIV f x :> D"
 by (simp add: NSdifferentiable_def)
@@ -431,7 +431,7 @@ lemma NSdifferentiableI: "NSDERIV f x :> D ==> f NSdifferentiable x"
 by (force simp add: NSdifferentiable_def)
 
 
-subsection {*(NS) Increment*}
+subsection \<open>(NS) Increment\<close>
 lemma incrementI:
       "f NSdifferentiable x ==>
       increment f x h = ( *f* f) (hypreal_of_real(x) + h) -

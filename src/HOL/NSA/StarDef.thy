@@ -2,13 +2,13 @@
     Author      : Jacques D. Fleuriot and Brian Huffman
 *)
 
-section {* Construction of Star Types Using Ultrafilters *}
+section \<open>Construction of Star Types Using Ultrafilters\<close>
 
 theory StarDef
 imports Free_Ultrafilter
 begin
 
-subsection {* A Free Ultrafilter over the Naturals *}
+subsection \<open>A Free Ultrafilter over the Naturals\<close>
 
 definition
   FreeUltrafilterNat :: "nat filter"  ("\<U>") where
@@ -24,7 +24,7 @@ done
 interpretation FreeUltrafilterNat: freeultrafilter FreeUltrafilterNat
 by (rule freeultrafilter_FreeUltrafilterNat)
 
-subsection {* Definition of @{text star} type constructor *}
+subsection \<open>Definition of \<open>star\<close> type constructor\<close>
 
 definition
   starrel :: "((nat \<Rightarrow> 'a) \<times> (nat \<Rightarrow> 'a)) set" where
@@ -49,7 +49,7 @@ by (auto, rule_tac x=x in star_cases, simp)
 lemma ex_star_eq: "(\<exists>x. P x) = (\<exists>X. P (star_n X))"
 by (auto, rule_tac x=x in star_cases, auto)
 
-text {* Proving that @{term starrel} is an equivalence relation *}
+text \<open>Proving that @{term starrel} is an equivalence relation\<close>
 
 lemma starrel_iff [iff]: "((X,Y) \<in> starrel) = (eventually (\<lambda>n. X n = Y n) \<U>)"
 by (simp add: starrel_def)
@@ -71,23 +71,23 @@ lemma star_n_eq_iff: "(star_n X = star_n Y) = (eventually (\<lambda>n. X n = Y n
 by (simp add: star_n_def Abs_star_inject starrel_in_star equiv_starrel_iff)
 
 
-subsection {* Transfer principle *}
+subsection \<open>Transfer principle\<close>
 
-text {* This introduction rule starts each transfer proof. *}
+text \<open>This introduction rule starts each transfer proof.\<close>
 lemma transfer_start:
   "P \<equiv> eventually (\<lambda>n. Q) \<U> \<Longrightarrow> Trueprop P \<equiv> Trueprop Q"
   by (simp add: FreeUltrafilterNat.proper)
 
-text {*Initialize transfer tactic.*}
+text \<open>Initialize transfer tactic.\<close>
 ML_file "transfer.ML"
 
-method_setup transfer = {*
+method_setup transfer = \<open>
   Attrib.thms >> (fn ths => fn ctxt =>
     SIMPLE_METHOD' (Transfer_Principle.transfer_tac ctxt ths))
-*} "transfer principle"
+\<close> "transfer principle"
 
 
-text {* Transfer introduction rules. *}
+text \<open>Transfer introduction rules.\<close>
 
 lemma transfer_ex [transfer_intro]:
   "\<lbrakk>\<And>X. p (star_n X) \<equiv> eventually (\<lambda>n. P n (X n)) \<U>\<rbrakk>
@@ -152,7 +152,7 @@ lemma transfer_bool [transfer_intro]: "p \<equiv> eventually (\<lambda>n. p) \<U
 by (simp add: FreeUltrafilterNat.proper)
 
 
-subsection {* Standard elements *}
+subsection \<open>Standard elements\<close>
 
 definition
   star_of :: "'a \<Rightarrow> 'a star" where
@@ -162,8 +162,8 @@ definition
   Standard :: "'a star set" where
   "Standard = range star_of"
 
-text {* Transfer tactic should remove occurrences of @{term star_of} *}
-setup {* Transfer_Principle.add_const @{const_name star_of} *}
+text \<open>Transfer tactic should remove occurrences of @{term star_of}\<close>
+setup \<open>Transfer_Principle.add_const @{const_name star_of}\<close>
 
 declare star_of_def [transfer_intro]
 
@@ -174,7 +174,7 @@ lemma Standard_star_of [simp]: "star_of x \<in> Standard"
 by (simp add: Standard_def)
 
 
-subsection {* Internal functions *}
+subsection \<open>Internal functions\<close>
 
 definition
   Ifun :: "('a \<Rightarrow> 'b) star \<Rightarrow> 'a star \<Rightarrow> 'b star" ("_ \<star> _" [300,301] 300) where
@@ -189,8 +189,8 @@ lemma Ifun_star_n: "star_n F \<star> star_n X = star_n (\<lambda>n. F n (X n))"
 by (simp add: Ifun_def star_n_def Abs_star_inverse starrel_in_star
     UN_equiv_class2 [OF equiv_starrel equiv_starrel Ifun_congruent2])
 
-text {* Transfer tactic should remove occurrences of @{term Ifun} *}
-setup {* Transfer_Principle.add_const @{const_name Ifun} *}
+text \<open>Transfer tactic should remove occurrences of @{term Ifun}\<close>
+setup \<open>Transfer_Principle.add_const @{const_name Ifun}\<close>
 
 lemma transfer_Ifun [transfer_intro]:
   "\<lbrakk>f \<equiv> star_n F; x \<equiv> star_n X\<rbrakk> \<Longrightarrow> f \<star> x \<equiv> star_n (\<lambda>n. F n (X n))"
@@ -203,7 +203,7 @@ lemma Standard_Ifun [simp]:
   "\<lbrakk>f \<in> Standard; x \<in> Standard\<rbrakk> \<Longrightarrow> f \<star> x \<in> Standard"
 by (auto simp add: Standard_def)
 
-text {* Nonstandard extensions of functions *}
+text \<open>Nonstandard extensions of functions\<close>
 
 definition
   starfun :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a star \<Rightarrow> 'b star)"  ("*f* _" [80] 80) where
@@ -285,7 +285,7 @@ next
 qed
 
 
-subsection {* Internal predicates *}
+subsection \<open>Internal predicates\<close>
 
 definition unstar :: "bool star \<Rightarrow> bool" where
   "unstar b \<longleftrightarrow> b = star_of True"
@@ -296,8 +296,8 @@ by (simp add: unstar_def star_of_def star_n_eq_iff)
 lemma unstar_star_of [simp]: "unstar (star_of p) = p"
 by (simp add: unstar_def star_of_inject)
 
-text {* Transfer tactic should remove occurrences of @{term unstar} *}
-setup {* Transfer_Principle.add_const @{const_name unstar} *}
+text \<open>Transfer tactic should remove occurrences of @{term unstar}\<close>
+setup \<open>Transfer_Principle.add_const @{const_name unstar}\<close>
 
 lemma transfer_unstar [transfer_intro]:
   "p \<equiv> star_n P \<Longrightarrow> unstar p \<equiv> eventually P \<U>"
@@ -328,7 +328,7 @@ lemma starP2_star_of [simp]: "( *p2* P) (star_of x) = *p* P x"
 by (transfer, rule refl)
 
 
-subsection {* Internal sets *}
+subsection \<open>Internal sets\<close>
 
 definition
   Iset :: "'a set star \<Rightarrow> 'a star set" where
@@ -338,8 +338,8 @@ lemma Iset_star_n:
   "(star_n X \<in> Iset (star_n A)) = (eventually (\<lambda>n. X n \<in> A n) \<U>)"
 by (simp add: Iset_def starP2_star_n)
 
-text {* Transfer tactic should remove occurrences of @{term Iset} *}
-setup {* Transfer_Principle.add_const @{const_name Iset} *}
+text \<open>Transfer tactic should remove occurrences of @{term Iset}\<close>
+setup \<open>Transfer_Principle.add_const @{const_name Iset}\<close>
 
 lemma transfer_mem [transfer_intro]:
   "\<lbrakk>x \<equiv> star_n X; a \<equiv> Iset (star_n A)\<rbrakk>
@@ -370,7 +370,7 @@ lemma transfer_Iset [transfer_intro]:
   "\<lbrakk>a \<equiv> star_n A\<rbrakk> \<Longrightarrow> Iset a \<equiv> Iset (star_n (\<lambda>n. A n))"
 by simp
 
-text {* Nonstandard extensions of sets. *}
+text \<open>Nonstandard extensions of sets.\<close>
 
 definition
   starset :: "'a set \<Rightarrow> 'a star set" ("*s* _" [80] 80) where
@@ -423,7 +423,7 @@ lemmas starset_simps [simp] =
   starset_subset  starset_eq
 
 
-subsection {* Syntactic classes *}
+subsection \<open>Syntactic classes\<close>
 
 instantiation star :: (zero) zero
 begin
@@ -557,7 +557,7 @@ lemmas star_class_defs [transfer_unfold] =
   star_le_def       star_less_def     star_abs_def       star_sgn_def
   star_mod_def
 
-text {* Class operations preserve standard elements *}
+text \<open>Class operations preserve standard elements\<close>
 
 lemma Standard_zero: "0 \<in> Standard"
 by (simp add: star_zero_def)
@@ -595,7 +595,7 @@ lemmas Standard_simps [simp] =
   Standard_mult  Standard_divide  Standard_inverse
   Standard_abs   Standard_mod
 
-text {* @{term star_of} preserves class operations *}
+text \<open>@{term star_of} preserves class operations\<close>
 
 lemma star_of_add: "star_of (x + y) = star_of x + star_of y"
 by transfer (rule refl)
@@ -621,7 +621,7 @@ by transfer (rule refl)
 lemma star_of_abs: "star_of \<bar>x\<bar> = \<bar>star_of x\<bar>"
 by transfer (rule refl)
 
-text {* @{term star_of} preserves numerals *}
+text \<open>@{term star_of} preserves numerals\<close>
 
 lemma star_of_zero: "star_of 0 = 0"
 by transfer (rule refl)
@@ -629,7 +629,7 @@ by transfer (rule refl)
 lemma star_of_one: "star_of 1 = 1"
 by transfer (rule refl)
 
-text {* @{term star_of} preserves orderings *}
+text \<open>@{term star_of} preserves orderings\<close>
 
 lemma star_of_less: "(star_of x < star_of y) = (x < y)"
 by transfer (rule refl)
@@ -640,7 +640,7 @@ by transfer (rule refl)
 lemma star_of_eq: "(star_of x = star_of y) = (x = y)"
 by transfer (rule refl)
 
-text{*As above, for 0*}
+text\<open>As above, for 0\<close>
 
 lemmas star_of_0_less = star_of_less [of 0, simplified star_of_zero]
 lemmas star_of_0_le   = star_of_le   [of 0, simplified star_of_zero]
@@ -650,7 +650,7 @@ lemmas star_of_less_0 = star_of_less [of _ 0, simplified star_of_zero]
 lemmas star_of_le_0   = star_of_le   [of _ 0, simplified star_of_zero]
 lemmas star_of_eq_0   = star_of_eq   [of _ 0, simplified star_of_zero]
 
-text{*As above, for 1*}
+text\<open>As above, for 1\<close>
 
 lemmas star_of_1_less = star_of_less [of 1, simplified star_of_one]
 lemmas star_of_1_le   = star_of_le   [of 1, simplified star_of_one]
@@ -671,7 +671,7 @@ lemmas star_of_simps [simp] =
   star_of_1_less  star_of_1_le    star_of_1_eq
   star_of_less_1  star_of_le_1    star_of_eq_1
 
-subsection {* Ordering and lattice classes *}
+subsection \<open>Ordering and lattice classes\<close>
 
 instance star :: (order) order
 apply (intro_classes)
@@ -752,7 +752,7 @@ lemma star_of_min [simp]: "star_of (min x y) = min (star_of x) (star_of y)"
 by transfer (rule refl)
 
 
-subsection {* Ordered group classes *}
+subsection \<open>Ordered group classes\<close>
 
 instance star :: (semigroup_add) semigroup_add
 by (intro_classes, transfer, rule add.assoc)
@@ -815,7 +815,7 @@ instance star :: (ordered_ab_group_add_abs) ordered_ab_group_add_abs
 instance star :: (linordered_cancel_ab_semigroup_add) linordered_cancel_ab_semigroup_add ..
 
 
-subsection {* Ring and field classes *}
+subsection \<open>Ring and field classes\<close>
 
 instance star :: (semiring) semiring
   by (intro_classes; transfer) (fact distrib_right distrib_left)+
@@ -913,7 +913,7 @@ instance star :: (linordered_semidom) linordered_semidom
 instance star :: (linordered_idom) linordered_idom ..
 instance star :: (linordered_field) linordered_field ..
 
-subsection {* Power *}
+subsection \<open>Power\<close>
 
 lemma star_power_def [transfer_unfold]:
   "(op ^) \<equiv> \<lambda>x n. ( *f* (\<lambda>x. x ^ n)) x"
@@ -940,7 +940,7 @@ lemma star_of_power [simp]: "star_of (x ^ n) = star_of x ^ n"
   by transfer (rule refl)
 
 
-subsection {* Number classes *}
+subsection \<open>Number classes\<close>
 
 instance star :: (numeral) numeral ..
 
@@ -1046,7 +1046,7 @@ end
 declare divmod_algorithm_code [where ?'a = "'a::semiring_numeral_div star", code]
 
 
-subsection {* Finite class *}
+subsection \<open>Finite class\<close>
 
 lemma starset_finite: "finite A \<Longrightarrow> *s* A = star_of ` A"
 by (erule finite_induct, simp_all)

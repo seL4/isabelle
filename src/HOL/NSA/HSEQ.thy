@@ -6,7 +6,7 @@
     Additional contributions by Jeremy Avigad and Brian Huffman
 *)
 
-section {* Sequences and Convergence (Nonstandard) *}
+section \<open>Sequences and Convergence (Nonstandard)\<close>
 
 theory HSEQ
 imports Limits NatStar
@@ -15,30 +15,30 @@ begin
 definition
   NSLIMSEQ :: "[nat => 'a::real_normed_vector, 'a] => bool"
     ("((_)/ \<longlonglongrightarrow>\<^sub>N\<^sub>S (_))" [60, 60] 60) where
-    --{*Nonstandard definition of convergence of sequence*}
+    \<comment>\<open>Nonstandard definition of convergence of sequence\<close>
   "X \<longlonglongrightarrow>\<^sub>N\<^sub>S L = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
 
 definition
   nslim :: "(nat => 'a::real_normed_vector) => 'a" where
-    --{*Nonstandard definition of limit using choice operator*}
+    \<comment>\<open>Nonstandard definition of limit using choice operator\<close>
   "nslim X = (THE L. X \<longlonglongrightarrow>\<^sub>N\<^sub>S L)"
 
 definition
   NSconvergent :: "(nat => 'a::real_normed_vector) => bool" where
-    --{*Nonstandard definition of convergence*}
+    \<comment>\<open>Nonstandard definition of convergence\<close>
   "NSconvergent X = (\<exists>L. X \<longlonglongrightarrow>\<^sub>N\<^sub>S L)"
 
 definition
   NSBseq :: "(nat => 'a::real_normed_vector) => bool" where
-    --{*Nonstandard definition for bounded sequence*}
+    \<comment>\<open>Nonstandard definition for bounded sequence\<close>
   "NSBseq X = (\<forall>N \<in> HNatInfinite. ( *f* X) N : HFinite)"
 
 definition
   NSCauchy :: "(nat => 'a::real_normed_vector) => bool" where
-    --{*Nonstandard definition*}
+    \<comment>\<open>Nonstandard definition\<close>
   "NSCauchy X = (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. ( *f* X) M \<approx> ( *f* X) N)"
 
-subsection {* Limits of Sequences *}
+subsection \<open>Limits of Sequences\<close>
 
 lemma NSLIMSEQ_iff:
     "(X \<longlonglongrightarrow>\<^sub>N\<^sub>S L) = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
@@ -102,7 +102,7 @@ by transfer simp
 lemma NSLIMSEQ_norm: "X \<longlonglongrightarrow>\<^sub>N\<^sub>S a \<Longrightarrow> (\<lambda>n. norm (X n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S norm a"
 by (simp add: NSLIMSEQ_def starfun_hnorm [symmetric] approx_hnorm)
 
-text{*Uniqueness of limit*}
+text\<open>Uniqueness of limit\<close>
 lemma NSLIMSEQ_unique: "[| X \<longlonglongrightarrow>\<^sub>N\<^sub>S a; X \<longlonglongrightarrow>\<^sub>N\<^sub>S b |] ==> a = b"
 apply (simp add: NSLIMSEQ_def)
 apply (drule HNatInfinite_whn [THEN [2] bspec])+
@@ -116,8 +116,8 @@ apply (induct "m")
 apply (auto simp add: power_Suc intro: NSLIMSEQ_mult NSLIMSEQ_const)
 done
 
-text{*We can now try and derive a few properties of sequences,
-     starting with the limit comparison property for sequences.*}
+text\<open>We can now try and derive a few properties of sequences,
+     starting with the limit comparison property for sequences.\<close>
 
 lemma NSLIMSEQ_le:
        "[| f \<longlonglongrightarrow>\<^sub>N\<^sub>S l; g \<longlonglongrightarrow>\<^sub>N\<^sub>S m;
@@ -138,9 +138,9 @@ by (erule NSLIMSEQ_le [OF NSLIMSEQ_const], auto)
 lemma NSLIMSEQ_le_const2: "[| X \<longlonglongrightarrow>\<^sub>N\<^sub>S (r::real); \<forall>n. X n \<le> a |] ==> r \<le> a"
 by (erule NSLIMSEQ_le [OF _ NSLIMSEQ_const], auto)
 
-text{*Shift a convergent series by 1:
+text\<open>Shift a convergent series by 1:
   By the equivalence between Cauchiness and convergence and because
-  the successor of an infinite hypernatural is also infinite.*}
+  the successor of an infinite hypernatural is also infinite.\<close>
 
 lemma NSLIMSEQ_Suc: "f \<longlonglongrightarrow>\<^sub>N\<^sub>S l ==> (%n. f(Suc n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S l"
 apply (unfold NSLIMSEQ_def, safe)
@@ -159,7 +159,7 @@ done
 lemma NSLIMSEQ_Suc_iff: "((%n. f(Suc n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S l) = (f \<longlonglongrightarrow>\<^sub>N\<^sub>S l)"
 by (blast intro: NSLIMSEQ_imp_Suc NSLIMSEQ_Suc)
 
-subsubsection {* Equivalence of @{term LIMSEQ} and @{term NSLIMSEQ} *}
+subsubsection \<open>Equivalence of @{term LIMSEQ} and @{term NSLIMSEQ}\<close>
 
 lemma LIMSEQ_NSLIMSEQ:
   assumes X: "X \<longlonglongrightarrow> L" shows "X \<longlonglongrightarrow>\<^sub>N\<^sub>S L"
@@ -202,17 +202,17 @@ qed
 theorem LIMSEQ_NSLIMSEQ_iff: "(f \<longlonglongrightarrow> L) = (f \<longlonglongrightarrow>\<^sub>N\<^sub>S L)"
 by (blast intro: LIMSEQ_NSLIMSEQ NSLIMSEQ_LIMSEQ)
 
-subsubsection {* Derived theorems about @{term NSLIMSEQ} *}
+subsubsection \<open>Derived theorems about @{term NSLIMSEQ}\<close>
 
-text{*We prove the NS version from the standard one, since the NS proof
-   seems more complicated than the standard one above!*}
+text\<open>We prove the NS version from the standard one, since the NS proof
+   seems more complicated than the standard one above!\<close>
 lemma NSLIMSEQ_norm_zero: "((\<lambda>n. norm (X n)) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0) = (X \<longlonglongrightarrow>\<^sub>N\<^sub>S 0)"
 by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] tendsto_norm_zero_iff)
 
 lemma NSLIMSEQ_rabs_zero: "((%n. \<bar>f n\<bar>) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0) = (f \<longlonglongrightarrow>\<^sub>N\<^sub>S (0::real))"
 by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] tendsto_rabs_zero_iff)
 
-text{*Generalization to other limits*}
+text\<open>Generalization to other limits\<close>
 lemma NSLIMSEQ_imp_rabs: "f \<longlonglongrightarrow>\<^sub>N\<^sub>S (l::real) ==> (%n. \<bar>f n\<bar>) \<longlonglongrightarrow>\<^sub>N\<^sub>S \<bar>l\<bar>"
 apply (simp add: NSLIMSEQ_def)
 apply (auto intro: approx_hrabs 
@@ -240,7 +240,7 @@ lemma NSLIMSEQ_inverse_real_of_nat_add_minus_mult:
   using LIMSEQ_inverse_real_of_nat_add_minus_mult by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric])
 
 
-subsection {* Convergence *}
+subsection \<open>Convergence\<close>
 
 lemma nslimI: "X \<longlonglongrightarrow>\<^sub>N\<^sub>S L ==> nslim X = L"
 apply (simp add: nslim_def)
@@ -263,7 +263,7 @@ lemma NSconvergent_NSLIMSEQ_iff: "NSconvergent X = (X \<longlonglongrightarrow>\
 by (auto intro: theI NSLIMSEQ_unique simp add: NSconvergent_def nslim_def)
 
 
-subsection {* Bounded Monotonic Sequences *}
+subsection \<open>Bounded Monotonic Sequences\<close>
 
 lemma NSBseqD: "[| NSBseq X;  N: HNatInfinite |] ==> ( *f* X) N : HFinite"
 by (simp add: NSBseq_def)
@@ -281,7 +281,7 @@ done
 lemma NSBseqI: "\<forall>N \<in> HNatInfinite. ( *f* X) N : HFinite ==> NSBseq X"
 by (simp add: NSBseq_def)
 
-text{*The standard definition implies the nonstandard definition*}
+text\<open>The standard definition implies the nonstandard definition\<close>
 
 lemma Bseq_NSBseq: "Bseq X ==> NSBseq X"
 proof (unfold NSBseq_def, safe)
@@ -295,7 +295,7 @@ proof (unfold NSBseq_def, safe)
   thus "starfun X N \<in> HFinite" by (simp add: HFinite_def)
 qed
 
-text{*The nonstandard definition implies the standard definition*}
+text\<open>The nonstandard definition implies the standard definition\<close>
 
 lemma SReal_less_omega: "r \<in> \<real> \<Longrightarrow> r < \<omega>"
 apply (insert HInfinite_omega)
@@ -326,27 +326,27 @@ proof (rule ccontr)
     by (simp add: HFinite_HInfinite_iff)
 qed
 
-text{* Equivalence of nonstandard and standard definitions
-  for a bounded sequence*}
+text\<open>Equivalence of nonstandard and standard definitions
+  for a bounded sequence\<close>
 lemma Bseq_NSBseq_iff: "(Bseq X) = (NSBseq X)"
 by (blast intro!: NSBseq_Bseq Bseq_NSBseq)
 
-text{*A convergent sequence is bounded: 
+text\<open>A convergent sequence is bounded: 
  Boundedness as a necessary condition for convergence. 
- The nonstandard version has no existential, as usual *}
+ The nonstandard version has no existential, as usual\<close>
 
 lemma NSconvergent_NSBseq: "NSconvergent X ==> NSBseq X"
 apply (simp add: NSconvergent_def NSBseq_def NSLIMSEQ_def)
 apply (blast intro: HFinite_star_of approx_sym approx_HFinite)
 done
 
-text{*Standard Version: easily now proved using equivalence of NS and
- standard definitions *}
+text\<open>Standard Version: easily now proved using equivalence of NS and
+ standard definitions\<close>
 
 lemma convergent_Bseq: "convergent X ==> Bseq (X::nat \<Rightarrow> _::real_normed_vector)"
 by (simp add: NSconvergent_NSBseq convergent_NSconvergent_iff Bseq_NSBseq_iff)
 
-subsubsection{*Upper Bounds and Lubs of Bounded Sequences*}
+subsubsection\<open>Upper Bounds and Lubs of Bounded Sequences\<close>
 
 lemma NSBseq_isUb: "NSBseq X ==> \<exists>U::real. isUb UNIV {x. \<exists>n. X n = x} U"
 by (simp add: Bseq_NSBseq_iff [symmetric] Bseq_isUb)
@@ -354,11 +354,11 @@ by (simp add: Bseq_NSBseq_iff [symmetric] Bseq_isUb)
 lemma NSBseq_isLub: "NSBseq X ==> \<exists>U::real. isLub UNIV {x. \<exists>n. X n = x} U"
 by (simp add: Bseq_NSBseq_iff [symmetric] Bseq_isLub)
 
-subsubsection{*A Bounded and Monotonic Sequence Converges*}
+subsubsection\<open>A Bounded and Monotonic Sequence Converges\<close>
 
-text{* The best of both worlds: Easier to prove this result as a standard
+text\<open>The best of both worlds: Easier to prove this result as a standard
    theorem and then use equivalence to "transfer" it into the
-   equivalent nonstandard form if needed!*}
+   equivalent nonstandard form if needed!\<close>
 
 lemma Bmonoseq_NSLIMSEQ: "\<forall>n \<ge> m. X n = X m ==> \<exists>L. (X \<longlonglongrightarrow>\<^sub>N\<^sub>S L)"
 by (auto dest!: Bmonoseq_LIMSEQ simp add: LIMSEQ_NSLIMSEQ_iff)
@@ -370,7 +370,7 @@ by (auto intro: Bseq_mono_convergent
                    Bseq_NSBseq_iff [symmetric])
 
 
-subsection {* Cauchy Sequences *}
+subsection \<open>Cauchy Sequences\<close>
 
 lemma NSCauchyI:
   "(\<And>M N. \<lbrakk>M \<in> HNatInfinite; N \<in> HNatInfinite\<rbrakk> \<Longrightarrow> starfun X M \<approx> starfun X N)
@@ -382,7 +382,7 @@ lemma NSCauchyD:
    \<Longrightarrow> starfun X M \<approx> starfun X N"
 by (simp add: NSCauchy_def)
 
-subsubsection{*Equivalence Between NS and Standard*}
+subsubsection\<open>Equivalence Between NS and Standard\<close>
 
 lemma Cauchy_NSCauchy:
   assumes X: "Cauchy X" shows "NSCauchy X"
@@ -430,16 +430,16 @@ qed
 theorem NSCauchy_Cauchy_iff: "NSCauchy X = Cauchy X"
 by (blast intro!: NSCauchy_Cauchy Cauchy_NSCauchy)
 
-subsubsection {* Cauchy Sequences are Bounded *}
+subsubsection \<open>Cauchy Sequences are Bounded\<close>
 
-text{*A Cauchy sequence is bounded -- nonstandard version*}
+text\<open>A Cauchy sequence is bounded -- nonstandard version\<close>
 
 lemma NSCauchy_NSBseq: "NSCauchy X ==> NSBseq X"
 by (simp add: Cauchy_Bseq Bseq_NSBseq_iff [symmetric] NSCauchy_Cauchy_iff)
 
-subsubsection {* Cauchy Sequences are Convergent *}
+subsubsection \<open>Cauchy Sequences are Convergent\<close>
 
-text{*Equivalence of Cauchy criterion and convergence:
+text\<open>Equivalence of Cauchy criterion and convergence:
   We will prove this using our NS formulation which provides a
   much easier proof than using the standard definition. We do not
   need to use properties of subsequences such as boundedness,
@@ -447,7 +447,7 @@ text{*Equivalence of Cauchy criterion and convergence:
   in HOL which is much longer and more complicated. Of course, we do
   not have problems which he encountered with guessing the right
   instantiations for his 'espsilon-delta' proof(s) in this case
-  since the NS formulations do not involve existential quantifiers.*}
+  since the NS formulations do not involve existential quantifiers.\<close>
 
 lemma NSconvergent_NSCauchy: "NSconvergent X \<Longrightarrow> NSCauchy X"
 apply (simp add: NSconvergent_def NSLIMSEQ_def NSCauchy_def, safe)
@@ -479,13 +479,13 @@ lemma NSCauchy_NSconvergent_iff:
 by (fast intro: NSCauchy_NSconvergent NSconvergent_NSCauchy)
 
 
-subsection {* Power Sequences *}
+subsection \<open>Power Sequences\<close>
 
-text{*The sequence @{term "x^n"} tends to 0 if @{term "0\<le>x"} and @{term
+text\<open>The sequence @{term "x^n"} tends to 0 if @{term "0\<le>x"} and @{term
 "x<1"}.  Proof will use (NS) Cauchy equivalence for convergence and
-  also fact that bounded and monotonic sequence converges.*}
+  also fact that bounded and monotonic sequence converges.\<close>
 
-text{* We now use NS criterion to bring proof of theorem through *}
+text\<open>We now use NS criterion to bring proof of theorem through\<close>
 
 lemma NSLIMSEQ_realpow_zero:
   "[| 0 \<le> (x::real); x < 1 |] ==> (%n. x ^ n) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"

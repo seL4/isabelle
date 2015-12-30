@@ -4,7 +4,7 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
-section{*Limits, Continuity and Differentiation for Complex Functions*}
+section\<open>Limits, Continuity and Differentiation for Complex Functions\<close>
 
 theory CLim
 imports CStar
@@ -18,7 +18,7 @@ lemma lemma_complex_mult_inverse_squared [simp]:
      "x \<noteq> (0::complex) \<Longrightarrow> x * (inverse x)\<^sup>2 = inverse x"
 by (simp add: numeral_2_eq_2)
 
-text{*Changing the quantified variable. Install earlier?*}
+text\<open>Changing the quantified variable. Install earlier?\<close>
 lemma all_shift: "(\<forall>x::'a::comm_ring_1. P x) = (\<forall>x. P (x-a))"
 apply auto 
 apply (drule_tac x="x+a" in spec) 
@@ -34,7 +34,7 @@ apply (drule sym [THEN diff_eq_eq [THEN iffD2]], auto)
 done
 
 
-subsection{*Limit of Complex to Complex Function*}
+subsection\<open>Limit of Complex to Complex Function\<close>
 
 lemma NSLIM_Re: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L ==> (%x. Re(f x)) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S Re(L)"
 by (simp add: NSLIM_def starfunC_approx_Re_Im_iff 
@@ -108,13 +108,13 @@ lemma LIM_CRLIM_Re_Im_iff:
 by (simp add: LIM_NSLIM_iff NSLIM_NSCRLIM_Re_Im_iff)
 
 
-subsection{*Continuity*}
+subsection\<open>Continuity\<close>
 
 lemma NSLIM_isContc_iff:
      "(f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S f a) = ((%h. f(a + h)) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S f a)"
 by (rule NSLIM_h_iff)
 
-subsection{*Functions from Complex to Reals*}
+subsection\<open>Functions from Complex to Reals\<close>
 
 lemma isNSContCR_cmod [simp]: "isNSCont cmod (a)"
 by (auto intro: approx_hnorm
@@ -134,7 +134,7 @@ lemma isCont_Im:
   shows "isCont f a ==> isCont (%x. Im (f x)) a"
 by (simp add: isCont_def LIM_Im)
 
-subsection{* Differentiation of Natural Number Powers*}
+subsection\<open>Differentiation of Natural Number Powers\<close>
 
 lemma CDERIV_pow [simp]:
      "DERIV (%x. x ^ n) x :> (complex_of_real (real n)) * (x ^ (n - Suc 0))"
@@ -145,11 +145,11 @@ apply (case_tac "n")
 apply (auto simp add: ac_simps)
 done
 
-text{*Nonstandard version*}
+text\<open>Nonstandard version\<close>
 lemma NSCDERIV_pow: "NSDERIV (%x. x ^ n) x :> complex_of_real (real n) * (x ^ (n - 1))"
     by (metis CDERIV_pow NSDERIV_DERIV_iff One_nat_def)
 
-text{*Can't relax the premise @{term "x \<noteq> 0"}: it isn't continuous at zero*}
+text\<open>Can't relax the premise @{term "x \<noteq> 0"}: it isn't continuous at zero\<close>
 lemma NSCDERIV_inverse:
      "(x::complex) \<noteq> 0 ==> NSDERIV (%x. inverse(x)) x :> (- ((inverse x)\<^sup>2))"
 unfolding numeral_2_eq_2
@@ -161,7 +161,7 @@ unfolding numeral_2_eq_2
 by (rule DERIV_inverse)
 
 
-subsection{*Derivative of Reciprocals (Function @{term inverse})*}
+subsection\<open>Derivative of Reciprocals (Function @{term inverse})\<close>
 
 lemma CDERIV_inverse_fun:
      "[| DERIV f x :> d; f(x) \<noteq> (0::complex) |]
@@ -176,7 +176,7 @@ unfolding numeral_2_eq_2
 by (rule NSDERIV_inverse_fun)
 
 
-subsection{* Derivative of Quotient*}
+subsection\<open>Derivative of Quotient\<close>
 
 lemma CDERIV_quotient:
      "[| DERIV f x :> d; DERIV g x :> e; g(x) \<noteq> (0::complex) |]
@@ -191,7 +191,7 @@ unfolding numeral_2_eq_2
 by (rule NSDERIV_quotient)
 
 
-subsection{*Caratheodory Formulation of Derivative at a Point: Standard Proof*}
+subsection\<open>Caratheodory Formulation of Derivative at a Point: Standard Proof\<close>
 
 lemma CARAT_CDERIVD:
      "(\<forall>z. f z - f x = g z * (z - x)) & isNSCont g x & g x = l

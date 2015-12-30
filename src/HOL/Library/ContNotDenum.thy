@@ -148,8 +148,8 @@ lemma real_interval_avoid_countable_set:
   assumes "a < b" and "countable A"
   shows "\<exists>x\<in>{a<..<b}. x \<notin> A"
 proof -
-  from `countable A` have "countable (A \<inter> {a<..<b})" by auto
-  moreover with `a < b` have "\<not> countable {a<..<b}" 
+  from \<open>countable A\<close> have "countable (A \<inter> {a<..<b})" by auto
+  moreover with \<open>a < b\<close> have "\<not> countable {a<..<b}" 
     by (simp add: uncountable_open_interval)
   ultimately have "A \<inter> {a<..<b} \<noteq> {a<..<b}" by auto
   hence "A \<inter> {a<..<b} \<subset> {a<..<b}" 

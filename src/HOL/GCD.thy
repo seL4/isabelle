@@ -2232,6 +2232,6 @@ code_printing constant "gcd :: integer \<Rightarrow> _"
   \<rightharpoonup> (OCaml) "Big'_int.gcd'_big'_int"
   and (Haskell) "Prelude.gcd"
   and (Scala) "_.gcd'((_)')"
-  -- \<open>There is no gcd operation in the SML standard library, so no code setup for SML\<close>
+  \<comment> \<open>There is no gcd operation in the SML standard library, so no code setup for SML\<close>
 
 end

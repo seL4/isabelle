@@ -2,7 +2,7 @@
     Author:     Fabian Immler, TU München
 *)
 
-section {* Bounded Linear Function *}
+section \<open>Bounded Linear Function\<close>
 
 theory Bounded_Linear_Function
 imports
@@ -10,7 +10,7 @@ imports
   Operator_Norm
 begin
 
-subsection {* Intro rules for @{term bounded_linear} *}
+subsection \<open>Intro rules for @{term bounded_linear}\<close>
 
 named_theorems bounded_linear_intros
 
@@ -218,7 +218,7 @@ proof
       proof (rule CauchyI)
         fix e::real
         assume "0 < e"
-        from CauchyD[OF `Cauchy X` `0 < e`] obtain M
+        from CauchyD[OF \<open>Cauchy X\<close> \<open>0 < e\<close>] obtain M
           where M: "\<And>m n. m \<ge> M \<Longrightarrow> n \<ge> M \<Longrightarrow> norm (X m - X n) < e"
           by auto
         show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. norm (X m x - X n x) < e"
@@ -230,7 +230,7 @@ proof
           also have "\<dots> \<le> norm (X m - X n) * norm x"
              by (rule norm_blinfun)
           also have "\<dots> \<le> norm (X m - X n) * 1"
-            using `norm x \<le> 1` norm_ge_zero by (rule mult_left_mono)
+            using \<open>norm x \<le> 1\<close> norm_ge_zero by (rule mult_left_mono)
           also have "\<dots> = norm (X m - X n)" by simp
           also have "\<dots> < e" using le by fact
           finally show "norm (X m x - X n x) < e" .
@@ -257,7 +257,7 @@ proof
   proof (rule CauchyI)
     fix e::real
     assume "e > 0"
-    from CauchyD[OF `Cauchy X` `0 < e`] obtain M
+    from CauchyD[OF \<open>Cauchy X\<close> \<open>0 < e\<close>] obtain M
       where M: "\<And>m n. m \<ge> M \<Longrightarrow> n \<ge> M \<Longrightarrow> norm (X m - X n) < e"
       by auto
     show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. norm (norm (X m) - norm (X n)) < e"
@@ -297,8 +297,8 @@ proof
   proof (rule LIMSEQ_I)
     fix r::real assume "r > 0"
     def r' \<equiv> "r / 2"
-    have "0 < r'" "r' < r" using `r > 0` by (simp_all add: r'_def)
-    from CauchyD[OF `Cauchy X` `r' > 0`]
+    have "0 < r'" "r' < r" using \<open>r > 0\<close> by (simp_all add: r'_def)
+    from CauchyD[OF \<open>Cauchy X\<close> \<open>r' > 0\<close>]
     obtain M where M: "\<And>m n. m \<ge> M \<Longrightarrow> n \<ge> M \<Longrightarrow> norm (X m - X n) < r'"
       by metis
     show "\<exists>no. \<forall>n\<ge>no. norm (X n - Blinfun v) < r"
@@ -324,16 +324,16 @@ proof
           by (auto intro!: tendsto_intros Bv)
         show "norm ((X n - Blinfun v) x) \<le> r' * norm x"
           by (auto intro!: tendsto_ge_const tendsto_v ev_le simp: blinfun.bilinear_simps)
-      qed (simp add: `0 < r'` less_imp_le)
+      qed (simp add: \<open>0 < r'\<close> less_imp_le)
       thus "norm (X n - Blinfun v) < r"
-        by (metis `r' < r` le_less_trans)
+        by (metis \<open>r' < r\<close> le_less_trans)
     qed
   qed
   thus "convergent X"
     by (rule convergentI)
 qed
 
-subsection {* On Euclidean Space *}
+subsection \<open>On Euclidean Space\<close>
 
 lemma Zfun_setsum:
   assumes "finite s"
@@ -462,7 +462,7 @@ lemma mult_if_delta:
   "(if P then (1::'a::comm_semiring_1) else 0) * q = (if P then q else 0)"
   by auto
 
-text {* TODO: generalize this and @{thm compact_lemma}?! *}
+text \<open>TODO: generalize this and @{thm compact_lemma}?!\<close>
 lemma compact_blinfun_lemma:
   fixes f :: "nat \<Rightarrow> 'a::euclidean_space \<Rightarrow>\<^sub>L 'b::euclidean_space"
   assumes "bounded (range f)"
@@ -484,7 +484,7 @@ proof safe
     have k[intro]: "k \<in> Basis"
       using insert by auto
     have s': "bounded ((\<lambda>x. blinfun_apply x k) ` range f)"
-      using `bounded (range f)`
+      using \<open>bounded (range f)\<close>
       by (auto intro!: bounded_linear_image bounded_linear_intros)
     obtain l1::"'a \<Rightarrow>\<^sub>L 'b" and r1 where r1: "subseq r1"
       and lr1: "\<forall>e > 0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) i) (l1 i) < e) sequentially"
@@ -506,9 +506,9 @@ proof safe
     {
       fix e::real
       assume "e > 0"
-      from lr1 `e > 0` have N1: "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n)  i) (l1  i) < e) sequentially"
+      from lr1 \<open>e > 0\<close> have N1: "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n)  i) (l1  i) < e) sequentially"
         by blast
-      from lr2 `e > 0` have N2:"eventually (\<lambda>n. dist (f (r1 (r2 n))  k) l2 < e) sequentially"
+      from lr2 \<open>e > 0\<close> have N2:"eventually (\<lambda>n. dist (f (r1 (r2 n))  k) l2 < e) sequentially"
         by (rule tendstoD)
       from r2 N1 have N1': "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 (r2 n))  i) (l1  i) < e) sequentially"
         by (rule eventually_subseq)
@@ -538,7 +538,7 @@ lemma blinfun_euclidean_eqI: "(\<And>i. i \<in> Basis \<Longrightarrow> blinfun_
   apply (simp add: blinfun.bilinear_simps)
   done
 
-text {* TODO: generalize (via @{thm compact_cball})? *}
+text \<open>TODO: generalize (via @{thm compact_cball})?\<close>
 instance blinfun :: (euclidean_space, euclidean_space) heine_borel
 proof
   fix f :: "nat \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b"

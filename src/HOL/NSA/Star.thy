@@ -4,7 +4,7 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
 *)
 
-section{*Star-Transforms in Non-Standard Analysis*}
+section\<open>Star-Transforms in Non-Standard Analysis\<close>
 
 theory Star
 imports NSA
@@ -48,7 +48,7 @@ apply (rule_tac x = "%x. LEAST y. Q x y" in exI)
 apply (blast intro: LeastI)
 done
 
-subsection{*Properties of the Star-transform Applied to Sets of Reals*}
+subsection\<open>Properties of the Star-transform Applied to Sets of Reals\<close>
 
 lemma STAR_star_of_image_subset: "star_of ` A <= *s* A"
 by auto
@@ -83,8 +83,8 @@ by transfer
 lemma STAR_subset_closed: "[| x : *s* A; A <= B |] ==> x : *s* B"
 by (erule rev_subsetD, simp)
 
-text{*Nonstandard extension of a set (defined using a constant
-   sequence) as a special case of an internal set*}
+text\<open>Nonstandard extension of a set (defined using a constant
+   sequence) as a special case of an internal set\<close>
 
 lemma starset_n_starset: "\<forall>n. (As n = A) ==> *sn* As = *s* A"
 apply (drule fun_eq_iff [THEN iffD2])
@@ -127,7 +127,7 @@ apply (unfold star_abs_def starfun_def star_of_def)
 apply (simp add: Ifun_star_n star_n_eq_iff)
 done
 
-text{*Nonstandard extension of functions*}
+text\<open>Nonstandard extension of functions\<close>
 
 lemma starfun:
       "( *f* f) (star_n X) = star_n (%n. f (X n))"
@@ -178,11 +178,11 @@ by (transfer, rule refl)
 lemma starfun_o: "( *f* f) o ( *f* g) = ( *f* (f o g))"
 by (transfer o_def, rule refl)
 
-text{*NS extension of constant function*}
+text\<open>NS extension of constant function\<close>
 lemma starfun_const_fun [simp]: "!!x. ( *f* (%x. k)) x = star_of k"
 by (transfer, rule refl)
 
-text{*the NS extension of the identity function*}
+text\<open>the NS extension of the identity function\<close>
 
 lemma starfun_Id [simp]: "!!x. ( *f* (%x. x)) x = x"
 by (transfer, rule refl)
@@ -192,7 +192,7 @@ lemma starfun_Idfun_approx:
   "x @= star_of a ==> ( *f* (%x. x)) x @= star_of a"
 by (simp only: starfun_Id)
 
-text{*The Star-function is a (nonstandard) extension of the function*}
+text\<open>The Star-function is a (nonstandard) extension of the function\<close>
 
 lemma is_starext_starfun: "is_starext ( *f* f) f"
 apply (simp add: is_starext_def, auto)
@@ -202,7 +202,7 @@ apply (auto intro!: bexI [OF _ Rep_star_star_n]
             simp add: starfun star_n_eq_iff)
 done
 
-text{*Any nonstandard extension is in fact the Star-function*}
+text\<open>Any nonstandard extension is in fact the Star-function\<close>
 
 lemma is_starfun_starext: "is_starext F f ==> F = *f* f"
 apply (simp add: is_starext_def)
@@ -218,9 +218,9 @@ done
 lemma is_starext_starfun_iff: "(is_starext F f) = (F = *f* f)"
 by (blast intro: is_starfun_starext is_starext_starfun)
 
-text{*extented function has same solution as its standard
+text\<open>extented function has same solution as its standard
    version for real arguments. i.e they are the same
-   for all real arguments*}
+   for all real arguments\<close>
 lemma starfun_eq: "( *f* f) (star_of a) = star_of (f a)"
 by (rule starfun_star_of)
 
@@ -249,8 +249,8 @@ lemma starfun_add_approx: "[| ( *f* f) x @= l; ( *f* g) x @= m
                |] ==>  ( *f* (%x. f x + g x)) x @= l + m"
 by (auto intro: approx_add)
 
-text{*Examples: hrabs is nonstandard extension of rabs
-              inverse is nonstandard extension of inverse*}
+text\<open>Examples: hrabs is nonstandard extension of rabs
+              inverse is nonstandard extension of inverse\<close>
 
 (* can be proved easily using theorem "starfun" and *)
 (* properties of ultrafilter as for inverse below we  *)
@@ -273,22 +273,22 @@ declare starfun_divide [symmetric, simp]
 lemma starfun_inverse2: "!!x. inverse (( *f* f) x) = ( *f* (%x. inverse (f x))) x"
 by (transfer, rule refl)
 
-text{*General lemma/theorem needed for proofs in elementary
-    topology of the reals*}
+text\<open>General lemma/theorem needed for proofs in elementary
+    topology of the reals\<close>
 lemma starfun_mem_starset:
       "!!x. ( *f* f) x : *s* A ==> x : *s* {x. f x  \<in> A}"
 by (transfer, simp)
 
-text{*Alternative definition for hrabs with rabs function
+text\<open>Alternative definition for hrabs with rabs function
    applied entrywise to equivalence class representative.
-   This is easily proved using starfun and ns extension thm*}
+   This is easily proved using starfun and ns extension thm\<close>
 lemma hypreal_hrabs: "\<bar>star_n X\<bar> = star_n (%n. \<bar>X n\<bar>)"
 by (simp only: starfun_rabs_hrabs [symmetric] starfun)
 
-text{*nonstandard extension of set through nonstandard extension
+text\<open>nonstandard extension of set through nonstandard extension
    of rabs function i.e hrabs. A more general result should be
    where we replace rabs by some arbitrary function f and hrabs
-   by its NS extenson. See second NS set extension below.*}
+   by its NS extenson. See second NS set extension below.\<close>
 lemma STAR_rabs_add_minus:
    "*s* {x. \<bar>x + - y\<bar> < r} = {x. \<bar>x + -star_of y\<bar> < star_of r}"
 by (transfer, rule refl)
@@ -298,9 +298,9 @@ lemma STAR_starfun_rabs_add_minus:
        {x. \<bar>( *f* f) x + -star_of y\<bar> < star_of r}"
 by (transfer, rule refl)
 
-text{*Another characterization of Infinitesimal and one of @= relation.
-   In this theory since @{text hypreal_hrabs} proved here. Maybe
-   move both theorems??*}
+text\<open>Another characterization of Infinitesimal and one of @= relation.
+   In this theory since \<open>hypreal_hrabs\<close> proved here. Maybe
+   move both theorems??\<close>
 lemma Infinitesimal_FreeUltrafilterNat_iff2:
      "(star_n X \<in> Infinitesimal) = (\<forall>m. eventually (\<lambda>n. norm(X n) < inverse(real(Suc m))) \<U>)"
 by (simp add: Infinitesimal_hypreal_of_nat_iff star_of_def

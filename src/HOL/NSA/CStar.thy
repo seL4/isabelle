@@ -3,14 +3,14 @@
     Copyright   : 2001 University of Edinburgh
 *)
 
-section{*Star-transforms in NSA, Extending Sets of Complex Numbers
-      and Complex Functions*}
+section\<open>Star-transforms in NSA, Extending Sets of Complex Numbers
+      and Complex Functions\<close>
 
 theory CStar
 imports NSCA
 begin
 
-subsection{*Properties of the *-Transform Applied to Sets of Reals*}
+subsection\<open>Properties of the *-Transform Applied to Sets of Reals\<close>
 
 lemma STARC_hcomplex_of_complex_Int:
      "*s* X Int SComplex = hcomplex_of_complex ` X"
@@ -20,7 +20,7 @@ lemma lemma_not_hcomplexA:
      "x \<notin> hcomplex_of_complex ` A ==> \<forall>y \<in> A. x \<noteq> hcomplex_of_complex y"
 by auto
 
-subsection{*Theorems about Nonstandard Extensions of Functions*}
+subsection\<open>Theorems about Nonstandard Extensions of Functions\<close>
 
 lemma starfunC_hcpow: "!!Z. ( *f* (%z. z ^ n)) Z = Z pow hypnat_of_nat n"
 by transfer (rule refl)
@@ -28,7 +28,7 @@ by transfer (rule refl)
 lemma starfunCR_cmod: "*f* cmod = hcmod"
 by transfer (rule refl)
 
-subsection{*Internal Functions - Some Redundancy With *f* Now*}
+subsection\<open>Internal Functions - Some Redundancy With *f* Now\<close>
 
 (** subtraction: ( *fn) - ( *gn) = *(fn - gn) **)
 (*

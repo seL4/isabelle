@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson
 *)
 
-section{*Nonstandard Complex Numbers*}
+section\<open>Nonstandard Complex Numbers\<close>
 
 theory NSComplex
 imports NSA
@@ -118,7 +118,7 @@ lemma hcmod_def: "hcmod = *f* cmod"
 by (rule hnorm_def)
 
 
-subsection{*Properties of Nonstandard Real and Imaginary Parts*}
+subsection\<open>Properties of Nonstandard Real and Imaginary Parts\<close>
 
 lemma hcomplex_hRe_hIm_cancel_iff:
      "!!w z. (w=z) = (hRe(w) = hRe(z) & hIm(w) = hIm(z))"
@@ -141,7 +141,7 @@ lemma hcomplex_hIm_one [simp]: "hIm 1 = 0"
 by transfer simp
 
 
-subsection{*Addition for Nonstandard Complex Numbers*}
+subsection\<open>Addition for Nonstandard Complex Numbers\<close>
 
 lemma hRe_add: "!!x y. hRe(x + y) = hRe(x) + hRe(y)"
 by transfer simp
@@ -149,7 +149,7 @@ by transfer simp
 lemma hIm_add: "!!x y. hIm(x + y) = hIm(x) + hIm(y)"
 by transfer simp
 
-subsection{*More Minus Laws*}
+subsection\<open>More Minus Laws\<close>
 
 lemma hRe_minus: "!!z. hRe(-z) = - hRe(z)"
 by transfer (rule uminus_complex.sel)
@@ -173,7 +173,7 @@ lemma hcomplex_i_not_zero [simp]: "iii \<noteq> 0"
 by transfer (rule complex_i_not_zero)
 
 
-subsection{*More Multiplication Laws*}
+subsection\<open>More Multiplication Laws\<close>
 
 lemma hcomplex_mult_minus_one: "- 1 * (z::hcomplex) = -z"
 by simp
@@ -190,14 +190,14 @@ lemma hcomplex_mult_right_cancel:
 by simp
 
 
-subsection{*Subraction and Division*}
+subsection\<open>Subraction and Division\<close>
 
 lemma hcomplex_diff_eq_eq [simp]: "((x::hcomplex) - y = z) = (x = z + y)"
 (* TODO: delete *)
 by (rule diff_eq_eq)
 
 
-subsection{*Embedding Properties for @{term hcomplex_of_hypreal} Map*}
+subsection\<open>Embedding Properties for @{term hcomplex_of_hypreal} Map\<close>
 
 lemma hRe_hcomplex_of_hypreal [simp]: "!!z. hRe(hcomplex_of_hypreal z) = z"
 by transfer (rule Re_complex_of_real)
@@ -209,7 +209,7 @@ lemma hcomplex_of_hypreal_epsilon_not_zero [simp]:
      "hcomplex_of_hypreal epsilon \<noteq> 0"
 by (simp add: hypreal_epsilon_not_zero)
 
-subsection{*HComplex theorems*}
+subsection\<open>HComplex theorems\<close>
 
 lemma hRe_HComplex [simp]: "!!x y. hRe (HComplex x y) = x"
 by transfer simp
@@ -225,7 +225,7 @@ lemma hcomplex_induct [case_names rect(*, induct type: hcomplex*)]:
 by (rule hcomplex_surj [THEN subst], blast)
 
 
-subsection{*Modulus (Absolute Value) of Nonstandard Complex Number*}
+subsection\<open>Modulus (Absolute Value) of Nonstandard Complex Number\<close>
 
 lemma hcomplex_of_hypreal_abs:
      "hcomplex_of_hypreal \<bar>x\<bar> =
@@ -282,7 +282,7 @@ lemma hcomplex_of_hypreal_i [simp]:
 by transfer (rule complex_of_real_i)
 
 
-subsection{*Conjugation*}
+subsection\<open>Conjugation\<close>
 
 lemma hcomplex_hcnj_cancel_iff [iff]: "!!x y. (hcnj x = hcnj y) = (x = y)"
 by transfer (rule complex_cnj_cancel_iff)
@@ -329,7 +329,7 @@ lemma hcomplex_mult_hcnj:
 by transfer (rule complex_mult_cnj)
 
 
-subsection{*More Theorems about the Function @{term hcmod}*}
+subsection\<open>More Theorems about the Function @{term hcmod}\<close>
 
 lemma hcmod_hcomplex_of_hypreal_of_nat [simp]:
      "hcmod (hcomplex_of_hypreal(hypreal_of_nat n)) = hypreal_of_nat n"
@@ -350,7 +350,7 @@ lemma hcmod_diff_ineq [simp]: "!!a b. hcmod(a) - hcmod(b) \<le> hcmod(a + b)"
 by transfer (rule norm_diff_ineq)
 
 
-subsection{*Exponentiation*}
+subsection\<open>Exponentiation\<close>
 
 lemma hcomplexpow_0 [simp]:   "z ^ 0       = (1::hcomplex)"
 by (rule power_0)
@@ -392,7 +392,7 @@ lemma hcpow_zero_zero:
   "r pow n = (0::hcomplex) ==> r = 0"
   by (blast intro: ccontr dest: hcpow_not_zero)
 
-subsection{*The Function @{term hsgn}*}
+subsection\<open>The Function @{term hsgn}\<close>
 
 lemma hsgn_zero [simp]: "hsgn 0 = 0"
 by transfer (rule sgn_zero)
@@ -466,7 +466,7 @@ lemma hcomplex_of_hypreal_zero_iff [simp]:
 by transfer (rule of_real_eq_0_iff)
 
 
-subsection{*Polar Form for Nonstandard Complex Numbers*}
+subsection\<open>Polar Form for Nonstandard Complex Numbers\<close>
 
 lemma complex_split_polar2:
      "\<forall>n. \<exists>r a. (z n) =  complex_of_real r * (Complex (cos a) (sin a))"
@@ -599,8 +599,8 @@ lemma hExp_add: "!!a b. hExp(a + b) = hExp(a) * hExp(b)"
 by transfer (rule exp_add)
 
 
-subsection{*@{term hcomplex_of_complex}: the Injection from
-  type @{typ complex} to to @{typ hcomplex}*}
+subsection\<open>@{term hcomplex_of_complex}: the Injection from
+  type @{typ complex} to to @{typ hcomplex}\<close>
 
 lemma hcomplex_of_complex_i: "iii = hcomplex_of_complex ii"
 by (rule iii_def)
@@ -618,7 +618,7 @@ lemma hcmod_hcomplex_of_complex:
 by transfer (rule refl)
 
 
-subsection{*Numerals and Arithmetic*}
+subsection\<open>Numerals and Arithmetic\<close>
 
 lemma hcomplex_of_hypreal_eq_hcomplex_of_complex:
      "hcomplex_of_hypreal (hypreal_of_real x) =

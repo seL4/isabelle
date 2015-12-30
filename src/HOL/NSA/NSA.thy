@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, University of Cambridge
 *)
 
-section{*Infinite Numbers, Infinitesimals, Infinitely Close Relation*}
+section\<open>Infinite Numbers, Infinitesimals, Infinitely Close Relation\<close>
 
 theory NSA
 imports HyperDef "~~/src/HOL/Library/Lub_Glb"
@@ -27,12 +27,12 @@ definition
 
 definition
   approx :: "['a::real_normed_vector star, 'a star] => bool"  (infixl "@=" 50) where
-    --{*the `infinitely close' relation*}
+    \<comment>\<open>the `infinitely close' relation\<close>
   "(x @= y) = ((x - y) \<in> Infinitesimal)"
 
 definition
   st        :: "hypreal => hypreal" where
-    --{*the standard part of a hyperreal*}
+    \<comment>\<open>the standard part of a hyperreal\<close>
   "st = (%x. @r. x \<in> HFinite & r \<in> \<real> & r @= x)"
 
 definition
@@ -49,7 +49,7 @@ notation (xsymbols)
 lemma SReal_def: "\<real> == {x. \<exists>r. x = hypreal_of_real r}"
 by (simp add: Reals_def image_def)
 
-subsection {* Nonstandard Extension of the Norm Function *}
+subsection \<open>Nonstandard Extension of the Norm Function\<close>
 
 definition
   scaleHR :: "real star \<Rightarrow> 'a star \<Rightarrow> 'a::real_normed_vector star" where
@@ -171,7 +171,7 @@ apply (simp only: hnorm_scaleHR)
 apply (simp add: mult_strict_mono')
 done
 
-subsection{*Closure Laws for the Standard Reals*}
+subsection\<open>Closure Laws for the Standard Reals\<close>
 
 lemma Reals_minus_iff [simp]: "(-x \<in> \<real>) = (x \<in> \<real>)"
 apply auto
@@ -190,7 +190,7 @@ by (simp add: Reals_eq_Standard)
 lemma SReal_divide_numeral: "r \<in> \<real> ==> r/(numeral w::hypreal) \<in> \<real>"
 by simp
 
-text{*epsilon is not in Reals because it is an infinitesimal*}
+text\<open>epsilon is not in Reals because it is an infinitesimal\<close>
 lemma SReal_epsilon_not_mem: "epsilon \<notin> \<real>"
 apply (simp add: SReal_def)
 apply (auto simp add: hypreal_of_real_not_eq_epsilon [THEN not_sym])
@@ -225,7 +225,7 @@ apply (auto simp add: SReal_def)
 apply (drule dense, auto)
 done
 
-text{*Completeness of Reals, but both lemmas are unused.*}
+text\<open>Completeness of Reals, but both lemmas are unused.\<close>
 
 lemma SReal_sup_lemma:
      "P \<subseteq> \<real> ==> ((\<exists>x \<in> P. y < x) =
@@ -244,7 +244,7 @@ apply (auto, rule_tac x = ya in exI, auto)
 done
 
 
-subsection{* Set of Finite Elements is a Subring of the Extended Reals*}
+subsection\<open>Set of Finite Elements is a Subring of the Extended Reals\<close>
 
 lemma HFinite_add: "[|x \<in> HFinite; y \<in> HFinite|] ==> (x+y) \<in> HFinite"
 apply (simp add: HFinite_def)
@@ -315,7 +315,7 @@ apply (auto intro: order_le_less_trans simp add: abs_if HFinite_def)
 done
 
 
-subsection{* Set of Infinitesimals is a Subring of the Hyperreals*}
+subsection\<open>Set of Infinitesimals is a Subring of the Hyperreals\<close>
 
 lemma InfinitesimalI:
   "(\<And>r. \<lbrakk>r \<in> \<real>; 0 < r\<rbrakk> \<Longrightarrow> hnorm x < r) \<Longrightarrow> x \<in> Infinitesimal"
@@ -609,7 +609,7 @@ lemma Infinitesimal_star_of_mult2:
 by (erule HFinite_star_of [THEN [2] Infinitesimal_HFinite_mult2])
 
 
-subsection{*The Infinitely Close Relation*}
+subsection\<open>The Infinitely Close Relation\<close>
 
 lemma mem_infmal_iff: "(x \<in> Infinitesimal) = (x @= 0)"
 by (simp add: Infinitesimal_def approx_def)
@@ -651,7 +651,7 @@ by (blast intro: approx_sym)
   0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
 simproc_setup approx_reorient_simproc
   ("0 @= x" | "1 @= y" | "numeral w @= z" | "- 1 @= y" | "- numeral w @= r") =
-{*
+\<open>
   let val rule = @{thm approx_reorient} RS eq_reflection
       fun proc phi ss ct =
         case Thm.term_of ct of
@@ -659,7 +659,7 @@ simproc_setup approx_reorient_simproc
             else if can HOLogic.dest_number t then SOME rule else NONE
         | _ => NONE
   in proc end
-*}
+\<close>
 
 lemma Infinitesimal_approx_minus: "(x-y \<in> Infinitesimal) = (x @= y)"
 by (simp add: approx_minus_iff [symmetric] mem_infmal_iff)
@@ -901,7 +901,7 @@ proof (unfold approx_def)
 qed
 
 
-subsection{* Zero is the Only Infinitesimal that is also a Real*}
+subsection\<open>Zero is the Only Infinitesimal that is also a Real\<close>
 
 lemma Infinitesimal_less_SReal:
      "[| (x::hypreal) \<in> \<real>; y \<in> Infinitesimal; 0 < x |] ==> y < x"
@@ -1004,7 +1004,7 @@ done
        close to a unique real number (i.e a member of Reals)
  ------------------------------------------------------------------*)
 
-subsection{* Uniqueness: Two Infinitely Close Reals are Equal*}
+subsection\<open>Uniqueness: Two Infinitely Close Reals are Equal\<close>
 
 lemma star_of_approx_iff [simp]: "(star_of x @= star_of y) = (x = y)"
 apply safe
@@ -1061,9 +1061,9 @@ lemma approx_unique_real:
 by (blast intro: SReal_approx_iff [THEN iffD1] approx_trans2)
 
 
-subsection{* Existence of Unique Real Infinitely Close*}
+subsection\<open>Existence of Unique Real Infinitely Close\<close>
 
-subsubsection{*Lifting of the Ub and Lub Properties*}
+subsubsection\<open>Lifting of the Ub and Lub Properties\<close>
 
 lemma hypreal_of_real_isUb_iff:
       "(isUb \<real> (hypreal_of_real ` Q) (hypreal_of_real Y)) =
@@ -1255,7 +1255,7 @@ by (blast dest!: lemma_st_part_major)
 
 
 
-text{*Existence of real and Standard Part Theorem*}
+text\<open>Existence of real and Standard Part Theorem\<close>
 lemma lemma_st_part_Ex:
      "(x::hypreal) \<in> HFinite
        ==> \<exists>t \<in> Reals. \<forall>r \<in> Reals. 0 < r --> \<bar>x - t\<bar> < r"
@@ -1270,14 +1270,14 @@ apply (simp add: approx_def Infinitesimal_def)
 apply (drule lemma_st_part_Ex, auto)
 done
 
-text{*There is a unique real infinitely close*}
+text\<open>There is a unique real infinitely close\<close>
 lemma st_part_Ex1: "x \<in> HFinite ==> EX! t::hypreal. t \<in> \<real> & x @= t"
 apply (drule st_part_Ex, safe)
 apply (drule_tac [2] approx_sym, drule_tac [2] approx_sym, drule_tac [2] approx_sym)
 apply (auto intro!: approx_unique_real)
 done
 
-subsection{* Finite, Infinite and Infinitesimal*}
+subsection\<open>Finite, Infinite and Infinitesimal\<close>
 
 lemma HFinite_Int_HInfinite_empty [simp]: "HFinite Int HInfinite = {}"
 apply (simp add: HFinite_def HInfinite_def)
@@ -1487,7 +1487,7 @@ lemma approx_hrabs_disj: "\<bar>x::hypreal\<bar> @= x \<or> \<bar>x\<bar> @= -x"
 by (cut_tac x = x in hrabs_disj, auto)
 
 
-subsection{*Theorems about Monads*}
+subsection\<open>Theorems about Monads\<close>
 
 lemma monad_hrabs_Un_subset: "monad \<bar>x\<bar> \<le> monad(x::hypreal) Un monad(-x)"
 by (rule_tac x1 = x in hrabs_disj [THEN disjE], auto)
@@ -1514,7 +1514,7 @@ lemma mem_monad_self [simp]: "x \<in> monad x"
 by (simp add: monad_def)
 
 
-subsection{*Proof that @{term "x @= y"} implies @{term"\<bar>x\<bar> @= \<bar>y\<bar>"}*}
+subsection\<open>Proof that @{term "x @= y"} implies @{term"\<bar>x\<bar> @= \<bar>y\<bar>"}\<close>
 
 lemma approx_subset_monad: "x @= y ==> {x,y} \<le> monad x"
 apply (simp (no_asm))
@@ -1609,7 +1609,7 @@ apply (drule_tac x = y in approx_hrabs_add_minus_Infinitesimal)
 apply (auto intro: approx_trans2)
 done
 
-subsection {* More @{term HFinite} and @{term Infinitesimal} Theorems *}
+subsection \<open>More @{term HFinite} and @{term Infinitesimal} Theorems\<close>
 
 (* interesting slightly counterintuitive theorem: necessary
    for proving that an open interval is an NS open set
@@ -1753,7 +1753,7 @@ apply (erule SReal_hypreal_of_real [THEN SReal_subset_HFinite [THEN subsetD], TH
 done
 
 
-subsection{* Theorems about Standard Part*}
+subsection\<open>Theorems about Standard Part\<close>
 
 lemma st_approx_self: "x \<in> HFinite ==> st x @= x"
 apply (simp add: st_def)
@@ -1909,9 +1909,9 @@ done
 
 
 
-subsection {* Alternative Definitions using Free Ultrafilter *}
+subsection \<open>Alternative Definitions using Free Ultrafilter\<close>
 
-subsubsection {* @{term HFinite} *}
+subsubsection \<open>@{term HFinite}\<close>
 
 lemma HFinite_FreeUltrafilterNat:
     "star_n X \<in> HFinite
@@ -1936,7 +1936,7 @@ lemma HFinite_FreeUltrafilterNat_iff:
      "(star_n X \<in> HFinite) = (\<exists>u. eventually (\<lambda>n. norm (X n) < u) FreeUltrafilterNat)"
 by (blast intro!: HFinite_FreeUltrafilterNat FreeUltrafilterNat_HFinite)
 
-subsubsection {* @{term HInfinite} *}
+subsubsection \<open>@{term HInfinite}\<close>
 
 lemma lemma_Compl_eq: "- {n. u < norm (f n)} = {n. norm (f n) \<le> u}"
 by auto
@@ -1996,7 +1996,7 @@ lemma HInfinite_FreeUltrafilterNat_iff:
      "(star_n X \<in> HInfinite) = (\<forall>u. eventually (\<lambda>n. u < norm (X n)) FreeUltrafilterNat)"
 by (blast intro!: HInfinite_FreeUltrafilterNat FreeUltrafilterNat_HInfinite)
 
-subsubsection {* @{term Infinitesimal} *}
+subsubsection \<open>@{term Infinitesimal}\<close>
 
 lemma ball_SReal_eq: "(\<forall>x::hypreal \<in> Reals. P x) = (\<forall>x::real. P (star_of x))"
 by (unfold SReal_def, auto)
@@ -2050,9 +2050,9 @@ apply (auto simp add: lemma_Infinitesimal2)
 done
 
 
-subsection{*Proof that @{term omega} is an infinite number*}
+subsection\<open>Proof that @{term omega} is an infinite number\<close>
 
-text{*It will follow that epsilon is an infinitesimal number.*}
+text\<open>It will follow that epsilon is an infinitesimal number.\<close>
 
 lemma Suc_Un_eq: "{n. n < Suc m} = {n. n < m} Un {n. n = m}"
 by (auto simp add: less_Suc_eq)
@@ -2100,7 +2100,7 @@ done
 lemma Compl_real_le_eq: "- {n::nat. real n \<le> u} = {n. u < real n}"
 by (auto dest!: order_le_less_trans simp add: linorder_not_le)
 
-text{*@{term omega} is a member of @{term HInfinite}*}
+text\<open>@{term omega} is a member of @{term HInfinite}\<close>
 
 theorem HInfinite_omega [simp]: "omega \<in> HInfinite"
 apply (simp add: omega_def)
@@ -2176,21 +2176,21 @@ lemma FreeUltrafilterNat_inverse_real_of_posnat:
 by (drule inverse_real_of_posnat_ge_real_FreeUltrafilterNat)
    (simp add: FreeUltrafilterNat.eventually_not_iff not_le[symmetric])
 
-text{* Example of an hypersequence (i.e. an extended standard sequence)
+text\<open>Example of an hypersequence (i.e. an extended standard sequence)
    whose term with an hypernatural suffix is an infinitesimal i.e.
-   the whn'nth term of the hypersequence is a member of Infinitesimal*}
+   the whn'nth term of the hypersequence is a member of Infinitesimal\<close>
 
 lemma SEQ_Infinitesimal:
       "( *f* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
 by (simp add: hypnat_omega_def starfun_star_n star_n_inverse Infinitesimal_FreeUltrafilterNat_iff
         FreeUltrafilterNat_inverse_real_of_posnat del: of_nat_Suc)
 
-text{* Example where we get a hyperreal from a real sequence
+text\<open>Example where we get a hyperreal from a real sequence
       for which a particular property holds. The theorem is
       used in proofs about equivalence of nonstandard and
       standard neighbourhoods. Also used for equivalence of
       nonstandard ans standard definitions of pointwise
-      limit.*}
+      limit.\<close>
 
 (*-----------------------------------------------------
     |X(n) - x| < 1/n ==> [<X n>] - hypreal_of_real x| \<in> Infinitesimal
