@@ -51,7 +51,7 @@ definition
   "h_abs n = (n~=0)"
 
 axiomatization where
-  MC_result: "validLIOA (A_ioa,WF A_ioa {INC}) (\<diamond>\<box><%(b,a,c). b>)"
+  MC_result: "validLIOA (A_ioa,WF A_ioa {INC}) (\<diamond>\<box>\<langle>%(b,a,c). b\<rangle>)"
 
 
 lemma h_abs_is_abstraction:
@@ -90,7 +90,7 @@ done
 
 
 lemma TrivEx2_abstraction:
-  "validLIOA C_live_ioa (\<diamond>\<box><%(n,a,m). n~=0>)"
+  "validLIOA C_live_ioa (\<diamond>\<box>\<langle>%(n,a,m). n~=0\<rangle>)"
 apply (unfold C_live_ioa_def)
 apply (rule AbsRuleT2)
 apply (rule h_abs_is_liveabstraction)

@@ -22,7 +22,7 @@ validT     :: "'a Seq predicate => bool"
 
 unlift     ::  "'a lift => 'a"
 
-Init       :: "'a predicate => 'a temporal"          ("<_>" [0] 1000)
+Init       :: "'a predicate => 'a temporal"  ("\<langle>_\<rangle>" [0] 1000)
 
 Box        :: "'a temporal => 'a temporal"   ("\<box>(_)" [80] 80)
 Diamond    :: "'a temporal => 'a temporal"   ("\<diamond>(_)" [80] 80)

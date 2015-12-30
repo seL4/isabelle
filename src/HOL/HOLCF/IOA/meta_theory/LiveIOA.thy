@@ -19,10 +19,10 @@ definition
 
 definition
   WF :: "('a,'s)ioa => 'a set => ('a,'s)ioa_temp" where
-  "WF A acts = (\<diamond>\<box><%(s,a,t) . Enabled A acts s> \<^bold>\<longrightarrow> \<box>\<diamond><xt2 (plift (%a. a : acts))>)"
+  "WF A acts = (\<diamond>\<box>\<langle>%(s,a,t). Enabled A acts s\<rangle> \<^bold>\<longrightarrow> \<box>\<diamond>\<langle>xt2 (plift (%a. a : acts))\<rangle>)"
 definition
   SF :: "('a,'s)ioa => 'a set => ('a,'s)ioa_temp" where
-  "SF A acts = (\<box>\<diamond><%(s,a,t) . Enabled A acts s> \<^bold>\<longrightarrow> \<box>\<diamond><xt2 (plift (%a. a : acts))>)"
+  "SF A acts = (\<box>\<diamond>\<langle>%(s,a,t). Enabled A acts s\<rangle> \<^bold>\<longrightarrow> \<box>\<diamond>\<langle>xt2 (plift (%a. a : acts))\<rangle>)"
 
 definition
   liveexecutions :: "('a,'s)live_ioa => ('a,'s)execution set" where
