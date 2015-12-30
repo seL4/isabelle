@@ -287,15 +287,8 @@ done
 (* generalizing the proof above to a proof method *)
 
 ML \<open>
-
-local
-  val defs = [@{thm Filter_def}, @{thm Forall_def}, @{thm sforall_def}, @{thm mkex_def},
-    @{thm stutter_def}]
-  val asigs = [@{thm asig_of_par}, @{thm actions_asig_comp}]
-in
-
 fun mkex_induct_tac ctxt sch exA exB =
-  EVERY'[Seq_induct_tac ctxt sch defs,
+  EVERY'[Seq_induct_tac ctxt sch @{thms Filter_def Forall_def sforall_def mkex_def stutter_def},
          asm_full_simp_tac ctxt,
          SELECT_GOAL
           (safe_tac (Context.raw_transfer (Proof_Context.theory_of ctxt) @{theory_context Fun})),
@@ -306,10 +299,8 @@ fun mkex_induct_tac ctxt sch exA exB =
          asm_full_simp_tac ctxt,
          Seq_case_simp_tac ctxt exB,
          asm_full_simp_tac ctxt,
-         asm_full_simp_tac (ctxt addsimps asigs)
+         asm_full_simp_tac (ctxt addsimps @{thms asig_of_par actions_asig_comp})
         ]
-
-end
 \<close>
 
 method_setup mkex_induct = \<open>
@@ -496,7 +487,7 @@ lemma compositionality_sch:
   (Filter (%a. a:act A)$sch : schedules A &
    Filter (%a. a:act B)$sch : schedules B &
    Forall (%x. x:act (A\<parallel>B)) sch)"
-apply (simp (no_asm) add: schedules_def has_schedule_def)
+apply (simp add: schedules_def has_schedule_def)
 apply auto
 (* ==> *)
 apply (rule_tac x = "Filter_ex (asig_of A) (ProjA ex) " in bexI)

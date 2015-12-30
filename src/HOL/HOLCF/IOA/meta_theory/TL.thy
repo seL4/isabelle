@@ -10,54 +10,35 @@ begin
 
 default_sort type
 
-type_synonym
-  'a temporal = "'a Seq predicate"
+type_synonym 'a temporal = "'a Seq predicate"
 
+definition validT :: "'a Seq predicate \<Rightarrow> bool"
+  where "validT P \<longleftrightarrow> (\<forall>s. s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> (s \<Turnstile> P))"
 
-consts
-suffix     :: "'a Seq => 'a Seq => bool"
-tsuffix    :: "'a Seq => 'a Seq => bool"
+definition unlift :: "'a lift \<Rightarrow> 'a"
+  where "unlift x = (case x of Def y \<Rightarrow> y)"
 
-validT     :: "'a Seq predicate => bool"
+definition Init :: "'a predicate \<Rightarrow> 'a temporal"  ("\<langle>_\<rangle>" [0] 1000)
+  where "Init P s = P (unlift (HD $ s))"
+    \<comment> \<open>this means that for \<open>nil\<close> and \<open>UU\<close> the effect is unpredictable\<close>
 
-unlift     ::  "'a lift => 'a"
+definition Next :: "'a temporal \<Rightarrow> 'a temporal"
+  where "(Next P) s \<longleftrightarrow> (if TL $ s = UU \<or> TL $ s = nil then P s else P (TL $ s))"
 
-Init       :: "'a predicate => 'a temporal"  ("\<langle>_\<rangle>" [0] 1000)
+definition suffix :: "'a Seq \<Rightarrow> 'a Seq \<Rightarrow> bool"
+  where "suffix s2 s \<longleftrightarrow> (\<exists>s1. Finite s1 \<and> s = s1 @@ s2)"
 
-Box        :: "'a temporal => 'a temporal"   ("\<box>(_)" [80] 80)
-Diamond    :: "'a temporal => 'a temporal"   ("\<diamond>(_)" [80] 80)
-Next       :: "'a temporal => 'a temporal"
-Leadsto    :: "'a temporal => 'a temporal => 'a temporal"  (infixr "\<leadsto>" 22)
+definition tsuffix :: "'a Seq \<Rightarrow> 'a Seq \<Rightarrow> bool"
+  where "tsuffix s2 s \<longleftrightarrow> s2 \<noteq> nil \<and> s2 \<noteq> UU \<and> suffix s2 s"
 
-defs
+definition Box :: "'a temporal \<Rightarrow> 'a temporal"  ("\<box>(_)" [80] 80)
+  where "(\<box>P) s \<longleftrightarrow> (\<forall>s2. tsuffix s2 s \<longrightarrow> P s2)"
 
-unlift_def:
-  "unlift x == (case x of Def y   => y)"
+definition Diamond :: "'a temporal \<Rightarrow> 'a temporal"  ("\<diamond>(_)" [80] 80)
+  where "\<diamond>P = (\<^bold>\<not> (\<box>(\<^bold>\<not> P)))"
 
-(* this means that for nil and UU the effect is unpredictable *)
-Init_def:
-  "Init P s ==  (P (unlift (HD$s)))"
-
-suffix_def:
-  "suffix s2 s == ? s1. (Finite s1  & s = s1 @@ s2)"
-
-tsuffix_def:
-  "tsuffix s2 s == s2 ~= nil & s2 ~= UU & suffix s2 s"
-
-Box_def:
-  "(\<box>P) s == ! s2. tsuffix s2 s --> P s2"
-
-Next_def:
-  "(Next P) s == if (TL$s=UU | TL$s=nil) then (P s) else P (TL$s)"
-
-Diamond_def:
-  "\<diamond>P == \<^bold>\<not> (\<box>(\<^bold>\<not> P))"
-
-Leadsto_def:
-   "P \<leadsto> Q == (\<box>(P \<^bold>\<longrightarrow> (\<diamond>Q)))"
-
-validT_def:
-  "validT P == ! s. s~=UU & s~=nil --> (s \<Turnstile> P)"
+definition Leadsto :: "'a temporal \<Rightarrow> 'a temporal \<Rightarrow> 'a temporal"  (infixr "\<leadsto>" 22)
+  where "(P \<leadsto> Q) = (\<box>(P \<^bold>\<longrightarrow> (\<diamond>Q)))"
 
 
 lemma simple: "\<box>\<diamond>(\<^bold>\<not> P) = (\<^bold>\<not> \<diamond>\<box>P)"
@@ -143,7 +124,7 @@ done
 
 subsection "LTL Axioms by Manna/Pnueli"
 
-lemma tsuffix_TL [rule_format (no_asm)]: 
+lemma tsuffix_TL [rule_format (no_asm)]:
 "s~=UU & s~=nil --> tsuffix s2 (TL$s) --> tsuffix s2 s"
 apply (unfold tsuffix_def suffix_def)
 apply auto
@@ -155,7 +136,7 @@ done
 lemmas tsuffix_TL2 = conjI [THEN tsuffix_TL]
 
 declare split_if [split del]
-lemma LTL1: 
+lemma LTL1:
    "s~=UU & s~=nil --> (s \<Turnstile> \<box>F \<^bold>\<longrightarrow> (F \<^bold>\<and> (Next (\<box>F))))"
 apply (unfold Next_def satisfies_def NOT_def IMPLIES_def AND_def Box_def)
 apply auto
@@ -172,19 +153,19 @@ done
 declare split_if [split]
 
 
-lemma LTL2a: 
+lemma LTL2a:
     "s \<Turnstile> \<^bold>\<not> (Next F) \<^bold>\<longrightarrow> (Next (\<^bold>\<not> F))"
 apply (unfold Next_def satisfies_def NOT_def IMPLIES_def)
 apply simp
 done
 
-lemma LTL2b: 
+lemma LTL2b:
     "s \<Turnstile> (Next (\<^bold>\<not> F)) \<^bold>\<longrightarrow> (\<^bold>\<not> (Next F))"
 apply (unfold Next_def satisfies_def NOT_def IMPLIES_def)
 apply simp
 done
 
-lemma LTL3: 
+lemma LTL3:
 "ex \<Turnstile> (Next (F \<^bold>\<longrightarrow> G)) \<^bold>\<longrightarrow> (Next F) \<^bold>\<longrightarrow> (Next G)"
 apply (unfold Next_def satisfies_def NOT_def IMPLIES_def)
 apply simp

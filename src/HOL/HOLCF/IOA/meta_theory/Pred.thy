@@ -10,38 +10,24 @@ begin
 
 default_sort type
 
-type_synonym
-  'a predicate = "'a => bool"
+type_synonym 'a predicate = "'a \<Rightarrow> bool"
 
-consts
+definition satisfies :: "'a \<Rightarrow> 'a predicate \<Rightarrow> bool"  ("_ \<Turnstile> _" [100,9] 8)
+  where "(s \<Turnstile> P) \<longleftrightarrow> P s"
 
-satisfies    ::"'a  => 'a predicate => bool"    ("_ \<Turnstile> _" [100,9] 8)
-valid        ::"'a predicate => bool"           (*  ("|-") *)
+definition valid :: "'a predicate \<Rightarrow> bool"  (*  ("|-") *)
+  where "valid P \<longleftrightarrow> (\<forall>s. (s \<Turnstile> P))"
 
-NOT          ::"'a predicate => 'a predicate"  ("\<^bold>\<not> _" [40] 40)
-AND          ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\<^bold>\<and>" 35)
-OR           ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\<^bold>\<or>" 30)
-IMPLIES      ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\<^bold>\<longrightarrow>" 25)
+definition NOT :: "'a predicate \<Rightarrow> 'a predicate"  ("\<^bold>\<not> _" [40] 40)
+  where "NOT P s \<longleftrightarrow> ~ (P s)"
 
+definition AND :: "'a predicate \<Rightarrow> 'a predicate \<Rightarrow> 'a predicate"  (infixr "\<^bold>\<and>" 35)
+  where "(P \<^bold>\<and> Q) s \<longleftrightarrow> P s \<and> Q s"
 
-defs
+definition OR :: "'a predicate \<Rightarrow> 'a predicate \<Rightarrow> 'a predicate"  (infixr "\<^bold>\<or>" 30)
+  where "(P \<^bold>\<or> Q) s \<longleftrightarrow> P s \<or> Q s"
 
-satisfies_def:
-   "s \<Turnstile> P  == P s"
-
-valid_def:
-   "valid P == (! s. (s \<Turnstile> P))"
-
-NOT_def:
-  "NOT P s ==  ~ (P s)"
-
-AND_def:
-  "(P \<^bold>\<and> Q) s == (P s) & (Q s)"
-
-OR_def:
-  "(P \<^bold>\<or> Q) s ==  (P s) | (Q s)"
-
-IMPLIES_def:
-  "(P \<^bold>\<longrightarrow> Q) s == (P s) --> (Q s)"
+definition IMPLIES :: "'a predicate \<Rightarrow> 'a predicate \<Rightarrow> 'a predicate"  (infixr "\<^bold>\<longrightarrow>" 25)
+  where "(P \<^bold>\<longrightarrow> Q) s \<longleftrightarrow> P s \<longrightarrow> Q s"
 
 end

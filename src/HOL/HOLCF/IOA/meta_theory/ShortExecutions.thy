@@ -221,7 +221,7 @@ lemma exists_LastActExtsch:
                tr = Filter (%a. a:ext A)$sch &
                LastActExtsch A sch"
 
-apply (unfold schedules_def has_schedule_def)
+apply (unfold schedules_def has_schedule_def [abs_def])
 apply auto
 apply (rule_tac x = "filter_act$ (Cut (%a. fst a:ext A) (snd ex))" in exI)
 apply (simp add: executions_def)

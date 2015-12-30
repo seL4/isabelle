@@ -1,30 +1,23 @@
 (*  Title:      HOL/HOLCF/IOA/meta_theory/CompoTraces.thy
     Author:     Olaf Müller
-*) 
+*)
 
 section \<open>Compositionality on Trace level\<close>
 
 theory CompoTraces
 imports CompoScheds ShortExecutions
 begin
- 
 
-consts  
-
- mksch      ::"('a,'s)ioa => ('a,'t)ioa => 'a Seq -> 'a Seq -> 'a Seq -> 'a Seq" 
- par_traces ::"['a trace_module,'a trace_module] => 'a trace_module"
-
-defs
-
-mksch_def:
-  "mksch A B == (fix$(LAM h tr schA schB. case tr of 
+definition mksch :: "('a,'s)ioa => ('a,'t)ioa => 'a Seq -> 'a Seq -> 'a Seq -> 'a Seq"
+where
+  "mksch A B = (fix$(LAM h tr schA schB. case tr of
        nil => nil
-    | x##xs => 
-      (case x of 
+    | x##xs =>
+      (case x of
         UU => UU
-      | Def y => 
-         (if y:act A then 
-             (if y:act B then 
+      | Def y =>
+         (if y:act A then
+             (if y:act B then
                    ((Takewhile (%a. a:int A)$schA)
                       @@ (Takewhile (%a. a:int B)$schB)
                            @@ (y\<leadsto>(h$xs
@@ -37,8 +30,8 @@ mksch_def:
                            $(TL$(Dropwhile (%a. a:int A)$schA))
                            $schB)))
               )
-          else 
-             (if y:act B then 
+          else
+             (if y:act B then
                  ((Takewhile (%a. a:int B)$schB)
                      @@ (y\<leadsto>(h$xs
                               $schA
@@ -50,21 +43,21 @@ mksch_def:
          )
        )))"
 
-
-par_traces_def:
-  "par_traces TracesA TracesB == 
-       let trA = fst TracesA; sigA = snd TracesA; 
-           trB = fst TracesB; sigB = snd TracesB       
+definition par_traces ::"['a trace_module,'a trace_module] => 'a trace_module"
+where
+  "par_traces TracesA TracesB =
+      (let trA = fst TracesA; sigA = snd TracesA;
+           trB = fst TracesB; sigB = snd TracesB
        in
        (    {tr. Filter (%a. a:actions sigA)$tr : trA}
         Int {tr. Filter (%a. a:actions sigB)$tr : trB}
         Int {tr. Forall (%x. x:(externals sigA Un externals sigB)) tr},
-        asig_comp sigA sigB)"
+        asig_comp sigA sigB))"
 
-axiomatization where
-
-finiteR_mksch:
-  "Finite (mksch A B$tr$x$y) \<Longrightarrow> Finite tr"
+axiomatization
+where
+  finiteR_mksch:
+    "Finite (mksch A B$tr$x$y) \<Longrightarrow> Finite tr"
 
 lemma finiteR_mksch': "\<not> Finite tr \<Longrightarrow> \<not> Finite (mksch A B$tr$x$y)"
   by (blast intro: finiteR_mksch)
@@ -76,40 +69,40 @@ declaration \<open>fn _ => Simplifier.map_ss (Simplifier.set_mksym (K (K NONE)))
 subsection "mksch rewrite rules"
 
 lemma mksch_unfold:
-"mksch A B = (LAM tr schA schB. case tr of 
+"mksch A B = (LAM tr schA schB. case tr of
        nil => nil
-    | x##xs => 
-      (case x of  
-        UU => UU  
-      | Def y => 
-         (if y:act A then 
-             (if y:act B then 
-                   ((Takewhile (%a. a:int A)$schA) 
-                         @@(Takewhile (%a. a:int B)$schB) 
-                              @@(y\<leadsto>(mksch A B$xs   
-                                       $(TL$(Dropwhile (%a. a:int A)$schA))  
-                                       $(TL$(Dropwhile (%a. a:int B)$schB))  
-                    )))   
-              else  
-                 ((Takewhile (%a. a:int A)$schA)  
-                      @@ (y\<leadsto>(mksch A B$xs  
-                              $(TL$(Dropwhile (%a. a:int A)$schA))  
-                              $schB)))  
-              )   
-          else    
-             (if y:act B then  
-                 ((Takewhile (%a. a:int B)$schB)  
-                       @@ (y\<leadsto>(mksch A B$xs   
-                              $schA   
-                              $(TL$(Dropwhile (%a. a:int B)$schB))  
-                              )))  
-             else  
-               UU  
-             )  
-         )  
+    | x##xs =>
+      (case x of
+        UU => UU
+      | Def y =>
+         (if y:act A then
+             (if y:act B then
+                   ((Takewhile (%a. a:int A)$schA)
+                         @@(Takewhile (%a. a:int B)$schB)
+                              @@(y\<leadsto>(mksch A B$xs
+                                       $(TL$(Dropwhile (%a. a:int A)$schA))
+                                       $(TL$(Dropwhile (%a. a:int B)$schB))
+                    )))
+              else
+                 ((Takewhile (%a. a:int A)$schA)
+                      @@ (y\<leadsto>(mksch A B$xs
+                              $(TL$(Dropwhile (%a. a:int A)$schA))
+                              $schB)))
+              )
+          else
+             (if y:act B then
+                 ((Takewhile (%a. a:int B)$schB)
+                       @@ (y\<leadsto>(mksch A B$xs
+                              $schA
+                              $(TL$(Dropwhile (%a. a:int B)$schB))
+                              )))
+             else
+               UU
+             )
+         )
        ))"
 apply (rule trans)
-apply (rule fix_eq2)
+apply (rule fix_eq4)
 apply (rule mksch_def)
 apply (rule beta_cfun)
 apply simp
@@ -125,10 +118,10 @@ apply (subst mksch_unfold)
 apply simp
 done
 
-lemma mksch_cons1: "[|x:act A;x~:act B|]   
-    ==> mksch A B$(x\<leadsto>tr)$schA$schB =  
-          (Takewhile (%a. a:int A)$schA)  
-          @@ (x\<leadsto>(mksch A B$tr$(TL$(Dropwhile (%a. a:int A)$schA))  
+lemma mksch_cons1: "[|x:act A;x~:act B|]
+    ==> mksch A B$(x\<leadsto>tr)$schA$schB =
+          (Takewhile (%a. a:int A)$schA)
+          @@ (x\<leadsto>(mksch A B$tr$(TL$(Dropwhile (%a. a:int A)$schA))
                               $schB))"
 apply (rule trans)
 apply (subst mksch_unfold)
@@ -136,10 +129,10 @@ apply (simp add: Consq_def If_and_if)
 apply (simp add: Consq_def)
 done
 
-lemma mksch_cons2: "[|x~:act A;x:act B|]  
-    ==> mksch A B$(x\<leadsto>tr)$schA$schB =  
-         (Takewhile (%a. a:int B)$schB)   
-          @@ (x\<leadsto>(mksch A B$tr$schA$(TL$(Dropwhile (%a. a:int B)$schB))   
+lemma mksch_cons2: "[|x~:act A;x:act B|]
+    ==> mksch A B$(x\<leadsto>tr)$schA$schB =
+         (Takewhile (%a. a:int B)$schB)
+          @@ (x\<leadsto>(mksch A B$tr$schA$(TL$(Dropwhile (%a. a:int B)$schB))
                              ))"
 apply (rule trans)
 apply (subst mksch_unfold)
@@ -147,12 +140,12 @@ apply (simp add: Consq_def If_and_if)
 apply (simp add: Consq_def)
 done
 
-lemma mksch_cons3: "[|x:act A;x:act B|]  
-    ==> mksch A B$(x\<leadsto>tr)$schA$schB =  
-             (Takewhile (%a. a:int A)$schA)  
-          @@ ((Takewhile (%a. a:int B)$schB)   
-          @@ (x\<leadsto>(mksch A B$tr$(TL$(Dropwhile (%a. a:int A)$schA))  
-                             $(TL$(Dropwhile (%a. a:int B)$schB))))   
+lemma mksch_cons3: "[|x:act A;x:act B|]
+    ==> mksch A B$(x\<leadsto>tr)$schA$schB =
+             (Takewhile (%a. a:int A)$schA)
+          @@ ((Takewhile (%a. a:int B)$schB)
+          @@ (x\<leadsto>(mksch A B$tr$(TL$(Dropwhile (%a. a:int A)$schA))
+                             $(TL$(Dropwhile (%a. a:int B)$schB))))
               )"
 apply (rule trans)
 apply (subst mksch_unfold)
@@ -173,7 +166,7 @@ subsubsection "Lemmata for ==>"
    the compatibility of IOA, in particular out of the condition that internals are
    really hidden. *)
 
-lemma compatibility_consequence1: "(eB & ~eA --> ~A) -->        
+lemma compatibility_consequence1: "(eB & ~eA --> ~A) -->
           (A & (eA | eB)) = (eA & A)"
 apply fast
 done
@@ -181,7 +174,7 @@ done
 
 (* very similar to above, only the commutativity of | is used to make a slight change *)
 
-lemma compatibility_consequence2: "(eB & ~eA --> ~A) -->        
+lemma compatibility_consequence2: "(eB & ~eA --> ~A) -->
           (A & (eB | eA)) = (eA & A)"
 apply fast
 done
@@ -198,8 +191,8 @@ lemma subst_lemma2: "[| (f x) = y \<leadsto> g; x=(h x) |] ==> (f (h x)) = y \<l
 by (erule subst)
 
 lemma ForallAorB_mksch [rule_format]:
-  "!!A B. compatible A B ==>  
-    ! schA schB. Forall (%x. x:act (A\<parallel>B)) tr  
+  "!!A B. compatible A B ==>
+    ! schA schB. Forall (%x. x:act (A\<parallel>B)) tr
     --> Forall (%x. x:act (A\<parallel>B)) (mksch A B$tr$schA$schB)"
 apply (tactic \<open>Seq_induct_tac @{context} "tr"
   [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1\<close>)
@@ -226,8 +219,8 @@ apply (simp add: intA_is_not_actB int_is_act)
 apply auto
 done
 
-lemma ForallBnAmksch [rule_format (no_asm)]: "!!A B. compatible B A  ==>  
-    ! schA schB.  (Forall (%x. x:act B & x~:act A) tr  
+lemma ForallBnAmksch [rule_format (no_asm)]: "!!A B. compatible B A  ==>
+    ! schA schB.  (Forall (%x. x:act B & x~:act A) tr
     --> Forall (%x. x:act B & x~:act A) (mksch A B$tr$schA$schB))"
 apply (tactic \<open>Seq_induct_tac @{context} "tr"
   [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1\<close>)
@@ -236,8 +229,8 @@ apply (rule Forall_Conc_impl [THEN mp])
 apply (simp add: intA_is_not_actB int_is_act)
 done
 
-lemma ForallAnBmksch [rule_format (no_asm)]: "!!A B. compatible A B ==>  
-    ! schA schB.  (Forall (%x. x:act A & x~:act B) tr  
+lemma ForallAnBmksch [rule_format (no_asm)]: "!!A B. compatible A B ==>
+    ! schA schB.  (Forall (%x. x:act A & x~:act B) tr
     --> Forall (%x. x:act A & x~:act B) (mksch A B$tr$schA$schB))"
 apply (tactic \<open>Seq_induct_tac @{context} "tr"
   [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1\<close>)
@@ -249,11 +242,11 @@ done
 (* safe-tac makes too many case distinctions with this lemma in the next proof *)
 declare FiniteConc [simp del]
 
-lemma FiniteL_mksch [rule_format (no_asm)]: "[| Finite tr; is_asig(asig_of A); is_asig(asig_of B) |] ==>  
-    ! x y. Forall (%x. x:act A) x & Forall (%x. x:act B) y &  
-           Filter (%a. a:ext A)$x = Filter (%a. a:act A)$tr &  
-           Filter (%a. a:ext B)$y = Filter (%a. a:act B)$tr & 
-           Forall (%x. x:ext (A\<parallel>B)) tr  
+lemma FiniteL_mksch [rule_format (no_asm)]: "[| Finite tr; is_asig(asig_of A); is_asig(asig_of B) |] ==>
+    ! x y. Forall (%x. x:act A) x & Forall (%x. x:act B) y &
+           Filter (%a. a:ext A)$x = Filter (%a. a:act A)$tr &
+           Filter (%a. a:ext B)$y = Filter (%a. a:act B)$tr &
+           Forall (%x. x:ext (A\<parallel>B)) tr
            --> Finite (mksch A B$tr$x$y)"
 
 apply (erule Seq_Finite_ind)
@@ -309,12 +302,12 @@ declare FiniteConc [simp]
 
 declare FilterConc [simp del]
 
-lemma reduceA_mksch1 [rule_format (no_asm)]: " [| Finite bs; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>   
- ! y. Forall (%x. x:act B) y & Forall (%x. x:act B & x~:act A) bs & 
-     Filter (%a. a:ext B)$y = Filter (%a. a:act B)$(bs @@ z)  
-     --> (? y1 y2.  (mksch A B$(bs @@ z)$x$y) = (y1 @@ (mksch A B$z$x$y2)) &  
-                    Forall (%x. x:act B & x~:act A) y1 &  
-                    Finite y1 & y = (y1 @@ y2) &  
+lemma reduceA_mksch1 [rule_format (no_asm)]: " [| Finite bs; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>
+ ! y. Forall (%x. x:act B) y & Forall (%x. x:act B & x~:act A) bs &
+     Filter (%a. a:ext B)$y = Filter (%a. a:act B)$(bs @@ z)
+     --> (? y1 y2.  (mksch A B$(bs @@ z)$x$y) = (y1 @@ (mksch A B$z$x$y2)) &
+                    Forall (%x. x:act B & x~:act A) y1 &
+                    Finite y1 & y = (y1 @@ y2) &
                     Filter (%a. a:ext B)$y1 = bs)"
 apply (frule_tac A1 = "A" in compat_commute [THEN iffD1])
 apply (erule Seq_Finite_ind)
@@ -355,12 +348,12 @@ done
 lemmas reduceA_mksch = conjI [THEN [6] conjI [THEN [5] reduceA_mksch1]]
 
 lemma reduceB_mksch1 [rule_format]:
-" [| Finite a_s; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>   
- ! x. Forall (%x. x:act A) x & Forall (%x. x:act A & x~:act B) a_s & 
-     Filter (%a. a:ext A)$x = Filter (%a. a:act A)$(a_s @@ z)  
-     --> (? x1 x2.  (mksch A B$(a_s @@ z)$x$y) = (x1 @@ (mksch A B$z$x2$y)) &  
-                    Forall (%x. x:act A & x~:act B) x1 &  
-                    Finite x1 & x = (x1 @@ x2) &  
+" [| Finite a_s; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>
+ ! x. Forall (%x. x:act A) x & Forall (%x. x:act A & x~:act B) a_s &
+     Filter (%a. a:ext A)$x = Filter (%a. a:act A)$(a_s @@ z)
+     --> (? x1 x2.  (mksch A B$(a_s @@ z)$x$y) = (x1 @@ (mksch A B$z$x2$y)) &
+                    Forall (%x. x:act A & x~:act B) x1 &
+                    Finite x1 & x = (x1 @@ x2) &
                     Filter (%a. a:ext A)$x1 = a_s)"
 apply (frule_tac A1 = "A" in compat_commute [THEN iffD1])
 apply (erule Seq_Finite_ind)
@@ -405,13 +398,13 @@ declare FilterConc [simp]
 
 subsection "Filtering external actions out of mksch(tr,schA,schB) yields the oracle tr"
 
-lemma FilterA_mksch_is_tr: 
-"!! A B. [| compatible A B; compatible B A; 
-            is_asig(asig_of A); is_asig(asig_of B) |] ==>  
-  ! schA schB. Forall (%x. x:act A) schA & Forall (%x. x:act B) schB &  
-  Forall (%x. x:ext (A\<parallel>B)) tr &  
-  Filter (%a. a:act A)$tr << Filter (%a. a:ext A)$schA & 
-  Filter (%a. a:act B)$tr << Filter (%a. a:ext B)$schB   
+lemma FilterA_mksch_is_tr:
+"!! A B. [| compatible A B; compatible B A;
+            is_asig(asig_of A); is_asig(asig_of B) |] ==>
+  ! schA schB. Forall (%x. x:act A) schA & Forall (%x. x:act B) schB &
+  Forall (%x. x:ext (A\<parallel>B)) tr &
+  Filter (%a. a:act A)$tr << Filter (%a. a:ext A)$schA &
+  Filter (%a. a:act B)$tr << Filter (%a. a:ext B)$schB
   --> Filter (%a. a:ext (A\<parallel>B))$(mksch A B$tr$schA$schB) = tr"
 
 apply (tactic \<open>Seq_induct_tac @{context} "tr"
@@ -461,13 +454,13 @@ done
 
 subsection" Filter of mksch(tr,schA,schB) to A is schA -- take lemma proof"
 
-lemma FilterAmksch_is_schA: "!! A B. [| compatible A B; compatible B A;  
-  is_asig(asig_of A); is_asig(asig_of B) |] ==>  
-  Forall (%x. x:ext (A\<parallel>B)) tr &  
-  Forall (%x. x:act A) schA & Forall (%x. x:act B) schB &  
-  Filter (%a. a:ext A)$schA = Filter (%a. a:act A)$tr & 
-  Filter (%a. a:ext B)$schB = Filter (%a. a:act B)$tr & 
-  LastActExtsch A schA & LastActExtsch B schB   
+lemma FilterAmksch_is_schA: "!! A B. [| compatible A B; compatible B A;
+  is_asig(asig_of A); is_asig(asig_of B) |] ==>
+  Forall (%x. x:ext (A\<parallel>B)) tr &
+  Forall (%x. x:act A) schA & Forall (%x. x:act B) schB &
+  Filter (%a. a:ext A)$schA = Filter (%a. a:act A)$tr &
+  Filter (%a. a:ext B)$schB = Filter (%a. a:act B)$tr &
+  LastActExtsch A schA & LastActExtsch B schB
   --> Filter (%a. a:act A)$(mksch A B$tr$schA$schB) = schA"
 apply (intro strip)
 apply (rule seq.take_lemma)
@@ -681,13 +674,13 @@ done
 
 subsection" Filter of mksch(tr,schA,schB) to B is schB -- take lemma proof"
 
-lemma FilterBmksch_is_schB: "!! A B. [| compatible A B; compatible B A;  
-  is_asig(asig_of A); is_asig(asig_of B) |] ==>  
-  Forall (%x. x:ext (A\<parallel>B)) tr &  
-  Forall (%x. x:act A) schA & Forall (%x. x:act B) schB &  
-  Filter (%a. a:ext A)$schA = Filter (%a. a:act A)$tr & 
-  Filter (%a. a:ext B)$schB = Filter (%a. a:act B)$tr & 
-  LastActExtsch A schA & LastActExtsch B schB   
+lemma FilterBmksch_is_schB: "!! A B. [| compatible A B; compatible B A;
+  is_asig(asig_of A); is_asig(asig_of B) |] ==>
+  Forall (%x. x:ext (A\<parallel>B)) tr &
+  Forall (%x. x:act A) schA & Forall (%x. x:act B) schB &
+  Filter (%a. a:ext A)$schA = Filter (%a. a:act A)$tr &
+  Filter (%a. a:ext B)$schB = Filter (%a. a:act B)$tr &
+  LastActExtsch A schA & LastActExtsch B schB
   --> Filter (%a. a:act B)$(mksch A B$tr$schA$schB) = schB"
 apply (intro strip)
 apply (rule seq.take_lemma)
@@ -897,12 +890,12 @@ done
 
 subsection "COMPOSITIONALITY on TRACE Level -- Main Theorem"
 
-lemma compositionality_tr: 
-"!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A;  
-            is_asig(asig_of A); is_asig(asig_of B)|]  
-        ==>  (tr: traces(A\<parallel>B)) =  
-             (Filter (%a. a:act A)$tr : traces A & 
-              Filter (%a. a:act B)$tr : traces B & 
+lemma compositionality_tr:
+"!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A;
+            is_asig(asig_of A); is_asig(asig_of B)|]
+        ==>  (tr: traces(A\<parallel>B)) =
+             (Filter (%a. a:act A)$tr : traces A &
+              Filter (%a. a:act B)$tr : traces B &
               Forall (%x. x:ext(A\<parallel>B)) tr)"
 
 apply (simp (no_asm) add: traces_def has_trace_def)
@@ -957,10 +950,10 @@ done
 
 subsection \<open>COMPOSITIONALITY on TRACE Level -- for Modules\<close>
 
-lemma compositionality_tr_modules: 
+lemma compositionality_tr_modules:
 
-"!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A;  
-            is_asig(asig_of A); is_asig(asig_of B)|]  
+"!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A;
+            is_asig(asig_of A); is_asig(asig_of B)|]
  ==> Traces (A\<parallel>B) = par_traces (Traces A) (Traces B)"
 
 apply (unfold Traces_def par_traces_def)
