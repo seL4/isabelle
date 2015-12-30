@@ -98,7 +98,6 @@ which is proved by @{term lfp}-induction:
  apply(erule lfp_induct_set)
   apply(rule mono_ef)
  apply(simp)
-(*pr(latex xsymbols symbols);*)
 txt{*\noindent
 Having disposed of the monotonicity subgoal,
 simplification leaves us with the following goal:
