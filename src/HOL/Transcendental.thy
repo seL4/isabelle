@@ -564,19 +564,19 @@ lemma lemma_termdiff4:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes k: "0 < (k::real)"
     and le: "\<And>h. \<lbrakk>h \<noteq> 0; norm h < k\<rbrakk> \<Longrightarrow> norm (f h) \<le> K * norm h"
-  shows "f -- 0 --> 0"
+  shows "f \<midarrow>0\<rightarrow> 0"
 proof (rule tendsto_norm_zero_cancel)
-  show "(\<lambda>h. norm (f h)) -- 0 --> 0"
+  show "(\<lambda>h. norm (f h)) \<midarrow>0\<rightarrow> 0"
   proof (rule real_tendsto_sandwich)
     show "eventually (\<lambda>h. 0 \<le> norm (f h)) (at 0)"
       by simp
     show "eventually (\<lambda>h. norm (f h) \<le> K * norm h) (at 0)"
       using k by (auto simp add: eventually_at dist_norm le)
-    show "(\<lambda>h. 0) -- (0::'a) --> (0::real)"
+    show "(\<lambda>h. 0) \<midarrow>(0::'a)\<rightarrow> (0::real)"
       by (rule tendsto_const)
-    have "(\<lambda>h. K * norm h) -- (0::'a) --> K * norm (0::'a)"
+    have "(\<lambda>h. K * norm h) \<midarrow>(0::'a)\<rightarrow> K * norm (0::'a)"
       by (intro tendsto_intros)
-    then show "(\<lambda>h. K * norm h) -- (0::'a) --> 0"
+    then show "(\<lambda>h. K * norm h) \<midarrow>(0::'a)\<rightarrow> 0"
       by simp
   qed
 qed
@@ -586,7 +586,7 @@ lemma lemma_termdiff5:
   assumes k: "0 < (k::real)"
   assumes f: "summable f"
   assumes le: "\<And>h n. \<lbrakk>h \<noteq> 0; norm h < k\<rbrakk> \<Longrightarrow> norm (g h n) \<le> f n * norm h"
-  shows "(\<lambda>h. suminf (g h)) -- 0 --> 0"
+  shows "(\<lambda>h. suminf (g h)) \<midarrow>0\<rightarrow> 0"
 proof (rule lemma_termdiff4 [OF k])
   fix h::'a
   assume "h \<noteq> 0" and "norm h < k"
@@ -615,7 +615,7 @@ lemma termdiffs_aux:
   assumes 1: "summable (\<lambda>n. diffs (diffs c) n * K ^ n)"
     and 2: "norm x < norm K"
   shows "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x^n) / h
-             - of_nat n * x ^ (n - Suc 0))) -- 0 --> 0"
+             - of_nat n * x ^ (n - Suc 0))) \<midarrow>0\<rightarrow> 0"
 proof -
   from dense [OF 2]
   obtain r where r1: "norm x < r" and r2: "r < norm K" by fast
@@ -682,7 +682,7 @@ lemma termdiffs:
   unfolding DERIV_def
 proof (rule LIM_zero_cancel)
   show "(\<lambda>h. (suminf (\<lambda>n. c n * (x + h) ^ n) - suminf (\<lambda>n. c n * x^n)) / h
-            - suminf (\<lambda>n. diffs c n * x^n)) -- 0 --> 0"
+            - suminf (\<lambda>n. diffs c n * x^n)) \<midarrow>0\<rightarrow> 0"
   proof (rule LIM_equal2)
     show "0 < norm K - norm x" using 4 by (simp add: less_diff_eq)
   next
@@ -702,7 +702,7 @@ proof (rule LIM_zero_cancel)
           (\<Sum>n. c n * (((x + h) ^ n - x^n) / h - of_nat n * x ^ (n - Suc 0)))"
       by (simp add: algebra_simps)
   next
-    show "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x^n) / h - of_nat n * x ^ (n - Suc 0))) -- 0 --> 0"
+    show "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x^n) / h - of_nat n * x ^ (n - Suc 0))) \<midarrow>0\<rightarrow> 0"
       by (rule termdiffs_aux [OF 3 4])
   qed
 qed
@@ -4068,7 +4068,7 @@ lemma continuous_within_tan [continuous_intros]:
   "continuous (at x within s) f \<Longrightarrow> cos (f x) \<noteq> 0 \<Longrightarrow> continuous (at x within s) (\<lambda>x. tan (f x))"
   unfolding continuous_within by (rule tendsto_tan)
 
-lemma LIM_cos_div_sin: "(\<lambda>x. cos(x)/sin(x)) -- pi/2 --> 0"
+lemma LIM_cos_div_sin: "(\<lambda>x. cos(x)/sin(x)) \<midarrow>pi/2\<rightarrow> 0"
   by (rule LIM_cong_limit, (rule tendsto_intros)+, simp_all)
 
 lemma lemma_tan_total: "0 < y ==> \<exists>x. 0 < x & x < pi/2 & y < tan x"
@@ -5572,7 +5572,7 @@ next
   }
   then have wnz: "\<And>w. w \<noteq> 0 \<Longrightarrow> (\<Sum>i\<le>n. c (Suc i) * w^i) = 0"
     using Suc  by auto
-  then have "(\<lambda>h. \<Sum>i\<le>n. c (Suc i) * h^i) -- 0 --> 0"
+  then have "(\<lambda>h. \<Sum>i\<le>n. c (Suc i) * h^i) \<midarrow>0\<rightarrow> 0"
     by (simp cong: LIM_cong)                   \<comment>\<open>the case @{term"w=0"} by continuity\<close>
   then have "(\<Sum>i\<le>n. c (Suc i) * 0^i) = 0"
     using isCont_polynom [of 0 "\<lambda>i. c (Suc i)" n] LIM_unique

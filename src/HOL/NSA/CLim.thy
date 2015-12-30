@@ -47,22 +47,22 @@ by (simp add: NSLIM_def starfunC_approx_Re_Im_iff
 (** get this result easily now **)
 lemma LIM_Re:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
-  shows "f -- a --> L ==> (%x. Re(f x)) -- a --> Re(L)"
+  shows "f \<midarrow>a\<rightarrow> L ==> (%x. Re(f x)) \<midarrow>a\<rightarrow> Re(L)"
 by (simp add: LIM_NSLIM_iff NSLIM_Re)
 
 lemma LIM_Im:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
-  shows "f -- a --> L ==> (%x. Im(f x)) -- a --> Im(L)"
+  shows "f \<midarrow>a\<rightarrow> L ==> (%x. Im(f x)) \<midarrow>a\<rightarrow> Im(L)"
 by (simp add: LIM_NSLIM_iff NSLIM_Im)
 
 lemma LIM_cnj:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
-  shows "f -- a --> L ==> (%x. cnj (f x)) -- a --> cnj L"
+  shows "f \<midarrow>a\<rightarrow> L ==> (%x. cnj (f x)) \<midarrow>a\<rightarrow> cnj L"
 by (simp add: LIM_eq complex_cnj_diff [symmetric] del: complex_cnj_diff)
 
 lemma LIM_cnj_iff:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
-  shows "((%x. cnj (f x)) -- a --> cnj L) = (f -- a --> L)"
+  shows "((%x. cnj (f x)) \<midarrow>a\<rightarrow> cnj L) = (f \<midarrow>a\<rightarrow> L)"
 by (simp add: LIM_eq complex_cnj_diff [symmetric] del: complex_cnj_diff)
 
 lemma starfun_norm: "( *f* (\<lambda>x. norm (f x))) = (\<lambda>x. hnorm (( *f* f) x))"
@@ -84,7 +84,7 @@ by (simp add: NSLIM_def starfun_norm
 (** much, much easier standard proof **)
 lemma CLIM_CRLIM_iff:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
-  shows "(f -- x --> L) = ((%y. cmod(f y - L)) -- x --> 0)"
+  shows "(f \<midarrow>x\<rightarrow> L) = ((%y. cmod(f y - L)) \<midarrow>x\<rightarrow> 0)"
 by (simp add: LIM_eq)
 
 (* so this is nicer nonstandard proof *)
@@ -103,8 +103,8 @@ done
 
 lemma LIM_CRLIM_Re_Im_iff:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
-  shows "(f -- a --> L) = ((%x. Re(f x)) -- a --> Re(L) &
-                         (%x. Im(f x)) -- a --> Im(L))"
+  shows "(f \<midarrow>a\<rightarrow> L) = ((%x. Re(f x)) \<midarrow>a\<rightarrow> Re(L) &
+                         (%x. Im(f x)) \<midarrow>a\<rightarrow> Im(L))"
 by (simp add: LIM_NSLIM_iff NSLIM_NSCRLIM_Re_Im_iff)
 
 

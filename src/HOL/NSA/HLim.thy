@@ -136,7 +136,7 @@ by (simp add: NSLIM_def)
 subsubsection \<open>Equivalence of @{term filterlim} and @{term NSLIM}\<close>
 
 lemma LIM_NSLIM:
-  assumes f: "f -- a --> L" shows "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L"
+  assumes f: "f \<midarrow>a\<rightarrow> L" shows "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L"
 proof (rule NSLIM_I)
   fix x
   assume neq: "x \<noteq> star_of a"
@@ -164,7 +164,7 @@ proof (rule NSLIM_I)
 qed
 
 lemma NSLIM_LIM:
-  assumes f: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L" shows "f -- a --> L"
+  assumes f: "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L" shows "f \<midarrow>a\<rightarrow> L"
 proof (rule LIM_I)
   fix r::real assume r: "0 < r"
   have "\<exists>s>0. \<forall>x. x \<noteq> star_of a \<and> hnorm (x - star_of a) < s
@@ -190,7 +190,7 @@ proof (rule LIM_I)
     by transfer
 qed
 
-theorem LIM_NSLIM_iff: "(f -- x --> L) = (f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S L)"
+theorem LIM_NSLIM_iff: "(f \<midarrow>x\<rightarrow> L) = (f \<midarrow>x\<rightarrow>\<^sub>N\<^sub>S L)"
 by (blast intro: LIM_NSLIM NSLIM_LIM)
 
 
@@ -215,7 +215,7 @@ by (blast intro: isNSCont_NSLIM NSLIM_isNSCont)
 
 text\<open>Hence, NS continuity can be given
   in terms of standard limit\<close>
-lemma isNSCont_LIM_iff: "(isNSCont f a) = (f -- a --> (f a))"
+lemma isNSCont_LIM_iff: "(isNSCont f a) = (f \<midarrow>a\<rightarrow> (f a))"
 by (simp add: LIM_NSLIM_iff isNSCont_NSLIM_iff)
 
 text\<open>Moreover, it's trivial now that NS continuity

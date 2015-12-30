@@ -1204,16 +1204,16 @@ subsection \<open>Function limit at a point\<close>
 
 abbreviation
   LIM :: "('a::topological_space \<Rightarrow> 'b::topological_space) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
-        ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60) where
-  "f -- a --> L \<equiv> (f \<longlongrightarrow> L) (at a)"
+        ("((_)/ \<midarrow>(_)/\<rightarrow> (_))" [60, 0, 60] 60) where
+  "f \<midarrow>a\<rightarrow> L \<equiv> (f \<longlongrightarrow> L) (at a)"
 
-lemma tendsto_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f \<longlongrightarrow> l) (at a within S) \<longleftrightarrow> (f -- a --> l)"
+lemma tendsto_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f \<longlongrightarrow> l) (at a within S) \<longleftrightarrow> (f \<midarrow>a\<rightarrow> l)"
   unfolding tendsto_def by (simp add: at_within_open[where S=S])
 
 lemma LIM_const_not_eq[tendsto_intros]:
   fixes a :: "'a::perfect_space"
   fixes k L :: "'b::t2_space"
-  shows "k \<noteq> L \<Longrightarrow> \<not> (\<lambda>x. k) -- a --> L"
+  shows "k \<noteq> L \<Longrightarrow> \<not> (\<lambda>x. k) \<midarrow>a\<rightarrow> L"
   by (simp add: tendsto_const_iff)
 
 lemmas LIM_not_zero = LIM_const_not_eq [where L = 0]
@@ -1221,46 +1221,46 @@ lemmas LIM_not_zero = LIM_const_not_eq [where L = 0]
 lemma LIM_const_eq:
   fixes a :: "'a::perfect_space"
   fixes k L :: "'b::t2_space"
-  shows "(\<lambda>x. k) -- a --> L \<Longrightarrow> k = L"
+  shows "(\<lambda>x. k) \<midarrow>a\<rightarrow> L \<Longrightarrow> k = L"
   by (simp add: tendsto_const_iff)
 
 lemma LIM_unique:
   fixes a :: "'a::perfect_space" and L M :: "'b::t2_space"
-  shows "f -- a --> L \<Longrightarrow> f -- a --> M \<Longrightarrow> L = M"
+  shows "f \<midarrow>a\<rightarrow> L \<Longrightarrow> f \<midarrow>a\<rightarrow> M \<Longrightarrow> L = M"
   using at_neq_bot by (rule tendsto_unique)
 
 text \<open>Limits are equal for functions equal except at limit point\<close>
 
-lemma LIM_equal: "\<forall>x. x \<noteq> a --> (f x = g x) \<Longrightarrow> (f -- a --> l) \<longleftrightarrow> (g -- a --> l)"
+lemma LIM_equal: "\<forall>x. x \<noteq> a --> (f x = g x) \<Longrightarrow> (f \<midarrow>a\<rightarrow> l) \<longleftrightarrow> (g \<midarrow>a\<rightarrow> l)"
   unfolding tendsto_def eventually_at_topological by simp
 
-lemma LIM_cong: "a = b \<Longrightarrow> (\<And>x. x \<noteq> b \<Longrightarrow> f x = g x) \<Longrightarrow> l = m \<Longrightarrow> (f -- a --> l) \<longleftrightarrow> (g -- b --> m)"
+lemma LIM_cong: "a = b \<Longrightarrow> (\<And>x. x \<noteq> b \<Longrightarrow> f x = g x) \<Longrightarrow> l = m \<Longrightarrow> (f \<midarrow>a\<rightarrow> l) \<longleftrightarrow> (g \<midarrow>b\<rightarrow> m)"
   by (simp add: LIM_equal)
 
-lemma LIM_cong_limit: "f -- x --> L \<Longrightarrow> K = L \<Longrightarrow> f -- x --> K"
+lemma LIM_cong_limit: "f \<midarrow>x\<rightarrow> L \<Longrightarrow> K = L \<Longrightarrow> f \<midarrow>x\<rightarrow> K"
   by simp
 
 lemma tendsto_at_iff_tendsto_nhds:
-  "g -- l --> g l \<longleftrightarrow> (g \<longlongrightarrow> g l) (nhds l)"
+  "g \<midarrow>l\<rightarrow> g l \<longleftrightarrow> (g \<longlongrightarrow> g l) (nhds l)"
   unfolding tendsto_def eventually_at_filter
   by (intro ext all_cong imp_cong) (auto elim!: eventually_mono)
 
 lemma tendsto_compose:
-  "g -- l --> g l \<Longrightarrow> (f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) \<longlongrightarrow> g l) F"
+  "g \<midarrow>l\<rightarrow> g l \<Longrightarrow> (f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) \<longlongrightarrow> g l) F"
   unfolding tendsto_at_iff_tendsto_nhds by (rule filterlim_compose[of g])
 
-lemma LIM_o: "\<lbrakk>g -- l --> g l; f -- a --> l\<rbrakk> \<Longrightarrow> (g \<circ> f) -- a --> g l"
+lemma LIM_o: "\<lbrakk>g \<midarrow>l\<rightarrow> g l; f \<midarrow>a\<rightarrow> l\<rbrakk> \<Longrightarrow> (g \<circ> f) \<midarrow>a\<rightarrow> g l"
   unfolding o_def by (rule tendsto_compose)
 
 lemma tendsto_compose_eventually:
-  "g -- l --> m \<Longrightarrow> (f \<longlongrightarrow> l) F \<Longrightarrow> eventually (\<lambda>x. f x \<noteq> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) \<longlongrightarrow> m) F"
+  "g \<midarrow>l\<rightarrow> m \<Longrightarrow> (f \<longlongrightarrow> l) F \<Longrightarrow> eventually (\<lambda>x. f x \<noteq> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) \<longlongrightarrow> m) F"
   by (rule filterlim_compose[of g _ "at l"]) (auto simp add: filterlim_at)
 
 lemma LIM_compose_eventually:
-  assumes f: "f -- a --> b"
-  assumes g: "g -- b --> c"
+  assumes f: "f \<midarrow>a\<rightarrow> b"
+  assumes g: "g \<midarrow>b\<rightarrow> c"
   assumes inj: "eventually (\<lambda>x. f x \<noteq> b) (at a)"
-  shows "(\<lambda>x. g (f x)) -- a --> c"
+  shows "(\<lambda>x. g (f x)) \<midarrow>a\<rightarrow> c"
   using g f inj by (rule tendsto_compose_eventually)
 
 lemma tendsto_compose_filtermap: "((g \<circ> f) \<longlongrightarrow> T) F \<longleftrightarrow> (g \<longlongrightarrow> T) (filtermap f F)"
@@ -1280,19 +1280,19 @@ lemma (in first_countable_topology) sequentially_imp_eventually_at:
 
 lemma LIMSEQ_SEQ_conv1:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
-  assumes f: "f -- a --> l"
+  assumes f: "f \<midarrow>a\<rightarrow> l"
   shows "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S \<longlonglongrightarrow> a \<longrightarrow> (\<lambda>n. f (S n)) \<longlonglongrightarrow> l"
   using tendsto_compose_eventually [OF f, where F=sequentially] by simp
 
 lemma LIMSEQ_SEQ_conv2:
   fixes f :: "'a::first_countable_topology \<Rightarrow> 'b::topological_space"
   assumes "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S \<longlonglongrightarrow> a \<longrightarrow> (\<lambda>n. f (S n)) \<longlonglongrightarrow> l"
-  shows "f -- a --> l"
+  shows "f \<midarrow>a\<rightarrow> l"
   using assms unfolding tendsto_def [where l=l] by (simp add: sequentially_imp_eventually_at)
 
 lemma LIMSEQ_SEQ_conv:
   "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S \<longlonglongrightarrow> (a::'a::first_countable_topology) \<longrightarrow> (\<lambda>n. X (S n)) \<longlonglongrightarrow> L) =
-   (X -- a --> (L::'b::topological_space))"
+   (X \<midarrow>a\<rightarrow> (L::'b::topological_space))"
   using LIMSEQ_SEQ_conv2 LIMSEQ_SEQ_conv1 ..
 
 lemma sequentially_imp_eventually_at_left:
@@ -1585,7 +1585,7 @@ lemma continuous_within_compose2:
   continuous (at x within s) (\<lambda>x. g (f x))"
   using continuous_within_compose[of x s f g] by (simp add: comp_def)
 
-lemma continuous_at: "continuous (at x) f \<longleftrightarrow> f -- x --> f x"
+lemma continuous_at: "continuous (at x) f \<longleftrightarrow> f \<midarrow>x\<rightarrow> f x"
   using continuous_within[of x UNIV f] by simp
 
 lemma continuous_ident[continuous_intros, simp]: "continuous (at x within S) (\<lambda>x. x)"
@@ -1601,7 +1601,7 @@ lemma continuous_on_eq_continuous_within:
 abbreviation isCont :: "('a::t2_space \<Rightarrow> 'b::topological_space) \<Rightarrow> 'a \<Rightarrow> bool" where
   "isCont f a \<equiv> continuous (at a) f"
 
-lemma isCont_def: "isCont f a \<longleftrightarrow> f -- a --> f a"
+lemma isCont_def: "isCont f a \<longleftrightarrow> f \<midarrow>a\<rightarrow> f a"
   by (rule continuous_at)
 
 lemma continuous_at_imp_continuous_at_within: "isCont f x \<Longrightarrow> continuous (at x within s) f"

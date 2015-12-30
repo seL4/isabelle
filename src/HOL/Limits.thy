@@ -1941,40 +1941,40 @@ subsection \<open>Limits of Functions\<close>
 
 lemma LIM_eq:
   fixes a :: "'a::real_normed_vector" and L :: "'b::real_normed_vector"
-  shows "f -- a --> L =
+  shows "f \<midarrow>a\<rightarrow> L =
      (\<forall>r>0.\<exists>s>0.\<forall>x. x \<noteq> a & norm (x-a) < s --> norm (f x - L) < r)"
 by (simp add: LIM_def dist_norm)
 
 lemma LIM_I:
   fixes a :: "'a::real_normed_vector" and L :: "'b::real_normed_vector"
   shows "(!!r. 0<r ==> \<exists>s>0.\<forall>x. x \<noteq> a & norm (x-a) < s --> norm (f x - L) < r)
-      ==> f -- a --> L"
+      ==> f \<midarrow>a\<rightarrow> L"
 by (simp add: LIM_eq)
 
 lemma LIM_D:
   fixes a :: "'a::real_normed_vector" and L :: "'b::real_normed_vector"
-  shows "[| f -- a --> L; 0<r |]
+  shows "[| f \<midarrow>a\<rightarrow> L; 0<r |]
       ==> \<exists>s>0.\<forall>x. x \<noteq> a & norm (x-a) < s --> norm (f x - L) < r"
 by (simp add: LIM_eq)
 
 lemma LIM_offset:
   fixes a :: "'a::real_normed_vector"
-  shows "f -- a --> L \<Longrightarrow> (\<lambda>x. f (x + k)) -- a - k --> L"
+  shows "f \<midarrow>a\<rightarrow> L \<Longrightarrow> (\<lambda>x. f (x + k)) \<midarrow>(a - k)\<rightarrow> L"
   unfolding filtermap_at_shift[symmetric, of a k] filterlim_def filtermap_filtermap by simp
 
 lemma LIM_offset_zero:
   fixes a :: "'a::real_normed_vector"
-  shows "f -- a --> L \<Longrightarrow> (\<lambda>h. f (a + h)) -- 0 --> L"
+  shows "f \<midarrow>a\<rightarrow> L \<Longrightarrow> (\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow> L"
 by (drule_tac k="a" in LIM_offset, simp add: add.commute)
 
 lemma LIM_offset_zero_cancel:
   fixes a :: "'a::real_normed_vector"
-  shows "(\<lambda>h. f (a + h)) -- 0 --> L \<Longrightarrow> f -- a --> L"
+  shows "(\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow> L \<Longrightarrow> f \<midarrow>a\<rightarrow> L"
 by (drule_tac k="- a" in LIM_offset, simp)
 
 lemma LIM_offset_zero_iff:
   fixes f :: "'a :: real_normed_vector \<Rightarrow> _"
-  shows  "f -- a --> L \<longleftrightarrow> (\<lambda>h. f (a + h)) -- 0 --> L"
+  shows  "f \<midarrow>a\<rightarrow> L \<longleftrightarrow> (\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow> L"
   using LIM_offset_zero_cancel[of f a L] LIM_offset_zero[of f L a] by auto
 
 lemma LIM_zero:
@@ -1995,9 +1995,9 @@ unfolding tendsto_iff dist_norm by simp
 lemma LIM_imp_LIM:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   fixes g :: "'a::topological_space \<Rightarrow> 'c::real_normed_vector"
-  assumes f: "f -- a --> l"
+  assumes f: "f \<midarrow>a\<rightarrow> l"
   assumes le: "\<And>x. x \<noteq> a \<Longrightarrow> norm (g x - m) \<le> norm (f x - l)"
-  shows "g -- a --> m"
+  shows "g \<midarrow>a\<rightarrow> m"
   by (rule metric_LIM_imp_LIM [OF f],
     simp add: dist_norm le)
 
@@ -2005,23 +2005,23 @@ lemma LIM_equal2:
   fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::topological_space"
   assumes 1: "0 < R"
   assumes 2: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < R\<rbrakk> \<Longrightarrow> f x = g x"
-  shows "g -- a --> l \<Longrightarrow> f -- a --> l"
+  shows "g \<midarrow>a\<rightarrow> l \<Longrightarrow> f \<midarrow>a\<rightarrow> l"
 by (rule metric_LIM_equal2 [OF 1 2], simp_all add: dist_norm)
 
 lemma LIM_compose2:
   fixes a :: "'a::real_normed_vector"
-  assumes f: "f -- a --> b"
-  assumes g: "g -- b --> c"
+  assumes f: "f \<midarrow>a\<rightarrow> b"
+  assumes g: "g \<midarrow>b\<rightarrow> c"
   assumes inj: "\<exists>d>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < d \<longrightarrow> f x \<noteq> b"
-  shows "(\<lambda>x. g (f x)) -- a --> c"
+  shows "(\<lambda>x. g (f x)) \<midarrow>a\<rightarrow> c"
 by (rule metric_LIM_compose2 [OF f g inj [folded dist_norm]])
 
 lemma real_LIM_sandwich_zero:
   fixes f g :: "'a::topological_space \<Rightarrow> real"
-  assumes f: "f -- a --> 0"
+  assumes f: "f \<midarrow>a\<rightarrow> 0"
   assumes 1: "\<And>x. x \<noteq> a \<Longrightarrow> 0 \<le> g x"
   assumes 2: "\<And>x. x \<noteq> a \<Longrightarrow> g x \<le> f x"
-  shows "g -- a --> 0"
+  shows "g \<midarrow>a\<rightarrow> 0"
 proof (rule LIM_imp_LIM [OF f]) (* FIXME: use tendsto_sandwich *)
   fix x assume x: "x \<noteq> a"
   have "norm (g x - 0) = g x" by (simp add: 1 x)
@@ -2036,20 +2036,20 @@ subsection \<open>Continuity\<close>
 
 lemma LIM_isCont_iff:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::topological_space"
-  shows "(f -- a --> f a) = ((\<lambda>h. f (a + h)) -- 0 --> f a)"
+  shows "(f \<midarrow>a\<rightarrow> f a) = ((\<lambda>h. f (a + h)) \<midarrow>0\<rightarrow> f a)"
 by (rule iffI [OF LIM_offset_zero LIM_offset_zero_cancel])
 
 lemma isCont_iff:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::topological_space"
-  shows "isCont f x = (\<lambda>h. f (x + h)) -- 0 --> f x"
+  shows "isCont f x = (\<lambda>h. f (x + h)) \<midarrow>0\<rightarrow> f x"
 by (simp add: isCont_def LIM_isCont_iff)
 
 lemma isCont_LIM_compose2:
   fixes a :: "'a::real_normed_vector"
   assumes f [unfolded isCont_def]: "isCont f a"
-  assumes g: "g -- f a --> l"
+  assumes g: "g \<midarrow>f a\<rightarrow> l"
   assumes inj: "\<exists>d>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < d \<longrightarrow> f x \<noteq> f a"
-  shows "(\<lambda>x. g (f x)) -- a --> l"
+  shows "(\<lambda>x. g (f x)) \<midarrow>a\<rightarrow> l"
 by (rule LIM_compose2 [OF f g inj])
 
 
@@ -2403,7 +2403,7 @@ by (rule isCont_inverse_function)
 text\<open>Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110\<close>
 lemma LIM_fun_gt_zero:
   fixes f :: "real \<Rightarrow> real"
-  shows "f -- c --> l \<Longrightarrow> 0 < l \<Longrightarrow> \<exists>r. 0 < r \<and> (\<forall>x. x \<noteq> c \<and> \<bar>c - x\<bar> < r \<longrightarrow> 0 < f x)"
+  shows "f \<midarrow>c\<rightarrow> l \<Longrightarrow> 0 < l \<Longrightarrow> \<exists>r. 0 < r \<and> (\<forall>x. x \<noteq> c \<and> \<bar>c - x\<bar> < r \<longrightarrow> 0 < f x)"
 apply (drule (1) LIM_D, clarify)
 apply (rule_tac x = s in exI)
 apply (simp add: abs_less_iff)
@@ -2411,7 +2411,7 @@ done
 
 lemma LIM_fun_less_zero:
   fixes f :: "real \<Rightarrow> real"
-  shows "f -- c --> l \<Longrightarrow> l < 0 \<Longrightarrow> \<exists>r. 0 < r \<and> (\<forall>x. x \<noteq> c \<and> \<bar>c - x\<bar> < r \<longrightarrow> f x < 0)"
+  shows "f \<midarrow>c\<rightarrow> l \<Longrightarrow> l < 0 \<Longrightarrow> \<exists>r. 0 < r \<and> (\<forall>x. x \<noteq> c \<and> \<bar>c - x\<bar> < r \<longrightarrow> f x < 0)"
 apply (drule LIM_D [where r="-l"], simp, clarify)
 apply (rule_tac x = s in exI)
 apply (simp add: abs_less_iff)
@@ -2419,7 +2419,7 @@ done
 
 lemma LIM_fun_not_zero:
   fixes f :: "real \<Rightarrow> real"
-  shows "f -- c --> l \<Longrightarrow> l \<noteq> 0 \<Longrightarrow> \<exists>r. 0 < r \<and> (\<forall>x. x \<noteq> c \<and> \<bar>c - x\<bar> < r \<longrightarrow> f x \<noteq> 0)"
+  shows "f \<midarrow>c\<rightarrow> l \<Longrightarrow> l \<noteq> 0 \<Longrightarrow> \<exists>r. 0 < r \<and> (\<forall>x. x \<noteq> c \<and> \<bar>c - x\<bar> < r \<longrightarrow> f x \<noteq> 0)"
   using LIM_fun_gt_zero[of f l c] LIM_fun_less_zero[of f l c] by (auto simp add: neq_iff)
 
 end

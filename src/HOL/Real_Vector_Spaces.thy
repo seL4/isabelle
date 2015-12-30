@@ -1727,31 +1727,31 @@ by (simp add: lim_sequentially)
 
 subsubsection \<open>Limits of Functions\<close>
 
-lemma LIM_def: "f -- (a::'a::metric_space) --> (L::'b::metric_space) =
+lemma LIM_def: "f \<midarrow>(a::'a::metric_space)\<rightarrow> (L::'b::metric_space) =
      (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & dist x a < s
         --> dist (f x) L < r)"
   unfolding tendsto_iff eventually_at by simp
 
 lemma metric_LIM_I:
   "(\<And>r. 0 < r \<Longrightarrow> \<exists>s>0. \<forall>x. x \<noteq> a \<and> dist x a < s \<longrightarrow> dist (f x) L < r)
-    \<Longrightarrow> f -- (a::'a::metric_space) --> (L::'b::metric_space)"
+    \<Longrightarrow> f \<midarrow>(a::'a::metric_space)\<rightarrow> (L::'b::metric_space)"
 by (simp add: LIM_def)
 
 lemma metric_LIM_D:
-  "\<lbrakk>f -- (a::'a::metric_space) --> (L::'b::metric_space); 0 < r\<rbrakk>
+  "\<lbrakk>f \<midarrow>(a::'a::metric_space)\<rightarrow> (L::'b::metric_space); 0 < r\<rbrakk>
     \<Longrightarrow> \<exists>s>0. \<forall>x. x \<noteq> a \<and> dist x a < s \<longrightarrow> dist (f x) L < r"
 by (simp add: LIM_def)
 
 lemma metric_LIM_imp_LIM:
-  assumes f: "f -- a --> (l::'a::metric_space)"
+  assumes f: "f \<midarrow>a\<rightarrow> (l::'a::metric_space)"
   assumes le: "\<And>x. x \<noteq> a \<Longrightarrow> dist (g x) m \<le> dist (f x) l"
-  shows "g -- a --> (m::'b::metric_space)"
+  shows "g \<midarrow>a\<rightarrow> (m::'b::metric_space)"
   by (rule metric_tendsto_imp_tendsto [OF f]) (auto simp add: eventually_at_topological le)
 
 lemma metric_LIM_equal2:
   assumes 1: "0 < R"
   assumes 2: "\<And>x. \<lbrakk>x \<noteq> a; dist x a < R\<rbrakk> \<Longrightarrow> f x = g x"
-  shows "g -- a --> l \<Longrightarrow> f -- (a::'a::metric_space) --> l"
+  shows "g \<midarrow>a\<rightarrow> l \<Longrightarrow> f \<midarrow>(a::'a::metric_space)\<rightarrow> l"
 apply (rule topological_tendstoI)
 apply (drule (2) topological_tendstoD)
 apply (simp add: eventually_at, safe)
@@ -1761,19 +1761,19 @@ apply (simp add: 2)
 done
 
 lemma metric_LIM_compose2:
-  assumes f: "f -- (a::'a::metric_space) --> b"
-  assumes g: "g -- b --> c"
+  assumes f: "f \<midarrow>(a::'a::metric_space)\<rightarrow> b"
+  assumes g: "g \<midarrow>b\<rightarrow> c"
   assumes inj: "\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> f x \<noteq> b"
-  shows "(\<lambda>x. g (f x)) -- a --> c"
+  shows "(\<lambda>x. g (f x)) \<midarrow>a\<rightarrow> c"
   using inj
   by (intro tendsto_compose_eventually[OF g f]) (auto simp: eventually_at)
 
 lemma metric_isCont_LIM_compose2:
   fixes f :: "'a :: metric_space \<Rightarrow> _"
   assumes f [unfolded isCont_def]: "isCont f a"
-  assumes g: "g -- f a --> l"
+  assumes g: "g \<midarrow>f a\<rightarrow> l"
   assumes inj: "\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> f x \<noteq> f a"
-  shows "(\<lambda>x. g (f x)) -- a --> l"
+  shows "(\<lambda>x. g (f x)) \<midarrow>a\<rightarrow> l"
 by (rule metric_LIM_compose2 [OF f g inj])
 
 subsection \<open>Complete metric spaces\<close>

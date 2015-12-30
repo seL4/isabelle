@@ -504,6 +504,7 @@ simplify porting old theories:
 
   notation (in topological_space) tendsto (infixr "--->" 55)
   notation (in topological_space) LIMSEQ ("((_)/ ----> (_))" [60, 60] 60)
+  notation LIM ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
 
   notation NSLIMSEQ ("((_)/ ----NS> (_))" [60, 60] 60)
   notation NSLIM ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)

@@ -3596,7 +3596,7 @@ lemma ereal_tendsto_simps2:
   unfolding tendsto_PInfty filterlim_at_top_dense tendsto_MInfty filterlim_at_bot_dense
   using lim_ereal by (simp_all add: comp_def)
 
-lemma inverse_infty_ereal_tendsto_0: "inverse -- \<infinity> --> (0::ereal)"
+lemma inverse_infty_ereal_tendsto_0: "inverse \<midarrow>\<infinity>\<rightarrow> (0::ereal)"
 proof -
   have **: "((\<lambda>x. ereal (inverse x)) \<longlongrightarrow> ereal 0) at_infinity"
     by (intro tendsto_intros tendsto_inverse_0)
@@ -3609,10 +3609,10 @@ qed
 
 lemma inverse_ereal_tendsto_pos:
   fixes x :: ereal assumes "0 < x"
-  shows "inverse -- x --> inverse x"
+  shows "inverse \<midarrow>x\<rightarrow> inverse x"
 proof (cases x)
   case (real r)
-  with \<open>0 < x\<close> have **: "(\<lambda>x. ereal (inverse x)) -- r --> ereal (inverse r)"
+  with \<open>0 < x\<close> have **: "(\<lambda>x. ereal (inverse x)) \<midarrow>r\<rightarrow> ereal (inverse r)"
     by (auto intro!: tendsto_inverse)
   from real \<open>0 < x\<close> show ?thesis
     by (auto simp: at_ereal tendsto_compose_filtermap[symmetric] eventually_at_filter

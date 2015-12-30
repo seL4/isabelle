@@ -2552,7 +2552,7 @@ proof -
     then have "\<exists>d>0. \<forall>y. y \<noteq> x \<and> cmod (y-x) < d \<longrightarrow> cmod (?pathint x y - f x * (y-x)) / cmod (y-x) < e"
       using dpos by blast
   }
-  then have *: "(\<lambda>y. (?pathint x y - f x * (y - x)) /\<^sub>R cmod (y - x)) -- x --> 0"
+  then have *: "(\<lambda>y. (?pathint x y - f x * (y - x)) /\<^sub>R cmod (y - x)) \<midarrow>x\<rightarrow> 0"
     by (simp add: Lim_at dist_norm inverse_eq_divide)
   show ?thesis
     apply (simp add: has_field_derivative_def has_derivative_at bounded_linear_mult_right)
@@ -5472,7 +5472,7 @@ proof -
   show "(\<lambda>u. f' u / (u - w) ^ (Suc k)) contour_integrable_on \<gamma>"
     by (rule contour_integral_uniform_limit [OF 1 2 leB \<gamma>]) auto
   have *: "(\<lambda>n. contour_integral \<gamma> (\<lambda>x. f' x * (inverse (x - n) ^ k - inverse (x - w) ^ k) / (n - w) / k))
-           --w--> contour_integral \<gamma> (\<lambda>u. f' u / (u - w) ^ (Suc k))"
+           \<midarrow>w\<rightarrow> contour_integral \<gamma> (\<lambda>u. f' u / (u - w) ^ (Suc k))"
     by (rule contour_integral_uniform_limit [OF 1 2 leB \<gamma>]) auto
   have **: "contour_integral \<gamma> (\<lambda>x. f' x * (inverse (x - u) ^ k - inverse (x - w) ^ k) / ((u - w) * k)) =
               (f u - f w) / (u - w) / k"

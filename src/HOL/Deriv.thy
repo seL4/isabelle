@@ -148,12 +148,12 @@ lemma has_derivative_iff_norm:
   by (simp add: has_derivative_at_within divide_inverse ac_simps)
 
 lemma has_derivative_at:
-  "(f has_derivative D) (at x) \<longleftrightarrow> (bounded_linear D \<and> (\<lambda>h. norm (f (x + h) - f x - D h) / norm h) -- 0 --> 0)"
+  "(f has_derivative D) (at x) \<longleftrightarrow> (bounded_linear D \<and> (\<lambda>h. norm (f (x + h) - f x - D h) / norm h) \<midarrow>0\<rightarrow> 0)"
   unfolding has_derivative_iff_norm LIM_offset_zero_iff[of _ _ x] by simp
 
 lemma field_has_derivative_at:
   fixes x :: "'a::real_normed_field"
-  shows "(f has_derivative op * D) (at x) \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
+  shows "(f has_derivative op * D) (at x) \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
   apply (unfold has_derivative_at)
   apply (simp add: bounded_linear_mult_right)
   apply (simp cong: LIM_cong add: nonzero_norm_divide [symmetric])
@@ -454,7 +454,7 @@ proof -
   interpret F: bounded_linear F
     using assms by (rule has_derivative_bounded_linear)
   let ?r = "\<lambda>h. norm (F h) / norm h"
-  have *: "?r -- 0 --> 0"
+  have *: "?r \<midarrow>0\<rightarrow> 0"
     using assms unfolding has_derivative_at by simp
   show "F = (\<lambda>h. 0)"
   proof
@@ -599,7 +599,7 @@ lemma differentiableD: "f differentiable (at x within s) \<Longrightarrow> \<exi
 lemma differentiableI: "(f has_real_derivative D) (at x within s) \<Longrightarrow> f differentiable (at x within s)"
   by (force simp add: real_differentiable_def)
 
-lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
+lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
   apply (simp add: has_field_derivative_def has_derivative_at bounded_linear_mult_right LIM_zero_iff[symmetric, of _ D])
   apply (subst (2) tendsto_norm_zero_iff[symmetric])
   apply (rule filterlim_cong)
@@ -701,7 +701,7 @@ lemma has_vector_derivative_mult_left[derivative_intros]:
 
 subsection \<open>Derivatives\<close>
 
-lemma DERIV_D: "DERIV f x :> D \<Longrightarrow> (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
+lemma DERIV_D: "DERIV f x :> D \<Longrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
   by (simp add: DERIV_def)
 
 lemma DERIV_const [simp, derivative_intros]: "((\<lambda>x. k) has_field_derivative 0) F"
@@ -883,8 +883,8 @@ text\<open>Alternative definition for differentiability\<close>
 
 lemma DERIV_LIM_iff:
   fixes f :: "'a::{real_normed_vector,inverse} \<Rightarrow> 'a" shows
-     "((%h. (f(a + h) - f(a)) / h) -- 0 --> D) =
-      ((%x. (f(x)-f(a)) / (x-a)) -- a --> D)"
+     "((%h. (f(a + h) - f(a)) / h) \<midarrow>0\<rightarrow> D) =
+      ((%x. (f(x)-f(a)) / (x-a)) \<midarrow>a\<rightarrow> D)"
 apply (rule iffI)
 apply (drule_tac k="- a" in LIM_offset)
 apply simp
@@ -892,7 +892,7 @@ apply (drule_tac k="a" in LIM_offset)
 apply (simp add: add.commute)
 done
 
-lemma DERIV_iff2: "(DERIV f x :> D) \<longleftrightarrow> (\<lambda>z. (f z - f x) / (z - x)) --x --> D"
+lemma DERIV_iff2: "(DERIV f x :> D) \<longleftrightarrow> (\<lambda>z. (f z - f x) / (z - x)) \<midarrow>x\<rightarrow> D"
   by (simp add: DERIV_def DERIV_LIM_iff)
 
 lemma DERIV_cong_ev: "x = y \<Longrightarrow> eventually (\<lambda>x. f x = g x) (nhds x) \<Longrightarrow> u = v \<Longrightarrow>
@@ -1485,9 +1485,9 @@ next
         inverse ((f (g y) - x) / (g y - g x))"
     by (simp add: inj)
 next
-  have "(\<lambda>z. (f z - f (g x)) / (z - g x)) -- g x --> D"
+  have "(\<lambda>z. (f z - f (g x)) / (z - g x)) \<midarrow>g x\<rightarrow> D"
     by (rule der [unfolded DERIV_iff2])
-  hence 1: "(\<lambda>z. (f z - x) / (z - g x)) -- g x --> D"
+  hence 1: "(\<lambda>z. (f z - x) / (z - g x)) \<midarrow>g x\<rightarrow> D"
     using inj a b by simp
   have 2: "\<exists>d>0. \<forall>y. y \<noteq> x \<and> norm (y - x) < d \<longrightarrow> g y \<noteq> g x"
   proof (rule exI, safe)
@@ -1504,10 +1504,10 @@ next
     also assume "y \<noteq> x"
     finally show False by simp
   qed
-  have "(\<lambda>y. (f (g y) - x) / (g y - g x)) -- x --> D"
+  have "(\<lambda>y. (f (g y) - x) / (g y - g x)) \<midarrow>x\<rightarrow> D"
     using cont 1 2 by (rule isCont_LIM_compose2)
   thus "(\<lambda>y. inverse ((f (g y) - x) / (g y - g x)))
-        -- x --> inverse D"
+        \<midarrow>x\<rightarrow> inverse D"
     using neq by (rule tendsto_inverse)
 qed
 

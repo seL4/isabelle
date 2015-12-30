@@ -3,6 +3,8 @@
 (*prevent replacement of very long arrows*)
 "===>" = "===>"
 
+"--->" = "\<midarrow>\<rightarrow>"
+
 (*HOL-NSA*)
 "--->" = "\<longlonglongrightarrow>\<^sub>N\<^sub>S"
 "--->" = "\<midarrow>\<rightarrow>\<^sub>N\<^sub>S"
