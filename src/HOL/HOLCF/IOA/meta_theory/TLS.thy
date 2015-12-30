@@ -163,8 +163,8 @@ subsection \<open>Interface TL -- TLS\<close>
    after the translation via ex2seq !! *)
 
 lemma TL_TLS: 
- "[| ! s a t. (P s) & s-a--A-> t --> (Q t) |] 
-   ==> ex \<TTurnstile> (Init (%(s,a,t). P s) \<^bold>\<and> Init (%(s,a,t). s -a--A-> t)  
+ "[| ! s a t. (P s) & s \<midarrow>a\<midarrow>A\<rightarrow> t --> (Q t) |] 
+   ==> ex \<TTurnstile> (Init (%(s,a,t). P s) \<^bold>\<and> Init (%(s,a,t). s \<midarrow>a\<midarrow>A\<rightarrow> t)  
               \<^bold>\<longrightarrow> (Next (Init (%(s,a,t).Q s))))"
 apply (unfold Init_def Next_def temp_sat_def satisfies_def IMPLIES_def AND_def)
 

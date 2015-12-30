@@ -22,8 +22,8 @@ definition
   is_abstraction ::"[('s1=>'s2),('a,'s1)ioa,('a,'s2)ioa] => bool" where
   "is_abstraction f C A =
    ((!s:starts_of(C). f(s):starts_of(A)) &
-   (!s t a. reachable C s & s -a--C-> t
-            --> (f s) -a--A-> (f t)))"
+   (!s t a. reachable C s & s \<midarrow>a\<midarrow>C\<rightarrow> t
+            --> (f s) \<midarrow>a\<midarrow>A\<rightarrow> (f t)))"
 
 definition
   weakeningIOA :: "('a,'s2)ioa => ('a,'s1)ioa => ('s1 => 's2) => bool" where

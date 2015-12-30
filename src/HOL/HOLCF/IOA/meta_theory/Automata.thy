@@ -78,11 +78,8 @@ inductive
   | reachable_n:  "[| reachable C s; (s, a, t) : trans_of C |] ==> reachable C t"
 
 abbreviation
-  trans_of_syn  ("_ -_--_-> _" [81,81,81,81] 100) where
-  "s -a--A-> t == (s,a,t):trans_of A"
-
-notation (xsymbols)
-  trans_of_syn  ("_ \<midarrow>_\<midarrow>_\<longrightarrow> _" [81,81,81,81] 100)
+  trans_of_syn  ("_ \<midarrow>_\<midarrow>_\<rightarrow> _" [81,81,81,81] 100) where
+  "s \<midarrow>a\<midarrow>A\<rightarrow> t == (s,a,t):trans_of A"
 
 abbreviation "act A == actions (asig_of A)"
 abbreviation "ext A == externals (asig_of A)"
@@ -218,11 +215,11 @@ fairIOA_def:
 input_resistant_def:
   "input_resistant A == ! W : sfair_of A. ! s a t.
                         reachable A s & reachable A t & a:inp A &
-                        Enabled A W s & s -a--A-> t
+                        Enabled A W s & s \<midarrow>a\<midarrow>A\<rightarrow> t
                         --> Enabled A W t"
 
 enabled_def:
-  "enabled A a s == ? t. s-a--A-> t"
+  "enabled A a s == ? t. s \<midarrow>a\<midarrow>A\<rightarrow> t"
 
 Enabled_def:
   "Enabled A W s == ? w:W. enabled A w s"
@@ -230,10 +227,10 @@ Enabled_def:
 en_persistent_def:
   "en_persistent A W == ! s a t. Enabled A W s &
                                  a ~:W &
-                                 s -a--A-> t
+                                 s \<midarrow>a\<midarrow>A\<rightarrow> t
                                  --> Enabled A W t"
 was_enabled_def:
-  "was_enabled A a t == ? s. s-a--A-> t"
+  "was_enabled A a t == ? s. s \<midarrow>a\<midarrow>A\<rightarrow> t"
 
 set_was_enabled_def:
   "set_was_enabled A W t == ? w:W. was_enabled A w t"
@@ -524,7 +521,7 @@ lemma cancel_restrict: "starts_of(restrict ioa acts) = starts_of(ioa) &
 
 subsection "rename"
 
-lemma trans_rename: "s -a--(rename C f)-> t ==> (? x. Some(x) = f(a) & s -x--C-> t)"
+lemma trans_rename: "s \<midarrow>a\<midarrow>(rename C f)\<rightarrow> t ==> (? x. Some(x) = f(a) & s \<midarrow>x\<midarrow>C\<rightarrow> t)"
 apply (simp add: Let_def rename_def trans_of_def)
 done
 

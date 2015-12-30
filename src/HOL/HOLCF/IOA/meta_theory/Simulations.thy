@@ -15,7 +15,7 @@ definition
   "is_simulation R C A =
    ((!s:starts_of C. R``{s} Int starts_of A ~= {}) &
    (!s s' t a. reachable C s &
-               s -a--C-> t   &
+               s \<midarrow>a\<midarrow>C\<rightarrow> t   &
                (s,s') : R
                --> (? t' ex. (t,t'):R & move A ex s' a t')))"
 
@@ -24,7 +24,7 @@ definition
   "is_backward_simulation R C A =
    ((!s:starts_of C. R``{s} <= starts_of A) &
    (!s t t' a. reachable C s &
-               s -a--C-> t   &
+               s \<midarrow>a\<midarrow>C\<rightarrow> t   &
                (t,t') : R
                --> (? ex s'. (s,s'):R & move A ex s' a t')))"
 
@@ -33,7 +33,7 @@ definition
   "is_forw_back_simulation R C A =
    ((!s:starts_of C. ? S'. (s,S'):R & S'<= starts_of A) &
    (!s S' t a. reachable C s &
-               s -a--C-> t   &
+               s \<midarrow>a\<midarrow>C\<rightarrow> t   &
                (s,S') : R
                --> (? T'. (t,T'):R & (! t':T'. ? s':S'. ? ex. move A ex s' a t'))))"
 
@@ -42,7 +42,7 @@ definition
   "is_back_forw_simulation R C A =
    ((!s:starts_of C. ! S'. (s,S'):R --> S' Int starts_of A ~={}) &
    (!s t T' a. reachable C s &
-               s -a--C-> t   &
+               s \<midarrow>a\<midarrow>C\<rightarrow> t   &
                (t,T') : R
                --> (? S'. (s,S'):R & (! s':S'. ? t':T'. ? ex. move A ex s' a t'))))"
 

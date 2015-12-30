@@ -76,7 +76,7 @@ subsection "properties of move"
 declare Let_def [simp del]
 
 lemma move_is_move_sim:
-   "[|is_simulation R C A; reachable C s; s -a--C-> t; (s,s'):R|] ==>
+   "[|is_simulation R C A; reachable C s; s \<midarrow>a\<midarrow>C\<rightarrow> t; (s,s'):R|] ==>
       let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
       (t,T'): R & move A (@ex2. move A ex2 s' a T') s' a T'"
 apply (unfold is_simulation_def)
@@ -105,7 +105,7 @@ done
 declare Let_def [simp]
 
 lemma move_subprop1_sim:
-   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>
+   "[|is_simulation R C A; reachable C s; s \<midarrow>a\<midarrow>C\<rightarrow> t; (s,s'):R|] ==>
     let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
      is_exec_frag A (s',@x. move A x s' a T')"
 apply (cut_tac move_is_move_sim)
@@ -115,7 +115,7 @@ apply (simp add: move_def)
 done
 
 lemma move_subprop2_sim:
-   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>
+   "[|is_simulation R C A; reachable C s; s \<midarrow>a\<midarrow>C\<rightarrow> t; (s,s'):R|] ==>
     let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
     Finite (@x. move A x s' a T')"
 apply (cut_tac move_is_move_sim)
@@ -125,7 +125,7 @@ apply (simp add: move_def)
 done
 
 lemma move_subprop3_sim:
-   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>
+   "[|is_simulation R C A; reachable C s; s \<midarrow>a\<midarrow>C\<rightarrow> t; (s,s'):R|] ==>
     let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
      laststate (s',@x. move A x s' a T') = T'"
 apply (cut_tac move_is_move_sim)
@@ -135,7 +135,7 @@ apply (simp add: move_def)
 done
 
 lemma move_subprop4_sim:
-   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>
+   "[|is_simulation R C A; reachable C s; s \<midarrow>a\<midarrow>C\<rightarrow> t; (s,s'):R|] ==>
     let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
       mk_trace A$((@x. move A x s' a T')) =
         (if a:ext A then a\<leadsto>nil else nil)"
@@ -146,7 +146,7 @@ apply (simp add: move_def)
 done
 
 lemma move_subprop5_sim:
-   "[|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>
+   "[|is_simulation R C A; reachable C s; s \<midarrow>a\<midarrow>C\<rightarrow> t; (s,s'):R|] ==>
     let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
       (t,T'):R"
 apply (cut_tac move_is_move_sim)
