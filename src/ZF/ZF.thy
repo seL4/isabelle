@@ -25,8 +25,8 @@ consts
   Bex   :: "[i, i => o] => o"
 
 text \<open>General Union and Intersection\<close>
-axiomatization Union :: "i => i"
-consts Inter :: "i => i"
+axiomatization Union :: "i => i"  ("\<Union>_" [90] 90)
+consts Inter :: "i => i"  ("\<Inter>_" [90] 90)
 
 text \<open>Variations on Replacement\<close>
 axiomatization PrimReplace :: "[i, [i, i] => o] => i"
@@ -76,29 +76,28 @@ consts
 
 text \<open>Infixes in order of decreasing precedence\<close>
 consts
-
   Image       :: "[i, i] => i"    (infixl "``" 90) \<comment>\<open>image\<close>
   vimage      :: "[i, i] => i"    (infixl "-``" 90) \<comment>\<open>inverse image\<close>
   "apply"     :: "[i, i] => i"    (infixl "`" 90) \<comment>\<open>function application\<close>
-  "Int"       :: "[i, i] => i"    (infixl "Int" 70) \<comment>\<open>binary intersection\<close>
-  "Un"        :: "[i, i] => i"    (infixl "Un" 65) \<comment>\<open>binary union\<close>
+  "Int"       :: "[i, i] => i"    (infixl "\<inter>" 70) \<comment>\<open>binary intersection\<close>
+  "Un"        :: "[i, i] => i"    (infixl "\<union>" 65) \<comment>\<open>binary union\<close>
   Diff        :: "[i, i] => i"    (infixl "-" 65) \<comment>\<open>set difference\<close>
-  Subset      :: "[i, i] => o"    (infixl "<=" 50) \<comment>\<open>subset relation\<close>
+  Subset      :: "[i, i] => o"    (infixl "\<subseteq>" 50) \<comment>\<open>subset relation\<close>
 
 axiomatization
-  mem         :: "[i, i] => o"    (infixl ":" 50) \<comment>\<open>membership relation\<close>
+  mem         :: "[i, i] => o"    (infixl "\<in>" 50) \<comment>\<open>membership relation\<close>
 
 abbreviation
-  not_mem :: "[i, i] => o"  (infixl "~:" 50)  \<comment>\<open>negated membership relation\<close>
-  where "x ~: y == ~ (x : y)"
+  not_mem :: "[i, i] => o"  (infixl "\<notin>" 50)  \<comment>\<open>negated membership relation\<close>
+  where "x \<notin> y \<equiv> \<not> (x \<in> y)"
 
 abbreviation
-  cart_prod :: "[i, i] => i"    (infixr "*" 80) \<comment>\<open>Cartesian product\<close>
-  where "A * B == Sigma(A, %_. B)"
+  cart_prod :: "[i, i] => i"    (infixr "\<times>" 80) \<comment>\<open>Cartesian product\<close>
+  where "A \<times> B \<equiv> Sigma(A, \<lambda>_. B)"
 
 abbreviation
   function_space :: "[i, i] => i"  (infixr "->" 60) \<comment>\<open>function space\<close>
-  where "A -> B == Pi(A, %_. B)"
+  where "A -> B \<equiv> Pi(A, \<lambda>_. B)"
 
 
 nonterminal "is" and patterns
@@ -108,68 +107,66 @@ syntax
   "_Enum"     :: "[i, is] => is"             ("_,/ _")
 
   "_Finset"   :: "is => i"                   ("{(_)}")
-  "_Tuple"    :: "[i, is] => i"              ("<(_,/ _)>")
-  "_Collect"  :: "[pttrn, i, o] => i"        ("(1{_: _ ./ _})")
-  "_Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _: _, _})")
-  "_RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _: _})" [51,0,51])
-  "_INTER"    :: "[pttrn, i, i] => i"        ("(3INT _:_./ _)" 10)
-  "_UNION"    :: "[pttrn, i, i] => i"        ("(3UN _:_./ _)" 10)
-  "_PROD"     :: "[pttrn, i, i] => i"        ("(3PROD _:_./ _)" 10)
-  "_SUM"      :: "[pttrn, i, i] => i"        ("(3SUM _:_./ _)" 10)
-  "_lam"      :: "[pttrn, i, i] => i"        ("(3lam _:_./ _)" 10)
-  "_Ball"     :: "[pttrn, i, o] => o"        ("(3ALL _:_./ _)" 10)
-  "_Bex"      :: "[pttrn, i, o] => o"        ("(3EX _:_./ _)" 10)
+  "_Tuple"    :: "[i, is] => i"              ("\<langle>(_,/ _)\<rangle>")
+  "_Collect"  :: "[pttrn, i, o] => i"        ("(1{_ \<in> _ ./ _})")
+  "_Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _ \<in> _, _})")
+  "_RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _ \<in> _})" [51,0,51])
+  "_UNION"    :: "[pttrn, i, i] => i"        ("(3\<Union>_\<in>_./ _)" 10)
+  "_INTER"    :: "[pttrn, i, i] => i"        ("(3\<Inter>_\<in>_./ _)" 10)
+  "_PROD"     :: "[pttrn, i, i] => i"        ("(3\<Pi> _\<in>_./ _)" 10)
+  "_SUM"      :: "[pttrn, i, i] => i"        ("(3\<Sigma> _\<in>_./ _)" 10)
+  "_lam"      :: "[pttrn, i, i] => i"        ("(3\<lambda>_\<in>_./ _)" 10)
+  "_Ball"     :: "[pttrn, i, o] => o"        ("(3\<forall>_\<in>_./ _)" 10)
+  "_Bex"      :: "[pttrn, i, o] => o"        ("(3\<exists>_\<in>_./ _)" 10)
 
   (** Patterns -- extends pre-defined type "pttrn" used in abstractions **)
 
-  "_pattern"  :: "patterns => pttrn"         ("<_>")
+  "_pattern"  :: "patterns => pttrn"         ("\<langle>_\<rangle>")
   ""          :: "pttrn => patterns"         ("_")
   "_patterns" :: "[pttrn, patterns] => patterns"  ("_,/_")
 
 translations
   "{x, xs}"     == "CONST cons(x, {xs})"
   "{x}"         == "CONST cons(x, 0)"
-  "{x:A. P}"    == "CONST Collect(A, %x. P)"
-  "{y. x:A, Q}" == "CONST Replace(A, %x y. Q)"
-  "{b. x:A}"    == "CONST RepFun(A, %x. b)"
-  "INT x:A. B"  == "CONST Inter({B. x:A})"
-  "UN x:A. B"   == "CONST Union({B. x:A})"
-  "PROD x:A. B" == "CONST Pi(A, %x. B)"
-  "SUM x:A. B"  == "CONST Sigma(A, %x. B)"
-  "lam x:A. f"  == "CONST Lambda(A, %x. f)"
-  "ALL x:A. P"  == "CONST Ball(A, %x. P)"
-  "EX x:A. P"   == "CONST Bex(A, %x. P)"
+  "{x\<in>A. P}"    == "CONST Collect(A, \<lambda>x. P)"
+  "{y. x\<in>A, Q}" == "CONST Replace(A, \<lambda>x y. Q)"
+  "{b. x\<in>A}"    == "CONST RepFun(A, \<lambda>x. b)"
+  "\<Inter>x\<in>A. B"    == "CONST Inter({B. x\<in>A})"
+  "\<Union>x\<in>A. B"    == "CONST Union({B. x\<in>A})"
+  "\<Pi> x\<in>A. B"   == "CONST Pi(A, \<lambda>x. B)"
+  "\<Sigma> x\<in>A. B"   == "CONST Sigma(A, \<lambda>x. B)"
+  "\<lambda>x\<in>A. f"    == "CONST Lambda(A, \<lambda>x. f)"
+  "\<forall>x\<in>A. P"    == "CONST Ball(A, \<lambda>x. P)"
+  "\<exists>x\<in>A. P"    == "CONST Bex(A, \<lambda>x. P)"
 
-  "<x, y, z>"   == "<x, <y, z>>"
-  "<x, y>"      == "CONST Pair(x, y)"
-  "%<x,y,zs>.b" == "CONST split(%x <y,zs>.b)"
-  "%<x,y>.b"    == "CONST split(%x y. b)"
+  "\<langle>x, y, z\<rangle>"   == "\<langle>x, \<langle>y, z\<rangle>\<rangle>"
+  "\<langle>x, y\<rangle>"      == "CONST Pair(x, y)"
+  "\<lambda>\<langle>x,y,zs\<rangle>.b" == "CONST split(\<lambda>x \<langle>y,zs\<rangle>.b)"
+  "\<lambda>\<langle>x,y\<rangle>.b"    == "CONST split(\<lambda>x y. b)"
 
 
-notation (xsymbols)
-  cart_prod       (infixr "\<times>" 80) and
-  Int             (infixl "\<inter>" 70) and
-  Un              (infixl "\<union>" 65) and
+notation (ASCII)
+  cart_prod       (infixr "*" 80) and
+  Int             (infixl "Int" 70) and
+  Un              (infixl "Un" 65) and
   function_space  (infixr "\<rightarrow>" 60) and
-  Subset          (infixl "\<subseteq>" 50) and
-  mem             (infixl "\<in>" 50) and
-  not_mem         (infixl "\<notin>" 50) and
-  Union           ("\<Union>_" [90] 90) and
-  Inter           ("\<Inter>_" [90] 90)
+  Subset          (infixl "<=" 50) and
+  mem             (infixl ":" 50) and
+  not_mem         (infixl "~:" 50)
 
-syntax (xsymbols)
-  "_Collect"  :: "[pttrn, i, o] => i"        ("(1{_ \<in> _ ./ _})")
-  "_Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _ \<in> _, _})")
-  "_RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _ \<in> _})" [51,0,51])
-  "_UNION"    :: "[pttrn, i, i] => i"        ("(3\<Union>_\<in>_./ _)" 10)
-  "_INTER"    :: "[pttrn, i, i] => i"        ("(3\<Inter>_\<in>_./ _)" 10)
-  "_PROD"     :: "[pttrn, i, i] => i"        ("(3\<Pi>_\<in>_./ _)" 10)
-  "_SUM"      :: "[pttrn, i, i] => i"        ("(3\<Sigma>_\<in>_./ _)" 10)
-  "_lam"      :: "[pttrn, i, i] => i"        ("(3\<lambda>_\<in>_./ _)" 10)
-  "_Ball"     :: "[pttrn, i, o] => o"        ("(3\<forall>_\<in>_./ _)" 10)
-  "_Bex"      :: "[pttrn, i, o] => o"        ("(3\<exists>_\<in>_./ _)" 10)
-  "_Tuple"    :: "[i, is] => i"              ("\<langle>(_,/ _)\<rangle>")
-  "_pattern"  :: "patterns => pttrn"         ("\<langle>_\<rangle>")
+syntax (ASCII)
+  "_Collect"  :: "[pttrn, i, o] => i"        ("(1{_: _ ./ _})")
+  "_Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _: _, _})")
+  "_RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _: _})" [51,0,51])
+  "_UNION"    :: "[pttrn, i, i] => i"        ("(3UN _:_./ _)" 10)
+  "_INTER"    :: "[pttrn, i, i] => i"        ("(3INT _:_./ _)" 10)
+  "_PROD"     :: "[pttrn, i, i] => i"        ("(3PROD _:_./ _)" 10)
+  "_SUM"      :: "[pttrn, i, i] => i"        ("(3SUM _:_./ _)" 10)
+  "_lam"      :: "[pttrn, i, i] => i"        ("(3lam _:_./ _)" 10)
+  "_Ball"     :: "[pttrn, i, o] => o"        ("(3ALL _:_./ _)" 10)
+  "_Bex"      :: "[pttrn, i, o] => o"        ("(3EX _:_./ _)" 10)
+  "_Tuple"    :: "[i, is] => i"              ("<(_,/ _)>")
+  "_pattern"  :: "patterns => pttrn"         ("<_>")
 
 defs  (* Bounded Quantifiers *)
   Ball_def:      "Ball(A, P) == \<forall>x. x\<in>A \<longrightarrow> P(x)"
@@ -629,4 +626,3 @@ lemma cantor: "\<exists>S \<in> Pow(A). \<forall>x\<in>A. b(x) \<noteq> S"
 by (best elim!: equalityCE del: ReplaceI RepFun_eqI)
 
 end
-
