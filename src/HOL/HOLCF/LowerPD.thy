@@ -74,11 +74,9 @@ done
 
 subsection {* Type definition *}
 
-typedef 'a lower_pd =
+typedef 'a lower_pd  ("('(_')\<flat>)") =
   "{S::'a pd_basis set. lower_le.ideal S}"
 by (rule lower_le.ex_ideal)
-
-type_notation (xsymbols) lower_pd ("('(_')\<flat>)")
 
 instantiation lower_pd :: (bifinite) below
 begin

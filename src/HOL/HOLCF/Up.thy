@@ -13,10 +13,7 @@ default_sort cpo
 
 subsection {* Definition of new type for lifting *}
 
-datatype 'a u = Ibottom | Iup 'a
-
-type_notation (xsymbols)
-  u  ("(_\<^sub>\<bottom>)" [1000] 999)
+datatype 'a u  ("(_\<^sub>\<bottom>)" [1000] 999) = Ibottom | Iup 'a
 
 primrec Ifup :: "('a \<rightarrow> 'b::pcpo) \<Rightarrow> 'a u \<Rightarrow> 'b" where
     "Ifup f Ibottom = \<bottom>"

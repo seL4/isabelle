@@ -17,18 +17,18 @@ class below =
   fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 begin
 
-notation
+notation (ASCII)
   below (infix "<<" 50)
 
-notation (xsymbols)
+notation
   below (infix "\<sqsubseteq>" 50)
 
 abbreviation
-  not_below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "~<<" 50)
+  not_below :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<notsqsubseteq>" 50)
   where "not_below x y \<equiv> \<not> below x y"
 
-notation (xsymbols)
-  not_below (infix "\<notsqsubseteq>" 50)
+notation (ASCII)
+  not_below  (infix "~<<" 50)
 
 lemma below_eq_trans: "\<lbrakk>a \<sqsubseteq> b; b = c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
   by (rule subst)
@@ -112,10 +112,10 @@ definition lub :: "'a set \<Rightarrow> 'a" where
 
 end
 
-syntax
+syntax (ASCII)
   "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" ("(3LUB _:_./ _)" [0,0, 10] 10)
 
-syntax (xsymbols)
+syntax
   "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" ("(3\<Squnion>_\<in>_./ _)" [0,0, 10] 10)
 
 translations
@@ -125,11 +125,11 @@ context po
 begin
 
 abbreviation
-  Lub  (binder "LUB " 10) where
-  "LUB n. t n == lub (range t)"
+  Lub  (binder "\<Squnion>" 10) where
+  "\<Squnion>n. t n == lub (range t)"
 
-notation (xsymbols)
-  Lub  (binder "\<Squnion>" 10)
+notation (ASCII)
+  Lub  (binder "LUB " 10)
 
 text {* access to some definition as inference rule *}
 

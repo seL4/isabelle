@@ -72,11 +72,9 @@ done
 
 subsection {* Type definition *}
 
-typedef 'a upper_pd =
+typedef 'a upper_pd  ("('(_')\<sharp>)") =
   "{S::'a pd_basis set. upper_le.ideal S}"
 by (rule upper_le.ex_ideal)
-
-type_notation (xsymbols) upper_pd ("('(_')\<sharp>)")
 
 instantiation upper_pd :: (bifinite) below
 begin

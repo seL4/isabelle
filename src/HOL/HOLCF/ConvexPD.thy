@@ -119,11 +119,9 @@ done
 
 subsection {* Type definition *}
 
-typedef 'a convex_pd =
+typedef 'a convex_pd  ("('(_')\<natural>)") =
   "{S::'a pd_basis set. convex_le.ideal S}"
 by (rule convex_le.ex_ideal)
-
-type_notation (xsymbols) convex_pd ("('(_')\<natural>)")
 
 instantiation convex_pd :: (bifinite) below
 begin

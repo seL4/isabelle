@@ -15,16 +15,16 @@ subsection {* Definition of continuous function type *}
 
 definition "cfun = {f::'a => 'b. cont f}"
 
-cpodef ('a, 'b) cfun (infixr "->" 0) = "cfun :: ('a => 'b) set"
+cpodef ('a, 'b) cfun ("(_ \<rightarrow>/ _)" [1, 0] 0) = "cfun :: ('a => 'b) set"
   unfolding cfun_def by (auto intro: cont_const adm_cont)
 
-type_notation (xsymbols)
-  cfun  ("(_ \<rightarrow>/ _)" [1, 0] 0)
+type_notation (ASCII)
+  cfun  (infixr "->" 0)
 
-notation
+notation (ASCII)
   Rep_cfun  ("(_$/_)" [999,1000] 999)
 
-notation (xsymbols)
+notation
   Rep_cfun  ("(_\<cdot>/_)" [999,1000] 999)
 
 
@@ -45,10 +45,10 @@ print_translation {*
 
 text {* Syntax for nested abstractions *}
 
-syntax
+syntax (ASCII)
   "_Lambda" :: "[cargs, logic] \<Rightarrow> logic"  ("(3LAM _./ _)" [1000, 10] 10)
 
-syntax (xsymbols)
+syntax
   "_Lambda" :: "[cargs, logic] \<Rightarrow> logic" ("(3\<Lambda> _./ _)" [1000, 10] 10)
 
 parse_ast_translation {*

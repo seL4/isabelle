@@ -19,14 +19,14 @@ definition
       (fst p = TT \<and> fst (snd p) \<noteq> \<bottom> \<and> snd (snd p) = \<bottom>) \<or>
       (fst p = FF \<and> fst (snd p) = \<bottom> \<and> snd (snd p) \<noteq> \<bottom>)}"
 
-pcpodef ('a, 'b) ssum (infixr "++" 10) = "ssum :: (tr \<times> 'a \<times> 'b) set"
+pcpodef ('a, 'b) ssum  ("(_ \<oplus>/ _)" [21, 20] 20) = "ssum :: (tr \<times> 'a \<times> 'b) set"
   unfolding ssum_def by simp_all
 
 instance ssum :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
 by (rule typedef_chfin [OF type_definition_ssum below_ssum_def])
 
-type_notation (xsymbols)
-  ssum  ("(_ \<oplus>/ _)" [21, 20] 20)
+type_notation (ASCII)
+  ssum  (infixr "++" 10)
 
 
 subsection {* Definitions of constructors *}

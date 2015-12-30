@@ -143,11 +143,8 @@ class pcpo = cpo +
   assumes least: "\<exists>x. \<forall>y. x \<sqsubseteq> y"
 begin
 
-definition bottom :: "'a"
+definition bottom :: "'a"  ("\<bottom>")
   where "bottom = (THE x. \<forall>y. x \<sqsubseteq> y)"
-
-notation (xsymbols)
-  bottom ("\<bottom>")
 
 lemma minimal [iff]: "\<bottom> \<sqsubseteq> x"
 unfolding bottom_def

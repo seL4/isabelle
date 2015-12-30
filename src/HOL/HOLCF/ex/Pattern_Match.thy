@@ -104,13 +104,13 @@ nonterminal Case_pat and Case_syn and Cases_syn
 
 syntax
   "_Case_syntax":: "['a, Cases_syn] => 'b"               ("(Case _ of/ _)" 10)
-  "_Case1"      :: "[Case_pat, 'b] => Case_syn"          ("(2_ =>/ _)" 10)
+  "_Case1"      :: "[Case_pat, 'b] => Case_syn"          ("(2_ \<Rightarrow>/ _)" 10)
   ""            :: "Case_syn => Cases_syn"               ("_")
   "_Case2"      :: "[Case_syn, Cases_syn] => Cases_syn"  ("_/ | _")
   "_strip_positions" :: "'a => Case_pat"                 ("_")
 
-syntax (xsymbols)
-  "_Case1"      :: "[Case_pat, 'b] => Case_syn"          ("(2_ \<Rightarrow>/ _)" 10)
+syntax (ASCII)
+  "_Case1"      :: "[Case_pat, 'b] => Case_syn"          ("(2_ =>/ _)" 10)
 
 translations
   "_Case_syntax x ms" == "CONST cases\<cdot>(ms\<cdot>x)"

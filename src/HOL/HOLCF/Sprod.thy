@@ -15,14 +15,14 @@ subsection {* Definition of strict product type *}
 
 definition "sprod = {p::'a \<times> 'b. p = \<bottom> \<or> (fst p \<noteq> \<bottom> \<and> snd p \<noteq> \<bottom>)}"
 
-pcpodef ('a, 'b) sprod (infixr "**" 20) = "sprod :: ('a \<times> 'b) set"
+pcpodef ('a, 'b) sprod  ("(_ \<otimes>/ _)" [21,20] 20) = "sprod :: ('a \<times> 'b) set"
   unfolding sprod_def by simp_all
 
 instance sprod :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
 by (rule typedef_chfin [OF type_definition_sprod below_sprod_def])
 
-type_notation (xsymbols)
-  sprod  ("(_ \<otimes>/ _)" [21,20] 20)
+type_notation (ASCII)
+  sprod  (infixr "**" 20)
 
 
 subsection {* Definitions of constants *}

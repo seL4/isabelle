@@ -49,11 +49,11 @@ definition
 text {* Binder syntax for @{term fix} *}
 
 abbreviation
-  fix_syn :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  (binder "FIX " 10) where
+  fix_syn :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  (binder "\<mu> " 10) where
   "fix_syn (\<lambda>x. f x) \<equiv> fix\<cdot>(\<Lambda> x. f x)"
 
-notation (xsymbols)
-  fix_syn  (binder "\<mu> " 10)
+notation (ASCII)
+  fix_syn  (binder "FIX " 10)
 
 text {* Properties of @{term fix} *}
 

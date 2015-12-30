@@ -29,16 +29,16 @@ abbreviation
   "<> == \<bottom>"
 
 abbreviation
-  fscons'       :: "'a \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       ("(_~>_)"    [66,65] 65) where
-  "a~>s == fscons a\<cdot>s"
+  fscons'       :: "'a \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       ("(_\<leadsto>_)" [66,65] 65) where
+  "a\<leadsto>s == fscons a\<cdot>s"
 
 abbreviation
-  fsfilter'     :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"   ("(_'(C')_)" [64,63] 63) where
-  "A(C)s == fsfilter A\<cdot>s"
+  fsfilter'     :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"   ("(_\<copyright>_)" [64,63] 63) where
+  "A\<copyright>s == fsfilter A\<cdot>s"
 
-notation (xsymbols)
-  fscons'  ("(_\<leadsto>_)"                                                 [66,65] 65) and
-  fsfilter'  ("(_\<copyright>_)"                                               [64,63] 63)
+notation (ASCII)
+  fscons'  ("(_~>_)" [66,65] 65) and
+  fsfilter'  ("(_'(C')_)" [64,63] 63)
 
 
 lemma Def_maximal: "a = Def d \<Longrightarrow> a\<sqsubseteq>b \<Longrightarrow> b = Def d"
