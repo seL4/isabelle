@@ -93,7 +93,7 @@ lemma Map_cons: "Map f$(x\<leadsto>xs)=(f x) \<leadsto> Map f$xs"
 by (simp add: Map_def Consq_def flift2_def)
 
 
-subsubsection {* Filter *}
+subsubsection \<open>Filter\<close>
 
 lemma Filter_UU: "Filter P$UU =UU"
 by (simp add: Filter_def)
@@ -106,7 +106,7 @@ lemma Filter_cons:
 by (simp add: Filter_def Consq_def flift2_def If_and_if)
 
 
-subsubsection {* Forall *}
+subsubsection \<open>Forall\<close>
 
 lemma Forall_UU: "Forall P UU"
 by (simp add: Forall_def sforall_def)
@@ -118,13 +118,13 @@ lemma Forall_cons: "Forall P (x\<leadsto>xs)= (P x & Forall P xs)"
 by (simp add: Forall_def sforall_def Consq_def flift2_def)
 
 
-subsubsection {* Conc *}
+subsubsection \<open>Conc\<close>
 
 lemma Conc_cons: "(x\<leadsto>xs) @@ y = x\<leadsto>(xs @@y)"
 by (simp add: Consq_def)
 
 
-subsubsection {* Takewhile *}
+subsubsection \<open>Takewhile\<close>
 
 lemma Takewhile_UU: "Takewhile P$UU =UU"
 by (simp add: Takewhile_def)
@@ -137,7 +137,7 @@ lemma Takewhile_cons:
 by (simp add: Takewhile_def Consq_def flift2_def If_and_if)
 
 
-subsubsection {* DropWhile *}
+subsubsection \<open>DropWhile\<close>
 
 lemma Dropwhile_UU: "Dropwhile P$UU =UU"
 by (simp add: Dropwhile_def)
@@ -150,7 +150,7 @@ lemma Dropwhile_cons:
 by (simp add: Dropwhile_def Consq_def flift2_def If_and_if)
 
 
-subsubsection {* Last *}
+subsubsection \<open>Last\<close>
 
 lemma Last_UU: "Last$UU =UU"
 by (simp add: Last_def)
@@ -165,7 +165,7 @@ apply simp_all
 done
 
 
-subsubsection {* Flat *}
+subsubsection \<open>Flat\<close>
 
 lemma Flat_UU: "Flat$UU =UU"
 by (simp add: Flat_def)
@@ -177,7 +177,7 @@ lemma Flat_cons: "Flat$(x##xs)= x @@ (Flat$xs)"
 by (simp add: Flat_def Consq_def)
 
 
-subsubsection {* Zip *}
+subsubsection \<open>Zip\<close>
 
 lemma Zip_unfold:
 "Zip = (LAM t1 t2. case t1 of
@@ -1075,7 +1075,7 @@ apply auto
 done
 
 
-ML {*
+ML \<open>
 
 fun Seq_case_tac ctxt s i =
   Rule_Insts.res_inst_tac ctxt [((("x", 0), Position.none), s)] [] @{thm Seq_cases} i
@@ -1109,6 +1109,6 @@ fun pair_induct_tac ctxt s rws i =
   THEN (REPEAT_DETERM (CHANGED (simp_tac ctxt (i+1))))
   THEN simp_tac (ctxt addsimps rws) i;
 
-*}
+\<close>
 
 end

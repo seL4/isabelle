@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Correctness Proof *}
+section \<open>Correctness Proof\<close>
 
 theory Correctness
 imports SimCorrectness Spec Impl
@@ -30,29 +30,29 @@ lemma issimulation:
       "is_simulation sim_relation impl_ioa spec_ioa"
 apply (simp (no_asm) add: is_simulation_def)
 apply (rule conjI)
-txt {* start states *}
+txt \<open>start states\<close>
 apply (auto)[1]
 apply (rule_tac x = " ({},False) " in exI)
 apply (simp add: sim_relation_def starts_of_def spec_ioa_def impl_ioa_def)
-txt {* main-part *}
+txt \<open>main-part\<close>
 apply (rule allI)+
 apply (rule imp_conj_lemma)
 apply (rename_tac k b used c k' b' a)
 apply (induct_tac "a")
 apply (simp_all (no_asm) add: sim_relation_def impl_ioa_def impl_trans_def trans_of_def)
 apply auto
-txt {* NEW *}
+txt \<open>NEW\<close>
 apply (rule_tac x = "(used,True)" in exI)
 apply simp
 apply (rule transition_is_ex)
 apply (simp (no_asm) add: spec_ioa_def spec_trans_def trans_of_def)
-txt {* LOC *}
+txt \<open>LOC\<close>
 apply (rule_tac x = " (used Un {k},False) " in exI)
 apply (simp add: less_SucI)
 apply (rule transition_is_ex)
 apply (simp (no_asm) add: spec_ioa_def spec_trans_def trans_of_def)
 apply fast
-txt {* FREE *}
+txt \<open>FREE\<close>
 apply (rename_tac nat, rule_tac x = " (used - {nat},c) " in exI)
 apply simp
 apply (rule transition_is_ex)

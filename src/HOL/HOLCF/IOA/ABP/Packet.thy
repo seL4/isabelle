@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Packets *}
+section \<open>Packets\<close>
 
 theory Packet
 imports Main

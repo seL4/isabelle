@@ -6,13 +6,13 @@ theory Lemmas
 imports Main
 begin
 
-subsubsection {* Logic *}
+subsubsection \<open>Logic\<close>
 
 lemma neg_flip: "(X = (~ Y)) = ((~X) = Y)"
   by blast
 
 
-subsection {* Sets *}
+subsection \<open>Sets\<close>
 
 lemma set_lemmas:
   "f(x) : (UN x. {f(x)})"
@@ -22,7 +22,7 @@ lemma set_lemmas:
   by auto
 
 
-subsection {* Arithmetic *}
+subsection \<open>Arithmetic\<close>
 
 lemma pred_suc: "0<x ==> (x - 1 = y) = (x = Suc(y))"
   by (simp add: diff_Suc split add: nat.split)

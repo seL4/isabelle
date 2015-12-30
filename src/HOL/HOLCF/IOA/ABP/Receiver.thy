@@ -2,14 +2,14 @@
     Author:     Olaf Müller
 *)
 
-section {* The implementation: receiver *}
+section \<open>The implementation: receiver\<close>
 
 theory Receiver
 imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action Lemmas
 begin
 
 type_synonym
-  'm receiver_state = "'m list * bool"  -- {* messages, mode *}
+  'm receiver_state = "'m list * bool"  \<comment> \<open>messages, mode\<close>
 
 definition
   rq :: "'m receiver_state => 'm list" where

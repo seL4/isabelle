@@ -2,14 +2,14 @@
     Author:     Olaf Müller
 *)
 
-section {* The implementation: sender *}
+section \<open>The implementation: sender\<close>
 
 theory Sender
 imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action Lemmas
 begin
 
 type_synonym
-  'm sender_state = "'m list  *  bool"  -- {* messages, Alternating Bit *}
+  'm sender_state = "'m list  *  bool"  \<comment> \<open>messages, Alternating Bit\<close>
 
 definition
   sq :: "'m sender_state => 'm list" where

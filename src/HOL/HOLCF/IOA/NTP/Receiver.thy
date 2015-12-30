@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow & Konrad Slind
 *)
 
-section {* The implementation: receiver *}
+section \<open>The implementation: receiver\<close>
 
 theory Receiver
 imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action

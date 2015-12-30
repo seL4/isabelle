@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Refinement Mappings in HOLCF/IOA *}
+section \<open>Refinement Mappings in HOLCF/IOA\<close>
 
 theory RefMappings
 imports Traces

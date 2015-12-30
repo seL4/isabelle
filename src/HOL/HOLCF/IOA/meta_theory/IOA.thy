@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* The theory of I/O automata in HOLCF *}
+section \<open>The theory of I/O automata in HOLCF\<close>
 
 theory IOA
 imports SimCorrectness Compositionality Deadlock

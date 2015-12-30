@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* The implementation of a memory *}
+section \<open>The implementation of a memory\<close>
 
 theory Impl
 imports IOA Action

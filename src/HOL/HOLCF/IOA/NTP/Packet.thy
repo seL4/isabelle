@@ -18,7 +18,7 @@ definition
   "msg == snd"
 
 
-text {* Instantiation of a tautology? *}
+text \<open>Instantiation of a tautology?\<close>
 lemma eq_packet_imp_eq_hdr: "!x. x = packet --> hdr(x) = hdr(packet)"
   by simp
 

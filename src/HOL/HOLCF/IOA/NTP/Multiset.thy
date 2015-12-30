@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow & Konrad Slind
 *)
 
-section {* Axiomatic multisets *}
+section \<open>Axiomatic multisets\<close>
 
 theory Multiset
 imports Lemmas

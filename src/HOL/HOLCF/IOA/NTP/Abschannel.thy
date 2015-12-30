@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* The (faulty) transmission channel (both directions) *}
+section \<open>The (faulty) transmission channel (both directions)\<close>
 
 theory Abschannel
 imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action

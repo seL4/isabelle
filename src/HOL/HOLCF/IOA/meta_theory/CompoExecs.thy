@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Compositionality on Execution level *}
+section \<open>Compositionality on Execution level\<close>
 
 theory CompoExecs
 imports Traces
@@ -215,7 +215,7 @@ lemma lemma_1_1a: "!s. is_exec_frag (A\<parallel>B) (s,xs)
        -->  is_exec_frag A (fst s, Filter_ex2 (asig_of A)$(ProjA2$xs)) &
             is_exec_frag B (snd s, Filter_ex2 (asig_of B)$(ProjB2$xs))"
 
-apply (tactic {* pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}] 1 *})
+apply (tactic \<open>pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}] 1\<close>)
 (* main case *)
 apply (auto simp add: trans_of_defs2)
 done
@@ -229,8 +229,8 @@ lemma lemma_1_1b: "!s. is_exec_frag (A\<parallel>B) (s,xs)
        --> stutter (asig_of A) (fst s,ProjA2$xs)  &
            stutter (asig_of B) (snd s,ProjB2$xs)"
 
-apply (tactic {* pair_induct_tac @{context} "xs"
-  [@{thm stutter_def}, @{thm is_exec_frag_def}] 1 *})
+apply (tactic \<open>pair_induct_tac @{context} "xs"
+  [@{thm stutter_def}, @{thm is_exec_frag_def}] 1\<close>)
 (* main case *)
 apply (auto simp add: trans_of_defs2)
 done
@@ -243,8 +243,8 @@ done
 lemma lemma_1_1c: "!s. (is_exec_frag (A\<parallel>B) (s,xs)
    --> Forall (%x. fst x:act (A\<parallel>B)) xs)"
 
-apply (tactic {* pair_induct_tac @{context} "xs" [@{thm Forall_def}, @{thm sforall_def},
-  @{thm is_exec_frag_def}] 1 *})
+apply (tactic \<open>pair_induct_tac @{context} "xs" [@{thm Forall_def}, @{thm sforall_def},
+  @{thm is_exec_frag_def}] 1\<close>)
 (* main case *)
 apply auto
 apply (simp add: trans_of_defs2 actions_asig_comp asig_of_par)
@@ -263,13 +263,13 @@ lemma lemma_1_2:
      Forall (%x. fst x:act (A\<parallel>B)) xs
      --> is_exec_frag (A\<parallel>B) (s,xs)"
 
-apply (tactic {* pair_induct_tac @{context} "xs" [@{thm Forall_def}, @{thm sforall_def},
-  @{thm is_exec_frag_def}, @{thm stutter_def}] 1 *})
+apply (tactic \<open>pair_induct_tac @{context} "xs" [@{thm Forall_def}, @{thm sforall_def},
+  @{thm is_exec_frag_def}, @{thm stutter_def}] 1\<close>)
 apply (auto simp add: trans_of_defs1 actions_asig_comp asig_of_par)
 done
 
 
-subsection {* COMPOSITIONALITY on EXECUTION Level -- Main Theorem *}
+subsection \<open>COMPOSITIONALITY on EXECUTION Level -- Main Theorem\<close>
 
 lemma compositionality_ex:
 "(ex:executions(A\<parallel>B)) =
@@ -279,7 +279,7 @@ lemma compositionality_ex:
   Forall (%x. fst x:act (A\<parallel>B)) (snd ex))"
 
 apply (simp (no_asm) add: executions_def ProjB_def Filter_ex_def ProjA_def starts_of_par)
-apply (tactic {* pair_tac @{context} "ex" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
 apply (rule iffI)
 (* ==>  *)
 apply (erule conjE)+
@@ -290,7 +290,7 @@ apply (simp add: lemma_1_2)
 done
 
 
-subsection {* COMPOSITIONALITY on EXECUTION Level -- for Modules *}
+subsection \<open>COMPOSITIONALITY on EXECUTION Level -- for Modules\<close>
 
 lemma compositionality_ex_modules:
   "Execs (A\<parallel>B) = par_execs (Execs A) (Execs B)"

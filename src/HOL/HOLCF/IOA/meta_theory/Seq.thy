@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Partial, Finite and Infinite Sequences (lazy lists), modeled as domain *}
+section \<open>Partial, Finite and Infinite Sequences (lazy lists), modeled as domain\<close>
 
 theory Seq
 imports "../../HOLCF"
@@ -51,9 +51,9 @@ where
   "Infinite x == ~(seq_finite x)"
 
 
-subsection {* recursive equations of operators *}
+subsection \<open>recursive equations of operators\<close>
 
-subsubsection {* smap *}
+subsubsection \<open>smap\<close>
 
 fixrec
   smap :: "('a -> 'b) -> 'a seq -> 'b seq"
@@ -64,7 +64,7 @@ where
 lemma smap_UU [simp]: "smap$f$UU=UU"
 by fixrec_simp
 
-subsubsection {* sfilter *}
+subsubsection \<open>sfilter\<close>
 
 fixrec
    sfilter :: "('a -> tr) -> 'a seq -> 'a seq"
@@ -77,7 +77,7 @@ where
 lemma sfilter_UU [simp]: "sfilter$P$UU=UU"
 by fixrec_simp
 
-subsubsection {* sforall2 *}
+subsubsection \<open>sforall2\<close>
 
 fixrec
   sforall2 :: "('a -> tr) -> 'a seq -> tr"
@@ -92,7 +92,7 @@ by fixrec_simp
 definition
   sforall_def: "sforall P t == (sforall2$P$t ~=FF)"
 
-subsubsection {* stakewhile *}
+subsubsection \<open>stakewhile\<close>
 
 fixrec
   stakewhile :: "('a -> tr)  -> 'a seq -> 'a seq"
@@ -105,7 +105,7 @@ where
 lemma stakewhile_UU [simp]: "stakewhile$P$UU=UU"
 by fixrec_simp
 
-subsubsection {* sdropwhile *}
+subsubsection \<open>sdropwhile\<close>
 
 fixrec
   sdropwhile :: "('a -> tr) -> 'a seq -> 'a seq"
@@ -118,7 +118,7 @@ where
 lemma sdropwhile_UU [simp]: "sdropwhile$P$UU=UU"
 by fixrec_simp
 
-subsubsection {* slast *}
+subsubsection \<open>slast\<close>
 
 fixrec
   slast :: "'a seq -> 'a"
@@ -130,7 +130,7 @@ where
 lemma slast_UU [simp]: "slast$UU=UU"
 by fixrec_simp
 
-subsubsection {* sconc *}
+subsubsection \<open>sconc\<close>
 
 fixrec
   sconc :: "'a seq -> 'a seq -> 'a seq"
@@ -153,7 +153,7 @@ done
 
 declare sconc_cons' [simp del]
 
-subsubsection {* sflat *}
+subsubsection \<open>sflat\<close>
 
 fixrec
   sflat :: "('a seq) seq -> 'a seq"
@@ -169,7 +169,7 @@ by (cases "x=UU", simp_all)
 
 declare sflat_cons' [simp del]
 
-subsubsection {* szip *}
+subsubsection \<open>szip\<close>
 
 fixrec
   szip :: "'a seq -> 'b seq -> ('a*'b) seq"

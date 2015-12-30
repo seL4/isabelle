@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Abstraction Theory -- tailored for I/O automata *}
+section \<open>Abstraction Theory -- tailored for I/O automata\<close>
 
 theory Abstraction
 imports LiveIOA
@@ -14,7 +14,7 @@ definition
   cex_abs :: "('s1 => 's2) => ('a,'s1)execution => ('a,'s2)execution" where
   "cex_abs f ex = (f (fst ex), Map (%(a,t). (a,f t))$(snd ex))"
 definition
-  -- {* equals cex_abs on Sequences -- after ex2seq application *}
+  \<comment> \<open>equals cex_abs on Sequences -- after ex2seq application\<close>
   cex_absSeq :: "('s1 => 's2) => ('a option,'s1)transition Seq => ('a option,'s2)transition Seq" where
   "cex_absSeq f = (%s. Map (%(s,a,t). (f s,a,f t))$s)"
 
@@ -102,8 +102,8 @@ lemma exec_frag_abstraction [rule_format]:
   --> is_exec_frag A (cex_abs h (s,xs))"
 apply (unfold cex_abs_def)
 apply simp
-apply (tactic {* pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}] 1 *})
-txt {* main case *}
+apply (tactic \<open>pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}] 1\<close>)
+txt \<open>main case\<close>
 apply (auto dest: reachable.reachable_n simp add: is_abstraction_def)
 done
 
@@ -112,10 +112,10 @@ lemma abs_is_weakening: "is_abstraction h C A ==> weakeningIOA A C h"
 apply (simp add: weakeningIOA_def)
 apply auto
 apply (simp add: executions_def)
-txt {* start state *}
+txt \<open>start state\<close>
 apply (rule conjI)
 apply (simp add: is_abstraction_def cex_abs_def)
-txt {* is-execution-fragment *}
+txt \<open>is-execution-fragment\<close>
 apply (erule exec_frag_abstraction)
 apply (simp add: reachable.reachable_0)
 done
@@ -202,7 +202,7 @@ lemma traces_coincide_abs:
          ==> mk_trace C$xs = mk_trace A$(snd (cex_abs f (s,xs)))"
 apply (unfold cex_abs_def mk_trace_def filter_act_def)
 apply simp
-apply (tactic {* pair_induct_tac @{context} "xs" [] 1 *})
+apply (tactic \<open>pair_induct_tac @{context} "xs" [] 1\<close>)
 done
 
 
@@ -218,13 +218,13 @@ apply auto
 apply (rule_tac x = "cex_abs h ex" in exI)
 apply auto
   (* Traces coincide *)
-  apply (tactic {* pair_tac @{context} "ex" 1 *})
+  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
   apply (rule traces_coincide_abs)
   apply (simp (no_asm) add: externals_def)
   apply (auto)[1]
 
   (* cex_abs is execution *)
-  apply (tactic {* pair_tac @{context} "ex" 1 *})
+  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
   apply (simp add: executions_def)
   (* start state *)
   apply (rule conjI)
@@ -235,7 +235,7 @@ apply auto
 
  (* Liveness *)
 apply (simp add: temp_weakening_def2)
- apply (tactic {* pair_tac @{context} "ex" 1 *})
+ apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
 done
 
 (* FIX: NAch Traces.ML bringen *)
@@ -348,29 +348,29 @@ apply (simp add: temp_weakening_def2)
 done
 
 
-subsubsection {* Box *}
+subsubsection \<open>Box\<close>
 
 (* FIX: should be same as nil_is_Conc2 when all nils are turned to right side !! *)
 lemma UU_is_Conc: "(UU = x @@ y) = (((x::'a Seq)= UU) | (x=nil & y=UU))"
-apply (tactic {* Seq_case_simp_tac @{context} "x" 1 *})
+apply (tactic \<open>Seq_case_simp_tac @{context} "x" 1\<close>)
 done
 
 lemma ex2seqConc [rule_format]:
 "Finite s1 -->
   (! ex. (s~=nil & s~=UU & ex2seq ex = s1 @@ s) --> (? ex'. s = ex2seq ex'))"
 apply (rule impI)
-apply (tactic {* Seq_Finite_induct_tac @{context} 1 *})
+apply (tactic \<open>Seq_Finite_induct_tac @{context} 1\<close>)
 apply blast
 (* main case *)
 apply clarify
-apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
 (* UU case *)
 apply (simp add: nil_is_Conc)
 (* nil case *)
 apply (simp add: nil_is_Conc)
 (* cons case *)
-apply (tactic {* pair_tac @{context} "aa" 1 *})
+apply (tactic \<open>pair_tac @{context} "aa" 1\<close>)
 apply auto
 done
 
@@ -388,11 +388,11 @@ done
 (* FIX: NAch Sequence.ML bringen *)
 
 lemma Mapnil: "(Map f$s = nil) = (s=nil)"
-apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
+apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
 done
 
 lemma MapUU: "(Map f$s = UU) = (s=UU)"
-apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
+apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
 done
 
 
@@ -422,7 +422,7 @@ apply (simp add: ex2seq_abs_cex)
 done
 
 
-subsubsection {* Init *}
+subsubsection \<open>Init\<close>
 
 lemma strength_Init:
 "[| state_strengthening P Q h |]
@@ -430,35 +430,35 @@ lemma strength_Init:
 apply (unfold temp_strengthening_def state_strengthening_def
   temp_sat_def satisfies_def Init_def unlift_def)
 apply auto
-apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
 done
 
 
-subsubsection {* Next *}
+subsubsection \<open>Next\<close>
 
 lemma TL_ex2seq_UU:
 "(TL$(ex2seq (cex_abs h ex))=UU) = (TL$(ex2seq ex)=UU)"
-apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
 done
 
 lemma TL_ex2seq_nil:
 "(TL$(ex2seq (cex_abs h ex))=nil) = (TL$(ex2seq ex)=nil)"
-apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
 done
 
 (* FIX: put to Sequence Lemmas *)
 lemma MapTL: "Map f$(TL$s) = TL$(Map f$s)"
-apply (tactic {* Seq_induct_tac @{context} "s" [] 1 *})
+apply (tactic \<open>Seq_induct_tac @{context} "s" [] 1\<close>)
 done
 
 (* important property of cex_absSeq: As it is a 1to1 correspondence,
@@ -473,19 +473,19 @@ done
 (* important property of ex2seq: can be shiftet, as defined "pointwise" *)
 
 lemma TLex2seq: "[| (snd ex)~=UU ; (snd ex)~=nil |] ==> (? ex'. TL$(ex2seq ex) = ex2seq ex')"
-apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
 apply auto
 done
 
 
 lemma ex2seqnilTL: "(TL$(ex2seq ex)~=nil) = ((snd ex)~=nil & (snd ex)~=UU)"
-apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
 done
 
 
@@ -508,7 +508,7 @@ apply auto
 done
 
 
-text {* Localizing Temporal Weakenings     - 2 *}
+text \<open>Localizing Temporal Weakenings     - 2\<close>
 
 lemma weak_Init:
 "[| state_weakening P Q h |]
@@ -516,13 +516,13 @@ lemma weak_Init:
 apply (simp add: temp_weakening_def2 state_weakening_def2
   temp_sat_def satisfies_def Init_def unlift_def)
 apply auto
-apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
 done
 
 
-text {* Localizing Temproal Strengthenings - 3 *}
+text \<open>Localizing Temproal Strengthenings - 3\<close>
 
 lemma strength_Diamond:
 "[| temp_strengthening P Q h |]
@@ -544,7 +544,7 @@ apply (erule strength_Diamond)
 done
 
 
-text {* Localizing Temporal Weakenings - 3 *}
+text \<open>Localizing Temporal Weakenings - 3\<close>
 
 lemma weak_Diamond:
 "[| temp_weakening P Q h |]
@@ -602,13 +602,13 @@ lemmas weak_strength_lemmas =
   strength_IMPLIES strength_Box strength_Next strength_Init
   strength_Diamond strength_Leadsto weak_WF weak_SF
 
-ML {*
+ML \<open>
 fun abstraction_tac ctxt =
   SELECT_GOAL (auto_tac
     (ctxt addSIs @{thms weak_strength_lemmas}
       addsimps [@{thm state_strengthening_def}, @{thm state_weakening_def}]))
-*}
+\<close>
 
-method_setup abstraction = {* Scan.succeed (SIMPLE_METHOD' o abstraction_tac) *}
+method_setup abstraction = \<open>Scan.succeed (SIMPLE_METHOD' o abstraction_tac)\<close>
 
 end

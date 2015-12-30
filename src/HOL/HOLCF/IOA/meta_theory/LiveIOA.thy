@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Live I/O automata -- specified by temproal formulas *}
+section \<open>Live I/O automata -- specified by temproal formulas\<close>
 
 theory LiveIOA
 imports TLS
@@ -61,14 +61,14 @@ apply auto
 apply (rule_tac x = "corresp_ex A f ex" in exI)
 apply auto
   (* Traces coincide, Lemma 1 *)
-  apply (tactic {* pair_tac @{context} "ex" 1 *})
+  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
   apply (erule lemma_1 [THEN spec, THEN mp])
   apply (simp (no_asm) add: externals_def)
   apply (auto)[1]
   apply (simp add: executions_def reachable.reachable_0)
 
   (* corresp_ex is execution, Lemma 2 *)
-  apply (tactic {* pair_tac @{context} "ex" 1 *})
+  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
   apply (simp add: executions_def)
   (* start state *)
   apply (rule conjI)

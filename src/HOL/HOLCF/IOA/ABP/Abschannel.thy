@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* The transmission channel *}
+section \<open>The transmission channel\<close>
 
 theory Abschannel
 imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action Lemmas

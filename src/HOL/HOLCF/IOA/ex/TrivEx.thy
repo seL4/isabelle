@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Trivial Abstraction Example *}
+section \<open>Trivial Abstraction Example\<close>
 
 theory TrivEx
 imports Abstraction
@@ -51,9 +51,9 @@ lemma h_abs_is_abstraction:
   "is_abstraction h_abs C_ioa A_ioa"
 apply (unfold is_abstraction_def)
 apply (rule conjI)
-txt {* start states *}
+txt \<open>start states\<close>
 apply (simp (no_asm) add: h_abs_def starts_of_def C_ioa_def A_ioa_def)
-txt {* step case *}
+txt \<open>step case\<close>
 apply (rule allI)+
 apply (rule imp_conj_lemma)
 apply (simp (no_asm) add: trans_of_def C_ioa_def A_ioa_def C_trans_def A_trans_def)

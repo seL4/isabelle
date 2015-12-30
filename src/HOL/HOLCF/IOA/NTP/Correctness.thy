@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow & Konrad Slind
 *)
 
-section {* The main correctness proof: Impl implements Spec *}
+section \<open>The main correctness proof: Impl implements Spec\<close>
 
 theory Correctness
 imports Impl Spec
@@ -13,7 +13,7 @@ definition
   "hom s = rq(rec(s)) @ (if rbit(rec s) = sbit(sen s) then sq(sen s)
                          else tl(sq(sen s)))"
 
-setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
+setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
 
 lemmas hom_ioas = Spec.ioa_def Spec.trans_def sender_trans_def receiver_trans_def impl_ioas
   and impl_asigs = sender_asig_def receiver_asig_def srch_asig_def rsch_asig_def
@@ -21,10 +21,10 @@ lemmas hom_ioas = Spec.ioa_def Spec.trans_def sender_trans_def receiver_trans_de
 declare split_paired_All [simp del]
 
 
-text {*
+text \<open>
   A lemma about restricting the action signature of the implementation
   to that of the specification.
-*}
+\<close>
 
 lemma externals_lemma: 
  "a:externals(asig_of(Automata.restrict impl_ioa (externals spec_sig))) =  
@@ -43,12 +43,12 @@ lemma externals_lemma:
 
   apply (induct_tac "a")
   apply (simp_all (no_asm) add: actions_def asig_projections)
-  txt {* 2 *}
+  txt \<open>2\<close>
   apply (simp (no_asm) add: impl_ioas)
   apply (simp (no_asm) add: impl_asigs)
   apply (simp (no_asm) add: asig_of_par asig_comp_def asig_projections)
   apply (simp (no_asm) add: "transitions"(1) unfold_renaming)
-  txt {* 1 *}
+  txt \<open>1\<close>
   apply (simp (no_asm) add: impl_ioas)
   apply (simp (no_asm) add: impl_asigs)
   apply (simp (no_asm) add: asig_of_par asig_comp_def asig_projections)
@@ -57,7 +57,7 @@ lemma externals_lemma:
 lemmas sels = sbit_def sq_def ssending_def rbit_def rq_def rsending_def
 
 
-text {* Proof of correctness *}
+text \<open>Proof of correctness\<close>
 lemma ntp_correct:
   "is_weak_ref_map hom (Automata.restrict impl_ioa (externals spec_sig)) spec_ioa"
 apply (unfold Spec.ioa_def is_weak_ref_map_def)

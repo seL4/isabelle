@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Trivial Abstraction Example with fairness *}
+section \<open>Trivial Abstraction Example with fairness\<close>
 
 theory TrivEx2
 imports IOA Abstraction
@@ -58,9 +58,9 @@ lemma h_abs_is_abstraction:
 "is_abstraction h_abs C_ioa A_ioa"
 apply (unfold is_abstraction_def)
 apply (rule conjI)
-txt {* start states *}
+txt \<open>start states\<close>
 apply (simp (no_asm) add: h_abs_def starts_of_def C_ioa_def A_ioa_def)
-txt {* step case *}
+txt \<open>step case\<close>
 apply (rule allI)+
 apply (rule imp_conj_lemma)
 apply (simp (no_asm) add: trans_of_def C_ioa_def A_ioa_def C_trans_def A_trans_def)
@@ -81,9 +81,9 @@ lemma h_abs_is_liveabstraction:
 "is_live_abstraction h_abs (C_ioa, WF C_ioa {INC}) (A_ioa, WF A_ioa {INC})"
 apply (unfold is_live_abstraction_def)
 apply auto
-txt {* is_abstraction *}
+txt \<open>is_abstraction\<close>
 apply (rule h_abs_is_abstraction)
-txt {* temp_weakening *}
+txt \<open>temp_weakening\<close>
 apply abstraction
 apply (erule Enabled_implication)
 done

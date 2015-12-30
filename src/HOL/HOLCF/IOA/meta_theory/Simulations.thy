@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Simulations in HOLCF/IOA *}
+section \<open>Simulations in HOLCF/IOA\<close>
 
 theory Simulations
 imports RefCorrectness

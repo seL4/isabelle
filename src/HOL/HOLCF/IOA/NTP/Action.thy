@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow & Konrad Slind
 *)
 
-section {* The set of all actions of the system *}
+section \<open>The set of all actions of the system\<close>
 
 theory Action
 imports Packet

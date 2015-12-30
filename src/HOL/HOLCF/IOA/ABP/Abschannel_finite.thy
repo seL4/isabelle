@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* The transmission channel -- finite version *}
+section \<open>The transmission channel -- finite version\<close>
 
 theory Abschannel_finite
 imports Abschannel "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action Lemmas

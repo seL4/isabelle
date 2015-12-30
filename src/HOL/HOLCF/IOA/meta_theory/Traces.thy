@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Executions and Traces of I/O automata in HOLCF *}
+section \<open>Executions and Traces of I/O automata in HOLCF\<close>
 
 theory Traces
 imports Sequence Automata
@@ -203,7 +203,7 @@ Traces_def:
 
 lemmas [simp del] = HOL.ex_simps HOL.all_simps split_paired_Ex
 declare Let_def [simp]
-setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
+setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
 
 lemmas exec_rws = executions_def is_exec_frag_def
 
@@ -367,8 +367,8 @@ subsection "signatures and executions, schedules"
 lemma execfrag_in_sig: 
   "!! A. is_trans_of A ==>  
   ! s. is_exec_frag A (s,xs) --> Forall (%a. a:act A) (filter_act$xs)"
-apply (tactic {* pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def},
-  @{thm Forall_def}, @{thm sforall_def}] 1 *})
+apply (tactic \<open>pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def},
+  @{thm Forall_def}, @{thm sforall_def}] 1\<close>)
 (* main case *)
 apply (auto simp add: is_trans_of_def)
 done
@@ -377,7 +377,7 @@ lemma exec_in_sig:
   "!! A.[|  is_trans_of A; x:executions A |] ==>  
   Forall (%a. a:act A) (filter_act$(snd x))"
 apply (simp add: executions_def)
-apply (tactic {* pair_tac @{context} "x" 1 *})
+apply (tactic \<open>pair_tac @{context} "x" 1\<close>)
 apply (rule execfrag_in_sig [THEN spec, THEN mp])
 apply auto
 done
@@ -394,10 +394,10 @@ subsection "executions are prefix closed"
 
 (* only admissible in y, not if done in x !! *)
 lemma execfrag_prefixclosed: "!x s. is_exec_frag A (s,x) & y<<x  --> is_exec_frag A (s,y)"
-apply (tactic {* pair_induct_tac @{context} "y" [@{thm is_exec_frag_def}] 1 *})
+apply (tactic \<open>pair_induct_tac @{context} "y" [@{thm is_exec_frag_def}] 1\<close>)
 apply (intro strip)
-apply (tactic {* Seq_case_simp_tac @{context} "x" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic \<open>Seq_case_simp_tac @{context} "x" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
 apply auto
 done
 
@@ -409,10 +409,10 @@ lemmas exec_prefixclosed =
 
 lemma exec_prefix2closed [rule_format]:
   "! y s. is_exec_frag A (s,x@@y) --> is_exec_frag A (s,x)"
-apply (tactic {* pair_induct_tac @{context} "x" [@{thm is_exec_frag_def}] 1 *})
+apply (tactic \<open>pair_induct_tac @{context} "x" [@{thm is_exec_frag_def}] 1\<close>)
 apply (intro strip)
-apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
 apply auto
 done
 

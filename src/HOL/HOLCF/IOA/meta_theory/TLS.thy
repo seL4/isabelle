@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Temporal Logic of Steps -- tailored for I/O automata *}
+section \<open>Temporal Logic of Steps -- tailored for I/O automata\<close>
 
 theory TLS
 imports IOA TL
@@ -92,10 +92,10 @@ mkfin_cons:
 
 lemmas [simp del] = HOL.ex_simps HOL.all_simps split_paired_Ex
 
-setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
+setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
 
 
-subsection {* ex2seqC *}
+subsection \<open>ex2seqC\<close>
 
 lemma ex2seqC_unfold: "ex2seqC  = (LAM ex. (%s. case ex of  
        nil =>  (s,None,s)\<leadsto>nil    
@@ -151,13 +151,13 @@ declare ex2seq_UU [simp] ex2seq_nil [simp] ex2seq_cons [simp]
 
 
 lemma ex2seq_nUUnnil: "ex2seq exec ~= UU & ex2seq exec ~= nil"
-apply (tactic {* pair_tac @{context} "exec" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic \<open>pair_tac @{context} "exec" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
 done
 
 
-subsection {* Interface TL -- TLS *}
+subsection \<open>Interface TL -- TLS\<close>
 
 (* uses the fact that in executions states overlap, which is lost in 
    after the translation via ex2seq !! *)
@@ -172,31 +172,31 @@ apply clarify
 apply (simp split add: split_if)
 (* TL = UU *)
 apply (rule conjI)
-apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
 (* TL = nil *)
 apply (rule conjI)
-apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_tac @{context} "x2" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+apply (tactic \<open>Seq_case_tac @{context} "x2" 1\<close>)
 apply (simp add: unlift_def)
 apply fast
 apply (simp add: unlift_def)
 apply fast
 apply (simp add: unlift_def)
-apply (tactic {* pair_tac @{context} "a" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
 (* TL =cons *)
 apply (simp add: unlift_def)
 
-apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
-apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
 done
 
 end

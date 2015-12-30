@@ -6,12 +6,12 @@ theory ShortExecutions
 imports Traces
 begin
 
-text {*
-  Some properties about @{text "Cut ex"}, defined as follows:
+text \<open>
+  Some properties about \<open>Cut ex\<close>, defined as follows:
 
-  For every execution ex there is another shorter execution @{text "Cut ex"}
+  For every execution ex there is another shorter execution \<open>Cut ex\<close>
   that has the same trace as ex, but its schedule ends with an external action.
-*}
+\<close>
 
 definition
   oraclebuild :: "('a => bool) => 'a Seq -> 'a Seq -> 'a Seq" where
@@ -47,12 +47,12 @@ axiomatization where
   LastActExtsmall2: "[| Finite sch1; LastActExtsch A (sch1 @@ sch2) |] ==> LastActExtsch A sch2"
 
 
-ML {*
+ML \<open>
 fun thin_tac' ctxt j =
   rotate_tac (j - 1) THEN'
   eresolve_tac ctxt [thin_rl] THEN'
   rotate_tac (~ (j - 1))
-*}
+\<close>
 
 
 subsection "oraclebuild rewrite rules"
@@ -225,7 +225,7 @@ apply (unfold schedules_def has_schedule_def)
 apply auto
 apply (rule_tac x = "filter_act$ (Cut (%a. fst a:ext A) (snd ex))" in exI)
 apply (simp add: executions_def)
-apply (tactic {* pair_tac @{context} "ex" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
 apply auto
 apply (rule_tac x = " (x1,Cut (%a. fst a:ext A) x2) " in exI)
 apply (simp (no_asm_simp))

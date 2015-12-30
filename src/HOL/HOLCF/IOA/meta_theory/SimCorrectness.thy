@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Correctness of Simulations in HOLCF/IOA *}
+section \<open>Correctness of Simulations in HOLCF/IOA\<close>
 
 theory SimCorrectness
 imports Simulations
@@ -156,7 +156,7 @@ apply (simp add: move_def)
 done
 
 
-subsection {* TRACE INCLUSION Part 1: Traces coincide *}
+subsection \<open>TRACE INCLUSION Part 1: Traces coincide\<close>
 
 subsubsection "Lemmata for <=="
 
@@ -170,7 +170,7 @@ lemma traces_coincide_sim [rule_format (no_asm)]:
          !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'): R -->
              mk_trace C$ex = mk_trace A$((corresp_ex_simC A R$ex) s')"
 
-apply (tactic {* pair_induct_tac @{context} "ex" [@{thm is_exec_frag_def}] 1 *})
+apply (tactic \<open>pair_induct_tac @{context} "ex" [@{thm is_exec_frag_def}] 1\<close>)
 (* cons case *)
 apply auto
 apply (rename_tac ex a t s s')
@@ -195,7 +195,7 @@ lemma correspsim_is_execution [rule_format (no_asm)]:
   !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'):R
   --> is_exec_frag A (s',(corresp_ex_simC A R$ex) s')"
 
-apply (tactic {* pair_induct_tac @{context} "ex" [@{thm is_exec_frag_def}] 1 *})
+apply (tactic \<open>pair_induct_tac @{context} "ex" [@{thm is_exec_frag_def}] 1\<close>)
 (* main case *)
 apply auto
 apply (rename_tac ex a t s s')
@@ -265,7 +265,7 @@ lemma trace_inclusion_for_simulations:
   apply (rule_tac x = "corresp_ex_sim A R ex" in bexI)
 
   (* Traces coincide, Lemma 1 *)
-  apply (tactic {* pair_tac @{context} "ex" 1 *})
+  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
   apply (rename_tac s ex)
   apply (simp (no_asm) add: corresp_ex_sim_def)
   apply (rule_tac s = "s" in traces_coincide_sim)
@@ -273,7 +273,7 @@ lemma trace_inclusion_for_simulations:
   apply (simp add: executions_def reachable.reachable_0 sim_starts1)
 
   (* corresp_ex_sim is execution, Lemma 2 *)
-  apply (tactic {* pair_tac @{context} "ex" 1 *})
+  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
   apply (simp add: executions_def)
   apply (rename_tac s ex)
 

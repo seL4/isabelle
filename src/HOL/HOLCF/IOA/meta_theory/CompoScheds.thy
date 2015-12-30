@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* Compositionality on Schedule level *}
+section \<open>Compositionality on Schedule level\<close>
 
 theory CompoScheds
 imports CompoExecs
@@ -149,7 +149,7 @@ declare mkex2_UU [simp] mkex2_nil [simp] mkex2_cons_1 [simp]
   mkex2_cons_2 [simp] mkex2_cons_3 [simp]
 
 
-subsection {* mkex *}
+subsection \<open>mkex\<close>
 
 lemma mkex_UU: "mkex A B UU  (s,exA) (t,exB) = ((s,t),UU)"
 apply (simp add: mkex_def)
@@ -191,7 +191,7 @@ lemmas composch_simps = mkex_UU mkex_nil mkex_cons_1 mkex_cons_2 mkex_cons_3
 declare composch_simps [simp]
 
 
-subsection {* COMPOSITIONALITY on SCHEDULE Level *}
+subsection \<open>COMPOSITIONALITY on SCHEDULE Level\<close>
 
 subsubsection "Lemmas for ==>"
 
@@ -215,7 +215,7 @@ done
 lemma lemma_2_1b:
    "filter_act$(ProjA2$xs) =filter_act$xs &
     filter_act$(ProjB2$xs) =filter_act$xs"
-apply (tactic {* pair_induct_tac @{context} "xs" [] 1 *})
+apply (tactic \<open>pair_induct_tac @{context} "xs" [] 1\<close>)
 done
 
 
@@ -230,8 +230,8 @@ done
 lemma sch_actions_in_AorB: "!s. is_exec_frag (A\<parallel>B) (s,xs)
    --> Forall (%x. x:act (A\<parallel>B)) (filter_act$xs)"
 
-apply (tactic {* pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}, @{thm Forall_def},
-  @{thm sforall_def}] 1 *})
+apply (tactic \<open>pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}, @{thm Forall_def},
+  @{thm sforall_def}] 1\<close>)
 (* main case *)
 apply auto
 apply (simp add: trans_of_defs2 actions_asig_comp asig_of_par)
@@ -251,20 +251,20 @@ lemma Mapfst_mkex_is_sch: "! exA exB s t.
   Filter (%a. a:act B)$sch << filter_act$exB
   --> filter_act$(snd (mkex A B sch (s,exA) (t,exB))) = sch"
 
-apply (tactic {* Seq_induct_tac @{context} "sch" [@{thm Filter_def}, @{thm Forall_def},
-  @{thm sforall_def}, @{thm mkex_def}] 1 *})
+apply (tactic \<open>Seq_induct_tac @{context} "sch" [@{thm Filter_def}, @{thm Forall_def},
+  @{thm sforall_def}, @{thm mkex_def}] 1\<close>)
 
 (* main case *)
 (* splitting into 4 cases according to a:A, a:B *)
 apply auto
 
 (* Case y:A, y:B *)
-apply (tactic {* Seq_case_simp_tac @{context} "exA" 1 *})
+apply (tactic \<open>Seq_case_simp_tac @{context} "exA" 1\<close>)
 (* Case exA=UU, Case exA=nil*)
 (* These UU and nil cases are the only places where the assumption filter A sch<<f_act exA
    is used! --> to generate a contradiction using  ~a\<leadsto>ss<< UU(nil), using theorems
    Cons_not_less_UU and Cons_not_less_nil  *)
-apply (tactic {* Seq_case_simp_tac @{context} "exB" 1 *})
+apply (tactic \<open>Seq_case_simp_tac @{context} "exB" 1\<close>)
 (* Case exA=a\<leadsto>x, exB=b\<leadsto>y *)
 (* here it is important that Seq_case_simp_tac uses no !full!_simp_tac for the cons case,
    as otherwise mkex_cons_3 would  not be rewritten without use of rotate_tac: then tactic
@@ -272,11 +272,11 @@ apply (tactic {* Seq_case_simp_tac @{context} "exB" 1 *})
 apply simp
 
 (* Case y:A, y~:B *)
-apply (tactic {* Seq_case_simp_tac @{context} "exA" 1 *})
+apply (tactic \<open>Seq_case_simp_tac @{context} "exA" 1\<close>)
 apply simp
 
 (* Case y~:A, y:B *)
-apply (tactic {* Seq_case_simp_tac @{context} "exB" 1 *})
+apply (tactic \<open>Seq_case_simp_tac @{context} "exB" 1\<close>)
 apply simp
 
 (* Case y~:A, y~:B *)
@@ -286,7 +286,7 @@ done
 
 (* generalizing the proof above to a proof method *)
 
-ML {*
+ML \<open>
 
 local
   val defs = [@{thm Filter_def}, @{thm Forall_def}, @{thm sforall_def}, @{thm mkex_def},
@@ -310,12 +310,12 @@ fun mkex_induct_tac ctxt sch exA exB =
         ]
 
 end
-*}
+\<close>
 
-method_setup mkex_induct = {*
+method_setup mkex_induct = \<open>
   Scan.lift (Args.name -- Args.name -- Args.name)
     >> (fn ((sch, exA), exB) => fn ctxt => SIMPLE_METHOD' (mkex_induct_tac ctxt sch exA exB))
-*}
+\<close>
 
 
 (*---------------------------------------------------------------------------
@@ -393,7 +393,7 @@ lemma filter_mkex_is_exA_tmp: "! exA exB s t.
   --------------------------------------------------------------------------- *)
 
 lemma Zip_Map_fst_snd: "Zip$(Map fst$y)$(Map snd$y) = y"
-apply (tactic {* Seq_induct_tac @{context} "y" [] 1 *})
+apply (tactic \<open>Seq_induct_tac @{context} "y" [] 1\<close>)
 done
 
 
@@ -421,8 +421,8 @@ lemma filter_mkex_is_exA: "!!sch exA exB.
   Filter (%a. a:act B)$sch = filter_act$(snd exB) |]
   ==> Filter_ex (asig_of A) (ProjA (mkex A B sch exA exB)) = exA"
 apply (simp add: ProjA_def Filter_ex_def)
-apply (tactic {* pair_tac @{context} "exA" 1 *})
-apply (tactic {* pair_tac @{context} "exB" 1 *})
+apply (tactic \<open>pair_tac @{context} "exA" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "exB" 1\<close>)
 apply (rule conjI)
 apply (simp (no_asm) add: mkex_def)
 apply (simplesubst trick_against_eq_in_ass)
@@ -462,8 +462,8 @@ lemma filter_mkex_is_exB: "!!sch exA exB.
   Filter (%a. a:act B)$sch = filter_act$(snd exB) |]
   ==> Filter_ex (asig_of B) (ProjB (mkex A B sch exA exB)) = exB"
 apply (simp add: ProjB_def Filter_ex_def)
-apply (tactic {* pair_tac @{context} "exA" 1 *})
-apply (tactic {* pair_tac @{context} "exB" 1 *})
+apply (tactic \<open>pair_tac @{context} "exA" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "exB" 1\<close>)
 apply (rule conjI)
 apply (simp (no_asm) add: mkex_def)
 apply (simplesubst trick_against_eq_in_ass)
@@ -508,7 +508,7 @@ prefer 2
 apply (simp add: compositionality_ex)
 apply (simp (no_asm) add: Filter_ex_def ProjB_def lemma_2_1a lemma_2_1b)
 apply (simp add: executions_def)
-apply (tactic {* pair_tac @{context} "ex" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
 apply (erule conjE)
 apply (simp add: sch_actions_in_AorB)
 
@@ -519,20 +519,20 @@ apply (simp add: sch_actions_in_AorB)
 apply (rename_tac exA exB)
 apply (rule_tac x = "mkex A B sch exA exB" in bexI)
 (* mkex actions are just the oracle *)
-apply (tactic {* pair_tac @{context} "exA" 1 *})
-apply (tactic {* pair_tac @{context} "exB" 1 *})
+apply (tactic \<open>pair_tac @{context} "exA" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "exB" 1\<close>)
 apply (simp add: Mapfst_mkex_is_sch)
 
 (* mkex is an execution -- use compositionality on ex-level *)
 apply (simp add: compositionality_ex)
 apply (simp add: stutter_mkex_on_A stutter_mkex_on_B filter_mkex_is_exB filter_mkex_is_exA)
-apply (tactic {* pair_tac @{context} "exA" 1 *})
-apply (tactic {* pair_tac @{context} "exB" 1 *})
+apply (tactic \<open>pair_tac @{context} "exA" 1\<close>)
+apply (tactic \<open>pair_tac @{context} "exB" 1\<close>)
 apply (simp add: mkex_actions_in_AorB)
 done
 
 
-subsection {* COMPOSITIONALITY on SCHEDULE Level -- for Modules *}
+subsection \<open>COMPOSITIONALITY on SCHEDULE Level -- for Modules\<close>
 
 lemma compositionality_sch_modules:
   "Scheds (A\<parallel>B) = par_scheds (Scheds A) (Scheds B)"

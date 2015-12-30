@@ -2,14 +2,14 @@
     Author:     Olaf Müller
 *)
 
-section {* The environment *}
+section \<open>The environment\<close>
 
 theory Env
 imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action
 begin
 
 type_synonym
-  'm env_state = bool   -- {* give next bit to system *}
+  'm env_state = bool   \<comment> \<open>give next bit to system\<close>
 
 definition
   env_asig :: "'m action signature" where

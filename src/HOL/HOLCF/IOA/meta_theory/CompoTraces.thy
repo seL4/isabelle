@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *) 
 
-section {* Compositionality on Trace level *}
+section \<open>Compositionality on Trace level\<close>
 
 theory CompoTraces
 imports CompoScheds ShortExecutions
@@ -70,7 +70,7 @@ lemma finiteR_mksch': "\<not> Finite tr \<Longrightarrow> \<not> Finite (mksch A
   by (blast intro: finiteR_mksch)
 
 
-declaration {* fn _ => Simplifier.map_ss (Simplifier.set_mksym (K (K NONE))) *}
+declaration \<open>fn _ => Simplifier.map_ss (Simplifier.set_mksym (K (K NONE)))\<close>
 
 
 subsection "mksch rewrite rules"
@@ -165,7 +165,7 @@ lemmas compotr_simps = mksch_UU mksch_nil mksch_cons1 mksch_cons2 mksch_cons3
 declare compotr_simps [simp]
 
 
-subsection {* COMPOSITIONALITY on TRACE Level *}
+subsection \<open>COMPOSITIONALITY on TRACE Level\<close>
 
 subsubsection "Lemmata for ==>"
 
@@ -201,8 +201,8 @@ lemma ForallAorB_mksch [rule_format]:
   "!!A B. compatible A B ==>  
     ! schA schB. Forall (%x. x:act (A\<parallel>B)) tr  
     --> Forall (%x. x:act (A\<parallel>B)) (mksch A B$tr$schA$schB)"
-apply (tactic {* Seq_induct_tac @{context} "tr"
-  [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1 *})
+apply (tactic \<open>Seq_induct_tac @{context} "tr"
+  [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1\<close>)
 apply auto
 apply (simp add: actions_of_par)
 apply (case_tac "a:act A")
@@ -229,8 +229,8 @@ done
 lemma ForallBnAmksch [rule_format (no_asm)]: "!!A B. compatible B A  ==>  
     ! schA schB.  (Forall (%x. x:act B & x~:act A) tr  
     --> Forall (%x. x:act B & x~:act A) (mksch A B$tr$schA$schB))"
-apply (tactic {* Seq_induct_tac @{context} "tr"
-  [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1 *})
+apply (tactic \<open>Seq_induct_tac @{context} "tr"
+  [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1\<close>)
 apply auto
 apply (rule Forall_Conc_impl [THEN mp])
 apply (simp add: intA_is_not_actB int_is_act)
@@ -239,8 +239,8 @@ done
 lemma ForallAnBmksch [rule_format (no_asm)]: "!!A B. compatible A B ==>  
     ! schA schB.  (Forall (%x. x:act A & x~:act B) tr  
     --> Forall (%x. x:act A & x~:act B) (mksch A B$tr$schA$schB))"
-apply (tactic {* Seq_induct_tac @{context} "tr"
-  [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1 *})
+apply (tactic \<open>Seq_induct_tac @{context} "tr"
+  [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1\<close>)
 apply auto
 apply (rule Forall_Conc_impl [THEN mp])
 apply (simp add: intA_is_not_actB int_is_act)
@@ -414,8 +414,8 @@ lemma FilterA_mksch_is_tr:
   Filter (%a. a:act B)$tr << Filter (%a. a:ext B)$schB   
   --> Filter (%a. a:ext (A\<parallel>B))$(mksch A B$tr$schA$schB) = tr"
 
-apply (tactic {* Seq_induct_tac @{context} "tr"
-  [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1 *})
+apply (tactic \<open>Seq_induct_tac @{context} "tr"
+  [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1\<close>)
 (* main case *)
 (* splitting into 4 cases according to a:A, a:B *)
 apply auto
@@ -955,7 +955,7 @@ done
 
 
 
-subsection {* COMPOSITIONALITY on TRACE Level -- for Modules *}
+subsection \<open>COMPOSITIONALITY on TRACE Level -- for Modules\<close>
 
 lemma compositionality_tr_modules: 
 
@@ -970,7 +970,7 @@ apply (simp add: compositionality_tr externals_of_par)
 done
 
 
-declaration {* fn _ => Simplifier.map_ss (Simplifier.set_mksym Simplifier.default_mk_sym) *}
+declaration \<open>fn _ => Simplifier.map_ss (Simplifier.set_mksym Simplifier.default_mk_sym)\<close>
 
 
 end

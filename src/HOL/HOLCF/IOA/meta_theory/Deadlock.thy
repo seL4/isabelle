@@ -2,13 +2,13 @@
     Author:     Olaf Müller
 *)
 
-section {* Deadlock freedom of I/O Automata *}
+section \<open>Deadlock freedom of I/O Automata\<close>
 
 theory Deadlock
 imports RefCorrectness CompoScheds
 begin
 
-text {* input actions may always be added to a schedule *}
+text \<open>input actions may always be added to a schedule\<close>
 
 lemma scheds_input_enabled:
   "[| Filter (%x. x:act A)$sch : schedules A; a:inp A; input_enabled A; Finite sch|]  
@@ -17,7 +17,7 @@ apply (simp add: schedules_def has_schedule_def)
 apply auto
 apply (frule inp_is_act)
 apply (simp add: executions_def)
-apply (tactic {* pair_tac @{context} "ex" 1 *})
+apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
 apply (rename_tac s ex)
 apply (subgoal_tac "Finite ex")
 prefer 2
@@ -47,12 +47,12 @@ apply (rule sym)
 apply assumption
 done
 
-text {*
+text \<open>
                Deadlock freedom: component B cannot block an out or int action
                                  of component A in every schedule.
     Needs compositionality on schedule level, input-enabledness, compatibility
                     and distributivity of is_exec_frag over @@
-*}
+\<close>
 
 declare split_if [split del]
 lemma IOA_deadlock_free: "[| a : local A; Finite sch; sch : schedules (A\<parallel>B);  

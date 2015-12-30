@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow & Konrad Slind
 *)
 
-section {* The specification of reliable transmission *}
+section \<open>The specification of reliable transmission\<close>
 
 theory Spec
 imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action

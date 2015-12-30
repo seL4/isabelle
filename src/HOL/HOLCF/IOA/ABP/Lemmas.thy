@@ -6,7 +6,7 @@ theory Lemmas
 imports Main
 begin
 
-subsection {* Logic *}
+subsection \<open>Logic\<close>
 
 lemma and_de_morgan_and_absorbe: "(~(A&B)) = ((~A)&B| ~B)"
   by blast
@@ -18,7 +18,7 @@ lemma exis_elim: "(? x. x=P & Q(x)) = Q(P)"
   by blast
 
 
-subsection {* Sets *}
+subsection \<open>Sets\<close>
 
 lemma set_lemmas:
     "f(x) : (UN x. {f(x)})"
@@ -27,8 +27,8 @@ lemma set_lemmas:
     "!!a. (!x y. a ~= f x y) ==> a ~: (UN x y. {f x y})"
   by auto
 
-text {* 2 Lemmas to add to @{text "set_lemmas"}, used also for action handling, 
-   namely for Intersections and the empty list (compatibility of IOA!). *}
+text \<open>2 Lemmas to add to \<open>set_lemmas\<close>, used also for action handling, 
+   namely for Intersections and the empty list (compatibility of IOA!).\<close>
 lemma singleton_set: "(UN b.{x. x=f(b)})= (UN b.{f(b)})"
   by blast
 
@@ -36,7 +36,7 @@ lemma de_morgan: "((A|B)=False) = ((~A)&(~B))"
   by blast
 
 
-subsection {* Lists *}
+subsection \<open>Lists\<close>
 
 lemma cons_not_nil: "l ~= [] --> (? x xs. l = (x#xs))"
   by (induct l) simp_all

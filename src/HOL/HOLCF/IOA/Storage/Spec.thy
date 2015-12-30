@@ -2,7 +2,7 @@
     Author:     Olaf Müller
 *)
 
-section {* The specification of a memory *}
+section \<open>The specification of a memory\<close>
 
 theory Spec
 imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action
