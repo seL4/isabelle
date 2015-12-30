@@ -11,11 +11,8 @@ theory LambdaType imports ListApplication begin
 subsection {* Environments *}
 
 definition
-  shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"  ("_<_:_>" [90, 0, 0] 91) where
-  "e<i:a> = (\<lambda>j. if j < i then e j else if j = i then a else e (j - 1))"
-
-notation (xsymbols)
-  shift  ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
+  shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"  ("_\<langle>_:_\<rangle>" [90, 0, 0] 91) where
+  "e\<langle>i:a\<rangle> = (\<lambda>j. if j < i then e j else if j = i then a else e (j - 1))"
 
 lemma shift_eq [simp]: "i = j \<Longrightarrow> (e\<langle>i:T\<rangle>) j = T"
   by (simp add: shift_def)

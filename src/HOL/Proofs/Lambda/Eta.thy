@@ -26,16 +26,12 @@ where
   | abs [simp, intro]: "s \<rightarrow>\<^sub>\<eta> t ==> Abs s \<rightarrow>\<^sub>\<eta> Abs t"
 
 abbreviation
-  eta_reds :: "[dB, dB] => bool"   (infixl "-e>>" 50) where
-  "s -e>> t == eta^** s t"
+  eta_reds :: "[dB, dB] => bool"   (infixl "\<rightarrow>\<^sub>\<eta>\<^sup>*" 50) where
+  "s \<rightarrow>\<^sub>\<eta>\<^sup>* t == eta^** s t"
 
 abbreviation
-  eta_red0 :: "[dB, dB] => bool"   (infixl "-e>=" 50) where
-  "s -e>= t == eta^== s t"
-
-notation (xsymbols)
-  eta_reds  (infixl "\<rightarrow>\<^sub>\<eta>\<^sup>*" 50) and
-  eta_red0  (infixl "\<rightarrow>\<^sub>\<eta>\<^sup>=" 50)
+  eta_red0 :: "[dB, dB] => bool"   (infixl "\<rightarrow>\<^sub>\<eta>\<^sup>=" 50) where
+  "s \<rightarrow>\<^sub>\<eta>\<^sup>= t == eta^== s t"
 
 inductive_cases eta_cases [elim!]:
   "Abs s \<rightarrow>\<^sub>\<eta> z"
