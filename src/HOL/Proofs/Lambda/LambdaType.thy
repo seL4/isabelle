@@ -55,18 +55,12 @@ where
 
 abbreviation
   typings_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
-    ("_ ||- _ : _" [50, 50, 50] 50) where
-  "env ||- ts : Ts == typings env ts Ts"
-
-notation (latex)
-  typings_rel  ("_ \<tturnstile> _ : _" [50, 50, 50] 50)
+    ("_ \<tturnstile> _ : _" [50, 50, 50] 50) where
+  "env \<tturnstile> ts : Ts == typings env ts Ts"
 
 abbreviation
-  funs :: "type list \<Rightarrow> type \<Rightarrow> type"  (infixr "=>>" 200) where
-  "Ts =>> T == foldr Fun Ts T"
-
-notation (latex)
-  funs  (infixr "\<Rrightarrow>" 200)
+  funs :: "type list \<Rightarrow> type \<Rightarrow> type"  (infixr "\<Rrightarrow>" 200) where
+  "Ts \<Rrightarrow> T == foldr Fun Ts T"
 
 
 subsection \<open>Some examples\<close>

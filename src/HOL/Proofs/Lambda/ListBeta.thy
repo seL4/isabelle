@@ -69,7 +69,7 @@ lemma apps_preserves_beta [simp]:
   by (induct ss rule: rev_induct) auto
 
 lemma apps_preserves_beta2 [simp]:
-    "r ->> s ==> r \<degree>\<degree> ss ->> s \<degree>\<degree> ss"
+    "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> r \<degree>\<degree> ss \<rightarrow>\<^sub>\<beta>\<^sup>* s \<degree>\<degree> ss"
   apply (induct set: rtranclp)
    apply blast
   apply (blast intro: apps_preserves_beta rtranclp.rtrancl_into_rtrancl)
