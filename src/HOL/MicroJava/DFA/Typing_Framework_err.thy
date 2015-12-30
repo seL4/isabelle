@@ -86,7 +86,7 @@ lemma le_list_map_OK [simp]:
 
 
 lemma map_snd_lessI:
-  "x <=|r| y \<Longrightarrow> map_snd OK x <=|Err.le r| map_snd OK y"
+  "x \<le>|r| y \<Longrightarrow> map_snd OK x \<le>|Err.le r| map_snd OK y"
   apply (induct x)
   apply (unfold lesubstep_type_def map_snd_def)
   apply auto
@@ -95,7 +95,7 @@ lemma map_snd_lessI:
 
 lemma mono_lift:
   "order r \<Longrightarrow> app_mono r app n A \<Longrightarrow> bounded (err_step n app step) n \<Longrightarrow>
-  \<forall>s p t. s \<in> A \<and> p < n \<and> s <=_r t \<longrightarrow> app p t \<longrightarrow> step p s <=|r| step p t \<Longrightarrow>
+  \<forall>s p t. s \<in> A \<and> p < n \<and> s <=_r t \<longrightarrow> app p t \<longrightarrow> step p s \<le>|r| step p t \<Longrightarrow>
   mono (Err.le r) (err_step n app step) n (err A)"
 apply (unfold app_mono_def mono_def err_step_def)
 apply clarify

@@ -182,7 +182,7 @@ lemma [intro]:
   by (induct n, auto)
 
 lemma lesubstep_type_simple:
-  "a <=[Product.le (op =) r] b \<Longrightarrow> a <=|r| b"
+  "a <=[Product.le (op =) r] b \<Longrightarrow> a \<le>|r| b"
   apply (unfold lesubstep_type_def)
   apply clarify
   apply (simp add: set_conv_nth)
@@ -202,7 +202,7 @@ lemma lesubstep_type_simple:
 
 lemma eff_mono:
   "\<lbrakk>p < length bs; s <=_(sup_state_opt G) t; app (bs!p) G maxs rT pc et t\<rbrakk>
-  \<Longrightarrow> eff (bs!p) G p et s <=|sup_state_opt G| eff (bs!p) G p et t"
+  \<Longrightarrow> eff (bs!p) G p et s \<le>|sup_state_opt G| eff (bs!p) G p et t"
   apply (unfold eff_def)
   apply (rule lesubstep_type_simple)
   apply (rule le_list_appendI)

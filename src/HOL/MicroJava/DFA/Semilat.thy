@@ -20,12 +20,12 @@ consts
   "lesssub" :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool"
   "plussub" :: "'a \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'c" 
 (*<*)
-notation
+notation (ASCII)
   "lesub"  ("(_ /<='__ _)" [50, 1000, 51] 50) and
   "lesssub"  ("(_ /<'__ _)" [50, 1000, 51] 50) and
   "plussub"  ("(_ /+'__ _)" [65, 1000, 66] 65)
 (*>*)
-notation (xsymbols)
+notation
   "lesub"  ("(_ /\<sqsubseteq>\<^bsub>_\<^esub> _)" [50, 0, 51] 50) and
   "lesssub"  ("(_ /\<sqsubset>\<^bsub>_\<^esub> _)" [50, 0, 51] 50) and
   "plussub"  ("(_ /\<squnion>\<^bsub>_\<^esub> _)" [65, 0, 66] 65)

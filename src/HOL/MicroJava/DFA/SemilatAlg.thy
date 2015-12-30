@@ -10,8 +10,8 @@ imports Typing_Framework Product
 begin
 
 definition lesubstep_type :: "(nat \<times> 's) list \<Rightarrow> 's ord \<Rightarrow> (nat \<times> 's) list \<Rightarrow> bool"
-                    ("(_ /<=|_| _)" [50, 0, 51] 50) where
-  "x <=|r| y \<equiv> \<forall>(p,s) \<in> set x. \<exists>s'. (p,s') \<in> set y \<and> s <=_r s'"
+                    ("(_ /\<le>|_| _)" [50, 0, 51] 50) where
+  "x \<le>|r| y \<equiv> \<forall>(p,s) \<in> set x. \<exists>s'. (p,s') \<in> set y \<and> s <=_r s'"
 
 primrec plusplussub :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" ("(_ /++'__ _)" [65, 1000, 66] 65) where
   "[] ++_f y = y"
@@ -25,14 +25,14 @@ definition pres_type :: "'s step_type \<Rightarrow> nat \<Rightarrow> 's set \<R
 
 definition mono :: "'s ord \<Rightarrow> 's step_type \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool" where
 "mono r step n A ==
- \<forall>s p t. s \<in> A \<and> p < n \<and> s <=_r t \<longrightarrow> step p s <=|r| step p t"
+ \<forall>s p t. s \<in> A \<and> p < n \<and> s <=_r t \<longrightarrow> step p s \<le>|r| step p t"
 
 lemma pres_typeD:
   "\<lbrakk> pres_type step n A; s\<in>A; p<n; (q,s')\<in>set (step p s) \<rbrakk> \<Longrightarrow> s' \<in> A"
   by (unfold pres_type_def, blast)
 
 lemma monoD:
-  "\<lbrakk> mono r step n A; p < n; s\<in>A; s <=_r t \<rbrakk> \<Longrightarrow> step p s <=|r| step p t"
+  "\<lbrakk> mono r step n A; p < n; s\<in>A; s <=_r t \<rbrakk> \<Longrightarrow> step p s \<le>|r| step p t"
   by (unfold mono_def, blast)
 
 lemma boundedD: 
@@ -40,11 +40,11 @@ lemma boundedD:
   by (unfold bounded_def, blast)
 
 lemma lesubstep_type_refl [simp, intro]:
-  "(\<And>x. x <=_r x) \<Longrightarrow> x <=|r| x"
+  "(\<And>x. x <=_r x) \<Longrightarrow> x \<le>|r| x"
   by (unfold lesubstep_type_def) auto
 
 lemma lesub_step_typeD:
-  "a <=|r| b \<Longrightarrow> (x,y) \<in> set a \<Longrightarrow> \<exists>y'. (x, y') \<in> set b \<and> y <=_r y'"
+  "a \<le>|r| b \<Longrightarrow> (x,y) \<in> set a \<Longrightarrow> \<exists>y'. (x, y') \<in> set b \<and> y <=_r y'"
   by (unfold lesubstep_type_def) blast
 
 

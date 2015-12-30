@@ -69,7 +69,7 @@ lemma (in lbv) le_top [simp, intro]:
   
 
 lemma (in lbv) merge_mono:
-  assumes less:  "ss2 <=|r| ss1"
+  assumes less:  "ss2 \<le>|r| ss1"
   assumes x:     "x \<in> A"
   assumes ss1:   "snd`set ss1 \<subseteq> A"
   assumes ss2:   "snd`set ss2 \<subseteq> A"
@@ -131,7 +131,7 @@ lemma (in lbvc) wti_mono:
   assumes s2:   "s2 \<in> A"
   shows "wti c pc s2 <=_r wti c pc s1" (is "?s2' <=_r ?s1'")
 proof -
-  from mono pc s2 less have "step pc s2 <=|r| step pc s1" by (rule monoD)
+  from mono pc s2 less have "step pc s2 \<le>|r| step pc s1" by (rule monoD)
   moreover
   from cert B_A pc have "c!Suc pc \<in> A" by (rule cert_okD3)
   moreover 
