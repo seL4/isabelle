@@ -220,15 +220,15 @@ done
 
 
 (* --------------------------------------------------------------------- *)
-(*             Schedules of A||B have only  A- or B-actions              *)
+(*             Schedules of A\<parallel>B have only  A- or B-actions              *)
 (* --------------------------------------------------------------------- *)
 
 (* very similar to lemma_1_1c, but it is not checking if every action element of
    an ex is in A or B, but after projecting it onto the action schedule. Of course, this
    is the same proposition, but we cannot change this one, when then rather lemma_1_1c  *)
 
-lemma sch_actions_in_AorB: "!s. is_exec_frag (A||B) (s,xs)
-   --> Forall (%x. x:act (A||B)) (filter_act$xs)"
+lemma sch_actions_in_AorB: "!s. is_exec_frag (A\<parallel>B) (s,xs)
+   --> Forall (%x. x:act (A\<parallel>B)) (filter_act$xs)"
 
 apply (tactic {* pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}, @{thm Forall_def},
   @{thm sforall_def}] 1 *})
@@ -246,7 +246,7 @@ subsubsection "Lemmas for <=="
   --------------------------------------------------------------------------- *)
 
 lemma Mapfst_mkex_is_sch: "! exA exB s t.
-  Forall (%x. x:act (A||B)) sch  &
+  Forall (%x. x:act (A\<parallel>B)) sch  &
   Filter (%a. a:act A)$sch << filter_act$exA &
   Filter (%a. a:act B)$sch << filter_act$exB
   --> filter_act$(snd (mkex A B sch (s,exA) (t,exB))) = sch"
@@ -324,14 +324,14 @@ method_setup mkex_induct = {*
   --------------------------------------------------------------------------- *)
 
 lemma stutterA_mkex: "! exA exB s t.
-  Forall (%x. x:act (A||B)) sch &
+  Forall (%x. x:act (A\<parallel>B)) sch &
   Filter (%a. a:act A)$sch << filter_act$exA &
   Filter (%a. a:act B)$sch << filter_act$exB
   --> stutter (asig_of A) (s,ProjA2$(snd (mkex A B sch (s,exA) (t,exB))))"
   by (mkex_induct sch exA exB)
 
 lemma stutter_mkex_on_A: "[|
-  Forall (%x. x:act (A||B)) sch ;
+  Forall (%x. x:act (A\<parallel>B)) sch ;
   Filter (%a. a:act A)$sch << filter_act$(snd exA) ;
   Filter (%a. a:act B)$sch << filter_act$(snd exB) |]
   ==> stutter (asig_of A) (ProjA (mkex A B sch exA exB))"
@@ -351,7 +351,7 @@ done
   --------------------------------------------------------------------------- *)
 
 lemma stutterB_mkex: "! exA exB s t.
-  Forall (%x. x:act (A||B)) sch &
+  Forall (%x. x:act (A\<parallel>B)) sch &
   Filter (%a. a:act A)$sch << filter_act$exA &
   Filter (%a. a:act B)$sch << filter_act$exB
   --> stutter (asig_of B) (t,ProjB2$(snd (mkex A B sch (s,exA) (t,exB))))"
@@ -359,7 +359,7 @@ lemma stutterB_mkex: "! exA exB s t.
 
 
 lemma stutter_mkex_on_B: "[|
-  Forall (%x. x:act (A||B)) sch ;
+  Forall (%x. x:act (A\<parallel>B)) sch ;
   Filter (%a. a:act A)$sch << filter_act$(snd exA) ;
   Filter (%a. a:act B)$sch << filter_act$(snd exB) |]
   ==> stutter (asig_of B) (ProjB (mkex A B sch exA exB))"
@@ -380,7 +380,7 @@ done
   --------------------------------------------------------------------------- *)
 
 lemma filter_mkex_is_exA_tmp: "! exA exB s t.
-  Forall (%x. x:act (A||B)) sch &
+  Forall (%x. x:act (A\<parallel>B)) sch &
   Filter (%a. a:act A)$sch << filter_act$exA  &
   Filter (%a. a:act B)$sch << filter_act$exB
   --> Filter_ex2 (asig_of A)$(ProjA2$(snd (mkex A B sch (s,exA) (t,exB)))) =
@@ -416,7 +416,7 @@ done
 
 
 lemma filter_mkex_is_exA: "!!sch exA exB.
-  [| Forall (%a. a:act (A||B)) sch ;
+  [| Forall (%a. a:act (A\<parallel>B)) sch ;
   Filter (%a. a:act A)$sch = filter_act$(snd exA)  ;
   Filter (%a. a:act B)$sch = filter_act$(snd exB) |]
   ==> Filter_ex (asig_of A) (ProjA (mkex A B sch exA exB)) = exA"
@@ -440,7 +440,7 @@ done
   --------------------------------------------------------------------------- *)
 
 lemma filter_mkex_is_exB_tmp: "! exA exB s t.
-  Forall (%x. x:act (A||B)) sch &
+  Forall (%x. x:act (A\<parallel>B)) sch &
   Filter (%a. a:act A)$sch << filter_act$exA  &
   Filter (%a. a:act B)$sch << filter_act$exB
   --> Filter_ex2 (asig_of B)$(ProjB2$(snd (mkex A B sch (s,exA) (t,exB)))) =
@@ -457,7 +457,7 @@ lemma filter_mkex_is_exB_tmp: "! exA exB s t.
 
 
 lemma filter_mkex_is_exB: "!!sch exA exB.
-  [| Forall (%a. a:act (A||B)) sch ;
+  [| Forall (%a. a:act (A\<parallel>B)) sch ;
   Filter (%a. a:act A)$sch = filter_act$(snd exA)  ;
   Filter (%a. a:act B)$sch = filter_act$(snd exB) |]
   ==> Filter_ex (asig_of B) (ProjB (mkex A B sch exA exB)) = exB"
@@ -478,10 +478,10 @@ done
 
 
 lemma mkex_actions_in_AorB: "!s t exA exB.
-  Forall (%x. x : act (A || B)) sch &
+  Forall (%x. x : act (A \<parallel> B)) sch &
   Filter (%a. a:act A)$sch << filter_act$exA  &
   Filter (%a. a:act B)$sch << filter_act$exB
-   --> Forall (%x. fst x : act (A ||B))
+   --> Forall (%x. fst x : act (A \<parallel>B))
          (snd (mkex A B sch (s,exA) (t,exB)))"
   by (mkex_induct sch exA exB)
 
@@ -492,10 +492,10 @@ lemma mkex_actions_in_AorB: "!s t exA exB.
 (* ------------------------------------------------------------------ *)
 
 lemma compositionality_sch:
-"(sch : schedules (A||B)) =
+"(sch : schedules (A\<parallel>B)) =
   (Filter (%a. a:act A)$sch : schedules A &
    Filter (%a. a:act B)$sch : schedules B &
-   Forall (%x. x:act (A||B)) sch)"
+   Forall (%x. x:act (A\<parallel>B)) sch)"
 apply (simp (no_asm) add: schedules_def has_schedule_def)
 apply auto
 (* ==> *)
@@ -514,7 +514,7 @@ apply (simp add: sch_actions_in_AorB)
 
 (* <== *)
 
-(* mkex is exactly the construction of exA||B out of exA, exB, and the oracle sch,
+(* mkex is exactly the construction of exA\<parallel>B out of exA, exB, and the oracle sch,
    we need here *)
 apply (rename_tac exA exB)
 apply (rule_tac x = "mkex A B sch exA exB" in bexI)
@@ -535,7 +535,7 @@ done
 subsection {* COMPOSITIONALITY on SCHEDULE Level -- for Modules *}
 
 lemma compositionality_sch_modules:
-  "Scheds (A||B) = par_scheds (Scheds A) (Scheds B)"
+  "Scheds (A\<parallel>B) = par_scheds (Scheds A) (Scheds B)"
 
 apply (unfold Scheds_def par_scheds_def)
 apply (simp add: asig_of_par)

@@ -55,12 +55,12 @@ text {*
 *}
 
 declare split_if [split del]
-lemma IOA_deadlock_free: "[| a : local A; Finite sch; sch : schedules (A||B);  
+lemma IOA_deadlock_free: "[| a : local A; Finite sch; sch : schedules (A\<parallel>B);  
              Filter (%x. x:act A)$(sch @@ a>>nil) : schedules A; compatible A B; input_enabled B |]  
-           ==> (sch @@ a>>nil) : schedules (A||B)"
+           ==> (sch @@ a>>nil) : schedules (A\<parallel>B)"
 apply (simp add: compositionality_sch locals_def)
 apply (rule conjI)
-(* a : act (A||B) *)
+(* a : act (A\<parallel>B) *)
 prefer 2
 apply (simp add: actions_of_par)
 apply (blast dest: int_is_act out_is_act)

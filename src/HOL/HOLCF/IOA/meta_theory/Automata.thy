@@ -57,7 +57,7 @@ consts
   (* binary composition of action signatures and automata *)
   asig_comp    ::"['a signature, 'a signature] => 'a signature"
   compatible   ::"[('a,'s)ioa, ('a,'t)ioa] => bool"
-  par          ::"[('a,'s)ioa, ('a,'t)ioa] => ('a,'s*'t)ioa"  (infixr "||" 10)
+  par          ::"[('a,'s)ioa, ('a,'t)ioa] => ('a,'s*'t)ioa"  (infixr "\<parallel>" 10)
 
   (* hiding and restricting *)
   hide_asig     :: "['a signature, 'a set] => 'a signature"
@@ -68,9 +68,6 @@ consts
   (* renaming *)
   rename_set    :: "'a set => ('c => 'a option) => 'c set"
   rename        :: "('a, 'b)ioa => ('c => 'a option) => ('c,'b)ioa"
-
-notation (xsymbols)
-  par  (infixr "\<parallel>" 10)
 
 
 inductive
@@ -145,7 +142,7 @@ asig_comp_def:
        (internals(a1) Un internals(a2))))"
 
 par_def:
-  "(A || B) ==
+  "(A \<parallel> B) ==
       (asig_comp (asig_of A) (asig_of B),
        {pr. fst(pr):starts_of(A) & snd(pr):starts_of(B)},
        {tr. let s = fst(tr); a = fst(snd(tr)); t = snd(snd(tr))
@@ -266,12 +263,12 @@ apply (unfold is_trans_of_def actions_def is_asig_def)
 done
 
 lemma starts_of_par: 
-"starts_of(A || B) = {p. fst(p):starts_of(A) & snd(p):starts_of(B)}"
+"starts_of(A \<parallel> B) = {p. fst(p):starts_of(A) & snd(p):starts_of(B)}"
   apply (simp add: par_def ioa_projections)
 done
 
 lemma trans_of_par: 
-"trans_of(A || B) = {tr. let s = fst(tr); a = fst(snd(tr)); t = snd(snd(tr))  
+"trans_of(A \<parallel> B) = {tr. let s = fst(tr); a = fst(snd(tr)); t = snd(snd(tr))  
              in (a:act A | a:act B) &  
                 (if a:act A then        
                    (fst(s),a,fst(t)):trans_of(A)  
@@ -293,38 +290,38 @@ lemma actions_asig_comp:
   apply blast
   done
 
-lemma asig_of_par: "asig_of(A || B) = asig_comp (asig_of A) (asig_of B)"
+lemma asig_of_par: "asig_of(A \<parallel> B) = asig_comp (asig_of A) (asig_of B)"
   apply (simp add: par_def ioa_projections)
   done
 
 
-lemma externals_of_par: "ext (A1||A2) =     
+lemma externals_of_par: "ext (A1\<parallel>A2) =     
    (ext A1) Un (ext A2)"
 apply (simp add: externals_def asig_of_par asig_comp_def
   asig_inputs_def asig_outputs_def Un_def set_diff_eq)
 apply blast
 done
 
-lemma actions_of_par: "act (A1||A2) =     
+lemma actions_of_par: "act (A1\<parallel>A2) =     
    (act A1) Un (act A2)"
 apply (simp add: actions_def asig_of_par asig_comp_def
   asig_inputs_def asig_outputs_def asig_internals_def Un_def set_diff_eq)
 apply blast
 done
 
-lemma inputs_of_par: "inp (A1||A2) = 
+lemma inputs_of_par: "inp (A1\<parallel>A2) = 
           ((inp A1) Un (inp A2)) - ((out A1) Un (out A2))"
 apply (simp add: actions_def asig_of_par asig_comp_def
   asig_inputs_def asig_outputs_def Un_def set_diff_eq)
 done
 
-lemma outputs_of_par: "out (A1||A2) = 
+lemma outputs_of_par: "out (A1\<parallel>A2) = 
           (out A1) Un (out A2)"
 apply (simp add: actions_def asig_of_par asig_comp_def
   asig_outputs_def Un_def set_diff_eq)
 done
 
-lemma internals_of_par: "int (A1||A2) = 
+lemma internals_of_par: "int (A1\<parallel>A2) = 
           (int A1) Un (int A2)"
 apply (simp add: actions_def asig_of_par asig_comp_def
   asig_inputs_def asig_outputs_def asig_internals_def Un_def set_diff_eq)
@@ -379,7 +376,7 @@ apply simp
 apply blast
 done
 
-(* needed for propagation of input_enabledness from A,B to A||B *)
+(* needed for propagation of input_enabledness from A,B to A\<parallel>B *)
 lemma inpAAactB_is_inpBoroutB: 
 "[| compatible A B; a:inp A ;a:act B|] ==> a : inp B | a: out B"
 apply (unfold asig_outputs_def asig_internals_def actions_def asig_inputs_def 
@@ -396,7 +393,7 @@ subsection "input_enabledness and par"
      2. inputs_of_par: outputs are no longer inputs of par. This is important here *)
 lemma input_enabled_par: 
 "[| compatible A B; input_enabled A; input_enabled B|]  
-      ==> input_enabled (A||B)"
+      ==> input_enabled (A\<parallel>B)"
 apply (unfold input_enabled_def)
 apply (simp add: Let_def inputs_of_par trans_of_par)
 apply (tactic "safe_tac (Context.raw_transfer @{theory} @{theory_context Fun})")
@@ -544,49 +541,49 @@ apply assumption
 done
 
 
-subsection "trans_of(A||B)"
+subsection "trans_of(A\<parallel>B)"
 
 
-lemma trans_A_proj: "[|(s,a,t):trans_of (A||B); a:act A|]  
+lemma trans_A_proj: "[|(s,a,t):trans_of (A\<parallel>B); a:act A|]  
               ==> (fst s,a,fst t):trans_of A"
 apply (simp add: Let_def par_def trans_of_def)
 done
 
-lemma trans_B_proj: "[|(s,a,t):trans_of (A||B); a:act B|]  
+lemma trans_B_proj: "[|(s,a,t):trans_of (A\<parallel>B); a:act B|]  
               ==> (snd s,a,snd t):trans_of B"
 apply (simp add: Let_def par_def trans_of_def)
 done
 
-lemma trans_A_proj2: "[|(s,a,t):trans_of (A||B); a~:act A|] 
+lemma trans_A_proj2: "[|(s,a,t):trans_of (A\<parallel>B); a~:act A|] 
               ==> fst s = fst t"
 apply (simp add: Let_def par_def trans_of_def)
 done
 
-lemma trans_B_proj2: "[|(s,a,t):trans_of (A||B); a~:act B|] 
+lemma trans_B_proj2: "[|(s,a,t):trans_of (A\<parallel>B); a~:act B|] 
               ==> snd s = snd t"
 apply (simp add: Let_def par_def trans_of_def)
 done
 
-lemma trans_AB_proj: "(s,a,t):trans_of (A||B)  
+lemma trans_AB_proj: "(s,a,t):trans_of (A\<parallel>B)  
                ==> a :act A | a :act B"
 apply (simp add: Let_def par_def trans_of_def)
 done
 
 lemma trans_AB: "[|a:act A;a:act B; 
        (fst s,a,fst t):trans_of A;(snd s,a,snd t):trans_of B|] 
-   ==> (s,a,t):trans_of (A||B)"
+   ==> (s,a,t):trans_of (A\<parallel>B)"
 apply (simp add: Let_def par_def trans_of_def)
 done
 
 lemma trans_A_notB: "[|a:act A;a~:act B; 
        (fst s,a,fst t):trans_of A;snd s=snd t|] 
-   ==> (s,a,t):trans_of (A||B)"
+   ==> (s,a,t):trans_of (A\<parallel>B)"
 apply (simp add: Let_def par_def trans_of_def)
 done
 
 lemma trans_notA_B: "[|a~:act A;a:act B; 
        (snd s,a,snd t):trans_of B;fst s=fst t|] 
-   ==> (s,a,t):trans_of (A||B)"
+   ==> (s,a,t):trans_of (A\<parallel>B)"
 apply (simp add: Let_def par_def trans_of_def)
 done
 
@@ -595,7 +592,7 @@ lemmas trans_of_defs1 = trans_AB trans_A_notB trans_notA_B
 
 
 lemma trans_of_par4: 
-"((s,a,t) : trans_of(A || B || C || D)) =                                     
+"((s,a,t) : trans_of(A \<parallel> B \<parallel> C \<parallel> D)) =                                     
   ((a:actions(asig_of(A)) | a:actions(asig_of(B)) | a:actions(asig_of(C)) |   
     a:actions(asig_of(D))) &                                                  
    (if a:actions(asig_of(A)) then (fst(s),a,fst(t)):trans_of(A)               
@@ -614,8 +611,8 @@ lemma trans_of_par4:
 
 subsection "proof obligation generator for IOA requirements"
 
-(* without assumptions on A and B because is_trans_of is also incorporated in ||def *)
-lemma is_trans_of_par: "is_trans_of (A||B)"
+(* without assumptions on A and B because is_trans_of is also incorporated in \<parallel>def *)
+lemma is_trans_of_par: "is_trans_of (A\<parallel>B)"
 apply (unfold is_trans_of_def)
 apply (simp add: Let_def actions_of_par trans_of_par)
 done
@@ -635,7 +632,7 @@ apply blast
 done
 
 lemma is_asig_of_par: "[| is_asig_of A; is_asig_of B; compatible A B|]   
-          ==> is_asig_of (A||B)"
+          ==> is_asig_of (A\<parallel>B)"
 apply (simp add: is_asig_of_def asig_of_par asig_comp_def compatible_def
   asig_internals_def asig_outputs_def asig_inputs_def actions_def is_asig_def)
 apply (simp add: asig_of_def)
@@ -663,7 +660,7 @@ lemmas [simp] = is_asig_of_par is_asig_of_restrict
 
 
 lemma compatible_par: 
-"[|compatible A B; compatible A C |]==> compatible A (B||C)"
+"[|compatible A B; compatible A C |]==> compatible A (B\<parallel>C)"
 apply (unfold compatible_def)
 apply (simp add: internals_of_par outputs_of_par actions_of_par)
 apply auto
@@ -671,7 +668,7 @@ done
 
 (*  better derive by previous one and compat_commute *)
 lemma compatible_par2: 
-"[|compatible A C; compatible B C |]==> compatible (A||B) C"
+"[|compatible A C; compatible B C |]==> compatible (A\<parallel>B) C"
 apply (unfold compatible_def)
 apply (simp add: internals_of_par outputs_of_par actions_of_par)
 apply auto

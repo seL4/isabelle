@@ -14,7 +14,7 @@ type_synonym
 
 definition
  impl_ioa :: "('m action, 'm impl_state)ioa" where
- "impl_ioa = (sender_ioa || receiver_ioa || srch_ioa || rsch_ioa)"
+ "impl_ioa = (sender_ioa \<parallel> receiver_ioa \<parallel> srch_ioa \<parallel> rsch_ioa)"
 
 definition
  sen :: "'m impl_state => 'm sender_state" where

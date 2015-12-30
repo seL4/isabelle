@@ -28,11 +28,11 @@ definition
 
 definition
   system_ioa :: "('m action, bool * 'm impl_state)ioa" where
-  "system_ioa = (env_ioa || impl_ioa)"
+  "system_ioa = (env_ioa \<parallel> impl_ioa)"
 
 definition
   system_fin_ioa :: "('m action, bool * 'm impl_state)ioa" where
-  "system_fin_ioa = (env_ioa || impl_fin_ioa)"
+  "system_fin_ioa = (env_ioa \<parallel> impl_fin_ioa)"
 
 
 axiomatization where
@@ -231,7 +231,7 @@ lemmas del_simps = trans_of_def srch_asig_def rsch_asig_def
   srch_fin_ioa_def rsch_fin_ioa_def rsch_ioa_def sender_trans_def
   receiver_trans_def set_lemmas
 
-lemma compat_rec: "compatible receiver_ioa (srch_ioa || rsch_ioa)"
+lemma compat_rec: "compatible receiver_ioa (srch_ioa \<parallel> rsch_ioa)"
 apply (simp del: del_simps
   add: compatible_def asig_of_par asig_comp_def actions_def Int_def)
 apply simp
@@ -241,7 +241,7 @@ apply simp_all
 done
 
 text {* 5 proofs totally the same as before *}
-lemma compat_rec_fin: "compatible receiver_ioa (srch_fin_ioa || rsch_fin_ioa)"
+lemma compat_rec_fin: "compatible receiver_ioa (srch_fin_ioa \<parallel> rsch_fin_ioa)"
 apply (simp del: del_simps
   add: compatible_def asig_of_par asig_comp_def actions_def Int_def)
 apply simp
@@ -251,7 +251,7 @@ apply simp_all
 done
 
 lemma compat_sen: "compatible sender_ioa
-       (receiver_ioa || srch_ioa || rsch_ioa)"
+       (receiver_ioa \<parallel> srch_ioa \<parallel> rsch_ioa)"
 apply (simp del: del_simps
   add: compatible_def asig_of_par asig_comp_def actions_def Int_def)
 apply simp
@@ -261,7 +261,7 @@ apply simp_all
 done
 
 lemma compat_sen_fin: "compatible sender_ioa
-       (receiver_ioa || srch_fin_ioa || rsch_fin_ioa)"
+       (receiver_ioa \<parallel> srch_fin_ioa \<parallel> rsch_fin_ioa)"
 apply (simp del: del_simps
   add: compatible_def asig_of_par asig_comp_def actions_def Int_def)
 apply simp
@@ -271,7 +271,7 @@ apply simp_all
 done
 
 lemma compat_env: "compatible env_ioa
-       (sender_ioa || receiver_ioa || srch_ioa || rsch_ioa)"
+       (sender_ioa \<parallel> receiver_ioa \<parallel> srch_ioa \<parallel> rsch_ioa)"
 apply (simp del: del_simps
   add: compatible_def asig_of_par asig_comp_def actions_def Int_def)
 apply simp
@@ -281,7 +281,7 @@ apply simp_all
 done
 
 lemma compat_env_fin: "compatible env_ioa
-       (sender_ioa || receiver_ioa || srch_fin_ioa || rsch_fin_ioa)"
+       (sender_ioa \<parallel> receiver_ioa \<parallel> srch_fin_ioa \<parallel> rsch_fin_ioa)"
 apply (simp del: del_simps
   add: compatible_def asig_of_par asig_comp_def actions_def Int_def)
 apply simp

@@ -58,7 +58,7 @@ axiomatization where
 (* analog to the proved thm strength_Box - proof skipped as trivial *)
 weak_Box:
 "temp_weakening P Q h
- ==> temp_weakening ([] P) ([] Q) h"
+ ==> temp_weakening (\<box>P) (\<box>Q) h"
 
 axiomatization where
 (* analog to the proved thm strength_Next - proof skipped as trivial *)
@@ -412,7 +412,7 @@ done
 
 lemma strength_Box:
 "[| temp_strengthening P Q h |]
-       ==> temp_strengthening ([] P) ([] Q) h"
+       ==> temp_strengthening (\<box>P) (\<box>Q) h"
 apply (unfold temp_strengthening_def state_strengthening_def temp_sat_def satisfies_def Box_def)
 apply clarify
 apply (frule ex2seq_tsuffix)
@@ -526,7 +526,7 @@ text {* Localizing Temproal Strengthenings - 3 *}
 
 lemma strength_Diamond:
 "[| temp_strengthening P Q h |]
-       ==> temp_strengthening (<> P) (<> Q) h"
+       ==> temp_strengthening (\<diamond>P) (\<diamond>Q) h"
 apply (unfold Diamond_def)
 apply (rule strength_NOT)
 apply (rule weak_Box)
@@ -536,7 +536,7 @@ done
 lemma strength_Leadsto:
 "[| temp_weakening P1 P2 h;
           temp_strengthening Q1 Q2 h |]
-       ==> temp_strengthening (P1 ~> Q1) (P2 ~> Q2) h"
+       ==> temp_strengthening (P1 \<leadsto> Q1) (P2 \<leadsto> Q2) h"
 apply (unfold Leadsto_def)
 apply (rule strength_Box)
 apply (erule strength_IMPLIES)
@@ -548,7 +548,7 @@ text {* Localizing Temporal Weakenings - 3 *}
 
 lemma weak_Diamond:
 "[| temp_weakening P Q h |]
-       ==> temp_weakening (<> P) (<> Q) h"
+       ==> temp_weakening (\<diamond>P) (\<diamond>Q) h"
 apply (unfold Diamond_def)
 apply (rule weak_NOT)
 apply (rule strength_Box)
@@ -558,7 +558,7 @@ done
 lemma weak_Leadsto:
 "[| temp_strengthening P1 P2 h;
           temp_weakening Q1 Q2 h |]
-       ==> temp_weakening (P1 ~> Q1) (P2 ~> Q2) h"
+       ==> temp_weakening (P1 \<leadsto> Q1) (P2 \<leadsto> Q2) h"
 apply (unfold Leadsto_def)
 apply (rule weak_Box)
 apply (erule weak_IMPLIES)

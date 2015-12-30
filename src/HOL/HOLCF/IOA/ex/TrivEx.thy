@@ -45,7 +45,7 @@ definition
   "h_abs n = (n~=0)"
 
 axiomatization where
-  MC_result: "validIOA A_ioa (<>[] <%(b,a,c). b>)"
+  MC_result: "validIOA A_ioa (\<diamond>\<box><%(b,a,c). b>)"
 
 lemma h_abs_is_abstraction:
   "is_abstraction h_abs C_ioa A_ioa"
@@ -61,7 +61,7 @@ apply (induct_tac "a")
 apply (simp add: h_abs_def)
 done
 
-lemma TrivEx_abstraction: "validIOA C_ioa (<>[] <%(n,a,m). n~=0>)"
+lemma TrivEx_abstraction: "validIOA C_ioa (\<diamond>\<box><%(n,a,m). n~=0>)"
 apply (rule AbsRuleT1)
 apply (rule h_abs_is_abstraction)
 apply (rule MC_result)

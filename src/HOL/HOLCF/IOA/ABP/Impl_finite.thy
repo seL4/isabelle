@@ -15,7 +15,7 @@ type_synonym
 
 definition
   impl_fin_ioa :: "('m action, 'm impl_fin_state)ioa" where
-  "impl_fin_ioa = (sender_ioa || receiver_ioa || srch_fin_ioa ||
+  "impl_fin_ioa = (sender_ioa \<parallel> receiver_ioa \<parallel> srch_fin_ioa \<parallel>
                   rsch_fin_ioa)"
 
 definition

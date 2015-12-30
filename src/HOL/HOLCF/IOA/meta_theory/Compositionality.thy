@@ -23,7 +23,7 @@ apply (simp_all add: ext_is_act ext1_ext2_is_not_act1)
 done
 
 
-(* the next two theorems are only necessary, as there is no theorem ext (A||B) = ext (B||A) *)
+(* the next two theorems are only necessary, as there is no theorem ext (A\<parallel>B) = ext (B\<parallel>A) *)
 
 lemma compatibility_consequence4: "[|eA --> A ; eB & ~eA --> ~A|] ==> (eB | eA) --> A=eA"
 apply auto
@@ -46,7 +46,7 @@ lemma compositionality: "[| is_trans_of A1; is_trans_of A2; is_trans_of B1; is_t
              compatible A1 B1; compatible A2 B2;  
              A1 =<| A2;  
              B1 =<| B2 |]  
-         ==> (A1 || B1) =<| (A2 || B2)"
+         ==> (A1 \<parallel> B1) =<| (A2 \<parallel> B2)"
 apply (simp add: is_asig_of_def)
 apply (frule_tac A1 = "A1" in compat_commute [THEN iffD1])
 apply (frule_tac A1 = "A2" in compat_commute [THEN iffD1])

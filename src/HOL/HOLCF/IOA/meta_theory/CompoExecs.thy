@@ -208,10 +208,10 @@ declare compoex_simps [simp]
 
 
 (* --------------------------------------------------------------------- *)
-(*  Lemma_1_1a : is_ex_fr propagates from A||B to Projections A and B    *)
+(*  Lemma_1_1a : is_ex_fr propagates from A\<parallel>B to Projections A and B    *)
 (* --------------------------------------------------------------------- *)
 
-lemma lemma_1_1a: "!s. is_exec_frag (A||B) (s,xs)
+lemma lemma_1_1a: "!s. is_exec_frag (A\<parallel>B) (s,xs)
        -->  is_exec_frag A (fst s, Filter_ex2 (asig_of A)$(ProjA2$xs)) &
             is_exec_frag B (snd s, Filter_ex2 (asig_of B)$(ProjB2$xs))"
 
@@ -222,10 +222,10 @@ done
 
 
 (* --------------------------------------------------------------------- *)
-(*  Lemma_1_1b : is_ex_fr (A||B) implies stuttering on Projections       *)
+(*  Lemma_1_1b : is_ex_fr (A\<parallel>B) implies stuttering on Projections       *)
 (* --------------------------------------------------------------------- *)
 
-lemma lemma_1_1b: "!s. is_exec_frag (A||B) (s,xs)
+lemma lemma_1_1b: "!s. is_exec_frag (A\<parallel>B) (s,xs)
        --> stutter (asig_of A) (fst s,ProjA2$xs)  &
            stutter (asig_of B) (snd s,ProjB2$xs)"
 
@@ -237,11 +237,11 @@ done
 
 
 (* --------------------------------------------------------------------- *)
-(*  Lemma_1_1c : Executions of A||B have only  A- or B-actions           *)
+(*  Lemma_1_1c : Executions of A\<parallel>B have only  A- or B-actions           *)
 (* --------------------------------------------------------------------- *)
 
-lemma lemma_1_1c: "!s. (is_exec_frag (A||B) (s,xs)
-   --> Forall (%x. fst x:act (A||B)) xs)"
+lemma lemma_1_1c: "!s. (is_exec_frag (A\<parallel>B) (s,xs)
+   --> Forall (%x. fst x:act (A\<parallel>B)) xs)"
 
 apply (tactic {* pair_induct_tac @{context} "xs" [@{thm Forall_def}, @{thm sforall_def},
   @{thm is_exec_frag_def}] 1 *})
@@ -252,7 +252,7 @@ done
 
 
 (* ----------------------------------------------------------------------- *)
-(*  Lemma_1_2 : ex A, exB, stuttering and forall a:A|B implies ex (A||B)   *)
+(*  Lemma_1_2 : ex A, exB, stuttering and forall a:A|B implies ex (A\<parallel>B)   *)
 (* ----------------------------------------------------------------------- *)
 
 lemma lemma_1_2:
@@ -260,8 +260,8 @@ lemma lemma_1_2:
      is_exec_frag B (snd s,Filter_ex2 (asig_of B)$(ProjB2$xs)) &
      stutter (asig_of A) (fst s,(ProjA2$xs)) &
      stutter (asig_of B) (snd s,(ProjB2$xs)) &
-     Forall (%x. fst x:act (A||B)) xs
-     --> is_exec_frag (A||B) (s,xs)"
+     Forall (%x. fst x:act (A\<parallel>B)) xs
+     --> is_exec_frag (A\<parallel>B) (s,xs)"
 
 apply (tactic {* pair_induct_tac @{context} "xs" [@{thm Forall_def}, @{thm sforall_def},
   @{thm is_exec_frag_def}, @{thm stutter_def}] 1 *})
@@ -272,11 +272,11 @@ done
 subsection {* COMPOSITIONALITY on EXECUTION Level -- Main Theorem *}
 
 lemma compositionality_ex:
-"(ex:executions(A||B)) =
+"(ex:executions(A\<parallel>B)) =
  (Filter_ex (asig_of A) (ProjA ex) : executions A &
   Filter_ex (asig_of B) (ProjB ex) : executions B &
   stutter (asig_of A) (ProjA ex) & stutter (asig_of B) (ProjB ex) &
-  Forall (%x. fst x:act (A||B)) (snd ex))"
+  Forall (%x. fst x:act (A\<parallel>B)) (snd ex))"
 
 apply (simp (no_asm) add: executions_def ProjB_def Filter_ex_def ProjA_def starts_of_par)
 apply (tactic {* pair_tac @{context} "ex" 1 *})
@@ -293,7 +293,7 @@ done
 subsection {* COMPOSITIONALITY on EXECUTION Level -- for Modules *}
 
 lemma compositionality_ex_modules:
-  "Execs (A||B) = par_execs (Execs A) (Execs B)"
+  "Execs (A\<parallel>B) = par_execs (Execs A) (Execs B)"
 apply (unfold Execs_def par_execs_def)
 apply (simp add: asig_of_par)
 apply (rule set_eqI)

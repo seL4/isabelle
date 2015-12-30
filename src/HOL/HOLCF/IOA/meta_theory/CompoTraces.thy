@@ -199,8 +199,8 @@ by (erule subst)
 
 lemma ForallAorB_mksch [rule_format]:
   "!!A B. compatible A B ==>  
-    ! schA schB. Forall (%x. x:act (A||B)) tr  
-    --> Forall (%x. x:act (A||B)) (mksch A B$tr$schA$schB)"
+    ! schA schB. Forall (%x. x:act (A\<parallel>B)) tr  
+    --> Forall (%x. x:act (A\<parallel>B)) (mksch A B$tr$schA$schB)"
 apply (tactic {* Seq_induct_tac @{context} "tr"
   [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1 *})
 apply auto
@@ -253,7 +253,7 @@ lemma FiniteL_mksch [rule_format (no_asm)]: "[| Finite tr; is_asig(asig_of A); i
     ! x y. Forall (%x. x:act A) x & Forall (%x. x:act B) y &  
            Filter (%a. a:ext A)$x = Filter (%a. a:act A)$tr &  
            Filter (%a. a:ext B)$y = Filter (%a. a:act B)$tr & 
-           Forall (%x. x:ext (A||B)) tr  
+           Forall (%x. x:ext (A\<parallel>B)) tr  
            --> Finite (mksch A B$tr$x$y)"
 
 apply (erule Seq_Finite_ind)
@@ -409,10 +409,10 @@ lemma FilterA_mksch_is_tr:
 "!! A B. [| compatible A B; compatible B A; 
             is_asig(asig_of A); is_asig(asig_of B) |] ==>  
   ! schA schB. Forall (%x. x:act A) schA & Forall (%x. x:act B) schB &  
-  Forall (%x. x:ext (A||B)) tr &  
+  Forall (%x. x:ext (A\<parallel>B)) tr &  
   Filter (%a. a:act A)$tr << Filter (%a. a:ext A)$schA & 
   Filter (%a. a:act B)$tr << Filter (%a. a:ext B)$schB   
-  --> Filter (%a. a:ext (A||B))$(mksch A B$tr$schA$schB) = tr"
+  --> Filter (%a. a:ext (A\<parallel>B))$(mksch A B$tr$schA$schB) = tr"
 
 apply (tactic {* Seq_induct_tac @{context} "tr"
   [@{thm Forall_def}, @{thm sforall_def}, @{thm mksch_def}] 1 *})
@@ -463,7 +463,7 @@ subsection" Filter of mksch(tr,schA,schB) to A is schA -- take lemma proof"
 
 lemma FilterAmksch_is_schA: "!! A B. [| compatible A B; compatible B A;  
   is_asig(asig_of A); is_asig(asig_of B) |] ==>  
-  Forall (%x. x:ext (A||B)) tr &  
+  Forall (%x. x:ext (A\<parallel>B)) tr &  
   Forall (%x. x:act A) schA & Forall (%x. x:act B) schB &  
   Filter (%a. a:ext A)$schA = Filter (%a. a:act A)$tr & 
   Filter (%a. a:ext B)$schB = Filter (%a. a:act B)$tr & 
@@ -683,7 +683,7 @@ subsection" Filter of mksch(tr,schA,schB) to B is schB -- take lemma proof"
 
 lemma FilterBmksch_is_schB: "!! A B. [| compatible A B; compatible B A;  
   is_asig(asig_of A); is_asig(asig_of B) |] ==>  
-  Forall (%x. x:ext (A||B)) tr &  
+  Forall (%x. x:ext (A\<parallel>B)) tr &  
   Forall (%x. x:act A) schA & Forall (%x. x:act B) schB &  
   Filter (%a. a:ext A)$schA = Filter (%a. a:act A)$tr & 
   Filter (%a. a:ext B)$schB = Filter (%a. a:act B)$tr & 
@@ -900,10 +900,10 @@ subsection "COMPOSITIONALITY on TRACE Level -- Main Theorem"
 lemma compositionality_tr: 
 "!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A;  
             is_asig(asig_of A); is_asig(asig_of B)|]  
-        ==>  (tr: traces(A||B)) =  
+        ==>  (tr: traces(A\<parallel>B)) =  
              (Filter (%a. a:act A)$tr : traces A & 
               Filter (%a. a:act B)$tr : traces B & 
-              Forall (%x. x:ext(A||B)) tr)"
+              Forall (%x. x:ext(A\<parallel>B)) tr)"
 
 apply (simp (no_asm) add: traces_def has_trace_def)
 apply auto
@@ -919,7 +919,7 @@ apply (rule_tac x = "Filter (%a. a:act B) $sch" in bexI)
 prefer 2
 apply (simp add: compositionality_sch)
 apply (simp add: compatibility_consequence2 externals_of_par ext1_ext2_is_not_act2)
-(* Traces of A||B have only external actions from A or B *)
+(* Traces of A\<parallel>B have only external actions from A or B *)
 apply (rule ForallPFilterP)
 
 (* <== *)
@@ -938,7 +938,7 @@ apply (drule scheds_in_sig)
 apply assumption
 
 apply (rename_tac h1 h2 schA schB)
-(* mksch is exactly the construction of trA||B out of schA, schB, and the oracle tr,
+(* mksch is exactly the construction of trA\<parallel>B out of schA, schB, and the oracle tr,
    we need here *)
 apply (rule_tac x = "mksch A B$tr$schA$schB" in bexI)
 
@@ -961,7 +961,7 @@ lemma compositionality_tr_modules:
 
 "!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A;  
             is_asig(asig_of A); is_asig(asig_of B)|]  
- ==> Traces (A||B) = par_traces (Traces A) (Traces B)"
+ ==> Traces (A\<parallel>B) = par_traces (Traces A) (Traces B)"
 
 apply (unfold Traces_def par_traces_def)
 apply (simp add: asig_of_par)
