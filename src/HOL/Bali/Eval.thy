@@ -124,7 +124,7 @@ text {* To avoid redundancy and to reduce the number of rules, there is only
  assignment. 
 *}
 
-abbreviation (xsymbols)
+abbreviation
   dummy_res :: "vals" ("\<diamondsuit>")
   where "\<diamondsuit> == In1 Unit"
 

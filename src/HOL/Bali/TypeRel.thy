@@ -38,21 +38,21 @@ definition
 
 
 abbreviation
-  subint1_syntax :: "prog => [qtname, qtname] => bool" ("_|-_<:I1_" [71,71,71] 70)
-  where "G|-I <:I1 J == (I,J) \<in> subint1 G"
+  subint1_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<prec>I1_"  [71,71,71] 70)
+  where "G\<turnstile>I \<prec>I1 J == (I,J) \<in> subint1 G"
 
 abbreviation
-  subint_syntax :: "prog => [qtname, qtname] => bool" ("_|-_<=:I _"[71,71,71] 70)
-  where "G|-I <=:I J == (I,J) \<in>(subint1 G)^*" --{* cf. 9.1.3 *}
+  subint_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<preceq>I _"  [71,71,71] 70)
+  where "G\<turnstile>I \<preceq>I J == (I,J) \<in>(subint1 G)^*" --{* cf. 9.1.3 *}
 
 abbreviation
-  implmt1_syntax :: "prog => [qtname, qtname] => bool" ("_|-_~>1_"  [71,71,71] 70)
-  where "G|-C ~>1 I == (C,I) \<in> implmt1 G"
+  implmt1_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<leadsto>1_"  [71,71,71] 70)
+  where "G\<turnstile>C \<leadsto>1 I == (C,I) \<in> implmt1 G"
 
-notation (xsymbols)
-  subint1_syntax  ("_\<turnstile>_\<prec>I1_"  [71,71,71] 70) and
-  subint_syntax  ("_\<turnstile>_\<preceq>I _"  [71,71,71] 70) and
-  implmt1_syntax   ("_\<turnstile>_\<leadsto>1_"  [71,71,71] 70)
+notation (ASCII)
+  subint1_syntax  ("_|-_<:I1_" [71,71,71] 70) and
+  subint_syntax  ("_|-_<=:I _"[71,71,71] 70) and
+  implmt1_syntax   ("_|-_~>1_"  [71,71,71] 70)
 
 
 subsubsection "subclass and subinterface relations"

@@ -429,31 +429,31 @@ where
 
 (* for purely static typing *)
 abbreviation
-  wt_syntax :: "env \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_|-_::_" [51,51,51] 50)
-  where "E|-t::T == E,empty_dt\<Turnstile>t\<Colon> T"
+  wt_syntax :: "env \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>_"  [51,51,51] 50)
+  where "E\<turnstile>t\<Colon>T == E,empty_dt\<Turnstile>t\<Colon> T"
 
 abbreviation
-  wt_stmt_syntax :: "env \<Rightarrow> stmt \<Rightarrow> bool" ("_|-_:<>" [51,51   ] 50)
-  where "E|-s:<> == E|-In1r s :: Inl (PrimT Void)"
+  wt_stmt_syntax :: "env \<Rightarrow> stmt \<Rightarrow> bool" ("_\<turnstile>_\<Colon>\<surd>"  [51,51   ] 50)
+  where "E\<turnstile>s\<Colon>\<surd> == E\<turnstile>In1r s \<Colon> Inl (PrimT Void)"
 
 abbreviation
-  ty_expr_syntax :: "env \<Rightarrow> [expr, ty] \<Rightarrow> bool" ("_|-_:-_" [51,51,51] 50)
-  where "E|-e:-T == E|-In1l e :: Inl T"
+  ty_expr_syntax :: "env \<Rightarrow> [expr, ty] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>-_" [51,51,51] 50) 
+  where "E\<turnstile>e\<Colon>-T == E\<turnstile>In1l e \<Colon> Inl T"
 
 abbreviation
-  ty_var_syntax :: "env \<Rightarrow> [var, ty] \<Rightarrow> bool" ("_|-_:=_" [51,51,51] 50)
-  where "E|-e:=T == E|-In2 e :: Inl T"
+  ty_var_syntax :: "env \<Rightarrow> [var, ty] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>=_" [51,51,51] 50)
+  where "E\<turnstile>e\<Colon>=T == E\<turnstile>In2 e \<Colon> Inl T"
 
 abbreviation
-  ty_exprs_syntax :: "env \<Rightarrow> [expr list, ty list] \<Rightarrow> bool" ("_|-_:#_" [51,51,51] 50)
-  where "E|-e:#T == E|-In3 e :: Inr T"
+  ty_exprs_syntax :: "env \<Rightarrow> [expr list, ty list] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>\<doteq>_" [51,51,51] 50)
+  where "E\<turnstile>e\<Colon>\<doteq>T == E\<turnstile>In3 e \<Colon> Inr T"
 
-notation (xsymbols)
-  wt_syntax  ("_\<turnstile>_\<Colon>_"  [51,51,51] 50) and
-  wt_stmt_syntax  ("_\<turnstile>_\<Colon>\<surd>"  [51,51   ] 50) and
-  ty_expr_syntax  ("_\<turnstile>_\<Colon>-_" [51,51,51] 50) and
-  ty_var_syntax  ("_\<turnstile>_\<Colon>=_" [51,51,51] 50) and
-  ty_exprs_syntax  ("_\<turnstile>_\<Colon>\<doteq>_" [51,51,51] 50)
+notation (ASCII)
+  wt_syntax  ("_|-_::_" [51,51,51] 50) and
+  wt_stmt_syntax  ("_|-_:<>" [51,51   ] 50) and
+  ty_expr_syntax  ("_|-_:-_" [51,51,51] 50) and
+  ty_var_syntax  ("_|-_:=_" [51,51,51] 50) and
+  ty_exprs_syntax  ("_|-_:#_" [51,51,51] 50)
 
 declare not_None_eq [simp del] 
 declare split_if [split del] split_if_asm [split del]

@@ -380,34 +380,34 @@ definition
 
 datatype    'a triple = triple "('a assn)" "term" "('a assn)" (** should be
 something like triple = \<forall>'a. triple ('a assn) term ('a assn)   **)
-                                        ("{(1_)}/ _>/ {(1_)}"      [3,65,3]75)
+                                        ("{(1_)}/ _\<succ>/ {(1_)}"     [3,65,3] 75)
 type_synonym 'a triples = "'a triple set"
 
 abbreviation
   var_triple   :: "['a assn, var         ,'a assn] \<Rightarrow> 'a triple"
-                                         ("{(1_)}/ _=>/ {(1_)}"    [3,80,3] 75)
-  where "{P} e=> {Q} == {P} In2  e> {Q}"
+                                         ("{(1_)}/ _=\<succ>/ {(1_)}"    [3,80,3] 75)
+  where "{P} e=\<succ> {Q} == {P} In2 e\<succ> {Q}"
 
 abbreviation
   expr_triple  :: "['a assn, expr        ,'a assn] \<Rightarrow> 'a triple"
-                                         ("{(1_)}/ _->/ {(1_)}"    [3,80,3] 75)
-  where "{P} e-> {Q} == {P} In1l e> {Q}"
+                                         ("{(1_)}/ _-\<succ>/ {(1_)}"    [3,80,3] 75)
+  where "{P} e-\<succ> {Q} == {P} In1l e\<succ> {Q}"
 
 abbreviation
   exprs_triple :: "['a assn, expr list   ,'a assn] \<Rightarrow> 'a triple"
-                                         ("{(1_)}/ _#>/ {(1_)}"    [3,65,3] 75)
-  where "{P} e#> {Q} == {P} In3  e> {Q}"
+                                         ("{(1_)}/ _\<doteq>\<succ>/ {(1_)}"    [3,65,3] 75)
+  where "{P} e\<doteq>\<succ> {Q} == {P} In3 e\<succ> {Q}"
 
 abbreviation
   stmt_triple  :: "['a assn, stmt,        'a assn] \<Rightarrow> 'a triple"
                                          ("{(1_)}/ ._./ {(1_)}"     [3,65,3] 75)
-  where "{P} .c. {Q} == {P} In1r c> {Q}"
+  where "{P} .c. {Q} == {P} In1r c\<succ> {Q}"
 
-notation (xsymbols)
-  triple  ("{(1_)}/ _\<succ>/ {(1_)}"     [3,65,3] 75) and
-  var_triple  ("{(1_)}/ _=\<succ>/ {(1_)}"    [3,80,3] 75) and
-  expr_triple  ("{(1_)}/ _-\<succ>/ {(1_)}"    [3,80,3] 75) and
-  exprs_triple  ("{(1_)}/ _\<doteq>\<succ>/ {(1_)}"    [3,65,3] 75)
+notation (ASCII)
+  triple  ("{(1_)}/ _>/ {(1_)}"      [3,65,3]75) and
+  var_triple  ("{(1_)}/ _=>/ {(1_)}"    [3,80,3] 75) and
+  expr_triple  ("{(1_)}/ _->/ {(1_)}"    [3,80,3] 75) and
+  exprs_triple  ("{(1_)}/ _#>/ {(1_)}"    [3,65,3] 75)
 
 lemma inj_triple: "inj (\<lambda>(P,t,Q). {P} t\<succ> {Q})"
 apply (rule inj_onI)
@@ -431,11 +431,11 @@ definition
         (\<forall>Y' s'. G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y',s') \<longrightarrow> Q Y' s' Z))"
 
 abbreviation
-  triples_valid:: "prog \<Rightarrow> nat \<Rightarrow> 'a triples \<Rightarrow> bool"  (  "_||=_:_" [61,0, 58] 57)
-  where "G||=n:ts == Ball ts (triple_valid G n)"
+  triples_valid:: "prog \<Rightarrow> nat \<Rightarrow> 'a triples \<Rightarrow> bool"  ("_|\<Turnstile>_:_" [61,0, 58] 57)
+  where "G|\<Turnstile>n:ts == Ball ts (triple_valid G n)"
 
-notation (xsymbols)
-  triples_valid  ("_|\<Turnstile>_:_" [61,0, 58] 57)
+notation (ASCII)
+  triples_valid  (  "_||=_:_" [61,0, 58] 57)
 
 
 definition
@@ -443,11 +443,11 @@ definition
   where "(G,A|\<Turnstile>ts) = (\<forall>n. G|\<Turnstile>n:A \<longrightarrow> G|\<Turnstile>n:ts)"
 
 abbreviation
-  ax_valid :: "prog \<Rightarrow> 'b triples \<Rightarrow> 'a triple \<Rightarrow> bool"  ( "_,_|=_"   [61,58,58] 57)
-  where "G,A |=t == G,A|\<Turnstile>{t}"
+  ax_valid :: "prog \<Rightarrow> 'b triples \<Rightarrow> 'a triple \<Rightarrow> bool"  ("_,_\<Turnstile>_" [61,58,58] 57)
+  where "G,A \<Turnstile>t == G,A|\<Turnstile>{t}"
 
-notation (xsymbols)
-  ax_valid  ("_,_\<Turnstile>_" [61,58,58] 57)
+notation (ASCII)
+  ax_valid  ( "_,_|=_"   [61,58,58] 57)
 
 
 lemma triple_valid_def2: "G\<Turnstile>n:{P} t\<succ> {Q} =  
