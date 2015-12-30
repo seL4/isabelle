@@ -24,15 +24,11 @@ text {*
 *}
 
 definition
-  meet :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "&&" 70) where
-  "x && y = (THE inf. is_inf x y inf)"
+  meet :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<sqinter>" 70) where
+  "x \<sqinter> y = (THE inf. is_inf x y inf)"
 definition
-  join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "||" 65) where
-  "x || y = (THE sup. is_sup x y sup)"
-
-notation (xsymbols)
-  meet  (infixl "\<sqinter>" 70) and
-  join  (infixl "\<squnion>" 65)
+  join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<squnion>" 65) where
+  "x \<squnion> y = (THE sup. is_sup x y sup)"
 
 text {*
   Due to unique existence of bounds, the lattice operations may be

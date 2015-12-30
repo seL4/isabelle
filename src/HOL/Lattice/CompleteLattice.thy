@@ -31,15 +31,11 @@ text {*
 *}
 
 definition
-  Meet :: "'a::complete_lattice set \<Rightarrow> 'a" where
-  "Meet A = (THE inf. is_Inf A inf)"
+  Meet :: "'a::complete_lattice set \<Rightarrow> 'a"  ("\<Sqinter>_" [90] 90) where
+  "\<Sqinter>A = (THE inf. is_Inf A inf)"
 definition
-  Join :: "'a::complete_lattice set \<Rightarrow> 'a" where
-  "Join A = (THE sup. is_Sup A sup)"
-
-notation (xsymbols)
-  Meet  ("\<Sqinter>_" [90] 90) and
-  Join  ("\<Squnion>_" [90] 90)
+  Join :: "'a::complete_lattice set \<Rightarrow> 'a"  ("\<Squnion>_" [90] 90) where
+  "\<Squnion>A = (THE sup. is_Sup A sup)"
 
 text {*
   Due to unique existence of bounds, the complete lattice operations
