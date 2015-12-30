@@ -24,7 +24,7 @@ consts
 option_lift :: "('a => 'b) => 'b => ('a option => 'b)"
 plift       :: "('a => bool) => ('a option => bool)"
 
-temp_sat   :: "('a,'s)execution => ('a,'s)ioa_temp => bool"    (infixr "|==" 22)
+temp_sat   :: "('a,'s)execution => ('a,'s)ioa_temp => bool"    (infixr "\<TTurnstile>" 22)
 xt1        :: "'s predicate => ('a,'s)step_pred"
 xt2        :: "'a option predicate => ('a,'s)step_pred"
 
@@ -52,7 +52,7 @@ plift_def:
   "plift P == option_lift P False"
 
 temp_sat_def:
-  "ex |== P == ((ex2seq ex) |= P)"
+  "ex \<TTurnstile> P == ((ex2seq ex) \<Turnstile> P)"
 
 xt1_def:
   "xt1 P tr == P (fst tr)"
@@ -72,10 +72,10 @@ ex2seqC_def:
       )))"
 
 validTE_def:
-  "validTE P == ! ex. (ex |== P)"
+  "validTE P == ! ex. (ex \<TTurnstile> P)"
 
 validIOA_def:
-  "validIOA A P == ! ex : executions A . (ex |== P)"
+  "validIOA A P == ! ex : executions A . (ex \<TTurnstile> P)"
 
 
 axiomatization where
@@ -164,8 +164,8 @@ subsection {* Interface TL -- TLS *}
 
 lemma TL_TLS: 
  "[| ! s a t. (P s) & s-a--A-> t --> (Q t) |] 
-   ==> ex |== (Init (%(s,a,t). P s) .& Init (%(s,a,t). s -a--A-> t)  
-              .--> (Next (Init (%(s,a,t).Q s))))"
+   ==> ex \<TTurnstile> (Init (%(s,a,t). P s) \<^bold>\<and> Init (%(s,a,t). s -a--A-> t)  
+              \<^bold>\<longrightarrow> (Next (Init (%(s,a,t).Q s))))"
 apply (unfold Init_def Next_def temp_sat_def satisfies_def IMPLIES_def AND_def)
 
 apply clarify

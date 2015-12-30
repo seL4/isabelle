@@ -30,17 +30,17 @@ definition
   "weakeningIOA A C h = (!ex. ex : executions C --> cex_abs h ex : executions A)"
 definition
   temp_strengthening :: "('a,'s2)ioa_temp => ('a,'s1)ioa_temp => ('s1 => 's2) => bool" where
-  "temp_strengthening Q P h = (!ex. (cex_abs h ex |== Q) --> (ex |== P))"
+  "temp_strengthening Q P h = (!ex. (cex_abs h ex \<TTurnstile> Q) --> (ex \<TTurnstile> P))"
 definition
   temp_weakening :: "('a,'s2)ioa_temp => ('a,'s1)ioa_temp => ('s1 => 's2) => bool" where
-  "temp_weakening Q P h = temp_strengthening (.~ Q) (.~ P) h"
+  "temp_weakening Q P h = temp_strengthening (\<^bold>\<not> Q) (\<^bold>\<not> P) h"
 
 definition
   state_strengthening :: "('a,'s2)step_pred => ('a,'s1)step_pred => ('s1 => 's2) => bool" where
   "state_strengthening Q P h = (!s t a.  Q (h(s),a,h(t)) --> P (s,a,t))"
 definition
   state_weakening :: "('a,'s2)step_pred => ('a,'s1)step_pred => ('s1 => 's2) => bool" where
-  "state_weakening Q P h = state_strengthening (.~Q) (.~P) h"
+  "state_weakening Q P h = state_strengthening (\<^bold>\<not>Q) (\<^bold>\<not>P) h"
 
 definition
   is_live_abstraction :: "('s1 => 's2) => ('a,'s1)live_ioa => ('a,'s2)live_ioa => bool" where
@@ -83,7 +83,7 @@ declare cex_abs_UU [simp] cex_abs_nil [simp] cex_abs_cons [simp]
 
 subsection "lemmas"
 
-lemma temp_weakening_def2: "temp_weakening Q P h = (! ex. (ex |== P) --> (cex_abs h ex |== Q))"
+lemma temp_weakening_def2: "temp_weakening Q P h = (! ex. (ex \<TTurnstile> P) --> (cex_abs h ex \<TTurnstile> Q))"
   apply (simp add: temp_weakening_def temp_strengthening_def NOT_def temp_sat_def satisfies_def)
   apply auto
   done
@@ -131,16 +131,16 @@ done
 
 (* FIX: Nach TLS.ML *)
 
-lemma IMPLIES_temp_sat: "(ex |== P .--> Q) = ((ex |== P) --> (ex |== Q))"
+lemma IMPLIES_temp_sat: "(ex \<TTurnstile> P \<^bold>\<longrightarrow> Q) = ((ex \<TTurnstile> P) --> (ex \<TTurnstile> Q))"
   by (simp add: IMPLIES_def temp_sat_def satisfies_def)
 
-lemma AND_temp_sat: "(ex |== P .& Q) = ((ex |== P) & (ex |== Q))"
+lemma AND_temp_sat: "(ex \<TTurnstile> P \<^bold>\<and> Q) = ((ex \<TTurnstile> P) & (ex \<TTurnstile> Q))"
   by (simp add: AND_def temp_sat_def satisfies_def)
 
-lemma OR_temp_sat: "(ex |== P .| Q) = ((ex |== P) | (ex |== Q))"
+lemma OR_temp_sat: "(ex \<TTurnstile> P \<^bold>\<or> Q) = ((ex \<TTurnstile> P) | (ex \<TTurnstile> Q))"
   by (simp add: OR_def temp_sat_def satisfies_def)
 
-lemma NOT_temp_sat: "(ex |== .~ P) = (~ (ex |== P))"
+lemma NOT_temp_sat: "(ex \<TTurnstile> \<^bold>\<not> P) = (~ (ex \<TTurnstile> P))"
   by (simp add: NOT_def temp_sat_def satisfies_def)
 
 declare IMPLIES_temp_sat [simp] AND_temp_sat [simp] OR_temp_sat [simp] NOT_temp_sat [simp]
@@ -160,7 +160,7 @@ done
 
 lemma AbsRuleTImprove:
    "[|is_live_abstraction h (C,L) (A,M);
-          validLIOA (A,M) (H1 .--> Q);  temp_strengthening Q P h;
+          validLIOA (A,M) (H1 \<^bold>\<longrightarrow> Q);  temp_strengthening Q P h;
           temp_weakening H1 H2 h; validLIOA (C,L) H2 |]
           ==> validLIOA (C,L) P"
 apply (unfold is_live_abstraction_def)
@@ -287,7 +287,7 @@ subsection "Localizing Temporal Strengthenings and Weakenings"
 lemma strength_AND:
 "[| temp_strengthening P1 Q1 h;
           temp_strengthening P2 Q2 h |]
-       ==> temp_strengthening (P1 .& P2) (Q1 .& Q2) h"
+       ==> temp_strengthening (P1 \<^bold>\<and> P2) (Q1 \<^bold>\<and> Q2) h"
 apply (unfold temp_strengthening_def)
 apply auto
 done
@@ -295,14 +295,14 @@ done
 lemma strength_OR:
 "[| temp_strengthening P1 Q1 h;
           temp_strengthening P2 Q2 h |]
-       ==> temp_strengthening (P1 .| P2) (Q1 .| Q2) h"
+       ==> temp_strengthening (P1 \<^bold>\<or> P2) (Q1 \<^bold>\<or> Q2) h"
 apply (unfold temp_strengthening_def)
 apply auto
 done
 
 lemma strength_NOT:
 "[| temp_weakening P Q h |]
-       ==> temp_strengthening (.~ P) (.~ Q) h"
+       ==> temp_strengthening (\<^bold>\<not> P) (\<^bold>\<not> Q) h"
 apply (unfold temp_strengthening_def)
 apply (simp add: temp_weakening_def2)
 apply auto
@@ -311,7 +311,7 @@ done
 lemma strength_IMPLIES:
 "[| temp_weakening P1 Q1 h;
           temp_strengthening P2 Q2 h |]
-       ==> temp_strengthening (P1 .--> P2) (Q1 .--> Q2) h"
+       ==> temp_strengthening (P1 \<^bold>\<longrightarrow> P2) (Q1 \<^bold>\<longrightarrow> Q2) h"
 apply (unfold temp_strengthening_def)
 apply (simp add: temp_weakening_def2)
 done
@@ -320,20 +320,20 @@ done
 lemma weak_AND:
 "[| temp_weakening P1 Q1 h;
           temp_weakening P2 Q2 h |]
-       ==> temp_weakening (P1 .& P2) (Q1 .& Q2) h"
+       ==> temp_weakening (P1 \<^bold>\<and> P2) (Q1 \<^bold>\<and> Q2) h"
 apply (simp add: temp_weakening_def2)
 done
 
 lemma weak_OR:
 "[| temp_weakening P1 Q1 h;
           temp_weakening P2 Q2 h |]
-       ==> temp_weakening (P1 .| P2) (Q1 .| Q2) h"
+       ==> temp_weakening (P1 \<^bold>\<or> P2) (Q1 \<^bold>\<or> Q2) h"
 apply (simp add: temp_weakening_def2)
 done
 
 lemma weak_NOT:
 "[| temp_strengthening P Q h |]
-       ==> temp_weakening (.~ P) (.~ Q) h"
+       ==> temp_weakening (\<^bold>\<not> P) (\<^bold>\<not> Q) h"
 apply (unfold temp_strengthening_def)
 apply (simp add: temp_weakening_def2)
 apply auto
@@ -342,7 +342,7 @@ done
 lemma weak_IMPLIES:
 "[| temp_strengthening P1 Q1 h;
           temp_weakening P2 Q2 h |]
-       ==> temp_weakening (P1 .--> P2) (Q1 .--> Q2) h"
+       ==> temp_weakening (P1 \<^bold>\<longrightarrow> P2) (Q1 \<^bold>\<longrightarrow> Q2) h"
 apply (unfold temp_strengthening_def)
 apply (simp add: temp_weakening_def2)
 done

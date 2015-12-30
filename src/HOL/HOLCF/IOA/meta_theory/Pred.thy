@@ -15,50 +15,33 @@ type_synonym
 
 consts
 
-satisfies    ::"'a  => 'a predicate => bool"    ("_ |= _" [100,9] 8)
+satisfies    ::"'a  => 'a predicate => bool"    ("_ \<Turnstile> _" [100,9] 8)
 valid        ::"'a predicate => bool"           (*  ("|-") *)
 
-NOT          ::"'a predicate => 'a predicate"  (".~ _" [40] 40)
-AND          ::"'a predicate => 'a predicate => 'a predicate"    (infixr ".&" 35)
-OR           ::"'a predicate => 'a predicate => 'a predicate"    (infixr ".|" 30)
-IMPLIES      ::"'a predicate => 'a predicate => 'a predicate"    (infixr ".-->" 25)
-
-
-notation (output)
-  NOT  ("~ _" [40] 40) and
-  AND  (infixr "&" 35) and
-  OR  (infixr "|" 30) and
-  IMPLIES  (infixr "-->" 25)
-
-notation (xsymbols output)
-  NOT  ("\<not> _" [40] 40) and
-  AND  (infixr "\<and>" 35) and
-  OR  (infixr "\<or>" 30) and
-  IMPLIES  (infixr "\<longrightarrow>" 25)
-
-notation (xsymbols)
-  satisfies  ("_ \<Turnstile> _" [100,9] 8)
+NOT          ::"'a predicate => 'a predicate"  ("\<^bold>\<not> _" [40] 40)
+AND          ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\<^bold>\<and>" 35)
+OR           ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\<^bold>\<or>" 30)
+IMPLIES      ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\<^bold>\<longrightarrow>" 25)
 
 
 defs
 
 satisfies_def:
-   "s |= P  == P s"
+   "s \<Turnstile> P  == P s"
 
-(* priority einfuegen, da clash mit |=, wenn graphisches Symbol *)
 valid_def:
-   "valid P == (! s. (s |= P))"
+   "valid P == (! s. (s \<Turnstile> P))"
 
 NOT_def:
   "NOT P s ==  ~ (P s)"
 
 AND_def:
-  "(P .& Q) s == (P s) & (Q s)"
+  "(P \<^bold>\<and> Q) s == (P s) & (Q s)"
 
 OR_def:
-  "(P .| Q) s ==  (P s) | (Q s)"
+  "(P \<^bold>\<or> Q) s ==  (P s) | (Q s)"
 
 IMPLIES_def:
-  "(P .--> Q) s == (P s) --> (Q s)"
+  "(P \<^bold>\<longrightarrow> Q) s == (P s) --> (Q s)"
 
 end

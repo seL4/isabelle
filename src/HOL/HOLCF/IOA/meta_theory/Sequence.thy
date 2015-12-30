@@ -792,7 +792,7 @@ subsection "coinductive characterizations of Filter"
 
 lemma divide_Seq_lemma:
  "HD$(Filter P$y) = Def x
-    --> y = ((Takewhile (%x. ~P x)$y) @@ (x >> TL$(Dropwhile (%a.~P a)$y))) 
+    --> y = ((Takewhile (%x. ~P x)$y) @@ (x >> TL$(Dropwhile (%a. ~P a)$y)))
              & Finite (Takewhile (%x. ~ P x)$y)  & P x"
 
 (* FIX: pay attention: is only admissible with chain-finite package to be added to
@@ -809,7 +809,7 @@ apply simp
 done
 
 lemma divide_Seq: "(x>>xs) << Filter P$y 
-   ==> y = ((Takewhile (%a. ~ P a)$y) @@ (x >> TL$(Dropwhile (%a.~P a)$y)))
+   ==> y = ((Takewhile (%a. ~ P a)$y) @@ (x >> TL$(Dropwhile (%a. ~ P a)$y)))
       & Finite (Takewhile (%a. ~ P a)$y)  & P x"
 apply (rule divide_Seq_lemma [THEN mp])
 apply (drule_tac f="HD" and x="x>>xs" in  monofun_cfun_arg)
@@ -1030,7 +1030,7 @@ declare FilterPQ [simp del]
 
 (* In general: How to do this case without the same adm problems
    as for the entire proof ? *)
-lemma Filter_lemma1: "Forall (%x.~(P x & Q x)) s
+lemma Filter_lemma1: "Forall (%x. ~(P x & Q x)) s
           --> Filter P$(Filter Q$s) =
               Filter (%x. P x & Q x)$s"
 
@@ -1054,7 +1054,7 @@ done
 
 lemma FilterPQ_takelemma: "Filter P$(Filter Q$s) = Filter (%x. P x & Q x)$s"
 apply (rule_tac A1="%x. True" and
-                 Q1="%x.~(P x & Q x)" and x1="s" in
+                 Q1="%x. ~(P x & Q x)" and x1="s" in
                  take_lemma_induct [THEN mp])
 (* better support for A = %x. True *)
 apply (simp add: Filter_lemma1)

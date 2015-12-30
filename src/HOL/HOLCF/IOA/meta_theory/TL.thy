@@ -24,8 +24,8 @@ unlift     ::  "'a lift => 'a"
 
 Init       :: "'a predicate => 'a temporal"          ("<_>" [0] 1000)
 
-Box        :: "'a temporal => 'a temporal"   ("\<box> (_)" [80] 80)
-Diamond    :: "'a temporal => 'a temporal"   ("\<diamond> (_)" [80] 80)
+Box        :: "'a temporal => 'a temporal"   ("\<box>(_)" [80] 80)
+Diamond    :: "'a temporal => 'a temporal"   ("\<diamond>(_)" [80] 80)
 Next       :: "'a temporal => 'a temporal"
 Leadsto    :: "'a temporal => 'a temporal => 'a temporal"  (infixr "\<leadsto>" 22)
 
@@ -51,25 +51,25 @@ Next_def:
   "(Next P) s == if (TL$s=UU | TL$s=nil) then (P s) else P (TL$s)"
 
 Diamond_def:
-  "\<diamond>P == .~ (\<box>(.~ P))"
+  "\<diamond>P == \<^bold>\<not> (\<box>(\<^bold>\<not> P))"
 
 Leadsto_def:
-   "P \<leadsto> Q == (\<box>(P .--> (\<diamond>Q)))"
+   "P \<leadsto> Q == (\<box>(P \<^bold>\<longrightarrow> (\<diamond>Q)))"
 
 validT_def:
-  "validT P == ! s. s~=UU & s~=nil --> (s |= P)"
+  "validT P == ! s. s~=UU & s~=nil --> (s \<Turnstile> P)"
 
 
-lemma simple: "\<box>\<diamond>(.~ P) = (.~ \<diamond>\<box>P)"
+lemma simple: "\<box>\<diamond>(\<^bold>\<not> P) = (\<^bold>\<not> \<diamond>\<box>P)"
 apply (rule ext)
 apply (simp add: Diamond_def NOT_def Box_def)
 done
 
-lemma Boxnil: "nil |= \<box>P"
+lemma Boxnil: "nil \<Turnstile> \<box>P"
 apply (simp add: satisfies_def Box_def tsuffix_def suffix_def nil_is_Conc)
 done
 
-lemma Diamondnil: "~(nil |= \<diamond>P)"
+lemma Diamondnil: "~(nil \<Turnstile> \<diamond>P)"
 apply (simp add: Diamond_def satisfies_def NOT_def)
 apply (cut_tac Boxnil)
 apply (simp add: satisfies_def)
@@ -89,7 +89,7 @@ apply (rule_tac x = "nil" in exI)
 apply auto
 done
 
-lemma reflT: "s~=UU & s~=nil --> (s |= \<box>F .--> F)"
+lemma reflT: "s~=UU & s~=nil --> (s \<Turnstile> \<box>F \<^bold>\<longrightarrow> F)"
 apply (simp add: satisfies_def IMPLIES_def Box_def)
 apply (rule impI)+
 apply (erule_tac x = "s" in allE)
@@ -105,7 +105,7 @@ apply auto
 apply (simp (no_asm) add: Conc_assoc)
 done
 
-lemma transT: "s |= \<box>F .--> \<box>\<box>F"
+lemma transT: "s \<Turnstile> \<box>F \<^bold>\<longrightarrow> \<box>\<box>F"
 apply (simp (no_asm) add: satisfies_def IMPLIES_def Box_def tsuffix_def)
 apply auto
 apply (drule suffix_trans)
@@ -115,7 +115,7 @@ apply auto
 done
 
 
-lemma normalT: "s |= \<box>(F .--> G) .--> \<box>F .--> \<box>G"
+lemma normalT: "s \<Turnstile> \<box>(F \<^bold>\<longrightarrow> G) \<^bold>\<longrightarrow> \<box>F \<^bold>\<longrightarrow> \<box>G"
 apply (simp (no_asm) add: satisfies_def IMPLIES_def Box_def)
 done
 
@@ -136,7 +136,7 @@ apply (erule STL1b)
 done
 
 (* Note that unlift and HD is not at all used !!! *)
-lemma STL4: "valid (P .--> Q)  ==> validT (\<box>(Init P) .--> \<box>(Init Q))"
+lemma STL4: "valid (P \<^bold>\<longrightarrow> Q)  ==> validT (\<box>(Init P) \<^bold>\<longrightarrow> \<box>(Init Q))"
 apply (simp add: valid_def validT_def satisfies_def IMPLIES_def Box_def Init_def)
 done
 
@@ -156,13 +156,13 @@ lemmas tsuffix_TL2 = conjI [THEN tsuffix_TL]
 
 declare split_if [split del]
 lemma LTL1: 
-   "s~=UU & s~=nil --> (s |= \<box>F .--> (F .& (Next (\<box>F))))"
+   "s~=UU & s~=nil --> (s \<Turnstile> \<box>F \<^bold>\<longrightarrow> (F \<^bold>\<and> (Next (\<box>F))))"
 apply (unfold Next_def satisfies_def NOT_def IMPLIES_def AND_def Box_def)
 apply auto
-(* \<box>F .--> F *)
+(* \<box>F \<^bold>\<longrightarrow> F *)
 apply (erule_tac x = "s" in allE)
 apply (simp add: tsuffix_def suffix_refl)
-(* \<box>F .--> Next \<box>F *)
+(* \<box>F \<^bold>\<longrightarrow> Next \<box>F *)
 apply (simp split add: split_if)
 apply auto
 apply (drule tsuffix_TL2)
@@ -173,25 +173,25 @@ declare split_if [split]
 
 
 lemma LTL2a: 
-    "s |= .~ (Next F) .--> (Next (.~ F))"
+    "s \<Turnstile> \<^bold>\<not> (Next F) \<^bold>\<longrightarrow> (Next (\<^bold>\<not> F))"
 apply (unfold Next_def satisfies_def NOT_def IMPLIES_def)
 apply simp
 done
 
 lemma LTL2b: 
-    "s |= (Next (.~ F)) .--> (.~ (Next F))"
+    "s \<Turnstile> (Next (\<^bold>\<not> F)) \<^bold>\<longrightarrow> (\<^bold>\<not> (Next F))"
 apply (unfold Next_def satisfies_def NOT_def IMPLIES_def)
 apply simp
 done
 
 lemma LTL3: 
-"ex |= (Next (F .--> G)) .--> (Next F) .--> (Next G)"
+"ex \<Turnstile> (Next (F \<^bold>\<longrightarrow> G)) \<^bold>\<longrightarrow> (Next F) \<^bold>\<longrightarrow> (Next G)"
 apply (unfold Next_def satisfies_def NOT_def IMPLIES_def)
 apply simp
 done
 
 
-lemma ModusPonens: "[| validT (P .--> Q); validT P |] ==> validT Q"
+lemma ModusPonens: "[| validT (P \<^bold>\<longrightarrow> Q); validT P |] ==> validT Q"
 apply (simp add: validT_def satisfies_def IMPLIES_def)
 done
 

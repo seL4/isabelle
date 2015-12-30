@@ -20,8 +20,8 @@ definition
     | x##xs =>
       (case x of
         UU => UU
-      | Def y => (Takewhile (%x.~P x)$s)
-                  @@ (y>>(h$(TL$(Dropwhile (%x.~ P x)$s))$xs))
+      | Def y => (Takewhile (%x. \<not>P x)$s)
+                  @@ (y>>(h$(TL$(Dropwhile (%x. \<not> P x)$s))$xs))
       )
     ))"
 
@@ -64,8 +64,8 @@ lemma oraclebuild_unfold:
     | x##xs =>
       (case x of
         UU => UU
-      | Def y => (Takewhile (%a.~ P a)$s)
-                  @@ (y>>(oraclebuild P$(TL$(Dropwhile (%a.~ P a)$s))$xs))
+      | Def y => (Takewhile (%a. \<not> P a)$s)
+                  @@ (y>>(oraclebuild P$(TL$(Dropwhile (%a. \<not> P a)$s))$xs))
       )
     )"
 apply (rule trans)
@@ -86,8 +86,8 @@ apply simp
 done
 
 lemma oraclebuild_cons: "oraclebuild P$s$(x>>t) =
-          (Takewhile (%a.~ P a)$s)
-           @@ (x>>(oraclebuild P$(TL$(Dropwhile (%a.~ P a)$s))$t))"
+          (Takewhile (%a. \<not> P a)$s)
+           @@ (x>>(oraclebuild P$(TL$(Dropwhile (%a. \<not> P a)$s))$t))"
 apply (rule trans)
 apply (subst oraclebuild_unfold)
 apply (simp add: Consq_def)
@@ -98,7 +98,7 @@ done
 subsection "Cut rewrite rules"
 
 lemma Cut_nil:
-"[| Forall (%a.~ P a) s; Finite s|]
+"[| Forall (%a. \<not> P a) s; Finite s|]
             ==> Cut P s =nil"
 apply (unfold Cut_def)
 apply (subgoal_tac "Filter P$s = nil")
@@ -108,7 +108,7 @@ apply assumption+
 done
 
 lemma Cut_UU:
-"[| Forall (%a.~ P a) s; ~Finite s|]
+"[| Forall (%a. \<not> P a) s; ~Finite s|]
             ==> Cut P s =UU"
 apply (unfold Cut_def)
 apply (subgoal_tac "Filter P$s= UU")
@@ -118,7 +118,7 @@ apply assumption+
 done
 
 lemma Cut_Cons:
-"[| P t;  Forall (%x.~ P x) ss; Finite ss|]
+"[| P t;  Forall (%x. \<not> P x) ss; Finite ss|]
             ==> Cut P (ss @@ (t>> rs))
                  = ss @@ (t >> Cut P rs)"
 apply (unfold Cut_def)
@@ -129,7 +129,7 @@ done
 subsection "Cut lemmas for main theorem"
 
 lemma FilterCut: "Filter P$s = Filter P$(Cut P s)"
-apply (rule_tac A1 = "%x. True" and Q1 = "%x.~ P x" and x1 = "s" in take_lemma_induct [THEN mp])
+apply (rule_tac A1 = "%x. True" and Q1 = "%x. \<not> P x" and x1 = "s" in take_lemma_induct [THEN mp])
 prefer 3 apply (fast)
 apply (case_tac "Finite s")
 apply (simp add: Cut_nil ForallQFilterPnil)
@@ -140,7 +140,7 @@ done
 
 
 lemma Cut_idemp: "Cut P (Cut P s) = (Cut P s)"
-apply (rule_tac A1 = "%x. True" and Q1 = "%x.~ P x" and x1 = "s" in
+apply (rule_tac A1 = "%x. True" and Q1 = "%x. \<not> P x" and x1 = "s" in
   take_lemma_less_induct [THEN mp])
 prefer 3 apply (fast)
 apply (case_tac "Finite s")
@@ -154,7 +154,7 @@ done
 
 
 lemma MapCut: "Map f$(Cut (P o f) s) = Cut P (Map f$s)"
-apply (rule_tac A1 = "%x. True" and Q1 = "%x.~ P (f x) " and x1 = "s" in
+apply (rule_tac A1 = "%x. True" and Q1 = "%x. \<not> P (f x) " and x1 = "s" in
   take_lemma_less_induct [THEN mp])
 prefer 3 apply (fast)
 apply (case_tac "Finite s")

@@ -15,18 +15,18 @@ type_synonym
 
 definition
   validLIOA :: "('a,'s)live_ioa => ('a,'s)ioa_temp  => bool" where
-  "validLIOA AL P = validIOA (fst AL) ((snd AL) .--> P)"
+  "validLIOA AL P = validIOA (fst AL) ((snd AL) \<^bold>\<longrightarrow> P)"
 
 definition
   WF :: "('a,'s)ioa => 'a set => ('a,'s)ioa_temp" where
-  "WF A acts = (\<diamond>\<box><%(s,a,t) . Enabled A acts s> .--> \<box>\<diamond><xt2 (plift (%a. a : acts))>)"
+  "WF A acts = (\<diamond>\<box><%(s,a,t) . Enabled A acts s> \<^bold>\<longrightarrow> \<box>\<diamond><xt2 (plift (%a. a : acts))>)"
 definition
   SF :: "('a,'s)ioa => 'a set => ('a,'s)ioa_temp" where
-  "SF A acts = (\<box>\<diamond><%(s,a,t) . Enabled A acts s> .--> \<box>\<diamond><xt2 (plift (%a. a : acts))>)"
+  "SF A acts = (\<box>\<diamond><%(s,a,t) . Enabled A acts s> \<^bold>\<longrightarrow> \<box>\<diamond><xt2 (plift (%a. a : acts))>)"
 
 definition
   liveexecutions :: "('a,'s)live_ioa => ('a,'s)execution set" where
-  "liveexecutions AP = {exec. exec : executions (fst AP) & (exec |== (snd AP))}"
+  "liveexecutions AP = {exec. exec : executions (fst AP) & (exec \<TTurnstile> (snd AP))}"
 definition
   livetraces :: "('a,'s)live_ioa => 'a trace set" where
   "livetraces AP = {mk_trace (fst AP)$(snd ex) | ex. ex:liveexecutions AP}"
@@ -39,8 +39,8 @@ definition
   is_live_ref_map :: "('s1 => 's2) => ('a,'s1)live_ioa => ('a,'s2)live_ioa => bool" where
   "is_live_ref_map f CL AM =
            (is_ref_map f (fst CL ) (fst AM) &
-            (! exec : executions (fst CL). (exec |== (snd CL)) -->
-                                           ((corresp_ex (fst AM) f exec) |== (snd AM))))"
+            (! exec : executions (fst CL). (exec \<TTurnstile> (snd CL)) -->
+                                           ((corresp_ex (fst AM) f exec) \<TTurnstile> (snd AM))))"
 
 
 lemma live_implements_trans:

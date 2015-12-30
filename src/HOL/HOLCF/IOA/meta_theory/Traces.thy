@@ -155,7 +155,7 @@ wfair_ex_def:
 
 is_wfair_def:
   "is_wfair A W ex == (inf_often (%x. fst x:W) (snd ex)
-                     | inf_often (%x.~Enabled A W (snd x)) (snd ex))"
+                     | inf_often (%x. ~ Enabled A W (snd x)) (snd ex))"
 
 sfair_ex_def:
   "sfair_ex A ex == ! W : sfair_of A.
