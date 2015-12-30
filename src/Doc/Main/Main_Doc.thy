@@ -101,8 +101,8 @@ Library}.
 @{text[source]"x \<sqsubset> y"} & @{term"x < y"}\\
 @{text[source]"x \<sqinter> y"} & @{term"inf x y"}\\
 @{text[source]"x \<squnion> y"} & @{term"sup x y"}\\
-@{text[source]"\<Sqinter> A"} & @{term"Sup A"}\\
-@{text[source]"\<Squnion> A"} & @{term"Inf A"}\\
+@{text[source]"\<Sqinter>A"} & @{term"Sup A"}\\
+@{text[source]"\<Squnion>A"} & @{term"Inf A"}\\
 @{text[source]"\<top>"} & @{term[source] top}\\
 @{text[source]"\<bottom>"} & @{term[source] bot}\\
 \end{supertabular}
@@ -139,10 +139,10 @@ Library}.
 @{term[source]"A \<supset> B"} & @{term[source]"B < A"}\\
 @{term"{x. P}"} & @{term[source]"Collect (\<lambda>x. P)"}\\
 @{text"{t | x\<^sub>1 \<dots> x\<^sub>n. P}"} & @{text"{v. \<exists>x\<^sub>1 \<dots> x\<^sub>n. v = t \<and> P}"}\\
-@{term[mode=xsymbols]"UN x:I. A"} & @{term[source]"UNION I (\<lambda>x. A)"} & (\texttt{UN})\\
-@{term[mode=xsymbols]"UN x. A"} & @{term[source]"UNION UNIV (\<lambda>x. A)"}\\
-@{term[mode=xsymbols]"INT x:I. A"} & @{term[source]"INTER I (\<lambda>x. A)"} & (\texttt{INT})\\
-@{term[mode=xsymbols]"INT x. A"} & @{term[source]"INTER UNIV (\<lambda>x. A)"}\\
+@{term[source]"\<Union>x\<in>I. A"} & @{term[source]"UNION I (\<lambda>x. A)"} & (\texttt{UN})\\
+@{term[source]"\<Union>x. A"} & @{term[source]"UNION UNIV (\<lambda>x. A)"}\\
+@{term[source]"\<Inter>x\<in>I. A"} & @{term[source]"INTER I (\<lambda>x. A)"} & (\texttt{INT})\\
+@{term[source]"\<Inter>x. A"} & @{term[source]"INTER UNIV (\<lambda>x. A)"}\\
 @{term"ALL x:A. P"} & @{term[source]"Ball A (\<lambda>x. P)"}\\
 @{term"EX x:A. P"} & @{term[source]"Bex A (\<lambda>x. P)"}\\
 @{term"range f"} & @{term[source]"f ` UNIV"}\\
@@ -459,8 +459,8 @@ Type @{typ int}
 @{term "atLeastLessThan x y"} & @{term[source] "atLeastLessThan x y"}\\
 @{term "greaterThanAtMost x y"} & @{term[source] "greaterThanAtMost x y"}\\
 @{term "atLeastAtMost x y"} & @{term[source] "atLeastAtMost x y"}\\
-@{term[mode=xsymbols] "UN i:{..n}. A"} & @{term[source] "\<Union> i \<in> {..n}. A"}\\
-@{term[mode=xsymbols] "UN i:{..<n}. A"} & @{term[source] "\<Union> i \<in> {..<n}. A"}\\
+@{term[source] "\<Union>i\<le>n. A"} & @{term[source] "\<Union>i \<in> {..n}. A"}\\
+@{term[source] "\<Union>i<n. A"} & @{term[source] "\<Union>i \<in> {..<n}. A"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for @{text"\<Inter>"} instead of @{text"\<Union>"}}\\
 @{term "setsum (%x. t) {a..b}"} & @{term[source] "setsum (\<lambda>x. t) {a..b}"}\\
 @{term "setsum (%x. t) {a..<b}"} & @{term[source] "setsum (\<lambda>x. t) {a..<b}"}\\
