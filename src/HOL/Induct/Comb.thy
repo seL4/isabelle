@@ -18,53 +18,47 @@ HOL system proofs may be found in the HOL distribution at
 
 subsection \<open>Definitions\<close>
 
-text \<open>Datatype definition of combinators @{text S} and @{text K}.\<close>
+text \<open>Datatype definition of combinators \<open>S\<close> and \<open>K\<close>.\<close>
 
 datatype comb = K
               | S
-              | Ap comb comb (infixl "##" 90)
-
-notation (xsymbols)
-  Ap  (infixl "\<bullet>" 90)
-
+              | Ap comb comb (infixl "\<bullet>" 90)
 
 text \<open>
-  Inductive definition of contractions, @{text "-1->"} and
-  (multi-step) reductions, @{text "--->"}.
+  Inductive definition of contractions, \<open>\<rightarrow>\<^sup>1\<close> and
+  (multi-step) reductions, \<open>\<rightarrow>\<close>.
 \<close>
 
-inductive_set
-  contract :: "(comb*comb) set"
-  and contract_rel1 :: "[comb,comb] => bool"  (infixl "-1->" 50)
-  where
-    "x -1-> y == (x,y) \<in> contract"
-   | K:     "K##x##y -1-> x"
-   | S:     "S##x##y##z -1-> (x##z)##(y##z)"
-   | Ap1:   "x-1->y ==> x##z -1-> y##z"
-   | Ap2:   "x-1->y ==> z##x -1-> z##y"
+inductive_set contract :: "(comb*comb) set"
+  and contract_rel1 :: "[comb,comb] \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sup>1" 50)
+where
+  "x \<rightarrow>\<^sup>1 y == (x,y) \<in> contract"
+| K:     "K\<bullet>x\<bullet>y \<rightarrow>\<^sup>1 x"
+| S:     "S\<bullet>x\<bullet>y\<bullet>z \<rightarrow>\<^sup>1 (x\<bullet>z)\<bullet>(y\<bullet>z)"
+| Ap1:   "x\<rightarrow>\<^sup>1y \<Longrightarrow> x\<bullet>z \<rightarrow>\<^sup>1 y\<bullet>z"
+| Ap2:   "x\<rightarrow>\<^sup>1y \<Longrightarrow> z\<bullet>x \<rightarrow>\<^sup>1 z\<bullet>y"
 
 abbreviation
-  contract_rel :: "[comb,comb] => bool"   (infixl "--->" 50) where
-  "x ---> y == (x,y) \<in> contract^*"
+  contract_rel :: "[comb,comb] \<Rightarrow> bool"   (infixl "\<rightarrow>" 50) where
+  "x \<rightarrow> y == (x,y) \<in> contract\<^sup>*"
 
 text \<open>
-  Inductive definition of parallel contractions, @{text "=1=>"} and
-  (multi-step) parallel reductions, @{text "===>"}.
+  Inductive definition of parallel contractions, \<open>\<Rrightarrow>\<^sup>1\<close> and
+  (multi-step) parallel reductions, \<open>\<Rrightarrow>\<close>.
 \<close>
 
-inductive_set
-  parcontract :: "(comb*comb) set"
-  and parcontract_rel1 :: "[comb,comb] => bool"  (infixl "=1=>" 50)
-  where
-    "x =1=> y == (x,y) \<in> parcontract"
-  | refl:  "x =1=> x"
-  | K:     "K##x##y =1=> x"
-  | S:     "S##x##y##z =1=> (x##z)##(y##z)"
-  | Ap:    "[| x=1=>y;  z=1=>w |] ==> x##z =1=> y##w"
+inductive_set parcontract :: "(comb*comb) set"
+  and parcontract_rel1 :: "[comb,comb] \<Rightarrow> bool"  (infixl "\<Rrightarrow>\<^sup>1" 50)
+where
+  "x \<Rrightarrow>\<^sup>1 y == (x,y) \<in> parcontract"
+| refl:  "x \<Rrightarrow>\<^sup>1 x"
+| K:     "K\<bullet>x\<bullet>y \<Rrightarrow>\<^sup>1 x"
+| S:     "S\<bullet>x\<bullet>y\<bullet>z \<Rrightarrow>\<^sup>1 (x\<bullet>z)\<bullet>(y\<bullet>z)"
+| Ap:    "[| x\<Rrightarrow>\<^sup>1y;  z\<Rrightarrow>\<^sup>1w |] ==> x\<bullet>z \<Rrightarrow>\<^sup>1 y\<bullet>w"
 
 abbreviation
-  parcontract_rel :: "[comb,comb] => bool"   (infixl "===>" 50) where
-  "x ===> y == (x,y) \<in> parcontract^*"
+  parcontract_rel :: "[comb,comb] \<Rightarrow> bool"   (infixl "\<Rrightarrow>" 50) where
+  "x \<Rrightarrow> y == (x,y) \<in> parcontract\<^sup>*"
 
 text \<open>
   Misc definitions.
@@ -72,11 +66,11 @@ text \<open>
 
 definition
   I :: comb where
-  "I = S##K##K"
+  "I = S\<bullet>K\<bullet>K"
 
 definition
-  diamond   :: "('a * 'a)set => bool" where
-    --\<open>confluence; Lambda/Commutation treats this more abstractly\<close>
+  diamond   :: "('a * 'a)set \<Rightarrow> bool" where
+    \<comment>\<open>confluence; Lambda/Commutation treats this more abstractly\<close>
   "diamond(r) = (\<forall>x y. (x,y) \<in> r --> 
                   (\<forall>y'. (x,y') \<in> r --> 
                     (\<exists>z. (y,z) \<in> r & (y',z) \<in> r)))"
@@ -89,15 +83,15 @@ text\<open>So does the Transitive closure, with a similar proof\<close>
 text\<open>Strip lemma.  
    The induction hypothesis covers all but the last diamond of the strip.\<close>
 lemma diamond_strip_lemmaE [rule_format]: 
-    "[| diamond(r);  (x,y) \<in> r^* |] ==>   
-          \<forall>y'. (x,y') \<in> r --> (\<exists>z. (y',z) \<in> r^* & (y,z) \<in> r)"
+    "[| diamond(r);  (x,y) \<in> r\<^sup>* |] ==>   
+          \<forall>y'. (x,y') \<in> r --> (\<exists>z. (y',z) \<in> r\<^sup>* & (y,z) \<in> r)"
 apply (unfold diamond_def)
 apply (erule rtrancl_induct)
 apply (meson rtrancl_refl)
 apply (meson rtrancl_trans r_into_rtrancl)
 done
 
-lemma diamond_rtrancl: "diamond(r) ==> diamond(r^*)"
+lemma diamond_rtrancl: "diamond(r) \<Longrightarrow> diamond(r\<^sup>*)"
 apply (simp (no_asm_simp) add: diamond_def)
 apply (rule impI [THEN allI, THEN allI])
 apply (erule rtrancl_induct, blast)
@@ -110,30 +104,30 @@ subsection \<open>Non-contraction results\<close>
 text \<open>Derive a case for each combinator constructor.\<close>
 
 inductive_cases
-      K_contractE [elim!]: "K -1-> r"
-  and S_contractE [elim!]: "S -1-> r"
-  and Ap_contractE [elim!]: "p##q -1-> r"
+      K_contractE [elim!]: "K \<rightarrow>\<^sup>1 r"
+  and S_contractE [elim!]: "S \<rightarrow>\<^sup>1 r"
+  and Ap_contractE [elim!]: "p\<bullet>q \<rightarrow>\<^sup>1 r"
 
 declare contract.K [intro!] contract.S [intro!]
 declare contract.Ap1 [intro] contract.Ap2 [intro]
 
-lemma I_contract_E [elim!]: "I -1-> z ==> P"
+lemma I_contract_E [elim!]: "I \<rightarrow>\<^sup>1 z \<Longrightarrow> P"
 by (unfold I_def, blast)
 
-lemma K1_contractD [elim!]: "K##x -1-> z ==> (\<exists>x'. z = K##x' & x -1-> x')"
+lemma K1_contractD [elim!]: "K\<bullet>x \<rightarrow>\<^sup>1 z \<Longrightarrow> (\<exists>x'. z = K\<bullet>x' & x \<rightarrow>\<^sup>1 x')"
 by blast
 
-lemma Ap_reduce1 [intro]: "x ---> y ==> x##z ---> y##z"
+lemma Ap_reduce1 [intro]: "x \<rightarrow> y \<Longrightarrow> x\<bullet>z \<rightarrow> y\<bullet>z"
 apply (erule rtrancl_induct)
 apply (blast intro: rtrancl_trans)+
 done
 
-lemma Ap_reduce2 [intro]: "x ---> y ==> z##x ---> z##y"
+lemma Ap_reduce2 [intro]: "x \<rightarrow> y \<Longrightarrow> z\<bullet>x \<rightarrow> z\<bullet>y"
 apply (erule rtrancl_induct)
 apply (blast intro: rtrancl_trans)+
 done
 
-text \<open>Counterexample to the diamond property for @{term "x -1-> y"}\<close>
+text \<open>Counterexample to the diamond property for @{term "x \<rightarrow>\<^sup>1 y"}\<close>
 
 lemma not_diamond_contract: "~ diamond(contract)"
 by (unfold diamond_def, metis S_contractE contract.K) 
@@ -144,9 +138,9 @@ subsection \<open>Results about Parallel Contraction\<close>
 text \<open>Derive a case for each combinator constructor.\<close>
 
 inductive_cases
-      K_parcontractE [elim!]: "K =1=> r"
-  and S_parcontractE [elim!]: "S =1=> r"
-  and Ap_parcontractE [elim!]: "p##q =1=> r"
+      K_parcontractE [elim!]: "K \<Rrightarrow>\<^sup>1 r"
+  and S_parcontractE [elim!]: "S \<Rrightarrow>\<^sup>1 r"
+  and Ap_parcontractE [elim!]: "p\<bullet>q \<Rrightarrow>\<^sup>1 r"
 
 declare parcontract.intros [intro]
 
@@ -154,14 +148,14 @@ declare parcontract.intros [intro]
 
 subsection \<open>Basic properties of parallel contraction\<close>
 
-lemma K1_parcontractD [dest!]: "K##x =1=> z ==> (\<exists>x'. z = K##x' & x =1=> x')"
+lemma K1_parcontractD [dest!]: "K\<bullet>x \<Rrightarrow>\<^sup>1 z \<Longrightarrow> (\<exists>x'. z = K\<bullet>x' & x \<Rrightarrow>\<^sup>1 x')"
 by blast
 
-lemma S1_parcontractD [dest!]: "S##x =1=> z ==> (\<exists>x'. z = S##x' & x =1=> x')"
+lemma S1_parcontractD [dest!]: "S\<bullet>x \<Rrightarrow>\<^sup>1 z \<Longrightarrow> (\<exists>x'. z = S\<bullet>x' & x \<Rrightarrow>\<^sup>1 x')"
 by blast
 
 lemma S2_parcontractD [dest!]:
-     "S##x##y =1=> z ==> (\<exists>x' y'. z = S##x'##y' & x =1=> x' & y =1=> y')"
+     "S\<bullet>x\<bullet>y \<Rrightarrow>\<^sup>1 z \<Longrightarrow> (\<exists>x' y'. z = S\<bullet>x'\<bullet>y' & x \<Rrightarrow>\<^sup>1 x' & y \<Rrightarrow>\<^sup>1 y')"
 by blast
 
 text\<open>The rules above are not essential but make proofs much faster\<close>
@@ -174,10 +168,11 @@ apply (erule parcontract.induct, fast+)
 done
 
 text \<open>
-  \medskip Equivalence of @{prop "p ---> q"} and @{prop "p ===> q"}.
+  \<^medskip>
+  Equivalence of @{prop "p \<rightarrow> q"} and @{prop "p \<Rrightarrow> q"}.
 \<close>
 
-lemma contract_subset_parcontract: "contract <= parcontract"
+lemma contract_subset_parcontract: "contract \<subseteq> parcontract"
 by (auto, erule contract.induct, blast+)
 
 text\<open>Reductions: simply throw together reflexivity, transitivity and
@@ -186,16 +181,16 @@ text\<open>Reductions: simply throw together reflexivity, transitivity and
 declare r_into_rtrancl [intro]  rtrancl_trans [intro]
 
 (*Example only: not used*)
-lemma reduce_I: "I##x ---> x"
+lemma reduce_I: "I\<bullet>x \<rightarrow> x"
 by (unfold I_def, blast)
 
-lemma parcontract_subset_reduce: "parcontract <= contract^*"
+lemma parcontract_subset_reduce: "parcontract \<subseteq> contract\<^sup>*"
 by (auto, erule parcontract.induct, blast+)
 
-lemma reduce_eq_parreduce: "contract^* = parcontract^*"
+lemma reduce_eq_parreduce: "contract\<^sup>* = parcontract\<^sup>*"
 by (metis contract_subset_parcontract parcontract_subset_reduce rtrancl_subset)
 
-theorem diamond_reduce: "diamond(contract^*)"
+theorem diamond_reduce: "diamond(contract\<^sup>*)"
 by (simp add: reduce_eq_parreduce diamond_rtrancl diamond_parcontract)
 
 end
