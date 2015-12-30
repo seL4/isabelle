@@ -17,7 +17,7 @@ definition
           ("(NSDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60) where
   "NSDERIV f x :> D = (\<forall>h \<in> Infinitesimal - {0}.
       (( *f* f)(star_of x + h)
-       - star_of (f x))/h @= star_of D)"
+       - star_of (f x))/h \<approx> star_of D)"
 
 definition
   NSdifferentiable :: "['a::real_normed_field \<Rightarrow> 'a, 'a] \<Rightarrow> bool"

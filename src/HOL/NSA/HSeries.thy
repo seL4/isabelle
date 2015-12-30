@@ -129,8 +129,8 @@ unfolding sumhr_app by transfer simp
 lemma starfunNat_sumr: "!!N. ( *f* (%n. setsum f {0..<n})) N = sumhr(0,N,f)"
 unfolding sumhr_app by transfer (rule refl)
 
-lemma sumhr_hrabs_approx [simp]: "sumhr(0, M, f) @= sumhr(0, N, f)
-      ==> \<bar>sumhr(M, N, f)\<bar> @= 0"
+lemma sumhr_hrabs_approx [simp]: "sumhr(0, M, f) \<approx> sumhr(0, N, f)
+      ==> \<bar>sumhr(M, N, f)\<bar> \<approx> 0"
 apply (cut_tac x = M and y = N in linorder_less_linear)
 apply (auto simp add: approx_refl)
 apply (drule approx_sym [THEN approx_minus_iff [THEN iffD1]])
@@ -167,7 +167,7 @@ by (auto simp add: sums_NSsums_iff [symmetric] not_le[symmetric] intro!: sums_fi
 
 lemma NSsummable_NSCauchy:
      "NSsummable f =
-      (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. \<bar>sumhr(M,N,f)\<bar> @= 0)"
+      (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. \<bar>sumhr(M,N,f)\<bar> \<approx> 0)"
 apply (auto simp add: summable_NSsummable_iff [symmetric]
        summable_iff_convergent convergent_NSconvergent_iff atLeast0LessThan[symmetric]
        NSCauchy_NSconvergent_iff [symmetric] NSCauchy_def starfunNat_sumr)

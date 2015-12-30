@@ -52,8 +52,8 @@ lemma starfunC_eq_Re_Im_iff:
 by (simp add: hcomplex_hRe_hIm_cancel_iff starfun_Re starfun_Im)
 
 lemma starfunC_approx_Re_Im_iff:
-    "(( *f* f) x @= z) = ((( *f* (%x. Re(f x))) x @= hRe (z)) &
-                            (( *f* (%x. Im(f x))) x @= hIm (z)))"
+    "(( *f* f) x \<approx> z) = ((( *f* (%x. Re(f x))) x \<approx> hRe (z)) &
+                            (( *f* (%x. Im(f x))) x \<approx> hIm (z)))"
 by (simp add: hcomplex_approx_iff starfun_Re starfun_Im)
 
 end

@@ -189,7 +189,7 @@ by (transfer, rule refl)
 
 (* this is trivial, given starfun_Id *)
 lemma starfun_Idfun_approx:
-  "x @= star_of a ==> ( *f* (%x. x)) x @= star_of a"
+  "x \<approx> star_of a ==> ( *f* (%x. x)) x \<approx> star_of a"
 by (simp only: starfun_Id)
 
 text\<open>The Star-function is a (nonstandard) extension of the function\<close>
@@ -224,7 +224,7 @@ text\<open>extented function has same solution as its standard
 lemma starfun_eq: "( *f* f) (star_of a) = star_of (f a)"
 by (rule starfun_star_of)
 
-lemma starfun_approx: "( *f* f) (star_of a) @= star_of (f a)"
+lemma starfun_approx: "( *f* f) (star_of a) \<approx> star_of (f a)"
 by simp
 
 (* useful for NS definition of derivatives *)
@@ -238,15 +238,15 @@ by (unfold o_def, rule starfun_lambda_cancel)
 
 lemma starfun_mult_HFinite_approx:
   fixes l m :: "'a::real_normed_algebra star"
-  shows "[| ( *f* f) x @= l; ( *f* g) x @= m;
+  shows "[| ( *f* f) x \<approx> l; ( *f* g) x \<approx> m;
                   l: HFinite; m: HFinite
-               |] ==>  ( *f* (%x. f x * g x)) x @= l * m"
+               |] ==>  ( *f* (%x. f x * g x)) x \<approx> l * m"
 apply (drule (3) approx_mult_HFinite)
 apply (auto intro: approx_HFinite [OF _ approx_sym])
 done
 
-lemma starfun_add_approx: "[| ( *f* f) x @= l; ( *f* g) x @= m
-               |] ==>  ( *f* (%x. f x + g x)) x @= l + m"
+lemma starfun_add_approx: "[| ( *f* f) x \<approx> l; ( *f* g) x \<approx> m
+               |] ==>  ( *f* (%x. f x + g x)) x \<approx> l + m"
 by (auto intro: approx_add)
 
 text\<open>Examples: hrabs is nonstandard extension of rabs
@@ -298,7 +298,7 @@ lemma STAR_starfun_rabs_add_minus:
        {x. \<bar>( *f* f) x + -star_of y\<bar> < star_of r}"
 by (transfer, rule refl)
 
-text\<open>Another characterization of Infinitesimal and one of @= relation.
+text\<open>Another characterization of Infinitesimal and one of \<open>\<approx>\<close> relation.
    In this theory since \<open>hypreal_hrabs\<close> proved here. Maybe
    move both theorems??\<close>
 lemma Infinitesimal_FreeUltrafilterNat_iff2:
@@ -317,7 +317,7 @@ apply (drule_tac x="Suc m" in spec)
 apply (auto elim!: eventually_mono)
 done
 
-lemma approx_FreeUltrafilterNat_iff: "star_n X @= star_n Y =
+lemma approx_FreeUltrafilterNat_iff: "star_n X \<approx> star_n Y =
       (\<forall>r>0. eventually (\<lambda>n. norm (X n - Y n) < r) \<U>)"
 apply (subst approx_minus_iff)
 apply (rule mem_infmal_iff [THEN subst])
@@ -325,7 +325,7 @@ apply (simp add: star_n_diff)
 apply (simp add: Infinitesimal_FreeUltrafilterNat_iff)
 done
 
-lemma approx_FreeUltrafilterNat_iff2: "star_n X @= star_n Y =
+lemma approx_FreeUltrafilterNat_iff2: "star_n X \<approx> star_n Y =
       (\<forall>m. eventually (\<lambda>n. norm (X n - Y n) < inverse(real(Suc m))) \<U>)"
 apply (subst approx_minus_iff)
 apply (rule mem_infmal_iff [THEN subst])

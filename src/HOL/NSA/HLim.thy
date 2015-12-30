@@ -15,17 +15,17 @@ definition
   NSLIM :: "['a::real_normed_vector => 'b::real_normed_vector, 'a, 'b] => bool"
             ("((_)/ \<midarrow>(_)/\<rightarrow>\<^sub>N\<^sub>S (_))" [60, 0, 60] 60) where
   "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L =
-    (\<forall>x. (x \<noteq> star_of a & x @= star_of a --> ( *f* f) x @= star_of L))"
+    (\<forall>x. (x \<noteq> star_of a & x \<approx> star_of a --> ( *f* f) x \<approx> star_of L))"
 
 definition
   isNSCont :: "['a::real_normed_vector => 'b::real_normed_vector, 'a] => bool" where
     \<comment>\<open>NS definition dispenses with limit notions\<close>
-  "isNSCont f a = (\<forall>y. y @= star_of a -->
-         ( *f* f) y @= star_of (f a))"
+  "isNSCont f a = (\<forall>y. y \<approx> star_of a -->
+         ( *f* f) y \<approx> star_of (f a))"
 
 definition
   isNSUCont :: "['a::real_normed_vector => 'b::real_normed_vector] => bool" where
-  "isNSUCont f = (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
+  "isNSUCont f = (\<forall>x y. x \<approx> y --> ( *f* f) x \<approx> ( *f* f) y)"
 
 
 subsection \<open>Limits of Functions\<close>

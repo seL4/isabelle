@@ -69,7 +69,7 @@ lemma hypreal_sqrt_mult_distrib2:
 by (auto intro: hypreal_sqrt_mult_distrib simp add: order_le_less)
 
 lemma hypreal_sqrt_approx_zero [simp]:
-     "0 < x ==> (( *f* sqrt)(x) @= 0) = (x @= 0)"
+     "0 < x ==> (( *f* sqrt)(x) \<approx> 0) = (x \<approx> 0)"
 apply (auto simp add: mem_infmal_iff [symmetric])
 apply (rule hypreal_sqrt_gt_zero_pow2 [THEN subst])
 apply (auto intro: Infinitesimal_mult 
@@ -78,18 +78,18 @@ apply (auto intro: Infinitesimal_mult
 done
 
 lemma hypreal_sqrt_approx_zero2 [simp]:
-     "0 \<le> x ==> (( *f* sqrt)(x) @= 0) = (x @= 0)"
+     "0 \<le> x ==> (( *f* sqrt)(x) \<approx> 0) = (x \<approx> 0)"
 by (auto simp add: order_le_less)
 
 lemma hypreal_sqrt_sum_squares [simp]:
-     "(( *f* sqrt)(x*x + y*y + z*z) @= 0) = (x*x + y*y + z*z @= 0)"
+     "(( *f* sqrt)(x*x + y*y + z*z) \<approx> 0) = (x*x + y*y + z*z \<approx> 0)"
 apply (rule hypreal_sqrt_approx_zero2)
 apply (rule add_nonneg_nonneg)+
 apply (auto)
 done
 
 lemma hypreal_sqrt_sum_squares2 [simp]:
-     "(( *f* sqrt)(x*x + y*y) @= 0) = (x*x + y*y @= 0)"
+     "(( *f* sqrt)(x*x + y*y) \<approx> 0) = (x*x + y*y \<approx> 0)"
 apply (rule hypreal_sqrt_approx_zero2)
 apply (rule add_nonneg_nonneg)
 apply (auto)
@@ -242,12 +242,12 @@ apply (rule_tac x="whn" in spec)
 apply (unfold sumhr_app, transfer, simp add: cos_coeff_def power_0_left)
 done
 
-lemma STAR_exp_zero_approx_one [simp]: "( *f* exp) (0::hypreal) @= 1"
+lemma STAR_exp_zero_approx_one [simp]: "( *f* exp) (0::hypreal) \<approx> 1"
 apply (subgoal_tac "( *f* exp) (0::hypreal) = 1", simp)
 apply (transfer, simp)
 done
 
-lemma STAR_exp_Infinitesimal: "x \<in> Infinitesimal ==> ( *f* exp) (x::hypreal) @= 1"
+lemma STAR_exp_Infinitesimal: "x \<in> Infinitesimal ==> ( *f* exp) (x::hypreal) \<approx> 1"
 apply (case_tac "x = 0")
 apply (cut_tac [2] x = 0 in DERIV_exp)
 apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
@@ -260,7 +260,7 @@ apply (rule approx_sym [THEN [2] approx_trans2])
 apply (auto simp add: mem_infmal_iff)
 done
 
-lemma STAR_exp_epsilon [simp]: "( *f* exp) \<epsilon> @= 1"
+lemma STAR_exp_epsilon [simp]: "( *f* exp) \<epsilon> \<approx> 1"
 by (auto intro: STAR_exp_Infinitesimal)
 
 lemma STAR_exp_add:
@@ -354,7 +354,7 @@ apply (simp add: starfun_exp_less_mono)
 done
 
 lemma starfun_exp_add_HFinite_Infinitesimal_approx:
-     "[|x \<in> Infinitesimal; z \<in> HFinite |] ==> ( *f* exp) (z + x::hypreal) @= ( *f* exp) z"
+     "[|x \<in> Infinitesimal; z \<in> HFinite |] ==> ( *f* exp) (z + x::hypreal) \<approx> ( *f* exp) z"
 apply (simp add: STAR_exp_add)
 apply (frule STAR_exp_Infinitesimal)
 apply (drule approx_mult2)
@@ -425,7 +425,7 @@ by transfer (rule sin_zero)
 
 lemma STAR_sin_Infinitesimal [simp]:
   fixes x :: "'a::{real_normed_field,banach} star"
-  shows "x \<in> Infinitesimal ==> ( *f* sin) x @= x"
+  shows "x \<in> Infinitesimal ==> ( *f* sin) x \<approx> x"
 apply (case_tac "x = 0")
 apply (cut_tac [2] x = 0 in DERIV_sin)
 apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
@@ -451,7 +451,7 @@ by transfer (rule cos_zero)
 
 lemma STAR_cos_Infinitesimal [simp]:
   fixes x :: "'a::{real_normed_field,banach} star"
-  shows "x \<in> Infinitesimal ==> ( *f* cos) x @= 1"
+  shows "x \<in> Infinitesimal ==> ( *f* cos) x \<approx> 1"
 apply (case_tac "x = 0")
 apply (cut_tac [2] x = 0 in DERIV_cos)
 apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
@@ -467,7 +467,7 @@ done
 lemma STAR_tan_zero [simp]: "( *f* tan) 0 = 0"
 by transfer (rule tan_zero)
 
-lemma STAR_tan_Infinitesimal: "x \<in> Infinitesimal ==> ( *f* tan) x @= x"
+lemma STAR_tan_Infinitesimal: "x \<in> Infinitesimal ==> ( *f* tan) x \<approx> x"
 apply (case_tac "x = 0")
 apply (cut_tac [2] x = 0 in DERIV_tan)
 apply (auto simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
@@ -479,7 +479,7 @@ done
 
 lemma STAR_sin_cos_Infinitesimal_mult:
   fixes x :: "'a::{real_normed_field,banach} star"
-  shows "x \<in> Infinitesimal ==> ( *f* sin) x * ( *f* cos) x @= x"
+  shows "x \<in> Infinitesimal ==> ( *f* sin) x * ( *f* cos) x \<approx> x"
 using approx_mult_HFinite [of "( *f* sin) x" _ "( *f* cos) x" 1] 
 by (simp add: Infinitesimal_subset_HFinite [THEN subsetD])
 
@@ -496,24 +496,24 @@ by (simp add: mult.assoc [symmetric] zero_less_HNatInfinite)
 
 lemma STAR_sin_Infinitesimal_divide:
   fixes x :: "'a::{real_normed_field,banach} star"
-  shows "[|x \<in> Infinitesimal; x \<noteq> 0 |] ==> ( *f* sin) x/x @= 1"
+  shows "[|x \<in> Infinitesimal; x \<noteq> 0 |] ==> ( *f* sin) x/x \<approx> 1"
 using DERIV_sin [of "0::'a"]
 by (simp add: NSDERIV_DERIV_iff [symmetric] nsderiv_def)
 
 (*------------------------------------------------------------------------*) 
-(* sin* (1/n) * 1/(1/n) @= 1 for n = oo                                   *)
+(* sin* (1/n) * 1/(1/n) \<approx> 1 for n = oo                                   *)
 (*------------------------------------------------------------------------*)
 
 lemma lemma_sin_pi:
      "n \<in> HNatInfinite  
-      ==> ( *f* sin) (inverse (hypreal_of_hypnat n))/(inverse (hypreal_of_hypnat n)) @= 1"
+      ==> ( *f* sin) (inverse (hypreal_of_hypnat n))/(inverse (hypreal_of_hypnat n)) \<approx> 1"
 apply (rule STAR_sin_Infinitesimal_divide)
 apply (auto simp add: zero_less_HNatInfinite)
 done
 
 lemma STAR_sin_inverse_HNatInfinite:
      "n \<in> HNatInfinite  
-      ==> ( *f* sin) (inverse (hypreal_of_hypnat n)) * hypreal_of_hypnat n @= 1"
+      ==> ( *f* sin) (inverse (hypreal_of_hypnat n)) * hypreal_of_hypnat n \<approx> 1"
 apply (frule lemma_sin_pi)
 apply (simp add: divide_inverse)
 done
@@ -532,7 +532,7 @@ by (simp add: zero_less_HNatInfinite)
 lemma STAR_sin_pi_divide_HNatInfinite_approx_pi:
      "n \<in> HNatInfinite  
       ==> ( *f* sin) (hypreal_of_real pi/(hypreal_of_hypnat n)) * hypreal_of_hypnat n  
-          @= hypreal_of_real pi"
+          \<approx> hypreal_of_real pi"
 apply (frule STAR_sin_Infinitesimal_divide
                [OF Infinitesimal_pi_divide_HNatInfinite 
                    pi_divide_HNatInfinite_not_zero])
@@ -545,7 +545,7 @@ lemma STAR_sin_pi_divide_HNatInfinite_approx_pi2:
      "n \<in> HNatInfinite  
       ==> hypreal_of_hypnat n *  
           ( *f* sin) (hypreal_of_real pi/(hypreal_of_hypnat n))  
-          @= hypreal_of_real pi"
+          \<approx> hypreal_of_real pi"
 apply (rule mult.commute [THEN subst])
 apply (erule STAR_sin_pi_divide_HNatInfinite_approx_pi)
 done
@@ -558,7 +558,7 @@ by (auto intro!: Infinitesimal_HFinite_mult2
 
 lemma STAR_sin_pi_divide_n_approx:
      "N \<in> HNatInfinite ==>  
-      ( *f* sin) (( *f* (%x. pi / real x)) N) @=  
+      ( *f* sin) (( *f* (%x. pi / real x)) N) \<approx>  
       hypreal_of_real pi/(hypreal_of_hypnat N)"
 apply (simp add: starfunNat_real_of_nat [symmetric])
 apply (rule STAR_sin_Infinitesimal)
@@ -596,7 +596,7 @@ text\<open>A familiar approximation to @{term "cos x"} when @{term x} is small\<
 
 lemma STAR_cos_Infinitesimal_approx:
   fixes x :: "'a::{real_normed_field,banach} star"
-  shows "x \<in> Infinitesimal ==> ( *f* cos) x @= 1 - x\<^sup>2"
+  shows "x \<in> Infinitesimal ==> ( *f* cos) x \<approx> 1 - x\<^sup>2"
 apply (rule STAR_cos_Infinitesimal [THEN approx_trans])
 apply (auto simp add: Infinitesimal_approx_minus [symmetric] 
             add.assoc [symmetric] numeral_2_eq_2)
@@ -604,7 +604,7 @@ done
 
 lemma STAR_cos_Infinitesimal_approx2:
   fixes x :: hypreal  \<comment>\<open>perhaps could be generalised, like many other hypreal results\<close>
-  shows "x \<in> Infinitesimal ==> ( *f* cos) x @= 1 - (x\<^sup>2)/2"
+  shows "x \<in> Infinitesimal ==> ( *f* cos) x \<approx> 1 - (x\<^sup>2)/2"
 apply (rule STAR_cos_Infinitesimal [THEN approx_trans])
 apply (auto intro: Infinitesimal_SReal_divide Infinitesimal_mult
             simp add: Infinitesimal_approx_minus [symmetric] numeral_2_eq_2)
