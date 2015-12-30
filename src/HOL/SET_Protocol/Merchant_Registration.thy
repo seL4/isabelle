@@ -36,16 +36,16 @@ where
 
 | SET_MR1: --{*RegFormReq: M requires a registration form to a CA*}
            "[| evs1 \<in> set_mr; M = Merchant k; Nonce NM1 \<notin> used evs1 |]
-            ==> Says M (CA i) {|Agent M, Nonce NM1|} # evs1 \<in> set_mr"
+            ==> Says M (CA i) \<lbrace>Agent M, Nonce NM1\<rbrace> # evs1 \<in> set_mr"
 
 
 | SET_MR2: --{*RegFormRes: CA replies with the registration form and the 
                certificates for her keys*}
   "[| evs2 \<in> set_mr; Nonce NCA \<notin> used evs2;
-      Gets (CA i) {|Agent M, Nonce NM1|} \<in> set evs2 |]
-   ==> Says (CA i) M {|sign (priSK (CA i)) {|Agent M, Nonce NM1, Nonce NCA|},
+      Gets (CA i) \<lbrace>Agent M, Nonce NM1\<rbrace> \<in> set evs2 |]
+   ==> Says (CA i) M \<lbrace>sign (priSK (CA i)) \<lbrace>Agent M, Nonce NM1, Nonce NCA\<rbrace>,
                        cert (CA i) (pubEK (CA i)) onlyEnc (priSK RCA),
-                       cert (CA i) (pubSK (CA i)) onlySig (priSK RCA) |}
+                       cert (CA i) (pubSK (CA i)) onlySig (priSK RCA) \<rbrace>
          # evs2 \<in> set_mr"
 
 | SET_MR3:
@@ -57,16 +57,16 @@ where
              in the model*}
   "[| evs3 \<in> set_mr; M = Merchant k; Nonce NM2 \<notin> used evs3;
       Key KM1 \<notin> used evs3;  KM1 \<in> symKeys;
-      Gets M {|sign (invKey SKi) {|Agent X, Nonce NM1, Nonce NCA|},
+      Gets M \<lbrace>sign (invKey SKi) \<lbrace>Agent X, Nonce NM1, Nonce NCA\<rbrace>,
                cert (CA i) EKi onlyEnc (priSK RCA),
-               cert (CA i) SKi onlySig (priSK RCA) |}
+               cert (CA i) SKi onlySig (priSK RCA) \<rbrace>
         \<in> set evs3;
-      Says M (CA i) {|Agent M, Nonce NM1|} \<in> set evs3 |]
+      Says M (CA i) \<lbrace>Agent M, Nonce NM1\<rbrace> \<in> set evs3 |]
    ==> Says M (CA i)
-            {|Crypt KM1 (sign (priSK M) {|Agent M, Nonce NM2,
-                                          Key (pubSK M), Key (pubEK M)|}),
-              Crypt EKi (Key KM1)|}
-         # Notes M {|Key KM1, Agent (CA i)|}
+            \<lbrace>Crypt KM1 (sign (priSK M) \<lbrace>Agent M, Nonce NM2,
+                                          Key (pubSK M), Key (pubEK M)\<rbrace>),
+              Crypt EKi (Key KM1)\<rbrace>
+         # Notes M \<lbrace>Key KM1, Agent (CA i)\<rbrace>
          # evs3 \<in> set_mr"
 
 | SET_MR4:
@@ -80,14 +80,14 @@ where
         merSK \<notin> symKeys;  merEK \<notin> symKeys;
         Notes (CA i) (Key merSK) \<notin> set evs4;
         Notes (CA i) (Key merEK) \<notin> set evs4;
-        Gets (CA i) {|Crypt KM1 (sign (invKey merSK)
-                                 {|Agent M, Nonce NM2, Key merSK, Key merEK|}),
-                      Crypt (pubEK (CA i)) (Key KM1) |}
+        Gets (CA i) \<lbrace>Crypt KM1 (sign (invKey merSK)
+                                 \<lbrace>Agent M, Nonce NM2, Key merSK, Key merEK\<rbrace>),
+                      Crypt (pubEK (CA i)) (Key KM1) \<rbrace>
           \<in> set evs4 |]
-    ==> Says (CA i) M {|sign (priSK(CA i)) {|Agent M, Nonce NM2, Agent(CA i)|},
+    ==> Says (CA i) M \<lbrace>sign (priSK(CA i)) \<lbrace>Agent M, Nonce NM2, Agent(CA i)\<rbrace>,
                         cert  M      merSK    onlySig (priSK (CA i)),
                         cert  M      merEK    onlyEnc (priSK (CA i)),
-                        cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|}
+                        cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace>
           # Notes (CA i) (Key merSK)
           # Notes (CA i) (Key merEK)
           # evs4 \<in> set_mr"
@@ -148,7 +148,7 @@ text{*Proofs on certificates -
   they hold, as in CR, because RCA's keys are secure*}
 
 lemma Crypt_valid_pubEK:
-     "[| Crypt (priSK RCA) {|Agent (CA i), Key EKi, onlyEnc|}
+     "[| Crypt (priSK RCA) \<lbrace>Agent (CA i), Key EKi, onlyEnc\<rbrace>
            \<in> parts (knows Spy evs);
          evs \<in> set_mr |] ==> EKi = pubEK (CA i)"
 apply (erule rev_mp)
@@ -164,7 +164,7 @@ apply (blast dest!: Crypt_valid_pubEK)
 done
 
 lemma Crypt_valid_pubSK:
-     "[| Crypt (priSK RCA) {|Agent (CA i), Key SKi, onlySig|}
+     "[| Crypt (priSK RCA) \<lbrace>Agent (CA i), Key SKi, onlySig\<rbrace>
            \<in> parts (knows Spy evs);
          evs \<in> set_mr |] ==> SKi = pubSK (CA i)"
 apply (erule rev_mp)
@@ -179,8 +179,8 @@ apply (blast dest!: Crypt_valid_pubSK)
 done
 
 lemma Gets_certificate_valid:
-     "[| Gets A {| X, cert (CA i) EKi onlyEnc (priSK RCA),
-                      cert (CA i) SKi onlySig (priSK RCA)|} \<in> set evs;
+     "[| Gets A \<lbrace> X, cert (CA i) EKi onlyEnc (priSK RCA),
+                      cert (CA i) SKi onlySig (priSK RCA)\<rbrace> \<in> set evs;
          evs \<in> set_mr |]
       ==> EKi = pubEK (CA i) & SKi = pubSK (CA i)"
 by (blast dest: certificate_valid_pubEK certificate_valid_pubSK)
@@ -261,9 +261,9 @@ by blast
 text{*Lemma for message 4: either merK is compromised (when we don't care)
   or else merK hasn't been used to encrypt K.*}
 lemma msg4_priEK_disj:
-     "[|Gets B {|Crypt KM1
-                       (sign K {|Agent M, Nonce NM2, Key merSK, Key merEK|}),
-                 Y|} \<in> set evs;
+     "[|Gets B \<lbrace>Crypt KM1
+                       (sign K \<lbrace>Agent M, Nonce NM2, Key merSK, Key merEK\<rbrace>),
+                 Y\<rbrace> \<in> set evs;
         evs \<in> set_mr|]
   ==> (Key merSK \<in> analz (knows Spy evs) | merSK \<notin> range(\<lambda>C. priEK C))
    &  (Key merEK \<in> analz (knows Spy evs) | merEK \<notin> range(\<lambda>C. priEK C))"
@@ -320,10 +320,10 @@ done
 subsection{*Unicity *}
 
 lemma msg4_Says_imp_Notes:
- "[|Says (CA i) M {|sign (priSK (CA i)) {|Agent M, Nonce NM2, Agent (CA i)|},
+ "[|Says (CA i) M \<lbrace>sign (priSK (CA i)) \<lbrace>Agent M, Nonce NM2, Agent (CA i)\<rbrace>,
                     cert  M      merSK    onlySig (priSK (CA i)),
                     cert  M      merEK    onlyEnc (priSK (CA i)),
-                    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|} \<in> set evs;
+                    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace> \<in> set evs;
     evs \<in> set_mr |]
   ==> Notes (CA i) (Key merSK) \<in> set evs
    &  Notes (CA i) (Key merEK) \<in> set evs"
@@ -335,14 +335,14 @@ done
 text{*Unicity of merSK wrt a given CA:
   merSK uniquely identifies the other components, including merEK*}
 lemma merSK_unicity:
- "[|Says (CA i) M {|sign (priSK(CA i)) {|Agent M, Nonce NM2, Agent (CA i)|},
+ "[|Says (CA i) M \<lbrace>sign (priSK(CA i)) \<lbrace>Agent M, Nonce NM2, Agent (CA i)\<rbrace>,
                     cert  M      merSK    onlySig (priSK (CA i)),
                     cert  M      merEK    onlyEnc (priSK (CA i)),
-                    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|} \<in> set evs;
-    Says (CA i) M' {|sign (priSK(CA i)) {|Agent M', Nonce NM2', Agent (CA i)|},
+                    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace> \<in> set evs;
+    Says (CA i) M' \<lbrace>sign (priSK(CA i)) \<lbrace>Agent M', Nonce NM2', Agent (CA i)\<rbrace>,
                     cert  M'      merSK    onlySig (priSK (CA i)),
                     cert  M'      merEK'    onlyEnc (priSK (CA i)),
-                    cert (CA i) (pubSK(CA i)) onlySig (priSK RCA)|} \<in> set evs;
+                    cert (CA i) (pubSK(CA i)) onlySig (priSK RCA)\<rbrace> \<in> set evs;
     evs \<in> set_mr |] ==> M=M' & NM2=NM2' & merEK=merEK'"
 apply (erule rev_mp)
 apply (erule rev_mp)
@@ -354,14 +354,14 @@ done
 text{*Unicity of merEK wrt a given CA:
   merEK uniquely identifies the other components, including merSK*}
 lemma merEK_unicity:
- "[|Says (CA i) M {|sign (priSK(CA i)) {|Agent M, Nonce NM2, Agent (CA i)|},
+ "[|Says (CA i) M \<lbrace>sign (priSK(CA i)) \<lbrace>Agent M, Nonce NM2, Agent (CA i)\<rbrace>,
                     cert  M      merSK    onlySig (priSK (CA i)),
                     cert  M      merEK    onlyEnc (priSK (CA i)),
-                    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|} \<in> set evs;
-    Says (CA i) M' {|sign (priSK(CA i)) {|Agent M', Nonce NM2', Agent (CA i)|},
+                    cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace> \<in> set evs;
+    Says (CA i) M' \<lbrace>sign (priSK(CA i)) \<lbrace>Agent M', Nonce NM2', Agent (CA i)\<rbrace>,
                      cert  M'      merSK'    onlySig (priSK (CA i)),
                      cert  M'      merEK    onlyEnc (priSK (CA i)),
-                     cert (CA i) (pubSK(CA i)) onlySig (priSK RCA)|} \<in> set evs;
+                     cert (CA i) (pubSK(CA i)) onlySig (priSK RCA)\<rbrace> \<in> set evs;
     evs \<in> set_mr |] 
   ==> M=M' & NM2=NM2' & merSK=merSK'"
 apply (erule rev_mp)
@@ -386,11 +386,11 @@ provided the CA is uncompromised *}
 text{*The assumption @{term "CA i \<noteq> RCA"} is required: step 2 uses 
   certificates of the same form.*}
 lemma certificate_merSK_valid_lemma [intro]:
-     "[|Crypt (priSK (CA i)) {|Agent M, Key merSK, onlySig|}
+     "[|Crypt (priSK (CA i)) \<lbrace>Agent M, Key merSK, onlySig\<rbrace>
           \<in> parts (knows Spy evs);
         CA i \<notin> bad;  CA i \<noteq> RCA;  evs \<in> set_mr|]
  ==> \<exists>X Y Z. Says (CA i) M
-                  {|X, cert M merSK onlySig (priSK (CA i)), Y, Z|} \<in> set evs"
+                  \<lbrace>X, cert M merSK onlySig (priSK (CA i)), Y, Z\<rbrace> \<in> set evs"
 apply (erule rev_mp)
 apply (erule set_mr.induct)
 apply (simp_all (no_asm_simp))
@@ -401,15 +401,15 @@ lemma certificate_merSK_valid:
      "[| cert M merSK onlySig (priSK (CA i)) \<in> parts (knows Spy evs);
          CA i \<notin> bad;  CA i \<noteq> RCA;  evs \<in> set_mr|]
  ==> \<exists>X Y Z. Says (CA i) M
-                  {|X, cert M merSK onlySig (priSK (CA i)), Y, Z|} \<in> set evs"
+                  \<lbrace>X, cert M merSK onlySig (priSK (CA i)), Y, Z\<rbrace> \<in> set evs"
 by auto
 
 lemma certificate_merEK_valid_lemma [intro]:
-     "[|Crypt (priSK (CA i)) {|Agent M, Key merEK, onlyEnc|}
+     "[|Crypt (priSK (CA i)) \<lbrace>Agent M, Key merEK, onlyEnc\<rbrace>
           \<in> parts (knows Spy evs);
         CA i \<notin> bad;  CA i \<noteq> RCA;  evs \<in> set_mr|]
  ==> \<exists>X Y Z. Says (CA i) M
-                  {|X, Y, cert M merEK onlyEnc (priSK (CA i)), Z|} \<in> set evs"
+                  \<lbrace>X, Y, cert M merEK onlyEnc (priSK (CA i)), Z\<rbrace> \<in> set evs"
 apply (erule rev_mp)
 apply (erule set_mr.induct)
 apply (simp_all (no_asm_simp))
@@ -420,7 +420,7 @@ lemma certificate_merEK_valid:
      "[| cert M merEK onlyEnc (priSK (CA i)) \<in> parts (knows Spy evs);
          CA i \<notin> bad;  CA i \<noteq> RCA;  evs \<in> set_mr|]
  ==> \<exists>X Y Z. Says (CA i) M
-                  {|X, Y, cert M merEK onlyEnc (priSK (CA i)), Z|} \<in> set evs"
+                  \<lbrace>X, Y, cert M merEK onlyEnc (priSK (CA i)), Z\<rbrace> \<in> set evs"
 by auto
 
 text{*The two certificates - for merSK and for merEK - cannot be proved to

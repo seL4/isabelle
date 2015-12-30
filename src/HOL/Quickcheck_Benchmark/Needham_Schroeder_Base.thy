@@ -27,22 +27,18 @@ datatype
          | Crypt  key msg
 
 syntax
-  "_MTuple"      :: "['a, args] => 'a * 'b"       ("(2{|_,/ _|})")
-
-syntax (xsymbols)
   "_MTuple"      :: "['a, args] => 'a * 'b"       ("(2\<lbrace>_,/ _\<rbrace>)")
-
 translations
-  "{|x, y, z|}"   == "{|x, {|y, z|}|}"
-  "{|x, y|}"      == "CONST MPair x y"
+  "\<lbrace>x, y, z\<rbrace>"   == "\<lbrace>x, \<lbrace>y, z\<rbrace>\<rbrace>"
+  "\<lbrace>x, y\<rbrace>"      == "CONST MPair x y"
 
 inductive_set
   parts :: "msg set => msg set"
   for H :: "msg set"
   where
     Inj [intro]:               "X \<in> H ==> X \<in> parts H"
-  | Fst:         "{|X,Y|}   \<in> parts H ==> X \<in> parts H"
-  | Snd:         "{|X,Y|}   \<in> parts H ==> Y \<in> parts H"
+  | Fst:         "\<lbrace>X,Y\<rbrace>   \<in> parts H ==> X \<in> parts H"
+  | Snd:         "\<lbrace>X,Y\<rbrace>   \<in> parts H ==> Y \<in> parts H"
   | Body:        "Crypt K X \<in> parts H ==> X \<in> parts H"
 
 inductive_set
@@ -50,8 +46,8 @@ inductive_set
   for H :: "msg set"
   where
     Inj [intro,simp] :    "X \<in> H ==> X \<in> analz H"
-  | Fst:     "{|X,Y|} \<in> analz H ==> X \<in> analz H"
-  | Snd:     "{|X,Y|} \<in> analz H ==> Y \<in> analz H"
+  | Fst:     "\<lbrace>X,Y\<rbrace> \<in> analz H ==> X \<in> analz H"
+  | Snd:     "\<lbrace>X,Y\<rbrace> \<in> analz H ==> Y \<in> analz H"
   | Decrypt [dest]: 
              "[|Crypt K X \<in> analz H; Key(invKey K): analz H|] ==> X \<in> analz H"
 
@@ -61,7 +57,7 @@ inductive_set
   where
     Inj    [intro]:   "X \<in> H ==> X \<in> synth H"
   | Agent  [intro]:   "Agent agt \<in> synth H"
-  | MPair  [intro]:   "[|X \<in> synth H;  Y \<in> synth H|] ==> {|X,Y|} \<in> synth H"
+  | MPair  [intro]:   "[|X \<in> synth H;  Y \<in> synth H|] ==> \<lbrace>X,Y\<rbrace> \<in> synth H"
   | Crypt  [intro]:   "[|X \<in> synth H;  Key(K) \<in> H|] ==> Crypt K X \<in> synth H"
 
 primrec initState
@@ -172,13 +168,13 @@ subsection {* Derived equations for analz, parts and synth *}
 
 lemma [code]:
   "analz H = (let
-     H' = H \<union> (\<Union>((%m. case m of {|X, Y|} => {X, Y} | Crypt K X => if Key (invKey K) : H then {X} else {} | _ => {}) ` H))
+     H' = H \<union> (\<Union>((%m. case m of \<lbrace>X, Y\<rbrace> => {X, Y} | Crypt K X => if Key (invKey K) : H then {X} else {} | _ => {}) ` H))
    in if H' = H then H else analz H')"
 sorry
 
 lemma [code]:
   "parts H = (let
-     H' = H \<union> (\<Union>((%m. case m of {|X, Y|} => {X, Y} | Crypt K X => {X} | _ => {}) ` H))
+     H' = H \<union> (\<Union>((%m. case m of \<lbrace>X, Y\<rbrace> => {X, Y} | Crypt K X => {X} | _ => {}) ` H))
    in if H' = H then H else parts H')"
 sorry
 

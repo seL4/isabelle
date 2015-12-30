@@ -38,7 +38,7 @@ where
         Says A B Z =>
          ((\<exists>N X Y. A \<noteq> Spy &
                  DK \<in> symKeys &
-                 Z = {|Crypt DK {|Agent A, Nonce N, Key K, X|}, Y|}) |
+                 Z = \<lbrace>Crypt DK \<lbrace>Agent A, Nonce N, Key K, X\<rbrace>, Y\<rbrace>) |
           (\<exists>C. DK = priEK C))
       | Gets A' X => False
       | Notes A' X => False))"
@@ -67,18 +67,18 @@ where
       Says A B Z =>
        A \<noteq> Spy &
        ((\<exists>X Y. DK \<in> symKeys &
-               Z = (EXHcrypt DK X {|Agent A, Nonce N|} Y)) |
+               Z = (EXHcrypt DK X \<lbrace>Agent A, Nonce N\<rbrace> Y)) |
         (\<exists>X Y. DK \<in> symKeys &
-               Z = {|Crypt DK {|Agent A, Nonce N, X|}, Y|}) |
+               Z = \<lbrace>Crypt DK \<lbrace>Agent A, Nonce N, X\<rbrace>, Y\<rbrace>) |
         (\<exists>K i X Y.
           K \<in> symKeys &
-          Z = Crypt K {|sign (priSK (CA i)) {|Agent B, Nonce N, X|}, Y|} &
+          Z = Crypt K \<lbrace>sign (priSK (CA i)) \<lbrace>Agent B, Nonce N, X\<rbrace>, Y\<rbrace> &
           (DK=K | KeyCryptKey DK K evs)) |
         (\<exists>K C NC3 Y.
           K \<in> symKeys &
           Z = Crypt K
-                {|sign (priSK C) {|Agent B, Nonce NC3, Agent C, Nonce N|},
-                  Y|} &
+                \<lbrace>sign (priSK C) \<lbrace>Agent B, Nonce NC3, Agent C, Nonce N\<rbrace>,
+                  Y\<rbrace> &
           (DK=K | KeyCryptKey DK K evs)) |
         (\<exists>C. DK = priEK C))
     | Gets A' X => False
@@ -104,15 +104,15 @@ where
 
 | SET_CR1: --{*CardCInitReq: C initiates a run, sending a nonce to CCA*}
              "[| evs1 \<in> set_cr;  C = Cardholder k;  Nonce NC1 \<notin> used evs1 |]
-              ==> Says C (CA i) {|Agent C, Nonce NC1|} # evs1 \<in> set_cr"
+              ==> Says C (CA i) \<lbrace>Agent C, Nonce NC1\<rbrace> # evs1 \<in> set_cr"
 
 | SET_CR2: --{*CardCInitRes: CA responds sending NC1 and its certificates*}
              "[| evs2 \<in> set_cr;
-                 Gets (CA i) {|Agent C, Nonce NC1|} \<in> set evs2 |]
+                 Gets (CA i) \<lbrace>Agent C, Nonce NC1\<rbrace> \<in> set evs2 |]
               ==> Says (CA i) C
-                       {|sign (priSK (CA i)) {|Agent C, Nonce NC1|},
+                       \<lbrace>sign (priSK (CA i)) \<lbrace>Agent C, Nonce NC1\<rbrace>,
                          cert (CA i) (pubEK (CA i)) onlyEnc (priSK RCA),
-                         cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|}
+                         cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace>
                     # evs2 \<in> set_cr"
 
 | SET_CR3:
@@ -125,18 +125,18 @@ where
     - certificates pertain to the CA that C contacted (this is done by
       checking the signature).
    C generates a fresh symmetric key KC1.
-   The point of encrypting @{term "{|Agent C, Nonce NC2, Hash (Pan(pan C))|}"}
+   The point of encrypting @{term "\<lbrace>Agent C, Nonce NC2, Hash (Pan(pan C))\<rbrace>"}
    is not clear. *}
 "[| evs3 \<in> set_cr;  C = Cardholder k;
     Nonce NC2 \<notin> used evs3;
     Key KC1 \<notin> used evs3; KC1 \<in> symKeys;
-    Gets C {|sign (invKey SKi) {|Agent X, Nonce NC1|},
+    Gets C \<lbrace>sign (invKey SKi) \<lbrace>Agent X, Nonce NC1\<rbrace>,
              cert (CA i) EKi onlyEnc (priSK RCA),
-             cert (CA i) SKi onlySig (priSK RCA)|}
+             cert (CA i) SKi onlySig (priSK RCA)\<rbrace>
        \<in> set evs3;
-    Says C (CA i) {|Agent C, Nonce NC1|} \<in> set evs3|]
- ==> Says C (CA i) (EXHcrypt KC1 EKi {|Agent C, Nonce NC2|} (Pan(pan C)))
-       # Notes C {|Key KC1, Agent (CA i)|}
+    Says C (CA i) \<lbrace>Agent C, Nonce NC1\<rbrace> \<in> set evs3|]
+ ==> Says C (CA i) (EXHcrypt KC1 EKi \<lbrace>Agent C, Nonce NC2\<rbrace> (Pan(pan C)))
+       # Notes C \<lbrace>Key KC1, Agent (CA i)\<rbrace>
        # evs3 \<in> set_cr"
 
 | SET_CR4:
@@ -147,12 +147,12 @@ where
        envelope (here, KC1) *}
 "[| evs4 \<in> set_cr;
     Nonce NCA \<notin> used evs4;  KC1 \<in> symKeys;
-    Gets (CA i) (EXHcrypt KC1 EKi {|Agent C, Nonce NC2|} (Pan(pan X)))
+    Gets (CA i) (EXHcrypt KC1 EKi \<lbrace>Agent C, Nonce NC2\<rbrace> (Pan(pan X)))
        \<in> set evs4 |]
   ==> Says (CA i) C
-          {|sign (priSK (CA i)) {|Agent C, Nonce NC2, Nonce NCA|},
+          \<lbrace>sign (priSK (CA i)) \<lbrace>Agent C, Nonce NC2, Nonce NCA\<rbrace>,
             cert (CA i) (pubEK (CA i)) onlyEnc (priSK RCA),
-            cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|}
+            cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace>
        # evs4 \<in> set_cr"
 
 | SET_CR5:
@@ -165,21 +165,21 @@ where
     Nonce NC3 \<notin> used evs5;  Nonce CardSecret \<notin> used evs5; NC3\<noteq>CardSecret;
     Key KC2 \<notin> used evs5; KC2 \<in> symKeys;
     Key KC3 \<notin> used evs5; KC3 \<in> symKeys; KC2\<noteq>KC3;
-    Gets C {|sign (invKey SKi) {|Agent C, Nonce NC2, Nonce NCA|},
+    Gets C \<lbrace>sign (invKey SKi) \<lbrace>Agent C, Nonce NC2, Nonce NCA\<rbrace>,
              cert (CA i) EKi onlyEnc (priSK RCA),
-             cert (CA i) SKi onlySig (priSK RCA) |}
+             cert (CA i) SKi onlySig (priSK RCA) \<rbrace>
         \<in> set evs5;
-    Says C (CA i) (EXHcrypt KC1 EKi {|Agent C, Nonce NC2|} (Pan(pan C)))
+    Says C (CA i) (EXHcrypt KC1 EKi \<lbrace>Agent C, Nonce NC2\<rbrace> (Pan(pan C)))
          \<in> set evs5 |]
 ==> Says C (CA i)
-         {|Crypt KC3
-             {|Agent C, Nonce NC3, Key KC2, Key (pubSK C),
+         \<lbrace>Crypt KC3
+             \<lbrace>Agent C, Nonce NC3, Key KC2, Key (pubSK C),
                Crypt (priSK C)
-                 (Hash {|Agent C, Nonce NC3, Key KC2,
-                         Key (pubSK C), Pan (pan C), Nonce CardSecret|})|},
-           Crypt EKi {|Key KC3, Pan (pan C), Nonce CardSecret|} |}
-    # Notes C {|Key KC2, Agent (CA i)|}
-    # Notes C {|Key KC3, Agent (CA i)|}
+                 (Hash \<lbrace>Agent C, Nonce NC3, Key KC2,
+                         Key (pubSK C), Pan (pan C), Nonce CardSecret\<rbrace>)\<rbrace>,
+           Crypt EKi \<lbrace>Key KC3, Pan (pan C), Nonce CardSecret\<rbrace> \<rbrace>
+    # Notes C \<lbrace>Key KC2, Agent (CA i)\<rbrace>
+    # Notes C \<lbrace>Key KC3, Agent (CA i)\<rbrace>
     # evs5 \<in> set_cr"
 
 
@@ -197,18 +197,18 @@ where
     KC2 \<in> symKeys;  KC3 \<in> symKeys;  cardSK \<notin> symKeys;
     Notes (CA i) (Key cardSK) \<notin> set evs6;
     Gets (CA i)
-      {|Crypt KC3 {|Agent C, Nonce NC3, Key KC2, Key cardSK,
+      \<lbrace>Crypt KC3 \<lbrace>Agent C, Nonce NC3, Key KC2, Key cardSK,
                     Crypt (invKey cardSK)
-                      (Hash {|Agent C, Nonce NC3, Key KC2,
-                              Key cardSK, Pan (pan C), Nonce CardSecret|})|},
-        Crypt (pubEK (CA i)) {|Key KC3, Pan (pan C), Nonce CardSecret|} |}
+                      (Hash \<lbrace>Agent C, Nonce NC3, Key KC2,
+                              Key cardSK, Pan (pan C), Nonce CardSecret\<rbrace>)\<rbrace>,
+        Crypt (pubEK (CA i)) \<lbrace>Key KC3, Pan (pan C), Nonce CardSecret\<rbrace> \<rbrace>
       \<in> set evs6 |]
 ==> Says (CA i) C
          (Crypt KC2
-          {|sign (priSK (CA i))
-                 {|Agent C, Nonce NC3, Agent(CA i), Nonce NonceCCA|},
+          \<lbrace>sign (priSK (CA i))
+                 \<lbrace>Agent C, Nonce NC3, Agent(CA i), Nonce NonceCCA\<rbrace>,
             certC (pan C) cardSK (XOR(CardSecret,NonceCCA)) onlySig (priSK (CA i)),
-            cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|})
+            cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace>)
       # Notes (CA i) (Key cardSK)
       # evs6 \<in> set_cr"
 
@@ -238,11 +238,11 @@ lemma possibility_CR6:
    ==> \<exists>evs \<in> set_cr.
        Says (CA i) C
             (Crypt KC2
-             {|sign (priSK (CA i))
-                    {|Agent C, Nonce NC3, Agent(CA i), Nonce NonceCCA|},
+             \<lbrace>sign (priSK (CA i))
+                    \<lbrace>Agent C, Nonce NC3, Agent(CA i), Nonce NonceCCA\<rbrace>,
                certC (pan C) (pubSK (Cardholder k)) (XOR(CardSecret,NonceCCA))
                      onlySig (priSK (CA i)),
-               cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|})
+               cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace>)
           \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] 
@@ -297,7 +297,7 @@ subsection{*Begin Piero's Theorems on Certificates*}
 text{*Trivial in the current model, where certificates by RCA are secure *}
 
 lemma Crypt_valid_pubEK:
-     "[| Crypt (priSK RCA) {|Agent C, Key EKi, onlyEnc|}
+     "[| Crypt (priSK RCA) \<lbrace>Agent C, Key EKi, onlyEnc\<rbrace>
            \<in> parts (knows Spy evs);
          evs \<in> set_cr |] ==> EKi = pubEK C"
 apply (erule rev_mp)
@@ -313,7 +313,7 @@ apply (blast dest!: Crypt_valid_pubEK)
 done
 
 lemma Crypt_valid_pubSK:
-     "[| Crypt (priSK RCA) {|Agent C, Key SKi, onlySig|}
+     "[| Crypt (priSK RCA) \<lbrace>Agent C, Key SKi, onlySig\<rbrace>
            \<in> parts (knows Spy evs);
          evs \<in> set_cr |] ==> SKi = pubSK C"
 apply (erule rev_mp)
@@ -328,8 +328,8 @@ apply (blast dest!: Crypt_valid_pubSK)
 done
 
 lemma Gets_certificate_valid:
-     "[| Gets A {| X, cert C EKi onlyEnc (priSK RCA),
-                      cert C SKi onlySig (priSK RCA)|} \<in> set evs;
+     "[| Gets A \<lbrace> X, cert C EKi onlyEnc (priSK RCA),
+                      cert C SKi onlySig (priSK RCA)\<rbrace> \<in> set evs;
          evs \<in> set_cr |]
       ==> EKi = pubEK C & SKi = pubSK C"
 by (blast dest: certificate_valid_pubEK certificate_valid_pubSK)
@@ -387,10 +387,10 @@ subsection{*Messages signed by CA*}
 text{*Message @{text SET_CR2}: C can check CA's signature if he has received
      CA's certificate.*}
 lemma CA_Says_2_lemma:
-     "[| Crypt (priSK (CA i)) (Hash{|Agent C, Nonce NC1|})
+     "[| Crypt (priSK (CA i)) (Hash\<lbrace>Agent C, Nonce NC1\<rbrace>)
            \<in> parts (knows Spy evs);
          evs \<in> set_cr; (CA i) \<notin> bad |]
-     ==> \<exists>Y. Says (CA i) C {|sign (priSK (CA i)) {|Agent C, Nonce NC1|}, Y|}
+     ==> \<exists>Y. Says (CA i) C \<lbrace>sign (priSK (CA i)) \<lbrace>Agent C, Nonce NC1\<rbrace>, Y\<rbrace>
                  \<in> set evs"
 apply (erule rev_mp)
 apply (erule set_cr.induct, auto)
@@ -398,11 +398,11 @@ done
 
 text{*Ever used?*}
 lemma CA_Says_2:
-     "[| Crypt (invKey SK) (Hash{|Agent C, Nonce NC1|})
+     "[| Crypt (invKey SK) (Hash\<lbrace>Agent C, Nonce NC1\<rbrace>)
            \<in> parts (knows Spy evs);
          cert (CA i) SK onlySig (priSK RCA) \<in> parts (knows Spy evs);
          evs \<in> set_cr; (CA i) \<notin> bad |]
-      ==> \<exists>Y. Says (CA i) C {|sign (priSK (CA i)) {|Agent C, Nonce NC1|}, Y|}
+      ==> \<exists>Y. Says (CA i) C \<lbrace>sign (priSK (CA i)) \<lbrace>Agent C, Nonce NC1\<rbrace>, Y\<rbrace>
                   \<in> set evs"
 by (blast dest!: certificate_valid_pubSK intro!: CA_Says_2_lemma)
 
@@ -410,23 +410,23 @@ by (blast dest!: certificate_valid_pubSK intro!: CA_Says_2_lemma)
 text{*Message @{text SET_CR4}: C can check CA's signature if he has received
       CA's certificate.*}
 lemma CA_Says_4_lemma:
-     "[| Crypt (priSK (CA i)) (Hash{|Agent C, Nonce NC2, Nonce NCA|})
+     "[| Crypt (priSK (CA i)) (Hash\<lbrace>Agent C, Nonce NC2, Nonce NCA\<rbrace>)
            \<in> parts (knows Spy evs);
          evs \<in> set_cr; (CA i) \<notin> bad |]
-      ==> \<exists>Y. Says (CA i) C {|sign (priSK (CA i))
-                     {|Agent C, Nonce NC2, Nonce NCA|}, Y|} \<in> set evs"
+      ==> \<exists>Y. Says (CA i) C \<lbrace>sign (priSK (CA i))
+                     \<lbrace>Agent C, Nonce NC2, Nonce NCA\<rbrace>, Y\<rbrace> \<in> set evs"
 apply (erule rev_mp)
 apply (erule set_cr.induct, auto)
 done
 
 text{*NEVER USED*}
 lemma CA_Says_4:
-     "[| Crypt (invKey SK) (Hash{|Agent C, Nonce NC2, Nonce NCA|})
+     "[| Crypt (invKey SK) (Hash\<lbrace>Agent C, Nonce NC2, Nonce NCA\<rbrace>)
            \<in> parts (knows Spy evs);
          cert (CA i) SK onlySig (priSK RCA) \<in> parts (knows Spy evs);
          evs \<in> set_cr; (CA i) \<notin> bad |]
-      ==> \<exists>Y. Says (CA i) C {|sign (priSK (CA i))
-                   {|Agent C, Nonce NC2, Nonce NCA|}, Y|} \<in> set evs"
+      ==> \<exists>Y. Says (CA i) C \<lbrace>sign (priSK (CA i))
+                   \<lbrace>Agent C, Nonce NC2, Nonce NCA\<rbrace>, Y\<rbrace> \<in> set evs"
 by (blast dest!: certificate_valid_pubSK intro!: CA_Says_4_lemma)
 
 
@@ -434,23 +434,23 @@ text{*Message @{text SET_CR6}: C can check CA's signature if he has
       received CA's certificate.*}
 lemma CA_Says_6_lemma:
      "[| Crypt (priSK (CA i)) 
-               (Hash{|Agent C, Nonce NC3, Agent (CA i), Nonce NonceCCA|})
+               (Hash\<lbrace>Agent C, Nonce NC3, Agent (CA i), Nonce NonceCCA\<rbrace>)
            \<in> parts (knows Spy evs);
          evs \<in> set_cr; (CA i) \<notin> bad |]
-      ==> \<exists>Y K. Says (CA i) C (Crypt K {|sign (priSK (CA i))
-      {|Agent C, Nonce NC3, Agent (CA i), Nonce NonceCCA|}, Y|}) \<in> set evs"
+      ==> \<exists>Y K. Says (CA i) C (Crypt K \<lbrace>sign (priSK (CA i))
+      \<lbrace>Agent C, Nonce NC3, Agent (CA i), Nonce NonceCCA\<rbrace>, Y\<rbrace>) \<in> set evs"
 apply (erule rev_mp)
 apply (erule set_cr.induct, auto)
 done
 
 text{*NEVER USED*}
 lemma CA_Says_6:
-     "[| Crypt (invKey SK) (Hash{|Agent C, Nonce NC3, Agent (CA i), Nonce NonceCCA|})
+     "[| Crypt (invKey SK) (Hash\<lbrace>Agent C, Nonce NC3, Agent (CA i), Nonce NonceCCA\<rbrace>)
            \<in> parts (knows Spy evs);
          cert (CA i) SK onlySig (priSK RCA) \<in> parts (knows Spy evs);
          evs \<in> set_cr; (CA i) \<notin> bad |]
-      ==> \<exists>Y K. Says (CA i) C (Crypt K {|sign (priSK (CA i))
-                    {|Agent C, Nonce NC3, Agent (CA i), Nonce NonceCCA|}, Y|}) \<in> set evs"
+      ==> \<exists>Y K. Says (CA i) C (Crypt K \<lbrace>sign (priSK (CA i))
+                    \<lbrace>Agent C, Nonce NC3, Agent (CA i), Nonce NonceCCA\<rbrace>, Y\<rbrace>) \<in> set evs"
 by (blast dest!: certificate_valid_pubSK intro!: CA_Says_6_lemma)
 (*>*)
 
@@ -521,7 +521,7 @@ text{*Lemma for message 6: either cardSK is compromised (when we don't care)
   message 5 in the same way, but the current model assumes that rule
   @{text SET_CR5} is executed only by honest agents.*}
 lemma msg6_KeyCryptKey_disj:
-     "[|Gets B {|Crypt KC3 {|Agent C, Nonce N, Key KC2, Key cardSK, X|}, Y|}
+     "[|Gets B \<lbrace>Crypt KC3 \<lbrace>Agent C, Nonce N, Key KC2, Key cardSK, X\<rbrace>, Y\<rbrace>
           \<in> set evs;
         cardSK \<notin> symKeys;  evs \<in> set_cr|]
       ==> Key cardSK \<in> analz (knows Spy evs) |
@@ -602,12 +602,12 @@ text{*The cardholder's certificate really was created by the CA, provided the
 
 text{*Lemma concerning the actual signed message digest*}
 lemma cert_valid_lemma:
-     "[|Crypt (priSK (CA i)) {|Hash {|Nonce N, Pan(pan C)|}, Key cardSK, N1|}
+     "[|Crypt (priSK (CA i)) \<lbrace>Hash \<lbrace>Nonce N, Pan(pan C)\<rbrace>, Key cardSK, N1\<rbrace>
           \<in> parts (knows Spy evs);
         CA i \<notin> bad; evs \<in> set_cr|]
   ==> \<exists>KC2 X Y. Says (CA i) C
                      (Crypt KC2 
-                       {|X, certC (pan C) cardSK N onlySig (priSK (CA i)), Y|})
+                       \<lbrace>X, certC (pan C) cardSK N onlySig (priSK (CA i)), Y\<rbrace>)
                   \<in> set evs"
 apply (erule rev_mp)
 apply (erule set_cr.induct)
@@ -618,12 +618,12 @@ done
 text{*Pre-packaged version for cardholder.  We don't try to confirm the values
   of KC2, X and Y, since they are not important.*}
 lemma certificate_valid_cardSK:
-    "[|Gets C (Crypt KC2 {|X, certC (pan C) cardSK N onlySig (invKey SKi),
-                              cert (CA i) SKi onlySig (priSK RCA)|}) \<in> set evs;
+    "[|Gets C (Crypt KC2 \<lbrace>X, certC (pan C) cardSK N onlySig (invKey SKi),
+                              cert (CA i) SKi onlySig (priSK RCA)\<rbrace>) \<in> set evs;
         CA i \<notin> bad; evs \<in> set_cr|]
   ==> \<exists>KC2 X Y. Says (CA i) C
                      (Crypt KC2 
-                       {|X, certC (pan C) cardSK N onlySig (priSK (CA i)), Y|})
+                       \<lbrace>X, certC (pan C) cardSK N onlySig (priSK (CA i)), Y\<rbrace>)
                    \<in> set evs"
 by (force dest!: Gets_imp_knows_Spy [THEN parts.Inj, THEN parts.Body]
                     certificate_valid_pubSK cert_valid_lemma)
@@ -631,7 +631,7 @@ by (force dest!: Gets_imp_knows_Spy [THEN parts.Inj, THEN parts.Body]
 
 lemma Hash_imp_parts [rule_format]:
      "evs \<in> set_cr
-      ==> Hash{|X, Nonce N|} \<in> parts (knows Spy evs) -->
+      ==> Hash\<lbrace>X, Nonce N\<rbrace> \<in> parts (knows Spy evs) -->
           Nonce N \<in> parts (knows Spy evs)"
 apply (erule set_cr.induct, force)
 apply (simp_all (no_asm_simp))
@@ -640,7 +640,7 @@ done
 
 lemma Hash_imp_parts2 [rule_format]:
      "evs \<in> set_cr
-      ==> Hash{|X, Nonce M, Y, Nonce N|} \<in> parts (knows Spy evs) -->
+      ==> Hash\<lbrace>X, Nonce M, Y, Nonce N\<rbrace> \<in> parts (knows Spy evs) -->
           Nonce M \<in> parts (knows Spy evs) & Nonce N \<in> parts (knows Spy evs)"
 apply (erule set_cr.induct, force)
 apply (simp_all (no_asm_simp))
@@ -696,7 +696,7 @@ done
 text{*Lemma for message 6: either cardSK is compromised (when we don't care)
   or else cardSK hasn't been used to encrypt K.*}
 lemma msg6_KeyCryptNonce_disj:
-     "[|Gets B {|Crypt KC3 {|Agent C, Nonce N, Key KC2, Key cardSK, X|}, Y|}
+     "[|Gets B \<lbrace>Crypt KC3 \<lbrace>Agent C, Nonce N, Key KC2, Key cardSK, X\<rbrace>, Y\<rbrace>
           \<in> set evs;
         cardSK \<notin> symKeys;  evs \<in> set_cr|]
       ==> Key cardSK \<in> analz (knows Spy evs) |
@@ -751,12 +751,12 @@ done
 subsection{*Secrecy of CardSecret: the Cardholder's secret*}
 
 lemma NC2_not_CardSecret:
-     "[|Crypt EKj {|Key K, Pan p, Hash {|Agent D, Nonce N|}|}
+     "[|Crypt EKj \<lbrace>Key K, Pan p, Hash \<lbrace>Agent D, Nonce N\<rbrace>\<rbrace>
           \<in> parts (knows Spy evs);
         Key K \<notin> analz (knows Spy evs);
         Nonce N \<notin> analz (knows Spy evs);
        evs \<in> set_cr|]
-      ==> Crypt EKi {|Key K', Pan p', Nonce N|} \<notin> parts (knows Spy evs)"
+      ==> Crypt EKi \<lbrace>Key K', Pan p', Nonce N\<rbrace> \<notin> parts (knows Spy evs)"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule rev_mp)
@@ -765,11 +765,11 @@ apply (blast dest: Hash_imp_parts)+
 done
 
 lemma KC2_secure_lemma [rule_format]:
-     "[|U = Crypt KC3 {|Agent C, Nonce N, Key KC2, X|};
+     "[|U = Crypt KC3 \<lbrace>Agent C, Nonce N, Key KC2, X\<rbrace>;
         U \<in> parts (knows Spy evs);
         evs \<in> set_cr|]
   ==> Nonce N \<notin> analz (knows Spy evs) -->
-      (\<exists>k i W. Says (Cardholder k) (CA i) {|U,W|} \<in> set evs & 
+      (\<exists>k i W. Says (Cardholder k) (CA i) \<lbrace>U,W\<rbrace> \<in> set evs & 
                Cardholder k \<notin> bad & CA i \<notin> bad)"
 apply (erule_tac P = "U \<in> H" for H in rev_mp)
 apply (erule set_cr.induct)
@@ -783,7 +783,7 @@ apply (blast intro!: analz_insertI)+
 done
 
 lemma KC2_secrecy:
-     "[|Gets B {|Crypt K {|Agent C, Nonce N, Key KC2, X|}, Y|} \<in> set evs;
+     "[|Gets B \<lbrace>Crypt K \<lbrace>Agent C, Nonce N, Key KC2, X\<rbrace>, Y\<rbrace> \<in> set evs;
         Nonce N \<notin> analz (knows Spy evs);  KC2 \<in> symKeys;
         evs \<in> set_cr|]
        ==> Key KC2 \<notin> analz (knows Spy evs)"
@@ -794,7 +794,7 @@ text{*Inductive version*}
 lemma CardSecret_secrecy_lemma [rule_format]:
      "[|CA i \<notin> bad;  evs \<in> set_cr|]
       ==> Key K \<notin> analz (knows Spy evs) -->
-          Crypt (pubEK (CA i)) {|Key K, Pan p, Nonce CardSecret|}
+          Crypt (pubEK (CA i)) \<lbrace>Key K, Pan p, Nonce CardSecret\<rbrace>
              \<in> parts (knows Spy evs) -->
           Nonce CardSecret \<notin> analz (knows Spy evs)"
 apply (erule set_cr.induct, analz_mono_contra)
@@ -825,9 +825,9 @@ text{*Packaged version for cardholder*}
 lemma CardSecret_secrecy:
      "[|Cardholder k \<notin> bad;  CA i \<notin> bad;
         Says (Cardholder k) (CA i)
-           {|X, Crypt EKi {|Key KC3, Pan p, Nonce CardSecret|}|} \<in> set evs;
-        Gets A {|Z, cert (CA i) EKi onlyEnc (priSK RCA),
-                    cert (CA i) SKi onlySig (priSK RCA)|} \<in> set evs;
+           \<lbrace>X, Crypt EKi \<lbrace>Key KC3, Pan p, Nonce CardSecret\<rbrace>\<rbrace> \<in> set evs;
+        Gets A \<lbrace>Z, cert (CA i) EKi onlyEnc (priSK RCA),
+                    cert (CA i) SKi onlySig (priSK RCA)\<rbrace> \<in> set evs;
         KC3 \<in> symKeys;  evs \<in> set_cr|]
       ==> Nonce CardSecret \<notin> analz (knows Spy evs)"
 apply (frule Gets_certificate_valid, assumption)
@@ -841,11 +841,11 @@ done
 subsection{*Secrecy of NonceCCA [the CA's secret] *}
 
 lemma NC2_not_NonceCCA:
-     "[|Hash {|Agent C', Nonce N', Agent C, Nonce N|}
+     "[|Hash \<lbrace>Agent C', Nonce N', Agent C, Nonce N\<rbrace>
           \<in> parts (knows Spy evs);
         Nonce N \<notin> analz (knows Spy evs);
        evs \<in> set_cr|]
-      ==> Crypt KC1 {|{|Agent B, Nonce N|}, Hash p|} \<notin> parts (knows Spy evs)"
+      ==> Crypt KC1 \<lbrace>\<lbrace>Agent B, Nonce N\<rbrace>, Hash p\<rbrace> \<notin> parts (knows Spy evs)"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_cr.induct, analz_mono_contra, simp_all)
@@ -858,9 +858,9 @@ lemma NonceCCA_secrecy_lemma [rule_format]:
      "[|CA i \<notin> bad;  evs \<in> set_cr|]
       ==> Key K \<notin> analz (knows Spy evs) -->
           Crypt K
-            {|sign (priSK (CA i))
-                   {|Agent C, Nonce N, Agent(CA i), Nonce NonceCCA|},
-              X, Y|}
+            \<lbrace>sign (priSK (CA i))
+                   \<lbrace>Agent C, Nonce N, Agent(CA i), Nonce NonceCCA\<rbrace>,
+              X, Y\<rbrace>
              \<in> parts (knows Spy evs) -->
           Nonce NonceCCA \<notin> analz (knows Spy evs)"
 apply (erule set_cr.induct, analz_mono_contra)
@@ -891,12 +891,12 @@ lemma NonceCCA_secrecy:
      "[|Cardholder k \<notin> bad;  CA i \<notin> bad;
         Gets (Cardholder k)
            (Crypt KC2
-            {|sign (priSK (CA i)) {|Agent C, Nonce N, Agent(CA i), Nonce NonceCCA|},
-              X, Y|}) \<in> set evs;
+            \<lbrace>sign (priSK (CA i)) \<lbrace>Agent C, Nonce N, Agent(CA i), Nonce NonceCCA\<rbrace>,
+              X, Y\<rbrace>) \<in> set evs;
         Says (Cardholder k) (CA i)
-           {|Crypt KC3 {|Agent C, Nonce NC3, Key KC2, X'|}, Y'|} \<in> set evs;
-        Gets A {|Z, cert (CA i) EKi onlyEnc (priSK RCA),
-                    cert (CA i) SKi onlySig (priSK RCA)|} \<in> set evs;
+           \<lbrace>Crypt KC3 \<lbrace>Agent C, Nonce NC3, Key KC2, X'\<rbrace>, Y'\<rbrace> \<in> set evs;
+        Gets A \<lbrace>Z, cert (CA i) EKi onlyEnc (priSK RCA),
+                    cert (CA i) SKi onlySig (priSK RCA)\<rbrace> \<in> set evs;
         KC2 \<in> symKeys;  evs \<in> set_cr|]
       ==> Nonce NonceCCA \<notin> analz (knows Spy evs)"
 apply (frule Gets_certificate_valid, assumption)
@@ -917,7 +917,7 @@ text{*Lemma for message 6: either cardSK isn't a CA's private encryption key,
   and so the Spy knows that key already.  Either way, we can simplify
   the expression @{term "analz (insert (Key cardSK) X)"}.*}
 lemma msg6_cardSK_disj:
-     "[|Gets A {|Crypt K {|c, n, k', Key cardSK, X|}, Y|}
+     "[|Gets A \<lbrace>Crypt K \<lbrace>c, n, k', Key cardSK, X\<rbrace>, Y\<rbrace>
           \<in> set evs;  evs \<in> set_cr |]
       ==> cardSK \<notin> range(invKey o pubEK o CA) | Key cardSK \<in> knows Spy evs"
 by auto
@@ -961,7 +961,7 @@ text{*Confidentiality of the PAN\@.  Maybe we could combine the statements of
 lemma pan_confidentiality:
      "[| Pan (pan C) \<in> analz(knows Spy evs); C \<noteq>Spy; evs :set_cr|]
     ==> \<exists>i X K HN.
-        Says C (CA i) {|X, Crypt (pubEK (CA i)) {|Key K, Pan (pan C), HN|} |}
+        Says C (CA i) \<lbrace>X, Crypt (pubEK (CA i)) \<lbrace>Key K, Pan (pan C), HN\<rbrace> \<rbrace>
            \<in> set evs
       & (CA i) \<in> bad"
 apply (erule rev_mp)
@@ -985,9 +985,9 @@ subsection{*Unicity*}
 
 lemma CR6_Says_imp_Notes:
      "[|Says (CA i) C (Crypt KC2
-          {|sign (priSK (CA i)) {|Agent C, Nonce NC3, Agent (CA i), Nonce Y|},
+          \<lbrace>sign (priSK (CA i)) \<lbrace>Agent C, Nonce NC3, Agent (CA i), Nonce Y\<rbrace>,
             certC (pan C) cardSK X onlySig (priSK (CA i)),
-            cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|})  \<in> set evs;
+            cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace>)  \<in> set evs;
         evs \<in> set_cr |]
       ==> Notes (CA i) (Key cardSK) \<in> set evs"
 apply (erule rev_mp)
@@ -999,14 +999,14 @@ text{*Unicity of cardSK: it uniquely identifies the other components.
       This holds because a CA accepts a cardSK at most once.*}
 lemma cardholder_key_unicity:
      "[|Says (CA i) C (Crypt KC2
-          {|sign (priSK (CA i)) {|Agent C, Nonce NC3, Agent (CA i), Nonce Y|},
+          \<lbrace>sign (priSK (CA i)) \<lbrace>Agent C, Nonce NC3, Agent (CA i), Nonce Y\<rbrace>,
             certC (pan C) cardSK X onlySig (priSK (CA i)),
-            cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|})
+            cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace>)
           \<in> set evs;
         Says (CA i) C' (Crypt KC2'
-          {|sign (priSK (CA i)) {|Agent C', Nonce NC3', Agent (CA i), Nonce Y'|},
+          \<lbrace>sign (priSK (CA i)) \<lbrace>Agent C', Nonce NC3', Agent (CA i), Nonce Y'\<rbrace>,
             certC (pan C') cardSK X' onlySig (priSK (CA i)),
-            cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)|})
+            cert (CA i) (pubSK (CA i)) onlySig (priSK RCA)\<rbrace>)
           \<in> set evs;
         evs \<in> set_cr |] ==> C=C' & NC3=NC3' & X=X' & KC2=KC2' & Y=Y'"
 apply (erule rev_mp)
@@ -1020,9 +1020,9 @@ done
 (*<*)
 text{*UNUSED unicity result*}
 lemma unique_KC1:
-     "[|Says C B {|Crypt KC1 X, Crypt EK {|Key KC1, Y|}|}
+     "[|Says C B \<lbrace>Crypt KC1 X, Crypt EK \<lbrace>Key KC1, Y\<rbrace>\<rbrace>
           \<in> set evs;
-        Says C B' {|Crypt KC1 X', Crypt EK' {|Key KC1, Y'|}|}
+        Says C B' \<lbrace>Crypt KC1 X', Crypt EK' \<lbrace>Key KC1, Y'\<rbrace>\<rbrace>
           \<in> set evs;
         C \<notin> bad;  evs \<in> set_cr|] ==> B'=B & Y'=Y"
 apply (erule rev_mp)
@@ -1032,8 +1032,8 @@ done
 
 text{*UNUSED unicity result*}
 lemma unique_KC2:
-     "[|Says C B {|Crypt K {|Agent C, nn, Key KC2, X|}, Y|} \<in> set evs;
-        Says C B' {|Crypt K' {|Agent C, nn', Key KC2, X'|}, Y'|} \<in> set evs;
+     "[|Says C B \<lbrace>Crypt K \<lbrace>Agent C, nn, Key KC2, X\<rbrace>, Y\<rbrace> \<in> set evs;
+        Says C B' \<lbrace>Crypt K' \<lbrace>Agent C, nn', Key KC2, X'\<rbrace>, Y'\<rbrace> \<in> set evs;
         C \<notin> bad;  evs \<in> set_cr|] ==> B'=B & X'=X"
 apply (erule rev_mp)
 apply (erule rev_mp)

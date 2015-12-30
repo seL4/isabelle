@@ -57,9 +57,9 @@ lemma
   assumes "A = Alice" "B = Bob" "C = Spy" "NA = 0" "NB = 1"
   assumes "evs = 
   [Says Alice Spy (Crypt (pubEK Spy) (Nonce 1)),
-   Says Bob Alice (Crypt (pubEK Alice) {|Nonce 0, Nonce 1|}),
-   Says Spy Bob (Crypt (pubEK Bob) {|Nonce 0, Agent Alice|}),
-   Says Alice Spy (Crypt (pubEK Spy) {|Nonce 0, Agent Alice|})]" (is "_ = [?e3, ?e2, ?e1, ?e0]")
+   Says Bob Alice (Crypt (pubEK Alice) \<lbrace>Nonce 0, Nonce 1\<rbrace>),
+   Says Spy Bob (Crypt (pubEK Bob) \<lbrace>Nonce 0, Agent Alice\<rbrace>),
+   Says Alice Spy (Crypt (pubEK Spy) \<lbrace>Nonce 0, Agent Alice\<rbrace>)]" (is "_ = [?e3, ?e2, ?e1, ?e0]")
   shows "A \<noteq> Spy" "B \<noteq> Spy" "evs : ns_public" "Nonce NB : analz (knows Spy evs)"
 proof -
   from assms show "A \<noteq> Spy" by auto
@@ -71,19 +71,19 @@ proof -
   qed
   then have "[?e1, ?e0] : ns_public"
   proof (rule Fake)
-    show "Crypt (pubEK Bob) {|Nonce 0, Agent Alice|} : synth (analz (knows Spy [?e0]))"
+    show "Crypt (pubEK Bob) \<lbrace>Nonce 0, Agent Alice\<rbrace> : synth (analz (knows Spy [?e0]))"
       by (intro synth.intros(2,3,4,1)) eval+
   qed
   then have "[?e2, ?e1, ?e0] : ns_public"
   proof (rule NS2)
-    show "Says Spy Bob (Crypt (pubEK Bob) {|Nonce 0, Agent Alice|}) \<in> set [?e1, ?e0]" by simp
+    show "Says Spy Bob (Crypt (pubEK Bob) \<lbrace>Nonce 0, Agent Alice\<rbrace>) \<in> set [?e1, ?e0]" by simp
     show " Nonce 1 ~: used [?e1, ?e0]" by eval
   qed
   then show "evs : ns_public"
   unfolding assms
   proof (rule NS3)
-    show "  Says Alice Spy (Crypt (pubEK Spy) {|Nonce 0, Agent Alice|}) \<in> set [?e2, ?e1, ?e0]" by simp
-    show "Says Bob Alice (Crypt (pubEK Alice) {|Nonce 0, Nonce 1|}) : set [?e2, ?e1, ?e0]" by simp
+    show "  Says Alice Spy (Crypt (pubEK Spy) \<lbrace>Nonce 0, Agent Alice\<rbrace>) \<in> set [?e2, ?e1, ?e0]" by simp
+    show "Says Bob Alice (Crypt (pubEK Alice) \<lbrace>Nonce 0, Nonce 1\<rbrace>) : set [?e2, ?e1, ?e0]" by simp
   qed
   from assms show "Nonce NB : analz (knows Spy evs)"
     apply simp

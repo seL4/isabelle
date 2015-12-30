@@ -128,7 +128,7 @@ subsection{*Signature Primitives*}
 definition
  (* Signature = Message + signed Digest *)
   sign :: "[key, msg]=>msg"
-  where "sign K X = {|X, Crypt K (Hash X) |}"
+  where "sign K X = \<lbrace>X, Crypt K (Hash X) \<rbrace>"
 
 definition
  (* Signature Only = signed Digest Only *)
@@ -138,7 +138,7 @@ definition
 definition
  (* Signature for Certificates = Message + signed Message *)
   signCert :: "[key, msg]=>msg"
-  where "signCert K X = {|X, Crypt K X |}"
+  where "signCert K X = \<lbrace>X, Crypt K X \<rbrace>"
 
 definition
  (* Certification Authority's Certificate.
@@ -149,7 +149,7 @@ definition
                   then Ka=pubEK i or pubSK i depending on T  ??
  *)
   cert :: "[agent, key, msg, key] => msg"
-  where "cert A Ka T signK = signCert signK {|Agent A, Key Ka, T|}"
+  where "cert A Ka T signK = signCert signK \<lbrace>Agent A, Key Ka, T\<rbrace>"
 
 definition
  (* Cardholder's Certificate.
@@ -158,7 +158,7 @@ definition
  *)
   certC :: "[nat, key, nat, msg, key] => msg"
   where "certC PAN Ka PS T signK =
-    signCert signK {|Hash {|Nonce PS, Pan PAN|}, Key Ka, T|}"
+    signCert signK \<lbrace>Hash \<lbrace>Nonce PS, Pan PAN\<rbrace>, Key Ka, T\<rbrace>"
 
 (*cert and certA have no repeated elements, so they could be abbreviations,
   but that's tricky and makes proofs slower*)
@@ -173,13 +173,13 @@ definition EXcrypt :: "[key,key,msg,msg] => msg" where
   --{*Extra Encryption*}
     (*K: the symmetric key   EK: the public encryption key*)
     "EXcrypt K EK M m =
-       {|Crypt K {|M, Hash m|}, Crypt EK {|Key K, m|}|}"
+       \<lbrace>Crypt K \<lbrace>M, Hash m\<rbrace>, Crypt EK \<lbrace>Key K, m\<rbrace>\<rbrace>"
 
 definition EXHcrypt :: "[key,key,msg,msg] => msg" where
   --{*Extra Encryption with Hashing*}
     (*K: the symmetric key   EK: the public encryption key*)
     "EXHcrypt K EK M m =
-       {|Crypt K {|M, Hash m|}, Crypt EK {|Key K, m, Hash M|}|}"
+       \<lbrace>Crypt K \<lbrace>M, Hash m\<rbrace>, Crypt EK \<lbrace>Key K, m, Hash M\<rbrace>\<rbrace>"
 
 definition Enc :: "[key,key,key,msg] => msg" where
   --{*Simple Encapsulation with SIGNATURE*}
@@ -187,12 +187,12 @@ definition Enc :: "[key,key,key,msg] => msg" where
       K: the symmetric key
       EK: the public encryption key*)
     "Enc SK K EK M =
-       {|Crypt K (sign SK M), Crypt EK (Key K)|}"
+       \<lbrace>Crypt K (sign SK M), Crypt EK (Key K)\<rbrace>"
 
 definition EncB :: "[key,key,key,msg,msg] => msg" where
   --{*Encapsulation with Baggage.  Keys as above, and baggage b.*}
     "EncB SK K EK M b =
-       {|Enc SK K EK {|M, Hash b|}, b|}"
+       \<lbrace>Enc SK K EK \<lbrace>M, Hash b\<rbrace>, b\<rbrace>"
 
 
 subsection{*Basic Properties of pubEK, pubSK, priEK and priSK *}
@@ -416,13 +416,13 @@ subsubsection{*Special Simplification Rules for @{term signCert}*}
 text{*Avoids duplicating X and its components!*}
 lemma parts_insert_signCert:
      "parts (insert (signCert K X) H) =  
-      insert {|X, Crypt K X|} (parts (insert (Crypt K X) H))"
+      insert \<lbrace>X, Crypt K X\<rbrace> (parts (insert (Crypt K X) H))"
 by (simp add: signCert_def insert_commute [of X])
 
 text{*Avoids a case split! [X is always available]*}
 lemma analz_insert_signCert:
      "analz (insert (signCert K X) H) =  
-      insert {|X, Crypt K X|} (insert (Crypt K X) (analz (insert X H)))"
+      insert \<lbrace>X, Crypt K X\<rbrace> (insert (Crypt K X) (analz (insert X H)))"
 by (simp add: signCert_def insert_commute [of X])
 
 lemma keysFor_insert_signCert: "keysFor (insert (signCert K X) H) = keysFor H"
@@ -463,7 +463,7 @@ by (unfold Enc_def, blast)
 
 lemma EncB_partsE: 
      "!!R. [|EncB SK K EK M b \<in> parts H;  
-             [|Crypt K (sign SK {|M, Hash b|}) \<in> parts H;  
+             [|Crypt K (sign SK \<lbrace>M, Hash b\<rbrace>) \<in> parts H;  
                Crypt EK (Key K) \<in> parts H;  
                b \<in> parts H|] ==> R|]  
            ==> R"
@@ -471,8 +471,8 @@ by (unfold EncB_def Enc_def, blast)
 
 lemma EXcrypt_partsE: 
      "!!R. [|EXcrypt K EK M m \<in> parts H;  
-             [|Crypt K {|M, Hash m|} \<in> parts H;  
-               Crypt EK {|Key K, m|} \<in> parts H|] ==> R|]  
+             [|Crypt K \<lbrace>M, Hash m\<rbrace> \<in> parts H;  
+               Crypt EK \<lbrace>Key K, m\<rbrace> \<in> parts H|] ==> R|]  
            ==> R"
 by (unfold EXcrypt_def, blast)
 
