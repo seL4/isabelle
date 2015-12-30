@@ -378,8 +378,7 @@ text \<open>
 
     \<^descr> @{antiquotation_option_def mode}~\<open>= name\<close> adds \<open>name\<close> to the print mode
     to be used for presentation. Note that the standard setup for {\LaTeX}
-    output is already present by default, including the modes \<open>latex\<close> and
-    \<open>xsymbols\<close>.
+    output is already present by default, with mode ``\<open>latex\<close>''.
 
     \<^descr> @{antiquotation_option_def margin}~\<open>= nat\<close> and
     @{antiquotation_option_def indent}~\<open>= nat\<close> change the margin or

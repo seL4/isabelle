@@ -101,14 +101,13 @@ text \<open>
   present), including current facts and goals.
 
 
-  All of the diagnostic commands above admit a list of \<open>modes\<close>
-  to be specified, which is appended to the current print mode; see
-  also \secref{sec:print-modes}.  Thus the output behavior may be
-  modified according particular print mode features.  For example,
-  @{command "print_state"}~\<open>(latex xsymbols)\<close> prints the
-  current proof state with mathematical symbols and special characters
-  represented in {\LaTeX} source, according to the Isabelle style
-  @{cite "isabelle-system"}.
+  All of the diagnostic commands above admit a list of \<open>modes\<close> to be
+  specified, which is appended to the current print mode; see also
+  \secref{sec:print-modes}. Thus the output behavior may be modified according
+  particular print mode features. For example, @{command
+  "print_state"}~\<open>(latex)\<close> prints the current proof state with mathematical
+  symbols and special characters represented in {\LaTeX} source, according to
+  the Isabelle style @{cite "isabelle-system"}.
 
   Note that antiquotations (cf.\ \secref{sec:antiq}) provide a more
   systematic way to include formal items into the printed text
@@ -278,9 +277,7 @@ text \<open>
   \<^item> \<^verbatim>\<open>internal\<close> dummy print mode that is never active;
   used internally in Isabelle/Pure.
 
-  \<^item> \<^verbatim>\<open>xsymbols\<close>: enable proper mathematical symbols
-  instead of ASCII art.\<^footnote>\<open>This traditional mode name stems from
-  the ``X-Symbol'' package for classic Proof~General with XEmacs.\<close>
+  \<^item> \<^verbatim>\<open>ASCII\<close>: prefer ASCII art over mathematical symbols.
 
   \<^item> \<^verbatim>\<open>latex\<close>: additional mode that is active in {\LaTeX}
   document preparation of Isabelle theory sources; allows to provide
