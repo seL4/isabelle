@@ -2,20 +2,20 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-section {* The pigeonhole principle *}
+section \<open>The pigeonhole principle\<close>
 
 theory Pigeonhole
 imports Util "~~/src/HOL/Library/Code_Target_Numeral"
 begin
 
-text {*
+text \<open>
 We formalize two proofs of the pigeonhole principle, which lead
 to extracted programs of quite different complexity. The original
 formalization of these proofs in {\sc Nuprl} is due to
 Aleksey Nogin @{cite "Nogin-ENTCS-2000"}.
 
 This proof yields a polynomial program.
-*}
+\<close>
 
 theorem pigeonhole:
   "\<And>f. (\<And>i. i \<le> Suc n \<Longrightarrow> f i \<le> n) \<Longrightarrow> \<exists>i j. i \<le> Suc n \<and> j < i \<and> f i = f j"
@@ -131,10 +131,10 @@ next
   show ?case by (rule r) simp_all
 qed
 
-text {*
+text \<open>
 The following proof, although quite elegant from a mathematical point of view,
 leads to an exponential program:
-*}
+\<close>
 
 theorem pigeonhole_slow:
   "\<And>f. (\<And>i. i \<le> Suc n \<Longrightarrow> f i \<le> n) \<Longrightarrow> \<exists>i j. i \<le> Suc n \<and> j < i \<and> f i = f j"
@@ -205,7 +205,7 @@ qed
 
 extract pigeonhole pigeonhole_slow
 
-text {*
+text \<open>
 The programs extracted from the above proofs look as follows:
 @{thm [display] pigeonhole_def}
 @{thm [display] pigeonhole_slow_def}
@@ -216,7 +216,7 @@ The correctness statement for @{term "pigeonhole"} is
 
 In order to analyze the speed of the above programs,
 we generate ML code from them.
-*}
+\<close>
 
 instantiation nat :: default
 begin

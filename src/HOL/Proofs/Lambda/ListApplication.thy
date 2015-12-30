@@ -3,7 +3,7 @@
     Copyright   1998 TU Muenchen
 *)
 
-section {* Application of a term to a list of terms *}
+section \<open>Application of a term to a list of terms\<close>
 
 theory ListApplication imports Lambda begin
 
@@ -93,7 +93,7 @@ lemma app_last: "(t \<degree>\<degree> ts) \<degree> u = t \<degree>\<degree> (t
   by simp
 
 
-text {* \medskip A customized induction schema for @{text "\<degree>\<degree>"}. *}
+text \<open>\medskip A customized induction schema for \<open>\<degree>\<degree>\<close>.\<close>
 
 lemma lem:
   assumes "!!n ts. \<forall>t \<in> set ts. P t ==> P (Var n \<degree>\<degree> ts)"

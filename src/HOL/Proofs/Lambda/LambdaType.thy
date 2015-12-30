@@ -3,12 +3,12 @@
     Copyright   2000 TU Muenchen
 *)
 
-section {* Simply-typed lambda terms *}
+section \<open>Simply-typed lambda terms\<close>
 
 theory LambdaType imports ListApplication begin
 
 
-subsection {* Environments *}
+subsection \<open>Environments\<close>
 
 definition
   shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"  ("_\<langle>_:_\<rangle>" [90, 0, 0] 91) where
@@ -27,7 +27,7 @@ lemma shift_commute [simp]: "e\<langle>i:U\<rangle>\<langle>0:T\<rangle> = e\<la
   by (rule ext) (simp_all add: shift_def split: nat.split)
 
 
-subsection {* Types and typing rules *}
+subsection \<open>Types and typing rules\<close>
 
 datatype type =
     Atom nat
@@ -69,7 +69,7 @@ notation (latex)
   funs  (infixr "\<Rrightarrow>" 200)
 
 
-subsection {* Some examples *}
+subsection \<open>Some examples\<close>
 
 schematic_goal "e \<turnstile> Abs (Abs (Abs (Var 1 \<degree> (Var 2 \<degree> Var 1 \<degree> Var 0)))) : ?T"
   by force
@@ -78,7 +78,7 @@ schematic_goal "e \<turnstile> Abs (Abs (Abs (Var 2 \<degree> Var 0 \<degree> (V
   by force
 
 
-subsection {* Lists of types *}
+subsection \<open>Lists of types\<close>
 
 lemma lists_typings:
     "e \<tturnstile> ts : Ts \<Longrightarrow> listsp (\<lambda>t. \<exists>T. e \<turnstile> t : T) ts"
@@ -114,8 +114,8 @@ lemma types_snoc_eq: "e \<tturnstile> ts @ [t] : Ts @ [T] =
 
 lemma rev_exhaust2 [extraction_expand]:
   obtains (Nil) "xs = []"  |  (snoc) ys y where "xs = ys @ [y]"
-  -- {* Cannot use @{text rev_exhaust} from the @{text List}
-    theory, since it is not constructive *}
+  \<comment> \<open>Cannot use \<open>rev_exhaust\<close> from the \<open>List\<close>
+    theory, since it is not constructive\<close>
   apply (subgoal_tac "\<forall>ys. xs = rev ys \<longrightarrow> thesis")
   apply (erule_tac x="rev xs" in allE)
   apply simp
@@ -135,7 +135,7 @@ lemma types_snocE: "e \<tturnstile> ts @ [t] : Ts \<Longrightarrow>
   done
 
 
-subsection {* n-ary function types *}
+subsection \<open>n-ary function types\<close>
 
 lemma list_app_typeD:
     "e \<turnstile> t \<degree>\<degree> ts : T \<Longrightarrow> \<exists>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<and> e \<tturnstile> ts : Ts"
@@ -178,12 +178,12 @@ lemma list_app_typeI:
   apply blast
   done
 
-text {*
+text \<open>
 For the specific case where the head of the term is a variable,
 the following theorems allow to infer the types of the arguments
 without analyzing the typing derivation. This is crucial
 for program extraction.
-*}
+\<close>
 
 theorem var_app_type_eq:
   "e \<turnstile> Var i \<degree>\<degree> ts : T \<Longrightarrow> e \<turnstile> Var i \<degree>\<degree> ts : U \<Longrightarrow> T = U"
@@ -275,7 +275,7 @@ lemma abs_typeE: "e \<turnstile> Abs t : T \<Longrightarrow> (\<And>U V. e\<lang
   done
 
 
-subsection {* Lifting preserves well-typedness *}
+subsection \<open>Lifting preserves well-typedness\<close>
 
 lemma lift_type [intro!]: "e \<turnstile> t : T \<Longrightarrow> e\<langle>i:U\<rangle> \<turnstile> lift t i : T"
   by (induct arbitrary: i U set: typing) auto
@@ -289,7 +289,7 @@ lemma lift_types:
   done
 
 
-subsection {* Substitution lemmas *}
+subsection \<open>Substitution lemmas\<close>
 
 lemma subst_lemma:
     "e \<turnstile> t : T \<Longrightarrow> e' \<turnstile> u : U \<Longrightarrow> e = e'\<langle>i:U\<rangle> \<Longrightarrow> e' \<turnstile> t[u/i] : T"
@@ -316,7 +316,7 @@ lemma substs_lemma:
   done
 
 
-subsection {* Subject reduction *}
+subsection \<open>Subject reduction\<close>
 
 lemma subject_reduction: "e \<turnstile> t : T \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> e \<turnstile> t' : T"
   apply (induct arbitrary: t' set: typing)
@@ -338,7 +338,7 @@ theorem subject_reduction': "t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<Longrigh
   by (induct set: rtranclp) (iprover intro: subject_reduction)+
 
 
-subsection {* Alternative induction rule for types *}
+subsection \<open>Alternative induction rule for types\<close>
 
 lemma type_induct [induct type]:
   assumes

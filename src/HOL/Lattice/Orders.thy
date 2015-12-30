@@ -2,20 +2,20 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-section {* Orders *}
+section \<open>Orders\<close>
 
 theory Orders imports Main begin
 
-subsection {* Ordered structures *}
+subsection \<open>Ordered structures\<close>
 
-text {*
+text \<open>
   We define several classes of ordered structures over some type @{typ
-  'a} with relation @{text "\<sqsubseteq> :: 'a \<Rightarrow> 'a \<Rightarrow> bool"}.  For a
+  'a} with relation \<open>\<sqsubseteq> :: 'a \<Rightarrow> 'a \<Rightarrow> bool\<close>.  For a
   \emph{quasi-order} that relation is required to be reflexive and
   transitive, for a \emph{partial order} it also has to be
   anti-symmetric, while for a \emph{linear order} all elements are
   required to be related (in either direction).
-*}
+\<close>
 
 class leq =
   fixes leq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infixl "\<sqsubseteq>" 50)
@@ -35,13 +35,13 @@ lemma linear_order_cases:
   by (insert leq_linear) blast
 
 
-subsection {* Duality *}
+subsection \<open>Duality\<close>
 
-text {*
+text \<open>
   The \emph{dual} of an ordered structure is an isomorphic copy of the
-  underlying type, with the @{text \<sqsubseteq>} relation defined as the inverse
+  underlying type, with the \<open>\<sqsubseteq>\<close> relation defined as the inverse
   of the original one.
-*}
+\<close>
 
 datatype 'a dual = dual 'a
 
@@ -64,10 +64,10 @@ lemma undual_leq [iff?]: "(undual x' \<sqsubseteq> undual y') = (y' \<sqsubseteq
 lemma dual_leq [iff?]: "(dual x \<sqsubseteq> dual y) = (y \<sqsubseteq> x)"
   by (simp add: leq_dual_def)
 
-text {*
+text \<open>
   \medskip Functions @{term dual} and @{term undual} are inverse to
   each other; this entails the following fundamental properties.
-*}
+\<close>
 
 lemma dual_undual [simp]: "dual (undual x') = x'"
   by (cases x') simp
@@ -78,11 +78,11 @@ lemma undual_dual_id [simp]: "undual o dual = id"
 lemma dual_undual_id [simp]: "dual o undual = id"
   by (rule ext) simp
 
-text {*
+text \<open>
   \medskip Since @{term dual} (and @{term undual}) are both injective
   and surjective, the basic logical connectives (equality,
   quantification etc.) are transferred as follows.
-*}
+\<close>
 
 lemma undual_equality [iff?]: "(undual x' = undual y') = (x' = y')"
   by (cases x', cases y') simp
@@ -143,14 +143,14 @@ proof -
 qed
 
 
-subsection {* Transforming orders *}
+subsection \<open>Transforming orders\<close>
 
-subsubsection {* Duals *}
+subsubsection \<open>Duals\<close>
 
-text {*
+text \<open>
   The classes of quasi, partial, and linear orders are all closed
   under formation of dual structures.
-*}
+\<close>
 
 instance dual :: (quasi_order) quasi_order
 proof
@@ -183,13 +183,13 @@ proof
 qed
 
 
-subsubsection {* Binary products \label{sec:prod-order} *}
+subsubsection \<open>Binary products \label{sec:prod-order}\<close>
 
-text {*
+text \<open>
   The classes of quasi and partial orders are closed under binary
   products.  Note that the direct product of linear orders need
   \emph{not} be linear in general.
-*}
+\<close>
 
 instantiation prod :: (leq, leq) leq
 begin
@@ -245,13 +245,13 @@ proof
 qed
 
 
-subsubsection {* General products \label{sec:fun-order} *}
+subsubsection \<open>General products \label{sec:fun-order}\<close>
 
-text {*
+text \<open>
   The classes of quasi and partial orders are closed under general
   products (function spaces).  Note that the direct product of linear
   orders need \emph{not} be linear in general.
-*}
+\<close>
 
 instantiation "fun" :: (type, leq) leq
 begin

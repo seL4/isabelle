@@ -2,15 +2,15 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-section {* Auxiliary lemmas used in program extraction examples *}
+section \<open>Auxiliary lemmas used in program extraction examples\<close>
 
 theory Util
 imports "~~/src/HOL/Library/Old_Datatype"
 begin
 
-text {*
+text \<open>
 Decidability of equality on natural numbers.
-*}
+\<close>
 
 lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
   apply (induct m)
@@ -19,10 +19,10 @@ lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
   apply (simp only: nat.simps, iprover?)+
   done
 
-text {*
+text \<open>
 Well-founded induction on natural numbers, derived using the standard
 structural induction rule.
-*}
+\<close>
 
 lemma nat_wf_ind:
   assumes R: "\<And>x::nat. (\<And>y. y < x \<Longrightarrow> P y) \<Longrightarrow> P x"
@@ -48,9 +48,9 @@ proof (rule R)
   qed
 qed
 
-text {*
+text \<open>
 Bounded search for a natural number satisfying a decidable predicate.
-*}
+\<close>
 
 lemma search:
   assumes dec: "\<And>x::nat. P x \<or> \<not> P x"

@@ -3,12 +3,12 @@
     Copyright   1995, 2005 TU Muenchen
 *)
 
-section {* Eta-reduction *}
+section \<open>Eta-reduction\<close>
 
 theory Eta imports ParRed begin
 
 
-subsection {* Definition of eta-reduction and relatives *}
+subsection \<open>Definition of eta-reduction and relatives\<close>
 
 primrec
   free :: "dB => nat => bool"
@@ -39,7 +39,7 @@ inductive_cases eta_cases [elim!]:
   "Var i \<rightarrow>\<^sub>\<eta> t"
 
 
-subsection {* Properties of @{text "eta"}, @{text "subst"} and @{text "free"} *}
+subsection \<open>Properties of \<open>eta\<close>, \<open>subst\<close> and \<open>free\<close>\<close>
 
 lemma subst_not_free [simp]: "\<not> free s i \<Longrightarrow> s[t/i] = s[u/i]"
   by (induct s arbitrary: i t u) (simp_all add: subst_Var)
@@ -77,7 +77,7 @@ theorem lift_subst_dummy: "\<not> free s i \<Longrightarrow> lift (s[dummy/i]) i
   by (induct s arbitrary: i dummy) simp_all
 
 
-subsection {* Confluence of @{text "eta"} *}
+subsection \<open>Confluence of \<open>eta\<close>\<close>
 
 lemma square_eta: "square eta eta (eta^==) (eta^==)"
   apply (unfold square_def id_def)
@@ -95,7 +95,7 @@ theorem eta_confluent: "confluent eta"
   done
 
 
-subsection {* Congruence rules for @{text "eta\<^sup>*"} *}
+subsection \<open>Congruence rules for \<open>eta\<^sup>*\<close>\<close>
 
 lemma rtrancl_eta_Abs: "s \<rightarrow>\<^sub>\<eta>\<^sup>* s' ==> Abs s \<rightarrow>\<^sub>\<eta>\<^sup>* Abs s'"
   by (induct set: rtranclp)
@@ -113,7 +113,7 @@ lemma rtrancl_eta_App:
   by (blast intro!: rtrancl_eta_AppL rtrancl_eta_AppR intro: rtranclp_trans)
 
 
-subsection {* Commutation of @{text "beta"} and @{text "eta"} *}
+subsection \<open>Commutation of \<open>beta\<close> and \<open>eta\<close>\<close>
 
 lemma free_beta:
     "s \<rightarrow>\<^sub>\<beta> t ==> free t i \<Longrightarrow> free s i"
@@ -167,9 +167,9 @@ lemma confluent_beta_eta: "confluent (sup beta eta)"
   done
 
 
-subsection {* Implicit definition of @{text "eta"} *}
+subsection \<open>Implicit definition of \<open>eta\<close>\<close>
 
-text {* @{term "Abs (lift s 0 \<degree> Var 0) \<rightarrow>\<^sub>\<eta> s"} *}
+text \<open>@{term "Abs (lift s 0 \<degree> Var 0) \<rightarrow>\<^sub>\<eta> s"}\<close>
 
 lemma not_free_iff_lifted:
     "(\<not> free s i) = (\<exists>t. s = lift t i)"
@@ -226,13 +226,13 @@ theorem explicit_is_implicit:
   by (auto simp add: not_free_iff_lifted)
 
 
-subsection {* Eta-postponement theorem *}
+subsection \<open>Eta-postponement theorem\<close>
 
-text {*
+text \<open>
   Based on a paper proof due to Andreas Abel.
   Unlike the proof by Masako Takahashi @{cite "Takahashi-IandC"}, it does not
   use parallel eta reduction, which only seems to complicate matters unnecessarily.
-*}
+\<close>
 
 theorem eta_case:
   fixes s :: dB
@@ -260,17 +260,17 @@ proof (induct arbitrary: s)
 next
   case (abs s' t)
   note abs' = this
-  from `s \<rightarrow>\<^sub>\<eta> Abs s'` show ?case
+  from \<open>s \<rightarrow>\<^sub>\<eta> Abs s'\<close> show ?case
   proof cases
     case (eta s'' dummy)
     from abs have "Abs s' => Abs t" by simp
     with eta have "s''[dummy/0] => Abs t" by simp
-    with `\<not> free s'' 0` have "\<exists>t'. Abs (s'' \<degree> Var 0) => t' \<and> t' \<rightarrow>\<^sub>\<eta>\<^sup>* Abs t"
+    with \<open>\<not> free s'' 0\<close> have "\<exists>t'. Abs (s'' \<degree> Var 0) => t' \<and> t' \<rightarrow>\<^sub>\<eta>\<^sup>* Abs t"
       by (rule eta_case)
     with eta show ?thesis by simp
   next
     case (abs r)
-    from `r \<rightarrow>\<^sub>\<eta> s'`
+    from \<open>r \<rightarrow>\<^sub>\<eta> s'\<close>
     obtain t' where r: "r => t'" and t': "t' \<rightarrow>\<^sub>\<eta>\<^sup>* t" by (iprover dest: abs')
     from r have "Abs r => Abs t'" ..
     moreover from t' have "Abs t' \<rightarrow>\<^sub>\<eta>\<^sup>* Abs t" by (rule rtrancl_eta_Abs)
@@ -278,24 +278,24 @@ next
   qed
 next
   case (app u u' t t')
-  from `s \<rightarrow>\<^sub>\<eta> u \<degree> t` show ?case
+  from \<open>s \<rightarrow>\<^sub>\<eta> u \<degree> t\<close> show ?case
   proof cases
     case (eta s' dummy)
     from app have "u \<degree> t => u' \<degree> t'" by simp
     with eta have "s'[dummy/0] => u' \<degree> t'" by simp
-    with `\<not> free s' 0` have "\<exists>r. Abs (s' \<degree> Var 0) => r \<and> r \<rightarrow>\<^sub>\<eta>\<^sup>* u' \<degree> t'"
+    with \<open>\<not> free s' 0\<close> have "\<exists>r. Abs (s' \<degree> Var 0) => r \<and> r \<rightarrow>\<^sub>\<eta>\<^sup>* u' \<degree> t'"
       by (rule eta_case)
     with eta show ?thesis by simp
   next
     case (appL s')
-    from `s' \<rightarrow>\<^sub>\<eta> u`
+    from \<open>s' \<rightarrow>\<^sub>\<eta> u\<close>
     obtain r where s': "s' => r" and r: "r \<rightarrow>\<^sub>\<eta>\<^sup>* u'" by (iprover dest: app)
     from s' and app have "s' \<degree> t => r \<degree> t'" by simp
     moreover from r have "r \<degree> t' \<rightarrow>\<^sub>\<eta>\<^sup>* u' \<degree> t'" by (simp add: rtrancl_eta_AppL)
     ultimately show ?thesis using appL by simp iprover
   next
     case (appR s')
-    from `s' \<rightarrow>\<^sub>\<eta> t`
+    from \<open>s' \<rightarrow>\<^sub>\<eta> t\<close>
     obtain r where s': "s' => r" and r: "r \<rightarrow>\<^sub>\<eta>\<^sup>* t'" by (iprover dest: app)
     from s' and app have "u \<degree> s' => u' \<degree> r" by simp
     moreover from r have "u' \<degree> r \<rightarrow>\<^sub>\<eta>\<^sup>* u' \<degree> t'" by (simp add: rtrancl_eta_AppR)
@@ -303,17 +303,17 @@ next
   qed
 next
   case (beta u u' t t')
-  from `s \<rightarrow>\<^sub>\<eta> Abs u \<degree> t` show ?case
+  from \<open>s \<rightarrow>\<^sub>\<eta> Abs u \<degree> t\<close> show ?case
   proof cases
     case (eta s' dummy)
     from beta have "Abs u \<degree> t => u'[t'/0]" by simp
     with eta have "s'[dummy/0] => u'[t'/0]" by simp
-    with `\<not> free s' 0` have "\<exists>r. Abs (s' \<degree> Var 0) => r \<and> r \<rightarrow>\<^sub>\<eta>\<^sup>* u'[t'/0]"
+    with \<open>\<not> free s' 0\<close> have "\<exists>r. Abs (s' \<degree> Var 0) => r \<and> r \<rightarrow>\<^sub>\<eta>\<^sup>* u'[t'/0]"
       by (rule eta_case)
     with eta show ?thesis by simp
   next
     case (appL s')
-    from `s' \<rightarrow>\<^sub>\<eta> Abs u` show ?thesis
+    from \<open>s' \<rightarrow>\<^sub>\<eta> Abs u\<close> show ?thesis
     proof cases
       case (eta s'' dummy)
       have "Abs (lift u 1) = lift (Abs u) 0" by simp
@@ -323,12 +323,12 @@ next
       hence "Abs (lift u 1) \<degree> Var 0 => lift u' 1[Var 0/0]"
         using par_beta.var ..
       hence "Abs (Abs (lift u 1) \<degree> Var 0) \<degree> t => lift u' 1[Var 0/0][t'/0]"
-        using `t => t'` ..
+        using \<open>t => t'\<close> ..
       with s have "s => u'[t'/0]" by simp
       thus ?thesis by iprover
     next
       case (abs r)
-      from `r \<rightarrow>\<^sub>\<eta> u`
+      from \<open>r \<rightarrow>\<^sub>\<eta> u\<close>
       obtain r'' where r: "r => r''" and r'': "r'' \<rightarrow>\<^sub>\<eta>\<^sup>* u'" by (iprover dest: beta)
       from r and beta have "Abs r \<degree> t => r''[t'/0]" by simp
       moreover from r'' have "r''[t'/0] \<rightarrow>\<^sub>\<eta>\<^sup>* u'[t'/0]"
@@ -337,7 +337,7 @@ next
     qed
   next
     case (appR s')
-    from `s' \<rightarrow>\<^sub>\<eta> t`
+    from \<open>s' \<rightarrow>\<^sub>\<eta> t\<close>
     obtain r where s': "s' => r" and r: "r \<rightarrow>\<^sub>\<eta>\<^sup>* t'" by (iprover dest: beta)
     from s' and beta have "Abs u \<degree> s' => u'[r/0]" by simp
     moreover from r have "u'[r/0] \<rightarrow>\<^sub>\<eta>\<^sup>* u'[t'/0]"

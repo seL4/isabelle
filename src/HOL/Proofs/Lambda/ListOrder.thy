@@ -3,7 +3,7 @@
     Copyright   1998 TU Muenchen
 *)
 
-section {* Lifting an order to lists of elements *}
+section \<open>Lifting an order to lists of elements\<close>
 
 theory ListOrder
 imports Main
@@ -12,10 +12,10 @@ begin
 declare [[syntax_ambiguity_warning = false]]
 
 
-text {*
+text \<open>
   Lifting an order to lists of elements, relating exactly one
   element.
-*}
+\<close>
 
 definition
   step1 :: "('a => 'a => bool) => 'a list => 'a list => bool" where

@@ -2,16 +2,16 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-section {* Warshall's algorithm *}
+section \<open>Warshall's algorithm\<close>
 
 theory Warshall
 imports Old_Datatype
 begin
 
-text {*
+text \<open>
   Derivation of Warshall's algorithm using program extraction,
   based on Berger, Schwichtenberg and Seisenberger @{cite "Berger-JAR-2001"}.
-*}
+\<close>
 
 datatype b = T | F
 
@@ -251,12 +251,12 @@ qed
 
 extract warshall
 
-text {*
+text \<open>
   The program extracted from the above proof looks as follows
   @{thm [display, eta_contract=false] warshall_def [no_vars]}
   The corresponding correctness theorem is
   @{thm [display] warshall_correctness [no_vars]}
-*}
+\<close>
 
 ML_val "@{code warshall}"
 

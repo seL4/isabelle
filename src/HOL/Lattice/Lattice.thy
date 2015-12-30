@@ -2,26 +2,26 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-section {* Lattices *}
+section \<open>Lattices\<close>
 
 theory Lattice imports Bounds begin
 
-subsection {* Lattice operations *}
+subsection \<open>Lattice operations\<close>
 
-text {*
+text \<open>
   A \emph{lattice} is a partial order with infimum and supremum of any
   two elements (thus any \emph{finite} number of elements have bounds
   as well).
-*}
+\<close>
 
 class lattice =
   assumes ex_inf: "\<exists>inf. is_inf x y inf"
   assumes ex_sup: "\<exists>sup. is_sup x y sup"
 
-text {*
-  The @{text \<sqinter>} (meet) and @{text \<squnion>} (join) operations select such
+text \<open>
+  The \<open>\<sqinter>\<close> (meet) and \<open>\<squnion>\<close> (join) operations select such
   infimum and supremum elements.
-*}
+\<close>
 
 definition
   meet :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<sqinter>" 70) where
@@ -30,16 +30,16 @@ definition
   join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<squnion>" 65) where
   "x \<squnion> y = (THE sup. is_sup x y sup)"
 
-text {*
+text \<open>
   Due to unique existence of bounds, the lattice operations may be
   exhibited as follows.
-*}
+\<close>
 
 lemma meet_equality [elim?]: "is_inf x y inf \<Longrightarrow> x \<sqinter> y = inf"
 proof (unfold meet_def)
   assume "is_inf x y inf"
   then show "(THE inf. is_inf x y inf) = inf"
-    by (rule the_equality) (rule is_inf_uniq [OF _ `is_inf x y inf`])
+    by (rule the_equality) (rule is_inf_uniq [OF _ \<open>is_inf x y inf\<close>])
 qed
 
 lemma meetI [intro?]:
@@ -50,7 +50,7 @@ lemma join_equality [elim?]: "is_sup x y sup \<Longrightarrow> x \<squnion> y = 
 proof (unfold join_def)
   assume "is_sup x y sup"
   then show "(THE sup. is_sup x y sup) = sup"
-    by (rule the_equality) (rule is_sup_uniq [OF _ `is_sup x y sup`])
+    by (rule the_equality) (rule is_sup_uniq [OF _ \<open>is_sup x y sup\<close>])
 qed
 
 lemma joinI [intro?]: "x \<sqsubseteq> sup \<Longrightarrow> y \<sqsubseteq> sup \<Longrightarrow>
@@ -58,16 +58,16 @@ lemma joinI [intro?]: "x \<sqsubseteq> sup \<Longrightarrow> y \<sqsubseteq> sup
   by (rule join_equality, rule is_supI) blast+
 
 
-text {*
-  \medskip The @{text \<sqinter>} and @{text \<squnion>} operations indeed determine
+text \<open>
+  \medskip The \<open>\<sqinter>\<close> and \<open>\<squnion>\<close> operations indeed determine
   bounds on a lattice structure.
-*}
+\<close>
 
 lemma is_inf_meet [intro?]: "is_inf x y (x \<sqinter> y)"
 proof (unfold meet_def)
   from ex_inf obtain inf where "is_inf x y inf" ..
   then show "is_inf x y (THE inf. is_inf x y inf)"
-    by (rule theI) (rule is_inf_uniq [OF _ `is_inf x y inf`])
+    by (rule theI) (rule is_inf_uniq [OF _ \<open>is_inf x y inf\<close>])
 qed
 
 lemma meet_greatest [intro?]: "z \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> y \<Longrightarrow> z \<sqsubseteq> x \<sqinter> y"
@@ -84,7 +84,7 @@ lemma is_sup_join [intro?]: "is_sup x y (x \<squnion> y)"
 proof (unfold join_def)
   from ex_sup obtain sup where "is_sup x y sup" ..
   then show "is_sup x y (THE sup. is_sup x y sup)"
-    by (rule theI) (rule is_sup_uniq [OF _ `is_sup x y sup`])
+    by (rule theI) (rule is_sup_uniq [OF _ \<open>is_sup x y sup\<close>])
 qed
 
 lemma join_least [intro?]: "x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<squnion> y \<sqsubseteq> z"
@@ -97,14 +97,14 @@ lemma join_upper2 [intro?]: "y \<sqsubseteq> x \<squnion> y"
   by (rule is_sup_upper) (rule is_sup_join)
 
 
-subsection {* Duality *}
+subsection \<open>Duality\<close>
 
-text {*
+text \<open>
   The class of lattices is closed under formation of dual structures.
   This means that for any theorem of lattice theory, the dualized
   statement holds as well; this important fact simplifies many proofs
   of lattice theory.
-*}
+\<close>
 
 instance dual :: (lattice) lattice
 proof
@@ -125,10 +125,10 @@ proof
   qed
 qed
 
-text {*
-  Apparently, the @{text \<sqinter>} and @{text \<squnion>} operations are dual to each
+text \<open>
+  Apparently, the \<open>\<sqinter>\<close> and \<open>\<squnion>\<close> operations are dual to each
   other.
-*}
+\<close>
 
 theorem dual_meet [intro?]: "dual (x \<sqinter> y) = dual x \<squnion> dual y"
 proof -
@@ -145,13 +145,13 @@ proof -
 qed
 
 
-subsection {* Algebraic properties \label{sec:lattice-algebra} *}
+subsection \<open>Algebraic properties \label{sec:lattice-algebra}\<close>
 
-text {*
-  The @{text \<sqinter>} and @{text \<squnion>} operations have the following
+text \<open>
+  The \<open>\<sqinter>\<close> and \<open>\<squnion>\<close> operations have the following
   characteristic algebraic properties: associative (A), commutative
   (C), and absorptive (AB).
-*}
+\<close>
 
 theorem meet_assoc: "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
 proof
@@ -239,10 +239,10 @@ proof -
   then show ?thesis ..
 qed
 
-text {*
+text \<open>
   \medskip Some further algebraic properties hold as well.  The
   property idempotent (I) is a basic algebraic consequence of (AB).
-*}
+\<close>
 
 theorem meet_idem: "x \<sqinter> x = x"
 proof -
@@ -260,9 +260,9 @@ proof -
   then show ?thesis ..
 qed
 
-text {*
+text \<open>
   Meet and join are trivial for related elements.
-*}
+\<close>
 
 theorem meet_related [elim?]: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> y = x"
 proof
@@ -283,12 +283,12 @@ proof -
 qed
 
 
-subsection {* Order versus algebraic structure *}
+subsection \<open>Order versus algebraic structure\<close>
 
-text {*
-  The @{text \<sqinter>} and @{text \<squnion>} operations are connected with the
-  underlying @{text \<sqsubseteq>} relation in a canonical manner.
-*}
+text \<open>
+  The \<open>\<sqinter>\<close> and \<open>\<squnion>\<close> operations are connected with the
+  underlying \<open>\<sqsubseteq>\<close> relation in a canonical manner.
+\<close>
 
 theorem meet_connection: "(x \<sqsubseteq> y) = (x \<sqinter> y = x)"
 proof
@@ -312,28 +312,28 @@ next
   finally show "x \<sqsubseteq> y" .
 qed
 
-text {*
+text \<open>
   \medskip The most fundamental result of the meta-theory of lattices
   is as follows (we do not prove it here).
 
-  Given a structure with binary operations @{text \<sqinter>} and @{text \<squnion>}
+  Given a structure with binary operations \<open>\<sqinter>\<close> and \<open>\<squnion>\<close>
   such that (A), (C), and (AB) hold (cf.\
   \S\ref{sec:lattice-algebra}).  This structure represents a lattice,
   if the relation @{term "x \<sqsubseteq> y"} is defined as @{term "x \<sqinter> y = x"}
   (alternatively as @{term "x \<squnion> y = y"}).  Furthermore, infimum and
   supremum with respect to this ordering coincide with the original
-  @{text \<sqinter>} and @{text \<squnion>} operations.
-*}
+  \<open>\<sqinter>\<close> and \<open>\<squnion>\<close> operations.
+\<close>
 
 
-subsection {* Example instances *}
+subsection \<open>Example instances\<close>
 
-subsubsection {* Linear orders *}
+subsubsection \<open>Linear orders\<close>
 
-text {*
+text \<open>
   Linear orders with @{term minimum} and @{term maximum} operations
   are a (degenerate) example of lattice structures.
-*}
+\<close>
 
 definition
   minimum :: "'a::linear_order \<Rightarrow> 'a \<Rightarrow> 'a" where
@@ -367,10 +367,10 @@ proof
   from is_sup_maximum show "\<exists>sup. is_sup x y sup" ..
 qed
 
-text {*
+text \<open>
   The lattice operations on linear orders indeed coincide with @{term
   minimum} and @{term maximum}.
-*}
+\<close>
 
 theorem meet_mimimum: "x \<sqinter> y = minimum x y"
   by (rule meet_equality) (rule is_inf_minimum)
@@ -380,12 +380,12 @@ theorem meet_maximum: "x \<squnion> y = maximum x y"
 
 
 
-subsubsection {* Binary products *}
+subsubsection \<open>Binary products\<close>
 
-text {*
+text \<open>
   The class of lattices is closed under direct binary products (cf.\
   \S\ref{sec:prod-order}).
-*}
+\<close>
 
 lemma is_inf_prod: "is_inf p q (fst p \<sqinter> fst q, snd p \<sqinter> snd q)"
 proof
@@ -456,10 +456,10 @@ proof
   from is_sup_prod show "\<exists>sup. is_sup p q sup" ..
 qed
 
-text {*
+text \<open>
   The lattice operations on a binary product structure indeed coincide
   with the products of the original ones.
-*}
+\<close>
 
 theorem meet_prod: "p \<sqinter> q = (fst p \<sqinter> fst q, snd p \<sqinter> snd q)"
   by (rule meet_equality) (rule is_inf_prod)
@@ -468,12 +468,12 @@ theorem join_prod: "p \<squnion> q = (fst p \<squnion> fst q, snd p \<squnion> s
   by (rule join_equality) (rule is_sup_prod)
 
 
-subsubsection {* General products *}
+subsubsection \<open>General products\<close>
 
-text {*
+text \<open>
   The class of lattices is closed under general products (function
   spaces) as well (cf.\ \S\ref{sec:fun-order}).
-*}
+\<close>
 
 lemma is_inf_fun: "is_inf f g (\<lambda>x. f x \<sqinter> g x)"
 proof
@@ -526,10 +526,10 @@ proof
   show "\<exists>sup. is_sup f g sup" by rule (rule is_sup_fun)
 qed
 
-text {*
+text \<open>
   The lattice operations on a general product structure (function
   space) indeed emerge by point-wise lifting of the original ones.
-*}
+\<close>
 
 theorem meet_fun: "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
   by (rule meet_equality) (rule is_inf_fun)
@@ -538,13 +538,13 @@ theorem join_fun: "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
   by (rule join_equality) (rule is_sup_fun)
 
 
-subsection {* Monotonicity and semi-morphisms *}
+subsection \<open>Monotonicity and semi-morphisms\<close>
 
-text {*
+text \<open>
   The lattice operations are monotone in both argument positions.  In
   fact, monotonicity of the second position is trivial due to
   commutativity.
-*}
+\<close>
 
 theorem meet_mono: "x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> w \<Longrightarrow> x \<sqinter> y \<sqsubseteq> z \<sqinter> w"
 proof -
@@ -576,12 +576,12 @@ proof -
   then show ?thesis ..
 qed
 
-text {*
-  \medskip A semi-morphisms is a function @{text f} that preserves the
+text \<open>
+  \medskip A semi-morphisms is a function \<open>f\<close> that preserves the
   lattice operations in the following manner: @{term "f (x \<sqinter> y) \<sqsubseteq> f x
   \<sqinter> f y"} and @{term "f x \<squnion> f y \<sqsubseteq> f (x \<squnion> y)"}, respectively.  Any of
   these properties is equivalent with monotonicity.
-*}
+\<close>
 
 theorem meet_semimorph:
   "(\<And>x y. f (x \<sqinter> y) \<sqsubseteq> f x \<sqinter> f y) \<equiv> (\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y)"
@@ -615,7 +615,7 @@ proof
   assume "x \<sqsubseteq> y" then have "x \<squnion> y = y" ..
   have "f x \<sqsubseteq> f x \<squnion> f y" ..
   also have "\<dots> \<sqsubseteq> f (x \<squnion> y)" by (rule morph)
-  also from `x \<sqsubseteq> y` have "x \<squnion> y = y" ..
+  also from \<open>x \<sqsubseteq> y\<close> have "x \<squnion> y = y" ..
   finally show "f x \<sqsubseteq> f y" .
 next
   assume mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"

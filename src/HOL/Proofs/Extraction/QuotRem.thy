@@ -2,13 +2,13 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-section {* Quotient and remainder *}
+section \<open>Quotient and remainder\<close>
 
 theory QuotRem
 imports Util
 begin
 
-text {* Derivation of quotient and remainder using program extraction. *}
+text \<open>Derivation of quotient and remainder using program extraction.\<close>
 
 theorem division: "\<exists>r q. a = Suc b * q + r \<and> r \<le> b"
 proof (induct a)
@@ -25,7 +25,7 @@ next
     thus ?case by iprover
   next
     assume "r \<noteq> b"
-    with `r \<le> b` have "r < b" by (simp add: order_less_le)
+    with \<open>r \<le> b\<close> have "r < b" by (simp add: order_less_le)
     with I have "Suc a = Suc b * q + (Suc r) \<and> (Suc r) \<le> b" by simp
     thus ?case by iprover
   qed
@@ -33,12 +33,12 @@ qed
 
 extract division
 
-text {*
+text \<open>
   The program extracted from the above proof looks as follows
   @{thm [display] division_def [no_vars]}
   The corresponding correctness theorem is
   @{thm [display] division_correctness [no_vars]}
-*}
+\<close>
 
 lemma "division 9 2 = (0, 3)" by eval
 

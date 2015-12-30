@@ -3,7 +3,7 @@
     Author:     Helmut Schwichtenberg, LMU Muenchen
 *)
 
-section {* Greatest common divisor *}
+section \<open>Greatest common divisor\<close>
 
 theory Greatest_Common_Divisor
 imports QuotRem
@@ -55,10 +55,10 @@ qed
 
 extract greatest_common_divisor
 
-text {*
+text \<open>
 The extracted program for computing the greatest common divisor is
 @{thm [display] greatest_common_divisor_def}
-*}
+\<close>
 
 instantiation nat :: default
 begin

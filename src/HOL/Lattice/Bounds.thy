@@ -2,19 +2,19 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-section {* Bounds *}
+section \<open>Bounds\<close>
 
 theory Bounds imports Orders begin
 
 hide_const (open) inf sup
 
-subsection {* Infimum and supremum *}
+subsection \<open>Infimum and supremum\<close>
 
-text {*
+text \<open>
   Given a partial order, we define infimum (greatest lower bound) and
-  supremum (least upper bound) wrt.\ @{text \<sqsubseteq>} for two and for any
+  supremum (least upper bound) wrt.\ \<open>\<sqsubseteq>\<close> for two and for any
   number of elements.
-*}
+\<close>
 
 definition
   is_inf :: "'a::partial_order \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" where
@@ -32,10 +32,10 @@ definition
   is_Sup :: "'a::partial_order set \<Rightarrow> 'a \<Rightarrow> bool" where
   "is_Sup A sup = ((\<forall>x \<in> A. x \<sqsubseteq> sup) \<and> (\<forall>z. (\<forall>x \<in> A. x \<sqsubseteq> z) \<longrightarrow> sup \<sqsubseteq> z))"
 
-text {*
+text \<open>
   These definitions entail the following basic properties of boundary
   elements.
-*}
+\<close>
 
 lemma is_infI [intro?]: "inf \<sqsubseteq> x \<Longrightarrow> inf \<sqsubseteq> y \<Longrightarrow>
     (\<And>z. z \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> y \<Longrightarrow> z \<sqsubseteq> inf) \<Longrightarrow> is_inf x y inf"
@@ -89,11 +89,11 @@ lemma is_Sup_upper [dest?]:
   by (unfold is_Sup_def) blast
 
 
-subsection {* Duality *}
+subsection \<open>Duality\<close>
 
-text {*
+text \<open>
   Infimum and supremum are dual to each other.
-*}
+\<close>
 
 theorem dual_inf [iff?]:
     "is_inf (dual x) (dual y) (dual sup) = is_sup x y sup"
@@ -112,12 +112,12 @@ theorem dual_Sup [iff?]:
   by (simp add: is_Inf_def is_Sup_def dual_all [symmetric] dual_leq)
 
 
-subsection {* Uniqueness *}
+subsection \<open>Uniqueness\<close>
 
-text {*
+text \<open>
   Infima and suprema on partial orders are unique; this is mainly due
   to anti-symmetry of the underlying relation.
-*}
+\<close>
 
 theorem is_inf_uniq: "is_inf x y inf \<Longrightarrow> is_inf x y inf' \<Longrightarrow> inf = inf'"
 proof -
@@ -180,11 +180,11 @@ proof -
 qed
 
 
-subsection {* Related elements *}
+subsection \<open>Related elements\<close>
 
-text {*
+text \<open>
   The binary bound of related elements is either one of the argument.
-*}
+\<close>
 
 theorem is_inf_related [elim?]: "x \<sqsubseteq> y \<Longrightarrow> is_inf x y x"
 proof -
@@ -210,11 +210,11 @@ proof -
 qed
 
 
-subsection {* General versus binary bounds \label{sec:gen-bin-bounds} *}
+subsection \<open>General versus binary bounds \label{sec:gen-bin-bounds}\<close>
 
-text {*
+text \<open>
   General bounds of two-element sets coincide with binary bounds.
-*}
+\<close>
 
 theorem is_Inf_binary: "is_Inf {x, y} inf = is_inf x y inf"
 proof -
@@ -284,14 +284,14 @@ proof -
 qed
 
 
-subsection {* Connecting general bounds \label{sec:connect-bounds} *}
+subsection \<open>Connecting general bounds \label{sec:connect-bounds}\<close>
 
-text {*
+text \<open>
   Either kind of general bounds is sufficient to express the other.
   The least upper bound (supremum) is the same as the the greatest
   lower bound of the set of all upper bounds; the dual statements
   holds as well; the dual statement holds as well.
-*}
+\<close>
 
 theorem Inf_Sup: "is_Inf {b. \<forall>a \<in> A. a \<sqsubseteq> b} sup \<Longrightarrow> is_Sup A sup"
 proof -

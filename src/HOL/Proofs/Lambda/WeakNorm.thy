@@ -3,20 +3,20 @@
     Copyright   2003 TU Muenchen
 *)
 
-section {* Weak normalization for simply-typed lambda calculus *}
+section \<open>Weak normalization for simply-typed lambda calculus\<close>
 
 theory WeakNorm
 imports LambdaType NormalForm "~~/src/HOL/Library/Old_Datatype"
   "~~/src/HOL/Library/Code_Target_Int"
 begin
 
-text {*
+text \<open>
 Formalization by Stefan Berghofer. Partly based on a paper proof by
 Felix Joachimski and Ralph Matthes @{cite "Matthes-Joachimski-AML"}.
-*}
+\<close>
 
 
-subsection {* Main theorems *}
+subsection \<open>Main theorems\<close>
 
 lemma norm_list:
   assumes f_compat: "\<And>t t'. t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<Longrightarrow> f t \<rightarrow>\<^sub>\<beta>\<^sup>* f t'"
@@ -191,7 +191,7 @@ proof (induct U)
       case (Abs r e1 T'1 u1 i1)
       assume absT: "e\<langle>i:T\<rangle> \<turnstile> Abs r : T'"
       then obtain R S where "e\<langle>0:R\<rangle>\<langle>Suc i:T\<rangle>  \<turnstile> r : S" by (rule abs_typeE) simp
-      moreover have "NF (lift u 0)" using `NF u` by (rule lift_NF)
+      moreover have "NF (lift u 0)" using \<open>NF u\<close> by (rule lift_NF)
       moreover have "e\<langle>0:R\<rangle> \<turnstile> lift u 0 : T" using uT by (rule lift_type)
       ultimately have "\<exists>t'. r[lift u 0/Suc i] \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> NF t'" by (rule Abs)
       thus "\<exists>t'. Abs r[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> NF t'"
@@ -201,7 +201,7 @@ proof (induct U)
 qed
 
 
--- {* A computationally relevant copy of @{term "e \<turnstile> t : T"} *}
+\<comment> \<open>A computationally relevant copy of @{term "e \<turnstile> t : T"}\<close>
 inductive rtyping :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile>\<^sub>R _ : _" [50, 50, 50] 50)
   where
     Var: "e x = T \<Longrightarrow> e \<turnstile>\<^sub>R Var x : T"
@@ -257,7 +257,7 @@ next
 qed
 
 
-subsection {* Extracting the program *}
+subsection \<open>Extracting the program\<close>
 
 declare NF.induct [ind_realizer]
 declare rtranclp.induct [ind_realizer irrelevant]
@@ -285,12 +285,12 @@ lemma NFR_imp_NF: "NFR nf t \<Longrightarrow> NF t"
   apply (erule NF.intros)
   done
 
-text_raw {*
+text_raw \<open>
 \begin{figure}
 \renewcommand{\isastyle}{\scriptsize\it}%
 @{thm [display,eta_contract=false,margin=100] subst_type_NF_def}
 \renewcommand{\isastyle}{\small\it}%
-\caption{Program extracted from @{text subst_type_NF}}
+\caption{Program extracted from \<open>subst_type_NF\<close>}
 \label{fig:extr-subst-type-nf}
 \end{figure}
 
@@ -304,33 +304,33 @@ text_raw {*
 \caption{Program extracted from lemmas and main theorem}
 \label{fig:extr-type-nf}
 \end{figure}
-*}
+\<close>
 
-text {*
+text \<open>
 The program corresponding to the proof of the central lemma, which
 performs substitution and normalization, is shown in Figure
 \ref{fig:extr-subst-type-nf}. The correctness
-theorem corresponding to the program @{text "subst_type_NF"} is
+theorem corresponding to the program \<open>subst_type_NF\<close> is
 @{thm [display,margin=100] subst_type_NF_correctness
   [simplified rtranclR_rtrancl_eq Collect_mem_eq, no_vars]}
-where @{text NFR} is the realizability predicate corresponding to
-the datatype @{text NFT}, which is inductively defined by the rules
+where \<open>NFR\<close> is the realizability predicate corresponding to
+the datatype \<open>NFT\<close>, which is inductively defined by the rules
 \pagebreak
 @{thm [display,margin=90] NFR.App [of ts nfs x] NFR.Abs [of nf t]}
 
-The programs corresponding to the main theorem @{text "type_NF"}, as
+The programs corresponding to the main theorem \<open>type_NF\<close>, as
 well as to some lemmas, are shown in Figure \ref{fig:extr-type-nf}.
-The correctness statement for the main function @{text "type_NF"} is
+The correctness statement for the main function \<open>type_NF\<close> is
 @{thm [display,margin=100] type_NF_correctness
   [simplified rtranclR_rtrancl_eq Collect_mem_eq, no_vars]}
-where the realizability predicate @{text "rtypingR"} corresponding to the
+where the realizability predicate \<open>rtypingR\<close> corresponding to the
 computationally relevant version of the typing judgement is inductively
 defined by the rules
 @{thm [display,margin=100] rtypingR.Var [no_vars]
   rtypingR.Abs [of ty, no_vars] rtypingR.App [of ty e s T U ty' t]}
-*}
+\<close>
 
-subsection {* Generating executable code *}
+subsection \<open>Generating executable code\<close>
 
 instantiation NFT :: default
 begin
@@ -380,14 +380,14 @@ end
 definition int_of_nat :: "nat \<Rightarrow> int" where
   "int_of_nat = of_nat"
 
-text {*
+text \<open>
   The following functions convert between Isabelle's built-in {\tt term}
   datatype and the generated {\tt dB} datatype. This allows to
   generate example terms using Isabelle's parser and inspect
   normalized terms using Isabelle's pretty printer.
-*}
+\<close>
 
-ML {*
+ML \<open>
 val nat_of_integer = @{code nat} o @{code int_of_integer};
 
 fun dBtype_of_typ (Type ("fun", [T, U])) =
@@ -438,6 +438,6 @@ val ct1' = Thm.cterm_of @{context} (term_of_dB [] (Thm.typ_of_cterm ct1) dB1);
 val ct2 = @{cterm "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))"};
 val (dB2, _) = @{code type_NF} (typing_of_term [] dummyf (Thm.term_of ct2));
 val ct2' = Thm.cterm_of @{context} (term_of_dB [] (Thm.typ_of_cterm ct2) dB2);
-*}
+\<close>
 
 end

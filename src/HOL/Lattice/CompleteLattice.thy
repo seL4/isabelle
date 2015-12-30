@@ -2,18 +2,18 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-section {* Complete lattices *}
+section \<open>Complete lattices\<close>
 
 theory CompleteLattice imports Lattice begin
 
-subsection {* Complete lattice operations *}
+subsection \<open>Complete lattice operations\<close>
 
-text {*
+text \<open>
   A \emph{complete lattice} is a partial order with general
   (infinitary) infimum of any set of elements.  General supremum
   exists as well, as a consequence of the connection of infinitary
   bounds (see \S\ref{sec:connect-bounds}).
-*}
+\<close>
 
 class complete_lattice =
   assumes ex_Inf: "\<exists>inf. is_Inf A inf"
@@ -25,10 +25,10 @@ proof -
   then show ?thesis ..
 qed
 
-text {*
-  The general @{text \<Sqinter>} (meet) and @{text \<Squnion>} (join) operations select
+text \<open>
+  The general \<open>\<Sqinter>\<close> (meet) and \<open>\<Squnion>\<close> (join) operations select
   such infimum and supremum elements.
-*}
+\<close>
 
 definition
   Meet :: "'a::complete_lattice set \<Rightarrow> 'a"  ("\<Sqinter>_" [90] 90) where
@@ -37,16 +37,16 @@ definition
   Join :: "'a::complete_lattice set \<Rightarrow> 'a"  ("\<Squnion>_" [90] 90) where
   "\<Squnion>A = (THE sup. is_Sup A sup)"
 
-text {*
+text \<open>
   Due to unique existence of bounds, the complete lattice operations
   may be exhibited as follows.
-*}
+\<close>
 
 lemma Meet_equality [elim?]: "is_Inf A inf \<Longrightarrow> \<Sqinter>A = inf"
 proof (unfold Meet_def)
   assume "is_Inf A inf"
   then show "(THE inf. is_Inf A inf) = inf"
-    by (rule the_equality) (rule is_Inf_uniq [OF _ `is_Inf A inf`])
+    by (rule the_equality) (rule is_Inf_uniq [OF _ \<open>is_Inf A inf\<close>])
 qed
 
 lemma MeetI [intro?]:
@@ -59,7 +59,7 @@ lemma Join_equality [elim?]: "is_Sup A sup \<Longrightarrow> \<Squnion>A = sup"
 proof (unfold Join_def)
   assume "is_Sup A sup"
   then show "(THE sup. is_Sup A sup) = sup"
-    by (rule the_equality) (rule is_Sup_uniq [OF _ `is_Sup A sup`])
+    by (rule the_equality) (rule is_Sup_uniq [OF _ \<open>is_Sup A sup\<close>])
 qed
 
 lemma JoinI [intro?]:
@@ -69,16 +69,16 @@ lemma JoinI [intro?]:
   by (rule Join_equality, rule is_SupI) blast+
 
 
-text {*
-  \medskip The @{text \<Sqinter>} and @{text \<Squnion>} operations indeed determine
+text \<open>
+  \medskip The \<open>\<Sqinter>\<close> and \<open>\<Squnion>\<close> operations indeed determine
   bounds on a complete lattice structure.
-*}
+\<close>
 
 lemma is_Inf_Meet [intro?]: "is_Inf A (\<Sqinter>A)"
 proof (unfold Meet_def)
   from ex_Inf obtain inf where "is_Inf A inf" ..
   then show "is_Inf A (THE inf. is_Inf A inf)"
-    by (rule theI) (rule is_Inf_uniq [OF _ `is_Inf A inf`])
+    by (rule theI) (rule is_Inf_uniq [OF _ \<open>is_Inf A inf\<close>])
 qed
 
 lemma Meet_greatest [intro?]: "(\<And>a. a \<in> A \<Longrightarrow> x \<sqsubseteq> a) \<Longrightarrow> x \<sqsubseteq> \<Sqinter>A"
@@ -92,7 +92,7 @@ lemma is_Sup_Join [intro?]: "is_Sup A (\<Squnion>A)"
 proof (unfold Join_def)
   from ex_Sup obtain sup where "is_Sup A sup" ..
   then show "is_Sup A (THE sup. is_Sup A sup)"
-    by (rule theI) (rule is_Sup_uniq [OF _ `is_Sup A sup`])
+    by (rule theI) (rule is_Sup_uniq [OF _ \<open>is_Sup A sup\<close>])
 qed
 
 lemma Join_least [intro?]: "(\<And>a. a \<in> A \<Longrightarrow> a \<sqsubseteq> x) \<Longrightarrow> \<Squnion>A \<sqsubseteq> x"
@@ -101,15 +101,15 @@ lemma Join_lower [intro?]: "a \<in> A \<Longrightarrow> a \<sqsubseteq> \<Squnio
   by (rule is_Sup_upper) (rule is_Sup_Join)
 
 
-subsection {* The Knaster-Tarski Theorem *}
+subsection \<open>The Knaster-Tarski Theorem\<close>
 
-text {*
+text \<open>
   The Knaster-Tarski Theorem (in its simplest formulation) states that
   any monotone function on a complete lattice has a least fixed-point
   (see @{cite \<open>pages 93--94\<close> "Davey-Priestley:1990"} for example).  This
   is a consequence of the basic boundary properties of the complete
   lattice operations.
-*}
+\<close>
 
 theorem Knaster_Tarski:
   assumes mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
@@ -176,12 +176,12 @@ proof
 qed
 
 
-subsection {* Bottom and top elements *}
+subsection \<open>Bottom and top elements\<close>
 
-text {*
+text \<open>
   With general bounds available, complete lattices also have least and
   greatest elements.
-*}
+\<close>
 
 definition
   bottom :: "'a::complete_lattice"  ("\<bottom>") where
@@ -232,12 +232,12 @@ proof (unfold top_def)
 qed
 
 
-subsection {* Duality *}
+subsection \<open>Duality\<close>
 
-text {*
+text \<open>
   The class of complete lattices is closed under formation of dual
   structures.
-*}
+\<close>
 
 instance dual :: (complete_lattice) complete_lattice
 proof
@@ -250,10 +250,10 @@ proof
   qed
 qed
 
-text {*
-  Apparently, the @{text \<Sqinter>} and @{text \<Squnion>} operations are dual to each
+text \<open>
+  Apparently, the \<open>\<Sqinter>\<close> and \<open>\<Squnion>\<close> operations are dual to each
   other.
-*}
+\<close>
 
 theorem dual_Meet [intro?]: "dual (\<Sqinter>A) = \<Squnion>(dual ` A)"
 proof -
@@ -269,9 +269,9 @@ proof -
   then show ?thesis ..
 qed
 
-text {*
-  Likewise are @{text \<bottom>} and @{text \<top>} duals of each other.
-*}
+text \<open>
+  Likewise are \<open>\<bottom>\<close> and \<open>\<top>\<close> duals of each other.
+\<close>
 
 theorem dual_bottom [intro?]: "dual \<bottom> = \<top>"
 proof -
@@ -296,14 +296,14 @@ proof -
 qed
 
 
-subsection {* Complete lattices are lattices *}
+subsection \<open>Complete lattices are lattices\<close>
 
-text {*
+text \<open>
   Complete lattices (with general bounds available) are indeed plain
   lattices as well.  This holds due to the connection of general
   versus binary bounds that has been formally established in
   \S\ref{sec:gen-bin-bounds}.
-*}
+\<close>
 
 lemma is_inf_binary: "is_inf x y (\<Sqinter>{x, y})"
 proof -
@@ -331,12 +331,12 @@ theorem join_binary: "x \<squnion> y = \<Squnion>{x, y}"
   by (rule join_equality) (rule is_sup_binary)
 
 
-subsection {* Complete lattices and set-theory operations *}
+subsection \<open>Complete lattices and set-theory operations\<close>
 
-text {*
+text \<open>
   The complete lattice operations are (anti) monotone wrt.\ set
   inclusion.
-*}
+\<close>
 
 theorem Meet_subset_antimono: "A \<subseteq> B \<Longrightarrow> \<Sqinter>B \<sqsubseteq> \<Sqinter>A"
 proof (rule Meet_greatest)
@@ -355,9 +355,9 @@ proof -
   then show ?thesis by (simp only: dual_leq)
 qed
 
-text {*
+text \<open>
   Bounds over unions of sets may be obtained separately.
-*}
+\<close>
 
 theorem Meet_Un: "\<Sqinter>(A \<union> B) = \<Sqinter>A \<sqinter> \<Sqinter>B"
 proof
@@ -404,9 +404,9 @@ proof -
   finally show ?thesis ..
 qed
 
-text {*
+text \<open>
   Bounds over singleton sets are trivial.
-*}
+\<close>
 
 theorem Meet_singleton: "\<Sqinter>{x} = x"
 proof
@@ -425,9 +425,9 @@ proof -
   finally show ?thesis ..
 qed
 
-text {*
+text \<open>
   Bounds over the empty and universal set correspond to each other.
-*}
+\<close>
 
 theorem Meet_empty: "\<Sqinter>{} = \<Squnion>UNIV"
 proof

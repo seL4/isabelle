@@ -3,19 +3,19 @@
     Copyright   2005 TU Muenchen
 *)
 
-section {* Standardization *}
+section \<open>Standardization\<close>
 
 theory Standardization
 imports NormalForm
 begin
 
-text {*
+text \<open>
 Based on lecture notes by Ralph Matthes @{cite "Matthes-ESSLLI2000"},
 original proof idea due to Ralph Loader @{cite Loader1998}.
-*}
+\<close>
 
 
-subsection {* Standard reduction relation *}
+subsection \<open>Standard reduction relation\<close>
 
 declare listrel_mono [mono_set]
 
@@ -63,7 +63,7 @@ next
   from Abs(3) have "ss [\<rightarrow>\<^sub>s] ss'" by (rule listrelp_conj1)
   moreover have "[s] [\<rightarrow>\<^sub>s] [s']" by (iprover intro: s listrelp.intros)
   ultimately have "ss @ [s] [\<rightarrow>\<^sub>s] ss' @ [s']" by (rule listrelp_app)
-  with `r \<rightarrow>\<^sub>s r'` have "Abs r \<degree>\<degree> (ss @ [s]) \<rightarrow>\<^sub>s Abs r' \<degree>\<degree> (ss' @ [s'])"
+  with \<open>r \<rightarrow>\<^sub>s r'\<close> have "Abs r \<degree>\<degree> (ss @ [s]) \<rightarrow>\<^sub>s Abs r' \<degree>\<degree> (ss' @ [s'])"
     by (rule sred.Abs)
   thus ?case by (simp only: app_last)
 next
@@ -199,7 +199,7 @@ proof (induct arbitrary: r'')
   with r'' show ?case by simp
 next
   case (Abs r r' ss ss')
-  from `Abs r' \<degree>\<degree> ss' \<rightarrow>\<^sub>\<beta> r''` show ?case
+  from \<open>Abs r' \<degree>\<degree> ss' \<rightarrow>\<^sub>\<beta> r''\<close> show ?case
   proof
     fix s
     assume r'': "r'' = s \<degree>\<degree> ss'"
@@ -213,7 +213,7 @@ next
     fix rs'
     assume "ss' => rs'"
     with Abs(3) have "ss [\<rightarrow>\<^sub>s] rs'" by (rule lemma4_aux)
-    with `r \<rightarrow>\<^sub>s r'` have "Abs r \<degree>\<degree> ss \<rightarrow>\<^sub>s Abs r' \<degree>\<degree> rs'" by (rule sred.Abs)
+    with \<open>r \<rightarrow>\<^sub>s r'\<close> have "Abs r \<degree>\<degree> ss \<rightarrow>\<^sub>s Abs r' \<degree>\<degree> rs'" by (rule sred.Abs)
     moreover assume "r'' = Abs r' \<degree>\<degree> rs'"
     ultimately show "Abs r \<degree>\<degree> ss \<rightarrow>\<^sub>s r''" by simp
   next
@@ -240,7 +240,7 @@ lemma rtrancl_beta_sred:
   by induct (iprover intro: refl_sred lemma4)+
 
 
-subsection {* Leftmost reduction and weakly normalizing terms *}
+subsection \<open>Leftmost reduction and weakly normalizing terms\<close>
 
 inductive
   lred :: "dB \<Rightarrow> dB \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>l" 50)
@@ -261,13 +261,13 @@ proof induct
   then show ?case by (rule sred.Var)
 next
   case (Abs r r')
-  from `r \<rightarrow>\<^sub>s r'`
+  from \<open>r \<rightarrow>\<^sub>s r'\<close>
   have "Abs r \<degree>\<degree> [] \<rightarrow>\<^sub>s Abs r' \<degree>\<degree> []" using listrelp.Nil
     by (rule sred.Abs)
   then show ?case by simp
 next
   case (Beta r s ss t)
-  from `r[s/0] \<degree>\<degree> ss \<rightarrow>\<^sub>s t`
+  from \<open>r[s/0] \<degree>\<degree> ss \<rightarrow>\<^sub>s t\<close>
   show ?case by (rule sred.Beta)
 qed
 
@@ -310,7 +310,7 @@ lemma lemma7:
   shows "NF r' \<Longrightarrow> r \<rightarrow>\<^sub>l r'" using r
 proof induct
   case (Var rs rs' x)
-  from `NF (Var x \<degree>\<degree> rs')` have "listall NF rs'"
+  from \<open>NF (Var x \<degree>\<degree> rs')\<close> have "listall NF rs'"
     by cases simp_all
   with Var(1) have "rs [\<rightarrow>\<^sub>l] rs'"
   proof induct
@@ -324,7 +324,7 @@ proof induct
   thus ?case by (rule lred.Var)
 next
   case (Abs r r' ss ss')
-  from `NF (Abs r' \<degree>\<degree> ss')`
+  from \<open>NF (Abs r' \<degree>\<degree> ss')\<close>
   have ss': "ss' = []" by (rule Abs_NF)
   from Abs(3) have ss: "ss = []" using ss'
     by cases simp_all

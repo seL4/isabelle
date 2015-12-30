@@ -3,7 +3,7 @@
     Copyright   1995  TU Muenchen
 *)
 
-section {* Abstract commutation and confluence notions *}
+section \<open>Abstract commutation and confluence notions\<close>
 
 theory Commutation
 imports Main
@@ -12,7 +12,7 @@ begin
 declare [[syntax_ambiguity_warning = false]]
 
 
-subsection {* Basic definitions *}
+subsection \<open>Basic definitions\<close>
 
 definition
   square :: "['a => 'a => bool, 'a => 'a => bool, 'a => 'a => bool, 'a => 'a => bool] => bool" where
@@ -37,9 +37,9 @@ abbreviation
   "confluent R == diamond (R^**)"
 
 
-subsection {* Basic lemmas *}
+subsection \<open>Basic lemmas\<close>
 
-subsubsection {* @{text "square"} *}
+subsubsection \<open>\<open>square\<close>\<close>
 
 lemma square_sym: "square R S T U ==> square S R U T"
   apply (unfold square_def)
@@ -74,7 +74,7 @@ lemma square_rtrancl_reflcl_commute:
   done
 
 
-subsubsection {* @{text "commute"} *}
+subsubsection \<open>\<open>commute\<close>\<close>
 
 lemma commute_sym: "commute R S ==> commute S R"
   apply (unfold commute_def)
@@ -93,7 +93,7 @@ lemma commute_Un:
   done
 
 
-subsubsection {* @{text "diamond"}, @{text "confluence"}, and @{text "union"} *}
+subsubsection \<open>\<open>diamond\<close>, \<open>confluence\<close>, and \<open>union\<close>\<close>
 
 lemma diamond_Un:
     "[| diamond R; diamond S; commute R S |] ==> diamond (sup R S)"
@@ -125,25 +125,25 @@ lemma diamond_to_confluence:
   done
 
 
-subsection {* Church-Rosser *}
+subsection \<open>Church-Rosser\<close>
 
 lemma Church_Rosser_confluent: "Church_Rosser R = confluent R"
   apply (unfold square_def commute_def diamond_def Church_Rosser_def)
-  apply (tactic {* safe_tac (put_claset HOL_cs @{context}) *})
-   apply (tactic {*
+  apply (tactic \<open>safe_tac (put_claset HOL_cs @{context})\<close>)
+   apply (tactic \<open>
      blast_tac (put_claset HOL_cs @{context} addIs
        [@{thm sup_ge2} RS @{thm rtranclp_mono} RS @{thm predicate2D} RS @{thm rtranclp_trans},
         @{thm rtranclp_converseI}, @{thm conversepI},
-        @{thm sup_ge1} RS @{thm rtranclp_mono} RS @{thm predicate2D}]) 1 *})
+        @{thm sup_ge1} RS @{thm rtranclp_mono} RS @{thm predicate2D}]) 1\<close>)
   apply (erule rtranclp_induct)
    apply blast
   apply (blast del: rtranclp.rtrancl_refl intro: rtranclp_trans)
   done
 
 
-subsection {* Newman's lemma *}
+subsection \<open>Newman's lemma\<close>
 
-text {* Proof by Stefan Berghofer *}
+text \<open>Proof by Stefan Berghofer\<close>
 
 theorem newman:
   assumes wf: "wfP (R\<inverse>\<inverse>)"
@@ -189,12 +189,12 @@ proof induct
   qed
 qed
 
-text {*
+text \<open>
   Alternative version.  Partly automated by Tobias
   Nipkow. Takes 2 minutes (2002).
 
-  This is the maximal amount of automation possible using @{text blast}.
-*}
+  This is the maximal amount of automation possible using \<open>blast\<close>.
+\<close>
 
 theorem newman':
   assumes wf: "wfP (R\<inverse>\<inverse>)"
@@ -205,8 +205,8 @@ theorem newman':
   using wf
 proof induct
   case (less x b c)
-  note IH = `\<And>y b c. \<lbrakk>R\<inverse>\<inverse> y x; R\<^sup>*\<^sup>* y b; R\<^sup>*\<^sup>* y c\<rbrakk>
-                     \<Longrightarrow> \<exists>d. R\<^sup>*\<^sup>* b d \<and> R\<^sup>*\<^sup>* c d`
+  note IH = \<open>\<And>y b c. \<lbrakk>R\<inverse>\<inverse> y x; R\<^sup>*\<^sup>* y b; R\<^sup>*\<^sup>* y c\<rbrakk>
+                     \<Longrightarrow> \<exists>d. R\<^sup>*\<^sup>* b d \<and> R\<^sup>*\<^sup>* c d\<close>
   have xc: "R\<^sup>*\<^sup>* x c" by fact
   have xb: "R\<^sup>*\<^sup>* x b" by fact
   thus ?case
@@ -237,10 +237,10 @@ proof induct
   qed
 qed
 
-text {*
+text \<open>
   Using the coherent logic prover, the proof of the induction step
   is completely automatic.
-*}
+\<close>
 
 lemma eq_imp_rtranclp: "x = y \<Longrightarrow> r\<^sup>*\<^sup>* x y"
   by simp
@@ -254,11 +254,11 @@ theorem newman'':
   using wf
 proof induct
   case (less x b c)
-  note IH = `\<And>y b c. \<lbrakk>R\<inverse>\<inverse> y x; R\<^sup>*\<^sup>* y b; R\<^sup>*\<^sup>* y c\<rbrakk>
-                     \<Longrightarrow> \<exists>d. R\<^sup>*\<^sup>* b d \<and> R\<^sup>*\<^sup>* c d`
+  note IH = \<open>\<And>y b c. \<lbrakk>R\<inverse>\<inverse> y x; R\<^sup>*\<^sup>* y b; R\<^sup>*\<^sup>* y c\<rbrakk>
+                     \<Longrightarrow> \<exists>d. R\<^sup>*\<^sup>* b d \<and> R\<^sup>*\<^sup>* c d\<close>
   show ?case
     by (coherent
-      `R\<^sup>*\<^sup>* x c` `R\<^sup>*\<^sup>* x b`
+      \<open>R\<^sup>*\<^sup>* x c\<close> \<open>R\<^sup>*\<^sup>* x b\<close>
       refl [where 'a='a] sym
       eq_imp_rtranclp
       r_into_rtranclp [of R]

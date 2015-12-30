@@ -2,13 +2,13 @@
     Author:     Stefan Berghofer, TU Muenchen, 2003
 *)
 
-section {* Inductive characterization of lambda terms in normal form *}
+section \<open>Inductive characterization of lambda terms in normal form\<close>
 
 theory NormalForm
 imports ListBeta
 begin
 
-subsection {* Terms in normal form *}
+subsection \<open>Terms in normal form\<close>
 
 definition
   listall :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
@@ -64,13 +64,13 @@ lemma listall_snoc [simp]: "listall P (xs @ [x]) = (listall P xs \<and> P x)"
 
 lemma listall_cong [cong, extraction_expand]:
   "xs = ys \<Longrightarrow> listall P xs = listall P ys"
-  -- {* Currently needed for strange technical reasons *}
+  \<comment> \<open>Currently needed for strange technical reasons\<close>
   by (unfold listall_def) simp
 
-text {*
+text \<open>
 @{term "listsp"} is equivalent to @{term "listall"}, but cannot be
 used for program extraction.
-*}
+\<close>
 
 lemma listall_listsp_eq: "listall P xs = listsp P xs"
   by (induct xs) (auto intro: listsp.intros)
@@ -100,7 +100,7 @@ lemma App_NF_D: assumes NF: "NF (Var n \<degree>\<degree> ts)"
   by cases simp_all
 
 
-subsection {* Properties of @{text NF} *}
+subsection \<open>Properties of \<open>NF\<close>\<close>
 
 lemma Var_NF: "NF (Var n)"
   apply (subgoal_tac "NF (Var n \<degree>\<degree> [])")
@@ -146,7 +146,7 @@ lemma subst_Var_NF: "NF t \<Longrightarrow> NF (t[Var i/j])"
 
 lemma app_Var_NF: "NF t \<Longrightarrow> \<exists>t'. t \<degree> Var i \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> NF t'"
   apply (induct set: NF)
-  apply (simplesubst app_last)  --{*Using @{text subst} makes extraction fail*}
+  apply (simplesubst app_last)  \<comment>\<open>Using \<open>subst\<close> makes extraction fail\<close>
   apply (rule exI)
   apply (rule conjI)
   apply (rule rtranclp.rtrancl_refl)
@@ -185,9 +185,9 @@ lemma lift_NF: "NF t \<Longrightarrow> NF (lift t i)"
   apply simp
   done
 
-text {*
+text \<open>
 @{term NF} characterizes exactly the terms that are in normal form.
-*}
+\<close>
   
 lemma NF_eq: "NF t = (\<forall>t'. \<not> t \<rightarrow>\<^sub>\<beta> t')"
 proof

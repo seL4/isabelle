@@ -3,16 +3,16 @@
     Author:     Monika Seisenberger, LMU Muenchen
 *)
 
-section {* Higman's lemma *}
+section \<open>Higman's lemma\<close>
 
 theory Higman
 imports Old_Datatype
 begin
 
-text {*
+text \<open>
   Formalization by Stefan Berghofer and Monika Seisenberger,
   based on Coquand and Fridlender @{cite Coquand93}.
-*}
+\<close>
 
 datatype letter = A | B
 
@@ -279,9 +279,9 @@ next
   thus ?case by (rule bar2)
 qed
 
-text {*
+text \<open>
 Strong version: yields indices of words that can be embedded into each other.
-*}
+\<close>
 
 theorem higman_idx: "\<exists>(i::nat) j. emb (f i) (f j) \<and> i < j"
 proof (rule bar_idx)
@@ -289,10 +289,10 @@ proof (rule bar_idx)
   show "is_prefix [] f" by simp
 qed
 
-text {*
+text \<open>
 Weak version: only yield sequence containing words
 that can be embedded into each other.
-*}
+\<close>
 
 theorem good_prefix_lemma:
   assumes bar: "bar ws"

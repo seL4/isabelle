@@ -9,7 +9,7 @@ imports Higman "~~/src/HOL/Library/State_Monad" Random
 begin
 (*>*)
 
-subsection {* Extracting the program *}
+subsection \<open>Extracting the program\<close>
 
 declare R.induct [ind_realizer]
 declare T.induct [ind_realizer]
@@ -19,23 +19,23 @@ declare bar.induct [ind_realizer]
 
 extract higman_idx
 
-text {*
-  Program extracted from the proof of @{text higman_idx}:
+text \<open>
+  Program extracted from the proof of \<open>higman_idx\<close>:
   @{thm [display] higman_idx_def [no_vars]}
   Corresponding correctness theorem:
   @{thm [display] higman_idx_correctness [no_vars]}
-  Program extracted from the proof of @{text higman}:
+  Program extracted from the proof of \<open>higman\<close>:
   @{thm [display] higman_def [no_vars]}
-  Program extracted from the proof of @{text prop1}:
+  Program extracted from the proof of \<open>prop1\<close>:
   @{thm [display] prop1_def [no_vars]}
-  Program extracted from the proof of @{text prop2}:
+  Program extracted from the proof of \<open>prop2\<close>:
   @{thm [display] prop2_def [no_vars]}
-  Program extracted from the proof of @{text prop3}:
+  Program extracted from the proof of \<open>prop3\<close>:
   @{thm [display] prop3_def [no_vars]}
-*}
+\<close>
 
 
-subsection {* Some examples *}
+subsection \<open>Some examples\<close>
 
 instantiation LT and TT :: default
 begin
@@ -88,7 +88,7 @@ fun f2 :: "nat \<Rightarrow> letter list" where
   | "f2 (Suc (Suc 0)) = [B, A]"
   | "f2 _ = []"
 
-ML_val {*
+ML_val \<open>
 local
   val higman_idx = @{code higman_idx};
   val g1 = @{code g1};
@@ -105,6 +105,6 @@ in
   val (i4, j4) = higman_idx f2;
   val (v4, w4) = (f2 i4, f2 j4);
 end;
-*}
+\<close>
 
 end

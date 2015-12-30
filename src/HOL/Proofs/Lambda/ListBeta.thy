@@ -3,13 +3,13 @@
     Copyright   1998 TU Muenchen
 *)
 
-section {* Lifting beta-reduction to lists *}
+section \<open>Lifting beta-reduction to lists\<close>
 
 theory ListBeta imports ListApplication ListOrder begin
 
-text {*
+text \<open>
   Lifting beta-reduction to lists of terms, reducing exactly one element.
-*}
+\<close>
 
 abbreviation
   list_beta :: "dB list => dB list => bool"  (infixl "=>" 50) where

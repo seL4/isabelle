@@ -6,12 +6,12 @@ Properties of => and "cd", in particular the diamond property of => and
 confluence of beta.
 *)
 
-section {* Parallel reduction and a complete developments *}
+section \<open>Parallel reduction and a complete developments\<close>
 
 theory ParRed imports Lambda Commutation begin
 
 
-subsection {* Parallel reduction *}
+subsection \<open>Parallel reduction\<close>
 
 inductive par_beta :: "[dB, dB] => bool"  (infixl "=>" 50)
   where
@@ -28,9 +28,9 @@ inductive_cases par_beta_cases [elim!]:
   "Abs s => t"
 
 
-subsection {* Inclusions *}
+subsection \<open>Inclusions\<close>
 
-text {* @{text "beta \<subseteq> par_beta \<subseteq> beta^*"} \medskip *}
+text \<open>\<open>beta \<subseteq> par_beta \<subseteq> beta^*\<close> \medskip\<close>
 
 lemma par_beta_varL [simp]:
     "(Var n => t) = (t = Var n)"
@@ -50,11 +50,11 @@ lemma par_beta_subset_beta: "par_beta <= beta^**"
   apply (erule par_beta.induct)
      apply blast
     apply (blast del: rtranclp.rtrancl_refl intro: rtranclp.rtrancl_into_rtrancl)+
-      -- {* @{thm[source] rtrancl_refl} complicates the proof by increasing the branching factor *}
+      \<comment> \<open>@{thm[source] rtrancl_refl} complicates the proof by increasing the branching factor\<close>
   done
 
 
-subsection {* Misc properties of @{text "par_beta"} *}
+subsection \<open>Misc properties of \<open>par_beta\<close>\<close>
 
 lemma par_beta_lift [simp]:
     "t => t' \<Longrightarrow> lift t n => lift t' n"
@@ -72,7 +72,7 @@ lemma par_beta_subst:
   done
 
 
-subsection {* Confluence (directly) *}
+subsection \<open>Confluence (directly)\<close>
 
 lemma diamond_par_beta: "diamond par_beta"
   apply (unfold diamond_def commute_def square_def)
@@ -82,7 +82,7 @@ lemma diamond_par_beta: "diamond par_beta"
   done
 
 
-subsection {* Complete developments *}
+subsection \<open>Complete developments\<close>
 
 fun
   cd :: "dB => dB"
@@ -100,7 +100,7 @@ lemma par_beta_cd: "s => t \<Longrightarrow> t => cd s"
   done
 
 
-subsection {* Confluence (via complete developments) *}
+subsection \<open>Confluence (via complete developments)\<close>
 
 lemma diamond_par_beta2: "diamond par_beta"
   apply (unfold diamond_def commute_def square_def)

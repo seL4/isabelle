@@ -9,9 +9,9 @@ theory XML_Data
 imports "~~/src/HOL/Isar_Examples/Drinker"
 begin
 
-subsection {* Export and re-import of global proof terms *}
+subsection \<open>Export and re-import of global proof terms\<close>
 
-ML {*
+ML \<open>
   fun export_proof thy thm =
     let
       val (_, prop) =
@@ -30,36 +30,36 @@ ML {*
       val prf = Proofterm.decode xml;
       val (prf', _) = Proofterm.freeze_thaw_prf prf;
     in Drule.export_without_context (Proof_Checker.thm_of_proof thy prf') end;
-*}
+\<close>
 
 
-subsection {* Examples *}
+subsection \<open>Examples\<close>
 
-ML {* val thy1 = @{theory} *}
+ML \<open>val thy1 = @{theory}\<close>
 
 lemma ex: "A \<longrightarrow> A" ..
 
-ML_val {*
+ML_val \<open>
   val xml = export_proof @{theory} @{thm ex};
   val thm = import_proof thy1 xml;
-*}
+\<close>
 
-ML_val {*
+ML_val \<open>
   val xml = export_proof @{theory} @{thm de_Morgan};
   val thm = import_proof thy1 xml;
-*}
+\<close>
 
-ML_val {*
+ML_val \<open>
   val xml = export_proof @{theory} @{thm Drinker's_Principle};
   val thm = import_proof thy1 xml;
-*}
+\<close>
 
-text {* Some fairly large proof: *}
+text \<open>Some fairly large proof:\<close>
 
-ML_val {*
+ML_val \<open>
   val xml = export_proof @{theory} @{thm abs_less_iff};
   val thm = import_proof thy1 xml;
   @{assert} (size (YXML.string_of_body xml) > 1000000);
-*}
+\<close>
 
 end

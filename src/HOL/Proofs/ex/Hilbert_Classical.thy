@@ -2,19 +2,19 @@
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 *)
 
-section {* Hilbert's choice and classical logic *}
+section \<open>Hilbert's choice and classical logic\<close>
 
 theory Hilbert_Classical
 imports Main
 begin
 
-text {*
+text \<open>
   Derivation of the classical law of tertium-non-datur by means of
   Hilbert's choice operator (due to M. J. Beeson and J. Harrison).
-*}
+\<close>
 
 
-subsection {* Proof text *}
+subsection \<open>Proof text\<close>
 
 theorem tnd: "A \<or> \<not> A"
 proof -
@@ -94,12 +94,12 @@ proof -
 qed
 
 
-subsection {* Proof term of text *}
+subsection \<open>Proof term of text\<close>
 
 prf tnd
 
 
-subsection {* Proof script *}
+subsection \<open>Proof script\<close>
 
 theorem tnd': "A \<or> \<not> A"
   apply (subgoal_tac
@@ -153,7 +153,7 @@ theorem tnd': "A \<or> \<not> A"
   done
 
 
-subsection {* Proof term of script *}
+subsection \<open>Proof term of script\<close>
 
 prf tnd'
 

@@ -4,7 +4,7 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-section {* Euclid's theorem *}
+section \<open>Euclid's theorem\<close>
 
 theory Euclid
 imports
@@ -13,10 +13,10 @@ imports
   "~~/src/HOL/Library/Code_Target_Numeral"
 begin
 
-text {*
+text \<open>
 A constructive version of the proof of Euclid's theorem by
 Markus Wenzel and Freek Wiedijk @{cite "Wenzel-Wiedijk-JAR2002"}.
-*}
+\<close>
 
 lemma factor_greater_one1: "n = m * k \<Longrightarrow> m < n \<Longrightarrow> k < n \<Longrightarrow> Suc 0 < m"
   by (induct m) auto
@@ -109,10 +109,10 @@ proof (induct n rule: nat_induct)
   then show ?case by simp
 next
   case (Suc n)
-  from `m \<le> Suc n` show ?case
+  from \<open>m \<le> Suc n\<close> show ?case
   proof (rule le_SucE)
     assume "m \<le> n"
-    with `0 < m` have "m dvd fact n" by (rule Suc)
+    with \<open>0 < m\<close> have "m dvd fact n" by (rule Suc)
     then have "m dvd (fact n * Suc n)" by (rule dvd_mult2)
     then show ?thesis by (simp add: mult.commute)
   next
@@ -155,13 +155,13 @@ qed
 lemma all_prime_nempty_g_one:
   assumes "all_prime ps" and "ps \<noteq> []"
   shows "Suc 0 < (\<Prod>m::nat \<in># mset ps. m)"
-  using `ps \<noteq> []` `all_prime ps` unfolding One_nat_def [symmetric] by (induct ps rule: list_nonempty_induct)
+  using \<open>ps \<noteq> []\<close> \<open>all_prime ps\<close> unfolding One_nat_def [symmetric] by (induct ps rule: list_nonempty_induct)
     (simp_all add: all_prime_simps msetprod_singleton msetprod_Un prime_gt_1_nat less_1_mult del: One_nat_def)
 
 lemma factor_exists: "Suc 0 < n \<Longrightarrow> (\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) = n)"
 proof (induct n rule: nat_wf_ind)
   case (1 n)
-  from `Suc 0 < n`
+  from \<open>Suc 0 < n\<close>
   have "(\<exists>m k. Suc 0 < m \<and> Suc 0 < k \<and> m < n \<and> k < n \<and> n = m * k) \<or> prime n"
     by (rule not_prime_ex_mk)
   then show ?case
@@ -175,7 +175,7 @@ proof (induct n rule: nat_wf_ind)
     from kn and k have "\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) = k" by (rule 1)
     then obtain ps2 where "all_prime ps2" and prod_ps2_k: "(\<Prod>m::nat \<in># mset ps2. m) = k"
       by iprover
-    from `all_prime ps1` `all_prime ps2`
+    from \<open>all_prime ps1\<close> \<open>all_prime ps2\<close>
     have "\<exists>ps. all_prime ps \<and> (\<Prod>m::nat \<in># mset ps. m) =
       (\<Prod>m::nat \<in># mset ps1. m) * (\<Prod>m::nat \<in># mset ps2. m)"
       by (rule split_all_prime)
@@ -198,15 +198,15 @@ proof -
   with N have "ps \<noteq> []"
     by (auto simp add: all_prime_nempty_g_one msetprod_empty)
   then obtain p qs where ps: "ps = p # qs" by (cases ps) simp
-  with `all_prime ps` have "prime p" by (simp add: all_prime_simps)
-  moreover from `all_prime ps` ps prod_ps
+  with \<open>all_prime ps\<close> have "prime p" by (simp add: all_prime_simps)
+  moreover from \<open>all_prime ps\<close> ps prod_ps
   have "p dvd n" by (simp only: dvd_prod)
   ultimately show ?thesis by iprover
 qed
 
-text {*
+text \<open>
 Euclid's theorem: there are infinitely many primes.
-*}
+\<close>
 
 lemma Euclid: "\<exists>p::nat. prime p \<and> n < p"
 proof -
@@ -218,7 +218,7 @@ proof -
     have "\<not> p \<le> n"
     proof
       assume pn: "p \<le> n"
-      from `prime p` have "0 < p" by (rule prime_gt_0_nat)
+      from \<open>prime p\<close> have "0 < p" by (rule prime_gt_0_nat)
       then have "p dvd fact n" using pn by (rule dvd_factorial)
       with dvd have "p dvd ?k - fact n" by (rule dvd_diff_nat)
       then have "p dvd 1" by simp
@@ -231,12 +231,12 @@ qed
 
 extract Euclid
 
-text {*
+text \<open>
 The program extracted from the proof of Euclid's theorem looks as follows.
 @{thm [display] Euclid_def}
 The program corresponding to the proof of the factorization theorem is
 @{thm [display] factor_exists_def}
-*}
+\<close>
 
 instantiation nat :: default
 begin

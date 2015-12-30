@@ -7,11 +7,11 @@ Raamsdonk & Severi. On normalization. CWI TR CS-R9545, 1995.  Also
 rediscovered by Matthes and Joachimski.
 *)
 
-section {* Inductive characterization of terminating lambda terms *}
+section \<open>Inductive characterization of terminating lambda terms\<close>
 
 theory InductTermi imports ListBeta begin
 
-subsection {* Terminating lambda terms *}
+subsection \<open>Terminating lambda terms\<close>
 
 inductive IT :: "dB => bool"
   where
@@ -20,7 +20,7 @@ inductive IT :: "dB => bool"
   | Beta [intro]: "IT ((r[s/0]) \<degree>\<degree> ss) ==> IT s ==> IT ((Abs r \<degree> s) \<degree>\<degree> ss)"
 
 
-subsection {* Every term in @{text "IT"} terminates *}
+subsection \<open>Every term in \<open>IT\<close> terminates\<close>
 
 lemma double_induction_lemma [rule_format]:
   "termip beta s ==> \<forall>t. termip beta t -->
@@ -54,7 +54,7 @@ lemma IT_implies_termi: "IT t ==> termip beta t"
   done
 
 
-subsection {* Every terminating term is in @{text "IT"} *}
+subsection \<open>Every terminating term is in \<open>IT\<close>\<close>
 
 declare Var_apps_neq_Abs_apps [symmetric, simp]
 

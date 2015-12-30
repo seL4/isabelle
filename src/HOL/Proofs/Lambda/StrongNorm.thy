@@ -3,17 +3,17 @@
     Copyright   2000 TU Muenchen
 *)
 
-section {* Strong normalization for simply-typed lambda calculus *}
+section \<open>Strong normalization for simply-typed lambda calculus\<close>
 
 theory StrongNorm imports LambdaType InductTermi begin
 
-text {*
+text \<open>
 Formalization by Stefan Berghofer. Partly based on a paper proof by
 Felix Joachimski and Ralph Matthes @{cite "Matthes-Joachimski-AML"}.
-*}
+\<close>
 
 
-subsection {* Properties of @{text IT} *}
+subsection \<open>Properties of \<open>IT\<close>\<close>
 
 lemma lift_IT [intro!]: "IT t \<Longrightarrow> IT (lift t i)"
   apply (induct arbitrary: i set: IT)
@@ -36,7 +36,7 @@ lemma lifts_IT: "listsp IT ts \<Longrightarrow> listsp IT (map (\<lambda>t. lift
 
 lemma subst_Var_IT: "IT r \<Longrightarrow> IT (r[Var i/j])"
   apply (induct arbitrary: i j set: IT)
-    txt {* Case @{term Var}: *}
+    txt \<open>Case @{term Var}:\<close>
     apply (simp (no_asm) add: subst_Var)
     apply
     ((rule conjI impI)+,
@@ -47,12 +47,12 @@ lemma subst_Var_IT: "IT r \<Longrightarrow> IT (r[Var i/j])"
       rule listsp.Cons,
       fast,
       assumption)+
-   txt {* Case @{term Lambda}: *}
+   txt \<open>Case @{term Lambda}:\<close>
    apply atomize
    apply simp
    apply (rule IT.Lambda)
    apply fast
-  txt {* Case @{term Beta}: *}
+  txt \<open>Case @{term Beta}:\<close>
   apply atomize
   apply (simp (no_asm_use) add: subst_subst [symmetric])
   apply (rule IT.Beta)
@@ -85,7 +85,7 @@ lemma app_Var_IT: "IT t \<Longrightarrow> IT (t \<degree> Var i)"
   done
 
 
-subsection {* Well-typed substitution preserves termination *}
+subsection \<open>Well-typed substitution preserves termination\<close>
 
 lemma subst_type_IT:
   "\<And>t e T u i. IT t \<Longrightarrow> e\<langle>i:U\<rangle> \<turnstile> t : T \<Longrightarrow>
@@ -241,7 +241,7 @@ proof (induct U)
 qed
 
 
-subsection {* Well-typed terms are strongly normalizing *}
+subsection \<open>Well-typed terms are strongly normalizing\<close>
 
 lemma type_implies_IT:
   assumes "e \<turnstile> t : T"
@@ -257,7 +257,7 @@ next
   case (App e s T U t)
   have "IT ((Var 0 \<degree> lift t 0)[s/0])"
   proof (rule subst_type_IT)
-    have "IT (lift t 0)" using `IT t` by (rule lift_IT)
+    have "IT (lift t 0)" using \<open>IT t\<close> by (rule lift_IT)
     hence "listsp IT [lift t 0]" by (rule listsp.Cons) (rule listsp.Nil)
     hence "IT (Var 0 \<degree>\<degree> [lift t 0])" by (rule IT.Var)
     also have "Var 0 \<degree>\<degree> [lift t 0] = Var 0 \<degree> lift t 0" by simp

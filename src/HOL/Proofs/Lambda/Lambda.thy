@@ -3,7 +3,7 @@
     Copyright   1995 TU Muenchen
 *)
 
-section {* Basic definitions of Lambda-calculus *}
+section \<open>Basic definitions of Lambda-calculus\<close>
 
 theory Lambda
 imports Main
@@ -12,7 +12,7 @@ begin
 declare [[syntax_ambiguity_warning = false]]
 
 
-subsection {* Lambda-terms in de Bruijn notation and substitution *}
+subsection \<open>Lambda-terms in de Bruijn notation and substitution\<close>
 
 datatype dB =
     Var nat
@@ -36,7 +36,7 @@ where (* FIXME base names *)
 
 declare subst_Var [simp del]
 
-text {* Optimized versions of @{term subst} and @{term lift}. *}
+text \<open>Optimized versions of @{term subst} and @{term lift}.\<close>
 
 primrec
   liftn :: "[nat, dB, nat] => dB"
@@ -54,7 +54,7 @@ where
   | "substn (Abs t) s k = Abs (substn t s (k + 1))"
 
 
-subsection {* Beta-reduction *}
+subsection \<open>Beta-reduction\<close>
 
 inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
   where
@@ -76,10 +76,10 @@ inductive_cases beta_cases [elim!]:
   "s \<degree> t \<rightarrow>\<^sub>\<beta> u"
 
 declare if_not_P [simp] not_less_eq [simp]
-  -- {* don't add @{text "r_into_rtrancl[intro!]"} *}
+  \<comment> \<open>don't add \<open>r_into_rtrancl[intro!]\<close>\<close>
 
 
-subsection {* Congruence rules *}
+subsection \<open>Congruence rules\<close>
 
 lemma rtrancl_beta_Abs [intro!]:
     "s \<rightarrow>\<^sub>\<beta>\<^sup>* s' ==> Abs s \<rightarrow>\<^sub>\<beta>\<^sup>* Abs s'"
@@ -98,7 +98,7 @@ lemma rtrancl_beta_App [intro]:
   by (blast intro!: rtrancl_beta_AppL rtrancl_beta_AppR intro: rtranclp_trans)
 
 
-subsection {* Substitution-lemmas *}
+subsection \<open>Substitution-lemmas\<close>
 
 lemma subst_eq [simp]: "(Var k)[u/k] = u"
   by (simp add: subst_Var)
@@ -133,7 +133,7 @@ lemma subst_subst:
       split: nat.split)
 
 
-subsection {* Equivalence proof for optimized substitution *}
+subsection \<open>Equivalence proof for optimized substitution\<close>
 
 lemma liftn_0 [simp]: "liftn 0 t k = t"
   by (induct t arbitrary: k) (simp_all add: subst_Var)
@@ -148,10 +148,10 @@ theorem substn_subst_0: "substn t s 0 = t[s/0]"
   by simp
 
 
-subsection {* Preservation theorems *}
+subsection \<open>Preservation theorems\<close>
 
-text {* Not used in Church-Rosser proof, but in Strong
-  Normalization. \medskip *}
+text \<open>Not used in Church-Rosser proof, but in Strong
+  Normalization. \medskip\<close>
 
 theorem subst_preserves_beta [simp]:
     "r \<rightarrow>\<^sub>\<beta> s ==> r[t/i] \<rightarrow>\<^sub>\<beta> s[t/i]"
