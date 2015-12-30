@@ -170,8 +170,8 @@ inductive_set tls :: "event list set"
           Either party may send its message first.\<close>
 
  | ClientFinished:
-        \<comment>\<open>The occurrence of Notes A \<lbrace>Agent B, Nonce PMS\<rbrace> stops the
-          rule's applying when the Spy has satisfied the "Says A B" by
+        \<comment>\<open>The occurrence of \<open>Notes A \<lbrace>Agent B, Nonce PMS\<rbrace>\<close> stops the
+          rule's applying when the Spy has satisfied the \<open>Says A B\<close> by
           repaying messages sent by the true client; in that case, the
           Spy does not know PMS and could not send ClientFinished.  One
           could simply put @{term "A\<noteq>Spy"} into the rule, but one should not
