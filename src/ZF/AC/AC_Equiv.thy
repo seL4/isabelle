@@ -41,7 +41,7 @@ definition
     "WO7 == \<forall>A. Finite(A) \<longleftrightarrow> (\<forall>R. well_ord(A,R) \<longrightarrow> well_ord(A,converse(R)))"
 
 definition  
-    "WO8 == \<forall>A. (\<exists>f. f \<in> (\<Pi> X \<in> A. X)) \<longrightarrow> (\<exists>R. well_ord(A,R))"
+    "WO8 == \<forall>A. (\<exists>f. f \<in> (\<Prod>X \<in> A. X)) \<longrightarrow> (\<exists>R. well_ord(A,R))"
 
 
 definition
@@ -56,28 +56,28 @@ definition
 
 (* Axioms of Choice *)  
 definition
-    "AC0 == \<forall>A. \<exists>f. f \<in> (\<Pi> X \<in> Pow(A)-{0}. X)"
+    "AC0 == \<forall>A. \<exists>f. f \<in> (\<Prod>X \<in> Pow(A)-{0}. X)"
 
 definition
-    "AC1 == \<forall>A. 0\<notin>A \<longrightarrow> (\<exists>f. f \<in> (\<Pi> X \<in> A. X))"
+    "AC1 == \<forall>A. 0\<notin>A \<longrightarrow> (\<exists>f. f \<in> (\<Prod>X \<in> A. X))"
 
 definition
     "AC2 == \<forall>A. 0\<notin>A & pairwise_disjoint(A)   
                    \<longrightarrow> (\<exists>C. \<forall>B \<in> A. \<exists>y. B \<inter> C = {y})"
 definition
-    "AC3 == \<forall>A B. \<forall>f \<in> A->B. \<exists>g. g \<in> (\<Pi> x \<in> {a \<in> A. f`a\<noteq>0}. f`x)"
+    "AC3 == \<forall>A B. \<forall>f \<in> A->B. \<exists>g. g \<in> (\<Prod>x \<in> {a \<in> A. f`a\<noteq>0}. f`x)"
 
 definition
-    "AC4 == \<forall>R A B. (R \<subseteq> A*B \<longrightarrow> (\<exists>f. f \<in> (\<Pi> x \<in> domain(R). R``{x})))"
+    "AC4 == \<forall>R A B. (R \<subseteq> A*B \<longrightarrow> (\<exists>f. f \<in> (\<Prod>x \<in> domain(R). R``{x})))"
 
 definition
     "AC5 == \<forall>A B. \<forall>f \<in> A->B. \<exists>g \<in> range(f)->A. \<forall>x \<in> domain(g). f`(g`x) = x"
 
 definition
-    "AC6 == \<forall>A. 0\<notin>A \<longrightarrow> (\<Pi> B \<in> A. B)\<noteq>0"
+    "AC6 == \<forall>A. 0\<notin>A \<longrightarrow> (\<Prod>B \<in> A. B)\<noteq>0"
 
 definition
-    "AC7 == \<forall>A. 0\<notin>A & (\<forall>B1 \<in> A. \<forall>B2 \<in> A. B1\<approx>B2) \<longrightarrow> (\<Pi> B \<in> A. B) \<noteq> 0"
+    "AC7 == \<forall>A. 0\<notin>A & (\<forall>B1 \<in> A. \<forall>B2 \<in> A. B1\<approx>B2) \<longrightarrow> (\<Prod>B \<in> A. B) \<noteq> 0"
 
 definition
     "AC8 == \<forall>A. (\<forall>B \<in> A. \<exists>B1 B2. B=<B1,B2> & B1\<approx>B2)   
@@ -123,12 +123,12 @@ definition
 locale AC18 =
   assumes AC18: "A\<noteq>0 & (\<forall>a \<in> A. B(a) \<noteq> 0) \<longrightarrow>
     ((\<Inter>a \<in> A. \<Union>b \<in> B(a). X(a,b)) =   
-      (\<Union>f \<in> \<Pi> a \<in> A. B(a). \<Inter>a \<in> A. X(a, f`a)))"
+      (\<Union>f \<in> \<Prod>a \<in> A. B(a). \<Inter>a \<in> A. X(a, f`a)))"
   \<comment>"AC18 cannot be expressed within the object-logic"
 
 definition
     "AC19 == \<forall>A. A\<noteq>0 & 0\<notin>A \<longrightarrow> ((\<Inter>a \<in> A. \<Union>b \<in> a. b) =   
-                   (\<Union>f \<in> (\<Pi> B \<in> A. B). \<Inter>a \<in> A. f`a))"
+                   (\<Union>f \<in> (\<Prod>B \<in> A. B). \<Inter>a \<in> A. f`a))"
 
 
 
@@ -178,10 +178,10 @@ lemma first_in_B:
 by (blast dest!: well_ord_imp_ex1_first
                     [THEN theI, THEN first_def [THEN def_imp_iff, THEN iffD1]])
 
-lemma ex_choice_fun: "[| well_ord(\<Union>(A), R); 0 \<notin> A |] ==> \<exists>f. f \<in> (\<Pi> X \<in> A. X)"
+lemma ex_choice_fun: "[| well_ord(\<Union>(A), R); 0 \<notin> A |] ==> \<exists>f. f \<in> (\<Prod>X \<in> A. X)"
 by (fast elim!: first_in_B intro!: lam_type)
 
-lemma ex_choice_fun_Pow: "well_ord(A, R) ==> \<exists>f. f \<in> (\<Pi> X \<in> Pow(A)-{0}. X)"
+lemma ex_choice_fun_Pow: "well_ord(A, R) ==> \<exists>f. f \<in> (\<Prod>X \<in> Pow(A)-{0}. X)"
 by (fast elim!: well_ord_subset [THEN ex_choice_fun])
 
 

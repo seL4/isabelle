@@ -353,8 +353,8 @@ text\<open>Example 4: Axiom of Choice.  Possibly wrong, since \<open>\<Pi>\<clos
 to be relativized.\<close>
 schematic_goal (in reflection)
      "Reflects(?Cl,
-               \<lambda>A. 0\<notin>A \<longrightarrow> (\<exists>f. M(f) & f \<in> (\<Pi> X \<in> A. X)),
-               \<lambda>a A. 0\<notin>A \<longrightarrow> (\<exists>f\<in>Mset(a). f \<in> (\<Pi> X \<in> A. X)))"
+               \<lambda>A. 0\<notin>A \<longrightarrow> (\<exists>f. M(f) & f \<in> (\<Prod>X \<in> A. X)),
+               \<lambda>a A. 0\<notin>A \<longrightarrow> (\<exists>f\<in>Mset(a). f \<in> (\<Prod>X \<in> A. X)))"
 by fast
 
 end

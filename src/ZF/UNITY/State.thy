@@ -21,7 +21,7 @@ consts
   default_val :: "i=>i"
 
 definition
-  "state == \<Pi> x \<in> var. cons(default_val(x), type_of(x))"
+  "state == \<Prod>x \<in> var. cons(default_val(x), type_of(x))"
 
 definition
   "st0 == \<lambda>x \<in> var. default_val(x)"

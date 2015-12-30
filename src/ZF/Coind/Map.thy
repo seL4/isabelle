@@ -23,7 +23,7 @@ definition
 
 definition
   map_owr :: "[i,i,i]=>i"  where
-   "map_owr(m,a,b) == \<Sigma> x \<in> {a} \<union> domain(m). if x=a then b else m``{x}"
+   "map_owr(m,a,b) == \<Sum>x \<in> {a} \<union> domain(m). if x=a then b else m``{x}"
 
 definition
   map_app :: "[i,i]=>i"  where

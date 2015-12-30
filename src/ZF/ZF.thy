@@ -113,8 +113,8 @@ syntax
   "_RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _ \<in> _})" [51,0,51])
   "_UNION"    :: "[pttrn, i, i] => i"        ("(3\<Union>_\<in>_./ _)" 10)
   "_INTER"    :: "[pttrn, i, i] => i"        ("(3\<Inter>_\<in>_./ _)" 10)
-  "_PROD"     :: "[pttrn, i, i] => i"        ("(3\<Pi> _\<in>_./ _)" 10)
-  "_SUM"      :: "[pttrn, i, i] => i"        ("(3\<Sigma> _\<in>_./ _)" 10)
+  "_PROD"     :: "[pttrn, i, i] => i"        ("(3\<Prod>_\<in>_./ _)" 10)
+  "_SUM"      :: "[pttrn, i, i] => i"        ("(3\<Sum>_\<in>_./ _)" 10)
   "_lam"      :: "[pttrn, i, i] => i"        ("(3\<lambda>_\<in>_./ _)" 10)
   "_Ball"     :: "[pttrn, i, o] => o"        ("(3\<forall>_\<in>_./ _)" 10)
   "_Bex"      :: "[pttrn, i, o] => o"        ("(3\<exists>_\<in>_./ _)" 10)
@@ -133,8 +133,8 @@ translations
   "{b. x\<in>A}"    == "CONST RepFun(A, \<lambda>x. b)"
   "\<Inter>x\<in>A. B"    == "CONST Inter({B. x\<in>A})"
   "\<Union>x\<in>A. B"    == "CONST Union({B. x\<in>A})"
-  "\<Pi> x\<in>A. B"   == "CONST Pi(A, \<lambda>x. B)"
-  "\<Sigma> x\<in>A. B"   == "CONST Sigma(A, \<lambda>x. B)"
+  "\<Prod>x\<in>A. B"   == "CONST Pi(A, \<lambda>x. B)"
+  "\<Sum>x\<in>A. B"   == "CONST Sigma(A, \<lambda>x. B)"
   "\<lambda>x\<in>A. f"    == "CONST Lambda(A, \<lambda>x. f)"
   "\<forall>x\<in>A. P"    == "CONST Ball(A, \<lambda>x. P)"
   "\<exists>x\<in>A. P"    == "CONST Bex(A, \<lambda>x. P)"

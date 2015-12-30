@@ -119,7 +119,7 @@ lemma surj_implies_inj:
   assumes f: "f \<in> surj(X,Y)" shows "\<exists>g. g \<in> inj(Y,X)"
 proof -
   from f AC_Pi [of Y "%y. f-``{y}"]
-  obtain z where z: "z \<in> (\<Pi> y\<in>Y. f -`` {y})"  
+  obtain z where z: "z \<in> (\<Prod>y\<in>Y. f -`` {y})"  
     by (auto simp add: surj_def) (fast dest: apply_Pair)
   show ?thesis
     proof
@@ -146,7 +146,7 @@ proof (simp add: K InfCard_is_Card le_Card_iff)
   have [intro]: "Ord(K)" by (blast intro: InfCard_is_Card Card_is_Ord K) 
   assume "!!i. i\<in>K ==> X(i) \<lesssim> K"
   hence "!!i. i\<in>K ==> \<exists>f. f \<in> inj(X(i), K)" by (simp add: lepoll_def) 
-  with AC_Pi obtain f where f: "f \<in> (\<Pi> i\<in>K. inj(X(i), K))"
+  with AC_Pi obtain f where f: "f \<in> (\<Prod>i\<in>K. inj(X(i), K))"
     by force 
   { fix z
     assume z: "z \<in> (\<Union>i\<in>K. X(i))"
