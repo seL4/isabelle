@@ -190,13 +190,13 @@ by (simp add: Reals_eq_Standard)
 lemma SReal_divide_numeral: "r \<in> \<real> ==> r/(numeral w::hypreal) \<in> \<real>"
 by simp
 
-text\<open>epsilon is not in Reals because it is an infinitesimal\<close>
-lemma SReal_epsilon_not_mem: "epsilon \<notin> \<real>"
+text \<open>\<open>\<epsilon>\<close> is not in Reals because it is an infinitesimal\<close>
+lemma SReal_epsilon_not_mem: "\<epsilon> \<notin> \<real>"
 apply (simp add: SReal_def)
 apply (auto simp add: hypreal_of_real_not_eq_epsilon [THEN not_sym])
 done
 
-lemma SReal_omega_not_mem: "omega \<notin> \<real>"
+lemma SReal_omega_not_mem: "\<omega> \<notin> \<real>"
 apply (simp add: SReal_def)
 apply (auto simp add: hypreal_of_real_not_eq_omega [THEN not_sym])
 done
@@ -2050,9 +2050,9 @@ apply (auto simp add: lemma_Infinitesimal2)
 done
 
 
-subsection\<open>Proof that @{term omega} is an infinite number\<close>
+subsection\<open>Proof that \<open>\<omega>\<close> is an infinite number\<close>
 
-text\<open>It will follow that epsilon is an infinitesimal number.\<close>
+text\<open>It will follow that \<open>\<epsilon>\<close> is an infinitesimal number.\<close>
 
 lemma Suc_Un_eq: "{n. n < Suc m} = {n. n < m} Un {n. n = m}"
 by (auto simp add: less_Suc_eq)
@@ -2100,9 +2100,9 @@ done
 lemma Compl_real_le_eq: "- {n::nat. real n \<le> u} = {n. u < real n}"
 by (auto dest!: order_le_less_trans simp add: linorder_not_le)
 
-text\<open>@{term omega} is a member of @{term HInfinite}\<close>
+text\<open>@{term \<omega>} is a member of @{term HInfinite}\<close>
 
-theorem HInfinite_omega [simp]: "omega \<in> HInfinite"
+theorem HInfinite_omega [simp]: "\<omega> \<in> HInfinite"
 apply (simp add: omega_def)
 apply (rule FreeUltrafilterNat_HInfinite)
 apply clarify
@@ -2114,13 +2114,13 @@ done
        Epsilon is a member of Infinitesimal
  -----------------------------------------------*)
 
-lemma Infinitesimal_epsilon [simp]: "epsilon \<in> Infinitesimal"
+lemma Infinitesimal_epsilon [simp]: "\<epsilon> \<in> Infinitesimal"
 by (auto intro!: HInfinite_inverse_Infinitesimal HInfinite_omega simp add: hypreal_epsilon_inverse_omega)
 
-lemma HFinite_epsilon [simp]: "epsilon \<in> HFinite"
+lemma HFinite_epsilon [simp]: "\<epsilon> \<in> HFinite"
 by (auto intro: Infinitesimal_subset_HFinite [THEN subsetD])
 
-lemma epsilon_approx_zero [simp]: "epsilon @= 0"
+lemma epsilon_approx_zero [simp]: "\<epsilon> @= 0"
 apply (simp (no_asm) add: mem_infmal_iff [symmetric])
 done
 

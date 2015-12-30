@@ -269,7 +269,7 @@ done
 subsection\<open>Existence of an infinite hypernatural number\<close>
 
 definition
-  (* omega is in fact an infinite hypernatural number = [<1,2,3,...>] *)
+  (* \<omega> is in fact an infinite hypernatural number = [<1,2,3,...>] *)
   whn :: hypnat where
   hypnat_omega_def: "whn = star_n (%n::nat. n)"
 

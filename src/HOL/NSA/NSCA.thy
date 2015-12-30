@@ -509,7 +509,7 @@ lemma Infinitesimal_hcnj_iff [simp]:
 by (simp add: Infinitesimal_hcmod_iff)
 
 lemma Infinitesimal_hcomplex_of_hypreal_epsilon [simp]:
-     "hcomplex_of_hypreal epsilon \<in> Infinitesimal"
+     "hcomplex_of_hypreal \<epsilon> \<in> Infinitesimal"
 by (simp add: Infinitesimal_hcmod_iff)
 
 end

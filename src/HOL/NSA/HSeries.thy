@@ -102,10 +102,10 @@ lemma sumhr_hypreal_of_hypnat_omega:
       "sumhr(0,whn,%i. 1) = hypreal_of_hypnat whn"
 by (simp add: sumhr_const)
 
-lemma sumhr_hypreal_omega_minus_one: "sumhr(0, whn, %i. 1) = omega - 1"
+lemma sumhr_hypreal_omega_minus_one: "sumhr(0, whn, %i. 1) = \<omega> - 1"
 apply (simp add: sumhr_const)
-(* FIXME: need lemma: hypreal_of_hypnat whn = omega - 1 *)
-(* maybe define omega = hypreal_of_hypnat whn + 1 *)
+(* FIXME: need lemma: hypreal_of_hypnat whn = \<omega> - 1 *)
+(* maybe define \<omega> = hypreal_of_hypnat whn + 1 *)
 apply (unfold star_class_defs omega_def hypnat_omega_def
               of_hypnat_def star_of_def)
 apply (simp add: starfun_star_n starfun2_star_n)

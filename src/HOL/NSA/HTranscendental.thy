@@ -260,7 +260,7 @@ apply (rule approx_sym [THEN [2] approx_trans2])
 apply (auto simp add: mem_infmal_iff)
 done
 
-lemma STAR_exp_epsilon [simp]: "( *f* exp) epsilon @= 1"
+lemma STAR_exp_epsilon [simp]: "( *f* exp) \<epsilon> @= 1"
 by (auto intro: STAR_exp_Infinitesimal)
 
 lemma STAR_exp_add:

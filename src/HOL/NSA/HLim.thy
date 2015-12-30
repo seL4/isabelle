@@ -102,7 +102,7 @@ lemma NSLIM_const_not_eq:
   fixes a :: "'a::real_normed_algebra_1"
   shows "k \<noteq> L \<Longrightarrow> \<not> (\<lambda>x. k) \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L"
 apply (simp add: NSLIM_def)
-apply (rule_tac x="star_of a + of_hypreal epsilon" in exI)
+apply (rule_tac x="star_of a + of_hypreal \<epsilon>" in exI)
 apply (simp add: hypreal_epsilon_not_zero approx_def)
 done
 
@@ -170,10 +170,10 @@ proof (rule LIM_I)
   have "\<exists>s>0. \<forall>x. x \<noteq> star_of a \<and> hnorm (x - star_of a) < s
         \<longrightarrow> hnorm (starfun f x - star_of L) < star_of r"
   proof (rule exI, safe)
-    show "0 < epsilon" by (rule hypreal_epsilon_gt_zero)
+    show "0 < \<epsilon>" by (rule hypreal_epsilon_gt_zero)
   next
     fix x assume neq: "x \<noteq> star_of a"
-    assume "hnorm (x - star_of a) < epsilon"
+    assume "hnorm (x - star_of a) < \<epsilon>"
     with Infinitesimal_epsilon
     have "x - star_of a \<in> Infinitesimal"
       by (rule hnorm_less_Infinitesimal)
@@ -309,10 +309,10 @@ proof (unfold isUCont_def dist_norm, safe)
   have "\<exists>s>0. \<forall>x y. hnorm (x - y) < s
         \<longrightarrow> hnorm (starfun f x - starfun f y) < star_of r"
   proof (rule exI, safe)
-    show "0 < epsilon" by (rule hypreal_epsilon_gt_zero)
+    show "0 < \<epsilon>" by (rule hypreal_epsilon_gt_zero)
   next
     fix x y :: "'a star"
-    assume "hnorm (x - y) < epsilon"
+    assume "hnorm (x - y) < \<epsilon>"
     with Infinitesimal_epsilon
     have "x - y \<in> Infinitesimal"
       by (rule hnorm_less_Infinitesimal)

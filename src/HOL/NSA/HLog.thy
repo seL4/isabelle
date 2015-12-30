@@ -11,10 +11,10 @@ begin
 
 
 (* should be in NSA.ML *)
-lemma epsilon_ge_zero [simp]: "0 \<le> epsilon"
+lemma epsilon_ge_zero [simp]: "0 \<le> \<epsilon>"
 by (simp add: epsilon_def star_n_zero_num star_n_le)
 
-lemma hpfinite_witness: "epsilon : {x. 0 \<le> x & x : HFinite}"
+lemma hpfinite_witness: "\<epsilon> : {x. 0 \<le> x & x : HFinite}"
 by auto
 
 

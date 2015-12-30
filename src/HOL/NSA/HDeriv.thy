@@ -57,7 +57,7 @@ by transfer (rule of_real_eq_0_iff)
 
 lemma NSDeriv_unique:
      "[| NSDERIV f x :> D; NSDERIV f x :> E |] ==> D = E"
-apply (subgoal_tac "( *f* of_real) epsilon \<in> Infinitesimal - {0::'a star}")
+apply (subgoal_tac "( *f* of_real) \<epsilon> \<in> Infinitesimal - {0::'a star}")
 apply (simp only: nsderiv_def)
 apply (drule (1) bspec)+
 apply (drule (1) approx_trans3)

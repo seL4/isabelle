@@ -21,18 +21,14 @@ abbreviation
   "hypreal_of_hypnat \<equiv> of_hypnat"
 
 definition
-  omega :: hypreal where
+  omega :: hypreal  ("\<omega>") where
    \<comment> \<open>an infinite number \<open>= [<1,2,3,...>]\<close>\<close>
-  "omega = star_n (\<lambda>n. real (Suc n))"
+  "\<omega> = star_n (\<lambda>n. real (Suc n))"
 
 definition
-  epsilon :: hypreal where
+  epsilon :: hypreal  ("\<epsilon>") where
    \<comment> \<open>an infinitesimal number \<open>= [<1,1/2,1/3,...>]\<close>\<close>
-  "epsilon = star_n (\<lambda>n. inverse (real (Suc n)))"
-
-notation (xsymbols)
-  omega  ("\<omega>") and
-  epsilon  ("\<epsilon>")
+  "\<epsilon> = star_n (\<lambda>n. inverse (real (Suc n)))"
 
 
 subsection \<open>Real vector class instances\<close>
@@ -219,7 +215,7 @@ by (simp only: star_one_def star_of_def)
 lemma star_n_abs: "\<bar>star_n X\<bar> = star_n (%n. \<bar>X n\<bar>)"
 by (simp only: star_abs_def starfun_star_n)
 
-lemma hypreal_omega_gt_zero [simp]: "0 < omega"
+lemma hypreal_omega_gt_zero [simp]: "0 < \<omega>"
 by (simp add: omega_def star_n_zero_num star_n_less)
 
 subsection\<open>Existence of Infinite Hyperreal Number\<close>
@@ -238,7 +234,7 @@ lemma lemma_finite_omega_set: "finite {n::nat. x = real n}"
   using lemma_omega_empty_singleton_disj [of x] by auto
 
 lemma not_ex_hypreal_of_real_eq_omega:
-      "~ (\<exists>x. hypreal_of_real x = omega)"
+      "~ (\<exists>x. hypreal_of_real x = \<omega>)"
 apply (simp add: omega_def star_of_def star_n_eq_iff)
 apply clarify
 apply (rule_tac x2="x-1" in lemma_finite_omega_set [THEN FreeUltrafilterNat.finite, THEN notE])
@@ -246,7 +242,7 @@ apply (erule eventually_mono)
 apply auto
 done
 
-lemma hypreal_of_real_not_eq_omega: "hypreal_of_real x \<noteq> omega"
+lemma hypreal_of_real_not_eq_omega: "hypreal_of_real x \<noteq> \<omega>"
 by (insert not_ex_hypreal_of_real_eq_omega, auto)
 
 text\<open>Existence of infinitesimal number also not corresponding to any
@@ -260,21 +256,21 @@ by auto
 lemma lemma_finite_epsilon_set: "finite {n. x = inverse(real(Suc n))}"
 by (cut_tac x = x in lemma_epsilon_empty_singleton_disj, auto)
 
-lemma not_ex_hypreal_of_real_eq_epsilon: "~ (\<exists>x. hypreal_of_real x = epsilon)"
+lemma not_ex_hypreal_of_real_eq_epsilon: "~ (\<exists>x. hypreal_of_real x = \<epsilon>)"
 by (auto simp add: epsilon_def star_of_def star_n_eq_iff
                    lemma_finite_epsilon_set [THEN FreeUltrafilterNat.finite] simp del: of_nat_Suc)
 
-lemma hypreal_of_real_not_eq_epsilon: "hypreal_of_real x \<noteq> epsilon"
+lemma hypreal_of_real_not_eq_epsilon: "hypreal_of_real x \<noteq> \<epsilon>"
 by (insert not_ex_hypreal_of_real_eq_epsilon, auto)
 
-lemma hypreal_epsilon_not_zero: "epsilon \<noteq> 0"
+lemma hypreal_epsilon_not_zero: "\<epsilon> \<noteq> 0"
 by (simp add: epsilon_def star_zero_def star_of_def star_n_eq_iff FreeUltrafilterNat.proper
          del: star_of_zero)
 
-lemma hypreal_epsilon_inverse_omega: "epsilon = inverse(omega)"
+lemma hypreal_epsilon_inverse_omega: "\<epsilon> = inverse \<omega>"
 by (simp add: epsilon_def omega_def star_n_inverse)
 
-lemma hypreal_epsilon_gt_zero: "0 < epsilon"
+lemma hypreal_epsilon_gt_zero: "0 < \<epsilon>"
 by (simp add: hypreal_epsilon_inverse_omega)
 
 subsection\<open>Absolute Value Function for the Hyperreals\<close>
