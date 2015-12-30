@@ -15,15 +15,11 @@ where
   "subcls1 \<equiv> {(C,D). C\<noteq>Object \<and> (\<exists>c. class C = Some c \<and> super c=D)}"
 
 abbreviation
-  subcls1_syntax :: "[cname, cname] => bool"  ("_ <=C1 _" [71,71] 70)
-  where "C <=C1 D == (C,D) \<in> subcls1"
+  subcls1_syntax :: "[cname, cname] => bool"  ("_ \<prec>C1 _" [71,71] 70)
+  where "C \<prec>C1 D == (C,D) \<in> subcls1"
 abbreviation
-  subcls_syntax  :: "[cname, cname] => bool" ("_ <=C _"  [71,71] 70)
-  where "C <=C D == (C,D) \<in> subcls1^*"
-
-notation (xsymbols)
-  subcls1_syntax  ("_ \<prec>C1 _"  [71,71] 70) and
-  subcls_syntax  ("_ \<preceq>C _"   [71,71] 70)
+  subcls_syntax  :: "[cname, cname] => bool" ("_ \<preceq>C _"  [71,71] 70)
+  where "C \<preceq>C D == (C,D) \<in> subcls1^*"
 
 
 subsection "Declarations and properties not used in the meta theory"

@@ -9,36 +9,26 @@ theory Equivalence imports OpSem AxSem begin
 
 subsection "Validity"
 
-definition valid :: "[assn,stmt, assn] => bool" ("|= {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) where
- "|=  {P} c {Q} \<equiv> \<forall>s   t. P s --> (\<exists>n. s -c  -n\<rightarrow> t) --> Q   t"
+definition valid :: "[assn,stmt, assn] => bool" ("\<Turnstile> {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) where
+ "\<Turnstile>  {P} c {Q} \<equiv> \<forall>s   t. P s --> (\<exists>n. s -c  -n\<rightarrow> t) --> Q   t"
 
-definition evalid   :: "[assn,expr,vassn] => bool" ("|=e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) where
- "|=e {P} e {Q} \<equiv> \<forall>s v t. P s --> (\<exists>n. s -e\<succ>v-n\<rightarrow> t) --> Q v t"
+definition evalid   :: "[assn,expr,vassn] => bool" ("\<Turnstile>\<^sub>e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) where
+ "\<Turnstile>\<^sub>e {P} e {Q} \<equiv> \<forall>s v t. P s --> (\<exists>n. s -e\<succ>v-n\<rightarrow> t) --> Q v t"
 
-definition nvalid   :: "[nat, triple    ] => bool" ("|=_: _"  [61,61] 60) where
- "|=n:  t \<equiv> let (P,c,Q) = t in \<forall>s   t. s -c  -n\<rightarrow> t --> P s --> Q   t"
+definition nvalid   :: "[nat, triple    ] => bool" ("\<Turnstile>_: _" [61,61] 60) where
+ "\<Turnstile>n:  t \<equiv> let (P,c,Q) = t in \<forall>s   t. s -c  -n\<rightarrow> t --> P s --> Q   t"
 
-definition envalid   :: "[nat,etriple    ] => bool" ("|=_:e _" [61,61] 60) where
- "|=n:e t \<equiv> let (P,e,Q) = t in \<forall>s v t. s -e\<succ>v-n\<rightarrow> t --> P s --> Q v t"
+definition envalid   :: "[nat,etriple    ] => bool" ("\<Turnstile>_:\<^sub>e _" [61,61] 60) where
+ "\<Turnstile>n:\<^sub>e t \<equiv> let (P,e,Q) = t in \<forall>s v t. s -e\<succ>v-n\<rightarrow> t --> P s --> Q v t"
 
-definition nvalids :: "[nat,       triple set] => bool" ("||=_: _" [61,61] 60) where
- "||=n: T \<equiv> \<forall>t\<in>T. |=n: t"
+definition nvalids :: "[nat,       triple set] => bool" ("|\<Turnstile>_: _" [61,61] 60) where
+ "|\<Turnstile>n: T \<equiv> \<forall>t\<in>T. \<Turnstile>n: t"
 
-definition cnvalids :: "[triple set,triple set] => bool" ("_ ||=/ _"  [61,61] 60) where
- "A ||=  C \<equiv> \<forall>n. ||=n: A --> ||=n: C"
+definition cnvalids :: "[triple set,triple set] => bool" ("_ |\<Turnstile>/ _" [61,61] 60) where
+ "A |\<Turnstile>  C \<equiv> \<forall>n. |\<Turnstile>n: A --> |\<Turnstile>n: C"
 
-definition cenvalid  :: "[triple set,etriple   ] => bool" ("_ ||=e/ _" [61,61] 60) where
- "A ||=e t \<equiv> \<forall>n. ||=n: A --> |=n:e t"
-
-notation (xsymbols)
-  valid  ("\<Turnstile> {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) and
-  evalid  ("\<Turnstile>\<^sub>e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) and
-  nvalid  ("\<Turnstile>_: _" [61,61] 60) and
-  envalid  ("\<Turnstile>_:\<^sub>e _" [61,61] 60) and
-  nvalids  ("|\<Turnstile>_: _" [61,61] 60) and
-  cnvalids  ("_ |\<Turnstile>/ _" [61,61] 60) and
-  cenvalid  ("_ |\<Turnstile>\<^sub>e/ _"[61,61] 60)
-
+definition cenvalid  :: "[triple set,etriple   ] => bool" ("_ |\<Turnstile>\<^sub>e/ _"[61,61] 60) where
+ "A |\<Turnstile>\<^sub>e t \<equiv> \<forall>n. |\<Turnstile>n: A --> \<Turnstile>n:\<^sub>e t"
 
 lemma nvalid_def2: "\<Turnstile>n: (P,c,Q) \<equiv> \<forall>s t. s -c-n\<rightarrow> t \<longrightarrow> P s \<longrightarrow> Q t"
 by (simp add: nvalid_def Let_def)
@@ -160,11 +150,8 @@ subsection "(Relative) Completeness"
 definition MGT :: "stmt => state => triple" where
          "MGT  c Z \<equiv> (\<lambda>s. Z = s, c, \<lambda>  t. \<exists>n. Z -c-  n\<rightarrow> t)"
 
-definition MGTe   :: "expr => state => etriple" where
-         "MGTe e Z \<equiv> (\<lambda>s. Z = s, e, \<lambda>v t. \<exists>n. Z -e\<succ>v-n\<rightarrow> t)"
-
-notation (xsymbols)
-  MGTe  ("MGT\<^sub>e")
+definition MGT\<^sub>e   :: "expr => state => etriple" where
+         "MGT\<^sub>e e Z \<equiv> (\<lambda>s. Z = s, e, \<lambda>v t. \<exists>n. Z -e\<succ>v-n\<rightarrow> t)"
 
 lemma MGF_implies_complete:
  "\<forall>Z. {} |\<turnstile> { MGT c Z} \<Longrightarrow> \<Turnstile>  {P} c {Q} \<Longrightarrow> {} \<turnstile>  {P} c {Q}"
@@ -177,7 +164,7 @@ done
 lemma eMGF_implies_complete:
  "\<forall>Z. {} |\<turnstile>\<^sub>e MGT\<^sub>e e Z \<Longrightarrow> \<Turnstile>\<^sub>e {P} e {Q} \<Longrightarrow> {} \<turnstile>\<^sub>e {P} e {Q}"
 apply (simp only: evalid_def2)
-apply (unfold MGTe_def)
+apply (unfold MGT\<^sub>e_def)
 apply (erule hoare_ehoare.eConseq)
 apply (clarsimp simp add: envalid_def2)
 done
@@ -206,7 +193,7 @@ done
 
 lemma MGF_lemma: "\<forall>M Z. A |\<turnstile> {MGT (Impl M) Z} \<Longrightarrow> 
  (\<forall>Z. A |\<turnstile> {MGT c Z}) \<and> (\<forall>Z. A |\<turnstile>\<^sub>e MGT\<^sub>e e Z)"
-apply (simp add: MGT_def MGTe_def)
+apply (simp add: MGT_def MGT\<^sub>e_def)
 apply (rule stmt_expr.induct)
 apply (rule_tac [!] allI)
 

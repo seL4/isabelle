@@ -70,15 +70,11 @@ definition get_field     :: "state => loc => fname => val" where
  "get_field s a f \<equiv> the (snd (get_obj s a) f)"
 
 --{* local function: *}
-definition hupd       :: "loc => obj => state => state"   ("hupd'(_|->_')" [10,10] 1000) where
+definition hupd       :: "loc => obj => state => state"   ("hupd'(_\<mapsto>_')" [10,10] 1000) where
  "hupd a obj s \<equiv> s (| heap   := ((heap   s)(a\<mapsto>obj))|)"
 
-definition lupd       :: "vname => val => state => state" ("lupd'(_|->_')" [10,10] 1000) where
+definition lupd       :: "vname => val => state => state" ("lupd'(_\<mapsto>_')" [10,10] 1000) where
  "lupd x v s   \<equiv> s (| locals := ((locals s)(x\<mapsto>v  ))|)"
-
-notation (xsymbols)
-  hupd  ("hupd'(_\<mapsto>_')" [10,10] 1000) and
-  lupd  ("lupd'(_\<mapsto>_')" [10,10] 1000)
 
 definition new_obj :: "loc => cname => state => state" where
  "new_obj a C   \<equiv> hupd(a\<mapsto>(C,init_vars (field C)))"

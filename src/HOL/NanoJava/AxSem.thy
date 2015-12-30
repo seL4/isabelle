@@ -58,7 +58,7 @@ where
                 new C {P}"
 
 | Cast: "A \<turnstile>\<^sub>e {P} e {\<lambda>v s. (case v of Null => True 
-                                 | Addr a => obj_class s a <=C C) --> Q v s} ==>
+                                 | Addr a => obj_class s a \<preceq>C C) --> Q v s} ==>
          A \<turnstile>\<^sub>e {P} Cast C e {Q}"
 
 | Call: "[| A \<turnstile>\<^sub>e {P} e1 {Q}; \<forall>a. A \<turnstile>\<^sub>e {Q a} e2 {R a};
@@ -67,7 +67,7 @@ where
                   Meth (C,m) {\<lambda>s. S (s<Res>) (set_locs ls s)} |] ==>
              A \<turnstile>\<^sub>e {P} {C}e1..m(e2) {S}"
 
-| Meth: "\<forall>D. A \<turnstile> {\<lambda>s'. \<exists>s a. s<This> = Addr a \<and> D = obj_class s a \<and> D <=C C \<and> 
+| Meth: "\<forall>D. A \<turnstile> {\<lambda>s'. \<exists>s a. s<This> = Addr a \<and> D = obj_class s a \<and> D \<preceq>C C \<and> 
                         P s \<and> s' = init_locs D m s}
                   Impl (D,m) {Q} ==>
              A \<turnstile> {P} Meth (C,m) {Q}"
