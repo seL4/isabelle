@@ -3,7 +3,7 @@ theory Main_Doc
 imports Main
 begin
 
-setup {*
+setup \<open>
   let
     fun pretty_term_type_only ctxt (t, T) =
       (if fastype_of t = Sign.certify_typ (Proof_Context.theory_of ctxt) T then ()
@@ -16,14 +16,14 @@ setup {*
         Thy_Output.output ctxt
           (Thy_Output.maybe_pretty_source pretty_term_type_only ctxt source [arg]))
   end
-*}
-setup {*
+\<close>
+setup \<open>
   Thy_Output.antiquotation @{binding expanded_typ} (Args.typ >> single)
     (fn {source, context, ...} => Thy_Output.output context o
       Thy_Output.maybe_pretty_source Syntax.pretty_typ context source)
-*}
+\<close>
 (*>*)
-text{*
+text\<open>
 
 \begin{abstract}
 This document lists the main types, functions and syntax provided by theory @{theory Main}. It is meant as a quick overview of what is available. For infix operators and their precedences see the final section. The sophisticated class structure is only hinted at. For details see @{url "http://isabelle.in.tum.de/library/HOL/"}.
@@ -32,7 +32,7 @@ This document lists the main types, functions and syntax provided by theory @{th
 \section*{HOL}
 
 The basic logic: @{prop "x = y"}, @{const True}, @{const False}, @{prop"Not P"}, @{prop"P & Q"}, @{prop "P | Q"}, @{prop "P --> Q"}, @{prop"ALL x. P"}, @{prop"EX x. P"}, @{prop"EX! x. P"}, @{term"THE x. P"}.
-\smallskip
+\<^smallskip>
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const HOL.undefined} & @{typeof HOL.undefined}\\
@@ -42,7 +42,7 @@ The basic logic: @{prop "x = y"}, @{const True}, @{const False}, @{prop"Not P"},
 \subsubsection*{Syntax}
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
-@{term"~(x = y)"} & @{term[source]"\<not> (x = y)"} & (\verb$~=$)\\
+@{term"~(x = y)"} & @{term[source]"\<not> (x = y)"} & (\<^verbatim>\<open>~=\<close>)\\
 @{term[source]"P \<longleftrightarrow> Q"} & @{term"P \<longleftrightarrow> Q"} \\
 @{term"If x y z"} & @{term[source]"If x y z"}\\
 @{term"Let e\<^sub>1 (%x. e\<^sub>2)"} & @{term[source]"Let e\<^sub>1 (\<lambda>x. e\<^sub>2)"}\\
@@ -53,10 +53,10 @@ The basic logic: @{prop "x = y"}, @{const True}, @{const False}, @{prop"Not P"},
 
 A collection of classes defining basic orderings:
 preorder, partial order, linear order, dense linear order and wellorder.
-\smallskip
+\<^smallskip>
 
 \begin{supertabular}{@ {} l @ {~::~} l l @ {}}
-@{const Orderings.less_eq} & @{typeof Orderings.less_eq} & (\verb$<=$)\\
+@{const Orderings.less_eq} & @{typeof Orderings.less_eq} & (\<^verbatim>\<open><=\<close>)\\
 @{const Orderings.less} & @{typeof Orderings.less}\\
 @{const Orderings.Least} & @{typeof Orderings.Least}\\
 @{const Orderings.min} & @{typeof Orderings.min}\\
@@ -70,7 +70,7 @@ preorder, partial order, linear order, dense linear order and wellorder.
 \subsubsection*{Syntax}
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
-@{term[source]"x \<ge> y"} & @{term"x \<ge> y"} & (\verb$>=$)\\
+@{term[source]"x \<ge> y"} & @{term"x \<ge> y"} & (\<^verbatim>\<open>>=\<close>)\\
 @{term[source]"x > y"} & @{term"x > y"}\\
 @{term"ALL x<=y. P"} & @{term[source]"\<forall>x. x \<le> y \<longrightarrow> P"}\\
 @{term"EX x<=y. P"} & @{term[source]"\<exists>x. x \<le> y \<and> P"}\\
@@ -93,8 +93,7 @@ latter in theory @{theory Set}).
 
 \subsubsection*{Syntax}
 
-Available by loading theory @{text Lattice_Syntax} in directory @{text
-Library}.
+Available by loading theory \<open>Lattice_Syntax\<close> in directory \<open>Library\<close>.
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
 @{text[source]"x \<sqsubseteq> y"} & @{term"x \<le> y"}\\
@@ -114,9 +113,9 @@ Library}.
 @{const Set.empty} & @{term_type_only "Set.empty" "'a set"}\\
 @{const Set.insert} & @{term_type_only insert "'a\<Rightarrow>'a set\<Rightarrow>'a set"}\\
 @{const Collect} & @{term_type_only Collect "('a\<Rightarrow>bool)\<Rightarrow>'a set"}\\
-@{const Set.member} & @{term_type_only Set.member "'a\<Rightarrow>'a set\<Rightarrow>bool"} & (\texttt{:})\\
-@{const Set.union} & @{term_type_only Set.union "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\texttt{Un})\\
-@{const Set.inter} & @{term_type_only Set.inter "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\texttt{Int})\\
+@{const Set.member} & @{term_type_only Set.member "'a\<Rightarrow>'a set\<Rightarrow>bool"} & (\<^verbatim>\<open>:\<close>)\\
+@{const Set.union} & @{term_type_only Set.union "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\<^verbatim>\<open>Un\<close>)\\
+@{const Set.inter} & @{term_type_only Set.inter "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\<^verbatim>\<open>Int\<close>)\\
 @{const UNION} & @{term_type_only UNION "'a set\<Rightarrow>('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"}\\
 @{const INTER} & @{term_type_only INTER "'a set\<Rightarrow>('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"}\\
 @{const Union} & @{term_type_only Union "'a set set\<Rightarrow>'a set"}\\
@@ -131,14 +130,14 @@ Library}.
 \subsubsection*{Syntax}
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
-@{text"{a\<^sub>1,\<dots>,a\<^sub>n}"} & @{text"insert a\<^sub>1 (\<dots> (insert a\<^sub>n {})\<dots>)"}\\
+\<open>{a\<^sub>1,\<dots>,a\<^sub>n}\<close> & \<open>insert a\<^sub>1 (\<dots> (insert a\<^sub>n {})\<dots>)\<close>\\
 @{term"a ~: A"} & @{term[source]"\<not>(x \<in> A)"}\\
 @{term"A \<subseteq> B"} & @{term[source]"A \<le> B"}\\
 @{term"A \<subset> B"} & @{term[source]"A < B"}\\
 @{term[source]"A \<supseteq> B"} & @{term[source]"B \<le> A"}\\
 @{term[source]"A \<supset> B"} & @{term[source]"B < A"}\\
 @{term"{x. P}"} & @{term[source]"Collect (\<lambda>x. P)"}\\
-@{text"{t | x\<^sub>1 \<dots> x\<^sub>n. P}"} & @{text"{v. \<exists>x\<^sub>1 \<dots> x\<^sub>n. v = t \<and> P}"}\\
+\<open>{t | x\<^sub>1 \<dots> x\<^sub>n. P}\<close> & \<open>{v. \<exists>x\<^sub>1 \<dots> x\<^sub>n. v = t \<and> P}\<close>\\
 @{term[source]"\<Union>x\<in>I. A"} & @{term[source]"UNION I (\<lambda>x. A)"} & (\texttt{UN})\\
 @{term[source]"\<Union>x. A"} & @{term[source]"UNION UNIV (\<lambda>x. A)"}\\
 @{term[source]"\<Inter>x\<in>I. A"} & @{term[source]"INTER I (\<lambda>x. A)"} & (\texttt{INT})\\
@@ -166,14 +165,14 @@ Library}.
 
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
 @{term"fun_upd f x y"} & @{term[source]"fun_upd f x y"}\\
-@{text"f(x\<^sub>1:=y\<^sub>1,\<dots>,x\<^sub>n:=y\<^sub>n)"} & @{text"f(x\<^sub>1:=y\<^sub>1)\<dots>(x\<^sub>n:=y\<^sub>n)"}\\
+\<open>f(x\<^sub>1:=y\<^sub>1,\<dots>,x\<^sub>n:=y\<^sub>n)\<close> & \<open>f(x\<^sub>1:=y\<^sub>1)\<dots>(x\<^sub>n:=y\<^sub>n)\<close>\\
 \end{tabular}
 
 
 \section*{Hilbert\_Choice}
 
 Hilbert's selection ($\varepsilon$) operator: @{term"SOME x. P"}.
-\smallskip
+\<^smallskip>
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Hilbert_Choice.inv_into} & @{term_type_only Hilbert_Choice.inv_into "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)"}
@@ -200,7 +199,7 @@ Note that in particular sets (@{typ"'a \<Rightarrow> bool"}) are complete lattic
 
 \section*{Sum\_Type}
 
-Type constructor @{text"+"}.
+Type constructor \<open>+\<close>.
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Sum_Type.Inl} & @{typeof Sum_Type.Inl}\\
@@ -211,7 +210,7 @@ Type constructor @{text"+"}.
 
 \section*{Product\_Type}
 
-Types @{typ unit} and @{text"\<times>"}.
+Types @{typ unit} and \<open>\<times>\<close>.
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
 @{const Product_Type.Unity} & @{typeof Product_Type.Unity}\\
@@ -228,11 +227,11 @@ Types @{typ unit} and @{text"\<times>"}.
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} ll @ {}}
 @{term"Pair a b"} & @{term[source]"Pair a b"}\\
 @{term"case_prod (\<lambda>x y. t)"} & @{term[source]"case_prod (\<lambda>x y. t)"}\\
-@{term"A \<times> B"} &  @{text"Sigma A (\<lambda>\<^raw:\_>. B)"}
+@{term"A \<times> B"} &  \<open>Sigma A (\<lambda>\<^raw:\_>. B)\<close>
 \end{tabular}
 
 Pairs may be nested. Nesting to the right is printed as a tuple,
-e.g.\ \mbox{@{term"(a,b,c)"}} is really \mbox{@{text"(a, (b, c))"}.}
+e.g.\ \mbox{@{term"(a,b,c)"}} is really \mbox{\<open>(a, (b, c))\<close>.}
 Pattern matching with pairs and tuples extends to all binders,
 e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
 
@@ -262,12 +261,12 @@ e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
 \subsubsection*{Syntax}
 
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
-@{term"converse r"} & @{term[source]"converse r"} & (\verb$^-1$)
+@{term"converse r"} & @{term[source]"converse r"} & (\<^verbatim>\<open>^-1\<close>)
 \end{tabular}
-\medskip
+\<^medskip>
 
 \noindent
-Type synonym \ @{typ"'a rel"} @{text"="} @{expanded_typ "'a rel"}
+Type synonym \ @{typ"'a rel"} \<open>=\<close> @{expanded_typ "'a rel"}
 
 \section*{Equiv\_Relations}
 
@@ -300,9 +299,9 @@ Type synonym \ @{typ"'a rel"} @{text"="} @{expanded_typ "'a rel"}
 \subsubsection*{Syntax}
 
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
-@{term"rtrancl r"} & @{term[source]"rtrancl r"} & (\verb$^*$)\\
-@{term"trancl r"} & @{term[source]"trancl r"} & (\verb$^+$)\\
-@{term"reflcl r"} & @{term[source]"reflcl r"} & (\verb$^=$)
+@{term"rtrancl r"} & @{term[source]"rtrancl r"} & (\<^verbatim>\<open>^*\<close>)\\
+@{term"trancl r"} & @{term[source]"trancl r"} & (\<^verbatim>\<open>^+\<close>)\\
+@{term"reflcl r"} & @{term[source]"reflcl r"} & (\<^verbatim>\<open>^=\<close>)
 \end{tabular}
 
 
@@ -314,11 +313,11 @@ structures from semigroups up to fields. Everything is done in terms of
 overloaded operators:
 
 \begin{supertabular}{@ {} l @ {~::~} l l @ {}}
-@{text "0"} & @{typeof zero}\\
-@{text "1"} & @{typeof one}\\
+\<open>0\<close> & @{typeof zero}\\
+\<open>1\<close> & @{typeof one}\\
 @{const plus} & @{typeof plus}\\
 @{const minus} & @{typeof minus}\\
-@{const uminus} & @{typeof uminus} & (\verb$-$)\\
+@{const uminus} & @{typeof uminus} & (\<^verbatim>\<open>-\<close>)\\
 @{const times} & @{typeof times}\\
 @{const inverse} & @{typeof inverse}\\
 @{const divide} & @{typeof divide}\\
@@ -339,7 +338,7 @@ overloaded operators:
 \section*{Nat}
 
 @{datatype nat}
-\bigskip
+\<^bigskip>
 
 \begin{tabular}{@ {} lllllll @ {}}
 @{term "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
@@ -366,7 +365,7 @@ overloaded operators:
 \section*{Int}
 
 Type @{typ int}
-\bigskip
+\<^bigskip>
 
 \begin{tabular}{@ {} llllllll @ {}}
 @{term "op + :: int \<Rightarrow> int \<Rightarrow> int"} &
@@ -390,7 +389,7 @@ Type @{typ int}
 \begin{tabular}{@ {} l @ {~::~} l l @ {}}
 @{const Int.nat} & @{typeof Int.nat}\\
 @{const Int.of_int} & @{typeof Int.of_int}\\
-@{const Int.Ints} & @{term_type_only Int.Ints "'a::ring_1 set"} & (\verb$Ints$)
+@{const Int.Ints} & @{term_type_only Int.Ints "'a::ring_1 set"} & (\<^verbatim>\<open>Ints\<close>)
 \end{tabular}
 
 \subsubsection*{Syntax}
@@ -415,10 +414,10 @@ Type @{typ int}
 \subsubsection*{Syntax}
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
-@{term"setsum (%x. x) A"} & @{term[source]"setsum (\<lambda>x. x) A"} & (\verb$SUM$)\\
+@{term"setsum (%x. x) A"} & @{term[source]"setsum (\<lambda>x. x) A"} & (\<^verbatim>\<open>SUM\<close>)\\
 @{term"setsum (%x. t) A"} & @{term[source]"setsum (\<lambda>x. t) A"}\\
 @{term[source]"\<Sum>x|P. t"} & @{term"\<Sum>x|P. t"}\\
-\multicolumn{2}{@ {}l@ {}}{Similarly for @{text"\<Prod>"} instead of @{text"\<Sum>"}} & (\verb$PROD$)\\
+\multicolumn{2}{@ {}l@ {}}{Similarly for \<open>\<Prod>\<close> instead of \<open>\<Sum>\<close>} & (\<^verbatim>\<open>PROD\<close>)\\
 \end{supertabular}
 
 
@@ -461,12 +460,12 @@ Type @{typ int}
 @{term "atLeastAtMost x y"} & @{term[source] "atLeastAtMost x y"}\\
 @{term[source] "\<Union>i\<le>n. A"} & @{term[source] "\<Union>i \<in> {..n}. A"}\\
 @{term[source] "\<Union>i<n. A"} & @{term[source] "\<Union>i \<in> {..<n}. A"}\\
-\multicolumn{2}{@ {}l@ {}}{Similarly for @{text"\<Inter>"} instead of @{text"\<Union>"}}\\
+\multicolumn{2}{@ {}l@ {}}{Similarly for \<open>\<Inter>\<close> instead of \<open>\<Union>\<close>}\\
 @{term "setsum (%x. t) {a..b}"} & @{term[source] "setsum (\<lambda>x. t) {a..b}"}\\
 @{term "setsum (%x. t) {a..<b}"} & @{term[source] "setsum (\<lambda>x. t) {a..<b}"}\\
 @{term "setsum (%x. t) {..b}"} & @{term[source] "setsum (\<lambda>x. t) {..b}"}\\
 @{term "setsum (%x. t) {..<b}"} & @{term[source] "setsum (\<lambda>x. t) {..<b}"}\\
-\multicolumn{2}{@ {}l@ {}}{Similarly for @{text"\<Prod>"} instead of @{text"\<Sum>"}}\\
+\multicolumn{2}{@ {}l@ {}}{Similarly for \<open>\<Prod>\<close> instead of \<open>\<Sum>\<close>}\\
 \end{supertabular}
 
 
@@ -480,7 +479,7 @@ Type @{typ int}
 \section*{Option}
 
 @{datatype option}
-\bigskip
+\<^bigskip>
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Option.the} & @{typeof Option.the}\\
@@ -492,7 +491,7 @@ Type @{typ int}
 \section*{List}
 
 @{datatype list}
-\bigskip
+\<^bigskip>
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
 @{const List.append} & @{typeof List.append}\\
@@ -546,18 +545,18 @@ Type @{typ int}
 \subsubsection*{Syntax}
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
-@{text"[x\<^sub>1,\<dots>,x\<^sub>n]"} & @{text"x\<^sub>1 # \<dots> # x\<^sub>n # []"}\\
+\<open>[x\<^sub>1,\<dots>,x\<^sub>n]\<close> & \<open>x\<^sub>1 # \<dots> # x\<^sub>n # []\<close>\\
 @{term"[m..<n]"} & @{term[source]"upt m n"}\\
 @{term"[i..j]"} & @{term[source]"upto i j"}\\
-@{text"[e. x \<leftarrow> xs]"} & @{term"map (%x. e) xs"}\\
+\<open>[e. x \<leftarrow> xs]\<close> & @{term"map (%x. e) xs"}\\
 @{term"[x \<leftarrow> xs. b]"} & @{term[source]"filter (\<lambda>x. b) xs"} \\
 @{term"xs[n := x]"} & @{term[source]"list_update xs n x"}\\
 @{term"\<Sum>x\<leftarrow>xs. e"} & @{term[source]"listsum (map (\<lambda>x. e) xs)"}\\
 \end{supertabular}
-\medskip
+\<^medskip>
 
-List comprehension: @{text"[e. q\<^sub>1, \<dots>, q\<^sub>n]"} where each
-qualifier @{text q\<^sub>i} is either a generator \mbox{@{text"pat \<leftarrow> e"}} or a
+List comprehension: \<open>[e. q\<^sub>1, \<dots>, q\<^sub>n]\<close> where each
+qualifier \<open>q\<^sub>i\<close> is either a generator \mbox{\<open>pat \<leftarrow> e\<close>} or a
 guard, i.e.\ boolean expression.
 
 \section*{Map}
@@ -582,8 +581,8 @@ the domain of a map may be infinite.
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
 @{term"Map.empty"} & @{term"\<lambda>x. None"}\\
 @{term"m(x:=Some y)"} & @{term[source]"m(x:=Some y)"}\\
-@{text"m(x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n)"} & @{text[source]"m(x\<^sub>1\<mapsto>y\<^sub>1)\<dots>(x\<^sub>n\<mapsto>y\<^sub>n)"}\\
-@{text"[x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n]"} & @{text[source]"Map.empty(x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n)"}\\
+\<open>m(x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n)\<close> & @{text[source]"m(x\<^sub>1\<mapsto>y\<^sub>1)\<dots>(x\<^sub>n\<mapsto>y\<^sub>n)"}\\
+\<open>[x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n]\<close> & @{text[source]"Map.empty(x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n)"}\\
 @{term"map_upds m xs ys"} & @{term[source]"map_upds m xs ys"}\\
 \end{tabular}
 
@@ -593,38 +592,38 @@ the domain of a map may be infinite.
 \begin{tabular}{llll}
  & Operator & precedence & associativity \\
 \hline
-Meta-logic & @{text"\<Longrightarrow>"} & 1 & right \\
-& @{text"\<equiv>"} & 2 \\
+Meta-logic & \<open>\<Longrightarrow>\<close> & 1 & right \\
+& \<open>\<equiv>\<close> & 2 \\
 \hline
-Logic & @{text"\<and>"} & 35 & right \\
-&@{text"\<or>"} & 30 & right \\
-&@{text"\<longrightarrow>"}, @{text"\<longleftrightarrow>"} & 25 & right\\
-&@{text"="}, @{text"\<noteq>"} & 50 & left\\
+Logic & \<open>\<and>\<close> & 35 & right \\
+&\<open>\<or>\<close> & 30 & right \\
+&\<open>\<longrightarrow>\<close>, \<open>\<longleftrightarrow>\<close> & 25 & right\\
+&\<open>=\<close>, \<open>\<noteq>\<close> & 50 & left\\
 \hline
-Orderings & @{text"\<le>"}, @{text"<"}, @{text"\<ge>"}, @{text">"} & 50 \\
+Orderings & \<open>\<le>\<close>, \<open><\<close>, \<open>\<ge>\<close>, \<open>>\<close> & 50 \\
 \hline
-Sets & @{text"\<subseteq>"}, @{text"\<subset>"}, @{text"\<supseteq>"}, @{text"\<supset>"} & 50 \\
-&@{text"\<in>"}, @{text"\<notin>"} & 50 \\
-&@{text"\<inter>"} & 70 & left \\
-&@{text"\<union>"} & 65 & left \\
+Sets & \<open>\<subseteq>\<close>, \<open>\<subset>\<close>, \<open>\<supseteq>\<close>, \<open>\<supset>\<close> & 50 \\
+&\<open>\<in>\<close>, \<open>\<notin>\<close> & 50 \\
+&\<open>\<inter>\<close> & 70 & left \\
+&\<open>\<union>\<close> & 65 & left \\
 \hline
-Functions and Relations & @{text"\<circ>"} & 55 & left\\
-&@{text"`"} & 90 & right\\
-&@{text"O"} & 75 & right\\
-&@{text"``"} & 90 & right\\
-&@{text"^^"} & 80 & right\\
+Functions and Relations & \<open>\<circ>\<close> & 55 & left\\
+&\<open>`\<close> & 90 & right\\
+&\<open>O\<close> & 75 & right\\
+&\<open>``\<close> & 90 & right\\
+&\<open>^^\<close> & 80 & right\\
 \hline
-Numbers & @{text"+"}, @{text"-"} & 65 & left \\
-&@{text"*"}, @{text"/"} & 70 & left \\
-&@{text"div"}, @{text"mod"} & 70 & left\\
-&@{text"^"} & 80 & right\\
-&@{text"dvd"} & 50 \\
+Numbers & \<open>+\<close>, \<open>-\<close> & 65 & left \\
+&\<open>*\<close>, \<open>/\<close> & 70 & left \\
+&\<open>div\<close>, \<open>mod\<close> & 70 & left\\
+&\<open>^\<close> & 80 & right\\
+&\<open>dvd\<close> & 50 \\
 \hline
-Lists & @{text"#"}, @{text"@"} & 65 & right\\
-&@{text"!"} & 100 & left
+Lists & \<open>#\<close>, \<open>@\<close> & 65 & right\\
+&\<open>!\<close> & 100 & left
 \end{tabular}
 \end{center}
-*}
+\<close>
 (*<*)
 end
 (*>*)
