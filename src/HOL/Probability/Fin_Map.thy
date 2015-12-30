@@ -101,11 +101,9 @@ definition Pi' :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a set) \<Rightarrow> 
   "Pi' I A = { P. domain P = I \<and> (\<forall>i. i \<in> I \<longrightarrow> (P)\<^sub>F i \<in> A i) } "
 
 syntax
-  "_Pi'"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PI' _:_./ _)" 10)
-syntax (xsymbols)
   "_Pi'" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>' _\<in>_./ _)"   10)
 translations
-  "PI' x:A. B" == "CONST Pi' A (%x. B)"
+  "\<Pi>' x\<in>A. B" == "CONST Pi' A (\<lambda>x. B)"
 
 subsubsection\<open>Basic Properties of @{term Pi'}\<close>
 
@@ -610,11 +608,9 @@ abbreviation
   "Pi\<^sub>F I M \<equiv> PiF I M"
 
 syntax
-  "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3PIF _:_./ _)" 10)
-syntax (xsymbols)
   "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3\<Pi>\<^sub>F _\<in>_./ _)"  10)
 translations
-  "PIF x:I. M" == "CONST PiF I (%x. M)"
+  "\<Pi>\<^sub>F x\<in>I. M" == "CONST PiF I (%x. M)"
 
 lemma PiF_gen_subset: "{(\<Pi>' j\<in>J. X j) |X J. J \<in> I \<and> X \<in> (\<Pi> j\<in>J. sets (M j))} \<subseteq>
     Pow (\<Union>J \<in> I. (\<Pi>' j\<in>J. space (M j)))"
@@ -1094,7 +1090,7 @@ proof -
   qed
 qed
 
-lemma finmap_UNIV[simp]: "(\<Union>J\<in>Collect finite. PI' j : J. UNIV) = UNIV" by auto
+lemma finmap_UNIV[simp]: "(\<Union>J\<in>Collect finite. \<Pi>' j\<in>J. UNIV) = UNIV" by auto
 
 lemma borel_eq_PiF_borel:
   shows "(borel :: ('i::countable \<Rightarrow>\<^sub>F 'a::polish_space) measure) =

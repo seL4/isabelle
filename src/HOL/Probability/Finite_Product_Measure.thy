@@ -169,11 +169,9 @@ abbreviation
   "Pi\<^sub>M I M \<equiv> PiM I M"
 
 syntax
-  "_PiM" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3PIM _:_./ _)" 10)
-syntax (xsymbols)
   "_PiM" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3\<Pi>\<^sub>M _\<in>_./ _)"  10)
 translations
-  "PIM x:I. M" == "CONST PiM I (%x. M)"
+  "\<Pi>\<^sub>M x\<in>I. M" == "CONST PiM I (%x. M)"
 
 lemma extend_measure_cong:
   assumes "\<Omega> = \<Omega>'" "I = I'" "G = G'" "\<And>i. i \<in> I' \<Longrightarrow> \<mu> i = \<mu>' i"
@@ -507,7 +505,7 @@ lemma sets_PiM_cong[measurable_cong]:
 
 lemma sets_PiM_I:
   assumes "finite J" "J \<subseteq> I" "\<forall>i\<in>J. E i \<in> sets (M i)"
-  shows "prod_emb I M J (PIE j:J. E j) \<in> sets (PIM i:I. M i)"
+  shows "prod_emb I M J (PIE j:J. E j) \<in> sets (\<Pi>\<^sub>M i\<in>I. M i)"
 proof cases
   assume "J = {}"
   then have "prod_emb I M J (PIE j:J. E j) = (PIE j:I. space (M j))"
@@ -574,7 +572,7 @@ qed fact
 
 lemma sets_PiM_I_finite[measurable]:
   assumes "finite I" and sets: "(\<And>i. i \<in> I \<Longrightarrow> E i \<in> sets (M i))"
-  shows "(PIE j:I. E j) \<in> sets (PIM i:I. M i)"
+  shows "(PIE j:I. E j) \<in> sets (\<Pi>\<^sub>M i\<in>I. M i)"
   using sets_PiM_I[of I I E M] sets.sets_into_space[OF sets] \<open>finite I\<close> sets by auto
 
 lemma measurable_component_singleton[measurable (raw)]:
