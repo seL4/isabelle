@@ -9,6 +9,18 @@ New in Isabelle2016 (February 2015)
 
 *** General ***
 
+* Former "xsymbols" syntax with Isabelle symbols is used by default,
+without any special print mode. Important ASCII replacement syntax
+remains available under print mode "ASCII", but less important syntax
+has been removed (see below).
+
+* Support for more arrow symbols, with rendering in LaTeX and
+Isabelle fonts: \<Lleftarrow> \<Rrightarrow> \<longlongleftarrow> \<longlongrightarrow> \<longlonglongleftarrow> \<longlonglongrightarrow>
+
+* Syntax for formal comments "-- text" now also supports the symbolic
+form "\<comment> text". Command-line tool "isabelle update_cartouches -c" helps
+to update old sources.
+
 * Toplevel theorem statements have been simplified as follows:
 
   theorems             ~>  lemmas
@@ -22,30 +34,8 @@ accordingly.
 * Toplevel theorem statement 'proposition' is another alias for
 'theorem'.
 
-* Syntax for formal comments "-- text" now also supports the symbolic
-form "\<comment> text". Command-line tool "isabelle update_cartouches -c" helps
-to update old sources.
-
-* Former "xsymbols" syntax with Isabelle symbols is used by default,
-without any special print mode. Important ASCII replacement syntax
-remains available under print mode "ASCII", but less important syntax
-has been removed (see below).
-
-* Support for more arrow symbols, with rendering in LaTeX and
-Isabelle fonts: \<Lleftarrow> \<Rrightarrow> \<longlongleftarrow> \<longlongrightarrow> \<longlonglongleftarrow> \<longlonglongrightarrow>
-
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
-
-* Completion of symbols via prefix of \<name> or \<^name> or \name is
-always possible, independently of the language context. It is never
-implicit: a popup will show up unconditionally.
-
-* Additional abbreviations for syntactic completion may be specified in
-$ISABELLE_HOME/etc/abbrevs and $ISABELLE_HOME_USER/etc/abbrevs.
-
-* Improved scheduling for urgent print tasks (e.g. command state output,
-interactive queries) wrt. long-running background tasks.
 
 * IDE support for the source-level debugger of Poly/ML, to work with
 Isabelle/ML and official Standard ML. Configuration option "ML_debugger"
@@ -55,9 +45,6 @@ information. The Debugger panel allows to set breakpoints (via context
 menu), step through stopped threads, evaluate local ML expressions etc.
 At least one Debugger view needs to be active to have any effect on the
 running ML program.
-
-* The main Isabelle executable is managed as single-instance Desktop
-application uniformly on all platforms: Linux, Windows, Mac OS X.
 
 * The State panel manages explicit proof state output, with dynamic
 auto-update according to cursor movement. Alternatively, the jEdit
@@ -80,6 +67,17 @@ unfinished edits in the PIDE pipeline. This avoids flashing text display
 due to ad-hoc updates by auxiliary GUI components, such as the State
 panel.
 
+* Improved scheduling for urgent print tasks (e.g. command state output,
+interactive queries) wrt. long-running background tasks.
+
+* Completion of symbols via prefix of \<name> or \<^name> or \name is
+always possible, independently of the language context. It is never
+implicit: a popup will show up unconditionally.
+
+* Additional abbreviations for syntactic completion may be specified in
+$ISABELLE_HOME/etc/abbrevs and $ISABELLE_HOME_USER/etc/abbrevs, with
+support for simple templates using ASCII 007 (bell) as placeholder.
+
 * Action "isabelle-emph" (with keyboard shortcut C+e LEFT) controls
 emphasized text style; the effect is visible in document output, not in
 the editor.
@@ -87,14 +85,17 @@ the editor.
 * Action "isabelle-reset" now uses keyboard shortcut C+e BACK_SPACE,
 instead of former C+e LEFT.
 
-* New command-line tool "isabelle jedit_client" allows to connect to an
-already running Isabelle/jEdit process. This achieves the effect of
-single-instance applications seen on common GUI desktops.
-
 * The command-line tool "isabelle jedit" and the isabelle.Main
 application wrapper threat the default $USER_HOME/Scratch.thy more
 uniformly, and allow the dummy file argument ":" to open an empty buffer
 instead.
+
+* New command-line tool "isabelle jedit_client" allows to connect to an
+already running Isabelle/jEdit process. This achieves the effect of
+single-instance applications seen on common GUI desktops.
+
+* The main Isabelle executable is managed as single-instance Desktop
+application uniformly on all platforms: Linux, Windows, Mac OS X.
 
 * The default look-and-feel for Linux is the traditional "Metal", which
 works better with GUI scaling for very high-resolution displays (e.g.
@@ -103,24 +104,27 @@ works better with GUI scaling for very high-resolution displays (e.g.
 
 *** Document preparation ***
 
+* Commands 'paragraph' and 'subparagraph' provide additional section
+headings. Thus there are 6 levels of standard headings, as in HTML.
+
+* Command 'text_raw' has been clarified: input text is processed as in
+'text' (with antiquotations and control symbols). The key difference is
+the lack of the surrounding isabelle markup environment in output.
+
+* Text is structured in paragraphs and nested lists, using notation that
+is similar to Markdown. The control symbols for list items are as
+follows:
+
+  \<^item>  itemize
+  \<^enum>  enumerate
+  \<^descr>  description
+
 * There is a new short form for antiquotations with a single argument
 that is a cartouche: \<^name>\<open>...\<close> is equivalent to @{name \<open>...\<close>} and
 \<open>...\<close> without control symbol is equivalent to @{cartouche \<open>...\<close>}.
 \<^name> without following cartouche is equivalent to @{name}. The
 standard Isabelle fonts provide glyphs to render important control
 symbols, e.g. "\<^verbatim>", "\<^emph>", "\<^bold>".
-
-* Antiquotation @{theory_text} prints uninterpreted theory source text
-(outer syntax with command keywords etc.). This may be used in the short
-form \<^theory_text>\<open>...\<close>.   @{theory_text [display]} supports option "indent".
-
-* @{verbatim [display]} supports option "indent".
-
-* Antiquotation @{doc ENTRY} provides a reference to the given
-documentation, with a hyperlink in the Prover IDE.
-
-* Antiquotations @{command}, @{method}, @{attribute} print checked
-entities of the Isar language.
 
 * Antiquotations @{noindent}, @{smallskip}, @{medskip}, @{bigskip} with
 corresponding control symbols \<^noindent>, \<^smallskip>, \<^medskip>, \<^bigskip> specify spacing formally, using
@@ -138,43 +142,31 @@ surrounding quotes etc. Subtle INCOMPATIBILITY, put quotes into the
 argument where they are really intended, e.g. @{text \<open>"foo"\<close>}. Initial
 or terminal spaces are ignored.
 
-* HTML presentation uses the standard IsabelleText font and Unicode
-rendering of Isabelle symbols like Isabelle/Scala/jEdit.  The former
-print mode "HTML" loses its special meaning.
-
-* Commands 'paragraph' and 'subparagraph' provide additional section
-headings. Thus there are 6 levels of standard headings, as in HTML.
-
-* Text is structured in paragraphs and nested lists, using notation that
-is similar to Markdown. The control symbols for list items are as
-follows:
-
-  \<^item>  itemize
-  \<^enum>  enumerate
-  \<^descr>  description
-
-* Command 'text_raw' has been clarified: input text is processed as in
-'text' (with antiquotations and control symbols). The key difference is
-the lack of the surrounding isabelle markup environment in output.
-
-* Document antiquotations @{emph} and @{bold} output LaTeX source
-recursively, adding appropriate text style markup. These may be used in
-the short form \<^emph>\<open>...\<close> and \<^bold>\<open>...\<close>.
+* Antiquotations @{emph} and @{bold} output LaTeX source recursively,
+adding appropriate text style markup. These may be used in the short
+form \<^emph>\<open>...\<close> and \<^bold>\<open>...\<close>.
 
 * Document antiquotation @{footnote} outputs LaTeX source recursively,
 marked as \footnote{}. This may be used in the short form \<^footnote>\<open>...\<close>.
 
+* Antiquotation @{verbatim [display]} supports option "indent".
+
+* Antiquotation @{theory_text} prints uninterpreted theory source text
+(outer syntax with command keywords etc.). This may be used in the short
+form \<^theory_text>\<open>...\<close>. @{theory_text [display]} supports option "indent".
+
+* Antiquotation @{doc ENTRY} provides a reference to the given
+documentation, with a hyperlink in the Prover IDE.
+
+* Antiquotations @{command}, @{method}, @{attribute} print checked
+entities of the Isar language.
+
+* HTML presentation uses the standard IsabelleText font and Unicode
+rendering of Isabelle symbols like Isabelle/Scala/jEdit.  The former
+print mode "HTML" loses its special meaning.
+
 
 *** Isar ***
-
-* Command 'obtain' binds term abbreviations (via 'is' patterns) in the
-proof body as well, abstracted over relevant parameters.
-
-* Improved type-inference for theorem statement 'obtains': separate
-parameter scope for of each clause.
-
-* Term abbreviations via 'is' patterns also work for schematic
-statements: result is abstracted over unknowns.
 
 * Local goals ('have', 'show', 'hence', 'thus') allow structured
 rule statements like fixes/assumes/shows in theorem specifications, but
@@ -234,9 +226,6 @@ Rare INCOMPATIBILITY, the old behaviour may be recovered as follows:
 
   show "C x" when "A x" "B x" for x
 
-* New command 'supply' supports fact definitions during goal refinement
-('apply' scripts).
-
 * New command 'consider' states rules for generalized elimination and
 case splitting. This is like a toplevel statement "theorem obtains" used
 within a proof body; or like a multi-branch 'obtain' without activation
@@ -274,10 +263,35 @@ and always put attributes in front.
 is still available as legacy for some time. Documentation now explains
 '..' more accurately as "by standard" instead of "by rule".
 
+* Nesting of Isar goal structure has been clarified: the context after
+the initial backwards refinement is retained for the whole proof, within
+all its context sections (as indicated via 'next'). This is e.g.
+relevant for 'using', 'including', 'supply':
+
+  have "A \<and> A" if a: A for A
+    supply [simp] = a
+  proof
+    show A by simp
+  next
+    show A by simp
+  qed
+
+* Command 'obtain' binds term abbreviations (via 'is' patterns) in the
+proof body as well, abstracted over relevant parameters.
+
+* Improved type-inference for theorem statement 'obtains': separate
+parameter scope for of each clause.
+
+* Term abbreviations via 'is' patterns also work for schematic
+statements: result is abstracted over unknowns.
+
 * Command 'subgoal' allows to impose some structure on backward
 refinements, to avoid proof scripts degenerating into long of 'apply'
 sequences. Further explanations and examples are given in the isar-ref
 manual.
+
+* Command 'supply' supports fact definitions during goal refinement
+('apply' scripts).
 
 * Proof method "goal_cases" turns the current subgoals into cases within
 the context; the conclusion is bound to variable ?case in each case. For
@@ -308,18 +322,8 @@ is marked as legacy, and will be removed eventually. The proof method
 "goals" achieves a similar effect within regular Isar; often it can be
 done more adequately by other means (e.g. 'consider').
 
-* Nesting of Isar goal structure has been clarified: the context after
-the initial backwards refinement is retained for the whole proof, within
-all its context sections (as indicated via 'next'). This is e.g.
-relevant for 'using', 'including', 'supply':
-
-  have "A \<and> A" if a: A for A
-    supply [simp] = a
-  proof
-    show A by simp
-  next
-    show A by simp
-  qed
+* The vacuous fact "TERM x" may be established "by fact" or as `TERM x`
+as well, not just "by this" or "." as before.
 
 * Method "sleep" succeeds after a real-time delay (in seconds). This is
 occasionally useful for demonstration and testing purposes.
@@ -333,17 +337,16 @@ optional ('?'). The old synatx '!' has been discontinued.
 INCOMPATIBILITY, remove '!' and add '?' as required.
 
 * Keyword 'rewrites' identifies rewrite morphisms in interpretation
-commands.  Previously, the keyword was 'where'.  INCOMPATIBILITY.
+commands. Previously, the keyword was 'where'. INCOMPATIBILITY.
 
 * More gentle suppression of syntax along locale morphisms while
-printing terms.  Previously 'abbreviation' and 'notation' declarations
-would be suppressed for morphisms except term identity.  Now
+printing terms. Previously 'abbreviation' and 'notation' declarations
+would be suppressed for morphisms except term identity. Now
 'abbreviation' is also kept for morphims that only change the involved
-parameters, and only 'notation' is suppressed.  This can be of great
-help when working with complex locale hierarchies, because proof
-states are displayed much more succinctly.  It also means that only
-notation needs to be redeclared if desired, as illustrated by this
-example:
+parameters, and only 'notation' is suppressed. This can be of great help
+when working with complex locale hierarchies, because proof states are
+displayed much more succinctly. It also means that only notation needs
+to be redeclared if desired, as illustrated by this example:
 
   locale struct = fixes composition :: "'a => 'a => 'a" (infixl "\<cdot>" 65)
   begin
@@ -369,11 +372,8 @@ theories, with optional rewrite definitions following keyword 'defines'.
 * Command 'print_definitions' prints dependencies of definitional
 specifications. This functionality used to be part of 'print_theory'.
 
-* The vacuous fact "TERM x" may be established "by fact" or as `TERM x`
-as well, not just "by this" or "." as before.
-
 * Configuration option rule_insts_schematic has been discontinued
-(intermediate legacy feature in Isabelle2015).  INCOMPATIBILITY.
+(intermediate legacy feature in Isabelle2015). INCOMPATIBILITY.
 
 * Abbreviations in type classes now carry proper sort constraint.
 Rare INCOMPATIBILITY in situations where the previous misbehaviour
@@ -386,9 +386,71 @@ INCOMPATIBILITY in exotic situations.
 
 *** HOL ***
 
-* Combinator to represent case distinction on products is named "case_prod",
-uniformly, discontinuing any input aliasses.  Very popular theorem aliasses
-have been retained.
+* The 'typedef' command has been upgraded from a partially checked
+"axiomatization", to a full definitional specification that takes the
+global collection of overloaded constant / type definitions into
+account. Type definitions with open dependencies on overloaded
+definitions need to be specified as "typedef (overloaded)". This
+provides extra robustness in theory construction. Rare INCOMPATIBILITY.
+
+* Qualification of various formal entities in the libraries is done more
+uniformly via "context begin qualified definition ... end" instead of
+old-style "hide_const (open) ...". Consequently, both the defined
+constant and its defining fact become qualified, e.g. Option.is_none and
+Option.is_none_def. Occasional INCOMPATIBILITY in applications.
+
+* Some old and rarely used ASCII replacement syntax has been removed.
+INCOMPATIBILITY, standard syntax with symbols should be used instead.
+The subsequent commands help to reproduce the old forms, e.g. to
+simplify porting old theories:
+
+  notation iff  (infixr "<->" 25)
+
+  notation Times  (infixr "<*>" 80)
+
+  type_notation Map.map  (infixr "~=>" 0)
+  notation Map.map_comp  (infixl "o'_m" 55)
+
+  type_notation FinFun.finfun ("(_ =>f /_)" [22, 21] 21)
+
+  notation FuncSet.funcset  (infixr "->" 60)
+  notation FuncSet.extensional_funcset  (infixr "->\<^sub>E" 60)
+
+  notation Omega_Words_Fun.conc (infixr "conc" 65)
+
+  notation Preorder.equiv ("op ~~")
+    and Preorder.equiv ("(_/ ~~ _)" [51, 51] 50)
+
+  notation (in topological_space) tendsto (infixr "--->" 55)
+  notation (in topological_space) LIMSEQ ("((_)/ ----> (_))" [60, 60] 60)
+  notation LIM ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
+
+  notation NSA.approx (infixl "@=" 50)
+  notation NSLIMSEQ ("((_)/ ----NS> (_))" [60, 60] 60)
+  notation NSLIM ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
+
+* The alternative notation "\<Colon>" for type and sort constraints has been
+removed: in LaTeX document output it looks the same as "::".
+INCOMPATIBILITY, use plain "::" instead.
+
+* Commands 'inductive' and 'inductive_set' work better when names for
+intro rules are omitted: the "cases" and "induct" rules no longer
+declare empty case_names, but no case_names at all. This allows to use
+numbered cases in proofs, without requiring method "goal_cases".
+
+* Inductive definitions ('inductive', 'coinductive', etc.) expose
+low-level facts of the internal construction only if the option
+"inductive_defs" is enabled. This refers to the internal predicate
+definition and its monotonicity result. Rare INCOMPATIBILITY.
+
+* Recursive function definitions ('fun', 'function', 'partial_function')
+expose low-level facts of the internal construction only if the option
+"function_defs" is enabled. Rare INCOMPATIBILITY.
+
+* Combinator to represent case distinction on products is named
+"case_prod", uniformly, discontinuing any input aliasses. Very popular
+theorem aliasses have been retained.
+
 Consolidated facts:
   PairE ~> prod.exhaust
   Pair_eq ~> prod.inject
@@ -425,36 +487,21 @@ Consolidated facts:
   split_rsp ~> case_prod_rsp
   curry_split ~> curry_case_prod
   split_curry ~> case_prod_curry
+
 Changes in structure HOLogic:
   split_const ~> case_prod_const
   mk_split ~> mk_case_prod
   mk_psplits ~> mk_ptupleabs
   strip_psplits ~> strip_ptupleabs
+
 INCOMPATIBILITY.
 
-* Commands 'inductive' and 'inductive_set' work better when names for
-intro rules are omitted: the "cases" and "induct" rules no longer
-declare empty case_names, but no case_names at all. This allows to use
-numbered cases in proofs, without requiring method "goal_cases".
+* The coercions to type 'real' have been reorganised. The function
+'real' is no longer overloaded, but has type 'nat => real' and
+abbreviates of_nat for that type. Also 'real_of_int :: int => real'
+abbreviates of_int for that type. Other overloaded instances of 'real'
+have been replaced by 'real_of_ereal' and 'real_of_float'.
 
-* The 'typedef' command has been upgraded from a partially checked
-"axiomatization", to a full definitional specification that takes the
-global collection of overloaded constant / type definitions into
-account. Type definitions with open dependencies on overloaded
-definitions need to be specified as "typedef (overloaded)". This
-provides extra robustness in theory construction. Rare INCOMPATIBILITY.
-
-* Qualification of various formal entities in the libraries is done more
-uniformly via "context begin qualified definition ... end" instead of
-old-style "hide_const (open) ...". Consequently, both the defined
-constant and its defining fact become qualified, e.g. Option.is_none and
-Option.is_none_def. Occasional INCOMPATIBILITY in applications.
-
-* The coercions to type 'real' have been reorganised. The function 'real'
-is no longer overloaded, but has type 'nat => real' and abbreviates
-of_nat for that type. Also 'real_of_int :: int => real' abbreviates
-of_int for that type. Other overloaded instances of 'real' have been
-replaced by 'real_of_ereal' and 'real_of_float'.
 Consolidated facts (among others):
   real_of_nat_le_iff -> of_nat_le_iff
   real_of_nat_numeral of_nat_numeral
@@ -478,41 +525,8 @@ Consolidated facts (among others):
   floor_divide_eq_div floor_divide_of_int_eq
   real_of_int_zero_cancel of_nat_eq_0_iff
   ceiling_real_of_int ceiling_of_int
+
 INCOMPATIBILITY.
-
-* Some old and rarely used ASCII replacement syntax has been removed.
-INCOMPATIBILITY, standard syntax with symbols should be used instead.
-The subsequent commands help to reproduce the old forms, e.g. to
-simplify porting old theories:
-
-  notation iff  (infixr "<->" 25)
-
-  notation Times  (infixr "<*>" 80)
-
-  type_notation Map.map  (infixr "~=>" 0)
-  notation Map.map_comp  (infixl "o'_m" 55)
-
-  type_notation FinFun.finfun ("(_ =>f /_)" [22, 21] 21)
-
-  notation FuncSet.funcset  (infixr "->" 60)
-  notation FuncSet.extensional_funcset  (infixr "->\<^sub>E" 60)
-
-  notation Omega_Words_Fun.conc (infixr "conc" 65)
-
-  notation Preorder.equiv ("op ~~")
-    and Preorder.equiv ("(_/ ~~ _)" [51, 51] 50)
-
-  notation (in topological_space) tendsto (infixr "--->" 55)
-  notation (in topological_space) LIMSEQ ("((_)/ ----> (_))" [60, 60] 60)
-  notation LIM ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
-
-  notation NSA.approx (infixl "@=" 50)
-  notation NSLIMSEQ ("((_)/ ----NS> (_))" [60, 60] 60)
-  notation NSLIM ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
-
-* The alternative notation "\<Colon>" for type and sort constraints has been
-removed: in LaTeX document output it looks the same as "::".
-INCOMPATIBILITY, use plain "::" instead.
 
 * Theory Map: lemma map_of_is_SomeD was a clone of map_of_SomeD and has
 been removed. INCOMPATIBILITY.
@@ -551,38 +565,38 @@ been removed. INCOMPATIBILITY.
     'transfer_prover_start' and 'transfer_prover_end'.
 
 * Division on integers is bootstrapped directly from division on
-naturals and uses generic numeral algorithm for computations.
-Slight INCOMPATIBILITY, simproc numeral_divmod replaces and generalizes
-former simprocs binary_int_div and binary_int_mod
+naturals and uses generic numeral algorithm for computations. Slight
+INCOMPATIBILITY, simproc numeral_divmod replaces and generalizes former
+simprocs binary_int_div and binary_int_mod
 
-* Tightened specification of class semiring_no_zero_divisors.  Slight
+* Tightened specification of class semiring_no_zero_divisors. Minor
 INCOMPATIBILITY.
 
 * Class algebraic_semidom introduces common algebraic notions of
-integral (semi)domains, particularly units.  Although
-logically subsumed by fields, is is not a super class of these
-in order not to burden fields with notions that are trivial there.
+integral (semi)domains, particularly units. Although logically subsumed
+by fields, is is not a super class of these in order not to burden
+fields with notions that are trivial there.
 
-* Class normalization_semidom specifies canonical representants
-for equivalence classes of associated elements in an integral
-(semi)domain.  This formalizes associated elements as well.
+* Class normalization_semidom specifies canonical representants for
+equivalence classes of associated elements in an integral (semi)domain.
+This formalizes associated elements as well.
 
 * Abstract specification of gcd/lcm operations in classes semiring_gcd,
-semiring_Gcd, semiring_Lcd.  Minor INCOMPATIBILITY: facts gcd_nat.commute
-and gcd_int.commute are subsumed by gcd.commute, as well as gcd_nat.assoc
-and gcd_int.assoc by gcd.assoc.
+semiring_Gcd, semiring_Lcd. Minor INCOMPATIBILITY: facts gcd_nat.commute
+and gcd_int.commute are subsumed by gcd.commute, as well as
+gcd_nat.assoc and gcd_int.assoc by gcd.assoc.
 
-* Former constants Fields.divide (_ / _) and Divides.div (_ div _)
-are logically unified to Rings.divide in syntactic type class
-Rings.divide, with infix syntax (_ div _).  Infix syntax (_ / _)
-for field division is added later as abbreviation in class Fields.inverse.
-INCOMPATIBILITY,  instantiations must refer to Rings.divide rather
-than the former separate constants, hence infix syntax (_ / _) is usually
-not available during instantiation.
+* Former constants Fields.divide (_ / _) and Divides.div (_ div _) are
+logically unified to Rings.divide in syntactic type class Rings.divide,
+with infix syntax (_ div _). Infix syntax (_ / _) for field division is
+added later as abbreviation in class Fields.inverse. INCOMPATIBILITY,
+instantiations must refer to Rings.divide rather than the former
+separate constants, hence infix syntax (_ / _) is usually not available
+during instantiation.
 
-* New cancellation simprocs for boolean algebras to cancel
-complementary terms for sup and inf. For example, "sup x (sup y (- x))"
-simplifies to "top". INCOMPATIBILITY.
+* New cancellation simprocs for boolean algebras to cancel complementary
+terms for sup and inf. For example, "sup x (sup y (- x))" simplifies to
+"top". INCOMPATIBILITY.
 
 * Library/Multiset:
   - Renamed multiset inclusion operators:
@@ -614,35 +628,26 @@ simplifies to "top". INCOMPATIBILITY.
     less_eq_multiset_def
     INCOMPATIBILITY
 
-* Library/Bourbaki_Witt_Fixpoint: Added formalisation of the Bourbaki-Witt
-fixpoint theorem for increasing functions in chain-complete partial
-orders.
+* Library/Omega_Words_Fun: Infinite words modeled as functions nat \<Rightarrow> 'a.
 
-* Multivariate_Analysis/Cauchy_Integral_Thm: Contour integrals (= complex path integrals),
-Cauchy's integral theorem, winding numbers and Cauchy's integral formula, Liouville theorem,
-Fundamental Theorem of Algebra. Ported from HOL Light
+* Library/Bourbaki_Witt_Fixpoint: Added formalisation of the
+Bourbaki-Witt fixpoint theorem for increasing functions in
+chain-complete partial orders.
 
-* Multivariate_Analysis: Added topological concepts such as connected components,
-homotopic paths and the inside or outside of a set.
+* Library/Old_Recdef: discontinued obsolete 'defer_recdef' command.
+Minor INCOMPATIBILITY, use 'function' instead.
 
-* Theory Library/Old_Recdef: discontinued obsolete 'defer_recdef'
-command. Minor INCOMPATIBILITY, use 'function' instead.
+* Multivariate_Analysis/Cauchy_Integral_Thm: Contour integrals (=
+complex path integrals), Cauchy's integral theorem, winding numbers and
+Cauchy's integral formula, Liouville theorem, Fundamental Theorem of
+Algebra. Ported from HOL Light
 
-* Inductive definitions ('inductive', 'coinductive', etc.) expose
-low-level facts of the internal construction only if the option
-"inductive_defs" is enabled. This refers to the internal predicate
-definition and its monotonicity result. Rare INCOMPATIBILITY.
-
-* Recursive function definitions ('fun', 'function', 'partial_function')
-expose low-level facts of the internal construction only if the option
-"function_defs" is enabled. Rare INCOMPATIBILITY.
+* Multivariate_Analysis: Added topological concepts such as connected
+components, homotopic paths and the inside or outside of a set.
 
 * Data_Structures: new and growing session of standard data structures.
 
 * Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
-
-* Library/Omega_Words_Fun: Infinite words modeled as functions nat =>
-'a.
 
 * HOL-Statespace: command 'statespace' uses mandatory qualifier for
 import of parent, as for general 'locale' expressions. INCOMPATIBILITY,
@@ -651,17 +656,18 @@ remove '!' and add '?' as required.
 
 *** ML ***
 
+* The following combinators for low-level profiling of the ML runtime
+system are available:
+
+  profile_time          (*CPU time*)
+  profile_time_thread   (*CPU time on this thread*)
+  profile_allocations   (*overall heap allocations*)
+
+* Antiquotation @{undefined} or \<^undefined> inlines (raise Match).
+
 * Pretty printing of Poly/ML compiler output in Isabelle has been
 improved: proper treatment of break offsets and blocks with consistent
 breaks.
-
-* Isar proof methods are based on a slightly more general type
-context_tactic, which allows to change the proof context dynamically
-(e.g. to update cases) and indicate explicit Seq.Error results. Former
-METHOD_CASES is superseded by CONTEXT_METHOD; further combinators are
-provided in src/Pure/Isar/method.ML for convenience. INCOMPATIBILITY.
-
-* Antiquotation @{undefined} or \<^undefined> inlines (raise Match).
 
 * The auxiliary module Pure/display.ML has been eliminated. Its
 elementary thm print operations are now in Pure/more_thm.ML and thus
@@ -698,26 +704,16 @@ named local fixes. This has the potential to improve stability of proof
 tools, but can also cause INCOMPATIBILITY for tools that don't observe
 the proof context discipline.
 
-* The following combinators for low-level profiling of the ML runtime
-system are available:
-
-  profile_time          (*CPU time*)
-  profile_time_thread   (*CPU time on this thread*)
-  profile_allocations   (*overall heap allocations*)
+* Isar proof methods are based on a slightly more general type
+context_tactic, which allows to change the proof context dynamically
+(e.g. to update cases) and indicate explicit Seq.Error results. Former
+METHOD_CASES is superseded by CONTEXT_METHOD; further combinators are
+provided in src/Pure/Isar/method.ML for convenience. INCOMPATIBILITY.
 
 
 *** System ***
 
 * Command-line tool "isabelle console" enables print mode "ASCII".
-
-* Global session timeout is multiplied by timeout_scale factor. This
-allows to adjust large-scale tests (e.g. AFP) to overall hardware
-performance.
-
-* Property values in etc/symbols may contain spaces, if written with the
-replacement character "␣" (Unicode point 0x2324).  For example:
-
-    \<star>  code: 0x0022c6  group: operator  font: Deja␣Vu␣Sans␣Mono
 
 * Command-line tool "isabelle update_then" expands old Isar command
 conflations:
@@ -728,12 +724,14 @@ conflations:
 This syntax is more orthogonal and improves readability and
 maintainability of proofs.
 
-* Poly/ML default platform architecture may be changed from 32bit to
-64bit via system option ML_system_64. A system restart (and rebuild)
-is required after change.
+* Global session timeout is multiplied by timeout_scale factor. This
+allows to adjust large-scale tests (e.g. AFP) to overall hardware
+performance.
 
-* Poly/ML 5.6 runs natively on x86-windows and x86_64-windows, which
-both allow larger heap space than former x86-cygwin.
+* Property values in etc/symbols may contain spaces, if written with the
+replacement character "␣" (Unicode point 0x2324).  For example:
+
+    \<star>  code: 0x0022c6  group: operator  font: Deja␣Vu␣Sans␣Mono
 
 * Java runtime environment for x86_64-windows allows to use larger heap
 space.
@@ -756,6 +754,13 @@ is relevant both for Poly/ML and JVM processes.
 
 * Heap images are 10-15% smaller due to less wasteful persistent theory
 content (using ML type theory_id instead of theory);
+
+* Poly/ML default platform architecture may be changed from 32bit to
+64bit via system option ML_system_64. A system restart (and rebuild)
+is required after change.
+
+* Poly/ML 5.6 runs natively on x86-windows and x86_64-windows, which
+both allow larger heap space than former x86-cygwin.
 
 
 
