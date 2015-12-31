@@ -5,7 +5,7 @@
 section \<open>The specification of a memory\<close>
 
 theory Spec
-imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action
+imports "~~/src/HOL/HOLCF/IOA/IOA" Action
 begin
 
 definition

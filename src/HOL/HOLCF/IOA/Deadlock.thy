@@ -1,4 +1,4 @@
-(*  Title:      HOL/HOLCF/IOA/meta_theory/Deadlock.thy
+(*  Title:      HOL/HOLCF/IOA/Deadlock.thy
     Author:     Olaf Müller
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/HOLCF/IOA/meta_theory/Automata.thy
+(*  Title:      HOL/HOLCF/IOA/Automata.thy
     Author:     Olaf Müller, Konrad Slind, Tobias Nipkow
 *)
 

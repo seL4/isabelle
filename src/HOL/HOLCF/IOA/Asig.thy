@@ -1,4 +1,4 @@
-(*  Title:      HOL/HOLCF/IOA/meta_theory/Asig.thy
+(*  Title:      HOL/HOLCF/IOA/Asig.thy
     Author:     Olaf Müller, Tobias Nipkow & Konrad Slind
 *)
 

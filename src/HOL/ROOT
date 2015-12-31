@@ -1100,7 +1100,7 @@ session IOA in "HOLCF/IOA" = HOLCF +
     finite and infinite sequences.
   *}
   options [document = false]
-  theories "meta_theory/Abstraction"
+  theories "Abstraction"
 
 session "IOA-ABP" in "HOLCF/IOA/ABP" = IOA +
   description {*

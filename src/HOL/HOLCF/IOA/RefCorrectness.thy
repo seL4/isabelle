@@ -1,4 +1,4 @@
-(*  Title:      HOL/HOLCF/IOA/meta_theory/RefCorrectness.thy
+(*  Title:      HOL/HOLCF/IOA/RefCorrectness.thy
     Author:     Olaf Müller
 *)
 

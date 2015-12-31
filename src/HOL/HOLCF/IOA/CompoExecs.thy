@@ -1,4 +1,4 @@
-(*  Title:      HOL/HOLCF/IOA/meta_theory/CompoExecs.thy
+(*  Title:      HOL/HOLCF/IOA/CompoExecs.thy
     Author:     Olaf Müller
 *)
 

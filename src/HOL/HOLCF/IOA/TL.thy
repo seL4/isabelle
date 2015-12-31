@@ -1,4 +1,4 @@
-(*  Title:      HOL/HOLCF/IOA/meta_theory/TL.thy
+(*  Title:      HOL/HOLCF/IOA/TL.thy
     Author:     Olaf Müller
 *)
 

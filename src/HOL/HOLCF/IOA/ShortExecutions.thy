@@ -1,4 +1,4 @@
-(*  Title:      HOL/HOLCF/IOA/meta_theory/ShortExecutions.thy
+(*  Title:      HOL/HOLCF/IOA/ShortExecutions.thy
     Author:     Olaf Müller
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/HOLCF/IOA/meta_theory/CompoTraces.thy
+(*  Title:      HOL/HOLCF/IOA/CompoTraces.thy
     Author:     Olaf Müller
 *)
 

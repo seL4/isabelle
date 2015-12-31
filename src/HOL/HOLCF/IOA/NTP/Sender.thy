@@ -5,7 +5,7 @@
 section \<open>The implementation: sender\<close>
 
 theory Sender
-imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action
+imports "~~/src/HOL/HOLCF/IOA/IOA" Action
 begin
 
 type_synonym

@@ -1,4 +1,4 @@
-(*  Title:      HOL/HOLCF/IOA/meta_theory/Compositionality.thy
+(*  Title:      HOL/HOLCF/IOA/Compositionality.thy
     Author:     Olaf Müller
 *)
 

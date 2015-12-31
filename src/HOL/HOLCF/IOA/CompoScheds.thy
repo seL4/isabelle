@@ -1,4 +1,4 @@
-(*  Title:      HOL/HOLCF/IOA/meta_theory/CompoScheds.thy
+(*  Title:      HOL/HOLCF/IOA/CompoScheds.thy
     Author:     Olaf Müller
 *)
 

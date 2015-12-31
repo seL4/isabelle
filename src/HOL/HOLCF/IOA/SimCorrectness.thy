@@ -1,4 +1,4 @@
-(*  Title:      HOL/HOLCF/IOA/meta_theory/SimCorrectness.thy
+(*  Title:      HOL/HOLCF/IOA/SimCorrectness.thy
     Author:     Olaf Müller
 *)
 

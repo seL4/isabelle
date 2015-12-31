@@ -1,4 +1,4 @@
-(*  Title:      HOL/HOLCF/IOA/meta_theory/Simulations.thy
+(*  Title:      HOL/HOLCF/IOA/Simulations.thy
     Author:     Olaf Müller
 *)
 

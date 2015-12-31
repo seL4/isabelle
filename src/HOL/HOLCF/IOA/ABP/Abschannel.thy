@@ -5,7 +5,7 @@
 section \<open>The transmission channel\<close>
 
 theory Abschannel
-imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action Lemmas
+imports "~~/src/HOL/HOLCF/IOA/IOA" Action Lemmas
 begin
 
 datatype 'a abs_action = S 'a | R 'a

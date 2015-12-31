@@ -5,7 +5,7 @@
 section \<open>The environment\<close>
 
 theory Env
-imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action
+imports "~~/src/HOL/HOLCF/IOA/IOA" Action
 begin
 
 type_synonym
