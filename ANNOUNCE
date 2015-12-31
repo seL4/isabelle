@@ -1,36 +1,16 @@
-Subject: Announcing Isabelle2015
+Subject: Announcing Isabelle2016
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2015 is now available.
+Isabelle2016 is now available.
 
-This version improves upon Isabelle2014 in many ways, see the NEWS file in
-the distribution for more details. Some important points are as follows.
+This version improves upon Isabelle2015 in numerous ways, see the NEWS
+file in the distribution for further details. Some highlights are as
+follows.
 
-* Improved Isabelle/jEdit Prover IDE: folding / bracket matching for Isar,
-support for BibTeX files, improved graphview panel, improved scheduling for
-asynchronous print commands (e.g. Sledgehammer provers).
-
-* Support for 'private' and 'qualified' name space modifiers.
-
-* Structural composition of proof methods (meth1; meth2) in Isar.
-
-* HOL: BNF datatypes and codatatypes are now standard.
-
-* HOL: numerous tool improvements: Nitpick, Sledgehammer, SMT, including a
-new free (!) version of Z3.
-
-* HOL: numerous library refinements and enhancements.
-
-* New proof method "rewrite" for single-step rewriting with subterm
-selection based on patterns.
-
-* New Eisbach proof method language and "match" method.
-
-* Updated manuals: datatypes, implementation, isar-ref, jedit, sledgehammer,
-system.
+* FIXME
 
 
-You may get Isabelle2015 from the following mirror sites:
+You may get Isabelle2016 from the following mirror sites:
 
   Cambridge (UK)       http://www.cl.cam.ac.uk/research/hvg/Isabelle/
   Munich (Germany)     http://isabelle.in.tum.de/

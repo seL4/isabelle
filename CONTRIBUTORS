@@ -3,12 +3,12 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 who is listed as an author in one of the source files of this Isabelle
 distribution.
 
-Contributions to this Isabelle version
---------------------------------------
+Contributions to Isabelle2016
+-----------------------------
 
 * Autumn 2015: Florian Haftmann, TUM
-  Rewrite definitions for global interpretations and
-  sublocale declarations.
+  Rewrite definitions for global interpretations and sublocale
+  declarations.
 
 * Autumn 2015: Andreas Lochbihler
   Bourbaki-Witt fixpoint theorem for increasing functions on
