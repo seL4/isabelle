@@ -155,7 +155,7 @@ val count_commentlines : string -> unit = fn str =>
 end (* end of user routines *)
 exception LexError (* raised if illegal leaf action tried *)
 structure Internal =
-	struct
+        struct
 
 datatype yyfinstate = N of int
 type statedata = {fin : yyfinstate list, trans: string}
@@ -1297,8 +1297,8 @@ in Vector.fromList(List.map g
 {fin = [(N 7)], trans = 0}])
 end
 structure StartStates =
-	struct
-	datatype yystartstate = STARTSTATE of int
+        struct
+        datatype yystartstate = STARTSTATE of int
 
 (* start state definitions *)
 
@@ -1306,35 +1306,35 @@ val INITIAL = STARTSTATE 1;
 
 end
 type result = UserDeclarations.lexresult
-	exception LexerError (* raised if illegal leaf action tried *)
+        exception LexerError (* raised if illegal leaf action tried *)
 end
 
 fun makeLexer yyinput =
-let	val yygone0=1
-	val yyb = Unsynchronized.ref "\n" 		(* buffer *)
-	val yybl = Unsynchronized.ref 1		(*buffer length *)
-	val yybufpos = Unsynchronized.ref 1		(* location of next character to use *)
-	val yygone = Unsynchronized.ref yygone0	(* position in file of beginning of buffer *)
-	val yydone = Unsynchronized.ref false		(* eof found yet? *)
-	val yybegin = Unsynchronized.ref 1		(*Current 'start state' for lexer *)
+let     val yygone0=1
+        val yyb = Unsynchronized.ref "\n"               (* buffer *)
+        val yybl = Unsynchronized.ref 1         (*buffer length *)
+        val yybufpos = Unsynchronized.ref 1             (* location of next character to use *)
+        val yygone = Unsynchronized.ref yygone0 (* position in file of beginning of buffer *)
+        val yydone = Unsynchronized.ref false           (* eof found yet? *)
+        val yybegin = Unsynchronized.ref 1              (*Current 'start state' for lexer *)
 
-	val YYBEGIN = fn (Internal.StartStates.STARTSTATE x) =>
-		 yybegin := x
+        val YYBEGIN = fn (Internal.StartStates.STARTSTATE x) =>
+                 yybegin := x
 
 fun lex (yyarg as (file_name:string)) =
 let fun continue() : Internal.result = 
   let fun scan (s,AcceptingLeaves : Internal.yyfinstate list list,l,i0) =
-	let fun action (i,nil) = raise LexError
-	| action (i,nil::l) = action (i-1,l)
-	| action (i,(node::acts)::l) =
-		case node of
-		    Internal.N yyk => 
-			(let fun yymktext() = String.substring(!yyb,i0,i-i0)
-			     val yypos = i0+ !yygone
-			open UserDeclarations Internal.StartStates
+        let fun action (i,nil) = raise LexError
+        | action (i,nil::l) = action (i-1,l)
+        | action (i,(node::acts)::l) =
+                case node of
+                    Internal.N yyk => 
+                        (let fun yymktext() = String.substring(!yyb,i0,i-i0)
+                             val yypos = i0+ !yygone
+                        open UserDeclarations Internal.StartStates
  in (yybufpos := i; case yyk of 
 
-			(* Application actions *)
+                        (* Application actions *)
 
   104 => let val yytext=yymktext() in col:=yypos-(!eolpos); T.RATIONAL(yytext,!linep,!col) end
 | 119 => let val yytext=yymktext() in col:=yypos-(!eolpos); T.REAL(yytext,!linep,!col) end
@@ -1408,36 +1408,36 @@ let fun continue() : Internal.result =
 | 95 => let val yytext=yymktext() in col:=yypos-(!eolpos); T.DISTINCT_OBJECT(yytext,!linep,!col) end
 | _ => raise Internal.LexerError
 
-		) end )
+                ) end )
 
-	val {fin,trans} = Vector.sub(Internal.tab, s)
-	val NewAcceptingLeaves = fin::AcceptingLeaves
-	in if l = !yybl then
-	     if trans = #trans(Vector.sub(Internal.tab,0))
-	       then action(l,NewAcceptingLeaves
-) else	    let val newchars= if !yydone then "" else yyinput 1024
-	    in if (String.size newchars)=0
-		  then (yydone := true;
-		        if (l=i0) then UserDeclarations.eof yyarg
-		                  else action(l,NewAcceptingLeaves))
-		  else (if i0=l then yyb := newchars
-		     else yyb := String.substring(!yyb,i0,l-i0)^newchars;
-		     yygone := !yygone+i0;
-		     yybl := String.size (!yyb);
-		     scan (s,AcceptingLeaves,l-i0,0))
-	    end
-	  else let val NewChar = Char.ord(String.sub(!yyb,l))
-		val NewChar = if NewChar<128 then NewChar else 128
-		val NewState = Char.ord(String.sub(trans,NewChar))
-		in if NewState=0 then action(l,NewAcceptingLeaves)
-		else scan(NewState,NewAcceptingLeaves,l+1,i0)
-	end
-	end
+        val {fin,trans} = Vector.sub(Internal.tab, s)
+        val NewAcceptingLeaves = fin::AcceptingLeaves
+        in if l = !yybl then
+             if trans = #trans(Vector.sub(Internal.tab,0))
+               then action(l,NewAcceptingLeaves
+) else      let val newchars= if !yydone then "" else yyinput 1024
+            in if (String.size newchars)=0
+                  then (yydone := true;
+                        if (l=i0) then UserDeclarations.eof yyarg
+                                  else action(l,NewAcceptingLeaves))
+                  else (if i0=l then yyb := newchars
+                     else yyb := String.substring(!yyb,i0,l-i0)^newchars;
+                     yygone := !yygone+i0;
+                     yybl := String.size (!yyb);
+                     scan (s,AcceptingLeaves,l-i0,0))
+            end
+          else let val NewChar = Char.ord(String.sub(!yyb,l))
+                val NewChar = if NewChar<128 then NewChar else 128
+                val NewState = Char.ord(String.sub(trans,NewChar))
+                in if NewState=0 then action(l,NewAcceptingLeaves)
+                else scan(NewState,NewAcceptingLeaves,l+1,i0)
+        end
+        end
 (*
-	val start= if String.substring(!yyb,!yybufpos-1,1)="\n"
+        val start= if String.substring(!yyb,!yybufpos-1,1)="\n"
 then !yybegin+1 else !yybegin
 *)
-	in scan(!yybegin (* start *),nil,!yybufpos,!yybufpos)
+        in scan(!yybegin (* start *),nil,!yybufpos,!yybufpos)
     end
 in continue end
   in lex
@@ -5941,7 +5941,7 @@ end
 val void = MlyValue.VOID
 val extract = fn a => (fn MlyValue.tptp x => x
 | _ => let exception ParseInternal
-	in raise ParseInternal end) a 
+        in raise ParseInternal end) a 
 end
 end
 structure Tokens : TPTP_TOKENS =

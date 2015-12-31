@@ -48,4 +48,4 @@ do
 ;
 EOF
 
-) > ml_yacc_lib.ML
+) | expand -t8 > ml_yacc_lib.ML
