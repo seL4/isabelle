@@ -18,6 +18,7 @@ sig
   val declare_maxidx: int -> Proof.context -> Proof.context
   val declare_names: term -> Proof.context -> Proof.context
   val declare_constraints: term -> Proof.context -> Proof.context
+  val declare_internal: term -> Proof.context -> Proof.context
   val declare_term: term -> Proof.context -> Proof.context
   val declare_typ: typ -> Proof.context -> Proof.context
   val declare_prf: Proofterm.proof -> Proof.context -> Proof.context

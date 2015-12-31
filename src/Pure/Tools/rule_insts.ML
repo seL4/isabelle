@@ -114,7 +114,8 @@ fun read_insts thm raw_insts raw_fixes ctxt =
 
     (*eigen-context*)
     val (_, ctxt1) = ctxt
-      |> Variable.declare_thm thm
+      |> fold (Variable.declare_internal o Logic.mk_type o TVar) tvars
+      |> fold (Variable.declare_internal o Var) vars
       |> Proof_Context.add_fixes_cmd raw_fixes;
 
     (*explicit type instantiations*)
