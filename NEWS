@@ -87,7 +87,7 @@ the editor.
 * Action "isabelle-reset" now uses keyboard shortcut C+e BACK_SPACE,
 instead of former C+e LEFT.
 
-* New command-line tool "isabelle jedit_client" allows to connect to
+* New command-line tool "isabelle jedit_client" allows to connect to an
 already running Isabelle/jEdit process. This achieves the effect of
 single-instance applications seen on common GUI desktops.
 

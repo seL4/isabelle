@@ -218,7 +218,10 @@ text \<open>
   platform-specific executable wrappers for Linux, Windows, Mac OS X.
   Nonetheless it is occasionally useful to invoke the Prover IDE on the
   command-line, with some extra options and environment settings as explained
-  below. The command-line usage of @{tool_def jedit} is as follows:
+  below.
+
+  \<^medskip>
+  The command-line usage of @{tool_def jedit} is as follows:
   @{verbatim [display]
 \<open>Usage: isabelle jedit [OPTIONS] [FILES ...]
 
@@ -261,7 +264,34 @@ text \<open>
   Isabelle/jEdit. This is only relevant for building from sources, which also
   requires an auxiliary \<^verbatim>\<open>jedit_build\<close> component from @{url
   "http://isabelle.in.tum.de/components"}. The official Isabelle release
-  already includes a pre-built version of Isabelle/jEdit. \<close>
+  already includes a pre-built version of Isabelle/jEdit.
+
+  \<^medskip>
+  It is also possible to connect to an already running Isabelle/jEdit process
+  via @{tool_def jedit_client}:
+  @{verbatim [display]
+\<open>Usage: isabelle jedit_client [OPTIONS] [FILES ...]
+
+  Options are:
+    -c           only check presence of server
+    -n           only report server name
+    -s NAME      server name (default Isabelle)
+
+  Connect to already running Isabelle/jEdit instance and open FILES\<close>}
+
+  The \<^verbatim>\<open>-c\<close> option merely checks the presence of the server, producing a
+  process return code.
+
+  The \<^verbatim>\<open>-n\<close> option reports the server name, and the \<^verbatim>\<open>-s\<close> option provides a
+  different server name. The default server name is the official distribution
+  name (e.g.\ \<^verbatim>\<open>Isabelle2016\<close>). Thus @{tool jedit_client} can connect to the
+  main Isabelle application without further options.
+
+  The regular jEdit command line option \<^verbatim>\<open>-server\<close> allows to provide a
+  different name, e.g.\ \<^verbatim>\<open>isabelle jedit -j-server=\<close>\<open>name\<close>. To connect to such
+  an alternative server process with @{tool jedit_client} requires a
+  corresponding option \<^verbatim>\<open>-s\<close>~\<open>name\<close>.
+\<close>
 
 
 chapter \<open>Augmented jEdit functionality\<close>
