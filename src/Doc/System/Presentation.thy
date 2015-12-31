@@ -51,11 +51,9 @@ text \<open>
 \<close>
 
 
-section \<open>Generating theory browser information \label{sec:info}\<close>
+section \<open>Generating HTML browser information \label{sec:info}\<close>
 
 text \<open>
-  \index{theory browsing information|bold}
-
   As a side-effect of building sessions, Isabelle is able to generate theory
   browsing information, including HTML documents that show the theory sources
   and the relationship with its ancestors and descendants. Besides the HTML
@@ -65,24 +63,16 @@ text \<open>
   implicit tree structure of the session build hierarchy is \<^emph>\<open>not\<close> relevant
   for the presentation.
 
-  Isabelle also generates graph files that represent the theory dependencies
-  within a session. There is a graph browser Java applet embedded in the
-  generated HTML pages, and also a stand-alone application that allows
-  browsing theory graphs without having to start a WWW client first. The
-  latter version also includes features such as generating Postscript files,
-  which are not available in the applet version. See \secref{sec:browse} for
-  further information.
-
   \<^medskip>
-  The easiest way to let Isabelle generate theory browsing information for
-  existing sessions is to invoke @{tool build} with suitable options:
+  To generate theory browsing information for an existing session, just invoke
+  @{tool build} with suitable options:
   @{verbatim [display] \<open>isabelle build -o browser_info -v -c FOL\<close>}
 
   The presentation output will appear in \<^verbatim>\<open>$ISABELLE_BROWSER_INFO/FOL/FOL\<close> as
   reported by the above verbose invocation of the build process.
 
   Many Isabelle sessions (such as \<^verbatim>\<open>HOL-Library\<close> in @{file
-  "~~/src/HOL/Library"}) also provide actual printable documents. These are
+  "~~/src/HOL/Library"}) also provide printable documents in PDF. These are
   prepared automatically as well if enabled like this:
   @{verbatim [display] \<open>isabelle build -o browser_info -o document=pdf -v -c HOL-Library\<close>}
 

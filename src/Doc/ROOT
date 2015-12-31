@@ -370,7 +370,6 @@ session System (doc) in "System" = Pure +
   document_files (in "../Isar_Ref/document")
     "style.sty"
   document_files
-    "browser_screenshot.png"
     "build"
     "root.tex"
 

@@ -35,15 +35,15 @@ text \<open>
 section \<open>Isabelle settings \label{sec:settings}\<close>
 
 text \<open>
-  The Isabelle system heavily depends on the \<^emph>\<open>settings
-  mechanism\<close>\indexbold{settings}. Essentially, this is a statically scoped
-  collection of environment variables, such as @{setting ISABELLE_HOME},
-  @{setting ML_SYSTEM}, @{setting ML_HOME}. These variables are \<^emph>\<open>not\<close>
-  intended to be set directly from the shell, though. Isabelle employs a
-  somewhat more sophisticated scheme of \<^emph>\<open>settings files\<close> --- one for
-  site-wide defaults, another for additional user-specific modifications. With
-  all configuration variables in clearly defined places, this scheme is more
-  maintainable and user-friendly than global shell environment variables.
+  The Isabelle system heavily depends on the \<^emph>\<open>settings mechanism\<close>.
+  Essentially, this is a statically scoped collection of environment
+  variables, such as @{setting ISABELLE_HOME}, @{setting ML_SYSTEM}, @{setting
+  ML_HOME}. These variables are \<^emph>\<open>not\<close> intended to be set directly from the
+  shell, though. Isabelle employs a somewhat more sophisticated scheme of
+  \<^emph>\<open>settings files\<close> --- one for site-wide defaults, another for additional
+  user-specific modifications. With all configuration variables in clearly
+  defined places, this scheme is more maintainable and user-friendly than
+  global shell environment variables.
 
   In particular, we avoid the typical situation where prospective users of a
   software package are told to put several things into their shell startup
@@ -209,9 +209,8 @@ text \<open>
   is appended here, too.
 
   \<^descr>[@{setting_def ISABELLE_BROWSER_INFO}] is the directory where theory
-  browser information (HTML text, graph data, and printable documents) is
-  stored (see also \secref{sec:info}). The default value is @{file_unchecked
-  "$ISABELLE_HOME_USER/browser_info"}.
+  browser information is stored as HTML and PDF (see also \secref{sec:info}).
+  The default value is @{file_unchecked "$ISABELLE_HOME_USER/browser_info"}.
 
   \<^descr>[@{setting_def ISABELLE_LOGIC}] specifies the default logic to load if none
   is given explicitely by the user. The default value is \<^verbatim>\<open>HOL\<close>.
