@@ -5,7 +5,7 @@
 section \<open>Trivial Abstraction Example\<close>
 
 theory TrivEx
-imports Abstraction
+imports "../Abstraction"
 begin
 
 datatype action = INC

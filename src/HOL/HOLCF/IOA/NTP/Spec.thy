@@ -5,7 +5,7 @@
 section \<open>The specification of reliable transmission\<close>
 
 theory Spec
-imports "~~/src/HOL/HOLCF/IOA/IOA" Action
+imports "../IOA" Action
 begin
 
 definition

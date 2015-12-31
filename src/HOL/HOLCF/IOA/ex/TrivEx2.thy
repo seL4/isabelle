@@ -5,7 +5,7 @@
 section \<open>Trivial Abstraction Example with fairness\<close>
 
 theory TrivEx2
-imports IOA Abstraction
+imports "../Abstraction"
 begin
 
 datatype action = INC
