@@ -38,7 +38,7 @@ too old nor too new):
                     Mac OS X 10.10 Yosemite (macbroy31)
                     Mac OS X 10.11 El Capitan
 
-  x86-cygwin        Cygwin 1.7 (vmbroy9)
+  x86-cygwin        http://isabelle.in.tum.de/cygwin_2015 (x86/release)
 
 All of the above platforms are 100% supported by Isabelle -- end-users
 should not have to care about the differences (at least in theory).
