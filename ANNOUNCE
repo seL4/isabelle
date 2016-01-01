@@ -3,11 +3,28 @@ To: isabelle-users@cl.cam.ac.uk
 
 Isabelle2016 is now available.
 
-This version improves upon Isabelle2015 in numerous ways, see the NEWS
-file in the distribution for further details. Some highlights are as
-follows.
+This version improves upon Isabelle2015 in many ways, see the NEWS file in the
+distribution for further details. Some highlights are as follows:
 
-* FIXME
+* Enhanced Isabelle/jEdit Prover IDE, with separate State versus Output panel
+and more asynchronous task management within the prover/GUI.
+
+* Additional Isar language elements for structured statements and proofs.
+
+* Document language refinements, with Markdown-like text structure.
+
+* More Isabelle symbols in theory and document sources.
+
+* Pure/HOL: uniform treatment of overloaded constant definitions versus type
+definitions; upgrade of HOL typedef to definitional principle.
+
+* HOL tool enhancements: quickcheck, sledgehammer, nitpick, transfer.
+
+* Many HOL library improvements, including advanced topological concepts and
+integration theory ported from HOL Light.
+
+* Upgrade to Poly/ML 5.6 with debugger IDE for Isabelle/ML and Standard ML,
+per-thread profiling, native support for Windows (32bit and 64bit).
 
 
 You may get Isabelle2016 from the following mirror sites:
