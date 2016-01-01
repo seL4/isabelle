@@ -326,6 +326,14 @@ case "$PLATFORM_FAM" in
 esac
 
 
+# archive
+
+BUNDLE_ARCHIVE="${ARCHIVE_DIR}/${ISABELLE_NAME}_${PLATFORM_FAMILY}.tar.gz"
+
+echo "packaging $(basename "$BUNDLE_ARCHIVE")"
+tar -C "$TMP" -c -z -f "$BUNDLE_ARCHIVE" "$ISABELLE_NAME" || exit 2
+
+
 # platform-specific setup (outside archive)
 
 if [ "$ISABELLE_PLATFORM_FAMILY" = linux -a "$PLATFORM_FAMILY" != macos -o "$ISABELLE_PLATFORM_FAMILY" = macos ]
@@ -333,7 +341,7 @@ then
   case "$PLATFORM_FAM" in
     linux)
       echo "application for $PLATFORM_FAMILY"
-      tar -C "$TMP" -c -z -f "${ARCHIVE_DIR}/${ISABELLE_NAME}_app.tar.gz" "$ISABELLE_NAME"
+      mv "$BUNDLE_ARCHIVE" "${ARCHIVE_DIR}/${ISABELLE_NAME}_app.tar.gz"
       ;;
     macos)
       echo "application for $PLATFORM_FAMILY"
