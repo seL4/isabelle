@@ -18,13 +18,13 @@ and more asynchronous task management within the prover/GUI.
 * Pure/HOL: uniform treatment of overloaded constant definitions versus type
 definitions; upgrade of HOL typedef to definitional principle.
 
-* HOL tool enhancements: quickcheck, sledgehammer, nitpick, transfer.
+* HOL tool enhancements: Sledgehammer, Nitpick, Quickcheck, Transfer.
 
 * Many HOL library improvements, including advanced topological concepts and
 integration theory ported from HOL Light.
 
-* Upgrade to Poly/ML 5.6 with debugger IDE for Isabelle/ML and Standard ML,
-per-thread profiling, native support for Windows (32bit and 64bit).
+* Upgrade to Poly/ML 5.6 with debugger IDE support (Isabelle/ML and Standard
+ML), per-thread profiling, native Windows version (32bit and 64bit).
 
 
 You may get Isabelle2016 from the following mirror sites:
