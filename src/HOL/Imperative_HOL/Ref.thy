@@ -208,11 +208,11 @@ lemma effect_changeE [effect_elims]:
   using assms by (rule effectE) (simp add: execute_simps)
 
 lemma lookup_chain:
-  "(!r \<guillemotright> f) = f"
+  "(!r \<then> f) = f"
   by (rule Heap_eqI) (auto simp add: lookup_def execute_simps intro: execute_bind)
 
 lemma update_change [code]:
-  "r := e = change (\<lambda>_. e) r \<guillemotright> return ()"
+  "r := e = change (\<lambda>_. e) r \<then> return ()"
   by (rule Heap_eqI) (simp add: change_def lookup_chain)
 
 
@@ -320,4 +320,3 @@ code_printing constant Ref.update \<rightharpoonup> (Scala) "('_: Unit)/ =>/ Ref
 code_printing constant "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" \<rightharpoonup> (Scala) infixl 5 "=="
 
 end
-

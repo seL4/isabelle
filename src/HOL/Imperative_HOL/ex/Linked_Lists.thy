@@ -507,7 +507,7 @@ next
 qed
 
 lemma traverse_make_llist':
-  assumes effect: "effect (make_llist xs \<guillemotright>= traverse) h h' r"
+  assumes effect: "effect (make_llist xs \<bind> traverse) h h' r"
   shows "r = xs"
 proof -
   from effect obtain h1 r1
@@ -942,8 +942,8 @@ section {* Code generation *}
 
 text {* A simple example program *}
 
-definition test_1 where "test_1 = (do { ll_xs <- make_llist [1..(15::int)]; xs <- traverse ll_xs; return xs })" 
-definition test_2 where "test_2 = (do { ll_xs <- make_llist [1..(15::int)]; ll_ys <- rev ll_xs; ys <- traverse ll_ys; return ys })"
+definition test_1 where "test_1 = (do { ll_xs \<leftarrow> make_llist [1..(15::int)]; xs \<leftarrow> traverse ll_xs; return xs })" 
+definition test_2 where "test_2 = (do { ll_xs \<leftarrow> make_llist [1..(15::int)]; ll_ys \<leftarrow> rev ll_xs; ys \<leftarrow> traverse ll_ys; return ys })"
 
 definition test_3 where "test_3 =
   (do {
@@ -966,4 +966,3 @@ ML_val {* @{code test_3} () *}
 export_code test_1 test_2 test_3 checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala Scala_imp
 
 end
-

@@ -1107,13 +1107,13 @@ lemma bind_nonempty'':
 
 lemma emeasure_bind:
     "\<lbrakk>space M \<noteq> {}; f \<in> measurable M (subprob_algebra N);X \<in> sets N\<rbrakk>
-      \<Longrightarrow> emeasure (M \<guillemotright>= f) X = \<integral>\<^sup>+x. emeasure (f x) X \<partial>M"
+      \<Longrightarrow> emeasure (M \<bind> f) X = \<integral>\<^sup>+x. emeasure (f x) X \<partial>M"
   by (simp add: bind_nonempty'' emeasure_join nn_integral_distr measurable_emeasure_subprob_algebra)
 
 lemma nn_integral_bind:
   assumes f: "f \<in> borel_measurable B"
   assumes N: "N \<in> measurable M (subprob_algebra B)"
-  shows "(\<integral>\<^sup>+x. f x \<partial>(M \<guillemotright>= N)) = (\<integral>\<^sup>+x. \<integral>\<^sup>+y. f y \<partial>N x \<partial>M)"
+  shows "(\<integral>\<^sup>+x. f x \<partial>(M \<bind> N)) = (\<integral>\<^sup>+x. \<integral>\<^sup>+y. f y \<partial>N x \<partial>M)"
 proof cases
   assume M: "space M \<noteq> {}" show ?thesis
     unfolding bind_nonempty''[OF N M] nn_integral_join[OF f sets_distr]
@@ -1123,17 +1123,17 @@ qed (simp add: bind_empty space_empty[of M] nn_integral_count_space)
 lemma AE_bind:
   assumes P[measurable]: "Measurable.pred B P"
   assumes N[measurable]: "N \<in> measurable M (subprob_algebra B)"
-  shows "(AE x in M \<guillemotright>= N. P x) \<longleftrightarrow> (AE x in M. AE y in N x. P y)"
+  shows "(AE x in M \<bind> N. P x) \<longleftrightarrow> (AE x in M. AE y in N x. P y)"
 proof cases
   assume M: "space M = {}" show ?thesis
     unfolding bind_empty[OF M] unfolding space_empty[OF M] by (simp add: AE_count_space)
 next
   assume M: "space M \<noteq> {}"
   note sets_kernel[OF N, simp]
-  have *: "(\<integral>\<^sup>+x. indicator {x. \<not> P x} x \<partial>(M \<guillemotright>= N)) = (\<integral>\<^sup>+x. indicator {x\<in>space B. \<not> P x} x \<partial>(M \<guillemotright>= N))"
+  have *: "(\<integral>\<^sup>+x. indicator {x. \<not> P x} x \<partial>(M \<bind> N)) = (\<integral>\<^sup>+x. indicator {x\<in>space B. \<not> P x} x \<partial>(M \<bind> N))"
     by (intro nn_integral_cong) (simp add: space_bind[OF _ M] split: split_indicator)
 
-  have "(AE x in M \<guillemotright>= N. P x) \<longleftrightarrow> (\<integral>\<^sup>+ x. integral\<^sup>N (N x) (indicator {x \<in> space B. \<not> P x}) \<partial>M) = 0"
+  have "(AE x in M \<bind> N. P x) \<longleftrightarrow> (\<integral>\<^sup>+ x. integral\<^sup>N (N x) (indicator {x \<in> space B. \<not> P x}) \<partial>M) = 0"
     by (simp add: AE_iff_nn_integral sets_bind[OF _ M] space_bind[OF _ M] * nn_integral_bind[where B=B]
              del: nn_integral_indicator)
   also have "\<dots> = (AE x in M. AE y in N x. P y)"
@@ -1180,9 +1180,9 @@ lemma measurable_bind2:
 
 lemma subprob_space_bind:
   assumes "subprob_space M" "f \<in> measurable M (subprob_algebra N)"
-  shows "subprob_space (M \<guillemotright>= f)"
-proof (rule subprob_space_kernel[of "\<lambda>x. x \<guillemotright>= f"])
-  show "(\<lambda>x. x \<guillemotright>= f) \<in> measurable (subprob_algebra M) (subprob_algebra N)"
+  shows "subprob_space (M \<bind> f)"
+proof (rule subprob_space_kernel[of "\<lambda>x. x \<bind> f"])
+  show "(\<lambda>x. x \<bind> f) \<in> measurable (subprob_algebra M) (subprob_algebra N)"
     by (rule measurable_bind, rule measurable_ident_sets, rule refl, 
         rule measurable_compose[OF measurable_snd assms(2)])
   from assms(1) show "M \<in> space (subprob_algebra M)"
@@ -1218,27 +1218,27 @@ qed(simp_all add: bind_def integrable_count_space lebesgue_integral_count_space_
 lemma (in prob_space) prob_space_bind: 
   assumes ae: "AE x in M. prob_space (N x)"
     and N[measurable]: "N \<in> measurable M (subprob_algebra S)"
-  shows "prob_space (M \<guillemotright>= N)"
+  shows "prob_space (M \<bind> N)"
 proof
-  have "emeasure (M \<guillemotright>= N) (space (M \<guillemotright>= N)) = (\<integral>\<^sup>+x. emeasure (N x) (space (N x)) \<partial>M)"
+  have "emeasure (M \<bind> N) (space (M \<bind> N)) = (\<integral>\<^sup>+x. emeasure (N x) (space (N x)) \<partial>M)"
     by (subst emeasure_bind[where N=S])
        (auto simp: not_empty space_bind[OF sets_kernel] subprob_measurableD[OF N] intro!: nn_integral_cong)
   also have "\<dots> = (\<integral>\<^sup>+x. 1 \<partial>M)"
     using ae by (intro nn_integral_cong_AE, eventually_elim) (rule prob_space.emeasure_space_1)
-  finally show "emeasure (M \<guillemotright>= N) (space (M \<guillemotright>= N)) = 1"
+  finally show "emeasure (M \<bind> N) (space (M \<bind> N)) = 1"
     by (simp add: emeasure_space_1)
 qed
 
 lemma (in subprob_space) bind_in_space:
-  "A \<in> measurable M (subprob_algebra N) \<Longrightarrow> (M \<guillemotright>= A) \<in> space (subprob_algebra N)"
+  "A \<in> measurable M (subprob_algebra N) \<Longrightarrow> (M \<bind> A) \<in> space (subprob_algebra N)"
   by (auto simp add: space_subprob_algebra subprob_not_empty sets_kernel intro!: subprob_space_bind)
      unfold_locales
 
 lemma (in subprob_space) measure_bind:
   assumes f: "f \<in> measurable M (subprob_algebra N)" and X: "X \<in> sets N"
-  shows "measure (M \<guillemotright>= f) X = \<integral>x. measure (f x) X \<partial>M"
+  shows "measure (M \<bind> f) X = \<integral>x. measure (f x) X \<partial>M"
 proof -
-  interpret Mf: subprob_space "M \<guillemotright>= f"
+  interpret Mf: subprob_space "M \<bind> f"
     by (rule subprob_space_bind[OF _ f]) unfold_locales
 
   { fix x assume "x \<in> space M"
@@ -1248,7 +1248,7 @@ proof -
       by (auto simp: emeasure_eq_measure subprob_measure_le_1) }
   note this[simp]
 
-  have "emeasure (M \<guillemotright>= f) X = \<integral>\<^sup>+x. emeasure (f x) X \<partial>M"
+  have "emeasure (M \<bind> f) X = \<integral>\<^sup>+x. emeasure (f x) X \<partial>M"
     using subprob_not_empty f X by (rule emeasure_bind)
   also have "\<dots> = \<integral>\<^sup>+x. ereal (measure (f x) X) \<partial>M"
     by (intro nn_integral_cong) simp
@@ -1262,29 +1262,29 @@ qed
 
 lemma emeasure_bind_const: 
     "space M \<noteq> {} \<Longrightarrow> X \<in> sets N \<Longrightarrow> subprob_space N \<Longrightarrow> 
-         emeasure (M \<guillemotright>= (\<lambda>x. N)) X = emeasure N X * emeasure M (space M)"
+         emeasure (M \<bind> (\<lambda>x. N)) X = emeasure N X * emeasure M (space M)"
   by (simp add: bind_nonempty emeasure_join nn_integral_distr 
                 space_subprob_algebra measurable_emeasure_subprob_algebra emeasure_nonneg)
 
 lemma emeasure_bind_const':
   assumes "subprob_space M" "subprob_space N"
-  shows "emeasure (M \<guillemotright>= (\<lambda>x. N)) X = emeasure N X * emeasure M (space M)"
+  shows "emeasure (M \<bind> (\<lambda>x. N)) X = emeasure N X * emeasure M (space M)"
 using assms
 proof (case_tac "X \<in> sets N")
   fix X assume "X \<in> sets N"
-  thus "emeasure (M \<guillemotright>= (\<lambda>x. N)) X = emeasure N X * emeasure M (space M)" using assms
+  thus "emeasure (M \<bind> (\<lambda>x. N)) X = emeasure N X * emeasure M (space M)" using assms
       by (subst emeasure_bind_const) 
          (simp_all add: subprob_space.subprob_not_empty subprob_space.emeasure_space_le_1)
 next
   fix X assume "X \<notin> sets N"
-  with assms show "emeasure (M \<guillemotright>= (\<lambda>x. N)) X = emeasure N X * emeasure M (space M)"
+  with assms show "emeasure (M \<bind> (\<lambda>x. N)) X = emeasure N X * emeasure M (space M)"
       by (simp add: sets_bind[of _ _ N] subprob_space.subprob_not_empty
                     space_subprob_algebra emeasure_notin_sets)
 qed
 
 lemma emeasure_bind_const_prob_space:
   assumes "prob_space M" "subprob_space N"
-  shows "emeasure (M \<guillemotright>= (\<lambda>x. N)) X = emeasure N X"
+  shows "emeasure (M \<bind> (\<lambda>x. N)) X = emeasure N X"
   using assms by (simp add: emeasure_bind_const' prob_space_imp_subprob_space 
                             prob_space.emeasure_space_1)
 
@@ -1304,7 +1304,7 @@ lemma bind_return':
 lemma distr_bind:
   assumes N: "N \<in> measurable M (subprob_algebra K)" "space M \<noteq> {}"
   assumes f: "f \<in> measurable K R"
-  shows "distr (M \<guillemotright>= N) R f = (M \<guillemotright>= (\<lambda>x. distr (N x) R f))"
+  shows "distr (M \<bind> N) R f = (M \<bind> (\<lambda>x. distr (N x) R f))"
   unfolding bind_nonempty''[OF N]
   apply (subst bind_nonempty''[OF measurable_compose[OF N(1) measurable_distr] N(2)])
   apply (rule f)
@@ -1316,7 +1316,7 @@ lemma distr_bind:
 lemma bind_distr:
   assumes f[measurable]: "f \<in> measurable M X"
   assumes N[measurable]: "N \<in> measurable X (subprob_algebra K)" and "space M \<noteq> {}"
-  shows "(distr M X f \<guillemotright>= N) = (M \<guillemotright>= (\<lambda>x. N (f x)))"
+  shows "(distr M X f \<bind> N) = (M \<bind> (\<lambda>x. N (f x)))"
 proof -
   have "space X \<noteq> {}" "space M \<noteq> {}"
     using \<open>space M \<noteq> {}\<close> f[THEN measurable_space] by auto
@@ -1326,12 +1326,12 @@ qed
 
 lemma bind_count_space_singleton:
   assumes "subprob_space (f x)"
-  shows "count_space {x} \<guillemotright>= f = f x"
+  shows "count_space {x} \<bind> f = f x"
 proof-
   have A: "\<And>A. A \<subseteq> {x} \<Longrightarrow> A = {} \<or> A = {x}" by auto
   have "count_space {x} = return (count_space {x}) x"
     by (intro measure_eqI) (auto dest: A)
-  also have "... \<guillemotright>= f = f x"
+  also have "... \<bind> f = f x"
     by (subst bind_return[of _ _ "f x"]) (auto simp: space_subprob_algebra assms)
   finally show ?thesis .
 qed
@@ -1346,10 +1346,10 @@ proof (rule measure_eqI)
   note N_space = sets_eq_imp_space_eq[OF N_sets, simp]
   show "sets (restrict_space (bind M N) X) = sets (bind M (\<lambda>x. restrict_space (N x) X))"
     by (simp add: sets_restrict_space assms(2) sets_bind[OF sets_kernel[OF restrict_space_measurable[OF assms(4,3,1)]]])
-  fix A assume "A \<in> sets (restrict_space (M \<guillemotright>= N) X)"
+  fix A assume "A \<in> sets (restrict_space (M \<bind> N) X)"
   with X have "A \<in> sets K" "A \<subseteq> X"
     by (auto simp: sets_restrict_space)
-  then show "emeasure (restrict_space (M \<guillemotright>= N) X) A = emeasure (M \<guillemotright>= (\<lambda>x. restrict_space (N x) X)) A"
+  then show "emeasure (restrict_space (M \<bind> N) X) A = emeasure (M \<bind> (\<lambda>x. restrict_space (N x) X)) A"
     using assms
     apply (subst emeasure_restrict_space)
     apply (simp_all add: emeasure_bind[OF assms(2,1)])
@@ -1362,8 +1362,8 @@ qed
 lemma bind_restrict_space:
   assumes A: "A \<inter> space M \<noteq> {}" "A \<inter> space M \<in> sets M"
   and f: "f \<in> measurable (restrict_space M A) (subprob_algebra N)"
-  shows "restrict_space M A \<guillemotright>= f = M \<guillemotright>= (\<lambda>x. if x \<in> A then f x else null_measure (f (SOME x. x \<in> A \<and> x \<in> space M)))"
-  (is "?lhs = ?rhs" is "_ = M \<guillemotright>= ?f")
+  shows "restrict_space M A \<bind> f = M \<bind> (\<lambda>x. if x \<in> A then f x else null_measure (f (SOME x. x \<in> A \<and> x \<in> space M)))"
+  (is "?lhs = ?rhs" is "_ = M \<bind> ?f")
 proof -
   let ?P = "\<lambda>x. x \<in> A \<and> x \<in> space M"
   let ?x = "Eps ?P"
@@ -1391,7 +1391,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma bind_const': "\<lbrakk>prob_space M; subprob_space N\<rbrakk> \<Longrightarrow> M \<guillemotright>= (\<lambda>x. N) = N"
+lemma bind_const': "\<lbrakk>prob_space M; subprob_space N\<rbrakk> \<Longrightarrow> M \<bind> (\<lambda>x. N) = N"
   by (intro measure_eqI) 
      (simp_all add: space_subprob_algebra prob_space.not_empty emeasure_bind_const_prob_space)
 
@@ -1445,15 +1445,15 @@ lemma double_bind_assoc:
   assumes Mg: "g \<in> measurable N (subprob_algebra N')"
   assumes Mf: "f \<in> measurable M (subprob_algebra M')"
   assumes Mh: "case_prod h \<in> measurable (M \<Otimes>\<^sub>M M') N"
-  shows "do {x \<leftarrow> M; y \<leftarrow> f x; g (h x y)} = do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y)} \<guillemotright>= g"
+  shows "do {x \<leftarrow> M; y \<leftarrow> f x; g (h x y)} = do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y)} \<bind> g"
 proof-
-  have "do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y)} \<guillemotright>= g = 
-            do {x \<leftarrow> M; do {y \<leftarrow> f x; return N (h x y)} \<guillemotright>= g}"
+  have "do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y)} \<bind> g = 
+            do {x \<leftarrow> M; do {y \<leftarrow> f x; return N (h x y)} \<bind> g}"
     using Mh by (auto intro!: bind_assoc measurable_bind'[OF Mf] Mf Mg
                       measurable_compose[OF _ return_measurable] simp: measurable_split_conv)
   also from Mh have "\<And>x. x \<in> space M \<Longrightarrow> h x \<in> measurable M' N" by measurable
-  hence "do {x \<leftarrow> M; do {y \<leftarrow> f x; return N (h x y)} \<guillemotright>= g} = 
-            do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y) \<guillemotright>= g}"
+  hence "do {x \<leftarrow> M; do {y \<leftarrow> f x; return N (h x y)} \<bind> g} = 
+            do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y) \<bind> g}"
     apply (intro ballI bind_cong bind_assoc)
     apply (subst measurable_cong_sets[OF sets_kernel[OF Mf] refl], simp)
     apply (rule measurable_compose[OF _ return_measurable], auto intro: Mg)
@@ -1461,7 +1461,7 @@ proof-
   also have "\<And>x. x \<in> space M \<Longrightarrow> space (f x) = space M'"
     by (intro sets_eq_imp_space_eq sets_kernel[OF Mf])
   with measurable_space[OF Mh] 
-    have "do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y) \<guillemotright>= g} = do {x \<leftarrow> M; y \<leftarrow> f x; g (h x y)}"
+    have "do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y) \<bind> g} = do {x \<leftarrow> M; y \<leftarrow> f x; g (h x y)}"
     by (intro ballI bind_cong bind_return[OF Mg]) (auto simp: space_pair_measure)
   finally show ?thesis ..
 qed
@@ -1470,36 +1470,36 @@ lemma (in prob_space) M_in_subprob[measurable (raw)]: "M \<in> space (subprob_al
   by (simp add: space_subprob_algebra) unfold_locales
 
 lemma (in pair_prob_space) pair_measure_eq_bind:
-  "(M1 \<Otimes>\<^sub>M M2) = (M1 \<guillemotright>= (\<lambda>x. M2 \<guillemotright>= (\<lambda>y. return (M1 \<Otimes>\<^sub>M M2) (x, y))))"
+  "(M1 \<Otimes>\<^sub>M M2) = (M1 \<bind> (\<lambda>x. M2 \<bind> (\<lambda>y. return (M1 \<Otimes>\<^sub>M M2) (x, y))))"
 proof (rule measure_eqI)
   have ps_M2: "prob_space M2" by unfold_locales
   note return_measurable[measurable]
-  show "sets (M1 \<Otimes>\<^sub>M M2) = sets (M1 \<guillemotright>= (\<lambda>x. M2 \<guillemotright>= (\<lambda>y. return (M1 \<Otimes>\<^sub>M M2) (x, y))))"
+  show "sets (M1 \<Otimes>\<^sub>M M2) = sets (M1 \<bind> (\<lambda>x. M2 \<bind> (\<lambda>y. return (M1 \<Otimes>\<^sub>M M2) (x, y))))"
     by (simp_all add: M1.not_empty M2.not_empty)
   fix A assume [measurable]: "A \<in> sets (M1 \<Otimes>\<^sub>M M2)"
-  show "emeasure (M1 \<Otimes>\<^sub>M M2) A = emeasure (M1 \<guillemotright>= (\<lambda>x. M2 \<guillemotright>= (\<lambda>y. return (M1 \<Otimes>\<^sub>M M2) (x, y)))) A"
+  show "emeasure (M1 \<Otimes>\<^sub>M M2) A = emeasure (M1 \<bind> (\<lambda>x. M2 \<bind> (\<lambda>y. return (M1 \<Otimes>\<^sub>M M2) (x, y)))) A"
     by (auto simp: M2.emeasure_pair_measure M1.not_empty M2.not_empty emeasure_bind[where N="M1 \<Otimes>\<^sub>M M2"]
              intro!: nn_integral_cong)
 qed
 
 lemma (in pair_prob_space) bind_rotate:
   assumes C[measurable]: "(\<lambda>(x, y). C x y) \<in> measurable (M1 \<Otimes>\<^sub>M M2) (subprob_algebra N)"
-  shows "(M1 \<guillemotright>= (\<lambda>x. M2 \<guillemotright>= (\<lambda>y. C x y))) = (M2 \<guillemotright>= (\<lambda>y. M1 \<guillemotright>= (\<lambda>x. C x y)))"
+  shows "(M1 \<bind> (\<lambda>x. M2 \<bind> (\<lambda>y. C x y))) = (M2 \<bind> (\<lambda>y. M1 \<bind> (\<lambda>x. C x y)))"
 proof - 
   interpret swap: pair_prob_space M2 M1 by unfold_locales
   note measurable_bind[where N="M2", measurable]
   note measurable_bind[where N="M1", measurable]
   have [simp]: "M1 \<in> space (subprob_algebra M1)" "M2 \<in> space (subprob_algebra M2)"
     by (auto simp: space_subprob_algebra) unfold_locales
-  have "(M1 \<guillemotright>= (\<lambda>x. M2 \<guillemotright>= (\<lambda>y. C x y))) = 
-    (M1 \<guillemotright>= (\<lambda>x. M2 \<guillemotright>= (\<lambda>y. return (M1 \<Otimes>\<^sub>M M2) (x, y)))) \<guillemotright>= (\<lambda>(x, y). C x y)"
+  have "(M1 \<bind> (\<lambda>x. M2 \<bind> (\<lambda>y. C x y))) = 
+    (M1 \<bind> (\<lambda>x. M2 \<bind> (\<lambda>y. return (M1 \<Otimes>\<^sub>M M2) (x, y)))) \<bind> (\<lambda>(x, y). C x y)"
     by (auto intro!: bind_cong simp: bind_return[where N=N] space_pair_measure bind_assoc[where N="M1 \<Otimes>\<^sub>M M2" and R=N])
-  also have "\<dots> = (distr (M2 \<Otimes>\<^sub>M M1) (M1 \<Otimes>\<^sub>M M2) (\<lambda>(x, y). (y, x))) \<guillemotright>= (\<lambda>(x, y). C x y)"
+  also have "\<dots> = (distr (M2 \<Otimes>\<^sub>M M1) (M1 \<Otimes>\<^sub>M M2) (\<lambda>(x, y). (y, x))) \<bind> (\<lambda>(x, y). C x y)"
     unfolding pair_measure_eq_bind[symmetric] distr_pair_swap[symmetric] ..
-  also have "\<dots> = (M2 \<guillemotright>= (\<lambda>x. M1 \<guillemotright>= (\<lambda>y. return (M2 \<Otimes>\<^sub>M M1) (x, y)))) \<guillemotright>= (\<lambda>(y, x). C x y)"
+  also have "\<dots> = (M2 \<bind> (\<lambda>x. M1 \<bind> (\<lambda>y. return (M2 \<Otimes>\<^sub>M M1) (x, y)))) \<bind> (\<lambda>(y, x). C x y)"
     unfolding swap.pair_measure_eq_bind[symmetric]
     by (auto simp add: space_pair_measure M1.not_empty M2.not_empty bind_distr[OF _ C] intro!: bind_cong)
-  also have "\<dots> = (M2 \<guillemotright>= (\<lambda>y. M1 \<guillemotright>= (\<lambda>x. C x y)))"
+  also have "\<dots> = (M2 \<bind> (\<lambda>y. M1 \<bind> (\<lambda>x. C x y)))"
     by (auto intro!: bind_cong simp: bind_return[where N=N] space_pair_measure bind_assoc[where N="M2 \<Otimes>\<^sub>M M1" and R=N])
   finally show ?thesis .
 qed
@@ -1552,7 +1552,7 @@ next
     by (simp add: emeasure_notin_sets)
 qed
 
-lemma bind_return'': "sets M = sets N \<Longrightarrow> M \<guillemotright>= return N = M"
+lemma bind_return'': "sets M = sets N \<Longrightarrow> M \<bind> return N = M"
    by (cases "space M = {}")
       (simp_all add: bind_empty space_empty[symmetric] bind_nonempty join_return'
                 cong: subprob_algebra_cong)

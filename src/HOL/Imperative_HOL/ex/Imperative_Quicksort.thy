@@ -601,12 +601,12 @@ qed
 lemma success_bindI' [success_intros]: (*FIXME move*)
   assumes "success f h"
   assumes "\<And>h' r. effect f h h' r \<Longrightarrow> success (g r) h'"
-  shows "success (f \<guillemotright>= g) h"
+  shows "success (f \<bind> g) h"
 using assms(1) proof (rule success_effectE)
   fix h' r
   assume *: "effect f h h' r"
   with assms(2) have "success (g r) h'" .
-  with * show "success (f \<guillemotright>= g) h" by (rule success_bind_effectI)
+  with * show "success (f \<bind> g) h" by (rule success_bind_effectI)
 qed
 
 lemma success_partitionI:

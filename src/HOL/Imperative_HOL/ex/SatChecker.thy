@@ -201,9 +201,9 @@ where
   "res_thm' l (x#xs) (y#ys) = 
   (if (x = l \<or> x = compl l) then resolve2 (compl x) xs (y#ys)
   else (if (y = l \<or> y = compl l) then resolve1 (compl y) (x#xs) ys
-  else (if (x < y) then (res_thm' l xs (y#ys)) \<guillemotright>= (\<lambda>v. return (x # v))
-  else (if (x > y) then (res_thm' l (x#xs) ys) \<guillemotright>= (\<lambda>v. return (y # v))
-  else (res_thm' l xs ys) \<guillemotright>= (\<lambda>v. return (x # v))))))"
+  else (if (x < y) then (res_thm' l xs (y#ys)) \<bind> (\<lambda>v. return (x # v))
+  else (if (x > y) then (res_thm' l (x#xs) ys) \<bind> (\<lambda>v. return (y # v))
+  else (res_thm' l xs ys) \<bind> (\<lambda>v. return (x # v))))))"
 | "res_thm' l [] ys = raise (''MiniSatChecked.res_thm: Cannot find literal'')"
 | "res_thm' l xs [] = raise (''MiniSatChecked.res_thm: Cannot find literal'')"
 
@@ -432,7 +432,7 @@ primrec
   foldM :: "('a \<Rightarrow> 'b \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b Heap"
 where
   "foldM f [] s = return s"
-  | "foldM f (x#xs) s = f x s \<guillemotright>= foldM f xs"
+  | "foldM f (x#xs) s = f x s \<bind> foldM f xs"
 
 fun doProofStep2 :: "Clause option array \<Rightarrow> ProofStep \<Rightarrow> Clause list \<Rightarrow> Clause list Heap"
 where

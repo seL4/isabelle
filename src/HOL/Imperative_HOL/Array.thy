@@ -338,7 +338,7 @@ lemma effect_freezeE [effect_elims]:
   using assms by (rule effectE) (simp add: execute_simps)
 
 lemma upd_return:
-  "upd i x a \<guillemotright> return a = upd i x a"
+  "upd i x a \<then> return a = upd i x a"
   by (rule Heap_eqI) (simp add: bind_def guard_def upd_def execute_simps)
 
 lemma array_make:
@@ -371,10 +371,10 @@ lemma [code]:
   by (simp add: make'_def o_def)
 
 definition len' where
-  [code del]: "len' a = Array.len a \<guillemotright>= (\<lambda>n. return (of_nat n))"
+  [code del]: "len' a = Array.len a \<bind> (\<lambda>n. return (of_nat n))"
 
 lemma [code]:
-  "Array.len a = len' a \<guillemotright>= (\<lambda>i. return (nat_of_integer i))"
+  "Array.len a = len' a \<bind> (\<lambda>i. return (nat_of_integer i))"
   by (simp add: len'_def)
 
 definition nth' where
@@ -385,10 +385,10 @@ lemma [code]:
   by (simp add: nth'_def)
 
 definition upd' where
-  [code del]: "upd' a i x = Array.upd (nat_of_integer i) x a \<guillemotright> return ()"
+  [code del]: "upd' a i x = Array.upd (nat_of_integer i) x a \<then> return ()"
 
 lemma [code]:
-  "Array.upd i x a = upd' a (of_nat i) x \<guillemotright> return a"
+  "Array.upd i x a = upd' a (of_nat i) x \<then> return a"
   by (simp add: upd'_def upd_return)
 
 lemma [code]:
@@ -497,4 +497,3 @@ code_printing constant Array.freeze \<rightharpoonup> (Scala) "('_: Unit)/ =>/ A
 code_printing constant "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" \<rightharpoonup> (Scala) infixl 5 "=="
 
 end
-

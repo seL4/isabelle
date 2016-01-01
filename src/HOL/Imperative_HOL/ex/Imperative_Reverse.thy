@@ -110,7 +110,7 @@ lemma rev2_rev:
       subarray_def rev.simps[where j=0] elim!: effect_elims)
   (drule sym[of "List.length (Array.get h a)"], simp)
 
-definition "example = (Array.make 10 id \<guillemotright>= (\<lambda>a. rev a 0 9))"
+definition "example = (Array.make 10 id \<bind> (\<lambda>a. rev a 0 9))"
 
 export_code example checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala Scala_imp
 

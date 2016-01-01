@@ -316,7 +316,7 @@ lemma emeasure_eP:
 
 primrec C :: "nat \<Rightarrow> nat \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a) measure" where
   "C n 0 \<omega> = return (PiM {0..<n} M) \<omega>"
-| "C n (Suc m) \<omega> = C n m \<omega> \<guillemotright>= eP (n + m)"
+| "C n (Suc m) \<omega> = C n m \<omega> \<bind> eP (n + m)"
 
 lemma measurable_C[measurable]:
   "C n m \<in> measurable (PiM {0..<n} M) (subprob_algebra (PiM {0..<n + m} M))"
@@ -338,7 +338,7 @@ proof (induction m)
 qed (auto intro!: prob_space_return simp: space_PiM)
 
 lemma split_C:
-  assumes \<omega>: "\<omega> \<in> space (PiM {0..<n} M)" shows "(C n m \<omega> \<guillemotright>= C (n + m) l) = C n (m + l) \<omega>"
+  assumes \<omega>: "\<omega> \<in> space (PiM {0..<n} M)" shows "(C n m \<omega> \<bind> C (n + m) l) = C n (m + l) \<omega>"
 proof (induction l)
   case 0
   with \<omega> show ?case

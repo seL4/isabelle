@@ -253,56 +253,56 @@ adhoc_overloading
   Monad_Syntax.bind Heap_Monad.bind
 
 lemma execute_bind [execute_simps]:
-  "execute f h = Some (x, h') \<Longrightarrow> execute (f \<guillemotright>= g) h = execute (g x) h'"
-  "execute f h = None \<Longrightarrow> execute (f \<guillemotright>= g) h = None"
+  "execute f h = Some (x, h') \<Longrightarrow> execute (f \<bind> g) h = execute (g x) h'"
+  "execute f h = None \<Longrightarrow> execute (f \<bind> g) h = None"
   by (simp_all add: bind_def)
 
 lemma execute_bind_case:
-  "execute (f \<guillemotright>= g) h = (case (execute f h) of
+  "execute (f \<bind> g) h = (case (execute f h) of
     Some (x, h') \<Rightarrow> execute (g x) h' | None \<Rightarrow> None)"
   by (simp add: bind_def)
 
 lemma execute_bind_success:
-  "success f h \<Longrightarrow> execute (f \<guillemotright>= g) h = execute (g (fst (the (execute f h)))) (snd (the (execute f h)))"
+  "success f h \<Longrightarrow> execute (f \<bind> g) h = execute (g (fst (the (execute f h)))) (snd (the (execute f h)))"
   by (cases f h rule: Heap_cases) (auto elim: successE simp add: bind_def)
 
 lemma success_bind_executeI:
-  "execute f h = Some (x, h') \<Longrightarrow> success (g x) h' \<Longrightarrow> success (f \<guillemotright>= g) h"
+  "execute f h = Some (x, h') \<Longrightarrow> success (g x) h' \<Longrightarrow> success (f \<bind> g) h"
   by (auto intro!: successI elim: successE simp add: bind_def)
 
 lemma success_bind_effectI [success_intros]:
-  "effect f h h' x \<Longrightarrow> success (g x) h' \<Longrightarrow> success (f \<guillemotright>= g) h"
+  "effect f h h' x \<Longrightarrow> success (g x) h' \<Longrightarrow> success (f \<bind> g) h"
   by (auto simp add: effect_def success_def bind_def)
 
 lemma effect_bindI [effect_intros]:
   assumes "effect f h h' r" "effect (g r) h' h'' r'"
-  shows "effect (f \<guillemotright>= g) h h'' r'"
+  shows "effect (f \<bind> g) h h'' r'"
   using assms
   apply (auto intro!: effectI elim!: effectE successE)
   apply (subst execute_bind, simp_all)
   done
 
 lemma effect_bindE [effect_elims]:
-  assumes "effect (f \<guillemotright>= g) h h'' r'"
+  assumes "effect (f \<bind> g) h h'' r'"
   obtains h' r where "effect f h h' r" "effect (g r) h' h'' r'"
   using assms by (auto simp add: effect_def bind_def split: option.split_asm)
 
 lemma execute_bind_eq_SomeI:
   assumes "execute f h = Some (x, h')"
     and "execute (g x) h' = Some (y, h'')"
-  shows "execute (f \<guillemotright>= g) h = Some (y, h'')"
+  shows "execute (f \<bind> g) h = Some (y, h'')"
   using assms by (simp add: bind_def)
 
-lemma return_bind [simp]: "return x \<guillemotright>= f = f x"
+lemma return_bind [simp]: "return x \<bind> f = f x"
   by (rule Heap_eqI) (simp add: execute_simps)
 
-lemma bind_return [simp]: "f \<guillemotright>= return = f"
+lemma bind_return [simp]: "f \<bind> return = f"
   by (rule Heap_eqI) (simp add: bind_def execute_simps split: option.splits)
 
-lemma bind_bind [simp]: "(f \<guillemotright>= g) \<guillemotright>= k = (f :: 'a Heap) \<guillemotright>= (\<lambda>x. g x \<guillemotright>= k)"
+lemma bind_bind [simp]: "(f \<bind> g) \<bind> k = (f :: 'a Heap) \<bind> (\<lambda>x. g x \<bind> k)"
   by (rule Heap_eqI) (simp add: bind_def execute_simps split: option.splits)
 
-lemma raise_bind [simp]: "raise e \<guillemotright>= f = raise e"
+lemma raise_bind [simp]: "raise e \<bind> f = raise e"
   by (rule Heap_eqI) (simp add: execute_simps)
 
 
@@ -334,7 +334,7 @@ lemma effect_assertE [effect_elims]:
 lemma assert_cong [fundef_cong]:
   assumes "P = P'"
   assumes "\<And>x. P' x \<Longrightarrow> f x = f' x"
-  shows "(assert P x >>= f) = (assert P' x >>= f')"
+  shows "(assert P x \<bind> f) = (assert P' x \<bind> f')"
   by (rule Heap_eqI) (insert assms, simp add: assert_def)
 
 
@@ -348,7 +348,7 @@ lemma lift_collapse [simp]:
   by (simp add: lift_def)
 
 lemma bind_lift:
-  "(f \<guillemotright>= lift g) = (f \<guillemotright>= (\<lambda>x. return (g x)))"
+  "(f \<bind> lift g) = (f \<bind> (\<lambda>x. return (g x)))"
   by (simp add: lift_def comp_def)
 
 
@@ -363,7 +363,7 @@ primrec fold_map :: "('a \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarr
    }"
 
 lemma fold_map_append:
-  "fold_map f (xs @ ys) = fold_map f xs \<guillemotright>= (\<lambda>xs. fold_map f ys \<guillemotright>= (\<lambda>ys. return (xs @ ys)))"
+  "fold_map f (xs @ ys) = fold_map f xs \<bind> (\<lambda>xs. fold_map f ys \<bind> (\<lambda>ys. return (xs @ ys)))"
   by (induct xs) simp_all
 
 lemma execute_fold_map_unchanged_heap [execute_simps]:
@@ -476,7 +476,7 @@ lemma Heap_ordE:
 
 lemma bind_mono [partial_function_mono]:
   assumes mf: "mono_Heap B" and mg: "\<And>y. mono_Heap (\<lambda>f. C y f)"
-  shows "mono_Heap (\<lambda>f. B f \<guillemotright>= (\<lambda>y. C y f))"
+  shows "mono_Heap (\<lambda>f. B f \<bind> (\<lambda>y. C y f))"
 proof (rule monotoneI)
   fix f g :: "'a \<Rightarrow> 'b Heap" assume fg: "fun_ord Heap_ord f g"
   from mf
@@ -484,7 +484,7 @@ proof (rule monotoneI)
   from mg
   have 2: "\<And>y'. Heap_ord (C y' f) (C y' g)" by (rule monotoneD) (rule fg)
 
-  have "Heap_ord (B f \<guillemotright>= (\<lambda>y. C y f)) (B g \<guillemotright>= (\<lambda>y. C y f))"
+  have "Heap_ord (B f \<bind> (\<lambda>y. C y f)) (B g \<bind> (\<lambda>y. C y f))"
     (is "Heap_ord ?L ?R")
   proof (rule Heap_ordI)
     fix h
@@ -492,7 +492,7 @@ proof (rule monotoneI)
       by (rule Heap_ordE[where h = h]) (auto simp: execute_bind_case)
   qed
   also
-  have "Heap_ord (B g \<guillemotright>= (\<lambda>y'. C y' f)) (B g \<guillemotright>= (\<lambda>y'. C y' g))"
+  have "Heap_ord (B g \<bind> (\<lambda>y'. C y' f)) (B g \<bind> (\<lambda>y'. C y' g))"
     (is "Heap_ord ?L ?R")
   proof (rule Heap_ordI)
     fix h
@@ -512,7 +512,7 @@ proof (rule monotoneI)
     qed
   qed
   finally (heap.leq_trans)
-  show "Heap_ord (B f \<guillemotright>= (\<lambda>y. C y f)) (B g \<guillemotright>= (\<lambda>y'. C y' g))" .
+  show "Heap_ord (B f \<bind> (\<lambda>y. C y f)) (B g \<bind> (\<lambda>y'. C y' g))" .
 qed
 
 

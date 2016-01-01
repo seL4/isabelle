@@ -598,6 +598,8 @@ during instantiation.
 terms for sup and inf. For example, "sup x (sup y (- x))" simplifies to
 "top". INCOMPATIBILITY.
 
+* Library/Monad_Syntax: notation uses symbols \<bind> and \<then>. INCOMPATIBILITY.
+
 * Library/Multiset:
   - Renamed multiset inclusion operators:
       < ~> <#

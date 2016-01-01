@@ -334,13 +334,13 @@ lemma bind_measure_pmf_cong:
   assumes "\<And>i. i \<in> set_pmf x \<Longrightarrow> A i = B i"
   shows "bind (measure_pmf x) A = bind (measure_pmf x) B"
 proof (rule measure_eqI)
-  show "sets (measure_pmf x \<guillemotright>= A) = sets (measure_pmf x \<guillemotright>= B)"
+  show "sets (measure_pmf x \<bind> A) = sets (measure_pmf x \<bind> B)"
     using assms by (subst (1 2) sets_bind) (auto simp: space_subprob_algebra)
 next
-  fix X assume "X \<in> sets (measure_pmf x \<guillemotright>= A)"
+  fix X assume "X \<in> sets (measure_pmf x \<bind> A)"
   then have X: "X \<in> sets N"
     using assms by (subst (asm) sets_bind) (auto simp: space_subprob_algebra)
-  show "emeasure (measure_pmf x \<guillemotright>= A) X = emeasure (measure_pmf x \<guillemotright>= B) X"
+  show "emeasure (measure_pmf x \<bind> A) X = emeasure (measure_pmf x \<bind> B) X"
     using assms
     by (subst (1 2) emeasure_bind[where N=N, OF _ _ X])
        (auto intro!: nn_integral_cong_AE simp: AE_measure_pmf_iff)
@@ -362,13 +362,13 @@ proof (clarify, intro conjI)
   have [measurable]: "g \<in> measurable f (subprob_algebra (count_space UNIV))"
     by (auto simp: measurable_def space_subprob_algebra prob_space_imp_subprob_space g)
 
-  show "prob_space (f \<guillemotright>= g)"
+  show "prob_space (f \<bind> g)"
     using g by (intro f.prob_space_bind[where S="count_space UNIV"]) auto
-  then interpret fg: prob_space "f \<guillemotright>= g" .
-  show [simp]: "sets (f \<guillemotright>= g) = UNIV"
+  then interpret fg: prob_space "f \<bind> g" .
+  show [simp]: "sets (f \<bind> g) = UNIV"
     using sets_eq_imp_space_eq[OF s_f]
     by (subst sets_bind[where N="count_space UNIV"]) auto
-  show "AE x in f \<guillemotright>= g. measure (f \<guillemotright>= g) {x} \<noteq> 0"
+  show "AE x in f \<bind> g. measure (f \<bind> g) {x} \<noteq> 0"
     apply (simp add: fg.prob_eq_0 AE_bind[where B="count_space UNIV"])
     using ae_f
     apply eventually_elim
@@ -408,7 +408,7 @@ lemma bind_pmf_cong_simp:
   "p = q \<Longrightarrow> (\<And>x. x \<in> set_pmf q =simp=> f x = g x) \<Longrightarrow> bind_pmf p f = bind_pmf q g"
   by (simp add: simp_implies_def cong: bind_pmf_cong)
 
-lemma measure_pmf_bind: "measure_pmf (bind_pmf M f) = (measure_pmf M \<guillemotright>= (\<lambda>x. measure_pmf (f x)))"
+lemma measure_pmf_bind: "measure_pmf (bind_pmf M f) = (measure_pmf M \<bind> (\<lambda>x. measure_pmf (f x)))"
   by transfer simp
 
 lemma nn_integral_bind_pmf[simp]: "(\<integral>\<^sup>+x. f x \<partial>bind_pmf M N) = (\<integral>\<^sup>+x. \<integral>\<^sup>+y. f y \<partial>N x \<partial>M)"
@@ -437,7 +437,7 @@ lemma set_return_pmf[simp]: "set_pmf (return_pmf x) = {x}"
 
 lemma bind_return_pmf': "bind_pmf N return_pmf = N"
 proof (transfer, clarify)
-  fix N :: "'a measure" assume "sets N = UNIV" then show "N \<guillemotright>= return (count_space UNIV) = N"
+  fix N :: "'a measure" assume "sets N = UNIV" then show "N \<bind> return (count_space UNIV) = N"
     by (subst return_sets_cong[where N=N]) (simp_all add: bind_return')
 qed
 
@@ -458,7 +458,7 @@ lemma map_pmf_transfer[transfer_rule]:
   "rel_fun op = (rel_fun cr_pmf cr_pmf) (\<lambda>f M. distr M (count_space UNIV) f) map_pmf"
 proof -
   have "rel_fun op = (rel_fun pmf_as_measure.cr_pmf pmf_as_measure.cr_pmf)
-     (\<lambda>f M. M \<guillemotright>= (return (count_space UNIV) o f)) map_pmf"
+     (\<lambda>f M. M \<bind> (return (count_space UNIV) o f)) map_pmf"
     unfolding map_pmf_def[abs_def] comp_def by transfer_prover
   then show ?thesis
     by (force simp: rel_fun_def cr_pmf_def bind_return_distr)
@@ -584,7 +584,7 @@ qed
 
 lemma bind_pair_pmf:
   assumes M[measurable]: "M \<in> measurable (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) (subprob_algebra N)"
-  shows "measure_pmf (pair_pmf A B) \<guillemotright>= M = (measure_pmf A \<guillemotright>= (\<lambda>x. measure_pmf B \<guillemotright>= (\<lambda>y. M (x, y))))"
+  shows "measure_pmf (pair_pmf A B) \<bind> M = (measure_pmf A \<bind> (\<lambda>x. measure_pmf B \<bind> (\<lambda>y. M (x, y))))"
     (is "?L = ?R")
 proof (rule measure_eqI)
   have M'[measurable]: "M \<in> measurable (pair_pmf A B) (subprob_algebra N)"

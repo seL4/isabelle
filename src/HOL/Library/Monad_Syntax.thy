@@ -15,13 +15,10 @@ text \<open>
 \<close>
 
 consts
-  bind :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'd" (infixr "\<guillemotright>=" 54)
+  bind :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'd" (infixr "\<bind>" 54)
 
 notation (ASCII)
   bind (infixr ">>=" 54)
-
-notation (latex output)
-  bind (infixr "\<bind>" 54)
 
 
 abbreviation (do_notation)
@@ -29,13 +26,10 @@ abbreviation (do_notation)
   where "bind_do \<equiv> bind"
 
 notation (output)
-  bind_do (infixr "\<guillemotright>=" 54)
+  bind_do (infixr "\<bind>" 54)
 
 notation (ASCII output)
   bind_do (infixr ">>=" 54)
-
-notation (latex output)
-  bind_do (infixr "\<bind>" 54)
 
 
 nonterminal do_binds and do_bind
@@ -46,14 +40,11 @@ syntax
   "_do_then" :: "'a \<Rightarrow> do_bind" ("_" [14] 13)
   "_do_final" :: "'a \<Rightarrow> do_binds" ("_")
   "_do_cons" :: "[do_bind, do_binds] \<Rightarrow> do_binds" ("_;//_" [13, 12] 12)
-  "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixr "\<guillemotright>" 54)
+  "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixr "\<then>" 54)
 
 syntax (ASCII)
   "_do_bind" :: "[pttrn, 'a] \<Rightarrow> do_bind" ("(2_ <-/ _)" 13)
   "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixr ">>" 54)
-
-syntax (latex output)
-  "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixr "\<then>" 54)
 
 translations
   "_do_block (_do_cons (_do_then t) (_do_final e))"
@@ -67,7 +58,7 @@ translations
   "_do_cons (_do_let p t) (_do_final s)"
     == "_do_final (let p = t in s)"
   "_do_block (_do_final e)" => "e"
-  "(m >> n)" => "(m >>= (\<lambda>_. n))"
+  "(m \<then> n)" => "(m \<bind> (\<lambda>_. n))"
 
 adhoc_overloading
   bind Set.bind Predicate.bind Option.bind List.bind

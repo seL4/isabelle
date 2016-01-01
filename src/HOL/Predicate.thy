@@ -120,35 +120,35 @@ lemma eval_single [simp]:
   "eval (single x) = (op =) x"
   by (simp add: single_def)
 
-definition bind :: "'a pred \<Rightarrow> ('a \<Rightarrow> 'b pred) \<Rightarrow> 'b pred" (infixl "\<guillemotright>=" 70) where
-  "P \<guillemotright>= f = (SUPREMUM {x. eval P x} f)"
+definition bind :: "'a pred \<Rightarrow> ('a \<Rightarrow> 'b pred) \<Rightarrow> 'b pred" (infixl "\<bind>" 70) where
+  "P \<bind> f = (SUPREMUM {x. eval P x} f)"
 
 lemma eval_bind [simp]:
-  "eval (P \<guillemotright>= f) = eval (SUPREMUM {x. eval P x} f)"
+  "eval (P \<bind> f) = eval (SUPREMUM {x. eval P x} f)"
   by (simp add: bind_def)
 
 lemma bind_bind:
-  "(P \<guillemotright>= Q) \<guillemotright>= R = P \<guillemotright>= (\<lambda>x. Q x \<guillemotright>= R)"
+  "(P \<bind> Q) \<bind> R = P \<bind> (\<lambda>x. Q x \<bind> R)"
   by (rule pred_eqI) auto
 
 lemma bind_single:
-  "P \<guillemotright>= single = P"
+  "P \<bind> single = P"
   by (rule pred_eqI) auto
 
 lemma single_bind:
-  "single x \<guillemotright>= P = P x"
+  "single x \<bind> P = P x"
   by (rule pred_eqI) auto
 
 lemma bottom_bind:
-  "\<bottom> \<guillemotright>= P = \<bottom>"
+  "\<bottom> \<bind> P = \<bottom>"
   by (rule pred_eqI) auto
 
 lemma sup_bind:
-  "(P \<squnion> Q) \<guillemotright>= R = P \<guillemotright>= R \<squnion> Q \<guillemotright>= R"
+  "(P \<squnion> Q) \<bind> R = P \<bind> R \<squnion> Q \<bind> R"
   by (rule pred_eqI) auto
 
 lemma Sup_bind:
-  "(\<Squnion>A \<guillemotright>= f) = \<Squnion>((\<lambda>x. x \<guillemotright>= f) ` A)"
+  "(\<Squnion>A \<bind> f) = \<Squnion>((\<lambda>x. x \<bind> f) ` A)"
   by (rule pred_eqI) auto
 
 lemma pred_iffI:
@@ -169,10 +169,10 @@ lemma singleE: "eval (single x) y \<Longrightarrow> (y = x \<Longrightarrow> P) 
 lemma singleE': "eval (single x) y \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> P"
   by simp
 
-lemma bindI: "eval P x \<Longrightarrow> eval (Q x) y \<Longrightarrow> eval (P \<guillemotright>= Q) y"
+lemma bindI: "eval P x \<Longrightarrow> eval (Q x) y \<Longrightarrow> eval (P \<bind> Q) y"
   by auto
 
-lemma bindE: "eval (R \<guillemotright>= Q) y \<Longrightarrow> (\<And>x. eval R x \<Longrightarrow> eval (Q x) y \<Longrightarrow> P) \<Longrightarrow> P"
+lemma bindE: "eval (R \<bind> Q) y \<Longrightarrow> (\<And>x. eval R x \<Longrightarrow> eval (Q x) y \<Longrightarrow> P) \<Longrightarrow> P"
   by auto
 
 lemma botE: "eval \<bottom> x \<Longrightarrow> P"
@@ -401,7 +401,7 @@ unfolding is_empty_def holds_eq
 by (rule unit_pred_cases) (auto elim: botE intro: singleI)
 
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a pred \<Rightarrow> 'b pred" where
-  "map f P = P \<guillemotright>= (single o f)"
+  "map f P = P \<bind> (single o f)"
 
 lemma eval_map [simp]:
   "eval (map f P) = (\<Squnion>x\<in>{x. eval P x}. (\<lambda>y. f x = y))"
@@ -455,11 +455,11 @@ lemma single_code [code]:
 
 primrec "apply" :: "('a \<Rightarrow> 'b pred) \<Rightarrow> 'a seq \<Rightarrow> 'b seq" where
   "apply f Empty = Empty"
-| "apply f (Insert x P) = Join (f x) (Join (P \<guillemotright>= f) Empty)"
-| "apply f (Join P xq) = Join (P \<guillemotright>= f) (apply f xq)"
+| "apply f (Insert x P) = Join (f x) (Join (P \<bind> f) Empty)"
+| "apply f (Join P xq) = Join (P \<bind> f) (apply f xq)"
 
 lemma apply_bind:
-  "pred_of_seq (apply f xq) = pred_of_seq xq \<guillemotright>= f"
+  "pred_of_seq (apply f xq) = pred_of_seq xq \<bind> f"
 proof (induct xq)
   case Empty show ?case
     by (simp add: bottom_bind)
@@ -472,7 +472,7 @@ next
 qed
   
 lemma bind_code [code]:
-  "Seq g \<guillemotright>= f = Seq (\<lambda>u. apply f (g ()))"
+  "Seq g \<bind> f = Seq (\<lambda>u. apply f (g ()))"
   unfolding Seq_def by (rule sym, rule apply_bind)
 
 lemma bot_set_code [code]:
@@ -727,7 +727,7 @@ lemma pred_of_set_set_foldr_sup [code]:
   by (simp add: pred_of_set_set_fold_sup ac_simps foldr_fold fun_eq_iff)
 
 no_notation
-  bind (infixl "\<guillemotright>=" 70)
+  bind (infixl "\<bind>" 70)
 
 hide_type (open) pred seq
 hide_const (open) Pred eval single bind is_empty singleton if_pred not_pred holds
