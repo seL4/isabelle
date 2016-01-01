@@ -352,7 +352,7 @@
 \<dieresis>             code: 0x0000a8
 \<cedilla>              code: 0x0000b8
 \<hungarumlaut>         code: 0x0002dd
-\<bind>                 code: 0x00291c  abbrev: >>  abbrev: >>=
+\<bind>                 code: 0x00291c  abbrev: >>=
 \<then>                 code: 0x002aa2  abbrev: >>
 \<some>                 code: 0x0003f5
 \<hole>                 code: 0x002311
