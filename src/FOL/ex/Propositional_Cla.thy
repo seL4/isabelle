@@ -9,7 +9,7 @@ theory Propositional_Cla
 imports FOL
 begin
 
-text \<open>commutative laws of @{text "\<and>"} and @{text "\<or>"}\<close>
+text \<open>commutative laws of \<open>\<and>\<close> and \<open>\<or>\<close>\<close>
 
 lemma "P \<and> Q \<longrightarrow> Q \<and> P"
   by (tactic "IntPr.fast_tac @{context} 1")
@@ -18,7 +18,7 @@ lemma "P \<or> Q \<longrightarrow> Q \<or> P"
   by fast
 
 
-text \<open>associative laws of @{text "\<and>"} and @{text "\<or>"}\<close>
+text \<open>associative laws of \<open>\<and>\<close> and \<open>\<or>\<close>\<close>
 lemma "(P \<and> Q) \<and> R \<longrightarrow> P \<and> (Q \<and> R)"
   by fast
 
@@ -26,7 +26,7 @@ lemma "(P \<or> Q) \<or> R \<longrightarrow>  P \<or> (Q \<or> R)"
   by fast
 
 
-text \<open>distributive laws of @{text "\<and>"} and @{text "\<or>"}\<close>
+text \<open>distributive laws of \<open>\<and>\<close> and \<open>\<or>\<close>\<close>
 lemma "(P \<and> Q) \<or> R \<longrightarrow> (P \<or> R) \<and> (Q \<or> R)"
   by fast
 
@@ -60,16 +60,16 @@ lemma "(P \<longrightarrow> Q \<and> R) \<longleftrightarrow> (P \<longrightarro
 
 text \<open>Propositions-as-types\<close>
 
--- \<open>The combinator K\<close>
+\<comment> \<open>The combinator K\<close>
 lemma "P \<longrightarrow> (Q \<longrightarrow> P)"
   by fast
 
--- \<open>The combinator S\<close>
+\<comment> \<open>The combinator S\<close>
 lemma "(P \<longrightarrow> Q \<longrightarrow> R) \<longrightarrow> (P \<longrightarrow> Q) \<longrightarrow> (P \<longrightarrow> R)"
   by fast
 
 
--- \<open>Converse is classical\<close>
+\<comment> \<open>Converse is classical\<close>
 lemma "(P \<longrightarrow> Q) \<or> (P \<longrightarrow> R) \<longrightarrow> (P \<longrightarrow> Q \<or> R)"
   by fast
 

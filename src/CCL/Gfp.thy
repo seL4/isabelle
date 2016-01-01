@@ -10,7 +10,7 @@ imports Lfp
 begin
 
 definition
-  gfp :: "['a set\<Rightarrow>'a set] \<Rightarrow> 'a set" where -- "greatest fixed point"
+  gfp :: "['a set\<Rightarrow>'a set] \<Rightarrow> 'a set" where \<comment> "greatest fixed point"
   "gfp(f) == Union({u. u <= f(u)})"
 
 (* gfp(f) is the least upper bound of {u. u <= f(u)} *)
@@ -90,7 +90,7 @@ lemma coinduct3:
   done
 
 
-subsection \<open>Definition forms of @{text "gfp_Tarski"}, to control unfolding\<close>
+subsection \<open>Definition forms of \<open>gfp_Tarski\<close>, to control unfolding\<close>
 
 lemma def_gfp_Tarski: "\<lbrakk>h == gfp(f); mono(f)\<rbrakk> \<Longrightarrow> h = f(h)"
   apply unfold

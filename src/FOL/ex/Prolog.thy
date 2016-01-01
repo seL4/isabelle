@@ -56,7 +56,7 @@ apply (rule rules)+
 done
 
 schematic_goal "rev(?x, a:b:c:Nil)"
-apply (rule rules)+  -- \<open>does not solve it directly!\<close>
+apply (rule rules)+  \<comment> \<open>does not solve it directly!\<close>
 back
 back
 done

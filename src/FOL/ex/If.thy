@@ -26,7 +26,7 @@ lemma if_commute: "if(P, if(Q,A,B), if(Q,C,D)) \<longleftrightarrow> if(Q, if(P,
   apply (rule ifI)
   oops
 
-text\<open>Trying again from the beginning in order to use @{text blast}\<close>
+text\<open>Trying again from the beginning in order to use \<open>blast\<close>\<close>
 declare ifI [intro!]
 declare ifE [elim!]
 
@@ -45,7 +45,7 @@ lemma "if(if(P,Q,R), A, B) \<longleftrightarrow> if(P, if(Q,A,B), if(R,A,B))"
 text \<open>An invalid formula. High-level rules permit a simpler diagnosis.\<close>
 lemma "if(if(P,Q,R), A, B) \<longleftrightarrow> if(P, if(Q,A,B), if(R,B,A))"
   apply auto
-    -- \<open>The next step will fail unless subgoals remain\<close>
+    \<comment> \<open>The next step will fail unless subgoals remain\<close>
   apply (tactic all_tac)
   oops
 
@@ -53,7 +53,7 @@ text \<open>Trying again from the beginning in order to prove from the definitio
 lemma "if(if(P,Q,R), A, B) \<longleftrightarrow> if(P, if(Q,A,B), if(R,B,A))"
   unfolding if_def
   apply auto
-    -- \<open>The next step will fail unless subgoals remain\<close>
+    \<comment> \<open>The next step will fail unless subgoals remain\<close>
   apply (tactic all_tac)
   oops
 

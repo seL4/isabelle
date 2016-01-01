@@ -41,7 +41,7 @@ apply assumption
 done
 
 
-subsubsection \<open>Demonstration of @{text "fast"}\<close>
+subsubsection \<open>Demonstration of \<open>fast\<close>\<close>
 
 schematic_goal "?p : (EX y. ALL x. J(y,x) <-> ~J(x,x))
         -->  ~ (ALL x. EX y. ALL z. J(z,y) <-> ~ J(z,x))"

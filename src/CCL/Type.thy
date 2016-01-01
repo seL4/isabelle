@@ -364,8 +364,7 @@ lemma "letrec g x be zero$g(x) in g(bot) : Lists(Nat)"
   done
 
 
-subsection \<open>Lemmas and tactics for using the rule @{text
-  "coinduct3"} on @{text "[="} and @{text "="}\<close>
+subsection \<open>Lemmas and tactics for using the rule \<open>coinduct3\<close> on \<open>[=\<close> and \<open>=\<close>\<close>
 
 lemma lfpI: "\<lbrakk>mono(f); a : f(lfp(f))\<rbrakk> \<Longrightarrow> a : lfp(f)"
   apply (erule lfp_Tarski [THEN ssubst])

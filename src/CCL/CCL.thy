@@ -303,7 +303,7 @@ lemmas [simp] = ccl_rews
   and [dest!] = ccl_injDs
 
 
-subsection \<open>Facts from gfp Definition of @{text "[="} and @{text "="}\<close>
+subsection \<open>Facts from gfp Definition of \<open>[=\<close> and \<open>=\<close>\<close>
 
 lemma XHlemma1: "\<lbrakk>A=B; a:B \<longleftrightarrow> P\<rbrakk> \<Longrightarrow> a:A \<longleftrightarrow> P"
   by simp
@@ -422,7 +422,7 @@ lemma npo_rls1:
 lemmas npo_rls = npo_pair_lam npo_lam_pair npo_rls1
 
 
-subsection \<open>Coinduction for @{text "[="}\<close>
+subsection \<open>Coinduction for \<open>[=\<close>\<close>
 
 lemma po_coinduct: "\<lbrakk><t,u> : R; R <= POgen(R)\<rbrakk> \<Longrightarrow> t [= u"
   apply (rule PO_def [THEN def_coinduct, THEN PO_iff [THEN iffD2]])

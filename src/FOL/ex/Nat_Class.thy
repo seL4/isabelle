@@ -7,11 +7,11 @@ imports FOL
 begin
 
 text \<open>
-  This is an abstract version of theory @{text Nat}. Instead of
-  axiomatizing a single type @{text nat} we define the class of all
+  This is an abstract version of theory \<open>Nat\<close>. Instead of
+  axiomatizing a single type \<open>nat\<close> we define the class of all
   these types (up to isomorphism).
 
-  Note: The @{text rec} operator had to be made \emph{monomorphic},
+  Note: The \<open>rec\<close> operator had to be made \emph{monomorphic},
   because class axioms may not contain more than one type variable.
 \<close>
 

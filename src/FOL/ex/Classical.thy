@@ -321,9 +321,9 @@ lemma
   by blast
 
 text \<open>
-  Other proofs: Can use @{text auto}, which cheats by using rewriting!
-  @{text Deepen_tac} alone requires 253 secs.  Or
-  @{text \<open>by (mini_tac 1 THEN Deepen_tac 5 1)\<close>}.
+  Other proofs: Can use \<open>auto\<close>, which cheats by using rewriting!
+  \<open>Deepen_tac\<close> alone requires 253 secs.  Or
+  \<open>by (mini_tac 1 THEN Deepen_tac 5 1)\<close>.
 \<close>
 
 text\<open>44\<close>
@@ -366,7 +366,7 @@ lemma
   apply safe
   apply (rule_tac x = a in allE, assumption)
   apply (rule_tac x = b in allE, assumption)
-  apply fast  -- \<open>blast's treatment of equality can't do it\<close>
+  apply fast  \<comment> \<open>blast's treatment of equality can't do it\<close>
   done
 
 text\<open>50. (What has this to do with equality?)\<close>
@@ -399,7 +399,7 @@ schematic_goal
    (\<forall>x. hates(agatha,x) \<longrightarrow> hates(butler,x)) \<and>
    (\<forall>x. \<not> hates(x,agatha) \<or> \<not> hates(x,butler) \<or> \<not> hates(x,charles)) \<longrightarrow>
     killed(?who,agatha)"
-  by fast  -- \<open>MUCH faster than blast\<close>
+  by fast  \<comment> \<open>MUCH faster than blast\<close>
 
 
 text\<open>56\<close>
@@ -468,7 +468,7 @@ lemma
                     ((C(y) \<and> Q(w,y,y)) \<and> OO(w,b) \<longrightarrow> P(v,y) \<and> OO(v,b)))))
      \<longrightarrow> \<not> (\<exists>x. A(x) \<and> (\<forall>y. C(y) \<longrightarrow> (\<forall>z. D(x,y,z))))"
   by (blast 12)
-    -- \<open>Needed because the search for depths below 12 is very slow.\<close>
+    \<comment> \<open>Needed because the search for depths below 12 is very slow.\<close>
 
 
 text \<open>

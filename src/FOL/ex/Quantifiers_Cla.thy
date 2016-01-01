@@ -33,14 +33,14 @@ text \<open>Some harder ones.\<close>
 lemma "(\<exists>x. P(x) \<or> Q(x)) \<longleftrightarrow> (\<exists>x. P(x)) \<or> (\<exists>x. Q(x))"
   by fast
 
--- \<open>Converse is false.\<close>
+\<comment> \<open>Converse is false.\<close>
 lemma "(\<exists>x. P(x) \<and> Q(x)) \<longrightarrow> (\<exists>x. P(x)) \<and> (\<exists>x. Q(x))"
   by fast
 
 
 text \<open>Basic test of quantifier reasoning.\<close>
 
--- \<open>TRUE\<close>
+\<comment> \<open>TRUE\<close>
 lemma "(\<exists>y. \<forall>x. Q(x,y)) \<longrightarrow> (\<forall>x. \<exists>y. Q(x,y))"
   by fast
 
@@ -72,7 +72,7 @@ text \<open>Back to things that are provable \dots\<close>
 lemma "(\<forall>x. P(x) \<longrightarrow> Q(x)) \<and> (\<exists>x. P(x)) \<longrightarrow> (\<exists>x. Q(x))"
   by fast
 
-text \<open>An example of why @{text exI} should be delayed as long as possible.\<close>
+text \<open>An example of why \<open>exI\<close> should be delayed as long as possible.\<close>
 lemma "(P \<longrightarrow> (\<exists>x. Q(x))) \<and> P \<longrightarrow> (\<exists>x. Q(x))"
   by fast
 

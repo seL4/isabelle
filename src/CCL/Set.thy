@@ -411,7 +411,7 @@ lemma subset_Un_eq: "(A<=B) \<longleftrightarrow> (A Un B = B)"
   by (blast intro: equalityI elim: equalityE)
 
 
-subsection \<open>Simple properties of @{text "Compl"} -- complement of a set\<close>
+subsection \<open>Simple properties of \<open>Compl\<close> -- complement of a set\<close>
 
 lemma Compl_disjoint: "A Int Compl(A) = {x. False}"
   by (blast intro: equalityI)

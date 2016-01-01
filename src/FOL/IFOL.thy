@@ -89,7 +89,7 @@ definition iff  (infixr "\<longleftrightarrow>" 25)
 definition Ex1 :: "('a \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>!" 10)
   where ex1_def: "\<exists>!x. P(x) \<equiv> \<exists>x. P(x) \<and> (\<forall>y. P(y) \<longrightarrow> y = x)"
 
-axiomatization where  -- \<open>Reflection, admissible\<close>
+axiomatization where  \<comment> \<open>Reflection, admissible\<close>
   eq_reflection: "(x = y) \<Longrightarrow> (x \<equiv> y)" and
   iff_reflection: "(P \<longleftrightarrow> Q) \<Longrightarrow> (P \<equiv> Q)"
 
@@ -119,7 +119,7 @@ lemma TrueI: True
   unfolding True_def by (rule impI)
 
 
-subsubsection \<open>Sequent-style elimination rules for @{text "\<and>"} @{text "\<longrightarrow>"} and @{text "\<forall>"}\<close>
+subsubsection \<open>Sequent-style elimination rules for \<open>\<and>\<close> \<open>\<longrightarrow>\<close> and \<open>\<forall>\<close>\<close>
 
 lemma conjE:
   assumes major: "P \<and> Q"
@@ -159,7 +159,7 @@ lemma all_dupE:
   done
 
 
-subsubsection \<open>Negation rules, which translate between @{text "\<not> P"} and @{text "P \<longrightarrow> False"}\<close>
+subsubsection \<open>Negation rules, which translate between \<open>\<not> P\<close> and \<open>P \<longrightarrow> False\<close>\<close>
 
 lemma notI: "(P \<Longrightarrow> False) \<Longrightarrow> \<not> P"
   unfolding not_def by (erule impI)
@@ -170,7 +170,7 @@ lemma notE: "\<lbrakk>\<not> P; P\<rbrakk> \<Longrightarrow> R"
 lemma rev_notE: "\<lbrakk>P; \<not> P\<rbrakk> \<Longrightarrow> R"
   by (erule notE)
 
-text \<open>This is useful with the special implication rules for each kind of @{text P}.\<close>
+text \<open>This is useful with the special implication rules for each kind of \<open>P\<close>.\<close>
 lemma not_to_imp:
   assumes "\<not> P"
     and r: "P \<longrightarrow> False \<Longrightarrow> Q"
@@ -181,9 +181,8 @@ lemma not_to_imp:
   done
 
 text \<open>
-  For substitution into an assumption @{text P}, reduce @{text Q} to @{text
-  "P \<longrightarrow> Q"}, substitute into this implication, then apply @{text impI} to
-  move @{text P} back into the assumptions.
+  For substitution into an assumption \<open>P\<close>, reduce \<open>Q\<close> to \<open>P \<longrightarrow> Q\<close>, substitute into this implication, then apply \<open>impI\<close> to
+  move \<open>P\<close> back into the assumptions.
 \<close>
 lemma rev_mp: "\<lbrakk>P; P \<longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
   by (erule mp)
@@ -201,8 +200,8 @@ lemma contrapos:
 subsubsection \<open>Modus Ponens Tactics\<close>
 
 text \<open>
-  Finds @{text "P \<longrightarrow> Q"} and P in the assumptions, replaces implication by
-  @{text Q}.
+  Finds \<open>P \<longrightarrow> Q\<close> and P in the assumptions, replaces implication by
+  \<open>Q\<close>.
 \<close>
 ML \<open>
   fun mp_tac ctxt i =
@@ -232,7 +231,7 @@ lemma iffE:
   done
 
 
-subsubsection \<open>Destruct rules for @{text "\<longleftrightarrow>"} similar to Modus Ponens\<close>
+subsubsection \<open>Destruct rules for \<open>\<longleftrightarrow>\<close> similar to Modus Ponens\<close>
 
 lemma iffD1: "\<lbrakk>P \<longleftrightarrow> Q; P\<rbrakk> \<Longrightarrow> Q"
   apply (unfold iff_def)
@@ -301,10 +300,9 @@ lemma ex1E: "\<exists>! x. P(x) \<Longrightarrow> (\<And>x. \<lbrakk>P(x); \<for
   done
 
 
-subsubsection \<open>@{text "\<longleftrightarrow>"} congruence rules for simplification\<close>
+subsubsection \<open>\<open>\<longleftrightarrow>\<close> congruence rules for simplification\<close>
 
-text \<open>Use @{text iffE} on a premise. For @{text conj_cong}, @{text
-  imp_cong}, @{text all_cong}, @{text ex_cong}.\<close>
+text \<open>Use \<open>iffE\<close> on a premise. For \<open>conj_cong\<close>, \<open>imp_cong\<close>, \<open>all_cong\<close>, \<open>ex_cong\<close>.\<close>
 ML \<open>
   fun iff_tac ctxt prems i =
     resolve_tac ctxt (prems RL @{thms iffE}) i THEN
@@ -415,7 +413,7 @@ lemma ssubst: "\<lbrakk>b = a; P(a)\<rbrakk> \<Longrightarrow> P(b)"
   apply (erule (1) subst)
   done
 
-text \<open>A special case of @{text ex1E} that would otherwise need quantifier
+text \<open>A special case of \<open>ex1E\<close> that would otherwise need quantifier
   expansion.\<close>
 lemma ex1_equalsE: "\<lbrakk>\<exists>!x. P(x); P(a); P(b)\<rbrakk> \<Longrightarrow> a = b"
   apply (erule ex1E)
@@ -457,7 +455,7 @@ lemma box_equals: "\<lbrakk>a = b; a = c; b = d\<rbrakk> \<Longrightarrow> c = d
     apply assumption+
   done
 
-text \<open>Dual of @{text box_equals}: for proving equalities backwards.\<close>
+text \<open>Dual of \<open>box_equals\<close>: for proving equalities backwards.\<close>
 lemma simp_equals: "\<lbrakk>a = c; b = d; c = d\<rbrakk> \<Longrightarrow> a = b"
   apply (rule trans)
    apply (rule trans)
@@ -499,8 +497,8 @@ lemma eq_cong: "\<lbrakk>a = a'; b = b'\<rbrakk> \<Longrightarrow> a = b \<longl
 subsection \<open>Simplifications of assumed implications\<close>
 
 text \<open>
-  Roy Dyckhoff has proved that @{text conj_impE}, @{text disj_impE}, and
-  @{text imp_impE} used with @{ML mp_tac} (restricted to atomic formulae) is
+  Roy Dyckhoff has proved that \<open>conj_impE\<close>, \<open>disj_impE\<close>, and
+  \<open>imp_impE\<close> used with @{ML mp_tac} (restricted to atomic formulae) is
   COMPLETE for intuitionistic propositional logic.
 
   See R. Dyckhoff, Contraction-free sequent calculi for intuitionistic logic
@@ -547,7 +545,7 @@ lemma iff_impE:
   apply (assumption | rule iffI impI major [THEN mp] r1 r2 r3)+
   done
 
-text \<open>What if @{text "(\<forall>x. \<not> \<not> P(x)) \<longrightarrow> \<not> \<not> (\<forall>x. P(x))"} is an assumption?
+text \<open>What if \<open>(\<forall>x. \<not> \<not> P(x)) \<longrightarrow> \<not> \<not> (\<forall>x. P(x))\<close> is an assumption?
   UNSAFE.\<close>
 lemma all_impE:
   assumes major: "(\<forall>x. P(x)) \<longrightarrow> S"
@@ -558,8 +556,8 @@ lemma all_impE:
   done
 
 text \<open>
-  Unsafe: @{text "\<exists>x. P(x)) \<longrightarrow> S"} is equivalent
-  to @{text "\<forall>x. P(x) \<longrightarrow> S"}.\<close>
+  Unsafe: \<open>\<exists>x. P(x)) \<longrightarrow> S\<close> is equivalent
+  to \<open>\<forall>x. P(x) \<longrightarrow> S\<close>.\<close>
 lemma ex_impE:
   assumes major: "(\<exists>x. P(x)) \<longrightarrow> S"
     and r: "P(x) \<longrightarrow> S \<Longrightarrow> R"
@@ -829,7 +827,7 @@ lemma iff_simps:
   "(P \<longleftrightarrow> False) \<longleftrightarrow> \<not> P"
   by iprover+
 
-text \<open>The @{text "x = t"} versions are needed for the simplification
+text \<open>The \<open>x = t\<close> versions are needed for the simplification
   procedures.\<close>
 lemma quant_simps:
   "\<And>P. (\<forall>x. P) \<longleftrightarrow> P"

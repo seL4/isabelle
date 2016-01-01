@@ -30,7 +30,7 @@ apply (rule_tac [2] disjI2)
 apply assumption+
 done
 
-text \<open>Correct version, delaying use of @{text spec} until last.\<close>
+text \<open>Correct version, delaying use of \<open>spec\<close> until last.\<close>
 lemma "(\<forall>x y. P(x,y)) \<longrightarrow> (\<forall>z w. P(w,z))"
 apply (rule impI)
 apply (rule allI)
@@ -41,7 +41,7 @@ apply assumption
 done
 
 
-subsubsection \<open>Demonstration of @{text "fast"}\<close>
+subsubsection \<open>Demonstration of \<open>fast\<close>\<close>
 
 lemma "(\<exists>y. \<forall>x. J(y,x) \<longleftrightarrow> \<not> J(x,x)) \<longrightarrow> \<not> (\<forall>x. \<exists>y. \<forall>z. J(z,y) \<longleftrightarrow> \<not> J(z,x))"
 apply fast

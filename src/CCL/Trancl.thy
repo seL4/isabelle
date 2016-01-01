@@ -25,7 +25,7 @@ definition trancl :: "i set \<Rightarrow> i set"  ("(_^+)" [100] 100)
   where "r^+ == r O rtrancl(r)"
 
 
-subsection \<open>Natural deduction for @{text "trans(r)"}\<close>
+subsection \<open>Natural deduction for \<open>trans(r)\<close>\<close>
 
 lemma transI: "(\<And>x y z. \<lbrakk><x,y>:r; <y,z>:r\<rbrakk> \<Longrightarrow> <x,z>:r) \<Longrightarrow> trans(r)"
   unfolding trans_def by blast

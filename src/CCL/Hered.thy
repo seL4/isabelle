@@ -10,8 +10,8 @@ imports Type
 begin
 
 text \<open>
-  Note that this is based on an untyped equality and so @{text "lam
-  x. b(x)"} is only hereditarily terminating if @{text "ALL x. b(x)"}
+  Note that this is based on an untyped equality and so \<open>lam
+  x. b(x)\<close> is only hereditarily terminating if \<open>ALL x. b(x)\<close>
   is.  Not so useful for functions!
 \<close>
 

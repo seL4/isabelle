@@ -149,7 +149,7 @@ schematic_goal (in LP2) "A:* P:A\<rightarrow>A\<rightarrow>* \<turnstile>
 
 schematic_goal (in LP2) "A:* P:A\<rightarrow>A\<rightarrow>* \<turnstile>
     ?p: (\<Prod>a:A. \<Prod>b:A. P\<cdot>a\<cdot>b\<rightarrow>P\<cdot>b\<cdot>a\<rightarrow>\<Prod>P:*.P) \<rightarrow> \<Prod>a:A. P\<cdot>a\<cdot>a\<rightarrow>\<Prod>P:*.P"
-  -- \<open>Antisymmetry implies irreflexivity:\<close>
+  \<comment> \<open>Antisymmetry implies irreflexivity:\<close>
   apply (strip_asms rules)
   apply (rule lam_ss)
     apply (depth_solve1 rules)
@@ -206,7 +206,7 @@ schematic_goal (in CC) "\<^bold>\<lambda>A:*. \<^bold>\<lambda>c:A. \<^bold>\<la
 
 schematic_goal (in LP2)
   "A:* a:A b:A \<turnstile> ?p: (\<Prod>P:A\<rightarrow>*.P\<cdot>a\<rightarrow>P\<cdot>b) \<rightarrow> (\<Prod>P:A\<rightarrow>*.P\<cdot>b\<rightarrow>P\<cdot>a)"
-  -- \<open>Symmetry of Leibnitz equality\<close>
+  \<comment> \<open>Symmetry of Leibnitz equality\<close>
   apply (strip_asms rules)
   apply (rule lam_ss)
     apply (depth_solve1 rules)

@@ -26,7 +26,7 @@ lemma ccontr: "(\<not> P \<Longrightarrow> False) \<Longrightarrow> P"
   by (erule FalseE [THEN classical])
 
 
-subsubsection \<open>Classical introduction rules for @{text "\<or>"} and @{text "\<exists>"}\<close>
+subsubsection \<open>Classical introduction rules for \<open>\<or>\<close> and \<open>\<exists>\<close>\<close>
 
 lemma disjCI: "(\<not> Q \<Longrightarrow> P) \<Longrightarrow> P \<or> Q"
   apply (rule classical)
@@ -34,7 +34,7 @@ lemma disjCI: "(\<not> Q \<Longrightarrow> P) \<Longrightarrow> P \<or> Q"
   apply (erule notE disjI2)+
   done
 
-text \<open>Introduction rule involving only @{text "\<exists>"}\<close>
+text \<open>Introduction rule involving only \<open>\<exists>\<close>\<close>
 lemma ex_classical:
   assumes r: "\<not> (\<exists>x. P(x)) \<Longrightarrow> P(a)"
   shows "\<exists>x. P(x)"
@@ -42,7 +42,7 @@ lemma ex_classical:
   apply (rule exI, erule r)
   done
 
-text \<open>Version of above, simplifying @{text "\<not>\<exists>"} to @{text "\<forall>\<not>"}.\<close>
+text \<open>Version of above, simplifying \<open>\<not>\<exists>\<close> to \<open>\<forall>\<not>\<close>.\<close>
 lemma exCI:
   assumes r: "\<forall>x. \<not> P(x) \<Longrightarrow> P(a)"
   shows "\<exists>x. P(x)"
@@ -79,7 +79,7 @@ method_setup case_tac = \<open>
 
 subsection \<open>Special elimination rules\<close>
 
-text \<open>Classical implies (@{text "\<longrightarrow>"}) elimination.\<close>
+text \<open>Classical implies (\<open>\<longrightarrow>\<close>) elimination.\<close>
 lemma impCE:
   assumes major: "P \<longrightarrow> Q"
     and r1: "\<not> P \<Longrightarrow> R"
@@ -92,8 +92,7 @@ lemma impCE:
   done
 
 text \<open>
-  This version of @{text "\<longrightarrow>"} elimination works on @{text Q} before @{text
-  P}. It works best for those cases in which P holds ``almost everywhere''.
+  This version of \<open>\<longrightarrow>\<close> elimination works on \<open>Q\<close> before \<open>P\<close>. It works best for those cases in which P holds ``almost everywhere''.
   Can't install as default: would break old proofs.
 \<close>
 lemma impCE':
@@ -124,8 +123,8 @@ lemma contrapos2:  "\<lbrakk>Q; \<not> P \<Longrightarrow> \<not> Q\<rbrakk> \<L
 subsubsection \<open>Tactics for implication and contradiction\<close>
 
 text \<open>
-  Classical @{text "\<longleftrightarrow>"} elimination. Proof substitutes @{text "P = Q"} in
-  @{text "\<not> P \<Longrightarrow> \<not> Q"} and @{text "P \<Longrightarrow> Q"}.
+  Classical \<open>\<longleftrightarrow>\<close> elimination. Proof substitutes \<open>P = Q\<close> in
+  \<open>\<not> P \<Longrightarrow> \<not> Q\<close> and \<open>P \<Longrightarrow> Q\<close>.
 \<close>
 lemma iffCE:
   assumes major: "P \<longleftrightarrow> Q"
@@ -218,7 +217,7 @@ ML \<open>
 lemma ex1_functional: "\<lbrakk>\<exists>! z. P(a,z); P(a,b); P(a,c)\<rbrakk> \<Longrightarrow> b = c"
   by blast
 
-text \<open>Elimination of @{text True} from assumptions:\<close>
+text \<open>Elimination of \<open>True\<close> from assumptions:\<close>
 lemma True_implies_equals: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
 proof
   assume "True \<Longrightarrow> PROP P"
@@ -248,7 +247,7 @@ lemma ex_comm: "(\<exists>x y. P(x,y)) \<longleftrightarrow> (\<exists>y x. P(x,
 subsection \<open>Classical simplification rules\<close>
 
 text \<open>
-  Avoids duplication of subgoals after @{text expand_if}, when the true and
+  Avoids duplication of subgoals after \<open>expand_if\<close>, when the true and
   false cases boil down to the same thing.
 \<close>
 
@@ -259,8 +258,8 @@ lemma cases_simp: "(P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> Q)
 subsubsection \<open>Miniscoping: pushing quantifiers in\<close>
 
 text \<open>
-  We do NOT distribute of @{text "\<forall>"} over @{text "\<and>"}, or dually that of
-  @{text "\<exists>"} over @{text "\<or>"}.
+  We do NOT distribute of \<open>\<forall>\<close> over \<open>\<and>\<close>, or dually that of
+  \<open>\<exists>\<close> over \<open>\<or>\<close>.
 
   Baaz and Leitsch, On Skolemization and Proof Complexity (1994) show that
   this step can increase proof length!
@@ -314,8 +313,8 @@ lemma imp_all: "((\<forall>x. P(x)) \<longrightarrow> Q) \<longleftrightarrow> (
 
 
 lemmas meta_simps =
-  triv_forall_equality  -- \<open>prunes params\<close>
-  True_implies_equals  -- \<open>prune asms @{text True}\<close>
+  triv_forall_equality  \<comment> \<open>prunes params\<close>
+  True_implies_equals  \<comment> \<open>prune asms \<open>True\<close>\<close>
 
 lemmas IFOL_simps =
   refl [THEN P_iff_T] conj_simps disj_simps not_simps

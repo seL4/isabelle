@@ -291,7 +291,7 @@ ML_Thms.bind_thms ("term_dstncts",
 \<close>
 
 
-subsection \<open>Rules for pre-order @{text "[="}\<close>
+subsection \<open>Rules for pre-order \<open>[=\<close>\<close>
 
 lemma term_porews:
   "inl(a) [= inl(a') \<longleftrightarrow> a [= a'"

@@ -16,7 +16,7 @@ lemma "(\<exists>x y. P(x,y)) \<longrightarrow> (\<exists>y x. P(x,y))"
   by (tactic "IntPr.fast_tac @{context} 1")
 
 
--- \<open>Converse is false\<close>
+\<comment> \<open>Converse is false\<close>
 lemma "(\<forall>x. P(x)) \<or> (\<forall>x. Q(x)) \<longrightarrow> (\<forall>x. P(x) \<or> Q(x))"
   by (tactic "IntPr.fast_tac @{context} 1")
 
@@ -33,14 +33,14 @@ text \<open>Some harder ones\<close>
 lemma "(\<exists>x. P(x) \<or> Q(x)) \<longleftrightarrow> (\<exists>x. P(x)) \<or> (\<exists>x. Q(x))"
   by (tactic "IntPr.fast_tac @{context} 1")
 
--- \<open>Converse is false\<close>
+\<comment> \<open>Converse is false\<close>
 lemma "(\<exists>x. P(x) \<and> Q(x)) \<longrightarrow> (\<exists>x. P(x)) \<and> (\<exists>x. Q(x))"
   by (tactic "IntPr.fast_tac @{context} 1")
 
 
 text \<open>Basic test of quantifier reasoning\<close>
 
--- \<open>TRUE\<close>
+\<comment> \<open>TRUE\<close>
 lemma "(\<exists>y. \<forall>x. Q(x,y)) \<longrightarrow> (\<forall>x. \<exists>y. Q(x,y))"
   by (tactic "IntPr.fast_tac @{context} 1")
 
@@ -72,7 +72,7 @@ text \<open>Back to things that are provable \dots\<close>
 lemma "(\<forall>x. P(x) \<longrightarrow> Q(x)) \<and> (\<exists>x. P(x)) \<longrightarrow> (\<exists>x. Q(x))"
   by (tactic "IntPr.fast_tac @{context} 1")
 
--- \<open>An example of why exI should be delayed as long as possible\<close>
+\<comment> \<open>An example of why exI should be delayed as long as possible\<close>
 lemma "(P \<longrightarrow> (\<exists>x. Q(x))) \<and> P \<longrightarrow> (\<exists>x. Q(x))"
   by (tactic "IntPr.fast_tac @{context} 1")
 
@@ -85,7 +85,7 @@ lemma "(\<forall>x. Q(x)) \<longrightarrow> (\<exists>x. Q(x))"
 
 text \<open>Some slow ones\<close>
 
--- \<open>Principia Mathematica *11.53\<close>
+\<comment> \<open>Principia Mathematica *11.53\<close>
 lemma "(\<forall>x y. P(x) \<longrightarrow> Q(y)) \<longleftrightarrow> ((\<exists>x. P(x)) \<longrightarrow> (\<forall>y. Q(y)))"
   by (tactic "IntPr.fast_tac @{context} 1")
 
