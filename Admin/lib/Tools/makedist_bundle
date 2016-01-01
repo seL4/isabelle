@@ -341,7 +341,7 @@ then
   case "$PLATFORM_FAM" in
     linux)
       echo "application for $PLATFORM_FAMILY"
-      mv "$BUNDLE_ARCHIVE" "${ARCHIVE_DIR}/${ISABELLE_NAME}_app.tar.gz"
+      ln -s "$BUNDLE_ARCHIVE" "${ARCHIVE_DIR}/${ISABELLE_NAME}_app.tar.gz"
       ;;
     macos)
       echo "application for $PLATFORM_FAMILY"
