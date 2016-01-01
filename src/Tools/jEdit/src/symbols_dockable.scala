@@ -17,7 +17,7 @@ import org.gjt.sp.jedit.View
 
 class Symbols_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  private class Symbol_Component(val symbol: String) extends Button
+  private class Symbol_Component(val symbol: String, control: Boolean) extends Button
   {
     private val decoded = Symbol.decode(symbol)
     private val font_size = Font_Info.main_size(PIDE.options.real("jedit_font_scale")).round
@@ -30,7 +30,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     action =
       Action(decoded) {
         val text_area = view.getTextArea
-        if (HTML.control_decoded.isDefinedAt(decoded))
+        if (control && HTML.control_decoded.isDefinedAt(decoded))
           Token_Markup.edit_control_style(text_area, decoded)
         else text_area.setSelectedText(decoded)
         text_area.requestFocus
@@ -55,8 +55,9 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       Symbol.groups.map({ case (group, symbols) =>
         new TabbedPane.Page(group,
           new ScrollPane(new Wrap_Panel {
-            contents ++= symbols.map(new Symbol_Component(_))
-            if (group == "control") contents += new Reset_Component
+            val control = group == "control"
+            contents ++= symbols.map(new Symbol_Component(_, control))
+            if (control) contents += new Reset_Component
           }), null)
       })
 
@@ -78,7 +79,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
             results_panel.contents.clear
             for (sym <- results.take(search_limit))
-              results_panel.contents += new Symbol_Component(sym)
+              results_panel.contents += new Symbol_Component(sym, false)
             if (results.length > search_limit)
               results_panel.contents +=
                 new Label("...") { tooltip = "(" + (results.length - search_limit) + " more)" }
