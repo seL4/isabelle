@@ -86,7 +86,7 @@ the editor.
 instead of former C+e LEFT.
 
 * The command-line tool "isabelle jedit" and the isabelle.Main
-application wrapper threat the default $USER_HOME/Scratch.thy more
+application wrapper treat the default $USER_HOME/Scratch.thy more
 uniformly, and allow the dummy file argument ":" to open an empty buffer
 instead.
 
@@ -551,7 +551,7 @@ been removed. INCOMPATIBILITY.
   - Removed "check_potential" and "check_genuine" options.
   - Eliminated obsolete "blocking" option.
 
-* New (co)datatype package:
+* (Co)datatype package:
   - New commands "lift_bnf" and "copy_bnf" for lifting (copying) a BNF
     structure on the raw type to an abstract type defined using typedef.
   - Always generate "case_transfer" theorem.
