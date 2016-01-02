@@ -56,9 +56,9 @@ syntax ("" output)
                  ("{_} // _ // {_}" [0,55,0] 50)
 
 ML_file "hoare_syntax.ML"
-parse_translation {* [(@{syntax_const "_hoare_abort_vars"}, K Hoare_Syntax.hoare_vars_tr)] *}
+parse_translation \<open>[(@{syntax_const "_hoare_abort_vars"}, K Hoare_Syntax.hoare_vars_tr)]\<close>
 print_translation
-  {* [(@{const_syntax Valid}, K (Hoare_Syntax.spec_tr' @{syntax_const "_hoare_abort"}))] *}
+  \<open>[(@{const_syntax Valid}, K (Hoare_Syntax.spec_tr' @{syntax_const "_hoare_abort"}))]\<close>
 
 
 (*** The proof rules ***)
@@ -99,20 +99,20 @@ lemma AbortRule: "p \<subseteq> {s. False} \<Longrightarrow> Valid p Abort q"
 by(auto simp:Valid_def)
 
 
-subsection {* Derivation of the proof rules and, most importantly, the VCG tactic *}
+subsection \<open>Derivation of the proof rules and, most importantly, the VCG tactic\<close>
 
 lemma Compl_Collect: "-(Collect b) = {x. ~(b x)}"
   by blast
 
 ML_file "hoare_tac.ML"
 
-method_setup vcg = {*
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare.hoare_tac ctxt (K all_tac))) *}
+method_setup vcg = \<open>
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare.hoare_tac ctxt (K all_tac)))\<close>
   "verification condition generator"
 
-method_setup vcg_simp = {*
+method_setup vcg_simp = \<open>
   Scan.succeed (fn ctxt =>
-    SIMPLE_METHOD' (Hoare.hoare_tac ctxt (asm_full_simp_tac ctxt))) *}
+    SIMPLE_METHOD' (Hoare.hoare_tac ctxt (asm_full_simp_tac ctxt)))\<close>
   "verification condition generator plus simplification"
 
 (* Special syntax for guarded statements and guarded array updates: *)
@@ -125,7 +125,7 @@ translations
   "a[i] := v" => "(i < CONST length a) \<rightarrow> (a := CONST list_update a i v)"
   (* reverse translation not possible because of duplicate "a" *)
 
-text{* Note: there is no special syntax for guarded array access. Thus
-you must write @{text"j < length a \<rightarrow> a[i] := a!j"}. *}
+text\<open>Note: there is no special syntax for guarded array access. Thus
+you must write \<open>j < length a \<rightarrow> a[i] := a!j\<close>.\<close>
 
 end

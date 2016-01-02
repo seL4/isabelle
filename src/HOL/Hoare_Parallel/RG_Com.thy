@@ -5,8 +5,8 @@ section \<open>Abstract Syntax\<close>
 theory RG_Com imports Main begin
 
 text \<open>Semantics of assertions and boolean expressions (bexp) as sets
-of states.  Syntax of commands @{text com} and parallel commands
-@{text par_com}.\<close>
+of states.  Syntax of commands \<open>com\<close> and parallel commands
+\<open>par_com\<close>.\<close>
 
 type_synonym 'a bexp = "'a set"
 

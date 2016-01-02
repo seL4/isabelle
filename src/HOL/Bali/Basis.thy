@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/Basis.thy
     Author:     David von Oheimb
 *)
-subsection {* Definitions extending HOL as logical basis of Bali *}
+subsection \<open>Definitions extending HOL as logical basis of Bali\<close>
 
 theory Basis
 imports Main "~~/src/HOL/Library/Old_Recdef"
@@ -9,10 +9,10 @@ begin
 
 subsubsection "misc"
 
-ML {* fun strip_tac ctxt i = REPEAT (resolve_tac ctxt [impI, allI] i) *}
+ML \<open>fun strip_tac ctxt i = REPEAT (resolve_tac ctxt [impI, allI] i)\<close>
 
 declare split_if_asm  [split] option.split [split] option.split_asm [split]
-setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}
+setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>
 declare if_weak_cong [cong del] option.case_cong_weak [cong del]
 declare length_Suc_conv [iff]
 
@@ -176,13 +176,13 @@ abbreviation the_In1l :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'al"
 abbreviation the_In1r :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'ar"
   where "the_In1r \<equiv> the_Inr \<circ> the_In1"
 
-ML {*
+ML \<open>
 fun sum3_instantiate ctxt thm =
   map (fn s =>
     simplify (ctxt delsimps @{thms not_None_eq})
       (Rule_Insts.read_instantiate ctxt [((("t", 0), Position.none), "In" ^ s ^ " x")] ["x"] thm))
     ["1l","2","3","1r"]
-*}
+\<close>
 (* e.g. lemmas is_stmt_rews = is_stmt_def [of "In1l x", simplified] *)
 
 
@@ -203,7 +203,7 @@ translations
 
 subsubsection "Special map update"
 
-text{* Deemed too special for theory Map. *}
+text\<open>Deemed too special for theory Map.\<close>
 
 definition chg_map :: "('b \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)"
   where "chg_map f a m = (case m a of None \<Rightarrow> m | Some b \<Rightarrow> m(a\<mapsto>f b))"
@@ -255,7 +255,7 @@ subsubsection "list patterns"
 definition lsplit :: "[['a, 'a list] \<Rightarrow> 'b, 'a list] \<Rightarrow> 'b"
   where "lsplit = (\<lambda>f l. f (hd l) (tl l))"
 
-text {* list patterns -- extends pre-defined type "pttrn" used in abstractions *}
+text \<open>list patterns -- extends pre-defined type "pttrn" used in abstractions\<close>
 syntax
   "_lpttrn" :: "[pttrn, pttrn] \<Rightarrow> pttrn"    ("_#/_" [901,900] 900)
 translations

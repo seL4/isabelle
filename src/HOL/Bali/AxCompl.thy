@@ -2,18 +2,18 @@
     Author:     David von Oheimb and Norbert Schirmer
 *)
 
-subsection {*
+subsection \<open>
 Completeness proof for Axiomatic semantics of Java expressions and statements
-*}
+\<close>
 
 theory AxCompl imports AxSem begin
 
-text {*
+text \<open>
 design issues:
 \begin{itemize}
 \item proof structured by Most General Formulas (-> Thomas Kleymann)
 \end{itemize}
-*}
+\<close>
 
 
 
@@ -170,10 +170,10 @@ apply (erule (1) eval_gext [THEN card_nyinitcls_gext])
 done
 lemmas MGFnD' = MGFnD [of _ _ _ _ "\<lambda>x. True"] 
 
-text {* To derive the most general formula, we can always assume a normal
+text \<open>To derive the most general formula, we can always assume a normal
 state in the precondition, since abrupt cases can be handled uniformally by
 the abrupt rule.
-*}
+\<close>
 lemma MGFNormalI: "G,A\<turnstile>{Normal \<doteq>} t\<succ> {G\<rightarrow>} \<Longrightarrow>  
   G,(A::state triple set)\<turnstile>{\<doteq>::state assn} t\<succ> {G\<rightarrow>}"
 apply (unfold MGF_def)
@@ -191,8 +191,8 @@ apply (erule conseq1)
 apply clarsimp
 done
 
-text {* Additionally to @{text MGFNormalI}, we also expand the definition of 
-the most general formula here *} 
+text \<open>Additionally to \<open>MGFNormalI\<close>, we also expand the definition of 
+the most general formula here\<close> 
 lemma MGFn_NormalI: 
 "G,(A::state triple set)\<turnstile>{Normal((\<lambda>Y' s' s. s'=s \<and> normal s) \<and>. G\<turnstile>init\<le>n)}t\<succ> 
  {\<lambda>Y s' s. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (Y,s')} \<Longrightarrow> G,A\<turnstile>{=:n}t\<succ>{G\<rightarrow>}"
@@ -204,9 +204,9 @@ apply (rule ax_derivs.Abrupt [THEN conseq1])
 apply (clarsimp simp add: Let_def)
 done
 
-text {* To derive the most general formula, we can restrict ourselves to 
+text \<open>To derive the most general formula, we can restrict ourselves to 
 welltyped terms, since all others can be uniformally handled by the hazard
-rule. *} 
+rule.\<close> 
 lemma MGFn_free_wt: 
   "(\<exists>T L C. \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T) 
     \<longrightarrow> G,(A::state triple set)\<turnstile>{=:n} t\<succ> {G\<rightarrow>} 
@@ -216,10 +216,10 @@ apply (rule ax_free_wt)
 apply (auto elim: conseq12 simp add: MGFn_def MGF_def)
 done
 
-text {* To derive the most general formula, we can restrict ourselves to 
+text \<open>To derive the most general formula, we can restrict ourselves to 
 welltyped terms and assume that the state in the precondition conforms to the
 environment. All type violations can be uniformally handled by the hazard
-rule. *} 
+rule.\<close> 
 lemma MGFn_free_wt_NormalConformI: 
 "(\<forall> T L C . \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T 
   \<longrightarrow> G,(A::state triple set)
@@ -240,10 +240,10 @@ apply (erule conseq12)
 apply blast
 done
 
-text {* To derive the most general formula, we can restrict ourselves to 
+text \<open>To derive the most general formula, we can restrict ourselves to 
 welltyped terms and assume that the state in the precondition conforms to the
 environment and that the term is definetly assigned with respect to this state.
-All type violations can be uniformally handled by the hazard rule. *} 
+All type violations can be uniformally handled by the hazard rule.\<close> 
 lemma MGFn_free_wt_da_NormalConformI: 
 "(\<forall> T L C B. \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T
   \<longrightarrow> G,(A::state triple set)
@@ -543,11 +543,11 @@ by - (rule eval_expression_no_jump
             [where ?Env="\<lparr>prg=G, cls=C,lcl=L\<rparr>",simplified],auto)
 
 
-text {* To derive the most general formula for the loop statement, we need to
+text \<open>To derive the most general formula for the loop statement, we need to
 come up with a proper loop invariant, which intuitively states that we are 
 currently inside the evaluation of the loop. To define such an invariant, we
 unroll the loop in iterated evaluations of the expression and evaluations of
-the loop body. *}
+the loop body.\<close>
 
 definition
   unroll :: "prog \<Rightarrow> label \<Rightarrow> expr \<Rightarrow> stmt \<Rightarrow> (state \<times>  state) set" where
@@ -719,7 +719,7 @@ proof (rule MGFn_free_wt [rule_format],elim exE)
         show "Y' = \<diamondsuit> \<and> G\<turnstile>Norm s \<midarrow>l\<bullet> While(e) c\<rightarrow> s'"
         proof -
           from asm obtain v t where 
-            -- {* @{term "Z'"} gets instantiated with @{term "Norm s"} *}  
+            \<comment> \<open>@{term "Z'"} gets instantiated with @{term "Norm s"}\<close>  
             unroll: "(Norm s, t) \<in> (unroll G l e c)\<^sup>*" and
             eval_e: "G\<turnstile>t \<midarrow>e-\<succ>v\<rightarrow> s'" and
             normal_termination: "normal s' \<longrightarrow> \<not> the_Bool v" and
@@ -1037,13 +1037,13 @@ proof (induct rule: full_nat_induct)
         done
     next
       case (FVar accC statDeclC stat e fn)
-      from MGFn_Init [OF hyp] and `G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}` and wf
+      from MGFn_Init [OF hyp] and \<open>G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}\<close> and wf
       show ?case
         by (rule MGFn_FVar)
     next
       case (AVar e1 e2)
-      note mgf_e1 = `G,A\<turnstile>{=:n} \<langle>e1\<rangle>\<^sub>e\<succ> {G\<rightarrow>}`
-      note mgf_e2 = `G,A\<turnstile>{=:n} \<langle>e2\<rangle>\<^sub>e\<succ> {G\<rightarrow>}`
+      note mgf_e1 = \<open>G,A\<turnstile>{=:n} \<langle>e1\<rangle>\<^sub>e\<succ> {G\<rightarrow>}\<close>
+      note mgf_e2 = \<open>G,A\<turnstile>{=:n} \<langle>e2\<rangle>\<^sub>e\<succ> {G\<rightarrow>}\<close>
       show "G,A\<turnstile>{=:n} \<langle>e1.[e2]\<rangle>\<^sub>v\<succ> {G\<rightarrow>}"
         apply (rule MGFn_NormalI)
         apply (rule ax_derivs.AVar)
@@ -1186,8 +1186,8 @@ proof (induct rule: full_nat_induct)
         done
     next
       case (Call accC statT mode e mn pTs' ps)
-      note mgf_e = `G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}`
-      note mgf_ps = `G,A\<turnstile>{=:n} \<langle>ps\<rangle>\<^sub>l\<succ> {G\<rightarrow>}`
+      note mgf_e = \<open>G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}\<close>
+      note mgf_ps = \<open>G,A\<turnstile>{=:n} \<langle>ps\<rangle>\<^sub>l\<succ> {G\<rightarrow>}\<close>
       from mgf_methds mgf_e mgf_ps wf
       show "G,A\<turnstile>{=:n} \<langle>{accC,statT,mode}e\<cdot>mn({pTs'}ps)\<rangle>\<^sub>e\<succ> {G\<rightarrow>}"
         by (rule MGFn_Call)
@@ -1198,7 +1198,7 @@ proof (induct rule: full_nat_induct)
         by simp
     next
       case (Body D c)
-      note mgf_c = `G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}`
+      note mgf_c = \<open>G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}\<close>
       from wf MGFn_Init [OF hyp] mgf_c
       show "G,A\<turnstile>{=:n} \<langle>Body D c\<rangle>\<^sub>e\<succ> {G\<rightarrow>}"
         by (rule MGFn_Body)
@@ -1266,8 +1266,8 @@ proof (induct rule: full_nat_induct)
         done
     next
       case (Loop l e c)
-      note mgf_e = `G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}`
-      note mgf_c = `G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}`
+      note mgf_e = \<open>G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}\<close>
+      note mgf_c = \<open>G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}\<close>
       from mgf_e mgf_c wf
       show "G,A\<turnstile>{=:n} \<langle>l\<bullet> While(e) c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
         by (rule MGFn_Loop)
@@ -1303,8 +1303,8 @@ proof (induct rule: full_nat_induct)
         done
     next
       case (Fin c1 c2)
-      note mgf_c1 = `G,A\<turnstile>{=:n} \<langle>c1\<rangle>\<^sub>s\<succ> {G\<rightarrow>}`
-      note mgf_c2 = `G,A\<turnstile>{=:n} \<langle>c2\<rangle>\<^sub>s\<succ> {G\<rightarrow>}`
+      note mgf_c1 = \<open>G,A\<turnstile>{=:n} \<langle>c1\<rangle>\<^sub>s\<succ> {G\<rightarrow>}\<close>
+      note mgf_c2 = \<open>G,A\<turnstile>{=:n} \<langle>c2\<rangle>\<^sub>s\<succ> {G\<rightarrow>}\<close>
       from wf mgf_c1 mgf_c2
       show "G,A\<turnstile>{=:n} \<langle>c1 Finally c2\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
         by (rule MGFn_Fin)
@@ -1370,7 +1370,7 @@ using finU uA
 apply -
 apply (induct_tac "n")
 apply  (tactic "ALLGOALS (clarsimp_tac @{context})")
-apply  (tactic {* dresolve_tac @{context} [Thm.permute_prems 0 1 @{thm card_seteq}] 1 *})
+apply  (tactic \<open>dresolve_tac @{context} [Thm.permute_prems 0 1 @{thm card_seteq}] 1\<close>)
 apply    simp
 apply   (erule finite_imageI)
 apply  (simp add: MGF_asm ax_derivs_asm)

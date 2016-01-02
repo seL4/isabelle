@@ -14,7 +14,7 @@ compact, but avoids the funny H.
 
 theory Separation imports Hoare_Logic_Abort SepLogHeap begin
 
-text{* The semantic definition of a few connectives: *}
+text\<open>The semantic definition of a few connectives:\<close>
 
 definition ortho :: "heap \<Rightarrow> heap \<Rightarrow> bool" (infix "\<bottom>" 55)
   where "h1 \<bottom> h2 \<longleftrightarrow> dom h1 \<inter> dom h2 = {}"
@@ -31,7 +31,7 @@ definition star:: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> b
 definition wand:: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool)"
   where "wand P Q = (\<lambda>h. \<forall>h'. h' \<bottom> h \<and> P h' \<longrightarrow> Q(h++h'))"
 
-text{*This is what assertions look like without any syntactic sugar: *}
+text\<open>This is what assertions look like without any syntactic sugar:\<close>
 
 lemma "VARS x y z w h
  {star (%h. singl h x y) (%h. singl h z w) h}
@@ -41,11 +41,11 @@ apply vcg
 apply(auto simp:star_def ortho_def singl_def)
 done
 
-text{* Now we add nice input syntax.  To suppress the heap parameter
+text\<open>Now we add nice input syntax.  To suppress the heap parameter
 of the connectives, we assume it is always called H and add/remove it
 upon parsing/printing. Thus every pointer program needs to have a
 program variable H, and assertions should not contain any locally
-bound Hs - otherwise they may bind the implicit H. *}
+bound Hs - otherwise they may bind the implicit H.\<close>
 
 syntax
  "_emp" :: "bool" ("emp")
@@ -54,7 +54,7 @@ syntax
  "_wand" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "-*" 60)
 
 (* FIXME does not handle "_idtdummy" *)
-ML{*
+ML\<open>
 (* free_tr takes care of free vars in the scope of sep. logic connectives:
    they are implicitly applied to the heap *)
 fun free_tr(t as Free _) = t $ Syntax.free "H"
@@ -74,16 +74,16 @@ fun star_tr [P,Q] = Syntax.const @{const_syntax star} $
 fun wand_tr [P, Q] = Syntax.const @{const_syntax wand} $
       absfree ("H", dummyT) P $ absfree ("H", dummyT) Q $ Syntax.free "H"
   | wand_tr ts = raise TERM ("wand_tr", ts);
-*}
+\<close>
 
-parse_translation {*
+parse_translation \<open>
  [(@{syntax_const "_emp"}, K emp_tr),
   (@{syntax_const "_singl"}, K singl_tr),
   (@{syntax_const "_star"}, K star_tr),
   (@{syntax_const "_wand"}, K wand_tr)]
-*}
+\<close>
 
-text{* Now it looks much better: *}
+text\<open>Now it looks much better:\<close>
 
 lemma "VARS H x y z w
  {[x\<mapsto>y] ** [z\<mapsto>w]}
@@ -101,10 +101,10 @@ apply vcg
 apply(auto simp:star_def ortho_def is_empty_def)
 done
 
-text{* But the output is still unreadable. Thus we also strip the heap
-parameters upon output: *}
+text\<open>But the output is still unreadable. Thus we also strip the heap
+parameters upon output:\<close>
 
-ML {*
+ML \<open>
 local
 
 fun strip (Abs(_,_,(t as Const("_free",_) $ Free _) $ Bound 0)) = t
@@ -125,16 +125,16 @@ fun star_tr' [P,Q,_] = Syntax.const @{syntax_const "_star"} $ strip P $ strip Q
 fun wand_tr' [P,Q,_] = Syntax.const @{syntax_const "_wand"} $ strip P $ strip Q
 
 end
-*}
+\<close>
 
-print_translation {*
+print_translation \<open>
  [(@{const_syntax is_empty}, K is_empty_tr'),
   (@{const_syntax singl}, K singl_tr'),
   (@{const_syntax star}, K star_tr'),
   (@{const_syntax wand}, K wand_tr')]
-*}
+\<close>
 
-text{* Now the intermediate proof states are also readable: *}
+text\<open>Now the intermediate proof states are also readable:\<close>
 
 lemma "VARS H x y z w
  {[x\<mapsto>y] ** [z\<mapsto>w]}
@@ -152,9 +152,9 @@ apply vcg
 apply(auto simp:star_def ortho_def is_empty_def)
 done
 
-text{* So far we have unfolded the separation logic connectives in
+text\<open>So far we have unfolded the separation logic connectives in
 proofs. Here comes a simple example of a program proof that uses a law
-of separation logic instead. *}
+of separation logic instead.\<close>
 
 (* a law of separation logic *)
 lemma star_comm: "P ** Q = Q ** P"

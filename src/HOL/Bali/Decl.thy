@@ -1,15 +1,15 @@
 (*  Title:      HOL/Bali/Decl.thy
     Author:     David von Oheimb and Norbert Schirmer
 *)
-subsection {* Field, method, interface, and class declarations, whole Java programs
-*}
+subsection \<open>Field, method, interface, and class declarations, whole Java programs
+\<close>
 
 theory Decl
 imports Term Table
   (** order is significant, because of clash for "var" **)
 begin
 
-text {*
+text \<open>
 improvements:
 \begin{itemize}
 \item clarification and correction of some aspects of the package/access concept
@@ -36,20 +36,20 @@ simplifications:
 
 \item no main method
 \end{itemize}
-*}
+\<close>
 
-subsection {* Modifier*}
+subsection \<open>Modifier\<close>
 
-subsubsection {* Access modifier *}
+subsubsection \<open>Access modifier\<close>
 
 datatype acc_modi (* access modifier *)
          = Private | Package | Protected | Public 
 
-text {* 
+text \<open>
 We can define a linear order for the access modifiers. With Private yielding the
 most restrictive access and public the most liberal access policy:
   Private < Package < Protected < Public
-*}
+\<close>
  
 instantiation acc_modi :: linorder
 begin
@@ -70,14 +70,14 @@ proof
   fix x y z::acc_modi
   show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)"
     by (auto simp add: le_acc_def less_acc_def split add: acc_modi.split) 
-  show "x \<le> x"                       -- reflexivity
+  show "x \<le> x"                       \<comment> reflexivity
     by (auto simp add: le_acc_def)
   {
-    assume "x \<le> y" "y \<le> z"           -- transitivity 
+    assume "x \<le> y" "y \<le> z"           \<comment> transitivity 
     then show "x \<le> z"
       by (auto simp add: le_acc_def less_acc_def split add: acc_modi.split)
   next
-    assume "x \<le> y" "y \<le> x"           -- antisymmetry
+    assume "x \<le> y" "y \<le> x"           \<comment> antisymmetry
     moreover have "\<forall> x y. x < (y::acc_modi) \<and> y < x \<longrightarrow> False"
       by (auto simp add: less_acc_def split add: acc_modi.split)
     ultimately show "x = y" by (unfold le_acc_def) iprover
@@ -137,11 +137,11 @@ lemma acc_modi_Package_le_cases:
 using assms by (auto dest: acc_modi_Package_le)
 
 
-subsubsection {* Static Modifier *}
+subsubsection \<open>Static Modifier\<close>
 type_synonym stat_modi = bool (* modifier: static *)
 
-subsection {* Declaration (base "class" for member,interface and class
- declarations *}
+subsection \<open>Declaration (base "class" for member,interface and class
+ declarations\<close>
 
 record decl =
         access :: acc_modi
@@ -150,7 +150,7 @@ translations
   (type) "decl" <= (type) "\<lparr>access::acc_modi\<rparr>"
   (type) "decl" <= (type) "\<lparr>access::acc_modi,\<dots>::'a\<rparr>"
 
-subsection {* Member (field or method)*}
+subsection \<open>Member (field or method)\<close>
 record  member = decl +
          static :: stat_modi
 
@@ -158,7 +158,7 @@ translations
   (type) "member" <= (type) "\<lparr>access::acc_modi,static::bool\<rparr>"
   (type) "member" <= (type) "\<lparr>access::acc_modi,static::bool,\<dots>::'a\<rparr>"
 
-subsection {* Field *}
+subsection \<open>Field\<close>
 
 record field = member +
         type :: ty
@@ -173,7 +173,7 @@ type_synonym fdecl          (* field declaration, cf. 8.3 *)
 translations
   (type) "fdecl" <= (type) "vname \<times> field"
 
-subsection  {* Method *}
+subsection  \<open>Method\<close>
 
 record mhead = member +     (* method head (excluding signature) *)
         pars ::"vname list" (* parameter names *)
@@ -219,9 +219,9 @@ by (simp add: mhead_def)
 lemma resT_mhead [simp]:"resT (mhead m) = resT m"
 by (simp add: mhead_def)
 
-text {* To be able to talk uniformaly about field and method declarations we
+text \<open>To be able to talk uniformaly about field and method declarations we
 introduce the notion of a member declaration (e.g. useful to define 
-accessiblity ) *}
+accessiblity )\<close>
 
 datatype memberdecl = fdecl fdecl | mdecl mdecl
 
@@ -293,16 +293,16 @@ lemma is_methodI: "is_method (C,mdecl m)"
 by (simp add: is_method_def)
 
 
-subsection {* Interface *}
+subsection \<open>Interface\<close>
 
 
-record  ibody = decl +  --{* interface body *}
-          imethods :: "(sig \<times> mhead) list" --{* method heads *}
+record  ibody = decl +  \<comment>\<open>interface body\<close>
+          imethods :: "(sig \<times> mhead) list" \<comment>\<open>method heads\<close>
 
-record  iface = ibody + --{* interface *}
-         isuperIfs:: "qtname list" --{* superinterface list *}
+record  iface = ibody + \<comment>\<open>interface\<close>
+         isuperIfs:: "qtname list" \<comment>\<open>superinterface list\<close>
 type_synonym
-        idecl           --{* interface declaration, cf. 9.1 *}
+        idecl           \<comment>\<open>interface declaration, cf. 9.1\<close>
         = "qtname \<times> iface"
 
 translations
@@ -324,17 +324,17 @@ by (simp add: ibody_def)
 lemma imethods_ibody [simp]: "(imethods (ibody i)) = imethods i"
 by (simp add: ibody_def)
 
-subsection  {* Class *}
-record cbody = decl +          --{* class body *}
+subsection  \<open>Class\<close>
+record cbody = decl +          \<comment>\<open>class body\<close>
          cfields:: "fdecl list" 
          methods:: "mdecl list"
-         init   :: "stmt"       --{* initializer *}
+         init   :: "stmt"       \<comment>\<open>initializer\<close>
 
-record "class" = cbody +           --{* class *}
-        super   :: "qtname"      --{* superclass *}
-        superIfs:: "qtname list" --{* implemented interfaces *}
+record "class" = cbody +           \<comment>\<open>class\<close>
+        super   :: "qtname"      \<comment>\<open>superclass\<close>
+        superIfs:: "qtname list" \<comment>\<open>implemented interfaces\<close>
 type_synonym
-        cdecl           --{* class declaration, cf. 8.1 *}
+        cdecl           \<comment>\<open>class declaration, cf. 8.1\<close>
         = "qtname \<times> class"
 
 translations
@@ -370,16 +370,16 @@ by (simp add: cbody_def)
 subsubsection "standard classes"
 
 consts
-  Object_mdecls  ::  "mdecl list" --{* methods of Object *}
-  SXcpt_mdecls   ::  "mdecl list" --{* methods of SXcpts *}
+  Object_mdecls  ::  "mdecl list" \<comment>\<open>methods of Object\<close>
+  SXcpt_mdecls   ::  "mdecl list" \<comment>\<open>methods of SXcpts\<close>
 
 definition
-  ObjectC ::         "cdecl"      --{* declaration  of root      class   *} where
+  ObjectC ::         "cdecl"      \<comment>\<open>declaration  of root      class\<close> where
   "ObjectC = (Object,\<lparr>access=Public,cfields=[],methods=Object_mdecls,
                                   init=Skip,super=undefined,superIfs=[]\<rparr>)"
 
 definition
-  SXcptC  ::"xname \<Rightarrow> cdecl"      --{* declarations of throwable classes *} where
+  SXcptC  ::"xname \<Rightarrow> cdecl"      \<comment>\<open>declarations of throwable classes\<close> where
   "SXcptC xn = (SXcpt xn,\<lparr>access=Public,cfields=[],methods=SXcpt_mdecls,
                                    init=Skip,
                                    super=if xn = Throwable then Object 
@@ -448,11 +448,11 @@ by auto
 subsubsection "subinterface and subclass relation, in anticipation of TypeRel.thy"
 
 definition
-  subint1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct subinterface *}
+  subint1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" \<comment>\<open>direct subinterface\<close>
   where "subint1 G = {(I,J). \<exists>i\<in>iface G I: J\<in>set (isuperIfs i)}"
 
 definition
-  subcls1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct subclass *}
+  subcls1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" \<comment>\<open>direct subclass\<close>
   where "subcls1 G = {(C,D). C\<noteq>Object \<and> (\<exists>c\<in>class G C: super c = D)}"
 
 abbreviation
@@ -815,7 +815,7 @@ done
 
 definition
   imethds :: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables" where
-  --{* methods of an interface, with overriding and inheritance, cf. 9.2 *}
+  \<comment>\<open>methods of an interface, with overriding and inheritance, cf. 9.2\<close>
   "imethds G I = iface_rec G I
               (\<lambda>I i ts. (Un_tables ts) \<oplus>\<oplus> 
                         (set_option \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"

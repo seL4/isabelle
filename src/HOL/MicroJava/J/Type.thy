@@ -17,7 +17,7 @@ instance by standard (simp add: equal_cnam_def)
 
 end
 
-text \<open>These instantiations only ensure that the merge in theory @{text "MicroJava"} succeeds. FIXME\<close>
+text \<open>These instantiations only ensure that the merge in theory \<open>MicroJava\<close> succeeds. FIXME\<close>
 
 instantiation cnam :: typerep
 begin
@@ -44,20 +44,20 @@ instance ..
 
 end
 
- -- "exceptions"
+ \<comment> "exceptions"
 datatype 
   xcpt   
   = NullPointer
   | ClassCast
   | OutOfMemory
 
--- "class names"
+\<comment> "class names"
 datatype cname  
   = Object 
   | Xcpt xcpt 
   | Cname cnam 
 
-typedecl vnam   -- "variable or field name"
+typedecl vnam   \<comment> "variable or field name"
 
 instantiation vnam :: equal
 begin
@@ -92,7 +92,7 @@ instance ..
 
 end
 
-typedecl mname  -- "method name"
+typedecl mname  \<comment> "method name"
 
 instantiation mname :: equal
 begin
@@ -127,26 +127,26 @@ instance ..
 
 end
 
--- "names for @{text This} pointer and local/field variables"
+\<comment> "names for \<open>This\<close> pointer and local/field variables"
 datatype vname 
   = This
   | VName vnam
 
--- "primitive type, cf. 4.2"
+\<comment> "primitive type, cf. 4.2"
 datatype prim_ty 
-  = Void          -- "'result type' of void methods"
+  = Void          \<comment> "'result type' of void methods"
   | Boolean
   | Integer
 
--- "reference type, cf. 4.3"
+\<comment> "reference type, cf. 4.3"
 datatype ref_ty   
-  = NullT         -- "null type, cf. 4.1"
-  | ClassT cname  -- "class type"
+  = NullT         \<comment> "null type, cf. 4.1"
+  | ClassT cname  \<comment> "class type"
 
--- "any type, cf. 4.1"
+\<comment> "any type, cf. 4.1"
 datatype ty 
-  = PrimT prim_ty -- "primitive type"
-  | RefT  ref_ty  -- "reference type"
+  = PrimT prim_ty \<comment> "primitive type"
+  | RefT  ref_ty  \<comment> "reference type"
 
 abbreviation NT :: ty
   where "NT == RefT NullT"

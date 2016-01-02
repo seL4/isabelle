@@ -43,13 +43,13 @@ defs
   more_spec_def: "more_spec G == \<lambda>((d,h),pTs). \<lambda>((d',h'),pTs'). G\<turnstile>d\<preceq>d' \<and>
                                 list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') pTs pTs'"
   
-  -- "applicable methods, cf. 15.11.2.1"
+  \<comment> "applicable methods, cf. 15.11.2.1"
   appl_methds_def: "appl_methds G C == \<lambda>(mn, pTs).
                      {((Class md,rT),pTs') |md rT mb pTs'.
                       method (G,C)  (mn, pTs') = Some (md,rT,mb) \<and>
                       list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') pTs pTs'}"
 
-  -- "maximally specific methods, cf. 15.11.2.2"
+  \<comment> "maximally specific methods, cf. 15.11.2.2"
   max_spec_def: "max_spec G C sig == {m. m \<in>appl_methds G C sig \<and> 
                                        (\<forall>m'\<in>appl_methds G C sig.
                                          more_spec G m' m --> m' = m)}"
@@ -100,8 +100,8 @@ done
 
 type_synonym
   java_mb = "vname list \<times> (vname \<times> ty) list \<times> stmt \<times> expr"
--- "method body with parameter names, local variables, block, result expression."
--- "local variables might include This, which is hidden anyway"
+\<comment> "method body with parameter names, local variables, block, result expression."
+\<comment> "local variables might include This, which is hidden anyway"
   
 inductive
   ty_expr :: "'c env => expr => ty => bool" ("_ \<turnstile> _ :: _" [51, 51, 51] 50)
@@ -110,19 +110,19 @@ inductive
 where
   
   NewC: "[| is_class (prg E) C |] ==>
-         E\<turnstile>NewC C::Class C"  -- "cf. 15.8"
+         E\<turnstile>NewC C::Class C"  \<comment> "cf. 15.8"
 
-  -- "cf. 15.15"
+  \<comment> "cf. 15.15"
 | Cast: "[| E\<turnstile>e::C; is_class (prg E) D;
             prg E\<turnstile>C\<preceq>? Class D |] ==>
          E\<turnstile>Cast D e:: Class D"
 
-  -- "cf. 15.7.1"
+  \<comment> "cf. 15.7.1"
 | Lit:    "[| typeof (\<lambda>v. None) x = Some T |] ==>
          E\<turnstile>Lit x::T"
 
   
-  -- "cf. 15.13.1"
+  \<comment> "cf. 15.13.1"
 | LAcc: "[| localT E v = Some T; is_type (prg E) T |] ==>
          E\<turnstile>LAcc v::T"
 
@@ -132,42 +132,42 @@ where
                         else T' = T \<and> T = PrimT Integer|] ==>
             E\<turnstile>BinOp bop e1 e2::T'"
 
-  -- "cf. 15.25, 15.25.1"
+  \<comment> "cf. 15.25, 15.25.1"
 | LAss: "[| v ~= This;
             E\<turnstile>LAcc v::T;
             E\<turnstile>e::T';
             prg E\<turnstile>T'\<preceq>T |] ==>
          E\<turnstile>v::=e::T'"
 
-  -- "cf. 15.10.1"
+  \<comment> "cf. 15.10.1"
 | FAcc: "[| E\<turnstile>a::Class C; 
             field (prg E,C) fn = Some (fd,fT) |] ==>
             E\<turnstile>{fd}a..fn::fT"
 
-  -- "cf. 15.25, 15.25.1"
+  \<comment> "cf. 15.25, 15.25.1"
 | FAss: "[| E\<turnstile>{fd}a..fn::T;
             E\<turnstile>v        ::T';
             prg E\<turnstile>T'\<preceq>T |] ==>
          E\<turnstile>{fd}a..fn:=v::T'"
 
 
-  -- "cf. 15.11.1, 15.11.2, 15.11.3"
+  \<comment> "cf. 15.11.1, 15.11.2, 15.11.3"
 | Call: "[| E\<turnstile>a::Class C;
             E\<turnstile>ps[::]pTs;
             max_spec (prg E) C (mn, pTs) = {((md,rT),pTs')} |] ==>
          E\<turnstile>{C}a..mn({pTs'}ps)::rT"
 
--- "well-typed expression lists"
+\<comment> "well-typed expression lists"
 
-  -- "cf. 15.11.???"
+  \<comment> "cf. 15.11.???"
 | Nil: "E\<turnstile>[][::][]"
 
-  -- "cf. 15.11.???"
+  \<comment> "cf. 15.11.???"
 | Cons:"[| E\<turnstile>e::T;
            E\<turnstile>es[::]Ts |] ==>
         E\<turnstile>e#es[::]T#Ts"
 
--- "well-typed statements"
+\<comment> "well-typed statements"
 
 | Skip:"E\<turnstile>Skip\<surd>"
 
@@ -178,13 +178,13 @@ where
            E\<turnstile>s2\<surd> |] ==>
         E\<turnstile>s1;; s2\<surd>"
 
-  -- "cf. 14.8"
+  \<comment> "cf. 14.8"
 | Cond:"[| E\<turnstile>e::PrimT Boolean;
            E\<turnstile>s1\<surd>;
            E\<turnstile>s2\<surd> |] ==>
          E\<turnstile>If(e) s1 Else s2\<surd>"
 
-  -- "cf. 14.10"
+  \<comment> "cf. 14.10"
 | Loop:"[| E\<turnstile>e::PrimT Boolean;
            E\<turnstile>s\<surd> |] ==>
         E\<turnstile>While(e) s\<surd>"

@@ -21,7 +21,7 @@ where
 | "fac (Suc n) = Suc n * fac n"
 
 
-subsubsection {* cd *}
+subsubsection \<open>cd\<close>
 
 lemma cd_nnn: "0<n ==> cd n n n"
   apply (simp add: cd_def)
@@ -48,7 +48,7 @@ lemma cd_diff_r: "m<=n ==> cd x m n = cd x m (n-m)"
   done
 
 
-subsubsection {* gcd *}
+subsubsection \<open>gcd\<close>
 
 lemma gcd_nnn: "0<n ==> n = gcd n n"
   apply (unfold gcd_def)
@@ -79,7 +79,7 @@ lemma gcd_diff_r: "m<=n ==> gcd m n = gcd m (n-m)"
   done
 
 
-subsubsection {* pow *}
+subsubsection \<open>pow\<close>
 
 lemma sq_pow_div2 [simp]:
     "m mod 2 = 0 ==> ((n::nat)*n)^(m div 2) = n^m"

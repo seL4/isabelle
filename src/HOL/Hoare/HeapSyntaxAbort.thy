@@ -7,13 +7,13 @@ theory HeapSyntaxAbort imports Hoare_Logic_Abort Heap begin
 
 subsection "Field access and update"
 
-text{* Heap update @{text"p^.h := e"} is now guarded against @{term p}
+text\<open>Heap update \<open>p^.h := e\<close> is now guarded against @{term p}
 being Null. However, @{term p} may still be illegal,
 e.g. uninitialized or dangling. To guard against that, one needs a
 more detailed model of the heap where allocated and free addresses are
 distinguished, e.g. by making the heap a map, or by carrying the set
 of free addresses around. This is needed anyway as soon as we want to
-reason about storage allocation/deallocation. *}
+reason about storage allocation/deallocation.\<close>
 
 syntax
   "_refupdate" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a ref \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)"

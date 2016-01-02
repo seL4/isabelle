@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/TypeSafe.thy
     Author:     David von Oheimb and Norbert Schirmer
 *)
-subsection {* The type soundness proof for Java *}
+subsection \<open>The type soundness proof for Java\<close>
 
 theory TypeSafe
 imports DefiniteAssignmentCorrect Conform
@@ -114,7 +114,7 @@ where
                 else G,s\<turnstile>the_In1 v\<Colon>\<preceq>T
     | Inr Ts \<Rightarrow> list_all2 (conf G s) (the_In3 v) Ts)"
 
-text {*
+text \<open>
  With @{term rconf} we describe the conformance of the result value of a term.
  This definition gets rather complicated because of the relations between the
  injections of the different terms, types and values. The main case distinction
@@ -132,7 +132,7 @@ text {*
  local variables are allowed to be @{term None}, since the definedness is not 
  ensured by conformance but by definite assignment. Field and array variables 
  must contain a value. 
-*}
+\<close>
  
 
 
@@ -588,8 +588,8 @@ proof -
 qed
 
 corollary DynT_mheadsE [consumes 7]: 
---{* Same as @{text DynT_mheadsD} but better suited for application in 
-typesafety proof   *}
+\<comment>\<open>Same as \<open>DynT_mheadsD\<close> but better suited for application in 
+typesafety proof\<close>
  assumes invC_compatible: "G\<turnstile>mode\<rightarrow>invC\<preceq>statT" 
      and wf: "wf_prog G" 
      and wt_e: "\<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>e\<Colon>-RefT statT"
@@ -726,8 +726,8 @@ qed
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
-setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
+setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
+setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
 
 lemma FVar_lemma: 
 "\<lbrakk>((v, f), Norm s2') = fvar statDeclC (static field) fn a (x2, s2); 
@@ -755,8 +755,8 @@ done
 declare split_paired_All [simp] split_paired_Ex [simp] 
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
-setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
-setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}
+setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac))\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>
 
 
 lemma AVar_lemma1: "\<lbrakk>globs s (Inl a) = Some obj;tag obj=Arr ty i; 
@@ -871,8 +871,8 @@ by (auto simp add: abrupt_if_def)
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
-setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
+setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
+setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
 
 lemma conforms_init_lvars: 
 "\<lbrakk>wf_mhead G (pid declC) sig (mhead (mthd dm)); wf_prog G;  
@@ -924,8 +924,8 @@ done
 declare split_paired_All [simp] split_paired_Ex [simp] 
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
-setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
-setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}
+setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac))\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>
 
 
 subsection "accessibility"
@@ -1169,7 +1169,7 @@ proof (induct ps)
   case Nil thus ?case by simp
 next
   case (Cons p ps tab qs)
-  from `length (p#ps) = length qs`
+  from \<open>length (p#ps) = length qs\<close>
   obtain q qs' where qs: "qs=q#qs'" and eq_length: "length ps=length qs'"
     by (cases qs) auto
   from eq_length have "(tab(p\<mapsto>q))(ps[\<mapsto>]qs'@zs)=(tab(p\<mapsto>q))(ps[\<mapsto>]qs')"
@@ -1185,7 +1185,7 @@ proof (induct "ps")
   case Nil thus ?case by simp
 next
   case (Cons p ps tab qs x y)
-  from `length (p#ps) = length qs`
+  from \<open>length (p#ps) = length qs\<close>
   obtain q qs' where qs: "qs=q#qs'" and eq_length: "length ps=length qs'"
     by (cases qs) auto
   from eq_length 
@@ -1278,14 +1278,14 @@ proof (induct xs)
   case Nil thus ?case by simp
 next
   case (Cons x xs tab ys z)
-  note z = `tab vn = Some z`
+  note z = \<open>tab vn = Some z\<close>
   show ?case
   proof (cases ys)
     case Nil
     with z show ?thesis by simp
   next
     case (Cons y ys')
-    note ys = `ys = y#ys'`
+    note ys = \<open>ys = y#ys'\<close>
     from z obtain z' where "(tab(x\<mapsto>y)) vn = Some z'"
       by (rule map_upd_Some_expand [of tab,elim_format]) blast
     hence "\<exists>z. ((tab(x\<mapsto>y))(xs[\<mapsto>]ys')) vn = Some z"
@@ -1320,14 +1320,14 @@ proof (induct xs)
   case Nil thus ?case by simp
 next
   case (Cons x xs tab tab' ys z)
-  note some = `(tab(x # xs[\<mapsto>]ys)) vn = Some z`
-  note tab_not_z = `tab vn \<noteq> Some z`
+  note some = \<open>(tab(x # xs[\<mapsto>]ys)) vn = Some z\<close>
+  note tab_not_z = \<open>tab vn \<noteq> Some z\<close>
   show ?case
   proof (cases ys)
     case Nil with some tab_not_z show ?thesis by simp
   next
     case (Cons y tl)
-    note ys = `ys = y#tl`
+    note ys = \<open>ys = y#tl\<close>
     show ?thesis
     proof (cases "(tab(x\<mapsto>y)) vn \<noteq> Some z")
       case True
@@ -1412,15 +1412,15 @@ proof  (induct "xs")
   case Nil thus ?case by simp
 next
   case (Cons x xs tab tab' ys)
-  note tab_vn = `(tab(x # xs[\<mapsto>]ys)) vn = Some el`
-  note tab'_vn = `(tab'(x # xs[\<mapsto>]ys)) vn = None`
+  note tab_vn = \<open>(tab(x # xs[\<mapsto>]ys)) vn = Some el\<close>
+  note tab'_vn = \<open>(tab'(x # xs[\<mapsto>]ys)) vn = None\<close>
   show ?case
   proof (cases ys)
     case Nil
     with tab_vn show ?thesis by simp
   next
     case (Cons y tl)
-    note ys = `ys=y#tl`
+    note ys = \<open>ys=y#tl\<close>
     with tab_vn tab'_vn 
     have "(tab(x\<mapsto>y)) vn = Some el"
       by - (rule Cons.hyps,auto)
@@ -1497,7 +1497,7 @@ proof (induct xs)
 next
   case (Cons x xs tab ys)
   note Hyp = Cons.hyps
-  note len = `length (x#xs)=length ys`
+  note len = \<open>length (x#xs)=length ys\<close>
   show ?case
   proof (cases ys)
     case Nil with len show ?thesis by simp
@@ -1728,7 +1728,7 @@ proof -
                      ?ErrorFree s0 s1")
   proof (induct)
     case (Abrupt xc s t L accC T A) 
-    from `(Some xc, s)\<Colon>\<preceq>(G,L)`
+    from \<open>(Some xc, s)\<Colon>\<preceq>(G,L)\<close>
     show "(Some xc, s)\<Colon>\<preceq>(G,L) \<and> 
       (normal (Some xc, s) 
       \<longrightarrow> G,L,store (Some xc,s)\<turnstile>t\<succ>undefined3 t\<Colon>\<preceq>T) \<and> 
@@ -1736,19 +1736,19 @@ proof -
       by simp
   next
     case (Skip s L accC T A)
-    from `Norm s\<Colon>\<preceq>(G, L)` and
-      `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r Skip\<Colon>T`
+    from \<open>Norm s\<Colon>\<preceq>(G, L)\<close> and
+      \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r Skip\<Colon>T\<close>
     show "Norm s\<Colon>\<preceq>(G, L) \<and>
               (normal (Norm s) \<longrightarrow> G,L,store (Norm s)\<turnstile>In1r Skip\<succ>\<diamondsuit>\<Colon>\<preceq>T) \<and> 
               (error_free (Norm s) = error_free (Norm s))"
       by simp
   next
     case (Expr s0 e v s1 L accC T A)
-    note `G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1`
-    note hyp = `PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
+    note \<open>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<close>
+    note hyp = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
     moreover
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (Expr e)\<Colon>T`
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (Expr e)\<Colon>T\<close>
     then obtain eT 
       where "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l e\<Colon>eT"
       by (rule wt_elim_cases) blast
@@ -1766,10 +1766,10 @@ proof -
       by (simp)
   next
     case (Lab s0 c s1 l L accC T A)
-    note hyp = `PROP ?TypeSafe (Norm s0) s1 (In1r c) \<diamondsuit>`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
+    note hyp = \<open>PROP ?TypeSafe (Norm s0) s1 (In1r c) \<diamondsuit>\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
     moreover
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (l\<bullet> c)\<Colon>T`
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (l\<bullet> c)\<Colon>T\<close>
     then have "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>c\<Colon>\<surd>"
       by (rule wt_elim_cases) blast
     moreover from Lab.prems obtain C where
@@ -1789,12 +1789,12 @@ proof -
       by (simp)
   next
     case (Comp s0 c1 s1 c2 s2 L accC T A)
-    note eval_c1 = `G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1`
-    note eval_c2 = `G\<turnstile>s1 \<midarrow>c2\<rightarrow> s2`
-    note hyp_c1 = `PROP ?TypeSafe (Norm s0) s1 (In1r c1) \<diamondsuit>`
-    note hyp_c2 = `PROP ?TypeSafe s1        s2 (In1r c2) \<diamondsuit>`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (c1;; c2)\<Colon>T`
+    note eval_c1 = \<open>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1\<close>
+    note eval_c2 = \<open>G\<turnstile>s1 \<midarrow>c2\<rightarrow> s2\<close>
+    note hyp_c1 = \<open>PROP ?TypeSafe (Norm s0) s1 (In1r c1) \<diamondsuit>\<close>
+    note hyp_c2 = \<open>PROP ?TypeSafe s1        s2 (In1r c2) \<diamondsuit>\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (c1;; c2)\<Colon>T\<close>
     then obtain wt_c1: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>c1\<Colon>\<surd>" and
                 wt_c2: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>c2\<Colon>\<surd>"
       by (rule wt_elim_cases) blast
@@ -1835,13 +1835,13 @@ proof -
     qed
   next
     case (If s0 e b s1 c1 c2 s2 L accC T A)
-    note eval_e = `G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1`
-    note eval_then_else = `G\<turnstile>s1 \<midarrow>(if the_Bool b then c1 else c2)\<rightarrow> s2`
-    note hyp_e = `PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 b)`
+    note eval_e = \<open>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1\<close>
+    note eval_then_else = \<open>G\<turnstile>s1 \<midarrow>(if the_Bool b then c1 else c2)\<rightarrow> s2\<close>
+    note hyp_e = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 b)\<close>
     note hyp_then_else =
-      `PROP ?TypeSafe s1 s2 (In1r (if the_Bool b then c1 else c2)) \<diamondsuit>`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (If(e) c1 Else c2)\<Colon>T`
+      \<open>PROP ?TypeSafe s1 s2 (In1r (if the_Bool b then c1 else c2)) \<diamondsuit>\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (If(e) c1 Else c2)\<Colon>T\<close>
     then obtain 
               wt_e: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>e\<Colon>-PrimT Boolean" and
       wt_then_else: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>(if the_Bool b then c1 else c2)\<Colon>\<surd>"
@@ -1899,7 +1899,7 @@ proof -
       with wt show ?thesis
         by simp
     qed
-    -- {* Note that we don't have to show that @{term b} really is a boolean 
+    \<comment> \<open>Note that we don't have to show that @{term b} really is a boolean 
           value. With @{term the_Bool} we enforce to get a value of boolean 
           type. So execution will be type safe, even if b would be
           a string, for example. We might not expect such a behaviour to be
@@ -1907,18 +1907,18 @@ proof -
           the evaulation rule, so that it only has a type safe evaluation if
           we actually get a boolean value for the condition. That b is actually
           a boolean value is part of @{term hyp_e}. See also Loop 
-       *}
+\<close>
   next
     case (Loop s0 e b s1 c s2 l s3 L accC T A)
-    note eval_e = `G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1`
-    note hyp_e = `PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 b)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (l\<bullet> While(e) c)\<Colon>T`
+    note eval_e = \<open>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1\<close>
+    note hyp_e = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 b)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (l\<bullet> While(e) c)\<Colon>T\<close>
     then obtain wt_e: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-PrimT Boolean" and
                 wt_c: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>c\<Colon>\<surd>"
       by (rule wt_elim_cases) blast
-    note da = `\<lparr>prg=G, cls=accC, lcl=L\<rparr>
-            \<turnstile> dom (locals(store ((Norm s0)::state))) \<guillemotright>In1r (l\<bullet> While(e) c)\<guillemotright> A`
+    note da = \<open>\<lparr>prg=G, cls=accC, lcl=L\<rparr>
+            \<turnstile> dom (locals(store ((Norm s0)::state))) \<guillemotright>In1r (l\<bullet> While(e) c)\<guillemotright> A\<close>
     then
     obtain E C where
       da_e: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>
@@ -2041,7 +2041,7 @@ proof -
     qed
   next
     case (Jmp s j L accC T A)
-    note `Norm s\<Colon>\<preceq>(G, L)`
+    note \<open>Norm s\<Colon>\<preceq>(G, L)\<close>
     moreover
     from Jmp.prems 
     have "j=Ret \<longrightarrow> Result \<in> dom (locals (store ((Norm s)::state)))"
@@ -2055,10 +2055,10 @@ proof -
       by simp
   next
     case (Throw s0 e a s1 L accC T A)
-    note `G\<turnstile>Norm s0 \<midarrow>e-\<succ>a\<rightarrow> s1`
-    note hyp = `PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 a)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (Throw e)\<Colon>T`
+    note \<open>G\<turnstile>Norm s0 \<midarrow>e-\<succ>a\<rightarrow> s1\<close>
+    note hyp = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 a)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (Throw e)\<Colon>T\<close>
     then obtain tn 
       where      wt_e: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-Class tn" and
             throwable: "G\<turnstile>tn\<preceq>\<^sub>C SXcpt Throwable"
@@ -2083,11 +2083,11 @@ proof -
       by simp
   next
     case (Try s0 c1 s1 s2 catchC vn c2 s3 L accC T A)
-    note eval_c1 = `G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1`
-    note sx_alloc = `G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2`
-    note hyp_c1 = `PROP ?TypeSafe (Norm s0) s1 (In1r c1) \<diamondsuit>`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>In1r (Try c1 Catch(catchC vn) c2)\<Colon>T`
+    note eval_c1 = \<open>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1\<close>
+    note sx_alloc = \<open>G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2\<close>
+    note hyp_c1 = \<open>PROP ?TypeSafe (Norm s0) s1 (In1r c1) \<diamondsuit>\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>In1r (Try c1 Catch(catchC vn) c2)\<Colon>T\<close>
     then obtain 
       wt_c1: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>c1\<Colon>\<surd>" and
       wt_c2: "\<lparr>prg=G,cls=accC,lcl=L(VName vn\<mapsto>Class catchC)\<rparr>\<turnstile>c2\<Colon>\<surd>" and
@@ -2165,7 +2165,7 @@ proof -
           have "(dom (locals (store ((Norm s0)::state))) \<union> {VName vn}) 
                   \<subseteq> dom (locals (store (new_xcpt_var vn s2)))"
           proof -
-            from `G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1`
+            from \<open>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1\<close>
             have "dom (locals (store ((Norm s0)::state))) 
                     \<subseteq> dom (locals (store s1))"
               by (rule dom_locals_eval_mono_elim)
@@ -2200,15 +2200,15 @@ proof -
     qed
   next
     case (Fin s0 c1 x1 s1 c2 s2 s3 L accC T A)
-    note eval_c1 = `G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (x1, s1)`
-    note eval_c2 = `G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> s2`
-    note s3 = `s3 = (if \<exists>err. x1 = Some (Error err)
+    note eval_c1 = \<open>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (x1, s1)\<close>
+    note eval_c2 = \<open>G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> s2\<close>
+    note s3 = \<open>s3 = (if \<exists>err. x1 = Some (Error err)
                      then (x1, s1)
-                     else abupd (abrupt_if (x1 \<noteq> None) x1) s2)`
-    note hyp_c1 = `PROP ?TypeSafe (Norm s0) (x1,s1) (In1r c1) \<diamondsuit>`
-    note hyp_c2 = `PROP ?TypeSafe (Norm s1) s2      (In1r c2) \<diamondsuit>`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (c1 Finally c2)\<Colon>T`
+                     else abupd (abrupt_if (x1 \<noteq> None) x1) s2)\<close>
+    note hyp_c1 = \<open>PROP ?TypeSafe (Norm s0) (x1,s1) (In1r c1) \<diamondsuit>\<close>
+    note hyp_c2 = \<open>PROP ?TypeSafe (Norm s1) s2      (In1r c2) \<diamondsuit>\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (c1 Finally c2)\<Colon>T\<close>
     then obtain
       wt_c1: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>c1\<Colon>\<surd>" and
       wt_c2: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>c2\<Colon>\<surd>"
@@ -2270,9 +2270,9 @@ proof -
     qed
   next
     case (Init C c s0 s3 s1 s2 L accC T A)
-    note cls = `the (class G C) = c`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (Init C)\<Colon>T`
+    note cls = \<open>the (class G C) = c\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (Init C)\<Colon>T\<close>
     with cls
     have cls_C: "class G C = Some c"
       by - (erule wt_elim_cases, auto)
@@ -2376,12 +2376,12 @@ proof -
     qed
   next
     case (NewC s0 C s1 a s2 L accC T A)
-    note `G\<turnstile>Norm s0 \<midarrow>Init C\<rightarrow> s1`
-    note halloc = `G\<turnstile>s1 \<midarrow>halloc CInst C\<succ>a\<rightarrow> s2`
-    note hyp = `PROP ?TypeSafe (Norm s0) s1 (In1r (Init C)) \<diamondsuit>`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
+    note \<open>G\<turnstile>Norm s0 \<midarrow>Init C\<rightarrow> s1\<close>
+    note halloc = \<open>G\<turnstile>s1 \<midarrow>halloc CInst C\<succ>a\<rightarrow> s2\<close>
+    note hyp = \<open>PROP ?TypeSafe (Norm s0) s1 (In1r (Init C)) \<diamondsuit>\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
     moreover
-    note wt = `\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>In1l (NewC C)\<Colon>T`
+    note wt = \<open>\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>In1l (NewC C)\<Colon>T\<close>
     then obtain is_cls_C: "is_class G C" and
                        T: "T=Inl (Class C)"
       by (rule wt_elim_cases) (auto dest: is_acc_classD)
@@ -2408,13 +2408,13 @@ proof -
       by auto
   next
     case (NewA s0 elT s1 e i s2 a s3 L accC T A)
-    note eval_init = `G\<turnstile>Norm s0 \<midarrow>init_comp_ty elT\<rightarrow> s1`
-    note eval_e = `G\<turnstile>s1 \<midarrow>e-\<succ>i\<rightarrow> s2`
-    note halloc = `G\<turnstile>abupd (check_neg i) s2\<midarrow>halloc Arr elT (the_Intg i)\<succ>a\<rightarrow> s3`
-    note hyp_init = `PROP ?TypeSafe (Norm s0) s1 (In1r (init_comp_ty elT)) \<diamondsuit>`
-    note hyp_size = `PROP ?TypeSafe s1 s2 (In1l e) (In1 i)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (New elT[e])\<Colon>T`
+    note eval_init = \<open>G\<turnstile>Norm s0 \<midarrow>init_comp_ty elT\<rightarrow> s1\<close>
+    note eval_e = \<open>G\<turnstile>s1 \<midarrow>e-\<succ>i\<rightarrow> s2\<close>
+    note halloc = \<open>G\<turnstile>abupd (check_neg i) s2\<midarrow>halloc Arr elT (the_Intg i)\<succ>a\<rightarrow> s3\<close>
+    note hyp_init = \<open>PROP ?TypeSafe (Norm s0) s1 (In1r (init_comp_ty elT)) \<diamondsuit>\<close>
+    note hyp_size = \<open>PROP ?TypeSafe s1 s2 (In1l e) (In1 i)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (New elT[e])\<Colon>T\<close>
     then obtain
       wt_init: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>init_comp_ty elT\<Colon>\<surd>" and
       wt_size: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-PrimT Integer" and
@@ -2479,11 +2479,11 @@ proof -
       by simp
   next
     case (Cast s0 e v s1 s2 castT L accC T A)
-    note `G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1`
-    note s2 = `s2 = abupd (raise_if (\<not> G,store s1\<turnstile>v fits castT) ClassCast) s1`
-    note hyp = `PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (Cast castT e)\<Colon>T`
+    note \<open>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<close>
+    note s2 = \<open>s2 = abupd (raise_if (\<not> G,store s1\<turnstile>v fits castT) ClassCast) s1\<close>
+    note hyp = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (Cast castT e)\<Colon>T\<close>
     then obtain eT
       where wt_e: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-eT" and
               eT: "G\<turnstile>eT\<preceq>? castT" and 
@@ -2525,8 +2525,8 @@ proof -
       by blast
   next
     case (Inst s0 e v s1 b instT L accC T A)
-    note hyp = `PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
+    note hyp = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
     from Inst.prems obtain eT
     where wt_e: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-RefT eT"  and
              T: "T=Inl (PrimT Boolean)" 
@@ -2549,9 +2549,9 @@ proof -
                intro: conf_litval simp add: empty_dt_def)
   next
     case (UnOp s0 e v s1 unop L accC T A)
-    note hyp = `PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (UnOp unop e)\<Colon>T`
+    note hyp = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (UnOp unop e)\<Colon>T\<close>
     then obtain eT
       where    wt_e: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-eT" and
             wt_unop: "wt_unop unop eT" and
@@ -2576,15 +2576,15 @@ proof -
       by simp
   next
     case (BinOp s0 e1 v1 s1 binop e2 v2 s2 L accC T A)
-    note eval_e1 = `G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<rightarrow> s1`
-    note eval_e2 = `G\<turnstile>s1 \<midarrow>(if need_second_arg binop v1 then In1l e2
-                             else In1r Skip)\<succ>\<rightarrow> (In1 v2, s2)`
-    note hyp_e1 = `PROP ?TypeSafe (Norm s0) s1 (In1l e1) (In1 v1)`
-    note hyp_e2 = `PROP ?TypeSafe       s1  s2 
+    note eval_e1 = \<open>G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<rightarrow> s1\<close>
+    note eval_e2 = \<open>G\<turnstile>s1 \<midarrow>(if need_second_arg binop v1 then In1l e2
+                             else In1r Skip)\<succ>\<rightarrow> (In1 v2, s2)\<close>
+    note hyp_e1 = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l e1) (In1 v1)\<close>
+    note hyp_e2 = \<open>PROP ?TypeSafe       s1  s2 
                    (if need_second_arg binop v1 then In1l e2 else In1r Skip) 
-                   (In1 v2)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (BinOp binop e1 e2)\<Colon>T`
+                   (In1 v2)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (BinOp binop e1 e2)\<Colon>T\<close>
     then obtain e1T e2T where
          wt_e1: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e1\<Colon>-e1T" and
          wt_e2: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e2\<Colon>-e2T" and
@@ -2597,8 +2597,8 @@ proof -
       daSkip: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
                   \<turnstile> dom (locals (store s1)) \<guillemotright>In1r Skip\<guillemotright> S"
       by (auto intro: da_Skip [simplified] assigned.select_convs)
-    note da = `\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store ((Norm s0::state)))) 
-                  \<guillemotright>\<langle>BinOp binop e1 e2\<rangle>\<^sub>e\<guillemotright> A`
+    note da = \<open>\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store ((Norm s0::state)))) 
+                  \<guillemotright>\<langle>BinOp binop e1 e2\<rangle>\<^sub>e\<guillemotright> A\<close>
     then obtain E1 where
       da_e1: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
                   \<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>In1l e1\<guillemotright> E1"
@@ -2612,20 +2612,20 @@ proof -
     have conf_v:
       "G,L,snd s2\<turnstile>In1l (BinOp binop e1 e2)\<succ>In1 (eval_binop binop v1 v2)\<Colon>\<preceq>T"
       by (cases binop) auto
-    -- {* Note that we don't use the information that v1 really is compatible 
+    \<comment> \<open>Note that we don't use the information that v1 really is compatible 
           with the expected type e1T and v2 is compatible with e2T, 
-          because @{text eval_binop} will anyway produce an output of 
+          because \<open>eval_binop\<close> will anyway produce an output of 
           the right type.
           So evaluating the addition of an integer with a string is type
           safe. This is a little bit annoying since we may regard such a
           behaviour as not type safe.
-          If we want to avoid this we can redefine @{text eval_binop} so that
+          If we want to avoid this we can redefine \<open>eval_binop\<close> so that
           it only produces a output of proper type if it is assigned to 
           values of the expected types, and arbitrary if the inputs have 
           unexpected types. The proof can easily be adapted since we
           have the hypothesis that the values have a proper type.
           This also applies to unary operations.
-       *}
+\<close>
     from eval_e1 have 
       s0_s1:"dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
       by (rule dom_locals_eval_mono_elim)
@@ -2667,8 +2667,8 @@ proof -
     qed
   next
     case (Super s L accC T A)
-    note conf_s = `Norm s\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l Super\<Colon>T`
+    note conf_s = \<open>Norm s\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l Super\<Colon>T\<close>
     then obtain C c where
              C: "L This = Some (Class C)" and
        neq_Obj: "C\<noteq>Object" and
@@ -2692,8 +2692,8 @@ proof -
       by simp
   next
     case (Acc s0 v w upd s1 L accC T A)
-    note hyp = `PROP ?TypeSafe (Norm s0) s1 (In2 v) (In2 (w,upd))`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
+    note hyp = \<open>PROP ?TypeSafe (Norm s0) s1 (In2 v) (In2 (w,upd))\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
     from Acc.prems obtain vT where
       wt_v: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>v\<Colon>=vT" and
          T: "T=Inl vT"
@@ -2712,7 +2712,7 @@ proof -
         also
         have "dom (locals s0) \<subseteq> dom (locals (store s1))"
         proof -
-          from `G\<turnstile>Norm s0 \<midarrow>v=\<succ>(w, upd)\<rightarrow> s1`
+          from \<open>G\<turnstile>Norm s0 \<midarrow>v=\<succ>(w, upd)\<rightarrow> s1\<close>
           show ?thesis
             by (rule dom_locals_eval_mono_elim) simp
         qed
@@ -2732,12 +2732,12 @@ proof -
       by simp
   next
     case (Ass s0 var w upd s1 e v s2 L accC T A)
-    note eval_var = `G\<turnstile>Norm s0 \<midarrow>var=\<succ>(w, upd)\<rightarrow> s1`
-    note eval_e = `G\<turnstile>s1 \<midarrow>e-\<succ>v\<rightarrow> s2`
-    note hyp_var = `PROP ?TypeSafe (Norm s0) s1 (In2 var) (In2 (w,upd))`
-    note hyp_e = `PROP ?TypeSafe s1 s2 (In1l e) (In1 v)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (var:=e)\<Colon>T`
+    note eval_var = \<open>G\<turnstile>Norm s0 \<midarrow>var=\<succ>(w, upd)\<rightarrow> s1\<close>
+    note eval_e = \<open>G\<turnstile>s1 \<midarrow>e-\<succ>v\<rightarrow> s2\<close>
+    note hyp_var = \<open>PROP ?TypeSafe (Norm s0) s1 (In2 var) (In2 (w,upd))\<close>
+    note hyp_e = \<open>PROP ?TypeSafe s1 s2 (In1l e) (In1 v)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (var:=e)\<Colon>T\<close>
     then obtain varT eT where
          wt_var: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>var\<Colon>=varT" and
            wt_e: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-eT" and
@@ -2889,13 +2889,13 @@ proof -
     qed
   next
     case (Cond s0 e0 b s1 e1 e2 v s2 L accC T A)
-    note eval_e0 = `G\<turnstile>Norm s0 \<midarrow>e0-\<succ>b\<rightarrow> s1`
-    note eval_e1_e2 = `G\<turnstile>s1 \<midarrow>(if the_Bool b then e1 else e2)-\<succ>v\<rightarrow> s2`
-    note hyp_e0 = `PROP ?TypeSafe (Norm s0) s1 (In1l e0) (In1 b)`
-    note hyp_if = `PROP ?TypeSafe s1 s2
-                       (In1l (if the_Bool b then e1 else e2)) (In1 v)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (e0 ? e1 : e2)\<Colon>T`
+    note eval_e0 = \<open>G\<turnstile>Norm s0 \<midarrow>e0-\<succ>b\<rightarrow> s1\<close>
+    note eval_e1_e2 = \<open>G\<turnstile>s1 \<midarrow>(if the_Bool b then e1 else e2)-\<succ>v\<rightarrow> s2\<close>
+    note hyp_e0 = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l e0) (In1 b)\<close>
+    note hyp_if = \<open>PROP ?TypeSafe s1 s2
+                       (In1l (if the_Bool b then e1 else e2)) (In1 v)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (e0 ? e1 : e2)\<Colon>T\<close>
     then obtain T1 T2 statT where
       wt_e0: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e0\<Colon>-PrimT Boolean" and
       wt_e1: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e1\<Colon>-T1" and
@@ -2983,24 +2983,24 @@ proof -
   next
     case (Call s0 e a s1 args vs s2 invDeclC mode statT mn pTs' s3 s3' accC'
            v s4 L accC T A)
-    note eval_e = `G\<turnstile>Norm s0 \<midarrow>e-\<succ>a\<rightarrow> s1`
-    note eval_args = `G\<turnstile>s1 \<midarrow>args\<doteq>\<succ>vs\<rightarrow> s2`
-    note invDeclC = `invDeclC 
+    note eval_e = \<open>G\<turnstile>Norm s0 \<midarrow>e-\<succ>a\<rightarrow> s1\<close>
+    note eval_args = \<open>G\<turnstile>s1 \<midarrow>args\<doteq>\<succ>vs\<rightarrow> s2\<close>
+    note invDeclC = \<open>invDeclC 
                       = invocation_declclass G mode (store s2) a statT 
-                           \<lparr>name = mn, parTs = pTs'\<rparr>`
+                           \<lparr>name = mn, parTs = pTs'\<rparr>\<close>
     note init_lvars =
-      `s3 = init_lvars G invDeclC \<lparr>name = mn, parTs = pTs'\<rparr> mode a vs s2`
-    note check = `s3' =
-        check_method_access G accC' statT mode \<lparr>name = mn, parTs = pTs'\<rparr> a s3`
+      \<open>s3 = init_lvars G invDeclC \<lparr>name = mn, parTs = pTs'\<rparr> mode a vs s2\<close>
+    note check = \<open>s3' =
+        check_method_access G accC' statT mode \<lparr>name = mn, parTs = pTs'\<rparr> a s3\<close>
     note eval_methd =
-      `G\<turnstile>s3' \<midarrow>Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>-\<succ>v\<rightarrow> s4`
-    note hyp_e = `PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 a)`
-    note hyp_args = `PROP ?TypeSafe s1 s2 (In3 args) (In3 vs)`
-    note hyp_methd = `PROP ?TypeSafe s3' s4 
-        (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>)) (In1 v)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg=G, cls=accC, lcl=L\<rparr>
-        \<turnstile>In1l ({accC',statT,mode}e\<cdot>mn( {pTs'}args))\<Colon>T`
+      \<open>G\<turnstile>s3' \<midarrow>Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>-\<succ>v\<rightarrow> s4\<close>
+    note hyp_e = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 a)\<close>
+    note hyp_args = \<open>PROP ?TypeSafe s1 s2 (In3 args) (In3 vs)\<close>
+    note hyp_methd = \<open>PROP ?TypeSafe s3' s4 
+        (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>)) (In1 v)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg=G, cls=accC, lcl=L\<rparr>
+        \<turnstile>In1l ({accC',statT,mode}e\<cdot>mn( {pTs'}args))\<Colon>T\<close>
     from wt obtain pTs statDeclT statM where
                  wt_e: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>e\<Colon>-RefT statT" and
               wt_args: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>args\<Colon>\<doteq>pTs" and
@@ -3325,10 +3325,10 @@ proof -
     qed
   next
     case (Methd s0 D sig v s1 L accC T A)
-    note `G\<turnstile>Norm s0 \<midarrow>body G D sig-\<succ>v\<rightarrow> s1`
-    note hyp = `PROP ?TypeSafe (Norm s0) s1 (In1l (body G D sig)) (In1 v)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (Methd D sig)\<Colon>T`
+    note \<open>G\<turnstile>Norm s0 \<midarrow>body G D sig-\<succ>v\<rightarrow> s1\<close>
+    note hyp = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l (body G D sig)) (In1 v)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (Methd D sig)\<Colon>T\<close>
     then obtain m bodyT where
       D: "is_class G D" and
       m: "methd G D sig = Some m" and
@@ -3350,12 +3350,12 @@ proof -
       by (auto simp add: Let_def body_def)
   next
     case (Body s0 D s1 c s2 s3 L accC T A)
-    note eval_init = `G\<turnstile>Norm s0 \<midarrow>Init D\<rightarrow> s1`
-    note eval_c = `G\<turnstile>s1 \<midarrow>c\<rightarrow> s2`
-    note hyp_init = `PROP ?TypeSafe (Norm s0) s1 (In1r (Init D)) \<diamondsuit>`
-    note hyp_c = `PROP ?TypeSafe s1 s2 (In1r c) \<diamondsuit>`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (Body D c)\<Colon>T`
+    note eval_init = \<open>G\<turnstile>Norm s0 \<midarrow>Init D\<rightarrow> s1\<close>
+    note eval_c = \<open>G\<turnstile>s1 \<midarrow>c\<rightarrow> s2\<close>
+    note hyp_init = \<open>PROP ?TypeSafe (Norm s0) s1 (In1r (Init D)) \<diamondsuit>\<close>
+    note hyp_c = \<open>PROP ?TypeSafe s1 s2 (In1r c) \<diamondsuit>\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (Body D c)\<Colon>T\<close>
     then obtain bodyT where
          iscls_D: "is_class G D" and
             wt_c: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>c\<Colon>\<surd>" and
@@ -3413,10 +3413,10 @@ proof -
       have "\<And> j. abrupt s2 = Some (Jump j) \<Longrightarrow> j=Ret"
         by (rule jumpNestingOk_evalE) (auto intro: jmpOk simp add: s1_no_jmp)
       moreover 
-      note `s3 =
+      note \<open>s3 =
                 (if \<exists>l. abrupt s2 = Some (Jump (Break l)) \<or> 
                         abrupt s2 = Some (Jump (Cont l))
-                 then abupd (\<lambda>x. Some (Error CrossMethodJump)) s2 else s2)`
+                 then abupd (\<lambda>x. Some (Error CrossMethodJump)) s2 else s2)\<close>
       ultimately show ?thesis
         by force
     qed
@@ -3451,8 +3451,8 @@ proof -
       by (cases s2) (auto intro: conforms_locals)
   next
     case (LVar s vn L accC T)
-    note conf_s = `Norm s\<Colon>\<preceq>(G, L)` and
-      wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In2 (LVar vn)\<Colon>T`
+    note conf_s = \<open>Norm s\<Colon>\<preceq>(G, L)\<close> and
+      wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In2 (LVar vn)\<Colon>T\<close>
     then obtain vnT where
       vnT: "L vn = Some vnT" and
         T: "T=Inl vnT"
@@ -3474,14 +3474,14 @@ proof -
       by (simp add: lvar_def) 
   next
     case (FVar s0 statDeclC s1 e a s2 v s2' stat fn s3 accC L accC' T A)
-    note eval_init = `G\<turnstile>Norm s0 \<midarrow>Init statDeclC\<rightarrow> s1`
-    note eval_e = `G\<turnstile>s1 \<midarrow>e-\<succ>a\<rightarrow> s2`
-    note fvar = `(v, s2') = fvar statDeclC stat fn a s2`
-    note check = `s3 = check_field_access G accC statDeclC fn stat a s2'`
-    note hyp_init = `PROP ?TypeSafe (Norm s0) s1 (In1r (Init statDeclC)) \<diamondsuit>`
-    note hyp_e = `PROP ?TypeSafe s1 s2 (In1l e) (In1 a)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg=G, cls=accC', lcl=L\<rparr>\<turnstile>In2 ({accC,statDeclC,stat}e..fn)\<Colon>T`
+    note eval_init = \<open>G\<turnstile>Norm s0 \<midarrow>Init statDeclC\<rightarrow> s1\<close>
+    note eval_e = \<open>G\<turnstile>s1 \<midarrow>e-\<succ>a\<rightarrow> s2\<close>
+    note fvar = \<open>(v, s2') = fvar statDeclC stat fn a s2\<close>
+    note check = \<open>s3 = check_field_access G accC statDeclC fn stat a s2'\<close>
+    note hyp_init = \<open>PROP ?TypeSafe (Norm s0) s1 (In1r (Init statDeclC)) \<diamondsuit>\<close>
+    note hyp_e = \<open>PROP ?TypeSafe s1 s2 (In1l e) (In1 a)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg=G, cls=accC', lcl=L\<rparr>\<turnstile>In2 ({accC,statDeclC,stat}e..fn)\<Colon>T\<close>
     then obtain statC f where
                 wt_e: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>e\<Colon>-Class statC" and
             accfield: "accfield G accC statC fn = Some (statDeclC,f)" and
@@ -3590,13 +3590,13 @@ proof -
       by auto
   next
     case (AVar s0 e1 a s1 e2 i s2 v s2' L accC T A)
-    note eval_e1 = `G\<turnstile>Norm s0 \<midarrow>e1-\<succ>a\<rightarrow> s1`
-    note eval_e2 = `G\<turnstile>s1 \<midarrow>e2-\<succ>i\<rightarrow> s2`
-    note hyp_e1 = `PROP ?TypeSafe (Norm s0) s1 (In1l e1) (In1 a)`
-    note hyp_e2 = `PROP ?TypeSafe s1 s2 (In1l e2) (In1 i)`
-    note avar = `(v, s2') = avar G i a s2`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In2 (e1.[e2])\<Colon>T`
+    note eval_e1 = \<open>G\<turnstile>Norm s0 \<midarrow>e1-\<succ>a\<rightarrow> s1\<close>
+    note eval_e2 = \<open>G\<turnstile>s1 \<midarrow>e2-\<succ>i\<rightarrow> s2\<close>
+    note hyp_e1 = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l e1) (In1 a)\<close>
+    note hyp_e2 = \<open>PROP ?TypeSafe s1 s2 (In1l e2) (In1 i)\<close>
+    note avar = \<open>(v, s2') = avar G i a s2\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In2 (e1.[e2])\<Colon>T\<close>
     then obtain elemT
        where wt_e1: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>e1\<Colon>-elemT.[]" and
              wt_e2: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>e2\<Colon>-PrimT Integer" and
@@ -3690,12 +3690,12 @@ proof -
       by (auto elim!: wt_elim_cases)
   next
     case (Cons s0 e v s1 es vs s2 L accC T A)
-    note eval_e = `G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1`
-    note eval_es = `G\<turnstile>s1 \<midarrow>es\<doteq>\<succ>vs\<rightarrow> s2`
-    note hyp_e = `PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)`
-    note hyp_es = `PROP ?TypeSafe s1 s2 (In3 es) (In3 vs)`
-    note conf_s0 = `Norm s0\<Colon>\<preceq>(G, L)`
-    note wt = `\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In3 (e # es)\<Colon>T`
+    note eval_e = \<open>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<close>
+    note eval_es = \<open>G\<turnstile>s1 \<midarrow>es\<doteq>\<succ>vs\<rightarrow> s2\<close>
+    note hyp_e = \<open>PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)\<close>
+    note hyp_es = \<open>PROP ?TypeSafe s1 s2 (In3 es) (In3 vs)\<close>
+    note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
+    note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In3 (e # es)\<Colon>T\<close>
     then obtain eT esT where
        wt_e: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-eT" and
        wt_es: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>es\<Colon>\<doteq>esT" and
@@ -3749,10 +3749,10 @@ proof -
   from this and conf_s0 wt da show ?thesis .
 qed
 
-text {* 
+text \<open>
 
 
-*} (* dummy text command to break paragraph for latex;
+\<close> (* dummy text command to break paragraph for latex;
               large paragraphs exhaust memory of debian pdflatex *)
 
 corollary eval_type_soundE [consumes 5]:
@@ -3823,7 +3823,7 @@ qed
 
 subsection "Ideas for the future"
 
-text {* In the type soundness proof and the correctness proof of 
+text \<open>In the type soundness proof and the correctness proof of 
 definite assignment we perform induction on the evaluation relation with the 
 further preconditions that the term is welltyped and definitely assigned. During
 the proofs we have to establish the welltypedness and definite assignment of 
@@ -3833,7 +3833,7 @@ assignment. So we can derive a new induction rule for induction on the
 evaluation of a wellformed term, were these propagations is already done, once
 and forever. 
 Then we can do the proofs with this rule and can enjoy the time we have saved.
-Here is a first and incomplete sketch of such a rule.*}
+Here is a first and incomplete sketch of such a rule.\<close>
 theorem wellformed_eval_induct [consumes 4, case_names Abrupt Skip Expr Lab 
                                 Comp If]:
   assumes  eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)" 
@@ -3926,8 +3926,8 @@ proof -
       by (rule lab)
   next
     case (Comp s0 c1 s1 c2 s2 L accC T A) 
-    note eval_c1 = `G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1`
-    note eval_c2 = `G\<turnstile>s1 \<midarrow>c2\<rightarrow> s2`
+    note eval_c1 = \<open>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1\<close>
+    note eval_c2 = \<open>G\<turnstile>s1 \<midarrow>c2\<rightarrow> s2\<close>
     from Comp.prems obtain 
       wt_c1: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>c1\<Colon>\<surd>" and
       wt_c2: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>c2\<Colon>\<surd>"
@@ -3969,8 +3969,8 @@ proof -
       by (rule comp) iprover+
   next
     case (If s0 e b s1 c1 c2 s2 L accC T A)
-    note eval_e = `G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1`
-    note eval_then_else = `G\<turnstile>s1 \<midarrow>(if the_Bool b then c1 else c2)\<rightarrow> s2`
+    note eval_e = \<open>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1\<close>
+    note eval_then_else = \<open>G\<turnstile>s1 \<midarrow>(if the_Bool b then c1 else c2)\<rightarrow> s2\<close>
     from If.prems
     obtain 
               wt_e: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>e\<Colon>-PrimT Boolean" and

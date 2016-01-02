@@ -1,8 +1,8 @@
 (*  Title:      HOL/Bali/DeclConcepts.thy
     Author:     Norbert Schirmer
 *)
-subsection {* Advanced concepts on Java declarations like overriding, inheritance,
-dynamic method lookup*}
+subsection \<open>Advanced concepts on Java declarations like overriding, inheritance,
+dynamic method lookup\<close>
 
 theory DeclConcepts imports TypeRel begin
 
@@ -16,10 +16,10 @@ definition is_public :: "prog \<Rightarrow> qtname \<Rightarrow> bool" where
                    | Some c \<Rightarrow> access c = Public)"
 
 subsection "accessibility of types (cf. 6.6.1)"
-text {* 
+text \<open>
 Primitive types are always accessible, interfaces and classes are accessible
 in their package or if they are defined public, an array type is accessible if
-its element type is accessible *}
+its element type is accessible\<close>
  
 primrec
   accessible_in :: "prog \<Rightarrow> ty \<Rightarrow> pname \<Rightarrow> bool"  ("_ \<turnstile> _ accessible'_in _" [61,61,61] 60) and
@@ -71,16 +71,16 @@ lemma is_acc_reftypeD:
 by (simp add: is_acc_reftype_def)
 
 subsection "accessibility of members"
-text {*
+text \<open>
 The accessibility of members is more involved as the accessibility of types.
 We have to distinguish several cases to model the different effects of 
 accessibility during inheritance, overriding and ordinary member access 
-*}
+\<close>
 
-subsubsection {* Various technical conversion and selection functions *}
+subsubsection \<open>Various technical conversion and selection functions\<close>
 
-text {* overloaded selector @{text accmodi} to select the access modifier 
-out of various HOL types *}
+text \<open>overloaded selector \<open>accmodi\<close> to select the access modifier 
+out of various HOL types\<close>
 
 class has_accmodi =
   fixes accmodi:: "'a \<Rightarrow> acc_modi"
@@ -144,8 +144,8 @@ lemma memberdecl_mdecl_acc_modi_simp[simp]:
  "accmodi (mdecl m) = accmodi m"
 by (simp add: memberdecl_acc_modi_def)
 
-text {* overloaded selector @{text declclass} to select the declaring class 
-out of various HOL types *}
+text \<open>overloaded selector \<open>declclass\<close> to select the declaring class 
+out of various HOL types\<close>
 
 class has_declclass =
   fixes declclass:: "'a \<Rightarrow> qtname"
@@ -180,8 +180,8 @@ end
 lemma pair_declclass_simp[simp]: "declclass (c,x) = declclass c" 
 by (simp add: pair_declclass_def)
 
-text {* overloaded selector @{text is_static} to select the static modifier 
-out of various HOL types *}
+text \<open>overloaded selector \<open>is_static\<close> to select the static modifier 
+out of various HOL types\<close>
 
 class has_static =
   fixes is_static :: "'a \<Rightarrow> bool"
@@ -246,32 +246,32 @@ by (simp add: memberdecl_is_static_def)
 lemma mhead_static_simp [simp]: "is_static (mhead m) = is_static m"
 by (cases m) (simp add: mhead_def member_is_static_simp)
 
--- {* some mnemotic selectors for various pairs *} 
+\<comment> \<open>some mnemotic selectors for various pairs\<close> 
 
 definition
   decliface :: "qtname \<times> 'a decl_scheme \<Rightarrow> qtname" where
-  "decliface = fst"          --{* get the interface component *}
+  "decliface = fst"          \<comment>\<open>get the interface component\<close>
 
 definition
   mbr :: "qtname \<times> memberdecl \<Rightarrow> memberdecl" where
-  "mbr = snd"            --{* get the memberdecl component *}
+  "mbr = snd"            \<comment>\<open>get the memberdecl component\<close>
 
 definition
   mthd :: "'b \<times> 'a \<Rightarrow> 'a" where
-  "mthd = snd"              --{* get the method component *}
-    --{* also used for mdecl, mhead *}
+  "mthd = snd"              \<comment>\<open>get the method component\<close>
+    \<comment>\<open>also used for mdecl, mhead\<close>
 
 definition
   fld :: "'b \<times> 'a decl_scheme \<Rightarrow> 'a decl_scheme" where
-  "fld = snd"               --{* get the field component *}
-    --{* also used for @{text "((vname \<times> qtname)\<times> field)"} *}
+  "fld = snd"               \<comment>\<open>get the field component\<close>
+    \<comment>\<open>also used for \<open>((vname \<times> qtname)\<times> field)\<close>\<close>
 
--- {* some mnemotic selectors for @{text "(vname \<times> qtname)"} *}
+\<comment> \<open>some mnemotic selectors for \<open>(vname \<times> qtname)\<close>\<close>
 
 definition
   fname:: "vname \<times> 'a \<Rightarrow> vname"
   where "fname = fst"
-    --{* also used for fdecl *}
+    \<comment>\<open>also used for fdecl\<close>
 
 definition
   declclassf:: "(vname \<times> qtname) \<Rightarrow> qtname"
@@ -326,7 +326,7 @@ by (simp add: fname_def)
 lemma declclassf_simp[simp]:"declclassf (n,c) = c"
 by (simp add: declclassf_def)
 
-  --{* some mnemotic selectors for @{text "(vname \<times> qtname)"} *}
+  \<comment>\<open>some mnemotic selectors for \<open>(vname \<times> qtname)\<close>\<close>
 
 definition
   fldname :: "vname \<times> qtname \<Rightarrow> vname"
@@ -345,8 +345,8 @@ by (simp add: fldclass_def)
 lemma ext_fieldname_simp[simp]: "(fldname f,fldclass f) = f"
 by (simp add: fldname_def fldclass_def)
 
-text {* Convert a qualified method declaration (qualified with its declaring 
-class) to a qualified member declaration:  @{text methdMembr}  *}
+text \<open>Convert a qualified method declaration (qualified with its declaring 
+class) to a qualified member declaration:  \<open>methdMembr\<close>\<close>
 
 definition
   methdMembr :: "qtname \<times> mdecl \<Rightarrow> qtname \<times> memberdecl"
@@ -364,8 +364,8 @@ by (cases m) (simp add: methdMembr_def)
 lemma declclass_methdMembr_simp[simp]: "declclass (methdMembr m) = declclass m"
 by (cases m) (simp add: methdMembr_def)
 
-text {* Convert a qualified method (qualified with its declaring 
-class) to a qualified member declaration:  @{text method}  *}
+text \<open>Convert a qualified method (qualified with its declaring 
+class) to a qualified member declaration:  \<open>method\<close>\<close>
 
 definition
   "method" :: "sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> (qtname \<times> memberdecl)"
@@ -411,8 +411,8 @@ by (simp add: mbr_def fieldm_def)
 lemma memberid_fieldm_simp[simp]:  "memberid (fieldm n f) = fid n"
 by (simp add: fieldm_def) 
 
-text {* Select the signature out of a qualified method declaration:
- @{text msig} *}
+text \<open>Select the signature out of a qualified method declaration:
+ \<open>msig\<close>\<close>
 
 definition
   msig :: "(qtname \<times> mdecl) \<Rightarrow> sig"
@@ -421,8 +421,8 @@ definition
 lemma msig_simp[simp]: "msig (c,(s,m)) = s"
 by (simp add: msig_def)
 
-text {* Convert a qualified method (qualified with its declaring 
-class) to a qualified method declaration:  @{text qmdecl}  *}
+text \<open>Convert a qualified method (qualified with its declaring 
+class) to a qualified method declaration:  \<open>qmdecl\<close>\<close>
 
 definition
   qmdecl :: "sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> (qtname \<times> mdecl)"
@@ -451,8 +451,8 @@ lemma methdMembr_qmdecl_simp [simp]:
  "methdMembr (qmdecl sig old) = method sig old"
 by (simp add: methdMembr_def qmdecl_def method_def)
 
-text {* overloaded selector @{text resTy} to select the result type 
-out of various HOL types *}
+text \<open>overloaded selector \<open>resTy\<close> to select the result type 
+out of various HOL types\<close>
 
 class has_resTy =
   fixes resTy:: "'a \<Rightarrow> ty"
@@ -507,8 +507,8 @@ lemma resTy_mthd [simp]:"resTy (mthd m) = resTy m"
 by (cases m) (simp add: mthd_def )
 
 subsubsection "inheritable-in"
-text {*
-@{text "G\<turnstile>m inheritable_in P"}: m can be inherited by
+text \<open>
+\<open>G\<turnstile>m inheritable_in P\<close>: m can be inherited by
 classes in package P if:
 \begin{itemize} 
 \item the declaration class of m is accessible in P and
@@ -517,7 +517,7 @@ classes in package P if:
       class of m is also P. If the member m is declared with private access
       it is not accessible for inheritance at all.
 \end{itemize}
-*}
+\<close>
 definition
   inheritable_in :: "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> pname \<Rightarrow> bool" ("_ \<turnstile> _ inheritable'_in _" [61,61,61] 60)
 where
@@ -603,14 +603,14 @@ where
 | Inherited: "\<lbrakk>G\<turnstile>m inheritable_in (pid C); G\<turnstile>memberid m undeclared_in C; 
                G\<turnstile>C \<prec>\<^sub>C1 S; G\<turnstile>(Class S) accessible_in (pid C);G\<turnstile>m member_of S 
               \<rbrakk> \<Longrightarrow> G\<turnstile>m member_of C"
-text {* Note that in the case of an inherited member only the members of the
+text \<open>Note that in the case of an inherited member only the members of the
 direct superclass are concerned. If a member of a superclass of the direct
 superclass isn't inherited in the direct superclass (not member of the
 direct superclass) than it can't be a member of the class. E.g. If a
 member of a class A is defined with package access it isn't member of a 
 subclass S if S isn't in the same package as A. Any further subclasses 
 of S will not inherit the member, regardless if they are in the same
-package as A or not.*}
+package as A or not.\<close>
 
 abbreviation
 method_member_of:: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> qtname \<Rightarrow> bool"
@@ -641,10 +641,10 @@ by (auto simp add: inherits_def intro: members.Inherited)
 definition
   member_in :: "prog \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> bool" ("_ \<turnstile> _ member'_in _" [61,61,61] 60)
   where "G\<turnstile>m member_in C = (\<exists> provC. G\<turnstile> C \<preceq>\<^sub>C provC \<and> G \<turnstile> m member_of provC)"
-text {* A member is in a class if it is member of the class or a superclass.
+text \<open>A member is in a class if it is member of the class or a superclass.
 If a member is in a class we can select this member. This additional notion
 is necessary since not all members are inherited to subclasses. So such
-members are not member-of the subclass but member-in the subclass.*}
+members are not member-of the subclass but member-in the subclass.\<close>
 
 abbreviation
 method_member_in:: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> qtname \<Rightarrow> bool"
@@ -669,12 +669,12 @@ by (auto intro: member_inI)
 
 subsubsection "overriding"
 
-text {* Unfortunately the static notion of overriding (used during the
+text \<open>Unfortunately the static notion of overriding (used during the
 typecheck of the compiler) and the dynamic notion of overriding (used during
 execution in the JVM) are not exactly the same. 
-*}
+\<close>
 
-text {* Static overriding (used during the typecheck of the compiler) *}
+text \<open>Static overriding (used during the typecheck of the compiler)\<close>
 
 inductive
   stat_overridesR :: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> bool"
@@ -693,7 +693,7 @@ where
 | Indirect: "\<lbrakk>G\<turnstile>new overrides\<^sub>S intr; G\<turnstile>intr overrides\<^sub>S old\<rbrakk>
              \<Longrightarrow> G\<turnstile>new overrides\<^sub>S old"
 
-text {* Dynamic overriding (used during the typecheck of the compiler) *}
+text \<open>Dynamic overriding (used during the typecheck of the compiler)\<close>
 
 inductive
   overridesR :: "prog \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> (qtname \<times> mdecl) \<Rightarrow> bool"
@@ -799,15 +799,15 @@ where
                     (G\<turnstile>accclass \<prec>\<^sub>C declclass membr 
                      \<and> (G\<turnstile>cls \<preceq>\<^sub>C accclass \<or> is_static membr)) 
     | Public    \<Rightarrow> True)"
-text {*
+text \<open>
 The subcondition of the @{term "Protected"} case: 
 @{term "G\<turnstile>accclass \<prec>\<^sub>C declclass membr"} could also be relaxed to:
 @{term "G\<turnstile>accclass \<preceq>\<^sub>C declclass membr"} since in case both classes are the
 same the other condition @{term "(pid (declclass membr) = pid accclass)"}
 holds anyway.
-*} 
+\<close> 
 
-text {* Like in case of overriding, the static and dynamic accessibility 
+text \<open>Like in case of overriding, the static and dynamic accessibility 
 of members is not uniform.
 \begin{itemize}
 \item Statically the class/interface of the member must be accessible for the
@@ -819,7 +819,7 @@ of members is not uniform.
 \item Statically the member we want to access must be "member of" the class.
       Dynamically it must only be "member in" the class.
 \end{itemize} 
-*} 
+\<close> 
 
 inductive
   accessible_fromR :: "prog \<Rightarrow> qtname \<Rightarrow> (qtname \<times> memberdecl) \<Rightarrow> qtname \<Rightarrow> bool"
@@ -1403,7 +1403,7 @@ definition
   "imethds G I =
     iface_rec G I  (\<lambda>I i ts. (Un_tables ts) \<oplus>\<oplus>
                         (set_option \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"
-text {* methods of an interface, with overriding and inheritance, cf. 9.2 *}
+text \<open>methods of an interface, with overriding and inheritance, cf. 9.2\<close>
 
 definition
   accimethds :: "prog \<Rightarrow> pname \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables" where
@@ -1411,7 +1411,7 @@ definition
     (if G\<turnstile>Iface I accessible_in pack 
      then imethds G I
      else (\<lambda> k. {}))"
-text {* only returns imethds if the interface is accessible *}
+text \<open>only returns imethds if the interface is accessible\<close>
 
 definition
   methd :: "prog \<Rightarrow> qtname  \<Rightarrow> (sig,qtname \<times> methd) table" where
@@ -1422,25 +1422,25 @@ definition
                           subcls_mthds 
                ++ 
                table_of (map (\<lambda>(s,m). (s,C,m)) (methods c)))"
-text {* @{term "methd G C"}: methods of a class C (statically visible from C), 
+text \<open>@{term "methd G C"}: methods of a class C (statically visible from C), 
      with inheritance and hiding cf. 8.4.6;
-     Overriding is captured by @{text dynmethd}.
+     Overriding is captured by \<open>dynmethd\<close>.
      Every new method with the same signature coalesces the
-     method of a superclass. *}
+     method of a superclass.\<close>
 
 definition
   accmethd :: "prog \<Rightarrow> qtname \<Rightarrow> qtname  \<Rightarrow> (sig,qtname \<times> methd) table" where
   "accmethd G S C =
     filter_tab (\<lambda>sig m. G\<turnstile>method sig m of C accessible_from S) (methd G C)"
-text {* @{term "accmethd G S C"}: only those methods of @{term "methd G C"}, 
-        accessible from S *}
+text \<open>@{term "accmethd G S C"}: only those methods of @{term "methd G C"}, 
+        accessible from S\<close>
 
-text {* Note the class component in the accessibility filter. The class where
+text \<open>Note the class component in the accessibility filter. The class where
     method @{term m} is declared (@{term declC}) isn't necessarily accessible 
     from the current scope @{term S}. The method can be made accessible 
     through inheritance, too.
     So we must test accessibility of method @{term m} of class @{term C} 
-    (not @{term "declclass m"}) *}
+    (not @{term "declclass m"})\<close>
 
 definition
   dynmethd :: "prog  \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> methd) table" where
@@ -1461,13 +1461,13 @@ definition
                 )
           else None))"
 
-text {* @{term "dynmethd G statC dynC"}: dynamic method lookup of a reference 
-        with dynamic class @{term dynC} and static class @{term statC} *}
-text {* Note some kind of duality between @{term methd} and @{term dynmethd} 
+text \<open>@{term "dynmethd G statC dynC"}: dynamic method lookup of a reference 
+        with dynamic class @{term dynC} and static class @{term statC}\<close>
+text \<open>Note some kind of duality between @{term methd} and @{term dynmethd} 
         in the @{term class_rec} arguments. Whereas @{term methd} filters the 
         subclass methods (to get only the inherited ones), @{term dynmethd} 
         filters the new methods (to get only those methods which actually
-        override the methods of the static class) *}
+        override the methods of the static class)\<close>
 
 definition
   dynimethd :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> methd) table" where
@@ -1475,9 +1475,9 @@ definition
     (\<lambda>sig. if imethds G I sig \<noteq> {}
            then methd G dynC sig
            else dynmethd G Object dynC sig)"
-text {* @{term "dynimethd G I dynC"}: dynamic method lookup of a reference with 
-        dynamic class dynC and static interface type I *}
-text {* 
+text \<open>@{term "dynimethd G I dynC"}: dynamic method lookup of a reference with 
+        dynamic class dynC and static interface type I\<close>
+text \<open>
    When calling an interface method, we must distinguish if the method signature
    was defined in the interface or if it must be an Object method in the other
    case. If it was an interface method we search the class hierarchy
@@ -1487,7 +1487,7 @@ text {*
    effects like in case of dynmethd. The method will be inherited or 
    overridden in all classes from the first class implementing the interface 
    down to the actual dynamic class.
- *}
+\<close>
 
 definition
   dynlookup :: "prog  \<Rightarrow> ref_ty \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> methd) table" where
@@ -1497,19 +1497,19 @@ definition
     | IfaceT I     \<Rightarrow> dynimethd G I      dynC
     | ClassT statC \<Rightarrow> dynmethd  G statC  dynC
     | ArrayT ty    \<Rightarrow> dynmethd  G Object dynC)"
-text {* @{term "dynlookup G statT dynC"}: dynamic lookup of a method within the 
+text \<open>@{term "dynlookup G statT dynC"}: dynamic lookup of a method within the 
     static reference type statT and the dynamic class dynC. 
     In a wellformd context statT will not be NullT and in case
-    statT is an array type, dynC=Object *}
+    statT is an array type, dynC=Object\<close>
 
 definition
   fields :: "prog \<Rightarrow> qtname \<Rightarrow> ((vname \<times> qtname) \<times> field) list" where
   "fields G C =
     class_rec G C [] (\<lambda>C c ts. map (\<lambda>(n,t). ((n,C),t)) (cfields c) @ ts)"
-text {* @{term "fields G C"} 
+text \<open>@{term "fields G C"} 
      list of fields of a class, including all the fields of the superclasses
      (private, inherited and hidden ones) not only the accessible ones
-     (an instance of a object allocates all these fields *}
+     (an instance of a object allocates all these fields\<close>
 
 definition
   accfield :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> (vname, qtname  \<times>  field) table" where
@@ -1517,15 +1517,15 @@ definition
     (let field_tab = table_of((map (\<lambda>((n,d),f).(n,(d,f)))) (fields G C))
       in filter_tab (\<lambda>n (declC,f). G\<turnstile> (declC,fdecl (n,f)) of C accessible_from S)
                     field_tab)"
-text  {* @{term "accfield G C S"}: fields of a class @{term C} which are 
+text  \<open>@{term "accfield G C S"}: fields of a class @{term C} which are 
          accessible from scope of class
-         @{term S} with inheritance and hiding, cf. 8.3 *}
-text {* note the class component in the accessibility filter (see also 
+         @{term S} with inheritance and hiding, cf. 8.3\<close>
+text \<open>note the class component in the accessibility filter (see also 
         @{term methd}).
    The class declaring field @{term f} (@{term declC}) isn't necessarily 
    accessible from scope @{term S}. The field can be made visible through 
    inheritance, too. So we must test accessibility of field @{term f} of class 
-   @{term C} (not @{term "declclass f"}) *} 
+   @{term C} (not @{term "declclass f"})\<close> 
 
 definition
   is_methd :: "prog \<Rightarrow> qtname  \<Rightarrow> sig \<Rightarrow> bool"

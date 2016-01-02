@@ -241,7 +241,7 @@ next
 qed
 
 
-text{* Finaly, the functional version. A bit more verbose, but automatic! *}
+text\<open>Finaly, the functional version. A bit more verbose, but automatic!\<close>
 
 lemma "VARS tl p q r
   {islist tl p \<and> islist tl q \<and>
@@ -261,11 +261,11 @@ done
 
 subsection "Searching in a list"
 
-text{*What follows is a sequence of successively more intelligent proofs that
+text\<open>What follows is a sequence of successively more intelligent proofs that
 a simple loop finds an element in a linked list.
 
 We start with a proof based on the @{term List} predicate. This means it only
-works for acyclic lists. *}
+works for acyclic lists.\<close>
 
 lemma "VARS tl p
   {List tl p Ps \<and> X \<in> set Ps}
@@ -282,8 +282,8 @@ apply vcg_simp
 apply clarsimp
 done
 
-text{*Using @{term Path} instead of @{term List} generalizes the correctness
-statement to cyclic lists as well: *}
+text\<open>Using @{term Path} instead of @{term List} generalizes the correctness
+statement to cyclic lists as well:\<close>
 
 lemma "VARS tl p
   {Path tl p Ps X}
@@ -297,8 +297,8 @@ apply vcg_simp
 apply clarsimp
 done
 
-text{*Now it dawns on us that we do not need the list witness at all --- it
-suffices to talk about reachability, i.e.\ we can use relations directly. *}
+text\<open>Now it dawns on us that we do not need the list witness at all --- it
+suffices to talk about reachability, i.e.\ we can use relations directly.\<close>
 
 lemma "VARS tl p
   {(p,X) \<in> {(x,y). y = tl x & x \<noteq> Null}^*}

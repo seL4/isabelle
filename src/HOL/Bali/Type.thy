@@ -2,33 +2,33 @@
     Author:     David von Oheimb
 *)
 
-subsection {* Java types *}
+subsection \<open>Java types\<close>
 
 theory Type imports Name begin
 
-text {*
+text \<open>
 simplifications:
 \begin{itemize}
 \item only the most important primitive types
 \item the null type is regarded as reference type
 \end{itemize}
-*}
+\<close>
 
-datatype prim_ty        --{* primitive type, cf. 4.2 *}
-        = Void          --{* result type of void methods *}
+datatype prim_ty        \<comment>\<open>primitive type, cf. 4.2\<close>
+        = Void          \<comment>\<open>result type of void methods\<close>
         | Boolean
         | Integer
 
 
-datatype ref_ty         --{* reference type, cf. 4.3 *}
-        = NullT         --{* null type, cf. 4.1 *}
-        | IfaceT qtname --{* interface type *}
-        | ClassT qtname --{* class type *}
-        | ArrayT ty     --{* array type *}
+datatype ref_ty         \<comment>\<open>reference type, cf. 4.3\<close>
+        = NullT         \<comment>\<open>null type, cf. 4.1\<close>
+        | IfaceT qtname \<comment>\<open>interface type\<close>
+        | ClassT qtname \<comment>\<open>class type\<close>
+        | ArrayT ty     \<comment>\<open>array type\<close>
 
-and ty                  --{* any type, cf. 4.1 *}
-        = PrimT prim_ty --{* primitive type *}
-        | RefT  ref_ty  --{* reference type *}
+and ty                  \<comment>\<open>any type, cf. 4.1\<close>
+        = PrimT prim_ty \<comment>\<open>primitive type\<close>
+        | RefT  ref_ty  \<comment>\<open>reference type\<close>
 
 abbreviation "NT == RefT NullT"
 abbreviation "Iface I == RefT (IfaceT I)"

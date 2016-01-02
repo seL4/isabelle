@@ -1269,19 +1269,19 @@ lemma bc_mt_corresp_Invoke:
   apply (intro strip)
   apply (rule conjI)
 
-   -- "app"
+   \<comment> "app"
    apply (rule Call_app [THEN app_mono_mxs])
        apply assumption+
      apply (rule HOL.refl)
     apply assumption
    apply (simp add: max_ssize_def max_of_list_elem ssize_sto_def)
 
-  -- \<open>@{text "<=s"}\<close>
+  \<comment> \<open>\<open><=s\<close>\<close>
   apply (frule max_spec2mheads, (erule exE)+, (erule conjE)+)
   apply (simp add: wf_prog_ws_prog [THEN comp_method])
   apply (simp add: max_spec_preserves_length [symmetric])
 
-  -- "@{text check_type}"
+  \<comment> "\<open>check_type\<close>"
   apply (simp add: max_ssize_def ssize_sto_def)
   apply (simp add: max_of_list_def)
   apply (subgoal_tac "(max (length pTsa + length ST) (length ST)) = (length pTsa + length ST)")

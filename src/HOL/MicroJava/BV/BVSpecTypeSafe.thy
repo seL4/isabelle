@@ -54,8 +54,8 @@ lemma exec_instr_xcpt:
 
 
 text \<open>
-  Relates @{text match_any} from the Bytecode Verifier with 
-  @{text match_exception_table} from the operational semantics:
+  Relates \<open>match_any\<close> from the Bytecode Verifier with 
+  \<open>match_exception_table\<close> from the operational semantics:
 \<close>
 lemma in_match_any:
   "match_exception_table G xcpt pc et = Some pc' \<Longrightarrow> 
@@ -125,7 +125,7 @@ lemma match_et_imp_match:
 
 text \<open>
   We can prove separately that the recursive search for exception
-  handlers (@{text find_handler}) in the frame stack results in 
+  handlers (\<open>find_handler\<close>) in the frame stack results in 
   a conforming state (if there was no matching exception handler 
   in the current frame). We require that the exception is a valid
   heap address, and that the state before the exception occured
@@ -137,22 +137,22 @@ lemma uncaught_xcpt_correct:
   \<Longrightarrow> G,phi \<turnstile>JVM (find_handler G (Some xcp) hp frs)\<surd>" 
   (is "\<And>f. \<lbrakk> ?wt; ?adr; ?hp; ?correct (None, hp, f#frs) \<rbrakk> \<Longrightarrow> ?correct (?find frs)")
 proof (induct frs) 
-  -- "the base case is trivial, as it should be"
+  \<comment> "the base case is trivial, as it should be"
   show "?correct (?find [])" by (simp add: correct_state_def)
 
-  -- "we will need both forms @{text wt_jvm_prog} and @{text wf_prog} later"
+  \<comment> "we will need both forms \<open>wt_jvm_prog\<close> and \<open>wf_prog\<close> later"
   assume wt: ?wt 
   then obtain mb where wf: "wf_prog mb G" by (simp add: wt_jvm_prog_def)
 
-  -- "these two don't change in the induction:"
+  \<comment> "these two don't change in the induction:"
   assume adr: ?adr
   assume hp: ?hp
   
-  -- "the assumption for the cons case:"
+  \<comment> "the assumption for the cons case:"
   fix f f' frs' 
   assume cr: "?correct (None, hp, f#f'#frs')" 
 
-  -- "the induction hypothesis as produced by Isabelle, immediatly simplified
+  \<comment> "the induction hypothesis as produced by Isabelle, immediatly simplified
     with the fixed assumptions above"
   assume "\<And>f. \<lbrakk> ?wt; ?adr; ?hp; ?correct (None, hp, f#frs') \<rbrakk> \<Longrightarrow> ?correct (?find frs')"  
   with wt adr hp 
@@ -245,7 +245,7 @@ qed
 
 declare raise_if_def [simp]
 text \<open>
-  The requirement of lemma @{text uncaught_xcpt_correct} (that
+  The requirement of lemma \<open>uncaught_xcpt_correct\<close> (that
   the exception is a valid reference on the heap) is always met
   for welltyped instructions and conformant states:
 \<close>
@@ -356,7 +356,7 @@ proof -
       phi_pc': "phi C sig ! handler = Some (ST', LT')" and
       frame': "correct_frame G hp (ST',LT') maxl ins ?f'" 
     proof (cases "ins!pc")
-      case Return -- "can't generate exceptions:"
+      case Return \<comment> "can't generate exceptions:"
       with xp' have False by (simp add: split_beta split: split_if_asm)
       thus ?thesis ..
     next
@@ -571,7 +571,7 @@ proof -
       }
       ultimately
       show ?thesis by (rule that)
-    qed (insert xp', auto) -- "the other instructions don't generate exceptions"
+    qed (insert xp', auto) \<comment> "the other instructions don't generate exceptions"
 
     from state' meth hp_ok "class" frames phi_pc' frame' prehp
     have ?thesis by (unfold correct_state_def) simp

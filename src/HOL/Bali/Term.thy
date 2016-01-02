@@ -2,11 +2,11 @@
     Author:     David von Oheimb
 *)
 
-subsection {* Java expressions and statements *}
+subsection \<open>Java expressions and statements\<close>
 
 theory Term imports Value Table begin
 
-text {*
+text \<open>
 design issues:
 \begin{itemize}
 \item invocation frames for local variables could be reduced to special static
@@ -42,185 +42,185 @@ simplifications:
 \item no synchronized statements
 \item no secondary forms of if, while (e.g. no for) (may be easily simulated)
 \item no switch (may be simulated with if)
-\item the @{text try_catch_finally} statement is divided into the 
-      @{text try_catch} statement 
+\item the \<open>try_catch_finally\<close> statement is divided into the 
+      \<open>try_catch\<close> statement 
       and a finally statement, which may be considered as try..finally with 
       empty catch
-\item the @{text try_catch} statement has exactly one catch clause; 
+\item the \<open>try_catch\<close> statement has exactly one catch clause; 
       multiple ones can be
   simulated with instanceof
-\item the compiler is supposed to add the annotations {@{text _}} during 
+\item the compiler is supposed to add the annotations {\<open>_\<close>} during 
       type-checking. This
   transformation is left out as its result is checked by the type rules anyway
 \end{itemize}
-*}
+\<close>
 
 
 
-type_synonym locals = "(lname, val) table"  --{* local variables *}
+type_synonym locals = "(lname, val) table"  \<comment>\<open>local variables\<close>
 
 
 datatype jump
-        = Break label --{* break *}
-        | Cont label  --{* continue *}
-        | Ret         --{* return from method *}
+        = Break label \<comment>\<open>break\<close>
+        | Cont label  \<comment>\<open>continue\<close>
+        | Ret         \<comment>\<open>return from method\<close>
 
-datatype xcpt        --{* exception *}
-        = Loc loc    --{* location of allocated execption object *}
-        | Std xname  --{* intermediate standard exception, see Eval.thy *}
+datatype xcpt        \<comment>\<open>exception\<close>
+        = Loc loc    \<comment>\<open>location of allocated execption object\<close>
+        | Std xname  \<comment>\<open>intermediate standard exception, see Eval.thy\<close>
 
 datatype error
-       =  AccessViolation  --{* Access to a member that isn't permitted *}
-        | CrossMethodJump  --{* Method exits with a break or continue *}
+       =  AccessViolation  \<comment>\<open>Access to a member that isn't permitted\<close>
+        | CrossMethodJump  \<comment>\<open>Method exits with a break or continue\<close>
 
-datatype abrupt       --{* abrupt completion *} 
-        = Xcpt xcpt   --{* exception *}
-        | Jump jump   --{* break, continue, return *}
-        | Error error -- {* runtime errors, we wan't to detect and proof absent
-                            in welltyped programms *}
+datatype abrupt       \<comment>\<open>abrupt completion\<close> 
+        = Xcpt xcpt   \<comment>\<open>exception\<close>
+        | Jump jump   \<comment>\<open>break, continue, return\<close>
+        | Error error \<comment> \<open>runtime errors, we wan't to detect and proof absent
+                            in welltyped programms\<close>
 type_synonym
   abopt  = "abrupt option"
 
-text {* Local variable store and exception. 
+text \<open>Local variable store and exception. 
 Anticipation of State.thy used by smallstep semantics. For a method call, 
 we save the local variables of the caller in the term Callee to restore them 
 after method return. Also an exception must be restored after the finally
-statement *}
+statement\<close>
 
 translations
  (type) "locals" <= (type) "(lname, val) table"
 
-datatype inv_mode                  --{* invocation mode for method calls *}
-        = Static                   --{* static *}
-        | SuperM                   --{* super  *}
-        | IntVir                   --{* interface or virtual *}
+datatype inv_mode                  \<comment>\<open>invocation mode for method calls\<close>
+        = Static                   \<comment>\<open>static\<close>
+        | SuperM                   \<comment>\<open>super\<close>
+        | IntVir                   \<comment>\<open>interface or virtual\<close>
 
-record  sig =              --{* signature of a method, cf. 8.4.2  *}
-          name ::"mname"   --{* acutally belongs to Decl.thy *}
+record  sig =              \<comment>\<open>signature of a method, cf. 8.4.2\<close>
+          name ::"mname"   \<comment>\<open>acutally belongs to Decl.thy\<close>
           parTs::"ty list"        
 
 translations
   (type) "sig" <= (type) "\<lparr>name::mname,parTs::ty list\<rparr>"
   (type) "sig" <= (type) "\<lparr>name::mname,parTs::ty list,\<dots>::'a\<rparr>"
 
---{* function codes for unary operations *}
-datatype unop =  UPlus    -- {*{\tt +} unary plus*} 
-               | UMinus   -- {*{\tt -} unary minus*}
-               | UBitNot  -- {*{\tt ~} bitwise NOT*}
-               | UNot     -- {*{\tt !} logical complement*}
+\<comment>\<open>function codes for unary operations\<close>
+datatype unop =  UPlus    \<comment> \<open>{\tt +} unary plus\<close> 
+               | UMinus   \<comment> \<open>{\tt -} unary minus\<close>
+               | UBitNot  \<comment> \<open>{\tt ~} bitwise NOT\<close>
+               | UNot     \<comment> \<open>{\tt !} logical complement\<close>
 
---{* function codes for binary operations *}
-datatype binop = Mul     -- {*{\tt * }   multiplication*}
-               | Div     -- {*{\tt /}   division*}
-               | Mod     -- {*{\tt \%}   remainder*}
-               | Plus    -- {*{\tt +}   addition*}
-               | Minus   -- {*{\tt -}   subtraction*}
-               | LShift  -- {*{\tt <<}  left shift*}
-               | RShift  -- {*{\tt >>}  signed right shift*}
-               | RShiftU -- {*{\tt >>>} unsigned right shift*}
-               | Less    -- {*{\tt <}   less than*}
-               | Le      -- {*{\tt <=}  less than or equal*}
-               | Greater -- {*{\tt >}   greater than*}
-               | Ge      -- {*{\tt >=}  greater than or equal*}
-               | Eq      -- {*{\tt ==}  equal*}
-               | Neq     -- {*{\tt !=}  not equal*}
-               | BitAnd  -- {*{\tt \&}   bitwise AND*}
-               | And     -- {*{\tt \&}   boolean AND*}
-               | BitXor  -- {*{\texttt \^}   bitwise Xor*}
-               | Xor     -- {*{\texttt \^}   boolean Xor*}
-               | BitOr   -- {*{\tt |}   bitwise Or*}
-               | Or      -- {*{\tt |}   boolean Or*}
-               | CondAnd -- {*{\tt \&\&}  conditional And*}
-               | CondOr  -- {*{\tt ||}  conditional Or *}
-text{* The boolean operators {\tt \&} and {\tt |} strictly evaluate both
+\<comment>\<open>function codes for binary operations\<close>
+datatype binop = Mul     \<comment> \<open>{\tt * }   multiplication\<close>
+               | Div     \<comment> \<open>{\tt /}   division\<close>
+               | Mod     \<comment> \<open>{\tt \%}   remainder\<close>
+               | Plus    \<comment> \<open>{\tt +}   addition\<close>
+               | Minus   \<comment> \<open>{\tt -}   subtraction\<close>
+               | LShift  \<comment> \<open>{\tt <<}  left shift\<close>
+               | RShift  \<comment> \<open>{\tt >>}  signed right shift\<close>
+               | RShiftU \<comment> \<open>{\tt >>>} unsigned right shift\<close>
+               | Less    \<comment> \<open>{\tt <}   less than\<close>
+               | Le      \<comment> \<open>{\tt <=}  less than or equal\<close>
+               | Greater \<comment> \<open>{\tt >}   greater than\<close>
+               | Ge      \<comment> \<open>{\tt >=}  greater than or equal\<close>
+               | Eq      \<comment> \<open>{\tt ==}  equal\<close>
+               | Neq     \<comment> \<open>{\tt !=}  not equal\<close>
+               | BitAnd  \<comment> \<open>{\tt \&}   bitwise AND\<close>
+               | And     \<comment> \<open>{\tt \&}   boolean AND\<close>
+               | BitXor  \<comment> \<open>{\texttt \^}   bitwise Xor\<close>
+               | Xor     \<comment> \<open>{\texttt \^}   boolean Xor\<close>
+               | BitOr   \<comment> \<open>{\tt |}   bitwise Or\<close>
+               | Or      \<comment> \<open>{\tt |}   boolean Or\<close>
+               | CondAnd \<comment> \<open>{\tt \&\&}  conditional And\<close>
+               | CondOr  \<comment> \<open>{\tt ||}  conditional Or\<close>
+text\<open>The boolean operators {\tt \&} and {\tt |} strictly evaluate both
 of their arguments. The conditional operators {\tt \&\&} and {\tt ||} only 
 evaluate the second argument if the value of the whole expression isn't 
 allready determined by the first argument.
 e.g.: {\tt false \&\& e} e is not evaluated;  
       {\tt true || e} e is not evaluated; 
-*}
+\<close>
 
 datatype var
-        = LVar lname --{* local variable (incl. parameters) *}
+        = LVar lname \<comment>\<open>local variable (incl. parameters)\<close>
         | FVar qtname qtname bool expr vname ("{_,_,_}_.._"[10,10,10,85,99]90)
-                     --{* class field *}
-                     --{* @{term "{accC,statDeclC,stat}e..fn"}   *}
-                     --{* @{text accC}: accessing class (static class were *}
-                     --{* the code is declared. Annotation only needed for *}
-                     --{* evaluation to check accessibility) *}
-                     --{* @{text statDeclC}: static declaration class of field*}
-                     --{* @{text stat}: static or instance field?*}
-                     --{* @{text e}: reference to object*}
-                     --{* @{text fn}: field name*}
+                     \<comment>\<open>class field\<close>
+                     \<comment>\<open>@{term "{accC,statDeclC,stat}e..fn"}\<close>
+                     \<comment>\<open>\<open>accC\<close>: accessing class (static class were\<close>
+                     \<comment>\<open>the code is declared. Annotation only needed for\<close>
+                     \<comment>\<open>evaluation to check accessibility)\<close>
+                     \<comment>\<open>\<open>statDeclC\<close>: static declaration class of field\<close>
+                     \<comment>\<open>\<open>stat\<close>: static or instance field?\<close>
+                     \<comment>\<open>\<open>e\<close>: reference to object\<close>
+                     \<comment>\<open>\<open>fn\<close>: field name\<close>
         | AVar expr expr ("_.[_]"[90,10   ]90)
-                     --{* array component *}
-                     --{* @{term "e1.[e2]"}: e1 array reference; e2 index *}
+                     \<comment>\<open>array component\<close>
+                     \<comment>\<open>@{term "e1.[e2]"}: e1 array reference; e2 index\<close>
         | InsInitV stmt var 
-                     --{* insertion of initialization before evaluation   *}
-                     --{* of var (technical term for smallstep semantics.)*}
+                     \<comment>\<open>insertion of initialization before evaluation\<close>
+                     \<comment>\<open>of var (technical term for smallstep semantics.)\<close>
 
 and expr
-        = NewC qtname         --{* class instance creation *}
+        = NewC qtname         \<comment>\<open>class instance creation\<close>
         | NewA ty expr ("New _[_]"[99,10   ]85) 
-                              --{* array creation *} 
-        | Cast ty expr        --{* type cast  *}
+                              \<comment>\<open>array creation\<close> 
+        | Cast ty expr        \<comment>\<open>type cast\<close>
         | Inst expr ref_ty ("_ InstOf _"[85,99] 85)   
-                              --{* instanceof *}     
-        | Lit  val              --{* literal value, references not allowed *}
-        | UnOp unop expr        --{* unary operation *}
-        | BinOp binop expr expr --{* binary operation *}
+                              \<comment>\<open>instanceof\<close>     
+        | Lit  val              \<comment>\<open>literal value, references not allowed\<close>
+        | UnOp unop expr        \<comment>\<open>unary operation\<close>
+        | BinOp binop expr expr \<comment>\<open>binary operation\<close>
         
-        | Super               --{* special Super keyword *}
-        | Acc  var            --{* variable access *}
+        | Super               \<comment>\<open>special Super keyword\<close>
+        | Acc  var            \<comment>\<open>variable access\<close>
         | Ass  var expr       ("_:=_"   [90,85   ]85)
-                              --{* variable assign *} 
-        | Cond expr expr expr ("_ ? _ : _" [85,85,80]80) --{* conditional *}  
+                              \<comment>\<open>variable assign\<close> 
+        | Cond expr expr expr ("_ ? _ : _" [85,85,80]80) \<comment>\<open>conditional\<close>  
         | Call qtname ref_ty inv_mode expr mname "(ty list)" "(expr list)"  
             ("{_,_,_}_\<cdot>_'( {_}_')"[10,10,10,85,99,10,10]85) 
-                    --{* method call *} 
-                    --{* @{term "{accC,statT,mode}e\<cdot>mn({pTs}args)"} " *}
-                    --{* @{text accC}: accessing class (static class were *}
-                    --{* the call code is declared. Annotation only needed for*}
-                    --{* evaluation to check accessibility) *}
-                    --{* @{text statT}: static declaration class/interface of *}
-                    --{* method *}
-                    --{* @{text mode}: invocation mode *}
-                    --{* @{text e}: reference to object*}
-                    --{* @{text mn}: field name*}   
-                    --{* @{text pTs}: types of parameters *}
-                    --{* @{text args}: the actual parameters/arguments *} 
-        | Methd qtname sig    --{*   (folded) method (see below) *}
-        | Body qtname stmt    --{* (unfolded) method body *}
+                    \<comment>\<open>method call\<close> 
+                    \<comment>\<open>@{term "{accC,statT,mode}e\<cdot>mn({pTs}args)"} "\<close>
+                    \<comment>\<open>\<open>accC\<close>: accessing class (static class were\<close>
+                    \<comment>\<open>the call code is declared. Annotation only needed for\<close>
+                    \<comment>\<open>evaluation to check accessibility)\<close>
+                    \<comment>\<open>\<open>statT\<close>: static declaration class/interface of\<close>
+                    \<comment>\<open>method\<close>
+                    \<comment>\<open>\<open>mode\<close>: invocation mode\<close>
+                    \<comment>\<open>\<open>e\<close>: reference to object\<close>
+                    \<comment>\<open>\<open>mn\<close>: field name\<close>   
+                    \<comment>\<open>\<open>pTs\<close>: types of parameters\<close>
+                    \<comment>\<open>\<open>args\<close>: the actual parameters/arguments\<close> 
+        | Methd qtname sig    \<comment>\<open>(folded) method (see below)\<close>
+        | Body qtname stmt    \<comment>\<open>(unfolded) method body\<close>
         | InsInitE stmt expr  
-                 --{* insertion of initialization before *}
-                 --{* evaluation of expr (technical term for smallstep sem.) *}
-        | Callee locals expr  --{* save callers locals in callee-Frame *}
-                              --{* (technical term for smallstep semantics) *}
+                 \<comment>\<open>insertion of initialization before\<close>
+                 \<comment>\<open>evaluation of expr (technical term for smallstep sem.)\<close>
+        | Callee locals expr  \<comment>\<open>save callers locals in callee-Frame\<close>
+                              \<comment>\<open>(technical term for smallstep semantics)\<close>
 and  stmt
-        = Skip                  --{* empty      statement *}
-        | Expr  expr            --{* expression statement *}
+        = Skip                  \<comment>\<open>empty      statement\<close>
+        | Expr  expr            \<comment>\<open>expression statement\<close>
         | Lab   jump stmt       ("_\<bullet> _" [      99,66]66)
-                                --{* labeled statement; handles break *}
+                                \<comment>\<open>labeled statement; handles break\<close>
         | Comp  stmt stmt       ("_;; _"                  [      66,65]65)
         | If'   expr stmt stmt  ("If'(_') _ Else _"       [   80,79,79]70)
         | Loop  label expr stmt ("_\<bullet> While'(_') _"        [   99,80,79]70)
-        | Jmp jump              --{* break, continue, return *}
+        | Jmp jump              \<comment>\<open>break, continue, return\<close>
         | Throw expr
         | TryC  stmt qtname vname stmt ("Try _ Catch'(_ _') _"  [79,99,80,79]70)
-             --{* @{term "Try c1 Catch(C vn) c2"} *} 
-             --{* @{text c1}: block were exception may be thrown *}
-             --{* @{text C}:  execption class to catch *}
-             --{* @{text vn}: local name for exception used in @{text c2}*}
-             --{* @{text c2}: block to execute when exception is cateched*}
+             \<comment>\<open>@{term "Try c1 Catch(C vn) c2"}\<close> 
+             \<comment>\<open>\<open>c1\<close>: block were exception may be thrown\<close>
+             \<comment>\<open>\<open>C\<close>:  execption class to catch\<close>
+             \<comment>\<open>\<open>vn\<close>: local name for exception used in \<open>c2\<close>\<close>
+             \<comment>\<open>\<open>c2\<close>: block to execute when exception is cateched\<close>
         | Fin  stmt  stmt        ("_ Finally _"               [      79,79]70)
-        | FinA abopt stmt       --{* Save abruption of first statement *} 
-                                --{* technical term  for smallstep sem.) *}
-        | Init  qtname          --{* class initialization *}
+        | FinA abopt stmt       \<comment>\<open>Save abruption of first statement\<close> 
+                                \<comment>\<open>technical term  for smallstep sem.)\<close>
+        | Init  qtname          \<comment>\<open>class initialization\<close>
 
 datatype_compat var expr stmt
 
 
-text {*
+text \<open>
 The expressions Methd and Body are artificial program constructs, in the
 sense that they are not used to define a concrete Bali program. In the 
 operational semantic's they are "generated on the fly" 
@@ -235,7 +235,7 @@ local variables of the caller for method return. So ve avoid modelling a
 frame stack.
 The InsInitV/E terms are only used by the smallstep semantics to model the
 intermediate steps of class-initialisation.
-*}
+\<close>
  
 type_synonym "term" = "(expr+stmt,var,expr list) sum3"
 translations
@@ -254,7 +254,7 @@ abbreviation
 
 abbreviation
   Return :: "expr \<Rightarrow> stmt"
-  where "Return e == Expr (Ass (LVar (EName Res)) e);; Jmp Ret" --{* \tt Res := e;; Jmp Ret *}
+  where "Return e == Expr (Ass (LVar (EName Res)) e);; Jmp Ret" \<comment>\<open>\tt Res := e;; Jmp Ret\<close>
 
 abbreviation
   StatRef :: "ref_ty \<Rightarrow> expr"
@@ -264,14 +264,14 @@ definition
   is_stmt :: "term \<Rightarrow> bool"
   where "is_stmt t = (\<exists>c. t=In1r c)"
 
-ML {* ML_Thms.bind_thms ("is_stmt_rews", sum3_instantiate @{context} @{thm is_stmt_def}) *}
+ML \<open>ML_Thms.bind_thms ("is_stmt_rews", sum3_instantiate @{context} @{thm is_stmt_def})\<close>
 
 declare is_stmt_rews [simp]
 
-text {*
+text \<open>
   Here is some syntactic stuff to handle the injections of statements,
   expressions, variables and expression lists into general terms.
-*}
+\<close>
 
 abbreviation (input)
   expr_inj_term :: "expr \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>e" 1000)
@@ -289,22 +289,22 @@ abbreviation (input)
   lst_inj_term :: "expr list \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>l" 1000)
   where "\<langle>es\<rangle>\<^sub>l == In3 es"
 
-text {* It seems to be more elegant to have an overloaded injection like the
+text \<open>It seems to be more elegant to have an overloaded injection like the
 following.
-*}
+\<close>
 
 class inj_term =
   fixes inj_term:: "'a \<Rightarrow> term" ("\<langle>_\<rangle>" 1000)
 
-text {* How this overloaded injections work can be seen in the theory 
-@{text DefiniteAssignment}. Other big inductive relations on
-terms defined in theories @{text WellType}, @{text Eval}, @{text Evaln} and
-@{text AxSem} don't follow this convention right now, but introduce subtle 
+text \<open>How this overloaded injections work can be seen in the theory 
+\<open>DefiniteAssignment\<close>. Other big inductive relations on
+terms defined in theories \<open>WellType\<close>, \<open>Eval\<close>, \<open>Evaln\<close> and
+\<open>AxSem\<close> don't follow this convention right now, but introduce subtle 
 syntactic sugar in the relations themselves to make a distinction on 
 expressions, statements and so on. So unfortunately you will encounter a 
 mixture of dealing with these injections. The abbreviations above are used
 as bridge between the different conventions.  
-*}
+\<close>
 
 instantiation stmt :: inj_term
 begin
@@ -427,15 +427,15 @@ lemma term_cases: "
   apply auto
   done
 
-subsubsection {* Evaluation of unary operations *}
+subsubsection \<open>Evaluation of unary operations\<close>
 primrec eval_unop :: "unop \<Rightarrow> val \<Rightarrow> val"
 where
   "eval_unop UPlus v = Intg (the_Intg v)"
 | "eval_unop UMinus v = Intg (- (the_Intg v))"
-| "eval_unop UBitNot v = Intg 42"                -- "FIXME: Not yet implemented"
+| "eval_unop UBitNot v = Intg 42"                \<comment> "FIXME: Not yet implemented"
 | "eval_unop UNot v = Bool (\<not> the_Bool v)"
 
-subsubsection {* Evaluation of binary operations *}
+subsubsection \<open>Evaluation of binary operations\<close>
 primrec eval_binop :: "binop \<Rightarrow> val \<Rightarrow> val \<Rightarrow> val"
 where
   "eval_binop Mul     v1 v2 = Intg ((the_Intg v1) * (the_Intg v2))" 
@@ -444,10 +444,10 @@ where
 | "eval_binop Plus    v1 v2 = Intg ((the_Intg v1) + (the_Intg v2))"
 | "eval_binop Minus   v1 v2 = Intg ((the_Intg v1) - (the_Intg v2))"
 
--- "Be aware of the explicit coercion of the shift distance to nat"
+\<comment> "Be aware of the explicit coercion of the shift distance to nat"
 | "eval_binop LShift  v1 v2 = Intg ((the_Intg v1) *   (2^(nat (the_Intg v2))))"
 | "eval_binop RShift  v1 v2 = Intg ((the_Intg v1) div (2^(nat (the_Intg v2))))"
-| "eval_binop RShiftU v1 v2 = Intg 42" --"FIXME: Not yet implemented"
+| "eval_binop RShiftU v1 v2 = Intg 42" \<comment>"FIXME: Not yet implemented"
 
 | "eval_binop Less    v1 v2 = Bool ((the_Intg v1) < (the_Intg v2))" 
 | "eval_binop Le      v1 v2 = Bool ((the_Intg v1) \<le> (the_Intg v2))"
@@ -456,11 +456,11 @@ where
 
 | "eval_binop Eq      v1 v2 = Bool (v1=v2)"
 | "eval_binop Neq     v1 v2 = Bool (v1\<noteq>v2)"
-| "eval_binop BitAnd  v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
+| "eval_binop BitAnd  v1 v2 = Intg 42" \<comment> "FIXME: Not yet implemented"
 | "eval_binop And     v1 v2 = Bool ((the_Bool v1) \<and> (the_Bool v2))"
-| "eval_binop BitXor  v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
+| "eval_binop BitXor  v1 v2 = Intg 42" \<comment> "FIXME: Not yet implemented"
 | "eval_binop Xor     v1 v2 = Bool ((the_Bool v1) \<noteq> (the_Bool v2))"
-| "eval_binop BitOr   v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
+| "eval_binop BitOr   v1 v2 = Intg 42" \<comment> "FIXME: Not yet implemented"
 | "eval_binop Or      v1 v2 = Bool ((the_Bool v1) \<or> (the_Bool v2))"
 | "eval_binop CondAnd v1 v2 = Bool ((the_Bool v1) \<and> (the_Bool v2))"
 | "eval_binop CondOr  v1 v2 = Bool ((the_Bool v1) \<or> (the_Bool v2))"
@@ -469,8 +469,8 @@ definition
   need_second_arg :: "binop \<Rightarrow> val \<Rightarrow> bool" where
   "need_second_arg binop v1 = (\<not> ((binop=CondAnd \<and>  \<not> the_Bool v1) \<or>
                                  (binop=CondOr  \<and> the_Bool v1)))"
-text {* @{term CondAnd} and @{term CondOr} only evalulate the second argument
- if the value isn't already determined by the first argument*}
+text \<open>@{term CondAnd} and @{term CondOr} only evalulate the second argument
+ if the value isn't already determined by the first argument\<close>
 
 lemma need_second_arg_CondAnd [simp]: "need_second_arg CondAnd (Bool b) = b" 
 by (simp add: need_second_arg_def)

@@ -1,11 +1,11 @@
 (*  Title:      HOL/Bali/Table.thy
     Author:     David von Oheimb
 *)
-subsection {* Abstract tables and their implementation as lists *}
+subsection \<open>Abstract tables and their implementation as lists\<close>
 
 theory Table imports Basis begin
 
-text {*
+text \<open>
 design issues:
 \begin{itemize}
 \item definition of table: infinite map vs. list vs. finite set
@@ -27,18 +27,18 @@ design issues:
   \item[-]  sometimes awkward case distinctions, alleviated by operator 'the'
   \end{itemize}
 \end{itemize}
-*}
+\<close>
 
-type_synonym ('a, 'b) table    --{* table with key type 'a and contents type 'b *}
+type_synonym ('a, 'b) table    \<comment>\<open>table with key type 'a and contents type 'b\<close>
       = "'a \<rightharpoonup> 'b"
-type_synonym ('a, 'b) tables   --{* non-unique table with key 'a and contents 'b *}
+type_synonym ('a, 'b) tables   \<comment>\<open>non-unique table with key 'a and contents 'b\<close>
       = "'a \<Rightarrow> 'b set"
 
 
 subsubsection "map of / table of"
 
 abbreviation
-  table_of :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) table"   --{* concrete table *}
+  table_of :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) table"   \<comment>\<open>concrete table\<close>
   where "table_of \<equiv> map_of"
 
 translations
@@ -49,12 +49,12 @@ lemma map_add_find_left[simp]: "n k = None \<Longrightarrow> (m ++ n) k = m k"
   by (simp add: map_add_def)
 
 
-subsubsection {* Conditional Override *}
+subsubsection \<open>Conditional Override\<close>
 
 definition cond_override :: "('b \<Rightarrow>'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b)table \<Rightarrow> ('a, 'b)table \<Rightarrow> ('a, 'b) table" where
 
---{* when merging tables old and new, only override an entry of table old when  
-   the condition cond holds *}
+\<comment>\<open>when merging tables old and new, only override an entry of table old when  
+   the condition cond holds\<close>
 "cond_override cond old new =
  (\<lambda>k.
   (case new k of
@@ -95,7 +95,7 @@ apply (rule dom_cond_override)
 by (rule finite_UnI)
 
 
-subsubsection {* Filter on Tables *}
+subsubsection \<open>Filter on Tables\<close>
 
 definition filter_tab :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b) table \<Rightarrow> ('a, 'b) table"
   where
@@ -179,7 +179,7 @@ lemma cond_override_filter:
 by (auto simp add: fun_eq_iff cond_override_def filter_tab_def )
 
 
-subsubsection {* Misc *}
+subsubsection \<open>Misc\<close>
 
 lemma Ball_set_table: "(\<forall> (x,y)\<in> set l. P x y) \<Longrightarrow> \<forall> x. \<forall> y\<in> map_of l x: P x y"
 apply (erule rev_mp)
@@ -276,13 +276,13 @@ definition
   where "(t hidings s entails R) = (\<forall>k. \<forall>x\<in>t k. \<forall>y\<in>s k. R x y)"
 
 definition
-  --{* variant for unique table: *}
+  \<comment>\<open>variant for unique table:\<close>
   hiding_entails :: "('a, 'b) table  \<Rightarrow> ('a, 'c) table  \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"
     ("_ hiding _ entails _"  20)
   where "(t hiding  s entails R) = (\<forall>k. \<forall>x\<in>t k: \<forall>y\<in>s k: R x y)"
 
 definition
-  --{* variant for a unique table and conditional overriding: *}
+  \<comment>\<open>variant for a unique table and conditional overriding:\<close>
   cond_hiding_entails :: "('a, 'b) table  \<Rightarrow> ('a, 'c) table  
                           \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"  
                           ("_ hiding _ under _ entails _"  20)

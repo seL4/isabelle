@@ -54,8 +54,8 @@ syntax ("" output)
                  ("{_} // _ // {_}" [0,55,0] 50)
 
 ML_file "hoare_syntax.ML"
-parse_translation {* [(@{syntax_const "_hoare_vars"}, K Hoare_Syntax.hoare_vars_tr)] *}
-print_translation {* [(@{const_syntax Valid}, K (Hoare_Syntax.spec_tr' @{syntax_const "_hoare"}))] *}
+parse_translation \<open>[(@{syntax_const "_hoare_vars"}, K Hoare_Syntax.hoare_vars_tr)]\<close>
+print_translation \<open>[(@{const_syntax Valid}, K (Hoare_Syntax.spec_tr' @{syntax_const "_hoare"}))]\<close>
 
 
 lemma SkipRule: "p \<subseteq> q \<Longrightarrow> Valid p (Basic id) q"
@@ -92,16 +92,16 @@ done
 lemma Compl_Collect: "-(Collect b) = {x. ~(b x)}"
   by blast
 
-lemmas AbortRule = SkipRule  -- "dummy version"
+lemmas AbortRule = SkipRule  \<comment> "dummy version"
 ML_file "hoare_tac.ML"
 
-method_setup vcg = {*
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare.hoare_tac ctxt (K all_tac))) *}
+method_setup vcg = \<open>
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare.hoare_tac ctxt (K all_tac)))\<close>
   "verification condition generator"
 
-method_setup vcg_simp = {*
+method_setup vcg_simp = \<open>
   Scan.succeed (fn ctxt =>
-    SIMPLE_METHOD' (Hoare.hoare_tac ctxt (asm_full_simp_tac ctxt))) *}
+    SIMPLE_METHOD' (Hoare.hoare_tac ctxt (asm_full_simp_tac ctxt)))\<close>
   "verification condition generator plus simplification"
 
 end

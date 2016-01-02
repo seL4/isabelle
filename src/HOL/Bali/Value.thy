@@ -1,20 +1,20 @@
 (*  Title:      HOL/Bali/Value.thy
     Author:     David von Oheimb
 *)
-subsection {* Java values *}
+subsection \<open>Java values\<close>
 
 
 
 theory Value imports Type begin
 
-typedecl loc            --{* locations, i.e. abstract references on objects *}
+typedecl loc            \<comment>\<open>locations, i.e. abstract references on objects\<close>
 
 datatype val
-        = Unit          --{* dummy result value of void methods *}
-        | Bool bool     --{* Boolean value *}
-        | Intg int      --{* integer value *}
-        | Null          --{* null reference *}
-        | Addr loc      --{* addresses, i.e. locations of objects *}
+        = Unit          \<comment>\<open>dummy result value of void methods\<close>
+        | Bool bool     \<comment>\<open>Boolean value\<close>
+        | Intg int      \<comment>\<open>integer value\<close>
+        | Null          \<comment>\<open>null reference\<close>
+        | Addr loc      \<comment>\<open>addresses, i.e. locations of objects\<close>
 
 
 primrec the_Bool :: "val \<Rightarrow> bool"
@@ -36,13 +36,13 @@ where
 | "typeof dt  Null = Some NT"
 | "typeof dt (Addr a) = dt a"
 
-primrec defpval :: "prim_ty \<Rightarrow> val"  --{* default value for primitive types *}
+primrec defpval :: "prim_ty \<Rightarrow> val"  \<comment>\<open>default value for primitive types\<close>
 where
   "defpval Void = Unit"
 | "defpval Boolean = Bool False"
 | "defpval Integer = Intg 0"
 
-primrec default_val :: "ty \<Rightarrow> val"  --{* default value for all types *}
+primrec default_val :: "ty \<Rightarrow> val"  \<comment>\<open>default value for all types\<close>
 where
   "default_val (PrimT pt) = defpval pt"
 | "default_val (RefT  r ) = Null"

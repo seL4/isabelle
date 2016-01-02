@@ -10,7 +10,7 @@ theory JVMExec imports JVMExecInstr JVMExceptions begin
 
 fun
   exec :: "jvm_prog \<times> jvm_state => jvm_state option"
--- "exec is not recursive. fun is just used for pattern matching"
+\<comment> "exec is not recursive. fun is just used for pattern matching"
 where
   "exec (G, xp, hp, []) = None"
 
@@ -30,8 +30,8 @@ definition exec_all :: "[jvm_prog,jvm_state,jvm_state] => bool"
 
 text \<open>
   The start configuration of the JVM: in the start heap, we call a 
-  method @{text m} of class @{text C} in program @{text G}. The 
-  @{text this} pointer of the frame is set to @{text Null} to simulate
+  method \<open>m\<close> of class \<open>C\<close> in program \<open>G\<close>. The 
+  \<open>this\<close> pointer of the frame is set to \<open>Null\<close> to simulate
   a static method invokation.
 \<close>
 definition start_state :: "jvm_prog \<Rightarrow> cname \<Rightarrow> mname \<Rightarrow> jvm_state" where

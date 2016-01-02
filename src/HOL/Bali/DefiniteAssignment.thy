@@ -1,8 +1,8 @@
-subsection {* Definite Assignment *}
+subsection \<open>Definite Assignment\<close>
 
 theory DefiniteAssignment imports WellType begin 
 
-text {* Definite Assignment Analysis (cf. 16)
+text \<open>Definite Assignment Analysis (cf. 16)
 
 The definite assignment analysis approximates the sets of local 
 variables that will be assigned at a certain point of evaluation, and ensures
@@ -37,17 +37,17 @@ Not covered yet:
   \item analysis of definite unassigned
   \item special treatment of final fields
 \end{itemize}
-*}
+\<close>
 
-subsubsection {* Correct nesting of jump statements *}
+subsubsection \<open>Correct nesting of jump statements\<close>
 
-text {* For definite assignment it becomes crucial, that jumps (break, 
+text \<open>For definite assignment it becomes crucial, that jumps (break, 
 continue, return) are nested correctly i.e. a continue jump is nested in a
 matching while statement, a break jump is nested in a proper label statement,
 a class initialiser does not terminate abruptly with a return. With this we 
 can for example ensure that evaluation of an expression will never end up 
 with a jump, since no breaks, continues or returns are allowed in an 
-expression. *}
+expression.\<close>
 
 primrec jumpNestingOkS :: "jump set \<Rightarrow> stmt \<Rightarrow> bool"
 where
@@ -59,8 +59,8 @@ where
 | "jumpNestingOkS jmps (If(e) c1 Else c2) = (jumpNestingOkS jmps c1 \<and>  
                                              jumpNestingOkS jmps c2)"
 | "jumpNestingOkS jmps (l\<bullet> While(e) c) = jumpNestingOkS ({Cont l} \<union> jmps) c"
---{* The label of the while loop only handles continue jumps. Breaks are only
-     handled by @{term Lab} *}
+\<comment>\<open>The label of the while loop only handles continue jumps. Breaks are only
+     handled by @{term Lab}\<close>
 | "jumpNestingOkS jmps (Jmp j) = (j \<in> jmps)"
 | "jumpNestingOkS jmps (Throw e) = True"
 | "jumpNestingOkS jmps (Try c1 Catch(C vn) c2) = (jumpNestingOkS jmps c1 \<and> 
@@ -68,9 +68,9 @@ where
 | "jumpNestingOkS jmps (c1 Finally c2) = (jumpNestingOkS jmps c1 \<and> 
                                           jumpNestingOkS jmps c2)"
 | "jumpNestingOkS jmps (Init C) = True" 
- --{* wellformedness of the program must enshure that for all initializers 
-      jumpNestingOkS {} holds *} 
---{* Dummy analysis for intermediate smallstep term @{term  FinA} *}
+ \<comment>\<open>wellformedness of the program must enshure that for all initializers 
+      jumpNestingOkS {} holds\<close> 
+\<comment>\<open>Dummy analysis for intermediate smallstep term @{term  FinA}\<close>
 | "jumpNestingOkS jmps (FinA a c) = False"
 
 
@@ -111,10 +111,10 @@ by (simp add: inj_term_simps)
 
 
 
-subsubsection {* Calculation of assigned variables for boolean expressions*}
+subsubsection \<open>Calculation of assigned variables for boolean expressions\<close>
 
 
-subsection {* Very restricted calculation fallback calculation *}
+subsection \<open>Very restricted calculation fallback calculation\<close>
 
 primrec the_LVar_name :: "var \<Rightarrow> lname"
   where "the_LVar_name (LVar n) = n"
@@ -140,8 +140,8 @@ where
 | "assignsE (b? e1 : e2) = (assignsE b) \<union> ((assignsE e1) \<inter> (assignsE e2))"
 | "assignsE ({accC,statT,mode}objRef\<cdot>mn({pTs}args)) 
                             = (assignsE objRef) \<union> (assignsEs args)"
--- {* Only dummy analysis for intermediate expressions  
-      @{term Methd}, @{term Body}, @{term InsInitE} and @{term Callee} *}
+\<comment> \<open>Only dummy analysis for intermediate expressions  
+      @{term Methd}, @{term Body}, @{term InsInitE} and @{term Callee}\<close>
 | "assignsE (Methd C sig)   = {}" 
 | "assignsE (Body  C s)     = {}"   
 | "assignsE (InsInitE s e)  = {}"  
@@ -216,9 +216,9 @@ where
                                             | False\<Rightarrow> (case (constVal e1) of
                                                          None   \<Rightarrow> None
                                                        | Some v \<Rightarrow> constVal e2)))"
---{* Note that @{text "constVal (Cond b e1 e2)"} is stricter as it could be.
+\<comment>\<open>Note that \<open>constVal (Cond b e1 e2)\<close> is stricter as it could be.
      It requires that all tree expressions are constant even if we can decide
-     which branch to choose, provided the constant value of @{term b} *}
+     which branch to choose, provided the constant value of @{term b}\<close>
 | "constVal (Call accC statT mode objRef mn pTs args) = None"
 | "constVal (Methd C sig)   = None" 
 | "constVal (Body  C s)     = None"   
@@ -274,19 +274,19 @@ lemma assignsE_const_simp: "constVal e = Some v \<Longrightarrow> assignsE e = {
   by (induct rule: constVal_Some_induct) simp_all
 
 
-subsection {* Main analysis for boolean expressions *}
+subsection \<open>Main analysis for boolean expressions\<close>
 
-text {* Assigned local variables after evaluating the expression if it evaluates
+text \<open>Assigned local variables after evaluating the expression if it evaluates
 to a specific boolean value. If the expression cannot evaluate to a 
 @{term Boolean} value UNIV is returned. If we expect true/false the opposite 
-constant false/true will also lead to UNIV. *}
+constant false/true will also lead to UNIV.\<close>
 primrec assigns_if :: "bool \<Rightarrow> expr \<Rightarrow> lname set"
 where
-  "assigns_if b (NewC c)            = UNIV" --{*can never evaluate to Boolean*} 
-| "assigns_if b (NewA t e)          = UNIV" --{*can never evaluate to Boolean*}
+  "assigns_if b (NewC c)            = UNIV" \<comment>\<open>can never evaluate to Boolean\<close> 
+| "assigns_if b (NewA t e)          = UNIV" \<comment>\<open>can never evaluate to Boolean\<close>
 | "assigns_if b (Cast t e)          = assigns_if b e" 
-| "assigns_if b (Inst e r)          = assignsE e" --{*Inst has type Boolean but
-                                                       e is a reference type*}
+| "assigns_if b (Inst e r)          = assignsE e" \<comment>\<open>Inst has type Boolean but
+                                                       e is a reference type\<close>
 | "assigns_if b (Lit val)           = (if val=Bool b then {} else UNIV)"  
 | "assigns_if b (UnOp unop e)       = (case constVal (UnOp unop e) of
                                            None   \<Rightarrow> (if unop = UNot 
@@ -311,7 +311,7 @@ where
                   else assignsE e1 \<union> assignsE e2))
        | Some v \<Rightarrow> (if v=Bool b then {} else UNIV))"
 
-| "assigns_if b (Super)      = UNIV" --{*can never evaluate to Boolean*}
+| "assigns_if b (Super)      = UNIV" \<comment>\<open>can never evaluate to Boolean\<close>
 | "assigns_if b (Acc v)      = (assignsV v)"
 | "assigns_if b (v := e)     = (assignsE (Ass v e))"
 | "assigns_if b (c? e1 : e2) = (assignsE c) \<union>
@@ -323,8 +323,8 @@ where
                                                 | False \<Rightarrow> assigns_if b e2))"
 | "assigns_if b ({accC,statT,mode}objRef\<cdot>mn({pTs}args))  
             = assignsE ({accC,statT,mode}objRef\<cdot>mn({pTs}args)) "
--- {* Only dummy analysis for intermediate expressions  
-      @{term Methd}, @{term Body}, @{term InsInitE} and @{term Callee} *}
+\<comment> \<open>Only dummy analysis for intermediate expressions  
+      @{term Methd}, @{term Body}, @{term InsInitE} and @{term Callee}\<close>
 | "assigns_if b (Methd C sig)   = {}" 
 | "assigns_if b (Body  C s)     = {}"   
 | "assigns_if b (InsInitE s e)  = {}"  
@@ -347,10 +347,10 @@ proof -
       by (cases binop) (simp_all)
   next
     case (Cond c e1 e2 b)
-    note hyp_c = `\<And> b. ?Const b c \<Longrightarrow> ?Ass b c`
-    note hyp_e1 = `\<And> b. ?Const b e1 \<Longrightarrow> ?Ass b e1`
-    note hyp_e2 = `\<And> b. ?Const b e2 \<Longrightarrow> ?Ass b e2`
-    note const = `constVal (c ? e1 : e2) = Some (Bool b)`
+    note hyp_c = \<open>\<And> b. ?Const b c \<Longrightarrow> ?Ass b c\<close>
+    note hyp_e1 = \<open>\<And> b. ?Const b e1 \<Longrightarrow> ?Ass b e1\<close>
+    note hyp_e2 = \<open>\<And> b. ?Const b e2 \<Longrightarrow> ?Ass b e2\<close>
+    note const = \<open>constVal (c ? e1 : e2) = Some (Bool b)\<close>
     then obtain bv where bv: "constVal c = Some bv"
       by simp
     hence emptyC: "assignsE c = {}" by (rule assignsE_const_simp)
@@ -395,10 +395,10 @@ proof -
       by (cases binop) (simp_all)
   next
     case (Cond c e1 e2 b)
-    note hyp_c = `\<And> b. ?Const b c \<Longrightarrow> ?Ass b c`
-    note hyp_e1 = `\<And> b. ?Const b e1 \<Longrightarrow> ?Ass b e1`
-    note hyp_e2 = `\<And> b. ?Const b e2 \<Longrightarrow> ?Ass b e2`
-    note const = `constVal (c ? e1 : e2) = Some (Bool b)`
+    note hyp_c = \<open>\<And> b. ?Const b c \<Longrightarrow> ?Ass b c\<close>
+    note hyp_e1 = \<open>\<And> b. ?Const b e1 \<Longrightarrow> ?Ass b e1\<close>
+    note hyp_e2 = \<open>\<And> b. ?Const b e2 \<Longrightarrow> ?Ass b e2\<close>
+    note const = \<open>constVal (c ? e1 : e2) = Some (Bool b)\<close>
     then obtain bv where bv: "constVal c = Some bv"
       by simp
     show ?case
@@ -425,7 +425,7 @@ proof -
     by blast
 qed
 
-subsection {* Lifting set operations to range of tables (map to a set) *}
+subsection \<open>Lifting set operations to range of tables (map to a set)\<close>
 
 definition
   union_ts :: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" ("_ \<Rightarrow>\<union> _" [67,67] 65)
@@ -439,7 +439,7 @@ definition
   all_union_ts :: "('a,'b) tables \<Rightarrow> 'b set \<Rightarrow> ('a,'b) tables" (infixl "\<Rightarrow>\<union>\<^sub>\<forall>" 40)
   where "(A \<Rightarrow>\<union>\<^sub>\<forall> B) = (\<lambda> k. A k \<union> B)"
   
-subsubsection {* Binary union of tables *}
+subsubsection \<open>Binary union of tables\<close>
 
 lemma union_ts_iff [simp]: "(c \<in> (A \<Rightarrow>\<union> B) k) = (c \<in> A k \<or>  c \<in> B k)"
   by (unfold union_ts_def) blast
@@ -457,7 +457,7 @@ lemma union_tsE [elim!]:
  "\<lbrakk>c \<in> (A \<Rightarrow>\<union> B) k; (c \<in> A k \<Longrightarrow> P); (c \<in> B k \<Longrightarrow> P)\<rbrakk> \<Longrightarrow> P"
   by (unfold union_ts_def) blast
 
-subsubsection {* Binary intersection of tables *}
+subsubsection \<open>Binary intersection of tables\<close>
 
 lemma intersect_ts_iff [simp]: "c \<in> (A \<Rightarrow>\<inter> B) k = (c \<in> A k \<and> c \<in> B k)"
   by (unfold intersect_ts_def) blast
@@ -476,7 +476,7 @@ lemma intersect_tsE [elim!]:
   by simp
 
 
-subsubsection {* All-Union of tables and set *}
+subsubsection \<open>All-Union of tables and set\<close>
 
 lemma all_union_ts_iff [simp]: "(c \<in> (A \<Rightarrow>\<union>\<^sub>\<forall> B) k) = (c \<in> A k \<or>  c \<in> B)"
   by (unfold all_union_ts_def) blast
@@ -499,14 +499,14 @@ subsubsection "The rules of definite assignment"
 
  
 type_synonym breakass = "(label, lname) tables" 
---{* Mapping from a break label, to the set of variables that will be assigned 
-     if the evaluation terminates with this break *}
+\<comment>\<open>Mapping from a break label, to the set of variables that will be assigned 
+     if the evaluation terminates with this break\<close>
     
 record assigned = 
-         nrm :: "lname set" --{* Definetly assigned variables 
-                                 for normal completion*}
-         brk :: "breakass" --{* Definetly assigned variables for 
-                                abrupt completion with a break *}
+         nrm :: "lname set" \<comment>\<open>Definetly assigned variables 
+                                 for normal completion\<close>
+         brk :: "breakass" \<comment>\<open>Definetly assigned variables for 
+                                abrupt completion with a break\<close>
 
 definition
   rmlab :: "'a \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables"
@@ -522,14 +522,14 @@ definition
   range_inter_ts :: "('a,'b) tables \<Rightarrow> 'b set" ("\<Rightarrow>\<Inter>_" 80)
   where "\<Rightarrow>\<Inter>A = {x |x. \<forall> k. x \<in> A k}"
 
-text {*
-In @{text "E\<turnstile> B \<guillemotright>t\<guillemotright> A"},
-@{text B} denotes the ''assigned'' variables before evaluating term @{text t},
-whereas @{text A} denotes the ''assigned'' variables after evaluating term @{text t}.
-The environment @{term E} is only needed for the conditional @{text "_ ? _ : _"}.
+text \<open>
+In \<open>E\<turnstile> B \<guillemotright>t\<guillemotright> A\<close>,
+\<open>B\<close> denotes the ''assigned'' variables before evaluating term \<open>t\<close>,
+whereas \<open>A\<close> denotes the ''assigned'' variables after evaluating term \<open>t\<close>.
+The environment @{term E} is only needed for the conditional \<open>_ ? _ : _\<close>.
 The definite assignment rules refer to the typing rules here to
 distinguish boolean and other expressions.
-*}
+\<close>
 
 inductive
   da :: "env \<Rightarrow> lname set \<Rightarrow> term \<Rightarrow> assigned \<Rightarrow> bool" ("_\<turnstile> _ \<guillemotright>_\<guillemotright> _" [65,65,65,65] 71)
@@ -556,7 +556,7 @@ where
           \<Longrightarrow>
           Env\<turnstile> B \<guillemotright>\<langle>If(e) c1 Else c2\<rangle>\<guillemotright> A"
 
---{* Note that @{term E} is not further used, because we take the specialized
+\<comment>\<open>Note that @{term E} is not further used, because we take the specialized
      sets that also consider if the expression evaluates to true or false. 
      Inside of @{term e} there is no {\tt break} or {\tt finally}, so the break
      map of @{term E} will be the trivial one. So 
@@ -572,7 +572,7 @@ where
      to @{term UNIV} too, because @{term "assigns_if False e = UNIV"}. So
      in the intersection of the break maps the path @{term c2} will have no
      contribution.
-  *}
+\<close>
 
 | Loop: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; 
           Env\<turnstile> (B \<union> assigns_if True e) \<guillemotright>\<langle>c\<rangle>\<guillemotright> C;
@@ -580,7 +580,7 @@ where
           brk A = brk C\<rbrakk>  
           \<Longrightarrow>
           Env\<turnstile> B \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A"
---{* The @{text Loop} rule resembles some of the ideas of the @{text If} rule.
+\<comment>\<open>The \<open>Loop\<close> rule resembles some of the ideas of the \<open>If\<close> rule.
      For the @{term "nrm A"} the set @{term "B \<union> assigns_if False e"} 
      will be @{term UNIV} if the condition is constantly true. To normally exit
      the while loop, we must consider the body @{term c} to be completed 
@@ -589,7 +589,7 @@ where
      only handles continue labels, not break labels. The break label will be
      handled by an enclosing @{term Lab} statement. So we don't have to
      handle the breaks specially. 
-  *}
+\<close>
 
 | Jmp: "\<lbrakk>jump=Ret \<longrightarrow> Result \<in> B;
          nrm A = UNIV;
@@ -599,13 +599,13 @@ where
                   | Ret     \<Rightarrow> \<lambda> k. UNIV)\<rbrakk> 
         \<Longrightarrow> 
         Env\<turnstile> B \<guillemotright>\<langle>Jmp jump\<rangle>\<guillemotright> A"
---{* In case of a break to label @{term l} the corresponding break set is all
+\<comment>\<open>In case of a break to label @{term l} the corresponding break set is all
      variables assigned before the break. The assigned variables for normal
      completion of the @{term Jmp} is @{term UNIV}, because the statement will
      never complete normally. For continue and return the break map is the 
      trivial one. In case of a return we enshure that the result value is
      assigned.
-  *}
+\<close>
 
 | Throw: "\<lbrakk>Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> E; nrm A = UNIV; brk A = (\<lambda> l. UNIV)\<rbrakk> 
          \<Longrightarrow> Env\<turnstile> B \<guillemotright>\<langle>Throw e\<rangle>\<guillemotright> A"
@@ -622,23 +622,23 @@ where
           brk A = ((brk C1) \<Rightarrow>\<union>\<^sub>\<forall> (nrm C2)) \<Rightarrow>\<inter> (brk C2)\<rbrakk>  
           \<Longrightarrow>
           Env\<turnstile> B \<guillemotright>\<langle>c1 Finally c2\<rangle>\<guillemotright> A" 
---{* The set of assigned variables before execution @{term c2} are the same
+\<comment>\<open>The set of assigned variables before execution @{term c2} are the same
      as before execution @{term c1}, because @{term c1} could throw an exception
      and so we can't guarantee that any variable will be assigned in @{term c1}.
-     The @{text Finally} statement completes
+     The \<open>Finally\<close> statement completes
      normally if both @{term c1} and @{term c2} complete normally. If @{term c1}
      completes abruptly with a break, then @{term c2} also will be executed 
      and may terminate normally or with a break. The overall break map then is
      the intersection of the maps of both paths. If @{term c2} terminates 
      normally we have to extend all break sets in @{term "brk C1"} with 
-     @{term "nrm C2"} (@{text "\<Rightarrow>\<union>\<^sub>\<forall>"}). If @{term c2} exits with a break this
+     @{term "nrm C2"} (\<open>\<Rightarrow>\<union>\<^sub>\<forall>\<close>). If @{term c2} exits with a break this
      break will appear in the overall result state. We don't know if 
      @{term c1} completed normally or abruptly (maybe with an exception not only
      a break) so @{term c1} has no contribution to the break map following this
      path.
-  *}
+\<close>
 
---{* Evaluation of expressions and the break sets of definite assignment:
+\<comment>\<open>Evaluation of expressions and the break sets of definite assignment:
      Thinking of a Java expression we assume that we can never have
      a break statement inside of a expression. So for all expressions the
      break sets could be set to the trivial one: @{term "\<lambda> l. UNIV"}. 
@@ -656,18 +656,18 @@ where
      the analysis of the correct nesting of breaks in the typing judgments 
      right now. So we have decided to adjust the rules of definite assignment
      to fit to these circumstances. If an initialization is involved during
-     evaluation of the expression (evaluation rules @{text FVar}, @{text NewC} 
-     and @{text NewA}
-*}
+     evaluation of the expression (evaluation rules \<open>FVar\<close>, \<open>NewC\<close> 
+     and \<open>NewA\<close>
+\<close>
 
 | Init: "Env\<turnstile> B \<guillemotright>\<langle>Init C\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
---{* Wellformedness of a program will ensure, that every static initialiser 
+\<comment>\<open>Wellformedness of a program will ensure, that every static initialiser 
      is definetly assigned and the jumps are nested correctly. The case here
      for @{term Init} is just for convenience, to get a proper precondition 
      for the induction hypothesis in various proofs, so that we don't have to
      expand the initialisation on every point where it is triggerred by the
      evaluation rules.
-  *}   
+\<close>   
 | NewC: "Env\<turnstile> B \<guillemotright>\<langle>NewC C\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>" 
 
 | NewA: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A 
@@ -715,9 +715,9 @@ where
              nrm A = B; brk A = (\<lambda> k. UNIV)\<rbrakk> 
              \<Longrightarrow> 
              Env\<turnstile> B \<guillemotright>\<langle>Acc (LVar vn)\<rangle>\<guillemotright> A"
---{* To properly access a local variable we have to test the definite 
+\<comment>\<open>To properly access a local variable we have to test the definite 
      assignment here. The variable must occur in the set @{term B} 
-  *}
+\<close>
 
 | Acc: "\<lbrakk>\<forall> vn. v \<noteq> LVar vn;
          Env\<turnstile> B \<guillemotright>\<langle>v\<rangle>\<guillemotright> A\<rbrakk>
@@ -754,7 +754,7 @@ where
          \<Longrightarrow>  
          Env\<turnstile> B \<guillemotright>\<langle>{accC,statT,mode}e\<cdot>mn({pTs}args)\<rangle>\<guillemotright> A"
 
--- {* The interplay of @{term Call}, @{term Methd} and @{term Body}:
+\<comment> \<open>The interplay of @{term Call}, @{term Methd} and @{term Body}:
       Why rules for @{term Methd} and @{term Body} at all? Note that a
       Java source program will not include bare  @{term Methd} or @{term Body}
       terms. These terms are just introduced during evaluation. So definite
@@ -774,7 +774,7 @@ where
       sub-evaluation during the type-safety proof. Note that well-typedness is
       also a precondition for type-safety and so we can omit some assertion 
       that are already ensured by well-typedness. 
-   *}
+\<close>
 | Methd: "\<lbrakk>methd (prg Env) D sig = Some m;
            Env\<turnstile> B \<guillemotright>\<langle>Body (declclass m) (stmt (mbody (mthd m)))\<rangle>\<guillemotright> A
           \<rbrakk>
@@ -785,7 +785,7 @@ where
           nrm A = B; brk A = (\<lambda> l. UNIV)\<rbrakk>
          \<Longrightarrow>
          Env\<turnstile> B \<guillemotright>\<langle>Body D c\<rangle>\<guillemotright> A"
--- {* Note that @{term A} is not correlated to  @{term C}. If the body
+\<comment> \<open>Note that @{term A} is not correlated to  @{term C}. If the body
       statement returns abruptly with return, evaluation of  @{term Body}
       will absorb this return and complete normally. So we cannot trivially
       get the assigned variables of the body statement since it has not 
@@ -797,7 +797,7 @@ where
       for a return the @{term Jump} rule ensures that the result variable is
       set and then this information must be carried over to the @{term Body}
       rule by the conformance predicate of the state.
-   *}
+\<close>
 | LVar: "Env\<turnstile> B \<guillemotright>\<langle>LVar vn\<rangle>\<guillemotright> \<lparr>nrm=B, brk=\<lambda> l. UNIV\<rparr>" 
 
 | FVar: "Env\<turnstile> B \<guillemotright>\<langle>e\<rangle>\<guillemotright> A 
@@ -818,7 +818,7 @@ where
 declare inj_term_sym_simps [simp]
 declare assigns_if.simps [simp del]
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
+setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
 
 inductive_cases da_elim_cases [cases set]:
   "Env\<turnstile> B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> A" 
@@ -884,7 +884,7 @@ inductive_cases da_elim_cases [cases set]:
 declare inj_term_sym_simps [simp del]
 declare assigns_if.simps [simp]
 declare split_paired_All [simp] split_paired_Ex [simp]
-setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}
+setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>
 
 (* To be able to eliminate both the versions with the overloaded brackets: 
    (B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> A) and with the explicit constructor (B \<guillemotright>In1r Skip\<guillemotright> A), 
@@ -956,7 +956,7 @@ proof -
     case (Cast T e)
     have "E\<turnstile>e\<Colon>- (PrimT Boolean)"
     proof -
-      from `E\<turnstile>(Cast T e)\<Colon>- (PrimT Boolean)`
+      from \<open>E\<turnstile>(Cast T e)\<Colon>- (PrimT Boolean)\<close>
       obtain Te where "E\<turnstile>e\<Colon>-Te"
                            "prg E\<turnstile>Te\<preceq>? PrimT Boolean"
         by cases simp
@@ -986,10 +986,10 @@ proof -
       by - (cases binop, auto simp add: assignsE_const_simp)
   next
     case (Cond c e1 e2)
-    note hyp_c = `?Boolean c \<Longrightarrow> ?Incl c`
-    note hyp_e1 = `?Boolean e1 \<Longrightarrow> ?Incl e1`
-    note hyp_e2 = `?Boolean e2 \<Longrightarrow> ?Incl e2`
-    note wt = `E\<turnstile>(c ? e1 : e2)\<Colon>-PrimT Boolean`
+    note hyp_c = \<open>?Boolean c \<Longrightarrow> ?Incl c\<close>
+    note hyp_e1 = \<open>?Boolean e1 \<Longrightarrow> ?Incl e1\<close>
+    note hyp_e2 = \<open>?Boolean e2 \<Longrightarrow> ?Incl e2\<close>
+    note wt = \<open>E\<turnstile>(c ? e1 : e2)\<Colon>-PrimT Boolean\<close>
     then obtain
       boolean_c:  "E\<turnstile>c\<Colon>-PrimT Boolean" and
       boolean_e1: "E\<turnstile>e1\<Colon>-PrimT Boolean" and
@@ -1067,10 +1067,10 @@ proof -
     show ?case by cases simp
   next
     case (Lab Env B c C A l B' A')
-    note A = `nrm A = nrm C \<inter> brk C l` `brk A = rmlab l (brk C)`
-    note `PROP ?Hyp Env B \<langle>c\<rangle> C`
+    note A = \<open>nrm A = nrm C \<inter> brk C l\<close> \<open>brk A = rmlab l (brk C)\<close>
+    note \<open>PROP ?Hyp Env B \<langle>c\<rangle> C\<close>
     moreover
-    note `B \<subseteq> B'`
+    note \<open>B \<subseteq> B'\<close>
     moreover
     obtain C'
       where "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
@@ -1093,19 +1093,19 @@ proof -
       by simp
   next
     case (Comp Env B c1 C1 c2 C2 A B' A')
-    note A = `nrm A = nrm C2` `brk A = brk C1 \<Rightarrow>\<inter>  brk C2`
-    from `Env\<turnstile> B' \<guillemotright>\<langle>c1;; c2\<rangle>\<guillemotright> A'`
+    note A = \<open>nrm A = nrm C2\<close> \<open>brk A = brk C1 \<Rightarrow>\<inter>  brk C2\<close>
+    from \<open>Env\<turnstile> B' \<guillemotright>\<langle>c1;; c2\<rangle>\<guillemotright> A'\<close>
     obtain  C1' C2'
       where da_c1: "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
             da_c2: "Env\<turnstile> nrm C1' \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'"  and
             A': "nrm A' = nrm C2'" "brk A' = brk C1' \<Rightarrow>\<inter>  brk C2'"
       by cases auto
-    note `PROP ?Hyp Env B \<langle>c1\<rangle> C1`
-    moreover note `B \<subseteq> B'`
+    note \<open>PROP ?Hyp Env B \<langle>c1\<rangle> C1\<close>
+    moreover note \<open>B \<subseteq> B'\<close>
     moreover note da_c1
     ultimately have C1': "nrm C1 \<subseteq> nrm C1'" "(\<forall>l. brk C1 l \<subseteq> brk C1' l)"
       by auto
-    note `PROP ?Hyp Env (nrm C1) \<langle>c2\<rangle> C2`
+    note \<open>PROP ?Hyp Env (nrm C1) \<langle>c2\<rangle> C2\<close>
     with da_c2 C1' 
     have C2': "nrm C2 \<subseteq> nrm C2'" "(\<forall>l. brk C2 l \<subseteq> brk C2' l)"
       by auto
@@ -1114,19 +1114,19 @@ proof -
       by auto
   next
     case (If Env B e E c1 C1 c2 C2 A B' A')
-    note A = `nrm A = nrm C1 \<inter> nrm C2` `brk A = brk C1 \<Rightarrow>\<inter>  brk C2`
-    from `Env\<turnstile> B' \<guillemotright>\<langle>If(e) c1 Else c2\<rangle>\<guillemotright> A'`
+    note A = \<open>nrm A = nrm C1 \<inter> nrm C2\<close> \<open>brk A = brk C1 \<Rightarrow>\<inter>  brk C2\<close>
+    from \<open>Env\<turnstile> B' \<guillemotright>\<langle>If(e) c1 Else c2\<rangle>\<guillemotright> A'\<close>
     obtain C1' C2'
       where da_c1: "Env\<turnstile> B' \<union> assigns_if True e \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
             da_c2: "Env\<turnstile> B' \<union> assigns_if False e \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
                A': "nrm A' = nrm C1' \<inter> nrm C2'" "brk A' = brk C1' \<Rightarrow>\<inter>  brk C2'"
       by cases auto
-    note `PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c1\<rangle> C1`
-    moreover note B' = `B \<subseteq> B'`
+    note \<open>PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c1\<rangle> C1\<close>
+    moreover note B' = \<open>B \<subseteq> B'\<close>
     moreover note da_c1 
     ultimately obtain C1': "nrm C1 \<subseteq> nrm C1'" "(\<forall>l. brk C1 l \<subseteq> brk C1' l)"
       by blast
-    note `PROP ?Hyp Env (B \<union> assigns_if False e) \<langle>c2\<rangle> C2`
+    note \<open>PROP ?Hyp Env (B \<union> assigns_if False e) \<langle>c2\<rangle> C2\<close>
     with da_c2 B'
     obtain C2': "nrm C2 \<subseteq> nrm C2'" "(\<forall>l. brk C2 l \<subseteq> brk C2' l)"
       by blast
@@ -1135,16 +1135,16 @@ proof -
       by auto
   next
     case (Loop Env B e E c C A l B' A')
-    note A = `nrm A = nrm C \<inter> (B \<union> assigns_if False e)` `brk A = brk C`
-    from `Env\<turnstile> B' \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A'`
+    note A = \<open>nrm A = nrm C \<inter> (B \<union> assigns_if False e)\<close> \<open>brk A = brk C\<close>
+    from \<open>Env\<turnstile> B' \<guillemotright>\<langle>l\<bullet> While(e) c\<rangle>\<guillemotright> A'\<close>
     obtain C'
       where 
        da_c': "Env\<turnstile> B' \<union> assigns_if True e \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'" and
           A': "nrm A' = nrm C' \<inter> (B' \<union> assigns_if False e)"
               "brk A' = brk C'" 
       by cases auto
-    note `PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c\<rangle> C`
-    moreover note B' = `B \<subseteq> B'`
+    note \<open>PROP ?Hyp Env (B \<union> assigns_if True e) \<langle>c\<rangle> C\<close>
+    moreover note B' = \<open>B \<subseteq> B'\<close>
     moreover note da_c'
     ultimately obtain C': "nrm C \<subseteq> nrm C'" "(\<forall>l. brk C l \<subseteq> brk C' l)"
       by blast
@@ -1175,8 +1175,8 @@ proof -
     case Throw thus ?case by (elim da_elim_cases) auto
   next
     case (Try Env B c1 C1 vn C c2 C2 A B' A')
-    note A = `nrm A = nrm C1 \<inter> nrm C2` `brk A = brk C1 \<Rightarrow>\<inter>  brk C2`
-    from `Env\<turnstile> B' \<guillemotright>\<langle>Try c1 Catch(C vn) c2\<rangle>\<guillemotright> A'`
+    note A = \<open>nrm A = nrm C1 \<inter> nrm C2\<close> \<open>brk A = brk C1 \<Rightarrow>\<inter>  brk C2\<close>
+    from \<open>Env\<turnstile> B' \<guillemotright>\<langle>Try c1 Catch(C vn) c2\<rangle>\<guillemotright> A'\<close>
     obtain C1' C2'
       where da_c1': "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
             da_c2': "Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>\<turnstile> B' \<union> {VName vn} 
@@ -1184,13 +1184,13 @@ proof -
             A': "nrm A' = nrm C1' \<inter> nrm C2'"
                 "brk A' = brk C1' \<Rightarrow>\<inter>  brk C2'" 
       by cases auto
-    note `PROP ?Hyp Env B \<langle>c1\<rangle> C1`
-    moreover note B' = `B \<subseteq> B'`
+    note \<open>PROP ?Hyp Env B \<langle>c1\<rangle> C1\<close>
+    moreover note B' = \<open>B \<subseteq> B'\<close>
     moreover note da_c1'
     ultimately obtain C1': "nrm C1 \<subseteq> nrm C1'" "(\<forall>l. brk C1 l \<subseteq> brk C1' l)"
       by blast
-    note `PROP ?Hyp (Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>)
-                    (B \<union> {VName vn}) \<langle>c2\<rangle> C2`
+    note \<open>PROP ?Hyp (Env\<lparr>lcl := lcl Env(VName vn\<mapsto>Class C)\<rparr>)
+                    (B \<union> {VName vn}) \<langle>c2\<rangle> C2\<close>
     with B' da_c2'
     obtain "nrm C2 \<subseteq> nrm C2'" "(\<forall>l. brk C2 l \<subseteq> brk C2' l)"
       by blast
@@ -1199,21 +1199,21 @@ proof -
       by auto
   next
     case (Fin Env B c1 C1 c2 C2 A B' A')
-    note A = `nrm A = nrm C1 \<union> nrm C2`
-      `brk A = (brk C1 \<Rightarrow>\<union>\<^sub>\<forall> nrm C2) \<Rightarrow>\<inter> (brk C2)`
-    from `Env\<turnstile> B' \<guillemotright>\<langle>c1 Finally c2\<rangle>\<guillemotright> A'`
+    note A = \<open>nrm A = nrm C1 \<union> nrm C2\<close>
+      \<open>brk A = (brk C1 \<Rightarrow>\<union>\<^sub>\<forall> nrm C2) \<Rightarrow>\<inter> (brk C2)\<close>
+    from \<open>Env\<turnstile> B' \<guillemotright>\<langle>c1 Finally c2\<rangle>\<guillemotright> A'\<close>
     obtain C1' C2'
       where  da_c1': "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'" and
              da_c2': "Env\<turnstile> B' \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'" and
              A':  "nrm A' = nrm C1' \<union> nrm C2'"
                   "brk A' = (brk C1' \<Rightarrow>\<union>\<^sub>\<forall> nrm C2') \<Rightarrow>\<inter> (brk C2')"
       by cases auto
-    note `PROP ?Hyp Env B \<langle>c1\<rangle> C1`
-    moreover note B' = `B \<subseteq> B'`
+    note \<open>PROP ?Hyp Env B \<langle>c1\<rangle> C1\<close>
+    moreover note B' = \<open>B \<subseteq> B'\<close>
     moreover note da_c1'
     ultimately obtain C1': "nrm C1 \<subseteq> nrm C1'" "(\<forall>l. brk C1 l \<subseteq> brk C1' l)"
       by blast
-    note hyp_c2 = `PROP ?Hyp Env B \<langle>c2\<rangle> C2`
+    note hyp_c2 = \<open>PROP ?Hyp Env B \<langle>c2\<rangle> C2\<close>
     from da_c2' B' 
      obtain "nrm C2 \<subseteq> nrm C2'" "(\<forall>l. brk C2 l \<subseteq> brk C2' l)"
        by - (drule hyp_c2,auto)
@@ -1236,17 +1236,17 @@ proof -
      case UnOp thus ?case by (elim da_elim_cases) auto
    next
      case (CondAnd Env B e1 E1 e2 E2 A B' A')
-     note A = `nrm A = B \<union>
+     note A = \<open>nrm A = B \<union>
                        assigns_if True (BinOp CondAnd e1 e2) \<inter>
-                       assigns_if False (BinOp CondAnd e1 e2)`
-             `brk A = (\<lambda>l. UNIV)`
-     from `Env\<turnstile> B' \<guillemotright>\<langle>BinOp CondAnd e1 e2\<rangle>\<guillemotright> A'`
+                       assigns_if False (BinOp CondAnd e1 e2)\<close>
+             \<open>brk A = (\<lambda>l. UNIV)\<close>
+     from \<open>Env\<turnstile> B' \<guillemotright>\<langle>BinOp CondAnd e1 e2\<rangle>\<guillemotright> A'\<close>
      obtain  A': "nrm A' = B' \<union>
                                  assigns_if True (BinOp CondAnd e1 e2) \<inter>
                                  assigns_if False (BinOp CondAnd e1 e2)"
                       "brk A' = (\<lambda>l. UNIV)" 
        by cases auto
-     note B' = `B \<subseteq> B'`
+     note B' = \<open>B \<subseteq> B'\<close>
      with A A' show ?case 
        by auto 
    next
@@ -1265,13 +1265,13 @@ proof -
      case Ass thus ?case by (elim da_elim_cases) auto
    next
      case (CondBool Env c e1 e2 B C E1 E2 A B' A')
-     note A = `nrm A = B \<union> 
+     note A = \<open>nrm A = B \<union> 
                         assigns_if True (c ? e1 : e2) \<inter> 
-                        assigns_if False (c ? e1 : e2)`
-             `brk A = (\<lambda>l. UNIV)`
-     note `Env\<turnstile> (c ? e1 : e2)\<Colon>- (PrimT Boolean)`
+                        assigns_if False (c ? e1 : e2)\<close>
+             \<open>brk A = (\<lambda>l. UNIV)\<close>
+     note \<open>Env\<turnstile> (c ? e1 : e2)\<Colon>- (PrimT Boolean)\<close>
      moreover
-     note `Env\<turnstile> B' \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A'`
+     note \<open>Env\<turnstile> B' \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A'\<close>
      ultimately
      obtain A': "nrm A' = B' \<union> 
                                   assigns_if True (c ? e1 : e2) \<inter> 
@@ -1279,14 +1279,14 @@ proof -
                      "brk A' = (\<lambda>l. UNIV)"
        by (elim da_elim_cases) (auto simp add: inj_term_simps) 
        (* inj_term_simps needed to handle wt (defined without \<langle>\<rangle>) *)
-     note B' = `B \<subseteq> B'`
+     note B' = \<open>B \<subseteq> B'\<close>
      with A A' show ?case 
        by auto 
    next
      case (Cond Env c e1 e2 B C E1 E2 A B' A')  
-     note A = `nrm A = nrm E1 \<inter> nrm E2` `brk A = (\<lambda>l. UNIV)`
-     note not_bool = `\<not> Env\<turnstile> (c ? e1 : e2)\<Colon>- (PrimT Boolean)`
-     from `Env\<turnstile> B' \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A'`
+     note A = \<open>nrm A = nrm E1 \<inter> nrm E2\<close> \<open>brk A = (\<lambda>l. UNIV)\<close>
+     note not_bool = \<open>\<not> Env\<turnstile> (c ? e1 : e2)\<Colon>- (PrimT Boolean)\<close>
+     from \<open>Env\<turnstile> B' \<guillemotright>\<langle>c ? e1 : e2\<rangle>\<guillemotright> A'\<close>
      obtain E1' E2'
        where da_e1': "Env\<turnstile> B' \<union> assigns_if True c \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'" and
              da_e2': "Env\<turnstile> B' \<union> assigns_if False c \<guillemotright>\<langle>e2\<rangle>\<guillemotright> E2'" and
@@ -1295,12 +1295,12 @@ proof -
        using not_bool
        by (elim da_elim_cases) (auto simp add: inj_term_simps)
        (* inj_term_simps needed to handle wt (defined without \<langle>\<rangle>) *)
-     note `PROP ?Hyp Env (B \<union> assigns_if True c) \<langle>e1\<rangle> E1`
-     moreover note B' = `B \<subseteq> B'`
+     note \<open>PROP ?Hyp Env (B \<union> assigns_if True c) \<langle>e1\<rangle> E1\<close>
+     moreover note B' = \<open>B \<subseteq> B'\<close>
      moreover note da_e1'
      ultimately obtain E1': "nrm E1 \<subseteq> nrm E1'" "(\<forall>l. brk E1 l \<subseteq> brk E1' l)"
        by blast
-     note `PROP ?Hyp Env (B \<union> assigns_if False c) \<langle>e2\<rangle> E2`
+     note \<open>PROP ?Hyp Env (B \<union> assigns_if False c) \<langle>e2\<rangle> E2\<close>
      with B' da_e2'
      obtain "nrm E2 \<subseteq> nrm E2'" "(\<forall>l. brk E2 l \<subseteq> brk E2' l)"
        by blast
@@ -1326,7 +1326,7 @@ proof -
   next
     case Cons thus ?case by (elim da_elim_cases) auto
   qed
-  from this [OF da' `B \<subseteq> B'`] show ?thesis .
+  from this [OF da' \<open>B \<subseteq> B'\<close>] show ?thesis .
 qed
   
 lemma da_weaken:     
@@ -1342,9 +1342,9 @@ proof -
     case Expr thus ?case by (iprover intro: da.Expr)
   next
     case (Lab Env B c C A l B')  
-    note `PROP ?Hyp Env B \<langle>c\<rangle>`
+    note \<open>PROP ?Hyp Env B \<langle>c\<rangle>\<close>
     moreover
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     ultimately obtain C' where "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
       by iprover
     then obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>Break l\<bullet> c\<rangle>\<guillemotright> A'"
@@ -1352,10 +1352,10 @@ proof -
     thus ?case ..
   next
     case (Comp Env B c1 C1 c2 C2 A B')
-    note da_c1 = `Env\<turnstile> B \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1`
-    note `PROP ?Hyp Env B \<langle>c1\<rangle>`
+    note da_c1 = \<open>Env\<turnstile> B \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1\<close>
+    note \<open>PROP ?Hyp Env B \<langle>c1\<rangle>\<close>
     moreover
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     ultimately obtain C1' where da_c1': "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'"
       by iprover
     with da_c1 B'
@@ -1363,7 +1363,7 @@ proof -
       "nrm C1 \<subseteq> nrm C1'"
       by (rule da_monotone [elim_format]) simp
     moreover
-    note `PROP ?Hyp Env (nrm C1) \<langle>c2\<rangle>`
+    note \<open>PROP ?Hyp Env (nrm C1) \<langle>c2\<rangle>\<close>
     ultimately obtain C2' where "Env\<turnstile> nrm C1' \<guillemotright>\<langle>c2\<rangle>\<guillemotright> C2'"
       by iprover
     with da_c1' obtain A' where "Env\<turnstile> B' \<guillemotright>\<langle>c1;; c2\<rangle>\<guillemotright> A'"
@@ -1371,7 +1371,7 @@ proof -
     thus ?case ..
   next
     case (If Env B e E c1 C1 c2 C2 A B')
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     obtain  E' where "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
     proof -
       have "PROP ?Hyp Env B \<langle>e\<rangle>" by (rule If.hyps)
@@ -1405,7 +1405,7 @@ proof -
     thus ?case ..
   next  
     case (Loop Env B e E c C A l B')
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     obtain E' where "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
     proof -
       have "PROP ?Hyp Env B \<langle>e\<rangle>" by (rule Loop.hyps)
@@ -1429,7 +1429,7 @@ proof -
     thus ?case ..
   next
     case (Jmp jump B A Env B') 
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     with Jmp.hyps have "jump = Ret \<longrightarrow> Result \<in> B' "
       by auto
     moreover
@@ -1448,7 +1448,7 @@ proof -
     case Throw thus ?case by (iprover intro: da.Throw )
   next
     case (Try Env B c1 C1 vn C c2 C2 A B')
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     obtain C1' where "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'"
     proof -
       have "PROP ?Hyp Env B \<langle>c1\<rangle>" by (rule Try.hyps)
@@ -1473,7 +1473,7 @@ proof -
     thus ?case ..
   next
     case (Fin Env B c1 C1 c2 C2 A B')
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     obtain C1' where C1': "Env\<turnstile> B' \<guillemotright>\<langle>c1\<rangle>\<guillemotright> C1'"
     proof -
       have "PROP ?Hyp Env B \<langle>c1\<rangle>" by (rule Fin.hyps)
@@ -1507,7 +1507,7 @@ proof -
     case UnOp thus ?case by (iprover intro: da.UnOp)
   next
     case (CondAnd Env B e1 E1 e2 E2 A B')
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     obtain E1' where "Env\<turnstile> B' \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
     proof -
       have "PROP ?Hyp Env B \<langle>e1\<rangle>" by (rule CondAnd.hyps)
@@ -1529,7 +1529,7 @@ proof -
     thus ?case ..
   next
     case (CondOr Env B e1 E1 e2 E2 A B')
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     obtain E1' where "Env\<turnstile> B' \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
     proof -
       have "PROP ?Hyp Env B \<langle>e1\<rangle>" by (rule CondOr.hyps)
@@ -1551,7 +1551,7 @@ proof -
     thus ?case ..
   next
     case (BinOp Env B e1 E1 e2 A binop B')
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     obtain E1' where E1': "Env\<turnstile> B' \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
     proof -
       have "PROP ?Hyp Env B \<langle>e1\<rangle>" by (rule BinOp.hyps)
@@ -1575,22 +1575,22 @@ proof -
     thus ?case ..
   next
     case (Super B Env B')
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     with Super.hyps have "This \<in> B'"
       by auto
     thus ?case by (iprover intro: da.Super)
   next
     case (AccLVar vn B A Env B')
-    note `vn \<in> B`
+    note \<open>vn \<in> B\<close>
     moreover
-    note `B \<subseteq> B'`
+    note \<open>B \<subseteq> B'\<close>
     ultimately have "vn \<in> B'" by auto
     thus ?case by (iprover intro: da.AccLVar)
   next
     case Acc thus ?case by (iprover intro: da.Acc)
   next 
     case (AssLVar Env B e E A vn B')
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     then obtain E' where "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
       by (rule AssLVar.hyps [elim_format]) iprover
     then obtain A' where  
@@ -1599,8 +1599,8 @@ proof -
     thus ?case ..
   next
     case (Ass v Env B V e A B') 
-    note B' = `B \<subseteq> B'`
-    note `\<forall>vn. v \<noteq> LVar vn`
+    note B' = \<open>B \<subseteq> B'\<close>
+    note \<open>\<forall>vn. v \<noteq> LVar vn\<close>
     moreover
     obtain V' where V': "Env\<turnstile> B' \<guillemotright>\<langle>v\<rangle>\<guillemotright> V'"
     proof -
@@ -1625,8 +1625,8 @@ proof -
     thus ?case ..
   next
     case (CondBool Env c e1 e2 B C E1 E2 A B')
-    note B' = `B \<subseteq> B'`
-    note `Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean)`
+    note B' = \<open>B \<subseteq> B'\<close>
+    note \<open>Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean)\<close>
     moreover obtain C' where C': "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
     proof -
       have "PROP ?Hyp Env B \<langle>c\<rangle>" by (rule CondBool.hyps)
@@ -1661,8 +1661,8 @@ proof -
     thus ?case ..
   next
     case (Cond Env c e1 e2 B C E1 E2 A B')
-    note B' = `B \<subseteq> B'`
-    note `\<not> Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean)`
+    note B' = \<open>B \<subseteq> B'\<close>
+    note \<open>\<not> Env\<turnstile>(c ? e1 : e2)\<Colon>-(PrimT Boolean)\<close>
     moreover obtain C' where C': "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'"
     proof -
       have "PROP ?Hyp Env B \<langle>c\<rangle>" by (rule Cond.hyps)
@@ -1697,7 +1697,7 @@ proof -
     thus ?case ..
   next
     case (Call Env B e E args A accC statT mode mn pTs B')
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     obtain E' where E': "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
     proof -
       have "PROP ?Hyp Env B \<langle>e\<rangle>" by (rule Call.hyps)
@@ -1723,7 +1723,7 @@ proof -
     case Methd thus ?case by (iprover intro: da.Methd)
   next
     case (Body Env B c C A D B')  
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     obtain C' where C': "Env\<turnstile> B' \<guillemotright>\<langle>c\<rangle>\<guillemotright> C'" and nrm_C': "nrm C \<subseteq> nrm C'"
     proof -
       have "Env\<turnstile> B \<guillemotright>\<langle>c\<rangle>\<guillemotright> C" by (rule Body.hyps)
@@ -1737,10 +1737,10 @@ proof -
       with da_c that show ?thesis by iprover
     qed
     moreover 
-    note `Result \<in> nrm C`
+    note \<open>Result \<in> nrm C\<close>
     with nrm_C' have "Result \<in> nrm C'"
       by blast
-    moreover note `jumpNestingOkS {Ret} c`
+    moreover note \<open>jumpNestingOkS {Ret} c\<close>
     ultimately obtain A' where
       "Env\<turnstile> B' \<guillemotright>\<langle>Body D c\<rangle>\<guillemotright> A'"
       by (iprover intro: da.Body)
@@ -1751,7 +1751,7 @@ proof -
     case FVar thus ?case by (iprover intro: da.FVar)
   next
     case (AVar Env B e1 E1 e2 A B')
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     obtain E1' where E1': "Env\<turnstile> B' \<guillemotright>\<langle>e1\<rangle>\<guillemotright> E1'"
     proof -
       have "PROP ?Hyp Env B \<langle>e1\<rangle>" by (rule AVar.hyps)
@@ -1777,7 +1777,7 @@ proof -
     case Nil thus ?case by (iprover intro: da.Nil)
   next
     case (Cons Env B e E es A B')
-    note B' = `B \<subseteq> B'`
+    note B' = \<open>B \<subseteq> B'\<close>
     obtain E' where E': "Env\<turnstile> B' \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'"
     proof -
       have "PROP ?Hyp Env B \<langle>e\<rangle>" by (rule Cons.hyps)
@@ -1800,7 +1800,7 @@ proof -
       by (iprover intro: da.Cons)
     thus ?case ..
   qed
-  from this [OF `B \<subseteq> B'`] show ?thesis .
+  from this [OF \<open>B \<subseteq> B'\<close>] show ?thesis .
 qed
 
 (* Remarks about the proof style:

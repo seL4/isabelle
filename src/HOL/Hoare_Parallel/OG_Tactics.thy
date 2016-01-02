@@ -56,10 +56,9 @@ apply(rule Conseq)
 apply assumption+
 done
 
-text \<open>Three new proof rules for special instances of the @{text
-AnnBasic} and the @{text AnnAwait} commands when the transformation
-performed on the state is the identity, and for an @{text AnnAwait}
-command where the boolean condition is @{text "{s. True}"}:\<close>
+text \<open>Three new proof rules for special instances of the \<open>AnnBasic\<close> and the \<open>AnnAwait\<close> commands when the transformation
+performed on the state is the identity, and for an \<open>AnnAwait\<close>
+command where the boolean condition is \<open>{s. True}\<close>:\<close>
 
 lemma AnnatomRule:
   "\<lbrakk> atom_com(c); \<parallel>- r c q \<rbrakk>  \<Longrightarrow> \<turnstile> (AnnAwait r {s. True} c) q"
@@ -81,9 +80,8 @@ apply(rule BasicRule)
 apply simp
 done
 
-text \<open>Lemmata to avoid using the definition of @{text
-map_ann_hoare}, @{text interfree_aux}, @{text interfree_swap} and
-@{text interfree} by splitting it into different cases:\<close>
+text \<open>Lemmata to avoid using the definition of \<open>map_ann_hoare\<close>, \<open>interfree_aux\<close>, \<open>interfree_swap\<close> and
+\<open>interfree\<close> by splitting it into different cases:\<close>
 
 lemma interfree_aux_rule1: "interfree_aux(co, q, None)"
 by(simp add:interfree_aux_def)
@@ -286,9 +284,9 @@ fun ParallelConseq ctxt =
     addsimps @{thms ParallelConseq_list} @ @{thms my_simp_list})
 \<close>
 
-text \<open>The following tactic applies @{text tac} to each conjunct in a
-subgoal of the form @{text "A \<Longrightarrow> a1 \<and> a2 \<and> .. \<and> an"}  returning
-@{text n} subgoals, one for each conjunct:\<close>
+text \<open>The following tactic applies \<open>tac\<close> to each conjunct in a
+subgoal of the form \<open>A \<Longrightarrow> a1 \<and> a2 \<and> .. \<and> an\<close>  returning
+\<open>n\<close> subgoals, one for each conjunct:\<close>
 
 ML \<open>
 fun conjI_Tac ctxt tac i st = st |>
@@ -307,18 +305,18 @@ text \<open>The tactic basically uses two subtactics:
 \item[HoareRuleTac] is called at the level of parallel programs, it
  uses the ParallelTac to solve parallel composition of programs.
  This verification has two parts, namely, (1) all component programs are
- correct and (2) they are interference free.  @{text HoareRuleTac} is
- also called at the level of atomic regions, i.e.  @{text "\<langle> \<rangle>"} and
- @{text "AWAIT b THEN _ END"}, and at each interference freedom test.
+ correct and (2) they are interference free.  \<open>HoareRuleTac\<close> is
+ also called at the level of atomic regions, i.e.  \<open>\<langle> \<rangle>\<close> and
+ \<open>AWAIT b THEN _ END\<close>, and at each interference freedom test.
 
 \item[AnnHoareRuleTac] is for component programs which
  are annotated programs and so, there are not unknown assertions
  (no need to use the parameter precond, see NOTE).
 
- NOTE: precond(::bool) informs if the subgoal has the form @{text "\<parallel>- ?p c q"},
+ NOTE: precond(::bool) informs if the subgoal has the form \<open>\<parallel>- ?p c q\<close>,
  in this case we have precond=False and the generated  verification
- condition would have the form @{text "?p \<subseteq> \<dots>"} which can be solved by
- @{text "rtac subset_refl"}, if True we proceed to simplify it using
+ condition would have the form \<open>?p \<subseteq> \<dots>\<close> which can be solved by
+ \<open>rtac subset_refl\<close>, if True we proceed to simplify it using
  the simplification tactics above.
 
 \end{description}
@@ -448,15 +446,14 @@ and dest_atomics_Tac ctxt i st = st |>
 \<close>
 
 
-text \<open>The final tactic is given the name @{text oghoare}:\<close>
+text \<open>The final tactic is given the name \<open>oghoare\<close>:\<close>
 
 ML \<open>
 fun oghoare_tac ctxt = SUBGOAL (fn (_, i) => HoareRuleTac ctxt true i)
 \<close>
 
-text \<open>Notice that the tactic for parallel programs @{text
-"oghoare_tac"} is initially invoked with the value @{text true} for
-the parameter @{text precond}.
+text \<open>Notice that the tactic for parallel programs \<open>oghoare_tac\<close> is initially invoked with the value \<open>true\<close> for
+the parameter \<open>precond\<close>.
 
 Parts of the tactic can be also individually used to generate the
 verification conditions for annotated sequential programs and to

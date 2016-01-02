@@ -3,7 +3,7 @@ imports OG_Tactics Quote_Antiquote
 begin
 
 text\<open>Syntax for commands and for assertions and boolean expressions in
- commands @{text com} and annotated commands @{text ann_com}.\<close>
+ commands \<open>com\<close> and annotated commands \<open>ann_com\<close>.\<close>
 
 abbreviation Skip :: "'a com"  ("SKIP" 63)
   where "SKIP \<equiv> Basic id"

@@ -152,14 +152,14 @@ lemmas [simp] = is_class_def
 
 text \<open>
   The next definition and three proof rules implement an algorithm to
-  enumarate natural numbers. The command @{text "apply (elim pc_end pc_next pc_0"} 
+  enumarate natural numbers. The command \<open>apply (elim pc_end pc_next pc_0\<close> 
   transforms a goal of the form
   @{prop [display] "pc < n \<Longrightarrow> P pc"} 
   into a series of goals
   @{prop [display] "P 0"} 
   @{prop [display] "P (Suc 0)"} 
 
-  @{text "\<dots>"}
+  \<open>\<dots>\<close>
 
   @{prop [display] "P n"} 
 \<close>

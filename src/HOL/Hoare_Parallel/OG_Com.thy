@@ -10,8 +10,8 @@ type_synonym 'a bexp = "'a set"
 type_synonym 'a assn = "'a set"
 
 text \<open>The syntax of commands is defined by two mutually recursive
-datatypes: @{text "'a ann_com"} for annotated commands and @{text "'a
-com"} for non-annotated commands.\<close>
+datatypes: \<open>'a ann_com\<close> for annotated commands and \<open>'a
+com\<close> for non-annotated commands.\<close>
 
 datatype 'a ann_com =
      AnnBasic "('a assn)"  "('a \<Rightarrow> 'a)"
@@ -27,7 +27,7 @@ and 'a com =
    | Cond "('a bexp)"  "('a com)"  "('a com)"
    | While "('a bexp)"  "('a assn)"  "('a com)"
 
-text \<open>The function @{text pre} extracts the precondition of an
+text \<open>The function \<open>pre\<close> extracts the precondition of an
 annotated command:\<close>
 
 primrec pre ::"'a ann_com \<Rightarrow> 'a assn"  where

@@ -1,9 +1,9 @@
 (*  Title:      HOL/Bali/AxSound.thy
     Author:     David von Oheimb and Norbert Schirmer
 *)
-subsection {* Soundness proof for Axiomatic semantics of Java expressions and 
+subsection \<open>Soundness proof for Axiomatic semantics of Java expressions and 
           statements
-       *}
+\<close>
 
 theory AxSound imports AxSem begin
 
@@ -19,13 +19,13 @@ definition
             \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>dom (locals (store s))\<guillemotright>t\<guillemotright>A)) \<longrightarrow>
              (\<forall>Y' s'. G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y',s') \<longrightarrow> Q Y' s' Z \<and> s'\<Colon>\<preceq>(G,L)))))"
 
-text {* This definition differs from the ordinary  @{text triple_valid_def} 
+text \<open>This definition differs from the ordinary  \<open>triple_valid_def\<close> 
 manly in the conclusion: We also ensures conformance of the result state. So
 we don't have to apply the type soundness lemma all the time during
 induction. This definition is only introduced for the soundness
 proof of the axiomatic semantics, in the end we will conclude to 
 the ordinary definition.
-*}
+\<close>
 
 definition
   ax_valids2 :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triples \<Rightarrow> bool"  ("_,_|\<Turnstile>\<Colon>_" [61,58,58] 57)
@@ -126,8 +126,8 @@ proof -
       qed
     next
       case (Suc m)
-      note hyp = `\<forall>t\<in>A. G\<Turnstile>m\<Colon>t \<Longrightarrow> \<forall>t\<in>{{P} Methd-\<succ> {Q} | ms}.  G\<Turnstile>m\<Colon>t`
-      note prem = `\<forall>t\<in>A. G\<Turnstile>Suc m\<Colon>t`
+      note hyp = \<open>\<forall>t\<in>A. G\<Turnstile>m\<Colon>t \<Longrightarrow> \<forall>t\<in>{{P} Methd-\<succ> {Q} | ms}.  G\<Turnstile>m\<Colon>t\<close>
+      note prem = \<open>\<forall>t\<in>A. G\<Turnstile>Suc m\<Colon>t\<close>
       show "\<forall>t\<in>{{P} Methd-\<succ> {Q} | ms}.  G\<Turnstile>Suc m\<Colon>t"
       proof -
         {
@@ -350,9 +350,9 @@ proof (induct)
     by (simp add: ax_valids2_def triple_valid2_def2)
 next
   case (insert A t ts)
-  note valid_t = `G,A|\<Turnstile>\<Colon>{t}`
+  note valid_t = \<open>G,A|\<Turnstile>\<Colon>{t}\<close>
   moreover
-  note valid_ts = `G,A|\<Turnstile>\<Colon>ts`
+  note valid_ts = \<open>G,A|\<Turnstile>\<Colon>ts\<close>
   {
     fix n assume valid_A: "\<forall>t\<in>A. G\<Turnstile>n\<Colon>t"
     have "G\<Turnstile>n\<Colon>t" and "\<forall>t\<in>ts. G\<Turnstile>n\<Colon>t"
@@ -370,21 +370,21 @@ next
     by (unfold ax_valids2_def) blast
 next
   case (asm ts A)
-  from `ts \<subseteq> A`
+  from \<open>ts \<subseteq> A\<close>
   show "G,A|\<Turnstile>\<Colon>ts"
     by (auto simp add: ax_valids2_def triple_valid2_def)
 next
   case (weaken A ts' ts)
-  note `G,A|\<Turnstile>\<Colon>ts'`
-  moreover note `ts \<subseteq> ts'`
+  note \<open>G,A|\<Turnstile>\<Colon>ts'\<close>
+  moreover note \<open>ts \<subseteq> ts'\<close>
   ultimately show "G,A|\<Turnstile>\<Colon>ts"
     by (unfold ax_valids2_def triple_valid2_def) blast
 next
   case (conseq P A t Q)
-  note con = `\<forall>Y s Z. P Y s Z \<longrightarrow> 
+  note con = \<open>\<forall>Y s Z. P Y s Z \<longrightarrow> 
               (\<exists>P' Q'.
                   (G,A\<turnstile>{P'} t\<succ> {Q'} \<and> G,A|\<Turnstile>\<Colon>{ {P'} t\<succ> {Q'} }) \<and>
-                  (\<forall>Y' s'. (\<forall>Y Z'. P' Y s Z' \<longrightarrow> Q' Y' s' Z') \<longrightarrow> Q Y' s' Z))`
+                  (\<forall>Y' s'. (\<forall>Y Z'. P' Y s Z' \<longrightarrow> Q' Y' s' Z') \<longrightarrow> Q Y' s' Z))\<close>
   show "G,A|\<Turnstile>\<Colon>{ {P} t\<succ> {Q} }"
   proof (rule validI)
     fix n s0 L accC T C v s1 Y Z
@@ -469,8 +469,8 @@ next
   qed
 next
   case (FVar A P statDeclC Q e stat fn R accC)
-  note valid_init = `G,A|\<Turnstile>\<Colon>{ {Normal P} .Init statDeclC. {Q} }`
-  note valid_e = `G,A|\<Turnstile>\<Colon>{ {Q} e-\<succ> {\<lambda>Val:a:. fvar statDeclC stat fn a ..; R} }`
+  note valid_init = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} .Init statDeclC. {Q} }\<close>
+  note valid_e = \<open>G,A|\<Turnstile>\<Colon>{ {Q} e-\<succ> {\<lambda>Val:a:. fvar statDeclC stat fn a ..; R} }\<close>
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} {accC,statDeclC,stat}e..fn=\<succ> {R} }"
   proof (rule valid_var_NormalI)
     fix n s0 L accC' T V vf s3 Y Z
@@ -564,7 +564,7 @@ next
   qed
 next
   case (AVar A P e1 Q e2 R)
-  note valid_e1 = `G,A|\<Turnstile>\<Colon>{ {Normal P} e1-\<succ> {Q} }`
+  note valid_e1 = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} e1-\<succ> {Q} }\<close>
   have valid_e2: "\<And> a. G,A|\<Turnstile>\<Colon>{ {Q\<leftarrow>In1 a} e2-\<succ> {\<lambda>Val:i:. avar G i a ..; R} }"
     using AVar.hyps by simp
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} e1.[e2]=\<succ> {R} }"
@@ -628,7 +628,7 @@ next
   qed
 next
   case (NewC A P C Q)
-  note valid_init = `G,A|\<Turnstile>\<Colon>{ {Normal P} .Init C. {Alloc G (CInst C) Q} }`
+  note valid_init = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} .Init C. {Alloc G (CInst C) Q} }\<close>
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} NewC C-\<succ> {Q} }"
   proof (rule valid_expr_NormalI)
     fix n s0 L accC T E v s2 Y Z
@@ -668,9 +668,9 @@ next
   qed
 next
   case (NewA A P T Q e R)
-  note valid_init = `G,A|\<Turnstile>\<Colon>{ {Normal P} .init_comp_ty T. {Q} }`
-  note valid_e = `G,A|\<Turnstile>\<Colon>{ {Q} e-\<succ> {\<lambda>Val:i:. abupd (check_neg i) .; 
-                                            Alloc G (Arr T (the_Intg i)) R}}`
+  note valid_init = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} .init_comp_ty T. {Q} }\<close>
+  note valid_e = \<open>G,A|\<Turnstile>\<Colon>{ {Q} e-\<succ> {\<lambda>Val:i:. abupd (check_neg i) .; 
+                                            Alloc G (Arr T (the_Intg i)) R}}\<close>
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} New T[e]-\<succ> {R} }"
   proof (rule valid_expr_NormalI)
     fix n s0 L accC arrT E v s3 Y Z
@@ -741,9 +741,9 @@ next
   qed
 next
   case (Cast A P e T Q)
-  note valid_e = `G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> 
+  note valid_e = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> 
                  {\<lambda>Val:v:. \<lambda>s.. abupd (raise_if (\<not> G,s\<turnstile>v fits T) ClassCast) .;
-                  Q\<leftarrow>In1 v} }`
+                  Q\<leftarrow>In1 v} }\<close>
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} Cast T e-\<succ> {Q} }"
   proof (rule valid_expr_NormalI)
     fix n s0 L accC castT E v s2 Y Z
@@ -972,7 +972,7 @@ next
   qed
 next
   case (Acc A P var Q)
-  note valid_var = `G,A|\<Turnstile>\<Colon>{ {Normal P} var=\<succ> {\<lambda>Var:(v, f):. Q\<leftarrow>In1 v} }`
+  note valid_var = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} var=\<succ> {\<lambda>Var:(v, f):. Q\<leftarrow>In1 v} }\<close>
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} Acc var-\<succ> {Q} }"
   proof (rule valid_expr_NormalI)
     fix n s0 L accC T E v s1 Y Z
@@ -1008,7 +1008,7 @@ next
   qed
 next
   case (Ass A P var Q e R)
-  note valid_var = `G,A|\<Turnstile>\<Colon>{ {Normal P} var=\<succ> {Q} }`
+  note valid_var = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} var=\<succ> {Q} }\<close>
   have valid_e: "\<And> vf. 
                   G,A|\<Turnstile>\<Colon>{ {Q\<leftarrow>In2 vf} e-\<succ> {\<lambda>Val:v:. assign (snd vf) v .; R} }"
     using Ass.hyps by simp
@@ -1120,7 +1120,7 @@ next
   qed
 next
   case (Cond A P e0 P' e1 e2 Q)
-  note valid_e0 = `G,A|\<Turnstile>\<Colon>{ {Normal P} e0-\<succ> {P'} }`
+  note valid_e0 = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} e0-\<succ> {P'} }\<close>
   have valid_then_else:"\<And> b.  G,A|\<Turnstile>\<Colon>{ {P'\<leftarrow>=b} (if b then e1 else e2)-\<succ> {Q} }"
     using Cond.hyps by simp
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} e0 ? e1 : e2-\<succ> {Q} }"
@@ -1210,7 +1210,7 @@ next
   qed
 next
   case (Call A P e Q args R mode statT mn pTs' S accC')
-  note valid_e = `G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {Q} }`
+  note valid_e = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {Q} }\<close>
   have valid_args: "\<And> a. G,A|\<Turnstile>\<Colon>{ {Q\<leftarrow>In1 a} args\<doteq>\<succ> {R a} }"
     using Call.hyps by simp
   have valid_methd: "\<And> a vs invC declC l.
@@ -1594,14 +1594,14 @@ next
   qed
 next
   case (Methd A P Q ms)
-  note valid_body = `G,A \<union> {{P} Methd-\<succ> {Q} | ms}|\<Turnstile>\<Colon>{{P} body G-\<succ> {Q} | ms}`
+  note valid_body = \<open>G,A \<union> {{P} Methd-\<succ> {Q} | ms}|\<Turnstile>\<Colon>{{P} body G-\<succ> {Q} | ms}\<close>
   show "G,A|\<Turnstile>\<Colon>{{P} Methd-\<succ> {Q} | ms}"
     by (rule Methd_sound) (rule Methd.hyps)
 next
   case (Body A P D Q c R)
-  note valid_init = `G,A|\<Turnstile>\<Colon>{ {Normal P} .Init D. {Q} }`
-  note valid_c = `G,A|\<Turnstile>\<Colon>{ {Q} .c.
-              {\<lambda>s.. abupd (absorb Ret) .; R\<leftarrow>In1 (the (locals s Result))} }`
+  note valid_init = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} .Init D. {Q} }\<close>
+  note valid_c = \<open>G,A|\<Turnstile>\<Colon>{ {Q} .c.
+              {\<lambda>s.. abupd (absorb Ret) .; R\<leftarrow>In1 (the (locals s Result))} }\<close>
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} Body D c-\<succ> {R} }"
   proof (rule valid_expr_NormalI)
     fix n s0 L accC T E v s4 Y Z
@@ -1692,7 +1692,7 @@ next
   qed
 next
   case (Cons A P e Q es R)
-  note valid_e = `G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {Q} }`
+  note valid_e = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {Q} }\<close>
   have valid_es: "\<And> v. G,A|\<Turnstile>\<Colon>{ {Q\<leftarrow>\<lfloor>v\<rfloor>\<^sub>e} es\<doteq>\<succ> {\<lambda>Vals:vs:. R\<leftarrow>\<lfloor>(v # vs)\<rfloor>\<^sub>l} }"
     using Cons.hyps by simp
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} e # es\<doteq>\<succ> {R} }"
@@ -1774,7 +1774,7 @@ next
   qed
 next
   case (Expr A P e Q)
-  note valid_e = `G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {Q\<leftarrow>\<diamondsuit>} }`
+  note valid_e = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {Q\<leftarrow>\<diamondsuit>} }\<close>
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} .Expr e. {Q} }"
   proof (rule valid_stmt_NormalI)
     fix n s0 L accC C s1 Y Z
@@ -1804,7 +1804,7 @@ next
   qed
 next
   case (Lab A P c l Q)
-  note valid_c = `G,A|\<Turnstile>\<Colon>{ {Normal P} .c. {abupd (absorb l) .; Q} }`
+  note valid_c = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} .c. {abupd (absorb l) .; Q} }\<close>
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} .l\<bullet> c. {Q} }"
   proof (rule valid_stmt_NormalI)
     fix n s0 L accC C s2 Y Z
@@ -1841,8 +1841,8 @@ next
   qed
 next
   case (Comp A P c1 Q c2 R)
-  note valid_c1 = `G,A|\<Turnstile>\<Colon>{ {Normal P} .c1. {Q} }`
-  note valid_c2 = `G,A|\<Turnstile>\<Colon>{ {Q} .c2. {R} }`
+  note valid_c1 = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} .c1. {Q} }\<close>
+  note valid_c2 = \<open>G,A|\<Turnstile>\<Colon>{ {Q} .c2. {R} }\<close>
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} .c1;; c2. {R} }"
   proof (rule valid_stmt_NormalI)
     fix n s0 L accC C s2 Y Z
@@ -1900,7 +1900,7 @@ next
   qed
 next
   case (If A P e P' c1 c2 Q)
-  note valid_e = `G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {P'} }`
+  note valid_e = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {P'} }\<close>
   have valid_then_else: "\<And> b. G,A|\<Turnstile>\<Colon>{ {P'\<leftarrow>=b} .(if b then c1 else c2). {Q} }"
     using If.hyps by simp
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} .If(e) c1 Else c2. {Q} }"
@@ -1977,10 +1977,10 @@ next
   qed
 next
   case (Loop A P e P' c l)
-  note valid_e = `G,A|\<Turnstile>\<Colon>{ {P} e-\<succ> {P'} }`
-  note valid_c = `G,A|\<Turnstile>\<Colon>{ {Normal (P'\<leftarrow>=True)}
+  note valid_e = \<open>G,A|\<Turnstile>\<Colon>{ {P} e-\<succ> {P'} }\<close>
+  note valid_c = \<open>G,A|\<Turnstile>\<Colon>{ {Normal (P'\<leftarrow>=True)}
                          .c. 
-                         {abupd (absorb (Cont l)) .; P} }`
+                         {abupd (absorb (Cont l)) .; P} }\<close>
   show "G,A|\<Turnstile>\<Colon>{ {P} .l\<bullet> While(e) c. {P'\<leftarrow>=False\<down>=\<diamondsuit>} }"
   proof (rule valid_stmtI)
     fix n s0 L accC C s3 Y Z
@@ -1993,7 +1993,7 @@ next
     assume P: "P Y s0 Z"
     show "(P'\<leftarrow>=False\<down>=\<diamondsuit>) \<diamondsuit> s3 Z \<and> s3\<Colon>\<preceq>(G,L)"
     proof -
-        --{* From the given hypothesises @{text valid_e} and @{text valid_c} 
+        \<comment>\<open>From the given hypothesises \<open>valid_e\<close> and \<open>valid_c\<close> 
            we can only reach the state after unfolding the loop once, i.e. 
            @{term "P \<diamondsuit> s2 Z"}, where @{term s2} is the state after executing
            @{term c}. To gain validity of the further execution of while, to
@@ -2001,9 +2001,9 @@ next
            a hypothesis about the subsequent unfoldings (the whole loop again),
            too. We can achieve this, by performing induction on the 
            evaluation relation, with all
-           the necessary preconditions to apply @{text valid_e} and 
-           @{text valid_c} in the goal.
-        *}
+           the necessary preconditions to apply \<open>valid_e\<close> and 
+           \<open>valid_c\<close> in the goal.
+\<close>
       {
         fix t s s' v 
         assume "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v, s')"
@@ -2015,11 +2015,11 @@ next
           (is "PROP ?Hyp n t s v s'")
         proof (induct)
           case (Loop s0' e' b n' s1' c' s2' l' s3' Y' T E)
-          note while = `(\<langle>l'\<bullet> While(e') c'\<rangle>\<^sub>s::term) = \<langle>l\<bullet> While(e) c\<rangle>\<^sub>s`
+          note while = \<open>(\<langle>l'\<bullet> While(e') c'\<rangle>\<^sub>s::term) = \<langle>l\<bullet> While(e) c\<rangle>\<^sub>s\<close>
           hence eqs: "l'=l" "e'=e" "c'=c" by simp_all
-          note valid_A = `\<forall>t\<in>A. G\<Turnstile>n'\<Colon>t`
-          note P = `P Y' (Norm s0') Z`
-          note conf_s0' = `Norm s0'\<Colon>\<preceq>(G, L)`
+          note valid_A = \<open>\<forall>t\<in>A. G\<Turnstile>n'\<Colon>t\<close>
+          note P = \<open>P Y' (Norm s0') Z\<close>
+          note conf_s0' = \<open>Norm s0'\<Colon>\<preceq>(G, L)\<close>
           have wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>\<langle>l\<bullet> While(e) c\<rangle>\<^sub>s\<Colon>T"
             using Loop.prems eqs by simp
           have da: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>
@@ -2168,10 +2168,10 @@ next
           qed
         next
           case (Abrupt abr s t' n' Y' T E)
-          note t' = `t' = \<langle>l\<bullet> While(e) c\<rangle>\<^sub>s`
-          note conf = `(Some abr, s)\<Colon>\<preceq>(G, L)`
-          note P = `P Y' (Some abr, s) Z`
-          note valid_A = `\<forall>t\<in>A. G\<Turnstile>n'\<Colon>t`
+          note t' = \<open>t' = \<langle>l\<bullet> While(e) c\<rangle>\<^sub>s\<close>
+          note conf = \<open>(Some abr, s)\<Colon>\<preceq>(G, L)\<close>
+          note P = \<open>P Y' (Some abr, s) Z\<close>
+          note valid_A = \<open>\<forall>t\<in>A. G\<Turnstile>n'\<Colon>t\<close>
           show "(P'\<leftarrow>=False\<down>=\<diamondsuit>) (undefined3 t') (Some abr, s) Z"
           proof -
             have eval_e: 
@@ -2234,7 +2234,7 @@ next
   qed
 next
   case (Throw A P e Q)
-  note valid_e = `G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {\<lambda>Val:a:. abupd (throw a) .; Q\<leftarrow>\<diamondsuit>} }`
+  note valid_e = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} e-\<succ> {\<lambda>Val:a:. abupd (throw a) .; Q\<leftarrow>\<diamondsuit>} }\<close>
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} .Throw e. {Q} }"
   proof (rule valid_stmt_NormalI)
     fix n s0 L accC C s2 Y Z
@@ -2272,11 +2272,11 @@ next
   qed
 next
   case (Try A P c1 Q C vn c2 R)
-  note valid_c1 = `G,A|\<Turnstile>\<Colon>{ {Normal P} .c1. {SXAlloc G Q} }`
-  note valid_c2 = `G,A|\<Turnstile>\<Colon>{ {Q \<and>. (\<lambda>s. G,s\<turnstile>catch C) ;. new_xcpt_var vn} 
+  note valid_c1 = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} .c1. {SXAlloc G Q} }\<close>
+  note valid_c2 = \<open>G,A|\<Turnstile>\<Colon>{ {Q \<and>. (\<lambda>s. G,s\<turnstile>catch C) ;. new_xcpt_var vn} 
                            .c2. 
-                          {R} }`
-  note Q_R = `(Q \<and>. (\<lambda>s. \<not> G,s\<turnstile>catch C)) \<Rightarrow> R`
+                          {R} }\<close>
+  note Q_R = \<open>(Q \<and>. (\<lambda>s. \<not> G,s\<turnstile>catch C)) \<Rightarrow> R\<close>
   show "G,A|\<Turnstile>\<Colon>{ {Normal P} .Try c1 Catch(C vn) c2. {R} }"
   proof (rule valid_stmt_NormalI)
     fix n s0 L accC E s3 Y Z
@@ -2404,7 +2404,7 @@ next
   qed
 next
   case (Fin A P c1 Q c2 R)
-  note valid_c1 = `G,A|\<Turnstile>\<Colon>{ {Normal P} .c1. {Q} }`
+  note valid_c1 = \<open>G,A|\<Turnstile>\<Colon>{ {Normal P} .c1. {Q} }\<close>
   have valid_c2: "\<And> abr. G,A|\<Turnstile>\<Colon>{ {Q \<and>. (\<lambda>s. abr = fst s) ;. abupd (\<lambda>x. None)} 
                                   .c2.
                                   {abupd (abrupt_if (abr \<noteq> None) abr) .; R} }"
@@ -2501,11 +2501,11 @@ next
   qed
 next
   case (Init C c A P Q R)
-  note c = `the (class G C) = c`
+  note c = \<open>the (class G C) = c\<close>
   note valid_super =
-        `G,A|\<Turnstile>\<Colon>{ {Normal (P \<and>. Not \<circ> initd C ;. supd (init_class_obj G C))}
+        \<open>G,A|\<Turnstile>\<Colon>{ {Normal (P \<and>. Not \<circ> initd C ;. supd (init_class_obj G C))}
                  .(if C = Object then Skip else Init (super c)). 
-                 {Q} }`
+                 {Q} }\<close>
   have valid_init: 
         "\<And> l.  G,A|\<Turnstile>\<Colon>{ {Q \<and>. (\<lambda>s. l = locals (snd s)) ;. set_lvars empty} 
                         .init c.

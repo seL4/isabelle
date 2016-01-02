@@ -39,8 +39,8 @@ apply vcg_simp
 apply fastforce
 done
 
-text{* And now with ghost variables @{term ps} and @{term qs}. Even
-``more automatic''. *}
+text\<open>And now with ghost variables @{term ps} and @{term qs}. Even
+``more automatic''.\<close>
 
 lemma "VARS next p ps q qs r
   {List next p Ps \<and> List next q Qs \<and> set Ps \<inter> set Qs = {} \<and>
@@ -95,7 +95,7 @@ next
 qed
 
 
-text{* Finaly, the functional version. A bit more verbose, but automatic! *}
+text\<open>Finaly, the functional version. A bit more verbose, but automatic!\<close>
 
 lemma "VARS tl p q r
   {islist tl p \<and> islist tl q \<and>
@@ -115,11 +115,11 @@ done
 
 subsection "Searching in a list"
 
-text{*What follows is a sequence of successively more intelligent proofs that
+text\<open>What follows is a sequence of successively more intelligent proofs that
 a simple loop finds an element in a linked list.
 
 We start with a proof based on the @{term List} predicate. This means it only
-works for acyclic lists. *}
+works for acyclic lists.\<close>
 
 lemma "VARS tl p
   {List tl p Ps \<and> X \<in> set Ps}
@@ -133,8 +133,8 @@ apply vcg_simp
 apply clarsimp
 done
 
-text{*Using @{term Path} instead of @{term List} generalizes the correctness
-statement to cyclic lists as well: *}
+text\<open>Using @{term Path} instead of @{term List} generalizes the correctness
+statement to cyclic lists as well:\<close>
 
 lemma "VARS tl p
   {Path tl p Ps X}
@@ -148,9 +148,9 @@ apply vcg_simp
 apply clarsimp
 done
 
-text{*Now it dawns on us that we do not need the list witness at all --- it
+text\<open>Now it dawns on us that we do not need the list witness at all --- it
 suffices to talk about reachability, i.e.\ we can use relations directly. The
-first version uses a relation on @{typ"'a ref"}: *}
+first version uses a relation on @{typ"'a ref"}:\<close>
 
 lemma "VARS tl p
   {(p,X) \<in> {(Ref x,tl x) |x. True}^*}
@@ -166,7 +166,7 @@ apply vcg_simp
 apply(fast elim:converse_rtranclE)
 done
 
-text{*Finally, a version based on a relation on type @{typ 'a}:*}
+text\<open>Finally, a version based on a relation on type @{typ 'a}:\<close>
 
 lemma "VARS tl p
   {p \<noteq> Null \<and> (addr p,X) \<in> {(x,y). tl x = Ref y}^*}
@@ -230,7 +230,7 @@ where
 | "merge([],y#ys,f) = y # merge([],ys,f)"
 | "merge([],[],f) = []"
 
-text{* Simplifies the proof a little: *}
+text\<open>Simplifies the proof a little:\<close>
 
 lemma [simp]: "({} = insert a A \<inter> B) = (a \<notin> B & {} = A \<inter> B)"
 by blast
@@ -287,7 +287,7 @@ apply (fastforce intro!:Path_snoc intro:Path_upd[THEN iffD2] notin_List_update[T
 apply(clarsimp simp add:List_app)
 done
 
-text{* And now with ghost variables: *}
+text\<open>And now with ghost variables:\<close>
 
 lemma "VARS elem next p q r s ps qs rs a
  {List next p Ps \<and> List next q Qs \<and> set Ps \<inter> set Qs = {} \<and>
@@ -324,18 +324,18 @@ apply(clarsimp simp:neq_commute)
 apply(clarsimp simp add:List_app)
 done
 
-text{* The proof is a LOT simpler because it does not need
+text\<open>The proof is a LOT simpler because it does not need
 instantiations anymore, but it is still not quite automatic, probably
-because of this wrong orientation business. *}
+because of this wrong orientation business.\<close>
 
-text{* More of the previous proof without ghost variables can be
+text\<open>More of the previous proof without ghost variables can be
 automated, but the runtime goes up drastically. In general it is
 usually more efficient to give the witness directly than to have it
 found by proof.
 
 Now we try a functional version of the abstraction relation @{term
 Path}. Since the result is not that convincing, we do not prove any of
-the lemmas.*}
+the lemmas.\<close>
 
 axiomatization
   ispath :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" and
@@ -404,8 +404,8 @@ text"The proof is automatic, but requires a numbet of special lemmas."
 subsection "Cyclic list reversal"
 
 
-text{* We consider two algorithms for the reversal of circular lists.
-*}
+text\<open>We consider two algorithms for the reversal of circular lists.
+\<close>
 
 lemma circular_list_rev_I:
   "VARS next root p q tmp
@@ -428,7 +428,7 @@ apply vcg_simp
 apply clarsimp
 done
 
-text{* In the beginning, we are able to assert @{term"distPath next
+text\<open>In the beginning, we are able to assert @{term"distPath next
 root as root"}, with @{term"as"} set to @{term"[]"} or
 @{term"[r,a,b,c]"}. Note that @{term"Path next root as root"} would
 additionally give us an infinite number of lists with the recurring
@@ -450,7 +450,7 @@ states that the @{term distPath} from @{term root} to itself is now
 
 It may come as a surprise to the reader that the simple algorithm for
 acyclic list reversal, with modified annotations, works for cyclic
-lists as well: *}
+lists as well:\<close>
 
 
 lemma circular_list_rev_II:

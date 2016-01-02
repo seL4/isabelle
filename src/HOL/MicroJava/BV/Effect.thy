@@ -52,9 +52,9 @@ where
                                          = (PrimT Integer#ST,LT)" |
 "eff' (Ifcmpeq b, G, (ts1#ts2#ST,LT))   = (ST,LT)" |
 "eff' (Goto b, G, s)                    = s" |
-  -- "Return has no successor instruction in the same method"
+  \<comment> "Return has no successor instruction in the same method"
 "eff' (Return, G, s)                    = s" |
-  -- "Throw always terminates abruptly"
+  \<comment> "Throw always terminates abruptly"
 "eff' (Throw, G, s)                     = s" |
 "eff' (Invoke C mn fpTs, G, (ST,LT))    = (let ST' = drop (length fpTs) ST 
   in  (fst (snd (the (method (G,C) (mn,fpTs))))#(tl ST'),LT))" 

@@ -1,14 +1,14 @@
 (*  Title:      HOL/Bali/Evaln.thy
     Author:     David von Oheimb and Norbert Schirmer
 *)
-subsection {* Operational evaluation (big-step) semantics of Java expressions and 
+subsection \<open>Operational evaluation (big-step) semantics of Java expressions and 
           statements
-*}
+\<close>
 
 theory Evaln imports TypeSafe begin
 
 
-text {*
+text \<open>
 Variant of @{term eval} relation with counter for bounded recursive depth. 
 In principal @{term evaln} could replace @{term eval}.
 
@@ -25,7 +25,7 @@ this switch easy @{term evaln} also does all the technical accessibility tests
 @{term check_field_access} and @{term check_method_access} like @{term eval}. 
 If it would omit them @{term evaln} and @{term eval} would only be equivalent 
 for welltyped, and definitely assigned terms.
-*}
+\<close>
 
 inductive
   evaln :: "[prog, state, term, nat, vals, state] \<Rightarrow> bool"
@@ -46,12 +46,12 @@ where
 | "G\<turnstile>s \<midarrow>e=\<succ>vf \<midarrow>n\<rightarrow>    s' \<equiv> G\<turnstile>s \<midarrow>In2  e\<succ>\<midarrow>n\<rightarrow> (In2 vf,  s')"
 | "G\<turnstile>s \<midarrow>e\<doteq>\<succ>v  \<midarrow>n\<rightarrow>    s' \<equiv> G\<turnstile>s \<midarrow>In3  e\<succ>\<midarrow>n\<rightarrow> (In3 v ,  s')"
 
---{* propagation of abrupt completion *}
+\<comment>\<open>propagation of abrupt completion\<close>
 
 | Abrupt:   "G\<turnstile>(Some xc,s) \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (undefined3 t,(Some xc,s))"
 
 
---{* evaluation of variables *}
+\<comment>\<open>evaluation of variables\<close>
 
 | LVar: "G\<turnstile>Norm s \<midarrow>LVar vn=\<succ>lvar vn s\<midarrow>n\<rightarrow> Norm s"
 
@@ -67,7 +67,7 @@ where
 
 
 
---{* evaluation of expressions *}
+\<comment>\<open>evaluation of expressions\<close>
 
 | NewC: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init C\<midarrow>n\<rightarrow> s1;
           G\<turnstile>     s1 \<midarrow>halloc (CInst C)\<succ>a\<rightarrow> s2\<rbrakk> \<Longrightarrow>
@@ -129,7 +129,7 @@ where
          G\<turnstile>Norm s0 \<midarrow>Body D c
           -\<succ>the (locals (store s2) Result)\<midarrow>n\<rightarrow>abupd (absorb Ret) s3"
 
---{* evaluation of expression lists *}
+\<comment>\<open>evaluation of expression lists\<close>
 
 | Nil:
                                 "G\<turnstile>Norm s0 \<midarrow>[]\<doteq>\<succ>[]\<midarrow>n\<rightarrow> Norm s0"
@@ -139,7 +139,7 @@ where
                              G\<turnstile>Norm s0 \<midarrow>e#es\<doteq>\<succ>v#vs\<midarrow>n\<rightarrow> s2"
 
 
---{* execution of statements *}
+\<comment>\<open>execution of statements\<close>
 
 | Skip:                             "G\<turnstile>Norm s \<midarrow>Skip\<midarrow>n\<rightarrow> Norm s"
 
@@ -197,7 +197,7 @@ declare split_if     [split del] split_if_asm     [split del]
         option.split [split del] option.split_asm [split del]
         not_None_eq [simp del] 
         split_paired_All [simp del] split_paired_Ex [simp del]
-setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
+setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
 
 inductive_cases evaln_cases: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v, s')"
 
@@ -238,7 +238,7 @@ declare split_if     [split] split_if_asm     [split]
         option.split [split] option.split_asm [split]
         not_None_eq [simp] 
         split_paired_All [simp] split_paired_Ex [simp]
-declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
+declaration \<open>K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac)))\<close>
 
 lemma evaln_Inj_elim: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (w,s') \<Longrightarrow> case t of In1 ec \<Rightarrow>  
   (case ec of Inl e \<Rightarrow> (\<exists>v. w = In1 v) | Inr c \<Rightarrow> w = \<diamondsuit>)  
@@ -249,12 +249,12 @@ apply   (rename_tac a, induct_tac "a")
 apply auto
 done
 
-text {* The following simplification procedures set up the proper injections of
+text \<open>The following simplification procedures set up the proper injections of
  terms and their corresponding values in the evaluation relation:
  E.g. an expression 
  (injection @{term In1l} into terms) always evaluates to ordinary values 
  (injection @{term In1} into generalised values @{term vals}). 
-*}
+\<close>
 
 lemma evaln_expr_eq: "G\<turnstile>s \<midarrow>In1l t\<succ>\<midarrow>n\<rightarrow> (w, s') = (\<exists>v. w=In1 v \<and> G\<turnstile>s \<midarrow>t-\<succ>v \<midarrow>n\<rightarrow> s')"
   by (auto, frule evaln_Inj_elim, auto)
@@ -268,31 +268,31 @@ lemma evaln_exprs_eq: "G\<turnstile>s \<midarrow>In3 t\<succ>\<midarrow>n\<right
 lemma evaln_stmt_eq: "G\<turnstile>s \<midarrow>In1r t\<succ>\<midarrow>n\<rightarrow> (w, s') = (w=\<diamondsuit> \<and> G\<turnstile>s \<midarrow>t \<midarrow>n\<rightarrow> s')"
   by (auto, frule evaln_Inj_elim, auto, frule evaln_Inj_elim, auto)
 
-simproc_setup evaln_expr ("G\<turnstile>s \<midarrow>In1l t\<succ>\<midarrow>n\<rightarrow> (w, s')") = {*
+simproc_setup evaln_expr ("G\<turnstile>s \<midarrow>In1l t\<succ>\<midarrow>n\<rightarrow> (w, s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm evaln_expr_eq})) *}
+    | _ => SOME (mk_meta_eq @{thm evaln_expr_eq}))\<close>
 
-simproc_setup evaln_var ("G\<turnstile>s \<midarrow>In2 t\<succ>\<midarrow>n\<rightarrow> (w, s')") = {*
+simproc_setup evaln_var ("G\<turnstile>s \<midarrow>In2 t\<succ>\<midarrow>n\<rightarrow> (w, s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm evaln_var_eq})) *}
+    | _ => SOME (mk_meta_eq @{thm evaln_var_eq}))\<close>
 
-simproc_setup evaln_exprs ("G\<turnstile>s \<midarrow>In3 t\<succ>\<midarrow>n\<rightarrow> (w, s')") = {*
+simproc_setup evaln_exprs ("G\<turnstile>s \<midarrow>In3 t\<succ>\<midarrow>n\<rightarrow> (w, s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm evaln_exprs_eq})) *}
+    | _ => SOME (mk_meta_eq @{thm evaln_exprs_eq}))\<close>
 
-simproc_setup evaln_stmt ("G\<turnstile>s \<midarrow>In1r t\<succ>\<midarrow>n\<rightarrow> (w, s')") = {*
+simproc_setup evaln_stmt ("G\<turnstile>s \<midarrow>In1r t\<succ>\<midarrow>n\<rightarrow> (w, s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm evaln_stmt_eq})) *}
+    | _ => SOME (mk_meta_eq @{thm evaln_stmt_eq}))\<close>
 
-ML {* ML_Thms.bind_thms ("evaln_AbruptIs", sum3_instantiate @{context} @{thm evaln.Abrupt}) *}
+ML \<open>ML_Thms.bind_thms ("evaln_AbruptIs", sum3_instantiate @{context} @{thm evaln.Abrupt})\<close>
 declare evaln_AbruptIs [intro!]
 
 lemma evaln_Callee: "G\<turnstile>Norm s\<midarrow>In1l (Callee l e)\<succ>\<midarrow>n\<rightarrow> (v,s') = False"
@@ -355,13 +355,13 @@ apply auto
 apply (frule evaln_abrupt_lemma, auto)+
 done
 
-simproc_setup evaln_abrupt ("G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (w,s')") = {*
+simproc_setup evaln_abrupt ("G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (w,s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ _ $ _ $ (Const (@{const_name Pair}, _) $ (Const (@{const_name Some},_) $ _)$ _))
         => NONE
     | _ => SOME (mk_meta_eq @{thm evaln_abrupt}))
-*}
+\<close>
 
 lemma evaln_LitI: "G\<turnstile>s \<midarrow>Lit v-\<succ>(if normal s then v else undefined)\<midarrow>n\<rightarrow> s"
 apply (case_tac "s", case_tac "a = None")
@@ -401,7 +401,7 @@ done
 
 
 
-subsubsection {* evaln implies eval *}
+subsubsection \<open>evaln implies eval\<close>
 
 lemma evaln_eval:  
   assumes evaln: "G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s1)" 
@@ -409,7 +409,7 @@ lemma evaln_eval:
 using evaln 
 proof (induct)
   case (Loop s0 e b n s1 c s2 l s3)
-  note `G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1`
+  note \<open>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1\<close>
   moreover
   have "if the_Bool b
         then (G\<turnstile>s1 \<midarrow>c\<rightarrow> s2) \<and> 
@@ -419,16 +419,16 @@ proof (induct)
   ultimately show ?case by (rule eval.Loop)
 next
   case (Try s0 c1 n s1 s2 C vn c2 s3)
-  note `G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1`
+  note \<open>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1\<close>
   moreover
-  note `G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2`
+  note \<open>G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2\<close>
   moreover
   have "if G,s2\<turnstile>catch C then G\<turnstile>new_xcpt_var vn s2 \<midarrow>c2\<rightarrow> s3 else s3 = s2"
     using Try.hyps by simp
   ultimately show ?case by (rule eval.Try)
 next
   case (Init C c s0 s3 n s1 s2)
-  note `the (class G C) = c`
+  note \<open>the (class G C) = c\<close>
   moreover
   have "if inited C (globs s0) 
            then s3 = Norm s0
@@ -448,10 +448,10 @@ done
 lemma evaln_nonstrict [rule_format (no_asm), elim]: 
   "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (w, s') \<Longrightarrow> \<forall>m. n\<le>m \<longrightarrow> G\<turnstile>s \<midarrow>t\<succ>\<midarrow>m\<rightarrow> (w, s')"
 apply (erule evaln.induct)
-apply (tactic {* ALLGOALS (EVERY' [strip_tac @{context},
+apply (tactic \<open>ALLGOALS (EVERY' [strip_tac @{context},
   TRY o eresolve_tac @{context} @{thms Suc_le_D_lemma},
   REPEAT o smp_tac @{context} 1, 
-  resolve_tac @{context} @{thms evaln.intros} THEN_ALL_NEW TRY o assume_tac @{context}]) *})
+  resolve_tac @{context} @{thms evaln.intros} THEN_ALL_NEW TRY o assume_tac @{context}])\<close>)
 (* 3 subgoals *)
 apply (auto split del: split_if)
 done
@@ -511,7 +511,7 @@ qed
 
 declare [[simproc del: wt_expr wt_var wt_exprs wt_stmt]]
 
-subsubsection {* eval implies evaln *}
+subsubsection \<open>eval implies evaln\<close>
 lemma eval_evaln: 
   assumes eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)"
   shows  "\<exists>n. G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s1)"
@@ -597,7 +597,7 @@ next
     "G\<turnstile>Norm s0 \<midarrow>c1\<midarrow>n1\<rightarrow> s1"
     by (iprover)
   moreover 
-  note sxalloc = `G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2`
+  note sxalloc = \<open>G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2\<close>
   moreover
   from Try.hyps obtain n2 where
     "if G,s2\<turnstile>catch catchC then G\<turnstile>new_xcpt_var vn s2 \<midarrow>c2\<midarrow>n2\<rightarrow> s3 else s3 = s2"
@@ -613,9 +613,9 @@ next
     "G\<turnstile>Norm s1 \<midarrow>c2\<midarrow>n2\<rightarrow> s2"
     by iprover
   moreover
-  note s3 = `s3 = (if \<exists>err. x1 = Some (Error err) 
+  note s3 = \<open>s3 = (if \<exists>err. x1 = Some (Error err) 
                    then (x1, s1)
-                   else abupd (abrupt_if (x1 \<noteq> None) x1) s2)`
+                   else abupd (abrupt_if (x1 \<noteq> None) x1) s2)\<close>
   ultimately 
   have 
     "G\<turnstile>Norm s0 \<midarrow>c1 Finally c2\<midarrow>max n1 n2\<rightarrow> s3"
@@ -623,7 +623,7 @@ next
   then show ?case ..
 next
   case (Init C c s0 s3 s1 s2)
-  note cls = `the (class G C) = c`
+  note cls = \<open>the (class G C) = c\<close>
   moreover from Init.hyps obtain n where
       "if inited C (globs s0) then s3 = Norm s0
        else (G\<turnstile>Norm (init_class_obj G C s0)
@@ -650,7 +650,7 @@ next
     "G\<turnstile>s1 \<midarrow>e-\<succ>i\<midarrow>n2\<rightarrow> s2"      
     by (iprover)
   moreover
-  note `G\<turnstile>abupd (check_neg i) s2 \<midarrow>halloc Arr T (the_Intg i)\<succ>a\<rightarrow> s3`
+  note \<open>G\<turnstile>abupd (check_neg i) s2 \<midarrow>halloc Arr T (the_Intg i)\<succ>a\<rightarrow> s3\<close>
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>New T[e]-\<succ>Addr a\<midarrow>max n1 n2\<rightarrow> s3"
     by (blast intro: evaln.NewA dest: evaln_max2)
@@ -661,7 +661,7 @@ next
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1"
     by (iprover)
   moreover 
-  note `s2 = abupd (raise_if (\<not> G,snd s1\<turnstile>v fits castT) ClassCast) s1`
+  note \<open>s2 = abupd (raise_if (\<not> G,snd s1\<turnstile>v fits castT) ClassCast) s1\<close>
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>Cast castT e-\<succ>v\<midarrow>n\<rightarrow> s2"
     by (rule evaln.Cast)
@@ -672,7 +672,7 @@ next
     "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1"
     by (iprover)
   moreover 
-  note `b = (v \<noteq> Null \<and> G,snd s1\<turnstile>v fits RefT T)`
+  note \<open>b = (v \<noteq> Null \<and> G,snd s1\<turnstile>v fits RefT T)\<close>
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>e InstOf T-\<succ>Bool b\<midarrow>n\<rightarrow> s1"
     by (rule evaln.Inst)
@@ -742,12 +742,12 @@ next
     "G\<turnstile>s1 \<midarrow>args\<doteq>\<succ>vs\<midarrow>n2\<rightarrow> s2"
     by iprover
   moreover
-  note `invDeclC = invocation_declclass G mode (store s2) a' statT 
-                       \<lparr>name=mn,parTs=pTs'\<rparr>`
+  note \<open>invDeclC = invocation_declclass G mode (store s2) a' statT 
+                       \<lparr>name=mn,parTs=pTs'\<rparr>\<close>
   moreover
-  note `s3 = init_lvars G invDeclC \<lparr>name=mn,parTs=pTs'\<rparr> mode a' vs s2`
+  note \<open>s3 = init_lvars G invDeclC \<lparr>name=mn,parTs=pTs'\<rparr> mode a' vs s2\<close>
   moreover
-  note `s3'=check_method_access G accC' statT mode \<lparr>name=mn,parTs=pTs'\<rparr> a' s3`
+  note \<open>s3'=check_method_access G accC' statT mode \<lparr>name=mn,parTs=pTs'\<rparr> a' s3\<close>
   moreover 
   from Call.hyps
   obtain m where 
@@ -773,10 +773,10 @@ next
     evaln_c: "G\<turnstile>s1 \<midarrow>c\<midarrow>n2\<rightarrow> s2"
     by (iprover)
   moreover
-  note `s3 = (if \<exists>l. fst s2 = Some (Jump (Break l)) \<or> 
+  note \<open>s3 = (if \<exists>l. fst s2 = Some (Jump (Break l)) \<or> 
                      fst s2 = Some (Jump (Cont l))
               then abupd (\<lambda>x. Some (Error CrossMethodJump)) s2 
-              else s2)`
+              else s2)\<close>
   ultimately
   have
      "G\<turnstile>Norm s0 \<midarrow>Body D c-\<succ>the (locals (store s2) Result)\<midarrow>max n1 n2
@@ -796,8 +796,8 @@ next
     "G\<turnstile>s1 \<midarrow>e-\<succ>a\<midarrow>n2\<rightarrow> s2"
     by iprover
   moreover
-  note `s3 = check_field_access G accC statDeclC fn stat a s2'`
-    and `(v, s2') = fvar statDeclC stat fn a s2`
+  note \<open>s3 = check_field_access G accC statDeclC fn stat a s2'\<close>
+    and \<open>(v, s2') = fvar statDeclC stat fn a s2\<close>
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>{accC,statDeclC,stat}e..fn=\<succ>v\<midarrow>max n1 n2\<rightarrow> s3"
     by (iprover intro: evaln.FVar dest: evaln_max2)
@@ -809,7 +809,7 @@ next
     "G\<turnstile>s1 \<midarrow>e2-\<succ>i\<midarrow>n2\<rightarrow> s2"      
     by iprover
   moreover 
-  note `(v, s2') = avar G i a s2`
+  note \<open>(v, s2') = avar G i a s2\<close>
   ultimately 
   have "G\<turnstile>Norm s0 \<midarrow>e1.[e2]=\<succ>v\<midarrow>max n1 n2\<rightarrow> s2'"
     by (blast intro!: evaln.AVar dest: evaln_max2)

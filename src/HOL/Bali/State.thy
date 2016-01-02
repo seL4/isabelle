@@ -1,35 +1,35 @@
 (*  Title:      HOL/Bali/State.thy
     Author:     David von Oheimb
 *)
-subsection {* State for evaluation of Java expressions and statements *}
+subsection \<open>State for evaluation of Java expressions and statements\<close>
 
 theory State
 imports DeclConcepts
 begin
 
-text {*
+text \<open>
 design issues:
 \begin{itemize}
 \item all kinds of objects (class instances, arrays, and class objects)
   are handeled via a general object abstraction
 \item the heap and the map for class objects are combined into a single table
-  @{text "(recall (loc, obj) table \<times> (qtname, obj) table  ~=  (loc + qtname, obj) table)"}
+  \<open>(recall (loc, obj) table \<times> (qtname, obj) table  ~=  (loc + qtname, obj) table)\<close>
 \end{itemize}
-*}
+\<close>
 
 subsubsection "objects"
 
-datatype  obj_tag =     --{* tag for generic object   *}
-          CInst qtname  --{* class instance           *}
-        | Arr  ty int   --{* array with component type and length *}
-    --{* | CStat qtname   the tag is irrelevant for a class object,
+datatype  obj_tag =     \<comment>\<open>tag for generic object\<close>
+          CInst qtname  \<comment>\<open>class instance\<close>
+        | Arr  ty int   \<comment>\<open>array with component type and length\<close>
+    \<comment>\<open>| CStat qtname   the tag is irrelevant for a class object,
                            i.e. the static fields of a class,
                            since its type is given already by the reference to 
-                           it (see below) *}
+                           it (see below)\<close>
 
-type_synonym vn = "fspec + int"                 --{* variable name      *}
+type_synonym vn = "fspec + int"                 \<comment>\<open>variable name\<close>
 record  obj  = 
-          tag :: "obj_tag"                      --{* generalized object *}
+          tag :: "obj_tag"                      \<comment>\<open>generalized object\<close>
           "values" :: "(vn, val) table"      
 
 translations 
@@ -130,7 +130,7 @@ done
 
 subsubsection "object references"
 
-type_synonym oref = "loc + qtname"         --{* generalized object reference *}
+type_synonym oref = "loc + qtname"         \<comment>\<open>generalized object reference\<close>
 syntax
   Heap  :: "loc   \<Rightarrow> oref"
   Stat  :: "qtname \<Rightarrow> oref"
@@ -213,7 +213,7 @@ done
 
 subsubsection "stores"
 
-type_synonym globs               --{* global variables: heap and static variables *}
+type_synonym globs               \<comment>\<open>global variables: heap and static variables\<close>
         = "(oref , obj) table"
 type_synonym heap
         = "(loc  , obj) table"
@@ -580,7 +580,7 @@ lemma absorb_Some_JumpD: "absorb j s = Some (Jump j') \<Longrightarrow> j'\<note
 subsubsection "full program state"
 
 type_synonym
-  state = "abopt \<times> st"          --{* state including abruption information *}
+  state = "abopt \<times> st"          \<comment>\<open>state including abruption information\<close>
 
 translations
   (type) "abopt" <= (type) "abrupt option"
@@ -727,7 +727,7 @@ apply (unfold initd_def)
 apply (simp (no_asm))
 done
 
-subsubsection {* @{text error_free} *}
+subsubsection \<open>\<open>error_free\<close>\<close>
 
 definition
   error_free :: "state \<Rightarrow> bool"

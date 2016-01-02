@@ -1,13 +1,13 @@
 (*  Title:      HOL/Bali/Example.thy
     Author:     David von Oheimb
 *)
-subsection {* Example Bali program *}
+subsection \<open>Example Bali program\<close>
 
 theory Example
 imports Eval WellForm
 begin
 
-text {*
+text \<open>
 The following example Bali program includes:
 \begin{itemize}
 \item class and interface declarations with inheritance, hiding of fields,
@@ -52,7 +52,7 @@ public class Main {
   }
 }
 \end{verbatim}
-*}
+\<close>
 declare widen.null [intro]
 
 lemma wf_fdecl_def2: "\<And>fd. wf_fdecl G P fd = is_acc_type G P (type (snd fd))"
@@ -894,7 +894,7 @@ done
 
 declare member_is_static_simp [simp]
 declare wt.Skip [rule del] wt.Init [rule del]
-ML {* ML_Thms.bind_thms ("wt_intros", map (rewrite_rule @{context} @{thms id_def}) @{thms wt.intros}) *}
+ML \<open>ML_Thms.bind_thms ("wt_intros", map (rewrite_rule @{context} @{thms id_def}) @{thms wt.intros})\<close>
 lemmas wtIs = wt_Call wt_Super wt_FVar wt_StatRef wt_intros
 lemmas daIs = assigned.select_convs da_Skip da_NewC da_Lit da_Super da.intros
 
@@ -1187,9 +1187,9 @@ declare init_obj_def [simp] var_tys_def [simp] fields_table_def [simp]
 declare BaseCl_def [simp] ExtCl_def [simp] Ext_foo_def [simp]
         Base_foo_defs  [simp]
 
-ML {* ML_Thms.bind_thms ("eval_intros", map 
+ML \<open>ML_Thms.bind_thms ("eval_intros", map 
         (simplify (@{context} delsimps @{thms Skip_eq} addsimps @{thms lvar_def}) o 
-         rewrite_rule @{context} [@{thm assign_def}, @{thm Let_def}]) @{thms eval.intros}) *}
+         rewrite_rule @{context} [@{thm assign_def}, @{thm Let_def}]) @{thms eval.intros})\<close>
 lemmas eval_Is = eval_Init eval_StatRef AbruptIs eval_intros
 
 axiomatization

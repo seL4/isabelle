@@ -1,11 +1,11 @@
 (*  Title:      HOL/Bali/TypeRel.thy
     Author:     David von Oheimb
 *)
-subsection {* The relations between Java types *}
+subsection \<open>The relations between Java types\<close>
 
 theory TypeRel imports Decl begin
 
-text {*
+text \<open>
 simplifications:
 \begin{itemize}
 \item subinterface, subclass and widening relation includes identity
@@ -19,11 +19,11 @@ improvements over Java Specification 1.0:
 \end{itemize}
 design issues:
 \begin{itemize}
-\item the type relations do not require @{text is_type} for their arguments
-\item the subint1 and subcls1 relations imply @{text is_iface}/@{text is_class}
+\item the type relations do not require \<open>is_type\<close> for their arguments
+\item the subint1 and subcls1 relations imply \<open>is_iface\<close>/\<open>is_class\<close>
       for their first arguments, which is required for their finiteness
 \end{itemize}
-*}
+\<close>
 
 (*subint1, in Decl.thy*)                     (* direct subinterface       *)
 (*subint , by translation*)                  (* subinterface (+ identity) *)
@@ -32,8 +32,8 @@ design issues:
 (*subclseq, by translation*)                 (* subclass + identity       *)
 
 definition
-  implmt1 :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct implementation *}
-  --{* direct implementation, cf. 8.1.3 *}
+  implmt1 :: "prog \<Rightarrow> (qtname \<times> qtname) set" \<comment>\<open>direct implementation\<close>
+  \<comment>\<open>direct implementation, cf. 8.1.3\<close>
   where "implmt1 G = {(C,I). C\<noteq>Object \<and> (\<exists>c\<in>class G C: I\<in>set (superIfs c))}"
 
 
@@ -43,7 +43,7 @@ abbreviation
 
 abbreviation
   subint_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<preceq>I _"  [71,71,71] 70)
-  where "G\<turnstile>I \<preceq>I J == (I,J) \<in>(subint1 G)^*" --{* cf. 9.1.3 *}
+  where "G\<turnstile>I \<preceq>I J == (I,J) \<in>(subint1 G)^*" \<comment>\<open>cf. 9.1.3\<close>
 
 abbreviation
   implmt1_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<leadsto>1_"  [71,71,71] 70)
@@ -334,7 +334,7 @@ apply (unfold implmt1_def)
 apply auto
 done
 
-inductive --{* implementation, cf. 8.1.4 *}
+inductive \<comment>\<open>implementation, cf. 8.1.4\<close>
   implmt :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool" ("_\<turnstile>_\<leadsto>_" [71,71,71] 70)
   for G :: prog
 where
@@ -369,13 +369,13 @@ done
 subsubsection "widening relation"
 
 inductive
- --{*widening, viz. method invocation conversion, cf. 5.3
-                            i.e. kind of syntactic subtyping *}
+ \<comment>\<open>widening, viz. method invocation conversion, cf. 5.3
+                            i.e. kind of syntactic subtyping\<close>
   widen :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<preceq>_" [71,71,71] 70)
   for G :: prog
 where
-  refl:    "G\<turnstile>T\<preceq>T" --{*identity conversion, cf. 5.1.1 *}
-| subint:  "G\<turnstile>I\<preceq>I J  \<Longrightarrow> G\<turnstile>Iface I\<preceq> Iface J" --{*wid.ref.conv.,cf. 5.1.4 *}
+  refl:    "G\<turnstile>T\<preceq>T" \<comment>\<open>identity conversion, cf. 5.1.1\<close>
+| subint:  "G\<turnstile>I\<preceq>I J  \<Longrightarrow> G\<turnstile>Iface I\<preceq> Iface J" \<comment>\<open>wid.ref.conv.,cf. 5.1.4\<close>
 | int_obj: "G\<turnstile>Iface I\<preceq> Class Object"
 | subcls:  "G\<turnstile>C\<preceq>\<^sub>C D  \<Longrightarrow> G\<turnstile>Class C\<preceq> Class D"
 | implmt:  "G\<turnstile>C\<leadsto>I   \<Longrightarrow> G\<turnstile>Class C\<preceq> Iface I"
@@ -400,11 +400,11 @@ lemma widen_PrimT2: "G\<turnstile>S\<preceq>PrimT x \<Longrightarrow> \<exists>y
 apply (ind_cases "G\<turnstile>S\<preceq>PrimT x")
 by auto
 
-text {* 
+text \<open>
    These widening lemmata hold in Bali but are to strong for ordinary
    Java. They  would not work for real Java Integral Types, like short, 
    long, int. These lemmata are just for documentation and are not used.
- *}
+\<close>
 
 lemma widen_PrimT_strong: "G\<turnstile>PrimT x\<preceq>T \<Longrightarrow> T = PrimT x"
 by (ind_cases "G\<turnstile>PrimT x\<preceq>T") simp_all
@@ -412,7 +412,7 @@ by (ind_cases "G\<turnstile>PrimT x\<preceq>T") simp_all
 lemma widen_PrimT2_strong: "G\<turnstile>S\<preceq>PrimT x \<Longrightarrow> S = PrimT x"
 by (ind_cases "G\<turnstile>S\<preceq>PrimT x") simp_all
 
-text {* Specialized versions for booleans also would work for real Java *}
+text \<open>Specialized versions for booleans also would work for real Java\<close>
 
 lemma widen_Boolean: "G\<turnstile>PrimT Boolean\<preceq>T \<Longrightarrow> T = PrimT Boolean"
 by (ind_cases "G\<turnstile>PrimT Boolean\<preceq>T") simp_all
@@ -594,7 +594,7 @@ rules
 *)
 
 (* more detailed than necessary for type-safety, see above rules. *)
-inductive --{* narrowing reference conversion, cf. 5.1.5 *}
+inductive \<comment>\<open>narrowing reference conversion, cf. 5.1.5\<close>
   narrow :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<succ>_" [71,71,71] 70)
   for G :: prog
 where
@@ -624,18 +624,18 @@ lemma narrow_PrimT2: "G\<turnstile>S\<succ>PrimT pt \<Longrightarrow>
                                   \<exists>t. S=PrimT t \<and> G\<turnstile>PrimT t\<preceq>PrimT pt"
 by (ind_cases "G\<turnstile>S\<succ>PrimT pt")
 
-text {* 
+text \<open>
    These narrowing lemmata hold in Bali but are to strong for ordinary
    Java. They  would not work for real Java Integral Types, like short, 
    long, int. These lemmata are just for documentation and are not used.
- *}
+\<close>
 lemma narrow_PrimT_strong: "G\<turnstile>PrimT pt\<succ>T \<Longrightarrow> T=PrimT pt"
 by (ind_cases "G\<turnstile>PrimT pt\<succ>T")
 
 lemma narrow_PrimT2_strong: "G\<turnstile>S\<succ>PrimT pt \<Longrightarrow> S=PrimT pt"
 by (ind_cases "G\<turnstile>S\<succ>PrimT pt")
 
-text {* Specialized versions for booleans also would work for real Java *}
+text \<open>Specialized versions for booleans also would work for real Java\<close>
 
 lemma narrow_Boolean: "G\<turnstile>PrimT Boolean\<succ>T \<Longrightarrow> T=PrimT Boolean"
 by (ind_cases "G\<turnstile>PrimT Boolean\<succ>T")
@@ -645,7 +645,7 @@ by (ind_cases "G\<turnstile>S\<succ>PrimT Boolean")
 
 subsubsection "casting relation"
 
-inductive --{* casting conversion, cf. 5.5 *}
+inductive \<comment>\<open>casting conversion, cf. 5.5\<close>
   cast :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<preceq>? _" [71,71,71] 70)
   for G :: prog
 where

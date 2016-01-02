@@ -119,19 +119,19 @@ lemma atom_hoare_sound [rule_format]:
 apply (unfold com_validity_def)
 apply(rule oghoare_induct)
 apply simp_all
---\<open>Basic\<close>
+\<comment>\<open>Basic\<close>
     apply(simp add: SEM_def sem_def)
     apply(fast dest: rtrancl_imp_UN_relpow Basic_ntran)
---\<open>Seq\<close>
+\<comment>\<open>Seq\<close>
    apply(rule impI)
    apply(rule subset_trans)
     prefer 2 apply simp
    apply(simp add: L3_5ii L3_5i)
---\<open>Cond\<close>
+\<comment>\<open>Cond\<close>
   apply(simp add: L3_5iv)
---\<open>While\<close>
+\<comment>\<open>While\<close>
  apply (force simp add: L3_5v dest: SEM_fwhile)
---\<open>Conseq\<close>
+\<comment>\<open>Conseq\<close>
 apply(force simp add: SEM_def sem_def)
 done
 
@@ -174,11 +174,11 @@ lemma Strong_Soundness_aux_aux [rule_format]:
  (\<forall>q. \<turnstile> c q \<longrightarrow> (if co' = None then t\<in>q else t \<in> pre(the co') \<and> \<turnstile> (the co') q )))"
 apply(rule ann_transition_transition.induct [THEN conjunct1])
 apply simp_all
---\<open>Basic\<close>
+\<comment>\<open>Basic\<close>
          apply clarify
          apply(frule ann_hoare_case_analysis)
          apply force
---\<open>Seq\<close>
+\<comment>\<open>Seq\<close>
         apply clarify
         apply(frule ann_hoare_case_analysis,simp)
         apply(fast intro: AnnConseq)
@@ -189,21 +189,21 @@ apply simp_all
         apply force
        apply(rule AnnSeq,simp)
        apply(fast intro: AnnConseq)
---\<open>Cond1\<close>
+\<comment>\<open>Cond1\<close>
       apply clarify
       apply(frule ann_hoare_case_analysis,simp)
       apply(fast intro: AnnConseq)
      apply clarify
      apply(frule ann_hoare_case_analysis,simp)
      apply(fast intro: AnnConseq)
---\<open>Cond2\<close>
+\<comment>\<open>Cond2\<close>
     apply clarify
     apply(frule ann_hoare_case_analysis,simp)
     apply(fast intro: AnnConseq)
    apply clarify
    apply(frule ann_hoare_case_analysis,simp)
    apply(fast intro: AnnConseq)
---\<open>While\<close>
+\<comment>\<open>While\<close>
   apply clarify
   apply(frule ann_hoare_case_analysis,simp)
   apply force
@@ -214,7 +214,7 @@ apply simp_all
   apply simp
  apply(rule AnnWhile)
   apply simp_all
---\<open>Await\<close>
+\<comment>\<open>Await\<close>
 apply(frule ann_hoare_case_analysis,simp)
 apply clarify
 apply(drule atom_hoare_sound)
@@ -348,7 +348,7 @@ apply safe
 prefer 11
 apply(rule TrueI)
 apply simp_all
---\<open>Basic\<close>
+\<comment>\<open>Basic\<close>
    apply(erule_tac x = "i" in all_dupE, erule (1) notE impE)
    apply(erule_tac x = "j" in allE , erule (1) notE impE)
    apply(simp add: interfree_def)
@@ -365,12 +365,12 @@ apply simp_all
     apply(force intro: converse_rtrancl_into_rtrancl
           simp add: com_validity_def SEM_def sem_def All_None_def)
    apply(simp add:assertions_lemma)
---\<open>Seqs\<close>
+\<comment>\<open>Seqs\<close>
   apply(erule_tac x = "Ts[i:=(Some c0, pre c1)]" in allE)
   apply(drule  Parallel_Strong_Soundness_Seq,simp+)
  apply(erule_tac x = "Ts[i:=(Some c0, pre c1)]" in allE)
  apply(drule  Parallel_Strong_Soundness_Seq,simp+)
---\<open>Await\<close>
+\<comment>\<open>Await\<close>
 apply(rule_tac x = "i" in allE , assumption , erule (1) notE impE)
 apply(erule_tac x = "j" in allE , erule (1) notE impE)
 apply(simp add: interfree_def)
@@ -397,9 +397,9 @@ lemma Parallel_Strong_Soundness_aux [rule_format]:
   else t\<in>pre(the(com(Rs ! j))) \<and> \<turnstile> the(com(Rs ! j)) post(Ts ! j))) \<and> interfree Rs"
 apply(erule rtrancl_induct2)
  apply clarify
---\<open>Base\<close>
+\<comment>\<open>Base\<close>
  apply force
---\<open>Induction step\<close>
+\<comment>\<open>Induction step\<close>
 apply clarify
 apply(drule Parallel_length_post_PStar)
 apply clarify
@@ -431,7 +431,7 @@ lemma oghoare_sound [rule_format]: "\<parallel>- p c q \<longrightarrow> \<paral
 apply (unfold com_validity_def)
 apply(rule oghoare_induct)
 apply(rule TrueI)+
---\<open>Parallel\<close>
+\<comment>\<open>Parallel\<close>
       apply(simp add: SEM_def sem_def)
       apply(clarify, rename_tac x y i Ts')
       apply(frule Parallel_length_post_PStar)
@@ -445,19 +445,19 @@ apply(rule TrueI)+
       apply(drule_tac s = "length Rs" in sym)
       apply(erule allE, erule impE, assumption)
       apply(force dest: nth_mem simp add: All_None_def)
---\<open>Basic\<close>
+\<comment>\<open>Basic\<close>
     apply(simp add: SEM_def sem_def)
     apply(force dest: rtrancl_imp_UN_relpow Basic_ntran)
---\<open>Seq\<close>
+\<comment>\<open>Seq\<close>
    apply(rule subset_trans)
     prefer 2 apply assumption
    apply(simp add: L3_5ii L3_5i)
---\<open>Cond\<close>
+\<comment>\<open>Cond\<close>
   apply(simp add: L3_5iv)
---\<open>While\<close>
+\<comment>\<open>While\<close>
  apply(simp add: L3_5v)
  apply (blast dest: SEM_fwhile)
---\<open>Conseq\<close>
+\<comment>\<open>Conseq\<close>
 apply(auto simp add: SEM_def sem_def)
 done
 

@@ -1,13 +1,13 @@
 (*  Title:      HOL/Bali/Eval.thy
     Author:     David von Oheimb
 *)
-subsection {* Operational evaluation (big-step) semantics of Java expressions and 
+subsection \<open>Operational evaluation (big-step) semantics of Java expressions and 
           statements
-*}
+\<close>
 
 theory Eval imports State DeclConcepts begin
 
-text {*
+text \<open>
 
 improvements over Java Specification 1.0:
 \begin{itemize}
@@ -57,10 +57,10 @@ design issues:
   \end{itemize}
 \item the rules are defined carefully in order to be applicable even in not
   type-correct situations (yielding undefined values),
-  e.g. @{text "the_Addr (Val (Bool b)) = undefined"}.
+  e.g. \<open>the_Addr (Val (Bool b)) = undefined\<close>.
   \begin{itemize}
   \item[++] fewer rules 
-  \item[-]  less readable because of auxiliary functions like @{text the_Addr}
+  \item[-]  less readable because of auxiliary functions like \<open>the_Addr\<close>
   \end{itemize}
   Alternative: "defensive" evaluation throwing some InternalError exception
                in case of (impossible, for correct programs) type mismatches
@@ -81,7 +81,7 @@ design issues:
            (whether there is enough memory to allocate the exception) in 
             evaluation rules
   \end{itemize}
-\item unfortunately @{text new_Addr} is not directly executable because of 
+\item unfortunately \<open>new_Addr\<close> is not directly executable because of 
       Hilbert operator.
 \end{itemize}
 simplifications:
@@ -93,7 +93,7 @@ simplifications:
       modelled
 \item exceptions in initializations not replaced by ExceptionInInitializerError
 \end{itemize}
-*}
+\<close>
 
 
 type_synonym vvar = "val \<times> (val \<Rightarrow> state \<Rightarrow> state)"
@@ -102,11 +102,11 @@ translations
   (type) "vvar" <= (type) "val \<times> (val \<Rightarrow> state \<Rightarrow> state)"
   (type) "vals" <= (type) "(val, vvar, val list) sum3" 
 
-text {* To avoid redundancy and to reduce the number of rules, there is only 
+text \<open>To avoid redundancy and to reduce the number of rules, there is only 
  one evaluation rule for each syntactic term. This is also true for variables
- (e.g. see the rules below for @{text LVar}, @{text FVar} and @{text AVar}). 
+ (e.g. see the rules below for \<open>LVar\<close>, \<open>FVar\<close> and \<open>AVar\<close>). 
  So evaluation of a variable must capture both possible further uses: 
- read (rule @{text Acc}) or write (rule @{text Ass}) to the variable. 
+ read (rule \<open>Acc\<close>) or write (rule \<open>Ass\<close>) to the variable. 
  Therefor a variable evaluates to a special value @{term vvar}, which is 
  a pair, consisting of the current value (for later read access) and an update 
  function (for later write access). Because
@@ -122,7 +122,7 @@ text {* To avoid redundancy and to reduce the number of rules, there is only
  such a generic update function, but only to store the address and the kind
  of variable (array (+ element type), local variable or field) for later 
  assignment. 
-*}
+\<close>
 
 abbreviation
   dummy_res :: "vals" ("\<diamondsuit>")
@@ -355,7 +355,7 @@ where
 
 
 
-lemma init_lvars_def2: --{* better suited for simplification *} 
+lemma init_lvars_def2: \<comment>\<open>better suited for simplification\<close> 
 "init_lvars G C sig mode a' pvs (x,s) =  
   set_lvars 
     (\<lambda> k. 
@@ -378,7 +378,7 @@ definition
     (let m = the (methd G C sig) 
      in Body (declclass m) (stmt (mbody (mthd m))))"
 
-lemma body_def2: --{* better suited for simplification *} 
+lemma body_def2: \<comment>\<open>better suited for simplification\<close> 
 "body G C sig = Body  (declclass (the (methd G C sig))) 
                       (stmt (mbody (mthd (the (methd G C sig)))))"
 apply (unfold body_def Let_def)
@@ -412,7 +412,7 @@ definition
                               ,upd_gobj oref n v s)) 
      in ((the (cs n),f),abupd (raise_if (\<not>i in_bounds k) IndOutBound \<circ> np a') s))"
 
-lemma fvar_def2: --{* better suited for simplification *} 
+lemma fvar_def2: \<comment>\<open>better suited for simplification\<close> 
 "fvar C stat fn a' s =  
   ((the 
      (values 
@@ -427,7 +427,7 @@ apply (unfold fvar_def)
 apply (simp (no_asm) add: Let_def split_beta)
 done
 
-lemma avar_def2: --{* better suited for simplification *} 
+lemma avar_def2: \<comment>\<open>better suited for simplification\<close> 
 "avar G i' a' s =  
   ((the ((snd(snd(the_Arr (globs (store s) (Heap (the_Addr a')))))) 
            (Inr (the_Intg i')))
@@ -471,7 +471,7 @@ subsubsection "evaluation judgments"
 
 inductive
   halloc :: "[prog,state,obj_tag,loc,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>halloc _\<succ>_\<rightarrow> _"[61,61,61,61,61]60) for G::prog
-where --{* allocating objects on the heap, cf. 12.5 *}
+where \<comment>\<open>allocating objects on the heap, cf. 12.5\<close>
 
   Abrupt: 
   "G\<turnstile>(Some x,s) \<midarrow>halloc oi\<succ>undefined\<rightarrow> (Some x,s)"
@@ -483,8 +483,8 @@ where --{* allocating objects on the heap, cf. 12.5 *}
             G\<turnstile>Norm s \<midarrow>halloc oi\<succ>a\<rightarrow> (x,init_obj G oi' (Heap a) s)"
 
 inductive sxalloc :: "[prog,state,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>sxalloc\<rightarrow> _"[61,61,61]60) for G::prog
-where --{* allocating exception objects for
-  standard exceptions (other than OutOfMemory) *}
+where \<comment>\<open>allocating exception objects for
+  standard exceptions (other than OutOfMemory)\<close>
 
   Norm:  "G\<turnstile> Norm              s   \<midarrow>sxalloc\<rightarrow>  Norm             s"
 
@@ -513,42 +513,42 @@ where
 | "G\<turnstile>s \<midarrow>e=\<succ>vf\<rightarrow>     s' \<equiv> G\<turnstile>s \<midarrow>In2  e\<succ>\<rightarrow> (In2 vf, s')"
 | "G\<turnstile>s \<midarrow>e\<doteq>\<succ>v \<rightarrow>     s' \<equiv> G\<turnstile>s \<midarrow>In3  e\<succ>\<rightarrow> (In3 v,  s')"
 
---{* propagation of abrupt completion *}
+\<comment>\<open>propagation of abrupt completion\<close>
 
-  --{* cf. 14.1, 15.5 *}
+  \<comment>\<open>cf. 14.1, 15.5\<close>
 | Abrupt: 
    "G\<turnstile>(Some xc,s) \<midarrow>t\<succ>\<rightarrow> (undefined3 t, (Some xc, s))"
 
 
---{* execution of statements *}
+\<comment>\<open>execution of statements\<close>
 
-  --{* cf. 14.5 *}
+  \<comment>\<open>cf. 14.5\<close>
 | Skip:                             "G\<turnstile>Norm s \<midarrow>Skip\<rightarrow> Norm s"
 
-  --{* cf. 14.7 *}
+  \<comment>\<open>cf. 14.7\<close>
 | Expr: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<rbrakk> \<Longrightarrow>
                                   G\<turnstile>Norm s0 \<midarrow>Expr e\<rightarrow> s1"
 
 | Lab:  "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c \<rightarrow> s1\<rbrakk> \<Longrightarrow>
                                 G\<turnstile>Norm s0 \<midarrow>l\<bullet> c\<rightarrow> abupd (absorb l) s1"
-  --{* cf. 14.2 *}
+  \<comment>\<open>cf. 14.2\<close>
 | Comp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c1 \<rightarrow> s1;
           G\<turnstile>     s1 \<midarrow>c2 \<rightarrow> s2\<rbrakk> \<Longrightarrow>
                                  G\<turnstile>Norm s0 \<midarrow>c1;; c2\<rightarrow> s2"
 
-  --{* cf. 14.8.2 *}
+  \<comment>\<open>cf. 14.8.2\<close>
 | If:   "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1;
           G\<turnstile>     s1\<midarrow>(if the_Bool b then c1 else c2)\<rightarrow> s2\<rbrakk> \<Longrightarrow>
                        G\<turnstile>Norm s0 \<midarrow>If(e) c1 Else c2 \<rightarrow> s2"
 
-  --{* cf. 14.10, 14.10.1 *}
+  \<comment>\<open>cf. 14.10, 14.10.1\<close>
   
-  --{* A continue jump from the while body @{term c} is handled by 
+  \<comment>\<open>A continue jump from the while body @{term c} is handled by 
      this rule. If a continue jump with the proper label was invoked inside 
      @{term c} this label (Cont l) is deleted out of the abrupt component of 
      the state before the iterative evaluation of the while statement.
-     A break jump is handled by the Lab Statement @{text "Lab l (while\<dots>)"}.
-  *}
+     A break jump is handled by the Lab Statement \<open>Lab l (while\<dots>)\<close>.
+\<close>
 | Loop: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>b\<rightarrow> s1;
           if the_Bool b 
              then (G\<turnstile>s1 \<midarrow>c\<rightarrow> s2 \<and> 
@@ -558,16 +558,16 @@ where
 
 | Jmp: "G\<turnstile>Norm s \<midarrow>Jmp j\<rightarrow> (Some (Jump j), s)"
    
-  --{* cf. 14.16 *}
+  \<comment>\<open>cf. 14.16\<close>
 | Throw: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>a'\<rightarrow> s1\<rbrakk> \<Longrightarrow>
                                  G\<turnstile>Norm s0 \<midarrow>Throw e\<rightarrow> abupd (throw a') s1"
 
-  --{* cf. 14.18.1 *}
+  \<comment>\<open>cf. 14.18.1\<close>
 | Try:  "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> s1; G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2; 
           if G,s2\<turnstile>catch C then G\<turnstile>new_xcpt_var vn s2 \<midarrow>c2\<rightarrow> s3 else s3 = s2\<rbrakk> \<Longrightarrow>
                   G\<turnstile>Norm s0 \<midarrow>Try c1 Catch(C vn) c2\<rightarrow> s3"
 
-  --{* cf. 14.18.2 *}
+  \<comment>\<open>cf. 14.18.2\<close>
 | Fin:  "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (x1,s1);
           G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> s2;
           s3=(if (\<exists> err. x1=Some (Error err)) 
@@ -575,7 +575,7 @@ where
               else abupd (abrupt_if (x1\<noteq>None) x1) s2) \<rbrakk> 
           \<Longrightarrow>
           G\<turnstile>Norm s0 \<midarrow>c1 Finally c2\<rightarrow> s3"
-  --{* cf. 12.4.2, 8.5 *}
+  \<comment>\<open>cf. 12.4.2, 8.5\<close>
 | Init: "\<lbrakk>the (class G C) = c;
           if inited C (globs s0) then s3 = Norm s0
           else (G\<turnstile>Norm (init_class_obj G C s0) 
@@ -583,20 +583,20 @@ where
                G\<turnstile>set_lvars empty s1 \<midarrow>init c\<rightarrow> s2 \<and> s3 = restore_lvars s1 s2)\<rbrakk> 
               \<Longrightarrow>
                  G\<turnstile>Norm s0 \<midarrow>Init C\<rightarrow> s3"
-   --{* This class initialisation rule is a little bit inaccurate. Look at the
+   \<comment>\<open>This class initialisation rule is a little bit inaccurate. Look at the
       exact sequence:
       (1) The current class object (the static fields) are initialised
-           (@{text init_class_obj}),
+           (\<open>init_class_obj\<close>),
       (2) the superclasses are initialised,
       (3) the static initialiser of the current class is invoked.
       More precisely we should expect another ordering, namely 2 1 3.
       But we can't just naively toggle 1 and 2. By calling 
-      @{text init_class_obj} 
+      \<open>init_class_obj\<close> 
       before initialising the superclasses, we also implicitly record that
       we have started to initialise the current class (by setting an 
       value for the class object). This becomes 
       crucial for the completeness proof of the axiomatic semantics 
-      @{text "AxCompl.thy"}. Static initialisation requires an induction on 
+      \<open>AxCompl.thy\<close>. Static initialisation requires an induction on 
       the number of classes not yet initialised (or to be more precise, 
       classes were the initialisation has not yet begun). 
       So we could first assign a dummy value to the class before
@@ -604,30 +604,30 @@ where
       But as long as we don't take memory overflow into account 
       when allocating class objects, we can leave things as they are for 
       convenience. 
-   *}
---{* evaluation of expressions *}
+\<close>
+\<comment>\<open>evaluation of expressions\<close>
 
-  --{* cf. 15.8.1, 12.4.1 *}
+  \<comment>\<open>cf. 15.8.1, 12.4.1\<close>
 | NewC: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init C\<rightarrow> s1;
           G\<turnstile>     s1 \<midarrow>halloc (CInst C)\<succ>a\<rightarrow> s2\<rbrakk> \<Longrightarrow>
                                   G\<turnstile>Norm s0 \<midarrow>NewC C-\<succ>Addr a\<rightarrow> s2"
 
-  --{* cf. 15.9.1, 12.4.1 *}
+  \<comment>\<open>cf. 15.9.1, 12.4.1\<close>
 | NewA: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>init_comp_ty T\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e-\<succ>i'\<rightarrow> s2; 
           G\<turnstile>abupd (check_neg i') s2 \<midarrow>halloc (Arr T (the_Intg i'))\<succ>a\<rightarrow> s3\<rbrakk> \<Longrightarrow>
                                 G\<turnstile>Norm s0 \<midarrow>New T[e]-\<succ>Addr a\<rightarrow> s3"
 
-  --{* cf. 15.15 *}
+  \<comment>\<open>cf. 15.15\<close>
 | Cast: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1;
           s2 = abupd (raise_if (\<not>G,store s1\<turnstile>v fits T) ClassCast) s1\<rbrakk> \<Longrightarrow>
                                 G\<turnstile>Norm s0 \<midarrow>Cast T e-\<succ>v\<rightarrow> s2"
 
-  --{* cf. 15.19.2 *}
+  \<comment>\<open>cf. 15.19.2\<close>
 | Inst: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1;
           b = (v\<noteq>Null \<and> G,store s1\<turnstile>v fits RefT T)\<rbrakk> \<Longrightarrow>
                               G\<turnstile>Norm s0 \<midarrow>e InstOf T-\<succ>Bool b\<rightarrow> s1"
 
-  --{* cf. 15.7.1 *}
+  \<comment>\<open>cf. 15.7.1\<close>
 | Lit:  "G\<turnstile>Norm s \<midarrow>Lit v-\<succ>v\<rightarrow> Norm s"
 
 | UnOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<rbrakk> 
@@ -639,25 +639,25 @@ where
           \<rbrakk> 
          \<Longrightarrow> G\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>(eval_binop binop v1 v2)\<rightarrow> s2"
    
-  --{* cf. 15.10.2 *}
+  \<comment>\<open>cf. 15.10.2\<close>
 | Super: "G\<turnstile>Norm s \<midarrow>Super-\<succ>val_this s\<rightarrow> Norm s"
 
-  --{* cf. 15.2 *}
+  \<comment>\<open>cf. 15.2\<close>
 | Acc:  "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>va=\<succ>(v,f)\<rightarrow> s1\<rbrakk> \<Longrightarrow>
                                   G\<turnstile>Norm s0 \<midarrow>Acc va-\<succ>v\<rightarrow> s1"
 
-  --{* cf. 15.25.1 *}
+  \<comment>\<open>cf. 15.25.1\<close>
 | Ass:  "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>va=\<succ>(w,f)\<rightarrow> s1;
           G\<turnstile>     s1 \<midarrow>e-\<succ>v  \<rightarrow> s2\<rbrakk> \<Longrightarrow>
                                    G\<turnstile>Norm s0 \<midarrow>va:=e-\<succ>v\<rightarrow> assign f v s2"
 
-  --{* cf. 15.24 *}
+  \<comment>\<open>cf. 15.24\<close>
 | Cond: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e0-\<succ>b\<rightarrow> s1;
           G\<turnstile>     s1 \<midarrow>(if the_Bool b then e1 else e2)-\<succ>v\<rightarrow> s2\<rbrakk> \<Longrightarrow>
                             G\<turnstile>Norm s0 \<midarrow>e0 ? e1 : e2-\<succ>v\<rightarrow> s2"
 
 
--- {* The interplay of  @{term Call}, @{term Methd} and @{term Body}:
+\<comment> \<open>The interplay of  @{term Call}, @{term Methd} and @{term Body}:
       Method invocation is split up into these three rules:
       \begin{itemize}
       \item [@{term Call}] Calculates the target address and evaluates the
@@ -674,8 +674,8 @@ where
                            initialisation. Without class initialisation we 
                            could just evaluate the body statement. 
       \end{itemize}
-   *}
-  --{* cf. 15.11.4.1, 15.11.4.2, 15.11.4.4, 15.11.4.5 *}
+\<close>
+  \<comment>\<open>cf. 15.11.4.1, 15.11.4.2, 15.11.4.4, 15.11.4.5\<close>
 | Call: 
   "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>a'\<rightarrow> s1; G\<turnstile>s1 \<midarrow>args\<doteq>\<succ>vs\<rightarrow> s2;
     D = invocation_declclass G mode (store s2) a' statT \<lparr>name=mn,parTs=pTs\<rparr>;
@@ -684,10 +684,10 @@ where
     G\<turnstile>s3' \<midarrow>Methd D \<lparr>name=mn,parTs=pTs\<rparr>-\<succ>v\<rightarrow> s4\<rbrakk>
    \<Longrightarrow>
        G\<turnstile>Norm s0 \<midarrow>{accC,statT,mode}e\<cdot>mn({pTs}args)-\<succ>v\<rightarrow> (restore_lvars s2 s4)"
---{* The accessibility check is after @{term init_lvars}, to keep it simple. 
+\<comment>\<open>The accessibility check is after @{term init_lvars}, to keep it simple. 
    @{term init_lvars} already tests for the absence of a null-pointer 
    reference in case of an instance method invocation.
-*}
+\<close>
 
 | Methd:        "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>body G D sig-\<succ>v\<rightarrow> s1\<rbrakk> \<Longrightarrow>
                                 G\<turnstile>Norm s0 \<midarrow>Methd D sig-\<succ>v\<rightarrow> s1"
@@ -699,40 +699,40 @@ where
                   else s2)\<rbrakk> \<Longrightarrow>
            G\<turnstile>Norm s0 \<midarrow>Body D c-\<succ>the (locals (store s2) Result)
               \<rightarrow>abupd (absorb Ret) s3"
-  --{* cf. 14.15, 12.4.1 *}
-  --{* We filter out a break/continue in @{term s2}, so that we can proof 
+  \<comment>\<open>cf. 14.15, 12.4.1\<close>
+  \<comment>\<open>We filter out a break/continue in @{term s2}, so that we can proof 
      definite assignment
      correct, without the need of conformance of the state. By this the
-     different parts of the typesafety proof can be disentangled a little. *}
+     different parts of the typesafety proof can be disentangled a little.\<close>
 
---{* evaluation of variables *}
+\<comment>\<open>evaluation of variables\<close>
 
-  --{* cf. 15.13.1, 15.7.2 *}
+  \<comment>\<open>cf. 15.13.1, 15.7.2\<close>
 | LVar: "G\<turnstile>Norm s \<midarrow>LVar vn=\<succ>lvar vn s\<rightarrow> Norm s"
 
-  --{* cf. 15.10.1, 12.4.1 *}
+  \<comment>\<open>cf. 15.10.1, 12.4.1\<close>
 | FVar: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init statDeclC\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e-\<succ>a\<rightarrow> s2;
           (v,s2') = fvar statDeclC stat fn a s2;
           s3 = check_field_access G accC statDeclC fn stat a s2' \<rbrakk> \<Longrightarrow>
           G\<turnstile>Norm s0 \<midarrow>{accC,statDeclC,stat}e..fn=\<succ>v\<rightarrow> s3"
- --{* The accessibility check is after @{term fvar}, to keep it simple. 
+ \<comment>\<open>The accessibility check is after @{term fvar}, to keep it simple. 
     @{term fvar} already tests for the absence of a null-pointer reference 
     in case of an instance field
-  *}
+\<close>
 
-  --{* cf. 15.12.1, 15.25.1 *}
+  \<comment>\<open>cf. 15.12.1, 15.25.1\<close>
 | AVar: "\<lbrakk>G\<turnstile> Norm s0 \<midarrow>e1-\<succ>a\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e2-\<succ>i\<rightarrow> s2;
           (v,s2') = avar G i a s2\<rbrakk> \<Longrightarrow>
                       G\<turnstile>Norm s0 \<midarrow>e1.[e2]=\<succ>v\<rightarrow> s2'"
 
 
---{* evaluation of expression lists *}
+\<comment>\<open>evaluation of expression lists\<close>
 
-  --{* cf. 15.11.4.2 *}
+  \<comment>\<open>cf. 15.11.4.2\<close>
 | Nil:
                                     "G\<turnstile>Norm s0 \<midarrow>[]\<doteq>\<succ>[]\<rightarrow> Norm s0"
 
-  --{* cf. 15.6.4 *}
+  \<comment>\<open>cf. 15.6.4\<close>
 | Cons: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e -\<succ> v \<rightarrow> s1;
           G\<turnstile>     s1 \<midarrow>es\<doteq>\<succ>vs\<rightarrow> s2\<rbrakk> \<Longrightarrow>
                                    G\<turnstile>Norm s0 \<midarrow>e#es\<doteq>\<succ>v#vs\<rightarrow> s2"
@@ -744,13 +744,13 @@ where
  29(AVar),24(Call)]
 *)
 
-ML {*
+ML \<open>
 ML_Thms.bind_thm ("eval_induct", rearrange_prems 
 [0,1,2,8,4,30,31,27,15,16,
  17,18,19,20,21,3,5,25,26,23,6,
  7,11,9,13,14,12,22,10,28,
  29,24] @{thm eval.induct})
-*}
+\<close>
 
 
 declare split_if     [split del] split_if_asm     [split del] 
@@ -780,7 +780,7 @@ done
 
 declare not_None_eq [simp del] (* IntDef.Zero_def [simp del] *)
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
+setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
 
 inductive_cases eval_cases: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v, s')"
 
@@ -818,7 +818,7 @@ inductive_cases eval_elim_cases [cases set]:
         "G\<turnstile>Norm s \<midarrow>In1r (Init C)                       \<succ>\<rightarrow> (x, s')"
 declare not_None_eq [simp]  (* IntDef.Zero_def [simp] *)
 declare split_paired_All [simp] split_paired_Ex [simp]
-declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
+declaration \<open>K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac)))\<close>
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
 
@@ -837,12 +837,12 @@ apply (rename_tac a, induct_tac "a")
 apply auto
 done
 
-text {* The following simplification procedures set up the proper injections of
+text \<open>The following simplification procedures set up the proper injections of
  terms and their corresponding values in the evaluation relation:
  E.g. an expression 
  (injection @{term In1l} into terms) always evaluates to ordinary values 
  (injection @{term In1} into generalised values @{term vals}). 
-*}
+\<close>
 
 lemma eval_expr_eq: "G\<turnstile>s \<midarrow>In1l t\<succ>\<rightarrow> (w, s') = (\<exists>v. w=In1 v \<and> G\<turnstile>s \<midarrow>t-\<succ>v \<rightarrow> s')"
   by (auto, frule eval_Inj_elim, auto)
@@ -856,40 +856,40 @@ lemma eval_exprs_eq: "G\<turnstile>s \<midarrow>In3 t\<succ>\<rightarrow> (w, s'
 lemma eval_stmt_eq: "G\<turnstile>s \<midarrow>In1r t\<succ>\<rightarrow> (w, s') = (w=\<diamondsuit> \<and> G\<turnstile>s \<midarrow>t \<rightarrow> s')"
   by (auto, frule eval_Inj_elim, auto, frule eval_Inj_elim, auto)
 
-simproc_setup eval_expr ("G\<turnstile>s \<midarrow>In1l t\<succ>\<rightarrow> (w, s')") = {*
+simproc_setup eval_expr ("G\<turnstile>s \<midarrow>In1l t\<succ>\<rightarrow> (w, s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm eval_expr_eq})) *}
+    | _ => SOME (mk_meta_eq @{thm eval_expr_eq}))\<close>
 
-simproc_setup eval_var ("G\<turnstile>s \<midarrow>In2 t\<succ>\<rightarrow> (w, s')") = {*
+simproc_setup eval_var ("G\<turnstile>s \<midarrow>In2 t\<succ>\<rightarrow> (w, s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm eval_var_eq})) *}
+    | _ => SOME (mk_meta_eq @{thm eval_var_eq}))\<close>
 
-simproc_setup eval_exprs ("G\<turnstile>s \<midarrow>In3 t\<succ>\<rightarrow> (w, s')") = {*
+simproc_setup eval_exprs ("G\<turnstile>s \<midarrow>In3 t\<succ>\<rightarrow> (w, s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm eval_exprs_eq})) *}
+    | _ => SOME (mk_meta_eq @{thm eval_exprs_eq}))\<close>
 
-simproc_setup eval_stmt ("G\<turnstile>s \<midarrow>In1r t\<succ>\<rightarrow> (w, s')") = {*
+simproc_setup eval_stmt ("G\<turnstile>s \<midarrow>In1r t\<succ>\<rightarrow> (w, s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
-    | _ => SOME (mk_meta_eq @{thm eval_stmt_eq})) *}
+    | _ => SOME (mk_meta_eq @{thm eval_stmt_eq}))\<close>
 
-ML {*
+ML \<open>
 ML_Thms.bind_thms ("AbruptIs", sum3_instantiate @{context} @{thm eval.Abrupt})
-*}
+\<close>
 
 declare halloc.Abrupt [intro!] eval.Abrupt [intro!]  AbruptIs [intro!]
 
-text{* @{text Callee},@{text InsInitE}, @{text InsInitV}, @{text FinA} are only
+text\<open>\<open>Callee\<close>,\<open>InsInitE\<close>, \<open>InsInitV\<close>, \<open>FinA\<close> are only
 used in smallstep semantics, not in the bigstep semantics. So their is no
 valid evaluation of these terms 
-*}
+\<close>
 
 
 lemma eval_Callee: "G\<turnstile>Norm s\<midarrow>Callee l e-\<succ>v\<rightarrow> s' = False"
@@ -952,12 +952,12 @@ apply auto
 apply (frule eval_no_abrupt_lemma, auto)+
 done
 
-simproc_setup eval_no_abrupt ("G\<turnstile>(x,s) \<midarrow>e\<succ>\<rightarrow> (w,Norm s')") = {*
+simproc_setup eval_no_abrupt ("G\<turnstile>(x,s) \<midarrow>e\<succ>\<rightarrow> (w,Norm s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ (Const (@{const_name Pair}, _) $ (Const (@{const_name None}, _)) $ _) $ _  $ _ $ _) => NONE
     | _ => SOME (mk_meta_eq @{thm eval_no_abrupt}))
-*}
+\<close>
 
 
 lemma eval_abrupt_lemma: 
@@ -972,12 +972,12 @@ apply auto
 apply (frule eval_abrupt_lemma, auto)+
 done
 
-simproc_setup eval_abrupt ("G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<rightarrow> (w,s')") = {*
+simproc_setup eval_abrupt ("G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<rightarrow> (w,s')") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       (_ $ _ $ _ $ _ $ _ $ (Const (@{const_name Pair}, _) $ (Const (@{const_name Some}, _) $ _)$ _)) => NONE
     | _ => SOME (mk_meta_eq @{thm eval_abrupt}))
-*}
+\<close>
 
 lemma LitI: "G\<turnstile>s \<midarrow>Lit v-\<succ>(if normal s then v else undefined)\<rightarrow> s"
 apply (case_tac "s", case_tac "a = None")
@@ -1162,8 +1162,8 @@ by auto
 lemma unique_eval [rule_format (no_asm)]: 
   "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (w, s') \<Longrightarrow> (\<forall>w' s''. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (w', s'') \<longrightarrow> w' = w \<and> s'' = s')"
 apply (erule eval_induct)
-apply (tactic {* ALLGOALS (EVERY'
-      [strip_tac @{context}, rotate_tac ~1, eresolve_tac @{context} @{thms eval_elim_cases}]) *})
+apply (tactic \<open>ALLGOALS (EVERY'
+      [strip_tac @{context}, rotate_tac ~1, eresolve_tac @{context} @{thms eval_elim_cases}])\<close>)
 (* 31 subgoals *)
 prefer 28 (* Try *) 
 apply (simp (no_asm_use) only: split add: split_if_asm)

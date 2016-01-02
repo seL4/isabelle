@@ -1,22 +1,22 @@
 (*  Title:      HOL/Bali/Name.thy
     Author:     David von Oheimb
 *)
-subsection {* Java names *}
+subsection \<open>Java names\<close>
 
 theory Name imports Basis begin
 
 (* cf. 6.5 *) 
-typedecl tnam   --{* ordinary type name, i.e. class or interface name *}
-typedecl pname  --{* package name *}
-typedecl mname  --{* method name *}
-typedecl vname  --{* variable or field name *}
-typedecl label  --{* label as destination of break or continue *}
+typedecl tnam   \<comment>\<open>ordinary type name, i.e. class or interface name\<close>
+typedecl pname  \<comment>\<open>package name\<close>
+typedecl mname  \<comment>\<open>method name\<close>
+typedecl vname  \<comment>\<open>variable or field name\<close>
+typedecl label  \<comment>\<open>label as destination of break or continue\<close>
 
-datatype ename        --{* expression name *} 
+datatype ename        \<comment>\<open>expression name\<close> 
         = VNam vname 
-        | Res         --{* special name to model the return value of methods *}
+        | Res         \<comment>\<open>special name to model the return value of methods\<close>
 
-datatype lname        --{* names for local variables and the This pointer *}
+datatype lname        \<comment>\<open>names for local variables and the This pointer\<close>
         = EName ename 
         | This
 abbreviation VName   :: "vname \<Rightarrow> lname"
@@ -25,7 +25,7 @@ abbreviation VName   :: "vname \<Rightarrow> lname"
 abbreviation Result :: lname
       where "Result == EName Res"
 
-datatype xname          --{* names of standard exceptions *}
+datatype xname          \<comment>\<open>names of standard exceptions\<close>
         = Throwable
         | NullPointer | OutOfMemory | ClassCast   
         | NegArrSize  | IndOutBound | ArrStore
@@ -39,12 +39,12 @@ apply auto
 done
 
 
-datatype tname  --{* type names for standard classes and other type names *}
+datatype tname  \<comment>\<open>type names for standard classes and other type names\<close>
         = Object'
         | SXcpt'   xname
         | TName   tnam
 
-record   qtname = --{* qualified tname cf. 6.5.3, 6.5.4*}
+record   qtname = \<comment>\<open>qualified tname cf. 6.5.3, 6.5.4\<close>
           pid :: pname  
           tid :: tname
 
@@ -82,7 +82,7 @@ translations
   (type) "'a qtname_scheme" <= (type) "\<lparr>pid::pname,tid::tname,\<dots>::'a\<rparr>"
 
 
-axiomatization java_lang::pname --{* package java.lang *}
+axiomatization java_lang::pname \<comment>\<open>package java.lang\<close>
 
 definition
   Object :: qtname

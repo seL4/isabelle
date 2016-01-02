@@ -236,14 +236,14 @@ AccAVar: "\<lbrakk>((v,vf),s') = avar G i a (Norm s)\<rbrakk>
 | InsInitFVar:
       "G\<turnstile>(\<langle>InsInitV Skip ({accC,statDeclC,stat}Lit a..fn)\<rangle>,Norm s) 
         \<mapsto>1 (\<langle>{accC,statDeclC,stat}Lit a..fn\<rangle>,Norm s)"
---  {* Notice, that we do not have literal values for @{text vars}. 
-The rules for accessing variables (@{text Acc}) and assigning to variables 
-(@{text Ass}), test this with the predicate @{text groundVar}.  After 
-initialisation is done and the @{text FVar} is evaluated, we can't just 
-throw away the @{text InsInitFVar} term and return a literal value, as in the 
-cases of @{text New}  or @{text NewC}. Instead we just return the evaluated 
-@{text FVar} and test for initialisation in the rule @{text FVar}. 
-*}
+\<comment>  \<open>Notice, that we do not have literal values for \<open>vars\<close>. 
+The rules for accessing variables (\<open>Acc\<close>) and assigning to variables 
+(\<open>Ass\<close>), test this with the predicate \<open>groundVar\<close>.  After 
+initialisation is done and the \<open>FVar\<close> is evaluated, we can't just 
+throw away the \<open>InsInitFVar\<close> term and return a literal value, as in the 
+cases of \<open>New\<close>  or \<open>NewC\<close>. Instead we just return the evaluated 
+\<open>FVar\<close> and test for initialisation in the rule \<open>FVar\<close>. 
+\<close>
 
 
 | AVarE1: "\<lbrakk>G\<turnstile>(\<langle>e1\<rangle>,Norm s) \<mapsto>1 (\<langle>e1'\<rangle>,s')\<rbrakk> 
@@ -258,7 +258,7 @@ cases of @{text New}  or @{text NewC}. Instead we just return the evaluated
 
 (* evaluation of expression lists *)
 
-  -- {* @{text Nil}  is fully evaluated *}
+  \<comment> \<open>\<open>Nil\<close>  is fully evaluated\<close>
 
 | ConsHd: "\<lbrakk>G\<turnstile>(\<langle>e::expr\<rangle>,Norm s) \<mapsto>1 (\<langle>e'::expr\<rangle>,s')\<rbrakk> 
            \<Longrightarrow>
@@ -339,8 +339,8 @@ cases of @{text New}  or @{text NewC}. Instead we just return the evaluated
           \<mapsto>1 (\<langle>(if C = Object then Skip else (Init (super c)));;
                 Expr (Callee (locals s) (InsInitE (init c) SKIP))\<rangle>
                ,Norm (init_class_obj G C s))"
--- {* @{text InsInitE} is just used as trick to embed the statement 
-@{text "init c"} into an expression*} 
+\<comment> \<open>\<open>InsInitE\<close> is just used as trick to embed the statement 
+\<open>init c\<close> into an expression\<close> 
 | InsInitESKIP:
     "G\<turnstile>(\<langle>InsInitE Skip SKIP\<rangle>,Norm s) \<mapsto>1 (\<langle>SKIP\<rangle>,Norm s)"
 

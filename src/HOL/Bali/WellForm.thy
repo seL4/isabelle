@@ -2,10 +2,10 @@
     Author:     David von Oheimb and Norbert Schirmer
 *)
 
-subsection {* Well-formedness of Java programs *}
+subsection \<open>Well-formedness of Java programs\<close>
 theory WellForm imports DefiniteAssignment begin
 
-text {*
+text \<open>
 For static checks on expressions and statements, see WellType.thy
 
 improvements over Java Specification 1.0 (cf. 8.4.6.3, 8.4.6.4, 9.4.1):
@@ -25,11 +25,11 @@ simplifications:
 \item Object and standard exceptions are assumed to be declared like normal 
       classes
 \end{itemize}
-*}
+\<close>
 
 subsubsection "well-formed field declarations"
-text  {* well-formed field declaration (common part for classes and interfaces),
-        cf. 8.3 and (9.3) *}
+text  \<open>well-formed field declaration (common part for classes and interfaces),
+        cf. 8.3 and (9.3)\<close>
 
 definition
   wf_fdecl :: "prog \<Rightarrow> pname \<Rightarrow> fdecl \<Rightarrow> bool"
@@ -46,7 +46,7 @@ subsubsection "well-formed method declarations"
   (*well-formed method declaration,cf. 8.4, 8.4.1, 8.4.3, 8.4.5, 14.3.2, (9.4)*)
   (* cf. 14.15, 15.7.2, for scope issues cf. 8.4.1 and 14.3.2 *)
 
-text {*
+text \<open>
 A method head is wellformed if:
 \begin{itemize}
 \item the signature and the method head agree in the number of parameters
@@ -54,7 +54,7 @@ A method head is wellformed if:
 \item the result type is visible
 \item the parameter names are unique
 \end{itemize} 
-*}
+\<close>
 definition
   wf_mhead :: "prog \<Rightarrow> pname \<Rightarrow> sig \<Rightarrow> mhead \<Rightarrow> bool" where
   "wf_mhead G P = (\<lambda> sig mh. length (parTs sig) = length (pars mh) \<and>
@@ -63,7 +63,7 @@ definition
                             distinct (pars mh))"
 
 
-text {*
+text \<open>
 A method declaration is wellformed if:
 \begin{itemize}
 \item the method head is wellformed
@@ -76,7 +76,7 @@ A method declaration is wellformed if:
       the parameters the special result variable (Res) and This are assoziated
       with there types. 
 \end{itemize}
-*}
+\<close>
 
 definition
   callee_lcl :: "qtname \<Rightarrow> sig \<Rightarrow> methd \<Rightarrow> lenv" where
@@ -205,7 +205,7 @@ done
 subsubsection "well-formed interface declarations"
   (* well-formed interface declaration, cf. 9.1, 9.1.2.1, 9.1.3, 9.4 *)
 
-text {*
+text \<open>
 A interface declaration is wellformed if:
 \begin{itemize}
 \item the interface hierarchy is wellstructured
@@ -219,7 +219,7 @@ A interface declaration is wellformed if:
 \item the result type of a method overriding a set of methods defined in the
       superinterfaces widens to each of the corresponding result types
 \end{itemize}
-*}
+\<close>
 definition
   wf_idecl :: "prog  \<Rightarrow> idecl \<Rightarrow> bool" where
  "wf_idecl G =
@@ -277,7 +277,7 @@ subsubsection "well-formed class declarations"
   (* well-formed class declaration, cf. 8.1, 8.1.2.1, 8.1.2.2, 8.1.3, 8.1.4 and
    class method declaration, cf. 8.4.3.3, 8.4.6.1, 8.4.6.2, 8.4.6.3, 8.4.6.4 *)
 
-text {*
+text \<open>
 A class declaration is wellformed if:
 \begin{itemize}
 \item there is no interface with the same name
@@ -320,7 +320,7 @@ A class declaration is wellformed if:
       \end{itemize}
 
 \end{itemize}
-*}
+\<close>
 (* to Table *)
 definition
   entails :: "('a,'b) table \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> bool" ("_ entails _" 20)
@@ -503,7 +503,7 @@ done
 subsubsection "well-formed programs"
   (* well-formed program, cf. 8.1, 9.1 *)
 
-text {*
+text \<open>
 A program declaration is wellformed if:
 \begin{itemize}
 \item the class ObjectC of Object is defined
@@ -512,12 +512,12 @@ A program declaration is wellformed if:
       necessary since every interface automatically inherits from Object.  
       We must know, that every time a Object method is "overriden" by an 
       interface method this is also overriden by the class implementing the
-      the interface (see @{text "implement_dynmethd and class_mheadsD"})
+      the interface (see \<open>implement_dynmethd and class_mheadsD\<close>)
 \item all standard Exceptions are defined
 \item all defined interfaces are wellformed
 \item all defined classes are wellformed
 \end{itemize}
-*}
+\<close>
 definition
   wf_prog :: "prog \<Rightarrow> bool" where
  "wf_prog G = (let is = ifaces G; cs = classes G in
@@ -811,7 +811,7 @@ proof -
     by (cases new, cases old) auto
 qed
 
-text {* Compare this lemma about static  
+text \<open>Compare this lemma about static  
 overriding @{term "G \<turnstile>new overrides\<^sub>S old"} with the definition of 
 dynamic overriding @{term "G \<turnstile>new overrides old"}. 
 Conforming result types and restrictions on the access modifiers of the old 
@@ -820,8 +820,8 @@ they are enshured in a wellfromed program.  Dynamic overriding has
 no restrictions on the access modifiers but enforces confrom result types 
 as precondition. But with some efford we can guarantee the access modifier
 restriction for dynamic overriding, too. See lemma 
-@{text wf_prog_dyn_override_prop}.
-*}
+\<open>wf_prog_dyn_override_prop\<close>.
+\<close>
 lemma wf_prog_stat_overridesD:
   assumes stat_override: "G \<turnstile>new overrides\<^sub>S old" and wf: "wf_prog G"
   shows
@@ -1758,7 +1758,7 @@ proof (induct rule: converse_rtrancl_induct)
     then show ?case by  (blast elim: bexI')
   next
     case (step I SI)
-    from `G\<turnstile>I \<prec>I1 SI`
+    from \<open>G\<turnstile>I \<prec>I1 SI\<close>
     obtain i where
       ifI: "iface G I = Some i" and
        SI: "SI \<in> set (isuperIfs i)"
@@ -2048,7 +2048,7 @@ proof -
   qed
 qed
 
-text {*
+text \<open>
 Which dynamic classes are valid to look up a member of a distinct static type?
 We have to distinct class members (named static members in Java) 
 from instance members. Class members are global to all Objects of a class,
@@ -2076,7 +2076,7 @@ interface can't declare new static methods, nor an array can define new
 methods at all, we have to lookup methods in the base class Object.
 
 The limitation to classes in the field column is artificial  and comes out
-of the typing rule for the field access (see rule @{text "FVar"} in the 
+of the typing rule for the field access (see rule \<open>FVar\<close> in the 
 welltyping relation @{term "wt"} in theory WellType). 
 I stems out of the fact, that Object
 indeed has no non private fields. So interfaces and arrays can actually
@@ -2091,7 +2091,7 @@ non private fields. Then we would get the following column:
  Iface    Object 
  Class    dynC 
  Array    Object
-*}
+\<close>
 primrec valid_lookup_cls:: "prog \<Rightarrow> ref_ty \<Rightarrow> qtname \<Rightarrow> bool \<Rightarrow> bool"
                         ("_,_ \<turnstile> _ valid'_lookup'_cls'_for _" [61,61,61,61] 60)
 where
@@ -2127,8 +2127,8 @@ next
 qed
 
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
-setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
+setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
+setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
 
 lemma dynamic_mheadsD:   
 "\<lbrakk>emh \<in> mheads G S statT sig;    
@@ -2257,8 +2257,8 @@ proof -
   qed
 qed
 declare split_paired_All [simp] split_paired_Ex [simp]
-setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
-setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}
+setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac))\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>
 
 (* Tactical version *)
 (*
@@ -2401,8 +2401,8 @@ qed
   
 
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
-setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
+setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
+setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
 
 lemma wt_is_type: "E,dt\<Turnstile>v\<Colon>T \<Longrightarrow>  wf_prog (prg E) \<longrightarrow> 
   dt=empty_dt \<longrightarrow> (case T of 
@@ -2426,8 +2426,8 @@ apply  (auto dest: accmethd_rT_is_type
     )
 done
 declare split_paired_All [simp] split_paired_Ex [simp]
-setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
-setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}
+setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac))\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>
 
 lemma ty_expr_is_type: 
 "\<lbrakk>E\<turnstile>e\<Colon>-T; wf_prog (prg E)\<rbrakk> \<Longrightarrow> is_type (prg E) T"
@@ -2855,7 +2855,7 @@ proof -
                                    dest: acc_modi_le_Dests)
 qed
 
-subsubsection {* Properties of dynamic accessibility *}
+subsubsection \<open>Properties of dynamic accessibility\<close>
 
 lemma dyn_accessible_Private:
  assumes dyn_acc: "G \<turnstile> m in C dyn_accessible_from accC" and
@@ -2866,7 +2866,7 @@ proof -
   show ?thesis
   proof (induct)
     case (Immediate m C)
-    from `G \<turnstile> m in C permits_acc_from accC` and `accmodi m = Private`
+    from \<open>G \<turnstile> m in C permits_acc_from accC\<close> and \<open>accmodi m = Private\<close>
     show ?case
       by (simp add: permits_acc_def)
   next
@@ -2876,9 +2876,9 @@ proof -
   qed
 qed
 
-text {* @{text dyn_accessible_Package} only works with the @{text wf_prog} assumption. 
+text \<open>\<open>dyn_accessible_Package\<close> only works with the \<open>wf_prog\<close> assumption. 
 Without it. it is easy to leaf the Package!
-*}
+\<close>
 lemma dyn_accessible_Package:
  "\<lbrakk>G \<turnstile> m in C dyn_accessible_from accC; accmodi m = Package;
    wf_prog G\<rbrakk>
@@ -2919,8 +2919,8 @@ proof -
   qed
 qed
 
-text {* For fields we don't need the wellformedness of the program, since
-there is no overriding *}
+text \<open>For fields we don't need the wellformedness of the program, since
+there is no overriding\<close>
 lemma dyn_accessible_field_Package:
  assumes dyn_acc: "G \<turnstile> f in C dyn_accessible_from accC" and
             pack: "accmodi f = Package" and
@@ -2931,7 +2931,7 @@ proof -
   show ?thesis
   proof (induct)
     case (Immediate f C)
-    from `G \<turnstile> f in C permits_acc_from accC` and `accmodi f = Package`
+    from \<open>G \<turnstile> f in C permits_acc_from accC\<close> and \<open>accmodi f = Package\<close>
     show ?case
       by (simp add: permits_acc_def)
   next
@@ -2940,9 +2940,9 @@ proof -
   qed
 qed
 
-text {* @{text dyn_accessible_instance_field_Protected} only works for fields
+text \<open>\<open>dyn_accessible_instance_field_Protected\<close> only works for fields
 since methods can break the package bounds due to overriding
-*}
+\<close>
 lemma dyn_accessible_instance_field_Protected:
   assumes dyn_acc: "G \<turnstile> f in C dyn_accessible_from accC" and
              prot: "accmodi f = Protected" and
@@ -2955,7 +2955,7 @@ proof -
   show ?thesis
   proof (induct)
     case (Immediate f C)
-    note `G \<turnstile> f in C permits_acc_from accC`
+    note \<open>G \<turnstile> f in C permits_acc_from accC\<close>
     moreover 
     assume "accmodi f = Protected" and  "is_field f" and "\<not> is_static f" and
            "pid (declclass f) \<noteq> pid accC"
@@ -2983,12 +2983,12 @@ proof -
     assume "accmodi f = Protected" and  "is_field f" and "is_static f" and
            "pid (declclass f) \<noteq> pid accC"
     moreover
-    note `G \<turnstile> f in C permits_acc_from accC`
+    note \<open>G \<turnstile> f in C permits_acc_from accC\<close>
     ultimately
     have "G\<turnstile> accC \<preceq>\<^sub>C declclass f"
       by (auto simp add: permits_acc_def)
     moreover
-    from `G \<turnstile> f member_in C`
+    from \<open>G \<turnstile> f member_in C\<close>
     have "G\<turnstile>C \<preceq>\<^sub>C declclass f"
       by (rule member_in_class_relation)
     ultimately show ?case

@@ -40,8 +40,8 @@ datatype cnam' = Base' | Ext'
 datatype vnam' = vee' | x' | e'
 
 text \<open>
-  @{text cnam'} and @{text vnam'} are intended to be isomorphic 
-  to @{text cnam} and @{text vnam}
+  \<open>cnam'\<close> and \<open>vnam'\<close> are intended to be isomorphic 
+  to \<open>cnam\<close> and \<open>vnam\<close>
 \<close>
 
 axiomatization cnam' :: "cnam' => cname"
@@ -133,7 +133,7 @@ done
 lemma map_of_Cons2 [simp]: "aa\<noteq>k ==> map_of ((k,bb)#ps) aa = map_of ps aa"
 apply (simp (no_asm_simp))
 done
-declare map_of_Cons [simp del] -- "sic!"
+declare map_of_Cons [simp del] \<comment> "sic!"
 
 lemma class_tprg_Object [simp]: "class tprg Object = Some (undefined, [], [])"
 apply (unfold ObjectC_def class_def)
@@ -375,25 +375,25 @@ done
 lemmas t = ty_expr_ty_exprs_wt_stmt.intros
 schematic_goal wt_test: "(tprg, empty(e\<mapsto>Class Base))\<turnstile>  
   Expr(e::=NewC Ext);; Expr({Base}LAcc e..foo({?pTs'}[Lit Null]))\<surd>"
-apply (rule ty_expr_ty_exprs_wt_stmt.intros) -- ";;"
-apply  (rule t) -- "Expr"
-apply  (rule t) -- "LAss"
-apply    simp -- \<open>@{text "e \<noteq> This"}\<close>
-apply    (rule t) -- "LAcc"
+apply (rule ty_expr_ty_exprs_wt_stmt.intros) \<comment> ";;"
+apply  (rule t) \<comment> "Expr"
+apply  (rule t) \<comment> "LAss"
+apply    simp \<comment> \<open>\<open>e \<noteq> This\<close>\<close>
+apply    (rule t) \<comment> "LAcc"
 apply     (simp (no_asm))
 apply    (simp (no_asm))
-apply   (rule t) -- "NewC"
+apply   (rule t) \<comment> "NewC"
 apply   (simp (no_asm))
 apply  (simp (no_asm))
-apply (rule t) -- "Expr"
-apply (rule t) -- "Call"
-apply   (rule t) -- "LAcc"
+apply (rule t) \<comment> "Expr"
+apply (rule t) \<comment> "Call"
+apply   (rule t) \<comment> "LAcc"
 apply    (simp (no_asm))
 apply   (simp (no_asm))
-apply  (rule t) -- "Cons"
-apply   (rule t) -- "Lit"
+apply  (rule t) \<comment> "Cons"
+apply   (rule t) \<comment> "Lit"
 apply   (simp (no_asm))
-apply  (rule t) -- "Nil"
+apply  (rule t) \<comment> "Nil"
 apply (simp (no_asm))
 apply (rule max_spec_foo_Base)
 done
@@ -406,38 +406,38 @@ schematic_goal exec_test:
 " [|new_Addr (heap (snd s0)) = (a, None)|] ==>  
   tprg\<turnstile>s0 -test-> ?s"
 apply (unfold test_def)
--- "?s = s3 "
-apply (rule e) -- ";;"
-apply  (rule e) -- "Expr"
-apply  (rule e) -- "LAss"
-apply   (rule e) -- "NewC"
+\<comment> "?s = s3 "
+apply (rule e) \<comment> ";;"
+apply  (rule e) \<comment> "Expr"
+apply  (rule e) \<comment> "LAss"
+apply   (rule e) \<comment> "NewC"
 apply    force
 apply   force
 apply  (simp (no_asm))
 apply (erule thin_rl)
-apply (rule e) -- "Expr"
-apply (rule e) -- "Call"
-apply       (rule e) -- "LAcc"
+apply (rule e) \<comment> "Expr"
+apply (rule e) \<comment> "Call"
+apply       (rule e) \<comment> "LAcc"
 apply      force
-apply     (rule e) -- "Cons"
-apply      (rule e) -- "Lit"
-apply     (rule e) -- "Nil"
+apply     (rule e) \<comment> "Cons"
+apply      (rule e) \<comment> "Lit"
+apply     (rule e) \<comment> "Nil"
 apply    (simp (no_asm))
 apply   (force simp add: foo_Ext_def)
 apply  (simp (no_asm))
-apply  (rule e) -- "Expr"
-apply  (rule e) -- "FAss"
-apply       (rule e) -- "Cast"
-apply        (rule e) -- "LAcc"
+apply  (rule e) \<comment> "Expr"
+apply  (rule e) \<comment> "FAss"
+apply       (rule e) \<comment> "Cast"
+apply        (rule e) \<comment> "LAcc"
 apply       (simp (no_asm))
 apply      (simp (no_asm))
 apply     (simp (no_asm))
-apply     (rule e) -- "XcptE"
+apply     (rule e) \<comment> "XcptE"
 apply    (simp (no_asm))
 apply   (rule surjective_pairing [symmetric, THEN[2]trans], subst prod.inject, force)
 apply  (simp (no_asm))
 apply (simp (no_asm))
-apply (rule e) -- "XcptE"
+apply (rule e) \<comment> "XcptE"
 done
 
 end

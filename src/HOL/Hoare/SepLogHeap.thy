@@ -12,8 +12,8 @@ begin
 
 type_synonym heap = "(nat \<Rightarrow> nat option)"
 
-text{* @{text "Some"} means allocated, @{text "None"} means
-free. Address @{text "0"} serves as the null reference. *}
+text\<open>\<open>Some\<close> means allocated, \<open>None\<close> means
+free. Address \<open>0\<close> serves as the null reference.\<close>
 
 subsection "Paths in the heap"
 

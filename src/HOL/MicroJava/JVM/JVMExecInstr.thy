@@ -67,8 +67,8 @@ where
               else []
    in 
       (xp', hp, frs'@(stk, vars, Cl, sig, pc)#frs))" |
-  -- "Because exception handling needs the pc of the Invoke instruction,"
-  -- "Invoke doesn't change stk and pc yet (@{text Return} does that)."
+  \<comment> "Because exception handling needs the pc of the Invoke instruction,"
+  \<comment> "Invoke doesn't change stk and pc yet (\<open>Return\<close> does that)."
 
  "exec_instr Return G hp stk0 vars Cl sig0 pc frs =
   (if frs=[] then 
@@ -78,8 +78,8 @@ where
          (mn,pt) = sig0; n = length pt
    in 
       (None, hp, (val#(drop (n+1) stk),loc,C,sig,pc+1)#tl frs))"
-  -- "Return drops arguments from the caller's stack and increases"
-  -- "the program counter in the caller" |
+  \<comment> "Return drops arguments from the caller's stack and increases"
+  \<comment> "the program counter in the caller" |
 
  "exec_instr Pop G hp stk vars Cl sig pc frs = 
       (None, hp, (tl stk, vars, Cl, sig, pc+1)#frs)" |

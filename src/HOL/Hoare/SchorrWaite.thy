@@ -8,10 +8,10 @@ Proof of the Schorr-Waite graph marking algorithm.
 
 theory SchorrWaite imports HeapSyntax begin
 
-section {* Machinery for the Schorr-Waite proof*}
+section \<open>Machinery for the Schorr-Waite proof\<close>
 
 definition
-  -- "Relations induced by a mapping"
+  \<comment> "Relations induced by a mapping"
   rel :: "('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<times> 'a) set"
   where "rel m = {(x,y). m x = Ref y}"
 
@@ -29,7 +29,7 @@ definition
 
 lemmas rel_defs = relS_def rel_def
 
-text {* Rewrite rules for relations induced by a mapping*}
+text \<open>Rewrite rules for relations induced by a mapping\<close>
 
 lemma self_reachable: "b \<in> B \<Longrightarrow> b \<in> R\<^sup>* `` B"
 apply blast
@@ -83,11 +83,11 @@ apply (simp add:rel_defs fun_upd_apply)
 done
 
 definition
-  -- "Restriction of a relation"
+  \<comment> "Restriction of a relation"
   restr ::"('a \<times> 'a) set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<times> 'a) set"       ("(_/ | _)" [50, 51] 50)
   where "restr r m = {(x,y). (x,y) \<in> r \<and> \<not> m x}"
 
-text {* Rewrite rules for the restriction of a relation *}
+text \<open>Rewrite rules for the restriction of a relation\<close>
 
 lemma restr_identity[simp]:
  " (\<forall>x. \<not> m x) \<Longrightarrow> (R |m) = R"
@@ -115,11 +115,11 @@ apply (simp add:restr_def fun_upd_apply)
 done
 
 definition
-  -- "A short form for the stack mapping function for List"
+  \<comment> "A short form for the stack mapping function for List"
   S :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref)"
   where "S c l r = (\<lambda>x. if c x then r x else l x)"
 
-text {* Rewrite rules for Lists using S as their mapping *}
+text \<open>Rewrite rules for Lists using S as their mapping\<close>
 
 lemma [rule_format,simp]:
  "\<forall>p. a \<notin> set stack \<longrightarrow> List (S c l r) p stack = List (S (c(a:=x)) (l(a:=y)) (r(a:=z))) p stack"
@@ -146,7 +146,7 @@ apply(induct_tac stack)
 done
 
 primrec
-  --"Recursive definition of what is means for a the graph/stack structure to be reconstructible"
+  \<comment>"Recursive definition of what is means for a the graph/stack structure to be reconstructible"
   stkOk :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow>'a list \<Rightarrow>  bool"
 where
   stkOk_nil:  "stkOk c l r iL iR t [] = True"
@@ -155,7 +155,7 @@ where
       iL p = (if c p then l p else t) \<and>
       iR p = (if c p then t else r p))"
 
-text {* Rewrite rules for stkOk *}
+text \<open>Rewrite rules for stkOk\<close>
 
 lemma [simp]: "\<And>t. \<lbrakk> x \<notin> set xs; Ref x\<noteq>t \<rbrakk> \<Longrightarrow>
   stkOk (c(x := f)) l r iL iR t xs = stkOk c l r iL iR t xs"
@@ -194,7 +194,7 @@ apply (induct xs)
 done
 
 
-section{*The Schorr-Waite algorithm*}
+section\<open>The Schorr-Waite algorithm\<close>
 
 
 theorem SchorrWaiteAlgorithm: 
@@ -276,21 +276,21 @@ proof (vcg)
           have "?popInv stack_tl"
           proof -
 
-            -- {*List property is maintained:*}
+            \<comment> \<open>List property is maintained:\<close>
             from i1 p_notin_stack_tl ifB2
             have poI1: "List (S c l (r(p \<rightarrow> t))) (p^.r) stack_tl" 
               by(simp add: addr_p_eq stack_eq, simp add: S_def)
 
             moreover
-            -- {*Everything on the stack is marked:*}
+            \<comment> \<open>Everything on the stack is marked:\<close>
             from i2 have poI2: "\<forall> x \<in> set stack_tl. m x" by (simp add:stack_eq)
             moreover
 
-            -- {*Everything is still reachable:*}
+            \<comment> \<open>Everything is still reachable:\<close>
             let "(R = reachable ?Ra ?A)" = "?I3"
             let "?Rb" = "(relS {l, r(p \<rightarrow> t)})"
             let "?B" = "{p, p^.r}"
-            -- {*Our goal is @{text"R = reachable ?Rb ?B"}.*}
+            \<comment> \<open>Our goal is \<open>R = reachable ?Rb ?B\<close>.\<close>
             have "?Ra\<^sup>* `` addrs ?A = ?Rb\<^sup>* `` addrs ?B" (is "?L = ?R")
             proof
               show "?L \<subseteq> ?R"
@@ -314,11 +314,11 @@ proof (vcg)
             with i3 have poI3: "R = reachable ?Rb ?B"  by (simp add:reachable_def) 
             moreover
 
-            -- "If it is reachable and not marked, it is still reachable using..."
+            \<comment> "If it is reachable and not marked, it is still reachable using..."
             let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Ra ?A"  =  ?I4        
             let "?Rb" = "relS {l, r(p \<rightarrow> t)} | m"
             let "?B" = "{p} \<union> set (map (r(p \<rightarrow> t)) stack_tl)"
-            -- {*Our goal is @{text"\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Rb ?B"}.*}
+            \<comment> \<open>Our goal is \<open>\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Rb ?B\<close>.\<close>
             let ?T = "{t, p^.r}"
 
             have "?Ra\<^sup>* `` addrs ?A \<subseteq> ?Rb\<^sup>* `` (addrs ?B \<union> addrs ?T)"
@@ -331,37 +331,37 @@ proof (vcg)
                 by (clarsimp simp:restr_def relS_def) 
                   (fastforce simp add:rel_def Image_iff addrs_def dest:rel_upd1)
             qed
-            -- "We now bring a term from the right to the left of the subset relation."
+            \<comment> "We now bring a term from the right to the left of the subset relation."
             hence subset: "?Ra\<^sup>* `` addrs ?A - ?Rb\<^sup>* `` addrs ?T \<subseteq> ?Rb\<^sup>* `` addrs ?B"
               by blast
             have poI4: "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Rb ?B"
             proof (rule allI, rule impI)
               fix x
               assume a: "x \<in> R \<and> \<not> m x"
-              -- {*First, a disjunction on @{term"p^.r"} used later in the proof*}
+              \<comment> \<open>First, a disjunction on @{term"p^.r"} used later in the proof\<close>
               have pDisj:"p^.r = Null \<or> (p^.r \<noteq> Null \<and> p^.r^.m)" using poI1 poI2 
                 by auto
-              -- {*@{term x} belongs to the left hand side of @{thm[source] subset}:*}
+              \<comment> \<open>@{term x} belongs to the left hand side of @{thm[source] subset}:\<close>
               have incl: "x \<in> ?Ra\<^sup>*``addrs ?A" using  a i4 by (simp only:reachable_def, clarsimp)
               have excl: "x \<notin> ?Rb\<^sup>*`` addrs ?T" using pDisj ifB1 a by (auto simp add:addrs_def)
-              -- {*And therefore also belongs to the right hand side of @{thm[source]subset},*}
-              -- {*which corresponds to our goal.*}
+              \<comment> \<open>And therefore also belongs to the right hand side of @{thm[source]subset},\<close>
+              \<comment> \<open>which corresponds to our goal.\<close>
               from incl excl subset  show "x \<in> reachable ?Rb ?B" by (auto simp add:reachable_def)
             qed
             moreover
 
-            -- "If it is marked, then it is reachable"
+            \<comment> "If it is marked, then it is reachable"
             from i5 have poI5: "\<forall>x. m x \<longrightarrow> x \<in> R" .
             moreover
 
-            -- {*If it is not on the stack, then its @{term l} and @{term r} fields are unchanged*}
+            \<comment> \<open>If it is not on the stack, then its @{term l} and @{term r} fields are unchanged\<close>
             from i7 i6 ifB2 
             have poI6: "\<forall>x. x \<notin> set stack_tl \<longrightarrow> (r(p \<rightarrow> t)) x = iR x \<and> l x = iL x" 
               by(auto simp: addr_p_eq stack_eq fun_upd_apply)
 
             moreover
 
-            -- {*If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed*}
+            \<comment> \<open>If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed\<close>
             from p_notin_stack_tl i7 have poI7: "stkOk c l (r(p \<rightarrow> t)) iL iR p stack_tl"
               by (clarsimp simp:stack_eq addr_p_eq)
 
@@ -371,11 +371,11 @@ proof (vcg)
         }
         moreover
 
-        -- "Proofs of the Swing and Push arm follow."
-        -- "Since they are in principle simmilar to the Pop arm proof,"
-        -- "we show fewer comments and use frequent pattern matching."
+        \<comment> "Proofs of the Swing and Push arm follow."
+        \<comment> "Since they are in principle simmilar to the Pop arm proof,"
+        \<comment> "we show fewer comments and use frequent pattern matching."
         {
-          -- "Swing arm"
+          \<comment> "Swing arm"
           assume ifB1: "?ifB1" and nifB2: "\<not>?ifB2"
           from ifB1 whileB have pNotNull: "p \<noteq> Null" by clarsimp
           then obtain addr_p where addr_p_eq: "p = Ref addr_p" by clarsimp
@@ -387,18 +387,18 @@ proof (vcg)
           have "?swInv stack"
           proof -
             
-            -- {*List property is maintained:*}
+            \<comment> \<open>List property is maintained:\<close>
             from i1 p_notin_stack_tl nifB2
             have swI1: "?swI1"
               by (simp add:addr_p_eq stack_eq, simp add:S_def)
             moreover
             
-            -- {*Everything on the stack is marked:*}
+            \<comment> \<open>Everything on the stack is marked:\<close>
             from i2
             have swI2: "?swI2" .
             moreover
             
-            -- {*Everything is still reachable:*}
+            \<comment> \<open>Everything is still reachable:\<close>
             let "R = reachable ?Ra ?A" = "?I3"
             let "R = reachable ?Rb ?B" = "?swI3"
             have "?Ra\<^sup>* `` addrs ?A = ?Rb\<^sup>* `` addrs ?B"
@@ -419,7 +419,7 @@ proof (vcg)
             have swI3: "?swI3" by (simp add:reachable_def) 
             moreover
 
-            -- "If it is reachable and not marked, it is still reachable using..."
+            \<comment> "If it is reachable and not marked, it is still reachable using..."
             let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Ra ?A" = ?I4
             let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Rb ?B" = ?swI4
             let ?T = "{t}"
@@ -449,18 +449,18 @@ proof (vcg)
             qed
             moreover
             
-            -- "If it is marked, then it is reachable"
+            \<comment> "If it is marked, then it is reachable"
             from i5
             have "?swI5" .
             moreover
 
-            -- {*If it is not on the stack, then its @{term l} and @{term r} fields are unchanged*}
+            \<comment> \<open>If it is not on the stack, then its @{term l} and @{term r} fields are unchanged\<close>
             from i6 stack_eq
             have "?swI6"
               by clarsimp           
             moreover
 
-            -- {*If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed*}
+            \<comment> \<open>If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed\<close>
             from stackDist i7 nifB2 
             have "?swI7"
               by (clarsimp simp:addr_p_eq stack_eq)
@@ -472,7 +472,7 @@ proof (vcg)
         moreover
 
         {
-          -- "Push arm"
+          \<comment> "Push arm"
           assume nifB1: "\<not>?ifB1"
           from nifB1 whileB have tNotNull: "t \<noteq> Null" by clarsimp
           then obtain addr_t where addr_t_eq: "t = Ref addr_t" by clarsimp
@@ -483,19 +483,19 @@ proof (vcg)
           have "?puInv new_stack"
           proof -
             
-            -- {*List property is maintained:*}
+            \<comment> \<open>List property is maintained:\<close>
             from i1 t_notin_stack
             have puI1: "?puI1"
               by (simp add:addr_t_eq new_stack_eq, simp add:S_def)
             moreover
             
-            -- {*Everything on the stack is marked:*}
+            \<comment> \<open>Everything on the stack is marked:\<close>
             from i2
             have puI2: "?puI2" 
               by (simp add:new_stack_eq fun_upd_apply)
             moreover
             
-            -- {*Everything is still reachable:*}
+            \<comment> \<open>Everything is still reachable:\<close>
             let "R = reachable ?Ra ?A" = "?I3"
             let "R = reachable ?Rb ?B" = "?puI3"
             have "?Ra\<^sup>* `` addrs ?A = ?Rb\<^sup>* `` addrs ?B"
@@ -516,7 +516,7 @@ proof (vcg)
             have puI3: "?puI3" by (simp add:reachable_def) 
             moreover
             
-            -- "If it is reachable and not marked, it is still reachable using..."
+            \<comment> "If it is reachable and not marked, it is still reachable using..."
             let "\<forall>x. x \<in> R \<and> \<not> m x \<longrightarrow> x \<in> reachable ?Ra ?A" = ?I4
             let "\<forall>x. x \<in> R \<and> \<not> ?new_m x \<longrightarrow> x \<in> reachable ?Rb ?B" = ?puI4
             let ?T = "{t}"
@@ -546,19 +546,19 @@ proof (vcg)
             qed  
             moreover
             
-            -- "If it is marked, then it is reachable"
+            \<comment> "If it is marked, then it is reachable"
             from i5
             have "?puI5"
               by (auto simp:addrs_def i3 reachable_def addr_t_eq fun_upd_apply intro:self_reachable)
             moreover
             
-            -- {*If it is not on the stack, then its @{term l} and @{term r} fields are unchanged*}
+            \<comment> \<open>If it is not on the stack, then its @{term l} and @{term r} fields are unchanged\<close>
             from i6 
             have "?puI6"
               by (simp add:new_stack_eq)
             moreover
 
-            -- {*If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed*}
+            \<comment> \<open>If it is on the stack, then its @{term l} and @{term r} fields can be reconstructed\<close>
             from stackDist i6 t_notin_stack i7
             have "?puI7" by (clarsimp simp:addr_t_eq new_stack_eq)
 

@@ -8,7 +8,7 @@ section \<open>System Classes\<close>
 theory SystemClasses imports Decl begin
 
 text \<open>
-  This theory provides definitions for the @{text Object} class,
+  This theory provides definitions for the \<open>Object\<close> class,
   and the system exceptions.
 \<close>
 

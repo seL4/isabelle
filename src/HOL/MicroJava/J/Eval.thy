@@ -8,7 +8,7 @@ section \<open>Operational Evaluation (big step) Semantics\<close>
 theory Eval imports State WellType begin
 
 
-  -- "Auxiliary notions"
+  \<comment> "Auxiliary notions"
 
 definition fits :: "java_mb prog \<Rightarrow> state \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_ fits _"[61,61,61,61]60) where
  "G,s\<turnstile>a' fits T  \<equiv> case T of PrimT T' \<Rightarrow> False | RefT T' \<Rightarrow> a'=Null \<or> G\<turnstile>obj_ty(lookup_obj s a')\<preceq>T"
@@ -23,7 +23,7 @@ definition new_xcpt_var :: "vname \<Rightarrow> xstate \<Rightarrow> xstate" whe
  "new_xcpt_var vn \<equiv>  \<lambda>(x,s). Norm (lupd(vn\<mapsto>the x) s)"
 
 
-  -- "Evaluation relations"
+  \<comment> "Evaluation relations"
 
 inductive
   eval :: "[java_mb prog,xstate,expr,val,xstate] => bool "
@@ -36,21 +36,21 @@ inductive
   for G :: "java_mb prog"
 where
 
-  -- "evaluation of expressions"
+  \<comment> "evaluation of expressions"
 
-  XcptE:"G\<turnstile>(Some xc,s) -e\<succ>undefined-> (Some xc,s)"  -- "cf. 15.5"
+  XcptE:"G\<turnstile>(Some xc,s) -e\<succ>undefined-> (Some xc,s)"  \<comment> "cf. 15.5"
 
-  -- "cf. 15.8.1"
+  \<comment> "cf. 15.8.1"
 | NewC: "[| h = heap s; (a,x) = new_Addr h;
             h'= h(a\<mapsto>(C,init_vars (fields (G,C)))) |] ==>
          G\<turnstile>Norm s -NewC C\<succ>Addr a-> c_hupd h' (x,s)"
 
-  -- "cf. 15.15"
+  \<comment> "cf. 15.15"
 | Cast: "[| G\<turnstile>Norm s0 -e\<succ>v-> (x1,s1);
             x2 = raise_if (\<not> cast_ok G C (heap s1) v) ClassCast x1 |] ==>
          G\<turnstile>Norm s0 -Cast C e\<succ>v-> (x2,s1)"
 
-  -- "cf. 15.7.1"
+  \<comment> "cf. 15.7.1"
 | Lit:  "G\<turnstile>Norm s -Lit v\<succ>v-> Norm s"
 
 | BinOp:"[| G\<turnstile>Norm s -e1\<succ>v1-> s1;
@@ -59,27 +59,27 @@ where
                            | Add => Intg (the_Intg v1 + the_Intg v2)) |] ==>
          G\<turnstile>Norm s -BinOp bop e1 e2\<succ>v-> s2"
 
-  -- "cf. 15.13.1, 15.2"
+  \<comment> "cf. 15.13.1, 15.2"
 | LAcc: "G\<turnstile>Norm s -LAcc v\<succ>the (locals s v)-> Norm s"
 
-  -- "cf. 15.25.1"
+  \<comment> "cf. 15.25.1"
 | LAss: "[| G\<turnstile>Norm s -e\<succ>v-> (x,(h,l));
             l' = (if x = None then l(va\<mapsto>v) else l) |] ==>
          G\<turnstile>Norm s -va::=e\<succ>v-> (x,(h,l'))"
 
-  -- "cf. 15.10.1, 15.2"
+  \<comment> "cf. 15.10.1, 15.2"
 | FAcc: "[| G\<turnstile>Norm s0 -e\<succ>a'-> (x1,s1); 
             v = the (snd (the (heap s1 (the_Addr a'))) (fn,T)) |] ==>
          G\<turnstile>Norm s0 -{T}e..fn\<succ>v-> (np a' x1,s1)"
 
-  -- "cf. 15.25.1"
+  \<comment> "cf. 15.25.1"
 | FAss: "[| G\<turnstile>     Norm s0  -e1\<succ>a'-> (x1,s1); a = the_Addr a';
             G\<turnstile>(np a' x1,s1) -e2\<succ>v -> (x2,s2);
             h  = heap s2; (c,fs) = the (h a);
             h' = h(a\<mapsto>(c,(fs((fn,T)\<mapsto>v)))) |] ==>
          G\<turnstile>Norm s0 -{T}e1..fn:=e2\<succ>v-> c_hupd h' (x2,s2)"
 
-  -- "cf. 15.11.4.1, 15.11.4.2, 15.11.4.4, 15.11.4.5, 14.15"
+  \<comment> "cf. 15.11.4.1, 15.11.4.2, 15.11.4.4, 15.11.4.5, 14.15"
 | Call: "[| G\<turnstile>Norm s0 -e\<succ>a'-> s1; a = the_Addr a';
             G\<turnstile>s1 -ps[\<succ>]pvs-> (x,(h,l)); dynT = fst (the (h a));
             (md,rT,pns,lvars,blk,res) = the (method (G,dynT) (mn,pTs));
@@ -88,43 +88,43 @@ where
          G\<turnstile>Norm s0 -{C}e..mn({pTs}ps)\<succ>v-> (x4,(heap s4,l))"
 
 
-  -- "evaluation of expression lists"
+  \<comment> "evaluation of expression lists"
 
-  -- "cf. 15.5"
+  \<comment> "cf. 15.5"
 | XcptEs:"G\<turnstile>(Some xc,s) -e[\<succ>]undefined-> (Some xc,s)"
 
-  -- "cf. 15.11.???"
+  \<comment> "cf. 15.11.???"
 | Nil:  "G\<turnstile>Norm s0 -[][\<succ>][]-> Norm s0"
 
-  -- "cf. 15.6.4"
+  \<comment> "cf. 15.6.4"
 | Cons: "[| G\<turnstile>Norm s0 -e  \<succ> v -> s1;
             G\<turnstile>     s1 -es[\<succ>]vs-> s2 |] ==>
          G\<turnstile>Norm s0 -e#es[\<succ>]v#vs-> s2"
 
 
-  -- "execution of statements"
+  \<comment> "execution of statements"
 
-  -- "cf. 14.1"
+  \<comment> "cf. 14.1"
 | XcptS:"G\<turnstile>(Some xc,s) -c-> (Some xc,s)"
 
-  -- "cf. 14.5"
+  \<comment> "cf. 14.5"
 | Skip: "G\<turnstile>Norm s -Skip-> Norm s"
 
-  -- "cf. 14.7"
+  \<comment> "cf. 14.7"
 | Expr: "[| G\<turnstile>Norm s0 -e\<succ>v-> s1 |] ==>
          G\<turnstile>Norm s0 -Expr e-> s1"
 
-  -- "cf. 14.2"
+  \<comment> "cf. 14.2"
 | Comp: "[| G\<turnstile>Norm s0 -c1-> s1;
             G\<turnstile>     s1 -c2-> s2|] ==>
          G\<turnstile>Norm s0 -c1;; c2-> s2"
 
-  -- "cf. 14.8.2"
+  \<comment> "cf. 14.8.2"
 | Cond: "[| G\<turnstile>Norm s0  -e\<succ>v-> s1;
             G\<turnstile> s1 -(if the_Bool v then c1 else c2)-> s2|] ==>
          G\<turnstile>Norm s0 -If(e) c1 Else c2-> s2"
 
-  -- "cf. 14.10, 14.10.1"
+  \<comment> "cf. 14.10, 14.10.1"
 | LoopF:"[| G\<turnstile>Norm s0 -e\<succ>v-> s1; \<not>the_Bool v |] ==>
          G\<turnstile>Norm s0 -While(e) c-> s1"
 | LoopT:"[| G\<turnstile>Norm s0 -e\<succ>v-> s1;  the_Bool v;

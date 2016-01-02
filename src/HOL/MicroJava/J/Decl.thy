@@ -8,23 +8,23 @@ section \<open>Class Declarations and Programs\<close>
 theory Decl imports Type begin
 
 type_synonym 
-  fdecl    = "vname \<times> ty"        -- "field declaration, cf. 8.3 (, 9.3)"
+  fdecl    = "vname \<times> ty"        \<comment> "field declaration, cf. 8.3 (, 9.3)"
 
 type_synonym
-  sig      = "mname \<times> ty list"   -- "signature of a method, cf. 8.4.2"
+  sig      = "mname \<times> ty list"   \<comment> "signature of a method, cf. 8.4.2"
 
 type_synonym
-  'c mdecl = "sig \<times> ty \<times> 'c"     -- "method declaration in a class"
+  'c mdecl = "sig \<times> ty \<times> 'c"     \<comment> "method declaration in a class"
 
 type_synonym
   'c "class" = "cname \<times> fdecl list \<times> 'c mdecl list" 
-  -- "class = superclass, fields, methods"
+  \<comment> "class = superclass, fields, methods"
 
 type_synonym
-  'c cdecl = "cname \<times> 'c class"  -- "class declaration, cf. 8.1"
+  'c cdecl = "cname \<times> 'c class"  \<comment> "class declaration, cf. 8.1"
 
 type_synonym
-  'c prog  = "'c cdecl list"     -- "program"
+  'c prog  = "'c cdecl list"     \<comment> "program"
 
 
 translations

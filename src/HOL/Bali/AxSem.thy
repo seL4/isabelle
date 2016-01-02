@@ -2,12 +2,12 @@
     Author:     David von Oheimb
 *)
 
-subsection {* Axiomatic semantics of Java expressions and statements 
+subsection \<open>Axiomatic semantics of Java expressions and statements 
           (see also Eval.thy)
-        *}
+\<close>
 theory AxSem imports Evaln TypeSafe begin
 
-text {*
+text \<open>
 design issues:
 \begin{itemize}
 \item a strong version of validity for triples with premises, namely one that 
@@ -34,9 +34,9 @@ restrictions:
 \item all triples in a derivation are of the same type (due to weak 
       polymorphism)
 \end{itemize}
-*}
+\<close>
 
-type_synonym  res = vals --{* result entry *}
+type_synonym  res = vals \<comment>\<open>result entry\<close>
 
 abbreviation (input)
   Val where "Val x == In1 x"
@@ -57,7 +57,7 @@ translations
   "\<lambda>Var:v . b"  == "(\<lambda>v. b) \<circ> CONST the_In2"
   "\<lambda>Vals:v. b"  == "(\<lambda>v. b) \<circ> CONST the_In3"
 
-  --{* relation on result values, state and auxiliary variables *}
+  \<comment>\<open>relation on result values, state and auxiliary variables\<close>
 type_synonym 'a assn = "res \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
 translations
   (type) "'a assn" <= (type) "vals \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
@@ -464,8 +464,8 @@ done
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
-setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
+setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
+setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
 
 inductive
   ax_derivs :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triples \<Rightarrow> bool" ("_,_|\<turnstile>_" [61,58,58] 57)
@@ -496,7 +496,7 @@ where
 
 | Abrupt:  "G,A\<turnstile>{P\<leftarrow>(undefined3 t) \<and>. Not \<circ> normal} t\<succ> {P}"
 
-  --{* variables *}
+  \<comment>\<open>variables\<close>
 | LVar:  " G,A\<turnstile>{Normal (\<lambda>s.. P\<leftarrow>Var (lvar vn s))} LVar vn=\<succ> {P}"
 
 | FVar: "\<lbrakk>G,A\<turnstile>{Normal P} .Init C. {Q};
@@ -506,7 +506,7 @@ where
 | AVar:  "\<lbrakk>G,A\<turnstile>{Normal P} e1-\<succ> {Q};
           \<forall>a. G,A\<turnstile>{Q\<leftarrow>Val a} e2-\<succ> {\<lambda>Val:i:. avar G i a ..; R}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} e1.[e2]=\<succ> {R}"
-  --{* expressions *}
+  \<comment>\<open>expressions\<close>
 
 | NewC: "\<lbrakk>G,A\<turnstile>{Normal P} .Init C. {Alloc G (CInst C) Q}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} NewC C-\<succ> {Q}"
@@ -569,7 +569,7 @@ where
     \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} Body D c-\<succ> {R}"
   
-  --{* expression lists *}
+  \<comment>\<open>expression lists\<close>
 
 | Nil:                          "G,A\<turnstile>{Normal (P\<leftarrow>Vals [])} []\<doteq>\<succ> {P}"
 
@@ -577,7 +577,7 @@ where
           \<forall>v. G,A\<turnstile>{Q\<leftarrow>Val v} es\<doteq>\<succ> {\<lambda>Vals:vs:. R\<leftarrow>Vals (v#vs)}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} e#es\<doteq>\<succ> {R}"
 
-  --{* statements *}
+  \<comment>\<open>statements\<close>
 
 | Skip:                         "G,A\<turnstile>{Normal (P\<leftarrow>\<diamondsuit>)} .Skip. {P}"
 
@@ -627,10 +627,10 @@ where
               .init c. {set_lvars l .; R}\<rbrakk> \<Longrightarrow>
                                G,A\<turnstile>{Normal (P \<and>. Not \<circ> initd C)} .Init C. {R}"
 
--- {* Some dummy rules for the intermediate terms @{text Callee},
-@{text InsInitE}, @{text InsInitV}, @{text FinA} only used by the smallstep 
+\<comment> \<open>Some dummy rules for the intermediate terms \<open>Callee\<close>,
+\<open>InsInitE\<close>, \<open>InsInitV\<close>, \<open>FinA\<close> only used by the smallstep 
 semantics.
-*}
+\<close>
 | InsInitV: " G,A\<turnstile>{Normal P} InsInitV c v=\<succ> {Q}"
 | InsInitE: " G,A\<turnstile>{Normal P} InsInitE c e-\<succ> {Q}"
 | Callee:    " G,A\<turnstile>{Normal P} Callee l e-\<succ> {Q}"
@@ -672,7 +672,7 @@ apply           (rule ax_derivs.conseq, intro strip, tactic "smp_tac @{context} 
 (* 37 subgoals *)
 prefer 18 (* Methd *)
 apply (rule ax_derivs.Methd, drule spec, erule mp, fast) 
-apply (tactic {* TRYALL (resolve_tac @{context} ((funpow 5 tl) @{thms ax_derivs.intros})) *})
+apply (tactic \<open>TRYALL (resolve_tac @{context} ((funpow 5 tl) @{thms ax_derivs.intros}))\<close>)
 apply auto
 done
 
@@ -692,9 +692,9 @@ lemma weaken:
 apply (erule ax_derivs.induct)
 (*42 subgoals*)
 apply       (tactic "ALLGOALS (strip_tac @{context})")
-apply       (tactic {* ALLGOALS(REPEAT o (EVERY'[dresolve_tac @{context} @{thms subset_singletonD},
+apply       (tactic \<open>ALLGOALS(REPEAT o (EVERY'[dresolve_tac @{context} @{thms subset_singletonD},
          eresolve_tac @{context} [disjE],
-         fast_tac (@{context} addSIs @{thms ax_derivs.empty})]))*})
+         fast_tac (@{context} addSIs @{thms ax_derivs.empty})]))\<close>)
 apply       (tactic "TRYALL (hyp_subst_tac @{context})")
 apply       (simp, rule ax_derivs.empty)
 apply      (drule subset_insertD)
@@ -704,8 +704,8 @@ apply     (fast intro: ax_derivs.asm)
 apply   (fast intro: ax_derivs.weaken)
 apply  (rule ax_derivs.conseq, clarify, tactic "smp_tac @{context} 3 1", blast(* unused *))
 (*37 subgoals*)
-apply (tactic {* TRYALL (resolve_tac @{context} ((funpow 5 tl) @{thms ax_derivs.intros})
-                   THEN_ALL_NEW fast_tac @{context}) *})
+apply (tactic \<open>TRYALL (resolve_tac @{context} ((funpow 5 tl) @{thms ax_derivs.intros})
+                   THEN_ALL_NEW fast_tac @{context})\<close>)
 (*1 subgoal*)
 apply (clarsimp simp add: subset_mtriples_iff)
 apply (rule ax_derivs.Methd)
@@ -719,16 +719,16 @@ oops (* dead end, Methd is to blame *)
 
 subsubsection "rules derived from conseq"
 
-text {* In the following rules we often have to give some type annotations like:
+text \<open>In the following rules we often have to give some type annotations like:
  @{term "G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> {Q}"}.
 Given only the term above without annotations, Isabelle would infer a more 
 general type were we could have 
 different types of auxiliary variables in the assumption set (@{term A}) and 
 in the triple itself (@{term P} and @{term Q}). But 
-@{text "ax_derivs.Methd"} enforces the same type in the inductive definition of
+\<open>ax_derivs.Methd\<close> enforces the same type in the inductive definition of
 the derivation. So we have to restrict the types to be able to apply the
 rules. 
-*}
+\<close>
 lemma conseq12: "\<lbrakk>G,(A::'a triple set)\<turnstile>{P'::'a assn} t\<succ> {Q'};  
  \<forall>Y s Z. P Y s Z \<longrightarrow> (\<forall>Y' s'. (\<forall>Y Z'. P' Y s Z' \<longrightarrow> Q' Y' s' Z') \<longrightarrow>  
   Q Y' s' Z)\<rbrakk>  
@@ -738,7 +738,7 @@ apply clarsimp
 apply blast
 done
 
--- {* Nice variant, since it is so symmetric we might be able to memorise it. *}
+\<comment> \<open>Nice variant, since it is so symmetric we might be able to memorise it.\<close>
 lemma conseq12': "\<lbrakk>G,(A::'a triple set)\<turnstile>{P'::'a assn} t\<succ> {Q'}; \<forall>s Y' s'.  
        (\<forall>Y Z. P' Y s Z \<longrightarrow> Q' Y' s' Z) \<longrightarrow>  
        (\<forall>Y Z. P  Y s Z \<longrightarrow> Q  Y' s' Z)\<rbrakk>  
@@ -1008,7 +1008,7 @@ apply (erule mp [THEN conseq12])
 apply  (auto simp add: type_ok_def)
 done
 
-ML {* ML_Thms.bind_thms ("ax_Abrupts", sum3_instantiate @{context} @{thm ax_derivs.Abrupt}) *}
+ML \<open>ML_Thms.bind_thms ("ax_Abrupts", sum3_instantiate @{context} @{thm ax_derivs.Abrupt})\<close>
 declare ax_Abrupts [intro!]
 
 lemmas ax_Normal_cases = ax_cases [of _ _ _ normal]

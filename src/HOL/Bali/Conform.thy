@@ -2,11 +2,11 @@
     Author:     David von Oheimb
 *)
 
-subsection {* Conformance notions for the type soundness proof for Java *}
+subsection \<open>Conformance notions for the type soundness proof for Java\<close>
 
 theory Conform imports State begin
 
-text {*
+text \<open>
 design issues:
 \begin{itemize}
 \item lconf allows for (arbitrary) inaccessible values
@@ -14,7 +14,7 @@ design issues:
       objects on the heap are indeed existing classes. Yet this can be 
       inferred for all referenced objs.
 \end{itemize}
-*}
+\<close>
 
 type_synonym env' = "prog \<times> (lname, ty) table" (* same as env of WellType.thy *)
 
@@ -25,12 +25,12 @@ subsubsection "extension of global store"
 definition gext :: "st \<Rightarrow> st \<Rightarrow> bool" ("_\<le>|_"       [71,71]   70) where
    "s\<le>|s' \<equiv> \<forall>r. \<forall>obj\<in>globs s r: \<exists>obj'\<in>globs s' r: tag obj'= tag obj"
 
-text {* For the the proof of type soundness we will need the 
+text \<open>For the the proof of type soundness we will need the 
 property that during execution, objects are not lost and moreover retain the 
 values of their tags. So the object store grows conservatively. Note that if 
 we considered garbage collection, we would have to restrict this property to 
 accessible objects.
-*}
+\<close>
 
 lemma gext_objD: 
 "\<lbrakk>s\<le>|s'; globs s r = Some obj\<rbrakk> 
@@ -250,7 +250,7 @@ done
 
 subsubsection "weak value list conformance"
 
-text {* Only if the value is defined it has to conform to its type. 
+text \<open>Only if the value is defined it has to conform to its type. 
         This is the contribution of the definite assignment analysis to 
         the notion of conformance. The definite assignment analysis ensures
         that the program only attempts to access local variables that 
@@ -258,7 +258,7 @@ text {* Only if the value is defined it has to conform to its type.
         So conformance must only ensure that the
         defined values are of the right type, and not also that the value
         is defined. 
-*}
+\<close>
 
   
 definition

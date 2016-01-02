@@ -10,10 +10,10 @@ imports TypeRel Value
 begin
 
 type_synonym 
-  fields' = "(vname \<times> cname \<rightharpoonup> val)"  -- "field name, defining class, value"
+  fields' = "(vname \<times> cname \<rightharpoonup> val)"  \<comment> "field name, defining class, value"
 
 type_synonym
-  obj = "cname \<times> fields'"    -- "class instance with class name and fields"
+  obj = "cname \<times> fields'"    \<comment> "class instance with class name and fields"
 
 definition obj_ty :: "obj => ty" where
  "obj_ty obj  == Class (fst obj)"
@@ -21,11 +21,11 @@ definition obj_ty :: "obj => ty" where
 definition init_vars :: "('a \<times> ty) list => ('a \<rightharpoonup> val)" where
  "init_vars == map_of o map (\<lambda>(n,T). (n,default_val T))"
 
-type_synonym aheap = "loc \<rightharpoonup> obj"    -- \<open>"@{text heap}" used in a translation below\<close>
-type_synonym locals = "vname \<rightharpoonup> val"  -- "simple state, i.e. variable contents"
+type_synonym aheap = "loc \<rightharpoonup> obj"    \<comment> \<open>"\<open>heap\<close>" used in a translation below\<close>
+type_synonym locals = "vname \<rightharpoonup> val"  \<comment> "simple state, i.e. variable contents"
 
-type_synonym state = "aheap \<times> locals"      -- "heap, local parameter including This"
-type_synonym xstate = "val option \<times> state" -- "state including exception information"
+type_synonym state = "aheap \<times> locals"      \<comment> "heap, local parameter including This"
+type_synonym xstate = "val option \<times> state" \<comment> "state including exception information"
 
 abbreviation (input)
   heap :: "state => aheap"
@@ -52,7 +52,7 @@ abbreviation
 definition raise_if :: "bool \<Rightarrow> xcpt \<Rightarrow> val option \<Rightarrow> val option" where
   "raise_if b x xo \<equiv> if b \<and>  (xo = None) then Some (Addr (XcptRef x)) else xo"
 
-text \<open>Make @{text new_Addr} completely specified (at least for the code generator)\<close>
+text \<open>Make \<open>new_Addr\<close> completely specified (at least for the code generator)\<close>
 (*
 definition new_Addr  :: "aheap => loc \<times> val option" where
   "new_Addr h \<equiv> SOME (a,x). (h a = None \<and>  x = None) |  x = Some (Addr (XcptRef OutOfMemory))"

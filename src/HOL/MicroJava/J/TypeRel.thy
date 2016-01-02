@@ -8,7 +8,7 @@ theory TypeRel
 imports Decl
 begin
 
--- "direct subclass, cf. 8.1.3"
+\<comment> "direct subclass, cf. 8.1.3"
 
 inductive_set
   subcls1 :: "'c prog => (cname \<times> cname) set"
@@ -181,7 +181,7 @@ consts
   field  :: "'c prog \<times> cname => ( vname \<rightharpoonup> cname \<times> ty     )" (* ###curry *)
   fields :: "'c prog \<times> cname => ((vname \<times> cname) \<times> ty) list" (* ###curry *)
 
--- "methods of a class, with inheritance, overriding and hiding, cf. 8.4.6"
+\<comment> "methods of a class, with inheritance, overriding and hiding, cf. 8.4.6"
 defs method_def [code]: "method \<equiv> \<lambda>(G,C). class_rec G C empty (\<lambda>C fs ms ts.
                            ts ++ map_of (map (\<lambda>(s,m). (s,(C,m))) ms))"
 
@@ -195,7 +195,7 @@ apply auto
 done
 
 
--- "list of fields of a class, including inherited and hidden ones"
+\<comment> "list of fields of a class, including inherited and hidden ones"
 defs fields_def [code]: "fields \<equiv> \<lambda>(G,C). class_rec G C []    (\<lambda>C fs ms ts.
                            map (\<lambda>(fn,ft). ((fn,C),ft)) fs @ ts)"
 
@@ -219,12 +219,12 @@ apply simp
 done
 
 
--- "widening, viz. method invocation conversion,cf. 5.3 i.e. sort of syntactic subtyping"
+\<comment> "widening, viz. method invocation conversion,cf. 5.3 i.e. sort of syntactic subtyping"
 inductive
   widen   :: "'c prog => [ty   , ty   ] => bool" ("_ \<turnstile> _ \<preceq> _"   [71,71,71] 70)
   for G :: "'c prog"
 where
-  refl   [intro!, simp]:       "G\<turnstile>      T \<preceq> T"   -- "identity conv., cf. 5.1.1"
+  refl   [intro!, simp]:       "G\<turnstile>      T \<preceq> T"   \<comment> "identity conv., cf. 5.1.1"
 | subcls         : "G\<turnstile>C\<preceq>C D ==> G\<turnstile>Class C \<preceq> Class D"
 | null   [intro!]:             "G\<turnstile>     NT \<preceq> RefT R"
 
@@ -232,8 +232,8 @@ code_pred widen .
 
 lemmas refl = HOL.refl
 
--- "casting conversion, cf. 5.5 / 5.1.5"
--- "left out casts on primitve types"
+\<comment> "casting conversion, cf. 5.5 / 5.1.5"
+\<comment> "left out casts on primitve types"
 inductive
   cast    :: "'c prog => [ty   , ty   ] => bool" ("_ \<turnstile> _ \<preceq>? _"  [71,71,71] 70)
   for G :: "'c prog"
