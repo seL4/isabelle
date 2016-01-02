@@ -226,6 +226,7 @@ text \<open>
 \<open>Usage: isabelle jedit [OPTIONS] [FILES ...]
 
   Options are:
+    -D NAME=X    set JVM system property
     -J OPTION    add JVM runtime option
     -b           build only
     -d DIR       include session directory
@@ -260,6 +261,9 @@ text \<open>
   work for the command-line tool described here, and not the regular
   application.
 
+  The \<^verbatim>\<open>-D\<close> option allows to define JVM system properties; this is passed
+  directly to the underlying \<^verbatim>\<open>java\<close> process.
+
   The \<^verbatim>\<open>-b\<close> and \<^verbatim>\<open>-f\<close> options control the self-build mechanism of
   Isabelle/jEdit. This is only relevant for building from sources, which also
   requires an auxiliary \<^verbatim>\<open>jedit_build\<close> component from @{url
@@ -288,7 +292,7 @@ text \<open>
   main Isabelle application without further options.
 
   The JVM system property \<^verbatim>\<open>isabelle.jedit_server\<close> provides a different server
-  name, e.g.\ \<^verbatim>\<open>isabelle jedit -J-Disabelle.jedit_server=\<close>\<open>name\<close> and
+  name, e.g.\ \<^verbatim>\<open>isabelle jedit -Disabelle.jedit_server=\<close>\<open>name\<close> and
   \<^verbatim>\<open>isabelle jedit_client -s\<close>~\<open>name\<close> to connect later on.
 \<close>
 

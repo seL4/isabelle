@@ -95,6 +95,7 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [FILES ...]"
   echo
   echo "  Options are:"
+  echo "    -D NAME=X    set JVM system property"
   echo "    -J OPTION    add JVM runtime option (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
   echo "    -b           build only"
   echo "    -d DIR       include session directory"
@@ -138,9 +139,12 @@ JEDIT_BUILD_MODE="normal"
 function getoptions()
 {
   OPTIND=1
-  while getopts "J:bd:fj:l:m:ns" OPT
+  while getopts "D:J:bd:fj:l:m:ns" OPT
   do
     case "$OPT" in
+      D)
+        JAVA_ARGS["${#JAVA_ARGS[@]}"]="-D$OPTARG"
+        ;;
       J)
         JAVA_ARGS["${#JAVA_ARGS[@]}"]="$OPTARG"
         ;;
