@@ -48,17 +48,17 @@ syntax (ASCII)
 
 translations
   "_do_block (_do_cons (_do_then t) (_do_final e))"
-    == "CONST bind_do t (\<lambda>_. e)"
+    \<rightleftharpoons> "CONST bind_do t (\<lambda>_. e)"
   "_do_block (_do_cons (_do_bind p t) (_do_final e))"
-    == "CONST bind_do t (\<lambda>p. e)"
+    \<rightleftharpoons> "CONST bind_do t (\<lambda>p. e)"
   "_do_block (_do_cons (_do_let p t) bs)"
-    == "let p = t in _do_block bs"
+    \<rightleftharpoons> "let p = t in _do_block bs"
   "_do_block (_do_cons b (_do_cons c cs))"
-    == "_do_block (_do_cons b (_do_final (_do_block (_do_cons c cs))))"
+    \<rightleftharpoons> "_do_block (_do_cons b (_do_final (_do_block (_do_cons c cs))))"
   "_do_cons (_do_let p t) (_do_final s)"
-    == "_do_final (let p = t in s)"
+    \<rightleftharpoons> "_do_final (let p = t in s)"
   "_do_block (_do_final e)" => "e"
-  "(m \<then> n)" => "(m \<bind> (\<lambda>_. n))"
+  "(m \<then> n)" \<rightharpoonup> "(m \<bind> (\<lambda>_. n))"
 
 adhoc_overloading
   bind Set.bind Predicate.bind Option.bind List.bind
