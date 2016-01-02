@@ -274,7 +274,7 @@ proof (rule notE)
   with * show A ..
 qed
 
-theorem Cantor: "\<not> (\<exists>f :: 'a \<Rightarrow> 'a \<Rightarrow> o. \<forall>A :: 'a \<Rightarrow> o. \<exists>x :: 'a. A = f x)"
+theorem Cantor: "\<not> (\<exists>f :: 'a \<Rightarrow> 'a \<Rightarrow> o. \<forall>A. \<exists>x. A = f x)"
 proof
   assume "\<exists>f :: 'a \<Rightarrow> 'a \<Rightarrow> o. \<forall>A. \<exists>x. A = f x"
   then obtain f :: "'a \<Rightarrow> 'a \<Rightarrow> o" where *: "\<forall>A. \<exists>x. A = f x" ..

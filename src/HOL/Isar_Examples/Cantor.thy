@@ -17,7 +17,7 @@ text \<open>
   \<^item> @{url "https://en.wikipedia.org/wiki/Cantor's_diagonal_argument"}
 \<close>
 
-theorem Cantor: "\<not> (\<exists>f :: 'a \<Rightarrow> 'a set. \<forall>A :: 'a set. \<exists>x :: 'a. A = f x)"
+theorem Cantor: "\<not> (\<exists>f :: 'a \<Rightarrow> 'a set. \<forall>A. \<exists>x. A = f x)"
 proof
   assume "\<exists>f :: 'a \<Rightarrow> 'a set. \<forall>A. \<exists>x. A = f x"
   then obtain f :: "'a \<Rightarrow> 'a set" where *: "\<forall>A. \<exists>x. A = f x" ..
@@ -63,14 +63,14 @@ proof (rule notE)
   with * show A ..
 qed
 
-theorem Cantor': "\<not> (\<exists>f :: 'a \<Rightarrow> 'a \<Rightarrow> bool. \<forall>A :: 'a \<Rightarrow> bool. \<exists>x :: 'a. A = f x)"
+theorem Cantor': "\<not> (\<exists>f :: 'a \<Rightarrow> 'a \<Rightarrow> bool. \<forall>A. \<exists>x. A = f x)"
 proof
-  assume "\<exists>f :: 'a \<Rightarrow> 'a \<Rightarrow> bool. \<forall>A :: 'a \<Rightarrow> bool. \<exists>x. A = f x"
+  assume "\<exists>f :: 'a \<Rightarrow> 'a \<Rightarrow> bool. \<forall>A. \<exists>x. A = f x"
   then obtain f :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where *: "\<forall>A. \<exists>x. A = f x" ..
   let ?D = "\<lambda>x. \<not> f x x"
   from * have "\<exists>x. ?D = f x" ..
   then obtain a where "?D = f a" ..
-  then have "?D a \<longleftrightarrow> f a a" using refl by (rule subst)
+  then have "?D a \<longleftrightarrow> f a a" by (rule arg_cong)
   then show False by (rule iff_contradiction)
 qed
 
