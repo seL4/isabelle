@@ -5,7 +5,9 @@
 
 section \<open>Combinatory Logic example: the Church-Rosser Theorem\<close>
 
-theory Comb imports Main begin
+theory Comb
+imports Main
+begin
 
 text \<open>
   Curiously, combinators do not include free variables.
@@ -13,77 +15,69 @@ text \<open>
   Example taken from @{cite camilleri92}.
 \<close>
 
+
 subsection \<open>Definitions\<close>
 
 text \<open>Datatype definition of combinators \<open>S\<close> and \<open>K\<close>.\<close>
 
 consts comb :: i
 datatype comb =
-    K
-  | S
-  | app ("p \<in> comb", "q \<in> comb")    (infixl "\<bullet>" 90)
+  K
+| S
+| app ("p \<in> comb", "q \<in> comb")  (infixl "\<bullet>" 90)
 
 text \<open>
-  Inductive definition of contractions, \<open>-1->\<close> and
-  (multi-step) reductions, \<open>-\<longrightarrow>\<close>.
+  Inductive definition of contractions, \<open>\<rightarrow>\<^sup>1\<close> and
+  (multi-step) reductions, \<open>\<rightarrow>\<close>.
 \<close>
 
-consts
-  contract  :: i
+consts contract  :: i
+abbreviation contract_syntax :: "[i,i] \<Rightarrow> o"  (infixl "\<rightarrow>\<^sup>1" 50)
+  where "p \<rightarrow>\<^sup>1 q \<equiv> <p,q> \<in> contract"
 
-abbreviation
-  contract_syntax :: "[i,i] => o"    (infixl "-1->" 50)
-  where "p -1-> q == <p,q> \<in> contract"
-
-abbreviation
-  contract_multi :: "[i,i] => o"    (infixl "-\<longrightarrow>" 50)
-  where "p -\<longrightarrow> q == <p,q> \<in> contract^*"
+abbreviation contract_multi :: "[i,i] \<Rightarrow> o"  (infixl "\<rightarrow>" 50)
+  where "p \<rightarrow> q \<equiv> <p,q> \<in> contract^*"
 
 inductive
   domains "contract" \<subseteq> "comb \<times> comb"
   intros
-    K:   "[| p \<in> comb;  q \<in> comb |] ==> K\<bullet>p\<bullet>q -1-> p"
-    S:   "[| p \<in> comb;  q \<in> comb;  r \<in> comb |] ==> S\<bullet>p\<bullet>q\<bullet>r -1-> (p\<bullet>r)\<bullet>(q\<bullet>r)"
-    Ap1: "[| p-1->q;  r \<in> comb |] ==> p\<bullet>r -1-> q\<bullet>r"
-    Ap2: "[| p-1->q;  r \<in> comb |] ==> r\<bullet>p -1-> r\<bullet>q"
+    K:   "[| p \<in> comb;  q \<in> comb |] ==> K\<bullet>p\<bullet>q \<rightarrow>\<^sup>1 p"
+    S:   "[| p \<in> comb;  q \<in> comb;  r \<in> comb |] ==> S\<bullet>p\<bullet>q\<bullet>r \<rightarrow>\<^sup>1 (p\<bullet>r)\<bullet>(q\<bullet>r)"
+    Ap1: "[| p\<rightarrow>\<^sup>1q;  r \<in> comb |] ==> p\<bullet>r \<rightarrow>\<^sup>1 q\<bullet>r"
+    Ap2: "[| p\<rightarrow>\<^sup>1q;  r \<in> comb |] ==> r\<bullet>p \<rightarrow>\<^sup>1 r\<bullet>q"
   type_intros comb.intros
 
 text \<open>
-  Inductive definition of parallel contractions, \<open>=1=>\<close> and
-  (multi-step) parallel reductions, \<open>===>\<close>.
+  Inductive definition of parallel contractions, \<open>\<Rrightarrow>\<^sup>1\<close> and
+  (multi-step) parallel reductions, \<open>\<Rrightarrow>\<close>.
 \<close>
 
-consts
-  parcontract :: i
+consts parcontract :: i
 
-abbreviation
-  parcontract_syntax :: "[i,i] => o"    (infixl "=1=>" 50)
-  where "p =1=> q == <p,q> \<in> parcontract"
+abbreviation parcontract_syntax :: "[i,i] => o"  (infixl "\<Rrightarrow>\<^sup>1" 50)
+  where "p \<Rrightarrow>\<^sup>1 q == <p,q> \<in> parcontract"
 
-abbreviation
-  parcontract_multi :: "[i,i] => o"    (infixl "===>" 50)
-  where "p ===> q == <p,q> \<in> parcontract^+"
+abbreviation parcontract_multi :: "[i,i] => o"  (infixl "\<Rrightarrow>" 50)
+  where "p \<Rrightarrow> q == <p,q> \<in> parcontract^+"
 
 inductive
   domains "parcontract" \<subseteq> "comb \<times> comb"
   intros
-    refl: "[| p \<in> comb |] ==> p =1=> p"
-    K:    "[| p \<in> comb;  q \<in> comb |] ==> K\<bullet>p\<bullet>q =1=> p"
-    S:    "[| p \<in> comb;  q \<in> comb;  r \<in> comb |] ==> S\<bullet>p\<bullet>q\<bullet>r =1=> (p\<bullet>r)\<bullet>(q\<bullet>r)"
-    Ap:   "[| p=1=>q;  r=1=>s |] ==> p\<bullet>r =1=> q\<bullet>s"
+    refl: "[| p \<in> comb |] ==> p \<Rrightarrow>\<^sup>1 p"
+    K:    "[| p \<in> comb;  q \<in> comb |] ==> K\<bullet>p\<bullet>q \<Rrightarrow>\<^sup>1 p"
+    S:    "[| p \<in> comb;  q \<in> comb;  r \<in> comb |] ==> S\<bullet>p\<bullet>q\<bullet>r \<Rrightarrow>\<^sup>1 (p\<bullet>r)\<bullet>(q\<bullet>r)"
+    Ap:   "[| p\<Rrightarrow>\<^sup>1q;  r\<Rrightarrow>\<^sup>1s |] ==> p\<bullet>r \<Rrightarrow>\<^sup>1 q\<bullet>s"
   type_intros comb.intros
 
 text \<open>
   Misc definitions.
 \<close>
 
-definition
-  I :: i  where
-  "I == S\<bullet>K\<bullet>K"
+definition I :: i
+  where "I \<equiv> S\<bullet>K\<bullet>K"
 
-definition
-  diamond :: "i => o"  where
-  "diamond(r) ==
+definition diamond :: "i \<Rightarrow> o"
+  where "diamond(r) \<equiv>
     \<forall>x y. <x,y>\<in>r \<longrightarrow> (\<forall>y'. <x,y'>\<in>r \<longrightarrow> (\<exists>z. <y,z>\<in>r & <y',z> \<in> r))"
 
 
@@ -115,7 +109,7 @@ inductive_cases Ap_E [elim!]: "p\<bullet>q \<in> comb"
 subsection \<open>Results about Contraction\<close>
 
 text \<open>
-  For type checking: replaces @{term "a -1-> b"} by \<open>a, b \<in>
+  For type checking: replaces @{term "a \<rightarrow>\<^sup>1 b"} by \<open>a, b \<in>
   comb\<close>.
 \<close>
 
@@ -140,30 +134,29 @@ lemmas reduction_rls =
   contract.Ap1 [THEN rtrancl_into_rtrancl2]
   contract.Ap2 [THEN rtrancl_into_rtrancl2]
 
-lemma "p \<in> comb ==> I\<bullet>p -\<longrightarrow> p"
+lemma "p \<in> comb ==> I\<bullet>p \<rightarrow> p"
   \<comment> \<open>Example only: not used\<close>
-  by (unfold I_def) (blast intro: reduction_rls)
+  unfolding I_def by (blast intro: reduction_rls)
 
 lemma comb_I: "I \<in> comb"
-  by (unfold I_def) blast
+  unfolding I_def by blast
 
 
 subsection \<open>Non-contraction results\<close>
 
 text \<open>Derive a case for each combinator constructor.\<close>
 
-inductive_cases
-      K_contractE [elim!]: "K -1-> r"
-  and S_contractE [elim!]: "S -1-> r"
-  and Ap_contractE [elim!]: "p\<bullet>q -1-> r"
+inductive_cases K_contractE [elim!]: "K \<rightarrow>\<^sup>1 r"
+  and S_contractE [elim!]: "S \<rightarrow>\<^sup>1 r"
+  and Ap_contractE [elim!]: "p\<bullet>q \<rightarrow>\<^sup>1 r"
 
-lemma I_contract_E: "I -1-> r ==> P"
+lemma I_contract_E: "I \<rightarrow>\<^sup>1 r ==> P"
   by (auto simp add: I_def)
 
-lemma K1_contractD: "K\<bullet>p -1-> r ==> (\<exists>q. r = K\<bullet>q & p -1-> q)"
+lemma K1_contractD: "K\<bullet>p \<rightarrow>\<^sup>1 r ==> (\<exists>q. r = K\<bullet>q & p \<rightarrow>\<^sup>1 q)"
   by auto
 
-lemma Ap_reduce1: "[| p -\<longrightarrow> q;  r \<in> comb |] ==> p\<bullet>r -\<longrightarrow> q\<bullet>r"
+lemma Ap_reduce1: "[| p \<rightarrow> q;  r \<in> comb |] ==> p\<bullet>r \<rightarrow> q\<bullet>r"
   apply (frule rtrancl_type [THEN subsetD, THEN SigmaD1])
   apply (drule field_contract_eq [THEN equalityD1, THEN subsetD])
   apply (erule rtrancl_induct)
@@ -172,7 +165,7 @@ lemma Ap_reduce1: "[| p -\<longrightarrow> q;  r \<in> comb |] ==> p\<bullet>r -
   apply (blast intro: contract_combD2 reduction_rls)
   done
 
-lemma Ap_reduce2: "[| p -\<longrightarrow> q;  r \<in> comb |] ==> r\<bullet>p -\<longrightarrow> r\<bullet>q"
+lemma Ap_reduce2: "[| p \<rightarrow> q;  r \<in> comb |] ==> r\<bullet>p \<rightarrow> r\<bullet>q"
   apply (frule rtrancl_type [THEN subsetD, THEN SigmaD1])
   apply (drule field_contract_eq [THEN equalityD1, THEN subsetD])
   apply (erule rtrancl_induct)
@@ -181,15 +174,15 @@ lemma Ap_reduce2: "[| p -\<longrightarrow> q;  r \<in> comb |] ==> r\<bullet>p -
                       contract_combD2 reduction_rls)
   done
 
-text \<open>Counterexample to the diamond property for \<open>-1->\<close>.\<close>
+text \<open>Counterexample to the diamond property for \<open>\<rightarrow>\<^sup>1\<close>.\<close>
 
-lemma KIII_contract1: "K\<bullet>I\<bullet>(I\<bullet>I) -1-> I"
+lemma KIII_contract1: "K\<bullet>I\<bullet>(I\<bullet>I) \<rightarrow>\<^sup>1 I"
   by (blast intro: comb_I)
 
-lemma KIII_contract2: "K\<bullet>I\<bullet>(I\<bullet>I) -1-> K\<bullet>I\<bullet>((K\<bullet>I)\<bullet>(K\<bullet>I))"
+lemma KIII_contract2: "K\<bullet>I\<bullet>(I\<bullet>I) \<rightarrow>\<^sup>1 K\<bullet>I\<bullet>((K\<bullet>I)\<bullet>(K\<bullet>I))"
   by (unfold I_def) (blast intro: contract.intros)
 
-lemma KIII_contract3: "K\<bullet>I\<bullet>((K\<bullet>I)\<bullet>(K\<bullet>I)) -1-> I"
+lemma KIII_contract3: "K\<bullet>I\<bullet>((K\<bullet>I)\<bullet>(K\<bullet>I)) \<rightarrow>\<^sup>1 I"
   by (blast intro: comb_I)
 
 lemma not_diamond_contract: "\<not> diamond(contract)"
@@ -201,7 +194,7 @@ lemma not_diamond_contract: "\<not> diamond(contract)"
 
 subsection \<open>Results about Parallel Contraction\<close>
 
-text \<open>For type checking: replaces \<open>a =1=> b\<close> by \<open>a, b
+text \<open>For type checking: replaces \<open>a \<Rrightarrow>\<^sup>1 b\<close> by \<open>a, b
   \<in> comb\<close>\<close>
 lemmas parcontract_combE2 = parcontract.dom_subset [THEN subsetD, THEN SigmaE2]
   and parcontract_combD1 = parcontract.dom_subset [THEN subsetD, THEN SigmaD1]
@@ -212,9 +205,9 @@ lemma field_parcontract_eq: "field(parcontract) = comb"
 
 text \<open>Derive a case for each combinator constructor.\<close>
 inductive_cases
-      K_parcontractE [elim!]: "K =1=> r"
-  and S_parcontractE [elim!]: "S =1=> r"
-  and Ap_parcontractE [elim!]: "p\<bullet>q =1=> r"
+      K_parcontractE [elim!]: "K \<Rrightarrow>\<^sup>1 r"
+  and S_parcontractE [elim!]: "S \<Rrightarrow>\<^sup>1 r"
+  and Ap_parcontractE [elim!]: "p\<bullet>q \<Rrightarrow>\<^sup>1 r"
 
 declare parcontract.intros [intro]
 
@@ -222,15 +215,15 @@ declare parcontract.intros [intro]
 subsection \<open>Basic properties of parallel contraction\<close>
 
 lemma K1_parcontractD [dest!]:
-    "K\<bullet>p =1=> r ==> (\<exists>p'. r = K\<bullet>p' & p =1=> p')"
+    "K\<bullet>p \<Rrightarrow>\<^sup>1 r ==> (\<exists>p'. r = K\<bullet>p' & p \<Rrightarrow>\<^sup>1 p')"
   by auto
 
 lemma S1_parcontractD [dest!]:
-    "S\<bullet>p =1=> r ==> (\<exists>p'. r = S\<bullet>p' & p =1=> p')"
+    "S\<bullet>p \<Rrightarrow>\<^sup>1 r ==> (\<exists>p'. r = S\<bullet>p' & p \<Rrightarrow>\<^sup>1 p')"
   by auto
 
 lemma S2_parcontractD [dest!]:
-    "S\<bullet>p\<bullet>q =1=> r ==> (\<exists>p' q'. r = S\<bullet>p'\<bullet>q' & p =1=> p' & q =1=> q')"
+    "S\<bullet>p\<bullet>q \<Rrightarrow>\<^sup>1 r ==> (\<exists>p' q'. r = S\<bullet>p'\<bullet>q' & p \<Rrightarrow>\<^sup>1 p' & q \<Rrightarrow>\<^sup>1 q')"
   by auto
 
 lemma diamond_parcontract: "diamond(parcontract)"
@@ -242,13 +235,13 @@ lemma diamond_parcontract: "diamond(parcontract)"
   done
 
 text \<open>
-  \medskip Equivalence of @{prop "p -\<longrightarrow> q"} and @{prop "p ===> q"}.
+  \medskip Equivalence of @{prop "p \<rightarrow> q"} and @{prop "p \<Rrightarrow> q"}.
 \<close>
 
-lemma contract_imp_parcontract: "p-1->q ==> p=1=>q"
+lemma contract_imp_parcontract: "p\<rightarrow>\<^sup>1q ==> p\<Rrightarrow>\<^sup>1q"
   by (induct set: contract) auto
 
-lemma reduce_imp_parreduce: "p-\<longrightarrow>q ==> p===>q"
+lemma reduce_imp_parreduce: "p\<rightarrow>q ==> p\<Rrightarrow>q"
   apply (frule rtrancl_type [THEN subsetD, THEN SigmaD1])
   apply (drule field_contract_eq [THEN equalityD1, THEN subsetD])
   apply (erule rtrancl_induct)
@@ -257,7 +250,7 @@ lemma reduce_imp_parreduce: "p-\<longrightarrow>q ==> p===>q"
     trans_trancl [THEN transD])
   done
 
-lemma parcontract_imp_reduce: "p=1=>q ==> p-\<longrightarrow>q"
+lemma parcontract_imp_reduce: "p\<Rrightarrow>\<^sup>1q ==> p\<rightarrow>q"
   apply (induct set: parcontract)
      apply (blast intro: reduction_rls)
     apply (blast intro: reduction_rls)
@@ -266,7 +259,7 @@ lemma parcontract_imp_reduce: "p=1=>q ==> p-\<longrightarrow>q"
     Ap_reduce1 Ap_reduce2 parcontract_combD1 parcontract_combD2)
   done
 
-lemma parreduce_imp_reduce: "p===>q ==> p-\<longrightarrow>q"
+lemma parreduce_imp_reduce: "p\<Rrightarrow>q ==> p\<rightarrow>q"
   apply (frule trancl_type [THEN subsetD, THEN SigmaD1])
   apply (drule field_parcontract_eq [THEN equalityD1, THEN subsetD])
   apply (erule trancl_induct, erule parcontract_imp_reduce)
@@ -274,7 +267,7 @@ lemma parreduce_imp_reduce: "p===>q ==> p-\<longrightarrow>q"
   apply (erule parcontract_imp_reduce)
   done
 
-lemma parreduce_iff_reduce: "p===>q \<longleftrightarrow> p-\<longrightarrow>q"
+lemma parreduce_iff_reduce: "p\<Rrightarrow>q \<longleftrightarrow> p\<rightarrow>q"
   by (blast intro: parreduce_imp_reduce reduce_imp_parreduce)
 
 end

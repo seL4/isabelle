@@ -5,16 +5,16 @@
 
 section \<open>Combinatory Logic example: the Church-Rosser Theorem\<close>
 
-theory Comb imports Main begin
+theory Comb
+imports Main
+begin
 
 text \<open>
   Curiously, combinators do not include free variables.
 
   Example taken from @{cite camilleri92}.
-
-HOL system proofs may be found in the HOL distribution at
-   .../contrib/rule-induction/cl.ml
 \<close>
+
 
 subsection \<open>Definitions\<close>
 
