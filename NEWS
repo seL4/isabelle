@@ -94,12 +94,15 @@ instead.
 already running Isabelle/jEdit process. This achieves the effect of
 single-instance applications seen on common GUI desktops.
 
-* The main Isabelle executable is managed as single-instance Desktop
-application uniformly on all platforms: Linux, Windows, Mac OS X.
-
 * The default look-and-feel for Linux is the traditional "Metal", which
 works better with GUI scaling for very high-resolution displays (e.g.
 4K). Moreover, it is generally more robust than "Nimbus".
+
+* The main Isabelle executable is managed as single-instance Desktop
+application uniformly on all platforms: Linux, Windows, Mac OS X.
+
+* Update to jedit-5.3.0, with improved GUI scaling and support of
+high-resolution displays (e.g. 4K).
 
 
 *** Document preparation ***
