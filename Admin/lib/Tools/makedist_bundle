@@ -83,10 +83,12 @@ done
 
 init_component "$JEDIT_HOME"
 
-if [ -e "$ARCHIVE_DIR/../contrib" ]; then
-  ln -s "../contrib" "$ARCHIVE_DIR/contrib"
-else
-  mkdir -p "$ARCHIVE_DIR/contrib"
+if [ ! -e "$ARCHIVE_DIR/contrib" ]; then
+  if [ ! -e "$ARCHIVE_DIR/../contrib" ]; then
+    mkdir -p "$ARCHIVE_DIR/contrib"
+  else
+    ln -s "../contrib" "$ARCHIVE_DIR/contrib"
+  fi
 fi
 
 echo "#bundled components" >> "$ISABELLE_TARGET/etc/components"
