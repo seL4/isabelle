@@ -40,5 +40,5 @@ else
     "-Disabelle.root=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
     -classpath "{CLASSPATH}" \
     "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
-    isabelle.Main -server="$("$ISABELLE_HOME/bin/isabelle" jedit_client -n)" "$@"
+    isabelle.Main "$@"
 fi

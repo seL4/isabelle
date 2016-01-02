@@ -44,11 +44,17 @@ object Main
 
         /* args */
 
+        val jedit_settings =
+          "-settings=" + File.platform_path(Path.explode("$JEDIT_SETTINGS"))
+
+        val jedit_server =
+          System.getProperty("isabelle.jedit_server") match {
+            case null | "" => "-noserver"
+            case name => "-server=" + name
+          }
+
         val jedit_options =
           Isabelle_System.getenv_strict("JEDIT_OPTIONS").split(" +")
-
-        val jedit_settings =
-          Array("-settings=" + File.platform_path(Path.explode("$JEDIT_SETTINGS")))
 
         val more_args =
         {
@@ -72,7 +78,8 @@ object Main
           Class.forName("org.gjt.sp.jedit.jEdit", true, ClassLoader.getSystemClassLoader)
         val jedit_main = jedit.getMethod("main", classOf[Array[String]])
 
-        () => jedit_main.invoke(null, jedit_options ++ jedit_settings ++ more_args)
+        () => jedit_main.invoke(
+          null, Array(jedit_settings, jedit_server) ++ jedit_options ++ more_args)
       }
       catch {
         case exn: Throwable =>

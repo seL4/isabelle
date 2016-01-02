@@ -287,10 +287,9 @@ text \<open>
   name (e.g.\ \<^verbatim>\<open>Isabelle2016\<close>). Thus @{tool jedit_client} can connect to the
   main Isabelle application without further options.
 
-  The regular jEdit command line option \<^verbatim>\<open>-server\<close> allows to provide a
-  different name, e.g.\ \<^verbatim>\<open>isabelle jedit -j-server=\<close>\<open>name\<close>. To connect to such
-  an alternative server process with @{tool jedit_client} requires a
-  corresponding option \<^verbatim>\<open>-s\<close>~\<open>name\<close>.
+  The JVM system property \<^verbatim>\<open>isabelle.jedit_server\<close> provides a different server
+  name, e.g.\ \<^verbatim>\<open>isabelle jedit -J-Disabelle.jedit_server=\<close>\<open>name\<close> and
+  \<^verbatim>\<open>isabelle jedit_client -s\<close>~\<open>name\<close> to connect later on.
 \<close>
 
 

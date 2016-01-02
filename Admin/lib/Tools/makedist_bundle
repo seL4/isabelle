@@ -201,6 +201,7 @@ case "$PLATFORM_FAM" in
         do
           echo "$ARG"
         done
+        echo "-Disabelle.jedit_server=${ISABELLE_NAME}"
       ) > "$ISABELLE_TARGET/${ISABELLE_NAME}.options${PLATFORM}"
     done
 
@@ -268,6 +269,7 @@ case "$PLATFORM_FAM" in
       do
         echo -e "$ARG\r"
       done
+      echo -e "-Disabelle.jedit_server=${ISABELLE_NAME}\r"
     ) > "$ISABELLE_TARGET/${ISABELLE_NAME}.l4j.ini"
 
     (
@@ -370,6 +372,7 @@ then
           do
             echo "<string>$OPT</string>"
           done
+          echo "<string>-Disabelle.jedit_server={ISABELLE_NAME}</string>"
           echo "<string>-Dapple.awt.application.name={ISABELLE_NAME}</string>"
 
           cat "$APP_TEMPLATE/Info.plist-part2"
