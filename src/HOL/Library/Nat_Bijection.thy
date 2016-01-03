@@ -16,10 +16,8 @@ subsection \<open>Type @{typ "nat \<times> nat"}\<close>
 
 text "Triangle numbers: 0, 1, 3, 6, 10, 15, ..."
 
-definition
-  triangle :: "nat \<Rightarrow> nat"
-where
-  "triangle n = n * Suc n div 2"
+definition triangle :: "nat \<Rightarrow> nat"
+  where "triangle n = (n * Suc n) div 2"
 
 lemma triangle_0 [simp]: "triangle 0 = 0"
 unfolding triangle_def by simp
@@ -27,25 +25,20 @@ unfolding triangle_def by simp
 lemma triangle_Suc [simp]: "triangle (Suc n) = triangle n + Suc n"
 unfolding triangle_def by simp
 
-definition
-  prod_encode :: "nat \<times> nat \<Rightarrow> nat"
-where
-  "prod_encode = (\<lambda>(m, n). triangle (m + n) + m)"
+definition prod_encode :: "nat \<times> nat \<Rightarrow> nat"
+  where "prod_encode = (\<lambda>(m, n). triangle (m + n) + m)"
 
 text \<open>In this auxiliary function, @{term "triangle k + m"} is an invariant.\<close>
 
-fun
-  prod_decode_aux :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat"
+fun prod_decode_aux :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat"
 where
   "prod_decode_aux k m =
     (if m \<le> k then (m, k - m) else prod_decode_aux (Suc k) (m - Suc k))"
 
 declare prod_decode_aux.simps [simp del]
 
-definition
-  prod_decode :: "nat \<Rightarrow> nat \<times> nat"
-where
-  "prod_decode = prod_decode_aux 0"
+definition prod_decode :: "nat \<Rightarrow> nat \<times> nat"
+  where "prod_decode = prod_decode_aux 0"
 
 lemma prod_encode_prod_decode_aux:
   "prod_encode (prod_decode_aux k m) = triangle k + m"
@@ -57,8 +50,7 @@ done
 lemma prod_decode_inverse [simp]: "prod_encode (prod_decode n) = n"
 unfolding prod_decode_def by (simp add: prod_encode_prod_decode_aux)
 
-lemma prod_decode_triangle_add:
-  "prod_decode (triangle k + m) = prod_decode_aux k m"
+lemma prod_decode_triangle_add: "prod_decode (triangle k + m) = prod_decode_aux k m"
 apply (induct k arbitrary: m)
 apply (simp add: prod_decode_def)
 apply (simp only: triangle_Suc add.assoc)
@@ -96,6 +88,7 @@ by (rule inj_prod_encode [THEN inj_eq])
 lemma prod_decode_eq: "prod_decode x = prod_decode y \<longleftrightarrow> x = y"
 by (rule inj_prod_decode [THEN inj_eq])
 
+
 text \<open>Ordering properties\<close>
 
 lemma le_prod_encode_1: "a \<le> prod_encode (a, b)"
@@ -107,13 +100,11 @@ unfolding prod_encode_def by (induct b, simp_all)
 
 subsection \<open>Type @{typ "nat + nat"}\<close>
 
-definition
-  sum_encode  :: "nat + nat \<Rightarrow> nat"
+definition sum_encode :: "nat + nat \<Rightarrow> nat"
 where
   "sum_encode x = (case x of Inl a \<Rightarrow> 2 * a | Inr b \<Rightarrow> Suc (2 * b))"
 
-definition
-  sum_decode  :: "nat \<Rightarrow> nat + nat"
+definition sum_decode :: "nat \<Rightarrow> nat + nat"
 where
   "sum_decode n = (if even n then Inl (n div 2) else Inr (n div 2))"
 
@@ -151,13 +142,11 @@ by (rule inj_sum_decode [THEN inj_eq])
 
 subsection \<open>Type @{typ "int"}\<close>
 
-definition
-  int_encode :: "int \<Rightarrow> nat"
+definition int_encode :: "int \<Rightarrow> nat"
 where
   "int_encode i = sum_encode (if 0 \<le> i then Inl (nat i) else Inr (nat (- i - 1)))"
 
-definition
-  int_decode :: "nat \<Rightarrow> int"
+definition int_decode :: "nat \<Rightarrow> int"
 where
   "int_decode n = (case sum_decode n of Inl a \<Rightarrow> int a | Inr b \<Rightarrow> - int b - 1)"
 
@@ -195,14 +184,12 @@ by (rule inj_int_decode [THEN inj_eq])
 
 subsection \<open>Type @{typ "nat list"}\<close>
 
-fun
-  list_encode :: "nat list \<Rightarrow> nat"
+fun list_encode :: "nat list \<Rightarrow> nat"
 where
   "list_encode [] = 0"
 | "list_encode (x # xs) = Suc (prod_encode (x, list_encode xs))"
 
-function
-  list_decode :: "nat \<Rightarrow> nat list"
+function list_decode :: "nat \<Rightarrow> nat list"
 where
   "list_decode 0 = []"
 | "list_decode (Suc n) = (case prod_decode n of (x, y) \<Rightarrow> x # list_decode y)"
@@ -285,10 +272,8 @@ qed
 
 subsubsection \<open>From sets to naturals\<close>
 
-definition
-  set_encode :: "nat set \<Rightarrow> nat"
-where
-  "set_encode = setsum (op ^ 2)"
+definition set_encode :: "nat set \<Rightarrow> nat"
+  where "set_encode = setsum (op ^ 2)"
 
 lemma set_encode_empty [simp]: "set_encode {} = 0"
 by (simp add: set_encode_def)
@@ -314,12 +299,11 @@ done
 
 lemmas set_encode_div_2 = set_encode_vimage_Suc [symmetric]
 
+
 subsubsection \<open>From naturals to sets\<close>
 
-definition
-  set_decode :: "nat \<Rightarrow> nat set"
-where
-  "set_decode x = {n. odd (x div 2 ^ n)}"
+definition set_decode :: "nat \<Rightarrow> nat set"
+  where "set_decode x = {n. odd (x div 2 ^ n)}"
 
 lemma set_decode_0 [simp]: "0 \<in> set_decode x \<longleftrightarrow> odd x"
 by (simp add: set_decode_def)
@@ -358,6 +342,7 @@ apply (simp add: set_decode_div_2)
 apply (simp add: finite_vimage_Suc_iff)
 done
 
+
 subsubsection \<open>Proof of isomorphism\<close>
 
 lemma set_decode_inverse [simp]: "set_encode (set_decode n) = n"
@@ -381,7 +366,9 @@ lemma set_encode_eq:
   "\<lbrakk>finite A; finite B\<rbrakk> \<Longrightarrow> set_encode A = set_encode B \<longleftrightarrow> A = B"
 by (rule iffI, simp add: inj_onD [OF inj_on_set_encode], simp)
 
-lemma subset_decode_imp_le: assumes "set_decode m \<subseteq> set_decode n" shows "m \<le> n"
+lemma subset_decode_imp_le:
+  assumes "set_decode m \<subseteq> set_decode n"
+  shows "m \<le> n"
 proof -
   have "n = m + set_encode (set_decode n - set_decode m)"
   proof -
