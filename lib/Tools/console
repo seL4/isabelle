@@ -44,7 +44,7 @@ function usage()
 
 # options
 
-declare -a ISABELLE_OPTIONS=(-m ASCII)
+declare -a ISABELLE_OPTIONS=()
 
 declare -a INCLUDE_DIRS=()
 LOGIC="$ISABELLE_LOGIC"
@@ -103,6 +103,11 @@ OPTIONS_FILE="$ISABELLE_TMP_PREFIX/options$$"
   rm -f "$OPTIONS_FILE"
   exit "$?"
 }
+
+if [ "$LOGIC" != "RAW" ]; then
+  ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="-m"
+  ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="ASCII"
+fi
 
 ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="-O"
 ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="$OPTIONS_FILE"
