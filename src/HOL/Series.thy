@@ -791,6 +791,12 @@ lemma Cauchy_product:
   using a b
   by (rule Cauchy_product_sums [THEN sums_unique])
 
+lemma summable_Cauchy_product:
+  assumes "summable (\<lambda>k. norm (a k :: 'a :: {real_normed_algebra,banach}))" 
+          "summable (\<lambda>k. norm (b k))"
+  shows   "summable (\<lambda>k. \<Sum>i\<le>k. a i * b (k - i))"
+  using Cauchy_product_sums[OF assms] by (simp add: sums_iff)  
+
 subsection \<open>Series on @{typ real}s\<close>
 
 lemma summable_norm_comparison_test: "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n \<Longrightarrow> summable g \<Longrightarrow> summable (\<lambda>n. norm (f n))"

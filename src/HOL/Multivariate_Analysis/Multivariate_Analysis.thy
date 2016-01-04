@@ -8,6 +8,8 @@ imports
   Bounded_Continuous_Function
   Weierstrass
   Cauchy_Integral_Thm
+  Generalised_Binomial_Theorem
+  Gamma
 begin
 
 end

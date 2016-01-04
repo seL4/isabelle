@@ -3,6 +3,7 @@
     Author:     Robert Himmelmann, TU München
     Author:     Armin Heller, TU München
     Author:     Bogdan Grechuk, University of Edinburgh
+    Author:     Manuel Eberl, TU München
 *)
 
 section \<open>Extended real number line\<close>
@@ -1629,6 +1630,14 @@ lemma ereal_times_divide_eq: "a * (b / c :: ereal) = a * b / c"
   by (cases a b c rule: ereal3_cases)
      (auto simp: field_simps zero_less_mult_iff)
 
+lemma ereal_inverse_real: "\<bar>z\<bar> \<noteq> \<infinity> \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> ereal (inverse (real_of_ereal z)) = inverse z"
+  by (cases z) simp_all
+
+lemma ereal_inverse_mult:
+  "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> inverse (a * (b::ereal)) = inverse a * inverse b"
+  by (cases a; cases b) auto
+
+     
 subsection "Complete lattice"
 
 instantiation ereal :: lattice
@@ -2472,6 +2481,21 @@ proof -
     by (auto simp: order_tendsto_iff)
 qed
 
+lemma tendsto_PInfty': "(f \<longlongrightarrow> \<infinity>) F = (\<forall>r>c. eventually (\<lambda>x. ereal r < f x) F)"
+proof (subst tendsto_PInfty, intro iffI allI impI)
+  assume A: "\<forall>r>c. eventually (\<lambda>x. ereal r < f x) F"
+  fix r :: real
+  from A have A: "eventually (\<lambda>x. ereal r < f x) F" if "r > c" for r using that by blast
+  show "eventually (\<lambda>x. ereal r < f x) F"
+  proof (cases "r > c")
+    case False
+    hence B: "ereal r \<le> ereal (c + 1)" by simp
+    have "c < c + 1" by simp
+    from A[OF this] show "eventually (\<lambda>x. ereal r < f x) F"
+      by eventually_elim (rule le_less_trans[OF B])
+  qed (simp add: A)
+qed simp
+
 lemma tendsto_PInfty_eq_at_top:
   "((\<lambda>z. ereal (f z)) \<longlongrightarrow> \<infinity>) F \<longleftrightarrow> (LIM z F. f z :> at_top)"
   unfolding tendsto_PInfty filterlim_at_top_dense by simp
@@ -2494,6 +2518,21 @@ next
   from this[rule_format, of "{..< ereal x}"] show "eventually (\<lambda>y. f y < ereal x) F"
     by auto
 qed
+
+lemma tendsto_MInfty': "(f \<longlongrightarrow> -\<infinity>) F = (\<forall>r<c. eventually (\<lambda>x. ereal r > f x) F)"
+proof (subst tendsto_MInfty, intro iffI allI impI)
+  assume A: "\<forall>r<c. eventually (\<lambda>x. ereal r > f x) F"
+  fix r :: real
+  from A have A: "eventually (\<lambda>x. ereal r > f x) F" if "r < c" for r using that by blast
+  show "eventually (\<lambda>x. ereal r > f x) F"
+  proof (cases "r < c")
+    case False
+    hence B: "ereal r \<ge> ereal (c - 1)" by simp
+    have "c > c - 1" by simp
+    from A[OF this] show "eventually (\<lambda>x. ereal r > f x) F"
+      by eventually_elim (erule less_le_trans[OF _ B])
+  qed (simp add: A)
+qed simp
 
 lemma Lim_PInfty: "f \<longlonglongrightarrow> \<infinity> \<longleftrightarrow> (\<forall>B. \<exists>N. \<forall>n\<ge>N. f n \<ge> ereal B)"
   unfolding tendsto_PInfty eventually_sequentially
@@ -2526,6 +2565,19 @@ lemma Lim_bounded_PInfty: "f \<longlonglongrightarrow> l \<Longrightarrow> (\<An
 
 lemma Lim_bounded_MInfty: "f \<longlonglongrightarrow> l \<Longrightarrow> (\<And>n. ereal B \<le> f n) \<Longrightarrow> l \<noteq> -\<infinity>"
   using LIMSEQ_le_const[of f l "ereal B"] by auto
+
+lemma tendsto_zero_erealI:
+  assumes "\<And>e. e > 0 \<Longrightarrow> eventually (\<lambda>x. \<bar>f x\<bar> < ereal e) F"
+  shows   "(f \<longlongrightarrow> 0) F"
+proof (subst filterlim_cong[OF refl refl])
+  from assms[OF zero_less_one] show "eventually (\<lambda>x. f x = ereal (real_of_ereal (f x))) F"
+    by eventually_elim (auto simp: ereal_real)
+  hence "eventually (\<lambda>x. abs (real_of_ereal (f x)) < e) F" if "e > 0" for e using assms[OF that]
+    by eventually_elim (simp add: real_less_ereal_iff that)
+  hence "((\<lambda>x. real_of_ereal (f x)) \<longlongrightarrow> 0) F" unfolding tendsto_iff 
+    by (auto simp: tendsto_iff dist_real_def)
+  thus "((\<lambda>x. ereal (real_of_ereal (f x))) \<longlongrightarrow> 0) F" by (simp add: zero_ereal_def)
+qed
 
 lemma tendsto_explicit:
   "f \<longlonglongrightarrow> f0 \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> f0 \<in> S \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> S))"
@@ -3678,6 +3730,126 @@ proof -
     by auto
 qed
 
+lemma continuous_uminus_ereal [continuous_intros]: "continuous_on (A :: ereal set) uminus"
+  unfolding continuous_on_def
+  by (intro ballI tendsto_uminus_ereal[of "\<lambda>x. x::ereal"]) simp
+
+lemma ereal_uminus_atMost [simp]: "uminus ` {..(a::ereal)} = {-a..}"
+proof (intro equalityI subsetI)
+  fix x :: ereal assume "x \<in> {-a..}"
+  hence "-(-x) \<in> uminus ` {..a}" by (intro imageI) (simp add: ereal_uminus_le_reorder)
+  thus "x \<in> uminus ` {..a}" by simp
+qed auto
+
+lemma continuous_on_inverse_ereal [continuous_intros]: 
+  "continuous_on {0::ereal ..} inverse"
+  unfolding continuous_on_def
+proof clarsimp
+  fix x :: ereal assume "0 \<le> x"
+  moreover have "at 0 within {0 ..} = at_right (0::ereal)"
+    by (auto simp: filter_eq_iff eventually_at_filter le_less)
+  moreover have "at x within {0 ..} = at x" if "0 < x"
+    using that by (intro at_within_nhd[of _ "{0<..}"]) auto
+  ultimately show "(inverse \<longlongrightarrow> inverse x) (at x within {0..})"
+    by (auto simp: le_less inverse_ereal_tendsto_at_right_0 inverse_ereal_tendsto_pos)
+qed
+  
+lemma continuous_inverse_ereal_nonpos: "continuous_on ({..<0} :: ereal set) inverse"
+proof (subst continuous_on_cong[OF refl]) 
+  have "continuous_on {(0::ereal)<..} inverse"
+    by (rule continuous_on_subset[OF continuous_on_inverse_ereal]) auto
+  thus "continuous_on {..<(0::ereal)} (uminus \<circ> inverse \<circ> uminus)"
+    by (intro continuous_intros) simp_all
+qed simp
+
+lemma tendsto_inverse_ereal:
+  assumes "(f \<longlongrightarrow> (c :: ereal)) F"
+  assumes "eventually (\<lambda>x. f x \<ge> 0) F"
+  shows   "((\<lambda>x. inverse (f x)) \<longlongrightarrow> inverse c) F"
+  by (cases "F = bot") 
+     (auto intro!: tendsto_le_const[of F] assms 
+                   continuous_on_tendsto_compose[OF continuous_on_inverse_ereal])
+
+
+subsubsection \<open>liminf and limsup\<close>
+
+lemma Limsup_ereal_mult_right: 
+  assumes "F \<noteq> bot" "(c::real) \<ge> 0"
+  shows   "Limsup F (\<lambda>n. f n * ereal c) = Limsup F f * ereal c"
+proof (rule Limsup_compose_continuous_mono)
+  from assms show "continuous_on UNIV (\<lambda>a. a * ereal c)"
+    using tendsto_cmult_ereal[of "ereal c" "\<lambda>x. x" ]
+    by (force simp: continuous_on_def mult_ac)
+qed (insert assms, auto simp: mono_def ereal_mult_right_mono)
+
+lemma Liminf_ereal_mult_right: 
+  assumes "F \<noteq> bot" "(c::real) \<ge> 0"
+  shows   "Liminf F (\<lambda>n. f n * ereal c) = Liminf F f * ereal c"
+proof (rule Liminf_compose_continuous_mono)
+  from assms show "continuous_on UNIV (\<lambda>a. a * ereal c)"
+    using tendsto_cmult_ereal[of "ereal c" "\<lambda>x. x" ]
+    by (force simp: continuous_on_def mult_ac)
+qed (insert assms, auto simp: mono_def ereal_mult_right_mono)
+
+lemma Limsup_ereal_mult_left: 
+  assumes "F \<noteq> bot" "(c::real) \<ge> 0"
+  shows   "Limsup F (\<lambda>n. ereal c * f n) = ereal c * Limsup F f"
+  using Limsup_ereal_mult_right[OF assms] by (subst (1 2) mult.commute)
+
+lemma limsup_ereal_mult_right: 
+  "(c::real) \<ge> 0 \<Longrightarrow> limsup (\<lambda>n. f n * ereal c) = limsup f * ereal c"
+  by (rule Limsup_ereal_mult_right) simp_all
+
+lemma limsup_ereal_mult_left: 
+  "(c::real) \<ge> 0 \<Longrightarrow> limsup (\<lambda>n. ereal c * f n) = ereal c * limsup f"
+  by (subst (1 2) mult.commute, rule limsup_ereal_mult_right) simp_all
+
+lemma Limsup_add_ereal_right: 
+  "F \<noteq> bot \<Longrightarrow> abs c \<noteq> \<infinity> \<Longrightarrow> Limsup F (\<lambda>n. g n + (c :: ereal)) = Limsup F g + c"
+  by (rule Limsup_compose_continuous_mono) (auto simp: mono_def ereal_add_mono continuous_on_def)
+
+lemma Limsup_add_ereal_left: 
+  "F \<noteq> bot \<Longrightarrow> abs c \<noteq> \<infinity> \<Longrightarrow> Limsup F (\<lambda>n. (c :: ereal) + g n) = c + Limsup F g"
+  by (subst (1 2) add.commute) (rule Limsup_add_ereal_right)
+
+lemma Liminf_add_ereal_right: 
+  "F \<noteq> bot \<Longrightarrow> abs c \<noteq> \<infinity> \<Longrightarrow> Liminf F (\<lambda>n. g n + (c :: ereal)) = Liminf F g + c"
+  by (rule Liminf_compose_continuous_mono) (auto simp: mono_def ereal_add_mono continuous_on_def)
+
+lemma Liminf_add_ereal_left: 
+  "F \<noteq> bot \<Longrightarrow> abs c \<noteq> \<infinity> \<Longrightarrow> Liminf F (\<lambda>n. (c :: ereal) + g n) = c + Liminf F g"
+  by (subst (1 2) add.commute) (rule Liminf_add_ereal_right)
+
+lemma 
+  assumes "F \<noteq> bot"
+  assumes nonneg: "eventually (\<lambda>x. f x \<ge> (0::ereal)) F"
+  shows   Liminf_inverse_ereal: "Liminf F (\<lambda>x. inverse (f x)) = inverse (Limsup F f)"
+  and     Limsup_inverse_ereal: "Limsup F (\<lambda>x. inverse (f x)) = inverse (Liminf F f)"
+proof -
+  def inv \<equiv> "\<lambda>x. if x \<le> 0 then \<infinity> else inverse x :: ereal"
+  have "continuous_on ({..0} \<union> {0..}) inv" unfolding inv_def
+    by (intro continuous_on_If) (auto intro!: continuous_intros)
+  also have "{..0} \<union> {0..} = (UNIV :: ereal set)" by auto
+  finally have cont: "continuous_on UNIV inv" .
+  have antimono: "antimono inv" unfolding inv_def antimono_def
+    by (auto intro!: ereal_inverse_antimono)
+  
+  have "Liminf F (\<lambda>x. inverse (f x)) = Liminf F (\<lambda>x. inv (f x))" using nonneg
+    by (auto intro!: Liminf_eq elim!: eventually_mono simp: inv_def)
+  also have "... = inv (Limsup F f)"
+    by (simp add: assms(1) Liminf_compose_continuous_antimono[OF cont antimono])
+  also from assms have "Limsup F f \<ge> 0" by (intro le_Limsup) simp_all
+  hence "inv (Limsup F f) = inverse (Limsup F f)" by (simp add: inv_def)
+  finally show "Liminf F (\<lambda>x. inverse (f x)) = inverse (Limsup F f)" .
+
+  have "Limsup F (\<lambda>x. inverse (f x)) = Limsup F (\<lambda>x. inv (f x))" using nonneg
+    by (auto intro!: Limsup_eq elim!: eventually_mono simp: inv_def)
+  also have "... = inv (Liminf F f)"
+    by (simp add: assms(1) Limsup_compose_continuous_antimono[OF cont antimono])
+  also from assms have "Liminf F f \<ge> 0" by (intro Liminf_bounded) simp_all
+  hence "inv (Liminf F f) = inverse (Liminf F f)" by (simp add: inv_def)
+  finally show "Limsup F (\<lambda>x. inverse (f x)) = inverse (Liminf F f)" .
+qed
 
 subsubsection \<open>Tests for code generator\<close>
 

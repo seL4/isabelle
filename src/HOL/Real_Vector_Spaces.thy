@@ -191,7 +191,7 @@ lemma scaleR_minus1_left [simp]:
   fixes x :: "'a::real_vector"
   shows "scaleR (-1) x = - x"
   using scaleR_minus_left [of 1 x] by simp
-
+  
 class real_algebra = real_vector + ring +
   assumes mult_scaleR_left [simp]: "scaleR a x * y = scaleR a (x * y)"
   and mult_scaleR_right [simp]: "x * scaleR a y = scaleR a (x * y)"
@@ -686,6 +686,10 @@ class real_normed_algebra = real_algebra + real_normed_vector +
 
 class real_normed_algebra_1 = real_algebra_1 + real_normed_algebra +
   assumes norm_one [simp]: "norm 1 = 1"
+  
+lemma (in real_normed_algebra_1) scaleR_power [simp]: 
+  "(scaleR x y) ^ n = scaleR (x^n) (y^n)"
+  by (induction n) (simp_all add: scaleR_one scaleR_scaleR mult_ac)
 
 class real_normed_div_algebra = real_div_algebra + real_normed_vector +
   assumes norm_mult: "norm (x * y) = norm x * norm y"

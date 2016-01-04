@@ -1,5 +1,6 @@
 (*  Title:      HOL/Library/Liminf_Limsup.thy
     Author:     Johannes Hölzl, TU München
+    Author:     Manuel Eberl, TU München
 *)
 
 section \<open>Liminf and Limsup on complete lattices\<close>
@@ -189,6 +190,42 @@ proof -
     unfolding Liminf_def le_SUP_iff by auto
 qed
 
+lemma Limsup_le_iff:
+  fixes X :: "_ \<Rightarrow> _ :: complete_linorder"
+  shows "C \<ge> Limsup F X \<longleftrightarrow> (\<forall>y>C. eventually (\<lambda>x. y > X x) F)"
+proof -
+  { fix y P assume "eventually P F" "y > SUPREMUM (Collect P) X"
+    then have "eventually (\<lambda>x. y > X x) F"
+      by (auto elim!: eventually_mono dest: SUP_lessD) }
+  moreover
+  { fix y P assume "y > C" and y: "\<forall>y>C. eventually (\<lambda>x. y > X x) F"
+    have "\<exists>P. eventually P F \<and> y > SUPREMUM (Collect P) X"
+    proof (cases "\<exists>z. C < z \<and> z < y")
+      case True
+      then obtain z where z: "C < z \<and> z < y" ..
+      moreover from z have "z \<ge> SUPREMUM {x. z > X x} X"
+        by (auto intro!: SUP_least)
+      ultimately show ?thesis
+        using y by (intro exI[of _ "\<lambda>x. z > X x"]) auto
+    next
+      case False
+      then have "C \<ge> SUPREMUM {x. y > X x} X"
+        by (intro SUP_least) (auto simp: not_less)
+      with \<open>y > C\<close> show ?thesis
+        using y by (intro exI[of _ "\<lambda>x. y > X x"]) auto
+    qed }
+  ultimately show ?thesis
+    unfolding Limsup_def INF_le_iff by auto
+qed
+
+lemma less_LiminfD:
+  "y < Liminf F (f :: _ \<Rightarrow> 'a :: complete_linorder) \<Longrightarrow> eventually (\<lambda>x. f x > y) F"
+  using le_Liminf_iff[of "Liminf F f" F f] by simp
+
+lemma Limsup_lessD:
+  "y > Limsup F (f :: _ \<Rightarrow> 'a :: complete_linorder) \<Longrightarrow> eventually (\<lambda>x. f x < y) F"
+  using Limsup_le_iff[of F f "Limsup F f"] by simp
+
 lemma lim_imp_Liminf:
   fixes f :: "'a \<Rightarrow> _ :: {complete_linorder,linorder_topology}"
   assumes ntriv: "\<not> trivial_limit F"
@@ -327,6 +364,56 @@ lemma continuous_on_imp_continuous_within:
   unfolding continuous_on_eq_continuous_within
   by (auto simp: continuous_within intro: tendsto_within_subset)
 
+lemma Liminf_compose_continuous_mono:
+  fixes f :: "'a::{complete_linorder, linorder_topology} \<Rightarrow> 'b::{complete_linorder, linorder_topology}"
+  assumes c: "continuous_on UNIV f" and am: "mono f" and F: "F \<noteq> bot"
+  shows "Liminf F (\<lambda>n. f (g n)) = f (Liminf F g)"
+proof -
+  { fix P assume "eventually P F"
+    have "\<exists>x. P x"
+    proof (rule ccontr)
+      assume "\<not> (\<exists>x. P x)" then have "P = (\<lambda>x. False)"
+        by auto
+      with \<open>eventually P F\<close> F show False
+        by auto
+    qed }
+  note * = this
+
+  have "f (Liminf F g) = (SUP P : {P. eventually P F}. f (Inf (g ` Collect P)))"
+    unfolding Liminf_def SUP_def
+    by (subst continuous_at_Sup_mono[OF am continuous_on_imp_continuous_within[OF c]])
+       (auto intro: eventually_True)
+  also have "\<dots> = (SUP P : {P. eventually P F}. INFIMUM (g ` Collect P) f)"
+    by (intro SUP_cong refl continuous_at_Inf_mono[OF am continuous_on_imp_continuous_within[OF c]])
+       (auto dest!: eventually_happens simp: F)
+  finally show ?thesis by (auto simp: Liminf_def)
+qed
+
+lemma Limsup_compose_continuous_mono:
+  fixes f :: "'a::{complete_linorder, linorder_topology} \<Rightarrow> 'b::{complete_linorder, linorder_topology}"
+  assumes c: "continuous_on UNIV f" and am: "mono f" and F: "F \<noteq> bot"
+  shows "Limsup F (\<lambda>n. f (g n)) = f (Limsup F g)"
+proof -
+  { fix P assume "eventually P F"
+    have "\<exists>x. P x"
+    proof (rule ccontr)
+      assume "\<not> (\<exists>x. P x)" then have "P = (\<lambda>x. False)"
+        by auto
+      with \<open>eventually P F\<close> F show False
+        by auto
+    qed }
+  note * = this
+
+  have "f (Limsup F g) = (INF P : {P. eventually P F}. f (Sup (g ` Collect P)))"
+    unfolding Limsup_def INF_def
+    by (subst continuous_at_Inf_mono[OF am continuous_on_imp_continuous_within[OF c]])
+       (auto intro: eventually_True)
+  also have "\<dots> = (INF P : {P. eventually P F}. SUPREMUM (g ` Collect P) f)"
+    by (intro INF_cong refl continuous_at_Sup_mono[OF am continuous_on_imp_continuous_within[OF c]])
+       (auto dest!: eventually_happens simp: F)
+  finally show ?thesis by (auto simp: Limsup_def)
+qed
+
 lemma Liminf_compose_continuous_antimono:
   fixes f :: "'a::{complete_linorder,linorder_topology} \<Rightarrow> 'b::{complete_linorder,linorder_topology}"
   assumes c: "continuous_on UNIV f"
@@ -351,6 +438,34 @@ proof -
   finally show ?thesis
     by (auto simp: Liminf_def)
 qed
+
+lemma Limsup_compose_continuous_antimono:
+  fixes f :: "'a::{complete_linorder, linorder_topology} \<Rightarrow> 'b::{complete_linorder, linorder_topology}"
+  assumes c: "continuous_on UNIV f" and am: "antimono f" and F: "F \<noteq> bot"
+  shows "Limsup F (\<lambda>n. f (g n)) = f (Liminf F g)"
+proof -
+  { fix P assume "eventually P F"
+    have "\<exists>x. P x"
+    proof (rule ccontr)
+      assume "\<not> (\<exists>x. P x)" then have "P = (\<lambda>x. False)"
+        by auto
+      with \<open>eventually P F\<close> F show False
+        by auto
+    qed }
+  note * = this
+
+  have "f (Liminf F g) = (INF P : {P. eventually P F}. f (Inf (g ` Collect P)))"
+    unfolding Liminf_def SUP_def
+    by (subst continuous_at_Sup_antimono[OF am continuous_on_imp_continuous_within[OF c]])
+       (auto intro: eventually_True)
+  also have "\<dots> = (INF P : {P. eventually P F}. SUPREMUM (g ` Collect P) f)"
+    by (intro INF_cong refl continuous_at_Inf_antimono[OF am continuous_on_imp_continuous_within[OF c]])
+       (auto dest!: eventually_happens simp: F)
+  finally show ?thesis
+    by (auto simp: Limsup_def)
+qed
+
+
 subsection \<open>More Limits\<close>
 
 lemma convergent_limsup_cl:

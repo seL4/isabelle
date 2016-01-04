@@ -2354,6 +2354,11 @@ lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
 lemma powr_numeral: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
   by (metis of_nat_numeral powr_realpow)
 
+lemma powr_real_of_int: 
+  "x > 0 \<Longrightarrow> x powr real_of_int n = (if n \<ge> 0 then x ^ nat n else inverse (x ^ nat (-n)))"
+  using powr_realpow[of x "nat n"] powr_realpow[of x "nat (-n)"]
+  by (auto simp: field_simps powr_minus)  
+
 lemma powr2_sqrt[simp]: "0 < x \<Longrightarrow> sqrt x powr 2 = x"
 by(simp add: powr_numeral)
 

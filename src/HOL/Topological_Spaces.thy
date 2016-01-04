@@ -1621,6 +1621,23 @@ lemma isCont_o[continuous_intros]: "isCont f a \<Longrightarrow> isCont g (f a) 
 
 lemma isCont_tendsto_compose: "isCont g l \<Longrightarrow> (f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) \<longlongrightarrow> g l) F"
   unfolding isCont_def by (rule tendsto_compose)
+  
+lemma continuous_on_tendsto_compose:
+  assumes f_cont: "continuous_on s f"
+  assumes g: "(g \<longlongrightarrow> l) F"
+  assumes l: "l \<in> s"
+  assumes ev: "\<forall>\<^sub>F x in F. g x \<in> s"
+  shows "((\<lambda>x. f (g x)) \<longlongrightarrow> f l) F"
+proof -
+  from f_cont l have f: "(f \<longlongrightarrow> f l) (at l within s)"
+    by (simp add: continuous_on_def)
+  have i: "((\<lambda>x. if g x = l then f l else f (g x)) \<longlongrightarrow> f l) F"
+    by (rule filterlim_If)
+       (auto intro!: filterlim_compose[OF f] eventually_conj tendsto_mono[OF _ g]
+             simp: filterlim_at eventually_inf_principal eventually_mono[OF ev])
+  show ?thesis
+    by (rule filterlim_cong[THEN iffD1[OF _ i]]) auto
+qed
 
 lemma continuous_within_compose3:
   "isCont g (f x) \<Longrightarrow> continuous (at x within s) f \<Longrightarrow> continuous (at x within s) (\<lambda>x. g (f x))"

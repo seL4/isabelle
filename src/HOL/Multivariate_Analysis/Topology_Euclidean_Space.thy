@@ -5388,23 +5388,6 @@ next
     unfolding uniformly_continuous_on_def by blast
 qed
 
-lemma continuous_on_tendsto_compose:
-  assumes f_cont: "continuous_on s f"
-  assumes g: "(g \<longlongrightarrow> l) F"
-  assumes l: "l \<in> s"
-  assumes ev: "\<forall>\<^sub>F x in F. g x \<in> s"
-  shows "((\<lambda>x. f (g x)) \<longlongrightarrow> f l) F"
-proof -
-  from f_cont have f: "(f \<longlongrightarrow> f l) (at l within s)"
-    by (auto simp: l continuous_on)
-  have i: "((\<lambda>x. if g x = l then f l else f (g x)) \<longlongrightarrow> f l) F"
-    by (rule filterlim_If)
-      (auto intro!: filterlim_compose[OF f] eventually_conj tendsto_mono[OF _ g]
-        simp: filterlim_at eventually_inf_principal eventually_mono[OF ev])
-  show ?thesis
-    by (rule filterlim_cong[THEN iffD1[OF _ i]]) auto
-qed
-
 
 text\<open>The usual transformation theorems.\<close>
 
