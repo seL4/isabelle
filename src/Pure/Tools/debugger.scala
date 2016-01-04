@@ -61,7 +61,10 @@ object Debugger
     output: Map[String, Command.Results] = Map.empty)  // thread name ~> output messages
   {
     def set_session(new_session: Session): State =
+    {
+      session.stop()
       copy(session = new_session)
+    }
 
     def set_break(b: Boolean): State = copy(break = b)
 

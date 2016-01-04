@@ -398,6 +398,7 @@ class Plugin extends EBPlugin
       val resources =
         new JEdit_Resources(content.loaded_theories, content.known_theories, content.syntax)
 
+      PIDE.session.stop()
       PIDE.session = new Session(resources) {
         override def output_delay = PIDE.options.seconds("editor_output_delay")
         override def prune_delay = PIDE.options.seconds("editor_prune_delay")
