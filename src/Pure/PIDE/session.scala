@@ -605,11 +605,11 @@ class Session(val resources: Resources)
 
   def stop()
   {
+    delay_prune.revoke()
     manager.send_wait(Stop)
     prover.await_reset()
     change_parser.shutdown()
     change_buffer.shutdown()
-    delay_prune.revoke()
     manager.shutdown()
     dispatcher.shutdown()
   }
