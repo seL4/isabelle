@@ -153,7 +153,7 @@ instance prod :: (order_bot, order_bot) order_bot
 instance prod :: (bounded_lattice, bounded_lattice) bounded_lattice ..
 
 instance prod :: (boolean_algebra, boolean_algebra) boolean_algebra
-  by standard (auto simp add: prod_eqI inf_compl_bot sup_compl_top diff_eq)
+  by standard (auto simp add: prod_eqI diff_eq)
 
 
 subsection \<open>Complete lattice operations\<close>
@@ -179,7 +179,8 @@ end
 instance prod :: (conditionally_complete_lattice, conditionally_complete_lattice)
     conditionally_complete_lattice
   by standard (force simp: less_eq_prod_def Inf_prod_def Sup_prod_def bdd_below_def bdd_above_def
-    INF_def SUP_def simp del: Inf_image_eq Sup_image_eq intro!: cInf_lower cSup_upper cInf_greatest cSup_least)+
+    INF_def SUP_def simp del: Inf_image_eq Sup_image_eq
+    intro!: cInf_lower cSup_upper cInf_greatest cSup_least)+
 
 instance prod :: (complete_lattice, complete_lattice) complete_lattice
   by standard (simp_all add: less_eq_prod_def Inf_prod_def Sup_prod_def
