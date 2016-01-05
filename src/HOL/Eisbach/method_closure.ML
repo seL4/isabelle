@@ -43,7 +43,7 @@ fun lookup_dynamic_method ctxt full_name =
 
 val update_dynamic_method = Method_Definition.map o apfst o Symtab.update;
 
-val get_recursive_method = #2 o Method_Definition.get;
+fun get_recursive_method ts ctxt = #2 (Method_Definition.get ctxt) ts ctxt;
 val put_recursive_method = Method_Definition.map o apsnd o K;
 
 
@@ -253,19 +253,18 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
 
     val method_args = map (Local_Theory.full_name lthy2) methods;
 
-    fun parser args =
+    fun parser args meth =
       apfst (Config.put_generic Method.old_section_parser true) #>
       (parse_term_args args --
         parse_method_args method_args --|
         (Scan.depend (fn context =>
           Scan.succeed (fold Named_Theorems.clear uses_internal context, ())) --
-         Method.sections modifiers));
+         Method.sections modifiers)) >> (fn (ts, decl) => meth ts o decl);
 
     val lthy3 = lthy2
       |> fold dummy_named_thm named_thms
       |> Method.local_setup (Binding.make (Binding.name_of name, Position.none))
-        (parser term_args >> (fn (fixes, decl) =>
-          fn ctxt => get_recursive_method ctxt fixes (decl ctxt))) "(internal)";
+        (parser term_args get_recursive_method) "(internal)";
 
     val (text, src) = read_closure lthy3 source;
 
@@ -284,8 +283,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
     |> Proof_Context.restore_naming lthy
     |> put_closure name
         {vars = term_args', named_thms = named_thms, methods = method_args, body = text'}
-    |> Method.local_setup name
-        (parser term_args' >> (fn (ts, decl) => decl #> recursive_method term_args' text' ts))
+    |> Method.local_setup name (parser term_args' (recursive_method term_args' text'))
         "(defined in Eisbach)"
     |> pair (Local_Theory.full_name lthy name)
   end;
