@@ -6,6 +6,13 @@ distribution.
 Contributions to Isabelle2016
 -----------------------------
 
+* Winter 2015: Manuel Eberl, TUM
+  The radius of convergence of power series and various summability tests.
+  Harmonic numbers and the Euler–Mascheroni constant.
+  The Generalised Binomial Theorem.
+  The complex and real Gamma/log-Gamma/Digamma/Polygamma functions and 
+  their most important properties.
+
 * Autumn 2015: Florian Haftmann, TUM
   Rewrite definitions for global interpretations and sublocale
   declarations.
