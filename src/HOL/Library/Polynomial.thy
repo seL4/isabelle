@@ -281,7 +281,10 @@ lemma Poly_replicate_0 [simp]:
 lemma Poly_eq_0:
   "Poly as = 0 \<longleftrightarrow> (\<exists>n. as = replicate n 0)"
   by (induct as) (auto simp add: Cons_replicate_eq)
-
+  
+lemma degree_Poly: "degree (Poly xs) \<le> length xs"
+  by (induction xs) simp_all
+  
 definition coeffs :: "'a poly \<Rightarrow> 'a::zero list"
 where
   "coeffs p = (if p = 0 then [] else map (\<lambda>i. coeff p i) [0 ..< Suc (degree p)])"
@@ -310,6 +313,14 @@ proof -
   show ?thesis
     by (simp add: coeffs_def * upt_conv_Cons coeff_pCons map_decr_upt del: upt_Suc)
 qed
+
+lemma length_coeffs: "p \<noteq> 0 \<Longrightarrow> length (coeffs p) = degree p + 1"
+  by (simp add: coeffs_def)
+  
+lemma coeffs_nth:
+  assumes "p \<noteq> 0" "n \<le> degree p"
+  shows   "coeffs p ! n = coeff p n"
+  using assms unfolding coeffs_def by (auto simp del: upt_Suc)
 
 lemma not_0_cCons_eq [simp]:
   "p \<noteq> 0 \<Longrightarrow> a ## coeffs p = a # coeffs p"
@@ -450,6 +461,25 @@ lemma poly_pCons [simp]:
   "poly (pCons a p) x = a + x * poly p x"
   by (cases "p = 0 \<and> a = 0") (auto simp add: poly_def)
 
+lemma poly_altdef: 
+  "poly p (x :: 'a :: {comm_semiring_0, semiring_1}) = (\<Sum>i\<le>degree p. coeff p i * x ^ i)"
+proof (induction p rule: pCons_induct)
+  case (pCons a p)
+    show ?case
+    proof (cases "p = 0")
+      case False
+      let ?p' = "pCons a p"
+      note poly_pCons[of a p x]
+      also note pCons.IH
+      also have "a + x * (\<Sum>i\<le>degree p. coeff p i * x ^ i) =
+                 coeff ?p' 0 * x^0 + (\<Sum>i\<le>degree p. coeff ?p' (Suc i) * x^Suc i)"
+          by (simp add: field_simps setsum_right_distrib coeff_pCons)
+      also note setsum_atMost_Suc_shift[symmetric]
+      also note degree_pCons_eq[OF `p \<noteq> 0`, of a, symmetric]
+      finally show ?thesis .
+   qed simp
+qed simp
+
 
 subsection \<open>Monomials\<close>
 
@@ -500,7 +530,7 @@ lemma poly_monom:
   by (cases "a = 0", simp_all)
     (induct n, simp_all add: mult.left_commute poly_def)
 
-
+    
 subsection \<open>Addition and subtraction\<close>
 
 instantiation poly :: (comm_monoid_add) comm_monoid_add
@@ -714,6 +744,9 @@ lemma poly_diff [simp]:
 lemma poly_setsum: "poly (\<Sum>k\<in>A. p k) x = (\<Sum>k\<in>A. poly (p k) x)"
   by (induct A rule: infinite_finite_induct) simp_all
 
+lemma Poly_snoc: "Poly (xs @ [x]) = Poly xs + monom x (length xs)"
+  by (induction xs) (simp_all add: monom_0 monom_Suc)
+
 
 subsection \<open>Multiplication by a constant, polynomial multiplication and the unit polynomial\<close>
 
@@ -924,6 +957,28 @@ lemma poly_power [simp]:
   shows "poly (p ^ n) x = poly p x ^ n"
   by (induct n) simp_all
 
+  
+subsection \<open>Conversions from natural numbers\<close>
+
+lemma of_nat_poly: "of_nat n = [:of_nat n :: 'a :: comm_semiring_1:]"
+proof (induction n)
+  case (Suc n)
+  hence "of_nat (Suc n) = 1 + (of_nat n :: 'a poly)" 
+    by simp
+  also have "(of_nat n :: 'a poly) = [: of_nat n :]" 
+    by (subst Suc) (rule refl)
+  also have "1 = [:1:]" by (simp add: one_poly_def)
+  finally show ?case by (subst (asm) add_pCons) simp
+qed simp
+
+lemma degree_of_nat [simp]: "degree (of_nat n) = 0"
+  by (simp add: of_nat_poly)
+
+lemma degree_numeral [simp]: "degree (numeral n) = 0"
+  by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
+
+lemma numeral_poly: "numeral n = [:numeral n:]"
+  by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
 
 subsection \<open>Lemmas about divisibility\<close>
 
@@ -1787,6 +1842,9 @@ unfolding poly_eq_0_iff_dvd
 apply (metis dvd_power dvd_trans order_1)
 done
 
+lemma order_0I: "poly p a \<noteq> 0 \<Longrightarrow> order a p = 0"
+  by (subst (asm) order_root) auto
+
 
 subsection \<open>GCD of polynomials\<close>
 
@@ -1919,6 +1977,75 @@ lemma poly_gcd_code [code]:
   by (simp add: gcd_poly.simps)
 
 
+subsection \<open>Additional induction rules on polynomials\<close>
+
+text \<open>
+  An induction rule for induction over the roots of a polynomial with a certain property. 
+  (e.g. all positive roots)
+\<close>
+lemma poly_root_induct [case_names 0 no_roots root]:
+  fixes p :: "'a :: idom poly"
+  assumes "Q 0"
+  assumes "\<And>p. (\<And>a. P a \<Longrightarrow> poly p a \<noteq> 0) \<Longrightarrow> Q p"
+  assumes "\<And>a p. P a \<Longrightarrow> Q p \<Longrightarrow> Q ([:a, -1:] * p)"
+  shows   "Q p"
+proof (induction "degree p" arbitrary: p rule: less_induct)
+  case (less p)
+  show ?case
+  proof (cases "p = 0")
+    assume nz: "p \<noteq> 0"
+    show ?case
+    proof (cases "\<exists>a. P a \<and> poly p a = 0")
+      case False
+      thus ?thesis by (intro assms(2)) blast
+    next
+      case True
+      then obtain a where a: "P a" "poly p a = 0" 
+        by blast
+      hence "-[:-a, 1:] dvd p" 
+        by (subst minus_dvd_iff) (simp add: poly_eq_0_iff_dvd)
+      then obtain q where q: "p = [:a, -1:] * q" by (elim dvdE) simp
+      with nz have q_nz: "q \<noteq> 0" by auto
+      have "degree p = Suc (degree q)"
+        by (subst q, subst degree_mult_eq) (simp_all add: q_nz)
+      hence "Q q" by (intro less) simp
+      from a(1) and this have "Q ([:a, -1:] * q)" 
+        by (rule assms(3))
+      with q show ?thesis by simp
+    qed
+  qed (simp add: assms(1))
+qed
+
+lemma dropWhile_replicate_append: 
+  "dropWhile (op= a) (replicate n a @ ys) = dropWhile (op= a) ys"
+  by (induction n) simp_all
+
+lemma Poly_append_replicate_0: "Poly (xs @ replicate n 0) = Poly xs"
+  by (subst coeffs_eq_iff) (simp_all add: strip_while_def dropWhile_replicate_append)
+
+text \<open>
+  An induction rule for simultaneous induction over two polynomials, 
+  prepending one coefficient in each step.
+\<close>
+lemma poly_induct2 [case_names 0 pCons]:
+  assumes "P 0 0" "\<And>a p b q. P p q \<Longrightarrow> P (pCons a p) (pCons b q)"
+  shows   "P p q"
+proof -
+  def n \<equiv> "max (length (coeffs p)) (length (coeffs q))"
+  def xs \<equiv> "coeffs p @ (replicate (n - length (coeffs p)) 0)"
+  def ys \<equiv> "coeffs q @ (replicate (n - length (coeffs q)) 0)"
+  have "length xs = length ys" 
+    by (simp add: xs_def ys_def n_def)
+  hence "P (Poly xs) (Poly ys)" 
+    by (induction rule: list_induct2) (simp_all add: assms)
+  also have "Poly xs = p" 
+    by (simp add: xs_def Poly_append_replicate_0)
+  also have "Poly ys = q" 
+    by (simp add: ys_def Poly_append_replicate_0)
+  finally show ?thesis .
+qed
+
+
 subsection \<open>Composition of polynomials\<close>
 
 definition pcompose :: "'a::comm_semiring_0 poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
@@ -1945,6 +2072,212 @@ apply (rule degree_add_le, simp)
 apply (rule order_trans [OF degree_mult_le], simp)
 done
 
+lemma pcompose_add:
+  fixes p q r :: "'a :: {comm_semiring_0, ab_semigroup_add} poly"
+  shows "pcompose (p + q) r = pcompose p r + pcompose q r"
+proof (induction p q rule: poly_induct2)
+  case (pCons a p b q)
+  have "pcompose (pCons a p + pCons b q) r = 
+          [:a + b:] + r * pcompose p r + r * pcompose q r"
+    by (simp_all add: pcompose_pCons pCons.IH algebra_simps)
+  also have "[:a + b:] = [:a:] + [:b:]" by simp
+  also have "\<dots> + r * pcompose p r + r * pcompose q r = 
+                 pcompose (pCons a p) r + pcompose (pCons b q) r"
+    by (simp only: pcompose_pCons add_ac)
+  finally show ?case .
+qed simp
+
+lemma pcompose_minus:
+  fixes p r :: "'a :: comm_ring poly"
+  shows "pcompose (-p) r = -pcompose p r"
+  by (induction p) (simp_all add: pcompose_pCons)
+
+lemma pcompose_diff:
+  fixes p q r :: "'a :: comm_ring poly"
+  shows "pcompose (p - q) r = pcompose p r - pcompose q r"
+  using pcompose_add[of p "-q"] by (simp add: pcompose_minus)
+
+lemma pcompose_smult:
+  fixes p r :: "'a :: comm_semiring_0 poly"
+  shows "pcompose (smult a p) r = smult a (pcompose p r)"
+  by (induction p) 
+     (simp_all add: pcompose_pCons pcompose_add smult_add_right)
+
+lemma pcompose_mult:
+  fixes p q r :: "'a :: comm_semiring_0 poly"
+  shows "pcompose (p * q) r = pcompose p r * pcompose q r"
+  by (induction p arbitrary: q)
+     (simp_all add: pcompose_add pcompose_smult pcompose_pCons algebra_simps)
+
+lemma pcompose_assoc: 
+  "pcompose p (pcompose q r :: 'a :: comm_semiring_0 poly ) =
+     pcompose (pcompose p q) r"
+  by (induction p arbitrary: q) 
+     (simp_all add: pcompose_pCons pcompose_add pcompose_mult)
+
+
+(* The remainder of this section and the next were contributed by Wenda Li *)
+
+lemma degree_mult_eq_0:
+  fixes p q:: "'a :: idom poly"
+  shows "degree (p*q) = 0 \<longleftrightarrow> p=0 \<or> q=0 \<or> (p\<noteq>0 \<and> q\<noteq>0 \<and> degree p =0 \<and> degree q =0)"
+by (auto simp add:degree_mult_eq)
+
+lemma pcompose_const[simp]:"pcompose [:a:] q = [:a:]" by (subst pcompose_pCons,simp) 
+
+lemma pcompose_0':"pcompose p 0=[:coeff p 0:]"
+  apply (induct p)
+  apply (auto simp add:pcompose_pCons)
+done
+
+lemma degree_pcompose:
+  fixes p q:: "'a::idom poly"
+  shows "degree(pcompose p q) = degree p * degree q"
+proof (induct p)
+  case 0
+  thus ?case by auto
+next
+  case (pCons a p)
+  have "degree (q * pcompose p q) = 0 \<Longrightarrow> ?case" 
+    proof (cases "p=0")
+      case True
+      thus ?thesis by auto
+    next
+      case False assume "degree (q * pcompose p q) = 0"
+      hence "degree q=0 \<or> pcompose p q=0" by (auto simp add:degree_mult_eq_0)
+      moreover have "\<lbrakk>pcompose p q=0;degree q\<noteq>0\<rbrakk> \<Longrightarrow> False" using pCons.hyps(2) `p\<noteq>0` 
+        proof -
+          assume "pcompose p q=0" "degree q\<noteq>0"
+          hence "degree p=0" using pCons.hyps(2) by auto
+          then obtain a1 where "p=[:a1:]"
+            by (metis degree_pCons_eq_if old.nat.distinct(2) pCons_cases)
+          thus False using `pcompose p q=0` `p\<noteq>0` by auto
+        qed
+      ultimately have "degree (pCons a p) * degree q=0" by auto
+      moreover have "degree (pcompose (pCons a p) q) = 0" 
+        proof -
+          have" 0 = max (degree [:a:]) (degree (q*pcompose p q))"
+            using `degree (q * pcompose p q) = 0` by simp
+          also have "... \<ge> degree ([:a:] + q * pcompose p q)"
+            by (rule degree_add_le_max)
+          finally show ?thesis by (auto simp add:pcompose_pCons)
+        qed
+      ultimately show ?thesis by simp
+    qed
+  moreover have "degree (q * pcompose p q)>0 \<Longrightarrow> ?case" 
+    proof -
+      assume asm:"0 < degree (q * pcompose p q)"
+      hence "p\<noteq>0" "q\<noteq>0" "pcompose p q\<noteq>0" by auto
+      have "degree (pcompose (pCons a p) q) = degree ( q * pcompose p q)"
+        unfolding pcompose_pCons
+        using degree_add_eq_right[of "[:a:]" ] asm by auto       
+      thus ?thesis 
+        using pCons.hyps(2) degree_mult_eq[OF `q\<noteq>0` `pcompose p q\<noteq>0`] by auto
+    qed
+  ultimately show ?case by blast
+qed
+
+lemma pcompose_eq_0:
+  fixes p q:: "'a::idom poly"
+  assumes "pcompose p q=0" "degree q>0" 
+  shows "p=0"
+proof -
+  have "degree p=0" using assms degree_pcompose[of p q] by auto
+  then obtain a where "p=[:a:]" 
+    by (metis degree_pCons_eq_if gr0_conv_Suc neq0_conv pCons_cases)
+  hence "a=0" using assms(1) by auto
+  thus ?thesis using `p=[:a:]` by simp
+qed
+
+
+section{*lead coefficient*}
+
+definition lead_coeff:: "'a::zero poly \<Rightarrow> 'a" where
+  "lead_coeff p= coeff p (degree p)"
+
+lemma lead_coeff_pCons[simp]:
+    "p\<noteq>0 \<Longrightarrow>lead_coeff (pCons a p) = lead_coeff p"
+    "p=0 \<Longrightarrow> lead_coeff (pCons a p) = a"
+unfolding lead_coeff_def by auto
+
+lemma lead_coeff_0[simp]:"lead_coeff 0 =0" 
+  unfolding lead_coeff_def by auto
+
+lemma lead_coeff_mult:
+   fixes p q::"'a ::idom poly"
+   shows "lead_coeff (p * q) = lead_coeff p * lead_coeff q"
+by (unfold lead_coeff_def,cases "p=0 \<or> q=0",auto simp add:coeff_mult_degree_sum degree_mult_eq)
+
+lemma lead_coeff_add_le:
+  assumes "degree p < degree q"
+  shows "lead_coeff (p+q) = lead_coeff q" 
+using assms unfolding lead_coeff_def
+by (metis coeff_add coeff_eq_0 monoid_add_class.add.left_neutral degree_add_eq_right)
+
+lemma lead_coeff_minus:
+  "lead_coeff (-p) = - lead_coeff p"
+by (metis coeff_minus degree_minus lead_coeff_def)
+
+
+lemma lead_coeff_comp:
+  fixes p q:: "'a::idom poly"
+  assumes "degree q > 0" 
+  shows "lead_coeff (pcompose p q) = lead_coeff p * lead_coeff q ^ (degree p)"
+proof (induct p)
+  case 0
+  thus ?case unfolding lead_coeff_def by auto
+next
+  case (pCons a p)
+  have "degree ( q * pcompose p q) = 0 \<Longrightarrow> ?case"
+    proof -
+      assume "degree ( q * pcompose p q) = 0"
+      hence "pcompose p q = 0" by (metis assms degree_0 degree_mult_eq_0 neq0_conv)
+      hence "p=0" using pcompose_eq_0[OF _ `degree q > 0`] by simp
+      thus ?thesis by auto
+    qed
+  moreover have "degree ( q * pcompose p q) > 0 \<Longrightarrow> ?case" 
+    proof -
+      assume "degree ( q * pcompose p q) > 0"
+      hence "lead_coeff (pcompose (pCons a p) q) =lead_coeff ( q * pcompose p q)"
+        by (auto simp add:pcompose_pCons lead_coeff_add_le)
+      also have "... = lead_coeff q * (lead_coeff p * lead_coeff q ^ degree p)"
+        using pCons.hyps(2) lead_coeff_mult[of q "pcompose p q"] by simp
+      also have "... = lead_coeff p * lead_coeff q ^ (degree p + 1)"
+        by auto
+      finally show ?thesis by auto
+    qed
+  ultimately show ?case by blast
+qed
+
+lemma lead_coeff_smult: 
+  "lead_coeff (smult c p :: 'a :: idom poly) = c * lead_coeff p"
+proof -
+  have "smult c p = [:c:] * p" by simp
+  also have "lead_coeff \<dots> = c * lead_coeff p" 
+    by (subst lead_coeff_mult) simp_all
+  finally show ?thesis .
+qed
+
+lemma lead_coeff_1 [simp]: "lead_coeff 1 = 1"
+  by (simp add: lead_coeff_def)
+
+lemma lead_coeff_of_nat [simp]:
+  "lead_coeff (of_nat n) = (of_nat n :: 'a :: {comm_semiring_1,semiring_char_0})"
+  by (induction n) (simp_all add: lead_coeff_def of_nat_poly)
+
+lemma lead_coeff_numeral [simp]: 
+  "lead_coeff (numeral n) = numeral n"
+  unfolding lead_coeff_def
+  by (subst of_nat_numeral [symmetric], subst of_nat_poly) simp
+
+lemma lead_coeff_power: 
+  "lead_coeff (p ^ n :: 'a :: idom poly) = lead_coeff p ^ n"
+  by (induction n) (simp_all add: lead_coeff_mult)
+
+lemma lead_coeff_nonzero: "p \<noteq> 0 \<Longrightarrow> lead_coeff p \<noteq> 0"
+  by (simp add: lead_coeff_def)
+  
+  
 
 no_notation cCons (infixr "##" 65)
 

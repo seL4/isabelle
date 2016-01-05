@@ -95,6 +95,17 @@ by (rule DERIV_cong, rule DERIV_add, auto)
 lemma poly_DERIV[simp]: "DERIV (%x. poly p x) x :> poly (pderiv p) x"
   by (induct p, auto intro!: derivative_eq_intros simp add: pderiv_pCons)
 
+lemma continuous_on_poly [continuous_intros]: 
+  fixes p :: "'a :: {real_normed_field} poly"
+  assumes "continuous_on A f"
+  shows   "continuous_on A (\<lambda>x. poly p (f x))"
+proof -
+  have "continuous_on A (\<lambda>x. (\<Sum>i\<le>degree p. (f x) ^ i * coeff p i))" 
+    by (intro continuous_intros assms)
+  also have "\<dots> = (\<lambda>x. poly p (f x))" by (intro ext) (simp add: poly_altdef mult_ac)
+  finally show ?thesis .
+qed
+
 text\<open>Consequences of the derivative theorem above\<close>
 
 lemma poly_differentiable[simp]: "(%x. poly p x) differentiable (at x::real filter)"
@@ -114,6 +125,12 @@ lemma poly_IVT_neg: "[| (a::real) < b; 0 < poly p a; poly p b < 0 |]
       ==> \<exists>x. a < x & x < b & (poly p x = 0)"
 by (insert poly_IVT_pos [where p = "- p" ]) simp
 
+lemma poly_IVT:
+  fixes p::"real poly"
+  assumes "a<b" and "poly p a * poly p b < 0"
+  shows "\<exists>x>a. x < b \<and> poly p x = 0"
+by (metis assms(1) assms(2) less_not_sym mult_less_0_iff poly_IVT_neg poly_IVT_pos)
+
 lemma poly_MVT: "(a::real) < b ==>
      \<exists>x. a < x & x < b & (poly p b - poly p a = (b - a) * poly (pderiv p) x)"
 using MVT [of a b "poly p"]
@@ -121,6 +138,53 @@ apply auto
 apply (rule_tac x = z in exI)
 apply (auto simp add: mult_left_cancel poly_DERIV [THEN DERIV_unique])
 done
+
+lemma poly_MVT':
+  assumes "{min a b..max a b} \<subseteq> A"
+  shows   "\<exists>x\<in>A. poly p b - poly p a = (b - a) * poly (pderiv p) (x::real)"
+proof (cases a b rule: linorder_cases)
+  case less
+  from poly_MVT[OF less, of p] guess x by (elim exE conjE)
+  thus ?thesis by (intro bexI[of _ x]) (auto intro!: subsetD[OF assms])
+
+next
+  case greater
+  from poly_MVT[OF greater, of p] guess x by (elim exE conjE)
+  thus ?thesis by (intro bexI[of _ x]) (auto simp: algebra_simps intro!: subsetD[OF assms])
+qed (insert assms, auto)
+
+lemma poly_pinfty_gt_lc:
+  fixes p:: "real poly"
+  assumes  "lead_coeff p > 0" 
+  shows "\<exists> n. \<forall> x \<ge> n. poly p x \<ge> lead_coeff p" using assms
+proof (induct p)
+  case 0
+  thus ?case by auto
+next
+  case (pCons a p)
+  have "\<lbrakk>a\<noteq>0;p=0\<rbrakk> \<Longrightarrow> ?case" by auto
+  moreover have "p\<noteq>0 \<Longrightarrow> ?case"
+    proof -
+      assume "p\<noteq>0"
+      then obtain n1 where gte_lcoeff:"\<forall>x\<ge>n1. lead_coeff p \<le> poly p x" using that pCons by auto
+      have gt_0:"lead_coeff p >0" using pCons(3) `p\<noteq>0` by auto
+      def n\<equiv>"max n1 (1+ \<bar>a\<bar>/(lead_coeff p))"
+      show ?thesis 
+        proof (rule_tac x=n in exI,rule,rule) 
+          fix x assume "n \<le> x"
+          hence "lead_coeff p \<le> poly p x" 
+            using gte_lcoeff unfolding n_def by auto
+          hence " \<bar>a\<bar>/(lead_coeff p) \<ge> \<bar>a\<bar>/(poly p x)" and "poly p x>0" using gt_0
+            by (intro frac_le,auto)
+          hence "x\<ge>1+ \<bar>a\<bar>/(poly p x)" using `n\<le>x`[unfolded n_def] by auto
+          thus "lead_coeff (pCons a p) \<le> poly (pCons a p) x"
+            using `lead_coeff p \<le> poly p x` `poly p x>0` `p\<noteq>0`
+            by (auto simp add:field_simps)
+        qed
+    qed
+  ultimately show ?case by fastforce
+qed
+
 
 text\<open>Lemmas for Derivatives\<close>
 
@@ -223,6 +287,51 @@ proof -
     apply (rule order_unique_lemma [symmetric], fold t_def)
     apply (simp_all add: power_add t_dvd_iff)
     done
+qed
+
+lemma order_smult:
+  assumes "c \<noteq> 0" 
+  shows "order x (smult c p) = order x p"
+proof (cases "p = 0")
+  case False
+  have "smult c p = [:c:] * p" by simp
+  also from assms False have "order x \<dots> = order x [:c:] + order x p" 
+    by (subst order_mult) simp_all
+  also from assms have "order x [:c:] = 0" by (intro order_0I) auto
+  finally show ?thesis by simp
+qed simp
+
+(* Next two lemmas contributed by Wenda Li *)
+lemma order_1_eq_0 [simp]:"order x 1 = 0" 
+  by (metis order_root poly_1 zero_neq_one)
+
+lemma order_power_n_n: "order a ([:-a,1:]^n)=n" 
+proof (induct n) (*might be proved more concisely using nat_less_induct*)
+  case 0
+  thus ?case by (metis order_root poly_1 power_0 zero_neq_one)
+next 
+  case (Suc n)
+  have "order a ([:- a, 1:] ^ Suc n)=order a ([:- a, 1:] ^ n) + order a [:-a,1:]" 
+    by (metis (no_types, hide_lams) One_nat_def add_Suc_right monoid_add_class.add.right_neutral 
+      one_neq_zero order_mult pCons_eq_0_iff power_add power_eq_0_iff power_one_right)
+  moreover have "order a [:-a,1:]=1" unfolding order_def
+    proof (rule Least_equality,rule ccontr)
+      assume  "\<not> \<not> [:- a, 1:] ^ Suc 1 dvd [:- a, 1:]"
+      hence "[:- a, 1:] ^ Suc 1 dvd [:- a, 1:]" by simp
+      hence "degree ([:- a, 1:] ^ Suc 1) \<le> degree ([:- a, 1:] )" 
+        by (rule dvd_imp_degree_le,auto) 
+      thus False by auto
+    next
+      fix y assume asm:"\<not> [:- a, 1:] ^ Suc y dvd [:- a, 1:]"
+      show "1 \<le> y" 
+        proof (rule ccontr)
+          assume "\<not> 1 \<le> y"
+          hence "y=0" by auto
+          hence "[:- a, 1:] ^ Suc y dvd [:- a, 1:]" by auto
+          thus False using asm by auto
+        qed
+    qed
+  ultimately show ?case using Suc by auto
 qed
 
 text\<open>Now justify the standard squarefree decomposition, i.e. f / gcd(f,f').\<close>

@@ -3663,6 +3663,10 @@ lemma remdups_adj_map_injective:
   shows "remdups_adj (map f xs) = map f (remdups_adj xs)"
 by (induct xs rule: remdups_adj.induct) (auto simp add: injD[OF assms])
 
+lemma remdups_adj_replicate:
+  "remdups_adj (replicate n x) = (if n = 0 then [] else [x])"
+  by (induction n) (auto simp: remdups_adj_Cons)
+
 lemma remdups_upt [simp]: "remdups [m..<n] = [m..<n]"
 proof (cases "m \<le> n")
   case False then show ?thesis by simp
