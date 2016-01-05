@@ -38,7 +38,7 @@ structure Method_Definition = Proof_Data
 
 fun lookup_dynamic_method ctxt full_name =
   (case Symtab.lookup (#1 (Method_Definition.get ctxt)) full_name of
-    SOME m => m
+    SOME m => m ctxt
   | NONE => error ("Illegal use of internal Eisbach method: " ^ quote full_name));
 
 val update_dynamic_method = Method_Definition.map o apfst o Symtab.update;
@@ -125,12 +125,6 @@ fun method_evaluate text ctxt =
     val ctxt' = Config.put Method.closure false ctxt;
   in fn facts => Method.RUNTIME (fn st => Method.evaluate text' ctxt' facts st) end;
 
-
-
-(** apply method closure **)
-
-local
-
 fun method_instantiate vars body ts ctxt =
   let
     val match_types = Sign.typ_match (Proof_Context.theory_of ctxt) o apply2 Term.type_of;
@@ -144,7 +138,9 @@ fun method_instantiate vars body ts ctxt =
     val body' = (Method.map_source o map) (Token.transform morphism) body;
   in method_evaluate body' ctxt end;
 
-in
+
+
+(** apply method closure **)
 
 fun recursive_method vars body ts =
   let val m = method_instantiate vars body
@@ -164,8 +160,6 @@ fun apply_method ctxt method_name terms facts methods =
     #> recursive_method vars body terms
   end;
 
-end;
-
 
 
 (** define method closure **)
@@ -175,11 +169,11 @@ local
 fun setup_local_method binding lthy =
   let
     val full_name = Local_Theory.full_name lthy binding;
-    fun get_method ctxt = lookup_dynamic_method ctxt full_name ctxt;
+    fun dynamic_method ctxt = lookup_dynamic_method ctxt full_name;
   in
     lthy
     |> update_dynamic_method (full_name, K Method.fail)
-    |> Method.local_setup binding (Scan.succeed get_method) "(internal)"
+    |> Method.local_setup binding (Scan.succeed dynamic_method) "(internal)"
   end;
 
 fun check_named_thm ctxt binding =
