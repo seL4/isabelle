@@ -2190,7 +2190,7 @@ proof -
 qed
 
 
-section{*lead coefficient*}
+subsection {* Leading coefficient *}
 
 definition lead_coeff:: "'a::zero poly \<Rightarrow> 'a" where
   "lead_coeff p= coeff p (degree p)"
