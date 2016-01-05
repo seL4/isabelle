@@ -9,7 +9,7 @@ package isabelle
 
 
 import java.lang.Thread
-import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue}
+import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue, ThreadFactory}
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
@@ -35,7 +35,19 @@ object Standard_Thread
     {
       val m = Properties.Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
       val n = if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
-      new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
+      val executor =
+        new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
+      val old_thread_factory = executor.getThreadFactory
+      executor.setThreadFactory(
+        new ThreadFactory {
+          def newThread(r: Runnable) =
+          {
+            val thread = old_thread_factory.newThread(r)
+            thread.setDaemon(true)
+            thread
+          }
+        })
+      executor
     }
 
   lazy val execution_context: ExecutionContextExecutor =
