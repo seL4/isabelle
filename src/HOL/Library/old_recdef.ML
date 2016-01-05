@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/old_recdef.ML
+(*  Title:      HOL/Library/old_recdef.ML
     Author:     Konrad Slind, Cambridge University Computer Laboratory
     Author:     Lucas Dixon, University of Edinburgh
 

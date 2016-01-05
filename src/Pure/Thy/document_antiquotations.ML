@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML/document_antiquotations.ML
+(*  Title:      Pure/Thy/document_antiquotations.ML
     Author:     Makarius
 
 Miscellaneous document antiquotations.

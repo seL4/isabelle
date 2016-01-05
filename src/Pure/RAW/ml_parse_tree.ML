@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML/ml_parse_tree.ML
+(*  Title:      Pure/RAW/ml_parse_tree.ML
     Author:     Makarius
 
 Additional ML parse tree components for Poly/ML.

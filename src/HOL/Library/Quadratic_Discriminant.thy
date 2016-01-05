@@ -1,4 +1,4 @@
-(*  Title:       Roots of real quadratics
+(*  Title:       HOL/Library/Quadratic_Discriminant.thy
     Author:      Tim Makarios <tjm1983 at gmail.com>, 2012
 
 Originally from the AFP entry Tarskis_Geometry

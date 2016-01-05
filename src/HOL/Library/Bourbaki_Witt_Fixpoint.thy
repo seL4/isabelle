@@ -1,5 +1,6 @@
-(* Title: Bourbaki_Witt_Fixpoint.thy
-   Author: Andreas Lochbihler, ETH Zurich *)
+(*  Title:      HOL/Library/Bourbaki_Witt_Fixpoint.thy
+    Author:     Andreas Lochbihler, ETH Zurich
+*)
 
 section \<open>The Bourbaki-Witt tower construction for transfinite iteration\<close>
 

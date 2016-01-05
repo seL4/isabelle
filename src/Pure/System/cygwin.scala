@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/cygwin.scala
+/*  Title:      Pure/System/cygwin.scala
     Author:     Makarius
 
 Cygwin as POSIX emulation on Windows.

@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML/ml_compiler_parameters_polyml-5.6.ML
+(*  Title:      Pure/RAW/ml_compiler_parameters_polyml-5.6.ML
     Author:     Makarius
 
 Additional ML compiler parameters for Poly/ML 5.6, or later.

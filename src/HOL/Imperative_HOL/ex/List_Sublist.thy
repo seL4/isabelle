@@ -1,4 +1,4 @@
-(*  Title:      HOL/Imperative_HOL/ex/Sublist.thy
+(*  Title:      HOL/Imperative_HOL/ex/List_Sublist.thy
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 

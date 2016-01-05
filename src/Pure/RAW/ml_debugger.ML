@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML/ml_debugger.ML
+(*  Title:      Pure/RAW/ml_debugger.ML
     Author:     Makarius
 
 ML debugger interface -- dummy version.

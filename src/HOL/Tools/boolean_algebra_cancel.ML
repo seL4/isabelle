@@ -1,4 +1,4 @@
-(*  Title:      boolean_algebra_cancel.ML
+(*  Title:      HOL/Tools/boolean_algebra_cancel.ML
     Author:     Andreas Lochbihler, ETH Zurich
 
 Simplification procedures for boolean algebras:
