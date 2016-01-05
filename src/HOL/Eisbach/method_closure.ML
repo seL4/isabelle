@@ -10,16 +10,13 @@ existing ones with their usual syntax.
 
 signature METHOD_CLOSURE =
 sig
-  val get_method: Proof.context -> string * Position.T ->
-    (term list * (string list * string list)) * Method.text
-  val eval_method: Proof.context -> (term list * string list) * Method.text ->
-    term list -> (string * thm list) list -> (Proof.context -> Method.method) list ->
-    Proof.context -> Method.method
   val read: Proof.context -> Token.src -> Method.text
   val read_closure: Proof.context -> Token.src -> Method.text * Token.src
   val read_closure_input: Proof.context -> Input.source -> Method.text * Token.src
   val method_text: Method.text context_parser
   val method_evaluate: Method.text -> Proof.context -> Method.method
+  val apply_method: Proof.context -> string -> term list -> thm list list ->
+    (Proof.context -> Method.method) list -> Proof.context -> thm list -> context_tactic
   val method: binding -> (binding * typ option * mixfix) list -> binding list ->
     binding list -> binding list -> Token.src -> local_theory -> string * local_theory
   val method_cmd: binding -> (binding * string option * mixfix) list -> binding list ->
@@ -29,42 +26,9 @@ end;
 structure Method_Closure: METHOD_CLOSURE =
 struct
 
-(* context data for ML antiquotation *)
+(* auxiliary data for method definition *)
 
-structure Data = Generic_Data
-(
-  type T = ((term list * (string list * string list)) * Method.text) Symtab.table;
-  val empty: T = Symtab.empty;
-  val extend = I;
-  fun merge data : T = Symtab.merge (K true) data;
-);
-
-fun get_method ctxt (xname, pos) =
-  let
-    val name = Method.check_name ctxt (xname, pos);
-  in
-    (case Symtab.lookup (Data.get (Context.Proof ctxt)) name of
-      SOME entry => entry
-    | NONE => error ("Unknown Eisbach method: " ^ quote name ^ Position.here pos))
-  end;
-
-(* FIXME redundant!? -- base name of binding is not changed by usual morphisms*)
-fun Morphism_name phi name =
-  Morphism.binding phi (Binding.make (name, Position.none)) |> Binding.name_of;
-
-fun add_method binding ((fixes, declares, methods), text) lthy =
-  lthy |>
-  Local_Theory.declaration {syntax = false, pervasive = true} (fn phi =>
-    Data.map
-      (Symtab.update (Local_Theory.full_name lthy binding,
-        (((map (Morphism.term phi) fixes),
-          (map (Morphism_name phi) declares, map (Morphism_name phi) methods)),
-          (Method.map_source o map) (Token.transform phi) text))));
-
-
-(* context data for method definition *)
-
-structure Local_Data = Proof_Data
+structure Method_Definition = Proof_Data
 (
   type T =
     (Proof.context -> Method.method) Symtab.table *  (*dynamic methods*)
@@ -73,14 +37,45 @@ structure Local_Data = Proof_Data
 );
 
 fun lookup_dynamic_method ctxt full_name =
-  (case Symtab.lookup (#1 (Local_Data.get ctxt)) full_name of
+  (case Symtab.lookup (#1 (Method_Definition.get ctxt)) full_name of
     SOME m => m
   | NONE => error ("Illegal use of internal Eisbach method: " ^ quote full_name));
 
-val update_dynamic_method = Local_Data.map o apfst o Symtab.update;
+val update_dynamic_method = Method_Definition.map o apfst o Symtab.update;
 
-val get_recursive_method = #2 o Local_Data.get;
-val put_recursive_method = Local_Data.map o apsnd o K;
+val get_recursive_method = #2 o Method_Definition.get;
+val put_recursive_method = Method_Definition.map o apsnd o K;
+
+
+(* stored method closures *)
+
+type closure = {vars: term list, named_thms: string list, methods: string list, body: Method.text};
+
+structure Data = Generic_Data
+(
+  type T = closure Symtab.table;
+  val empty: T = Symtab.empty;
+  val extend = I;
+  fun merge data : T = Symtab.merge (K true) data;
+);
+
+fun get_closure ctxt name =
+  (case Symtab.lookup (Data.get (Context.Proof ctxt)) name of
+    SOME closure => closure
+  | NONE => error ("Unknown Eisbach method: " ^ quote name));
+
+fun put_closure binding (closure: closure) lthy =
+  let
+    val name = Local_Theory.full_name lthy binding;
+  in
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = true} (fn phi =>
+      Data.map
+        (Symtab.update (name,
+          {vars = map (Morphism.term phi) (#vars closure),
+           named_thms = #named_thms closure,
+           methods = #methods closure,
+           body = (Method.map_source o map) (Token.transform phi) (#body closure)})))
+  end;
 
 
 (* read method text *)
@@ -130,15 +125,50 @@ fun method_evaluate text ctxt =
     val ctxt' = Config.put Method.closure false ctxt;
   in fn facts => Method.RUNTIME (fn st => Method.evaluate text' ctxt' facts st) end;
 
-fun method_instantiate env text =
+
+
+(** apply method closure **)
+
+local
+
+fun method_instantiate vars body ts ctxt =
   let
+    val match_types = Sign.typ_match (Proof_Context.theory_of ctxt) o apply2 Term.type_of;
+    val tyenv = fold match_types (vars ~~ ts) Vartab.empty;
+    val tenv =
+      fold (fn ((xi, T), t) => Vartab.update_new (xi, (T, t)))
+        (map Term.dest_Var vars ~~ ts) Vartab.empty;
+    val env = Envir.Envir {maxidx = ~1, tenv = tenv, tyenv = tyenv};
+
     val morphism = Morphism.term_morphism "method_instantiate" (Envir.norm_term env);
-    val text' = (Method.map_source o map) (Token.transform morphism) text;
-  in method_evaluate text' end;
+    val body' = (Method.map_source o map) (Token.transform morphism) body;
+  in method_evaluate body' ctxt end;
+
+in
+
+fun recursive_method vars body ts =
+  let val m = method_instantiate vars body
+  in put_recursive_method m #> m ts end;
+
+fun apply_method ctxt method_name terms facts methods =
+  let
+    fun declare_facts (name :: names) (fact :: facts) =
+          fold (Context.proof_map o Named_Theorems.add_thm name) fact
+          #> declare_facts names facts
+      | declare_facts _ [] = I
+      | declare_facts [] (_ :: _) = error ("Excessive facts for method " ^ quote method_name);
+    val {vars, named_thms, methods = method_args, body} = get_closure ctxt method_name;
+  in
+    declare_facts named_thms facts
+    #> fold update_dynamic_method (method_args ~~ methods)
+    #> recursive_method vars body terms
+  end;
+
+end;
 
 
 
-(** Isar command **)
+(** define method closure **)
 
 local
 
@@ -152,15 +182,15 @@ fun setup_local_method binding lthy =
     |> Method.local_setup binding (Scan.succeed get_method) "(internal)"
   end;
 
-fun check_attrib ctxt attrib =
+fun check_named_thm ctxt binding =
   let
-    val name = Binding.name_of attrib;
-    val pos = Binding.pos_of attrib;
-    val named_thm = Named_Theorems.check ctxt (name, pos);
+    val bname = Binding.name_of binding;
+    val pos = Binding.pos_of binding;
+    val full_name = Named_Theorems.check ctxt (bname, pos);
     val parser: Method.modifier parser =
-      Args.$$$ name -- Args.colon >>
-        K {init = I, attribute = Named_Theorems.add named_thm, pos = pos};
-  in (named_thm, parser) end;
+      Args.$$$ bname -- Args.colon
+        >> K {init = I, attribute = Named_Theorems.add full_name, pos = pos};
+  in (full_name, parser) end;
 
 fun dummy_named_thm named_thm =
   Context.proof_map
@@ -194,16 +224,7 @@ fun parse_term_args args =
         in ts' end;
     in Scan.lift (rep args) >> check end);
 
-fun match_term_args ctxt args ts =
-  let
-    val match_types = Sign.typ_match (Proof_Context.theory_of ctxt) o apply2 Term.fastype_of;
-    val tyenv = fold match_types (args ~~ ts) Vartab.empty;
-    val tenv =
-      fold (fn ((xi, T), t) => Vartab.update_new (xi, (T, t)))
-        (map Term.dest_Var args ~~ ts) Vartab.empty;
-  in Envir.Envir {maxidx = ~1, tenv = tenv, tyenv = tyenv} end;
-
-fun parse_method_args method_names =
+fun parse_method_args method_args =
   let
     fun bind_method (name, text) ctxt =
       let
@@ -212,8 +233,8 @@ fun parse_method_args method_names =
       in update_dynamic_method (name, inner_update) ctxt end;
 
     fun rep [] x = Scan.succeed [] x
-      | rep (t :: ts) x = ((method_text >> pair t) ::: rep ts) x;
-  in rep method_names >> fold bind_method end;
+      | rep (m :: ms) x = ((method_text >> pair m) ::: rep ms) x;
+  in rep method_args >> fold bind_method end;
 
 fun gen_method add_fixes name vars uses declares methods source lthy =
   let
@@ -228,13 +249,14 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
     val (term_args, lthy2) = lthy1
       |> add_fixes vars |-> fold_map Proof_Context.inferred_param |>> map Free;
 
-    val (named_thms, modifiers) = map (check_attrib lthy2) (declares @ uses) |> split_list;
-    val method_names = map (Local_Theory.full_name lthy2) methods;
+    val (named_thms, modifiers) = map (check_named_thm lthy2) (declares @ uses) |> split_list;
+
+    val method_args = map (Local_Theory.full_name lthy2) methods;
 
     fun parser args =
       apfst (Config.put_generic Method.old_section_parser true) #>
       (parse_term_args args --
-        parse_method_args method_names --|
+        parse_method_args method_args --|
         (Scan.depend (fn context =>
           Scan.succeed (fold Named_Theorems.clear uses_internal context, ())) --
          Method.sections modifiers));
@@ -256,18 +278,15 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
 
     val text' = (Method.map_source o map) (Token.transform morphism) text;
     val term_args' = map (Morphism.term morphism) term_args;
-
-    fun real_exec ts ctxt =
-      method_instantiate (match_term_args ctxt term_args' ts) text' ctxt;
-    val real_parser =
-      parser term_args' >> (fn (fixes, decl) => fn ctxt =>
-        real_exec fixes (put_recursive_method real_exec (decl ctxt)));
   in
     lthy3
     |> Local_Theory.close_target
     |> Proof_Context.restore_naming lthy
-    |> Method.local_setup name real_parser "(defined in Eisbach)"
-    |> add_method name ((term_args', named_thms, method_names), text')
+    |> put_closure name
+        {vars = term_args', named_thms = named_thms, methods = method_args, body = text'}
+    |> Method.local_setup name
+        (parser term_args' >> (fn (ts, decl) => decl #> recursive_method term_args' text' ts))
+        "(defined in Eisbach)"
     |> pair (Local_Theory.full_name lthy name)
   end;
 
@@ -287,28 +306,5 @@ val _ =
       Parse.!!! (@{keyword "="} |-- Parse.args1 (K true)) >>
       (fn ((((name, vars), (methods, uses)), declares), src) =>
         #2 o method_cmd name vars uses declares methods src));
-
-
-
-(** ML antiquotation **)
-
-fun eval_method ctxt0 header fixes attribs methods =
-  let
-    val ((term_args, hmethods), text) = header;
-
-    fun match fixes = (* FIXME proper context!? *)
-      (case Seq.pull (Unify.matchers (Context.Proof ctxt0) (term_args ~~ fixes)) of
-        SOME (env, _) => env
-      | NONE => error "Couldn't match term arguments");
-
-    fun add_thms (name, thms) =
-      fold (Context.proof_map o Named_Theorems.add_thm name) thms;
-
-    val setup_ctxt = fold add_thms attribs
-      #> fold update_dynamic_method (hmethods ~~ methods)
-      #> put_recursive_method (fn xs => method_instantiate (match xs) text);
-  in
-    fn ctxt => method_instantiate (match fixes) text (setup_ctxt ctxt)
-  end;
 
 end;
