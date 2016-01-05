@@ -46,7 +46,7 @@ proof
   hence "(of_int m :: 'a) = of_nat n" by simp
   also have "... = of_int (int n)" by simp
   finally have "m = int n" by (subst (asm) of_int_eq_iff)
-  with `m \<le> 0` show "n = 0" by auto
+  with \<open>m \<le> 0\<close> show "n = 0" by auto
 qed simp
 
 lemma nonpos_Ints_of_int: "n \<le> 0 \<Longrightarrow> of_int n \<in> \<int>\<^sub>\<le>\<^sub>0"
@@ -84,10 +84,10 @@ lemma of_real_in_nonpos_Ints_iff: "(of_real x :: 'a :: real_algebra_1) \<in> \<i
 proof
   assume "of_real x \<in> (\<int>\<^sub>\<le>\<^sub>0 :: 'a set)"
   then obtain n where "(of_real x :: 'a) = of_int n" "n \<le> 0" by (erule nonpos_Ints_cases)
-  note `of_real x = of_int n`
+  note \<open>of_real x = of_int n\<close>
   also have "of_int n = of_real (of_int n)" by (rule of_real_of_int_eq [symmetric])
   finally have "x = of_int n" by (subst (asm) of_real_eq_iff)
-  with `n \<le> 0` show "x \<in> \<int>\<^sub>\<le>\<^sub>0" by (simp add: nonpos_Ints_of_int)
+  with \<open>n \<le> 0\<close> show "x \<in> \<int>\<^sub>\<le>\<^sub>0" by (simp add: nonpos_Ints_of_int)
 qed (auto elim!: nonpos_Ints_cases intro!: nonpos_Ints_of_int)
 
 lemma nonpos_Ints_altdef: "\<int>\<^sub>\<le>\<^sub>0 = {n \<in> \<int>. (n :: 'a :: linordered_idom) \<le> 0}"

@@ -141,7 +141,7 @@ proof -
   with l obtain l' where l': "l = ereal l'" by (cases l) simp_all
 
   def c \<equiv> "(1 - l') / 2"
-  from l and `l \<ge> 0` have c: "l + c > l" "l' + c \<ge> 0" "l' + c < 1" unfolding c_def 
+  from l and \<open>l \<ge> 0\<close> have c: "l + c > l" "l' + c \<ge> 0" "l' + c < 1" unfolding c_def 
     by (simp_all add: field_simps l')
   have "\<forall>C>l. eventually (\<lambda>n. ereal (root n (norm (f n))) < C) sequentially"
     by (subst Limsup_le_iff[symmetric]) (simp add: l_def)

@@ -169,7 +169,7 @@ proof
   also have "\<dots> \<le> dist z (of_int n)"
     using round_Re_minimises_norm[of z] by (simp add: dist_complex_def)
   finally have "dist t (of_int n) > 0" by simp
-  with `t = of_int n` show False by simp
+  with \<open>t = of_int n\<close> show False by simp
 qed
 
 lemma no_nonpos_Int_in_ball':
@@ -377,7 +377,7 @@ proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
     finally have "of_nat N \<ge> 2 * (norm z + d)" .
     moreover have "N \<ge> 2" "N \<ge> M" unfolding N_def by simp_all
     moreover have "(\<Sum>k=m..n. 1/(of_nat k)\<^sup>2) < e'" if "m \<ge> N" for m n
-      using M[OF order.trans[OF `N \<ge> M` that]] unfolding real_norm_def
+      using M[OF order.trans[OF \<open>N \<ge> M\<close> that]] unfolding real_norm_def
       by (subst (asm) abs_of_nonneg) (auto intro: setsum_nonneg simp: divide_simps)
     moreover note calculation
   } note N = this
@@ -1959,7 +1959,7 @@ proof -
   let ?h = "\<lambda>z::complex. (of_real pi * cot (of_real pi*z) + Digamma z - Digamma (1 - z))"
   def h \<equiv> "\<lambda>z::complex. if z \<in> \<int> then 0 else ?h z"
 
-  -- \<open>@{term g} is periodic with period 1.\<close>
+  \<comment> \<open>@{term g} is periodic with period 1.\<close>
   interpret g: periodic_fun_simple' g
   proof
     fix z :: complex
@@ -1979,7 +1979,7 @@ proof -
     qed (simp add: g_def)
   qed
 
-  -- \<open>@{term g} is entire.\<close>
+  \<comment> \<open>@{term g} is entire.\<close>
   have g_g': "(g has_field_derivative (h z * g z)) (at z)" for z :: complex
   proof (cases "z \<in> \<int>")
     let ?h' = "\<lambda>z. Beta z (1 - z) * ((Digamma z - Digamma (1 - z)) * sin (z * of_real pi) +
@@ -2204,7 +2204,7 @@ proof -
   show ?thesis
   proof (cases "z \<in> \<int>")
     case False
-    with `g z = pi` show ?thesis by (auto simp: g_def divide_simps)
+    with \<open>g z = pi\<close> show ?thesis by (auto simp: g_def divide_simps)
   next
     case True
     then obtain n where n: "z = of_int n" by (elim Ints_cases)

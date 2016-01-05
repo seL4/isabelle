@@ -475,7 +475,7 @@ proof (induction p rule: pCons_induct)
                  coeff ?p' 0 * x^0 + (\<Sum>i\<le>degree p. coeff ?p' (Suc i) * x^Suc i)"
           by (simp add: field_simps setsum_right_distrib coeff_pCons)
       also note setsum_atMost_Suc_shift[symmetric]
-      also note degree_pCons_eq[OF `p \<noteq> 0`, of a, symmetric]
+      also note degree_pCons_eq[OF \<open>p \<noteq> 0\<close>, of a, symmetric]
       finally show ?thesis .
    qed simp
 qed simp
@@ -2145,19 +2145,19 @@ next
     next
       case False assume "degree (q * pcompose p q) = 0"
       hence "degree q=0 \<or> pcompose p q=0" by (auto simp add:degree_mult_eq_0)
-      moreover have "\<lbrakk>pcompose p q=0;degree q\<noteq>0\<rbrakk> \<Longrightarrow> False" using pCons.hyps(2) `p\<noteq>0` 
+      moreover have "\<lbrakk>pcompose p q=0;degree q\<noteq>0\<rbrakk> \<Longrightarrow> False" using pCons.hyps(2) \<open>p\<noteq>0\<close> 
         proof -
           assume "pcompose p q=0" "degree q\<noteq>0"
           hence "degree p=0" using pCons.hyps(2) by auto
           then obtain a1 where "p=[:a1:]"
             by (metis degree_pCons_eq_if old.nat.distinct(2) pCons_cases)
-          thus False using `pcompose p q=0` `p\<noteq>0` by auto
+          thus False using \<open>pcompose p q=0\<close> \<open>p\<noteq>0\<close> by auto
         qed
       ultimately have "degree (pCons a p) * degree q=0" by auto
       moreover have "degree (pcompose (pCons a p) q) = 0" 
         proof -
           have" 0 = max (degree [:a:]) (degree (q*pcompose p q))"
-            using `degree (q * pcompose p q) = 0` by simp
+            using \<open>degree (q * pcompose p q) = 0\<close> by simp
           also have "... \<ge> degree ([:a:] + q * pcompose p q)"
             by (rule degree_add_le_max)
           finally show ?thesis by (auto simp add:pcompose_pCons)
@@ -2172,7 +2172,7 @@ next
         unfolding pcompose_pCons
         using degree_add_eq_right[of "[:a:]" ] asm by auto       
       thus ?thesis 
-        using pCons.hyps(2) degree_mult_eq[OF `q\<noteq>0` `pcompose p q\<noteq>0`] by auto
+        using pCons.hyps(2) degree_mult_eq[OF \<open>q\<noteq>0\<close> \<open>pcompose p q\<noteq>0\<close>] by auto
     qed
   ultimately show ?case by blast
 qed
@@ -2186,11 +2186,11 @@ proof -
   then obtain a where "p=[:a:]" 
     by (metis degree_pCons_eq_if gr0_conv_Suc neq0_conv pCons_cases)
   hence "a=0" using assms(1) by auto
-  thus ?thesis using `p=[:a:]` by simp
+  thus ?thesis using \<open>p=[:a:]\<close> by simp
 qed
 
 
-subsection {* Leading coefficient *}
+subsection \<open>Leading coefficient\<close>
 
 definition lead_coeff:: "'a::zero poly \<Rightarrow> 'a" where
   "lead_coeff p= coeff p (degree p)"
@@ -2232,7 +2232,7 @@ next
     proof -
       assume "degree ( q * pcompose p q) = 0"
       hence "pcompose p q = 0" by (metis assms degree_0 degree_mult_eq_0 neq0_conv)
-      hence "p=0" using pcompose_eq_0[OF _ `degree q > 0`] by simp
+      hence "p=0" using pcompose_eq_0[OF _ \<open>degree q > 0\<close>] by simp
       thus ?thesis by auto
     qed
   moreover have "degree ( q * pcompose p q) > 0 \<Longrightarrow> ?case" 

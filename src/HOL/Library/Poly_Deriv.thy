@@ -167,7 +167,7 @@ next
     proof -
       assume "p\<noteq>0"
       then obtain n1 where gte_lcoeff:"\<forall>x\<ge>n1. lead_coeff p \<le> poly p x" using that pCons by auto
-      have gt_0:"lead_coeff p >0" using pCons(3) `p\<noteq>0` by auto
+      have gt_0:"lead_coeff p >0" using pCons(3) \<open>p\<noteq>0\<close> by auto
       def n\<equiv>"max n1 (1+ \<bar>a\<bar>/(lead_coeff p))"
       show ?thesis 
         proof (rule_tac x=n in exI,rule,rule) 
@@ -176,9 +176,9 @@ next
             using gte_lcoeff unfolding n_def by auto
           hence " \<bar>a\<bar>/(lead_coeff p) \<ge> \<bar>a\<bar>/(poly p x)" and "poly p x>0" using gt_0
             by (intro frac_le,auto)
-          hence "x\<ge>1+ \<bar>a\<bar>/(poly p x)" using `n\<le>x`[unfolded n_def] by auto
+          hence "x\<ge>1+ \<bar>a\<bar>/(poly p x)" using \<open>n\<le>x\<close>[unfolded n_def] by auto
           thus "lead_coeff (pCons a p) \<le> poly (pCons a p) x"
-            using `lead_coeff p \<le> poly p x` `poly p x>0` `p\<noteq>0`
+            using \<open>lead_coeff p \<le> poly p x\<close> \<open>poly p x>0\<close> \<open>p\<noteq>0\<close>
             by (auto simp add:field_simps)
         qed
     qed
