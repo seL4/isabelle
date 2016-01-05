@@ -8,40 +8,37 @@ Contributions to Isabelle2016
 
 * Winter 2015: Manuel Eberl, TUM
   The radius of convergence of power series and various summability tests.
-  Harmonic numbers and the Euler–Mascheroni constant.
+  Harmonic numbers and the Euler-Mascheroni constant.
   The Generalised Binomial Theorem.
-  The complex and real Gamma/log-Gamma/Digamma/Polygamma functions and 
-  their most important properties.
+  The complex and real Gamma/log-Gamma/Digamma/Polygamma functions and their
+  most important properties.
 
 * Autumn 2015: Florian Haftmann, TUM
-  Rewrite definitions for global interpretations and sublocale
-  declarations.
+  Rewrite definitions for global interpretations and sublocale declarations.
 
 * Autumn 2015: Andreas Lochbihler
-  Bourbaki-Witt fixpoint theorem for increasing functions on
-  chain-complete partial orders.
+  Bourbaki-Witt fixpoint theorem for increasing functions on chain-complete
+  partial orders.
 
 * Autumn 2015: Chaitanya Mangla, Lawrence C Paulson, and Manuel Eberl
   A large number of additional binomial identities.
 
 * Summer 2015: Daniel Matichuk, NICTA and Makarius Wenzel
-  Isar subgoal command for proof structure within unstructured proof
-  scripts.
+  Isar subgoal command for proof structure within unstructured proof scripts.
 
 * Summer 2015: Florian Haftmann, TUM
   Generic partial division in rings as inverse operation of multiplication.
 
 * Summer 2015: Manuel Eberl and Florian Haftmann, TUM
-  Type class hierarchy with common algebraic notions of integral
-  (semi)domains like units, associated elements and normalization
-  wrt. units.
+  Type class hierarchy with common algebraic notions of integral (semi)domains
+  like units, associated elements and normalization wrt. units.
 
 * Summer 2015: Florian Haftmann, TUM
   Fundamentals of abstract type class for factorial rings.
 
 * Summer 2015: Julian Biendarra, TUM and Dmitriy Traytel, ETH Zurich
-  Command to lift a BNF structure on the raw type to the abstract type
-  for typedefs.
+  Command to lift a BNF structure on the raw type to the abstract type for
+  typedefs.
 
 
 Contributions to Isabelle2015

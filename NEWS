@@ -642,7 +642,8 @@ chain-complete partial orders.
 * Library/Old_Recdef: discontinued obsolete 'defer_recdef' command.
 Minor INCOMPATIBILITY, use 'function' instead.
 
-* Library/Periodic_Fun: a locale that provides convenient lemmas for periodic functions
+* Library/Periodic_Fun: a locale that provides convenient lemmas for
+periodic functions.
 
 * Multivariate_Analysis/Cauchy_Integral_Thm: Contour integrals (=
 complex path integrals), Cauchy's integral theorem, winding numbers and
@@ -653,9 +654,10 @@ Algebra. Ported from HOL Light
 components, homotopic paths and the inside or outside of a set.
 
 * Multivariate_Analysis: radius of convergence of power series and 
-  various summability tests; Harmonic numbers and the Euler–Mascheroni constant;
-  the Generalised Binomial Theorem; the complex and real Gamma/log-Gamma/Digamma/
-  Polygamma functions and their most important properties;
+various summability tests; Harmonic numbers and the Euler–Mascheroni
+constant; the Generalised Binomial Theorem; the complex and real
+Gamma/log-Gamma/Digamma/ Polygamma functions and their most important
+properties.
 
 * Data_Structures: new and growing session of standard data structures.
 
