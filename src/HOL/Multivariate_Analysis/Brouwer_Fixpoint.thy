@@ -52,7 +52,7 @@ lemma swap_apply1: "Fun.swap x y f x = f y"
 lemma swap_apply2: "Fun.swap x y f y = f x"
   by (simp add: Fun.swap_def)
 
-lemma (in -) lessThan_empty_iff: "{..< n::nat} = {} \<longleftrightarrow> n = 0"
+lemma lessThan_empty_iff: "{..< n::nat} = {} \<longleftrightarrow> n = 0"
   by auto
 
 lemma Zero_notin_Suc: "0 \<notin> Suc ` A"

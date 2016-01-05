@@ -196,8 +196,10 @@ class JEdit_Editor extends Editor[View]
         try { Doc.view(path) }
         catch {
           case exn: Throwable =>
-            GUI.error_dialog(view,
-              "Documentation error", GUI.scrollable_text(Exn.message(exn)))
+            GUI_Thread.later {
+              GUI.error_dialog(view,
+                "Documentation error", GUI.scrollable_text(Exn.message(exn)))
+            }
         }
       }
     }
@@ -224,7 +226,9 @@ class JEdit_Editor extends Editor[View]
           try { Isabelle_System.open(name) }
           catch {
             case exn: Throwable =>
-              GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
+              GUI_Thread.later {
+                GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
+              }
           }
         }
       override def toString: String = "URL " + quote(name)

@@ -146,7 +146,7 @@ object PIDE
 
   /* current document content */
 
-  def snapshot(view: View): Document.Snapshot =
+  def snapshot(view: View): Document.Snapshot = GUI_Thread.now
   {
     val buffer = view.getBuffer
     document_model(buffer) match {
@@ -293,8 +293,10 @@ class Plugin extends EBPlugin
         delay_load.invoke()
 
       case Session.Shutdown =>
-        PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
-        delay_load.revoke()
+        GUI_Thread.later {
+          delay_load.revoke()
+          PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
+        }
 
       case _ =>
     }
