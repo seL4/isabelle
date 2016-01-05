@@ -85,7 +85,11 @@ val _ = Theory.setup
     "Thm.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
   ML_Antiquotation.value @{binding cprop} (Args.prop >> (fn t =>
-    "Thm.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
+    "Thm.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
+
+  ML_Antiquotation.inline @{binding method}
+    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
+      ML_Syntax.print_string (Method.check_name ctxt (name, pos)))));
 
 
 (* type classes *)

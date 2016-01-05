@@ -679,6 +679,9 @@ system are available:
 
 * Antiquotation @{undefined} or \<^undefined> inlines (raise Match).
 
+* Antiquotation @{method NAME} inlines the (checked) name of the given
+Isar proof method.
+
 * Pretty printing of Poly/ML compiler output in Isabelle has been
 improved: proper treatment of break offsets and blocks with consistent
 breaks.
