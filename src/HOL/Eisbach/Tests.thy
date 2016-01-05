@@ -478,12 +478,14 @@ lemma
   apply (add_my_thms \<open>rule my_thms_named\<close> f:A)
   done
 
+
 subsection \<open>Shallow parser tests\<close>
 
 method all_args for A B methods m1 m2 uses f1 f2 declares my_thms_named = fail
 
 lemma True
   by (all_args True False - fail f1: TrueI f2: TrueI my_thms_named: TrueI | rule TrueI)
+
 
 subsection \<open>Method name internalization test\<close>
 
@@ -493,5 +495,26 @@ method test2 = (simp)
 method simp = fail
 
 lemma "A \<Longrightarrow> A" by test2
+
+
+subsection \<open>Eisbach method invocation from ML\<close>
+
+method test_method for x y uses r = (print_term x, print_term y, rule r)
+
+method_setup test_method' = \<open>
+  Args.term -- Args.term --
+  (Scan.lift (Args.$$$ "rule" -- Args.colon) |-- Attrib.thms) >>
+    (fn ((x, y), r) => fn ctxt =>
+      Method_Closure.apply_method ctxt "Tests.test_method" [x, y] [r] [] ctxt);
+\<close>
+
+lemma
+  fixes a b :: nat
+  assumes "a = b"
+  shows "b = a"
+  apply (test_method a b)?
+  apply (test_method' a b rule: refl)?
+  apply (test_method' a b rule: assms [symmetric])?
+  done
 
 end

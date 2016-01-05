@@ -37,8 +37,8 @@ object PIDE
   @volatile var plugin: Plugin = null
   @volatile var session: Session = new Session(JEdit_Resources.empty)
 
-  def options_changed() { plugin.options_changed() }
-  def deps_changed() { plugin.deps_changed() }
+  def options_changed() { if (plugin != null) plugin.options_changed() }
+  def deps_changed() { if (plugin != null) plugin.deps_changed() }
 
   def resources(): JEdit_Resources =
     session.resources.asInstanceOf[JEdit_Resources]
@@ -110,16 +110,19 @@ object PIDE
 
       for {
         buffer <- JEdit_Lib.jedit_buffers()
-        if buffer != null && !buffer.isLoading && !buffer.getBooleanProperty(Buffer.GZIPPED)
+        if buffer != null && !buffer.getBooleanProperty(Buffer.GZIPPED)
       } {
-        JEdit_Lib.buffer_lock(buffer) {
-          val node_name = resources.node_name(buffer)
-          val model = Document_Model.init(session, buffer, node_name, document_model(buffer))
-          for {
-            text_area <- JEdit_Lib.jedit_text_areas(buffer)
-            if document_view(text_area).map(_.model) != Some(model)
-          } Document_View.init(model, text_area)
+        if (buffer.isLoaded) {
+          JEdit_Lib.buffer_lock(buffer) {
+            val node_name = resources.node_name(buffer)
+            val model = Document_Model.init(session, buffer, node_name, document_model(buffer))
+            for {
+              text_area <- JEdit_Lib.jedit_text_areas(buffer)
+              if document_view(text_area).map(_.model) != Some(model)
+            } Document_View.init(model, text_area)
+          }
         }
+        else if (plugin != null) plugin.delay_init.invoke()
       }
 
       PIDE.editor.invoke()
@@ -184,7 +187,7 @@ class Plugin extends EBPlugin
 
   /* theory files */
 
-  private lazy val delay_init =
+  lazy val delay_init =
     GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
     {
       PIDE.init_models()
@@ -193,73 +196,75 @@ class Plugin extends EBPlugin
   private val delay_load_active = Synchronized(false)
   private def delay_load_activated(): Boolean =
     delay_load_active.guarded_access(a => Some((!a, true)))
-
-  private lazy val delay_load =
-    GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
+  private def delay_load_action()
+  {
+    if (Isabelle.continuous_checking && delay_load_activated() &&
+        PerspectiveManager.isPerspectiveEnabled)
     {
-      if (Isabelle.continuous_checking && delay_load_activated() &&
-          PerspectiveManager.isPerspectiveEnabled)
-      {
-        try {
-          val view = jEdit.getActiveView()
+      try {
+        val view = jEdit.getActiveView()
 
-          val buffers = JEdit_Lib.jedit_buffers().toList
-          if (buffers.forall(_.isLoaded)) {
-            def loaded_buffer(name: String): Boolean =
-              buffers.exists(buffer => JEdit_Lib.buffer_name(buffer) == name)
+        val buffers = JEdit_Lib.jedit_buffers().toList
+        if (buffers.forall(_.isLoaded)) {
+          def loaded_buffer(name: String): Boolean =
+            buffers.exists(buffer => JEdit_Lib.buffer_name(buffer) == name)
 
-            val thys =
-              for {
-                buffer <- buffers
-                model <- PIDE.document_model(buffer)
-                if model.is_theory
-              } yield (model.node_name, Position.none)
+          val thys =
+            for {
+              buffer <- buffers
+              model <- PIDE.document_model(buffer)
+              if model.is_theory
+            } yield (model.node_name, Position.none)
 
-            val thy_info = new Thy_Info(PIDE.resources)
-            val thy_files = thy_info.dependencies("", thys).deps.map(_.name.node)
+          val thy_info = new Thy_Info(PIDE.resources)
+          val thy_files = thy_info.dependencies("", thys).deps.map(_.name.node)
 
-            val aux_files =
-              if (PIDE.options.bool("jedit_auto_resolve")) {
-                PIDE.editor.stable_tip_version() match {
-                  case Some(version) => PIDE.resources.undefined_blobs(version.nodes).map(_.node)
-                  case None => Nil
-                }
+          val aux_files =
+            if (PIDE.options.bool("jedit_auto_resolve")) {
+              PIDE.editor.stable_tip_version() match {
+                case Some(version) => PIDE.resources.undefined_blobs(version.nodes).map(_.node)
+                case None => Nil
               }
-              else Nil
+            }
+            else Nil
 
-            val files =
-              (thy_files ::: aux_files).filter(file =>
-                !loaded_buffer(file) && PIDE.resources.check_file(file))
+          val files =
+            (thy_files ::: aux_files).filter(file =>
+              !loaded_buffer(file) && PIDE.resources.check_file(file))
 
-            if (files.nonEmpty) {
-              if (PIDE.options.bool("jedit_auto_load")) {
-                files.foreach(file => jEdit.openFile(null: View, file))
-              }
-              else {
-                val files_list = new ListView(files.sorted)
-                for (i <- 0 until files.length)
-                  files_list.selection.indices += i
+          if (files.nonEmpty) {
+            if (PIDE.options.bool("jedit_auto_load")) {
+              files.foreach(file => jEdit.openFile(null: View, file))
+            }
+            else {
+              val files_list = new ListView(files.sorted)
+              for (i <- 0 until files.length)
+                files_list.selection.indices += i
 
-                val answer =
-                  GUI.confirm_dialog(view,
-                    "Auto loading of required files",
-                    JOptionPane.YES_NO_OPTION,
-                    "The following files are required to resolve theory imports.",
-                    "Reload selected files now?",
-                    new ScrollPane(files_list),
-                    new Isabelle.Continuous_Checking)
-                if (answer == 0) {
-                  files.foreach(file =>
-                    if (files_list.selection.items.contains(file))
-                      jEdit.openFile(null: View, file))
-                }
+              val answer =
+                GUI.confirm_dialog(view,
+                  "Auto loading of required files",
+                  JOptionPane.YES_NO_OPTION,
+                  "The following files are required to resolve theory imports.",
+                  "Reload selected files now?",
+                  new ScrollPane(files_list),
+                  new Isabelle.Continuous_Checking)
+              if (answer == 0) {
+                files.foreach(file =>
+                  if (files_list.selection.items.contains(file))
+                    jEdit.openFile(null: View, file))
               }
             }
           }
         }
-        finally { delay_load_active.change(_ => false) }
+        else delay_load.invoke()
       }
+      finally { delay_load_active.change(_ => false) }
     }
+  }
+
+  lazy val delay_load =
+    GUI_Thread.delay_last(PIDE.options.seconds("editor_load_delay")) { delay_load_action() }
 
 
   /* session phase */
