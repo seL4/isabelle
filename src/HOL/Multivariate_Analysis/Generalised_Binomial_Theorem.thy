@@ -1,22 +1,21 @@
-(*
-  Title:    HOL/Multivariate_Analysis/Generalised_Binomial_Theorem.thy
-  Author:   Manuel Eberl, TU München
-  
-  The proof of the Generalised Binomial Theorem and related results.
+(*  Title:    HOL/Multivariate_Analysis/Generalised_Binomial_Theorem.thy
+    Author:   Manuel Eberl, TU München
 *)
+
+section \<open>Generalised Binomial Theorem\<close>
+
+text \<open>
+  The proof of the Generalised Binomial Theorem and related results.
+  We prove the generalised binomial theorem for complex numbers, following the proof at:
+  \url{https://proofwiki.org/wiki/Binomial_Theorem/General_Binomial_Theorem}
+\<close>
+
 theory Generalised_Binomial_Theorem
 imports 
   Complex_Main 
   Complex_Transcendental
   Summation
 begin
-
-subsection \<open>The generalised binomial theorem\<close>
-
-text \<open>
-  We prove the generalised binomial theorem for complex numbers, following the proof at:
-  https://proofwiki.org/wiki/Binomial_Theorem/General_Binomial_Theorem
-\<close>
 
 lemma gbinomial_ratio_limit:
   fixes a :: "'a :: real_normed_field"

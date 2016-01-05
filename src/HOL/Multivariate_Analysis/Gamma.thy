@@ -1,15 +1,9 @@
-(*
-  Title:    HOL/Multivariate_Analysis/Gamma.thy
-  Author:   Manuel Eberl, TU München
-  
-  Several equivalent definitions of the Gamma function and its 
-  most important properties. Also contains the definition and some properties
-  of the log-Gamma function and the Digamma function and the other Polygamma functions.
-  
-  Based on the Gamma function, we also prove the Weierstraß product form of the
-  sin function and, based on this, the solution of the Basel problem (the 
-  sum over all @{term "1 / (n::nat)^2"}.
+(*  Title:    HOL/Multivariate_Analysis/Gamma.thy
+    Author:   Manuel Eberl, TU München
 *)
+
+section \<open>The Gamma Function\<close>
+
 theory Gamma
 imports 
   Complex_Transcendental
@@ -18,6 +12,16 @@ imports
   "~~/src/HOL/Library/Nonpos_Ints"
   "~~/src/HOL/Library/Periodic_Fun"
 begin
+
+text \<open>
+  Several equivalent definitions of the Gamma function and its 
+  most important properties. Also contains the definition and some properties
+  of the log-Gamma function and the Digamma function and the other Polygamma functions.
+  
+  Based on the Gamma function, we also prove the Weierstraß product form of the
+  sin function and, based on this, the solution of the Basel problem (the 
+  sum over all @{term "1 / (n::nat)^2"}.
+\<close>  
 
 lemma pochhammer_eq_0_imp_nonpos_Int: 
   "pochhammer (x::'a::field_char_0) n = 0 \<Longrightarrow> x \<in> \<int>\<^sub>\<le>\<^sub>0"

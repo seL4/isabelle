@@ -1,10 +1,9 @@
-(*
-  Title:    HOL/Multivariate_Analysis/Summation.thy
-  Author:   Manuel Eberl, TU München
-  
-  The definition of the radius of convergence of a power series, 
-  various summability tests, lemmas to compute the radius of convergence etc.
+(*  Title:    HOL/Multivariate_Analysis/Summation.thy
+    Author:   Manuel Eberl, TU München
 *)
+  
+section \<open>Rounded dual logarithm\<close>
+
 theory Summation
 imports
   Complex_Main
@@ -12,7 +11,10 @@ imports
   "~~/src/HOL/Library/Liminf_Limsup"
 begin
 
-subsection \<open>Rounded dual logarithm\<close>
+text \<open>
+  The definition of the radius of convergence of a power series, 
+  various summability tests, lemmas to compute the radius of convergence etc.
+\<close>
 
 (* This is required for the Cauchy condensation criterion *)
 

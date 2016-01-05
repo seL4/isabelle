@@ -1,16 +1,18 @@
-(*
-  Title:    HOL/Library/Periodic_Fun.thy
-  Author:   Manuel Eberl, TU München
-  
-  A locale for periodic functions. The idea is that one proves $f(x + p) = f(x)$
-  for some period $p$ and gets derived results like $f(x - p) = f(x)$ and $f(x + 2p) = f(x)$
-  for free.
+(*  Title:    HOL/Library/Periodic_Fun.thy
+    Author:   Manuel Eberl, TU München
 *)
+
+section \<open>Periodic Functions\<close>
+
 theory Periodic_Fun
 imports Complex_Main
 begin
 
 text \<open>
+  A locale for periodic functions. The idea is that one proves $f(x + p) = f(x)$
+  for some period $p$ and gets derived results like $f(x - p) = f(x)$ and $f(x + 2p) = f(x)$
+  for free.
+
   @{term g} and @{term gm} are ``plus/minus k periods'' functions. 
   @{term g1} and @{term gn1} are ``plus/minus one period'' functions.
   This is useful e.g. if the period is one; the lemmas one gets are then 

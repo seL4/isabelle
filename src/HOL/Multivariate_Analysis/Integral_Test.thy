@@ -1,7 +1,14 @@
-(*
-  Title:    HOL/Multivariate_Analysis/Integral_Test.thy
-  Author:   Manuel Eberl, TU München
+(*  Title:    HOL/Multivariate_Analysis/Integral_Test.thy
+    Author:   Manuel Eberl, TU München
+*)
   
+section \<open>Integral Test for Summability\<close>
+
+theory Integral_Test
+imports Integration
+begin
+
+text \<open>
   The integral test for summability. We show here that for a decreasing non-negative 
   function, the infinite sum over that function evaluated at the natural numbers 
   converges iff the corresponding integral converges.
@@ -9,12 +16,7 @@
   As a useful side result, we also provide some results on the difference between
   the integral and the partial sum. (This is useful e.g. for the definition of the
   Euler–Mascheroni constant)
-*)
-theory Integral_Test
-imports Integration
-begin
-
-subsubsection \<open>Integral test\<close>
+\<close>
 
 (* TODO: continuous_in \<rightarrow> integrable_on *)
 locale antimono_fun_sum_integral_diff =

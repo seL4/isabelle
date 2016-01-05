@@ -1,17 +1,21 @@
-(*
-  Title:    HOL/Multivariate_Analysis/Harmonic_Numbers.thy
-  Author:   Manuel Eberl, TU München
-  
-  The definition of the Harmonic Numbers and the Euler–Mascheroni constant.
-  Also provides a reasonably accurate approximation of @{term "ln 2 :: real"} 
-  and the Euler–Mascheroni constant.
+(*  Title:    HOL/Multivariate_Analysis/Harmonic_Numbers.thy
+    Author:   Manuel Eberl, TU München
 *)
+
+section \<open>Harmonic Numbers\<close>
+
 theory Harmonic_Numbers
 imports 
   Complex_Transcendental
   Summation
   Integral_Test
 begin
+
+text \<open>
+  The definition of the Harmonic Numbers and the Euler–Mascheroni constant.
+  Also provides a reasonably accurate approximation of @{term "ln 2 :: real"} 
+  and the Euler–Mascheroni constant.
+\<close>
 
 lemma ln_2_less_1: "ln 2 < (1::real)"
 proof -
