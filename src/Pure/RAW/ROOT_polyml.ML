@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/polyml.ML
+(*  Title:      Pure/RAW/ROOT_polyml.ML
     Author:     Makarius
 
 Compatibility wrapper for Poly/ML.

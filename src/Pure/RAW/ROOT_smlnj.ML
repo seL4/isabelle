@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/smlnj.ML
+(*  Title:      Pure/RAW/ROOT_smlnj.ML
 
 Compatibility file for Standard ML of New Jersey.
 *)

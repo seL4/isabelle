@@ -3,6 +3,10 @@ chapter Pure
 session RAW =
   theories
   files
+    "RAW/ROOT_polyml-5.5.2.ML"
+    "RAW/ROOT_polyml-5.6.ML"
+    "RAW/ROOT_polyml.ML"
+    "RAW/ROOT_smlnj.ML"
     "RAW/compiler_polyml.ML"
     "RAW/exn.ML"
     "RAW/exn_trace_polyml-5.5.1.ML"
@@ -25,15 +29,11 @@ session RAW =
     "RAW/multithreading.ML"
     "RAW/multithreading_polyml.ML"
     "RAW/overloading_smlnj.ML"
-    "RAW/polyml-5.5.2.ML"
-    "RAW/polyml-5.6.ML"
-    "RAW/polyml.ML"
     "RAW/pp_dummy.ML"
     "RAW/proper_int.ML"
     "RAW/share_common_data_polyml-5.3.0.ML"
     "RAW/single_assignment.ML"
     "RAW/single_assignment_polyml.ML"
-    "RAW/smlnj.ML"
     "RAW/thread_dummy.ML"
     "RAW/universal.ML"
     "RAW/unsynchronized.ML"
@@ -43,6 +43,10 @@ session RAW =
 session Pure =
   global_theories Pure
   files
+    "RAW/ROOT_polyml-5.5.2.ML"
+    "RAW/ROOT_polyml-5.6.ML"
+    "RAW/ROOT_polyml.ML"
+    "RAW/ROOT_smlnj.ML"
     "RAW/compiler_polyml.ML"
     "RAW/exn.ML"
     "RAW/exn_trace_polyml-5.5.1.ML"
@@ -65,15 +69,11 @@ session Pure =
     "RAW/multithreading.ML"
     "RAW/multithreading_polyml.ML"
     "RAW/overloading_smlnj.ML"
-    "RAW/polyml-5.5.2.ML"
-    "RAW/polyml-5.6.ML"
-    "RAW/polyml.ML"
     "RAW/pp_dummy.ML"
     "RAW/proper_int.ML"
     "RAW/share_common_data_polyml-5.3.0.ML"
     "RAW/single_assignment.ML"
     "RAW/single_assignment_polyml.ML"
-    "RAW/smlnj.ML"
     "RAW/thread_dummy.ML"
     "RAW/universal.ML"
     "RAW/unsynchronized.ML"

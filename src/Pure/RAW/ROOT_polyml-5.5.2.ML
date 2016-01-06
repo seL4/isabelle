@@ -1,7 +1,7 @@
-(*  Title:      Pure/RAW/polyml-5.6.ML
+(*  Title:      Pure/RAW/ROOT_polyml-5.5.2.ML
     Author:     Makarius
 
-Compatibility wrapper for Poly/ML 5.6.
+Compatibility wrapper for Poly/ML 5.5.2.
 *)
 
 structure Thread =
@@ -19,4 +19,5 @@ struct
   end;
 end;
 
-use "RAW/polyml.ML";
+use "RAW/ROOT_polyml.ML";
+
