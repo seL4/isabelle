@@ -1583,7 +1583,6 @@ lemma ceiling_numeral_power[simp]:
   "\<lceil>numeral x ^ n\<rceil> = numeral x ^ n"
   by (metis ceiling_of_int of_int_numeral of_int_power)
 
-
 subsection \<open>Implementation of rational real numbers\<close>
 
 text \<open>Formal constructor\<close>

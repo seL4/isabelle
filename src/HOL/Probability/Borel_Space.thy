@@ -22,6 +22,272 @@ proof -
     by (auto intro: topological_basis_prod topological_basis_trivial topological_basis_imp_subbasis)  
 qed
 
+definition "mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s"
+
+lemma mono_onI:
+  "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r \<le> s \<Longrightarrow> f r \<le> f s) \<Longrightarrow> mono_on f A"
+  unfolding mono_on_def by simp
+
+lemma mono_onD:
+  "\<lbrakk>mono_on f A; r \<in> A; s \<in> A; r \<le> s\<rbrakk> \<Longrightarrow> f r \<le> f s"
+  unfolding mono_on_def by simp
+
+lemma mono_imp_mono_on: "mono f \<Longrightarrow> mono_on f A"
+  unfolding mono_def mono_on_def by auto
+
+lemma mono_on_subset: "mono_on f A \<Longrightarrow> B \<subseteq> A \<Longrightarrow> mono_on f B"
+  unfolding mono_on_def by auto
+
+definition "strict_mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r < s \<longrightarrow> f r < f s"
+
+lemma strict_mono_onI:
+  "(\<And>r s. r \<in> A \<Longrightarrow> s \<in> A \<Longrightarrow> r < s \<Longrightarrow> f r < f s) \<Longrightarrow> strict_mono_on f A"
+  unfolding strict_mono_on_def by simp
+
+lemma strict_mono_onD:
+  "\<lbrakk>strict_mono_on f A; r \<in> A; s \<in> A; r < s\<rbrakk> \<Longrightarrow> f r < f s"
+  unfolding strict_mono_on_def by simp
+
+lemma mono_on_greaterD:
+  assumes "mono_on g A" "x \<in> A" "y \<in> A" "g x > (g (y::_::linorder) :: _ :: linorder)"
+  shows "x > y"
+proof (rule ccontr)
+  assume "\<not>x > y"
+  hence "x \<le> y" by (simp add: not_less)
+  from assms(1-3) and this have "g x \<le> g y" by (rule mono_onD)
+  with assms(4) show False by simp
+qed
+
+lemma strict_mono_inv:
+  fixes f :: "('a::linorder) \<Rightarrow> ('b::linorder)"
+  assumes "strict_mono f" and "surj f" and inv: "\<And>x. g (f x) = x"
+  shows "strict_mono g"
+proof
+  fix x y :: 'b assume "x < y"
+  from \<open>surj f\<close> obtain x' y' where [simp]: "x = f x'" "y = f y'" by blast
+  with \<open>x < y\<close> and \<open>strict_mono f\<close> have "x' < y'" by (simp add: strict_mono_less)
+  with inv show "g x < g y" by simp
+qed
+
+lemma strict_mono_on_imp_inj_on:
+  assumes "strict_mono_on (f :: (_ :: linorder) \<Rightarrow> (_ :: preorder)) A"
+  shows "inj_on f A"
+proof (rule inj_onI)
+  fix x y assume "x \<in> A" "y \<in> A" "f x = f y"
+  thus "x = y"
+    by (cases x y rule: linorder_cases)
+       (auto dest: strict_mono_onD[OF assms, of x y] strict_mono_onD[OF assms, of y x]) 
+qed
+
+lemma strict_mono_on_leD:
+  assumes "strict_mono_on (f :: (_ :: linorder) \<Rightarrow> _ :: preorder) A" "x \<in> A" "y \<in> A" "x \<le> y"
+  shows "f x \<le> f y"
+proof (insert le_less_linear[of y x], elim disjE)
+  assume "x < y"
+  with assms have "f x < f y" by (rule_tac strict_mono_onD[OF assms(1)]) simp_all
+  thus ?thesis by (rule less_imp_le)
+qed (insert assms, simp)
+
+lemma strict_mono_on_eqD:
+  fixes f :: "(_ :: linorder) \<Rightarrow> (_ :: preorder)"
+  assumes "strict_mono_on f A" "f x = f y" "x \<in> A" "y \<in> A"
+  shows "y = x"
+  using assms by (rule_tac linorder_cases[of x y]) (auto dest: strict_mono_onD)
+
+lemma mono_on_imp_deriv_nonneg:
+  assumes mono: "mono_on f A" and deriv: "(f has_real_derivative D) (at x)"
+  assumes "x \<in> interior A"
+  shows "D \<ge> 0"
+proof (rule tendsto_le_const)
+  let ?A' = "(\<lambda>y. y - x) ` interior A"
+  from deriv show "((\<lambda>h. (f (x + h) - f x) / h) \<longlongrightarrow> D) (at 0)"
+      by (simp add: field_has_derivative_at has_field_derivative_def)
+  from mono have mono': "mono_on f (interior A)" by (rule mono_on_subset) (rule interior_subset)
+
+  show "eventually (\<lambda>h. (f (x + h) - f x) / h \<ge> 0) (at 0)"
+  proof (subst eventually_at_topological, intro exI conjI ballI impI)
+    have "open (interior A)" by simp
+    hence "open (op + (-x) ` interior A)" by (rule open_translation)
+    also have "(op + (-x) ` interior A) = ?A'" by auto
+    finally show "open ?A'" .
+  next
+    from \<open>x \<in> interior A\<close> show "0 \<in> ?A'" by auto
+  next
+    fix h assume "h \<in> ?A'"
+    hence "x + h \<in> interior A" by auto
+    with mono' and \<open>x \<in> interior A\<close> show "(f (x + h) - f x) / h \<ge> 0"
+      by (cases h rule: linorder_cases[of _ 0])
+         (simp_all add: divide_nonpos_neg divide_nonneg_pos mono_onD field_simps)
+  qed
+qed simp
+
+lemma strict_mono_on_imp_mono_on: 
+  "strict_mono_on (f :: (_ :: linorder) \<Rightarrow> _ :: preorder) A \<Longrightarrow> mono_on f A"
+  by (rule mono_onI, rule strict_mono_on_leD)
+
+lemma mono_on_ctble_discont:
+  fixes f :: "real \<Rightarrow> real"
+  fixes A :: "real set"
+  assumes "mono_on f A"
+  shows "countable {a\<in>A. \<not> continuous (at a within A) f}"
+proof -
+  have mono: "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
+    using `mono_on f A` by (simp add: mono_on_def)
+  have "\<forall>a \<in> {a\<in>A. \<not> continuous (at a within A) f}. \<exists>q :: nat \<times> rat.
+      (fst q = 0 \<and> of_rat (snd q) < f a \<and> (\<forall>x \<in> A. x < a \<longrightarrow> f x < of_rat (snd q))) \<or>
+      (fst q = 1 \<and> of_rat (snd q) > f a \<and> (\<forall>x \<in> A. x > a \<longrightarrow> f x > of_rat (snd q)))"
+  proof (clarsimp simp del: One_nat_def)
+    fix a assume "a \<in> A" assume "\<not> continuous (at a within A) f"
+    thus "\<exists>q1 q2.
+            q1 = 0 \<and> real_of_rat q2 < f a \<and> (\<forall>x\<in>A. x < a \<longrightarrow> f x < real_of_rat q2) \<or>
+            q1 = 1 \<and> f a < real_of_rat q2 \<and> (\<forall>x\<in>A. a < x \<longrightarrow> real_of_rat q2 < f x)"
+    proof (auto simp add: continuous_within order_tendsto_iff eventually_at)
+      fix l assume "l < f a"
+      then obtain q2 where q2: "l < of_rat q2" "of_rat q2 < f a"
+        using of_rat_dense by blast
+      assume * [rule_format]: "\<forall>d>0. \<exists>x\<in>A. x \<noteq> a \<and> dist x a < d \<and> \<not> l < f x"
+      from q2 have "real_of_rat q2 < f a \<and> (\<forall>x\<in>A. x < a \<longrightarrow> f x < real_of_rat q2)"
+      proof auto
+        fix x assume "x \<in> A" "x < a"
+        with q2 *[of "a - x"] show "f x < real_of_rat q2"
+          apply (auto simp add: dist_real_def not_less)
+          apply (subgoal_tac "f x \<le> f xa")
+          by (auto intro: mono)
+      qed 
+      thus ?thesis by auto
+    next
+      fix u assume "u > f a"
+      then obtain q2 where q2: "f a < of_rat q2" "of_rat q2 < u"
+        using of_rat_dense by blast
+      assume *[rule_format]: "\<forall>d>0. \<exists>x\<in>A. x \<noteq> a \<and> dist x a < d \<and> \<not> u > f x"
+      from q2 have "real_of_rat q2 > f a \<and> (\<forall>x\<in>A. x > a \<longrightarrow> f x > real_of_rat q2)"
+      proof auto
+        fix x assume "x \<in> A" "x > a"
+        with q2 *[of "x - a"] show "f x > real_of_rat q2"
+          apply (auto simp add: dist_real_def)
+          apply (subgoal_tac "f x \<ge> f xa")
+          by (auto intro: mono)
+      qed 
+      thus ?thesis by auto
+    qed
+  qed
+  hence "\<exists>g :: real \<Rightarrow> nat \<times> rat . \<forall>a \<in> {a\<in>A. \<not> continuous (at a within A) f}. 
+      (fst (g a) = 0 \<and> of_rat (snd (g a)) < f a \<and> (\<forall>x \<in> A. x < a \<longrightarrow> f x < of_rat (snd (g a)))) |
+      (fst (g a) = 1 \<and> of_rat (snd (g a)) > f a \<and> (\<forall>x \<in> A. x > a \<longrightarrow> f x > of_rat (snd (g a))))"
+    by (rule bchoice)
+  then guess g ..
+  hence g: "\<And>a x. a \<in> A \<Longrightarrow> \<not> continuous (at a within A) f \<Longrightarrow> x \<in> A \<Longrightarrow>
+      (fst (g a) = 0 \<and> of_rat (snd (g a)) < f a \<and> (x < a \<longrightarrow> f x < of_rat (snd (g a)))) |
+      (fst (g a) = 1 \<and> of_rat (snd (g a)) > f a \<and> (x > a \<longrightarrow> f x > of_rat (snd (g a))))"
+    by auto
+  have "inj_on g {a\<in>A. \<not> continuous (at a within A) f}"
+  proof (auto simp add: inj_on_def)
+    fix w z
+    assume 1: "w \<in> A" and 2: "\<not> continuous (at w within A) f" and
+           3: "z \<in> A" and 4: "\<not> continuous (at z within A) f" and
+           5: "g w = g z"
+    from g [OF 1 2 3] g [OF 3 4 1] 5 
+    show "w = z" by auto
+  qed
+  thus ?thesis 
+    by (rule countableI') 
+qed
+
+lemma mono_on_ctble_discont_open:
+  fixes f :: "real \<Rightarrow> real"
+  fixes A :: "real set"
+  assumes "open A" "mono_on f A"
+  shows "countable {a\<in>A. \<not>isCont f a}"
+proof -
+  have "{a\<in>A. \<not>isCont f a} = {a\<in>A. \<not>(continuous (at a within A) f)}"
+    by (auto simp add: continuous_within_open [OF _ `open A`])
+  thus ?thesis
+    apply (elim ssubst)
+    by (rule mono_on_ctble_discont, rule assms)
+qed
+
+lemma mono_ctble_discont:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "mono f"
+  shows "countable {a. \<not> isCont f a}"
+using assms mono_on_ctble_discont [of f UNIV] unfolding mono_on_def mono_def by auto
+
+lemma has_real_derivative_imp_continuous_on:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> (f has_real_derivative f' x) (at x)"
+  shows "continuous_on A f"
+  apply (intro differentiable_imp_continuous_on, unfold differentiable_on_def)
+  apply (intro ballI Deriv.differentiableI)
+  apply (rule has_field_derivative_subset[OF assms])
+  apply simp_all
+  done
+
+lemma closure_contains_Sup:
+  fixes S :: "real set"
+  assumes "S \<noteq> {}" "bdd_above S"
+  shows "Sup S \<in> closure S"
+proof-
+  have "Inf (uminus ` S) \<in> closure (uminus ` S)" 
+      using assms by (intro closure_contains_Inf) auto
+  also have "Inf (uminus ` S) = -Sup S" by (simp add: Inf_real_def)
+  also have "closure (uminus ` S) = uminus ` closure S"
+      by (rule sym, intro closure_injective_linear_image) (auto intro: linearI)
+  finally show ?thesis by auto
+qed
+
+lemma closed_contains_Sup:
+  fixes S :: "real set"
+  shows "S \<noteq> {} \<Longrightarrow> bdd_above S \<Longrightarrow> closed S \<Longrightarrow> Sup S \<in> S"
+  by (subst closure_closed[symmetric], assumption, rule closure_contains_Sup)
+
+lemma deriv_nonneg_imp_mono:
+  assumes deriv: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
+  assumes nonneg: "\<And>x. x \<in> {a..b} \<Longrightarrow> g' x \<ge> 0"
+  assumes ab: "a \<le> b"
+  shows "g a \<le> g b"
+proof (cases "a < b")
+  assume "a < b"
+  from deriv have "\<forall>x. x \<ge> a \<and> x \<le> b \<longrightarrow> (g has_real_derivative g' x) (at x)" by simp
+  from MVT2[OF \<open>a < b\<close> this] and deriv 
+    obtain \<xi> where \<xi>_ab: "\<xi> > a" "\<xi> < b" and g_ab: "g b - g a = (b - a) * g' \<xi>" by blast
+  from \<xi>_ab ab nonneg have "(b - a) * g' \<xi> \<ge> 0" by simp
+  with g_ab show ?thesis by simp
+qed (insert ab, simp)
+
+lemma continuous_interval_vimage_Int:
+  assumes "continuous_on {a::real..b} g" and mono: "\<And>x y. a \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<le> b \<Longrightarrow> g x \<le> g y"
+  assumes "a \<le> b" "(c::real) \<le> d" "{c..d} \<subseteq> {g a..g b}"
+  obtains c' d' where "{a..b} \<inter> g -` {c..d} = {c'..d'}" "c' \<le> d'" "g c' = c" "g d' = d"
+proof-
+    let ?A = "{a..b} \<inter> g -` {c..d}"
+    from IVT'[of g a c b, OF _ _ \<open>a \<le> b\<close> assms(1)] assms(4,5) 
+         obtain c'' where c'': "c'' \<in> ?A" "g c'' = c" by auto
+    from IVT'[of g a d b, OF _ _ \<open>a \<le> b\<close> assms(1)] assms(4,5) 
+         obtain d'' where d'': "d'' \<in> ?A" "g d'' = d" by auto
+    hence [simp]: "?A \<noteq> {}" by blast
+
+    def c' \<equiv> "Inf ?A" and d' \<equiv> "Sup ?A"
+    have "?A \<subseteq> {c'..d'}" unfolding c'_def d'_def
+        by (intro subsetI) (auto intro: cInf_lower cSup_upper)
+    moreover from assms have "closed ?A" 
+        using continuous_on_closed_vimage[of "{a..b}" g] by (subst Int_commute) simp
+    hence c'd'_in_set: "c' \<in> ?A" "d' \<in> ?A" unfolding c'_def d'_def
+        by ((intro closed_contains_Inf closed_contains_Sup, simp_all)[])+
+    hence "{c'..d'} \<subseteq> ?A" using assms 
+        by (intro subsetI)
+           (auto intro!: order_trans[of c "g c'" "g x" for x] order_trans[of "g x" "g d'" d for x] 
+                 intro!: mono)
+    moreover have "c' \<le> d'" using c'd'_in_set(2) unfolding c'_def by (intro cInf_lower) auto
+    moreover have "g c' \<le> c" "g d' \<ge> d"
+      apply (insert c'' d'' c'd'_in_set)
+      apply (subst c''(2)[symmetric])
+      apply (auto simp: c'_def intro!: mono cInf_lower c'') []
+      apply (subst d''(2)[symmetric])
+      apply (auto simp: d'_def intro!: mono cSup_upper d'') []
+      done
+    with c'd'_in_set have "g c' = c" "g d' = d" by auto
+    ultimately show ?thesis using that by blast
+qed
+
 subsection \<open>Generic Borel spaces\<close>
 
 definition borel :: "'a::topological_space measure" where
@@ -48,6 +314,10 @@ lemma space_in_borel[measurable]: "UNIV \<in> sets borel"
 
 lemma sets_borel: "sets borel = sigma_sets UNIV {S. open S}"
   unfolding borel_def by (rule sets_measure_of) simp
+
+lemma measurable_sets_borel:
+    "\<lbrakk>f \<in> measurable borel M; A \<in> sets M\<rbrakk> \<Longrightarrow> f -` A \<in> sets borel"
+  by (drule (1) measurable_sets) simp
 
 lemma pred_Collect_borel[measurable (raw)]: "Measurable.pred borel P \<Longrightarrow> {x. P x} \<in> sets borel"
   unfolding borel_def pred_def by auto
@@ -888,6 +1158,28 @@ proof safe
     by (subst borel_measurable_iff_halfspace_le) auto
 qed auto
 
+lemma borel_set_induct[consumes 1, case_names empty interval compl union]:
+  assumes "A \<in> sets borel" 
+  assumes empty: "P {}" and int: "\<And>a b. a \<le> b \<Longrightarrow> P {a..b}" and compl: "\<And>A. A \<in> sets borel \<Longrightarrow> P A \<Longrightarrow> P (-A)" and
+          un: "\<And>f. disjoint_family f \<Longrightarrow> (\<And>i. f i \<in> sets borel) \<Longrightarrow>  (\<And>i. P (f i)) \<Longrightarrow> P (\<Union>i::nat. f i)"
+  shows "P (A::real set)"
+proof-
+  let ?G = "range (\<lambda>(a,b). {a..b::real})"
+  have "Int_stable ?G" "?G \<subseteq> Pow UNIV" "A \<in> sigma_sets UNIV ?G" 
+      using assms(1) by (auto simp add: borel_eq_atLeastAtMost Int_stable_def)
+  thus ?thesis
+  proof (induction rule: sigma_sets_induct_disjoint) 
+    case (union f)
+      from union.hyps(2) have "\<And>i. f i \<in> sets borel" by (auto simp: borel_eq_atLeastAtMost)
+      with union show ?case by (auto intro: un)
+  next
+    case (basic A)
+    then obtain a b where "A = {a .. b}" by auto
+    then show ?case
+      by (cases "a \<le> b") (auto intro: int empty)
+  qed (auto intro: empty compl simp: Compl_eq_Diff_UNIV[symmetric] borel_eq_atLeastAtMost)
+qed
+
 subsection "Borel measurable operators"
 
 lemma borel_measurable_norm[measurable]: "norm \<in> borel_measurable borel"
@@ -1467,6 +1759,11 @@ proof -
     by simp
 qed
 
+lemma isCont_borel_pred[measurable]:
+  fixes f :: "'b::metric_space \<Rightarrow> 'a::metric_space"
+  shows "Measurable.pred borel (isCont f)"
+  unfolding pred_def by (simp add: isCont_borel)
+
 lemma is_real_interval:
   assumes S: "is_interval S"
   shows "\<exists>a b::real. S = {} \<or> S = UNIV \<or> S = {..<b} \<or> S = {..b} \<or> S = {a<..} \<or> S = {a..} \<or>
@@ -1485,16 +1782,21 @@ proof -
     by auto
 qed
 
+lemma borel_measurable_mono_on_fnc:
+  fixes f :: "real \<Rightarrow> real" and A :: "real set"
+  assumes "mono_on f A"
+  shows "f \<in> borel_measurable (restrict_space borel A)"
+  apply (rule measurable_restrict_countable[OF mono_on_ctble_discont[OF assms]])
+  apply (auto intro!: image_eqI[where x="{x}" for x] simp: sets_restrict_space)
+  apply (auto simp add: sets_restrict_restrict_space continuous_on_eq_continuous_within
+              cong: measurable_cong_sets 
+              intro!: borel_measurable_continuous_on_restrict intro: continuous_within_subset)
+  done
+
 lemma borel_measurable_mono:
   fixes f :: "real \<Rightarrow> real"
-  assumes "mono f"
-  shows "f \<in> borel_measurable borel"
-proof (subst borel_measurable_iff_ge, auto simp add:)
-  fix a :: real
-  have "is_interval {w. a \<le> f w}"
-    unfolding is_interval_1 using assms by (auto dest: monoD intro: order.trans)
-  thus "{w. a \<le> f w} \<in> sets borel" using real_interval_borel_measurable by auto  
-qed
+  shows "mono f \<Longrightarrow> f \<in> borel_measurable borel"
+  using borel_measurable_mono_on_fnc[of f UNIV] by (simp add: mono_def mono_on_def)
 
 no_notation
   eucl_less (infix "<e" 50)

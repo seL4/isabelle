@@ -6,6 +6,10 @@ distribution.
 Contributions to Isabelle2016
 -----------------------------
 
+* Summer 2014: Jeremy Avigad, Luke Serafin, CMU, and Johannes Hölzl, TUM
+  Proof of the central limit theorem: includes weak convergence, characteristic
+  functions, and Levy's uniqueness and continuity theorem.
+
 * Winter 2015: Manuel Eberl, TUM
   The radius of convergence of power series and various summability tests.
   Harmonic numbers and the Euler-Mascheroni constant.

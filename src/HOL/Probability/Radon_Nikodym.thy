@@ -1295,7 +1295,7 @@ proof -
   have "density M (RN_deriv M N) {x} = (\<integral>\<^sup>+w. RN_deriv M N x * indicator {x} w \<partial>M)"
     by (auto simp: indicator_def emeasure_density intro!: nn_integral_cong)
   with x density_RN_deriv[OF ac] RN_deriv_nonneg[of M N] show ?thesis
-    by (auto simp: nn_integral_cmult_indicator)
+    by (auto simp: max_def)
 qed
 
 end

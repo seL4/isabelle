@@ -1012,7 +1012,7 @@ next
     also have "\<dots> = (\<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C' (x, y) \<partial>count_space UNIV)"
       by(rule nn_integral_cong)(force split: split_indicator intro: rev_image_eqI simp add: C')
     also have "\<dots> = (\<integral>\<^sup>+ x'. (\<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C' (x, y) \<partial>count_space UNIV) * indicator {x} x' \<partial>count_space UNIV)"
-      by(simp add: one_ereal_def[symmetric] nn_integral_nonneg nn_integral_cmult_indicator)
+      by(simp add: one_ereal_def[symmetric] nn_integral_nonneg max_def)
     also have "\<dots> \<le> (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C' (x, y) \<partial>count_space UNIV \<partial>count_space UNIV)"
       by(rule nn_integral_mono)(simp split: split_indicator add: nn_integral_nonneg)
     also have "\<dots> \<le> ?lhs" using **
@@ -1024,7 +1024,7 @@ next
     have "\<infinity> = \<integral>\<^sup>+ x. ereal (1 / Suc n) * indicator C' x \<partial>count_space UNIV"
       using C'_def False by(simp add: nn_integral_cmult)
     also have "\<dots> = \<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C' x * indicator {SOME y. (x, y) \<in> C} y \<partial>count_space UNIV \<partial>count_space UNIV"
-      by(auto simp add: one_ereal_def[symmetric] nn_integral_cmult_indicator intro: nn_integral_cong)
+      by(auto simp add: one_ereal_def[symmetric] max_def intro: nn_integral_cong)
     also have "\<dots> \<le> \<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C (x, y) \<partial>count_space UNIV \<partial>count_space UNIV"
       by(intro nn_integral_mono)(auto simp add: C'_def split: split_indicator intro: someI)
     also have "\<dots> \<le> ?lhs" using C

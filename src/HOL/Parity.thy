@@ -321,7 +321,10 @@ next
     with \<open>a \<le> b\<close> show ?thesis using power_mono by auto
   qed
 qed
- 
+
+lemma (in comm_ring_1) uminus_power_if: "(- x) ^ n = (if even n then x^n else - (x ^ n))"
+  by auto
+
 text \<open>Simplify, when the exponent is a numeral\<close>
 
 lemma zero_le_power_eq_numeral [simp]:

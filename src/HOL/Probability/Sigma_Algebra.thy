@@ -2206,6 +2206,10 @@ proof (subst sets_measure_of)
     by simp
 qed
 
+lemma restrict_space_sets_cong:
+  "A = B \<Longrightarrow> sets M = sets N \<Longrightarrow> sets (restrict_space M A) = sets (restrict_space N B)"
+  by (auto simp: sets_restrict_space)
+
 lemma sets_restrict_space_count_space :
   "sets (restrict_space (count_space A) B) = sets (count_space (A \<inter> B))"
 by(auto simp add: sets_restrict_space)

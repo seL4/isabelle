@@ -1186,6 +1186,25 @@ proof -
   finally show ?thesis .
 qed
 
+lemma nn_integral_indicator_singleton[simp]:
+  assumes [measurable]: "{y} \<in> sets M"
+  shows "(\<integral>\<^sup>+x. f x * indicator {y} x \<partial>M) = max 0 (f y) * emeasure M {y}"
+proof-
+  have "(\<integral>\<^sup>+x. f x * indicator {y} x \<partial>M) = (\<integral>\<^sup>+x. max 0 (f y) * indicator {y} x \<partial>M)"
+    by (subst nn_integral_max_0[symmetric]) (auto intro!: nn_integral_cong split: split_indicator)
+  then show ?thesis
+    by (simp add: nn_integral_cmult)
+qed
+
+lemma nn_integral_set_ereal:
+  "(\<integral>\<^sup>+x. ereal (f x) * indicator A x \<partial>M) = (\<integral>\<^sup>+x. ereal (f x * indicator A x) \<partial>M)"
+  by (rule nn_integral_cong) (simp split: split_indicator)
+
+lemma nn_integral_indicator_singleton'[simp]:
+  assumes [measurable]: "{y} \<in> sets M"
+  shows "(\<integral>\<^sup>+x. ereal (f x * indicator {y} x) \<partial>M) = max 0 (f y) * emeasure M {y}"
+  by (subst nn_integral_set_ereal[symmetric]) (simp add: nn_integral_indicator_singleton)
+
 lemma nn_integral_add:
   assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
   and g: "g \<in> borel_measurable M" "AE x in M. 0 \<le> g x"
@@ -1854,7 +1873,7 @@ proof -
     by (subst nn_integral_setsum)
        (simp_all add: AE_count_space ereal_zero_le_0_iff less_imp_le)
   also have "\<dots> = (\<Sum>a|a\<in>A \<and> 0 < f a. f a)"
-    by (auto intro!: setsum.cong simp: nn_integral_cmult_indicator one_ereal_def[symmetric])
+    by (auto intro!: setsum.cong simp: one_ereal_def[symmetric] max_def)
   finally show ?thesis by (simp add: nn_integral_max_0)
 qed
 
@@ -1890,7 +1909,7 @@ proof -
   from f have "(\<integral>\<^sup>+x. f x * indicator A x \<partial>M) = (\<integral>\<^sup>+x. (\<Sum>a\<in>A. f a * indicator {a} x) \<partial>M)"
     by (intro nn_integral_cong) (auto simp: indicator_def if_distrib[where f="\<lambda>a. x * a" for x] setsum.If_cases)
   also have "\<dots> = (\<Sum>a\<in>A. f a * emeasure M {a})"
-    using nn by (subst nn_integral_setsum) (auto simp: nn_integral_cmult_indicator)
+    using nn by (subst nn_integral_setsum) (auto simp: max_def)
   finally show ?thesis .
 qed
 
@@ -1912,7 +1931,7 @@ proof -
   also have "\<dots> = (\<Sum>j. (\<integral>\<^sup>+i. f j * indicator {j} i \<partial>count_space UNIV))"
     by (rule nn_integral_suminf) (auto simp: nonneg)
   also have "\<dots> = (\<Sum>j. f j)"
-    by (simp add: nonneg nn_integral_cmult_indicator one_ereal_def[symmetric])
+    by (simp add: nonneg one_ereal_def[symmetric] max_def)
   finally show ?thesis .
 qed
 

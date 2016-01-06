@@ -69,6 +69,19 @@ lemma indicator_abs_eq: "\<And>A x. \<bar>indicator A x\<bar> = ((indicator A x)
   by (auto simp add: indicator_def)
 *)
 
+lemma set_borel_measurable_sets:
+  fixes f :: "_ \<Rightarrow> _::real_normed_vector"
+  assumes "set_borel_measurable M X f" "B \<in> sets borel" "X \<in> sets M"
+  shows "f -` B \<inter> X \<in> sets M"
+proof -
+  have "f \<in> borel_measurable (restrict_space M X)"
+    using assms by (subst borel_measurable_restrict_space_iff) auto
+  then have "f -` B \<inter> space (restrict_space M X) \<in> sets (restrict_space M X)"
+    by (rule measurable_sets) fact
+  with \<open>X \<in> sets M\<close> show ?thesis
+    by (subst (asm) sets_restrict_space_iff) (auto simp: space_restrict_space)
+qed
+
 lemma set_lebesgue_integral_cong:
   assumes "A \<in> sets M" and "\<forall>x. x \<in> A \<longrightarrow> f x = g x"
   shows "(LINT x:A|M. f x) = (LINT x:A|M. g x)"

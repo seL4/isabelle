@@ -755,7 +755,6 @@ lemma (in comm_ring_1) power2_commute:
   "(x - y)\<^sup>2 = (y - x)\<^sup>2"
   by (simp add: algebra_simps power2_eq_square)
 
-
 text \<open>Simprules for comparisons where common factors can be cancelled.\<close>
 
 lemmas zero_compare_simps =

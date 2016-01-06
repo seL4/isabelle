@@ -1882,6 +1882,18 @@ proof (rule continuous_at_Inf_mono)
     by (auto intro!: INF_lower bdd_belowI[of _ r] simp add: ereal_less_eq(3)[symmetric] simp del: ereal_less_eq)
 qed (auto simp: mono_def continuous_at_imp_continuous_at_within continuous_at_ereal)
 
+lemma ereal_Inf':
+  assumes *: "bdd_below A" "A \<noteq> {}"
+  shows "ereal (Inf A) = (INF a:A. ereal a)"
+proof (rule ereal_Inf)
+  from * obtain l u where "\<And>x. x \<in> A \<Longrightarrow> l \<le> x" "u \<in> A"
+    by (auto simp: bdd_below_def)
+  then have "l \<le> (INF x:A. ereal x)" "(INF x:A. ereal x) \<le> u"
+    by (auto intro!: INF_greatest INF_lower)
+  then show "\<bar>INF a:A. ereal a\<bar> \<noteq> \<infinity>"
+    by auto
+qed
+
 lemma ereal_INF: "\<bar>INF a:A. ereal (f a)\<bar> \<noteq> \<infinity> \<Longrightarrow> ereal (INF a:A. f a) = (INF a:A. ereal (f a))"
   using ereal_Inf[of "f`A"] by auto
 

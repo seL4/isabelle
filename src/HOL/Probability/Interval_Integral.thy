@@ -190,6 +190,19 @@ lemma interval_lebesgue_integral_cong_AE:
     interval_lebesgue_integral M a b f = interval_lebesgue_integral M a b g"
   by (auto intro: set_lebesgue_integral_cong_AE simp: interval_lebesgue_integral_def)
 
+lemma interval_integrable_mirror:
+  shows "interval_lebesgue_integrable lborel a b (\<lambda>x. f (-x)) \<longleftrightarrow>
+    interval_lebesgue_integrable lborel (-b) (-a) f"
+proof -
+  have *: "indicator (einterval a b) (- x) = (indicator (einterval (-b) (-a)) x :: real)"
+    for a b :: ereal and x :: real
+    by (cases a b rule: ereal2_cases) (auto simp: einterval_def split: split_indicator)
+  show ?thesis
+    unfolding interval_lebesgue_integrable_def
+    using lborel_integrable_real_affine_iff[symmetric, of "-1" "\<lambda>x. indicator (einterval _ _) x *\<^sub>R f x" 0]
+    by (simp add: *)
+qed
+
 lemma interval_lebesgue_integral_add [intro, simp]: 
   fixes M a b f 
   assumes "interval_lebesgue_integrable M a b f" "interval_lebesgue_integrable M a b g"

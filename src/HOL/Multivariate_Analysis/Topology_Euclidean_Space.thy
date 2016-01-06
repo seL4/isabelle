@@ -1851,6 +1851,16 @@ lemma closedin_closed_eq:
     "closed s \<Longrightarrow> (closedin (subtopology euclidean s) t \<longleftrightarrow> closed t \<and> t \<subseteq> s)"
   by (meson closed_in_limpt closed_subset closedin_closed_trans)
 
+lemma bdd_below_closure:
+  fixes A :: "real set"
+  assumes "bdd_below A"
+  shows "bdd_below (closure A)"
+proof -
+  from assms obtain m where "\<And>x. x \<in> A \<Longrightarrow> m \<le> x" unfolding bdd_below_def by auto
+  hence "A \<subseteq> {m..}" by auto
+  hence "closure A \<subseteq> {m..}" using closed_real_atLeast by (rule closure_minimal)
+  thus ?thesis unfolding bdd_below_def by auto
+qed
 
 subsection\<open>Connected components, considered as a connectedness relation or a set\<close>
 
@@ -2648,6 +2658,17 @@ lemma closed_contains_Inf:
   fixes S :: "real set"
   shows "S \<noteq> {} \<Longrightarrow> bdd_below S \<Longrightarrow> closed S \<Longrightarrow> Inf S \<in> S"
   by (metis closure_contains_Inf closure_closed assms)
+
+lemma closed_subset_contains_Inf:
+  fixes A C :: "real set"
+  shows "closed C \<Longrightarrow> A \<subseteq> C \<Longrightarrow> A \<noteq> {} \<Longrightarrow> bdd_below A \<Longrightarrow> Inf A \<in> C"
+  by (metis closure_contains_Inf closure_minimal subset_eq)
+
+lemma atLeastAtMost_subset_contains_Inf:
+  fixes A :: "real set" and a b :: real 
+  shows "A \<noteq> {} \<Longrightarrow> a \<le> b \<Longrightarrow> A \<subseteq> {a..b} \<Longrightarrow> Inf A \<in> {a..b}"
+  by (rule closed_subset_contains_Inf) 
+     (auto intro: closed_real_atLeastAtMost intro!: bdd_belowI[of A a])
 
 lemma not_trivial_limit_within_ball:
   "\<not> trivial_limit (at x within S) \<longleftrightarrow> (\<forall>e>0. S \<inter> ball x e - {x} \<noteq> {})"

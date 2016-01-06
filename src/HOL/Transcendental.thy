@@ -10,6 +10,25 @@ theory Transcendental
 imports Binomial Series Deriv NthRoot
 begin
 
+text \<open>A fact theorem on reals.\<close>
+
+lemma square_fact_le_2_fact: 
+  shows "fact n * fact n \<le> (fact (2 * n) :: real)"
+proof (induct n)
+  case 0 then show ?case by simp
+next
+  case (Suc n)
+  have "(fact (Suc n)) * (fact (Suc n)) = of_nat (Suc n) * of_nat (Suc n) * (fact n * fact n :: real)"
+    by (simp add: field_simps)
+  also have "\<dots> \<le> of_nat (Suc n) * of_nat (Suc n) * fact (2 * n)"
+    by (rule mult_left_mono [OF Suc]) simp
+  also have "\<dots> \<le> of_nat (Suc (Suc (2 * n))) * of_nat (Suc (2 * n)) * fact (2 * n)"
+    by (rule mult_right_mono)+ (auto simp: field_simps)
+  also have "\<dots> = fact (2 * Suc n)" by (simp add: field_simps)
+  finally show ?case .
+qed
+
+
 lemma of_int_leD: 
   fixes x :: "'a :: linordered_idom"
   shows "\<bar>of_int n\<bar> \<le> x \<Longrightarrow> n=0 \<or> x\<ge>1"

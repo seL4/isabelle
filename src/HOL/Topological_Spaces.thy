@@ -453,6 +453,9 @@ lemma (in linorder_topology) eventually_at_right:
   "x < y \<Longrightarrow> eventually P (at_right x) \<longleftrightarrow> (\<exists>b>x. \<forall>y>x. y < b \<longrightarrow> P y)"
   unfolding at_right_eq by (subst eventually_INF_base) (auto simp: eventually_principal Ball_def)
 
+lemma eventually_at_right_less: "\<forall>\<^sub>F y in at_right (x::'a::{linorder_topology, no_top}). x < y"
+  using gt_ex[of x] eventually_at_right[of x] by auto
+
 lemma trivial_limit_at_right_top: "at_right (top::_::{order_top, linorder_topology}) = bot"
   unfolding filter_eq_iff eventually_at_topological by auto
 
@@ -1609,6 +1612,9 @@ lemma continuous_at_imp_continuous_at_within: "isCont f x \<Longrightarrow> cont
 
 lemma continuous_on_eq_continuous_at: "open s \<Longrightarrow> continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. isCont f x)"
   by (simp add: continuous_on_def continuous_at at_within_open[of _ s])
+
+lemma continuous_within_open: "a \<in> A \<Longrightarrow> open A \<Longrightarrow> continuous (at a within A) f \<longleftrightarrow> isCont f a"
+  by (simp add: at_within_open_NO_MATCH)
 
 lemma continuous_at_imp_continuous_on: "\<forall>x\<in>s. isCont f x \<Longrightarrow> continuous_on s f"
   by (auto intro: continuous_at_imp_continuous_at_within simp: continuous_on_eq_continuous_within)

@@ -159,4 +159,21 @@ proof -
   thus ?thesis by auto
 qed
 
+lemma open_minus_countable:
+  fixes S A :: "real set" assumes "countable A" "S \<noteq> {}" "open S"
+  shows "\<exists>x\<in>S. x \<notin> A"
+proof -
+  obtain x where "x \<in> S"
+    using \<open>S \<noteq> {}\<close> by auto
+  then obtain e where "0 < e" "{y. dist y x < e} \<subseteq> S"
+    using \<open>open S\<close> by (auto simp: open_dist subset_eq)
+  moreover have "{y. dist y x < e} = {x - e <..< x + e}"
+    by (auto simp: dist_real_def)
+  ultimately have "uncountable (S - A)"
+    using uncountable_open_interval[of "x - e" "x + e"] \<open>countable A\<close>
+    by (intro uncountable_minus_countable) (auto dest: countable_subset)
+  then show ?thesis
+    unfolding uncountable_def by auto
+qed
+
 end

@@ -7,12 +7,10 @@ imports
   Discrete_Topology
   Complete_Measure
   Projective_Limit
-  Independent_Family
-  Distributions
   Probability_Mass_Function
   Stream_Space
   Embed_Measure
+  Central_Limit_Theorem
 begin
 
 end
-

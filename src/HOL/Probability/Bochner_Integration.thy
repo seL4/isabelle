@@ -1042,9 +1042,13 @@ lemma integral_diff[simp]: "integrable M f \<Longrightarrow> integrable M g \<Lo
     integral\<^sup>L M (\<lambda>x. f x - g x) = integral\<^sup>L M f - integral\<^sup>L M g"
   by (intro has_bochner_integral_integral_eq has_bochner_integral_diff has_bochner_integral_integrable)
 
-lemma integral_setsum[simp]: "(\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)) \<Longrightarrow>
+lemma integral_setsum: "(\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)) \<Longrightarrow>
   integral\<^sup>L M (\<lambda>x. \<Sum>i\<in>I. f i x) = (\<Sum>i\<in>I. integral\<^sup>L M (f i))"
   by (intro has_bochner_integral_integral_eq has_bochner_integral_setsum has_bochner_integral_integrable)
+
+lemma integral_setsum'[simp]: "(\<And>i. i \<in> I =simp=> integrable M (f i)) \<Longrightarrow>
+  integral\<^sup>L M (\<lambda>x. \<Sum>i\<in>I. f i x) = (\<Sum>i\<in>I. integral\<^sup>L M (f i))"
+  unfolding simp_implies_def by (rule integral_setsum)
 
 lemma integral_bounded_linear: "bounded_linear T \<Longrightarrow> integrable M f \<Longrightarrow>
     integral\<^sup>L M (\<lambda>x. T (f x)) = T (integral\<^sup>L M f)"

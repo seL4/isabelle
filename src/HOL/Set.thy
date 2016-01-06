@@ -989,6 +989,9 @@ lemma image_diff_subset:
 lemma Setcompr_eq_image: "{f x | x. x \<in> A} = f ` A"
   by blast
 
+lemma setcompr_eq_image: "{f x |x. P x} = f ` {x. P x}"
+  by auto
+
 lemma ball_imageD:
   assumes "\<forall>x\<in>f ` A. P x"
   shows "\<forall>x\<in>A. P (f x)"

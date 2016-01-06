@@ -660,6 +660,9 @@ constant; the Generalised Binomial Theorem; the complex and real
 Gamma/log-Gamma/Digamma/ Polygamma functions and their most important
 properties.
 
+* Probability: The central limit theorem based on Levy's uniqueness and
+continuity theorems, weak convergence, and characterisitc functions.
+
 * Data_Structures: new and growing session of standard data structures.
 
 * Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
