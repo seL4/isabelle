@@ -119,6 +119,7 @@ sig
   val fact_tac: Proof.context -> thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
   val lookup_fact: Proof.context -> string -> (bool * thm list) option
+  val dynamic_facts_dummy: bool Config.T
   val get_fact_generic: Context.generic -> Facts.ref -> string option * thm list
   val get_fact: Proof.context -> Facts.ref -> thm list
   val get_fact_single: Proof.context -> Facts.ref -> thm
@@ -941,7 +942,7 @@ fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) => fact_tac ctxt (potential_facts
 end;
 
 
-(* get facts *)
+(* lookup facts *)
 
 fun lookup_fact ctxt name =
   let
@@ -952,6 +953,12 @@ fun lookup_fact ctxt name =
       NONE => Facts.lookup context (Global_Theory.facts_of thy) name
     | some => some)
   end;
+
+
+(* retrieve facts *)
+
+val dynamic_facts_dummy =
+  Config.bool (Config.declare ("dynamic_facts_dummy_", @{here}) (fn _ => Config.Bool false));
 
 local
 
@@ -991,7 +998,10 @@ fun retrieve pick context (Facts.Fact s) =
             "" => immediate Drule.dummy_thm
           | "_" => immediate Drule.asm_rl
           | _ => retrieve_generic context (xname, pos));
-        val thms' = Facts.select (Facts.Named ((name, pos), sel)) thms;
+        val thms' =
+          if not static andalso Config.get_generic context dynamic_facts_dummy
+          then [Drule.free_dummy_thm]
+          else Facts.select (Facts.Named ((name, pos), sel)) thms;
       in pick (static orelse is_some sel) (name, pos) thms' end;
 
 in

@@ -497,6 +497,19 @@ method simp = fail
 lemma "A \<Longrightarrow> A" by test2
 
 
+subsection \<open>Dynamic facts\<close>
+
+named_theorems my_thms_named'
+
+method foo_method1 for x =
+  (match my_thms_named' [of (unchecked) x] in R: "PROP ?H" \<Rightarrow> \<open>rule R\<close>)
+
+lemma
+  assumes A [my_thms_named']: "\<And>x. A x"
+  shows "A y"
+  by (foo_method1 y)
+
+
 subsection \<open>Eisbach method invocation from ML\<close>
 
 method test_method for x y uses r = (print_term x, print_term y, rule r)

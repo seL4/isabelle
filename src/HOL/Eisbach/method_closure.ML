@@ -251,11 +251,11 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
          Method.sections modifiers)) >> (fn (ts, decl) => meth ts o decl);
 
     val lthy3 = lthy2
-      |> fold dummy_named_thm named_thms
       |> Method.local_setup (Binding.make (Binding.name_of name, Position.none))
         (parser term_args get_recursive_method) "(internal)";
 
-    val (text, src) = read_closure lthy3 source;
+    val (text, src) =
+      read_closure (Config.put Proof_Context.dynamic_facts_dummy true lthy3) source;
 
     val morphism =
       Variable.export_morphism lthy3
