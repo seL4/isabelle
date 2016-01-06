@@ -1010,7 +1010,8 @@ lemma fset_size_o_map: "inj f \<Longrightarrow> size_fset g \<circ> fimage f = s
   
 setup \<open>
 BNF_LFP_Size.register_size_global @{type_name fset} @{const_name size_fset}
-  @{thms size_fset_simps size_fset_overloaded_simps} @{thms fset_size_o_map}
+  @{thm size_fset_overloaded_def} @{thms size_fset_simps size_fset_overloaded_simps}
+  @{thms fset_size_o_map}
 \<close>
 
 lifting_update fset.lifting

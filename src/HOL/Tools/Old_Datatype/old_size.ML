@@ -63,7 +63,7 @@ fun prove_size_thms (info : Old_Datatype_Aux.info) new_type_names thy =
         val param_size = AList.lookup op = param_size_fs;
 
         val extra_rewrites = descr |> map (#1 o snd) |> distinct op = |>
-          map_filter (Option.map (fst o snd) o BNF_LFP_Size.size_of_global thy) |> flat;
+          map_filter (Option.map (#2 o snd) o BNF_LFP_Size.size_of_global thy) |> flat;
         val extra_size = Option.map fst o BNF_LFP_Size.size_of_global thy;
 
         val (((size_names, size_fns), def_names), def_names') =
@@ -202,7 +202,7 @@ fun prove_size_thms (info : Old_Datatype_Aux.info) new_type_names thy =
 
       in
         fold2 (fn new_type_name => fn size_name =>
-            BNF_LFP_Size.register_size_global new_type_name size_name size_thms [])
+            BNF_LFP_Size.register_size_global new_type_name size_name refl(*dummy*) size_thms [])
           new_type_names size_names thy''
       end
   end;

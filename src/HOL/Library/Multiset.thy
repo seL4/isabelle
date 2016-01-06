@@ -2506,6 +2506,7 @@ lemma multiset_size_o_map: "size_multiset g \<circ> image_mset f = size_multiset
 
 setup \<open>
   BNF_LFP_Size.register_size_global @{type_name multiset} @{const_name size_multiset}
+    @{thm size_multiset_overloaded_def}
     @{thms size_multiset_empty size_multiset_single size_multiset_union size_empty size_single
       size_union}
     @{thms multiset_size_o_map}
