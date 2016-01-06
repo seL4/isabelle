@@ -14,34 +14,35 @@ imports
   Setup
   "~~/src/HOL/Library/BNF_Axiomatization"
   "~~/src/HOL/Library/Cardinal_Notations"
+  "~~/src/HOL/Library/Countable"
   "~~/src/HOL/Library/FSet"
   "~~/src/HOL/Library/Simps_Case_Conv"
 begin
 
-section {* Introduction
-  \label{sec:introduction} *}
+section \<open> Introduction
+  \label{sec:introduction} \<close>
 
-text {*
+text \<open>
 The 2013 edition of Isabelle introduced a definitional package for freely
 generated datatypes and codatatypes. This package replaces the earlier
 implementation due to Berghofer and Wenzel @{cite "Berghofer-Wenzel:1999:TPHOL"}.
 Perhaps the main advantage of the new package is that it supports recursion
 through a large class of non-datatypes, such as finite sets:
-*}
+\<close>
 
     datatype 'a tree\<^sub>f\<^sub>s = Node\<^sub>f\<^sub>s (lbl\<^sub>f\<^sub>s: 'a) (sub\<^sub>f\<^sub>s: "'a tree\<^sub>f\<^sub>s fset")
 
-text {*
+text \<open>
 \noindent
 Another strong point is the support for local definitions:
-*}
+\<close>
 
     context linorder
     begin
     datatype flag = Less | Eq | Greater
     end
 
-text {*
+text \<open>
 \noindent
 Furthermore, the package provides a lot of convenience, including automatically
 generated discriminators, selectors, and relators as well as a wealth of
@@ -51,7 +52,7 @@ In addition to inductive datatypes, the package supports coinductive
 datatypes, or \emph{codatatypes}, which allow infinite values. For example, the
 following command introduces the type of lazy lists, which comprises both finite
 and infinite values:
-*}
+\<close>
 
 (*<*)
     locale early
@@ -59,18 +60,18 @@ and infinite values:
 (*>*)
     codatatype (*<*)(in early) (*>*)'a llist = LNil | LCons 'a "'a llist"
 
-text {*
+text \<open>
 \noindent
 Mixed inductive--coinductive recursion is possible via nesting. Compare the
 following four Rose tree examples:
-*}
+\<close>
 
     datatype (*<*)(in early) (*>*)'a tree\<^sub>f\<^sub>f = Node\<^sub>f\<^sub>f 'a "'a tree\<^sub>f\<^sub>f list"
     datatype (*<*)(in early) (*>*)'a tree\<^sub>f\<^sub>i = Node\<^sub>f\<^sub>i 'a "'a tree\<^sub>f\<^sub>i llist"
     codatatype (*<*)(in early) (*>*)'a tree\<^sub>i\<^sub>f = Node\<^sub>i\<^sub>f 'a "'a tree\<^sub>i\<^sub>f list"
     codatatype (*<*)(in early) (*>*)'a tree\<^sub>i\<^sub>i = Node\<^sub>i\<^sub>i 'a "'a tree\<^sub>i\<^sub>i llist"
 
-text {*
+text \<open>
 The first two tree types allow only paths of finite length, whereas the last two
 allow infinite paths. Orthogonally, the nodes in the first and third types have
 finitely many direct subtrees, whereas those of the second and fourth may have
@@ -143,45 +144,45 @@ in.\allowbreak tum.\allowbreak de}}
 Comments and bug reports concerning either the package or this tutorial should
 be directed to the first author at \authoremaili{} or to the
 \texttt{cl-isabelle-users} mailing list.
-*}
+\<close>
 
 
-section {* Defining Datatypes
-  \label{sec:defining-datatypes} *}
+section \<open> Defining Datatypes
+  \label{sec:defining-datatypes} \<close>
 
-text {*
+text \<open>
 Datatypes can be specified using the @{command datatype} command.
-*}
+\<close>
 
 
-subsection {* Introductory Examples
-  \label{ssec:datatype-introductory-examples} *}
+subsection \<open> Introductory Examples
+  \label{ssec:datatype-introductory-examples} \<close>
 
-text {*
+text \<open>
 Datatypes are illustrated through concrete examples featuring different flavors
 of recursion. More examples can be found in the directory
 @{file "~~/src/HOL/Datatype_Examples"}
-*}
+\<close>
 
 
-subsubsection {* Nonrecursive Types
-  \label{sssec:datatype-nonrecursive-types} *}
+subsubsection \<open> Nonrecursive Types
+  \label{sssec:datatype-nonrecursive-types} \<close>
 
-text {*
+text \<open>
 Datatypes are introduced by specifying the desired names and argument types for
 their constructors. \emph{Enumeration} types are the simplest form of datatype.
 All their constructors are nullary:
-*}
+\<close>
 
     datatype trool = Truue | Faalse | Perhaaps
 
-text {*
+text \<open>
 \noindent
 @{const Truue}, @{const Faalse}, and @{const Perhaaps} have the type @{typ trool}.
 
 Polymorphic types are possible, such as the following option type, modeled after
 its homologue from the @{theory Option} theory:
-*}
+\<close>
 
 (*<*)
     hide_const None Some map_option
@@ -189,68 +190,68 @@ its homologue from the @{theory Option} theory:
 (*>*)
     datatype 'a option = None | Some 'a
 
-text {*
+text \<open>
 \noindent
 The constructors are @{text "None :: 'a option"} and
 @{text "Some :: 'a \<Rightarrow> 'a option"}.
 
 The next example has three type parameters:
-*}
+\<close>
 
     datatype ('a, 'b, 'c) triple = Triple 'a 'b 'c
 
-text {*
+text \<open>
 \noindent
 The constructor is
 @{text "Triple :: 'a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> ('a, 'b, 'c) triple"}.
 Unlike in Standard ML, curried constructors are supported. The uncurried variant
 is also possible:
-*}
+\<close>
 
     datatype ('a, 'b, 'c) triple\<^sub>u = Triple\<^sub>u "'a * 'b * 'c"
 
-text {*
+text \<open>
 \noindent
 Occurrences of nonatomic types on the right-hand side of the equal sign must be
 enclosed in double quotes, as is customary in Isabelle.
-*}
+\<close>
 
 
-subsubsection {* Simple Recursion
-  \label{sssec:datatype-simple-recursion} *}
+subsubsection \<open> Simple Recursion
+  \label{sssec:datatype-simple-recursion} \<close>
 
-text {*
+text \<open>
 Natural numbers are the simplest example of a recursive type:
-*}
+\<close>
 
     datatype nat = Zero | Succ nat
 
-text {*
+text \<open>
 \noindent
 Lists were shown in the introduction. Terminated lists are a variant that
 stores a value of type @{typ 'b} at the very end:
-*}
+\<close>
 
     datatype (*<*)(in early) (*>*)('a, 'b) tlist = TNil 'b | TCons 'a "('a, 'b) tlist"
 
 
-subsubsection {* Mutual Recursion
-  \label{sssec:datatype-mutual-recursion} *}
+subsubsection \<open> Mutual Recursion
+  \label{sssec:datatype-mutual-recursion} \<close>
 
-text {*
+text \<open>
 \emph{Mutually recursive} types are introduced simultaneously and may refer to
 each other. The example below introduces a pair of types for even and odd
 natural numbers:
-*}
+\<close>
 
     datatype even_nat = Even_Zero | Even_Succ odd_nat
     and odd_nat = Odd_Succ even_nat
 
-text {*
+text \<open>
 \noindent
 Arithmetic expressions are defined via terms, terms via factors, and factors via
 expressions:
-*}
+\<close>
 
     datatype ('a, 'b) exp =
       Term "('a, 'b) trm" | Sum "('a, 'b) trm" "('a, 'b) exp"
@@ -260,53 +261,53 @@ expressions:
       Const 'a | Var 'b | Expr "('a, 'b) exp"
 
 
-subsubsection {* Nested Recursion
-  \label{sssec:datatype-nested-recursion} *}
+subsubsection \<open> Nested Recursion
+  \label{sssec:datatype-nested-recursion} \<close>
 
-text {*
+text \<open>
 \emph{Nested recursion} occurs when recursive occurrences of a type appear under
 a type constructor. The introduction showed some examples of trees with nesting
 through lists. A more complex example, that reuses our @{type option} type,
 follows:
-*}
+\<close>
 
     datatype 'a btree =
       BNode 'a "'a btree option" "'a btree option"
 
-text {*
+text \<open>
 \noindent
 Not all nestings are admissible. For example, this command will fail:
-*}
+\<close>
 
     datatype 'a wrong = W1 | W2 (*<*)'a
     typ (*>*)"'a wrong \<Rightarrow> 'a"
 
-text {*
+text \<open>
 \noindent
 The issue is that the function arrow @{text "\<Rightarrow>"} allows recursion
 only through its right-hand side. This issue is inherited by polymorphic
 datatypes defined in terms of~@{text "\<Rightarrow>"}:
-*}
+\<close>
 
     datatype ('a, 'b) fun_copy = Fun "'a \<Rightarrow> 'b"
     datatype 'a also_wrong = W1 | W2 (*<*)'a
     typ (*>*)"('a also_wrong, 'a) fun_copy"
 
-text {*
+text \<open>
 \noindent
 The following definition of @{typ 'a}-branching trees is legal:
-*}
+\<close>
 
     datatype 'a ftree = FTLeaf 'a | FTNode "'a \<Rightarrow> 'a ftree"
 
-text {*
+text \<open>
 \noindent
 And so is the definition of hereditarily finite sets:
-*}
+\<close>
 
     datatype hfset = HFSet "hfset fset"
 
-text {*
+text \<open>
 \noindent
 In general, type constructors @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
 allow recursion on a subset of their type arguments @{text 'a\<^sub>1}, \ldots,
@@ -322,23 +323,23 @@ Section~\ref{sec:registering-bounded-natural-functors} explains how to
 register arbitrary type constructors as BNFs.
 
 Here is another example that fails:
-*}
+\<close>
 
     datatype 'a pow_list = PNil 'a (*<*)'a
     datatype 'a pow_list' = PNil' 'a (*>*)| PCons "('a * 'a) pow_list"
 
-text {*
+text \<open>
 \noindent
 This attempted definition features a different flavor of nesting, where the
 recursive call in the type specification occurs around (rather than inside)
 another type constructor.
-*}
+\<close>
 
 
-subsubsection {* Auxiliary Constants
-  \label{sssec:datatype-auxiliary-constants} *}
+subsubsection \<open> Auxiliary Constants
+  \label{sssec:datatype-auxiliary-constants} \<close>
 
-text {*
+text \<open>
 The @{command datatype} command introduces various constants in addition to
 the constructors. With each datatype are associated set functions, a map
 function, a relator, discriminators, and selectors, all of which can be given
@@ -346,7 +347,7 @@ custom names. In the example below, the familiar names @{text null}, @{text hd},
 @{text tl}, @{text set}, @{text map}, and @{text list_all2} override the
 default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
 @{text set_list}, @{text map_list}, and @{text rel_list}:
-*}
+\<close>
 
 (*<*)
     no_translations
@@ -372,7 +373,7 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
     where
       "tl Nil = Nil"
 
-text {*
+text \<open>
 \noindent
 The types of the constants that appear in the specification are listed below.
 
@@ -423,14 +424,14 @@ constructor and the destructor view in surprising ways.
 
 The usual mixfix syntax annotations are available for both types and
 constructors. For example:
-*}
+\<close>
 
 (*<*)
     end
 (*>*)
     datatype ('a, 'b) prod (infixr "*" 20) = Pair 'a 'b
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     datatype (set: 'a) list =
       null: Nil ("[]")
@@ -439,27 +440,27 @@ text {* \blankline *}
       map: map
       rel: list_all2
 
-text {*
+text \<open>
 \noindent
 Incidentally, this is how the traditional syntax can be set up:
-*}
+\<close>
 
     syntax "_list" :: "args \<Rightarrow> 'a list" ("[(_)]")
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     translations
       "[x, xs]" == "x # [xs]"
       "[x]" == "x # []"
 
 
-subsection {* Command Syntax
-  \label{ssec:datatype-command-syntax} *}
+subsection \<open> Command Syntax
+  \label{ssec:datatype-command-syntax} \<close>
 
-subsubsection {* \keyw{datatype}
-  \label{sssec:datatype-new} *}
+subsubsection \<open> \keyw{datatype}
+  \label{sssec:datatype-new} \<close>
 
-text {*
+text \<open>
 \begin{matharray}{rcl}
   @{command_def "datatype"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
@@ -564,13 +565,13 @@ name for the corresponding selector. The same selector name can be reused for
 arguments to several constructors as long as the arguments share the same type.
 If selectors are enabled (cf.\ the @{text "discs_sels"} option) but no name is
 supplied, the default name is @{text un_C\<^sub>ji}.
-*}
+\<close>
 
 
-subsubsection {* \keyw{datatype_compat}
-  \label{sssec:datatype-compat} *}
+subsubsection \<open> \keyw{datatype_compat}
+  \label{sssec:datatype-compat} \<close>
 
-text {*
+text \<open>
 \begin{matharray}{rcl}
   @{command_def "datatype_compat"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
@@ -584,15 +585,15 @@ text {*
 \noindent
 The @{command datatype_compat} command registers new-style datatypes as
 old-style datatypes and invokes the old-style plugins. For example:
-*}
+\<close>
 
     datatype_compat even_nat odd_nat
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
-    ML {* Old_Datatype_Data.get_info @{theory} @{type_name even_nat} *}
+    ML \<open> Old_Datatype_Data.get_info @{theory} @{type_name even_nat} \<close>
 
-text {*
+text \<open>
 The syntactic entity \synt{name} denotes an identifier @{cite "isabelle-isar-ref"}.
 
 The command is sometimes useful when migrating from the old datatype package to
@@ -614,13 +615,13 @@ premises}---meaning that the subgoals generated by the @{text induct} or
 \item All types through which recursion takes place must be new-style datatypes
 or the function type.
 \end{itemize}
-*}
+\<close>
 
 
-subsection {* Generated Constants
-  \label{ssec:datatype-generated-constants} *}
+subsection \<open> Generated Constants
+  \label{ssec:datatype-generated-constants} \<close>
 
-text {*
+text \<open>
 Given a datatype @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"} with $m$ live type variables
 and $n$ constructors @{text "t.C\<^sub>1"}, \ldots, @{text "t.C\<^sub>n"}, the following
 auxiliary constants are introduced:
@@ -657,13 +658,13 @@ In addition, some of the plugins introduce their own constants
 (Section~\ref{sec:selecting-plugins}). The case combinator, discriminators,
 and selectors are collectively called \emph{destructors}. The prefix
 ``@{text "t."}'' is an optional component of the names and is normally hidden.
-*}
+\<close>
 
 
-subsection {* Generated Theorems
-  \label{ssec:datatype-generated-theorems} *}
+subsection \<open> Generated Theorems
+  \label{ssec:datatype-generated-theorems} \<close>
 
-text {*
+text \<open>
 The characteristic theorems generated by @{command datatype} are grouped in
 three broad categories:
 
@@ -690,27 +691,27 @@ This list includes theorems produced by plugins
 (Section~\ref{sec:selecting-plugins}), but normally excludes low-level
 theorems that reveal internal constructions. To make these accessible, add
 the line
-*}
+\<close>
 
     declare [[bnf_note_all]]
 (*<*)
     declare [[bnf_note_all = false]]
 (*>*)
 
-text {*
+text \<open>
 \noindent
 to the top of the theory file.
-*}
+\<close>
 
 
-subsubsection {* Free Constructor Theorems
-  \label{sssec:free-constructor-theorems} *}
+subsubsection \<open> Free Constructor Theorems
+  \label{sssec:free-constructor-theorems} \<close>
 
 (*<*)
     consts nonnull :: 'a
 (*>*)
 
-text {*
+text \<open>
 The free constructor theorems are partitioned in three subgroups. The first
 subgroup of properties is concerned with the constructors. They are listed below
 for @{typ "'a list"}:
@@ -844,13 +845,13 @@ discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 In addition, equational versions of @{text t.disc} are registered with the
 @{text "[code]"} attribute. The @{text "[code]"} attribute is set by the
 @{text code} plugin (Section~\ref{ssec:code-generator}).
-*}
+\<close>
 
 
-subsubsection {* Functorial Theorems
-  \label{sssec:functorial-theorems} *}
+subsubsection \<open> Functorial Theorems
+  \label{sssec:functorial-theorems} \<close>
 
-text {*
+text \<open>
 The functorial theorems are generated for type constructors with at least
 one live type argument (e.g., @{typ "'a list"}). They are partitioned in two
 subgroups. The first subgroup consists of properties involving the
@@ -1037,13 +1038,13 @@ The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
 
 \end{description}
 \end{indentblock}
-*}
+\<close>
 
 
-subsubsection {* Inductive Theorems
-  \label{sssec:inductive-theorems} *}
+subsubsection \<open> Inductive Theorems
+  \label{sssec:inductive-theorems} \<close>
 
-text {*
+text \<open>
 The inductive theorems are as follows:
 
 \begin{indentblock}
@@ -1090,17 +1091,33 @@ For convenience, @{command datatype} also provides the following collection:
 
 \end{description}
 \end{indentblock}
-*}
+\<close>
 
 
-subsection {* Compatibility Issues
-  \label{ssec:datatype-compatibility-issues} *}
+subsection \<open> Proof Method
+  \label{ssec:datatype-proof-method} \<close>
 
-text {*
-The command @{command datatype} has been designed to be highly compatible
-with the old command (which is now called \keyw{old_datatype}), to ease
-migration. There are nonetheless a few incompatibilities that may arise when
-porting:
+subsubsection \<open> \textit{countable_datatype}
+  \label{sssec:datatype-compat} \<close>
+
+text \<open>
+The theory @{file "~~/src/HOL/Library/Countable.thy"} provides a
+proof method called @{text countable_datatype} that can be used to prove the
+countability of many datatypes, building on the countability of the types
+appearing in their definitions and of any type arguments. For example:
+\<close>
+
+    instance list :: (countable) countable
+      by countable_datatype
+
+
+subsection \<open> Compatibility Issues
+  \label{ssec:datatype-compatibility-issues} \<close>
+
+text \<open>
+The command @{command datatype} has been designed to be highly compatible with
+the old command, to ease migration. There are nonetheless a few
+incompatibilities that may arise when porting:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -1132,14 +1149,14 @@ all_mem_range]"} attribute on @{text t.induct}.
 \item \emph{The @{const size} function has a slightly different definition.}
 The new function returns @{text 1} instead of @{text 0} for some nonrecursive
 constructors. This departure from the old behavior made it possible to implement
-@{const size} in terms of the generic function @{text "t.size_t"}.
-Moreover, the new function considers nested occurrences of a value, in the nested
+@{const size} in terms of the generic function @{text "t.size_t"}. Moreover,
+the new function considers nested occurrences of a value, in the nested
 recursive case. The old behavior can be obtained by disabling the @{text size}
 plugin (Section~\ref{sec:selecting-plugins}) and instantiating the
 @{text size} type class manually.
 
 \item \emph{The internal constructions are completely different.} Proof texts
-that unfold the definition of constants introduced by \keyw{old_datatype} will
+that unfold the definition of constants introduced by the old command will
 be difficult to port.
 
 \item \emph{Some constants and theorems have different names.}
@@ -1147,9 +1164,9 @@ For non-mutually recursive datatypes,
 the alias @{text t.inducts} for @{text t.induct} is no longer generated.
 For $m > 1$ mutually recursive datatypes,
 @{text "rec_t\<^sub>1_\<dots>_t\<^sub>m_i"} has been renamed
-@{text "rec_t\<^sub>i"} for each @{text "i \<in> {1, \<dots>, t}"},
+@{text "rec_t\<^sub>i"} for each @{text "i \<in> {1, \<dots>, m}"},
 @{text "t\<^sub>1_\<dots>_t\<^sub>m.inducts(i)"} has been renamed
-@{text "t\<^sub>i.induct"} for each @{text "i \<in> {1, \<dots>, t}"}, and the
+@{text "t\<^sub>i.induct"} for each @{text "i \<in> {1, \<dots>, m}"}, and the
 collection @{text "t\<^sub>1_\<dots>_t\<^sub>m.size"} (generated by the
 @{text size} plugin, Section~\ref{ssec:size}) has been divided into
 @{text "t\<^sub>1.size"}, \ldots, @{text "t\<^sub>m.size"}.
@@ -1163,90 +1180,91 @@ rarely an issue, except in proof texts that refer to variable names in the
 @{text "[of \<dots>]"} syntax.
 \end{itemize}
 
-In the other direction, there is currently no way to register old-style
-datatypes as new-style datatypes. If the goal is to define new-style datatypes
-with nested recursion through old-style datatypes, the old-style
-datatypes can be registered as a BNF
-(Section~\ref{sec:registering-bounded-natural-functors}). If the goal is
+The old command is still available as \keyw{old_datatype} in theory
+@{file "~~/src/HOL/Library/Old_Datatype.thy"}. However, there is no general
+way to register old-style datatypes as new-style datatypes. If the objective
+is to define new-style datatypes with nested recursion through old-style
+datatypes, the old-style datatypes can be registered as a BNF
+(Section~\ref{sec:registering-bounded-natural-functors}). If the objective is
 to derive discriminators and selectors, this can be achieved using
 @{command free_constructors}
 (Section~\ref{sec:deriving-destructors-and-theorems-for-free-constructors}).
-*}
+\<close>
 
 
-section {* Defining Primitively Recursive Functions
-  \label{sec:defining-primitively-recursive-functions} *}
+section \<open> Defining Primitively Recursive Functions
+  \label{sec:defining-primitively-recursive-functions} \<close>
 
-text {*
+text \<open>
 Recursive functions over datatypes can be specified using the @{command primrec}
 command, which supports primitive recursion, or using the more general
 \keyw{fun}, \keyw{function}, and \keyw{partial_function} commands. In this
 tutorial, the focus is on @{command primrec}; \keyw{fun} and \keyw{function} are
 described in a separate tutorial @{cite "isabelle-function"}.
-*}
+\<close>
 
 
-subsection {* Introductory Examples
-  \label{ssec:primrec-introductory-examples} *}
+subsection \<open> Introductory Examples
+  \label{ssec:primrec-introductory-examples} \<close>
 
-text {*
+text \<open>
 Primitive recursion is illustrated through concrete examples based on the
 datatypes defined in Section~\ref{ssec:datatype-introductory-examples}. More
 examples can be found in the directory @{file "~~/src/HOL/Datatype_Examples"}.
-*}
+\<close>
 
 
-subsubsection {* Nonrecursive Types
-  \label{sssec:primrec-nonrecursive-types} *}
+subsubsection \<open> Nonrecursive Types
+  \label{sssec:primrec-nonrecursive-types} \<close>
 
-text {*
+text \<open>
 Primitive recursion removes one layer of constructors on the left-hand side in
 each equation. For example:
-*}
+\<close>
 
     primrec (nonexhaustive) bool_of_trool :: "trool \<Rightarrow> bool" where
-      "bool_of_trool Faalse \<longleftrightarrow> False" |
-      "bool_of_trool Truue \<longleftrightarrow> True"
+      "bool_of_trool Faalse \<longleftrightarrow> False"
+    | "bool_of_trool Truue \<longleftrightarrow> True"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primrec the_list :: "'a option \<Rightarrow> 'a list" where
-      "the_list None = []" |
-      "the_list (Some a) = [a]"
+      "the_list None = []"
+    | "the_list (Some a) = [a]"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primrec the_default :: "'a \<Rightarrow> 'a option \<Rightarrow> 'a" where
-      "the_default d None = d" |
-      "the_default _ (Some a) = a"
+      "the_default d None = d"
+    | "the_default _ (Some a) = a"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primrec mirrror :: "('a, 'b, 'c) triple \<Rightarrow> ('c, 'b, 'a) triple" where
       "mirrror (Triple a b c) = Triple c b a"
 
-text {*
+text \<open>
 \noindent
 The equations can be specified in any order, and it is acceptable to leave out
 some cases, which are then unspecified. Pattern matching on the left-hand side
 is restricted to a single datatype, which must correspond to the same argument
 in all equations.
-*}
+\<close>
 
 
-subsubsection {* Simple Recursion
-  \label{sssec:primrec-simple-recursion} *}
+subsubsection \<open> Simple Recursion
+  \label{sssec:primrec-simple-recursion} \<close>
 
-text {*
+text \<open>
 For simple recursive types, recursive calls on a constructor argument are
 allowed on the right-hand side:
-*}
+\<close>
 
     primrec replicate :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
-      "replicate Zero _ = []" |
-      "replicate (Succ n) x = x # replicate n x"
+      "replicate Zero _ = []"
+    | "replicate (Succ n) x = x # replicate n x"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primrec (nonexhaustive) at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
       "at (x # xs) j =
@@ -1254,91 +1272,91 @@ text {* \blankline *}
             Zero \<Rightarrow> x
           | Succ j' \<Rightarrow> at xs j')"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primrec (*<*)(in early) (transfer) (*>*)tfold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) tlist \<Rightarrow> 'b" where
-      "tfold _ (TNil y) = y" |
-      "tfold f (TCons x xs) = f x (tfold f xs)"
+      "tfold _ (TNil y) = y"
+    | "tfold f (TCons x xs) = f x (tfold f xs)"
 
-text {*
+text \<open>
 \noindent
 Pattern matching is only available for the argument on which the recursion takes
 place. Fortunately, it is easy to generate pattern-maching equations using the
-\keyw{simps_of_case} command provided by the theory
+@{command simps_of_case} command provided by the theory
 @{file "~~/src/HOL/Library/Simps_Case_Conv.thy"}.
-*}
+\<close>
 
-    simps_of_case at_simps: at.simps
+    simps_of_case at_simps_alt: at.simps
 
-text {*
-This generates the lemma collection @{thm [source] at_simps}:
+text \<open>
+This generates the lemma collection @{thm [source] at_simps_alt}:
 %
-\[@{thm at_simps(1)[no_vars]}
-  \qquad @{thm at_simps(2)[no_vars]}\]
+\[@{thm at_simps_alt(1)[no_vars]}
+  \qquad @{thm at_simps_alt(2)[no_vars]}\]
 %
 The next example is defined using \keyw{fun} to escape the syntactic
 restrictions imposed on primitively recursive functions:
-*}
+\<close>
 
     fun at_least_two :: "nat \<Rightarrow> bool" where
-      "at_least_two (Succ (Succ _)) \<longleftrightarrow> True" |
-      "at_least_two _ \<longleftrightarrow> False"
+      "at_least_two (Succ (Succ _)) \<longleftrightarrow> True"
+    | "at_least_two _ \<longleftrightarrow> False"
 
 
-subsubsection {* Mutual Recursion
-  \label{sssec:primrec-mutual-recursion} *}
+subsubsection \<open> Mutual Recursion
+  \label{sssec:primrec-mutual-recursion} \<close>
 
-text {*
+text \<open>
 The syntax for mutually recursive functions over mutually recursive datatypes
 is straightforward:
-*}
+\<close>
 
     primrec
       nat_of_even_nat :: "even_nat \<Rightarrow> nat" and
       nat_of_odd_nat :: "odd_nat \<Rightarrow> nat"
     where
-      "nat_of_even_nat Even_Zero = Zero" |
-      "nat_of_even_nat (Even_Succ n) = Succ (nat_of_odd_nat n)" |
-      "nat_of_odd_nat (Odd_Succ n) = Succ (nat_of_even_nat n)"
+      "nat_of_even_nat Even_Zero = Zero"
+    | "nat_of_even_nat (Even_Succ n) = Succ (nat_of_odd_nat n)"
+    | "nat_of_odd_nat (Odd_Succ n) = Succ (nat_of_even_nat n)"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primrec
       eval\<^sub>e :: "('a \<Rightarrow> int) \<Rightarrow> ('b \<Rightarrow> int) \<Rightarrow> ('a, 'b) exp \<Rightarrow> int" and
       eval\<^sub>t :: "('a \<Rightarrow> int) \<Rightarrow> ('b \<Rightarrow> int) \<Rightarrow> ('a, 'b) trm \<Rightarrow> int" and
       eval\<^sub>f :: "('a \<Rightarrow> int) \<Rightarrow> ('b \<Rightarrow> int) \<Rightarrow> ('a, 'b) fct \<Rightarrow> int"
     where
-      "eval\<^sub>e \<gamma> \<xi> (Term t) = eval\<^sub>t \<gamma> \<xi> t" |
-      "eval\<^sub>e \<gamma> \<xi> (Sum t e) = eval\<^sub>t \<gamma> \<xi> t + eval\<^sub>e \<gamma> \<xi> e" |
-      "eval\<^sub>t \<gamma> \<xi> (Factor f) = eval\<^sub>f \<gamma> \<xi> f" |
-      "eval\<^sub>t \<gamma> \<xi> (Prod f t) = eval\<^sub>f \<gamma> \<xi> f + eval\<^sub>t \<gamma> \<xi> t" |
-      "eval\<^sub>f \<gamma> _ (Const a) = \<gamma> a" |
-      "eval\<^sub>f _ \<xi> (Var b) = \<xi> b" |
-      "eval\<^sub>f \<gamma> \<xi> (Expr e) = eval\<^sub>e \<gamma> \<xi> e"
+      "eval\<^sub>e \<gamma> \<xi> (Term t) = eval\<^sub>t \<gamma> \<xi> t"
+    | "eval\<^sub>e \<gamma> \<xi> (Sum t e) = eval\<^sub>t \<gamma> \<xi> t + eval\<^sub>e \<gamma> \<xi> e"
+    | "eval\<^sub>t \<gamma> \<xi> (Factor f) = eval\<^sub>f \<gamma> \<xi> f"
+    | "eval\<^sub>t \<gamma> \<xi> (Prod f t) = eval\<^sub>f \<gamma> \<xi> f + eval\<^sub>t \<gamma> \<xi> t"
+    | "eval\<^sub>f \<gamma> _ (Const a) = \<gamma> a"
+    | "eval\<^sub>f _ \<xi> (Var b) = \<xi> b"
+    | "eval\<^sub>f \<gamma> \<xi> (Expr e) = eval\<^sub>e \<gamma> \<xi> e"
 
-text {*
+text \<open>
 \noindent
 Mutual recursion is possible within a single type, using \keyw{fun}:
-*}
+\<close>
 
     fun
       even :: "nat \<Rightarrow> bool" and
       odd :: "nat \<Rightarrow> bool"
     where
-      "even Zero = True" |
-      "even (Succ n) = odd n" |
-      "odd Zero = False" |
-      "odd (Succ n) = even n"
+      "even Zero = True"
+    | "even (Succ n) = odd n"
+    | "odd Zero = False"
+    | "odd (Succ n) = even n"
 
 
-subsubsection {* Nested Recursion
-  \label{sssec:primrec-nested-recursion} *}
+subsubsection \<open> Nested Recursion
+  \label{sssec:primrec-nested-recursion} \<close>
 
-text {*
+text \<open>
 In a departure from the old datatype package, nested recursion is normally
 handled via the map functions of the nesting type constructors. For example,
 recursive calls are lifted to lists using @{const map}:
-*}
+\<close>
 
 (*<*)
     datatype 'a tree\<^sub>f\<^sub>f = Node\<^sub>f\<^sub>f (lbl\<^sub>f\<^sub>f: 'a) (sub\<^sub>f\<^sub>f: "'a tree\<^sub>f\<^sub>f list")
@@ -1349,86 +1367,86 @@ recursive calls are lifted to lists using @{const map}:
             [] \<Rightarrow> a
           | j # js' \<Rightarrow> at (map (\<lambda>t. at\<^sub>f\<^sub>f t js') ts) j)"
 
-text {*
+text \<open>
 \noindent
 The next example features recursion through the @{text option} type. Although
 @{text option} is not a new-style datatype, it is registered as a BNF with the
 map function @{const map_option}:
-*}
+\<close>
 
     primrec (*<*)(in early) (*>*)sum_btree :: "('a::{zero,plus}) btree \<Rightarrow> 'a" where
       "sum_btree (BNode a lt rt) =
          a + the_default 0 (map_option sum_btree lt) +
            the_default 0 (map_option sum_btree rt)"
 
-text {*
+text \<open>
 \noindent
 The same principle applies for arbitrary type constructors through which
 recursion is possible. Notably, the map function for the function type
 (@{text \<Rightarrow>}) is simply composition (@{text "op \<circ>"}):
-*}
+\<close>
 
     primrec (*<*)(in early) (*>*)relabel_ft :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
-      "relabel_ft f (FTLeaf x) = FTLeaf (f x)" |
-      "relabel_ft f (FTNode g) = FTNode (relabel_ft f \<circ> g)"
+      "relabel_ft f (FTLeaf x) = FTLeaf (f x)"
+    | "relabel_ft f (FTNode g) = FTNode (relabel_ft f \<circ> g)"
 
-text {*
+text \<open>
 \noindent
 For convenience, recursion through functions can also be expressed using
 $\lambda$-abstractions and function application rather than through composition.
 For example:
-*}
+\<close>
 
     primrec relabel_ft :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
-      "relabel_ft f (FTLeaf x) = FTLeaf (f x)" |
-      "relabel_ft f (FTNode g) = FTNode (\<lambda>x. relabel_ft f (g x))"
+      "relabel_ft f (FTLeaf x) = FTLeaf (f x)"
+    | "relabel_ft f (FTNode g) = FTNode (\<lambda>x. relabel_ft f (g x))"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primrec (nonexhaustive) subtree_ft :: "'a \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
       "subtree_ft x (FTNode g) = g x"
 
-text {*
+text \<open>
 \noindent
 For recursion through curried $n$-ary functions, $n$ applications of
 @{term "op \<circ>"} are necessary. The examples below illustrate the case where
 $n = 2$:
-*}
+\<close>
 
     datatype 'a ftree2 = FTLeaf2 'a | FTNode2 "'a \<Rightarrow> 'a \<Rightarrow> 'a ftree2"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primrec (*<*)(in early) (*>*)relabel_ft2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
-      "relabel_ft2 f (FTLeaf2 x) = FTLeaf2 (f x)" |
-      "relabel_ft2 f (FTNode2 g) = FTNode2 (op \<circ> (op \<circ> (relabel_ft2 f)) g)"
+      "relabel_ft2 f (FTLeaf2 x) = FTLeaf2 (f x)"
+    | "relabel_ft2 f (FTNode2 g) = FTNode2 (op \<circ> (op \<circ> (relabel_ft2 f)) g)"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primrec relabel_ft2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
-      "relabel_ft2 f (FTLeaf2 x) = FTLeaf2 (f x)" |
-      "relabel_ft2 f (FTNode2 g) = FTNode2 (\<lambda>x y. relabel_ft2 f (g x y))"
+      "relabel_ft2 f (FTLeaf2 x) = FTLeaf2 (f x)"
+    | "relabel_ft2 f (FTNode2 g) = FTNode2 (\<lambda>x y. relabel_ft2 f (g x y))"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primrec (nonexhaustive) subtree_ft2 :: "'a \<Rightarrow> 'a \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
       "subtree_ft2 x y (FTNode2 g) = g x y"
 
 
-subsubsection {* Nested-as-Mutual Recursion
-  \label{sssec:primrec-nested-as-mutual-recursion} *}
+subsubsection \<open> Nested-as-Mutual Recursion
+  \label{sssec:primrec-nested-as-mutual-recursion} \<close>
 
 (*<*)
     locale n2m
     begin
 (*>*)
 
-text {*
+text \<open>
 For compatibility with the old package, but also because it is sometimes
 convenient in its own right, it is possible to treat nested recursive datatypes
 as mutually recursive ones if the recursion takes place though new-style
 datatypes. For example:
-*}
+\<close>
 
     primrec (nonexhaustive)
       at\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f \<Rightarrow> nat list \<Rightarrow> 'a" and
@@ -1437,13 +1455,13 @@ datatypes. For example:
       "at\<^sub>f\<^sub>f (Node\<^sub>f\<^sub>f a ts) js =
          (case js of
             [] \<Rightarrow> a
-          | j # js' \<Rightarrow> ats\<^sub>f\<^sub>f ts j js')" |
-      "ats\<^sub>f\<^sub>f (t # ts) j =
+          | j # js' \<Rightarrow> ats\<^sub>f\<^sub>f ts j js')"
+    | "ats\<^sub>f\<^sub>f (t # ts) j =
          (case j of
             Zero \<Rightarrow> at\<^sub>f\<^sub>f t
           | Succ j' \<Rightarrow> ats\<^sub>f\<^sub>f ts j')"
 
-text {*
+text \<open>
 \noindent
 Appropriate induction rules are generated as
 @{thm [source] at\<^sub>f\<^sub>f.induct},
@@ -1453,18 +1471,18 @@ induction rules and the underlying recursors are generated on a per-need basis
 and are kept in a cache to speed up subsequent definitions.
 
 Here is a second example:
-*}
+\<close>
 
     primrec
       sum_btree :: "('a::{zero,plus}) btree \<Rightarrow> 'a" and
       sum_btree_option :: "'a btree option \<Rightarrow> 'a"
     where
       "sum_btree (BNode a lt rt) =
-         a + sum_btree_option lt + sum_btree_option rt" |
-      "sum_btree_option None = 0" |
-      "sum_btree_option (Some t) = sum_btree t"
+         a + sum_btree_option lt + sum_btree_option rt"
+    | "sum_btree_option None = 0"
+    | "sum_btree_option (Some t) = sum_btree t"
 
-text {*
+text \<open>
 %  * can pretend a nested type is mutually recursive (if purely inductive)
 %  * avoids the higher-order map
 %  * e.g.
@@ -1491,19 +1509,19 @@ text {*
 %
 %  * impact on automation unclear
 %
-*}
+\<close>
 (*<*)
     end
 (*>*)
 
 
-subsection {* Command Syntax
-  \label{ssec:primrec-command-syntax} *}
+subsection \<open> Command Syntax
+  \label{ssec:primrec-command-syntax} \<close>
 
-subsubsection {* \keyw{primrec}
-  \label{sssec:primrec-new} *}
+subsubsection \<open> \keyw{primrec}
+  \label{sssec:primrec-new} \<close>
 
-text {*
+text \<open>
 \begin{matharray}{rcl}
   @{command_def "primrec"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
@@ -1551,18 +1569,18 @@ should be generated and proved @{text "by transfer_prover"}. The
 
 %%% TODO: elaborate on format of the equations
 %%% TODO: elaborate on mutual and nested-to-mutual
-*}
+\<close>
 
 
-subsection {* Generated Theorems
-  \label{ssec:primrec-generated-theorems} *}
+subsection \<open> Generated Theorems
+  \label{ssec:primrec-generated-theorems} \<close>
 
 (*<*)
     context early
     begin
 (*>*)
 
-text {*
+text \<open>
 The @{command primrec} command generates the following properties (listed
 for @{const tfold}):
 
@@ -1593,17 +1611,17 @@ simultaneously.
 
 \end{description}
 \end{indentblock}
-*}
+\<close>
 
 (*<*)
     end
 (*>*)
 
 
-subsection {* Recursive Default Values for Selectors
-  \label{ssec:primrec-recursive-default-values-for-selectors} *}
+subsection \<open> Recursive Default Values for Selectors
+  \label{ssec:primrec-recursive-default-values-for-selectors} \<close>
 
-text {*
+text \<open>
 A datatype selector @{text un_D} can have a default value for each constructor
 on which it is not otherwise specified. Occasionally, it is useful to have the
 default value be defined recursively. This leads to a chicken-and-egg
@@ -1637,14 +1655,14 @@ for @{text "un_D\<^sub>0"}.
 
 \noindent
 The following example illustrates this procedure:
-*}
+\<close>
 
 (*<*)
     hide_const termi
 (*>*)
     consts termi\<^sub>0 :: 'a
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     datatype ('a, 'b) tlist =
       TNil (termi: 'b)
@@ -1653,26 +1671,26 @@ text {* \blankline *}
       "ttl (TNil y) = TNil y"
     | "termi (TCons _ xs) = termi\<^sub>0 xs"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     overloading
       termi\<^sub>0 \<equiv> "termi\<^sub>0 :: ('a, 'b) tlist \<Rightarrow> 'b"
     begin
     primrec termi\<^sub>0 :: "('a, 'b) tlist \<Rightarrow> 'b" where
-      "termi\<^sub>0 (TNil y) = y" |
-      "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
+      "termi\<^sub>0 (TNil y) = y"
+    | "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
     end
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     lemma termi_TCons[simp]: "termi (TCons x xs) = termi xs"
       by (cases xs) auto
 
 
-subsection {* Compatibility Issues
-  \label{ssec:primrec-compatibility-issues} *}
+subsection \<open> Compatibility Issues
+  \label{ssec:primrec-compatibility-issues} \<close>
 
-text {*
+text \<open>
 The command @{command primrec}'s behavior on new-style datatypes has been
 designed to be highly compatible with that for old-style datatypes, to ease
 migration. There is nonetheless at least one incompatibility that may arise when
@@ -1686,34 +1704,34 @@ For $m > 1$ mutually recursive functions,
 @{text "f\<^sub>1_\<dots>_f\<^sub>m.simps"} has been broken down into separate
 subcollections @{text "f\<^sub>i.simps"}.
 \end{itemize}
-*}
+\<close>
 
 
-section {* Defining Codatatypes
-  \label{sec:defining-codatatypes} *}
+section \<open> Defining Codatatypes
+  \label{sec:defining-codatatypes} \<close>
 
-text {*
+text \<open>
 Codatatypes can be specified using the @{command codatatype} command. The
 command is first illustrated through concrete examples featuring different
 flavors of corecursion. More examples can be found in the directory
 @{file "~~/src/HOL/Datatype_Examples"}. The \emph{Archive of Formal Proofs} also
 includes some useful codatatypes, notably for lazy lists @{cite
 "lochbihler-2010"}.
-*}
+\<close>
 
 
-subsection {* Introductory Examples
-  \label{ssec:codatatype-introductory-examples} *}
+subsection \<open> Introductory Examples
+  \label{ssec:codatatype-introductory-examples} \<close>
 
-subsubsection {* Simple Corecursion
-  \label{sssec:codatatype-simple-corecursion} *}
+subsubsection \<open> Simple Corecursion
+  \label{sssec:codatatype-simple-corecursion} \<close>
 
-text {*
+text \<open>
 Non-corecursive codatatypes coincide with the corresponding datatypes, so they
 are rarely used in practice. \emph{Corecursive codatatypes} have the same syntax
 as recursive datatypes, except for the command name. For example, here is the
 definition of lazy lists:
-*}
+\<close>
 
     codatatype (lset: 'a) llist =
       lnull: LNil
@@ -1724,12 +1742,12 @@ definition of lazy lists:
     where
       "ltl LNil = LNil"
 
-text {*
+text \<open>
 \noindent
 Lazy lists can be infinite, such as @{text "LCons 0 (LCons 0 (\<dots>))"} and
 @{text "LCons 0 (LCons 1 (LCons 2 (\<dots>)))"}. Here is a related type, that of
 infinite streams:
-*}
+\<close>
 
     codatatype (sset: 'a) stream =
       SCons (shd: 'a) (stl: "'a stream")
@@ -1737,22 +1755,22 @@ infinite streams:
       map: smap
       rel: stream_all2
 
-text {*
+text \<open>
 \noindent
 Another interesting type that can
 be defined as a codatatype is that of the extended natural numbers:
-*}
+\<close>
 
     codatatype enat = EZero | ESucc enat
 
-text {*
+text \<open>
 \noindent
 This type has exactly one infinite element, @{text "ESucc (ESucc (ESucc (\<dots>)))"},
 that represents $\infty$. In addition, it has finite values of the form
 @{text "ESucc (\<dots> (ESucc EZero)\<dots>)"}.
 
 Here is an example with many constructors:
-*}
+\<close>
 
     codatatype 'a process =
       Fail
@@ -1760,51 +1778,51 @@ Here is an example with many constructors:
     | Action (prefix: 'a) (cont: "'a process")
     | Choice (left: "'a process") (right: "'a process")
 
-text {*
+text \<open>
 \noindent
 Notice that the @{const cont} selector is associated with both @{const Skip}
 and @{const Action}.
-*}
+\<close>
 
 
-subsubsection {* Mutual Corecursion
-  \label{sssec:codatatype-mutual-corecursion} *}
+subsubsection \<open> Mutual Corecursion
+  \label{sssec:codatatype-mutual-corecursion} \<close>
 
-text {*
+text \<open>
 \noindent
 The example below introduces a pair of \emph{mutually corecursive} types:
-*}
+\<close>
 
     codatatype even_enat = Even_EZero | Even_ESucc odd_enat
     and odd_enat = Odd_ESucc even_enat
 
 
-subsubsection {* Nested Corecursion
-  \label{sssec:codatatype-nested-corecursion} *}
+subsubsection \<open> Nested Corecursion
+  \label{sssec:codatatype-nested-corecursion} \<close>
 
-text {*
+text \<open>
 \noindent
 The next examples feature \emph{nested corecursion}:
-*}
+\<close>
 
     codatatype 'a tree\<^sub>i\<^sub>i = Node\<^sub>i\<^sub>i (lbl\<^sub>i\<^sub>i: 'a) (sub\<^sub>i\<^sub>i: "'a tree\<^sub>i\<^sub>i llist")
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     codatatype 'a tree\<^sub>i\<^sub>s = Node\<^sub>i\<^sub>s (lbl\<^sub>i\<^sub>s: 'a) (sub\<^sub>i\<^sub>s: "'a tree\<^sub>i\<^sub>s fset")
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     codatatype 'a sm = SM (accept: bool) (trans: "'a \<Rightarrow> 'a sm")
 
 
-subsection {* Command Syntax
-  \label{ssec:codatatype-command-syntax} *}
+subsection \<open> Command Syntax
+  \label{ssec:codatatype-command-syntax} \<close>
 
-subsubsection {* \keyw{codatatype}
-  \label{sssec:codatatype} *}
+subsubsection \<open> \keyw{codatatype}
+  \label{sssec:codatatype} \<close>
 
-text {*
+text \<open>
 \begin{matharray}{rcl}
   @{command_def "codatatype"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
@@ -1820,13 +1838,13 @@ Definitions of codatatypes have almost exactly the same syntax as for datatypes
 (Section~\ref{ssec:datatype-command-syntax}). The @{text "discs_sels"} option
 is superfluous because discriminators and selectors are always generated for
 codatatypes.
-*}
+\<close>
 
 
-subsection {* Generated Constants
-  \label{ssec:codatatype-generated-constants} *}
+subsection \<open> Generated Constants
+  \label{ssec:codatatype-generated-constants} \<close>
 
-text {*
+text \<open>
 Given a codatatype @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
 with $m > 0$ live type variables and $n$ constructors @{text "t.C\<^sub>1"},
 \ldots, @{text "t.C\<^sub>n"}, the same auxiliary constants are generated as for
@@ -1839,13 +1857,13 @@ recursor is replaced by a dual concept:
 Corecursor: &
   @{text t.corec_t}
 \end{tabular}
-*}
+\<close>
 
 
-subsection {* Generated Theorems
-  \label{ssec:codatatype-generated-theorems} *}
+subsection \<open> Generated Theorems
+  \label{ssec:codatatype-generated-theorems} \<close>
 
-text {*
+text \<open>
 The characteristic theorems generated by @{command codatatype} are grouped in
 three broad categories:
 
@@ -1866,13 +1884,13 @@ are properties of datatypes related to their coinductive nature.
 
 \noindent
 The first two categories are exactly as for datatypes.
-*}
+\<close>
 
 
-subsubsection {* Coinductive Theorems
-  \label{sssec:coinductive-theorems} *}
+subsubsection \<open> Coinductive Theorems
+  \label{sssec:coinductive-theorems} \<close>
 
-text {*
+text \<open>
 The coinductive theorems are listed below for @{typ "'a llist"}:
 
 \begin{indentblock}
@@ -1958,13 +1976,13 @@ For convenience, @{command codatatype} also provides the following collection:
 
 \end{description}
 \end{indentblock}
-*}
+\<close>
 
 
-section {* Defining Primitively Corecursive Functions
-  \label{sec:defining-primitively-corecursive-functions} *}
+section \<open> Defining Primitively Corecursive Functions
+  \label{sec:defining-primitively-corecursive-functions} \<close>
 
-text {*
+text \<open>
 Corecursive functions can be specified using the @{command primcorec} and
 \keyw{prim\-corec\-ursive} commands, which support primitive corecursion.
 Other approaches include the more general \keyw{partial_function} command, the
@@ -2007,40 +2025,40 @@ characteristic theorems for all three styles are generated.
 
 %%% TODO: partial_function? E.g. for defining tail recursive function on lazy
 %%% lists (cf. terminal0 in TLList.thy)
-*}
+\<close>
 
 
-subsection {* Introductory Examples
-  \label{ssec:primcorec-introductory-examples} *}
+subsection \<open> Introductory Examples
+  \label{ssec:primcorec-introductory-examples} \<close>
 
-text {*
+text \<open>
 Primitive corecursion is illustrated through concrete examples based on the
 codatatypes defined in Section~\ref{ssec:codatatype-introductory-examples}. More
 examples can be found in the directory @{file "~~/src/HOL/Datatype_Examples"}.
 The code view is favored in the examples below. Sections
 \ref{ssec:primrec-constructor-view} and \ref{ssec:primrec-destructor-view}
 present the same examples expressed using the constructor and destructor views.
-*}
+\<close>
 
 
-subsubsection {* Simple Corecursion
-  \label{sssec:primcorec-simple-corecursion} *}
+subsubsection \<open> Simple Corecursion
+  \label{sssec:primcorec-simple-corecursion} \<close>
 
-text {*
+text \<open>
 Following the code view, corecursive calls are allowed on the right-hand side as
 long as they occur under a constructor, which itself appears either directly to
 the right of the equal sign or in a conditional expression:
-*}
+\<close>
 
     primcorec (*<*)(transfer) (*>*)literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
       "literate g x = LCons x (literate g (g x))"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
       "siterate g x = SCons x (siterate g (g x))"
 
-text {*
+text \<open>
 \noindent
 The constructor ensures that progress is made---i.e., the function is
 \emph{productive}. The above functions compute the infinite lazy list or stream
@@ -2052,55 +2070,53 @@ times.
 Corecursive functions construct codatatype values, but nothing prevents them
 from also consuming such values. The following function drops every second
 element in a stream:
-*}
+\<close>
 
     primcorec every_snd :: "'a stream \<Rightarrow> 'a stream" where
       "every_snd s = SCons (shd s) (stl (stl s))"
 
-text {*
+text \<open>
 \noindent
 Constructs such as @{text "let"}--@{text "in"}, @{text
 "if"}--@{text "then"}--@{text "else"}, and @{text "case"}--@{text "of"} may
 appear around constructors that guard corecursive calls:
-*}
+\<close>
 
-    primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
-      "lappend xs ys =
+    primcorec lapp :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
+      "lapp xs ys =
          (case xs of
             LNil \<Rightarrow> ys
-          | LCons x xs' \<Rightarrow> LCons x (lappend xs' ys))"
+          | LCons x xs' \<Rightarrow> LCons x (lapp xs' ys))"
 
-text {*
+text \<open>
 \noindent
 Pattern matching is not supported by @{command primcorec}. Fortunately, it is
-easy to generate pattern-maching equations using the \keyw{simps_of_case}
+easy to generate pattern-maching equations using the @{command simps_of_case}
 command provided by the theory @{file "~~/src/HOL/Library/Simps_Case_Conv.thy"}.
-*}
+\<close>
 
-    simps_of_case lappend_simps: lappend.code
+    simps_of_case lapp_simps: lapp.code
 
-text {*
-This generates the lemma collection @{thm [source] lappend_simps}:
+text \<open>
+This generates the lemma collection @{thm [source] lapp_simps}:
 %
-\begin{gather*%
-}
-  @{thm lappend_simps(1)[no_vars]} \\
-  @{thm lappend_simps(2)[no_vars]}
-\end{gather*%
-}
+\begin{gather*}
+  @{thm lapp_simps(1)[no_vars]} \\
+  @{thm lapp_simps(2)[no_vars]}
+\end{gather*}
 %
 Corecursion is useful to specify not only functions but also infinite objects:
-*}
+\<close>
 
     primcorec infty :: enat where
       "infty = ESucc infty"
 
-text {*
+text \<open>
 \noindent
 The example below constructs a pseudorandom process value. It takes a stream of
 actions (@{text s}), a pseudorandom function generator (@{text f}), and a
 pseudorandom seed (@{text n}):
-*}
+\<close>
 
 (*<*)
     context early
@@ -2123,50 +2139,50 @@ pseudorandom seed (@{text n}):
     end
 (*>*)
 
-text {*
+text \<open>
 \noindent
 The main disadvantage of the code view is that the conditions are tested
 sequentially. This is visible in the generated theorems. The constructor and
 destructor views offer nonsequential alternatives.
-*}
+\<close>
 
 
-subsubsection {* Mutual Corecursion
-  \label{sssec:primcorec-mutual-corecursion} *}
+subsubsection \<open> Mutual Corecursion
+  \label{sssec:primcorec-mutual-corecursion} \<close>
 
-text {*
+text \<open>
 The syntax for mutually corecursive functions over mutually corecursive
 datatypes is unsurprising:
-*}
+\<close>
 
     primcorec
       even_infty :: even_enat and
       odd_infty :: odd_enat
     where
-      "even_infty = Even_ESucc odd_infty" |
-      "odd_infty = Odd_ESucc even_infty"
+      "even_infty = Even_ESucc odd_infty"
+    | "odd_infty = Odd_ESucc even_infty"
 
 
-subsubsection {* Nested Corecursion
-  \label{sssec:primcorec-nested-corecursion} *}
+subsubsection \<open> Nested Corecursion
+  \label{sssec:primcorec-nested-corecursion} \<close>
 
-text {*
+text \<open>
 The next pair of examples generalize the @{const literate} and @{const siterate}
 functions (Section~\ref{sssec:primcorec-nested-corecursion}) to possibly
 infinite trees in which subnodes are organized either as a lazy list (@{text
 tree\<^sub>i\<^sub>i}) or as a finite set (@{text tree\<^sub>i\<^sub>s}). They rely on the map functions of
 the nesting type constructors to lift the corecursive calls:
-*}
+\<close>
 
     primcorec iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
       "iterate\<^sub>i\<^sub>i g x = Node\<^sub>i\<^sub>i x (lmap (iterate\<^sub>i\<^sub>i g) (g x))"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primcorec iterate\<^sub>i\<^sub>s :: "('a \<Rightarrow> 'a fset) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>s" where
       "iterate\<^sub>i\<^sub>s g x = Node\<^sub>i\<^sub>s x (fimage (iterate\<^sub>i\<^sub>s g) (g x))"
 
-text {*
+text \<open>
 \noindent
 Both examples follow the usual format for constructor arguments associated
 with nested recursive occurrences of the datatype. Consider
@@ -2176,79 +2192,79 @@ value, which is turned into an @{typ "'a tree\<^sub>i\<^sub>i llist"} value usin
 
 This format may sometimes feel artificial. The following function constructs
 a tree with a single, infinite branch from a stream:
-*}
+\<close>
 
     primcorec tree\<^sub>i\<^sub>i_of_stream :: "'a stream \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
       "tree\<^sub>i\<^sub>i_of_stream s =
          Node\<^sub>i\<^sub>i (shd s) (lmap tree\<^sub>i\<^sub>i_of_stream (LCons (stl s) LNil))"
 
-text {*
+text \<open>
 \noindent
 A more natural syntax, also supported by Isabelle, is to move corecursive calls
 under constructors:
-*}
+\<close>
 
     primcorec (*<*)(in late) (*>*)tree\<^sub>i\<^sub>i_of_stream :: "'a stream \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
       "tree\<^sub>i\<^sub>i_of_stream s =
          Node\<^sub>i\<^sub>i (shd s) (LCons (tree\<^sub>i\<^sub>i_of_stream (stl s)) LNil)"
 
-text {*
+text \<open>
 The next example illustrates corecursion through functions, which is a bit
 special. Deterministic finite automata (DFAs) are traditionally defined as
 5-tuples @{text "(Q, \<Sigma>, \<delta>, q\<^sub>0, F)"}, where @{text Q} is a finite set of states,
 @{text \<Sigma>} is a finite alphabet, @{text \<delta>} is a transition function, @{text q\<^sub>0}
 is an initial state, and @{text F} is a set of final states. The following
 function translates a DFA into a state machine:
-*}
+\<close>
 
     primcorec (*<*)(in early) (*>*)sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a sm" where
       "sm_of_dfa \<delta> F q = SM (q \<in> F) (sm_of_dfa \<delta> F \<circ> \<delta> q)"
 
-text {*
+text \<open>
 \noindent
 The map function for the function type (@{text \<Rightarrow>}) is composition
 (@{text "op \<circ>"}). For convenience, corecursion through functions can
 also be expressed using $\lambda$-abstractions and function application rather
 than through composition. For example:
-*}
+\<close>
 
     primcorec sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a sm" where
       "sm_of_dfa \<delta> F q = SM (q \<in> F) (\<lambda>a. sm_of_dfa \<delta> F (\<delta> q a))"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primcorec empty_sm :: "'a sm" where
       "empty_sm = SM False (\<lambda>_. empty_sm)"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primcorec not_sm :: "'a sm \<Rightarrow> 'a sm" where
       "not_sm M = SM (\<not> accept M) (\<lambda>a. not_sm (trans M a))"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primcorec or_sm :: "'a sm \<Rightarrow> 'a sm \<Rightarrow> 'a sm" where
       "or_sm M N =
          SM (accept M \<or> accept N) (\<lambda>a. or_sm (trans M a) (trans N a))"
 
-text {*
+text \<open>
 \noindent
 For recursion through curried $n$-ary functions, $n$ applications of
 @{term "op \<circ>"} are necessary. The examples below illustrate the case where
 $n = 2$:
-*}
+\<close>
 
     codatatype ('a, 'b) sm2 =
       SM2 (accept2: bool) (trans2: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) sm2")
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primcorec
       (*<*)(in early) (*>*)sm2_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> ('a, 'b) sm2"
     where
       "sm2_of_dfa \<delta> F q = SM2 (q \<in> F) (op \<circ> (op \<circ> (sm2_of_dfa \<delta> F)) (\<delta> q))"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primcorec
       sm2_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> ('a, 'b) sm2"
@@ -2256,15 +2272,15 @@ text {* \blankline *}
       "sm2_of_dfa \<delta> F q = SM2 (q \<in> F) (\<lambda>a b. sm2_of_dfa \<delta> F (\<delta> q a b))"
 
 
-subsubsection {* Nested-as-Mutual Corecursion
-  \label{sssec:primcorec-nested-as-mutual-corecursion} *}
+subsubsection \<open> Nested-as-Mutual Corecursion
+  \label{sssec:primcorec-nested-as-mutual-corecursion} \<close>
 
-text {*
+text \<open>
 Just as it is possible to recurse over nested recursive datatypes as if they
 were mutually recursive
 (Section~\ref{sssec:primrec-nested-as-mutual-recursion}), it is possible to
 pretend that nested codatatypes are mutually corecursive. For example:
-*}
+\<close>
 
 (*<*)
     context late
@@ -2274,13 +2290,13 @@ pretend that nested codatatypes are mutually corecursive. For example:
       iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" and
       iterates\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a llist \<Rightarrow> 'a tree\<^sub>i\<^sub>i llist"
     where
-      "iterate\<^sub>i\<^sub>i g x = Node\<^sub>i\<^sub>i x (iterates\<^sub>i\<^sub>i g (g x))" |
-      "iterates\<^sub>i\<^sub>i g xs =
+      "iterate\<^sub>i\<^sub>i g x = Node\<^sub>i\<^sub>i x (iterates\<^sub>i\<^sub>i g (g x))"
+    | "iterates\<^sub>i\<^sub>i g xs =
          (case xs of
             LNil \<Rightarrow> LNil
           | LCons x xs' \<Rightarrow> LCons (iterate\<^sub>i\<^sub>i g x) (iterates\<^sub>i\<^sub>i g xs'))"
 
-text {*
+text \<open>
 \noindent
 Coinduction rules are generated as
 @{thm [source] iterate\<^sub>i\<^sub>i.coinduct},
@@ -2289,36 +2305,36 @@ Coinduction rules are generated as
 and analogously for @{text coinduct_strong}. These rules and the
 underlying corecursors are generated on a per-need basis and are kept in a cache
 to speed up subsequent definitions.
-*}
+\<close>
 
 (*<*)
     end
 (*>*)
 
 
-subsubsection {* Constructor View
-  \label{ssec:primrec-constructor-view} *}
+subsubsection \<open> Constructor View
+  \label{ssec:primrec-constructor-view} \<close>
 
 (*<*)
     locale ctr_view
     begin
 (*>*)
 
-text {*
+text \<open>
 The constructor view is similar to the code view, but there is one separate
 conditional equation per constructor rather than a single unconditional
 equation. Examples that rely on a single constructor, such as @{const literate}
 and @{const siterate}, are identical in both styles.
 
 Here is an example where there is a difference:
-*}
+\<close>
 
-    primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
-      "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lappend xs ys = LNil" |
-      "_ \<Longrightarrow> lappend xs ys = LCons (lhd (if lnull xs then ys else xs))
-         (if xs = LNil then ltl ys else lappend (ltl xs) ys)"
+    primcorec lapp :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
+      "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lapp xs ys = LNil"
+    | "_ \<Longrightarrow> lapp xs ys = LCons (lhd (if lnull xs then ys else xs))
+         (if xs = LNil then ltl ys else lapp (ltl xs) ys)"
 
-text {*
+text \<open>
 \noindent
 With the constructor view, we must distinguish between the @{const LNil} and
 the @{const LCons} case. The condition for @{const LCons} is
@@ -2327,31 +2343,31 @@ left implicit, as the negation of that for @{const LNil}.
 For this example, the constructor view is slightly more involved than the
 code equation. Recall the code view version presented in
 Section~\ref{sssec:primcorec-simple-corecursion}.
-% TODO: \[{thm code_view.lappend.code}\]
+% TODO: \[{thm code_view.lapp.code}\]
 The constructor view requires us to analyze the second argument (@{term ys}).
 The code equation generated from the constructor view also suffers from this.
-% TODO: \[{thm lappend.code}\]
+% TODO: \[{thm lapp.code}\]
 
 In contrast, the next example is arguably more naturally expressed in the
 constructor view:
-*}
+\<close>
 
     primcorec
       random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process"
     where
-      "n mod 4 = 0 \<Longrightarrow> random_process s f n = Fail" |
-      "n mod 4 = 1 \<Longrightarrow>
-         random_process s f n = Skip (random_process s f (f n))" |
-      "n mod 4 = 2 \<Longrightarrow>
-         random_process s f n = Action (shd s) (random_process (stl s) f (f n))" |
-      "n mod 4 = 3 \<Longrightarrow>
+      "n mod 4 = 0 \<Longrightarrow> random_process s f n = Fail"
+    | "n mod 4 = 1 \<Longrightarrow>
+         random_process s f n = Skip (random_process s f (f n))"
+    | "n mod 4 = 2 \<Longrightarrow>
+         random_process s f n = Action (shd s) (random_process (stl s) f (f n))"
+    | "n mod 4 = 3 \<Longrightarrow>
          random_process s f n = Choice (random_process (every_snd s) f (f n))
            (random_process (every_snd (stl s)) f (f n))"
 (*<*)
     end
 (*>*)
 
-text {*
+text \<open>
 \noindent
 Since there is no sequentiality, we can apply the equation for @{const Choice}
 without having first to discharge @{term "n mod (4::int) \<noteq> 0"},
@@ -2364,42 +2380,42 @@ with @{term "i < j"}. If we prefer not to discharge any obligations, we can
 enable the @{text "sequential"} option. This pushes the problem to the users of
 the generated properties.
 %Here are more examples to conclude:
-*}
+\<close>
 
 
-subsubsection {* Destructor View
-  \label{ssec:primrec-destructor-view} *}
+subsubsection \<open> Destructor View
+  \label{ssec:primrec-destructor-view} \<close>
 
 (*<*)
     locale dtr_view
     begin
 (*>*)
 
-text {*
+text \<open>
 The destructor view is in many respects dual to the constructor view. Conditions
 determine which constructor to choose, and these conditions are interpreted
 sequentially or not depending on the @{text "sequential"} option.
 Consider the following examples:
-*}
+\<close>
 
     primcorec literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
-      "\<not> lnull (literate _ x)" |
-      "lhd (literate _ x) = x" |
-      "ltl (literate g x) = literate g (g x)"
+      "\<not> lnull (literate _ x)"
+    | "lhd (literate _ x) = x"
+    | "ltl (literate g x) = literate g (g x)"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
-      "shd (siterate _ x) = x" |
-      "stl (siterate g x) = siterate g (g x)"
+      "shd (siterate _ x) = x"
+    | "stl (siterate g x) = siterate g (g x)"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primcorec every_snd :: "'a stream \<Rightarrow> 'a stream" where
-      "shd (every_snd s) = shd s" |
-      "stl (every_snd s) = stl (stl s)"
+      "shd (every_snd s) = shd s"
+    | "stl (every_snd s) = stl (stl s)"
 
-text {*
+text \<open>
 \noindent
 The first formula in the @{const literate} specification indicates which
 constructor to choose. For @{const siterate} and @{const every_snd}, no such
@@ -2410,19 +2426,19 @@ Their arguments are unrestricted.
 
 The next example shows how to specify functions that rely on more than one
 constructor:
-*}
+\<close>
 
-    primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
-      "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lappend xs ys)" |
-      "lhd (lappend xs ys) = lhd (if lnull xs then ys else xs)" |
-      "ltl (lappend xs ys) = (if xs = LNil then ltl ys else lappend (ltl xs) ys)"
+    primcorec lapp :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
+      "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lapp xs ys)"
+    | "lhd (lapp xs ys) = lhd (if lnull xs then ys else xs)"
+    | "ltl (lapp xs ys) = (if xs = LNil then ltl ys else lapp (ltl xs) ys)"
 
-text {*
+text \<open>
 \noindent
 For a codatatype with $n$ constructors, it is sufficient to specify $n - 1$
 discriminator formulas. The command will then assume that the remaining
 constructor should be taken otherwise. This can be made explicit by adding
-*}
+\<close>
 
 (*<*)
     end
@@ -2430,67 +2446,67 @@ constructor should be taken otherwise. This can be made explicit by adding
     locale dtr_view2
     begin
 
-    primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
-      "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lappend xs ys)" |
-      "lhd (lappend xs ys) = lhd (if lnull xs then ys else xs)" |
-      "ltl (lappend xs ys) = (if xs = LNil then ltl ys else lappend (ltl xs) ys)" |
+    primcorec lapp :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
+      "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lapp xs ys)"
+    | "lhd (lapp xs ys) = lhd (if lnull xs then ys else xs)"
+    | "ltl (lapp xs ys) = (if xs = LNil then ltl ys else lapp (ltl xs) ys)" |
 (*>*)
-      "_ \<Longrightarrow> \<not> lnull (lappend xs ys)"
+      "_ \<Longrightarrow> \<not> lnull (lapp xs ys)"
 
-text {*
+text \<open>
 \noindent
 to the specification. The generated selector theorems are conditional.
 
 The next example illustrates how to cope with selectors defined for several
 constructors:
-*}
+\<close>
 
     primcorec
       random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process"
     where
-      "n mod 4 = 0 \<Longrightarrow> random_process s f n = Fail" |
-      "n mod 4 = 1 \<Longrightarrow> is_Skip (random_process s f n)" |
-      "n mod 4 = 2 \<Longrightarrow> is_Action (random_process s f n)" |
-      "n mod 4 = 3 \<Longrightarrow> is_Choice (random_process s f n)" |
-      "cont (random_process s f n) = random_process s f (f n)" of Skip |
-      "prefix (random_process s f n) = shd s" |
-      "cont (random_process s f n) = random_process (stl s) f (f n)" of Action |
-      "left (random_process s f n) = random_process (every_snd s) f (f n)" |
-      "right (random_process s f n) = random_process (every_snd (stl s)) f (f n)"
+      "n mod 4 = 0 \<Longrightarrow> random_process s f n = Fail"
+    | "n mod 4 = 1 \<Longrightarrow> is_Skip (random_process s f n)"
+    | "n mod 4 = 2 \<Longrightarrow> is_Action (random_process s f n)"
+    | "n mod 4 = 3 \<Longrightarrow> is_Choice (random_process s f n)"
+    | "cont (random_process s f n) = random_process s f (f n)" of Skip
+    | "prefix (random_process s f n) = shd s"
+    | "cont (random_process s f n) = random_process (stl s) f (f n)" of Action
+    | "left (random_process s f n) = random_process (every_snd s) f (f n)"
+    | "right (random_process s f n) = random_process (every_snd (stl s)) f (f n)"
 
-text {*
+text \<open>
 \noindent
 Using the @{text "of"} keyword, different equations are specified for @{const
 cont} depending on which constructor is selected.
 
 Here are more examples to conclude:
-*}
+\<close>
 
     primcorec
       even_infty :: even_enat and
       odd_infty :: odd_enat
     where
-      "even_infty \<noteq> Even_EZero" |
-      "un_Even_ESucc even_infty = odd_infty" |
-      "un_Odd_ESucc odd_infty = even_infty"
+      "even_infty \<noteq> Even_EZero"
+    | "un_Even_ESucc even_infty = odd_infty"
+    | "un_Odd_ESucc odd_infty = even_infty"
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     primcorec iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
-      "lbl\<^sub>i\<^sub>i (iterate\<^sub>i\<^sub>i g x) = x" |
-      "sub\<^sub>i\<^sub>i (iterate\<^sub>i\<^sub>i g x) = lmap (iterate\<^sub>i\<^sub>i g) (g x)"
+      "lbl\<^sub>i\<^sub>i (iterate\<^sub>i\<^sub>i g x) = x"
+    | "sub\<^sub>i\<^sub>i (iterate\<^sub>i\<^sub>i g x) = lmap (iterate\<^sub>i\<^sub>i g) (g x)"
 (*<*)
     end
 (*>*)
 
 
-subsection {* Command Syntax
-  \label{ssec:primcorec-command-syntax} *}
+subsection \<open> Command Syntax
+  \label{ssec:primcorec-command-syntax} \<close>
 
-subsubsection {* \keyw{primcorec} and \keyw{primcorecursive}
-  \label{sssec:primcorecursive-and-primcorec} *}
+subsubsection \<open> \keyw{primcorec} and \keyw{primcorecursive}
+  \label{sssec:primcorecursive-and-primcorec} \<close>
 
-text {*
+text \<open>
 \begin{matharray}{rcl}
   @{command_def "primcorec"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   @{command_def "primcorecursive"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
@@ -2548,13 +2564,13 @@ obligations.
 
 %%% TODO: elaborate on format of the propositions
 %%% TODO: elaborate on mutual and nested-to-mutual
-*}
+\<close>
 
 
-subsection {* Generated Theorems
-  \label{ssec:primcorec-generated-theorems} *}
+subsection \<open> Generated Theorems
+  \label{ssec:primcorec-generated-theorems} \<close>
 
-text {*
+text \<open>
 The @{command primcorec} and @{command primcorecursive} commands generate the
 following properties (listed for @{const literate}):
 
@@ -2645,34 +2661,34 @@ provide the following collection:
 
 \end{description}
 \end{indentblock}
-*}
+\<close>
 
 
 (*
-subsection {* Recursive Default Values for Selectors
-  \label{ssec:primcorec-recursive-default-values-for-selectors} *}
+subsection \<open> Recursive Default Values for Selectors
+  \label{ssec:primcorec-recursive-default-values-for-selectors} \<close>
 
-text {*
+text \<open>
 partial_function to the rescue
-*}
+\<close>
 *)
 
 
-section {* Registering Bounded Natural Functors
-  \label{sec:registering-bounded-natural-functors} *}
+section \<open> Registering Bounded Natural Functors
+  \label{sec:registering-bounded-natural-functors} \<close>
 
-text {*
+text \<open>
 The (co)datatype package can be set up to allow nested recursion through
 arbitrary type constructors, as long as they adhere to the BNF requirements
 and are registered as BNFs. It is also possible to declare a BNF abstractly
 without specifying its internal structure.
-*}
+\<close>
 
 
-subsection {* Bounded Natural Functors
-  \label{ssec:bounded-natural-functors} *}
+subsection \<open> Bounded Natural Functors
+  \label{ssec:bounded-natural-functors} \<close>
 
-text {*
+text \<open>
 Bounded natural functors (BNFs) are a semantic criterion for where
 (co)re\-cur\-sion may appear on the right-hand side of an equation
 @{cite "traytel-et-al-2012" and "blanchette-et-al-2015-wit"}.
@@ -2695,13 +2711,13 @@ number of old-style datatypes and non-free types are preregistered.
 Given an $n$-ary BNF, the $n$ type variables associated with set functions,
 and on which the map function acts, are \emph{live}; any other variables are
 \emph{dead}. Nested (co)recursion can only take place through live variables.
-*}
+\<close>
 
 
-subsection {* Introductory Examples
-  \label{ssec:bnf-introductory-examples} *}
+subsection \<open> Introductory Examples
+  \label{ssec:bnf-introductory-examples} \<close>
 
-text {*
+text \<open>
 The example below shows how to register a type as a BNF using the @{command bnf}
 command. Some of the proof obligations are best viewed with the theory
 @{file "~~/src/HOL/Library/Cardinal_Notations.thy"} imported.
@@ -2709,28 +2725,28 @@ command. Some of the proof obligations are best viewed with the theory
 The type is simply a copy of the function space @{typ "'d \<Rightarrow> 'a"}, where @{typ 'a}
 is live and @{typ 'd} is dead. We introduce it together with its map function,
 set function, and relator.
-*}
+\<close>
 
     typedef ('d, 'a) fn = "UNIV :: ('d \<Rightarrow> 'a) set"
       by simp
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     setup_lifting type_definition_fn
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     lift_definition map_fn :: "('a \<Rightarrow> 'b) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn" is "op \<circ>" .
     lift_definition set_fn :: "('d, 'a) fn \<Rightarrow> 'a set" is range .
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     lift_definition
       rel_fn :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn \<Rightarrow> bool"
     is
       "rel_fun (op =)" .
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     bnf "('d, 'a) fn"
       map: map_fn
@@ -2785,12 +2801,12 @@ text {* \blankline *}
         by auto (force, metis prod.collapse)
     qed
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     print_theorems
     print_bnfs
 
-text {*
+text \<open>
 \noindent
 Using \keyw{print_theorems} and @{command print_bnfs}, we can contemplate and
 show the world what we have achieved.
@@ -2798,6 +2814,7 @@ show the world what we have achieved.
 This particular example does not need any nonemptiness witness, because the
 one generated by default is good enough, but in general this would be
 necessary. See @{file "~~/src/HOL/Basic_BNFs.thy"},
+@{file "~~/src/HOL/Library/Countable_Set_Type.thy"},
 @{file "~~/src/HOL/Library/FSet.thy"}, and
 @{file "~~/src/HOL/Library/Multiset.thy"} for further examples of BNF
 registration, some of which feature custom witnesses.
@@ -2806,7 +2823,7 @@ For many typedefs, lifting the BNF structure from the raw type to the abstract
 type can be done uniformly. This is the task of the @{command lift_bnf} command.
 Using @{command lift_bnf}, the above registration of @{typ "('d, 'a) fn"} as a
 BNF becomes much shorter:
-*}
+\<close>
 
 (*<*)
     context early
@@ -2818,12 +2835,12 @@ BNF becomes much shorter:
     end
 (*>*)
 
-text {*
+text \<open>
 For type copies (@{command typedef}s with @{term UNIV} as the representing set),
 the proof obligations are so simple that they can be
 discharged automatically, yielding another command, @{command copy_bnf}, which
 does not emit any proof obligations:
-*}
+\<close>
 
 (*<*)
     context late
@@ -2834,33 +2851,33 @@ does not emit any proof obligations:
     end
 (*>*)
 
-text {*
+text \<open>
 Since record schemas are type copies, @{command copy_bnf} can be used to
 register them as BNFs:
-*}
+\<close>
 
     record 'a point =
       xval :: 'a
       yval :: 'a
 
-text {* \blankline *}
+text \<open> \blankline \<close>
     
     copy_bnf ('a, 'z) point_ext
 
-text {*
+text \<open>
 In the general case, the proof obligations generated by @{command lift_bnf} are
 simpler than the acual BNF properties. In particular, no cardinality reasoning
 is required. Consider the following type of nonempty lists:
-*}
+\<close>
 
     typedef 'a nonempty_list = "{xs :: 'a list. xs \<noteq> []}" by auto
 
-text {*
+text \<open>
 The @{command lift_bnf} command requires us to prove that the set of nonempty lists
 is closed under the map function and the zip function. The latter only
 occurs implicitly in the goal, in form of the variable
 @{term "zs :: ('a \<times> 'b) list"}.
-*}
+\<close>
 
     lift_bnf (*<*)(no_warn_wits) (*>*)'a nonempty_list
     proof -
@@ -2875,7 +2892,7 @@ occurs implicitly in the goal, in form of the variable
         by (cases zs (*<*)rule: list.exhaust(*>*)) auto
     qed
 
-text {*
+text \<open>
 The next example declares a BNF axiomatically. This can be convenient for
 reasoning abstractly about an arbitrary BNF. The @{command bnf_axiomatization}
 command below introduces a type @{text "('a, 'b, 'c) F"}, three set constants,
@@ -2883,24 +2900,24 @@ a map function, a relator, and a nonemptiness witness that depends only on
 @{typ 'a}. The type @{text "'a \<Rightarrow> ('a, 'b, 'c) F"} of the witness can be read
 as an implication: Given a witness for @{typ 'a}, we can construct a witness for
 @{text "('a, 'b, 'c) F"}. The BNF properties are postulated as axioms.
-*}
+\<close>
 
     bnf_axiomatization (setA: 'a, setB: 'b, setC: 'c) F
       [wits: "'a \<Rightarrow> ('a, 'b, 'c) F"]
 
-text {* \blankline *}
+text \<open> \blankline \<close>
 
     print_theorems
     print_bnfs
 
 
-subsection {* Command Syntax
-  \label{ssec:bnf-command-syntax} *}
+subsection \<open> Command Syntax
+  \label{ssec:bnf-command-syntax} \<close>
 
-subsubsection {* \keyw{bnf}
-  \label{sssec:bnf} *}
+subsubsection \<open> \keyw{bnf}
+  \label{sssec:bnf} \<close>
 
-text {*
+text \<open>
 \begin{matharray}{rcl}
   @{command_def "bnf"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
 \end{matharray}
@@ -2928,12 +2945,12 @@ The @{syntax plugins} option indicates which plugins should be enabled
 (@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
 
 %%% TODO: elaborate on proof obligations
-*}
+\<close>
 
-subsubsection {* \keyw{lift_bnf}
-  \label{sssec:lift-bnf} *}
+subsubsection \<open> \keyw{lift_bnf}
+  \label{sssec:lift-bnf} \<close>
 
-text {*
+text \<open>
 \begin{matharray}{rcl}
   @{command_def "lift_bnf"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
 \end{matharray}
@@ -2941,7 +2958,7 @@ text {*
 @{rail \<open>
   @@{command lift_bnf} target? lb_options? \<newline>
     @{syntax tyargs} name wit_terms?  \<newline>
-    ('via' @{syntax thmref})? @{syntax map_rel}?
+    ('via' thmref)? @{syntax map_rel}?
   ;
   @{syntax_def lb_options}: '(' ((@{syntax plugins} | 'no_warn_wits') + ',') ')'
   ;
@@ -2964,19 +2981,19 @@ incomplete. They must be given as terms (on the raw type) and proved to be
 witnesses. The command warns about witness types that are present in the raw
 type's BNF but not supplied by the user. The warning can be disabled by
 specifying the @{text no_warn_wits} option.
-*}
+\<close>
 
-subsubsection {* \keyw{copy_bnf}
-  \label{sssec:copy-bnf} *}
+subsubsection \<open> \keyw{copy_bnf}
+  \label{sssec:copy-bnf} \<close>
 
-text {*
+text \<open>
 \begin{matharray}{rcl}
   @{command_def "copy_bnf"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
 
 @{rail \<open>
   @@{command copy_bnf} target? ('(' @{syntax plugins} ')')? \<newline>
-    @{syntax tyargs} name ('via' @{syntax thmref})? @{syntax map_rel}?
+    @{syntax tyargs} name ('via' thmref)? @{syntax map_rel}?
 \<close>}
 \medskip
 
@@ -2985,12 +3002,12 @@ The @{command copy_bnf} command performs the same lifting as @{command lift_bnf}
 for type copies (@{command typedef}s with @{term UNIV} as the representing set),
 without requiring the user to discharge any proof obligations or provide
 nonemptiness witnesses.
-*}
+\<close>
 
-subsubsection {* \keyw{bnf_axiomatization}
-  \label{sssec:bnf-axiomatization} *}
+subsubsection \<open> \keyw{bnf_axiomatization}
+  \label{sssec:bnf-axiomatization} \<close>
 
-text {*
+text \<open>
 \begin{matharray}{rcl}
   @{command_def "bnf_axiomatization"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
@@ -3029,13 +3046,13 @@ The command is useful to reason abstractly about BNFs. The axioms are safe
 because there exist BNFs of arbitrary large arities. Applications must import
 the @{file "~~/src/HOL/Library/BNF_Axiomatization.thy"} theory
 to use this functionality.
-*}
+\<close>
 
 
-subsubsection {* \keyw{print_bnfs}
-  \label{sssec:print-bnfs} *}
+subsubsection \<open> \keyw{print_bnfs}
+  \label{sssec:print-bnfs} \<close>
 
-text {*
+text \<open>
 \begin{matharray}{rcl}
   @{command_def "print_bnfs"} & : & @{text "local_theory \<rightarrow>"}
 \end{matharray}
@@ -3043,13 +3060,13 @@ text {*
 @{rail \<open>
   @@{command print_bnfs}
 \<close>}
-*}
+\<close>
 
 
-section {* Deriving Destructors and Theorems for Free Constructors
-  \label{sec:deriving-destructors-and-theorems-for-free-constructors} *}
+section \<open> Deriving Destructors and Theorems for Free Constructors
+  \label{sec:deriving-destructors-and-theorems-for-free-constructors} \<close>
 
-text {*
+text \<open>
 The derivation of convenience theorems for types equipped with free constructors,
 as performed internally by @{command datatype} and @{command codatatype},
 is available as a stand-alone command called @{command free_constructors}.
@@ -3060,22 +3077,22 @@ is available as a stand-alone command called @{command free_constructors}.
 %  * @{command free_constructors}
 %    * @{text plugins}, @{text discs_sels}
 %    * hack to have both co and nonco view via locale (cf. ext nats)
-*}
+\<close>
 
 
 (*
-subsection {* Introductory Example
-  \label{ssec:ctors-introductory-example} *}
+subsection \<open> Introductory Example
+  \label{ssec:ctors-introductory-example} \<close>
 *)
 
 
-subsection {* Command Syntax
-  \label{ssec:ctors-command-syntax} *}
+subsection \<open> Command Syntax
+  \label{ssec:ctors-command-syntax} \<close>
 
-subsubsection {* \keyw{free_constructors}
-  \label{sssec:free-constructors} *}
+subsubsection \<open> \keyw{free_constructors}
+  \label{sssec:free-constructors} \<close>
 
-text {*
+text \<open>
 \begin{matharray}{rcl}
   @{command_def "free_constructors"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
 \end{matharray}
@@ -3110,23 +3127,102 @@ Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
 For bootstrapping reasons, the generally useful @{text "[fundef_cong]"}
 attribute is not set on the generated @{text case_cong} theorem. It can be
 added manually using \keyw{declare}.
-*}
+\<close>
+
+
+subsubsection \<open> \keyw{simps_of_case}
+  \label{sssec:simps-of-case} \<close>
+
+text \<open>
+\begin{matharray}{rcl}
+  @{command_def "simps_of_case"} & : & @{text "local_theory \<rightarrow> local_theory"}
+\end{matharray}
+
+@{rail \<open>
+  @@{command simps_of_case} target? (name ':')? \<newline>
+    (thmref + ) (@'splits' ':' (thmref + ))?
+\<close>}
+
+\medskip
+
+\noindent
+The @{command simps_of_case} command provided by theory
+@{file "~~/src/HOL/Library/Simps_Case_Conv.thy"} converts a single equation with
+a complex case expression on the right-hand side into a set of pattern-matching
+equations. For example,
+\<close>
+
+(*<*)
+    context late
+    begin
+(*>*)
+    simps_of_case lapp_simps: lapp.code
+
+text \<open>
+\noindent
+translates @{thm lapp.code[no_vars]} into
+%
+\begin{gather*}
+  @{thm lapp_simps(1)[no_vars]} \\
+  @{thm lapp_simps(2)[no_vars]}
+\end{gather*}
+\<close>
+
+
+subsubsection \<open> \keyw{case_of_simps}
+  \label{sssec:case-of-simps} \<close>
+
+text \<open>
+\begin{matharray}{rcl}
+  @{command_def "case_of_simps"} & : & @{text "local_theory \<rightarrow> local_theory"}
+\end{matharray}
+
+@{rail \<open>
+  @@{command case_of_simps} target? (name ':')? \<newline>
+    (thmref + )
+\<close>}
+
+\medskip
+
+\noindent
+The \keyw{case_of_simps} command provided by theory
+@{file "~~/src/HOL/Library/Simps_Case_Conv.thy"} converts a set of
+pattern-matching equations into single equation with a complex case expression
+on the right-hand side (cf.\ @{command simps_of_case}). For example,
+\<close>
+
+    case_of_simps lapp_case: lapp_simps
+
+text \<open>
+\noindent
+translates
+%
+\begin{gather*}
+  @{thm lapp_simps(1)[no_vars]} \\
+  @{thm lapp_simps(2)[no_vars]}
+\end{gather*}
+%
+into @{thm lapp_case[no_vars]}.
+\<close>
+(*<*)
+    end
+(*>*)
 
 
 (*
-section {* Using the Standard ML Interface
-  \label{sec:using-the-standard-ml-interface} *}
+section \<open> Using the Standard ML Interface
+  \label{sec:using-the-standard-ml-interface} \<close>
 
-text {*
+text \<open>
 The package's programmatic interface.
-*}
+\<close>
 *)
 
 
-section {* Selecting Plugins
-  \label{sec:selecting-plugins} *}
+section \<open> Selecting Plugins
+  \label{sec:selecting-plugins} \<close>
 
-text {*
+text \<open>
 Plugins extend the (co)datatype package to interoperate with other Isabelle
 packages and tools, such as the code generator, Transfer, Lifting, and
 Quickcheck. They can be enabled or disabled individually using the
@@ -3134,20 +3230,20 @@ Quickcheck. They can be enabled or disabled individually using the
 @{command primrec}, @{command codatatype}, @{command primcorec},
 @{command primcorecursive}, @{command bnf}, @{command bnf_axiomatization}, and
 @{command free_constructors}. For example:
-*}
+\<close>
 
     datatype (plugins del: code "quickcheck") color = Red | Black
 
-text {*
+text \<open>
 Beyond the standard plugins, the \emph{Archive of Formal Proofs} includes a
 \keyw{derive} command that derives class instances of datatypes
 @{cite "sternagel-thiemann-2015"}.
-*}
+\<close>
 
-subsection {* Code Generator
-  \label{ssec:code-generator} *}
+subsection \<open> Code Generator
+  \label{ssec:code-generator} \<close>
 
-text {*
+text \<open>
 The \hthm{code} plugin registers freely generated types, including
 (co)datatypes, and (co)recursive functions for code generation. No distinction
 is made between datatypes and codatatypes. This means that for target languages
@@ -3178,13 +3274,13 @@ properties of freely generated types and of (co)recursive functions, as
 documented in Sections \ref{ssec:datatype-generated-theorems},
 \ref{ssec:primrec-generated-theorems}, \ref{ssec:codatatype-generated-theorems},
 and~\ref{ssec:primcorec-generated-theorems}.
-*}
+\<close>
 
 
-subsection {* Size
-  \label{ssec:size} *}
+subsection \<open> Size
+  \label{ssec:size} \<close>
 
-text {*
+text \<open>
 For each datatype @{text t}, the \hthm{size} plugin generates a generic size
 function @{text "t.size_t"} as well as a specific instance
 @{text "size :: t \<Rightarrow> nat"} belonging to the @{text size} type class. The
@@ -3228,13 +3324,13 @@ can be improved upon by registering a custom size function of type
 the ML function @{ML BNF_LFP_Size.register_size} or
 @{ML BNF_LFP_Size.register_size_global}. See theory
 @{file "~~/src/HOL/Library/Multiset.thy"} for an example.
-*}
+\<close>
 
 
-subsection {* Transfer
-  \label{ssec:transfer} *}
+subsection \<open> Transfer
+  \label{ssec:transfer} \<close>
 
-text {*
+text \<open>
 For each (co)datatype with live type arguments and each manually registered BNF,
 the \hthm{transfer} plugin generates a predicator @{text "t.pred_t"} and
 properties that guide the Transfer tool.
@@ -3295,13 +3391,13 @@ For @{command primrec}, @{command primcorec}, and @{command primcorecursive},
 the plugin implements the generation of the @{text "f.transfer"} property,
 conditioned by the @{text transfer} option, and sets the
 @{text "[transfer_rule]"} attribute on these.
-*}
+\<close>
 
 
-subsection {* Lifting
-  \label{ssec:lifting} *}
+subsection \<open> Lifting
+  \label{ssec:lifting} \<close>
 
-text {*
+text \<open>
 For each (co)datatype and each manually registered BNF with at least one live
 type argument \emph{and no dead type arguments}, the \hthm{lifting} plugin
 generates properties and attributes that guide the Lifting tool.
@@ -3321,13 +3417,13 @@ In addition, the plugin sets the @{text "[relator_eq]"} attribute on a
 variant of the @{text t.rel_eq_onp} property generated by the @{text lifting}
 plugin, the @{text "[relator_mono]"} attribute on @{text t.rel_mono}, and the
 @{text "[relator_distr]"} attribute on @{text t.rel_compp}.
-*}
+\<close>
 
 
-subsection {* Quickcheck
-  \label{ssec:quickcheck} *}
+subsection \<open> Quickcheck
+  \label{ssec:quickcheck} \<close>
 
-text {*
+text \<open>
 The integration of datatypes with Quickcheck is accomplished by the
 \hthm{quick\-check} plugin. It combines a number of subplugins that instantiate
 specific type classes. The subplugins can be enabled or disabled individually.
@@ -3340,24 +3436,24 @@ They are listed below:
 \hthm{quickcheck_full_exhaustive} \\
 \hthm{quickcheck_narrowing}
 \end{indentblock}
-*}
+\<close>
 
 
-subsection {* Program Extraction
-  \label{ssec:program-extraction} *}
+subsection \<open> Program Extraction
+  \label{ssec:program-extraction} \<close>
 
-text {*
+text \<open>
 The \hthm{extraction} plugin provides realizers for induction and case analysis,
 to enable program extraction from proofs involving datatypes. This functionality
 is only available with full proof objects, i.e., with the \emph{HOL-Proofs}
 session.
-*}
+\<close>
 
 
-section {* Known Bugs and Limitations
-  \label{sec:known-bugs-and-limitations} *}
+section \<open> Known Bugs and Limitations
+  \label{sec:known-bugs-and-limitations} \<close>
 
-text {*
+text \<open>
 This section lists the known bugs and limitations in the (co)datatype package at
 the time of this writing. Many of them are expected to be addressed in future
 releases.
@@ -3398,10 +3494,10 @@ the package.}
 slightly different ordering of the premises than the old package.}
 
 \end{enumerate}
-*}
+\<close>
 
 
-text {*
+text \<open>
 \section*{Acknowledgment}
 
 Tobias Nipkow and Makarius Wenzel encouraged us to implement the new
@@ -3410,12 +3506,14 @@ versions of the package, especially on the coinductive part. Brian Huffman
 suggested major simplifications to the internal constructions. Ond\v{r}ej
 Kun\v{c}ar implemented the @{text transfer} and @{text lifting} plugins.
 Christian Sternagel and Ren\'e Thiemann ported the \keyw{derive} command
-from the \emph{Archive of Formal Proofs} to the new datatypes. Florian Haftmann
-and Christian Urban provided general advice on Isabelle and package writing.
-Stefan Milius and Lutz Schr\"oder found an elegant proof that eliminated one of
-the BNF proof obligations. Mamoun Filali-Amine, Gerwin Klein, Andreas
-Lochbihler, Tobias Nipkow, and Christian Sternagel suggested many textual
-improvements to this tutorial.
-*}
+from the \emph{Archive of Formal Proofs} to the new datatypes. Gerwin Klein and
+Lars Noschinski implemented the @{command simps_of_case} and @{command
+case_of_simps} commands. Florian Haftmann, Christian Urban, and Makarius
+Wenzel provided general advice on Isabelle and package writing. Stefan Milius
+and Lutz Schr\"oder found an elegant proof that eliminated one of the BNF
+proof obligations. Mamoun Filali-Amine, Gerwin Klein, Andreas Lochbihler,
+Tobias Nipkow, and Christian Sternagel suggested many textual improvements to
+this tutorial.
+\<close>
 
 end
