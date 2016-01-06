@@ -20,7 +20,8 @@ definitions; upgrade of HOL typedef to definitional principle.
 
 * HOL tool enhancements: Sledgehammer, Nitpick, Quickcheck, Transfer.
 
-* Many HOL library improvements, notably HOL-Multivariate_Analysis.
+* HOL library additions and improvements, notably HOL-Multivariate_Analysis,
+HOL-Probability, HOL-Data_Structures.
 
 * Upgrade to Poly/ML 5.6 with debugger IDE support (Isabelle/ML and Standard
 ML), per-thread profiling, native Windows version (32bit and 64bit).

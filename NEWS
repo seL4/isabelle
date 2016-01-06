@@ -646,30 +646,31 @@ Minor INCOMPATIBILITY, use 'function' instead.
 * Library/Periodic_Fun: a locale that provides convenient lemmas for
 periodic functions.
 
-* Multivariate_Analysis/Cauchy_Integral_Thm: Contour integrals (=
-complex path integrals), Cauchy's integral theorem, winding numbers and
-Cauchy's integral formula, Liouville theorem, Fundamental Theorem of
-Algebra. Ported from HOL Light
+* HOL-Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
 
-* Multivariate_Analysis: Added topological concepts such as connected
+* HOL-Statespace: command 'statespace' uses mandatory qualifier for
+import of parent, as for general 'locale' expressions. INCOMPATIBILITY,
+remove '!' and add '?' as required.
+
+* HOL-Multivariate_Analysis: theory Cauchy_Integral_Thm with Contour
+integrals (= complex path integrals), Cauchy's integral theorem, winding
+numbers and Cauchy's integral formula, Liouville theorem, Fundamental
+Theorem of Algebra. Ported from HOL Light.
+
+* HOL-Multivariate_Analysis: topological concepts such as connected
 components, homotopic paths and the inside or outside of a set.
 
-* Multivariate_Analysis: radius of convergence of power series and 
+* HOL-Multivariate_Analysis: radius of convergence of power series and
 various summability tests; Harmonic numbers and the Euler–Mascheroni
 constant; the Generalised Binomial Theorem; the complex and real
 Gamma/log-Gamma/Digamma/ Polygamma functions and their most important
 properties.
 
-* Probability: The central limit theorem based on Levy's uniqueness and
-continuity theorems, weak convergence, and characterisitc functions.
+* HOL-Probability: The central limit theorem based on Levy's uniqueness
+and continuity theorems, weak convergence, and characterisitc functions.
 
-* Data_Structures: new and growing session of standard data structures.
-
-* Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
-
-* HOL-Statespace: command 'statespace' uses mandatory qualifier for
-import of parent, as for general 'locale' expressions. INCOMPATIBILITY,
-remove '!' and add '?' as required.
+* HOL-Data_Structures: new and growing session of standard data
+structures.
 
 
 *** ML ***
