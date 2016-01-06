@@ -551,6 +551,7 @@ been removed. INCOMPATIBILITY.
 * Nitpick:
   - Fixed soundness bug in translation of "finite" predicate.
   - Fixed soundness bug in "destroy_constrs" optimization.
+  - Fixed soundness bug in translation of "rat" type.
   - Removed "check_potential" and "check_genuine" options.
   - Eliminated obsolete "blocking" option.
 
