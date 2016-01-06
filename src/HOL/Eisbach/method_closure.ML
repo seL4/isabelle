@@ -127,14 +127,9 @@ fun method_evaluate text ctxt =
 
 fun method_instantiate vars body ts ctxt =
   let
-    val match_types = Sign.typ_match (Proof_Context.theory_of ctxt) o apply2 Term.type_of;
-    val tyenv = fold match_types (vars ~~ ts) Vartab.empty;
-    val tenv =
-      fold (fn ((xi, T), t) => Vartab.update_new (xi, (T, t)))
-        (map Term.dest_Var vars ~~ ts) Vartab.empty;
-    val env = Envir.Envir {maxidx = ~1, tenv = tenv, tyenv = tyenv};
-
-    val morphism = Morphism.term_morphism "method_instantiate" (Envir.norm_term env);
+    val thy = Proof_Context.theory_of ctxt;
+    val subst = fold (Pattern.match thy) (vars ~~ ts) (Vartab.empty, Vartab.empty);
+    val morphism = Morphism.term_morphism "method_instantiate" (Envir.subst_term subst);
     val body' = (Method.map_source o map) (Token.transform morphism) body;
   in method_evaluate body' ctxt end;
 
