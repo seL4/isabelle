@@ -1127,15 +1127,16 @@ subsection \<open>Setup for Nitpick\<close>
 
 declaration \<open>
   Nitpick_HOL.register_frac_type @{type_name rat}
-   [(@{const_name zero_rat_inst.zero_rat}, @{const_name Nitpick.zero_frac}),
-    (@{const_name one_rat_inst.one_rat}, @{const_name Nitpick.one_frac}),
-    (@{const_name plus_rat_inst.plus_rat}, @{const_name Nitpick.plus_frac}),
-    (@{const_name times_rat_inst.times_rat}, @{const_name Nitpick.times_frac}),
-    (@{const_name uminus_rat_inst.uminus_rat}, @{const_name Nitpick.uminus_frac}),
-    (@{const_name inverse_rat_inst.inverse_rat}, @{const_name Nitpick.inverse_frac}),
-    (@{const_name ord_rat_inst.less_rat}, @{const_name Nitpick.less_frac}),
-    (@{const_name ord_rat_inst.less_eq_rat}, @{const_name Nitpick.less_eq_frac}),
-    (@{const_name field_char_0_class.of_rat}, @{const_name Nitpick.of_frac})]
+    [(@{const_name Abs_Rat}, @{const_name Nitpick.Abs_Frac}),
+     (@{const_name zero_rat_inst.zero_rat}, @{const_name Nitpick.zero_frac}),
+     (@{const_name one_rat_inst.one_rat}, @{const_name Nitpick.one_frac}),
+     (@{const_name plus_rat_inst.plus_rat}, @{const_name Nitpick.plus_frac}),
+     (@{const_name times_rat_inst.times_rat}, @{const_name Nitpick.times_frac}),
+     (@{const_name uminus_rat_inst.uminus_rat}, @{const_name Nitpick.uminus_frac}),
+     (@{const_name inverse_rat_inst.inverse_rat}, @{const_name Nitpick.inverse_frac}),
+     (@{const_name ord_rat_inst.less_rat}, @{const_name Nitpick.less_frac}),
+     (@{const_name ord_rat_inst.less_eq_rat}, @{const_name Nitpick.less_eq_frac}),
+     (@{const_name field_char_0_class.of_rat}, @{const_name Nitpick.of_frac})]
 \<close>
 
 lemmas [nitpick_unfold] = inverse_rat_inst.inverse_rat
