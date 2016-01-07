@@ -16,6 +16,10 @@ Contributions to Isabelle2016
   The Generalised Binomial Theorem.
   The complex and real Gamma/log-Gamma/Digamma/Polygamma functions and their
   most important properties.
+  
+* Autumn 2015: Manuel Eberl, TUM
+  Proper definition of division (with remainder) for formal power series;
+  Euclidean Ring and GCD instance for formal power series.
 
 * Autumn 2015: Florian Haftmann, TUM
   Rewrite definitions for global interpretations and sublocale declarations.

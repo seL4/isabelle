@@ -646,6 +646,9 @@ Minor INCOMPATIBILITY, use 'function' instead.
 * Library/Periodic_Fun: a locale that provides convenient lemmas for
 periodic functions.
 
+* Library/Formal_Power_Series: proper definition of division (with remainder) 
+for formal power series; instances for Euclidean Ring and GCD.
+
 * HOL-Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
 
 * HOL-Statespace: command 'statespace' uses mandatory qualifier for
