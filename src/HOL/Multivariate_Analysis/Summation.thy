@@ -2,7 +2,7 @@
     Author:   Manuel Eberl, TU München
 *)
   
-section \<open>Rounded dual logarithm\<close>
+section \<open>Radius of Convergence and Summation Tests\<close>
 
 theory Summation
 imports
@@ -15,6 +15,8 @@ text \<open>
   The definition of the radius of convergence of a power series, 
   various summability tests, lemmas to compute the radius of convergence etc.
 \<close>
+
+subsection \<open>Rounded dual logarithm\<close>
 
 (* This is required for the Cauchy condensation criterion *)
 
@@ -206,7 +208,7 @@ proof
 qed
 
 
-subsection \<open>Cauchy's condensation test\<close>
+subsubsection \<open>Cauchy's condensation test\<close>
 
 context
 fixes f :: "nat \<Rightarrow> real"
@@ -319,7 +321,7 @@ qed
 end
 
 
-subsection \<open>Summability of powers\<close>
+subsubsection \<open>Summability of powers\<close>
 
 lemma abs_summable_complex_powr_iff: 
     "summable (\<lambda>n. norm (exp (of_real (ln (of_nat n)) * s))) \<longleftrightarrow> Re s < -1"
@@ -389,7 +391,7 @@ proof
 qed
 
 
-subsection \<open>Kummer's test\<close>
+subsubsection \<open>Kummer's test\<close>
 
 lemma kummers_test_convergence:
   fixes f p :: "nat \<Rightarrow> real"
@@ -480,7 +482,7 @@ proof
 qed
 
 
-subsection \<open>Ratio test\<close>
+subsubsection \<open>Ratio test\<close>
 
 lemma ratio_test_convergence:
   fixes f :: "nat \<Rightarrow> real"
@@ -511,7 +513,7 @@ proof (rule kummers_test_divergence[OF pos_f])
 qed (simp_all add: summable_const_iff)
 
 
-subsection \<open>Raabe's test\<close>
+subsubsection \<open>Raabe's test\<close>
 
 lemma raabes_test_convergence:
 fixes f :: "nat \<Rightarrow> real"

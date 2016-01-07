@@ -28,34 +28,8 @@ qed
 lemma setsum_Suc_diff':
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
   assumes "m \<le> n"
-  shows "(\<Sum>i = m..<n. f(Suc i) - f i) = f n - f m"
+  shows "(\<Sum>i = m..<n. f (Suc i) - f i) = f n - f m"
 using assms by (induct n) (auto simp: le_Suc_eq)
-
-lemma eval_fact:
-  "fact 0 = 1"
-  "fact (Suc 0) = 1"
-  "fact (numeral n) = numeral n * fact (pred_numeral n)"
-  by (simp, simp, simp_all only: numeral_eq_Suc fact_Suc,
-      simp only: numeral_eq_Suc [symmetric] of_nat_numeral)
-
-lemma setsum_poly_horner_expand:
-  "(\<Sum>k<(numeral n::nat). f k * x^k) = f 0 + (\<Sum>k<pred_numeral n. f (k+1) * x^k) * x"
-  "(\<Sum>k<Suc 0. f k * x^k) = (f 0 :: 'a :: semiring_1)"
-  "(\<Sum>k<(0::nat). f k * x^k) = 0"
-proof -
-  {
-    fix m :: nat
-    have "(\<Sum>k<Suc m. f k * x^k) = f 0 + (\<Sum>k=Suc 0..<Suc m. f k * x^k)"
-      by (subst atLeast0LessThan [symmetric], subst setsum_head_upt_Suc) simp_all
-    also have "(\<Sum>k=Suc 0..<Suc m. f k * x^k) = (\<Sum>k<m. f (k+1) * x^k) * x"
-      by (subst setsum_shift_bounds_Suc_ivl)
-         (simp add: setsum_left_distrib algebra_simps atLeast0LessThan power_commutes)
-    finally have "(\<Sum>k<Suc m. f k * x ^ k) = f 0 + (\<Sum>k<m. f (k + 1) * x ^ k) * x" .
-  }
-  from this[of "pred_numeral n"] 
-    show "(\<Sum>k<numeral n. f k * x^k) = f 0 + (\<Sum>k<pred_numeral n. f (k+1) * x^k) * x" 
-    by (simp add: numeral_eq_Suc)
-qed simp_all
 
 
 subsection \<open>The Harmonic numbers\<close>
@@ -133,7 +107,7 @@ proof (induction n)
 qed (simp_all add: harm_def)
 
 
-subsection \<open>The Euler–Mascheroni constant\<close>
+subsection \<open>The Euler--Mascheroni constant\<close>
 
 text \<open>
   The limit of the difference between the partial harmonic sum and the natural logarithm
@@ -269,10 +243,9 @@ proof (rule Lim_transform_eventually)
 qed               
 
 
-subsection \<open>Approximation of the Euler--Mascheroni constant\<close>
+subsection \<open>Bounds on the Euler--Mascheroni constant\<close>
 
-(* FIXME: ugly *)
-(* TODO: Move ? *)
+(* TODO: Move? *)
 lemma ln_inverse_approx_le:
   assumes "(x::real) > 0" "a > 0"
   shows   "ln (x + a) - ln x \<le> a * (inverse x + inverse (x + a))/2" (is "_ \<le> ?A")
@@ -401,7 +374,7 @@ proof -
   qed
   also from sums have "\<dots> = -inv (n+2) / 2" by (simp add: sums_iff)
   finally have "euler_mascheroni \<ge> (\<Sum>k\<le>n. D k) + 1 / (of_nat (2 * (n+2)))" 
-    by (simp add: inv_def field_simps of_nat_mult)
+    by (simp add: inv_def field_simps)
   also have "(\<Sum>k\<le>n. D k) = harm (Suc n) - (\<Sum>k\<le>n. ln (real_of_nat (Suc k+1)) - ln (of_nat (k+1)))"
     unfolding harm_altdef D_def by (subst lessThan_Suc_atMost) (simp add:  setsum.distrib setsum_subtractf)
   also have "(\<Sum>k\<le>n. ln (real_of_nat (Suc k+1)) - ln (of_nat (k+1))) = ln (of_nat (n+2))"
@@ -447,7 +420,10 @@ qed
 lemma euler_mascheroni_pos: "euler_mascheroni > (0::real)"
   using euler_mascheroni_lower[of 0] ln_2_less_1 by (simp add: harm_def)
 
-lemma ln_approx_aux:
+context
+begin
+
+private lemma ln_approx_aux:
   fixes n :: nat and x :: real
   defines "y \<equiv> (x-1)/(x+1)"
   assumes x: "x > 0" "x \<noteq> 1"
@@ -514,65 +490,13 @@ proof -
   thus "abs (ln x - (approx + d)) \<le> d" by auto
 qed
 
-context
-begin
-
-qualified lemma ln_approx_abs': 
-  assumes "x > (1::real)"
-  assumes "(x-1)/(x+1) = y"
-  assumes "y^2 = ysqr"
-  assumes "(\<Sum>k<n. inverse (of_nat (2*k+1)) * ysqr^k) = approx"
-  assumes "y*ysqr^n / (1 - ysqr) / of_nat (2*n+1) = d"
-  assumes "d \<le> e"
-  shows   "abs (ln x - (2*y*approx + d)) \<le> e"
-proof -
-  note ln_approx_abs[OF assms(1), of n]
-  also note assms(2)
-  also have "y^(2*n+1) = y*ysqr^n" by (simp add: assms(3)[symmetric] power_mult)
-  also note assms(3)
-  also note assms(5)
-  also note assms(5)
-  also note assms(6)
-  also have "(\<Sum>k<n. 2*y^(2*k+1) / real_of_nat (2 * k + 1)) = (2*y) * approx"
-    apply (subst assms(4)[symmetric], subst setsum_right_distrib)
-    apply (simp add: assms(3)[symmetric] power_mult)
-    apply (simp add: mult_ac divide_simps)?
-    done
-  finally show ?thesis .
-qed
-
-lemma ln_2_approx: "\<bar>ln 2 - 0.69314718055\<bar> < inverse (2 ^ 36 :: real)" (is ?thesis1)
-  and ln_2_bounds: "ln (2::real) \<in> {0.693147180549..0.693147180561}" (is ?thesis2)
-proof -
-  def approx \<equiv> "0.69314718055 :: real" and approx' \<equiv> "4465284211343447 / 6442043387911560 :: real"
-  def d \<equiv> "inverse (195259926456::real)"
-  have "dist (ln 2) approx \<le> dist (ln 2) approx' + dist approx' approx" by (rule dist_triangle)
-  also have "\<bar>ln (2::real) - (2 * (1/3) * (651187280816108 / 626309773824735) +
-                 inverse 195259926456)\<bar> \<le> inverse 195259926456"
-  proof (rule ln_approx_abs'[where n = 10])
-    show "(1/3::real)^2 = 1/9" by (simp add: power2_eq_square)
-  qed (simp_all add: eval_nat_numeral)
-  hence A: "dist (ln 2) approx' \<le> d" by (simp add: dist_real_def approx'_def d_def)
-  hence "dist (ln 2) approx' + dist approx' approx \<le> \<dots> + dist approx' approx"
-    by (rule add_right_mono)
-  also have "\<dots> < inverse (2 ^ 36)" by (simp add: dist_real_def approx'_def approx_def d_def)
-  finally show ?thesis1 unfolding dist_real_def approx_def .
-  
-  from A have "ln 2 \<in> {approx' - d..approx' + d}" 
-    by (simp add: dist_real_def abs_real_def split: split_if_asm)
-  also have "\<dots> \<subseteq> {0.693147180549..0.693147180561}"
-    by (subst atLeastatMost_subset_iff, rule disjI2) (simp add: approx'_def d_def)
-  finally show ?thesis2 .
-qed
-
 end
-
 
 lemma euler_mascheroni_bounds:
   fixes n :: nat assumes "n \<ge> 1" defines "t \<equiv> harm n - ln (of_nat (Suc n)) :: real"
   shows "euler_mascheroni \<in> {t + inverse (of_nat (2*(n+1)))..t + inverse (of_nat (2*n))}"
   using assms euler_mascheroni_upper[of "n-1"] euler_mascheroni_lower[of "n-1"]
-  unfolding t_def by (cases n) (simp_all add: harm_Suc t_def inverse_eq_divide of_nat_mult)
+  unfolding t_def by (cases n) (simp_all add: harm_Suc t_def inverse_eq_divide)
 
 lemma euler_mascheroni_bounds':
   fixes n :: nat assumes "n \<ge> 1" "ln (real_of_nat (Suc n)) \<in> {l<..<u}"
@@ -580,28 +504,29 @@ lemma euler_mascheroni_bounds':
            {harm n - u + inverse (of_nat (2*(n+1)))<..<harm n - l + inverse (of_nat (2*n))}"
   using euler_mascheroni_bounds[OF assms(1)] assms(2) by auto
 
-lemma euler_mascheroni_approx: 
-  defines "approx \<equiv> 0.577257 :: real" and "e \<equiv> 0.000063 :: real"
-  shows   "abs (euler_mascheroni - approx :: real) < e"
-  (is "abs (_ - ?approx) < ?e")
+
+text \<open>
+  Approximation of @{term "ln 2"}. The lower bound is accurate to about 0.03; the upper
+  bound is accurate to about 0.0015.
+\<close>
+lemma ln2_ge_two_thirds: "2/3 \<le> ln (2::real)" 
+  and ln2_le_25_over_36: "ln (2::real) \<le> 25/36"
+  using ln_approx_bounds[of 2 1, simplified, simplified eval_nat_numeral, simplified] by simp_all
+
+
+text \<open>
+  Approximation of the Euler--Mascheroni constant. The lower bound is accurate to about 0.0015; 
+  the upper bound is accurate to about 0.015.
+\<close>
+lemma euler_mascheroni_gt_19_over_33: "(euler_mascheroni :: real) > 19/33" (is ?th1)
+  and euler_mascheroni_less_13_over_22: "(euler_mascheroni :: real) < 13/22" (is ?th2)
 proof -
-  def l \<equiv> "47388813395531028639296492901910937/82101866951584879688289000000000000 :: real"
-  def u \<equiv> "142196984054132045946501548559032969 / 246305600854754639064867000000000000 :: real"
-  have impI: "P \<longrightarrow> Q" if Q for P Q using that by blast
-  have hsum_63: "harm 63 = (310559566510213034489743057 / 65681493561267903750631200 ::real)"
-    by (simp add: harm_expand)
-  from harm_Suc[of 63] have hsum_64: "harm 64 = 
-          623171679694215690971693339 / (131362987122535807501262400::real)" 
-    by (subst (asm) hsum_63) simp
-  have "ln (64::real) = real (6::nat) * ln 2" by (subst ln_realpow[symmetric]) simp_all
-  hence "ln (real_of_nat (Suc 63)) \<in> {4.158883083293<..<4.158883083367}" using ln_2_bounds by simp
-  from euler_mascheroni_bounds'[OF _ this]
-    have "(euler_mascheroni :: real) \<in> {l<..<u}" 
-    by (simp add: hsum_63 del: greaterThanLessThan_iff) (simp only: l_def u_def)
-  also have "\<dots> \<subseteq> {approx - e<..<approx + e}"
-    by (subst greaterThanLessThan_subseteq_greaterThanLessThan, rule impI) 
-       (simp add: approx_def e_def u_def l_def)
-  finally show ?thesis by (simp add: abs_real_def)
+  have "ln (real (Suc 7)) = 3 * ln 2" by (simp add: ln_powr [symmetric] powr_numeral)
+  also from ln_approx_bounds[of 2 3] have "\<dots> \<in> {3*307/443<..<3*4615/6658}"
+    by (simp add: eval_nat_numeral)
+  finally have "ln (real (Suc 7)) \<in> \<dots>" .
+  from euler_mascheroni_bounds'[OF _ this] have "?th1 \<and> ?th2" by (simp_all add: harm_expand)
+  thus ?th1 ?th2 by blast+
 qed
 
 end

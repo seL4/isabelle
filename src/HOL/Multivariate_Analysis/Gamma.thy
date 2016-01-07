@@ -288,7 +288,7 @@ text \<open>
   continuous.
   
   This will later allow us to lift holomorphicity and continuity from the log-Gamma 
-  function to the inverse Gamma function, and from that to the Gamma function itself.
+  function to the inverse of the Gamma function, and from that to the Gamma function itself.
 \<close>
 
 definition ln_Gamma_series :: "('a :: {banach,real_normed_field,ln}) \<Rightarrow> nat \<Rightarrow> 'a" where
@@ -824,9 +824,8 @@ lemma Digamma_real_three_halves_pos: "Digamma (3/2 :: real) > 0"
 proof -
   have "-Digamma (3/2 :: real) = -Digamma (of_nat 1 + 1/2)" by simp
   also have "\<dots> = 2 * ln 2 + euler_mascheroni - 2" by (subst Digamma_half_integer) simp
-  also from euler_mascheroni_approx have "euler_mascheroni \<le> (0.58::real)" 
-    by (simp add: abs_real_def split: split_if_asm)
-  also from ln_2_bounds have "ln 2 < (0.7 :: real)" by simp
+  also note euler_mascheroni_less_13_over_22
+  also note ln2_le_25_over_36
   finally show ?thesis by simp
 qed
 
@@ -911,7 +910,7 @@ lemma continuous_on_ln_Gamma_complex [continuous_intros]:
 
 
 text \<open>
-  We define a type class that captures all the fundamental properties of the inverse Gamma function 
+  We define a type class that captures all the fundamental properties of the inverse of the Gamma function 
   and defines the Gamma function upon that. This allows us to instantiate the type class both for 
   the reals and for the complex numbers with a minimal amount of proof duplication. 
 \<close>
@@ -2267,7 +2266,7 @@ end
 subsection \<open>Limits and residues\<close>
 
 text \<open>
-  The inverse Gamma function has simple zeros:
+  The inverse of the Gamma function has simple zeros:
 \<close>
 
 lemma rGamma_zeros: 
@@ -2285,7 +2284,7 @@ qed
 
 
 text \<open>
-  The simple zeros of the inverse Gamma function correspond to simple poles of the Gamma function, 
+  The simple zeros of the inverse of the Gamma function correspond to simple poles of the Gamma function, 
   and their residues can easily be computed from the limit we have just proven:
 \<close>
 
@@ -2452,6 +2451,60 @@ next
   finally show ?thesis by (simp add: Gamma_def)
 qed
 
+subsubsection \<open>Binomial coefficient form\<close>
+
+lemma Gamma_binomial:
+  "(\<lambda>n. ((z + of_nat n) gchoose n) * exp (-z * of_real (ln (of_nat n)))) \<longlonglongrightarrow> rGamma (z+1)"
+proof (cases "z = 0")
+  case False
+  show ?thesis
+  proof (rule Lim_transform_eventually)
+    let ?powr = "\<lambda>a b. exp (b * of_real (ln (of_nat a)))"
+    show "eventually (\<lambda>n. rGamma_series z n / z = 
+            ((z + of_nat n) gchoose n) * ?powr n (-z)) sequentially"
+    proof (intro always_eventually allI)
+      fix n :: nat
+      from False have "((z + of_nat n) gchoose n) = pochhammer z (Suc n) / z / fact n"
+        by (simp add: gbinomial_pochhammer' pochhammer_rec)
+      also have "pochhammer z (Suc n) / z / fact n * ?powr n (-z) = rGamma_series z n / z"
+        by (simp add: rGamma_series_def divide_simps exp_minus)
+      finally show "rGamma_series z n / z = ((z + of_nat n) gchoose n) * ?powr n (-z)" ..
+    qed
+  
+    from False have "(\<lambda>n. rGamma_series z n / z) \<longlonglongrightarrow> rGamma z / z" by (intro tendsto_intros)
+    also from False have "rGamma z / z = rGamma (z + 1)" using rGamma_plus1[of z] 
+      by (simp add: field_simps)
+    finally show "(\<lambda>n. rGamma_series z n / z) \<longlonglongrightarrow> rGamma (z+1)" .
+  qed
+qed (simp_all add: binomial_gbinomial [symmetric])
+
+lemma fact_binomial_limit: 
+  "(\<lambda>n. of_nat ((k + n) choose n) / of_nat (n ^ k) :: 'a :: Gamma) \<longlonglongrightarrow> 1 / fact k"
+proof (rule Lim_transform_eventually)
+  have "(\<lambda>n. of_nat ((k + n) choose n) / of_real (exp (of_nat k * ln (real_of_nat n))))
+            \<longlonglongrightarrow> 1 / Gamma (of_nat (Suc k) :: 'a)" (is "?f \<longlonglongrightarrow> _")
+    using Gamma_binomial[of "of_nat k :: 'a"] 
+    by (simp add: binomial_gbinomial add_ac Gamma_def divide_simps exp_of_real [symmetric] exp_minus)
+  also have "Gamma (of_nat (Suc k)) = fact k" by (rule Gamma_fact)
+  finally show "?f \<longlonglongrightarrow> 1 / fact k" .
+
+  show "eventually (\<lambda>n. ?f n = of_nat ((k + n) choose n) / of_nat (n ^ k)) sequentially"
+    using eventually_gt_at_top[of "0::nat"]
+  proof eventually_elim
+    fix n :: nat assume n: "n > 0"
+    from n have "exp (real_of_nat k * ln (real_of_nat n)) = real_of_nat (n^k)"
+      by (simp add: exp_of_nat_mult)
+    thus "?f n = of_nat ((k + n) choose n) / of_nat (n ^ k)" by simp
+  qed
+qed
+
+lemma binomial_asymptotic: 
+  "(\<lambda>n. of_nat ((k + n) choose n) / (of_nat (n ^ k) / fact k) :: 'a :: Gamma) \<longlonglongrightarrow> 1"
+  using tendsto_mult[OF fact_binomial_limit[of k] tendsto_const[of "fact k :: 'a"]] by simp
+
+
+subsection \<open>The Weierstraß product formula for the sine\<close>
+
 lemma sin_product_formula_complex:
   fixes z :: complex
   shows "(\<lambda>n. of_real pi * z * (\<Prod>k=1..n. 1 - z^2 / of_nat k^2)) \<longlonglongrightarrow> sin (of_real pi * z)"
@@ -2495,6 +2548,9 @@ lemma sin_product_formula_real':
   shows   "(\<lambda>n. (\<Prod>k=1..n. 1 - x^2 / of_nat k^2)) \<longlonglongrightarrow> sin (pi * x) / (pi * x)" 
   using tendsto_divide[OF sin_product_formula_real[of x] tendsto_const[of "pi * x"]] assms
   by simp
+
+
+subsection \<open>The Solution to the Basel problem\<close>
 
 theorem inverse_squares_sums: "(\<lambda>n. 1 / (n + 1)\<^sup>2) sums (pi\<^sup>2 / 6)"
 proof -
@@ -2588,57 +2644,5 @@ proof -
     by (auto simp add: sums_iff power_divide inverse_eq_divide)
 qed
 
-
-
-subsection \<open>Binomial coefficient form\<close>
-
-lemma Gamma_binomial:
-  "(\<lambda>n. ((z + of_nat n) gchoose n) * exp (-z * of_real (ln (of_nat n)))) \<longlonglongrightarrow> rGamma (z+1)"
-proof (cases "z = 0")
-  case False
-  show ?thesis
-  proof (rule Lim_transform_eventually)
-    let ?powr = "\<lambda>a b. exp (b * of_real (ln (of_nat a)))"
-    show "eventually (\<lambda>n. rGamma_series z n / z = 
-            ((z + of_nat n) gchoose n) * ?powr n (-z)) sequentially"
-    proof (intro always_eventually allI)
-      fix n :: nat
-      from False have "((z + of_nat n) gchoose n) = pochhammer z (Suc n) / z / fact n"
-        by (simp add: gbinomial_pochhammer' pochhammer_rec)
-      also have "pochhammer z (Suc n) / z / fact n * ?powr n (-z) = rGamma_series z n / z"
-        by (simp add: rGamma_series_def divide_simps exp_minus)
-      finally show "rGamma_series z n / z = ((z + of_nat n) gchoose n) * ?powr n (-z)" ..
-    qed
-  
-    from False have "(\<lambda>n. rGamma_series z n / z) \<longlonglongrightarrow> rGamma z / z" by (intro tendsto_intros)
-    also from False have "rGamma z / z = rGamma (z + 1)" using rGamma_plus1[of z] 
-      by (simp add: field_simps)
-    finally show "(\<lambda>n. rGamma_series z n / z) \<longlonglongrightarrow> rGamma (z+1)" .
-  qed
-qed (simp_all add: binomial_gbinomial [symmetric])
-
-lemma fact_binomial_limit: 
-  "(\<lambda>n. of_nat ((k + n) choose n) / of_nat (n ^ k) :: 'a :: Gamma) \<longlonglongrightarrow> 1 / fact k"
-proof (rule Lim_transform_eventually)
-  have "(\<lambda>n. of_nat ((k + n) choose n) / of_real (exp (of_nat k * ln (real_of_nat n))))
-            \<longlonglongrightarrow> 1 / Gamma (of_nat (Suc k) :: 'a)" (is "?f \<longlonglongrightarrow> _")
-    using Gamma_binomial[of "of_nat k :: 'a"] 
-    by (simp add: binomial_gbinomial add_ac Gamma_def divide_simps exp_of_real [symmetric] exp_minus)
-  also have "Gamma (of_nat (Suc k)) = fact k" by (rule Gamma_fact)
-  finally show "?f \<longlonglongrightarrow> 1 / fact k" .
-
-  show "eventually (\<lambda>n. ?f n = of_nat ((k + n) choose n) / of_nat (n ^ k)) sequentially"
-    using eventually_gt_at_top[of "0::nat"]
-  proof eventually_elim
-    fix n :: nat assume n: "n > 0"
-    from n have "exp (real_of_nat k * ln (real_of_nat n)) = real_of_nat (n^k)"
-      by (simp add: exp_of_nat_mult)
-    thus "?f n = of_nat ((k + n) choose n) / of_nat (n ^ k)" by simp
-  qed
-qed
-
-lemma binomial_asymptotic: 
-  "(\<lambda>n. of_nat ((k + n) choose n) / (of_nat (n ^ k) / fact k) :: 'a :: Gamma) \<longlonglongrightarrow> 1"
-  using tendsto_mult[OF fact_binomial_limit[of k] tendsto_const[of "fact k :: 'a"]] by simp
 
 end
