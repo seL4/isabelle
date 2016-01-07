@@ -165,36 +165,23 @@ qed
 subsubsection \<open>Limit transformation for derivatives\<close>
 
 lemma has_derivative_transform_within:
-  assumes "0 < d"
+  assumes "(f has_derivative f') (at x within s)"
+    and "0 < d"
     and "x \<in> s"
-    and "\<forall>x'\<in>s. dist x' x < d \<longrightarrow> f x' = g x'"
-    and "(f has_derivative f') (at x within s)"
+    and "\<And>x'. \<lbrakk>x' \<in> s; dist x' x < d\<rbrakk> \<Longrightarrow> f x' = g x'"
   shows "(g has_derivative f') (at x within s)"
   using assms
-  unfolding has_derivative_within
-  apply clarify
-  apply (rule Lim_transform_within, auto)
-  done
-
-lemma has_derivative_transform_at:
-  assumes "0 < d"
-    and "\<forall>x'. dist x' x < d \<longrightarrow> f x' = g x'"
-    and "(f has_derivative f') (at x)"
-  shows "(g has_derivative f') (at x)"
-  using has_derivative_transform_within [of d x UNIV f g f'] assms
-  by simp
+  unfolding has_derivative_within  
+  by (force simp add: intro: Lim_transform_within)
 
 lemma has_derivative_transform_within_open:
-  assumes "open s"
+  assumes "(f has_derivative f') (at x)"
+    and "open s"
     and "x \<in> s"
-    and "\<forall>y\<in>s. f y = g y"
-    and "(f has_derivative f') (at x)"
+    and "\<And>x. x\<in>s \<Longrightarrow> f x = g x"
   shows "(g has_derivative f') (at x)"
-  using assms
-  unfolding has_derivative_at
-  apply clarify
-  apply (rule Lim_transform_within_open[OF assms(1,2)], auto)
-  done
+  using assms  unfolding has_derivative_at
+  by (force simp add: intro: Lim_transform_within_open)
 
 subsection \<open>Differentiability\<close>
 
@@ -234,24 +221,13 @@ lemma differentiable_on_eq_differentiable_at:
   by (metis at_within_interior interior_open)
 
 lemma differentiable_transform_within:
-  assumes "0 < d"
-    and "x \<in> s"
-    and "\<forall>x'\<in>s. dist x' x < d \<longrightarrow> f x' = g x'"
   assumes "f differentiable (at x within s)"
+    and "0 < d"
+    and "x \<in> s"
+    and "\<And>x'. \<lbrakk>x'\<in>s; dist x' x < d\<rbrakk> \<Longrightarrow> f x' = g x'"
   shows "g differentiable (at x within s)"
-  using assms(4)
-  unfolding differentiable_def
-  by (auto intro!: has_derivative_transform_within[OF assms(1-3)])
-
-lemma differentiable_transform_at:
-  assumes "0 < d"
-    and "\<forall>x'. dist x' x < d \<longrightarrow> f x' = g x'"
-    and "f differentiable at x"
-  shows "g differentiable at x"
-  using assms(3)
-  unfolding differentiable_def
-  using has_derivative_transform_at[OF assms(1-2)]
-  by auto
+   using assms has_derivative_transform_within unfolding differentiable_def
+   by blast
 
 
 subsection \<open>Frechet derivative and Jacobian matrix\<close>
@@ -2263,7 +2239,7 @@ proof -
   from g(2)[OF x] have g': "(g has_derivative op * (g' x)) (at x)"
     by (simp add: has_field_derivative_def s)
   have "((\<lambda>x. \<Sum>n. f n x) has_derivative op * (g' x)) (at x)"
-    by (rule has_derivative_transform_within_open[OF \<open>open s\<close> x _ g'])
+    by (rule has_derivative_transform_within_open[OF g' \<open>open s\<close> x])
        (insert g, auto simp: sums_iff)
   thus "(\<lambda>x. \<Sum>n. f n x) differentiable (at x)" unfolding differentiable_def
     by (auto simp: summable_def differentiable_def has_field_derivative_def)
@@ -2475,29 +2451,20 @@ proof -
 qed
 
 lemma has_vector_derivative_transform_within:
-  assumes "0 < d"
-    and "x \<in> s"
-    and "\<forall>x'\<in>s. dist x' x < d \<longrightarrow> f x' = g x'"
   assumes "(f has_vector_derivative f') (at x within s)"
-  shows "(g has_vector_derivative f') (at x within s)"
+    and "0 < d"
+    and "x \<in> s"
+    and "\<And>x'. \<lbrakk>x'\<in>s; dist x' x < d\<rbrakk> \<Longrightarrow> f x' = g x'"
+    shows "(g has_vector_derivative f') (at x within s)"
   using assms
   unfolding has_vector_derivative_def
   by (rule has_derivative_transform_within)
 
-lemma has_vector_derivative_transform_at:
-  assumes "0 < d"
-    and "\<forall>x'. dist x' x < d \<longrightarrow> f x' = g x'"
-    and "(f has_vector_derivative f') (at x)"
-  shows "(g has_vector_derivative f') (at x)"
-  using assms
-  unfolding has_vector_derivative_def
-  by (rule has_derivative_transform_at)
-
 lemma has_vector_derivative_transform_within_open:
-  assumes "open s"
+  assumes "(f has_vector_derivative f') (at x)"
+    and "open s"
     and "x \<in> s"
-    and "\<forall>y\<in>s. f y = g y"
-    and "(f has_vector_derivative f') (at x)"
+    and "\<And>y. y\<in>s \<Longrightarrow> f y = g y"
   shows "(g has_vector_derivative f') (at x)"
   using assms
   unfolding has_vector_derivative_def

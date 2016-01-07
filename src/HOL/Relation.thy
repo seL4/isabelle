@@ -515,6 +515,8 @@ lemma trans_diff_Id: "trans r \<Longrightarrow> antisym r \<Longrightarrow> tran
 lemma total_on_diff_Id [simp]: "total_on A (r - Id) = total_on A r"
   by (simp add: total_on_def)
 
+lemma Id_fstsnd_eq: "Id = {x. fst x = snd x}"
+  by force
 
 subsubsection \<open>Diagonal: identity over a set\<close>
 
@@ -872,6 +874,12 @@ lemma fst_eq_Domain: "fst ` R = Domain R"
 
 lemma snd_eq_Range: "snd ` R = Range R"
   by force
+
+lemma range_fst [simp]: "range fst = UNIV"
+  by (auto simp: fst_eq_Domain)
+
+lemma range_snd [simp]: "range snd = UNIV"
+  by (auto simp: snd_eq_Range)
 
 lemma Domain_empty [simp]: "Domain {} = {}"
   by auto

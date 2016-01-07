@@ -137,7 +137,7 @@ proof (elim BseqE, intro bdd_aboveI2)
     by (auto elim!: allE[of _ n])
 qed
 
-lemma Bseq_bdd_above': 
+lemma Bseq_bdd_above':
   "Bseq (X::nat \<Rightarrow> 'a :: real_normed_vector) \<Longrightarrow> bdd_above (range (\<lambda>n. norm (X n)))"
 proof (elim BseqE, intro bdd_aboveI2)
   fix K n assume "0 < K" "\<forall>n. norm (X n) \<le> K" then show "norm (X n) \<le> K"
@@ -152,7 +152,7 @@ qed
 
 lemma Bseq_eventually_mono:
   assumes "eventually (\<lambda>n. norm (f n) \<le> norm (g n)) sequentially" "Bseq g"
-  shows   "Bseq f" 
+  shows   "Bseq f"
 proof -
   from assms(1) obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> norm (f n) \<le> norm (g n)"
     by (auto simp: eventually_at_top_linorder)
@@ -162,7 +162,7 @@ proof -
     apply (rule max.coboundedI2, rule Max.coboundedI, auto) []
     apply (rule max.coboundedI1, force intro: order.trans[OF N K])
     done
-  thus ?thesis by (blast intro: BseqI') 
+  thus ?thesis by (blast intro: BseqI')
 qed
 
 lemma lemma_NBseq_def:
@@ -243,7 +243,7 @@ subsubsection\<open>Upper Bounds and Lubs of Bounded Sequences\<close>
 lemma Bseq_minus_iff: "Bseq (%n. -(X n) :: 'a :: real_normed_vector) = Bseq X"
   by (simp add: Bseq_def)
 
-lemma Bseq_add: 
+lemma Bseq_add:
   assumes "Bseq (f :: nat \<Rightarrow> 'a :: real_normed_vector)"
   shows   "Bseq (\<lambda>x. f x + c)"
 proof -
@@ -260,12 +260,12 @@ qed
 lemma Bseq_add_iff: "Bseq (\<lambda>x. f x + c) \<longleftrightarrow> Bseq (f :: nat \<Rightarrow> 'a :: real_normed_vector)"
   using Bseq_add[of f c] Bseq_add[of "\<lambda>x. f x + c" "-c"] by auto
 
-lemma Bseq_mult: 
+lemma Bseq_mult:
   assumes "Bseq (f :: nat \<Rightarrow> 'a :: real_normed_field)"
   assumes "Bseq (g :: nat \<Rightarrow> 'a :: real_normed_field)"
   shows   "Bseq (\<lambda>x. f x * g x)"
 proof -
-  from assms obtain K1 K2 where K: "\<And>x. norm (f x) \<le> K1" "K1 > 0" "\<And>x. norm (g x) \<le> K2" "K2 > 0" 
+  from assms obtain K1 K2 where K: "\<And>x. norm (f x) \<le> K1" "K1 > 0" "\<And>x. norm (g x) \<le> K2" "K2 > 0"
     unfolding Bseq_def by blast
   hence "\<And>x. norm (f x * g x) \<le> K1 * K2" by (auto simp: norm_mult intro!: mult_mono)
   thus ?thesis by (rule BseqI')
@@ -794,7 +794,7 @@ lemma tendsto_of_real_iff:
 
 lemma tendsto_add_const_iff:
   "((\<lambda>x. c + f x :: 'a :: real_normed_vector) \<longlongrightarrow> c + d) F \<longleftrightarrow> (f \<longlongrightarrow> d) F"
-  using tendsto_add[OF tendsto_const[of c], of f d] 
+  using tendsto_add[OF tendsto_const[of c], of f d]
         tendsto_add[OF tendsto_const[of "-c"], of "\<lambda>x. c + f x" "c + d"] by auto
 
 
@@ -1001,11 +1001,11 @@ qed force
 
 lemma not_tendsto_and_filterlim_at_infinity:
   assumes "F \<noteq> bot"
-  assumes "(f \<longlongrightarrow> (c :: 'a :: real_normed_vector)) F" 
+  assumes "(f \<longlongrightarrow> (c :: 'a :: real_normed_vector)) F"
   assumes "filterlim f at_infinity F"
   shows   False
 proof -
-  from tendstoD[OF assms(2), of "1/2"] 
+  from tendstoD[OF assms(2), of "1/2"]
     have "eventually (\<lambda>x. dist (f x) c < 1/2) F" by simp
   moreover from filterlim_at_infinity[of "norm c" f F] assms(3)
     have "eventually (\<lambda>x. norm (f x) \<ge> norm c + 1) F" by simp
@@ -1037,7 +1037,7 @@ proof -
   thus ?thesis by eventually_elim auto
 qed
 
-lemma tendsto_of_nat [tendsto_intros]: 
+lemma tendsto_of_nat [tendsto_intros]:
   "filterlim (of_nat :: nat \<Rightarrow> 'a :: real_normed_algebra_1) at_infinity sequentially"
 proof (subst filterlim_at_infinity[OF order.refl], intro allI impI)
   fix r :: real assume r: "r > 0"
@@ -1164,7 +1164,7 @@ proof (subst filterlim_at_infinity[OF order_refl], safe)
   fix r :: real assume r: "r > 0"
   from assms(1) have "((\<lambda>x. norm (f x)) \<longlongrightarrow> norm c) F" by (rule tendsto_norm)
   hence "eventually (\<lambda>x. norm (f x) < norm c + 1) F" by (rule order_tendstoD) simp_all
-  moreover from r have "r + norm c + 1 > 0" by (intro add_pos_nonneg) simp_all 
+  moreover from r have "r + norm c + 1 > 0" by (intro add_pos_nonneg) simp_all
   with assms(2) have "eventually (\<lambda>x. norm (g x) \<ge> r + norm c + 1) F"
     unfolding filterlim_at_infinity[OF order_refl] by (elim allE[of _ "r + norm c + 1"]) simp_all
   ultimately show "eventually (\<lambda>x. norm (f x + g x) \<ge> r) F"
@@ -1506,7 +1506,7 @@ text\<open>Transformation of limit.\<close>
 
 lemma eventually_at2:
   "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
-  unfolding eventually_at dist_nz by auto
+  unfolding eventually_at by auto
 
 lemma Lim_transform:
   fixes a b :: "'a::real_normed_vector"
@@ -1526,26 +1526,14 @@ lemma Lim_transform_eventually:
   done
 
 lemma Lim_transform_within:
-  assumes "0 < d"
-    and "\<forall>x'\<in>S. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x'"
-    and "(f \<longlongrightarrow> l) (at x within S)"
+  assumes "(f \<longlongrightarrow> l) (at x within S)"
+    and "0 < d"
+    and "\<And>x'. \<lbrakk>x'\<in>S; 0 < dist x' x; dist x' x < d\<rbrakk> \<Longrightarrow> f x' = g x'"
   shows "(g \<longlongrightarrow> l) (at x within S)"
 proof (rule Lim_transform_eventually)
   show "eventually (\<lambda>x. f x = g x) (at x within S)"
-    using assms(1,2) by (auto simp: dist_nz eventually_at)
+    using assms by (auto simp: eventually_at)
   show "(f \<longlongrightarrow> l) (at x within S)" by fact
-qed
-
-lemma Lim_transform_at:
-  assumes "0 < d"
-    and "\<forall>x'. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x'"
-    and "(f \<longlongrightarrow> l) (at x)"
-  shows "(g \<longlongrightarrow> l) (at x)"
-  using _ assms(3)
-proof (rule Lim_transform_eventually)
-  show "eventually (\<lambda>x. f x = g x) (at x)"
-    unfolding eventually_at2
-    using assms(1,2) by auto
 qed
 
 text\<open>Common case assuming being away from some crucial point like 0.\<close>
@@ -1574,15 +1562,15 @@ lemma Lim_transform_away_at:
 text\<open>Alternatively, within an open set.\<close>
 
 lemma Lim_transform_within_open:
-  assumes "open S" and "a \<in> S"
-    and "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> f x = g x"
-    and "(f \<longlongrightarrow> l) (at a)"
-  shows "(g \<longlongrightarrow> l) (at a)"
+  assumes "(f \<longlongrightarrow> l) (at a within T)"
+    and "open s" and "a \<in> s"
+    and "\<And>x. \<lbrakk>x\<in>s; x \<noteq> a\<rbrakk> \<Longrightarrow> f x = g x"
+  shows "(g \<longlongrightarrow> l) (at a within T)"
 proof (rule Lim_transform_eventually)
-  show "eventually (\<lambda>x. f x = g x) (at a)"
+  show "eventually (\<lambda>x. f x = g x) (at a within T)"
     unfolding eventually_at_topological
-    using assms(1,2,3) by auto
-  show "(f \<longlongrightarrow> l) (at a)" by fact
+    using assms by auto
+  show "(f \<longlongrightarrow> l) (at a within T)" by fact
 qed
 
 text\<open>A congruence rule allowing us to transform limits assuming not at point.\<close>
@@ -1642,7 +1630,7 @@ proof (subst lim_sequentially, intro allI impI exI)
   fix n :: nat assume n: "n \<ge> nat \<lceil>inverse e + 1\<rceil>"
   have "inverse e < of_nat (nat \<lceil>inverse e + 1\<rceil>)" by linarith
   also note n
-  finally show "dist (1 / of_nat n :: 'a) 0 < e" using e 
+  finally show "dist (1 / of_nat n :: 'a) 0 < e" using e
     by (simp add: divide_simps mult.commute norm_conv_dist[symmetric] norm_divide)
 qed
 
@@ -1660,9 +1648,9 @@ qed
 
 lemma LIMSEQ_n_over_Suc_n: "(\<lambda>n. of_nat n / of_nat (Suc n) :: 'a :: real_normed_field) \<longlonglongrightarrow> 1"
 proof (rule Lim_transform_eventually)
-  show "eventually (\<lambda>n. inverse (of_nat (Suc n) / of_nat n :: 'a) = 
+  show "eventually (\<lambda>n. inverse (of_nat (Suc n) / of_nat n :: 'a) =
                         of_nat n / of_nat (Suc n)) sequentially"
-    using eventually_gt_at_top[of "0::nat"] 
+    using eventually_gt_at_top[of "0::nat"]
     by eventually_elim (simp add: field_simps del: of_nat_Suc)
   have "(\<lambda>n. inverse (of_nat (Suc n) / of_nat n :: 'a)) \<longlonglongrightarrow> inverse 1"
     by (intro tendsto_inverse LIMSEQ_Suc_n_over_n) simp_all
@@ -1738,11 +1726,11 @@ proof -
   thus ?thesis by (auto simp: convergent_def)
 qed
 
-lemma convergent_of_real: 
+lemma convergent_of_real:
   "convergent f \<Longrightarrow> convergent (\<lambda>n. of_real (f n) :: 'a :: real_normed_algebra_1)"
   unfolding convergent_def by (blast intro!: tendsto_of_real)
 
-lemma convergent_add_const_iff: 
+lemma convergent_add_const_iff:
   "convergent (\<lambda>n. c + f n :: 'a :: real_normed_vector) \<longleftrightarrow> convergent f"
 proof
   assume "convergent (\<lambda>n. c + f n)"
@@ -1752,11 +1740,11 @@ next
   from convergent_add[OF convergent_const[of c] this] show "convergent (\<lambda>n. c + f n)" by simp
 qed
 
-lemma convergent_add_const_right_iff: 
+lemma convergent_add_const_right_iff:
   "convergent (\<lambda>n. f n + c :: 'a :: real_normed_vector) \<longleftrightarrow> convergent f"
   using convergent_add_const_iff[of c f] by (simp add: add_ac)
 
-lemma convergent_diff_const_right_iff: 
+lemma convergent_diff_const_right_iff:
   "convergent (\<lambda>n. f n - c :: 'a :: real_normed_vector) \<longleftrightarrow> convergent f"
   using convergent_add_const_right_iff[of f "-c"] by (simp add: add_ac)
 
@@ -1772,7 +1760,7 @@ lemma convergent_mult_const_iff:
   shows   "convergent (\<lambda>n. c * f n :: 'a :: real_normed_field) \<longleftrightarrow> convergent f"
 proof
   assume "convergent (\<lambda>n. c * f n)"
-  from assms convergent_mult[OF this convergent_const[of "inverse c"]] 
+  from assms convergent_mult[OF this convergent_const[of "inverse c"]]
     show "convergent f" by (simp add: field_simps)
 next
   assume "convergent f"
