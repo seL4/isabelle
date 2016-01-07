@@ -12,7 +12,7 @@ begin
 subsection \<open>Predicate for finite sets\<close>
 
 context
-  notes [[inductive_defs]]
+  notes [[inductive_internals]]
 begin
 
 inductive finite :: "'a set \<Rightarrow> bool"

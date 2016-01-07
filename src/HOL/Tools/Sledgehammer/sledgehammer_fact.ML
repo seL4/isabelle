@@ -83,9 +83,6 @@ fun explode_interval _ (Facts.FromTo (i, j)) = i upto j
 
 val backquote = enclose "\<open>" "\<close>"
 
-(* unfolding these can yield really huge terms *)
-val risky_defs = @{thms Bit0_def Bit1_def}
-
 fun is_rec_eq lhs = Term.exists_subterm (curry (op =) (head_of lhs))
 
 fun is_rec_def (@{const Trueprop} $ t) = is_rec_def t
@@ -324,7 +321,6 @@ fun clasimpset_rule_table_of ctxt =
         val (rec_defs, nonrec_defs) = specs
           |> filter (curry (op =) Spec_Rules.Equational o fst)
           |> maps (snd o snd)
-          |> filter_out (member Thm.eq_thm_prop risky_defs)
           |> List.partition (is_rec_def o Thm.prop_of)
         val spec_intros = specs
           |> filter (member (op =) [Spec_Rules.Inductive, Spec_Rules.Co_Inductive] o fst)

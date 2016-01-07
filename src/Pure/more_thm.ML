@@ -92,6 +92,7 @@ sig
   val def_name_optional: string -> string -> string
   val def_binding: Binding.binding -> Binding.binding
   val def_binding_optional: Binding.binding -> Binding.binding -> Binding.binding
+  val make_def_binding: bool -> Binding.binding -> Binding.binding
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
   val put_name_hint: string -> thm -> thm
@@ -569,6 +570,9 @@ val def_binding = Binding.map_name def_name;
 
 fun def_binding_optional b name =
   if Binding.is_empty name then def_binding b else name;
+
+fun make_def_binding cond b =
+  if cond then Binding.reset_pos (def_binding b) else Binding.empty;
 
 
 (* unofficial theorem names *)

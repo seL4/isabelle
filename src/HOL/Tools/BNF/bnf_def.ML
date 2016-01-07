@@ -119,7 +119,7 @@ sig
   datatype inline_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline
   datatype fact_policy = Dont_Note | Note_Some | Note_All
 
-  val bnf_note_all: bool Config.T
+  val bnf_internals: bool Config.T
   val bnf_timing: bool Config.T
   val user_policy: fact_policy -> Proof.context -> fact_policy
   val note_bnf_thms: fact_policy -> (binding -> binding) -> binding -> bnf -> Proof.context ->
@@ -725,10 +725,10 @@ datatype inline_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline;
 
 datatype fact_policy = Dont_Note | Note_Some | Note_All;
 
-val bnf_note_all = Attrib.setup_config_bool @{binding bnf_note_all} (K false);
+val bnf_internals = Attrib.setup_config_bool @{binding bnf_internals} (K false);
 val bnf_timing = Attrib.setup_config_bool @{binding bnf_timing} (K false);
 
-fun user_policy policy ctxt = if Config.get ctxt bnf_note_all then Note_All else policy;
+fun user_policy policy ctxt = if Config.get ctxt bnf_internals then Note_All else policy;
 
 val smart_max_inline_term_size = 25; (*FUDGE*)
 

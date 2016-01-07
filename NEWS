@@ -443,12 +443,17 @@ numbered cases in proofs, without requiring method "goal_cases".
 
 * Inductive definitions ('inductive', 'coinductive', etc.) expose
 low-level facts of the internal construction only if the option
-"inductive_defs" is enabled. This refers to the internal predicate
+"inductive_internals" is enabled. This refers to the internal predicate
 definition and its monotonicity result. Rare INCOMPATIBILITY.
 
 * Recursive function definitions ('fun', 'function', 'partial_function')
 expose low-level facts of the internal construction only if the option
-"function_defs" is enabled. Rare INCOMPATIBILITY.
+"function_internals" is enabled. Rare INCOMPATIBILITY.
+
+* BNF datatypes ('datatype', 'codatatype', etc.) expose low-level facts
+of the internal construction only if the option "bnf_internals" is
+enabled. This supersedes the former option "bnf_note_all". Rare
+INCOMPATIBILITY.
 
 * Combinator to represent case distinction on products is named
 "case_prod", uniformly, discontinuing any input aliasses. Very popular

@@ -499,7 +499,7 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
         $ (default $ Bound 0) $ Abs ("y", ranT, G $ Bound 1 $ Bound 0))
       |> Syntax.check_term lthy
     val def_binding =
-      if Config.get lthy function_defs then (Binding.name fdefname, [])
+      if Config.get lthy function_internals then (Binding.name fdefname, [])
       else Attrib.empty_binding
   in
     Local_Theory.define

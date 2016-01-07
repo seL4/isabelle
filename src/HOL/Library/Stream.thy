@@ -69,7 +69,7 @@ lemma shift_left_inj[simp]: "xs @- s1 = xs @- s2 \<longleftrightarrow> s1 = s2"
 subsection \<open>set of streams with elements in some fixed set\<close>
 
 context
-  notes [[inductive_defs]]
+  notes [[inductive_internals]]
 begin
 
 coinductive_set
