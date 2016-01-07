@@ -843,7 +843,7 @@ proof -
     apply (rule that [OF \<open>path h\<close>])
     using assms h
     apply auto
-    apply (metis diff_single_insert frontier_subset_eq insert_iff interior_subset subset_iff)
+    apply (metis Diff_single_insert frontier_subset_eq insert_iff interior_subset subset_iff)
     done
 qed
 

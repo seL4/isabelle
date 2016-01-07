@@ -99,21 +99,21 @@ proof -
       case le show ?diff_fg
         apply (rule differentiable_transform_within [where d = "dist x c" and f = f])
         using x le st
-        apply (simp_all add: dist_real_def dist_nz [symmetric])
+        apply (simp_all add: dist_real_def)
         apply (rule differentiable_at_withinI)
         apply (rule differentiable_within_open [where s = "{a<..<c} - s", THEN iffD1], simp_all)
         apply (blast intro: open_greaterThanLessThan finite_imp_closed)
-        apply (force elim!: differentiable_subset)
+        apply (force elim!: differentiable_subset)+
         done
     next
       case ge show ?diff_fg
         apply (rule differentiable_transform_within [where d = "dist x c" and f = g])
         using x ge st
-        apply (simp_all add: dist_real_def dist_nz [symmetric])
+        apply (simp_all add: dist_real_def)
         apply (rule differentiable_at_withinI)
         apply (rule differentiable_within_open [where s = "{c<..<b} - t", THEN iffD1], simp_all)
         apply (blast intro: open_greaterThanLessThan finite_imp_closed)
-        apply (force elim!: differentiable_subset)
+        apply (force elim!: differentiable_subset)+
         done
     qed
   }
@@ -351,11 +351,11 @@ proof -
     have "(\<lambda>x. if x \<le> c then f x else g x) differentiable at x" (is "?diff_fg")
     proof (cases x c rule: le_cases)
       case le show ?diff_fg
-        apply (rule differentiable_transform_at [of "dist x c" _ f])
+        apply (rule differentiable_transform_within [where f=f and d = "dist x c"])
         using x dist_real_def le st by (auto simp: C1_differentiable_on_eq)
     next
       case ge show ?diff_fg
-        apply (rule differentiable_transform_at [of "dist x c" _ g])
+        apply (rule differentiable_transform_within [where f=g and d = "dist x c"])
         using dist_nz x dist_real_def ge st x by (auto simp: C1_differentiable_on_eq)
     qed
   }
@@ -370,18 +370,20 @@ proof -
       apply (rule continuous_on_eq [OF fcon])
       apply (simp add:)
       apply (rule vector_derivative_at [symmetric])
-      apply (rule_tac f=f and d="dist x c" in has_vector_derivative_transform_at)
+      apply (rule_tac f=f and d="dist x c" in has_vector_derivative_transform_within)
       apply (simp_all add: dist_norm vector_derivative_works [symmetric])
-      using f_diff
-      by (meson C1_differentiable_on_eq Diff_iff atLeastAtMost_iff less_imp_le st(1))
+      apply (metis (full_types) C1_differentiable_on_eq Diff_iff Groups.add_ac(2) add_mono_thms_linordered_field(5) atLeastAtMost_iff linorder_not_le order_less_irrefl st(1))
+      apply auto
+      done
     moreover have "continuous_on ({c<..<b} - t) (\<lambda>x. vector_derivative (\<lambda>x. if x \<le> c then f x else g x) (at x))"
       apply (rule continuous_on_eq [OF gcon])
       apply (simp add:)
       apply (rule vector_derivative_at [symmetric])
-      apply (rule_tac f=g and d="dist x c" in has_vector_derivative_transform_at)
+      apply (rule_tac f=g and d="dist x c" in has_vector_derivative_transform_within)
       apply (simp_all add: dist_norm vector_derivative_works [symmetric])
-      using g_diff
-      by (meson C1_differentiable_on_eq Diff_iff atLeastAtMost_iff less_imp_le st(2))
+      apply (metis (full_types) C1_differentiable_on_eq Diff_iff Groups.add_ac(2) add_mono_thms_linordered_field(5) atLeastAtMost_iff less_irrefl not_le st(2))
+      apply auto
+      done
     ultimately have "continuous_on ({a<..<b} - insert c (s \<union> t))
         (\<lambda>x. vector_derivative (\<lambda>x. if x \<le> c then f x else g x) (at x))"
       apply (rule continuous_on_subset [OF continuous_on_open_Un], auto)
@@ -435,7 +437,7 @@ proof -
              and g12D: "\<forall>x\<in>{0..1} - s. g1 +++ g2 differentiable at x"
     using assms  by (auto simp: piecewise_C1_differentiable_on_def C1_differentiable_on_eq)
   then have g1D: "g1 differentiable at x" if "x \<in> {0..1} - insert 1 (op * 2 ` s)" for x
-    apply (rule_tac d="dist (x/2) (1/2)" and f = "(g1 +++ g2) o (op*(inverse 2))" in differentiable_transform_at)
+    apply (rule_tac d="dist (x/2) (1/2)" and f = "(g1 +++ g2) o (op*(inverse 2))" in differentiable_transform_within)
     using that
     apply (simp_all add: dist_real_def joinpaths_def)
     apply (rule differentiable_chain_at derivative_intros | force)+
@@ -450,9 +452,10 @@ proof -
     using co12 by (rule continuous_on_subset) force
   then have coDhalf: "continuous_on ({0..1/2} - insert (1/2) s) (\<lambda>x. vector_derivative (g1 o op*2) (at x))"
     apply (rule continuous_on_eq [OF _ vector_derivative_at])
-    apply (rule_tac f="g1 o op*2" and d="dist x (1/2)" in has_vector_derivative_transform_at)
+    apply (rule_tac f="g1 o op*2" and d="dist x (1/2)" in has_vector_derivative_transform_within)
     apply (simp_all add: dist_norm joinpaths_def vector_derivative_works [symmetric])
     apply (force intro: g1D differentiable_chain_at)
+    apply auto
     done
   have "continuous_on ({0..1} - insert 1 (op * 2 ` s))
                       ((\<lambda>x. 1/2 * vector_derivative (g1 o op*2) (at x)) o op*(1/2))"
@@ -481,7 +484,7 @@ proof -
              and g12D: "\<forall>x\<in>{0..1} - s. g1 +++ g2 differentiable at x"
     using assms  by (auto simp: piecewise_C1_differentiable_on_def C1_differentiable_on_eq)
   then have g2D: "g2 differentiable at x" if "x \<in> {0..1} - insert 0 ((\<lambda>x. 2*x-1) ` s)" for x
-    apply (rule_tac d="dist ((x+1)/2) (1/2)" and f = "(g1 +++ g2) o (\<lambda>x. (x+1)/2)" in differentiable_transform_at)
+    apply (rule_tac d="dist ((x+1)/2) (1/2)" and f = "(g1 +++ g2) o (\<lambda>x. (x+1)/2)" in differentiable_transform_within)
     using that
     apply (simp_all add: dist_real_def joinpaths_def)
     apply (auto simp: dist_real_def joinpaths_def field_simps)
@@ -496,7 +499,7 @@ proof -
     using co12 by (rule continuous_on_subset) force
   then have coDhalf: "continuous_on ({1/2..1} - insert (1/2) s) (\<lambda>x. vector_derivative (g2 o (\<lambda>x. 2*x-1)) (at x))"
     apply (rule continuous_on_eq [OF _ vector_derivative_at])
-    apply (rule_tac f="g2 o (\<lambda>x. 2*x-1)" and d="dist (3/4) ((x+1)/2)" in has_vector_derivative_transform_at)
+    apply (rule_tac f="g2 o (\<lambda>x. 2*x-1)" and d="dist (3/4) ((x+1)/2)" in has_vector_derivative_transform_within)
     apply (auto simp: dist_real_def field_simps joinpaths_def vector_derivative_works [symmetric]
                 intro!: g2D differentiable_chain_at)
     done
@@ -755,7 +758,7 @@ proof -
   have g1: "\<lbrakk>0 \<le> z; z*2 < 1; z*2 \<notin> s1\<rbrakk> \<Longrightarrow>
             vector_derivative (\<lambda>x. if x*2 \<le> 1 then g1 (2*x) else g2 (2*x - 1)) (at z) =
             2 *\<^sub>R vector_derivative g1 (at (z*2))" for z
-    apply (rule vector_derivative_at [OF has_vector_derivative_transform_at [of "\<bar>z - 1/2\<bar>" _ "(\<lambda>x. g1(2*x))"]])
+    apply (rule vector_derivative_at [OF has_vector_derivative_transform_within [where f = "(\<lambda>x. g1(2*x))" and d = "\<bar>z - 1/2\<bar>"]])
     apply (simp_all add: dist_real_def abs_if split: split_if_asm)
     apply (rule vector_diff_chain_at [of "\<lambda>x. 2*x" 2 _ g1, simplified o_def])
     apply (simp add: has_vector_derivative_def has_derivative_def bounded_linear_mult_left)
@@ -765,7 +768,7 @@ proof -
   have g2: "\<lbrakk>1 < z*2; z \<le> 1; z*2 - 1 \<notin> s2\<rbrakk> \<Longrightarrow>
             vector_derivative (\<lambda>x. if x*2 \<le> 1 then g1 (2*x) else g2 (2*x - 1)) (at z) =
             2 *\<^sub>R vector_derivative g2 (at (z*2 - 1))" for z
-    apply (rule vector_derivative_at [OF has_vector_derivative_transform_at [of "\<bar>z - 1/2\<bar>" _ "(\<lambda>x. g2 (2*x - 1))"]])
+    apply (rule vector_derivative_at [OF has_vector_derivative_transform_within [where f = "(\<lambda>x. g2 (2*x - 1))" and d = "\<bar>z - 1/2\<bar>"]])
     apply (simp_all add: dist_real_def abs_if split: split_if_asm)
     apply (rule vector_diff_chain_at [of "\<lambda>x. 2*x - 1" 2 _ g2, simplified o_def])
     apply (simp add: has_vector_derivative_def has_derivative_def bounded_linear_mult_left)
@@ -816,7 +819,7 @@ proof -
   have g1: "\<lbrakk>0 < z; z < 1; z \<notin> s1\<rbrakk> \<Longrightarrow>
             vector_derivative (\<lambda>x. if x*2 \<le> 1 then g1 (2*x) else g2 (2*x - 1)) (at (z/2)) =
             2 *\<^sub>R vector_derivative g1 (at z)"  for z
-    apply (rule vector_derivative_at [OF has_vector_derivative_transform_at [of "\<bar>(z-1)/2\<bar>" _ "(\<lambda>x. g1(2*x))"]])
+    apply (rule vector_derivative_at [OF has_vector_derivative_transform_within [where f = "(\<lambda>x. g1(2*x))" and d = "\<bar>(z-1)/2\<bar>"]])
     apply (simp_all add: field_simps dist_real_def abs_if split: split_if_asm)
     apply (rule vector_diff_chain_at [of "\<lambda>x. x*2" 2 _ g1, simplified o_def])
     using s1
@@ -850,7 +853,7 @@ proof -
   have g2: "\<lbrakk>0 < z; z < 1; z \<notin> s2\<rbrakk> \<Longrightarrow>
             vector_derivative (\<lambda>x. if x*2 \<le> 1 then g1 (2*x) else g2 (2*x - 1)) (at (z/2+1/2)) =
             2 *\<^sub>R vector_derivative g2 (at z)" for z
-    apply (rule vector_derivative_at [OF has_vector_derivative_transform_at [of "\<bar>z/2\<bar>" _ "(\<lambda>x. g2(2*x-1))"]])
+    apply (rule vector_derivative_at [OF has_vector_derivative_transform_within [where f = "(\<lambda>x. g2(2*x-1))" and d = "\<bar>z/2\<bar>"]])
     apply (simp_all add: field_simps dist_real_def abs_if split: split_if_asm)
     apply (rule vector_diff_chain_at [of "\<lambda>x. x*2-1" 2 _ g2, simplified o_def])
     using s2
@@ -916,7 +919,7 @@ proof -
     have "0 \<le> x \<Longrightarrow> x + a < 1 \<Longrightarrow> x \<notin> (\<lambda>x. x - a) ` s \<Longrightarrow>
          vector_derivative (shiftpath a g) (at x) = vector_derivative g (at (x + a))"
       unfolding shiftpath_def
-      apply (rule vector_derivative_at [OF has_vector_derivative_transform_at [of "dist(1-a) x" _ "(\<lambda>x. g(a+x))"]])
+      apply (rule vector_derivative_at [OF has_vector_derivative_transform_within [where f = "(\<lambda>x. g(a+x))" and d = "dist(1-a) x"]])
         apply (auto simp: field_simps dist_real_def abs_if split: split_if_asm)
       apply (rule vector_diff_chain_at [of "\<lambda>x. x+a" 1 _ g, simplified o_def scaleR_one])
        apply (intro derivative_eq_intros | simp)+
@@ -929,7 +932,7 @@ proof -
     have "1 < x + a \<Longrightarrow> x \<le> 1 \<Longrightarrow> x \<notin> (\<lambda>x. x - a + 1) ` s \<Longrightarrow>
           vector_derivative (shiftpath a g) (at x) = vector_derivative g (at (x + a - 1))"
       unfolding shiftpath_def
-      apply (rule vector_derivative_at [OF has_vector_derivative_transform_at [of "dist (1-a) x" _ "(\<lambda>x. g(a+x-1))"]])
+      apply (rule vector_derivative_at [OF has_vector_derivative_transform_within [where f = "(\<lambda>x. g(a+x-1))" and d = "dist (1-a) x"]])
         apply (auto simp: field_simps dist_real_def abs_if split: split_if_asm)
       apply (rule vector_diff_chain_at [of "\<lambda>x. x+a-1" 1 _ g, simplified o_def scaleR_one])
        apply (intro derivative_eq_intros | simp)+
@@ -986,12 +989,12 @@ proof -
           vector_derivative (shiftpath (1 - a) (shiftpath a g)) (at x within {0..1})"
       apply (rule vector_derivative_at_within_ivl
                   [OF has_vector_derivative_transform_within_open
-                      [of "{0<..<1}-s" _ "(shiftpath (1 - a) (shiftpath a g))"]])
+                      [where f = "(shiftpath (1 - a) (shiftpath a g))" and s = "{0<..<1}-s"]])
       using s g assms x
       apply (auto simp: finite_imp_closed open_Diff shiftpath_shiftpath
                         vector_derivative_within_interior vector_derivative_works [symmetric])
-      apply (rule Derivative.differentiable_transform_at [of "min x (1-x)", OF _ _ gx])
-      apply (auto simp: dist_real_def shiftpath_shiftpath abs_if)
+      apply (rule differentiable_transform_within [OF gx, of "min x (1-x)"])
+      apply (auto simp: dist_real_def shiftpath_shiftpath abs_if split: split_if_asm)
       done
   } note vd = this
   have fi: "(f has_contour_integral i) (shiftpath (1 - a) (shiftpath a g))"
@@ -4041,13 +4044,15 @@ proof -
       using pi_ge_two e
       by (force simp: winding_number_valid_path p field_simps norm_divide norm_mult intro: less_le_trans)
   } note cmod_wn_diff = this
-  show ?thesis
-    apply (rule continuous_transform_at [of "min d e / 2" _ "winding_number p"])
-    apply (auto simp: \<open>d>0\<close> \<open>e>0\<close> dist_norm wnwn simp del: less_divide_eq_numeral1)
+  then have "isCont (winding_number p) z"
     apply (simp add: continuous_at_eps_delta, clarify)
     apply (rule_tac x="min (pe/4) (e/2*pe^2/L/4)" in exI)
     using \<open>pe>0\<close> \<open>L>0\<close>
     apply (simp add: dist_norm cmod_wn_diff)
+    done
+  then show ?thesis
+    apply (rule continuous_transform_within [where d = "min d e / 2"])
+    apply (auto simp: \<open>d>0\<close> \<open>e>0\<close> dist_norm wnwn)
     done
 qed
 
@@ -4393,14 +4398,15 @@ proof -
       done
   next
     case False
-    then have dxz: "dist x z > 0" using dist_nz by blast
+    then have dxz: "dist x z > 0" by auto
     have cf: "continuous (at x within s) f"
       using conf continuous_on_eq_continuous_within that by blast
-    show ?thesis
-      apply (rule continuous_transform_within [OF dxz that, of "\<lambda>w::complex. (f w - f z)/(w - z)"])
+    have "continuous (at x within s) (\<lambda>w. (f w - f z) / (w - z))"
+      by (rule cf continuous_intros | simp add: False)+
+    then show ?thesis
+      apply (rule continuous_transform_within [OF _ dxz that, of "\<lambda>w::complex. (f w - f z)/(w - z)"])
       apply (force simp: dist_commute)
-      apply (rule cf continuous_intros)+
-      using False by auto
+      done
   qed
   have fink': "finite (insert z k)" using \<open>finite k\<close> by blast
   have *: "((\<lambda>w. if w = z then f' else (f w - f z) / (w - z)) has_contour_integral 0) \<gamma>"
@@ -5485,7 +5491,7 @@ proof -
     done
   show ?thes2
     apply (simp add: DERIV_within_iff del: power_Suc)
-    apply (rule Lim_transform_at [OF \<open>0 < d\<close> _ tendsto_mult_left [OF *]])
+    apply (rule Lim_transform_within [OF tendsto_mult_left [OF *] \<open>0 < d\<close> ])
     apply (simp add: \<open>k \<noteq> 0\<close> **)
     done
 qed
@@ -5566,7 +5572,7 @@ proof -
       by (simp add: holomorphic_on_imp_continuous_on holomorphic_on_subset)
     have holf_ball: "f holomorphic_on ball z r" using holf_cball
       using ball_subset_cball holomorphic_on_subset by blast
-    { fix w  assume w: "w \<in> ball z r"  
+    { fix w  assume w: "w \<in> ball z r"
       have intf: "(\<lambda>u. f u / (u - w)\<^sup>2) contour_integrable_on circlepath z r"
         by (blast intro: w Cauchy_derivative_integral_circlepath [OF contf_cball holf_ball])
       have fder': "(f has_field_derivative 1 / (2 * of_real pi * \<i>) * contour_integral (circlepath z r) (\<lambda>u. f u / (u - w)\<^sup>2))
@@ -5595,7 +5601,7 @@ proof -
     by (simp add: holomorphic_on_open [OF \<open>open s\<close>] *)
 qed
 
-lemma holomorphic_deriv [holomorphic_intros]: 
+lemma holomorphic_deriv [holomorphic_intros]:
     "\<lbrakk>f holomorphic_on s; open s\<rbrakk> \<Longrightarrow> (deriv f) holomorphic_on s"
 by (metis DERIV_deriv_iff_complex_differentiable at_within_open derivative_is_holomorphic holomorphic_on_def)
 
@@ -5608,10 +5614,10 @@ lemma holomorphic_higher_deriv [holomorphic_intros]: "\<lbrakk>f holomorphic_on 
 lemma analytic_higher_deriv: "f analytic_on s \<Longrightarrow> (deriv ^^ n) f analytic_on s"
   unfolding analytic_on_def using holomorphic_higher_deriv by blast
 
-lemma has_field_derivative_higher_deriv: 
-     "\<lbrakk>f holomorphic_on s; open s; x \<in> s\<rbrakk> 
+lemma has_field_derivative_higher_deriv:
+     "\<lbrakk>f holomorphic_on s; open s; x \<in> s\<rbrakk>
       \<Longrightarrow> ((deriv ^^ n) f has_field_derivative (deriv ^^ (Suc n)) f x) (at x)"
-by (metis (no_types, hide_lams) DERIV_deriv_iff_complex_differentiable at_within_open comp_apply 
+by (metis (no_types, hide_lams) DERIV_deriv_iff_complex_differentiable at_within_open comp_apply
          funpow.simps(2) holomorphic_higher_deriv holomorphic_on_def)
 
 
@@ -5627,7 +5633,7 @@ lemma Morera_local_triangle_ball:
   shows "f analytic_on s"
 proof -
   { fix z  assume "z \<in> s"
-    with assms obtain e a where 
+    with assms obtain e a where
             "0 < e" and z: "z \<in> ball a e" and contf: "continuous_on (ball a e) f"
         and 0: "\<And>b c. closed_segment b c \<subseteq> ball a e
                       \<Longrightarrow> contour_integral (linepath a b) f +
@@ -5661,14 +5667,14 @@ lemma Morera_local_triangle:
   shows "f analytic_on s"
 proof -
   { fix z  assume "z \<in> s"
-    with assms obtain t where 
+    with assms obtain t where
             "open t" and z: "z \<in> t" and contf: "continuous_on t f"
         and 0: "\<And>a b c. convex hull {a,b,c} \<subseteq> t
                       \<Longrightarrow> contour_integral (linepath a b) f +
                           contour_integral (linepath b c) f +
                           contour_integral (linepath c a) f = 0"
       by force
-    then obtain e where "e>0" and e: "ball z e \<subseteq> t" 
+    then obtain e where "e>0" and e: "ball z e \<subseteq> t"
       using open_contains_ball by blast
     have [simp]: "continuous_on (ball z e) f" using contf
       using continuous_on_subset e by blast
@@ -5689,7 +5695,7 @@ proof -
 qed
 
 proposition Morera_triangle:
-    "\<lbrakk>continuous_on s f; open s; 
+    "\<lbrakk>continuous_on s f; open s;
       \<And>a b c. convex hull {a,b,c} \<subseteq> s
               \<longrightarrow> contour_integral (linepath a b) f +
                   contour_integral (linepath b c) f +
@@ -5701,7 +5707,7 @@ proposition Morera_triangle:
 
 subsection\<open> Combining theorems for higher derivatives including Leibniz rule.\<close>
 
-lemma higher_deriv_linear [simp]: 
+lemma higher_deriv_linear [simp]:
     "(deriv ^^ n) (\<lambda>w. c*w) = (\<lambda>z. if n = 0 then c*z else if n = 1 then c else 0)"
   by (induction n) (auto simp: deriv_const deriv_linear)
 
@@ -5718,21 +5724,21 @@ corollary higher_deriv_id [simp]:
      "(deriv ^^ n) id z = (if n = 0 then z else if n = 1 then 1 else 0)"
   by (simp add: id_def)
 
-lemma has_complex_derivative_funpow_1: 
+lemma has_complex_derivative_funpow_1:
      "\<lbrakk>(f has_field_derivative 1) (at z); f z = z\<rbrakk> \<Longrightarrow> (f^^n has_field_derivative 1) (at z)"
   apply (induction n)
   apply auto
   apply (metis DERIV_ident DERIV_transform_at id_apply zero_less_one)
   by (metis DERIV_chain comp_funpow comp_id funpow_swap1 mult.right_neutral)
 
-proposition higher_deriv_uminus: 
+proposition higher_deriv_uminus:
   assumes "f holomorphic_on s" "open s" and z: "z \<in> s"
     shows "(deriv ^^ n) (\<lambda>w. -(f w)) z = - ((deriv ^^ n) f z)"
 using z
 proof (induction n arbitrary: z)
   case 0 then show ?case by simp
 next
-  case (Suc n z) 
+  case (Suc n z)
   have *: "((deriv ^^ n) f has_field_derivative deriv ((deriv ^^ n) f) z) (at z)"
     using Suc.prems assms has_field_derivative_higher_deriv by auto
   show ?case
@@ -5744,7 +5750,7 @@ next
     done
 qed
 
-proposition higher_deriv_add: 
+proposition higher_deriv_add:
   fixes z::complex
   assumes "f holomorphic_on s" "g holomorphic_on s" "open s" and z: "z \<in> s"
     shows "(deriv ^^ n) (\<lambda>w. f w + g w) z = (deriv ^^ n) f z + (deriv ^^ n) g z"
@@ -5752,7 +5758,7 @@ using z
 proof (induction n arbitrary: z)
   case 0 then show ?case by simp
 next
-  case (Suc n z) 
+  case (Suc n z)
   have *: "((deriv ^^ n) f has_field_derivative deriv ((deriv ^^ n) f) z) (at z)"
           "((deriv ^^ n) g has_field_derivative deriv ((deriv ^^ n) g) z) (at z)"
     using Suc.prems assms has_field_derivative_higher_deriv by auto
@@ -5765,7 +5771,7 @@ next
     done
 qed
 
-corollary higher_deriv_diff: 
+corollary higher_deriv_diff:
   fixes z::complex
   assumes "f holomorphic_on s" "g holomorphic_on s" "open s" and z: "z \<in> s"
     shows "(deriv ^^ n) (\<lambda>w. f w - g w) z = (deriv ^^ n) f z - (deriv ^^ n) g z"
@@ -5781,13 +5787,13 @@ lemma bb: "Suc n choose k = (n choose k) + (if k = 0 then 0 else (n choose (k - 
 proposition higher_deriv_mult:
   fixes z::complex
   assumes "f holomorphic_on s" "g holomorphic_on s" "open s" and z: "z \<in> s"
-    shows "(deriv ^^ n) (\<lambda>w. f w * g w) z = 
+    shows "(deriv ^^ n) (\<lambda>w. f w * g w) z =
            (\<Sum>i = 0..n. of_nat (n choose i) * (deriv ^^ i) f z * (deriv ^^ (n - i)) g z)"
 using z
 proof (induction n arbitrary: z)
   case 0 then show ?case by simp
 next
-  case (Suc n z) 
+  case (Suc n z)
   have *: "\<And>n. ((deriv ^^ n) f has_field_derivative deriv ((deriv ^^ n) f) z) (at z)"
           "\<And>n. ((deriv ^^ n) g has_field_derivative deriv ((deriv ^^ n) g) z) (at z)"
     using Suc.prems assms has_field_derivative_higher_deriv by auto
@@ -5801,7 +5807,7 @@ next
   show ?case
     apply (simp only: funpow.simps o_apply)
     apply (rule DERIV_imp_deriv)
-    apply (rule DERIV_transform_within_open 
+    apply (rule DERIV_transform_within_open
              [of "\<lambda>w. (\<Sum>i = 0..n. of_nat (n choose i) * (deriv ^^ i) f w * (deriv ^^ (n - i)) g w)"])
     apply (simp add: algebra_simps)
     apply (rule DERIV_cong [OF DERIV_setsum])
@@ -5817,7 +5823,7 @@ proposition higher_deriv_transform_within_open:
       and fg: "\<And>w. w \<in> s \<Longrightarrow> f w = g w"
     shows "(deriv ^^ i) f z = (deriv ^^ i) g z"
 using z
-by (induction i arbitrary: z) 
+by (induction i arbitrary: z)
    (auto simp: fg intro: complex_derivative_transform_within_open holomorphic_higher_deriv assms)
 
 proposition higher_deriv_compose_linear:
@@ -5829,7 +5835,7 @@ using z
 proof (induction n arbitrary: z)
   case 0 then show ?case by simp
 next
-  case (Suc n z) 
+  case (Suc n z)
   have holo0: "f holomorphic_on op * u ` s"
     by (meson fg f holomorphic_on_subset image_subset_iff)
   have holo1: "(\<lambda>w. f (u * w)) holomorphic_on s"
@@ -5867,7 +5873,7 @@ next
     by simp
 qed
 
-lemma higher_deriv_add_at: 
+lemma higher_deriv_add_at:
   assumes "f analytic_on {z}" "g analytic_on {z}"
     shows "(deriv ^^ n) (\<lambda>w. f w + g w) z = (deriv ^^ n) f z + (deriv ^^ n) g z"
 proof -
@@ -5877,7 +5883,7 @@ proof -
     by (auto simp: analytic_at_two)
 qed
 
-lemma higher_deriv_diff_at: 
+lemma higher_deriv_diff_at:
   assumes "f analytic_on {z}" "g analytic_on {z}"
     shows "(deriv ^^ n) (\<lambda>w. f w - g w) z = (deriv ^^ n) f z - (deriv ^^ n) g z"
 proof -
@@ -5887,14 +5893,14 @@ proof -
     by (auto simp: analytic_at_two)
 qed
 
-lemma higher_deriv_uminus_at: 
+lemma higher_deriv_uminus_at:
    "f analytic_on {z}  \<Longrightarrow> (deriv ^^ n) (\<lambda>w. -(f w)) z = - ((deriv ^^ n) f z)"
   using higher_deriv_uminus
     by (auto simp: analytic_at)
 
-lemma higher_deriv_mult_at: 
+lemma higher_deriv_mult_at:
   assumes "f analytic_on {z}" "g analytic_on {z}"
-    shows "(deriv ^^ n) (\<lambda>w. f w * g w) z = 
+    shows "(deriv ^^ n) (\<lambda>w. f w * g w) z =
            (\<Sum>i = 0..n. of_nat (n choose i) * (deriv ^^ i) f z * (deriv ^^ (n - i)) g z)"
 proof -
   have "f analytic_on {z} \<and> g analytic_on {z}"
@@ -5911,17 +5917,17 @@ proposition no_isolated_singularity:
   assumes f: "continuous_on s f" and holf: "f holomorphic_on (s - k)" and s: "open s" and k: "finite k"
     shows "f holomorphic_on s"
 proof -
-  { fix z 
+  { fix z
     assume "z \<in> s" and cdf: "\<And>x. x\<in>s - k \<Longrightarrow> f complex_differentiable at x"
     have "f complex_differentiable at z"
     proof (cases "z \<in> k")
       case False then show ?thesis by (blast intro: cdf \<open>z \<in> s\<close>)
     next
       case True
-      with finite_set_avoid [OF k, of z] 
+      with finite_set_avoid [OF k, of z]
       obtain d where "d>0" and d: "\<And>x. \<lbrakk>x\<in>k; x \<noteq> z\<rbrakk> \<Longrightarrow> d \<le> dist z x"
         by blast
-      obtain e where "e>0" and e: "ball z e \<subseteq> s" 
+      obtain e where "e>0" and e: "ball z e \<subseteq> s"
         using  s \<open>z \<in> s\<close> by (force simp add: open_contains_ball)
       have fde: "continuous_on (ball z (min d e)) f"
         by (metis Int_iff ball_min_Int continuous_on_subset e f subsetI)
@@ -5930,7 +5936,7 @@ proof -
         apply (rule Cauchy_theorem_triangle_cofinite [OF _ k])
          apply (metis continuous_on_subset [OF fde] closed_segment_subset convex_ball starlike_convex_subset)
         apply (rule cdf)
-        apply (metis Diff_iff Int_iff ball_min_Int bot_least contra_subsetD convex_ball e insert_subset 
+        apply (metis Diff_iff Int_iff ball_min_Int bot_least contra_subsetD convex_ball e insert_subset
                interior_mono interior_subset subset_hull)
         done
       then have "f holomorphic_on ball z (min d e)"
@@ -5952,8 +5958,8 @@ proposition Cauchy_integral_formula_convex:
       shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * ii * winding_number \<gamma> z * f z)) \<gamma>"
   apply (rule Cauchy_integral_formula_weak [OF s finite.emptyI contf])
   apply (simp add: holomorphic_on_open [symmetric] complex_differentiable_def)
-  using no_isolated_singularity [where s = "interior s"] 
-  apply (metis k contf fcd holomorphic_on_open complex_differentiable_def continuous_on_subset 
+  using no_isolated_singularity [where s = "interior s"]
+  apply (metis k contf fcd holomorphic_on_open complex_differentiable_def continuous_on_subset
                has_field_derivative_at_within holomorphic_on_def interior_subset open_interior)
   using assms
   apply auto
@@ -6021,7 +6027,7 @@ proof -
     by simp
   show ?thes1 using *
     using contour_integrable_on_def by blast
-  show ?thes2 
+  show ?thes2
     unfolding contour_integral_unique [OF *] by (simp add: divide_simps)
 qed
 
@@ -6065,13 +6071,13 @@ proof -
     done
   obtain B where "0 < B" and B: "\<And>u. u \<in> cball z r \<Longrightarrow> norm(f u) \<le> B"
     by (metis (no_types) bounded_pos compact_cball compact_continuous_image compact_imp_bounded contf image_eqI)
-  obtain k where k: "0 < k" "k \<le> r" and wz_eq: "norm(w - z) = r - k" 
+  obtain k where k: "0 < k" "k \<le> r" and wz_eq: "norm(w - z) = r - k"
              and kle: "\<And>u. norm(u - z) = r \<Longrightarrow> k \<le> norm(u - w)"
     apply (rule_tac k = "r - dist z w" in that)
     using w
     apply (auto simp: dist_norm norm_minus_commute)
     by (metis add_diff_eq diff_add_cancel norm_diff_ineq norm_minus_commute)
-  have *: "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>path_image (circlepath z r). 
+  have *: "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>path_image (circlepath z r).
                 norm ((\<Sum>k<n. (w - z) ^ k * (f x / (x - z) ^ Suc k)) - f x / (x - w)) < e"
           if "0 < e" for e
   proof -
@@ -6111,7 +6117,7 @@ proof -
       also have "... < e * k"
         using \<open>0 < B\<close> N by (simp add: divide_simps)
       also have "... \<le> e * norm (u - w)"
-        using r kle \<open>0 < e\<close> by (simp add: dist_commute dist_norm) 
+        using r kle \<open>0 < e\<close> by (simp add: dist_commute dist_norm)
       finally show ?thesis
         by (simp add: divide_simps norm_divide del: power_Suc)
     qed
@@ -6140,10 +6146,10 @@ proof -
   then have "(\<lambda>k. contour_integral (circlepath z r) (\<lambda>u. f u/(u - z)^(Suc k)) * (w - z)^k)
              sums (2 * of_real pi * ii * f w)"
     using w by (auto simp: dist_commute dist_norm contour_integral_unique [OF Cauchy_integral_circlepath_simple [OF holfc]])
-  then have "(\<lambda>k. contour_integral (circlepath z r) (\<lambda>u. f u / (u - z) ^ Suc k) * (w - z)^k / (\<i> * (of_real pi * 2))) 
+  then have "(\<lambda>k. contour_integral (circlepath z r) (\<lambda>u. f u / (u - z) ^ Suc k) * (w - z)^k / (\<i> * (of_real pi * 2)))
             sums ((2 * of_real pi * ii * f w) / (\<i> * (complex_of_real pi * 2)))"
     by (rule Series.sums_divide)
-  then have "(\<lambda>n. (w - z) ^ n * contour_integral (circlepath z r) (\<lambda>u. f u / (u - z) ^ Suc n) / (\<i> * (of_real pi * 2))) 
+  then have "(\<lambda>n. (w - z) ^ n * contour_integral (circlepath z r) (\<lambda>u. f u / (u - z) ^ Suc n) / (\<i> * (of_real pi * 2)))
             sums f w"
     by (simp add: field_simps)
   then show ?thesis
@@ -6155,7 +6161,7 @@ subsection\<open>The Liouville theorem and the Fundamental Theorem of Algebra.\<
 
 text\<open> These weak Liouville versions don't even need the derivative formula.\<close>
 
-lemma Liouville_weak_0: 
+lemma Liouville_weak_0:
   assumes holf: "f holomorphic_on UNIV" and inf: "(f \<longlongrightarrow> 0) at_infinity"
     shows "f z = 0"
 proof (rule ccontr)
@@ -6181,14 +6187,14 @@ proof (rule ccontr)
     by (auto simp: norm_mult norm_divide divide_simps)
 qed
 
-proposition Liouville_weak: 
+proposition Liouville_weak:
   assumes "f holomorphic_on UNIV" and "(f \<longlongrightarrow> l) at_infinity"
     shows "f z = l"
   using Liouville_weak_0 [of "\<lambda>z. f z - l"]
   by (simp add: assms holomorphic_on_const holomorphic_on_diff LIM_zero)
 
 
-proposition Liouville_weak_inverse: 
+proposition Liouville_weak_inverse:
   assumes "f holomorphic_on UNIV" and unbounded: "\<And>B. eventually (\<lambda>x. norm (f x) \<ge> B) at_infinity"
     obtains z where "f z = 0"
 proof -
@@ -6210,7 +6216,7 @@ qed
 
 text\<open> In particular we get the Fundamental Theorem of Algebra.\<close>
 
-theorem fundamental_theorem_of_algebra: 
+theorem fundamental_theorem_of_algebra:
     fixes a :: "nat \<Rightarrow> complex"
   assumes "a 0 = 0 \<or> (\<exists>i \<in> {1..n}. a i \<noteq> 0)"
   obtains z where "(\<Sum>i\<le>n. a i * z^i) = 0"
@@ -6257,7 +6263,7 @@ next
        if w: "w \<in> ball z r" for w
   proof -
     def d \<equiv> "(r - norm(w - z))"
-    have "0 < d"  "d \<le> r" using w by (auto simp: norm_minus_commute d_def dist_norm) 
+    have "0 < d"  "d \<le> r" using w by (auto simp: norm_minus_commute d_def dist_norm)
     have dle: "\<And>u. cmod (z - u) = r \<Longrightarrow> d \<le> cmod (u - w)"
       unfolding d_def by (metis add_diff_eq diff_add_cancel norm_diff_ineq norm_minus_commute)
     have ev_int: "\<forall>\<^sub>F n in F. (\<lambda>u. f n u / (u - w)) contour_integrable_on circlepath z r"
@@ -6308,17 +6314,17 @@ text\<open> Version showing that the limit is the limit of the derivatives.\<clo
 
 proposition has_complex_derivative_uniform_limit:
   fixes z::complex
-  assumes cont: "eventually (\<lambda>n. continuous_on (cball z r) (f n) \<and> 
+  assumes cont: "eventually (\<lambda>n. continuous_on (cball z r) (f n) \<and>
                                (\<forall>w \<in> ball z r. ((f n) has_field_derivative (f' n w)) (at w))) F"
       and lim: "\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>n. \<forall>x \<in> cball z r. norm(f n x - g x) < e) F"
       and F:  "~ trivial_limit F" and "0 < r"
   obtains g' where
-      "continuous_on (cball z r) g" 
+      "continuous_on (cball z r) g"
       "\<And>w. w \<in> ball z r \<Longrightarrow> (g has_field_derivative (g' w)) (at w) \<and> ((\<lambda>n. f' n w) \<longlongrightarrow> g' w) F"
 proof -
   let ?conint = "contour_integral (circlepath z r)"
   have g: "continuous_on (cball z r) g" "g holomorphic_on ball z r"
-    by (rule holomorphic_uniform_limit [OF eventually_mono [OF cont] lim F]; 
+    by (rule holomorphic_uniform_limit [OF eventually_mono [OF cont] lim F];
              auto simp: holomorphic_on_open complex_differentiable_def)+
   then obtain g' where g': "\<And>x. x \<in> ball z r \<Longrightarrow> (g has_field_derivative g' x) (at x)"
     using DERIV_deriv_iff_has_field_derivative
@@ -6327,8 +6333,8 @@ proof -
     by (simp add: DERIV_imp_deriv)
   have tends_f'n_g': "((\<lambda>n. f' n w) \<longlongrightarrow> g' w) F" if w: "w \<in> ball z r" for w
   proof -
-    have eq_f': "?conint (\<lambda>x. f n x / (x - w)\<^sup>2) - ?conint (\<lambda>x. g x / (x - w)\<^sup>2) = (f' n w - g' w) * (2 * of_real pi * \<i>)" 
-             if cont_fn: "continuous_on (cball z r) (f n)" 
+    have eq_f': "?conint (\<lambda>x. f n x / (x - w)\<^sup>2) - ?conint (\<lambda>x. g x / (x - w)\<^sup>2) = (f' n w - g' w) * (2 * of_real pi * \<i>)"
+             if cont_fn: "continuous_on (cball z r) (f n)"
              and fnd: "\<And>w. w \<in> ball z r \<Longrightarrow> (f n has_field_derivative f' n w) (at w)" for n
     proof -
       have hol_fn: "f n holomorphic_on ball z r"
@@ -6336,7 +6342,7 @@ proof -
       have "(f n has_field_derivative 1 / (2 * of_real pi * \<i>) * ?conint (\<lambda>u. f n u / (u - w)\<^sup>2)) (at w)"
         by (rule Cauchy_derivative_integral_circlepath [OF cont_fn hol_fn w])
       then have f': "f' n w = 1 / (2 * of_real pi * \<i>) * ?conint (\<lambda>u. f n u / (u - w)\<^sup>2)"
-        using DERIV_unique [OF fnd] w by blast 
+        using DERIV_unique [OF fnd] w by blast
       show ?thesis
         by (simp add: f' Cauchy_contour_integral_circlepath_2 [OF g w] derg [OF w] divide_simps)
     qed
@@ -6358,7 +6364,7 @@ proof -
       apply (simp add: \<open>0 < d\<close>)
       apply (force simp add: dist_norm dle intro: less_le_trans)
       done
-    have "((\<lambda>n. contour_integral (circlepath z r) (\<lambda>x. f n x / (x - w)\<^sup>2)) 
+    have "((\<lambda>n. contour_integral (circlepath z r) (\<lambda>x. f n x / (x - w)\<^sup>2))
              \<longlongrightarrow> contour_integral (circlepath z r) ((\<lambda>x. g x / (x - w)\<^sup>2))) F"
       by (rule Cauchy_Integral_Thm.contour_integral_uniform_limit_circlepath [OF 1 2 F \<open>0 < r\<close>])
     then have tendsto_0: "((\<lambda>n. 1 / (2 * of_real pi * \<i>) * (?conint (\<lambda>x. f n x / (x - w)\<^sup>2) - ?conint (\<lambda>x. g x / (x - w)\<^sup>2))) \<longlongrightarrow> 0) F"

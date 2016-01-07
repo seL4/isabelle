@@ -1345,9 +1345,9 @@ proof -
     by (rule Complex.isCont_Im isCont_Ln' continuous_intros | simp add: assms complex_is_Real_iff)+
   then show ?thesis
     apply (simp add: continuous_at)
-    apply (rule Lim_transform_within_open [of "-{z. z \<in> \<real> & 0 \<le> Re z}" _ "\<lambda>z. Im(Ln(-z)) + pi"])
-    apply (simp add: closed_def [symmetric] closed_Collect_conj closed_complex_Reals closed_halfspace_Re_ge)
+    apply (rule Lim_transform_within_open [where s= "-{z. z \<in> \<real> & 0 \<le> Re z}" and f = "\<lambda>z. Im(Ln(-z)) + pi"])
     apply (simp_all add: assms not_le Arg_Ln [OF Arg_gt_0])
+    apply (simp add: closed_def [symmetric] closed_Collect_conj closed_complex_Reals closed_halfspace_Re_ge)
     done
 qed
 

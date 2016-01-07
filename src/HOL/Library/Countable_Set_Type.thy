@@ -72,7 +72,7 @@ begin
 
 interpretation lifting_syntax .
 
-lift_definition bot_cset :: "'a cset" is "{}" parametric empty_transfer by simp 
+lift_definition bot_cset :: "'a cset" is "{}" parametric empty_transfer by simp
 
 lift_definition less_eq_cset :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> bool"
   is subset_eq parametric subset_transfer .
@@ -81,7 +81,7 @@ definition less_cset :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> bool"
 where "xs < ys \<equiv> xs \<le> ys \<and> xs \<noteq> (ys::'a cset)"
 
 lemma less_cset_transfer[transfer_rule]:
-  assumes [transfer_rule]: "bi_unique A" 
+  assumes [transfer_rule]: "bi_unique A"
   shows "((pcr_cset A) ===> (pcr_cset A) ===> op =) op \<subset> op <"
 unfolding less_cset_def[abs_def] psubset_eq[abs_def] by transfer_prover
 
@@ -201,7 +201,7 @@ lemmas csingleton_inject[dest!] = singleton_inject[Transfer.transferred]
 lemmas csingleton_finsert_inj_eq[iff,no_atp] = singleton_insert_inj_eq[Transfer.transferred]
 lemmas csingleton_finsert_inj_eq'[iff,no_atp] = singleton_insert_inj_eq'[Transfer.transferred]
 lemmas csubset_csingletonD = subset_singletonD[Transfer.transferred]
-lemmas cDiff_single_cinsert = diff_single_insert[Transfer.transferred]
+lemmas cDiff_single_cinsert = Diff_single_insert[Transfer.transferred]
 lemmas cdoubleton_eq_iff = doubleton_eq_iff[Transfer.transferred]
 lemmas cUn_csingleton_iff = Un_singleton_iff[Transfer.transferred]
 lemmas csingleton_cUn_iff = singleton_Un_iff[Transfer.transferred]
@@ -389,14 +389,14 @@ lemma mk_disjoint_cinsert: "cin a A \<Longrightarrow> \<exists>B. A = cinsert a 
 subsubsection \<open>\<open>cimage\<close>\<close>
 
 lemma subset_cimage_iff: "csubset_eq B (cimage f A) \<longleftrightarrow> (\<exists>AA. csubset_eq AA A \<and> B = cimage f AA)"
-by transfer (metis countable_subset image_mono mem_Collect_eq subset_imageE) 
+by transfer (metis countable_subset image_mono mem_Collect_eq subset_imageE)
 
 subsubsection \<open>bounded quantification\<close>
 
 lemma cBex_simps [simp, no_atp]:
-  "\<And>A P Q. cBex A (\<lambda>x. P x \<and> Q) = (cBex A P \<and> Q)" 
+  "\<And>A P Q. cBex A (\<lambda>x. P x \<and> Q) = (cBex A P \<and> Q)"
   "\<And>A P Q. cBex A (\<lambda>x. P \<and> Q x) = (P \<and> cBex A Q)"
-  "\<And>P. cBex cempty P = False" 
+  "\<And>P. cBex cempty P = False"
   "\<And>a B P. cBex (cinsert a B) P = (P a \<or> cBex B P)"
   "\<And>A P f. cBex (cimage f A) P = cBex A (\<lambda>x. P (f x))"
   "\<And>A P. (\<not> cBex A P) = cBall A (\<lambda>x. \<not> P x)"
@@ -498,7 +498,7 @@ unfolding rel_fun_def rel_cset_iff bi_unique_def by metis
 
 lemma cInt_parametric [transfer_rule]:
   "bi_unique A \<Longrightarrow> (rel_cset A ===> rel_cset A ===> rel_cset A) cInt cInt"
-unfolding rel_fun_def 
+unfolding rel_fun_def
 using inter_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred]
 by blast
 

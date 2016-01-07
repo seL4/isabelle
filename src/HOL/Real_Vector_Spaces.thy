@@ -1056,6 +1056,8 @@ lemma dist_nz:
   shows "x \<noteq> y \<longleftrightarrow> 0 < dist x y"
 by (simp add: zero_less_dist_iff)
 
+declare dist_nz [symmetric, simp]
+
 lemma dist_triangle_le:
   shows "dist x z + dist y z <= e \<Longrightarrow> dist x y <= e"
 by (rule order_trans [OF dist_triangle2])
@@ -1673,7 +1675,7 @@ lemma (in metric_space) eventually_nhds_metric:
 lemma eventually_at:
   fixes a :: "'a :: metric_space"
   shows "eventually P (at a within S) \<longleftrightarrow> (\<exists>d>0. \<forall>x\<in>S. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
-  unfolding eventually_at_filter eventually_nhds_metric by (auto simp: dist_nz)
+  unfolding eventually_at_filter eventually_nhds_metric by auto
 
 lemma eventually_at_le:
   fixes a :: "'a::metric_space"

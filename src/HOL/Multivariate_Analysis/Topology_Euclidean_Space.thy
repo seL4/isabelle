@@ -13,7 +13,7 @@ imports
   "~~/src/HOL/Library/FuncSet"
   Linear_Algebra
   Norm_Arith
-  
+
 begin
 
 lemma image_affinity_interval:
@@ -50,6 +50,11 @@ lemma Lim_within_open:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
   shows "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f \<longlongrightarrow> l)(at a within S) \<longleftrightarrow> (f \<longlongrightarrow> l)(at a)"
   by (fact tendsto_within_open)
+
+lemma Lim_within_open_NO_MATCH:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
+  shows "a \<in> S \<Longrightarrow> NO_MATCH UNIV S \<Longrightarrow> open S \<Longrightarrow> (f \<longlongrightarrow> l)(at a within S) \<longleftrightarrow> (f \<longlongrightarrow> l)(at a)"
+using tendsto_within_open by blast
 
 lemma continuous_on_union:
   "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t f \<Longrightarrow> continuous_on (s \<union> t) f"
@@ -1486,7 +1491,7 @@ next
     case False
     let ?d = "min d (dist a x)"
     have dp: "?d > 0"
-      using False d(1) using dist_nz by auto
+      using False d(1) by auto
     from d have d': "\<forall>x\<in>F. x \<noteq> a \<longrightarrow> ?d \<le> dist a x"
       by auto
     with dp False show ?thesis
@@ -1511,7 +1516,7 @@ proof -
       by blast
     let ?m = "min (e/2) (dist x y) "
     from e2 y(2) have mp: "?m > 0"
-      by (simp add: dist_nz[symmetric])
+      by simp
     from C[rule_format, OF mp] obtain z where z: "z \<in> S" "z \<noteq> x" "dist z x < ?m"
       by blast
     have th: "dist z y < e" using z y
@@ -2312,11 +2317,11 @@ text\<open>Show that they yield usual definitions in the various cases.\<close>
 
 lemma Lim_within_le: "(f \<longlongrightarrow> l)(at a within S) \<longleftrightarrow>
     (\<forall>e>0. \<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a \<le> d \<longrightarrow> dist (f x) l < e)"
-  by (auto simp add: tendsto_iff eventually_at_le dist_nz)
+  by (auto simp add: tendsto_iff eventually_at_le)
 
 lemma Lim_within: "(f \<longlongrightarrow> l) (at a within S) \<longleftrightarrow>
     (\<forall>e >0. \<exists>d>0. \<forall>x \<in> S. 0 < dist x a \<and> dist x a  < d \<longrightarrow> dist (f x) l < e)"
-  by (auto simp add: tendsto_iff eventually_at dist_nz)
+  by (auto simp add: tendsto_iff eventually_at)
 
 lemma Lim_at: "(f \<longlongrightarrow> l) (at a) \<longleftrightarrow>
     (\<forall>e >0. \<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d  \<longrightarrow> dist (f x) l < e)"
@@ -2665,9 +2670,9 @@ lemma closed_subset_contains_Inf:
   by (metis closure_contains_Inf closure_minimal subset_eq)
 
 lemma atLeastAtMost_subset_contains_Inf:
-  fixes A :: "real set" and a b :: real 
+  fixes A :: "real set" and a b :: real
   shows "A \<noteq> {} \<Longrightarrow> a \<le> b \<Longrightarrow> A \<subseteq> {a..b} \<Longrightarrow> Inf A \<in> {a..b}"
-  by (rule closed_subset_contains_Inf) 
+  by (rule closed_subset_contains_Inf)
      (auto intro: closed_real_atLeastAtMost intro!: bdd_belowI[of A a])
 
 lemma not_trivial_limit_within_ball:
@@ -2940,8 +2945,7 @@ proof
             by (auto simp add: norm_minus_commute)
           also have "\<dots> = \<bar>- norm (x - y) + d / 2\<bar>"
             unfolding abs_mult_pos[of "norm (x - y)", OF norm_ge_zero[of "x - y"]]
-            unfolding distrib_right using \<open>x\<noteq>y\<close>[unfolded dist_nz, unfolded dist_norm]
-            by auto
+            unfolding distrib_right using \<open>x\<noteq>y\<close>  by auto
           also have "\<dots> \<le> e - d/2" using \<open>d \<le> dist x y\<close> and \<open>d>0\<close> and \<open>?rhs\<close>
             by (auto simp add: dist_norm)
           finally have "y - (d / (2 * dist y x)) *\<^sub>R (y - x) \<in> ball x e" using \<open>d>0\<close>
@@ -3019,8 +3023,8 @@ proof (rule islimptI)
     apply (simp only: dist_norm [symmetric])
     apply (subgoal_tac "\<bar>1 - k\<bar> * dist x y < 1 * dist x y", simp)
     apply (rule mult_strict_right_mono)
-    apply (simp add: k_def zero_less_dist_iff \<open>0 < r\<close> \<open>x \<noteq> y\<close>)
-    apply (simp add: zero_less_dist_iff \<open>x \<noteq> y\<close>)
+    apply (simp add: k_def \<open>0 < r\<close> \<open>x \<noteq> y\<close>)
+    apply (simp add: \<open>x \<noteq> y\<close>)
     done
   then have "z \<in> ball x (dist x y)"
     by simp
@@ -3055,14 +3059,14 @@ lemma interior_cball [simp]:
   shows "interior (cball x e) = ball x e"
 proof (cases "e \<ge> 0")
   case False note cs = this
-  from cs have "ball x e = {}"
+  from cs have null: "ball x e = {}"
     using ball_empty[of e x] by auto
   moreover
   {
     fix y
     assume "y \<in> cball x e"
     then have False
-      unfolding mem_cball using dist_nz[of x y] cs by auto
+      by (metis ball_eq_empty null cs dist_eq_0_iff dist_le_zero_iff empty_subsetI mem_cball subset_antisym subset_ball)
   }
   then have "cball x e = {}" by auto
   then have "interior (cball x e) = {}"
@@ -3088,9 +3092,7 @@ next
     then have "y \<in> ball x e"
     proof (cases "x = y")
       case True
-      then have "e > 0"
-        using xa_y[unfolded dist_nz] xa_cball[unfolded mem_cball]
-        by (auto simp add: dist_commute)
+      then have "e > 0" using cs order.order_iff_strict xa_cball xa_y by fastforce
       then show "y \<in> ball x e"
         using \<open>x = y \<close> by simp
     next
@@ -5165,7 +5167,6 @@ proof
       assume "y \<in> f ` (ball x d \<inter> s)"
       then have "y \<in> ball (f x) e"
         using d(2)
-        unfolding dist_nz[symmetric]
         apply (auto simp add: dist_commute)
         apply (erule_tac x=xa in ballE)
         apply auto
@@ -5200,9 +5201,7 @@ proof
     apply (rule_tac x=d in exI)
     apply auto
     apply (erule_tac x=xa in allE)
-    apply (auto simp add: dist_commute dist_nz)
-    unfolding dist_nz[symmetric]
-    apply auto
+    apply (auto simp add: dist_commute)
     done
 next
   assume ?rhs
@@ -5214,7 +5213,7 @@ next
     apply (rule_tac x=d in exI)
     apply auto
     apply (erule_tac x="f xa" in allE)
-    apply (auto simp add: dist_commute dist_nz)
+    apply (auto simp add: dist_commute)
     done
 qed
 
@@ -5285,14 +5284,14 @@ proof
     fix T :: "'b set"
     assume "open T" and "f a \<in> T"
     with \<open>?lhs\<close> obtain d where "d>0" and d:"\<forall>x\<in>s. 0 < dist x a \<and> dist x a < d \<longrightarrow> f x \<in> T"
-      unfolding continuous_within tendsto_def eventually_at by (auto simp: dist_nz)
+      unfolding continuous_within tendsto_def eventually_at by auto
     have "eventually (\<lambda>n. dist (x n) a < d) sequentially"
       using x(2) \<open>d>0\<close> by simp
     then have "eventually (\<lambda>n. (f \<circ> x) n \<in> T) sequentially"
     proof eventually_elim
       case (elim n)
       then show ?case
-        using d x(1) \<open>f a \<in> T\<close> unfolding dist_nz[symmetric] by auto
+        using d x(1) \<open>f a \<in> T\<close> by auto
     qed
   }
   then show ?rhs
@@ -5414,30 +5413,15 @@ text\<open>The usual transformation theorems.\<close>
 
 lemma continuous_transform_within:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::topological_space"
-  assumes "0 < d"
+  assumes "continuous (at x within s) f"
+    and "0 < d"
     and "x \<in> s"
-    and "\<forall>x' \<in> s. dist x' x < d --> f x' = g x'"
-    and "continuous (at x within s) f"
+    and "\<And>x'. \<lbrakk>x' \<in> s; dist x' x < d\<rbrakk> \<Longrightarrow> f x' = g x'"
   shows "continuous (at x within s) g"
+  using assms
   unfolding continuous_within
-proof (rule Lim_transform_within)
-  show "0 < d" by fact
-  show "\<forall>x'\<in>s. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x'"
-    using assms(3) by auto
-  have "f x = g x"
-    using assms(1,2,3) by auto
-  then show "(f \<longlongrightarrow> g x) (at x within s)"
-    using assms(4) unfolding continuous_within by simp
-qed
-
-lemma continuous_transform_at:
-  fixes f g :: "'a::metric_space \<Rightarrow> 'b::topological_space"
-  assumes "0 < d"
-    and "\<forall>x'. dist x' x < d --> f x' = g x'"
-    and "continuous (at x) f"
-  shows "continuous (at x) g"
-  using continuous_transform_within [of d x UNIV f g] assms by simp
-
+  by (force simp add: intro: Lim_transform_within)
+ 
 
 subsubsection \<open>Structural rules for pointwise continuity\<close>
 
@@ -5762,7 +5746,7 @@ proof -
     done
 qed
 
-lemma isCont_indicator: 
+lemma isCont_indicator:
   fixes x :: "'a::t2_space"
   shows "isCont (indicator A :: 'a \<Rightarrow> real) x = (x \<notin> frontier A)"
 proof auto
@@ -6243,7 +6227,6 @@ lemma continuous_at_real_range:
   shows "continuous (at x) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x'. norm(x' - x) < d --> \<bar>f x' - f x\<bar> < e)"
   unfolding continuous_at
   unfolding Lim_at
-  unfolding dist_nz[symmetric]
   unfolding dist_norm
   apply auto
   apply (erule_tac x=e in allE)

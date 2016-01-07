@@ -1368,9 +1368,7 @@ proof (rule ccontr)
   have "x \<in> s" using assms(1,3) by auto
   assume "\<not> ?thesis"
   then obtain y where "y\<in>s" and y: "f x > f y" by auto
-  then have xy: "0 < dist x y"
-    by (auto simp add: dist_nz[symmetric])
-
+  then have xy: "0 < dist x y"  by auto
   then obtain u where "0 < u" "u \<le> 1" and u: "u < e / dist x y"
     using real_lbound_gt_zero[of 1 "e / dist x y"] xy \<open>e>0\<close> by auto
   then have "f ((1-u) *\<^sub>R x + u *\<^sub>R y) \<le> (1-u) * f x + u * f y"
@@ -3401,8 +3399,8 @@ proof-
   also from assms(1) have "closed (g -` {a..} \<inter> {c..d})"
     by (auto simp: continuous_on_closed_vimage)
   hence "closure (g -` {a..} \<inter> {c..d}) = g -` {a..} \<inter> {c..d}" by simp
-  finally show ?thesis using \<open>x \<in> {c..d}\<close> by auto 
-qed 
+  finally show ?thesis using \<open>x \<in> {c..d}\<close> by auto
+qed
 
 lemma interior_real_semiline':
   fixes a :: real
@@ -3434,7 +3432,7 @@ qed
 lemma interior_atLeastAtMost_real: "interior {a..b} = {a<..<b :: real}"
 proof-
   have "{a..b} = {a..} \<inter> {..b}" by auto
-  also have "interior ... = {a<..} \<inter> {..<b}" 
+  also have "interior ... = {a<..} \<inter> {..<b}"
     by (simp add: interior_real_semiline interior_real_semiline')
   also have "... = {a<..<b}" by auto
   finally show ?thesis .

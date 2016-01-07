@@ -30,6 +30,12 @@ definition
 where
   "suminf f = (THE s. f sums s)"
 
+lemma sums_def': "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i = 0..n. f i) \<longlonglongrightarrow> s"
+  apply (simp add: sums_def)
+  apply (subst LIMSEQ_Suc_iff [symmetric])
+  apply (simp only: lessThan_Suc_atMost atLeast0AtMost)
+  done
+
 subsection \<open>Infinite summability on topological monoids\<close>
 
 lemma sums_subst[trans]: "f = g \<Longrightarrow> g sums z \<Longrightarrow> f sums z"
@@ -674,7 +680,7 @@ end
 
 text\<open>Relations among convergence and absolute convergence for power series.\<close>
 
-lemma abel_lemma:
+lemma Abel_lemma:
   fixes a :: "nat \<Rightarrow> 'a::real_normed_vector"
   assumes r: "0 \<le> r" and r0: "r < r0" and M: "\<And>n. norm (a n) * r0^n \<le> M"
     shows "summable (\<lambda>n. norm (a n) * r^n)"
@@ -792,10 +798,10 @@ lemma Cauchy_product:
   by (rule Cauchy_product_sums [THEN sums_unique])
 
 lemma summable_Cauchy_product:
-  assumes "summable (\<lambda>k. norm (a k :: 'a :: {real_normed_algebra,banach}))" 
+  assumes "summable (\<lambda>k. norm (a k :: 'a :: {real_normed_algebra,banach}))"
           "summable (\<lambda>k. norm (b k))"
   shows   "summable (\<lambda>k. \<Sum>i\<le>k. a i * b (k - i))"
-  using Cauchy_product_sums[OF assms] by (simp add: sums_iff)  
+  using Cauchy_product_sums[OF assms] by (simp add: sums_iff)
 
 subsection \<open>Series on @{typ real}s\<close>
 

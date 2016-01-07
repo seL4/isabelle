@@ -907,7 +907,7 @@ proof -
   from g(2)[OF x] have g': "(g has_derivative op * (g' x)) (at x)"
     by (simp add: has_field_derivative_def s)
   have "((\<lambda>x. \<Sum>n. f n x) has_derivative op * (g' x)) (at x)"
-    by (rule has_derivative_transform_within_open[OF \<open>open s\<close> x _ g'])
+    by (rule has_derivative_transform_within_open[OF g' \<open>open s\<close> x])
        (insert g, auto simp: sums_iff)
   thus "(\<lambda>x. \<Sum>n. f n x) complex_differentiable (at x)" unfolding differentiable_def
     by (auto simp: summable_def complex_differentiable_def has_field_derivative_def)
