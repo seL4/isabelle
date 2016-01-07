@@ -471,7 +471,7 @@ fun pretty_value ctxt tok =
   | SOME (Typ T) => Syntax.pretty_typ ctxt T
   | SOME (Term t) => Syntax.pretty_term ctxt t
   | SOME (Fact (_, ths)) =>
-      Pretty.enclose "(" ")" (Pretty.breaks (map (Pretty.backquote o Thm.pretty_thm ctxt) ths))
+      Pretty.enclose "(" ")" (Pretty.breaks (map (Pretty.cartouche o Thm.pretty_thm ctxt) ths))
   | _ => Pretty.marks_str (markups Keyword.empty_keywords tok, unparse tok));
 
 
