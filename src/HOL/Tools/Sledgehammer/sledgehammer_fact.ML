@@ -23,7 +23,7 @@ sig
 
   val fact_of_ref : Proof.context -> Keyword.keywords -> thm list -> status Termtab.table ->
     Facts.ref * Token.src list -> ((string * stature) * thm) list
-  val backquote_thm : Proof.context -> thm -> string
+  val cartouche_thm : Proof.context -> thm -> string
   val is_blacklisted_or_something : Proof.context -> bool -> string -> bool
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
   val build_name_tables : (thm -> string) -> ('a * thm) list ->
@@ -80,8 +80,6 @@ fun make_name keywords multi j name =
 fun explode_interval _ (Facts.FromTo (i, j)) = i upto j
   | explode_interval max (Facts.From i) = i upto i + max - 1
   | explode_interval _ (Facts.Single i) = [i]
-
-val backquote = enclose "\<open>" "\<close>"
 
 fun is_rec_eq lhs = Term.exists_subterm (curry (op =) (head_of lhs))
 
@@ -165,7 +163,7 @@ fun fact_of_ref ctxt keywords chained css (xthm as (xref, args)) =
 
     fun nth_name j =
       (case xref of
-        Facts.Fact s => backquote (simplify_spaces (YXML.content_of s)) ^ bracket
+        Facts.Fact s => cartouche (simplify_spaces (YXML.content_of s)) ^ bracket
       | Facts.Named (("", _), _) => "[" ^ bracket ^ "]"
       | Facts.Named ((name, _), NONE) => make_name keywords (length ths > 1) (j + 1) name ^ bracket
       | Facts.Named ((name, _), SOME intervals) =>
@@ -298,8 +296,8 @@ fun close_form t =
     (Term.add_vars t [] |> sort_by (fst o fst))
   |> fst
 
-fun backquote_term ctxt = close_form #> hackish_string_of_term ctxt #> backquote
-fun backquote_thm ctxt = backquote_term ctxt o Thm.prop_of
+fun cartouche_term ctxt = close_form #> hackish_string_of_term ctxt #> cartouche
+fun cartouche_thm ctxt = cartouche_term ctxt o Thm.prop_of
 
 (* TODO: rewrite to use nets and/or to reuse existing data structures *)
 fun clasimpset_rule_table_of ctxt =
@@ -505,7 +503,7 @@ fun all_facts ctxt generous ho_atp keywords add_ths chained css =
                    let
                      fun get_name () =
                        if name0 = "" orelse name0 = local_thisN then
-                         backquote_thm ctxt th
+                         cartouche_thm ctxt th
                        else
                          let val short_name = Facts.extern ctxt facts name0 in
                            if check_thms short_name then
