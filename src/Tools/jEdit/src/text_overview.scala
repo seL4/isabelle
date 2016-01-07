@@ -82,17 +82,19 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
         val rendering = doc_view.get_rendering()
         val overview = get_overview()
 
-        if (!rendering.snapshot.is_outdated && overview == current_overview) {
+        if (rendering.snapshot.is_outdated || overview != current_overview) {
+          invoke()
+
+          gfx.setColor(rendering.outdated_color)
+          gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
+        }
+        else {
           gfx.setColor(getBackground)
           gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
           for ((color, h, h1) <- current_colors) {
             gfx.setColor(color)
             gfx.fillRect(0, h, getWidth, h1 - h)
           }
-        }
-        else {
-          gfx.setColor(rendering.outdated_color)
-          gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
         }
       }
     }
