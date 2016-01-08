@@ -124,7 +124,7 @@ end;
 
 fun print_bundles verbose ctxt =
   let
-    val prt_thm = Pretty.backquote o Thm.pretty_thm ctxt;
+    val prt_thm = Pretty.cartouche o Thm.pretty_thm ctxt;
 
     fun prt_fact (ths, []) = map prt_thm ths
       | prt_fact (ths, atts) = Pretty.enclose "(" ")"

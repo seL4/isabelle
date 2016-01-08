@@ -87,7 +87,7 @@ by(rule antisym)(auto intro: ccpo_Sup_least ccpo_Sup_upper simp add: chain_singl
 
 subsection \<open>Transfinite iteration of a function\<close>
 
-context notes [[inductive_defs]] begin
+context notes [[inductive_internals]] begin
 
 inductive_set iterates :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a set"
 for f :: "'a \<Rightarrow> 'a"
