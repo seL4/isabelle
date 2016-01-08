@@ -568,10 +568,9 @@ been removed. INCOMPATIBILITY.
     being defined.
   - Avoid various internal name clashes (e.g., 'datatype f = f').
 
-* Transfer:
-  - new methods for interactive debugging of 'transfer' and
-    'transfer_prover': 'transfer_start', 'transfer_step', 'transfer_end',
-    'transfer_prover_start' and 'transfer_prover_end'.
+* Transfer: new methods for interactive debugging of 'transfer' and
+'transfer_prover': 'transfer_start', 'transfer_step', 'transfer_end',
+'transfer_prover_start' and 'transfer_prover_end'.
 
 * Division on integers is bootstrapped directly from division on
 naturals and uses generic numeral algorithm for computations. Slight
@@ -651,8 +650,9 @@ Minor INCOMPATIBILITY, use 'function' instead.
 * Library/Periodic_Fun: a locale that provides convenient lemmas for
 periodic functions.
 
-* Library/Formal_Power_Series: proper definition of division (with remainder) 
-for formal power series; instances for Euclidean Ring and GCD.
+* Library/Formal_Power_Series: proper definition of division (with
+remainder) for formal power series; instances for Euclidean Ring and
+GCD.
 
 * HOL-Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
 
