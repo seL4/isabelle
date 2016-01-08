@@ -5652,7 +5652,7 @@ context ord
 begin
 
 context
-  notes [[inductive_defs]]
+  notes [[inductive_internals]]
 begin
 
 inductive lexordp :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"

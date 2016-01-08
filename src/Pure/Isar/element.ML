@@ -152,7 +152,7 @@ fun gen_pretty_ctxt show_attribs ctxt =
   let
     val prt_typ = Pretty.quote o Syntax.pretty_typ ctxt;
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
-    val prt_thm = Pretty.backquote o Thm.pretty_thm ctxt;
+    val prt_thm = Pretty.cartouche o Thm.pretty_thm ctxt;
 
     fun prt_binding (b, atts) =
       Attrib.pretty_binding ctxt (b, if show_attribs then atts else []);

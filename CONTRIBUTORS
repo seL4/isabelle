@@ -1,7 +1,7 @@
 For the purposes of the license agreement in the file COPYRIGHT, a
-'contributor' is anybody who is listed in this file (CONTRIBUTORS) or
-who is listed as an author in one of the source files of this Isabelle
-distribution.
+'contributor' is anybody who is listed in this file (CONTRIBUTORS) or who is
+listed as an author in one of the source files of this Isabelle distribution.
+
 
 Contributions to Isabelle2016
 -----------------------------
@@ -696,3 +696,5 @@ Contributions to Isabelle2005
 * 2004/2005: Tjark Weber, TUM
   SAT solver method using zChaff.
   Improved version of HOL/refute.
+
+:maxLineLen=78:

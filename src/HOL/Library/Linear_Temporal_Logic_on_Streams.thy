@@ -65,7 +65,7 @@ abbreviation HLD_nxt (infixr "\<cdot>" 65) where
   "s \<cdot> P \<equiv> HLD s aand nxt P"
 
 context
-  notes [[inductive_defs]]
+  notes [[inductive_internals]]
 begin
 
 inductive ev for \<phi> where
@@ -594,7 +594,7 @@ lemma not_holds_eq[simp]: "holds (- op = x) = not (HLD {x})"
 text \<open>Strong until\<close>
 
 context
-  notes [[inductive_defs]]
+  notes [[inductive_internals]]
 begin
 
 inductive suntil (infix "suntil" 60) for \<phi> \<psi> where

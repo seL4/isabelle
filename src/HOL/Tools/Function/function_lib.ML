@@ -7,7 +7,7 @@ moved elsewhere or otherwise cleaned up.
 
 signature FUNCTION_LIB =
 sig
-  val function_defs: bool Config.T
+  val function_internals: bool Config.T
 
   val plural: string -> string -> 'a list -> string
 
@@ -32,7 +32,7 @@ end
 structure Function_Lib: FUNCTION_LIB =
 struct
 
-val function_defs = Attrib.setup_config_bool @{binding function_defs} (K false)
+val function_internals = Attrib.setup_config_bool @{binding function_internals} (K false)
 
 
 (* "The variable" ^ plural " is" "s are" vs *)

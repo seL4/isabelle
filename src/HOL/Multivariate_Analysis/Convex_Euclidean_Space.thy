@@ -5976,7 +5976,7 @@ lemma unit_interval_convex_hull:
   (is "?int = convex hull ?points")
 proof -
   have One[simp]: "\<And>i. i \<in> Basis \<Longrightarrow> One \<bullet> i = 1"
-    by (simp add: One_def inner_setsum_left setsum.If_cases inner_Basis)
+    by (simp add: inner_setsum_left setsum.If_cases inner_Basis)
   have "?int = {x. \<forall>i\<in>Basis. x \<bullet> i \<in> cbox 0 1}"
     by (auto simp: cbox_def)
   also have "\<dots> = (\<Sum>i\<in>Basis. (\<lambda>x. x *\<^sub>R i) ` cbox 0 1)"

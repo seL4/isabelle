@@ -256,7 +256,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.getGutter.addExtension(gutter_painter)
     text_area.addKeyListener(key_listener)
     text_area.addCaretListener(caret_listener)
-    text_area.addLeftOfScrollBar(overview)
+    text_area.addLeftOfScrollBar(overview); text_area.revalidate(); text_area.repaint()
     Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
       foreach(text_area.addStructureMatcher(_))
     session.raw_edits += main
@@ -271,7 +271,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     session.commands_changed -= main
     Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
       foreach(text_area.removeStructureMatcher(_))
-    text_area.removeLeftOfScrollBar(overview); overview.revoke()
+    overview.revoke(); text_area.removeLeftOfScrollBar(overview)
     text_area.removeCaretListener(caret_listener); delay_caret_update.revoke()
     text_area.removeKeyListener(key_listener)
     text_area.getGutter.removeExtension(gutter_painter)

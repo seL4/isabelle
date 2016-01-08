@@ -71,7 +71,7 @@ end;
 signature INDUCTIVE =
 sig
   include BASIC_INDUCTIVE
-  val inductive_defs: bool Config.T
+  val inductive_internals: bool Config.T
   val select_disj_tac: Proof.context -> int -> int -> int -> tactic
   type add_ind_def =
     inductive_flags ->
@@ -122,7 +122,7 @@ val simp_thms3 =
 
 (** misc utilities **)
 
-val inductive_defs = Attrib.setup_config_bool @{binding inductive_defs} (K false);
+val inductive_internals = Attrib.setup_config_bool @{binding inductive_internals} (K false);
 
 fun message quiet_mode s = if quiet_mode then () else writeln s;
 
@@ -849,16 +849,13 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
       else alt_name;
     val rec_name = Binding.name_of rec_binding;
 
-    val inductive_defs = Config.get lthy inductive_defs;
-    fun cond_def_binding b =
-      if inductive_defs then Binding.reset_pos (Thm.def_binding b)
-      else Binding.empty;
+    val internals = Config.get lthy inductive_internals;
 
     val ((rec_const, (_, fp_def)), lthy') = lthy
       |> is_auxiliary ? Proof_Context.concealed
       |> Local_Theory.define
         ((rec_binding, case cnames_syn of [(_, mx)] => mx | _ => NoSyn),
-         ((cond_def_binding rec_binding, @{attributes [nitpick_unfold]}),
+         ((Thm.make_def_binding internals rec_binding, @{attributes [nitpick_unfold]}),
            fold_rev lambda params
              (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
       ||> Proof_Context.restore_naming lthy;
@@ -874,7 +871,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
               map Free (Variable.variant_frees lthy' intr_ts (mk_names "x" (length Ts) ~~ Ts));
           in
             ((b, mx),
-              ((cond_def_binding b, []), fold_rev lambda (params @ xs)
+              ((Thm.make_def_binding internals b, []), fold_rev lambda (params @ xs)
                 (list_comb (rec_const, params @ make_bool_args' bs i @
                   make_args argTs (xs ~~ Ts)))))
           end) (cnames_syn ~~ cs)
@@ -887,7 +884,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
     val mono = prove_mono quiet_mode skip_mono predT fp_fun monos ctxt'';
     val (_, lthy''') = lthy''
       |> Local_Theory.note
-        ((if inductive_defs
+        ((if internals
           then Binding.qualify true rec_name (Binding.name "mono")
           else Binding.empty, []),
           Proof_Context.export ctxt'' lthy'' [mono]);

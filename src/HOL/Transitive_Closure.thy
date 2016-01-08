@@ -21,7 +21,7 @@ text \<open>
 \<close>
 
 context
-  notes [[inductive_defs]]
+  notes [[inductive_internals]]
 begin
 
 inductive_set rtrancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  ("(_\<^sup>*)" [1000] 999)

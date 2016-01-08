@@ -45,7 +45,6 @@ sig
   val paragraph: T list -> T
   val para: string -> T
   val quote: T -> T
-  val backquote: T -> T
   val cartouche: T -> T
   val separate: string -> T list -> T list
   val commas: T list -> T list
@@ -168,7 +167,6 @@ val paragraph = markup Markup.paragraph;
 val para = paragraph o text;
 
 fun quote prt = blk (1, [str "\"", prt, str "\""]);
-fun backquote prt = blk (1, [str "`", prt, str "`"]);
 fun cartouche prt = blk (1, [str "\\<open>", prt, str "\\<close>"]);
 
 fun separate sep prts =
