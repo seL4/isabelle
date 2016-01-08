@@ -4106,7 +4106,7 @@ proof -
       done
   } then
   show ?thesis
-    by (auto simp: Complex.open_complex_def)
+    by (auto simp: open_dist)
 qed
 
 subsection\<open>Winding number is zero "outside" a curve, in various senses\<close>

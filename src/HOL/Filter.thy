@@ -529,6 +529,8 @@ proof -
     unfolding le_filter_def eventually_filtermap
     by (subst (1 2) eventually_INF) auto
 qed
+
+
 subsubsection \<open>Standard filters\<close>
 
 definition principal :: "'a set \<Rightarrow> 'a filter" where
@@ -742,6 +744,52 @@ next
   then show "finite {x. \<not> P x}"
     by (blast intro: finite_subset)
 qed
+
+subsubsection \<open>Product of filters\<close>
+
+lemma filtermap_sequentually_ne_bot: "filtermap f sequentially \<noteq> bot"
+  by (auto simp add: filter_eq_iff eventually_filtermap eventually_sequentially)
+
+definition prod_filter :: "'a filter \<Rightarrow> 'b filter \<Rightarrow> ('a \<times> 'b) filter" (infixr "\<times>\<^sub>F" 80) where
+  "prod_filter F G =
+    (INF (P, Q):{(P, Q). eventually P F \<and> eventually Q G}. principal {(x, y). P x \<and> Q y})"
+
+lemma eventually_prod_filter: "eventually P (F \<times>\<^sub>F G) \<longleftrightarrow>
+  (\<exists>Pf Pg. eventually Pf F \<and> eventually Pg G \<and> (\<forall>x y. Pf x \<longrightarrow> Pg y \<longrightarrow> P (x, y)))"
+  unfolding prod_filter_def
+proof (subst eventually_INF_base, goal_cases)
+  case 2
+  moreover have "eventually Pf F \<Longrightarrow> eventually Qf F \<Longrightarrow> eventually Pg G \<Longrightarrow> eventually Qg G \<Longrightarrow>
+    \<exists>P Q. eventually P F \<and> eventually Q G \<and>
+      Collect P \<times> Collect Q \<subseteq> Collect Pf \<times> Collect Pg \<inter> Collect Qf \<times> Collect Qg" for Pf Pg Qf Qg
+    by (intro conjI exI[of _ "inf Pf Qf"] exI[of _ "inf Pg Qg"])
+       (auto simp: inf_fun_def eventually_conj)
+  ultimately show ?case
+    by auto
+qed (auto simp: eventually_principal intro: eventually_True)
+
+lemma prod_filter_mono: "F \<le> F' \<Longrightarrow> G \<le> G' \<Longrightarrow> F \<times>\<^sub>F G \<le> F' \<times>\<^sub>F G'"
+  by (auto simp: le_filter_def eventually_prod_filter)
+
+lemma eventually_prod_same: "eventually P (F \<times>\<^sub>F F) \<longleftrightarrow>
+    (\<exists>Q. eventually Q F \<and> (\<forall>x y. Q x \<longrightarrow> Q y \<longrightarrow> P (x, y)))"
+  unfolding eventually_prod_filter
+  apply safe
+  apply (rule_tac x="inf Pf Pg" in exI)
+  apply (auto simp: inf_fun_def intro!: eventually_conj)
+  done
+
+lemma eventually_prod_sequentially:
+  "eventually P (sequentially \<times>\<^sub>F sequentially) \<longleftrightarrow> (\<exists>N. \<forall>m \<ge> N. \<forall>n \<ge> N. P (n, m))"
+  unfolding eventually_prod_same eventually_sequentially by auto
+
+lemma principal_prod_principal: "principal A \<times>\<^sub>F principal B = principal (A \<times> B)"
+  apply (simp add: filter_eq_iff eventually_prod_filter eventually_principal)
+  apply safe
+  apply blast
+  apply (intro conjI exI[of _ "\<lambda>x. x \<in> A"] exI[of _ "\<lambda>x. x \<in> B"])
+  apply auto
+  done
 
 subsection \<open>Limits\<close>
 

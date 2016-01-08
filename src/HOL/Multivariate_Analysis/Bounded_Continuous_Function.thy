@@ -36,14 +36,18 @@ lemma continuous_on_Rep_bcontfun[intro, simp]: "continuous_on T (Rep_bcontfun x)
   using Rep_bcontfun[of x]
   by (auto simp: bcontfun_def intro: continuous_on_subset)
 
+(* TODO: Generalize to uniform spaces? *)
 instantiation bcontfun :: (topological_space, metric_space) metric_space
 begin
 
 definition dist_bcontfun :: "('a, 'b) bcontfun \<Rightarrow> ('a, 'b) bcontfun \<Rightarrow> real"
   where "dist_bcontfun f g = (SUP x. dist (Rep_bcontfun f x) (Rep_bcontfun g x))"
 
+definition uniformity_bcontfun :: "(('a, 'b) bcontfun \<times> ('a, 'b) bcontfun) filter"
+  where "uniformity_bcontfun = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+
 definition open_bcontfun :: "('a, 'b) bcontfun set \<Rightarrow> bool"
-  where "open_bcontfun S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+  where "open_bcontfun S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"
 
 lemma dist_bounded:
   fixes f :: "('a, 'b) bcontfun"
@@ -126,7 +130,7 @@ proof
     finally show "dist (Rep_bcontfun f x) (Rep_bcontfun g x) \<le> dist f h + dist g h"
       by simp
   qed
-qed (simp add: open_bcontfun_def)
+qed (rule open_bcontfun_def uniformity_bcontfun_def)+
 
 end
 

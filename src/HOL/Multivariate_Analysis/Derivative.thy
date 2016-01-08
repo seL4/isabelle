@@ -874,8 +874,7 @@ proof -
           unfolding eventually_at_topological
           by metis
         from \<open>open S\<close> obtain d where d: "\<And>x. dist x y < d \<Longrightarrow> x \<in> S" "d > 0"
-          by (force simp: dist_commute open_real_def ball_def
-            dest!: bspec[OF _ \<open>y \<in> S\<close>])
+          by (force simp: dist_commute open_dist ball_def dest!: bspec[OF _ \<open>y \<in> S\<close>])
         def d' \<equiv> "min ((y + b)/2) (y + (d/2))"
         have "d' \<in> A"
           unfolding A_def
@@ -939,8 +938,7 @@ proof -
       where S: "open S" "y \<in> S" "\<And>x. x\<in>S \<Longrightarrow> x \<in> {y..b} \<Longrightarrow> ?le x"
         by metis
       from \<open>open S\<close> obtain d where d: "\<And>x. dist x y < d \<Longrightarrow> x \<in> S" "d > 0"
-        by (force simp: dist_commute open_real_def ball_def
-          dest!: bspec[OF _ \<open>y \<in> S\<close>])
+        by (force simp: dist_commute open_dist ball_def dest!: bspec[OF _ \<open>y \<in> S\<close>])
       def d' \<equiv> "min b (y + (d/2))"
       have "d' \<in> A"
         unfolding A_def

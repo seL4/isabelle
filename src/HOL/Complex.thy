@@ -264,8 +264,11 @@ definition complex_sgn_def:
 definition dist_complex_def:
   "dist x y = cmod (x - y)"
 
-definition open_complex_def:
-  "open (S :: complex set) \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+definition uniformity_complex_def [code del]:
+  "(uniformity :: (complex \<times> complex) filter) = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+
+definition open_complex_def [code del]:
+  "open (U :: complex set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
 
 instance proof
   fix r :: real and x y :: complex and S :: "complex set"
@@ -277,7 +280,7 @@ instance proof
     by (simp add: norm_complex_def complex_eq_iff power_mult_distrib distrib_left [symmetric] real_sqrt_mult)
   show "norm (x * y) = norm x * norm y"
     by (simp add: norm_complex_def complex_eq_iff real_sqrt_mult [symmetric] power2_eq_square algebra_simps)
-qed (rule complex_sgn_def dist_complex_def open_complex_def)+
+qed (rule complex_sgn_def dist_complex_def open_complex_def uniformity_complex_def)+
 
 end
 

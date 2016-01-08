@@ -815,13 +815,14 @@ end
 instantiation fps :: (comm_ring_1) metric_space
 begin
 
-definition open_fps_def: "open (S :: 'a fps set) = (\<forall>a \<in> S. \<exists>r. r >0 \<and> ball a r \<subseteq> S)"
+definition uniformity_fps_def [code del]:
+  "(uniformity :: ('a fps \<times> 'a fps) filter) = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
 
+definition open_fps_def' [code del]:
+  "open (U :: 'a fps set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
 
 instance
 proof
-  show "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)" for S :: "'a fps set"
-    by (auto simp add: open_fps_def ball_def subset_eq)
   show th: "dist a b = 0 \<longleftrightarrow> a = b" for a b :: "'a fps"
     by (simp add: dist_fps_def split: split_if_asm)
   then have th'[simp]: "dist a a = 0" for a :: "'a fps" by simp
@@ -853,10 +854,12 @@ proof
     qed
     thus ?thesis by (auto simp add: not_le[symmetric])
   qed
-qed
+qed (rule open_fps_def' uniformity_fps_def)+
 
 end
 
+lemma open_fps_def: "open (S :: 'a::comm_ring_1 fps set) = (\<forall>a \<in> S. \<exists>r. r >0 \<and> ball a r \<subseteq> S)"
+  unfolding open_dist ball_def subset_eq by simp
 
 text \<open>The infinite sums and justification of the notation in textbooks.\<close>
 

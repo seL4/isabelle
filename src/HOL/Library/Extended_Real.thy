@@ -2769,7 +2769,7 @@ proof (rule topological_tendstoI, unfold eventually_sequentially)
   then have "open (ereal -` S)"
     unfolding open_ereal_def by auto
   with \<open>x \<in> S\<close> obtain r where "0 < r" and dist: "\<And>y. dist y rx < r \<Longrightarrow> ereal y \<in> S"
-    unfolding open_real_def rx by auto
+    unfolding open_dist rx by auto
   then obtain n where
     upper: "\<And>N. n \<le> N \<Longrightarrow> u N < x + ereal r" and
     lower: "\<And>N. n \<le> N \<Longrightarrow> x < u N + ereal r"

@@ -11,7 +11,6 @@ begin
 
 named_theorems continuous_intros "structural introduction rules for continuity"
 
-
 subsection \<open>Topological space\<close>
 
 class "open" =
@@ -691,8 +690,6 @@ lemma tendsto_ge_const:
   assumes x: "(f \<longlongrightarrow> x) F" and a: "eventually (\<lambda>i. a \<ge> f i) F"
   shows "a \<ge> x"
   by (rule tendsto_le [OF F tendsto_const x a])
-
-
 
 
 subsubsection \<open>Rules about @{const Lim}\<close>
@@ -2434,5 +2431,174 @@ proof (rule antisym)
     qed
   qed
 qed (intro cSUP_least \<open>antimono f\<close>[THEN antimonoD] cInf_lower S)
+
+subsection \<open>Uniform spaces\<close>
+
+class uniformity = 
+  fixes uniformity :: "('a \<times> 'a) filter"
+begin
+
+abbreviation uniformity_on :: "'a set \<Rightarrow> ('a \<times> 'a) filter" where
+  "uniformity_on s \<equiv> inf uniformity (principal (s\<times>s))"
+
+end
+
+class open_uniformity = "open" + uniformity +
+  assumes open_uniformity: "\<And>U. open U \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
+
+class uniform_space = open_uniformity +
+  assumes uniformity_refl: "eventually E uniformity \<Longrightarrow> E (x, x)"
+  assumes uniformity_sym: "eventually E uniformity \<Longrightarrow> eventually (\<lambda>(x, y). E (y, x)) uniformity"
+  assumes uniformity_trans: "eventually E uniformity \<Longrightarrow> \<exists>D. eventually D uniformity \<and> (\<forall>x y z. D (x, y) \<longrightarrow> D (y, z) \<longrightarrow> E (x, z))"
+begin
+
+subclass topological_space
+  proof qed (force elim: eventually_mono eventually_elim2 simp: split_beta' open_uniformity)+
+
+lemma uniformity_bot: "uniformity \<noteq> bot"
+  using uniformity_refl by auto
+
+lemma uniformity_trans':
+  "eventually E uniformity \<Longrightarrow> eventually (\<lambda>((x, y), (y', z)). y = y' \<longrightarrow> E (x, z)) (uniformity \<times>\<^sub>F uniformity)"
+  by (drule uniformity_trans) (auto simp add: eventually_prod_same)
+
+lemma uniformity_transE:
+  assumes E: "eventually E uniformity"
+  obtains D where "eventually D uniformity" "\<And>x y z. D (x, y) \<Longrightarrow> D (y, z) \<Longrightarrow> E (x, z)"
+  using uniformity_trans[OF E] by auto
+
+lemma eventually_nhds_uniformity:
+  "eventually P (nhds x) \<longleftrightarrow> eventually (\<lambda>(x', y). x' = x \<longrightarrow> P y) uniformity" (is "_ \<longleftrightarrow> ?N P x")
+  unfolding eventually_nhds
+proof safe
+  assume *: "?N P x"
+  { fix x assume "?N P x"
+    then guess D by (rule uniformity_transE) note D = this
+    from D(1) have "?N (?N P) x"
+      by eventually_elim (insert D, force elim: eventually_mono split: prod.split) }
+  then have "open {x. ?N P x}"
+    by (simp add: open_uniformity)
+  then show "\<exists>S. open S \<and> x \<in> S \<and> (\<forall>x\<in>S. P x)"
+    by (intro exI[of _ "{x. ?N P x}"]) (auto dest: uniformity_refl simp: *)
+qed (force simp add: open_uniformity elim: eventually_mono)
+
+subsubsection \<open>Totally bounded sets\<close>
+
+definition totally_bounded :: "'a set \<Rightarrow> bool" where
+  "totally_bounded S \<longleftrightarrow>
+    (\<forall>E. eventually E uniformity \<longrightarrow> (\<exists>X. finite X \<and> (\<forall>s\<in>S. \<exists>x\<in>X. E (x, s))))"
+
+lemma totally_bounded_empty[iff]: "totally_bounded {}"
+  by (auto simp add: totally_bounded_def)
+
+lemma totally_bounded_subset: "totally_bounded S \<Longrightarrow> T \<subseteq> S \<Longrightarrow> totally_bounded T"
+  by (force simp add: totally_bounded_def)
+
+lemma totally_bounded_Union[intro]: 
+  assumes M: "finite M" "\<And>S. S \<in> M \<Longrightarrow> totally_bounded S" shows "totally_bounded (\<Union>M)"
+  unfolding totally_bounded_def
+proof safe
+  fix E assume "eventually E uniformity"
+  with M obtain X where "\<forall>S\<in>M. finite (X S) \<and> (\<forall>s\<in>S. \<exists>x\<in>X S. E (x, s))"
+    by (metis totally_bounded_def)
+  with `finite M` show "\<exists>X. finite X \<and> (\<forall>s\<in>\<Union>M. \<exists>x\<in>X. E (x, s))"
+    by (intro exI[of _ "\<Union>S\<in>M. X S"]) force
+qed
+
+subsubsection \<open>Cauchy filter\<close>
+
+definition cauchy_filter :: "'a filter \<Rightarrow> bool" where
+  "cauchy_filter F \<longleftrightarrow> F \<times>\<^sub>F F \<le> uniformity"
+
+definition Cauchy :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool" where
+  Cauchy_uniform: "Cauchy X = cauchy_filter (filtermap X sequentially)"
+
+lemma Cauchy_uniform_iff:
+  "Cauchy X \<longleftrightarrow> (\<forall>P. eventually P uniformity \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. \<forall>m\<ge>N. P (X n, X m)))"
+  unfolding Cauchy_uniform cauchy_filter_def le_filter_def eventually_prod_same
+    eventually_filtermap eventually_sequentially
+proof safe
+  let ?U = "\<lambda>P. eventually P uniformity"
+  { fix P assume "?U P" "\<forall>P. ?U P \<longrightarrow> (\<exists>Q. (\<exists>N. \<forall>n\<ge>N. Q (X n)) \<and> (\<forall>x y. Q x \<longrightarrow> Q y \<longrightarrow> P (x, y)))"
+    then obtain Q N where "\<And>n. n \<ge> N \<Longrightarrow> Q (X n)" "\<And>x y. Q x \<Longrightarrow> Q y \<Longrightarrow> P (x, y)"
+      by metis
+    then show "\<exists>N. \<forall>n\<ge>N. \<forall>m\<ge>N. P (X n, X m)"
+      by blast }
+  { fix P assume "?U P" and P: "\<forall>P. ?U P \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. \<forall>m\<ge>N. P (X n, X m))"
+    then obtain Q where "?U Q" and Q: "\<And>x y z. Q (x, y) \<Longrightarrow> Q (y, z) \<Longrightarrow> P (x, z)"
+      by (auto elim: uniformity_transE)
+    then have "?U (\<lambda>x. Q x \<and> (\<lambda>(x, y). Q (y, x)) x)"
+      unfolding eventually_conj_iff by (simp add: uniformity_sym)
+    from P[rule_format, OF this]
+    obtain N where N: "\<And>n m. n \<ge> N \<Longrightarrow> m \<ge> N \<Longrightarrow> Q (X n, X m) \<and> Q (X m, X n)"
+      by auto
+    show "\<exists>Q. (\<exists>N. \<forall>n\<ge>N. Q (X n)) \<and> (\<forall>x y. Q x \<longrightarrow> Q y \<longrightarrow> P (x, y))"
+    proof (safe intro!: exI[of _ "\<lambda>x. \<forall>n\<ge>N. Q (x, X n) \<and> Q (X n, x)"] exI[of _ N] N)
+      fix x y assume "\<forall>n\<ge>N. Q (x, X n) \<and> Q (X n, x)" "\<forall>n\<ge>N. Q (y, X n) \<and> Q (X n, y)"
+      then have "Q (x, X N)" "Q (X N, y)" by auto
+      then show "P (x, y)"
+        by (rule Q)
+    qed }
+qed
+
+lemma nhds_imp_cauchy_filter:
+  assumes *: "F \<le> nhds x" shows "cauchy_filter F"
+proof -
+  have "F \<times>\<^sub>F F \<le> nhds x \<times>\<^sub>F nhds x"
+    by (intro prod_filter_mono *)
+  also have "\<dots> \<le> uniformity"
+    unfolding le_filter_def eventually_nhds_uniformity eventually_prod_same
+  proof safe
+    fix P assume "eventually P uniformity"
+    then guess Ql by (rule uniformity_transE) note Ql = this
+    moreover note Ql(1)[THEN uniformity_sym]
+    ultimately show "\<exists>Q. eventually (\<lambda>(x', y). x' = x \<longrightarrow> Q y) uniformity \<and> (\<forall>x y. Q x \<longrightarrow> Q y \<longrightarrow> P (x, y))"
+      by (rule_tac exI[of _ "\<lambda>y. Ql (y, x) \<and> Ql (x, y)"]) (fastforce elim: eventually_elim2)
+  qed
+  finally show ?thesis
+    by (simp add: cauchy_filter_def)
+qed
+
+lemma LIMSEQ_imp_Cauchy: "X \<longlonglongrightarrow> x \<Longrightarrow> Cauchy X"
+  unfolding Cauchy_uniform filterlim_def by (intro nhds_imp_cauchy_filter)
+
+lemma Cauchy_subseq_Cauchy: assumes "Cauchy X" "subseq f" shows "Cauchy (X \<circ> f)"
+  unfolding Cauchy_uniform comp_def filtermap_filtermap[symmetric] cauchy_filter_def
+  by (rule order_trans[OF _ \<open>Cauchy X\<close>[unfolded Cauchy_uniform cauchy_filter_def]])
+     (intro prod_filter_mono filtermap_mono filterlim_subseq[OF \<open>subseq f\<close>, unfolded filterlim_def])
+
+lemma convergent_Cauchy: "convergent X \<Longrightarrow> Cauchy X"
+  unfolding convergent_def by (erule exE, erule LIMSEQ_imp_Cauchy)
+
+definition complete :: "'a set \<Rightarrow> bool" where
+  complete_uniform: "complete S \<longleftrightarrow> (\<forall>F \<le> principal S. F \<noteq> bot \<longrightarrow> cauchy_filter F \<longrightarrow> (\<exists>x\<in>S. F \<le> nhds x))"
+
+end
+
+subsubsection \<open>Uniformly continuous functions\<close>
+
+definition uniformly_continuous_on :: "'a set \<Rightarrow> ('a::uniform_space \<Rightarrow> 'b::uniform_space) \<Rightarrow> bool" where
+  uniformly_continuous_on_uniformity: "uniformly_continuous_on s f \<longleftrightarrow> 
+    (LIM (x, y) (uniformity_on s). (f x, f y) :> uniformity)"
+
+lemma uniformly_continuous_onD:
+  "uniformly_continuous_on s f \<Longrightarrow> eventually E uniformity
+    \<Longrightarrow> eventually (\<lambda>(x, y). x \<in> s \<longrightarrow> y \<in> s \<longrightarrow> E (f x, f y)) uniformity"
+  by (simp add: uniformly_continuous_on_uniformity filterlim_iff eventually_inf_principal split_beta' mem_Times_iff imp_conjL)
+
+lemma uniformly_continuous_on_const[continuous_intros]: "uniformly_continuous_on s (\<lambda>x. c)"
+  by (auto simp: uniformly_continuous_on_uniformity filterlim_iff uniformity_refl)
+
+lemma uniformly_continuous_on_id[continuous_intros]: "uniformly_continuous_on s (\<lambda>x. x)"
+  by (auto simp: uniformly_continuous_on_uniformity filterlim_def)
+
+lemma uniformly_continuous_on_compose[continuous_intros]:
+  "uniformly_continuous_on s g \<Longrightarrow> uniformly_continuous_on (g`s) f \<Longrightarrow> uniformly_continuous_on s (\<lambda>x. f (g x))"
+  using filterlim_compose[of "\<lambda>(x, y). (f x, f y)" uniformity "uniformity_on (g`s)"  "\<lambda>(x, y). (g x, g y)" "uniformity_on s"]
+  by (simp add: split_beta' uniformly_continuous_on_uniformity filterlim_inf filterlim_principal eventually_inf_principal mem_Times_iff)
+
+lemma uniformly_continuous_imp_continuous: assumes f: "uniformly_continuous_on s f" shows "continuous_on s f"
+  by (auto simp: filterlim_iff eventually_at_filter eventually_nhds_uniformity continuous_on_def
+           elim: eventually_mono dest!: uniformly_continuous_onD[OF f])
 
 end

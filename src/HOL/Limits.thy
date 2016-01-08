@@ -1624,16 +1624,6 @@ lemma LIMSEQ_inverse_real_of_nat_add_minus_mult:
   using tendsto_mult [OF tendsto_const LIMSEQ_inverse_real_of_nat_add_minus [of 1]]
   by auto
 
-lemma lim_1_over_n: "((\<lambda>n. 1 / of_nat n) \<longlongrightarrow> (0::'a::real_normed_field)) sequentially"
-proof (subst lim_sequentially, intro allI impI exI)
-  fix e :: real assume e: "e > 0"
-  fix n :: nat assume n: "n \<ge> nat \<lceil>inverse e + 1\<rceil>"
-  have "inverse e < of_nat (nat \<lceil>inverse e + 1\<rceil>)" by linarith
-  also note n
-  finally show "dist (1 / of_nat n :: 'a) 0 < e" using e
-    by (simp add: divide_simps mult.commute norm_conv_dist[symmetric] norm_divide)
-qed
-
 lemma lim_inverse_n: "((\<lambda>n. inverse(of_nat n)) \<longlongrightarrow> (0::'a::real_normed_field)) sequentially"
   using lim_1_over_n by (simp add: inverse_eq_divide)
 
@@ -2236,7 +2226,7 @@ proof (cases "a \<le> b", rule compactI)
     then have "x \<in> \<Union>C" using C by auto
     with C(2) obtain c where "x \<in> c" "open c" "c \<in> C" by auto
     then obtain e where "0 < e" "{x - e <..< x + e} \<subseteq> c"
-      by (auto simp: open_real_def dist_real_def subset_eq Ball_def abs_less_iff)
+      by (auto simp: open_dist dist_real_def subset_eq Ball_def abs_less_iff)
     with \<open>c \<in> C\<close> show ?case
       by (safe intro!: exI[of _ "e/2"] exI[of _ "{c}"]) auto
   qed

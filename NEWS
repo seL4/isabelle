@@ -606,6 +606,14 @@ during instantiation.
 terms for sup and inf. For example, "sup x (sup y (- x))" simplifies to
 "top". INCOMPATIBILITY.
 
+* Class uniform_space introduces uniform spaces btw topological spaces
+and metric spaces. Minor INCOMPATIBILITY: open_<type>_def needs to be
+introduced in the form of an uniformity. Some constants are more
+general now, it may be necessary to add type class constraints.
+
+  open_real_def \<leadsto> open_dist
+  open_complex_def \<leadsto> open_dist
+
 * Library/Monad_Syntax: notation uses symbols \<bind> and \<then>. INCOMPATIBILITY.
 
 * Library/Multiset:

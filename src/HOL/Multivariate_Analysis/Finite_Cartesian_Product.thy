@@ -142,7 +142,7 @@ subsection \<open>Topological space\<close>
 instantiation vec :: (topological_space, finite) topological_space
 begin
 
-definition
+definition [code del]:
   "open (S :: ('a ^ 'b) set) \<longleftrightarrow>
     (\<forall>x\<in>S. \<exists>A. (\<forall>i. open (A i) \<and> x$i \<in> A i) \<and>
       (\<forall>y. (\<forall>i. y$i \<in> A i) \<longrightarrow> y \<in> S))"
@@ -260,12 +260,30 @@ qed
 
 
 subsection \<open>Metric space\<close>
+(* TODO: Product of uniform spaces and compatibility with metric_spaces! *)
 
-instantiation vec :: (metric_space, finite) metric_space
+instantiation vec :: (metric_space, finite) dist
 begin
 
 definition
   "dist x y = setL2 (\<lambda>i. dist (x$i) (y$i)) UNIV"
+
+instance ..
+end
+
+instantiation vec :: (metric_space, finite) uniformity_dist
+begin
+
+definition [code del]:
+  "(uniformity :: (('a, 'b) vec \<times> ('a, 'b) vec) filter) = 
+    (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+
+instance 
+  by standard (rule uniformity_vec_def)
+end
+
+instantiation vec :: (metric_space, finite) metric_space
+begin
 
 lemma dist_vec_nth_le: "dist (x $ i) (y $ i) \<le> dist x y"
   unfolding dist_vec_def by (rule member_le_setL2) simp_all
@@ -284,7 +302,7 @@ next
     done
 next
   fix S :: "('a ^ 'b) set"
-  show "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+  have *: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
   proof
     assume "open S" show "\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S"
     proof
@@ -322,6 +340,9 @@ next
         (\<forall>y. (\<forall>i. y $ i \<in> A i) \<longrightarrow> y \<in> S)" by metis
     qed
   qed
+  show "open S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"
+    unfolding * eventually_uniformity_metric
+    by (simp del: split_paired_All add: dist_vec_def dist_commute)
 qed
 
 end

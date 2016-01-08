@@ -191,7 +191,7 @@ lemma scaleR_minus1_left [simp]:
   fixes x :: "'a::real_vector"
   shows "scaleR (-1) x = - x"
   using scaleR_minus_left [of 1 x] by simp
-  
+
 class real_algebra = real_vector + ring +
   assumes mult_scaleR_left [simp]: "scaleR a x * y = scaleR a (x * y)"
   and mult_scaleR_right [simp]: "x * scaleR a y = scaleR a (x * y)"
@@ -662,10 +662,19 @@ class sgn_div_norm = scaleR + norm + sgn +
 class dist_norm = dist + norm + minus +
   assumes dist_norm: "dist x y = norm (x - y)"
 
-class open_dist = "open" + dist +
-  assumes open_dist: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+class uniformity_dist = dist + uniformity +
+  assumes uniformity_dist: "uniformity = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+begin
 
-class real_normed_vector = real_vector + sgn_div_norm + dist_norm + open_dist +
+lemma eventually_uniformity_metric:
+  "eventually P uniformity \<longleftrightarrow> (\<exists>e>0. \<forall>x y. dist x y < e \<longrightarrow> P (x, y))"
+  unfolding uniformity_dist
+  by (subst eventually_INF_base)
+     (auto simp: eventually_principal subset_eq intro: bexI[of _ "min _ _"])
+
+end
+
+class real_normed_vector = real_vector + sgn_div_norm + dist_norm + uniformity_dist + open_uniformity +
   assumes norm_eq_zero [simp]: "norm x = 0 \<longleftrightarrow> x = 0"
   and norm_triangle_ineq: "norm (x + y) \<le> norm x + norm y"
   and norm_scaleR [simp]: "norm (scaleR a x) = \<bar>a\<bar> * norm x"
@@ -686,8 +695,8 @@ class real_normed_algebra = real_algebra + real_normed_vector +
 
 class real_normed_algebra_1 = real_algebra_1 + real_normed_algebra +
   assumes norm_one [simp]: "norm 1 = 1"
-  
-lemma (in real_normed_algebra_1) scaleR_power [simp]: 
+
+lemma (in real_normed_algebra_1) scaleR_power [simp]:
   "(scaleR x y) ^ n = scaleR (x^n) (y^n)"
   by (induction n) (simp_all add: scaleR_one scaleR_scaleR mult_ac)
 
@@ -1010,7 +1019,7 @@ qed
 
 subsection \<open>Metric spaces\<close>
 
-class metric_space = open_dist +
+class metric_space = uniformity_dist + open_uniformity +
   assumes dist_eq_0_iff [simp]: "dist x y = 0 \<longleftrightarrow> x = y"
   assumes dist_triangle2: "dist x y \<le> dist x z + dist y z"
 begin
@@ -1074,25 +1083,22 @@ lemma dist_triangle_half_r:
   shows "dist y x1 < e / 2 \<Longrightarrow> dist y x2 < e / 2 \<Longrightarrow> dist x1 x2 < e"
 by (rule dist_triangle_half_l, simp_all add: dist_commute)
 
-subclass topological_space
+subclass uniform_space
 proof
-  have "\<exists>e::real. 0 < e"
-    by (blast intro: zero_less_one)
-  then show "open UNIV"
-    unfolding open_dist by simp
-next
-  fix S T assume "open S" "open T"
-  then show "open (S \<inter> T)"
-    unfolding open_dist
-    apply clarify
-    apply (drule (1) bspec)+
-    apply (clarify, rename_tac r s)
-    apply (rule_tac x="min r s" in exI, simp)
-    done
-next
-  fix K assume "\<forall>S\<in>K. open S" thus "open (\<Union>K)"
-    unfolding open_dist by (meson UnionE UnionI) 
+  fix E x assume "eventually E uniformity"
+  then obtain e where E: "0 < e" "\<And>x y. dist x y < e \<Longrightarrow> E (x, y)"
+    unfolding eventually_uniformity_metric by auto
+  then show "E (x, x)" "\<forall>\<^sub>F (x, y) in uniformity. E (y, x)"
+    unfolding eventually_uniformity_metric by (auto simp: dist_commute)
+
+  show "\<exists>D. eventually D uniformity \<and> (\<forall>x y z. D (x, y) \<longrightarrow> D (y, z) \<longrightarrow> E (x, z))"
+    using E dist_triangle_half_l[where e=e] unfolding eventually_uniformity_metric
+    by (intro exI[of _ "\<lambda>(x, y). dist x y < e / 2"] exI[of _ "e/2"] conjI)
+       (auto simp: dist_commute)
 qed
+
+lemma open_dist: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+  unfolding open_uniformity eventually_uniformity_metric by (simp add: dist_commute)
 
 lemma open_ball: "open {y. dist x y < d}"
 proof (unfold open_dist, intro ballI)
@@ -1156,8 +1162,11 @@ begin
 definition dist_real_def:
   "dist x y = \<bar>x - y\<bar>"
 
+definition uniformity_real_def [code del]:
+  "(uniformity :: (real \<times> real) filter) = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+
 definition open_real_def [code del]:
-  "open (S :: real set) \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+  "open (U :: real set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
 
 definition real_norm_def [simp]:
   "norm r = \<bar>r\<bar>"
@@ -1165,8 +1174,9 @@ definition real_norm_def [simp]:
 instance
 apply (intro_classes, unfold real_norm_def real_scaleR_def)
 apply (rule dist_real_def)
-apply (rule open_real_def)
 apply (simp add: sgn_real_def)
+apply (rule uniformity_real_def)
+apply (rule open_real_def)
 apply (rule abs_eq_0)
 apply (rule abs_triangle_ineq)
 apply (rule abs_mult)
@@ -1188,7 +1198,7 @@ proof
   proof (rule ext, safe)
     fix S :: "real set" assume "open S"
     then obtain f where "\<forall>x\<in>S. 0 < f x \<and> (\<forall>y. dist y x < f x \<longrightarrow> y \<in> S)"
-      unfolding open_real_def bchoice_iff ..
+      unfolding open_dist bchoice_iff ..
     then have *: "S = (\<Union>x\<in>S. {x - f x <..} \<inter> {..< x + f x})"
       by (fastforce simp: dist_real_def)
     show "generate_topology (range lessThan \<union> range greaterThan) S"
@@ -1199,14 +1209,14 @@ proof
   next
     fix S :: "real set" assume "generate_topology (range lessThan \<union> range greaterThan) S"
     moreover have "\<And>a::real. open {..<a}"
-      unfolding open_real_def dist_real_def
+      unfolding open_dist dist_real_def
     proof clarify
       fix x a :: real assume "x < a"
       hence "0 < a - x \<and> (\<forall>y. \<bar>y - x\<bar> < a - x \<longrightarrow> y \<in> {..<a})" by auto
       thus "\<exists>e>0. \<forall>y. \<bar>y - x\<bar> < e \<longrightarrow> y \<in> {..<a}" ..
     qed
     moreover have "\<And>a::real. open {a <..}"
-      unfolding open_real_def dist_real_def
+      unfolding open_dist dist_real_def
     proof clarify
       fix x a :: real assume "a < x"
       hence "0 < x - a \<and> (\<forall>y. \<bar>y - x\<bar> < x - a \<longrightarrow> y \<in> {a<..})" by auto
@@ -1232,6 +1242,11 @@ text \<open>Only allow @{term "open"} in class \<open>topological_space\<close>.
 
 setup \<open>Sign.add_const_constraint
   (@{const_name "open"}, SOME @{typ "'a::topological_space set \<Rightarrow> bool"})\<close>
+
+text \<open>Only allow @{term "uniformity"} in class \<open>uniform_space\<close>.\<close>
+
+setup \<open>Sign.add_const_constraint
+  (@{const_name "uniformity"}, SOME @{typ "('a::uniformity \<times> 'a) filter"})\<close>
 
 text \<open>Only allow @{term dist} in class \<open>metric_space\<close>.\<close>
 
@@ -1786,10 +1801,22 @@ subsection \<open>Complete metric spaces\<close>
 
 subsection \<open>Cauchy sequences\<close>
 
-definition (in metric_space) Cauchy :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool" where
-  "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. dist (X m) (X n) < e)"
+lemma (in metric_space) Cauchy_def: "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < e)"
+proof -
+  have *: "eventually P (INF M. principal {(X m, X n) | n m. m \<ge> M \<and> n \<ge> M}) =
+    (\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. P (X m, X n))" for P
+  proof (subst eventually_INF_base, goal_cases)
+    case (2 a b) then show ?case
+      by (intro bexI[of _ "max a b"]) (auto simp: eventually_principal subset_eq)
+  qed (auto simp: eventually_principal, blast)
+  have "Cauchy X \<longleftrightarrow> (INF M. principal {(X m, X n) | n m. m \<ge> M \<and> n \<ge> M}) \<le> uniformity"
+    unfolding Cauchy_uniform_iff le_filter_def * ..
+  also have "\<dots> = (\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < e)"
+    unfolding uniformity_dist le_INF_iff by (auto simp: * le_principal)
+  finally show ?thesis .
+qed
 
-lemma Cauchy_altdef:
+lemma (in metric_space) Cauchy_altdef:
   "Cauchy f = (\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (f m) (f n) < e)"
 proof
   assume A: "\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (f m) (f n) < e"
@@ -1812,18 +1839,18 @@ next
   qed
 qed
 
-lemma metric_CauchyI:
+lemma (in metric_space) metric_CauchyI:
   "(\<And>e. 0 < e \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < e) \<Longrightarrow> Cauchy X"
   by (simp add: Cauchy_def)
 
-lemma CauchyI': "(\<And>e. 0 < e \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (X m) (X n) < e) \<Longrightarrow> Cauchy X"
+lemma (in metric_space) CauchyI': "(\<And>e. 0 < e \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (X m) (X n) < e) \<Longrightarrow> Cauchy X"
   unfolding Cauchy_altdef by blast
 
-lemma metric_CauchyD:
+lemma (in metric_space) metric_CauchyD:
   "Cauchy X \<Longrightarrow> 0 < e \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < e"
   by (simp add: Cauchy_def)
 
-lemma metric_Cauchy_iff2:
+lemma (in metric_space) metric_Cauchy_iff2:
   "Cauchy X = (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. dist (X m) (X n) < inverse(real (Suc j))))"
 apply (simp add: Cauchy_def, auto)
 apply (drule reals_Archimedean, safe)
@@ -1837,40 +1864,118 @@ lemma Cauchy_iff2:
   "Cauchy X = (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. \<bar>X m - X n\<bar> < inverse(real (Suc j))))"
   unfolding metric_Cauchy_iff2 dist_real_def ..
 
-lemma Cauchy_subseq_Cauchy:
-  "\<lbrakk> Cauchy X; subseq f \<rbrakk> \<Longrightarrow> Cauchy (X o f)"
-apply (auto simp add: Cauchy_def)
-apply (drule_tac x=e in spec, clarify)
-apply (rule_tac x=M in exI, clarify)
-apply (blast intro: le_trans [OF _ seq_suble] dest!: spec)
-done
-
-theorem LIMSEQ_imp_Cauchy:
-  assumes X: "X \<longlonglongrightarrow> a" shows "Cauchy X"
-proof (rule metric_CauchyI)
-  fix e::real assume "0 < e"
-  hence "0 < e/2" by simp
-  with X have "\<exists>N. \<forall>n\<ge>N. dist (X n) a < e/2" by (rule metric_LIMSEQ_D)
-  then obtain N where N: "\<forall>n\<ge>N. dist (X n) a < e/2" ..
-  show "\<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m) (X n) < e"
-  proof (intro exI allI impI)
-    fix m assume "N \<le> m"
-    hence m: "dist (X m) a < e/2" using N by blast
-    fix n assume "N \<le> n"
-    hence n: "dist (X n) a < e/2" using N by blast
-    have "dist (X m) (X n) \<le> dist (X m) a + dist (X n) a"
-      by (rule dist_triangle2)
-    also from m n have "\<dots> < e" by simp
-    finally show "dist (X m) (X n) < e" .
-  qed
+lemma lim_1_over_n: "((\<lambda>n. 1 / of_nat n) \<longlongrightarrow> (0::'a::real_normed_field)) sequentially"
+proof (subst lim_sequentially, intro allI impI exI)
+  fix e :: real assume e: "e > 0"
+  fix n :: nat assume n: "n \<ge> nat \<lceil>inverse e + 1\<rceil>"
+  have "inverse e < of_nat (nat \<lceil>inverse e + 1\<rceil>)" by linarith
+  also note n
+  finally show "dist (1 / of_nat n :: 'a) 0 < e" using e
+    by (simp add: divide_simps mult.commute norm_conv_dist[symmetric] norm_divide)
 qed
 
-lemma convergent_Cauchy: "convergent X \<Longrightarrow> Cauchy X"
-unfolding convergent_def
-by (erule exE, erule LIMSEQ_imp_Cauchy)
+lemma (in metric_space) complete_def:
+  shows "complete S = (\<forall>f. (\<forall>n. f n \<in> S) \<and> Cauchy f \<longrightarrow> (\<exists>l\<in>S. f \<longlonglongrightarrow> l))"
+  unfolding complete_uniform
+proof safe
+  fix f :: "nat \<Rightarrow> 'a" assume f: "\<forall>n. f n \<in> S" "Cauchy f"
+    and *: "\<forall>F\<le>principal S. F \<noteq> bot \<longrightarrow> cauchy_filter F \<longrightarrow> (\<exists>x\<in>S. F \<le> nhds x)"
+  then show "\<exists>l\<in>S. f \<longlonglongrightarrow> l"
+    unfolding filterlim_def using f
+    by (intro *[rule_format])
+       (auto simp: filtermap_sequentually_ne_bot le_principal eventually_filtermap Cauchy_uniform)
+next
+  fix F :: "'a filter" assume "F \<le> principal S" "F \<noteq> bot" "cauchy_filter F"
+  assume seq: "\<forall>f. (\<forall>n. f n \<in> S) \<and> Cauchy f \<longrightarrow> (\<exists>l\<in>S. f \<longlonglongrightarrow> l)"
+
+  from \<open>F \<le> principal S\<close> \<open>cauchy_filter F\<close> have FF_le: "F \<times>\<^sub>F F \<le> uniformity_on S"
+    by (simp add: cauchy_filter_def principal_prod_principal[symmetric] prod_filter_mono)
+
+  let ?P = "\<lambda>P e. eventually P F \<and> (\<forall>x. P x \<longrightarrow> x \<in> S) \<and> (\<forall>x y. P x \<longrightarrow> P y \<longrightarrow> dist x y < e)"
+
+  { fix \<epsilon> :: real assume "0 < \<epsilon>"
+    then have "eventually (\<lambda>(x, y). x \<in> S \<and> y \<in> S \<and> dist x y < \<epsilon>) (uniformity_on S)"
+      unfolding eventually_inf_principal eventually_uniformity_metric by auto
+    from filter_leD[OF FF_le this] have "\<exists>P. ?P P \<epsilon>"
+      unfolding eventually_prod_same by auto }
+  note P = this
+
+  have "\<exists>P. \<forall>n. ?P (P n) (1 / Suc n) \<and> P (Suc n) \<le> P n"
+  proof (rule dependent_nat_choice)
+    show "\<exists>P. ?P P (1 / Suc 0)"
+      using P[of 1] by auto
+  next
+    fix P n assume "?P P (1/Suc n)"
+    moreover obtain Q where "?P Q (1 / Suc (Suc n))"
+      using P[of "1/Suc (Suc n)"] by auto
+    ultimately show "\<exists>Q. ?P Q (1 / Suc (Suc n)) \<and> Q \<le> P"
+      by (intro exI[of _ "\<lambda>x. P x \<and> Q x"]) (auto simp: eventually_conj_iff)
+  qed
+  then obtain P where P: "\<And>n. eventually (P n) F" "\<And>n x. P n x \<Longrightarrow> x \<in> S"
+    "\<And>n x y. P n x \<Longrightarrow> P n y \<Longrightarrow> dist x y < 1 / Suc n" "\<And>n. P (Suc n) \<le> P n"
+    by metis
+  have "antimono P"
+    using P(4) unfolding decseq_Suc_iff le_fun_def by blast
+
+  obtain X where X: "\<And>n. P n (X n)"
+    using P(1)[THEN eventually_happens'[OF \<open>F \<noteq> bot\<close>]] by metis
+  have "Cauchy X"
+    unfolding metric_Cauchy_iff2 inverse_eq_divide
+  proof (intro exI allI impI)
+    fix j m n :: nat assume "j \<le> m" "j \<le> n"
+    with \<open>antimono P\<close> X have "P j (X m)" "P j (X n)"
+      by (auto simp: antimono_def)
+    then show "dist (X m) (X n) < 1 / Suc j"
+      by (rule P)
+  qed
+  moreover have "\<forall>n. X n \<in> S"
+    using P(2) X by auto
+  ultimately obtain x where "X \<longlonglongrightarrow> x" "x \<in> S"
+    using seq by blast
+
+  show "\<exists>x\<in>S. F \<le> nhds x"
+  proof (rule bexI)
+    { fix e :: real assume "0 < e"
+      then have "(\<lambda>n. 1 / Suc n :: real) \<longlonglongrightarrow> 0 \<and> 0 < e / 2"
+        by (subst LIMSEQ_Suc_iff) (auto intro!: lim_1_over_n)
+      then have "\<forall>\<^sub>F n in sequentially. dist (X n) x < e / 2 \<and> 1 / Suc n < e / 2"
+        using \<open>X \<longlonglongrightarrow> x\<close> unfolding tendsto_iff order_tendsto_iff[where 'a=real] eventually_conj_iff by blast
+      then obtain n where "dist x (X n) < e / 2" "1 / Suc n < e / 2"
+        by (auto simp: eventually_sequentially dist_commute)
+      have "eventually (\<lambda>y. dist y x < e) F"
+        using \<open>eventually (P n) F\<close>
+      proof eventually_elim
+        fix y assume "P n y"
+        then have "dist y (X n) < 1 / Suc n"
+          by (intro X P)
+        also have "\<dots> < e / 2" by fact
+        finally show "dist y x < e"
+          by (rule dist_triangle_half_l) fact
+      qed }
+    then show "F \<le> nhds x"
+      unfolding nhds_metric le_INF_iff le_principal by auto
+  qed fact
+qed
+
+lemma (in metric_space) totally_bounded_metric:
+  "totally_bounded S \<longleftrightarrow> (\<forall>e>0. \<exists>k. finite k \<and> S \<subseteq> (\<Union>x\<in>k. {y. dist x y < e}))"
+  unfolding totally_bounded_def eventually_uniformity_metric imp_ex
+  apply (subst all_comm)
+  apply (intro arg_cong[where f=All] ext)
+  apply safe
+  subgoal for e
+    apply (erule allE[of _ "\<lambda>(x, y). dist x y < e"])
+    apply auto
+    done
+  subgoal for e P k
+    apply (intro exI[of _ k])
+    apply (force simp: subset_eq)
+    done
+  done
 
 subsubsection \<open>Cauchy Sequences are Convergent\<close>
 
+(* TODO: update to uniform_space *)
 class complete_space = metric_space +
   assumes Cauchy_convergent: "Cauchy X \<Longrightarrow> convergent X"
 

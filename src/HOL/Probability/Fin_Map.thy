@@ -150,7 +150,7 @@ instantiation finmap :: (type, topological_space) topological_space
 begin
 
 definition open_finmap :: "('a \<Rightarrow>\<^sub>F 'b) set \<Rightarrow> bool" where
-  "open_finmap = generate_topology {Pi' a b|a b. \<forall>i\<in>a. open (b i)}"
+   [code del]: "open_finmap = generate_topology {Pi' a b|a b. \<forall>i\<in>a. open (b i)}"
 
 lemma open_Pi'I: "(\<And>i. i \<in> I \<Longrightarrow> open (A i)) \<Longrightarrow> open (Pi' I A)"
   by (auto intro: generate_topology.Basis simp: open_finmap_def)
@@ -254,11 +254,30 @@ qed
 
 subsection \<open>Metric Space of Finite Maps\<close>
 
-instantiation finmap :: (type, metric_space) metric_space
+(* TODO: Product of uniform spaces and compatibility with metric_spaces! *)
+
+instantiation finmap :: (type, metric_space) dist
 begin
 
 definition dist_finmap where
   "dist P Q = Max (range (\<lambda>i. dist ((P)\<^sub>F i) ((Q)\<^sub>F i))) + (if domain P = domain Q then 0 else 1)"
+
+instance ..
+end
+
+instantiation finmap :: (type, metric_space) uniformity_dist
+begin
+
+definition [code del]:
+  "(uniformity :: (('a, 'b) finmap \<times> ('a, 'b) finmap) filter) = 
+    (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+
+instance 
+  by standard (rule uniformity_finmap_def)
+end
+
+instantiation finmap :: (type, metric_space) metric_space
+begin
 
 lemma finite_proj_image': "x \<notin> domain P \<Longrightarrow> finite ((P)\<^sub>F ` S)"
   by (rule finite_subset[of _ "proj P ` (domain P \<inter> S \<union> {x})"]) auto
@@ -308,7 +327,7 @@ qed
 instance
 proof
   fix S::"('a \<Rightarrow>\<^sub>F 'b) set"
-  show "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)" (is "_ = ?od")
+  have *: "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)" (is "_ = ?od")
   proof
     assume "open S"
     thus ?od
@@ -387,6 +406,9 @@ proof
       by (intro generate_topology.UN) (auto intro: generate_topology.Basis)
     finally show "open S" .
   qed
+  show "open S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"
+    unfolding * eventually_uniformity_metric
+    by (simp del: split_paired_All add: dist_finmap_def dist_commute eq_commute)
 next
   fix P Q::"'a \<Rightarrow>\<^sub>F 'b"
   have Max_eq_iff: "\<And>A m. finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (Max A = m) = (m \<in> A \<and> (\<forall>a\<in>A. a \<le> m))"

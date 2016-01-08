@@ -122,8 +122,11 @@ lift_definition minus_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \
 definition dist_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> real"
   where "dist_blinfun a b = norm (a - b)"
 
+definition [code del]:
+  "(uniformity :: (('a \<Rightarrow>\<^sub>L 'b) \<times> ('a \<Rightarrow>\<^sub>L 'b)) filter) = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+
 definition open_blinfun :: "('a \<Rightarrow>\<^sub>L 'b) set \<Rightarrow> bool"
-  where "open_blinfun S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+  where [code del]: "open_blinfun S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"
 
 lift_definition uminus_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b" is "\<lambda>f x. - f x"
   by (rule bounded_linear_minus)
@@ -143,8 +146,8 @@ definition sgn_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Righta
 
 instance
   apply standard
-  unfolding dist_blinfun_def open_blinfun_def sgn_blinfun_def
-  apply (transfer, force simp: onorm_triangle onorm_scaleR onorm_eq_0 algebra_simps)+
+  unfolding dist_blinfun_def open_blinfun_def sgn_blinfun_def uniformity_blinfun_def
+  apply (rule refl | (transfer, force simp: onorm_triangle onorm_scaleR onorm_eq_0 algebra_simps))+
   done
 
 end

@@ -11,7 +11,7 @@ begin
 subsection \<open>Real inner product spaces\<close>
 
 text \<open>
-  Temporarily relax type constraints for @{term "open"},
+  Temporarily relax type constraints for @{term "open"}, @{term "uniformity"},
   @{term dist}, and @{term norm}.
 \<close>
 
@@ -22,9 +22,12 @@ setup \<open>Sign.add_const_constraint
   (@{const_name dist}, SOME @{typ "'a::dist \<Rightarrow> 'a \<Rightarrow> real"})\<close>
 
 setup \<open>Sign.add_const_constraint
+  (@{const_name uniformity}, SOME @{typ "('a::uniformity \<times> 'a) filter"})\<close>
+
+setup \<open>Sign.add_const_constraint
   (@{const_name norm}, SOME @{typ "'a::norm \<Rightarrow> real"})\<close>
 
-class real_inner = real_vector + sgn_div_norm + dist_norm + open_dist +
+class real_inner = real_vector + sgn_div_norm + dist_norm + uniformity_dist + open_uniformity +
   fixes inner :: "'a \<Rightarrow> 'a \<Rightarrow> real"
   assumes inner_commute: "inner x y = inner y x"
   and inner_add_left: "inner (x + y) z = inner x z + inner y z"
@@ -166,12 +169,15 @@ lemma inner_divide_right:
   by (metis inner_commute inner_divide_left)
 
 text \<open>
-  Re-enable constraints for @{term "open"},
+  Re-enable constraints for @{term "open"}, @{term "uniformity"},
   @{term dist}, and @{term norm}.
 \<close>
 
 setup \<open>Sign.add_const_constraint
   (@{const_name "open"}, SOME @{typ "'a::topological_space set \<Rightarrow> bool"})\<close>
+
+setup \<open>Sign.add_const_constraint
+  (@{const_name uniformity}, SOME @{typ "('a::uniform_space \<times> 'a) filter"})\<close>
 
 setup \<open>Sign.add_const_constraint
   (@{const_name dist}, SOME @{typ "'a::metric_space \<Rightarrow> 'a \<Rightarrow> real"})\<close>

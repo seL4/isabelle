@@ -229,9 +229,6 @@ lemma isCont_Pair [simp]: "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrighta
 
 subsubsection \<open>Separation axioms\<close>
 
-lemma mem_Times_iff: "x \<in> A \<times> B \<longleftrightarrow> fst x \<in> A \<and> snd x \<in> B"
-  by (induct x) simp (* TODO: move elsewhere *)
-
 instance prod :: (t0_space, t0_space) t0_space
 proof
   fix x y :: "'a \<times> 'b" assume "x \<noteq> y"
@@ -264,11 +261,30 @@ lemma isCont_swap[continuous_intros]: "isCont prod.swap a"
 
 subsection \<open>Product is a metric space\<close>
 
-instantiation prod :: (metric_space, metric_space) metric_space
+(* TODO: Product of uniform spaces and compatibility with metric_spaces! *)
+
+instantiation prod :: (metric_space, metric_space) dist
 begin
 
 definition dist_prod_def[code del]:
   "dist x y = sqrt ((dist (fst x) (fst y))\<^sup>2 + (dist (snd x) (snd y))\<^sup>2)"
+
+instance ..
+end
+
+instantiation prod :: (metric_space, metric_space) uniformity_dist
+begin
+
+definition [code del]:
+  "(uniformity :: (('a \<times> 'b) \<times> ('a \<times> 'b)) filter) = 
+    (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+
+instance 
+  by standard (rule uniformity_prod_def)
+end
+
+instantiation prod :: (metric_space, metric_space) metric_space
+begin
 
 lemma dist_Pair_Pair: "dist (a, b) (c, d) = sqrt ((dist a c)\<^sup>2 + (dist b d)\<^sup>2)"
   unfolding dist_prod_def by simp
@@ -292,7 +308,7 @@ next
         real_sqrt_le_mono add_mono power_mono dist_triangle2 zero_le_dist)
 next
   fix S :: "('a \<times> 'b) set"
-  show "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+  have *: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
   proof
     assume "open S" show "\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S"
     proof
@@ -351,6 +367,9 @@ next
       ultimately show "\<exists>A B. open A \<and> open B \<and> x \<in> A \<times> B \<and> A \<times> B \<subseteq> S" by fast
     qed
   qed
+  show "open S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"
+    unfolding * eventually_uniformity_metric
+    by (simp del: split_paired_All add: dist_prod_def dist_commute)
 qed
 
 end

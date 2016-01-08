@@ -13,7 +13,6 @@ imports
   "~~/src/HOL/Library/FuncSet"
   Linear_Algebra
   Norm_Arith
-
 begin
 
 lemma image_affinity_interval:
@@ -4573,20 +4572,19 @@ qed
 
 subsubsection \<open>Completeness\<close>
 
-definition complete :: "'a::metric_space set \<Rightarrow> bool"
-  where "complete s \<longleftrightarrow> (\<forall>f. (\<forall>n. f n \<in> s) \<and> Cauchy f \<longrightarrow> (\<exists>l\<in>s. f \<longlonglongrightarrow> l))"
-
-lemma completeI:
+lemma (in metric_space) completeI:
   assumes "\<And>f. \<forall>n. f n \<in> s \<Longrightarrow> Cauchy f \<Longrightarrow> \<exists>l\<in>s. f \<longlonglongrightarrow> l"
   shows "complete s"
   using assms unfolding complete_def by fast
 
-lemma completeE:
+lemma (in metric_space) completeE:
   assumes "complete s" and "\<forall>n. f n \<in> s" and "Cauchy f"
   obtains l where "l \<in> s" and "f \<longlonglongrightarrow> l"
   using assms unfolding complete_def by fast
 
+(* TODO: generalize to uniform spaces *)
 lemma compact_imp_complete:
+  fixes s :: "'a::metric_space set"
   assumes "compact s"
   shows "complete s"
 proof -
@@ -4816,6 +4814,7 @@ proof (rule completeI)
 qed
 
 lemma complete_imp_closed:
+  fixes s :: "'a::metric_space set"
   assumes "complete s"
   shows "closed s"
 proof (unfold closed_sequential_limits, clarify)
@@ -4831,6 +4830,7 @@ proof (unfold closed_sequential_limits, clarify)
 qed
 
 lemma complete_inter_closed:
+  fixes s :: "'a::metric_space set"
   assumes "complete s" and "closed t"
   shows "complete (s \<inter> t)"
 proof (rule completeI)
@@ -4846,6 +4846,7 @@ proof (rule completeI)
 qed
 
 lemma complete_closed_subset:
+  fixes s :: "'a::metric_space set"
   assumes "closed s" and "s \<subseteq> t" and "complete t"
   shows "complete s"
   using assms complete_inter_closed [of t s] by (simp add: Int_absorb1)
@@ -5225,9 +5226,13 @@ lemma continuous_on_iff:
   unfolding continuous_on_def Lim_within
   by (metis dist_pos_lt dist_self)
 
-definition uniformly_continuous_on :: "'a set \<Rightarrow> ('a::metric_space \<Rightarrow> 'b::metric_space) \<Rightarrow> bool"
-  where "uniformly_continuous_on s f \<longleftrightarrow>
+lemma uniformly_continuous_on_def:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  shows "uniformly_continuous_on s f \<longleftrightarrow>
     (\<forall>e>0. \<exists>d>0. \<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
+  unfolding uniformly_continuous_on_uniformity
+    uniformity_dist filterlim_INF filterlim_principal eventually_inf_principal
+  by (force simp: Ball_def uniformity_dist[symmetric] eventually_uniformity_metric)
 
 text\<open>Some simple consequential lemmas.\<close>
 
@@ -5241,10 +5246,6 @@ lemma uniformly_continuous_onE:
   obtains d where "d>0" "\<And>x x'. \<lbrakk>x\<in>s; x'\<in>s; dist x' x < d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
 using assms
 by (auto simp: uniformly_continuous_on_def)
-
-lemma uniformly_continuous_imp_continuous:
-  "uniformly_continuous_on s f \<Longrightarrow> continuous_on s f"
-  unfolding uniformly_continuous_on_def continuous_on_iff by blast
 
 lemma continuous_at_imp_continuous_within:
   "continuous (at x) f \<Longrightarrow> continuous (at x within s) f"
@@ -5331,8 +5332,7 @@ qed
 
 lemma uniformly_continuous_on_sequentially:
   "uniformly_continuous_on s f \<longleftrightarrow> (\<forall>x y. (\<forall>n. x n \<in> s) \<and> (\<forall>n. y n \<in> s) \<and>
-                    ((\<lambda>n. dist (x n) (y n)) \<longlongrightarrow> 0) sequentially
-                    \<longrightarrow> ((\<lambda>n. dist (f(x n)) (f(y n))) \<longlongrightarrow> 0) sequentially)" (is "?lhs = ?rhs")
+    (\<lambda>n. dist (x n) (y n)) \<longlonglongrightarrow> 0 \<longrightarrow> (\<lambda>n. dist (f(x n)) (f(y n))) \<longlonglongrightarrow> 0)" (is "?lhs = ?rhs")
 proof
   assume ?lhs
   {
@@ -5421,7 +5421,7 @@ lemma continuous_transform_within:
   using assms
   unfolding continuous_within
   by (force simp add: intro: Lim_transform_within)
- 
+
 
 subsubsection \<open>Structural rules for pointwise continuity\<close>
 
@@ -5462,14 +5462,6 @@ lemma continuous_on_inner[continuous_intros]:
 
 subsubsection \<open>Structural rules for uniform continuity\<close>
 
-lemma uniformly_continuous_on_id[continuous_intros]:
-  "uniformly_continuous_on s (\<lambda>x. x)"
-  unfolding uniformly_continuous_on_def by auto
-
-lemma uniformly_continuous_on_const[continuous_intros]:
-  "uniformly_continuous_on s (\<lambda>x. c)"
-  unfolding uniformly_continuous_on_def by simp
-
 lemma uniformly_continuous_on_dist[continuous_intros]:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "uniformly_continuous_on s f"
@@ -5497,12 +5489,14 @@ proof -
 qed
 
 lemma uniformly_continuous_on_norm[continuous_intros]:
+  fixes f :: "'a :: metric_space \<Rightarrow> 'b :: real_normed_vector"
   assumes "uniformly_continuous_on s f"
   shows "uniformly_continuous_on s (\<lambda>x. norm (f x))"
   unfolding norm_conv_dist using assms
   by (intro uniformly_continuous_on_dist uniformly_continuous_on_const)
 
 lemma (in bounded_linear) uniformly_continuous_on[continuous_intros]:
+  fixes g :: "_::metric_space \<Rightarrow> _"
   assumes "uniformly_continuous_on s g"
   shows "uniformly_continuous_on s (\<lambda>x. f (g x))"
   using assms unfolding uniformly_continuous_on_sequentially
@@ -5544,30 +5538,9 @@ lemma uniformly_continuous_on_diff[continuous_intros]:
   using assms uniformly_continuous_on_add [of s f "- g"]
     by (simp add: fun_Compl_def uniformly_continuous_on_minus)
 
-text\<open>Continuity of all kinds is preserved under composition.\<close>
-
 lemmas continuous_at_compose = isCont_o
 
-lemma uniformly_continuous_on_compose[continuous_intros]:
-  assumes "uniformly_continuous_on s f"  "uniformly_continuous_on (f ` s) g"
-  shows "uniformly_continuous_on s (g \<circ> f)"
-proof -
-  {
-    fix e :: real
-    assume "e > 0"
-    then obtain d where "d > 0"
-      and d: "\<forall>x\<in>f ` s. \<forall>x'\<in>f ` s. dist x' x < d \<longrightarrow> dist (g x') (g x) < e"
-      using assms(2) unfolding uniformly_continuous_on_def by auto
-    obtain d' where "d'>0" "\<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d' \<longrightarrow> dist (f x') (f x) < d"
-      using \<open>d > 0\<close> using assms(1) unfolding uniformly_continuous_on_def by auto
-    then have "\<exists>d>0. \<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist ((g \<circ> f) x') ((g \<circ> f) x) < e"
-      using \<open>d>0\<close> using d by auto
-  }
-  then show ?thesis
-    using assms unfolding uniformly_continuous_on_def by auto
-qed
-
-text\<open>Continuity in terms of open preimages.\<close>
+text \<open>Continuity in terms of open preimages.\<close>
 
 lemma continuous_at_open:
   "continuous (at x) f \<longleftrightarrow> (\<forall>t. open t \<and> f x \<in> t --> (\<exists>s. open s \<and> x \<in> s \<and> (\<forall>x' \<in> s. (f x') \<in> t)))"
@@ -6124,6 +6097,7 @@ using connected_continuous_image assms linear_continuous_on linear_conv_bounded_
 text \<open>Continuity implies uniform continuity on a compact domain.\<close>
 
 lemma compact_uniformly_continuous:
+  fixes f :: "'a :: metric_space \<Rightarrow> 'b :: metric_space"
   assumes f: "continuous_on s f"
     and s: "compact s"
   shows "uniformly_continuous_on s f"

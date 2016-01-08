@@ -1068,6 +1068,9 @@ lemma Compl_Times_UNIV2 [simp]: "- (A \<times> UNIV) = (-A) \<times> UNIV"
 lemma mem_Sigma_iff [iff]: "((a,b): Sigma A B) = (a:A & b:B(a))"
   by blast
 
+lemma mem_Times_iff: "x \<in> A \<times> B \<longleftrightarrow> fst x \<in> A \<and> snd x \<in> B"
+  by (induct x) simp
+
 lemma Sigma_empty_iff: "(SIGMA i:I. X i) = {} \<longleftrightarrow> (\<forall>i\<in>I. X i = {})"
   by auto
 
