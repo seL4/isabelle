@@ -325,6 +325,7 @@ case "$PLATFORM_FAM" in
 
       find . -type l -exec echo "{}" ";" -exec readlink "{}" ";" \
         > "contrib/cygwin/isabelle/symlinks"
+      find . -type l -exec rm "{}" ";"
 
       touch "contrib/cygwin/isabelle/uninitialized"
     )

@@ -443,12 +443,17 @@ numbered cases in proofs, without requiring method "goal_cases".
 
 * Inductive definitions ('inductive', 'coinductive', etc.) expose
 low-level facts of the internal construction only if the option
-"inductive_defs" is enabled. This refers to the internal predicate
+"inductive_internals" is enabled. This refers to the internal predicate
 definition and its monotonicity result. Rare INCOMPATIBILITY.
 
 * Recursive function definitions ('fun', 'function', 'partial_function')
 expose low-level facts of the internal construction only if the option
-"function_defs" is enabled. Rare INCOMPATIBILITY.
+"function_internals" is enabled. Rare INCOMPATIBILITY.
+
+* BNF datatypes ('datatype', 'codatatype', etc.) expose low-level facts
+of the internal construction only if the option "bnf_internals" is
+enabled. This supersedes the former option "bnf_note_all". Rare
+INCOMPATIBILITY.
 
 * Combinator to represent case distinction on products is named
 "case_prod", uniformly, discontinuing any input aliasses. Very popular
@@ -563,10 +568,9 @@ been removed. INCOMPATIBILITY.
     being defined.
   - Avoid various internal name clashes (e.g., 'datatype f = f').
 
-* Transfer:
-  - new methods for interactive debugging of 'transfer' and
-    'transfer_prover': 'transfer_start', 'transfer_step', 'transfer_end',
-    'transfer_prover_start' and 'transfer_prover_end'.
+* Transfer: new methods for interactive debugging of 'transfer' and
+'transfer_prover': 'transfer_start', 'transfer_step', 'transfer_end',
+'transfer_prover_start' and 'transfer_prover_end'.
 
 * Division on integers is bootstrapped directly from division on
 naturals and uses generic numeral algorithm for computations. Slight
@@ -646,8 +650,9 @@ Minor INCOMPATIBILITY, use 'function' instead.
 * Library/Periodic_Fun: a locale that provides convenient lemmas for
 periodic functions.
 
-* Library/Formal_Power_Series: proper definition of division (with remainder) 
-for formal power series; instances for Euclidean Ring and GCD.
+* Library/Formal_Power_Series: proper definition of division (with
+remainder) for formal power series; instances for Euclidean Ring and
+GCD.
 
 * HOL-Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
 

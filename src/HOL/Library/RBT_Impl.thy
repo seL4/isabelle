@@ -1758,9 +1758,7 @@ hide_fact (open)
   Rep_compare Rep_compare_cases Rep_compare_induct Rep_compare_inject Rep_compare_inverse
   compare.simps compare.exhaust compare.induct compare.rec compare.simps
   compare.size compare.case_cong compare.case_cong_weak compare.case
-  compare.nchotomy compare.split compare.split_asm rec_compare_def
-  compare.eq.refl compare.eq.simps
-  compare.EQ_def compare.GT_def compare.LT_def
+  compare.nchotomy compare.split compare.split_asm compare.eq.refl compare.eq.simps
   equal_compare_def
   skip_red.simps skip_red.cases skip_red.induct 
   skip_black_def

@@ -36,7 +36,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val ks = 1 upto n;
     val m = live - n; (*passive, if 0 don't generate a new BNF*)
 
-    val note_all = Config.get lthy bnf_note_all;
+    val internals = Config.get lthy bnf_internals;
     val b_names = map Binding.name_of bs;
     val b_name = mk_common_name b_names;
     val b = Binding.name b_name;
@@ -46,7 +46,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     fun mk_internal_b name = mk_internal_of_b name b;
     fun mk_internal_bs name = map (mk_internal_of_b name) bs;
     val external_bs = map2 (Binding.prefix false) b_names bs
-      |> not note_all ? map Binding.concealed;
+      |> not internals ? map Binding.concealed;
 
     val deads = fold (union (op =)) Dss resDs;
     val names_lthy = fold Variable.declare_typ deads lthy;
@@ -1940,7 +1940,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
         bs thmss);
 
-    val lthy' = lthy |> note_all ? snd o Local_Theory.notes (common_notes @ notes @ Ibnf_notes);
+    val lthy' = lthy |> internals ? snd o Local_Theory.notes (common_notes @ notes @ Ibnf_notes);
 
     val fp_res =
       {Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, xtor_un_folds = folds,

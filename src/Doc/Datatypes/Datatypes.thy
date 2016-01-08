@@ -693,9 +693,9 @@ theorems that reveal internal constructions. To make these accessible, add
 the line
 \<close>
 
-    declare [[bnf_note_all]]
+    declare [[bnf_internals]]
 (*<*)
-    declare [[bnf_note_all = false]]
+    declare [[bnf_internals = false]]
 (*>*)
 
 text \<open>

@@ -887,7 +887,7 @@ proof -
 qed
 
 context
-  notes [[inductive_defs]]
+  notes [[inductive_internals]]
 begin
 
 inductive integrable for M f where
