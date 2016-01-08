@@ -5399,6 +5399,72 @@ apply (simp add: image_Collect lex_prod_def, safe, blast)
 apply (case_tac xys, simp_all, blast)
 done
 
+text{* By Mathias Fleury: *}
+lemma lexn_transI:
+  assumes "trans r" shows "trans (lexn r n)"
+unfolding trans_def
+proof (intro allI impI)
+  fix as bs cs
+  assume asbs: "(as, bs) \<in> lexn r n" and bscs: "(bs, cs) \<in> lexn r n"
+  obtain abs a b as' bs' where
+    n: "length as = n" and "length bs = n" and
+    as: "as = abs @ a # as'" and
+    bs: "bs = abs @ b # bs'" and
+    abr: "(a, b) \<in> r"
+    using asbs unfolding lexn_conv by blast
+  obtain bcs b' c' cs' bs' where
+    n': "length cs = n" and "length bs = n" and
+    bs': "bs = bcs @ b' # bs'" and
+    cs: "cs = bcs @ c' # cs'" and
+    b'c'r: "(b', c') \<in> r"
+    using bscs unfolding lexn_conv by blast
+  consider (le) "length bcs < length abs"
+    | (eq) "length bcs = length abs"
+    | (ge) "length bcs > length abs" by linarith
+  thus "(as, cs) \<in> lexn r n"
+  proof cases
+    let ?k = "length bcs"
+    case le
+    hence "as ! ?k = bs ! ?k" unfolding as bs by (simp add: nth_append)
+    hence "(as ! ?k, cs ! ?k) \<in> r" using b'c'r unfolding bs' cs by auto
+    moreover
+    have "length bcs < length as" using le unfolding as by simp
+    from id_take_nth_drop[OF this]
+    have "as = take ?k as @ as ! ?k # drop (Suc ?k) as" .
+    moreover
+    have "length bcs < length cs" unfolding cs by simp
+    from id_take_nth_drop[OF this]
+    have "cs = take ?k cs @ cs ! ?k # drop (Suc ?k) cs" .
+    moreover have "take ?k as = take ?k cs"
+      using le arg_cong[OF bs, of "take (length bcs)"]
+      unfolding cs as bs' by auto
+    ultimately show ?thesis using n n' unfolding lexn_conv by auto
+  next
+    let ?k = "length abs"
+    case ge
+    hence "bs ! ?k = cs ! ?k" unfolding bs' cs by (simp add: nth_append)
+    hence "(as ! ?k, cs ! ?k) \<in> r" using abr unfolding as bs by auto
+    moreover
+    have "length abs < length as" using ge unfolding as by simp
+    from id_take_nth_drop[OF this]
+    have "as = take ?k as @ as ! ?k # drop (Suc ?k) as" .
+    moreover have "length abs < length cs" using n n' unfolding as by simp
+    from id_take_nth_drop[OF this]
+    have "cs = take ?k cs @ cs ! ?k # drop (Suc ?k) cs" .
+    moreover have "take ?k as = take ?k cs"
+      using ge arg_cong[OF bs', of "take (length abs)"]
+      unfolding cs as bs by auto
+    ultimately show ?thesis using n n' unfolding lexn_conv by auto
+  next
+    let ?k = "length abs"
+    case eq
+    hence "abs = bcs" "b = b'" using bs bs' by auto
+    moreover hence "(a, c') \<in> r"
+      using abr b'c'r assms unfolding trans_def by blast
+    ultimately show ?thesis using n n' unfolding lexn_conv as bs cs by auto
+  qed
+qed
+
 lemma lex_conv:
   "lex r =
     {(xs,ys). length xs = length ys \<and>
