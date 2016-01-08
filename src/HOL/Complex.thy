@@ -284,6 +284,8 @@ qed (rule complex_sgn_def dist_complex_def open_complex_def uniformity_complex_d
 
 end
 
+declare uniformity_Abort[where 'a=complex, code]
+
 lemma norm_ii [simp]: "norm ii = 1"
   by (simp add: norm_complex_def)
 

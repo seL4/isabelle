@@ -26,6 +26,11 @@ proof
   show "(\<lambda>x. True) \<in> ?filter" by (auto intro: is_filter.intro)
 qed
 
+text \<open>Kill code generation for filters\<close>
+
+code_datatype Abs_filter
+declare [[code abort: Rep_filter]]
+
 lemma is_filter_Rep_filter: "is_filter (Rep_filter F)"
   using Rep_filter [of F] by simp
 

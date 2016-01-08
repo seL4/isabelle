@@ -269,12 +269,14 @@ instantiation finmap :: (type, metric_space) uniformity_dist
 begin
 
 definition [code del]:
-  "(uniformity :: (('a, 'b) finmap \<times> ('a, 'b) finmap) filter) = 
+  "(uniformity :: (('a, 'b) finmap \<times> ('a, 'b) finmap) filter) =
     (INF e:{0 <..}. principal {(x, y). dist x y < e})"
 
-instance 
+instance
   by standard (rule uniformity_finmap_def)
 end
+
+declare uniformity_Abort[where 'a="('a, 'b::metric_space) finmap", code]
 
 instantiation finmap :: (type, metric_space) metric_space
 begin

@@ -9,7 +9,6 @@ theory Real_Vector_Spaces
 imports Real Topological_Spaces
 begin
 
-
 lemma (in ordered_ab_group_add) diff_ge_0_iff_ge [simp]: "a - b \<ge> 0 \<longleftrightarrow> a \<ge> b"
   by (simp add: le_diff_eq)
 
@@ -1184,6 +1183,8 @@ apply (rule abs_mult)
 done
 
 end
+
+declare uniformity_Abort[where 'a=real, code]
 
 lemma dist_of_real [simp]:
   fixes a :: "'a::real_normed_div_algebra"

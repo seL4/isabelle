@@ -152,6 +152,8 @@ instance
 
 end
 
+declare uniformity_Abort[where 'a="('a :: real_normed_vector) \<Rightarrow>\<^sub>L ('b :: real_normed_vector)", code]
+
 lemma norm_blinfun_eqI:
   assumes "n \<le> norm (blinfun_apply f x) / norm x"
   assumes "\<And>x. norm (blinfun_apply f x) \<le> n * norm x"

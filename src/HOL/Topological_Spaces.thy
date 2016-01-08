@@ -102,7 +102,7 @@ lemma open_Collect_disj: assumes "open {x. P x}" "open {x. Q x}" shows "open {x.
   using open_Un[OF assms] by (simp add: Un_def)
 
 lemma open_Collect_ex: "(\<And>i. open {x. P i x}) \<Longrightarrow> open {x. \<exists>i. P i x}"
-  using open_UN[of UNIV "\<lambda>i. {x. P i x}"] unfolding Collect_ex_eq by simp 
+  using open_UN[of UNIV "\<lambda>i. {x. P i x}"] unfolding Collect_ex_eq by simp
 
 lemma open_Collect_imp: "closed {x. P x} \<Longrightarrow> open {x. Q x} \<Longrightarrow> open {x. P x \<longrightarrow> Q x}"
   unfolding imp_conv_disj by (intro open_Collect_disj open_Collect_neg)
@@ -120,7 +120,7 @@ lemma closed_Collect_disj: assumes "closed {x. P x}" "closed {x. Q x}" shows "cl
   using closed_Un[OF assms] by (simp add: Un_def)
 
 lemma closed_Collect_all: "(\<And>i. closed {x. P i x}) \<Longrightarrow> closed {x. \<forall>i. P i x}"
-  using closed_INT[of UNIV "\<lambda>i. {x. P i x}"] unfolding Collect_all_eq by simp 
+  using closed_INT[of UNIV "\<lambda>i. {x. P i x}"] unfolding Collect_all_eq by simp
 
 lemma closed_Collect_imp: "open {x. P x} \<Longrightarrow> closed {x. Q x} \<Longrightarrow> closed {x. P x \<longrightarrow> Q x}"
   unfolding imp_conv_disj by (intro closed_Collect_disj closed_Collect_neg)
@@ -203,9 +203,9 @@ inductive generate_topology for S where
 | UN: "(\<And>k. k \<in> K \<Longrightarrow> generate_topology S k) \<Longrightarrow> generate_topology S (\<Union>K)"
 | Basis: "s \<in> S \<Longrightarrow> generate_topology S s"
 
-hide_fact (open) UNIV Int UN Basis 
+hide_fact (open) UNIV Int UN Basis
 
-lemma generate_topology_Union: 
+lemma generate_topology_Union:
   "(\<And>k. k \<in> I \<Longrightarrow> generate_topology S (K k)) \<Longrightarrow> generate_topology S (\<Union>k\<in>I. K k)"
   using generate_topology.UN [of "K ` I"] by auto
 
@@ -344,7 +344,7 @@ lemma (in topological_space) nhds_generated_topology:
 proof (safe intro!: antisym INF_greatest)
   fix S assume "generate_topology T S" "x \<in> S"
   then show "(INF S:{S \<in> T. x \<in> S}. principal S) \<le> principal S"
-    by induction 
+    by induction
        (auto intro: INF_lower order_trans simp add: inf_principal[symmetric] simp del: inf_principal)
 qed (auto intro!: INF_lower intro: generate_topology.intros)
 
@@ -352,7 +352,7 @@ lemma (in topological_space) eventually_nhds:
   "eventually P (nhds a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
   unfolding nhds_def by (subst eventually_INF_base) (auto simp: eventually_principal)
 
-lemma (in topological_space) eventually_nhds_in_open: 
+lemma (in topological_space) eventually_nhds_in_open:
   "open s \<Longrightarrow> x \<in> s \<Longrightarrow> eventually (\<lambda>y. y \<in> s) (nhds x)"
   by (subst eventually_nhds) blast
 
@@ -391,7 +391,7 @@ lemma at_within_nhd:
 proof (intro allI eventually_subst)
   have "eventually (\<lambda>x. x \<in> S) (nhds x)"
     using \<open>x \<in> S\<close> \<open>open S\<close> by (auto simp: eventually_nhds)
-  then show "\<forall>\<^sub>F n in nhds x. (n \<noteq> x \<longrightarrow> n \<in> T \<longrightarrow> P n) = (n \<noteq> x \<longrightarrow> n \<in> U \<longrightarrow> P n)" for P  
+  then show "\<forall>\<^sub>F n in nhds x. (n \<noteq> x \<longrightarrow> n \<in> T \<longrightarrow> P n) = (n \<noteq> x \<longrightarrow> n \<in> U \<longrightarrow> P n)" for P
     by eventually_elim (insert \<open>T \<inter> S - {x} = U \<inter> S - {x}\<close>, blast)
 qed
 
@@ -412,14 +412,14 @@ lemma at_neq_bot [simp]: "at (a::'a::perfect_space) \<noteq> bot"
 lemma (in order_topology) nhds_order: "nhds x =
   inf (INF a:{x <..}. principal {..< a}) (INF a:{..< x}. principal {a <..})"
 proof -
-  have 1: "{S \<in> range lessThan \<union> range greaterThan. x \<in> S} = 
+  have 1: "{S \<in> range lessThan \<union> range greaterThan. x \<in> S} =
       (\<lambda>a. {..< a}) ` {x <..} \<union> (\<lambda>a. {a <..}) ` {..< x}"
     by auto
   show ?thesis
     unfolding nhds_generated_topology[OF open_generated_order] INF_union 1 INF_image comp_def ..
 qed
 
-lemma (in linorder_topology) at_within_order: "UNIV \<noteq> {x} \<Longrightarrow> 
+lemma (in linorder_topology) at_within_order: "UNIV \<noteq> {x} \<Longrightarrow>
   at x within s = inf (INF a:{x <..}. principal ({..< a} \<inter> s - {x}))
                       (INF a:{..< x}. principal ({a <..} \<inter> s - {x}))"
 proof (cases "{x <..} = {}" "{..< x} = {}" rule: case_split[case_product case_split])
@@ -472,7 +472,7 @@ lemma trivial_limit_at_right_real [simp]:
   by safe (auto simp add: trivial_limit_def eventually_at_right dest: dense)
 
 lemma at_eq_sup_left_right: "at (x::'a::linorder_topology) = sup (at_left x) (at_right x)"
-  by (auto simp: eventually_at_filter filter_eq_iff eventually_sup 
+  by (auto simp: eventually_at_filter filter_eq_iff eventually_sup
            elim: eventually_elim2 eventually_mono)
 
 lemma eventually_at_split:
@@ -904,7 +904,7 @@ proof cases
     by (intro dependent_nat_choice) (auto simp: conj_commute)
   then obtain f where "subseq f" and mono: "\<And>n m. f n \<le> m \<Longrightarrow> s m \<le> s (f n)"
     by (auto simp: subseq_Suc_iff)
-  moreover 
+  moreover
   then have "incseq f"
     unfolding subseq_Suc_iff incseq_Suc_iff by (auto intro: less_imp_le)
   then have "monoseq (\<lambda>n. s (f n))"
@@ -963,7 +963,7 @@ lemma subseq_imp_inj_on: "subseq g \<Longrightarrow> inj_on g A"
 proof (rule inj_onI)
   assume g: "subseq g"
   fix x y assume "g x = g y"
-  with subseq_mono[OF g, of x y] subseq_mono[OF g, of y x] show "x = y" 
+  with subseq_mono[OF g, of x y] subseq_mono[OF g, of y x] show "x = y"
     by (cases x y rule: linorder_cases) simp_all
 qed
 
@@ -977,7 +977,7 @@ lemma decseq_imp_monoseq:  "decseq X \<Longrightarrow> monoseq X"
   by (simp add: decseq_def monoseq_def)
 
 lemma decseq_eq_incseq:
-  fixes X :: "nat \<Rightarrow> 'a::ordered_ab_group_add" shows "decseq X = incseq (\<lambda>n. - X n)" 
+  fixes X :: "nat \<Rightarrow> 'a::ordered_ab_group_add" shows "decseq X = incseq (\<lambda>n. - X n)"
   by (simp add: decseq_def incseq_def)
 
 lemma INT_decseq_offset:
@@ -1179,10 +1179,10 @@ proof (rule ccontr)
 qed
 
 lemma (in first_countable_topology) eventually_nhds_within_iff_sequentially:
-  "eventually P (inf (nhds a) (principal s)) \<longleftrightarrow> 
+  "eventually P (inf (nhds a) (principal s)) \<longleftrightarrow>
     (\<forall>f. (\<forall>n. f n \<in> s) \<and> f \<longlonglongrightarrow> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially)"
 proof (safe intro!: sequentially_imp_eventually_nhds_within)
-  assume "eventually P (inf (nhds a) (principal s))" 
+  assume "eventually P (inf (nhds a) (principal s))"
   then obtain S where "open S" "a \<in> S" "\<forall>x\<in>S. x \<in> s \<longrightarrow> P x"
     by (auto simp: eventually_inf_principal eventually_nhds)
   moreover fix f assume "\<forall>n. f n \<in> s" "f \<longlonglongrightarrow> a"
@@ -1624,7 +1624,7 @@ lemma isCont_o[continuous_intros]: "isCont f a \<Longrightarrow> isCont g (f a) 
 
 lemma isCont_tendsto_compose: "isCont g l \<Longrightarrow> (f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) \<longlongrightarrow> g l) F"
   unfolding isCont_def by (rule tendsto_compose)
-  
+
 lemma continuous_on_tendsto_compose:
   assumes f_cont: "continuous_on s f"
   assumes g: "(g \<longlongrightarrow> l) F"
@@ -1657,7 +1657,7 @@ proof safe
     unfolding eventually_nhds by (intro exI[of _ "f`S"]) (auto intro!: open_map)
 qed (metis filterlim_iff tendsto_at_iff_tendsto_nhds isCont_def eventually_filtermap cont)
 
-lemma continuous_at_split: 
+lemma continuous_at_split:
   "continuous (at (x::'a::linorder_topology)) f = (continuous (at_left x) f \<and> continuous (at_right x) f)"
   by (simp add: continuous_within filterlim_at_split)
 
@@ -1909,7 +1909,7 @@ lemma connected_sing [simp]: "connected {x}"
   by (auto intro!: connectedI)
 
 lemma connectedD:
-  "connected A \<Longrightarrow> open U \<Longrightarrow> open V \<Longrightarrow> U \<inter> V \<inter> A = {} \<Longrightarrow> A \<subseteq> U \<union> V \<Longrightarrow> U \<inter> A = {} \<or> V \<inter> A = {}" 
+  "connected A \<Longrightarrow> open U \<Longrightarrow> open V \<Longrightarrow> U \<inter> V \<inter> A = {} \<Longrightarrow> A \<subseteq> U \<union> V \<Longrightarrow> U \<inter> A = {} \<or> V \<inter> A = {}"
   by (auto simp: connected_def)
 
 end
@@ -2209,7 +2209,7 @@ lemma connected_Ico[simp]: "connected {a ..< b::'a::linear_continuum_topology}"
 lemma connected_Icc[simp]: "connected {a .. b::'a::linear_continuum_topology}"
   unfolding connected_iff_interval by auto
 
-lemma connected_contains_Ioo: 
+lemma connected_contains_Ioo:
   fixes A :: "'a :: linorder_topology set"
   assumes A: "connected A" "a \<in> A" "b \<in> A" shows "{a <..< b} \<subseteq> A"
   using connectedD_interval[OF A] by (simp add: subset_eq Ball_def less_imp_le)
@@ -2434,7 +2434,7 @@ qed (intro cSUP_least \<open>antimono f\<close>[THEN antimonoD] cInf_lower S)
 
 subsection \<open>Uniform spaces\<close>
 
-class uniformity = 
+class uniformity =
   fixes uniformity :: "('a \<times> 'a) filter"
 begin
 
@@ -2442,6 +2442,10 @@ abbreviation uniformity_on :: "'a set \<Rightarrow> ('a \<times> 'a) filter" whe
   "uniformity_on s \<equiv> inf uniformity (principal (s\<times>s))"
 
 end
+
+lemma uniformity_Abort:
+  "uniformity = Abs_filter (\<lambda>P. Code.abort (STR ''uniformity is not executable'') (\<lambda>x. Rep_filter uniformity P))"
+  unfolding Code.abort_def Rep_filter_inverse ..
 
 class open_uniformity = "open" + uniformity +
   assumes open_uniformity: "\<And>U. open U \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
@@ -2494,7 +2498,7 @@ lemma totally_bounded_empty[iff]: "totally_bounded {}"
 lemma totally_bounded_subset: "totally_bounded S \<Longrightarrow> T \<subseteq> S \<Longrightarrow> totally_bounded T"
   by (force simp add: totally_bounded_def)
 
-lemma totally_bounded_Union[intro]: 
+lemma totally_bounded_Union[intro]:
   assumes M: "finite M" "\<And>S. S \<in> M \<Longrightarrow> totally_bounded S" shows "totally_bounded (\<Union>M)"
   unfolding totally_bounded_def
 proof safe
@@ -2578,7 +2582,7 @@ end
 subsubsection \<open>Uniformly continuous functions\<close>
 
 definition uniformly_continuous_on :: "'a set \<Rightarrow> ('a::uniform_space \<Rightarrow> 'b::uniform_space) \<Rightarrow> bool" where
-  uniformly_continuous_on_uniformity: "uniformly_continuous_on s f \<longleftrightarrow> 
+  uniformly_continuous_on_uniformity: "uniformly_continuous_on s f \<longleftrightarrow>
     (LIM (x, y) (uniformity_on s). (f x, f y) :> uniformity)"
 
 lemma uniformly_continuous_onD:

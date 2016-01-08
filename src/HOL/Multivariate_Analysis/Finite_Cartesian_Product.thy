@@ -252,7 +252,7 @@ proof
   fix x :: "'a ^ 'b" show "\<not> open {x}"
   proof
     assume "open {x}"
-    hence "\<forall>i. open ((\<lambda>x. x $ i) ` {x})" by (fast intro: open_image_vec_nth)   
+    hence "\<forall>i. open ((\<lambda>x. x $ i) ` {x})" by (fast intro: open_image_vec_nth)
     hence "\<forall>i. open {x $ i}" by simp
     thus "False" by (simp add: not_open_singleton)
   qed
@@ -275,12 +275,14 @@ instantiation vec :: (metric_space, finite) uniformity_dist
 begin
 
 definition [code del]:
-  "(uniformity :: (('a, 'b) vec \<times> ('a, 'b) vec) filter) = 
+  "(uniformity :: (('a, 'b) vec \<times> ('a, 'b) vec) filter) =
     (INF e:{0 <..}. principal {(x, y). dist x y < e})"
 
-instance 
+instance
   by standard (rule uniformity_vec_def)
 end
+
+declare uniformity_Abort[where 'a="'a :: metric_space ^ 'b :: finite", code]
 
 instantiation vec :: (metric_space, finite) metric_space
 begin

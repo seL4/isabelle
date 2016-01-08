@@ -276,12 +276,14 @@ instantiation prod :: (metric_space, metric_space) uniformity_dist
 begin
 
 definition [code del]:
-  "(uniformity :: (('a \<times> 'b) \<times> ('a \<times> 'b)) filter) = 
+  "(uniformity :: (('a \<times> 'b) \<times> ('a \<times> 'b)) filter) =
     (INF e:{0 <..}. principal {(x, y). dist x y < e})"
 
-instance 
+instance
   by standard (rule uniformity_prod_def)
 end
+
+declare uniformity_Abort[where 'a="'a :: metric_space \<times> 'b :: metric_space", code]
 
 instantiation prod :: (metric_space, metric_space) metric_space
 begin
@@ -566,9 +568,9 @@ end
 lemma inner_Pair_0: "inner x (0, b) = inner (snd x) b" "inner x (a, 0) = inner (fst x) a"
     by (cases x, simp)+
 
-lemma 
+lemma
   fixes x :: "'a::real_normed_vector"
-  shows norm_Pair1 [simp]: "norm (0,x) = norm x" 
+  shows norm_Pair1 [simp]: "norm (0,x) = norm x"
     and norm_Pair2 [simp]: "norm (x,0) = norm x"
 by (auto simp: norm_Pair)
 
