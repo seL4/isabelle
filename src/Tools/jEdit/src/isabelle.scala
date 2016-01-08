@@ -303,16 +303,16 @@ object Isabelle
   /* control styles */
 
   def control_sub(text_area: JEditTextArea)
-  { Token_Markup.edit_control_style(text_area, Symbol.sub_decoded) }
+  { Token_Markup.edit_control_style(text_area, Symbol.sub) }
 
   def control_sup(text_area: JEditTextArea)
-  { Token_Markup.edit_control_style(text_area, Symbol.sup_decoded) }
+  { Token_Markup.edit_control_style(text_area, Symbol.sup) }
 
   def control_bold(text_area: JEditTextArea)
-  { Token_Markup.edit_control_style(text_area, Symbol.bold_decoded) }
+  { Token_Markup.edit_control_style(text_area, Symbol.bold) }
 
   def control_emph(text_area: JEditTextArea)
-  { Token_Markup.edit_control_style(text_area, Symbol.emph_decoded) }
+  { Token_Markup.edit_control_style(text_area, Symbol.emph) }
 
   def control_reset(text_area: JEditTextArea)
   { Token_Markup.edit_control_style(text_area, "") }

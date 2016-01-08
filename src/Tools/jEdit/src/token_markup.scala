@@ -27,26 +27,28 @@ object Token_Markup
 {
   /* editing support for control symbols */
 
-  def update_control_style(control: String, text: String): String =
-  {
-    val result = new StringBuilder
-    for (sym <- Symbol.iterator(text) if !HTML.control_decoded.isDefinedAt(sym)) {
-      if (Symbol.is_controllable(sym)) result ++= control
-      result ++= sym
-    }
-    result.toString
-  }
-
   def edit_control_style(text_area: TextArea, control: String)
   {
     GUI_Thread.assert {}
 
     val buffer = text_area.getBuffer
 
+    val control_decoded = Isabelle_Encoding.maybe_decode(buffer, control)
+
+    def update_style(text: String): String =
+    {
+      val result = new StringBuilder
+      for (sym <- Symbol.iterator(text) if !HTML.control.isDefinedAt(sym)) {
+        if (Symbol.is_controllable(sym)) result ++= control_decoded
+        result ++= sym
+      }
+      result.toString
+    }
+
     text_area.getSelection.foreach(sel => {
       val before = JEdit_Lib.point_range(buffer, sel.getStart - 1)
       JEdit_Lib.try_get_text(buffer, before) match {
-        case Some(s) if HTML.control_decoded.isDefinedAt(s) =>
+        case Some(s) if HTML.control.isDefinedAt(s) =>
           text_area.extendSelection(before.start, before.stop)
         case _ =>
       }
@@ -54,12 +56,11 @@ object Token_Markup
 
     text_area.getSelection.toList match {
       case Nil =>
-        text_area.setSelectedText(control)
+        text_area.setSelectedText(control_decoded)
       case sels =>
         JEdit_Lib.buffer_edit(buffer) {
           sels.foreach(sel =>
-            text_area.setSelectedText(sel,
-              update_control_style(control, text_area.getSelectedText(sel))))
+            text_area.setSelectedText(sel, update_style(text_area.getSelectedText(sel))))
         }
     }
   }

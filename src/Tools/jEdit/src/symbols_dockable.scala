@@ -17,9 +17,8 @@ import org.gjt.sp.jedit.View
 
 class Symbols_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  private class Symbol_Component(val symbol: String, control: Boolean) extends Button
+  private class Symbol_Component(val symbol: String, is_control: Boolean) extends Button
   {
-    private val decoded = Symbol.decode(symbol)
     private val font_size = Font_Info.main_size(PIDE.options.real("jedit_font_scale")).round
 
     font =
@@ -28,11 +27,12 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
         case Some(font_family) => GUI.font(family = font_family, size = font_size)
       }
     action =
-      Action(decoded) {
+      Action(Symbol.decode(symbol)) {
         val text_area = view.getTextArea
-        if (control && HTML.control_decoded.isDefinedAt(decoded))
-          Token_Markup.edit_control_style(text_area, decoded)
-        else text_area.setSelectedText(decoded)
+        if (is_control && HTML.control.isDefinedAt(symbol))
+          Token_Markup.edit_control_style(text_area, symbol)
+        else
+          text_area.setSelectedText(Isabelle_Encoding.maybe_decode(text_area.getBuffer, symbol))
         text_area.requestFocus
       }
     tooltip =
