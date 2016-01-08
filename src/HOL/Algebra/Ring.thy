@@ -38,7 +38,7 @@ syntax
   "_finsum" :: "index => idt => 'a set => 'b => 'b"
       ("(3\<Oplus>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
-  "\<Oplus>\<index>i\<in>A. b" \<rightleftharpoons> "CONST finsum \<struct>\<index> (%i. b) A"
+  "\<Oplus>\<^bsub>G\<^esub>i\<in>A. b" \<rightleftharpoons> "CONST finsum G (%i. b) A"
   -- \<open>Beware of argument permutation!\<close>
 
 

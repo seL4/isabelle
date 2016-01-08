@@ -298,7 +298,7 @@ syntax
   "_finprod" :: "index => idt => 'a set => 'b => 'b"
       ("(3\<Otimes>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
-  "\<Otimes>\<index>i\<in>A. b" \<rightleftharpoons> "CONST finprod \<struct>\<index> (%i. b) A"
+  "\<Otimes>\<^bsub>G\<^esub>i\<in>A. b" \<rightleftharpoons> "CONST finprod G (%i. b) A"
   -- \<open>Beware of argument permutation!\<close>
 
 lemma (in comm_monoid) finprod_empty [simp]: 
