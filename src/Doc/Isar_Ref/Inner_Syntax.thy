@@ -656,7 +656,6 @@ text \<open>
     & \<open>|\<close> & \<^verbatim>\<open>CONST\<close> \<open>id  |\<close>~~\<^verbatim>\<open>CONST\<close> \<open>longid\<close> \\
     & \<open>|\<close> & \<^verbatim>\<open>XCONST\<close> \<open>id  |\<close>~~\<^verbatim>\<open>XCONST\<close> \<open>longid\<close> \\
     & \<open>|\<close> & \<open>logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)\<close> & \<open>(999)\<close> \\
-    & \<open>|\<close> & \<open>\<struct> index\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)\<close> \\
     & \<open>|\<close> & \<^verbatim>\<open>%\<close> \<open>pttrns\<close> \<^verbatim>\<open>.\<close> \<open>any\<^sup>(\<^sup>3\<^sup>)\<close> & \<open>(3)\<close> \\
     & \<open>|\<close> & \<open>\<lambda>\<close> \<open>pttrns\<close> \<^verbatim>\<open>.\<close> \<open>any\<^sup>(\<^sup>3\<^sup>)\<close> & \<open>(3)\<close> \\
     & \<open>|\<close> & \<^verbatim>\<open>op\<close> \<^verbatim>\<open>==\<close>~~\<open>|\<close>~~\<^verbatim>\<open>op\<close> \<open>\<equiv>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>op\<close> \<^verbatim>\<open>&&&\<close> \\

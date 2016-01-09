@@ -342,6 +342,10 @@ INCOMPATIBILITY, remove '!' and add '?' as required.
 * Keyword 'rewrites' identifies rewrite morphisms in interpretation
 commands. Previously, the keyword was 'where'. INCOMPATIBILITY.
 
+* Special notation \<struct> for the first implicit 'structure' in the context
+has been discontinued. Rare INCOMPATIBILITY, use explicit structure name
+instead, notably in indexed notation with block-subscript (e.g. \<odot>\<^bsub>A\<^esub>).
+
 * More gentle suppression of syntax along locale morphisms while
 printing terms. Previously 'abbreviation' and 'notation' declarations
 would be suppressed for morphisms except term identity. Now
