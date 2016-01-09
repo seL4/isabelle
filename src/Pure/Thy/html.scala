@@ -11,9 +11,13 @@ object HTML
 {
   /* encode text with control symbols */
 
-  val control_decoded =
-    Map(Symbol.sub_decoded -> "sub",
+  val control =
+    Map(
+      Symbol.sub -> "sub",
+      Symbol.sub_decoded -> "sub",
+      Symbol.sup -> "sup",
       Symbol.sup_decoded -> "sup",
+      Symbol.bold -> "b",
       Symbol.bold_decoded -> "b")
 
   def encode(text: String): String =
@@ -32,23 +36,23 @@ object HTML
       }
     def encode_chars(s: String) = s.iterator.foreach(encode_char(_))
 
-    var control = ""
+    var ctrl = ""
     for (sym <- Symbol.iterator(text)) {
-      if (control_decoded.isDefinedAt(sym)) control = sym
+      if (control.isDefinedAt(sym)) ctrl = sym
       else {
-        control_decoded.get(control) match {
+        control.get(ctrl) match {
           case Some(elem) if Symbol.is_controllable(sym) && sym != "\"" =>
             result ++= ("<" + elem + ">")
             encode_chars(sym)
             result ++= ("</" + elem + ">")
           case _ =>
-            encode_chars(control)
+            encode_chars(ctrl)
             encode_chars(sym)
         }
-        control = ""
+        ctrl = ""
       }
     }
-    encode_chars(control)
+    encode_chars(ctrl)
 
     result.toString
   }

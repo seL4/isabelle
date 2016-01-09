@@ -151,7 +151,7 @@ val _ = Theory.setup
     ("_index",      typ "logic => index",              Delimfix "(00\\<^bsub>_\\<^esub>)"),
     ("_indexdefault", typ "index",                     Delimfix ""),
     ("_indexvar",   typ "index",                       Delimfix "'\\<index>"),
-    ("_struct",     typ "index => logic",              Mixfix ("\\<struct>_", [1000], 1000)),
+    ("_struct",     typ "index => logic",              NoSyn),
     ("_update_name", typ "idt",                        NoSyn),
     ("_constrainAbs", typ "'a",                        NoSyn),
     ("_position_sort", typ "tid => tid_position",      Delimfix "_"),

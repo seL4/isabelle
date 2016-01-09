@@ -468,14 +468,14 @@ object Symbol
     val control_decoded: Set[Symbol] =
       Set((for ((sym, _) <- symbols if sym.startsWith("\\<^")) yield decode(sym)): _*)
 
-    val sub_decoded = decode("\\<^sub>")
-    val sup_decoded = decode("\\<^sup>")
+    val sub_decoded = decode(sub)
+    val sup_decoded = decode(sup)
+    val bold_decoded = decode(bold)
+    val emph_decoded = decode(emph)
     val bsub_decoded = decode("\\<^bsub>")
     val esub_decoded = decode("\\<^esub>")
     val bsup_decoded = decode("\\<^bsup>")
     val esup_decoded = decode("\\<^esup>")
-    val bold_decoded = decode("\\<^bold>")
-    val emph_decoded = decode("\\<^emph>")
   }
 
 
@@ -557,12 +557,17 @@ object Symbol
   def is_controllable(sym: Symbol): Boolean =
     !is_blank(sym) && !is_control(sym) && !is_open(sym) && !is_close(sym) && !is_malformed(sym)
 
+  val sub = "\\<^sub>"
+  val sup = "\\<^sup>"
+  val bold = "\\<^bold>"
+  val emph = "\\<^emph>"
+
   def sub_decoded: Symbol = symbols.sub_decoded
   def sup_decoded: Symbol = symbols.sup_decoded
+  def bold_decoded: Symbol = symbols.bold_decoded
+  def emph_decoded: Symbol = symbols.emph_decoded
   def bsub_decoded: Symbol = symbols.bsub_decoded
   def esub_decoded: Symbol = symbols.esub_decoded
   def bsup_decoded: Symbol = symbols.bsup_decoded
   def esup_decoded: Symbol = symbols.esup_decoded
-  def bold_decoded: Symbol = symbols.bold_decoded
-  def emph_decoded: Symbol = symbols.emph_decoded
 }
