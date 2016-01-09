@@ -272,8 +272,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
     |> Proof_Context.restore_naming lthy
     |> put_closure name
         {vars = term_args', named_thms = named_thms, methods = method_args, body = text'}
-    |> Method.local_setup name (parser term_args' (recursive_method term_args' text'))
-        "(defined in Eisbach)"
+    |> Method.local_setup name (parser term_args' (recursive_method term_args' text')) ""
     |> pair (Local_Theory.full_name lthy name)
   end;
 
