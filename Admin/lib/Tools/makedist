@@ -196,6 +196,8 @@ mv src.orig src
 
 rm -rf Admin browser_info heaps
 
+./bin/isabelle java isabelle.NEWS
+
 
 # create archive
 
