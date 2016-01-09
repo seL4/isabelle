@@ -35,8 +35,8 @@ object Completion_Popup
     private val html =
       item.description match {
         case a :: bs =>
-          "<html><b>" + HTML.encode(a) + "</b>" +
-            HTML.encode(bs.map(" " + _).mkString) + "</html>"
+          "<html><b>" + HTML.output(a) + "</b>" +
+            HTML.output(bs.map(" " + _).mkString) + "</html>"
         case Nil => ""
       }
     override def toString: String = html

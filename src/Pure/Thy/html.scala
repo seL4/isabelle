@@ -20,11 +20,11 @@ object HTML
       Symbol.bold -> "b",
       Symbol.bold_decoded -> "b")
 
-  def encode(text: String): String =
+  def output(text: String): String =
   {
     val result = new StringBuilder
 
-    def encode_char(c: Char) =
+    def output_char(c: Char) =
       c match {
         case '<' => result ++= "&lt;"
         case '>' => result ++= "&gt;"
@@ -34,7 +34,7 @@ object HTML
         case '\n' => result ++= "<br/>"
         case _ => result += c
       }
-    def encode_chars(s: String) = s.iterator.foreach(encode_char(_))
+    def output_chars(s: String) = s.iterator.foreach(output_char(_))
 
     var ctrl = ""
     for (sym <- Symbol.iterator(text)) {
@@ -43,24 +43,22 @@ object HTML
         control.get(ctrl) match {
           case Some(elem) if Symbol.is_controllable(sym) && sym != "\"" =>
             result ++= ("<" + elem + ">")
-            encode_chars(sym)
+            output_chars(sym)
             result ++= ("</" + elem + ">")
           case _ =>
-            encode_chars(ctrl)
-            encode_chars(sym)
+            output_chars(ctrl)
+            output_chars(sym)
         }
         ctrl = ""
       }
     }
-    encode_chars(ctrl)
+    output_chars(ctrl)
 
     result.toString
   }
 
 
   /* document */
-
-  val end_document = "\n</div>\n</body>\n</html>\n"
 
   def begin_document(title: String): String =
     "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n" +
@@ -69,13 +67,15 @@ object HTML
     "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
     "<head>\n" +
     "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>\n" +
-    "<title>" + encode(title) + "</title>\n" +
+    "<title>" + output(title + " (" + Distribution.version + ")") + "</title>\n" +
     "<link media=\"all\" rel=\"stylesheet\" type=\"text/css\" href=\"isabelle.css\"/>\n" +
     "</head>\n" +
     "\n" +
     "<body>\n" +
     "<div class=\"head\">" +
-    "<h1>" + encode(title) + "</h1>\n"
+    "<h1>" + output(title) + "</h1>\n"
+
+  val end_document = "\n</div>\n</body>\n</html>\n"
 
 
   /* common markup elements */

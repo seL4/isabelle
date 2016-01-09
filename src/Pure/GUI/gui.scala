@@ -166,7 +166,7 @@ object GUI
 
   def tooltip_lines(text: String): String =
     if (text == null || text == "") null
-    else "<html>" + HTML.encode(text) + "</html>"
+    else "<html>" + HTML.output(text) + "</html>"
 
 
   /* icon */

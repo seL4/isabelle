@@ -44,10 +44,10 @@ object Isabelle_Sidekick
       val s =
         _name.indexOf(keyword) match {
           case i if i >= 0 && n > 0 =>
-            HTML.encode(_name.substring(0, i)) +
-            "<b>" + HTML.encode(keyword) + "</b>" +
-            HTML.encode(_name.substring(i + n))
-          case _ => HTML.encode(_name)
+            HTML.output(_name.substring(0, i)) +
+            "<b>" + HTML.output(keyword) + "</b>" +
+            HTML.output(_name.substring(i + n))
+          case _ => HTML.output(_name)
         }
       "<html><span style=\"" + css + "\">" + s + "</span></html>"
     }

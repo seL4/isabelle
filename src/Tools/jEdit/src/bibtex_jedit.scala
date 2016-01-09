@@ -254,8 +254,8 @@ object Bibtex_JEdit
           if (kind != "") {
             val label = kind + (if (name == "") "" else " " + name)
             val label_html =
-              "<html><b>" + HTML.encode(kind) + "</b>" +
-              (if (name == "") "" else " " + HTML.encode(name)) + "</html>"
+              "<html><b>" + HTML.output(kind) + "</b>" +
+              (if (name == "") "" else " " + HTML.output(name)) + "</html>"
             val range = Text.Range(offset, offset + source.length)
             val asset = new Asset(label, label_html, range, source)
             data.root.add(new DefaultMutableTreeNode(asset))

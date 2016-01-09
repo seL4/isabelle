@@ -24,7 +24,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   private case class Documentation(name: String, title: String, path: Path)
   {
     override def toString: String =
-      "<html><b>" + HTML.encode(name) + "</b>:  " + HTML.encode(title) + "</html>"
+      "<html><b>" + HTML.output(name) + "</b>:  " + HTML.output(title) + "</html>"
   }
 
   private case class Text_File(name: String, path: Path)
