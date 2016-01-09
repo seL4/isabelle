@@ -17,6 +17,16 @@ has been removed (see below).
 * Support for more arrow symbols, with rendering in LaTeX and
 Isabelle fonts: \<Lleftarrow> \<Rrightarrow> \<longlongleftarrow> \<longlongrightarrow> \<longlonglongleftarrow> \<longlonglongrightarrow>
 
+* Special notation \<struct> for the first implicit 'structure' in the
+context has been discontinued. Rare INCOMPATIBILITY, use explicit
+structure name instead, notably in indexed notation with block-subscript
+(e.g. \<odot>\<^bsub>A\<^esub>).
+
+* The glyph for \<diamond> in the IsabelleText font now corresponds better to its
+counterpart \<box> as quantifier-like symbol. A small diamond is available as
+\<diamondop>; the old symbol \<struct> loses this rendering and any special
+meaning.
+
 * Syntax for formal comments "-- text" now also supports the symbolic
 form "\<comment> text". Command-line tool "isabelle update_cartouches -c" helps
 to update old sources.
@@ -341,10 +351,6 @@ INCOMPATIBILITY, remove '!' and add '?' as required.
 
 * Keyword 'rewrites' identifies rewrite morphisms in interpretation
 commands. Previously, the keyword was 'where'. INCOMPATIBILITY.
-
-* Special notation \<struct> for the first implicit 'structure' in the context
-has been discontinued. Rare INCOMPATIBILITY, use explicit structure name
-instead, notably in indexed notation with block-subscript (e.g. \<odot>\<^bsub>A\<^esub>).
 
 * More gentle suppression of syntax along locale morphisms while
 printing terms. Previously 'abbreviation' and 'notation' declarations

@@ -222,6 +222,7 @@
 \<not>                  code: 0x0000ac  group: logic  abbrev: ~
 \<box>                  code: 0x0025a1  group: logic
 \<diamond>              code: 0x0025c7  group: logic
+\<diamondop>            code: 0x0022c4  group: operator
 \<turnstile>            code: 0x0022a2  group: relation  abbrev: |-
 \<Turnstile>            code: 0x0022a8  group: relation  abbrev: |=
 \<tturnstile>           code: 0x0022a9  group: relation  abbrev: |-
@@ -346,7 +347,6 @@
 \<lozenge>              code: 0x0025ca
 \<wp>                   code: 0x002118
 \<wrong>                code: 0x002240  group: relation
-\<struct>               code: 0x0022c4
 \<acute>                code: 0x0000b4
 \<index>                code: 0x000131
 \<dieresis>             code: 0x0000a8
