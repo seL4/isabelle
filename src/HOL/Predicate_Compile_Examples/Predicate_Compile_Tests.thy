@@ -85,9 +85,46 @@ consts a' :: 'a
 
 inductive Fact :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 where
-"Fact a' a'"
+  "Fact a' a'"
 
 code_pred (expected_modes: o => o => bool, i => o => bool, o => i => bool, i => i => bool) Fact .
+
+text {*
+  The following example was derived from an predicate in the CakeML formalisation provided by Lars Hupel.
+*}
+inductive predicate_where_argument_is_condition :: "bool \<Rightarrow> bool"
+where
+  "ck \<Longrightarrow> predicate_where_argument_is_condition ck"
+
+code_pred predicate_where_argument_is_condition .
+
+text {* Other similar examples of this kind: *}
+
+inductive predicate_where_argument_is_in_equation :: "bool \<Rightarrow> bool"
+where
+  "ck = True \<Longrightarrow> predicate_where_argument_is_in_equation ck"
+
+code_pred predicate_where_argument_is_in_equation .
+
+inductive predicate_where_argument_is_condition_and_value :: "bool \<Rightarrow> bool"
+where
+  "predicate_where_argument_is_condition_and_value ck \<Longrightarrow> ck
+     \<Longrightarrow> predicate_where_argument_is_condition_and_value ck"
+
+code_pred predicate_where_argument_is_condition_and_value .
+
+inductive predicate_where_argument_is_neg_condition :: "bool \<Rightarrow> bool"
+where
+  "\<not> ck \<Longrightarrow> predicate_where_argument_is_neg_condition ck"
+
+code_pred predicate_where_argument_is_neg_condition .
+
+inductive predicate_where_argument_is_neg_condition_and_in_equation :: "bool \<Rightarrow> bool"
+where
+  "\<not> ck \<Longrightarrow> ck = False \<Longrightarrow> predicate_where_argument_is_neg_condition_and_in_equation ck"
+
+code_pred predicate_where_argument_is_neg_condition_and_in_equation .
+
 
 inductive zerozero :: "nat * nat => bool"
 where

@@ -195,6 +195,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
            (fn {context = ctxt', prems, ...} =>
             let
               val prems' = maps dest_conjunct_prem (take nargs prems)
+                |> filter is_equationlike
             in
               rewrite_goal_tac ctxt' (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
             end) ctxt 1
