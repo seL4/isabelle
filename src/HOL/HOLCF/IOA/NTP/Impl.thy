@@ -18,9 +18,9 @@ definition
   impl_def: "impl_ioa == (sender_ioa \<parallel> receiver_ioa \<parallel> srch_ioa \<parallel> rsch_ioa)"
 
 definition sen :: "'m impl_state => 'm sender_state" where "sen = fst"
-definition rec :: "'m impl_state => 'm receiver_state" where "rec = fst o snd"
-definition srch :: "'m impl_state => 'm packet multiset" where "srch = fst o snd o snd"
-definition rsch :: "'m impl_state => bool multiset" where "rsch = snd o snd o snd"
+definition rec :: "'m impl_state => 'm receiver_state" where "rec = fst \<circ> snd"
+definition srch :: "'m impl_state => 'm packet multiset" where "srch = fst \<circ> snd \<circ> snd"
+definition rsch :: "'m impl_state => bool multiset" where "rsch = snd \<circ> snd \<circ> snd"
 
 definition
   hdr_sum :: "'m packet multiset => bool => nat" where

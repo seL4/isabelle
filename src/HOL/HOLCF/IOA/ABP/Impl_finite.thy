@@ -24,14 +24,14 @@ definition
 
 definition
   rec_fin :: "'m impl_fin_state => 'm receiver_state" where
-  "rec_fin = fst o snd"
+  "rec_fin = fst \<circ> snd"
 
 definition
   srch_fin :: "'m impl_fin_state => 'm packet list" where
-  "srch_fin = fst o snd o snd"
+  "srch_fin = fst \<circ> snd \<circ> snd"
 
 definition
   rsch_fin :: "'m impl_fin_state => bool list" where
-  "rsch_fin = snd o snd o snd"
+  "rsch_fin = snd \<circ> snd \<circ> snd"
 
 end
