@@ -10,6 +10,9 @@ Contributions to Isabelle2016
   Proof of the central limit theorem: includes weak convergence,
   characteristic functions, and Levy's uniqueness and continuity theorem.
 
+* Winter 2015/16: Gerwin Klein, NICTA
+  print_record command
+
 * Winter 2015: Manuel Eberl, TUM
   The radius of convergence of power series and various summability tests.
   Harmonic numbers and the Euler-Mascheroni constant.
