@@ -5,7 +5,7 @@
 section \<open>The Gamma Function\<close>
 
 theory Gamma
-imports 
+imports
   Complex_Transcendental
   Summation
   Harmonic_Numbers
@@ -14,22 +14,22 @@ imports
 begin
 
 text \<open>
-  Several equivalent definitions of the Gamma function and its 
+  Several equivalent definitions of the Gamma function and its
   most important properties. Also contains the definition and some properties
   of the log-Gamma function and the Digamma function and the other Polygamma functions.
-  
-  Based on the Gamma function, we also prove the Weierstraß product form of the
-  sin function and, based on this, the solution of the Basel problem (the 
-  sum over all @{term "1 / (n::nat)^2"}.
-\<close>  
 
-lemma pochhammer_eq_0_imp_nonpos_Int: 
+  Based on the Gamma function, we also prove the Weierstraß product form of the
+  sin function and, based on this, the solution of the Basel problem (the
+  sum over all @{term "1 / (n::nat)^2"}.
+\<close>
+
+lemma pochhammer_eq_0_imp_nonpos_Int:
   "pochhammer (x::'a::field_char_0) n = 0 \<Longrightarrow> x \<in> \<int>\<^sub>\<le>\<^sub>0"
   by (auto simp: pochhammer_eq_0_iff)
-  
+
 lemma closed_nonpos_Ints [simp]: "closed (\<int>\<^sub>\<le>\<^sub>0 :: 'a :: real_normed_algebra_1 set)"
 proof -
-  have "\<int>\<^sub>\<le>\<^sub>0 = (of_int ` {n. n \<le> 0} :: 'a set)" 
+  have "\<int>\<^sub>\<le>\<^sub>0 = (of_int ` {n. n \<le> 0} :: 'a set)"
     by (auto elim!: nonpos_Ints_cases intro!: nonpos_Ints_of_int)
   also have "closed \<dots>" by (rule closed_of_int_image)
   finally show ?thesis .
@@ -65,7 +65,7 @@ qed
 lemma sin_series: "(\<lambda>n. ((-1)^n / fact (2*n+1)) *\<^sub>R z^(2*n+1)) sums sin z"
 proof -
   from sin_converges[of z] have "(\<lambda>n. sin_coeff n *\<^sub>R z^n) sums sin z" .
-  also have "(\<lambda>n. sin_coeff n *\<^sub>R z^n) sums sin z \<longleftrightarrow> 
+  also have "(\<lambda>n. sin_coeff n *\<^sub>R z^n) sums sin z \<longleftrightarrow>
                  (\<lambda>n. ((-1)^n / fact (2*n+1)) *\<^sub>R z^(2*n+1)) sums sin z"
     by (subst sums_mono_reindex[of "\<lambda>n. 2*n+1", symmetric])
        (auto simp: sin_coeff_def subseq_def ac_simps elim!: oddE)
@@ -75,7 +75,7 @@ qed
 lemma cos_series: "(\<lambda>n. ((-1)^n / fact (2*n)) *\<^sub>R z^(2*n)) sums cos z"
 proof -
   from cos_converges[of z] have "(\<lambda>n. cos_coeff n *\<^sub>R z^n) sums cos z" .
-  also have "(\<lambda>n. cos_coeff n *\<^sub>R z^n) sums cos z \<longleftrightarrow> 
+  also have "(\<lambda>n. cos_coeff n *\<^sub>R z^n) sums cos z \<longleftrightarrow>
                  (\<lambda>n. ((-1)^n / fact (2*n)) *\<^sub>R z^(2*n)) sums cos z"
     by (subst sums_mono_reindex[of "\<lambda>n. 2*n", symmetric])
        (auto simp: cos_coeff_def subseq_def ac_simps elim!: evenE)
@@ -98,7 +98,7 @@ lemma sin_z_over_z_series':
   assumes "z \<noteq> 0"
   shows   "(\<lambda>n. sin_coeff (n+1) *\<^sub>R z^n) sums (sin z / z)"
 proof -
-  from sums_split_initial_segment[OF sin_converges[of z], of 1] 
+  from sums_split_initial_segment[OF sin_converges[of z], of 1]
     have "(\<lambda>n. z * (sin_coeff (n+1) *\<^sub>R z ^ n)) sums sin z" by simp
   from sums_mult[OF this, of "inverse z"] assms show ?thesis by (simp add: field_simps)
 qed
@@ -108,7 +108,7 @@ lemma has_field_derivative_sin_z_over_z:
   shows "((\<lambda>z. if z = 0 then 1 else sin z / z) has_field_derivative 0) (at 0 within A)"
       (is "(?f has_field_derivative ?f') _")
 proof (rule has_field_derivative_at_within)
-  have "((\<lambda>z::'a. \<Sum>n. of_real (sin_coeff (n+1)) * z^n) 
+  have "((\<lambda>z::'a. \<Sum>n. of_real (sin_coeff (n+1)) * z^n)
             has_field_derivative (\<Sum>n. diffs (\<lambda>n. of_real (sin_coeff (n+1))) n * 0^n)) (at 0)"
   proof (rule termdiffs_strong)
     from summable_ignore_initial_segment[OF sums_summable[OF sin_converges[of "1::'a"]], of 1]
@@ -118,18 +118,14 @@ proof (rule has_field_derivative_at_within)
   proof
     fix z
     show "(\<Sum>n. of_real (sin_coeff (n+1)) * z^n)  = ?f z"
-      by (cases "z = 0") (insert sin_z_over_z_series'[of z], 
+      by (cases "z = 0") (insert sin_z_over_z_series'[of z],
             simp_all add: scaleR_conv_of_real sums_iff powser_zero sin_coeff_def)
   qed
-  also have "(\<Sum>n. diffs (\<lambda>n. of_real (sin_coeff (n + 1))) n * (0::'a) ^ n) = 
+  also have "(\<Sum>n. diffs (\<lambda>n. of_real (sin_coeff (n + 1))) n * (0::'a) ^ n) =
                  diffs (\<lambda>n. of_real (sin_coeff (Suc n))) 0" by (simp add: powser_zero)
   also have "\<dots> = 0" by (simp add: sin_coeff_def diffs_def)
   finally show "((\<lambda>z::'a. if z = 0 then 1 else sin z / z) has_field_derivative 0) (at 0)" .
 qed
-
- 
-lemma tendsto_complex_of_real_iff: "((\<lambda>x. complex_of_real (f x)) \<longlongrightarrow> of_real c) F = (f \<longlongrightarrow> c) F"
-  by (rule tendsto_of_real_iff)
 
 lemma round_Re_minimises_norm:
   "norm ((z::complex) - of_int m) \<ge> norm (z - of_int (round (Re z)))"
@@ -158,7 +154,7 @@ lemma no_nonpos_Int_in_ball_complex:
   shows   "t \<notin> \<int>\<^sub>\<le>\<^sub>0"
   using Re_pos_in_ball[OF assms] by (force elim!: nonpos_Ints_cases)
 
-lemma no_nonpos_Int_in_ball: 
+lemma no_nonpos_Int_in_ball:
   assumes "t \<in> ball z (dist z (round (Re z)))"
   shows   "t \<notin> \<int>\<^sub>\<le>\<^sub>0"
 proof
@@ -182,37 +178,37 @@ next
   thus "t \<notin> \<int>\<^sub>\<le>\<^sub>0" using setdist_le_dist[of z "{z}" t "\<int>\<^sub>\<le>\<^sub>0"] by force
 qed
 
-lemma Re_pos_or_Im_nz_in_ball:
-  assumes "Re z > 0 \<or> Im z \<noteq> 0" "t \<in> ball z (if Im z = 0 then Re z / 2 else abs (Im z) / 2)"
-  shows   "Re t > 0 \<or> Im t \<noteq> 0"
-using assms(1)
+lemma no_nonpos_Real_in_ball:
+  assumes z: "z \<notin> \<real>\<^sub>\<le>\<^sub>0" and t: "t \<in> ball z (if Im z = 0 then Re z / 2 else abs (Im z) / 2)"
+  shows   "t \<notin> \<real>\<^sub>\<le>\<^sub>0"
+using z
 proof (cases "Im z = 0")
   assume A: "Im z = 0"
-  with assms(1) have "Re z > 0" by blast
-  with assms(2) A Re_pos_in_ball[of z t] show ?thesis by simp
+  with z have "Re z > 0" by (force simp add: complex_nonpos_Reals_iff)
+  with t A Re_pos_in_ball[of z t] show ?thesis by (force simp add: complex_nonpos_Reals_iff)
 next
   assume A: "Im z \<noteq> 0"
   have "abs (Im z) - abs (Im t) \<le> abs (Im z - Im t)" by linarith
   also have "\<dots> = abs (Im (z - t))" by simp
   also have "\<dots> \<le> norm (z - t)" by (rule abs_Im_le_cmod)
-  also from A assms(2) have "\<dots> \<le> abs (Im z) / 2" by (simp add: dist_complex_def)
+  also from A t have "\<dots> \<le> abs (Im z) / 2" by (simp add: dist_complex_def)
   finally have "abs (Im t) > 0" using A by simp
-  thus ?thesis by force
+  thus ?thesis by (force simp add: complex_nonpos_Reals_iff)
 qed
 
 
 subsection \<open>Definitions\<close>
 
 text \<open>
-  We define the Gamma function by first defining its multiplicative inverse @{term "Gamma_inv"}. 
-  This is more convenient because @{term "Gamma_inv"} is entire, which makes proofs of its 
+  We define the Gamma function by first defining its multiplicative inverse @{term "Gamma_inv"}.
+  This is more convenient because @{term "Gamma_inv"} is entire, which makes proofs of its
   properties more convenient because one does not have to watch out for discontinuities.
   (e.g. @{term "Gamma_inv"} fulfils @{term "rGamma z = z * rGamma (z + 1)"} everywhere,
   whereas @{term "Gamma"} does not fulfil the analogous equation on the non-positive integers)
-  
-  We define the Gamma function (resp. its inverse) in the Euler form. This form has the advantage 
-  that it is a relatively simple limit that converges everywhere. The limit at the poles is 0 
-  (due to division by 0). The functional equation @{term "Gamma (z + 1) = z * Gamma z"} follows 
+
+  We define the Gamma function (resp. its inverse) in the Euler form. This form has the advantage
+  that it is a relatively simple limit that converges everywhere. The limit at the poles is 0
+  (due to division by 0). The functional equation @{term "Gamma (z + 1) = z * Gamma z"} follows
   immediately from the definition.
 \<close>
 
@@ -228,22 +224,22 @@ definition rGamma_series :: "('a :: {banach,real_normed_field}) \<Rightarrow> na
 lemma Gamma_series_altdef: "Gamma_series z n = inverse (rGamma_series z n)"
   and rGamma_series_altdef: "rGamma_series z n = inverse (Gamma_series z n)"
   unfolding Gamma_series_def rGamma_series_def by simp_all
-  
+
 lemma rGamma_series_minus_of_nat:
   "eventually (\<lambda>n. rGamma_series (- of_nat k) n = 0) sequentially"
   using eventually_ge_at_top[of k]
-  by eventually_elim (auto simp: rGamma_series_def pochhammer_of_nat_eq_0_iff)  
+  by eventually_elim (auto simp: rGamma_series_def pochhammer_of_nat_eq_0_iff)
 
 lemma Gamma_series_minus_of_nat:
   "eventually (\<lambda>n. Gamma_series (- of_nat k) n = 0) sequentially"
   using eventually_ge_at_top[of k]
-  by eventually_elim (auto simp: Gamma_series_def pochhammer_of_nat_eq_0_iff)  
+  by eventually_elim (auto simp: Gamma_series_def pochhammer_of_nat_eq_0_iff)
 
 lemma Gamma_series'_minus_of_nat:
   "eventually (\<lambda>n. Gamma_series' (- of_nat k) n = 0) sequentially"
   using eventually_gt_at_top[of k]
   by eventually_elim (auto simp: Gamma_series'_def pochhammer_of_nat_eq_0_iff)
-  
+
 lemma rGamma_series_nonpos_Ints_LIMSEQ: "z \<in> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> rGamma_series z \<longlonglongrightarrow> 0"
   by (elim nonpos_Ints_cases', hypsubst, subst tendsto_cong, rule rGamma_series_minus_of_nat, simp)
 
@@ -252,8 +248,8 @@ lemma Gamma_series_nonpos_Ints_LIMSEQ: "z \<in> \<int>\<^sub>\<le>\<^sub>0 \<Lon
 
 lemma Gamma_series'_nonpos_Ints_LIMSEQ: "z \<in> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Gamma_series' z \<longlonglongrightarrow> 0"
   by (elim nonpos_Ints_cases', hypsubst, subst tendsto_cong, rule Gamma_series'_minus_of_nat, simp)
-  
-lemma Gamma_series_Gamma_series': 
+
+lemma Gamma_series_Gamma_series':
   assumes z: "z \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "(\<lambda>n. Gamma_series' z n / Gamma_series z n) \<longlonglongrightarrow> 1"
 proof (rule Lim_transform_eventually)
@@ -270,7 +266,7 @@ proof (rule Lim_transform_eventually)
   qed
   have "(\<lambda>x. z / of_nat x) \<longlonglongrightarrow> 0"
     by (rule tendsto_norm_zero_cancel)
-       (insert tendsto_mult[OF tendsto_const[of "norm z"] lim_inverse_n], 
+       (insert tendsto_mult[OF tendsto_const[of "norm z"] lim_inverse_n],
         simp add:  norm_divide inverse_eq_divide)
   from tendsto_add[OF this tendsto_const[of 1]] show "(\<lambda>n. z / of_nat n + 1) \<longlonglongrightarrow> 1" by simp
 qed
@@ -279,15 +275,15 @@ qed
 subsection \<open>Convergence of the Euler series form\<close>
 
 text \<open>
-  We now show that the series that defines the Gamma function in the Euler form converges 
-  and that the function defined by it is continuous on the complex halfspace with positive 
+  We now show that the series that defines the Gamma function in the Euler form converges
+  and that the function defined by it is continuous on the complex halfspace with positive
   real part.
-  
-  We do this by showing that the logarithm of the Euler series is continuous and converges 
-  locally uniformly, which means that the log-Gamma function defined by its limit is also 
+
+  We do this by showing that the logarithm of the Euler series is continuous and converges
+  locally uniformly, which means that the log-Gamma function defined by its limit is also
   continuous.
-  
-  This will later allow us to lift holomorphicity and continuity from the log-Gamma 
+
+  This will later allow us to lift holomorphicity and continuity from the log-Gamma
   function to the inverse of the Gamma function, and from that to the Gamma function itself.
 \<close>
 
@@ -303,7 +299,7 @@ definition ln_Gamma :: "('a :: {banach,real_normed_field,ln}) \<Rightarrow> 'a" 
 
 
 text \<open>
-  We now show that the log-Gamma series converges locally uniformly for all complex numbers except 
+  We now show that the log-Gamma series converges locally uniformly for all complex numbers except
   the non-positive integers. We do this by proving that the series is locally Cauchy, adapting this
   proof:
   http://math.stackexchange.com/questions/887158/convergence-of-gammaz-lim-n-to-infty-fracnzn-prod-m-0nzm
@@ -324,7 +320,7 @@ proof -
     by (subst norm_mult [symmetric], rule norm_triangle_ineq)
   also have "norm (Ln (1 + -1/?k) - (-1/?k)) \<le> (norm (-1/?k))\<^sup>2 / (1 - norm(-1/?k))"
     using k by (intro Ln_approx_linear) (simp add: norm_divide)
-  hence "?z * norm (ln (1-1/?k) + 1/?k) \<le> ?z * ((norm (1/?k))^2 / (1 - norm (1/?k)))" 
+  hence "?z * norm (ln (1-1/?k) + 1/?k) \<le> ?z * ((norm (1/?k))^2 / (1 - norm (1/?k)))"
     by (intro mult_left_mono) simp_all
   also have "... \<le> (?z * (of_nat k / (of_nat k - 1))) / of_nat k^2" using k
     by (simp add: field_simps power2_eq_square norm_divide)
@@ -332,7 +328,7 @@ proof -
     by (intro divide_right_mono mult_left_mono) (simp_all add: field_simps)
   also have "norm (ln (1+z/?k) - z/?k) \<le> norm (z/?k)^2 / (1 - norm (z/?k))" using k
     by (intro Ln_approx_linear) (simp add: norm_divide)
-  hence "norm (ln (1+z/?k) - z/?k) \<le> ?z^2 / of_nat k^2 / (1 - ?z / of_nat k)" 
+  hence "norm (ln (1+z/?k) - z/?k) \<le> ?z^2 / of_nat k^2 / (1 - ?z / of_nat k)"
     by (simp add: field_simps norm_divide)
   also have "... \<le> (?z^2 * (of_nat k / (of_nat k - ?z))) / of_nat k^2" using k
     by (simp add: field_simps power2_eq_square)
@@ -359,7 +355,7 @@ proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
     by (subst less_cSUP_iff) (auto intro!: add_pos_nonneg bexI[of _ z])
   have e'': "norm t + norm t^2 \<le> e''" if "t \<in> ball z d" for t unfolding e''_def using that
     by (rule cSUP_upper[OF _ bdd])
-  from e z e''_pos have e': "e' > 0" unfolding e'_def 
+  from e z e''_pos have e': "e' > 0" unfolding e'_def
     by (intro divide_pos_pos mult_pos_pos add_pos_pos) (simp_all add: field_simps)
 
   have "summable (\<lambda>k. inverse ((real_of_nat k)^2))"
@@ -368,11 +364,11 @@ proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
 
   def N \<equiv> "max 2 (max (nat \<lceil>2 * (norm z + d)\<rceil>) M)"
   {
-    from d have "\<lceil>2 * (cmod z + d)\<rceil> \<ge> \<lceil>0::real\<rceil>" 
+    from d have "\<lceil>2 * (cmod z + d)\<rceil> \<ge> \<lceil>0::real\<rceil>"
       by (intro ceiling_mono mult_nonneg_nonneg add_nonneg_nonneg) simp_all
     hence "2 * (norm z + d) \<le> of_nat (nat \<lceil>2 * (norm z + d)\<rceil>)" unfolding N_def
       by (simp_all add: le_of_int_ceiling)
-    also have "... \<le> of_nat N" unfolding N_def 
+    also have "... \<le> of_nat N" unfolding N_def
       by (subst of_nat_le_iff) (rule max.coboundedI2, rule max.cobounded1)
     finally have "of_nat N \<ge> 2 * (norm z + d)" .
     moreover have "N \<ge> 2" "N \<ge> M" unfolding N_def by simp_all
@@ -397,7 +393,7 @@ proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
     also have "N \<le> m" by (rule mn)
     finally have norm_t: "2 * norm t < of_nat m" by simp
 
-    have "ln_Gamma_series t m - ln_Gamma_series t n = 
+    have "ln_Gamma_series t m - ln_Gamma_series t n =
               (-(t * Ln (of_nat n)) - (-(t * Ln (of_nat m)))) +
               ((\<Sum>k=1..n. Ln (t / of_nat k + 1)) - (\<Sum>k=1..m. Ln (t / of_nat k + 1)))"
       by (simp add: ln_Gamma_series_def algebra_simps)
@@ -405,7 +401,7 @@ proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
                  (\<Sum>k\<in>{1..n}-{1..m}. Ln (t / of_nat k + 1))" using mn
       by (simp add: setsum_diff)
     also from mn have "{1..n}-{1..m} = {Suc m..n}" by fastforce
-    also have "-(t * Ln (of_nat n)) - (-(t * Ln (of_nat m))) = 
+    also have "-(t * Ln (of_nat n)) - (-(t * Ln (of_nat m))) =
                    (\<Sum>k = Suc m..n. t * Ln (of_nat (k - 1)) - t * Ln (of_nat k))" using mn
       by (subst setsum_telescope'' [symmetric]) simp_all
     also have "... = (\<Sum>k = Suc m..n. t * Ln (of_nat (k - 1) / of_nat k))" using mn N
@@ -417,16 +413,16 @@ proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
              (\<Sum>k = Suc m..n. t * Ln (1 - 1 / of_nat k))" using mn N
       by (intro setsum.cong) simp_all
     also note setsum.distrib [symmetric]
-    also have "norm (\<Sum>k=Suc m..n. t * Ln (1 - 1/of_nat k) + Ln (t/of_nat k + 1)) \<le> 
+    also have "norm (\<Sum>k=Suc m..n. t * Ln (1 - 1/of_nat k) + Ln (t/of_nat k + 1)) \<le>
       (\<Sum>k=Suc m..n. 2 * (norm t + (norm t)\<^sup>2) / (real_of_nat k)\<^sup>2)" using t_nz N(2) mn norm_t
       by (intro order.trans[OF norm_setsum setsum_mono[OF ln_Gamma_series_complex_converges_aux]]) simp_all
     also have "... \<le> 2 * (norm t + norm t^2) * (\<Sum>k=Suc m..n. 1 / (of_nat k)\<^sup>2)"
       by (simp add: setsum_right_distrib)
     also have "... < 2 * (norm t + norm t^2) * e'" using mn z t_nz
       by (intro mult_strict_left_mono N mult_pos_pos add_pos_pos) simp_all
-    also from e''_pos have "... = e * ((cmod t + (cmod t)\<^sup>2) / e'')" 
+    also from e''_pos have "... = e * ((cmod t + (cmod t)\<^sup>2) / e'')"
       by (simp add: e'_def field_simps power2_eq_square)
-    also from e''[OF t] e''_pos e 
+    also from e''[OF t] e''_pos e
       have "\<dots> \<le> e * 1" by (intro mult_left_mono) (simp_all add: field_simps)
     finally show "norm (ln_Gamma_series t m - ln_Gamma_series t n) < e" by simp
   qed
@@ -454,7 +450,7 @@ proof -
     finally show ?thesis .
   next
     case False
-    with assms nonpos_Ints_of_int[of "round (Re z)"] 
+    with assms nonpos_Ints_of_int[of "round (Re z)"]
       have "z \<noteq> of_int (round d')" by (auto simp: not_less)
     with False have "d < norm (z - of_int (round d'))" by (simp add: d_def d'_def)
     also have "\<dots> \<le> norm (z - of_int n)" unfolding d'_def by (rule round_Re_minimises_norm)
@@ -476,7 +472,7 @@ lemma exp_ln_Gamma_series_complex:
   shows   "exp (ln_Gamma_series z n :: complex) = Gamma_series z n"
 proof -
   from assms have "z \<noteq> 0" by (intro notI) auto
-  with assms have "exp (ln_Gamma_series z n) = 
+  with assms have "exp (ln_Gamma_series z n) =
           (of_nat n) powr z / (z * (\<Prod>k=1..n. exp (Ln (z / of_nat k + 1))))"
     unfolding ln_Gamma_series_def powr_def by (simp add: exp_diff exp_setsum)
   also from assms have "(\<Prod>k=1..n. exp (Ln (z / of_nat k + 1))) = (\<Prod>k=1..n. z / of_nat k + 1)"
@@ -494,12 +490,12 @@ qed
 
 lemma ln_Gamma_series'_aux:
   assumes "(z::complex) \<notin> \<int>\<^sub>\<le>\<^sub>0"
-  shows   "(\<lambda>k. z / of_nat (Suc k) - ln (1 + z / of_nat (Suc k))) sums 
+  shows   "(\<lambda>k. z / of_nat (Suc k) - ln (1 + z / of_nat (Suc k))) sums
               (ln_Gamma z + euler_mascheroni * z + ln z)" (is "?f sums ?s")
 unfolding sums_def
 proof (rule Lim_transform)
   show "(\<lambda>n. ln_Gamma_series z n + of_real (harm n - ln (of_nat n)) * z + ln z) \<longlonglongrightarrow> ?s"
-    (is "?g \<longlonglongrightarrow> _") 
+    (is "?g \<longlonglongrightarrow> _")
     by (intro tendsto_intros ln_Gamma_complex_LIMSEQ euler_mascheroni_LIMSEQ_of_real assms)
 
   have A: "eventually (\<lambda>n. (\<Sum>k<n. ?f k) - ?g n = 0) sequentially"
@@ -512,7 +508,7 @@ proof (rule Lim_transform)
     also have "\<dots> = z * of_real (harm n) - (\<Sum>k=1..n. ln (1 + z / of_nat k))"
       by (simp add: harm_def setsum_subtractf setsum_right_distrib divide_inverse)
     also from n have "\<dots> - ?g n = 0"
-      by (simp add: ln_Gamma_series_def setsum_subtractf algebra_simps Ln_of_nat) 
+      by (simp add: ln_Gamma_series_def setsum_subtractf algebra_simps Ln_of_nat)
     finally show "(\<Sum>k<n. ?f k) - ?g n = 0" .
   qed
   show "(\<lambda>n. (\<Sum>k<n. ?f k) - ?g n) \<longlonglongrightarrow> 0" by (subst tendsto_cong[OF A]) simp_all
@@ -531,7 +527,7 @@ proof (rule weierstrass_m_test'_ev)
     have "norm (t + (z - t)) \<le> norm t + norm (z - t)" by (rule norm_triangle_ineq)
     also from t d have "norm (z - t) < norm z / 2" by (simp add: dist_norm)
     finally have A: "norm t > norm z / 2" using z by (simp add: field_simps)
-    
+
     have "norm t = norm (z + (t - z))" by simp
     also have "\<dots> \<le> norm z + norm (t - z)" by (rule norm_triangle_ineq)
     also from t d have "norm (t - z) \<le> norm z / 2" by (simp add: dist_norm norm_minus_commute)
@@ -559,16 +555,16 @@ proof (rule weierstrass_m_test'_ev)
     also {
       from z t_nz ball[OF t] have "of_nat (Suc n) / (4 * norm z) \<le> of_nat (Suc n) / (2 * norm t)"
         by (intro divide_left_mono mult_pos_pos) simp_all
-      also have "\<dots> < norm (of_nat (Suc n) / t) - norm (1 :: 'a)" 
+      also have "\<dots> < norm (of_nat (Suc n) / t) - norm (1 :: 'a)"
         using t_nz n by (simp add: field_simps norm_divide del: of_nat_Suc)
       also have "\<dots> \<le> norm (of_nat (Suc n)/t + 1)" by (rule norm_diff_ineq)
       finally have "inverse (norm (of_nat (Suc n)/t + 1)) \<le> 4 * norm z / of_nat (Suc n)"
         using z by (simp add: divide_simps norm_divide mult_ac del: of_nat_Suc)
     }
     also have "inverse (real_of_nat (Suc n)) * (4 * norm z / real_of_nat (Suc n)) =
-                 4 * norm z * inverse (of_nat (Suc n)^2)" 
+                 4 * norm z * inverse (of_nat (Suc n)^2)"
                  by (simp add: divide_simps power2_eq_square del: of_nat_Suc)
-    finally show "norm (?f n t) \<le> 4 * norm z * inverse (of_nat (Suc n)^2)" 
+    finally show "norm (?f n t) \<le> 4 * norm z * inverse (of_nat (Suc n)^2)"
       by (simp del: of_nat_Suc)
   qed
 next
@@ -577,31 +573,31 @@ next
 qed
 
 lemma summable_deriv_ln_Gamma:
-  "z \<noteq> (0 :: 'a :: {real_normed_field,banach}) \<Longrightarrow> 
+  "z \<noteq> (0 :: 'a :: {real_normed_field,banach}) \<Longrightarrow>
      summable (\<lambda>n. inverse (of_nat (Suc n)) - inverse (z + of_nat (Suc n)))"
   unfolding summable_iff_convergent
-  by (rule uniformly_convergent_imp_convergent, 
+  by (rule uniformly_convergent_imp_convergent,
       rule uniformly_summable_deriv_ln_Gamma[of z "norm z/2"]) simp_all
 
 
 definition Polygamma :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a" where
-  "Polygamma n z = (if n = 0 then 
-      (\<Sum>k. inverse (of_nat (Suc k)) - inverse (z + of_nat k)) - euler_mascheroni else 
+  "Polygamma n z = (if n = 0 then
+      (\<Sum>k. inverse (of_nat (Suc k)) - inverse (z + of_nat k)) - euler_mascheroni else
       (-1)^Suc n * fact n * (\<Sum>k. inverse ((z + of_nat k)^Suc n)))"
 
 abbreviation Digamma :: "('a :: {real_normed_field,banach}) \<Rightarrow> 'a" where
   "Digamma \<equiv> Polygamma 0"
 
-lemma Digamma_def: 
+lemma Digamma_def:
   "Digamma z = (\<Sum>k. inverse (of_nat (Suc k)) - inverse (z + of_nat k)) - euler_mascheroni"
   by (simp add: Polygamma_def)
 
 
-lemma summable_Digamma: 
+lemma summable_Digamma:
   assumes "(z :: 'a :: {real_normed_field,banach}) \<noteq> 0"
   shows   "summable (\<lambda>n. inverse (of_nat (Suc n)) - inverse (z + of_nat n))"
 proof -
-  have sums: "(\<lambda>n. inverse (z + of_nat (Suc n)) - inverse (z + of_nat n)) sums 
+  have sums: "(\<lambda>n. inverse (z + of_nat (Suc n)) - inverse (z + of_nat n)) sums
                        (0 - inverse (z + of_nat 0))"
     by (intro telescope_sums filterlim_compose[OF tendsto_inverse_0]
               tendsto_add_filterlim_at_infinity[OF tendsto_const] tendsto_of_nat)
@@ -614,13 +610,13 @@ lemma summable_offset:
   shows   "summable f"
 proof -
   from assms have "convergent (\<lambda>m. \<Sum>n<m. f (n + k))" by (simp add: summable_iff_convergent)
-  hence "convergent (\<lambda>m. (\<Sum>n<k. f n) + (\<Sum>n<m. f (n + k)))" 
+  hence "convergent (\<lambda>m. (\<Sum>n<k. f n) + (\<Sum>n<m. f (n + k)))"
     by (intro convergent_add convergent_const)
   also have "(\<lambda>m. (\<Sum>n<k. f n) + (\<Sum>n<m. f (n + k))) = (\<lambda>m. \<Sum>n<m+k. f n)"
   proof
     fix m :: nat
     have "{..<m+k} = {..<k} \<union> {k..<m+k}" by auto
-    also have "(\<Sum>n\<in>\<dots>. f n) = (\<Sum>n<k. f n) + (\<Sum>n=k..<m+k. f n)" 
+    also have "(\<Sum>n\<in>\<dots>. f n) = (\<Sum>n<k. f n) + (\<Sum>n=k..<m+k. f n)"
       by (rule setsum.union_disjoint) auto
     also have "(\<Sum>n=k..<m+k. f n) = (\<Sum>n=0..<m+k-k. f (n + k))"
       by (intro setsum.reindex_cong[of "\<lambda>n. n + k"])
@@ -646,14 +642,14 @@ proof (rule weierstrass_m_test'_ev)
     also from t have "norm (t - z) < d" by (simp add: dist_norm norm_minus_commute)
     finally have "norm t < norm z * e" using z by (simp add: divide_simps e_def)
   } note ball = this
-  
-  show "eventually (\<lambda>k. \<forall>t\<in>ball z d. norm (inverse ((t + of_nat k)^n)) \<le> 
+
+  show "eventually (\<lambda>k. \<forall>t\<in>ball z d. norm (inverse ((t + of_nat k)^n)) \<le>
             inverse (of_nat (k - m)^n)) sequentially"
     using eventually_gt_at_top[of m] apply eventually_elim
   proof (intro ballI)
     fix k :: nat and t :: 'a assume k: "k > m" and t: "t \<in> ball z d"
     from k have "real_of_nat (k - m) = of_nat k - of_nat m" by (simp add: of_nat_diff)
-    also have "\<dots> \<le> norm (of_nat k :: 'a) - norm z * e" 
+    also have "\<dots> \<le> norm (of_nat k :: 'a) - norm z * e"
       unfolding m_def by (subst norm_of_nat) linarith
     also from ball[OF t] have "\<dots> \<le> norm (of_nat k :: 'a) - norm t" by simp
     also have "\<dots> \<le> norm (of_nat k + t)" by (rule norm_diff_ineq)
@@ -662,8 +658,8 @@ proof (rule weierstrass_m_test'_ev)
     thus "norm (inverse ((t + of_nat k)^n)) \<le> inverse (of_nat (k - m)^n)"
       by (simp add: norm_inverse norm_power power_inverse)
   qed
-  
-  have "summable (\<lambda>k. inverse ((real_of_nat k)^n))" 
+
+  have "summable (\<lambda>k. inverse ((real_of_nat k)^n))"
     using inverse_power_summable[of n] n by simp
   hence "summable (\<lambda>k. inverse ((real_of_nat (k + m - m))^n))" by simp
   thus "summable (\<lambda>k. inverse ((real_of_nat (k - m))^n))" by (rule summable_offset)
@@ -677,47 +673,51 @@ lemma Polygamma_converges':
   by (simp add: summable_iff_convergent)
 
 lemma has_field_derivative_ln_Gamma_complex [derivative_intros]:
-  assumes z: "Re z > 0 \<or> Im z \<noteq> 0"
+  fixes z :: complex
+  assumes z: "z \<notin> \<real>\<^sub>\<le>\<^sub>0"
   shows   "(ln_Gamma has_field_derivative Digamma z) (at z)"
 proof -
-  have not_nonpos_Int [simp]: "t \<notin> \<int>\<^sub>\<le>\<^sub>0" if "Re t > 0" for t 
+  have not_nonpos_Int [simp]: "t \<notin> \<int>\<^sub>\<le>\<^sub>0" if "Re t > 0" for t
     using that by (auto elim!: nonpos_Ints_cases')
-  from z have z': "z \<notin> \<int>\<^sub>\<le>\<^sub>0" and z'': "z \<noteq> 0" by (auto elim!: nonpos_Ints_cases)
+  from z have z': "z \<notin> \<int>\<^sub>\<le>\<^sub>0" and z'': "z \<noteq> 0" using nonpos_Ints_subset_nonpos_Reals nonpos_Reals_zero_I
+     by blast+
   let ?f' = "\<lambda>z k. inverse (of_nat (Suc k)) - inverse (z + of_nat (Suc k))"
   let ?f = "\<lambda>z k. z / of_nat (Suc k) - ln (1 + z / of_nat (Suc k))" and ?F' = "\<lambda>z. \<Sum>n. ?f' z n"
   def d \<equiv> "min (norm z/2) (if Im z = 0 then Re z / 2 else abs (Im z) / 2)"
-  from z have d: "d > 0" "norm z/2 \<ge> d" by (auto simp add: d_def)
-  have ball: "Im t = 0 \<longrightarrow> Re t > 0" if "dist z t < d" for t 
-    using Re_pos_or_Im_nz_in_ball[OF z, of t] that unfolding d_def by auto
-  have sums: "(\<lambda>n. inverse (z + of_nat (Suc n)) - inverse (z + of_nat n)) sums 
+  from z have d: "d > 0" "norm z/2 \<ge> d" by (auto simp add: complex_nonpos_Reals_iff d_def)
+  have ball: "Im t = 0 \<longrightarrow> Re t > 0" if "dist z t < d" for t
+    using no_nonpos_Real_in_ball[OF z, of t] that unfolding d_def by (force simp add: complex_nonpos_Reals_iff)
+  have sums: "(\<lambda>n. inverse (z + of_nat (Suc n)) - inverse (z + of_nat n)) sums
                        (0 - inverse (z + of_nat 0))"
     by (intro telescope_sums filterlim_compose[OF tendsto_inverse_0]
               tendsto_add_filterlim_at_infinity[OF tendsto_const] tendsto_of_nat)
 
   have "((\<lambda>z. \<Sum>n. ?f z n) has_field_derivative ?F' z) (at z)"
     using d z ln_Gamma_series'_aux[OF z']
-    by (intro has_field_derivative_series'(2)[of "ball z d" _ _ z] uniformly_summable_deriv_ln_Gamma)
-       (auto intro!: derivative_eq_intros add_pos_pos mult_pos_pos dest!: ball
-             simp: field_simps Re_complex_div_gt_0 sums_iff Im_divide_of_nat
+    apply (intro has_field_derivative_series'(2)[of "ball z d" _ _ z] uniformly_summable_deriv_ln_Gamma)
+    apply (auto intro!: derivative_eq_intros add_pos_pos mult_pos_pos dest!: ball
+             simp: field_simps sums_iff nonpos_Reals_divide_of_nat_iff
              simp del: of_nat_Suc)
-  with z have "((\<lambda>z. (\<Sum>k. ?f z k) - euler_mascheroni * z - Ln z) has_field_derivative 
-                   ?F' z - euler_mascheroni - inverse z) (at z)" 
+    apply (auto simp add: complex_nonpos_Reals_iff)
+    done
+  with z have "((\<lambda>z. (\<Sum>k. ?f z k) - euler_mascheroni * z - Ln z) has_field_derivative
+                   ?F' z - euler_mascheroni - inverse z) (at z)"
     by (force intro!: derivative_eq_intros simp: Digamma_def)
   also have "?F' z - euler_mascheroni - inverse z = (?F' z + -inverse z) - euler_mascheroni" by simp
   also from sums have "-inverse z = (\<Sum>n. inverse (z + of_nat (Suc n)) - inverse (z + of_nat n))"
     by (simp add: sums_iff)
-  also from sums summable_deriv_ln_Gamma[OF z''] 
+  also from sums summable_deriv_ln_Gamma[OF z'']
     have "?F' z + \<dots> =  (\<Sum>n. inverse (of_nat (Suc n)) - inverse (z + of_nat n))"
     by (subst suminf_add) (simp_all add: add_ac sums_iff)
   also have "\<dots> - euler_mascheroni = Digamma z" by (simp add: Digamma_def)
-  finally have "((\<lambda>z. (\<Sum>k. ?f z k) - euler_mascheroni * z - Ln z) 
+  finally have "((\<lambda>z. (\<Sum>k. ?f z k) - euler_mascheroni * z - Ln z)
                     has_field_derivative Digamma z) (at z)" .
   moreover from eventually_nhds_ball[OF d(1), of z]
     have "eventually (\<lambda>z. ln_Gamma z = (\<Sum>k. ?f z k) - euler_mascheroni * z - Ln z) (nhds z)"
   proof eventually_elim
     fix t assume "t \<in> ball z d"
     hence "t \<notin> \<int>\<^sub>\<le>\<^sub>0" by (auto dest!: ball elim!: nonpos_Ints_cases)
-    from ln_Gamma_series'_aux[OF this] 
+    from ln_Gamma_series'_aux[OF this]
       show "ln_Gamma t = (\<Sum>k. ?f t k) - euler_mascheroni * t - Ln t" by (simp add: sums_iff)
   qed
   ultimately show ?thesis by (subst DERIV_cong_ev[OF refl _ refl])
@@ -728,16 +728,16 @@ declare has_field_derivative_ln_Gamma_complex[THEN DERIV_chain2, derivative_intr
 
 lemma Digamma_1 [simp]: "Digamma (1 :: 'a :: {real_normed_field,banach}) = - euler_mascheroni"
   by (simp add: Digamma_def)
-  
+
 lemma Digamma_plus1:
   assumes "z \<noteq> 0"
   shows   "Digamma (z+1) = Digamma z + 1/z"
 proof -
-  have sums: "(\<lambda>k. inverse (z + of_nat k) - inverse (z + of_nat (Suc k))) 
+  have sums: "(\<lambda>k. inverse (z + of_nat k) - inverse (z + of_nat (Suc k)))
                   sums (inverse (z + of_nat 0) - 0)"
     by (intro telescope_sums'[OF filterlim_compose[OF tendsto_inverse_0]]
               tendsto_add_filterlim_at_infinity[OF tendsto_const] tendsto_of_nat)
-  have "Digamma (z+1) = (\<Sum>k. inverse (of_nat (Suc k)) - inverse (z + of_nat (Suc k))) - 
+  have "Digamma (z+1) = (\<Sum>k. inverse (of_nat (Suc k)) - inverse (z + of_nat (Suc k))) -
           euler_mascheroni" (is "_ = suminf ?f - _") by (simp add: Digamma_def add_ac)
   also have "suminf ?f = (\<Sum>k. inverse (of_nat (Suc k)) - inverse (z + of_nat k)) +
                          (\<Sum>k. inverse (z + of_nat k) - inverse (z + of_nat (Suc k)))"
@@ -759,18 +759,18 @@ proof (cases "n = 0")
     using Polygamma_converges'[OF assms, of "Suc n"] n
     by (subst suminf_split_initial_segment [symmetric]) simp_all
   hence "(\<Sum>k. ?f (k+1)) = (\<Sum>k. ?f k) - inverse (z ^ Suc n)" by (simp add: algebra_simps)
-  also have "(-1) ^ Suc n * fact n * ((\<Sum>k. ?f k) - inverse (z ^ Suc n)) = 
+  also have "(-1) ^ Suc n * fact n * ((\<Sum>k. ?f k) - inverse (z ^ Suc n)) =
                Polygamma n z + (-1)^n * fact n / (z ^ Suc n)" using n
     by (simp add: inverse_eq_divide algebra_simps Polygamma_def)
   finally show ?thesis .
 qed (insert assms, simp add: Digamma_plus1 inverse_eq_divide)
 
-lemma Digamma_of_nat: 
+lemma Digamma_of_nat:
   "Digamma (of_nat (Suc n) :: 'a :: {real_normed_field,banach}) = harm n - euler_mascheroni"
 proof (induction n)
   case (Suc n)
   have "Digamma (of_nat (Suc (Suc n)) :: 'a) = Digamma (of_nat (Suc n) + 1)" by simp
-  also have "\<dots> = Digamma (of_nat (Suc n)) + inverse (of_nat (Suc n))" 
+  also have "\<dots> = Digamma (of_nat (Suc n)) + inverse (of_nat (Suc n))"
     by (subst Digamma_plus1) (simp_all add: inverse_eq_divide del: of_nat_Suc)
   also have "Digamma (of_nat (Suc n) :: 'a) = harm n - euler_mascheroni " by (rule Suc)
   also have "\<dots> + inverse (of_nat (Suc n)) = harm (Suc n) - euler_mascheroni"
@@ -789,13 +789,13 @@ lemma Polygamma_Real: "z \<in> \<real> \<Longrightarrow> z \<noteq> 0 \<Longrigh
   by (elim Reals_cases, hypsubst, subst Polygamma_of_real) simp_all
 
 lemma Digamma_half_integer:
-  "Digamma (of_nat n + 1/2 :: 'a :: {real_normed_field,banach}) = 
+  "Digamma (of_nat n + 1/2 :: 'a :: {real_normed_field,banach}) =
       (\<Sum>k<n. 2 / (of_nat (2*k+1))) - euler_mascheroni - of_real (2 * ln 2)"
 proof (induction n)
   case 0
   have "Digamma (1/2 :: 'a) = of_real (Digamma (1/2))" by (simp add: Polygamma_of_real [symmetric])
-  also have "Digamma (1/2::real) = 
-               (\<Sum>k. inverse (of_nat (Suc k)) - inverse (of_nat k + 1/2)) - euler_mascheroni" 
+  also have "Digamma (1/2::real) =
+               (\<Sum>k. inverse (of_nat (Suc k)) - inverse (of_nat k + 1/2)) - euler_mascheroni"
     by (simp add: Digamma_def add_ac)
   also have "(\<Sum>k. inverse (of_nat (Suc k) :: real) - inverse (of_nat k + 1/2)) =
              (\<Sum>k. inverse (1/2) * (inverse (2 * of_nat (Suc k)) - inverse (2 * of_nat k + 1)))"
@@ -849,8 +849,8 @@ proof (rule has_field_derivative_at_within, cases "n = 0")
   have "(?F has_field_derivative (\<Sum>k. ?f' k z)) (at z)"
   proof (rule has_field_derivative_series'[of "ball z d" _ _ z])
     fix k :: nat and t :: 'a assume t: "t \<in> ball z d"
-    from t d(2)[of t] show "((\<lambda>z. ?f k z) has_field_derivative ?f' k t) (at t within ball z d)" 
-      by (auto intro!: derivative_eq_intros simp: power2_eq_square simp del: of_nat_Suc 
+    from t d(2)[of t] show "((\<lambda>z. ?f k z) has_field_derivative ?f' k t) (at t within ball z d)"
+      by (auto intro!: derivative_eq_intros simp: power2_eq_square simp del: of_nat_Suc
                dest!: plus_of_nat_eq_0_imp elim!: nonpos_Ints_cases)
   qed (insert d(1) summable conv, (assumption|simp)+)
   with z show "(Polygamma n has_field_derivative Polygamma (Suc n) z) (at z)"
@@ -871,10 +871,10 @@ next
                 - of_nat n' * inverse ((t + of_nat k) ^ (n'+1))) (at t within ball z d)" using t'
       by (fastforce intro!: derivative_eq_intros simp: divide_simps power_diff dest: plus_of_nat_eq_0_imp)
   next
-    have "uniformly_convergent_on (ball z d) 
-              (\<lambda>k z. (- of_nat n' :: 'a) * (\<Sum>i<k. inverse ((z + of_nat i) ^ (n'+1))))" 
+    have "uniformly_convergent_on (ball z d)
+              (\<lambda>k z. (- of_nat n' :: 'a) * (\<Sum>i<k. inverse ((z + of_nat i) ^ (n'+1))))"
       using z' n by (intro uniformly_convergent_mult Polygamma_converges) (simp_all add: n'_def)
-    thus "uniformly_convergent_on (ball z d) 
+    thus "uniformly_convergent_on (ball z d)
               (\<lambda>k z. \<Sum>i<k. - of_nat n' * inverse ((z + of_nat i :: 'a) ^ (n'+1)))"
       by (subst (asm) setsum_right_distrib) simp
   qed (insert Polygamma_converges'[OF z' n'] d, simp_all)
@@ -890,49 +890,50 @@ qed
 
 declare has_field_derivative_Polygamma[THEN DERIV_chain2, derivative_intros]
 
-lemma isCont_Polygamma [continuous_intros]: 
+lemma isCont_Polygamma [continuous_intros]:
   fixes f :: "_ \<Rightarrow> 'a :: {real_normed_field,euclidean_space}"
   shows "isCont f z \<Longrightarrow> f z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> isCont (\<lambda>x. Polygamma n (f x)) z"
   by (rule isCont_o2[OF _  DERIV_isCont[OF has_field_derivative_Polygamma]])
 
-lemma continuous_on_Polygamma: 
+lemma continuous_on_Polygamma:
   "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longrightarrow> continuous_on A (Polygamma n :: _ \<Rightarrow> 'a :: {real_normed_field,euclidean_space})"
   by (intro continuous_at_imp_continuous_on isCont_Polygamma[OF continuous_ident] ballI) blast
 
-lemma isCont_ln_Gamma_complex [continuous_intros]: 
-  "isCont f z \<Longrightarrow> Re (f z) > 0 \<or> Im (f z) \<noteq> 0 \<Longrightarrow> isCont (\<lambda>z. ln_Gamma (f z)) z"
+lemma isCont_ln_Gamma_complex [continuous_intros]:
+  fixes f :: "'a::t2_space \<Rightarrow> complex"
+  shows "isCont f z \<Longrightarrow> f z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> isCont (\<lambda>z. ln_Gamma (f z)) z"
   by (rule isCont_o2[OF _  DERIV_isCont[OF has_field_derivative_ln_Gamma_complex]])
 
 lemma continuous_on_ln_Gamma_complex [continuous_intros]:
-   "A \<inter> {z. Re z \<le> 0 \<and> Im z = 0} = {} \<Longrightarrow> continuous_on A ln_Gamma"
-  by (intro continuous_at_imp_continuous_on ballI isCont_ln_Gamma_complex[OF continuous_ident]) 
+  fixes A :: "complex set"
+  shows "A \<inter> \<real>\<^sub>\<le>\<^sub>0 = {} \<Longrightarrow> continuous_on A ln_Gamma"
+  by (intro continuous_at_imp_continuous_on ballI isCont_ln_Gamma_complex[OF continuous_ident])
      fastforce
 
-
 text \<open>
-  We define a type class that captures all the fundamental properties of the inverse of the Gamma function 
-  and defines the Gamma function upon that. This allows us to instantiate the type class both for 
-  the reals and for the complex numbers with a minimal amount of proof duplication. 
+  We define a type class that captures all the fundamental properties of the inverse of the Gamma function
+  and defines the Gamma function upon that. This allows us to instantiate the type class both for
+  the reals and for the complex numbers with a minimal amount of proof duplication.
 \<close>
 
 class Gamma = real_normed_field + complete_space +
   fixes rGamma :: "'a \<Rightarrow> 'a"
   assumes rGamma_eq_zero_iff_aux: "rGamma z = 0 \<longleftrightarrow> (\<exists>n. z = - of_nat n)"
-  assumes differentiable_rGamma_aux1: 
+  assumes differentiable_rGamma_aux1:
     "(\<And>n. z \<noteq> - of_nat n) \<Longrightarrow>
-     let d = (THE d. (\<lambda>n. \<Sum>k<n. inverse (of_nat (Suc k)) - inverse (z + of_nat k)) 
+     let d = (THE d. (\<lambda>n. \<Sum>k<n. inverse (of_nat (Suc k)) - inverse (z + of_nat k))
                \<longlonglongrightarrow> d) - scaleR euler_mascheroni 1
-     in  filterlim (\<lambda>y. (rGamma y - rGamma z + rGamma z * d * (y - z)) /\<^sub>R 
+     in  filterlim (\<lambda>y. (rGamma y - rGamma z + rGamma z * d * (y - z)) /\<^sub>R
                         norm (y - z)) (nhds 0) (at z)"
-  assumes differentiable_rGamma_aux2: 
+  assumes differentiable_rGamma_aux2:
     "let z = - of_nat n
-     in  filterlim (\<lambda>y. (rGamma y - rGamma z - (-1)^n * (setprod of_nat {1..n}) * (y - z)) /\<^sub>R 
+     in  filterlim (\<lambda>y. (rGamma y - rGamma z - (-1)^n * (setprod of_nat {1..n}) * (y - z)) /\<^sub>R
                         norm (y - z)) (nhds 0) (at z)"
-  assumes rGamma_series_aux: "(\<And>n. z \<noteq> - of_nat n) \<Longrightarrow> 
+  assumes rGamma_series_aux: "(\<And>n. z \<noteq> - of_nat n) \<Longrightarrow>
              let fact' = (\<lambda>n. setprod of_nat {1..n});
                  exp = (\<lambda>x. THE e. (\<lambda>n. \<Sum>k<n. x^k /\<^sub>R fact k) \<longlonglongrightarrow> e);
                  pochhammer' = (\<lambda>a n. (\<Prod>n = 0..n. a + of_nat n))
-             in  filterlim (\<lambda>n. pochhammer' z n / (fact' n * exp (z * (ln (of_nat n) *\<^sub>R 1)))) 
+             in  filterlim (\<lambda>n. pochhammer' z n / (fact' n * exp (z * (ln (of_nat n) *\<^sub>R 1))))
                      (nhds (rGamma z)) sequentially"
 begin
 subclass banach ..
@@ -951,7 +952,7 @@ lemma Gamma_nonzero: "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Ga
   and rGamma_nonzero: "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> rGamma z \<noteq> 0"
   using rGamma_eq_zero_iff_aux[of z] unfolding Gamma_def by (auto elim!: nonpos_Ints_cases')
 
-lemma Gamma_eq_zero_iff: "Gamma z = 0 \<longleftrightarrow> z \<in> \<int>\<^sub>\<le>\<^sub>0" 
+lemma Gamma_eq_zero_iff: "Gamma z = 0 \<longleftrightarrow> z \<in> \<int>\<^sub>\<le>\<^sub>0"
   and rGamma_eq_zero_iff: "rGamma z = 0 \<longleftrightarrow> z \<in> \<int>\<^sub>\<le>\<^sub>0"
   using rGamma_eq_zero_iff_aux[of z] unfolding Gamma_def by (auto elim!: nonpos_Ints_cases')
 
@@ -968,13 +969,13 @@ proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
                   exp_def of_real_def[symmetric] suminf_def sums_def[abs_def])
 qed (insert rGamma_eq_zero_iff[of z], simp_all add: rGamma_series_nonpos_Ints_LIMSEQ)
 
-lemma Gamma_series_LIMSEQ [tendsto_intros]: 
+lemma Gamma_series_LIMSEQ [tendsto_intros]:
   "Gamma_series z \<longlonglongrightarrow> Gamma z"
 proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
   case False
   hence "(\<lambda>n. inverse (rGamma_series z n)) \<longlonglongrightarrow> inverse (rGamma z)"
     by (intro tendsto_intros) (simp_all add: rGamma_eq_zero_iff)
-  also have "(\<lambda>n. inverse (rGamma_series z n)) = Gamma_series z" 
+  also have "(\<lambda>n. inverse (rGamma_series z n)) = Gamma_series z"
     by (simp add: rGamma_series_def Gamma_series_def[abs_def])
   finally show ?thesis by (simp add: Gamma_def)
 qed (insert Gamma_eq_zero_iff[of z], simp_all add: Gamma_series_nonpos_Ints_LIMSEQ)
@@ -986,7 +987,7 @@ lemma rGamma_1 [simp]: "rGamma 1 = 1"
 proof -
   have A: "eventually (\<lambda>n. rGamma_series 1 n = of_nat (Suc n) / of_nat n) sequentially"
     using eventually_gt_at_top[of "0::nat"]
-    by (force elim!: eventually_mono simp: rGamma_series_def exp_of_real pochhammer_fact 
+    by (force elim!: eventually_mono simp: rGamma_series_def exp_of_real pochhammer_fact
                     divide_simps pochhammer_rec' dest!: pochhammer_eq_0_imp_nonpos_Int)
   have "rGamma_series 1 \<longlonglongrightarrow> 1" by (subst tendsto_cong[OF A]) (rule LIMSEQ_Suc_n_over_n)
   moreover have "rGamma_series 1 \<longlonglongrightarrow> rGamma 1" by (rule tendsto_intros)
@@ -1030,10 +1031,10 @@ lemma Gamma_plus1: "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Gamm
   using rGamma_plus1[of z] by (simp add: rGamma_inverse_Gamma field_simps Gamma_eq_zero_iff)
 
 lemma pochhammer_Gamma: "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> pochhammer z n = Gamma (z + of_nat n) / Gamma z"
-  using pochhammer_rGamma[of z] 
+  using pochhammer_rGamma[of z]
   by (simp add: rGamma_inverse_Gamma Gamma_eq_zero_iff field_simps)
 
-lemma Gamma_0 [simp]: "Gamma 0 = 0" 
+lemma Gamma_0 [simp]: "Gamma 0 = 0"
   and rGamma_0 [simp]: "rGamma 0 = 0"
   and Gamma_neg_1 [simp]: "Gamma (- 1) = 0"
   and rGamma_neg_1 [simp]: "rGamma (- 1) = 0"
@@ -1066,7 +1067,7 @@ lemma Gamma_seriesI:
   shows   "g \<longlonglongrightarrow> Gamma z"
 proof (rule Lim_transform_eventually)
   have "1/2 > (0::real)" by simp
-  from tendstoD[OF assms, OF this] 
+  from tendstoD[OF assms, OF this]
     show "eventually (\<lambda>n. g n / Gamma_series z n * Gamma_series z n = g n) sequentially"
     by (force elim!: eventually_mono simp: dist_real_def dist_0_norm)
   from assms have "(\<lambda>n. g n / Gamma_series z n * Gamma_series z n) \<longlonglongrightarrow> 1 * Gamma z"
@@ -1089,32 +1090,32 @@ proof (rule Lim_transform_eventually)
 qed
 
 lemma Gamma_series'_LIMSEQ: "Gamma_series' z \<longlonglongrightarrow> Gamma z"
-  by (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0") (simp_all add: Gamma_nonpos_Int Gamma_seriesI[OF Gamma_series_Gamma_series'] 
+  by (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0") (simp_all add: Gamma_nonpos_Int Gamma_seriesI[OF Gamma_series_Gamma_series']
                                       Gamma_series'_nonpos_Ints_LIMSEQ[of z])
 
 
 subsection \<open>Differentiability\<close>
 
-lemma has_field_derivative_rGamma_no_nonpos_int: 
+lemma has_field_derivative_rGamma_no_nonpos_int:
   assumes "z \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "(rGamma has_field_derivative -rGamma z * Digamma z) (at z within A)"
 proof (rule has_field_derivative_at_within)
   from assms have "z \<noteq> - of_nat n" for n by auto
-  from differentiable_rGamma_aux1[OF this] 
+  from differentiable_rGamma_aux1[OF this]
     show "(rGamma has_field_derivative -rGamma z * Digamma z) (at z)"
          unfolding Digamma_def suminf_def sums_def[abs_def]
                    has_field_derivative_def has_derivative_def netlimit_at
     by (simp add: Let_def bounded_linear_mult_right mult_ac of_real_def [symmetric])
 qed
 
-lemma has_field_derivative_rGamma_nonpos_int: 
-  "(rGamma has_field_derivative (-1)^n * fact n) (at (- of_nat n) within A)" 
+lemma has_field_derivative_rGamma_nonpos_int:
+  "(rGamma has_field_derivative (-1)^n * fact n) (at (- of_nat n) within A)"
   apply (rule has_field_derivative_at_within)
   using differentiable_rGamma_aux2[of n]
   unfolding Let_def has_field_derivative_def has_derivative_def netlimit_at
   by (simp only: bounded_linear_mult_right mult_ac of_real_def [symmetric] fact_altdef)
 
-lemma has_field_derivative_rGamma [derivative_intros]: 
+lemma has_field_derivative_rGamma [derivative_intros]:
   "(rGamma has_field_derivative (if z \<in> \<int>\<^sub>\<le>\<^sub>0 then (-1)^(nat \<lfloor>norm z\<rfloor>) * fact (nat \<lfloor>norm z\<rfloor>)
       else -rGamma z * Digamma z)) (at z within A)"
 using has_field_derivative_rGamma_no_nonpos_int[of z A]
@@ -1128,7 +1129,7 @@ declare has_field_derivative_rGamma_no_nonpos_int [derivative_intros]
 declare has_field_derivative_rGamma [derivative_intros]
 
 
-lemma has_field_derivative_Gamma [derivative_intros]: 
+lemma has_field_derivative_Gamma [derivative_intros]:
   "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> (Gamma has_field_derivative Gamma z * Digamma z) (at z within A)"
   unfolding Gamma_def [abs_def]
   by (fastforce intro!: derivative_eq_intros simp: rGamma_eq_zero_iff)
@@ -1152,11 +1153,11 @@ lemma continuous_on_rGamma [continuous_intros]: "continuous_on A rGamma"
 lemma continuous_on_Gamma [continuous_intros]: "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longrightarrow> continuous_on A Gamma"
   by (rule DERIV_continuous_on has_field_derivative_Gamma)+ blast
 
-lemma isCont_rGamma [continuous_intros]: 
+lemma isCont_rGamma [continuous_intros]:
   "isCont f z \<Longrightarrow> isCont (\<lambda>x. rGamma (f x)) z"
   by (rule isCont_o2[OF _  DERIV_isCont[OF has_field_derivative_rGamma]])
 
-lemma isCont_Gamma [continuous_intros]: 
+lemma isCont_Gamma [continuous_intros]:
   "isCont f z \<Longrightarrow> f z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> isCont (\<lambda>x. Gamma (f x)) z"
   by (rule isCont_o2[OF _  DERIV_isCont[OF has_field_derivative_Gamma]])
 
@@ -1170,7 +1171,7 @@ begin
 definition rGamma_complex :: "complex \<Rightarrow> complex" where
   "rGamma_complex z = lim (rGamma_series z)"
 
-lemma rGamma_series_complex_converges: 
+lemma rGamma_series_complex_converges:
         "convergent (rGamma_series (z :: complex))" (is "?thesis1")
   and rGamma_complex_altdef:
         "rGamma z = (if z \<in> \<int>\<^sub>\<le>\<^sub>0 then 0 else exp (-ln_Gamma z))" (is "?thesis2")
@@ -1181,7 +1182,7 @@ proof -
     have "rGamma_series z \<longlonglongrightarrow> exp (- ln_Gamma z)"
     proof (rule Lim_transform_eventually)
       from ln_Gamma_series_complex_converges'[OF False] guess d by (elim exE conjE)
-      from this(1) uniformly_convergent_imp_convergent[OF this(2), of z] 
+      from this(1) uniformly_convergent_imp_convergent[OF this(2), of z]
         have "ln_Gamma_series z \<longlonglongrightarrow> lim (ln_Gamma_series z)" by (simp add: convergent_LIMSEQ_iff)
       thus "(\<lambda>n. exp (-ln_Gamma_series z n)) \<longlonglongrightarrow> exp (- ln_Gamma z)"
         unfolding convergent_def ln_Gamma_def by (intro tendsto_exp tendsto_minus)
@@ -1222,13 +1223,13 @@ proof -
   qed
   moreover have "(\<lambda>n. ?f n * rGamma_series z n) \<longlonglongrightarrow> ((z+1) * 0 + 1) * rGamma z"
     using rGamma_series_complex_converges
-    by (intro tendsto_intros lim_inverse_n) 
+    by (intro tendsto_intros lim_inverse_n)
        (simp_all add: convergent_LIMSEQ_iff rGamma_complex_def)
   hence "(\<lambda>n. ?f n * rGamma_series z n) \<longlonglongrightarrow> rGamma z" by simp
   ultimately have "(\<lambda>n. z * rGamma_series (z + 1) n) \<longlonglongrightarrow> rGamma z"
     by (rule Lim_transform_eventually)
   moreover have "(\<lambda>n. z * rGamma_series (z + 1) n) \<longlonglongrightarrow> z * rGamma (z + 1)"
-    using rGamma_series_complex_converges 
+    using rGamma_series_complex_converges
     by (auto intro!: tendsto_mult simp: rGamma_complex_def convergent_LIMSEQ_iff)
   ultimately show "z * rGamma (z + 1) = rGamma z" using LIMSEQ_unique by blast
 qed
@@ -1237,19 +1238,19 @@ private lemma has_field_derivative_rGamma_complex_no_nonpos_Int:
   assumes "(z :: complex) \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "(rGamma has_field_derivative - rGamma z * Digamma z) (at z)"
 proof -
-  have diff: "(rGamma has_field_derivative - rGamma z * Digamma z) (at z)" if "Re z > 0" for z 
+  have diff: "(rGamma has_field_derivative - rGamma z * Digamma z) (at z)" if "Re z > 0" for z
   proof (subst DERIV_cong_ev[OF refl _ refl])
-    from that have "eventually (\<lambda>t. t \<in> ball z (Re z/2)) (nhds z)" 
+    from that have "eventually (\<lambda>t. t \<in> ball z (Re z/2)) (nhds z)"
       by (intro eventually_nhds_in_nhd) simp_all
     thus "eventually (\<lambda>t. rGamma t = exp (- ln_Gamma t)) (nhds z)"
       using no_nonpos_Int_in_ball_complex[OF that]
       by (auto elim!: eventually_mono simp: rGamma_complex_altdef)
   next
-    show "((\<lambda>t. exp (- ln_Gamma t)) has_field_derivative (-rGamma z * Digamma z)) (at z)"
-      using that by (force elim!: nonpos_Ints_cases intro!: derivative_eq_intros 
-                           simp: rGamma_complex_altdef)
+    have "z \<notin> \<real>\<^sub>\<le>\<^sub>0" using that by (simp add: complex_nonpos_Reals_iff)
+    with that show "((\<lambda>t. exp (- ln_Gamma t)) has_field_derivative (-rGamma z * Digamma z)) (at z)"
+     by (force elim!: nonpos_Ints_cases intro!: derivative_eq_intros simp: rGamma_complex_altdef)
   qed
-  
+
   from assms show "(rGamma has_field_derivative - rGamma z * Digamma z) (at z)"
   proof (induction "nat \<lfloor>1 - Re z\<rfloor>" arbitrary: z)
     case (Suc n z)
@@ -1257,11 +1258,11 @@ proof -
     from Suc.hyps have "n = nat \<lfloor>- Re z\<rfloor>" by linarith
     hence A: "n = nat \<lfloor>1 - Re (z + 1)\<rfloor>" by simp
     from Suc.prems have B: "z + 1 \<notin> \<int>\<^sub>\<le>\<^sub>0" by (force dest: plus_one_in_nonpos_Ints_imp)
-    
-    have "((\<lambda>z. z * (rGamma \<circ> (\<lambda>z. z + 1)) z) has_field_derivative 
+
+    have "((\<lambda>z. z * (rGamma \<circ> (\<lambda>z. z + 1)) z) has_field_derivative
       -rGamma (z + 1) * (Digamma (z + 1) * z - 1)) (at z)"
       by (rule derivative_eq_intros DERIV_chain Suc refl A B)+ (simp add: algebra_simps)
-    also have "(\<lambda>z. z * (rGamma \<circ> (\<lambda>z. z + 1 :: complex)) z) = rGamma" 
+    also have "(\<lambda>z. z * (rGamma \<circ> (\<lambda>z. z + 1 :: complex)) z) = rGamma"
       by (simp add: rGamma_complex_plus1)
     also from z have "Digamma (z + 1) * z - 1 = z * Digamma z"
       by (subst Digamma_plus1) (simp_all add: field_simps)
@@ -1275,7 +1276,7 @@ private lemma rGamma_complex_1: "rGamma (1 :: complex) = 1"
 proof -
   have A: "eventually (\<lambda>n. rGamma_series 1 n = of_nat (Suc n) / of_nat n) sequentially"
     using eventually_gt_at_top[of "0::nat"]
-    by (force elim!: eventually_mono simp: rGamma_series_def exp_of_real pochhammer_fact 
+    by (force elim!: eventually_mono simp: rGamma_series_def exp_of_real pochhammer_fact
                     divide_simps pochhammer_rec' dest!: pochhammer_eq_0_imp_nonpos_Int)
   have "rGamma_series 1 \<longlonglongrightarrow> 1" by (subst tendsto_cong[OF A]) (rule LIMSEQ_Suc_n_over_n)
   thus "rGamma 1 = (1 :: complex)" unfolding rGamma_complex_def by (rule limI)
@@ -1292,11 +1293,11 @@ proof (induction n)
     thus ?case by (simp add: rGamma_complex_plus1)
 next
   case (Suc n)
-  hence A: "(rGamma has_field_derivative (-1)^n * fact n)  
+  hence A: "(rGamma has_field_derivative (-1)^n * fact n)
                 (at (- of_nat (Suc n) + 1 :: complex))" by simp
-   have "((\<lambda>z. z * (rGamma \<circ> (\<lambda>z. z + 1 :: complex)) z) has_field_derivative 
+   have "((\<lambda>z. z * (rGamma \<circ> (\<lambda>z. z + 1 :: complex)) z) has_field_derivative
              (- 1) ^ Suc n * fact (Suc n)) (at (- of_nat (Suc n)))"
-     by (rule derivative_eq_intros refl A DERIV_chain)+ 
+     by (rule derivative_eq_intros refl A DERIV_chain)+
         (simp add: algebra_simps rGamma_complex_altdef)
   thus ?case by (simp add: rGamma_complex_plus1)
 qed
@@ -1309,7 +1310,7 @@ next
   hence "z \<notin> \<int>\<^sub>\<le>\<^sub>0" by (auto elim!: nonpos_Ints_cases')
   from has_field_derivative_rGamma_complex_no_nonpos_Int[OF this]
     show "let d = (THE d. (\<lambda>n. \<Sum>k<n. inverse (of_nat (Suc k)) - inverse (z + of_nat k))
-                       \<longlonglongrightarrow> d) - euler_mascheroni *\<^sub>R 1 in  (\<lambda>y. (rGamma y - rGamma z + 
+                       \<longlonglongrightarrow> d) - euler_mascheroni *\<^sub>R 1 in  (\<lambda>y. (rGamma y - rGamma z +
               rGamma z * d * (y - z)) /\<^sub>R  cmod (y - z)) \<midarrow>z\<rightarrow> 0"
       by (simp add: has_field_derivative_def has_derivative_def Digamma_def sums_def [abs_def]
                     netlimit_at of_real_def[symmetric] suminf_def)
@@ -1323,7 +1324,7 @@ next
   fix z :: complex
   from rGamma_series_complex_converges[of z] have "rGamma_series z \<longlonglongrightarrow> rGamma z"
     by (simp add: convergent_LIMSEQ_iff rGamma_complex_def)
-  thus "let fact' = \<lambda>n. setprod of_nat {1..n}; 
+  thus "let fact' = \<lambda>n. setprod of_nat {1..n};
             exp = \<lambda>x. THE e. (\<lambda>n. \<Sum>k<n. x ^ k /\<^sub>R fact k) \<longlonglongrightarrow> e;
             pochhammer' = \<lambda>a n. \<Prod>n = 0..n. a + of_nat n
         in  (\<lambda>n. pochhammer' z n / (fact' n * exp (z * ln (real_of_nat n) *\<^sub>R 1))) \<longlonglongrightarrow> rGamma z"
@@ -1335,7 +1336,7 @@ end
 end
 
 
-lemma Gamma_complex_altdef: 
+lemma Gamma_complex_altdef:
   "Gamma z = (if z \<in> \<int>\<^sub>\<le>\<^sub>0 then 0 else exp (ln_Gamma (z :: complex)))"
   unfolding Gamma_def rGamma_complex_altdef by (simp add: exp_minus)
 
@@ -1349,8 +1350,8 @@ qed
 
 lemma cnj_Gamma: "cnj (Gamma z) = Gamma (cnj z)"
   unfolding Gamma_def by (simp add: cnj_rGamma)
-  
-lemma Gamma_complex_real: 
+
+lemma Gamma_complex_real:
   "z \<in> \<real> \<Longrightarrow> Gamma z \<in> (\<real> :: complex set)" and rGamma_complex_real: "z \<in> \<real> \<Longrightarrow> rGamma z \<in> \<real>"
   by (simp_all add: Reals_cnj_iff cnj_Gamma cnj_rGamma)
 
@@ -1375,7 +1376,7 @@ lemma analytic_on_Gamma: "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longright
      (auto intro!: holomorphic_on_Gamma)
 
 lemma has_field_derivative_rGamma_complex' [derivative_intros]:
-  "(rGamma has_field_derivative (if z \<in> \<int>\<^sub>\<le>\<^sub>0 then (-1)^(nat \<lfloor>-Re z\<rfloor>) * fact (nat \<lfloor>-Re z\<rfloor>) else 
+  "(rGamma has_field_derivative (if z \<in> \<int>\<^sub>\<le>\<^sub>0 then (-1)^(nat \<lfloor>-Re z\<rfloor>) * fact (nat \<lfloor>-Re z\<rfloor>) else
         -rGamma z * Digamma z)) (at z within A)"
   using has_field_derivative_rGamma[of z] by (auto elim!: nonpos_Ints_cases')
 
@@ -1428,21 +1429,21 @@ instance proof
   finally show "(rGamma x) = 0 \<longleftrightarrow> (\<exists>n. x = - real_of_nat n)" by simp
 next
   fix x :: real assume "\<And>n. x \<noteq> - of_nat n"
-  hence "complex_of_real x \<notin> \<int>\<^sub>\<le>\<^sub>0" 
+  hence "complex_of_real x \<notin> \<int>\<^sub>\<le>\<^sub>0"
     by (subst of_real_in_nonpos_Ints_iff) (auto elim!: nonpos_Ints_cases')
   moreover from this have "x \<noteq> 0" by auto
   ultimately have "(rGamma has_field_derivative - rGamma x * Digamma x) (at x)"
-    by (fastforce intro!: derivative_eq_intros has_vector_derivative_real_complex 
+    by (fastforce intro!: derivative_eq_intros has_vector_derivative_real_complex
                   simp: Polygamma_of_real rGamma_real_def [abs_def])
   thus "let d = (THE d. (\<lambda>n. \<Sum>k<n. inverse (of_nat (Suc k)) - inverse (x + of_nat k))
-                       \<longlonglongrightarrow> d) - euler_mascheroni *\<^sub>R 1 in  (\<lambda>y. (rGamma y - rGamma x + 
+                       \<longlonglongrightarrow> d) - euler_mascheroni *\<^sub>R 1 in  (\<lambda>y. (rGamma y - rGamma x +
               rGamma x * d * (y - x)) /\<^sub>R  norm (y - x)) \<midarrow>x\<rightarrow> 0"
       by (simp add: has_field_derivative_def has_derivative_def Digamma_def sums_def [abs_def]
                     netlimit_at of_real_def[symmetric] suminf_def)
 next
   fix n :: nat
   have "(rGamma has_field_derivative (-1)^n * fact n) (at (- of_nat n :: real))"
-    by (fastforce intro!: derivative_eq_intros has_vector_derivative_real_complex 
+    by (fastforce intro!: derivative_eq_intros has_vector_derivative_real_complex
                   simp: Polygamma_of_real rGamma_real_def [abs_def])
   thus "let x = - of_nat n in (\<lambda>y. (rGamma y - rGamma x - (- 1) ^ n * setprod of_nat {1..n} *
                   (y - x)) /\<^sub>R norm (y - x)) \<midarrow>x::real\<rightarrow> 0"
@@ -1454,7 +1455,7 @@ next
     show "(\<lambda>n. Re (rGamma_series (of_real x) n)) \<longlonglongrightarrow> rGamma x" unfolding rGamma_real_def
       by (intro tendsto_intros)
   qed (insert rGamma_series_real, simp add: eq_commute)
-  thus "let fact' = \<lambda>n. setprod of_nat {1..n}; 
+  thus "let fact' = \<lambda>n. setprod of_nat {1..n};
             exp = \<lambda>x. THE e. (\<lambda>n. \<Sum>k<n. x ^ k /\<^sub>R fact k) \<longlonglongrightarrow> e;
             pochhammer' = \<lambda>a n. \<Prod>n = 0..n. a + of_nat n
         in  (\<lambda>n. pochhammer' x n / (fact' n * exp (x * ln (real_of_nat n) *\<^sub>R 1))) \<longlonglongrightarrow> rGamma x"
@@ -1479,10 +1480,10 @@ lemma Gamma_real_altdef1: "Gamma x = lim (Gamma_series (x :: real))"
 
 lemma Gamma_real_altdef2: "Gamma x = Re (Gamma (of_real x))"
   using rGamma_complex_real[OF Reals_of_real[of x]]
-  by (elim Reals_cases) 
+  by (elim Reals_cases)
      (simp only: Gamma_def rGamma_real_def of_real_inverse[symmetric] Re_complex_of_real)
 
-lemma ln_Gamma_series_complex_of_real: 
+lemma ln_Gamma_series_complex_of_real:
   "x > 0 \<Longrightarrow> n > 0 \<Longrightarrow> ln_Gamma_series (complex_of_real x) n = of_real (ln_Gamma_series x n)"
 proof -
   assume xn: "x > 0" "n > 0"
@@ -1491,15 +1492,15 @@ proof -
   with xn show ?thesis by (simp add: ln_Gamma_series_def Ln_of_nat Ln_of_real)
 qed
 
-lemma ln_Gamma_real_converges: 
-  assumes "(x::real) > 0" 
+lemma ln_Gamma_real_converges:
+  assumes "(x::real) > 0"
   shows   "convergent (ln_Gamma_series x)"
 proof -
   have "(\<lambda>n. ln_Gamma_series (complex_of_real x) n) \<longlonglongrightarrow> ln_Gamma (of_real x)" using assms
     by (intro ln_Gamma_complex_LIMSEQ) (auto simp: of_real_in_nonpos_Ints_iff)
   moreover from eventually_gt_at_top[of "0::nat"]
-    have "eventually (\<lambda>n. complex_of_real (ln_Gamma_series x n) = 
-            ln_Gamma_series (complex_of_real x) n) sequentially" 
+    have "eventually (\<lambda>n. complex_of_real (ln_Gamma_series x n) =
+            ln_Gamma_series (complex_of_real x) n) sequentially"
     by eventually_elim (simp add: ln_Gamma_series_complex_of_real assms)
   ultimately have "(\<lambda>n. complex_of_real (ln_Gamma_series x n)) \<longlonglongrightarrow> ln_Gamma (of_real x)"
     by (subst tendsto_cong) assumption+
@@ -1512,14 +1513,14 @@ lemma ln_Gamma_real_LIMSEQ: "(x::real) > 0 \<Longrightarrow> ln_Gamma_series x \
 lemma ln_Gamma_complex_of_real: "x > 0 \<Longrightarrow> ln_Gamma (complex_of_real x) = of_real (ln_Gamma x)"
 proof (unfold ln_Gamma_def, rule limI, rule Lim_transform_eventually)
   assume x: "x > 0"
-  show "eventually (\<lambda>n. of_real (ln_Gamma_series x n) = 
-            ln_Gamma_series (complex_of_real x) n) sequentially" 
-    using eventually_gt_at_top[of "0::nat"] 
+  show "eventually (\<lambda>n. of_real (ln_Gamma_series x n) =
+            ln_Gamma_series (complex_of_real x) n) sequentially"
+    using eventually_gt_at_top[of "0::nat"]
     by eventually_elim (simp add: ln_Gamma_series_complex_of_real x)
 qed (intro tendsto_of_real, insert ln_Gamma_real_LIMSEQ[of x], simp add: ln_Gamma_def)
-     
+
 lemma Gamma_real_pos_exp: "x > (0 :: real) \<Longrightarrow> Gamma x = exp (ln_Gamma x)"
-  by (auto simp: Gamma_real_altdef2 Gamma_complex_altdef of_real_in_nonpos_Ints_iff 
+  by (auto simp: Gamma_real_altdef2 Gamma_complex_altdef of_real_in_nonpos_Ints_iff
                  ln_Gamma_complex_of_real exp_of_real)
 
 lemma ln_Gamma_real_pos: "x > 0 \<Longrightarrow> ln_Gamma x = ln (Gamma x :: real)"
@@ -1527,7 +1528,7 @@ lemma ln_Gamma_real_pos: "x > 0 \<Longrightarrow> ln_Gamma x = ln (Gamma x :: re
 
 lemma Gamma_real_pos: "x > (0::real) \<Longrightarrow> Gamma x > 0"
   by (simp add: Gamma_real_pos_exp)
-  
+
 lemma has_field_derivative_ln_Gamma_real [derivative_intros]:
   assumes x: "x > (0::real)"
   shows "(ln_Gamma has_field_derivative Digamma x) (at x)"
@@ -1544,7 +1545,7 @@ declare has_field_derivative_ln_Gamma_real[THEN DERIV_chain2, derivative_intros]
 
 
 lemma has_field_derivative_rGamma_real' [derivative_intros]:
-  "(rGamma has_field_derivative (if x \<in> \<int>\<^sub>\<le>\<^sub>0 then (-1)^(nat \<lfloor>-x\<rfloor>) * fact (nat \<lfloor>-x\<rfloor>) else 
+  "(rGamma has_field_derivative (if x \<in> \<int>\<^sub>\<le>\<^sub>0 then (-1)^(nat \<lfloor>-x\<rfloor>) * fact (nat \<lfloor>-x\<rfloor>) else
         -rGamma x * Digamma x)) (at x within A)"
   using has_field_derivative_rGamma[of x] by (force elim!: nonpos_Ints_cases')
 
@@ -1557,7 +1558,7 @@ proof -
   from assms have "x \<noteq> 0" by auto
   with assms show ?thesis
     unfolding Polygamma_def using Polygamma_converges'[of x "Suc n"]
-    by (auto simp: zero_less_power_eq simp del: power_Suc 
+    by (auto simp: zero_less_power_eq simp del: power_Suc
              dest: plus_of_nat_eq_0_imp intro!: mult_pos_pos suminf_pos)
 qed
 
@@ -1566,7 +1567,7 @@ lemma Polygamma_real_even_neg:
   shows   "Polygamma n x < 0"
   using assms unfolding Polygamma_def using Polygamma_converges'[of x "Suc n"]
   by (auto intro!: mult_pos_pos suminf_pos)
-  
+
 lemma Polygamma_real_strict_mono:
   assumes "x > 0" "x < (y::real)" "even n"
   shows   "Polygamma n x < Polygamma n y"
@@ -1575,7 +1576,7 @@ proof -
     using assms by (intro MVT2 derivative_intros impI allI) (auto elim!: nonpos_Ints_cases)
   then guess \<xi> by (elim exE conjE) note \<xi> = this
   note \<xi>(3)
-  also from \<xi>(1,2) assms have "(y - x) * Polygamma (Suc n) \<xi> > 0" 
+  also from \<xi>(1,2) assms have "(y - x) * Polygamma (Suc n) \<xi> > 0"
     by (intro mult_pos_pos Polygamma_real_odd_pos) (auto elim!: nonpos_Ints_cases)
   finally show ?thesis by simp
 qed
@@ -1588,7 +1589,7 @@ proof -
     using assms by (intro MVT2 derivative_intros impI allI) (auto elim!: nonpos_Ints_cases)
   then guess \<xi> by (elim exE conjE) note \<xi> = this
   note \<xi>(3)
-  also from \<xi>(1,2) assms have "(y - x) * Polygamma (Suc n) \<xi> < 0" 
+  also from \<xi>(1,2) assms have "(y - x) * Polygamma (Suc n) \<xi> < 0"
     by (intro mult_pos_neg Polygamma_real_even_neg) simp_all
   finally show ?thesis by simp
 qed
@@ -1596,7 +1597,7 @@ qed
 lemma Polygamma_real_mono:
   assumes "x > 0" "x \<le> (y::real)" "even n"
   shows   "Polygamma n x \<le> Polygamma n y"
-  using Polygamma_real_strict_mono[OF assms(1) _ assms(3), of y] assms(2) 
+  using Polygamma_real_strict_mono[OF assms(1) _ assms(3), of y] assms(2)
   by (cases "x = y") simp_all
 
 lemma Digamma_real_ge_three_halves_pos:
@@ -1616,11 +1617,11 @@ proof -
     using assms by (intro MVT2 derivative_intros impI allI) (auto elim!: nonpos_Ints_cases)
   then guess \<xi> by (elim exE conjE) note \<xi> = this
   note \<xi>(3)
-  also from \<xi>(1,2) assms have "(y - x) * Digamma \<xi> > 0" 
+  also from \<xi>(1,2) assms have "(y - x) * Digamma \<xi> > 0"
     by (intro mult_pos_pos Digamma_real_ge_three_halves_pos) simp_all
   finally show ?thesis by simp
-qed  
-  
+qed
+
 lemma Gamma_real_strict_mono:
   assumes "x \<ge> 3/2" "x < y"
   shows   "Gamma (x :: real) < Gamma y"
@@ -1633,7 +1634,7 @@ qed
 
 lemma log_convex_Gamma_real: "convex_on {0<..} (ln \<circ> Gamma :: real \<Rightarrow> real)"
   by (rule convex_on_realI[of _ _ Digamma])
-     (auto intro!: derivative_eq_intros Polygamma_real_mono Gamma_real_pos 
+     (auto intro!: derivative_eq_intros Polygamma_real_mono Gamma_real_pos
            simp: o_def Gamma_eq_zero_iff elim!: nonpos_Ints_cases')
 
 
@@ -1649,21 +1650,21 @@ lemma Beta_commute: "Beta a b = Beta b a"
 
 lemma has_field_derivative_Beta1 [derivative_intros]:
   assumes "x \<notin> \<int>\<^sub>\<le>\<^sub>0" "x + y \<notin> \<int>\<^sub>\<le>\<^sub>0"
-  shows   "((\<lambda>x. Beta x y) has_field_derivative (Beta x y * (Digamma x - Digamma (x + y)))) 
+  shows   "((\<lambda>x. Beta x y) has_field_derivative (Beta x y * (Digamma x - Digamma (x + y))))
                (at x within A)" unfolding Beta_altdef
   by (rule DERIV_cong, (rule derivative_intros assms)+) (simp add: algebra_simps)
 
 lemma has_field_derivative_Beta2 [derivative_intros]:
   assumes "y \<notin> \<int>\<^sub>\<le>\<^sub>0" "x + y \<notin> \<int>\<^sub>\<le>\<^sub>0"
-  shows   "((\<lambda>y. Beta x y) has_field_derivative (Beta x y * (Digamma y - Digamma (x + y)))) 
+  shows   "((\<lambda>y. Beta x y) has_field_derivative (Beta x y * (Digamma y - Digamma (x + y))))
                (at y within A)"
   using has_field_derivative_Beta1[of y x A] assms by (simp add: Beta_commute add_ac)
 
-lemma Beta_plus1_plus1: 
-  assumes "x \<notin> \<int>\<^sub>\<le>\<^sub>0" "y \<notin> \<int>\<^sub>\<le>\<^sub>0" 
+lemma Beta_plus1_plus1:
+  assumes "x \<notin> \<int>\<^sub>\<le>\<^sub>0" "y \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "Beta (x + 1) y + Beta x (y + 1) = Beta x y"
 proof -
-  have "Beta (x + 1) y + Beta x (y + 1) = 
+  have "Beta (x + 1) y + Beta x (y + 1) =
             (Gamma (x + 1) * Gamma y + Gamma x * Gamma (y + 1)) * rGamma ((x + y) + 1)"
     by (simp add: Beta_altdef add_divide_distrib algebra_simps)
   also have "\<dots> = (Gamma x * Gamma y) * ((x + y) * rGamma ((x + y) + 1))"
@@ -1672,7 +1673,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Beta_plus1_left: 
+lemma Beta_plus1_left:
   assumes "x \<notin> \<int>\<^sub>\<le>\<^sub>0" "y \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "(x + y) * Beta (x + 1) y = x * Beta x y"
 proof -
@@ -1683,7 +1684,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Beta_plus1_right: 
+lemma Beta_plus1_right:
   assumes "x \<notin> \<int>\<^sub>\<le>\<^sub>0" "y \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "(x + y) * Beta x (y + 1) = y * Beta x y"
   using Beta_plus1_left[of y x] assms by (simp add: Beta_commute add.commute)
@@ -1707,11 +1708,11 @@ private lemma Gamma_legendre_duplication_aux:
   shows "Gamma z * Gamma (z + 1/2) = exp ((1 - 2*z) * of_real (ln 2)) * Gamma (1/2) * Gamma (2*z)"
 proof -
   let ?powr = "\<lambda>b a. exp (a * of_real (ln (of_nat b)))"
-  let ?h = "\<lambda>n. (fact (n-1))\<^sup>2 / fact (2*n-1) * of_nat (2^(2*n)) * 
+  let ?h = "\<lambda>n. (fact (n-1))\<^sup>2 / fact (2*n-1) * of_nat (2^(2*n)) *
                 exp (1/2 * of_real (ln (real_of_nat n)))"
   {
     fix z :: 'a assume z: "z \<notin> \<int>\<^sub>\<le>\<^sub>0" "z + 1/2 \<notin> \<int>\<^sub>\<le>\<^sub>0"
-    let ?g = "\<lambda>n. ?powr 2 (2*z) * Gamma_series' z n * Gamma_series' (z + 1/2) n / 
+    let ?g = "\<lambda>n. ?powr 2 (2*z) * Gamma_series' z n * Gamma_series' (z + 1/2) n /
                       Gamma_series' (2*z) (2*n)"
     have "eventually (\<lambda>n. ?g n = ?h n) sequentially" using eventually_gt_at_top
     proof eventually_elim
@@ -1721,21 +1722,21 @@ proof -
       have A: "Gamma_series' z n * Gamma_series' (z + 1/2) n = ?f^2 * ?powr n (2*z + 1/2) /
                 (pochhammer z n * pochhammer (z + 1/2) n)"
         by (simp add: Gamma_series'_def exp_add ring_distribs power2_eq_square A mult_ac)
-      have B: "Gamma_series' (2*z) (2*n) = 
-                       ?f' * ?powr 2 (2*z) * ?powr n (2*z) / 
+      have B: "Gamma_series' (2*z) (2*n) =
+                       ?f' * ?powr 2 (2*z) * ?powr n (2*z) /
                        (of_nat (2^(2*n)) * pochhammer z n * pochhammer (z+1/2) n)" using n
         by (simp add: Gamma_series'_def ln_mult exp_add ring_distribs pochhammer_double)
       from z have "pochhammer z n \<noteq> 0" by (auto dest: pochhammer_eq_0_imp_nonpos_Int)
       moreover from z have "pochhammer (z + 1/2) n \<noteq> 0" by (auto dest: pochhammer_eq_0_imp_nonpos_Int)
-      ultimately have "?powr 2 (2*z) * (Gamma_series' z n * Gamma_series' (z + 1/2) n) / Gamma_series' (2*z) (2*n) = 
+      ultimately have "?powr 2 (2*z) * (Gamma_series' z n * Gamma_series' (z + 1/2) n) / Gamma_series' (2*z) (2*n) =
          ?f^2 / ?f' * of_nat (2^(2*n)) * (?powr n ((4*z + 1)/2) * ?powr n (-2*z))"
         using n unfolding A B by (simp add: divide_simps exp_minus)
       also have "?powr n ((4*z + 1)/2) * ?powr n (-2*z) = ?powr n (1/2)"
         by (simp add: algebra_simps exp_add[symmetric] add_divide_distrib)
       finally show "?g n = ?h n" by (simp only: mult_ac)
     qed
-    
-    moreover from z double_in_nonpos_Ints_imp[of z] have "2 * z \<notin> \<int>\<^sub>\<le>\<^sub>0" by auto     
+
+    moreover from z double_in_nonpos_Ints_imp[of z] have "2 * z \<notin> \<int>\<^sub>\<le>\<^sub>0" by auto
     hence "?g \<longlonglongrightarrow> ?powr 2 (2*z) * Gamma z * Gamma (z+1/2) / Gamma (2*z)"
       using lim_subseq[of "op * 2", OF _ Gamma_series'_LIMSEQ, of "2*z"]
       by (intro tendsto_intros Gamma_series'_LIMSEQ)
@@ -1743,8 +1744,8 @@ proof -
     ultimately have "?h \<longlonglongrightarrow> ?powr 2 (2*z) * Gamma z * Gamma (z+1/2) / Gamma (2*z)"
       by (rule Lim_transform_eventually)
   } note lim = this
-  
-  from assms double_in_nonpos_Ints_imp[of z] have z': "2 * z \<notin> \<int>\<^sub>\<le>\<^sub>0" by auto  
+
+  from assms double_in_nonpos_Ints_imp[of z] have z': "2 * z \<notin> \<int>\<^sub>\<le>\<^sub>0" by auto
   from fraction_not_in_ints[of 2 1] have "(1/2 :: 'a) \<notin> \<int>\<^sub>\<le>\<^sub>0"
     by (intro not_in_Ints_imp_not_in_nonpos_Ints) simp_all
   with lim[of "1/2 :: 'a"] have "?h \<longlonglongrightarrow> 2 * Gamma (1 / 2 :: 'a)" by (simp add: exp_of_real)
@@ -1752,10 +1753,10 @@ proof -
     by (simp add: divide_simps Gamma_eq_zero_iff ring_distribs exp_diff exp_of_real ac_simps)
 qed
 
-(* TODO: perhaps this is unnecessary once we have the fact that a holomorphic function is 
+(* TODO: perhaps this is unnecessary once we have the fact that a holomorphic function is
    infinitely differentiable *)
 private lemma Gamma_reflection_aux:
-  defines "h \<equiv> \<lambda>z::complex. if z \<in> \<int> then 0 else 
+  defines "h \<equiv> \<lambda>z::complex. if z \<in> \<int> then 0 else
                  (of_real pi * cot (of_real pi*z) + Digamma z - Digamma (1 - z))"
   defines "a \<equiv> complex_of_real pi"
   obtains h' where "continuous_on UNIV h'" "\<And>z. (h has_field_derivative (h' z)) (at z)"
@@ -1766,7 +1767,7 @@ proof -
   def G \<equiv> "\<lambda>z. if z = 0 then 1 else sin (a*z)/(a*z)"
   have a_nz: "a \<noteq> 0" unfolding a_def by simp
 
-  have "(\<lambda>n. f n * (a*z)^n) sums (F z) \<and> (\<lambda>n. g n * (a*z)^n) sums (G z)" 
+  have "(\<lambda>n. f n * (a*z)^n) sums (F z) \<and> (\<lambda>n. g n * (a*z)^n) sums (G z)"
     if "abs (Re z) < 1" for z
   proof (cases "z = 0"; rule conjI)
     assume "z \<noteq> 0"
@@ -1775,14 +1776,14 @@ proof -
     from z have sin_nz: "sin (a*z) \<noteq> 0" unfolding a_def by (auto simp: sin_eq_0)
     have "(\<lambda>n. of_real (sin_coeff n) * (a*z)^n) sums (sin (a*z))" using sin_converges[of "a*z"]
       by (simp add: scaleR_conv_of_real)
-    from sums_split_initial_segment[OF this, of 1] 
+    from sums_split_initial_segment[OF this, of 1]
       have "(\<lambda>n. (a*z) * of_real (sin_coeff (n+1)) * (a*z)^n) sums (sin (a*z))" by (simp add: mult_ac)
     from sums_mult[OF this, of "inverse (a*z)"] z a_nz
       have A: "(\<lambda>n. g n * (a*z)^n) sums (sin (a*z)/(a*z))"
       by (simp add: field_simps g_def)
     with z show "(\<lambda>n. g n * (a*z)^n) sums (G z)" by (simp add: G_def)
     from A z a_nz sin_nz have g_nz: "(\<Sum>n. g n * (a*z)^n) \<noteq> 0" by (simp add: sums_iff g_def)
-  
+
     have [simp]: "sin_coeff (Suc 0) = 1" by (simp add: sin_coeff_def)
     from sums_split_initial_segment[OF sums_diff[OF cos_converges[of "a*z"] A], of 1]
     have "(\<lambda>n. z * f n * (a*z)^n) sums (cos (a*z) - sin (a*z) / (a*z))"
@@ -1792,26 +1793,26 @@ proof -
   next
     assume z: "z = 0"
     have "(\<lambda>n. f n * (a * z) ^ n) sums f 0" using powser_sums_zero[of f] z by simp
-    with z show "(\<lambda>n. f n * (a * z) ^ n) sums (F z)" 
+    with z show "(\<lambda>n. f n * (a * z) ^ n) sums (F z)"
       by (simp add: f_def F_def sin_coeff_def cos_coeff_def)
     have "(\<lambda>n. g n * (a * z) ^ n) sums g 0" using powser_sums_zero[of g] z by simp
-    with z show "(\<lambda>n. g n * (a * z) ^ n) sums (G z)" 
+    with z show "(\<lambda>n. g n * (a * z) ^ n) sums (G z)"
       by (simp add: g_def G_def sin_coeff_def cos_coeff_def)
   qed
   note sums = conjunct1[OF this] conjunct2[OF this]
-  
-  def h2 \<equiv> "\<lambda>z. (\<Sum>n. f n * (a*z)^n) / (\<Sum>n. g n * (a*z)^n) + 
+
+  def h2 \<equiv> "\<lambda>z. (\<Sum>n. f n * (a*z)^n) / (\<Sum>n. g n * (a*z)^n) +
             Digamma (1 + z) - Digamma (1 - z)"
   def POWSER \<equiv> "\<lambda>f z. (\<Sum>n. f n * (z^n :: complex))"
   def POWSER' \<equiv> "\<lambda>f z. (\<Sum>n. diffs f n * (z^n :: complex))"
 
-  def h2' \<equiv> "\<lambda>z. a * (POWSER g (a*z) * POWSER' f (a*z) - POWSER f (a*z) * POWSER' g (a*z)) / 
-                     (POWSER g (a*z))^2 + Polygamma 1 (1 + z) + Polygamma 1 (1 - z)" 
-  
+  def h2' \<equiv> "\<lambda>z. a * (POWSER g (a*z) * POWSER' f (a*z) - POWSER f (a*z) * POWSER' g (a*z)) /
+                     (POWSER g (a*z))^2 + Polygamma 1 (1 + z) + Polygamma 1 (1 - z)"
+
   have h_eq: "h t = h2 t" if "abs (Re t) < 1" for t
   proof -
     from that have t: "t \<in> \<int> \<longleftrightarrow> t = 0" by (auto elim!: Ints_cases simp: dist_0_norm)
-    hence "h t = a*cot (a*t) - 1/t + Digamma (1 + t) - Digamma (1 - t)" 
+    hence "h t = a*cot (a*t) - 1/t + Digamma (1 + t) - Digamma (1 - t)"
       unfolding h_def using Digamma_plus1[of t] by (force simp: field_simps a_def)
     also have "a*cot (a*t) - 1/t = (F t) / (G t)"
       using t by (auto simp add: divide_simps sin_eq_0 cot_def a_def F_def G_def)
@@ -1819,14 +1820,14 @@ proof -
       using sums[of t] that by (simp add: sums_iff dist_0_norm)
     finally show "h t = h2 t" by (simp only: h2_def)
   qed
-  
-  let ?A = "{z. abs (Re z) < 1}"  
+
+  let ?A = "{z. abs (Re z) < 1}"
   have "open ({z. Re z < 1} \<inter> {z. Re z > -1})"
     using open_halfspace_Re_gt open_halfspace_Re_lt by auto
   also have "({z. Re z < 1} \<inter> {z. Re z > -1}) = {z. abs (Re z) < 1}" by auto
   finally have open_A: "open ?A" .
   hence [simp]: "interior ?A = ?A" by (simp add: interior_open)
-  
+
   have summable_f: "summable (\<lambda>n. f n * z^n)" for z
     by (rule powser_inside, rule sums_summable, rule sums[of "\<i> * of_real (norm z + 1) / a"])
        (simp_all add: norm_mult a_def del: of_real_add)
@@ -1837,10 +1838,10 @@ proof -
     by (intro termdiff_converges_all summable_f summable_g)+
   have "(POWSER f has_field_derivative (POWSER' f z)) (at z)"
                "(POWSER g has_field_derivative (POWSER' g z)) (at z)" for z
-    unfolding POWSER_def POWSER'_def 
+    unfolding POWSER_def POWSER'_def
     by (intro termdiffs_strong_converges_everywhere summable_f summable_g)+
   note derivs = this[THEN DERIV_chain2[OF _ DERIV_cmult[OF DERIV_ident]], unfolded POWSER_def]
-  have "isCont (POWSER f) z" "isCont (POWSER g) z" "isCont (POWSER' f) z" "isCont (POWSER' g) z" 
+  have "isCont (POWSER f) z" "isCont (POWSER g) z" "isCont (POWSER' f) z" "isCont (POWSER' g) z"
     for z unfolding POWSER_def POWSER'_def
     by (intro isCont_powser_converges_everywhere summable_f summable_g summable_fg')+
   note cont = this[THEN isCont_o2[rotated], unfolded POWSER_def POWSER'_def]
@@ -1850,9 +1851,9 @@ proof -
     def d \<equiv> "\<i> * of_real (norm z + 1)"
     have d: "abs (Re d) < 1" "norm z < norm d" by (simp_all add: d_def norm_mult del: of_real_add)
     have "eventually (\<lambda>z. h z = h2 z) (nhds z)"
-      using eventually_nhds_in_nhd[of z ?A] using h_eq z 
+      using eventually_nhds_in_nhd[of z ?A] using h_eq z
       by (auto elim!: eventually_mono simp: dist_0_norm)
-    
+
     moreover from sums(2)[OF z] z have nz: "(\<Sum>n. g n * (a * z) ^ n) \<noteq> 0"
       unfolding G_def by (auto simp: sums_iff sin_eq_0 a_def)
     have A: "z \<in> \<int> \<longleftrightarrow> z = 0" using z by (auto elim!: Ints_cases)
@@ -1864,13 +1865,13 @@ proof -
     have "(h2 has_field_derivative h2' z) (at z)" unfolding h2_def
       by (rule DERIV_cong, (rule derivative_intros refl derivs[unfolded POWSER_def] nz no_int)+)
          (auto simp: h2'_def POWSER_def field_simps power2_eq_square)
-    ultimately have deriv: "(h has_field_derivative h2' z) (at z)" 
+    ultimately have deriv: "(h has_field_derivative h2' z) (at z)"
       by (subst DERIV_cong_ev[OF refl _ refl])
-    
+
     from sums(2)[OF z] z have "(\<Sum>n. g n * (a * z) ^ n) \<noteq> 0"
       unfolding G_def by (auto simp: sums_iff a_def sin_eq_0)
     hence "isCont h2' z" using no_int unfolding h2'_def[abs_def] POWSER_def POWSER'_def
-      by (intro continuous_intros cont 
+      by (intro continuous_intros cont
             continuous_on_compose2[OF _ continuous_on_Polygamma[of "{z. Re z > 0}"]]) auto
     note deriv and this
   } note A = this
@@ -1884,11 +1885,11 @@ proof -
       hence A: "z + 1 \<notin> \<int>" "z \<noteq> 0" using Ints_diff[of "z+1" 1] by auto
       hence "Digamma (z + 1) - Digamma (-z) = Digamma z - Digamma (-z + 1)"
         by (subst (1 2) Digamma_plus1) simp_all
-      with A z show "h (z + 1) = h z" 
+      with A z show "h (z + 1) = h z"
         by (simp add: h_def sin_plus_pi cos_plus_pi ring_distribs cot_def)
     qed (simp add: h_def)
   qed
-  
+
   have h2'_eq: "h2' (z - 1) = h2' z" if z: "Re z > 0" "Re z < 1" for z
   proof -
     have "((\<lambda>z. h (z - 1)) has_field_derivative h2' (z - 1)) (at z)"
@@ -1909,11 +1910,11 @@ proof -
                             (insert B, auto intro!: derivative_intros)
     thus "(h has_field_derivative h2'' z) (at z)" by (simp add: h.minus_of_int)
   qed
-  
+
   have cont: "continuous_on UNIV h2''"
   proof (intro continuous_at_imp_continuous_on ballI)
     fix z :: complex
-    def r \<equiv> "\<lfloor>Re z\<rfloor>" 
+    def r \<equiv> "\<lfloor>Re z\<rfloor>"
     def A \<equiv> "{t. of_int r - 1 < Re t \<and> Re t < of_int r + 1}"
     have "continuous_on A (\<lambda>t. h2' (t - of_int r))" unfolding A_def
       by (intro continuous_at_imp_continuous_on isCont_o2[OF _ A(2)] ballI continuous_intros)
@@ -1921,7 +1922,7 @@ proof -
     moreover have "h2'' t = h2' (t - of_int r)" if t: "t \<in> A" for t
     proof (cases "Re t \<ge> of_int r")
       case True
-      from t have "of_int r - 1 < Re t" "Re t < of_int r + 1" by (simp_all add: A_def) 
+      from t have "of_int r - 1 < Re t" "Re t < of_int r + 1" by (simp_all add: A_def)
       with True have "\<lfloor>Re t\<rfloor> = \<lfloor>Re z\<rfloor>" unfolding r_def by linarith
       thus ?thesis by (auto simp: r_def h2''_def)
     next
@@ -1945,11 +1946,11 @@ proof -
     have "of_int r - 1 < Re z" "Re z  < of_int r + 1" unfolding r_def by linarith+
     thus "isCont h2'' z" by (intro C) (simp_all add: A_def)
   qed
-  
+
   from that[OF cont deriv] show ?thesis .
 qed
 
-lemma Gamma_reflection_complex: 
+lemma Gamma_reflection_complex:
   fixes z :: complex
   shows "Gamma z * Gamma (1 - z) = of_real pi / sin (of_real pi * z)"
 proof -
@@ -1966,13 +1967,13 @@ proof -
     proof (cases "z \<in> \<int>")
       case False
       hence "z * g z = z * Beta z (- z + 1) * sin (of_real pi * z)" by (simp add: g_def Beta_def)
-      also have "z * Beta z (- z + 1) = (z + 1 + -z) * Beta (z + 1) (- z + 1)" 
+      also have "z * Beta z (- z + 1) = (z + 1 + -z) * Beta (z + 1) (- z + 1)"
         using False Ints_diff[of 1 "1 - z"] nonpos_Ints_subset_Ints
         by (subst Beta_plus1_left [symmetric]) auto
       also have "\<dots> * sin (of_real pi * z) = z * (Beta (z + 1) (-z) * sin (of_real pi * (z + 1)))"
         using False Ints_diff[of "z+1" 1] Ints_minus[of "-z"] nonpos_Ints_subset_Ints
         by (subst Beta_plus1_right) (auto simp: ring_distribs sin_plus_pi)
-      also from False have "Beta (z + 1) (-z) * sin (of_real pi * (z + 1)) = g (z + 1)" 
+      also from False have "Beta (z + 1) (-z) * sin (of_real pi * (z + 1)) = g (z + 1)"
         using Ints_diff[of "z+1" 1] by (auto simp: g_def Beta_def)
       finally show "g (z + 1) = g z" using False by (subst (asm) mult_left_cancel) auto
     qed (simp add: g_def)
@@ -1988,7 +1989,7 @@ proof -
       by (intro eventually_nhds_in_open) (auto simp: open_Diff)
     hence "eventually (\<lambda>t. g t = ?g t) (nhds z)" by eventually_elim (simp add: g_def)
     moreover {
-      from False Ints_diff[of 1 "1-z"] have "1 - z \<notin> \<int>" by auto 
+      from False Ints_diff[of 1 "1-z"] have "1 - z \<notin> \<int>" by auto
       hence "(?g has_field_derivative ?h' z) (at z)" using nonpos_Ints_subset_Ints
         by (auto intro!: derivative_eq_intros simp: algebra_simps Beta_def)
       also from False have "sin (of_real pi * z) \<noteq> 0" by (subst sin_eq_0) auto
@@ -2016,12 +2017,12 @@ proof -
         qed (simp add: g_def)
       qed
       have "(?t has_field_derivative (0 * of_real pi)) (at 0)"
-        using has_field_derivative_sin_z_over_z[of "UNIV :: complex set"] 
+        using has_field_derivative_sin_z_over_z[of "UNIV :: complex set"]
         by (intro DERIV_chain) simp_all
       thus "((\<lambda>z. of_real pi * Gamma (1 + z) * Gamma (1 - z) * ?t z) has_field_derivative 0) (at 0)"
         by (auto intro!: derivative_eq_intros simp: o_def)
     qed
-    
+
     have "((g \<circ> (\<lambda>x. x - of_int n)) has_field_derivative 0 * 1) (at (of_int n))"
       using deriv_0 by (intro DERIV_chain) (auto intro!: derivative_eq_intros)
     also have "g \<circ> (\<lambda>x. x - of_int n) = g" by (intro ext) (simp add: g.minus_of_int)
@@ -2042,18 +2043,18 @@ proof -
     case False
     hence z: "z/2 \<notin> \<int>" "(z+1)/2 \<notin> \<int>" using Ints_diff[of "z+1" 1] by (auto elim!: Ints_cases)
     hence z': "z/2 \<notin> \<int>\<^sub>\<le>\<^sub>0" "(z+1)/2 \<notin> \<int>\<^sub>\<le>\<^sub>0" by (auto elim!: nonpos_Ints_cases)
-    from z have "1-z/2 \<notin> \<int>" "1-((z+1)/2) \<notin> \<int>" 
+    from z have "1-z/2 \<notin> \<int>" "1-((z+1)/2) \<notin> \<int>"
       using Ints_diff[of 1 "1-z/2"] Ints_diff[of 1 "1-((z+1)/2)"] by auto
     hence z'': "1-z/2 \<notin> \<int>\<^sub>\<le>\<^sub>0" "1-((z+1)/2) \<notin> \<int>\<^sub>\<le>\<^sub>0" by (auto elim!: nonpos_Ints_cases)
-    from z have "g (z/2) * g ((z+1)/2) = 
+    from z have "g (z/2) * g ((z+1)/2) =
       (Gamma (z/2) * Gamma ((z+1)/2)) * (Gamma (1-z/2) * Gamma (1-((z+1)/2))) *
       (sin (of_real pi * z/2) * sin (of_real pi * (z+1)/2))"
       by (simp add: g_def)
-    also from z' Gamma_legendre_duplication_aux[of "z/2"] 
+    also from z' Gamma_legendre_duplication_aux[of "z/2"]
       have "Gamma (z/2) * Gamma ((z+1)/2) = exp ((1-z) * of_real (ln 2)) * Gamma (1/2) * Gamma z"
       by (simp add: add_divide_distrib)
     also from z'' Gamma_legendre_duplication_aux[of "1-(z+1)/2"]
-      have "Gamma (1-z/2) * Gamma (1-(z+1)/2) = 
+      have "Gamma (1-z/2) * Gamma (1-(z+1)/2) =
               Gamma (1-z) * Gamma (1/2) * exp (z * of_real (ln 2))"
       by (simp add: add_divide_distrib ac_simps)
     finally have "g (z/2) * g ((z+1)/2) = Gamma (1/2)^2 * (Gamma z * Gamma (1-z) *
@@ -2074,8 +2075,8 @@ proof -
     have "Gamma (1/2)^2 * g z = Gamma (1/2)^2 * g (z - of_int (2*r))" by (simp only: g.minus_of_int)
     also have "of_int (2*r) = 2 * of_int r" by simp
     also have "Re z - 2 * of_int r > -1" "Re z - 2 * of_int r < 2" unfolding r_def by linarith+
-    hence "Gamma (1/2)^2 * g (z - 2 * of_int r) = 
-                   g ((z - 2 * of_int r)/2) * g ((z - 2 * of_int r + 1)/2)" 
+    hence "Gamma (1/2)^2 * g (z - 2 * of_int r) =
+                   g ((z - 2 * of_int r)/2) * g ((z - 2 * of_int r + 1)/2)"
       unfolding r_def by (intro g_eq[symmetric]) simp_all
     also have "(z - 2 * of_int r) / 2 = z/2 - of_int r" by simp
     also have "g \<dots> = g (z/2)" by (rule g.minus_of_int)
@@ -2083,11 +2084,11 @@ proof -
     also have "g \<dots> = g ((z+1)/2)" by (rule g.minus_of_int)
     finally show ?thesis ..
   qed
-    
+
   have g_nz [simp]: "g z \<noteq> 0" for z :: complex
   unfolding g_def using Ints_diff[of 1 "1 - z"]
     by (auto simp: Gamma_eq_zero_iff sin_eq_0 dest!: nonpos_Ints_Int)
-  
+
   have h_eq: "h z = (h (z/2) + h ((z+1)/2)) / 2" for z
   proof -
     have "((\<lambda>t. g (t/2) * g ((t+1)/2)) has_field_derivative
@@ -2106,28 +2107,28 @@ proof -
       by (intro DERIV_unique)
     thus "h z = (h (z/2) + h ((z+1)/2)) / 2" by simp
   qed
-  
+
   obtain h' where h'_cont: "continuous_on UNIV h'" and
                   h_h': "\<And>z. (h has_field_derivative h' z) (at z)"
-     unfolding h_def by (erule Gamma_reflection_aux) 
-  
+     unfolding h_def by (erule Gamma_reflection_aux)
+
   have h'_eq: "h' z = (h' (z/2) + h' ((z+1)/2)) / 4" for z
   proof -
     have "((\<lambda>t. (h (t/2) + h ((t+1)/2)) / 2) has_field_derivative
-                       ((h' (z/2) + h' ((z+1)/2)) / 4)) (at z)" 
+                       ((h' (z/2) + h' ((z+1)/2)) / 4)) (at z)"
       by (fastforce intro!: derivative_eq_intros h_h'[THEN DERIV_chain2])
     hence "(h has_field_derivative ((h' (z/2) + h' ((z+1)/2))/4)) (at z)"
       by (subst (asm) h_eq[symmetric])
     from h_h' and this show "h' z = (h' (z/2) + h' ((z+1)/2)) / 4" by (rule DERIV_unique)
   qed
-  
+
   have h'_zero: "h' z = 0" for z
   proof -
     def m \<equiv> "max 1 \<bar>Re z\<bar>"
     def B \<equiv> "{t. abs (Re t) \<le> m \<and> abs (Im t) \<le> abs (Im z)}"
-    have "closed ({t. Re t \<ge> -m} \<inter> {t. Re t \<le> m} \<inter> 
+    have "closed ({t. Re t \<ge> -m} \<inter> {t. Re t \<le> m} \<inter>
                   {t. Im t \<ge> -\<bar>Im z\<bar>} \<inter> {t. Im t \<le> \<bar>Im z\<bar>})"
-      (is "closed ?B") by (intro closed_Int closed_halfspace_Re_ge closed_halfspace_Re_le 
+      (is "closed ?B") by (intro closed_Int closed_halfspace_Re_ge closed_halfspace_Re_le
                                  closed_halfspace_Im_ge closed_halfspace_Im_le)
     also have "?B = B" unfolding B_def by fastforce
     finally have "closed B" .
@@ -2140,7 +2141,7 @@ proof -
       finally show "norm t \<le> m + \<bar>Im z\<bar>" by - simp
     qed
     ultimately have compact: "compact B" by (subst compact_eq_bounded_closed) blast
-    
+
     def M \<equiv> "SUP z:B. norm (h' z)"
     have "compact (h' ` B)"
       by (intro compact_continuous_image continuous_on_subset[OF h'_cont] compact) blast+
@@ -2160,8 +2161,8 @@ proof -
         also have "norm (h' (t/2) + h' ((t+1)/2)) \<le> norm (h' (t/2)) + norm (h' ((t+1)/2))"
           by (rule norm_triangle_ineq)
         also from t have "abs (Re ((t + 1)/2)) \<le> m" unfolding m_def B_def by auto
-        with t have "t/2 \<in> B" "(t+1)/2 \<in> B" unfolding B_def by auto        
-        hence "norm (h' (t/2)) + norm (h' ((t+1)/2)) \<le> M + M" unfolding M_def 
+        with t have "t/2 \<in> B" "(t+1)/2 \<in> B" unfolding B_def by auto
+        hence "norm (h' (t/2)) + norm (h' ((t+1)/2)) \<le> M + M" unfolding M_def
           by (intro add_mono cSUP_upper bdd) (auto simp: B_def)
         also have "(M + M) / 4 = M / 2" by simp
         finally show "norm (h' t) \<le> M/2" by - simp_all
@@ -2172,14 +2173,14 @@ proof -
   qed
   have h_h'_2: "(h has_field_derivative 0) (at z)" for z
     using h_h'[of z] h'_zero[of z] by simp
-  
+
   have g_real: "g z \<in> \<real>" if "z \<in> \<real>" for z
     unfolding g_def using that by (auto intro!: Reals_mult Gamma_complex_real)
   have h_real: "h z \<in> \<real>" if "z \<in> \<real>" for z
     unfolding h_def using that by (auto intro!: Reals_mult Reals_add Reals_diff Polygamma_Real)
   have g_nz: "g z \<noteq> 0" for z unfolding g_def using Ints_diff[of 1 "1-z"]
     by (auto simp: Gamma_eq_zero_iff sin_eq_0)
-  
+
   from h'_zero h_h'_2 have "\<exists>c. \<forall>z\<in>UNIV. h z = c"
     by (intro has_field_derivative_zero_constant) (simp_all add: dist_0_norm)
   then obtain c where c: "\<And>z. h z = c" by auto
@@ -2187,7 +2188,7 @@ proof -
     by (intro complex_mvt_line g_g')
     find_theorems name:deriv Reals
   then guess u by (elim exE conjE) note u = this
-  from u(1) have u': "u \<in> \<real>" unfolding closed_segment_def 
+  from u(1) have u': "u \<in> \<real>" unfolding closed_segment_def
     by (auto simp: scaleR_conv_of_real)
   from u' g_real[of u] g_nz[of u] have "Re (g u) \<noteq> 0" by (auto elim!: Reals_cases)
   with u(2) c[of u] g_real[of u] g_nz[of u] u'
@@ -2199,7 +2200,7 @@ proof -
   then obtain c' where c: "\<And>z. g z = c'" by (force simp: dist_0_norm)
   moreover from this[of 0] have "c' = pi" unfolding g_def by simp
   ultimately have "g z = pi" by simp
-  
+
   show ?thesis
   proof (cases "z \<in> \<int>")
     case False
@@ -2214,12 +2215,12 @@ proof -
   qed
 qed
 
-lemma rGamma_reflection_complex: 
+lemma rGamma_reflection_complex:
   "rGamma z * rGamma (1 - z :: complex) = sin (of_real pi * z) / of_real pi"
   using Gamma_reflection_complex[of z]
     by (simp add: Gamma_def divide_simps split: split_if_asm)
 
-lemma rGamma_reflection_complex': 
+lemma rGamma_reflection_complex':
   "rGamma z * rGamma (- z :: complex) = -z * sin (of_real pi * z) / of_real pi"
 proof -
   have "rGamma z * rGamma (-z) = -z * (rGamma z * rGamma (1 - z))"
@@ -2229,7 +2230,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma Gamma_reflection_complex': 
+lemma Gamma_reflection_complex':
   "Gamma z * Gamma (- z :: complex) = - of_real pi / (z * sin (of_real pi * z))"
   using rGamma_reflection_complex'[of z] by (force simp add: Gamma_def divide_simps mult_ac)
 
@@ -2256,7 +2257,7 @@ qed
 lemma Gamma_legendre_duplication:
   fixes z :: complex
   assumes "z \<notin> \<int>\<^sub>\<le>\<^sub>0" "z + 1/2 \<notin> \<int>\<^sub>\<le>\<^sub>0"
-  shows "Gamma z * Gamma (z + 1/2) = 
+  shows "Gamma z * Gamma (z + 1/2) =
              exp ((1 - 2*z) * of_real (ln 2)) * of_real (sqrt pi) * Gamma (2*z)"
   using Gamma_legendre_duplication_aux[OF assms] by (simp add: Gamma_one_half_complex)
 
@@ -2269,12 +2270,12 @@ text \<open>
   The inverse of the Gamma function has simple zeros:
 \<close>
 
-lemma rGamma_zeros: 
+lemma rGamma_zeros:
   "(\<lambda>z. rGamma z / (z + of_nat n)) \<midarrow> (- of_nat n) \<rightarrow> ((-1)^n * fact n :: 'a :: Gamma)"
 proof (subst tendsto_cong)
   let ?f = "\<lambda>z. pochhammer z n * rGamma (z + of_nat (Suc n)) :: 'a"
   from eventually_at_ball'[OF zero_less_one, of "- of_nat n :: 'a" UNIV]
-    show "eventually (\<lambda>z. rGamma z / (z + of_nat n) = ?f z) (at (- of_nat n))" 
+    show "eventually (\<lambda>z. rGamma z / (z + of_nat n) = ?f z) (at (- of_nat n))"
     by (subst pochhammer_rGamma[of _ "Suc n"])
        (auto elim!: eventually_mono simp: divide_simps pochhammer_rec' eq_neg_iff_add_eq_0)
   have "isCont ?f (- of_nat n)" by (intro continuous_intros)
@@ -2284,7 +2285,7 @@ qed
 
 
 text \<open>
-  The simple zeros of the inverse of the Gamma function correspond to simple poles of the Gamma function, 
+  The simple zeros of the inverse of the Gamma function correspond to simple poles of the Gamma function,
   and their residues can easily be computed from the limit we have just proven:
 \<close>
 
@@ -2294,27 +2295,27 @@ proof -
     have "eventually (\<lambda>z. rGamma z \<noteq> (0 :: 'a)) (at (- of_nat n))"
     by (auto elim!: eventually_mono nonpos_Ints_cases'
              simp: rGamma_eq_zero_iff dist_of_nat dist_minus)
-  with isCont_rGamma[of "- of_nat n :: 'a", OF continuous_ident] 
+  with isCont_rGamma[of "- of_nat n :: 'a", OF continuous_ident]
     have "filterlim (\<lambda>z. inverse (rGamma z) :: 'a) at_infinity (at (- of_nat n))"
     unfolding isCont_def by (intro filterlim_compose[OF filterlim_inverse_at_infinity])
                             (simp_all add: filterlim_at)
-  moreover have "(\<lambda>z. inverse (rGamma z) :: 'a) = Gamma" 
+  moreover have "(\<lambda>z. inverse (rGamma z) :: 'a) = Gamma"
     by (intro ext) (simp add: rGamma_inverse_Gamma)
   ultimately show ?thesis by (simp only: )
 qed
 
-lemma Gamma_residues: 
+lemma Gamma_residues:
   "(\<lambda>z. Gamma z * (z + of_nat n)) \<midarrow> (- of_nat n) \<rightarrow> ((-1)^n / fact n :: 'a :: Gamma)"
 proof (subst tendsto_cong)
   let ?c = "(- 1) ^ n / fact n :: 'a"
   from eventually_at_ball'[OF zero_less_one, of "- of_nat n :: 'a" UNIV]
-    show "eventually (\<lambda>z. Gamma z * (z + of_nat n) = inverse (rGamma z / (z + of_nat n))) 
-            (at (- of_nat n))" 
+    show "eventually (\<lambda>z. Gamma z * (z + of_nat n) = inverse (rGamma z / (z + of_nat n)))
+            (at (- of_nat n))"
     by (auto elim!: eventually_mono simp: divide_simps rGamma_inverse_Gamma)
-  have "(\<lambda>z. inverse (rGamma z / (z + of_nat n))) \<midarrow> (- of_nat n) \<rightarrow> 
+  have "(\<lambda>z. inverse (rGamma z / (z + of_nat n))) \<midarrow> (- of_nat n) \<rightarrow>
           inverse ((- 1) ^ n * fact n :: 'a)"
     by (intro tendsto_intros rGamma_zeros) simp_all
-  also have "inverse ((- 1) ^ n * fact n) = ?c" 
+  also have "inverse ((- 1) ^ n * fact n) = ?c"
     by (simp_all add: field_simps power_mult_distrib [symmetric] del: power_mult_distrib)
   finally show "(\<lambda>z. inverse (rGamma z / (z + of_nat n))) \<midarrow> (- of_nat n) \<rightarrow> ?c" .
 qed
@@ -2328,7 +2329,7 @@ subsubsection \<open>Variant of the Euler form\<close>
 
 
 definition Gamma_series_euler' where
-  "Gamma_series_euler' z n = 
+  "Gamma_series_euler' z n =
      inverse z * (\<Prod>k=1..n. exp (z * of_real (ln (1 + inverse (of_nat k)))) / (1 + z / of_nat k))"
 
 context
@@ -2338,7 +2339,7 @@ private lemma Gamma_euler'_aux1:
   assumes n: "n > 0"
   shows "exp (z * of_real (ln (of_nat n + 1))) = (\<Prod>k=1..n. exp (z * of_real (ln (1 + 1 / of_nat k))))"
 proof -
-  have "(\<Prod>k=1..n. exp (z * of_real (ln (1 + 1 / of_nat k)))) = 
+  have "(\<Prod>k=1..n. exp (z * of_real (ln (1 + 1 / of_nat k)))) =
           exp (z * of_real (\<Sum>k = 1..n. ln (1 + 1 / real_of_nat k)))"
     by (subst exp_setsum [symmetric]) (simp_all add: setsum_right_distrib)
   also have "(\<Sum>k=1..n. ln (1 + 1 / of_nat k) :: real) = ln (\<Prod>k=1..n. 1 + 1 / real_of_nat k)"
@@ -2365,18 +2366,18 @@ proof (rule Gamma_seriesI, rule Lim_transform_eventually)
   moreover have "?r' \<longlonglongrightarrow> exp (z * of_real (ln 1))"
     by (intro tendsto_intros LIMSEQ_Suc_n_over_n) simp_all
   ultimately show "?r \<longlonglongrightarrow> 1" by (force dest!: Lim_transform_eventually)
-  
+
   from eventually_gt_at_top[of "0::nat"]
     show "eventually (\<lambda>n. ?r n = Gamma_series_euler' z n / Gamma_series z n) sequentially"
   proof eventually_elim
     fix n :: nat assume n: "n > 0"
-    from n z' have "Gamma_series_euler' z n = 
+    from n z' have "Gamma_series_euler' z n =
       exp (z * of_real (ln (of_nat n + 1))) / (z * (\<Prod>k=1..n. (1 + z / of_nat k)))"
-      by (subst Gamma_euler'_aux1) 
-         (simp_all add: Gamma_series_euler'_def setprod.distrib 
+      by (subst Gamma_euler'_aux1)
+         (simp_all add: Gamma_series_euler'_def setprod.distrib
                         setprod_inversef[symmetric] divide_inverse)
     also have "(\<Prod>k=1..n. (1 + z / of_nat k)) = pochhammer (z + 1) n / fact n"
-      by (cases n) (simp_all add: pochhammer_def fact_altdef setprod_shift_bounds_cl_Suc_ivl 
+      by (cases n) (simp_all add: pochhammer_def fact_altdef setprod_shift_bounds_cl_Suc_ivl
                                   setprod_dividef[symmetric] divide_simps add_ac)
     also have "z * \<dots> = pochhammer z (Suc n) / fact n" by (simp add: pochhammer_rec)
     finally show "?r n = Gamma_series_euler' z n / Gamma_series z n" by simp
@@ -2390,11 +2391,11 @@ end
 subsubsection \<open>Weierstrass form\<close>
 
 definition Gamma_series_weierstrass :: "'a :: {banach,real_normed_field} \<Rightarrow> nat \<Rightarrow> 'a" where
-  "Gamma_series_weierstrass z n = 
+  "Gamma_series_weierstrass z n =
      exp (-euler_mascheroni * z) / z * (\<Prod>k=1..n. exp (z / of_nat k) / (1 + z / of_nat k))"
 
 definition rGamma_series_weierstrass :: "'a :: {banach,real_normed_field} \<Rightarrow> nat \<Rightarrow> 'a" where
-  "rGamma_series_weierstrass z n = 
+  "rGamma_series_weierstrass z n =
      exp (euler_mascheroni * z) * z * (\<Prod>k=1..n. (1 + z / of_nat k) * exp (-z / of_nat k))"
 
 lemma Gamma_series_weierstrass_nonpos_Ints:
@@ -2404,7 +2405,7 @@ lemma Gamma_series_weierstrass_nonpos_Ints:
 lemma rGamma_series_weierstrass_nonpos_Ints:
   "eventually (\<lambda>k. rGamma_series_weierstrass (- of_nat n) k = 0) sequentially"
   using eventually_ge_at_top[of n] by eventually_elim (auto simp: rGamma_series_weierstrass_def)
-  
+
 lemma Gamma_weierstrass_complex: "Gamma_series_weierstrass z \<longlonglongrightarrow> Gamma (z :: complex)"
 proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
   case True
@@ -2420,14 +2421,17 @@ next
     using False that by (subst exp_Ln) (auto simp: field_simps dest!: plus_of_nat_eq_0_imp)
   have "(\<lambda>n. \<Sum>k=1..n. z / of_nat k - ln (1 + z / of_nat k)) \<longlonglongrightarrow> ln_Gamma z + euler_mascheroni * z + ln z"
     using ln_Gamma_series'_aux[OF False]
-    by (simp only: atLeastLessThanSuc_atLeastAtMost [symmetric] One_nat_def 
+    by (simp only: atLeastLessThanSuc_atLeastAtMost [symmetric] One_nat_def
                    setsum_shift_bounds_Suc_ivl sums_def atLeast0LessThan)
   from tendsto_exp[OF this] False z have "?f \<longlonglongrightarrow> z * exp (euler_mascheroni * z) * Gamma z"
     by (simp add: exp_add exp_setsum exp_diff mult_ac Gamma_complex_altdef A)
   from tendsto_mult[OF tendsto_const[of "exp (-euler_mascheroni * z) / z"] this] z
-    show "Gamma_series_weierstrass z \<longlonglongrightarrow> Gamma z" 
+    show "Gamma_series_weierstrass z \<longlonglongrightarrow> Gamma z"
     by (simp add: exp_minus divide_simps Gamma_series_weierstrass_def [abs_def])
 qed
+
+lemma tendsto_complex_of_real_iff: "((\<lambda>x. complex_of_real (f x)) \<longlongrightarrow> of_real c) F = (f \<longlongrightarrow> c) F"
+  by (rule tendsto_of_real_iff)
 
 lemma Gamma_weierstrass_real: "Gamma_series_weierstrass x \<longlonglongrightarrow> Gamma (x :: real)"
   using Gamma_weierstrass_complex[of "of_real x"] unfolding Gamma_series_weierstrass_def[abs_def]
@@ -2444,7 +2448,7 @@ proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
 next
   case False
   have "rGamma_series_weierstrass z = (\<lambda>n. inverse (Gamma_series_weierstrass z n))"
-    by (simp add: rGamma_series_weierstrass_def[abs_def] Gamma_series_weierstrass_def 
+    by (simp add: rGamma_series_weierstrass_def[abs_def] Gamma_series_weierstrass_def
                   exp_minus divide_inverse setprod_inversef[symmetric] mult_ac)
   also from False have "\<dots> \<longlonglongrightarrow> inverse (Gamma z)"
     by (intro tendsto_intros Gamma_weierstrass_complex) (simp add: Gamma_eq_zero_iff)
@@ -2460,7 +2464,7 @@ proof (cases "z = 0")
   show ?thesis
   proof (rule Lim_transform_eventually)
     let ?powr = "\<lambda>a b. exp (b * of_real (ln (of_nat a)))"
-    show "eventually (\<lambda>n. rGamma_series z n / z = 
+    show "eventually (\<lambda>n. rGamma_series z n / z =
             ((z + of_nat n) gchoose n) * ?powr n (-z)) sequentially"
     proof (intro always_eventually allI)
       fix n :: nat
@@ -2470,20 +2474,20 @@ proof (cases "z = 0")
         by (simp add: rGamma_series_def divide_simps exp_minus)
       finally show "rGamma_series z n / z = ((z + of_nat n) gchoose n) * ?powr n (-z)" ..
     qed
-  
+
     from False have "(\<lambda>n. rGamma_series z n / z) \<longlonglongrightarrow> rGamma z / z" by (intro tendsto_intros)
-    also from False have "rGamma z / z = rGamma (z + 1)" using rGamma_plus1[of z] 
+    also from False have "rGamma z / z = rGamma (z + 1)" using rGamma_plus1[of z]
       by (simp add: field_simps)
     finally show "(\<lambda>n. rGamma_series z n / z) \<longlonglongrightarrow> rGamma (z+1)" .
   qed
 qed (simp_all add: binomial_gbinomial [symmetric])
 
-lemma fact_binomial_limit: 
+lemma fact_binomial_limit:
   "(\<lambda>n. of_nat ((k + n) choose n) / of_nat (n ^ k) :: 'a :: Gamma) \<longlonglongrightarrow> 1 / fact k"
 proof (rule Lim_transform_eventually)
   have "(\<lambda>n. of_nat ((k + n) choose n) / of_real (exp (of_nat k * ln (real_of_nat n))))
             \<longlonglongrightarrow> 1 / Gamma (of_nat (Suc k) :: 'a)" (is "?f \<longlonglongrightarrow> _")
-    using Gamma_binomial[of "of_nat k :: 'a"] 
+    using Gamma_binomial[of "of_nat k :: 'a"]
     by (simp add: binomial_gbinomial add_ac Gamma_def divide_simps exp_of_real [symmetric] exp_minus)
   also have "Gamma (of_nat (Suc k)) = fact k" by (rule Gamma_fact)
   finally show "?f \<longlonglongrightarrow> 1 / fact k" .
@@ -2498,7 +2502,7 @@ proof (rule Lim_transform_eventually)
   qed
 qed
 
-lemma binomial_asymptotic: 
+lemma binomial_asymptotic:
   "(\<lambda>n. of_nat ((k + n) choose n) / (of_nat (n ^ k) / fact k) :: 'a :: Gamma) \<longlonglongrightarrow> 1"
   using tendsto_mult[OF fact_binomial_limit[of k] tendsto_const[of "fact k :: 'a"]] by simp
 
@@ -2517,14 +2521,14 @@ proof -
                     (\<lambda>n. of_real pi * z * (\<Prod>k=1..n. 1 - z^2 / of_nat k ^ 2))"
   proof
     fix n :: nat
-    have "(- of_real pi * inverse z) * (?f z n * ?f (-z) n) = 
+    have "(- of_real pi * inverse z) * (?f z n * ?f (-z) n) =
               of_real pi * z * (\<Prod>k=1..n. (of_nat k - z) * (of_nat k + z) / of_nat k ^ 2)"
       by (simp add: rGamma_series_weierstrass_def mult_ac exp_minus
                     divide_simps setprod.distrib[symmetric] power2_eq_square)
     also have "(\<Prod>k=1..n. (of_nat k - z) * (of_nat k + z) / of_nat k ^ 2) =
                  (\<Prod>k=1..n. 1 - z^2 / of_nat k ^ 2)"
       by (intro setprod.cong) (simp_all add: power2_eq_square field_simps)
-    finally show "(- of_real pi * inverse z) * (?f z n * ?f (-z) n) = of_real pi * z * \<dots>" 
+    finally show "(- of_real pi * inverse z) * (?f z n * ?f (-z) n) = of_real pi * z * \<dots>"
       by (simp add: divide_simps)
   qed
   also have "(- of_real pi * inverse z) * (rGamma z * rGamma (- z)) = sin (of_real pi * z)"
@@ -2545,7 +2549,7 @@ qed
 
 lemma sin_product_formula_real':
   assumes "x \<noteq> (0::real)"
-  shows   "(\<lambda>n. (\<Prod>k=1..n. 1 - x^2 / of_nat k^2)) \<longlonglongrightarrow> sin (pi * x) / (pi * x)" 
+  shows   "(\<lambda>n. (\<Prod>k=1..n. 1 - x^2 / of_nat k^2)) \<longlonglongrightarrow> sin (pi * x) / (pi * x)"
   using tendsto_divide[OF sin_product_formula_real[of x] tendsto_const[of "pi * x"]] assms
   by simp
 
@@ -2558,7 +2562,7 @@ proof -
   def K \<equiv> "\<Sum>n. inverse (real_of_nat (Suc n))^2"
   def f \<equiv> "\<lambda>x. \<Sum>n. P x n / of_nat (Suc n)^2"
   def g \<equiv> "\<lambda>x. (1 - sin (pi * x) / (pi * x))"
-  
+
   have sums: "(\<lambda>n. P x n / of_nat (Suc n)^2) sums (if x = 0 then K else g x / x^2)" for x
   proof (cases "x = 0")
     assume x: "x = 0"
@@ -2575,7 +2579,7 @@ proof -
     finally have "(\<lambda>n. x\<^sup>2 / (of_nat (Suc n))\<^sup>2 * P x n) sums (1 - sin (pi * x) / (pi * x))" .
     from sums_divide[OF this, of "x^2"] x show ?thesis unfolding g_def by simp
   qed
-  
+
   have "continuous_on (ball 0 1) f"
   proof (rule uniform_limit_theorem; (intro always_eventually allI)?)
     show "uniform_limit (ball 0 1) (\<lambda>n x. \<Sum>k<n. P x k / of_nat (Suc k)^2) f sequentially"
@@ -2585,7 +2589,7 @@ proof -
         fix k :: nat assume k: "k \<ge> 1"
         from x have "x^2 < 1" by (auto simp: dist_0_norm abs_square_less_1)
         also from k have "\<dots> \<le> of_nat k^2" by simp
-        finally have "(1 - x^2 / of_nat k^2) \<in> {0..1}" using k 
+        finally have "(1 - x^2 / of_nat k^2) \<in> {0..1}" using k
           by (simp_all add: field_simps del: of_nat_Suc)
       }
       hence "(\<Prod>k=1..n. abs (1 - x^2 / of_nat k^2)) \<le> (\<Prod>k=1..n. 1)" by (intro setprod_mono) simp
@@ -2596,12 +2600,12 @@ proof -
   hence "isCont f 0" by (subst (asm) continuous_on_eq_continuous_at) simp_all
   hence "(f \<midarrow> 0 \<rightarrow> f 0)" by (simp add: isCont_def)
   also have "f 0 = K" unfolding f_def P_def K_def by (simp add: inverse_eq_divide power_divide)
-  finally have "f \<midarrow> 0 \<rightarrow> K" . 
-  
+  finally have "f \<midarrow> 0 \<rightarrow> K" .
+
   moreover have "f \<midarrow> 0 \<rightarrow> pi^2 / 6"
   proof (rule Lim_transform_eventually)
     def f' \<equiv> "\<lambda>x. \<Sum>n. - sin_coeff (n+3) * pi ^ (n+2) * x^n"
-    have "eventually (\<lambda>x. x \<noteq> (0::real)) (at 0)" 
+    have "eventually (\<lambda>x. x \<noteq> (0::real)) (at 0)"
       by (auto simp add: eventually_at intro!: exI[of _ 1])
     thus "eventually (\<lambda>x. f' x = f x) (at 0)"
     proof eventually_elim
@@ -2619,28 +2623,28 @@ proof -
       also have "\<dots> = f x" using sums[of x] x by (simp add: sums_iff g_def f_def)
       finally show "f' x = f x" .
     qed
-    
+
     have "isCont f' 0" unfolding f'_def
-    proof (intro isCont_powser_converges_everywhere) 
+    proof (intro isCont_powser_converges_everywhere)
       fix x :: real show "summable (\<lambda>n. -sin_coeff (n+3) * pi^(n+2) * x^n)"
       proof (cases "x = 0")
         assume x: "x \<noteq> 0"
-        from summable_divide[OF sums_summable[OF sums_split_initial_segment[OF 
+        from summable_divide[OF sums_summable[OF sums_split_initial_segment[OF
                sin_converges[of "pi*x"]], of 3], of "-pi*x^3"] x
           show ?thesis by (simp add: mult_ac power_mult_distrib divide_simps eval_nat_numeral)
       qed (simp only: summable_0_powser)
     qed
     hence "f' \<midarrow> 0 \<rightarrow> f' 0" by (simp add: isCont_def)
-    also have "f' 0 = pi * pi / fact 3" unfolding f'_def 
+    also have "f' 0 = pi * pi / fact 3" unfolding f'_def
       by (subst powser_zero) (simp add: sin_coeff_def)
     finally show "f' \<midarrow> 0 \<rightarrow> pi^2 / 6" by (simp add: eval_nat_numeral)
   qed
-  
+
   ultimately have "K = pi^2 / 6" by (rule LIM_unique)
   moreover from inverse_power_summable[of 2]
     have "summable (\<lambda>n. (inverse (real_of_nat (Suc n)))\<^sup>2)"
     by (subst summable_Suc_iff) (simp add: power_inverse)
-  ultimately show ?thesis unfolding K_def 
+  ultimately show ?thesis unfolding K_def
     by (auto simp add: sums_iff power_divide inverse_eq_divide)
 qed
 

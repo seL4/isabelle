@@ -2,12 +2,13 @@
     Author:   Manuel Eberl, TU München
 *)
 
-section \<open>Non-positive integers\<close>
+section \<open>Non-negative, non-positive integers and reals\<close>
 
 theory Nonpos_Ints
 imports Complex_Main
 begin
 
+subsection\<open>Non-positive integers\<close>
 text \<open>
   The set of non-positive integers on a ring. (in analogy to the set of non-negative
   integers @{term "\<nat>"}) This is useful e.g. for the Gamma function.
@@ -29,7 +30,6 @@ lemma one_notin_nonpos_Ints [simp]: "(1 :: 'a :: ring_char_0) \<notin> \<int>\<^
 
 lemma numeral_notin_nonpos_Ints [simp]: "(numeral n :: 'a :: ring_char_0) \<notin> \<int>\<^sub>\<le>\<^sub>0"
   by (auto simp: nonpos_Ints_def)
-
 
 lemma minus_of_nat_in_nonpos_Ints [simp, intro]: "- of_nat n \<in> \<int>\<^sub>\<le>\<^sub>0"
 proof -
@@ -139,5 +139,166 @@ proof -
   hence A: "z = - of_nat n" by (simp add: eq_neg_iff_add_eq_0)
   show "z \<in> \<int>\<^sub>\<le>\<^sub>0" by (subst A) simp
 qed
+
+
+subsection\<open>Non-negative reals\<close>
+
+definition nonneg_Reals :: "'a::real_algebra_1 set"  ("\<real>\<^sub>\<ge>\<^sub>0")
+  where "\<real>\<^sub>\<ge>\<^sub>0 = {of_real r | r. r \<ge> 0}"
+
+lemma nonneg_Reals_of_real_iff [simp]: "of_real r \<in> \<real>\<^sub>\<ge>\<^sub>0 \<longleftrightarrow> r \<ge> 0"
+  by (force simp add: nonneg_Reals_def)
+
+lemma nonneg_Reals_subset_Reals: "\<real>\<^sub>\<ge>\<^sub>0 \<subseteq> \<real>"
+  unfolding nonneg_Reals_def Reals_def by blast
+
+lemma nonneg_Reals_Real [dest]: "x \<in> \<real>\<^sub>\<ge>\<^sub>0 \<Longrightarrow> x \<in> \<real>"
+  unfolding nonneg_Reals_def Reals_def by blast
+
+lemma nonneg_Reals_of_nat_I [simp]: "of_nat n \<in> \<real>\<^sub>\<ge>\<^sub>0"
+  by (metis nonneg_Reals_of_real_iff of_nat_0_le_iff of_real_of_nat_eq)
+
+lemma nonneg_Reals_cases:
+  assumes "x \<in> \<real>\<^sub>\<ge>\<^sub>0"
+  obtains r where "x = of_real r" "r \<ge> 0"
+  using assms unfolding nonneg_Reals_def by (auto elim!: Reals_cases)
+
+lemma nonneg_Reals_zero_I [simp]: "0 \<in> \<real>\<^sub>\<ge>\<^sub>0"
+  unfolding nonneg_Reals_def by auto
+
+lemma nonneg_Reals_one_I [simp]: "1 \<in> \<real>\<^sub>\<ge>\<^sub>0"
+  by (metis (mono_tags, lifting) nonneg_Reals_of_nat_I of_nat_1)
+
+lemma nonneg_Reals_minus_one_I [simp]: "-1 \<notin> \<real>\<^sub>\<ge>\<^sub>0"
+  by (metis nonneg_Reals_of_real_iff le_minus_one_simps(3) of_real_1 of_real_def real_vector.scale_minus_left)
+
+lemma nonneg_Reals_numeral_I [simp]: "numeral w \<in> \<real>\<^sub>\<ge>\<^sub>0"
+  by (metis (no_types) nonneg_Reals_of_nat_I of_nat_numeral)
+
+lemma nonneg_Reals_minus_numeral_I [simp]: "- numeral w \<notin> \<real>\<^sub>\<ge>\<^sub>0"
+  using nonneg_Reals_of_real_iff not_zero_le_neg_numeral by fastforce
+
+lemma nonneg_Reals_add_I [simp]: "\<lbrakk>a \<in> \<real>\<^sub>\<ge>\<^sub>0; b \<in> \<real>\<^sub>\<ge>\<^sub>0\<rbrakk> \<Longrightarrow> a + b \<in> \<real>\<^sub>\<ge>\<^sub>0"
+apply (simp add: nonneg_Reals_def)
+apply clarify
+apply (rename_tac r s)
+apply (rule_tac x="r+s" in exI, auto)
+done
+
+lemma nonneg_Reals_mult_I [simp]: "\<lbrakk>a \<in> \<real>\<^sub>\<ge>\<^sub>0; b \<in> \<real>\<^sub>\<ge>\<^sub>0\<rbrakk> \<Longrightarrow> a * b \<in> \<real>\<^sub>\<ge>\<^sub>0"
+  unfolding nonneg_Reals_def  by (auto simp: of_real_def)
+
+lemma nonneg_Reals_inverse_I [simp]:
+  fixes a :: "'a::real_div_algebra"
+  shows "a \<in> \<real>\<^sub>\<ge>\<^sub>0 \<Longrightarrow> inverse a \<in> \<real>\<^sub>\<ge>\<^sub>0"
+  by (simp add: nonneg_Reals_def image_iff) (metis inverse_nonnegative_iff_nonnegative of_real_inverse)
+
+lemma nonneg_Reals_divide_I [simp]:
+  fixes a :: "'a::real_div_algebra"
+  shows "\<lbrakk>a \<in> \<real>\<^sub>\<ge>\<^sub>0; b \<in> \<real>\<^sub>\<ge>\<^sub>0\<rbrakk> \<Longrightarrow> a / b \<in> \<real>\<^sub>\<ge>\<^sub>0"
+  by (simp add: divide_inverse)
+
+lemma nonneg_Reals_pow_I [simp]: "a \<in> \<real>\<^sub>\<ge>\<^sub>0 \<Longrightarrow> a^n \<in> \<real>\<^sub>\<ge>\<^sub>0"
+  by (induction n) auto
+
+lemma complex_nonneg_Reals_iff: "z \<in> \<real>\<^sub>\<ge>\<^sub>0 \<longleftrightarrow> Re z \<ge> 0 \<and> Im z = 0"
+  by (auto simp: nonneg_Reals_def) (metis complex_of_real_def complex_surj)
+
+lemma ii_not_nonneg_Reals [iff]: "\<i> \<notin> \<real>\<^sub>\<ge>\<^sub>0"
+  by (simp add: complex_nonneg_Reals_iff)
+
+
+subsection\<open>Non-positive reals\<close>
+
+definition nonpos_Reals :: "'a::real_algebra_1 set"  ("\<real>\<^sub>\<le>\<^sub>0")
+  where "\<real>\<^sub>\<le>\<^sub>0 = {of_real r | r. r \<le> 0}"
+
+lemma nonpos_Reals_of_real_iff [simp]: "of_real r \<in> \<real>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> r \<le> 0"
+  by (force simp add: nonpos_Reals_def)
+
+lemma nonpos_Reals_subset_Reals: "\<real>\<^sub>\<le>\<^sub>0 \<subseteq> \<real>"
+  unfolding nonpos_Reals_def Reals_def by blast
+
+lemma nonpos_Ints_subset_nonpos_Reals: "\<int>\<^sub>\<le>\<^sub>0 \<subseteq> \<real>\<^sub>\<le>\<^sub>0"
+  by (metis nonpos_Ints_cases nonpos_Ints_nonpos nonpos_Ints_of_int 
+    nonpos_Reals_of_real_iff of_real_of_int_eq subsetI)
+
+lemma nonpos_Reals_of_nat_iff [simp]: "of_nat n \<in> \<real>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n=0"
+  by (metis nonpos_Reals_of_real_iff of_nat_le_0_iff of_real_of_nat_eq)
+
+lemma nonpos_Reals_Real [dest]: "x \<in> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> x \<in> \<real>"
+  unfolding nonpos_Reals_def Reals_def by blast
+
+lemma nonpos_Reals_cases:
+  assumes "x \<in> \<real>\<^sub>\<le>\<^sub>0"
+  obtains r where "x = of_real r" "r \<le> 0"
+  using assms unfolding nonpos_Reals_def by (auto elim!: Reals_cases)
+
+lemma uminus_nonneg_Reals_iff [simp]: "-x \<in> \<real>\<^sub>\<ge>\<^sub>0 \<longleftrightarrow> x \<in> \<real>\<^sub>\<le>\<^sub>0"
+  apply (auto simp: nonpos_Reals_def nonneg_Reals_def)
+  apply (metis nonpos_Reals_of_real_iff minus_minus neg_le_0_iff_le of_real_minus)
+  apply (metis neg_0_le_iff_le of_real_minus)
+  done
+
+lemma uminus_nonpos_Reals_iff [simp]: "-x \<in> \<real>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> x \<in> \<real>\<^sub>\<ge>\<^sub>0"
+  by (metis (no_types) minus_minus uminus_nonneg_Reals_iff)
+
+lemma nonpos_Reals_zero_I [simp]: "0 \<in> \<real>\<^sub>\<le>\<^sub>0"
+  unfolding nonpos_Reals_def by force
+
+lemma nonpos_Reals_one_I [simp]: "1 \<notin> \<real>\<^sub>\<le>\<^sub>0"
+  using nonneg_Reals_minus_one_I uminus_nonneg_Reals_iff by blast
+
+lemma nonpos_Reals_numeral_I [simp]: "numeral w \<notin> \<real>\<^sub>\<le>\<^sub>0"
+  using nonneg_Reals_minus_numeral_I uminus_nonneg_Reals_iff by blast
+
+lemma nonpos_Reals_add_I [simp]: "\<lbrakk>a \<in> \<real>\<^sub>\<le>\<^sub>0; b \<in> \<real>\<^sub>\<le>\<^sub>0\<rbrakk> \<Longrightarrow> a + b \<in> \<real>\<^sub>\<le>\<^sub>0"
+  by (metis nonneg_Reals_add_I add_uminus_conv_diff minus_diff_eq minus_minus uminus_nonpos_Reals_iff)
+
+lemma nonpos_Reals_mult_I1: "\<lbrakk>a \<in> \<real>\<^sub>\<ge>\<^sub>0; b \<in> \<real>\<^sub>\<le>\<^sub>0\<rbrakk> \<Longrightarrow> a * b \<in> \<real>\<^sub>\<le>\<^sub>0"
+  by (metis nonneg_Reals_mult_I mult_minus_right uminus_nonneg_Reals_iff)
+
+lemma nonpos_Reals_mult_I2: "\<lbrakk>a \<in> \<real>\<^sub>\<le>\<^sub>0; b \<in> \<real>\<^sub>\<ge>\<^sub>0\<rbrakk> \<Longrightarrow> a * b \<in> \<real>\<^sub>\<le>\<^sub>0"
+  by (metis nonneg_Reals_mult_I mult_minus_left uminus_nonneg_Reals_iff)
+
+lemma nonpos_Reals_mult_of_nat_iff:
+  fixes a:: "'a :: real_div_algebra" shows "a * of_nat n \<in> \<real>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> a \<in> \<real>\<^sub>\<le>\<^sub>0 \<or> n=0"
+  apply (auto intro: nonpos_Reals_mult_I2)
+  apply (auto simp: nonpos_Reals_def)
+  apply (rule_tac x="r/n" in exI)
+  apply (auto simp: divide_simps)
+  done
+
+lemma nonpos_Reals_inverse_I:
+    fixes a :: "'a::real_div_algebra"
+    shows "a \<in> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> inverse a \<in> \<real>\<^sub>\<le>\<^sub>0"
+  using nonneg_Reals_inverse_I uminus_nonneg_Reals_iff by fastforce
+
+lemma nonpos_Reals_divide_I1:
+    fixes a :: "'a::real_div_algebra"
+    shows "\<lbrakk>a \<in> \<real>\<^sub>\<ge>\<^sub>0; b \<in> \<real>\<^sub>\<le>\<^sub>0\<rbrakk> \<Longrightarrow> a / b \<in> \<real>\<^sub>\<le>\<^sub>0"
+  by (simp add: nonpos_Reals_inverse_I nonpos_Reals_mult_I1 divide_inverse)
+
+lemma nonpos_Reals_divide_I2:
+    fixes a :: "'a::real_div_algebra"
+    shows "\<lbrakk>a \<in> \<real>\<^sub>\<le>\<^sub>0; b \<in> \<real>\<^sub>\<ge>\<^sub>0\<rbrakk> \<Longrightarrow> a / b \<in> \<real>\<^sub>\<le>\<^sub>0"
+  by (metis nonneg_Reals_divide_I minus_divide_left uminus_nonneg_Reals_iff)
+
+lemma nonpos_Reals_divide_of_nat_iff:
+  fixes a:: "'a :: real_div_algebra" shows "a / of_nat n \<in> \<real>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> a \<in> \<real>\<^sub>\<le>\<^sub>0 \<or> n=0"
+  apply (auto intro: nonpos_Reals_divide_I2)
+  apply (auto simp: nonpos_Reals_def)
+  apply (rule_tac x="r*n" in exI)
+  apply (auto simp: divide_simps mult_le_0_iff)
+  done
+
+lemma nonpos_Reals_pow_I: "\<lbrakk>a \<in> \<real>\<^sub>\<le>\<^sub>0; odd n\<rbrakk> \<Longrightarrow> a^n \<in> \<real>\<^sub>\<le>\<^sub>0"
+  by (metis nonneg_Reals_pow_I power_minus_odd uminus_nonneg_Reals_iff)
+
+lemma complex_nonpos_Reals_iff: "z \<in> \<real>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> Re z \<le> 0 \<and> Im z = 0"
+   using complex_is_Real_iff by (force simp add: nonpos_Reals_def)
+
+lemma ii_not_nonpos_Reals [iff]: "\<i> \<notin> \<real>\<^sub>\<le>\<^sub>0"
+  by (simp add: complex_nonpos_Reals_iff)
 
 end

@@ -272,20 +272,34 @@ proof (rule uniform_limitI)
   qed
 qed
 
-lemma weierstrass_m_test:
-fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
-assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> M n"
-assumes "summable M"
-shows "uniform_limit A (\<lambda>n x. \<Sum>i<n. f i x) (\<lambda>x. suminf (\<lambda>i. f i x)) sequentially"
+text{*Alternative version, formulated as in HOL Light*}
+corollary series_comparison_uniform:
+  fixes f :: "_ \<Rightarrow> nat \<Rightarrow> _ :: banach"
+  assumes g: "summable g" and le: "\<And>n x. N \<le> n \<and> x \<in> A \<Longrightarrow> norm(f x n) \<le> g n"
+    shows "\<exists>l. \<forall>e. 0 < e \<longrightarrow> (\<exists>N. \<forall>n x. N \<le> n \<and> x \<in> A \<longrightarrow> dist(setsum (f x) {..<n}) (l x) < e)"
+proof -
+  have 1: "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>A. norm (f x n) \<le> g n"
+    using le eventually_sequentially by auto
+  show ?thesis
+    apply (rule_tac x="(\<lambda>x. \<Sum>i. f x i)" in exI)
+    apply (metis (no_types, lifting) eventually_sequentially uniform_limitD [OF weierstrass_m_test_ev [OF 1 g]])
+    done
+qed
+
+corollary weierstrass_m_test:
+  fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
+  assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> M n"
+  assumes "summable M"
+  shows "uniform_limit A (\<lambda>n x. \<Sum>i<n. f i x) (\<lambda>x. suminf (\<lambda>i. f i x)) sequentially"
   using assms by (intro weierstrass_m_test_ev always_eventually) auto
-  
-lemma weierstrass_m_test'_ev:
+    
+corollary weierstrass_m_test'_ev:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
   assumes "eventually (\<lambda>n. \<forall>x\<in>A. norm (f n x) \<le> M n) sequentially" "summable M" 
   shows   "uniformly_convergent_on A (\<lambda>n x. \<Sum>i<n. f i x)"
   unfolding uniformly_convergent_on_def by (rule exI, rule weierstrass_m_test_ev[OF assms])
 
-lemma weierstrass_m_test':
+corollary weierstrass_m_test':
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
   assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> M n" "summable M" 
   shows   "uniformly_convergent_on A (\<lambda>n x. \<Sum>i<n. f i x)"

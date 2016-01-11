@@ -313,8 +313,7 @@ lemma nonzero_of_real_divide:
 by (simp add: divide_inverse nonzero_of_real_inverse)
 
 lemma of_real_divide [simp]:
-  "of_real (x / y) =
-   (of_real x / of_real y :: 'a::{real_field, field})"
+  "of_real (x / y) = (of_real x / of_real y :: 'a::real_div_algebra)"
 by (simp add: divide_inverse)
 
 lemma of_real_power [simp]:

@@ -525,9 +525,18 @@ lemma Diff_Inter[intro]: "A - \<Inter>S = \<Union>{A - s|s. s\<in>S}"
 
 lemma closedin_Inter[intro]:
   assumes Ke: "K \<noteq> {}"
-    and Kc: "\<forall>S \<in>K. closedin U S"
+    and Kc: "\<And>S. S \<in>K \<Longrightarrow> closedin U S"
   shows "closedin U (\<Inter>K)"
   using Ke Kc unfolding closedin_def Diff_Inter by auto
+
+lemma closedin_INT[intro]:
+  assumes "A \<noteq> {}" "\<And>x. x \<in> A \<Longrightarrow> closedin U (B x)"
+  shows "closedin U (\<Inter>x\<in>A. B x)"
+  unfolding Inter_image_eq [symmetric]
+  apply (rule closedin_Inter)
+  using assms
+  apply auto
+  done
 
 lemma closedin_Int[intro]: "closedin U S \<Longrightarrow> closedin U T \<Longrightarrow> closedin U (S \<inter> T)"
   using closedin_Inter[of "{S,T}" U] by auto
@@ -2322,6 +2331,13 @@ lemma Lim_within: "(f \<longlongrightarrow> l) (at a within S) \<longleftrightar
     (\<forall>e >0. \<exists>d>0. \<forall>x \<in> S. 0 < dist x a \<and> dist x a  < d \<longrightarrow> dist (f x) l < e)"
   by (auto simp add: tendsto_iff eventually_at)
 
+corollary Lim_withinI [intro?]:
+  assumes "\<And>e. e > 0 \<Longrightarrow> \<exists>d>0. \<forall>x \<in> S. 0 < dist x a \<and> dist x a < d \<longrightarrow> dist (f x) l \<le> e"
+  shows "(f \<longlongrightarrow> l) (at a within S)"
+apply (simp add: Lim_within, clarify)
+apply (rule ex_forward [OF assms [OF half_gt_zero]], auto)
+done
+
 lemma Lim_at: "(f \<longlongrightarrow> l) (at a) \<longleftrightarrow>
     (\<forall>e >0. \<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d  \<longrightarrow> dist (f x) l < e)"
   by (auto simp add: tendsto_iff eventually_at2)
@@ -2329,6 +2345,13 @@ lemma Lim_at: "(f \<longlongrightarrow> l) (at a) \<longleftrightarrow>
 lemma Lim_at_infinity:
   "(f \<longlongrightarrow> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x. norm x \<ge> b \<longrightarrow> dist (f x) l < e)"
   by (auto simp add: tendsto_iff eventually_at_infinity)
+
+corollary Lim_at_infinityI [intro?]:
+  assumes "\<And>e. e > 0 \<Longrightarrow> \<exists>B. \<forall>x. norm x \<ge> B \<longrightarrow> dist (f x) l \<le> e"
+  shows "(f \<longlongrightarrow> l) at_infinity"
+apply (simp add: Lim_at_infinity, clarify)
+apply (rule ex_forward [OF assms [OF half_gt_zero]], auto)
+done
 
 lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f \<longlongrightarrow> l) net"
   by (rule topological_tendstoI, auto elim: eventually_mono)
@@ -4911,6 +4934,33 @@ lemma frontier_subset_compact:
   using frontier_subset_closed compact_eq_bounded_closed
   by blast
 
+subsection\<open>Relations among convergence and absolute convergence for power series.\<close>
+
+lemma summable_imp_bounded:
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
+  shows "summable f \<Longrightarrow> bounded (range f)"
+by (frule summable_LIMSEQ_zero) (simp add: convergent_imp_bounded)
+
+lemma summable_imp_sums_bounded:
+   "summable f \<Longrightarrow> bounded (range (\<lambda>n. setsum f {..<n}))"
+by (auto simp: summable_def sums_def dest: convergent_imp_bounded)
+
+lemma power_series_conv_imp_absconv_weak:
+  fixes a:: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}" and w :: 'a
+  assumes sum: "summable (\<lambda>n. a n * z ^ n)" and no: "norm w < norm z"
+    shows "summable (\<lambda>n. of_real(norm(a n)) * w ^ n)"
+proof -
+  obtain M where M: "\<And>x. norm (a x * z ^ x) \<le> M"
+    using summable_imp_bounded [OF sum] by (force simp add: bounded_iff)
+  then have *: "summable (\<lambda>n. norm (a n) * norm w ^ n)"
+    by (rule_tac M=M in Abel_lemma) (auto simp: norm_mult norm_power intro: no)
+  show ?thesis
+    apply (rule series_comparison_complex [of "(\<lambda>n. of_real(norm(a n) * norm w ^ n))"])
+    apply (simp only: summable_complex_of_real *)
+    apply (auto simp: norm_mult norm_power)
+    done
+qed
+
 subsection \<open>Bounded closed nest property (proof does not use Heine-Borel)\<close>
 
 lemma bounded_closed_nest:
@@ -5133,7 +5183,7 @@ lemma continuous_within_eps_delta:
   apply blast
   done
 
-lemma continuous_at_eps_delta:
+corollary continuous_at_eps_delta:
   "continuous (at x) f \<longleftrightarrow> (\<forall>e > 0. \<exists>d > 0. \<forall>x'. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
   using continuous_within_eps_delta [of x UNIV f] by simp
 
@@ -5239,6 +5289,21 @@ lemma continuous_on_iff:
     (\<forall>x\<in>s. \<forall>e>0. \<exists>d>0. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
   unfolding continuous_on_def Lim_within
   by (metis dist_pos_lt dist_self)
+
+lemma continuous_within_E:
+  assumes "continuous (at x within s) f" "e>0"
+  obtains d where "d>0"  "\<And>x'. \<lbrakk>x'\<in> s; dist x' x \<le> d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
+  using assms apply (simp add: continuous_within_eps_delta)
+  apply (drule spec [of _ e], clarify)
+  apply (rule_tac d="d/2" in that, auto)
+  done
+
+lemma continuous_onI [intro?]:
+  assumes "\<And>x e. \<lbrakk>e > 0; x \<in> s\<rbrakk> \<Longrightarrow> \<exists>d>0. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) \<le> e"
+  shows "continuous_on s f"
+apply (simp add: continuous_on_iff, clarify)
+apply (rule ex_forward [OF assms [OF half_gt_zero]], auto)
+done
 
 lemma uniformly_continuous_on_def:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"

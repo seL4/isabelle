@@ -5,14 +5,14 @@
 section \<open>Complex Analysis Basics\<close>
 
 theory Complex_Analysis_Basics
-imports Cartesian_Euclidean_Space
+imports Cartesian_Euclidean_Space "~~/src/HOL/Library/Nonpos_Ints"
 begin
 
 
-lemma cmod_fact [simp]: "cmod (fact n) = fact n"
-  by (metis norm_of_nat of_nat_fact)
-
 subsection\<open>General lemmas\<close>
+
+lemma nonneg_Reals_cmod_eq_Re: "z \<in> \<real>\<^sub>\<ge>\<^sub>0 \<Longrightarrow> norm z = Re z"
+  by (simp add: complex_nonneg_Reals_iff cmod_eq_Re)
 
 lemma has_derivative_mult_right:
   fixes c:: "'a :: real_normed_algebra"
@@ -223,9 +223,25 @@ qed
 lemma closed_Real_halfspace_Re_le: "closed (\<real> \<inter> {w. Re w \<le> x})"
   by (simp add: closed_Int closed_complex_Reals closed_halfspace_Re_le)
 
+corollary closed_nonpos_Reals_complex [simp]: "closed (\<real>\<^sub>\<le>\<^sub>0 :: complex set)"
+proof -
+  have "\<real>\<^sub>\<le>\<^sub>0 = \<real> \<inter> {z. Re(z) \<le> 0}"
+    using complex_nonpos_Reals_iff complex_is_Real_iff by auto
+  then show ?thesis
+    by (metis closed_Real_halfspace_Re_le)
+qed
+
 lemma closed_Real_halfspace_Re_ge: "closed (\<real> \<inter> {w. x \<le> Re(w)})"
   using closed_halfspace_Re_ge
   by (simp add: closed_Int closed_complex_Reals)
+
+corollary closed_nonneg_Reals_complex [simp]: "closed (\<real>\<^sub>\<ge>\<^sub>0 :: complex set)"
+proof -
+  have "\<real>\<^sub>\<ge>\<^sub>0 = \<real> \<inter> {z. Re(z) \<ge> 0}"
+    using complex_nonneg_Reals_iff complex_is_Real_iff by auto
+  then show ?thesis
+    by (metis closed_Real_halfspace_Re_ge)
+qed
 
 lemma closed_real_abs_le: "closed {w \<in> \<real>. \<bar>Re w\<bar> \<le> r}"
 proof -
@@ -398,6 +414,16 @@ definition holomorphic_on :: "[complex \<Rightarrow> complex, complex set] \<Rig
   where "f holomorphic_on s \<equiv> \<forall>x\<in>s. f complex_differentiable (at x within s)"
 
 named_theorems holomorphic_intros "structural introduction rules for holomorphic_on"
+
+lemma holomorphic_onI [intro?]: "(\<And>x. x \<in> s \<Longrightarrow> f complex_differentiable (at x within s)) \<Longrightarrow> f holomorphic_on s"
+  by (simp add: holomorphic_on_def)
+
+lemma holomorphic_onD [dest?]: "\<lbrakk>f holomorphic_on s; x \<in> s\<rbrakk> \<Longrightarrow> f complex_differentiable (at x within s)"
+  by (simp add: holomorphic_on_def)
+
+lemma holomorphic_on_imp_differentiable_at:
+   "\<lbrakk>f holomorphic_on s; open s; x \<in> s\<rbrakk> \<Longrightarrow> f complex_differentiable (at x)"
+using at_within_open holomorphic_on_def by fastforce
 
 lemma holomorphic_on_empty [holomorphic_intros]: "f holomorphic_on {}"
   by (simp add: holomorphic_on_def)
