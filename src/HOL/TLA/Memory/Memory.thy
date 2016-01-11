@@ -178,7 +178,7 @@ lemma MemoryInvariantAll:
 *)
 
 lemma Memoryidle: "\<turnstile> \<not>$(Calling ch p) \<longrightarrow> \<not> RNext ch mm rs p"
-  by (auto simp: Return_def RM_action_defs)
+  by (auto simp: AReturn_def RM_action_defs)
 
 (* Enabledness conditions *)
 
@@ -191,7 +191,7 @@ lemma MemReturn_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) \<Longrightarr
   apply (tactic
     \<open>action_simp_tac @{context} [@{thm MemReturn_change} RSN (2, @{thm enabled_mono}) ] [] 1\<close>)
   apply (tactic
-    \<open>action_simp_tac (@{context} addsimps [@{thm MemReturn_def}, @{thm Return_def},
+    \<open>action_simp_tac (@{context} addsimps [@{thm MemReturn_def}, @{thm AReturn_def},
       @{thm rtrner_def}]) [exI] [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
   done
 

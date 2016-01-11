@@ -16,24 +16,21 @@ instance behavior :: world ..
 
 type_synonym temporal = "behavior form"
 
-
 consts
-  Initial     :: "('w::world \<Rightarrow> bool) \<Rightarrow> temporal"
   first_world :: "behavior \<Rightarrow> ('w::world)"
   st1         :: "behavior \<Rightarrow> state"
   st2         :: "behavior \<Rightarrow> state"
 
+definition Initial :: "('w::world \<Rightarrow> bool) \<Rightarrow> temporal"
+  where Init_def: "Initial F sigma = F (first_world sigma)"
+
 syntax
   "_TEMP"    :: "lift \<Rightarrow> 'a"                          ("(TEMP _)")
   "_Init"    :: "lift \<Rightarrow> lift"                        ("(Init _)"[40] 50)
-
 translations
   "TEMP F"   => "(F::behavior \<Rightarrow> _)"
   "_Init"    == "CONST Initial"
   "sigma \<Turnstile> Init F"  <= "_Init F sigma"
-
-defs
-  Init_def:    "sigma \<Turnstile> Init F  ==  (first_world sigma) \<Turnstile> F"
 
 overloading
   fw_temp \<equiv> "first_world :: behavior \<Rightarrow> behavior"

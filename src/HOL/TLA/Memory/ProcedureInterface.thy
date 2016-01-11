@@ -37,14 +37,13 @@ definition rtrner :: "('a,'r) channel \<Rightarrow> (PrIds \<Rightarrow> (bit * 
 
 (* slice through array-valued state function *)
 
-consts
-  slice        :: "('a \<Rightarrow> 'b) stfun \<Rightarrow> 'a \<Rightarrow> 'b stfun"
+definition slice :: "('a \<Rightarrow> 'b) stfun \<Rightarrow> 'a \<Rightarrow> 'b stfun"
+  where "slice x i s \<equiv> x s i"
+
 syntax
-  "_slice"    :: "[lift, 'a] \<Rightarrow> lift"      ("(_!_)" [70,70] 70)
+  "_slice" :: "[lift, 'a] \<Rightarrow> lift"  ("(_!_)" [70,70] 70)
 translations
-  "_slice"  ==  "CONST slice"
-defs
-  slice_def:     "(PRED (x!i)) s == x s i"
+  "_slice" \<rightleftharpoons> "CONST slice"
 
 
 (* state predicates *)
@@ -55,22 +54,24 @@ definition Calling :: "('a,'r) channel \<Rightarrow> PrIds \<Rightarrow> stpred"
 
 (* actions *)
 
-consts
-  ACall      :: "('a,'r) channel \<Rightarrow> PrIds \<Rightarrow> 'a stfun \<Rightarrow> action"
-  AReturn    :: "('a,'r) channel \<Rightarrow> PrIds \<Rightarrow> 'r stfun \<Rightarrow> action"
+definition ACall :: "('a,'r) channel \<Rightarrow> PrIds \<Rightarrow> 'a stfun \<Rightarrow> action"
+  where "ACall ch p v \<equiv> ACT
+      \<not> $Calling ch p
+    \<and> (cbit<ch!p>$ \<noteq> $rbit<ch!p>)
+    \<and> (arg<ch!p>$ = $v)"
+
+definition AReturn :: "('a,'r) channel \<Rightarrow> PrIds \<Rightarrow> 'r stfun \<Rightarrow> action"
+  where "AReturn ch p v == ACT
+      $Calling ch p
+    \<and> (rbit<ch!p>$ = $cbit<ch!p>)
+    \<and> (res<ch!p>$ = $v)"
+
 syntax
-  "_Call"     :: "['a, 'b, lift] \<Rightarrow> lift"    ("(Call _ _ _)" [90,90,90] 90)
-  "_Return"   :: "['a, 'b, lift] \<Rightarrow> lift"    ("(Return _ _ _)" [90,90,90] 90)
+  "_Call" :: "['a, 'b, lift] \<Rightarrow> lift"  ("(Call _ _ _)" [90,90,90] 90)
+  "_Return" :: "['a, 'b, lift] \<Rightarrow> lift"  ("(Return _ _ _)" [90,90,90] 90)
 translations
-  "_Call"   ==  "CONST ACall"
-  "_Return" ==  "CONST AReturn"
-defs
-  Call_def:      "(ACT Call ch p v)   == ACT  \<not> $Calling ch p
-                                     \<and> (cbit<ch!p>$ \<noteq> $rbit<ch!p>)
-                                     \<and> (arg<ch!p>$ = $v)"
-  Return_def:    "(ACT Return ch p v) == ACT  $Calling ch p
-                                     \<and> (rbit<ch!p>$ = $cbit<ch!p>)
-                                     \<and> (res<ch!p>$ = $v)"
+  "_Call" \<rightleftharpoons> "CONST ACall"
+  "_Return" \<rightleftharpoons> "CONST AReturn"
 
 
 (* temporal formulas *)
@@ -91,14 +92,14 @@ definition LegalReturner :: "('a,'r) channel \<Rightarrow> temporal"
 
 declare slice_def [simp]
 
-lemmas Procedure_defs = caller_def rtrner_def Calling_def Call_def Return_def
+lemmas Procedure_defs = caller_def rtrner_def Calling_def ACall_def AReturn_def
   PLegalCaller_def LegalCaller_def PLegalReturner_def LegalReturner_def
 
 (* Calls and returns change their subchannel *)
 lemma Call_changed: "\<turnstile> Call ch p v \<longrightarrow> <Call ch p v>_((caller ch)!p)"
-  by (auto simp: angle_def Call_def caller_def Calling_def)
+  by (auto simp: angle_def ACall_def caller_def Calling_def)
 
 lemma Return_changed: "\<turnstile> Return ch p v \<longrightarrow> <Return ch p v>_((rtrner ch)!p)"
-  by (auto simp: angle_def Return_def rtrner_def Calling_def)
+  by (auto simp: angle_def AReturn_def rtrner_def Calling_def)
 
 end

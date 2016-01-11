@@ -83,7 +83,7 @@ lemmas RPC_temp_defs = RPCIPSpec_def RPCISpec_def
 *)
 
 lemma RPCidle: "\<turnstile> \<not>$(Calling send p) \<longrightarrow> \<not>RPCNext send rcv rst p"
-  by (auto simp: Return_def RPC_action_defs)
+  by (auto simp: AReturn_def RPC_action_defs)
 
 lemma RPCbusy: "\<turnstile> $(Calling rcv p) \<and> $(rst!p) = #rpcB \<longrightarrow> \<not>RPCNext send rcv rst p"
   by (auto simp: RPC_action_defs)
@@ -101,14 +101,14 @@ lemma RPCFail_Next_enabled: "\<turnstile> Enabled (RPCFail send rcv rst p) \<lon
 lemma RPCFail_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, rst!p) \<Longrightarrow>  
     \<turnstile> \<not>Calling rcv p \<and> Calling send p \<longrightarrow> Enabled (RPCFail send rcv rst p)"
   by (tactic \<open>action_simp_tac (@{context} addsimps [@{thm RPCFail_def},
-    @{thm Return_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
+    @{thm AReturn_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
     [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
 
 lemma RPCReply_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, rst!p) \<Longrightarrow>  
       \<turnstile> \<not>Calling rcv p \<and> Calling send p \<and> rst!p = #rpcB  
          \<longrightarrow> Enabled (RPCReply send rcv rst p)"
   by (tactic \<open>action_simp_tac (@{context} addsimps [@{thm RPCReply_def},
-    @{thm Return_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
+    @{thm AReturn_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
     [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
 
 end
