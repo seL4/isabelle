@@ -86,6 +86,7 @@ sig
   val mk_nthI: int -> int -> thm
   val mk_nth_conv: int -> int -> thm
   val mk_ordLeq_csum: int -> int -> thm -> thm
+  val mk_pointful: Proof.context -> thm -> thm
   val mk_rel_funDN: int -> thm -> thm
   val mk_rel_funDN_rotated: int -> thm -> thm
   val mk_sym: thm -> thm
@@ -360,7 +361,6 @@ val mk_transp =  mk_pred @{const_name transp};
 fun mk_trans thm1 thm2 = trans OF [thm1, thm2];
 fun mk_sym thm = thm RS sym;
 
-(*TODO: antiquote heavily used theorems once*)
 val prod_injectD = @{thm iffD1[OF prod.inject]};
 val prod_injectI = @{thm iffD2[OF prod.inject]};
 val ctrans = @{thm ordLeq_transitive};
@@ -373,6 +373,8 @@ val rel_funI = @{thm rel_funI};
 val set_mp = @{thm set_mp};
 val set_rev_mp = @{thm set_rev_mp};
 val subset_UNIV = @{thm subset_UNIV};
+
+fun mk_pointful ctxt thm = unfold_thms ctxt [o_apply] (thm RS fun_cong);
 
 fun mk_nthN 1 t 1 = t
   | mk_nthN _ t 1 = HOLogic.mk_fst t

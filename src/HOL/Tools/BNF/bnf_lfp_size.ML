@@ -37,8 +37,6 @@ fun mk_to_natT T = T --> HOLogic.natT;
 
 fun mk_abs_zero_nat T = Term.absdummy T HOLogic.zero;
 
-fun mk_pointful ctxt thm = unfold_thms ctxt [o_apply] (thm RS fun_cong);
-
 fun mk_unabs_def_unused_0 n =
   funpow n (fn thm => thm RS @{thm fun_cong_unused_0} handle THM _ => thm RS fun_cong);
 

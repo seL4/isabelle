@@ -156,6 +156,7 @@ sig
   val mk_tuple_balanced: term list -> term
   val mk_tuple1_balanced: typ list -> term list -> term
   val abs_curried_balanced: typ list -> term -> term
+  val mk_tupled_fun: term -> term -> term list -> term
 
   val mk_case_sum: term * term -> term
   val mk_case_sumN: term list -> term
@@ -461,8 +462,8 @@ fun mk_tupled_fun f x xs =
   if xs = [x] then f else HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 
 fun mk_case_absumprod absT rep fs xss xss' =
-  HOLogic.mk_comp (mk_case_sumN_balanced (@{map 3} mk_tupled_fun fs (map mk_tuple_balanced xss) xss'),
-    mk_rep absT rep);
+  HOLogic.mk_comp (mk_case_sumN_balanced
+    (@{map 3} mk_tupled_fun fs (map mk_tuple_balanced xss) xss'), mk_rep absT rep);
 
 fun If_const T = Const (@{const_name If}, HOLogic.boolT --> T --> T --> T);
 fun mk_If p t f = let val T = fastype_of t in If_const T $ p $ t $ f end;
