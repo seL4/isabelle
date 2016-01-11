@@ -143,9 +143,9 @@ enclosing theory language as the \concept{outer syntax}.
 \subsection{Proof State}
 
 \begin{warn}
-By default Isabelle/jEdit not longer shows the current proof state
-in the output window. You should enable this by ticking
-Plugins $>$ Plugin Options $>$ Editor Output State.
+By default Isabelle/jEdit does not show the proof state
+in the output window. You should enable this by ticking the
+``Proof state'' box.
 \end{warn}
 *}
 (*<*)
