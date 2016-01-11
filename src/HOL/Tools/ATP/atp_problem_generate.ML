@@ -1216,8 +1216,8 @@ fun preprocess_abstractions_in_terms trans_lams facts =
            lambda_ts (1 upto length lambda_ts)
   in (facts, lam_facts) end
 
-(* Metis's use of "resolve_tac" freezes the schematic variables. We simulate the
-   same in Sledgehammer to prevent the discovery of unreplayable proofs. *)
+(* Metis's use of "resolve_tac" freezes the schematic variables. We simulate this in Sledgehammer to
+   prevent the discovery of unreplayable proofs. *)
 fun freeze_term t =
   let
     (* Freshness is desirable for completeness, but not for soundness. *)
@@ -1841,10 +1841,13 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts c
     (* Remove existing facts from the conjecture, as this can dramatically boost an ATP's
        performance (for some reason). *)
     val hyp_ts = hyp_ts |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
+
+    val hyp_ts = map freeze_term hyp_ts;
+    val concl_t = freeze_term concl_t;
+
     val facts = facts |> map (apsnd (pair Axiom))
     val conjs =
       map (pair prem_role) hyp_ts @ [(Conjecture, s_not_prop concl_t)]
-      |> map (apsnd freeze_term)
       |> map2 (pair o rpair (Local, General) o string_of_int) (0 upto length hyp_ts)
     val ((conjs, facts), lam_facts) =
       (conjs, facts)
