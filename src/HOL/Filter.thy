@@ -26,11 +26,6 @@ proof
   show "(\<lambda>x. True) \<in> ?filter" by (auto intro: is_filter.intro)
 qed
 
-text \<open>Kill code generation for filters\<close>
-
-code_datatype Abs_filter
-declare [[code abort: Rep_filter]]
-
 lemma is_filter_Rep_filter: "is_filter (Rep_filter F)"
   using Rep_filter [of F] by simp
 
@@ -1219,6 +1214,54 @@ qed
 end
 
 end
+
+end
+
+text \<open>Code generation for filters\<close>
+
+definition abstract_filter :: "(unit \<Rightarrow> 'a filter) \<Rightarrow> 'a filter"
+  where [simp]: "abstract_filter f = f ()"
+
+code_datatype principal abstract_filter
+
+hide_const (open) abstract_filter
+
+declare [[code drop: filterlim prod_filter filtermap eventually
+  "inf :: _ filter \<Rightarrow> _" "sup :: _ filter \<Rightarrow> _" "less_eq :: _ filter \<Rightarrow> _"
+  Abs_filter]]
+
+declare filterlim_principal [code]
+declare principal_prod_principal [code]
+declare filtermap_principal [code]
+declare eventually_principal [code]
+declare inf_principal [code]
+declare sup_principal [code]
+declare principal_le_iff [code]
+
+lemma Rep_filter_iff_eventually [simp, code]:
+  "Rep_filter F P \<longleftrightarrow> eventually P F"
+  by (simp add: eventually_def)
+
+lemma bot_eq_principal_empty [code]:
+  "bot = principal {}"
+  by simp
+
+lemma top_eq_principal_UNIV [code]:
+  "top = principal UNIV"
+  by simp
+
+instantiation filter :: (equal) equal
+begin
+
+definition equal_filter :: "'a filter \<Rightarrow> 'a filter \<Rightarrow> bool"
+  where "equal_filter F F' \<longleftrightarrow> F = F'"
+
+lemma equal_filter [code]:
+  "HOL.equal (principal A) (principal B) \<longleftrightarrow> A = B"
+  by (simp add: equal_filter_def)
+
+instance
+  by standard (simp add: equal_filter_def)
 
 end
 

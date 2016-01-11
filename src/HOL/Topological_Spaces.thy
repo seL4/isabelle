@@ -2444,8 +2444,9 @@ abbreviation uniformity_on :: "'a set \<Rightarrow> ('a \<times> 'a) filter" whe
 end
 
 lemma uniformity_Abort:
-  "uniformity = Abs_filter (\<lambda>P. Code.abort (STR ''uniformity is not executable'') (\<lambda>x. Rep_filter uniformity P))"
-  unfolding Code.abort_def Rep_filter_inverse ..
+  "uniformity =
+    Filter.abstract_filter (\<lambda>u. Code.abort (STR ''uniformity is not executable'') (\<lambda>u. uniformity))"
+  by simp
 
 class open_uniformity = "open" + uniformity +
   assumes open_uniformity: "\<And>U. open U \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
