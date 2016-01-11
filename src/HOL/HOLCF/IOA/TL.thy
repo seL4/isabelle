@@ -42,138 +42,109 @@ definition Leadsto :: "'a temporal \<Rightarrow> 'a temporal \<Rightarrow> 'a te
 
 
 lemma simple: "\<box>\<diamond>(\<^bold>\<not> P) = (\<^bold>\<not> \<diamond>\<box>P)"
-apply (rule ext)
-apply (simp add: Diamond_def NOT_def Box_def)
-done
+  by (auto simp add: Diamond_def NOT_def Box_def)
 
 lemma Boxnil: "nil \<Turnstile> \<box>P"
-apply (simp add: satisfies_def Box_def tsuffix_def suffix_def nil_is_Conc)
-done
+  by (simp add: satisfies_def Box_def tsuffix_def suffix_def nil_is_Conc)
 
-lemma Diamondnil: "~(nil \<Turnstile> \<diamond>P)"
-apply (simp add: Diamond_def satisfies_def NOT_def)
-apply (cut_tac Boxnil)
-apply (simp add: satisfies_def)
-done
+lemma Diamondnil: "\<not> (nil \<Turnstile> \<diamond>P)"
+  using Boxnil by (simp add: Diamond_def satisfies_def NOT_def)
 
-lemma Diamond_def2: "(\<diamond>F) s = (? s2. tsuffix s2 s & F s2)"
-apply (simp add: Diamond_def NOT_def Box_def)
-done
+lemma Diamond_def2: "(\<diamond>F) s \<longleftrightarrow> (\<exists>s2. tsuffix s2 s \<and> F s2)"
+  by (simp add: Diamond_def NOT_def Box_def)
 
 
-
-subsection "TLA Axiomatization by Merz"
+subsection \<open>TLA Axiomatization by Merz\<close>
 
 lemma suffix_refl: "suffix s s"
-apply (simp add: suffix_def)
-apply (rule_tac x = "nil" in exI)
-apply auto
-done
+  apply (simp add: suffix_def)
+  apply (rule_tac x = "nil" in exI)
+  apply auto
+  done
 
-lemma reflT: "s~=UU & s~=nil --> (s \<Turnstile> \<box>F \<^bold>\<longrightarrow> F)"
-apply (simp add: satisfies_def IMPLIES_def Box_def)
-apply (rule impI)+
-apply (erule_tac x = "s" in allE)
-apply (simp add: tsuffix_def suffix_refl)
-done
+lemma reflT: "s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> (s \<Turnstile> \<box>F \<^bold>\<longrightarrow> F)"
+  apply (simp add: satisfies_def IMPLIES_def Box_def)
+  apply (rule impI)+
+  apply (erule_tac x = "s" in allE)
+  apply (simp add: tsuffix_def suffix_refl)
+  done
 
-
-lemma suffix_trans: "[| suffix y x ; suffix z y |]  ==> suffix z x"
-apply (simp add: suffix_def)
-apply auto
-apply (rule_tac x = "s1 @@ s1a" in exI)
-apply auto
-apply (simp (no_asm) add: Conc_assoc)
-done
+lemma suffix_trans: "suffix y x \<Longrightarrow> suffix z y \<Longrightarrow> suffix z x"
+  apply (simp add: suffix_def)
+  apply auto
+  apply (rule_tac x = "s1 @@ s1a" in exI)
+  apply auto
+  apply (simp add: Conc_assoc)
+  done
 
 lemma transT: "s \<Turnstile> \<box>F \<^bold>\<longrightarrow> \<box>\<box>F"
-apply (simp (no_asm) add: satisfies_def IMPLIES_def Box_def tsuffix_def)
-apply auto
-apply (drule suffix_trans)
-apply assumption
-apply (erule_tac x = "s2a" in allE)
-apply auto
-done
-
+  apply (simp add: satisfies_def IMPLIES_def Box_def tsuffix_def)
+  apply auto
+  apply (drule suffix_trans)
+  apply assumption
+  apply (erule_tac x = "s2a" in allE)
+  apply auto
+  done
 
 lemma normalT: "s \<Turnstile> \<box>(F \<^bold>\<longrightarrow> G) \<^bold>\<longrightarrow> \<box>F \<^bold>\<longrightarrow> \<box>G"
-apply (simp (no_asm) add: satisfies_def IMPLIES_def Box_def)
-done
+  by (simp add: satisfies_def IMPLIES_def Box_def)
 
 
-subsection "TLA Rules by Lamport"
+subsection \<open>TLA Rules by Lamport\<close>
 
-lemma STL1a: "validT P ==> validT (\<box>P)"
-apply (simp add: validT_def satisfies_def Box_def tsuffix_def)
-done
+lemma STL1a: "validT P \<Longrightarrow> validT (\<box>P)"
+  by (simp add: validT_def satisfies_def Box_def tsuffix_def)
 
-lemma STL1b: "valid P ==> validT (Init P)"
-apply (simp add: valid_def validT_def satisfies_def Init_def)
-done
+lemma STL1b: "valid P \<Longrightarrow> validT (Init P)"
+  by (simp add: valid_def validT_def satisfies_def Init_def)
 
-lemma STL1: "valid P ==> validT (\<box>(Init P))"
-apply (rule STL1a)
-apply (erule STL1b)
-done
+lemma STL1: "valid P \<Longrightarrow> validT (\<box>(Init P))"
+  apply (rule STL1a)
+  apply (erule STL1b)
+  done
 
-(* Note that unlift and HD is not at all used !!! *)
-lemma STL4: "valid (P \<^bold>\<longrightarrow> Q)  ==> validT (\<box>(Init P) \<^bold>\<longrightarrow> \<box>(Init Q))"
-apply (simp add: valid_def validT_def satisfies_def IMPLIES_def Box_def Init_def)
-done
+(*Note that unlift and HD is not at all used!*)
+lemma STL4: "valid (P \<^bold>\<longrightarrow> Q) \<Longrightarrow> validT (\<box>(Init P) \<^bold>\<longrightarrow> \<box>(Init Q))"
+  by (simp add: valid_def validT_def satisfies_def IMPLIES_def Box_def Init_def)
 
 
-subsection "LTL Axioms by Manna/Pnueli"
+subsection \<open>LTL Axioms by Manna/Pnueli\<close>
 
-lemma tsuffix_TL [rule_format (no_asm)]:
-"s~=UU & s~=nil --> tsuffix s2 (TL$s) --> tsuffix s2 s"
-apply (unfold tsuffix_def suffix_def)
-apply auto
-apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
-apply (rule_tac x = "a\<leadsto>s1" in exI)
-apply auto
-done
+lemma tsuffix_TL [rule_format]: "s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> tsuffix s2 (TL $ s) \<longrightarrow> tsuffix s2 s"
+  apply (unfold tsuffix_def suffix_def)
+  apply auto
+  apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+  apply (rule_tac x = "a \<leadsto> s1" in exI)
+  apply auto
+  done
 
 lemmas tsuffix_TL2 = conjI [THEN tsuffix_TL]
 
-declare split_if [split del]
-lemma LTL1:
-   "s~=UU & s~=nil --> (s \<Turnstile> \<box>F \<^bold>\<longrightarrow> (F \<^bold>\<and> (Next (\<box>F))))"
-apply (unfold Next_def satisfies_def NOT_def IMPLIES_def AND_def Box_def)
-apply auto
-(* \<box>F \<^bold>\<longrightarrow> F *)
-apply (erule_tac x = "s" in allE)
-apply (simp add: tsuffix_def suffix_refl)
-(* \<box>F \<^bold>\<longrightarrow> Next \<box>F *)
-apply (simp split add: split_if)
-apply auto
-apply (drule tsuffix_TL2)
-apply assumption+
-apply auto
-done
-declare split_if [split]
+lemma LTL1: "s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> (s \<Turnstile> \<box>F \<^bold>\<longrightarrow> (F \<^bold>\<and> (Next (\<box>F))))"
+  supply split_if [split del] 
+  apply (unfold Next_def satisfies_def NOT_def IMPLIES_def AND_def Box_def)
+  apply auto
+  text \<open>\<open>\<box>F \<^bold>\<longrightarrow> F\<close>\<close>
+  apply (erule_tac x = "s" in allE)
+  apply (simp add: tsuffix_def suffix_refl)
+  text \<open>\<open>\<box>F \<^bold>\<longrightarrow> Next \<box>F\<close>\<close>
+  apply (simp split add: split_if)
+  apply auto
+  apply (drule tsuffix_TL2)
+  apply assumption+
+  apply auto
+  done
 
+lemma LTL2a: "s \<Turnstile> \<^bold>\<not> (Next F) \<^bold>\<longrightarrow> (Next (\<^bold>\<not> F))"
+  by (simp add: Next_def satisfies_def NOT_def IMPLIES_def)
 
-lemma LTL2a:
-    "s \<Turnstile> \<^bold>\<not> (Next F) \<^bold>\<longrightarrow> (Next (\<^bold>\<not> F))"
-apply (unfold Next_def satisfies_def NOT_def IMPLIES_def)
-apply simp
-done
+lemma LTL2b: "s \<Turnstile> (Next (\<^bold>\<not> F)) \<^bold>\<longrightarrow> (\<^bold>\<not> (Next F))"
+  by (simp add: Next_def satisfies_def NOT_def IMPLIES_def)
 
-lemma LTL2b:
-    "s \<Turnstile> (Next (\<^bold>\<not> F)) \<^bold>\<longrightarrow> (\<^bold>\<not> (Next F))"
-apply (unfold Next_def satisfies_def NOT_def IMPLIES_def)
-apply simp
-done
+lemma LTL3: "ex \<Turnstile> (Next (F \<^bold>\<longrightarrow> G)) \<^bold>\<longrightarrow> (Next F) \<^bold>\<longrightarrow> (Next G)"
+  by (simp add: Next_def satisfies_def NOT_def IMPLIES_def)
 
-lemma LTL3:
-"ex \<Turnstile> (Next (F \<^bold>\<longrightarrow> G)) \<^bold>\<longrightarrow> (Next F) \<^bold>\<longrightarrow> (Next G)"
-apply (unfold Next_def satisfies_def NOT_def IMPLIES_def)
-apply simp
-done
-
-
-lemma ModusPonens: "[| validT (P \<^bold>\<longrightarrow> Q); validT P |] ==> validT Q"
-apply (simp add: validT_def satisfies_def IMPLIES_def)
-done
+lemma ModusPonens: "validT (P \<^bold>\<longrightarrow> Q) \<Longrightarrow> validT P \<Longrightarrow> validT Q"
+  by (simp add: validT_def satisfies_def IMPLIES_def)
 
 end

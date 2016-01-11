@@ -15,10 +15,10 @@ type_synonym
 (* messages  #replies        #received            header mode *)
 
 definition rq :: "'m receiver_state => 'm list" where "rq == fst"
-definition rsent :: "'m receiver_state => bool multiset" where "rsent == fst o snd"
-definition rrcvd :: "'m receiver_state => 'm packet multiset" where "rrcvd == fst o snd o snd"
-definition rbit :: "'m receiver_state => bool" where "rbit == fst o snd o snd o snd"
-definition rsending :: "'m receiver_state => bool" where "rsending == snd o snd o snd o snd"
+definition rsent :: "'m receiver_state => bool multiset" where "rsent == fst \<circ> snd"
+definition rrcvd :: "'m receiver_state => 'm packet multiset" where "rrcvd == fst \<circ> snd \<circ> snd"
+definition rbit :: "'m receiver_state => bool" where "rbit == fst \<circ> snd \<circ> snd \<circ> snd"
+definition rsending :: "'m receiver_state => bool" where "rsending == snd \<circ> snd \<circ> snd \<circ> snd"
 
 definition
   receiver_asig :: "'m action signature" where

@@ -22,14 +22,14 @@ definition
 
 definition
  rec :: "'m impl_state => 'm receiver_state" where
- "rec = fst o snd"
+ "rec = fst \<circ> snd"
 
 definition
  srch :: "'m impl_state => 'm packet list" where
- "srch = fst o snd o snd"
+ "srch = fst \<circ> snd \<circ> snd"
 
 definition
  rsch :: "'m impl_state => bool list" where
- "rsch = snd o snd o snd"
+ "rsch = snd \<circ> snd \<circ> snd"
 
 end

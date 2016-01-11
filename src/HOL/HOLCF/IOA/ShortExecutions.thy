@@ -153,7 +153,7 @@ apply auto
 done
 
 
-lemma MapCut: "Map f$(Cut (P o f) s) = Cut P (Map f$s)"
+lemma MapCut: "Map f$(Cut (P \<circ> f) s) = Cut P (Map f$s)"
 apply (rule_tac A1 = "%x. True" and Q1 = "%x. \<not> P (f x) " and x1 = "s" in
   take_lemma_less_induct [THEN mp])
 prefer 3 apply (fast)

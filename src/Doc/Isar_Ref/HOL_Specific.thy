@@ -885,6 +885,7 @@ subsection \<open>Record specifications\<close>
 text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "record"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (HOL) "print_record"} & : & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -892,6 +893,10 @@ text \<open>
       (@{syntax type} '+')? (constdecl +)
     ;
     constdecl: @{syntax name} '::' @{syntax type} @{syntax mixfix}?
+    ;
+    @@{command (HOL) print_record} modes? @{syntax typespec_sorts}
+    ;
+    modes: '(' (@{syntax name} +) ')'
   \<close>}
 
   \<^descr> @{command (HOL) "record"}~\<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t = \<tau> + c\<^sub>1 :: \<sigma>\<^sub>1
@@ -918,6 +923,10 @@ text \<open>
   \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n\<rparr>\<close>, likewise is \<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m, \<zeta>) t_scheme\<close> made an abbreviation for
   \<open>\<lparr>c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n, \<dots> ::
   \<zeta>\<rparr>\<close>.
+
+ \<^descr> @{command (HOL) "print_record"}~\<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t\<close> prints the definition
+ of record \<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t\<close>. Optionally \<open>modes\<close> can be specified, which are
+ appended to the current print mode; see \secref{sec:print-modes}.
 \<close>
 
 

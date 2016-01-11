@@ -582,6 +582,8 @@ been removed. INCOMPATIBILITY.
 'transfer_prover': 'transfer_start', 'transfer_step', 'transfer_end',
 'transfer_prover_start' and 'transfer_prover_end'.
 
+* New diagnostic command print_record for displaying record definitions.
+
 * Division on integers is bootstrapped directly from division on
 naturals and uses generic numeral algorithm for computations. Slight
 INCOMPATIBILITY, simproc numeral_divmod replaces and generalizes former

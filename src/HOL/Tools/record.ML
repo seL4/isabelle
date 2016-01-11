@@ -46,6 +46,9 @@ sig
   val split_simp_tac: Proof.context -> thm list -> (term -> int) -> int -> tactic
   val split_wrapper: string * (Proof.context -> wrapper)
 
+  val pretty_recT: Proof.context -> typ -> Pretty.T
+  val string_of_record: Proof.context -> string -> string
+
   val codegen: bool Config.T
   val updateN: string
   val ext_typeN: string
@@ -2350,6 +2353,58 @@ fun add_record_cmd overloaded (raw_params, binding) raw_parent raw_fields thy =
 end;
 
 
+(* printing *)
+
+local
+
+fun the_parent_recT (Type (parent, [Type (_, [unit as Type (_,[])])])) = Type (parent, [unit])
+  | the_parent_recT (Type (extT, [T])) = Type (extT, [the_parent_recT T])
+  | the_parent_recT T = raise TYPE ("Not a unit record scheme with parent: ", [T], [])
+
+in
+
+fun pretty_recT ctxt typ =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val (fs, (_, moreT)) = get_recT_fields thy typ
+    val _ = if moreT = HOLogic.unitT then () else raise TYPE ("Not a unit record scheme: ", [typ], [])
+    val parent = if length (dest_recTs typ) >= 2 then SOME (the_parent_recT typ) else NONE
+    val pfs = case parent of SOME p => fst (get_recT_fields thy p) | NONE => []
+    val fs' = drop (length pfs) fs
+    fun pretty_field (name, typ) = Pretty.block [
+          Syntax.pretty_term ctxt (Const (name, typ)),
+          Pretty.brk 1,
+          Pretty.str "::",
+          Pretty.brk 1,
+          Syntax.pretty_typ ctxt typ
+        ]
+  in
+    Pretty.block (Library.separate (Pretty.brk 1)
+      ([Pretty.keyword1 "record", Syntax.pretty_typ ctxt typ, Pretty.str "="] @
+        (case parent of
+          SOME p => [Syntax.pretty_typ ctxt p, Pretty.str "+"]
+        | NONE => [])) @
+      Pretty.fbrk ::
+      Pretty.fbreaks (map pretty_field fs'))
+  end
+
+end
+
+fun string_of_record ctxt s =
+  let
+    val T = Syntax.read_typ ctxt s
+  in
+    Pretty.string_of (pretty_recT ctxt T)
+      handle TYPE _ => error ("Unknown record: " ^ Syntax.string_of_typ ctxt T)
+  end
+
+val print_record =
+  let
+    fun print_item string_of (modes, arg) = Toplevel.keep (fn state =>
+         Print_Mode.with_modes modes (fn () => Output.writeln (string_of state arg)) ());
+  in print_item (string_of_record o Toplevel.context_of) end
+
+
 (* outer syntax *)
 
 val _ =
@@ -2360,4 +2415,11 @@ val _ =
     >> (fn ((overloaded, x), (y, z)) =>
         Toplevel.theory (add_record_cmd {overloaded = overloaded} x y z)));
 
-end;
+val opt_modes =
+  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) []
+
+val _ =
+  Outer_Syntax.command @{command_keyword "print_record"} "print record definiton"
+    (opt_modes -- Parse.typ >> print_record);
+
+end

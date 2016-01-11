@@ -183,7 +183,7 @@ class Session(val resources: Resources)
   /* tuning parameters */
 
   def output_delay: Time = Time.seconds(0.1)  // prover output (markup, common messages)
-  def prune_delay: Time = Time.seconds(60.0)  // prune history (delete old versions)
+  def prune_delay: Time = Time.seconds(15.0)  // prune history (delete old versions)
   def prune_size: Int = 0  // size of retained history
   def syslog_limit: Int = 100
   def reparse_limit: Int = 0
@@ -353,7 +353,8 @@ class Session(val resources: Resources)
 
   /* manager thread */
 
-  private val delay_prune = Standard_Thread.delay_first(prune_delay) { manager.send(Prune_History) }
+  private val delay_prune =
+    Standard_Thread.delay_first(prune_delay) { manager.send(Prune_History) }
 
   private val manager: Consumer_Thread[Any] =
   {

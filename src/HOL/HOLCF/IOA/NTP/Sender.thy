@@ -13,10 +13,10 @@ type_synonym
 (*                messages   #sent           #received      header  mode *)
 
 definition sq :: "'m sender_state => 'm list" where "sq = fst"
-definition ssent :: "'m sender_state => bool multiset" where "ssent = fst o snd"
-definition srcvd :: "'m sender_state => bool multiset" where "srcvd = fst o snd o snd"
-definition sbit :: "'m sender_state => bool" where "sbit = fst o snd o snd o snd"
-definition ssending :: "'m sender_state => bool" where "ssending = snd o snd o snd o snd"
+definition ssent :: "'m sender_state => bool multiset" where "ssent = fst \<circ> snd"
+definition srcvd :: "'m sender_state => bool multiset" where "srcvd = fst \<circ> snd \<circ> snd"
+definition sbit :: "'m sender_state => bool" where "sbit = fst \<circ> snd \<circ> snd \<circ> snd"
+definition ssending :: "'m sender_state => bool" where "ssending = snd \<circ> snd \<circ> snd \<circ> snd"
 
 definition
   sender_asig :: "'m action signature" where
