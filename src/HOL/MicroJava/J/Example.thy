@@ -82,31 +82,33 @@ declare Ext_not_Object  [symmetric, simp]
 declare Base_not_Xcpt [symmetric, simp]
 declare Ext_not_Xcpt  [symmetric, simp]
 
-consts
-  foo_Base::  java_mb
-  foo_Ext ::  java_mb
-  BaseC   :: "java_mb cdecl"
-  ExtC    :: "java_mb cdecl"
-  test    ::  stmt
-  foo   ::  mname
-  a   ::  loc
-  b       ::  loc
+definition foo_Base :: java_mb
+  where "foo_Base == ([x],[],Skip,LAcc x)"
 
-defs
-  foo_Base_def:"foo_Base == ([x],[],Skip,LAcc x)"
-  BaseC_def:"BaseC == (Base, (Object, 
-           [(vee, PrimT Boolean)], 
-           [((foo,[Class Base]),Class Base,foo_Base)]))"
-  foo_Ext_def:"foo_Ext == ([x],[],Expr( {Ext}Cast Ext
+definition foo_Ext :: java_mb
+  where "foo_Ext == ([x],[],Expr( {Ext}Cast Ext
                (LAcc x)..vee:=Lit (Intg Numeral1)),
            Lit Null)"
-  ExtC_def: "ExtC  == (Ext,  (Base  , 
+
+consts foo ::  mname
+
+definition BaseC :: "java_mb cdecl"
+  where "BaseC == (Base, (Object, 
+           [(vee, PrimT Boolean)], 
+           [((foo,[Class Base]),Class Base,foo_Base)]))"
+
+definition ExtC :: "java_mb cdecl"
+  where "ExtC  == (Ext,  (Base  ,
            [(vee, PrimT Integer)], 
            [((foo,[Class Base]),Class Ext,foo_Ext)]))"
 
-  test_def:"test == Expr(e::=NewC Ext);; 
+definition test ::  stmt
+  where "test == Expr(e::=NewC Ext);;
                     Expr({Base}LAcc e..foo({[Class Base]}[Lit Null]))"
 
+consts
+  a :: loc
+  b :: loc
 
 abbreviation
   NP  :: xcpt where

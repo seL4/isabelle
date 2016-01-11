@@ -9,41 +9,31 @@ theory Asig
 imports Main
 begin
 
-type_synonym
-  'a signature = "('a set * 'a set * 'a set)"
+type_synonym 'a signature = "('a set * 'a set * 'a set)"
 
-consts
-  "actions" :: "'action signature => 'action set"
-  "inputs" :: "'action signature => 'action set"
-  "outputs" :: "'action signature => 'action set"
-  "internals" :: "'action signature => 'action set"
-  externals :: "'action signature => 'action set"
+definition "inputs" :: "'action signature => 'action set"
+  where asig_inputs_def: "inputs == fst"
 
-  is_asig       ::"'action signature => bool"
-  mk_ext_asig   ::"'action signature => 'action signature"
+definition "outputs" :: "'action signature => 'action set"
+  where asig_outputs_def: "outputs == (fst o snd)"
 
+definition "internals" :: "'action signature => 'action set"
+  where asig_internals_def: "internals == (snd o snd)"
 
-defs
+definition "actions" :: "'action signature => 'action set"
+  where actions_def: "actions(asig) == (inputs(asig) Un outputs(asig) Un internals(asig))"
 
-asig_inputs_def:    "inputs == fst"
-asig_outputs_def:   "outputs == (fst o snd)"
-asig_internals_def: "internals == (snd o snd)"
+definition externals :: "'action signature => 'action set"
+  where externals_def: "externals(asig) == (inputs(asig) Un outputs(asig))"
 
-actions_def:
-   "actions(asig) == (inputs(asig) Un outputs(asig) Un internals(asig))"
+definition is_asig :: "'action signature => bool"
+  where "is_asig(triple) ==
+    ((inputs(triple) Int outputs(triple) = {})    &
+     (outputs(triple) Int internals(triple) = {}) &
+     (inputs(triple) Int internals(triple) = {}))"
 
-externals_def:
-   "externals(asig) == (inputs(asig) Un outputs(asig))"
-
-is_asig_def:
-  "is_asig(triple) ==
-      ((inputs(triple) Int outputs(triple) = {})    &
-       (outputs(triple) Int internals(triple) = {}) &
-       (inputs(triple) Int internals(triple) = {}))"
-
-
-mk_ext_asig_def:
-  "mk_ext_asig(triple) == (inputs(triple), outputs(triple), {})"
+definition mk_ext_asig :: "'action signature => 'action signature"
+  where "mk_ext_asig(triple) == (inputs(triple), outputs(triple), {})"
 
 
 lemmas asig_projections = asig_inputs_def asig_outputs_def asig_internals_def

@@ -15,23 +15,26 @@ type_synonym 'a ord = "'a \<Rightarrow> 'a \<Rightarrow> bool"
 type_synonym 'a binop = "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 type_synonym 'a sl = "'a set \<times> 'a ord \<times> 'a binop"
 
-consts
-  "lesub" :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool"
-  "lesssub" :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool"
-  "plussub" :: "'a \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'c" 
-(*<*)
+definition lesub :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool"
+  where "lesub x r y \<longleftrightarrow> r x y"
+
+definition lesssub :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool"
+  where "lesssub x r y \<longleftrightarrow> lesub x r y \<and> x \<noteq> y"
+
+definition plussub :: "'a \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'c"
+  where "plussub x f y = f x y"
+
 notation (ASCII)
   "lesub"  ("(_ /<='__ _)" [50, 1000, 51] 50) and
   "lesssub"  ("(_ /<'__ _)" [50, 1000, 51] 50) and
   "plussub"  ("(_ /+'__ _)" [65, 1000, 66] 65)
-(*>*)
+
 notation
   "lesub"  ("(_ /\<sqsubseteq>\<^bsub>_\<^esub> _)" [50, 0, 51] 50) and
   "lesssub"  ("(_ /\<sqsubset>\<^bsub>_\<^esub> _)" [50, 0, 51] 50) and
   "plussub"  ("(_ /\<squnion>\<^bsub>_\<^esub> _)" [65, 0, 66] 65)
-(*<*)
-(* allow \<sub> instead of \<bsub>..\<esub> *)
 
+(* allow \<sub> instead of \<bsub>..\<esub> *)
 abbreviation (input)
   lesub1 :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool" ("(_ /\<sqsubseteq>\<^sub>_ _)" [50, 1000, 51] 50)
   where "x \<sqsubseteq>\<^sub>r y == x \<sqsubseteq>\<^bsub>r\<^esub> y"
@@ -43,12 +46,6 @@ abbreviation (input)
 abbreviation (input)
   plussub1 :: "'a \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'c" ("(_ /\<squnion>\<^sub>_ _)" [65, 1000, 66] 65)
   where "x \<squnion>\<^sub>f y == x \<squnion>\<^bsub>f\<^esub> y"
-(*>*)
-
-defs
-  lesub_def:   "x \<sqsubseteq>\<^sub>r y \<equiv> r x y"
-  lesssub_def: "x \<sqsubset>\<^sub>r y \<equiv> x \<sqsubseteq>\<^sub>r y \<and> x \<noteq> y"
-  plussub_def: "x \<squnion>\<^sub>f y \<equiv> f x y"
 
 definition ord :: "('a \<times> 'a) set \<Rightarrow> 'a ord" where
   "ord r \<equiv> \<lambda>x y. (x,y) \<in> r"

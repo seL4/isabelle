@@ -60,21 +60,7 @@ consts
   te_app :: "[TyEnv, ExVar] => Ty"
   te_dom :: "TyEnv => ExVar set"
 
-  eval_fun :: "((ValEnv * Ex) * Val) set => ((ValEnv * Ex) * Val) set"
-  eval_rel :: "((ValEnv * Ex) * Val) set"
-  eval :: "[ValEnv, Ex, Val] => bool" ("_ |- _ ---> _" [36,0,36] 50)
-
-  elab_fun :: "((TyEnv * Ex) * Ty) set => ((TyEnv * Ex) * Ty) set"
-  elab_rel :: "((TyEnv * Ex) * Ty) set"
-  elab :: "[TyEnv, Ex, Ty] => bool" ("_ |- _ ===> _" [36,0,36] 50)
-
   isof :: "[Const, Ty] => bool" ("_ isof _" [36,36] 50)
-  isof_env :: "[ValEnv,TyEnv] => bool" ("_ isofenv _")
-
-  hasty_fun :: "(Val * Ty) set => (Val * Ty) set"
-  hasty_rel :: "(Val * Ty) set"
-  hasty :: "[Val, Ty] => bool" ("_ hasty _" [36,36] 50)
-  hasty_env :: "[ValEnv,TyEnv] => bool" ("_ hastyenv _ " [36,36] 35)
 
 (*
   Expression constructors must be injective, distinct and it must be possible
@@ -185,9 +171,8 @@ introduction rules and a strong elimination (induction) rule can be
 derived.
 *)
 
-defs
-  eval_fun_def:
-    " eval_fun(s) ==
+definition eval_fun :: "((ValEnv * Ex) * Val) set => ((ValEnv * Ex) * Val) set"
+  where "eval_fun(s) ==
      { pp.
        (? ve c. pp=((ve,e_const(c)),v_const(c))) |
        (? ve x. pp=((ve,e_var(x)),ve_app ve x) & x:ve_dom(ve)) |
@@ -208,51 +193,56 @@ defs
        )
      }"
 
-  eval_rel_def: "eval_rel == lfp(eval_fun)"
-  eval_def: "ve |- e ---> v == ((ve,e),v):eval_rel"
+definition eval_rel :: "((ValEnv * Ex) * Val) set"
+  where "eval_rel == lfp(eval_fun)"
+
+definition eval :: "[ValEnv, Ex, Val] => bool"  ("_ |- _ ---> _" [36,0,36] 50)
+  where "ve |- e ---> v == ((ve,e),v) \<in> eval_rel"
 
 (* The static semantics is defined in the same way as the dynamic
 semantics.  The relation te |- e ===> t express the expression e has the
 type t in the type environment te.
 *)
 
-  elab_fun_def:
-  "elab_fun(s) ==
-  { pp.
-    (? te c t. pp=((te,e_const(c)),t) & c isof t) |
-    (? te x. pp=((te,e_var(x)),te_app te x) & x:te_dom(te)) |
-    (? te x e t1 t2. pp=((te,fn x => e),t1->t2) & ((te+{x |=> t1},e),t2):s) |
-    (? te f x e t1 t2.
-       pp=((te,fix f(x)=e),t1->t2) & ((te+{f |=> t1->t2}+{x |=> t1},e),t2):s
-    ) |
-    (? te e1 e2 t1 t2.
-       pp=((te,e1 @@ e2),t2) & ((te,e1),t1->t2):s & ((te,e2),t1):s
-    )
-  }"
+definition elab_fun :: "((TyEnv * Ex) * Ty) set => ((TyEnv * Ex) * Ty) set"
+  where "elab_fun(s) ==
+    { pp.
+      (? te c t. pp=((te,e_const(c)),t) & c isof t) |
+      (? te x. pp=((te,e_var(x)),te_app te x) & x:te_dom(te)) |
+      (? te x e t1 t2. pp=((te,fn x => e),t1->t2) & ((te+{x |=> t1},e),t2):s) |
+      (? te f x e t1 t2.
+         pp=((te,fix f(x)=e),t1->t2) & ((te+{f |=> t1->t2}+{x |=> t1},e),t2):s
+      ) |
+      (? te e1 e2 t1 t2.
+         pp=((te,e1 @@ e2),t2) & ((te,e1),t1->t2):s & ((te,e2),t1):s
+      )
+    }"
 
-  elab_rel_def: "elab_rel == lfp(elab_fun)"
-  elab_def: "te |- e ===> t == ((te,e),t):elab_rel"
+definition elab_rel :: "((TyEnv * Ex) * Ty) set"
+  where "elab_rel == lfp(elab_fun)"
+
+definition elab :: "[TyEnv, Ex, Ty] => bool"  ("_ |- _ ===> _" [36,0,36] 50)
+  where "te |- e ===> t == ((te,e),t):elab_rel"
+
 
 (* The original correspondence relation *)
 
-  isof_env_def:
-    " ve isofenv te ==
-     ve_dom(ve) = te_dom(te) &
-     ( ! x.
+definition isof_env :: "[ValEnv,TyEnv] => bool" ("_ isofenv _")
+  where "ve isofenv te ==
+    ve_dom(ve) = te_dom(te) &
+     (! x.
          x:ve_dom(ve) -->
-         (? c. ve_app ve x = v_const(c) & c isof te_app te x)
-     )
-   "
+         (? c. ve_app ve x = v_const(c) & c isof te_app te x))"
 
 axiomatization where
   isof_app: "[| c1 isof t1->t2; c2 isof t1 |] ==> c_app c1 c2 isof t2"
 
-defs
+
 (* The extented correspondence relation *)
 
-  hasty_fun_def:
-    " hasty_fun(r) ==
-     { p.
+definition hasty_fun :: "(Val * Ty) set => (Val * Ty) set"
+  where "hasty_fun(r) ==
+    { p.
        ( ? c t. p = (v_const(c),t) & c isof t) |
        ( ? ev e ve t te.
            p = (v_clos(<|ev,e,ve|>),t) &
@@ -260,15 +250,18 @@ defs
            ve_dom(ve) = te_dom(te) &
            (! ev1. ev1:ve_dom(ve) --> (ve_app ve ev1,te_app te ev1) : r)
        )
-     }
-   "
+    }"
 
-  hasty_rel_def: "hasty_rel == gfp(hasty_fun)"
-  hasty_def: "v hasty t == (v,t) : hasty_rel"
-  hasty_env_def:
-    " ve hastyenv te ==
-     ve_dom(ve) = te_dom(te) &
-     (! x. x: ve_dom(ve) --> ve_app ve x hasty te_app te x)"
+definition hasty_rel :: "(Val * Ty) set"
+  where "hasty_rel == gfp(hasty_fun)"
+
+definition hasty :: "[Val, Ty] => bool" ("_ hasty _" [36,36] 50)
+  where "v hasty t == (v,t) : hasty_rel"
+
+definition hasty_env :: "[ValEnv,TyEnv] => bool" ("_ hastyenv _ " [36,36] 35)
+  where "ve hastyenv te ==
+    ve_dom(ve) = te_dom(te) &
+      (! x. x: ve_dom(ve) --> ve_app ve x hasty te_app te x)"
 
 
 (* ############################################################ *)

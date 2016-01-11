@@ -35,10 +35,17 @@ translations
 defs
   Init_def:    "sigma \<Turnstile> Init F  ==  (first_world sigma) \<Turnstile> F"
 
-defs (overloaded)
-  fw_temp_def: "first_world == \<lambda>sigma. sigma"
-  fw_stp_def:  "first_world == st1"
-  fw_act_def:  "first_world == \<lambda>sigma. (st1 sigma, st2 sigma)"
+overloading
+  fw_temp \<equiv> "first_world :: behavior \<Rightarrow> behavior"
+  fw_stp \<equiv> "first_world :: behavior \<Rightarrow> state"
+  fw_act \<equiv> "first_world :: behavior \<Rightarrow> state \<times> state"
+begin
+
+definition "first_world == \<lambda>sigma. sigma"
+definition "first_world == st1"
+definition "first_world == \<lambda>sigma. (st1 sigma, st2 sigma)"
+
+end
 
 lemma const_simps [int_rewrite, simp]:
   "\<turnstile> (Init #True) = #True"

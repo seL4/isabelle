@@ -176,14 +176,18 @@ next
     by(rule finite_acyclic_wf_converse[OF finite_subcls1])
 qed
 
-consts
-  "method" :: "'c prog \<times> cname => ( sig   \<rightharpoonup> cname \<times> ty \<times> 'c)" (* ###curry *)
-  field  :: "'c prog \<times> cname => ( vname \<rightharpoonup> cname \<times> ty     )" (* ###curry *)
-  fields :: "'c prog \<times> cname => ((vname \<times> cname) \<times> ty) list" (* ###curry *)
-
-\<comment> "methods of a class, with inheritance, overriding and hiding, cf. 8.4.6"
-defs method_def [code]: "method \<equiv> \<lambda>(G,C). class_rec G C empty (\<lambda>C fs ms ts.
+definition "method" :: "'c prog \<times> cname => (sig \<rightharpoonup> cname \<times> ty \<times> 'c)"
+  \<comment> "methods of a class, with inheritance, overriding and hiding, cf. 8.4.6"
+  where [code]: "method \<equiv> \<lambda>(G,C). class_rec G C empty (\<lambda>C fs ms ts.
                            ts ++ map_of (map (\<lambda>(s,m). (s,(C,m))) ms))"
+
+definition fields :: "'c prog \<times> cname => ((vname \<times> cname) \<times> ty) list"
+  \<comment> "list of fields of a class, including inherited and hidden ones"
+  where [code]: "fields \<equiv> \<lambda>(G,C). class_rec G C [] (\<lambda>C fs ms ts.
+                           map (\<lambda>(fn,ft). ((fn,C),ft)) fs @ ts)"
+
+definition field :: "'c prog \<times> cname => (vname \<rightharpoonup> cname \<times> ty)"
+  where [code]: "field == map_of o (map (\<lambda>((fn,fd),ft). (fn,(fd,ft)))) o fields"
 
 lemma method_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
   method (G,C) = (if C = Object then empty else method (G,D)) ++  
@@ -194,11 +198,6 @@ apply (erule (1) class_rec_lemma [THEN trans])
 apply auto
 done
 
-
-\<comment> "list of fields of a class, including inherited and hidden ones"
-defs fields_def [code]: "fields \<equiv> \<lambda>(G,C). class_rec G C []    (\<lambda>C fs ms ts.
-                           map (\<lambda>(fn,ft). ((fn,C),ft)) fs @ ts)"
-
 lemma fields_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
  fields (G,C) = 
   map (\<lambda>(fn,ft). ((fn,C),ft)) fs @ (if C = Object then [] else fields (G,D))"
@@ -207,9 +206,6 @@ apply (simp split del: split_if)
 apply (erule (1) class_rec_lemma [THEN trans])
 apply auto
 done
-
-
-defs field_def [code]: "field == map_of o (map (\<lambda>((fn,fd),ft). (fn,(fd,ft)))) o fields"
 
 lemma field_fields: 
 "field (G,C) fn = Some (fd, fT) \<Longrightarrow> map_of (fields (G,C)) (fn, fd) = Some fT"

@@ -33,24 +33,20 @@ abbreviation (input)
   localT :: "'c env => (vname \<rightharpoonup> ty)"
   where "localT == snd"
 
-consts
-  more_spec :: "'c prog => (ty \<times> 'x) \<times> ty list =>
-                (ty \<times> 'x) \<times> ty list => bool"
-  appl_methds :: "'c prog =>  cname => sig => ((ty \<times> ty) \<times> ty list) set"
-  max_spec :: "'c prog =>  cname => sig => ((ty \<times> ty) \<times> ty list) set"
-
-defs
-  more_spec_def: "more_spec G == \<lambda>((d,h),pTs). \<lambda>((d',h'),pTs'). G\<turnstile>d\<preceq>d' \<and>
+definition more_spec :: "'c prog \<Rightarrow> (ty \<times> 'x) \<times> ty list \<Rightarrow> (ty \<times> 'x) \<times> ty list \<Rightarrow> bool"
+  where "more_spec G == \<lambda>((d,h),pTs). \<lambda>((d',h'),pTs'). G\<turnstile>d\<preceq>d' \<and>
                                 list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') pTs pTs'"
-  
+
+definition appl_methds :: "'c prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> ((ty \<times> ty) \<times> ty list) set"
   \<comment> "applicable methods, cf. 15.11.2.1"
-  appl_methds_def: "appl_methds G C == \<lambda>(mn, pTs).
+  where "appl_methds G C == \<lambda>(mn, pTs).
                      {((Class md,rT),pTs') |md rT mb pTs'.
                       method (G,C)  (mn, pTs') = Some (md,rT,mb) \<and>
                       list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') pTs pTs'}"
 
+definition max_spec :: "'c prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> ((ty \<times> ty) \<times> ty list) set"
   \<comment> "maximally specific methods, cf. 15.11.2.2"
-  max_spec_def: "max_spec G C sig == {m. m \<in>appl_methds G C sig \<and> 
+  where "max_spec G C sig == {m. m \<in>appl_methds G C sig \<and> 
                                        (\<forall>m'\<in>appl_methds G C sig.
                                          more_spec G m' m --> m' = m)}"
 

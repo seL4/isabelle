@@ -40,15 +40,17 @@ translations
   "PRED P"   =>  "(P::state \<Rightarrow> _)"
   "_stvars"  ==  "CONST stvars"
 
-defs
-  (* Base variables may be assigned arbitrary (type-correct) values.
-     Note that vs may be a tuple of variables. The correct identification
-     of base variables is up to the user who must take care not to
-     introduce an inconsistency. For example, "basevars (x,x)" would
-     definitely be inconsistent.
-  *)
-  basevars_def:  "stvars vs == range vs = UNIV"
-
+(* Base variables may be assigned arbitrary (type-correct) values.
+   Note that vs may be a tuple of variables. The correct identification
+   of base variables is up to the user who must take care not to
+   introduce an inconsistency. For example, "basevars (x,x)" would
+   definitely be inconsistent.
+*)
+overloading stvars \<equiv> stvars
+begin
+  definition stvars :: "(state \<Rightarrow> 'a) \<Rightarrow> bool"
+    where basevars_def: "stvars vs == range vs = UNIV"
+end
 
 lemma basevars: "\<And>vs. basevars vs \<Longrightarrow> \<exists>u. vs u = c"
   apply (unfold basevars_def)

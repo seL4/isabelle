@@ -8,31 +8,35 @@ theory Buffer
 imports "../TLA"
 begin
 
-consts
-  (* actions *)
-  BInit     :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> stpred"
-  Enq       :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> action"
-  Deq       :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> action"
-  Next      :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> action"
+(* actions *)
 
-  (* temporal formulas *)
-  IBuffer   :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> temporal"
-  Buffer    :: "'a stfun \<Rightarrow> 'a stfun \<Rightarrow> temporal"
+definition BInit :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> stpred"
+  where "BInit ic q oc == PRED q = #[]"
 
-defs
-  BInit_def:   "BInit ic q oc    == PRED q = #[]"
-  Enq_def:     "Enq ic q oc      == ACT (ic$ \<noteq> $ic)
-                                     \<and> (q$ = $q @ [ ic$ ])
-                                     \<and> (oc$ = $oc)"
-  Deq_def:     "Deq ic q oc      == ACT ($q \<noteq> #[])
-                                     \<and> (oc$ = hd< $q >)
-                                     \<and> (q$ = tl< $q >)
-                                     \<and> (ic$ = $ic)"
-  Next_def:    "Next ic q oc     == ACT (Enq ic q oc \<or> Deq ic q oc)"
-  IBuffer_def: "IBuffer ic q oc  == TEMP Init (BInit ic q oc)
-                                      \<and> \<box>[Next ic q oc]_(ic,q,oc)
-                                      \<and> WF(Deq ic q oc)_(ic,q,oc)"
-  Buffer_def:  "Buffer ic oc     == TEMP (\<exists>\<exists>q. IBuffer ic q oc)"
+definition Enq :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> action"
+  where "Enq ic q oc == ACT (ic$ \<noteq> $ic)
+                         \<and> (q$ = $q @ [ ic$ ])
+                         \<and> (oc$ = $oc)"
+
+definition Deq :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> action"
+  where "Deq ic q oc == ACT ($q \<noteq> #[])
+                         \<and> (oc$ = hd< $q >)
+                         \<and> (q$ = tl< $q >)
+                         \<and> (ic$ = $ic)"
+
+definition Next :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> action"
+  where "Next ic q oc == ACT (Enq ic q oc \<or> Deq ic q oc)"
+
+
+(* temporal formulas *)
+
+definition IBuffer :: "'a stfun \<Rightarrow> 'a list stfun \<Rightarrow> 'a stfun \<Rightarrow> temporal"
+  where "IBuffer ic q oc == TEMP Init (BInit ic q oc)
+                                  \<and> \<box>[Next ic q oc]_(ic,q,oc)
+                                  \<and> WF(Deq ic q oc)_(ic,q,oc)"
+
+definition Buffer :: "'a stfun \<Rightarrow> 'a stfun \<Rightarrow> temporal"
+  where "Buffer ic oc == TEMP (\<exists>\<exists>q. IBuffer ic q oc)"
 
 
 (* ---------------------------- Data lemmas ---------------------------- *)
