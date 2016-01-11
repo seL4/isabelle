@@ -12,14 +12,12 @@ consts
 
   tens :: "[o, o] \<Rightarrow> o"        (infixr "><" 35)
   limp :: "[o, o] \<Rightarrow> o"        (infixr "-o" 45)
-  liff :: "[o, o] \<Rightarrow> o"        (infixr "o-o" 45)
   FShriek :: "o \<Rightarrow> o"          ("! _" [100] 1000)
   lconj :: "[o, o] \<Rightarrow> o"       (infixr "&&" 35)
   ldisj :: "[o, o] \<Rightarrow> o"       (infixr "++" 35)
   zero :: "o"                  ("0")
   top :: "o"                   ("1")
   eye :: "o"                   ("I")
-  aneg :: "o\<Rightarrow>o"               ("~_")
 
 
   (* context manipulation *)
@@ -47,11 +45,11 @@ print_translation \<open>
    (@{const_syntax PromAux}, K (three_seq_tr' @{syntax_const "_PromAux"}))]
 \<close>
 
-defs
+definition liff :: "[o, o] \<Rightarrow> o"  (infixr "o-o" 45)
+  where "P o-o Q == (P -o Q) >< (Q -o P)"
 
-liff_def:        "P o-o Q == (P -o Q) >< (Q -o P)"
-
-aneg_def:        "~A == A -o 0"
+definition aneg :: "o\<Rightarrow>o"  ("~_")
+  where "~A == A -o 0"
 
 
 axiomatization where
