@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section \<open>A 1-2 Brother Tree Implementation of Maps\<close>
+section \<open>1-2 Brother Tree Implementation of Maps\<close>
 
 theory Brother12_Map
 imports

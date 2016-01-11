@@ -1,9 +1,10 @@
 (*
 Author: Tobias Nipkow
-Invariants are under development
+
+Added trivial cases to function `adjust' to obviate invariants.
 *)
 
-section \<open>An AA Tree Implementation of Sets\<close>
+section \<open>AA Tree Implementation of Sets\<close>
 
 theory AA_Set
 imports
@@ -16,13 +17,13 @@ type_synonym 'a aa_tree = "('a,nat) tree"
 fun lvl :: "'a aa_tree \<Rightarrow> nat" where
 "lvl Leaf = 0" |
 "lvl (Node lv _ _ _) = lv"
-
+(*
 fun invar :: "'a aa_tree \<Rightarrow> bool" where
 "invar Leaf = True" |
 "invar (Node h l a r) =
  (invar l \<and> invar r \<and>
   h = lvl l + 1 \<and> (h = lvl r + 1 \<or> (\<exists>lr b rr. r = Node h lr b rr \<and> h = lvl rr + 1)))"
-
+*)
 fun skew :: "'a aa_tree \<Rightarrow> 'a aa_tree" where
 "skew (Node lva (Node lvb t1 b t2) a t3) =
   (if lva = lvb then Node lva t1 b (Node lva t2 a t3) else Node lva (Node lvb t1 b t2) a t3)" |
@@ -105,8 +106,7 @@ by(induction t) (auto simp: ins_list_simps inorder_split inorder_skew)
 subsubsection "Proofs for delete"
 
 lemma del_maxD:
-  "\<lbrakk> del_max t = (t',x); t \<noteq> Leaf; sorted(inorder t) \<rbrakk> \<Longrightarrow>
-   inorder t' @ [x] = inorder t"
+  "\<lbrakk> del_max t = (t',x); t \<noteq> Leaf \<rbrakk> \<Longrightarrow> inorder t' @ [x] = inorder t"
 by(induction t arbitrary: t' rule: del_max.induct)
   (auto simp: sorted_lems split: prod.splits)
 

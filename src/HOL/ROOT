@@ -180,7 +180,7 @@ session "HOL-Data_Structures" in Data_Structures = HOL +
     Tree23_Map
     Tree234_Map
     Brother12_Map
-    AA_Set
+    AA_Map
     Splay_Map
   document_files "root.tex" "root.bib"
 

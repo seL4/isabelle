@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section \<open>A 2-3-4 Tree Implementation of Maps\<close>
+section \<open>2-3-4 Tree Implementation of Maps\<close>
 
 theory Tree234_Map
 imports

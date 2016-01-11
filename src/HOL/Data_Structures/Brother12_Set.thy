@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section \<open>A 1-2 Brother Tree Implementation of Sets\<close>
+section \<open>1-2 Brother Tree Implementation of Sets\<close>
 
 theory Brother12_Set
 imports
