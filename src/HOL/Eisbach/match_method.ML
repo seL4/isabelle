@@ -16,24 +16,26 @@ end
 structure Match_Method : MATCH_METHOD =
 struct
 
-(*Variant of filter_prems_tac with auxiliary configuration;
-  recovers premise order afterwards.*)
-fun filter_prems_tac' ctxt prep pred a =
+(* Filter premises by predicate, with premise order; recovers premise order afterwards.*)
+fun filter_prems_tac' ctxt prem =
   let
     fun Then NONE tac = SOME tac
       | Then (SOME tac) tac' = SOME (tac THEN' tac');
-    fun thins H (tac, n, a, i) =
-      (case pred a H of
-        NONE => (tac, n + 1, a, i)
-      | SOME a' => (Then tac (rotate_tac n THEN' eresolve_tac ctxt [thin_rl]), 0, a', i + n));
+    fun thins idxH (tac, n, i) =
+       if prem idxH then (tac, n + 1 , i)
+       else (Then tac (rotate_tac n THEN' eresolve_tac ctxt [thin_rl]), 0, i + n);
   in
     SUBGOAL (fn (goal, i) =>
-      let val Hs = Logic.strip_assums_hyp (prep goal) in
-        (case fold thins Hs (NONE, 0, a, 0) of
-          (NONE, _, _, _) => no_tac
-        | (SOME tac, _, _, n) => tac i THEN rotate_tac (~ n) i)
+      let val idxHs = tag_list 0 (Logic.strip_assums_hyp goal) in
+        (case fold thins idxHs (NONE, 0, 0) of
+          (NONE, _, _) => no_tac
+        | (SOME tac, _, n) => tac i THEN rotate_tac (~ n) i)
       end)
   end;
+
+
+fun Item_Net_filter f net =
+  fold (fn item => not (f item) ? Item_Net.remove item) (Item_Net.content net) net
 
 
 datatype match_kind =
@@ -378,23 +380,9 @@ structure Focus_Data = Proof_Data
 
 val focus_prems = #1 o Focus_Data.get;
 
-fun hyp_from_premid ctxt (ident, prem) =
-  let
-    val ident = Thm.cterm_of ctxt (HOLogic.mk_number @{typ nat} ident |> Logic.mk_term);
-    val hyp =
-      (case Thm.chyps_of prem of
-        [hyp] => hyp
-      | _ => error "Prem should have exactly one hyp");  (* FIXME error vs. raise Fail !? *)
-    val ct = Drule.mk_term (hyp) |> Thm.cprop_of;
-  in Drule.protect (Conjunction.mk_conjunction (ident, ct)) end;
+fun transfer_focus_prems from_ctxt =
+  Focus_Data.map (@{apply 3(1)} (K (focus_prems from_ctxt)))
 
-fun hyp_from_ctermid ctxt (ident, cterm) =
-  let
-    val ident = Thm.cterm_of ctxt (HOLogic.mk_number @{typ nat} ident |> Logic.mk_term);
-  in Drule.protect (Conjunction.mk_conjunction (ident, cterm)) end;
-
-fun add_premid_hyp premid ctxt =
-  Thm.declare_hyps (hyp_from_premid ctxt premid) ctxt;
 
 fun add_focus_prem prem =
   `(Focus_Data.get #> #1 #> #1) ##>
@@ -433,27 +421,6 @@ fun add_focus_params params =
   (Focus_Data.map o @{apply 3(3)})
     (append (map (fn (_, ct) => Thm.term_of ct) params));
 
-fun solve_term ct = Thm.trivial ct OF [Drule.termI];
-
-fun get_thinned_prems goal =
-  let
-    val chyps = Thm.chyps_of goal;
-
-    fun prem_from_hyp hyp goal =
-    let
-      val asm = Thm.assume hyp;
-      val (identt, ct) = asm |> Goal.conclude |> Thm.cprop_of |> Conjunction.dest_conjunction;
-      val ident = HOLogic.dest_number (Thm.term_of identt |> Logic.dest_term) |> snd;
-      val thm = Conjunction.intr (solve_term identt) (solve_term ct) |> Goal.protect 0
-      val goal' = Thm.implies_elim (Thm.implies_intr hyp goal) thm;
-    in
-      (SOME (ident, ct), goal')
-    end handle TERM _ => (NONE, goal) | THM _ => (NONE, goal);
-  in
-    fold_map prem_from_hyp chyps goal
-    |>> map_filter I
-  end;
-
 
 (* Add focus elements as proof data *)
 fun augment_focus (focus: Subgoal.focus) : (int list * Subgoal.focus) =
@@ -467,10 +434,9 @@ fun augment_focus (focus: Subgoal.focus) : (int list * Subgoal.focus) =
 
     val local_prems = map2 pair prem_ids (rev prems);
 
-    val ctxt'' = fold add_premid_hyp local_prems ctxt';
   in
     (prem_ids,
-      {context = ctxt'',
+      {context = ctxt',
        params = params,
        prems = prems,
        concl = concl,
@@ -615,7 +581,7 @@ fun match_facts ctxt fixes prop_pats get =
                     let
                       val (result, envthms') =
                         Seq_retrieve envthms (fn (env, _) => eq_env (env, env'));
-                    in
+                    in        
                       (case result of
                         SOME (_, thms) => SOME ((env', thm :: thms), maximal_set tail seq' envthms')
                       | NONE => Seq.pull (maximal_set (tail @ [(env', [thm])]) seq' envthms'))
@@ -647,8 +613,13 @@ fun match_facts ctxt fixes prop_pats get =
     |> Seq.map (apsnd (morphism_env morphism))
   end;
 
-fun real_match using goal_ctxt fixes m text pats st =
-  let
+fun real_match using outer_ctxt fixes m text pats st =
+  let              
+    val goal_ctxt =
+      fold Variable.declare_term fixes outer_ctxt
+      (*FIXME Is this a good idea? We really only care about the maxidx*)
+      |> fold (fn (_, t) => Variable.declare_term t) pats;
+
     fun make_fact_matches ctxt get =
       let
         val (pats', ctxt') = fold_map prep_fact_pat pats ctxt;
@@ -675,12 +646,12 @@ fun real_match using goal_ctxt fixes m text pats st =
         make_fact_matches goal_ctxt (Item_Net.retrieve net)
         |> Seq.map (fn (text, ctxt') =>
           Method_Closure.method_evaluate text ctxt' using (ctxt', st)
-          |> Seq.filter_results |> Seq.map snd)
+          |> Seq.filter_results |> Seq.map (fn (_, thm) => (outer_ctxt, thm)))
     | Match_Term net =>
         make_term_matches goal_ctxt (Item_Net.retrieve net)
         |> Seq.map (fn (text, ctxt') =>
           Method_Closure.method_evaluate text ctxt' using (ctxt', st)
-          |> Seq.filter_results |> Seq.map snd)
+          |> Seq.filter_results |> Seq.map (fn (_, thm) => (outer_ctxt, thm)))
     | match_kind =>
         if Thm.no_prems st then Seq.empty
         else
@@ -691,18 +662,15 @@ fun real_match using goal_ctxt fixes m text pats st =
               | Match_Concl => g
               | _ => raise Fail "Match kind fell through");
 
-            val (goal_thins, st') = get_thinned_prems st;
-
-            val ((local_premids, {context = focus_ctxt, params, asms, concl, ...}), focused_goal) =
-              focus_cases (K Subgoal.focus_prems) focus_concl goal_ctxt 1 NONE st'
+            val ((local_premids, {context = focus_ctxt, params, asms, concl, prems, ...}), focused_goal) =
+              focus_cases (K Subgoal.focus_prems) focus_concl goal_ctxt 1 NONE st
               |>> augment_focus;
-
+            
             val texts =
               focus_cases
                 (fn is_local => fn _ =>
                   make_fact_matches focus_ctxt
                     (Item_Net.retrieve (focus_prems focus_ctxt |> snd)
-                     #> filter_out (member (eq_fst (op =)) goal_thins)
                      #> is_local ? filter (fn (p, _) => exists (fn id' => id' = p) local_premids)
                      #> order_list))
                 (fn _ =>
@@ -712,56 +680,51 @@ fun real_match using goal_ctxt fixes m text pats st =
 
             (*TODO: How to handle cases? *)
 
-            fun do_retrofit inner_ctxt st1 =
+            fun do_retrofit (inner_ctxt, st1) =
               let
-                val (goal_thins', st2) = get_thinned_prems st1;
+                val (_, before_prems) = focus_prems focus_ctxt;
+                val (_, after_prems) = focus_prems inner_ctxt;
 
-                val thinned_prems =
-                  ((subtract (eq_fst (op =))
-                    (focus_prems inner_ctxt |> snd |> Item_Net.content)
-                    (focus_prems focus_ctxt |> snd |> Item_Net.content))
-                    |> map (fn (id, thm) =>
-                        Thm.chyps_of thm
-                        |> (fn [chyp] => (id, (SOME chyp, NONE))
-                             | _ => error "Prem should have only one hyp")));
+                val removed_prems =
+                  Item_Net_filter (null o Item_Net.lookup after_prems) before_prems
 
-                val all_thinned_prems =
-                  thinned_prems @
-                    map (fn (id, prem) => (id, (NONE, SOME prem))) (goal_thins' @ goal_thins);
+                val removed_local_prems = Item_Net.content removed_prems
+                  |> filter (fn (id, _) => member (op =) local_premids id)
+                  |> map (fn (_, prem) => Thm.prop_of prem)
 
-                val (thinned_local_prems, thinned_extra_prems) =
-                  List.partition (fn (id, _) => member (op =) local_premids id) all_thinned_prems;
+                fun filter_removed_prems prems =
+                  Item_Net_filter (null o Item_Net.lookup removed_prems) prems;
+                                     
+                val outer_ctxt' = outer_ctxt 
+                  |> Focus_Data.map (@{apply 3(1)} (apsnd filter_removed_prems));
 
-                val local_thins =
-                  thinned_local_prems |> map
-                    (fn (_, (SOME t, _)) => Thm.term_of t
-                      | (_, (_, SOME pt)) => Thm.term_of pt |> Logic.dest_term);
+                val n_subgoals = Thm.nprems_of st1;
 
-                val extra_thins =
-                  thinned_extra_prems |> map
-                    (fn (id, (SOME ct, _)) => (id, Drule.mk_term ct |> Thm.cprop_of)
-                      | (id, (_, SOME pt)) => (id, pt))
-                  |> map (hyp_from_ctermid inner_ctxt);
+                val removed_prem_idxs = 
+                  prems
+                  |> tag_list 0
+                  |> filter (member (op aconv) removed_local_prems o Thm.prop_of o snd)
+                  |> map fst
 
-                val n_subgoals = Thm.nprems_of st2;
-                fun prep_filter t =
-                  Term.subst_bounds (map (Thm.term_of o snd) params |> rev, Term.strip_all_body t);
-                fun filter_test prems t =
-                  if member (op aconv) prems t then SOME (remove1 (op aconv) t prems) else NONE;
+                fun filter_prem (i, _) = not (member (op =) removed_prem_idxs i); 
+
               in
-                Subgoal.retrofit inner_ctxt goal_ctxt params asms 1 st2 st
-                |> (n_subgoals > 0 andalso not (null local_thins)) ?
+                Subgoal.retrofit inner_ctxt goal_ctxt params asms 1 st1 st
+                |> focus_cases 
+                   (fn _ => (n_subgoals > 0 andalso length removed_local_prems > 0) ?
                     (Seq.map (Goal.restrict 1 n_subgoals)
                       #> Seq.maps (ALLGOALS (fn i =>
-                          DETERM (filter_prems_tac' goal_ctxt prep_filter filter_test local_thins i)))
-                      #> Seq.map (Goal.unrestrict 1))
-                |> Seq.map (fold Thm.weaken extra_thins)
+                          DETERM (filter_prems_tac' goal_ctxt filter_prem i)))
+                      #> Seq.map (Goal.unrestrict 1)))
+                   I
+                |> Seq.map (pair outer_ctxt')
               end;
 
             fun apply_text (text, ctxt') =
-              Method.NO_CONTEXT_TACTIC ctxt'
-                (Method_Closure.method_evaluate text ctxt' using) focused_goal
-              |> Seq.maps (DETERM (do_retrofit ctxt'));
+                Method_Closure.method_evaluate text ctxt' using (ctxt', focused_goal)
+              |> Seq.filter_results
+              |> Seq.maps (Seq.DETERM do_retrofit)             
+
           in Seq.map apply_text texts end)
   end;
 
@@ -773,16 +736,13 @@ val _ =
         (fn (matches, bodies) => fn ctxt =>
           CONTEXT_METHOD (fn using => Method.RUNTIME (fn (goal_ctxt, st) =>
             let
+              val ctxt' = transfer_focus_prems goal_ctxt ctxt;
               fun exec (pats, fixes, text) st' =
-                let
-                  val ctxt' =
-                    fold Variable.declare_term fixes ctxt
-                    (*FIXME Is this a good idea? We really only care about the maxidx*)
-                    |> fold (fn (_, t) => Variable.declare_term t) pats;
-                in real_match using ctxt' fixes matches text pats st' end;
+                real_match using ctxt' fixes matches text pats st';
             in
               Seq.flat (Seq.FIRST (map exec bodies) st)
-              |> Method.CONTEXT goal_ctxt
+              |> Seq.map (apfst (fn ctxt' => transfer_focus_prems ctxt' goal_ctxt))
+              |> Seq.make_results
             end))))
       "structural analysis/matching on goals");
 
