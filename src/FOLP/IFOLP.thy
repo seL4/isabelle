@@ -28,15 +28,12 @@ consts
  eq             ::      "['a,'a] => o"  (infixl "=" 50)
  True           ::      "o"
  False          ::      "o"
- Not            ::      "o => o"        ("~ _" [40] 40)
  conj           ::      "[o,o] => o"    (infixr "&" 35)
  disj           ::      "[o,o] => o"    (infixr "|" 30)
  imp            ::      "[o,o] => o"    (infixr "-->" 25)
- iff            ::      "[o,o] => o"    (infixr "<->" 25)
       (*Quantifiers*)
  All            ::      "('a => o) => o"        (binder "ALL " 10)
  Ex             ::      "('a => o) => o"        (binder "EX " 10)
- Ex1            ::      "('a => o) => o"        (binder "EX! " 10)
       (*Rewriting gadgets*)
  NORM           ::      "o => o"
  norm           ::      "'a => 'a"
@@ -157,12 +154,15 @@ specB:      "[| !!x. f(x) : P(x) |] ==> (all x. f(x)) ^ a = f(a) : P(a)"
 
 (**** Definitions ****)
 
-defs
-not_def:              "~P == P-->False"
-iff_def:         "P<->Q == (P-->Q) & (Q-->P)"
+definition Not :: "o => o"  ("~ _" [40] 40)
+  where not_def: "~P == P-->False"
+
+definition iff :: "[o,o] => o"  (infixr "<->" 25)
+  where "P<->Q == (P-->Q) & (Q-->P)"
 
 (*Unique existence*)
-ex1_def:   "EX! x. P(x) == EX x. P(x) & (ALL y. P(y) --> y=x)"
+definition Ex1 :: "('a => o) => o"  (binder "EX! " 10)
+  where ex1_def: "EX! x. P(x) == EX x. P(x) & (ALL y. P(y) --> y=x)"
 
 (*Rewriting -- special constants to flag normalized terms and formulae*)
 axiomatization where
