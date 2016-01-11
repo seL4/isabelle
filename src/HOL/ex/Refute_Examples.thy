@@ -894,10 +894,20 @@ text \<open>Overloading:\<close>
 
 consts inverse :: "'a \<Rightarrow> 'a"
 
-defs (overloaded)
-  inverse_bool: "inverse (b::bool)   == ~ b"
-  inverse_set : "inverse (S::'a set) == -S"
-  inverse_pair: "inverse p           == (inverse (fst p), inverse (snd p))"
+overloading inverse_bool \<equiv> "inverse :: bool \<Rightarrow> bool"
+begin
+  definition "inverse (b::bool) \<equiv> \<not> b"
+end
+
+overloading inverse_set \<equiv> "inverse :: 'a set \<Rightarrow> 'a set"
+begin
+  definition "inverse (S::'a set) \<equiv> -S"
+end
+
+overloading inverse_pair \<equiv> "inverse :: 'a \<times> 'b \<Rightarrow> 'a \<times> 'b"
+begin
+  definition "inverse_pair p \<equiv> (inverse (fst p), inverse (snd p))"
+end
 
 lemma "inverse b"
 refute [expect = genuine]
