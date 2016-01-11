@@ -4443,60 +4443,74 @@ proof
     using Bseq_monoseq_convergent[of "f \<circ> r"] by (auto simp: convergent_def)
 qed
 
-lemma compact_lemma:
-  fixes f :: "nat \<Rightarrow> 'a::euclidean_space"
-  assumes "bounded (range f)"
-  shows "\<forall>d\<subseteq>Basis. \<exists>l::'a. \<exists> r.
-    subseq r \<and> (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially)"
+lemma compact_lemma_general:
+  fixes f :: "nat \<Rightarrow> 'a"
+  fixes proj::"'a \<Rightarrow> 'b \<Rightarrow> 'c::heine_borel" (infixl "proj" 60)
+  fixes unproj:: "('b \<Rightarrow> 'c) \<Rightarrow> 'a"
+  assumes finite_basis: "finite basis"
+  assumes bounded_proj: "\<And>k. k \<in> basis \<Longrightarrow> bounded ((\<lambda>x. x proj k) ` range f)"
+  assumes proj_unproj: "\<And>e k. k \<in> basis \<Longrightarrow> (unproj e) proj k = e k"
+  assumes unproj_proj: "\<And>x. unproj (\<lambda>k. x proj k) = x"
+  shows "\<forall>d\<subseteq>basis. \<exists>l::'a. \<exists> r.
+    subseq r \<and> (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) proj i) (l proj i) < e) sequentially)"
 proof safe
-  fix d :: "'a set"
-  assume d: "d \<subseteq> Basis"
-  with finite_Basis have "finite d"
+  fix d :: "'b set"
+  assume d: "d \<subseteq> basis"
+  with finite_basis have "finite d"
     by (blast intro: finite_subset)
   from this d show "\<exists>l::'a. \<exists>r. subseq r \<and>
-    (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially)"
+    (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) proj i) (l proj i) < e) sequentially)"
   proof (induct d)
     case empty
     then show ?case
       unfolding subseq_def by auto
   next
     case (insert k d)
-    have k[intro]: "k \<in> Basis"
+    have k[intro]: "k \<in> basis"
       using insert by auto
-    have s': "bounded ((\<lambda>x. x \<bullet> k) ` range f)"
-      using \<open>bounded (range f)\<close>
-      by (auto intro!: bounded_linear_image bounded_linear_inner_left)
+    have s': "bounded ((\<lambda>x. x proj k) ` range f)"
+      using k
+      by (rule bounded_proj)
     obtain l1::"'a" and r1 where r1: "subseq r1"
-      and lr1: "\<forall>e > 0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) \<bullet> i) (l1 \<bullet> i) < e) sequentially"
+      and lr1: "\<forall>e > 0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) proj i) (l1 proj i) < e) sequentially"
       using insert(3) using insert(4) by auto
-    have f': "\<forall>n. f (r1 n) \<bullet> k \<in> (\<lambda>x. x \<bullet> k) ` range f"
+    have f': "\<forall>n. f (r1 n) proj k \<in> (\<lambda>x. x proj k) ` range f"
       by simp
-    have "bounded (range (\<lambda>i. f (r1 i) \<bullet> k))"
+    have "bounded (range (\<lambda>i. f (r1 i) proj k))"
       by (metis (lifting) bounded_subset f' image_subsetI s')
-    then obtain l2 r2 where r2:"subseq r2" and lr2:"((\<lambda>i. f (r1 (r2 i)) \<bullet> k) \<longlongrightarrow> l2) sequentially"
-      using bounded_imp_convergent_subsequence[of "\<lambda>i. f (r1 i) \<bullet> k"]
+    then obtain l2 r2 where r2:"subseq r2" and lr2:"((\<lambda>i. f (r1 (r2 i)) proj k) \<longlongrightarrow> l2) sequentially"
+      using bounded_imp_convergent_subsequence[of "\<lambda>i. f (r1 i) proj k"]
       by (auto simp: o_def)
     def r \<equiv> "r1 \<circ> r2"
     have r:"subseq r"
       using r1 and r2 unfolding r_def o_def subseq_def by auto
     moreover
-    def l \<equiv> "(\<Sum>i\<in>Basis. (if i = k then l2 else l1\<bullet>i) *\<^sub>R i)::'a"
+    def l \<equiv> "unproj (\<lambda>i. if i = k then l2 else l1 proj i)::'a"
     {
       fix e::real
       assume "e > 0"
-      from lr1 \<open>e > 0\<close> have N1: "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) \<bullet> i) (l1 \<bullet> i) < e) sequentially"
+      from lr1 \<open>e > 0\<close> have N1: "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) proj i) (l1 proj i) < e) sequentially"
         by blast
-      from lr2 \<open>e > 0\<close> have N2:"eventually (\<lambda>n. dist (f (r1 (r2 n)) \<bullet> k) l2 < e) sequentially"
+      from lr2 \<open>e > 0\<close> have N2:"eventually (\<lambda>n. dist (f (r1 (r2 n)) proj k) l2 < e) sequentially"
         by (rule tendstoD)
-      from r2 N1 have N1': "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 (r2 n)) \<bullet> i) (l1 \<bullet> i) < e) sequentially"
+      from r2 N1 have N1': "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 (r2 n)) proj i) (l1 proj i) < e) sequentially"
         by (rule eventually_subseq)
-      have "eventually (\<lambda>n. \<forall>i\<in>(insert k d). dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially"
+      have "eventually (\<lambda>n. \<forall>i\<in>(insert k d). dist (f (r n) proj i) (l proj i) < e) sequentially"
         using N1' N2
-        by eventually_elim (insert insert.prems, auto simp: l_def r_def o_def)
+        by eventually_elim (insert insert.prems, auto simp: l_def r_def o_def proj_unproj)
     }
     ultimately show ?case by auto
   qed
 qed
+
+lemma compact_lemma:
+  fixes f :: "nat \<Rightarrow> 'a::euclidean_space"
+  assumes "bounded (range f)"
+  shows "\<forall>d\<subseteq>Basis. \<exists>l::'a. \<exists> r.
+    subseq r \<and> (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially)"
+  by (rule compact_lemma_general[where unproj="\<lambda>e. \<Sum>i\<in>Basis. e i *\<^sub>R i"])
+     (auto intro!: assms bounded_linear_inner_left bounded_linear_image
+       simp: euclidean_representation)
 
 instance euclidean_space \<subseteq> heine_borel
 proof

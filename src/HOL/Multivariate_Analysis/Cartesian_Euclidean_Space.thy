@@ -820,47 +820,14 @@ lemma bounded_component_cart: "bounded s \<Longrightarrow> bounded ((\<lambda>x.
 lemma compact_lemma_cart:
   fixes f :: "nat \<Rightarrow> 'a::heine_borel ^ 'n"
   assumes f: "bounded (range f)"
-  shows "\<forall>d.
-        \<exists>l r. subseq r \<and>
+  shows "\<exists>l r. subseq r \<and>
         (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) $ i) (l $ i) < e) sequentially)"
-proof
-  fix d :: "'n set"
-  have "finite d" by simp
-  thus "\<exists>l::'a ^ 'n. \<exists>r. subseq r \<and>
-      (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) $ i) (l $ i) < e) sequentially)"
-  proof (induct d)
-    case empty
-    thus ?case unfolding subseq_def by auto
-  next
-    case (insert k d)
-    obtain l1::"'a^'n" and r1 where r1:"subseq r1"
-      and lr1:"\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $ i) (l1 $ i) < e) sequentially"
-      using insert(3) by auto
-    have s': "bounded ((\<lambda>x. x $ k) ` range f)" using \<open>bounded (range f)\<close>
-      by (auto intro!: bounded_component_cart)
-    have f': "\<forall>n. f (r1 n) $ k \<in> (\<lambda>x. x $ k) ` range f" by simp
-    have "bounded (range (\<lambda>i. f (r1 i) $ k))"
-      by (metis (lifting) bounded_subset image_subsetI f' s')
-    then obtain l2 r2 where r2: "subseq r2"
-      and lr2: "((\<lambda>i. f (r1 (r2 i)) $ k) \<longlongrightarrow> l2) sequentially"
-      using bounded_imp_convergent_subsequence[of "\<lambda>i. f (r1 i) $ k"] by (auto simp: o_def)
-    def r \<equiv> "r1 \<circ> r2"
-    have r: "subseq r"
-      using r1 and r2 unfolding r_def o_def subseq_def by auto
-    moreover
-    def l \<equiv> "(\<chi> i. if i = k then l2 else l1$i)::'a^'n"
-    { fix e :: real assume "e > 0"
-      from lr1 \<open>e>0\<close> have N1:"eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $ i) (l1 $ i) < e) sequentially"
-        by blast
-      from lr2 \<open>e>0\<close> have N2:"eventually (\<lambda>n. dist (f (r1 (r2 n)) $ k) l2 < e) sequentially"
-        by (rule tendstoD)
-      from r2 N1 have N1': "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 (r2 n)) $ i) (l1 $ i) < e) sequentially"
-        by (rule eventually_subseq)
-      have "eventually (\<lambda>n. \<forall>i\<in>(insert k d). dist (f (r n) $ i) (l $ i) < e) sequentially"
-        using N1' N2 by (rule eventually_elim2, simp add: l_def r_def)
-    }
-    ultimately show ?case by auto
-  qed
+    (is "?th d")
+proof -
+  have "\<forall>d' \<subseteq> d. ?th d'"
+    by (rule compact_lemma_general[where unproj=vec_lambda])
+      (auto intro!: f bounded_component_cart simp: vec_lambda_eta)
+  then show "?th d" by simp
 qed
 
 instance vec :: (heine_borel, finite) heine_borel

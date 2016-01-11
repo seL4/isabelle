@@ -467,74 +467,15 @@ lemma mult_if_delta:
   "(if P then (1::'a::comm_semiring_1) else 0) * q = (if P then q else 0)"
   by auto
 
-text \<open>TODO: generalize this and @{thm compact_lemma}?!\<close>
 lemma compact_blinfun_lemma:
   fixes f :: "nat \<Rightarrow> 'a::euclidean_space \<Rightarrow>\<^sub>L 'b::euclidean_space"
   assumes "bounded (range f)"
   shows "\<forall>d\<subseteq>Basis. \<exists>l::'a \<Rightarrow>\<^sub>L 'b. \<exists> r.
     subseq r \<and> (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) i) (l i) < e) sequentially)"
-proof safe
-  fix d :: "'a set"
-  assume d: "d \<subseteq> Basis"
-  with finite_Basis have "finite d"
-    by (blast intro: finite_subset)
-  from this d show "\<exists>l::'a \<Rightarrow>\<^sub>L 'b. \<exists>r. subseq r \<and>
-    (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) i) (l i) < e) sequentially)"
-  proof (induct d)
-    case empty
-    then show ?case
-      unfolding subseq_def by auto
-  next
-    case (insert k d)
-    have k[intro]: "k \<in> Basis"
-      using insert by auto
-    have s': "bounded ((\<lambda>x. blinfun_apply x k) ` range f)"
-      using \<open>bounded (range f)\<close>
-      by (auto intro!: bounded_linear_image bounded_linear_intros)
-    obtain l1::"'a \<Rightarrow>\<^sub>L 'b" and r1 where r1: "subseq r1"
-      and lr1: "\<forall>e > 0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) i) (l1 i) < e) sequentially"
-      using insert(3) using insert(4) by auto
-    have f': "\<forall>n. f (r1 n) k \<in> (\<lambda>x. blinfun_apply x k) ` range f"
-      by simp
-    have "bounded (range (\<lambda>i. f (r1 i) k))"
-      by (metis (lifting) bounded_subset f' image_subsetI s')
-    then obtain l2 r2
-      where r2: "subseq r2"
-      and lr2: "((\<lambda>i. f (r1 (r2 i)) k) \<longlongrightarrow> l2) sequentially"
-      using bounded_imp_convergent_subsequence[of "\<lambda>i. f (r1 i) k"]
-      by (auto simp: o_def)
-    def r \<equiv> "r1 \<circ> r2"
-    have r:"subseq r"
-      using r1 and r2 unfolding r_def o_def subseq_def by auto
-    moreover
-    def l \<equiv> "blinfun_of_matrix (\<lambda>i j. if j = k then l2 \<bullet> i else l1 j \<bullet> i)::'a \<Rightarrow>\<^sub>L 'b"
-    {
-      fix e::real
-      assume "e > 0"
-      from lr1 \<open>e > 0\<close> have N1: "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n)  i) (l1  i) < e) sequentially"
-        by blast
-      from lr2 \<open>e > 0\<close> have N2:"eventually (\<lambda>n. dist (f (r1 (r2 n))  k) l2 < e) sequentially"
-        by (rule tendstoD)
-      from r2 N1 have N1': "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 (r2 n))  i) (l1  i) < e) sequentially"
-        by (rule eventually_subseq)
-      have l2: "l k = l2"
-        using insert.prems
-        by (auto simp: blinfun_of_matrix.rep_eq inner_Basis l_def mult_if_delta
-          scaleR_setsum_left[symmetric] setsum.delta' intro!: euclidean_eqI[where 'a='b])
-      {
-        fix i assume "i \<in> d"
-        with insert have "i \<in> Basis" "i \<noteq> k" by auto
-        hence l1: "l i = (l1 i)"
-          by (auto simp: blinfun_of_matrix.rep_eq inner_Basis l_def mult_if_delta
-            scaleR_setsum_left[symmetric] setsum.delta' intro!: euclidean_eqI[where 'a='b])
-      } note l1 = this
-      have "eventually (\<lambda>n. \<forall>i\<in>(insert k d). dist (f (r n)  i) (l  i) < e) sequentially"
-        using N1' N2
-        by eventually_elim (insert insert.prems, auto simp: r_def o_def l1 l2)
-    }
-    ultimately show ?case by auto
-  qed
-qed
+  by (rule compact_lemma_general[where unproj = "\<lambda>e. blinfun_of_matrix (\<lambda>i j. e j \<bullet> i)"])
+   (auto intro!: euclidean_eqI[where 'a='b] bounded_linear_image assms
+    simp: blinfun_of_matrix_works blinfun_of_matrix_apply inner_Basis mult_if_delta setsum.delta'
+      scaleR_setsum_left[symmetric])
 
 lemma blinfun_euclidean_eqI: "(\<And>i. i \<in> Basis \<Longrightarrow> blinfun_apply x i = blinfun_apply y i) \<Longrightarrow> x = y"
   apply (auto intro!: blinfun_eqI)
