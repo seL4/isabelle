@@ -1066,11 +1066,6 @@ proof
   qed
 qed
 
-lemma divides_degree:
-  assumes pq: "p dvd (q:: complex poly)"
-  shows "degree p \<le> degree q \<or> q = 0"
-  by (metis dvd_imp_degree_le pq)
-
 text \<open>Arithmetic operations on multivariate polynomials.\<close>
 
 lemma mpoly_base_conv:

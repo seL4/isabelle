@@ -11,7 +11,7 @@ begin
 
 subsection \<open>Derivatives of univariate polynomials\<close>
 
-function pderiv :: "'a::real_normed_field poly \<Rightarrow> 'a poly"
+function pderiv :: "('a :: semidom) poly \<Rightarrow> 'a poly"
 where
   [simp del]: "pderiv (pCons a p) = (if p = 0 then 0 else p + pCons 0 (pderiv p))"
   by (auto intro: pCons_cases)
@@ -27,27 +27,98 @@ lemma pderiv_pCons:
   "pderiv (pCons a p) = p + pCons 0 (pderiv p)"
   by (simp add: pderiv.simps)
 
+lemma pderiv_1 [simp]: "pderiv 1 = 0" 
+  unfolding one_poly_def by (simp add: pderiv_pCons)
+
+lemma pderiv_of_nat  [simp]: "pderiv (of_nat n) = 0"
+  and pderiv_numeral [simp]: "pderiv (numeral m) = 0"
+  by (simp_all add: of_nat_poly numeral_poly pderiv_pCons)
+
 lemma coeff_pderiv: "coeff (pderiv p) n = of_nat (Suc n) * coeff p (Suc n)"
   by (induct p arbitrary: n) 
      (auto simp add: pderiv_pCons coeff_pCons algebra_simps split: nat.split)
 
-primrec pderiv_coeffs :: "'a::comm_monoid_add list \<Rightarrow> 'a list"
-where
-  "pderiv_coeffs [] = []"
-| "pderiv_coeffs (x # xs) = plus_coeffs xs (cCons 0 (pderiv_coeffs xs))"
+fun pderiv_coeffs_code :: "('a :: semidom) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "pderiv_coeffs_code f (x # xs) = cCons (f * x) (pderiv_coeffs_code (f+1) xs)"
+| "pderiv_coeffs_code f [] = []"
 
-lemma coeffs_pderiv [code abstract]:
-  "coeffs (pderiv p) = pderiv_coeffs (coeffs p)"
-  by (rule sym, induct p) (simp_all add: pderiv_pCons coeffs_plus_eq_plus_coeffs cCons_def)
+definition pderiv_coeffs :: "('a :: semidom) list \<Rightarrow> 'a list" where
+  "pderiv_coeffs xs = pderiv_coeffs_code 1 (tl xs)"
 
-lemma pderiv_eq_0_iff: "pderiv p = 0 \<longleftrightarrow> degree p = 0"
+(* Efficient code for pderiv contributed by René Thiemann and Akihisa Yamada *)
+lemma pderiv_coeffs_code: 
+  "nth_default 0 (pderiv_coeffs_code f xs) n = (f + of_nat n) * (nth_default 0 xs n)"
+proof (induct xs arbitrary: f n)
+  case (Cons x xs f n)
+  show ?case 
+  proof (cases n)
+    case 0
+    thus ?thesis by (cases "pderiv_coeffs_code (f + 1) xs = [] \<and> f * x = 0", auto simp: cCons_def)
+  next
+    case (Suc m) note n = this
+    show ?thesis 
+    proof (cases "pderiv_coeffs_code (f + 1) xs = [] \<and> f * x = 0")
+      case False
+      hence "nth_default 0 (pderiv_coeffs_code f (x # xs)) n = 
+               nth_default 0 (pderiv_coeffs_code (f + 1) xs) m" 
+        by (auto simp: cCons_def n)
+      also have "\<dots> = (f + of_nat n) * (nth_default 0 xs m)" 
+        unfolding Cons by (simp add: n add_ac)
+      finally show ?thesis by (simp add: n)
+    next
+      case True
+      {
+        fix g 
+        have "pderiv_coeffs_code g xs = [] \<Longrightarrow> g + of_nat m = 0 \<or> nth_default 0 xs m = 0"
+        proof (induct xs arbitrary: g m)
+          case (Cons x xs g)
+          from Cons(2) have empty: "pderiv_coeffs_code (g + 1) xs = []"
+                            and g: "(g = 0 \<or> x = 0)"
+            by (auto simp: cCons_def split: if_splits)
+          note IH = Cons(1)[OF empty]
+          from IH[of m] IH[of "m - 1"] g
+          show ?case by (cases m, auto simp: field_simps)
+        qed simp
+      } note empty = this
+      from True have "nth_default 0 (pderiv_coeffs_code f (x # xs)) n = 0"
+        by (auto simp: cCons_def n)
+      moreover have "(f + of_nat n) * nth_default 0 (x # xs) n = 0" using True
+        by (simp add: n, insert empty[of "f+1"], auto simp: field_simps)
+      ultimately show ?thesis by simp
+    qed
+  qed
+qed simp
+
+lemma map_upt_Suc: "map f [0 ..< Suc n] = f 0 # map (\<lambda> i. f (Suc i)) [0 ..< n]"
+  by (induct n arbitrary: f, auto)
+
+lemma coeffs_pderiv_code [code abstract]:
+  "coeffs (pderiv p) = pderiv_coeffs (coeffs p)" unfolding pderiv_coeffs_def
+proof (rule coeffs_eqI, unfold pderiv_coeffs_code coeff_pderiv, goal_cases)
+  case (1 n)
+  have id: "coeff p (Suc n) = nth_default 0 (map (\<lambda>i. coeff p (Suc i)) [0..<degree p]) n"
+    by (cases "n < degree p", auto simp: nth_default_def coeff_eq_0)
+  show ?case unfolding coeffs_def map_upt_Suc by (auto simp: id)
+next
+  case 2
+  obtain n xs where id: "tl (coeffs p) = xs" "(1 :: 'a) = n" by auto
+  from 2 show ?case
+    unfolding id by (induct xs arbitrary: n, auto simp: cCons_def)
+qed
+
+context
+  assumes "SORT_CONSTRAINT('a::{semidom, semiring_char_0})"
+begin
+
+lemma pderiv_eq_0_iff: 
+  "pderiv (p :: 'a poly) = 0 \<longleftrightarrow> degree p = 0"
   apply (rule iffI)
   apply (cases p, simp)
   apply (simp add: poly_eq_iff coeff_pderiv del: of_nat_Suc)
   apply (simp add: poly_eq_iff coeff_pderiv coeff_eq_0)
   done
 
-lemma degree_pderiv: "degree (pderiv p) = degree p - 1"
+lemma degree_pderiv: "degree (pderiv (p :: 'a poly)) = degree p - 1"
   apply (rule order_antisym [OF degree_le])
   apply (simp add: coeff_pderiv coeff_eq_0)
   apply (cases "degree p", simp)
@@ -56,14 +127,30 @@ lemma degree_pderiv: "degree (pderiv p) = degree p - 1"
   apply (metis degree_0 leading_coeff_0_iff nat.distinct(1))
   done
 
+lemma not_dvd_pderiv: 
+  assumes "degree (p :: 'a poly) \<noteq> 0"
+  shows "\<not> p dvd pderiv p"
+proof
+  assume dvd: "p dvd pderiv p"
+  then obtain q where p: "pderiv p = p * q" unfolding dvd_def by auto
+  from dvd have le: "degree p \<le> degree (pderiv p)"
+    by (simp add: assms dvd_imp_degree_le pderiv_eq_0_iff)
+  from this[unfolded degree_pderiv] assms show False by auto
+qed
+
+lemma dvd_pderiv_iff [simp]: "(p :: 'a poly) dvd pderiv p \<longleftrightarrow> degree p = 0"
+  using not_dvd_pderiv[of p] by (auto simp: pderiv_eq_0_iff [symmetric])
+
+end
+
 lemma pderiv_singleton [simp]: "pderiv [:a:] = 0"
 by (simp add: pderiv_pCons)
 
 lemma pderiv_add: "pderiv (p + q) = pderiv p + pderiv q"
 by (rule poly_eqI, simp add: coeff_pderiv algebra_simps)
 
-lemma pderiv_minus: "pderiv (- p) = - pderiv p"
-by (rule poly_eqI, simp add: coeff_pderiv)
+lemma pderiv_minus: "pderiv (- p :: 'a :: idom poly) = - pderiv p"
+by (rule poly_eqI, simp add: coeff_pderiv algebra_simps)
 
 lemma pderiv_diff: "pderiv (p - q) = pderiv p - pderiv q"
 by (rule poly_eqI, simp add: coeff_pderiv algebra_simps)
@@ -85,6 +172,27 @@ apply (simp only: of_nat_Suc smult_add_left smult_1_left)
 apply (simp add: algebra_simps)
 done
 
+lemma pderiv_setprod: "pderiv (setprod f (as)) = 
+  (\<Sum>a \<in> as. setprod f (as - {a}) * pderiv (f a))"
+proof (induct as rule: infinite_finite_induct)
+  case (insert a as)
+  hence id: "setprod f (insert a as) = f a * setprod f as" 
+    "\<And> g. setsum g (insert a as) = g a + setsum g as"
+    "insert a as - {a} = as"
+    by auto
+  {
+    fix b
+    assume "b \<in> as"
+    hence id2: "insert a as - {b} = insert a (as - {b})" using `a \<notin> as` by auto
+    have "setprod f (insert a as - {b}) = f a * setprod f (as - {b})"
+      unfolding id2
+      by (subst setprod.insert, insert insert, auto)
+  } note id2 = this
+  show ?case
+    unfolding id pderiv_mult insert(3) setsum_right_distrib
+    by (auto simp add: ac_simps id2 intro!: setsum.cong)
+qed auto
+
 lemma DERIV_pow2: "DERIV (%x. x ^ Suc n) x :> real (Suc n) * (x ^ n)"
 by (rule DERIV_cong, rule DERIV_pow, simp)
 declare DERIV_pow2 [simp] DERIV_pow [simp]
@@ -92,7 +200,7 @@ declare DERIV_pow2 [simp] DERIV_pow [simp]
 lemma DERIV_add_const: "DERIV f x :> D ==>  DERIV (%x. a + f x :: 'a::real_normed_field) x :> D"
 by (rule DERIV_cong, rule DERIV_add, auto)
 
-lemma poly_DERIV[simp]: "DERIV (%x. poly p x) x :> poly (pderiv p) x"
+lemma poly_DERIV [simp]: "DERIV (%x. poly p x) x :> poly (pderiv p) x"
   by (induct p, auto intro!: derivative_eq_intros simp add: pderiv_pCons)
 
 lemma continuous_on_poly [continuous_intros]: 
@@ -186,6 +294,104 @@ next
 qed
 
 
+subsection \<open>Algebraic numbers\<close>
+
+text \<open>
+  Algebraic numbers can be defined in two equivalent ways: all real numbers that are 
+  roots of rational polynomials or of integer polynomials. The Algebraic-Numbers AFP entry 
+  uses the rational definition, but we need the integer definition.
+
+  The equivalence is obvious since any rational polynomial can be multiplied with the 
+  LCM of its coefficients, yielding an integer polynomial with the same roots.
+\<close>
+subsection \<open>Algebraic numbers\<close>
+
+definition algebraic :: "'a :: field_char_0 \<Rightarrow> bool" where
+  "algebraic x \<longleftrightarrow> (\<exists>p. (\<forall>i. coeff p i \<in> \<int>) \<and> p \<noteq> 0 \<and> poly p x = 0)"
+
+lemma algebraicI:
+  assumes "\<And>i. coeff p i \<in> \<int>" "p \<noteq> 0" "poly p x = 0"
+  shows   "algebraic x"
+  using assms unfolding algebraic_def by blast
+  
+lemma algebraicE:
+  assumes "algebraic x"
+  obtains p where "\<And>i. coeff p i \<in> \<int>" "p \<noteq> 0" "poly p x = 0"
+  using assms unfolding algebraic_def by blast
+
+lemma quotient_of_denom_pos': "snd (quotient_of x) > 0"
+  using quotient_of_denom_pos[OF surjective_pairing] .
+  
+lemma of_int_div_in_Ints: 
+  "b dvd a \<Longrightarrow> of_int a div of_int b \<in> (\<int> :: 'a :: ring_div set)"
+proof (cases "of_int b = (0 :: 'a)")
+  assume "b dvd a" "of_int b \<noteq> (0::'a)"
+  then obtain c where "a = b * c" by (elim dvdE)
+  with \<open>of_int b \<noteq> (0::'a)\<close> show ?thesis by simp
+qed auto
+
+lemma of_int_divide_in_Ints: 
+  "b dvd a \<Longrightarrow> of_int a / of_int b \<in> (\<int> :: 'a :: field set)"
+proof (cases "of_int b = (0 :: 'a)")
+  assume "b dvd a" "of_int b \<noteq> (0::'a)"
+  then obtain c where "a = b * c" by (elim dvdE)
+  with \<open>of_int b \<noteq> (0::'a)\<close> show ?thesis by simp
+qed auto
+
+lemma algebraic_altdef:
+  fixes p :: "'a :: field_char_0 poly"
+  shows "algebraic x \<longleftrightarrow> (\<exists>p. (\<forall>i. coeff p i \<in> \<rat>) \<and> p \<noteq> 0 \<and> poly p x = 0)"
+proof safe
+  fix p assume rat: "\<forall>i. coeff p i \<in> \<rat>" and root: "poly p x = 0" and nz: "p \<noteq> 0"
+  def cs \<equiv> "coeffs p"
+  from rat have "\<forall>c\<in>range (coeff p). \<exists>c'. c = of_rat c'" unfolding Rats_def by blast
+  then obtain f where f: "\<And>i. coeff p i = of_rat (f (coeff p i))" 
+    by (subst (asm) bchoice_iff) blast
+  def cs' \<equiv> "map (quotient_of \<circ> f) (coeffs p)"
+  def d \<equiv> "Lcm (set (map snd cs'))"
+  def p' \<equiv> "smult (of_int d) p"
+  
+  have "\<forall>n. coeff p' n \<in> \<int>"
+  proof
+    fix n :: nat
+    show "coeff p' n \<in> \<int>"
+    proof (cases "n \<le> degree p")
+      case True
+      def c \<equiv> "coeff p n"
+      def a \<equiv> "fst (quotient_of (f (coeff p n)))" and b \<equiv> "snd (quotient_of (f (coeff p n)))"
+      have b_pos: "b > 0" unfolding b_def using quotient_of_denom_pos' by simp
+      have "coeff p' n = of_int d * coeff p n" by (simp add: p'_def)
+      also have "coeff p n = of_rat (of_int a / of_int b)" unfolding a_def b_def
+        by (subst quotient_of_div [of "f (coeff p n)", symmetric])
+           (simp_all add: f [symmetric])
+      also have "of_int d * \<dots> = of_rat (of_int (a*d) / of_int b)"
+        by (simp add: of_rat_mult of_rat_divide)
+      also from nz True have "b \<in> snd ` set cs'" unfolding cs'_def
+        by (force simp: o_def b_def coeffs_def simp del: upt_Suc)
+      hence "b dvd (a * d)" unfolding d_def by simp
+      hence "of_int (a * d) / of_int b \<in> (\<int> :: rat set)"
+        by (rule of_int_divide_in_Ints)
+      hence "of_rat (of_int (a * d) / of_int b) \<in> \<int>" by (elim Ints_cases) auto
+      finally show ?thesis .
+    qed (auto simp: p'_def not_le coeff_eq_0)
+  qed
+  
+  moreover have "set (map snd cs') \<subseteq> {0<..}"
+    unfolding cs'_def using quotient_of_denom_pos' by (auto simp: coeffs_def simp del: upt_Suc) 
+  hence "d \<noteq> 0" unfolding d_def by (induction cs') simp_all
+  with nz have "p' \<noteq> 0" by (simp add: p'_def)
+  moreover from root have "poly p' x = 0" by (simp add: p'_def)
+  ultimately show "algebraic x" unfolding algebraic_def by blast
+next
+
+  assume "algebraic x"
+  then obtain p where p: "\<And>i. coeff p i \<in> \<int>" "poly p x = 0" "p \<noteq> 0" 
+    by (force simp: algebraic_def)
+  moreover have "coeff p i \<in> \<int> \<Longrightarrow> coeff p i \<in> \<rat>" for i by (elim Ints_cases) simp
+  ultimately show  "(\<exists>p. (\<forall>i. coeff p i \<in> \<rat>) \<and> p \<noteq> 0 \<and> poly p x = 0)" by auto
+qed
+
+
 text\<open>Lemmas for Derivatives\<close>
 
 lemma order_unique_lemma:
@@ -209,12 +415,8 @@ apply (simp only: pderiv_mult pderiv_power_Suc)
 apply (simp del: power_Suc of_nat_Suc add: pderiv_pCons)
 done
 
-lemma dvd_add_cancel1:
-  fixes a b c :: "'a::comm_ring_1"
-  shows "a dvd b + c \<Longrightarrow> a dvd b \<Longrightarrow> a dvd c"
-  by (drule (1) Rings.dvd_diff, simp)
-
 lemma lemma_order_pderiv:
+  fixes p :: "'a :: field_char_0 poly"
   assumes n: "0 < n" 
       and pd: "pderiv p \<noteq> 0" 
       and pe: "p = [:- a, 1:] ^ n * q" 
@@ -226,8 +428,8 @@ proof -
     using assms by auto
   obtain n' where "n = Suc n'" "0 < Suc n'" "pderiv ([:- a, 1:] ^ Suc n' * q) \<noteq> 0"
     using assms by (cases n) auto
-  then have *: "!!k l. k dvd k * pderiv q + smult (of_nat (Suc n')) l \<Longrightarrow> k dvd l"
-    by (metis dvd_add_cancel1 dvd_smult_iff dvd_triv_left of_nat_eq_0_iff old.nat.distinct(2))
+  have *: "!!k l. k dvd k * pderiv q + smult (of_nat (Suc n')) l \<Longrightarrow> k dvd l"
+    by (auto simp del: of_nat_Suc simp: dvd_add_right_iff dvd_smult_iff)
   have "n' = order a (pderiv ([:- a, 1:] ^ Suc n' * q))" 
   proof (rule order_unique_lemma)
     show "[:- a, 1:] ^ n' dvd pderiv ([:- a, 1:] ^ Suc n' * q)"
@@ -262,8 +464,9 @@ proof -
   from C D show ?thesis by blast
 qed
 
-lemma order_pderiv: "[| pderiv p \<noteq> 0; order a p \<noteq> 0 |]
-      ==> (order a p = Suc (order a (pderiv p)))"
+lemma order_pderiv:
+  "\<lbrakk>pderiv p \<noteq> 0; order a (p :: 'a :: field_char_0 poly) \<noteq> 0\<rbrakk> \<Longrightarrow>
+     (order a p = Suc (order a (pderiv p)))"
 apply (case_tac "p = 0", simp)
 apply (drule_tac a = a and p = p in order_decomp)
 using neq0_conv
@@ -344,7 +547,7 @@ apply (erule power_le_dvd [OF order_1])
 done
 
 lemma poly_squarefree_decomp_order:
-  assumes "pderiv p \<noteq> 0"
+  assumes "pderiv (p :: 'a :: field_char_0 poly) \<noteq> 0"
   and p: "p = q * d"
   and p': "pderiv p = e * d"
   and d: "d = r * p + s * pderiv p"
@@ -379,28 +582,31 @@ proof (rule classical)
     by auto
 qed
 
-lemma poly_squarefree_decomp_order2: "[| pderiv p \<noteq> 0;
-         p = q * d;
-         pderiv p = e * d;
-         d = r * p + s * pderiv p
-      |] ==> \<forall>a. order a q = (if order a p = 0 then 0 else 1)"
+lemma poly_squarefree_decomp_order2: 
+     "\<lbrakk>pderiv p \<noteq> (0 :: 'a :: field_char_0 poly);
+       p = q * d;
+       pderiv p = e * d;
+       d = r * p + s * pderiv p
+      \<rbrakk> \<Longrightarrow> \<forall>a. order a q = (if order a p = 0 then 0 else 1)"
 by (blast intro: poly_squarefree_decomp_order)
 
-lemma order_pderiv2: "[| pderiv p \<noteq> 0; order a p \<noteq> 0 |]
-      ==> (order a (pderiv p) = n) = (order a p = Suc n)"
+lemma order_pderiv2: 
+  "\<lbrakk>pderiv p \<noteq> 0; order a (p :: 'a :: field_char_0 poly) \<noteq> 0\<rbrakk>
+      \<Longrightarrow> (order a (pderiv p) = n) = (order a p = Suc n)"
 by (auto dest: order_pderiv)
 
 definition
   rsquarefree :: "'a::idom poly => bool" where
   "rsquarefree p = (p \<noteq> 0 & (\<forall>a. (order a p = 0) | (order a p = 1)))"
 
-lemma pderiv_iszero: "pderiv p = 0 \<Longrightarrow> \<exists>h. p = [:h:]"
+lemma pderiv_iszero: "pderiv p = 0 \<Longrightarrow> \<exists>h. p = [:h :: 'a :: {semidom,semiring_char_0}:]"
 apply (simp add: pderiv_eq_0_iff)
 apply (case_tac p, auto split: if_splits)
 done
 
 lemma rsquarefree_roots:
-  "rsquarefree p = (\<forall>a. ~(poly p a = 0 & poly (pderiv p) a = 0))"
+  fixes p :: "'a :: field_char_0 poly"
+  shows "rsquarefree p = (\<forall>a. \<not>(poly p a = 0 \<and> poly (pderiv p) a = 0))"
 apply (simp add: rsquarefree_def)
 apply (case_tac "p = 0", simp, simp)
 apply (case_tac "pderiv p = 0")
@@ -411,7 +617,7 @@ apply (force simp add: order_root order_pderiv2)
 done
 
 lemma poly_squarefree_decomp:
-  assumes "pderiv p \<noteq> 0"
+  assumes "pderiv (p :: 'a :: field_char_0 poly) \<noteq> 0"
     and "p = q * d"
     and "pderiv p = e * d"
     and "d = r * p + s * pderiv p"

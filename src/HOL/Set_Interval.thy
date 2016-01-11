@@ -1902,4 +1902,52 @@ proof -
   finally show ?thesis .
 qed
 
+
+subsection \<open>Efficient folding over intervals\<close>
+
+function fold_atLeastAtMost_nat where
+  [simp del]: "fold_atLeastAtMost_nat f a (b::nat) acc =
+                 (if a > b then acc else fold_atLeastAtMost_nat f (a+1) b (f a acc))"
+by pat_completeness auto
+termination by (relation "measure (\<lambda>(_,a,b,_). Suc b - a)") auto
+
+lemma fold_atLeastAtMost_nat:
+  assumes "comp_fun_commute f"
+  shows   "fold_atLeastAtMost_nat f a b acc = Finite_Set.fold f acc {a..b}"
+using assms
+proof (induction f a b acc rule: fold_atLeastAtMost_nat.induct, goal_cases)
+  case (1 f a b acc)
+  interpret comp_fun_commute f by fact
+  show ?case
+  proof (cases "a > b")
+    case True
+    thus ?thesis by (subst fold_atLeastAtMost_nat.simps) auto
+  next
+    case False
+    with 1 show ?thesis
+      by (subst fold_atLeastAtMost_nat.simps)
+         (auto simp: atLeastAtMost_insertL[symmetric] fold_fun_left_comm)
+  qed
+qed
+
+lemma setsum_atLeastAtMost_code:
+  "setsum f {a..b} = fold_atLeastAtMost_nat (\<lambda>a acc. f a + acc) a b 0"
+proof -
+  have "comp_fun_commute (\<lambda>a. op + (f a))"
+    by unfold_locales (auto simp: o_def add_ac)
+  thus ?thesis
+    by (simp add: setsum.eq_fold fold_atLeastAtMost_nat o_def)
+qed
+
+lemma setprod_atLeastAtMost_code:
+  "setprod f {a..b} = fold_atLeastAtMost_nat (\<lambda>a acc. f a * acc) a b 1"
+proof -
+  have "comp_fun_commute (\<lambda>a. op * (f a))"
+    by unfold_locales (auto simp: o_def mult_ac)
+  thus ?thesis
+    by (simp add: setprod.eq_fold fold_atLeastAtMost_nat o_def)
+qed
+
+(* TODO: Add support for more kinds of intervals here *)
+
 end

@@ -314,6 +314,12 @@ lemma of_int_less_1_iff [simp]:
   "of_int z < 1 \<longleftrightarrow> z < 1"
   using of_int_less_iff [of z 1] by simp
 
+lemma of_int_pos: "z > 0 \<Longrightarrow> of_int z > 0"
+  by simp
+
+lemma of_int_nonneg: "z \<ge> 0 \<Longrightarrow> of_int z \<ge> 0"
+  by simp
+
 end
 
 text \<open>Comparisons involving @{term of_int}.\<close>

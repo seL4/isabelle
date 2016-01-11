@@ -76,7 +76,7 @@ begin
       by (metis of_nat_mult order_refl power_Suc)
     finally show ?case .
   qed simp
-
+  
 end
 
 text\<open>Note that @{term "fact 0 = fact 1"}\<close>
@@ -94,11 +94,17 @@ lemma dvd_fact:
   shows "1 \<le> m \<Longrightarrow> m \<le> n \<Longrightarrow> m dvd fact n"
   by (induct n) (auto simp: dvdI le_Suc_eq)
 
+lemma fact_ge_self: "fact n \<ge> n"
+  by (cases "n = 0") (simp_all add: dvd_imp_le dvd_fact)
+
 lemma fact_altdef_nat: "fact n = \<Prod>{1..n}"
   by (induct n) (auto simp: atLeastAtMostSuc_conv)
 
-lemma fact_altdef: "fact n = setprod of_nat {1..n}"
+lemma fact_altdef: "fact n = (\<Prod>i=1..n. of_nat i)"
   by (induct n) (auto simp: atLeastAtMostSuc_conv)
+  
+lemma fact_altdef': "fact n = of_nat (\<Prod>{1..n})"
+  by (subst fact_altdef_nat [symmetric]) simp
 
 lemma fact_dvd: "n \<le> m \<Longrightarrow> fact n dvd (fact m :: 'a :: {semiring_div,linordered_semidom})"
   by (induct m) (auto simp: le_Suc_eq)
@@ -1537,5 +1543,43 @@ proof -
     by (subst (1 2) binomial_altdef_nat)
        (simp_all only: ac_simps diff_Suc_Suc Suc_diff_le diff_add_inverse fact_Suc of_nat_id)
 qed
+
+
+
+lemma fact_code [code]:
+  "fact n = (of_nat (fold_atLeastAtMost_nat (op *) 2 n 1) :: 'a :: semiring_char_0)"
+proof -
+  have "fact n = (of_nat (\<Prod>{1..n}) :: 'a)" by (simp add: fact_altdef')
+  also have "\<Prod>{1..n} = \<Prod>{2..n}"
+    by (intro setprod.mono_neutral_right) auto
+  also have "\<dots> = fold_atLeastAtMost_nat (op *) 2 n 1"
+    by (simp add: setprod_atLeastAtMost_code)
+  finally show ?thesis .
+qed
+
+lemma pochhammer_code [code]:
+  "pochhammer a n = (if n = 0 then 1 else 
+       fold_atLeastAtMost_nat (\<lambda>n acc. (a + of_nat n) * acc) 0 (n - 1) 1)"
+  by (simp add: setprod_atLeastAtMost_code pochhammer_def)
+
+lemma gbinomial_code [code]:
+  "a gchoose n = (if n = 0 then 1 else 
+     fold_atLeastAtMost_nat (\<lambda>n acc. (a - of_nat n) * acc) 0 (n - 1) 1 / fact n)"
+  by (simp add: setprod_atLeastAtMost_code gbinomial_def)
+
+lemma binomial_code [code]:
+  "(n choose k) =
+      (if k > n then 0
+       else if 2 * k > n then (n choose (n - k))
+       else (fold_atLeastAtMost_nat (op *) (n-k+1) n 1 div fact k))"
+proof -
+  {
+    assume "k \<le> n"
+    hence "{1..n} = {1..n-k} \<union> {n-k+1..n}" by auto
+    hence "(fact n :: nat) = fact (n-k) * \<Prod>{n-k+1..n}"
+      by (simp add: setprod.union_disjoint fact_altdef_nat)
+  }
+  thus ?thesis by (auto simp: binomial_altdef_nat mult_ac setprod_atLeastAtMost_code)
+qed 
 
 end
