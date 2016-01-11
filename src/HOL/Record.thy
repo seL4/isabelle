@@ -10,7 +10,9 @@ section \<open>Extensible records with structural subtyping\<close>
 
 theory Record
 imports Quickcheck_Exhaustive
-keywords "record" :: thy_decl
+keywords
+  "record" :: thy_decl and
+  "print_record" :: diag
 begin
 
 subsection \<open>Introduction\<close>

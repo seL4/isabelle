@@ -420,5 +420,8 @@ lemma "\<exists>r. A155 r = x"
     (put_simpset HOL_basic_ss @{context} addsimprocs [Record.ex_sel_eq_simproc]) 1*})
   done
 
+print_record many_A
+
+print_record many_B
 
 end
