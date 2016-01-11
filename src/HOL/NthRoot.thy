@@ -425,6 +425,9 @@ lemma real_le_rsqrt: "x\<^sup>2 \<le> y \<Longrightarrow> x \<le> sqrt y"
 lemma real_less_rsqrt: "x\<^sup>2 < y \<Longrightarrow> x < sqrt y"
   using real_sqrt_less_mono[of "x\<^sup>2" y] by simp
 
+lemma sqrt_le_D: "sqrt x \<le> y \<Longrightarrow> x \<le> y^2"
+  by (meson not_le real_less_rsqrt)
+
 lemma sqrt_even_pow2:
   assumes n: "even n"
   shows "sqrt (2 ^ n) = 2 ^ (n div 2)"

@@ -27,8 +27,6 @@ lemma moebius_inverse':
   using assms moebius_inverse[of d a "-b" "-c" z]
   by (auto simp: algebra_simps)
 
-
-
 lemma cmod_add_real_less:
   assumes "Im z \<noteq> 0" "r\<noteq>0"
     shows "cmod (z + r) < cmod z + \<bar>r\<bar>"
@@ -1025,14 +1023,16 @@ lemma Ln_times_unwinding:
 subsection\<open>Derivative of Ln away from the branch cut\<close>
 
 lemma
-  assumes "Im(z) = 0 \<Longrightarrow> 0 < Re(z)"
+  assumes "z \<notin> \<real>\<^sub>\<le>\<^sub>0"
     shows has_field_derivative_Ln: "(Ln has_field_derivative inverse(z)) (at z)"
       and Im_Ln_less_pi:           "Im (Ln z) < pi"
 proof -
   have znz: "z \<noteq> 0"
     using assms by auto
-  then show *: "Im (Ln z) < pi" using assms
-    by (metis exp_Ln Im_Ln_le_pi Im_exp Re_exp abs_of_nonneg cmod_eq_Re cos_pi mult.right_neutral mult_minus_right mult_zero_right neg_less_0_iff_less norm_exp_eq_Re not_less not_less_iff_gr_or_eq sin_pi)
+  then have "Im (Ln z) \<noteq> pi"
+    by (metis (no_types) Im_exp Ln_in_Reals assms complex_nonpos_Reals_iff complex_is_Real_iff exp_Ln mult_zero_right not_less pi_neq_zero sin_pi znz)
+  then show *: "Im (Ln z) < pi" using assms Im_Ln_le_pi
+    by (simp add: le_neq_trans znz)
   show "(Ln has_field_derivative inverse(z)) (at z)"
     apply (rule has_complex_derivative_inverse_strong_x
               [where f = exp and s = "{w. -pi < Im(w) & Im(w) < pi}"])
@@ -1046,27 +1046,27 @@ qed
 declare has_field_derivative_Ln [derivative_intros]
 declare has_field_derivative_Ln [THEN DERIV_chain2, derivative_intros]
 
-lemma complex_differentiable_at_Ln: "(Im(z) = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> Ln complex_differentiable at z"
+lemma complex_differentiable_at_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Ln complex_differentiable at z"
   using complex_differentiable_def has_field_derivative_Ln by blast
 
-lemma complex_differentiable_within_Ln: "(Im(z) = 0 \<Longrightarrow> 0 < Re(z))
+lemma complex_differentiable_within_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0
          \<Longrightarrow> Ln complex_differentiable (at z within s)"
   using complex_differentiable_at_Ln complex_differentiable_within_subset by blast
 
-lemma continuous_at_Ln: "(Im(z) = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous (at z) Ln"
+lemma continuous_at_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z) Ln"
   by (simp add: complex_differentiable_imp_continuous_at complex_differentiable_within_Ln)
 
 lemma isCont_Ln' [simp]:
-   "\<lbrakk>isCont f z; Im(f z) = 0 \<Longrightarrow> 0 < Re(f z)\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. Ln (f x)) z"
+   "\<lbrakk>isCont f z; f z \<notin> \<real>\<^sub>\<le>\<^sub>0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. Ln (f x)) z"
   by (blast intro: isCont_o2 [OF _ continuous_at_Ln])
 
-lemma continuous_within_Ln: "(Im(z) = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous (at z within s) Ln"
+lemma continuous_within_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z within s) Ln"
   using continuous_at_Ln continuous_at_imp_continuous_within by blast
 
-lemma continuous_on_Ln [continuous_intros]: "(\<And>z. z \<in> s \<Longrightarrow> Im(z) = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous_on s Ln"
+lemma continuous_on_Ln [continuous_intros]: "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> continuous_on s Ln"
   by (simp add: continuous_at_imp_continuous_on continuous_within_Ln)
 
-lemma holomorphic_on_Ln: "(\<And>z. z \<in> s \<Longrightarrow> Im(z) = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> Ln holomorphic_on s"
+lemma holomorphic_on_Ln: "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> Ln holomorphic_on s"
   by (simp add: complex_differentiable_within_Ln holomorphic_on_def)
 
 
@@ -1161,31 +1161,33 @@ lemma Re_Ln_pos_lt_imp: "0 < Re(z) \<Longrightarrow> \<bar>Im(Ln z)\<bar> < pi/2
 lemma Im_Ln_pos_lt_imp: "0 < Im(z) \<Longrightarrow> 0 < Im(Ln z) \<and> Im(Ln z) < pi"
   by (metis Im_Ln_pos_lt not_le order_refl zero_complex.simps(2))
 
+text\<open>A reference to the set of positive real numbers\<close>
 lemma Im_Ln_eq_0: "z \<noteq> 0 \<Longrightarrow> (Im(Ln z) = 0 \<longleftrightarrow> 0 < Re(z) \<and> Im(z) = 0)"
-  by (metis exp_Ln Im_Ln_less_pi Im_Ln_pos_le Im_Ln_pos_lt Re_complex_of_real add.commute add.left_neutral
-       complex_eq exp_of_real le_less mult_zero_right norm_exp_eq_Re norm_le_zero_iff not_le of_real_0)
+by (metis Im_complex_of_real Im_exp Ln_in_Reals Re_Ln_pos_lt Re_Ln_pos_lt_imp 
+          Re_complex_of_real complex_is_Real_iff exp_Ln exp_of_real pi_gt_zero)
 
 lemma Im_Ln_eq_pi: "z \<noteq> 0 \<Longrightarrow> (Im(Ln z) = pi \<longleftrightarrow> Re(z) < 0 \<and> Im(z) = 0)"
-  by (metis Im_Ln_eq_0 Im_Ln_less_pi Im_Ln_pos_le Im_Ln_pos_lt add.right_neutral complex_eq mult_zero_right not_less not_less_iff_gr_or_eq of_real_0)
+by (metis Im_Ln_eq_0 Im_Ln_pos_le Im_Ln_pos_lt add.left_neutral complex_eq less_eq_real_def 
+    mult_zero_right not_less_iff_gr_or_eq pi_ge_zero pi_neq_zero rcis_zero_arg rcis_zero_mod)
 
 
 subsection\<open>More Properties of Ln\<close>
 
-lemma cnj_Ln: "(Im z = 0 \<Longrightarrow> 0 < Re z) \<Longrightarrow> cnj(Ln z) = Ln(cnj z)"
+lemma cnj_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> cnj(Ln z) = Ln(cnj z)"
   apply (cases "z=0", auto)
   apply (rule exp_complex_eqI)
   apply (auto simp: abs_if split: split_if_asm)
-  apply (metis Im_Ln_less_pi add_mono_thms_linordered_field(5) cnj.simps mult_2 neg_equal_0_iff_equal)
-  apply (metis complex_cnj_zero_iff diff_minus_eq_add diff_strict_mono minus_less_iff mpi_less_Im_Ln mult.commute mult_2_right)
+  using Im_Ln_less_pi Im_Ln_le_pi apply force
+  apply (metis complex_cnj_zero_iff diff_minus_eq_add diff_strict_mono minus_less_iff 
+          mpi_less_Im_Ln mult.commute mult_2_right)
   by (metis exp_Ln exp_cnj)
 
-lemma Ln_inverse: "(Im(z) = 0 \<Longrightarrow> 0 < Re z) \<Longrightarrow> Ln(inverse z) = -(Ln z)"
+lemma Ln_inverse: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Ln(inverse z) = -(Ln z)"
   apply (cases "z=0", auto)
   apply (rule exp_complex_eqI)
   using mpi_less_Im_Ln [of z] mpi_less_Im_Ln [of "inverse z"]
   apply (auto simp: abs_if exp_minus split: split_if_asm)
-  apply (metis Im_Ln_less_pi Im_Ln_pos_le add_less_cancel_left add_strict_mono
-               inverse_inverse_eq inverse_zero le_less mult.commute mult_2_right)
+  apply (metis Im_Ln_less_pi Im_Ln_le_pi add.commute add_mono_thms_linordered_field(3) inverse_nonzero_iff_nonzero mult_2)
   done
 
 lemma Ln_minus1 [simp]: "Ln(-1) = ii * pi"
@@ -1201,12 +1203,9 @@ lemma Ln_ii [simp]: "Ln ii = ii * of_real pi/2"
 
 lemma Ln_minus_ii [simp]: "Ln(-ii) = - (ii * pi/2)"
 proof -
-  have  "Ln(-ii) = Ln(1/ii)"
-    by simp
-  also have "... = - (Ln ii)"
-    by (metis Ln_inverse ii.sel(2) inverse_eq_divide zero_neq_one)
-  also have "... = - (ii * pi/2)"
-    by simp
+  have  "Ln(-ii) = Ln(inverse ii)"    by simp
+  also have "... = - (Ln ii)"         using Ln_inverse by blast
+  also have "... = - (ii * pi/2)"     by simp
   finally show ?thesis .
 qed
 
@@ -1220,7 +1219,7 @@ lemma Ln_times:
                 else Ln(w) + Ln(z))"
   using pi_ge_zero Im_Ln_le_pi [of w] Im_Ln_le_pi [of z]
   using assms mpi_less_Im_Ln [of w] mpi_less_Im_Ln [of z]
-  by (auto simp: of_real_numeral exp_add exp_diff sin_double cos_double exp_Euler intro!: Ln_unique)
+  by (auto simp: exp_add exp_diff sin_double cos_double exp_Euler intro!: Ln_unique)
 
 corollary Ln_times_simple:
     "\<lbrakk>w \<noteq> 0; z \<noteq> 0; -pi < Im(Ln w) + Im(Ln z); Im(Ln w) + Im(Ln z) \<le> pi\<rbrakk>
@@ -1245,23 +1244,20 @@ lemma Ln_minus:
                      else Ln(z) - ii * pi)" (is "_ = ?rhs")
   using Im_Ln_le_pi [of z] mpi_less_Im_Ln [of z] assms
         Im_Ln_eq_pi [of z] Im_Ln_pos_lt [of z]
-    by (auto simp: of_real_numeral exp_add exp_diff exp_Euler intro!: Ln_unique)
+    by (fastforce simp: exp_add exp_diff exp_Euler intro!: Ln_unique)
 
 lemma Ln_inverse_if:
   assumes "z \<noteq> 0"
-    shows "Ln (inverse z) =
-            (if (Im(z) = 0 \<longrightarrow> 0 < Re z)
-             then -(Ln z)
-             else -(Ln z) + \<i> * 2 * complex_of_real pi)"
-proof (cases "(Im(z) = 0 \<longrightarrow> 0 < Re z)")
-  case True then show ?thesis
+    shows "Ln (inverse z) = (if z \<in> \<real>\<^sub>\<le>\<^sub>0 then -(Ln z) + \<i> * 2 * complex_of_real pi else -(Ln z))"
+proof (cases "z \<in> \<real>\<^sub>\<le>\<^sub>0")
+  case False then show ?thesis
     by (simp add: Ln_inverse)
 next
-  case False
+  case True
   then have z: "Im z = 0" "Re z < 0"
     using assms
-    apply auto
-    by (metis cnj.code complex_cnj_cnj not_less_iff_gr_or_eq zero_complex.simps(1) zero_complex.simps(2))
+    apply (auto simp: complex_nonpos_Reals_iff)
+    by (metis complex_is_Real_iff le_imp_less_or_eq of_real_0 of_real_Re)
   have "Ln(inverse z) = Ln(- (inverse (-z)))"
     by simp
   also have "... = Ln (inverse (-z)) + \<i> * complex_of_real pi"
@@ -1271,15 +1267,13 @@ next
     done
   also have "... = - Ln (- z) + \<i> * complex_of_real pi"
     apply (subst Ln_inverse)
-    using z assms by auto
+    using z by (auto simp add: complex_nonneg_Reals_iff) 
   also have "... = - (Ln z) + \<i> * 2 * complex_of_real pi"
     apply (subst Ln_minus [OF assms])
     using assms z
     apply simp
     done
-  finally show ?thesis
-    using assms z
-    by simp
+  finally show ?thesis by (simp add: True)
 qed
 
 lemma Ln_times_ii:
@@ -1289,7 +1283,7 @@ lemma Ln_times_ii:
                           else Ln(z) - ii * of_real(3 * pi/2))"
   using Im_Ln_le_pi [of z] mpi_less_Im_Ln [of z] assms
         Im_Ln_eq_pi [of z] Im_Ln_pos_lt [of z] Re_Ln_pos_le [of z]
-  by (auto simp: of_real_numeral Ln_times)
+  by (auto simp: Ln_times)
 
 lemma Ln_of_nat: "0 < n \<Longrightarrow> Ln (of_nat n) = of_real (ln (of_nat n))"
   by (subst of_real_of_nat_eq[symmetric], subst Ln_of_real[symmetric]) simp_all
@@ -1338,17 +1332,23 @@ next
 qed
 
 lemma continuous_at_Arg:
-  assumes "z \<in> \<real> \<Longrightarrow> Re z < 0"
+  assumes "z \<notin> \<real>\<^sub>\<ge>\<^sub>0"
     shows "continuous (at z) Arg"
 proof -
   have *: "isCont (\<lambda>z. Im (Ln (- z)) + pi) z"
     by (rule Complex.isCont_Im isCont_Ln' continuous_intros | simp add: assms complex_is_Real_iff)+
-  then show ?thesis
-    apply (simp add: continuous_at)
-    apply (rule Lim_transform_within_open [where s= "-{z. z \<in> \<real> & 0 \<le> Re z}" and f = "\<lambda>z. Im(Ln(-z)) + pi"])
-    apply (simp_all add: assms not_le Arg_Ln [OF Arg_gt_0])
-    apply (simp add: closed_def [symmetric] closed_Collect_conj closed_complex_Reals closed_halfspace_Re_ge)
-    done
+  have [simp]: "\<And>x. \<lbrakk>Im x \<noteq> 0\<rbrakk> \<Longrightarrow> Im (Ln (- x)) + pi = Arg x"
+      using Arg_Ln Arg_gt_0 complex_is_Real_iff by auto
+  consider "Re z < 0" | "Im z \<noteq> 0" using assms
+    using complex_nonneg_Reals_iff not_le by blast 
+  then have [simp]: "(\<lambda>z. Im (Ln (- z)) + pi) \<midarrow>z\<rightarrow> Arg z"
+      using "*"  by (simp add: isCont_def) (metis Arg_Ln Arg_gt_0 complex_is_Real_iff)
+  show ?thesis
+      apply (simp add: continuous_at)
+      apply (rule Lim_transform_within_open [where s= "-\<real>\<^sub>\<ge>\<^sub>0" and f = "\<lambda>z. Im(Ln(-z)) + pi"])
+      apply (auto simp add: not_le Arg_Ln [OF Arg_gt_0] complex_nonneg_Reals_iff closed_def [symmetric])
+      using assms apply (force simp add: complex_nonneg_Reals_iff)
+      done
 qed
 
 lemma Ln_series:
@@ -1372,7 +1372,7 @@ proof -
     have "Re (-z) \<le> norm (-z)" by (rule complex_Re_le_cmod)
     also from z have "... < 1" by simp
     finally have "((\<lambda>z. ln (1 + z)) has_field_derivative inverse (1+z)) (at z)"
-      by (auto intro!: derivative_eq_intros)
+      by (auto intro!: derivative_eq_intros simp: complex_nonpos_Reals_iff)
     moreover have "(?F has_field_derivative ?F' z) (at z)" using t r
       by (intro termdiffs_strong[of _ t] summable_in_conv_radius) simp_all
     ultimately have "((\<lambda>z. ln (1 + z) - ?F z) has_field_derivative (inverse (1 + z) - ?F' z)) 
@@ -1447,7 +1447,7 @@ next
     using False assms arctan [of "Re z / Im z"] pi_ge_two pi_half_less_two
     apply (auto simp: exp_Euler cos_diff sin_diff)
     using norm_complex_def [of z, symmetric]
-    apply (simp add: of_real_numeral sin_of_real cos_of_real sin_arctan cos_arctan field_simps real_sqrt_divide)
+    apply (simp add: sin_of_real cos_of_real sin_arctan cos_arctan field_simps real_sqrt_divide)
     apply (metis complex_eq mult.assoc ring_class.ring_distribs(2))
     done
 qed
@@ -1472,13 +1472,13 @@ qed
 lemma continuous_within_upperhalf_Arg:
   assumes "z \<noteq> 0"
     shows "continuous (at z within {z. 0 \<le> Im z}) Arg"
-proof (cases "z \<in> \<real> & 0 \<le> Re z")
+proof (cases "z \<in> \<real>\<^sub>\<ge>\<^sub>0")
   case False then show ?thesis
     using continuous_at_Arg continuous_at_imp_continuous_within by auto
 next
   case True
   then have z: "z \<in> \<real>" "0 < Re z"
-    using assms  by (auto simp: complex_is_Real_iff complex_neq_0)
+    using assms  by (auto simp: complex_nonneg_Reals_iff complex_is_Real_iff complex_neq_0)
   then have [simp]: "Arg z = 0" "Im (Ln z) = 0"
     by (auto simp: Arg_eq_0 Im_Ln_eq_0 assms complex_is_Real_iff)
   show ?thesis
@@ -1486,7 +1486,7 @@ next
     fix e::real
     assume "0 < e"
     moreover have "continuous (at z) (\<lambda>x. Im (Ln x))"
-      using z  by (rule continuous_intros | simp)
+      using z by (simp add: continuous_at_Ln complex_nonpos_Reals_iff)
     ultimately
     obtain d where d: "d>0" "\<And>x. x \<noteq> z \<Longrightarrow> cmod (x - z) < d \<Longrightarrow> \<bar>Im (Ln x)\<bar> < e"
       by (auto simp: continuous_within Lim_within dist_norm)
@@ -1513,17 +1513,15 @@ lemma open_Arg_less_Int:
   assumes "0 \<le> s" "t \<le> 2*pi"
     shows "open ({y. s < Arg y} \<inter> {y. Arg y < t})"
 proof -
-  have 1: "continuous_on (UNIV - {z \<in> \<real>. 0 \<le> Re z}) Arg"
+  have 1: "continuous_on (UNIV - \<real>\<^sub>\<ge>\<^sub>0) Arg"
     using continuous_at_Arg continuous_at_imp_continuous_within
-    by (auto simp: continuous_on_eq_continuous_within set_diff_eq)
-  have 2: "open (UNIV - {z \<in> \<real>. 0 \<le> Re z})"
-    by (simp add: closed_Collect_conj closed_complex_Reals closed_halfspace_Re_ge open_Diff)
+    by (auto simp: continuous_on_eq_continuous_within)
+  have 2: "open (UNIV - \<real>\<^sub>\<ge>\<^sub>0 :: complex set)"  by (simp add: open_Diff)
   have "open ({z. s < z} \<inter> {z. z < t})"
     using open_lessThan [of t] open_greaterThan [of s]
     by (metis greaterThan_def lessThan_def open_Int)
-  moreover have "{y. s < Arg y} \<inter> {y. Arg y < t} \<subseteq> - {z \<in> \<real>. 0 \<le> Re z}"
-    using assms
-    by (auto simp: Arg_real)
+  moreover have "{y. s < Arg y} \<inter> {y. Arg y < t} \<subseteq> - \<real>\<^sub>\<ge>\<^sub>0"
+    using assms by (auto simp: Arg_real complex_nonneg_Reals_iff complex_is_Real_iff)
   ultimately show ?thesis
     using continuous_imp_open_vimage [OF 1 2, of  "{z. Re z > s} \<inter> {z. Re z < t}"]
     by auto
@@ -1576,7 +1574,7 @@ lemma cnj_powr:
   shows   "cnj (a powr b) = cnj a powr cnj b"
 proof (cases "a = 0")
   case False
-  with assms have "Im a = 0 \<Longrightarrow> Re a > 0" by (auto simp: complex_eq_iff)
+  with assms have "a \<notin> \<real>\<^sub>\<le>\<^sub>0" by (auto simp: complex_eq_iff complex_nonpos_Reals_iff)
   with False show ?thesis by (simp add: powr_def exp_cnj cnj_Ln)
 qed simp
 
@@ -1615,8 +1613,8 @@ proof (cases "x = 0")
 qed simp_all
 
 lemma has_field_derivative_powr:
-    "(Im z = 0 \<Longrightarrow> 0 < Re z)
-     \<Longrightarrow> ((\<lambda>z. z powr s) has_field_derivative (s * z powr (s - 1))) (at z)"
+  fixes z :: complex
+  shows "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> ((\<lambda>z. z powr s) has_field_derivative (s * z powr (s - 1))) (at z)"
   apply (cases "z=0", auto)
   apply (simp add: powr_def)
   apply (rule DERIV_transform_at [where d = "norm z" and f = "\<lambda>z. exp (s * Ln z)"])
@@ -1625,23 +1623,7 @@ lemma has_field_derivative_powr:
   apply (simp add: field_simps exp_diff)
   done
 
-lemma has_field_derivative_powr_complex':
-  assumes "Im z \<noteq> 0 \<or> Re z > 0"
-  shows "((\<lambda>z. z powr r :: complex) has_field_derivative r * z powr (r - 1)) (at z)"
-proof (subst DERIV_cong_ev[OF refl _ refl])
-  from assms have "eventually (\<lambda>z. z \<noteq> 0) (nhds z)" by (intro t1_space_nhds) auto
-  thus "eventually (\<lambda>z. z powr r = exp (r * Ln z)) (nhds z)"
-    unfolding powr_def by eventually_elim simp
-
-  have "((\<lambda>z. exp (r * Ln z)) has_field_derivative exp (r * Ln z) * (inverse z * r)) (at z)"
-    using assms by (auto intro!: derivative_eq_intros has_field_derivative_powr)
-  also have "exp (r * Ln z) * (inverse z * r) = r * z powr (r - 1)"
-    unfolding powr_def by (simp add: assms exp_diff field_simps)
-  finally show "((\<lambda>z. exp (r * Ln z)) has_field_derivative r * z powr (r - 1)) (at z)"
-    by simp
-qed
-
-declare has_field_derivative_powr_complex'[THEN DERIV_chain2, derivative_intros]
+declare has_field_derivative_powr[THEN DERIV_chain2, derivative_intros]
 
 
 lemma has_field_derivative_powr_right:
@@ -1815,71 +1797,72 @@ proof -
 qed
 
 lemma csqrt_inverse:
-  assumes "Im(z) = 0 \<Longrightarrow> 0 < Re z"
+  assumes "z \<notin> \<real>\<^sub>\<le>\<^sub>0"
     shows "csqrt (inverse z) = inverse (csqrt z)"
 proof (cases "z=0", simp)
-  assume "z \<noteq> 0 "
+  assume "z \<noteq> 0"
   then show ?thesis
-    using assms
+    using assms csqrt_exp_Ln Ln_inverse exp_minus
     by (simp add: csqrt_exp_Ln Ln_inverse exp_minus)
 qed
 
 lemma cnj_csqrt:
-  assumes "Im z = 0 \<Longrightarrow> 0 \<le> Re(z)"
+  assumes "z \<notin> \<real>\<^sub>\<le>\<^sub>0"
     shows "cnj(csqrt z) = csqrt(cnj z)"
 proof (cases "z=0", simp)
-  assume z: "z \<noteq> 0"
-  then have "Im z = 0 \<Longrightarrow> 0 < Re(z)"
-    using assms cnj.code complex_cnj_zero_iff by fastforce
+  assume "z \<noteq> 0"
   then show ?thesis
-   using z by (simp add: csqrt_exp_Ln cnj_Ln exp_cnj)
+     by (simp add: assms cnj_Ln csqrt_exp_Ln exp_cnj) 
 qed
 
 lemma has_field_derivative_csqrt:
-  assumes "Im z = 0 \<Longrightarrow> 0 < Re(z)"
+  assumes "z \<notin> \<real>\<^sub>\<le>\<^sub>0"
     shows "(csqrt has_field_derivative inverse(2 * csqrt z)) (at z)"
 proof -
   have z: "z \<noteq> 0"
     using assms by auto
   then have *: "inverse z = inverse (2*z) * 2"
     by (simp add: divide_simps)
-  show ?thesis
-    apply (rule DERIV_transform_at [where f = "\<lambda>z. exp(Ln(z) / 2)" and d = "norm z"])
-    apply (intro derivative_eq_intros | simp add: assms)+
-    apply (rule *)
+  have [simp]: "exp (Ln z / 2) * inverse z = inverse (csqrt z)"
+    by (simp add: z field_simps csqrt_exp_Ln [symmetric]) (metis power2_csqrt power2_eq_square)
+  have "Im z = 0 \<Longrightarrow> 0 < Re z"
+    using assms complex_nonpos_Reals_iff not_less by blast
+  with z have "((\<lambda>z. exp (Ln z / 2)) has_field_derivative inverse (2 * csqrt z)) (at z)"
+    by (force intro: derivative_eq_intros * simp add: assms)
+  then show ?thesis
+    apply (rule DERIV_transform_at[where d = "norm z"])
+    apply (intro z derivative_eq_intros | simp add: assms)+
     using z
-    apply (auto simp: field_simps csqrt_exp_Ln [symmetric])
-    apply (metis power2_csqrt power2_eq_square)
     apply (metis csqrt_exp_Ln dist_0_norm less_irrefl)
     done
 qed
 
 lemma complex_differentiable_at_csqrt:
-    "(Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> csqrt complex_differentiable at z"
+    "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> csqrt complex_differentiable at z"
   using complex_differentiable_def has_field_derivative_csqrt by blast
 
 lemma complex_differentiable_within_csqrt:
-    "(Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> csqrt complex_differentiable (at z within s)"
+    "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> csqrt complex_differentiable (at z within s)"
   using complex_differentiable_at_csqrt complex_differentiable_within_subset by blast
 
 lemma continuous_at_csqrt:
-    "(Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous (at z) csqrt"
+    "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z) csqrt"
   by (simp add: complex_differentiable_within_csqrt complex_differentiable_imp_continuous_at)
 
 corollary isCont_csqrt' [simp]:
-   "\<lbrakk>isCont f z; Im(f z) = 0 \<Longrightarrow> 0 < Re(f z)\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. csqrt (f x)) z"
+   "\<lbrakk>isCont f z; f z \<notin> \<real>\<^sub>\<le>\<^sub>0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. csqrt (f x)) z"
   by (blast intro: isCont_o2 [OF _ continuous_at_csqrt])
 
 lemma continuous_within_csqrt:
-    "(Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous (at z within s) csqrt"
+    "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z within s) csqrt"
   by (simp add: complex_differentiable_imp_continuous_at complex_differentiable_within_csqrt)
 
 lemma continuous_on_csqrt [continuous_intros]:
-    "(\<And>z. z \<in> s \<and> Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> continuous_on s csqrt"
+    "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> continuous_on s csqrt"
   by (simp add: continuous_at_imp_continuous_on continuous_within_csqrt)
 
 lemma holomorphic_on_csqrt:
-    "(\<And>z. z \<in> s \<and> Im z = 0 \<Longrightarrow> 0 < Re(z)) \<Longrightarrow> csqrt holomorphic_on s"
+    "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> csqrt holomorphic_on s"
   by (simp add: complex_differentiable_within_csqrt holomorphic_on_def)
 
 lemma continuous_within_closed_nontrivial:
@@ -1889,24 +1872,24 @@ lemma continuous_within_closed_nontrivial:
 
 lemma continuous_within_csqrt_posreal:
     "continuous (at z within (\<real> \<inter> {w. 0 \<le> Re(w)})) csqrt"
-proof (cases "Im z = 0 --> 0 < Re(z)")
-  case True then show ?thesis
-    by (blast intro: continuous_within_csqrt)
-next
-  case False
+proof (cases "z \<in> \<real>\<^sub>\<le>\<^sub>0")
+  case True 
   then have "Im z = 0" "Re z < 0 \<or> z = 0"
-    using False cnj.code complex_cnj_zero_iff by auto force
+    using cnj.code complex_cnj_zero_iff  by (auto simp: complex_nonpos_Reals_iff) fastforce
   then show ?thesis
     apply (auto simp: continuous_within_closed_nontrivial [OF closed_Real_halfspace_Re_ge])
     apply (auto simp: continuous_within_eps_delta norm_conv_dist [symmetric])
     apply (rule_tac x="e^2" in exI)
     apply (auto simp: Reals_def)
-by (metis linear not_less real_sqrt_less_iff real_sqrt_pow2_iff real_sqrt_power)
+    by (metis linear not_less real_sqrt_less_iff real_sqrt_pow2_iff real_sqrt_power)
+next
+  case False
+    then show ?thesis   by (blast intro: continuous_within_csqrt)
 qed
 
 subsection\<open>Complex arctangent\<close>
 
-text\<open>branch cut gives standard bounds in real case.\<close>
+text\<open>The branch cut gives standard bounds in the real case.\<close>
 
 definition Arctan :: "complex \<Rightarrow> complex" where
     "Arctan \<equiv> \<lambda>z. (\<i>/2) * Ln((1 - \<i>*z) / (1 + \<i>*z))"
@@ -2005,16 +1988,19 @@ proof -
               less_irrefl mult_zero_right zero_complex.simps(1) zero_complex.simps(2))
   have nzi: "((1 - \<i>*z) * inverse (1 + \<i>*z)) \<noteq> 0"
     using nz1 nz2 by auto
-  have *: "Im ((1 - \<i>*z) / (1 + \<i>*z)) = 0 \<Longrightarrow> 0 < Re ((1 - \<i>*z) / (1 + \<i>*z))"
+  have "Im ((1 - \<i>*z) / (1 + \<i>*z)) = 0 \<Longrightarrow> 0 < Re ((1 - \<i>*z) / (1 + \<i>*z))"
     apply (simp add: divide_complex_def)
     apply (simp add: divide_simps split: split_if_asm)
     using assms
     apply (auto simp: algebra_simps abs_square_less_1 [unfolded power2_eq_square])
     done
+  then have *: "((1 - \<i>*z) / (1 + \<i>*z)) \<notin> \<real>\<^sub>\<le>\<^sub>0"
+    by (auto simp add: complex_nonpos_Reals_iff)
   show "\<bar>Re(Arctan z)\<bar> < pi/2"
     unfolding Arctan_def divide_complex_def
     using mpi_less_Im_Ln [OF nzi]
-    by (auto simp: abs_if intro: Im_Ln_less_pi * [unfolded divide_complex_def])
+    apply (auto simp: abs_if intro!: Im_Ln_less_pi * [unfolded divide_complex_def])
+    done
   show "(Arctan has_field_derivative inverse(1 + z\<^sup>2)) (at z)"
     unfolding Arctan_def scaleR_conv_of_real
     apply (rule DERIV_cong)
@@ -2178,7 +2164,7 @@ proof (rule arctan_unique)
   show "- (pi / 2) < Re (Arctan (complex_of_real x))"
     apply (simp add: Arctan_def)
     apply (rule Im_Ln_less_pi)
-    apply (auto simp: Im_complex_div_lemma)
+    apply (auto simp: Im_complex_div_lemma complex_nonpos_Reals_iff)
     done
 next
   have *: " (1 - \<i>*x) / (1 + \<i>*x) \<noteq> 0"
@@ -2312,24 +2298,54 @@ lemma Re_Arcsin: "Re(Arcsin z) = Im (Ln (\<i> * z + csqrt(1 - z\<^sup>2)))"
 lemma Im_Arcsin: "Im(Arcsin z) = - ln (cmod (\<i> * z + csqrt (1 - z\<^sup>2)))"
   by (simp add: Arcsin_def Arcsin_body_lemma)
 
+lemma one_minus_z2_notin_nonpos_Reals:
+  assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
+  shows "1 - z\<^sup>2 \<notin> \<real>\<^sub>\<le>\<^sub>0"
+    using assms  
+    apply (auto simp: complex_nonpos_Reals_iff Re_power2 Im_power2)
+    using power2_less_0 [of "Im z"] apply force
+    using abs_square_less_1 not_le by blast
+
+lemma isCont_Arcsin_lemma:
+  assumes le0: "Re (\<i> * z + csqrt (1 - z\<^sup>2)) \<le> 0" and "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
+    shows False
+proof (cases "Im z = 0")
+  case True
+  then show ?thesis
+    using assms by (fastforce simp: cmod_def abs_square_less_1 [symmetric])
+next
+  case False
+  have neq: "(cmod z)\<^sup>2 \<noteq> 1 + cmod (1 - z\<^sup>2)"
+  proof (clarsimp simp add: cmod_def)
+    assume "(Re z)\<^sup>2 + (Im z)\<^sup>2 = 1 + sqrt ((1 - Re (z\<^sup>2))\<^sup>2 + (Im (z\<^sup>2))\<^sup>2)"
+    then have "((Re z)\<^sup>2 + (Im z)\<^sup>2 - 1)\<^sup>2 = ((1 - Re (z\<^sup>2))\<^sup>2 + (Im (z\<^sup>2))\<^sup>2)"
+      by simp
+    then show False using False
+      by (simp add: power2_eq_square algebra_simps)
+  qed
+  moreover have 2: "(Im z)\<^sup>2 = (1 + ((Im z)\<^sup>2 + cmod (1 - z\<^sup>2)) - (Re z)\<^sup>2) / 2"
+    using le0
+    apply simp
+    apply (drule sqrt_le_D)
+    using cmod_power2 [of z] norm_triangle_ineq2 [of "z^2" 1]
+    apply (simp add: norm_power Re_power2 norm_minus_commute [of 1])
+    done
+  ultimately show False
+    by (simp add: Re_power2 Im_power2 cmod_power2)
+qed
+
 lemma isCont_Arcsin:
   assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
     shows "isCont Arcsin z"
 proof -
-  have rez: "Im (1 - z\<^sup>2) = 0 \<Longrightarrow> 0 < Re (1 - z\<^sup>2)"
-    using assms
-    by (auto simp: Re_power2 Im_power2 abs_square_less_1 add_pos_nonneg algebra_simps)
-  have cmz: "(cmod z)\<^sup>2 < 1 + cmod (1 - z\<^sup>2)"
-    by (blast intro: assms cmod_square_less_1_plus)
+  have *: "\<i> * z + csqrt (1 - z\<^sup>2) \<notin> \<real>\<^sub>\<le>\<^sub>0"
+    by (metis isCont_Arcsin_lemma assms complex_nonpos_Reals_iff)
   show ?thesis
     using assms
     apply (simp add: Arcsin_def)
     apply (rule isCont_Ln' isCont_csqrt' continuous_intros)+
-    apply (erule rez)
-    apply (auto simp: Re_power2 Im_power2 abs_square_less_1 [symmetric] real_less_rsqrt algebra_simps split: split_if_asm)
-    apply (simp add: norm_complex_def)
-    using cmod_power2 [of z, symmetric] cmz
-    apply (simp add: real_less_rsqrt)
+    apply (simp add: one_minus_z2_notin_nonpos_Reals assms)
+    apply (rule *)
     done
 qed
 
@@ -2464,18 +2480,17 @@ lemma Im_Arccos: "Im(Arccos z) = - ln (cmod (z + \<i> * csqrt (1 - z\<^sup>2)))"
   by (simp add: Arccos_def Arccos_body_lemma)
 
 text\<open>A very tricky argument to find!\<close>
-lemma abs_Re_less_1_preserve:
-  assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"  "Im (z + \<i> * csqrt (1 - z\<^sup>2)) = 0"
-    shows "0 < Re (z + \<i> * csqrt (1 - z\<^sup>2))"
+lemma isCont_Arccos_lemma:
+  assumes eq0: "Im (z + \<i> * csqrt (1 - z\<^sup>2)) = 0" and "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)" 
+    shows False
 proof (cases "Im z = 0")
   case True
   then show ?thesis
-    using assms
-    by (fastforce simp add: cmod_def Re_power2 Im_power2 algebra_simps abs_square_less_1 [symmetric])
+    using assms by (fastforce simp add: cmod_def abs_square_less_1 [symmetric])
 next
   case False
   have Imz: "Im z = - sqrt ((1 + ((Im z)\<^sup>2 + cmod (1 - z\<^sup>2)) - (Re z)\<^sup>2) / 2)"
-    using assms abs_Re_le_cmod [of "1-z\<^sup>2"]
+    using eq0 abs_Re_le_cmod [of "1-z\<^sup>2"]
     by (simp add: Re_power2 algebra_simps)
   have "(cmod z)\<^sup>2 - 1 \<noteq> cmod (1 - z\<^sup>2)"
   proof (clarsimp simp add: cmod_def)
@@ -2486,28 +2501,24 @@ next
       by (simp add: power2_eq_square algebra_simps)
   qed
   moreover have "(Im z)\<^sup>2 = ((1 + ((Im z)\<^sup>2 + cmod (1 - z\<^sup>2)) - (Re z)\<^sup>2) / 2)"
-    apply (subst Imz, simp)
-    apply (subst real_sqrt_pow2)
+    apply (subst Imz)
     using abs_Re_le_cmod [of "1-z\<^sup>2"]
-    apply (auto simp: Re_power2 field_simps)
+    apply (simp add: Re_power2)
     done
-  ultimately show ?thesis
-    by (simp add: Re_power2 Im_power2 cmod_power2)
+  ultimately show False
+    by (simp add: cmod_power2)
 qed
 
 lemma isCont_Arccos:
   assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
     shows "isCont Arccos z"
 proof -
-  have rez: "Im (1 - z\<^sup>2) = 0 \<Longrightarrow> 0 < Re (1 - z\<^sup>2)"
-    using assms
-    by (auto simp: Re_power2 Im_power2 abs_square_less_1 add_pos_nonneg algebra_simps)
-  show ?thesis
-    using assms
+  have "z + \<i> * csqrt (1 - z\<^sup>2) \<notin> \<real>\<^sub>\<le>\<^sub>0"
+    by (metis complex_nonpos_Reals_iff isCont_Arccos_lemma assms)
+  with assms show ?thesis
     apply (simp add: Arccos_def)
     apply (rule isCont_Ln' isCont_csqrt' continuous_intros)+
-    apply (erule rez)
-    apply (blast intro: abs_Re_less_1_preserve)
+    apply (simp_all add: one_minus_z2_notin_nonpos_Reals assms)
     done
 qed
 

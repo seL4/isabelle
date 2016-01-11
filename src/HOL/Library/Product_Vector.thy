@@ -574,5 +574,13 @@ lemma
     and norm_Pair2 [simp]: "norm (x,0) = norm x"
 by (auto simp: norm_Pair)
 
+lemma norm_commute: "norm (x,y) = norm (y,x)"
+  by (simp add: norm_Pair)
+
+lemma norm_fst_le: "norm x \<le> norm (x,y)"
+  by (metis dist_fst_le fst_conv fst_zero norm_conv_dist)
+
+lemma norm_snd_le: "norm y \<le> norm (x,y)"
+  by (metis dist_snd_le snd_conv snd_zero norm_conv_dist)
 
 end

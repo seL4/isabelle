@@ -1346,6 +1346,19 @@ qed
 corollary connected_UNIV[intro]: "connected (UNIV :: 'a::real_normed_vector set)"
   by(simp add: convex_connected)
 
+proposition clopen:
+  fixes s :: "'a :: real_normed_vector set"
+  shows "closed s \<and> open s \<longleftrightarrow> s = {} \<or> s = UNIV"
+apply (rule iffI)
+ apply (rule connected_UNIV [unfolded connected_clopen, rule_format])
+ apply (force simp add: open_openin closed_closedin, force)
+done
+
+corollary compact_open:
+  fixes s :: "'a :: euclidean_space set"
+  shows "compact s \<and> open s \<longleftrightarrow> s = {}"
+  by (auto simp: compact_eq_bounded_closed clopen)
+
 text \<open>Balls, being convex, are connected.\<close>
 
 lemma convex_prod:
