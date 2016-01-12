@@ -69,25 +69,38 @@ instance itself :: (type) type by (rule itself_arity)
 
 typedecl bool
 
-judgment
-  Trueprop      :: "bool \<Rightarrow> prop"                   ("(_)" 5)
+judgment Trueprop :: "bool \<Rightarrow> prop"  ("(_)" 5)
 
-axiomatization
-  implies       :: "[bool, bool] \<Rightarrow> bool"           (infixr "\<longrightarrow>" 25)  and
-  eq            :: "['a, 'a] \<Rightarrow> bool"               (infixl "=" 50)  and
-  The           :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
+axiomatization implies :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<longrightarrow>" 25)
+  and eq :: "['a, 'a] \<Rightarrow> bool"  (infixl "=" 50)
+  and The :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
 
-consts
-  True          :: bool
-  False         :: bool
-  Not           :: "bool \<Rightarrow> bool"                   ("\<not> _" [40] 40)
 
-  conj          :: "[bool, bool] \<Rightarrow> bool"           (infixr "\<and>" 35)
-  disj          :: "[bool, bool] \<Rightarrow> bool"           (infixr "\<or>" 30)
+subsubsection \<open>Defined connectives and quantifiers\<close>
 
-  All           :: "('a \<Rightarrow> bool) \<Rightarrow> bool"           (binder "\<forall>" 10)
-  Ex            :: "('a \<Rightarrow> bool) \<Rightarrow> bool"           (binder "\<exists>" 10)
-  Ex1           :: "('a \<Rightarrow> bool) \<Rightarrow> bool"           (binder "\<exists>!" 10)
+definition True :: bool
+  where "True \<equiv> ((\<lambda>x::bool. x) = (\<lambda>x. x))"
+
+definition All :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<forall>" 10)
+  where "All P \<equiv> (P = (\<lambda>x. True))"
+
+definition Ex :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<exists>" 10)
+  where "Ex P \<equiv> \<forall>Q. (\<forall>x. P x \<longrightarrow> Q) \<longrightarrow> Q"
+
+definition False :: bool
+  where "False \<equiv> (\<forall>P. P)"
+
+definition Not :: "bool \<Rightarrow> bool"  ("\<not> _" [40] 40)
+  where not_def: "\<not> P \<equiv> P \<longrightarrow> False"
+
+definition conj :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<and>" 35)
+  where and_def: "P \<and> Q \<equiv> \<forall>R. (P \<longrightarrow> Q \<longrightarrow> R) \<longrightarrow> R"
+
+definition disj :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<or>" 30)
+  where or_def: "P \<or> Q \<equiv> \<forall>R. (P \<longrightarrow> R) \<longrightarrow> (Q \<longrightarrow> R) \<longrightarrow> R"
+
+definition Ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<exists>!" 10)
+  where "Ex1 P \<equiv> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> y = x)"
 
 
 subsubsection \<open>Additional concrete syntax\<close>
@@ -166,16 +179,6 @@ axiomatization where
 
   iff: "(P \<longrightarrow> Q) \<longrightarrow> (Q \<longrightarrow> P) \<longrightarrow> (P = Q)" and
   True_or_False: "(P = True) \<or> (P = False)"
-
-defs
-  True_def:     "True      \<equiv> ((\<lambda>x::bool. x) = (\<lambda>x. x))"
-  All_def:      "All P     \<equiv> (P = (\<lambda>x. True))"
-  Ex_def:       "Ex P      \<equiv> \<forall>Q. (\<forall>x. P x \<longrightarrow> Q) \<longrightarrow> Q"
-  False_def:    "False     \<equiv> (\<forall>P. P)"
-  not_def:      "\<not> P       \<equiv> P \<longrightarrow> False"
-  and_def:      "P \<and> Q     \<equiv> \<forall>R. (P \<longrightarrow> Q \<longrightarrow> R) \<longrightarrow> R"
-  or_def:       "P \<or> Q     \<equiv> \<forall>R. (P \<longrightarrow> R) \<longrightarrow> (Q \<longrightarrow> R) \<longrightarrow> R"
-  Ex1_def:      "Ex1 P     \<equiv> \<exists>x. P x \<and> (\<forall>y. P y \<longrightarrow> y = x)"
 
 definition If :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" ("(if (_)/ then (_)/ else (_))" [0, 0, 10] 10)
   where "If P x y \<equiv> (THE z::'a. (P = True \<longrightarrow> z = x) \<and> (P = False \<longrightarrow> z = y))"
