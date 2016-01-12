@@ -122,20 +122,22 @@ fun parse_named_pats match_kind =
             then Syntax.parse_prop ctxt3 term
             else Syntax.parse_term ctxt3 term;
 
-          fun drop_Trueprop_dummy t =
+          fun drop_judgment_dummy t =
             (case t of
-              Const (@{const_name Trueprop}, _) $
+              Const (judgment, _) $
                 (Const (@{syntax_const "_type_constraint_"}, T) $
                   Const (@{const_name Pure.dummy_pattern}, _)) =>
+                if judgment = Object_Logic.judgment_name ctxt then
                     Const (@{syntax_const "_type_constraint_"}, T) $
                       Const (@{const_name Pure.dummy_pattern}, propT)
-            | t1 $ t2 => drop_Trueprop_dummy t1 $ drop_Trueprop_dummy t2
-            | Abs (a, T, b) => Abs (a, T, drop_Trueprop_dummy b)
+                else t
+            | t1 $ t2 => drop_judgment_dummy t1 $ drop_judgment_dummy t2
+            | Abs (a, T, b) => Abs (a, T, drop_judgment_dummy b)
             | _ => t);
 
           val pats =
             map (fn (_, (term, _)) => parse_term (Parse_Tools.the_parse_val term)) ts
-            |> map drop_Trueprop_dummy
+            |> map drop_judgment_dummy
             |> (fn ts => fold_map Term.replace_dummy_patterns ts (Variable.maxidx_of ctxt3 + 1))
             |> fst
             |> Syntax.check_terms ctxt3;

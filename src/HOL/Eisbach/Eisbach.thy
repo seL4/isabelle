@@ -5,7 +5,7 @@ Main entry point for Eisbach proof method language.
 *)
 
 theory Eisbach
-imports Main
+imports Pure
 keywords
   "method" :: thy_decl and
   "conclusion"
