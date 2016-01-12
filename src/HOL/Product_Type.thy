@@ -997,6 +997,12 @@ lemma case_swap [simp]:
   "(case prod.swap p of (y, x) \<Rightarrow> f x y) = (case p of (x, y) \<Rightarrow> f x y)"
   by (cases p) simp
 
+lemma fst_swap [simp]: "fst (prod.swap x) = snd x"
+by(cases x) simp
+
+lemma snd_swap [simp]: "snd (prod.swap x) = fst x"
+by(cases x) simp
+
 text \<open>
   Disjoint union of a family of sets -- Sigma.
 \<close>

@@ -1,4 +1,5 @@
-(* Author: Florian Haftmann, TU Muenchen *)
+(* Author: Florian Haftmann, TU Muenchen 
+   Author: Andreas Lochbihler, ETH Zurich *)
 
 section \<open>Lists with elements distinct as canonical example for datatype invariants\<close>
 
@@ -13,6 +14,8 @@ typedef 'a dlist = "{xs::'a list. distinct xs}"
 proof
   show "[] \<in> {xs. distinct xs}" by simp
 qed
+
+setup_lifting type_definition_dlist
 
 lemma dlist_eq_iff:
   "dxs = dys \<longleftrightarrow> list_of_dlist dxs = list_of_dlist dys"
@@ -195,5 +198,141 @@ functor map: map
 subsection \<open>Quickcheck generators\<close>
 
 quickcheck_generator dlist predicate: distinct constructors: Dlist.empty, Dlist.insert
+
+subsection \<open>BNF instance\<close>
+
+context begin
+
+qualified fun wpull :: "('a \<times> 'b) list \<Rightarrow> ('b \<times> 'c) list \<Rightarrow> ('a \<times> 'c) list"
+where
+  "wpull [] ys = []"
+| "wpull xs [] = []"
+| "wpull ((a, b) # xs) ((b', c) # ys) =
+  (if b \<in> snd ` set xs then
+     (a, the (map_of (rev ((b', c) # ys)) b)) # wpull xs ((b', c) # ys)
+   else if b' \<in> fst ` set ys then
+     (the (map_of (map prod.swap (rev ((a, b) # xs))) b'), c) # wpull ((a, b) # xs) ys
+   else (a, c) # wpull xs ys)"
+
+qualified lemma wpull_eq_Nil_iff [simp]: "wpull xs ys = [] \<longleftrightarrow> xs = [] \<or> ys = []"
+by(cases "(xs, ys)" rule: wpull.cases) simp_all
+
+qualified lemma wpull_induct
+  [consumes 1, 
+   case_names Nil left[xs eq in_set IH] right[xs ys eq in_set IH] step[xs ys eq IH] ]:
+  assumes eq: "remdups (map snd xs) = remdups (map fst ys)"
+  and Nil: "P [] []"
+  and left: "\<And>a b xs b' c ys.
+    \<lbrakk> b \<in> snd ` set xs; remdups (map snd xs) = remdups (map fst ((b', c) # ys)); 
+      (b, the (map_of (rev ((b', c) # ys)) b)) \<in> set ((b', c) # ys); P xs ((b', c) # ys) \<rbrakk>
+    \<Longrightarrow> P ((a, b) # xs) ((b', c) # ys)"
+  and right: "\<And>a b xs b' c ys.
+    \<lbrakk> b \<notin> snd ` set xs; b' \<in> fst ` set ys;
+      remdups (map snd ((a, b) # xs)) = remdups (map fst ys);
+      (the (map_of (map prod.swap (rev ((a, b) #xs))) b'), b') \<in> set ((a, b) # xs);
+      P ((a, b) # xs) ys \<rbrakk>
+    \<Longrightarrow> P ((a, b) # xs) ((b', c) # ys)"
+  and step: "\<And>a b xs c ys.
+    \<lbrakk> b \<notin> snd ` set xs; b \<notin> fst ` set ys; remdups (map snd xs) = remdups (map fst ys); 
+      P xs ys \<rbrakk>
+    \<Longrightarrow> P ((a, b) # xs) ((b, c) # ys)"
+  shows "P xs ys"
+using eq
+proof(induction xs ys rule: wpull.induct)
+  case 1 thus ?case by(simp add: Nil)
+next
+  case 2 thus ?case by(simp split: split_if_asm)
+next
+  case Cons: (3 a b xs b' c ys)
+  let ?xs = "(a, b) # xs" and ?ys = "(b', c) # ys"
+  consider (xs) "b \<in> snd ` set xs" | (ys) "b \<notin> snd ` set xs" "b' \<in> fst ` set ys"
+    | (step) "b \<notin> snd ` set xs" "b' \<notin> fst ` set ys" by auto
+  thus ?case
+  proof cases
+    case xs
+    with Cons.prems have eq: "remdups (map snd xs) = remdups (map fst ?ys)" by auto
+    from xs eq have "b \<in> fst ` set ?ys" by (metis list.set_map set_remdups)
+    hence "map_of (rev ?ys) b \<noteq> None" unfolding map_of_eq_None_iff by auto
+    then obtain c' where "map_of (rev ?ys) b = Some c'" by blast
+    then have "(b, the (map_of (rev ?ys) b)) \<in> set ?ys" by(auto dest: map_of_SomeD split: split_if_asm)
+    from xs eq this Cons.IH(1)[OF xs eq] show ?thesis by(rule left)
+  next
+    case ys
+    from ys Cons.prems have eq: "remdups (map snd ?xs) = remdups (map fst ys)" by auto
+    from ys eq have "b' \<in> snd ` set ?xs" by (metis list.set_map set_remdups)
+    hence "map_of (map prod.swap (rev ?xs)) b' \<noteq> None"
+      unfolding map_of_eq_None_iff by(auto simp add: image_image)
+    then obtain a' where "map_of (map prod.swap (rev ?xs)) b' = Some a'" by blast
+    then have "(the (map_of (map prod.swap (rev ?xs)) b'), b') \<in> set ?xs"
+      by(auto dest: map_of_SomeD split: split_if_asm)
+    from ys eq this Cons.IH(2)[OF ys eq] show ?thesis by(rule right)
+  next
+    case *: step
+    hence "remdups (map snd xs) = remdups (map fst ys)" "b = b'" using Cons.prems by auto
+    from * this(1) Cons.IH(3)[OF * this(1)] show ?thesis unfolding \<open>b = b'\<close> by(rule step)
+  qed
+qed
+
+qualified lemma set_wpull_subset:
+  assumes "remdups (map snd xs) = remdups (map fst ys)"
+  shows "set (wpull xs ys) \<subseteq> set xs O set ys"
+using assms by(induction xs ys rule: wpull_induct) auto
+
+qualified lemma set_fst_wpull:
+  assumes "remdups (map snd xs) = remdups (map fst ys)"
+  shows "fst ` set (wpull xs ys) = fst ` set xs"
+using assms by(induction xs ys rule: wpull_induct)(auto intro: rev_image_eqI)
+
+qualified lemma set_snd_wpull:
+  assumes "remdups (map snd xs) = remdups (map fst ys)"
+  shows "snd ` set (wpull xs ys) = snd ` set ys"
+using assms by(induction xs ys rule: wpull_induct)(auto intro: rev_image_eqI)
+  
+qualified lemma wpull:
+  assumes "distinct xs"
+  and "distinct ys"
+  and "set xs \<subseteq> {(x, y). R x y}"
+  and "set ys \<subseteq> {(x, y). S x y}"
+  and eq: "remdups (map snd xs) = remdups (map fst ys)"
+  shows "\<exists>zs. distinct zs \<and> set zs \<subseteq> {(x, y). (R OO S) x y} \<and>
+         remdups (map fst zs) = remdups (map fst xs) \<and> remdups (map snd zs) = remdups (map snd ys)"
+proof(intro exI conjI)
+  let ?zs = "remdups (wpull xs ys)"
+  show "distinct ?zs" by simp
+  show "set ?zs \<subseteq> {(x, y). (R OO S) x y}" using assms(3-4) set_wpull_subset[OF eq] by fastforce
+  show "remdups (map fst ?zs) = remdups (map fst xs)" unfolding remdups_map_remdups using eq
+    by(induction xs ys rule: wpull_induct)(auto simp add: set_fst_wpull intro: rev_image_eqI)
+  show "remdups (map snd ?zs) = remdups (map snd ys)" unfolding remdups_map_remdups using eq
+    by(induction xs ys rule: wpull_induct)(auto simp add: set_snd_wpull intro: rev_image_eqI)
+qed
+
+qualified lift_definition set :: "'a dlist \<Rightarrow> 'a set" is List.set .
+
+qualified lemma map_transfer [transfer_rule]:
+  "(rel_fun op = (rel_fun (pcr_dlist op =) (pcr_dlist op =))) (\<lambda>f x. remdups (List.map f x)) Dlist.map"
+by(simp add: rel_fun_def dlist.pcr_cr_eq cr_dlist_def Dlist.map_def remdups_remdups)
+
+bnf "'a dlist"
+  map: Dlist.map
+  sets: set
+  bd: natLeq
+  wits: Dlist.empty
+unfolding OO_Grp_alt mem_Collect_eq
+subgoal by(rule ext)(simp add: dlist_eq_iff)
+subgoal by(rule ext)(simp add: dlist_eq_iff remdups_map_remdups)
+subgoal by(simp add: dlist_eq_iff set_def cong: list.map_cong)
+subgoal by(simp add: set_def fun_eq_iff)
+subgoal by(simp add: natLeq_card_order)
+subgoal by(simp add: natLeq_cinfinite)
+subgoal by(rule ordLess_imp_ordLeq)(simp add: finite_iff_ordLess_natLeq[symmetric] set_def)
+subgoal by(rule predicate2I)(transfer; auto simp add: wpull)
+subgoal by(rule refl)
+subgoal by(simp add: set_def)
+done
+
+lifting_update dlist.lifting
+lifting_forget dlist.lifting
+
+end
 
 end
