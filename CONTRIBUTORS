@@ -10,6 +10,10 @@ Contributions to Isabelle2016
   Proof of the central limit theorem: includes weak convergence,
   characteristic functions, and Levy's uniqueness and continuity theorem.
 
+* Summer 2015 - Winter 2016: Lawrence C Paulson, Cambridge
+  General, homology form of Cauchy's integral theorem and supporting material
+  (ported from HOL Light)
+
 * Winter 2015/16: Gerwin Klein, NICTA
   print_record command
 
@@ -19,7 +23,7 @@ Contributions to Isabelle2016
   The Generalised Binomial Theorem.
   The complex and real Gamma/log-Gamma/Digamma/Polygamma functions and their
   most important properties.
-  
+
 * Autumn 2015: Manuel Eberl, TUM
   Proper definition of division (with remainder) for formal power series;
   Euclidean Ring and GCD instance for formal power series.
