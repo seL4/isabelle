@@ -141,12 +141,16 @@ by (simp add: SXcpt_def)
 lemma neq_Main_SXcpt [simp]: "Main\<noteq>SXcpt xn"
 by (simp add: SXcpt_def)
 
+
 subsubsection "classes and interfaces"
 
-defs
-
-  Object_mdecls_def: "Object_mdecls \<equiv> []"
-  SXcpt_mdecls_def:  "SXcpt_mdecls  \<equiv> []"
+overloading
+  Object_mdecls \<equiv> Object_mdecls
+  SXcpt_mdecls \<equiv> SXcpt_mdecls
+begin
+  definition "Object_mdecls \<equiv> []"
+  definition "SXcpt_mdecls  \<equiv> []"
+end
 
 axiomatization  
   foo    :: mname

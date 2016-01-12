@@ -3,147 +3,262 @@
     Copyright   1993  University of Cambridge
 *)
 
-section\<open>Zermelo-Fraenkel Set Theory\<close>
+section \<open>Zermelo-Fraenkel Set Theory\<close>
 
 theory ZF
 imports "~~/src/FOL/FOL"
 begin
+
+subsection \<open>Signature\<close>
 
 declare [[eta_contract = false]]
 
 typedecl i
 instance i :: "term" ..
 
-axiomatization
-  zero :: "i"  ("0")   \<comment>\<open>the empty set\<close>  and
-  Pow :: "i => i"  \<comment>\<open>power sets\<close>  and
-  Inf :: "i"  \<comment>\<open>infinite set\<close>
+axiomatization mem :: "[i, i] \<Rightarrow> o"  (infixl "\<in>" 50)  \<comment> \<open>membership relation\<close>
+  and zero :: "i"  ("0")  \<comment> \<open>the empty set\<close>
+  and Pow :: "i \<Rightarrow> i"  \<comment> \<open>power sets\<close>
+  and Inf :: "i"  \<comment> \<open>infinite set\<close>
+  and Union :: "i \<Rightarrow> i"  ("\<Union>_" [90] 90)
+  and PrimReplace :: "[i, [i, i] \<Rightarrow> o] \<Rightarrow> i"
 
-text \<open>Bounded Quantifiers\<close>
-consts
-  Ball   :: "[i, i => o] => o"
-  Bex   :: "[i, i => o] => o"
-
-text \<open>General Union and Intersection\<close>
-axiomatization Union :: "i => i"  ("\<Union>_" [90] 90)
-consts Inter :: "i => i"  ("\<Inter>_" [90] 90)
-
-text \<open>Variations on Replacement\<close>
-axiomatization PrimReplace :: "[i, [i, i] => o] => i"
-consts
-  Replace     :: "[i, [i, i] => o] => i"
-  RepFun      :: "[i, i => i] => i"
-  Collect     :: "[i, i => o] => i"
-
-text\<open>Definite descriptions -- via Replace over the set "1"\<close>
-consts
-  The         :: "(i => o) => i"      (binder "THE " 10)
-  If          :: "[o, i, i] => i"     ("(if (_)/ then (_)/ else (_))" [10] 10)
-
-abbreviation (input)
-  old_if      :: "[o, i, i] => i"   ("if '(_,_,_')") where
-  "if(P,a,b) == If(P,a,b)"
-
-
-text \<open>Finite Sets\<close>
-consts
-  Upair :: "[i, i] => i"
-  cons  :: "[i, i] => i"
-  succ  :: "i => i"
-
-text \<open>Ordered Pairing\<close>
-consts
-  Pair  :: "[i, i] => i"
-  fst   :: "i => i"
-  snd   :: "i => i"
-  split :: "[[i, i] => 'a, i] => 'a::{}"  \<comment>\<open>for pattern-matching\<close>
-
-text \<open>Sigma and Pi Operators\<close>
-consts
-  Sigma :: "[i, i => i] => i"
-  Pi    :: "[i, i => i] => i"
-
-text \<open>Relations and Functions\<close>
-consts
-  "domain"    :: "i => i"
-  range       :: "i => i"
-  field       :: "i => i"
-  converse    :: "i => i"
-  relation    :: "i => o"        \<comment>\<open>recognizes sets of pairs\<close>
-  "function"  :: "i => o"        \<comment>\<open>recognizes functions; can have non-pairs\<close>
-  Lambda      :: "[i, i => i] => i"
-  restrict    :: "[i, i] => i"
-
-text \<open>Infixes in order of decreasing precedence\<close>
-consts
-  Image       :: "[i, i] => i"    (infixl "``" 90) \<comment>\<open>image\<close>
-  vimage      :: "[i, i] => i"    (infixl "-``" 90) \<comment>\<open>inverse image\<close>
-  "apply"     :: "[i, i] => i"    (infixl "`" 90) \<comment>\<open>function application\<close>
-  "Int"       :: "[i, i] => i"    (infixl "\<inter>" 70) \<comment>\<open>binary intersection\<close>
-  "Un"        :: "[i, i] => i"    (infixl "\<union>" 65) \<comment>\<open>binary union\<close>
-  Diff        :: "[i, i] => i"    (infixl "-" 65) \<comment>\<open>set difference\<close>
-  Subset      :: "[i, i] => o"    (infixl "\<subseteq>" 50) \<comment>\<open>subset relation\<close>
-
-axiomatization
-  mem         :: "[i, i] => o"    (infixl "\<in>" 50) \<comment>\<open>membership relation\<close>
-
-abbreviation
-  not_mem :: "[i, i] => o"  (infixl "\<notin>" 50)  \<comment>\<open>negated membership relation\<close>
+abbreviation not_mem :: "[i, i] \<Rightarrow> o"  (infixl "\<notin>" 50)  \<comment> \<open>negated membership relation\<close>
   where "x \<notin> y \<equiv> \<not> (x \<in> y)"
 
-abbreviation
-  cart_prod :: "[i, i] => i"    (infixr "\<times>" 80) \<comment>\<open>Cartesian product\<close>
-  where "A \<times> B \<equiv> Sigma(A, \<lambda>_. B)"
 
-abbreviation
-  function_space :: "[i, i] => i"  (infixr "->" 60) \<comment>\<open>function space\<close>
-  where "A -> B \<equiv> Pi(A, \<lambda>_. B)"
+subsection \<open>Bounded Quantifiers\<close>
 
+definition Ball :: "[i, i \<Rightarrow> o] \<Rightarrow> o"
+  where "Ball(A, P) \<equiv> \<forall>x. x\<in>A \<longrightarrow> P(x)"
 
-nonterminal "is" and patterns
+definition Bex :: "[i, i \<Rightarrow> o] \<Rightarrow> o"
+  where "Bex(A, P) \<equiv> \<exists>x. x\<in>A \<and> P(x)"
 
 syntax
-  ""          :: "i => is"                   ("_")
-  "_Enum"     :: "[i, is] => is"             ("_,/ _")
+  "_Ball" :: "[pttrn, i, o] \<Rightarrow> o"  ("(3\<forall>_\<in>_./ _)" 10)
+  "_Bex" :: "[pttrn, i, o] \<Rightarrow> o"  ("(3\<exists>_\<in>_./ _)" 10)
+translations
+  "\<forall>x\<in>A. P" \<rightleftharpoons> "CONST Ball(A, \<lambda>x. P)"
+  "\<exists>x\<in>A. P" \<rightleftharpoons> "CONST Bex(A, \<lambda>x. P)"
 
-  "_Finset"   :: "is => i"                   ("{(_)}")
-  "_Tuple"    :: "[i, is] => i"              ("\<langle>(_,/ _)\<rangle>")
-  "_Collect"  :: "[pttrn, i, o] => i"        ("(1{_ \<in> _ ./ _})")
-  "_Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _ \<in> _, _})")
-  "_RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _ \<in> _})" [51,0,51])
-  "_UNION"    :: "[pttrn, i, i] => i"        ("(3\<Union>_\<in>_./ _)" 10)
-  "_INTER"    :: "[pttrn, i, i] => i"        ("(3\<Inter>_\<in>_./ _)" 10)
-  "_PROD"     :: "[pttrn, i, i] => i"        ("(3\<Prod>_\<in>_./ _)" 10)
-  "_SUM"      :: "[pttrn, i, i] => i"        ("(3\<Sum>_\<in>_./ _)" 10)
-  "_lam"      :: "[pttrn, i, i] => i"        ("(3\<lambda>_\<in>_./ _)" 10)
-  "_Ball"     :: "[pttrn, i, o] => o"        ("(3\<forall>_\<in>_./ _)" 10)
-  "_Bex"      :: "[pttrn, i, o] => o"        ("(3\<exists>_\<in>_./ _)" 10)
 
-  (** Patterns -- extends pre-defined type "pttrn" used in abstractions **)
+subsection \<open>Variations on Replacement\<close>
 
+(* Derived form of replacement, restricting P to its functional part.
+   The resulting set (for functional P) is the same as with
+   PrimReplace, but the rules are simpler. *)
+definition Replace :: "[i, [i, i] \<Rightarrow> o] \<Rightarrow> i"
+  where "Replace(A,P) == PrimReplace(A, %x y. (EX!z. P(x,z)) & P(x,y))"
+
+syntax
+  "_Replace"  :: "[pttrn, pttrn, i, o] => i"  ("(1{_ ./ _ \<in> _, _})")
+translations
+  "{y. x\<in>A, Q}" \<rightleftharpoons> "CONST Replace(A, \<lambda>x y. Q)"
+
+
+(* Functional form of replacement -- analgous to ML's map functional *)
+
+definition RepFun :: "[i, i \<Rightarrow> i] \<Rightarrow> i"
+  where "RepFun(A,f) == {y . x\<in>A, y=f(x)}"
+
+syntax
+  "_RepFun" :: "[i, pttrn, i] => i"  ("(1{_ ./ _ \<in> _})" [51,0,51])
+translations
+  "{b. x\<in>A}" \<rightleftharpoons> "CONST RepFun(A, \<lambda>x. b)"
+
+
+(* Separation and Pairing can be derived from the Replacement
+   and Powerset Axioms using the following definitions. *)
+definition Collect :: "[i, i \<Rightarrow> o] \<Rightarrow> i"
+  where "Collect(A,P) == {y . x\<in>A, x=y & P(x)}"
+
+syntax
+  "_Collect" :: "[pttrn, i, o] \<Rightarrow> i"  ("(1{_ \<in> _ ./ _})")
+translations
+  "{x\<in>A. P}" \<rightleftharpoons> "CONST Collect(A, \<lambda>x. P)"
+
+
+subsection \<open>General union and intersection\<close>
+
+definition Inter :: "i => i"  ("\<Inter>_" [90] 90)
+  where "\<Inter>(A) == { x\<in>\<Union>(A) . \<forall>y\<in>A. x\<in>y}"
+
+syntax
+  "_UNION" :: "[pttrn, i, i] => i"  ("(3\<Union>_\<in>_./ _)" 10)
+  "_INTER" :: "[pttrn, i, i] => i"  ("(3\<Inter>_\<in>_./ _)" 10)
+translations
+  "\<Union>x\<in>A. B" == "CONST Union({B. x\<in>A})"
+  "\<Inter>x\<in>A. B" == "CONST Inter({B. x\<in>A})"
+
+
+subsection \<open>Finite sets and binary operations\<close>
+
+(*Unordered pairs (Upair) express binary union/intersection and cons;
+  set enumerations translate as {a,...,z} = cons(a,...,cons(z,0)...)*)
+
+definition Upair :: "[i, i] => i"
+  where "Upair(a,b) == {y. x\<in>Pow(Pow(0)), (x=0 & y=a) | (x=Pow(0) & y=b)}"
+
+definition Subset :: "[i, i] \<Rightarrow> o"  (infixl "\<subseteq>" 50)  \<comment> \<open>subset relation\<close>
+  where subset_def: "A \<subseteq> B \<equiv> \<forall>x\<in>A. x\<in>B"
+
+definition Diff :: "[i, i] \<Rightarrow> i"  (infixl "-" 65)  \<comment> \<open>set difference\<close>
+  where "A - B == { x\<in>A . ~(x\<in>B) }"
+
+definition Un :: "[i, i] \<Rightarrow> i"  (infixl "\<union>" 65)  \<comment> \<open>binary union\<close>
+  where "A \<union> B == \<Union>(Upair(A,B))"
+
+definition Int :: "[i, i] \<Rightarrow> i"  (infixl "\<inter>" 70)  \<comment> \<open>binary intersection\<close>
+  where "A \<inter> B == \<Inter>(Upair(A,B))"
+
+definition cons :: "[i, i] => i"
+  where "cons(a,A) == Upair(a,a) \<union> A"
+
+definition succ :: "i => i"
+  where "succ(i) == cons(i, i)"
+
+nonterminal "is"
+syntax
+  "" :: "i \<Rightarrow> is"  ("_")
+  "_Enum" :: "[i, is] \<Rightarrow> is"  ("_,/ _")
+  "_Finset" :: "is \<Rightarrow> i"  ("{(_)}")
+translations
+  "{x, xs}" == "CONST cons(x, {xs})"
+  "{x}" == "CONST cons(x, 0)"
+
+
+subsection \<open>Axioms\<close>
+
+(* ZF axioms -- see Suppes p.238
+   Axioms for Union, Pow and Replace state existence only,
+   uniqueness is derivable using extensionality. *)
+
+axiomatization
+where
+  extension:     "A = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A" and
+  Union_iff:     "A \<in> \<Union>(C) \<longleftrightarrow> (\<exists>B\<in>C. A\<in>B)" and
+  Pow_iff:       "A \<in> Pow(B) \<longleftrightarrow> A \<subseteq> B" and
+
+  (*We may name this set, though it is not uniquely defined.*)
+  infinity:      "0 \<in> Inf \<and> (\<forall>y\<in>Inf. succ(y) \<in> Inf)" and
+
+  (*This formulation facilitates case analysis on A.*)
+  foundation:    "A = 0 \<or> (\<exists>x\<in>A. \<forall>y\<in>x. y\<notin>A)" and
+
+  (*Schema axiom since predicate P is a higher-order variable*)
+  replacement:   "(\<forall>x\<in>A. \<forall>y z. P(x,y) \<and> P(x,z) \<longrightarrow> y = z) \<Longrightarrow>
+                         b \<in> PrimReplace(A,P) \<longleftrightarrow> (\<exists>x\<in>A. P(x,b))"
+
+
+subsection \<open>Definite descriptions -- via Replace over the set "1"\<close>
+
+definition The :: "(i \<Rightarrow> o) \<Rightarrow> i"  (binder "THE " 10)
+  where the_def: "The(P)    == \<Union>({y . x \<in> {0}, P(y)})"
+
+definition If :: "[o, i, i] \<Rightarrow> i"  ("(if (_)/ then (_)/ else (_))" [10] 10)
+  where if_def: "if P then a else b == THE z. P & z=a | ~P & z=b"
+
+abbreviation (input)
+  old_if :: "[o, i, i] => i"  ("if '(_,_,_')")
+  where "if(P,a,b) == If(P,a,b)"
+
+
+subsection \<open>Ordered Pairing\<close>
+
+(* this "symmetric" definition works better than {{a}, {a,b}} *)
+definition Pair :: "[i, i] => i"
+  where "Pair(a,b) == {{a,a}, {a,b}}"
+
+definition fst :: "i \<Rightarrow> i"
+  where "fst(p) == THE a. \<exists>b. p = Pair(a, b)"
+
+definition snd :: "i \<Rightarrow> i"
+  where "snd(p) == THE b. \<exists>a. p = Pair(a, b)"
+
+definition split :: "[[i, i] \<Rightarrow> 'a, i] \<Rightarrow> 'a::{}"  \<comment> \<open>for pattern-matching\<close>
+  where "split(c) == \<lambda>p. c(fst(p), snd(p))"
+
+(* Patterns -- extends pre-defined type "pttrn" used in abstractions *)
+nonterminal patterns
+syntax
   "_pattern"  :: "patterns => pttrn"         ("\<langle>_\<rangle>")
   ""          :: "pttrn => patterns"         ("_")
   "_patterns" :: "[pttrn, patterns] => patterns"  ("_,/_")
-
+  "_Tuple"    :: "[i, is] => i"              ("\<langle>(_,/ _)\<rangle>")
 translations
-  "{x, xs}"     == "CONST cons(x, {xs})"
-  "{x}"         == "CONST cons(x, 0)"
-  "{x\<in>A. P}"    == "CONST Collect(A, \<lambda>x. P)"
-  "{y. x\<in>A, Q}" == "CONST Replace(A, \<lambda>x y. Q)"
-  "{b. x\<in>A}"    == "CONST RepFun(A, \<lambda>x. b)"
-  "\<Inter>x\<in>A. B"    == "CONST Inter({B. x\<in>A})"
-  "\<Union>x\<in>A. B"    == "CONST Union({B. x\<in>A})"
-  "\<Prod>x\<in>A. B"   == "CONST Pi(A, \<lambda>x. B)"
-  "\<Sum>x\<in>A. B"   == "CONST Sigma(A, \<lambda>x. B)"
-  "\<lambda>x\<in>A. f"    == "CONST Lambda(A, \<lambda>x. f)"
-  "\<forall>x\<in>A. P"    == "CONST Ball(A, \<lambda>x. P)"
-  "\<exists>x\<in>A. P"    == "CONST Bex(A, \<lambda>x. P)"
-
   "\<langle>x, y, z\<rangle>"   == "\<langle>x, \<langle>y, z\<rangle>\<rangle>"
   "\<langle>x, y\<rangle>"      == "CONST Pair(x, y)"
   "\<lambda>\<langle>x,y,zs\<rangle>.b" == "CONST split(\<lambda>x \<langle>y,zs\<rangle>.b)"
   "\<lambda>\<langle>x,y\<rangle>.b"    == "CONST split(\<lambda>x y. b)"
 
+definition Sigma :: "[i, i \<Rightarrow> i] \<Rightarrow> i"
+  where "Sigma(A,B) == \<Union>x\<in>A. \<Union>y\<in>B(x). {\<langle>x,y\<rangle>}"
+
+abbreviation cart_prod :: "[i, i] => i"  (infixr "\<times>" 80)  \<comment> \<open>Cartesian product\<close>
+  where "A \<times> B \<equiv> Sigma(A, \<lambda>_. B)"
+
+
+subsection \<open>Relations and Functions\<close>
+
+(*converse of relation r, inverse of function*)
+definition converse :: "i \<Rightarrow> i"
+  where "converse(r) == {z. w\<in>r, \<exists>x y. w=\<langle>x,y\<rangle> \<and> z=\<langle>y,x\<rangle>}"
+
+definition domain :: "i \<Rightarrow> i"
+  where "domain(r) == {x. w\<in>r, \<exists>y. w=\<langle>x,y\<rangle>}"
+
+definition range :: "i \<Rightarrow> i"
+  where "range(r) == domain(converse(r))"
+
+definition field :: "i \<Rightarrow> i"
+  where "field(r) == domain(r) \<union> range(r)"
+
+definition relation :: "i \<Rightarrow> o"  \<comment> \<open>recognizes sets of pairs\<close>
+  where "relation(r) == \<forall>z\<in>r. \<exists>x y. z = \<langle>x,y\<rangle>"
+
+definition function :: "i \<Rightarrow> o"  \<comment> \<open>recognizes functions; can have non-pairs\<close>
+  where "function(r) == \<forall>x y. \<langle>x,y\<rangle> \<in> r \<longrightarrow> (\<forall>y'. \<langle>x,y'\<rangle> \<in> r \<longrightarrow> y = y')"
+
+definition Image :: "[i, i] \<Rightarrow> i"  (infixl "``" 90)  \<comment> \<open>image\<close>
+  where image_def: "r `` A  == {y \<in> range(r). \<exists>x\<in>A. \<langle>x,y\<rangle> \<in> r}"
+
+definition vimage :: "[i, i] \<Rightarrow> i"  (infixl "-``" 90)  \<comment> \<open>inverse image\<close>
+  where vimage_def: "r -`` A == converse(r)``A"
+
+(* Restrict the relation r to the domain A *)
+definition restrict :: "[i, i] \<Rightarrow> i"
+  where "restrict(r,A) == {z \<in> r. \<exists>x\<in>A. \<exists>y. z = \<langle>x,y\<rangle>}"
+
+
+(* Abstraction, application and Cartesian product of a family of sets *)
+
+definition Lambda :: "[i, i \<Rightarrow> i] \<Rightarrow> i"
+  where lam_def: "Lambda(A,b) == {\<langle>x,b(x)\<rangle>. x\<in>A}"
+
+definition "apply" :: "[i, i] \<Rightarrow> i"  (infixl "`" 90)  \<comment> \<open>function application\<close>
+  where "f`a == \<Union>(f``{a})"
+
+definition Pi :: "[i, i \<Rightarrow> i] \<Rightarrow> i"
+  where "Pi(A,B) == {f\<in>Pow(Sigma(A,B)). A\<subseteq>domain(f) & function(f)}"
+
+abbreviation function_space :: "[i, i] \<Rightarrow> i"  (infixr "->" 60)  \<comment> \<open>function space\<close>
+  where "A -> B \<equiv> Pi(A, \<lambda>_. B)"
+
+
+(* binder syntax *)
+
+syntax
+  "_PROD"     :: "[pttrn, i, i] => i"        ("(3\<Prod>_\<in>_./ _)" 10)
+  "_SUM"      :: "[pttrn, i, i] => i"        ("(3\<Sum>_\<in>_./ _)" 10)
+  "_lam"      :: "[pttrn, i, i] => i"        ("(3\<lambda>_\<in>_./ _)" 10)
+translations
+  "\<Prod>x\<in>A. B"   == "CONST Pi(A, \<lambda>x. B)"
+  "\<Sum>x\<in>A. B"   == "CONST Sigma(A, \<lambda>x. B)"
+  "\<lambda>x\<in>A. f"    == "CONST Lambda(A, \<lambda>x. f)"
+
+
+subsection \<open>ASCII syntax\<close>
 
 notation (ASCII)
   cart_prod       (infixr "*" 80) and
@@ -155,6 +270,8 @@ notation (ASCII)
   not_mem         (infixl "~:" 50)
 
 syntax (ASCII)
+  "_Ball"     :: "[pttrn, i, o] => o"        ("(3ALL _:_./ _)" 10)
+  "_Bex"      :: "[pttrn, i, o] => o"        ("(3EX _:_./ _)" 10)
   "_Collect"  :: "[pttrn, i, o] => i"        ("(1{_: _ ./ _})")
   "_Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _: _, _})")
   "_RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _: _})" [51,0,51])
@@ -163,103 +280,8 @@ syntax (ASCII)
   "_PROD"     :: "[pttrn, i, i] => i"        ("(3PROD _:_./ _)" 10)
   "_SUM"      :: "[pttrn, i, i] => i"        ("(3SUM _:_./ _)" 10)
   "_lam"      :: "[pttrn, i, i] => i"        ("(3lam _:_./ _)" 10)
-  "_Ball"     :: "[pttrn, i, o] => o"        ("(3ALL _:_./ _)" 10)
-  "_Bex"      :: "[pttrn, i, o] => o"        ("(3EX _:_./ _)" 10)
   "_Tuple"    :: "[i, is] => i"              ("<(_,/ _)>")
   "_pattern"  :: "patterns => pttrn"         ("<_>")
-
-defs  (* Bounded Quantifiers *)
-  Ball_def:      "Ball(A, P) == \<forall>x. x\<in>A \<longrightarrow> P(x)"
-  Bex_def:       "Bex(A, P) == \<exists>x. x\<in>A & P(x)"
-
-  subset_def:    "A \<subseteq> B == \<forall>x\<in>A. x\<in>B"
-
-
-axiomatization where
-
-  (* ZF axioms -- see Suppes p.238
-     Axioms for Union, Pow and Replace state existence only,
-     uniqueness is derivable using extensionality. *)
-
-  extension:     "A = B <-> A \<subseteq> B & B \<subseteq> A" and
-  Union_iff:     "A \<in> \<Union>(C) <-> (\<exists>B\<in>C. A\<in>B)" and
-  Pow_iff:       "A \<in> Pow(B) <-> A \<subseteq> B" and
-
-  (*We may name this set, though it is not uniquely defined.*)
-  infinity:      "0\<in>Inf & (\<forall>y\<in>Inf. succ(y): Inf)" and
-
-  (*This formulation facilitates case analysis on A.*)
-  foundation:    "A=0 | (\<exists>x\<in>A. \<forall>y\<in>x. y\<notin>A)" and
-
-  (*Schema axiom since predicate P is a higher-order variable*)
-  replacement:   "(\<forall>x\<in>A. \<forall>y z. P(x,y) & P(x,z) \<longrightarrow> y=z) ==>
-                         b \<in> PrimReplace(A,P) <-> (\<exists>x\<in>A. P(x,b))"
-
-
-defs
-
-  (* Derived form of replacement, restricting P to its functional part.
-     The resulting set (for functional P) is the same as with
-     PrimReplace, but the rules are simpler. *)
-
-  Replace_def:  "Replace(A,P) == PrimReplace(A, %x y. (EX!z. P(x,z)) & P(x,y))"
-
-  (* Functional form of replacement -- analgous to ML's map functional *)
-
-  RepFun_def:   "RepFun(A,f) == {y . x\<in>A, y=f(x)}"
-
-  (* Separation and Pairing can be derived from the Replacement
-     and Powerset Axioms using the following definitions. *)
-
-  Collect_def:  "Collect(A,P) == {y . x\<in>A, x=y & P(x)}"
-
-  (*Unordered pairs (Upair) express binary union/intersection and cons;
-    set enumerations translate as {a,...,z} = cons(a,...,cons(z,0)...)*)
-
-  Upair_def: "Upair(a,b) == {y. x\<in>Pow(Pow(0)), (x=0 & y=a) | (x=Pow(0) & y=b)}"
-  cons_def:  "cons(a,A) == Upair(a,a) \<union> A"
-  succ_def:  "succ(i) == cons(i, i)"
-
-  (* Difference, general intersection, binary union and small intersection *)
-
-  Diff_def:      "A - B    == { x\<in>A . ~(x\<in>B) }"
-  Inter_def:     "\<Inter>(A) == { x\<in>\<Union>(A) . \<forall>y\<in>A. x\<in>y}"
-  Un_def:        "A \<union>  B  == \<Union>(Upair(A,B))"
-  Int_def:      "A \<inter> B  == \<Inter>(Upair(A,B))"
-
-  (* definite descriptions *)
-  the_def:      "The(P)    == \<Union>({y . x \<in> {0}, P(y)})"
-  if_def:       "if(P,a,b) == THE z. P & z=a | ~P & z=b"
-
-  (* this "symmetric" definition works better than {{a}, {a,b}} *)
-  Pair_def:     "<a,b>  == {{a,a}, {a,b}}"
-  fst_def:      "fst(p) == THE a. \<exists>b. p=<a,b>"
-  snd_def:      "snd(p) == THE b. \<exists>a. p=<a,b>"
-  split_def:    "split(c) == %p. c(fst(p), snd(p))"
-  Sigma_def:    "Sigma(A,B) == \<Union>x\<in>A. \<Union>y\<in>B(x). {<x,y>}"
-
-  (* Operations on relations *)
-
-  (*converse of relation r, inverse of function*)
-  converse_def: "converse(r) == {z. w\<in>r, \<exists>x y. w=<x,y> & z=<y,x>}"
-
-  domain_def:   "domain(r) == {x. w\<in>r, \<exists>y. w=<x,y>}"
-  range_def:    "range(r) == domain(converse(r))"
-  field_def:    "field(r) == domain(r) \<union> range(r)"
-  relation_def: "relation(r) == \<forall>z\<in>r. \<exists>x y. z = <x,y>"
-  function_def: "function(r) ==
-                    \<forall>x y. <x,y>:r \<longrightarrow> (\<forall>y'. <x,y'>:r \<longrightarrow> y=y')"
-  image_def:    "r `` A  == {y \<in> range(r) . \<exists>x\<in>A. <x,y> \<in> r}"
-  vimage_def:   "r -`` A == converse(r)``A"
-
-  (* Abstraction, application and Cartesian product of a family of sets *)
-
-  lam_def:      "Lambda(A,b) == {<x,b(x)> . x\<in>A}"
-  apply_def:    "f`a == \<Union>(f``{a})"
-  Pi_def:       "Pi(A,B)  == {f\<in>Pow(Sigma(A,B)). A<=domain(f) & function(f)}"
-
-  (* Restrict the relation r to the domain A *)
-  restrict_def: "restrict(r,A) == {z \<in> r. \<exists>x\<in>A. \<exists>y. z = <x,y>}"
 
 
 subsection \<open>Substitution\<close>

@@ -74,10 +74,10 @@ lemmas MC_temp_defs = MClkIPSpec_def MClkISpec_def
    unanswered call for that process.
 *)
 lemma MClkidle: "\<turnstile> \<not>$Calling send p \<and> $(cst!p) = #clkA \<longrightarrow> \<not>MClkNext send rcv cst p"
-  by (auto simp: Return_def MC_action_defs)
+  by (auto simp: AReturn_def MC_action_defs)
 
 lemma MClkbusy: "\<turnstile> $Calling rcv p \<longrightarrow> \<not>MClkNext send rcv cst p"
-  by (auto simp: Call_def MC_action_defs)
+  by (auto simp: ACall_def MC_action_defs)
 
 
 (* Enabledness of actions *)
@@ -86,7 +86,7 @@ lemma MClkFwd_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, cst!p) \
       \<turnstile> Calling send p \<and> \<not>Calling rcv p \<and> cst!p = #clkA   
          \<longrightarrow> Enabled (MClkFwd send rcv cst p)"
   by (tactic \<open>action_simp_tac (@{context} addsimps [@{thm MClkFwd_def},
-    @{thm Call_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
+    @{thm ACall_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
     [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
 
 lemma MClkFwd_ch_enabled: "\<turnstile> Enabled (MClkFwd send rcv cst p)  \<longrightarrow>   
@@ -103,7 +103,7 @@ lemma MClkReply_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, cst!p)
   apply (tactic \<open>action_simp_tac @{context}
     [@{thm MClkReply_change} RSN (2, @{thm enabled_mono})] [] 1\<close>)
   apply (tactic \<open>action_simp_tac (@{context} addsimps
-    [@{thm MClkReply_def}, @{thm Return_def}, @{thm caller_def}, @{thm rtrner_def}])
+    [@{thm MClkReply_def}, @{thm AReturn_def}, @{thm caller_def}, @{thm rtrner_def}])
     [exI] [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
   done
 

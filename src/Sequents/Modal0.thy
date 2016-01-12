@@ -12,8 +12,6 @@ ML_file "modal.ML"
 consts
   box           :: "o\<Rightarrow>o"       ("[]_" [50] 50)
   dia           :: "o\<Rightarrow>o"       ("<>_" [50] 50)
-  strimp        :: "[o,o]\<Rightarrow>o"   (infixr "--<" 25)
-  streqv        :: "[o,o]\<Rightarrow>o"   (infixr ">-<" 25)
   Lstar         :: "two_seqi"
   Rstar         :: "two_seqi"
 
@@ -36,9 +34,11 @@ print_translation \<open>
   (@{const_syntax Rstar}, K (star_tr' @{syntax_const "_Rstar"}))]
 \<close>
 
-defs
-  strimp_def:    "P --< Q == [](P \<longrightarrow> Q)"
-  streqv_def:    "P >-< Q == (P --< Q) \<and> (Q --< P)"
+definition strimp :: "[o,o]\<Rightarrow>o"   (infixr "--<" 25)
+  where "P --< Q == [](P \<longrightarrow> Q)"
+
+definition streqv :: "[o,o]\<Rightarrow>o"   (infixr ">-<" 25)
+  where "P >-< Q == (P --< Q) \<and> (Q --< P)"
 
 
 lemmas rewrite_rls = strimp_def streqv_def

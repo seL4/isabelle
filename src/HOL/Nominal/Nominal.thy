@@ -2416,11 +2416,15 @@ section {* generalisation of freshness to lists and sets of atoms *}
 consts
   fresh_star :: "'b \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sharp>* _" [100,100] 100)
 
-defs (overloaded)
-  fresh_star_set: "xs\<sharp>*c \<equiv> \<forall>x\<in>xs. x\<sharp>c"
+overloading fresh_star_set \<equiv> "fresh_star :: 'b set \<Rightarrow> 'a \<Rightarrow> bool"
+begin
+  definition fresh_star_set: "xs\<sharp>*c \<equiv> \<forall>x::'b\<in>xs. x\<sharp>(c::'a)"
+end
 
-defs (overloaded)
-  fresh_star_list: "xs\<sharp>*c \<equiv> \<forall>x\<in>set xs. x\<sharp>c"
+overloading frsh_star_list \<equiv> "fresh_star :: 'b list \<Rightarrow> 'a \<Rightarrow> bool"
+begin
+  definition fresh_star_list: "xs\<sharp>*c \<equiv> \<forall>x::'b\<in>set xs. x\<sharp>(c::'a)"
+end
 
 lemmas fresh_star_def = fresh_star_list fresh_star_set
 

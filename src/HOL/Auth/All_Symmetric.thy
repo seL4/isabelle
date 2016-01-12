@@ -4,7 +4,10 @@ begin
 
 text \<open>All keys are symmetric\<close>
 
-defs all_symmetric_def: "all_symmetric \<equiv> True"
+overloading all_symmetric \<equiv> all_symmetric
+begin
+  definition "all_symmetric \<equiv> True"
+end
 
 lemma isSym_keys: "K \<in> symKeys"
   by (simp add: symKeys_def all_symmetric_def invKey_symmetric) 

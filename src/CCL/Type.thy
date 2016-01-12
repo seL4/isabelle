@@ -9,42 +9,39 @@ theory Type
 imports Term
 begin
 
-consts
-
-  Subtype       :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> 'a set"
-  Bool          :: "i set"
-  Unit          :: "i set"
-  Plus           :: "[i set, i set] \<Rightarrow> i set"        (infixr "+" 55)
-  Pi            :: "[i set, i \<Rightarrow> i set] \<Rightarrow> i set"
-  Sigma         :: "[i set, i \<Rightarrow> i set] \<Rightarrow> i set"
-  Nat           :: "i set"
-  List          :: "i set \<Rightarrow> i set"
-  Lists         :: "i set \<Rightarrow> i set"
-  ILists        :: "i set \<Rightarrow> i set"
-  TAll          :: "(i set \<Rightarrow> i set) \<Rightarrow> i set"       (binder "TALL " 55)
-  TEx           :: "(i set \<Rightarrow> i set) \<Rightarrow> i set"       (binder "TEX " 55)
-  Lift          :: "i set \<Rightarrow> i set"                  ("(3[_])")
-
-  SPLIT         :: "[i, [i, i] \<Rightarrow> i set] \<Rightarrow> i set"
+definition Subtype :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> 'a set"
+  where "Subtype(A, P) == {x. x:A \<and> P(x)}"
 
 syntax
-  "_Pi"         :: "[idt, i set, i set] \<Rightarrow> i set"    ("(3PROD _:_./ _)"
-                                [0,0,60] 60)
-
-  "_Sigma"      :: "[idt, i set, i set] \<Rightarrow> i set"    ("(3SUM _:_./ _)"
-                                [0,0,60] 60)
-
-  "_arrow"      :: "[i set, i set] \<Rightarrow> i set"         ("(_ ->/ _)"  [54, 53] 53)
-  "_star"       :: "[i set, i set] \<Rightarrow> i set"         ("(_ */ _)" [56, 55] 55)
-  "_Subtype"    :: "[idt, 'a set, o] \<Rightarrow> 'a set"      ("(1{_: _ ./ _})")
-
+  "_Subtype" :: "[idt, 'a set, o] \<Rightarrow> 'a set"  ("(1{_: _ ./ _})")
 translations
-  "PROD x:A. B" => "CONST Pi(A, \<lambda>x. B)"
-  "A -> B"      => "CONST Pi(A, \<lambda>_. B)"
-  "SUM x:A. B"  => "CONST Sigma(A, \<lambda>x. B)"
-  "A * B"       => "CONST Sigma(A, \<lambda>_. B)"
-  "{x: A. B}"   == "CONST Subtype(A, \<lambda>x. B)"
+  "{x: A. B}" == "CONST Subtype(A, \<lambda>x. B)"
 
+definition Unit :: "i set"
+  where "Unit == {x. x=one}"
+
+definition Bool :: "i set"
+  where "Bool == {x. x=true | x=false}"
+
+definition Plus :: "[i set, i set] \<Rightarrow> i set"  (infixr "+" 55)
+  where "A+B == {x. (EX a:A. x=inl(a)) | (EX b:B. x=inr(b))}"
+
+definition Pi :: "[i set, i \<Rightarrow> i set] \<Rightarrow> i set"
+  where "Pi(A,B) == {x. EX b. x=lam x. b(x) \<and> (ALL x:A. b(x):B(x))}"
+
+definition Sigma :: "[i set, i \<Rightarrow> i set] \<Rightarrow> i set"
+  where "Sigma(A,B) == {x. EX a:A. EX b:B(a).x=<a,b>}"
+
+syntax
+  "_Pi" :: "[idt, i set, i set] \<Rightarrow> i set"  ("(3PROD _:_./ _)" [0,0,60] 60)
+  "_Sigma" :: "[idt, i set, i set] \<Rightarrow> i set"  ("(3SUM _:_./ _)" [0,0,60] 60)
+  "_arrow" :: "[i set, i set] \<Rightarrow> i set"  ("(_ ->/ _)"  [54, 53] 53)
+  "_star"  :: "[i set, i set] \<Rightarrow> i set"  ("(_ */ _)" [56, 55] 55)
+translations
+  "PROD x:A. B" \<rightharpoonup> "CONST Pi(A, \<lambda>x. B)"
+  "A -> B" \<rightharpoonup> "CONST Pi(A, \<lambda>_. B)"
+  "SUM x:A. B" \<rightharpoonup> "CONST Sigma(A, \<lambda>x. B)"
+  "A * B" \<rightharpoonup> "CONST Sigma(A, \<lambda>_. B)"
 print_translation \<open>
  [(@{const_syntax Pi},
     fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"})),
@@ -52,28 +49,34 @@ print_translation \<open>
     fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Sigma"}, @{syntax_const "_star"}))]
 \<close>
 
-defs
-  Subtype_def: "{x:A. P(x)} == {x. x:A \<and> P(x)}"
-  Unit_def:          "Unit == {x. x=one}"
-  Bool_def:          "Bool == {x. x=true | x=false}"
-  Plus_def:           "A+B == {x. (EX a:A. x=inl(a)) | (EX b:B. x=inr(b))}"
-  Pi_def:         "Pi(A,B) == {x. EX b. x=lam x. b(x) \<and> (ALL x:A. b(x):B(x))}"
-  Sigma_def:   "Sigma(A,B) == {x. EX a:A. EX b:B(a).x=<a,b>}"
-  Nat_def:            "Nat == lfp(\<lambda>X. Unit + X)"
-  List_def:       "List(A) == lfp(\<lambda>X. Unit + A*X)"
+definition Nat :: "i set"
+  where "Nat == lfp(\<lambda>X. Unit + X)"
 
-  Lists_def:     "Lists(A) == gfp(\<lambda>X. Unit + A*X)"
-  ILists_def:   "ILists(A) == gfp(\<lambda>X.{} + A*X)"
+definition List :: "i set \<Rightarrow> i set"
+  where "List(A) == lfp(\<lambda>X. Unit + A*X)"
 
-  Tall_def:   "TALL X. B(X) == Inter({X. EX Y. X=B(Y)})"
-  Tex_def:     "TEX X. B(X) == Union({X. EX Y. X=B(Y)})"
-  Lift_def:           "[A] == A Un {bot}"
+definition Lists :: "i set \<Rightarrow> i set"
+  where "Lists(A) == gfp(\<lambda>X. Unit + A*X)"
 
-  SPLIT_def:   "SPLIT(p,B) == Union({A. EX x y. p=<x,y> \<and> A=B(x,y)})"
+definition ILists :: "i set \<Rightarrow> i set"
+  where "ILists(A) == gfp(\<lambda>X.{} + A*X)"
+
+
+definition TAll :: "(i set \<Rightarrow> i set) \<Rightarrow> i set"  (binder "TALL " 55)
+  where "TALL X. B(X) == Inter({X. EX Y. X=B(Y)})"
+
+definition TEx :: "(i set \<Rightarrow> i set) \<Rightarrow> i set"  (binder "TEX " 55)
+  where "TEX X. B(X) == Union({X. EX Y. X=B(Y)})"
+
+definition Lift :: "i set \<Rightarrow> i set"  ("(3[_])")
+  where "[A] == A Un {bot}"
+
+definition SPLIT :: "[i, [i, i] \<Rightarrow> i set] \<Rightarrow> i set"
+  where "SPLIT(p,B) == Union({A. EX x y. p=<x,y> \<and> A=B(x,y)})"
 
 
 lemmas simp_type_defs =
-    Subtype_def Unit_def Bool_def Plus_def Sigma_def Pi_def Lift_def Tall_def Tex_def
+    Subtype_def Unit_def Bool_def Plus_def Sigma_def Pi_def Lift_def TAll_def TEx_def
   and ind_type_defs = Nat_def List_def
   and simp_data_defs = one_def inl_def inr_def
   and ind_data_defs = zero_def succ_def nil_def cons_def

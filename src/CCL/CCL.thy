@@ -320,17 +320,17 @@ lemma POgen_mono: "mono(\<lambda>X. POgen(X))"
   apply blast
   done
 
-lemma POgenXH: 
-  "<t,t'> : POgen(R) \<longleftrightarrow> t= bot | (t=true \<and> t'=true)  | (t=false \<and> t'=false) |  
-           (EX a a' b b'. t=<a,b> \<and> t'=<a',b'>  \<and> <a,a'> : R \<and> <b,b'> : R) |  
+lemma POgenXH:
+  "<t,t'> : POgen(R) \<longleftrightarrow> t= bot | (t=true \<and> t'=true)  | (t=false \<and> t'=false) |
+           (EX a a' b b'. t=<a,b> \<and> t'=<a',b'>  \<and> <a,a'> : R \<and> <b,b'> : R) |
            (EX f f'. t=lam x. f(x) \<and> t'=lam x. f'(x) \<and> (ALL x. <f(x),f'(x)> : R))"
   apply (unfold POgen_def SIM_def)
   apply (rule iff_refl [THEN XHlemma2])
   done
 
-lemma poXH: 
-  "t [= t' \<longleftrightarrow> t=bot | (t=true \<and> t'=true) | (t=false \<and> t'=false) |  
-                 (EX a a' b b'. t=<a,b> \<and> t'=<a',b'>  \<and> a [= a' \<and> b [= b') |  
+lemma poXH:
+  "t [= t' \<longleftrightarrow> t=bot | (t=true \<and> t'=true) | (t=false \<and> t'=false) |
+                 (EX a a' b b'. t=<a,b> \<and> t'=<a',b'>  \<and> a [= a' \<and> b [= b') |
                  (EX f f'. t=lam x. f(x) \<and> t'=lam x. f'(x) \<and> (ALL x. f(x) [= f'(x)))"
   apply (simp add: PO_iff del: ex_simps)
   apply (rule POgen_mono
@@ -438,18 +438,18 @@ lemma EQgen_mono: "mono(\<lambda>X. EQgen(X))"
   apply blast
   done
 
-lemma EQgenXH: 
-  "<t,t'> : EQgen(R) \<longleftrightarrow> (t=bot \<and> t'=bot)  | (t=true \<and> t'=true)  |  
-                                             (t=false \<and> t'=false) |  
-                 (EX a a' b b'. t=<a,b> \<and> t'=<a',b'>  \<and> <a,a'> : R \<and> <b,b'> : R) |  
+lemma EQgenXH:
+  "<t,t'> : EQgen(R) \<longleftrightarrow> (t=bot \<and> t'=bot)  | (t=true \<and> t'=true)  |
+                                             (t=false \<and> t'=false) |
+                 (EX a a' b b'. t=<a,b> \<and> t'=<a',b'>  \<and> <a,a'> : R \<and> <b,b'> : R) |
                  (EX f f'. t=lam x. f(x) \<and> t'=lam x. f'(x) \<and> (ALL x.<f(x),f'(x)> : R))"
   apply (unfold EQgen_def SIM_def)
   apply (rule iff_refl [THEN XHlemma2])
   done
 
-lemma eqXH: 
-  "t=t' \<longleftrightarrow> (t=bot \<and> t'=bot)  | (t=true \<and> t'=true)  | (t=false \<and> t'=false) |  
-                     (EX a a' b b'. t=<a,b> \<and> t'=<a',b'>  \<and> a=a' \<and> b=b') |  
+lemma eqXH:
+  "t=t' \<longleftrightarrow> (t=bot \<and> t'=bot)  | (t=true \<and> t'=true)  | (t=false \<and> t'=false) |
+                     (EX a a' b b'. t=<a,b> \<and> t'=<a',b'>  \<and> a=a' \<and> b=b') |
                      (EX f f'. t=lam x. f(x) \<and> t'=lam x. f'(x) \<and> (ALL x. f(x)=f'(x)))"
   apply (subgoal_tac "<t,t'> : EQ \<longleftrightarrow>
     (t=bot \<and> t'=bot) | (t=true \<and> t'=true) | (t=false \<and> t'=false) |

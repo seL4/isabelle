@@ -9,62 +9,18 @@ declare [[eta_contract]]
 typedecl 'a set
 instance set :: ("term") "term" ..
 
-consts
-  Collect       :: "['a \<Rightarrow> o] \<Rightarrow> 'a set"                    (*comprehension*)
-  Compl         :: "('a set) \<Rightarrow> 'a set"                     (*complement*)
-  Int           :: "['a set, 'a set] \<Rightarrow> 'a set"         (infixl "Int" 70)
-  Un            :: "['a set, 'a set] \<Rightarrow> 'a set"         (infixl "Un" 65)
-  Union         :: "(('a set)set) \<Rightarrow> 'a set"                (*...of a set*)
-  Inter         :: "(('a set)set) \<Rightarrow> 'a set"                (*...of a set*)
-  UNION         :: "['a set, 'a \<Rightarrow> 'b set] \<Rightarrow> 'b set"       (*general*)
-  INTER         :: "['a set, 'a \<Rightarrow> 'b set] \<Rightarrow> 'b set"       (*general*)
-  Ball          :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> o"                 (*bounded quants*)
-  Bex           :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> o"                 (*bounded quants*)
-  mono          :: "['a set \<Rightarrow> 'b set] \<Rightarrow> o"                (*monotonicity*)
-  mem           :: "['a, 'a set] \<Rightarrow> o"                  (infixl ":" 50) (*membership*)
-  subset        :: "['a set, 'a set] \<Rightarrow> o"              (infixl "<=" 50)
-  singleton     :: "'a \<Rightarrow> 'a set"                       ("{_}")
-  empty         :: "'a set"                             ("{}")
+
+subsection \<open>Set comprehension and membership\<close>
+
+axiomatization Collect :: "['a \<Rightarrow> o] \<Rightarrow> 'a set"
+  and mem :: "['a, 'a set] \<Rightarrow> o"  (infixl ":" 50)
+where mem_Collect_iff: "(a : Collect(P)) \<longleftrightarrow> P(a)"
+  and set_extension: "A = B \<longleftrightarrow> (ALL x. x:A \<longleftrightarrow> x:B)"
 
 syntax
-  "_Coll"       :: "[idt, o] \<Rightarrow> 'a set"                 ("(1{_./ _})") (*collection*)
-
-  (* Big Intersection / Union *)
-
-  "_INTER"      :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"    ("(INT _:_./ _)" [0, 0, 0] 10)
-  "_UNION"      :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"    ("(UN _:_./ _)" [0, 0, 0] 10)
-
-  (* Bounded Quantifiers *)
-
-  "_Ball"       :: "[idt, 'a set, o] \<Rightarrow> o"              ("(ALL _:_./ _)" [0, 0, 0] 10)
-  "_Bex"        :: "[idt, 'a set, o] \<Rightarrow> o"              ("(EX _:_./ _)" [0, 0, 0] 10)
-
+  "_Coll" :: "[idt, o] \<Rightarrow> 'a set"  ("(1{_./ _})")
 translations
-  "{x. P}"      == "CONST Collect(\<lambda>x. P)"
-  "INT x:A. B"  == "CONST INTER(A, \<lambda>x. B)"
-  "UN x:A. B"   == "CONST UNION(A, \<lambda>x. B)"
-  "ALL x:A. P"  == "CONST Ball(A, \<lambda>x. P)"
-  "EX x:A. P"   == "CONST Bex(A, \<lambda>x. P)"
-
-axiomatization where
-  mem_Collect_iff: "(a : {x. P(x)}) \<longleftrightarrow> P(a)" and
-  set_extension: "A = B \<longleftrightarrow> (ALL x. x:A \<longleftrightarrow> x:B)"
-
-defs
-  Ball_def:      "Ball(A, P)  == ALL x. x:A \<longrightarrow> P(x)"
-  Bex_def:       "Bex(A, P)   == EX x. x:A \<and> P(x)"
-  mono_def:      "mono(f)     == (ALL A B. A <= B \<longrightarrow> f(A) <= f(B))"
-  subset_def:    "A <= B      == ALL x:A. x:B"
-  singleton_def: "{a}         == {x. x=a}"
-  empty_def:     "{}          == {x. False}"
-  Un_def:        "A Un B      == {x. x:A | x:B}"
-  Int_def:       "A Int B     == {x. x:A \<and> x:B}"
-  Compl_def:     "Compl(A)    == {x. \<not>x:A}"
-  INTER_def:     "INTER(A, B) == {y. ALL x:A. y: B(x)}"
-  UNION_def:     "UNION(A, B) == {y. EX x:A. y: B(x)}"
-  Inter_def:     "Inter(S)    == (INT x:S. x)"
-  Union_def:     "Union(S)    == (UN x:S. x)"
-
+  "{x. P}" == "CONST Collect(\<lambda>x. P)"
 
 lemma CollectI: "P(a) \<Longrightarrow> a : {x. P(x)}"
   apply (rule mem_Collect_iff [THEN iffD2])
@@ -84,6 +40,19 @@ lemma set_ext: "(\<And>x. x:A \<longleftrightarrow> x:B) \<Longrightarrow> A = B
 
 
 subsection \<open>Bounded quantifiers\<close>
+
+definition Ball :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> o"
+  where "Ball(A, P) == ALL x. x:A \<longrightarrow> P(x)"
+
+definition Bex :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> o"
+  where "Bex(A, P) == EX x. x:A \<and> P(x)"
+
+syntax
+  "_Ball" :: "[idt, 'a set, o] \<Rightarrow> o"  ("(ALL _:_./ _)" [0, 0, 0] 10)
+  "_Bex" :: "[idt, 'a set, o] \<Rightarrow> o"  ("(EX _:_./ _)" [0, 0, 0] 10)
+translations
+  "ALL x:A. P"  == "CONST Ball(A, \<lambda>x. P)"
+  "EX x:A. P"   == "CONST Bex(A, \<lambda>x. P)"
 
 lemma ballI: "(\<And>x. x:A \<Longrightarrow> P(x)) \<Longrightarrow> ALL x:A. P(x)"
   by (simp add: Ball_def)
@@ -107,8 +76,7 @@ lemma bexE: "\<lbrakk>EX x:A. P(x); \<And>x. \<lbrakk>x:A; P(x)\<rbrakk> \<Longr
 lemma ball_rew: "(ALL x:A. True) \<longleftrightarrow> True"
   by (blast intro: ballI)
 
-
-subsection \<open>Congruence rules\<close>
+subsubsection \<open>Congruence rules\<close>
 
 lemma ball_cong:
   "\<lbrakk>A = A'; \<And>x. x:A' \<Longrightarrow> P(x) \<longleftrightarrow> P'(x)\<rbrakk> \<Longrightarrow>
@@ -119,6 +87,52 @@ lemma bex_cong:
   "\<lbrakk>A = A'; \<And>x. x:A' \<Longrightarrow> P(x) \<longleftrightarrow> P'(x)\<rbrakk> \<Longrightarrow>
     (EX x:A. P(x)) \<longleftrightarrow> (EX x:A'. P'(x))"
   by (blast intro: bexI elim: bexE)
+
+
+subsection \<open>Further operations\<close>
+
+definition subset :: "['a set, 'a set] \<Rightarrow> o"  (infixl "<=" 50)
+  where "A <= B == ALL x:A. x:B"
+
+definition mono :: "['a set \<Rightarrow> 'b set] \<Rightarrow> o"
+  where "mono(f) == (ALL A B. A <= B \<longrightarrow> f(A) <= f(B))"
+
+definition singleton :: "'a \<Rightarrow> 'a set"  ("{_}")
+  where "{a} == {x. x=a}"
+
+definition empty :: "'a set"  ("{}")
+  where "{} == {x. False}"
+
+definition Un :: "['a set, 'a set] \<Rightarrow> 'a set"  (infixl "Un" 65)
+  where "A Un B == {x. x:A | x:B}"
+
+definition Int :: "['a set, 'a set] \<Rightarrow> 'a set"  (infixl "Int" 70)
+  where "A Int B == {x. x:A \<and> x:B}"
+
+definition Compl :: "('a set) \<Rightarrow> 'a set"
+  where "Compl(A) == {x. \<not>x:A}"
+
+
+subsection \<open>Big Intersection / Union\<close>
+
+definition INTER :: "['a set, 'a \<Rightarrow> 'b set] \<Rightarrow> 'b set"
+  where "INTER(A, B) == {y. ALL x:A. y: B(x)}"
+
+definition UNION :: "['a set, 'a \<Rightarrow> 'b set] \<Rightarrow> 'b set"
+  where "UNION(A, B) == {y. EX x:A. y: B(x)}"
+
+syntax
+  "_INTER" :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"  ("(INT _:_./ _)" [0, 0, 0] 10)
+  "_UNION" :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"  ("(UN _:_./ _)" [0, 0, 0] 10)
+translations
+  "INT x:A. B" == "CONST INTER(A, \<lambda>x. B)"
+  "UN x:A. B" == "CONST UNION(A, \<lambda>x. B)"
+
+definition Inter :: "(('a set)set) \<Rightarrow> 'a set"
+  where "Inter(S) == (INT x:S. x)"
+
+definition Union :: "(('a set)set) \<Rightarrow> 'a set"
+  where "Union(S) == (UN x:S. x)"
 
 
 subsection \<open>Rules for subsets\<close>

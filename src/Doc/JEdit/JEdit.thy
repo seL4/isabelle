@@ -948,6 +948,29 @@ text \<open>
 \<close>
 
 
+section \<open>Proof state output \label{sec:state-output}\<close>
+
+text \<open>
+  FIXME
+  \figref{fig:output-and-state} versus \figref{fig:output-including-state}
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{output-and-state}
+  \end{center}
+  \caption{Separate proof state display (right) and other output (bottom).}
+  \label{fig:output-and-state}
+  \end{figure}
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{output-including-state}
+  \end{center}
+  \caption{Proof state display within the regular output panel}
+  \label{fig:output-including-state}
+  \end{figure}
+\<close>
+
 section \<open>Query \label{sec:query}\<close>
 
 text \<open>
@@ -967,7 +990,7 @@ text \<open>
   \begin{center}
   \includegraphics[scale=0.333]{query}
   \end{center}
-  \caption{An instance of the Query panel}
+  \caption{An instance of the Query panel: find theorems}
   \label{fig:query}
   \end{figure}
 
@@ -1655,6 +1678,22 @@ text \<open>
 \<close>
 
 
+section \<open>Markdown structure\<close>
+
+text \<open>
+  FIXME
+  \figref{fig:markdown-document}
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{markdown-document}
+  \end{center}
+  \caption{Markdown structure within document text}
+  \label{fig:markdown-document}
+  \end{figure}
+\<close>
+
+
 section \<open>Citations and Bib{\TeX} entries\<close>
 
 text \<open>
@@ -1690,6 +1729,22 @@ text \<open>
   \end{center}
   \caption{Bib{\TeX} mode with context menu and SideKick tree view}
   \label{fig:bibtex-mode}
+  \end{figure}
+\<close>
+
+
+chapter \<open>ML debugger\<close>
+
+text \<open>
+  FIXME
+  \figref{fig:ml-debugger}
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{ml-debugger}
+  \end{center}
+  \caption{ML debugger}
+  \label{fig:ml-debugger}
   \end{figure}
 \<close>
 

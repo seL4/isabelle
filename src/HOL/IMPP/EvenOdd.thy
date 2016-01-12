@@ -29,8 +29,10 @@ definition
          THEN Loc Res:==(%s. 1)
          ELSE(Loc Res:=CALL Even (%s. s<Arg> - 1)))"
 
-defs
-  bodies_def: "bodies == [(Even,evn),(Odd,odd)]"
+overloading bodies \<equiv> bodies
+begin
+  definition "bodies == [(Even,evn),(Odd,odd)]"
+end
 
 definition
   Z_eq_Arg_plus :: "nat => nat assn" ("Z=Arg+_" [50]50) where

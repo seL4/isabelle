@@ -9,25 +9,19 @@ theory Action
 imports Stfun
 begin
 
-
-(** abstract syntax **)
-
-type_synonym 'a trfun = "(state * state) \<Rightarrow> 'a"
-type_synonym action   = "bool trfun"
+type_synonym 'a trfun = "state \<times> state \<Rightarrow> 'a"
+type_synonym action = "bool trfun"
 
 instance prod :: (world, world) world ..
 
+definition enabled :: "action \<Rightarrow> stpred"
+  where "enabled A s \<equiv> \<exists>u. (s,u) \<Turnstile> A"
+
+
 consts
-  (** abstract syntax **)
-  before        :: "'a stfun \<Rightarrow> 'a trfun"
-  after         :: "'a stfun \<Rightarrow> 'a trfun"
-  unch          :: "'a stfun \<Rightarrow> action"
-
-  SqAct         :: "[action, 'a stfun] \<Rightarrow> action"
-  AnAct         :: "[action, 'a stfun] \<Rightarrow> action"
-  enabled       :: "action \<Rightarrow> stpred"
-
-(** concrete syntax **)
+  before :: "'a stfun \<Rightarrow> 'a trfun"
+  after :: "'a stfun \<Rightarrow> 'a trfun"
+  unch :: "'a stfun \<Rightarrow> action"
 
 syntax
   (* Syntax for writing action expressions in arbitrary contexts *)
@@ -40,8 +34,6 @@ syntax
   (*** Priming: same as "after" ***)
   "_prime"      :: "lift \<Rightarrow> lift"                    ("(_`)" [100] 99)
 
-  "_SqAct"      :: "[lift, lift] \<Rightarrow> lift"            ("([_]'_(_))" [0,1000] 99)
-  "_AnAct"      :: "[lift, lift] \<Rightarrow> lift"            ("(<_>'_(_))" [0,1000] 99)
   "_Enabled"    :: "lift \<Rightarrow> lift"                    ("(Enabled _)" [100] 100)
 
 translations
@@ -50,25 +42,30 @@ translations
   "_after"           ==   "CONST after"
   "_prime"           =>   "_after"
   "_unchanged"       ==   "CONST unch"
-  "_SqAct"           ==   "CONST SqAct"
-  "_AnAct"           ==   "CONST AnAct"
   "_Enabled"         ==   "CONST enabled"
-  "w \<Turnstile> [A]_v"       <=   "_SqAct A v w"
-  "w \<Turnstile> <A>_v"       <=   "_AnAct A v w"
   "s \<Turnstile> Enabled A"   <=   "_Enabled A s"
   "w \<Turnstile> unchanged f" <=   "_unchanged f w"
 
 axiomatization where
   unl_before:    "(ACT $v) (s,t) \<equiv> v s" and
   unl_after:     "(ACT v$) (s,t) \<equiv> v t" and
-
   unchanged_def: "(s,t) \<Turnstile> unchanged v \<equiv> (v t = v s)"
 
-defs
-  square_def:    "ACT [A]_v \<equiv> ACT (A \<or> unchanged v)"
-  angle_def:     "ACT <A>_v \<equiv> ACT (A \<and> \<not> unchanged v)"
 
-  enabled_def:   "s \<Turnstile> Enabled A  \<equiv>  \<exists>u. (s,u) \<Turnstile> A"
+definition SqAct :: "[action, 'a stfun] \<Rightarrow> action"
+  where square_def: "SqAct A v \<equiv> ACT (A \<or> unchanged v)"
+
+definition AnAct :: "[action, 'a stfun] \<Rightarrow> action"
+  where angle_def: "AnAct A v \<equiv> ACT (A \<and> \<not> unchanged v)"
+
+syntax
+  "_SqAct" :: "[lift, lift] \<Rightarrow> lift"  ("([_]'_(_))" [0, 1000] 99)
+  "_AnAct" :: "[lift, lift] \<Rightarrow> lift"  ("(<_>'_(_))" [0, 1000] 99)
+translations
+  "_SqAct" == "CONST SqAct"
+  "_AnAct" == "CONST AnAct"
+  "w \<Turnstile> [A]_v" \<leftharpoondown> "_SqAct A v w"
+  "w \<Turnstile> <A>_v" \<leftharpoondown> "_AnAct A v w"
 
 
 (* The following assertion specializes "intI" for any world type

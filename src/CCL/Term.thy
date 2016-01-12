@@ -9,48 +9,69 @@ theory Term
 imports CCL
 begin
 
-consts
+definition one :: "i"
+  where "one == true"
 
-  one        :: "i"
+definition "if" :: "[i,i,i]\<Rightarrow>i"  ("(3if _/ then _/ else _)" [0,0,60] 60)
+  where "if b then t else u  == case(b, t, u, \<lambda> x y. bot, \<lambda>v. bot)"
 
-  "if"       :: "[i,i,i]\<Rightarrow>i"           ("(3if _/ then _/ else _)" [0,0,60] 60)
+definition inl :: "i\<Rightarrow>i"
+  where "inl(a) == <true,a>"
 
-  inl        :: "i\<Rightarrow>i"
-  inr        :: "i\<Rightarrow>i"
-  "when"     :: "[i,i\<Rightarrow>i,i\<Rightarrow>i]\<Rightarrow>i"
+definition inr :: "i\<Rightarrow>i"
+  where "inr(b) == <false,b>"
 
-  split      :: "[i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
-  fst        :: "i\<Rightarrow>i"
-  snd        :: "i\<Rightarrow>i"
-  thd        :: "i\<Rightarrow>i"
+definition split :: "[i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
+  where "split(t,f) == case(t, bot, bot, f, \<lambda>u. bot)"
 
-  zero       :: "i"
-  succ       :: "i\<Rightarrow>i"
-  ncase      :: "[i,i,i\<Rightarrow>i]\<Rightarrow>i"
-  nrec       :: "[i,i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
+definition "when" :: "[i,i\<Rightarrow>i,i\<Rightarrow>i]\<Rightarrow>i"
+  where "when(t,f,g) == split(t, \<lambda>b x. if b then f(x) else g(x))"
 
-  nil        :: "i"                        ("([])")
-  cons       :: "[i,i]\<Rightarrow>i"                 (infixr "$" 80)
-  lcase      :: "[i,i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
-  lrec       :: "[i,i,[i,i,i]\<Rightarrow>i]\<Rightarrow>i"
+definition fst :: "i\<Rightarrow>i"
+  where "fst(t) == split(t, \<lambda>x y. x)"
 
-  "let"      :: "[i,i\<Rightarrow>i]\<Rightarrow>i"
-  letrec     :: "[[i,i\<Rightarrow>i]\<Rightarrow>i,(i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
-  letrec2    :: "[[i,i,i\<Rightarrow>i\<Rightarrow>i]\<Rightarrow>i,(i\<Rightarrow>i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
-  letrec3    :: "[[i,i,i,i\<Rightarrow>i\<Rightarrow>i\<Rightarrow>i]\<Rightarrow>i,(i\<Rightarrow>i\<Rightarrow>i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
+definition snd :: "i\<Rightarrow>i"
+  where "snd(t) == split(t, \<lambda>x y. y)"
+
+definition thd :: "i\<Rightarrow>i"
+  where "thd(t) == split(t, \<lambda>x p. split(p, \<lambda>y z. z))"
+
+definition zero :: "i"
+  where "zero == inl(one)"
+
+definition succ :: "i\<Rightarrow>i"
+  where "succ(n) == inr(n)"
+
+definition ncase :: "[i,i,i\<Rightarrow>i]\<Rightarrow>i"
+  where "ncase(n,b,c) == when(n, \<lambda>x. b, \<lambda>y. c(y))"
+
+
+no_syntax
+  "_Let" :: "[letbinds, 'a] => 'a"  ("(let (_)/ in (_))" 10)
+
+definition "let" :: "[i,i\<Rightarrow>i]\<Rightarrow>i"
+  where "let(t, f) == case(t,f(true),f(false), \<lambda>x y. f(<x,y>), \<lambda>u. f(lam x. u(x)))"
 
 syntax
-  "_let"     :: "[id,i,i]\<Rightarrow>i"             ("(3let _ be _/ in _)"
-                        [0,0,60] 60)
+  "_Let" :: "[letbinds, 'a] => 'a"  ("(let (_)/ in (_))" 10)
 
-  "_letrec"  :: "[id,id,i,i]\<Rightarrow>i"         ("(3letrec _ _ be _/ in _)"
-                        [0,0,0,60] 60)
+definition letrec :: "[[i,i\<Rightarrow>i]\<Rightarrow>i,(i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
+  where "letrec(h, b) == b(\<lambda>x. fix(\<lambda>f. lam x. h(x,\<lambda>y. f`y))`x)"
 
-  "_letrec2" :: "[id,id,id,i,i]\<Rightarrow>i"     ("(3letrec _ _ _ be _/ in _)"
-                        [0,0,0,0,60] 60)
+definition letrec2 :: "[[i,i,i\<Rightarrow>i\<Rightarrow>i]\<Rightarrow>i,(i\<Rightarrow>i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
+  where "letrec2 (h, f) ==
+    letrec (\<lambda>p g'. split(p,\<lambda>x y. h(x,y,\<lambda>u v. g'(<u,v>))), \<lambda>g'. f(\<lambda>x y. g'(<x,y>)))"
 
-  "_letrec3" :: "[id,id,id,id,i,i]\<Rightarrow>i" ("(3letrec _ _ _ _ be _/ in _)"
-                        [0,0,0,0,0,60] 60)
+definition letrec3 :: "[[i,i,i,i\<Rightarrow>i\<Rightarrow>i\<Rightarrow>i]\<Rightarrow>i,(i\<Rightarrow>i\<Rightarrow>i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
+  where "letrec3 (h, f) ==
+    letrec (\<lambda>p g'. split(p,\<lambda>x xs. split(xs,\<lambda>y z. h(x,y,z,\<lambda>u v w. g'(<u,<v,w>>)))),
+      \<lambda>g'. f(\<lambda>x y z. g'(<x,<y,z>>)))"
+
+syntax
+  "_let" :: "[id,i,i]\<Rightarrow>i"  ("(3let _ be _/ in _)" [0,0,60] 60)
+  "_letrec" :: "[id,id,i,i]\<Rightarrow>i"  ("(3letrec _ _ be _/ in _)" [0,0,0,60] 60)
+  "_letrec2" :: "[id,id,id,i,i]\<Rightarrow>i"  ("(3letrec _ _ _ be _/ in _)" [0,0,0,0,60] 60)
+  "_letrec3" :: "[id,id,id,id,i,i]\<Rightarrow>i"  ("(3letrec _ _ _ _ be _/ in _)" [0,0,0,0,0,60] 60)
 
 ML \<open>
 (** Quantifier translations: variable binding **)
@@ -107,42 +128,24 @@ print_translation \<open>
   (@{const_syntax letrec3}, K letrec3_tr')]
 \<close>
 
-consts
-  napply     :: "[i\<Rightarrow>i,i,i]\<Rightarrow>i"            ("(_ ^ _ ` _)" [56,56,56] 56)
 
-defs
-  one_def:                    "one == true"
-  if_def:     "if b then t else u  == case(b, t, u, \<lambda> x y. bot, \<lambda>v. bot)"
-  inl_def:                 "inl(a) == <true,a>"
-  inr_def:                 "inr(b) == <false,b>"
-  when_def:           "when(t,f,g) == split(t, \<lambda>b x. if b then f(x) else g(x))"
-  split_def:           "split(t,f) == case(t, bot, bot, f, \<lambda>u. bot)"
-  fst_def:                 "fst(t) == split(t, \<lambda>x y. x)"
-  snd_def:                 "snd(t) == split(t, \<lambda>x y. y)"
-  thd_def:                 "thd(t) == split(t, \<lambda>x p. split(p, \<lambda>y z. z))"
-  zero_def:                  "zero == inl(one)"
-  succ_def:               "succ(n) == inr(n)"
-  ncase_def:         "ncase(n,b,c) == when(n, \<lambda>x. b, \<lambda>y. c(y))"
-  nrec_def:          " nrec(n,b,c) == letrec g x be ncase(x, b, \<lambda>y. c(y,g(y))) in g(n)"
-  nil_def:                     "[] == inl(one)"
-  cons_def:                   "h$t == inr(<h,t>)"
-  lcase_def:         "lcase(l,b,c) == when(l, \<lambda>x. b, \<lambda>y. split(y,c))"
-  lrec_def:           "lrec(l,b,c) == letrec g x be lcase(x, b, \<lambda>h t. c(h,t,g(t))) in g(l)"
+definition nrec :: "[i,i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
+  where "nrec(n,b,c) == letrec g x be ncase(x, b, \<lambda>y. c(y,g(y))) in g(n)"
 
-  let_def:  "let x be t in f(x) == case(t,f(true),f(false), \<lambda>x y. f(<x,y>), \<lambda>u. f(lam x. u(x)))"
-  letrec_def:
-  "letrec g x be h(x,g) in b(g) == b(\<lambda>x. fix(\<lambda>f. lam x. h(x,\<lambda>y. f`y))`x)"
+definition nil :: "i"  ("([])")
+  where "[] == inl(one)"
 
-  letrec2_def:  "letrec g x y be h(x,y,g) in f(g)==
-               letrec g' p be split(p,\<lambda>x y. h(x,y,\<lambda>u v. g'(<u,v>)))
-                          in f(\<lambda>x y. g'(<x,y>))"
+definition cons :: "[i,i]\<Rightarrow>i"  (infixr "$" 80)
+  where "h$t == inr(<h,t>)"
 
-  letrec3_def:  "letrec g x y z be h(x,y,z,g) in f(g) ==
-             letrec g' p be split(p,\<lambda>x xs. split(xs,\<lambda>y z. h(x,y,z,\<lambda>u v w. g'(<u,<v,w>>))))
-                          in f(\<lambda>x y z. g'(<x,<y,z>>))"
+definition lcase :: "[i,i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
+  where "lcase(l,b,c) == when(l, \<lambda>x. b, \<lambda>y. split(y,c))"
 
-  napply_def: "f ^n` a == nrec(n,a,\<lambda>x g. f(g))"
+definition lrec :: "[i,i,[i,i,i]\<Rightarrow>i]\<Rightarrow>i"
+  where "lrec(l,b,c) == letrec g x be lcase(x, b, \<lambda>h t. c(h,t,g(t))) in g(l)"
 
+definition napply :: "[i\<Rightarrow>i,i,i]\<Rightarrow>i"  ("(_ ^ _ ` _)" [56,56,56] 56)
+  where "f ^n` a == nrec(n,a,\<lambda>x g. f(g))"
 
 lemmas simp_can_defs = one_def inl_def inr_def
   and simp_ncan_defs = if_def when_def split_def fst_def snd_def thd_def

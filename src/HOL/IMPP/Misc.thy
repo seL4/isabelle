@@ -8,13 +8,29 @@ theory Misc
 imports Hoare
 begin
 
-defs
-  newlocs_def: "newlocs       == %x. undefined"
-  setlocs_def: "setlocs s l'  == case s of st g l => st g l'"
-  getlocs_def: "getlocs s     == case s of st g l => l"
-   update_def: "update s vn v == case vn of
-                               Glb gn => (case s of st g l => st (g(gn:=v)) l)
-                             | Loc ln => (case s of st g l => st g (l(ln:=v)))"
+overloading
+  newlocs \<equiv> newlocs
+  setlocs \<equiv> setlocs
+  getlocs \<equiv> getlocs
+  update \<equiv> update
+begin
+
+definition newlocs :: locals
+  where "newlocs == %x. undefined"
+
+definition setlocs :: "state => locals => state"
+  where "setlocs s l' == case s of st g l => st g l'"
+
+definition getlocs :: "state => locals"
+  where "getlocs s == case s of st g l => l"
+
+definition update  :: "state => vname => val => state"
+  where "update s vn v ==
+    case vn of
+      Glb gn => (case s of st g l => st (g(gn:=v)) l)
+    | Loc ln => (case s of st g l => st g (l(ln:=v)))"
+
+end
 
 
 subsection "state access"

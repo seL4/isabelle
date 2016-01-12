@@ -12,122 +12,135 @@ type_synonym memChType = "(memOp, Vals) channel"
 type_synonym memType = "(Locs \<Rightarrow> Vals) stfun"  (* intention: MemLocs \<Rightarrow> MemVals *)
 type_synonym resType = "(PrIds \<Rightarrow> Vals) stfun"
 
-consts
-  (* state predicates *)
-  MInit      :: "memType \<Rightarrow> Locs \<Rightarrow> stpred"
-  PInit      :: "resType \<Rightarrow> PrIds \<Rightarrow> stpred"
-  (* auxiliary predicates: is there a pending read/write request for
-     some process id and location/value? *)
-  RdRequest  :: "memChType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> stpred"
-  WrRequest  :: "memChType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> Vals \<Rightarrow> stpred"
 
-  (* actions *)
-  GoodRead   :: "memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> action"
-  BadRead    :: "memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> action"
-  ReadInner  :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> action"
-  Read       :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
-  GoodWrite  :: "memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> Vals \<Rightarrow> action"
-  BadWrite   :: "memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> Vals \<Rightarrow> action"
-  WriteInner :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> Vals \<Rightarrow> action"
-  Write      :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> action"
-  MemReturn  :: "memChType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
-  MemFail    :: "memChType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
-  RNext      :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
-  UNext      :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
+(* state predicates *)
 
-  (* temporal formulas *)
-  RPSpec     :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> temporal"
-  UPSpec     :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> temporal"
-  MSpec      :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> Locs \<Rightarrow> temporal"
-  IRSpec     :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> temporal"
-  IUSpec     :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> temporal"
+definition MInit :: "memType \<Rightarrow> Locs \<Rightarrow> stpred"
+  where "MInit mm l == PRED mm!l = #InitVal"
 
-  RSpec      :: "memChType \<Rightarrow> resType \<Rightarrow> temporal"
-  USpec      :: "memChType \<Rightarrow> temporal"
+definition PInit :: "resType \<Rightarrow> PrIds \<Rightarrow> stpred"
+  where "PInit rs p == PRED rs!p = #NotAResult"
 
-  (* memory invariant: in the paper, the invariant is hidden in the definition of
-     the predicate S used in the implementation proof, but it is easier to verify
-     at this level. *)
-  MemInv    :: "memType \<Rightarrow> Locs \<Rightarrow> stpred"
 
-defs
-  MInit_def:         "MInit mm l == PRED mm!l = #InitVal"
-  PInit_def:         "PInit rs p == PRED rs!p = #NotAResult"
+(* auxiliary predicates: is there a pending read/write request for
+   some process id and location/value? *)
 
-  RdRequest_def:     "RdRequest ch p l == PRED
-                         Calling ch p \<and> (arg<ch!p> = #(read l))"
-  WrRequest_def:     "WrRequest ch p l v == PRED
-                         Calling ch p \<and> (arg<ch!p> = #(write l v))"
-  (* a read that doesn't raise BadArg *)
-  GoodRead_def:      "GoodRead mm rs p l == ACT
-                        #l \<in> #MemLoc \<and> ((rs!p)$ = $(mm!l))"
-  (* a read that raises BadArg *)
-  BadRead_def:       "BadRead mm rs p l == ACT
-                        #l \<notin> #MemLoc \<and> ((rs!p)$ = #BadArg)"
-  (* the read action with l visible *)
-  ReadInner_def:     "ReadInner ch mm rs p l == ACT
-                         $(RdRequest ch p l)
-                         \<and> (GoodRead mm rs p l  \<or>  BadRead mm rs p l)
-                         \<and> unchanged (rtrner ch ! p)"
-  (* the read action with l quantified *)
-  Read_def:          "Read ch mm rs p == ACT (\<exists>l. ReadInner ch mm rs p l)"
+definition RdRequest :: "memChType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> stpred"
+  where "RdRequest ch p l == PRED Calling ch p \<and> (arg<ch!p> = #(read l))"
 
-  (* similar definitions for the write action *)
-  GoodWrite_def:     "GoodWrite mm rs p l v == ACT
-                        #l \<in> #MemLoc \<and> #v \<in> #MemVal
-                        \<and> ((mm!l)$ = #v) \<and> ((rs!p)$ = #OK)"
-  BadWrite_def:      "BadWrite mm rs p l v == ACT
-                        \<not> (#l \<in> #MemLoc \<and> #v \<in> #MemVal)
-                        \<and> ((rs!p)$ = #BadArg) \<and> unchanged (mm!l)"
-  WriteInner_def:    "WriteInner ch mm rs p l v == ACT
-                        $(WrRequest ch p l v)
-                        \<and> (GoodWrite mm rs p l v  \<or>  BadWrite mm rs p l v)
-                        \<and> unchanged (rtrner ch ! p)"
-  Write_def:         "Write ch mm rs p l == ACT (\<exists>v. WriteInner ch mm rs p l v)"
+definition WrRequest :: "memChType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> Vals \<Rightarrow> stpred"
+  where "WrRequest ch p l v == PRED Calling ch p \<and> (arg<ch!p> = #(write l v))"
 
-  (* the return action *)
-  MemReturn_def:     "MemReturn ch rs p == ACT
-                       (   ($(rs!p) \<noteq> #NotAResult)
-                        \<and> ((rs!p)$ = #NotAResult)
-                        \<and> Return ch p (rs!p))"
 
-  (* the failure action of the unreliable memory *)
-  MemFail_def:       "MemFail ch rs p == ACT
-                        $(Calling ch p)
-                        \<and> ((rs!p)$ = #MemFailure)
-                        \<and> unchanged (rtrner ch ! p)"
-  (* next-state relations for reliable / unreliable memory *)
-  RNext_def:         "RNext ch mm rs p == ACT
-                       (  Read ch mm rs p
-                        \<or> (\<exists>l. Write ch mm rs p l)
-                        \<or> MemReturn ch rs p)"
-  UNext_def:         "UNext ch mm rs p == ACT
-                        (RNext ch mm rs p \<or> MemFail ch rs p)"
+(* actions *)
 
-  RPSpec_def:        "RPSpec ch mm rs p == TEMP
-                        Init(PInit rs p)
-                        \<and> \<box>[ RNext ch mm rs p ]_(rtrner ch ! p, rs!p)
-                        \<and> WF(RNext ch mm rs p)_(rtrner ch ! p, rs!p)
-                        \<and> WF(MemReturn ch rs p)_(rtrner ch ! p, rs!p)"
-  UPSpec_def:        "UPSpec ch mm rs p == TEMP
-                        Init(PInit rs p)
-                        \<and> \<box>[ UNext ch mm rs p ]_(rtrner ch ! p, rs!p)
-                        \<and> WF(RNext ch mm rs p)_(rtrner ch ! p, rs!p)
-                        \<and> WF(MemReturn ch rs p)_(rtrner ch ! p, rs!p)"
-  MSpec_def:         "MSpec ch mm rs l == TEMP
-                        Init(MInit mm l)
-                        \<and> \<box>[ \<exists>p. Write ch mm rs p l ]_(mm!l)"
-  IRSpec_def:        "IRSpec ch mm rs == TEMP
-                        (\<forall>p. RPSpec ch mm rs p)
-                        \<and> (\<forall>l. #l \<in> #MemLoc \<longrightarrow> MSpec ch mm rs l)"
-  IUSpec_def:        "IUSpec ch mm rs == TEMP
-                        (\<forall>p. UPSpec ch mm rs p)
-                        \<and> (\<forall>l. #l \<in> #MemLoc \<longrightarrow> MSpec ch mm rs l)"
+(* a read that doesn't raise BadArg *)
+definition GoodRead :: "memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> action"
+  where "GoodRead mm rs p l == ACT #l \<in> #MemLoc \<and> ((rs!p)$ = $(mm!l))"
 
-  RSpec_def:         "RSpec ch rs == TEMP (\<exists>\<exists>mm. IRSpec ch mm rs)"
-  USpec_def:         "USpec ch == TEMP (\<exists>\<exists>mm rs. IUSpec ch mm rs)"
+(* a read that raises BadArg *)
+definition BadRead :: "memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> action"
+  where "BadRead mm rs p l == ACT #l \<notin> #MemLoc \<and> ((rs!p)$ = #BadArg)"
 
-  MemInv_def:        "MemInv mm l == PRED  #l \<in> #MemLoc \<longrightarrow> mm!l \<in> #MemVal"
+(* the read action with l visible *)
+definition ReadInner :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> action"
+  where "ReadInner ch mm rs p l == ACT
+    $(RdRequest ch p l)
+    \<and> (GoodRead mm rs p l  \<or>  BadRead mm rs p l)
+    \<and> unchanged (rtrner ch ! p)"
+
+(* the read action with l quantified *)
+definition Read :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
+  where "Read ch mm rs p == ACT (\<exists>l. ReadInner ch mm rs p l)"
+
+(* similar definitions for the write action *)
+definition GoodWrite :: "memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> Vals \<Rightarrow> action"
+  where "GoodWrite mm rs p l v ==
+    ACT #l \<in> #MemLoc \<and> #v \<in> #MemVal
+      \<and> ((mm!l)$ = #v) \<and> ((rs!p)$ = #OK)"
+
+definition BadWrite :: "memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> Vals \<Rightarrow> action"
+  where "BadWrite mm rs p l v == ACT
+    \<not> (#l \<in> #MemLoc \<and> #v \<in> #MemVal)
+    \<and> ((rs!p)$ = #BadArg) \<and> unchanged (mm!l)"
+
+definition WriteInner :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> Vals \<Rightarrow> action"
+  where "WriteInner ch mm rs p l v == ACT
+    $(WrRequest ch p l v)
+    \<and> (GoodWrite mm rs p l v  \<or>  BadWrite mm rs p l v)
+    \<and> unchanged (rtrner ch ! p)"
+
+definition Write :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> Locs \<Rightarrow> action"
+  where "Write ch mm rs p l == ACT (\<exists>v. WriteInner ch mm rs p l v)"
+
+
+(* the return action *)
+definition MemReturn :: "memChType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
+  where "MemReturn ch rs p == ACT
+   (   ($(rs!p) \<noteq> #NotAResult)
+    \<and> ((rs!p)$ = #NotAResult)
+    \<and> Return ch p (rs!p))"
+
+(* the failure action of the unreliable memory *)
+definition MemFail :: "memChType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
+  where "MemFail ch rs p == ACT
+    $(Calling ch p)
+    \<and> ((rs!p)$ = #MemFailure)
+    \<and> unchanged (rtrner ch ! p)"
+
+(* next-state relations for reliable / unreliable memory *)
+definition RNext :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
+  where "RNext ch mm rs p == ACT
+   (  Read ch mm rs p
+    \<or> (\<exists>l. Write ch mm rs p l)
+    \<or> MemReturn ch rs p)"
+
+definition UNext :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> action"
+  where "UNext ch mm rs p == ACT (RNext ch mm rs p \<or> MemFail ch rs p)"
+
+
+(* temporal formulas *)
+
+definition RPSpec :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> temporal"
+  where "RPSpec ch mm rs p == TEMP
+    Init(PInit rs p)
+    \<and> \<box>[ RNext ch mm rs p ]_(rtrner ch ! p, rs!p)
+    \<and> WF(RNext ch mm rs p)_(rtrner ch ! p, rs!p)
+    \<and> WF(MemReturn ch rs p)_(rtrner ch ! p, rs!p)"
+
+definition UPSpec :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> PrIds \<Rightarrow> temporal"
+  where "UPSpec ch mm rs p == TEMP
+    Init(PInit rs p)
+    \<and> \<box>[ UNext ch mm rs p ]_(rtrner ch ! p, rs!p)
+    \<and> WF(RNext ch mm rs p)_(rtrner ch ! p, rs!p)
+    \<and> WF(MemReturn ch rs p)_(rtrner ch ! p, rs!p)"
+
+definition MSpec :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> Locs \<Rightarrow> temporal"
+  where "MSpec ch mm rs l == TEMP
+    Init(MInit mm l)
+    \<and> \<box>[ \<exists>p. Write ch mm rs p l ]_(mm!l)"
+
+definition IRSpec :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> temporal"
+  where "IRSpec ch mm rs == TEMP
+    (\<forall>p. RPSpec ch mm rs p)
+    \<and> (\<forall>l. #l \<in> #MemLoc \<longrightarrow> MSpec ch mm rs l)"
+
+definition IUSpec :: "memChType \<Rightarrow> memType \<Rightarrow> resType \<Rightarrow> temporal"
+  where "IUSpec ch mm rs == TEMP
+    (\<forall>p. UPSpec ch mm rs p)
+    \<and> (\<forall>l. #l \<in> #MemLoc \<longrightarrow> MSpec ch mm rs l)"
+
+definition RSpec :: "memChType \<Rightarrow> resType \<Rightarrow> temporal"
+  where "RSpec ch rs == TEMP (\<exists>\<exists>mm. IRSpec ch mm rs)"
+
+definition USpec :: "memChType \<Rightarrow> temporal"
+  where "USpec ch == TEMP (\<exists>\<exists>mm rs. IUSpec ch mm rs)"
+
+(* memory invariant: in the paper, the invariant is hidden in the definition of
+   the predicate S used in the implementation proof, but it is easier to verify
+   at this level. *)
+definition MemInv :: "memType \<Rightarrow> Locs \<Rightarrow> stpred"
+  where "MemInv mm l == PRED  #l \<in> #MemLoc \<longrightarrow> mm!l \<in> #MemVal"
 
 lemmas RM_action_defs =
   MInit_def PInit_def RdRequest_def WrRequest_def MemInv_def
@@ -165,7 +178,7 @@ lemma MemoryInvariantAll:
 *)
 
 lemma Memoryidle: "\<turnstile> \<not>$(Calling ch p) \<longrightarrow> \<not> RNext ch mm rs p"
-  by (auto simp: Return_def RM_action_defs)
+  by (auto simp: AReturn_def RM_action_defs)
 
 (* Enabledness conditions *)
 
@@ -178,7 +191,7 @@ lemma MemReturn_enabled: "\<And>p. basevars (rtrner ch ! p, rs!p) \<Longrightarr
   apply (tactic
     \<open>action_simp_tac @{context} [@{thm MemReturn_change} RSN (2, @{thm enabled_mono}) ] [] 1\<close>)
   apply (tactic
-    \<open>action_simp_tac (@{context} addsimps [@{thm MemReturn_def}, @{thm Return_def},
+    \<open>action_simp_tac (@{context} addsimps [@{thm MemReturn_def}, @{thm AReturn_def},
       @{thm rtrner_def}]) [exI] [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
   done
 

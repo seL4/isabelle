@@ -26,80 +26,67 @@ text\<open>Datatypes will be represented by sets of type \<open>node\<close>\<cl
 type_synonym 'a item        = "('a, unit) node set"
 type_synonym ('a, 'b) dtree = "('a, 'b) node set"
 
-consts
-  Push      :: "[('b + nat), nat => ('b + nat)] => (nat => ('b + nat))"
-
-  Push_Node :: "[('b + nat), ('a, 'b) node] => ('a, 'b) node"
-  ndepth    :: "('a, 'b) node => nat"
-
-  Atom      :: "('a + nat) => ('a, 'b) dtree"
-  Leaf      :: "'a => ('a, 'b) dtree"
-  Numb      :: "nat => ('a, 'b) dtree"
-  Scons     :: "[('a, 'b) dtree, ('a, 'b) dtree] => ('a, 'b) dtree"
-  In0       :: "('a, 'b) dtree => ('a, 'b) dtree"
-  In1       :: "('a, 'b) dtree => ('a, 'b) dtree"
-  Lim       :: "('b => ('a, 'b) dtree) => ('a, 'b) dtree"
-
-  ntrunc    :: "[nat, ('a, 'b) dtree] => ('a, 'b) dtree"
-
-  uprod     :: "[('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree set"
-  usum      :: "[('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree set"
-
-  Split     :: "[[('a, 'b) dtree, ('a, 'b) dtree]=>'c, ('a, 'b) dtree] => 'c"
-  Case      :: "[[('a, 'b) dtree]=>'c, [('a, 'b) dtree]=>'c, ('a, 'b) dtree] => 'c"
-
-  dprod     :: "[(('a, 'b) dtree * ('a, 'b) dtree)set, (('a, 'b) dtree * ('a, 'b) dtree)set]
-                => (('a, 'b) dtree * ('a, 'b) dtree)set"
-  dsum      :: "[(('a, 'b) dtree * ('a, 'b) dtree)set, (('a, 'b) dtree * ('a, 'b) dtree)set]
-                => (('a, 'b) dtree * ('a, 'b) dtree)set"
-
-
-defs
-
-  Push_Node_def:  "Push_Node == (%n x. Abs_Node (apfst (Push n) (Rep_Node x)))"
-
+definition Push :: "[('b + nat), nat => ('b + nat)] => (nat => ('b + nat))"
   (*crude "lists" of nats -- needed for the constructions*)
-  Push_def:   "Push == (%b h. case_nat b h)"
+  where "Push == (%b h. case_nat b h)"
 
-  (** operations on S-expressions -- sets of nodes **)
-
-  (*S-expression constructors*)
-  Atom_def:   "Atom == (%x. {Abs_Node((%k. Inr 0, x))})"
-  Scons_def:  "Scons M N == (Push_Node (Inr 1) ` M) Un (Push_Node (Inr (Suc 1)) ` N)"
-
-  (*Leaf nodes, with arbitrary or nat labels*)
-  Leaf_def:   "Leaf == Atom o Inl"
-  Numb_def:   "Numb == Atom o Inr"
-
-  (*Injections of the "disjoint sum"*)
-  In0_def:    "In0(M) == Scons (Numb 0) M"
-  In1_def:    "In1(M) == Scons (Numb 1) M"
-
-  (*Function spaces*)
-  Lim_def: "Lim f == \<Union>{z. ? x. z = Push_Node (Inl x) ` (f x)}"
-
-  (*the set of nodes with depth less than k*)
-  ndepth_def: "ndepth(n) == (%(f,x). LEAST k. f k = Inr 0) (Rep_Node n)"
-  ntrunc_def: "ntrunc k N == {n. n:N & ndepth(n)<k}"
-
-  (*products and sums for the "universe"*)
-  uprod_def:  "uprod A B == UN x:A. UN y:B. { Scons x y }"
-  usum_def:   "usum A B == In0`A Un In1`B"
-
-  (*the corresponding eliminators*)
-  Split_def:  "Split c M == THE u. EX x y. M = Scons x y & u = c x y"
-
-  Case_def:   "Case c d M == THE u.  (EX x . M = In0(x) & u = c(x))
-                                  | (EX y . M = In1(y) & u = d(y))"
+definition Push_Node :: "[('b + nat), ('a, 'b) node] => ('a, 'b) node"
+  where "Push_Node == (%n x. Abs_Node (apfst (Push n) (Rep_Node x)))"
 
 
-  (** equality for the "universe" **)
+(** operations on S-expressions -- sets of nodes **)
 
-  dprod_def:  "dprod r s == UN (x,x'):r. UN (y,y'):s. {(Scons x y, Scons x' y')}"
+(*S-expression constructors*)
+definition Atom :: "('a + nat) => ('a, 'b) dtree"
+  where "Atom == (%x. {Abs_Node((%k. Inr 0, x))})"
+definition Scons :: "[('a, 'b) dtree, ('a, 'b) dtree] => ('a, 'b) dtree"
+  where "Scons M N == (Push_Node (Inr 1) ` M) Un (Push_Node (Inr (Suc 1)) ` N)"
 
-  dsum_def:   "dsum r s == (UN (x,x'):r. {(In0(x),In0(x'))}) Un
-                          (UN (y,y'):s. {(In1(y),In1(y'))})"
+(*Leaf nodes, with arbitrary or nat labels*)
+definition Leaf :: "'a => ('a, 'b) dtree"
+  where "Leaf == Atom o Inl"
+definition Numb :: "nat => ('a, 'b) dtree"
+  where "Numb == Atom o Inr"
 
+(*Injections of the "disjoint sum"*)
+definition In0 :: "('a, 'b) dtree => ('a, 'b) dtree"
+  where "In0(M) == Scons (Numb 0) M"
+definition In1 :: "('a, 'b) dtree => ('a, 'b) dtree"
+  where "In1(M) == Scons (Numb 1) M"
+
+(*Function spaces*)
+definition Lim :: "('b => ('a, 'b) dtree) => ('a, 'b) dtree"
+  where "Lim f == \<Union>{z. ? x. z = Push_Node (Inl x) ` (f x)}"
+
+(*the set of nodes with depth less than k*)
+definition ndepth :: "('a, 'b) node => nat"
+  where "ndepth(n) == (%(f,x). LEAST k. f k = Inr 0) (Rep_Node n)"
+definition ntrunc :: "[nat, ('a, 'b) dtree] => ('a, 'b) dtree"
+  where "ntrunc k N == {n. n:N & ndepth(n)<k}"
+
+(*products and sums for the "universe"*)
+definition uprod :: "[('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree set"
+  where "uprod A B == UN x:A. UN y:B. { Scons x y }"
+definition usum :: "[('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree set"
+  where "usum A B == In0`A Un In1`B"
+
+(*the corresponding eliminators*)
+definition Split :: "[[('a, 'b) dtree, ('a, 'b) dtree]=>'c, ('a, 'b) dtree] => 'c"
+  where "Split c M == THE u. EX x y. M = Scons x y & u = c x y"
+
+definition Case :: "[[('a, 'b) dtree]=>'c, [('a, 'b) dtree]=>'c, ('a, 'b) dtree] => 'c"
+  where "Case c d M == THE u. (EX x . M = In0(x) & u = c(x)) | (EX y . M = In1(y) & u = d(y))"
+
+
+(** equality for the "universe" **)
+
+definition dprod :: "[(('a, 'b) dtree * ('a, 'b) dtree)set, (('a, 'b) dtree * ('a, 'b) dtree)set]
+      => (('a, 'b) dtree * ('a, 'b) dtree)set"
+  where "dprod r s == UN (x,x'):r. UN (y,y'):s. {(Scons x y, Scons x' y')}"
+
+definition dsum :: "[(('a, 'b) dtree * ('a, 'b) dtree)set, (('a, 'b) dtree * ('a, 'b) dtree)set]
+      => (('a, 'b) dtree * ('a, 'b) dtree)set"
+  where "dsum r s == (UN (x,x'):r. {(In0(x),In0(x'))}) Un (UN (y,y'):s. {(In1(y),In1(y'))})"
 
 
 lemma apfst_convE: 
