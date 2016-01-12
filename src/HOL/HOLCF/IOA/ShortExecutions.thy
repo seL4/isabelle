@@ -13,39 +13,33 @@ text \<open>
   that has the same trace as ex, but its schedule ends with an external action.
 \<close>
 
-definition
-  oraclebuild :: "('a => bool) => 'a Seq -> 'a Seq -> 'a Seq" where
-  "oraclebuild P = (fix$(LAM h s t. case t of
-       nil => nil
-    | x##xs =>
-      (case x of
-        UU => UU
-      | Def y => (Takewhile (%x. \<not>P x)$s)
-                  @@ (y\<leadsto>(h$(TL$(Dropwhile (%x. \<not> P x)$s))$xs))
-      )
-    ))"
+definition oraclebuild :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Seq \<rightarrow> 'a Seq \<rightarrow> 'a Seq"
+  where "oraclebuild P =
+    (fix $
+      (LAM h s t.
+        case t of
+          nil \<Rightarrow> nil
+        | x ## xs \<Rightarrow>
+            (case x of
+              UU \<Rightarrow> UU
+            | Def y \<Rightarrow>
+                (Takewhile (\<lambda>x. \<not> P x) $ s) @@
+                (y \<leadsto> (h $ (TL $ (Dropwhile (\<lambda>x. \<not> P x) $ s)) $ xs)))))"
 
-definition
-  Cut :: "('a => bool) => 'a Seq => 'a Seq" where
-  "Cut P s = oraclebuild P$s$(Filter P$s)"
+definition Cut :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Seq \<Rightarrow> 'a Seq"
+  where "Cut P s = oraclebuild P $ s $ (Filter P $ s)"
 
-definition
-  LastActExtsch :: "('a,'s)ioa => 'a Seq => bool" where
-  "LastActExtsch A sch = (Cut (%x. x: ext A) sch = sch)"
-
-(* LastActExtex      ::"('a,'s)ioa => ('a,'s) pairs  => bool"*)
-(* LastActExtex_def:
-  "LastActExtex A ex == LastActExtsch A (filter_act$ex)" *)
+definition LastActExtsch :: "('a,'s) ioa \<Rightarrow> 'a Seq \<Rightarrow> bool"
+  where "LastActExtsch A sch \<longleftrightarrow> Cut (\<lambda>x. x \<in> ext A) sch = sch"
 
 axiomatization where
-  Cut_prefixcl_Finite: "Finite s ==> (? y. s = Cut P s @@ y)"
+  Cut_prefixcl_Finite: "Finite s \<Longrightarrow> \<exists>y. s = Cut P s @@ y"
 
 axiomatization where
-  LastActExtsmall1: "LastActExtsch A sch ==> LastActExtsch A (TL$(Dropwhile P$sch))"
+  LastActExtsmall1: "LastActExtsch A sch \<Longrightarrow> LastActExtsch A (TL $ (Dropwhile P $ sch))"
 
 axiomatization where
-  LastActExtsmall2: "[| Finite sch1; LastActExtsch A (sch1 @@ sch2) |] ==> LastActExtsch A sch2"
-
+  LastActExtsmall2: "Finite sch1 \<Longrightarrow> LastActExtsch A (sch1 @@ sch2) \<Longrightarrow> LastActExtsch A sch2"
 
 ML \<open>
 fun thin_tac' ctxt j =
@@ -55,224 +49,209 @@ fun thin_tac' ctxt j =
 \<close>
 
 
-subsection "oraclebuild rewrite rules"
-
+subsection \<open>\<open>oraclebuild\<close> rewrite rules\<close>
 
 lemma oraclebuild_unfold:
-"oraclebuild P = (LAM s t. case t of
-       nil => nil
-    | x##xs =>
-      (case x of
-        UU => UU
-      | Def y => (Takewhile (%a. \<not> P a)$s)
-                  @@ (y\<leadsto>(oraclebuild P$(TL$(Dropwhile (%a. \<not> P a)$s))$xs))
-      )
-    )"
-apply (rule trans)
-apply (rule fix_eq2)
-apply (simp only: oraclebuild_def)
-apply (rule beta_cfun)
-apply simp
-done
+  "oraclebuild P =
+    (LAM s t.
+      case t of
+        nil \<Rightarrow> nil
+      | x ## xs \<Rightarrow>
+          (case x of
+            UU \<Rightarrow> UU
+          | Def y \<Rightarrow>
+            (Takewhile (\<lambda>a. \<not> P a) $ s) @@
+            (y \<leadsto> (oraclebuild P $ (TL $ (Dropwhile (\<lambda>a. \<not> P a) $ s)) $ xs))))"
+  apply (rule trans)
+  apply (rule fix_eq2)
+  apply (simp only: oraclebuild_def)
+  apply (rule beta_cfun)
+  apply simp
+  done
 
-lemma oraclebuild_UU: "oraclebuild P$sch$UU = UU"
-apply (subst oraclebuild_unfold)
-apply simp
-done
+lemma oraclebuild_UU: "oraclebuild P $ sch $ UU = UU"
+  apply (subst oraclebuild_unfold)
+  apply simp
+  done
 
-lemma oraclebuild_nil: "oraclebuild P$sch$nil = nil"
-apply (subst oraclebuild_unfold)
-apply simp
-done
+lemma oraclebuild_nil: "oraclebuild P $ sch $ nil = nil"
+  apply (subst oraclebuild_unfold)
+  apply simp
+  done
 
-lemma oraclebuild_cons: "oraclebuild P$s$(x\<leadsto>t) =
-          (Takewhile (%a. \<not> P a)$s)
-           @@ (x\<leadsto>(oraclebuild P$(TL$(Dropwhile (%a. \<not> P a)$s))$t))"
-apply (rule trans)
-apply (subst oraclebuild_unfold)
-apply (simp add: Consq_def)
-apply (simp add: Consq_def)
-done
+lemma oraclebuild_cons:
+  "oraclebuild P $ s $ (x \<leadsto> t) =
+    (Takewhile (\<lambda>a. \<not> P a) $ s) @@
+    (x \<leadsto> (oraclebuild P $ (TL $ (Dropwhile (\<lambda>a. \<not> P a) $ s)) $ t))"
+  apply (rule trans)
+  apply (subst oraclebuild_unfold)
+  apply (simp add: Consq_def)
+  apply (simp add: Consq_def)
+  done
 
 
-subsection "Cut rewrite rules"
+subsection \<open>Cut rewrite rules\<close>
 
-lemma Cut_nil:
-"[| Forall (%a. \<not> P a) s; Finite s|]
-            ==> Cut P s =nil"
-apply (unfold Cut_def)
-apply (subgoal_tac "Filter P$s = nil")
-apply (simp (no_asm_simp) add: oraclebuild_nil)
-apply (rule ForallQFilterPnil)
-apply assumption+
-done
+lemma Cut_nil: "Forall (\<lambda>a. \<not> P a) s \<Longrightarrow> Finite s \<Longrightarrow> Cut P s = nil"
+  apply (unfold Cut_def)
+  apply (subgoal_tac "Filter P $ s = nil")
+  apply (simp add: oraclebuild_nil)
+  apply (rule ForallQFilterPnil)
+  apply assumption+
+  done
 
-lemma Cut_UU:
-"[| Forall (%a. \<not> P a) s; ~Finite s|]
-            ==> Cut P s =UU"
-apply (unfold Cut_def)
-apply (subgoal_tac "Filter P$s= UU")
-apply (simp (no_asm_simp) add: oraclebuild_UU)
-apply (rule ForallQFilterPUU)
-apply assumption+
-done
+lemma Cut_UU: "Forall (\<lambda>a. \<not> P a) s \<Longrightarrow> \<not> Finite s \<Longrightarrow> Cut P s = UU"
+  apply (unfold Cut_def)
+  apply (subgoal_tac "Filter P $ s = UU")
+  apply (simp add: oraclebuild_UU)
+  apply (rule ForallQFilterPUU)
+  apply assumption+
+  done
 
 lemma Cut_Cons:
-"[| P t;  Forall (%x. \<not> P x) ss; Finite ss|]
-            ==> Cut P (ss @@ (t\<leadsto> rs))
-                 = ss @@ (t \<leadsto> Cut P rs)"
-apply (unfold Cut_def)
-apply (simp add: ForallQFilterPnil oraclebuild_cons TakewhileConc DropwhileConc)
-done
+  "P t \<Longrightarrow> Forall (\<lambda>x. \<not> P x) ss \<Longrightarrow> Finite ss \<Longrightarrow>
+    Cut P (ss @@ (t \<leadsto> rs)) = ss @@ (t \<leadsto> Cut P rs)"
+  apply (unfold Cut_def)
+  apply (simp add: ForallQFilterPnil oraclebuild_cons TakewhileConc DropwhileConc)
+  done
 
 
-subsection "Cut lemmas for main theorem"
+subsection \<open>Cut lemmas for main theorem\<close>
 
-lemma FilterCut: "Filter P$s = Filter P$(Cut P s)"
-apply (rule_tac A1 = "%x. True" and Q1 = "%x. \<not> P x" and x1 = "s" in take_lemma_induct [THEN mp])
-prefer 3 apply (fast)
-apply (case_tac "Finite s")
-apply (simp add: Cut_nil ForallQFilterPnil)
-apply (simp add: Cut_UU ForallQFilterPUU)
-(* main case *)
-apply (simp add: Cut_Cons ForallQFilterPnil)
-done
-
+lemma FilterCut: "Filter P $ s = Filter P $ (Cut P s)"
+  apply (rule_tac A1 = "\<lambda>x. True" and Q1 = "\<lambda>x. \<not> P x" and x1 = "s" in take_lemma_induct [THEN mp])
+  prefer 3
+  apply fast
+  apply (case_tac "Finite s")
+  apply (simp add: Cut_nil ForallQFilterPnil)
+  apply (simp add: Cut_UU ForallQFilterPUU)
+  text \<open>main case\<close>
+  apply (simp add: Cut_Cons ForallQFilterPnil)
+  done
 
 lemma Cut_idemp: "Cut P (Cut P s) = (Cut P s)"
-apply (rule_tac A1 = "%x. True" and Q1 = "%x. \<not> P x" and x1 = "s" in
-  take_lemma_less_induct [THEN mp])
-prefer 3 apply (fast)
-apply (case_tac "Finite s")
-apply (simp add: Cut_nil ForallQFilterPnil)
-apply (simp add: Cut_UU ForallQFilterPUU)
-(* main case *)
-apply (simp add: Cut_Cons ForallQFilterPnil)
-apply (rule take_reduction)
-apply auto
-done
-
+  apply (rule_tac A1 = "\<lambda>x. True" and Q1 = "\<lambda>x. \<not> P x" and x1 = "s" in
+    take_lemma_less_induct [THEN mp])
+  prefer 3
+  apply fast
+  apply (case_tac "Finite s")
+  apply (simp add: Cut_nil ForallQFilterPnil)
+  apply (simp add: Cut_UU ForallQFilterPUU)
+  text \<open>main case\<close>
+  apply (simp add: Cut_Cons ForallQFilterPnil)
+  apply (rule take_reduction)
+  apply auto
+  done
 
 lemma MapCut: "Map f$(Cut (P \<circ> f) s) = Cut P (Map f$s)"
-apply (rule_tac A1 = "%x. True" and Q1 = "%x. \<not> P (f x) " and x1 = "s" in
-  take_lemma_less_induct [THEN mp])
-prefer 3 apply (fast)
-apply (case_tac "Finite s")
-apply (simp add: Cut_nil)
-apply (rule Cut_nil [symmetric])
-apply (simp add: ForallMap o_def)
-apply (simp add: Map2Finite)
-(* csae ~ Finite s *)
-apply (simp add: Cut_UU)
-apply (rule Cut_UU)
-apply (simp add: ForallMap o_def)
-apply (simp add: Map2Finite)
-(* main case *)
-apply (simp add: Cut_Cons MapConc ForallMap FiniteMap1 o_def)
-apply (rule take_reduction)
-apply auto
-done
+  apply (rule_tac A1 = "\<lambda>x. True" and Q1 = "\<lambda>x. \<not> P (f x) " and x1 = "s" in
+    take_lemma_less_induct [THEN mp])
+  prefer 3
+  apply fast
+  apply (case_tac "Finite s")
+  apply (simp add: Cut_nil)
+  apply (rule Cut_nil [symmetric])
+  apply (simp add: ForallMap o_def)
+  apply (simp add: Map2Finite)
+  text \<open>case \<open>\<not> Finite s\<close>\<close>
+  apply (simp add: Cut_UU)
+  apply (rule Cut_UU)
+  apply (simp add: ForallMap o_def)
+  apply (simp add: Map2Finite)
+  text \<open>main case\<close>
+  apply (simp add: Cut_Cons MapConc ForallMap FiniteMap1 o_def)
+  apply (rule take_reduction)
+  apply auto
+  done
+
+lemma Cut_prefixcl_nFinite [rule_format]: "\<not> Finite s \<longrightarrow> Cut P s \<sqsubseteq> s"
+  apply (intro strip)
+  apply (rule take_lemma_less [THEN iffD1])
+  apply (intro strip)
+  apply (rule mp)
+  prefer 2
+  apply assumption
+  apply (tactic "thin_tac' @{context} 1 1")
+  apply (rule_tac x = "s" in spec)
+  apply (rule nat_less_induct)
+  apply (intro strip)
+  apply (rename_tac na n s)
+  apply (case_tac "Forall (\<lambda>x. \<not> P x) s")
+  apply (rule take_lemma_less [THEN iffD2, THEN spec])
+  apply (simp add: Cut_UU)
+  text \<open>main case\<close>
+  apply (drule divide_Seq3)
+  apply (erule exE)+
+  apply (erule conjE)+
+  apply hypsubst
+  apply (simp add: Cut_Cons)
+  apply (rule take_reduction_less)
+  text \<open>auto makes also reasoning about Finiteness of parts of \<open>s\<close>!\<close>
+  apply auto
+  done
+
+lemma execThruCut: "is_exec_frag A (s, ex) \<Longrightarrow> is_exec_frag A (s, Cut P ex)"
+  apply (case_tac "Finite ex")
+  apply (cut_tac s = "ex" and P = "P" in Cut_prefixcl_Finite)
+  apply assumption
+  apply (erule exE)
+  apply (rule exec_prefix2closed)
+  apply (erule_tac s = "ex" and t = "Cut P ex @@ y" in subst)
+  apply assumption
+  apply (erule exec_prefixclosed)
+  apply (erule Cut_prefixcl_nFinite)
+  done
 
 
-lemma Cut_prefixcl_nFinite [rule_format (no_asm)]: "~Finite s --> Cut P s << s"
-apply (intro strip)
-apply (rule take_lemma_less [THEN iffD1])
-apply (intro strip)
-apply (rule mp)
-prefer 2 apply (assumption)
-apply (tactic "thin_tac' @{context} 1 1")
-apply (rule_tac x = "s" in spec)
-apply (rule nat_less_induct)
-apply (intro strip)
-apply (rename_tac na n s)
-apply (case_tac "Forall (%x. ~ P x) s")
-apply (rule take_lemma_less [THEN iffD2, THEN spec])
-apply (simp add: Cut_UU)
-(* main case *)
-apply (drule divide_Seq3)
-apply (erule exE)+
-apply (erule conjE)+
-apply hypsubst
-apply (simp add: Cut_Cons)
-apply (rule take_reduction_less)
-(* auto makes also reasoning about Finiteness of parts of s ! *)
-apply auto
-done
-
-
-lemma execThruCut: "!!ex .is_exec_frag A (s,ex) ==> is_exec_frag A (s,Cut P ex)"
-apply (case_tac "Finite ex")
-apply (cut_tac s = "ex" and P = "P" in Cut_prefixcl_Finite)
-apply assumption
-apply (erule exE)
-apply (rule exec_prefix2closed)
-apply (erule_tac s = "ex" and t = "Cut P ex @@ y" in subst)
-apply assumption
-apply (erule exec_prefixclosed)
-apply (erule Cut_prefixcl_nFinite)
-done
-
-
-subsection "Main Cut Theorem"
+subsection \<open>Main Cut Theorem\<close>
 
 lemma exists_LastActExtsch:
- "[|sch : schedules A ; tr = Filter (%a. a:ext A)$sch|]
-    ==> ? sch. sch : schedules A &
-               tr = Filter (%a. a:ext A)$sch &
-               LastActExtsch A sch"
+  "sch \<in> schedules A \<Longrightarrow> tr = Filter (\<lambda>a. a \<in> ext A) $ sch \<Longrightarrow>
+    \<exists>sch. sch \<in> schedules A \<and> tr = Filter (\<lambda>a. a \<in> ext A) $ sch \<and> LastActExtsch A sch"
+  apply (unfold schedules_def has_schedule_def [abs_def])
+  apply auto
+  apply (rule_tac x = "filter_act $ (Cut (\<lambda>a. fst a \<in> ext A) (snd ex))" in exI)
+  apply (simp add: executions_def)
+  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply auto
+  apply (rule_tac x = "(x1, Cut (\<lambda>a. fst a \<in> ext A) x2)" in exI)
+  apply simp
 
-apply (unfold schedules_def has_schedule_def [abs_def])
-apply auto
-apply (rule_tac x = "filter_act$ (Cut (%a. fst a:ext A) (snd ex))" in exI)
-apply (simp add: executions_def)
-apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
-apply auto
-apply (rule_tac x = " (x1,Cut (%a. fst a:ext A) x2) " in exI)
-apply (simp (no_asm_simp))
+  text \<open>Subgoal 1: Lemma:  propagation of execution through \<open>Cut\<close>\<close>
+  apply (simp add: execThruCut)
 
-(* Subgoal 1: Lemma:  propagation of execution through Cut *)
+  text \<open>Subgoal 2:  Lemma:  \<open>Filter P s = Filter P (Cut P s)\<close>\<close>
+  apply (simp add: filter_act_def)
+  apply (subgoal_tac "Map fst $ (Cut (\<lambda>a. fst a \<in> ext A) x2) = Cut (\<lambda>a. a \<in> ext A) (Map fst $ x2)")
+  apply (rule_tac [2] MapCut [unfolded o_def])
+  apply (simp add: FilterCut [symmetric])
 
-apply (simp add: execThruCut)
-
-(* Subgoal 2:  Lemma:  Filter P s = Filter P (Cut P s) *)
-
-apply (simp (no_asm) add: filter_act_def)
-apply (subgoal_tac "Map fst$ (Cut (%a. fst a: ext A) x2) = Cut (%a. a:ext A) (Map fst$x2) ")
-
-apply (rule_tac [2] MapCut [unfolded o_def])
-apply (simp add: FilterCut [symmetric])
-
-(* Subgoal 3: Lemma: Cut idempotent  *)
-
-apply (simp (no_asm) add: LastActExtsch_def filter_act_def)
-apply (subgoal_tac "Map fst$ (Cut (%a. fst a: ext A) x2) = Cut (%a. a:ext A) (Map fst$x2) ")
-apply (rule_tac [2] MapCut [unfolded o_def])
-apply (simp add: Cut_idemp)
-done
+  text \<open>Subgoal 3: Lemma: \<open>Cut\<close> idempotent\<close>
+  apply (simp add: LastActExtsch_def filter_act_def)
+  apply (subgoal_tac "Map fst $ (Cut (\<lambda>a. fst a \<in> ext A) x2) = Cut (\<lambda>a. a \<in> ext A) (Map fst $ x2)")
+  apply (rule_tac [2] MapCut [unfolded o_def])
+  apply (simp add: Cut_idemp)
+  done
 
 
-subsection "Further Cut lemmas"
+subsection \<open>Further Cut lemmas\<close>
 
-lemma LastActExtimplnil:
-  "[| LastActExtsch A sch; Filter (%x. x:ext A)$sch = nil |]
-    ==> sch=nil"
-apply (unfold LastActExtsch_def)
-apply (drule FilternPnilForallP)
-apply (erule conjE)
-apply (drule Cut_nil)
-apply assumption
-apply simp
-done
+lemma LastActExtimplnil: "LastActExtsch A sch \<Longrightarrow> Filter (\<lambda>x. x \<in> ext A) $ sch = nil \<Longrightarrow> sch = nil"
+  apply (unfold LastActExtsch_def)
+  apply (drule FilternPnilForallP)
+  apply (erule conjE)
+  apply (drule Cut_nil)
+  apply assumption
+  apply simp
+  done
 
-lemma LastActExtimplUU:
-  "[| LastActExtsch A sch; Filter (%x. x:ext A)$sch = UU |]
-    ==> sch=UU"
-apply (unfold LastActExtsch_def)
-apply (drule FilternPUUForallP)
-apply (erule conjE)
-apply (drule Cut_UU)
-apply assumption
-apply simp
-done
+lemma LastActExtimplUU: "LastActExtsch A sch \<Longrightarrow> Filter (\<lambda>x. x \<in> ext A) $ sch = UU \<Longrightarrow> sch = UU"
+  apply (unfold LastActExtsch_def)
+  apply (drule FilternPUUForallP)
+  apply (erule conjE)
+  apply (drule Cut_UU)
+  apply assumption
+  apply simp
+  done
 
 end
