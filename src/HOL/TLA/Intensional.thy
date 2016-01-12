@@ -17,17 +17,29 @@ class world
 type_synonym ('w,'a) expr = "'w \<Rightarrow> 'a"   (* intention: 'w::world, 'a::type *)
 type_synonym 'w form = "('w, bool) expr"
 
-consts
-  Valid    :: "('w::world) form \<Rightarrow> bool"
-  const    :: "'a \<Rightarrow> ('w::world, 'a) expr"
-  lift     :: "['a \<Rightarrow> 'b, ('w::world, 'a) expr] \<Rightarrow> ('w,'b) expr"
-  lift2    :: "['a \<Rightarrow> 'b \<Rightarrow> 'c, ('w::world,'a) expr, ('w,'b) expr] \<Rightarrow> ('w,'c) expr"
-  lift3    :: "['a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd, ('w::world,'a) expr, ('w,'b) expr, ('w,'c) expr] \<Rightarrow> ('w,'d) expr"
+definition Valid :: "('w::world) form \<Rightarrow> bool"
+  where "Valid A \<equiv> \<forall>w. A w"
 
-  (* "Rigid" quantification (logic level) *)
-  RAll     :: "('a \<Rightarrow> ('w::world) form) \<Rightarrow> 'w form"       (binder "Rall " 10)
-  REx      :: "('a \<Rightarrow> ('w::world) form) \<Rightarrow> 'w form"       (binder "Rex " 10)
-  REx1     :: "('a \<Rightarrow> ('w::world) form) \<Rightarrow> 'w form"       (binder "Rex! " 10)
+definition const :: "'a \<Rightarrow> ('w::world, 'a) expr"
+  where unl_con: "const c w \<equiv> c"
+
+definition lift :: "['a \<Rightarrow> 'b, ('w::world, 'a) expr] \<Rightarrow> ('w,'b) expr"
+  where unl_lift: "lift f x w \<equiv> f (x w)"
+
+definition lift2 :: "['a \<Rightarrow> 'b \<Rightarrow> 'c, ('w::world,'a) expr, ('w,'b) expr] \<Rightarrow> ('w,'c) expr"
+  where unl_lift2: "lift2 f x y w \<equiv> f (x w) (y w)"
+
+definition lift3 :: "['a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd, ('w::world,'a) expr, ('w,'b) expr, ('w,'c) expr] \<Rightarrow> ('w,'d) expr"
+  where unl_lift3: "lift3 f x y z w \<equiv> f (x w) (y w) (z w)"
+
+(* "Rigid" quantification (logic level) *)
+definition RAll :: "('a \<Rightarrow> ('w::world) form) \<Rightarrow> 'w form"  (binder "Rall " 10)
+  where unl_Rall: "(Rall x. A x) w \<equiv> \<forall>x. A x w"
+definition REx :: "('a \<Rightarrow> ('w::world) form) \<Rightarrow> 'w form"  (binder "Rex " 10)
+  where unl_Rex: "(Rex x. A x) w \<equiv> \<exists>x. A x w"
+definition REx1 :: "('a \<Rightarrow> ('w::world) form) \<Rightarrow> 'w form"  (binder "Rex! " 10)
+  where unl_Rex1: "(Rex! x. A x) w \<equiv> \<exists>!x. A x w"
+
 
 (** concrete syntax **)
 
@@ -123,8 +135,6 @@ translations
   "_liftList (_liftargs x xs)"  == "_liftCons x (_liftList xs)"
   "_liftList x"   == "_liftCons x (_const [])"
 
-
-
   "w \<Turnstile> \<not>A"       <= "_liftNot A w"
   "w \<Turnstile> A \<and> B"    <= "_liftAnd A B w"
   "w \<Turnstile> A \<or> B"    <= "_liftOr A B w"
@@ -133,18 +143,6 @@ translations
   "w \<Turnstile> \<forall>x. A"   <= "_RAll x A w"
   "w \<Turnstile> \<exists>x. A"   <= "_REx x A w"
   "w \<Turnstile> \<exists>!x. A"  <= "_REx1 x A w"
-
-defs
-  Valid_def:   "\<turnstile> A    ==  \<forall>w. w \<Turnstile> A"
-
-  unl_con:     "LIFT #c w  ==  c"
-  unl_lift:    "lift f x w == f (x w)"
-  unl_lift2:   "LIFT f<x, y> w == f (x w) (y w)"
-  unl_lift3:   "LIFT f<x, y, z> w == f (x w) (y w) (z w)"
-
-  unl_Rall:    "w \<Turnstile> \<forall>x. A x  ==  \<forall>x. (w \<Turnstile> A x)"
-  unl_Rex:     "w \<Turnstile> \<exists>x. A x   ==  \<exists>x. (w \<Turnstile> A x)"
-  unl_Rex1:    "w \<Turnstile> \<exists>!x. A x  ==  \<exists>!x. (w \<Turnstile> A x)"
 
 
 subsection \<open>Lemmas and tactics for "intensional" logics.\<close>
