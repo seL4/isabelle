@@ -2,7 +2,7 @@
     Author:     Dmitriy Traytel, ETH Zürich
     Copyright   2015
 
-Modernized version of HOL/ex/MT.thy by Jacob Frost
+Modernized version of an old development by Jacob Frost
 
 Based upon the article
     Robin Milner and Mads Tofte,

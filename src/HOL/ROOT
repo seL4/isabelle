@@ -574,7 +574,6 @@ session "HOL-ex" in ex = HOL +
     MergeSort
     Lagrange
     Groebner_Examples
-    MT
     Unification
     Primrec
     Tarski
