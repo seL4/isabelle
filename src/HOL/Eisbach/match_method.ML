@@ -434,8 +434,6 @@ fun augment_focus (focus: Subgoal.focus) : (int list * Subgoal.focus) =
       |> add_focus_schematics (snd schematics)
       |> fold_map add_focus_prem (rev prems)
 
-    val local_prems = map2 pair prem_ids (rev prems);
-
   in
     (prem_ids,
       {context = ctxt',

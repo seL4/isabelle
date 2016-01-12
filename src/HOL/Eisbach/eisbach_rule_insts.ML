@@ -76,35 +76,9 @@ fun instantiate_xis ctxt insts thm =
     |> restore_tags thm
   end;
 
-(* FIXME unused *)
-fun read_instantiate_no_thm ctxt insts fixes =
-  let
-    val (type_insts, term_insts) =
-      List.partition (fn (((x, _) : indexname), _) => String.isPrefix "'" x) insts;
-
-    val ctxt1 =
-      ctxt
-      |> Context_Position.not_really
-      |> Proof_Context.add_fixes_cmd fixes |> #2;
-
-    val typs =
-      map snd type_insts
-      |> Syntax.read_typs ctxt1;
-
-    val typ_insts' = map2 (fn (xi, _) => fn T => (xi, T)) type_insts typs;
-
-    val terms =
-      map snd term_insts
-      |> Syntax.read_terms ctxt1;
-
-    val term_insts' = map2 (fn (xi, _) => fn t => (xi, t)) term_insts terms;
-
-  in (typ_insts', term_insts') end;
-
 
 datatype rule_inst =
   Named_Insts of ((indexname * string) * (term -> unit)) list * (binding * string option * mixfix) list
-(*| Unchecked_Of_Insts of (string option list * string option list) * (binding * string option * mixfix) list*)
 | Term_Insts of (indexname * term) list
 | Unchecked_Term_Insts of term option list * term option list;
 

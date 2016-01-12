@@ -181,11 +181,6 @@ fun check_named_thm ctxt binding =
         >> K {init = I, attribute = Named_Theorems.add full_name, pos = pos};
   in (full_name, parser) end;
 
-fun dummy_named_thm named_thm =
-  Context.proof_map
-    (Named_Theorems.clear named_thm
-      #> Named_Theorems.add_thm named_thm Drule.free_dummy_thm);
-
 fun parse_term_args args =
   Args.context :|-- (fn ctxt =>
     let
