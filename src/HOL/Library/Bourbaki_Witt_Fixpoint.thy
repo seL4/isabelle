@@ -1,5 +1,8 @@
 (*  Title:      HOL/Library/Bourbaki_Witt_Fixpoint.thy
     Author:     Andreas Lochbihler, ETH Zurich
+
+  Follows G. Smolka, S. Schäfer and C. Doczkal: Transfinite Constructions in
+  Classical Type Theory. ITP 2015
 *)
 
 section \<open>The Bourbaki-Witt tower construction for transfinite iteration\<close>
