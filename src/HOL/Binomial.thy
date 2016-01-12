@@ -1567,11 +1567,14 @@ lemma gbinomial_code [code]:
      fold_atLeastAtMost_nat (\<lambda>n acc. (a - of_nat n) * acc) 0 (n - 1) 1 / fact n)"
   by (simp add: setprod_atLeastAtMost_code gbinomial_def)
 
+(*TODO: This code equation breaks Scala code generation in HOL-Codegenerator_Test. We have to figure out why and how to prevent that. *)
+
+(*
 lemma binomial_code [code]:
   "(n choose k) =
       (if k > n then 0
        else if 2 * k > n then (n choose (n - k))
-       else (fold_atLeastAtMost_nat (op *) (n-k+1) n 1 div fact k))"
+       else (fold_atLeastAtMost_nat (op * ) (n-k+1) n 1 div fact k))"
 proof -
   {
     assume "k \<le> n"
@@ -1581,5 +1584,6 @@ proof -
   }
   thus ?thesis by (auto simp: binomial_altdef_nat mult_ac setprod_atLeastAtMost_code)
 qed 
+*)
 
 end
