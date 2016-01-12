@@ -7,6 +7,27 @@ Miscellaneous document antiquotations.
 structure Document_Antiquotations: sig end =
 struct
 
+(* Markdown errors *)
+
+local
+
+fun markdown_error binding =
+  Thy_Output.antiquotation binding (Scan.succeed ())
+    (fn {source, ...} => fn _ =>
+      error ("Bad Markdown structure: illegal " ^ quote (Binding.name_of binding) ^
+        Position.here (Position.reset_range (#1 (Token.range_of source)))))
+
+in
+
+val _ =
+  Theory.setup
+   (markdown_error @{binding item} #>
+    markdown_error @{binding enum} #>
+    markdown_error @{binding descr});
+
+end;
+
+
 (* control spacing *)
 
 val _ =
