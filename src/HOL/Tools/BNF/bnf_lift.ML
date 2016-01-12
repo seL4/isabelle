@@ -145,8 +145,14 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
     (* val wit_closed_F = @{term "wit_F a \<in> F"}; *)
     val (var_as, names_lthy) = mk_Frees "a" alphas names_lthy;
     val (var_bs, _) = mk_Frees "a" alphas names_lthy;
+    fun binder_types_until_eq V T =
+      let
+        fun strip (TU as Type ("fun", [T, U])) = if V = TU then [] else T :: strip U
+          | strip T = if V = T then [] else
+              error ("Bad type for witness: " ^ quote (Syntax.string_of_typ lthy T));
+      in strip T end;
     val Iwits = the_default wits_F (Option.map (map (`(map (fn T =>
-      find_index (fn U => T = U) alphas) o fst o strip_type o fastype_of))) wits);
+      find_index (fn U => T = U) alphas) o binder_types_until_eq RepT o fastype_of))) wits);
     val wit_closed_Fs =
       Iwits |> map (fn (I, wit_F) =>
         let

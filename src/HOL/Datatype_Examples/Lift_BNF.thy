@@ -72,4 +72,10 @@ lemma myopt_type_def: "type_definition
 
 copy_bnf 'a myopt via myopt_type_def
 
+typedef ('k, 'v) fmap = "{M :: ('k \<rightharpoonup> 'v). finite (dom M)}"
+  by (rule exI[of _ Map.empty]) simp_all
+
+lift_bnf (dead 'k, 'v) fmap [wits: "Map.empty :: 'k \<Rightarrow> 'v option"]
+  by auto
+
 end
