@@ -9,6 +9,9 @@ New in Isabelle2016 (February 2016)
 
 *** General ***
 
+* Better resource usage on all platforms (Linux, Windows, Mac OS X) for
+both Isabelle/ML and Isabelle/Scala.  Slightly reduced heap space usage.
+
 * Former "xsymbols" syntax with Isabelle symbols is used by default,
 without any special print mode. Important ASCII replacement syntax
 remains available under print mode "ASCII", but less important syntax
@@ -46,6 +49,9 @@ accordingly.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Update to jedit-5.3.0, with improved GUI scaling and support of
+high-resolution displays (e.g. 4K).
 
 * IDE support for the source-level debugger of Poly/ML, to work with
 Isabelle/ML and official Standard ML. Configuration option "ML_debugger"
@@ -110,9 +116,6 @@ works better with GUI scaling for very high-resolution displays (e.g.
 
 * The main Isabelle executable is managed as single-instance Desktop
 application uniformly on all platforms: Linux, Windows, Mac OS X.
-
-* Update to jedit-5.3.0, with improved GUI scaling and support of
-high-resolution displays (e.g. 4K).
 
 
 *** Document preparation ***
@@ -802,15 +805,15 @@ platforms as follows.
 * Bash shell function "jvmpath" has been renamed to "platform_path": it
 is relevant both for Poly/ML and JVM processes.
 
-* Heap images are 10-15% smaller due to less wasteful persistent theory
-content (using ML type theory_id instead of theory);
-
 * Poly/ML default platform architecture may be changed from 32bit to
 64bit via system option ML_system_64. A system restart (and rebuild)
 is required after change.
 
 * Poly/ML 5.6 runs natively on x86-windows and x86_64-windows, which
 both allow larger heap space than former x86-cygwin.
+
+* Heap images are 10-15% smaller due to less wasteful persistent theory
+content (using ML type theory_id instead of theory);
 
 
 
