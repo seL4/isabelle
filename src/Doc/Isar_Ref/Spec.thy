@@ -280,7 +280,7 @@ text \<open>
   \end{matharray}
 
   Term definitions may either happen within the logic (as equational axioms of
-  a certain form, see also see \secref{sec:consts}), or outside of it as
+  a certain form (see also \secref{sec:overloading}), or outside of it as
   rewrite system on abstract syntax. The second form is called
   ``abbreviation''.
 
@@ -686,7 +686,7 @@ text \<open>
   proof block. Note that for \<^theory_text>\<open>interpret\<close> the \<open>eqns\<close> should be explicitly
   universally quantified.
 
-  \<^descr> \<^theory_text>\<open>global_interpretation defines "defs" rewrites eqns\<close> interprets \<open>expr\<close>
+  \<^descr> \<^theory_text>\<open>global_interpretation defines defs rewrites eqns\<close> interprets \<open>expr\<close>
   into a global theory.
 
   When adding declarations to locales, interpreted versions of these
@@ -699,7 +699,7 @@ text \<open>
   free variable whose name is already bound in the context --- for example,
   because a constant of that name exists --- add it to the \<^theory_text>\<open>for\<close> clause.
 
-  \<^descr> \<^theory_text>\<open>sublocale name \<subseteq> defines "defs" expr rewrites eqns\<close> interprets \<open>expr\<close>
+  \<^descr> \<^theory_text>\<open>sublocale name \<subseteq> defines defs expr rewrites eqns\<close> interprets \<open>expr\<close>
   into the locale \<open>name\<close>. A proof that the specification of \<open>name\<close> implies the
   specification of \<open>expr\<close> is required. As in the localized version of the
   theorem command, the proof is in the context of \<open>name\<close>. After the proof
@@ -936,41 +936,85 @@ text \<open>
 \<close>
 
 
-section \<open>Unrestricted overloading\<close>
+section \<open>Overloaded constant definitions \label{sec:overloading}\<close>
 
 text \<open>
+  Definitions essentially express abbreviations within the logic. The simplest
+  form of a definition is \<open>c :: \<sigma> \<equiv> t\<close>, where \<open>c\<close> is a new constant and \<open>t\<close> is
+  a closed term that does not mention \<open>c\<close>. Moreover, so-called \<^emph>\<open>hidden
+  polymorphism\<close> is excluded: all type variables in \<open>t\<close> need to occur in its
+  type \<open>\<sigma>\<close>.
+
+  \<^emph>\<open>Overloading\<close> means that a constant being declared as \<open>c :: \<alpha> decl\<close> may be
+  defined separately on type instances \<open>c :: (\<beta>\<^sub>1, \<dots>, \<beta>\<^sub>n)\<kappa> decl\<close> for each
+  type constructor \<open>\<kappa>\<close>. At most occasions overloading will be used in a
+  Haskell-like fashion together with type classes by means of \<^theory_text>\<open>instantiation\<close>
+  (see \secref{sec:class}). Sometimes low-level overloading is desirable; this
+  is supported by \<^theory_text>\<open>consts\<close> and \<^theory_text>\<open>overloading\<close> explained below.
+
+  The right-hand side of overloaded definitions may mention overloaded
+  constants recursively at type instances corresponding to the immediate
+  argument types \<open>\<beta>\<^sub>1, \<dots>, \<beta>\<^sub>n\<close>. Incomplete specification patterns impose
+  global constraints on all occurrences. E.g.\ \<open>d :: \<alpha> \<times> \<alpha>\<close> on the left-hand
+  side means that all corresponding occurrences on some right-hand side need
+  to be an instance of this, and general \<open>d :: \<alpha> \<times> \<beta>\<close> will be disallowed. Full
+  details are given by Kun\v{c}ar @{cite "Kuncar:2015"}.
+
+  \<^medskip>
+  The \<^theory_text>\<open>consts\<close> command and the \<^theory_text>\<open>overloading\<close> target provide a convenient
+  interface for end-users. Regular specification elements such as @{command
+  definition}, @{command inductive}, @{command function} may be used in the
+  body. It is also possible to use \<^theory_text>\<open>consts c :: \<sigma>\<close> with later \<^theory_text>\<open>overloading c
+  \<equiv> c :: \<sigma>\<close> to keep the declaration and definition of a constant separate.
+
   \begin{matharray}{rcl}
+    @{command_def "consts"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{command_def "overloading"} & : & \<open>theory \<rightarrow> local_theory\<close> \\
   \end{matharray}
 
-  Isabelle/Pure's definitional schemes support certain forms of overloading
-  (see \secref{sec:consts}). Overloading means that a constant being declared
-  as \<open>c :: \<alpha> decl\<close> may be defined separately on type instances \<open>c :: (\<beta>\<^sub>1, \<dots>,
-  \<beta>\<^sub>n) t decl\<close> for each type constructor \<open>t\<close>. At most occasions overloading
-  will be used in a Haskell-like fashion together with type classes by means
-  of \<^theory_text>\<open>instantiation\<close> (see \secref{sec:class}). Sometimes low-level
-  overloading is desirable. The \<^theory_text>\<open>overloading\<close> target provides a convenient
-  view for end-users.
-
   @{rail \<open>
+    @@{command consts} ((@{syntax name} '::' @{syntax type} @{syntax mixfix}?) +)
+    ;
     @@{command overloading} ( spec + ) @'begin'
     ;
-    spec: @{syntax name} ( '==' | '\<equiv>' ) @{syntax term} ( '(' @'unchecked' ')' )?
+    spec: @{syntax name} ( '\<equiv>' | '==' ) @{syntax term} ( '(' @'unchecked' ')' )?
   \<close>}
 
-  \<^descr> \<^theory_text>\<open>overloading x\<^sub>1 \<equiv> c\<^sub>1 :: \<tau>\<^sub>1 and \<dots> x\<^sub>n \<equiv> c\<^sub>n :: \<tau>\<^sub>n begin\<close> opens a
-  theory target (cf.\ \secref{sec:target}) which allows to specify constants
-  with overloaded definitions. These are identified by an explicitly given
-  mapping from variable names \<open>x\<^sub>i\<close> to constants \<open>c\<^sub>i\<close> at particular type
-  instances. The definitions themselves are established using common
-  specification tools, using the names \<open>x\<^sub>i\<close> as reference to the corresponding
-  constants. The target is concluded by @{command (local) "end"}.
+  \<^descr> \<^theory_text>\<open>consts c :: \<sigma>\<close> declares constant \<open>c\<close> to have any instance of type scheme
+  \<open>\<sigma>\<close>. The optional mixfix annotations may attach concrete syntax to the
+  constants declared.
 
-  A \<^theory_text>\<open>(unchecked)\<close> option disables global dependency checks for the
+  \<^descr> \<^theory_text>\<open>overloading x\<^sub>1 \<equiv> c\<^sub>1 :: \<tau>\<^sub>1 \<dots> x\<^sub>n \<equiv> c\<^sub>n :: \<tau>\<^sub>n begin \<dots> end\<close> defines
+  a theory target (cf.\ \secref{sec:target}) which allows to specify already
+  declared constants via definitions in the body. These are identified by an
+  explicitly given mapping from variable names \<open>x\<^sub>i\<close> to constants \<open>c\<^sub>i\<close> at
+  particular type instances. The definitions themselves are established using
+  common specification tools, using the names \<open>x\<^sub>i\<close> as reference to the
+  corresponding constants.
+
+  Option \<^theory_text>\<open>(unchecked)\<close> disables global dependency checks for the
   corresponding definition, which is occasionally useful for exotic
-  overloading (see \secref{sec:consts} for a precise description). It is at
-  the discretion of the user to avoid malformed theory specifications!
+  overloading; this is a form of axiomatic specification. It is at the
+  discretion of the user to avoid malformed theory specifications!
 \<close>
+
+
+subsubsection \<open>Example\<close>
+
+consts null :: 'a
+
+overloading
+  null_nat \<equiv> "null :: nat"
+  null_pair \<equiv> "null :: 'a \<times> 'b"
+begin
+
+definition null_nat :: nat
+  where "null_nat = 0"
+
+definition null_pair :: "'a \<times> 'b"
+  where "null_pair = (null :: 'a, null :: 'b)"
+
+end
 
 
 section \<open>Incorporating ML code \label{sec:ML}\<close>
@@ -1147,69 +1191,6 @@ text \<open>
     (\secref{sec:hol-typedef}), or any other extension that people might have
     introduced elsewhere.
   \end{warn}
-\<close>
-
-
-subsection \<open>Constants and definitions \label{sec:consts}\<close>
-
-text \<open>
-  \begin{matharray}{rcl}
-    @{command_def "consts"} & : & \<open>theory \<rightarrow> theory\<close> \\
-    @{command_def "defs"} & : & \<open>theory \<rightarrow> theory\<close> \\
-  \end{matharray}
-
-  Definitions essentially express abbreviations within the logic. The simplest
-  form of a definition is \<open>c :: \<sigma> \<equiv> t\<close>, where \<open>c\<close> is a newly declared
-  constant. Isabelle also allows derived forms where the arguments of \<open>c\<close>
-  appear on the left, abbreviating a prefix of \<open>\<lambda>\<close>-abstractions, e.g.\ \<open>c \<equiv> \<lambda>x
-  y. t\<close> may be written more conveniently as \<open>c x y \<equiv> t\<close>. Moreover, definitions
-  may be weakened by adding arbitrary pre-conditions: \<open>A \<Longrightarrow> c x y \<equiv> t\<close>.
-
-  \<^medskip>
-  The built-in well-formedness conditions for definitional specifications are:
-
-    \<^item> Arguments (on the left-hand side) must be distinct variables.
-
-    \<^item> All variables on the right-hand side must also appear on the left-hand
-    side.
-
-    \<^item> All type variables on the right-hand side must also appear on the
-    left-hand side; this prohibits \<open>0 :: nat \<equiv> length ([] :: \<alpha> list)\<close> for
-    example.
-
-    \<^item> The definition must not be recursive. Most object-logics provide
-    definitional principles that can be used to express recursion safely.
-
-  The right-hand side of overloaded definitions may mention overloaded
-  constants recursively at type instances corresponding to the immediate
-  argument types \<open>\<beta>\<^sub>1, \<dots>, \<beta>\<^sub>n\<close>. Incomplete specification patterns impose
-  global constraints on all occurrences, e.g.\ \<open>d :: \<alpha> \<times> \<alpha>\<close> on the left-hand
-  side means that all corresponding occurrences on some right-hand side need
-  to be an instance of this, general \<open>d :: \<alpha> \<times> \<beta>\<close> will be disallowed.
-
-  @{rail \<open>
-    @@{command consts} ((@{syntax name} '::' @{syntax type} @{syntax mixfix}?) +)
-    ;
-    @@{command defs} opt? (@{syntax axmdecl} @{syntax prop} +)
-    ;
-    opt: '(' @'unchecked'? @'overloaded'? ')'
-  \<close>}
-
-  \<^descr> \<^theory_text>\<open>consts c :: \<sigma>\<close> declares constant \<open>c\<close> to have any instance of type scheme
-  \<open>\<sigma>\<close>. The optional mixfix annotations may attach concrete syntax to the
-  constants declared.
-  
-  \<^descr> \<^theory_text>\<open>defs name: eqn\<close> introduces \<open>eqn\<close> as a definitional axiom for some
-  existing constant.
-  
-  The \<^theory_text>\<open>(unchecked)\<close> option disables global dependency checks for this
-  definition, which is occasionally useful for exotic overloading. It is at
-  the discretion of the user to avoid malformed theory specifications!
-  
-  The \<^theory_text>\<open>(overloaded)\<close> option declares definitions to be potentially
-  overloaded. Unless this option is given, a warning message would be issued
-  for any definitional equation with a more special type than that of the
-  corresponding constant declaration.
 \<close>
 
 

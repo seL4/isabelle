@@ -463,7 +463,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword overloading} "overloaded definitions"
-   (Scan.repeat1 (Parse.name --| (@{keyword "\<equiv>"} || @{keyword "=="}) -- Parse.term --
+   (Scan.repeat1 (Parse.name --| (@{keyword "=="} || @{keyword "\<equiv>"}) -- Parse.term --
       Scan.optional (@{keyword "("} |-- (@{keyword "unchecked"} >> K false) --| @{keyword ")"}) true
       >> Scan.triple1) --| Parse.begin
    >> (fn operations => Toplevel.begin_local_theory true (Overloading.overloading_cmd operations)));

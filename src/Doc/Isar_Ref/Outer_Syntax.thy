@@ -487,8 +487,9 @@ text \<open>
 
   \<^descr> @{command "print_definitions"} prints dependencies of definitional
   specifications within the background theory, which may be constants
-  \secref{sec:consts} or types (\secref{sec:types-pure},
-  \secref{sec:hol-typedef}); the ``\<open>!\<close>'' option indicates extra verbosity.
+  (\secref{sec:term-definitions}, \secref{sec:overloading}) or types
+  (\secref{sec:types-pure}, \secref{sec:hol-typedef}); the ``\<open>!\<close>'' option
+  indicates extra verbosity.
 
   \<^descr> @{command "print_methods"} prints all proof methods available in the
   current theory context; the ``\<open>!\<close>'' option indicates extra verbosity.
