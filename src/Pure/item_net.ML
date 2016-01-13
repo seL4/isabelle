@@ -18,6 +18,7 @@ sig
   val merge: 'a T * 'a T -> 'a T
   val remove: 'a -> 'a T -> 'a T
   val update: 'a -> 'a T -> 'a T
+  val filter: ('a -> bool) -> 'a T -> 'a T
 end;
 
 structure Item_Net: ITEM_NET =
@@ -75,5 +76,8 @@ fun remove x (items as Items {eq, index, content, next, net}) =
   else items;
 
 fun update x items = cons x (remove x items);
+
+fun filter pred items =
+  fold (fn x => not (pred x) ? remove x) (content items) items;
 
 end;

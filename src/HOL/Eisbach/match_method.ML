@@ -34,10 +34,6 @@ fun filter_prems_tac' ctxt prem =
   end;
 
 
-fun Item_Net_filter f net =
-  fold (fn item => not (f item) ? Item_Net.remove item) (Item_Net.content net) net
-
-
 datatype match_kind =
     Match_Term of term Item_Net.T
   | Match_Fact of thm Item_Net.T
@@ -686,14 +682,14 @@ fun real_match using outer_ctxt fixes m text pats st =
                 val (_, after_prems) = focus_prems inner_ctxt;
 
                 val removed_prems =
-                  Item_Net_filter (null o Item_Net.lookup after_prems) before_prems
+                  Item_Net.filter (null o Item_Net.lookup after_prems) before_prems
 
                 val removed_local_prems = Item_Net.content removed_prems
                   |> filter (fn (id, _) => member (op =) local_premids id)
                   |> map (fn (_, prem) => Thm.prop_of prem)
 
                 fun filter_removed_prems prems =
-                  Item_Net_filter (null o Item_Net.lookup removed_prems) prems;
+                  Item_Net.filter (null o Item_Net.lookup removed_prems) prems;
                                      
                 val outer_ctxt' = outer_ctxt 
                   |> Focus_Data.map (@{apply 3(1)} (apsnd filter_removed_prems));
