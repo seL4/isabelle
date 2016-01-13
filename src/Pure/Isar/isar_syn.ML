@@ -90,21 +90,6 @@ val _ =
     (Scan.repeat1 trans_line >> (Toplevel.theory o Isar_Cmd.no_translations));
 
 
-(* axioms and definitions *)
-
-val opt_unchecked_overloaded =
-  Scan.optional (@{keyword "("} |-- Parse.!!!
-    (((@{keyword "unchecked"} >> K true) --
-        Scan.optional (@{keyword "overloaded"} >> K true) false ||
-      @{keyword "overloaded"} >> K (false, true)) --| @{keyword ")"})) (false, false);
-
-val _ =
-  Outer_Syntax.command @{command_keyword defs} "define constants"
-    (opt_unchecked_overloaded --
-      Scan.repeat1 (Parse_Spec.thm_name ":" -- Parse.prop >> (fn ((x, y), z) => ((x, z), y)))
-      >> (Toplevel.theory o Isar_Cmd.add_defs));
-
-
 (* constant definitions and abbreviations *)
 
 val _ =

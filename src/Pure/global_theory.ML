@@ -39,10 +39,6 @@ sig
     theory -> thm list * theory
   val add_defs_unchecked: bool -> ((binding * term) * attribute list) list ->
     theory -> thm list * theory
-  val add_defs_cmd: bool -> ((binding * string) * attribute list) list ->
-    theory -> thm list * theory
-  val add_defs_unchecked_cmd: bool -> ((binding * string) * attribute list) list ->
-    theory -> thm list * theory
 end;
 
 structure Global_Theory: GLOBAL_THEORY =
@@ -197,16 +193,9 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), facts) => fn thy =>
 
 local
 
-fun no_read _ (_, t) = t;
-
-fun read ctxt (b, str) =
-  Syntax.read_prop ctxt str handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in definition " ^ Binding.print b);
-
-fun add prep unchecked overloaded = fold_map (fn ((b, raw_prop), atts) => fn thy =>
+fun add unchecked overloaded = fold_map (fn ((b, prop), atts) => fn thy =>
   let
     val context as (ctxt, _) = Defs.global_context thy;
-    val prop = prep ctxt (b, raw_prop);
     val ((_, def), thy') = Thm.add_def context unchecked overloaded (b, prop) thy;
     val thm = def
       |> Thm.forall_intr_frees
@@ -216,10 +205,8 @@ fun add prep unchecked overloaded = fold_map (fn ((b, raw_prop), atts) => fn thy
 
 in
 
-val add_defs = add no_read false;
-val add_defs_unchecked = add no_read true;
-val add_defs_cmd = add read false;
-val add_defs_unchecked_cmd = add read true;
+val add_defs = add false;
+val add_defs_unchecked = add true;
 
 end;
 

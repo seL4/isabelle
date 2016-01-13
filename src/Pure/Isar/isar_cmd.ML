@@ -16,7 +16,6 @@ sig
   val translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val oracle: bstring * Position.range -> Input.source -> theory -> theory
-  val add_defs: (bool * bool) * ((binding * string) * Token.src list) list -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} -> Input.source -> local_theory -> local_theory
   val simproc_setup: string * Position.T -> string list -> Input.source ->
     string list -> local_theory -> local_theory
@@ -138,18 +137,6 @@ fun oracle (name, range) source =
     Context.theory_map
       (ML_Context.exec (fn () => ML_Context.eval ML_Compiler.flags (#1 body_range) ants))
   end;
-
-
-(* old-style defs *)
-
-fun add_defs ((unchecked, overloaded), args) thy =
- (legacy_feature ("Old 'defs' command -- use 'definition' (with 'overloading') instead" ^
-    Position.here (Position.thread_data ()));
-  thy |>
-    (if unchecked then Global_Theory.add_defs_unchecked_cmd else Global_Theory.add_defs_cmd)
-      overloaded
-      (map (fn ((b, ax), srcs) => ((b, ax), map (Attrib.attribute_cmd_global thy) srcs)) args)
-  |> snd);
 
 
 (* declarations *)

@@ -53,6 +53,10 @@ accordingly.
 * Toplevel theorem statement 'proposition' is another alias for
 'theorem'.
 
+* The old 'defs' command has been removed (legacy since Isabelle2014).
+INCOMPATIBILITY, use regular 'definition' instead. Overloaded and/or
+deferred definitions require a surrounding 'overloading' block.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

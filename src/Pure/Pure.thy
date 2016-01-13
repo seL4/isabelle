@@ -17,7 +17,7 @@ theory Pure
   and "text_raw" :: document_raw
   and "default_sort" :: thy_decl == ""
   and "typedecl" "type_synonym" "nonterminal" "judgment"
-    "consts" "syntax" "no_syntax" "translations" "no_translations" "defs"
+    "consts" "syntax" "no_syntax" "translations" "no_translations"
     "definition" "abbreviation" "type_notation" "no_type_notation" "notation"
     "no_notation" "axiomatization" "lemmas" "declare"
     "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
