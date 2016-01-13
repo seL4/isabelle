@@ -17,11 +17,8 @@ begin
 lemma conj_imp_eq_imp_imp: "(P \<and> Q \<Longrightarrow> PROP R) \<equiv> (P \<Longrightarrow> Q \<Longrightarrow> PROP R)"
   by standard simp_all
 
-lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
-  by auto
-
-lemma predicate2D_conj: "P \<le> Q \<and> R \<Longrightarrow> P x y \<Longrightarrow> R \<and> Q x y"
-  by auto
+lemma predicate2D_conj: "P \<le> Q \<and> R \<Longrightarrow> R \<and> (P x y \<longrightarrow> Q x y)"
+  by blast
 
 lemma eq_sym_Unity_conv: "(x = (() = ())) = x"
   by blast

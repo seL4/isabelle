@@ -468,8 +468,6 @@ fun mk_parametricity_goal ctxt Rs t u =
 
 val name_of_set = name_of_const "set function" domain_type;
 
-val mp_conj = @{thm mp_conj};
-
 val fundefcong_attrs = @{attributes [fundef_cong]};
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
@@ -1322,13 +1320,13 @@ fun define_corec (_, cs, cpss, (((pgss, _, _, _), cqgsss), f_absTs)) mk_binding 
          @{map 5} mk_preds_getterss_join cs cpss f_absTs abss cqgsss)))
   end;
 
-fun postproc_co_induct lthy nn prop prop_conj =
+fun postproc_co_induct ctxt nn prop prop_conj =
   Drule.zero_var_indexes
   #> `(conj_dests nn)
   #>> map (fn thm => Thm.permute_prems 0 ~1 (thm RS prop))
   ##> (fn thm => Thm.permute_prems 0 (~ nn)
     (if nn = 1 then thm RS prop
-     else funpow nn (fn thm => unfold_thms lthy @{thms conj_assoc} (thm RS prop_conj)) thm));
+     else funpow nn (fn thm => unfold_thms ctxt @{thms conj_assoc} (thm RS prop_conj)) thm));
 
 fun mk_induct_attrs ctrss =
   let
@@ -1338,7 +1336,7 @@ fun mk_induct_attrs ctrss =
     [induct_case_names_attr]
   end;
 
-fun derive_rel_induct_thms_for_types lthy fpA_Ts As Bs ctrAss ctrAs_Tsss exhausts ctor_rel_induct
+fun derive_rel_induct_thms_for_types lthy nn fpA_Ts As Bs ctrAss ctrAs_Tsss exhausts ctor_rel_induct
     ctor_defss ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs =
   let
     val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
@@ -1375,8 +1373,7 @@ fun derive_rel_induct_thms_for_types lthy fpA_Ts As Bs ctrAss ctrAs_Tsss exhaust
           ctor_defss ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs)
       |> Thm.close_derivation;
   in
-    (postproc_co_induct lthy (length fpA_Ts) @{thm predicate2D} @{thm predicate2D_conj}
-       rel_induct0_thm,
+    (postproc_co_induct lthy nn @{thm predicate2D} @{thm predicate2D_conj} rel_induct0_thm,
      mk_induct_attrs ctrAss)
   end;
 
@@ -1549,7 +1546,6 @@ fun mk_coinduct_attrs fpTs ctrss discss mss =
     val coinduct_conclss =
       @{map 3} (quasi_unambiguous_case_names ooo mk_coinduct_concls) mss discss ctrss;
 
-    val common_coinduct_consumes_attr = Attrib.internal (K (Rule_Cases.consumes nn));
     val coinduct_consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
 
     val coinduct_case_names_attr = Attrib.internal (K (Rule_Cases.case_names coinduct_cases));
@@ -1558,15 +1554,14 @@ fun mk_coinduct_attrs fpTs ctrss discss mss =
           Attrib.internal (K (Rule_Cases.case_conclusion (casex, concls))))
         coinduct_cases coinduct_conclss;
 
-    val common_coinduct_attrs =
-      common_coinduct_consumes_attr :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
+    val common_coinduct_attrs = coinduct_case_names_attr :: coinduct_case_concl_attrs;
     val coinduct_attrs =
       coinduct_consumes_attr :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
   in
     (coinduct_attrs, common_coinduct_attrs)
   end;
 
-fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr_sugar list)
+fun derive_rel_coinduct_thms_for_types lthy nn fpA_Ts ns As Bs mss (ctr_sugars : ctr_sugar list)
     abs_inverses abs_injects ctor_injects dtor_ctors rel_pre_defs ctor_defss dtor_rel_coinduct
     live_nesting_rel_eqs =
   let
@@ -1635,8 +1630,7 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
           rel_pre_defs abs_inverses live_nesting_rel_eqs)
       |> Thm.close_derivation;
   in
-    (postproc_co_induct lthy (length fpA_Ts) @{thm predicate2D} @{thm predicate2D_conj}
-       rel_coinduct0_thm,
+    (postproc_co_induct lthy nn @{thm predicate2D} @{thm predicate2D_conj} rel_coinduct0_thm,
      mk_coinduct_attrs fpA_Ts (map #ctrs ctr_sugars) (map #discs ctr_sugars) mss)
   end;
 
@@ -1846,7 +1840,8 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
         val dtor_coinducts =
           [dtor_coinduct, mk_coinduct_strong_thm dtor_coinduct rel_eqs rel_monos mk_vimage2p lthy]
       in
-        @{map 3} (postproc_co_induct lthy nn mp mp_conj ooo prove) dtor_coinducts goals varss
+        @{map 3} (postproc_co_induct lthy nn mp @{thm conj_commute[THEN iffD1]} ooo prove)
+          dtor_coinducts goals varss
       end;
 
     fun mk_maybe_not pos = not pos ? HOLogic.mk_not;
@@ -2420,7 +2415,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           else
             let
               val ((rel_induct_thms, common_rel_induct_thm), rel_induct_attrs) =
-                derive_rel_induct_thms_for_types lthy fpTs As Bs ctrss ctr_Tsss
+                derive_rel_induct_thms_for_types lthy nn fpTs As Bs ctrss ctr_Tsss
                   (map #exhaust ctr_sugars) xtor_rel_co_induct ctr_defss ctor_injects
                   pre_rel_defs abs_inverses live_nesting_rel_eqs;
             in
@@ -2586,7 +2581,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
             let
               val ((rel_coinduct_thms, common_rel_coinduct_thm),
                    (rel_coinduct_attrs, common_rel_coinduct_attrs)) =
-                derive_rel_coinduct_thm_for_types lthy fpTs ns As Bs mss ctr_sugars abs_inverses
+                derive_rel_coinduct_thms_for_types lthy nn fpTs ns As Bs mss ctr_sugars abs_inverses
                   abs_injects ctor_injects dtor_ctors pre_rel_defs ctr_defss xtor_rel_co_induct
                   live_nesting_rel_eqs;
             in
