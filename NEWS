@@ -50,9 +50,6 @@ accordingly.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* Update to jedit-5.3.0, with improved GUI scaling and support of
-high-resolution displays (e.g. 4K).
-
 * IDE support for the source-level debugger of Poly/ML, to work with
 Isabelle/ML and official Standard ML. Configuration option "ML_debugger"
 and commands 'ML_file_debug', 'ML_file_no_debug', 'SML_file_debug',
@@ -113,6 +110,9 @@ single-instance applications seen on common GUI desktops.
 * The default look-and-feel for Linux is the traditional "Metal", which
 works better with GUI scaling for very high-resolution displays (e.g.
 4K). Moreover, it is generally more robust than "Nimbus".
+
+* Update to jedit-5.3.0, with improved GUI scaling and support of
+high-resolution displays (e.g. 4K).
 
 * The main Isabelle executable is managed as single-instance Desktop
 application uniformly on all platforms: Linux, Windows, Mac OS X.
