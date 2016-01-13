@@ -350,7 +350,7 @@ then
   case "$PLATFORM_FAM" in
     linux)
       echo "application for $PLATFORM_FAMILY"
-      ln -s "$BUNDLE_ARCHIVE" "${ARCHIVE_DIR}/${ISABELLE_NAME}_app.tar.gz"
+      ln -s "${ISABELLE_NAME}_linux.tar.gz" "${ARCHIVE_DIR}/${ISABELLE_NAME}_app.tar.gz"
       ;;
     macos)
       echo "application for $PLATFORM_FAMILY"
