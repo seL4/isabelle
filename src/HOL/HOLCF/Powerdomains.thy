@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Powerdomains *}
+section \<open>Powerdomains\<close>
 
 theory Powerdomains
 imports ConvexPD Domain
 begin
 
-subsection {* Universal domain embeddings *}
+subsection \<open>Universal domain embeddings\<close>
 
 definition "upper_emb = udom_emb (\<lambda>i. upper_map\<cdot>(udom_approx i))"
 definition "upper_prj = udom_prj (\<lambda>i. upper_map\<cdot>(udom_approx i))"
@@ -31,7 +31,7 @@ lemma ep_pair_convex: "ep_pair convex_emb convex_prj"
   unfolding convex_emb_def convex_prj_def
   by (simp add: ep_pair_udom approx_chain_convex_map)
 
-subsection {* Deflation combinators *}
+subsection \<open>Deflation combinators\<close>
 
 definition upper_defl :: "udom defl \<rightarrow> udom defl"
   where "upper_defl = defl_fun1 upper_emb upper_prj upper_map"
@@ -57,7 +57,7 @@ lemma cast_convex_defl:
 using ep_pair_convex finite_deflation_convex_map
 unfolding convex_defl_def by (rule cast_defl_fun1)
 
-subsection {* Domain class instances *}
+subsection \<open>Domain class instances\<close>
 
 instantiation upper_pd :: ("domain") "domain"
 begin
@@ -167,7 +167,7 @@ by (rule defl_lower_pd_def)
 lemma DEFL_convex: "DEFL('a::domain convex_pd) = convex_defl\<cdot>DEFL('a)"
 by (rule defl_convex_pd_def)
 
-subsection {* Isomorphic deflations *}
+subsection \<open>Isomorphic deflations\<close>
 
 lemma isodefl_upper:
   "isodefl d t \<Longrightarrow> isodefl (upper_map\<cdot>d) (upper_defl\<cdot>t)"
@@ -193,7 +193,7 @@ apply (simp add: emb_convex_pd_def prj_convex_pd_def)
 apply (simp add: convex_map_map)
 done
 
-subsection {* Domain package setup for powerdomains *}
+subsection \<open>Domain package setup for powerdomains\<close>
 
 lemmas [domain_defl_simps] = DEFL_upper DEFL_lower DEFL_convex
 lemmas [domain_map_ID] = upper_map_ID lower_map_ID convex_map_ID
@@ -202,11 +202,11 @@ lemmas [domain_isodefl] = isodefl_upper isodefl_lower isodefl_convex
 lemmas [domain_deflation] =
   deflation_upper_map deflation_lower_map deflation_convex_map
 
-setup {*
+setup \<open>
   fold Domain_Take_Proofs.add_rec_type
     [(@{type_name "upper_pd"}, [true]),
      (@{type_name "lower_pd"}, [true]),
      (@{type_name "convex_pd"}, [true])]
-*}
+\<close>
 
 end

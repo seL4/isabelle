@@ -530,13 +530,13 @@ lemma pi_approx:
   shows   "\<bar>pi - pi_approx n\<bar> \<le> inverse (2^(13*n - 2))"
 proof -
   from n have n': "even (3*n)" by simp
-  -- \<open>We apply the Machin formula\<close>
+  \<comment> \<open>We apply the Machin formula\<close>
   from machin have "pi = 16 * arctan (1/5) - 4 * arctan (1/239::real)" by simp
-  -- \<open>Taylor series expansion of the arctangent\<close>
+  \<comment> \<open>Taylor series expansion of the arctangent\<close>
   also from arctan_approx[OF _ _ n', of "1/5"] arctan_approx[OF _ _ n, of "1/239"]
     have "\<dots> - pi_approx n \<in> {-4*((1/239)^(2*n+1) / (1-(1/239)^4))..16*(1/5)^(6*n+1) / (1-(1/5)^4)}"
     by (simp add: pi_approx_def)
-  -- \<open>Coarsening the bounds to make them a bit nicer\<close>
+  \<comment> \<open>Coarsening the bounds to make them a bit nicer\<close>
   also have "-4*((1/239::real)^(2*n+1) / (1-(1/239)^4)) = -((13651919 / 815702160) / 57121^n)"
     by (simp add: power_mult power2_eq_square) (simp add: field_simps)
   also have "16*(1/5)^(6*n+1) / (1-(1/5::real)^4) = (125/39) / 15625^n"
@@ -561,11 +561,11 @@ lemma pi_approx_75: "abs (pi - 3.1415926535897932384626 :: real) \<le> inverse (
 proof -
   def a \<equiv> "8295936325956147794769600190539918304 / 2626685325478320010006427764892578125 :: real"
   def b \<equiv> "8428294561696506782041394632 / 503593538783547230635598424135 :: real"
-  -- \<open>The introduction of this constant prevents the simplifier from applying solvers that
+  \<comment> \<open>The introduction of this constant prevents the simplifier from applying solvers that
       we don't want. We want it to simply evaluate the terms to rational constants.}\<close>
   def eq \<equiv> "op = :: real \<Rightarrow> real \<Rightarrow> bool"
 
-  -- \<open>Splitting the computation into several steps has the advantage that simplification can
+  \<comment> \<open>Splitting the computation into several steps has the advantage that simplification can
       be done in parallel\<close>
   have "abs (pi - pi_approx 6) \<le> inverse (2^76)" by (rule pi_approx') simp_all
   also have "pi_approx 6 = 16 * arctan_approx (3 * 6) (1 / 5) - 4 * arctan_approx 6 (1 / 239)"
@@ -694,7 +694,7 @@ proof -
     by (unfold a_def b_def c_def, simp, unfold eq_def, rule refl)
   also have [unfolded eq_def]: "eq (\<dots> - c) ?pi''"
     by (unfold a_def b_def c_def, simp, unfold eq_def, rule refl)
-  -- \<open>This is incredibly slow because the numerators and denominators are huge.\<close>
+  \<comment> \<open>This is incredibly slow because the numerators and denominators are huge.\<close>
   finally show ?thesis by (rule approx_coarsen) simp
 qed
 

@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-section {* Algebraic deflations *}
+section \<open>Algebraic deflations\<close>
 
 theory Algebraic
 imports Universal Map_Functions
@@ -10,7 +10,7 @@ begin
 
 default_sort bifinite
 
-subsection {* Type constructor for finite deflations *}
+subsection \<open>Type constructor for finite deflations\<close>
 
 typedef 'a fin_defl = "{d::'a \<rightarrow> 'a. finite_deflation d}"
 by (fast intro: finite_deflation_bottom)
@@ -72,7 +72,7 @@ lemma compact_Rep_fin_defl [simp]: "compact (Rep_fin_defl a)"
 using finite_deflation_Rep_fin_defl
 by (rule finite_deflation_imp_compact)
 
-subsection {* Defining algebraic deflations by ideal completion *}
+subsection \<open>Defining algebraic deflations by ideal completion\<close>
 
 typedef 'a defl = "{S::'a fin_defl set. below.ideal S}"
 by (rule below.ex_ideal)
@@ -132,7 +132,7 @@ using type_definition_defl below_defl_def
 using defl_principal_def fin_defl_countable
 by (rule below.typedef_ideal_completion)
 
-text {* Algebraic deflations are pointed *}
+text \<open>Algebraic deflations are pointed\<close>
 
 lemma defl_minimal: "defl_principal (Abs_fin_defl \<bottom>) \<sqsubseteq> x"
 apply (induct x rule: defl.principal_induct, simp)
@@ -147,7 +147,7 @@ by intro_classes (fast intro: defl_minimal)
 lemma inst_defl_pcpo: "\<bottom> = defl_principal (Abs_fin_defl \<bottom>)"
 by (rule defl_minimal [THEN bottomI, symmetric])
 
-subsection {* Applying algebraic deflations *}
+subsection \<open>Applying algebraic deflations\<close>
 
 definition
   cast :: "'a defl \<rightarrow> 'a \<rightarrow> 'a"
@@ -215,7 +215,7 @@ done
 lemma cast_strict2 [simp]: "cast\<cdot>A\<cdot>\<bottom> = \<bottom>"
 by (rule cast.below [THEN bottomI])
 
-subsection {* Deflation combinators *}
+subsection \<open>Deflation combinators\<close>
 
 definition
   "defl_fun1 e p f =

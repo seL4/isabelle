@@ -2506,7 +2506,7 @@ proof safe
   fix E assume "eventually E uniformity"
   with M obtain X where "\<forall>S\<in>M. finite (X S) \<and> (\<forall>s\<in>S. \<exists>x\<in>X S. E (x, s))"
     by (metis totally_bounded_def)
-  with `finite M` show "\<exists>X. finite X \<and> (\<forall>s\<in>\<Union>M. \<exists>x\<in>X. E (x, s))"
+  with \<open>finite M\<close> show "\<exists>X. finite X \<and> (\<forall>s\<in>\<Union>M. \<exists>x\<in>X. E (x, s))"
     by (intro exI[of _ "\<Union>S\<in>M. X S"]) force
 qed
 

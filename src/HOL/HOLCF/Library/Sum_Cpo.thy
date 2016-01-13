@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* The cpo of disjoint sums *}
+section \<open>The cpo of disjoint sums\<close>
 
 theory Sum_Cpo
 imports HOLCF
 begin
 
-subsection {* Ordering on sum type *}
+subsection \<open>Ordering on sum type\<close>
 
 instantiation sum :: (below, below) below
 begin
@@ -54,7 +54,7 @@ lemma sum_below_cases:
       \<Longrightarrow> R"
 by (cases x, safe elim!: sum_below_elims, auto)
 
-subsection {* Sum type is a complete partial order *}
+subsection \<open>Sum type is a complete partial order\<close>
 
 instance sum :: (po, po) po
 proof
@@ -128,7 +128,7 @@ instance sum :: (cpo, cpo) cpo
  apply (erule cpo_lubI)
 done
 
-subsection {* Continuity of \emph{Inl}, \emph{Inr}, and case function *}
+subsection \<open>Continuity of \emph{Inl}, \emph{Inr}, and case function\<close>
 
 lemma cont_Inl: "cont Inl"
 by (intro contI is_lub_Inl cpo_lubI)
@@ -175,7 +175,7 @@ lemma cont2cont_case_sum' [simp, cont2cont]:
   shows "cont (\<lambda>x. case h x of Inl a \<Rightarrow> f x a | Inr b \<Rightarrow> g x b)"
 using assms by (simp add: cont2cont_case_sum prod_cont_iff)
 
-text {* Continuity of map function. *}
+text \<open>Continuity of map function.\<close>
 
 lemma map_sum_eq: "map_sum f g = case_sum (\<lambda>a. Inl (f a)) (\<lambda>b. Inr (g b))"
 by (rule ext, case_tac x, simp_all)
@@ -187,7 +187,7 @@ lemma cont2cont_map_sum [simp, cont2cont]:
   shows "cont (\<lambda>x. map_sum (\<lambda>y. f x y) (\<lambda>y. g x y) (h x))"
 using assms by (simp add: map_sum_eq prod_cont_iff)
 
-subsection {* Compactness and chain-finiteness *}
+subsection \<open>Compactness and chain-finiteness\<close>
 
 lemma compact_Inl: "compact a \<Longrightarrow> compact (Inl a)"
 apply (rule compactI2)
@@ -228,7 +228,7 @@ done
 instance sum :: (discrete_cpo, discrete_cpo) discrete_cpo
 by intro_classes (simp add: below_sum_def split: sum.split)
 
-subsection {* Using sum types with fixrec *}
+subsection \<open>Using sum types with fixrec\<close>
 
 definition
   "match_Inl = (\<Lambda> x k. case x of Inl a \<Rightarrow> k\<cdot>a | Inr b \<Rightarrow> Fixrec.fail)"
@@ -246,13 +246,13 @@ lemma match_Inr_simps [simp]:
   "match_Inr\<cdot>(Inr b)\<cdot>k = k\<cdot>b"
 unfolding match_Inr_def by simp_all
 
-setup {*
+setup \<open>
   Fixrec.add_matchers
     [ (@{const_name Inl}, @{const_name match_Inl}),
       (@{const_name Inr}, @{const_name match_Inr}) ]
-*}
+\<close>
 
-subsection {* Disjoint sum is a predomain *}
+subsection \<open>Disjoint sum is a predomain\<close>
 
 definition
   "encode_sum_u =
@@ -272,7 +272,7 @@ apply (rename_tac a, case_tac a, simp, simp)
 apply (rename_tac b, case_tac b, simp, simp)
 done
 
-text {* A deflation combinator for making unpointed types *}
+text \<open>A deflation combinator for making unpointed types\<close>
 
 definition udefl :: "udom defl \<rightarrow> udom u defl"
   where "udefl = defl_fun1 (strictify\<cdot>up) (fup\<cdot>ID) ID"
@@ -327,7 +327,7 @@ qed
 
 end
 
-subsection {* Configuring domain package to work with sum type *}
+subsection \<open>Configuring domain package to work with sum type\<close>
 
 lemma liftdefl_sum [domain_defl_simps]:
   "LIFTDEFL('a::predomain + 'b::predomain) =
@@ -365,8 +365,8 @@ apply (simp add: cfcomp1 encode_sum_u_map_sum)
 apply (simp add: ssum_map_map u_emb_bottom)
 done
 
-setup {*
+setup \<open>
   Domain_Take_Proofs.add_rec_type (@{type_name "sum"}, [true, true])
-*}
+\<close>
 
 end

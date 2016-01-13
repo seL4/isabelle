@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow
 *)
 
-section {* Discrete cpo types *}
+section \<open>Discrete cpo types\<close>
 
 theory Discrete
 imports Cont
@@ -10,7 +10,7 @@ begin
 
 datatype 'a discr = Discr "'a :: type"
 
-subsection {* Discrete cpo class instance *}
+subsection \<open>Discrete cpo class instance\<close>
 
 instantiation discr :: (type) discrete_cpo
 begin
@@ -23,7 +23,7 @@ instance
 
 end
 
-subsection {* \emph{undiscr} *}
+subsection \<open>\emph{undiscr}\<close>
 
 definition
   undiscr :: "('a::type)discr => 'a" where

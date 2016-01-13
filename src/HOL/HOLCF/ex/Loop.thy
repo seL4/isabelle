@@ -2,7 +2,7 @@
     Author:     Franz Regensburger
 *)
 
-section {* Theory for a loop primitive like while *}
+section \<open>Theory for a loop primitive like while\<close>
 
 theory Loop
 imports HOLCF

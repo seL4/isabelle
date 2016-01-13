@@ -7,11 +7,11 @@ section "Correctness of Hoare by Fixpoint Reasoning"
 
 theory HoareEx imports Denotational begin
 
-text {*
+text \<open>
   An example from the HOLCF paper by Mueller, Nipkow, Oheimb, Slotosch
   @{cite MuellerNvOS99}.  It demonstrates fixpoint reasoning by showing
   the correctness of the Hoare rule for while-loops.
-*}
+\<close>
 
 type_synonym assn = "state => bool"
 
@@ -24,7 +24,7 @@ lemma WHILE_rule_sound:
   apply (unfold hoare_valid_def)
   apply (simp (no_asm))
   apply (rule fix_ind)
-    apply (simp (no_asm)) -- "simplifier with enhanced @{text adm}-tactic"
+    apply (simp (no_asm)) \<comment> "simplifier with enhanced \<open>adm\<close>-tactic"
    apply (simp (no_asm))
   apply (simp (no_asm))
   apply blast

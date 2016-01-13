@@ -9,7 +9,7 @@ imports Plain_HOLCF
 keywords "fixrec" :: thy_decl
 begin
 
-subsection {* Pattern-match monad *}
+subsection \<open>Pattern-match monad\<close>
 
 default_sort cpo
 
@@ -46,13 +46,13 @@ lemma succeed_neq_fail [simp]:
   "succeed\<cdot>x \<noteq> fail" "fail \<noteq> succeed\<cdot>x"
 by (simp_all add: succeed_def fail_def cont_Abs_match Abs_match_inject)
 
-subsubsection {* Run operator *}
+subsubsection \<open>Run operator\<close>
 
 definition
   run :: "'a match \<rightarrow> 'a::pcpo" where
   "run = (\<Lambda> m. sscase\<cdot>\<bottom>\<cdot>(fup\<cdot>ID)\<cdot>(Rep_match m))"
 
-text {* rewrite rules for run *}
+text \<open>rewrite rules for run\<close>
 
 lemma run_strict [simp]: "run\<cdot>\<bottom> = \<bottom>"
 unfolding run_def
@@ -66,7 +66,7 @@ lemma run_succeed [simp]: "run\<cdot>(succeed\<cdot>x) = x"
 unfolding run_def succeed_def
 by (simp add: cont_Rep_match cont_Abs_match Abs_match_inverse)
 
-subsubsection {* Monad plus operator *}
+subsubsection \<open>Monad plus operator\<close>
 
 definition
   mplus :: "'a match \<rightarrow> 'a match \<rightarrow> 'a match" where
@@ -76,7 +76,7 @@ abbreviation
   mplus_syn :: "['a match, 'a match] \<Rightarrow> 'a match"  (infixr "+++" 65)  where
   "m1 +++ m2 == mplus\<cdot>m1\<cdot>m2"
 
-text {* rewrite rules for mplus *}
+text \<open>rewrite rules for mplus\<close>
 
 lemma mplus_strict [simp]: "\<bottom> +++ m = \<bottom>"
 unfolding mplus_def
@@ -96,7 +96,7 @@ by (cases m, simp_all)
 lemma mplus_assoc: "(x +++ y) +++ z = x +++ (y +++ z)"
 by (cases x, simp_all)
 
-subsection {* Match functions for built-in types *}
+subsection \<open>Match functions for built-in types\<close>
 
 default_sort pcpo
 
@@ -192,12 +192,12 @@ lemma match_FF_simps [simp]:
   "match_FF\<cdot>\<bottom>\<cdot>k = \<bottom>"
 by (simp_all add: match_FF_def)
 
-subsection {* Mutual recursion *}
+subsection \<open>Mutual recursion\<close>
 
-text {*
+text \<open>
   The following rules are used to prove unfolding theorems from
   fixed-point definitions of mutually recursive functions.
-*}
+\<close>
 
 lemma Pair_equalI: "\<lbrakk>x \<equiv> fst p; y \<equiv> snd p\<rbrakk> \<Longrightarrow> (x, y) \<equiv> p"
 by simp
@@ -216,22 +216,22 @@ lemma def_cont_fix_ind:
   "\<lbrakk>f \<equiv> fix\<cdot>(Abs_cfun F); cont F; adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F x)\<rbrakk> \<Longrightarrow> P f"
 by (simp add: fix_ind)
 
-text {* lemma for proving rewrite rules *}
+text \<open>lemma for proving rewrite rules\<close>
 
 lemma ssubst_lhs: "\<lbrakk>t = s; P s = Q\<rbrakk> \<Longrightarrow> P t = Q"
 by simp
 
 
-subsection {* Initializing the fixrec package *}
+subsection \<open>Initializing the fixrec package\<close>
 
 ML_file "Tools/holcf_library.ML"
 ML_file "Tools/fixrec.ML"
 
-method_setup fixrec_simp = {*
+method_setup fixrec_simp = \<open>
   Scan.succeed (SIMPLE_METHOD' o Fixrec.fixrec_simp_tac)
-*} "pattern prover for fixrec constants"
+\<close> "pattern prover for fixrec constants"
 
-setup {*
+setup \<open>
   Fixrec.add_matchers
     [ (@{const_name up}, @{const_name match_up}),
       (@{const_name sinl}, @{const_name match_sinl}),
@@ -242,7 +242,7 @@ setup {*
       (@{const_name TT}, @{const_name match_TT}),
       (@{const_name FF}, @{const_name match_FF}),
       (@{const_name bottom}, @{const_name match_bottom}) ]
-*}
+\<close>
 
 hide_const (open) succeed fail run
 

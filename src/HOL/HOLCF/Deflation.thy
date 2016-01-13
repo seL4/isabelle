@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-section {* Continuous deflations and ep-pairs *}
+section \<open>Continuous deflations and ep-pairs\<close>
 
 theory Deflation
 imports Plain_HOLCF
@@ -10,7 +10,7 @@ begin
 
 default_sort cpo
 
-subsection {* Continuous deflations *}
+subsection \<open>Continuous deflations\<close>
 
 locale deflation =
   fixes d :: "'a \<rightarrow> 'a"
@@ -21,7 +21,7 @@ begin
 lemma below_ID: "d \<sqsubseteq> ID"
 by (rule cfun_belowI, simp add: below)
 
-text {* The set of fixed points is the same as the range. *}
+text \<open>The set of fixed points is the same as the range.\<close>
 
 lemma fixes_eq_range: "{x. d\<cdot>x = x} = range (\<lambda>x. d\<cdot>x)"
 by (auto simp add: eq_sym_conv idem)
@@ -29,10 +29,10 @@ by (auto simp add: eq_sym_conv idem)
 lemma range_eq_fixes: "range (\<lambda>x. d\<cdot>x) = {x. d\<cdot>x = x}"
 by (auto simp add: eq_sym_conv idem)
 
-text {*
+text \<open>
   The pointwise ordering on deflation functions coincides with
   the subset ordering of their sets of fixed-points.
-*}
+\<close>
 
 lemma belowI:
   assumes f: "\<And>x. d\<cdot>x = x \<Longrightarrow> f\<cdot>x = x" shows "d \<sqsubseteq> f"
@@ -74,10 +74,10 @@ lemma deflation_below_iff:
  apply (simp add: deflation.belowI)
 done
 
-text {*
+text \<open>
   The composition of two deflations is equal to
   the lesser of the two (if they are comparable).
-*}
+\<close>
 
 lemma deflation_below_comp1:
   assumes "deflation f"
@@ -99,7 +99,7 @@ lemma deflation_below_comp2:
 by (simp only: deflation.belowD deflation.idem)
 
 
-subsection {* Deflations with finite range *}
+subsection \<open>Deflations with finite range\<close>
 
 lemma finite_range_imp_finite_fixes:
   "finite (range f) \<Longrightarrow> finite {x. f x = x}"
@@ -164,7 +164,7 @@ lemma finite_deflation_bottom: "finite_deflation \<bottom>"
 by standard simp_all
 
 
-subsection {* Continuous embedding-projection pairs *}
+subsection \<open>Continuous embedding-projection pairs\<close>
 
 locale ep_pair =
   fixes e :: "'a \<rightarrow> 'b" and p :: "'b \<rightarrow> 'a"
@@ -224,7 +224,7 @@ qed
 lemma compact_e_iff: "compact (e\<cdot>x) \<longleftrightarrow> compact x"
 by (rule iffI [OF compact_e_rev compact_e])
 
-text {* Deflations from ep-pairs *}
+text \<open>Deflations from ep-pairs\<close>
 
 lemma deflation_e_p: "deflation (e oo p)"
 by (simp add: deflation.intro e_p_below)
@@ -321,7 +321,7 @@ qed
 
 end
 
-subsection {* Uniqueness of ep-pairs *}
+subsection \<open>Uniqueness of ep-pairs\<close>
 
 lemma ep_pair_unique_e_lemma:
   assumes 1: "ep_pair e1 p" and 2: "ep_pair e2 p"
@@ -355,7 +355,7 @@ lemma ep_pair_unique_p:
   "\<lbrakk>ep_pair e p1; ep_pair e p2\<rbrakk> \<Longrightarrow> p1 = p2"
 by (fast intro: below_antisym elim: ep_pair_unique_p_lemma)
 
-subsection {* Composing ep-pairs *}
+subsection \<open>Composing ep-pairs\<close>
 
 lemma ep_pair_ID_ID: "ep_pair ID ID"
 by standard simp_all

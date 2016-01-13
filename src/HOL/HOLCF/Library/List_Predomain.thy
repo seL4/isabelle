@@ -2,19 +2,19 @@
     Author:     Brian Huffman
 *)
 
-section {* Predomain class instance for HOL list type *}
+section \<open>Predomain class instance for HOL list type\<close>
 
 theory List_Predomain
 imports List_Cpo Sum_Cpo
 begin
 
-subsection {* Strict list type *}
+subsection \<open>Strict list type\<close>
 
 domain 'a slist = SNil | SCons "'a" "'a slist"
 
-text {* Polymorphic map function for strict lists. *}
+text \<open>Polymorphic map function for strict lists.\<close>
 
-text {* FIXME: The domain package should generate this! *}
+text \<open>FIXME: The domain package should generate this!\<close>
 
 fixrec slist_map' :: "('a \<rightarrow> 'b) \<rightarrow> 'a slist \<rightarrow> 'b slist"
   where "slist_map'\<cdot>f\<cdot>SNil = SNil"
@@ -60,9 +60,9 @@ apply (intro monofun_cfun below_refl)
 apply (simp add: cfun_below_iff ep_pair.e_p_below)
 done
 
-text {*
+text \<open>
   Types @{typ "'a list u"}. and @{typ "'a u slist"} are isomorphic.
-*}
+\<close>
 
 fixrec encode_list_u where
   "encode_list_u\<cdot>(up\<cdot>[]) = SNil" |
@@ -94,7 +94,7 @@ apply (case_tac a, simp)
 apply (case_tac "decode_list_u\<cdot>y", simp, simp)
 done
 
-subsection {* Lists are a predomain *}
+subsection \<open>Lists are a predomain\<close>
 
 definition list_liftdefl :: "udom u defl \<rightarrow> udom u defl"
   where "list_liftdefl = (\<Lambda> a. udefl\<cdot>(slist_defl\<cdot>(u_liftdefl\<cdot>a)))"
@@ -129,7 +129,7 @@ qed
 
 end
 
-subsection {* Configuring domain package to work with list type *}
+subsection \<open>Configuring domain package to work with list type\<close>
 
 lemma liftdefl_list [domain_defl_simps]:
   "LIFTDEFL('a::predomain list) = list_liftdefl\<cdot>LIFTDEFL('a)"
@@ -167,8 +167,8 @@ apply (simp add: cfcomp1 encode_list_u_map)
 apply (simp add: slist_map'_slist_map' u_emb_bottom)
 done
 
-setup {*
+setup \<open>
   Domain_Take_Proofs.add_rec_type (@{type_name "list"}, [true])
-*}
+\<close>
 
 end

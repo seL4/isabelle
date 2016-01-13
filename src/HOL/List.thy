@@ -5399,7 +5399,7 @@ apply (simp add: image_Collect lex_prod_def, safe, blast)
 apply (case_tac xys, simp_all, blast)
 done
 
-text{* By Mathias Fleury: *}
+text\<open>By Mathias Fleury:\<close>
 lemma lexn_transI:
   assumes "trans r" shows "trans (lexn r n)"
 unfolding trans_def

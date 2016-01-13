@@ -2,21 +2,21 @@
     Author:     Brian Huffman
 *)
 
-section {* Subtypes of pcpos *}
+section \<open>Subtypes of pcpos\<close>
 
 theory Cpodef
 imports Adm
 keywords "pcpodef" "cpodef" :: thy_goal
 begin
 
-subsection {* Proving a subtype is a partial order *}
+subsection \<open>Proving a subtype is a partial order\<close>
 
-text {*
+text \<open>
   A subtype of a partial order is itself a partial order,
   if the ordering is defined in the standard way.
-*}
+\<close>
 
-setup {* Sign.add_const_constraint (@{const_name Porder.below}, NONE) *}
+setup \<open>Sign.add_const_constraint (@{const_name Porder.below}, NONE)\<close>
 
 theorem typedef_po:
   fixes Abs :: "'a::po \<Rightarrow> 'b::type"
@@ -30,10 +30,10 @@ theorem typedef_po:
  apply (erule (1) below_antisym)
 done
 
-setup {* Sign.add_const_constraint (@{const_name Porder.below},
-  SOME @{typ "'a::below \<Rightarrow> 'a::below \<Rightarrow> bool"}) *}
+setup \<open>Sign.add_const_constraint (@{const_name Porder.below},
+  SOME @{typ "'a::below \<Rightarrow> 'a::below \<Rightarrow> bool"})\<close>
 
-subsection {* Proving a subtype is finite *}
+subsection \<open>Proving a subtype is finite\<close>
 
 lemma typedef_finite_UNIV:
   fixes Abs :: "'a::type \<Rightarrow> 'b::type"
@@ -46,7 +46,7 @@ proof -
     by (simp only: type_definition.Abs_image [OF type])
 qed
 
-subsection {* Proving a subtype is chain-finite *}
+subsection \<open>Proving a subtype is chain-finite\<close>
 
 lemma ch2ch_Rep:
   assumes below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
@@ -65,15 +65,15 @@ theorem typedef_chfin:
  apply (simp add: type_definition.Rep_inject [OF type])
 done
 
-subsection {* Proving a subtype is complete *}
+subsection \<open>Proving a subtype is complete\<close>
 
-text {*
+text \<open>
   A subtype of a cpo is itself a cpo if the ordering is
   defined in the standard way, and the defining subset
   is closed with respect to limits of chains.  A set is
   closed if and only if membership in the set is an
   admissible predicate.
-*}
+\<close>
 
 lemma typedef_is_lubI:
   assumes below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
@@ -122,9 +122,9 @@ proof
   thus "\<exists>x. range S <<| x" ..
 qed
 
-subsubsection {* Continuity of \emph{Rep} and \emph{Abs} *}
+subsubsection \<open>Continuity of \emph{Rep} and \emph{Abs}\<close>
 
-text {* For any sub-cpo, the @{term Rep} function is continuous. *}
+text \<open>For any sub-cpo, the @{term Rep} function is continuous.\<close>
 
 theorem typedef_cont_Rep:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::cpo"
@@ -140,11 +140,11 @@ theorem typedef_cont_Rep:
  apply (erule ch2ch_Rep [OF below])
 done
 
-text {*
+text \<open>
   For a sub-cpo, we can make the @{term Abs} function continuous
   only if we restrict its domain to the defining subset by
   composing it with another continuous function.
-*}
+\<close>
 
 theorem typedef_cont_Abs:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::cpo"
@@ -157,7 +157,7 @@ theorem typedef_cont_Abs:
 unfolding cont_def is_lub_def is_ub_def ball_simps below
 by (simp add: type_definition.Abs_inverse [OF type f_in_A])
 
-subsection {* Proving subtype elements are compact *}
+subsection \<open>Proving subtype elements are compact\<close>
 
 theorem typedef_compact:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::cpo"
@@ -173,12 +173,12 @@ proof (unfold compact_def)
   thus "adm (\<lambda>x. k \<notsqsubseteq> x)" by (unfold below)
 qed
 
-subsection {* Proving a subtype is pointed *}
+subsection \<open>Proving a subtype is pointed\<close>
 
-text {*
+text \<open>
   A subtype of a cpo has a least element if and only if
   the defining subset has a least element.
-*}
+\<close>
 
 theorem typedef_pcpo_generic:
   fixes Abs :: "'a::cpo \<Rightarrow> 'b::cpo"
@@ -194,10 +194,10 @@ theorem typedef_pcpo_generic:
  apply (rule z_least [OF type_definition.Rep [OF type]])
 done
 
-text {*
+text \<open>
   As a special case, a subtype of a pcpo has a least element
   if the defining subset contains @{term \<bottom>}.
-*}
+\<close>
 
 theorem typedef_pcpo:
   fixes Abs :: "'a::pcpo \<Rightarrow> 'b::cpo"
@@ -207,12 +207,12 @@ theorem typedef_pcpo:
   shows "OFCLASS('b, pcpo_class)"
 by (rule typedef_pcpo_generic [OF type below bottom_in_A], rule minimal)
 
-subsubsection {* Strictness of \emph{Rep} and \emph{Abs} *}
+subsubsection \<open>Strictness of \emph{Rep} and \emph{Abs}\<close>
 
-text {*
+text \<open>
   For a sub-pcpo where @{term \<bottom>} is a member of the defining
   subset, @{term Rep} and @{term Abs} are both strict.
-*}
+\<close>
 
 theorem typedef_Abs_strict:
   assumes type: "type_definition Rep Abs A"
@@ -250,7 +250,7 @@ theorem typedef_Rep_bottom_iff:
  apply (simp add: type_definition.Rep_inject [OF type])
 done
 
-subsection {* Proving a subtype is flat *}
+subsection \<open>Proving a subtype is flat\<close>
 
 theorem typedef_flat:
   fixes Abs :: "'a::flat \<Rightarrow> 'b::pcpo"
@@ -265,7 +265,7 @@ theorem typedef_flat:
  apply (simp add: ax_flat)
 done
 
-subsection {* HOLCF type definition package *}
+subsection \<open>HOLCF type definition package\<close>
 
 ML_file "Tools/cpodef.ML"
 

@@ -16,9 +16,9 @@ definition
     case n of dzero => x
       | dsucc $ m => f $ (h $ m $ f $ x))"
 
-text {*
+text \<open>
   \medskip Expand fixed point properties.
-*}
+\<close>
 
 lemma iterator_def2:
   "iterator = (LAM n f x. case n of dzero => x | dsucc$m => f$(iterator$m$f$x))"
@@ -29,7 +29,7 @@ lemma iterator_def2:
   apply simp
   done
 
-text {* \medskip Recursive properties. *}
+text \<open>\medskip Recursive properties.\<close>
 
 lemma iterator1: "iterator $ UU $ f $ x = UU"
   apply (subst iterator_def2)

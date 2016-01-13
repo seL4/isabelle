@@ -2,7 +2,7 @@
     Author:     Franz Regensburger
 *)
 
-section {* The cpo of cartesian products *}
+section \<open>The cpo of cartesian products\<close>
 
 theory Product_Cpo
 imports Adm
@@ -10,7 +10,7 @@ begin
 
 default_sort cpo
 
-subsection {* Unit type is a pcpo *}
+subsection \<open>Unit type is a pcpo\<close>
 
 instantiation unit :: discrete_cpo
 begin
@@ -27,7 +27,7 @@ instance unit :: pcpo
 by intro_classes simp
 
 
-subsection {* Product type is a partial order *}
+subsection \<open>Product type is a partial order\<close>
 
 instantiation prod :: (below, below) below
 begin
@@ -55,7 +55,7 @@ next
     by (fast intro: below_trans)
 qed
 
-subsection {* Monotonicity of \emph{Pair}, \emph{fst}, \emph{snd} *}
+subsection \<open>Monotonicity of \emph{Pair}, \emph{fst}, \emph{snd}\<close>
 
 lemma prod_belowI: "\<lbrakk>fst p \<sqsubseteq> fst q; snd p \<sqsubseteq> snd q\<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
 unfolding below_prod_def by simp
@@ -63,7 +63,7 @@ unfolding below_prod_def by simp
 lemma Pair_below_iff [simp]: "(a, b) \<sqsubseteq> (c, d) \<longleftrightarrow> a \<sqsubseteq> c \<and> b \<sqsubseteq> d"
 unfolding below_prod_def by simp
 
-text {* Pair @{text "(_,_)"}  is monotone in both arguments *}
+text \<open>Pair \<open>(_,_)\<close>  is monotone in both arguments\<close>
 
 lemma monofun_pair1: "monofun (\<lambda>x. (x, y))"
 by (simp add: monofun_def)
@@ -79,7 +79,7 @@ lemma ch2ch_Pair [simp]:
   "chain X \<Longrightarrow> chain Y \<Longrightarrow> chain (\<lambda>i. (X i, Y i))"
 by (rule chainI, simp add: chainE)
 
-text {* @{term fst} and @{term snd} are monotone *}
+text \<open>@{term fst} and @{term snd} are monotone\<close>
 
 lemma fst_monofun: "x \<sqsubseteq> y \<Longrightarrow> fst x \<sqsubseteq> fst y"
 unfolding below_prod_def by simp
@@ -102,12 +102,12 @@ lemma prod_chain_cases:
   obtains A B
   where "chain A" and "chain B" and "Y = (\<lambda>i. (A i, B i))"
 proof
-  from `chain Y` show "chain (\<lambda>i. fst (Y i))" by (rule ch2ch_fst)
-  from `chain Y` show "chain (\<lambda>i. snd (Y i))" by (rule ch2ch_snd)
+  from \<open>chain Y\<close> show "chain (\<lambda>i. fst (Y i))" by (rule ch2ch_fst)
+  from \<open>chain Y\<close> show "chain (\<lambda>i. snd (Y i))" by (rule ch2ch_snd)
   show "Y = (\<lambda>i. (fst (Y i), snd (Y i)))" by simp
 qed
 
-subsection {* Product type is a cpo *}
+subsection \<open>Product type is a cpo\<close>
 
 lemma is_lub_Pair:
   "\<lbrakk>range A <<| x; range B <<| y\<rbrakk> \<Longrightarrow> range (\<lambda>i. (A i, B i)) <<| (x, y)"
@@ -146,7 +146,7 @@ proof
     by simp
 qed
 
-subsection {* Product type is pointed *}
+subsection \<open>Product type is pointed\<close>
 
 lemma minimal_prod: "(\<bottom>, \<bottom>) \<sqsubseteq> p"
 by (simp add: below_prod_def)
@@ -172,7 +172,7 @@ by simp
 lemma split_strict [simp]: "case_prod f \<bottom> = f \<bottom> \<bottom>"
 unfolding split_def by simp
 
-subsection {* Continuity of \emph{Pair}, \emph{fst}, \emph{snd} *}
+subsection \<open>Continuity of \emph{Pair}, \emph{fst}, \emph{snd}\<close>
 
 lemma cont_pair1: "cont (\<lambda>x. (x, y))"
 apply (rule contI)
@@ -252,22 +252,22 @@ lemma cont2cont_case_prod' [simp, cont2cont]:
   shows "cont (\<lambda>x. case_prod (f x) (g x))"
 using assms by (simp add: cont2cont_case_prod prod_cont_iff)
 
-text {* The simple version (due to Joachim Breitner) is needed if
-  either element type of the pair is not a cpo. *}
+text \<open>The simple version (due to Joachim Breitner) is needed if
+  either element type of the pair is not a cpo.\<close>
 
 lemma cont2cont_split_simple [simp, cont2cont]:
  assumes "\<And>a b. cont (\<lambda>x. f x a b)"
  shows "cont (\<lambda>x. case p of (a, b) \<Rightarrow> f x a b)"
 using assms by (cases p) auto
 
-text {* Admissibility of predicates on product types. *}
+text \<open>Admissibility of predicates on product types.\<close>
 
 lemma adm_case_prod [simp]:
   assumes "adm (\<lambda>x. P x (fst (f x)) (snd (f x)))"
   shows "adm (\<lambda>x. case f x of (a, b) \<Rightarrow> P x a b)"
 unfolding case_prod_beta using assms .
 
-subsection {* Compactness and chain-finiteness *}
+subsection \<open>Compactness and chain-finiteness\<close>
 
 lemma fst_below_iff: "fst (x::'a \<times> 'b) \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> (y, snd x)"
 unfolding below_prod_def by simp

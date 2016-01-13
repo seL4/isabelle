@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Convex powerdomain *}
+section \<open>Convex powerdomain\<close>
 
 theory ConvexPD
 imports UpperPD LowerPD
 begin
 
-subsection {* Basis preorder *}
+subsection \<open>Basis preorder\<close>
 
 definition
   convex_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix "\<le>\<natural>" 50) where
@@ -117,7 +117,7 @@ apply (simp add: 4)
 done
 
 
-subsection {* Type definition *}
+subsection \<open>Type definition\<close>
 
 typedef 'a convex_pd  ("('(_')\<natural>)") =
   "{S::'a pd_basis set. convex_le.ideal S}"
@@ -150,7 +150,7 @@ using type_definition_convex_pd below_convex_pd_def
 using convex_principal_def pd_basis_countable
 by (rule convex_le.typedef_ideal_completion)
 
-text {* Convex powerdomain is pointed *}
+text \<open>Convex powerdomain is pointed\<close>
 
 lemma convex_pd_minimal: "convex_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: convex_pd.principal_induct, simp, simp)
@@ -162,7 +162,7 @@ lemma inst_convex_pd_pcpo: "\<bottom> = convex_principal (PDUnit compact_bot)"
 by (rule convex_pd_minimal [THEN bottomI, symmetric])
 
 
-subsection {* Monadic unit and plus *}
+subsection \<open>Monadic unit and plus\<close>
 
 definition
   convex_unit :: "'a \<rightarrow> 'a convex_pd" where
@@ -221,11 +221,11 @@ lemmas convex_plus_absorb = convex_add.idem
 lemmas convex_plus_left_commute = convex_add.left_commute
 lemmas convex_plus_left_absorb = convex_add.left_idem
 
-text {* Useful for @{text "simp add: convex_plus_ac"} *}
+text \<open>Useful for \<open>simp add: convex_plus_ac\<close>\<close>
 lemmas convex_plus_ac =
   convex_plus_assoc convex_plus_commute convex_plus_left_commute
 
-text {* Useful for @{text "simp only: convex_plus_aci"} *}
+text \<open>Useful for \<open>simp only: convex_plus_aci\<close>\<close>
 lemmas convex_plus_aci =
   convex_plus_ac convex_plus_absorb convex_plus_left_absorb
 
@@ -275,7 +275,7 @@ lemma compact_convex_plus [simp]:
 by (auto dest!: convex_pd.compact_imp_principal)
 
 
-subsection {* Induction rules *}
+subsection \<open>Induction rules\<close>
 
 lemma convex_pd_induct1:
   assumes P: "adm P"
@@ -304,7 +304,7 @@ apply (simp only: convex_plus_principal [symmetric] plus)
 done
 
 
-subsection {* Monadic bind *}
+subsection \<open>Monadic bind\<close>
 
 definition
   convex_bind_basis ::
@@ -376,7 +376,7 @@ lemma convex_bind_bind:
 by (induct xs, simp_all)
 
 
-subsection {* Map *}
+subsection \<open>Map\<close>
 
 definition
   convex_map :: "('a \<rightarrow> 'b) \<rightarrow> 'a convex_pd \<rightarrow> 'b convex_pd" where
@@ -467,7 +467,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
-subsection {* Convex powerdomain is bifinite *}
+subsection \<open>Convex powerdomain is bifinite\<close>
 
 lemma approx_chain_convex_map:
   assumes "approx_chain a"
@@ -482,7 +482,7 @@ proof
     by (fast intro!: approx_chain_convex_map)
 qed
 
-subsection {* Join *}
+subsection \<open>Join\<close>
 
 definition
   convex_join :: "'a convex_pd convex_pd \<rightarrow> 'a convex_pd" where
@@ -513,9 +513,9 @@ lemma convex_join_map_map:
 by (induct xss rule: convex_pd_induct, simp_all)
 
 
-subsection {* Conversions to other powerdomains *}
+subsection \<open>Conversions to other powerdomains\<close>
 
-text {* Convex to upper *}
+text \<open>Convex to upper\<close>
 
 lemma convex_le_imp_upper_le: "t \<le>\<natural> u \<Longrightarrow> t \<le>\<sharp> u"
 unfolding convex_le_def by simp
@@ -555,7 +555,7 @@ lemma convex_to_upper_join [simp]:
     upper_bind\<cdot>(convex_to_upper\<cdot>xss)\<cdot>convex_to_upper"
 by (simp add: convex_join_def upper_join_def cfcomp_LAM eta_cfun)
 
-text {* Convex to lower *}
+text \<open>Convex to lower\<close>
 
 lemma convex_le_imp_lower_le: "t \<le>\<natural> u \<Longrightarrow> t \<le>\<flat> u"
 unfolding convex_le_def by simp
@@ -595,7 +595,7 @@ lemma convex_to_lower_join [simp]:
     lower_bind\<cdot>(convex_to_lower\<cdot>xss)\<cdot>convex_to_lower"
 by (simp add: convex_join_def lower_join_def cfcomp_LAM eta_cfun)
 
-text {* Ordering property *}
+text \<open>Ordering property\<close>
 
 lemma convex_pd_below_iff:
   "(xs \<sqsubseteq> ys) =

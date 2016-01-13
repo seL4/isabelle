@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Powerdomain examples *}
+section \<open>Powerdomain examples\<close>
 
 theory Powerdomain_ex
 imports HOLCF
 begin
 
-subsection {* Monadic sorting example *}
+subsection \<open>Monadic sorting example\<close>
 
 domain ordering = LT | EQ | GT
 
@@ -43,7 +43,7 @@ apply simp_all
 done
 
 
-subsection {* Picking a leaf from a tree *}
+subsection \<open>Picking a leaf from a tree\<close>
 
 domain 'a tree =
   Node (lazy "'a tree") (lazy "'a tree") |

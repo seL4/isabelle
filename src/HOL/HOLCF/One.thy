@@ -2,7 +2,7 @@
     Author:     Oscar Slotosch
 *)
 
-section {* The unit domain *}
+section \<open>The unit domain\<close>
 
 theory One
 imports Lift
@@ -17,7 +17,7 @@ translations
 definition ONE :: "one"
   where "ONE == Def ()"
 
-text {* Exhaustion and Elimination for type @{typ one} *}
+text \<open>Exhaustion and Elimination for type @{typ one}\<close>
 
 lemma Exh_one: "t = \<bottom> \<or> t = ONE"
 unfolding ONE_def by (induct t) simp_all
@@ -50,7 +50,7 @@ by (induct x rule: one_induct) simp_all
 lemma compact_ONE: "compact ONE"
 by (rule compact_chfin)
 
-text {* Case analysis function for type @{typ one} *}
+text \<open>Case analysis function for type @{typ one}\<close>
 
 definition
   one_case :: "'a::pcpo \<rightarrow> one \<rightarrow> 'a" where

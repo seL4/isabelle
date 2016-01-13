@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-section {* Internal domain package proofs done manually *}
+section \<open>Internal domain package proofs done manually\<close>
 
 theory Domain_Proofs
 imports HOLCF
@@ -21,9 +21,9 @@ domain 'a foo = Foo1 | Foo2 (lazy 'a) (lazy "'a bar")
 
 (********************************************************************)
 
-subsection {* Step 1: Define the new type combinators *}
+subsection \<open>Step 1: Define the new type combinators\<close>
 
-text {* Start with the one-step non-recursive version *}
+text \<open>Start with the one-step non-recursive version\<close>
 
 definition
   foo_bar_baz_deflF ::
@@ -42,7 +42,7 @@ lemma foo_bar_baz_deflF_beta:
 unfolding foo_bar_baz_deflF_def
 by (simp add: split_def)
 
-text {* Individual type combinators are projected from the fixed point. *}
+text \<open>Individual type combinators are projected from the fixed point.\<close>
 
 definition foo_defl :: "udom defl \<rightarrow> udom defl"
 where "foo_defl = (\<Lambda> a. fst (fix\<cdot>(foo_bar_baz_deflF\<cdot>a)))"
@@ -59,7 +59,7 @@ lemma defl_apply_thms:
   "baz_defl\<cdot>a = snd (snd (fix\<cdot>(foo_bar_baz_deflF\<cdot>a)))"
 unfolding foo_defl_def bar_defl_def baz_defl_def by simp_all
 
-text {* Unfold rules for each combinator. *}
+text \<open>Unfold rules for each combinator.\<close>
 
 lemma foo_defl_unfold:
   "foo_defl\<cdot>a = ssum_defl\<cdot>DEFL(one)\<cdot>(sprod_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>(bar_defl\<cdot>a)))"
@@ -76,9 +76,9 @@ how the fixrec package works."
 
 (********************************************************************)
 
-subsection {* Step 2: Define types, prove class instances *}
+subsection \<open>Step 2: Define types, prove class instances\<close>
 
-text {* Use @{text pcpodef} with the appropriate type combinator. *}
+text \<open>Use \<open>pcpodef\<close> with the appropriate type combinator.\<close>
 
 pcpodef 'a foo = "defl_set (foo_defl\<cdot>DEFL('a))"
 by (rule defl_set_bottom, rule adm_defl_set)
@@ -89,7 +89,7 @@ by (rule defl_set_bottom, rule adm_defl_set)
 pcpodef 'a baz = "defl_set (baz_defl\<cdot>DEFL('a))"
 by (rule defl_set_bottom, rule adm_defl_set)
 
-text {* Prove rep instance using lemma @{text typedef_rep_class}. *}
+text \<open>Prove rep instance using lemma \<open>typedef_rep_class\<close>.\<close>
 
 instantiation foo :: ("domain") "domain"
 begin
@@ -196,7 +196,7 @@ done
 
 end
 
-text {* Prove DEFL rules using lemma @{text typedef_DEFL}. *}
+text \<open>Prove DEFL rules using lemma \<open>typedef_DEFL\<close>.\<close>
 
 lemma DEFL_foo: "DEFL('a foo) = foo_defl\<cdot>DEFL('a)"
 apply (rule typedef_DEFL)
@@ -213,7 +213,7 @@ apply (rule typedef_DEFL)
 apply (rule defl_baz_def)
 done
 
-text {* Prove DEFL equations using type combinator unfold lemmas. *}
+text \<open>Prove DEFL equations using type combinator unfold lemmas.\<close>
 
 lemma DEFL_foo': "DEFL('a foo) = DEFL(one \<oplus> 'a\<^sub>\<bottom> \<otimes> ('a bar)\<^sub>\<bottom>)"
 unfolding DEFL_foo DEFL_bar DEFL_baz domain_defl_simps
@@ -229,9 +229,9 @@ by (rule baz_defl_unfold)
 
 (********************************************************************)
 
-subsection {* Step 3: Define rep and abs functions *}
+subsection \<open>Step 3: Define rep and abs functions\<close>
 
-text {* Define them all using @{text prj} and @{text emb}! *}
+text \<open>Define them all using \<open>prj\<close> and \<open>emb\<close>!\<close>
 
 definition foo_rep :: "'a foo \<rightarrow> one \<oplus> ('a\<^sub>\<bottom> \<otimes> ('a bar)\<^sub>\<bottom>)"
 where "foo_rep \<equiv> prj oo emb"
@@ -251,7 +251,7 @@ where "baz_rep \<equiv> prj oo emb"
 definition baz_abs :: "('a foo convex_pd \<rightarrow> tr)\<^sub>\<bottom> \<rightarrow> 'a baz"
 where "baz_abs \<equiv> prj oo emb"
 
-text {* Prove isomorphism rules. *}
+text \<open>Prove isomorphism rules.\<close>
 
 lemma foo_abs_iso: "foo_rep\<cdot>(foo_abs\<cdot>x) = x"
 by (rule domain_abs_iso [OF DEFL_foo' foo_abs_def foo_rep_def])
@@ -271,7 +271,7 @@ by (rule domain_abs_iso [OF DEFL_baz' baz_abs_def baz_rep_def])
 lemma baz_rep_iso: "baz_abs\<cdot>(baz_rep\<cdot>x) = x"
 by (rule domain_rep_iso [OF DEFL_baz' baz_abs_def baz_rep_def])
 
-text {* Prove isodefl rules using @{text isodefl_coerce}. *}
+text \<open>Prove isodefl rules using \<open>isodefl_coerce\<close>.\<close>
 
 lemma isodefl_foo_abs:
   "isodefl d t \<Longrightarrow> isodefl (foo_abs oo d oo foo_rep) t"
@@ -287,12 +287,12 @@ by (rule isodefl_abs_rep [OF DEFL_baz' baz_abs_def baz_rep_def])
 
 (********************************************************************)
 
-subsection {* Step 4: Define map functions, prove isodefl property *}
+subsection \<open>Step 4: Define map functions, prove isodefl property\<close>
 
-text {* Start with the one-step non-recursive version. *}
+text \<open>Start with the one-step non-recursive version.\<close>
 
-text {* Note that the type of the map function depends on which
-variables are used in positive and negative positions. *}
+text \<open>Note that the type of the map function depends on which
+variables are used in positive and negative positions.\<close>
 
 definition
   foo_bar_baz_mapF ::
@@ -325,7 +325,7 @@ lemma foo_bar_baz_mapF_beta:
 unfolding foo_bar_baz_mapF_def
 by (simp add: split_def)
 
-text {* Individual map functions are projected from the fixed point. *}
+text \<open>Individual map functions are projected from the fixed point.\<close>
 
 definition foo_map :: "('a \<rightarrow> 'b) \<rightarrow> ('a foo \<rightarrow> 'b foo)"
 where "foo_map = (\<Lambda> f. fst (fix\<cdot>(foo_bar_baz_mapF\<cdot>f)))"
@@ -342,7 +342,7 @@ lemma map_apply_thms:
   "baz_map\<cdot>f = snd (snd (fix\<cdot>(foo_bar_baz_mapF\<cdot>f)))"
 unfolding foo_map_def bar_map_def baz_map_def by simp_all
 
-text {* Prove isodefl rules for all map functions simultaneously. *}
+text \<open>Prove isodefl rules for all map functions simultaneously.\<close>
 
 lemma isodefl_foo_bar_baz:
   assumes isodefl_d: "isodefl d t"
@@ -374,7 +374,7 @@ lemmas isodefl_foo = isodefl_foo_bar_baz [THEN conjunct1]
 lemmas isodefl_bar = isodefl_foo_bar_baz [THEN conjunct2, THEN conjunct1]
 lemmas isodefl_baz = isodefl_foo_bar_baz [THEN conjunct2, THEN conjunct2]
 
-text {* Prove map ID lemmas, using isodefl_DEFL_imp_ID *}
+text \<open>Prove map ID lemmas, using isodefl_DEFL_imp_ID\<close>
 
 lemma foo_map_ID: "foo_map\<cdot>ID = ID"
 apply (rule isodefl_DEFL_imp_ID)
@@ -399,7 +399,7 @@ done
 
 (********************************************************************)
 
-subsection {* Step 5: Define take functions, prove lub-take lemmas *}
+subsection \<open>Step 5: Define take functions, prove lub-take lemmas\<close>
 
 definition
   foo_bar_baz_takeF ::

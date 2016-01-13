@@ -2,15 +2,15 @@
     Author:     Brian Huffman
 *)
 
-section {* Domain package support *}
+section \<open>Domain package support\<close>
 
 theory Domain_Aux
 imports Map_Functions Fixrec
 begin
 
-subsection {* Continuous isomorphisms *}
+subsection \<open>Continuous isomorphisms\<close>
 
-text {* A locale for continuous isomorphisms *}
+text \<open>A locale for continuous isomorphisms\<close>
 
 locale iso =
   fixes abs :: "'a \<rightarrow> 'b"
@@ -108,13 +108,13 @@ qed
 
 end
 
-subsection {* Proofs about take functions *}
+subsection \<open>Proofs about take functions\<close>
 
-text {*
+text \<open>
   This section contains lemmas that are used in a module that supports
   the domain isomorphism package; the module contains proofs related
   to take functions and the finiteness predicate.
-*}
+\<close>
 
 lemma deflation_abs_rep:
   fixes abs and rep and d
@@ -132,14 +132,14 @@ proof (rule linorder_le_cases)
   with chain have "d m \<sqsubseteq> d n" by (rule chain_mono)
   then have "d m\<cdot>(d n\<cdot>x) = d m\<cdot>x"
     by (rule deflation_below_comp1 [OF defl defl])
-  moreover from `m \<le> n` have "min m n = m" by simp
+  moreover from \<open>m \<le> n\<close> have "min m n = m" by simp
   ultimately show ?thesis by simp
 next
   assume "n \<le> m"
   with chain have "d n \<sqsubseteq> d m" by (rule chain_mono)
   then have "d m\<cdot>(d n\<cdot>x) = d n\<cdot>x"
     by (rule deflation_below_comp2 [OF defl defl])
-  moreover from `n \<le> m` have "min m n = n" by simp
+  moreover from \<open>n \<le> m\<close> have "min m n = n" by simp
   ultimately show ?thesis by simp
 qed
 
@@ -164,18 +164,18 @@ lemma lub_ID_take_induct:
   assumes "chain t" and "(\<Squnion>n. t n) = ID"
   assumes "adm P" and "\<And>n. P (t n\<cdot>x)" shows "P x"
 proof -
-  from `chain t` have "chain (\<lambda>n. t n\<cdot>x)" by simp
-  from `adm P` this `\<And>n. P (t n\<cdot>x)` have "P (\<Squnion>n. t n\<cdot>x)" by (rule admD)
-  with `chain t` `(\<Squnion>n. t n) = ID` show "P x" by (simp add: lub_distribs)
+  from \<open>chain t\<close> have "chain (\<lambda>n. t n\<cdot>x)" by simp
+  from \<open>adm P\<close> this \<open>\<And>n. P (t n\<cdot>x)\<close> have "P (\<Squnion>n. t n\<cdot>x)" by (rule admD)
+  with \<open>chain t\<close> \<open>(\<Squnion>n. t n) = ID\<close> show "P x" by (simp add: lub_distribs)
 qed
 
-subsection {* Finiteness *}
+subsection \<open>Finiteness\<close>
 
-text {*
+text \<open>
   Let a ``decisive'' function be a deflation that maps every input to
   either itself or bottom.  Then if a domain's take functions are all
   decisive, then all values in the domain are finite.
-*}
+\<close>
 
 definition
   decisive :: "('a::pcpo \<rightarrow> 'a) \<Rightarrow> bool"
@@ -252,9 +252,9 @@ lemma lub_ID_finite_take_induct:
   shows "(\<And>n. P (d n\<cdot>x)) \<Longrightarrow> P x"
 using lub_ID_finite [OF assms] by metis
 
-subsection {* Proofs about constructor functions *}
+subsection \<open>Proofs about constructor functions\<close>
 
-text {* Lemmas for proving nchotomy rule: *}
+text \<open>Lemmas for proving nchotomy rule:\<close>
 
 lemma ex_one_bottom_iff:
   "(\<exists>x. P x \<and> x \<noteq> \<bottom>) = P ONE"
@@ -290,7 +290,7 @@ lemmas ex_bottom_iffs =
    ex_up_bottom_iff
    ex_one_bottom_iff
 
-text {* Rules for turning nchotomy into exhaust: *}
+text \<open>Rules for turning nchotomy into exhaust:\<close>
 
 lemma exh_casedist0: "\<lbrakk>R; R \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P" (* like make_elim *)
   by auto
@@ -306,7 +306,7 @@ lemma exh_casedist3: "(P \<and> Q \<Longrightarrow> R) \<equiv> (P \<Longrightar
 
 lemmas exh_casedists = exh_casedist1 exh_casedist2 exh_casedist3
 
-text {* Rules for proving constructor properties *}
+text \<open>Rules for proving constructor properties\<close>
 
 lemmas con_strict_rules =
   sinl_strict sinr_strict spair_strict1 spair_strict2
@@ -342,7 +342,7 @@ lemmas take_con_rules =
   ssum_map_sinl' ssum_map_sinr' sprod_map_spair' u_map_up
   deflation_strict deflation_ID ID1 cfcomp2
 
-subsection {* ML setup *}
+subsection \<open>ML setup\<close>
 
 named_theorems domain_deflation "theorems like deflation a ==> deflation (foo_map$a)"
   and domain_map_ID "theorems like foo_map$ID = ID"

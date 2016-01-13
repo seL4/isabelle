@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Cpo class instance for HOL option type *}
+section \<open>Cpo class instance for HOL option type\<close>
 
 theory Option_Cpo
 imports HOLCF Sum_Cpo
 begin
 
-subsection {* Ordering on option type *}
+subsection \<open>Ordering on option type\<close>
 
 instantiation option :: (below) below
 begin
@@ -49,7 +49,7 @@ lemma option_below_cases:
 using assms unfolding below_option_def
 by (simp split: option.split_asm)
 
-subsection {* Option type is a complete partial order *}
+subsection \<open>Option type is a complete partial order\<close>
 
 instance option :: (po) po
 proof
@@ -106,7 +106,7 @@ instance option :: (cpo) cpo
  apply (erule cpo_lubI)
 done
 
-subsection {* Continuity of Some and case function *}
+subsection \<open>Continuity of Some and case function\<close>
 
 lemma cont_Some: "cont Some"
 by (intro contI is_lub_Some cpo_lubI)
@@ -141,7 +141,7 @@ lemma cont2cont_case_option' [simp, cont2cont]:
   shows "cont (\<lambda>x. case f x of None \<Rightarrow> g x | Some a \<Rightarrow> h x a)"
 using assms by (simp add: cont2cont_case_option prod_cont_iff)
 
-text {* Simple version for when the element type is not a cpo. *}
+text \<open>Simple version for when the element type is not a cpo.\<close>
 
 lemma cont2cont_case_option_simple [simp, cont2cont]:
   assumes "cont (\<lambda>x. f x)"
@@ -149,7 +149,7 @@ lemma cont2cont_case_option_simple [simp, cont2cont]:
   shows "cont (\<lambda>x. case z of None \<Rightarrow> f x | Some a \<Rightarrow> g x a)"
 using assms by (cases z) auto
 
-text {* Continuity rule for map. *}
+text \<open>Continuity rule for map.\<close>
 
 lemma cont2cont_map_option [simp, cont2cont]:
   assumes f: "cont (\<lambda>(x, y). f x y)"
@@ -157,7 +157,7 @@ lemma cont2cont_map_option [simp, cont2cont]:
   shows "cont (\<lambda>x. map_option (\<lambda>y. f x y) (g x))"
 using assms by (simp add: prod_cont_iff map_option_case)
 
-subsection {* Compactness and chain-finiteness *}
+subsection \<open>Compactness and chain-finiteness\<close>
 
 lemma compact_None [simp]: "compact None"
 apply (rule compactI2)
@@ -190,7 +190,7 @@ done
 instance option :: (discrete_cpo) discrete_cpo
 by intro_classes (simp add: below_option_def split: option.split)
 
-subsection {* Using option types with Fixrec *}
+subsection \<open>Using option types with Fixrec\<close>
 
 definition
   "match_None = (\<Lambda> x k. case x of None \<Rightarrow> k | Some a \<Rightarrow> Fixrec.fail)"
@@ -208,13 +208,13 @@ lemma match_Some_simps [simp]:
   "match_Some\<cdot>(Some a)\<cdot>k = k\<cdot>a"
 unfolding match_Some_def by simp_all
 
-setup {*
+setup \<open>
   Fixrec.add_matchers
     [ (@{const_name None}, @{const_name match_None}),
       (@{const_name Some}, @{const_name match_Some}) ]
-*}
+\<close>
 
-subsection {* Option type is a predomain *}
+subsection \<open>Option type is a predomain\<close>
 
 definition
   "encode_option = (\<Lambda> x. case x of None \<Rightarrow> Inl () | Some a \<Rightarrow> Inr a)"
@@ -255,7 +255,7 @@ qed
 
 end
 
-subsection {* Configuring domain package to work with option type *}
+subsection \<open>Configuring domain package to work with option type\<close>
 
 lemma liftdefl_option [domain_defl_simps]:
   "LIFTDEFL('a::predomain option) = LIFTDEFL(unit + 'a)"
@@ -285,8 +285,8 @@ using isodefl_sum [OF isodefl_LIFTDEFL [where 'a=unit] assms]
 unfolding isodefl'_def liftemb_option_def liftprj_option_def liftdefl_eq
 by (simp add: cfcomp1 u_map_map encode_option_option_map)
 
-setup {*
+setup \<open>
   Domain_Take_Proofs.add_rec_type (@{type_name "option"}, [true])
-*}
+\<close>
 
 end

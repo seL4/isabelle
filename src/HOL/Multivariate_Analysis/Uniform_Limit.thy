@@ -272,7 +272,7 @@ proof (rule uniform_limitI)
   qed
 qed
 
-text{*Alternative version, formulated as in HOL Light*}
+text\<open>Alternative version, formulated as in HOL Light\<close>
 corollary series_comparison_uniform:
   fixes f :: "_ \<Rightarrow> nat \<Rightarrow> _ :: banach"
   assumes g: "summable g" and le: "\<And>n x. N \<le> n \<and> x \<in> A \<Longrightarrow> norm(f x n) \<le> g n"

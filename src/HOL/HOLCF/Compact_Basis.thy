@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-section {* A compact basis for powerdomains *}
+section \<open>A compact basis for powerdomains\<close>
 
 theory Compact_Basis
 imports Universal
@@ -10,7 +10,7 @@ begin
 
 default_sort bifinite
 
-subsection {* A compact basis for powerdomains *}
+subsection \<open>A compact basis for powerdomains\<close>
 
 definition "pd_basis = {S::'a compact_basis set. finite S \<and> S \<noteq> {}}"
 
@@ -26,7 +26,7 @@ by (insert Rep_pd_basis [of u, unfolded pd_basis_def]) simp
 lemma Rep_pd_basis_nonempty [simp]: "Rep_pd_basis u \<noteq> {}"
 by (insert Rep_pd_basis [of u, unfolded pd_basis_def]) simp
 
-text {* The powerdomain basis type is countable. *}
+text \<open>The powerdomain basis type is countable.\<close>
 
 lemma pd_basis_countable: "\<exists>f::'a pd_basis \<Rightarrow> nat. inj f"
 proof -
@@ -40,7 +40,7 @@ proof -
   (* FIXME: why doesn't ".." or "by (rule exI)" work? *)
 qed
 
-subsection {* Unit and plus constructors *}
+subsection \<open>Unit and plus constructors\<close>
 
 definition
   PDUnit :: "'a compact_basis \<Rightarrow> 'a pd_basis" where
@@ -91,7 +91,7 @@ apply (induct x rule: pd_basis_induct1)
 apply (rule PDUnit, erule PDPlus [OF PDUnit])
 done
 
-subsection {* Fold operator *}
+subsection \<open>Fold operator\<close>
 
 definition
   fold_pd ::

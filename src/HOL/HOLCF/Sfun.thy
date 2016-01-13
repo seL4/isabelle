@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-section {* The Strict Function Type *}
+section \<open>The Strict Function Type\<close>
 
 theory Sfun
 imports Cfun
@@ -15,7 +15,7 @@ by simp_all
 type_notation (ASCII)
   sfun  (infixr "->!" 0)
 
-text {* TODO: Define nice syntax for abstraction, application. *}
+text \<open>TODO: Define nice syntax for abstraction, application.\<close>
 
 definition
   sfun_abs :: "('a \<rightarrow> 'b) \<rightarrow> ('a \<rightarrow>! 'b)"

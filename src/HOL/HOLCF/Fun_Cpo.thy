@@ -3,13 +3,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Class instances for the full function space *}
+section \<open>Class instances for the full function space\<close>
 
 theory Fun_Cpo
 imports Adm
 begin
 
-subsection {* Full function space is a partial order *}
+subsection \<open>Full function space is a partial order\<close>
 
 instantiation "fun"  :: (type, below) below
 begin
@@ -44,9 +44,9 @@ by (simp add: below_fun_def)
 lemma fun_belowD: "f \<sqsubseteq> g \<Longrightarrow> f x \<sqsubseteq> g x"
 by (simp add: below_fun_def)
 
-subsection {* Full function space is chain complete *}
+subsection \<open>Full function space is chain complete\<close>
 
-text {* Properties of chains of functions. *}
+text \<open>Properties of chains of functions.\<close>
 
 lemma fun_chain_iff: "chain S \<longleftrightarrow> (\<forall>x. chain (\<lambda>i. S i x))"
 unfolding chain_def fun_below_iff by auto
@@ -57,7 +57,7 @@ by (simp add: chain_def below_fun_def)
 lemma ch2ch_lambda: "(\<And>x. chain (\<lambda>i. S i x)) \<Longrightarrow> chain S"
 by (simp add: chain_def below_fun_def)
 
-text {* Type @{typ "'a::type => 'b::cpo"} is chain complete *}
+text \<open>Type @{typ "'a::type => 'b::cpo"} is chain complete\<close>
 
 lemma is_lub_lambda:
   "(\<And>x. range (\<lambda>i. Y i x) <<| f x) \<Longrightarrow> range Y <<| f"
@@ -87,7 +87,7 @@ proof
     by simp
 qed
 
-subsection {* Full function space is pointed *}
+subsection \<open>Full function space is pointed\<close>
 
 lemma minimal_fun: "(\<lambda>x. \<bottom>) \<sqsubseteq> f"
 by (simp add: below_fun_def)
@@ -104,19 +104,19 @@ by (simp add: inst_fun_pcpo)
 lemma lambda_strict: "(\<lambda>x. \<bottom>) = \<bottom>"
 by (rule bottomI, rule minimal_fun)
 
-subsection {* Propagation of monotonicity and continuity *}
+subsection \<open>Propagation of monotonicity and continuity\<close>
 
-text {* The lub of a chain of monotone functions is monotone. *}
+text \<open>The lub of a chain of monotone functions is monotone.\<close>
 
 lemma adm_monofun: "adm monofun"
 by (rule admI, simp add: lub_fun fun_chain_iff monofun_def lub_mono)
 
-text {* The lub of a chain of continuous functions is continuous. *}
+text \<open>The lub of a chain of continuous functions is continuous.\<close>
 
 lemma adm_cont: "adm cont"
 by (rule admI, simp add: lub_fun fun_chain_iff)
 
-text {* Function application preserves monotonicity and continuity. *}
+text \<open>Function application preserves monotonicity and continuity.\<close>
 
 lemma mono2mono_fun: "monofun f \<Longrightarrow> monofun (\<lambda>x. f x y)"
 by (simp add: monofun_def fun_below_iff)
@@ -130,10 +130,10 @@ done
 lemma cont_fun: "cont (\<lambda>f. f x)"
 using cont_id by (rule cont2cont_fun)
 
-text {*
+text \<open>
   Lambda abstraction preserves monotonicity and continuity.
-  (Note @{text "(\<lambda>x. \<lambda>y. f x y) = f"}.)
-*}
+  (Note \<open>(\<lambda>x. \<lambda>y. f x y) = f\<close>.)
+\<close>
 
 lemma mono2mono_lambda:
   assumes f: "\<And>y. monofun (\<lambda>x. f x y)" shows "monofun f"
@@ -143,7 +143,7 @@ lemma cont2cont_lambda [simp]:
   assumes f: "\<And>y. cont (\<lambda>x. f x y)" shows "cont f"
 by (rule contI, rule is_lub_lambda, rule contE [OF f])
 
-text {* What D.A.Schmidt calls continuity of abstraction; never used here *}
+text \<open>What D.A.Schmidt calls continuity of abstraction; never used here\<close>
 
 lemma contlub_lambda:
   "(\<And>x::'a::type. chain (\<lambda>i. S i x::'b::cpo))

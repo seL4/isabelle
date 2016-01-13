@@ -2,15 +2,15 @@
     Author:     Brian Huffman
 *)
 
-section {* A universal bifinite domain *}
+section \<open>A universal bifinite domain\<close>
 
 theory Universal
 imports Bifinite Completion "~~/src/HOL/Library/Nat_Bijection"
 begin
 
-subsection {* Basis for universal domain *}
+subsection \<open>Basis for universal domain\<close>
 
-subsubsection {* Basis datatype *}
+subsubsection \<open>Basis datatype\<close>
 
 type_synonym ubasis = nat
 
@@ -77,7 +77,7 @@ lemma node_induct:
  apply (simp add: 2 node_gt1 node_gt2)
 done
 
-subsubsection {* Basis ordering *}
+subsubsection \<open>Basis ordering\<close>
 
 inductive
   ubasis_le :: "nat \<Rightarrow> nat \<Rightarrow> bool"
@@ -103,7 +103,7 @@ apply (rule ubasis_le_refl)
 apply (erule (1) ubasis_le_trans)
 done
 
-subsubsection {* Generic take function *}
+subsubsection \<open>Generic take function\<close>
 
 function
   ubasis_until :: "(ubasis \<Rightarrow> bool) \<Rightarrow> ubasis \<Rightarrow> ubasis"
@@ -195,7 +195,7 @@ apply simp
 done
 
 
-subsection {* Defining the universal domain by ideal completion *}
+subsection \<open>Defining the universal domain by ideal completion\<close>
 
 typedef udom = "{S. udom.ideal S}"
 by (rule udom.ex_ideal)
@@ -230,7 +230,7 @@ using type_definition_udom below_udom_def
 using udom_principal_def ubasis_countable
 by (rule udom.typedef_ideal_completion)
 
-text {* Universal domain is pointed *}
+text \<open>Universal domain is pointed\<close>
 
 lemma udom_minimal: "udom_principal 0 \<sqsubseteq> x"
 apply (induct x rule: udom.principal_induct)
@@ -244,7 +244,7 @@ lemma inst_udom_pcpo: "\<bottom> = udom_principal 0"
 by (rule udom_minimal [THEN bottomI, symmetric])
 
 
-subsection {* Compact bases of domains *}
+subsection \<open>Compact bases of domains\<close>
 
 typedef 'a compact_basis = "{x::'a::pcpo. compact x}"
 by auto
@@ -285,16 +285,16 @@ lemma compact_bot_minimal [simp]: "compact_bot \<sqsubseteq> a"
 unfolding compact_le_def Rep_compact_bot by simp
 
 
-subsection {* Universality of \emph{udom} *}
+subsection \<open>Universality of \emph{udom}\<close>
 
-text {* We use a locale to parameterize the construction over a chain
-of approx functions on the type to be embedded. *}
+text \<open>We use a locale to parameterize the construction over a chain
+of approx functions on the type to be embedded.\<close>
 
 locale bifinite_approx_chain =
   approx_chain approx for approx :: "nat \<Rightarrow> 'a::bifinite \<rightarrow> 'a"
 begin
 
-subsubsection {* Choosing a maximal element from a finite set *}
+subsubsection \<open>Choosing a maximal element from a finite set\<close>
 
 lemma finite_has_maximal:
   fixes A :: "'a compact_basis set"
@@ -304,7 +304,7 @@ proof (induct rule: finite_ne_induct)
     show ?case by simp
 next
   case (insert a A)
-  from `\<exists>x\<in>A. \<forall>y\<in>A. x \<sqsubseteq> y \<longrightarrow> x = y`
+  from \<open>\<exists>x\<in>A. \<forall>y\<in>A. x \<sqsubseteq> y \<longrightarrow> x = y\<close>
   obtain x where x: "x \<in> A"
            and x_eq: "\<And>y. \<lbrakk>y \<in> A; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> x = y" by fast
   show ?case
@@ -408,7 +408,7 @@ lemma choose_pos_lessD:
  apply (simp add: choose_pos.simps)
 done
 
-subsubsection {* Compact basis take function *}
+subsubsection \<open>Compact basis take function\<close>
 
 primrec
   cb_take :: "nat \<Rightarrow> 'a compact_basis \<Rightarrow> 'a compact_basis" where
@@ -462,7 +462,7 @@ apply (rule finite_range_approx)
 apply (rule inj_onI, simp add: Rep_compact_basis_inject)
 done
 
-subsubsection {* Rank of basis elements *}
+subsubsection \<open>Rank of basis elements\<close>
 
 definition
   rank :: "'a compact_basis \<Rightarrow> nat"
@@ -541,7 +541,7 @@ unfolding rank_lt_def rank_eq_def rank_le_def by auto
 lemma rank_lt_Un_rank_eq: "rank_lt x \<union> rank_eq x = rank_le x"
 unfolding rank_lt_def rank_eq_def rank_le_def by auto
 
-subsubsection {* Sequencing basis elements *}
+subsubsection \<open>Sequencing basis elements\<close>
 
 definition
   place :: "'a compact_basis \<Rightarrow> nat"
@@ -590,7 +590,7 @@ done
 lemma inj_place: "inj place"
 by (rule inj_onI, erule place_eqD)
 
-subsubsection {* Embedding and projection on basis elements *}
+subsubsection \<open>Embedding and projection on basis elements\<close>
 
 definition
   sub :: "'a compact_basis \<Rightarrow> 'a compact_basis"
@@ -672,15 +672,15 @@ proof (induct "max (place x) (place y)" arbitrary: x y rule: less_induct)
   show ?case proof (rule linorder_cases)
     assume "place x < place y"
     then have "rank x < rank y"
-      using `x \<sqsubseteq> y` by (rule rank_place_mono)
-    with `place x < place y` show ?case
+      using \<open>x \<sqsubseteq> y\<close> by (rule rank_place_mono)
+    with \<open>place x < place y\<close> show ?case
       apply (case_tac "y = compact_bot", simp)
       apply (simp add: basis_emb.simps [of y])
       apply (rule ubasis_le_trans [OF _ ubasis_le_lower [OF fin2]])
       apply (rule less)
        apply (simp add: less_max_iff_disj)
        apply (erule place_sub_less)
-      apply (erule rank_less_imp_below_sub [OF `x \<sqsubseteq> y`])
+      apply (erule rank_less_imp_below_sub [OF \<open>x \<sqsubseteq> y\<close>])
       done
   next
     assume "place x = place y"
@@ -688,7 +688,7 @@ proof (induct "max (place x) (place y)" arbitrary: x y rule: less_induct)
     thus ?case by (simp add: ubasis_le_refl)
   next
     assume "place x > place y"
-    with `x \<sqsubseteq> y` show ?case
+    with \<open>x \<sqsubseteq> y\<close> show ?case
       apply (case_tac "x = compact_bot", simp add: ubasis_le_minimal)
       apply (simp add: basis_emb.simps [of x])
       apply (rule ubasis_le_upper [OF fin2], simp)
@@ -848,7 +848,7 @@ proof -
     by (rule bifinite_approx_chain.ideal_completion)
 qed
 
-subsubsection {* EP-pair from any bifinite domain into \emph{udom} *}
+subsubsection \<open>EP-pair from any bifinite domain into \emph{udom}\<close>
 
 context bifinite_approx_chain begin
 
@@ -896,7 +896,7 @@ abbreviation "udom_prj \<equiv> bifinite_approx_chain.udom_prj"
 lemmas ep_pair_udom =
   bifinite_approx_chain.ep_pair_udom [unfolded bifinite_approx_chain_def]
 
-subsection {* Chain of approx functions for type \emph{udom} *}
+subsection \<open>Chain of approx functions for type \emph{udom}\<close>
 
 definition
   udom_approx :: "nat \<Rightarrow> udom \<rightarrow> udom"

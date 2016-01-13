@@ -6,10 +6,10 @@ theory Concurrency_Monad
 imports HOLCF
 begin
 
-text {* This file contains the concurrency monad example from
-  Chapter 7 of the author's PhD thesis. *}
+text \<open>This file contains the concurrency monad example from
+  Chapter 7 of the author's PhD thesis.\<close>
 
-subsection {* State/nondeterminism monad, as a type synonym *}
+subsection \<open>State/nondeterminism monad, as a type synonym\<close>
 
 type_synonym ('s, 'a) N = "'s \<rightarrow> ('a u \<otimes> 's u)\<natural>"
 
@@ -90,7 +90,7 @@ lemma plusN_absorb: "plusN\<cdot>a\<cdot>a = a"
 unfolding plusN_def by (simp add: eta_cfun)
 
 
-subsection {* Resumption-state-nondeterminism monad *}
+subsection \<open>Resumption-state-nondeterminism monad\<close>
 
 domain ('s, 'a) R = Done (lazy "'a") | More (lazy "('s, ('s, 'a) R) N")
 
@@ -129,7 +129,7 @@ lemma R_take_Suc_More [simp]:
 by (simp add: mapN_def R.take_rews(2))
 
 
-subsection {* Map function *}
+subsection \<open>Map function\<close>
 
 fixrec mapR :: "('a \<rightarrow> 'b) \<rightarrow> ('s, 'a) R \<rightarrow> ('s, 'b) R"
   where "mapR\<cdot>f\<cdot>(Done\<cdot>a) = Done\<cdot>(f\<cdot>a)"
@@ -155,7 +155,7 @@ apply simp
 done
 
 
-subsection {* Monadic bind function *}
+subsection \<open>Monadic bind function\<close>
 
 fixrec bindR :: "('s, 'a) R \<rightarrow> ('a \<rightarrow> ('s, 'b) R) \<rightarrow> ('s, 'b) R"
   where "bindR\<cdot>(Done\<cdot>x)\<cdot>k = k\<cdot>x"
@@ -178,7 +178,7 @@ apply (induct r)
 apply (simp_all add: mapN_mapN)
 done
 
-subsection {* Zip function *}
+subsection \<open>Zip function\<close>
 
 fixrec zipR :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('s, 'a) R \<rightarrow> ('s, 'b) R \<rightarrow> ('s, 'c) R"
   where zipR_Done_Done:
@@ -203,7 +203,7 @@ by (fixrec_simp, cases r, simp_all)
 abbreviation apR (infixl "\<diamondop>" 70)
   where "a \<diamondop> b \<equiv> zipR\<cdot>ID\<cdot>a\<cdot>b"
 
-text {* Proofs that @{text zipR} satisfies the applicative functor laws: *}
+text \<open>Proofs that \<open>zipR\<close> satisfies the applicative functor laws:\<close>
 
 lemma R_homomorphism: "Done\<cdot>f \<diamondop> Done\<cdot>x = Done\<cdot>(f\<cdot>x)"
   by simp
@@ -214,7 +214,7 @@ lemma R_identity: "Done\<cdot>ID \<diamondop> r = r"
 lemma R_interchange: "r \<diamondop> Done\<cdot>x = Done\<cdot>(\<Lambda> f. f\<cdot>x) \<diamondop> r"
   by (induct r, simp_all add: mapN_mapN)
 
-text {* The associativity rule is the hard one! *}
+text \<open>The associativity rule is the hard one!\<close>
 
 lemma R_associativity: "Done\<cdot>cfcomp \<diamondop> r1 \<diamondop> r2 \<diamondop> r3 = r1 \<diamondop> (r2 \<diamondop> r3)"
 proof (induct r1 arbitrary: r2 r3)
@@ -258,7 +258,7 @@ next
   qed simp_all
 qed simp_all
 
-text {* Other miscellaneous properties about @{text zipR}: *}
+text \<open>Other miscellaneous properties about \<open>zipR\<close>:\<close>
 
 lemma zipR_Done_left:
   shows "zipR\<cdot>f\<cdot>(Done\<cdot>x)\<cdot>r = mapR\<cdot>(f\<cdot>x)\<cdot>r"
@@ -358,7 +358,7 @@ lemma zipR_assoc:
  apply (simp add: mapN_mapN mapN_plusN plusN_assoc)
 done
 
-text {* Alternative proof using take lemma. *}
+text \<open>Alternative proof using take lemma.\<close>
 
 lemma
   fixes a :: "('s, 'a) R" and b :: "('s, 'b) R" and c :: "('s, 'c) R"
@@ -398,7 +398,7 @@ proof (rule R.take_lemma)
             by (simp add: zipR_Done_right mapR_zipR zipR_mapR_right gf)
         next
           case (More nC)
-          note H = `a = More\<cdot>nA` `b = More\<cdot>nB` `c = More\<cdot>nC`
+          note H = \<open>a = More\<cdot>nA\<close> \<open>b = More\<cdot>nB\<close> \<open>c = More\<cdot>nC\<close>
           show ?P
             apply (simp only: H zipR_More_More)
             apply (simplesubst zipR_More_More [of f, symmetric])

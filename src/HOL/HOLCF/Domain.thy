@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-section {* Domain package *}
+section \<open>Domain package\<close>
 
 theory Domain
 imports Representable Domain_Aux
@@ -13,7 +13,7 @@ begin
 
 default_sort "domain"
 
-subsection {* Representations of types *}
+subsection \<open>Representations of types\<close>
 
 lemma emb_prj: "emb\<cdot>((prj\<cdot>x)::'a) = cast\<cdot>DEFL('a)\<cdot>x"
 by (simp add: cast_DEFL)
@@ -39,7 +39,7 @@ lemma prj_emb_prj:
  apply (rule monofun_cfun_arg [OF assms])
 done
 
-text {* Isomorphism lemmas used internally by the domain package: *}
+text \<open>Isomorphism lemmas used internally by the domain package:\<close>
 
 lemma domain_abs_iso:
   fixes abs and rep
@@ -59,7 +59,7 @@ lemma domain_rep_iso:
 unfolding abs_def rep_def
 by (simp add: emb_prj_emb DEFL)
 
-subsection {* Deflations as sets *}
+subsection \<open>Deflations as sets\<close>
 
 definition defl_set :: "'a::bifinite defl \<Rightarrow> 'a set"
 where "defl_set A = {x. cast\<cdot>A\<cdot>x = x}"
@@ -78,11 +78,11 @@ apply (simp add: defl_set_def subset_eq cast_below_cast [symmetric])
 apply (auto simp add: cast.belowI cast.belowD)
 done
 
-subsection {* Proving a subtype is representable *}
+subsection \<open>Proving a subtype is representable\<close>
 
-text {* Temporarily relax type constraints. *}
+text \<open>Temporarily relax type constraints.\<close>
 
-setup {*
+setup \<open>
   fold Sign.add_const_constraint
   [ (@{const_name defl}, SOME @{typ "'a::pcpo itself \<Rightarrow> udom defl"})
   , (@{const_name emb}, SOME @{typ "'a::pcpo \<rightarrow> udom"})
@@ -90,7 +90,7 @@ setup {*
   , (@{const_name liftdefl}, SOME @{typ "'a::pcpo itself \<Rightarrow> udom u defl"})
   , (@{const_name liftemb}, SOME @{typ "'a::pcpo u \<rightarrow> udom u"})
   , (@{const_name liftprj}, SOME @{typ "udom u \<rightarrow> 'a::pcpo u"}) ]
-*}
+\<close>
 
 lemma typedef_domain_class:
   fixes Rep :: "'a::pcpo \<Rightarrow> udom"
@@ -138,9 +138,9 @@ lemma typedef_DEFL:
   shows "DEFL('a::pcpo) = t"
 unfolding assms ..
 
-text {* Restore original typing constraints. *}
+text \<open>Restore original typing constraints.\<close>
 
-setup {*
+setup \<open>
   fold Sign.add_const_constraint
    [(@{const_name defl}, SOME @{typ "'a::domain itself \<Rightarrow> udom defl"}),
     (@{const_name emb}, SOME @{typ "'a::domain \<rightarrow> udom"}),
@@ -148,11 +148,11 @@ setup {*
     (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> udom u defl"}),
     (@{const_name liftemb}, SOME @{typ "'a::predomain u \<rightarrow> udom u"}),
     (@{const_name liftprj}, SOME @{typ "udom u \<rightarrow> 'a::predomain u"})]
-*}
+\<close>
 
 ML_file "Tools/domaindef.ML"
 
-subsection {* Isomorphic deflations *}
+subsection \<open>Isomorphic deflations\<close>
 
 definition isodefl :: "('a \<rightarrow> 'a) \<Rightarrow> udom defl \<Rightarrow> bool"
   where "isodefl d t \<longleftrightarrow> cast\<cdot>t = emb oo d oo prj"
@@ -314,7 +314,7 @@ lemma isodefl_cfun:
 using isodefl_sfun [OF assms] unfolding isodefl_def
 by (simp add: emb_cfun_def prj_cfun_def cfcomp1 encode_cfun_map)
 
-subsection {* Setting up the domain package *}
+subsection \<open>Setting up the domain package\<close>
 
 named_theorems domain_defl_simps "theorems like DEFL('a t) = t_defl$DEFL('a)"
   and domain_isodefl "theorems like isodefl d t ==> isodefl (foo_map$d) (foo_defl$t)"
@@ -339,7 +339,7 @@ lemmas [domain_deflation] =
   deflation_cfun_map deflation_sfun_map deflation_ssum_map
   deflation_sprod_map deflation_prod_map deflation_u_map
 
-setup {*
+setup \<open>
   fold Domain_Take_Proofs.add_rec_type
     [(@{type_name cfun}, [true, true]),
      (@{type_name "sfun"}, [true, true]),
@@ -347,6 +347,6 @@ setup {*
      (@{type_name sprod}, [true, true]),
      (@{type_name prod}, [true, true]),
      (@{type_name "u"}, [true])]
-*}
+\<close>
 
 end

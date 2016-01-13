@@ -183,7 +183,7 @@ proof (induct as rule: infinite_finite_induct)
   {
     fix b
     assume "b \<in> as"
-    hence id2: "insert a as - {b} = insert a (as - {b})" using `a \<notin> as` by auto
+    hence id2: "insert a as - {b} = insert a (as - {b})" using \<open>a \<notin> as\<close> by auto
     have "setprod f (insert a as - {b}) = f a * setprod f (as - {b})"
       unfolding id2
       by (subst setprod.insert, insert insert, auto)

@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Lists as a complete partial order *}
+section \<open>Lists as a complete partial order\<close>
 
 theory List_Cpo
 imports HOLCF
 begin
 
-subsection {* Lists are a partial order *}
+subsection \<open>Lists are a partial order\<close>
 
 instantiation list :: (po) po
 begin
@@ -55,7 +55,7 @@ lemma list_below_induct [consumes 1, case_names Nil Cons]:
   assumes 1: "P [] []"
   assumes 2: "\<And>x y xs ys. \<lbrakk>x \<sqsubseteq> y; xs \<sqsubseteq> ys; P xs ys\<rbrakk> \<Longrightarrow> P (x # xs) (y # ys)"
   shows "P xs ys"
-using `xs \<sqsubseteq> ys`
+using \<open>xs \<sqsubseteq> ys\<close>
 proof (induct xs arbitrary: ys)
   case Nil thus ?case by (simp add: 1)
 next
@@ -100,20 +100,20 @@ lemma list_chain_induct [consumes 1, case_names Nil Cons]:
   assumes 1: "P (\<lambda>i. [])"
   assumes 2: "\<And>A B. chain A \<Longrightarrow> chain B \<Longrightarrow> P B \<Longrightarrow> P (\<lambda>i. A i # B i)"
   shows "P S"
-using `chain S`
+using \<open>chain S\<close>
 proof (induct "S 0" arbitrary: S)
   case Nil
-  have "\<forall>i. S 0 \<sqsubseteq> S i" by (simp add: chain_mono [OF `chain S`])
+  have "\<forall>i. S 0 \<sqsubseteq> S i" by (simp add: chain_mono [OF \<open>chain S\<close>])
   with Nil have "\<forall>i. S i = []" by simp
   thus ?case by (simp add: 1)
 next
   case (Cons x xs)
-  have "\<forall>i. S 0 \<sqsubseteq> S i" by (simp add: chain_mono [OF `chain S`])
+  have "\<forall>i. S 0 \<sqsubseteq> S i" by (simp add: chain_mono [OF \<open>chain S\<close>])
   hence *: "\<forall>i. S i \<noteq> []" by (rule all_forward, insert Cons) auto
   have "chain (\<lambda>i. hd (S i))" and "chain (\<lambda>i. tl (S i))"
-    using `chain S` by simp_all
+    using \<open>chain S\<close> by simp_all
   moreover have "P (\<lambda>i. tl (S i))"
-    using `chain S` and `x # xs = S 0` [symmetric]
+    using \<open>chain S\<close> and \<open>x # xs = S 0\<close> [symmetric]
     by (simp add: Cons(1))
   ultimately have "P (\<lambda>i. hd (S i) # tl (S i))"
     by (rule 2)
@@ -126,7 +126,7 @@ lemma list_chain_cases:
     A B where "chain A" and "chain B" and "S = (\<lambda>i. A i # B i)"
 using S by (induct rule: list_chain_induct) simp_all
 
-subsection {* Lists are a complete partial order *}
+subsection \<open>Lists are a complete partial order\<close>
 
 lemma is_lub_Cons:
   assumes A: "range A <<| x"
@@ -147,7 +147,7 @@ proof
   qed
 qed
 
-subsection {* Continuity of list operations *}
+subsection \<open>Continuity of list operations\<close>
 
 lemma cont2cont_Cons [simp, cont2cont]:
   assumes f: "cont (\<lambda>x. f x)"
@@ -193,8 +193,8 @@ lemma cont2cont_case_list' [simp, cont2cont]:
   shows "cont (\<lambda>x. case f x of [] \<Rightarrow> g x | y # ys \<Rightarrow> h x y ys)"
 using assms by (simp add: cont2cont_case_list prod_cont_iff)
 
-text {* The simple version (due to Joachim Breitner) is needed if the
-  element type of the list is not a cpo. *}
+text \<open>The simple version (due to Joachim Breitner) is needed if the
+  element type of the list is not a cpo.\<close>
 
 lemma cont2cont_case_list_simple [simp, cont2cont]:
   assumes "cont (\<lambda>x. f1 x)"
@@ -202,7 +202,7 @@ lemma cont2cont_case_list_simple [simp, cont2cont]:
   shows "cont (\<lambda>x. case l of [] \<Rightarrow> f1 x | y # ys \<Rightarrow> f2 x y ys)"
 using assms by (cases l) auto
 
-text {* Lemma for proving continuity of recursive list functions: *}
+text \<open>Lemma for proving continuity of recursive list functions:\<close>
 
 lemma list_contI:
   fixes f :: "'a::cpo list \<Rightarrow> 'b::cpo"
@@ -233,7 +233,7 @@ proof (rule contI2)
     done
 qed
 
-text {* Continuity rule for map *}
+text \<open>Continuity rule for map\<close>
 
 lemma cont2cont_map [simp, cont2cont]:
   assumes f: "cont (\<lambda>(x, y). f x y)"
@@ -246,11 +246,11 @@ apply (rule list_contI, rule list.map, simp, simp, simp)
 apply (induct_tac y, simp, simp)
 done
 
-text {* There are probably lots of other list operations that also
+text \<open>There are probably lots of other list operations that also
 deserve to have continuity lemmas.  I'll add more as they are
-needed. *}
+needed.\<close>
 
-subsection {* Lists are a discrete cpo *}
+subsection \<open>Lists are a discrete cpo\<close>
 
 instance list :: (discrete_cpo) discrete_cpo
 proof
@@ -259,7 +259,7 @@ proof
     by (induct xs arbitrary: ys, case_tac [!] ys, simp_all)
 qed
 
-subsection {* Compactness and chain-finiteness *}
+subsection \<open>Compactness and chain-finiteness\<close>
 
 lemma compact_Nil [simp]: "compact []"
 apply (rule compactI2)
@@ -298,7 +298,7 @@ proof
     by (rule compact_imp_max_in_chain)
 qed
 
-subsection {* Using lists with fixrec *}
+subsection \<open>Using lists with fixrec\<close>
 
 definition
   match_Nil :: "'a::cpo list \<rightarrow> 'b match \<rightarrow> 'b match"
@@ -320,10 +320,10 @@ lemma match_Cons_simps [simp]:
   "match_Cons\<cdot>(x # xs)\<cdot>k = k\<cdot>x\<cdot>xs"
 unfolding match_Cons_def by simp_all
 
-setup {*
+setup \<open>
   Fixrec.add_matchers
     [ (@{const_name Nil}, @{const_name match_Nil}),
       (@{const_name Cons}, @{const_name match_Cons}) ]
-*}
+\<close>
 
 end

@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Discrete cpo instance for integers *}
+section \<open>Discrete cpo instance for integers\<close>
 
 theory Int_Discrete
 imports HOLCF
 begin
 
-text {* Discrete cpo instance for @{typ int}. *}
+text \<open>Discrete cpo instance for @{typ int}.\<close>
 
 instantiation int :: discrete_cpo
 begin
@@ -21,9 +21,9 @@ qed (rule below_int_def)
 
 end
 
-text {*
+text \<open>
   TODO: implement a command to automate discrete predomain instances.
-*}
+\<close>
 
 instantiation int :: predomain
 begin

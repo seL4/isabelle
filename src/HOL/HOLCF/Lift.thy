@@ -2,7 +2,7 @@
     Author:     Olaf Mueller
 *)
 
-section {* Lifting types of class type to flat pcpo's *}
+section \<open>Lifting types of class type to flat pcpo's\<close>
 
 theory Lift
 imports Discrete Up
@@ -19,7 +19,7 @@ definition
   Def :: "'a \<Rightarrow> 'a lift" where
   "Def x = Abs_lift (up\<cdot>(Discr x))"
 
-subsection {* Lift as a datatype *}
+subsection \<open>Lift as a datatype\<close>
 
 lemma lift_induct: "\<lbrakk>P \<bottom>; \<And>x. P (Def x)\<rbrakk> \<Longrightarrow> P y"
 apply (induct y)
@@ -32,7 +32,7 @@ done
 old_rep_datatype "\<bottom>::'a lift" Def
   by (erule lift_induct) (simp_all add: Def_def Abs_lift_inject inst_lift_pcpo)
 
-text {* @{term bottom} and @{term Def} *}
+text \<open>@{term bottom} and @{term Def}\<close>
 
 lemma not_Undef_is_Def: "(x \<noteq> \<bottom>) = (\<exists>y. x = Def y)"
   by (cases x) simp_all
@@ -40,14 +40,13 @@ lemma not_Undef_is_Def: "(x \<noteq> \<bottom>) = (\<exists>y. x = Def y)"
 lemma lift_definedE: "\<lbrakk>x \<noteq> \<bottom>; \<And>a. x = Def a \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
   by (cases x) simp_all
 
-text {*
-  For @{term "x ~= \<bottom>"} in assumptions @{text defined} replaces @{text
-  x} by @{text "Def a"} in conclusion. *}
+text \<open>
+  For @{term "x ~= \<bottom>"} in assumptions \<open>defined\<close> replaces \<open>x\<close> by \<open>Def a\<close> in conclusion.\<close>
 
-method_setup defined = {*
+method_setup defined = \<open>
   Scan.succeed (fn ctxt => SIMPLE_METHOD'
     (eresolve_tac ctxt @{thms lift_definedE} THEN' asm_simp_tac ctxt))
-*}
+\<close>
 
 lemma DefE: "Def x = \<bottom> \<Longrightarrow> R"
   by simp
@@ -62,7 +61,7 @@ lemma Def_below_iff [simp]: "Def x \<sqsubseteq> y \<longleftrightarrow> Def x =
 by (induct y, simp, simp add: Def_below_Def)
 
 
-subsection {* Lift is flat *}
+subsection \<open>Lift is flat\<close>
 
 instance lift :: (type) flat
 proof
@@ -71,7 +70,7 @@ proof
     by (induct x) auto
 qed
 
-subsection {* Continuity of @{const case_lift} *}
+subsection \<open>Continuity of @{const case_lift}\<close>
 
 lemma case_lift_eq: "case_lift \<bottom> f x = fup\<cdot>(\<Lambda> y. f (undiscr y))\<cdot>(Rep_lift x)"
 apply (induct x, unfold lift.case)
@@ -83,7 +82,7 @@ lemma cont2cont_case_lift [simp]:
   "\<lbrakk>\<And>y. cont (\<lambda>x. f x y); cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. case_lift \<bottom> (f x) (g x))"
 unfolding case_lift_eq by (simp add: cont_Rep_lift)
 
-subsection {* Further operations *}
+subsection \<open>Further operations\<close>
 
 definition
   flift1 :: "('a \<Rightarrow> 'b::pcpo) \<Rightarrow> ('a lift \<rightarrow> 'b)"  (binder "FLIFT " 10)  where

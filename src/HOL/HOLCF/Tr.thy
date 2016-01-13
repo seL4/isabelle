@@ -2,13 +2,13 @@
     Author:     Franz Regensburger
 *)
 
-section {* The type of lifted booleans *}
+section \<open>The type of lifted booleans\<close>
 
 theory Tr
 imports Lift
 begin
 
-subsection {* Type definition and constructors *}
+subsection \<open>Type definition and constructors\<close>
 
 type_synonym
   tr = "bool lift"
@@ -24,7 +24,7 @@ definition
   FF :: "tr" where
   "FF = Def False"
 
-text {* Exhaustion and Elimination for type @{typ tr} *}
+text \<open>Exhaustion and Elimination for type @{typ tr}\<close>
 
 lemma Exh_tr: "t = \<bottom> \<or> t = TT \<or> t = FF"
 unfolding FF_def TT_def by (induct t) auto
@@ -37,7 +37,7 @@ lemma tr_induct [case_names bottom TT FF, induct type: tr]:
   "\<lbrakk>P \<bottom>; P TT; P FF\<rbrakk> \<Longrightarrow> P x"
 by (cases x) simp_all
 
-text {* distinctness for type @{typ tr} *}
+text \<open>distinctness for type @{typ tr}\<close>
 
 lemma dist_below_tr [simp]:
   "TT \<notsqsubseteq> \<bottom>" "FF \<notsqsubseteq> \<bottom>" "TT \<notsqsubseteq> FF" "FF \<notsqsubseteq> TT"
@@ -60,7 +60,7 @@ lemma not_below_FF_iff [simp]: "x \<notsqsubseteq> FF \<longleftrightarrow> x = 
 by (induct x) simp_all
 
 
-subsection {* Case analysis *}
+subsection \<open>Case analysis\<close>
 
 default_sort pcpo
 
@@ -83,7 +83,7 @@ lemma ifte_thms [simp]:
 by (simp_all add: tr_case_def TT_def FF_def)
 
 
-subsection {* Boolean connectives *}
+subsection \<open>Boolean connectives\<close>
 
 definition
   trand :: "tr \<rightarrow> tr \<rightarrow> tr" where
@@ -107,11 +107,11 @@ definition
   If2 :: "[tr, 'c, 'c] \<Rightarrow> 'c" where
   "If2 Q x y = (If Q then x else y)"
 
-text {* tactic for tr-thms with case split *}
+text \<open>tactic for tr-thms with case split\<close>
 
 lemmas tr_defs = andalso_def orelse_def neg_def tr_case_def TT_def FF_def
 
-text {* lemmas about andalso, orelse, neg and if *}
+text \<open>lemmas about andalso, orelse, neg and if\<close>
 
 lemma andalso_thms [simp]:
   "(TT andalso y) = y"
@@ -141,7 +141,7 @@ lemma neg_thms [simp]:
   "neg\<cdot>\<bottom> = \<bottom>"
 by (simp_all add: neg_def TT_def FF_def)
 
-text {* split-tac for If via If2 because the constant has to be a constant *}
+text \<open>split-tac for If via If2 because the constant has to be a constant\<close>
 
 lemma split_If2:
   "P (If2 Q x y) = ((Q = \<bottom> \<longrightarrow> P \<bottom>) \<and> (Q = TT \<longrightarrow> P x) \<and> (Q = FF \<longrightarrow> P y))"
@@ -151,11 +151,11 @@ apply (simp_all)
 done
 
 (* FIXME unused!? *)
-ML {*
+ML \<open>
 fun split_If_tac ctxt =
   simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm If2_def} RS sym])
     THEN' (split_tac ctxt [@{thm split_If2}])
-*}
+\<close>
 
 subsection "Rewriting of HOLCF operations to HOL functions"
 
@@ -189,7 +189,7 @@ apply (cases "Def P")
 apply (auto simp add: TT_def[symmetric] FF_def[symmetric])
 done
 
-subsection {* Compactness *}
+subsection \<open>Compactness\<close>
 
 lemma compact_TT: "compact TT"
 by (rule compact_chfin)

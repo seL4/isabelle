@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Lower powerdomain *}
+section \<open>Lower powerdomain\<close>
 
 theory LowerPD
 imports Compact_Basis
 begin
 
-subsection {* Basis preorder *}
+subsection \<open>Basis preorder\<close>
 
 definition
   lower_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix "\<le>\<flat>" 50) where
@@ -72,7 +72,7 @@ apply (simp add: lower_le_PDPlus_iff 3)
 done
 
 
-subsection {* Type definition *}
+subsection \<open>Type definition\<close>
 
 typedef 'a lower_pd  ("('(_')\<flat>)") =
   "{S::'a pd_basis set. lower_le.ideal S}"
@@ -105,7 +105,7 @@ using type_definition_lower_pd below_lower_pd_def
 using lower_principal_def pd_basis_countable
 by (rule lower_le.typedef_ideal_completion)
 
-text {* Lower powerdomain is pointed *}
+text \<open>Lower powerdomain is pointed\<close>
 
 lemma lower_pd_minimal: "lower_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: lower_pd.principal_induct, simp, simp)
@@ -117,7 +117,7 @@ lemma inst_lower_pd_pcpo: "\<bottom> = lower_principal (PDUnit compact_bot)"
 by (rule lower_pd_minimal [THEN bottomI, symmetric])
 
 
-subsection {* Monadic unit and plus *}
+subsection \<open>Monadic unit and plus\<close>
 
 definition
   lower_unit :: "'a \<rightarrow> 'a lower_pd" where
@@ -176,11 +176,11 @@ lemmas lower_plus_absorb = lower_add.idem
 lemmas lower_plus_left_commute = lower_add.left_commute
 lemmas lower_plus_left_absorb = lower_add.left_idem
 
-text {* Useful for @{text "simp add: lower_plus_ac"} *}
+text \<open>Useful for \<open>simp add: lower_plus_ac\<close>\<close>
 lemmas lower_plus_ac =
   lower_plus_assoc lower_plus_commute lower_plus_left_commute
 
-text {* Useful for @{text "simp only: lower_plus_aci"} *}
+text \<open>Useful for \<open>simp only: lower_plus_aci\<close>\<close>
 lemmas lower_plus_aci =
   lower_plus_ac lower_plus_absorb lower_plus_left_absorb
 
@@ -267,7 +267,7 @@ lemma compact_lower_plus [simp]:
 by (auto dest!: lower_pd.compact_imp_principal)
 
 
-subsection {* Induction rules *}
+subsection \<open>Induction rules\<close>
 
 lemma lower_pd_induct1:
   assumes P: "adm P"
@@ -297,7 +297,7 @@ apply (simp only: lower_plus_principal [symmetric] plus)
 done
 
 
-subsection {* Monadic bind *}
+subsection \<open>Monadic bind\<close>
 
 definition
   lower_bind_basis ::
@@ -369,7 +369,7 @@ lemma lower_bind_bind:
 by (induct xs, simp_all)
 
 
-subsection {* Map *}
+subsection \<open>Map\<close>
 
 definition
   lower_map :: "('a \<rightarrow> 'b) \<rightarrow> 'a lower_pd \<rightarrow> 'b lower_pd" where
@@ -460,7 +460,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
-subsection {* Lower powerdomain is bifinite *}
+subsection \<open>Lower powerdomain is bifinite\<close>
 
 lemma approx_chain_lower_map:
   assumes "approx_chain a"
@@ -475,7 +475,7 @@ proof
     by (fast intro!: approx_chain_lower_map)
 qed
 
-subsection {* Join *}
+subsection \<open>Join\<close>
 
 definition
   lower_join :: "'a lower_pd lower_pd \<rightarrow> 'a lower_pd" where

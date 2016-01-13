@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Defining algebraic domains by ideal completion *}
+section \<open>Defining algebraic domains by ideal completion\<close>
 
 theory Completion
 imports Plain_HOLCF
 begin
 
-subsection {* Ideals over a preorder *}
+subsection \<open>Ideals over a preorder\<close>
 
 locale preorder =
   fixes r :: "'a::type \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<preceq>" 50)
@@ -52,7 +52,7 @@ done
 lemma ex_ideal: "\<exists>A. A \<in> {A. ideal A}"
 by (fast intro: ideal_principal)
 
-text {* The set of ideals is a cpo *}
+text \<open>The set of ideals is a cpo\<close>
 
 lemma ideal_UN:
   fixes A :: "nat \<Rightarrow> 'a set"
@@ -126,7 +126,7 @@ apply (rule below_refl)
 apply (erule (1) below_trans)
 done
 
-subsection {* Lemmas about least upper bounds *}
+subsection \<open>Lemmas about least upper bounds\<close>
 
 lemma is_ub_thelub_ex: "\<lbrakk>\<exists>u. S <<| u; x \<in> S\<rbrakk> \<Longrightarrow> x \<sqsubseteq> lub S"
 apply (erule exE, drule is_lub_lub)
@@ -137,7 +137,7 @@ done
 lemma is_lub_thelub_ex: "\<lbrakk>\<exists>u. S <<| u; S <| x\<rbrakk> \<Longrightarrow> lub S \<sqsubseteq> x"
 by (erule exE, drule is_lub_lub, erule is_lubD2)
 
-subsection {* Locale for ideal completion *}
+subsection \<open>Locale for ideal completion\<close>
 
 locale ideal_completion = preorder +
   fixes principal :: "'a::type \<Rightarrow> 'b::cpo"
@@ -179,12 +179,12 @@ lemma ch2ch_principal [simp]:
   "\<forall>i. Y i \<preceq> Y (Suc i) \<Longrightarrow> chain (\<lambda>i. principal (Y i))"
 by (simp add: chainI principal_mono)
 
-subsubsection {* Principal ideals approximate all elements *}
+subsubsection \<open>Principal ideals approximate all elements\<close>
 
 lemma compact_principal [simp]: "compact (principal a)"
 by (rule compactI2, simp add: principal_below_iff_mem_rep rep_lub)
 
-text {* Construct a chain whose lub is the same as a given ideal *}
+text \<open>Construct a chain whose lub is the same as a given ideal\<close>
 
 lemma obtain_principal_chain:
   obtains Y where "\<forall>i. Y i \<preceq> Y (Suc i)" and "x = (\<Squnion>i. principal (Y i))"
@@ -278,7 +278,7 @@ apply (subgoal_tac "chain (\<lambda>i. principal (Y i))")
 apply (drule (2) admD2, fast, simp)
 done
 
-subsection {* Defining functions in terms of basis elements *}
+subsection \<open>Defining functions in terms of basis elements\<close>
 
 definition
   extension :: "('a::type \<Rightarrow> 'c::cpo) \<Rightarrow> 'b \<rightarrow> 'c" where

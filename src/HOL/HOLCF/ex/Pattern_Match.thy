@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-section {* An experimental pattern-matching notation *}
+section \<open>An experimental pattern-matching notation\<close>
 
 theory Pattern_Match
 imports HOLCF
@@ -10,7 +10,7 @@ begin
 
 default_sort pcpo
 
-text {* FIXME: Find a proper way to un-hide constants. *}
+text \<open>FIXME: Find a proper way to un-hide constants.\<close>
 
 abbreviation fail :: "'a match"
 where "fail \<equiv> Fixrec.fail"
@@ -21,7 +21,7 @@ where "succeed \<equiv> Fixrec.succeed"
 abbreviation run :: "'a match \<rightarrow> 'a"
 where "run \<equiv> Fixrec.run"
 
-subsection {* Fatbar combinator *}
+subsection \<open>Fatbar combinator\<close>
 
 definition
   fatbar :: "('a \<rightarrow> 'b match) \<rightarrow> ('a \<rightarrow> 'b match) \<rightarrow> ('a \<rightarrow> 'b match)" where
@@ -53,7 +53,7 @@ by (simp add: fatbar_def)
 
 lemmas run_fatbar_simps [simp] = run_fatbar1 run_fatbar2 run_fatbar3
 
-subsection {* Bind operator for match monad *}
+subsection \<open>Bind operator for match monad\<close>
 
 definition match_bind :: "'a match \<rightarrow> ('a \<rightarrow> 'b match) \<rightarrow> 'b match" where
   "match_bind = (\<Lambda> m k. sscase\<cdot>(\<Lambda> _. fail)\<cdot>(fup\<cdot>k)\<cdot>(Rep_match m))"
@@ -66,7 +66,7 @@ unfolding match_bind_def fail_def succeed_def
 by (simp_all add: cont_Rep_match cont_Abs_match
   Rep_match_strict Abs_match_inverse)
 
-subsection {* Case branch combinator *}
+subsection \<open>Case branch combinator\<close>
 
 definition
   branch :: "('a \<rightarrow> 'b match) \<Rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'c match)" where
@@ -81,13 +81,13 @@ by (simp_all add: branch_def)
 lemma branch_succeed [simp]: "branch succeed\<cdot>r\<cdot>x = succeed\<cdot>(r\<cdot>x)"
 by (simp add: branch_def)
 
-subsection {* Cases operator *}
+subsection \<open>Cases operator\<close>
 
 definition
   cases :: "'a match \<rightarrow> 'a::pcpo" where
   "cases = Fixrec.run"
 
-text {* rewrite rules for cases *}
+text \<open>rewrite rules for cases\<close>
 
 lemma cases_strict [simp]: "cases\<cdot>\<bottom> = \<bottom>"
 by (simp add: cases_def)
@@ -98,7 +98,7 @@ by (simp add: cases_def)
 lemma cases_succeed [simp]: "cases\<cdot>(succeed\<cdot>x) = x"
 by (simp add: cases_def)
 
-subsection {* Case syntax *}
+subsection \<open>Case syntax\<close>
 
 nonterminal Case_pat and Case_syn and Cases_syn
 
@@ -116,7 +116,7 @@ translations
   "_Case_syntax x ms" == "CONST cases\<cdot>(ms\<cdot>x)"
   "_Case2 m ms" == "m \<parallel> ms"
 
-text {* Parsing Case expressions *}
+text \<open>Parsing Case expressions\<close>
 
 syntax
   "_pat" :: "'a"
@@ -128,19 +128,19 @@ translations
   "_variable (_args x y) r" => "CONST csplit\<cdot>(_variable x (_variable y r))"
   "_variable _noargs r" => "CONST unit_when\<cdot>r"
 
-parse_translation {*
+parse_translation \<open>
 (* rewrite (_pat x) => (succeed) *)
 (* rewrite (_variable x t) => (Abs_cfun (%x. t)) *)
  [(@{syntax_const "_pat"}, fn _ => fn _ => Syntax.const @{const_syntax Fixrec.succeed}),
   Syntax_Trans.mk_binder_tr (@{syntax_const "_variable"}, @{const_syntax Abs_cfun})];
-*}
+\<close>
 
-text {* Printing Case expressions *}
+text \<open>Printing Case expressions\<close>
 
 syntax
   "_match" :: "'a"
 
-print_translation {*
+print_translation \<open>
   let
     fun dest_LAM (Const (@{const_syntax Rep_cfun},_) $ Const (@{const_syntax unit_when},_) $ t) =
           (Syntax.const @{syntax_const "_noargs"}, t)
@@ -165,13 +165,13 @@ print_translation {*
           end;
 
   in [(@{const_syntax Rep_cfun}, K Case1_tr')] end;
-*}
+\<close>
 
 translations
   "x" <= "_match (CONST succeed) (_variable x)"
 
 
-subsection {* Pattern combinators for data constructors *}
+subsection \<open>Pattern combinators for data constructors\<close>
 
 type_synonym ('a, 'b) pat = "'a \<rightarrow> 'b match"
 
@@ -209,7 +209,7 @@ definition
   ONE_pat :: "(one, unit) pat" where
   "ONE_pat = (\<Lambda> ONE. succeed\<cdot>())"
 
-text {* Parse translations (patterns) *}
+text \<open>Parse translations (patterns)\<close>
 translations
   "_pat (XCONST Pair x y)" => "CONST cpair_pat (_pat x) (_pat y)"
   "_pat (XCONST spair\<cdot>x\<cdot>y)" => "CONST spair_pat (_pat x) (_pat y)"
@@ -220,12 +220,12 @@ translations
   "_pat (XCONST FF)" => "CONST FF_pat"
   "_pat (XCONST ONE)" => "CONST ONE_pat"
 
-text {* CONST version is also needed for constructors with special syntax *}
+text \<open>CONST version is also needed for constructors with special syntax\<close>
 translations
   "_pat (CONST Pair x y)" => "CONST cpair_pat (_pat x) (_pat y)"
   "_pat (CONST spair\<cdot>x\<cdot>y)" => "CONST spair_pat (_pat x) (_pat y)"
 
-text {* Parse translations (variables) *}
+text \<open>Parse translations (variables)\<close>
 translations
   "_variable (XCONST Pair x y) r" => "_variable (_args x y) r"
   "_variable (XCONST spair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
@@ -240,7 +240,7 @@ translations
   "_variable (CONST Pair x y) r" => "_variable (_args x y) r"
   "_variable (CONST spair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
 
-text {* Print translations *}
+text \<open>Print translations\<close>
 translations
   "CONST Pair (_match p1 v1) (_match p2 v2)"
       <= "_match (CONST cpair_pat p1 p2) (_args v1 v2)"
@@ -318,7 +318,7 @@ lemma ONE_pat [simp]:
 by (simp_all add: branch_def ONE_pat_def)
 
 
-subsection {* Wildcards, as-patterns, and lazy patterns *}
+subsection \<open>Wildcards, as-patterns, and lazy patterns\<close>
 
 definition
   wild_pat :: "'a \<rightarrow> unit match" where
@@ -332,15 +332,15 @@ definition
   lazy_pat :: "('a \<rightarrow> 'b::pcpo match) \<Rightarrow> ('a \<rightarrow> 'b match)" where
   "lazy_pat p = (\<Lambda> x. succeed\<cdot>(cases\<cdot>(p\<cdot>x)))"
 
-text {* Parse translations (patterns) *}
+text \<open>Parse translations (patterns)\<close>
 translations
   "_pat _" => "CONST wild_pat"
 
-text {* Parse translations (variables) *}
+text \<open>Parse translations (variables)\<close>
 translations
   "_variable _ r" => "_variable _noargs r"
 
-text {* Print translations *}
+text \<open>Print translations\<close>
 translations
   "_" <= "_match (CONST wild_pat) _noargs"
 
@@ -361,7 +361,7 @@ apply (simp_all add: branch_def lazy_pat_def)
 apply (cases "p\<cdot>x", simp_all)+
 done
 
-subsection {* Examples *}
+subsection \<open>Examples\<close>
 
 term "Case t of (:up\<cdot>(sinl\<cdot>x), sinr\<cdot>y:) \<Rightarrow> (x, y)"
 
@@ -369,9 +369,9 @@ term "\<Lambda> t. Case t of up\<cdot>(sinl\<cdot>a) \<Rightarrow> a | up\<cdot>
 
 term "\<Lambda> t. Case t of (:up\<cdot>(sinl\<cdot>_), sinr\<cdot>x:) \<Rightarrow> x"
 
-subsection {* ML code for generating definitions *}
+subsection \<open>ML code for generating definitions\<close>
 
-ML {*
+ML \<open>
 local open HOLCF_Library in
 
 infixr 6 ->>;
@@ -586,7 +586,7 @@ fun add_pattern_combinators
   end
 
 end
-*}
+\<close>
 
 (*
 Cut from HOLCF/Tools/domain_constructors.ML

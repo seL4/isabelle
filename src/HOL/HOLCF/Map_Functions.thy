@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Map functions for various types *}
+section \<open>Map functions for various types\<close>
 
 theory Map_Functions
 imports Deflation
 begin
 
-subsection {* Map operator for continuous function space *}
+subsection \<open>Map operator for continuous function space\<close>
 
 default_sort cpo
 
@@ -105,7 +105,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
-text {* Finite deflations are compact elements of the function space *}
+text \<open>Finite deflations are compact elements of the function space\<close>
 
 lemma finite_deflation_imp_compact: "finite_deflation d \<Longrightarrow> compact d"
 apply (frule finite_deflation_imp_deflation)
@@ -115,7 +115,7 @@ apply (rule finite_deflation.compact)
 apply (simp only: finite_deflation_cfun_map)
 done
 
-subsection {* Map operator for product type *}
+subsection \<open>Map operator for product type\<close>
 
 definition
   prod_map :: "('a \<rightarrow> 'b) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> 'a \<times> 'c \<rightarrow> 'b \<times> 'd"
@@ -172,7 +172,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_subset, simp add: d1.finite_fixes d2.finite_fixes)
 qed
 
-subsection {* Map function for lifted cpo *}
+subsection \<open>Map function for lifted cpo\<close>
 
 definition
   u_map :: "('a \<rightarrow> 'b) \<rightarrow> 'a u \<rightarrow> 'b u"
@@ -218,7 +218,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_subset, simp add: d.finite_fixes)
 qed
 
-subsection {* Map function for strict products *}
+subsection \<open>Map function for strict products\<close>
 
 default_sort pcpo
 
@@ -299,7 +299,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_subset, simp add: d1.finite_fixes d2.finite_fixes)
 qed
 
-subsection {* Map function for strict sums *}
+subsection \<open>Map function for strict sums\<close>
 
 definition
   ssum_map :: "('a \<rightarrow> 'b) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> 'a \<oplus> 'c \<rightarrow> 'b \<oplus> 'd"
@@ -383,7 +383,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_subset, simp add: d1.finite_fixes d2.finite_fixes)
 qed
 
-subsection {* Map operator for strict function space *}
+subsection \<open>Map operator for strict function space\<close>
 
 definition
   sfun_map :: "('b \<rightarrow> 'a) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> ('a \<rightarrow>! 'c) \<rightarrow> ('b \<rightarrow>! 'd)"
@@ -461,7 +461,7 @@ proof (intro finite_deflation_intro)
   then show "finite {f. sfun_map\<cdot>d1\<cdot>d2\<cdot>f = f}"
     unfolding sfun_map_def sfun_eq_iff
     by (simp add: strictify_cancel
-         deflation_strict `deflation d1` `deflation d2`)
+         deflation_strict \<open>deflation d1\<close> \<open>deflation d2\<close>)
 qed
 
 end

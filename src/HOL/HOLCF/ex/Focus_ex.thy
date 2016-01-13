@@ -181,8 +181,8 @@ apply simp
 done
 
 lemma lemma3: "def_g(g) --> is_g(g)"
-apply (tactic {* simp_tac (put_simpset HOL_ss @{context}
-  addsimps [@{thm def_g_def}, @{thm lemma1}, @{thm lemma2}]) 1 *})
+apply (tactic \<open>simp_tac (put_simpset HOL_ss @{context}
+  addsimps [@{thm def_g_def}, @{thm lemma1}, @{thm lemma2}]) 1\<close>)
 apply (rule impI)
 apply (erule exE)
 apply (rule_tac x = "f" in exI)
@@ -206,9 +206,9 @@ apply simp
 done
 
 lemma lemma4: "is_g(g) --> def_g(g)"
-apply (tactic {* simp_tac (put_simpset HOL_ss @{context}
+apply (tactic \<open>simp_tac (put_simpset HOL_ss @{context}
   delsimps (@{thms HOL.ex_simps} @ @{thms HOL.all_simps})
-  addsimps [@{thm lemma1}, @{thm lemma2}, @{thm def_g_def}]) 1 *})
+  addsimps [@{thm lemma1}, @{thm lemma2}, @{thm def_g_def}]) 1\<close>)
 apply (rule impI)
 apply (erule exE)
 apply (rule_tac x = "f" in exI)

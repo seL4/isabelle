@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-section {* Fixed point operator and admissibility *}
+section \<open>Fixed point operator and admissibility\<close>
 
 theory Fix
 imports Cfun
@@ -11,13 +11,13 @@ begin
 
 default_sort pcpo
 
-subsection {* Iteration *}
+subsection \<open>Iteration\<close>
 
 primrec iterate :: "nat \<Rightarrow> ('a::cpo \<rightarrow> 'a) \<rightarrow> ('a \<rightarrow> 'a)" where
     "iterate 0 = (\<Lambda> F x. x)"
   | "iterate (Suc n) = (\<Lambda> F x. F\<cdot>(iterate n\<cdot>F\<cdot>x))"
 
-text {* Derive inductive properties of iterate from primitive recursion *}
+text \<open>Derive inductive properties of iterate from primitive recursion\<close>
 
 lemma iterate_0 [simp]: "iterate 0\<cdot>F\<cdot>x = x"
 by simp
@@ -34,19 +34,19 @@ lemma iterate_iterate:
   "iterate m\<cdot>F\<cdot>(iterate n\<cdot>F\<cdot>x) = iterate (m + n)\<cdot>F\<cdot>x"
 by (induct m) simp_all
 
-text {* The sequence of function iterations is a chain. *}
+text \<open>The sequence of function iterations is a chain.\<close>
 
 lemma chain_iterate [simp]: "chain (\<lambda>i. iterate i\<cdot>F\<cdot>\<bottom>)"
 by (rule chainI, unfold iterate_Suc2, rule monofun_cfun_arg, rule minimal)
 
 
-subsection {* Least fixed point operator *}
+subsection \<open>Least fixed point operator\<close>
 
 definition
   "fix" :: "('a \<rightarrow> 'a) \<rightarrow> 'a" where
   "fix = (\<Lambda> F. \<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>)"
 
-text {* Binder syntax for @{term fix} *}
+text \<open>Binder syntax for @{term fix}\<close>
 
 abbreviation
   fix_syn :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  (binder "\<mu> " 10) where
@@ -55,9 +55,9 @@ abbreviation
 notation (ASCII)
   fix_syn  (binder "FIX " 10)
 
-text {* Properties of @{term fix} *}
+text \<open>Properties of @{term fix}\<close>
 
-text {* direct connection between @{term fix} and iteration *}
+text \<open>direct connection between @{term fix} and iteration\<close>
 
 lemma fix_def2: "fix\<cdot>F = (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>)"
 unfolding fix_def by simp
@@ -66,10 +66,10 @@ lemma iterate_below_fix: "iterate n\<cdot>f\<cdot>\<bottom> \<sqsubseteq> fix\<c
   unfolding fix_def2
   using chain_iterate by (rule is_ub_thelub)
 
-text {*
+text \<open>
   Kleene's fixed point theorems for continuous functions in pointed
   omega cpo's
-*}
+\<close>
 
 lemma fix_eq: "fix\<cdot>F = F\<cdot>(fix\<cdot>F)"
 apply (simp add: fix_def2)
@@ -116,7 +116,7 @@ done
 lemma fix_eq5: "f = fix\<cdot>F \<Longrightarrow> f\<cdot>x = F\<cdot>f\<cdot>x"
 by (erule fix_eq4 [THEN cfun_fun_cong])
 
-text {* strictness of @{term fix} *}
+text \<open>strictness of @{term fix}\<close>
 
 lemma fix_bottom_iff: "(fix\<cdot>F = \<bottom>) = (F\<cdot>\<bottom> = \<bottom>)"
 apply (rule iffI)
@@ -131,7 +131,7 @@ by (simp add: fix_bottom_iff)
 lemma fix_defined: "F\<cdot>\<bottom> \<noteq> \<bottom> \<Longrightarrow> fix\<cdot>F \<noteq> \<bottom>"
 by (simp add: fix_bottom_iff)
 
-text {* @{term fix} applied to identity and constant functions *}
+text \<open>@{term fix} applied to identity and constant functions\<close>
 
 lemma fix_id: "(\<mu> x. x) = \<bottom>"
 by (simp add: fix_strict)
@@ -139,7 +139,7 @@ by (simp add: fix_strict)
 lemma fix_const: "(\<mu> x. c) = c"
 by (subst fix_eq, simp)
 
-subsection {* Fixed point induction *}
+subsection \<open>Fixed point induction\<close>
 
 lemma fix_ind: "\<lbrakk>adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P (fix\<cdot>F)"
 unfolding fix_def2
@@ -202,12 +202,12 @@ lemma cont_parallel_fix_ind:
   shows "P (fix\<cdot>(Abs_cfun F)) (fix\<cdot>(Abs_cfun G))"
 by (rule parallel_fix_ind, simp_all add: assms)
 
-subsection {* Fixed-points on product types *}
+subsection \<open>Fixed-points on product types\<close>
 
-text {*
+text \<open>
   Bekic's Theorem: Simultaneous fixed points over pairs
   can be written in terms of separate fixed points.
-*}
+\<close>
 
 lemma fix_cprod:
   "fix\<cdot>(F::'a \<times> 'b \<rightarrow> 'a \<times> 'b) =

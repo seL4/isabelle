@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Discrete cpo instance for 8-bit char type *}
+section \<open>Discrete cpo instance for 8-bit char type\<close>
 
 theory Char_Discrete
 imports HOLCF
 begin
 
-subsection {* Discrete cpo instance for @{typ nibble}. *}
+subsection \<open>Discrete cpo instance for @{typ nibble}.\<close>
 
 instantiation nibble :: discrete_cpo
 begin
@@ -21,9 +21,9 @@ qed (rule below_nibble_def)
 
 end
 
-text {*
+text \<open>
   TODO: implement a command to automate discrete predomain instances.
-*}
+\<close>
 
 instantiation nibble :: predomain
 begin
@@ -54,7 +54,7 @@ qed
 
 end
 
-subsection {* Discrete cpo instance for @{typ char}. *}
+subsection \<open>Discrete cpo instance for @{typ char}.\<close>
 
 instantiation char :: discrete_cpo
 begin
@@ -67,9 +67,9 @@ qed (rule below_char_def)
 
 end
 
-text {*
+text \<open>
   TODO: implement a command to automate discrete predomain instances.
-*}
+\<close>
 
 instantiation char :: predomain
 begin
@@ -100,7 +100,7 @@ qed
 
 end
 
-subsection {* Using chars with Fixrec *}
+subsection \<open>Using chars with Fixrec\<close>
 
 definition match_Char :: "char \<rightarrow> (nibble \<rightarrow> nibble \<rightarrow> 'a match) \<rightarrow> 'a match"
   where "match_Char = (\<Lambda> c k. case c of Char a b \<Rightarrow> k\<cdot>a\<cdot>b)"
@@ -221,7 +221,7 @@ lemma match_NibbleF_simps [simp]:
   "match_NibbleF\<cdot>c\<cdot>k = (if c = NibbleF then k else Fixrec.fail)"
 by (simp add: match_NibbleF_def)
 
-setup {*
+setup \<open>
   Fixrec.add_matchers
     [ (@{const_name Char}, @{const_name match_Char}),
       (@{const_name Nibble0}, @{const_name match_Nibble0}),
@@ -240,6 +240,6 @@ setup {*
       (@{const_name NibbleD}, @{const_name match_NibbleD}),
       (@{const_name NibbleE}, @{const_name match_NibbleE}),
       (@{const_name NibbleF}, @{const_name match_NibbleF}) ]
-*}
+\<close>
 
 end

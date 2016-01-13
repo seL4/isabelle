@@ -2,7 +2,7 @@
     Author:     Franz Regensburger
 *)
 
-section {* The cpo of cartesian products *}
+section \<open>The cpo of cartesian products\<close>
 
 theory Cprod
 imports Cfun
@@ -10,7 +10,7 @@ begin
 
 default_sort cpo
 
-subsection {* Continuous case function for unit type *}
+subsection \<open>Continuous case function for unit type\<close>
 
 definition
   unit_when :: "'a \<rightarrow> unit \<rightarrow> 'a" where
@@ -22,7 +22,7 @@ translations
 lemma unit_when [simp]: "unit_when\<cdot>a\<cdot>u = a"
 by (simp add: unit_when_def)
 
-subsection {* Continuous version of split function *}
+subsection \<open>Continuous version of split function\<close>
 
 definition
   csplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a * 'b) \<rightarrow> 'c" where
@@ -39,7 +39,7 @@ abbreviation
   csnd :: "'a \<times> 'b \<rightarrow> 'b" where
   "csnd \<equiv> Abs_cfun snd"
 
-subsection {* Convert all lemmas to the continuous versions *}
+subsection \<open>Convert all lemmas to the continuous versions\<close>
 
 lemma csplit1 [simp]: "csplit\<cdot>f\<cdot>\<bottom> = f\<cdot>\<bottom>\<cdot>\<bottom>"
 by (simp add: csplit_def)

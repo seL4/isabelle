@@ -2,17 +2,17 @@
     Author:     Brian Huffman
 *)
 
-section {* Algebraic deflations are a bifinite domain *}
+section \<open>Algebraic deflations are a bifinite domain\<close>
 
 theory Defl_Bifinite
 imports HOLCF "~~/src/HOL/Library/Infinite_Set"
 begin
 
-subsection {* Lemmas about MOST *}
+subsection \<open>Lemmas about MOST\<close>
 
 default_sort type
 
-subsection {* Eventually constant sequences *}
+subsection \<open>Eventually constant sequences\<close>
 
 definition
   eventually_constant :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool"
@@ -48,7 +48,7 @@ lemma eventually_constant_SucD:
   "eventually_constant (\<lambda>i. S (Suc i)) \<Longrightarrow> eventually_constant (\<lambda>i. S i)"
 by (rule eventually_constant_Suc_iff [THEN iffD1])
 
-subsection {* Limits of eventually constant sequences *}
+subsection \<open>Limits of eventually constant sequences\<close>
 
 definition
   eventual :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a" where
@@ -120,7 +120,7 @@ apply (erule MOST_eq_eventual)
 apply simp
 done
 
-subsection {* Constructing finite deflations by iteration *}
+subsection \<open>Constructing finite deflations by iteration\<close>
 
 default_sort cpo
 
@@ -144,7 +144,7 @@ definition
 where
   "eventual_iterate f = eventual (\<lambda>n. iterate n\<cdot>f)"
 
-text {* A pre-deflation is like a deflation, but not idempotent. *}
+text \<open>A pre-deflation is like a deflation, but not idempotent.\<close>
 
 locale pre_deflation =
   fixes f :: "'a \<rightarrow> 'a::cpo"
@@ -301,7 +301,7 @@ proof -
   interpret d: finite_deflation d by fact
   let ?e = "d oo f"
   interpret e: pre_deflation "d oo f"
-    using `finite_deflation d` f
+    using \<open>finite_deflation d\<close> f
     by (rule pre_deflation_oo)
   let ?g = "eventual (\<lambda>n. iterate n\<cdot>?e)"
   show ?thesis
@@ -338,7 +338,7 @@ unfolding eventual_iterate_def
 apply (rule eventual_mono)
 apply (rule pre_deflation.eventually_constant_iterate [OF f])
 apply (rule pre_deflation.eventually_constant_iterate [OF g])
-apply (rule monofun_cfun_arg [OF `f \<sqsubseteq> g`])
+apply (rule monofun_cfun_arg [OF \<open>f \<sqsubseteq> g\<close>])
 done
 
 lemma cont2cont_eventual_iterate_oo:
@@ -380,15 +380,15 @@ next
     have "compact (d\<cdot>x)"
       using d by (rule finite_deflation.compact)
     then have "compact x"
-      using `d\<cdot>x = x` by simp
+      using \<open>d\<cdot>x = x\<close> by simp
     then have "compact (\<Squnion>i. f (Y i)\<cdot>x)"
-      using `(\<Squnion>i. f (Y i)\<cdot>x) = x` by simp
+      using \<open>(\<Squnion>i. f (Y i)\<cdot>x) = x\<close> by simp
     then have "\<exists>n. max_in_chain n (\<lambda>i. f (Y i)\<cdot>x)"
       by - (rule compact_imp_max_in_chain, simp add: fY, assumption)
     then obtain n where n: "max_in_chain n (\<lambda>i. f (Y i)\<cdot>x)" ..
     then have "f (Y n)\<cdot>x = x"
-      using `(\<Squnion>i. f (Y i)\<cdot>x) = x` fY by (simp add: maxinch_is_thelub)
-    with `d\<cdot>x = x` have "?e (Y n)\<cdot>x = x"
+      using \<open>(\<Squnion>i. f (Y i)\<cdot>x) = x\<close> fY by (simp add: maxinch_is_thelub)
+    with \<open>d\<cdot>x = x\<close> have "?e (Y n)\<cdot>x = x"
       by (simp add: eventual_iterate_oo_fixed_iff [OF d below])
     moreover have "?e (Y n)\<cdot>x \<sqsubseteq> (\<Squnion>i. ?e (Y i)\<cdot>x)"
       by (rule is_ub_thelub, simp add: eY)
@@ -404,7 +404,7 @@ next
   qed
 qed
 
-subsection {* Intersection of algebraic deflations *}
+subsection \<open>Intersection of algebraic deflations\<close>
 
 default_sort bifinite
 
@@ -545,7 +545,7 @@ done
 lemma compact_meet_defl2: "compact b \<Longrightarrow> compact (meet_defl\<cdot>a\<cdot>b)"
 by (subst meet_defl.commute, rule compact_meet_defl1)
 
-subsection {* Chain of approx functions on algebraic deflations *}
+subsection \<open>Chain of approx functions on algebraic deflations\<close>
 
 context bifinite_approx_chain
 begin
@@ -587,7 +587,7 @@ qed
 
 end
 
-subsection {* Algebraic deflations are a bifinite domain *}
+subsection \<open>Algebraic deflations are a bifinite domain\<close>
 
 instance defl :: (bifinite) bifinite
 proof
@@ -599,7 +599,7 @@ proof
     by (fast intro: bifinite_approx_chain.defl_approx)
 qed
 
-subsection {* Algebraic deflations are representable *}
+subsection \<open>Algebraic deflations are representable\<close>
 
 default_sort "domain"
 

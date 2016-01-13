@@ -6,7 +6,7 @@ FOCUS streams (with lifted elements).
 TODO: integrate Fstreams.thy
 *)
 
-section {* FOCUS flat streams *}
+section \<open>FOCUS flat streams\<close>
 
 theory Fstream
 imports "~~/src/HOL/HOLCF/Library/Stream"
@@ -152,12 +152,12 @@ done
 lemma slen_fscons_eq_rev:
         "(#x < enat (Suc (Suc n))) = (!a y. x ~= a~> y | #y < enat (Suc n))"
 apply (simp add: fscons_def2 slen_scons_eq_rev)
-apply (tactic {* step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1 *})
-apply (tactic {* step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1 *})
-apply (tactic {* step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1 *})
-apply (tactic {* step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1 *})
-apply (tactic {* step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1 *})
-apply (tactic {* step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1 *})
+apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
+apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
+apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
+apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
+apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
+apply (tactic \<open>step_tac (put_claset HOL_cs @{context} addSEs @{thms DefE}) 1\<close>)
 apply (erule contrapos_np)
 apply (fast dest: not_Undef_is_Def [THEN iffD1] elim: DefE)
 done

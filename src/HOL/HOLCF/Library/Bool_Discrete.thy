@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Discrete cpo instance for booleans *}
+section \<open>Discrete cpo instance for booleans\<close>
 
 theory Bool_Discrete
 imports HOLCF
 begin
 
-text {* Discrete cpo instance for @{typ bool}. *}
+text \<open>Discrete cpo instance for @{typ bool}.\<close>
 
 instantiation bool :: discrete_cpo
 begin
@@ -21,9 +21,9 @@ qed (rule below_bool_def)
 
 end
 
-text {*
+text \<open>
   TODO: implement a command to automate discrete predomain instances.
-*}
+\<close>
 
 instantiation bool :: predomain
 begin

@@ -2,7 +2,7 @@
     Author:     Franz Regensburger, David von Oheimb, Borislav Gajanovic
 *)
 
-section {* General Stream domain *}
+section \<open>General Stream domain\<close>
 
 theory Stream
 imports "../HOLCF" "~~/src/HOL/Library/Extended_Nat"

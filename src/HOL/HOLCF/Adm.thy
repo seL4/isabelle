@@ -2,7 +2,7 @@
     Author:     Franz Regensburger and Brian Huffman
 *)
 
-section {* Admissibility and compactness *}
+section \<open>Admissibility and compactness\<close>
 
 theory Adm
 imports Cont
@@ -10,7 +10,7 @@ begin
 
 default_sort cpo
 
-subsection {* Definitions *}
+subsection \<open>Definitions\<close>
 
 definition
   adm :: "('a::cpo \<Rightarrow> bool) \<Rightarrow> bool" where
@@ -29,14 +29,14 @@ unfolding adm_def by fast
 lemma triv_admI: "\<forall>x. P x \<Longrightarrow> adm P"
 by (rule admI, erule spec)
 
-subsection {* Admissibility on chain-finite types *}
+subsection \<open>Admissibility on chain-finite types\<close>
 
-text {* For chain-finite (easy) types every formula is admissible. *}
+text \<open>For chain-finite (easy) types every formula is admissible.\<close>
 
 lemma adm_chfin [simp]: "adm (P::'a::chfin \<Rightarrow> bool)"
 by (rule admI, frule chfin, auto simp add: maxinch_is_thelub)
 
-subsection {* Admissibility of special formulae and propagation *}
+subsection \<open>Admissibility of special formulae and propagation\<close>
 
 lemma adm_const [simp]: "adm (\<lambda>x. t)"
 by (rule admI, simp)
@@ -53,7 +53,7 @@ lemma adm_ball [simp]:
   "(\<And>y. y \<in> A \<Longrightarrow> adm (\<lambda>x. P x y)) \<Longrightarrow> adm (\<lambda>x. \<forall>y\<in>A. P x y)"
 by (fast intro: admI elim: admD)
 
-text {* Admissibility for disjunction is hard to prove. It requires 2 lemmas. *}
+text \<open>Admissibility for disjunction is hard to prove. It requires 2 lemmas.\<close>
 
 lemma adm_disj_lemma1:
   assumes adm: "adm P"
@@ -108,7 +108,7 @@ lemma adm_iff [simp]:
     \<Longrightarrow> adm (\<lambda>x. P x = Q x)"
 by (subst iff_conv_conj_imp, rule adm_conj)
 
-text {* admissibility and continuity *}
+text \<open>admissibility and continuity\<close>
 
 lemma adm_below [simp]:
   "\<lbrakk>cont (\<lambda>x. u x); cont (\<lambda>x. v x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
@@ -124,7 +124,7 @@ by (simp add: adm_def cont2contlubE ch2ch_cont)
 lemma adm_not_below [simp]: "cont (\<lambda>x. t x) \<Longrightarrow> adm (\<lambda>x. t x \<notsqsubseteq> u)"
 by (rule admI, simp add: cont2contlubE ch2ch_cont lub_below_iff)
 
-subsection {* Compactness *}
+subsection \<open>Compactness\<close>
 
 definition
   compact :: "'a::cpo \<Rightarrow> bool" where
@@ -161,7 +161,7 @@ apply (erule (1) chain_mono)
 apply (erule (1) below_trans [OF is_ub_thelub])
 done
 
-text {* admissibility and compactness *}
+text \<open>admissibility and compactness\<close>
 
 lemma adm_compact_not_below [simp]:
   "\<lbrakk>compact k; cont (\<lambda>x. t x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. k \<notsqsubseteq> t x)"
@@ -178,7 +178,7 @@ by (simp add: po_eq_conv)
 lemma compact_bottom [simp, intro]: "compact \<bottom>"
 by (rule compactI, simp)
 
-text {* Any upward-closed predicate is admissible. *}
+text \<open>Any upward-closed predicate is admissible.\<close>
 
 lemma adm_upward:
   assumes P: "\<And>x y. \<lbrakk>P x; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> P y"

@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Discrete cpo instance for naturals *}
+section \<open>Discrete cpo instance for naturals\<close>
 
 theory Nat_Discrete
 imports HOLCF
 begin
 
-text {* Discrete cpo instance for @{typ nat}. *}
+text \<open>Discrete cpo instance for @{typ nat}.\<close>
 
 instantiation nat :: discrete_cpo
 begin
@@ -21,9 +21,9 @@ qed (rule below_nat_def)
 
 end
 
-text {*
+text \<open>
   TODO: implement a command to automate discrete predomain instances.
-*}
+\<close>
 
 instantiation nat :: predomain
 begin

@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-section {* The type of strict sums *}
+section \<open>The type of strict sums\<close>
 
 theory Ssum
 imports Tr
@@ -11,7 +11,7 @@ begin
 
 default_sort pcpo
 
-subsection {* Definition of strict sum type *}
+subsection \<open>Definition of strict sum type\<close>
 
 definition
   "ssum =
@@ -29,7 +29,7 @@ type_notation (ASCII)
   ssum  (infixr "++" 10)
 
 
-subsection {* Definitions of constructors *}
+subsection \<open>Definitions of constructors\<close>
 
 definition
   sinl :: "'a \<rightarrow> ('a ++ 'b)" where
@@ -56,9 +56,9 @@ lemmas Rep_ssum_simps =
   prod_eq_iff below_prod_def
   Rep_ssum_strict Rep_ssum_sinl Rep_ssum_sinr
 
-subsection {* Properties of \emph{sinl} and \emph{sinr} *}
+subsection \<open>Properties of \emph{sinl} and \emph{sinr}\<close>
 
-text {* Ordering *}
+text \<open>Ordering\<close>
 
 lemma sinl_below [simp]: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
 by (simp add: Rep_ssum_simps seq_conv_if)
@@ -72,7 +72,7 @@ by (simp add: Rep_ssum_simps seq_conv_if)
 lemma sinr_below_sinl [simp]: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
 by (simp add: Rep_ssum_simps seq_conv_if)
 
-text {* Equality *}
+text \<open>Equality\<close>
 
 lemma sinl_eq [simp]: "(sinl\<cdot>x = sinl\<cdot>y) = (x = y)"
 by (simp add: po_eq_conv)
@@ -92,7 +92,7 @@ by (rule sinl_eq [THEN iffD1])
 lemma sinr_inject: "sinr\<cdot>x = sinr\<cdot>y \<Longrightarrow> x = y"
 by (rule sinr_eq [THEN iffD1])
 
-text {* Strictness *}
+text \<open>Strictness\<close>
 
 lemma sinl_strict [simp]: "sinl\<cdot>\<bottom> = \<bottom>"
 by (simp add: Rep_ssum_simps)
@@ -112,7 +112,7 @@ by simp
 lemma sinr_defined: "x \<noteq> \<bottom> \<Longrightarrow> sinr\<cdot>x \<noteq> \<bottom>"
 by simp
 
-text {* Compactness *}
+text \<open>Compactness\<close>
 
 lemma compact_sinl: "compact x \<Longrightarrow> compact (sinl\<cdot>x)"
 by (rule compact_ssum, simp add: Rep_ssum_sinl)
@@ -134,7 +134,7 @@ by (safe elim!: compact_sinl compact_sinlD)
 lemma compact_sinr_iff [simp]: "compact (sinr\<cdot>x) = compact x"
 by (safe elim!: compact_sinr compact_sinrD)
 
-subsection {* Case analysis *}
+subsection \<open>Case analysis\<close>
 
 lemma ssumE [case_names bottom sinl sinr, cases type: ssum]:
   obtains "p = \<bottom>"
@@ -158,7 +158,7 @@ by (cases p, rule_tac x="\<bottom>" in exI, simp_all)
 lemma below_sinrD: "p \<sqsubseteq> sinr\<cdot>x \<Longrightarrow> \<exists>y. p = sinr\<cdot>y \<and> y \<sqsubseteq> x"
 by (cases p, rule_tac x="\<bottom>" in exI, simp_all)
 
-subsection {* Case analysis combinator *}
+subsection \<open>Case analysis combinator\<close>
 
 definition
   sscase :: "('a \<rightarrow> 'c) \<rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a ++ 'b) \<rightarrow> 'c" where
@@ -188,7 +188,7 @@ unfolding beta_sscase by (simp add: Rep_ssum_sinr)
 lemma sscase4 [simp]: "sscase\<cdot>sinl\<cdot>sinr\<cdot>z = z"
 by (cases z, simp_all)
 
-subsection {* Strict sum preserves flatness *}
+subsection \<open>Strict sum preserves flatness\<close>
 
 instance ssum :: (flat, flat) flat
 apply (intro_classes, clarify)

@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-section {* The type of strict products *}
+section \<open>The type of strict products\<close>
 
 theory Sprod
 imports Cfun
@@ -11,7 +11,7 @@ begin
 
 default_sort pcpo
 
-subsection {* Definition of strict product type *}
+subsection \<open>Definition of strict product type\<close>
 
 definition "sprod = {p::'a \<times> 'b. p = \<bottom> \<or> (fst p \<noteq> \<bottom> \<and> snd p \<noteq> \<bottom>)}"
 
@@ -25,7 +25,7 @@ type_notation (ASCII)
   sprod  (infixr "**" 20)
 
 
-subsection {* Definitions of constants *}
+subsection \<open>Definitions of constants\<close>
 
 definition
   sfst :: "('a ** 'b) \<rightarrow> 'a" where
@@ -53,7 +53,7 @@ translations
 translations
   "\<Lambda>(CONST spair\<cdot>x\<cdot>y). t" == "CONST ssplit\<cdot>(\<Lambda> x y. t)"
 
-subsection {* Case analysis *}
+subsection \<open>Case analysis\<close>
 
 lemma spair_sprod: "(seq\<cdot>b\<cdot>a, seq\<cdot>a\<cdot>b) \<in> sprod"
 by (simp add: sprod_def seq_conv_if)
@@ -74,7 +74,7 @@ lemma sprod_induct [case_names bottom spair, induct type: sprod]:
   "\<lbrakk>P \<bottom>; \<And>x y. \<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> P (:x, y:)\<rbrakk> \<Longrightarrow> P x"
 by (cases x, simp_all)
 
-subsection {* Properties of \emph{spair} *}
+subsection \<open>Properties of \emph{spair}\<close>
 
 lemma spair_strict1 [simp]: "(:\<bottom>, y:) = \<bottom>"
 by (simp add: Rep_sprod_simps)
@@ -124,7 +124,7 @@ by simp
 lemma sprodE2: "(\<And>x y. p = (:x, y:) \<Longrightarrow> Q) \<Longrightarrow> Q"
 by (cases p, simp only: inst_sprod_pcpo2, simp)
 
-subsection {* Properties of \emph{sfst} and \emph{ssnd} *}
+subsection \<open>Properties of \emph{sfst} and \emph{ssnd}\<close>
 
 lemma sfst_strict [simp]: "sfst\<cdot>\<bottom> = \<bottom>"
 by (simp add: sfst_def cont_Rep_sprod Rep_sprod_strict)
@@ -169,7 +169,7 @@ apply (cases "x = \<bottom>", simp, cases "y = \<bottom>", simp)
 apply (simp add: below_sprod)
 done
 
-subsection {* Compactness *}
+subsection \<open>Compactness\<close>
 
 lemma compact_sfst: "compact x \<Longrightarrow> compact (sfst\<cdot>x)"
 by (rule compactI, simp add: sfst_below_iff)
@@ -189,7 +189,7 @@ apply simp
 apply simp
 done
 
-subsection {* Properties of \emph{ssplit} *}
+subsection \<open>Properties of \emph{ssplit}\<close>
 
 lemma ssplit1 [simp]: "ssplit\<cdot>f\<cdot>\<bottom> = \<bottom>"
 by (simp add: ssplit_def)
@@ -200,7 +200,7 @@ by (simp add: ssplit_def)
 lemma ssplit3 [simp]: "ssplit\<cdot>spair\<cdot>z = z"
 by (cases z, simp_all)
 
-subsection {* Strict product preserves flatness *}
+subsection \<open>Strict product preserves flatness\<close>
 
 instance sprod :: (flat, flat) flat
 proof

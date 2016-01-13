@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-section {* Recursive let bindings *}
+section \<open>Recursive let bindings\<close>
 
 theory Letrec
 imports HOLCF

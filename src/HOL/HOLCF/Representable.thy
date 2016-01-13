@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-section {* Representable domains *}
+section \<open>Representable domains\<close>
 
 theory Representable
 imports Algebraic Map_Functions "~~/src/HOL/Library/Countable"
@@ -10,9 +10,9 @@ begin
 
 default_sort cpo
 
-subsection {* Class of representable domains *}
+subsection \<open>Class of representable domains\<close>
 
-text {*
+text \<open>
   We define a ``domain'' as a pcpo that is isomorphic to some
   algebraic deflation over the universal domain; this is equivalent
   to being omega-bifinite.
@@ -20,7 +20,7 @@ text {*
   A predomain is a cpo that, when lifted, becomes a domain.
   Predomains are represented by deflations over a lifted universal
   domain type.
-*}
+\<close>
 
 class predomain_syn = cpo +
   fixes liftemb :: "'a\<^sub>\<bottom> \<rightarrow> udom\<^sub>\<bottom>"
@@ -63,16 +63,16 @@ proof
     by (simp add: cast_liftdefl_of cast_DEFL u_map_oo)
 qed
 
-text {*
+text \<open>
   Constants @{const liftemb} and @{const liftprj} imply class predomain.
-*}
+\<close>
 
-setup {*
+setup \<open>
   fold Sign.add_const_constraint
   [(@{const_name liftemb}, SOME @{typ "'a::predomain u \<rightarrow> udom u"}),
    (@{const_name liftprj}, SOME @{typ "udom u \<rightarrow> 'a::predomain u"}),
    (@{const_name liftdefl}, SOME @{typ "'a::predomain itself \<Rightarrow> udom u defl"})]
-*}
+\<close>
 
 interpretation predomain: pcpo_ep_pair liftemb liftprj
   unfolding pcpo_ep_pair_def by (rule predomain_ep)
@@ -86,7 +86,7 @@ lemmas emb_eq_iff = domain.e_eq_iff
 lemmas emb_strict = domain.e_strict
 lemmas prj_strict = domain.p_strict
 
-subsection {* Domains are bifinite *}
+subsection \<open>Domains are bifinite\<close>
 
 lemma approx_chain_ep_cast:
   assumes ep: "ep_pair (e::'a::pcpo \<rightarrow> 'b::bifinite) (p::'b \<rightarrow> 'a)"
@@ -124,7 +124,7 @@ by standard (rule approx_chain_ep_cast [OF ep_pair_emb_prj cast_DEFL])
 instance predomain \<subseteq> profinite
 by standard (rule approx_chain_ep_cast [OF predomain_ep cast_liftdefl])
 
-subsection {* Universal domain ep-pairs *}
+subsection \<open>Universal domain ep-pairs\<close>
 
 definition "u_emb = udom_emb (\<lambda>i. u_map\<cdot>(udom_approx i))"
 definition "u_prj = udom_prj (\<lambda>i. u_map\<cdot>(udom_approx i))"
@@ -161,7 +161,7 @@ lemma ep_pair_sfun: "ep_pair sfun_emb sfun_prj"
   unfolding sfun_emb_def sfun_prj_def
   by (simp add: ep_pair_udom approx_chain_sfun_map)
 
-subsection {* Type combinators *}
+subsection \<open>Type combinators\<close>
 
 definition u_defl :: "udom defl \<rightarrow> udom defl"
   where "u_defl = defl_fun1 u_emb u_prj u_map"
@@ -207,7 +207,7 @@ lemma cast_sfun_defl:
 using ep_pair_sfun finite_deflation_sfun_map
 unfolding sfun_defl_def by (rule cast_defl_fun2)
 
-text {* Special deflation combinator for unpointed types. *}
+text \<open>Special deflation combinator for unpointed types.\<close>
 
 definition u_liftdefl :: "udom u defl \<rightarrow> udom defl"
   where "u_liftdefl = defl_fun1 u_emb u_prj ID"
@@ -221,9 +221,9 @@ lemma u_liftdefl_liftdefl_of:
 by (rule cast_eq_imp_eq)
    (simp add: cast_u_liftdefl cast_liftdefl_of cast_u_defl)
 
-subsection {* Class instance proofs *}
+subsection \<open>Class instance proofs\<close>
 
-subsubsection {* Universal domain *}
+subsubsection \<open>Universal domain\<close>
 
 instantiation udom :: "domain"
 begin
@@ -265,7 +265,7 @@ qed (fact liftemb_udom_def liftprj_udom_def liftdefl_udom_def)+
 
 end
 
-subsubsection {* Lifted cpo *}
+subsubsection \<open>Lifted cpo\<close>
 
 instantiation u :: (predomain) "domain"
 begin
@@ -302,7 +302,7 @@ end
 lemma DEFL_u: "DEFL('a::predomain u) = u_liftdefl\<cdot>LIFTDEFL('a)"
 by (rule defl_u_def)
 
-subsubsection {* Strict function space *}
+subsubsection \<open>Strict function space\<close>
 
 instantiation sfun :: ("domain", "domain") "domain"
 begin
@@ -340,7 +340,7 @@ lemma DEFL_sfun:
   "DEFL('a::domain \<rightarrow>! 'b::domain) = sfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_sfun_def)
 
-subsubsection {* Continuous function space *}
+subsubsection \<open>Continuous function space\<close>
 
 instantiation cfun :: (predomain, "domain") "domain"
 begin
@@ -380,7 +380,7 @@ lemma DEFL_cfun:
   "DEFL('a::predomain \<rightarrow> 'b::domain) = DEFL('a u \<rightarrow>! 'b)"
 by (rule defl_cfun_def)
 
-subsubsection {* Strict product *}
+subsubsection \<open>Strict product\<close>
 
 instantiation sprod :: ("domain", "domain") "domain"
 begin
@@ -418,7 +418,7 @@ lemma DEFL_sprod:
   "DEFL('a::domain \<otimes> 'b::domain) = sprod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_sprod_def)
 
-subsubsection {* Cartesian product *}
+subsubsection \<open>Cartesian product\<close>
 
 definition prod_liftdefl :: "udom u defl \<rightarrow> udom u defl \<rightarrow> udom u defl"
   where "prod_liftdefl = defl_fun2 (u_map\<cdot>prod_emb oo decode_prod_u)
@@ -506,7 +506,7 @@ lemma LIFTDEFL_prod:
     prod_liftdefl\<cdot>LIFTDEFL('a)\<cdot>LIFTDEFL('b)"
 by (rule liftdefl_prod_def)
 
-subsubsection {* Unit type *}
+subsubsection \<open>Unit type\<close>
 
 instantiation unit :: "domain"
 begin
@@ -539,7 +539,7 @@ qed (fact liftemb_unit_def liftprj_unit_def liftdefl_unit_def)+
 
 end
 
-subsubsection {* Discrete cpo *}
+subsubsection \<open>Discrete cpo\<close>
 
 instantiation discr :: (countable) predomain
 begin
@@ -584,7 +584,7 @@ qed
 
 end
 
-subsubsection {* Strict sum *}
+subsubsection \<open>Strict sum\<close>
 
 instantiation ssum :: ("domain", "domain") "domain"
 begin
@@ -622,7 +622,7 @@ lemma DEFL_ssum:
   "DEFL('a::domain \<oplus> 'b::domain) = ssum_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_ssum_def)
 
-subsubsection {* Lifted HOL type *}
+subsubsection \<open>Lifted HOL type\<close>
 
 instantiation lift :: (countable) "domain"
 begin

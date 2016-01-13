@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-section {* The type of lifted values *}
+section \<open>The type of lifted values\<close>
 
 theory Up
 imports Cfun
@@ -11,7 +11,7 @@ begin
 
 default_sort cpo
 
-subsection {* Definition of new type for lifting *}
+subsection \<open>Definition of new type for lifting\<close>
 
 datatype 'a u  ("(_\<^sub>\<bottom>)" [1000] 999) = Ibottom | Iup 'a
 
@@ -19,7 +19,7 @@ primrec Ifup :: "('a \<rightarrow> 'b::pcpo) \<Rightarrow> 'a u \<Rightarrow> 'b
     "Ifup f Ibottom = \<bottom>"
  |  "Ifup f (Iup x) = f\<cdot>x"
 
-subsection {* Ordering on lifted cpo *}
+subsection \<open>Ordering on lifted cpo\<close>
 
 instantiation u :: (cpo) below
 begin
@@ -41,7 +41,7 @@ by (simp add: below_up_def)
 lemma Iup_below [iff]: "(Iup x \<sqsubseteq> Iup y) = (x \<sqsubseteq> y)"
 by (simp add: below_up_def)
 
-subsection {* Lifted cpo is a partial order *}
+subsection \<open>Lifted cpo is a partial order\<close>
 
 instance u :: (cpo) po
 proof
@@ -60,7 +60,7 @@ next
     by (auto split: u.split_asm intro: below_trans)
 qed
 
-subsection {* Lifted cpo is a cpo *}
+subsection \<open>Lifted cpo is a cpo\<close>
 
 lemma is_lub_Iup:
   "range S <<| x \<Longrightarrow> range (\<lambda>i. Iup (S i)) <<| Iup x"
@@ -117,18 +117,18 @@ proof
   qed
 qed
 
-subsection {* Lifted cpo is pointed *}
+subsection \<open>Lifted cpo is pointed\<close>
 
 instance u :: (cpo) pcpo
 by intro_classes fast
 
-text {* for compatibility with old HOLCF-Version *}
+text \<open>for compatibility with old HOLCF-Version\<close>
 lemma inst_up_pcpo: "\<bottom> = Ibottom"
 by (rule minimal_up [THEN bottomI, symmetric])
 
-subsection {* Continuity of \emph{Iup} and \emph{Ifup} *}
+subsection \<open>Continuity of \emph{Iup} and \emph{Ifup}\<close>
 
-text {* continuity for @{term Iup} *}
+text \<open>continuity for @{term Iup}\<close>
 
 lemma cont_Iup: "cont Iup"
 apply (rule contI)
@@ -136,7 +136,7 @@ apply (rule is_lub_Iup)
 apply (erule cpo_lubI)
 done
 
-text {* continuity for @{term Ifup} *}
+text \<open>continuity for @{term Ifup}\<close>
 
 lemma cont_Ifup1: "cont (\<lambda>f. Ifup f x)"
 by (induct x, simp_all)
@@ -166,7 +166,7 @@ proof (rule contI2)
   qed simp
 qed (rule monofun_Ifup2)
 
-subsection {* Continuous versions of constants *}
+subsection \<open>Continuous versions of constants\<close>
 
 definition
   up  :: "'a \<rightarrow> 'a u" where
@@ -181,7 +181,7 @@ translations
   "case l of (XCONST up :: 'a)\<cdot>x \<Rightarrow> t" => "CONST fup\<cdot>(\<Lambda> x. t)\<cdot>l"
   "\<Lambda>(XCONST up\<cdot>x). t" == "CONST fup\<cdot>(\<Lambda> x. t)"
 
-text {* continuous versions of lemmas for @{typ "('a)u"} *}
+text \<open>continuous versions of lemmas for @{typ "('a)u"}\<close>
 
 lemma Exh_Up: "z = \<bottom> \<or> (\<exists>x. z = up\<cdot>x)"
 apply (induct z)
@@ -215,7 +215,7 @@ lemma up_induct [case_names bottom up, induct type: u]:
   "\<lbrakk>P \<bottom>; \<And>x. P (up\<cdot>x)\<rbrakk> \<Longrightarrow> P x"
 by (cases x, simp_all)
 
-text {* lifting preserves chain-finiteness *}
+text \<open>lifting preserves chain-finiteness\<close>
 
 lemma up_chain_cases:
   assumes Y: "chain Y" obtains "\<forall>i. Y i = \<bottom>"
@@ -247,7 +247,7 @@ apply (erule compact_imp_max_in_chain)
 apply (rule_tac p="\<Squnion>i. Y i" in upE, simp_all)
 done
 
-text {* properties of fup *}
+text \<open>properties of fup\<close>
 
 lemma fup1 [simp]: "fup\<cdot>f\<cdot>\<bottom> = \<bottom>"
 by (simp add: fup_def cont_Ifup1 cont_Ifup2 inst_up_pcpo cont2cont_LAM)

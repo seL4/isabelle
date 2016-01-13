@@ -2,7 +2,7 @@
     Author:     Franz Regensburger and Brian Huffman
 *)
 
-section {* Partial orders *}
+section \<open>Partial orders\<close>
 
 theory Porder
 imports Main
@@ -11,7 +11,7 @@ begin
 declare [[typedef_overloaded]]
 
 
-subsection {* Type class for partial orders *}
+subsection \<open>Type class for partial orders\<close>
 
 class below =
   fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
@@ -70,7 +70,7 @@ lemmas HOLCF_trans_rules [trans] =
 context po
 begin
 
-subsection {* Upper bounds *}
+subsection \<open>Upper bounds\<close>
 
 definition is_ub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infix "<|" 55) where
   "S <| x \<longleftrightarrow> (\<forall>y\<in>S. y \<sqsubseteq> x)"
@@ -102,7 +102,7 @@ lemma is_ub_insert [simp]: "(insert x A) <| y = (x \<sqsubseteq> y \<and> A <| y
 lemma is_ub_upward: "\<lbrakk>S <| x; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> S <| y"
   unfolding is_ub_def by (fast intro: below_trans)
 
-subsection {* Least upper bounds *}
+subsection \<open>Least upper bounds\<close>
 
 definition is_lub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infix "<<|" 55) where
   "S <<| x \<longleftrightarrow> S <| x \<and> (\<forall>u. S <| u \<longrightarrow> x \<sqsubseteq> u)"
@@ -131,7 +131,7 @@ abbreviation
 notation (ASCII)
   Lub  (binder "LUB " 10)
 
-text {* access to some definition as inference rule *}
+text \<open>access to some definition as inference rule\<close>
 
 lemma is_lubD1: "S <<| x \<Longrightarrow> S <| x"
   unfolding is_lub_def by fast
@@ -145,12 +145,12 @@ lemma is_lubI: "\<lbrakk>S <| x; \<And>u. S <| u \<Longrightarrow> x \<sqsubsete
 lemma is_lub_below_iff: "S <<| x \<Longrightarrow> x \<sqsubseteq> u \<longleftrightarrow> S <| u"
   unfolding is_lub_def is_ub_def by (metis below_trans)
 
-text {* lubs are unique *}
+text \<open>lubs are unique\<close>
 
 lemma is_lub_unique: "\<lbrakk>S <<| x; S <<| y\<rbrakk> \<Longrightarrow> x = y"
   unfolding is_lub_def is_ub_def by (blast intro: below_antisym)
 
-text {* technical lemmas about @{term lub} and @{term is_lub} *}
+text \<open>technical lemmas about @{term lub} and @{term is_lub}\<close>
 
 lemma is_lub_lub: "M <<| x \<Longrightarrow> M <<| lub M"
   unfolding lub_def by (rule theI [OF _ is_lub_unique])
@@ -176,10 +176,10 @@ lemma is_lub_maximal: "\<lbrakk>S <| x; x \<in> S\<rbrakk> \<Longrightarrow> S <
 lemma lub_maximal: "\<lbrakk>S <| x; x \<in> S\<rbrakk> \<Longrightarrow> lub S = x"
   by (rule is_lub_maximal [THEN lub_eqI])
 
-subsection {* Countable chains *}
+subsection \<open>Countable chains\<close>
 
 definition chain :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool" where
-  -- {* Here we use countable chains and I prefer to code them as functions! *}
+  \<comment> \<open>Here we use countable chains and I prefer to code them as functions!\<close>
   "chain Y = (\<forall>i. Y i \<sqsubseteq> Y (Suc i))"
 
 lemma chainI: "(\<And>i. Y i \<sqsubseteq> Y (Suc i)) \<Longrightarrow> chain Y"
@@ -188,7 +188,7 @@ lemma chainI: "(\<And>i. Y i \<sqsubseteq> Y (Suc i)) \<Longrightarrow> chain Y"
 lemma chainE: "chain Y \<Longrightarrow> Y i \<sqsubseteq> Y (Suc i)"
   unfolding chain_def by fast
 
-text {* chains are monotone functions *}
+text \<open>chains are monotone functions\<close>
 
 lemma chain_mono_less: "\<lbrakk>chain Y; i < j\<rbrakk> \<Longrightarrow> Y i \<sqsubseteq> Y j"
   by (erule less_Suc_induct, erule chainE, erule below_trans)
@@ -199,7 +199,7 @@ lemma chain_mono: "\<lbrakk>chain Y; i \<le> j\<rbrakk> \<Longrightarrow> Y i \<
 lemma chain_shift: "chain Y \<Longrightarrow> chain (\<lambda>i. Y (i + j))"
   by (rule chainI, simp, erule chainE)
 
-text {* technical lemmas about (least) upper bounds of chains *}
+text \<open>technical lemmas about (least) upper bounds of chains\<close>
 
 lemma is_lub_rangeD1: "range S <<| x \<Longrightarrow> S i \<sqsubseteq> x"
   by (rule is_lubD1 [THEN ub_rangeD])
@@ -220,7 +220,7 @@ lemma is_lub_range_shift:
   "chain S \<Longrightarrow> range (\<lambda>i. S (i + j)) <<| x = range S <<| x"
   by (simp add: is_lub_def is_ub_range_shift)
 
-text {* the lub of a constant chain is the constant *}
+text \<open>the lub of a constant chain is the constant\<close>
 
 lemma chain_const [simp]: "chain (\<lambda>i. c)"
   by (simp add: chainI)
@@ -231,16 +231,16 @@ by (blast dest: ub_rangeD intro: is_lubI ub_rangeI)
 lemma lub_const [simp]: "(\<Squnion>i. c) = c"
   by (rule is_lub_const [THEN lub_eqI])
 
-subsection {* Finite chains *}
+subsection \<open>Finite chains\<close>
 
 definition max_in_chain :: "nat \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> bool" where
-  -- {* finite chains, needed for monotony of continuous functions *}
+  \<comment> \<open>finite chains, needed for monotony of continuous functions\<close>
   "max_in_chain i C \<longleftrightarrow> (\<forall>j. i \<le> j \<longrightarrow> C i = C j)"
 
 definition finite_chain :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool" where
   "finite_chain C = (chain C \<and> (\<exists>i. max_in_chain i C))"
 
-text {* results about finite chains *}
+text \<open>results about finite chains\<close>
 
 lemma max_in_chainI: "(\<And>j. i \<le> j \<Longrightarrow> Y i = Y j) \<Longrightarrow> max_in_chain i Y"
   unfolding max_in_chain_def by fast
@@ -336,7 +336,7 @@ apply (drule (1) lub_finch1)
 apply simp
 done
 
-text {* the maximal element in a chain is its lub *}
+text \<open>the maximal element in a chain is its lub\<close>
 
 lemma lub_chain_maxelem: "\<lbrakk>Y i = c; \<forall>i. Y i \<sqsubseteq> c\<rbrakk> \<Longrightarrow> lub (range Y) = c"
   by (blast dest: ub_rangeD intro: lub_eqI is_lubI ub_rangeI)

@@ -2,13 +2,13 @@
     Author:     Brian Huffman
 *)
 
-section {* Upper powerdomain *}
+section \<open>Upper powerdomain\<close>
 
 theory UpperPD
 imports Compact_Basis
 begin
 
-subsection {* Basis preorder *}
+subsection \<open>Basis preorder\<close>
 
 definition
   upper_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix "\<le>\<sharp>" 50) where
@@ -70,7 +70,7 @@ apply (simp add: upper_le_PDPlus_iff 3)
 done
 
 
-subsection {* Type definition *}
+subsection \<open>Type definition\<close>
 
 typedef 'a upper_pd  ("('(_')\<sharp>)") =
   "{S::'a pd_basis set. upper_le.ideal S}"
@@ -103,7 +103,7 @@ using type_definition_upper_pd below_upper_pd_def
 using upper_principal_def pd_basis_countable
 by (rule upper_le.typedef_ideal_completion)
 
-text {* Upper powerdomain is pointed *}
+text \<open>Upper powerdomain is pointed\<close>
 
 lemma upper_pd_minimal: "upper_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: upper_pd.principal_induct, simp, simp)
@@ -115,7 +115,7 @@ lemma inst_upper_pd_pcpo: "\<bottom> = upper_principal (PDUnit compact_bot)"
 by (rule upper_pd_minimal [THEN bottomI, symmetric])
 
 
-subsection {* Monadic unit and plus *}
+subsection \<open>Monadic unit and plus\<close>
 
 definition
   upper_unit :: "'a \<rightarrow> 'a upper_pd" where
@@ -174,11 +174,11 @@ lemmas upper_plus_absorb = upper_add.idem
 lemmas upper_plus_left_commute = upper_add.left_commute
 lemmas upper_plus_left_absorb = upper_add.left_idem
 
-text {* Useful for @{text "simp add: upper_plus_ac"} *}
+text \<open>Useful for \<open>simp add: upper_plus_ac\<close>\<close>
 lemmas upper_plus_ac =
   upper_plus_assoc upper_plus_commute upper_plus_left_commute
 
-text {* Useful for @{text "simp only: upper_plus_aci"} *}
+text \<open>Useful for \<open>simp only: upper_plus_aci\<close>\<close>
 lemmas upper_plus_aci =
   upper_plus_ac upper_plus_absorb upper_plus_left_absorb
 
@@ -261,7 +261,7 @@ lemma compact_upper_plus [simp]:
 by (auto dest!: upper_pd.compact_imp_principal)
 
 
-subsection {* Induction rules *}
+subsection \<open>Induction rules\<close>
 
 lemma upper_pd_induct1:
   assumes P: "adm P"
@@ -290,7 +290,7 @@ apply (simp only: upper_plus_principal [symmetric] plus)
 done
 
 
-subsection {* Monadic bind *}
+subsection \<open>Monadic bind\<close>
 
 definition
   upper_bind_basis ::
@@ -362,7 +362,7 @@ lemma upper_bind_bind:
 by (induct xs, simp_all)
 
 
-subsection {* Map *}
+subsection \<open>Map\<close>
 
 definition
   upper_map :: "('a \<rightarrow> 'b) \<rightarrow> 'a upper_pd \<rightarrow> 'b upper_pd" where
@@ -453,7 +453,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
-subsection {* Upper powerdomain is bifinite *}
+subsection \<open>Upper powerdomain is bifinite\<close>
 
 lemma approx_chain_upper_map:
   assumes "approx_chain a"
@@ -468,7 +468,7 @@ proof
     by (fast intro!: approx_chain_upper_map)
 qed
 
-subsection {* Join *}
+subsection \<open>Join\<close>
 
 definition
   upper_join :: "'a upper_pd upper_pd \<rightarrow> 'a upper_pd" where

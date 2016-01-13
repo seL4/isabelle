@@ -2,21 +2,21 @@
     Author:     Franz Regensburger
 *)
 
-section {* Classes cpo and pcpo *}
+section \<open>Classes cpo and pcpo\<close>
 
 theory Pcpo
 imports Porder
 begin
 
-subsection {* Complete partial orders *}
+subsection \<open>Complete partial orders\<close>
 
-text {* The class cpo of chain complete partial orders *}
+text \<open>The class cpo of chain complete partial orders\<close>
 
 class cpo = po +
   assumes cpo: "chain S \<Longrightarrow> \<exists>x. range S <<| x"
 begin
 
-text {* in cpo's everthing equal to THE lub has lub properties for every chain *}
+text \<open>in cpo's everthing equal to THE lub has lub properties for every chain\<close>
 
 lemma cpo_lubI: "chain S \<Longrightarrow> range S <<| (\<Squnion>i. S i)"
   by (fast dest: cpo elim: is_lub_lub)
@@ -24,7 +24,7 @@ lemma cpo_lubI: "chain S \<Longrightarrow> range S <<| (\<Squnion>i. S i)"
 lemma thelubE: "\<lbrakk>chain S; (\<Squnion>i. S i) = l\<rbrakk> \<Longrightarrow> range S <<| l"
   by (blast dest: cpo intro: is_lub_lub)
 
-text {* Properties of the lub *}
+text \<open>Properties of the lub\<close>
 
 lemma is_ub_thelub: "chain S \<Longrightarrow> S x \<sqsubseteq> (\<Squnion>i. S i)"
   by (blast dest: cpo intro: is_lub_lub [THEN is_lub_rangeD1])
@@ -78,14 +78,14 @@ apply (drule sym)
 apply (force elim!: is_ub_thelub)
 done
 
-text {* the @{text "\<sqsubseteq>"} relation between two chains is preserved by their lubs *}
+text \<open>the \<open>\<sqsubseteq>\<close> relation between two chains is preserved by their lubs\<close>
 
 lemma lub_mono:
   "\<lbrakk>chain X; chain Y; \<And>i. X i \<sqsubseteq> Y i\<rbrakk> 
     \<Longrightarrow> (\<Squnion>i. X i) \<sqsubseteq> (\<Squnion>i. Y i)"
 by (fast elim: lub_below below_lub)
 
-text {* the = relation between two chains is preserved by their lubs *}
+text \<open>the = relation between two chains is preserved by their lubs\<close>
 
 lemma lub_eq:
   "(\<And>i. X i = Y i) \<Longrightarrow> (\<Squnion>i. X i) = (\<Squnion>i. Y i)"
@@ -135,9 +135,9 @@ lemma ex_lub:
 
 end
 
-subsection {* Pointed cpos *}
+subsection \<open>Pointed cpos\<close>
 
-text {* The class pcpo of pointed cpos *}
+text \<open>The class pcpo of pointed cpos\<close>
 
 class pcpo = cpo +
   assumes least: "\<exists>x. \<forall>y. x \<sqsubseteq> y"
@@ -157,22 +157,22 @@ done
 
 end
 
-text {* Old "UU" syntax: *}
+text \<open>Old "UU" syntax:\<close>
 
 syntax UU :: logic
 
 translations "UU" => "CONST bottom"
 
-text {* Simproc to rewrite @{term "\<bottom> = x"} to @{term "x = \<bottom>"}. *}
+text \<open>Simproc to rewrite @{term "\<bottom> = x"} to @{term "x = \<bottom>"}.\<close>
 
-setup {*
+setup \<open>
   Reorient_Proc.add
     (fn Const(@{const_name bottom}, _) => true | _ => false)
-*}
+\<close>
 
 simproc_setup reorient_bottom ("\<bottom> = x") = Reorient_Proc.proc
 
-text {* useful lemmas about @{term \<bottom>} *}
+text \<open>useful lemmas about @{term \<bottom>}\<close>
 
 lemma below_bottom_iff [simp]: "(x \<sqsubseteq> \<bottom>) = (x = \<bottom>)"
 by (simp add: po_eq_conv)
@@ -186,9 +186,9 @@ by (subst eq_bottom_iff)
 lemma lub_eq_bottom_iff: "chain Y \<Longrightarrow> (\<Squnion>i. Y i) = \<bottom> \<longleftrightarrow> (\<forall>i. Y i = \<bottom>)"
 by (simp only: eq_bottom_iff lub_below_iff)
 
-subsection {* Chain-finite and flat cpos *}
+subsection \<open>Chain-finite and flat cpos\<close>
 
-text {* further useful classes for HOLCF domains *}
+text \<open>further useful classes for HOLCF domains\<close>
 
 class chfin = po +
   assumes chfin: "chain Y \<Longrightarrow> \<exists>n. max_in_chain n Y"
@@ -230,7 +230,7 @@ lemma flat_eq: "a \<noteq> \<bottom> \<Longrightarrow> a \<sqsubseteq> b = (a = 
 
 end
 
-subsection {* Discrete cpos *}
+subsection \<open>Discrete cpos\<close>
 
 class discrete_cpo = below +
   assumes discrete_cpo [simp]: "x \<sqsubseteq> y \<longleftrightarrow> x = y"
@@ -239,7 +239,7 @@ begin
 subclass po
 proof qed simp_all
 
-text {* In a discrete cpo, every chain is constant *}
+text \<open>In a discrete cpo, every chain is constant\<close>
 
 lemma discrete_chain_const:
   assumes S: "chain S"

@@ -2,7 +2,7 @@
     Author:     David von Oheimb, TU Muenchen
 *)
 
-section {* One-element buffer, proof of Buf_Eq_imp_AC by induction + admissibility *}
+section \<open>One-element buffer, proof of Buf_Eq_imp_AC by induction + admissibility\<close>
 
 theory Buffer_adm
 imports Buffer Stream_adm

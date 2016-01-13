@@ -3,23 +3,23 @@
     Author:     Brian Huffman
 *)
 
-section {* Continuity and monotonicity *}
+section \<open>Continuity and monotonicity\<close>
 
 theory Cont
 imports Pcpo
 begin
 
-text {*
+text \<open>
    Now we change the default class! Form now on all untyped type variables are
    of default class po
-*}
+\<close>
 
 default_sort po
 
-subsection {* Definitions *}
+subsection \<open>Definitions\<close>
 
 definition
-  monofun :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"  -- "monotonicity"  where
+  monofun :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"  \<comment> "monotonicity"  where
   "monofun f = (\<forall>x y. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y)"
 
 definition
@@ -44,9 +44,9 @@ lemma monofunE:
 by (simp add: monofun_def)
 
 
-subsection {* Equivalence of alternate definition *}
+subsection \<open>Equivalence of alternate definition\<close>
 
-text {* monotone functions map chains to chains *}
+text \<open>monotone functions map chains to chains\<close>
 
 lemma ch2ch_monofun: "\<lbrakk>monofun f; chain Y\<rbrakk> \<Longrightarrow> chain (\<lambda>i. f (Y i))"
 apply (rule chainI)
@@ -54,7 +54,7 @@ apply (erule monofunE)
 apply (erule chainE)
 done
 
-text {* monotone functions map upper bound to upper bounds *}
+text \<open>monotone functions map upper bound to upper bounds\<close>
 
 lemma ub2ub_monofun: 
   "\<lbrakk>monofun f; range Y <| u\<rbrakk> \<Longrightarrow> range (\<lambda>i. f (Y i)) <| f u"
@@ -63,7 +63,7 @@ apply (erule monofunE)
 apply (erule ub_rangeD)
 done
 
-text {* a lemma about binary chains *}
+text \<open>a lemma about binary chains\<close>
 
 lemma binchain_cont:
   "\<lbrakk>cont f; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> range (\<lambda>i::nat. f (if i = 0 then x else y)) <<| f y"
@@ -75,7 +75,7 @@ apply (rule_tac f=f in arg_cong)
 apply (erule is_lub_bin_chain [THEN lub_eqI])
 done
 
-text {* continuity implies monotonicity *}
+text \<open>continuity implies monotonicity\<close>
 
 lemma cont2mono: "cont f \<Longrightarrow> monofun f"
 apply (rule monofunI)
@@ -88,7 +88,7 @@ lemmas cont2monofunE = cont2mono [THEN monofunE]
 
 lemmas ch2ch_cont = cont2mono [THEN ch2ch_monofun]
 
-text {* continuity implies preservation of lubs *}
+text \<open>continuity implies preservation of lubs\<close>
 
 lemma cont2contlubE:
   "\<lbrakk>cont f; chain Y\<rbrakk> \<Longrightarrow> f (\<Squnion>i. Y i) = (\<Squnion>i. f (Y i))"
@@ -118,26 +118,26 @@ proof (rule contI)
     by (rule thelubE)
 qed
 
-subsection {* Collection of continuity rules *}
+subsection \<open>Collection of continuity rules\<close>
 
 named_theorems cont2cont "continuity intro rule"
 
 
-subsection {* Continuity of basic functions *}
+subsection \<open>Continuity of basic functions\<close>
 
-text {* The identity function is continuous *}
+text \<open>The identity function is continuous\<close>
 
 lemma cont_id [simp, cont2cont]: "cont (\<lambda>x. x)"
 apply (rule contI)
 apply (erule cpo_lubI)
 done
 
-text {* constant functions are continuous *}
+text \<open>constant functions are continuous\<close>
 
 lemma cont_const [simp, cont2cont]: "cont (\<lambda>x. c)"
   using is_lub_const by (rule contI)
 
-text {* application of functions is continuous *}
+text \<open>application of functions is continuous\<close>
 
 lemma cont_apply:
   fixes f :: "'a::cpo \<Rightarrow> 'b::cpo \<Rightarrow> 'c::cpo" and t :: "'a \<Rightarrow> 'b"
@@ -165,7 +165,7 @@ lemma cont_compose:
   "\<lbrakk>cont c; cont (\<lambda>x. f x)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. c (f x))"
 by (rule cont_apply [OF _ _ cont_const])
 
-text {* Least upper bounds preserve continuity *}
+text \<open>Least upper bounds preserve continuity\<close>
 
 lemma cont2cont_lub [simp]:
   assumes chain: "\<And>x. chain (\<lambda>i. F i x)" and cont: "\<And>i. cont (\<lambda>x. F i x)"
@@ -176,15 +176,15 @@ apply (simp add: cont2contlubE [OF cont])
 apply (simp add: diag_lub ch2ch_cont [OF cont] chain)
 done
 
-text {* if-then-else is continuous *}
+text \<open>if-then-else is continuous\<close>
 
 lemma cont_if [simp, cont2cont]:
   "\<lbrakk>cont f; cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. if b then f x else g x)"
 by (induct b) simp_all
 
-subsection {* Finite chains and flat pcpos *}
+subsection \<open>Finite chains and flat pcpos\<close>
 
-text {* Monotone functions map finite chains to finite chains. *}
+text \<open>Monotone functions map finite chains to finite chains.\<close>
 
 lemma monofun_finch2finch:
   "\<lbrakk>monofun f; finite_chain Y\<rbrakk> \<Longrightarrow> finite_chain (\<lambda>n. f (Y n))"
@@ -193,13 +193,13 @@ apply (simp add: ch2ch_monofun)
 apply (force simp add: max_in_chain_def)
 done
 
-text {* The same holds for continuous functions. *}
+text \<open>The same holds for continuous functions.\<close>
 
 lemma cont_finch2finch:
   "\<lbrakk>cont f; finite_chain Y\<rbrakk> \<Longrightarrow> finite_chain (\<lambda>n. f (Y n))"
 by (rule cont2mono [THEN monofun_finch2finch])
 
-text {* All monotone functions with chain-finite domain are continuous. *}
+text \<open>All monotone functions with chain-finite domain are continuous.\<close>
 
 lemma chfindom_monofun2cont: "monofun f \<Longrightarrow> cont (f::'a::chfin \<Rightarrow> 'b::cpo)"
 apply (erule contI2)
@@ -210,7 +210,7 @@ apply (simp add: maxinch_is_thelub ch2ch_monofun)
 apply (force simp add: max_in_chain_def)
 done
 
-text {* All strict functions with flat domain are continuous. *}
+text \<open>All strict functions with flat domain are continuous.\<close>
 
 lemma flatdom_strict2mono: "f \<bottom> = \<bottom> \<Longrightarrow> monofun (f::'a::flat \<Rightarrow> 'b::pcpo)"
 apply (rule monofunI)
@@ -221,7 +221,7 @@ done
 lemma flatdom_strict2cont: "f \<bottom> = \<bottom> \<Longrightarrow> cont (f::'a::flat \<Rightarrow> 'b::pcpo)"
 by (rule flatdom_strict2mono [THEN chfindom_monofun2cont])
 
-text {* All functions with discrete domain are continuous. *}
+text \<open>All functions with discrete domain are continuous.\<close>
 
 lemma cont_discrete_cpo [simp, cont2cont]: "cont (f::'a::discrete_cpo \<Rightarrow> 'b::cpo)"
 apply (rule contI)

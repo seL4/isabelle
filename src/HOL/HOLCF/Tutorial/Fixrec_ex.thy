@@ -2,50 +2,50 @@
     Author:     Brian Huffman
 *)
 
-section {* Fixrec package examples *}
+section \<open>Fixrec package examples\<close>
 
 theory Fixrec_ex
 imports HOLCF
 begin
 
-subsection {* Basic @{text fixrec} examples *}
+subsection \<open>Basic \<open>fixrec\<close> examples\<close>
 
-text {*
+text \<open>
   Fixrec patterns can mention any constructor defined by the domain
   package, as well as any of the following built-in constructors:
   Pair, spair, sinl, sinr, up, ONE, TT, FF.
-*}
+\<close>
 
-text {* Typical usage is with lazy constructors. *}
+text \<open>Typical usage is with lazy constructors.\<close>
 
 fixrec down :: "'a u \<rightarrow> 'a"
 where "down\<cdot>(up\<cdot>x) = x"
 
-text {* With strict constructors, rewrite rules may require side conditions. *}
+text \<open>With strict constructors, rewrite rules may require side conditions.\<close>
 
 fixrec from_sinl :: "'a \<oplus> 'b \<rightarrow> 'a"
 where "x \<noteq> \<bottom> \<Longrightarrow> from_sinl\<cdot>(sinl\<cdot>x) = x"
 
-text {* Lifting can turn a strict constructor into a lazy one. *}
+text \<open>Lifting can turn a strict constructor into a lazy one.\<close>
 
 fixrec from_sinl_up :: "'a u \<oplus> 'b \<rightarrow> 'a"
 where "from_sinl_up\<cdot>(sinl\<cdot>(up\<cdot>x)) = x"
 
-text {* Fixrec also works with the HOL pair constructor. *}
+text \<open>Fixrec also works with the HOL pair constructor.\<close>
 
 fixrec down2 :: "'a u \<times> 'b u \<rightarrow> 'a \<times> 'b"
 where "down2\<cdot>(up\<cdot>x, up\<cdot>y) = (x, y)"
 
 
-subsection {* Examples using @{text fixrec_simp} *}
+subsection \<open>Examples using \<open>fixrec_simp\<close>\<close>
 
-text {* A type of lazy lists. *}
+text \<open>A type of lazy lists.\<close>
 
 domain 'a llist = lNil | lCons (lazy 'a) (lazy "'a llist")
 
-text {* A zip function for lazy lists. *}
+text \<open>A zip function for lazy lists.\<close>
 
-text {* Notice that the patterns are not exhaustive. *}
+text \<open>Notice that the patterns are not exhaustive.\<close>
 
 fixrec
   lzip :: "'a llist \<rightarrow> 'b llist \<rightarrow> ('a \<times> 'b) llist"
@@ -53,8 +53,8 @@ where
   "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot>(x, y)\<cdot>(lzip\<cdot>xs\<cdot>ys)"
 | "lzip\<cdot>lNil\<cdot>lNil = lNil"
 
-text {* @{text fixrec_simp} is useful for producing strictness theorems. *}
-text {* Note that pattern matching is done in left-to-right order. *}
+text \<open>\<open>fixrec_simp\<close> is useful for producing strictness theorems.\<close>
+text \<open>Note that pattern matching is done in left-to-right order.\<close>
 
 lemma lzip_stricts [simp]:
   "lzip\<cdot>\<bottom>\<cdot>ys = \<bottom>"
@@ -62,7 +62,7 @@ lemma lzip_stricts [simp]:
   "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>\<bottom> = \<bottom>"
 by fixrec_simp+
 
-text {* @{text fixrec_simp} can also produce rules for missing cases. *}
+text \<open>\<open>fixrec_simp\<close> can also produce rules for missing cases.\<close>
 
 lemma lzip_undefs [simp]:
   "lzip\<cdot>lNil\<cdot>(lCons\<cdot>y\<cdot>ys) = \<bottom>"
@@ -70,14 +70,13 @@ lemma lzip_undefs [simp]:
 by fixrec_simp+
 
 
-subsection {* Pattern matching with bottoms *}
+subsection \<open>Pattern matching with bottoms\<close>
 
-text {*
-  As an alternative to using @{text fixrec_simp}, it is also possible
+text \<open>
+  As an alternative to using \<open>fixrec_simp\<close>, it is also possible
   to use bottom as a constructor pattern.  When using a bottom
-  pattern, the right-hand-side must also be bottom; otherwise, @{text
-  fixrec} will not be able to prove the equation.
-*}
+  pattern, the right-hand-side must also be bottom; otherwise, \<open>fixrec\<close> will not be able to prove the equation.
+\<close>
 
 fixrec
   from_sinr_up :: "'a \<oplus> 'b\<^sub>\<bottom> \<rightarrow> 'b"
@@ -85,18 +84,18 @@ where
   "from_sinr_up\<cdot>\<bottom> = \<bottom>"
 | "from_sinr_up\<cdot>(sinr\<cdot>(up\<cdot>x)) = x"
 
-text {*
+text \<open>
   If the function is already strict in that argument, then the bottom
   pattern does not change the meaning of the function.  For example,
   in the definition of @{term from_sinr_up}, the first equation is
   actually redundant, and could have been proven separately by
-  @{text fixrec_simp}.
-*}
+  \<open>fixrec_simp\<close>.
+\<close>
 
-text {*
+text \<open>
   A bottom pattern can also be used to make a function strict in a
   certain argument, similar to a bang-pattern in Haskell.
-*}
+\<close>
 
 fixrec
   seq :: "'a \<rightarrow> 'b \<rightarrow> 'b"
@@ -105,15 +104,15 @@ where
 | "x \<noteq> \<bottom> \<Longrightarrow> seq\<cdot>x\<cdot>y = y"
 
 
-subsection {* Skipping proofs of rewrite rules *}
+subsection \<open>Skipping proofs of rewrite rules\<close>
 
-text {* Another zip function for lazy lists. *}
+text \<open>Another zip function for lazy lists.\<close>
 
-text {*
+text \<open>
   Notice that this version has overlapping patterns.
   The second equation cannot be proved as a theorem
   because it only applies when the first pattern fails.
-*}
+\<close>
 
 fixrec
   lzip2 :: "'a llist \<rightarrow> 'b llist \<rightarrow> ('a \<times> 'b) llist"
@@ -121,13 +120,13 @@ where
   "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot>(x, y)\<cdot>(lzip2\<cdot>xs\<cdot>ys)"
 | (unchecked) "lzip2\<cdot>xs\<cdot>ys = lNil"
 
-text {*
+text \<open>
   Usually fixrec tries to prove all equations as theorems.
   The "unchecked" option overrides this behavior, so fixrec
   does not attempt to prove that particular equation.
-*}
+\<close>
 
-text {* Simp rules can be generated later using @{text fixrec_simp}. *}
+text \<open>Simp rules can be generated later using \<open>fixrec_simp\<close>.\<close>
 
 lemma lzip2_simps [simp]:
   "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>lNil = lNil"
@@ -141,17 +140,17 @@ lemma lzip2_stricts [simp]:
 by fixrec_simp+
 
 
-subsection {* Mutual recursion with @{text fixrec} *}
+subsection \<open>Mutual recursion with \<open>fixrec\<close>\<close>
 
-text {* Tree and forest types. *}
+text \<open>Tree and forest types.\<close>
 
 domain 'a tree = Leaf (lazy 'a) | Branch (lazy "'a forest")
 and    'a forest = Empty | Trees (lazy "'a tree") "'a forest"
 
-text {*
+text \<open>
   To define mutually recursive functions, give multiple type signatures
-  separated by the keyword @{text "and"}.
-*}
+  separated by the keyword \<open>and\<close>.
+\<close>
 
 fixrec
   map_tree :: "('a \<rightarrow> 'b) \<rightarrow> ('a tree \<rightarrow> 'b tree)"
@@ -182,25 +181,25 @@ by fixrec_simp
 *)
 
 
-subsection {* Looping simp rules *}
+subsection \<open>Looping simp rules\<close>
 
-text {*
+text \<open>
   The defining equations of a fixrec definition are declared as simp
   rules by default.  In some cases, especially for constants with no
   arguments or functions with variable patterns, the defining
   equations may cause the simplifier to loop.  In these cases it will
-  be necessary to use a @{text "[simp del]"} declaration.
-*}
+  be necessary to use a \<open>[simp del]\<close> declaration.
+\<close>
 
 fixrec
   repeat :: "'a \<rightarrow> 'a llist"
 where
   [simp del]: "repeat\<cdot>x = lCons\<cdot>x\<cdot>(repeat\<cdot>x)"
 
-text {*
+text \<open>
   We can derive other non-looping simp rules for @{const repeat} by
-  using the @{text subst} method with the @{text repeat.simps} rule.
-*}
+  using the \<open>subst\<close> method with the \<open>repeat.simps\<close> rule.
+\<close>
 
 lemma repeat_simps [simp]:
   "repeat\<cdot>x \<noteq> \<bottom>"
@@ -212,11 +211,11 @@ lemma llist_case_repeat [simp]:
   "llist_case\<cdot>z\<cdot>f\<cdot>(repeat\<cdot>x) = f\<cdot>x\<cdot>(repeat\<cdot>x)"
 by (subst repeat.simps, simp)
 
-text {*
+text \<open>
   For mutually-recursive constants, looping might only occur if all
   equations are in the simpset at the same time.  In such cases it may
-  only be necessary to declare @{text "[simp del]"} on one equation.
-*}
+  only be necessary to declare \<open>[simp del]\<close> on one equation.
+\<close>
 
 fixrec
   inf_tree :: "'a tree" and inf_forest :: "'a forest"
@@ -225,7 +224,7 @@ where
 | "inf_forest = Trees\<cdot>inf_tree\<cdot>(Trees\<cdot>inf_tree\<cdot>Empty)"
 
 
-subsection {* Using @{text fixrec} inside locales *}
+subsection \<open>Using \<open>fixrec\<close> inside locales\<close>
 
 locale test =
   fixes foo :: "'a \<rightarrow> 'a"

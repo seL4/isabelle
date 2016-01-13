@@ -2,7 +2,7 @@
     Author:     Brian Huffman
 *)
 
-section {* Profinite and bifinite cpos *}
+section \<open>Profinite and bifinite cpos\<close>
 
 theory Bifinite
 imports Map_Functions "~~/src/HOL/Library/Countable"
@@ -10,7 +10,7 @@ begin
 
 default_sort cpo
 
-subsection {* Chains of finite deflations *}
+subsection \<open>Chains of finite deflations\<close>
 
 locale approx_chain =
   fixes approx :: "nat \<Rightarrow> 'a \<rightarrow> 'a"
@@ -43,7 +43,7 @@ by (rule admD2, simp_all)
 
 end
 
-subsection {* Omega-profinite and bifinite domains *}
+subsection \<open>Omega-profinite and bifinite domains\<close>
 
 class bifinite = pcpo +
   assumes bifinite: "\<exists>(a::nat \<Rightarrow> 'a \<rightarrow> 'a). approx_chain a"
@@ -51,7 +51,7 @@ class bifinite = pcpo +
 class profinite = cpo +
   assumes profinite: "\<exists>(a::nat \<Rightarrow> 'a\<^sub>\<bottom> \<rightarrow> 'a\<^sub>\<bottom>). approx_chain a"
 
-subsection {* Building approx chains *}
+subsection \<open>Building approx chains\<close>
 
 lemma approx_chain_iso:
   assumes a: "approx_chain a"
@@ -102,7 +102,7 @@ lemma approx_chain_prod_map:
   using assms unfolding approx_chain_def
   by (simp add: lub_APP prod_map_ID finite_deflation_prod_map)
 
-text {* Approx chains for countable discrete types. *}
+text \<open>Approx chains for countable discrete types.\<close>
 
 definition discr_approx :: "nat \<Rightarrow> 'a::countable discr u \<rightarrow> 'a discr u"
   where "discr_approx = (\<lambda>i. \<Lambda>(up\<cdot>x). if to_nat (undiscr x) < i then up\<cdot>x else \<bottom>)"
@@ -152,7 +152,7 @@ lemma discr_approx: "approx_chain discr_approx"
 using chain_discr_approx lub_discr_approx finite_deflation_discr_approx
 by (rule approx_chain.intro)
 
-subsection {* Class instance proofs *}
+subsection \<open>Class instance proofs\<close>
 
 instance bifinite \<subseteq> profinite
 proof
@@ -164,9 +164,9 @@ qed
 instance u :: (profinite) bifinite
   by standard (rule profinite)
 
-text {*
+text \<open>
   Types @{typ "'a \<rightarrow> 'b"} and @{typ "'a u \<rightarrow>! 'b"} are isomorphic.
-*}
+\<close>
 
 definition "encode_cfun = (\<Lambda> f. sfun_abs\<cdot>(fup\<cdot>f))"
 
@@ -194,9 +194,9 @@ proof
     by - (rule exI)
 qed
 
-text {*
+text \<open>
   Types @{typ "('a * 'b) u"} and @{typ "'a u \<otimes> 'b u"} are isomorphic.
-*}
+\<close>
 
 definition "encode_prod_u = (\<Lambda>(up\<cdot>(x, y)). (:up\<cdot>x, up\<cdot>y:))"
 
