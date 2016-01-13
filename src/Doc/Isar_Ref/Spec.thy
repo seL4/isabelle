@@ -1001,20 +1001,25 @@ text \<open>
 
 subsubsection \<open>Example\<close>
 
-consts null :: 'a
+consts Length :: "'a \<Rightarrow> nat"
 
 overloading
-  null_nat \<equiv> "null :: nat"
-  null_pair \<equiv> "null :: 'a \<times> 'b"
+  Length\<^sub>0 \<equiv> "Length :: unit \<Rightarrow> nat"
+  Length\<^sub>1 \<equiv> "Length :: 'a \<times> unit \<Rightarrow> nat"
+  Length\<^sub>2 \<equiv> "Length :: 'a \<times> 'b \<times> unit \<Rightarrow> nat"
+  Length\<^sub>3 \<equiv> "Length :: 'a \<times> 'b \<times> 'c \<times> unit \<Rightarrow> nat"
 begin
 
-definition null_nat :: nat
-  where "null_nat = 0"
-
-definition null_pair :: "'a \<times> 'b"
-  where "null_pair = (null :: 'a, null :: 'b)"
+fun Length\<^sub>0 :: "unit \<Rightarrow> nat" where "Length\<^sub>0 () = 0"
+fun Length\<^sub>1 :: "'a \<times> unit \<Rightarrow> nat" where "Length\<^sub>1 (a, ()) = 1"
+fun Length\<^sub>2 :: "'a \<times> 'b \<times> unit \<Rightarrow> nat" where "Length\<^sub>2 (a, b, ()) = 2"
+fun Length\<^sub>3 :: "'a \<times> 'b \<times> 'c \<times> unit \<Rightarrow> nat" where "Length\<^sub>3 (a, b, c, ()) = 3"
 
 end
+
+lemma "Length (a, b, c, ()) = 3" by simp
+lemma "Length ((a, b), (c, d), ()) = 2" by simp
+lemma "Length ((a, b, c, d, e), ()) = 1" by simp
 
 
 section \<open>Incorporating ML code \label{sec:ML}\<close>
