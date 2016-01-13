@@ -316,8 +316,6 @@ fun find_cterm p t =
   | Abs (_,_,_) => find_cterm p (Thm.dest_abs NONE t |> snd)
   | _ => raise CTERM ("find_cterm",[t]);
 
-    (* Some conversions-related stuff which has been forbidden entrance into Pure/conv.ML*)
-fun instantiate_cterm' ty tms = Drule.cterm_rule (Thm.instantiate' ty tms)
 fun is_comb t = (case Thm.term_of t of _ $ _ => true | _ => false);
 
 fun is_binop ct ct' = ct aconvc (Thm.dest_fun (Thm.dest_fun ct'))
