@@ -204,8 +204,8 @@ val _ =
         (Parse.and_list1 (Args.var -- (Args.$$$ "=" |-- Parse_Tools.name_term)) -- Parse.for_fixes)
         >> (fn args =>
             let val args' = read_where_insts args in
-              Thm.mixed_attribute (fn (context, thm) =>
-                (context, read_instantiate_closed (Context.proof_of context) args' thm))
+              fn (context, thm) =>
+                (NONE, SOME (read_instantiate_closed (Context.proof_of context) args' thm))
             end))
       "named instantiation of theorem");
 
@@ -221,12 +221,12 @@ val _ =
         let
           val read_insts = read_of_insts (not unchecked) context args;
         in
-          Thm.mixed_attribute (fn (context, thm) =>
+          fn (context, thm) =>
             let val thm' =
               if Thm.is_free_dummy thm andalso unchecked
               then Drule.free_dummy_thm
               else read_instantiate_closed (Context.proof_of context) (read_insts thm) thm
-            in (context, thm') end)
+            in (NONE, SOME thm') end
         end))
       "positional instantiation of theorem");
 
