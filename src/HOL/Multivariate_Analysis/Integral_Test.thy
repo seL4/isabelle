@@ -15,7 +15,7 @@ text \<open>
   
   As a useful side result, we also provide some results on the difference between
   the integral and the partial sum. (This is useful e.g. for the definition of the
-  Euler–Mascheroni constant)
+  Euler-Mascheroni constant)
 \<close>
 
 (* TODO: continuous_in \<rightarrow> integrable_on *)
