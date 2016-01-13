@@ -9,6 +9,12 @@ New in Isabelle2016 (February 2016)
 
 *** General ***
 
+* Eisbach is now based on Pure instead of HOL. Objects-logics may import
+either the theory ~~/src/HOL/Eisbach/Eisbach (for HOL etc.) or
+~~/src/HOL/Eisbach/Eisbach_Old_Appl_Syntax (for FOL, ZF etc.). Note that
+the HOL-Eisbach session located in ~~/src/HOL/Eisbach/ contains further
+examples that do require HOL.
+
 * Better resource usage on all platforms (Linux, Windows, Mac OS X) for
 both Isabelle/ML and Isabelle/Scala.  Slightly reduced heap space usage.
 

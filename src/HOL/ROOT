@@ -658,6 +658,7 @@ session "HOL-Eisbach" in Eisbach = HOL +
     Eisbach
     Tests
     Examples
+    Examples_FOL
 
 session "HOL-SET_Protocol" in SET_Protocol = HOL +
   description {*
