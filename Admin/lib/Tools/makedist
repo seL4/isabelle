@@ -228,6 +228,7 @@ mv "${DISTNAME}-old/README" "${DISTNAME}-old/NEWS" "${DISTNAME}-old/ANNOUNCE" \
 mkdir "$DISTNAME/doc"
 mv "${DISTNAME}-old/doc/"*.pdf \
   "${DISTNAME}-old/doc/"*.html \
+  "${DISTNAME}-old/doc/"*.css \
   "${DISTNAME}-old/doc/"*.ttf \
   "${DISTNAME}-old/doc/Contents" "$DISTNAME/doc"
 
