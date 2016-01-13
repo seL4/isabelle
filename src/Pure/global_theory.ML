@@ -189,13 +189,13 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), facts) => fn thy =>
   in ((name, thms), thy') end);
 
 
-(* store axioms as theorems *)
+(* old-style defs *)
 
 local
 
 fun add unchecked overloaded = fold_map (fn ((b, prop), atts) => fn thy =>
   let
-    val context as (ctxt, _) = Defs.global_context thy;
+    val context = Defs.global_context thy;
     val ((_, def), thy') = Thm.add_def context unchecked overloaded (b, prop) thy;
     val thm = def
       |> Thm.forall_intr_frees
