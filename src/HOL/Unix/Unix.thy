@@ -484,10 +484,10 @@ text \<open>
 \<close>
 
 inductive transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"
-  ("_ =_\<Rightarrow> _" [90, 1000, 90] 100)
+  ("_ \<Midarrow>_\<Rightarrow> _" [90, 1000, 90] 100)
 where
-  nil: "root =[]\<Rightarrow> root"
-| cons: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> root' =xs\<Rightarrow> root'' \<Longrightarrow> root =(x # xs)\<Rightarrow> root''"
+  nil: "root \<Midarrow>[]\<Rightarrow> root"
+| cons: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> root' \<Midarrow>xs\<Rightarrow> root'' \<Longrightarrow> root \<Midarrow>(x # xs)\<Rightarrow> root''"
 
 text \<open>
   \<^medskip>
@@ -495,24 +495,24 @@ text \<open>
   ones, according to the recursive structure of lists.
 \<close>
 
-lemma transitions_nil_eq: "root =[]\<Rightarrow> root' = (root = root')"
+lemma transitions_nil_eq: "root \<Midarrow>[]\<Rightarrow> root' \<longleftrightarrow> root = root'"
 proof
-  assume "root =[]\<Rightarrow> root'"
+  assume "root \<Midarrow>[]\<Rightarrow> root'"
   then show "root = root'" by cases simp_all
 next
   assume "root = root'"
-  then show "root =[]\<Rightarrow> root'" by (simp only: transitions.nil)
+  then show "root \<Midarrow>[]\<Rightarrow> root'" by (simp only: transitions.nil)
 qed
 
 lemma transitions_cons_eq:
-  "root =(x # xs)\<Rightarrow> root'' = (\<exists>root'. root \<midarrow>x\<rightarrow> root' \<and> root' =xs\<Rightarrow> root'')"
+  "root \<Midarrow>(x # xs)\<Rightarrow> root'' \<longleftrightarrow> (\<exists>root'. root \<midarrow>x\<rightarrow> root' \<and> root' \<Midarrow>xs\<Rightarrow> root'')"
 proof
-  assume "root =(x # xs)\<Rightarrow> root''"
-  then show "\<exists>root'. root \<midarrow>x\<rightarrow> root' \<and> root' =xs\<Rightarrow> root''"
+  assume "root \<Midarrow>(x # xs)\<Rightarrow> root''"
+  then show "\<exists>root'. root \<midarrow>x\<rightarrow> root' \<and> root' \<Midarrow>xs\<Rightarrow> root''"
     by cases auto
 next
-  assume "\<exists>root'. root \<midarrow>x\<rightarrow> root' \<and> root' =xs\<Rightarrow> root''"
-  then show "root =(x # xs)\<Rightarrow> root''"
+  assume "\<exists>root'. root \<midarrow>x\<rightarrow> root' \<and> root' \<Midarrow>xs\<Rightarrow> root''"
+  then show "root \<Midarrow>(x # xs)\<Rightarrow> root''"
     by (blast intro: transitions.cons)
 qed
 
@@ -522,18 +522,18 @@ text \<open>
   transition system (see \secref{sec:unix-single-trans}).
 \<close>
 
-lemma transitions_nilD: "root =[]\<Rightarrow> root' \<Longrightarrow> root' = root"
+lemma transitions_nilD: "root \<Midarrow>[]\<Rightarrow> root' \<Longrightarrow> root' = root"
   by (simp add: transitions_nil_eq)
 
 lemma transitions_consD:
-  assumes list: "root =(x # xs)\<Rightarrow> root''"
+  assumes list: "root \<Midarrow>(x # xs)\<Rightarrow> root''"
     and hd: "root \<midarrow>x\<rightarrow> root'"
-  shows "root' =xs\<Rightarrow> root''"
+  shows "root' \<Midarrow>xs\<Rightarrow> root''"
 proof -
-  from list obtain r' where r': "root \<midarrow>x\<rightarrow> r'" and root'': "r' =xs\<Rightarrow> root''"
+  from list obtain r' where r': "root \<midarrow>x\<rightarrow> r'" and root'': "r' \<Midarrow>xs\<Rightarrow> root''"
     by cases simp_all
   from r' hd have "r' = root'" by (rule transition_uniq)
-  with root'' show "root' =xs\<Rightarrow> root''" by simp
+  with root'' show "root' \<Midarrow>xs\<Rightarrow> root''" by simp
 qed
 
 text \<open>
@@ -541,12 +541,12 @@ text \<open>
   The following fact shows how an invariant @{term Q} of single transitions
   with property @{term P} may be transferred to iterated transitions. The
   proof is rather obvious by rule induction over the definition of @{term
-  "root =xs\<Rightarrow> root'"}.
+  "root \<Midarrow>xs\<Rightarrow> root'"}.
 \<close>
 
 lemma transitions_invariant:
   assumes r: "\<And>r x r'. r \<midarrow>x\<rightarrow> r' \<Longrightarrow> Q r \<Longrightarrow> P x \<Longrightarrow> Q r'"
-    and trans: "root =xs\<Rightarrow> root'"
+    and trans: "root \<Midarrow>xs\<Rightarrow> root'"
   shows "Q root \<Longrightarrow> \<forall>x \<in> set xs. P x \<Longrightarrow> Q root'"
   using trans
 proof induct
@@ -568,7 +568,7 @@ text \<open>
 \<close>
 
 theorem transitions_type_safe:
-  assumes "root =xs\<Rightarrow> root'"
+  assumes "root \<Midarrow>xs\<Rightarrow> root'"
     and "\<exists>att dir. root = Env att dir"
   shows "\<exists>att dir. root' = Env att dir"
   using transition_type_safe and assms
@@ -608,7 +608,7 @@ text \<open>
   certain state if there is a result state reached by an iterated transition.
 \<close>
 
-definition "can_exec root xs = (\<exists>root'. root =xs\<Rightarrow> root')"
+definition "can_exec root xs \<longleftrightarrow> (\<exists>root'. root \<Midarrow>xs\<Rightarrow> root')"
 
 lemma can_exec_nil: "can_exec root []"
   unfolding can_exec_def by (blast intro: transitions.intros)
@@ -624,7 +624,7 @@ text \<open>
 \<close>
 
 lemma can_exec_snocD: "can_exec root (xs @ [y])
-    \<Longrightarrow> \<exists>root' root''. root =xs\<Rightarrow> root' \<and> root' \<midarrow>y\<rightarrow> root''"
+    \<Longrightarrow> \<exists>root' root''. root \<Midarrow>xs\<Rightarrow> root' \<and> root' \<midarrow>y\<rightarrow> root''"
 proof (induct xs arbitrary: root)
   case Nil
   then show ?case
@@ -633,12 +633,12 @@ next
   case (Cons x xs)
   from \<open>can_exec root ((x # xs) @ [y])\<close> obtain r root'' where
       x: "root \<midarrow>x\<rightarrow> r" and
-      xs_y: "r =(xs @ [y])\<Rightarrow> root''"
+      xs_y: "r \<Midarrow>(xs @ [y])\<Rightarrow> root''"
     by (auto simp add: can_exec_def transitions_nil_eq transitions_cons_eq)
   from xs_y Cons.hyps obtain root' r'
-    where xs: "r =xs\<Rightarrow> root'" and y: "root' \<midarrow>y\<rightarrow> r'"
+    where xs: "r \<Midarrow>xs\<Rightarrow> root'" and y: "root' \<midarrow>y\<rightarrow> r'"
     unfolding can_exec_def by blast
-  from x xs have "root =(x # xs)\<Rightarrow> root'"
+  from x xs have "root \<Midarrow>(x # xs)\<Rightarrow> root'"
     by (rule transitions.cons)
   with y show ?case by blast
 qed
@@ -744,9 +744,9 @@ text \<open>
 
 theorem general_procedure:
   assumes cannot_y: "\<And>r r'. Q r \<Longrightarrow> r \<midarrow>y\<rightarrow> r' \<Longrightarrow> False"
-    and init_inv: "\<And>root. init users =bs\<Rightarrow> root \<Longrightarrow> Q root"
+    and init_inv: "\<And>root. init users \<Midarrow>bs\<Rightarrow> root \<Longrightarrow> Q root"
     and preserve_inv: "\<And>r x r'. r \<midarrow>x\<rightarrow> r' \<Longrightarrow> Q r \<Longrightarrow> P x \<Longrightarrow> Q r'"
-    and init_result: "init users =bs\<Rightarrow> root"
+    and init_result: "init users \<Midarrow>bs\<Rightarrow> root"
   shows "\<not> (\<exists>xs. (\<forall>x \<in> set xs. P x) \<and> can_exec root (xs @ [y]))"
 proof -
   {
@@ -754,7 +754,7 @@ proof -
     assume Ps: "\<forall>x \<in> set xs. P x"
     assume can_exec: "can_exec root (xs @ [y])"
     then obtain root' root'' where
-        xs: "root =xs\<Rightarrow> root'" and y: "root' \<midarrow>y\<rightarrow> root''"
+        xs: "root \<Midarrow>xs\<Rightarrow> root'" and y: "root' \<midarrow>y\<rightarrow> root''"
       by (blast dest: can_exec_snocD)
     from init_result have "Q root" by (rule init_inv)
     from preserve_inv xs this Ps have "Q root'"
@@ -827,7 +827,7 @@ text \<open>
 \<close>
 
 definition
-  "invariant root path =
+  "invariant root path \<longleftrightarrow>
     (\<exists>att dir.
       access root path user\<^sub>1 {} = Some (Env att dir) \<and> dir \<noteq> empty \<and>
       user\<^sub>1 \<noteq> owner att \<and>
@@ -876,7 +876,7 @@ proof -
 qed
 
 lemma
-  assumes init: "init users =bogus\<Rightarrow> root"
+  assumes init: "init users \<Midarrow>bogus\<Rightarrow> root"
   shows init_invariant: "invariant root bogus_path"
   supply eval = facts access_def init_def
   using init
@@ -1042,7 +1042,7 @@ text \<open>
 \<close>
 
 corollary
-  assumes bogus: "init users =bogus\<Rightarrow> root"
+  assumes bogus: "init users \<Midarrow>bogus\<Rightarrow> root"
   shows "\<not> (\<exists>xs. (\<forall>x \<in> set xs. uid_of x = user\<^sub>1) \<and>
     can_exec root (xs @ [Rmdir user\<^sub>1 [user\<^sub>1, name\<^sub>1]]))"
 proof -
