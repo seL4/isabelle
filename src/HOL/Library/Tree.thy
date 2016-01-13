@@ -7,8 +7,8 @@ imports Main
 begin
 
 datatype 'a tree =
-  Leaf ("\<langle>\<rangle>") |
-  Node (left: "'a tree") (val: 'a) (right: "'a tree") ("\<langle>_, _, _\<rangle>")
+  is_Leaf: Leaf ("\<langle>\<rangle>") |
+  Node (left: "'a tree") (val: 'a) (right: "'a tree") ("(1\<langle>_,/ _,/ _\<rangle>)")
   where
     "left Leaf = Leaf"
   | "right Leaf = Leaf"

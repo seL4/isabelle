@@ -72,7 +72,7 @@ definition adjust :: "'a aa_tree \<Rightarrow> 'a aa_tree" where
     else
       case r of
         Leaf \<Rightarrow> Leaf (* unreachable *) |
-        Node _ t1 b t4 \<Rightarrow>
+        Node lvb t1 b t4 \<Rightarrow>
           (case t1 of
              Node lva t2 a t3
                \<Rightarrow> Node (lva+1) (Node (lv-1) l x t2) a
