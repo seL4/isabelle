@@ -226,7 +226,10 @@ mkdir "$DISTNAME"
 mv "${DISTNAME}-old/README" "${DISTNAME}-old/NEWS" "${DISTNAME}-old/ANNOUNCE" \
   "${DISTNAME}-old/COPYRIGHT" "${DISTNAME}-old/CONTRIBUTORS" "$DISTNAME"
 mkdir "$DISTNAME/doc"
-mv "${DISTNAME}-old/doc/"*.pdf "${DISTNAME}-old/doc/Contents" "$DISTNAME/doc"
+mv "${DISTNAME}-old/doc/"*.pdf \
+  "${DISTNAME}-old/doc/"*.html \
+  "${DISTNAME}-old/doc/"*.ttf \
+  "${DISTNAME}-old/doc/Contents" "$DISTNAME/doc"
 
 rm -f Isabelle && ln -sf "$DISTNAME" Isabelle
 
