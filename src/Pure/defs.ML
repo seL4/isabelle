@@ -170,21 +170,13 @@ local
 
 val prt = Pretty.string_of oo pretty_entry;
 
-fun err context (c, args) (d, Us) s1 s2 =
-  error (s1 ^ " dependency of " ^ prt context (c, args) ^ " -> " ^ prt context (d, Us) ^ s2);
+fun err context (c, Ts) (d, Us) s1 s2 =
+  error (s1 ^ " dependency of " ^ prt context (c, Ts) ^ " -> " ^ prt context (d, Us) ^ s2);
 
-fun acyclic context (c, args) (d, Us) =
+fun acyclic context (c, Ts) (d, Us) =
   c <> d orelse
-  is_none (match_args (args, Us)) orelse
-  err context (c, args) (d, Us) "Circular" "";
-
-fun wellformed context defs (c, args) (d, Us) =
-  plain_args Us orelse
-  (case find_first (fn (Ts, _) => not (disjoint_args (Ts, Us))) (restricts_of defs d) of
-    SOME (Ts, description) =>
-      err context (c, args) (d, Us) "Malformed"
-        ("\n(restriction " ^ prt context (d, Ts) ^ " from " ^ quote description ^ ")")
-  | NONE => true);
+  is_none (match_args (Ts, Us)) orelse
+  err context (c, Ts) (d, Us) "Circular" "";
 
 fun reduction context defs const deps =
   let
@@ -202,18 +194,26 @@ fun reduction context defs const deps =
     val _ = forall (acyclic context const) (the_default deps deps');
   in deps' end;
 
+fun restriction context defs (c, Ts) (d, Us) =
+  plain_args Us orelse
+  (case find_first (fn (Rs, _) => not (disjoint_args (Rs, Us))) (restricts_of defs d) of
+    SOME (Rs, description) =>
+      err context (c, Ts) (d, Us) "Malformed"
+        ("\n(restriction " ^ prt context (d, Rs) ^ " from " ^ quote description ^ ")")
+  | NONE => true);
+
 in
 
 fun normalize context =
   let
     fun check_def defs (c, {reducts, ...}: def) =
-      reducts |> forall (fn (args, deps) => forall (wellformed context defs (c, args)) deps);
+      reducts |> forall (fn (Ts, deps) => forall (restriction context defs (c, Ts)) deps);
     fun check_defs defs = Itemtab.forall (check_def defs) defs;
 
     fun norm_update (c, {reducts, ...}: def) (changed, defs) =
       let
-        val reducts' = reducts |> map (fn (args, deps) =>
-          (args, perhaps (reduction context defs (c, args)) deps));
+        val reducts' = reducts |> map (fn (Ts, deps) =>
+          (Ts, perhaps (reduction context defs (c, Ts)) deps));
       in
         if reducts = reducts' then (changed, defs)
         else (true, defs |> map_def c (fn (specs, restricts, _) => (specs, restricts, reducts')))
