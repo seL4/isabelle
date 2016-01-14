@@ -206,6 +206,10 @@ in
 
 fun normalize context =
   let
+    fun check_def defs (c, {reducts, ...}: def) =
+      reducts |> forall (fn (args, deps) => forall (wellformed context defs (c, args)) deps);
+    fun check_defs defs = Itemtab.forall (check_def defs) defs;
+
     fun norm_update (c, {reducts, ...}: def) (changed, defs) =
       let
         val reducts' = reducts |> map (fn (args, deps) =>
@@ -214,13 +218,11 @@ fun normalize context =
         if reducts = reducts' then (changed, defs)
         else (true, defs |> map_def c (fn (specs, restricts, _) => (specs, restricts, reducts')))
       end;
-    fun norm_all defs =
+    fun norm_loop defs =
       (case Itemtab.fold norm_update defs (false, defs) of
-        (true, defs') => norm_all defs'
+        (true, defs') => norm_loop defs'
       | (false, _) => defs);
-    fun check defs (c, {reducts, ...}: def) =
-      reducts |> forall (fn (args, deps) => forall (wellformed context defs (c, args)) deps);
-  in norm_all #> (fn defs => tap (Itemtab.forall (check defs)) defs) end;
+  in norm_loop #> tap check_defs end;
 
 fun dependencies context (c, args) restr deps =
   map_def c (fn (specs, restricts, reducts) =>
