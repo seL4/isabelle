@@ -1,8 +1,9 @@
 (*  Title:      Pure/defs.ML
     Author:     Makarius
 
-Global well-formedness checks for constant definitions.  Covers plain
-definitions and simple sub-structural overloading.
+Global well-formedness checks for overloaded definitions (mixed constants and
+types). Recall that constant definitions may be explained syntactically within
+Pure, but type definitions require particular set-theoretic semantics.
 *)
 
 signature DEFS =
@@ -54,12 +55,12 @@ structure Itemtab = Table(type key = item val ord = prod_ord item_kind_ord fast_
 
 (* pretty printing *)
 
-type context = Proof.context * (Name_Space.T * Name_Space.T)
+type context = Proof.context * (Name_Space.T * Name_Space.T);
 
 fun global_context thy =
   (Syntax.init_pretty_global thy, (Sign.const_space thy, Sign.type_space thy));
 
-fun space ((ctxt, spaces): context) kind =
+fun space ((_, spaces): context) kind =
   if kind = Const then #1 spaces else #2 spaces;
 
 fun pretty_item (context as (ctxt, _)) (kind, name) =
