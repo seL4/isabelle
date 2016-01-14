@@ -165,7 +165,7 @@ val rule_spec = Scan.lift (Args.$$$ "rule" -- Args.colon) |-- Attrib.thms;
 
 in
 
-val nominal_induct_method =
+val nominal_induct_method : (Proof.context -> Proof.method) context_parser =
   Scan.lift (Args.mode Induct.no_simpN) --
   (Parse.and_list' (Scan.repeat (unless_more_args def_inst)) --
     avoiding -- fixing -- rule_spec) >>
