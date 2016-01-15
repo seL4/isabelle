@@ -420,12 +420,12 @@ text \<open>
 
   Dockables are used routinely in jEdit for important functionality like
   \<^emph>\<open>HyperSearch Results\<close> or the \<^emph>\<open>File System Browser\<close>. Plugins often provide
-  a central dockable to access their key functionality, which may be opened by
-  the user on demand. The Isabelle/jEdit plugin takes this approach to the
+  a central dockable to access their main functionality, which may be opened
+  by the user on demand. The Isabelle/jEdit plugin takes this approach to the
   extreme: its plugin menu provides the entry-points to many panels that are
   managed as dockable windows. Some important panels are docked by default,
-  e.g.\ \<^emph>\<open>Documentation\<close>, \<^emph>\<open>Output\<close>, \<^emph>\<open>Query\<close>, but the user can change this
-  arrangement easily and persistently.
+  e.g.\ \<^emph>\<open>Documentation\<close>, \<^emph>\<open>State\<close>, \<^emph>\<open>Theories\<close> \<^emph>\<open>Output\<close>, \<^emph>\<open>Query\<close>. The user
+  can change this arrangement easily and persistently.
 
   Compared to plain jEdit, dockable window management in Isabelle/jEdit is
   slightly augmented according to the the following principles:
@@ -439,10 +439,11 @@ text \<open>
 
   \<^item> Keyboard focus of the main view vs.\ a dockable window is carefully
   managed according to the intended semantics, as a panel mainly for output or
-  input. For example, activating the \<^emph>\<open>Output\<close> (\secref{sec:output}) panel
-  via the dockable window manager returns keyboard focus to the main text
-  area, but for \<^emph>\<open>Query\<close> (\secref{sec:query}) the focus is given to the
-  main input field of that panel.
+  input. For example, activating the \<^emph>\<open>Output\<close> (\secref{sec:output}) or State
+  (\secref{sec:state-output}) panel via the dockable window manager returns
+  keyboard focus to the main text area, but for \<^emph>\<open>Query\<close> (\secref{sec:query})
+  or \<^emph>\<open>Sledgehammer\<close> \secref{sec:sledgehammer} the focus is given to the main
+  input field of that panel.
 
   \<^item> Panels that provide their own text area for output have an additional
   dockable menu item \<^emph>\<open>Detach\<close>. This produces an independent copy of the
@@ -462,7 +463,7 @@ text \<open>
   standards.\<^footnote>\<open>Raw Unicode characters within formal sources would compromise
   portability and reliability in the face of changing interpretation of
   special features of Unicode, such as Combining Characters or Bi-directional
-  Text.\<close> See also @{cite "Wenzel:2011:CICM"}.
+  Text.\<close> See @{cite "Wenzel:2011:CICM"}.
 
   For the prover back-end, formal text consists of ASCII characters that are
   grouped according to some simple rules, e.g.\ as plain ``\<^verbatim>\<open>a\<close>'' or symbolic
@@ -483,23 +484,23 @@ text \<open>
 \<close>
 
 paragraph \<open>Encoding.\<close>
-text \<open>Technically, the Unicode view on Isabelle symbols is an \<^emph>\<open>encoding\<close>
-  called \<^verbatim>\<open>UTF-8-Isabelle\<close> in jEdit (not in the underlying JVM). It is
-  provided by the Isabelle/jEdit plugin and enabled by default for all source
-  files. Sometimes such defaults are reset accidentally, or malformed UTF-8
-  sequences in the text force jEdit to fall back on a different encoding like
-  \<^verbatim>\<open>ISO-8859-15\<close>. In that case, verbatim ``\<^verbatim>\<open>\<alpha>\<close>'' will be shown in the text
-  buffer instead of its Unicode rendering ``\<open>\<alpha>\<close>''. The jEdit menu operation
-  \<^emph>\<open>File~/ Reload with Encoding~/ UTF-8-Isabelle\<close> helps to resolve such
-  problems (after repairing malformed parts of the text).
-\<close>
+text \<open>Technically, the Unicode interpretation of Isabelle symbols is an
+  \<^emph>\<open>encoding\<close> called \<^verbatim>\<open>UTF-8-Isabelle\<close> in jEdit (\<^emph>\<open>not\<close> in the underlying
+  JVM). It is provided by the Isabelle/jEdit plugin and enabled by default for
+  all source files. Sometimes such defaults are reset accidentally, or
+  malformed UTF-8 sequences in the text force jEdit to fall back on a
+  different encoding like \<^verbatim>\<open>ISO-8859-15\<close>. In that case, verbatim ``\<^verbatim>\<open>\<alpha>\<close>'' will
+  be shown in the text buffer instead of its Unicode rendering ``\<open>\<alpha>\<close>''. The
+  jEdit menu operation \<^emph>\<open>File~/ Reload with Encoding~/ UTF-8-Isabelle\<close> helps
+  to resolve such problems (after repairing malformed parts of the text). \<close>
 
 paragraph \<open>Font.\<close>
 text \<open>Correct rendering via Unicode requires a font that contains glyphs for
-  the corresponding codepoints. Most system fonts lack that, so Isabelle/jEdit
-  prefers its own application font \<^verbatim>\<open>IsabelleText\<close>, which ensures that
-  standard collection of Isabelle symbols are actually seen on the screen (or
-  printer).
+  the corresponding codepoints. There are also various unusual symbols with
+  particular purpose in Isabelle, e.g.\ control symbols and very long arrows.
+  Isabelle/jEdit prefers its own application fonts \<^verbatim>\<open>IsabelleText\<close>, which
+  ensures that standard collection of Isabelle symbols is actually shown on
+  the screen (or printer) as expected.
 
   Note that a Java/AWT/Swing application can load additional fonts only if
   they are not installed on the operating system already! Some outdated
@@ -508,8 +509,12 @@ text \<open>Correct rendering via Unicode requires a font that contains glyphs f
   lead to missing glyphs (black rectangles), when the system version of
   \<^verbatim>\<open>IsabelleText\<close> is older than the application version. This problem can be
   avoided by refraining to ``install'' any version of \<^verbatim>\<open>IsabelleText\<close> in the
-  first place, although it is occasionally tempting to use the same font in
-  other applications.
+  first place, although it might be tempting to use the same font in other
+  applications.
+
+  HTML pages generated by Isabelle refer to the same \<^verbatim>\<open>IsabelleText\<close> font as a
+  server-side resource. Thus a web-browser can use that without requiring a
+  locally installed copy.
 \<close>
 
 paragraph \<open>Input methods.\<close>
@@ -532,14 +537,15 @@ text \<open>In principle, Isabelle/jEdit could delegate the problem to produce
   \<^enum> Copy/paste from decoded source files: text that is rendered as Unicode
   already can be re-used to produce further text. This also works between
   different applications, e.g.\ Isabelle/jEdit and some web browser or mail
-  client, as long as the same Unicode view on Isabelle symbols is used.
+  client, as long as the same Unicode interpretation of Isabelle symbols is
+  used.
 
   \<^enum> Copy/paste from prover output within Isabelle/jEdit. The same principles
   as for text buffers apply, but note that \<^emph>\<open>copy\<close> in secondary Isabelle/jEdit
   windows works via the keyboard shortcuts \<^verbatim>\<open>C+c\<close> or \<^verbatim>\<open>C+INSERT\<close>, while jEdit
   menu actions always refer to the primary text area!
 
-  \<^enum> Completion provided by Isabelle plugin (see \secref{sec:completion}).
+  \<^enum> Completion provided by the Isabelle plugin (see \secref{sec:completion}).
   Isabelle symbols have a canonical name and optional abbreviations. This can
   be used with the text completion mechanism of Isabelle/jEdit, to replace a
   prefix of the actual symbol like \<^verbatim>\<open>\<lambda>\<close>, or its name preceded by backslash
@@ -570,9 +576,9 @@ text \<open>In principle, Isabelle/jEdit could delegate the problem to produce
 
   Note that the above abbreviations refer to the input method. The logical
   notation provides ASCII alternatives that often coincide, but sometimes
-  deviate. This occasionally causes user confusion with very old-fashioned
-  Isabelle source that use ASCII replacement notation like \<^verbatim>\<open>!\<close> or \<^verbatim>\<open>ALL\<close>
-  directly in the text.
+  deviate. This occasionally causes user confusion with old-fashioned Isabelle
+  source that use ASCII replacement notation like \<^verbatim>\<open>!\<close> or \<^verbatim>\<open>ALL\<close> directly in
+  the text.
 
   On the other hand, coincidence of symbol abbreviations with ASCII
   replacement syntax syntax helps to update old theory sources via explicit
@@ -601,34 +607,8 @@ text \<open>There are some special control symbols to modify the display style o
   To produce a single control symbol, it is also possible to complete on
   \<^verbatim>\<open>\sup\<close>, \<^verbatim>\<open>\sub\<close>, \<^verbatim>\<open>\bold\<close>, \<^verbatim>\<open>\emph\<close> as for regular symbols.
 
-  The emphasized style only takes effect in document output, not in the
-  editor.
-\<close>
-
-
-section \<open>SideKick parsers \label{sec:sidekick}\<close>
-
-text \<open>
-  The \<^emph>\<open>SideKick\<close> plugin provides some general services to display buffer
-  structure in a tree view.
-
-  Isabelle/jEdit provides SideKick parsers for its main mode for theory files,
-  as well as some minor modes for the \<^verbatim>\<open>NEWS\<close> file (see
-  \figref{fig:sidekick}), session \<^verbatim>\<open>ROOT\<close> files, and system \<^verbatim>\<open>options\<close>.
-
-  \begin{figure}[!htb]
-  \begin{center}
-  \includegraphics[scale=0.333]{sidekick}
-  \end{center}
-  \caption{The Isabelle NEWS file with SideKick tree view}
-  \label{fig:sidekick}
-  \end{figure}
-
-  Moreover, the special SideKick parser \<^verbatim>\<open>isabelle-markup\<close> provides access to
-  the full (uninterpreted) markup tree of the PIDE document model of the
-  current buffer. This is occasionally useful for informative purposes, but
-  the amount of displayed information might cause problems for large buffers,
-  both for the human and the machine.
+  The emphasized style only takes effect in document output (when used with a
+  cartouche), but not in the editor.
 \<close>
 
 
@@ -654,7 +634,7 @@ text \<open>
 
   This helps to explore Isabelle/Scala functionality interactively. Some care
   is required to avoid interference with the internals of the running
-  application, especially in production use.
+  application.
 \<close>
 
 
@@ -670,19 +650,20 @@ text \<open>
   physical files.
 
   Despite the flexibility of URLs in jEdit, local files are particularly
-  important and are accessible without protocol prefix. Here the path notation
+  important and are accessible without protocol prefix. The file path notation
   is that of the Java Virtual Machine on the underlying platform. On Windows
-  the preferred form uses backslashes, but happens to accept also forward
-  slashes like Unix/POSIX. Further differences arise due to Windows drive
+  the preferred form uses backslashes, but happens to accept forward slashes
+  like Unix/POSIX as well. Further differences arise due to Windows drive
   letters and network shares.
 
   The Java notation for files needs to be distinguished from the one of
   Isabelle, which uses POSIX notation with forward slashes on \<^emph>\<open>all\<close>
-  platforms.\<^footnote>\<open>Isabelle/ML on Windows uses Cygwin file-system access and
-  Unix-style path notation.\<close> Moreover, environment variables from the Isabelle
-  process may be used freely, e.g.\ @{file "$ISABELLE_HOME/etc/symbols"} or
-  @{file_unchecked "$POLYML_HOME/README"}. There are special shortcuts: @{file
-  "~"} for @{file "$USER_HOME"} and @{file "~~"} for @{file "$ISABELLE_HOME"}.
+  platforms. Isabelle/ML on Windows uses Unix-style path notation, too, and
+  driver letter representation as in Cygwin (e.g.\ \<^verbatim>\<open>/cygdrive/c\<close>). Moreover,
+  environment variables from the Isabelle process may be used freely, e.g.\
+  @{file "$ISABELLE_HOME/etc/symbols"} or @{file_unchecked
+  "$POLYML_HOME/README"}. There are special shortcuts: @{file "~"} for @{file
+  "$USER_HOME"} and @{file "~~"} for @{file "$ISABELLE_HOME"}.
 
   \<^medskip>
   Since jEdit happens to support environment variables within file
@@ -703,11 +684,36 @@ text \<open>
   Path specifications in prover input or output usually include formal markup
   that turns it into a hyperlink (see also \secref{sec:tooltips-hyperlinks}).
   This allows to open the corresponding file in the text editor, independently
-  of the path notation.
+  of the path notation. If the path refers to a directory, the jEdit file
+  browser is opened on it.
 
   Formally checked paths in prover input are subject to completion
   (\secref{sec:completion}): partial specifications are resolved via directory
   content and possible completions are offered in a popup.
+\<close>
+
+
+section \<open>SideKick parsers \label{sec:sidekick}\<close>
+
+text \<open>
+  The \<^emph>\<open>SideKick\<close> plugin provides some general services to display buffer
+  structure in a tree view. Isabelle/jEdit provides SideKick parsers for its
+  main mode for theory files, as well as some minor modes for the \<^verbatim>\<open>NEWS\<close> file
+  (see \figref{fig:sidekick}), session \<^verbatim>\<open>ROOT\<close> files, system \<^verbatim>\<open>options\<close>, and
+  Bib{\TeX} files (\secref{sec:bibtex}).
+
+  \begin{figure}[!htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{sidekick}
+  \end{center}
+  \caption{The Isabelle NEWS file with SideKick tree view}
+  \label{fig:sidekick}
+  \end{figure}
+
+  The special SideKick parser \<^verbatim>\<open>isabelle-markup\<close> exposes the uninterpreted
+  markup tree of the PIDE document model of the current buffer. This is
+  occasionally useful for informative purposes, but the amount of displayed
+  information might cause problems for large buffers.
 \<close>
 
 
@@ -1691,7 +1697,7 @@ text \<open>
 \<close>
 
 
-section \<open>Citations and Bib{\TeX} entries\<close>
+section \<open>Citations and Bib{\TeX} entries \label{sec:bibtex}\<close>
 
 text \<open>
   Citations are managed by {\LaTeX} and Bib{\TeX} in \<^verbatim>\<open>.bib\<close> files. The
