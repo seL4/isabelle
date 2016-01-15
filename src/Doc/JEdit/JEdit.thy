@@ -369,7 +369,7 @@ text \<open>
 
     \<^item> \<^emph>\<open>Global Options / Text Area / Text font\<close>: the main text area font,
     which is also used as reference point for various derived font sizes,
-    e.g.\ the Output (\secref{sec:output}) and State
+    e.g.\ the \<^emph>\<open>Output\<close> (\secref{sec:output}) and \<^emph>\<open>State\<close>
     (\secref{sec:state-output}) panels.
 
     \<^item> \<^emph>\<open>Global Options / Gutter / Gutter font\<close>: the font for the gutter area
@@ -745,10 +745,13 @@ text \<open>
 
   \<^medskip>
   \begin{tabular}{lll}
-  \<^bold>\<open>mode\<close> & \<^bold>\<open>file extension\<close> & \<^bold>\<open>content\<close> \\\hline
-  \<^verbatim>\<open>isabelle\<close> & \<^verbatim>\<open>.thy\<close> & theory source \\
-  \<^verbatim>\<open>isabelle-ml\<close> & \<^verbatim>\<open>.ML\<close> & Isabelle/ML source \\
-  \<^verbatim>\<open>sml\<close> & \<^verbatim>\<open>.sml\<close> or \<^verbatim>\<open>.sig\<close> & Standard ML source \\
+  \<^bold>\<open>mode\<close> & \<^bold>\<open>file name\<close> & \<^bold>\<open>content\<close> \\\hline
+  \<^verbatim>\<open>isabelle\<close> & \<^verbatim>\<open>*.thy\<close> & theory source \\
+  \<^verbatim>\<open>isabelle-ml\<close> & \<^verbatim>\<open>*.ML\<close> & Isabelle/ML source \\
+  \<^verbatim>\<open>sml\<close> & \<^verbatim>\<open>*.sml\<close> or \<^verbatim>\<open>*.sig\<close> & Standard ML source \\
+  \<^verbatim>\<open>isabelle-root\<close> & \<^verbatim>\<open>ROOT\<close> & session root \\
+  \<^verbatim>\<open>isabelle-options\<close> & & Isabelle options \\
+  \<^verbatim>\<open>isabelle-news\<close> & & Isabelle NEWS \\
   \end{tabular}
   \<^medskip>
 
@@ -785,8 +788,8 @@ text \<open>
   \begin{center}
   \includegraphics[scale=0.333]{theories}
   \end{center}
-  \caption{Theories panel with an overview of the document-model, and some
-  jEdit text areas as editable view on some of the document nodes}
+  \caption{Theories panel with an overview of the document-model, and jEdit
+  text areas as editable views on some of the document nodes}
   \label{fig:theories}
   \end{figure}
 
@@ -811,22 +814,21 @@ text \<open>
   indicate theory nodes as \<^emph>\<open>required\<close> for continuous checking: this means
   such nodes and all their imports are always processed independently of the
   visibility status (if continuous checking is enabled). Big theory libraries
-  that are marked as required can have significant impact on performance,
-  though.
+  that are marked as required can have significant impact on performance!
 
   \<^medskip>
   Formal markup of checked theory content is turned into GUI rendering, based
-  on a standard repertoire known from IDEs for programming languages: colors,
-  icons, highlighting, squiggly underlines, tooltips, hyperlinks etc. For
-  outer syntax of Isabelle/Isar there is some traditional syntax-highlighting
-  via static keywords and tokenization within the editor; this buffer syntax
-  is determined from theory imports. In contrast, the painting of inner syntax
-  (term language etc.)\ uses semantic information that is reported dynamically
-  from the logical context. Thus the prover can provide additional markup to
-  help the user to understand the meaning of formal text, and to produce more
-  text with some add-on tools (e.g.\ information messages with \<^emph>\<open>sendback\<close>
-  markup by automated provers or disprovers in the background).
-\<close>
+  on a standard repertoire known from mainstream IDEs for programming
+  languages: colors, icons, highlighting, squiggly underlines, tooltips,
+  hyperlinks etc. For outer syntax of Isabelle/Isar there is some traditional
+  syntax-highlighting via static keywords and tokenization within the editor;
+  this buffer syntax is determined from theory imports. In contrast, the
+  painting of inner syntax (term language etc.)\ uses semantic information
+  that is reported dynamically from the logical context. Thus the prover can
+  provide additional markup to help the user to understand the meaning of
+  formal text, and to produce more text with some add-on tools (e.g.\
+  information messages with \<^emph>\<open>sendback\<close> markup by automated provers or
+  disprovers in the background). \<close>
 
 
 subsection \<open>Auxiliary files \label{sec:aux-files}\<close>
@@ -873,8 +875,8 @@ text \<open>
   active (see also \secref{sec:output}).
 
   Warnings, errors, and other useful markup is attached directly to the
-  positions in the auxiliary file buffer, in the manner of other well-known
-  IDEs. By using the load command @{command SML_file} as explained in @{file
+  positions in the auxiliary file buffer, in the manner of standard IDEs. By
+  using the load command @{command SML_file} as explained in @{file
   "$ISABELLE_HOME/src/Tools/SML/Examples.thy"}, Isabelle/jEdit may be used as
   fully-featured IDE for Standard ML, independently of theory or proof
   development: the required theory merely serves as some kind of project file
@@ -892,70 +894,88 @@ text \<open>
   \figref{fig:output}). In the latter case, the corresponding messages are
   shown by hovering with the mouse over the highlighted text --- although in
   many situations the user should already get some clue by looking at the
-  position of the text highlighting, without the text itself.
+  position of the text highlighting, without seeing the message body itself.
 
   \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{output}
   \end{center}
-  \caption{Multiple views on prover output: gutter area with icon,
-    text area with popup, overview area, Theories panel, Output panel}
+  \caption{Multiple views on prover output: gutter with icon, text area with
+  popup, text overview column, \<^emph>\<open>Theories\<close> panel, \<^emph>\<open>Output\<close> panel}
   \label{fig:output}
   \end{figure}
 
-  The ``gutter area'' on the left-hand-side of the text area uses icons to
-  provide a summary of the messages within the adjacent line of text. Message
+  The ``gutter'' on the left-hand-side of the text area uses icons to
+  provide a summary of the messages within the adjacent text line. Message
   priorities are used to prefer errors over warnings, warnings over
-  information messages, but plain output is ignored.
+  information messages; other output is ignored.
 
-  The ``overview area'' on the right-hand-side of the text area uses similar
-  information to paint small rectangles for the overall status of the whole
-  text buffer. The graphics is scaled to fit the logical buffer length into
-  the given window height. Mouse clicks on the overview area position the
-  cursor approximately to the corresponding line of text in the buffer.
+  The ``text overview column'' on the right-hand-side of the text area uses
+  similar information to paint small rectangles for the overall status of the
+  whole text buffer. The graphics is scaled to fit the logical buffer length
+  into the given window height. Mouse clicks on the overview area move the
+  cursor approximately to the corresponding text line in the buffer.
 
-  Another course-grained overview is provided by the \<^emph>\<open>Theories\<close> panel, but
-  without direct correspondence to text positions. A double-click on one of
-  the theory entries with their status overview opens the corresponding text
-  buffer, without changing the cursor position.
-
-  \<^medskip>
-  In addition, the \<^emph>\<open>Output\<close> panel displays prover messages that correspond to
-  a given command, within a separate window.
-
-  The cursor position in the presently active text area determines the prover
-  command whose cumulative message output is appended and shown in that window
-  (in canonical order according to the internal execution of the command).
-  There are also control elements to modify the update policy of the output
-  wrt.\ continued editor movements. This is particularly useful with several
-  independent instances of the \<^emph>\<open>Output\<close> panel, which the Dockable Window
-  Manager of jEdit can handle conveniently.
-
-  Former users of the old TTY interaction model (e.g.\ Proof~General) might
-  find a separate window for prover messages familiar, but it is important to
-  understand that the main Prover IDE feedback happens elsewhere. It is
-  possible to do meaningful proof editing within the primary text area and its
-  markup, while using secondary output windows only rarely.
-
-  The main purpose of the output window is to ``debug'' unclear situations by
-  inspecting internal state of the prover.\<^footnote>\<open>In that sense, unstructured tactic
-  scripts depend on continuous debugging with internal state inspection.\<close>
-  Consequently, some special messages for \<^emph>\<open>tracing\<close> or \<^emph>\<open>proof state\<close> only
-  appear here, and are not attached to the original source.
+  The \<^emph>\<open>Theories\<close> panel provides another course-grained overview, but without
+  direct correspondence to text positions. The coloured rectangles represent
+  the amount of messages of a certain kind (warnings, errors, etc.) and the
+  execution status of commands. A double-click on one of the theory entries
+  with their status overview opens the corresponding text buffer, without
+  moving the cursor to a specific point.
 
   \<^medskip>
-  In any case, prover messages also contain markup that may be explored
-  recursively via tooltips or hyperlinks (see
+  The \<^emph>\<open>Output\<close> panel displays prover messages that correspond to a given
+  command, within a separate window. The cursor position in the presently
+  active text area determines the prover command whose cumulative message
+  output is appended and shown in that window (in canonical order according to
+  the internal execution of the command). There are also control elements to
+  modify the update policy of the output wrt.\ continued editor movements:
+  \<^emph>\<open>Auto update\<close> and \<^emph>\<open>Update\<close>. This is particularly useful for multiple
+  instances of the \<^emph>\<open>Output\<close> panel to look at different situations.
+  Alternatively, the panel can be turned into a passive \<^emph>\<open>Info\<close> window via the
+  \<^emph>\<open>Detach\<close> menu item.
+
+  Proof state is handled separately (\secref{sec:state-output}), but it is
+  also possible to tick the corresponding checkbox to append it to regular
+  output (\figref{fig:output-including-state}). This is a globally persistent
+  option: it affects all open panels and future editor sessions.
+
+  \begin{figure}[!htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{output-including-state}
+  \end{center}
+  \caption{Proof state display within the regular output panel}
+  \label{fig:output-including-state}
+  \end{figure}
+
+  \<^medskip>
+  Following the IDE principle, regular messages are attached to the original
+  source in the proper place and may be inspected on demand via popups. This
+  excludes messages that are somehow internal to the machinery of proof
+  checking, notably \<^emph>\<open>proof state\<close> and \<^emph>\<open>tracing\<close>.
+
+  In any case, the same display technology is used for small popups and big
+  output windows. The formal text contains markup that may be explored
+  recursively via further popups and hyperlinks (see
   \secref{sec:tooltips-hyperlinks}), or clicked directly to initiate certain
   actions (see \secref{sec:auto-tools} and \secref{sec:sledgehammer}).
 \<close>
 
 
-section \<open>Proof state output \label{sec:state-output}\<close>
+section \<open>Proof state \label{sec:state-output}\<close>
 
 text \<open>
-  FIXME
-  \figref{fig:output-and-state} versus \figref{fig:output-including-state}
+  The main purpose of the Prover IDE is to help the user editing proof
+  documents, with ongoing formal checking by the prover in the background.
+  This can be done to some extent in the main text area alone, especially for
+  well-structured Isar proofs.
+
+  Nonetheless, internal proof state needs to be inspected in many situations
+  of exploration and ``debugging''. The \<^emph>\<open>State\<close> panel shows exclusively such
+  proof state messages without further distraction, while all other messages
+  are displayed in \<^emph>\<open>Output\<close> (\secref{sec:output}).
+  \Figref{fig:output-and-state} shows a typical GUI layout where both panels
+  are open.
 
   \begin{figure}[!htb]
   \begin{center}
@@ -965,14 +985,33 @@ text \<open>
   \label{fig:output-and-state}
   \end{figure}
 
-  \begin{figure}[!htb]
-  \begin{center}
-  \includegraphics[scale=0.333]{output-including-state}
-  \end{center}
-  \caption{Proof state display within the regular output panel}
-  \label{fig:output-including-state}
-  \end{figure}
+  Another typical arrangement has more than one \<^emph>\<open>State\<close> panel open (as
+  floating windows), with \<^emph>\<open>Auto update\<close> disabled to look at an old situation
+  while the proof text in the vicinity is changed. The \<^emph>\<open>Update\<close> button
+  triggers an explicit one-shot update; this operation is also available via
+  the action @{action "isabelle.update-state"} (keyboard shortcut \<^verbatim>\<open>S+ENTER\<close>).
+
+  On small screens, it is occasionally useful to have all messages
+  concatenated in the regular \<^emph>\<open>Output\<close> panel, e.g.\ see
+  \figref{fig:output-including-state}.
+
+  \<^medskip>
+  The mechanics of \<^emph>\<open>Output\<close> versus \<^emph>\<open>State\<close> are slightly different:
+
+    \<^item> \<^emph>\<open>Output\<close> shows information that is continuously produced and already
+    present when the GUI wants to show it. This is implicitly controlled by
+    the visible perspective on the text.
+
+    \<^item> \<^emph>\<open>State\<close> initiates a real-time query on demand, with a full round trip
+    including a fresh print operation on the prover side. This is controlled
+    explicitly when the cursor is moved to the next command (\<^emph>\<open>Auto update\<close>)
+    or the \<^emph>\<open>Update\<close> operation is triggered.
+
+  This can make a difference in GUI responsibility and resource usage within
+  the prover process. Applications with very big proof states that are only
+  inspected in isolation work better with the \<^emph>\<open>State\<close> panel.
 \<close>
+
 
 section \<open>Query \label{sec:query}\<close>
 
