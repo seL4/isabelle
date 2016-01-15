@@ -17,13 +17,6 @@ text \<open>
   "Wenzel:2012"}. Many concepts and system components are fit together in
   order to make this work. The main building blocks are as follows.
 
-    \<^descr>[PIDE] is a general framework for Prover IDEs based on Isabelle/Scala. It
-    is built around a concept of parallel and asynchronous document
-    processing, which is supported natively by the parallel proof engine that
-    is implemented in Isabelle/ML. The traditional prover command loop is
-    given up; instead there is direct support for editing of source text, with
-    rich formal markup for GUI rendering.
-
     \<^descr>[Isabelle/ML] is the implementation and extension language of Isabelle,
     see also @{cite "isabelle-implementation"}. It is integrated into the
     logical context of Isabelle/Isar and allows to manipulate logical entities
@@ -31,35 +24,46 @@ text \<open>
     as Isabelle/HOL.
 
     \<^descr>[Isabelle/Scala] is the system programming language of Isabelle. It
-    extends the pure logical environment of Isabelle/ML towards the ``real
-    world'' of graphical user interfaces, text editors, IDE frameworks, web
+    extends the pure logical environment of Isabelle/ML towards the outer
+    world of graphical user interfaces, text editors, IDE frameworks, web
     services etc. Special infrastructure allows to transfer algebraic
     datatypes and formatted text easily between ML and Scala, using
     asynchronous protocol commands.
 
-    \<^descr>[jEdit] is a sophisticated text editor implemented in Java.\<^footnote>\<open>@{url
-    "http://www.jedit.org"}\<close> It is easily extensible by plugins written in
-    languages that work on the JVM, e.g.\ Scala\<^footnote>\<open>@{url
+    \<^descr>[PIDE] is a general framework for Prover IDEs based on Isabelle/Scala. It
+    is built around a concept of parallel and asynchronous document
+    processing, which is supported natively by the parallel proof engine that
+    is implemented in Isabelle/ML. The traditional prover command loop is
+    given up; instead there is direct support for editing of source text, with
+    rich formal markup for GUI rendering.
+
+    \<^descr>[jEdit] is a sophisticated text editor\<^footnote>\<open>@{url "http://www.jedit.org"}\<close>
+    implemented in Java\<^footnote>\<open>@{url "http://www.java.com"}\<close>. It is easily
+    extensible by plugins written in any language that works on the JVM. In
+    the context of Isabelle this is always Scala\<^footnote>\<open>@{url
     "http://www.scala-lang.org"}\<close>.
 
-    \<^descr>[Isabelle/jEdit] is the main example application of the PIDE framework
-    and the default user-interface for Isabelle. It targets both beginners and
-    experts. Technically, Isabelle/jEdit combines a slightly modified version
-    of the jEdit code base with a special plugin for Isabelle, integrated as
-    standalone application for the main operating system platforms: Linux,
-    Windows, Mac OS X.
+    \<^descr>[Isabelle/jEdit] is the main application of the PIDE framework and the
+    default user-interface for Isabelle. It targets both beginners and
+    experts. Technically, Isabelle/jEdit consists of the original jEdit code
+    base with minimal patches and a special plugin for Isabelle. This is
+    integrated as a desktop application for the main operating system
+    families: Linux, Windows, Mac OS X.
 
-  The subtle differences of Isabelle/ML versus Standard ML, Isabelle/Scala
-  versus Scala, Isabelle/jEdit versus jEdit need to be taken into account when
-  discussing any of these PIDE building blocks in public forums, mailing
-  lists, or even scientific publications.
+  End-users of Isabelle download and run a standalone application that exposes
+  jEdit as a text editor on the surface. Thus there is occasionally a tendency
+  to apply the name ``jEdit'' to any of the Isabelle Prover IDE aspects,
+  without proper differentiation. When discussing these PIDE building blocks
+  in public forums, mailing lists, or even scientific publications, it is
+  particularly important to distinguish Isabelle/ML versus Standard ML,
+  Isabelle/Scala versus Scala, Isabelle/jEdit versus jEdit.
 \<close>
 
 
 section \<open>The Isabelle/jEdit Prover IDE\<close>
 
 text \<open>
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{isabelle-jedit}
   \end{center}
@@ -74,13 +78,16 @@ text \<open>
   \secref{sec:dockables}), as well as \<^emph>\<open>Plugins~/ Plugin Options~/ Isabelle\<close>
   (see also \secref{sec:options}).
 
-  The options allow to specify a logic session name --- the same selector is
-  accessible in the \<^emph>\<open>Theories\<close> panel (\secref{sec:theories}). On application
-  startup, the selected logic session image is provided automatically by the
-  Isabelle build tool @{cite "isabelle-system"}: if it is absent or outdated
-  wrt.\ its sources, the build process updates it before entering the Prover
-  IDE. Change of the logic session within Isabelle/jEdit requires a restart of
-  the whole application.
+  The options allow to specify a logic session name, but the same selector is
+  also accessible in the \<^emph>\<open>Theories\<close> panel (\secref{sec:theories}). After
+  application startup, the selected logic session image is provided
+  automatically by the Isabelle build tool @{cite "isabelle-system"}: if it is
+  absent or outdated wrt.\ its sources, the build process updates it while the
+  text editor is running. Prover IDE functionality is only activated after
+  successful termination of the build process. A failure may require changing
+  some options and restart the application. Changing the logic session, or the
+  underlying ML system platform (32\,bit versus 64\,bit) requires a restart of
+  the application to take effect.
 
   \<^medskip>
   The main job of the Prover IDE is to manage sources and their changes,
@@ -92,34 +99,34 @@ text \<open>
   squiggly underlines, hyperlinks, popup windows, icons, clickable output etc.
 
   Using the mouse together with the modifier key \<^verbatim>\<open>CONTROL\<close> (Linux, Windows)
-  or \<^verbatim>\<open>COMMAND\<close> (Mac OS X) exposes additional formal content via tooltips
-  and/or hyperlinks (see also \secref{sec:tooltips-hyperlinks}). Output (in
-  popups etc.) may be explored recursively, using the same techniques as in
-  the editor source buffer.
+  or \<^verbatim>\<open>COMMAND\<close> (Mac OS X) exposes formal content via tooltips and/or
+  hyperlinks (see also \secref{sec:tooltips-hyperlinks}). Output (in popups
+  etc.) may be explored recursively, using the same techniques as in the
+  editor source buffer.
 
   Thus the Prover IDE gives an impression of direct access to formal content
   of the prover within the editor, but in reality only certain aspects are
-  exposed, according to the possibilities of the prover and its many add-on
-  tools.
+  exposed, according to the possibilities of the prover and its add-on tools.
 \<close>
 
 
 subsection \<open>Documentation\<close>
 
 text \<open>
-  The \<^emph>\<open>Documentation\<close> panel of Isabelle/jEdit provides access to the standard
-  Isabelle documentation: PDF files are opened by regular desktop operations
-  of the underlying platform. The section ``Original jEdit Documentation''
-  contains the original \<^emph>\<open>User's Guide\<close> of this sophisticated text editor. The
-  same is accessible via the \<^verbatim>\<open>Help\<close> menu or \<^verbatim>\<open>F1\<close> keyboard shortcut, using
-  the built-in HTML viewer of Java/Swing. The latter also includes
-  \<^emph>\<open>Frequently Asked Questions\<close> and documentation of individual plugins.
+  The \<^emph>\<open>Documentation\<close> panel of Isabelle/jEdit provides access to some example
+  theory files and the standard Isabelle documentation. PDF files are opened
+  by regular desktop operations of the underlying platform. The section
+  ``Original jEdit Documentation'' contains the original \<^emph>\<open>User's Guide\<close> of
+  this sophisticated text editor. The same is accessible via the \<^verbatim>\<open>Help\<close> menu
+  or \<^verbatim>\<open>F1\<close> keyboard shortcut, using the built-in HTML viewer of Java/Swing.
+  The latter also includes \<^emph>\<open>Frequently Asked Questions\<close> and documentation of
+  individual plugins.
 
-  Most of the information about generic jEdit is relevant for Isabelle/jEdit
-  as well, but one needs to keep in mind that defaults sometimes differ, and
-  the official jEdit documentation does not know about the Isabelle plugin
-  with its support for continuous checking of formal source text: jEdit is a
-  plain text editor, but Isabelle/jEdit is a Prover IDE.
+  Most of the information about jEdit is relevant for Isabelle/jEdit as well,
+  but one needs to keep in mind that defaults sometimes differ, and the
+  official jEdit documentation does not know about the Isabelle plugin with
+  its support for continuous checking of formal source text: jEdit is a plain
+  text editor, but Isabelle/jEdit is a Prover IDE.
 \<close>
 
 
@@ -135,8 +142,8 @@ text \<open>
   done with the usual care for such an open bazaar of contributions. Arbitrary
   combinations of add-on features are apt to cause problems. It is advisable
   to start with the default configuration of Isabelle/jEdit and develop some
-  understanding how it is supposed to work, before loading additional plugins
-  at a grand scale.
+  understanding how it is supposed to work, before loading too many other
+  plugins.
 
   \<^medskip>
   The main \<^emph>\<open>Isabelle\<close> plugin is an integral part of Isabelle/jEdit and needs
@@ -169,7 +176,7 @@ text \<open>
   coverage of sessions and command-line tools like @{tool build} or @{tool
   options}.
 
-  Those Isabelle options that are declared as \<^bold>\<open>public\<close> are configurable in
+  Those Isabelle options that are declared as \<^verbatim>\<open>public\<close> are configurable in
   Isabelle/jEdit via \<^emph>\<open>Plugin Options~/ Isabelle~/ General\<close>. Moreover, there
   are various options for rendering of document content, which are
   configurable via \<^emph>\<open>Plugin Options~/ Isabelle~/ Rendering\<close>. Thus \<^emph>\<open>Plugin
@@ -179,7 +186,7 @@ text \<open>
   @{system_option parallel_proofs} for the Isabelle build tool @{cite
   "isabelle-system"}, but it is possible to use the settings variable
   @{setting ISABELLE_BUILD_OPTIONS} to change defaults for batch builds
-  without affecting Isabelle/jEdit.
+  without affecting the Prover IDE.
 
   The jEdit action @{action_def isabelle.options} opens the options dialog for
   the Isabelle plugin; it can be mapped to editor GUI elements as usual.
@@ -196,17 +203,18 @@ text \<open>
 subsection \<open>Keymaps\<close>
 
 text \<open>
-  Keyboard shortcuts used to be managed as jEdit properties in the past, but
-  recent versions (2013) have a separate concept of \<^emph>\<open>keymap\<close> that is
+  Keyboard shortcuts are managed as a separate concept of \<^emph>\<open>keymap\<close> that is
   configurable via \<^emph>\<open>Global Options~/ Shortcuts\<close>. The \<^verbatim>\<open>imported\<close> keymap is
   derived from the initial environment of properties that is available at the
-  first start of the editor; afterwards the keymap file takes precedence.
+  first start of the editor; afterwards the keymap file takes precedence and
+  is no longer affected by change of default properties.
 
-  This is relevant for Isabelle/jEdit due to various fine-tuning of default
-  properties, and additional keyboard shortcuts for Isabelle-specific
-  functionality. Users may change their keymap later, but need to copy some
-  keyboard shortcuts manually (see also @{file_unchecked
-  "$ISABELLE_HOME_USER/jedit/keymaps"} versus \<^verbatim>\<open>shortcut\<close> properties in @{file
+  This subtle difference of jEdit keymaps versus properties is relevant for
+  Isabelle/jEdit due to various fine-tuning of global defaults, with
+  additional keyboard shortcuts for Isabelle-specific functionality. Users may
+  change their keymap later, but need to copy some keyboard shortcuts manually
+  (see also @{file_unchecked "$ISABELLE_HOME_USER/jedit/keymaps"} versus
+  \<^verbatim>\<open>shortcut\<close> properties in @{file
   "$ISABELLE_HOME/src/Tools/jEdit/src/jEdit.props"}).
 \<close>
 
@@ -214,14 +222,12 @@ text \<open>
 section \<open>Command-line invocation \label{sec:command-line}\<close>
 
 text \<open>
-  Isabelle/jEdit is normally invoked as standalone application, with
-  platform-specific executable wrappers for Linux, Windows, Mac OS X.
-  Nonetheless it is occasionally useful to invoke the Prover IDE on the
-  command-line, with some extra options and environment settings as explained
-  below.
+  Isabelle/jEdit is normally invoked as a single-instance desktop application,
+  based on platform-specific executables for Linux, Windows, Mac OS X.
 
-  \<^medskip>
-  The command-line usage of @{tool_def jedit} is as follows:
+  It is also possible to invoke the Prover IDE on the command-line, with some
+  extra options and environment settings. The command-line usage of @{tool_def
+  jedit} is as follows:
   @{verbatim [display]
 \<open>Usage: isabelle jedit [OPTIONS] [FILES ...]
 
@@ -270,7 +276,7 @@ text \<open>
   "http://isabelle.in.tum.de/components"}. The official Isabelle release
   already includes a pre-built version of Isabelle/jEdit.
 
-  \<^medskip>
+  \<^bigskip>
   It is also possible to connect to an already running Isabelle/jEdit process
   via @{tool_def jedit_client}:
   @{verbatim [display]
@@ -284,20 +290,18 @@ text \<open>
   Connect to already running Isabelle/jEdit instance and open FILES\<close>}
 
   The \<^verbatim>\<open>-c\<close> option merely checks the presence of the server, producing a
-  process return code.
+  process return code accordingly.
 
   The \<^verbatim>\<open>-n\<close> option reports the server name, and the \<^verbatim>\<open>-s\<close> option provides a
   different server name. The default server name is the official distribution
   name (e.g.\ \<^verbatim>\<open>Isabelle2016\<close>). Thus @{tool jedit_client} can connect to the
-  main Isabelle application without further options.
+  Isabelle desktop application without further options.
 
   The JVM system property \<^verbatim>\<open>isabelle.jedit_server\<close> provides a different server
-  name, e.g.\ \<^verbatim>\<open>isabelle jedit -Disabelle.jedit_server=\<close>\<open>name\<close> and
+  name, e.g.\ use \<^verbatim>\<open>isabelle jedit -Disabelle.jedit_server=\<close>\<open>name\<close> and
   \<^verbatim>\<open>isabelle jedit_client -s\<close>~\<open>name\<close> to connect later on.
 \<close>
 
-
-chapter \<open>Augmented jEdit functionality\<close>
 
 section \<open>GUI rendering\<close>
 
@@ -314,17 +318,11 @@ text \<open>
 
     \<^descr>[Linux:] The platform-independent \<^emph>\<open>Metal\<close> is used by default.
 
-    \<^emph>\<open>GTK+\<close> also works under the side-condition that the overall GTK theme is
-    selected in a Swing-friendly way.\<^footnote>\<open>GTK support in Java/Swing was once
-    marketed aggressively by Sun, but never quite finished. Today (2015) it is
-    lagging behind further development of Swing and GTK. The graphics
-    rendering performance can be worse than for other Swing look-and-feels.
-    Nonetheless it has its uses for displays with very high resolution (such
-    as ``4K'' or ``UHD'' models), because the rendering by the external
-    library is subject to global system settings for font scaling.\<close>
+    The Linux-specific \<^emph>\<open>GTK+\<close> also works under the side-condition that the
+    overall GTK theme and options are selected in a way that works with Java
+    AWT/Swing. The JVM has no direct influence of GTK rendering.
 
-    \<^descr>[Windows:] Regular \<^emph>\<open>Windows\<close> is used by default, but \<^emph>\<open>Windows Classic\<close>
-    also works.
+    \<^descr>[Windows:] Regular \<^emph>\<open>Windows\<close> is used by default.
 
     \<^descr>[Mac OS X:] Regular \<^emph>\<open>Mac OS X\<close> is used by default.
 
@@ -334,43 +332,45 @@ text \<open>
     full-screen mode for main editor windows. It is advisable to have the
     \<^emph>\<open>MacOSX\<close> plugin enabled all the time on that platform.
 
-  Users may experiment with different look-and-feels, but need to keep in mind
-  that this extra variance of GUI functionality is unlikely to work in
+  Users may experiment with different Swing look-and-feels, but need to keep
+  in mind that this extra variance of GUI functionality is unlikely to work in
   arbitrary combinations. The platform-independent \<^emph>\<open>Metal\<close> and \<^emph>\<open>Nimbus\<close>
-  should always work. The historic \<^emph>\<open>CDE/Motif\<close> should be ignored.
+  should always work on all platforms, although they are technically and
+  stylistically outdated. The historic \<^emph>\<open>CDE/Motif\<close> on Linux should be
+  ignored.
 
-  After changing the look-and-feel in \<^emph>\<open>Global Options~/ Appearance\<close>, it is
-  advisable to restart Isabelle/jEdit in order to take full effect.
+  After changing the look-and-feel in \<^emph>\<open>Global Options~/ Appearance\<close>,
+  Isabelle/jEdit should be restarted to take full effect.
 \<close>
 
 
 subsection \<open>Displays with very high resolution \label{sec:hdpi}\<close>
 
 text \<open>
-  Many years ago, displays with $1024 \times 768$ or $1280 \times 1024$ pixels
-  were considered ``high resolution'' and bitmap fonts with 12 or 14 pixels as
-  adequate for text rendering. Today (2015), we routinely see ``Full HD''
-  monitors at $1920 \times 1080$ pixels, and occasionally ``Ultra HD'' at
-  $3840 \times 2160$ or more, but GUI rendering did not really progress beyond
-  the old standards.
+  In distant past, displays with $1024 \times 768$ or $1280 \times 1024$
+  pixels were considered ``high resolution'' and bitmap fonts with 12 or 14
+  pixels as adequate for text rendering. In 2016, we routinely see much higher
+  resolutions, e.g. ``Full HD'' at $1920 \times 1080$ pixels or ``Ultra HD'' /
+  ``4K'' at $3840 \times 2160$.
 
-  Isabelle/jEdit defaults are a compromise for reasonable out-of-the box
-  results on common platforms and medium resolution displays (e.g.\ the ``Full
-  HD'' category). Subsequently there are further hints to improve on that.
-
-  \<^medskip>
-  The \<^bold>\<open>operating-system platform\<close> usually provides some configuration for
-  global scaling of text fonts, e.g.\ $120\%$--$250\%$ on Windows. Changing
-  that only has a partial effect on GUI rendering; satisfactory display
-  quality requires further adjustments.
+  GUI frameworks are usually lagging behind, with hard-wired icon sizes and
+  tiny fonts. Java and jEdit do provide reasonable support for very high
+  resolution, but this requires manual adjustments as described below.
 
   \<^medskip>
-  The Isabelle/jEdit \<^bold>\<open>application\<close> and its plugins provide various font
-  properties that are summarized below.
+  The \<^bold>\<open>operating-system\<close> usually provides some configuration for global
+  scaling of text fonts, e.g.\ $120\%$--$250\%$ on Windows. This impacts
+  regular GUI elements, when used with native look-and-feel: Linux \<^emph>\<open>GTK+\<close>,
+  \<^emph>\<open>Windows\<close>, \<^emph>\<open>Mac OS X\<close>, respectively. Alternatively, it is possible to use
+  the platform-independent \<^emph>\<open>Metal\<close> look-and-feel and readjust its main font
+  sizes via jEdit options explained below. The Isabelle/jEdit \<^bold>\<open>application\<close>
+  provides further options to adjust font sizes in particular GUI elements.
+  Here is a summary of all relevant font properties:
 
     \<^item> \<^emph>\<open>Global Options / Text Area / Text font\<close>: the main text area font,
     which is also used as reference point for various derived font sizes,
-    e.g.\ the Output panel (\secref{sec:output}).
+    e.g.\ the Output (\secref{sec:output}) and State
+    (\secref{sec:state-output}) panels.
 
     \<^item> \<^emph>\<open>Global Options / Gutter / Gutter font\<close>: the font for the gutter area
     left of the main text area, e.g.\ relevant for display of line numbers
@@ -378,34 +378,31 @@ text \<open>
 
     \<^item> \<^emph>\<open>Global Options / Appearance / Button, menu and label font\<close> as well as
     \<^emph>\<open>List and text field font\<close>: this specifies the primary and secondary font
-    for the traditional \<^emph>\<open>Metal\<close> look-and-feel (\secref{sec:look-and-feel}),
-    which happens to scale better than newer ones like \<^emph>\<open>Nimbus\<close>.
+    for the \<^emph>\<open>Metal\<close> look-and-feel (\secref{sec:look-and-feel}).
 
     \<^item> \<^emph>\<open>Plugin Options / Isabelle / General / Reset Font Size\<close>: the main text
     area font size for action @{action_ref "isabelle.reset-font-size"}, e.g.\
-    relevant for quick scaling like in major web browsers.
+    relevant for quick scaling like in common web browsers.
 
     \<^item> \<^emph>\<open>Plugin Options / Console / General / Font\<close>: the console window font,
     e.g.\ relevant for Isabelle/Scala command-line.
 
   In \figref{fig:isabelle-jedit-hdpi} the \<^emph>\<open>Metal\<close> look-and-feel is configured
   with custom fonts at 30 pixels, and the main text area and console at 36
-  pixels. Despite the old-fashioned appearance of \<^emph>\<open>Metal\<close>, this leads to
-  decent rendering quality on all platforms.
+  pixels. This leads to decent rendering quality, despite the old-fashioned
+  appearance of \<^emph>\<open>Metal\<close>.
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[width=\textwidth]{isabelle-jedit-hdpi}
   \end{center}
   \caption{Metal look-and-feel with custom fonts for very high resolution}
   \label{fig:isabelle-jedit-hdpi}
   \end{figure}
-
-  On Linux, it is also possible to use \<^emph>\<open>GTK+\<close> with a suitable theme and
-  global font scaling. On Mac OS X, the default setup for ``Retina'' displays
-  should work adequately with the native look-and-feel.
 \<close>
 
+
+chapter \<open>Augmented jEdit functionality\<close>
 
 section \<open>Dockable windows \label{sec:dockables}\<close>
 
@@ -619,7 +616,7 @@ text \<open>
   as well as some minor modes for the \<^verbatim>\<open>NEWS\<close> file (see
   \figref{fig:sidekick}), session \<^verbatim>\<open>ROOT\<close> files, and system \<^verbatim>\<open>options\<close>.
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{sidekick}
   \end{center}
@@ -778,7 +775,7 @@ text \<open>
   multiple (disjoint) Isabelle sessions simultaneously within the same editor
   session.
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{theories}
   \end{center}
@@ -891,7 +888,7 @@ text \<open>
   many situations the user should already get some clue by looking at the
   position of the text highlighting, without the text itself.
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{output}
   \end{center}
@@ -954,7 +951,7 @@ text \<open>
   FIXME
   \figref{fig:output-and-state} versus \figref{fig:output-including-state}
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{output-and-state}
   \end{center}
@@ -962,7 +959,7 @@ text \<open>
   \label{fig:output-and-state}
   \end{figure}
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{output-including-state}
   \end{center}
@@ -986,7 +983,7 @@ text \<open>
   active at the same time: any number of floating instances, but at most one
   docked instance (which is used by default).
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{query}
   \end{center}
@@ -1075,7 +1072,7 @@ text \<open>
   with a yellow popup) and/or a \<^emph>\<open>hyperlink\<close> (black rectangle over the text
   with change of mouse pointer); see also \figref{fig:tooltip}.
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.5]{popup1}
   \end{center}
@@ -1087,7 +1084,7 @@ text \<open>
   further tooltips and/or hyperlinks may be exposed recursively by the same
   mechanism; see \figref{fig:nested-tooltips}.
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.5]{popup2}
   \end{center}
@@ -1537,7 +1534,7 @@ text \<open>
   on certain parts of the output inserts that text into the source in the
   proper place.
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{auto-tools}
   \end{center}
@@ -1622,7 +1619,7 @@ text \<open>
   active, according to the standard policies of Dockable Window Management in
   jEdit. Closing such windows also cancels the corresponding prover tasks.
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{sledgehammer}
   \end{center}
@@ -1662,7 +1659,7 @@ text \<open>
   structured tree view, with formal statements and proofs nested inside; see
   \figref{fig:sidekick-document}.
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{sidekick-document}
   \end{center}
@@ -1684,7 +1681,7 @@ text \<open>
   FIXME
   \figref{fig:markdown-document}
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{markdown-document}
   \end{center}
@@ -1709,7 +1706,7 @@ text \<open>
   in {\LaTeX} batch-mode, but it can take citations from those \<^verbatim>\<open>.bib\<close> files
   that happen to be open in the editor; see \figref{fig:cite-completion}.
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{cite-completion}
   \end{center}
@@ -1723,7 +1720,7 @@ text \<open>
   systematically, and a SideKick tree view of the overall content; see
   \figref{fig:bibtex-mode}.
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{bibtex-mode}
   \end{center}
@@ -1739,7 +1736,7 @@ text \<open>
   FIXME
   \figref{fig:ml-debugger}
 
-  \begin{figure}[htb]
+  \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{ml-debugger}
   \end{center}
@@ -1892,13 +1889,7 @@ text \<open>
   environments (like Gnome) disrupt the handling of menu popups and mouse
   positions of Java/AWT/Swing.
 
-  \<^bold>\<open>Workaround:\<close> Use mainstream versions of Linux desktops.
-
-  \<^item> \<^bold>\<open>Problem:\<close> Native Windows look-and-feel with global font scaling leads to
-  bad GUI rendering of various tree views.
-
-  \<^bold>\<open>Workaround:\<close> Use \<^emph>\<open>Metal\<close> look-and-feel and re-adjust its primary and
-  secondary font as explained in \secref{sec:hdpi}.
+  \<^bold>\<open>Workaround:\<close> Use suitable version of Linux desktops.
 
   \<^item> \<^bold>\<open>Problem:\<close> Full-screen mode via jEdit action @{action_ref
   "toggle-full-screen"} (default keyboard shortcut \<^verbatim>\<open>F11\<close>) works on Windows,
