@@ -11625,6 +11625,108 @@ proof -
     by (force intro!: exI[where x="\<Inter>C\<in>CC. X0 (c C)"])
 qed
 
+lemma continuous_on_prod_compactE:
+  fixes fx::"'a::topological_space \<times> 'b::topological_space \<Rightarrow> 'c::metric_space"
+    and e::real
+  assumes cont_fx: "continuous_on (U \<times> C) fx"
+  assumes "compact C"
+  assumes [intro]: "x0 \<in> U"
+  notes [continuous_intros] = continuous_on_compose2[OF cont_fx]
+  assumes "e > 0"
+  obtains X0 where "x0 \<in> X0" "open X0"
+    "\<forall>x\<in>X0 \<inter> U. \<forall>t \<in> C. dist (fx (x, t)) (fx (x0, t)) \<le> e"
+proof -
+  def psi \<equiv> "\<lambda>(x, t). dist (fx (x, t)) (fx (x0, t))"
+  def W0 \<equiv> "{(x, t) \<in> U \<times> C. psi (x, t) < e}"
+  have W0_eq: "W0 = psi -` {..<e} \<inter> U \<times> C"
+    by (auto simp: vimage_def W0_def)
+  have "open {..<e}" by simp
+  have "continuous_on (U \<times> C) psi"
+    by (auto intro!: continuous_intros simp: psi_def split_beta')
+  from this[unfolded continuous_on_open_invariant, rule_format, OF \<open>open {..<e}\<close>]
+  obtain W where W: "open W" "W \<inter> U \<times> C = W0 \<inter> U \<times> C"
+    unfolding W0_eq by blast
+  have "{x0} \<times> C \<subseteq> W \<inter> U \<times> C"
+    unfolding W
+    by (auto simp: W0_def psi_def \<open>0 < e\<close>)
+  then have "{x0} \<times> C \<subseteq> W" by blast
+  from tube_lemma[OF \<open>compact C\<close> \<open>open W\<close> this]
+  obtain X0 where X0: "x0 \<in> X0" "open X0" "X0 \<times> C \<subseteq> W"
+    by blast
+
+  have "\<forall>x\<in>X0 \<inter> U. \<forall>t \<in> C. dist (fx (x, t)) (fx (x0, t)) \<le> e"
+  proof safe
+    fix x assume x: "x \<in> X0" "x \<in> U"
+    fix t assume t: "t \<in> C"
+    have "dist (fx (x, t)) (fx (x0, t)) = psi (x, t)"
+      by (auto simp: psi_def)
+    also
+    {
+      have "(x, t) \<in> X0 \<times> C"
+        using t x
+        by auto
+      also note \<open>\<dots> \<subseteq> W\<close>
+      finally have "(x, t) \<in> W" .
+      with t x have "(x, t) \<in> W \<inter> U \<times> C"
+        by blast
+      also note \<open>W \<inter> U \<times> C = W0 \<inter> U \<times> C\<close>
+      finally  have "psi (x, t) < e"
+        by (auto simp: W0_def)
+    }
+    finally show "dist (fx (x, t)) (fx (x0, t)) \<le> e" by simp
+  qed
+  from X0(1,2) this show ?thesis ..
+qed
+
+lemma integral_continuous_on_param:
+  fixes f::"'a::topological_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::banach"
+  assumes cont_fx: "continuous_on (U \<times> cbox a b) (\<lambda>(x, t). f x t)"
+  shows "continuous_on U (\<lambda>x. integral (cbox a b) (f x))"
+proof cases
+  assume "content (cbox a b) \<noteq> 0"
+  then have ne: "cbox a b \<noteq> {}" by auto
+
+  note [continuous_intros] =
+    continuous_on_compose2[OF cont_fx, where f="\<lambda>y. Pair x y" for x,
+      unfolded split_beta fst_conv snd_conv]
+
+  show ?thesis
+    unfolding continuous_on_def
+  proof (safe intro!: tendstoI)
+    fix e'::real and x
+    assume "e' > 0"
+    def e \<equiv> "e' / (content (cbox a b) + 1)"
+    have "e > 0" using \<open>e' > 0\<close> by (auto simp: e_def intro!: divide_pos_pos add_nonneg_pos)
+    assume "x \<in> U"
+    from continuous_on_prod_compactE[OF cont_fx compact_cbox \<open>x \<in> U\<close> \<open>0 < e\<close>]
+    obtain X0 where X0: "x \<in> X0" "open X0"
+      and fx_bound: "\<And>y t. y \<in> X0 \<inter> U \<Longrightarrow> t \<in> cbox a b \<Longrightarrow> norm (f y t - f x t) \<le> e"
+      unfolding split_beta fst_conv snd_conv dist_norm
+      by metis
+    have "\<forall>\<^sub>F y in at x within U. y \<in> X0 \<inter> U"
+      using X0(1) X0(2) eventually_at_topological by auto
+    then show "\<forall>\<^sub>F y in at x within U. dist (integral (cbox a b) (f y)) (integral (cbox a b) (f x)) < e'"
+    proof eventually_elim
+      case (elim y)
+      have "dist (integral (cbox a b) (f y)) (integral (cbox a b) (f x)) =
+        norm (integral (cbox a b) (\<lambda>t. f y t - f x t))"
+        using elim \<open>x \<in> U\<close>
+        unfolding dist_norm
+        by (subst integral_diff)
+           (auto intro!: integrable_continuous continuous_intros)
+      also have "\<dots> \<le> e * content (cbox a b)"
+        using elim \<open>x \<in> U\<close>
+        by (intro integrable_bound)
+           (auto intro!: fx_bound \<open>x \<in> U \<close> less_imp_le[OF \<open>0 < e\<close>]
+              integrable_continuous continuous_intros)
+      also have "\<dots> < e'"
+        using \<open>0 < e'\<close> \<open>e > 0\<close>
+        by (auto simp: e_def divide_simps)
+      finally show "dist (integral (cbox a b) (f y)) (integral (cbox a b) (f x)) < e'" .
+    qed
+  qed
+qed (auto intro!: continuous_on_const)
+
 lemma eventually_closed_segment:
   fixes x0::"'a::real_normed_vector"
   assumes "open X0" "x0 \<in> X0"
@@ -11646,47 +11748,36 @@ proof -
 qed
 
 lemma leibniz_rule:
-  fixes f::"'a::banach \<times> 'b::euclidean_space \<Rightarrow> 'c::banach"
-  assumes fx: "\<And>x t. x \<in> U \<Longrightarrow> t \<in> (cbox a b) \<Longrightarrow>
-    ((\<lambda>x. f (x, t)) has_derivative blinfun_apply (fx (x, t))) (at x within U)"
-  assumes integrable_f2: "\<And>x. x \<in> U \<Longrightarrow> (\<lambda>t. f (x, t)) integrable_on cbox a b"
-  assumes cont_fx: "continuous_on (U \<times> (cbox a b)) fx"
+  fixes f::"'a::banach \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::banach"
+  assumes fx: "\<And>x t. x \<in> U \<Longrightarrow> t \<in> cbox a b \<Longrightarrow>
+    ((\<lambda>x. f x t) has_derivative blinfun_apply (fx x t)) (at x within U)"
+  assumes integrable_f2: "\<And>x. x \<in> U \<Longrightarrow> f x integrable_on cbox a b"
+  assumes cont_fx: "continuous_on (U \<times> (cbox a b)) (\<lambda>(x, t). fx x t)"
   assumes [intro]: "x0 \<in> U"
   assumes "convex U"
-  notes [continuous_intros] = continuous_on_compose2[OF cont_fx]
   shows
-    "((\<lambda>x. integral (cbox a b) (\<lambda>t. f (x, t))) has_derivative integral (cbox a b) (\<lambda>t. fx (x0, t)))
-      (at x0 within U)"
+    "((\<lambda>x. integral (cbox a b) (f x)) has_derivative integral (cbox a b) (fx x0)) (at x0 within U)"
     (is "(?F has_derivative ?dF) _")
 proof cases
   assume "content (cbox a b) \<noteq> 0"
   then have ne: "cbox a b \<noteq> {}" by auto
+  note [continuous_intros] =
+    continuous_on_compose2[OF cont_fx, where f="\<lambda>y. Pair x y" for x,
+      unfolded split_beta fst_conv snd_conv]
   show ?thesis
   proof (intro has_derivativeI bounded_linear_scaleR_left tendstoI, fold norm_conv_dist)
-    have cont_f1: "\<And>t. t \<in> cbox a b \<Longrightarrow> continuous_on U (\<lambda>x. f (x, t))"
+    have cont_f1: "\<And>t. t \<in> cbox a b \<Longrightarrow> continuous_on U (\<lambda>x. f x t)"
       by (auto simp: continuous_on_eq_continuous_within intro!: has_derivative_continuous fx)
     note [continuous_intros] = continuous_on_compose2[OF cont_f1]
     fix e'::real
     assume "e' > 0"
     def e \<equiv> "e' / (content (cbox a b) + 1)"
     have "e > 0" using \<open>e' > 0\<close> by (auto simp: e_def intro!: divide_pos_pos add_nonneg_pos)
-    def psi \<equiv> "\<lambda>(x, t). fx (x, t) - fx (x0, t)"
-    def W0 \<equiv> "{(x, t) \<in> U \<times> (cbox a b). norm (psi (x, t)) < e}"
-    have W0_eq: "W0 = (\<lambda>(x, t). norm (psi (x, t))) -` {..<e} \<inter> U \<times> (cbox a b)"
-      by (auto simp: vimage_def W0_def)
-    have "open {..<e}" by simp
-    have "continuous_on (U \<times> (cbox a b)) (\<lambda>(x, t). norm (psi (x, t)))"
-      by (auto intro!: continuous_intros simp: psi_def split_beta')
-    from this[unfolded continuous_on_open_invariant, rule_format, OF \<open>open {..<e}\<close>]
-    obtain W where W: "open W" "W \<inter> U \<times> (cbox a b) = W0 \<inter> U \<times> (cbox a b)"
-      unfolding W0_eq by blast
-    have "{x0} \<times> (cbox a b) \<subseteq> W \<inter> U \<times> (cbox a b)"
-      unfolding W
-      by (auto simp: W0_def psi_def \<open>0 < e\<close>)
-    then have "{x0} \<times> cbox a b \<subseteq> W" by blast
-    from tube_lemma[OF compact_cbox[of a b] \<open>open W\<close> this]
-    obtain X0 where X0: "x0 \<in> X0" "open X0" "X0 \<times> cbox a b \<subseteq> W"
-      by blast
+    from continuous_on_prod_compactE[OF cont_fx compact_cbox \<open>x0 \<in> U\<close> \<open>e > 0\<close>]
+    obtain X0 where X0: "x0 \<in> X0" "open X0"
+      and fx_bound: "\<And>x t. x \<in> X0 \<inter> U \<Longrightarrow> t \<in> cbox a b \<Longrightarrow> norm (fx x t - fx x0 t) \<le> e"
+      unfolding split_beta fst_conv snd_conv
+      by (metis dist_norm)
 
     note eventually_closed_segment[OF \<open>open X0\<close> \<open>x0 \<in> X0\<close>, of U]
     moreover
@@ -11706,7 +11797,7 @@ proof cases
       from elim have [intro]: "x \<in> U" by auto
 
       have "?F x - ?F x0 - ?dF (x - x0) =
-        integral (cbox a b) (\<lambda>xa. f (x, xa) - f (x0, xa) - fx (x0, xa) (x - x0))"
+        integral (cbox a b) (\<lambda>y. f x y - f x0 y - fx x0 y (x - x0))"
         (is "_ = ?id")
         using \<open>x \<noteq> x0\<close>
         by (subst blinfun_apply_integral integral_diff,
@@ -11715,42 +11806,21 @@ proof cases
       also
       {
         fix t assume t: "t \<in> (cbox a b)"
-        have seg: "\<And>t. t \<in> {0..1} \<Longrightarrow> x0 + t *\<^sub>R (x - x0) \<in> closed_segment x0 x \<inter> U"
+        have seg: "\<And>t. t \<in> {0..1} \<Longrightarrow> x0 + t *\<^sub>R (x - x0) \<in> X0 \<inter> U"
           using \<open>closed_segment x0 x \<subseteq> U\<close>
+            \<open>closed_segment x0 x \<subseteq> X0\<close>
           by (force simp: closed_segment_def algebra_simps)
         from t have deriv:
-          "((\<lambda>x. f (x, t)) has_derivative (fx (y, t))) (at y within closed_segment x0 x \<inter> U)"
-          if "y \<in> closed_segment x0 x \<inter> U" for y
+          "((\<lambda>x. f x t) has_derivative (fx y t)) (at y within X0 \<inter> U)"
+          if "y \<in> X0 \<inter> U" for y
           unfolding has_vector_derivative_def[symmetric]
           using that \<open>x \<in> X0\<close>
           by (intro has_derivative_within_subset[OF fx]) auto
-        have "\<forall>x\<in>closed_segment x0 x \<inter> U. norm (fx (x, t) - fx (x0, t)) \<le> e"
-        proof
-          fix y assume y: "y \<in> closed_segment x0 x \<inter> U"
-          have "norm (fx (y, t) - fx (x0, t)) = norm (psi (y, t))"
-            by (auto simp: psi_def)
-          also
-          {
-            have "(y, t) \<in> X0 \<times> (cbox a b)"
-              using t \<open>closed_segment x0 x \<subseteq> X0\<close> y
-              by auto
-            also note \<open>\<dots> \<subseteq> W\<close>
-            finally have "(y, t) \<in> W" .
-            with t y have "(y, t) \<in> W \<inter> U \<times> (cbox a b)"
-              by blast
-            also note \<open>W \<inter> U \<times> (cbox a b) = W0 \<inter> U \<times> (cbox a b)\<close>
-            finally  have "norm (psi (y, t)) < e"
-              by (auto simp: W0_def)
-          }
-          finally show "norm (fx (y, t) - fx (x0, t)) \<le> e" by simp
-        qed
-        then have onorm:
-          "\<forall>x\<in>closed_segment x0 x \<inter> U.
-            onorm (blinfun_apply (fx (x, t)) - blinfun_apply (fx (x0, t))) \<le> e"
-          by (auto simp: norm_blinfun.rep_eq blinfun.diff_left[abs_def] fun_diff_def)
-
-        from differentiable_bound_linearization[OF seg deriv onorm]
-        have "norm (f (x, t) - f (x0, t) - fx (x0, t) (x - x0)) \<le> e * norm (x - x0)"
+        have "\<forall>x \<in> X0 \<inter> U. onorm (blinfun_apply (fx x t) - (fx x0 t)) \<le> e"
+          using fx_bound t
+          by (auto simp add: norm_blinfun_def fun_diff_def blinfun.bilinear_simps[symmetric])
+        from differentiable_bound_linearization[OF seg deriv this] X0
+        have "norm (f x t - f x0 t - fx x0 t (x - x0)) \<le> e * norm (x - x0)"
           by (auto simp add: ac_simps)
       }
       then have "norm ?id \<le> integral (cbox a b) (\<lambda>_. e * norm (x - x0))"
@@ -11777,28 +11847,29 @@ lemma
   by (simp add: has_vector_derivative_def)
 
 lemma leibniz_rule_vector_derivative:
-  fixes f::"real \<times> 'b::euclidean_space \<Rightarrow> 'c::banach"
-  assumes fx: "\<And>x t. x \<in> U \<Longrightarrow> t \<in> (cbox a b) \<Longrightarrow>
-      ((\<lambda>x. f (x, t)) has_vector_derivative (fx (x, t))) (at x within U)"
-  assumes integrable_f2: "\<And>x. x \<in> U \<Longrightarrow> (\<lambda>t. f (x, t)) integrable_on cbox a b"
-  assumes cont_fx: "continuous_on (U \<times> (cbox a b)) fx"
+  fixes f::"real \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::banach"
+  assumes fx: "\<And>x t. x \<in> U \<Longrightarrow> t \<in> cbox a b \<Longrightarrow>
+      ((\<lambda>x. f x t) has_vector_derivative (fx x t)) (at x within U)"
+  assumes integrable_f2: "\<And>x. x \<in> U \<Longrightarrow> (f x) integrable_on cbox a b"
+  assumes cont_fx: "continuous_on (U \<times> cbox a b) (\<lambda>(x, t). fx x t)"
   assumes U: "x0 \<in> U" "convex U"
-  notes [continuous_intros] = continuous_on_compose2[OF cont_fx]
-  shows
-    "((\<lambda>x. integral (cbox a b) (\<lambda>t. f (x, t))) has_vector_derivative
-      integral (cbox a b) (\<lambda>t. fx (x0, t))) (at x0 within U)"
+  shows "((\<lambda>x. integral (cbox a b) (f x)) has_vector_derivative integral (cbox a b) (fx x0))
+      (at x0 within U)"
 proof -
-  have *: "blinfun_scaleR_left (integral (cbox a b) (\<lambda>t. fx (x0, t))) =
-    integral (cbox a b) (\<lambda>t. blinfun_scaleR_left (fx (x0, t)))"
+  note [continuous_intros] =
+    continuous_on_compose2[OF cont_fx, where f="\<lambda>y. Pair x y" for x,
+      unfolded split_beta fst_conv snd_conv]
+  have *: "blinfun_scaleR_left (integral (cbox a b) (fx x0)) =
+    integral (cbox a b) (\<lambda>t. blinfun_scaleR_left (fx x0 t))"
     by (subst integral_linear[symmetric])
        (auto simp: has_vector_derivative_def o_def
          intro!: integrable_continuous U continuous_intros bounded_linear_intros)
   show ?thesis
     unfolding has_vector_derivative_eq_has_derivative_blinfun
     apply (rule has_derivative_eq_rhs)
-    apply (rule leibniz_rule[OF _ integrable_f2 _ U, where fx="\<lambda>x. blinfun_scaleR_left (fx x)"])
-    using assms(1)
-    apply (auto simp: has_vector_derivative_def * intro!: continuous_intros)
+    apply (rule leibniz_rule[OF _ integrable_f2 _ U, where fx="\<lambda>x t. blinfun_scaleR_left (fx x t)"])
+    using fx cont_fx
+    apply (auto simp: has_vector_derivative_def * split_beta intro!: continuous_intros)
     done
 qed
 
@@ -11808,25 +11879,27 @@ lemma
   by (simp add: has_field_derivative_def)
 
 lemma leibniz_rule_field_derivative:
-  fixes f::"'a::{real_normed_field, banach} \<times> 'b::euclidean_space \<Rightarrow> 'a"
-  assumes fx: "\<And>x t. x \<in> U \<Longrightarrow> t \<in> (cbox a b) \<Longrightarrow> ((\<lambda>x. f (x, t)) has_field_derivative (fx (x, t))) (at x within U)"
-  assumes integrable_f2: "\<And>x. x \<in> U \<Longrightarrow> (\<lambda>t. f (x, t)) integrable_on cbox a b"
-  assumes cont_fx: "continuous_on (U \<times> (cbox a b)) fx"
+  fixes f::"'a::{real_normed_field, banach} \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'a"
+  assumes fx: "\<And>x t. x \<in> U \<Longrightarrow> t \<in> cbox a b \<Longrightarrow> ((\<lambda>x. f x t) has_field_derivative fx x t) (at x within U)"
+  assumes integrable_f2: "\<And>x. x \<in> U \<Longrightarrow> (f x) integrable_on cbox a b"
+  assumes cont_fx: "continuous_on (U \<times> (cbox a b)) (\<lambda>(x, t). fx x t)"
   assumes U: "x0 \<in> U" "convex U"
-  notes [continuous_intros] = continuous_on_compose2[OF cont_fx]
-  shows "((\<lambda>x. integral (cbox a b) (\<lambda>t. f (x, t))) has_field_derivative integral (cbox a b) (\<lambda>t. fx (x0, t))) (at x0 within U)"
+  shows "((\<lambda>x. integral (cbox a b) (f x)) has_field_derivative integral (cbox a b) (fx x0)) (at x0 within U)"
 proof -
-  have *: "blinfun_mult_right (integral (cbox a b) (\<lambda>t. fx (x0, t))) =
-    integral (cbox a b) (\<lambda>t. blinfun_mult_right (fx (x0, t)))"
+  note [continuous_intros] =
+    continuous_on_compose2[OF cont_fx, where f="\<lambda>y. Pair x y" for x,
+      unfolded split_beta fst_conv snd_conv]
+  have *: "blinfun_mult_right (integral (cbox a b) (fx x0)) =
+    integral (cbox a b) (\<lambda>t. blinfun_mult_right (fx x0 t))"
     by (subst integral_linear[symmetric])
       (auto simp: has_vector_derivative_def o_def
         intro!: integrable_continuous U continuous_intros bounded_linear_intros)
   show ?thesis
     unfolding has_field_derivative_eq_has_derivative_blinfun
     apply (rule has_derivative_eq_rhs)
-    apply (rule leibniz_rule[OF _ integrable_f2 _ U, where fx="\<lambda>x. blinfun_mult_right (fx x)"])
-    using assms(1)
-    apply (auto simp: has_field_derivative_def * intro!: continuous_intros)
+    apply (rule leibniz_rule[OF _ integrable_f2 _ U, where fx="\<lambda>x t. blinfun_mult_right (fx x t)"])
+    using fx cont_fx
+    apply (auto simp: has_field_derivative_def * split_beta intro!: continuous_intros)
     done
 qed
 
