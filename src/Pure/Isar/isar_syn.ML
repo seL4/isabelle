@@ -171,7 +171,7 @@ val _ =
     ((#1 o dest_Type) oo Proof_Context.read_type_name {proper = true, strict = false});
 
 val _ =
-  hide_names @{command_keyword hide_const} "constants" Sign.hide_const Parse.const
+  hide_names @{command_keyword hide_const} "consts" Sign.hide_const Parse.const
     ((#1 o dest_Const) oo Proof_Context.read_const {proper = true, strict = false});
 
 val _ =
