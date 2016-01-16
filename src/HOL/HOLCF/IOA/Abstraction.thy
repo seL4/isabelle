@@ -114,21 +114,6 @@ lemma AbsRuleT1:
   done
 
 
-(* FIXME: to TLS.thy *)
-
-lemma IMPLIES_temp_sat [simp]: "(ex \<TTurnstile> P \<^bold>\<longrightarrow> Q) \<longleftrightarrow> ((ex \<TTurnstile> P) \<longrightarrow> (ex \<TTurnstile> Q))"
-  by (simp add: IMPLIES_def temp_sat_def satisfies_def)
-
-lemma AND_temp_sat [simp]: "(ex \<TTurnstile> P \<^bold>\<and> Q) \<longleftrightarrow> ((ex \<TTurnstile> P) \<and> (ex \<TTurnstile> Q))"
-  by (simp add: AND_def temp_sat_def satisfies_def)
-
-lemma OR_temp_sat [simp]: "(ex \<TTurnstile> P \<^bold>\<or> Q) \<longleftrightarrow> ((ex \<TTurnstile> P) \<or> (ex \<TTurnstile> Q))"
-  by (simp add: OR_def temp_sat_def satisfies_def)
-
-lemma NOT_temp_sat [simp]: "(ex \<TTurnstile> \<^bold>\<not> P) \<longleftrightarrow> (\<not> (ex \<TTurnstile> P))"
-  by (simp add: NOT_def temp_sat_def satisfies_def)
-
-
 lemma AbsRuleT2:
   "is_live_abstraction h (C, L) (A, M) \<Longrightarrow> validLIOA (A, M) Q \<Longrightarrow> temp_strengthening Q P h
     \<Longrightarrow> validLIOA (C, L) P"
@@ -216,11 +201,6 @@ lemma abs_liveness:
   apply (simp add: temp_weakening_def2)
    apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
   done
-
-(* FIXME: to Traces.thy *)
-
-lemma implements_trans: "A =<| B \<Longrightarrow> B =<| C \<Longrightarrow> A =<| C"
-  by (auto simp add: ioa_implements_def)
 
 
 subsection \<open>Abstraction Rules for Automata\<close>
@@ -328,15 +308,6 @@ lemma ex2seq_tsuffix: "tsuffix s (ex2seq ex) \<Longrightarrow> \<exists>ex'. s =
   done
 
 
-(* FIXME: to Sequence.thy *)
-
-lemma Mapnil: "Map f $ s = nil \<longleftrightarrow> s = nil"
-  by (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
-
-lemma MapUU: "Map f $ s = UU \<longleftrightarrow> s = UU"
-  by (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
-
-
 (*important property of cex_absSeq: As it is a 1to1 correspondence,
   properties carry over *)
 lemma cex_absSeq_tsuffix: "tsuffix s t \<Longrightarrow> tsuffix (cex_absSeq h s) (cex_absSeq h t)"
@@ -389,10 +360,6 @@ lemma TL_ex2seq_nil: "TL $ (ex2seq (cex_abs h ex)) = nil \<longleftrightarrow> T
   apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
   apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
   done
-
-(* FIXME: put to Sequence Lemmas *)
-lemma MapTL: "Map f $ (TL $ s) = TL $ (Map f $ s)"
-  by (tactic \<open>Seq_induct_tac @{context} "s" [] 1\<close>)
 
 (*important property of cex_absSeq: As it is a 1to1 correspondence,
   properties carry over*)

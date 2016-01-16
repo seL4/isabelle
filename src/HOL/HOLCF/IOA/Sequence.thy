@@ -995,4 +995,13 @@ fun pair_induct_tac ctxt s rws i =
   THEN simp_tac (ctxt addsimps rws) i;
 \<close>
 
+lemma Mapnil: "Map f $ s = nil \<longleftrightarrow> s = nil"
+  by (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+
+lemma MapUU: "Map f $ s = UU \<longleftrightarrow> s = UU"
+  by (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+
+lemma MapTL: "Map f $ (TL $ s) = TL $ (Map f $ s)"
+  by (tactic \<open>Seq_induct_tac @{context} "s" [] 1\<close>)
+
 end

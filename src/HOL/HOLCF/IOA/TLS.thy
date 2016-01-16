@@ -52,6 +52,19 @@ definition validIOA :: "('a, 's) ioa \<Rightarrow> ('a, 's) ioa_temp \<Rightarro
   where "validIOA A P \<longleftrightarrow> (\<forall>ex \<in> executions A. (ex \<TTurnstile> P))"
 
 
+lemma IMPLIES_temp_sat [simp]: "(ex \<TTurnstile> P \<^bold>\<longrightarrow> Q) \<longleftrightarrow> ((ex \<TTurnstile> P) \<longrightarrow> (ex \<TTurnstile> Q))"
+  by (simp add: IMPLIES_def temp_sat_def satisfies_def)
+
+lemma AND_temp_sat [simp]: "(ex \<TTurnstile> P \<^bold>\<and> Q) \<longleftrightarrow> ((ex \<TTurnstile> P) \<and> (ex \<TTurnstile> Q))"
+  by (simp add: AND_def temp_sat_def satisfies_def)
+
+lemma OR_temp_sat [simp]: "(ex \<TTurnstile> P \<^bold>\<or> Q) \<longleftrightarrow> ((ex \<TTurnstile> P) \<or> (ex \<TTurnstile> Q))"
+  by (simp add: OR_def temp_sat_def satisfies_def)
+
+lemma NOT_temp_sat [simp]: "(ex \<TTurnstile> \<^bold>\<not> P) \<longleftrightarrow> (\<not> (ex \<TTurnstile> P))"
+  by (simp add: NOT_def temp_sat_def satisfies_def)
+
+
 axiomatization
 where mkfin_UU [simp]: "mkfin UU = nil"
   and mkfin_nil [simp]: "mkfin nil = nil"

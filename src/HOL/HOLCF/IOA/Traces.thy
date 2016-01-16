@@ -139,6 +139,9 @@ definition fair_implements :: "('a, 's1) ioa \<Rightarrow> ('a, 's2) ioa \<Right
   where "fair_implements C A \<longleftrightarrow>
     inp C = inp A \<and> out C = out A \<and> fairtraces C \<subseteq> fairtraces A"
 
+lemma implements_trans: "A =<| B \<Longrightarrow> B =<| C \<Longrightarrow> A =<| C"
+  by (auto simp add: ioa_implements_def)
+
 
 subsection \<open>Modules\<close>
 
