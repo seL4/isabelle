@@ -88,7 +88,7 @@ lemma exec_frag_abstraction [rule_format]:
   "is_abstraction h C A \<Longrightarrow>
     \<forall>s. reachable C s \<and> is_exec_frag C (s, xs) \<longrightarrow> is_exec_frag A (cex_abs h (s, xs))"
   apply (simp add: cex_abs_def)
-  apply (tactic \<open>pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}] 1\<close>)
+  apply (pair_induct xs simp: is_exec_frag_def)
   txt \<open>main case\<close>
   apply (auto dest: reachable.reachable_n simp add: is_abstraction_def)
   done
@@ -164,7 +164,7 @@ lemma traces_coincide_abs:
   "ext C = ext A \<Longrightarrow> mk_trace C $ xs = mk_trace A $ (snd (cex_abs f (s, xs)))"
   apply (unfold cex_abs_def mk_trace_def filter_act_def)
   apply simp
-  apply (tactic \<open>pair_induct_tac @{context} "xs" [] 1\<close>)
+  apply (pair_induct xs)
   done
 
 
@@ -182,13 +182,13 @@ lemma abs_liveness:
   apply (rule_tac x = "cex_abs h ex" in exI)
   apply auto
   text \<open>Traces coincide\<close>
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (rule traces_coincide_abs)
   apply (simp (no_asm) add: externals_def)
   apply (auto)[1]
 
   text \<open>\<open>cex_abs\<close> is execution\<close>
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (simp add: executions_def)
   text \<open>start state\<close>
   apply (rule conjI)
@@ -199,7 +199,7 @@ lemma abs_liveness:
 
   text \<open>Liveness\<close>
   apply (simp add: temp_weakening_def2)
-   apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+   apply (pair ex)
   done
 
 
@@ -279,23 +279,23 @@ subsubsection \<open>Box\<close>
 
 (* FIXME: should be same as nil_is_Conc2 when all nils are turned to right side! *)
 lemma UU_is_Conc: "(UU = x @@ y) = (((x::'a Seq)= UU) | (x = nil \<and> y = UU))"
-  by (tactic \<open>Seq_case_simp_tac @{context} "x" 1\<close>)
+  by (Seq_case_simp x)
 
 lemma ex2seqConc [rule_format]:
   "Finite s1 \<longrightarrow> (\<forall>ex. (s \<noteq> nil \<and> s \<noteq> UU \<and> ex2seq ex = s1 @@ s) \<longrightarrow> (\<exists>ex'. s = ex2seq ex'))"
   apply (rule impI)
-  apply (tactic \<open>Seq_Finite_induct_tac @{context} 1\<close>)
+  apply Seq_Finite_induct
   apply blast
   text \<open>main case\<close>
   apply clarify
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
+  apply (pair ex)
+  apply (Seq_case_simp x2)
   text \<open>\<open>UU\<close> case\<close>
   apply (simp add: nil_is_Conc)
   text \<open>\<open>nil\<close> case\<close>
   apply (simp add: nil_is_Conc)
   text \<open>cons case\<close>
-  apply (tactic \<open>pair_tac @{context} "aa" 1\<close>)
+  apply (pair aa)
   apply auto
   done
 
@@ -337,28 +337,28 @@ lemma strength_Init:
   apply (unfold temp_strengthening_def state_strengthening_def
     temp_sat_def satisfies_def Init_def unlift_def)
   apply auto
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+  apply (pair ex)
+  apply (Seq_case_simp x2)
+  apply (pair a)
   done
 
 
 subsubsection \<open>Next\<close>
 
 lemma TL_ex2seq_UU: "TL $ (ex2seq (cex_abs h ex)) = UU \<longleftrightarrow> TL $ (ex2seq ex) = UU"
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+  apply (pair ex)
+  apply (Seq_case_simp x2)
+  apply (pair a)
+  apply (Seq_case_simp s)
+  apply (pair a)
   done
 
 lemma TL_ex2seq_nil: "TL $ (ex2seq (cex_abs h ex)) = nil \<longleftrightarrow> TL $ (ex2seq ex) = nil"
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+  apply (pair ex)
+  apply (Seq_case_simp x2)
+  apply (pair a)
+  apply (Seq_case_simp s)
+  apply (pair a)
   done
 
 (*important property of cex_absSeq: As it is a 1to1 correspondence,
@@ -368,18 +368,18 @@ lemma cex_absSeq_TL: "cex_absSeq h (TL $ s) = TL $ (cex_absSeq h s)"
 
 (* important property of ex2seq: can be shiftet, as defined "pointwise" *)
 lemma TLex2seq: "snd ex \<noteq> UU \<Longrightarrow> snd ex \<noteq> nil \<Longrightarrow> \<exists>ex'. TL$(ex2seq ex) = ex2seq ex'"
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+  apply (pair ex)
+  apply (Seq_case_simp x2)
+  apply (pair a)
   apply auto
   done
 
 lemma ex2seqnilTL: "TL $ (ex2seq ex) \<noteq> nil \<longleftrightarrow> snd ex \<noteq> nil \<and> snd ex \<noteq> UU"
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+  apply (pair ex)
+  apply (Seq_case_simp x2)
+  apply (pair a)
+  apply (Seq_case_simp s)
+  apply (pair a)
   done
 
 lemma strength_Next: "temp_strengthening P Q h \<Longrightarrow> temp_strengthening (Next P) (Next Q) h"
@@ -405,9 +405,9 @@ lemma weak_Init: "state_weakening P Q h \<Longrightarrow> temp_weakening (Init P
   apply (simp add: temp_weakening_def2 state_weakening_def2
     temp_sat_def satisfies_def Init_def unlift_def)
   apply auto
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+  apply (pair ex)
+  apply (Seq_case_simp x2)
+  apply (pair a)
   done
 
 

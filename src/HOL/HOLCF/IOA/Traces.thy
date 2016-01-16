@@ -272,7 +272,7 @@ lemma laststate_cons: "Finite ex \<Longrightarrow> laststate (s, at \<leadsto> e
 declare laststate_UU [simp] laststate_nil [simp] laststate_cons [simp]
 
 lemma exists_laststate: "Finite ex \<Longrightarrow> \<forall>s. \<exists>u. laststate (s, ex) = u"
-  by (tactic "Seq_Finite_induct_tac @{context} 1")
+  by Seq_Finite_induct
 
 
 subsection \<open>\<open>has_trace\<close> \<open>mk_trace\<close>\<close>
@@ -297,8 +297,7 @@ text \<open>
 
 lemma execfrag_in_sig:
   "is_trans_of A \<Longrightarrow> \<forall>s. is_exec_frag A (s, xs) \<longrightarrow> Forall (\<lambda>a. a \<in> act A) (filter_act $ xs)"
-  apply (tactic \<open>pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def},
-    @{thm Forall_def}, @{thm sforall_def}] 1\<close>)
+  apply (pair_induct xs simp: is_exec_frag_def Forall_def sforall_def)
   text \<open>main case\<close>
   apply (auto simp add: is_trans_of_def)
   done
@@ -306,7 +305,7 @@ lemma execfrag_in_sig:
 lemma exec_in_sig:
   "is_trans_of A \<Longrightarrow> x \<in> executions A \<Longrightarrow> Forall (\<lambda>a. a \<in> act A) (filter_act $ (snd x))"
   apply (simp add: executions_def)
-  apply (tactic \<open>pair_tac @{context} "x" 1\<close>)
+  apply (pair x)
   apply (rule execfrag_in_sig [THEN spec, THEN mp])
   apply auto
   done
@@ -321,10 +320,10 @@ subsection \<open>Executions are prefix closed\<close>
 
 (*only admissible in y, not if done in x!*)
 lemma execfrag_prefixclosed: "\<forall>x s. is_exec_frag A (s, x) \<and> y \<sqsubseteq> x \<longrightarrow> is_exec_frag A (s, y)"
-  apply (tactic \<open>pair_induct_tac @{context} "y" [@{thm is_exec_frag_def}] 1\<close>)
+  apply (pair_induct y simp: is_exec_frag_def)
   apply (intro strip)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "x" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+  apply (Seq_case_simp x)
+  apply (pair a)
   apply auto
   done
 
@@ -334,10 +333,10 @@ lemmas exec_prefixclosed =
 (*second prefix notion for Finite x*)
 lemma exec_prefix2closed [rule_format]:
   "\<forall>y s. is_exec_frag A (s, x @@ y) \<longrightarrow> is_exec_frag A (s, x)"
-  apply (tactic \<open>pair_induct_tac @{context} "x" [@{thm is_exec_frag_def}] 1\<close>)
+  apply (pair_induct x simp: is_exec_frag_def)
   apply (intro strip)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+  apply (Seq_case_simp s)
+  apply (pair a)
   apply auto
   done
 

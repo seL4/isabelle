@@ -113,7 +113,7 @@ subsection \<open>LTL Axioms by Manna/Pnueli\<close>
 lemma tsuffix_TL [rule_format]: "s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> tsuffix s2 (TL $ s) \<longrightarrow> tsuffix s2 s"
   apply (unfold tsuffix_def suffix_def)
   apply auto
-  apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+  apply (Seq_case_simp s)
   apply (rule_tac x = "a \<leadsto> s1" in exI)
   apply auto
   done

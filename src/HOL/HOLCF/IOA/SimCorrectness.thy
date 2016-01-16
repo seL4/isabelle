@@ -163,8 +163,8 @@ lemma traces_coincide_sim [rule_format (no_asm)]:
     \<forall>s s'. reachable C s \<and> is_exec_frag C (s, ex) \<and> (s, s') \<in> R \<longrightarrow>
       mk_trace C $ ex = mk_trace A $ ((corresp_ex_simC A R $ ex) s')"
   supply split_if [split del]
-  apply (tactic \<open>pair_induct_tac @{context} "ex" [@{thm is_exec_frag_def}] 1\<close>)
-  (* cons case *)
+  apply (pair_induct ex simp: is_exec_frag_def)
+  text \<open>cons case\<close>
   apply auto
   apply (rename_tac ex a t s s')
   apply (simp add: mk_traceConc)
@@ -182,7 +182,7 @@ lemma correspsim_is_execution [rule_format]:
   "is_simulation R C A \<Longrightarrow>
     \<forall>s s'. reachable C s \<and> is_exec_frag C (s, ex) \<and> (s, s') \<in> R
       \<longrightarrow> is_exec_frag A (s', (corresp_ex_simC A R $ ex) s')"
-  apply (tactic \<open>pair_induct_tac @{context} "ex" [@{thm is_exec_frag_def}] 1\<close>)
+  apply (pair_induct ex simp: is_exec_frag_def)
   text \<open>main case\<close>
   apply auto
   apply (rename_tac ex a t s s')
@@ -250,7 +250,7 @@ lemma trace_inclusion_for_simulations:
   apply (rule_tac x = "corresp_ex_sim A R ex" in bexI)
 
   text \<open>Traces coincide, Lemma 1\<close>
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (rename_tac s ex)
   apply (simp add: corresp_ex_sim_def)
   apply (rule_tac s = "s" in traces_coincide_sim)
@@ -258,7 +258,7 @@ lemma trace_inclusion_for_simulations:
   apply (simp add: executions_def reachable.reachable_0 sim_starts1)
 
   text \<open>\<open>corresp_ex_sim\<close> is execution, Lemma 2\<close>
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (simp add: executions_def)
   apply (rename_tac s ex)
 

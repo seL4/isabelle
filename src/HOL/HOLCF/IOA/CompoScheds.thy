@@ -200,7 +200,7 @@ lemma lemma_2_1b:
   \<comment> \<open>State-projections do not affect \<open>filter_act\<close>\<close>
   "filter_act $ (ProjA2 $ xs) = filter_act $ xs \<and>
     filter_act $ (ProjB2 $ xs) = filter_act $ xs"
-  by (tactic \<open>pair_induct_tac @{context} "xs" [] 1\<close>)
+  by (pair_induct xs)
 
 
 text \<open>
@@ -214,8 +214,7 @@ text \<open>
 
 lemma sch_actions_in_AorB:
   "\<forall>s. is_exec_frag (A \<parallel> B) (s, xs) \<longrightarrow> Forall (\<lambda>x. x \<in> act (A \<parallel> B)) (filter_act $ xs)"
-  apply (tactic \<open>pair_induct_tac @{context} "xs"
-    @{thms is_exec_frag_def Forall_def sforall_def} 1\<close>)
+  apply (pair_induct xs simp: is_exec_frag_def Forall_def sforall_def)
   text \<open>main case\<close>
   apply auto
   apply (simp add: trans_of_defs2 actions_asig_comp asig_of_par)
@@ -235,35 +234,34 @@ lemma Mapfst_mkex_is_sch:
     Filter (\<lambda>a. a \<in> act A) $ sch \<sqsubseteq> filter_act $ exA \<and>
     Filter (\<lambda>a. a \<in> act B) $ sch \<sqsubseteq> filter_act $ exB \<longrightarrow>
     filter_act $ (snd (mkex A B sch (s, exA) (t, exB))) = sch"
-  apply (tactic \<open>Seq_induct_tac @{context} "sch" [@{thm Filter_def}, @{thm Forall_def},
-    @{thm sforall_def}, @{thm mkex_def}] 1\<close>)
+  apply (Seq_induct sch simp: Filter_def Forall_def sforall_def mkex_def)
 
   text \<open>main case: splitting into 4 cases according to \<open>a \<in> A\<close>, \<open>a \<in> B\<close>\<close>
   apply auto
 
   text \<open>Case \<open>y \<in> A\<close>, \<open>y \<in> B\<close>\<close>
-  apply (tactic \<open>Seq_case_simp_tac @{context} "exA" 1\<close>)
+  apply (Seq_case_simp exA)
   text \<open>Case \<open>exA = UU\<close>, Case \<open>exA = nil\<close>\<close>
   text \<open>
     These \<open>UU\<close> and \<open>nil\<close> cases are the only places where the assumption
     \<open>filter A sch \<sqsubseteq> f_act exA\<close> is used!
     \<open>\<longrightarrow>\<close> to generate a contradiction using \<open>\<not> a \<leadsto> ss \<sqsubseteq> UU nil\<close>,
     using theorems \<open>Cons_not_less_UU\<close> and \<open>Cons_not_less_nil\<close>.\<close>
-  apply (tactic \<open>Seq_case_simp_tac @{context} "exB" 1\<close>)
+  apply (Seq_case_simp exB)
   text \<open>Case \<open>exA = a \<leadsto> x\<close>, \<open>exB = b \<leadsto> y\<close>\<close>
   text \<open>
-    Here it is important that \<open>Seq_case_simp_tac\<close> uses no \<open>!full!_simp_tac\<close>
+    Here it is important that @{method Seq_case_simp} uses no \<open>!full!_simp_tac\<close>
     for the cons case, as otherwise \<open>mkex_cons_3\<close> would not be rewritten
     without use of \<open>rotate_tac\<close>: then tactic would not be generally
     applicable.\<close>
   apply simp
 
   text \<open>Case \<open>y \<in> A\<close>, \<open>y \<notin> B\<close>\<close>
-  apply (tactic \<open>Seq_case_simp_tac @{context} "exA" 1\<close>)
+  apply (Seq_case_simp exA)
   apply simp
 
   text \<open>Case \<open>y \<notin> A\<close>, \<open>y \<in> B\<close>\<close>
-  apply (tactic \<open>Seq_case_simp_tac @{context} "exB" 1\<close>)
+  apply (Seq_case_simp exB)
   apply simp
 
   text \<open>Case \<open>y \<notin> A\<close>, \<open>y \<notin> B\<close>\<close>
@@ -373,7 +371,7 @@ text \<open>
 \<close>
 
 lemma Zip_Map_fst_snd: "Zip $ (Map fst $ y) $ (Map snd $ y) = y"
-  by (tactic \<open>Seq_induct_tac @{context} "y" [] 1\<close>)
+  by (Seq_induct y)
 
 
 text \<open>
@@ -399,8 +397,8 @@ lemma filter_mkex_is_exA:
     Filter (\<lambda>a. a \<in> act B) $ sch = filter_act $ (snd exB) \<Longrightarrow>
   Filter_ex (asig_of A) (ProjA (mkex A B sch exA exB)) = exA"
   apply (simp add: ProjA_def Filter_ex_def)
-  apply (tactic \<open>pair_tac @{context} "exA" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "exB" 1\<close>)
+  apply (pair exA)
+  apply (pair exB)
   apply (rule conjI)
   apply (simp (no_asm) add: mkex_def)
   apply (simplesubst trick_against_eq_in_ass)
@@ -436,10 +434,10 @@ lemma filter_mkex_is_exB:
     Filter (\<lambda>a. a \<in> act B) $ sch = filter_act $ (snd exB) \<Longrightarrow>
     Filter_ex (asig_of B) (ProjB (mkex A B sch exA exB)) = exB"
   apply (simp add: ProjB_def Filter_ex_def)
-  apply (tactic \<open>pair_tac @{context} "exA" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "exB" 1\<close>)
+  apply (pair exA)
+  apply (pair exB)
   apply (rule conjI)
-  apply (simp (no_asm) add: mkex_def)
+  apply (simp add: mkex_def)
   apply (simplesubst trick_against_eq_in_ass)
   back
   apply assumption
@@ -471,9 +469,9 @@ theorem compositionality_sch:
   apply (rule_tac x = "Filter_ex (asig_of B) (ProjB ex)" in bexI)
   prefer 2
   apply (simp add: compositionality_ex)
-  apply (simp (no_asm) add: Filter_ex_def ProjB_def lemma_2_1a lemma_2_1b)
+  apply (simp add: Filter_ex_def ProjB_def lemma_2_1a lemma_2_1b)
   apply (simp add: executions_def)
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (erule conjE)
   apply (simp add: sch_actions_in_AorB)
   text \<open>\<open>\<Longleftarrow>\<close>\<close>
@@ -482,14 +480,14 @@ theorem compositionality_sch:
   apply (rename_tac exA exB)
   apply (rule_tac x = "mkex A B sch exA exB" in bexI)
   text \<open>\<open>mkex\<close> actions are just the oracle\<close>
-  apply (tactic \<open>pair_tac @{context} "exA" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "exB" 1\<close>)
+  apply (pair exA)
+  apply (pair exB)
   apply (simp add: Mapfst_mkex_is_sch)
   text \<open>\<open>mkex\<close> is an execution -- use compositionality on ex-level\<close>
   apply (simp add: compositionality_ex)
   apply (simp add: stutter_mkex_on_A stutter_mkex_on_B filter_mkex_is_exB filter_mkex_is_exA)
-  apply (tactic \<open>pair_tac @{context} "exA" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "exB" 1\<close>)
+  apply (pair exA)
+  apply (pair exB)
   apply (simp add: mkex_actions_in_AorB)
   done
 

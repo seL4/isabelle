@@ -174,7 +174,7 @@ lemma lemma_1_1a:
   "\<forall>s. is_exec_frag (A \<parallel> B) (s, xs) \<longrightarrow>
     is_exec_frag A (fst s, Filter_ex2 (asig_of A) $ (ProjA2 $ xs)) \<and>
     is_exec_frag B (snd s, Filter_ex2 (asig_of B) $ (ProjB2 $ xs))"
-  apply (tactic \<open>pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}] 1\<close>)
+  apply (pair_induct xs simp: is_exec_frag_def)
   text \<open>main case\<close>
   apply (auto simp add: trans_of_defs2)
   done
@@ -184,7 +184,7 @@ lemma lemma_1_1b:
   "\<forall>s. is_exec_frag (A \<parallel> B) (s, xs) \<longrightarrow>
     stutter (asig_of A) (fst s, ProjA2 $ xs) \<and>
     stutter (asig_of B) (snd s, ProjB2 $ xs)"
-  apply (tactic \<open>pair_induct_tac @{context} "xs" @{thms stutter_def is_exec_frag_def} 1\<close>)
+  apply (pair_induct xs simp: stutter_def is_exec_frag_def)
   text \<open>main case\<close>
   apply (auto simp add: trans_of_defs2)
   done
@@ -192,8 +192,7 @@ lemma lemma_1_1b:
 lemma lemma_1_1c:
   \<comment> \<open>Executions of \<open>A \<parallel> B\<close> have only \<open>A\<close>- or \<open>B\<close>-actions\<close>
   "\<forall>s. is_exec_frag (A \<parallel> B) (s, xs) \<longrightarrow> Forall (\<lambda>x. fst x \<in> act (A \<parallel> B)) xs"
-  apply (tactic \<open>pair_induct_tac @{context} "xs" [@{thm Forall_def}, @{thm sforall_def},
-    @{thm is_exec_frag_def}] 1\<close>)
+  apply (pair_induct xs simp: Forall_def sforall_def is_exec_frag_def)
   text \<open>main case\<close>
   apply auto
   apply (simp add: trans_of_defs2 actions_asig_comp asig_of_par)
@@ -208,8 +207,7 @@ lemma lemma_1_2:
     stutter (asig_of B) (snd s, ProjB2 $ xs) \<and>
     Forall (\<lambda>x. fst x \<in> act (A \<parallel> B)) xs \<longrightarrow>
     is_exec_frag (A \<parallel> B) (s, xs)"
-  apply (tactic \<open>pair_induct_tac @{context} "xs"
-    @{thms Forall_def sforall_def is_exec_frag_def stutter_def} 1\<close>)
+  apply (pair_induct xs simp: Forall_def sforall_def is_exec_frag_def stutter_def)
   apply (auto simp add: trans_of_defs1 actions_asig_comp asig_of_par)
   done
 
@@ -221,7 +219,7 @@ theorem compositionality_ex:
     stutter (asig_of B) (ProjB ex) \<and>
     Forall (\<lambda>x. fst x \<in> act (A \<parallel> B)) (snd ex)"
   apply (simp add: executions_def ProjB_def Filter_ex_def ProjA_def starts_of_par)
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (rule iffI)
   text \<open>\<open>\<Longrightarrow>\<close>\<close>
   apply (erule conjE)+

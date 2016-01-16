@@ -212,7 +212,7 @@ lemma exists_LastActExtsch:
   apply auto
   apply (rule_tac x = "filter_act $ (Cut (\<lambda>a. fst a \<in> ext A) (snd ex))" in exI)
   apply (simp add: executions_def)
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply auto
   apply (rule_tac x = "(x1, Cut (\<lambda>a. fst a \<in> ext A) x2)" in exI)
   apply simp

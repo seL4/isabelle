@@ -17,7 +17,7 @@ lemma scheds_input_enabled:
   apply auto
   apply (frule inp_is_act)
   apply (simp add: executions_def)
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (rename_tac s ex)
   apply (subgoal_tac "Finite ex")
   prefer 2

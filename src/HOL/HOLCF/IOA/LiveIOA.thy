@@ -54,13 +54,13 @@ lemma live_implements:
   apply (rule_tac x = "corresp_ex A f ex" in exI)
   apply auto
   text \<open>Traces coincide, Lemma 1\<close>
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (erule lemma_1 [THEN spec, THEN mp])
   apply (simp (no_asm) add: externals_def)
   apply (auto)[1]
   apply (simp add: executions_def reachable.reachable_0)
   text \<open>\<open>corresp_ex\<close> is execution, Lemma 2\<close>
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (simp add: executions_def)
   text \<open>start state\<close>
   apply (rule conjI)

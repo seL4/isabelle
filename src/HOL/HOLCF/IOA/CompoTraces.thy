@@ -170,7 +170,7 @@ lemma ForallAorB_mksch [rule_format]:
   "compatible A B \<Longrightarrow>
     \<forall>schA schB. Forall (\<lambda>x. x \<in> act (A \<parallel> B)) tr \<longrightarrow>
       Forall (\<lambda>x. x \<in> act (A \<parallel> B)) (mksch A B $ tr $ schA $ schB)"
-  apply (tactic \<open>Seq_induct_tac @{context} "tr" @{thms Forall_def sforall_def mksch_def} 1\<close>)
+  apply (Seq_induct tr simp: Forall_def sforall_def mksch_def)
   apply auto
   apply (simp add: actions_of_par)
   apply (case_tac "a \<in> act A")
@@ -198,7 +198,7 @@ lemma ForallBnAmksch [rule_format]:
   "compatible B A \<Longrightarrow>
     \<forall>schA schB. Forall (\<lambda>x. x \<in> act B \<and> x \<notin> act A) tr \<longrightarrow>
       Forall (\<lambda>x. x \<in> act B \<and> x \<notin> act A) (mksch A B $ tr $ schA $ schB)"
-  apply (tactic \<open>Seq_induct_tac @{context} "tr" @{thms Forall_def sforall_def mksch_def} 1\<close>)
+  apply (Seq_induct tr simp: Forall_def sforall_def mksch_def)
   apply auto
   apply (rule Forall_Conc_impl [THEN mp])
   apply (simp add: intA_is_not_actB int_is_act)
@@ -208,7 +208,7 @@ lemma ForallAnBmksch [rule_format]:
   "compatible A B \<Longrightarrow>
     \<forall>schA schB. Forall (\<lambda>x. x \<in> act A \<and> x \<notin> act B) tr \<longrightarrow>
       Forall (\<lambda>x. x \<in> act A \<and> x \<notin> act B) (mksch A B $ tr $ schA $ schB)"
-  apply (tactic \<open>Seq_induct_tac @{context} "tr" @{thms Forall_def sforall_def mksch_def} 1\<close>)
+  apply (Seq_induct tr simp: Forall_def sforall_def mksch_def)
   apply auto
   apply (rule Forall_Conc_impl [THEN mp])
   apply (simp add: intA_is_not_actB int_is_act)
@@ -385,7 +385,7 @@ lemma FilterA_mksch_is_tr:
       Filter (\<lambda>a. a \<in> act A) $ tr \<sqsubseteq> Filter (\<lambda>a. a \<in> ext A) $ schA \<and>
       Filter (\<lambda>a. a \<in> act B) $ tr \<sqsubseteq> Filter (\<lambda>a. a \<in> ext B) $ schB
       \<longrightarrow> Filter (\<lambda>a. a \<in> ext (A \<parallel> B)) $ (mksch A B $ tr $ schA $ schB) = tr"
-  apply (tactic \<open>Seq_induct_tac @{context} "tr" @{thms Forall_def sforall_def mksch_def} 1\<close>)
+  apply (Seq_induct tr simp: Forall_def sforall_def mksch_def)
   text \<open>main case\<close>
   text \<open>splitting into 4 cases according to \<open>a \<in> A\<close>, \<open>a \<in> B\<close>\<close>
   apply auto

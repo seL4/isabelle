@@ -184,7 +184,7 @@ lemma lemma_1:
       mk_trace C $ xs = mk_trace A $ (snd (corresp_ex A f (s, xs)))"
   supply split_if [split del]
   apply (unfold corresp_ex_def)
-  apply (tactic \<open>pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}] 1\<close>)
+  apply (pair_induct xs simp: is_exec_frag_def)
   text \<open>cons case\<close>
   apply (auto simp add: mk_traceConc)
   apply (frule reachable.reachable_n)
@@ -204,7 +204,7 @@ lemma lemma_2_1 [rule_format]:
     (\<forall>s. is_exec_frag A (s, xs) \<and> is_exec_frag A (t, ys) \<and>
       t = laststate (s, xs) \<longrightarrow> is_exec_frag A (s, xs @@ ys))"
   apply (rule impI)
-  apply (tactic \<open>Seq_Finite_induct_tac @{context} 1\<close>)
+  apply Seq_Finite_induct
   text \<open>main case\<close>
   apply (auto simp add: split_paired_all)
   done
@@ -219,7 +219,7 @@ lemma lemma_2:
   apply (unfold corresp_ex_def)
 
   apply simp
-  apply (tactic \<open>pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}] 1\<close>)
+  apply (pair_induct xs simp: is_exec_frag_def)
 
   text \<open>main case\<close>
   apply auto
@@ -263,13 +263,13 @@ theorem trace_inclusion:
   apply (rule_tac x = "corresp_ex A f ex" in bexI)
 
   text \<open>Traces coincide, Lemma 1\<close>
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (erule lemma_1 [THEN spec, THEN mp])
   apply assumption+
   apply (simp add: executions_def reachable.reachable_0)
 
   text \<open>\<open>corresp_ex\<close> is execution, Lemma 2\<close>
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (simp add: executions_def)
   text \<open>start state\<close>
   apply (rule conjI)
@@ -311,13 +311,13 @@ lemma fair_trace_inclusion:
   apply auto
 
   text \<open>Traces coincide, Lemma 1\<close>
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (erule lemma_1 [THEN spec, THEN mp])
   apply assumption+
   apply (simp add: executions_def reachable.reachable_0)
 
   text \<open>\<open>corresp_ex\<close> is execution, Lemma 2\<close>
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (simp add: executions_def)
   text \<open>start state\<close>
   apply (rule conjI)
@@ -336,14 +336,14 @@ lemma fair_trace_inclusion2:
   apply auto
 
   text \<open>Traces coincide, Lemma 1\<close>
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (erule lemma_1 [THEN spec, THEN mp])
   apply (simp (no_asm) add: externals_def)
   apply (auto)[1]
   apply (simp add: executions_def reachable.reachable_0)
 
   text \<open>\<open>corresp_ex\<close> is execution, Lemma 2\<close>
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
+  apply (pair ex)
   apply (simp add: executions_def)
   text \<open>start state\<close>
   apply (rule conjI)

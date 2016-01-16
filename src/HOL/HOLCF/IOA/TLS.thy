@@ -123,9 +123,9 @@ declare ex2seq_UU [simp] ex2seq_nil [simp] ex2seq_cons [simp]
 
 
 lemma ex2seq_nUUnnil: "ex2seq exec \<noteq> UU \<and> ex2seq exec \<noteq> nil"
-  apply (tactic \<open>pair_tac @{context} "exec" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+  apply (pair exec)
+  apply (Seq_case_simp x2)
+  apply (pair a)
   done
 
 
@@ -143,30 +143,30 @@ lemma TL_TLS:
   apply (simp split add: split_if)
   text \<open>\<open>TL = UU\<close>\<close>
   apply (rule conjI)
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+  apply (pair ex)
+  apply (Seq_case_simp x2)
+  apply (pair a)
+  apply (Seq_case_simp s)
+  apply (pair a)
   text \<open>\<open>TL = nil\<close>\<close>
   apply (rule conjI)
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
-  apply (tactic \<open>Seq_case_tac @{context} "x2" 1\<close>)
+  apply (pair ex)
+  apply (Seq_case x2)
   apply (simp add: unlift_def)
   apply fast
   apply (simp add: unlift_def)
   apply fast
   apply (simp add: unlift_def)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+  apply (pair a)
+  apply (Seq_case_simp s)
+  apply (pair a)
   text \<open>\<open>TL = cons\<close>\<close>
   apply (simp add: unlift_def)
-  apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "x2" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
-  apply (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
-  apply (tactic \<open>pair_tac @{context} "a" 1\<close>)
+  apply (pair ex)
+  apply (Seq_case_simp x2)
+  apply (pair a)
+  apply (Seq_case_simp s)
+  apply (pair a)
   done
 
 end

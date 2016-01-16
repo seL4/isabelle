@@ -990,18 +990,40 @@ fun pair_tac ctxt s =
 (* induction on a sequence of pairs with pairsplitting and simplification *)
 fun pair_induct_tac ctxt s rws i =
   Rule_Insts.res_inst_tac ctxt [((("x", 0), Position.none), s)] [] @{thm Seq_induct} i
-  THEN pair_tac ctxt "a" (i+3)
-  THEN (REPEAT_DETERM (CHANGED (simp_tac ctxt (i+1))))
+  THEN pair_tac ctxt "a" (i + 3)
+  THEN (REPEAT_DETERM (CHANGED (simp_tac ctxt (i + 1))))
   THEN simp_tac (ctxt addsimps rws) i;
 \<close>
 
+method_setup Seq_case =
+  \<open>Scan.lift Args.name >> (fn s => fn ctxt => SIMPLE_METHOD' (Seq_case_tac ctxt s))\<close>
+
+method_setup Seq_case_simp =
+  \<open>Scan.lift Args.name >> (fn s => fn ctxt => SIMPLE_METHOD' (Seq_case_simp_tac ctxt s))\<close>
+
+method_setup Seq_induct =
+  \<open>Scan.lift Args.name --
+    Scan.optional ((Scan.lift (Args.$$$ "simp" -- Args.colon) |-- Attrib.thms)) []
+    >> (fn (s, rws) => fn ctxt => SIMPLE_METHOD' (Seq_induct_tac ctxt s rws))\<close>
+
+method_setup Seq_Finite_induct =
+  \<open>Scan.succeed (SIMPLE_METHOD' o Seq_Finite_induct_tac)\<close>
+
+method_setup pair =
+  \<open>Scan.lift Args.name >> (fn s => fn ctxt => SIMPLE_METHOD' (pair_tac ctxt s))\<close>
+
+method_setup pair_induct =
+  \<open>Scan.lift Args.name --
+    Scan.optional ((Scan.lift (Args.$$$ "simp" -- Args.colon) |-- Attrib.thms)) []
+    >> (fn (s, rws) => fn ctxt => SIMPLE_METHOD' (pair_induct_tac ctxt s rws))\<close>
+
 lemma Mapnil: "Map f $ s = nil \<longleftrightarrow> s = nil"
-  by (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+  by (Seq_case_simp s)
 
 lemma MapUU: "Map f $ s = UU \<longleftrightarrow> s = UU"
-  by (tactic \<open>Seq_case_simp_tac @{context} "s" 1\<close>)
+  by (Seq_case_simp s)
 
 lemma MapTL: "Map f $ (TL $ s) = TL $ (Map f $ s)"
-  by (tactic \<open>Seq_induct_tac @{context} "s" [] 1\<close>)
+  by (Seq_induct s)
 
 end
