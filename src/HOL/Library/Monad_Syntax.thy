@@ -57,7 +57,7 @@ translations
     \<rightleftharpoons> "_do_block (_do_cons b (_do_final (_do_block (_do_cons c cs))))"
   "_do_cons (_do_let p t) (_do_final s)"
     \<rightleftharpoons> "_do_final (let p = t in s)"
-  "_do_block (_do_final e)" => "e"
+  "_do_block (_do_final e)" \<rightharpoonup> "e"
   "(m \<then> n)" \<rightharpoonup> "(m \<bind> (\<lambda>_. n))"
 
 adhoc_overloading
