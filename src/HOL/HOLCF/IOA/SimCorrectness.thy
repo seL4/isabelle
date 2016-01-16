@@ -8,240 +8,228 @@ theory SimCorrectness
 imports Simulations
 begin
 
-definition
-  (* Note: s2 instead of s1 in last argument type !! *)
-  corresp_ex_simC :: "('a,'s2)ioa => (('s1 * 's2)set) => ('a,'s1)pairs
-                   -> ('s2 => ('a,'s2)pairs)" where
-  "corresp_ex_simC A R = (fix$(LAM h ex. (%s. case ex of
-      nil =>  nil
-    | x##xs => (flift1 (%pr. let a = (fst pr); t = (snd pr);
-                                 T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t'
-                             in
-                                (@cex. move A cex s a T')
-                                 @@ ((h$xs) T'))
-                        $x) )))"
+(*Note: s2 instead of s1 in last argument type!*)
+definition corresp_ex_simC ::
+    "('a, 's2) ioa \<Rightarrow> ('s1 \<times> 's2) set \<Rightarrow> ('a, 's1) pairs \<rightarrow> ('s2 \<Rightarrow> ('a, 's2) pairs)"
+  where "corresp_ex_simC A R =
+    (fix $ (LAM h ex. (\<lambda>s. case ex of
+      nil \<Rightarrow> nil
+    | x ## xs \<Rightarrow>
+        (flift1
+          (\<lambda>pr.
+            let
+              a = fst pr;
+              t = snd pr;
+              T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s a t'
+            in (SOME cex. move A cex s a T') @@ ((h $ xs) T')) $ x))))"
 
-definition
-  corresp_ex_sim :: "('a,'s2)ioa => (('s1 *'s2)set) =>
-                      ('a,'s1)execution => ('a,'s2)execution" where
-  "corresp_ex_sim A R ex == let S'= (@s'.(fst ex,s'):R & s': starts_of A)
-                            in
-                               (S',(corresp_ex_simC A R$(snd ex)) S')"
-
-
-subsection "corresp_ex_sim"
-
-lemma corresp_ex_simC_unfold: "corresp_ex_simC A R  = (LAM ex. (%s. case ex of
-       nil =>  nil
-     | x##xs => (flift1 (%pr. let a = (fst pr); t = (snd pr);
-                                  T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t'
-                              in
-                                 (@cex. move A cex s a T')
-                               @@ ((corresp_ex_simC A R $xs) T'))
-                         $x) ))"
-apply (rule trans)
-apply (rule fix_eq2)
-apply (simp only: corresp_ex_simC_def)
-apply (rule beta_cfun)
-apply (simp add: flift1_def)
-done
-
-lemma corresp_ex_simC_UU: "(corresp_ex_simC A R$UU) s=UU"
-apply (subst corresp_ex_simC_unfold)
-apply simp
-done
-
-lemma corresp_ex_simC_nil: "(corresp_ex_simC A R$nil) s = nil"
-apply (subst corresp_ex_simC_unfold)
-apply simp
-done
-
-lemma corresp_ex_simC_cons: "(corresp_ex_simC A R$((a,t)\<leadsto>xs)) s =
-           (let T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t'
-            in
-             (@cex. move A cex s a T')
-              @@ ((corresp_ex_simC A R$xs) T'))"
-apply (rule trans)
-apply (subst corresp_ex_simC_unfold)
-apply (simp add: Consq_def flift1_def)
-apply simp
-done
+definition corresp_ex_sim ::
+    "('a, 's2) ioa \<Rightarrow> ('s1 \<times> 's2) set \<Rightarrow> ('a, 's1) execution \<Rightarrow> ('a, 's2) execution"
+  where "corresp_ex_sim A R ex \<equiv>
+    let S' = SOME s'. (fst ex, s') \<in> R \<and> s' \<in> starts_of A
+    in (S', (corresp_ex_simC A R $ (snd ex)) S')"
 
 
-declare corresp_ex_simC_UU [simp] corresp_ex_simC_nil [simp] corresp_ex_simC_cons [simp]
+subsection \<open>\<open>corresp_ex_sim\<close>\<close>
+
+lemma corresp_ex_simC_unfold:
+  "corresp_ex_simC A R =
+    (LAM ex. (\<lambda>s. case ex of
+      nil \<Rightarrow> nil
+    | x ## xs \<Rightarrow>
+        (flift1
+          (\<lambda>pr.
+            let
+              a = fst pr;
+              t = snd pr;
+              T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s a t'
+            in (SOME cex. move A cex s a T') @@ ((corresp_ex_simC A R $ xs) T')) $ x)))"
+  apply (rule trans)
+  apply (rule fix_eq2)
+  apply (simp only: corresp_ex_simC_def)
+  apply (rule beta_cfun)
+  apply (simp add: flift1_def)
+  done
+
+lemma corresp_ex_simC_UU [simp]: "(corresp_ex_simC A R $ UU) s = UU"
+  apply (subst corresp_ex_simC_unfold)
+  apply simp
+  done
+
+lemma corresp_ex_simC_nil [simp]: "(corresp_ex_simC A R $ nil) s = nil"
+  apply (subst corresp_ex_simC_unfold)
+  apply simp
+  done
+
+lemma corresp_ex_simC_cons [simp]:
+  "(corresp_ex_simC A R $ ((a, t) \<leadsto> xs)) s =
+    (let T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s a t'
+     in (SOME cex. move A cex s a T') @@ ((corresp_ex_simC A R $ xs) T'))"
+  apply (rule trans)
+  apply (subst corresp_ex_simC_unfold)
+  apply (simp add: Consq_def flift1_def)
+  apply simp
+  done
 
 
-subsection "properties of move"
-
-declare Let_def [simp del]
+subsection \<open>Properties of move\<close>
 
 lemma move_is_move_sim:
-   "[|is_simulation R C A; reachable C s; s \<midarrow>a\<midarrow>C\<rightarrow> t; (s,s'):R|] ==>
-      let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
-      (t,T'): R & move A (@ex2. move A ex2 s' a T') s' a T'"
-apply (unfold is_simulation_def)
-
-(* Does not perform conditional rewriting on assumptions automatically as
-   usual. Instantiate all variables per hand. Ask Tobias?? *)
-apply (subgoal_tac "? t' ex. (t,t') :R & move A ex s' a t'")
-prefer 2
-apply simp
-apply (erule conjE)
-apply (erule_tac x = "s" in allE)
-apply (erule_tac x = "s'" in allE)
-apply (erule_tac x = "t" in allE)
-apply (erule_tac x = "a" in allE)
-apply simp
-(* Go on as usual *)
-apply (erule exE)
-apply (drule_tac x = "t'" and P = "%t'. ? ex. (t,t') :R & move A ex s' a t'" in someI)
-apply (erule exE)
-apply (erule conjE)
-apply (simp add: Let_def)
-apply (rule_tac x = "ex" in someI)
-apply assumption
-done
-
-declare Let_def [simp]
+   "is_simulation R C A \<Longrightarrow> reachable C s \<Longrightarrow> s \<midarrow>a\<midarrow>C\<rightarrow> t \<Longrightarrow> (s, s') \<in> R \<Longrightarrow>
+     let T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s' a t'
+     in (t, T') \<in> R \<and> move A (SOME ex2. move A ex2 s' a T') s' a T'"
+  supply Let_def [simp del]
+  apply (unfold is_simulation_def)
+  (* Does not perform conditional rewriting on assumptions automatically as
+     usual. Instantiate all variables per hand. Ask Tobias?? *)
+  apply (subgoal_tac "\<exists>t' ex. (t, t') \<in> R \<and> move A ex s' a t'")
+  prefer 2
+  apply simp
+  apply (erule conjE)
+  apply (erule_tac x = "s" in allE)
+  apply (erule_tac x = "s'" in allE)
+  apply (erule_tac x = "t" in allE)
+  apply (erule_tac x = "a" in allE)
+  apply simp
+  (* Go on as usual *)
+  apply (erule exE)
+  apply (drule_tac x = "t'" and P = "\<lambda>t'. \<exists>ex. (t, t') \<in> R \<and> move A ex s' a t'" in someI)
+  apply (erule exE)
+  apply (erule conjE)
+  apply (simp add: Let_def)
+  apply (rule_tac x = "ex" in someI)
+  apply assumption
+  done
 
 lemma move_subprop1_sim:
-   "[|is_simulation R C A; reachable C s; s \<midarrow>a\<midarrow>C\<rightarrow> t; (s,s'):R|] ==>
-    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
-     is_exec_frag A (s',@x. move A x s' a T')"
-apply (cut_tac move_is_move_sim)
-defer
-apply assumption+
-apply (simp add: move_def)
-done
+  "is_simulation R C A \<Longrightarrow> reachable C s \<Longrightarrow> s \<midarrow>a\<midarrow>C\<rightarrow> t \<Longrightarrow> (s, s') \<in> R \<Longrightarrow>
+    let T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s' a t'
+    in is_exec_frag A (s', SOME x. move A x s' a T')"
+  apply (cut_tac move_is_move_sim)
+  defer
+  apply assumption+
+  apply (simp add: move_def)
+  done
 
 lemma move_subprop2_sim:
-   "[|is_simulation R C A; reachable C s; s \<midarrow>a\<midarrow>C\<rightarrow> t; (s,s'):R|] ==>
-    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
-    Finite (@x. move A x s' a T')"
-apply (cut_tac move_is_move_sim)
-defer
-apply assumption+
-apply (simp add: move_def)
-done
+  "is_simulation R C A \<Longrightarrow> reachable C s \<Longrightarrow> s \<midarrow>a\<midarrow>C\<rightarrow> t \<Longrightarrow> (s, s') \<in> R \<Longrightarrow>
+    let T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s' a t'
+    in Finite (SOME x. move A x s' a T')"
+  apply (cut_tac move_is_move_sim)
+  defer
+  apply assumption+
+  apply (simp add: move_def)
+  done
 
 lemma move_subprop3_sim:
-   "[|is_simulation R C A; reachable C s; s \<midarrow>a\<midarrow>C\<rightarrow> t; (s,s'):R|] ==>
-    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
-     laststate (s',@x. move A x s' a T') = T'"
-apply (cut_tac move_is_move_sim)
-defer
-apply assumption+
-apply (simp add: move_def)
-done
+  "is_simulation R C A \<Longrightarrow> reachable C s \<Longrightarrow> s \<midarrow>a\<midarrow>C\<rightarrow> t \<Longrightarrow> (s, s') \<in> R \<Longrightarrow>
+    let T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s' a t'
+    in laststate (s', SOME x. move A x s' a T') = T'"
+  apply (cut_tac move_is_move_sim)
+  defer
+  apply assumption+
+  apply (simp add: move_def)
+  done
 
 lemma move_subprop4_sim:
-   "[|is_simulation R C A; reachable C s; s \<midarrow>a\<midarrow>C\<rightarrow> t; (s,s'):R|] ==>
-    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
-      mk_trace A$((@x. move A x s' a T')) =
-        (if a:ext A then a\<leadsto>nil else nil)"
-apply (cut_tac move_is_move_sim)
-defer
-apply assumption+
-apply (simp add: move_def)
-done
+  "is_simulation R C A \<Longrightarrow> reachable C s \<Longrightarrow> s \<midarrow>a\<midarrow>C\<rightarrow> t \<Longrightarrow> (s, s') \<in> R \<Longrightarrow>
+    let T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s' a t'
+    in mk_trace A $ (SOME x. move A x s' a T') = (if a \<in> ext A then a \<leadsto> nil else nil)"
+  apply (cut_tac move_is_move_sim)
+  defer
+  apply assumption+
+  apply (simp add: move_def)
+  done
 
 lemma move_subprop5_sim:
-   "[|is_simulation R C A; reachable C s; s \<midarrow>a\<midarrow>C\<rightarrow> t; (s,s'):R|] ==>
-    let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in
-      (t,T'):R"
-apply (cut_tac move_is_move_sim)
-defer
-apply assumption+
-apply (simp add: move_def)
-done
+  "is_simulation R C A \<Longrightarrow> reachable C s \<Longrightarrow> s \<midarrow>a\<midarrow>C\<rightarrow> t \<Longrightarrow> (s, s') \<in> R \<Longrightarrow>
+    let T' = SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s' a t'
+    in (t, T') \<in> R"
+  apply (cut_tac move_is_move_sim)
+  defer
+  apply assumption+
+  apply (simp add: move_def)
+  done
 
 
 subsection \<open>TRACE INCLUSION Part 1: Traces coincide\<close>
 
 subsubsection "Lemmata for <=="
 
-(* ------------------------------------------------------
-                 Lemma 1 :Traces coincide
-   ------------------------------------------------------- *)
+text \<open>Lemma 1: Traces coincide\<close>
 
-declare split_if [split del]
 lemma traces_coincide_sim [rule_format (no_asm)]:
-  "[|is_simulation R C A; ext C = ext A|] ==>
-         !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'): R -->
-             mk_trace C$ex = mk_trace A$((corresp_ex_simC A R$ex) s')"
+  "is_simulation R C A \<Longrightarrow> ext C = ext A \<Longrightarrow>
+    \<forall>s s'. reachable C s \<and> is_exec_frag C (s, ex) \<and> (s, s') \<in> R \<longrightarrow>
+      mk_trace C $ ex = mk_trace A $ ((corresp_ex_simC A R $ ex) s')"
+  supply split_if [split del]
+  apply (tactic \<open>pair_induct_tac @{context} "ex" [@{thm is_exec_frag_def}] 1\<close>)
+  (* cons case *)
+  apply auto
+  apply (rename_tac ex a t s s')
+  apply (simp add: mk_traceConc)
+  apply (frule reachable.reachable_n)
+  apply assumption
+  apply (erule_tac x = "t" in allE)
+  apply (erule_tac x = "SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s' a t'" in allE)
+  apply (simp add: move_subprop5_sim [unfolded Let_def]
+    move_subprop4_sim [unfolded Let_def] split add: split_if)
+  done
 
-apply (tactic \<open>pair_induct_tac @{context} "ex" [@{thm is_exec_frag_def}] 1\<close>)
-(* cons case *)
-apply auto
-apply (rename_tac ex a t s s')
-apply (simp add: mk_traceConc)
-apply (frule reachable.reachable_n)
-apply assumption
-apply (erule_tac x = "t" in allE)
-apply (erule_tac x = "@t'. ? ex1. (t,t') :R & move A ex1 s' a t'" in allE)
-apply (simp add: move_subprop5_sim [unfolded Let_def]
-  move_subprop4_sim [unfolded Let_def] split add: split_if)
-done
-declare split_if [split]
+text \<open>Lemma 2: \<open>corresp_ex_sim\<close> is execution\<close>
 
+lemma correspsim_is_execution [rule_format]:
+  "is_simulation R C A \<Longrightarrow>
+    \<forall>s s'. reachable C s \<and> is_exec_frag C (s, ex) \<and> (s, s') \<in> R
+      \<longrightarrow> is_exec_frag A (s', (corresp_ex_simC A R $ ex) s')"
+  apply (tactic \<open>pair_induct_tac @{context} "ex" [@{thm is_exec_frag_def}] 1\<close>)
+  text \<open>main case\<close>
+  apply auto
+  apply (rename_tac ex a t s s')
+  apply (rule_tac t = "SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s' a t'" in lemma_2_1)
 
-(* ----------------------------------------------------------- *)
-(*               Lemma 2 : corresp_ex_sim is execution         *)
-(* ----------------------------------------------------------- *)
+  text \<open>Finite\<close>
+  apply (erule move_subprop2_sim [unfolded Let_def])
+  apply assumption+
+  apply (rule conjI)
 
+  text \<open>\<open>is_exec_frag\<close>\<close>
+  apply (erule move_subprop1_sim [unfolded Let_def])
+  apply assumption+
+  apply (rule conjI)
 
-lemma correspsim_is_execution [rule_format (no_asm)]:
- "[| is_simulation R C A |] ==>
-  !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'):R
-  --> is_exec_frag A (s',(corresp_ex_simC A R$ex) s')"
-
-apply (tactic \<open>pair_induct_tac @{context} "ex" [@{thm is_exec_frag_def}] 1\<close>)
-(* main case *)
-apply auto
-apply (rename_tac ex a t s s')
-apply (rule_tac t = "@t'. ? ex1. (t,t') :R & move A ex1 s' a t'" in lemma_2_1)
-
-(* Finite *)
-apply (erule move_subprop2_sim [unfolded Let_def])
-apply assumption+
-apply (rule conjI)
-
-(* is_exec_frag *)
-apply (erule move_subprop1_sim [unfolded Let_def])
-apply assumption+
-apply (rule conjI)
-
-(* Induction hypothesis  *)
-(* reachable_n looping, therefore apply it manually *)
-apply (erule_tac x = "t" in allE)
-apply (erule_tac x = "@t'. ? ex1. (t,t') :R & move A ex1 s' a t'" in allE)
-apply simp
-apply (frule reachable.reachable_n)
-apply assumption
-apply (simp add: move_subprop5_sim [unfolded Let_def])
-(* laststate *)
-apply (erule move_subprop3_sim [unfolded Let_def, symmetric])
-apply assumption+
-done
+  text \<open>Induction hypothesis\<close>
+  text \<open>\<open>reachable_n\<close> looping, therefore apply it manually\<close>
+  apply (erule_tac x = "t" in allE)
+  apply (erule_tac x = "SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s' a t'" in allE)
+  apply simp
+  apply (frule reachable.reachable_n)
+  apply assumption
+  apply (simp add: move_subprop5_sim [unfolded Let_def])
+  text \<open>laststate\<close>
+  apply (erule move_subprop3_sim [unfolded Let_def, symmetric])
+  apply assumption+
+  done
 
 
-subsection "Main Theorem: TRACE - INCLUSION"
+subsection \<open>Main Theorem: TRACE - INCLUSION\<close>
 
-(* -------------------------------------------------------------------------------- *)
-
-  (* generate condition (s,S'):R & S':starts_of A, the first being intereting
-     for the induction cases concerning the two lemmas correpsim_is_execution and
-     traces_coincide_sim, the second for the start state case.
-     S':= @s'. (s,s'):R & s':starts_of A, where s:starts_of C  *)
+text \<open>
+  Generate condition \<open>(s, S') \<in> R \<and> S' \<in> starts_of A\<close>, the first being
+  interesting for the induction cases concerning the two lemmas
+  \<open>correpsim_is_execution\<close> and \<open>traces_coincide_sim\<close>, the second for the start
+  state case.
+  \<open>S' := SOME s'. (s, s') \<in> R \<and> s' \<in> starts_of A\<close>, where \<open>s \<in> starts_of C\<close>
+\<close>
 
 lemma simulation_starts:
-"[| is_simulation R C A; s:starts_of C |]
-  ==> let S' = @s'. (s,s'):R & s':starts_of A in
-      (s,S'):R & S':starts_of A"
+  "is_simulation R C A \<Longrightarrow> s:starts_of C \<Longrightarrow>
+    let S' = SOME s'. (s, s') \<in> R \<and> s' \<in> starts_of A
+    in (s, S') \<in> R \<and> S' \<in> starts_of A"
   apply (simp add: is_simulation_def corresp_ex_sim_def Int_non_empty Image_def)
   apply (erule conjE)+
   apply (erule ballE)
-  prefer 2 apply (blast)
+  prefer 2 apply blast
   apply (erule exE)
   apply (rule someI2)
   apply assumption
@@ -253,35 +241,32 @@ lemmas sim_starts2 = simulation_starts [unfolded Let_def, THEN conjunct2]
 
 
 lemma trace_inclusion_for_simulations:
-  "[| ext C = ext A; is_simulation R C A |]
-           ==> traces C <= traces A"
-
+  "ext C = ext A \<Longrightarrow> is_simulation R C A \<Longrightarrow> traces C \<subseteq> traces A"
   apply (unfold traces_def)
-
-  apply (simp (no_asm) add: has_trace_def2)
+  apply (simp add: has_trace_def2)
   apply auto
 
-  (* give execution of abstract automata *)
+  text \<open>give execution of abstract automata\<close>
   apply (rule_tac x = "corresp_ex_sim A R ex" in bexI)
 
-  (* Traces coincide, Lemma 1 *)
+  text \<open>Traces coincide, Lemma 1\<close>
   apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
   apply (rename_tac s ex)
-  apply (simp (no_asm) add: corresp_ex_sim_def)
+  apply (simp add: corresp_ex_sim_def)
   apply (rule_tac s = "s" in traces_coincide_sim)
   apply assumption+
   apply (simp add: executions_def reachable.reachable_0 sim_starts1)
 
-  (* corresp_ex_sim is execution, Lemma 2 *)
+  text \<open>\<open>corresp_ex_sim\<close> is execution, Lemma 2\<close>
   apply (tactic \<open>pair_tac @{context} "ex" 1\<close>)
   apply (simp add: executions_def)
   apply (rename_tac s ex)
 
-  (* start state *)
+  text \<open>start state\<close>
   apply (rule conjI)
   apply (simp add: sim_starts2 corresp_ex_sim_def)
 
-  (* is-execution-fragment *)
+  text \<open>\<open>is_execution-fragment\<close>\<close>
   apply (simp add: corresp_ex_sim_def)
   apply (rule_tac s = s in correspsim_is_execution)
   apply assumption

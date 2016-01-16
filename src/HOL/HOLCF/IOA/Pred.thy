@@ -15,7 +15,7 @@ type_synonym 'a predicate = "'a \<Rightarrow> bool"
 definition satisfies :: "'a \<Rightarrow> 'a predicate \<Rightarrow> bool"  ("_ \<Turnstile> _" [100, 9] 8)
   where "(s \<Turnstile> P) \<longleftrightarrow> P s"
 
-definition valid :: "'a predicate \<Rightarrow> bool"  (*  ("|-") *)
+definition valid :: "'a predicate \<Rightarrow> bool"  (*  FIXME ("|-") *)
   where "valid P \<longleftrightarrow> (\<forall>s. (s \<Turnstile> P))"
 
 definition NOT :: "'a predicate \<Rightarrow> 'a predicate"  ("\<^bold>\<not> _" [40] 40)
