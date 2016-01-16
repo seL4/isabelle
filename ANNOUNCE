@@ -29,6 +29,6 @@ ML), per-thread profiling, native Windows version (32bit and 64bit).
 
 You may get Isabelle2016 from the following mirror sites:
 
-  Cambridge (UK)       http://www.cl.cam.ac.uk/research/hvg/Isabelle/
-  Munich (Germany)     http://isabelle.in.tum.de/
-  Sydney (Australia)   http://mirror.cse.unsw.edu.au/pub/isabelle/
+  Cambridge (UK)       http://www.cl.cam.ac.uk/research/hvg/Isabelle
+  Munich (Germany)     http://isabelle.in.tum.de
+  Sydney (Australia)   http://mirror.cse.unsw.edu.au/pub/isabelle
