@@ -305,12 +305,16 @@ fun pretty_var ctxt (x, T) =
     Pretty.quote (Syntax.pretty_typ ctxt T)];
 
 fun pretty_vars pos ctxt kind vs =
-  Pretty.block (Pretty.fbreaks (position_markup pos (Pretty.str kind) :: map (pretty_var ctxt) vs));
+  Pretty.block
+    (Pretty.fbreaks (position_markup pos (Pretty.mark_str kind) :: map (pretty_var ctxt) vs));
+
+val fixes = (Markup.keyword2, "fixes");
+val consts = (Markup.keyword1, "consts");
 
 fun pretty_consts pos ctxt pred cs =
   (case filter pred (#1 (Proof_Context.inferred_fixes ctxt)) of
-    [] => pretty_vars pos ctxt "constants" cs
-  | ps => Pretty.chunks [pretty_vars pos ctxt "parameters" ps, pretty_vars pos ctxt "constants" cs]);
+    [] => pretty_vars pos ctxt consts cs
+  | ps => Pretty.chunks [pretty_vars pos ctxt fixes ps, pretty_vars pos ctxt consts cs]);
 
 in
 
