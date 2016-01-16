@@ -12,8 +12,8 @@ default_sort type
 
 type_synonym 'a temporal = "'a Seq predicate"
 
-definition validT :: "'a Seq predicate \<Rightarrow> bool"
-  where "validT P \<longleftrightarrow> (\<forall>s. s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> (s \<Turnstile> P))"
+definition validT :: "'a Seq predicate \<Rightarrow> bool"    ("\<^bold>\<TTurnstile> _" [9] 8)
+  where "(\<^bold>\<TTurnstile> P) \<longleftrightarrow> (\<forall>s. s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> (s \<Turnstile> P))"
 
 definition unlift :: "'a lift \<Rightarrow> 'a"
   where "unlift x = (case x of Def y \<Rightarrow> y)"
@@ -92,19 +92,19 @@ lemma normalT: "s \<Turnstile> \<box>(F \<^bold>\<longrightarrow> G) \<^bold>\<l
 
 subsection \<open>TLA Rules by Lamport\<close>
 
-lemma STL1a: "validT P \<Longrightarrow> validT (\<box>P)"
+lemma STL1a: "\<^bold>\<TTurnstile> P \<Longrightarrow> \<^bold>\<TTurnstile> (\<box>P)"
   by (simp add: validT_def satisfies_def Box_def tsuffix_def)
 
-lemma STL1b: "valid P \<Longrightarrow> validT (Init P)"
+lemma STL1b: "\<TTurnstile> P \<Longrightarrow> \<^bold>\<TTurnstile> (Init P)"
   by (simp add: valid_def validT_def satisfies_def Init_def)
 
-lemma STL1: "valid P \<Longrightarrow> validT (\<box>(Init P))"
+lemma STL1: "\<TTurnstile> P \<Longrightarrow> \<^bold>\<TTurnstile> (\<box>(Init P))"
   apply (rule STL1a)
   apply (erule STL1b)
   done
 
 (*Note that unlift and HD is not at all used!*)
-lemma STL4: "valid (P \<^bold>\<longrightarrow> Q) \<Longrightarrow> validT (\<box>(Init P) \<^bold>\<longrightarrow> \<box>(Init Q))"
+lemma STL4: "\<TTurnstile> (P \<^bold>\<longrightarrow> Q) \<Longrightarrow> \<^bold>\<TTurnstile> (\<box>(Init P) \<^bold>\<longrightarrow> \<box>(Init Q))"
   by (simp add: valid_def validT_def satisfies_def IMPLIES_def Box_def Init_def)
 
 
@@ -144,7 +144,7 @@ lemma LTL2b: "s \<Turnstile> (Next (\<^bold>\<not> F)) \<^bold>\<longrightarrow>
 lemma LTL3: "ex \<Turnstile> (Next (F \<^bold>\<longrightarrow> G)) \<^bold>\<longrightarrow> (Next F) \<^bold>\<longrightarrow> (Next G)"
   by (simp add: Next_def satisfies_def NOT_def IMPLIES_def)
 
-lemma ModusPonens: "validT (P \<^bold>\<longrightarrow> Q) \<Longrightarrow> validT P \<Longrightarrow> validT Q"
+lemma ModusPonens: "\<^bold>\<TTurnstile> (P \<^bold>\<longrightarrow> Q) \<Longrightarrow> \<^bold>\<TTurnstile> P \<Longrightarrow> \<^bold>\<TTurnstile> Q"
   by (simp add: validT_def satisfies_def IMPLIES_def)
 
 end
