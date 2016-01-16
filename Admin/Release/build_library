@@ -77,8 +77,6 @@ ISABELLE_NAME="$(basename "$PWD")"
 
 echo "ISABELLE_FULL_TEST=true" >> etc/settings
 
-echo -n > src/Doc/ROOT
-
 env ISABELLE_IDENTIFIER="${ISABELLE_NAME}-build" \
   ./bin/isabelle build $JOBS -s -c -a -o browser_info \
     -o "document=pdf" -o "document_variants=document:outline=/proof,/ML"
