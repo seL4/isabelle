@@ -89,4 +89,3 @@ exception EXCEPTIONS of exn list;
 end;
 
 datatype illegal = Interrupt;
-
