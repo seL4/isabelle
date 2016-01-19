@@ -1115,7 +1115,7 @@ text \<open>
   local checks of the given type and its representing set.
 
   Recent clarification of overloading in the HOL logic proper @{cite
-  "Kuncar-Popescu:2015"} demonstrate how the dissimilar concepts of constant
+  "Kuncar-Popescu:2015"} demonstrates how the dissimilar concepts of constant
   definitions versus type definitions may be understood uniformly. This
   requires an interpretation of Isabelle/HOL that substantially reforms the
   set-theoretic model of A. Pitts @{cite "pitts93"}, by taking a schematic
