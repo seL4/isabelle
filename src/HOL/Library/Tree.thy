@@ -58,6 +58,27 @@ end
 lemma height_map_tree[simp]: "height (map_tree f t) = height t"
 by (induction t) auto
 
+lemma size1_height: "size t + 1 \<le> 2 ^ height (t::'a tree)"
+proof(induction t)
+  case (Node l a r)
+  show ?case
+  proof (cases "height l \<le> height r")
+    case True
+    have "size(Node l a r) + 1 = (size l + 1) + (size r + 1)" by simp
+    also have "size l + 1 \<le> 2 ^ height l" by(rule Node.IH(1))
+    also have "size r + 1 \<le> 2 ^ height r" by(rule Node.IH(2))
+    also have "(2::nat) ^ height l \<le> 2 ^ height r" using True by simp
+    finally show ?thesis using True by (auto simp: max_def mult_2)
+  next
+    case False
+    have "size(Node l a r) + 1 = (size l + 1) + (size r + 1)" by simp
+    also have "size l + 1 \<le> 2 ^ height l" by(rule Node.IH(1))
+    also have "size r + 1 \<le> 2 ^ height r" by(rule Node.IH(2))
+    also have "(2::nat) ^ height r \<le> 2 ^ height l" using False by simp
+    finally show ?thesis using False by (auto simp: max_def mult_2)
+  qed
+qed simp
+
 
 subsection "The set of subtrees"
 
