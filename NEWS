@@ -1236,6 +1236,9 @@ counterexamples. Counterexamples are certified with the "approximation"
 method. See HOL/Decision_Procs/ex/Approximation_Quickcheck_Ex.thy for
 examples.
 
+* HOL-Decision_Procs: The "approximation" method works with "powr" 
+  (exponentiation on real numbers) again.
+
 * HOL-Probability: Reworked measurability prover
   - applies destructor rules repeatedly
   - removed application splitting (replaced by destructor rule)

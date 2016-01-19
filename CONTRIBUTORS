@@ -6,6 +6,10 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2016
 -----------------------------
 
+* Winter 2016: Manuel Eberl, TUM
+  Support for real exponentiation ("powr") in the "approximation" method.
+  (This was removed in Isabelle 2015 due to a changed definition of "powr")
+
 * Summer 2014: Jeremy Avigad, Luke Serafin, CMU, and Johannes Hölzl, TUM
   Proof of the central limit theorem: includes weak convergence,
   characteristic functions, and Levy's uniqueness and continuity theorem.
