@@ -100,8 +100,8 @@ Available by loading theory \<open>Lattice_Syntax\<close> in directory \<open>Li
 @{text[source]"x \<sqsubset> y"} & @{term"x < y"}\\
 @{text[source]"x \<sqinter> y"} & @{term"inf x y"}\\
 @{text[source]"x \<squnion> y"} & @{term"sup x y"}\\
-@{text[source]"\<Sqinter>A"} & @{term"Sup A"}\\
-@{text[source]"\<Squnion>A"} & @{term"Inf A"}\\
+@{text[source]"\<Sqinter>A"} & @{term"Inf A"}\\
+@{text[source]"\<Squnion>A"} & @{term"Sup A"}\\
 @{text[source]"\<top>"} & @{term[source] top}\\
 @{text[source]"\<bottom>"} & @{term[source] bot}\\
 \end{supertabular}
