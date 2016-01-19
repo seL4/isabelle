@@ -194,9 +194,9 @@ print mode "HTML" loses its special meaning.
 
 *** Isar ***
 
-* Local goals ('have', 'show', 'hence', 'thus') allow structured
-rule statements like fixes/assumes/shows in theorem specifications, but
-the notation is postfix with keywords 'if' (or 'when') and 'for'. For
+* Local goals ('have', 'show', 'hence', 'thus') allow structured rule
+statements like fixes/assumes/shows in theorem specifications, but the
+notation is postfix with keywords 'if' (or 'when') and 'for'. For
 example:
 
   have result: "C x y"
@@ -240,7 +240,8 @@ is equivalent to:
 
 * The meaning of 'show' with Pure rule statements has changed: premises
 are treated in the sense of 'assume', instead of 'presume'. This means,
-a goal like "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x" can be solved completely as follows:
+a goal like "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x" can be solved completely as
+follows:
 
   show "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x"
 
@@ -401,12 +402,12 @@ specifications. This functionality used to be part of 'print_theory'.
 * Configuration option rule_insts_schematic has been discontinued
 (intermediate legacy feature in Isabelle2015). INCOMPATIBILITY.
 
-* Abbreviations in type classes now carry proper sort constraint.
-Rare INCOMPATIBILITY in situations where the previous misbehaviour
-has been exploited.
+* Abbreviations in type classes now carry proper sort constraint. Rare
+INCOMPATIBILITY in situations where the previous misbehaviour has been
+exploited.
 
 * Refinement of user-space type system in type classes: pseudo-local
-operations behave more similar to abbreviations.  Potential
+operations behave more similar to abbreviations. Potential
 INCOMPATIBILITY in exotic situations.
 
 
@@ -471,7 +472,8 @@ definition and its monotonicity result. Rare INCOMPATIBILITY.
 
 * Recursive function definitions ('fun', 'function', 'partial_function')
 expose low-level facts of the internal construction only if the option
-"function_internals" is enabled. Rare INCOMPATIBILITY.
+"function_internals" is enabled. Its internal inductive definition is
+also subject to "inductive_internals". Rare INCOMPATIBILITY.
 
 * BNF datatypes ('datatype', 'codatatype', etc.) expose low-level facts
 of the internal construction only if the option "bnf_internals" is
@@ -635,8 +637,8 @@ terms for sup and inf. For example, "sup x (sup y (- x))" simplifies to
 
 * Class uniform_space introduces uniform spaces btw topological spaces
 and metric spaces. Minor INCOMPATIBILITY: open_<type>_def needs to be
-introduced in the form of an uniformity. Some constants are more
-general now, it may be necessary to add type class constraints.
+introduced in the form of an uniformity. Some constants are more general
+now, it may be necessary to add type class constraints.
 
   open_real_def \<leadsto> open_dist
   open_complex_def \<leadsto> open_dist
@@ -794,7 +796,7 @@ allows to adjust large-scale tests (e.g. AFP) to overall hardware
 performance.
 
 * Property values in etc/symbols may contain spaces, if written with the
-replacement character "␣" (Unicode point 0x2324).  For example:
+replacement character "␣" (Unicode point 0x2324). For example:
 
     \<star>  code: 0x0022c6  group: operator  font: Deja␣Vu␣Sans␣Mono
 
@@ -818,8 +820,8 @@ platforms as follows.
 is relevant both for Poly/ML and JVM processes.
 
 * Poly/ML default platform architecture may be changed from 32bit to
-64bit via system option ML_system_64. A system restart (and rebuild)
-is required after change.
+64bit via system option ML_system_64. A system restart (and rebuild) is
+required after change.
 
 * Poly/ML 5.6 runs natively on x86-windows and x86_64-windows, which
 both allow larger heap space than former x86-cygwin.

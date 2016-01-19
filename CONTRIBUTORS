@@ -16,10 +16,10 @@ Contributions to Isabelle2016
 
 * Summer 2015 - Winter 2016: Lawrence C Paulson, Cambridge
   General, homology form of Cauchy's integral theorem and supporting material
-  (ported from HOL Light)
+  (ported from HOL Light).
 
 * Winter 2015/16: Gerwin Klein, NICTA
-  print_record command
+  New print_record command.
 
 * Winter 2015: Manuel Eberl, TUM
   The radius of convergence of power series and various summability tests.
