@@ -167,7 +167,7 @@ val paragraph = markup Markup.paragraph;
 val para = paragraph o text;
 
 fun quote prt = blk (1, [str "\"", prt, str "\""]);
-fun cartouche prt = blk (1, [str "\\<open>", prt, str "\\<close>"]);
+fun cartouche prt = blk (1, [str Symbol.open_, prt, str Symbol.close]);
 
 fun separate sep prts =
   flat (Library.separate [str sep, brk 1] (map single prts));

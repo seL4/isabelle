@@ -10,6 +10,8 @@ sig
   val spaces: int -> string
   val STX: symbol
   val DEL: symbol
+  val open_: symbol
+  val close: symbol
   val space: symbol
   val comment: symbol
   val is_char: symbol -> bool
@@ -93,6 +95,9 @@ type symbol = string;
 val STX = chr 2;
 val DEL = chr 127;
 
+val open_ = "\\<open>";
+val close = "\\<close>";
+
 val space = chr 32;
 
 local
@@ -115,7 +120,7 @@ fun raw_symbolic s =
   String.isPrefix "\\<" s andalso String.isSuffix ">" s andalso not (String.isPrefix "\\<^" s);
 
 fun is_symbolic s =
-  s <> "\\<open>" andalso s <> "\\<close>" andalso raw_symbolic s;
+  s <> open_ andalso s <> close andalso raw_symbolic s;
 
 val is_symbolic_char = member (op =) (raw_explode "!#$%&*+-/<=>?@^_|~");
 
