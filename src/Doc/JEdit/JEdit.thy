@@ -336,8 +336,7 @@ text \<open>
   in mind that this extra variance of GUI functionality is unlikely to work in
   arbitrary combinations. The platform-independent \<^emph>\<open>Metal\<close> and \<^emph>\<open>Nimbus\<close>
   should always work on all platforms, although they are technically and
-  stylistically outdated. The historic \<^emph>\<open>CDE/Motif\<close> on Linux should be
-  ignored.
+  stylistically outdated. The historic \<^emph>\<open>CDE/Motif\<close> should be ignored.
 
   After changing the look-and-feel in \<^emph>\<open>Global Options~/ Appearance\<close>,
   Isabelle/jEdit should be restarted to take full effect.
