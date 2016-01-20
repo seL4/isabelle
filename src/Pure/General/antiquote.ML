@@ -79,7 +79,7 @@ val err_prefix = "Antiquotation lexical error: ";
 val scan_txt =
   Scan.repeats1
    (Scan.many1 (fn (s, _) =>
-      not (Symbol.is_control s) andalso s <> "\\<open>" andalso s <> "@" andalso Symbol.not_eof s) ||
+      not (Symbol.is_control s) andalso s <> Symbol.open_ andalso s <> "@" andalso Symbol.not_eof s) ||
     $$$ "@" --| Scan.ahead (~$$ "{"));
 
 val scan_antiq_body =
