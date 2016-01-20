@@ -12,6 +12,7 @@ import isabelle._
 
 import java.awt.{Color, Font, Toolkit, Window}
 import java.awt.event.KeyEvent
+import java.awt.im.InputMethodRequests
 import javax.swing.JTextField
 import javax.swing.event.{DocumentListener, DocumentEvent}
 
@@ -223,6 +224,8 @@ class Pretty_Text_Area(
 
 
   /* key handling */
+
+  override def getInputMethodRequests: InputMethodRequests = null
 
   inputHandlerProvider =
     new DefaultInputHandlerProvider(new TextAreaInputHandler(text_area) {
