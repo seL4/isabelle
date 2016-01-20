@@ -6,7 +6,7 @@
 section \<open>Multivariate calculus in Euclidean space\<close>
 
 theory Derivative
-imports Brouwer_Fixpoint Operator_Norm Uniform_Limit
+imports Brouwer_Fixpoint Operator_Norm Uniform_Limit Bounded_Linear_Function
 begin
 
 lemma onorm_inner_left:
@@ -2560,5 +2560,198 @@ next
   ultimately have "f' \<ge> (f x - f c) / (x - c)" by (rule tendsto_le_const)
   thus ?thesis using xc by (simp add: field_simps)
 qed simp_all
+
+
+subsection \<open>Partial derivatives\<close>
+
+lemma eventually_at_Pair_within_TimesI1:
+  fixes x::"'a::metric_space"
+  assumes "\<forall>\<^sub>F x' in at x within X. P x'"
+  assumes "P x"
+  shows "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. P x'"
+proof -
+  from assms[unfolded eventually_at_topological]
+  obtain S where S: "open S" "x \<in> S" "\<And>x'. x' \<in> X \<Longrightarrow> x' \<in> S \<Longrightarrow> P x'"
+    by metis
+  show "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. P x'"
+    unfolding eventually_at_topological
+    by (auto intro!: exI[where x="S \<times> UNIV"] S open_Times)
+qed
+
+lemma eventually_at_Pair_within_TimesI2:
+  fixes x::"'a::metric_space"
+  assumes "\<forall>\<^sub>F y' in at y within Y. P y'"
+  assumes "P y"
+  shows "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. P y'"
+proof -
+  from assms[unfolded eventually_at_topological]
+  obtain S where S: "open S" "y \<in> S" "\<And>y'. y' \<in> Y \<Longrightarrow> y' \<in> S \<Longrightarrow> P y'"
+    by metis
+  show "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. P y'"
+    unfolding eventually_at_topological
+    by (auto intro!: exI[where x="UNIV \<times> S"] S open_Times)
+qed
+
+lemma has_derivative_partialsI:
+  assumes fx: "\<And>x y. x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> ((\<lambda>x. f x y) has_derivative blinfun_apply (fx x y)) (at x within X)"
+  assumes fy: "\<And>x y. x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> ((\<lambda>y. f x y) has_derivative blinfun_apply (fy x y)) (at y within Y)"
+  assumes fx_cont: "continuous_on (X \<times> Y) (\<lambda>(x, y). fx x y)"
+  assumes fy_cont: "continuous_on (X \<times> Y) (\<lambda>(x, y). fy x y)"
+  assumes "x \<in> X" "y \<in> Y"
+  assumes "convex X" "convex Y"
+  shows "((\<lambda>(x, y). f x y) has_derivative (\<lambda>(tx, ty). fx x y tx + fy x y ty)) (at (x, y) within X \<times> Y)"
+proof (safe intro!: has_derivativeI tendstoI, goal_cases)
+  case (2 e')
+  def e\<equiv>"e' / 9"
+  have "e > 0" using \<open>e' > 0\<close> by (simp add: e_def)
+
+  have "(x, y) \<in> X \<times> Y" using assms by auto
+  from fy_cont[unfolded continuous_on_eq_continuous_within, rule_format, OF this,
+    unfolded continuous_within, THEN tendstoD, OF \<open>e > 0\<close>]
+  have "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. dist (fy x' y') (fy x y) < e"
+    by (auto simp: split_beta')
+  from this[unfolded eventually_at] obtain d' where
+    "d' > 0"
+    "\<And>x' y'. x' \<in> X \<Longrightarrow> y' \<in> Y \<Longrightarrow> (x', y') \<noteq> (x, y) \<Longrightarrow> dist (x', y') (x, y) < d' \<Longrightarrow>
+      dist (fy x' y') (fy x y) < e"
+    by auto
+  then
+  have d': "x' \<in> X \<Longrightarrow> y' \<in> Y \<Longrightarrow> dist (x', y') (x, y) < d' \<Longrightarrow> dist (fy x' y') (fy x y) < e"
+    for x' y'
+    using \<open>0 < e\<close>
+    by (cases "(x', y') = (x, y)") auto
+  def d \<equiv> "d' / sqrt 2"
+  have "d > 0" using \<open>0 < d'\<close> by (simp add: d_def)
+  have d: "x' \<in> X \<Longrightarrow> y' \<in> Y \<Longrightarrow> dist x' x < d \<Longrightarrow> dist y' y < d \<Longrightarrow> dist (fy x' y') (fy x y) < e"
+    for x' y'
+    by (auto simp: dist_prod_def d_def intro!: d' real_sqrt_sum_squares_less)
+
+  let ?S = "ball y d \<inter> Y"
+  have "convex ?S"
+    by (auto intro!: convex_Int \<open>convex Y\<close>)
+  {
+    fix x'::'a and y'::'b
+    assume x': "x' \<in> X" and y': "y' \<in> Y"
+    assume dx': "dist x' x < d" and dy': "dist y' y < d"
+    have "norm (fy x' y' - fy x' y) \<le> dist (fy x' y') (fy x y) + dist (fy x' y) (fy x y)"
+      by norm
+    also have "dist (fy x' y') (fy x y) < e"
+      by (rule d; fact)
+    also have "dist (fy x' y) (fy x y) < e"
+      by (auto intro!: d simp: dist_prod_def x' \<open>d > 0\<close> \<open>y \<in> Y\<close> dx')
+    finally
+    have "norm (fy x' y' - fy x' y) < e + e"
+      by arith
+    then have "onorm (blinfun_apply (fy x' y') - blinfun_apply (fy x' y)) < e + e"
+      by (auto simp: norm_blinfun.rep_eq blinfun.diff_left[abs_def] fun_diff_def)
+  } note onorm = this
+
+  have ev_mem: "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. (x', y') \<in> X \<times> Y"
+    using \<open>x \<in> X\<close> \<open>y \<in> Y\<close>
+    by (auto simp: eventually_at intro!: zero_less_one)
+  moreover
+  have ev_dist: "\<forall>\<^sub>F xy in at (x, y) within X \<times> Y. dist xy (x, y) < d" if "d > 0" for d
+    using eventually_at_ball[OF that]
+    by (rule eventually_elim2) (auto simp: dist_commute intro!: eventually_True)
+  note ev_dist[OF \<open>0 < d\<close>]
+  ultimately
+  have "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y.
+    norm (f x' y' - f x' y - (fy x' y) (y' - y)) \<le> norm (y' - y) * (e + e)"
+  proof (eventually_elim, safe)
+    fix x' y'
+    assume "x' \<in> X" and y': "y' \<in> Y"
+    assume dist: "dist (x', y') (x, y) < d"
+    then have dx: "dist x' x < d" and dy: "dist y' y < d"
+      unfolding dist_prod_def fst_conv snd_conv atomize_conj
+      by (metis le_less_trans real_sqrt_sum_squares_ge1 real_sqrt_sum_squares_ge2)
+    {
+      fix t::real
+      assume "t \<in> {0 .. 1}"
+      then have "y + t *\<^sub>R (y' - y) \<in> closed_segment y y'"
+        by (auto simp: closed_segment_def algebra_simps intro!: exI[where x=t])
+      also
+      have "\<dots> \<subseteq> ball y d \<inter> Y"
+        using \<open>y \<in> Y\<close> \<open>0 < d\<close> dy y'
+        by (intro \<open>convex ?S\<close>[unfolded convex_contains_segment, rule_format, of y y'])
+          (auto simp: dist_commute)
+      finally have "y + t *\<^sub>R (y' - y) \<in> ?S" .
+    } note seg = this
+
+    have "\<forall>x\<in>ball y d \<inter> Y. onorm (blinfun_apply (fy x' x) - blinfun_apply (fy x' y)) \<le> e + e"
+      by (safe intro!: onorm less_imp_le \<open>x' \<in> X\<close> dx) (auto simp: dist_commute \<open>0 < d\<close> \<open>y \<in> Y\<close>)
+    with seg has_derivative_within_subset[OF assms(2)[OF \<open>x' \<in> X\<close>]]
+    show "norm (f x' y' - f x' y - (fy x' y) (y' - y)) \<le> norm (y' - y) * (e + e)"
+      by (rule differentiable_bound_linearization[where S="?S"])
+        (auto intro!: \<open>0 < d\<close> \<open>y \<in> Y\<close>)
+  qed
+  moreover
+  let ?le = "\<lambda>x'. norm (f x' y - f x y - (fx x y) (x' - x)) \<le> norm (x' - x) * e"
+  from fx[OF \<open>x \<in> X\<close> \<open>y \<in> Y\<close>, unfolded has_derivative_within, THEN conjunct2, THEN tendstoD, OF \<open>0 < e\<close>]
+  have "\<forall>\<^sub>F x' in at x within X. ?le x'"
+    by eventually_elim
+       (auto simp: dist_norm divide_simps blinfun.bilinear_simps field_simps split: split_if_asm)
+  then have "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. ?le x'"
+    by (rule eventually_at_Pair_within_TimesI1)
+       (simp add: blinfun.bilinear_simps)
+  moreover have "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. norm ((x', y') - (x, y)) \<noteq> 0"
+    unfolding norm_eq_zero right_minus_eq
+    by (auto simp: eventually_at intro!: zero_less_one)
+  moreover
+  from fy_cont[unfolded continuous_on_eq_continuous_within, rule_format, OF SigmaI[OF \<open>x \<in> X\<close> \<open>y \<in> Y\<close>],
+      unfolded continuous_within, THEN tendstoD, OF \<open>0 < e\<close>]
+  have "\<forall>\<^sub>F x' in at x within X. norm (fy x' y - fy x y) < e"
+    unfolding eventually_at
+    using \<open>y \<in> Y\<close>
+    by (auto simp: dist_prod_def dist_norm)
+  then have "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. norm (fy x' y - fy x y) < e"
+    by (rule eventually_at_Pair_within_TimesI1)
+       (simp add: blinfun.bilinear_simps \<open>0 < e\<close>)
+  ultimately
+  have "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y.
+            norm ((f x' y' - f x y - (fx x y (x' - x) + fy x y (y' - y))) /\<^sub>R
+              norm ((x', y') - (x, y)))
+            < e'"
+    apply eventually_elim
+  proof safe
+    fix x' y'
+    have "norm (f x' y' - f x y - (fx x y (x' - x) + fy x y (y' - y))) \<le>
+        norm (f x' y' - f x' y - fy x' y (y' - y)) +
+        norm (fy x y (y' - y) - fy x' y (y' - y)) +
+        norm (f x' y - f x y - fx x y (x' - x))"
+      by norm
+    also
+    assume nz: "norm ((x', y') - (x, y)) \<noteq> 0"
+      and nfy: "norm (fy x' y - fy x y) < e"
+    assume "norm (f x' y' - f x' y - blinfun_apply (fy x' y) (y' - y)) \<le> norm (y' - y) * (e + e)"
+    also assume "norm (f x' y - f x y - blinfun_apply (fx x y) (x' - x)) \<le> norm (x' - x) * e"
+    also
+    have "norm ((fy x y) (y' - y) - (fy x' y) (y' - y)) \<le> norm ((fy x y) - (fy x' y)) * norm (y' - y)"
+      by (auto simp: blinfun.bilinear_simps[symmetric] intro!: norm_blinfun)
+    also have "\<dots> \<le> (e + e) * norm (y' - y)"
+      using \<open>e > 0\<close> nfy
+      by (auto simp: norm_minus_commute intro!: mult_right_mono)
+    also have "norm (x' - x) * e \<le> norm (x' - x) * (e + e)"
+      using \<open>0 < e\<close> by simp
+    also have "norm (y' - y) * (e + e) + (e + e) * norm (y' - y) + norm (x' - x) * (e + e) \<le>
+        (norm (y' - y) + norm (x' - x)) * (4 * e)"
+      using \<open>e > 0\<close>
+      by (simp add: algebra_simps)
+    also have "\<dots> \<le> 2 * norm ((x', y') - (x, y)) * (4 * e)"
+      using \<open>0 < e\<close> real_sqrt_sum_squares_ge1[of "norm (x' - x)" "norm (y' - y)"]
+        real_sqrt_sum_squares_ge2[of "norm (y' - y)" "norm (x' - x)"]
+      by (auto intro!: mult_right_mono simp: norm_prod_def
+        simp del: real_sqrt_sum_squares_ge1 real_sqrt_sum_squares_ge2)
+    also have "\<dots> \<le> norm ((x', y') - (x, y)) * (8 * e)"
+      by simp
+    also have "\<dots> < norm ((x', y') - (x, y)) * e'"
+      using \<open>0 < e'\<close> nz
+      by (auto simp: e_def)
+    finally show "norm ((f x' y' - f x y - (fx x y (x' - x) + fy x y (y' - y))) /\<^sub>R norm ((x', y') - (x, y))) < e'"
+      by (auto simp: divide_simps dist_norm mult.commute)
+  qed
+  then show ?case
+    by eventually_elim (auto simp: dist_norm field_simps)
+qed (auto intro!: bounded_linear_intros simp: split_beta')
+
 
 end

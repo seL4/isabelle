@@ -9,7 +9,6 @@ imports
   Derivative
   Uniform_Limit
   "~~/src/HOL/Library/Indicator_Function"
-  Bounded_Linear_Function
 begin
 
 lemma cSup_abs_le: (* TODO: move to Conditionally_Complete_Lattices.thy? *)
