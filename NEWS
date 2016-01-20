@@ -649,15 +649,16 @@ now, it may be necessary to add type class constraints.
   - Renamed multiset inclusion operators:
       < ~> <#
       > ~> >#
-      \<subset> ~> \<subset>#
-      \<supset> ~> \<supset>#
       <= ~> <=#
       >= ~> >=#
       \<le> ~> \<le>#
       \<ge> ~> \<ge>#
-      \<subseteq> ~> \<subseteq>#
-      \<supseteq> ~> \<supseteq>#
     INCOMPATIBILITY.
+  - Added multiset inclusion operator syntax:
+      \<subset>#
+      \<subseteq>#
+      \<supset>#
+      \<supseteq>#
   - "'a multiset" is no longer an instance of the "order",
     "ordered_ab_semigroup_add_imp_le", "ordered_cancel_comm_monoid_diff",
     "semilattice_inf", and "semilattice_sup" type classes. The theorems
