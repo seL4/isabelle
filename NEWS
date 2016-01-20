@@ -648,10 +648,15 @@ now, it may be necessary to add type class constraints.
 * Library/Multiset:
   - Renamed multiset inclusion operators:
       < ~> <#
+      > ~> >#
       \<subset> ~> \<subset>#
+      \<supset> ~> \<supset>#
       <= ~> <=#
+      >= ~> >=#
       \<le> ~> \<le>#
+      \<ge> ~> \<ge>#
       \<subseteq> ~> \<subseteq>#
+      \<supseteq> ~> \<supseteq>#
     INCOMPATIBILITY.
   - "'a multiset" is no longer an instance of the "order",
     "ordered_ab_semigroup_add_imp_le", "ordered_cancel_comm_monoid_diff",

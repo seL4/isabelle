@@ -271,12 +271,23 @@ definition subseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow>
 definition subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "\<subset>#" 50)
   where "A \<subset># B = (A \<subseteq># B \<and> A \<noteq> B)"
 
+abbreviation (input) supseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
+  "supseteq_mset A B == B \<subseteq># A"
+
+abbreviation (input) supset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
+  "supset_mset A B == B \<subset># A"
+
 notation (input)
-  subseteq_mset  (infix "\<le>#" 50)
+  subseteq_mset  (infix "\<le>#" 50) and
+  supseteq_mset  (infix "\<ge>#" 50) and
+  supseteq_mset  (infix "\<supseteq>#" 50) and
+  supset_mset  (infix "\<supset>#" 50)
 
 notation (ASCII)
   subseteq_mset  (infix "<=#" 50) and
-  subset_mset  (infix "<#" 50)
+  subset_mset  (infix "<#" 50) and
+  supseteq_mset  (infix ">=#" 50) and
+  supset_mset  (infix ">#" 50)
 
 interpretation subset_mset: ordered_ab_semigroup_add_imp_le "op +" "op -" "op \<subseteq>#" "op \<subset>#"
   by standard (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order_trans antisym)
