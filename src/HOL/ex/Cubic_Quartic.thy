@@ -2,7 +2,7 @@
     Author:     Amine Chaieb
 *)
 
-header "The Cubic and Quartic Root Formulas"
+section "The Cubic and Quartic Root Formulas"
 
 theory Cubic_Quartic
 imports Complex_Main
