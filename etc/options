@@ -98,6 +98,8 @@ public option skip_proofs : bool = false
   -- "skip over proofs (implicit 'sorry')"
 option strict_facts : bool = false
   -- "force lazy facts when defined in context"
+public option defer_proofs : bool = false
+  -- "defer proof processing"
 
 
 section "Global Session Parameters"
