@@ -172,6 +172,7 @@ val begin_notepad =
 
 (** toplevel parsing **)
 
+
 (* parse spans *)
 
 fun parse_spans command_kind =
@@ -228,8 +229,10 @@ fun parse_command thy markers is_begin =
       val kind = Keyword.command_kind keywords name;
       val tr0 =
         Toplevel.make {name = name, kind = kind, is_begin = is_begin, pos = pos}
-        |> Symset.member Keyword.proof_open_kinds kind ? Toplevel.skip_proof_open
-        |> Symset.member Keyword.proof_close_kinds kind ? Toplevel.skip_proof_close;
+        |> Symset.member Keyword.proof_open_kinds kind ?
+            (Toplevel.skip_proof_open o Toplevel.set_open)
+        |> Symset.member Keyword.proof_close_kinds kind ?
+            (Toplevel.skip_proof_close o Toplevel.set_close);
       val command_markers =
         Parse.command |-- Document_Source.old_tags >>
           (fn tags => Toplevel.markers (map Document_Marker.legacy_tag tags @ markers) tr0);

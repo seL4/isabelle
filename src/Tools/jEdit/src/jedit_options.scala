@@ -92,6 +92,18 @@ object JEdit_Options {
     }
   }
 
+  object defer_proofs extends Bool_Access("defer_proofs") {
+    override def changed(): Unit = GUI_Thread.require {
+      super.changed()
+      JEdit_Editor.flush_edits(hidden = true)
+      JEdit_Editor.flush_edits()
+    }
+
+    class GUI extends Bool_GUI(this, "Defer proofs") {
+      tooltip = "Defer proof checking"
+    }
+  }
+
 
 
   /* editor pane for plugin options */
