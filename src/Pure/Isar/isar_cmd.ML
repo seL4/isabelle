@@ -149,7 +149,7 @@ fun simproc_setup name lhss source =
 (* local endings *)
 
 fun local_qed m = Toplevel.proof (Proof.local_qed (m, true));
-val local_terminal_proof = Toplevel.proof o Proof.local_future_terminal_proof;
+fun local_terminal_proof m = Toplevel.proof_defer (fn defer => if defer then Proof.local_terminal_proof m else Proof.local_future_terminal_proof m);
 val local_default_proof = Toplevel.proof Proof.local_default_proof;
 val local_immediate_proof = Toplevel.proof Proof.local_immediate_proof;
 val local_done_proof = Toplevel.proof Proof.local_done_proof;
@@ -158,12 +158,12 @@ val local_skip_proof = Toplevel.proof' Proof.local_skip_proof;
 
 (* global endings *)
 
-fun global_qed m = Toplevel.end_proof (K (Proof.global_qed (m, true)));
-val global_terminal_proof = Toplevel.end_proof o K o Proof.global_future_terminal_proof;
+fun global_qed m = Toplevel.end_proof_deferred (fn defer => fn int => Proof.global_qed (m, true)) (K (Proof.global_qed (NONE, true)));
+fun global_terminal_proof m = Toplevel.end_proof_deferred (fn defer => fn _ => if defer then Proof.global_terminal_proof m else Proof.global_future_terminal_proof m) (K Proof.global_done_proof);
 val global_default_proof = Toplevel.end_proof (K Proof.global_default_proof);
 val global_immediate_proof = Toplevel.end_proof (K Proof.global_immediate_proof);
 val global_skip_proof = Toplevel.end_proof Proof.global_skip_proof;
-val global_done_proof = Toplevel.end_proof (K Proof.global_done_proof);
+val global_done_proof = Toplevel.end_proof_deferred (fn defer => K Proof.global_done_proof) (K Proof.global_done_proof);
 
 
 (* common endings *)

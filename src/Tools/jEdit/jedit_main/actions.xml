@@ -32,6 +32,21 @@
 	    isabelle.jedit.Isabelle.toggle_skip_proofs();
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.set-defer-proofs">
+	  <CODE>
+	    isabelle.jedit.Isabelle.set_defer_proofs();
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.reset-defer-proofs">
+	  <CODE>
+	    isabelle.jedit.Isabelle.reset_defer_proofs();
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.toggle-defer-proofs">
+	  <CODE>
+	    isabelle.jedit.Isabelle.toggle_skip_proofs();
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.set-node-required">
 	  <CODE>
 	    isabelle.jedit.Isabelle.set_node_required(view);
