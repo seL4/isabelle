@@ -1286,7 +1286,7 @@ in
 
 fun future_proof fork_proof state =
   let
-    val _ = assert_backward state;
+    (* val _ = assert_backward state; *)
     val (goal_ctxt, goal_info) = find_goal state;
     val {statement as (kind, _, prop), using, goal, before_qed, after_qed} = goal_info;
 
