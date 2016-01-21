@@ -93,6 +93,18 @@ object JEdit_Options {
       tooltip = "Avoid checking proofs where possible"
     }
   }
+
+  object defer_proofs extends Bool_Access("defer_proofs") {
+    override def changed(): Unit = GUI_Thread.require {
+      super.changed()
+      PIDE.editor.flush_edits(hidden = true)
+      PIDE.editor.flush()
+    }
+
+    class GUI extends Bool_GUI(this, "Defer proofs") {
+      tooltip = "Defer proof checking"
+    }
+  }
 }
 
 class JEdit_Options(init_options: Options) extends Options_Variable(init_options) {
