@@ -96,7 +96,7 @@ class JEdit_Options extends Options_Variable
             val title = opt_title
             def load = text = value.check_name(opt_name).value
             def save =
-              try { update(value + (opt_name, text)) }
+              try { store(value + (opt_name, text)) }
               catch {
                 case ERROR(msg) =>
                   GUI.error_dialog(this.peer, "Failed to update options",

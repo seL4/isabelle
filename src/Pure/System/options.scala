@@ -387,48 +387,52 @@ final class Options private(
 
 class Options_Variable
 {
-  private var options = Options.empty
+  private var options: Option[Options] = None
 
-  def value: Options = synchronized { options }
-  def update(new_options: Options): Unit = synchronized { options = new_options }
+  def store(new_options: Options): Unit = synchronized { options = Some(new_options) }
 
-  def + (name: String, x: String): Unit = synchronized { options = options + (name, x) }
+  def value: Options = synchronized {
+    options match {
+      case Some(opts) => opts
+      case None => error("Uninitialized Isabelle system options")
+    }
+  }
+
+  private def upd(f: Options => Options): Unit = synchronized { options = Some(f(value)) }
+
+  def + (name: String, x: String): Unit = upd(opts => opts + (name, x))
 
   class Bool_Access
   {
-    def apply(name: String): Boolean = synchronized { options.bool(name) }
-    def update(name: String, x: Boolean): Unit =
-      synchronized { options = options.bool.update(name, x) }
+    def apply(name: String): Boolean = value.bool(name)
+    def update(name: String, x: Boolean): Unit = upd(opts => opts.bool.update(name, x))
   }
   val bool = new Bool_Access
 
   class Int_Access
   {
-    def apply(name: String): Int = synchronized { options.int(name) }
-    def update(name: String, x: Int): Unit =
-      synchronized { options = options.int.update(name, x) }
+    def apply(name: String): Int = value.int(name)
+    def update(name: String, x: Int): Unit = upd(opts => opts.int.update(name, x))
   }
   val int = new Int_Access
 
   class Real_Access
   {
-    def apply(name: String): Double = synchronized { options.real(name) }
-    def update(name: String, x: Double): Unit =
-      synchronized { options = options.real.update(name, x) }
+    def apply(name: String): Double = value.real(name)
+    def update(name: String, x: Double): Unit = upd(opts => opts.real.update(name, x))
   }
   val real = new Real_Access
 
   class String_Access
   {
-    def apply(name: String): String = synchronized { options.string(name) }
-    def update(name: String, x: String): Unit =
-      synchronized { options = options.string.update(name, x) }
+    def apply(name: String): String = value.string(name)
+    def update(name: String, x: String): Unit = upd(opts => opts.string.update(name, x))
   }
   val string = new String_Access
 
   class Seconds_Access
   {
-    def apply(name: String): Time = synchronized { options.seconds(name) }
+    def apply(name: String): Time = value.seconds(name)
   }
   val seconds = new Seconds_Access
 }

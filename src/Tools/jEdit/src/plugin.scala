@@ -391,7 +391,7 @@ class Plugin extends EBPlugin
       Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
       PIDE.plugin = this
-      PIDE.options.update(Options.init())
+      PIDE.options.store(Options.init())
       PIDE.completion_history.load()
       PIDE.spell_checker.update(PIDE.options.value)
 
