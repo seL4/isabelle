@@ -91,9 +91,12 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private val skip_proofs = new Isabelle.Skip_Proofs
   skip_proofs.focusable = false
 
+  private val defer_proofs = new Isabelle.Defer_Proofs
+  defer_proofs.focusable = false
+
 
   private val controls =
-    Wrap_Panel(List(purge, skip_proofs, continuous_checking, session_phase, logic))
+    Wrap_Panel(List(purge, skip_proofs, defer_proofs, continuous_checking, session_phase, logic))
 
   add(controls.peer, BorderLayout.NORTH)
 
@@ -244,6 +247,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       case _: Session.Global_Options =>
         GUI_Thread.later {
           skip_proofs.load()
+          defer_proofs.load()
           continuous_checking.load()
           logic.load ()
           nodes_required = Document_Model.required_nodes()

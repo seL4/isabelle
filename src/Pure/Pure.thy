@@ -1018,7 +1018,7 @@ val _ =
   Outer_Syntax.command \<^command_keyword>\<open>proof\<close> "backward proof step"
     (Scan.option Method.parse >> (fn m =>
       (Option.map Method.report m;
-       Toplevel.proof (fn state =>
+       Toplevel.proof_init (fn state =>
          let
           val state' = state |> Proof.proof m |> Seq.the_result "";
           val _ =
