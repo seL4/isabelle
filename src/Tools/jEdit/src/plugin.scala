@@ -19,8 +19,8 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.syntax.ModeProvider
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
-
 import org.gjt.sp.util.SyntaxUtilities
+import org.gjt.sp.util.Log
 
 
 object PIDE
@@ -420,6 +420,7 @@ class Plugin extends EBPlugin
       case exn: Throwable =>
         PIDE.startup_failure = Some(exn)
         PIDE.startup_notified = false
+        Log.log(Log.ERROR, this, exn)
     }
   }
 
