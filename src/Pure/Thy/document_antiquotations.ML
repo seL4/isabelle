@@ -87,7 +87,7 @@ val _ =
         let
           val _ =
             Context_Position.report ctxt (Input.pos_of source)
-              (Markup.language_outer (Input.is_delimited source));
+              (Markup.language_Isar (Input.is_delimited source));
 
           val keywords = Thy_Header.get_keywords' ctxt;
           val toks =

@@ -178,8 +178,8 @@ marked as \footnote{}. This may be used in the short form \<^footnote>\<open>...
 * Antiquotation @{verbatim [display]} supports option "indent".
 
 * Antiquotation @{theory_text} prints uninterpreted theory source text
-(outer syntax with command keywords etc.). This may be used in the short
-form \<^theory_text>\<open>...\<close>. @{theory_text [display]} supports option "indent".
+(Isar outer syntax with command keywords etc.). This may be used in the
+short form \<^theory_text>\<open>...\<close>. @{theory_text [display]} supports option "indent".
 
 * Antiquotation @{doc ENTRY} provides a reference to the given
 documentation, with a hyperlink in the Prover IDE.
