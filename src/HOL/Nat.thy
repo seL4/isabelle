@@ -1329,6 +1329,9 @@ primrec funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Ri
 
 end
 
+lemma funpow_0 [simp]: "(f ^^ 0) x = x"
+  by simp
+
 lemma funpow_Suc_right:
   "f ^^ Suc n = f ^^ n \<circ> f"
 proof (induct n)

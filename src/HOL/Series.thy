@@ -129,6 +129,10 @@ proof -
        (simp add: eq atLeast0LessThan del: add_Suc_right)
 qed
 
+corollary sums_0:
+   "(\<And>n. f n = 0) \<Longrightarrow> (f sums 0)"
+    by (metis (no_types) finite.emptyI setsum.empty sums_finite)
+
 lemma summable_finite: "finite N \<Longrightarrow> (\<And>n. n \<notin> N \<Longrightarrow> f n = 0) \<Longrightarrow> summable f"
   by (rule sums_summable) (rule sums_finite)
 

@@ -105,7 +105,7 @@ proof
       by(simp add: cont_def)
     also have "\<dots> = (f^^0){} \<union> \<dots>" by simp
     also have "\<dots> = ?U"
-      by(auto simp del: funpow.simps) (metis not0_implies_Suc)
+      using assms funpow_decreasing le_SucI mono_if_cont by blast
     finally show "f ?U \<subseteq> ?U" by simp
   qed
 next

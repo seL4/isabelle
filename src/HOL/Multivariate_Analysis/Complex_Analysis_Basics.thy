@@ -447,16 +447,16 @@ lemma holomorphic_transform: "\<lbrakk>f holomorphic_on s; \<And>x. x \<in> s \<
 lemma holomorphic_cong: "s = t ==> (\<And>x. x \<in> s \<Longrightarrow> f x = g x) \<Longrightarrow> f holomorphic_on s \<longleftrightarrow> g holomorphic_on t"
   by (metis holomorphic_transform)
 
-lemma holomorphic_on_linear [holomorphic_intros]: "(op * c) holomorphic_on s"
+lemma holomorphic_on_linear [simp, holomorphic_intros]: "(op * c) holomorphic_on s"
   unfolding holomorphic_on_def by (metis complex_differentiable_linear)
 
-lemma holomorphic_on_const [holomorphic_intros]: "(\<lambda>z. c) holomorphic_on s"
+lemma holomorphic_on_const [simp, holomorphic_intros]: "(\<lambda>z. c) holomorphic_on s"
   unfolding holomorphic_on_def by (metis complex_differentiable_const)
 
-lemma holomorphic_on_ident [holomorphic_intros]: "(\<lambda>x. x) holomorphic_on s"
+lemma holomorphic_on_ident [simp, holomorphic_intros]: "(\<lambda>x. x) holomorphic_on s"
   unfolding holomorphic_on_def by (metis complex_differentiable_ident)
 
-lemma holomorphic_on_id [holomorphic_intros]: "id holomorphic_on s"
+lemma holomorphic_on_id [simp, holomorphic_intros]: "id holomorphic_on s"
   unfolding id_def by (rule holomorphic_on_ident)
 
 lemma holomorphic_on_compose:
@@ -544,6 +544,11 @@ lemma complex_derivative_cmult_right:
   "f complex_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w * c) z = deriv f z * c"
   unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
+
+lemma complex_derivative_cdivide_right:
+  "f complex_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w / c) z = deriv f z / c"
+  unfolding Fields.field_class.field_divide_inverse
+  by (blast intro: complex_derivative_cmult_right)
 
 lemma complex_derivative_transform_within_open:
   "\<lbrakk>f holomorphic_on s; g holomorphic_on s; open s; z \<in> s; \<And>w. w \<in> s \<Longrightarrow> f w = g w\<rbrakk>

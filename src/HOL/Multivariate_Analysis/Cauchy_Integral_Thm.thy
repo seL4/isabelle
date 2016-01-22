@@ -5722,8 +5722,8 @@ lemma higher_deriv_const [simp]: "(deriv ^^ n) (\<lambda>w. c) = (\<lambda>w. if
 
 lemma higher_deriv_ident [simp]:
      "(deriv ^^ n) (\<lambda>w. w) z = (if n = 0 then z else if n = 1 then 1 else 0)"
-  apply (induction n)
-  apply (simp_all add: deriv_ident funpow_Suc_right del: funpow.simps, simp)
+  apply (induction n, simp)
+  apply (metis higher_deriv_linear lambda_one)
   done
 
 corollary higher_deriv_id [simp]:
@@ -6893,6 +6893,60 @@ subsection\<open>General, homology form of Cauchy's theorem.\<close>
 
 text\<open>Proof is based on Dixon's, as presented in Lang's "Complex Analysis" book (page 147).\<close>
 
+lemma contour_integral_continuous_on_linepath_2D:
+  assumes "open u" and cont_dw: "\<And>w. w \<in> u \<Longrightarrow> F w contour_integrable_on (linepath a b)"
+      and cond_uu: "continuous_on (u \<times> u) (\<lambda>(x,y). F x y)"
+      and abu: "closed_segment a b \<subseteq> u"
+    shows "continuous_on u (\<lambda>w. contour_integral (linepath a b) (F w))"
+proof -
+  have *: "\<exists>d>0. \<forall>x'\<in>u. dist x' w < d \<longrightarrow>
+                         dist (contour_integral (linepath a b) (F x'))
+                              (contour_integral (linepath a b) (F w)) \<le> \<epsilon>"
+          if "w \<in> u" "0 < \<epsilon>" "a \<noteq> b" for w \<epsilon>
+  proof -
+    obtain \<delta> where "\<delta>>0" and \<delta>: "cball w \<delta> \<subseteq> u" using open_contains_cball \<open>open u\<close> \<open>w \<in> u\<close> by force
+    let ?TZ = "{(t,z) |t z. t \<in> cball w \<delta> \<and> z \<in> closed_segment a b}"
+    have "uniformly_continuous_on ?TZ (\<lambda>(x,y). F x y)"
+      apply (rule compact_uniformly_continuous)
+      apply (rule continuous_on_subset[OF cond_uu])
+      using abu \<delta>
+      apply (auto simp: compact_Times simp del: mem_cball)
+      done
+    then obtain \<eta> where "\<eta>>0"
+        and \<eta>: "\<And>x x'. \<lbrakk>x\<in>?TZ; x'\<in>?TZ; dist x' x < \<eta>\<rbrakk> \<Longrightarrow>
+                         dist ((\<lambda>(x,y). F x y) x') ((\<lambda>(x,y). F x y) x) < \<epsilon>/norm(b - a)"
+      apply (rule uniformly_continuous_onE [where e = "\<epsilon>/norm(b - a)"])
+      using \<open>0 < \<epsilon>\<close> \<open>a \<noteq> b\<close> by auto
+    have \<eta>: "\<lbrakk>norm (w - x1) \<le> \<delta>;   x2 \<in> closed_segment a b; 
+              norm (w - x1') \<le> \<delta>;  x2' \<in> closed_segment a b; norm ((x1', x2') - (x1, x2)) < \<eta>\<rbrakk>
+              \<Longrightarrow> norm (F x1' x2' - F x1 x2) \<le> \<epsilon> / cmod (b - a)"
+             for x1 x2 x1' x2'
+      using \<eta> [of "(x1,x2)" "(x1',x2')"] by (force simp add: dist_norm)
+    have le_ee: "cmod (contour_integral (linepath a b) (\<lambda>x. F x' x - F w x)) \<le> \<epsilon>"
+                if "x' \<in> u" "cmod (x' - w) < \<delta>" "cmod (x' - w) < \<eta>"  for x'
+    proof -
+      have "cmod (contour_integral (linepath a b) (\<lambda>x. F x' x - F w x)) \<le> \<epsilon>/norm(b - a) * norm(b - a)"
+        apply (rule has_contour_integral_bound_linepath [OF has_contour_integral_integral _ \<eta>])
+        apply (rule contour_integrable_diff [OF cont_dw cont_dw])
+        using \<open>0 < \<epsilon>\<close> \<open>a \<noteq> b\<close> \<open>0 < \<delta>\<close> \<open>w \<in> u\<close> that
+        apply (auto simp: norm_minus_commute)
+        done
+      also have "... = \<epsilon>" using \<open>a \<noteq> b\<close> by simp
+      finally show ?thesis .
+    qed
+    show ?thesis
+      apply (rule_tac x="min \<delta> \<eta>" in exI)
+      using \<open>0 < \<delta>\<close> \<open>0 < \<eta>\<close>
+      apply (auto simp: dist_norm contour_integral_diff [OF cont_dw cont_dw, symmetric] \<open>w \<in> u\<close> intro: le_ee)
+      done
+  qed
+  show ?thesis 
+    apply (rule continuous_onI)
+    apply (cases "a=b")
+    apply (auto intro: *)
+    done
+qed  
+
 text\<open>This version has @{term"polynomial_function \<gamma>"} as an additional assumption.\<close>
 lemma Cauchy_integral_formula_global_weak:
     assumes u: "open u" and holf: "f holomorphic_on u"
@@ -7065,10 +7119,10 @@ proof -
     by (meson Lim_at_infinityI)
   moreover have "h holomorphic_on UNIV"
   proof -
-    have con_ff: "continuous (at (x,z)) (\<lambda>y. (f(snd y) - f(fst y)) / (snd y - fst y))"
+    have con_ff: "continuous (at (x,z)) (\<lambda>(x,y). (f y - f x) / (y - x))"
                  if "x \<in> u" "z \<in> u" "x \<noteq> z" for x z
       using that conf
-      apply (simp add: continuous_on_eq_continuous_at u)
+      apply (simp add: split_def continuous_on_eq_continuous_at u)
       apply (simp | rule continuous_intros continuous_within_compose2 [where g=f])+
       done
     have con_fstsnd: "continuous_on UNIV (\<lambda>x. (fst x - snd x) ::complex)"
@@ -7083,8 +7137,8 @@ proof -
       apply (rule continuous_on_interior [of u])
       apply (simp add: holf holomorphic_deriv holomorphic_on_imp_continuous_on u)
       by (simp add: interior_open that u)
-    have tendsto_f': "((\<lambda>x. if snd x = fst x then deriv f (fst x)
-                                    else (f (snd x) - f (fst x)) / (snd x - fst x)) \<longlongrightarrow> deriv f x)
+    have tendsto_f': "((\<lambda>(x,y). if y = x then deriv f (x)
+                                else (f (y) - f (x)) / (y - x)) \<longlongrightarrow> deriv f x)
                       (at (x, x) within u \<times> u)" if "x \<in> u" for x
     proof (rule Lim_withinI)
       fix e::real assume "0 < e"
@@ -7120,8 +7174,7 @@ proof -
       qed
       show "\<exists>d>0. \<forall>xa\<in>u \<times> u.
                   0 < dist xa (x, x) \<and> dist xa (x, x) < d \<longrightarrow>
-                  dist (if snd xa = fst xa then deriv f (fst xa) else (f (snd xa) - f (fst xa)) / (snd xa - fst xa))
-                       (deriv f x)  \<le>  e"
+                  dist (case xa of (x, y) \<Rightarrow> if y = x then deriv f x else (f y - f x) / (y - x)) (deriv f x) \<le> e"
         apply (rule_tac x="min k1 k2" in exI)
         using \<open>k1>0\<close> \<open>k2>0\<close> \<open>e>0\<close>
         apply (force simp: dist_norm neq intro: dual_order.strict_trans2 k1 less_imp_le norm_fst_le)
@@ -7134,16 +7187,16 @@ proof -
       using \<gamma>' using path_image_def vector_derivative_at by fastforce
     have f_has_cint: "\<And>w. w \<in> v - path_image \<gamma> \<Longrightarrow> ((\<lambda>u. f u / (u - w) ^ 1) has_contour_integral h w) \<gamma>"
       by (simp add: V)
-    have cond_uu: "continuous_on (u \<times> u) (\<lambda>y. d (fst y) (snd y))"
+    have cond_uu: "continuous_on (u \<times> u) (\<lambda>(x,y). d x y)"
       apply (simp add: continuous_on_eq_continuous_within d_def continuous_within tendsto_f')
       apply (simp add: Lim_within_open_NO_MATCH open_Times u, clarify)
-      apply (rule Lim_transform_within_open [OF _ open_uu_Id, where f = "(\<lambda>x. (f (snd x) - f (fst x)) / (snd x - fst x))"])
+      apply (rule Lim_transform_within_open [OF _ open_uu_Id, where f = "(\<lambda>(x,y). (f y - f x) / (y - x))"])
       using con_ff
       apply (auto simp: continuous_within)
       done
     have hol_dw: "(\<lambda>z. d z w) holomorphic_on u" if "w \<in> u" for w
     proof -
-      have "continuous_on u ((\<lambda>y. d (fst y) (snd y)) o (\<lambda>z. (w,z)))"
+      have "continuous_on u ((\<lambda>(x,y). d x y) o (\<lambda>z. (w,z)))"
         by (rule continuous_on_compose continuous_intros continuous_on_subset [OF cond_uu] | force intro: that)+
       then have *: "continuous_on u (\<lambda>z. if w = z then deriv f z else (f w - f z) / (w - z))"
         by (rule rev_iffD1 [OF _ continuous_on_cong [OF refl]]) (simp add: d_def field_simps)
@@ -7159,53 +7212,11 @@ proof -
     qed
     { fix a b
       assume abu: "closed_segment a b \<subseteq> u"
-      then have cont_dw: "\<And>w. w \<in> u \<Longrightarrow> (\<lambda>z. d z w) contour_integrable_on (linepath a b)"
+      then have "\<And>w. w \<in> u \<Longrightarrow> (\<lambda>z. d z w) contour_integrable_on (linepath a b)"
         by (metis hol_dw continuous_on_subset contour_integrable_continuous_linepath holomorphic_on_imp_continuous_on)
-      have *: "\<exists>da>0. \<forall>x'\<in>u. dist x' w < da \<longrightarrow>
-                             dist (contour_integral (linepath a b) (\<lambda>z. d z x'))
-                                  (contour_integral (linepath a b) (\<lambda>z. d z w)) \<le> ee"
-              if "w \<in> u" "0 < ee" "a \<noteq> b" for w ee
-      proof -
-        obtain dd where "dd>0" and dd: "cball w dd \<subseteq> u" using open_contains_cball u \<open>w \<in> u\<close> by force
-        let ?abdd = "{(z,t) |z t. z \<in> closed_segment a b \<and> t \<in> cball w dd}"
-        have "uniformly_continuous_on ?abdd (\<lambda>y. d (fst y) (snd y))"
-          apply (rule compact_uniformly_continuous)
-          apply (rule continuous_on_subset[OF cond_uu])
-          using abu dd
-          apply (auto simp: compact_Times simp del: mem_cball)
-          done
-        then obtain kk where "kk>0"
-            and kk: "\<And>x x'. \<lbrakk>x\<in>?abdd; x'\<in>?abdd; dist x' x < kk\<rbrakk> \<Longrightarrow>
-                             dist ((\<lambda>y. d (fst y) (snd y)) x') ((\<lambda>y. d (fst y) (snd y)) x) < ee/norm(b - a)"
-          apply (rule uniformly_continuous_onE [where e = "ee/norm(b - a)"])
-          using \<open>0 < ee\<close> \<open>a \<noteq> b\<close> by auto
-        have kk: "\<lbrakk>x1 \<in> closed_segment a b; norm (w - x2) \<le> dd;
-                   x1' \<in> closed_segment a b; norm (w - x2') \<le> dd; norm ((x1', x2') - (x1, x2)) < kk\<rbrakk>
-                  \<Longrightarrow> norm (d x1' x2' - d x1 x2) \<le> ee / cmod (b - a)"
-                 for x1 x2 x1' x2'
-          using kk [of "(x1,x2)" "(x1',x2')"] by (force simp add: dist_norm)
-        have le_ee: "cmod (contour_integral (linepath a b) (\<lambda>x. d x x' - d x w)) \<le> ee"
-                    if "x' \<in> u" "cmod (x' - w) < dd" "cmod (x' - w) < kk"  for x'
-        proof -
-          have "cmod (contour_integral (linepath a b) (\<lambda>x. d x x' - d x w)) \<le> ee/norm(b - a) * norm(b - a)"
-            apply (rule has_contour_integral_bound_linepath [OF has_contour_integral_integral _ kk])
-            apply (rule contour_integrable_diff [OF cont_dw cont_dw])
-            using \<open>0 < ee\<close> \<open>a \<noteq> b\<close> \<open>0 < dd\<close> \<open>w \<in> u\<close> that
-            apply (auto simp: norm_minus_commute)
-            done
-          also have "... = ee" using \<open>a \<noteq> b\<close> by simp
-          finally show ?thesis .
-        qed
-        show ?thesis
-          apply (rule_tac x="min dd kk" in exI)
-          using \<open>0 < dd\<close> \<open>0 < kk\<close>
-          apply (auto simp: dist_norm contour_integral_diff [OF cont_dw cont_dw, symmetric] \<open>w \<in> u\<close> intro: le_ee)
-          done
-      qed
-      have cont_cint_d: "continuous_on u (\<lambda>w. contour_integral (linepath a b) (\<lambda>z. d z w))"
-        apply (rule continuous_onI)
-        apply (cases "a=b")
-        apply (auto intro: *)
+      then have cont_cint_d: "continuous_on u (\<lambda>w. contour_integral (linepath a b) (\<lambda>z. d z w))"
+        apply (rule contour_integral_continuous_on_linepath_2D [OF \<open>open u\<close> _ _ abu])
+        apply (auto simp: intro: continuous_on_swap_args cond_uu)
         done
       have cont_cint_d\<gamma>: "continuous_on {0..1} ((\<lambda>w. contour_integral (linepath a b) (\<lambda>z. d z w)) o \<gamma>)"
         apply (rule continuous_on_compose)
@@ -7223,7 +7234,6 @@ proof -
         using abu  by (force simp add: h_def intro: contour_integral_eq)
       also have "... =  contour_integral \<gamma> (\<lambda>w. contour_integral (linepath a b) (\<lambda>z. d z w))"
         apply (rule contour_integral_swap)
-        apply (simp add: split_def)
         apply (rule continuous_on_subset [OF cond_uu])
         using abu pasz \<open>valid_path \<gamma>\<close>
         apply (auto intro!: continuous_intros)
@@ -7243,17 +7253,16 @@ proof -
       have A2: "\<forall>\<^sub>F n in sequentially. \<forall>xa\<in>path_image \<gamma>. cmod (d (a n) xa - d x xa) < ee" if "0 < ee" for ee
       proof -
         let ?ddpa = "{(w,z) |w z. w \<in> cball x dd \<and> z \<in> path_image \<gamma>}"
-        have "uniformly_continuous_on ?ddpa (\<lambda>y. d (fst y) (snd y))"
+        have "uniformly_continuous_on ?ddpa (\<lambda>(x,y). d x y)"
           apply (rule compact_uniformly_continuous [OF continuous_on_subset[OF cond_uu]])
           using dd pasz \<open>valid_path \<gamma>\<close>
           apply (auto simp: compact_Times compact_valid_path_image simp del: mem_cball)
           done
         then obtain kk where "kk>0"
             and kk: "\<And>x x'. \<lbrakk>x\<in>?ddpa; x'\<in>?ddpa; dist x' x < kk\<rbrakk> \<Longrightarrow>
-                             dist ((\<lambda>y. d (fst y) (snd y)) x') ((\<lambda>y. d (fst y) (snd y)) x) < ee"
+                             dist ((\<lambda>(x,y). d x y) x') ((\<lambda>(x,y). d x y) x) < ee"
           apply (rule uniformly_continuous_onE [where e = ee])
           using \<open>0 < ee\<close> by auto
-
         have kk: "\<lbrakk>norm (w - x) \<le> dd; z \<in> path_image \<gamma>; norm ((w, z) - (x, z)) < kk\<rbrakk> \<Longrightarrow> norm (d w z - d x z) < ee"
                  for  w z
           using \<open>dd>0\<close> kk [of "(x,z)" "(w,z)"] by (force simp add: norm_minus_commute dist_norm)
