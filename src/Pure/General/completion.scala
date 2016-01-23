@@ -322,7 +322,9 @@ object Completion
         if path.is_file
         entry <- Abbrevs_Parser.parse_file(path)
       } yield entry
-    symbol_abbrevs ::: more_abbrevs
+    val remove_abbrevs = (for { (a, b) <- more_abbrevs if b == "" } yield a).toSet
+
+    (symbol_abbrevs ::: more_abbrevs).filterNot({ case (a, _) => remove_abbrevs.contains(a) })
   }
 
   private val caret_indicator = '\u0007'
