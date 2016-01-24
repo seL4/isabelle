@@ -875,8 +875,8 @@ doesn't work with polymorphism (for which we'd need to use type unification) -- 
         in
           use_candidate target_ty params' (candidate_param :: acc) val_ty
         end
-        handle TYPE ("dest_funT", _, _) => NONE
-             | DEST_LIST => NONE
+        handle TYPE ("dest_funT", _, _) => NONE  (* FIXME fragile *)
+             | _ => NONE  (* FIXME avoid catch-all handler *)
 
     val (skolem_const_ty, params') = skolem_const_info_of conclusion
 

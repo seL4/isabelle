@@ -1070,9 +1070,7 @@ local
                  rec_inf_tac)
              end)
         fun ignore_interpretation_exn f x = SOME (f x)
-          handle
-              INTERPRET_INFERENCE => NONE
-            | exn => reraise exn
+          handle INTERPRET_INFERENCE => NONE
       in
         if List.null skel then
           raise SKELETON
