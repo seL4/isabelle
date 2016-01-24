@@ -708,6 +708,9 @@ GCD.
 import of parent, as for general 'locale' expressions. INCOMPATIBILITY,
 remove '!' and add '?' as required.
 
+* HOL-Decision_Procs: The "approximation" method works with "powr"
+(exponentiation on real numbers) again.
+
 * HOL-Multivariate_Analysis: theory Cauchy_Integral_Thm with Contour
 integrals (= complex path integrals), Cauchy's integral theorem, winding
 numbers and Cauchy's integral formula, Liouville theorem, Fundamental
@@ -1248,9 +1251,6 @@ hardware floating point arithmetic to randomly discover potential
 counterexamples. Counterexamples are certified with the "approximation"
 method. See HOL/Decision_Procs/ex/Approximation_Quickcheck_Ex.thy for
 examples.
-
-* HOL-Decision_Procs: The "approximation" method works with "powr" 
-  (exponentiation on real numbers) again.
 
 * HOL-Probability: Reworked measurability prover
   - applies destructor rules repeatedly
