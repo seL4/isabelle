@@ -101,6 +101,11 @@ implicit: a popup will show up unconditionally.
 $ISABELLE_HOME/etc/abbrevs and $ISABELLE_HOME_USER/etc/abbrevs, with
 support for simple templates using ASCII 007 (bell) as placeholder.
 
+* Symbols \<oplus>, \<Oplus>, \<otimes>, \<Otimes>, \<odot>, \<Odot>, \<ominus>, \<oslash> no longer provide abbreviations for
+completion like "+o", "*o", ".o" etc. -- due to conflicts with other
+ASCII syntax. INCOMPATIBILITY, use plain backslash-completion or define
+suitable abbreviations in $ISABELLE_HOME_USER/etc/abbrevs.
+
 * Action "isabelle-emph" (with keyboard shortcut C+e LEFT) controls
 emphasized text style; the effect is visible in document output, not in
 the editor.
