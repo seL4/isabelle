@@ -212,10 +212,6 @@ local
 fun reset_presentation (Theory (gthy, _)) = Theory (gthy, NONE)
   | reset_presentation node = node;
 
-fun map_theory f (Theory (gthy, ctxt)) =
-      Theory (Context.mapping f (Local_Theory.raw_theory f) gthy, ctxt)
-  | map_theory _ node = node;
-
 in
 
 fun apply_transaction f g node =

@@ -86,7 +86,7 @@ fun abbrev ("", _) = Generic_Target.theory_abbrev
   | abbrev (locale, false) = Generic_Target.locale_abbrev locale
   | abbrev (class, true) = Class.abbrev class;
 
-fun declaration ("", _) flags decl = Generic_Target.theory_declaration decl
+fun declaration ("", _) _ decl = Generic_Target.theory_declaration decl
   | declaration (locale, _) flags decl = Generic_Target.locale_declaration locale flags decl;
 
 fun theory_registration ("", _) = Generic_Target.theory_registration
