@@ -389,7 +389,7 @@ fun transform_naming (Naming {restricted = restricted', concealed = concealed', 
   concealed' ? concealed;
 
 fun transform_binding (Naming {restricted, concealed, ...}) =
-  Binding.restricted_default restricted #>
+  Binding.restricted restricted #>
   concealed ? Binding.concealed;
 
 
