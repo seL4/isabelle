@@ -10,16 +10,19 @@ Contributions to Isabelle2016
   Support for real exponentiation ("powr") in the "approximation" method.
   (This was removed in Isabelle 2015 due to a changed definition of "powr")
 
-* Summer 2014: Jeremy Avigad, Luke Serafin, CMU, and Johannes Hölzl, TUM
-  Proof of the central limit theorem: includes weak convergence,
-  characteristic functions, and Levy's uniqueness and continuity theorem.
-
 * Summer 2015 - Winter 2016: Lawrence C Paulson, Cambridge
   General, homology form of Cauchy's integral theorem and supporting material
   (ported from HOL Light).
 
 * Winter 2015/16: Gerwin Klein, NICTA
   New print_record command.
+
+* May - December 2015: Makarius Wenzel
+  Prover IDE improvements.
+  More Isar language elements.
+  Document language refinements.
+  Poly/ML debugger integration.
+  Improved multi-platform and multi-architecture support.
 
 * Winter 2015: Manuel Eberl, TUM
   The radius of convergence of power series and various summability tests.
@@ -58,6 +61,10 @@ Contributions to Isabelle2016
 * Summer 2015: Julian Biendarra, TUM and Dmitriy Traytel, ETH Zurich
   Command to lift a BNF structure on the raw type to the abstract type for
   typedefs.
+
+* Summer 2014: Jeremy Avigad, Luke Serafin, CMU, and Johannes Hölzl, TUM
+  Proof of the central limit theorem: includes weak convergence,
+  characteristic functions, and Levy's uniqueness and continuity theorem.
 
 
 Contributions to Isabelle2015
