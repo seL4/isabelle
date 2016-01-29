@@ -1016,16 +1016,15 @@ section \<open>Query \label{sec:query}\<close>
 
 text \<open>
   The \<^emph>\<open>Query\<close> panel provides various GUI forms to request extra information
-  from the prover. In old times the user would have issued some diagnostic
-  command like @{command find_theorems} and inspected its output, but this is
-  now integrated into the Prover IDE.
+  from the prover, as a replacement of old-style diagnostic commands like
+  @{command find_theorems}. There are input fields and buttons for a
+  particular query command, with output in a dedicated text area.
 
-  A \<^emph>\<open>Query\<close> window provides some input fields and buttons for a particular
-  query command, with output in a dedicated text area. There are various query
-  modes: \<^emph>\<open>Find Theorems\<close>, \<^emph>\<open>Find Constants\<close>, \<^emph>\<open>Print Context\<close>, e.g.\ see
-  \figref{fig:query}. As usual in jEdit, multiple \<^emph>\<open>Query\<close> windows may be
-  active at the same time: any number of floating instances, but at most one
-  docked instance (which is used by default).
+  The main query modes are presented as separate tabs: \<^emph>\<open>Find Theorems\<close>,
+  \<^emph>\<open>Find Constants\<close>, \<^emph>\<open>Print Context\<close>, e.g.\ see \figref{fig:query}. As usual
+  in jEdit, multiple \<^emph>\<open>Query\<close> windows may be active at the same time: any
+  number of floating instances, but at most one docked instance (which is used
+  by default).
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1101,20 +1100,20 @@ text \<open>
   The \<^emph>\<open>Query\<close> panel in \<^emph>\<open>Print Context\<close> mode prints information from the
   theory or proof context, or proof state. See also the Isar commands
   @{command_ref print_context}, @{command_ref print_cases}, @{command_ref
-  print_term_bindings}, @{command_ref print_theorems}, @{command_ref
-  print_state} described in @{cite "isabelle-isar-ref"}.
+  print_term_bindings}, @{command_ref print_theorems}, described in @{cite
+  "isabelle-isar-ref"}.
 \<close>
 
 
 section \<open>Tooltips and hyperlinks \label{sec:tooltips-hyperlinks}\<close>
 
 text \<open>
-  Formally processed text (prover input or output) contains rich markup
-  information that can be explored further by using the \<^verbatim>\<open>CONTROL\<close> modifier
-  key on Linux and Windows, or \<^verbatim>\<open>COMMAND\<close> on Mac OS X. Hovering with the mouse
-  while the modifier is pressed reveals a \<^emph>\<open>tooltip\<close> (grey box over the text
-  with a yellow popup) and/or a \<^emph>\<open>hyperlink\<close> (black rectangle over the text
-  with change of mouse pointer); see also \figref{fig:tooltip}.
+  Formally processed text (prover input or output) contains rich markup that
+  can be explored by using the \<^verbatim>\<open>CONTROL\<close> modifier key on Linux and Windows,
+  or \<^verbatim>\<open>COMMAND\<close> on Mac OS X. Hovering with the mouse while the modifier is
+  pressed reveals a \<^emph>\<open>tooltip\<close> (grey box over the text with a yellow popup)
+  and/or a \<^emph>\<open>hyperlink\<close> (black rectangle over the text with change of mouse
+  pointer); see also \figref{fig:tooltip}.
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1124,7 +1123,7 @@ text \<open>
   \label{fig:tooltip}
   \end{figure}
 
-  Tooltip popups use the same rendering mechanisms as the main text area, and
+  Tooltip popups use the same rendering technology as the main text area, and
   further tooltips and/or hyperlinks may be exposed recursively by the same
   mechanism; see \figref{fig:nested-tooltips}.
 
@@ -1146,13 +1145,12 @@ text \<open>
   a mouse click (while the \<^verbatim>\<open>CONTROL\<close> or \<^verbatim>\<open>COMMAND\<close> modifier key is still
   pressed). Such jumps to other text locations are recorded by the
   \<^emph>\<open>Navigator\<close> plugin, which is bundled with Isabelle/jEdit and enabled by
-  default, including navigation arrows in the main jEdit toolbar.
+  default. There are usually navigation arrows in the main jEdit toolbar.
 
-  Also note that the link target may be a file that is itself not subject to
-  formal document processing of the editor session and thus prevents further
+  Note that the link target may be a file that is itself not subject to formal
+  document processing of the editor session and thus prevents further
   exploration: the chain of hyperlinks may end in some source file of the
-  underlying logic image, or within the ML bootstrap sources of
-  Isabelle/Pure.
+  underlying logic image, or within the ML bootstrap sources of Isabelle/Pure.
 \<close>
 
 
