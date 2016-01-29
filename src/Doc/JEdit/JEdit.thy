@@ -1261,6 +1261,17 @@ text \<open>
   syntax keyword. Non-word abbreviations like \<^verbatim>\<open>-->\<close> are inserted more
   aggressively, except for single-character abbreviations like \<^verbatim>\<open>!\<close> above.
 
+  Completion via abbreviations like \<^verbatim>\<open>ALL\<close> or \<^verbatim>\<open>-->\<close> depends on the semantic
+  language context (\secref{sec:completion-context}). In contrast, backslash
+  sequences like \<^verbatim>\<open>\forall\<close> \<^verbatim>\<open>\<forall>\<close> are always possible, but require
+  additional interaction to confirm (via popup).
+
+  The latter is important in ambiguous situations, e.g.\ for Isabelle document
+  source, which may contain formal symbols or informal {\LaTeX} macros.
+  Backslash sequences also help when input is broken, and thus escapes its
+  normal semantic context: e.g.\ antiquotations or string literals in ML,
+  which do not allow arbitrary backslash sequences.
+
   \<^medskip>
   Additional abbreviations may be specified in @{file
   "$ISABELLE_HOME/etc/abbrevs"} and @{file_unchecked
@@ -1270,13 +1281,6 @@ text \<open>
   than just one symbol; otherwise the meaning is the same as a symbol
   specification ``\<open>sym\<close>~\<^verbatim>\<open>abbrev:\<close>~\<open>abbrev\<close>'' within @{file_unchecked
   "etc/symbols"}.
-
-  \<^medskip>
-  Symbol completion depends on the semantic language context
-  (\secref{sec:completion-context}), to enable or disable that aspect for a
-  particular sub-language of Isabelle. For example, symbol completion is
-  suppressed within document source to avoid confusion with {\LaTeX} macros
-  that use similar notation.
 \<close>
 
 
@@ -1308,13 +1312,12 @@ text \<open>
 subsubsection \<open>File-system paths\<close>
 
 text \<open>
-  Depending on prover markup about file-system path specifications in the
-  source text, e.g.\ for the argument of a load command
-  (\secref{sec:aux-files}), the completion mechanism explores the directory
-  content and offers the result as completion popup. Relative path
-  specifications are understood wrt.\ the \<^emph>\<open>master directory\<close> of the document
-  node (\secref{sec:buffer-node}) of the enclosing editor buffer; this
-  requires a proper theory, not an auxiliary file.
+  Depending on prover markup about file-system paths in the source text, e.g.\
+  for the argument of a load command (\secref{sec:aux-files}), the completion
+  mechanism explores the directory content and offers the result as completion
+  popup. Relative path specifications are understood wrt.\ the \<^emph>\<open>master
+  directory\<close> of the document node (\secref{sec:buffer-node}) of the enclosing
+  editor buffer; this requires a proper theory, not an auxiliary file.
 
   A suffix of slashes may be used to continue the exploration of an already
   recognized directory name.
@@ -1349,8 +1352,8 @@ text \<open>
   \<^medskip>
   Dictionary lookup uses some educated guesses about lower-case, upper-case,
   and capitalized words. This is oriented on common use in English, where this
-  aspect is not decisive for proper spelling, in contrast to German, for
-  example.
+  aspect is not decisive for proper spelling (in contrast to German, for
+  example).
 \<close>
 
 
@@ -1364,22 +1367,17 @@ text \<open>
   editor mode (see also \secref{sec:buffer-node}).
 
   The semantic \<^emph>\<open>language context\<close> provides information about nested
-  sub-languages of Isabelle: keywords are only completed for outer syntax,
-  symbols or antiquotations for languages that support them. E.g.\ there is no
-  symbol completion for ML source, but within ML strings, comments,
-  antiquotations.
+  sub-languages of Isabelle: keywords are only completed for outer syntax, and
+  antiquotations for languages that support them. Symbol abbreviations only
+  work for specific sub-languages: e.g.\ ``\<^verbatim>\<open>=>\<close>'' is \<^emph>\<open>not\<close> completed in
+  regular ML source, but is completed within ML strings, comments,
+  antiquotations. Backslash representations of symbols like ``\<^verbatim>\<open>\foobar\<close>'' or
+  ``\<^verbatim>\<open>\<foobar>\<close>'' work in any context --- after additional confirmation.
 
   The prover may produce \<^emph>\<open>no completion\<close> markup in exceptional situations, to
   tell that some language keywords should be excluded from further completion
-  attempts. For example, \<^verbatim>\<open>:\<close> within accepted Isar syntax looses its meaning
-  as abbreviation for symbol \<open>\<in>\<close>.
-
-  \<^medskip>
-  The completion context is \<^emph>\<open>ignored\<close> for built-in templates and symbols in
-  their explicit form ``\<^verbatim>\<open>\<foobar>\<close>''; see also
-  \secref{sec:completion-varieties}. This allows to complete within broken
-  input that escapes its normal semantic context, e.g.\ antiquotations or
-  string literals in ML, which do not allow arbitrary backslash sequences.
+  attempts. For example, ``\<^verbatim>\<open>:\<close>'' within accepted Isar syntax looses its
+  meaning as abbreviation for symbol ``\<open>\<in>\<close>''.
 \<close>
 
 
@@ -1418,7 +1416,7 @@ text \<open>
     (enabled by default) controls whether replacement text should be inserted
     immediately without popup, regardless of @{system_option
     jedit_completion_delay}. This aggressive mode of completion is restricted
-    to Isabelle symbols and their abbreviations (\secref{sec:symbols}).
+    to symbol abbreviations that are not plain words (\secref{sec:symbols}).
 
     \<^enum> Completion of symbol abbreviations with only one relevant character in
     the text always enforces an explicit popup, regardless of
@@ -1437,7 +1435,7 @@ text \<open>
   \<^verbatim>\<open>PAGE_DOWN\<close>, but all other key events are passed to the underlying text
   area. This allows to ignore unwanted completions most of the time and
   continue typing quickly. Thus the popup serves as a mechanism of
-  confirmation of proposed items, but the default is to continue without
+  confirmation of proposed items, while the default is to continue without
   completion.
 
   The meaning of special keys is as follows:
@@ -1532,7 +1530,7 @@ text \<open>
 
   A @{system_option jedit_completion_delay}~\<^verbatim>\<open>> 0\<close> postpones the processing of
   key events, until after the user has stopped typing for the given time span,
-  but @{system_option jedit_completion_immediate}~\<^verbatim>\<open>"= true\<close> means that
+  but @{system_option jedit_completion_immediate}~\<^verbatim>\<open>= true\<close> means that
   abbreviations of Isabelle symbols are handled nonetheless.
 
   \<^item> @{system_option_def jedit_completion_path_ignore} specifies ``glob''
