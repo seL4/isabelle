@@ -1558,10 +1558,10 @@ section \<open>Automatically tried tools \label{sec:auto-tools}\<close>
 text \<open>
   Continuous document processing works asynchronously in the background.
   Visible document source that has been evaluated may get augmented by
-  additional results of \<^emph>\<open>asynchronous print functions\<close>. The canonical example
-  is proof state output, which is always enabled. More heavy-weight print
-  functions may be applied, in order to prove or disprove parts of the formal
-  text by other means.
+  additional results of \<^emph>\<open>asynchronous print functions\<close>. An example for that
+  is proof state output, if that is enabled in the Output panel
+  (\secref{sec:output}). More heavy-weight print functions may be applied as
+  well, e.g.\ to prove or disprove parts of the formal text by other means.
 
   Isabelle/HOL provides various automatically tried tools that operate on
   outermost goal statements (e.g.\ @{command lemma}, @{command theorem}),
@@ -1571,8 +1571,8 @@ text \<open>
   information sign in the gutter (see \figref{fig:auto-tools}). The message
   content may be shown as for other output (see also \secref{sec:output}).
   Some tools produce output with \<^emph>\<open>sendback\<close> markup, which means that clicking
-  on certain parts of the output inserts that text into the source in the
-  proper place.
+  on certain parts of the text inserts that into the source in the proper
+  place.
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1718,8 +1718,11 @@ text \<open>
 section \<open>Markdown structure\<close>
 
 text \<open>
-  FIXME
-  \figref{fig:markdown-document}
+  Document text is internally structured in paragraphs and nested lists, using
+  notation that is similar to Markdown\<^footnote>\<open>@{url "http://commonmark.org"}\<close>. There
+  are special control symbols for items of different kinds of lists,
+  corresponding to \<^verbatim>\<open>itemize\<close>, \<^verbatim>\<open>enumerate\<close>, \<^verbatim>\<open>description\<close> in {\LaTeX}. This
+  is illustrated in for \<^verbatim>\<open>itemize\<close> in \figref{fig:markdown-document}.
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1728,6 +1731,12 @@ text \<open>
   \caption{Markdown structure within document text}
   \label{fig:markdown-document}
   \end{figure}
+
+  Items take colour according to the depth of nested lists. This helps to
+  explore the implicit rules for list structure interactively. There is also
+  markup for individual paragraphs in the text: it may be explored via mouse
+  hovering with \<^verbatim>\<open>CONTROL\<close> / \<^verbatim>\<open>COMMAND\<close> as usual
+  (\secref{sec:tooltips-hyperlinks}).
 \<close>
 
 
@@ -1808,10 +1817,10 @@ text \<open>
 
   It is also possible to reveal individual timing information via some tooltip
   for the corresponding command keyword, using the technique of mouse hovering
-  with \<^verbatim>\<open>CONTROL\<close>~/ \<^verbatim>\<open>COMMAND\<close> modifier key as explained in
-  \secref{sec:tooltips-hyperlinks}. Actual display of timing depends on the
-  global option @{system_option_ref jedit_timing_threshold}, which can be
-  configured in \<^emph>\<open>Plugin Options~/ Isabelle~/ General\<close>.
+  with \<^verbatim>\<open>CONTROL\<close>~/ \<^verbatim>\<open>COMMAND\<close> modifier (\secref{sec:tooltips-hyperlinks}).
+  Actual display of timing depends on the global option @{system_option_ref
+  jedit_timing_threshold}, which can be configured in \<^emph>\<open>Plugin Options~/
+  Isabelle~/ General\<close>.
 
   \<^medskip>
   The \<^emph>\<open>Monitor\<close> panel visualizes various data collections about recent
@@ -1827,11 +1836,11 @@ text \<open>
 section \<open>Low-level output\<close>
 
 text \<open>
-  Prover output is normally shown directly in the main text area or secondary
-  \<^emph>\<open>Output\<close> panels, as explained in \secref{sec:output}.
-
-  Beyond this, it is occasionally useful to inspect low-level output channels
-  via some of the following additional panels:
+  Prover output is normally shown directly in the main text area or specific
+  panels like \<^emph>\<open>Output\<close> (\secref{sec:output}) or \<^emph>\<open>State\<close>
+  (\secref{sec:state-output}). Beyond this, it is occasionally useful to
+  inspect low-level output channels via some of the following additional
+  panels:
 
   \<^item> \<^emph>\<open>Protocol\<close> shows internal messages between the Isabelle/Scala and
   Isabelle/ML side of the PIDE document editing protocol. Recording of
