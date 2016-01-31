@@ -1,8 +1,8 @@
 Poly/ML for Isabelle
 ====================
 
-This is a preview of Poly/ML 5.6, based on
-https://github.com/polyml/polyml/ commit 72a1c60e3d00.
+This compilation of Poly/ML 5.6 (http://www.polyml.org) is based on the source
+distribution from https://github.com/polyml/polyml/releases/tag/v5.6/.
 
 The included build script is used like this:
 
@@ -14,8 +14,8 @@ The included build script is used like this:
   ./build src x86_64-windows --with-gmp
 
 Also note that the separate "sha1" library module is required for
-efficient digesting of strings according to SHA-1.
+efficient digestion of strings according to SHA-1.
 
 
         Makarius
-        18-Jan-2016
+        31-Jan-2016
