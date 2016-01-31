@@ -1779,19 +1779,95 @@ text \<open>
 \<close>
 
 
-chapter \<open>ML debugger\<close>
+chapter \<open>ML debugging within the Prover IDE\<close>
 
 text \<open>
-  FIXME
-  \figref{fig:ml-debugger}
+  Isabelle/ML is based on Poly/ML\<^footnote>\<open>@{url "http://www.polyml.org"}\<close> and thus
+  benefits from the source-level debugger of that implementation of Standard
+  ML. The Prover IDE provides the \<^emph>\<open>Debugger\<close> dockable to connect to running
+  ML threads, inspect the stack frame with local ML bindings, and evaluate ML
+  expressions in a particular run-time context. A typical debugger session is
+  shown in \figref{fig:ml-debugger}.
+
+  ML debugging depends on the following pre-requisites.
+
+    \<^enum> ML source needs to be compiled with debugging enabled. This may be
+    controlled for particular chunks of ML sources using any of the subsequent
+    facilities.
+
+      \<^enum> The system option @{system_option_ref ML_debugger} as implicit state
+      of the Isabelle process. It may be changed in the menu \<^emph>\<open>Plugins /
+      Plugin Options / Isabelle / General\<close>. ML modules need to be reloaded and
+      recompiled to pick up that option as intended.
+
+      \<^enum> The configuration option @{attribute_ref ML_debugger}, with an
+      attribute of the same name, to update a global or local context (e.g.\
+      with the @{command declare} command).
+
+      \<^enum> Commands that modify @{attribute ML_debugger} state for individual
+      files: @{command_ref ML_file_debug}, @{command_ref ML_file_no_debug},
+      @{command_ref SML_file_debug}, @{command_ref SML_file_no_debug}.
+
+    The instrumentation of ML code for debugging causes minor run-time
+    overhead. ML modules that implement critical system infrastructure may
+    lead to deadlocks or other undefined behaviour, when put under debugger
+    control!
+
+    \<^enum> The \<^emph>\<open>Debugger\<close> panel needs to be active, otherwise the program ignores
+    debugger instrumentation of the compiler and runs unmanaged. It is also
+    possible to start debugging with the panel open, and later undock it, to
+    let the program continue unhindered.
+
+    \<^enum> The ML program needs to be stopped at a suitable breakpoint, which may
+    be activated individually or globally as follows.
+
+    For ML sources that have been compiled with debugger support, the IDE
+    visualizes possible breakpoints in the text. A breakpoint may be toggled
+    by pointing accurately with the mouse, with a right-click to activate
+    jEdit's context menu and its \<^emph>\<open>Toggle Breakpoint\<close> item. Alternatively, the
+    \<^emph>\<open>Break\<close> checkbox in the \<^emph>\<open>Debugger\<close> panel may be enabled to stop ML
+    threads always at the next possible breakpoint.
+
+  Note that the state of individual breakpoints \<^emph>\<open>gets lost\<close> when the
+  coresponding ML source is re-compiled! This may happen unintentionally,
+  e.g.\ when following hyperlinks into ML modules that have not been loaded
+  into the IDE before.
 
   \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{ml-debugger}
   \end{center}
-  \caption{ML debugger}
+  \caption{ML debugger session}
   \label{fig:ml-debugger}
   \end{figure}
+
+  The debugger panel (\figref{fig:ml-debugger}) shows a list of all threads
+  that are presently stopped. Each thread shows a stack of all function
+  invocations that lead to the current breakpoint at the top.
+
+  It is possible to jump between stack positions freely, by clicking on this
+  list. The current situation is displayed in the big output window, as a
+  local ML environment with names and printed values.
+
+  ML expressions may be evaluated in the current context by entering snippets
+  of source into the text fields labeled \<open>Context\<close> and \<open>ML\<close>, and pushing the
+  \<open>Eval\<close> button. By default, the source is interpreted as Isabelle/ML with the
+  usual support for antiquotations (like @{command ML}, @{command ML_file}).
+  Alternatively, strict Standard ML may be enforced via the \<^emph>\<open>SML\<close> checkbox
+  (like @{command SML_file}).
+
+  The context for Isabelle/ML is optional, it may evaluate to a value of type
+  @{ML_type theory}, @{ML_type Proof.context}, or @{ML_type Context.generic}.
+  Thus the given ML expression (with its antiquotations) may be subject to the
+  intended dynamic run-time context, instead of the static compile-time
+  context.
+
+  \<^medskip>
+  The buttons labeled \<^emph>\<open>Continue\<close>, \<^emph>\<open>Step\<close>, \<^emph>\<open>Step over\<close>, \<^emph>\<open>Step out\<close>
+  recommence execution of the program, with different policies concerning
+  nested function invocations. The debugger always moves the cursor within the
+  ML source to the next breakpoint position, and offers new stack frames as
+  before.
 \<close>
 
 

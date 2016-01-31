@@ -61,13 +61,13 @@ deferred definitions require a surrounding 'overloading' block.
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
 * IDE support for the source-level debugger of Poly/ML, to work with
-Isabelle/ML and official Standard ML. Configuration option "ML_debugger"
-and commands 'ML_file_debug', 'ML_file_no_debug', 'SML_file_debug',
-'SML_file_no_debug' control compilation of sources with debugging
-information. The Debugger panel allows to set breakpoints (via context
-menu), step through stopped threads, evaluate local ML expressions etc.
-At least one Debugger view needs to be active to have any effect on the
-running ML program.
+Isabelle/ML and official Standard ML. Option "ML_debugger" and commands
+'ML_file_debug', 'ML_file_no_debug', 'SML_file_debug',
+'SML_file_no_debug' control compilation of sources with or without
+debugging information. The Debugger panel allows to set breakpoints (via
+context menu), step through stopped threads, evaluate local ML
+expressions etc. At least one Debugger view needs to be active to have
+any effect on the running ML program.
 
 * The State panel manages explicit proof state output, with dynamic
 auto-update according to cursor movement. Alternatively, the jEdit
