@@ -90,8 +90,8 @@ unfinished edits in the PIDE pipeline. This avoids flashing text display
 due to ad-hoc updates by auxiliary GUI components, such as the State
 panel.
 
-* Improved scheduling for urgent print tasks (e.g. command state output,
-interactive queries) wrt. long-running background tasks.
+* Slightly improved scheduling for urgent print tasks (e.g. command
+state output, interactive queries) wrt. long-running background tasks.
 
 * Completion of symbols via prefix of \<name> or \<^name> or \name is
 always possible, independently of the language context. It is never
