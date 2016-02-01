@@ -642,14 +642,15 @@ text \<open>
   \<close>}
 
   \<^descr> @{command (HOL) "recdef"} defines general well-founded
-  recursive functions (using the TFL package), see also
-  @{cite "isabelle-HOL"}.  The ``\<open>(permissive)\<close>'' option tells
-  TFL to recover from failed proof attempts, returning unfinished
-  results.  The \<open>recdef_simp\<close>, \<open>recdef_cong\<close>, and \<open>recdef_wf\<close> hints refer to auxiliary rules to be used in the internal
-  automated proof process of TFL.  Additional @{syntax clasimpmod}
-  declarations may be given to tune the context of the Simplifier
-  (cf.\ \secref{sec:simplifier}) and Classical reasoner (cf.\
-  \secref{sec:classical}).
+  recursive functions (using the TFL package).  The
+  ``\<open>(permissive)\<close>'' option tells TFL to recover from
+  failed proof attempts, returning unfinished results.  The
+  \<open>recdef_simp\<close>, \<open>recdef_cong\<close>, and
+  \<open>recdef_wf\<close> hints refer to auxiliary rules to be used
+  in the internal automated proof process of TFL.  Additional
+  @{syntax clasimpmod} declarations may be given to tune the context
+  of the Simplifier (cf.\ \secref{sec:simplifier}) and Classical
+  reasoner (cf.\ \secref{sec:classical}).
 
 
   \<^medskip>
@@ -763,9 +764,8 @@ text \<open>
   These commands are mostly obsolete; @{command (HOL) "datatype"}
   should be used instead.
 
-  See @{cite "isabelle-HOL"} for more details on datatypes, but beware of
-  the old-style theory syntax being used there!  Apart from proper
-  proof methods for case-analysis and induction, there are also
+  See @{cite "isabelle-datatypes"} for more details on datatypes.  Apart from proper
+  proof methods for case analysis and induction, there are also
   emulations of ML tactics @{method (HOL) case_tac} and @{method (HOL)
   induct_tac} available, see \secref{sec:hol-induct-tac}; these admit
   to refer directly to the internal structure of subgoals (including
