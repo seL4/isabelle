@@ -114,7 +114,6 @@ fun string_of_proof_method ctxt ss meth =
   end
 
 fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
-  Method.insert_tac ctxt local_facts THEN'
   (case meth of
     Metis_Method (type_enc_opt, lam_trans_opt) =>
     let
@@ -122,26 +121,29 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
         |> Config.put Metis_Tactic.verbose false
         |> Config.put Metis_Tactic.trace false
     in
-      Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
-        (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
+      SELECT_GOAL (Metis_Tactic.metis_method ((Option.map single type_enc_opt, lam_trans_opt),
+        global_facts) ctxt local_facts)
     end
-  | Meson_Method => Meson_Tactic.meson_general_tac ctxt global_facts
-  | SMT_Method => SMT_Solver.smt_tac ctxt global_facts
-  | Simp_Method => Simplifier.asm_full_simp_tac (ctxt addsimps global_facts)
-  | Simp_Size_Method =>
-    Simplifier.asm_full_simp_tac (ctxt addsimps (@{thm size_ne_size_imp_ne} :: global_facts))
+  | SMT_Method => SMT_Solver.smt_tac ctxt (local_facts @ global_facts)
   | _ =>
-    Method.insert_tac ctxt global_facts THEN'
+    Method.insert_tac ctxt local_facts THEN'
     (case meth of
-      SATx_Method => SAT.satx_tac ctxt
-    | Blast_Method => blast_tac ctxt
-    | Auto_Method => SELECT_GOAL (Clasimp.auto_tac ctxt)
-    | Fastforce_Method => Clasimp.fast_force_tac ctxt
-    | Force_Method => Clasimp.force_tac ctxt
-    | Moura_Method => moura_tac ctxt
-    | Linarith_Method => Lin_Arith.tac ctxt
-    | Presburger_Method => Cooper.tac true [] [] ctxt
-    | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
+      Meson_Method => Meson_Tactic.meson_general_tac ctxt global_facts
+    | Simp_Method => Simplifier.asm_full_simp_tac (ctxt addsimps global_facts)
+    | Simp_Size_Method =>
+      Simplifier.asm_full_simp_tac (ctxt addsimps (@{thm size_ne_size_imp_ne} :: global_facts))
+    | _ =>
+      Method.insert_tac ctxt global_facts THEN'
+      (case meth of
+        SATx_Method => SAT.satx_tac ctxt
+      | Blast_Method => blast_tac ctxt
+      | Auto_Method => SELECT_GOAL (Clasimp.auto_tac ctxt)
+      | Fastforce_Method => Clasimp.fast_force_tac ctxt
+      | Force_Method => Clasimp.force_tac ctxt
+      | Moura_Method => moura_tac ctxt
+      | Linarith_Method => Lin_Arith.tac ctxt
+      | Presburger_Method => Cooper.tac true [] [] ctxt
+      | Algebra_Method => Groebner.algebra_tac [] [] ctxt)))
 
 fun string_of_play_outcome (Played time) = string_of_ext_time (false, time)
   | string_of_play_outcome (Play_Timed_Out time) =

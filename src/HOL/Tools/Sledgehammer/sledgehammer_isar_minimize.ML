@@ -45,7 +45,7 @@ fun minimized_isar_step ctxt time
 
     fun minimize_half _ min_facts [] time = (min_facts, time)
       | minimize_half mk_step min_facts (fact :: facts) time =
-        (case preplay_isar_step_for_method ctxt (Time.+ (time, slack)) meth
+        (case preplay_isar_step_for_method ctxt [] (Time.+ (time, slack)) meth
             (mk_step (min_facts @ facts)) of
           Played time' => minimize_half mk_step min_facts facts time'
         | _ => minimize_half mk_step (fact :: min_facts) facts time)
