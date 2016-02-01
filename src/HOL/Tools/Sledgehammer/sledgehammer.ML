@@ -63,11 +63,6 @@ fun max_outcome_code codes =
 fun is_metis_method (Metis_Method _) = true
   | is_metis_method _ = false
 
-fun add_chained [] t = t
-  | add_chained chained ((t as Const (@{const_name Pure.all}, _)) $ Abs (s, T, u)) =
-    t $ Abs (s, T, add_chained chained u)
-  | add_chained chained t = Logic.list_implies (chained, t)
-
 fun play_one_line_proof minimize timeout used_facts0 state i (preferred_meth, methss) =
   let val used_facts = filter_out (fn (_, (sc, _)) => sc = Chained) used_facts0 in
     if timeout = Time.zeroTime then
@@ -79,7 +74,6 @@ fun play_one_line_proof minimize timeout used_facts0 state i (preferred_meth, me
         val fact_names = map fst used_facts
         val {facts = chained, goal, ...} = Proof.goal state
         val goal_t = Logic.get_goal (Thm.prop_of goal) i
-          |> add_chained (map (Thm.prop_of o forall_intr_vars) chained)
 
         fun try_methss [] [] = (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime))
           | try_methss ress [] =
@@ -92,7 +86,7 @@ fun play_one_line_proof minimize timeout used_facts0 state i (preferred_meth, me
               fun mk_step fact_names meths =
                 Prove ([], [], ("", 0), goal_t, [], ([], fact_names), meths, "")
             in
-              (case preplay_isar_step ctxt timeout [] (mk_step fact_names meths) of
+              (case preplay_isar_step ctxt chained timeout [] (mk_step fact_names meths) of
                 (res as (meth, Played time)) :: _ =>
                 (* if a fact is needed by an ATP, it will be needed by "metis" *)
                 if not minimize orelse is_metis_method meth then

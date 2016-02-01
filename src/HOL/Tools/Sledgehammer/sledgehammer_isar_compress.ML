@@ -173,7 +173,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
               (* check if the modified step can be preplayed fast enough *)
               val timeout = adjust_merge_timeout preplay_timeout (Time.+ (time, reference_time l'))
             in
-              (case preplay_isar_step ctxt timeout hopeless step'' of
+              (case preplay_isar_step ctxt [] timeout hopeless step'' of
                 meths_outcomes as (_, Played time'') :: _ =>
                 (* "l'" successfully eliminated *)
                 (decrement_step_count ();
@@ -218,7 +218,8 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
                   val total_time = Library.foldl Time.+ (reference_time l, times0)
                   val timeout = adjust_merge_timeout preplay_timeout
                     (Time.fromReal (Time.toReal total_time / Real.fromInt n))
-                  val meths_outcomess = @{map 2} (preplay_isar_step ctxt timeout) hopelesses succs'
+                  val meths_outcomess =
+                    @{map 2} (preplay_isar_step ctxt [] timeout) hopelesses succs'
                 in
                   (case try (map (fn (_, Played time) :: _ => time)) meths_outcomess of
                     NONE => steps

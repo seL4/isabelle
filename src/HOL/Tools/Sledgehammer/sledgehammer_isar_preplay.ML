@@ -19,10 +19,10 @@ sig
 
   val peek_at_outcome : play_outcome Lazy.lazy -> play_outcome
   val enrich_context_with_local_facts : isar_proof -> Proof.context -> Proof.context
-  val preplay_isar_step_for_method : Proof.context -> Time.time -> proof_method -> isar_step ->
-    play_outcome
-  val preplay_isar_step : Proof.context -> Time.time -> proof_method list -> isar_step ->
-    (proof_method * play_outcome) list
+  val preplay_isar_step_for_method : Proof.context -> thm list -> Time.time -> proof_method ->
+    isar_step -> play_outcome
+  val preplay_isar_step : Proof.context -> thm list -> Time.time -> proof_method list ->
+    isar_step -> (proof_method * play_outcome) list
   val set_preplay_outcomes_of_isar_step : Proof.context -> Time.time ->
     isar_preplay_data Unsynchronized.ref -> isar_step -> (proof_method * play_outcome) list -> unit
   val forced_intermediate_preplay_outcome_of_isar_step : isar_preplay_data -> label -> play_outcome
@@ -126,7 +126,8 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
   end
 
 (* may throw exceptions *)
-fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs, facts, _, _)) =
+fun raw_preplay_step_for_method ctxt chained timeout meth
+    (Prove (_, xs, _, t, subproofs, facts, _, _)) =
   let
     val goal =
       (case xs of
@@ -150,6 +151,7 @@ fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs
     val assmsp =
       resolve_fact_names ctxt facts
       |>> append (map (thm_of_proof ctxt) subproofs)
+      |>> append chained
 
     fun prove () =
       Goal.prove ctxt [] [] goal (fn {context = ctxt, ...} =>
@@ -162,14 +164,14 @@ fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs
     play_outcome
   end
 
-fun preplay_isar_step_for_method ctxt timeout meth =
-  try (raw_preplay_step_for_method ctxt timeout meth) #> the_default Play_Failed
+fun preplay_isar_step_for_method ctxt chained timeout meth =
+  try (raw_preplay_step_for_method ctxt chained timeout meth) #> the_default Play_Failed
 
 val min_preplay_timeout = seconds 0.002
 
-fun preplay_isar_step ctxt timeout0 hopeless step =
+fun preplay_isar_step ctxt chained timeout0 hopeless step =
   let
-    fun preplay timeout meth = (meth, preplay_isar_step_for_method ctxt timeout meth step)
+    fun preplay timeout meth = (meth, preplay_isar_step_for_method ctxt chained timeout meth step)
     fun get_time (_, Played time) = SOME time
       | get_time _ = NONE
 
@@ -194,7 +196,7 @@ fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
       (step as Prove (_, _, l, _, _, _, meths, _)) meths_outcomes0 =
     let
       fun lazy_preplay meth =
-        Lazy.lazy (fn () => preplay_isar_step_for_method ctxt timeout meth step)
+        Lazy.lazy (fn () => preplay_isar_step_for_method ctxt [] timeout meth step)
       val meths_outcomes = meths_outcomes0
         |> map (apsnd Lazy.value)
         |> fold (fn meth => AList.default (op =) (meth, lazy_preplay meth)) meths
