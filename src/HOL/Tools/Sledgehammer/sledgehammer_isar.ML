@@ -156,284 +156,295 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
       let
         val (verbose, alt_metis_args, preplay_timeout, compress, try0, minimize, atp_proof0, goal) =
           isar_params ()
-
-        val systematic_methods' = insert (op =) (Metis_Method alt_metis_args) systematic_methods
-
-        fun massage_methods (meths as meth :: _) =
-          if not try0 then [meth]
-          else if smt_proofs = SOME true then SMT_Method :: meths
-          else meths
-
-        val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
-        val fixes = map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params
-        val ctxt = ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes |> snd
-
-        val do_preplay = preplay_timeout <> Time.zeroTime
-        val compress =
-          (case compress of
-            NONE => if isar_proofs = NONE andalso do_preplay then 1000.0 else 10.0
-          | SOME n => n)
-
-        fun is_fixed ctxt = Variable.is_declared ctxt orf Name.is_skolem
-        fun skolems_of ctxt t = Term.add_frees t [] |> filter_out (is_fixed ctxt o fst) |> rev
-
-        fun get_role keep_role ((num, _), role, t, rule, _) =
-          if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
-
-        val atp_proof =
-          fold_rev add_line_pass1 atp_proof0 []
-          |> add_lines_pass2 []
-
-        val conjs =
-          map_filter (fn (name, role, _, _, _) =>
-              if member (op =) [Conjecture, Negated_Conjecture] role then SOME name else NONE)
-            atp_proof
-        val assms = map_filter (Option.map fst o get_role (curry (op =) Hypothesis)) atp_proof
-
-        fun add_lemma ((l, t), rule) ctxt =
-          let
-            val (skos, meths) =
-              (if is_skolemize_rule rule then (skolems_of ctxt t, skolem_methods)
-               else if is_arith_rule rule then ([], arith_methods)
-               else ([], rewrite_methods))
-              ||> massage_methods
-          in
-            (Prove ([], skos, l, t, [], ([], []), meths, ""),
-             ctxt |> not (null skos) ? (Variable.add_fixes (map fst skos) #> snd))
-          end
-
-        val (lems, _) =
-          fold_map add_lemma (map_filter (get_role (curry (op =) Lemma)) atp_proof) ctxt
-
-        val bot = #1 (List.last atp_proof)
-
-        val refute_graph =
-          atp_proof
-          |> map (fn (name, _, _, _, from) => (from, name))
-          |> make_refute_graph bot
-          |> fold (Atom_Graph.default_node o rpair ()) conjs
-
-        val axioms = axioms_of_refute_graph refute_graph conjs
-
-        val tainted = tainted_atoms_of_refute_graph refute_graph conjs
-        val is_clause_tainted = exists (member (op =) tainted)
-        val steps =
-          Symtab.empty
-          |> fold (fn (name as (s, _), role, t, rule, _) =>
-              Symtab.update_new (s, (rule, t
-                |> (if is_clause_tainted [name] then
-                      HOLogic.dest_Trueprop
-                      #> role <> Conjecture ? s_not
-                      #> fold exists_of (map Var (Term.add_vars t []))
-                      #> HOLogic.mk_Trueprop
-                    else
-                      I))))
-            atp_proof
-
-        fun is_referenced_in_step _ (Let _) = false
-          | is_referenced_in_step l (Prove (_, _, _, _, subs, (ls, _), _, _)) =
-            member (op =) ls l orelse exists (is_referenced_in_proof l) subs
-        and is_referenced_in_proof l (Proof (_, _, steps)) =
-          exists (is_referenced_in_step l) steps
-
-        fun insert_lemma_in_step lem
-            (step as Prove (qs, fix, l, t, subs, (ls, gs), meths, comment)) =
-          let val l' = the (label_of_isar_step lem) in
-            if member (op =) ls l' then
-              [lem, step]
-            else
-              let val refs = map (is_referenced_in_proof l') subs in
-                if length (filter I refs) = 1 then
-                  let
-                    val subs' = map2 (fn false => I | true => insert_lemma_in_proof lem) refs subs
-                  in
-                    [Prove (qs, fix, l, t, subs', (ls, gs), meths, comment)]
-                  end
-                else
-                  [lem, step]
-              end
-          end
-        and insert_lemma_in_steps lem [] = [lem]
-          | insert_lemma_in_steps lem (step :: steps) =
-            if is_referenced_in_step (the (label_of_isar_step lem)) step then
-              insert_lemma_in_step lem step @ steps
-            else
-              step :: insert_lemma_in_steps lem steps
-        and insert_lemma_in_proof lem (Proof (fix, assms, steps)) =
-          Proof (fix, assms, insert_lemma_in_steps lem steps)
-
-        val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
-
-        val finish_off = close_form #> rename_bound_vars
-
-        fun prop_of_clause [(num, _)] = Symtab.lookup steps num |> the |> snd |> finish_off
-          | prop_of_clause names =
-            let
-              val lits =
-                map (HOLogic.dest_Trueprop o snd) (map_filter (Symtab.lookup steps o fst) names)
-            in
-              (case List.partition (can HOLogic.dest_not) lits of
-                (negs as _ :: _, pos as _ :: _) =>
-                s_imp (Library.foldr1 s_conj (map HOLogic.dest_not negs), Library.foldr1 s_disj pos)
-              | _ => fold (curry s_disj) lits @{term False})
-            end
-            |> HOLogic.mk_Trueprop |> finish_off
-
-        fun maybe_show outer c = if outer andalso eq_set (op =) (c, conjs) then [Show] else []
-
-        fun isar_steps outer predecessor accum [] =
-            accum
-            |> (if tainted = [] then
-                  (* e.g., trivial, empty proof by Z3 *)
-                  cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                    sort_facts (the_list predecessor, []), massage_methods systematic_methods', ""))
-                else
-                  I)
-            |> rev
-          | isar_steps outer _ accum (Have (id, (gamma, c)) :: infs) =
-            let
-              val l = label_of_clause c
-              val t = prop_of_clause c
-              val rule = rule_of_clause_id id
-              val skolem = is_skolemize_rule rule
-
-              val deps = ([], [])
-                |> fold add_fact_of_dependency gamma
-                |> is_maybe_ext_rule rule ? add_global_fact [short_thm_name ctxt ext]
-                |> sort_facts
-              val meths =
-                (if skolem then skolem_methods
-                 else if is_arith_rule rule then arith_methods
-                 else if is_datatype_rule rule then datatype_methods
-                 else systematic_methods')
-                |> massage_methods
-
-              fun prove sub facts = Prove (maybe_show outer c, [], l, t, sub, facts, meths, "")
-              fun steps_of_rest step = isar_steps outer (SOME l) (step :: accum) infs
-            in
-              if is_clause_tainted c then
-                (case gamma of
-                  [g] =>
-                  if skolem andalso is_clause_tainted g then
-                    let
-                      val skos = skolems_of ctxt (prop_of_clause g)
-                      val subproof = Proof (skos, [], rev accum)
-                    in
-                      isar_steps outer (SOME l) [prove [subproof] ([], [])] infs
-                    end
-                  else
-                    steps_of_rest (prove [] deps)
-                | _ => steps_of_rest (prove [] deps))
-              else
-                steps_of_rest
-                  (if skolem then
-                     (case skolems_of ctxt t of
-                       [] => prove [] deps
-                     | skos => Prove ([], skos, l, t, [], deps, meths, ""))
-                   else
-                     prove [] deps)
-            end
-          | isar_steps outer predecessor accum (Cases cases :: infs) =
-            let
-              fun isar_case (c, subinfs) =
-                isar_proof false [] [(label_of_clause c, prop_of_clause c)] [] subinfs
-              val c = succedent_of_cases cases
-              val l = label_of_clause c
-              val t = prop_of_clause c
-              val step =
-                Prove (maybe_show outer c, [], l, t,
-                  map isar_case (filter_out (null o snd) cases),
-                  sort_facts (the_list predecessor, []), massage_methods systematic_methods', "")
-            in
-              isar_steps outer (SOME l) (step :: accum) infs
-            end
-        and isar_proof outer fix assms lems infs =
-          Proof (fix, assms, fold_rev insert_lemma_in_steps lems (isar_steps outer NONE [] infs))
-
-        val trace = Config.get ctxt trace
-
-        val canonical_isar_proof =
-          refute_graph
-          |> trace ? tap (tracing o prefix "Refute graph:\n" o string_of_refute_graph)
-          |> redirect_graph axioms tainted bot
-          |> trace ? tap (tracing o prefix "Direct proof:\n" o string_of_direct_proof)
-          |> isar_proof true params assms lems
-          |> postprocess_isar_proof_remove_show_stuttering
-          |> postprocess_isar_proof_remove_unreferenced_steps I
-          |> relabel_isar_proof_canonically
-
-        val ctxt = ctxt |> enrich_context_with_local_facts canonical_isar_proof
-
-        val preplay_data = Unsynchronized.ref Canonical_Label_Tab.empty
-
-        val _ = fold_isar_steps (fn meth =>
-            K (set_preplay_outcomes_of_isar_step ctxt preplay_timeout preplay_data meth []))
-          (steps_of_isar_proof canonical_isar_proof) ()
-
-        fun str_of_preplay_outcome outcome =
-          if Lazy.is_finished outcome then string_of_play_outcome (Lazy.force outcome) else "?"
-        fun str_of_meth l meth =
-          string_of_proof_method ctxt [] meth ^ " " ^
-          str_of_preplay_outcome (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)
-        fun comment_of l = map (str_of_meth l) #> commas
-
-        fun trace_isar_proof label proof =
-          if trace then
-            tracing (timestamp () ^ "\n" ^ label ^ ":\n\n" ^
-              string_of_isar_proof ctxt subgoal subgoal_count
-                (comment_isar_proof comment_of proof) ^ "\n")
-          else
-            ()
-
-        fun comment_of l (meth :: _) =
-          (case (verbose,
-              Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)) of
-            (false, Played _) => ""
-          | (_, outcome) => string_of_play_outcome outcome)
-
-        val (play_outcome, isar_proof) =
-          canonical_isar_proof
-          |> tap (trace_isar_proof "Original")
-          |> compress_isar_proof ctxt compress preplay_timeout preplay_data
-          |> tap (trace_isar_proof "Compressed")
-          |> postprocess_isar_proof_remove_unreferenced_steps
-               (keep_fastest_method_of_isar_step (!preplay_data)
-                #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
-          |> tap (trace_isar_proof "Minimized")
-          |> `(preplay_outcome_of_isar_proof (!preplay_data))
-          ||> (comment_isar_proof comment_of
-               #> chain_isar_proof
-               #> kill_useless_labels_in_isar_proof
-               #> relabel_isar_proof_nicely
-               #> rationalize_obtains_in_isar_proofs ctxt)
       in
-        (case (num_chained, add_isar_steps (steps_of_isar_proof isar_proof) 0) of
-          (0, 1) =>
-          one_line_proof_text ctxt 0
-            (if play_outcome_ord (play_outcome, one_line_play) = LESS then
-               (case isar_proof of
-                 Proof (_, _, [Prove (_, _, _, _, _, (_, gfs), meth :: _, _)]) =>
-                 let
-                   val used_facts' = filter (fn (s, (sc, _)) =>
-                     member (op =) gfs s andalso sc <> Chained) used_facts
-                 in
-                   ((used_facts', (meth, play_outcome)), banner, subgoal, subgoal_count)
-                 end)
-             else
-               one_line_params) ^
-          (if isar_proofs = SOME true then "\n(No Isar proof available.)"
-           else "")
-        | (_, num_steps) =>
+        if null atp_proof0 then
+          one_line_proof_text ctxt 0 one_line_params
+        else
           let
-            val msg =
-              (if verbose then [string_of_int num_steps ^ " step" ^ plural_s num_steps] else []) @
-              (if do_preplay then [string_of_play_outcome play_outcome] else [])
+            val systematic_methods' = insert (op =) (Metis_Method alt_metis_args) systematic_methods
+
+            fun massage_methods (meths as meth :: _) =
+              if not try0 then [meth]
+              else if smt_proofs = SOME true then SMT_Method :: meths
+              else meths
+
+            val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
+            val fixes = map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params
+            val ctxt = ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes |> snd
+
+            val do_preplay = preplay_timeout <> Time.zeroTime
+            val compress =
+              (case compress of
+                NONE => if isar_proofs = NONE andalso do_preplay then 1000.0 else 10.0
+              | SOME n => n)
+
+            fun is_fixed ctxt = Variable.is_declared ctxt orf Name.is_skolem
+            fun skolems_of ctxt t = Term.add_frees t [] |> filter_out (is_fixed ctxt o fst) |> rev
+
+            fun get_role keep_role ((num, _), role, t, rule, _) =
+              if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
+
+            val atp_proof =
+              fold_rev add_line_pass1 atp_proof0 []
+              |> add_lines_pass2 []
+
+            val conjs =
+              map_filter (fn (name, role, _, _, _) =>
+                  if member (op =) [Conjecture, Negated_Conjecture] role then SOME name else NONE)
+                atp_proof
+            val assms = map_filter (Option.map fst o get_role (curry (op =) Hypothesis)) atp_proof
+
+            fun add_lemma ((l, t), rule) ctxt =
+              let
+                val (skos, meths) =
+                  (if is_skolemize_rule rule then (skolems_of ctxt t, skolem_methods)
+                   else if is_arith_rule rule then ([], arith_methods)
+                   else ([], rewrite_methods))
+                  ||> massage_methods
+              in
+                (Prove ([], skos, l, t, [], ([], []), meths, ""),
+                 ctxt |> not (null skos) ? (Variable.add_fixes (map fst skos) #> snd))
+              end
+
+            val (lems, _) =
+              fold_map add_lemma (map_filter (get_role (curry (op =) Lemma)) atp_proof) ctxt
+
+            val bot = #1 (List.last atp_proof)
+
+            val refute_graph =
+              atp_proof
+              |> map (fn (name, _, _, _, from) => (from, name))
+              |> make_refute_graph bot
+              |> fold (Atom_Graph.default_node o rpair ()) conjs
+
+            val axioms = axioms_of_refute_graph refute_graph conjs
+
+            val tainted = tainted_atoms_of_refute_graph refute_graph conjs
+            val is_clause_tainted = exists (member (op =) tainted)
+            val steps =
+              Symtab.empty
+              |> fold (fn (name as (s, _), role, t, rule, _) =>
+                  Symtab.update_new (s, (rule, t
+                    |> (if is_clause_tainted [name] then
+                          HOLogic.dest_Trueprop
+                          #> role <> Conjecture ? s_not
+                          #> fold exists_of (map Var (Term.add_vars t []))
+                          #> HOLogic.mk_Trueprop
+                        else
+                          I))))
+                atp_proof
+
+            fun is_referenced_in_step _ (Let _) = false
+              | is_referenced_in_step l (Prove (_, _, _, _, subs, (ls, _), _, _)) =
+                member (op =) ls l orelse exists (is_referenced_in_proof l) subs
+            and is_referenced_in_proof l (Proof (_, _, steps)) =
+              exists (is_referenced_in_step l) steps
+
+            fun insert_lemma_in_step lem
+                (step as Prove (qs, fix, l, t, subs, (ls, gs), meths, comment)) =
+              let val l' = the (label_of_isar_step lem) in
+                if member (op =) ls l' then
+                  [lem, step]
+                else
+                  let val refs = map (is_referenced_in_proof l') subs in
+                    if length (filter I refs) = 1 then
+                      let
+                        val subs' = map2 (fn false => I | true => insert_lemma_in_proof lem) refs
+                          subs
+                      in
+                        [Prove (qs, fix, l, t, subs', (ls, gs), meths, comment)]
+                      end
+                    else
+                      [lem, step]
+                  end
+              end
+            and insert_lemma_in_steps lem [] = [lem]
+              | insert_lemma_in_steps lem (step :: steps) =
+                if is_referenced_in_step (the (label_of_isar_step lem)) step then
+                  insert_lemma_in_step lem step @ steps
+                else
+                  step :: insert_lemma_in_steps lem steps
+            and insert_lemma_in_proof lem (Proof (fix, assms, steps)) =
+              Proof (fix, assms, insert_lemma_in_steps lem steps)
+
+            val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
+
+            val finish_off = close_form #> rename_bound_vars
+
+            fun prop_of_clause [(num, _)] = Symtab.lookup steps num |> the |> snd |> finish_off
+              | prop_of_clause names =
+                let
+                  val lits =
+                    map (HOLogic.dest_Trueprop o snd) (map_filter (Symtab.lookup steps o fst) names)
+                in
+                  (case List.partition (can HOLogic.dest_not) lits of
+                    (negs as _ :: _, pos as _ :: _) =>
+                    s_imp (Library.foldr1 s_conj (map HOLogic.dest_not negs),
+                      Library.foldr1 s_disj pos)
+                  | _ => fold (curry s_disj) lits @{term False})
+                end
+                |> HOLogic.mk_Trueprop |> finish_off
+
+            fun maybe_show outer c = if outer andalso eq_set (op =) (c, conjs) then [Show] else []
+
+            fun isar_steps outer predecessor accum [] =
+                accum
+                |> (if tainted = [] then
+                      (* e.g., trivial, empty proof by Z3 *)
+                      cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
+                        sort_facts (the_list predecessor, []), massage_methods systematic_methods',
+                        ""))
+                    else
+                      I)
+                |> rev
+              | isar_steps outer _ accum (Have (id, (gamma, c)) :: infs) =
+                let
+                  val l = label_of_clause c
+                  val t = prop_of_clause c
+                  val rule = rule_of_clause_id id
+                  val skolem = is_skolemize_rule rule
+
+                  val deps = ([], [])
+                    |> fold add_fact_of_dependency gamma
+                    |> is_maybe_ext_rule rule ? add_global_fact [short_thm_name ctxt ext]
+                    |> sort_facts
+                  val meths =
+                    (if skolem then skolem_methods
+                     else if is_arith_rule rule then arith_methods
+                     else if is_datatype_rule rule then datatype_methods
+                     else systematic_methods')
+                    |> massage_methods
+
+                  fun prove sub facts = Prove (maybe_show outer c, [], l, t, sub, facts, meths, "")
+                  fun steps_of_rest step = isar_steps outer (SOME l) (step :: accum) infs
+                in
+                  if is_clause_tainted c then
+                    (case gamma of
+                      [g] =>
+                      if skolem andalso is_clause_tainted g then
+                        let
+                          val skos = skolems_of ctxt (prop_of_clause g)
+                          val subproof = Proof (skos, [], rev accum)
+                        in
+                          isar_steps outer (SOME l) [prove [subproof] ([], [])] infs
+                        end
+                      else
+                        steps_of_rest (prove [] deps)
+                    | _ => steps_of_rest (prove [] deps))
+                  else
+                    steps_of_rest
+                      (if skolem then
+                         (case skolems_of ctxt t of
+                           [] => prove [] deps
+                         | skos => Prove ([], skos, l, t, [], deps, meths, ""))
+                       else
+                         prove [] deps)
+                end
+              | isar_steps outer predecessor accum (Cases cases :: infs) =
+                let
+                  fun isar_case (c, subinfs) =
+                    isar_proof false [] [(label_of_clause c, prop_of_clause c)] [] subinfs
+                  val c = succedent_of_cases cases
+                  val l = label_of_clause c
+                  val t = prop_of_clause c
+                  val step =
+                    Prove (maybe_show outer c, [], l, t,
+                      map isar_case (filter_out (null o snd) cases),
+                      sort_facts (the_list predecessor, []), massage_methods systematic_methods',
+                      "")
+                in
+                  isar_steps outer (SOME l) (step :: accum) infs
+                end
+            and isar_proof outer fix assms lems infs =
+              Proof (fix, assms,
+                fold_rev insert_lemma_in_steps lems (isar_steps outer NONE [] infs))
+
+            val trace = Config.get ctxt trace
+
+            val canonical_isar_proof =
+              refute_graph
+              |> trace ? tap (tracing o prefix "Refute graph:\n" o string_of_refute_graph)
+              |> redirect_graph axioms tainted bot
+              |> trace ? tap (tracing o prefix "Direct proof:\n" o string_of_direct_proof)
+              |> isar_proof true params assms lems
+              |> postprocess_isar_proof_remove_show_stuttering
+              |> postprocess_isar_proof_remove_unreferenced_steps I
+              |> relabel_isar_proof_canonically
+
+            val ctxt = ctxt |> enrich_context_with_local_facts canonical_isar_proof
+
+            val preplay_data = Unsynchronized.ref Canonical_Label_Tab.empty
+
+            val _ = fold_isar_steps (fn meth =>
+                K (set_preplay_outcomes_of_isar_step ctxt preplay_timeout preplay_data meth []))
+              (steps_of_isar_proof canonical_isar_proof) ()
+
+            fun str_of_preplay_outcome outcome =
+              if Lazy.is_finished outcome then string_of_play_outcome (Lazy.force outcome) else "?"
+            fun str_of_meth l meth =
+              string_of_proof_method ctxt [] meth ^ " " ^
+              str_of_preplay_outcome
+                (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)
+            fun comment_of l = map (str_of_meth l) #> commas
+
+            fun trace_isar_proof label proof =
+              if trace then
+                tracing (timestamp () ^ "\n" ^ label ^ ":\n\n" ^
+                  string_of_isar_proof ctxt subgoal subgoal_count
+                    (comment_isar_proof comment_of proof) ^ "\n")
+              else
+                ()
+
+            fun comment_of l (meth :: _) =
+              (case (verbose,
+                  Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)) of
+                (false, Played _) => ""
+              | (_, outcome) => string_of_play_outcome outcome)
+
+            val (play_outcome, isar_proof) =
+              canonical_isar_proof
+              |> tap (trace_isar_proof "Original")
+              |> compress_isar_proof ctxt compress preplay_timeout preplay_data
+              |> tap (trace_isar_proof "Compressed")
+              |> postprocess_isar_proof_remove_unreferenced_steps
+                   (keep_fastest_method_of_isar_step (!preplay_data)
+                    #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
+              |> tap (trace_isar_proof "Minimized")
+              |> `(preplay_outcome_of_isar_proof (!preplay_data))
+              ||> (comment_isar_proof comment_of
+                   #> chain_isar_proof
+                   #> kill_useless_labels_in_isar_proof
+                   #> relabel_isar_proof_nicely
+                   #> rationalize_obtains_in_isar_proofs ctxt)
           in
-            one_line_proof_text ctxt 0 one_line_params ^
-            "\n\nIsar proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
-            Active.sendback_markup [Markup.padding_command]
-              (string_of_isar_proof ctxt subgoal subgoal_count isar_proof)
-          end)
+            (case (num_chained, add_isar_steps (steps_of_isar_proof isar_proof) 0) of
+              (0, 1) =>
+              one_line_proof_text ctxt 0
+                (if play_outcome_ord (play_outcome, one_line_play) = LESS then
+                   (case isar_proof of
+                     Proof (_, _, [Prove (_, _, _, _, _, (_, gfs), meth :: _, _)]) =>
+                     let
+                       val used_facts' = filter (fn (s, (sc, _)) =>
+                         member (op =) gfs s andalso sc <> Chained) used_facts
+                     in
+                       ((used_facts', (meth, play_outcome)), banner, subgoal, subgoal_count)
+                     end)
+                 else
+                   one_line_params) ^
+              (if isar_proofs = SOME true then "\n(No Isar proof available.)" else "")
+            | (_, num_steps) =>
+              let
+                val msg =
+                  (if verbose then [string_of_int num_steps ^ " step" ^ plural_s num_steps]
+                   else []) @
+                  (if do_preplay then [string_of_play_outcome play_outcome] else [])
+              in
+                one_line_proof_text ctxt 0 one_line_params ^
+                "\n\nIsar proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
+                Active.sendback_markup [Markup.padding_command]
+                  (string_of_isar_proof ctxt subgoal subgoal_count isar_proof)
+              end)
+          end
       end
   in
     if debug then
