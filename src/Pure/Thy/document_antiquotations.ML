@@ -217,7 +217,9 @@ val _ =
   Theory.setup
    (entity_antiquotation @{binding command} Outer_Syntax.check_command
      (enclose "\\isacommand{" "}" o Output.output) #>
-    entity_antiquotation @{binding method} Method.check_name Output.output #>
-    entity_antiquotation @{binding attribute} Attrib.check_name Output.output);
+    entity_antiquotation @{binding method} Method.check_name
+     (enclose "\\isa{" "}" o Output.output) #>
+    entity_antiquotation @{binding attribute} Attrib.check_name
+     (enclose "\\isa{" "}" o Output.output));
 
 end;
