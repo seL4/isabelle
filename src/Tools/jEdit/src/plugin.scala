@@ -377,6 +377,15 @@ class Plugin extends EBPlugin
           }
 
         case msg: PropertiesChanged =>
+          for {
+            view <- JEdit_Lib.jedit_views
+            edit_pane <- JEdit_Lib.jedit_edit_panes(view)
+          } {
+            val buffer = edit_pane.getBuffer
+            val text_area = edit_pane.getTextArea
+            if (buffer != null && text_area != null) PIDE.init_view(buffer, text_area)
+          }
+
           PIDE.spell_checker.update(PIDE.options.value)
           PIDE.session.update_options(PIDE.options.value)
 
