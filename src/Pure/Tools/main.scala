@@ -105,6 +105,7 @@ object Main
         val env = env0.asInstanceOf[java.util.Map[String, String]]
         env.put("ISABELLE_HOME", File.platform_path(isabelle_home))
         env.put("ISABELLE_HOME_USER", File.platform_path(isabelle_home_user))
+        env.remove("ISABELLE_ROOT")
       }
     }
 
