@@ -1995,8 +1995,16 @@ text \<open>
   \<^item> \<^bold>\<open>Problem:\<close> Mac OS X system fonts sometimes lead to character drop-outs in
   the main text area.
 
-  \<^bold>\<open>Workaround:\<close> Use the default \<^verbatim>\<open>IsabelleText\<close> font. (Do not install that
-  font on the system.)
+  \<^bold>\<open>Workaround:\<close> Use the default \<^verbatim>\<open>IsabelleText\<close> font.
+
+  \<^item> \<^bold>\<open>Problem:\<close> Mac OS X with Retina display has problems to determine the
+  font metrics of \<^verbatim>\<open>IsabelleText\<close> accurately, notably in plain Swing text
+  fields (e.g.\ in the \<^emph>\<open>Search and Replace\<close> dialog).
+
+  \<^bold>\<open>Workaround:\<close> Install \<^verbatim>\<open>IsabelleText\<close> and \<^verbatim>\<open>IsabelleTextBold\<close> on the system
+  with \<^emph>\<open>Font Book\<close>, despite the warnings in \secref{sec:symbols} against
+  that! The \<^verbatim>\<open>.ttf\<close> font files reside in some directory @{file_unchecked
+  "$ISABELLE_HOME/contrib/isabelle_fonts-XYZ"}.
 
   \<^item> \<^bold>\<open>Problem:\<close> Some Linux/X11 input methods such as IBus tend to disrupt key
   event handling of Java/AWT/Swing.
