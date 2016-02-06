@@ -71,6 +71,7 @@ proof
   from * have "\<exists>x. ?D = f x" ..
   then obtain a where "?D = f a" ..
   then have "?D a \<longleftrightarrow> f a a" by (rule arg_cong)
+  then have "\<not> f a a \<longleftrightarrow> f a a" .
   then show False by (rule iff_contradiction)
 qed
 
