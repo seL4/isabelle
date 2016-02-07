@@ -8,43 +8,58 @@ chapter \<open>Isabelle/Isar quick reference \label{ap:refcard}\<close>
 
 section \<open>Proof commands\<close>
 
-subsection \<open>Primitives and basic syntax\<close>
+subsection \<open>Main grammar\<close>
+
+text \<open>
+  \begin{tabular}{rcl}
+    \<open>main\<close> & = & \<^theory_text>\<open>notepad begin "statement\<^sup>*" end\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>theorem name: props "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>theorem name:\<close> \\
+    & & \quad\<^theory_text>\<open>fixes "var\<^sup>+"\<close> \\
+    & & \quad\<^theory_text>\<open>assumes name: props\<close> \\
+    & & \quad\<^theory_text>\<open>shows name: props "proof"\<close> \\
+    \<open>proof\<close> & = & \<^theory_text>\<open>"refinement\<^sup>*" proof "method\<^sup>?" "statement\<^sup>*" qed "method\<^sup>?"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>"refinement\<^sup>*" done\<close> \\
+    \<open>refinement\<close> & = &  \<^theory_text>\<open>apply method\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>supply facts\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>subgoal "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>subgoal for "var\<^sup>+" "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>using facts\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>unfolding facts\<close> \\
+    \<open>statement\<close> & = & \<^theory_text>\<open>{ "statement\<^sup>*" }\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>next\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>note name = facts\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>let "term" = "term"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>write name  (mixfix)\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>fix "var\<^sup>+"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>assume name: props\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>assume name: props if name: props for "var\<^sup>+"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>then"\<^sup>?" goal\<close> \\
+    \<open>goal\<close> & = & \<^theory_text>\<open>have name: props "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>have name: props if name: props for "var\<^sup>+" "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>show name: props "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>show name: props if name: props for "var\<^sup>+" "proof"\<close> \\
+  \end{tabular}
+\<close>
+
+
+subsection \<open>Primitives\<close>
 
 text \<open>
   \begin{tabular}{ll}
-    @{command "fix"}~\<open>x\<close> & augment context by \<open>\<And>x. \<box>\<close> \\
-    @{command "assume"}~\<open>a: \<phi>\<close> & augment context by \<open>\<phi> \<Longrightarrow> \<box>\<close> \\
-    @{command "then"} & indicate forward chaining of facts \\
-    @{command "have"}~\<open>a: \<phi>\<close> & prove local result \\
-    @{command "show"}~\<open>a: \<phi>\<close> & prove local result, refining some goal \\
-    @{command "using"}~\<open>a\<close> & indicate use of additional facts \\
-    @{command "unfolding"}~\<open>a\<close> & unfold definitional equations \\
-    @{command "proof"}~\<open>m\<^sub>1\<close>~\dots~@{command "qed"}~\<open>m\<^sub>2\<close> & indicate proof structure and refinements \\
-    @{command "{"}~\<open>\<dots>\<close>~@{command "}"} & indicate explicit blocks \\
-    @{command "next"} & switch blocks \\
-    @{command "note"}~\<open>a = b\<close> & reconsider facts \\
-    @{command "let"}~\<open>p = t\<close> & abbreviate terms by higher-order matching \\
-    @{command "write"}~\<open>c  (mx)\<close> & declare local mixfix syntax \\
-  \end{tabular}
-
-  \<^medskip>
-
-  \begin{tabular}{rcl}
-    \<open>proof\<close> & = & \<open>prfx\<^sup>*\<close>~@{command "proof"}~\<open>method\<^sup>? stmt\<^sup>*\<close>~@{command "qed"}~\<open>method\<^sup>?\<close> \\
-    & \<open>|\<close> & \<open>prfx\<^sup>*\<close>~@{command "done"} \\
-    \<open>prfx\<close> & = & @{command "apply"}~\<open>method\<close> \\
-    & \<open>|\<close> & @{command "using"}~\<open>facts\<close> \\
-    & \<open>|\<close> & @{command "unfolding"}~\<open>facts\<close> \\
-    \<open>stmt\<close> & = & @{command "{"}~\<open>stmt\<^sup>*\<close>~@{command "}"} \\
-    & \<open>|\<close> & @{command "next"} \\
-    & \<open>|\<close> & @{command "note"}~\<open>name = facts\<close> \\
-    & \<open>|\<close> & @{command "let"}~\<open>term = term\<close> \\
-    & \<open>|\<close> & @{command "write"}~\<open>name (mixfix)\<close> \\
-    & \<open>|\<close> & @{command "fix"}~\<open>var\<^sup>+\<close> \\
-    & \<open>|\<close> & @{command "assume"}~\<open>name: props\<close> \\
-    & \<open>|\<close> & @{command "then"}\<open>\<^sup>?\<close>~\<open>goal\<close> \\
-    \<open>goal\<close> & = & @{command "have"}~\<open>name: props proof\<close> \\
-    & \<open>|\<close> & @{command "show"}~\<open>name: props proof\<close> \\
+    \<^theory_text>\<open>fix x\<close> & augment context by \<open>\<And>x. \<box>\<close> \\
+    \<^theory_text>\<open>assume a: A\<close> & augment context by \<open>A \<Longrightarrow> \<box>\<close> \\
+    \<^theory_text>\<open>then\<close> & indicate forward chaining of facts \\
+    \<^theory_text>\<open>have a: A\<close> & prove local result \\
+    \<^theory_text>\<open>show a: A\<close> & prove local result, refining some goal \\
+    \<^theory_text>\<open>using a\<close> & indicate use of additional facts \\
+    \<^theory_text>\<open>unfolding a\<close> & unfold definitional equations \\
+    \<^theory_text>\<open>proof m\<^sub>1 \<dots> qed m\<^sub>2\<close> & indicate proof structure and refinements \\
+    \<^theory_text>\<open>{ \<dots> }\<close> & indicate explicit blocks \\
+    \<^theory_text>\<open>next\<close> & switch proof blocks \\
+    \<^theory_text>\<open>note a = b\<close> & reconsider and declare facts \\
+    \<^theory_text>\<open>let p = t\<close> & abbreviate terms by higher-order matching \\
+    \<^theory_text>\<open>write c  (mx)\<close> & declare local mixfix syntax \\
   \end{tabular}
 \<close>
 
@@ -53,13 +68,12 @@ subsection \<open>Abbreviations and synonyms\<close>
 
 text \<open>
   \begin{tabular}{rcl}
-    @{command "by"}~\<open>m\<^sub>1 m\<^sub>2\<close> & \<open>\<equiv>\<close> &
-      @{command "proof"}~\<open>m\<^sub>1\<close>~@{command "qed"}~\<open>m\<^sub>2\<close> \\
-    @{command ".."} & \<open>\<equiv>\<close> & @{command "by"}~\<open>standard\<close> \\
-    @{command "."} & \<open>\<equiv>\<close> & @{command "by"}~\<open>this\<close> \\
-    @{command "from"}~\<open>a\<close> & \<open>\<equiv>\<close> & @{command "note"}~\<open>a\<close>~@{command "then"} \\
-    @{command "with"}~\<open>a\<close> & \<open>\<equiv>\<close> & @{command "from"}~\<open>a \<AND> this\<close> \\
-    @{command "from"}~\<open>this\<close> & \<open>\<equiv>\<close> & @{command "then"} \\
+    \<^theory_text>\<open>by m\<^sub>1 m\<^sub>2\<close> & \<open>\<equiv>\<close> & \<^theory_text>\<open>proof m\<^sub>1 qed m\<^sub>2\<close> \\
+    \<^theory_text>\<open>..\<close> & \<open>\<equiv>\<close> & \<^theory_text>\<open>by standard\<close> \\
+    \<^theory_text>\<open>.\<close> & \<open>\<equiv>\<close> & \<^theory_text>\<open>by this\<close> \\
+    \<^theory_text>\<open>from a\<close> & \<open>\<equiv>\<close> & \<^theory_text>\<open>note a then\<close> \\
+    \<^theory_text>\<open>with a\<close> & \<open>\<equiv>\<close> & \<^theory_text>\<open>from a and this\<close> \\
+    \<^theory_text>\<open>from this\<close> & \<open>\<equiv>\<close> & \<^theory_text>\<open>then\<close> \\
   \end{tabular}
 \<close>
 
@@ -68,26 +82,19 @@ subsection \<open>Derived elements\<close>
 
 text \<open>
   \begin{tabular}{rcl}
-    @{command "also"}\<open>\<^sub>0\<close> & \<open>\<approx>\<close> &
-      @{command "note"}~\<open>calculation = this\<close> \\
-    @{command "also"}\<open>\<^sub>n\<^sub>+\<^sub>1\<close> & \<open>\<approx>\<close> &
-      @{command "note"}~\<open>calculation = trans [OF calculation this]\<close> \\
-    @{command "finally"} & \<open>\<approx>\<close> &
-      @{command "also"}~@{command "from"}~\<open>calculation\<close> \\[0.5ex]
-    @{command "moreover"} & \<open>\<approx>\<close> &
-      @{command "note"}~\<open>calculation = calculation this\<close> \\
-    @{command "ultimately"} & \<open>\<approx>\<close> &
-      @{command "moreover"}~@{command "from"}~\<open>calculation\<close> \\[0.5ex]
-    @{command "presume"}~\<open>a: \<phi>\<close> & \<open>\<approx>\<close> &
-      @{command "assume"}~\<open>a: \<phi>\<close> \\
-    @{command "def"}~\<open>a: x \<equiv> t\<close> & \<open>\<approx>\<close> &
-      @{command "fix"}~\<open>x\<close>~@{command "assume"}~\<open>a: x \<equiv> t\<close> \\
-    @{command "obtain"}~\<open>x \<WHERE> a: \<phi>\<close> & \<open>\<approx>\<close> &
-      \<open>\<dots>\<close>~@{command "fix"}~\<open>x\<close>~@{command "assume"}~\<open>a: \<phi>\<close> \\
-    @{command "case"}~\<open>c\<close> & \<open>\<approx>\<close> &
-      @{command "fix"}~\<open>x\<close>~@{command "assume"}~\<open>c: \<phi>\<close> \\
-    @{command "sorry"} & \<open>\<approx>\<close> &
-      @{command "by"}~\<open>cheating\<close> \\
+    \<^theory_text>\<open>also"\<^sub>0"\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>note calculation = this\<close> \\
+    \<^theory_text>\<open>also"\<^sub>n\<^sub>+\<^sub>1"\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>note calculation = trans [OF calculation this]\<close> \\
+    \<^theory_text>\<open>finally\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>also from calculation\<close> \\[0.5ex]
+    \<^theory_text>\<open>moreover\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>note calculation = calculation this\<close> \\
+    \<^theory_text>\<open>ultimately\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>moreover from calculation\<close> \\[0.5ex]
+    \<^theory_text>\<open>presume a: A\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>assume a: A\<close> \\
+    \<^theory_text>\<open>def "x \<equiv> t"\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>fix x assume x_def: "x \<equiv> t"\<close> \\
+    \<^theory_text>\<open>consider x where A | \<dots>\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>have thesis\<close> \\
+    & & \quad \<^theory_text>\<open>if "\<And>x. A \<Longrightarrow> thesis" and \<dots> for thesis\<close> \\
+    \<^theory_text>\<open>obtain x where a: A \<proof>\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>consider x where A \<proof>\<close> \\
+    & & \<^theory_text>\<open>fix x assume a: A\<close> \\
+    \<^theory_text>\<open>case c\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>fix x assume c: A\<close> \\
+    \<^theory_text>\<open>sorry\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>by cheating\<close> \\
   \end{tabular}
 \<close>
 
@@ -96,12 +103,11 @@ subsection \<open>Diagnostic commands\<close>
 
 text \<open>
   \begin{tabular}{ll}
-    @{command "print_state"} & print proof state \\
-    @{command "print_statement"} & print fact in long statement form \\
-    @{command "thm"}~\<open>a\<close> & print fact \\
-    @{command "prop"}~\<open>\<phi>\<close> & print proposition \\
-    @{command "term"}~\<open>t\<close> & print term \\
-    @{command "typ"}~\<open>\<tau>\<close> & print type \\
+    \<^theory_text>\<open>typ \<tau>\<close> & print type \\
+    \<^theory_text>\<open>term t\<close> & print term \\
+    \<^theory_text>\<open>prop \<phi>\<close> & print proposition \\
+    \<^theory_text>\<open>thm a\<close> & print fact \\
+    \<^theory_text>\<open>print_statement a\<close> & print fact in long statement form \\
   \end{tabular}
 \<close>
 
@@ -111,7 +117,7 @@ section \<open>Proof methods\<close>
 text \<open>
   \begin{tabular}{ll}
     \multicolumn{2}{l}{\<^bold>\<open>Single steps (forward-chaining facts)\<close>} \\[0.5ex]
-    @{method assumption} & apply some assumption \\
+    @{method assumption} & apply some goal assumption \\
     @{method this} & apply current facts \\
     @{method rule}~\<open>a\<close> & apply some rule  \\
     @{method standard} & apply standard rule (default for @{command "proof"}) \\
@@ -123,6 +129,8 @@ text \<open>
     @{method "-"} & no rules \\
     @{method intro}~\<open>a\<close> & introduction rules \\
     @{method intro_classes} & class introduction rules \\
+    @{method intro_locales} & locale introduction rules (without body) \\
+    @{method unfold_locales} & locale introduction rules (with body) \\
     @{method elim}~\<open>a\<close> & elimination rules \\
     @{method unfold}~\<open>a\<close> & definitional rewrite rules \\[2ex]
 
@@ -191,18 +199,20 @@ text \<open>
 \<close>
 
 
-section \<open>Emulating tactic scripts\<close>
+section \<open>Proof scripts\<close>
 
 subsection \<open>Commands\<close>
 
 text \<open>
   \begin{tabular}{ll}
-    @{command "apply"}~\<open>m\<close> & apply proof method at initial position \\
-    @{command "apply_end"}~\<open>m\<close> & apply proof method near terminal position \\
-    @{command "done"} & complete proof \\
-    @{command "defer"}~\<open>n\<close> & move subgoal to end \\
-    @{command "prefer"}~\<open>n\<close> & move subgoal to beginning \\
-    @{command "back"} & backtrack last command \\
+    \<^theory_text>\<open>apply m\<close> & apply proof method during backwards refinement \\
+    \<^theory_text>\<open>apply_end m\<close> & apply proof method (as if in terminal position) \\
+    \<^theory_text>\<open>supply a\<close> & supply facts during backwards refinement \\
+    \<^theory_text>\<open>subgoal\<close> & nested proof during backwards refinement \\
+    \<^theory_text>\<open>defer n\<close> & move subgoal to end \\
+    \<^theory_text>\<open>prefer n\<close> & move subgoal to start \\
+    \<^theory_text>\<open>back\<close> & backtrack last command \\
+    \<^theory_text>\<open>done\<close> & complete proof \\
   \end{tabular}
 \<close>
 
