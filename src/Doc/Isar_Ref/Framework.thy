@@ -141,7 +141,7 @@ begin
     proof
       fix A
       assume "A \<in> \<A>"
-      show "x \<in> A" sorry %noproof
+      show "x \<in> A" \<proof>
     qed
 (*<*)
 end
@@ -192,7 +192,7 @@ begin
     proof
       fix A
       assume "x \<in> A" and "A \<in> \<A>"
-      show C sorry %noproof
+      show C \<proof>
     qed
 (*<*)
 end
@@ -664,25 +664,25 @@ proof
   text_raw \<open>\begin{minipage}[t]{0.45\textwidth}\<close>
   {
     fix x
-    have "B x" sorry %noproof
+    have "B x" \<proof>
   }
   note \<open>\<And>x. B x\<close>
   text_raw \<open>\end{minipage}\quad\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
   {
     assume A
-    have B sorry %noproof
+    have B \<proof>
   }
   note \<open>A \<Longrightarrow> B\<close>
   text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
   {
     def x \<equiv> a
-    have "B x" sorry %noproof
+    have "B x" \<proof>
   }
   note \<open>B a\<close>
   text_raw \<open>\end{minipage}\quad\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
   {
-    obtain x where "A x" sorry %noproof
-    have B sorry %noproof
+    obtain x where "A x" \<proof>
+    have B \<proof>
   }
   note \<open>B\<close>
   text_raw \<open>\end{minipage}\<close>
@@ -754,7 +754,7 @@ theorem
   shows "C x y"
 proof -
   from \<open>A x\<close> and \<open>B y\<close>
-  show "C x y" sorry %noproof
+  show "C x y" \<proof>
 qed
 
 text_raw \<open>\end{minipage}\begin{minipage}{0.5\textwidth}\<close>
@@ -763,7 +763,7 @@ theorem
   obtains x and y
   where "A x" and "B y"
 proof -
-  have "A a" and "B b" sorry %noproof
+  have "A a" and "B b" \<proof>
   then show thesis ..
 qed
 
@@ -833,7 +833,7 @@ text_raw \<open>\begingroup\footnotesize\<close>
   proof
     assume A
     show B
-      sorry %noproof
+      \<proof>
   qed
   text_raw \<open>\end{minipage}\quad
 \begin{minipage}[t]{0.06\textwidth}
@@ -892,7 +892,7 @@ begin
   proof -
     fix x and y
     assume "A x" and "B y"
-    show "C x y" sorry %noproof
+    show "C x y" \<proof>
   qed
 
 text_raw \<open>\end{minipage}\begin{minipage}{0.5\textwidth}\<close>
@@ -904,7 +904,7 @@ next
   proof -
     fix x assume "A x"
     fix y assume "B y"
-    show "C x y" sorry %noproof
+    show "C x y" \<proof>
   qed
 
 text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}{0.5\textwidth}\<close>
@@ -916,7 +916,7 @@ next
   proof -
     fix y assume "B y"
     fix x assume "A x"
-    show "C x y" sorry
+    show "C x y" \<proof>
   qed
 
 text_raw \<open>\end{minipage}\begin{minipage}{0.5\textwidth}\<close>
@@ -927,7 +927,7 @@ next
   proof -
     fix y assume "B y"
     fix x
-    show "C x y" sorry
+    show "C x y" \<proof>
   qed
 (*<*)
 end
@@ -1000,9 +1000,9 @@ text \<open>
 notepad
 begin
 (*>*)
-  have "a = b" sorry
-  also have "\<dots> = c" sorry
-  also have "\<dots> = d" sorry
+  have "a = b" \<proof>
+  also have "\<dots> = c" \<proof>
+  also have "\<dots> = d" \<proof>
   finally have "a = d" .
 (*<*)
 end

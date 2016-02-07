@@ -133,24 +133,24 @@ text \<open>
 
 lemma "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z"
   and "\<And>u v. X u \<Longrightarrow> Y v"
-  subgoal sorry
-  subgoal sorry
+  subgoal \<proof>
+  subgoal \<proof>
   done
 
 lemma "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z"
   and "\<And>u v. X u \<Longrightarrow> Y v"
-  subgoal for x y z sorry
-  subgoal for u v sorry
+  subgoal for x y z \<proof>
+  subgoal for u v \<proof>
   done
 
 lemma "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z"
   and "\<And>u v. X u \<Longrightarrow> Y v"
   subgoal premises for x y z
     using \<open>A x\<close> \<open>B y\<close>
-    sorry
+    \<proof>
   subgoal premises for u v
     using \<open>X u\<close>
-    sorry
+    \<proof>
   done
 
 lemma "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z"
@@ -159,21 +159,21 @@ lemma "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z"
   proof -
     have "A x" by (fact prems)
     moreover have "B y" by (fact prems)
-    ultimately show ?thesis sorry
+    ultimately show ?thesis \<proof>
   qed
   subgoal premises prems for u v
   proof -
     have "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z" by (fact r)
     moreover
     have "X u" by (fact prems)
-    ultimately show ?thesis sorry
+    ultimately show ?thesis \<proof>
   qed
   done
 
 lemma "\<And>x y z. A x \<Longrightarrow> B y \<Longrightarrow> C z"
   subgoal premises prems for \<dots> z
   proof -
-    from prems show "C z" sorry
+    from prems show "C z" \<proof>
   qed
   done
 

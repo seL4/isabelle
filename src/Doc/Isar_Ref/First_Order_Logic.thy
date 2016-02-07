@@ -418,47 +418,47 @@ proof -
   have "A \<longrightarrow> B"
   proof
     assume A
-    show B sorry %noproof
+    show B \<proof>
   qed
 
   text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
-  have "A \<longrightarrow> B" and A sorry %noproof
+  have "A \<longrightarrow> B" and A \<proof>
   then have B ..
 
   text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
-  have A sorry %noproof
+  have A \<proof>
   then have "A \<or> B" ..
 
-  have B sorry %noproof
+  have B \<proof>
   then have "A \<or> B" ..
 
   text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
-  have "A \<or> B" sorry %noproof
+  have "A \<or> B" \<proof>
   then have C
   proof
     assume A
-    then show C sorry %noproof
+    then show C \<proof>
   next
     assume B
-    then show C sorry %noproof
+    then show C \<proof>
   qed
 
   text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
-  have A and B sorry %noproof
+  have A and B \<proof>
   then have "A \<and> B" ..
 
   text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
-  have "A \<and> B" sorry %noproof
+  have "A \<and> B" \<proof>
   then obtain A and B ..
 
   text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
-  have "\<bottom>" sorry %noproof
+  have "\<bottom>" \<proof>
   then have A ..
 
   text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
@@ -470,12 +470,12 @@ proof -
   have "\<not> A"
   proof
     assume A
-    then show "\<bottom>" sorry %noproof
+    then show "\<bottom>" \<proof>
   qed
 
   text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
-  have "\<not> A" and A sorry %noproof
+  have "\<not> A" and A \<proof>
   then have B ..
 
   text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
@@ -483,24 +483,24 @@ proof -
   have "\<forall>x. B x"
   proof
     fix x
-    show "B x" sorry %noproof
+    show "B x" \<proof>
   qed
 
   text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
-  have "\<forall>x. B x" sorry %noproof
+  have "\<forall>x. B x" \<proof>
   then have "B a" ..
 
   text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
   have "\<exists>x. B x"
   proof
-    show "B a" sorry %noproof
+    show "B a" \<proof>
   qed
 
   text_raw \<open>\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}\<close>(*<*)next(*>*)
 
-  have "\<exists>x. B x" sorry %noproof
+  have "\<exists>x. B x" \<proof>
   then obtain a where "B a" ..
 
   text_raw \<open>\end{minipage}\<close>

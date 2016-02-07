@@ -53,7 +53,7 @@ begin
   assume a: A
 
   txt \<open>Via proof (``let''):\<close>
-  have b: B sorry
+  have b: B \<proof>
 
   txt \<open>Via abbreviation (``let''):\<close>
   note c = a b
@@ -156,8 +156,8 @@ text \<open>
 notepad
 begin
   {
-    have a: A sorry
-    have b: B sorry
+    have a: A \<proof>
+    have b: B \<proof>
     note a b
   }
   note this
@@ -174,15 +174,15 @@ notepad
 begin
 
   {
-    have a: A sorry
+    have a: A \<proof>
   next
     have b: B
     proof -
-      show B sorry
+      show B \<proof>
     next
-      have c: C sorry
+      have c: C \<proof>
     next
-      have d: D sorry
+      have d: D \<proof>
     qed
   }
 
@@ -190,19 +190,19 @@ begin
 
   {
     {
-      have a: A sorry
+      have a: A \<proof>
     }
     {
       have b: B
       proof -
         {
-          show B sorry
+          show B \<proof>
         }
         {
-          have c: C sorry
+          have c: C \<proof>
         }
         {
-          have d: D sorry
+          have d: D \<proof>
         }
       qed
     }
@@ -235,7 +235,7 @@ begin
   have "x = y"
   proof -
     term ?thesis
-    show ?thesis sorry
+    show ?thesis \<proof>
     term ?thesis  \<comment> \<open>static!\<close>
   qed
   term "\<dots>"
@@ -260,31 +260,31 @@ thm less_le_trans
 notepad
 begin
   txt \<open>Plain bottom-up calculation:\<close>
-  have "a = b" sorry
+  have "a = b" \<proof>
   also
-  have "b = c" sorry
+  have "b = c" \<proof>
   also
-  have "c = d" sorry
+  have "c = d" \<proof>
   finally
   have "a = d" .
 
   txt \<open>Variant using the \<open>\<dots>\<close> abbreviation:\<close>
-  have "a = b" sorry
+  have "a = b" \<proof>
   also
-  have "\<dots> = c" sorry
+  have "\<dots> = c" \<proof>
   also
-  have "\<dots> = d" sorry
+  have "\<dots> = d" \<proof>
   finally
   have "a = d" .
 
   txt \<open>Top-down version with explicit claim at the head:\<close>
   have "a = d"
   proof -
-    have "a = b" sorry
+    have "a = b" \<proof>
     also
-    have "\<dots> = c" sorry
+    have "\<dots> = c" \<proof>
     also
-    have "\<dots> = d" sorry
+    have "\<dots> = d" \<proof>
     finally
     show ?thesis .
   qed
@@ -292,11 +292,11 @@ next
   txt \<open>Mixed inequalities (require suitable base type):\<close>
   fix a b c d :: nat
 
-  have "a < b" sorry
+  have "a < b" \<proof>
   also
-  have "b \<le> c" sorry
+  have "b \<le> c" \<proof>
   also
-  have "c = d" sorry
+  have "c = d" \<proof>
   finally
   have "a < d" .
 end
@@ -321,31 +321,31 @@ text \<open>The Idea is to append \<open>this\<close> to \<open>calculation\<clo
 notepad
 begin
   txt \<open>A vacuous proof:\<close>
-  have A sorry
+  have A \<proof>
   moreover
-  have B sorry
+  have B \<proof>
   moreover
-  have C sorry
+  have C \<proof>
   ultimately
   have A and B and C .
 next
   txt \<open>Slightly more content (trivial bigstep reasoning):\<close>
-  have A sorry
+  have A \<proof>
   moreover
-  have B sorry
+  have B \<proof>
   moreover
-  have C sorry
+  have C \<proof>
   ultimately
   have "A \<and> B \<and> C" by blast
 next
   txt \<open>More ambitious bigstep reasoning involving structured results:\<close>
-  have "A \<or> B \<or> C" sorry
+  have "A \<or> B \<or> C" \<proof>
   moreover
-  { assume A have R sorry }
+  { assume A have R \<proof> }
   moreover
-  { assume B have R sorry }
+  { assume B have R \<proof> }
   moreover
-  { assume C have R sorry }
+  { assume C have R \<proof> }
   ultimately
   have R by blast  \<comment> \<open>``big-bang integration'' of proof blocks (occasionally fragile)\<close>
 end
@@ -367,11 +367,11 @@ begin
   fix n :: nat
   have "P n"
   proof (rule nat.induct)  \<comment> \<open>fragile rule application!\<close>
-    show "P 0" sorry
+    show "P 0" \<proof>
   next
     fix n :: nat
     assume "P n"
-    show "P (Suc n)" sorry
+    show "P (Suc n)" \<proof>
   qed
 end
 
@@ -394,10 +394,10 @@ begin
   have "P n"
   proof (induct n)
     case 0
-    show ?case sorry
+    show ?case \<proof>
   next
     case (Suc n)
-    from Suc.hyps show ?case sorry
+    from Suc.hyps show ?case \<proof>
   qed
 end
 
@@ -456,29 +456,29 @@ begin
   have "P n"
   proof (induct n)
     case 0
-    show "P 0" sorry
+    show "P 0" \<proof>
   next
     case (Suc n)
-    from \<open>P n\<close> show "P (Suc n)" sorry
+    from \<open>P n\<close> show "P (Suc n)" \<proof>
   qed
 
   have "A n \<Longrightarrow> P n"
   proof (induct n)
     case 0
-    from \<open>A 0\<close> show "P 0" sorry
+    from \<open>A 0\<close> show "P 0" \<proof>
   next
     case (Suc n)
     from \<open>A n \<Longrightarrow> P n\<close>
-      and \<open>A (Suc n)\<close> show "P (Suc n)" sorry
+      and \<open>A (Suc n)\<close> show "P (Suc n)" \<proof>
   qed
 
   have "\<And>x. Q x n"
   proof (induct n)
     case 0
-    show "Q x 0" sorry
+    show "Q x 0" \<proof>
   next
     case (Suc n)
-    from \<open>\<And>x. Q x n\<close> show "Q x (Suc n)" sorry
+    from \<open>\<And>x. Q x n\<close> show "Q x (Suc n)" \<proof>
     txt \<open>Local quantification admits arbitrary instances:\<close>
     note \<open>Q a n\<close> and \<open>Q b n\<close>
   qed
@@ -502,11 +502,11 @@ begin
   then have "Q x n"
   proof (induct n arbitrary: x)
     case 0
-    from \<open>A x 0\<close> show "Q x 0" sorry
+    from \<open>A x 0\<close> show "Q x 0" \<proof>
   next
     case (Suc n)
     from \<open>\<And>x. A x n \<Longrightarrow> Q x n\<close>  \<comment> \<open>arbitrary instances can be produced here\<close>
-      and \<open>A x (Suc n)\<close> show "Q x (Suc n)" sorry
+      and \<open>A x (Suc n)\<close> show "Q x (Suc n)" \<proof>
   qed
 end
 
@@ -532,13 +532,13 @@ begin
     case 0
     note prem = \<open>A (a x)\<close>
       and defn = \<open>0 = a x\<close>
-    show "P (a x)" sorry
+    show "P (a x)" \<proof>
   next
     case (Suc n)
     note hyp = \<open>\<And>x. n = a x \<Longrightarrow> A (a x) \<Longrightarrow> P (a x)\<close>
       and prem = \<open>A (a x)\<close>
       and defn = \<open>Suc n = a x\<close>
-    show "P (a x)" sorry
+    show "P (a x)" \<proof>
   qed
 end
 
@@ -628,7 +628,7 @@ notepad
 begin
   {
     fix x
-    have "B x" sorry
+    have "B x" \<proof>
   }
   have "\<And>x. B x" by fact
 
@@ -636,7 +636,7 @@ next
 
   {
     assume A
-    have B sorry
+    have B \<proof>
   }
   have "A \<Longrightarrow> B" by fact
 
@@ -644,15 +644,15 @@ next
 
   {
     def x \<equiv> t
-    have "B x" sorry
+    have "B x" \<proof>
   }
   have "B t" by fact
 
 next
 
   {
-    obtain x :: 'a where "B x" sorry
-    have C sorry
+    obtain x :: 'a where "B x" \<proof>
+    have C \<proof>
   }
   have C by fact
 
@@ -703,7 +703,7 @@ begin
   proof -
     fix x
     assume "A x"
-    show "B x" sorry
+    show "B x" \<proof>
   qed
 
   have "\<And>x. A x \<Longrightarrow> B x"
@@ -711,7 +711,7 @@ begin
     {
       fix x
       assume "A x"
-      show "B x" sorry
+      show "B x" \<proof>
     } \<comment> "implicit block structure made explicit"
     note \<open>\<And>x. A x \<Longrightarrow> B x\<close>
       \<comment> "side exit for the resulting rule"
@@ -730,36 +730,36 @@ notepad
 begin
   assume r1: "A \<Longrightarrow> B \<Longrightarrow> C"  \<comment> \<open>simple rule (Horn clause)\<close>
 
-  have A sorry  \<comment> "prefix of facts via outer sub-proof"
+  have A \<proof>  \<comment> "prefix of facts via outer sub-proof"
   then have C
   proof (rule r1)
-    show B sorry  \<comment> "remaining rule premises via inner sub-proof"
+    show B \<proof>  \<comment> "remaining rule premises via inner sub-proof"
   qed
 
   have C
   proof (rule r1)
-    show A sorry
-    show B sorry
+    show A \<proof>
+    show B \<proof>
   qed
 
-  have A and B sorry
+  have A and B \<proof>
   then have C
   proof (rule r1)
   qed
 
-  have A and B sorry
+  have A and B \<proof>
   then have C by (rule r1)
 
 next
 
   assume r2: "A \<Longrightarrow> (\<And>x. B1 x \<Longrightarrow> B2 x) \<Longrightarrow> C"  \<comment> \<open>nested rule\<close>
 
-  have A sorry
+  have A \<proof>
   then have C
   proof (rule r2)
     fix x
     assume "B1 x"
-    show "B2 x" sorry
+    show "B2 x" \<proof>
   qed
 
   txt \<open>The compound rule premise @{prop "\<And>x. B1 x \<Longrightarrow> B2 x"} is better
@@ -777,35 +777,35 @@ text \<open>
 
 notepad
 begin
-  have "A \<longrightarrow> B" and A sorry
+  have "A \<longrightarrow> B" and A \<proof>
   then have B ..
 
-  have A sorry
+  have A \<proof>
   then have "A \<or> B" ..
 
-  have B sorry
+  have B \<proof>
   then have "A \<or> B" ..
 
-  have "A \<or> B" sorry
+  have "A \<or> B" \<proof>
   then have C
   proof
     assume A
-    then show C sorry
+    then show C \<proof>
   next
     assume B
-    then show C sorry
+    then show C \<proof>
   qed
 
-  have A and B sorry
+  have A and B \<proof>
   then have "A \<and> B" ..
 
-  have "A \<and> B" sorry
+  have "A \<and> B" \<proof>
   then have A ..
 
-  have "A \<and> B" sorry
+  have "A \<and> B" \<proof>
   then have B ..
 
-  have False sorry
+  have False \<proof>
   then have A ..
 
   have True ..
@@ -813,36 +813,36 @@ begin
   have "\<not> A"
   proof
     assume A
-    then show False sorry
+    then show False \<proof>
   qed
 
-  have "\<not> A" and A sorry
+  have "\<not> A" and A \<proof>
   then have B ..
 
   have "\<forall>x. P x"
   proof
     fix x
-    show "P x" sorry
+    show "P x" \<proof>
   qed
 
-  have "\<forall>x. P x" sorry
+  have "\<forall>x. P x" \<proof>
   then have "P a" ..
 
   have "\<exists>x. P x"
   proof
-    show "P a" sorry
+    show "P a" \<proof>
   qed
 
-  have "\<exists>x. P x" sorry
+  have "\<exists>x. P x" \<proof>
   then have C
   proof
     fix a
     assume "P a"
-    show C sorry
+    show C \<proof>
   qed
 
   txt \<open>Less awkward version using @{command obtain}:\<close>
-  have "\<exists>x. P x" sorry
+  have "\<exists>x. P x" \<proof>
   then obtain a where "P a" ..
 end
 
@@ -853,32 +853,32 @@ notepad
 begin
   have "A \<and> B"
   proof  \<comment> \<open>two strictly isolated subproofs\<close>
-    show A sorry
+    show A \<proof>
   next
-    show B sorry
+    show B \<proof>
   qed
 
   have "A \<and> B"
   proof  \<comment> \<open>one simultaneous sub-proof\<close>
-    show A and B sorry
+    show A and B \<proof>
   qed
 
   have "A \<and> B"
   proof  \<comment> \<open>two subproofs in the same context\<close>
-    show A sorry
-    show B sorry
+    show A \<proof>
+    show B \<proof>
   qed
 
   have "A \<and> B"
   proof  \<comment> \<open>swapped order\<close>
-    show B sorry
-    show A sorry
+    show B \<proof>
+    show A \<proof>
   qed
 
   have "A \<and> B"
   proof  \<comment> \<open>sequential subproofs\<close>
-    show A sorry
-    show B using \<open>A\<close> sorry
+    show A \<proof>
+    show B using \<open>A\<close> \<proof>
   qed
 end
 
@@ -893,23 +893,23 @@ text \<open>There is nothing special about logical connectives (\<open>\<and>\<c
 
 notepad
 begin
-  have "x \<in> A" and "x \<in> B" sorry
+  have "x \<in> A" and "x \<in> B" \<proof>
   then have "x \<in> A \<inter> B" ..
 
-  have "x \<in> A" sorry
+  have "x \<in> A" \<proof>
   then have "x \<in> A \<union> B" ..
 
-  have "x \<in> B" sorry
+  have "x \<in> B" \<proof>
   then have "x \<in> A \<union> B" ..
 
-  have "x \<in> A \<union> B" sorry
+  have "x \<in> A \<union> B" \<proof>
   then have C
   proof
     assume "x \<in> A"
-    then show C sorry
+    then show C \<proof>
   next
     assume "x \<in> B"
-    then show C sorry
+    then show C \<proof>
   qed
 
 next
@@ -917,19 +917,19 @@ next
   proof
     fix a
     assume "a \<in> A"
-    show "x \<in> a" sorry
+    show "x \<in> a" \<proof>
   qed
 
-  have "x \<in> \<Inter>A" sorry
+  have "x \<in> \<Inter>A" \<proof>
   then have "x \<in> a"
   proof
-    show "a \<in> A" sorry
+    show "a \<in> A" \<proof>
   qed
 
-  have "a \<in> A" and "x \<in> a" sorry
+  have "a \<in> A" and "x \<in> a" \<proof>
   then have "x \<in> \<Union>A" ..
 
-  have "x \<in> \<Union>A" sorry
+  have "x \<in> \<Union>A" \<proof>
   then obtain a where "a \<in> A" and "x \<in> a" ..
 end
 
@@ -965,16 +965,16 @@ begin
       (\<And>x y. B2 x y \<Longrightarrow> C2 x y \<Longrightarrow> R) \<Longrightarrow>  (* case 2 *)
       R  (* main conclusion *)"
 
-  have A1 and A2 sorry
+  have A1 and A2 \<proof>
   then have R
   proof (rule r)
     fix x y
     assume "B1 x y" and "C1 x y"
-    show ?thesis sorry
+    show ?thesis \<proof>
   next
     fix x y
     assume "B2 x y" and "C2 x y"
-    show ?thesis sorry
+    show ?thesis \<proof>
   qed
 end
 
@@ -1007,7 +1007,7 @@ lemma
   obtains
     (case1)  x y where "B1 x y" and "C1 x y"
   | (case2)  x y where "B2 x y" and "C2 x y"
-  sorry
+  \<proof>
 
 
 subsubsection \<open>Example\<close>
@@ -1024,10 +1024,10 @@ begin
   have C
   proof (cases "x = y" rule: tertium_non_datur)
     case T
-    from \<open>x = y\<close> show ?thesis sorry
+    from \<open>x = y\<close> show ?thesis \<proof>
   next
     case F
-    from \<open>x \<noteq> y\<close> show ?thesis sorry
+    from \<open>x \<noteq> y\<close> show ?thesis \<proof>
   qed
 end
 
@@ -1047,10 +1047,10 @@ begin
   have C
   proof (cases x)
     case Foo
-    from \<open>x = Foo\<close> show ?thesis sorry
+    from \<open>x = Foo\<close> show ?thesis \<proof>
   next
     case (Bar a)
-    from \<open>x = Bar a\<close> show ?thesis sorry
+    from \<open>x = Bar a\<close> show ?thesis \<proof>
   qed
 end
 
@@ -1065,13 +1065,13 @@ notepad
 begin
   fix B :: "'a \<Rightarrow> bool"
 
-  obtain x where "B x" sorry
+  obtain x where "B x" \<proof>
   note \<open>B x\<close>
 
   txt \<open>Conclusions from this context may not mention @{term x} again!\<close>
   {
-    obtain x where "B x" sorry
-    from \<open>B x\<close> have C sorry
+    obtain x where "B x" \<proof>
+    from \<open>B x\<close> have C \<proof>
   }
   note \<open>C\<close>
 end
