@@ -313,10 +313,10 @@ text \<open>
 \<close>
 
 
-subsection \<open>Degenerate calculations and bigstep reasoning\<close>
+subsection \<open>Degenerate calculations\<close>
 
-text \<open>The Idea is to append \<open>this\<close> to \<open>calculation\<close>,
-  without rule composition.\<close>
+text \<open>The Idea is to append \<open>this\<close> to \<open>calculation\<close>, without rule composition.
+  This is occasionally useful to avoid naming intermediate facts.\<close>
 
 notepad
 begin
@@ -337,18 +337,10 @@ next
   have C \<proof>
   ultimately
   have "A \<and> B \<and> C" by blast
-next
-  txt \<open>More ambitious bigstep reasoning involving structured results:\<close>
-  have "A \<or> B \<or> C" \<proof>
-  moreover
-  { assume A have R \<proof> }
-  moreover
-  { assume B have R \<proof> }
-  moreover
-  { assume C have R \<proof> }
-  ultimately
-  have R by blast  \<comment> \<open>``big-bang integration'' of proof blocks (occasionally fragile)\<close>
 end
+
+text \<open>Note that For multi-branch case splitting, it is better to use @{command
+  consider}.\<close>
 
 
 section \<open>Induction\<close>
@@ -1054,6 +1046,36 @@ begin
   qed
 end
 
+
+subsection \<open>Elimination statements and case-splitting\<close>
+
+text \<open>
+  The @{command consider} states rules for generalized elimination and case
+  splitting. This is like a toplevel statement \<^theory_text>\<open>theorem obtains\<close> used within
+  a proof body; or like a multi-branch \<^theory_text>\<open>obtain\<close> without activation of the
+  local context elements yet.
+
+  The proof method @{method cases} is able to use such rules with
+  forward-chaining (e.g.\ via \<^theory_text>\<open>then\<close>). This leads to the subsequent pattern
+  for case-splitting in a particular situation within a proof.
+\<close>
+
+notepad
+begin
+  consider (a) A | (b) B | (c) C
+    \<proof>  \<comment> \<open>typically \<^theory_text>\<open>by auto\<close>, \<^theory_text>\<open>by blast\<close> etc.\<close>
+  then have something
+  proof cases
+    case a
+    then show ?thesis \<proof>
+  next
+    case b
+    then show ?thesis \<proof>
+  next
+    case c
+    then show ?thesis \<proof>
+  qed
+end
 
 subsection \<open>Obtaining local contexts\<close>
 
