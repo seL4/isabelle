@@ -728,41 +728,41 @@ text \<open>
 
 notepad
 begin
-  assume r1: "A \<Longrightarrow> B \<Longrightarrow> C"  \<comment> \<open>simple rule (Horn clause)\<close>
+  assume r\<^sub>1: "A \<Longrightarrow> B \<Longrightarrow> C"  \<comment> \<open>simple rule (Horn clause)\<close>
 
   have A \<proof>  \<comment> "prefix of facts via outer sub-proof"
   then have C
-  proof (rule r1)
+  proof (rule r\<^sub>1)
     show B \<proof>  \<comment> "remaining rule premises via inner sub-proof"
   qed
 
   have C
-  proof (rule r1)
+  proof (rule r\<^sub>1)
     show A \<proof>
     show B \<proof>
   qed
 
   have A and B \<proof>
   then have C
-  proof (rule r1)
+  proof (rule r\<^sub>1)
   qed
 
   have A and B \<proof>
-  then have C by (rule r1)
+  then have C by (rule r\<^sub>1)
 
 next
 
-  assume r2: "A \<Longrightarrow> (\<And>x. B1 x \<Longrightarrow> B2 x) \<Longrightarrow> C"  \<comment> \<open>nested rule\<close>
+  assume r\<^sub>2: "A \<Longrightarrow> (\<And>x. B\<^sub>1 x \<Longrightarrow> B\<^sub>2 x) \<Longrightarrow> C"  \<comment> \<open>nested rule\<close>
 
   have A \<proof>
   then have C
-  proof (rule r2)
+  proof (rule r\<^sub>2)
     fix x
-    assume "B1 x"
-    show "B2 x" \<proof>
+    assume "B\<^sub>1 x"
+    show "B\<^sub>2 x" \<proof>
   qed
 
-  txt \<open>The compound rule premise @{prop "\<And>x. B1 x \<Longrightarrow> B2 x"} is better
+  txt \<open>The compound rule premise @{prop "\<And>x. B\<^sub>1 x \<Longrightarrow> B\<^sub>2 x"} is better
     addressed via @{command fix}~/ @{command assume}~/ @{command show}
     in the nested proof body.\<close>
 end
@@ -960,20 +960,20 @@ text \<open>
 notepad
 begin
   assume r:
-    "A1 \<Longrightarrow> A2 \<Longrightarrow>  (* assumptions *)
-      (\<And>x y. B1 x y \<Longrightarrow> C1 x y \<Longrightarrow> R) \<Longrightarrow>  (* case 1 *)
-      (\<And>x y. B2 x y \<Longrightarrow> C2 x y \<Longrightarrow> R) \<Longrightarrow>  (* case 2 *)
+    "A\<^sub>1 \<Longrightarrow> A\<^sub>2 \<Longrightarrow>  (* assumptions *)
+      (\<And>x y. B\<^sub>1 x y \<Longrightarrow> C\<^sub>1 x y \<Longrightarrow> R) \<Longrightarrow>  (* case 1 *)
+      (\<And>x y. B\<^sub>2 x y \<Longrightarrow> C\<^sub>2 x y \<Longrightarrow> R) \<Longrightarrow>  (* case 2 *)
       R  (* main conclusion *)"
 
-  have A1 and A2 \<proof>
+  have A\<^sub>1 and A\<^sub>2 \<proof>
   then have R
   proof (rule r)
     fix x y
-    assume "B1 x y" and "C1 x y"
+    assume "B\<^sub>1 x y" and "C\<^sub>1 x y"
     show ?thesis \<proof>
   next
     fix x y
-    assume "B2 x y" and "C2 x y"
+    assume "B\<^sub>2 x y" and "C\<^sub>2 x y"
     show ?thesis \<proof>
   qed
 end
@@ -1003,10 +1003,10 @@ print_statement conjE
 print_statement disjE
 
 lemma
-  assumes A1 and A2  \<comment> \<open>assumptions\<close>
+  assumes A\<^sub>1 and A\<^sub>2  \<comment> \<open>assumptions\<close>
   obtains
-    (case1)  x y where "B1 x y" and "C1 x y"
-  | (case2)  x y where "B2 x y" and "C2 x y"
+    (case\<^sub>1)  x y where "B\<^sub>1 x y" and "C\<^sub>1 x y"
+  | (case\<^sub>2)  x y where "B\<^sub>2 x y" and "C\<^sub>2 x y"
   \<proof>
 
 
