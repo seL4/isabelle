@@ -13,10 +13,13 @@ text \<open>
 
   Nonetheless, it is possible to emulate proof scripts by sequential
   refinements of a proof state in backwards mode, notably with the @{command
-  apply} command (see \secref{sec:tactic-commands}). There are also various
-  proof methods that allow to refer to implicit goal state information that is
-  normally not accessible to structured Isar proofs (see
-  \secref{sec:tactics}).
+  apply} command (see \secref{sec:tactic-commands}).
+
+  There are also various proof methods that allow to refer to implicit goal
+  state information that is not accessible to structured Isar proofs (see
+  \secref{sec:tactics}). Note that the @{command subgoal}
+  (\secref{sec:subgoal}) command usually eliminates the need for implicit goal
+  state references.
 \<close>
 
 
@@ -82,7 +85,7 @@ text \<open>
 \<close>
 
 
-section \<open>Explicit subgoal structure\<close>
+section \<open>Explicit subgoal structure \label{sec:subgoal}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
