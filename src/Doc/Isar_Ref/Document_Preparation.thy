@@ -409,6 +409,49 @@ text \<open>
 \<close>
 
 
+section \<open>Markdown-like text structure\<close>
+
+text \<open>
+  The markup commands @{command_ref text}, @{command_ref txt}, @{command_ref
+  text_raw} (\secref{sec:markup}) consist of plain text. Its internal
+  structure consists of paragraphs and (nested) lists, using special Isabelle
+  symbols and some rules for indentation and blank lines. This quasi-visual
+  format resembles \<^emph>\<open>Markdown\<close>\<^footnote>\<open>@{url "http://commonmark.org"}\<close>, but the
+  full complexity of that notation is avoided.
+
+  This is a summary of the main principles of minimal Markdown in Isabelle:
+
+    \<^item> List items start with the following markers
+      \<^descr>[itemize:] \<^verbatim>\<open>\<^item>\<close>
+      \<^descr>[enumerate:] \<^verbatim>\<open>\<^enum>\<close>
+      \<^descr>[description:] \<^verbatim>\<open>\<^descr>\<close>
+
+    \<^item> Adjacent list items with same indentation and same marker are grouped
+    into a single list.
+
+    \<^item> Singleton blank lines separate paragraphs.
+
+    \<^item> Multiple blank lines escape from the current list hierarchy.
+
+  Notable differences to official Markdown:
+
+    \<^item> Indentation of list items needs to match exactly.
+
+    \<^item> Indentation is unlimited (official Markdown interprets four spaces as
+    block quote).
+
+    \<^item> List items always consist of paragraphs --- there is no notion of
+    ``tight'' list.
+
+    \<^item> Section headings are expressed via Isar document markup commands
+    (\secref{sec:markup}).
+
+    \<^item> URLs, font styles, other special content is expressed via antiquotations
+    (\secref{sec:antiq}), usually with proper nesting of sub-languages via
+    text cartouches.
+\<close>
+
+
 section \<open>Markup via command tags \label{sec:tags}\<close>
 
 text \<open>
