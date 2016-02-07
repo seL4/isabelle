@@ -57,13 +57,9 @@ text \<open>
       @{command "proof"}~\<open>m\<^sub>1\<close>~@{command "qed"}~\<open>m\<^sub>2\<close> \\
     @{command ".."} & \<open>\<equiv>\<close> & @{command "by"}~\<open>standard\<close> \\
     @{command "."} & \<open>\<equiv>\<close> & @{command "by"}~\<open>this\<close> \\
-    @{command "hence"} & \<open>\<equiv>\<close> & @{command "then"}~@{command "have"} \\
-    @{command "thus"} & \<open>\<equiv>\<close> & @{command "then"}~@{command "show"} \\
     @{command "from"}~\<open>a\<close> & \<open>\<equiv>\<close> & @{command "note"}~\<open>a\<close>~@{command "then"} \\
     @{command "with"}~\<open>a\<close> & \<open>\<equiv>\<close> & @{command "from"}~\<open>a \<AND> this\<close> \\
     @{command "from"}~\<open>this\<close> & \<open>\<equiv>\<close> & @{command "then"} \\
-    @{command "from"}~\<open>this\<close>~@{command "have"} & \<open>\<equiv>\<close> & @{command "hence"} \\
-    @{command "from"}~\<open>this\<close>~@{command "show"} & \<open>\<equiv>\<close> & @{command "thus"} \\
   \end{tabular}
 \<close>
 

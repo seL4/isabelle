@@ -441,14 +441,10 @@ text \<open>
   warning beforehand. Watch out for the following message:
   @{verbatim [display] \<open>Local statement fails to refine any pending goal\<close>}
 
-  \<^descr> @{command "hence"} abbreviates ``@{command "then"}~@{command "have"}'',
-  i.e.\ claims a local goal to be proven by forward chaining the current
-  facts. Note that @{command "hence"} is also equivalent to ``@{command
-  "from"}~\<open>this\<close>~@{command "have"}''.
-
-  \<^descr> @{command "thus"} abbreviates ``@{command "then"}~@{command "show"}''.
-  Note that @{command "thus"} is also equivalent to ``@{command
-  "from"}~\<open>this\<close>~@{command "show"}''.
+  \<^descr> @{command "hence"} expands to ``@{command "then"}~@{command "have"}'' and
+  @{command "thus"} expands to ``@{command "then"}~@{command "show"}''. These
+  conflations are left-over from early history of Isar. The expanded syntax is
+  more orthogonal and improves readability and maintainability of proofs.
 
   \<^descr> @{command "print_statement"}~\<open>a\<close> prints facts from the current theory or
   proof context in long statement form, according to the syntax for @{command
@@ -682,11 +678,11 @@ text \<open>
   forward chaining are passed if so indicated by \<open>proof(chain)\<close> mode.
 
   \<^descr> @{command "qed"}~\<open>m\<^sub>2\<close> refines any remaining goals by proof method \<open>m\<^sub>2\<close>
-  and concludes the sub-proof by assumption. If the goal had been \<open>show\<close> (or
-  \<open>thus\<close>), some pending sub-goal is solved as well by the rule resulting from
-  the result \<^emph>\<open>exported\<close> into the enclosing goal context. Thus \<open>qed\<close> may fail
-  for two reasons: either \<open>m\<^sub>2\<close> fails, or the resulting rule does not fit to
-  any pending goal\<^footnote>\<open>This includes any additional ``strong'' assumptions as
+  and concludes the sub-proof by assumption. If the goal had been \<open>show\<close>, some
+  pending sub-goal is solved as well by the rule resulting from the result
+  \<^emph>\<open>exported\<close> into the enclosing goal context. Thus \<open>qed\<close> may fail for two
+  reasons: either \<open>m\<^sub>2\<close> fails, or the resulting rule does not fit to any
+  pending goal\<^footnote>\<open>This includes any additional ``strong'' assumptions as
   introduced by @{command "assume"}.\<close> of the enclosing context. Debugging such
   a situation might involve temporarily changing @{command "show"} into
   @{command "have"}, or weakening the local context by replacing occurrences
