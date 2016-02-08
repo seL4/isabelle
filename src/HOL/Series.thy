@@ -271,12 +271,59 @@ proof (intro exI order_tendstoI)
       by (auto intro: le_less_trans simp: eventually_sequentially) }
 qed
 
+subsection \<open>Infinite summability on topological monoids\<close>
+
+lemma Zero_notin_Suc: "0 \<notin> Suc ` A"
+  by auto
+
+context
+  fixes f g :: "nat \<Rightarrow> 'a :: {t2_space, topological_comm_monoid_add}"
+begin
+
+lemma sums_Suc:
+  assumes "(\<lambda>n. f (Suc n)) sums l" shows "f sums (l + f 0)"
+proof  -
+  have "(\<lambda>n. (\<Sum>i<n. f (Suc i)) + f 0) \<longlonglongrightarrow> l + f 0"
+    using assms by (auto intro!: tendsto_add simp: sums_def)
+  moreover have "(\<Sum>i<n. f (Suc i)) + f 0 = (\<Sum>i<Suc n. f i)" for n
+    unfolding lessThan_Suc_eq_insert_0 by (simp add: Zero_notin_Suc ac_simps setsum.reindex)
+  ultimately show ?thesis
+    by (auto simp add: sums_def simp del: setsum_lessThan_Suc intro: LIMSEQ_Suc_iff[THEN iffD1])
+qed
+
+lemma sums_add: "f sums a \<Longrightarrow> g sums b \<Longrightarrow> (\<lambda>n. f n + g n) sums (a + b)"
+  unfolding sums_def by (simp add: setsum.distrib tendsto_add)
+
+lemma summable_add: "summable f \<Longrightarrow> summable g \<Longrightarrow> summable (\<lambda>n. f n + g n)"
+  unfolding summable_def by (auto intro: sums_add)
+
+lemma suminf_add: "summable f \<Longrightarrow> summable g \<Longrightarrow> suminf f + suminf g = (\<Sum>n. f n + g n)"
+  by (intro sums_unique sums_add summable_sums)
+
+end
+
+context
+  fixes f :: "'i \<Rightarrow> nat \<Rightarrow> 'a::{t2_space, topological_comm_monoid_add}" and I :: "'i set"
+begin
+
+lemma sums_setsum: "(\<And>i. i \<in> I \<Longrightarrow> (f i) sums (x i)) \<Longrightarrow> (\<lambda>n. \<Sum>i\<in>I. f i n) sums (\<Sum>i\<in>I. x i)"
+  by (induct I rule: infinite_finite_induct) (auto intro!: sums_add)
+
+lemma suminf_setsum: "(\<And>i. i \<in> I \<Longrightarrow> summable (f i)) \<Longrightarrow> (\<Sum>n. \<Sum>i\<in>I. f i n) = (\<Sum>i\<in>I. \<Sum>n. f i n)"
+  using sums_unique[OF sums_setsum, OF summable_sums] by simp
+
+lemma summable_setsum: "(\<And>i. i \<in> I \<Longrightarrow> summable (f i)) \<Longrightarrow> summable (\<lambda>n. \<Sum>i\<in>I. f i n)"
+  using sums_summable[OF sums_setsum[OF summable_sums]] .
+
+end
 
 subsection \<open>Infinite summability on real normed vector spaces\<close>
 
-lemma sums_Suc_iff:
+context
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
-  shows "(\<lambda>n. f (Suc n)) sums s \<longleftrightarrow> f sums (s + f 0)"
+begin
+
+lemma sums_Suc_iff: "(\<lambda>n. f (Suc n)) sums s \<longleftrightarrow> f sums (s + f 0)"
 proof -
   have "f sums (s + f 0) \<longleftrightarrow> (\<lambda>i. \<Sum>j<Suc i. f j) \<longlonglongrightarrow> s + f 0"
     by (subst LIMSEQ_Suc_iff) (simp add: sums_def)
@@ -292,7 +339,7 @@ proof -
   finally show ?thesis ..
 qed
 
-lemma summable_Suc_iff: "summable (\<lambda>n. f (Suc n) :: 'a :: real_normed_vector) = summable f"
+lemma summable_Suc_iff: "summable (\<lambda>n. f (Suc n)) = summable f"
 proof
   assume "summable f"
   hence "f sums suminf f" by (rule summable_sums)
@@ -300,18 +347,11 @@ proof
   thus "summable (\<lambda>n. f (Suc n))" unfolding summable_def by blast
 qed (auto simp: sums_Suc_iff summable_def)
 
+end
+
 context
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
 begin
-
-lemma sums_add: "f sums a \<Longrightarrow> g sums b \<Longrightarrow> (\<lambda>n. f n + g n) sums (a + b)"
-  unfolding sums_def by (simp add: setsum.distrib tendsto_add)
-
-lemma summable_add: "summable f \<Longrightarrow> summable g \<Longrightarrow> summable (\<lambda>n. f n + g n)"
-  unfolding summable_def by (auto intro: sums_add)
-
-lemma suminf_add: "summable f \<Longrightarrow> summable g \<Longrightarrow> suminf f + suminf g = (\<Sum>n. f n + g n)"
-  by (intro sums_unique sums_add summable_sums)
 
 lemma sums_diff: "f sums a \<Longrightarrow> g sums b \<Longrightarrow> (\<lambda>n. f n - g n) sums (a - b)"
   unfolding sums_def by (simp add: setsum_subtractf tendsto_diff)
@@ -330,9 +370,6 @@ lemma summable_minus: "summable f \<Longrightarrow> summable (\<lambda>n. - f n)
 
 lemma suminf_minus: "summable f \<Longrightarrow> (\<Sum>n. - f n) = - (\<Sum>n. f n)"
   by (intro sums_unique [symmetric] sums_minus summable_sums)
-
-lemma sums_Suc: "(\<lambda> n. f (Suc n)) sums l \<Longrightarrow> f sums (l + f 0)"
-  by (simp add: sums_Suc_iff)
 
 lemma sums_iff_shift: "(\<lambda>i. f (i + n)) sums s \<longleftrightarrow> f sums (s + (\<Sum>i<n. f i))"
 proof (induct n arbitrary: s)
@@ -381,12 +418,10 @@ lemma summable_LIMSEQ_zero: "summable f \<Longrightarrow> f \<longlonglongrighta
   apply (drule_tac x="n" in spec, simp)
   done
 
-lemma summable_imp_convergent:
-  "summable (f :: nat \<Rightarrow> 'a) \<Longrightarrow> convergent f"
+lemma summable_imp_convergent: "summable f \<Longrightarrow> convergent f"
   by (force dest!: summable_LIMSEQ_zero simp: convergent_def)
 
-lemma summable_imp_Bseq:
-  "summable f \<Longrightarrow> Bseq (f :: nat \<Rightarrow> 'a :: real_normed_vector)"
+lemma summable_imp_Bseq: "summable f \<Longrightarrow> Bseq f"
   by (simp add: convergent_imp_Bseq summable_imp_convergent)
 
 end
@@ -395,22 +430,6 @@ lemma summable_minus_iff:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "summable (\<lambda>n. - f n) \<longleftrightarrow> summable f"
   by (auto dest: summable_minus) \<comment>\<open>used two ways, hence must be outside the context above\<close>
-
-
-context
-  fixes f :: "'i \<Rightarrow> nat \<Rightarrow> 'a::real_normed_vector" and I :: "'i set"
-begin
-
-lemma sums_setsum: "(\<And>i. i \<in> I \<Longrightarrow> (f i) sums (x i)) \<Longrightarrow> (\<lambda>n. \<Sum>i\<in>I. f i n) sums (\<Sum>i\<in>I. x i)"
-  by (induct I rule: infinite_finite_induct) (auto intro!: sums_add)
-
-lemma suminf_setsum: "(\<And>i. i \<in> I \<Longrightarrow> summable (f i)) \<Longrightarrow> (\<Sum>n. \<Sum>i\<in>I. f i n) = (\<Sum>i\<in>I. \<Sum>n. f i n)"
-  using sums_unique[OF sums_setsum, OF summable_sums] by simp
-
-lemma summable_setsum: "(\<And>i. i \<in> I \<Longrightarrow> summable (f i)) \<Longrightarrow> summable (\<lambda>n. \<Sum>i\<in>I. f i n)"
-  using sums_summable[OF sums_setsum[OF summable_sums]] .
-
-end
 
 lemma (in bounded_linear) sums: "(\<lambda>n. X n) sums a \<Longrightarrow> (\<lambda>n. f (X n)) sums (f a)"
   unfolding sums_def by (drule tendsto, simp only: setsum)
@@ -923,7 +942,7 @@ lemma
    fixes f :: "nat \<Rightarrow> real"
    assumes "summable f"
    and "inj g"
-   and pos: "!!x. 0 \<le> f x"
+   and pos: "\<And>x. 0 \<le> f x"
    shows summable_reindex: "summable (f o g)"
    and suminf_reindex_mono: "suminf (f o g) \<le> suminf f"
    and suminf_reindex: "(\<And>x. x \<notin> range g \<Longrightarrow> f x = 0) \<Longrightarrow> suminf (f \<circ> g) = suminf f"

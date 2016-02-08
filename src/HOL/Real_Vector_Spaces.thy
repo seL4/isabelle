@@ -2143,4 +2143,3 @@ proof (rule tendstoI)
 qed
 
 end
-

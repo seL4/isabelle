@@ -573,27 +573,63 @@ lemma tendsto_rabs_zero_iff:
   "((\<lambda>x. \<bar>f x\<bar>) \<longlongrightarrow> (0::real)) F \<longleftrightarrow> (f \<longlongrightarrow> 0) F"
   by (fold real_norm_def, rule tendsto_norm_zero_iff)
 
-subsubsection \<open>Addition and subtraction\<close>
+subsection \<open>Topological Monoid\<close>
+
+class topological_monoid_add = topological_space + monoid_add +
+  assumes tendsto_add_Pair: "LIM x (nhds a \<times>\<^sub>F nhds b). fst x + snd x :> nhds (a + b)"
+
+class topological_comm_monoid_add = topological_monoid_add + comm_monoid_add
 
 lemma tendsto_add [tendsto_intros]:
-  fixes a b :: "'a::real_normed_vector"
-  shows "\<lbrakk>(f \<longlongrightarrow> a) F; (g \<longlongrightarrow> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) \<longlongrightarrow> a + b) F"
-  by (simp only: tendsto_Zfun_iff add_diff_add Zfun_add)
+  fixes a b :: "'a::topological_monoid_add"
+  shows "(f \<longlongrightarrow> a) F \<Longrightarrow> (g \<longlongrightarrow> b) F \<Longrightarrow> ((\<lambda>x. f x + g x) \<longlongrightarrow> a + b) F"
+  using filterlim_compose[OF tendsto_add_Pair, of "\<lambda>x. (f x, g x)" a b F]
+  by (simp add: nhds_prod[symmetric] tendsto_Pair)
 
 lemma continuous_add [continuous_intros]:
-  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "_ \<Rightarrow> 'b::topological_monoid_add"
   shows "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. f x + g x)"
   unfolding continuous_def by (rule tendsto_add)
 
 lemma continuous_on_add [continuous_intros]:
-  fixes f g :: "_ \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "_ \<Rightarrow> 'b::topological_monoid_add"
   shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f x + g x)"
   unfolding continuous_on_def by (auto intro: tendsto_add)
 
 lemma tendsto_add_zero:
-  fixes f g :: "_ \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "_ \<Rightarrow> 'b::topological_monoid_add"
   shows "\<lbrakk>(f \<longlongrightarrow> 0) F; (g \<longlongrightarrow> 0) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) \<longlongrightarrow> 0) F"
   by (drule (1) tendsto_add, simp)
+
+lemma tendsto_setsum [tendsto_intros]:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::topological_comm_monoid_add"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i \<longlongrightarrow> a i) F"
+  shows "((\<lambda>x. \<Sum>i\<in>S. f i x) \<longlongrightarrow> (\<Sum>i\<in>S. a i)) F"
+proof (cases "finite S")
+  assume "finite S" thus ?thesis using assms
+    by (induct, simp, simp add: tendsto_add)
+qed simp
+
+lemma continuous_setsum [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::topological_comm_monoid_add"
+  shows "(\<And>i. i \<in> S \<Longrightarrow> continuous F (f i)) \<Longrightarrow> continuous F (\<lambda>x. \<Sum>i\<in>S. f i x)"
+  unfolding continuous_def by (rule tendsto_setsum)
+
+lemma continuous_on_setsum [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> 'b::topological_space \<Rightarrow> 'c::topological_comm_monoid_add"
+  shows "(\<And>i. i \<in> S \<Longrightarrow> continuous_on s (f i)) \<Longrightarrow> continuous_on s (\<lambda>x. \<Sum>i\<in>S. f i x)"
+  unfolding continuous_on_def by (auto intro: tendsto_setsum)
+
+subsubsection \<open>Addition and subtraction\<close>
+
+instance real_normed_vector < topological_comm_monoid_add
+proof
+  fix a b :: 'a show "((\<lambda>x. fst x + snd x) \<longlongrightarrow> a + b) (nhds a \<times>\<^sub>F nhds b)"
+    unfolding tendsto_Zfun_iff add_diff_add
+    using tendsto_fst[OF filterlim_ident, of "(a,b)"] tendsto_snd[OF filterlim_ident, of "(a,b)"]
+    by (intro Zfun_add)
+       (auto simp add: tendsto_Zfun_iff[symmetric] nhds_prod[symmetric] intro!: tendsto_fst)
+qed
 
 lemma tendsto_minus [tendsto_intros]:
   fixes a :: "'a::real_normed_vector"
@@ -637,25 +673,6 @@ lemma continuous_on_diff [continuous_intros]:
 
 lemma continuous_on_op_minus: "continuous_on (s::'a::real_normed_vector set) (op - x)"
   by (rule continuous_intros | simp)+
-
-lemma tendsto_setsum [tendsto_intros]:
-  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::real_normed_vector"
-  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i \<longlongrightarrow> a i) F"
-  shows "((\<lambda>x. \<Sum>i\<in>S. f i x) \<longlongrightarrow> (\<Sum>i\<in>S. a i)) F"
-proof (cases "finite S")
-  assume "finite S" thus ?thesis using assms
-    by (induct, simp, simp add: tendsto_add)
-qed simp
-
-lemma continuous_setsum [continuous_intros]:
-  fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::real_normed_vector"
-  shows "(\<And>i. i \<in> S \<Longrightarrow> continuous F (f i)) \<Longrightarrow> continuous F (\<lambda>x. \<Sum>i\<in>S. f i x)"
-  unfolding continuous_def by (rule tendsto_setsum)
-
-lemma continuous_on_setsum [continuous_intros]:
-  fixes f :: "'a \<Rightarrow> _ \<Rightarrow> 'c::real_normed_vector"
-  shows "(\<And>i. i \<in> S \<Longrightarrow> continuous_on s (f i)) \<Longrightarrow> continuous_on s (\<lambda>x. \<Sum>i\<in>S. f i x)"
-  unfolding continuous_on_def by (auto intro: tendsto_setsum)
 
 lemmas real_tendsto_sandwich = tendsto_sandwich[where 'b=real]
 
@@ -1468,7 +1485,7 @@ qed simp
 
 subsection \<open>Limits of Sequences\<close>
 
-lemma [trans]: "X=Y ==> Y \<longlonglongrightarrow> z ==> X \<longlonglongrightarrow> z"
+lemma [trans]: "X = Y \<Longrightarrow> Y \<longlonglongrightarrow> z \<Longrightarrow> X \<longlonglongrightarrow> z"
   by simp
 
 lemma LIMSEQ_iff:
@@ -2042,7 +2059,7 @@ lemma isCont_rabs [simp]:
   by (fact continuous_rabs)
 
 lemma isCont_add [simp]:
-  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::topological_monoid_add"
   shows "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x + g x) a"
   by (fact continuous_add)
 
@@ -2081,7 +2098,7 @@ lemma isCont_power [simp]:
   by (fact continuous_power)
 
 lemma isCont_setsum [simp]:
-  fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::real_normed_vector"
+  fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::topological_comm_monoid_add"
   shows "\<forall>i\<in>A. isCont (f i) a \<Longrightarrow> isCont (\<lambda>x. \<Sum>i\<in>A. f i x) a"
   by (auto intro: continuous_setsum)
 
@@ -2401,4 +2418,3 @@ lemma LIM_fun_not_zero:
   using LIM_fun_gt_zero[of f l c] LIM_fun_less_zero[of f l c] by (auto simp add: neq_iff)
 
 end
-
