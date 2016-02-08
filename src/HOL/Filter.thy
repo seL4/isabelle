@@ -479,6 +479,29 @@ lemma eventually_INF_base:
     eventually P (INF b:B. F b) \<longleftrightarrow> (\<exists>b\<in>B. eventually P (F b))"
   by (subst eventually_Inf_base) auto
 
+lemma eventually_INF_mono:
+  assumes *: "\<forall>\<^sub>F x in \<Sqinter>i\<in>I. F i. P x"
+  assumes T1: "\<And>Q R P. (\<And>x. Q x \<and> R x \<longrightarrow> P x) \<Longrightarrow> (\<And>x. T Q x \<Longrightarrow> T R x \<Longrightarrow> T P x)"
+  assumes T2: "\<And>P. (\<And>x. P x) \<Longrightarrow> (\<And>x. T P x)"
+  assumes **: "\<And>i P. i \<in> I \<Longrightarrow> \<forall>\<^sub>F x in F i. P x \<Longrightarrow> \<forall>\<^sub>F x in F' i. T P x"
+  shows "\<forall>\<^sub>F x in \<Sqinter>i\<in>I. F' i. T P x"
+proof -
+  from * obtain X where "finite X" "X \<subseteq> I" "\<forall>\<^sub>F x in \<Sqinter>i\<in>X. F i. P x"
+    unfolding eventually_INF[of _ I] by auto
+  moreover then have "eventually (T P) (INFIMUM X F')"
+    apply (induction X arbitrary: P)
+    apply (auto simp: eventually_inf T2)
+    subgoal for x S P Q R
+      apply (intro exI[of _ "T Q"])
+      apply (auto intro!: **) []
+      apply (intro exI[of _ "T R"])
+      apply (auto intro: T1) []
+      done
+    done
+  ultimately show "\<forall>\<^sub>F x in \<Sqinter>i\<in>I. F' i. T P x"
+    by (subst eventually_INF) auto
+qed
+
 
 subsubsection \<open>Map function for filters\<close>
 
@@ -529,7 +552,6 @@ proof -
     unfolding le_filter_def eventually_filtermap
     by (subst (1 2) eventually_INF) auto
 qed
-
 
 subsubsection \<open>Standard filters\<close>
 
@@ -768,8 +790,115 @@ proof (subst eventually_INF_base, goal_cases)
     by auto
 qed (auto simp: eventually_principal intro: eventually_True)
 
+lemma eventually_prod1:
+  assumes "B \<noteq> bot"
+  shows "(\<forall>\<^sub>F (x, y) in A \<times>\<^sub>F B. P x) \<longleftrightarrow> (\<forall>\<^sub>F x in A. P x)"
+  unfolding eventually_prod_filter
+proof safe
+  fix R Q assume "\<forall>\<^sub>F x in A. R x" "\<forall>\<^sub>F x in B. Q x" "\<forall>x y. R x \<longrightarrow> Q y \<longrightarrow> P x"
+  moreover with \<open>B \<noteq> bot\<close> obtain y where "Q y" by (auto dest: eventually_happens)
+  ultimately show "eventually P A"
+    by (force elim: eventually_mono)
+next
+  assume "eventually P A"
+  then show "\<exists>Pf Pg. eventually Pf A \<and> eventually Pg B \<and> (\<forall>x y. Pf x \<longrightarrow> Pg y \<longrightarrow> P x)"
+    by (intro exI[of _ P] exI[of _ "\<lambda>x. True"]) auto
+qed
+
+lemma eventually_prod2:
+  assumes "A \<noteq> bot"
+  shows "(\<forall>\<^sub>F (x, y) in A \<times>\<^sub>F B. P y) \<longleftrightarrow> (\<forall>\<^sub>F y in B. P y)"
+  unfolding eventually_prod_filter
+proof safe
+  fix R Q assume "\<forall>\<^sub>F x in A. R x" "\<forall>\<^sub>F x in B. Q x" "\<forall>x y. R x \<longrightarrow> Q y \<longrightarrow> P y"
+  moreover with \<open>A \<noteq> bot\<close> obtain x where "R x" by (auto dest: eventually_happens)
+  ultimately show "eventually P B"
+    by (force elim: eventually_mono)
+next
+  assume "eventually P B"
+  then show "\<exists>Pf Pg. eventually Pf A \<and> eventually Pg B \<and> (\<forall>x y. Pf x \<longrightarrow> Pg y \<longrightarrow> P y)"
+    by (intro exI[of _ P] exI[of _ "\<lambda>x. True"]) auto
+qed
+
+lemma INF_filter_bot_base:
+  fixes F :: "'a \<Rightarrow> 'b filter"
+  assumes *: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. F k \<le> F i \<sqinter> F j"
+  shows "(INF i:I. F i) = bot \<longleftrightarrow> (\<exists>i\<in>I. F i = bot)"
+proof cases
+  assume "\<exists>i\<in>I. F i = bot"
+  moreover then have "(INF i:I. F i) \<le> bot"
+    by (auto intro: INF_lower2)
+  ultimately show ?thesis
+    by (auto simp: bot_unique)
+next
+  assume **: "\<not> (\<exists>i\<in>I. F i = bot)"
+  moreover have "(INF i:I. F i) \<noteq> bot"
+  proof cases
+    assume "I \<noteq> {}"
+    show ?thesis
+    proof (rule INF_filter_not_bot)
+      fix J assume "finite J" "J \<subseteq> I"
+      then have "\<exists>k\<in>I. F k \<le> (\<Sqinter>i\<in>J. F i)"
+      proof (induction J)
+        case empty then show ?case
+          using \<open>I \<noteq> {}\<close> by auto
+      next
+        case (insert i J)
+        moreover then obtain k where "k \<in> I" "F k \<le> (\<Sqinter>i\<in>J. F i)" by auto
+        moreover note *[of i k]
+        ultimately show ?case
+          by auto
+      qed
+      with ** show "(\<Sqinter>i\<in>J. F i) \<noteq> \<bottom>"
+        by (auto simp: bot_unique)
+    qed
+  qed (auto simp add: filter_eq_iff)
+  ultimately show ?thesis
+    by auto
+qed
+
+lemma Collect_empty_eq_bot: "Collect P = {} \<longleftrightarrow> P = \<bottom>"
+  by auto
+
+lemma prod_filter_eq_bot: "A \<times>\<^sub>F B = bot \<longleftrightarrow> A = bot \<or> B = bot"
+  unfolding prod_filter_def
+proof (subst INF_filter_bot_base; clarsimp simp: principal_eq_bot_iff Collect_empty_eq_bot bot_fun_def simp del: Collect_empty_eq)
+  fix A1 A2 B1 B2 assume "\<forall>\<^sub>F x in A. A1 x" "\<forall>\<^sub>F x in A. A2 x" "\<forall>\<^sub>F x in B. B1 x" "\<forall>\<^sub>F x in B. B2 x"
+  then show "\<exists>x. eventually x A \<and> (\<exists>y. eventually y B \<and> Collect x \<times> Collect y \<subseteq> Collect A1 \<times> Collect B1 \<and> Collect x \<times> Collect y \<subseteq> Collect A2 \<times> Collect B2)"
+    by (intro exI[of _ "\<lambda>x. A1 x \<and> A2 x"] exI[of _ "\<lambda>x. B1 x \<and> B2 x"] conjI)
+       (auto simp: eventually_conj_iff)
+next
+  show "(\<exists>x. eventually x A \<and> (\<exists>y. eventually y B \<and> (x = (\<lambda>x. False) \<or> y = (\<lambda>x. False)))) = (A = \<bottom> \<or> B = \<bottom>)"
+    by (auto simp: trivial_limit_def intro: eventually_True)
+qed
+
 lemma prod_filter_mono: "F \<le> F' \<Longrightarrow> G \<le> G' \<Longrightarrow> F \<times>\<^sub>F G \<le> F' \<times>\<^sub>F G'"
   by (auto simp: le_filter_def eventually_prod_filter)
+
+lemma prod_filter_mono_iff:
+  assumes nAB: "A \<noteq> bot" "B \<noteq> bot"
+  shows "A \<times>\<^sub>F B \<le> C \<times>\<^sub>F D \<longleftrightarrow> A \<le> C \<and> B \<le> D"
+proof safe
+  assume *: "A \<times>\<^sub>F B \<le> C \<times>\<^sub>F D"
+  moreover with assms have "A \<times>\<^sub>F B \<noteq> bot"
+    by (auto simp: bot_unique prod_filter_eq_bot)
+  ultimately have "C \<times>\<^sub>F D \<noteq> bot"
+    by (auto simp: bot_unique)
+  then have nCD: "C \<noteq> bot" "D \<noteq> bot"
+    by (auto simp: prod_filter_eq_bot)
+
+  show "A \<le> C"
+  proof (rule filter_leI)
+    fix P assume "eventually P C" with *[THEN filter_leD, of "\<lambda>(x, y). P x"] show "eventually P A"
+      using nAB nCD by (simp add: eventually_prod1 eventually_prod2)
+  qed
+
+  show "B \<le> D"
+  proof (rule filter_leI)
+    fix P assume "eventually P D" with *[THEN filter_leD, of "\<lambda>(x, y). P y"] show "eventually P B"
+      using nAB nCD by (simp add: eventually_prod1 eventually_prod2)
+  qed
+qed (intro prod_filter_mono)
 
 lemma eventually_prod_same: "eventually P (F \<times>\<^sub>F F) \<longleftrightarrow>
     (\<exists>Q. eventually Q F \<and> (\<forall>x y. Q x \<longrightarrow> Q y \<longrightarrow> P (x, y)))"
@@ -791,6 +920,52 @@ lemma principal_prod_principal: "principal A \<times>\<^sub>F principal B = prin
   apply auto
   done
 
+lemma prod_filter_INF:
+  assumes "I \<noteq> {}" "J \<noteq> {}"
+  shows "(INF i:I. A i) \<times>\<^sub>F (INF j:J. B j) = (INF i:I. INF j:J. A i \<times>\<^sub>F B j)"
+proof (safe intro!: antisym INF_greatest)
+  from \<open>I \<noteq> {}\<close> obtain i where "i \<in> I" by auto
+  from \<open>J \<noteq> {}\<close> obtain j where "j \<in> J" by auto
+
+  show "(\<Sqinter>i\<in>I. \<Sqinter>j\<in>J. A i \<times>\<^sub>F B j) \<le> (\<Sqinter>i\<in>I. A i) \<times>\<^sub>F (\<Sqinter>j\<in>J. B j)"
+    unfolding prod_filter_def
+  proof (safe intro!: INF_greatest)
+    fix P Q assume P: "\<forall>\<^sub>F x in \<Sqinter>i\<in>I. A i. P x" and Q: "\<forall>\<^sub>F x in \<Sqinter>j\<in>J. B j. Q x"
+    let ?X = "(\<Sqinter>i\<in>I. \<Sqinter>j\<in>J. \<Sqinter>(P, Q)\<in>{(P, Q). (\<forall>\<^sub>F x in A i. P x) \<and> (\<forall>\<^sub>F x in B j. Q x)}. principal {(x, y). P x \<and> Q y})"
+    have "?X \<le> principal {x. P (fst x)} \<sqinter> principal {x. Q (snd x)}"
+    proof (intro inf_greatest)
+      have "?X \<le> (\<Sqinter>i\<in>I. \<Sqinter>P\<in>{P. eventually P (A i)}. principal {x. P (fst x)})"
+        by (auto intro!: INF_greatest INF_lower2[of j] INF_lower2 \<open>j\<in>J\<close> INF_lower2[of "(_, \<lambda>x. True)"])
+      also have "\<dots> \<le> principal {x. P (fst x)}"
+        unfolding le_principal
+      proof (rule eventually_INF_mono[OF P])
+        fix i P assume "i \<in> I" "eventually P (A i)"
+        then show "\<forall>\<^sub>F x in \<Sqinter>P\<in>{P. eventually P (A i)}. principal {x. P (fst x)}. x \<in> {x. P (fst x)}"
+          unfolding le_principal[symmetric] by (auto intro!: INF_lower)
+      qed auto
+      finally show "?X \<le> principal {x. P (fst x)}" .
+
+      have "?X \<le> (\<Sqinter>i\<in>J. \<Sqinter>P\<in>{P. eventually P (B i)}. principal {x. P (snd x)})"
+        by (auto intro!: INF_greatest INF_lower2[of i] INF_lower2 \<open>i\<in>I\<close> INF_lower2[of "(\<lambda>x. True, _)"])
+      also have "\<dots> \<le> principal {x. Q (snd x)}"
+        unfolding le_principal
+      proof (rule eventually_INF_mono[OF Q])
+        fix j Q assume "j \<in> J" "eventually Q (B j)"
+        then show "\<forall>\<^sub>F x in \<Sqinter>P\<in>{P. eventually P (B j)}. principal {x. P (snd x)}. x \<in> {x. Q (snd x)}"
+          unfolding le_principal[symmetric] by (auto intro!: INF_lower)
+      qed auto
+      finally show "?X \<le> principal {x. Q (snd x)}" .
+    qed
+    also have "\<dots> = principal {(x, y). P x \<and> Q y}"
+      by auto
+    finally show "?X \<le> principal {(x, y). P x \<and> Q y}" .
+  qed
+qed (intro prod_filter_mono INF_lower)
+
+lemma filtermap_Pair: "filtermap (\<lambda>x. (f x, g x)) F \<le> filtermap f F \<times>\<^sub>F filtermap g F"
+  by (simp add: le_filter_def eventually_filtermap eventually_prod_filter)
+     (auto elim: eventually_elim2)
+
 subsection \<open>Limits\<close>
 
 definition filterlim :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightarrow> 'a filter \<Rightarrow> bool" where
@@ -800,7 +975,7 @@ syntax
   "_LIM" :: "pttrns \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> bool" ("(3LIM (_)/ (_)./ (_) :> (_))" [1000, 10, 0, 10] 10)
 
 translations
-  "LIM x F1. f :> F2"   == "CONST filterlim (%x. f) F2 F1"
+  "LIM x F1. f :> F2" == "CONST filterlim (\<lambda>x. f) F2 F1"
 
 lemma filterlim_iff:
   "(LIM x F1. f x :> F2) \<longleftrightarrow> (\<forall>P. eventually P F2 \<longrightarrow> eventually (\<lambda>x. P (f x)) F1)"
@@ -906,6 +1081,11 @@ lemma filterlim_If:
     LIM x inf F (principal {x. \<not> P x}). g x :> G \<Longrightarrow>
     LIM x F. if P x then f x else g x :> G"
   unfolding filterlim_iff eventually_inf_principal by (auto simp: eventually_conj_iff)
+
+lemma filterlim_Pair:
+  "LIM x F. f x :> G \<Longrightarrow> LIM x F. g x :> H \<Longrightarrow> LIM x F. (f x, g x) :> G \<times>\<^sub>F H"
+  unfolding filterlim_def
+  by (rule order_trans[OF filtermap_Pair prod_filter_mono])
 
 subsection \<open>Limits to @{const at_top} and @{const at_bot}\<close>
 
