@@ -312,6 +312,11 @@ proof -  show thesis
   qed
 qed
 
+lemma transfer_countable[transfer_rule]:
+  "bi_unique R \<Longrightarrow> rel_fun (rel_set R) op = countable countable"
+  by (rule rel_funI, erule (1) bi_unique_rel_set_lemma)
+     (auto dest: countable_image_inj_on)
+
 subsection \<open>Uncountable\<close>
 
 abbreviation uncountable where
@@ -323,10 +328,10 @@ lemma uncountable_def: "uncountable A \<longleftrightarrow> A \<noteq> {} \<and>
 
 lemma uncountable_bij_betw: "bij_betw f A B \<Longrightarrow> uncountable B \<Longrightarrow> uncountable A"
   unfolding bij_betw_def by (metis countable_image)
-  
+
 lemma uncountable_infinite: "uncountable A \<Longrightarrow> infinite A"
   by (metis countable_finite)
-  
+
 lemma uncountable_minus_countable:
   "uncountable A \<Longrightarrow> countable B \<Longrightarrow> uncountable (A - B)"
   using countable_Un[of B "A - B"] assms by auto
