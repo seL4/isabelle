@@ -134,7 +134,7 @@ Some other frequently useful functions on sets are the following:
 \begin{tabular}{l@ {\quad}l}
 @{const_typ set}\index{set@@{const set}} & converts a list to the set of its elements\\
 @{const_typ finite}\index{finite@@{const finite}} & is true iff its argument is finite\\
-@{const_typ card}\index{card@@{const card}} & is the cardinality of a finite set\\
+\noquotes{@{term[source] "card :: 'a set \<Rightarrow> nat"}}\index{card@@{const card}} & is the cardinality of a finite set\\
  & and is @{text 0} for all infinite sets\\
 @{thm image_def}\index{$IMP042@@{term"f ` A"}} & is the image of a function over a set
 \end{tabular}
