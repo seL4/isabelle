@@ -11,6 +11,7 @@ theory Extended_Real_Limits
 imports
   Topology_Euclidean_Space
   "~~/src/HOL/Library/Extended_Real"
+  "~~/src/HOL/Library/Extended_Nonnegative_Real"
   "~~/src/HOL/Library/Indicator_Function"
 begin
 
@@ -85,6 +86,38 @@ proof (standard, intro exI conjI)
   qed
 qed
 
+text \<open>This is a copy from \<open>ereal :: second_countable_topology\<close>. Maybe find a common super class of
+topological spaces where the rational numbers are densely embedded ?\<close>
+instance ennreal :: second_countable_topology
+proof (standard, intro exI conjI)
+  let ?B = "(\<Union>r\<in>\<rat>. {{..< r}, {r <..}} :: ennreal set set)"
+  show "countable ?B"
+    by (auto intro: countable_rat)
+  show "open = generate_topology ?B"
+  proof (intro ext iffI)
+    fix S :: "ennreal set"
+    assume "open S"
+    then show "generate_topology ?B S"
+      unfolding open_generated_order
+    proof induct
+      case (Basis b)
+      then obtain e where "b = {..<e} \<or> b = {e<..}"
+        by auto
+      moreover have "{..<e} = \<Union>{{..<x}|x. x \<in> \<rat> \<and> x < e}" "{e<..} = \<Union>{{x<..}|x. x \<in> \<rat> \<and> e < x}"
+        by (auto dest: ennreal_rat_dense
+                 simp del: ex_simps
+                 simp add: ex_simps[symmetric] conj_commute Rats_def image_iff)
+      ultimately show ?case
+        by (auto intro: generate_topology.intros)
+    qed (auto intro: generate_topology.intros)
+  next
+    fix S
+    assume "generate_topology ?B S"
+    then show "open S"
+      by induct auto
+  qed
+qed
+
 lemma ereal_open_closed_aux:
   fixes S :: "ereal set"
   assumes "open S"
@@ -94,7 +127,7 @@ lemma ereal_open_closed_aux:
 proof (rule ccontr)
   assume "\<not> ?thesis"
   then have *: "Inf S \<in> S"
-    
+
     by (metis assms(2) closed_contains_Inf_cl)
   {
     assume "Inf S = -\<infinity>"

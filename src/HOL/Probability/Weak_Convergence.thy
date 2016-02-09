@@ -27,11 +27,11 @@ where
 
 section \<open>Skorohod's theorem\<close>
 
-locale right_continuous_mono = 
+locale right_continuous_mono =
   fixes f :: "real \<Rightarrow> real" and a b :: real
   assumes cont: "\<And>x. continuous (at_right x) f"
   assumes mono: "mono f"
-  assumes bot: "(f \<longlongrightarrow> a) at_bot" 
+  assumes bot: "(f \<longlongrightarrow> a) at_bot"
   assumes top: "(f \<longlongrightarrow> b) at_top"
 begin
 
@@ -47,7 +47,7 @@ proof
     by (auto intro!: bdd_belowI[of _ y] elim: mono_invE[OF _ less_le_trans])
 
   have ne: "?F \<noteq> {}"
-    using order_tendstoD(1)[OF top \<open>\<omega> < b\<close>] 
+    using order_tendstoD(1)[OF top \<open>\<omega> < b\<close>]
     by (auto dest!: eventually_happens'[OF trivial_limit_at_top_linorder] intro: less_imp_le)
 
   show "\<omega> \<le> f x \<Longrightarrow> I \<omega> \<le> x"
@@ -115,14 +115,14 @@ end
 context
   fixes \<mu> :: "nat \<Rightarrow> real measure"
     and M :: "real measure"
-  assumes \<mu>: "\<And>n. real_distribution (\<mu> n)" 
+  assumes \<mu>: "\<And>n. real_distribution (\<mu> n)"
   assumes M: "real_distribution M"
   assumes \<mu>_to_M: "weak_conv_m \<mu> M"
-begin  
+begin
 
 (* state using obtains? *)
 theorem Skorohod:
- "\<exists> (\<Omega> :: real measure) (Y_seq :: nat \<Rightarrow> real \<Rightarrow> real) (Y :: real \<Rightarrow> real). 
+ "\<exists> (\<Omega> :: real measure) (Y_seq :: nat \<Rightarrow> real \<Rightarrow> real) (Y :: real \<Rightarrow> real).
     prob_space \<Omega> \<and>
     (\<forall>n. Y_seq n \<in> measurable \<Omega> borel) \<and>
     (\<forall>n. distr \<Omega> borel (Y_seq n) = \<mu> n) \<and>
@@ -147,7 +147,7 @@ proof -
   have Y_distr: "distr ?\<Omega> borel M.I = M"
     by (rule M.distr_I_eq_M)
 
-  have Y_cts_cnv: "(\<lambda>n. \<mu>.I n \<omega>) \<longlonglongrightarrow> M.I \<omega>" 
+  have Y_cts_cnv: "(\<lambda>n. \<mu>.I n \<omega>) \<longlonglongrightarrow> M.I \<omega>"
     if \<omega>: "\<omega> \<in> {0<..<1}" "isCont M.I \<omega>" for \<omega> :: real
   proof (intro limsup_le_liminf_real)
     show "liminf (\<lambda>n. \<mu>.I n \<omega>) \<ge> M.I \<omega>"
@@ -196,7 +196,7 @@ proof -
         using \<open>y < B\<close>
         by (intro Limsup_bounded[rotated]) (auto intro: le_less_trans elim: eventually_mono)
     qed simp
-    
+
     have **: "(M.I \<longlongrightarrow> ereal (M.I \<omega>)) (at_right \<omega>)"
       using \<omega>(2) by (auto intro: tendsto_within_subset simp: continuous_at)
     show "limsup (\<lambda>n. \<mu>.I n \<omega>) \<le> M.I \<omega>"
@@ -247,13 +247,13 @@ text \<open>
 \<close>
 
 theorem weak_conv_imp_bdd_ae_continuous_conv:
-  fixes 
+  fixes
     f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
-  assumes 
+  assumes
     discont_null: "M ({x. \<not> isCont f x}) = 0" and
     f_bdd: "\<And>x. norm (f x) \<le> B" and
     [measurable]: "f \<in> borel_measurable borel"
-  shows 
+  shows
     "(\<lambda> n. integral\<^sup>L (\<mu> n) f) \<longlonglongrightarrow> integral\<^sup>L M f"
 proof -
   have "0 \<le> B"
@@ -278,10 +278,10 @@ qed
 
 theorem weak_conv_imp_integral_bdd_continuous_conv:
   fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
-  assumes 
+  assumes
     "\<And>x. isCont f x" and
     "\<And>x. norm (f x) \<le> B"
-  shows 
+  shows
     "(\<lambda> n. integral\<^sup>L (\<mu> n) f) \<longlonglongrightarrow> integral\<^sup>L M f"
   using assms
   by (intro weak_conv_imp_bdd_ae_continuous_conv)
@@ -294,7 +294,7 @@ theorem weak_conv_imp_continuity_set_conv:
 proof -
   interpret M: real_distribution M by fact
   interpret \<mu>: real_distribution "\<mu> n" for n by fact
-  
+
   have "(\<lambda>n. (\<integral>x. indicator A x \<partial>\<mu> n) :: real) \<longlonglongrightarrow> (\<integral>x. indicator A x \<partial>M)"
     by (intro weak_conv_imp_bdd_ae_continuous_conv[where B=1])
        (auto intro: assms simp: isCont_indicator)
@@ -347,9 +347,9 @@ qed
 context
   fixes M_seq :: "nat \<Rightarrow> real measure"
     and M :: "real measure"
-  assumes distr_M_seq [simp]: "\<And>n. real_distribution (M_seq n)" 
+  assumes distr_M_seq [simp]: "\<And>n. real_distribution (M_seq n)"
   assumes distr_M [simp]: "real_distribution M"
-begin  
+begin
 
 theorem continuity_set_conv_imp_weak_conv:
   fixes f :: "real \<Rightarrow> real"
@@ -364,9 +364,9 @@ qed
 theorem integral_cts_step_conv_imp_weak_conv:
   assumes integral_conv: "\<And>x y. x < y \<Longrightarrow> (\<lambda>n. integral\<^sup>L (M_seq n) (cts_step x y)) \<longlonglongrightarrow> integral\<^sup>L M (cts_step x y)"
   shows "weak_conv_m M_seq M"
-  unfolding weak_conv_m_def weak_conv_def 
+  unfolding weak_conv_m_def weak_conv_def
 proof (clarsimp)
-  interpret real_distribution M by (rule distr_M) 
+  interpret real_distribution M by (rule distr_M)
   fix x assume "isCont (cdf M) x"
   hence left_cont: "continuous (at_left x) (cdf M)"
     unfolding continuous_at_split ..
@@ -400,13 +400,13 @@ proof (clarsimp)
       by (subst eventually_at_left[of "x - 1"]) (auto simp: ** intro: exI [of _ "x-1"])
   qed (insert left_cont, auto simp: continuous_within)
   ultimately show "(\<lambda>n. cdf (M_seq n) x) \<longlonglongrightarrow> cdf M x"
-    by (elim limsup_le_liminf_real) 
+    by (elim limsup_le_liminf_real)
 qed
 
 theorem integral_bdd_continuous_conv_imp_weak_conv:
-  assumes 
+  assumes
     "\<And>f. (\<And>x. isCont f x) \<Longrightarrow> (\<And>x. abs (f x) \<le> 1) \<Longrightarrow> (\<lambda>n. integral\<^sup>L (M_seq n) f::real) \<longlonglongrightarrow> integral\<^sup>L M f"
-  shows 
+  shows
     "weak_conv_m M_seq M"
   apply (rule integral_cts_step_conv_imp_weak_conv [OF assms])
   apply (rule continuous_on_interior)

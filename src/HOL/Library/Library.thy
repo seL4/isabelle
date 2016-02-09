@@ -20,6 +20,7 @@ imports
   Dlist
   Extended
   Extended_Nat
+  Extended_Nonnegative_Real
   Extended_Real
   FinFun
   Float
