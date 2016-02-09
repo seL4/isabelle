@@ -2702,6 +2702,37 @@ proof -
     by (simp add: x' y' cong: filterlim_cong)
 qed
 
+lemma tendsto_add_ereal_nonneg:
+  fixes x y :: "ereal"
+  assumes "x \<noteq> -\<infinity>" "y \<noteq> -\<infinity>" "(f \<longlongrightarrow> x) F" "(g \<longlongrightarrow> y) F"
+  shows "((\<lambda>x. f x + g x) \<longlongrightarrow> x + y) F"
+proof cases
+  assume "x = \<infinity> \<or> y = \<infinity>"
+  moreover
+  { fix y :: ereal and f g :: "'a \<Rightarrow> ereal" assume "y \<noteq> -\<infinity>" "(f \<longlongrightarrow> \<infinity>) F" "(g \<longlongrightarrow> y) F"
+    then obtain y' where "-\<infinity> < y'" "y' < y"
+      using dense[of "-\<infinity>" y] by auto
+    have "((\<lambda>x. f x + g x) \<longlongrightarrow> \<infinity>) F"
+    proof (rule tendsto_sandwich)
+      have "\<forall>\<^sub>F x in F. y' < g x"
+        using order_tendstoD(1)[OF \<open>(g \<longlongrightarrow> y) F\<close> \<open>y' < y\<close>] by auto
+      then show "\<forall>\<^sub>F x in F. f x + y' \<le> f x + g x"
+        by eventually_elim (auto intro!: add_mono)
+      show "\<forall>\<^sub>F n in F. f n + g n \<le> \<infinity>" "((\<lambda>n. \<infinity>) \<longlongrightarrow> \<infinity>) F"
+        by auto
+      show "((\<lambda>x. f x + y') \<longlongrightarrow> \<infinity>) F"
+        using tendsto_cadd_ereal[of y' \<infinity> f F] \<open>(f \<longlongrightarrow> \<infinity>) F\<close> \<open>-\<infinity> < y'\<close> by auto
+    qed }
+  note this[of y f g] this[of x g f]
+  ultimately show ?thesis
+    using assms by (auto simp: add_ac)
+next
+  assume "\<not> (x = \<infinity> \<or> y = \<infinity>)"
+  with assms tendsto_add_ereal[of x y f F g]
+  show ?thesis
+    by auto
+qed
+
 lemma ereal_inj_affinity:
   fixes m t :: ereal
   assumes "\<bar>m\<bar> \<noteq> \<infinity>"
