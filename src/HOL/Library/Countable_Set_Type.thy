@@ -472,7 +472,8 @@ lemma cUn_parametric [transfer_rule]:
 
 lemma cUnion_parametric [transfer_rule]:
   "(rel_cset (rel_cset A) ===> rel_cset A) cUnion cUnion"
-  unfolding rel_fun_def by transfer(simp, fast dest: rel_setD1 rel_setD2 intro!: rel_setI)
+  unfolding rel_fun_def
+  by transfer (auto simp: rel_set_def, metis+)
 
 lemma cimage_parametric [transfer_rule]:
   "((A ===> B) ===> rel_cset A ===> rel_cset B) cimage cimage"

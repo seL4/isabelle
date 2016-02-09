@@ -19,7 +19,7 @@ proof -
   have "{A \<times> B :: ('a \<times> 'b) set | A B. open A \<and> open B} = ((\<lambda>(a, b). a \<times> b) ` ({A. open A} \<times> {A. open A}))"
     by auto
   then show ?thesis
-    by (auto intro: topological_basis_prod topological_basis_trivial topological_basis_imp_subbasis)  
+    by (auto intro: topological_basis_prod topological_basis_trivial topological_basis_imp_subbasis)
 qed
 
 definition "mono_on f A \<equiv> \<forall>r s. r \<in> A \<and> s \<in> A \<and> r \<le> s \<longrightarrow> f r \<le> f s"
@@ -76,7 +76,7 @@ proof (rule inj_onI)
   fix x y assume "x \<in> A" "y \<in> A" "f x = f y"
   thus "x = y"
     by (cases x y rule: linorder_cases)
-       (auto dest: strict_mono_onD[OF assms, of x y] strict_mono_onD[OF assms, of y x]) 
+       (auto dest: strict_mono_onD[OF assms, of x y] strict_mono_onD[OF assms, of y x])
 qed
 
 lemma strict_mono_on_leD:
@@ -121,7 +121,7 @@ proof (rule tendsto_le_const)
   qed
 qed simp
 
-lemma strict_mono_on_imp_mono_on: 
+lemma strict_mono_on_imp_mono_on:
   "strict_mono_on (f :: (_ :: linorder) \<Rightarrow> _ :: preorder) A \<Longrightarrow> mono_on f A"
   by (rule mono_onI, rule strict_mono_on_leD)
 
@@ -153,7 +153,7 @@ proof -
           apply (auto simp add: dist_real_def not_less)
           apply (subgoal_tac "f x \<le> f xa")
           by (auto intro: mono)
-      qed 
+      qed
       thus ?thesis by auto
     next
       fix u assume "u > f a"
@@ -167,11 +167,11 @@ proof -
           apply (auto simp add: dist_real_def)
           apply (subgoal_tac "f x \<ge> f xa")
           by (auto intro: mono)
-      qed 
+      qed
       thus ?thesis by auto
     qed
   qed
-  hence "\<exists>g :: real \<Rightarrow> nat \<times> rat . \<forall>a \<in> {a\<in>A. \<not> continuous (at a within A) f}. 
+  hence "\<exists>g :: real \<Rightarrow> nat \<times> rat . \<forall>a \<in> {a\<in>A. \<not> continuous (at a within A) f}.
       (fst (g a) = 0 \<and> of_rat (snd (g a)) < f a \<and> (\<forall>x \<in> A. x < a \<longrightarrow> f x < of_rat (snd (g a)))) |
       (fst (g a) = 1 \<and> of_rat (snd (g a)) > f a \<and> (\<forall>x \<in> A. x > a \<longrightarrow> f x > of_rat (snd (g a))))"
     by (rule bchoice)
@@ -186,11 +186,11 @@ proof -
     assume 1: "w \<in> A" and 2: "\<not> continuous (at w within A) f" and
            3: "z \<in> A" and 4: "\<not> continuous (at z within A) f" and
            5: "g w = g z"
-    from g [OF 1 2 3] g [OF 3 4 1] 5 
+    from g [OF 1 2 3] g [OF 3 4 1] 5
     show "w = z" by auto
   qed
-  thus ?thesis 
-    by (rule countableI') 
+  thus ?thesis
+    by (rule countableI')
 qed
 
 lemma mono_on_ctble_discont_open:
@@ -226,7 +226,7 @@ lemma closure_contains_Sup:
   assumes "S \<noteq> {}" "bdd_above S"
   shows "Sup S \<in> closure S"
 proof-
-  have "Inf (uminus ` S) \<in> closure (uminus ` S)" 
+  have "Inf (uminus ` S) \<in> closure (uminus ` S)"
       using assms by (intro closure_contains_Inf) auto
   also have "Inf (uminus ` S) = -Sup S" by (simp add: Inf_real_def)
   also have "closure (uminus ` S) = uminus ` closure S"
@@ -247,7 +247,7 @@ lemma deriv_nonneg_imp_mono:
 proof (cases "a < b")
   assume "a < b"
   from deriv have "\<forall>x. x \<ge> a \<and> x \<le> b \<longrightarrow> (g has_real_derivative g' x) (at x)" by simp
-  from MVT2[OF \<open>a < b\<close> this] and deriv 
+  from MVT2[OF \<open>a < b\<close> this] and deriv
     obtain \<xi> where \<xi>_ab: "\<xi> > a" "\<xi> < b" and g_ab: "g b - g a = (b - a) * g' \<xi>" by blast
   from \<xi>_ab ab nonneg have "(b - a) * g' \<xi> \<ge> 0" by simp
   with g_ab show ?thesis by simp
@@ -259,22 +259,22 @@ lemma continuous_interval_vimage_Int:
   obtains c' d' where "{a..b} \<inter> g -` {c..d} = {c'..d'}" "c' \<le> d'" "g c' = c" "g d' = d"
 proof-
     let ?A = "{a..b} \<inter> g -` {c..d}"
-    from IVT'[of g a c b, OF _ _ \<open>a \<le> b\<close> assms(1)] assms(4,5) 
+    from IVT'[of g a c b, OF _ _ \<open>a \<le> b\<close> assms(1)] assms(4,5)
          obtain c'' where c'': "c'' \<in> ?A" "g c'' = c" by auto
-    from IVT'[of g a d b, OF _ _ \<open>a \<le> b\<close> assms(1)] assms(4,5) 
+    from IVT'[of g a d b, OF _ _ \<open>a \<le> b\<close> assms(1)] assms(4,5)
          obtain d'' where d'': "d'' \<in> ?A" "g d'' = d" by auto
     hence [simp]: "?A \<noteq> {}" by blast
 
     def c' \<equiv> "Inf ?A" and d' \<equiv> "Sup ?A"
     have "?A \<subseteq> {c'..d'}" unfolding c'_def d'_def
         by (intro subsetI) (auto intro: cInf_lower cSup_upper)
-    moreover from assms have "closed ?A" 
+    moreover from assms have "closed ?A"
         using continuous_on_closed_vimage[of "{a..b}" g] by (subst Int_commute) simp
     hence c'd'_in_set: "c' \<in> ?A" "d' \<in> ?A" unfolding c'_def d'_def
         by ((intro closed_contains_Inf closed_contains_Sup, simp_all)[])+
-    hence "{c'..d'} \<subseteq> ?A" using assms 
+    hence "{c'..d'} \<subseteq> ?A" using assms
         by (intro subsetI)
-           (auto intro!: order_trans[of c "g c'" "g x" for x] order_trans[of "g x" "g d'" d for x] 
+           (auto intro!: order_trans[of c "g c'" "g x" for x] order_trans[of "g x" "g d'" d for x]
                  intro!: mono)
     moreover have "c' \<le> d'" using c'd'_in_set(2) unfolding c'_def by (intro cInf_lower) auto
     moreover have "g c' \<le> c" "g d' \<ge> d"
@@ -290,7 +290,7 @@ qed
 
 subsection \<open>Generic Borel spaces\<close>
 
-definition borel :: "'a::topological_space measure" where
+definition (in topological_space) borel :: "'a measure" where
   "borel = sigma UNIV {S. open S}"
 
 abbreviation "borel_measurable M \<equiv> measurable M borel"
@@ -798,7 +798,7 @@ lemma
   unfolding eq_iff not_less[symmetric]
   by measurable
 
-lemma 
+lemma
   fixes i :: "'a::{second_countable_topology, real_inner}"
   shows hafspace_less_borel: "{x. a < x \<bullet> i} \<in> sets borel"
     and hafspace_greater_borel: "{x. x \<bullet> i < a} \<in> sets borel"
@@ -881,7 +881,7 @@ qed (auto simp: box_def)
 
 lemma halfspace_gt_in_halfspace:
   assumes i: "i \<in> A"
-  shows "{x::'a. a < x \<bullet> i} \<in> 
+  shows "{x::'a. a < x \<bullet> i} \<in>
     sigma_sets UNIV ((\<lambda> (a, i). {x::'a::euclidean_space. x \<bullet> i < a}) ` (UNIV \<times> A))"
   (is "?set \<in> ?SIGMA")
 proof -
@@ -1063,7 +1063,7 @@ proof (rule borel_eq_sigmaI5[OF borel_eq_atMost])
   have "{..i} = (\<Union>j::nat. {-j <.. i})"
     by (auto simp: minus_less_iff reals_Archimedean2)
   also have "\<dots> \<in> sets (sigma UNIV (range (\<lambda>(i, j). {i<..j})))"
-    by (intro sets.countable_nat_UN) auto 
+    by (intro sets.countable_nat_UN) auto
   finally show "{..i} \<in> sets (sigma UNIV (range (\<lambda>(i, j). {i<..j})))" .
 qed simp
 
@@ -1100,7 +1100,7 @@ qed simp_all
 lemma borel_measurable_halfspacesI:
   fixes f :: "'a \<Rightarrow> 'c::euclidean_space"
   assumes F: "borel = sigma UNIV (F ` (UNIV \<times> Basis))"
-  and S_eq: "\<And>a i. S a i = f -` F (a,i) \<inter> space M" 
+  and S_eq: "\<And>a i. S a i = f -` F (a,i) \<inter> space M"
   shows "f \<in> borel_measurable M = (\<forall>i\<in>Basis. \<forall>a::real. S a i \<in> sets M)"
 proof safe
   fix a :: real and i :: 'b assume i: "i \<in> Basis" and f: "f \<in> borel_measurable M"
@@ -1159,16 +1159,16 @@ proof safe
 qed auto
 
 lemma borel_set_induct[consumes 1, case_names empty interval compl union]:
-  assumes "A \<in> sets borel" 
+  assumes "A \<in> sets borel"
   assumes empty: "P {}" and int: "\<And>a b. a \<le> b \<Longrightarrow> P {a..b}" and compl: "\<And>A. A \<in> sets borel \<Longrightarrow> P A \<Longrightarrow> P (-A)" and
           un: "\<And>f. disjoint_family f \<Longrightarrow> (\<And>i. f i \<in> sets borel) \<Longrightarrow>  (\<And>i. P (f i)) \<Longrightarrow> P (\<Union>i::nat. f i)"
   shows "P (A::real set)"
 proof-
   let ?G = "range (\<lambda>(a,b). {a..b::real})"
-  have "Int_stable ?G" "?G \<subseteq> Pow UNIV" "A \<in> sigma_sets UNIV ?G" 
+  have "Int_stable ?G" "?G \<subseteq> Pow UNIV" "A \<in> sigma_sets UNIV ?G"
       using assms(1) by (auto simp add: borel_eq_atLeastAtMost Int_stable_def)
   thus ?thesis
-  proof (induction rule: sigma_sets_induct_disjoint) 
+  proof (induction rule: sigma_sets_induct_disjoint)
     case (union f)
       from union.hyps(2) have "\<And>i. f i \<in> sets borel" by (auto simp: borel_eq_atLeastAtMost)
       with union show ?case by (auto intro: un)
@@ -1240,7 +1240,7 @@ lemma borel_measurable_dist[measurable (raw)]:
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. dist (f x) (g x)) \<in> borel_measurable M"
   using f g by (rule borel_measurable_continuous_Pair) (intro continuous_intros)
-  
+
 lemma borel_measurable_scaleR[measurable (raw)]:
   fixes g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
   assumes f: "f \<in> borel_measurable M"
@@ -1323,7 +1323,7 @@ lemma borel_measurable_nth[measurable (raw)]:
 
 lemma convex_measurable:
   fixes A :: "'a :: euclidean_space set"
-  shows "X \<in> borel_measurable M \<Longrightarrow> X ` space M \<subseteq> A \<Longrightarrow> open A \<Longrightarrow> convex_on A q \<Longrightarrow> 
+  shows "X \<in> borel_measurable M \<Longrightarrow> X ` space M \<subseteq> A \<Longrightarrow> open A \<Longrightarrow> convex_on A q \<Longrightarrow>
     (\<lambda>x. q (X x)) \<in> borel_measurable M"
   by (rule measurable_compose[where f=X and N="restrict_space borel A"])
      (auto intro!: borel_measurable_continuous_on_restrict convex_on_continuous measurable_restrict_space2)
@@ -1406,7 +1406,7 @@ lemma borel_measurable_ereal[measurable (raw)]:
   using continuous_on_ereal f by (rule borel_measurable_continuous_on) (rule continuous_on_id)
 
 lemma borel_measurable_real_of_ereal[measurable (raw)]:
-  fixes f :: "'a \<Rightarrow> ereal" 
+  fixes f :: "'a \<Rightarrow> ereal"
   assumes f: "f \<in> borel_measurable M"
   shows "(\<lambda>x. real_of_ereal (f x)) \<in> borel_measurable M"
   apply (rule measurable_compose[OF f])
@@ -1415,7 +1415,7 @@ lemma borel_measurable_real_of_ereal[measurable (raw)]:
   done
 
 lemma borel_measurable_ereal_cases:
-  fixes f :: "'a \<Rightarrow> ereal" 
+  fixes f :: "'a \<Rightarrow> ereal"
   assumes f: "f \<in> borel_measurable M"
   assumes H: "(\<lambda>x. H (ereal (real_of_ereal (f x)))) \<in> borel_measurable M"
   shows "(\<lambda>x. H (f x)) \<in> borel_measurable M"
@@ -1439,7 +1439,7 @@ proof
 qed auto
 
 lemma set_Collect_ereal2:
-  fixes f g :: "'a \<Rightarrow> ereal" 
+  fixes f g :: "'a \<Rightarrow> ereal"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   assumes H: "{x \<in> space M. H (ereal (real_of_ereal (f x))) (ereal (real_of_ereal (g x)))} \<in> sets M"
@@ -1510,7 +1510,7 @@ lemma borel_measurable_iff_Ici_ereal:
   unfolding borel_measurable_ereal_iff_Iio vimage_sets_compl_iff[where A="{..< a}" for a] by simp
 
 lemma borel_measurable_ereal2:
-  fixes f g :: "'a \<Rightarrow> ereal" 
+  fixes f g :: "'a \<Rightarrow> ereal"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   assumes H: "(\<lambda>x. H (ereal (real_of_ereal (f x))) (ereal (real_of_ereal (g x)))) \<in> borel_measurable M"
@@ -1573,7 +1573,7 @@ lemma sets_Collect_eventually_sequentially[measurable]:
   "(\<And>i. {x\<in>space M. P x i} \<in> sets M) \<Longrightarrow> {x\<in>space M. eventually (P x) sequentially} \<in> sets M"
   unfolding eventually_sequentially by simp
 
-lemma sets_Collect_ereal_convergent[measurable]: 
+lemma sets_Collect_ereal_convergent[measurable]:
   fixes f :: "nat \<Rightarrow> 'a => ereal"
   assumes f[measurable]: "\<And>i. f i \<in> borel_measurable M"
   shows "{x\<in>space M. convergent (\<lambda>i. f i x)} \<in> sets M"
@@ -1629,7 +1629,7 @@ lemma borel_measurable_LIMSEQ_metric:
   shows "g \<in> borel_measurable M"
   unfolding borel_eq_closed
 proof (safe intro!: measurable_measure_of)
-  fix A :: "'b set" assume "closed A" 
+  fix A :: "'b set" assume "closed A"
 
   have [measurable]: "(\<lambda>x. infdist (g x) A) \<in> borel_measurable M"
   proof (rule borel_measurable_LIMSEQ)
@@ -1653,7 +1653,7 @@ proof (safe intro!: measurable_measure_of)
   qed simp
 qed auto
 
-lemma sets_Collect_Cauchy[measurable]: 
+lemma sets_Collect_Cauchy[measurable]:
   fixes f :: "nat \<Rightarrow> 'a => 'b::{metric_space, second_countable_topology}"
   assumes f[measurable]: "\<And>i. f i \<in> borel_measurable M"
   shows "{x\<in>space M. Cauchy (\<lambda>i. f i x)} \<in> sets M"
@@ -1674,7 +1674,7 @@ proof -
       by (cases "Cauchy (\<lambda>i. f i x)")
          (auto simp add: convergent_eq_cauchy[symmetric] convergent_def)
     then show "(\<lambda>i. if Cauchy (\<lambda>i. f i x) then f i x else 0) \<longlonglongrightarrow> u' x"
-      unfolding u'_def 
+      unfolding u'_def
       by (rule convergent_LIMSEQ_iff[THEN iffD1])
   qed measurable
   then show ?thesis
@@ -1731,7 +1731,7 @@ proof -
       from this[THEN spec, of "Suc n"]
       obtain j where j: "\<And>y z. dist x y < ?I j \<Longrightarrow> dist x z < ?I j \<Longrightarrow> dist (f y) (f z) \<le> ?I (Suc n)"
         by auto
-      
+
       show "\<exists>d>0. \<forall>y. dist y x < d \<longrightarrow> dist (f y) (f x) < e"
       proof (safe intro!: exI[of _ "?I j"])
         fix y assume "dist y x < ?I j"
@@ -1789,7 +1789,7 @@ lemma borel_measurable_mono_on_fnc:
   apply (rule measurable_restrict_countable[OF mono_on_ctble_discont[OF assms]])
   apply (auto intro!: image_eqI[where x="{x}" for x] simp: sets_restrict_space)
   apply (auto simp add: sets_restrict_restrict_space continuous_on_eq_continuous_within
-              cong: measurable_cong_sets 
+              cong: measurable_cong_sets
               intro!: borel_measurable_continuous_on_restrict intro: continuous_within_subset)
   done
 
