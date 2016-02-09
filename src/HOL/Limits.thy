@@ -620,6 +620,12 @@ lemma continuous_on_setsum [continuous_intros]:
   shows "(\<And>i. i \<in> S \<Longrightarrow> continuous_on s (f i)) \<Longrightarrow> continuous_on s (\<lambda>x. \<Sum>i\<in>S. f i x)"
   unfolding continuous_on_def by (auto intro: tendsto_setsum)
 
+instance nat :: topological_comm_monoid_add
+  proof qed (simp add: nhds_discrete principal_prod_principal filterlim_principal eventually_principal)
+
+instance int :: topological_comm_monoid_add
+  proof qed (simp add: nhds_discrete principal_prod_principal filterlim_principal eventually_principal)
+
 subsubsection \<open>Addition and subtraction\<close>
 
 instance real_normed_vector < topological_comm_monoid_add

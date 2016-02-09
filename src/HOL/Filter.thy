@@ -479,6 +479,9 @@ lemma eventually_INF_base:
     eventually P (INF b:B. F b) \<longleftrightarrow> (\<exists>b\<in>B. eventually P (F b))"
   by (subst eventually_Inf_base) auto
 
+lemma eventually_INF1: "i \<in> I \<Longrightarrow> eventually P (F i) \<Longrightarrow> eventually P (INF i:I. F i)"
+  using filter_leD[OF INF_lower] .
+
 lemma eventually_INF_mono:
   assumes *: "\<forall>\<^sub>F x in \<Sqinter>i\<in>I. F i. P x"
   assumes T1: "\<And>Q R P. (\<And>x. Q x \<and> R x \<longrightarrow> P x) \<Longrightarrow> (\<And>x. T Q x \<Longrightarrow> T R x \<Longrightarrow> T P x)"
@@ -965,6 +968,16 @@ qed (intro prod_filter_mono INF_lower)
 lemma filtermap_Pair: "filtermap (\<lambda>x. (f x, g x)) F \<le> filtermap f F \<times>\<^sub>F filtermap g F"
   by (simp add: le_filter_def eventually_filtermap eventually_prod_filter)
      (auto elim: eventually_elim2)
+
+lemma eventually_prodI: "eventually P F \<Longrightarrow> eventually Q G \<Longrightarrow> eventually (\<lambda>x. P (fst x) \<and> Q (snd x)) (F \<times>\<^sub>F G)"
+  unfolding prod_filter_def
+  by (intro eventually_INF1[of "(P, Q)"]) (auto simp: eventually_principal)
+
+lemma prod_filter_INF1: "I \<noteq> {} \<Longrightarrow> (INF i:I. A i) \<times>\<^sub>F B = (INF i:I. A i \<times>\<^sub>F B)"
+  using prod_filter_INF[of I "{B}" A "\<lambda>x. x"] by simp
+
+lemma prod_filter_INF2: "J \<noteq> {} \<Longrightarrow> A \<times>\<^sub>F (INF i:J. B i) = (INF i:J. A \<times>\<^sub>F B i)"
+  using prod_filter_INF[of "{A}" J "\<lambda>x. x" B] by simp
 
 subsection \<open>Limits\<close>
 

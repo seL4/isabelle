@@ -296,11 +296,22 @@ next
   case (Basis S) then show ?case by (fastforce intro: exI[of _ y] lt_ex)
 qed blast+
 
+subsection \<open>Setup some topologies\<close>
+
 subsubsection \<open>Boolean is an order topology\<close>
 
-text \<open>It also is a discrete topology, but don't have a type class for it (yet).\<close>
+text \<open>It is a discrete topology, but don't have a type class for it (yet).\<close>
 
-instantiation bool :: order_topology
+class discrete_topology = topological_space +
+  assumes open_discrete: "\<And>A. open A"
+
+instance discrete_topology < t2_space
+proof
+  fix x y :: 'a assume "x \<noteq> y" then show "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
+    by (intro exI[of _ "{_}"]) (auto intro!: open_discrete)
+qed
+
+instantiation bool :: linorder_topology
 begin
 
 definition open_bool :: "bool set \<Rightarrow> bool" where
@@ -311,14 +322,73 @@ instance
 
 end
 
-lemma open_bool[simp, intro!]: "open (A::bool set)"
-proof -
+instance bool :: discrete_topology
+proof
+  fix A :: "bool set"
   have *: "{False <..} = {True}" "{..< True} = {False}"
     by auto
   have "A = UNIV \<or> A = {} \<or> A = {False <..} \<or> A = {..< True}"
     using subset_UNIV[of A] unfolding UNIV_bool * by auto
   then show "open A"
     by auto
+qed
+
+instantiation nat :: linorder_topology
+begin
+
+definition open_nat :: "nat set \<Rightarrow> bool" where
+  "open_nat = generate_topology (range (\<lambda>a. {..< a}) \<union> range (\<lambda>a. {a <..}))"
+
+instance
+  proof qed (rule open_nat_def)
+
+end
+
+instance nat :: discrete_topology
+proof
+  fix A :: "nat set"
+  have "open {n}" for n :: nat
+  proof (cases n)
+    case 0
+    moreover have "{0} = {..<1::nat}"
+      by auto
+    ultimately show ?thesis
+       by auto
+  next
+    case (Suc n')
+    moreover then have "{n} = {..<Suc n} \<inter> {n' <..}"
+      by auto
+    ultimately show ?thesis
+      by (auto intro: open_lessThan open_greaterThan)
+  qed
+  then have "open (\<Union>a\<in>A. {a})"
+    by (intro open_UN) auto
+  then show "open A"
+    by simp
+qed
+
+instantiation int :: linorder_topology
+begin
+
+definition open_int :: "int set \<Rightarrow> bool" where
+  "open_int = generate_topology (range (\<lambda>a. {..< a}) \<union> range (\<lambda>a. {a <..}))"
+
+instance
+  proof qed (rule open_int_def)
+
+end
+
+instance int :: discrete_topology
+proof
+  fix A :: "int set"
+  have "{..<i + 1} \<inter> {i-1 <..} = {i}" for i :: int
+    by auto
+  then have "open {i}" for i :: int
+    using open_Int[OF open_lessThan[of "i + 1"] open_greaterThan[of "i - 1"]] by auto
+  then have "open (\<Union>a\<in>A. {a})"
+    by (intro open_UN) auto
+  then show "open A"
+    by simp
 qed
 
 subsubsection \<open>Topological filters\<close>
@@ -362,6 +432,15 @@ lemma nhds_neq_bot [simp]: "nhds a \<noteq> bot"
 lemma (in t1_space) t1_space_nhds:
   "x \<noteq> y \<Longrightarrow> (\<forall>\<^sub>F x in nhds x. x \<noteq> y)"
   by (drule t1_space) (auto simp: eventually_nhds)
+
+lemma (in topological_space) nhds_discrete_open: "open {x} \<Longrightarrow> nhds x = principal {x}"
+  by (auto simp: nhds_def intro!: antisym INF_greatest INF_lower2[of "{x}"])
+
+lemma (in discrete_topology) nhds_discrete: "nhds x = principal {x}"
+  by (simp add: nhds_discrete_open open_discrete)
+
+lemma (in discrete_topology) at_discrete: "at x within S = bot"
+  unfolding at_within_def nhds_discrete by simp
 
 lemma at_within_eq: "at x within s = (INF S:{S. open S \<and> x \<in> S}. principal (S \<inter> s - {x}))"
   unfolding nhds_def at_within_def by (subst INF_inf_const2[symmetric]) (auto simp add: Diff_Int_distrib)
@@ -1996,7 +2075,7 @@ lemma connected_iff_const:
 proof safe
   fix P :: "'a \<Rightarrow> bool" assume "connected S" "continuous_on S P"
   then have "\<And>b. \<exists>A. open A \<and> A \<inter> S = P -` {b} \<inter> S"
-    unfolding continuous_on_open_invariant by simp
+    unfolding continuous_on_open_invariant by (simp add: open_discrete)
   from this[of True] this[of False]
   obtain t f where "open t" "open f" and *: "f \<inter> S = P -` {False} \<inter> S" "t \<inter> S = P -` {True} \<inter> S"
     by auto

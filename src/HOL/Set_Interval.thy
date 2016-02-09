@@ -181,6 +181,9 @@ lemma (in linorder) Ici_subset_Ioi_iff: "{a ..} \<subseteq> {b <..} \<longleftri
 lemma (in linorder) Iic_subset_Iio_iff: "{.. a} \<subseteq> {..< b} \<longleftrightarrow> a < b"
   by auto
 
+lemma (in preorder) Ioi_le_Ico: "{a <..} \<subseteq> {a ..}"
+  by (auto intro: less_imp_le)
+
 subsection \<open>Two-sided intervals\<close>
 
 context ord
@@ -409,7 +412,7 @@ lemma atLeastAtMost_subseteq_atLeastLessThan_iff:
   "{a .. b} \<subseteq> { c ..< d } \<longleftrightarrow> (a \<le> b \<longrightarrow> c \<le> a \<and> b < d)"
   using dense[of "max a d" "b"]
   by (force simp: subset_eq Ball_def not_less[symmetric])
-  
+
 lemma greaterThanLessThan_subseteq_greaterThanLessThan:
   "{a <..< b} \<subseteq> {c <..< d} \<longleftrightarrow> (a < b \<longrightarrow> a \<ge> c \<and> b \<le> d)"
   using dense[of "a" "min c b"] dense[of "max a d" "b"]
@@ -792,8 +795,8 @@ lemma atLeastAtMostPlus1_int_conv:
   by (auto intro: set_eqI)
 
 lemma atLeastLessThan_add_Un: "i \<le> j \<Longrightarrow> {i..<j+k} = {i..<j} \<union> {j..<j+k::nat}"
-  apply (induct k) 
-  apply (simp_all add: atLeastLessThanSuc)   
+  apply (induct k)
+  apply (simp_all add: atLeastLessThanSuc)
   done
 
 subsubsection \<open>Intervals and numerals\<close>
@@ -807,7 +810,7 @@ lemma atMost_nat_numeral:  \<comment>\<open>Evaluation for specific numerals\<cl
   by (simp add: numeral_eq_Suc atMost_Suc)
 
 lemma atLeastLessThan_nat_numeral:  \<comment>\<open>Evaluation for specific numerals\<close>
-  "atLeastLessThan m (numeral k :: nat) = 
+  "atLeastLessThan m (numeral k :: nat) =
      (if m \<le> (pred_numeral k) then insert (pred_numeral k) (atLeastLessThan m (pred_numeral k))
                  else {})"
   by (simp add: numeral_eq_Suc atLeastLessThanSuc)
@@ -875,7 +878,7 @@ lemma image_affinity_atLeastAtMost_div:
             else {b/m + c .. a/m + c})"
   using image_affinity_atLeastAtMost [of "inverse m" c a b]
   by (simp add: field_class.field_divide_inverse algebra_simps)
-    
+
 lemma image_affinity_atLeastAtMost_div_diff:
   fixes c :: "'a::linordered_field"
   shows "((\<lambda>x. x/m - c) ` {a..b}) = (if {a..b}={} then {}
@@ -1085,15 +1088,14 @@ next
   qed
 qed
 
-lemma UN_UN_finite_eq:
-  "(\<Union>n::nat. \<Union>i\<in>{0..<n}. A i) = (\<Union>n. A n)"
-  by (auto simp add: atLeast0LessThan) 
+lemma UN_UN_finite_eq: "(\<Union>n::nat. \<Union>i\<in>{0..<n}. A i) = (\<Union>n. A n)"
+  by (auto simp add: atLeast0LessThan)
 
 lemma UN_finite_subset:
   "(\<And>n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> C) \<Longrightarrow> (\<Union>n. A n) \<subseteq> C"
   by (subst UN_UN_finite_eq [symmetric]) blast
 
-lemma UN_finite2_subset: 
+lemma UN_finite2_subset:
   assumes "\<And>n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n + k}. B i)"
   shows "(\<Union>n. A n) \<subseteq> (\<Union>n. B n)"
 proof (rule UN_finite_subset, rule)
@@ -1311,7 +1313,7 @@ proof -
   hence c: "{k \<in> M. k < Suc i} = insert 0 ({k \<in> M. k < Suc i} - {0})"
     by (auto simp only: insert_Diff)
   have b: "{k \<in> M. k < Suc i} - {0} = {k \<in> M - {0}. k < Suc i}"  by auto
-  from finite_M_bounded_by_nat[of "\<lambda>x. x \<in> M" "Suc i"] 
+  from finite_M_bounded_by_nat[of "\<lambda>x. x \<in> M" "Suc i"]
   have "Suc (card {k. Suc k \<in> M \<and> k < i}) = card (insert 0 ({k \<in> M. k < Suc i} - {0}))"
     apply (subst card_insert)
     apply simp_all
@@ -1520,7 +1522,7 @@ by (auto simp:ac_simps atLeastAtMostSuc_conv)
 
 lemma setsum_head:
   fixes n :: nat
-  assumes mn: "m <= n" 
+  assumes mn: "m <= n"
   shows "(\<Sum>x\<in>{m..n}. P x) = P m + (\<Sum>x\<in>{m<..n}. P x)" (is "?lhs = ?rhs")
 proof -
   from mn
