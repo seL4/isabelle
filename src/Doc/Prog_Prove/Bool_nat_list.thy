@@ -58,7 +58,8 @@ a name, @{text add_02}. Properties of recursively defined functions
 need to be established by induction in most cases.
 Command \isacom{apply}@{text"(induction m)"} instructs Isabelle to
 start a proof by induction on @{text m}. In response, it will show the
-following proof state:
+following proof state\ifsem\footnote{See page \pageref{proof-state} for how to
+display the proof state}\fi:
 @{subgoals[display,indent=0]}
 The numbered lines are known as \emph{subgoals}.
 The first subgoal is the base case, the second one the induction step.

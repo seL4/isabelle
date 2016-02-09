@@ -140,13 +140,15 @@ single identifier can be dropped.  When Isabelle prints a syntax error
 message, it refers to the HOL syntax as the \concept{inner syntax} and the
 enclosing theory language as the \concept{outer syntax}.
 
+\ifsem\else
 \subsection{Proof State}
 
 \begin{warn}
-By default Isabelle/jEdit does not show the proof state
-in the output window. You should enable this by ticking the
-``Proof state'' box.
+By default Isabelle/jEdit does not show the proof state but this tutorial
+refers to it frequently. You should tick the ``Proof state'' box
+to see the proof state in the output window.
 \end{warn}
+\fi
 *}
 (*<*)
 end
