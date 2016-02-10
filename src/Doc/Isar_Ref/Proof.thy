@@ -210,7 +210,7 @@ text \<open>
 
   Abbreviations may be either bound by explicit @{command "let"}~\<open>p \<equiv> t\<close>
   statements, or by annotating assumptions or goal statements with a list of
-  patterns ``\<open>(\<IS> p\<^sub>1 \<dots> p\<^sub>n)\<close>''. In both cases, higher-order matching is
+  patterns ``\<^theory_text>\<open>(is p\<^sub>1 \<dots> p\<^sub>n)\<close>''. In both cases, higher-order matching is
   invoked to bind extra-logical term variables, which may be either named
   schematic variables of the form \<open>?x\<close>, or nameless dummies ``@{variable _}''
   (underscore). Note that in the @{command "let"} form the patterns occur on
@@ -239,13 +239,13 @@ text \<open>
   The syntax of @{keyword "is"} patterns follows @{syntax term_pat} or
   @{syntax prop_pat} (see \secref{sec:term-decls}).
 
-    \<^descr> @{command "let"}~\<open>p\<^sub>1 = t\<^sub>1 \<AND> \<dots> p\<^sub>n = t\<^sub>n\<close> binds any text variables
-    in patterns \<open>p\<^sub>1, \<dots>, p\<^sub>n\<close> by simultaneous higher-order matching against
-    terms \<open>t\<^sub>1, \<dots>, t\<^sub>n\<close>.
+    \<^descr> \<^theory_text>\<open>let p\<^sub>1 = t\<^sub>1 and \<dots> p\<^sub>n = t\<^sub>n\<close> binds any text variables in patterns
+    \<open>p\<^sub>1, \<dots>, p\<^sub>n\<close> by simultaneous higher-order matching against terms \<open>t\<^sub>1, \<dots>,
+    t\<^sub>n\<close>.
 
-    \<^descr> \<open>(\<IS> p\<^sub>1 \<dots> p\<^sub>n)\<close> resembles @{command "let"}, but matches \<open>p\<^sub>1, \<dots>,
-    p\<^sub>n\<close> against the preceding statement. Also note that @{keyword "is"} is
-    not a separate command, but part of others (such as @{command "assume"},
+    \<^descr> \<^theory_text>\<open>(is p\<^sub>1 \<dots> p\<^sub>n)\<close> resembles @{command "let"}, but matches \<open>p\<^sub>1, \<dots>, p\<^sub>n\<close>
+    against the preceding statement. Also note that @{keyword "is"} is not a
+    separate command, but part of others (such as @{command "assume"},
     @{command "have"} etc.).
 
   Some \<^emph>\<open>implicit\<close> term abbreviations\index{term abbreviations} for goals and
