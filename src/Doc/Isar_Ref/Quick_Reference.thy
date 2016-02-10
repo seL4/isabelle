@@ -8,7 +8,7 @@ chapter \<open>Isabelle/Isar quick reference \label{ap:refcard}\<close>
 
 section \<open>Proof commands\<close>
 
-subsection \<open>Main grammar\<close>
+subsection \<open>Main grammar \label{ap:main-grammar}\<close>
 
 text \<open>
   \begin{tabular}{rcl}

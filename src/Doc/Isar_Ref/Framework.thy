@@ -484,97 +484,77 @@ text \<open>
   Structured proofs are presented as high-level expressions for composing
   entities of Pure (propositions, facts, and goals). The Isar proof language
   allows to organize reasoning within the underlying rule calculus of Pure,
-  but Isar is not another logical calculus!
+  but Isar is not another logical calculus. Isar merely imposes certain
+  structure and policies on Pure inferences.
 
-  Isar is an exercise in sound minimalism. Approximately half of the language
-  is introduced as primitive, the rest defined as derived concepts. The
-  following grammar describes the core language (category \<open>proof\<close>), which is
-  embedded into theory specification elements such as \<^theory_text>\<open>theorem\<close>; see also
-  \secref{sec:framework-stmt} for the separate category \<open>statement\<close>.
+  Isar is intended as an exercise in minimalism. Approximately half of the
+  language is introduced as primitive, the rest defined as derived concepts.
+  The grammar in \appref{ap:main-grammar} describes the core language
+  (category \<open>proof\<close>), which is embedded into the main outer theory syntax via
+  elements that require a proof (e.g.\ \<^theory_text>\<open>theorem\<close>, \<^theory_text>\<open>lemma\<close>, \<^theory_text>\<open>function\<close>,
+  \<^theory_text>\<open>termination\<close>).
 
-  \<^medskip>
-  \begin{tabular}{rcl}
-    \<open>theory\<hyphen>stmt\<close> & = & @{command "theorem"}~\<open>statement proof  |\<close>~~@{command "definition"}~\<open>\<dots>  |  \<dots>\<close> \\[1ex]
-
-    \<open>proof\<close> & = & \<open>prfx\<^sup>*\<close>~@{command "proof"}~\<open>method\<^sup>? stmt\<^sup>*\<close>~@{command "qed"}~\<open>method\<^sup>?\<close> \\[1ex]
-
-    \<open>prfx\<close> & = & @{command "using"}~\<open>facts\<close> \\
-    & \<open>|\<close> & @{command "unfolding"}~\<open>facts\<close> \\
-
-    \<open>stmt\<close> & = & @{command "{"}~\<open>stmt\<^sup>*\<close>~@{command "}"} \\
-    & \<open>|\<close> & @{command "next"} \\
-    & \<open>|\<close> & @{command "note"}~\<open>name = facts\<close> \\
-    & \<open>|\<close> & @{command "let"}~\<open>term = term\<close> \\
-    & \<open>|\<close> & @{command "fix"}~\<open>var\<^sup>+\<close> \\
-    & \<open>|\<close> & @{command assume}~\<open>\<guillemotleft>inference\<guillemotright> name: props\<close> \\
-    & \<open>|\<close> & @{command "then"}\<open>\<^sup>?\<close>~\<open>goal\<close> \\
-    \<open>goal\<close> & = & @{command "have"}~\<open>name: props proof\<close> \\
-    & \<open>|\<close> & @{command "show"}~\<open>name: props proof\<close> \\
-  \end{tabular}
-
-  \<^medskip>
-  Simultaneous propositions or facts may be separated by the @{keyword "and"}
-  keyword.
-
-  \<^medskip>
   The syntax for terms and propositions is inherited from Pure (and the
   object-logic). A \<open>pattern\<close> is a \<open>term\<close> with schematic variables, to be bound
-  by higher-order matching.
+  by higher-order matching. Simultaneous propositions or facts may be
+  separated by the \<^theory_text>\<open>and\<close> keyword.
 
   \<^medskip>
   Facts may be referenced by name or proposition. For example, the result of
-  ``\<^theory_text>\<open>have a: A \<proof>\<close>'' becomes available both as \<open>a\<close> and
-  \isacharbackquoteopen\<open>A\<close>\isacharbackquoteclose. Moreover, fact expressions
-  may involve attributes that modify either the theorem or the background
-  context. For example, the expression ``\<open>a [OF b]\<close>'' refers to the
-  composition of two facts according to the @{inference resolution} inference
-  of \secref{sec:framework-resolution}, while ``\<open>a [intro]\<close>'' declares a fact
-  as introduction rule in the context.
+  ``\<^theory_text>\<open>have a: A \<proof>\<close>'' becomes accessible both via the name \<open>a\<close> and the
+  literal proposition \<open>\<open>A\<close>\<close>. Moreover, fact expressions may involve attributes
+  that modify either the theorem or the background context. For example, the
+  expression ``\<open>a [OF b]\<close>'' refers to the composition of two facts according
+  to the @{inference resolution} inference of
+  \secref{sec:framework-resolution}, while ``\<open>a [intro]\<close>'' declares a fact as
+  introduction rule in the context.
 
   The special fact called ``@{fact this}'' always refers to the last result,
-  as produced by @{command note}, @{command assume}, @{command have}, or
-  @{command show}. Since @{command note} occurs frequently together with
-  @{command then} we provide some abbreviations:
+  as produced by \<^theory_text>\<open>note\<close>, \<^theory_text>\<open>assume\<close>, \<^theory_text>\<open>have\<close>, or \<^theory_text>\<open>show\<close>. Since \<^theory_text>\<open>note\<close> occurs
+  frequently together with \<^theory_text>\<open>then\<close>, there are some abbreviations:
 
   \<^medskip>
   \begin{tabular}{rcl}
-    @{command from}~\<open>a\<close> & \<open>\<equiv>\<close> & @{command note}~\<open>a\<close>~@{command then} \\
-    @{command with}~\<open>a\<close> & \<open>\<equiv>\<close> & @{command from}~\<open>a \<AND> this\<close> \\
+    \<^theory_text>\<open>from a\<close> & \<open>\<equiv>\<close> & \<^theory_text>\<open>note a then\<close> \\
+    \<^theory_text>\<open>with a\<close> & \<open>\<equiv>\<close> & \<^theory_text>\<open>from a and this\<close> \\
   \end{tabular}
   \<^medskip>
 
-  The \<open>method\<close> category is essentially a parameter and may be populated later.
-  Methods use the facts indicated by @{command "then"} or @{command using},
-  and then operate on the goal state. Some basic methods are predefined:
-  ``@{method "-"}'' leaves the goal unchanged, ``@{method this}'' applies the
-  facts as rules to the goal, ``@{method (Pure) "rule"}'' applies the facts to
-  another rule and the result to the goal (both ``@{method this}'' and
-  ``@{method (Pure) rule}'' refer to @{inference resolution} of
+  The \<open>method\<close> category is essentially a parameter of the Isar language and
+  may be populated later. The command \<^theory_text>\<open>method_setup\<close> allows to define proof
+  methods semantically in Isabelle/ML. The Eisbach language allows to define
+  proof methods symbolically, as recursive expressions over existing methods
+  @{cite "Matichuk-et-al:2014"}; see also @{file "~~/src/HOL/Eisbach"}.
+
+  Methods use the facts indicated by \<^theory_text>\<open>then\<close> or \<^theory_text>\<open>using\<close>, and then operate on
+  the goal state. Some basic methods are predefined in Pure: ``@{method "-"}''
+  leaves the goal unchanged, ``@{method this}'' applies the facts as rules to
+  the goal, ``@{method (Pure) "rule"}'' applies the facts to another rule and
+  the result to the goal (both ``@{method this}'' and ``@{method (Pure)
+  rule}'' refer to @{inference resolution} of
   \secref{sec:framework-resolution}). The secondary arguments to ``@{method
   (Pure) rule}'' may be specified explicitly as in ``\<open>(rule a)\<close>'', or picked
   from the context. In the latter case, the system first tries rules declared
   as @{attribute (Pure) elim} or @{attribute (Pure) dest}, followed by those
   declared as @{attribute (Pure) intro}.
 
-  The default method for @{command proof} is ``@{method standard}'' (arguments
-  picked from the context), for @{command qed} it is ``@{method "succeed"}''.
-  Further abbreviations for terminal proof steps are ``@{command
-  "by"}~\<open>method\<^sub>1 method\<^sub>2\<close>'' for ``@{command proof}~\<open>method\<^sub>1\<close>~@{command
-  qed}~\<open>method\<^sub>2\<close>'', and ``@{command ".."}'' for ``@{command "by"}~@{method
-  standard}, and ``@{command "."}'' for ``@{command "by"}~@{method this}''.
-  The @{command unfolding} element operates directly on the current facts and
-  goal by applying equalities.
+  The default method for \<^theory_text>\<open>proof\<close> is ``@{method standard}'' (which subsumes
+  @{method rule} with arguments picked from the context), for \<^theory_text>\<open>qed\<close> it is
+  ``@{method "succeed"}''. Further abbreviations for terminal proof steps are
+  ``\<^theory_text>\<open>by method\<^sub>1 method\<^sub>2\<close>'' for ``\<^theory_text>\<open>proof method\<^sub>1 qed method\<^sub>2\<close>'', and
+  ``\<^theory_text>\<open>..\<close>'' for ``\<^theory_text>\<open>by standard\<close>, and ``\<^theory_text>\<open>.\<close>'' for ``\<^theory_text>\<open>by this\<close>''. The command
+  ``\<^theory_text>\<open>unfolding facts\<close>'' operates directly on the goal by applying equalities.
 
   \<^medskip>
-  Block structure can be indicated explicitly by ``@{command
-  "{"}~\<open>\<dots>\<close>~@{command "}"}'', although the body of a subproof already involves
-  implicit nesting. In any case, @{command next} jumps into the next section
-  of a block, i.e.\ it acts like closing an implicit block scope and opening
-  another one; there is no direct correspondence to subgoals here.
+  Block structure can be indicated explicitly by ``\<^theory_text>\<open>{ \<dots> }\<close>'', although the
+  body of a subproof ``\<^theory_text>\<open>proof \<dots> qed\<close>'' already provides implicit nesting. In
+  both situations, \<^theory_text>\<open>next\<close> jumps into the next section of a block, i.e.\ it
+  acts like closing an implicit block scope and opening another one. There is
+  no direct connection to subgoals here!
 
-  The remaining elements @{command fix} and @{command assume} build up a local
-  context (see \secref{sec:framework-context}), while @{command show} refines
-  a pending subgoal by the rule resulting from a nested subproof (see
+  The commands \<^theory_text>\<open>fix\<close> and \<^theory_text>\<open>assume\<close> build up a local context (see
+  \secref{sec:framework-context}), while \<^theory_text>\<open>show\<close> refines a pending subgoal by
+  the rule resulting from a nested subproof (see
   \secref{sec:framework-subproof}). Further derived concepts will support
   calculational reasoning (see \secref{sec:framework-calc}).
 \<close>
@@ -584,64 +564,46 @@ subsection \<open>Context elements \label{sec:framework-context}\<close>
 
 text \<open>
   In judgments \<open>\<Gamma> \<turnstile> \<phi>\<close> of the primitive framework, \<open>\<Gamma>\<close> essentially acts like a
-  proof context. Isar elaborates this idea towards a higher-level notion, with
-  additional information for type-inference, term abbreviations, local facts,
-  hypotheses etc.
+  proof context. Isar elaborates this idea towards a more advanced concept,
+  with additional information for type-inference, term abbreviations, local
+  facts, hypotheses etc.
 
-  The element @{command fix}~\<open>x :: \<alpha>\<close> declares a local parameter, i.e.\ an
+  The element \<^theory_text>\<open>fix x :: \<alpha>\<close> declares a local parameter, i.e.\ an
   arbitrary-but-fixed entity of a given type; in results exported from the
-  context, \<open>x\<close> may become anything. The @{command assume}~\<open>\<guillemotleft>inference\<guillemotright>\<close>
-  element provides a general interface to hypotheses: ``@{command
-  assume}~\<open>\<guillemotleft>inference\<guillemotright> A\<close>'' produces \<open>A \<turnstile> A\<close> locally, while the included
-  inference tells how to discharge \<open>A\<close> from results \<open>A \<turnstile> B\<close> later on. There is
-  no user-syntax for \<open>\<guillemotleft>inference\<guillemotright>\<close>, i.e.\ it may only occur internally when
-  derived commands are defined in ML.
+  context, \<open>x\<close> may become anything. The \<^theory_text>\<open>assume \<guillemotleft>inference\<guillemotright>\<close> element provides
+  a general interface to hypotheses: \<^theory_text>\<open>assume \<guillemotleft>inference\<guillemotright> A\<close> produces \<open>A \<turnstile> A\<close>
+  locally, while the included inference tells how to discharge \<open>A\<close> from
+  results \<open>A \<turnstile> B\<close> later on. There is no surface syntax for \<open>\<guillemotleft>inference\<guillemotright>\<close>,
+  i.e.\ it may only occur internally when derived commands are defined in ML.
 
-  At the user-level, the default inference for @{command assume} is
-  @{inference discharge} as given below. The additional variants @{command
-  presume} and @{command def} are defined as follows:
-
-  \<^medskip>
-  \begin{tabular}{rcl}
-    @{command presume}~\<open>A\<close> & \<open>\<equiv>\<close> & @{command assume}~\<open>\<guillemotleft>weak\<hyphen>discharge\<guillemotright> A\<close> \\
-    @{command def}~\<open>x \<equiv> a\<close> & \<open>\<equiv>\<close> & @{command fix}~\<open>x\<close>~@{command assume}~\<open>\<guillemotleft>expansion\<guillemotright> x \<equiv> a\<close> \\
-  \end{tabular}
-  \<^medskip>
+  The default inference for \<^theory_text>\<open>assume\<close> is @{inference export} as given below.
+  The derived element \<^theory_text>\<open>def x \<equiv> a\<close> is defined as \<^theory_text>\<open>fix x assume \<guillemotleft>expand\<guillemotright> x \<equiv>
+  a\<close>, with the subsequent inference @{inference expand}.
 
   \[
-  \infer[(@{inference_def discharge})]{\<open>\<strut>\<Gamma> - A \<turnstile> #A \<Longrightarrow> B\<close>}{\<open>\<strut>\<Gamma> \<turnstile> B\<close>}
-  \]
-  \[
-  \infer[(@{inference_def "weak\<hyphen>discharge"})]{\<open>\<strut>\<Gamma> - A \<turnstile> A \<Longrightarrow> B\<close>}{\<open>\<strut>\<Gamma> \<turnstile> B\<close>}
-  \]
-  \[
-  \infer[(@{inference_def expansion})]{\<open>\<strut>\<Gamma> - (x \<equiv> a) \<turnstile> B a\<close>}{\<open>\<strut>\<Gamma> \<turnstile> B x\<close>}
+  \infer[(@{inference_def export})]{\<open>\<strut>\<Gamma> - A \<turnstile> A \<Longrightarrow> B\<close>}{\<open>\<strut>\<Gamma> \<turnstile> B\<close>}
+  \qquad
+  \infer[(@{inference_def expand})]{\<open>\<strut>\<Gamma> - (x \<equiv> a) \<turnstile> B a\<close>}{\<open>\<strut>\<Gamma> \<turnstile> B x\<close>}
   \]
 
   \<^medskip>
-  Note that @{inference discharge} and @{inference "weak\<hyphen>discharge"} differ in
-  the marker for \<open>A\<close>, which is relevant when the result of a @{command
-  fix}-@{command assume}-@{command show} outline is composed with a pending
-  goal, cf.\ \secref{sec:framework-subproof}.
-
-  The most interesting derived context element in Isar is @{command obtain}
-  @{cite \<open>\S5.3\<close> "Wenzel-PhD"}, which supports generalized elimination steps
-  in a purely forward manner. The @{command obtain} command takes a
-  specification of parameters \<open>\<^vec>x\<close> and assumptions \<open>\<^vec>A\<close> to be
-  added to the context, together with a proof of a case rule stating that this
-  extension is conservative (i.e.\ may be removed from closed results later
-  on):
+  The most interesting derived context element in Isar is \<^theory_text>\<open>obtain\<close> @{cite
+  \<open>\S5.3\<close> "Wenzel-PhD"}, which supports generalized elimination steps in a
+  purely forward manner. The \<^theory_text>\<open>obtain\<close> command takes a specification of
+  parameters \<open>\<^vec>x\<close> and assumptions \<open>\<^vec>A\<close> to be added to the context,
+  together with a proof of a case rule stating that this extension is
+  conservative (i.e.\ may be removed from closed results later on):
 
   \<^medskip>
   \begin{tabular}{l}
-  \<open>\<langle>facts\<rangle>\<close>~~@{command obtain}~\<open>\<^vec>x \<WHERE> \<^vec>A \<^vec>x \<proof> \<equiv>\<close> \\[0.5ex]
-  \quad @{command have}~\<open>case: \<And>thesis. (\<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis) \<Longrightarrow> thesis\<rangle>\<close> \\
-  \quad @{command proof}~@{method "-"} \\
-  \qquad @{command fix}~\<open>thesis\<close> \\
-  \qquad @{command assume}~\<open>[intro]: \<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis\<close> \\
-  \qquad @{command show}~\<open>thesis\<close>~@{command using}~\<open>\<langle>facts\<rangle> \<proof>\<close> \\
-  \quad @{command qed} \\
-  \quad @{command fix}~\<open>\<^vec>x\<close>~@{command assume}~\<open>\<guillemotleft>elimination case\<guillemotright> \<^vec>A \<^vec>x\<close> \\
+  \<^theory_text>\<open>\<langle>facts\<rangle> obtain "\<^vec>x" where "\<^vec>A" "\<^vec>x" \<proof> \<equiv>\<close> \\[0.5ex]
+  \quad \<^theory_text>\<open>have "case": "\<And>thesis. (\<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis) \<Longrightarrow> thesis"\<close> \\
+  \quad \<^theory_text>\<open>proof -\<close> \\
+  \qquad \<^theory_text>\<open>fix thesis\<close> \\
+  \qquad \<^theory_text>\<open>assume [intro]: "\<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis"\<close> \\
+  \qquad \<^theory_text>\<open>show thesis using \<langle>facts\<rangle> \<proof>\<close> \\
+  \quad \<^theory_text>\<open>qed\<close> \\
+  \quad \<^theory_text>\<open>fix "\<^vec>x" assume \<guillemotleft>elimination "case"\<guillemotright> "\<^vec>A \<^vec>x"\<close> \\
   \end{tabular}
   \<^medskip>
 
@@ -658,16 +620,15 @@ text \<open>
   Here the name ``\<open>thesis\<close>'' is a specific convention for an
   arbitrary-but-fixed proposition; in the primitive natural deduction rules
   shown before we have occasionally used \<open>C\<close>. The whole statement of
-  ``@{command obtain}~\<open>x\<close>~@{keyword "where"}~\<open>A x\<close>'' may be read as a claim
-  that \<open>A x\<close> may be assumed for some arbitrary-but-fixed \<open>x\<close>. Also note that
-  ``@{command obtain}~\<open>A \<AND> B\<close>'' without parameters is similar to
-  ``@{command have}~\<open>A \<AND> B\<close>'', but the latter involves multiple
-  subgoals.
+  ``\<^theory_text>\<open>obtain x where A x\<close>'' can be read as a claim that \<open>A x\<close> may be assumed
+  for some arbitrary-but-fixed \<open>x\<close>. Also note that ``\<^theory_text>\<open>obtain A and B\<close>''
+  without parameters is similar to ``\<^theory_text>\<open>have A and B\<close>'', but the latter
+  involves multiple subgoals that need to be proven separately.
 
   \<^medskip>
   The subsequent Isar proof texts explain all context elements introduced
   above using the formal proof language itself. After finishing a local proof
-  within a block, we indicate the exported result via @{command note}.
+  within a block, the exported result is indicated via \<^theory_text>\<open>note\<close>.
 \<close>
 
 (*<*)
@@ -705,90 +666,87 @@ qed
 
 text \<open>
   \<^bigskip>
-  This illustrates the meaning of Isar context elements without goals getting
-  in between.
+  This explains the meaning of Isar context elements without, without goal
+  states getting in the way.
 \<close>
 
 
 subsection \<open>Structured statements \label{sec:framework-stmt}\<close>
 
 text \<open>
-  The category \<open>statement\<close> of top-level theorem specifications
-  is defined as follows:
+  The syntax of top-level theorem statements is defined as follows:
 
   \<^medskip>
   \begin{tabular}{rcl}
-  \<open>statement\<close> & \<open>\<equiv>\<close> & \<open>name: props \<AND> \<dots>\<close> \\
+  \<open>statement\<close> & \<open>\<equiv>\<close> & \<^theory_text>\<open>name: props and \<dots>\<close> \\
   & \<open>|\<close> & \<open>context\<^sup>* conclusion\<close> \\[0.5ex]
 
-  \<open>context\<close> & \<open>\<equiv>\<close> & \<open>\<FIXES> vars \<AND> \<dots>\<close> \\
-  & \<open>|\<close> & \<open>\<ASSUMES> name: props \<AND> \<dots>\<close> \\
+  \<open>context\<close> & \<open>\<equiv>\<close> & \<^theory_text>\<open>fixes vars and \<dots>\<close> \\
+  & \<open>|\<close> & \<^theory_text>\<open>assumes name: props and \<dots>\<close> \\
 
-  \<open>conclusion\<close> & \<open>\<equiv>\<close> & \<open>\<SHOWS> name: props \<AND> \<dots>\<close> \\
-  & \<open>|\<close> & \<open>\<OBTAINS> vars \<AND> \<dots> \<WHERE> name: props \<AND> \<dots>\<close> \\
+  \<open>conclusion\<close> & \<open>\<equiv>\<close> & \<^theory_text>\<open>shows name: props and \<dots>\<close> \\
+  & \<open>|\<close> & \<^theory_text>\<open>obtains vars and \<dots> where name: props and \<dots>\<close> \\
   & & \quad \<open>\<BBAR> \<dots>\<close> \\
   \end{tabular}
 
   \<^medskip>
-  A simple \<open>statement\<close> consists of named propositions. The full form admits
-  local context elements followed by the actual conclusions, such as
-  ``@{keyword "fixes"}~\<open>x\<close>~@{keyword "assumes"}~\<open>A x\<close>~@{keyword "shows"}~\<open>B
-  x\<close>''. The final result emerges as a Pure rule after discharging the context:
-  @{prop "\<And>x. A x \<Longrightarrow> B x"}.
+  A simple statement consists of named propositions. The full form admits
+  local context elements followed by the actual conclusions, such as ``\<^theory_text>\<open>fixes
+  x assumes A x shows B x\<close>''. The final result emerges as a Pure rule after
+  discharging the context: @{prop "\<And>x. A x \<Longrightarrow> B x"}.
 
-  The @{keyword "obtains"} variant is another abbreviation defined below;
-  unlike @{command obtain} (cf.\ \secref{sec:framework-context}) there may be
-  several ``cases'' separated by ``\<open>\<BBAR>\<close>'', each consisting of several
-  parameters (\<open>vars\<close>) and several premises (\<open>props\<close>). This specifies
-  multi-branch elimination rules.
+  The \<^theory_text>\<open>obtains\<close> variant is another abbreviation defined below; unlike
+  \<^theory_text>\<open>obtain\<close> (cf.\ \secref{sec:framework-context}) there may be several
+  ``cases'' separated by ``\<open>\<BBAR>\<close>'', each consisting of several parameters
+  (\<open>vars\<close>) and several premises (\<open>props\<close>). This specifies multi-branch
+  elimination rules.
 
   \<^medskip>
   \begin{tabular}{l}
-  \<open>\<OBTAINS> \<^vec>x \<WHERE> \<^vec>A \<^vec>x   \<BBAR>   \<dots>   \<equiv>\<close> \\[0.5ex]
-  \quad \<open>\<FIXES> thesis\<close> \\
-  \quad \<open>\<ASSUMES> [intro]: \<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis  \<AND>  \<dots>\<close> \\
-  \quad \<open>\<SHOWS> thesis\<close> \\
+  \<^theory_text>\<open>obtains "\<^vec>x" where "\<^vec>A" "\<^vec>x"  "\<BBAR>"  \<dots>  \<equiv>\<close> \\[0.5ex]
+  \quad \<^theory_text>\<open>fixes thesis\<close> \\
+  \quad \<^theory_text>\<open>assumes [intro]: "\<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis"  and  \<dots>\<close> \\
+  \quad \<^theory_text>\<open>shows thesis\<close> \\
   \end{tabular}
   \<^medskip>
 
   Presenting structured statements in such an ``open'' format usually
   simplifies the subsequent proof, because the outer structure of the problem
   is already laid out directly. E.g.\ consider the following canonical
-  patterns for \<open>\<SHOWS>\<close> and \<open>\<OBTAINS>\<close>, respectively:
+  patterns for \<^theory_text>\<open>shows\<close> and \<^theory_text>\<open>obtains\<close>, respectively:
 \<close>
 
 text_raw \<open>\begin{minipage}{0.5\textwidth}\<close>
 
-theorem
-  fixes x and y
-  assumes "A x" and "B y"
-  shows "C x y"
-proof -
-  from \<open>A x\<close> and \<open>B y\<close>
-  show "C x y" \<proof>
-qed
+  theorem
+    fixes x and y
+    assumes "A x" and "B y"
+    shows "C x y"
+  proof -
+    from \<open>A x\<close> and \<open>B y\<close>
+    show "C x y" \<proof>
+  qed
 
 text_raw \<open>\end{minipage}\begin{minipage}{0.5\textwidth}\<close>
 
-theorem
-  obtains x and y
-  where "A x" and "B y"
-proof -
-  have "A a" and "B b" \<proof>
-  then show thesis ..
-qed
+  theorem
+    obtains x and y
+    where "A x" and "B y"
+  proof -
+    have "A a" and "B b" \<proof>
+    then show thesis ..
+  qed
 
 text_raw \<open>\end{minipage}\<close>
 
 text \<open>
   \<^medskip>
-  Here local facts \isacharbackquoteopen\<open>A x\<close>\isacharbackquoteclose\ and
-  \isacharbackquoteopen\<open>B y\<close>\isacharbackquoteclose\ are referenced
-  immediately; there is no need to decompose the logical rule structure again.
-  In the second proof the final ``@{command then}~@{command
-  show}~\<open>thesis\<close>~@{command ".."}'' involves the local rule case \<open>\<And>x y. A x \<Longrightarrow> B
+  Here local facts \<open>\<open>A x\<close>\<close> and \<open>\<open>B y\<close>\<close> are referenced immediately; there is no
+  need to decompose the logical rule structure again. In the second proof the
+  final ``\<^theory_text>\<open>then show thesis ..\<close>'' involves the local rule case \<open>\<And>x y. A x \<Longrightarrow> B
   y \<Longrightarrow> thesis\<close> for the particular instance of terms \<open>a\<close> and \<open>b\<close> produced in the
-  body. \<close>
+  body.
+\<close>
 
 
 subsection \<open>Structured proof refinement \label{sec:framework-subproof}\<close>
@@ -821,14 +779,13 @@ text \<open>
   \end{figure}
 
   For example, in \<open>state\<close> mode Isar acts like a mathematical scratch-pad,
-  accepting declarations like @{command fix}, @{command assume}, and claims
-  like @{command have}, @{command show}. A goal statement changes the mode to
-  \<open>prove\<close>, which means that we may now refine the problem via @{command
-  unfolding} or @{command proof}. Then we are again in \<open>state\<close> mode of a proof
-  body, which may issue @{command show} statements to solve pending subgoals.
-  A concluding @{command qed} will return to the original \<open>state\<close> mode one
-  level upwards. The subsequent Isar/VM trace indicates block structure,
-  linguistic mode, goal state, and inferences:
+  accepting declarations like \<^theory_text>\<open>fix\<close>, \<^theory_text>\<open>assume\<close>, and claims like \<^theory_text>\<open>have\<close>,
+  \<^theory_text>\<open>show\<close>. A goal statement changes the mode to \<open>prove\<close>, which means that we
+  may now refine the problem via \<^theory_text>\<open>unfolding\<close> or \<^theory_text>\<open>proof\<close>. Then we are again
+  in \<open>state\<close> mode of a proof body, which may issue \<^theory_text>\<open>show\<close> statements to solve
+  pending subgoals. A concluding \<^theory_text>\<open>qed\<close> will return to the original \<open>state\<close>
+  mode one level upwards. The subsequent Isar/VM trace indicates block
+  structure, linguistic mode, goal state, and inferences:
 \<close>
 
 text_raw \<open>\begingroup\footnotesize\<close>
@@ -942,10 +899,9 @@ text_raw \<open>\end{minipage}\<close>
 
 text \<open>
   \<^medskip>
-  Such ``peephole optimizations'' of Isar texts are practically important to
-  improve readability, by rearranging contexts elements according to the
-  natural flow of reasoning in the body, while still observing the overall
-  scoping rules.
+  Such fine-tuning of Isar text is practically important to improve
+  readability. Contexts elements are rearranged according to the natural flow
+  of reasoning in the body, while still observing the overall scoping rules.
 
   \<^medskip>
   This illustrates the basic idea of structured proof processing in Isar. The
@@ -982,25 +938,25 @@ text \<open>
   \<open>trans\<close> represents to a suitable rule from the context:
 
   \begin{matharray}{rcl}
-    @{command "also"}\<open>\<^sub>0\<close> & \equiv & @{command "note"}~\<open>calculation = this\<close> \\
-    @{command "also"}\<open>\<^sub>n\<^sub>+\<^sub>1\<close> & \equiv & @{command "note"}~\<open>calculation = trans [OF calculation this]\<close> \\[0.5ex]
-    @{command "finally"} & \equiv & @{command "also"}~@{command "from"}~\<open>calculation\<close> \\
+    \<^theory_text>\<open>also"\<^sub>0"\<close> & \equiv & \<^theory_text>\<open>note calculation = this\<close> \\
+    \<^theory_text>\<open>also"\<^sub>n\<^sub>+\<^sub>1"\<close> & \equiv & \<^theory_text>\<open>note calculation = trans [OF calculation this]\<close> \\[0.5ex]
+    \<^theory_text>\<open>finally\<close> & \equiv & \<^theory_text>\<open>also from calculation\<close> \\
   \end{matharray}
 
   The start of a calculation is determined implicitly in the text: here
-  @{command also} sets @{fact calculation} to the current result; any
-  subsequent occurrence will update @{fact calculation} by combination with
-  the next result and a transitivity rule. The calculational sequence is
-  concluded via @{command finally}, where the final result is exposed for use
-  in a concluding claim.
+  \<^theory_text>\<open>also\<close> sets @{fact calculation} to the current result; any subsequent
+  occurrence will update @{fact calculation} by combination with the next
+  result and a transitivity rule. The calculational sequence is concluded via
+  \<^theory_text>\<open>finally\<close>, where the final result is exposed for use in a concluding claim.
 
-  Here is a canonical proof pattern, using @{command have} to establish the
+  Here is a canonical proof pattern, using \<^theory_text>\<open>have\<close> to establish the
   intermediate results:
 \<close>
 
 (*<*)
 notepad
 begin
+  fix a b c d :: 'a
 (*>*)
   have "a = b" \<proof>
   also have "\<dots> = c" \<proof>
@@ -1011,8 +967,8 @@ end
 (*>*)
 
 text \<open>
-  The term ``\<open>\<dots>\<close>'' above is a special abbreviation provided by the
-  Isabelle/Isar syntax layer: it statically refers to the right-hand side
+  The term ``\<open>\<dots>\<close>'' (literal ellipsis) is a special abbreviation provided by
+  the Isabelle/Isar term syntax: it statically refers to the right-hand side
   argument of the previous statement given in the text. Thus it happens to
   coincide with relevant sub-expressions in the calculational chain, but the
   exact correspondence is dependent on the transitivity rules being involved.
@@ -1021,8 +977,8 @@ text \<open>
   Symmetry rules such as @{prop "x = y \<Longrightarrow> y = x"} are like transitivities with
   only one premise. Isar maintains a separate rule collection declared via the
   @{attribute sym} attribute, to be used in fact expressions ``\<open>a
-  [symmetric]\<close>'', or single-step proofs ``@{command assume}~\<open>x = y\<close>~@{command
-  then}~@{command have}~\<open>y = x\<close>~@{command ".."}''.
+  [symmetric]\<close>'', or single-step proofs ``\<^theory_text>\<open>assume "x = y" then have "y = x"
+  ..\<close>''.
 \<close>
 
 end
