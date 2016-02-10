@@ -153,7 +153,7 @@ instance "fun" :: (type, comm_semiring_1) comm_semiring_1 ..
 
 instance "fun" :: (type, semiring_1_cancel) semiring_1_cancel ..
 
-instance "fun" :: (type, comm_semiring_1_cancel) comm_semiring_1_cancel 
+instance "fun" :: (type, comm_semiring_1_cancel) comm_semiring_1_cancel
   by standard (auto simp add: times_fun_def algebra_simps)
 
 instance "fun" :: (type, semiring_char_0) semiring_char_0
@@ -188,10 +188,20 @@ instance "fun" :: (type, ordered_ab_semigroup_add_imp_le) ordered_ab_semigroup_a
 
 instance "fun" :: (type, ordered_comm_monoid_add) ordered_comm_monoid_add ..
 
+instance "fun" :: (type, ordered_cancel_comm_monoid_add) ordered_cancel_comm_monoid_add ..
+
 instance "fun" :: (type, ordered_ab_group_add) ordered_ab_group_add ..
 
 instance "fun" :: (type, ordered_semiring) ordered_semiring
   by standard (auto simp add: le_fun_def intro: mult_left_mono mult_right_mono)
+
+instance "fun" :: (type, dioid) dioid
+proof standard
+  fix a b :: "'a \<Rightarrow> 'b"
+  show "a \<le> b \<longleftrightarrow> (\<exists>c. b = a + c)"
+    unfolding le_fun_def plus_fun_def fun_eq_iff choice_iff[symmetric, of "\<lambda>x c. b x = a x + c"]
+    by (intro arg_cong[where f=All] ext canonically_ordered_monoid_add_class.le_iff_add)
+qed
 
 instance "fun" :: (type, ordered_comm_semiring) ordered_comm_semiring
   by standard (fact mult_left_mono)

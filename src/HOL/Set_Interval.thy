@@ -1870,7 +1870,7 @@ lemma setprod_int_eq: "setprod int {i..j} =  \<Prod>{int i..int j}"
 proof (cases "i \<le> j")
   case True
   then show ?thesis
-    by (metis Nat.le_iff_add setprod_int_plus_eq)
+    by (metis le_iff_add setprod_int_plus_eq)
 next
   case False
   then show ?thesis

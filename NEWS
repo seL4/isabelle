@@ -40,6 +40,15 @@ comprehension-like syntax analogously to "Inf (f ` A)" and "Sup (f ` A)".
 
 * Class semiring_Lcd merged into semiring_Gcd.  INCOMPATIBILITY.
 
+* The type class ordered_comm_monoid_add is now called
+ordered_cancel_comm_monoid_add. A new type class ordered_comm_monoid_add is
+introduced as the combination of ordered_ab_semigroup_add + comm_monoid_add.
+INCOMPATIBILITY.
+
+* Introduced the type classes canonically_ordered_comm_monoid_add and dioid.
+
+* Added topological_monoid
+
 * Library/Polynomial.thy contains also derivation of polynomials
 but not gcd/lcm on polynomials over fields.  This has been moved
 to a separate theory Library/Polynomial_GCD_euclidean.thy, to
@@ -142,7 +151,6 @@ INCOMPATIBILITY.
 *** System ***
 
 * SML/NJ is no longer supported.
-
 
 
 New in Isabelle2016 (February 2016)

@@ -140,7 +140,7 @@ apply (auto simp add: star_n_eq_iff transfer_not elim!: eventually_mono)
 done
 
 lemma transfer_fun_eq [transfer_intro]:
-  "\<lbrakk>\<And>X. f (star_n X) = g (star_n X) 
+  "\<lbrakk>\<And>X. f (star_n X) = g (star_n X)
     \<equiv> eventually (\<lambda>n. F n (X n) = G n (X n)) \<U>\<rbrakk>
       \<Longrightarrow> f = g \<equiv> eventually (\<lambda>n. F n = G n) \<U>"
 by (simp only: fun_eq_iff transfer_all)
@@ -806,9 +806,10 @@ instance star :: (ordered_ab_semigroup_add_imp_le) ordered_ab_semigroup_add_imp_
 by (intro_classes, transfer, rule add_le_imp_le_left)
 
 instance star :: (ordered_comm_monoid_add) ordered_comm_monoid_add ..
+instance star :: (ordered_cancel_comm_monoid_add) ordered_cancel_comm_monoid_add ..
 instance star :: (ordered_ab_group_add) ordered_ab_group_add ..
 
-instance star :: (ordered_ab_group_add_abs) ordered_ab_group_add_abs 
+instance star :: (ordered_ab_group_add_abs) ordered_ab_group_add_abs
   by intro_classes (transfer,
     simp add: abs_ge_self abs_leI abs_triangle_ineq)+
 
@@ -820,12 +821,12 @@ subsection \<open>Ring and field classes\<close>
 instance star :: (semiring) semiring
   by (intro_classes; transfer) (fact distrib_right distrib_left)+
 
-instance star :: (semiring_0) semiring_0 
+instance star :: (semiring_0) semiring_0
   by (intro_classes; transfer) simp_all
 
 instance star :: (semiring_0_cancel) semiring_0_cancel ..
 
-instance star :: (comm_semiring) comm_semiring 
+instance star :: (comm_semiring) comm_semiring
   by (intro_classes; transfer) (fact distrib_right)
 
 instance star :: (comm_semiring_0) comm_semiring_0 ..
@@ -846,7 +847,7 @@ instance star :: (semiring_no_zero_divisors) semiring_no_zero_divisors
   by (intro_classes; transfer) (fact no_zero_divisors)
 
 instance star :: (semiring_1_no_zero_divisors) semiring_1_no_zero_divisors ..
-  
+
 instance star :: (semiring_no_zero_divisors_cancel) semiring_no_zero_divisors_cancel
   by (intro_classes; transfer) simp_all
 
@@ -865,7 +866,7 @@ instance star :: (semiring_div) semiring_div
 
 instance star :: (ring_no_zero_divisors) ring_no_zero_divisors ..
 instance star :: (ring_1_no_zero_divisors) ring_1_no_zero_divisors ..
-instance star :: (idom) idom .. 
+instance star :: (idom) idom ..
 instance star :: (idom_divide) idom_divide ..
 
 instance star :: (division_ring) division_ring
@@ -919,7 +920,7 @@ lemma star_power_def [transfer_unfold]:
   "(op ^) \<equiv> \<lambda>x n. ( *f* (\<lambda>x. x ^ n)) x"
 proof (rule eq_reflection, rule ext, rule ext)
   fix n :: nat
-  show "\<And>x::'a star. x ^ n = ( *f* (\<lambda>x. x ^ n)) x" 
+  show "\<And>x::'a star. x ^ n = ( *f* (\<lambda>x. x ^ n)) x"
   proof (induct n)
     case 0
     have "\<And>x::'a star. ( *f* (\<lambda>x. 1)) x = 1"

@@ -635,7 +635,7 @@ next
   case False then have "a * 0 div a = 0"
     by (rule nonzero_mult_divide_cancel_left)
   then show ?thesis by simp
-qed 
+qed
 
 lemma divide_1 [simp]:
   "a div 1 = a"
@@ -663,16 +663,16 @@ proof
   with assms have "c = b * d" by (simp add: ac_simps)
   then show ?Q ..
 next
-  assume ?Q then obtain d where "c = b * d" .. 
+  assume ?Q then obtain d where "c = b * d" ..
   then have "a * c = a * b * d" by (simp add: ac_simps)
   then show ?P ..
 qed
-  
+
 lemma dvd_times_right_cancel_iff [simp]:
   assumes "a \<noteq> 0"
   shows "b * a dvd c * a \<longleftrightarrow> b dvd c" (is "?P \<longleftrightarrow> ?Q")
 using dvd_times_left_cancel_iff [of a b c] assms by (simp add: ac_simps)
-  
+
 lemma div_dvd_iff_mult:
   assumes "b \<noteq> 0" and "b dvd a"
   shows "a div b dvd c \<longleftrightarrow> a dvd c * b"
@@ -991,7 +991,7 @@ class normalization_semidom = algebraic_semidom +
     and unit_factor_0 [simp]: "unit_factor 0 = 0"
   assumes is_unit_normalize:
     "is_unit a  \<Longrightarrow> normalize a = 1"
-  assumes unit_factor_is_unit [iff]: 
+  assumes unit_factor_is_unit [iff]:
     "a \<noteq> 0 \<Longrightarrow> is_unit (unit_factor a)"
   assumes unit_factor_mult: "unit_factor (a * b) = unit_factor a * unit_factor b"
 begin
@@ -1012,8 +1012,8 @@ lemma unit_factor_dvd [simp]:
 
 lemma unit_factor_self [simp]:
   "unit_factor a dvd a"
-  by (cases "a = 0") simp_all 
-  
+  by (cases "a = 0") simp_all
+
 lemma normalize_mult_unit_factor [simp]:
   "normalize a * unit_factor a = a"
   using unit_factor_mult_normalize [of a] by (simp add: ac_simps)
@@ -1023,7 +1023,7 @@ lemma normalize_eq_0_iff [simp]:
 proof
   assume ?P
   moreover have "unit_factor a * normalize a = a" by simp
-  ultimately show ?Q by simp 
+  ultimately show ?Q by simp
 next
   assume ?Q then show ?P by simp
 qed
@@ -1033,14 +1033,14 @@ lemma unit_factor_eq_0_iff [simp]:
 proof
   assume ?P
   moreover have "unit_factor a * normalize a = a" by simp
-  ultimately show ?Q by simp 
+  ultimately show ?Q by simp
 next
   assume ?Q then show ?P by simp
 qed
 
 lemma is_unit_unit_factor:
   assumes "is_unit a" shows "unit_factor a = a"
-proof - 
+proof -
   from assms have "normalize a = 1" by (rule is_unit_normalize)
   moreover from unit_factor_mult_normalize have "unit_factor a * normalize a = a" .
   ultimately show ?thesis by simp
@@ -1069,13 +1069,13 @@ next
     using \<open>a \<noteq> 0\<close> by simp
   ultimately show ?Q by simp
 qed
-  
+
 lemma div_normalize [simp]:
   "a div normalize a = unit_factor a"
 proof (cases "a = 0")
   case True then show ?thesis by simp
 next
-  case False then have "normalize a \<noteq> 0" by simp 
+  case False then have "normalize a \<noteq> 0" by simp
   with nonzero_mult_divide_cancel_right
   have "unit_factor a * normalize a div normalize a = unit_factor a" by blast
   then show ?thesis by simp
@@ -1086,7 +1086,7 @@ lemma div_unit_factor [simp]:
 proof (cases "a = 0")
   case True then show ?thesis by simp
 next
-  case False then have "unit_factor a \<noteq> 0" by simp 
+  case False then have "unit_factor a \<noteq> 0" by simp
   with nonzero_mult_divide_cancel_left
   have "unit_factor a * normalize a div unit_factor a = normalize a" by blast
   then show ?thesis by simp
@@ -1126,7 +1126,7 @@ next
     using False by (simp add: mult.commute [of a] mult.commute [of "normalize a"] unit_div_mult_swap [symmetric])
   finally show ?thesis .
 qed
- 
+
 lemma unit_factor_idem [simp]:
   "unit_factor (unit_factor a) = unit_factor a"
   by (cases "a = 0") (auto intro: is_unit_unit_factor)
@@ -1134,7 +1134,7 @@ lemma unit_factor_idem [simp]:
 lemma normalize_unit_factor [simp]:
   "a \<noteq> 0 \<Longrightarrow> normalize (unit_factor a) = 1"
   by (rule is_unit_normalize) simp
-  
+
 lemma normalize_idem [simp]:
   "normalize (normalize a) = normalize a"
 proof (cases "a = 0")
@@ -1257,7 +1257,7 @@ next
   proof (cases "a = 0 \<or> b = 0")
     case True with \<open>?P\<close> show ?thesis by auto
   next
-    case False 
+    case False
     then have "b dvd normalize b * unit_factor a" and "normalize b * unit_factor a dvd b"
       by (simp_all add: mult_unit_dvd_iff dvd_mult_unit_iff)
     with * show ?thesis by simp
@@ -1277,7 +1277,7 @@ qed
 
 end
 
-class ordered_semiring = semiring + comm_monoid_add + ordered_ab_semigroup_add +
+class ordered_semiring = semiring + ordered_comm_monoid_add +
   assumes mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
   assumes mult_right_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a * c \<le> b * c"
 begin
@@ -1324,7 +1324,7 @@ begin
 
 subclass ordered_cancel_semiring ..
 
-subclass ordered_comm_monoid_add ..
+subclass ordered_cancel_comm_monoid_add ..
 
 lemma mult_left_less_imp_less:
   "c * a < c * b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a < b"
@@ -1742,14 +1742,14 @@ lemma le_add_diff_inverse [simp]: "b \<le> a \<Longrightarrow> b + (a - b) = a"
 lemma add_diff_inverse: "~ a<b \<Longrightarrow> b + (a - b) = a"
   by simp
 
-lemma add_le_imp_le_diff: 
+lemma add_le_imp_le_diff:
   shows "i + k \<le> n \<Longrightarrow> i \<le> n - k"
   apply (subst add_le_cancel_right [where c=k, symmetric])
   apply (frule le_add_diff_inverse2)
   apply (simp only: add.assoc [symmetric])
   using add_implies_diff by fastforce
 
-lemma add_le_add_imp_diff_le: 
+lemma add_le_add_imp_diff_le:
   assumes a1: "i + k \<le> n"
       and a2: "n \<le> j + k"
   shows "\<lbrakk>i + k \<le> n; n \<le> j + k\<rbrakk> \<Longrightarrow> n - k \<le> j"
@@ -2033,6 +2033,20 @@ lemma abs_diff_le_iff:
   by (auto simp add: diff_le_eq ac_simps abs_le_iff)
 
 end
+
+subsection \<open>Dioids\<close>
+
+text \<open>Dioids are the alternative extensions of semirings, a semiring can either be a ring or a dioid
+but never both.\<close>
+
+class dioid = semiring_1 + canonically_ordered_monoid_add
+begin
+
+subclass ordered_semiring
+  proof qed (auto simp: le_iff_add distrib_left distrib_right)
+
+end
+
 
 hide_fact (open) comm_mult_left_mono comm_mult_strict_left_mono distrib
 

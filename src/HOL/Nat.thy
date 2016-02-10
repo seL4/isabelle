@@ -735,8 +735,11 @@ text \<open>Addition is the inverse of subtraction:
 lemma add_diff_inverse_nat: "~  m < n ==> n + (m - n) = (m::nat)"
 by (induct m n rule: diff_induct) simp_all
 
+lemma nat_le_iff_add: "(m::nat) \<le> n = (\<exists>k. n = m + k)"
+using nat_add_left_cancel_le[of m 0] by (auto dest: le_Suc_ex)
 
-text\<open>The naturals form an ordered \<open>semidom\<close>\<close>
+text\<open>The naturals form an ordered \<open>semidom\<close> and a \<open>dioid\<close>\<close>
+
 instance nat :: linordered_semidom
 proof
   show "0 < (1::nat)" by simp
@@ -745,8 +748,16 @@ proof
   show "\<And>m n :: nat. m \<noteq> 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> m * n \<noteq> 0" by simp
   show "\<And>m n :: nat. n \<le> m ==> (m - n) + n = (m::nat)"
     by (simp add: add_diff_inverse_nat add.commute linorder_not_less)
-qed 
+qed
 
+instance nat :: dioid
+  proof qed (rule nat_le_iff_add)
+
+instance nat :: ordered_cancel_comm_monoid_add
+  proof qed
+
+instance nat :: ordered_cancel_comm_monoid_diff
+  proof qed
 
 subsubsection \<open>@{term min} and @{term max}\<close>
 
@@ -1078,14 +1089,6 @@ done
 
 lemma diff_le_self [simp]: "m - n \<le> (m::nat)"
 by (induct m n rule: diff_induct) (simp_all add: le_SucI)
-
-lemma le_iff_add: "(m::nat) \<le> n = (\<exists>k. n = m + k)"
-  by (auto simp: le_add1 dest!: le_add_diff_inverse sym [of _ n])
-
-instance nat :: ordered_cancel_comm_monoid_diff
-proof
-  show "\<And>m n :: nat. m \<le> n \<longleftrightarrow> (\<exists>q. n = m + q)" by (fact le_iff_add)
-qed
 
 lemma less_imp_diff_less: "(j::nat) < k ==> j - n < k"
 by (rule le_less_trans, rule diff_le_self)
@@ -1488,7 +1491,7 @@ lemma of_nat_less_0_iff [simp]: "\<not> of_nat m < 0"
   by (simp add: not_less)
 
 lemma of_nat_less_iff [simp]: "of_nat m < of_nat n \<longleftrightarrow> m < n"
-  by (induct m n rule: diff_induct, simp_all add: add_pos_nonneg)
+  by (induct m n rule: diff_induct) (simp_all add: add_pos_nonneg)
 
 lemma of_nat_le_iff [simp]: "of_nat m \<le> of_nat n \<longleftrightarrow> m \<le> n"
   by (simp add: not_less [symmetric] linorder_not_less [symmetric])

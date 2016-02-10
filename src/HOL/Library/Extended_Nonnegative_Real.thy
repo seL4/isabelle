@@ -78,6 +78,13 @@ end
 lemma ennreal_zero_less_one: "0 < (1::ennreal)"
   by transfer auto
 
+instance ennreal :: dioid
+proof (standard; transfer)
+  fix a b :: ereal assume "0 \<le> a" "0 \<le> b" then show "(a \<le> b) = (\<exists>c\<in>Collect (op \<le> 0). b = a + c)"
+    unfolding ereal_ex_split Bex_def
+    by (cases a b rule: ereal2_cases) (auto intro!: exI[of _ "real_of_ereal (b - a)"])
+qed
+
 instance ennreal :: ordered_comm_semiring
   by standard
      (transfer ; auto intro: add_mono mult_mono mult_ac ereal_left_distrib ereal_mult_left_mono)+

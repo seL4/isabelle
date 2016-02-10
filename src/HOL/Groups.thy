@@ -78,7 +78,7 @@ end
 
 subsection \<open>Generic operations\<close>
 
-class zero = 
+class zero =
   fixes zero :: 'a  ("0")
 
 class one =
@@ -310,7 +310,7 @@ proof -
   then show "c = a - b" by simp
 qed
 
-end  
+end
 
 class comm_monoid_diff = cancel_comm_monoid_add +
   assumes zero_diff [simp]: "0 - a = 0"
@@ -428,7 +428,7 @@ lemma diff_0 [simp]:
   by (simp only: diff_conv_add_uminus add_0_left)
 
 lemma diff_0_right [simp]:
-  "a - 0 = a" 
+  "a - 0 = a"
   by (simp only: diff_conv_add_uminus minus_zero add_0_right)
 
 lemma diff_minus_eq_add [simp]:
@@ -436,8 +436,8 @@ lemma diff_minus_eq_add [simp]:
   by (simp only: diff_conv_add_uminus minus_minus)
 
 lemma neg_equal_iff_equal [simp]:
-  "- a = - b \<longleftrightarrow> a = b" 
-proof 
+  "- a = - b \<longleftrightarrow> a = b"
+proof
   assume "- a = - b"
   hence "- (- a) = - (- b)" by simp
   thus "a = b" by simp
@@ -557,15 +557,15 @@ lemma diff_add_eq [algebra_simps, field_simps]:
 end
 
 
-subsection \<open>(Partially) Ordered Groups\<close> 
+subsection \<open>(Partially) Ordered Groups\<close>
 
 text \<open>
   The theory of partially ordered groups is taken from the books:
   \begin{itemize}
-  \item \emph{Lattice Theory} by Garret Birkhoff, American Mathematical Society 1979 
+  \item \emph{Lattice Theory} by Garret Birkhoff, American Mathematical Society 1979
   \item \emph{Partially Ordered Algebraic Systems}, Pergamon Press 1963
   \end{itemize}
-  Most of the used notions can also be looked up in 
+  Most of the used notions can also be looked up in
   \begin{itemize}
   \item @{url "http://www.mathworld.com"} by Eric Weisstein et. al.
   \item \emph{Algebra I} by van der Waerden, Springer.
@@ -617,7 +617,7 @@ done
 lemma add_le_less_mono:
   "a \<le> b \<Longrightarrow> c < d \<Longrightarrow> a + c < b + d"
 apply (erule add_right_mono [THEN le_less_trans])
-apply (erule add_strict_left_mono) 
+apply (erule add_strict_left_mono)
 done
 
 end
@@ -631,7 +631,7 @@ lemma add_less_imp_less_left:
   assumes less: "c + a < c + b" shows "a < b"
 proof -
   from less have le: "c + a <= c + b" by (simp add: order_le_less)
-  have "a <= b" 
+  have "a <= b"
     apply (insert le)
     apply (drule add_le_imp_le_left)
     by (insert le, drule add_le_imp_le_left, assumption)
@@ -648,12 +648,12 @@ qed
 lemma add_less_imp_less_right:
   "a + c < b + c \<Longrightarrow> a < b"
 apply (rule add_less_imp_less_left [of c])
-apply (simp add: add.commute)  
+apply (simp add: add.commute)
 done
 
 lemma add_less_cancel_left [simp]:
   "c + a < c + b \<longleftrightarrow> a < b"
-  by (blast intro: add_less_imp_less_left add_strict_left_mono) 
+  by (blast intro: add_less_imp_less_left add_strict_left_mono)
 
 lemma add_less_cancel_right [simp]:
   "a + c < b + c \<longleftrightarrow> a < b"
@@ -661,7 +661,7 @@ lemma add_less_cancel_right [simp]:
 
 lemma add_le_cancel_left [simp]:
   "c + a \<le> c + b \<longleftrightarrow> a \<le> b"
-  by (auto, drule add_le_imp_le_left, simp_all add: add_left_mono) 
+  by (auto, drule add_le_imp_le_left, simp_all add: add_left_mono)
 
 lemma add_le_cancel_right [simp]:
   "a + c \<le> b + c \<longleftrightarrow> a \<le> b"
@@ -689,8 +689,74 @@ lemma min_add_distrib_right:
 
 end
 
-class ordered_cancel_comm_monoid_diff = comm_monoid_diff + ordered_ab_semigroup_add_imp_le +
+subsection \<open>Support for reasoning about signs\<close>
+
+class ordered_comm_monoid_add = comm_monoid_add + ordered_ab_semigroup_add
+begin
+
+lemma add_nonneg_nonneg [simp]:
+  assumes "0 \<le> a" and "0 \<le> b" shows "0 \<le> a + b"
+proof -
+  have "0 + 0 \<le> a + b"
+    using assms by (rule add_mono)
+  then show ?thesis by simp
+qed
+
+lemma add_nonpos_nonpos:
+  assumes "a \<le> 0" and "b \<le> 0" shows "a + b \<le> 0"
+proof -
+  have "a + b \<le> 0 + 0"
+    using assms by (rule add_mono)
+  then show ?thesis by simp
+qed
+
+lemma add_nonneg_eq_0_iff:
+  assumes x: "0 \<le> x" and y: "0 \<le> y"
+  shows "x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+proof (intro iffI conjI)
+  have "x = x + 0" by simp
+  also have "x + 0 \<le> x + y" using y by (rule add_left_mono)
+  also assume "x + y = 0"
+  also have "0 \<le> x" using x .
+  finally show "x = 0" .
+next
+  have "y = 0 + y" by simp
+  also have "0 + y \<le> x + y" using x by (rule add_right_mono)
+  also assume "x + y = 0"
+  also have "0 \<le> y" using y .
+  finally show "y = 0" .
+next
+  assume "x = 0 \<and> y = 0"
+  then show "x + y = 0" by simp
+qed
+
+lemma add_increasing:
+  "0 \<le> a \<Longrightarrow> b \<le> c \<Longrightarrow> b \<le> a + c"
+  by (insert add_mono [of 0 a b c], simp)
+
+lemma add_increasing2:
+  "0 \<le> c \<Longrightarrow> b \<le> a \<Longrightarrow> b \<le> a + c"
+  by (simp add: add_increasing add.commute [of a])
+
+end
+
+class canonically_ordered_monoid_add = comm_monoid_add + order +
   assumes le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists>c. b = a + c)"
+begin
+
+subclass ordered_comm_monoid_add
+  proof qed (auto simp: le_iff_add add_ac)
+
+lemma zero_le: "0 \<le> x"
+  by (auto simp: le_iff_add)
+
+lemma add_eq_0_iff_both_eq_0: "x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  by (intro add_nonneg_eq_0_iff zero_le)
+
+end
+
+class ordered_cancel_comm_monoid_diff =
+  canonically_ordered_monoid_add + comm_monoid_diff + ordered_ab_semigroup_add_imp_le
 begin
 
 context
@@ -750,40 +816,11 @@ end
 
 end
 
-
-subsection \<open>Support for reasoning about signs\<close>
-
-class ordered_comm_monoid_add =
-  ordered_cancel_ab_semigroup_add + comm_monoid_add
+class ordered_cancel_comm_monoid_add =
+  ordered_comm_monoid_add + cancel_ab_semigroup_add
 begin
 
-lemma add_pos_nonneg:
-  assumes "0 < a" and "0 \<le> b" shows "0 < a + b"
-proof -
-  have "0 + 0 < a + b" 
-    using assms by (rule add_less_le_mono)
-  then show ?thesis by simp
-qed
-
-lemma add_pos_pos:
-  assumes "0 < a" and "0 < b" shows "0 < a + b"
-by (rule add_pos_nonneg) (insert assms, auto)
-
-lemma add_nonneg_pos:
-  assumes "0 \<le> a" and "0 < b" shows "0 < a + b"
-proof -
-  have "0 + 0 < a + b" 
-    using assms by (rule add_le_less_mono)
-  then show ?thesis by simp
-qed
-
-lemma add_nonneg_nonneg [simp]:
-  assumes "0 \<le> a" and "0 \<le> b" shows "0 \<le> a + b"
-proof -
-  have "0 + 0 \<le> a + b" 
-    using assms by (rule add_mono)
-  then show ?thesis by simp
-qed
+subclass ordered_cancel_ab_semigroup_add ..
 
 lemma add_neg_nonpos:
   assumes "a < 0" and "b \<le> 0" shows "a + b < 0"
@@ -793,7 +830,7 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma add_neg_neg: 
+lemma add_neg_neg:
   assumes "a < 0" and "b < 0" shows "a + b < 0"
 by (rule add_neg_nonpos) (insert assms, auto)
 
@@ -805,45 +842,29 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma add_nonpos_nonpos:
-  assumes "a \<le> 0" and "b \<le> 0" shows "a + b \<le> 0"
+lemma add_pos_nonneg:
+  assumes "0 < a" and "0 \<le> b" shows "0 < a + b"
 proof -
-  have "a + b \<le> 0 + 0"
-    using assms by (rule add_mono)
+  have "0 + 0 < a + b"
+    using assms by (rule add_less_le_mono)
+  then show ?thesis by simp
+qed
+
+lemma add_pos_pos:
+  assumes "0 < a" and "0 < b" shows "0 < a + b"
+by (rule add_pos_nonneg) (insert assms, auto)
+
+lemma add_nonneg_pos:
+  assumes "0 \<le> a" and "0 < b" shows "0 < a + b"
+proof -
+  have "0 + 0 < a + b"
+    using assms by (rule add_le_less_mono)
   then show ?thesis by simp
 qed
 
 lemmas add_sign_intros =
   add_pos_nonneg add_pos_pos add_nonneg_pos add_nonneg_nonneg
   add_neg_nonpos add_neg_neg add_nonpos_neg add_nonpos_nonpos
-
-lemma add_nonneg_eq_0_iff:
-  assumes x: "0 \<le> x" and y: "0 \<le> y"
-  shows "x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
-proof (intro iffI conjI)
-  have "x = x + 0" by simp
-  also have "x + 0 \<le> x + y" using y by (rule add_left_mono)
-  also assume "x + y = 0"
-  also have "0 \<le> x" using x .
-  finally show "x = 0" .
-next
-  have "y = 0 + y" by simp
-  also have "0 + y \<le> x + y" using x by (rule add_right_mono)
-  also assume "x + y = 0"
-  also have "0 \<le> y" using y .
-  finally show "y = 0" .
-next
-  assume "x = 0 \<and> y = 0"
-  then show "x + y = 0" by simp
-qed
-
-lemma add_increasing:
-  "0 \<le> a \<Longrightarrow> b \<le> c \<Longrightarrow> b \<le> a + c"
-  by (insert add_mono [of 0 a b c], simp)
-
-lemma add_increasing2:
-  "0 \<le> c \<Longrightarrow> b \<le> a \<Longrightarrow> b \<le> a + c"
-  by (simp add: add_increasing add.commute [of a])
 
 lemma add_strict_increasing:
   "0 < a \<Longrightarrow> b \<le> c \<Longrightarrow> b < a + c"
@@ -855,8 +876,7 @@ lemma add_strict_increasing2:
 
 end
 
-class ordered_ab_group_add =
-  ab_group_add + ordered_ab_semigroup_add
+class ordered_ab_group_add = ab_group_add + ordered_ab_semigroup_add
 begin
 
 subclass ordered_cancel_ab_semigroup_add ..
@@ -870,7 +890,7 @@ proof
   thus "a \<le> b" by simp
 qed
 
-subclass ordered_comm_monoid_add ..
+subclass ordered_cancel_comm_monoid_add ..
 
 lemma add_less_same_cancel1 [simp]:
   "b + a < b \<longleftrightarrow> a < 0"
@@ -915,14 +935,14 @@ lemma min_diff_distrib_left:
 lemma le_imp_neg_le:
   assumes "a \<le> b" shows "-b \<le> -a"
 proof -
-  have "-a+a \<le> -a+b" using \<open>a \<le> b\<close> by (rule add_left_mono) 
+  have "-a+a \<le> -a+b" using \<open>a \<le> b\<close> by (rule add_left_mono)
   then have "0 \<le> -a+b" by simp
-  then have "0 + (-b) \<le> (-a + b) + (-b)" by (rule add_right_mono) 
+  then have "0 + (-b) \<le> (-a + b) + (-b)" by (rule add_right_mono)
   then show ?thesis by (simp add: algebra_simps)
 qed
 
 lemma neg_le_iff_le [simp]: "- b \<le> - a \<longleftrightarrow> a \<le> b"
-proof 
+proof
   assume "- b \<le> - a"
   hence "- (- a) \<le> - (- b)" by (rule le_imp_neg_le)
   thus "a\<le>b" by simp
@@ -938,7 +958,7 @@ lemma neg_0_le_iff_le [simp]: "0 \<le> - a \<longleftrightarrow> a \<le> 0"
 by (subst neg_le_iff_le [symmetric], simp)
 
 lemma neg_less_iff_less [simp]: "- b < - a \<longleftrightarrow> a < b"
-by (force simp add: less_le) 
+by (force simp add: less_le)
 
 lemma neg_less_0_iff_less [simp]: "- a < 0 \<longleftrightarrow> 0 < a"
 by (subst neg_less_iff_less [symmetric], simp)
@@ -963,7 +983,7 @@ qed
 lemma le_minus_iff: "a \<le> - b \<longleftrightarrow> b \<le> - a"
 proof -
   have mm: "!! a (b::'a). (-(-a)) < -b \<Longrightarrow> -(-b) < -a" by (simp only: minus_less_iff)
-  have "(- (- a) <= -b) = (b <= - a)" 
+  have "(- (- a) <= -b) = (b <= - a)"
     apply (auto simp only: le_less)
     apply (drule mm)
     apply (simp_all)
@@ -1078,18 +1098,18 @@ subclass linordered_ab_semigroup_add ..
 subclass ordered_ab_semigroup_add_imp_le
 proof
   fix a b c :: 'a
-  assume le: "c + a <= c + b"  
+  assume le: "c + a <= c + b"
   show "a <= b"
   proof (rule ccontr)
     assume w: "~ a \<le> b"
     hence "b <= a" by (simp add: linorder_not_le)
     hence le2: "c + b <= c + a" by (rule add_left_mono)
-    have "a = b" 
+    have "a = b"
       apply (insert le)
       apply (insert le2)
       apply (drule antisym, simp_all)
       done
-    with w show False 
+    with w show False
       by (simp add: linorder_not_le [symmetric])
   qed
 qed
@@ -1192,7 +1212,7 @@ proof -
 qed
 
 lemma double_add_le_zero_iff_single_add_le_zero [simp]:
-  "a + a \<le> 0 \<longleftrightarrow> a \<le> 0" 
+  "a + a \<le> 0 \<longleftrightarrow> a \<le> 0"
 proof -
   have "\<not> a + a \<le> 0 \<longleftrightarrow> \<not> a \<le> 0"
     by (simp add: not_le)
@@ -1272,7 +1292,7 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma abs_le_zero_iff [simp]: "\<bar>a\<bar> \<le> 0 \<longleftrightarrow> a = 0" 
+lemma abs_le_zero_iff [simp]: "\<bar>a\<bar> \<le> 0 \<longleftrightarrow> a = 0"
 proof
   assume "\<bar>a\<bar> \<le> 0"
   then have "\<bar>a\<bar> = 0" by (rule antisym) simp
@@ -1297,7 +1317,7 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma abs_minus_commute: 
+lemma abs_minus_commute:
   "\<bar>a - b\<bar> = \<bar>b - a\<bar>"
 proof -
   have "\<bar>a - b\<bar> = \<bar>- (a - b)\<bar>" by (simp only: abs_minus_cancel)
@@ -1318,7 +1338,7 @@ proof -
   unfolding minus_minus by (erule abs_of_nonneg)
   then show ?thesis using assms by auto
 qed
-  
+
 lemma abs_of_neg: "a < 0 \<Longrightarrow> \<bar>a\<bar> = - a"
 by (rule abs_of_nonpos, rule less_imp_le)
 

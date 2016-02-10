@@ -565,7 +565,7 @@ next
     then have "(\<Sum> j \<in> s. a j) = 0"
       using insert by auto
     then have "\<And>j. j \<in> s \<Longrightarrow> a j = 0"
-      using setsum_nonneg_0[where 'b=real] insert by fastforce
+      using insert by (fastforce simp: setsum_nonneg_eq_0_iff)
     then show ?thesis
       using insert by auto
   next

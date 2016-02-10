@@ -19,6 +19,26 @@ AFP-entry \<open>Jinja_Thread\<close> fails, as it does overload certain named f
 
 \<close>
 
+lemma image_eqD: "f ` A = B \<Longrightarrow> \<forall>x\<in>A. f x \<in> B"
+  by auto
+
+lemma incseq_setsumI2:
+  fixes f :: "'i \<Rightarrow> nat \<Rightarrow> 'a::ordered_comm_monoid_add"
+  shows "(\<And>n. n \<in> A \<Longrightarrow> mono (f n)) \<Longrightarrow> mono (\<lambda>i. \<Sum>n\<in>A. f n i)"
+  unfolding incseq_def by (auto intro: setsum_mono)
+
+lemma incseq_setsumI:
+  fixes f :: "nat \<Rightarrow> 'a::ordered_comm_monoid_add"
+  assumes "\<And>i. 0 \<le> f i"
+  shows "incseq (\<lambda>i. setsum f {..< i})"
+proof (intro incseq_SucI)
+  fix n
+  have "setsum f {..< n} + 0 \<le> setsum f {..<n} + f n"
+    using assms by (rule add_left_mono)
+  then show "setsum f {..< n} \<le> setsum f {..< Suc n}"
+    by auto
+qed
+
 lemma continuous_at_left_imp_sup_continuous:
   fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology}"
   assumes "mono f" "\<And>x. continuous (at_left x) f"
@@ -535,7 +555,7 @@ lemma ereal_dense2: "x < y \<Longrightarrow> \<exists>z. x < ereal z \<and> erea
 instance ereal :: dense_linorder
   by standard (blast dest: ereal_dense2)
 
-instance ereal :: ordered_ab_semigroup_add
+instance ereal :: ordered_comm_monoid_add
 proof
   fix a b c :: ereal
   assume "a \<le> b"
@@ -741,28 +761,6 @@ lemma ereal_add_nonneg_nonneg[simp]:
   fixes a b :: ereal
   shows "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a + b"
   using add_mono[of 0 a 0 b] by simp
-
-lemma image_eqD: "f ` A = B \<Longrightarrow> \<forall>x\<in>A. f x \<in> B"
-  by auto
-
-lemma incseq_setsumI:
-  fixes f :: "nat \<Rightarrow> 'a::{comm_monoid_add,ordered_ab_semigroup_add}"
-  assumes "\<And>i. 0 \<le> f i"
-  shows "incseq (\<lambda>i. setsum f {..< i})"
-proof (intro incseq_SucI)
-  fix n
-  have "setsum f {..< n} + 0 \<le> setsum f {..<n} + f n"
-    using assms by (rule add_left_mono)
-  then show "setsum f {..< n} \<le> setsum f {..< Suc n}"
-    by auto
-qed
-
-lemma incseq_setsumI2:
-  fixes f :: "'i \<Rightarrow> nat \<Rightarrow> 'a::{comm_monoid_add,ordered_ab_semigroup_add}"
-  assumes "\<And>n. n \<in> A \<Longrightarrow> incseq (f n)"
-  shows "incseq (\<lambda>i. \<Sum>n\<in>A. f n i)"
-  using assms
-  unfolding incseq_def by (auto intro: setsum_mono)
 
 lemma setsum_ereal[simp]: "(\<Sum>x\<in>A. ereal (f x)) = ereal (\<Sum>x\<in>A. f x)"
 proof (cases "finite A")

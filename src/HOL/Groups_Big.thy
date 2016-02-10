@@ -111,7 +111,7 @@ qed
 lemma setdiff_irrelevant:
   assumes "finite A"
   shows "F g (A - {x. g x = z}) = F g A"
-  using assms by (induct A) (simp_all add: insert_Diff_if) 
+  using assms by (induct A) (simp_all add: insert_Diff_if)
 
 lemma not_neutral_contains_not_neutral:
   assumes "F g A \<noteq> z"
@@ -196,9 +196,9 @@ apply (subst UNION_disjoint, simp, simp)
 apply (simp add: comp_def)
 done
 
-lemma related: 
-  assumes Re: "R 1 1" 
-  and Rop: "\<forall>x1 y1 x2 y2. R x1 x2 \<and> R y1 y2 \<longrightarrow> R (x1 * y1) (x2 * y2)" 
+lemma related:
+  assumes Re: "R 1 1"
+  and Rop: "\<forall>x1 y1 x2 y2. R x1 x2 \<and> R y1 y2 \<longrightarrow> R (x1 * y1) (x2 * y2)"
   and fS: "finite S" and Rfg: "\<forall>x\<in>S. R (h x) (g x)"
   shows "R (F h S) (F g S)"
   using fS by (rule finite_subset_induct) (insert assms, auto)
@@ -305,7 +305,7 @@ proof -
     by (intro reindex_bij_betw_not_neutral[OF _ _ bij]) auto
 qed
 
-lemma delta: 
+lemma delta:
   assumes fS: "finite S"
   shows "F (\<lambda>k. if k = a then b k else 1) S = (if a \<in> S then b a else 1)"
 proof-
@@ -317,9 +317,9 @@ proof-
   { assume a: "a \<in> S"
     let ?A = "S - {a}"
     let ?B = "{a}"
-    have eq: "S = ?A \<union> ?B" using a by blast 
+    have eq: "S = ?A \<union> ?B" using a by blast
     have dj: "?A \<inter> ?B = {}" by simp
-    from fS have fAB: "finite ?A" "finite ?B" by auto  
+    from fS have fAB: "finite ?A" "finite ?B" by auto
     have "F ?f S = F ?f ?A * F ?f ?B"
       using union_disjoint [OF fAB dj, of ?f, unfolded eq [symmetric]]
       by simp
@@ -327,7 +327,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-lemma delta': 
+lemma delta':
   assumes fS: "finite S"
   shows "F (\<lambda>k. if a = k then b k else 1) S = (if a \<in> S then b a else 1)"
   using delta [OF fS, of a b, symmetric] by (auto intro: cong)
@@ -338,10 +338,10 @@ lemma If_cases:
   shows "F (\<lambda>x. if P x then h x else g x) A =
     F h (A \<inter> {x. P x}) * F g (A \<inter> - {x. P x})"
 proof -
-  have a: "A = A \<inter> {x. P x} \<union> A \<inter> -{x. P x}" 
-          "(A \<inter> {x. P x}) \<inter> (A \<inter> -{x. P x}) = {}" 
+  have a: "A = A \<inter> {x. P x} \<union> A \<inter> -{x. P x}"
+          "(A \<inter> {x. P x}) \<inter> (A \<inter> -{x. P x}) = {}"
     by blast+
-  from fA 
+  from fA
   have f: "finite (A \<inter> {x. P x})" "finite (A \<inter> -{x. P x})" by auto
   let ?g = "\<lambda>x. if P x then h x else g x"
   from union_disjoint [OF f a(2), of ?g] a(1)
@@ -352,8 +352,8 @@ qed
 lemma cartesian_product:
    "F (\<lambda>x. F (g x) B) A = F (case_prod g) (A \<times> B)"
 apply (rule sym)
-apply (cases "finite A") 
- apply (cases "finite B") 
+apply (cases "finite A")
+ apply (cases "finite B")
   apply (simp add: Sigma)
  apply (cases "A={}", simp)
  apply simp
@@ -512,7 +512,7 @@ in [(@{const_syntax setsum}, K setsum_tr')] end
 
 text \<open>TODO generalization candidates\<close>
 
-lemma setsum_image_gen:
+lemma (in comm_monoid_add) setsum_image_gen:
   assumes fS: "finite S"
   shows "setsum g S = setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) (f ` S)"
 proof-
@@ -557,13 +557,13 @@ proof -
     thus ?case by auto
   next
     case (insert x F)
-    thus ?case using le finiteB 
+    thus ?case using le finiteB
       by (simp add: Diff_insert[where a=x and B=F] setsum_diff1 insert_absorb)
   qed
 qed
 
-lemma setsum_mono:
-  assumes le: "\<And>i. i\<in>K \<Longrightarrow> f (i::'a) \<le> ((g i)::('b::{comm_monoid_add, ordered_ab_semigroup_add}))"
+lemma (in ordered_comm_monoid_add) setsum_mono:
+  assumes le: "\<And>i. i\<in>K \<Longrightarrow> f i \<le> g i"
   shows "(\<Sum>i\<in>K. f i) \<le> (\<Sum>i\<in>K. g i)"
 proof (cases "finite K")
   case True
@@ -579,10 +579,8 @@ next
   case False then show ?thesis by simp
 qed
 
-lemma setsum_strict_mono:
-  fixes f :: "'a \<Rightarrow> 'b::{ordered_cancel_ab_semigroup_add,comm_monoid_add}"
-  assumes "finite A"  "A \<noteq> {}"
-    and "!!x. x:A \<Longrightarrow> f x < g x"
+lemma (in ordered_cancel_comm_monoid_add) setsum_strict_mono:
+  assumes "finite A"  "A \<noteq> {}" and "\<And>x. x \<in> A \<Longrightarrow> f x < g x"
   shows "setsum f A < setsum g A"
   using assms
 proof (induct rule: finite_ne_induct)
@@ -592,9 +590,9 @@ next
 qed
 
 lemma setsum_strict_mono_ex1:
-fixes f :: "'a \<Rightarrow> 'b::{comm_monoid_add, ordered_cancel_ab_semigroup_add}"
-assumes "finite A" and "ALL x:A. f x \<le> g x" and "EX a:A. f a < g a"
-shows "setsum f A < setsum g A"
+  fixes f g :: "'i \<Rightarrow> 'a::ordered_cancel_comm_monoid_add"
+  assumes "finite A" and "ALL x:A. f x \<le> g x" and "\<exists>a\<in>A. f a < g a"
+  shows "setsum f A < setsum g A"
 proof-
   from assms(3) obtain a where a: "a:A" "f a < g a" by blast
   have "setsum f A = setsum f ((A-{a}) \<union> {a})"
@@ -624,8 +622,8 @@ lemma setsum_subtractf_nat:
   "(\<And>x. x \<in> A \<Longrightarrow> g x \<le> f x) \<Longrightarrow> (\<Sum>x\<in>A. f x - g x::nat) = (\<Sum>x\<in>A. f x) - (\<Sum>x\<in>A. g x)"
   by (induction A rule: infinite_finite_induct) (auto simp: setsum_mono)
 
-lemma setsum_nonneg:
-  assumes nn: "\<forall>x\<in>A. (0::'a::{ordered_ab_semigroup_add,comm_monoid_add}) \<le> f x"
+lemma (in ordered_comm_monoid_add) setsum_nonneg:
+  assumes nn: "\<forall>x\<in>A. 0 \<le> f x"
   shows "0 \<le> setsum f A"
 proof (cases "finite A")
   case True thus ?thesis using nn
@@ -640,8 +638,8 @@ next
   case False thus ?thesis by simp
 qed
 
-lemma setsum_nonpos:
-  assumes np: "\<forall>x\<in>A. f x \<le> (0::'a::{ordered_ab_semigroup_add,comm_monoid_add})"
+lemma (in ordered_comm_monoid_add) setsum_nonpos:
+  assumes np: "\<forall>x\<in>A. f x \<le> 0"
   shows "setsum f A \<le> 0"
 proof (cases "finite A")
   case True thus ?thesis using np
@@ -656,30 +654,28 @@ next
   case False thus ?thesis by simp
 qed
 
-lemma setsum_nonneg_leq_bound:
-  fixes f :: "'a \<Rightarrow> 'b::{ordered_ab_group_add}"
+lemma (in ordered_comm_monoid_add) setsum_nonneg_eq_0_iff:
+  "finite A \<Longrightarrow> \<forall>x\<in>A. 0 \<le> f x \<Longrightarrow> setsum f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
+  by (induct set: finite, simp) (simp add: add_nonneg_eq_0_iff setsum_nonneg)
+
+lemma (in ordered_comm_monoid_add) setsum_nonneg_0:
+  "finite s \<Longrightarrow> (\<And>i. i \<in> s \<Longrightarrow> f i \<ge> 0) \<Longrightarrow> (\<Sum> i \<in> s. f i) = 0 \<Longrightarrow> i \<in> s \<Longrightarrow> f i = 0"
+  by (simp add: setsum_nonneg_eq_0_iff)
+
+lemma (in ordered_comm_monoid_add) setsum_nonneg_leq_bound:
   assumes "finite s" "\<And>i. i \<in> s \<Longrightarrow> f i \<ge> 0" "(\<Sum>i \<in> s. f i) = B" "i \<in> s"
   shows "f i \<le> B"
 proof -
-  have "0 \<le> (\<Sum> i \<in> s - {i}. f i)" and "0 \<le> f i"
-    using assms by (auto intro!: setsum_nonneg)
-  moreover
-  have "(\<Sum> i \<in> s - {i}. f i) + f i = B"
-    using assms by (simp add: setsum_diff1)
-  ultimately show ?thesis by auto
+  have "f i \<le> f i + (\<Sum>i \<in> s - {i}. f i)"
+    using assms by (intro add_increasing2 setsum_nonneg) auto
+  also have "\<dots> = B"
+    using setsum.remove[of s i f] assms by simp
+  finally show ?thesis by auto
 qed
 
-lemma setsum_nonneg_0:
-  fixes f :: "'a \<Rightarrow> 'b::{ordered_ab_group_add}"
-  assumes "finite s" and pos: "\<And> i. i \<in> s \<Longrightarrow> f i \<ge> 0"
-  and "(\<Sum> i \<in> s. f i) = 0" and i: "i \<in> s"
-  shows "f i = 0"
-  using setsum_nonneg_leq_bound[OF assms] pos[OF i] by auto
-
-lemma setsum_mono2:
-fixes f :: "'a \<Rightarrow> 'b :: ordered_comm_monoid_add"
-assumes fin: "finite B" and sub: "A \<subseteq> B" and nn: "\<And>b. b \<in> B-A \<Longrightarrow> 0 \<le> f b"
-shows "setsum f A \<le> setsum f B"
+lemma (in ordered_comm_monoid_add) setsum_mono2:
+  assumes fin: "finite B" and sub: "A \<subseteq> B" and nn: "\<And>b. b \<in> B-A \<Longrightarrow> 0 \<le> f b"
+  shows "setsum f A \<le> setsum f B"
 proof -
   have "setsum f A \<le> setsum f A + setsum f (B-A)"
     by(simp add: add_increasing2[OF setsum_nonneg] nn Ball_def)
@@ -689,8 +685,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma setsum_le_included:
-  fixes f :: "'a \<Rightarrow> 'b::ordered_comm_monoid_add"
+lemma (in ordered_comm_monoid_add) setsum_le_included:
   assumes "finite s" "finite t"
   and "\<forall>y\<in>t. 0 \<le> g y" "(\<forall>x\<in>s. \<exists>y\<in>t. i y = x \<and> f x \<le> g y)"
   shows "setsum f s \<le> setsum g t"
@@ -710,25 +705,15 @@ proof -
   finally show ?thesis .
 qed
 
-lemma setsum_mono3: "finite B ==> A <= B ==> 
-    ALL x: B - A. 
-      0 <= ((f x)::'a::{comm_monoid_add,ordered_ab_semigroup_add}) ==>
-        setsum f A <= setsum f B"
-  apply (subgoal_tac "setsum f B = setsum f A + setsum f (B - A)")
-  apply (erule ssubst)
-  apply (subgoal_tac "setsum f A + 0 <= setsum f A + setsum f (B - A)")
-  apply simp
-  apply (rule add_left_mono)
-  apply (erule setsum_nonneg)
-  apply (subst setsum.union_disjoint [THEN sym])
-  apply (erule finite_subset, assumption)
-  apply (rule finite_subset)
-  prefer 2
-  apply assumption
-  apply (auto simp add: sup_absorb2)
-done
+lemma (in ordered_comm_monoid_add) setsum_mono3:
+  "finite B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> \<forall>x\<in>B - A. 0 \<le> f x \<Longrightarrow> setsum f A \<le> setsum f B"
+  by (rule setsum_mono2) auto
 
-lemma setsum_right_distrib: 
+lemma (in canonically_ordered_monoid_add) setsum_eq_0_iff [simp]:
+  "finite F \<Longrightarrow> (setsum f F = 0) = (\<forall>a\<in>F. f a = 0)"
+  by (intro ballI setsum_nonneg_eq_0_iff zero_le)
+
+lemma setsum_right_distrib:
   fixes f :: "'a => ('b::semiring_0)"
   shows "r * setsum f A = setsum (%n. r * f n) A"
 proof (cases "finite A")
@@ -771,7 +756,7 @@ next
   case False thus ?thesis by simp
 qed
 
-lemma setsum_abs[iff]: 
+lemma setsum_abs[iff]:
   fixes f :: "'a => ('b::ordered_ab_group_add_abs)"
   shows "\<bar>setsum f A\<bar> \<le> setsum (%i. \<bar>f i\<bar>) A"
 proof (cases "finite A")
@@ -792,7 +777,7 @@ lemma setsum_abs_ge_zero[iff]:
   shows "0 \<le> setsum (%i. \<bar>f i\<bar>) A"
   by (simp add: setsum_nonneg)
 
-lemma abs_setsum_abs[simp]: 
+lemma abs_setsum_abs[simp]:
   fixes f :: "'a => ('b::ordered_ab_group_add_abs)"
   shows "\<bar>\<Sum>a\<in>A. \<bar>f a\<bar>\<bar> = (\<Sum>a\<in>A. \<bar>f a\<bar>)"
 proof (cases "finite A")
@@ -836,10 +821,6 @@ apply (erule rev_mp)
 apply (erule finite_induct, auto)
 done
 
-lemma setsum_eq_0_iff [simp]:
-  "finite F ==> (setsum f F = 0) = (ALL a:F. f a = (0::nat))"
-  by (induct set: finite) auto
-
 lemma setsum_eq_Suc0_iff: "finite A \<Longrightarrow>
   setsum f A = Suc 0 \<longleftrightarrow> (EX a:A. f a = Suc 0 & (ALL b:A. a\<noteq>b \<longrightarrow> f b = 0))"
 apply(erule finite_induct)
@@ -862,7 +843,7 @@ apply (erule finite_induct)
 apply (drule_tac a = a in mk_disjoint_insert, auto)
 done
 
-lemma setsum_diff_nat: 
+lemma setsum_diff_nat:
 assumes "finite B" and "B \<subseteq> A"
 shows "(setsum f (A - B) :: nat) = (setsum f A) - (setsum f B)"
 using assms
@@ -945,11 +926,11 @@ apply (auto simp add: algebra_simps)
 done
 
 lemma setsum_Suc: "setsum (\<lambda>x. Suc(f x)) A = setsum f A + card A"
-  using setsum.distrib[of f "\<lambda>_. 1" A] 
+  using setsum.distrib[of f "\<lambda>_. 1" A]
   by simp
 
 lemma setsum_bounded_above:
-  assumes le: "\<And>i. i\<in>A \<Longrightarrow> f i \<le> (K::'a::{semiring_1, ordered_ab_semigroup_add})"
+  assumes le: "\<And>i. i\<in>A \<Longrightarrow> f i \<le> (K::'a::{semiring_1, ordered_comm_monoid_add})"
   shows "setsum f A \<le> of_nat (card A) * K"
 proof (cases "finite A")
   case True
@@ -959,14 +940,14 @@ next
 qed
 
 lemma setsum_bounded_above_strict:
-  assumes "\<And>i. i\<in>A \<Longrightarrow> f i < (K::'a::{ordered_cancel_ab_semigroup_add,semiring_1})"
+  assumes "\<And>i. i\<in>A \<Longrightarrow> f i < (K::'a::{ordered_cancel_comm_monoid_add,semiring_1})"
           "card A > 0"
   shows "setsum f A < of_nat (card A) * K"
 using assms setsum_strict_mono[where A=A and g = "%x. K"]
 by (simp add: card_gt_0_iff)
 
 lemma setsum_bounded_below:
-  assumes le: "\<And>i. i\<in>A \<Longrightarrow> (K::'a::{semiring_1, ordered_ab_semigroup_add}) \<le> f i"
+  assumes le: "\<And>i. i\<in>A \<Longrightarrow> (K::'a::{semiring_1, ordered_comm_monoid_add}) \<le> f i"
   shows "of_nat (card A) * K \<le> setsum f A"
 proof (cases "finite A")
   case True
@@ -1011,7 +992,7 @@ proof-
   finally show ?thesis by auto
 qed
 
-lemma (in ordered_comm_monoid_add) setsum_pos: 
+lemma (in ordered_cancel_comm_monoid_add) setsum_pos:
   "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> 0 < f i) \<Longrightarrow> 0 < setsum f I"
   by (induct I rule: finite_ne_induct) (auto intro: add_pos_pos)
 
@@ -1057,7 +1038,7 @@ syntax (ASCII)
 syntax
   "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>_\<in>_./ _)" [0, 51, 10] 10)
 translations \<comment> \<open>Beware of argument permutation!\<close>
-  "\<Prod>i\<in>A. b" == "CONST setprod (\<lambda>i. b) A" 
+  "\<Prod>i\<in>A. b" == "CONST setprod (\<lambda>i. b) A"
 
 text \<open>Instead of @{term"\<Prod>x\<in>{x. P}. e"} we introduce the shorter \<open>\<Prod>x|P. e\<close>.\<close>
 
@@ -1071,7 +1052,7 @@ translations
 context comm_monoid_mult
 begin
 
-lemma setprod_dvd_setprod: 
+lemma setprod_dvd_setprod:
   "(\<And>a. a \<in> A \<Longrightarrow> f a dvd g a) \<Longrightarrow> setprod f A dvd setprod g A"
 proof (induct A rule: infinite_finite_induct)
   case infinite then show ?case by (auto intro: dvdI)
@@ -1167,7 +1148,7 @@ next
   qed
 qed
 
-lemma (in field) setprod_inversef: 
+lemma (in field) setprod_inversef:
   "finite A \<Longrightarrow> setprod (inverse \<circ> f) A = inverse (setprod f A)"
   by (induct A rule: finite_induct) simp_all
 
@@ -1195,15 +1176,13 @@ lemma (in linordered_semidom) setprod_pos:
   by (induct A rule: infinite_finite_induct) simp_all
 
 lemma (in linordered_semidom) setprod_mono:
-  assumes "\<forall>i\<in>A. 0 \<le> f i \<and> f i \<le> g i"
-  shows "setprod f A \<le> setprod g A"
-  using assms by (induct A rule: infinite_finite_induct)
-    (auto intro!: setprod_nonneg mult_mono)
+  "\<forall>i\<in>A. 0 \<le> f i \<and> f i \<le> g i \<Longrightarrow> setprod f A \<le> setprod g A"
+  by (induct A rule: infinite_finite_induct) (auto intro!: setprod_nonneg mult_mono)
 
 lemma (in linordered_semidom) setprod_mono_strict:
     assumes"finite A" "\<forall>i\<in>A. 0 \<le> f i \<and> f i < g i" "A \<noteq> {}"
     shows "setprod f A < setprod g A"
-using assms 
+using assms
 apply (induct A rule: finite_induct)
 apply (simp add: )
 apply (force intro: mult_strict_mono' setprod_nonneg)
@@ -1220,12 +1199,5 @@ lemma setprod_eq_1_iff [simp]:
 lemma setprod_pos_nat_iff [simp]:
   "finite A \<Longrightarrow> setprod f A > 0 \<longleftrightarrow> (\<forall>a\<in>A. f a > (0::nat))"
   using setprod_zero_iff by (simp del:neq0_conv add:neq0_conv [symmetric])
-
-lemma setsum_nonneg_eq_0_iff:
-  fixes f :: "'a \<Rightarrow> 'b::ordered_ab_group_add"
-  shows "\<lbrakk>finite A; \<forall>x\<in>A. 0 \<le> f x\<rbrakk> \<Longrightarrow> setsum f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
-  apply (induct set: finite, simp)
-  apply (simp add: add_nonneg_eq_0_iff setsum_nonneg)
-  done
 
 end

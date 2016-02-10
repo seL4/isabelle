@@ -302,7 +302,7 @@ lemma mset_le_exists_conv: "(A::'a multiset) \<le># B \<longleftrightarrow> (\<e
    apply (auto intro: multiset_eq_iff [THEN iffD2])
   done
 
-interpretation subset_mset: ordered_cancel_comm_monoid_diff  "op +" "op -" 0 "op \<le>#" "op <#"
+interpretation subset_mset: ordered_cancel_comm_monoid_diff  "op +" 0 "op \<le>#" "op <#" "op -"
   by standard (simp, fact mset_le_exists_conv)
 
 lemma mset_le_mono_add_right_cancel [simp]: "(A::'a multiset) + C \<le># B + C \<longleftrightarrow> A \<le># B"

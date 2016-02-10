@@ -62,6 +62,9 @@ lemma not_infinity_eq [iff]: "(x \<noteq> \<infinity>) = (\<exists>i. x = enat i
 lemma not_enat_eq [iff]: "(\<forall>y. x \<noteq> enat y) = (x = \<infinity>)"
   by (cases x) auto
 
+lemma enat_ex_split: "(\<exists>c::enat. P c) \<longleftrightarrow> P \<infinity> \<or> (\<exists>c::nat. P c)"
+  by (metis enat.exhaust)
+
 primrec the_enat :: "enat \<Rightarrow> nat"
   where "the_enat (enat n) = n"
 
@@ -359,11 +362,16 @@ instance
 
 end
 
-instance enat :: ordered_comm_semiring
+instance enat :: dioid
+proof
+  fix a b :: enat show "(a \<le> b) = (\<exists>c. b = a + c)"
+    by (cases a b rule: enat2_cases) (auto simp: le_iff_add enat_ex_split)
+qed
+
+instance enat :: "ordered_comm_semiring"
 proof
   fix a b c :: enat
-  assume "a \<le> b" and "0 \<le> c"
-  thus "c * a \<le> c * b"
+  assume "a \<le> b" and "0 \<le> c" thus "c * a \<le> c * b"
     unfolding times_enat_def less_eq_enat_def zero_enat_def
     by (simp split: enat.splits)
 qed

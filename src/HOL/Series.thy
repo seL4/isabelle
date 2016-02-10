@@ -211,22 +211,6 @@ lemma setsum_le_suminf: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 \<le> 
 lemma suminf_nonneg: "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 \<le> suminf f"
   using setsum_le_suminf[of 0] by simp
 
-lemma setsum_less_suminf2: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 \<le> f m \<Longrightarrow> n \<le> i \<Longrightarrow> 0 < f i \<Longrightarrow> setsum f {..<n} < suminf f"
-  using
-    setsum_le_suminf[of "Suc i"]
-    add_strict_increasing[of "f i" "setsum f {..<n}" "setsum f {..<i}"]
-    setsum_mono2[of "{..<i}" "{..<n}" f]
-  by (auto simp: less_imp_le ac_simps)
-
-lemma setsum_less_suminf: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 < f m \<Longrightarrow> setsum f {..<n} < suminf f"
-  using setsum_less_suminf2[of n n] by (simp add: less_imp_le)
-
-lemma suminf_pos2: "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 < f i \<Longrightarrow> 0 < suminf f"
-  using setsum_less_suminf2[of 0 i] by simp
-
-lemma suminf_pos: "summable f \<Longrightarrow> \<forall>n. 0 < f n \<Longrightarrow> 0 < suminf f"
-  using suminf_pos2[of 0] by (simp add: less_imp_le)
-
 lemma suminf_le_const: "summable f \<Longrightarrow> (\<And>n. setsum f {..<n} \<le> x) \<Longrightarrow> suminf f \<le> x"
   by (metis LIMSEQ_le_const2 summable_LIMSEQ)
 
@@ -244,8 +228,31 @@ proof
     by (auto intro!: antisym)
 qed (metis suminf_zero fun_eq_iff)
 
-lemma suminf_pos_iff: "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 < suminf f \<longleftrightarrow> (\<exists>i. 0 < f i)"
-  using setsum_le_suminf[of 0] suminf_eq_zero_iff by (simp add: less_le)
+end
+
+context
+  fixes f :: "nat \<Rightarrow> 'a::{ordered_cancel_comm_monoid_add, linorder_topology}"
+begin
+
+lemma setsum_less_suminf2: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 \<le> f m \<Longrightarrow> n \<le> i \<Longrightarrow> 0 < f i \<Longrightarrow> setsum f {..<n} < suminf f"
+  using
+    setsum_le_suminf[of f "Suc i"]
+    add_strict_increasing[of "f i" "setsum f {..<n}" "setsum f {..<i}"]
+    setsum_mono2[of "{..<i}" "{..<n}" f]
+  by (auto simp: less_imp_le ac_simps)
+
+lemma setsum_less_suminf: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 < f m \<Longrightarrow> setsum f {..<n} < suminf f"
+  using setsum_less_suminf2[of n n] by (simp add: less_imp_le)
+
+lemma suminf_pos2: "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 < f i \<Longrightarrow> 0 < suminf f"
+  using setsum_less_suminf2[of 0 i] by simp
+
+lemma suminf_pos: "summable f \<Longrightarrow> \<forall>n. 0 < f n \<Longrightarrow> 0 < suminf f"
+  using suminf_pos2[of 0] by (simp add: less_imp_le)
+
+lemma suminf_pos_iff:
+  "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 < suminf f \<longleftrightarrow> (\<exists>i. 0 < f i)"
+  using setsum_le_suminf[of f 0] suminf_eq_zero_iff[of f] by (simp add: less_le)
 
 end
 

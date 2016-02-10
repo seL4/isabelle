@@ -65,7 +65,7 @@ lemma interval_inner_leI:
   shows "a\<bullet>i \<le> x\<bullet>i" "x\<bullet>i \<le> b\<bullet>i"
   using assms
   unfolding euclidean_inner[of a i] euclidean_inner[of x i] euclidean_inner[of b i]
-  by (auto intro!: setsum_mono mult_right_mono simp: eucl_le)
+  by (auto intro!: ordered_comm_monoid_add_class.setsum_mono mult_right_mono simp: eucl_le)
 
 lemma inner_nonneg_nonneg:
   shows "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a \<bullet> b"
