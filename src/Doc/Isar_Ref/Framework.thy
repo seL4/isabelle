@@ -204,9 +204,9 @@ text \<open>
   been spelled out more explicitly as ``\<^theory_text>\<open>proof (rule InterI)\<close>''. Note that
   the rule involves both a local parameter \<open>A\<close> and an assumption \<open>A \<in> \<A>\<close> in
   the nested reasoning. Such compound rules typically demands a genuine
-  sub-proof in Isar, working backwards rather than forwards as seen before. In
+  subproof in Isar, working backwards rather than forwards as seen before. In
   the proof body we encounter the \<^theory_text>\<open>fix\<close>-\<^theory_text>\<open>assume\<close>-\<^theory_text>\<open>show\<close> outline of nested
-  sub-proofs that is typical for Isar. The final \<^theory_text>\<open>show\<close> is like \<^theory_text>\<open>have\<close>
+  subproofs that is typical for Isar. The final \<^theory_text>\<open>show\<close> is like \<^theory_text>\<open>have\<close>
   followed by an additional refinement of the enclosing claim, using the rule
   derived from the proof body.
 
@@ -384,7 +384,7 @@ text \<open>
 
   \<^medskip>
   Goals are also represented as rules: \<open>A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C\<close> states that the
-  sub-goals \<open>A\<^sub>1, \<dots>, A\<^sub>n\<close> entail the result \<open>C\<close>; for \<open>n = 0\<close> the goal is
+  subgoals \<open>A\<^sub>1, \<dots>, A\<^sub>n\<close> entail the result \<open>C\<close>; for \<open>n = 0\<close> the goal is
   finished. To allow \<open>C\<close> being a rule statement itself, there is an internal
   protective marker \<open># :: prop \<Rightarrow> prop\<close>, which is defined as identity and
   hidden from the user. We initialize and finish goal states as follows:
@@ -398,8 +398,8 @@ text \<open>
 
   Goal states are refined in intermediate proof steps until a finished form is
   achieved. Here the two main reasoning principles are @{inference
-  resolution}, for back-chaining a rule against a sub-goal (replacing it by
-  zero or more sub-goals), and @{inference assumption}, for solving a sub-goal
+  resolution}, for back-chaining a rule against a subgoal (replacing it by
+  zero or more subgoals), and @{inference assumption}, for solving a subgoal
   (finding a short-circuit with local assumptions). Below \<open>\<^vec>x\<close> stands
   for \<open>x\<^sub>1, \<dots>, x\<^sub>n\<close> (for \<open>n \<ge> 0\<close>).
 
@@ -447,33 +447,34 @@ text \<open>
   Compositions of @{inference assumption} after @{inference resolution} occurs
   quite often, typically in elimination steps. Traditional Isabelle tactics
   accommodate this by a combined @{inference_def elim_resolution} principle.
-  In contrast, Isar uses a slightly more refined combination, where the
-  assumptions to be closed are marked explicitly, using again the protective
-  marker \<open>#\<close>:
+  In contrast, Isar uses a combined refinement rule as follows:\footnote{For
+  simplicity and clarity, the presentation ignores \<^emph>\<open>weak premises\<close> as
+  introduced via \<^theory_text>\<open>presume\<close> or \<^theory_text>\<open>show \<dots> when\<close>.}
 
+  {\small
   \[
   \infer[(@{inference refinement})]
-  {\<open>(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> \<^vec>G' (\<^vec>a \<^vec>x))\<vartheta> \<Longrightarrow> C\<vartheta>\<close>}
+  {\<open>C\<vartheta>\<close>}
   {\begin{tabular}{rl}
-    \<open>sub\<hyphen>proof:\<close> &
-    \<open>\<^vec>G \<^vec>a \<Longrightarrow> B \<^vec>a\<close> \\
-    \<open>goal:\<close> &
+    \<open>subgoal:\<close> &
     \<open>(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> B' \<^vec>x) \<Longrightarrow> C\<close> \\
-    \<open>goal unifier:\<close> &
+    \<open>subproof:\<close> &
+    \<open>\<^vec>G \<^vec>a \<Longrightarrow> B \<^vec>a\<close> \quad for schematic \<open>\<^vec>a\<close> \\
+    \<open>concl unifier:\<close> &
     \<open>(\<lambda>\<^vec>x. B (\<^vec>a \<^vec>x))\<vartheta> = B'\<vartheta>\<close> \\
     \<open>assm unifiers:\<close> &
-    \<open>(\<lambda>\<^vec>x. G\<^sub>j (\<^vec>a \<^vec>x))\<vartheta> = #H\<^sub>i\<vartheta>\<close> \\
-    & \quad (for each marked \<open>G\<^sub>j\<close> some \<open>#H\<^sub>i\<close>) \\
+    \<open>(\<lambda>\<^vec>x. G\<^sub>j (\<^vec>a \<^vec>x))\<vartheta> = H\<^sub>i\<vartheta>\<close> \quad for each \<open>G\<^sub>j\<close> some \<open>H\<^sub>i\<close> \\
    \end{tabular}}
-  \]
+  \]}
 
-  Here the \<open>sub\<hyphen>proof\<close> rule stems from the main \<^theory_text>\<open>fix\<close>-\<^theory_text>\<open>assume\<close>-\<^theory_text>\<open>show\<close>
+  Here the \<open>subproof\<close> rule stems from the main \<^theory_text>\<open>fix\<close>-\<^theory_text>\<open>assume\<close>-\<^theory_text>\<open>show\<close>
   outline of Isar (cf.\ \secref{sec:framework-subproof}): each assumption
-  indicated in the text results in a marked premise \<open>G\<close> above. The marking
-  enforces resolution against one of the sub-goal's premises. Consequently,
-  \<^theory_text>\<open>fix\<close>-\<^theory_text>\<open>assume\<close>-\<^theory_text>\<open>show\<close> enables to fit the result of a sub-proof quite
-  robustly into a pending sub-goal, while maintaining a good measure of
-  flexibility.
+  indicated in the text results in a marked premise \<open>G\<close> above. Consequently,
+  \<^theory_text>\<open>fix\<close>-\<^theory_text>\<open>assume\<close>-\<^theory_text>\<open>show\<close> enables to fit the result of a subproof quite
+  robustly into a pending subgoal, while maintaining a good measure of
+  flexibility: the subproof only needs to fit modulo unification, and its
+  assumptions may be a proper subset of the subgoal premises (see
+  \secref{sec:framework-subproof}).
 \<close>
 
 
@@ -566,14 +567,14 @@ text \<open>
 
   \<^medskip>
   Block structure can be indicated explicitly by ``@{command
-  "{"}~\<open>\<dots>\<close>~@{command "}"}'', although the body of a sub-proof already involves
+  "{"}~\<open>\<dots>\<close>~@{command "}"}'', although the body of a subproof already involves
   implicit nesting. In any case, @{command next} jumps into the next section
   of a block, i.e.\ it acts like closing an implicit block scope and opening
   another one; there is no direct correspondence to subgoals here.
 
   The remaining elements @{command fix} and @{command assume} build up a local
   context (see \secref{sec:framework-context}), while @{command show} refines
-  a pending sub-goal by the rule resulting from a nested sub-proof (see
+  a pending subgoal by the rule resulting from a nested subproof (see
   \secref{sec:framework-subproof}). Further derived concepts will support
   calculational reasoning (see \secref{sec:framework-calc}).
 \<close>
@@ -661,7 +662,7 @@ text \<open>
   that \<open>A x\<close> may be assumed for some arbitrary-but-fixed \<open>x\<close>. Also note that
   ``@{command obtain}~\<open>A \<AND> B\<close>'' without parameters is similar to
   ``@{command have}~\<open>A \<AND> B\<close>'', but the latter involves multiple
-  sub-goals.
+  subgoals.
 
   \<^medskip>
   The subsequent Isar proof texts explain all context elements introduced
@@ -824,7 +825,7 @@ text \<open>
   like @{command have}, @{command show}. A goal statement changes the mode to
   \<open>prove\<close>, which means that we may now refine the problem via @{command
   unfolding} or @{command proof}. Then we are again in \<open>state\<close> mode of a proof
-  body, which may issue @{command show} statements to solve pending sub-goals.
+  body, which may issue @{command show} statements to solve pending subgoals.
   A concluding @{command qed} will return to the original \<open>state\<close> mode one
   level upwards. The subsequent Isar/VM trace indicates block structure,
   linguistic mode, goal state, and inferences:
@@ -878,11 +879,11 @@ text_raw \<open>\endgroup\<close>
 
 text \<open>
   Here the @{inference refinement} inference from
-  \secref{sec:framework-resolution} mediates composition of Isar sub-proofs
+  \secref{sec:framework-resolution} mediates composition of Isar subproofs
   nicely. Observe that this principle incorporates some degree of freedom in
   proof composition. In particular, the proof body allows parameters and
   assumptions to be re-ordered, or commuted according to Hereditary Harrop
-  Form. Moreover, context elements that are not used in a sub-proof may be
+  Form. Moreover, context elements that are not used in a subproof may be
   omitted altogether. For example:
 \<close>
 
