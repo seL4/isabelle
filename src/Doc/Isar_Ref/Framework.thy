@@ -8,56 +8,104 @@ chapter \<open>The Isabelle/Isar Framework \label{ch:isar-framework}\<close>
 
 text \<open>
   Isabelle/Isar @{cite "Wenzel:1999:TPHOL" and "Wenzel-PhD" and
-  "Nipkow-TYPES02" and "Wenzel-Paulson:2006" and "Wenzel:2006:Festschrift"} is
-  intended as a generic framework for developing formal mathematical documents
-  with full proof checking. Definitions and proofs are organized as theories.
-  An assembly of theory sources may be presented as a printed document; see
-  also \chref{ch:document-prep}.
+  "Nipkow-TYPES02" and "Wiedijk:1999:Mizar" and "Wenzel-Paulson:2006" and
+  "Wenzel:2006:Festschrift"} is a generic framework for developing formal
+  mathematical documents with full proof checking. Definitions, statements and
+  proofs are organized as theories. A collection of theories sources may be
+  presented as a printed document; see also \chref{ch:document-prep}.
 
-  The main objective of Isar is the design of a human-readable structured
-  proof language, which is called the ``primary proof format'' in Isar
-  terminology. Such a primary proof language is somewhere in the middle
-  between the extremes of primitive proof objects and actual natural language.
-  In this respect, Isar is a bit more formalistic than Mizar @{cite
-  "Trybulec:1993:MizarFeatures" and "Rudnicki:1992:MizarOverview" and
-  "Wiedijk:1999:Mizar"}, using logical symbols for certain reasoning schemes
-  where Mizar would prefer English words; see @{cite "Wenzel-Wiedijk:2002"}
-  for further comparisons of these systems.
+  The main concern of Isar is the design of a human-readable structured proof
+  language, which is called the ``primary proof format'' in Isar terminology.
+  Such a primary proof language is somewhere in the middle between the
+  extremes of primitive proof objects and actual natural language.
 
-  So Isar challenges the traditional way of recording informal proofs in
+  Thus Isar challenges the traditional way of recording informal proofs in
   mathematical prose, as well as the common tendency to see fully formal
   proofs directly as objects of some logical calculus (e.g.\ \<open>\<lambda>\<close>-terms in a
-  version of type theory). In fact, Isar is better understood as an
-  interpreter of a simple block-structured language for describing the data
-  flow of local facts and goals, interspersed with occasional invocations of
-  proof methods. Everything is reduced to logical inferences internally, but
-  these steps are somewhat marginal compared to the overall bookkeeping of the
-  interpretation process. Thanks to careful design of the syntax and semantics
-  of Isar language elements, a formal record of Isar instructions may later
-  appear as an intelligible text to the attentive reader.
+  version of type theory). Technically, Isar is an interpreter of a simple
+  block-structured language for describing the data flow of local facts and
+  goals, interspersed with occasional invocations of proof methods. Everything
+  is reduced to logical inferences internally, but these steps are somewhat
+  marginal compared to the overall bookkeeping of the interpretation process.
+  Thanks to careful design of the syntax and semantics of Isar language
+  elements, a formal record of Isar commands may later appear as an
+  intelligible text to the human reader.
 
   The Isar proof language has emerged from careful analysis of some inherent
-  virtues of the existing logical framework of Isabelle/Pure @{cite
-  "paulson-found" and "paulson700"}, notably composition of higher-order
-  natural deduction rules, which is a generalization of Gentzen's original
-  calculus @{cite "Gentzen:1935"}. The approach of generic inference systems
-  in Pure is continued by Isar towards actual proof texts.
+  virtues of the logical framework Isabelle/Pure @{cite "paulson-found" and
+  "paulson700"}, notably composition of higher-order natural deduction rules,
+  which is a generalization of Gentzen's original calculus @{cite
+  "Gentzen:1935"}. The approach of generic inference systems in Pure is
+  continued by Isar towards actual proof texts. See also
+  \figref{fig:natural-deduction}
 
-  Concrete applications require another intermediate layer: an object-logic.
-  Isabelle/HOL @{cite "isa-tutorial"} (simply-typed set-theory) is being used
-  most of the time; Isabelle/ZF @{cite "isabelle-ZF"} is less extensively
-  developed, although it would probably fit better for classical mathematics.
+  \begin{figure}[htb]
+
+  \begin{center}
+  \begin{minipage}[t]{0.9\textwidth}
+
+  \textbf{Inferences:}
+  \begin{center}
+  \begin{tabular}{l@ {\qquad}l}
+  \infer{\<open>B\<close>}{\<open>A \<longrightarrow> B\<close> & \<open>A\<close>} &
+  \infer{\<open>A \<longrightarrow> B\<close>}{\infer*{\<open>B\<close>}{\<open>[A]\<close>}} \\
+  \end{tabular}
+  \end{center}
+
+  \textbf{Isabelle/Pure:}
+  \begin{center}
+  \begin{tabular}{l@ {\qquad}l}
+  \<open>(A \<longrightarrow> B) \<Longrightarrow> A \<Longrightarrow> B\<close> &
+  \<open>(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B\<close>
+  \end{tabular}
+  \end{center}
+
+  \textbf{Isabelle/Isar:}
+  \begin{center}
+  \begin{minipage}[t]{0.4\textwidth}
+  @{theory_text [display, indent = 2]
+    \<open>have "A \<longrightarrow> B" \<proof>
+also have A \<proof>
+finally have B .\<close>}
+  \end{minipage}
+  \begin{minipage}[t]{0.4\textwidth}
+  @{theory_text [display, indent = 2]
+    \<open>have "A \<longrightarrow> B"
+proof
+  assume A
+  then show B \<proof>
+qed\<close>}
+  \end{minipage}
+  \end{center}
+
+  \end{minipage}
+  \end{center}
+
+  \caption{Natural Deduction via inferences according to Gentzen, rules in
+  Isabelle/Pure, and proofs in Isabelle/Isar}\label{fig:natural-deduction}
+
+  \end{figure}
 
   \<^medskip>
-  In order to illustrate natural deduction in Isar, we shall refer to the
-  background theory and library of Isabelle/HOL. This includes common notions
-  of predicate logic, naive set-theory etc.\ using fairly standard
-  mathematical notation. From the perspective of generic natural deduction
-  there is nothing special about the logical connectives of HOL (\<open>\<and>\<close>, \<open>\<or>\<close>,
-  \<open>\<forall>\<close>, \<open>\<exists>\<close>, etc.), only the resulting reasoning principles are relevant to the
-  user. There are similar rules available for set-theory operators (\<open>\<inter>\<close>, \<open>\<union>\<close>,
-  \<open>\<Inter>\<close>, \<open>\<Union>\<close>, etc.), or any other theory developed in the library (lattice
-  theory, topology etc.).
+  Concrete applications require another intermediate layer: an object-logic.
+  Isabelle/HOL @{cite "isa-tutorial"} (simply-typed set-theory) is most
+  commonly used; elementary examples are given in the directory @{file
+  "~~/src/HOL/Isar_Examples"}. Some examples demonstrate how to start a fresh
+  object-logic from Isabelle/Pure, and use Isar proofs from the very start,
+  despite the lack of advanced proof tools at such an early stage (e.g.\ see
+  @{file "~~/src/HOL/Isar_Examples/Higher_Order_Logic.thy"}). Isabelle/FOL
+  @{cite "isabelle-logics"} and Isabelle/ZF @{cite "isabelle-ZF"} also work,
+  but are much less developed.
+
+  In order to illustrate natural deduction in Isar, we shall subsequently
+  refer to the background theory and library of Isabelle/HOL. This includes
+  common notions of predicate logic, naive set-theory etc.\ using fairly
+  standard mathematical notation. From the perspective of generic natural
+  deduction there is nothing special about the logical connectives of HOL
+  (\<open>\<and>\<close>, \<open>\<or>\<close>, \<open>\<forall>\<close>, \<open>\<exists>\<close>, etc.), only the resulting reasoning principles are
+  relevant to the user. There are similar rules available for set-theory
+  operators (\<open>\<inter>\<close>, \<open>\<union>\<close>, \<open>\<Inter>\<close>, \<open>\<Union>\<close>, etc.), or any other theory developed in the
+  library (lattice theory, topology etc.).
 
   Subsequently we briefly review fragments of Isar proof texts corresponding
   directly to such general deduction schemes. The examples shall refer to
@@ -67,8 +115,8 @@ text \<open>
   \<^medskip>
   The following deduction performs \<open>\<inter>\<close>-introduction, working forwards from
   assumptions towards the conclusion. We give both the Isar text, and depict
-  the primitive rule involved, as determined by unification of the problem
-  against rules that are declared in the library context.
+  the primitive rule involved, as determined by unification of fact and goal
+  statements against rules that are declared in the library context.
 \<close>
 
 text_raw \<open>\medskip\begin{minipage}{0.6\textwidth}\<close>
@@ -76,6 +124,7 @@ text_raw \<open>\medskip\begin{minipage}{0.6\textwidth}\<close>
 (*<*)
 notepad
 begin
+    fix x :: 'a and A B
 (*>*)
     assume "x \<in> A" and "x \<in> B"
     then have "x \<in> A \<inter> B" ..
@@ -86,24 +135,25 @@ end
 text_raw \<open>\end{minipage}\begin{minipage}{0.4\textwidth}\<close>
 
 text \<open>
-  \infer{@{prop "x \<in> A \<inter> B"}}{@{prop "x \<in> A"} & @{prop "x \<in> B"}}
+  \infer{\<open>x \<in> A \<inter> B\<close>}{\<open>x \<in> A\<close> & \<open>x \<in> B\<close>}
 \<close>
 
 text_raw \<open>\end{minipage}\<close>
 
 text \<open>
   \<^medskip>
-  Note that @{command assume} augments the proof context, @{command then}
-  indicates that the current fact shall be used in the next step, and
-  @{command have} states an intermediate goal. The two dots ``@{command
-  ".."}'' refer to a complete proof of this claim, using the indicated facts
-  and a canonical rule from the context. We could have been more explicit here
-  by spelling out the final proof step via the @{command "by"} command:
+  Note that \<^theory_text>\<open>assume\<close> augments the proof context, \<^theory_text>\<open>then\<close> indicates that the
+  current fact shall be used in the next step, and \<^theory_text>\<open>have\<close> states an
+  intermediate goal. The two dots ``\<^theory_text>\<open>..\<close>'' refer to a complete proof of this
+  claim, using the indicated facts and a canonical rule from the context. We
+  could have been more explicit here by spelling out the final proof step via
+  the \<^theory_text>\<open>by\<close> command:
 \<close>
 
 (*<*)
 notepad
 begin
+    fix x :: 'a and A B
 (*>*)
     assume "x \<in> A" and "x \<in> B"
     then have "x \<in> A \<inter> B" by (rule IntI)
@@ -116,10 +166,10 @@ text \<open>
   which proceeds from given premises to a conclusion, without any nested proof
   context involved.
 
-  The next example performs backwards introduction on @{term "\<Inter>\<A>"}, the
-  intersection of all sets within a given set. This requires a nested proof of
-  set membership within a local context, where @{term A} is an
-  arbitrary-but-fixed member of the collection:
+  The next example performs backwards introduction of \<open>\<Inter>\<A>\<close>, the intersection
+  of all sets within a given set. This requires a nested proof of set
+  membership within a local context, where \<open>A\<close> is an arbitrary-but-fixed
+  member of the collection:
 \<close>
 
 text_raw \<open>\medskip\begin{minipage}{0.6\textwidth}\<close>
@@ -127,6 +177,7 @@ text_raw \<open>\medskip\begin{minipage}{0.6\textwidth}\<close>
 (*<*)
 notepad
 begin
+    fix x :: 'a and \<A>
 (*>*)
     have "x \<in> \<Inter>\<A>"
     proof
@@ -141,7 +192,7 @@ end
 text_raw \<open>\end{minipage}\begin{minipage}{0.4\textwidth}\<close>
 
 text \<open>
-  \infer{@{prop "x \<in> \<Inter>\<A>"}}{\infer*{@{prop "x \<in> A"}}{\<open>[A][A \<in> \<A>]\<close>}}
+  \infer{\<open>x \<in> \<Inter>\<A>\<close>}{\infer*{\<open>x \<in> A\<close>}{\<open>[A][A \<in> \<A>]\<close>}}
 \<close>
 
 text_raw \<open>\end{minipage}\<close>
@@ -149,24 +200,22 @@ text_raw \<open>\end{minipage}\<close>
 text \<open>
   \<^medskip>
   This Isar reasoning pattern again refers to the primitive rule depicted
-  above. The system determines it in the ``@{command proof}'' step, which
-  could have been spelled out more explicitly as ``@{command proof}~\<open>(rule
-  InterI)\<close>''. Note that the rule involves both a local parameter @{term "A"}
-  and an assumption @{prop "A \<in> \<A>"} in the nested reasoning. This kind of
-  compound rule typically demands a genuine sub-proof in Isar, working
-  backwards rather than forwards as seen before. In the proof body we
-  encounter the @{command fix}-@{command assume}-@{command show} outline of
-  nested sub-proofs that is typical for Isar. The final @{command show} is
-  like @{command have} followed by an additional refinement of the enclosing
-  claim, using the rule derived from the proof body.
+  above. The system determines it in the ``\<^theory_text>\<open>proof\<close>'' step, which could have
+  been spelled out more explicitly as ``\<^theory_text>\<open>proof (rule InterI)\<close>''. Note that
+  the rule involves both a local parameter \<open>A\<close> and an assumption \<open>A \<in> \<A>\<close> in
+  the nested reasoning. Such compound rules typically demands a genuine
+  sub-proof in Isar, working backwards rather than forwards as seen before. In
+  the proof body we encounter the \<^theory_text>\<open>fix\<close>-\<^theory_text>\<open>assume\<close>-\<^theory_text>\<open>show\<close> outline of nested
+  sub-proofs that is typical for Isar. The final \<^theory_text>\<open>show\<close> is like \<^theory_text>\<open>have\<close>
+  followed by an additional refinement of the enclosing claim, using the rule
+  derived from the proof body.
 
   \<^medskip>
-  The next example involves @{term "\<Union>\<A>"}, which can be characterized as the
-  set of all @{term "x"} such that @{prop "\<exists>A. x \<in> A \<and> A \<in> \<A>"}. The
-  elimination rule for @{prop "x \<in> \<Union>\<A>"} does not mention \<open>\<exists>\<close> and \<open>\<and>\<close> at all,
-  but admits to obtain directly a local @{term "A"} such that @{prop "x \<in> A"}
-  and @{prop "A \<in> \<A>"} hold. This corresponds to the following Isar proof and
-  inference rule, respectively:
+  The next example involves \<open>\<Union>\<A>\<close>, which can be characterized as the set of
+  all \<open>x\<close> such that \<open>\<exists>A. x \<in> A \<and> A \<in> \<A>\<close>. The elimination rule for \<open>x \<in> \<Union>\<A>\<close>
+  does not mention \<open>\<exists>\<close> and \<open>\<and>\<close> at all, but admits to obtain directly a local
+  \<open>A\<close> such that \<open>x \<in> A\<close> and \<open>A \<in> \<A>\<close> hold. This corresponds to the following
+  Isar proof and inference rule, respectively:
 \<close>
 
 text_raw \<open>\medskip\begin{minipage}{0.6\textwidth}\<close>
@@ -174,6 +223,7 @@ text_raw \<open>\medskip\begin{minipage}{0.6\textwidth}\<close>
 (*<*)
 notepad
 begin
+    fix x :: 'a and \<A> C
 (*>*)
     assume "x \<in> \<Union>\<A>"
     then have C
@@ -189,7 +239,7 @@ end
 text_raw \<open>\end{minipage}\begin{minipage}{0.4\textwidth}\<close>
 
 text \<open>
-  \infer{@{prop "C"}}{@{prop "x \<in> \<Union>\<A>"} & \infer*{@{prop "C"}~}{\<open>[A][x \<in> A, A \<in> \<A>]\<close>}}
+  \infer{\<open>C\<close>}{\<open>x \<in> \<Union>\<A>\<close> & \infer*{\<open>C\<close>~}{\<open>[A][x \<in> A, A \<in> \<A>]\<close>}}
 \<close>
 
 text_raw \<open>\end{minipage}\<close>
@@ -198,16 +248,16 @@ text \<open>
   \<^medskip>
   Although the Isar proof follows the natural deduction rule closely, the text
   reads not as natural as anticipated. There is a double occurrence of an
-  arbitrary conclusion @{prop "C"}, which represents the final result, but is
+  arbitrary conclusion \<open>C\<close>, which represents the final result, but is
   irrelevant for now. This issue arises for any elimination rule involving
-  local parameters. Isar provides the derived language element @{command
-  obtain}, which is able to perform the same elimination proof more
-  conveniently:
+  local parameters. Isar provides the derived language element \<^theory_text>\<open>obtain\<close>,
+  which is able to perform the same elimination proof more conveniently:
 \<close>
 
 (*<*)
 notepad
 begin
+    fix x :: 'a and \<A>
 (*>*)
     assume "x \<in> \<Union>\<A>"
     then obtain A where "x \<in> A" and "A \<in> \<A>" ..
@@ -216,9 +266,9 @@ end
 (*>*)
 
 text \<open>
-  Here we avoid to mention the final conclusion @{prop "C"} and return to
-  plain forward reasoning. The rule involved in the ``@{command ".."}'' proof
-  is the same as before.
+  Here we avoid to mention the final conclusion \<open>C\<close> and return to plain
+  forward reasoning. The rule involved in the ``\<^theory_text>\<open>..\<close>'' proof is the same as
+  before.
 \<close>
 
 
@@ -262,10 +312,11 @@ text \<open>
   elimination rules for \<open>\<And>\<close> and \<open>\<Longrightarrow>\<close> that refer to fixed parameters \<open>x\<^sub>1, \<dots>,
   x\<^sub>m\<close> and hypotheses \<open>A\<^sub>1, \<dots>, A\<^sub>n\<close> from the context \<open>\<Gamma>\<close>; the corresponding
   proof terms are left implicit. The subsequent inference rules define \<open>\<Gamma> \<turnstile> \<phi>\<close>
-  inductively, relative to a collection of axioms:
+  inductively, relative to a collection of axioms from the implicit background
+  theory:
 
   \[
-  \infer{\<open>\<turnstile> A\<close>}{(\<open>A\<close> \mbox{~axiom})}
+  \infer{\<open>\<turnstile> A\<close>}{\<open>A\<close> \mbox{~is axiom}}
   \qquad
   \infer{\<open>A \<turnstile> A\<close>}{}
   \]
@@ -287,14 +338,15 @@ text \<open>
   on \<open>\<lambda>\<close>-terms.
 
   \<^medskip>
+
   An object-logic introduces another layer on top of Pure, e.g.\ with types
   \<open>i\<close> for individuals and \<open>o\<close> for propositions, term constants \<open>Trueprop :: o
   \<Rightarrow> prop\<close> as (implicit) derivability judgment and connectives like \<open>\<and> :: o \<Rightarrow> o
   \<Rightarrow> o\<close> or \<open>\<forall> :: (i \<Rightarrow> o) \<Rightarrow> o\<close>, and axioms for object-level rules such as
   \<open>conjI: A \<Longrightarrow> B \<Longrightarrow> A \<and> B\<close> or \<open>allI: (\<And>x. B x) \<Longrightarrow> \<forall>x. B x\<close>. Derived object rules
   are represented as theorems of Pure. After the initial object-logic setup,
-  further axiomatizations are usually avoided; plain definitions and derived
-  principles are used exclusively.
+  further axiomatizations are usually avoided: definitional principles are
+  used instead (e.g.\ \<^theory_text>\<open>definition\<close>, \<^theory_text>\<open>inductive\<close>, \<^theory_text>\<open>fun\<close>, \<^theory_text>\<open>function\<close>).
 \<close>
 
 
@@ -307,18 +359,18 @@ text \<open>
   Multiple parameters and premises are represented by repeating these
   connectives in a right-associative manner.
 
-  Since \<open>\<And>\<close> and \<open>\<Longrightarrow>\<close> commute thanks to the theorem @{prop "(A \<Longrightarrow> (\<And>x. B x)) \<equiv>
-  (\<And>x. A \<Longrightarrow> B x)"}, we may assume w.l.o.g.\ that rule statements always observe
-  the normal form where quantifiers are pulled in front of implications at
-  each level of nesting. This means that any Pure proposition may be presented
-  as a \<^emph>\<open>Hereditary Harrop Formula\<close> @{cite "Miller:1991"} which is of the form
-  \<open>\<And>x\<^sub>1 \<dots> x\<^sub>m. H\<^sub>1 \<Longrightarrow> \<dots> H\<^sub>n \<Longrightarrow> A\<close> for \<open>m, n \<ge> 0\<close>, and \<open>A\<close> atomic, and \<open>H\<^sub>1, \<dots>,
-  H\<^sub>n\<close> being recursively of the same format. Following the convention that
-  outermost quantifiers are implicit, Horn clauses \<open>A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> A\<close> are a
-  special case of this.
+  Thanks to the Pure theorem @{prop "(A \<Longrightarrow> (\<And>x. B x)) \<equiv> (\<And>x. A \<Longrightarrow> B x)"} the
+  connectives \<open>\<And>\<close> and \<open>\<Longrightarrow>\<close> commute. So we may assume w.l.o.g.\ that rule
+  statements always observe the normal form where quantifiers are pulled in
+  front of implications at each level of nesting. This means that any Pure
+  proposition may be presented as a \<^emph>\<open>Hereditary Harrop Formula\<close> @{cite
+  "Miller:1991"} which is of the form \<open>\<And>x\<^sub>1 \<dots> x\<^sub>m. H\<^sub>1 \<Longrightarrow> \<dots> H\<^sub>n \<Longrightarrow> A\<close> for \<open>m, n
+  \<ge> 0\<close>, and \<open>A\<close> atomic, and \<open>H\<^sub>1, \<dots>, H\<^sub>n\<close> being recursively of the same
+  format. Following the convention that outermost quantifiers are implicit,
+  Horn clauses \<open>A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> A\<close> are a special case of this.
 
-  For example, \<open>\<inter>\<close>-introduction rule encountered before is represented as a
-  Pure theorem as follows:
+  For example, the \<open>\<inter>\<close>-introduction rule encountered before is represented as
+  a Pure theorem as follows:
   \[
   \<open>IntI:\<close>~@{prop "x \<in> A \<Longrightarrow> x \<in> B \<Longrightarrow> x \<in> A \<inter> B"}
   \]
@@ -333,7 +385,7 @@ text \<open>
   \<^medskip>
   Goals are also represented as rules: \<open>A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C\<close> states that the
   sub-goals \<open>A\<^sub>1, \<dots>, A\<^sub>n\<close> entail the result \<open>C\<close>; for \<open>n = 0\<close> the goal is
-  finished. To allow \<open>C\<close> being a rule statement itself, we introduce the
+  finished. To allow \<open>C\<close> being a rule statement itself, there is an internal
   protective marker \<open># :: prop \<Rightarrow> prop\<close>, which is defined as identity and
   hidden from the user. We initialize and finish goal states as follows:
 
@@ -349,7 +401,7 @@ text \<open>
   resolution}, for back-chaining a rule against a sub-goal (replacing it by
   zero or more sub-goals), and @{inference assumption}, for solving a sub-goal
   (finding a short-circuit with local assumptions). Below \<open>\<^vec>x\<close> stands
-  for \<open>x\<^sub>1, \<dots>, x\<^sub>n\<close> (\<open>n \<ge> 0\<close>).
+  for \<open>x\<^sub>1, \<dots>, x\<^sub>n\<close> (for \<open>n \<ge> 0\<close>).
 
   \[
   \infer[(@{inference_def resolution})]
@@ -371,7 +423,7 @@ text \<open>
   {\begin{tabular}{rl}
     \<open>goal:\<close> &
     \<open>(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> A \<^vec>x) \<Longrightarrow> C\<close> \\
-    \<open>assm unifier:\<close> & \<open>A\<vartheta> = H\<^sub>i\<vartheta>\<close>~~\mbox{(for some~\<open>H\<^sub>i\<close>)} \\
+    \<open>assm unifier:\<close> & \<open>A\<vartheta> = H\<^sub>i\<vartheta>\<close>~~\mbox{for some~\<open>H\<^sub>i\<close>} \\
    \end{tabular}}
   \]
 
@@ -415,14 +467,13 @@ text \<open>
    \end{tabular}}
   \]
 
-  Here the \<open>sub\<hyphen>proof\<close> rule stems from the main @{command fix}-@{command
-  assume}-@{command show} outline of Isar (cf.\
-  \secref{sec:framework-subproof}): each assumption indicated in the text
-  results in a marked premise \<open>G\<close> above. The marking enforces resolution
-  against one of the sub-goal's premises. Consequently, @{command
-  fix}-@{command assume}-@{command show} enables to fit the result of a
-  sub-proof quite robustly into a pending sub-goal, while maintaining a good
-  measure of flexibility.
+  Here the \<open>sub\<hyphen>proof\<close> rule stems from the main \<^theory_text>\<open>fix\<close>-\<^theory_text>\<open>assume\<close>-\<^theory_text>\<open>show\<close>
+  outline of Isar (cf.\ \secref{sec:framework-subproof}): each assumption
+  indicated in the text results in a marked premise \<open>G\<close> above. The marking
+  enforces resolution against one of the sub-goal's premises. Consequently,
+  \<^theory_text>\<open>fix\<close>-\<^theory_text>\<open>assume\<close>-\<^theory_text>\<open>show\<close> enables to fit the result of a sub-proof quite
+  robustly into a pending sub-goal, while maintaining a good measure of
+  flexibility.
 \<close>
 
 
@@ -437,8 +488,8 @@ text \<open>
   Isar is an exercise in sound minimalism. Approximately half of the language
   is introduced as primitive, the rest defined as derived concepts. The
   following grammar describes the core language (category \<open>proof\<close>), which is
-  embedded into theory specification elements such as @{command theorem}; see
-  also \secref{sec:framework-stmt} for the separate category \<open>statement\<close>.
+  embedded into theory specification elements such as \<^theory_text>\<open>theorem\<close>; see also
+  \secref{sec:framework-stmt} for the separate category \<open>statement\<close>.
 
   \<^medskip>
   \begin{tabular}{rcl}
@@ -471,7 +522,7 @@ text \<open>
 
   \<^medskip>
   Facts may be referenced by name or proposition. For example, the result of
-  ``@{command have}~\<open>a: A \<langle>proof\<rangle>\<close>'' becomes available both as \<open>a\<close> and
+  ``\<^theory_text>\<open>have a: A \<proof>\<close>'' becomes available both as \<open>a\<close> and
   \isacharbackquoteopen\<open>A\<close>\isacharbackquoteclose. Moreover, fact expressions
   may involve attributes that modify either the theorem or the background
   context. For example, the expression ``\<open>a [OF b]\<close>'' refers to the
@@ -568,7 +619,7 @@ text \<open>
 
   \<^medskip>
   Note that @{inference discharge} and @{inference "weak\<hyphen>discharge"} differ in
-  the marker for @{prop A}, which is relevant when the result of a @{command
+  the marker for \<open>A\<close>, which is relevant when the result of a @{command
   fix}-@{command assume}-@{command show} outline is composed with a pending
   goal, cf.\ \secref{sec:framework-subproof}.
 
@@ -582,12 +633,12 @@ text \<open>
 
   \<^medskip>
   \begin{tabular}{l}
-  \<open>\<langle>facts\<rangle>\<close>~~@{command obtain}~\<open>\<^vec>x \<WHERE> \<^vec>A \<^vec>x  \<langle>proof\<rangle> \<equiv>\<close> \\[0.5ex]
+  \<open>\<langle>facts\<rangle>\<close>~~@{command obtain}~\<open>\<^vec>x \<WHERE> \<^vec>A \<^vec>x \<proof> \<equiv>\<close> \\[0.5ex]
   \quad @{command have}~\<open>case: \<And>thesis. (\<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis) \<Longrightarrow> thesis\<rangle>\<close> \\
   \quad @{command proof}~@{method "-"} \\
   \qquad @{command fix}~\<open>thesis\<close> \\
   \qquad @{command assume}~\<open>[intro]: \<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis\<close> \\
-  \qquad @{command show}~\<open>thesis\<close>~@{command using}~\<open>\<langle>facts\<rangle> \<langle>proof\<rangle>\<close> \\
+  \qquad @{command show}~\<open>thesis\<close>~@{command using}~\<open>\<langle>facts\<rangle> \<proof>\<close> \\
   \quad @{command qed} \\
   \quad @{command fix}~\<open>\<^vec>x\<close>~@{command assume}~\<open>\<guillemotleft>elimination case\<guillemotright> \<^vec>A \<^vec>x\<close> \\
   \end{tabular}
