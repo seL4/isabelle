@@ -7,24 +7,21 @@ imports Base  (* FIXME Pure!? *)
 begin
 
 text \<open>
-  In order to commence a new object-logic within
-  Isabelle/Pure we introduce abstract syntactic categories \<open>i\<close>
-  for individuals and \<open>o\<close> for object-propositions.  The latter
-  is embedded into the language of Pure propositions by means of a
-  separate judgment.
+  In order to commence a new object-logic within Isabelle/Pure we introduce
+  abstract syntactic categories \<open>i\<close> for individuals and \<open>o\<close> for
+  object-propositions. The latter is embedded into the language of Pure
+  propositions by means of a separate judgment.
 \<close>
 
 typedecl i
 typedecl o
 
-judgment
-  Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
+judgment Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
 
 text \<open>
-  Note that the object-logic judgment is implicit in the
-  syntax: writing @{prop A} produces @{term "Trueprop A"} internally.
-  From the Pure perspective this means ``@{prop A} is derivable in the
-  object-logic''.
+  Note that the object-logic judgment is implicit in the syntax: writing
+  @{prop A} produces @{term "Trueprop A"} internally. From the Pure
+  perspective this means ``@{prop A} is derivable in the object-logic''.
 \<close>
 
 
@@ -32,23 +29,20 @@ subsection \<open>Equational reasoning \label{sec:framework-ex-equal}\<close>
 
 text \<open>
   Equality is axiomatized as a binary predicate on individuals, with
-  reflexivity as introduction, and substitution as elimination
-  principle.  Note that the latter is particularly convenient in a
-  framework like Isabelle, because syntactic congruences are
-  implicitly produced by unification of @{term "B x"} against
-  expressions containing occurrences of @{term x}.
+  reflexivity as introduction, and substitution as elimination principle. Note
+  that the latter is particularly convenient in a framework like Isabelle,
+  because syntactic congruences are implicitly produced by unification of
+  \<open>B x\<close> against expressions containing occurrences of \<open>x\<close>.
 \<close>
 
-axiomatization
-  equal :: "i \<Rightarrow> i \<Rightarrow> o"  (infix "=" 50)
-where
-  refl [intro]: "x = x" and
-  subst [elim]: "x = y \<Longrightarrow> B x \<Longrightarrow> B y"
+axiomatization equal :: "i \<Rightarrow> i \<Rightarrow> o"  (infix "=" 50)
+  where refl [intro]: "x = x"
+    and subst [elim]: "x = y \<Longrightarrow> B x \<Longrightarrow> B y"
 
 text \<open>
-  Substitution is very powerful, but also hard to control in
-  full generality.  We derive some common symmetry~/ transitivity
-  schemes of @{term equal} as particular consequences.
+  Substitution is very powerful, but also hard to control in full generality.
+  We derive some common symmetry~/ transitivity schemes of @{term equal} as
+  particular consequences.
 \<close>
 
 theorem sym [sym]:
@@ -87,10 +81,9 @@ qed
 subsection \<open>Basic group theory\<close>
 
 text \<open>
-  As an example for equational reasoning we consider some bits of
-  group theory.  The subsequent locale definition postulates group
-  operations and axioms; we also derive some consequences of this
-  specification.
+  As an example for equational reasoning we consider some bits of group
+  theory. The subsequent locale definition postulates group operations and
+  axioms; we also derive some consequences of this specification.
 \<close>
 
 locale group =
@@ -125,20 +118,19 @@ proof -
 qed
 
 text \<open>
-  Reasoning from basic axioms is often tedious.  Our proofs
-  work by producing various instances of the given rules (potentially
-  the symmetric form) using the pattern ``@{command have}~\<open>eq\<close>~@{command "by"}~\<open>(rule r)\<close>'' and composing the chain of
-  results via @{command also}/@{command finally}.  These steps may
-  involve any of the transitivity rules declared in
-  \secref{sec:framework-ex-equal}, namely @{thm trans} in combining
-  the first two results in @{thm right_inv} and in the final steps of
-  both proofs, @{thm forw_subst} in the first combination of @{thm
+  Reasoning from basic axioms is often tedious. Our proofs work by producing
+  various instances of the given rules (potentially the symmetric form) using
+  the pattern ``\<^theory_text>\<open>have eq by (rule r)\<close>'' and composing the chain of results
+  via \<^theory_text>\<open>also\<close>/\<^theory_text>\<open>finally\<close>. These steps may involve any of the transitivity
+  rules declared in \secref{sec:framework-ex-equal}, namely @{thm trans} in
+  combining the first two results in @{thm right_inv} and in the final steps
+  of both proofs, @{thm forw_subst} in the first combination of @{thm
   right_unit}, and @{thm back_subst} in all other calculational steps.
 
-  Occasional substitutions in calculations are adequate, but should
-  not be over-emphasized.  The other extreme is to compose a chain by
-  plain transitivity only, with replacements occurring always in
-  topmost position. For example:
+  Occasional substitutions in calculations are adequate, but should not be
+  over-emphasized. The other extreme is to compose a chain by plain
+  transitivity only, with replacements occurring always in topmost position.
+  For example:
 \<close>
 
 (*<*)
@@ -157,12 +149,11 @@ qed
 (*>*)
 
 text \<open>
-  Here we have re-used the built-in mechanism for unfolding
-  definitions in order to normalize each equational problem.  A more
-  realistic object-logic would include proper setup for the Simplifier
-  (\secref{sec:simplifier}), the main automated tool for equational
-  reasoning in Isabelle.  Then ``@{command unfolding}~@{thm
-  left_inv}~@{command ".."}'' would become ``@{command "by"}~\<open>(simp only: left_inv)\<close>'' etc.
+  Here we have re-used the built-in mechanism for unfolding definitions in
+  order to normalize each equational problem. A more realistic object-logic
+  would include proper setup for the Simplifier (\secref{sec:simplifier}), the
+  main automated tool for equational reasoning in Isabelle. Then ``\<^theory_text>\<open>unfolding
+  left_inv ..\<close>'' would become ``\<^theory_text>\<open>by (simp only: left_inv)\<close>'' etc.
 \<close>
 
 end
@@ -172,33 +163,29 @@ subsection \<open>Propositional logic \label{sec:framework-ex-prop}\<close>
 
 text \<open>
   We axiomatize basic connectives of propositional logic: implication,
-  disjunction, and conjunction.  The associated rules are modeled
-  after Gentzen's system of Natural Deduction @{cite "Gentzen:1935"}.
+  disjunction, and conjunction. The associated rules are modeled after
+  Gentzen's system of Natural Deduction @{cite "Gentzen:1935"}.
 \<close>
 
-axiomatization
-  imp :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<longrightarrow>" 25) where
-  impI [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B" and
-  impD [dest]: "(A \<longrightarrow> B) \<Longrightarrow> A \<Longrightarrow> B"
+axiomatization imp :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<longrightarrow>" 25)
+  where impI [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B"
+    and impD [dest]: "(A \<longrightarrow> B) \<Longrightarrow> A \<Longrightarrow> B"
 
-axiomatization
-  disj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<or>" 30) where
-  disjI\<^sub>1 [intro]: "A \<Longrightarrow> A \<or> B" and
-  disjI\<^sub>2 [intro]: "B \<Longrightarrow> A \<or> B" and
-  disjE [elim]: "A \<or> B \<Longrightarrow> (A \<Longrightarrow> C) \<Longrightarrow> (B \<Longrightarrow> C) \<Longrightarrow> C"
+axiomatization disj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<or>" 30)
+  where disjI\<^sub>1 [intro]: "A \<Longrightarrow> A \<or> B"
+    and disjI\<^sub>2 [intro]: "B \<Longrightarrow> A \<or> B"
+    and disjE [elim]: "A \<or> B \<Longrightarrow> (A \<Longrightarrow> C) \<Longrightarrow> (B \<Longrightarrow> C) \<Longrightarrow> C"
 
-axiomatization
-  conj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<and>" 35) where
-  conjI [intro]: "A \<Longrightarrow> B \<Longrightarrow> A \<and> B" and
-  conjD\<^sub>1: "A \<and> B \<Longrightarrow> A" and
-  conjD\<^sub>2: "A \<and> B \<Longrightarrow> B"
+axiomatization conj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<and>" 35)
+  where conjI [intro]: "A \<Longrightarrow> B \<Longrightarrow> A \<and> B"
+    and conjD\<^sub>1: "A \<and> B \<Longrightarrow> A"
+    and conjD\<^sub>2: "A \<and> B \<Longrightarrow> B"
 
 text \<open>
-  The conjunctive destructions have the disadvantage that
-  decomposing @{prop "A \<and> B"} involves an immediate decision which
-  component should be projected.  The more convenient simultaneous
-  elimination @{prop "A \<and> B \<Longrightarrow> (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C"} can be derived as
-  follows:
+  The conjunctive destructions have the disadvantage that decomposing @{prop
+  "A \<and> B"} involves an immediate decision which component should be projected.
+  The more convenient simultaneous elimination @{prop "A \<and> B \<Longrightarrow> (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow>
+  C"} can be derived as follows:
 \<close>
 
 theorem conjE [elim]:
@@ -210,13 +197,14 @@ proof
 qed
 
 text \<open>
-  Here is an example of swapping conjuncts with a single
-  intermediate elimination step:
+  Here is an example of swapping conjuncts with a single intermediate
+  elimination step:
 \<close>
 
 (*<*)
 lemma "\<And>A. PROP A \<Longrightarrow> PROP A"
 proof -
+  fix A B
 (*>*)
   assume "A \<and> B"
   then obtain B and A ..
@@ -226,23 +214,21 @@ qed
 (*>*)
 
 text \<open>
-  Note that the analogous elimination rule for disjunction
-  ``\<open>\<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B\<close>'' coincides with
-  the original axiomatization of @{thm disjE}.
+  Note that the analogous elimination rule for disjunction ``\<^theory_text>\<open>assumes "A \<or> B"
+  obtains A \<BBAR> B\<close>'' coincides with the original axiomatization of @{thm
+  disjE}.
 
   \<^medskip>
-  We continue propositional logic by introducing absurdity
-  with its characteristic elimination.  Plain truth may then be
-  defined as a proposition that is trivially true.
+  We continue propositional logic by introducing absurdity with its
+  characteristic elimination. Plain truth may then be defined as a proposition
+  that is trivially true.
 \<close>
 
-axiomatization
-  false :: o  ("\<bottom>") where
-  falseE [elim]: "\<bottom> \<Longrightarrow> A"
+axiomatization false :: o  ("\<bottom>")
+  where falseE [elim]: "\<bottom> \<Longrightarrow> A"
 
-definition
-  true :: o  ("\<top>") where
-  "\<top> \<equiv> \<bottom> \<longrightarrow> \<bottom>"
+definition true :: o  ("\<top>")
+  where "\<top> \<equiv> \<bottom> \<longrightarrow> \<bottom>"
 
 theorem trueI [intro]: \<top>
   unfolding true_def ..
@@ -252,9 +238,8 @@ text \<open>
   Now negation represents an implication towards absurdity:
 \<close>
 
-definition
-  not :: "o \<Rightarrow> o"  ("\<not> _" [40] 40) where
-  "\<not> A \<equiv> A \<longrightarrow> \<bottom>"
+definition not :: "o \<Rightarrow> o"  ("\<not> _" [40] 40)
+  where "\<not> A \<equiv> A \<longrightarrow> \<bottom>"
 
 theorem notI [intro]:
   assumes "A \<Longrightarrow> \<bottom>"
@@ -278,10 +263,10 @@ qed
 subsection \<open>Classical logic\<close>
 
 text \<open>
-  Subsequently we state the principle of classical contradiction as a
-  local assumption.  Thus we refrain from forcing the object-logic
-  into the classical perspective.  Within that context, we may derive
-  well-known consequences of the classical principle.
+  Subsequently we state the principle of classical contradiction as a local
+  assumption. Thus we refrain from forcing the object-logic into the classical
+  perspective. Within that context, we may derive well-known consequences of
+  the classical principle.
 \<close>
 
 locale classical =
@@ -312,17 +297,15 @@ proof (rule double_negation)
 qed
 
 text \<open>
-  These examples illustrate both classical reasoning and
-  non-trivial propositional proofs in general.  All three rules
-  characterize classical logic independently, but the original rule is
-  already the most convenient to use, because it leaves the conclusion
-  unchanged.  Note that @{prop "(\<not> C \<Longrightarrow> C) \<Longrightarrow> C"} fits again into our
-  format for eliminations, despite the additional twist that the
-  context refers to the main conclusion.  So we may write @{thm
-  classical} as the Isar statement ``\<open>\<OBTAINS> \<not> thesis\<close>''.
-  This also explains nicely how classical reasoning really works:
-  whatever the main \<open>thesis\<close> might be, we may always assume its
-  negation!
+  These examples illustrate both classical reasoning and non-trivial
+  propositional proofs in general. All three rules characterize classical
+  logic independently, but the original rule is already the most convenient to
+  use, because it leaves the conclusion unchanged. Note that @{prop "(\<not> C \<Longrightarrow> C)
+  \<Longrightarrow> C"} fits again into our format for eliminations, despite the additional
+  twist that the context refers to the main conclusion. So we may write @{thm
+  classical} as the Isar statement ``\<^theory_text>\<open>obtains \<not> thesis\<close>''. This also explains
+  nicely how classical reasoning really works: whatever the main \<open>thesis\<close>
+  might be, we may always assume its negation!
 \<close>
 
 end
@@ -331,28 +314,25 @@ end
 subsection \<open>Quantifiers \label{sec:framework-ex-quant}\<close>
 
 text \<open>
-  Representing quantifiers is easy, thanks to the higher-order nature
-  of the underlying framework.  According to the well-known technique
-  introduced by Church @{cite "church40"}, quantifiers are operators on
-  predicates, which are syntactically represented as \<open>\<lambda>\<close>-terms
-  of type @{typ "i \<Rightarrow> o"}.  Binder notation turns \<open>All (\<lambda>x. B
-  x)\<close> into \<open>\<forall>x. B x\<close> etc.
+  Representing quantifiers is easy, thanks to the higher-order nature of the
+  underlying framework. According to the well-known technique introduced by
+  Church @{cite "church40"}, quantifiers are operators on predicates, which
+  are syntactically represented as \<open>\<lambda>\<close>-terms of type @{typ "i \<Rightarrow> o"}. Binder
+  notation turns \<open>All (\<lambda>x. B x)\<close> into \<open>\<forall>x. B x\<close> etc.
 \<close>
 
-axiomatization
-  All :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<forall>" 10) where
-  allI [intro]: "(\<And>x. B x) \<Longrightarrow> \<forall>x. B x" and
-  allD [dest]: "(\<forall>x. B x) \<Longrightarrow> B a"
+axiomatization All :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<forall>" 10)
+  where allI [intro]: "(\<And>x. B x) \<Longrightarrow> \<forall>x. B x"
+    and allD [dest]: "(\<forall>x. B x) \<Longrightarrow> B a"
 
-axiomatization
-  Ex :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>" 10) where
-  exI [intro]: "B a \<Longrightarrow> (\<exists>x. B x)" and
-  exE [elim]: "(\<exists>x. B x) \<Longrightarrow> (\<And>x. B x \<Longrightarrow> C) \<Longrightarrow> C"
+axiomatization Ex :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>" 10)
+  where exI [intro]: "B a \<Longrightarrow> (\<exists>x. B x)"
+    and exE [elim]: "(\<exists>x. B x) \<Longrightarrow> (\<And>x. B x \<Longrightarrow> C) \<Longrightarrow> C"
 
 text \<open>
-  The statement of @{thm exE} corresponds to ``\<open>\<ASSUMES> \<exists>x. B x \<OBTAINS> x \<WHERE> B x\<close>'' in Isar.  In the
-  subsequent example we illustrate quantifier reasoning involving all
-  four rules:
+  The statement of @{thm exE} corresponds to ``\<^theory_text>\<open>assumes "\<exists>x. B x" obtains x
+  where "B x"\<close>'' in Isar. In the subsequent example we illustrate quantifier
+  reasoning involving all four rules:
 \<close>
 
 theorem
@@ -369,43 +349,42 @@ subsection \<open>Canonical reasoning patterns\<close>
 
 text \<open>
   The main rules of first-order predicate logic from
-  \secref{sec:framework-ex-prop} and \secref{sec:framework-ex-quant}
-  can now be summarized as follows, using the native Isar statement
-  format of \secref{sec:framework-stmt}.
+  \secref{sec:framework-ex-prop} and \secref{sec:framework-ex-quant} can now
+  be summarized as follows, using the native Isar statement format of
+  \secref{sec:framework-stmt}.
 
   \<^medskip>
   \begin{tabular}{l}
-  \<open>impI: \<ASSUMES> A \<Longrightarrow> B \<SHOWS> A \<longrightarrow> B\<close> \\
-  \<open>impD: \<ASSUMES> A \<longrightarrow> B \<AND> A \<SHOWS> B\<close> \\[1ex]
+  \<^theory_text>\<open>impI: assumes "A \<Longrightarrow> B" shows "A \<longrightarrow> B"\<close> \\
+  \<^theory_text>\<open>impD: assumes "A \<longrightarrow> B" and A shows B\<close> \\[1ex]
 
-  \<open>disjI\<^sub>1: \<ASSUMES> A \<SHOWS> A \<or> B\<close> \\
-  \<open>disjI\<^sub>2: \<ASSUMES> B \<SHOWS> A \<or> B\<close> \\
-  \<open>disjE: \<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B\<close> \\[1ex]
+  \<^theory_text>\<open>disjI\<^sub>1: assumes A shows "A \<or> B"\<close> \\
+  \<^theory_text>\<open>disjI\<^sub>2: assumes B shows "A \<or> B"\<close> \\
+  \<^theory_text>\<open>disjE: assumes "A \<or> B" obtains A \<BBAR> B\<close> \\[1ex]
 
-  \<open>conjI: \<ASSUMES> A \<AND> B \<SHOWS> A \<and> B\<close> \\
-  \<open>conjE: \<ASSUMES> A \<and> B \<OBTAINS> A \<AND> B\<close> \\[1ex]
+  \<^theory_text>\<open>conjI: assumes A and B shows A \<and> B\<close> \\
+  \<^theory_text>\<open>conjE: assumes "A \<and> B" obtains A and B\<close> \\[1ex]
 
-  \<open>falseE: \<ASSUMES> \<bottom> \<SHOWS> A\<close> \\
-  \<open>trueI: \<SHOWS> \<top>\<close> \\[1ex]
+  \<^theory_text>\<open>falseE: assumes \<bottom> shows A\<close> \\
+  \<^theory_text>\<open>trueI: shows \<top>\<close> \\[1ex]
 
-  \<open>notI: \<ASSUMES> A \<Longrightarrow> \<bottom> \<SHOWS> \<not> A\<close> \\
-  \<open>notE: \<ASSUMES> \<not> A \<AND> A \<SHOWS> B\<close> \\[1ex]
+  \<^theory_text>\<open>notI: assumes "A \<Longrightarrow> \<bottom>" shows "\<not> A"\<close> \\
+  \<^theory_text>\<open>notE: assumes "\<not> A" and A shows B\<close> \\[1ex]
 
-  \<open>allI: \<ASSUMES> \<And>x. B x \<SHOWS> \<forall>x. B x\<close> \\
-  \<open>allE: \<ASSUMES> \<forall>x. B x \<SHOWS> B a\<close> \\[1ex]
+  \<^theory_text>\<open>allI: assumes "\<And>x. B x" shows "\<forall>x. B x"\<close> \\
+  \<^theory_text>\<open>allE: assumes "\<forall>x. B x" shows "B a"\<close> \\[1ex]
 
-  \<open>exI: \<ASSUMES> B a \<SHOWS> \<exists>x. B x\<close> \\
-  \<open>exE: \<ASSUMES> \<exists>x. B x \<OBTAINS> a \<WHERE> B a\<close>
+  \<^theory_text>\<open>exI: assumes "B a" shows "\<exists>x. B x"\<close> \\
+  \<^theory_text>\<open>exE: assumes "\<exists>x. B x" obtains a where "B a"\<close>
   \end{tabular}
   \<^medskip>
 
-  This essentially provides a declarative reading of Pure
-  rules as Isar reasoning patterns: the rule statements tells how a
-  canonical proof outline shall look like.  Since the above rules have
-  already been declared as @{attribute (Pure) intro}, @{attribute
-  (Pure) elim}, @{attribute (Pure) dest} --- each according to its
-  particular shape --- we can immediately write Isar proof texts as
-  follows:
+  This essentially provides a declarative reading of Pure rules as Isar
+  reasoning patterns: the rule statements tells how a canonical proof outline
+  shall look like. Since the above rules have already been declared as
+  @{attribute (Pure) intro}, @{attribute (Pure) elim}, @{attribute (Pure)
+  dest} --- each according to its particular shape --- we can immediately
+  write Isar proof texts as follows:
 \<close>
 
 (*<*)
@@ -511,11 +490,10 @@ qed
 
 text \<open>
   \<^bigskip>
-  Of course, these proofs are merely examples.  As
-  sketched in \secref{sec:framework-subproof}, there is a fair amount
-  of flexibility in expressing Pure deductions in Isar.  Here the user
-  is asked to express himself adequately, aiming at proof texts of
-  literary quality.
+  Of course, these proofs are merely examples. As sketched in
+  \secref{sec:framework-subproof}, there is a fair amount of flexibility in
+  expressing Pure deductions in Isar. Here the user is asked to express
+  himself adequately, aiming at proof texts of literary quality.
 \<close>
 
 end %visible
