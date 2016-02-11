@@ -4,6 +4,17 @@ Poly/ML for Isabelle
 This compilation of Poly/ML 5.6 (http://www.polyml.org) is based on the source
 distribution from https://github.com/polyml/polyml/releases/tag/v5.6/.
 
+On Linux the sources have changed as follows, in order to evade a
+potential conflict of /bin/bash versus /bin/sh -> dash (notably on
+Ubuntu and Debian):
+
+diff -r src-orig/libpolyml/process_env.cpp src/libpolyml/process_env.cpp
+228c228
+<                 execve("/bin/sh", argv, environ);
+---
+>                 execvp("bash", argv);
+
+
 The included build script is used like this:
 
   ./build src x86-linux --with-gmp
@@ -18,4 +29,4 @@ efficient digestion of strings according to SHA-1.
 
 
         Makarius
-        31-Jan-2016
+        11-Feb-2016
