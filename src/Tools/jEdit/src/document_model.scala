@@ -309,6 +309,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     for (text_area <- JEdit_Lib.jedit_text_areas(buffer))
       Untyped.method(Class.forName("org.gjt.sp.jedit.textarea.TextArea"), "foldStructureChanged").
         invoke(text_area)
+    buffer.invalidateCachedFoldLevels
   }
 
   private def init_token_marker()

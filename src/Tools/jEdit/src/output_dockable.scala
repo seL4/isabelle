@@ -129,6 +129,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
         GUI_Thread.later {
+          handle_resize()
           output_state_button.selected = output_state
           handle_update(do_update, None)
         }

@@ -166,9 +166,9 @@ final class Outer_Syntax private(
           if (tok.is_command) {
             if (tok.is_command_kind(keywords, Keyword.theory_goal)) (2, 1)
             else if (tok.is_command_kind(keywords, Keyword.theory)) (1, 0)
-            else if (tok.is_command_kind(keywords, Keyword.PRF_BLOCK == _)) (y + 2, y + 1)
-            else if (tok.is_command_kind(keywords, Keyword.QED_BLOCK == _)) (y + 1, y - 3)
             else if (tok.is_command_kind(keywords, Keyword.proof_open)) (y + 2, y + 1)
+            else if (tok.is_command_kind(keywords, Keyword.PRF_BLOCK == _)) (y + 2, y + 1)
+            else if (tok.is_command_kind(keywords, Keyword.QED_BLOCK == _)) (y + 1, y - 2)
             else if (tok.is_command_kind(keywords, Keyword.proof_close)) (y + 1, y - 1)
             else if (tok.is_command_kind(keywords, Keyword.qed_global)) (1, 0)
             else (x, y)

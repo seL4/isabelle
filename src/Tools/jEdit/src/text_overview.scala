@@ -72,6 +72,9 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
   private var current_overview = Overview()
   private var current_colors: List[(Color, Int, Int)] = Nil
 
+  private val delay_repaint =
+    GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { repaint() }
+
   override def paintComponent(gfx: Graphics)
   {
     super.paintComponent(gfx)
@@ -83,7 +86,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
         val overview = get_overview()
 
         if (rendering.snapshot.is_outdated || overview != current_overview) {
-          invoke()
+          delay_repaint.invoke()
 
           gfx.setColor(rendering.outdated_color)
           gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
@@ -103,23 +106,21 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
   /* asynchronous refresh */
 
-  private var future_refresh: Option[Future[Unit]] = None
-  private def cancel(): Unit = future_refresh.map(_.cancel)
+  private val future_refresh = Synchronized(Future.value(()))
+  private def is_running(): Boolean = !future_refresh.value.is_finished
 
   def invoke(): Unit = delay_refresh.invoke()
-  def revoke(): Unit = delay_refresh.revoke()
+  def revoke(): Unit = { delay_refresh.revoke(); future_refresh.change(x => { x.cancel; x }) }
 
   private val delay_refresh =
-    GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay"), cancel _) {
+    GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) {
       doc_view.rich_text_area.robust_body(()) {
         JEdit_Lib.buffer_lock(buffer) {
           val rendering = doc_view.get_rendering()
           val overview = get_overview()
 
-          if (rendering.snapshot.is_outdated) invoke()
+          if (rendering.snapshot.is_outdated || is_running()) invoke()
           else {
-            cancel()
-
             val line_offsets =
             {
               val line_manager = JEdit_Lib.buffer_line_manager(buffer)
@@ -128,8 +129,8 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
               a
             }
 
-            future_refresh =
-              Some(Future.fork {
+            future_refresh.change(_ =>
+              Future.fork {
                 val line_count = overview.line_count
                 val char_count = overview.char_count
                 val L = overview.L
@@ -170,7 +171,8 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
                   current_colors = new_colors
                   repaint()
                 }
-              })
+              }
+            )
           }
         }
       }

@@ -71,7 +71,7 @@ fun split_lines [] = []
         fun split syms =
           (case take_prefix (fn (s, _) => s <> "\n") syms of
             (line, []) => [line]
-          | (line, nl :: rest) => line :: split rest);
+          | (line, _ :: rest) => line :: split rest);
       in split list end;
 
 val trim_blanks = trim (Symbol.is_blank o symbol);

@@ -581,7 +581,7 @@ fun mark_aprop tm =
             (mark Ts t1 $ mark Ts t2);
   in mark [] tm end;
 
-fun prune_types ctxt tm =
+fun prune_types tm =
   let
     fun regard t t' seen =
       if Type_Annotation.is_omitted (Type_Annotation.fastype_of [] t) then (t, seen)
@@ -651,7 +651,7 @@ fun term_to_ast is_syntax_const ctxt trf tm =
           in Ast.mk_appl (constrain (c $ Syntax.free x) X) (map ast_of ts) end
       | (Const ("_idtdummy", T), ts) =>
           Ast.mk_appl (constrain (Syntax.const "_idtdummy") T) (map ast_of ts)
-      | (const as Const (c, T), ts) => trans c (Type_Annotation.smash T) ts
+      | (Const (c, T), ts) => trans c (Type_Annotation.smash T) ts
       | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
 
     and trans a T args = ast_of (trf a ctxt T args)
@@ -672,7 +672,7 @@ fun term_to_ast is_syntax_const ctxt trf tm =
   in
     tm
     |> mark_aprop
-    |> show_types ? prune_types ctxt
+    |> show_types ? prune_types
     |> Variable.revert_bounds ctxt
     |> mark_atoms is_syntax_const ctxt
     |> ast_of

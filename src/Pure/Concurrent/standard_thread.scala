@@ -56,8 +56,7 @@ object Standard_Thread
 
   /* delayed events */
 
-  final class Delay private [Standard_Thread](
-    first: Boolean, delay: => Time, cancel: () => Unit, event: => Unit)
+  final class Delay private [Standard_Thread](first: Boolean, delay: => Time, event: => Unit)
   {
     private var running: Option[Event_Timer.Request] = None
 
@@ -73,8 +72,8 @@ object Standard_Thread
     {
       val new_run =
         running match {
-          case Some(request) => if (first) false else { request.cancel; cancel(); true }
-          case None => cancel(); true
+          case Some(request) => if (first) false else { request.cancel; true }
+          case None => true
         }
       if (new_run)
         running = Some(Event_Timer.request(Time.now() + delay)(run))
@@ -83,8 +82,8 @@ object Standard_Thread
     def revoke(): Unit = synchronized
     {
       running match {
-        case Some(request) => request.cancel; cancel(); running = None
-        case None => cancel()
+        case Some(request) => request.cancel; running = None
+        case None =>
       }
     }
 
@@ -94,20 +93,16 @@ object Standard_Thread
         case Some(request) =>
           val alt_time = Time.now() + alt_delay
           if (request.time < alt_time && request.cancel) {
-            cancel()
             running = Some(Event_Timer.request(alt_time)(run))
           }
-          else cancel()
-        case None => cancel()
+        case None =>
       }
     }
   }
 
   // delayed event after first invocation
-  def delay_first(delay: => Time, cancel: () => Unit = () => ())(event: => Unit): Delay =
-    new Delay(true, delay, cancel, event)
+  def delay_first(delay: => Time)(event: => Unit): Delay = new Delay(true, delay, event)
 
   // delayed event after last invocation
-  def delay_last(delay: => Time, cancel: () => Unit = () => ())(event: => Unit): Delay =
-    new Delay(false, delay, cancel, event)
+  def delay_last(delay: => Time)(event: => Unit): Delay = new Delay(false, delay, event)
 }

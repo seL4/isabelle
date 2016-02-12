@@ -18,7 +18,7 @@ session "HOL-Proofs" (slow) = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
-  options [document = false, quick_and_dirty = false]
+  options [condition = ML_SYSTEM_POLYML, document = false, quick_and_dirty = false]
   theories Proofs (*sequential change of global flag!*)
   theories "~~/src/HOL/Library/Old_Datatype"
   files
@@ -252,17 +252,17 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
     Generate_Target_Nat
     Generate_Efficient_Datastructures
     Generate_Pretty_Char
-  theories [condition = ISABELLE_GHC]
+  theories [condition = "ML_SYSTEM_POLYML,ISABELLE_GHC"]
     Code_Test_GHC
-  theories [condition = ISABELLE_MLTON]
+  theories [condition = "ML_SYSTEM_POLYML,ISABELLE_MLTON"]
     Code_Test_MLton
-  theories [condition = ISABELLE_OCAMLC]
+  theories [condition = "ML_SYSTEM_POLYML,ISABELLE_OCAMLC"]
     Code_Test_OCaml
-  theories [condition = ISABELLE_POLYML]
+  theories [condition = "ML_SYSTEM_POLYML,ISABELLE_POLYML"]
     Code_Test_PolyML
-  theories [condition = ISABELLE_SCALA]
+  theories [condition = "ML_SYSTEM_POLYML,ISABELLE_SCALA"]
     Code_Test_Scala
-  theories [condition = ISABELLE_SMLNJ]
+  theories [condition = "ML_SYSTEM_POLYML,ISABELLE_SMLNJ"]
     Code_Test_SMLNJ
 
 session "HOL-Metis_Examples" in Metis_Examples = HOL +
@@ -398,7 +398,7 @@ session "HOL-Decision_Procs" in Decision_Procs = HOL +
   theories Decision_Procs
 
 session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
-  options [document = false, parallel_proofs = 0]
+  options [condition = ML_SYSTEM_POLYML, document = false, parallel_proofs = 0]
   theories
     Hilbert_Classical
     XML_Data
@@ -432,7 +432,8 @@ session "HOL-Proofs-Lambda" in "Proofs/Lambda" = "HOL-Proofs" +
     The paper "More Church-Rosser Proofs (in Isabelle/HOL)" describes the whole
     theory (see http://www.in.tum.de/~nipkow/pubs/jar2001.html).
   *}
-  options [print_mode = "no_brackets", parallel_proofs = 0, quick_and_dirty = false]
+  options [condition = ML_SYSTEM_POLYML, print_mode = "no_brackets",
+    parallel_proofs = 0, quick_and_dirty = false]
   theories [document = false]
     "~~/src/HOL/Library/Code_Target_Int"
   theories
@@ -845,7 +846,7 @@ session "HOL-Mirabelle-ex" in "Mirabelle/ex" = "HOL-Mirabelle" +
   theories Ex
 
 session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
-  options [document = false, quick_and_dirty]
+  options [condition = ML_SYSTEM_POLYML, document = false, quick_and_dirty]
   theories
     Boogie
     SMT_Examples
@@ -992,7 +993,7 @@ session "HOL-Quotient_Examples" in Quotient_Examples = HOL +
 
 session "HOL-Predicate_Compile_Examples" in Predicate_Compile_Examples = HOL +
   options [document = false]
-  theories
+  theories [condition = ML_SYSTEM_POLYML]
     Examples
     Predicate_Compile_Tests
     Predicate_Compile_Quickcheck_Examples
@@ -1003,13 +1004,13 @@ session "HOL-Predicate_Compile_Examples" in Predicate_Compile_Examples = HOL +
     Hotel_Example_Small_Generator *)
     IMP_3
     IMP_4
-  theories [condition = "ISABELLE_SWIPL"]
+  theories [condition = ISABELLE_SWIPL]
     Code_Prolog_Examples
     Context_Free_Grammar_Example
     Hotel_Example_Prolog
     Lambda_Example
     List_Examples
-  theories [condition = "ISABELLE_SWIPL", quick_and_dirty]
+  theories [condition = ISABELLE_SWIPL, quick_and_dirty]
     Reg_Exp_Example
 
 session HOLCF (main) in HOLCF = HOL +

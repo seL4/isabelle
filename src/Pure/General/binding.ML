@@ -31,7 +31,7 @@ sig
   val prefix_of: binding -> (string * bool) list
   val map_prefix: ((string * bool) list -> (string * bool) list) -> binding -> binding
   val prefix: bool -> string -> binding -> binding
-  val restricted_default: (bool * scope) option -> binding -> binding
+  val restricted: (bool * scope) option -> binding -> binding
   val concealed: binding -> binding
   val pretty: binding -> Pretty.T
   val print: binding -> string
@@ -135,14 +135,9 @@ fun prefix _ "" = I
 
 (* visibility flags *)
 
-fun restricted strict scope =
-  map_binding (fn (_, concealed, prefix, qualifier, name, pos) =>
-    (SOME (strict, scope), concealed, prefix, qualifier, name, pos));
-
-fun restricted_default restricted' =
+fun restricted default =
   map_binding (fn (restricted, concealed, prefix, qualifier, name, pos) =>
-    (if is_some restricted then restricted else restricted',
-      concealed, prefix, qualifier, name, pos));
+    (if is_some restricted then restricted else default, concealed, prefix, qualifier, name, pos));
 
 val concealed =
   map_binding (fn (restricted, _, prefix, qualifier, name, pos) =>

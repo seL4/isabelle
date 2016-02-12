@@ -16,7 +16,7 @@ import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
 import scala.annotation.tailrec
 import scala.util.parsing.input.CharSequenceReader
 
-import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug}
+import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug, EditPane}
 import org.gjt.sp.jedit.gui.KeyEventWorkaround
 import org.gjt.sp.jedit.buffer.{JEditBuffer, LineManager}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
@@ -129,6 +129,10 @@ object JEdit_Lib
     jedit_buffer(name.node)
 
   def jedit_views(): Iterator[View] = jEdit.getViews().iterator
+
+  def jedit_edit_panes(view: View): Iterator[EditPane] =
+    if (view == null) Iterator.empty
+    else view.getEditPanes().iterator.filter(_ != null)
 
   def jedit_text_areas(view: View): Iterator[JEditTextArea] =
     if (view == null) Iterator.empty

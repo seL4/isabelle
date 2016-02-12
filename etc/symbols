@@ -295,14 +295,14 @@
 \<triangleright>        code: 0x0025b9  group: relation
 \<triangle>             code: 0x0025b3  group: relation
 \<triangleq>            code: 0x00225c  group: relation
-\<oplus>                code: 0x002295  group: operator  abbrev: +o
-\<Oplus>                code: 0x002a01  group: operator  abbrev: +O
-\<otimes>               code: 0x002297  group: operator  abbrev: *o
-\<Otimes>               code: 0x002a02  group: operator  abbrev: *O
-\<odot>                 code: 0x002299  group: operator  abbrev: .o
-\<Odot>                 code: 0x002a00  group: operator  abbrev: .O
-\<ominus>               code: 0x002296  group: operator  abbrev: -o
-\<oslash>               code: 0x002298  group: operator  abbrev: /o
+\<oplus>                code: 0x002295  group: operator
+\<Oplus>                code: 0x002a01  group: operator
+\<otimes>               code: 0x002297  group: operator
+\<Otimes>               code: 0x002a02  group: operator
+\<odot>                 code: 0x002299  group: operator
+\<Odot>                 code: 0x002a00  group: operator
+\<ominus>               code: 0x002296  group: operator
+\<oslash>               code: 0x002298  group: operator
 \<dots>                 code: 0x002026  group: punctuation abbrev: ...
 \<cdots>                code: 0x0022ef  group: punctuation
 \<Sum>                  code: 0x002211  group: operator  abbrev: SUM
@@ -357,7 +357,7 @@
 \<some>                 code: 0x0003f5
 \<hole>                 code: 0x002311
 \<newline>              code: 0x0023ce
-\<comment>              code: 0x002015  font: IsabelleText
+\<comment>              code: 0x002015  group: document  font: IsabelleText
 \<open>                 code: 0x002039  group: punctuation  font: IsabelleText  abbrev: <<
 \<close>                code: 0x00203a  group: punctuation  font: IsabelleText  abbrev: >>
 \<here>                 code: 0x002302  font: IsabelleText

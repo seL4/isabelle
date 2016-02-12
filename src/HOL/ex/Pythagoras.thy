@@ -2,7 +2,7 @@
     Author:     Amine Chaieb
 *)
 
-header "The Pythagorean Theorem"
+section "The Pythagorean Theorem"
 
 theory Pythagoras
 imports Complex_Main

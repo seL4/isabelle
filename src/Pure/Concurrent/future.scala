@@ -88,7 +88,7 @@ private class Task_Future[A](body: => A) extends Future[A]
       status.change(_ => Finished(if (Thread.interrupted) Exn.Exn(Exn.Interrupt()) else result))
     }
   }
-  private val task = Standard_Thread.pool.submit(new Callable[A] { def call = body })
+  private val task = Standard_Thread.pool.submit(new Callable[Unit] { def call = try_run() })
 
   def join_result: Exn.Result[A] =
   {

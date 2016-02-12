@@ -210,7 +210,7 @@ text \<open>
 
   Abbreviations may be either bound by explicit @{command "let"}~\<open>p \<equiv> t\<close>
   statements, or by annotating assumptions or goal statements with a list of
-  patterns ``\<open>(\<IS> p\<^sub>1 \<dots> p\<^sub>n)\<close>''. In both cases, higher-order matching is
+  patterns ``\<^theory_text>\<open>(is p\<^sub>1 \<dots> p\<^sub>n)\<close>''. In both cases, higher-order matching is
   invoked to bind extra-logical term variables, which may be either named
   schematic variables of the form \<open>?x\<close>, or nameless dummies ``@{variable _}''
   (underscore). Note that in the @{command "let"} form the patterns occur on
@@ -239,13 +239,13 @@ text \<open>
   The syntax of @{keyword "is"} patterns follows @{syntax term_pat} or
   @{syntax prop_pat} (see \secref{sec:term-decls}).
 
-    \<^descr> @{command "let"}~\<open>p\<^sub>1 = t\<^sub>1 \<AND> \<dots> p\<^sub>n = t\<^sub>n\<close> binds any text variables
-    in patterns \<open>p\<^sub>1, \<dots>, p\<^sub>n\<close> by simultaneous higher-order matching against
-    terms \<open>t\<^sub>1, \<dots>, t\<^sub>n\<close>.
+    \<^descr> \<^theory_text>\<open>let p\<^sub>1 = t\<^sub>1 and \<dots> p\<^sub>n = t\<^sub>n\<close> binds any text variables in patterns
+    \<open>p\<^sub>1, \<dots>, p\<^sub>n\<close> by simultaneous higher-order matching against terms \<open>t\<^sub>1, \<dots>,
+    t\<^sub>n\<close>.
 
-    \<^descr> \<open>(\<IS> p\<^sub>1 \<dots> p\<^sub>n)\<close> resembles @{command "let"}, but matches \<open>p\<^sub>1, \<dots>,
-    p\<^sub>n\<close> against the preceding statement. Also note that @{keyword "is"} is
-    not a separate command, but part of others (such as @{command "assume"},
+    \<^descr> \<^theory_text>\<open>(is p\<^sub>1 \<dots> p\<^sub>n)\<close> resembles @{command "let"}, but matches \<open>p\<^sub>1, \<dots>, p\<^sub>n\<close>
+    against the preceding statement. Also note that @{keyword "is"} is not a
+    separate command, but part of others (such as @{command "assume"},
     @{command "have"} etc.).
 
   Some \<^emph>\<open>implicit\<close> term abbreviations\index{term abbreviations} for goals and
@@ -441,14 +441,10 @@ text \<open>
   warning beforehand. Watch out for the following message:
   @{verbatim [display] \<open>Local statement fails to refine any pending goal\<close>}
 
-  \<^descr> @{command "hence"} abbreviates ``@{command "then"}~@{command "have"}'',
-  i.e.\ claims a local goal to be proven by forward chaining the current
-  facts. Note that @{command "hence"} is also equivalent to ``@{command
-  "from"}~\<open>this\<close>~@{command "have"}''.
-
-  \<^descr> @{command "thus"} abbreviates ``@{command "then"}~@{command "show"}''.
-  Note that @{command "thus"} is also equivalent to ``@{command
-  "from"}~\<open>this\<close>~@{command "show"}''.
+  \<^descr> @{command "hence"} expands to ``@{command "then"}~@{command "have"}'' and
+  @{command "thus"} expands to ``@{command "then"}~@{command "show"}''. These
+  conflations are left-over from early history of Isar. The expanded syntax is
+  more orthogonal and improves readability and maintainability of proofs.
 
   \<^descr> @{command "print_statement"}~\<open>a\<close> prints facts from the current theory or
   proof context in long statement form, according to the syntax for @{command
@@ -682,11 +678,11 @@ text \<open>
   forward chaining are passed if so indicated by \<open>proof(chain)\<close> mode.
 
   \<^descr> @{command "qed"}~\<open>m\<^sub>2\<close> refines any remaining goals by proof method \<open>m\<^sub>2\<close>
-  and concludes the sub-proof by assumption. If the goal had been \<open>show\<close> (or
-  \<open>thus\<close>), some pending sub-goal is solved as well by the rule resulting from
-  the result \<^emph>\<open>exported\<close> into the enclosing goal context. Thus \<open>qed\<close> may fail
-  for two reasons: either \<open>m\<^sub>2\<close> fails, or the resulting rule does not fit to
-  any pending goal\<^footnote>\<open>This includes any additional ``strong'' assumptions as
+  and concludes the sub-proof by assumption. If the goal had been \<open>show\<close>, some
+  pending sub-goal is solved as well by the rule resulting from the result
+  \<^emph>\<open>exported\<close> into the enclosing goal context. Thus \<open>qed\<close> may fail for two
+  reasons: either \<open>m\<^sub>2\<close> fails, or the resulting rule does not fit to any
+  pending goal\<^footnote>\<open>This includes any additional ``strong'' assumptions as
   introduced by @{command "assume"}.\<close> of the enclosing context. Debugging such
   a situation might involve temporarily changing @{command "show"} into
   @{command "have"}, or weakening the local context by replacing occurrences

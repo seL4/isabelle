@@ -19,8 +19,8 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.syntax.ModeProvider
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
-
 import org.gjt.sp.util.SyntaxUtilities
+import org.gjt.sp.util.Log
 
 
 object PIDE
@@ -377,6 +377,15 @@ class Plugin extends EBPlugin
           }
 
         case msg: PropertiesChanged =>
+          for {
+            view <- JEdit_Lib.jedit_views
+            edit_pane <- JEdit_Lib.jedit_edit_panes(view)
+          } {
+            val buffer = edit_pane.getBuffer
+            val text_area = edit_pane.getTextArea
+            if (buffer != null && text_area != null) PIDE.init_view(buffer, text_area)
+          }
+
           PIDE.spell_checker.update(PIDE.options.value)
           PIDE.session.update_options(PIDE.options.value)
 
@@ -391,7 +400,7 @@ class Plugin extends EBPlugin
       Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
       PIDE.plugin = this
-      PIDE.options.update(Options.init())
+      PIDE.options.store(Options.init())
       PIDE.completion_history.load()
       PIDE.spell_checker.update(PIDE.options.value)
 
@@ -420,6 +429,7 @@ class Plugin extends EBPlugin
       case exn: Throwable =>
         PIDE.startup_failure = Some(exn)
         PIDE.startup_notified = false
+        Log.log(Log.ERROR, this, exn)
     }
   }
 

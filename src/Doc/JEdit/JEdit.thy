@@ -1016,16 +1016,15 @@ section \<open>Query \label{sec:query}\<close>
 
 text \<open>
   The \<^emph>\<open>Query\<close> panel provides various GUI forms to request extra information
-  from the prover. In old times the user would have issued some diagnostic
-  command like @{command find_theorems} and inspected its output, but this is
-  now integrated into the Prover IDE.
+  from the prover, as a replacement of old-style diagnostic commands like
+  @{command find_theorems}. There are input fields and buttons for a
+  particular query command, with output in a dedicated text area.
 
-  A \<^emph>\<open>Query\<close> window provides some input fields and buttons for a particular
-  query command, with output in a dedicated text area. There are various query
-  modes: \<^emph>\<open>Find Theorems\<close>, \<^emph>\<open>Find Constants\<close>, \<^emph>\<open>Print Context\<close>, e.g.\ see
-  \figref{fig:query}. As usual in jEdit, multiple \<^emph>\<open>Query\<close> windows may be
-  active at the same time: any number of floating instances, but at most one
-  docked instance (which is used by default).
+  The main query modes are presented as separate tabs: \<^emph>\<open>Find Theorems\<close>,
+  \<^emph>\<open>Find Constants\<close>, \<^emph>\<open>Print Context\<close>, e.g.\ see \figref{fig:query}. As usual
+  in jEdit, multiple \<^emph>\<open>Query\<close> windows may be active at the same time: any
+  number of floating instances, but at most one docked instance (which is used
+  by default).
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1101,20 +1100,20 @@ text \<open>
   The \<^emph>\<open>Query\<close> panel in \<^emph>\<open>Print Context\<close> mode prints information from the
   theory or proof context, or proof state. See also the Isar commands
   @{command_ref print_context}, @{command_ref print_cases}, @{command_ref
-  print_term_bindings}, @{command_ref print_theorems}, @{command_ref
-  print_state} described in @{cite "isabelle-isar-ref"}.
+  print_term_bindings}, @{command_ref print_theorems}, described in @{cite
+  "isabelle-isar-ref"}.
 \<close>
 
 
 section \<open>Tooltips and hyperlinks \label{sec:tooltips-hyperlinks}\<close>
 
 text \<open>
-  Formally processed text (prover input or output) contains rich markup
-  information that can be explored further by using the \<^verbatim>\<open>CONTROL\<close> modifier
-  key on Linux and Windows, or \<^verbatim>\<open>COMMAND\<close> on Mac OS X. Hovering with the mouse
-  while the modifier is pressed reveals a \<^emph>\<open>tooltip\<close> (grey box over the text
-  with a yellow popup) and/or a \<^emph>\<open>hyperlink\<close> (black rectangle over the text
-  with change of mouse pointer); see also \figref{fig:tooltip}.
+  Formally processed text (prover input or output) contains rich markup that
+  can be explored by using the \<^verbatim>\<open>CONTROL\<close> modifier key on Linux and Windows,
+  or \<^verbatim>\<open>COMMAND\<close> on Mac OS X. Hovering with the mouse while the modifier is
+  pressed reveals a \<^emph>\<open>tooltip\<close> (grey box over the text with a yellow popup)
+  and/or a \<^emph>\<open>hyperlink\<close> (black rectangle over the text with change of mouse
+  pointer); see also \figref{fig:tooltip}.
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1124,7 +1123,7 @@ text \<open>
   \label{fig:tooltip}
   \end{figure}
 
-  Tooltip popups use the same rendering mechanisms as the main text area, and
+  Tooltip popups use the same rendering technology as the main text area, and
   further tooltips and/or hyperlinks may be exposed recursively by the same
   mechanism; see \figref{fig:nested-tooltips}.
 
@@ -1146,13 +1145,12 @@ text \<open>
   a mouse click (while the \<^verbatim>\<open>CONTROL\<close> or \<^verbatim>\<open>COMMAND\<close> modifier key is still
   pressed). Such jumps to other text locations are recorded by the
   \<^emph>\<open>Navigator\<close> plugin, which is bundled with Isabelle/jEdit and enabled by
-  default, including navigation arrows in the main jEdit toolbar.
+  default. There are usually navigation arrows in the main jEdit toolbar.
 
-  Also note that the link target may be a file that is itself not subject to
-  formal document processing of the editor session and thus prevents further
+  Note that the link target may be a file that is itself not subject to formal
+  document processing of the editor session and thus prevents further
   exploration: the chain of hyperlinks may end in some source file of the
-  underlying logic image, or within the ML bootstrap sources of
-  Isabelle/Pure.
+  underlying logic image, or within the ML bootstrap sources of Isabelle/Pure.
 \<close>
 
 
@@ -1263,6 +1261,17 @@ text \<open>
   syntax keyword. Non-word abbreviations like \<^verbatim>\<open>-->\<close> are inserted more
   aggressively, except for single-character abbreviations like \<^verbatim>\<open>!\<close> above.
 
+  Completion via abbreviations like \<^verbatim>\<open>ALL\<close> or \<^verbatim>\<open>-->\<close> depends on the semantic
+  language context (\secref{sec:completion-context}). In contrast, backslash
+  sequences like \<^verbatim>\<open>\forall\<close> \<^verbatim>\<open>\<forall>\<close> are always possible, but require
+  additional interaction to confirm (via popup).
+
+  The latter is important in ambiguous situations, e.g.\ for Isabelle document
+  source, which may contain formal symbols or informal {\LaTeX} macros.
+  Backslash sequences also help when input is broken, and thus escapes its
+  normal semantic context: e.g.\ antiquotations or string literals in ML,
+  which do not allow arbitrary backslash sequences.
+
   \<^medskip>
   Additional abbreviations may be specified in @{file
   "$ISABELLE_HOME/etc/abbrevs"} and @{file_unchecked
@@ -1272,13 +1281,6 @@ text \<open>
   than just one symbol; otherwise the meaning is the same as a symbol
   specification ``\<open>sym\<close>~\<^verbatim>\<open>abbrev:\<close>~\<open>abbrev\<close>'' within @{file_unchecked
   "etc/symbols"}.
-
-  \<^medskip>
-  Symbol completion depends on the semantic language context
-  (\secref{sec:completion-context}), to enable or disable that aspect for a
-  particular sub-language of Isabelle. For example, symbol completion is
-  suppressed within document source to avoid confusion with {\LaTeX} macros
-  that use similar notation.
 \<close>
 
 
@@ -1310,13 +1312,12 @@ text \<open>
 subsubsection \<open>File-system paths\<close>
 
 text \<open>
-  Depending on prover markup about file-system path specifications in the
-  source text, e.g.\ for the argument of a load command
-  (\secref{sec:aux-files}), the completion mechanism explores the directory
-  content and offers the result as completion popup. Relative path
-  specifications are understood wrt.\ the \<^emph>\<open>master directory\<close> of the document
-  node (\secref{sec:buffer-node}) of the enclosing editor buffer; this
-  requires a proper theory, not an auxiliary file.
+  Depending on prover markup about file-system paths in the source text, e.g.\
+  for the argument of a load command (\secref{sec:aux-files}), the completion
+  mechanism explores the directory content and offers the result as completion
+  popup. Relative path specifications are understood wrt.\ the \<^emph>\<open>master
+  directory\<close> of the document node (\secref{sec:buffer-node}) of the enclosing
+  editor buffer; this requires a proper theory, not an auxiliary file.
 
   A suffix of slashes may be used to continue the exploration of an already
   recognized directory name.
@@ -1351,8 +1352,8 @@ text \<open>
   \<^medskip>
   Dictionary lookup uses some educated guesses about lower-case, upper-case,
   and capitalized words. This is oriented on common use in English, where this
-  aspect is not decisive for proper spelling, in contrast to German, for
-  example.
+  aspect is not decisive for proper spelling (in contrast to German, for
+  example).
 \<close>
 
 
@@ -1366,22 +1367,17 @@ text \<open>
   editor mode (see also \secref{sec:buffer-node}).
 
   The semantic \<^emph>\<open>language context\<close> provides information about nested
-  sub-languages of Isabelle: keywords are only completed for outer syntax,
-  symbols or antiquotations for languages that support them. E.g.\ there is no
-  symbol completion for ML source, but within ML strings, comments,
-  antiquotations.
+  sub-languages of Isabelle: keywords are only completed for outer syntax, and
+  antiquotations for languages that support them. Symbol abbreviations only
+  work for specific sub-languages: e.g.\ ``\<^verbatim>\<open>=>\<close>'' is \<^emph>\<open>not\<close> completed in
+  regular ML source, but is completed within ML strings, comments,
+  antiquotations. Backslash representations of symbols like ``\<^verbatim>\<open>\foobar\<close>'' or
+  ``\<^verbatim>\<open>\<foobar>\<close>'' work in any context --- after additional confirmation.
 
   The prover may produce \<^emph>\<open>no completion\<close> markup in exceptional situations, to
   tell that some language keywords should be excluded from further completion
-  attempts. For example, \<^verbatim>\<open>:\<close> within accepted Isar syntax looses its meaning
-  as abbreviation for symbol \<open>\<in>\<close>.
-
-  \<^medskip>
-  The completion context is \<^emph>\<open>ignored\<close> for built-in templates and symbols in
-  their explicit form ``\<^verbatim>\<open>\<foobar>\<close>''; see also
-  \secref{sec:completion-varieties}. This allows to complete within broken
-  input that escapes its normal semantic context, e.g.\ antiquotations or
-  string literals in ML, which do not allow arbitrary backslash sequences.
+  attempts. For example, ``\<^verbatim>\<open>:\<close>'' within accepted Isar syntax looses its
+  meaning as abbreviation for symbol ``\<open>\<in>\<close>''.
 \<close>
 
 
@@ -1420,7 +1416,7 @@ text \<open>
     (enabled by default) controls whether replacement text should be inserted
     immediately without popup, regardless of @{system_option
     jedit_completion_delay}. This aggressive mode of completion is restricted
-    to Isabelle symbols and their abbreviations (\secref{sec:symbols}).
+    to symbol abbreviations that are not plain words (\secref{sec:symbols}).
 
     \<^enum> Completion of symbol abbreviations with only one relevant character in
     the text always enforces an explicit popup, regardless of
@@ -1439,7 +1435,7 @@ text \<open>
   \<^verbatim>\<open>PAGE_DOWN\<close>, but all other key events are passed to the underlying text
   area. This allows to ignore unwanted completions most of the time and
   continue typing quickly. Thus the popup serves as a mechanism of
-  confirmation of proposed items, but the default is to continue without
+  confirmation of proposed items, while the default is to continue without
   completion.
 
   The meaning of special keys is as follows:
@@ -1534,7 +1530,7 @@ text \<open>
 
   A @{system_option jedit_completion_delay}~\<^verbatim>\<open>> 0\<close> postpones the processing of
   key events, until after the user has stopped typing for the given time span,
-  but @{system_option jedit_completion_immediate}~\<^verbatim>\<open>"= true\<close> means that
+  but @{system_option jedit_completion_immediate}~\<^verbatim>\<open>= true\<close> means that
   abbreviations of Isabelle symbols are handled nonetheless.
 
   \<^item> @{system_option_def jedit_completion_path_ignore} specifies ``glob''
@@ -1562,10 +1558,10 @@ section \<open>Automatically tried tools \label{sec:auto-tools}\<close>
 text \<open>
   Continuous document processing works asynchronously in the background.
   Visible document source that has been evaluated may get augmented by
-  additional results of \<^emph>\<open>asynchronous print functions\<close>. The canonical example
-  is proof state output, which is always enabled. More heavy-weight print
-  functions may be applied, in order to prove or disprove parts of the formal
-  text by other means.
+  additional results of \<^emph>\<open>asynchronous print functions\<close>. An example for that
+  is proof state output, if that is enabled in the Output panel
+  (\secref{sec:output}). More heavy-weight print functions may be applied as
+  well, e.g.\ to prove or disprove parts of the formal text by other means.
 
   Isabelle/HOL provides various automatically tried tools that operate on
   outermost goal statements (e.g.\ @{command lemma}, @{command theorem}),
@@ -1575,8 +1571,8 @@ text \<open>
   information sign in the gutter (see \figref{fig:auto-tools}). The message
   content may be shown as for other output (see also \secref{sec:output}).
   Some tools produce output with \<^emph>\<open>sendback\<close> markup, which means that clicking
-  on certain parts of the output inserts that text into the source in the
-  proper place.
+  on certain parts of the text inserts that into the source in the proper
+  place.
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1722,8 +1718,11 @@ text \<open>
 section \<open>Markdown structure\<close>
 
 text \<open>
-  FIXME
-  \figref{fig:markdown-document}
+  Document text is internally structured in paragraphs and nested lists, using
+  notation that is similar to Markdown\<^footnote>\<open>@{url "http://commonmark.org"}\<close>. There
+  are special control symbols for items of different kinds of lists,
+  corresponding to \<^verbatim>\<open>itemize\<close>, \<^verbatim>\<open>enumerate\<close>, \<^verbatim>\<open>description\<close> in {\LaTeX}. This
+  is illustrated in for \<^verbatim>\<open>itemize\<close> in \figref{fig:markdown-document}.
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1732,6 +1731,12 @@ text \<open>
   \caption{Markdown structure within document text}
   \label{fig:markdown-document}
   \end{figure}
+
+  Items take colour according to the depth of nested lists. This helps to
+  explore the implicit rules for list structure interactively. There is also
+  markup for individual paragraphs in the text: it may be explored via mouse
+  hovering with \<^verbatim>\<open>CONTROL\<close> / \<^verbatim>\<open>COMMAND\<close> as usual
+  (\secref{sec:tooltips-hyperlinks}).
 \<close>
 
 
@@ -1774,19 +1779,95 @@ text \<open>
 \<close>
 
 
-chapter \<open>ML debugger\<close>
+chapter \<open>ML debugging within the Prover IDE\<close>
 
 text \<open>
-  FIXME
-  \figref{fig:ml-debugger}
+  Isabelle/ML is based on Poly/ML\<^footnote>\<open>@{url "http://www.polyml.org"}\<close> and thus
+  benefits from the source-level debugger of that implementation of Standard
+  ML. The Prover IDE provides the \<^emph>\<open>Debugger\<close> dockable to connect to running
+  ML threads, inspect the stack frame with local ML bindings, and evaluate ML
+  expressions in a particular run-time context. A typical debugger session is
+  shown in \figref{fig:ml-debugger}.
+
+  ML debugging depends on the following pre-requisites.
+
+    \<^enum> ML source needs to be compiled with debugging enabled. This may be
+    controlled for particular chunks of ML sources using any of the subsequent
+    facilities.
+
+      \<^enum> The system option @{system_option_ref ML_debugger} as implicit state
+      of the Isabelle process. It may be changed in the menu \<^emph>\<open>Plugins /
+      Plugin Options / Isabelle / General\<close>. ML modules need to be reloaded and
+      recompiled to pick up that option as intended.
+
+      \<^enum> The configuration option @{attribute_ref ML_debugger}, with an
+      attribute of the same name, to update a global or local context (e.g.\
+      with the @{command declare} command).
+
+      \<^enum> Commands that modify @{attribute ML_debugger} state for individual
+      files: @{command_ref ML_file_debug}, @{command_ref ML_file_no_debug},
+      @{command_ref SML_file_debug}, @{command_ref SML_file_no_debug}.
+
+    The instrumentation of ML code for debugging causes minor run-time
+    overhead. ML modules that implement critical system infrastructure may
+    lead to deadlocks or other undefined behaviour, when put under debugger
+    control!
+
+    \<^enum> The \<^emph>\<open>Debugger\<close> panel needs to be active, otherwise the program ignores
+    debugger instrumentation of the compiler and runs unmanaged. It is also
+    possible to start debugging with the panel open, and later undock it, to
+    let the program continue unhindered.
+
+    \<^enum> The ML program needs to be stopped at a suitable breakpoint, which may
+    be activated individually or globally as follows.
+
+    For ML sources that have been compiled with debugger support, the IDE
+    visualizes possible breakpoints in the text. A breakpoint may be toggled
+    by pointing accurately with the mouse, with a right-click to activate
+    jEdit's context menu and its \<^emph>\<open>Toggle Breakpoint\<close> item. Alternatively, the
+    \<^emph>\<open>Break\<close> checkbox in the \<^emph>\<open>Debugger\<close> panel may be enabled to stop ML
+    threads always at the next possible breakpoint.
+
+  Note that the state of individual breakpoints \<^emph>\<open>gets lost\<close> when the
+  coresponding ML source is re-compiled! This may happen unintentionally,
+  e.g.\ when following hyperlinks into ML modules that have not been loaded
+  into the IDE before.
 
   \begin{figure}[!htb]
   \begin{center}
   \includegraphics[scale=0.333]{ml-debugger}
   \end{center}
-  \caption{ML debugger}
+  \caption{ML debugger session}
   \label{fig:ml-debugger}
   \end{figure}
+
+  The debugger panel (\figref{fig:ml-debugger}) shows a list of all threads
+  that are presently stopped. Each thread shows a stack of all function
+  invocations that lead to the current breakpoint at the top.
+
+  It is possible to jump between stack positions freely, by clicking on this
+  list. The current situation is displayed in the big output window, as a
+  local ML environment with names and printed values.
+
+  ML expressions may be evaluated in the current context by entering snippets
+  of source into the text fields labeled \<open>Context\<close> and \<open>ML\<close>, and pushing the
+  \<open>Eval\<close> button. By default, the source is interpreted as Isabelle/ML with the
+  usual support for antiquotations (like @{command ML}, @{command ML_file}).
+  Alternatively, strict Standard ML may be enforced via the \<^emph>\<open>SML\<close> checkbox
+  (like @{command SML_file}).
+
+  The context for Isabelle/ML is optional, it may evaluate to a value of type
+  @{ML_type theory}, @{ML_type Proof.context}, or @{ML_type Context.generic}.
+  Thus the given ML expression (with its antiquotations) may be subject to the
+  intended dynamic run-time context, instead of the static compile-time
+  context.
+
+  \<^medskip>
+  The buttons labeled \<^emph>\<open>Continue\<close>, \<^emph>\<open>Step\<close>, \<^emph>\<open>Step over\<close>, \<^emph>\<open>Step out\<close>
+  recommence execution of the program, with different policies concerning
+  nested function invocations. The debugger always moves the cursor within the
+  ML source to the next breakpoint position, and offers new stack frames as
+  before.
 \<close>
 
 
@@ -1812,10 +1893,10 @@ text \<open>
 
   It is also possible to reveal individual timing information via some tooltip
   for the corresponding command keyword, using the technique of mouse hovering
-  with \<^verbatim>\<open>CONTROL\<close>~/ \<^verbatim>\<open>COMMAND\<close> modifier key as explained in
-  \secref{sec:tooltips-hyperlinks}. Actual display of timing depends on the
-  global option @{system_option_ref jedit_timing_threshold}, which can be
-  configured in \<^emph>\<open>Plugin Options~/ Isabelle~/ General\<close>.
+  with \<^verbatim>\<open>CONTROL\<close>~/ \<^verbatim>\<open>COMMAND\<close> modifier (\secref{sec:tooltips-hyperlinks}).
+  Actual display of timing depends on the global option @{system_option_ref
+  jedit_timing_threshold}, which can be configured in \<^emph>\<open>Plugin Options~/
+  Isabelle~/ General\<close>.
 
   \<^medskip>
   The \<^emph>\<open>Monitor\<close> panel visualizes various data collections about recent
@@ -1831,11 +1912,11 @@ text \<open>
 section \<open>Low-level output\<close>
 
 text \<open>
-  Prover output is normally shown directly in the main text area or secondary
-  \<^emph>\<open>Output\<close> panels, as explained in \secref{sec:output}.
-
-  Beyond this, it is occasionally useful to inspect low-level output channels
-  via some of the following additional panels:
+  Prover output is normally shown directly in the main text area or specific
+  panels like \<^emph>\<open>Output\<close> (\secref{sec:output}) or \<^emph>\<open>State\<close>
+  (\secref{sec:state-output}). Beyond this, it is occasionally useful to
+  inspect low-level output channels via some of the following additional
+  panels:
 
   \<^item> \<^emph>\<open>Protocol\<close> shows internal messages between the Isabelle/Scala and
   Isabelle/ML side of the PIDE document editing protocol. Recording of
@@ -1914,8 +1995,16 @@ text \<open>
   \<^item> \<^bold>\<open>Problem:\<close> Mac OS X system fonts sometimes lead to character drop-outs in
   the main text area.
 
-  \<^bold>\<open>Workaround:\<close> Use the default \<^verbatim>\<open>IsabelleText\<close> font. (Do not install that
-  font on the system.)
+  \<^bold>\<open>Workaround:\<close> Use the default \<^verbatim>\<open>IsabelleText\<close> font.
+
+  \<^item> \<^bold>\<open>Problem:\<close> Mac OS X with Retina display has problems to determine the
+  font metrics of \<^verbatim>\<open>IsabelleText\<close> accurately, notably in plain Swing text
+  fields (e.g.\ in the \<^emph>\<open>Search and Replace\<close> dialog).
+
+  \<^bold>\<open>Workaround:\<close> Install \<^verbatim>\<open>IsabelleText\<close> and \<^verbatim>\<open>IsabelleTextBold\<close> on the system
+  with \<^emph>\<open>Font Book\<close>, despite the warnings in \secref{sec:symbols} against
+  that! The \<^verbatim>\<open>.ttf\<close> font files reside in some directory @{file_unchecked
+  "$ISABELLE_HOME/contrib/isabelle_fonts-XYZ"}.
 
   \<^item> \<^bold>\<open>Problem:\<close> Some Linux/X11 input methods such as IBus tend to disrupt key
   event handling of Java/AWT/Swing.

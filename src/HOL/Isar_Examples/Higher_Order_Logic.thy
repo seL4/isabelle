@@ -282,6 +282,7 @@ proof
   from * have "\<exists>x. ?D = f x" ..
   then obtain a where "?D = f a" ..
   then have "?D a \<longleftrightarrow> f a a" using refl by (rule subst)
+  then have "\<not> f a a \<longleftrightarrow> f a a" .
   then show \<bottom> by (rule iff_contradiction)
 qed
 

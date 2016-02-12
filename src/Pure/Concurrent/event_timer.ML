@@ -110,7 +110,7 @@ fun manager_check manager =
 
 fun shutdown () =
   uninterruptible (fn restore_attributes => fn () =>
-    if Synchronized.change_result state (fn st as State {requests, status, manager} =>
+    if Synchronized.change_result state (fn st as State {requests, manager, ...} =>
       if is_shutdown Normal st then (false, st)
       else if is_shutdown Shutdown_Ack st orelse is_shutdown_req st then
         raise Fail "Concurrent attempt to shutdown event timer"

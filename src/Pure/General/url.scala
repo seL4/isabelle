@@ -12,6 +12,9 @@ import java.net.{URL, MalformedURLException}
 
 object Url
 {
+  def escape(name: String): String =
+    (for (c <- name.iterator) yield if (c == '\'') "%27" else new String(Array(c))).mkString
+
   def apply(name: String): URL =
   {
     try { new URL(name) }

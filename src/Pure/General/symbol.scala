@@ -255,7 +255,7 @@ object Symbol
         tab.get(x) match {
           case None => tab += (x -> y)
           case Some(z) =>
-            error("Duplicate mapping of " + quote(x) + " to " + quote(y) + " vs. " + quote(z))
+            error("Duplicate symbol mapping of " + quote(x) + " to " + quote(y) + " vs. " + quote(z))
         }
       }
       tab

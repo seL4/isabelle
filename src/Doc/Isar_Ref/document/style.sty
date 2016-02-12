@@ -16,8 +16,10 @@
 
 %% Isar
 \newcommand{\isasymBBAR}{{\,\newdimen{\tmpheight}\settoheight\tmpheight{\isacharbar}\rule{1pt}{\tmpheight}\,}}
-\isafoldtag{noproof}\def\isafoldnoproof{~\isafold{proof}}
 \renewcommand{\isacommand}[1]{\isakeyword{\isadigitreset#1}}
+
+\newcommand{\isasymproof}{\isamath{\,\langle\mathit{proof}\rangle}}
+
 
 %% ML
 \newenvironment{mldecls}{\par\noindent\begingroup\def\isanewline{\\}\begin{tabular}{ll}}{\end{tabular}\medskip\endgroup}
