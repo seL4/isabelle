@@ -579,7 +579,7 @@ next
   case False then show ?thesis by simp
 qed
 
-lemma (in ordered_cancel_comm_monoid_add) setsum_strict_mono:
+lemma (in strict_ordered_comm_monoid_add) setsum_strict_mono:
   assumes "finite A"  "A \<noteq> {}" and "\<And>x. x \<in> A \<Longrightarrow> f x < g x"
   shows "setsum f A < setsum g A"
   using assms
@@ -591,7 +591,7 @@ qed
 
 lemma setsum_strict_mono_ex1:
   fixes f g :: "'i \<Rightarrow> 'a::ordered_cancel_comm_monoid_add"
-  assumes "finite A" and "ALL x:A. f x \<le> g x" and "\<exists>a\<in>A. f a < g a"
+  assumes "finite A" and "\<forall>x\<in>A. f x \<le> g x" and "\<exists>a\<in>A. f a < g a"
   shows "setsum f A < setsum g A"
 proof-
   from assms(3) obtain a where a: "a:A" "f a < g a" by blast
@@ -882,15 +882,17 @@ lemma (in comm_semiring_1) dvd_setsum:
   "(\<And>a. a \<in> A \<Longrightarrow> d dvd f a) \<Longrightarrow> d dvd setsum f A"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma setsum_pos2:
-    assumes "finite I" "i \<in> I" "0 < f i" "(\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i)"
-      shows "(0::'a::{ordered_ab_group_add,comm_monoid_add}) < setsum f I"
+lemma (in ordered_comm_monoid_add) setsum_pos:
+  "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> 0 < f i) \<Longrightarrow> 0 < setsum f I"
+  by (induct I rule: finite_ne_induct) (auto intro: add_pos_pos)
+
+lemma (in ordered_comm_monoid_add) setsum_pos2:
+  assumes I: "finite I" "i \<in> I" "0 < f i" "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i"
+  shows "0 < setsum f I"
 proof -
-  have "0 \<le> setsum f (I-{i})"
-    using assms by (simp add: setsum_nonneg)
-  also have "... < setsum f (I-{i}) + f i"
-    using assms by auto
-  also have "... = setsum f I"
+  have "0 < f i + setsum f (I - {i})"
+    using assms by (intro add_pos_nonneg setsum_nonneg) auto
+  also have "\<dots> = setsum f I"
     using assms by (simp add: setsum.remove)
   finally show ?thesis .
 qed
@@ -991,11 +993,6 @@ proof-
   also have "\<dots> = ?r" by (simp add: mult.commute)
   finally show ?thesis by auto
 qed
-
-lemma (in ordered_cancel_comm_monoid_add) setsum_pos:
-  "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> 0 < f i) \<Longrightarrow> 0 < setsum f I"
-  by (induct I rule: finite_ne_induct) (auto intro: add_pos_pos)
-
 
 subsubsection \<open>Cardinality of products\<close>
 

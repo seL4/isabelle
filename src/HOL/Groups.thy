@@ -589,6 +589,10 @@ lemma add_mono:
 
 end
 
+text\<open>Strict monotonicity in both arguments\<close>
+class strict_ordered_ab_semigroup_add = ordered_ab_semigroup_add +
+  assumes add_strict_mono: "a < b \<Longrightarrow> c < d \<Longrightarrow> a + c < b + d"
+
 class ordered_cancel_ab_semigroup_add =
   ordered_ab_semigroup_add + cancel_ab_semigroup_add
 begin
@@ -601,12 +605,11 @@ lemma add_strict_right_mono:
   "a < b \<Longrightarrow> a + c < b + c"
 by (simp add: add.commute [of _ c] add_strict_left_mono)
 
-text\<open>Strict monotonicity in both arguments\<close>
-lemma add_strict_mono:
-  "a < b \<Longrightarrow> c < d \<Longrightarrow> a + c < b + d"
-apply (erule add_strict_right_mono [THEN less_trans])
-apply (erule add_strict_left_mono)
-done
+subclass strict_ordered_ab_semigroup_add
+  apply standard
+  apply (erule add_strict_right_mono [THEN less_trans])
+  apply (erule add_strict_left_mono)
+  done
 
 lemma add_less_le_mono:
   "a < b \<Longrightarrow> c \<le> d \<Longrightarrow> a + c < b + d"
@@ -622,8 +625,7 @@ done
 
 end
 
-class ordered_ab_semigroup_add_imp_le =
-  ordered_cancel_ab_semigroup_add +
+class ordered_ab_semigroup_add_imp_le = ordered_cancel_ab_semigroup_add +
   assumes add_le_imp_le_left: "c + a \<le> c + b \<Longrightarrow> a \<le> b"
 begin
 
@@ -695,40 +697,20 @@ class ordered_comm_monoid_add = comm_monoid_add + ordered_ab_semigroup_add
 begin
 
 lemma add_nonneg_nonneg [simp]:
-  assumes "0 \<le> a" and "0 \<le> b" shows "0 \<le> a + b"
-proof -
-  have "0 + 0 \<le> a + b"
-    using assms by (rule add_mono)
-  then show ?thesis by simp
-qed
+  "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a + b"
+  using add_mono[of 0 a 0 b] by simp
 
 lemma add_nonpos_nonpos:
-  assumes "a \<le> 0" and "b \<le> 0" shows "a + b \<le> 0"
-proof -
-  have "a + b \<le> 0 + 0"
-    using assms by (rule add_mono)
-  then show ?thesis by simp
-qed
+  "a \<le> 0 \<Longrightarrow> b \<le> 0 \<Longrightarrow> a + b \<le> 0"
+  using add_mono[of a 0 b 0] by simp
 
 lemma add_nonneg_eq_0_iff:
-  assumes x: "0 \<le> x" and y: "0 \<le> y"
-  shows "x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
-proof (intro iffI conjI)
-  have "x = x + 0" by simp
-  also have "x + 0 \<le> x + y" using y by (rule add_left_mono)
-  also assume "x + y = 0"
-  also have "0 \<le> x" using x .
-  finally show "x = 0" .
-next
-  have "y = 0 + y" by simp
-  also have "0 + y \<le> x + y" using x by (rule add_right_mono)
-  also assume "x + y = 0"
-  also have "0 \<le> y" using y .
-  finally show "y = 0" .
-next
-  assume "x = 0 \<and> y = 0"
-  then show "x + y = 0" by simp
-qed
+  "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  using add_left_mono[of 0 y x] add_right_mono[of 0 x y] by auto
+
+lemma add_nonpos_eq_0_iff:
+  "x \<le> 0 \<Longrightarrow> y \<le> 0 \<Longrightarrow> x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  using add_left_mono[of y 0 x] add_right_mono[of x 0 y] by auto
 
 lemma add_increasing:
   "0 \<le> a \<Longrightarrow> b \<le> c \<Longrightarrow> b \<le> a + c"
@@ -738,133 +720,45 @@ lemma add_increasing2:
   "0 \<le> c \<Longrightarrow> b \<le> a \<Longrightarrow> b \<le> a + c"
   by (simp add: add_increasing add.commute [of a])
 
-end
+lemma add_decreasing:
+  "a \<le> 0 \<Longrightarrow> c \<le> b \<Longrightarrow> a + c \<le> b"
+  using add_mono[of a 0 c b] by simp
 
-class canonically_ordered_monoid_add = comm_monoid_add + order +
-  assumes le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists>c. b = a + c)"
-begin
+lemma add_decreasing2:
+  "c \<le> 0 \<Longrightarrow> a \<le> b \<Longrightarrow> a + c \<le> b"
+  using add_mono[of a b c 0] by simp
 
-subclass ordered_comm_monoid_add
-  proof qed (auto simp: le_iff_add add_ac)
+lemma add_pos_nonneg: "0 < a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 < a + b"
+  using less_le_trans[of 0 a "a + b"] by (simp add: add_increasing2)
 
-lemma zero_le: "0 \<le> x"
-  by (auto simp: le_iff_add)
+lemma add_pos_pos: "0 < a \<Longrightarrow> 0 < b \<Longrightarrow> 0 < a + b"
+  by (intro add_pos_nonneg less_imp_le)
 
-lemma add_eq_0_iff_both_eq_0: "x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
-  by (intro add_nonneg_eq_0_iff zero_le)
+lemma add_nonneg_pos: "0 \<le> a \<Longrightarrow> 0 < b \<Longrightarrow> 0 < a + b"
+  using add_pos_nonneg[of b a] by (simp add: add_commute)
 
-end
+lemma add_neg_nonpos: "a < 0 \<Longrightarrow> b \<le> 0 \<Longrightarrow> a + b < 0"
+  using le_less_trans[of "a + b" a 0] by (simp add: add_decreasing2)
 
-class ordered_cancel_comm_monoid_diff =
-  canonically_ordered_monoid_add + comm_monoid_diff + ordered_ab_semigroup_add_imp_le
-begin
+lemma add_neg_neg: "a < 0 \<Longrightarrow> b < 0 \<Longrightarrow> a + b < 0"
+  by (intro add_neg_nonpos less_imp_le)
 
-context
-  fixes a b
-  assumes "a \<le> b"
-begin
-
-lemma add_diff_inverse:
-  "a + (b - a) = b"
-  using \<open>a \<le> b\<close> by (auto simp add: le_iff_add)
-
-lemma add_diff_assoc:
-  "c + (b - a) = c + b - a"
-  using \<open>a \<le> b\<close> by (auto simp add: le_iff_add add.left_commute [of c])
-
-lemma add_diff_assoc2:
-  "b - a + c = b + c - a"
-  using \<open>a \<le> b\<close> by (auto simp add: le_iff_add add.assoc)
-
-lemma diff_add_assoc:
-  "c + b - a = c + (b - a)"
-  using \<open>a \<le> b\<close> by (simp add: add.commute add_diff_assoc)
-
-lemma diff_add_assoc2:
-  "b + c - a = b - a + c"
-  using \<open>a \<le> b\<close>by (simp add: add.commute add_diff_assoc)
-
-lemma diff_diff_right:
-  "c - (b - a) = c + a - b"
-  by (simp add: add_diff_inverse add_diff_cancel_left [of a c "b - a", symmetric] add.commute)
-
-lemma diff_add:
-  "b - a + a = b"
-  by (simp add: add.commute add_diff_inverse)
-
-lemma le_add_diff:
-  "c \<le> b + c - a"
-  by (auto simp add: add.commute diff_add_assoc2 le_iff_add)
-
-lemma le_imp_diff_is_add:
-  "a \<le> b \<Longrightarrow> b - a = c \<longleftrightarrow> b = c + a"
-  by (auto simp add: add.commute add_diff_inverse)
-
-lemma le_diff_conv2:
-  "c \<le> b - a \<longleftrightarrow> c + a \<le> b" (is "?P \<longleftrightarrow> ?Q")
-proof
-  assume ?P
-  then have "c + a \<le> b - a + a" by (rule add_right_mono)
-  then show ?Q by (simp add: add_diff_inverse add.commute)
-next
-  assume ?Q
-  then have "a + c \<le> a + (b - a)" by (simp add: add_diff_inverse add.commute)
-  then show ?P by simp
-qed
-
-end
-
-end
-
-class ordered_cancel_comm_monoid_add =
-  ordered_comm_monoid_add + cancel_ab_semigroup_add
-begin
-
-subclass ordered_cancel_ab_semigroup_add ..
-
-lemma add_neg_nonpos:
-  assumes "a < 0" and "b \<le> 0" shows "a + b < 0"
-proof -
-  have "a + b < 0 + 0"
-    using assms by (rule add_less_le_mono)
-  then show ?thesis by simp
-qed
-
-lemma add_neg_neg:
-  assumes "a < 0" and "b < 0" shows "a + b < 0"
-by (rule add_neg_nonpos) (insert assms, auto)
-
-lemma add_nonpos_neg:
-  assumes "a \<le> 0" and "b < 0" shows "a + b < 0"
-proof -
-  have "a + b < 0 + 0"
-    using assms by (rule add_le_less_mono)
-  then show ?thesis by simp
-qed
-
-lemma add_pos_nonneg:
-  assumes "0 < a" and "0 \<le> b" shows "0 < a + b"
-proof -
-  have "0 + 0 < a + b"
-    using assms by (rule add_less_le_mono)
-  then show ?thesis by simp
-qed
-
-lemma add_pos_pos:
-  assumes "0 < a" and "0 < b" shows "0 < a + b"
-by (rule add_pos_nonneg) (insert assms, auto)
-
-lemma add_nonneg_pos:
-  assumes "0 \<le> a" and "0 < b" shows "0 < a + b"
-proof -
-  have "0 + 0 < a + b"
-    using assms by (rule add_le_less_mono)
-  then show ?thesis by simp
-qed
+lemma add_nonpos_neg: "a \<le> 0 \<Longrightarrow> b < 0 \<Longrightarrow> a + b < 0"
+  using add_neg_nonpos[of b a] by (simp add: add_commute)
 
 lemmas add_sign_intros =
   add_pos_nonneg add_pos_pos add_nonneg_pos add_nonneg_nonneg
   add_neg_nonpos add_neg_neg add_nonpos_neg add_nonpos_nonpos
+
+end
+
+class strict_ordered_comm_monoid_add = comm_monoid_add + strict_ordered_ab_semigroup_add
+
+class ordered_cancel_comm_monoid_add = ordered_comm_monoid_add + cancel_ab_semigroup_add
+begin
+
+subclass ordered_cancel_ab_semigroup_add ..
+subclass strict_ordered_comm_monoid_add ..
 
 lemma add_strict_increasing:
   "0 < a \<Longrightarrow> b \<le> c \<Longrightarrow> b < a + c"
@@ -1409,6 +1303,86 @@ lemmas mult_1 = mult_1_left \<comment> \<open>FIXME duplicate\<close>
 lemmas ab_left_minus = left_minus \<comment> \<open>FIXME duplicate\<close>
 lemmas diff_diff_eq = diff_diff_add \<comment> \<open>FIXME duplicate\<close>
 
+subsection \<open>Canonically ordered monoids\<close>
+
+text \<open>Canonically ordered monoids are never groups.\<close>
+
+class canonically_ordered_monoid_add = comm_monoid_add + order +
+  assumes le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists>c. b = a + c)"
+begin
+
+lemma zero_le: "0 \<le> x"
+  by (auto simp: le_iff_add)
+
+subclass ordered_comm_monoid_add
+  proof qed (auto simp: le_iff_add add_ac)
+
+lemma add_eq_0_iff_both_eq_0: "x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  by (intro add_nonneg_eq_0_iff zero_le)
+
+end
+
+class ordered_cancel_comm_monoid_diff =
+  canonically_ordered_monoid_add + comm_monoid_diff + ordered_ab_semigroup_add_imp_le
+begin
+
+context
+  fixes a b
+  assumes "a \<le> b"
+begin
+
+lemma add_diff_inverse:
+  "a + (b - a) = b"
+  using \<open>a \<le> b\<close> by (auto simp add: le_iff_add)
+
+lemma add_diff_assoc:
+  "c + (b - a) = c + b - a"
+  using \<open>a \<le> b\<close> by (auto simp add: le_iff_add add.left_commute [of c])
+
+lemma add_diff_assoc2:
+  "b - a + c = b + c - a"
+  using \<open>a \<le> b\<close> by (auto simp add: le_iff_add add.assoc)
+
+lemma diff_add_assoc:
+  "c + b - a = c + (b - a)"
+  using \<open>a \<le> b\<close> by (simp add: add.commute add_diff_assoc)
+
+lemma diff_add_assoc2:
+  "b + c - a = b - a + c"
+  using \<open>a \<le> b\<close>by (simp add: add.commute add_diff_assoc)
+
+lemma diff_diff_right:
+  "c - (b - a) = c + a - b"
+  by (simp add: add_diff_inverse add_diff_cancel_left [of a c "b - a", symmetric] add.commute)
+
+lemma diff_add:
+  "b - a + a = b"
+  by (simp add: add.commute add_diff_inverse)
+
+lemma le_add_diff:
+  "c \<le> b + c - a"
+  by (auto simp add: add.commute diff_add_assoc2 le_iff_add)
+
+lemma le_imp_diff_is_add:
+  "a \<le> b \<Longrightarrow> b - a = c \<longleftrightarrow> b = c + a"
+  by (auto simp add: add.commute add_diff_inverse)
+
+lemma le_diff_conv2:
+  "c \<le> b - a \<longleftrightarrow> c + a \<le> b" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?P
+  then have "c + a \<le> b - a + a" by (rule add_right_mono)
+  then show ?Q by (simp add: add_diff_inverse add.commute)
+next
+  assume ?Q
+  then have "a + c \<le> a + (b - a)" by (simp add: add_diff_inverse add.commute)
+  then show ?P by simp
+qed
+
+end
+
+end
+
 subsection \<open>Tools setup\<close>
 
 lemma add_mono_thms_linordered_semiring:
@@ -1433,4 +1407,3 @@ code_identifier
   code_module Groups \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
-

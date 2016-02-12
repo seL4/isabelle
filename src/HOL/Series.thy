@@ -228,6 +228,24 @@ proof
     by (auto intro!: antisym)
 qed (metis suminf_zero fun_eq_iff)
 
+lemma suminf_pos_iff:
+  "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 < suminf f \<longleftrightarrow> (\<exists>i. 0 < f i)"
+  using setsum_le_suminf[of 0] suminf_eq_zero_iff by (simp add: less_le)
+
+lemma suminf_pos2:
+  assumes "summable f" "\<forall>n. 0 \<le> f n" "0 < f i"
+  shows "0 < suminf f"
+proof -
+  have "0 < (\<Sum>n<Suc i. f n)"
+    using assms by (intro setsum_pos2[where i=i]) auto
+  also have "\<dots> \<le> suminf f"
+    using assms by (intro setsum_le_suminf) auto
+  finally show ?thesis .
+qed
+
+lemma suminf_pos: "summable f \<Longrightarrow> \<forall>n. 0 < f n \<Longrightarrow> 0 < suminf f"
+  by (intro suminf_pos2[where i=0]) (auto intro: less_imp_le)
+
 end
 
 context
@@ -244,16 +262,6 @@ lemma setsum_less_suminf2: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 \<l
 lemma setsum_less_suminf: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 < f m \<Longrightarrow> setsum f {..<n} < suminf f"
   using setsum_less_suminf2[of n n] by (simp add: less_imp_le)
 
-lemma suminf_pos2: "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 < f i \<Longrightarrow> 0 < suminf f"
-  using setsum_less_suminf2[of 0 i] by simp
-
-lemma suminf_pos: "summable f \<Longrightarrow> \<forall>n. 0 < f n \<Longrightarrow> 0 < suminf f"
-  using suminf_pos2[of 0] by (simp add: less_imp_le)
-
-lemma suminf_pos_iff:
-  "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 < suminf f \<longleftrightarrow> (\<exists>i. 0 < f i)"
-  using setsum_le_suminf[of f 0] suminf_eq_zero_iff[of f] by (simp add: less_le)
-
 end
 
 lemma summableI_nonneg_bounded:
@@ -261,22 +269,17 @@ lemma summableI_nonneg_bounded:
   assumes pos[simp]: "\<And>n. 0 \<le> f n" and le: "\<And>n. (\<Sum>i<n. f i) \<le> x"
   shows "summable f"
   unfolding summable_def sums_def[abs_def]
-proof (intro exI order_tendstoI)
-  have [simp, intro]: "bdd_above (range (\<lambda>n. \<Sum>i<n. f i))"
+proof (rule exI LIMSEQ_incseq_SUP)+
+  show "bdd_above (range (\<lambda>n. setsum f {..<n}))"
     using le by (auto simp: bdd_above_def)
-  { fix a assume "a < (SUP n. \<Sum>i<n. f i)"
-    then obtain n where "a < (\<Sum>i<n. f i)"
-      by (auto simp add: less_cSUP_iff)
-    then have "\<And>m. n \<le> m \<Longrightarrow> a < (\<Sum>i<m. f i)"
-      by (rule less_le_trans) (auto intro!: setsum_mono2)
-    then show "eventually (\<lambda>n. a < (\<Sum>i<n. f i)) sequentially"
-      by (auto simp: eventually_sequentially) }
-  { fix a assume "(SUP n. \<Sum>i<n. f i) < a"
-    moreover have "\<And>n. (\<Sum>i<n. f i) \<le> (SUP n. \<Sum>i<n. f i)"
-      by (auto intro: cSUP_upper)
-    ultimately show "eventually (\<lambda>n. (\<Sum>i<n. f i) < a) sequentially"
-      by (auto intro: le_less_trans simp: eventually_sequentially) }
+  show "incseq (\<lambda>n. setsum f {..<n})"
+    by (auto simp: mono_def intro!: setsum_mono2)
 qed
+
+lemma summableI[intro, simp]:
+  fixes f:: "nat \<Rightarrow> 'a::{canonically_ordered_monoid_add, linorder_topology, complete_linorder}"
+  shows "summable f"
+  by (intro summableI_nonneg_bounded[where x=top] zero_le top_greatest)
 
 subsection \<open>Infinite summability on topological monoids\<close>
 

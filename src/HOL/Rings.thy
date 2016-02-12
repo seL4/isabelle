@@ -1296,10 +1296,8 @@ done
 
 end
 
-class ordered_cancel_semiring = ordered_semiring + cancel_comm_monoid_add
+class ordered_semiring_0 = semiring_0 + ordered_semiring
 begin
-
-subclass semiring_0_cancel ..
 
 lemma mult_nonneg_nonneg[simp]: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a * b"
 using mult_left_mono [of 0 b a] by simp
@@ -1316,6 +1314,14 @@ by (drule mult_right_mono [of b 0], auto)
 
 lemma split_mult_neg_le: "(0 \<le> a & b \<le> 0) | (a \<le> 0 & 0 \<le> b) \<Longrightarrow> a * b \<le> 0"
 by (auto simp add: mult_nonneg_nonpos mult_nonneg_nonpos2)
+
+end
+
+class ordered_cancel_semiring = ordered_semiring + cancel_comm_monoid_add
+begin
+
+subclass semiring_0_cancel ..
+subclass ordered_semiring_0 ..
 
 end
 
