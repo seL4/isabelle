@@ -22,7 +22,7 @@ class System_Channel private
 
   def params: List[String] = List("127.0.0.1", server.getLocalPort.toString)
 
-  def prover_args: List[String] = List("-P", "127.0.0.1:" + server.getLocalPort)
+  def prover_options: String = "-P 127.0.0.1:" + server.getLocalPort
 
   def rendezvous(): (OutputStream, InputStream) =
   {

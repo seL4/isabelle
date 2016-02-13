@@ -11,15 +11,15 @@ object Isabelle_Process
 {
   def apply(
     receiver: Prover.Message => Unit = Console.println(_),
-    prover_args: List[String] = Nil): Isabelle_Process =
+    prover_args: String = ""): Isabelle_Process =
   {
     val system_channel = System_Channel()
     val system_process =
       try {
-        val cmdline =
-          Isabelle_System.getenv_strict("ISABELLE_PROCESS") ::
-            (system_channel.prover_args ::: prover_args)
-        val process = Bash.process(null, null, false, cmdline: _*)
+        val script =
+          "\"$ISABELLE_PROCESS\" " + system_channel.prover_options +
+            (if (prover_args == "") "" else " " + prover_args)
+        val process = Bash.process(null, null, false, "-c", script)
         process.stdin.close
         process
       }

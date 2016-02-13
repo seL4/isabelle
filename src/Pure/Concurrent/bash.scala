@@ -40,8 +40,9 @@ object Bash
     extends Prover.System_Process
   {
     private val params =
-      List(File.standard_path(Path.explode("~~/lib/scripts/process")), "group", "-", "no_script")
-    private val proc = Isabelle_System.execute_env(cwd, env, redirect, (params ::: args.toList):_*)
+      List(Isabelle_System.getenv_strict("ISABELLE_BASH_PROCESS"), "-", "bash")
+    private val proc =
+      Isabelle_System.execute_env(cwd, env, redirect, (params ::: args.toList):_*)
 
 
     // channels

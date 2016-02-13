@@ -324,7 +324,7 @@ object Isabelle_System
   {
     with_tmp_file("isabelle_script") { script_file =>
       File.write(script_file, script)
-      val proc = Bash.process(cwd, env, false, "bash", File.standard_path(script_file))
+      val proc = Bash.process(cwd, env, false, File.standard_path(script_file))
       proc.stdin.close
 
       val limited = new Limited_Progress(proc, progress_limit)

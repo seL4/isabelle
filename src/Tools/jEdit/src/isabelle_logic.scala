@@ -72,9 +72,10 @@ object Isabelle_Logic
   def session_start()
   {
     val print_modes =
-      space_explode(',', PIDE.options.string("jedit_print_mode")) :::
-      space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))
-    PIDE.session.start("Isabelle", print_modes.map("-m" + _) ::: List("-r", "-q", session_name()))
+      (space_explode(',', PIDE.options.string("jedit_print_mode")) :::
+       space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).map("-m " + _)
+    val args = (print_modes ::: List("-r", "-q", quote(session_name()))).mkString(" ")
+    PIDE.session.start("Isabelle", args)
   }
 
   def session_dirs(): List[Path] = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
