@@ -17,7 +17,7 @@ object Isabelle_Process
     val system_process =
       try {
         val script =
-          "\"$ISABELLE_PROCESS\" " + system_channel.prover_options +
+          "\"$ISABELLE_PROCESS\" -P " + system_channel.server_name +
             (if (prover_args == "") "" else " " + prover_args)
         val process = Bash.process(null, null, false, "-c", script)
         process.stdin.close
