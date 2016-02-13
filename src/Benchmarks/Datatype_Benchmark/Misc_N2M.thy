@@ -1,4 +1,4 @@
-(*  Title:      HOL/Datatype_Examples/Misc_N2M.thy
+(*  Title:      Benchmarks/Datatype_Benchmark/Misc_N2M.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2014
 

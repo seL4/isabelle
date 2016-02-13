@@ -1,4 +1,4 @@
-(*  Title:      HOL/Datatype_Examples/IsaFoR.thy
+(*  Title:      Benchmarks/Datatype_Benchmark/IsaFoR.thy
     Author:     Rene Thiemann, UIBK
     Copyright   2014
 

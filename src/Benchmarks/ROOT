@@ -1,0 +1,26 @@
+chapter HOL
+
+session "HOL-Datatype_Benchmark" in Datatype_Benchmark = HOL +
+  description {*
+    Big (co)datatypes.
+  *}
+  options [document = false]
+  theories
+    Brackin
+    IsaFoR
+    Misc_N2M
+
+session "HOL-Quickcheck_Benchmark" in Quickcheck_Benchmark = HOL +
+  theories [quick_and_dirty]
+    Find_Unused_Assms_Examples
+    Needham_Schroeder_No_Attacker_Example
+    Needham_Schroeder_Guided_Attacker_Example
+    Needham_Schroeder_Unguided_Attacker_Example
+
+session "HOL-Record_Benchmark" in Record_Benchmark = HOL +
+  description {*
+    Big records.
+  *}
+  options [document = false]
+  theories
+    Record_Benchmark
