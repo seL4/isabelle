@@ -24,8 +24,6 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_BUILD_OPTIONS="browser_info=false document=pdf document_variants=document:outline=/proof,/ML threads=8 parallel_proofs=2"
 
-ISABELLE_FULL_TEST=true
-
 ISABELLE_GHC=ghc
 ISABELLE_MLTON=mlton
 ISABELLE_OCAML=ocaml
