@@ -1,10 +1,11 @@
 /*  Author:     Makarius
 
-Bash process group invocation.
+Bash process with separate process group id.
 */
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -12,6 +13,7 @@ Bash process group invocation.
 static void fail(const char *msg)
 {
   fprintf(stderr, "%s\n", msg);
+  fflush(stderr);
   exit(2);
 }
 
@@ -20,12 +22,12 @@ int main(int argc, char *argv[])
 {
   /* args */
 
-  if (argc != 3) {
-    fprintf(stderr, "Bad arguments\n");
+  if (argc < 2) {
+    fprintf(stderr, "Bad arguments: missing pid file\n");
+    fflush(stderr);
     exit(1);
   }
   char *pid_name = argv[1];
-  char *script = argv[2];
 
 
   /* setsid */
@@ -40,22 +42,31 @@ int main(int argc, char *argv[])
 
   /* report pid */
 
-  FILE *pid_file;
-  pid_file = fopen(pid_name, "w");
-  if (pid_file == NULL) fail("Cannot open pid file");
-  fprintf(pid_file, "%d", getpid());
-  fclose(pid_file);
+  if (strcmp(pid_name, "-") == 0) {
+    fprintf(stdout, "%d\n", getpid());
+    fflush(stdout);
+  }
+  else if (strlen(pid_name) > 0) {
+    FILE *pid_file;
+    pid_file = fopen(pid_name, "w");
+    if (pid_file == NULL) fail("Cannot open pid file");
+    fprintf(pid_file, "%d", getpid());
+    fclose(pid_file);
+  }
+
+
+  /* shift command line */
+
+  int i;
+  for (i = 2; i < argc; i++) {
+    argv[i - 2] = argv[i];
+  }
+  argv[argc - 2] = NULL;
+  argv[argc - 1] = NULL;
 
 
   /* exec */
 
-  char *cmd_line[4];
-  cmd_line[0] = "bash";
-  cmd_line[1] = "-c";
-  cmd_line[2] = script;
-  cmd_line[3] = NULL;
-
-  execvp(cmd_line[0], cmd_line);
+  execvp("bash", argv);
   fail("Cannot exec process");
 }
-
