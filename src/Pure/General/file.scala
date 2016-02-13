@@ -102,8 +102,9 @@ object File
 
   /* shell path (bash) */
 
-  def shell_path(path: Path): String = "'" + standard_path(path) + "'"
-  def shell_path(file: JFile): String = "'" + standard_path(file) + "'"
+  def shell_quote(s: String): String = "'" + s + "'"
+  def shell_path(path: Path): String = shell_quote(standard_path(path))
+  def shell_path(file: JFile): String = shell_quote(standard_path(file))
 
 
   /* directory content */
