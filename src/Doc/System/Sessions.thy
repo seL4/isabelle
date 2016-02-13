@@ -198,10 +198,6 @@ text \<open>
     the subsequent theories to be processed. Conditions are considered
     ``true'' if the corresponding environment value is defined and non-empty.
 
-    For example, the \<^verbatim>\<open>condition=ISABELLE_FULL_TEST\<close> may be used to guard
-    extraordinary theories, which are meant to be enabled explicitly via some
-    shell prefix \<^verbatim>\<open>env ISABELLE_FULL_TEST=true\<close> before invoking @{tool build}.
-
     \<^item> @{system_option_def "timeout"} and @{system_option_def "timeout_scale"}
     specify a real wall-clock timeout for the session as a whole: the two
     values are multiplied and taken as the number of seconds. Typically,
