@@ -112,7 +112,7 @@ object Isabelle_System
             List(isabelle_root1 + JFile.separator + "bin" + JFile.separator + "isabelle",
               "getenv", "-d", dump.toString)
 
-          val (output, rc) = process_output(raw_execute(null, env, true, (cmd1 ::: cmd2): _*))
+          val (output, rc) = process_output(process(null, env, true, (cmd1 ::: cmd2): _*))
           if (rc != 0) error(output)
 
           val entries =
@@ -175,9 +175,9 @@ object Isabelle_System
 
   /** external processes **/
 
-  /* raw execute for bootstrapping */
+  /* raw process */
 
-  def raw_execute(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
+  def process(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
   {
     val cmdline = new java.util.LinkedList[String]
     for (s <- args) cmdline.add(s)
@@ -217,7 +217,7 @@ object Isabelle_System
       if (Platform.is_windows) List(cygwin_root() + "\\bin\\env.exe") ::: args.toList
       else args
     val env1 = if (env == null) settings else settings ++ env
-    raw_execute(cwd, env1, redirect, cmdline: _*)
+    process(cwd, env1, redirect, cmdline: _*)
   }
 
   def execute(redirect: Boolean, args: String*): Process =
@@ -297,7 +297,7 @@ object Isabelle_System
       if (Platform.is_windows) List(cygwin_root() + "\\bin\\bash.exe")
       else List("/usr/bin/env", "bash")
     val cmdline = bash ::: List("-c", "kill -" + signal + " -" + group_pid)
-    process_output(raw_execute(null, null, true, cmdline: _*))
+    process_output(process(null, null, true, cmdline: _*))
   }
 
 
