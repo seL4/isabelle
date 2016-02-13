@@ -614,10 +614,9 @@ session "HOL-ex" in ex = HOL +
     Ballot
     Erdoes_Szekeres
     Sum_of_Powers
+    Sudoku
   theories [skip_proofs = false]
     Meson_Test
-  theories [condition = ISABELLE_FULL_TEST]
-    Sudoku
   document_files "root.bib" "root.tex"
 
 session "HOL-Isar_Examples" in Isar_Examples = HOL +
@@ -851,7 +850,6 @@ session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
     Boogie
     SMT_Examples
     SMT_Word_Examples
-  theories [condition = ISABELLE_FULL_TEST]
     SMT_Tests
   files
     "Boogie_Dijkstra.certs"
