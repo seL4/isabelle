@@ -5,7 +5,7 @@
 Benchmark consisting of datatypes defined in IsaFoR.
 *)
 
-section {* Benchmark Consisting of Datatypes Defined in IsaFoR *}
+section \<open>Benchmark Consisting of Datatypes Defined in IsaFoR\<close>
 
 theory IsaFoR
 imports Real

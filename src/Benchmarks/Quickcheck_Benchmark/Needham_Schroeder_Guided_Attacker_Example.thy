@@ -55,7 +55,7 @@ lemma
 quickcheck[narrowing, size = 7, timeout = 200, expect = no_counterexample]*)
 oops
 
-section {* Proving the counterexample trace for validation *}
+section \<open>Proving the counterexample trace for validation\<close>
 
 lemma
   assumes "A = Alice" "B = Bob" "C = Spy" "NA = 0" "NB = 1"

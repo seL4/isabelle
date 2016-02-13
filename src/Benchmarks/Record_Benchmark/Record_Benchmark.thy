@@ -2,7 +2,7 @@
     Author:     Norbert Schirmer, DFKI
 *)
 
-section {* Benchmark for large record *}
+section \<open>Benchmark for large record\<close>
 
 theory Record_Benchmark
 imports Main
@@ -355,50 +355,50 @@ lemma "(r\<lparr>A255:=x,A253:=y,A255:=z \<rparr>) = r\<lparr>A253:=y,A255:=z\<r
   by simp
 
 lemma "(r\<lparr>A255:=x,A253:=y,A255:=z \<rparr>) = r\<lparr>A253:=y,A255:=z\<rparr>"
-  apply (tactic {* simp_tac
-    (put_simpset HOL_basic_ss @{context} addsimprocs [Record.upd_simproc]) 1*})
+  apply (tactic \<open>simp_tac
+    (put_simpset HOL_basic_ss @{context} addsimprocs [Record.upd_simproc]) 1\<close>)
   done
 
 lemma "(\<forall>r. P (A155 r)) \<longrightarrow> (\<forall>x. P x)"
-  apply (tactic {* simp_tac
-    (put_simpset HOL_basic_ss @{context} addsimprocs [Record.split_simproc (K ~1)]) 1*})
+  apply (tactic \<open>simp_tac
+    (put_simpset HOL_basic_ss @{context} addsimprocs [Record.split_simproc (K ~1)]) 1\<close>)
   apply simp
   done
 
 lemma "(\<forall>r. P (A155 r)) \<longrightarrow> (\<forall>x. P x)"
-  apply (tactic {* Record.split_simp_tac @{context} [] (K ~1) 1*})
+  apply (tactic \<open>Record.split_simp_tac @{context} [] (K ~1) 1\<close>)
   apply simp
   done
 
 lemma "(\<exists>r. P (A155 r)) \<longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* simp_tac
-    (put_simpset HOL_basic_ss @{context} addsimprocs [Record.split_simproc (K ~1)]) 1*})
+  apply (tactic \<open>simp_tac
+    (put_simpset HOL_basic_ss @{context} addsimprocs [Record.split_simproc (K ~1)]) 1\<close>)
   apply simp
   done
 
 lemma "(\<exists>r. P (A155 r)) \<longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* Record.split_simp_tac @{context} [] (K ~1) 1*})
+  apply (tactic \<open>Record.split_simp_tac @{context} [] (K ~1) 1\<close>)
   apply simp
   done
 
 lemma "\<And>r. P (A155 r) \<Longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* simp_tac
-    (put_simpset HOL_basic_ss @{context} addsimprocs [Record.split_simproc (K ~1)]) 1*})
+  apply (tactic \<open>simp_tac
+    (put_simpset HOL_basic_ss @{context} addsimprocs [Record.split_simproc (K ~1)]) 1\<close>)
   apply auto
   done
 
 lemma "\<And>r. P (A155 r) \<Longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* Record.split_simp_tac @{context} [] (K ~1) 1*})
+  apply (tactic \<open>Record.split_simp_tac @{context} [] (K ~1) 1\<close>)
   apply auto
   done
 
 lemma "P (A155 r) \<Longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* Record.split_simp_tac @{context} [] (K ~1) 1*})
+  apply (tactic \<open>Record.split_simp_tac @{context} [] (K ~1) 1\<close>)
   apply auto
   done
 
 lemma fixes r shows "P (A155 r) \<Longrightarrow> (\<exists>x. P x)"
-  apply (tactic {* Record.split_simp_tac @{context} [] (K ~1) 1*})
+  apply (tactic \<open>Record.split_simp_tac @{context} [] (K ~1) 1\<close>)
   apply auto
   done
 
@@ -409,15 +409,15 @@ begin
   assume "P (A155 r)"
   then have "\<exists>x. P x"
     apply -
-    apply (tactic {* Record.split_simp_tac @{context} [] (K ~1) 1*})
+    apply (tactic \<open>Record.split_simp_tac @{context} [] (K ~1) 1\<close>)
     apply auto 
     done
 end
 
 
 lemma "\<exists>r. A155 r = x"
-  apply (tactic {*simp_tac
-    (put_simpset HOL_basic_ss @{context} addsimprocs [Record.ex_sel_eq_simproc]) 1*})
+  apply (tactic \<open>simp_tac
+    (put_simpset HOL_basic_ss @{context} addsimprocs [Record.ex_sel_eq_simproc]) 1\<close>)
   done
 
 print_record many_A

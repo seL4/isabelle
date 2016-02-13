@@ -108,7 +108,7 @@ where
                       | Gets A X   => used evs
                       | Notes A X  => parts {X} \<union> used evs)"
 
-subsection {* Preparations for sets *}
+subsection \<open>Preparations for sets\<close>
 
 fun find_first :: "('a => 'b option) => 'a list => 'b option"
 where
@@ -140,7 +140,7 @@ lemma
   [code]: "neg_cps_of_set (set xs) f i = find_first' f xs"
 sorry
 
-setup {*
+setup \<open>
 let
   val Fun = Predicate_Compile_Aux.Fun
   val Input = Predicate_Compile_Aux.Input
@@ -162,9 +162,9 @@ in
   Core_Data.force_modes_and_compilations @{const_name Set.member}
     [(oi, (of_set, false)), (ii, (member, false))]
 end
-*}
+\<close>
 
-subsection {* Derived equations for analz, parts and synth *}
+subsection \<open>Derived equations for analz, parts and synth\<close>
 
 lemma [code]:
   "analz H = (let
@@ -186,7 +186,7 @@ lemmas [code_pred_intro] = synth.intros[folded synth'_def]
 
 code_pred [generator_cps] synth' unfolding synth'_def by (rule synth.cases) fastforce+
 
-setup {* Predicate_Compile_Data.ignore_consts [@{const_name analz}, @{const_name knows}] *}
+setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name analz}, @{const_name knows}]\<close>
 declare ListMem_iff[symmetric, code_pred_inline]
 declare [[quickcheck_timing]]
 
