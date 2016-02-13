@@ -7,8 +7,8 @@ Bash process with separate process group id.
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
-
 
 static void fail(const char *msg)
 {
@@ -34,8 +34,24 @@ int main(int argc, char *argv[])
 
   if (setsid() == -1) {
     pid_t pid = fork();
+    int status;
+
     if (pid == -1) fail("Cannot set session id (failed to fork)");
-    else if (pid != 0) exit(0);
+    else if (pid != 0) {
+      if (waitpid(pid, &status, 0) == -1) {
+        fail("Cannot join forked process");
+      }
+
+      if (WIFEXITED(status)) {
+        exit(WEXITSTATUS(status));
+      }
+      else if (WIFSIGNALED(status)) {
+        exit(128 + WTERMSIG(status));
+      }
+      else {
+        fail("Unknown status of forked process");
+      }
+    }
     else if (setsid() == -1) fail("Cannot set session id (after fork)");
   }
 
