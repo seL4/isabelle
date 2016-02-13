@@ -18,7 +18,7 @@ object Output
   def warning_text(msg: String): String = cat_lines(split_lines(clean_yxml(msg)).map("### " + _))
   def error_text(msg: String): String = cat_lines(split_lines(clean_yxml(msg)).map("*** " + _))
 
-  def writeln(msg: String) { Console.err.println(writeln_text(msg)) }
-  def warning(msg: String) { Console.err.println(warning_text(msg)) }
-  def error_message(msg: String) { Console.err.println(error_text(msg)) }
+  def writeln(msg: String) { if (msg != "") Console.err.println(writeln_text(msg)) }
+  def warning(msg: String) { if (msg != "") Console.err.println(warning_text(msg)) }
+  def error_message(msg: String) { if (msg != "") Console.err.println(error_text(msg)) }
 }
