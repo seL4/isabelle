@@ -19,12 +19,13 @@ object Bash
   {
     def out: String = cat_lines(out_lines)
     def err: String = cat_lines(err_lines)
-    def add_err(s: String): Result = copy(err_lines = err_lines ::: List(s))
-    def set_rc(i: Int): Result = copy(rc = i)
 
-    def check_error: Result =
+    def error(s: String, err_rc: Int = 0): Result =
+      copy(err_lines = err_lines ::: List(s), rc = rc max err_rc)
+
+    def check: Result =
       if (rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
-      else if (rc != 0) error(err)
+      else if (rc != 0) Library.error(err)
       else this
 
     def print: Result =

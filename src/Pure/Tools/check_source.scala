@@ -41,9 +41,9 @@ object Check_Source
   def check_hg(root: Path)
   {
     Output.writeln("Checking " + root + " ...")
-    Isabelle_System.hg("--repository " + File.shell_path(root) + " root").check_error
+    Isabelle_System.hg("--repository " + File.shell_path(root) + " root").check
     for {
-      file <- Isabelle_System.hg("manifest", root).check_error.out_lines
+      file <- Isabelle_System.hg("manifest", root).check.out_lines
       if file.endsWith(".thy") || file.endsWith(".ML") || file.endsWith("/ROOT")
     } check_file(root + Path.explode(file))
   }

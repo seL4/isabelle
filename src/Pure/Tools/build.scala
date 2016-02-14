@@ -640,8 +640,8 @@ object Build
       timeout_request.foreach(_.cancel)
 
       if (res.rc == Exn.Interrupt.return_code) {
-        if (was_timeout) res.add_err(Output.error_text("Timeout")).set_rc(1)
-        else res.add_err(Output.error_text("Interrupt"))
+        if (was_timeout) res.error(Output.error_text("Timeout"), 1)
+        else res.error(Output.error_text("Interrupt"))
       }
       else res
     }
