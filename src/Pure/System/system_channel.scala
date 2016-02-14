@@ -20,7 +20,8 @@ class System_Channel private
 {
   private val server = new ServerSocket(0, 2, InetAddress.getByName("127.0.0.1"))
 
-  def server_name: String = "127.0.0.1:" + server.getLocalPort
+  val server_name: String = "127.0.0.1:" + server.getLocalPort
+  override def toString: String = server_name
 
   def rendezvous(): (OutputStream, InputStream) =
   {
