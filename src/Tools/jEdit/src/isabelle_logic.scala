@@ -74,7 +74,7 @@ object Isabelle_Logic
     val print_modes =
       (space_explode(',', PIDE.options.string("jedit_print_mode")) :::
        space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).map("-m " + _)
-    (print_modes ::: List("-r", "-q", quote(session_name()))).mkString(" ")
+    (print_modes ::: List("-r", "-q", File.shell_quote(session_name()))).mkString(" ")
   }
 
   def session_start(): Unit = PIDE.session.start("Isabelle", session_args())
