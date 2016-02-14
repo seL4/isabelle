@@ -35,8 +35,7 @@ class Isabelle_Process private(
     system_channel: System_Channel,
     system_process: Prover.System_Process)
   extends Prover(receiver, system_channel, system_process)
-  {
-    def encode(s: String): String = Symbol.encode(s)
-    def decode(s: String): String = Symbol.decode(s)
-  }
-
+{
+  def encode(s: String): String = Symbol.encode(s)
+  def decode(s: String): String = Symbol.decode(s)
+}
