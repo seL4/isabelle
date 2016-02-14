@@ -64,7 +64,7 @@ theory Pure
   and "}" :: prf_close % "proof"
   and "next" :: next_block % "proof"
   and "qed" :: qed_block % "proof"
-  and "by" ".." "." "sorry" :: "qed" % "proof"
+  and "by" ".." "." "sorry" "\<proof>" :: "qed" % "proof"
   and "done" :: "qed_script" % "proof"
   and "oops" :: qed_global % "proof"
   and "defer" "prefer" "apply" :: prf_script % "proof"

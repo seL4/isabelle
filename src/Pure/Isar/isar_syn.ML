@@ -669,6 +669,10 @@ val _ =
     (Scan.succeed Isar_Cmd.skip_proof);
 
 val _ =
+  Outer_Syntax.command @{command_keyword "\<proof>"} "dummy proof (quick-and-dirty mode only!)"
+    (Scan.succeed Isar_Cmd.skip_proof);
+
+val _ =
   Outer_Syntax.command @{command_keyword oops} "forget proof"
     (Scan.succeed (Toplevel.forget_proof true));
 

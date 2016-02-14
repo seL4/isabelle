@@ -7,6 +7,10 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Isar ***
+
+* Command '\<proof>' is an alias for 'sorry', with different
+typesetting. E.g. to produce proof holes in examples and documentation.
 
 
 New in Isabelle2016 (February 2016)
