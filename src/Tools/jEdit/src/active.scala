@@ -33,7 +33,7 @@ object Active
                 Standard_Thread.fork("browser") {
                   val graph_file = Isabelle_System.tmp_file("graph")
                   File.write(graph_file, XML.content(body))
-                  Isabelle_System.bash_result("\"$ISABELLE_TOOL\" browser -c \"$GRAPH_FILE\" &",
+                  Isabelle_System.bash("\"$ISABELLE_TOOL\" browser -c \"$GRAPH_FILE\" &",
                     env = Map("GRAPH_FILE" -> File.standard_path(graph_file)))
                 }
 

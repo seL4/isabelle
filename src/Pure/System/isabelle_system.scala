@@ -167,7 +167,7 @@ object Isabelle_System
 
   def mkdirs(path: Path): Unit =
     if (!path.is_dir) {
-      bash_result("perl -e \"use File::Path make_path; make_path(" + File.shell_path(path) + ");\"")
+      bash("perl -e \"use File::Path make_path; make_path(" + File.shell_path(path) + ");\"")
       if (!path.is_dir) error("Failed to create directory: " + quote(File.platform_path(path)))
     }
 
@@ -316,7 +316,7 @@ object Isabelle_System
     }
   }
 
-  def bash_result(script: String, cwd: JFile = null, env: Map[String, String] = null,
+  def bash(script: String, cwd: JFile = null, env: Map[String, String] = null,
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
     progress_limit: Option[Long] = None,
@@ -342,14 +342,6 @@ object Isabelle_System
     }
   }
 
-  def bash(script: String): Int =
-  {
-    val result = bash_result(script)
-    Output.warning(Library.trim_line(result.err))
-    Output.writeln(Library.trim_line(result.out))
-    result.rc
-  }
-
 
   /* system tools */
 
@@ -371,13 +363,13 @@ object Isabelle_System
   }
 
   def open(arg: String): Unit =
-    bash_result("exec \"$ISABELLE_OPEN\" '" + arg + "' >/dev/null 2>/dev/null &")
+    bash("exec \"$ISABELLE_OPEN\" '" + arg + "' >/dev/null 2>/dev/null &")
 
   def pdf_viewer(arg: Path): Unit =
-    bash_result("exec \"$PDF_VIEWER\" '" + File.standard_path(arg) + "' >/dev/null 2>/dev/null &")
+    bash("exec \"$PDF_VIEWER\" '" + File.standard_path(arg) + "' >/dev/null 2>/dev/null &")
 
   def hg(cmd_line: String, cwd: Path = Path.current): Bash.Result =
-    bash_result("cd " + File.shell_path(cwd) + " && \"${HG:-hg}\" " + cmd_line)
+    bash("cd " + File.shell_path(cwd) + " && \"${HG:-hg}\" " + cmd_line)
 
 
   /** Isabelle resources **/

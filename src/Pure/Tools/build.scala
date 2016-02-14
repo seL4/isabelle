@@ -602,7 +602,7 @@ object Build
 
     private val result =
       Future.thread("build") {
-        Isabelle_System.bash_result(script, info.dir.file, env,
+        Isabelle_System.bash(script, info.dir.file, env,
           progress_stdout = (line: String) =>
             Library.try_unprefix("\floading_theory = ", line) match {
               case Some(theory) => progress.theory(name, theory)

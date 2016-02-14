@@ -26,6 +26,13 @@ object Bash
       if (rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
       else if (rc != 0) error(err)
       else this
+
+    def print: Result =
+    {
+      Output.warning(Library.trim_line(err))
+      Output.writeln(Library.trim_line(out))
+      Result(Nil, Nil, rc)
+    }
   }
 
 
