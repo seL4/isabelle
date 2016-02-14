@@ -47,10 +47,13 @@ object Bash
       cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*)
     extends Prover.System_Process
   {
-    private val params =
-      List(Isabelle_System.getenv_strict("ISABELLE_BASH_PROCESS"), "-", "bash")
     private val proc =
-      Isabelle_System.execute_env(cwd, env, redirect, (params ::: args.toList):_*)
+    {
+      val params =
+        List(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")), "-", "bash")
+      Isabelle_System.process(
+        cwd, Isabelle_System.settings(env), redirect, (params ::: args.toList):_*)
+    }
 
 
     // channels

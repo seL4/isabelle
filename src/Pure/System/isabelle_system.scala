@@ -51,10 +51,10 @@ object Isabelle_System
 
   @volatile private var _settings: Option[Map[String, String]] = None
 
-  def settings(): Map[String, String] =
+  def settings(env: Map[String, String] = null): Map[String, String] =
   {
     if (_settings.isEmpty) init()  // unsynchronized check
-    _settings.get
+    if (env == null) _settings.get else _settings.get ++ env
   }
 
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized {
@@ -133,7 +133,7 @@ object Isabelle_System
 
   /* getenv */
 
-  def getenv(name: String): String = settings.getOrElse(name, "")
+  def getenv(name: String): String = settings().getOrElse(name, "")
 
   def getenv_strict(name: String): String =
   {
@@ -216,8 +216,7 @@ object Isabelle_System
     val cmdline =
       if (Platform.is_windows) List(cygwin_root() + "\\bin\\env.exe") ::: args.toList
       else args
-    val env1 = if (env == null) settings else settings ++ env
-    process(cwd, env1, redirect, cmdline: _*)
+    process(cwd, settings(env), redirect, cmdline: _*)
   }
 
   def execute(redirect: Boolean, args: String*): Process =
