@@ -2090,6 +2090,9 @@ appear around constructors that guard corecursive calls:
 
 text \<open>
 \noindent
+For technical reasons, @{text "case"}--@{text "of"} is only supported for
+case distinctions on (co)datatypes that provide discriminators and selectors.
+
 Pattern matching is not supported by @{command primcorec}. Fortunately, it is
 easy to generate pattern-maching equations using the @{command simps_of_case}
 command provided by the theory @{file "~~/src/HOL/Library/Simps_Case_Conv.thy"}.
@@ -3462,7 +3465,7 @@ releases.
 \setlength{\itemsep}{0pt}
 
 \item
-\emph{Defining mutually (co)recursive (co)datatypes is slow.} Fortunately,
+\emph{Defining mutually (co)recursive (co)datatypes can be slow.} Fortunately,
 it is always possible to recast mutual specifications to nested ones, which are
 processed more efficiently.
 
@@ -3475,6 +3478,11 @@ The limitation on types can be circumvented by adding type arguments to the loca
 \emph{The \emph{\keyw{primcorec}} command does not allow user-specified names and
 attributes next to the entered formulas.} The less convenient syntax, using the
 \keyw{lemmas} command, is available as an alternative.
+
+\item
+\emph{The \emph{\keyw{primcorec}} command does not allow corecursion under
+@{text "case"}--@{text "of"} for datatypes that are defined without
+discriminators and selectors.
 
 \item
 \emph{There is no way to use an overloaded constant from a syntactic type
