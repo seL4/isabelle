@@ -33,7 +33,7 @@ text \<open>
     & \<open>|\<close> & \<^theory_text>\<open>write name  (mixfix)\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>fix "var\<^sup>+"\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>assume name: props\<close> \\
-    & \<open>|\<close> & \<^theory_text>\<open>assume name: props if name: props for "var\<^sup>+"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>assume name: props if props for "var\<^sup>+"\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>then"\<^sup>?" goal\<close> \\
     \<open>goal\<close> & = & \<^theory_text>\<open>have name: props "proof"\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>have name: props if name: props for "var\<^sup>+" "proof"\<close> \\
