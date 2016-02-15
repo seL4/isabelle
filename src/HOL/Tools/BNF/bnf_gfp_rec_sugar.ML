@@ -60,7 +60,7 @@ sig
   val fold_rev_let_if_case: Proof.context -> (term list -> term -> 'a -> 'a) -> typ list ->
     term -> 'a -> 'a
   val massage_let_if_case: Proof.context -> (term -> bool) -> (typ list -> term -> term) ->
-    (typ list -> term -> unit) -> typ list -> term -> term
+    (typ list -> term -> unit) -> (typ list -> term -> term) -> typ list -> term -> term
   val massage_nested_corec_call: Proof.context -> (term -> bool) ->
     (typ list -> typ -> typ -> term -> term) -> (typ list -> typ -> typ -> term -> term) ->
     typ list -> typ -> typ -> term -> term
@@ -129,6 +129,11 @@ fun nonprimitive_corec ctxt eqns =
   error_at ctxt eqns "Nonprimitive corecursive specification";
 fun unexpected_corec_call ctxt eqns t =
   error_at ctxt eqns ("Unexpected corecursive call in " ^ quote (Syntax.string_of_term ctxt t));
+fun unsupported_case_around_corec_call ctxt eqns t =
+  error_at ctxt eqns ("Unsupported corecursive call under case expression " ^
+    quote (Syntax.string_of_term ctxt t) ^ "\n(Define " ^
+    quote (Syntax.string_of_typ ctxt (domain_type (fastype_of t))) ^
+    " with  discriminators and selectors to circumvent this limitation.)");
 fun use_primcorecursive () =
   error ("\"auto\" failed (try " ^ quote (#1 @{command_keyword primcorecursive}) ^ " instead of " ^
     quote (#1 @{command_keyword primcorec}) ^ ")");
@@ -272,10 +277,10 @@ fun fold_rev_let_if_case ctxt f bound_Ts =
 
 fun case_of ctxt s =
   (case ctr_sugar_of ctxt s of
-    SOME {casex = Const (s', _), split_sels = _ :: _, ...} => SOME s'
+    SOME {casex = Const (s', _), split_sels, ...} => SOME (s', not (null split_sels))
   | _ => NONE);
 
-fun massage_let_if_case ctxt has_call massage_leaf unexpected_call bound_Ts t0 =
+fun massage_let_if_case ctxt has_call massage_leaf unexpected_call unsupported_case bound_Ts t0 =
   let
     val thy = Proof_Context.theory_of ctxt;
 
@@ -311,19 +316,26 @@ fun massage_let_if_case ctxt has_call massage_leaf unexpected_call bound_Ts t0 =
               if n < length args then
                 (case gen_body_fun_T of
                   Type (_, [Type (T_name, _), _]) =>
-                  if case_of ctxt T_name = SOME c then
-                    let
-                      val (branches, obj_leftovers) = chop n args;
-                      val branches' = map2 (massage_abs bound_Ts) gen_branch_ms branches;
-                      val branch_Ts' = map typof branches';
-                      val body_T' = snd (strip_typeN (hd gen_branch_ms) (hd branch_Ts'));
-                      val casex' = Const (c, branch_Ts' ---> map typof obj_leftovers ---> body_T');
-                    in
-                      Term.list_comb (casex',
-                        branches' @ tap (List.app (check_no_call bound_Ts)) obj_leftovers)
-                    end
-                  else
-                    massage_leaf bound_Ts t
+                  (case case_of ctxt T_name of
+                    SOME (c', has_split_sels) =>
+                    if c' = c then
+                      if has_split_sels then
+                        let
+                          val (branches, obj_leftovers) = chop n args;
+                          val branches' = map2 (massage_abs bound_Ts) gen_branch_ms branches;
+                          val branch_Ts' = map typof branches';
+                          val body_T' = snd (strip_typeN (hd gen_branch_ms) (hd branch_Ts'));
+                          val casex' =
+                            Const (c, branch_Ts' ---> map typof obj_leftovers ---> body_T');
+                        in
+                          Term.list_comb (casex',
+                            branches' @ tap (List.app (check_no_call bound_Ts)) obj_leftovers)
+                        end
+                      else
+                        unsupported_case bound_Ts t
+                    else
+                      massage_leaf bound_Ts t
+                  | NONE => massage_leaf bound_Ts t)
                 | _ => massage_leaf bound_Ts t)
               else
                 massage_leaf bound_Ts t
@@ -338,7 +350,8 @@ fun massage_let_if_case ctxt has_call massage_leaf unexpected_call bound_Ts t0 =
   end;
 
 fun massage_let_if_case_corec ctxt has_call massage_leaf bound_Ts t0 =
-  massage_let_if_case ctxt has_call massage_leaf (K (unexpected_corec_call ctxt [t0])) bound_Ts t0;
+  massage_let_if_case ctxt has_call massage_leaf (K (unexpected_corec_call ctxt [t0]))
+    (K (unsupported_case_around_corec_call ctxt [t0])) bound_Ts t0;
 
 fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_Ts U T t0 =
   let
