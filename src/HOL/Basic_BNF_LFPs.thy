@@ -32,6 +32,9 @@ lemmas xtor_inject = xtor_rel[of "op ="]
 lemma xtor_rel_induct: "(\<And>x y. vimage2p id_bnf id_bnf R x y \<Longrightarrow> IR (xtor x) (xtor y)) \<Longrightarrow> R \<le> IR"
   unfolding xtor_def vimage2p_def id_bnf_def ..
 
+lemma xtor_iff_xtor: "u = xtor w \<longleftrightarrow> xtor u = w"
+  unfolding xtor_def ..
+
 lemma Inl_def_alt: "Inl \<equiv> (\<lambda>a. xtor (id_bnf (Inl a)))"
   unfolding xtor_def id_bnf_def by (rule reflexive)
 

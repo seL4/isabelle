@@ -10,6 +10,7 @@ signature BNF_FP_DEF_SUGAR =
 sig
   type fp_ctr_sugar =
     {ctrXs_Tss: typ list list,
+     ctor_iff_dtor: thm,
      ctr_defs: thm list,
      ctr_sugar: Ctr_Sugar.ctr_sugar,
      ctr_transfers: thm list,
@@ -181,9 +182,10 @@ open BNF_Def
 open BNF_FP_Util
 open BNF_FP_Def_Sugar_Tactics
 
-val EqN = "Eq_";
+val Eq_prefix = "Eq_";
 
 val case_transferN = "case_transfer";
+val ctor_iff_dtorN = "ctor_iff_dtor";
 val ctr_transferN = "ctr_transfer";
 val disc_transferN = "disc_transfer";
 val sel_transferN = "sel_transfer";
@@ -201,6 +203,7 @@ val set_selN = "set_sel";
 
 type fp_ctr_sugar =
   {ctrXs_Tss: typ list list,
+   ctor_iff_dtor: thm,
    ctr_defs: thm list,
    ctr_sugar: Ctr_Sugar.ctr_sugar,
    ctr_transfers: thm list,
@@ -295,9 +298,10 @@ fun morph_fp_co_induct_sugar phi ({co_rec, common_co_inducts, co_inducts, co_rec
    common_set_inducts = map (Morphism.thm phi) common_set_inducts,
    set_inducts = map (Morphism.thm phi) set_inducts};
 
-fun morph_fp_ctr_sugar phi ({ctrXs_Tss, ctr_defs, ctr_sugar, ctr_transfers, case_transfers,
-    disc_transfers, sel_transfers} : fp_ctr_sugar) =
+fun morph_fp_ctr_sugar phi ({ctrXs_Tss, ctor_iff_dtor, ctr_defs, ctr_sugar, ctr_transfers,
+    case_transfers, disc_transfers, sel_transfers} : fp_ctr_sugar) =
   {ctrXs_Tss = map (map (Morphism.typ phi)) ctrXs_Tss,
+   ctor_iff_dtor = Morphism.thm phi ctor_iff_dtor,
    ctr_defs = map (Morphism.thm phi) ctr_defs,
    ctr_sugar = morph_ctr_sugar phi ctr_sugar,
    ctr_transfers = map (Morphism.thm phi) ctr_transfers,
@@ -364,8 +368,8 @@ fun register_fp_sugars plugins fp_sugars =
   register_fp_sugars_raw fp_sugars #> interpret_fp_sugars plugins fp_sugars;
 
 fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos fp_nesting_bnfs
-    live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars co_recs co_rec_defs map_thmss
-    common_co_inducts co_inductss co_rec_thmss co_rec_discss co_rec_selsss rel_injectss
+    live_nesting_bnfs fp_res ctrXs_Tsss ctor_iff_dtors ctr_defss ctr_sugars co_recs co_rec_defs
+    map_thmss common_co_inducts co_inductss co_rec_thmss co_rec_discss co_rec_selsss rel_injectss
     rel_distinctss map_disc_iffss map_selsss rel_selss rel_intross rel_casess set_thmss set_selsssss
     set_introsssss set_casess ctr_transferss case_transferss disc_transferss co_rec_disc_iffss
     co_rec_codess co_rec_transferss common_rel_co_inducts rel_co_inductss common_set_inducts
@@ -379,6 +383,7 @@ fun interpret_bnfs_register_fp_sugars plugins Ts BTs Xs fp pre_bnfs absT_infos f
          fp_nesting_bnfs = fp_nesting_bnfs, live_nesting_bnfs = live_nesting_bnfs,
          fp_ctr_sugar =
            {ctrXs_Tss = nth ctrXs_Tsss kk,
+            ctor_iff_dtor = nth ctor_iff_dtors kk,
             ctr_defs = nth ctr_defss kk,
             ctr_sugar = nth ctr_sugars kk,
             ctr_transfers = nth ctr_transferss kk,
@@ -1542,7 +1547,7 @@ fun mk_coinduct_attrs fpTs ctrss discss mss =
         flat (map2 append disc_concls ctr_concls)
       end;
 
-    val coinduct_cases = quasi_unambiguous_case_names (map (prefix EqN) fp_b_names);
+    val coinduct_cases = quasi_unambiguous_case_names (map (prefix Eq_prefix) fp_b_names);
     val coinduct_conclss =
       @{map 3} (quasi_unambiguous_case_names ooo mk_coinduct_concls) mss discss ctrss;
 
@@ -2190,6 +2195,19 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
         val u = Free (u', fpT);
 
+        val ctor_iff_dtor_thm =
+          let
+            val goal =
+              fold_rev Logic.all [w, u]
+                (mk_Trueprop_eq (HOLogic.mk_eq (u, ctor $ w), HOLogic.mk_eq (dtor $ u, w)));
+            val vars = Variable.add_free_names lthy goal [];
+          in
+            Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
+              mk_ctor_iff_dtor_tac ctxt (map (SOME o Thm.ctyp_of lthy) [ctr_absT, fpT])
+                (Thm.cterm_of lthy ctor) (Thm.cterm_of lthy dtor) ctor_dtor dtor_ctor)
+            |> Thm.close_derivation
+          end;
+
         val ctr_rhss =
           map2 (fn k => fn xs => fold_rev Term.lambda xs (ctor $ mk_absumprod ctr_absT abs n k xs))
             ks xss;
@@ -2213,26 +2231,11 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
         fun wrap_ctrs lthy =
           let
-            fun exhaust_tac {context = ctxt, prems = _} =
-              let
-                val ctor_iff_dtor_thm =
-                  let
-                    val goal =
-                      fold_rev Logic.all [w, u]
-                        (mk_Trueprop_eq (HOLogic.mk_eq (u, ctor $ w), HOLogic.mk_eq (dtor $ u, w)));
-                    val vars = Variable.add_free_names lthy goal [];
-                  in
-                    Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
-                      mk_ctor_iff_dtor_tac ctxt (map (SOME o Thm.ctyp_of lthy) [ctr_absT, fpT])
-                        (Thm.cterm_of lthy ctor) (Thm.cterm_of lthy dtor) ctor_dtor dtor_ctor)
-                    |> Thm.close_derivation
-                  end;
+            val sumEN_thm' =
+              unfold_thms lthy @{thms unit_all_eq1} (mk_absumprodE type_definition ms);
 
-                val sumEN_thm' =
-                  unfold_thms lthy @{thms unit_all_eq1} (mk_absumprodE type_definition ms);
-              in
-                mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor_thm sumEN_thm'
-              end;
+            fun exhaust_tac {context = ctxt, prems = _} =
+              mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor_thm sumEN_thm';
 
             val inject_tacss =
               map2 (fn ctr_def => fn 0 => [] | _ => [fn {context = ctxt, ...} =>
@@ -2264,14 +2267,22 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
             val anonymous_notes =
               [([case_cong], fundefcong_attrs)]
               |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
+
+            val notes =
+              if Config.get lthy' bnf_internals then
+                [(ctor_iff_dtorN, [ctor_iff_dtor_thm], K [])]
+                |> massage_simple_notes fp_b_name
+              else
+                [];
           in
-            (ctr_sugar, lthy' |> Local_Theory.notes anonymous_notes |> snd)
+            (ctr_sugar, lthy' |> Local_Theory.notes (anonymous_notes @ notes) |> snd)
           end;
 
         fun mk_binding pre = Binding.qualify false fp_b_name (Binding.prefix_name (pre ^ "_") fp_b);
 
         fun massage_res (((ctr_sugar, maps_sets_rels), co_rec_res), lthy) =
-          (((maps_sets_rels, (ctrs, xss, ctr_defs, ctr_sugar)), co_rec_res), lthy);
+          (((maps_sets_rels, (ctrs, xss, ctor_iff_dtor_thm, ctr_defs, ctr_sugar)), co_rec_res),
+           lthy);
       in
         (wrap_ctrs
          #> (fn (ctr_sugar, lthy) =>
@@ -2288,7 +2299,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     fun wrap_ctrs_derive_map_set_rel_thms_define_co_rec_for_types (wrap_one_etc, lthy) =
       fold_map I wrap_one_etc lthy
-      |>> apsnd split_list o apfst (apsnd @{split_list 4} o apfst @{split_list 16} o split_list)
+      |>> apsnd split_list o apfst (apsnd @{split_list 5} o apfst @{split_list 16} o split_list)
         o split_list;
 
     fun mk_simp_thms ({injects, distincts, case_thms, ...} : ctr_sugar) co_recs map_thms rel_injects
@@ -2394,7 +2405,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         ((((map_thmss, map_disc_iffss, map_selsss, rel_injectss, rel_distinctss, rel_selss,
             rel_intross, rel_casess, set_thmss, set_selsssss, set_introsssss,
             set_casess, ctr_transferss, case_transferss, disc_transferss, sel_transferss),
-           (ctrss, _, ctr_defss, ctr_sugars)),
+           (ctrss, _, ctor_iff_dtors, ctr_defss, ctr_sugars)),
           (recs, rec_defs)), lthy) =
       let
         val ((induct_thms, induct_thm, induct_attrs), (rec_thmss, rec_attrs)) =
@@ -2453,8 +2464,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         |>> name_noted_thms
           (fst (dest_Type (hd fpTs)) ^ implode (map (prefix "_") (tl fp_b_names))) inductN
         |-> interpret_bnfs_register_fp_sugars plugins fpTs fpBTs Xs Least_FP pre_bnfs absT_infos
-          fp_nesting_bnfs live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars recs rec_defs
-          map_thmss [induct_thm] (map single induct_thms) rec_thmss (replicate nn [])
+          fp_nesting_bnfs live_nesting_bnfs fp_res ctrXs_Tsss ctor_iff_dtors ctr_defss ctr_sugars
+          recs rec_defs map_thmss [induct_thm] (map single induct_thms) rec_thmss (replicate nn [])
           (replicate nn []) rel_injectss rel_distinctss map_disc_iffss map_selsss rel_selss
           rel_intross rel_casess set_thmss set_selsssss set_introsssss set_casess ctr_transferss
           case_transferss disc_transferss (replicate nn []) (replicate nn []) rec_transfer_thmss
@@ -2541,7 +2552,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         ((((map_thmss, map_disc_iffss, map_selsss, rel_injectss, rel_distinctss, rel_selss,
             rel_intross, rel_casess, set_thmss, set_selsssss, set_introsssss, set_casess,
             ctr_transferss, case_transferss, disc_transferss, sel_transferss),
-           (_, _, ctr_defss, ctr_sugars)),
+           (_, _, ctor_iff_dtors, ctr_defss, ctr_sugars)),
           (corecs, corec_defs)), lthy) =
       let
         val (([(coinduct_thms, coinduct_thm), (coinduct_strong_thms, coinduct_strong_thm)],
@@ -2631,8 +2642,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           [flat corec_sel_thmss, flat corec_thmss]
         |> Local_Theory.notes (common_notes @ notes)
         |-> interpret_bnfs_register_fp_sugars plugins fpTs fpBTs Xs Greatest_FP pre_bnfs absT_infos
-          fp_nesting_bnfs live_nesting_bnfs fp_res ctrXs_Tsss ctr_defss ctr_sugars corecs corec_defs
-          map_thmss [coinduct_thm, coinduct_strong_thm]
+          fp_nesting_bnfs live_nesting_bnfs fp_res ctrXs_Tsss ctor_iff_dtors ctr_defss ctr_sugars
+          corecs corec_defs map_thmss [coinduct_thm, coinduct_strong_thm]
           (transpose [coinduct_thms, coinduct_strong_thms]) corec_thmss corec_disc_thmss
           corec_sel_thmsss rel_injectss rel_distinctss map_disc_iffss map_selsss rel_selss
           rel_intross rel_casess set_thmss set_selsssss set_introsssss set_casess ctr_transferss

@@ -144,6 +144,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
         morph_ctr_sugar phi ctr_sugar
       end;
 
+    val ctor_iff_dtors = map (#ctor_iff_dtor o #fp_ctr_sugar) fp_sugars0;
     val ctr_defss = map (#ctr_defs o #fp_ctr_sugar) fp_sugars0;
     val mapss = map (#map_thms o #fp_bnf_sugar) fp_sugars0;
     val ctr_sugars = map2 target_ctr_sugar_of_fp_sugar fpTs fp_sugars0;
@@ -291,8 +292,8 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
         val names_lthy = lthy |> fold Variable.declare_typ (As @ Cs @ Xs);
         val phi = Proof_Context.export_morphism names_lthy lthy;
 
-        fun mk_target_fp_sugar T X kk pre_bnf absT_info ctrXs_Tss ctr_defs ctr_sugar co_rec
-            co_rec_def map_thms co_inducts co_rec_thms co_rec_disc_thms co_rec_sel_thmss
+        fun mk_target_fp_sugar T X kk pre_bnf absT_info ctrXs_Tss ctor_iff_dtor ctr_defs ctr_sugar
+            co_rec co_rec_def map_thms co_inducts co_rec_thms co_rec_disc_thms co_rec_sel_thmss
             ({fp_ctr_sugar = {ctr_transfers, case_transfers, disc_transfers, sel_transfers, ...},
               fp_bnf_sugar = {map_disc_iffs, map_selss, rel_injects, rel_distincts, rel_sels,
                 rel_intros, rel_cases, set_thms, set_selssss, set_introssss, set_cases, ...},
@@ -305,6 +306,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
            fp_nesting_bnfs = fp_nesting_bnfs, live_nesting_bnfs = live_nesting_bnfs,
            fp_ctr_sugar =
              {ctrXs_Tss = ctrXs_Tss,
+              ctor_iff_dtor = ctor_iff_dtor,
               ctr_defs = ctr_defs,
               ctr_sugar = ctr_sugar,
               ctr_transfers = ctr_transfers,
@@ -343,8 +345,8 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
           |> morph_fp_sugar phi;
 
         val target_fp_sugars =
-          @{map 16} mk_target_fp_sugar fpTs Xs kks pre_bnfs absT_infos ctrXs_Tsss ctr_defss
-            ctr_sugars co_recs co_rec_defs mapss (transpose co_inductss') co_rec_thmss
+          @{map 17} mk_target_fp_sugar fpTs Xs kks pre_bnfs absT_infos ctrXs_Tsss ctor_iff_dtors
+            ctr_defss ctr_sugars co_recs co_rec_defs mapss (transpose co_inductss') co_rec_thmss
             co_rec_disc_thmss co_rec_sel_thmsss fp_sugars0;
 
         val n2m_sugar = (target_fp_sugars, fp_sugar_thms);
