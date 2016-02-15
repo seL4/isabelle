@@ -919,9 +919,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                  bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
                  finitizable_dataTs
     val _ = if skipped > 0 then
-              print_nt (fn () => "Too many scopes. Skipping " ^
-                                 string_of_int skipped ^ " scope" ^
-                                 plural_s skipped ^
+              print_nt (fn () => "Skipping " ^ string_of_int skipped ^
+                                 " scope" ^ plural_s skipped ^
                                  ". (Consider using \"mono\" or \
                                  \\"merge_type_vars\" to prevent this.)")
             else
