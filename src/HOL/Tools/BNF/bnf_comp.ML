@@ -394,7 +394,7 @@ fun raw_kill_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     val ((Asets, lives), _(*names_lthy*)) = lthy
       |> mk_Frees "A" (map HOLogic.mk_setT (drop n As))
       ||>> mk_Frees "x" (drop n As);
-    val xs = map (fn T => HOLogic.choice_const T $ absdummy T @{term True}) killedAs @ lives;
+    val xs = map (fn T => Const (@{const_name undefined}, T)) killedAs @ lives;
 
     val T = mk_T_of_bnf Ds As bnf;
 
