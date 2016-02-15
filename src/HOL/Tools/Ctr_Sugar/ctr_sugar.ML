@@ -205,9 +205,8 @@ val ctr_sugar_of_case_global = ctr_sugar_of_case_generic o Context.Theory;
 structure Ctr_Sugar_Plugin = Plugin(type T = ctr_sugar);
 
 fun ctr_sugar_interpretation name f =
-  Ctr_Sugar_Plugin.interpretation name
-    (fn ctr_sugar => fn lthy =>
-      f (transfer_ctr_sugar (Proof_Context.theory_of lthy) ctr_sugar) lthy);
+  Ctr_Sugar_Plugin.interpretation name (fn ctr_sugar => fn lthy =>
+    f (transfer_ctr_sugar (Proof_Context.theory_of lthy) ctr_sugar) lthy);
 
 val interpret_ctr_sugar = Ctr_Sugar_Plugin.data;
 
@@ -228,12 +227,12 @@ fun default_register_ctr_sugar_global plugins (ctr_sugar as {T = Type (s, _), ..
       |> Named_Target.theory_map (Ctr_Sugar_Plugin.data plugins ctr_sugar)
   end;
 
-val isN = "is_";
-val unN = "un_";
-val notN = "not_";
+val is_prefix = "is_";
+val un_prefix = "un_";
+val not_prefix = "not_";
 
-fun mk_unN 1 1 suf = unN ^ suf
-  | mk_unN _ l suf = unN ^ suf ^ string_of_int l;
+fun mk_unN 1 1 suf = un_prefix ^ suf
+  | mk_unN _ l suf = un_prefix ^ suf ^ string_of_int l;
 
 val caseN = "case";
 val case_congN = "case_cong";
@@ -301,11 +300,11 @@ val name_of_ctr = name_of_const "constructor" body_type;
 fun name_of_disc t =
   (case head_of t of
     Abs (_, _, @{const Not} $ (t' $ Bound 0)) =>
-    Long_Name.map_base_name (prefix notN) (name_of_disc t')
+    Long_Name.map_base_name (prefix not_prefix) (name_of_disc t')
   | Abs (_, _, Const (@{const_name HOL.eq}, _) $ Bound 0 $ t') =>
-    Long_Name.map_base_name (prefix isN) (name_of_disc t')
+    Long_Name.map_base_name (prefix is_prefix) (name_of_disc t')
   | Abs (_, _, @{const Not} $ (Const (@{const_name HOL.eq}, _) $ Bound 0 $ t')) =>
-    Long_Name.map_base_name (prefix (notN ^ isN)) (name_of_disc t')
+    Long_Name.map_base_name (prefix (not_prefix ^ is_prefix)) (name_of_disc t')
   | t' => name_of_const "discriminator" (perhaps (try domain_type)) t');
 
 val base_name_of_ctr = Long_Name.base_name o name_of_ctr;
@@ -437,7 +436,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
     fun is_disc_binding_valid b =
       not (Binding.is_empty b orelse Binding.eq_name (b, equal_binding));
 
-    val standard_disc_binding = Binding.name o prefix isN o base_name_of_ctr;
+    val standard_disc_binding = Binding.name o prefix is_prefix o base_name_of_ctr;
 
     val disc_bindings =
       raw_disc_bindings

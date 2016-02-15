@@ -352,17 +352,15 @@ val fp_sugars_of_global = fp_sugars_of_generic o Context.Theory;
 structure FP_Sugar_Plugin = Plugin(type T = fp_sugar list);
 
 fun fp_sugars_interpretation name f =
-  FP_Sugar_Plugin.interpretation name
-    (fn fp_sugars => fn lthy =>
-      f (map (transfer_fp_sugar (Proof_Context.theory_of lthy)) fp_sugars) lthy);
+  FP_Sugar_Plugin.interpretation name (fn fp_sugars => fn lthy =>
+    f (map (transfer_fp_sugar (Proof_Context.theory_of lthy)) fp_sugars) lthy);
 
 val interpret_fp_sugars = FP_Sugar_Plugin.data;
 
-fun register_fp_sugars_raw fp_sugars =
+val register_fp_sugars_raw =
   fold (fn fp_sugar as {T = Type (s, _), ...} =>
-      Local_Theory.declaration {syntax = false, pervasive = true}
-        (fn phi => Data.map (Symtab.update (s, morph_fp_sugar phi fp_sugar))))
-    fp_sugars;
+    Local_Theory.declaration {syntax = false, pervasive = true}
+      (fn phi => Data.map (Symtab.update (s, morph_fp_sugar phi fp_sugar))));
 
 fun register_fp_sugars plugins fp_sugars =
   register_fp_sugars_raw fp_sugars #> interpret_fp_sugars plugins fp_sugars;
