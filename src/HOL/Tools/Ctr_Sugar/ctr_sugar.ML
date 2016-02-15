@@ -469,8 +469,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val ((((((((u, exh_y), xss), yss), fs), gs), w), (p, p'))) =
-      no_defs_lthy
+    val (((((((((u, exh_y), xss), yss), fs), gs), w), (p, p'))), _) = no_defs_lthy
       |> add_bindings
       |> yield_singleton (mk_Frees fc_b_name) fcT
       ||>> yield_singleton (mk_Frees "y") fcT (* for compatibility with "datatype_realizer.ML" *)
@@ -479,8 +478,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
       ||>> mk_Frees "f" case_Ts
       ||>> mk_Frees "g" case_Ts
       ||>> yield_singleton (mk_Frees "z") B
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT
-      |> fst;
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT;
 
     val q = Free (fst p', mk_pred1T B);
 
@@ -679,8 +677,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     fun after_qed ([exhaust_thm] :: thmss) lthy =
       let
-        val ((((((((u, u'), (xss, xss')), fs), gs), h), v), p), _) =
-          lthy
+        val ((((((((u, u'), (xss, xss')), fs), gs), h), v), p), _) = lthy
           |> add_bindings
           |> yield_singleton (apfst (op ~~) oo mk_Frees' fc_b_name) fcT
           ||>> mk_Freess' "x" ctr_Tss

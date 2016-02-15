@@ -104,11 +104,11 @@ fun cases_tac ctxt k m excludesss =
       (take k (nth excludesss (k - 1))))
   end;
 
-fun prelude_tac ctxt defs thm =
-  unfold_thms_tac ctxt defs THEN HEADGOAL (rtac ctxt thm) THEN unfold_thms_tac ctxt unfold_lets;
+fun prelude_tac ctxt fun_defs thm =
+  unfold_thms_tac ctxt fun_defs THEN HEADGOAL (rtac ctxt thm) THEN unfold_thms_tac ctxt unfold_lets;
 
-fun mk_primcorec_disc_tac ctxt defs corec_disc k m excludesss =
-  prelude_tac ctxt defs corec_disc THEN cases_tac ctxt k m excludesss;
+fun mk_primcorec_disc_tac ctxt fun_defs corec_disc k m excludesss =
+  prelude_tac ctxt fun_defs corec_disc THEN cases_tac ctxt k m excludesss;
 
 fun mk_primcorec_disc_iff_tac ctxt fun_exhaust_frees fun_exhaust fun_discs fun_discss
     distinct_discs =
@@ -129,9 +129,9 @@ fun mk_primcorec_disc_iff_tac ctxt fun_exhaust_frees fun_exhaust fun_discs fun_d
      resolve_tac ctxt
       (map (unfold_thms ctxt [atomize_conjL]) fun_discs) THEN_MAYBE' assume_tac ctxt));
 
-fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_ident0s map_comps fun_sel k
-    m excludesss =
-  prelude_tac ctxt defs (fun_sel RS trans) THEN
+fun mk_primcorec_sel_tac ctxt fun_defs distincts splits split_asms mapsx map_ident0s map_comps
+    fun_sel k m excludesss =
+  prelude_tac ctxt fun_defs (fun_sel RS trans) THEN
   cases_tac ctxt k m excludesss THEN
   HEADGOAL (REPEAT_DETERM o (rtac ctxt refl ORELSE'
     eresolve_tac ctxt falseEs ORELSE'

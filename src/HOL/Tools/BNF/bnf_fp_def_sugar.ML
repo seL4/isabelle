@@ -2594,8 +2594,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         val (set_induct_thms, set_induct_attrss) =
           derive_set_induct_thms_for_types lthy nn fpTs (map #ctrs ctr_sugars)
             (map (map (mk_set As)) (map sets_of_bnf fp_bnfs)) dtor_set_inducts
-            (map #exhaust ctr_sugars) (flat pre_set_defss) (flat ctr_defss)
-            dtor_ctors abs_inverses
+            (map #exhaust ctr_sugars) (flat pre_set_defss) (flat ctr_defss) dtor_ctors abs_inverses
           |> split_list;
 
         val simp_thmss =
