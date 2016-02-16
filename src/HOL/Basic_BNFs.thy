@@ -30,12 +30,19 @@ lemma rel_sum_simps[code, simp]:
   "rel_sum R1 R2 (Inr a2) (Inr b2) = R2 a2 b2"
   by (auto intro: rel_sum.intros elim: rel_sum.cases)
 
+inductive
+   pred_sum :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> bool" for P1 P2
+where
+  "P1 a \<Longrightarrow> pred_sum P1 P2 (Inl a)"
+| "P2 b \<Longrightarrow> pred_sum P1 P2 (Inr b)"
+
 bnf "'a + 'b"
   map: map_sum
   sets: setl setr
   bd: natLeq
   wits: Inl Inr
   rel: rel_sum
+  pred: pred_sum
 proof -
   show "map_sum id id = id" by (rule map_sum.id)
 next
@@ -82,12 +89,12 @@ next
     by (force elim: rel_sum.cases)
 next
   fix R S
-  show "rel_sum R S =
-        (Grp {x. setl x \<subseteq> Collect (case_prod R) \<and> setr x \<subseteq> Collect (case_prod S)} (map_sum fst fst))\<inverse>\<inverse> OO
-        Grp {x. setl x \<subseteq> Collect (case_prod R) \<and> setr x \<subseteq> Collect (case_prod S)} (map_sum snd snd)"
-  unfolding sum_set_defs Grp_def relcompp.simps conversep.simps fun_eq_iff
+  show "rel_sum R S = (\<lambda>x y.
+    \<exists>z. (setl z \<subseteq> {(x, y). R x y} \<and> setr z \<subseteq> {(x, y). S x y}) \<and>
+    map_sum fst fst z = x \<and> map_sum snd snd z = y)"
+  unfolding sum_set_defs relcompp.simps conversep.simps fun_eq_iff
   by (fastforce elim: rel_sum.cases split: sum.splits)
-qed (auto simp: sum_set_defs)
+qed (auto simp: sum_set_defs fun_eq_iff pred_sum.simps split: sum.splits)
 
 inductive_set fsts :: "'a \<times> 'b \<Rightarrow> 'a set" for p :: "'a \<times> 'b" where
   "fst p \<in> fsts p"
@@ -102,19 +109,37 @@ inductive
 where
   "\<lbrakk>R1 a b; R2 c d\<rbrakk> \<Longrightarrow> rel_prod R1 R2 (a, c) (b, d)"
 
+inductive
+  pred_prod :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool" for P1 P2
+where
+  "\<lbrakk>P1 a; P2 b\<rbrakk> \<Longrightarrow> pred_prod P1 P2 (a, b)"
+
 lemma rel_prod_apply [code, simp]:
   "rel_prod R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
   by (auto intro: rel_prod.intros elim: rel_prod.cases)
 
+lemma pred_prod_apply [code, simp]:
+  "pred_prod P1 P2 (a, b) \<longleftrightarrow> P1 a \<and> P2 b"
+  by (auto intro: pred_prod.intros elim: pred_prod.cases)
+
 lemma rel_prod_conv:
   "rel_prod R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
   by (rule ext, rule ext) auto
+
+definition
+  pred_fun :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
+where
+  "pred_fun A B = (\<lambda>f. \<forall>x. A x \<longrightarrow> B (f x))"
+
+lemma pred_funI: "(\<And>x. A x \<Longrightarrow> B (f x)) \<Longrightarrow> pred_fun A B f"
+  unfolding pred_fun_def by simp
 
 bnf "'a \<times> 'b"
   map: map_prod
   sets: fsts snds
   bd: natLeq
   rel: rel_prod
+  pred: pred_prod
 proof (unfold prod_set_defs)
   show "map_prod id id = id" by (rule map_prod.id)
 next
@@ -150,18 +175,19 @@ next
   show "rel_prod R1 R2 OO rel_prod S1 S2 \<le> rel_prod (R1 OO S1) (R2 OO S2)" by auto
 next
   fix R S
-  show "rel_prod R S =
-        (Grp {x. {fst x} \<subseteq> Collect (case_prod R) \<and> {snd x} \<subseteq> Collect (case_prod S)} (map_prod fst fst))\<inverse>\<inverse> OO
-        Grp {x. {fst x} \<subseteq> Collect (case_prod R) \<and> {snd x} \<subseteq> Collect (case_prod S)} (map_prod snd snd)"
-  unfolding prod_set_defs rel_prod_apply Grp_def relcompp.simps conversep.simps fun_eq_iff
+  show "rel_prod R S = (\<lambda>x y.
+    \<exists>z. ({fst z} \<subseteq> {(x, y). R x y} \<and> {snd z} \<subseteq> {(x, y). S x y}) \<and>
+      map_prod fst fst z = x \<and> map_prod snd snd z = y)"
+  unfolding prod_set_defs rel_prod_apply relcompp.simps conversep.simps fun_eq_iff
   by auto
-qed
+qed auto
 
 bnf "'a \<Rightarrow> 'b"
   map: "op \<circ>"
   sets: range
   bd: "natLeq +c |UNIV :: 'a set|"
   rel: "rel_fun op ="
+  pred: "pred_fun (\<lambda>_. True)"
 proof
   fix f show "id \<circ> f = id f" by simp
 next
@@ -194,17 +220,9 @@ next
   show "rel_fun op = R OO rel_fun op = S \<le> rel_fun op = (R OO S)" by (auto simp: rel_fun_def)
 next
   fix R
-  show "rel_fun op = R =
-        (Grp {x. range x \<subseteq> Collect (case_prod R)} (op \<circ> fst))\<inverse>\<inverse> OO
-         Grp {x. range x \<subseteq> Collect (case_prod R)} (op \<circ> snd)"
-  unfolding rel_fun_def Grp_def fun_eq_iff relcompp.simps conversep.simps subset_iff image_iff
-    comp_apply mem_Collect_eq split_beta bex_UNIV
-  proof (safe, unfold fun_eq_iff[symmetric])
-    fix x xa a b c xb y aa ba
-    assume *: "x = a" "xa = c" "a = ba" "b = aa" "c = (\<lambda>x. snd (b x))" "ba = (\<lambda>x. fst (aa x))" and
-       **: "\<forall>t. (\<exists>x. t = aa x) \<longrightarrow> R (fst t) (snd t)"
-    show "R (x y) (xa y)" unfolding * by (rule mp[OF spec[OF **]]) blast
-  qed force
-qed
+  show "rel_fun op = R = (\<lambda>x y.
+    \<exists>z. range z \<subseteq> {(x, y). R x y} \<and> fst \<circ> z = x \<and> snd \<circ> z = y)"
+  unfolding rel_fun_def subset_iff by (force simp: fun_eq_iff[symmetric])
+qed (auto simp: pred_fun_def)
 
 end

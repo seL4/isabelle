@@ -235,6 +235,36 @@ lemma symp_conversep: "symp R = (R\<inverse>\<inverse> \<le> R)"
 lemma diag_imp_eq_le: "(\<And>x. x \<in> A \<Longrightarrow> R x x) \<Longrightarrow> \<forall>x y. x \<in> A \<longrightarrow> y \<in> A \<longrightarrow> x = y \<longrightarrow> R x y"
   by blast
 
+definition eq_onp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
+  where "eq_onp R = (\<lambda>x y. R x \<and> x = y)"
+
+lemma eq_onp_Grp: "eq_onp P = BNF_Def.Grp (Collect P) id"
+  unfolding eq_onp_def Grp_def by auto
+
+lemma eq_onp_to_eq: "eq_onp P x y \<Longrightarrow> x = y"
+  by (simp add: eq_onp_def)
+
+lemma eq_onp_top_eq_eq: "eq_onp top = op ="
+  by (simp add: eq_onp_def)
+
+lemma eq_onp_same_args: "eq_onp P x x = P x"
+  using assms by (auto simp add: eq_onp_def)
+
+lemma eq_onp_eqD: "eq_onp P = Q \<Longrightarrow> P x = Q x x"
+  unfolding eq_onp_def by blast
+
+lemma Ball_Collect: "Ball A P = (A \<subseteq> (Collect P))"
+  by auto
+
+lemma eq_onp_mono0: "\<forall>x\<in>A. P x \<longrightarrow> Q x \<Longrightarrow> \<forall>x\<in>A. \<forall>y\<in>A. eq_onp P x y \<longrightarrow> eq_onp Q x y"
+  unfolding eq_onp_def by auto
+
+lemma eq_onp_True: "eq_onp (\<lambda>_. True) = (op =)"
+  unfolding eq_onp_def by simp
+
+lemma Ball_image_comp: "Ball (f ` A) g = Ball A (g o f)"
+  by auto
+
 ML_file "Tools/BNF/bnf_util.ML"
 ML_file "Tools/BNF/bnf_tactics.ML"
 ML_file "Tools/BNF/bnf_def_tactics.ML"

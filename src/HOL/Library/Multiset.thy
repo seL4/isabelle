@@ -2302,12 +2302,18 @@ qed
 lemma ex_mset: "\<exists>xs. mset xs = X"
   by (induct X) (simp, metis mset.simps(2))
 
+inductive pred_mset :: "('a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> bool"
+where
+  "pred_mset P {#}"
+| "\<lbrakk>P a; pred_mset P M\<rbrakk> \<Longrightarrow> pred_mset P (M + {#a#})"
+
 bnf "'a multiset"
   map: image_mset
   sets: set_mset
   bd: natLeq
   wits: "{#}"
   rel: rel_mset
+  pred: pred_mset
 proof -
   show "image_mset id = id"
     by (rule image_mset.id)
@@ -2334,16 +2340,13 @@ proof -
       done
     done
   show "rel_mset R =
-    (BNF_Def.Grp {x. set_mset x \<subseteq> {(x, y). R x y}} (image_mset fst))\<inverse>\<inverse> OO
-    BNF_Def.Grp {x. set_mset x \<subseteq> {(x, y). R x y}} (image_mset snd)" for R
-    unfolding rel_mset_def[abs_def] BNF_Def.Grp_def OO_def
+    (\<lambda>x y. \<exists>z. set_mset z \<subseteq> {(x, y). R x y} \<and>
+    image_mset fst z = x \<and> image_mset snd z = y)" for R
+    unfolding rel_mset_def[abs_def]
     apply (rule ext)+
-    apply auto
-     apply (rule_tac x = "mset (zip xs ys)" in exI; auto)
-        apply (metis list_all2_lengthD map_fst_zip mset_map)
-       apply (auto simp: list_all2_iff)[1]
-      apply (metis list_all2_lengthD map_snd_zip mset_map)
-     apply (auto simp: list_all2_iff)[1]
+    apply safe
+     apply (rule_tac x = "mset (zip xs ys)" in exI;
+       auto simp: in_set_zip list_all2_iff mset_map[symmetric])
     apply (rename_tac XY)
     apply (cut_tac X = XY in ex_mset)
     apply (erule exE)
@@ -2355,6 +2358,16 @@ proof -
     done
   show "z \<in> set_mset {#} \<Longrightarrow> False" for z
     by auto
+  show "pred_mset P = (\<lambda>x. Ball (set_mset x) P)" for P
+  proof (intro ext iffI)
+    fix x
+    assume "pred_mset P x"
+    then show "Ball (set_mset x) P" by (induct pred: pred_mset; simp)
+  next
+    fix x
+    assume "Ball (set_mset x) P"
+    then show "pred_mset P x" by (induct x; auto intro: pred_mset.intros)
+  qed
 qed
 
 inductive rel_mset'

@@ -78,9 +78,11 @@ lemma UN_image_subset: "\<Union>(f ` g x) \<subseteq> X = (g x \<subseteq> {x. f
 lemma comp_set_bd_Union_o_collect: "|\<Union>\<Union>((\<lambda>f. f x) ` X)| \<le>o hbd \<Longrightarrow> |(Union \<circ> collect X) x| \<le>o hbd"
   by (unfold comp_apply collect_def) simp
 
-lemma wpull_cong:
-  "\<lbrakk>A' = A; B1' = B1; B2' = B2; wpull A B1 B2 f1 f2 p1 p2\<rbrakk> \<Longrightarrow> wpull A' B1' B2' f1 f2 p1 p2"
-  by simp
+lemma Collect_inj: "Collect P = Collect Q \<Longrightarrow> P = Q"
+  by blast
+
+lemma Ball_Collect: "Ball A P = (A \<subseteq> (Collect P))"
+by auto
 
 lemma Grp_fst_snd: "(Grp (Collect (case_prod R)) fst)^--1 OO Grp (Collect (case_prod R)) snd = R"
   unfolding Grp_def fun_eq_iff relcompp.simps by auto
@@ -100,6 +102,12 @@ lemma type_copy_set_bd: "(\<And>y. |S y| \<le>o bd) \<Longrightarrow> |(S o Rep)
 
 lemma vimage2p_cong: "R = S \<Longrightarrow> vimage2p f g R = vimage2p f g S"
   by simp
+
+lemma Ball_comp_iff: "(\<lambda>x. Ball (A x) f) o g = (\<lambda>x. Ball ((A o g) x) f)"
+  unfolding o_def by auto
+
+lemma conj_comp_iff: "(\<lambda>x. P x \<and> Q x) o g = (\<lambda>x. (P o g) x \<and> (Q o g) x)"
+  unfolding o_def by auto
 
 context
   fixes Rep Abs
@@ -150,7 +158,7 @@ bnf DEADID: 'a
   map: "id :: 'a \<Rightarrow> 'a"
   bd: natLeq
   rel: "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
-  by (auto simp add: Grp_def natLeq_card_order natLeq_cinfinite)
+  by (auto simp add: natLeq_card_order natLeq_cinfinite)
 
 definition id_bnf :: "'a \<Rightarrow> 'a" where
   "id_bnf \<equiv> (\<lambda>x. x)"
@@ -163,6 +171,7 @@ bnf ID: 'a
   sets: "\<lambda>x. {x}"
   bd: natLeq
   rel: "id_bnf :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
+  pred: "id_bnf :: ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
   unfolding id_bnf_def
   apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite)
   apply (rule ordLess_imp_ordLeq[OF finite_ordLess_infinite[OF _ natLeq_Well_order]])

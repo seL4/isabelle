@@ -972,7 +972,8 @@ apply -
      apply (rule natLeq_cinfinite)
     apply transfer apply (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq)
    apply (fastforce simp: rel_fset_alt)
- apply (simp add: Grp_def relcompp.simps conversep.simps fun_eq_iff rel_fset_alt rel_fset_aux) 
+ apply (simp add: Grp_def relcompp.simps conversep.simps fun_eq_iff rel_fset_alt
+   rel_fset_aux[unfolded OO_Grp_alt]) 
 apply transfer apply simp
 done
 

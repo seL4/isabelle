@@ -27,7 +27,6 @@ exception NO_PRED_DATA of unit
 (* util functions *)
 
 fun base_name_of_bnf bnf = Binding.name (Binding.name_of (name_of_bnf bnf))
-fun mk_Frees_free x Ts ctxt = Variable.variant_frees ctxt [] (mk_names (length Ts) x ~~ Ts) |> map Free
 
 fun mk_Domainp P =
   let
@@ -37,15 +36,6 @@ fun mk_Domainp P =
     Const (@{const_name Domainp}, PT --> argT --> HOLogic.boolT) $ P
   end
 
-fun mk_pred pred_def args T =
-  let
-    val pred_name = pred_def |> Thm.prop_of |> HOLogic.dest_Trueprop |> fst o HOLogic.dest_eq
-      |> head_of |> fst o dest_Const
-    val argsT = map fastype_of args
-  in
-    list_comb (Const (pred_name, argsT ---> (T --> HOLogic.boolT)), args)
-  end
-
 fun mk_eq_onp arg =
   let
     val argT = domain_type (fastype_of arg)
@@ -53,9 +43,6 @@ fun mk_eq_onp arg =
     Const (@{const_name eq_onp}, (argT --> HOLogic.boolT) --> argT --> argT --> HOLogic.boolT)
       $ arg
   end
-
-fun subst_conv thm =
-  Conv.top_sweep_conv (K (Conv.rewr_conv (safe_mk_meta_eq thm))) @{context}
 
 fun type_name_of_bnf bnf = T_of_bnf bnf |> dest_Type |> fst
 
@@ -169,32 +156,7 @@ fun bnf_transfer_rules bnf =
     map (fn thm => ((Binding.empty,[]),[([thm],transfer_attr)])) transfer_rules
   end
 
-(* predicator definition and Domainp and eq_onp theorem *)
-
-fun define_pred bnf lthy =
-  let
-    fun mk_pred_name c = Binding.prefix_name "pred_" c
-    val live = live_of_bnf bnf
-    val Tname = base_name_of_bnf bnf
-    val ((As, Ds), lthy) = lthy
-      |> mk_TFrees live
-      ||>> mk_TFrees' (map Type.sort_of_atyp (deads_of_bnf bnf))
-    val T = mk_T_of_bnf Ds As bnf
-    val sets = mk_sets_of_bnf (replicate live Ds) (replicate live As) bnf
-    val argTs = map mk_pred1T As
-    val args = mk_Frees_free "P" argTs lthy
-    val conjs = map (fn (set, arg) => mk_Ball (set $ Bound 0) arg) (sets ~~ args)
-    val rhs = Abs ("x", T, foldr1 HOLogic.mk_conj conjs)
-    val pred_name = mk_pred_name Tname
-    val headT = argTs ---> (T --> HOLogic.boolT)
-    val head = Free (Binding.name_of pred_name, headT)
-    val lhs = list_comb (head, args)
-    val def = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
-    val ((_, (_, pred_def)), lthy) = Specification.definition ((SOME (pred_name, SOME headT, NoSyn)),
-      ((Binding.empty, []), def)) lthy
-  in
-    (pred_def, lthy)
-  end
+(* Domainp theorem for predicator *)
 
 fun Domainp_tac bnf pred_def ctxt i =
   let
@@ -233,10 +195,9 @@ fun prove_Domainp_rel ctxt bnf pred_def =
 
     val relator = mk_rel_of_bnf Ds As Bs bnf
     val relsT = map2 mk_pred2T As Bs
-    val T = mk_T_of_bnf Ds As bnf
     val (args, ctxt) = Ctr_Sugar_Util.mk_Frees "R" relsT ctxt
     val lhs = mk_Domainp (list_comb (relator, args))
-    val rhs = mk_pred pred_def (map mk_Domainp args) T
+    val rhs = Term.list_comb (mk_pred_of_bnf Ds As bnf, map mk_Domainp args)
     val goal = HOLogic.mk_eq (lhs, rhs) |> HOLogic.mk_Trueprop
     val thm = Goal.prove_sorry ctxt [] [] goal
       (fn {context = ctxt, prems = _} => Domainp_tac bnf pred_def ctxt 1)
@@ -245,46 +206,17 @@ fun prove_Domainp_rel ctxt bnf pred_def =
     Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
   end
 
-fun pred_eq_onp_tac bnf pred_def ctxt i =
-  (SELECT_GOAL (Local_Defs.unfold_tac ctxt [@{thm eq_onp_Grp},
-    @{thm Ball_Collect}, pred_def]) THEN' CONVERSION (subst_conv (map_id0_of_bnf bnf RS sym))
-  THEN' rtac ctxt (rel_Grp_of_bnf bnf)) i
-
-fun prove_rel_eq_onp ctxt bnf pred_def =
-  let
-    val live = live_of_bnf bnf
-    val old_ctxt = ctxt
-    val ((As, Ds), ctxt) = ctxt
-      |> mk_TFrees live
-      ||>> mk_TFrees' (map Type.sort_of_atyp (deads_of_bnf bnf))
-    val T = mk_T_of_bnf Ds As bnf
-    val argTs = map mk_pred1T As
-    val (args, ctxt) = mk_Frees "P" argTs ctxt
-    val relator = mk_rel_of_bnf Ds As As bnf
-    val lhs = list_comb (relator, map mk_eq_onp args)
-    val rhs = mk_eq_onp (mk_pred pred_def args T)
-    val goal = HOLogic.mk_eq (lhs, rhs) |> HOLogic.mk_Trueprop
-    val thm = Goal.prove_sorry ctxt [] [] goal
-      (fn {context = ctxt, prems = _} => pred_eq_onp_tac bnf pred_def ctxt 1)
-      |> Thm.close_derivation
-  in
-    Drule.zero_var_indexes (singleton (Variable.export ctxt old_ctxt) thm)
-  end
-
 fun predicator bnf lthy =
   let
-    val (pred_def, lthy) = define_pred bnf lthy
-    val pred_def = Morphism.thm (Local_Theory.target_morphism lthy) pred_def
+    val pred_def = pred_set_of_bnf bnf
     val Domainp_rel = prove_Domainp_rel lthy bnf pred_def
-    val rel_eq_onp = prove_rel_eq_onp lthy bnf pred_def
+    val rel_eq_onp = rel_eq_onp_of_bnf bnf
     fun qualify defname suffix = Binding.qualified true suffix defname
     val Domainp_rel_thm_name = qualify (base_name_of_bnf bnf) "Domainp_rel"
-    val rel_eq_onp_thm_name = qualify (base_name_of_bnf bnf) "rel_eq_onp"
     val pred_data = Transfer.mk_pred_data pred_def rel_eq_onp []
     val type_name = type_name_of_bnf bnf
     val relator_domain_attr = @{attributes [relator_domain]}
-    val notes = [((Domainp_rel_thm_name, []), [([Domainp_rel], relator_domain_attr)]),
-      ((rel_eq_onp_thm_name, []), [([rel_eq_onp], [])])]
+    val notes = [((Domainp_rel_thm_name, []), [([Domainp_rel], relator_domain_attr)])]
   in
     lthy
     |> Local_Theory.notes notes
@@ -328,7 +260,7 @@ fun lives_of_fp (fp_sugar: fp_sugar) =
     map_filter (uncurry (fn true => SOME | false => K NONE)) (liveness ~~ As)
   end
 
-fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
+fun prove_pred_inject lthy (fp_sugar : fp_sugar) =
   let
     val involved_types = distinct op= (
         map type_name_of_bnf (#fp_nesting_bnfs fp_sugar)

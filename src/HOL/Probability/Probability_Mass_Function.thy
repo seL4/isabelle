@@ -1097,10 +1097,9 @@ proof -
     finally show ?thesis .
   qed
 
-  show "\<And>R. rel_pmf R =
-         (BNF_Def.Grp {x. set_pmf x \<subseteq> {(x, y). R x y}} (map_pmf fst))\<inverse>\<inverse> OO
-         BNF_Def.Grp {x. set_pmf x \<subseteq> {(x, y). R x y}} (map_pmf snd)"
-     by (auto simp add: fun_eq_iff BNF_Def.Grp_def OO_def rel_pmf.simps)
+  show "\<And>R. rel_pmf R = (\<lambda>x y. \<exists>z. set_pmf z \<subseteq> {(x, y). R x y} \<and>
+    map_pmf fst z = x \<and> map_pmf snd z = y)"
+     by (auto simp add: fun_eq_iff rel_pmf.simps)
 
   show "rel_pmf R OO rel_pmf S \<le> rel_pmf (R OO S)"
     for R :: "'a \<Rightarrow> 'b \<Rightarrow> bool" and S :: "'b \<Rightarrow> 'c \<Rightarrow> bool"

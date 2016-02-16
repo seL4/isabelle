@@ -13,21 +13,21 @@ sig
   | No_Warn_Wits
   val copy_bnf:
     (((lift_bnf_option list * (binding option * (string * sort option)) list) *
-      string) * thm option) * (binding * binding) ->
+      string) * thm option) * (binding * binding * binding) ->
       local_theory -> local_theory
   val copy_bnf_cmd:
     (((lift_bnf_option list * (binding option * (string * string option)) list) *
-      string) * (Facts.ref * Token.src list) option) * (binding * binding) ->
+      string) * (Facts.ref * Token.src list) option) * (binding * binding * binding) ->
       local_theory -> local_theory
   val lift_bnf:
     (((lift_bnf_option list * (binding option * (string * sort option)) list) *
-      string) * thm option) * (binding * binding) ->
+      string) * thm option) * (binding * binding * binding) ->
       ({context: Proof.context, prems: thm list} -> tactic) list ->
       local_theory -> local_theory
   val lift_bnf_cmd:
      ((((lift_bnf_option list * (binding option * (string * string option)) list) *
-       string) * string list) * (Facts.ref * Token.src list) option) * (binding * binding) ->
-       local_theory -> Proof.state
+       string) * string list) * (Facts.ref * Token.src list) option) *
+       (binding * binding * binding) -> local_theory -> Proof.state
 end
 
 structure BNF_Lift : BNF_LIFT =
@@ -45,7 +45,7 @@ datatype lift_bnf_option =
   Plugins_Option of Proof.context -> Plugin_Name.filter
 | No_Warn_Wits;
 
-fun typedef_bnf thm wits specs map_b rel_b opts lthy =
+fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
   let
     val plugins =
       get_first (fn Plugins_Option f => SOME (f lthy) | _ => NONE) (rev opts)
@@ -212,6 +212,14 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
             val rel_G = fold_rev absfree (map dest_Free var_Rs)
               (mk_vimage2p Rep_G Rep_Gb $ list_comb (rel_F, var_Rs));
 
+            (* val pred_G = @{term "\<lambda>P. pred_F P o Rep_G"}; *)
+            val pred_F = mk_pred_of_bnf deads alphas bnf;
+            val (typ_Ps, _) = strip_typeN lives (fastype_of pred_F);
+
+            val (var_Ps, names_lthy) = mk_Frees "P" typ_Ps names_lthy;
+            val pred_G = fold_rev absfree (map dest_Free var_Ps)
+              (HOLogic.mk_comp (list_comb (pred_F, var_Ps), Rep_G));
+
             (* val wits_G = [@{term "Abs_G o wit_F"}]; *)
             val (var_as, _) = mk_Frees "a" alphas names_lthy;
             val wits_G =
@@ -297,6 +305,12 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
                   [rtac ctxt (iffD1 OF [Abs_inject_thm OF [map_closed_thm OF [Rep_thm], Rep_thm]]),
                   etac ctxt (Rep_inverse_thm RS sym RSN (2, trans))]]));
 
+            fun pred_set_tac ctxt =
+              HEADGOAL (EVERY'
+                [rtac ctxt (pred_set_of_bnf bnf RS @{thm arg_cong[of _ _ "\<lambda>f. f o _"]} RS trans),
+                SELECT_GOAL (unfold_thms_tac ctxt (@{thms Ball_comp_iff conj_comp_iff})),
+                rtac ctxt refl]);
+
             fun wit_tac ctxt =
               HEADGOAL (EVERY'
                 (map (fn thm => (EVERY'
@@ -306,11 +320,12 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
                 wit_thms));
 
             val tactics = [map_id0_tac, map_comp0_tac, map_cong0_tac] @ set_map0s_tac @
-              [card_order_bd_tac, cinfinite_bd_tac] @ set_bds_tac @ [le_rel_OO_tac, rel_OO_Grp_tac];
+              [card_order_bd_tac, cinfinite_bd_tac] @ set_bds_tac @
+              [le_rel_OO_tac, rel_OO_Grp_tac, pred_set_tac];
 
             val (bnf, lthy) = bnf_def Dont_Inline (user_policy Note_Some) false I
-              tactics wit_tac NONE map_b rel_b set_bs
-              ((((((Binding.empty, AbsT), map_G), sets_G), bd_G), wits_G), SOME rel_G)
+              tactics wit_tac NONE map_b rel_b pred_b set_bs
+              (((((((Binding.empty, AbsT), map_G), sets_G), bd_G), wits_G), SOME rel_G), SOME pred_G)
               lthy;
 
             val bnf = morph_bnf_defs (Morphism.thm_morphism "BNF" (unfold_thms lthy defs)) bnf;
@@ -328,7 +343,7 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
 local
 
 fun prepare_common prepare_name prepare_sort prepare_term prepare_thm
-    (((((plugins, raw_specs), raw_Tname), raw_wits), xthm_opt), (map_b, rel_b)) lthy =
+    (((((plugins, raw_specs), raw_Tname), raw_wits), xthm_opt), (map_b, rel_b, pred_b)) lthy =
   let
     val Tname = prepare_name lthy raw_Tname;
     val input_thm =
@@ -344,7 +359,7 @@ fun prepare_common prepare_name prepare_sort prepare_term prepare_thm
         Const (@{const_name type_definition}, _) $ _ $ _ $ _ => ()
       | _ => error "Unsupported type of a theorem: only type_definition is supported");
   in
-    typedef_bnf input_thm wits specs map_b rel_b plugins lthy
+    typedef_bnf input_thm wits specs map_b rel_b pred_b plugins lthy
   end;
 
 fun prepare_lift_bnf prepare_name prepare_sort prepare_term prepare_thm =
@@ -413,13 +428,13 @@ val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword lift_bnf}
     "register a subtype of a bounded natural functor (BNF) as a BNF"
     ((parse_options -- parse_type_args_named_constrained -- Parse.type_const -- parse_wits --
-      parse_typedef_thm -- parse_map_rel_bindings) >> lift_bnf_cmd);
+      parse_typedef_thm -- parse_map_rel_pred_bindings) >> lift_bnf_cmd);
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword copy_bnf}
     "register a type copy of a bounded natural functor (BNF) as a BNF"
     ((parse_plugins -- parse_type_args_named_constrained -- Parse.type_const --
-      parse_typedef_thm -- parse_map_rel_bindings) >> copy_bnf_cmd);
+      parse_typedef_thm -- parse_map_rel_pred_bindings) >> copy_bnf_cmd);
 
 end;
 

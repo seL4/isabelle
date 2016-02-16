@@ -606,10 +606,9 @@ next
     unfolding rel_cset_alt_def[abs_def] by fast
 next
   fix R
-  show "rel_cset R =
-        (BNF_Def.Grp {x. rcset x \<subseteq> Collect (case_prod R)} (cimage fst))\<inverse>\<inverse> OO
-         BNF_Def.Grp {x. rcset x \<subseteq> Collect (case_prod R)} (cimage snd)"
-  unfolding rel_cset_alt_def[abs_def] rel_cset_aux by simp
+  show "rel_cset R = (\<lambda>x y. \<exists>z. rcset z \<subseteq> {(x, y). R x y} \<and>
+    cimage fst z = x \<and> cimage snd z = y)"
+  unfolding rel_cset_alt_def[abs_def] rel_cset_aux[unfolded OO_Grp_alt] by simp
 qed(simp add: bot_cset.rep_eq)
 
 end

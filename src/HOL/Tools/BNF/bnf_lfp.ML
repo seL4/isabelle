@@ -8,9 +8,10 @@ Datatype construction.
 
 signature BNF_LFP =
 sig
-  val construct_lfp: mixfix list -> binding list -> binding list -> binding list list ->
-    binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
-    BNF_Comp.absT_info list -> local_theory -> BNF_FP_Util.fp_result * local_theory
+  val construct_lfp: mixfix list -> binding list -> binding list -> binding list ->
+    binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
+    BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
+    BNF_FP_Util.fp_result * local_theory
 end;
 
 structure BNF_LFP : BNF_LFP =
@@ -26,7 +27,7 @@ open BNF_LFP_Util
 open BNF_LFP_Tactics
 
 (*all BNFs have the same lives*)
-fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ lthy =
+fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) bnfs _ lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -1526,12 +1527,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             end;
 
         val (Ibnf_consts, lthy) =
-          @{fold_map 8} (fn b => fn map_b => fn rel_b => fn set_bs => fn mapx => fn sets =>
-              fn wits => fn T => fn lthy =>
+          @{fold_map 9} (fn b => fn map_b => fn rel_b => fn pred_b => fn set_bs => fn mapx =>
+              fn sets => fn wits => fn T => fn lthy =>
             define_bnf_consts Hardly_Inline (user_policy Note_Some lthy) false (SOME deads)
-              map_b rel_b set_bs
-              ((((((b, T), fold_rev Term.absfree fs' mapx), sets), sbd0), wits), NONE) lthy)
-          bs map_bs rel_bs set_bss fs_maps setss_by_bnf ctor_witss Ts lthy;
+              map_b rel_b pred_b set_bs
+              (((((((b, T), fold_rev Term.absfree fs' mapx), sets), sbd0), wits), NONE), NONE) lthy)
+          bs map_bs rel_bs pred_bs set_bss fs_maps setss_by_bnf ctor_witss Ts lthy;
 
         val ((((((((((((((Izs, (Izs1, Izs1')), (Izs2, Izs2')), xFs), yFs))), Iphis), Ipsi1s),
             Ipsi2s), fs), fs_copy), us), (ys, ys')), _) =
@@ -1550,11 +1551,14 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           ||>> mk_Frees' "y" passiveAs;
 
         val (_, Iconsts, Iconst_defs, mk_Iconsts) = @{split_list 4} Ibnf_consts;
-        val (_, Isetss, Ibds_Ds, Iwitss_Ds, _) = @{split_list 5} Iconsts;
-        val (Imap_defs, Iset_defss, Ibd_defs, Iwit_defss, Irel_defs) = @{split_list 5} Iconst_defs;
-        val (mk_Imaps_Ds, mk_It_Ds, _, mk_Irels_Ds, _) = @{split_list 5} mk_Iconsts;
+        val (_, Isetss, Ibds_Ds, Iwitss_Ds, _, _) = @{split_list 6} Iconsts;
+        val (Imap_defs, Iset_defss, Ibd_defs, Iwit_defss, Irel_defs, Ipred_defs) =
+          @{split_list 6} Iconst_defs;
+        val (mk_Imaps_Ds, mk_It_Ds, _, mk_Irels_Ds, mk_Ipreds_Ds, _, _) =
+          @{split_list 7} mk_Iconsts;
 
         val Irel_unabs_defs = map (fn def => mk_unabs_def m (def RS meta_eq_to_obj_eq)) Irel_defs;
+        val Ipred_unabs_defs = map (fn def => mk_unabs_def m (def RS meta_eq_to_obj_eq)) Ipred_defs;
         val Iset_defs = flat Iset_defss;
 
         fun mk_Imaps As Bs = map (fn mk => mk deads As Bs) mk_Imaps_Ds;
@@ -1563,6 +1567,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val Iwitss =
           map2 (fn mk => fn Iwits => map (mk deads passiveAs o snd) Iwits) mk_It_Ds Iwitss_Ds;
         fun mk_Irels As Bs = map (fn mk => mk deads As Bs) mk_Irels_Ds;
+        fun mk_Ipreds As = map (fn mk => mk deads As) mk_Ipreds_Ds;
 
         val Imaps = mk_Imaps passiveAs passiveBs;
         val fs_Imaps = map (fn m => Term.list_comb (m, fs)) Imaps;
@@ -1762,6 +1767,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val ctor_Iset_thmss' = transpose ctor_Iset_thmss;
 
         val Irels = mk_Irels passiveAs passiveBs;
+        val Ipreds = mk_Ipreds passiveAs;
         val Irelphis = map (fn rel => Term.list_comb (rel, Iphis)) Irels;
         val relphis = map (fn rel => Term.list_comb (rel, Iphis @ Irelphis)) rels;
         val Irelpsi1s = map (fn rel => Term.list_comb (rel, Ipsi1s)) (mk_Irels passiveAs passiveCs);
@@ -1832,19 +1838,21 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val rel_OO_Grp_tacs = map (fn def => fn ctxt => rtac ctxt def 1) Irel_unabs_defs;
 
-        val tacss = @{map 9} zip_axioms map_id0_tacs map_comp0_tacs map_cong0_tacs set_map0_tacss
-          bd_co_tacs bd_cinf_tacs set_bd_tacss le_rel_OO_tacs rel_OO_Grp_tacs;
+        val pred_set_tacs = map (fn def => fn ctxt => rtac ctxt def 1) Ipred_unabs_defs;
+
+        val tacss = @{map 10} zip_axioms map_id0_tacs map_comp0_tacs map_cong0_tacs set_map0_tacss
+          bd_co_tacs bd_cinf_tacs set_bd_tacss le_rel_OO_tacs rel_OO_Grp_tacs pred_set_tacs;
 
         fun wit_tac ctxt = unfold_thms_tac ctxt (flat Iwit_defss) THEN
           mk_wit_tac ctxt n (flat ctor_Iset_thmss) (maps wit_thms_of_bnf bnfs);
 
         val (Ibnfs, lthy) =
-          @{fold_map 5} (fn tacs => fn map_b => fn rel_b => fn set_bs => fn consts =>
+          @{fold_map 6} (fn tacs => fn map_b => fn rel_b => fn pred_b => fn set_bs => fn consts =>
             bnf_def Do_Inline (user_policy Note_Some) false I tacs wit_tac (SOME deads)
-              map_b rel_b set_bs consts)
-          tacss map_bs rel_bs set_bss
-            ((((((replicate n Binding.empty ~~ Ts) ~~ Imaps) ~~ Isetss_by_bnf) ~~ Ibds) ~~
-              Iwitss) ~~ map SOME Irels) lthy;
+              map_b rel_b pred_b set_bs consts)
+          tacss map_bs rel_bs pred_bs set_bss
+            (((((((replicate n Binding.empty ~~ Ts) ~~ Imaps) ~~ Isetss_by_bnf) ~~ Ibds) ~~
+              Iwitss) ~~ map SOME Irels) ~~ map SOME Ipreds) lthy;
 
         val timer = time (timer "registered new datatypes as BNFs");
 

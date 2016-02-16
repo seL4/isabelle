@@ -521,7 +521,7 @@ fun add_datatype prefs old_specs thy =
 
     fun new_spec_of ((b, old_tyargs, mx), old_ctr_specs) =
       (((((map new_type_args_of old_tyargs, b), mx), map new_ctr_spec_of old_ctr_specs),
-        (Binding.empty, Binding.empty)), []);
+        (Binding.empty, Binding.empty, Binding.empty)), []);
 
     val new_specs = map new_spec_of old_specs;
   in

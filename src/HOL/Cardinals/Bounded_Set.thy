@@ -98,10 +98,10 @@ next
     by (rule predicate2I, transfer) (auto simp: rel_set_OO[symmetric])
 next
   fix R :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
-  show "rel_bset R = ((BNF_Def.Grp {x. set_bset x \<subseteq> {(x, y). R x y}} (map_bset fst))\<inverse>\<inverse> OO
-         BNF_Def.Grp {x. set_bset x \<subseteq> {(x, y). R x y}} (map_bset snd) ::
-         'a set['k] \<Rightarrow> 'b set['k] \<Rightarrow> bool)"
-    by (simp add: rel_bset_def map_fun_def o_def rel_set_def rel_bset_aux_infinite)
+  show "rel_bset R = ((\<lambda>x y. \<exists>z. set_bset z \<subseteq> {(x, y). R x y} \<and>
+    map_bset fst z = x \<and> map_bset snd z = y) :: 'a set['k] \<Rightarrow> 'b set['k] \<Rightarrow> bool)"
+    by (simp add: rel_bset_def map_fun_def o_def rel_set_def
+      rel_bset_aux_infinite[unfolded OO_Grp_alt])
 next
   fix x
   assume "x \<in> set_bset bempty"

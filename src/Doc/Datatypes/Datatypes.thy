@@ -2795,13 +2795,9 @@ text \<open> \blankline \<close>
         by (rule, transfer) (auto simp add: rel_fun_def)
     next
       fix R :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
-      show "rel_fn R =
-            (BNF_Def.Grp {x. set_fn x \<subseteq> {(x, y). R x y}} (map_fn fst))\<inverse>\<inverse> OO
-             BNF_Def.Grp {x. set_fn x \<subseteq> {(x, y). R x y}} (map_fn snd)"
-        unfolding Grp_def fun_eq_iff relcompp.simps conversep.simps
-        apply transfer
-        unfolding rel_fun_def subset_iff image_iff
-        by auto (force, metis prod.collapse)
+      show "rel_fn R = (\<lambda>x y. \<exists>z. set_fn z \<subseteq> {(x, y). R x y} \<and> map_fn fst z = x \<and> map_fn snd z = y)"
+        unfolding fun_eq_iff relcompp.simps conversep.simps
+        by transfer (force simp: rel_fun_def subset_iff)
     qed
 
 text \<open> \blankline \<close>

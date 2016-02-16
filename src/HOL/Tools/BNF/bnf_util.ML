@@ -52,6 +52,7 @@ sig
   val mk_cprod: term -> term -> term
   val mk_csum: term -> term -> term
   val mk_dir_image: term -> term -> term
+  val mk_eq_onp: term -> term
   val mk_rel_fun: term -> term -> term
   val mk_image: term -> term
   val mk_in: term list -> term list -> typ -> term
@@ -103,7 +104,7 @@ sig
   val fold_thms: Proof.context -> thm list -> thm -> thm
 
   val parse_type_args_named_constrained: (binding option * (string * string option)) list parser
-  val parse_map_rel_bindings: (binding * binding) parser
+  val parse_map_rel_pred_bindings: (binding * binding * binding) parser
 
   val typedef: binding * (string * sort) list * mixfix -> term ->
     (binding * binding) option -> (Proof.context -> tactic) ->
@@ -130,17 +131,18 @@ val parse_type_args_named_constrained =
   @{keyword "("} |-- Parse.!!! (Parse.list1 parse_type_arg_named_constrained --| @{keyword ")"}) ||
   Scan.succeed [];
 
-val parse_map_rel_binding = Parse.name --| @{keyword ":"} -- Parse.binding;
+val parse_map_rel_pred_binding = Parse.name --| @{keyword ":"} -- Parse.binding;
 
-val no_map_rel = (Binding.empty, Binding.empty);
+val no_map_rel = (Binding.empty, Binding.empty, Binding.empty);
 
-fun extract_map_rel ("map", b) = apfst (K b)
-  | extract_map_rel ("rel", b) = apsnd (K b)
-  | extract_map_rel (s, _) = error ("Unknown label " ^ quote s ^ " (expected \"map\" or \"rel\")");
+fun extract_map_rel_pred ("map", m) = (fn (_, r, p) => (m, r, p))
+  | extract_map_rel_pred ("rel", r) = (fn (m, _, p) => (m, r, p))
+  | extract_map_rel_pred ("pred", p) = (fn (m, r, _) => (m, r, p))
+  | extract_map_rel_pred (s, _) = error ("Unknown label " ^ quote s ^ " (expected \"map\" or \"rel\")");
 
-val parse_map_rel_bindings =
-  @{keyword "for"} |-- Scan.repeat parse_map_rel_binding
-    >> (fn ps => fold extract_map_rel ps no_map_rel)
+val parse_map_rel_pred_bindings =
+  @{keyword "for"} |-- Scan.repeat parse_map_rel_pred_binding
+    >> (fn ps => fold extract_map_rel_pred ps no_map_rel)
   || Scan.succeed no_map_rel;
 
 fun typedef (b, Ts, mx) set opt_morphs tac lthy =
@@ -350,6 +352,13 @@ fun mk_vimage2p f g =
   in
     Const (@{const_name vimage2p},
       (T1 --> T2) --> (U1 --> U2) --> mk_pred2T T2 U2 --> mk_pred2T T1 U1) $ f $ g
+  end;
+
+fun mk_eq_onp P =
+  let
+    val T = domain_type (fastype_of P);
+  in
+    Const (@{const_name eq_onp}, (T --> HOLogic.boolT) --> T --> T --> HOLogic.boolT) $ P
   end;
 
 fun mk_pred name R =

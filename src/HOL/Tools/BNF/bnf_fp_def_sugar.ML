@@ -147,26 +147,27 @@ sig
     thm list -> Proof.context -> gfp_sugar_thms
 
   val co_datatypes: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
-      binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
-      BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
+      binding list -> binding list list -> binding list -> (string * sort) list ->
+      typ list * typ list list -> BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
       BNF_FP_Util.fp_result * local_theory) ->
     Ctr_Sugar.ctr_options
     * ((((((binding option * (typ * sort)) list * binding) * mixfix)
-         * ((binding, binding * typ) Ctr_Sugar.ctr_spec * mixfix) list) * (binding * binding))
+         * ((binding, binding * typ) Ctr_Sugar.ctr_spec * mixfix) list) *
+         (binding * binding * binding))
        * term list) list ->
     local_theory -> local_theory
   val co_datatype_cmd: BNF_Util.fp_kind ->
-    (mixfix list -> binding list -> binding list -> binding list list -> binding list ->
-     (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
+    (mixfix list -> binding list -> binding list -> binding list -> binding list list ->
+      binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
      BNF_Comp.absT_info list -> local_theory -> BNF_FP_Util.fp_result * Proof.context) ->
     ((Proof.context -> Plugin_Name.filter) * bool)
     * ((((((binding option * (string * string option)) list * binding) * mixfix)
          * ((binding, binding * string) Ctr_Sugar.ctr_spec * mixfix) list)
-        * (binding * binding)) * string list) list ->
+        * (binding * binding * binding)) * string list) list ->
     Proof.context -> local_theory
   val parse_co_datatype_cmd: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
-      binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
-      BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
+      binding list -> binding list list -> binding list -> (string * sort) list ->
+      typ list * typ list list -> BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
       BNF_FP_Util.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
 end;
@@ -533,8 +534,9 @@ fun type_args_named_constrained_of_spec (((((ncAs, _), _), _), _), _) = ncAs;
 fun type_binding_of_spec (((((_, b), _), _), _), _) = b;
 fun mixfix_of_spec ((((_, mx), _), _), _) = mx;
 fun mixfixed_ctr_specs_of_spec (((_, mx_ctr_specs), _), _) = mx_ctr_specs;
-fun map_binding_of_spec ((_, (b, _)), _) = b;
-fun rel_binding_of_spec ((_, (_, b)), _) = b;
+fun map_binding_of_spec ((_, (b, _, _)), _) = b;
+fun rel_binding_of_spec ((_, (_, b, _)), _) = b;
+fun pred_binding_of_spec ((_, (_, _, b)), _) = b;
 fun sel_default_eqs_of_spec (_, ts) = ts;
 
 fun add_nesting_bnf_names Us =
@@ -1964,6 +1966,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val fp_common_name = mk_common_name fp_b_names;
     val map_bs = map map_binding_of_spec specs;
     val rel_bs = map rel_binding_of_spec specs;
+    val pred_bs = map pred_binding_of_spec specs;
 
     fun prepare_type_arg (_, (ty, c)) =
       let val TFree (s, _) = prepare_typ no_defs_lthy ty in
@@ -2094,8 +2097,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
              xtor_co_rec_thms, xtor_rel_co_induct, dtor_set_inducts,
              xtor_co_rec_transfers, xtor_co_rec_o_maps, ...},
            lthy)) =
-      fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As)
-        (map dest_TFree killed_As) fp_eqs no_defs_lthy
+      fp_bnf (construct_fp mixfixes map_bs rel_bs pred_bs set_bss) fp_bs
+        (map dest_TFree unsorted_As) (map dest_TFree killed_As) fp_eqs no_defs_lthy
       handle BAD_DEAD (X, X_backdrop) =>
         (case X_backdrop of
           Type (bad_tc, _) =>
@@ -2147,8 +2150,8 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     val live = live_of_bnf any_fp_bnf;
     val _ =
-      if live = 0 andalso exists (not o Binding.is_empty) (map_bs @ rel_bs) then
-        warning "Map function and relator names ignored"
+      if live = 0 andalso exists (not o Binding.is_empty) (map_bs @ rel_bs @ pred_bs) then
+        warning "Map function, relator, and predicator names ignored"
       else
         ();
 
@@ -2663,7 +2666,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       co_prefix fp ^ "datatype"));
   in
-    timer; lthy''
+    lthy''
   end;
 
 fun co_datatypes x = define_co_datatypes (K I) (K I) (K I) (K I) x;
@@ -2681,7 +2684,7 @@ val parse_ctr_specs =
 
 val parse_spec =
   parse_type_args_named_constrained -- Parse.binding -- Parse.opt_mixfix --
-  (@{keyword "="} |-- parse_ctr_specs) -- parse_map_rel_bindings -- parse_sel_default_eqs;
+  (@{keyword "="} |-- parse_ctr_specs) -- parse_map_rel_pred_bindings -- parse_sel_default_eqs;
 
 val parse_co_datatype = parse_ctr_options -- Parse.and_list1 parse_spec;
 

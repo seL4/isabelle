@@ -85,14 +85,8 @@ fun Quotient_map bnf ctxt =
 
 (* relator_eq_onp  *)
 
-fun relator_eq_onp bnf ctxt =
-  let
-    val relator_eq_onp_thm = lookup_defined_pred_data ctxt (type_name_of_bnf bnf) 
-      |> Transfer.rel_eq_onp
-  in
-    [((Binding.empty, []), [([relator_eq_onp_thm], @{attributes [relator_eq_onp]})])]    
-  end
-  handle NO_PRED_DATA _ => [] (* the "lifting" plugin should work even if "quotient" is disabled *)
+fun relator_eq_onp bnf =
+  [((Binding.empty, []), [([rel_eq_onp_of_bnf bnf], @{attributes [relator_eq_onp]})])]
 
 (* relator_mono  *)
 
@@ -110,7 +104,7 @@ fun lifting_bnf_interpretation bnf lthy =
   if dead_of_bnf bnf > 0 then lthy
   else
     let
-      val notess = [relator_eq_onp bnf lthy, Quotient_map bnf lthy, relator_mono bnf,
+      val notess = [relator_eq_onp bnf, Quotient_map bnf lthy, relator_mono bnf,
         relator_distr bnf]
     in
       lthy |> fold (perhaps o try o (snd oo Local_Theory.notes)) notess

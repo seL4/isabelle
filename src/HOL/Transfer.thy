@@ -229,28 +229,7 @@ unfolding bi_unique_alt_def ..
 
 end
 
-subsection \<open>Equality restricted by a predicate\<close>
 
-definition eq_onp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
-  where "eq_onp R = (\<lambda>x y. R x \<and> x = y)"
-
-lemma eq_onp_Grp: "eq_onp P = BNF_Def.Grp (Collect P) id"
-unfolding eq_onp_def Grp_def by auto
-
-lemma eq_onp_to_eq:
-  assumes "eq_onp P x y"
-  shows "x = y"
-using assms by (simp add: eq_onp_def)
-
-lemma eq_onp_top_eq_eq: "eq_onp top = op="
-by (simp add: eq_onp_def)
-
-lemma eq_onp_same_args:
-  shows "eq_onp P x x = P x"
-using assms by (auto simp add: eq_onp_def)
-
-lemma Ball_Collect: "Ball A P = (A \<subseteq> (Collect P))"
-by auto
 
 ML_file "Tools/Transfer/transfer.ML"
 declare refl [transfer_rule]
@@ -557,7 +536,7 @@ unfolding left_unique_def[abs_def] by transfer_prover
 
 lemma prod_pred_parametric [transfer_rule]:
   "((A ===> op =) ===> (B ===> op =) ===> rel_prod A B ===> op =) pred_prod pred_prod"
-unfolding pred_prod_def[abs_def] Basic_BNFs.fsts_def Basic_BNFs.snds_def fstsp.simps sndsp.simps 
+unfolding prod.pred_set[abs_def] Basic_BNFs.fsts_def Basic_BNFs.snds_def fstsp.simps sndsp.simps 
 by simp transfer_prover
 
 lemma apfst_parametric [transfer_rule]:

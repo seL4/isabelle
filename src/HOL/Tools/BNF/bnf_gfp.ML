@@ -9,9 +9,10 @@ Codatatype construction.
 
 signature BNF_GFP =
 sig
-  val construct_gfp: mixfix list -> binding list -> binding list -> binding list list ->
-    binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
-    BNF_Comp.absT_info list -> local_theory -> BNF_FP_Util.fp_result * local_theory
+  val construct_gfp: mixfix list -> binding list -> binding list -> binding list ->
+    binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
+    BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
+    BNF_FP_Util.fp_result * local_theory
 end;
 
 structure BNF_GFP : BNF_GFP =
@@ -55,7 +56,7 @@ fun tree_to_coind_wits _ (Wit_Leaf _) = []
      ((i, I), nth (nth lwitss i) nwit) :: maps (tree_to_coind_wits lwitss) subtrees;
 
 (*all BNFs have the same lives*)
-fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ lthy =
+fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) bnfs _ lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -1860,26 +1861,30 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val setss = map (fn i => map2 (mk_set Ts i) ls passiveAs) ks;
 
         val (Jbnf_consts, lthy) =
-          @{fold_map 7} (fn b => fn map_b => fn rel_b => fn set_bs => fn mapx => fn sets => fn T =>
-              fn lthy =>
+          @{fold_map 8} (fn b => fn map_b => fn rel_b => fn pred_b => fn set_bs => fn mapx =>
+              fn sets => fn T => fn lthy =>
             define_bnf_consts Hardly_Inline (user_policy Note_Some lthy) false (SOME deads)
-              map_b rel_b set_bs
-              ((((((b, T), fold_rev Term.absfree fs' mapx), sets), sbd),
-                [Const (@{const_name undefined}, T)]), NONE) lthy)
-          bs map_bs rel_bs set_bss fs_maps setss Ts lthy;
+              map_b rel_b pred_b set_bs
+              (((((((b, T), fold_rev Term.absfree fs' mapx), sets), sbd),
+                [Const (@{const_name undefined}, T)]), NONE), NONE) lthy)
+          bs map_bs rel_bs pred_bs set_bss fs_maps setss Ts lthy;
 
         val (_, Jconsts, Jconst_defs, mk_Jconsts) = @{split_list 4} Jbnf_consts;
-        val (_, Jsetss, Jbds_Ds, _, _) = @{split_list 5} Jconsts;
-        val (Jmap_defs, Jset_defss, Jbd_defs, _, Jrel_defs) = @{split_list 5} Jconst_defs;
-        val (mk_Jmaps_Ds, mk_Jt_Ds, _, mk_Jrels_Ds, _) = @{split_list 5} mk_Jconsts;
+        val (_, Jsetss, Jbds_Ds, _, _, _) = @{split_list 6} Jconsts;
+        val (Jmap_defs, Jset_defss, Jbd_defs, _, Jrel_defs, Jpred_defs) =
+          @{split_list 6} Jconst_defs;
+        val (mk_Jmaps_Ds, mk_Jt_Ds, _, mk_Jrels_Ds, mk_Jpreds_Ds, _, _) =
+          @{split_list 7} mk_Jconsts;
 
         val Jrel_unabs_defs = map (fn def => mk_unabs_def m (def RS meta_eq_to_obj_eq)) Jrel_defs;
+        val Jpred_unabs_defs = map (fn def => mk_unabs_def m (def RS meta_eq_to_obj_eq)) Jpred_defs;
         val Jset_defs = flat Jset_defss;
 
         fun mk_Jmaps As Bs = map (fn mk => mk deads As Bs) mk_Jmaps_Ds;
         fun mk_Jsetss As = map2 (fn mk => fn Jsets => map (mk deads As) Jsets) mk_Jt_Ds Jsetss;
         val Jbds = map2 (fn mk => mk deads passiveAs) mk_Jt_Ds Jbds_Ds;
         fun mk_Jrels As Bs = map (fn mk => mk deads As Bs) mk_Jrels_Ds;
+        fun mk_Jpreds As = map (fn mk => mk deads As) mk_Jpreds_Ds;
 
         val Jmaps = mk_Jmaps passiveAs passiveBs;
         val (Jsetss_by_range, Jsetss_by_bnf) = `transpose (mk_Jsetss passiveAs);
@@ -2240,6 +2245,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             Jrel_unabs_defs;
 
         val Jrels = mk_Jrels passiveAs passiveBs;
+        val Jpreds = mk_Jpreds passiveAs;
         val Jrelphis = map (fn rel => Term.list_comb (rel, Jphis)) Jrels;
         val relphis = map (fn rel => Term.list_comb (rel, Jphis @ Jrelphis)) rels;
         val Jrelpsi1s = map (fn rel => Term.list_comb (rel, Jpsi1s)) (mk_Jrels passiveAs passiveCs);
@@ -2574,20 +2580,22 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val rel_OO_Grp_tacs = map (fn def => fn ctxt => rtac ctxt def 1) Jrel_unabs_defs;
 
-        val tacss = @{map 9} zip_axioms map_id0_tacs map_comp0_tacs map_cong0_tacs set_map0_tacss
-          bd_co_tacs bd_cinf_tacs set_bd_tacss le_rel_OO_tacs rel_OO_Grp_tacs;
+        val pred_set_tacs = map (fn def => fn ctxt => rtac ctxt def 1) Jpred_unabs_defs;
+
+        val tacss = @{map 10} zip_axioms map_id0_tacs map_comp0_tacs map_cong0_tacs set_map0_tacss
+          bd_co_tacs bd_cinf_tacs set_bd_tacss le_rel_OO_tacs rel_OO_Grp_tacs pred_set_tacs;
 
         fun wit_tac thms ctxt =
           mk_wit_tac ctxt n dtor_ctor_thms (flat dtor_Jset_thmss) (maps wit_thms_of_bnf bnfs) thms;
 
         val (Jbnfs, lthy) =
-          @{fold_map 6} (fn tacs => fn map_b => fn rel_b => fn set_bs => fn wit_thms =>
+          @{fold_map 7} (fn tacs => fn map_b => fn rel_b => fn pred_b => fn set_bs => fn wit_thms =>
               fn consts =>
             bnf_def Hardly_Inline (user_policy Note_Some) false I tacs (wit_tac wit_thms)
-              (SOME deads) map_b rel_b set_bs consts)
-          tacss map_bs rel_bs set_bss wit_thmss
-          ((((((replicate n Binding.empty ~~ Ts) ~~ Jmaps) ~~ Jsetss_by_bnf) ~~ Jbds) ~~
-            all_witss) ~~ map SOME Jrels)
+              (SOME deads) map_b rel_b pred_b set_bs consts)
+          tacss map_bs rel_bs pred_bs set_bss wit_thmss
+          (((((((replicate n Binding.empty ~~ Ts) ~~ Jmaps) ~~ Jsetss_by_bnf) ~~ Jbds) ~~
+            all_witss) ~~ map SOME Jrels) ~~ map SOME Jpreds)
           lthy;
 
         val timer = time (timer "registered new codatatypes as BNFs");

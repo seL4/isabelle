@@ -30,6 +30,7 @@ sig
 
   val mk_le_rel_OO_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_simple_rel_OO_Grp_tac: Proof.context -> thm -> thm -> tactic
+  val mk_simple_pred_set_tac: Proof.context -> thm -> thm -> tactic
   val mk_simple_wit_tac: Proof.context -> thm list -> tactic
   val mk_simplified_set_tac: Proof.context -> thm -> tactic
   val bd_ordIso_natLeq_tac: Proof.context -> tactic
@@ -229,11 +230,16 @@ fun mk_permute_in_alt_tac ctxt src dest =
 (* Miscellaneous *)
 
 fun mk_le_rel_OO_tac ctxt outer_le_rel_OO outer_rel_mono inner_le_rel_OOs =
-  EVERY' (map (rtac ctxt) (@{thm order_trans} :: outer_le_rel_OO :: outer_rel_mono ::
-    inner_le_rel_OOs)) 1;
+  HEADGOAL (EVERY' (map (rtac ctxt) (@{thm order_trans} :: outer_le_rel_OO :: outer_rel_mono ::
+    inner_le_rel_OOs)));
 
 fun mk_simple_rel_OO_Grp_tac ctxt rel_OO_Grp in_alt_thm =
-  rtac ctxt (trans OF [rel_OO_Grp, in_alt_thm RS @{thm OO_Grp_cong} RS sym]) 1;
+  HEADGOAL (rtac ctxt (trans OF [rel_OO_Grp, in_alt_thm RS @{thm OO_Grp_cong} RS sym]));
+
+fun mk_simple_pred_set_tac ctxt pred_set in_alt_thm =
+  HEADGOAL (rtac ctxt (pred_set RS trans)) THEN
+  unfold_thms_tac ctxt @{thms Ball_Collect UNIV_def} THEN
+  HEADGOAL (rtac ctxt (unfold_thms ctxt @{thms UNIV_def} in_alt_thm RS @{thm Collect_inj} RS sym));
 
 fun mk_simple_wit_tac ctxt wit_thms =
   ALLGOALS (assume_tac ctxt ORELSE' eresolve_tac ctxt (@{thm emptyE} :: wit_thms));

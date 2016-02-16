@@ -8,7 +8,8 @@ Axiomatic declaration of bounded natural functors.
 signature BNF_AXIOMATIZATION =
 sig
   val bnf_axiomatization: (string -> bool) -> (binding option * (typ * sort)) list -> binding ->
-    mixfix -> binding -> binding -> typ list -> local_theory -> BNF_Def.bnf * local_theory
+    mixfix -> binding -> binding -> binding -> typ list -> local_theory ->
+    BNF_Def.bnf * local_theory
 end
 
 structure BNF_Axiomatization : BNF_AXIOMATIZATION =
@@ -18,7 +19,7 @@ open BNF_Util
 open BNF_Def
 
 fun prepare_decl prepare_plugins prepare_constraint prepare_typ
-    raw_plugins raw_vars b mx user_mapb user_relb user_witTs lthy =
+    raw_plugins raw_vars b mx user_mapb user_relb user_predb user_witTs lthy =
   let
    val plugins = prepare_plugins lthy raw_plugins;
 
@@ -72,7 +73,8 @@ fun prepare_decl prepare_plugins prepare_constraint prepare_typ
       Const (Local_Theory.full_name lthy witb, witT)) witbs witTs;
     val (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, _) =
       prepare_def Do_Inline (user_policy Note_Some) false I (K I) (K I) (SOME (map TFree deads))
-      user_mapb user_relb user_setbs ((((((Binding.empty, T), Fmap), Fsets), Fbd), Fwits), NONE)
+      user_mapb user_relb user_predb user_setbs
+      (((((((Binding.empty, T), Fmap), Fsets), Fbd), Fwits), NONE), NONE)
       lthy;
 
     fun mk_wits_tac ctxt set_maps = TRYALL Goal.conjunction_tac THEN the triv_tac_opt ctxt set_maps;
@@ -116,12 +118,12 @@ val parse_bnf_axiomatization_options =
 
 val parse_bnf_axiomatization =
   parse_bnf_axiomatization_options -- parse_type_args_named_constrained -- Parse.binding --
-  parse_witTs -- Parse.opt_mixfix -- parse_map_rel_bindings;
+  parse_witTs -- Parse.opt_mixfix -- parse_map_rel_pred_bindings;
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword bnf_axiomatization} "bnf declaration"
     (parse_bnf_axiomatization >> 
-      (fn (((((plugins, bsTs), b), witTs), mx), (mapb, relb)) =>
-         bnf_axiomatization_cmd plugins bsTs b mx mapb relb witTs #> snd));
+      (fn (((((plugins, bsTs), b), witTs), mx), (mapb, relb, predb)) =>
+         bnf_axiomatization_cmd plugins bsTs b mx mapb relb predb witTs #> snd));
 
 end;

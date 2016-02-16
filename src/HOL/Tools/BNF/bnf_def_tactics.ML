@@ -2,7 +2,8 @@
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Martin Desharnais, TU Muenchen
-    Copyright   2012, 2013, 2014
+    Author:     Ondrej Kuncar, TU Muenchen
+    Copyright   2012, 2013, 2014, 2015
 
 Tactics for definition of bounded natural functors.
 *)
@@ -30,6 +31,8 @@ sig
   val mk_rel_mono_strong0_tac: Proof.context -> thm -> thm list -> tactic
   val mk_rel_cong_tac: Proof.context -> thm list * thm list -> thm -> tactic
   val mk_rel_transfer_tac: Proof.context -> thm -> thm list -> thm -> tactic
+  val mk_rel_eq_onp_tac: Proof.context -> thm -> thm -> thm -> tactic
+  val mk_pred_mono_strong0_tac: Proof.context -> thm -> thm -> tactic
 
   val mk_map_transfer_tac: Proof.context -> thm -> thm -> thm list -> thm -> thm -> tactic
 
@@ -363,12 +366,26 @@ fun mk_set_transfer_tac ctxt in_rel set_maps =
 fun mk_rel_cong_tac ctxt (eqs, prems) mono =
   let
     fun mk_tac thm = etac ctxt thm THEN_ALL_NEW assume_tac ctxt;
-    fun mk_tacs iffD = etac ctxt mono :: 
+    fun mk_tacs iffD = etac ctxt mono ::
       map (fn thm => (unfold_thms ctxt @{thms simp_implies_def} thm RS iffD)
         |> Drule.rotate_prems ~1 |> mk_tac) prems;
   in
     unfold_thms_tac ctxt eqs THEN
     HEADGOAL (EVERY' (rtac ctxt iffI :: mk_tacs iffD1 @ mk_tacs iffD2))
   end;
+
+fun subst_conv ctxt thm =
+  Conv.arg_conv (Conv.arg_conv
+   (Conv.top_sweep_conv (K (Conv.rewr_conv (safe_mk_meta_eq thm))) ctxt));
+
+fun mk_rel_eq_onp_tac ctxt pred_def map_id0 rel_Grp =
+  HEADGOAL (EVERY'
+   [SELECT_GOAL (unfold_thms_tac ctxt (pred_def :: @{thms UNIV_def eq_onp_Grp Ball_Collect})),
+   CONVERSION (subst_conv ctxt (map_id0 RS sym)),
+   rtac ctxt (unfold_thms ctxt @{thms UNIV_def} rel_Grp)]);
+
+fun mk_pred_mono_strong0_tac ctxt pred_rel rel_mono_strong0 =
+   unfold_thms_tac ctxt [pred_rel] THEN
+   HEADGOAL (etac ctxt rel_mono_strong0 THEN_ALL_NEW etac ctxt @{thm eq_onp_mono0});
 
 end;

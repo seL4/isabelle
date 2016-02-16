@@ -326,7 +326,6 @@ subgoal by(simp add: natLeq_card_order)
 subgoal by(simp add: natLeq_cinfinite)
 subgoal by(rule ordLess_imp_ordLeq)(simp add: finite_iff_ordLess_natLeq[symmetric] set_def)
 subgoal by(rule predicate2I)(transfer; auto simp add: wpull)
-subgoal by(rule refl)
 subgoal by(simp add: set_def)
 done
 
