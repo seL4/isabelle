@@ -73,12 +73,12 @@ lemma case_sum_if:
   "case_sum f g (if p then Inl x else Inr y) = (if p then f x else g y)"
   by simp
 
-lemma prod_set_simps:
+lemma prod_set_simps[simp]:
   "fsts (x, y) = {x}"
   "snds (x, y) = {y}"
   unfolding prod_set_defs by simp+
 
-lemma sum_set_simps:
+lemma sum_set_simps[simp]:
   "setl (Inl x) = {x}"
   "setl (Inr x) = {}"
   "setr (Inl x) = {}"
