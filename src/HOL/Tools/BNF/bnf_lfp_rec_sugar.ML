@@ -607,8 +607,9 @@ fun primrec_simple0 plugins nonexhaustive transfer fixes ts lthy =
     lthy'
     |> fold_map Local_Theory.define defs
     |-> (fn defs => fn lthy =>
-      let val ((jss, simpss), lthy) = prove lthy defs;
-      in ((names, (map fst defs, map (snd o snd) defs, (jss, simpss))), lthy) end)
+      let val ((jss, simpss), lthy) = prove lthy defs in
+        ((names, (map fst defs, map (snd o snd) defs, (jss, simpss))), lthy)
+      end)
   end;
 
 fun primrec_simple fixes ts lthy =
@@ -649,7 +650,7 @@ fun gen_primrec old_primrec prep_spec opts raw_fixes raw_specs lthy =
     |-> (fn (names, (ts, defs, (jss, simpss))) =>
       Spec_Rules.add Spec_Rules.Equational (ts, flat simpss)
       #> Local_Theory.notes (mk_notes jss names simpss)
-      #>> (fn notes => (ts, defs, map snd notes)))
+      #>> (fn notes => (ts, defs, map_filter (fn ("", _) => NONE | (_, thms) => SOME thms) notes)))
   end
   handle OLD_PRIMREC () =>
     old_primrec raw_fixes raw_specs lthy
