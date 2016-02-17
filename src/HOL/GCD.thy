@@ -44,8 +44,40 @@ abbreviation coprime :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 end
 
 class Gcd = gcd +
-  fixes Gcd :: "'a set \<Rightarrow> 'a"
-    and Lcm :: "'a set \<Rightarrow> 'a"
+  fixes Gcd :: "'a set \<Rightarrow> 'a" ("Gcd")
+    and Lcm :: "'a set \<Rightarrow> 'a" ("Lcm")
+begin
+
+abbreviation GCD :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
+where
+  "GCD A f \<equiv> Gcd (f ` A)"
+
+abbreviation LCM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
+where
+  "LCM A f \<equiv> Lcm (f ` A)"
+
+end
+
+syntax
+  "_GCD1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3Gcd _./ _)" [0, 10] 10)
+  "_GCD"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3Gcd _\<in>_./ _)" [0, 0, 10] 10)
+  "_LCM1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3Lcm _./ _)" [0, 10] 10)
+  "_LCM"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3Lcm _\<in>_./ _)" [0, 0, 10] 10)
+
+translations
+  "Gcd x y. B"   \<rightleftharpoons> "Gcd x. Gcd y. B"
+  "Gcd x. B"     \<rightleftharpoons> "CONST GCD CONST UNIV (\<lambda>x. B)"
+  "Gcd x. B"     \<rightleftharpoons> "Gcd x \<in> CONST UNIV. B"
+  "Gcd x\<in>A. B"   \<rightleftharpoons> "CONST GCD A (\<lambda>x. B)"
+  "Lcm x y. B"   \<rightleftharpoons> "Lcm x. Lcm y. B"
+  "Lcm x. B"     \<rightleftharpoons> "CONST LCM CONST UNIV (\<lambda>x. B)"
+  "Lcm x. B"     \<rightleftharpoons> "Lcm x \<in> CONST UNIV. B"
+  "Lcm x\<in>A. B"   \<rightleftharpoons> "CONST LCM A (\<lambda>x. B)"
+
+print_translation \<open>
+  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax GCD} @{syntax_const "_GCD"},
+    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax LCM} @{syntax_const "_LCM"}]
+\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 class semiring_gcd = normalization_semidom + gcd +
   assumes gcd_dvd1 [iff]: "gcd a b dvd a"
@@ -571,7 +603,7 @@ proof -
   have "Gcd (normalize ` A) dvd a" if "a \<in> A" for a
   proof -
     from that obtain B where "A = insert a B" by blast
-    moreover have " gcd (normalize a) (Gcd (normalize ` B)) dvd normalize a"
+    moreover have "gcd (normalize a) (Gcd (normalize ` B)) dvd normalize a"
       by (rule gcd_dvd1)
     ultimately show "Gcd (normalize ` A) dvd a"
       by simp
@@ -596,8 +628,7 @@ lemma Lcm_eqI:
   shows "Lcm A = a"
   using assms by (blast intro: associated_eqI Lcm_least dvd_Lcm normalize_Lcm)
 
-end  
-
+end
 
 subsection \<open>GCD and LCM on @{typ nat} and @{typ int}\<close>
 
