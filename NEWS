@@ -16,8 +16,17 @@ typesetting. E.g. to produce proof holes in examples and documentation.
 *** HOL ***
 
 * (Co)datatype package:
+  - the predicator :: ('a => bool) => 'a F => bool is now a first-class
+    citizen in bounded natural functors
   - "primrec" now allows nested calls through the predicator in addition
     to the map function.
+  - "bnf" automatically discharges reflexive proof obligations
+    "bnf" outputs a slightly modified proof obligation expressing rel in
+       terms of map and set
+       (not giving a specification for rel makes this one reflexive)
+    "bnf" outputs a new proof obligation expressing pred in terms of set
+       (not giving a specification for pred makes this one reflexive)
+    INCOMPATIBILITY: manual "bnf" declarations may need adjustment
 
 
 New in Isabelle2016 (February 2016)
