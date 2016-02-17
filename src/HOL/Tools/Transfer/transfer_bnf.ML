@@ -63,19 +63,19 @@ fun fp_sugar_only_type_ctr f fp_sugars =
 fun mk_relation_constraint name arg =
   (Const (name, fastype_of arg --> HOLogic.boolT)) $ arg
 
-fun side_constraint_tac bnf constr_defs ctxt i =
+fun side_constraint_tac bnf constr_defs ctxt =
   let
     val thms = constr_defs @ map mk_sym [rel_eq_of_bnf bnf, rel_conversep_of_bnf bnf,
       rel_OO_of_bnf bnf]
   in
-    (SELECT_GOAL (Local_Defs.unfold_tac ctxt thms) THEN' rtac ctxt (rel_mono_of_bnf bnf)
-      THEN_ALL_NEW assume_tac ctxt) i
+    SELECT_GOAL (Local_Defs.unfold_tac ctxt thms) THEN' rtac ctxt (rel_mono_of_bnf bnf)
+      THEN_ALL_NEW assume_tac ctxt
   end
 
-fun bi_constraint_tac constr_iff sided_constr_intros ctxt i =
-  (SELECT_GOAL (Local_Defs.unfold_tac ctxt [constr_iff]) THEN'
+fun bi_constraint_tac constr_iff sided_constr_intros ctxt =
+  SELECT_GOAL (Local_Defs.unfold_tac ctxt [constr_iff]) THEN'
     CONJ_WRAP' (fn thm => rtac ctxt thm THEN_ALL_NEW
-      (REPEAT_DETERM o etac ctxt conjE THEN' assume_tac ctxt)) sided_constr_intros) i
+      (REPEAT_DETERM o etac ctxt conjE THEN' assume_tac ctxt)) sided_constr_intros
 
 fun generate_relation_constraint_goal ctxt bnf constraint_def =
   let
@@ -158,7 +158,7 @@ fun bnf_transfer_rules bnf =
 
 (* Domainp theorem for predicator *)
 
-fun Domainp_tac bnf pred_def ctxt i =
+fun Domainp_tac bnf pred_def ctxt =
   let
     val n = live_of_bnf bnf
     val set_map's = set_map_of_bnf bnf
@@ -181,7 +181,7 @@ fun Domainp_tac bnf pred_def ctxt i =
           REPEAT_DETERM o resolve_tac ctxt [@{thm image_subsetI}, CollectI, @{thm case_prodI}],
           dtac ctxt (rotate_prems 1 bspec), assume_tac ctxt,
           etac ctxt @{thm DomainpE}, etac ctxt @{thm someI}]) set_map's
-      ] i
+      ]
   end
 
 fun prove_Domainp_rel ctxt bnf pred_def =
@@ -252,23 +252,21 @@ fun lookup_defined_pred_data lthy name =
     SOME data => data
   | NONE => raise NO_PRED_DATA ()
 
-fun lives_of_fp (fp_sugar: fp_sugar) =
-  let
-    val As = snd (dest_Type (#T fp_sugar))
-    val liveness = liveness_of_fp_bnf (length As) (hd (#bnfs (#fp_res fp_sugar)));
-  in
-    map_filter (uncurry (fn true => SOME | false => K NONE)) (liveness ~~ As)
-  end
+val rel_eq_onp_with_tops_of = Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv
+  (Transfer.top_sweep_rewr_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]})));
 
-fun prove_pred_inject lthy (fp_sugar : fp_sugar) =
+fun prove_pred_inject lthy ({T = fpT, fp_nesting_bnfs, live_nesting_bnfs,
+    fp_res = {bnfs = fp_bnfs, ...}, fp_bnf_sugar = {rel_injects, ...}, ...} : fp_sugar) =
   let
-    val involved_types = distinct op= (
-        map type_name_of_bnf (#fp_nesting_bnfs fp_sugar)
-      @ map type_name_of_bnf (#live_nesting_bnfs fp_sugar)
-      @ map type_name_of_bnf (#bnfs (#fp_res fp_sugar)))
-    val eq_onps = map (Transfer.rel_eq_onp_with_tops o lookup_defined_pred_data lthy) involved_types
+    val As = snd (dest_Type fpT)
+    val liveness = liveness_of_fp_bnf (length As) (hd fp_bnfs)
+    val lives = map_filter (uncurry (fn true => SOME | false => K NONE)) (liveness ~~ As)
+
+    val involved_bnfs = distinct (op = o @{apply 2} BNF_Def.T_of_bnf)
+      (fp_nesting_bnfs @ live_nesting_bnfs @ fp_bnfs)
+    val eq_onps = map (rel_eq_onp_with_tops_of o rel_eq_onp_of_bnf) involved_bnfs
     val old_lthy = lthy
-    val (As, lthy) = mk_TFrees' (map Type.sort_of_atyp (lives_of_fp fp_sugar)) lthy
+    val (As, lthy) = mk_TFrees' (map Type.sort_of_atyp lives) lthy
     val predTs = map mk_pred1T As
     val (preds, lthy) = mk_Frees "P" predTs lthy
     val args = map mk_eq_onp preds
@@ -297,7 +295,6 @@ fun prove_pred_inject lthy (fp_sugar : fp_sugar) =
             else thm RS (@{thm eq_onp_same_args} RS iffD1))
         |> kill_top
       end
-    val rel_injects = #rel_injects (#fp_bnf_sugar fp_sugar)
   in
     rel_injects
     |> map (Local_Defs.unfold lthy [@{thm conj_assoc}])
@@ -305,7 +302,6 @@ fun prove_pred_inject lthy (fp_sugar : fp_sugar) =
     |> Variable.export lthy old_lthy
     |> map Drule.zero_var_indexes
   end
-  handle NO_PRED_DATA () => []
 
 
 (* fp_sugar interpretation *)
@@ -335,7 +331,7 @@ fun pred_injects fp_sugar lthy =
     |> Local_Theory.note ((pred_inject_thm_name, simp_attrs), pred_injects) 
     |> snd
     |> Local_Theory.declaration {syntax = false, pervasive = true}
-      (fn phi => Transfer.update_pred_data type_name  (Transfer.morph_pred_data phi pred_data))
+      (fn phi => Transfer.update_pred_data type_name (Transfer.morph_pred_data phi pred_data))
     |> Local_Theory.restore
   end
 

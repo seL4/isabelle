@@ -10,7 +10,6 @@ sig
   type pred_data
   val mk_pred_data: thm -> thm -> thm list -> pred_data
   val rel_eq_onp: pred_data -> thm
-  val rel_eq_onp_with_tops: pred_data -> thm
   val pred_def: pred_data -> thm
   val pred_simps: pred_data -> thm list
   val update_pred_simps: thm list -> pred_data -> pred_data
@@ -76,9 +75,6 @@ fun map_pred_data' f1 f2 f3 (PRED_DATA {pred_def, rel_eq_onp, pred_simps}) =
 
 fun rep_pred_data (PRED_DATA p) = p
 val rel_eq_onp = #rel_eq_onp o rep_pred_data
-val rel_eq_onp_with_tops = (Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv
-  (top_sweep_rewr_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]}))))
-  o #rel_eq_onp o rep_pred_data
 val pred_def = #pred_def o rep_pred_data
 val pred_simps = #pred_simps o rep_pred_data
 fun update_pred_simps new_pred_data = map_pred_data' I I (K new_pred_data)
