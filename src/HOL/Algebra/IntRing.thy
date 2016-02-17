@@ -251,7 +251,7 @@ next
   then obtain x where "1 = x * int p" by best
   then have "\<bar>int p * x\<bar> = 1" by (simp add: mult.commute)
   then show False
-    by (metis abs_of_nat int_1 of_nat_eq_iff abs_zmult_eq_1 one_not_prime_nat prime)
+    by (metis abs_of_nat of_nat_1 of_nat_eq_iff abs_zmult_eq_1 one_not_prime_nat prime)
 qed
 
 

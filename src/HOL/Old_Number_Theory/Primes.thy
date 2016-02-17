@@ -823,7 +823,7 @@ lemma mult_inj_if_coprime_nat:
    \<Longrightarrow> inj_on (%(a,b). f a * g b::nat) (A \<times> B)"
 apply(auto simp add:inj_on_def)
 apply(metis coprime_def dvd_triv_left gcd_proj2_if_dvd_nat gcd_semilattice_nat.inf_commute relprime_dvd_mult)
-apply(metis coprime_commute coprime_divprod dvd.neq_le_trans dvd_triv_right)
+apply (metis coprime_commute coprime_divprod dvd_triv_right gcd_semilattice_nat.dual_order.strict_trans2)
 done
 
 declare power_Suc0[simp del]

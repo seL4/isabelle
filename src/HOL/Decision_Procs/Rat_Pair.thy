@@ -27,7 +27,7 @@ where
       (let g = gcd a b
        in if b > 0 then (a div g, b div g) else (- (a div g), - (b div g)))))"
 
-declare gcd_dvd1_int[presburger] gcd_dvd2_int[presburger]
+declare gcd_dvd1[presburger] gcd_dvd2[presburger]
 
 lemma normNum_isnormNum [simp]: "isnormNum (normNum x)"
 proof -
@@ -51,7 +51,7 @@ proof -
     from dvd_mult_div_cancel[OF gdvd(1)] dvd_mult_div_cancel[OF gdvd(2)] ab
     have nz': "?a' \<noteq> 0" "?b' \<noteq> 0" by - (rule notI, simp)+
     from ab have stupid: "a \<noteq> 0 \<or> b \<noteq> 0" by arith
-    from div_gcd_coprime_int[OF stupid] have gp1: "?g' = 1" .
+    from div_gcd_coprime[OF stupid] have gp1: "?g' = 1" .
     from ab consider "b < 0" | "b > 0" by arith
     then show ?thesis
     proof cases
@@ -142,7 +142,7 @@ qed
 lemma Ninv_normN[simp]: "isnormNum x \<Longrightarrow> isnormNum (Ninv x)"
   apply (simp add: Ninv_def isnormNum_def split_def)
   apply (cases "fst x = 0")
-  apply (auto simp add: gcd_commute_int)
+  apply (auto simp add: gcd.commute)
   done
 
 lemma isnormNum_int[simp]: "isnormNum 0\<^sub>N" "isnormNum ((1::int)\<^sub>N)" "i \<noteq> 0 \<Longrightarrow> isnormNum (i)\<^sub>N"
@@ -197,7 +197,7 @@ proof
       by (simp add: x y INum_def eq_divide_eq divide_eq_eq of_int_mult[symmetric] del: of_int_mult)
     from \<open>a \<noteq> 0\<close> \<open>a' \<noteq> 0\<close> na nb
     have gcd1: "gcd a b = 1" "gcd b a = 1" "gcd a' b' = 1" "gcd b' a' = 1"
-      by (simp_all add: x y isnormNum_def add: gcd_commute_int)
+      by (simp_all add: x y isnormNum_def add: gcd.commute)
     from eq have raw_dvd: "a dvd a' * b" "b dvd b' * a" "a' dvd a * b'" "b' dvd b * a'"
       apply -
       apply algebra
@@ -205,8 +205,8 @@ proof
       apply simp
       apply algebra
       done
-    from zdvd_antisym_abs[OF coprime_dvd_mult_int[OF gcd1(2) raw_dvd(2)]
-        coprime_dvd_mult_int[OF gcd1(4) raw_dvd(4)]]
+    from zdvd_antisym_abs[OF coprime_dvd_mult[OF gcd1(2) raw_dvd(2)]
+        coprime_dvd_mult[OF gcd1(4) raw_dvd(4)]]
       have eq1: "b = b'" using pos by arith
       with eq have "a = a'" using pos by simp
       with eq1 show ?thesis by (simp add: x y)
@@ -551,7 +551,7 @@ proof -
 qed
 
 lemma Nmul_commute: "isnormNum x \<Longrightarrow> isnormNum y \<Longrightarrow> x *\<^sub>N y = y *\<^sub>N x"
-  by (simp add: Nmul_def split_def Let_def gcd_commute_int mult.commute)
+  by (simp add: Nmul_def split_def Let_def gcd.commute mult.commute)
 
 lemma Nmul_assoc:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field})"

@@ -575,11 +575,10 @@ lemma frac_add: "frac (x + y) = (if frac x + frac y < 1 then frac x + frac y
 
 lemma frac_unique_iff:
   fixes x :: "'a::floor_ceiling"
-  shows  "(frac x) = a \<longleftrightarrow> x - a \<in> \<int> \<and> 0 \<le> a \<and> a < 1"
-  apply (auto simp: Ints_def frac_def)
-  apply linarith
-  apply linarith
-  by (metis (no_types) add.commute add.left_neutral eq_diff_eq floor_add_of_int floor_unique of_int_0)
+  shows  "frac x = a \<longleftrightarrow> x - a \<in> \<int> \<and> 0 \<le> a \<and> a < 1"
+  apply (auto simp: Ints_def frac_def algebra_simps floor_unique)
+  apply linarith+
+  done
 
 lemma frac_eq: "(frac x) = x \<longleftrightarrow> 0 \<le> x \<and> x < 1"
   by (simp add: frac_unique_iff)

@@ -77,7 +77,7 @@ proof
   with p have "n\<^sup>2 = p * k\<^sup>2" by (simp add: power2_eq_square)
   then have "p dvd n\<^sup>2" ..
   with \<open>prime p\<close> have "p dvd n" by (rule prime_dvd_power_nat)
-  with dvd_m have "p dvd gcd m n" by (rule gcd_greatest_nat)
+  with dvd_m have "p dvd gcd m n" by (rule gcd_greatest)
   with \<open>coprime m n\<close> have "p = 1" by simp
   with p show False by simp
 qed

@@ -812,14 +812,14 @@ val ss1 =
   simpset_of (put_simpset comp_ss @{context}
     addsimps @{thms simp_thms} @ 
             [@{thm "nat_numeral"} RS sym, @{thm "zdvd_int"}, @{thm "of_nat_add"}, @{thm "of_nat_mult"}] 
-        @ map (fn r => r RS sym) [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}]
+        @ map (fn r => r RS sym) [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "of_nat_less_iff" [where ?'a = int]}]
     |> Splitter.add_split @{thm "zdiff_int_split"})
 
 val ss2 =
   simpset_of (put_simpset HOL_basic_ss @{context}
-    addsimps [@{thm "nat_0_le"}, @{thm "int_numeral"},
+    addsimps [@{thm "nat_0_le"}, @{thm "of_nat_numeral"},
               @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "zero_le_numeral"}, 
-              @{thm "le_numeral_extra"(3)}, @{thm "int_0"}, @{thm "int_1"}, @{thm "Suc_eq_plus1"}]
+              @{thm "le_numeral_extra"(3)}, @{thm "of_nat_0"}, @{thm "of_nat_1"}, @{thm "Suc_eq_plus1"}]
     |> fold Simplifier.add_cong [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}])
 val div_mod_ss =
   simpset_of (put_simpset HOL_basic_ss @{context}

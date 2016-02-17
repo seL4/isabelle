@@ -40,10 +40,10 @@ lemma ZN_add [transfer_rule]: "(ZN ===> ZN ===> ZN) (op +) (op +)"
   unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_mult [transfer_rule]: "(ZN ===> ZN ===> ZN) (op *) (op *)"
-  unfolding rel_fun_def ZN_def by (simp add: int_mult)
+  unfolding rel_fun_def ZN_def by (simp add: of_nat_mult)
 
 lemma ZN_diff [transfer_rule]: "(ZN ===> ZN ===> ZN) tsub (op -)"
-  unfolding rel_fun_def ZN_def tsub_def by (simp add: zdiff_int)
+  unfolding rel_fun_def ZN_def tsub_def by (simp add: of_nat_diff)
 
 lemma ZN_power [transfer_rule]: "(ZN ===> op = ===> ZN) (op ^) (op ^)"
   unfolding rel_fun_def ZN_def by (simp add: of_nat_power)
@@ -65,7 +65,7 @@ lemma ZN_transfer_forall [transfer_rule]:
 
 lemma ZN_Ex [transfer_rule]: "((ZN ===> op =) ===> op =) (Bex {0..}) Ex"
   unfolding rel_fun_def ZN_def Bex_def atLeast_iff
-  by (metis zero_le_imp_eq_int zero_zle_int)
+  by (metis zero_le_imp_eq_int of_nat_0_le_iff)
 
 lemma ZN_le [transfer_rule]: "(ZN ===> ZN ===> op =) (op \<le>) (op \<le>)"
   unfolding rel_fun_def ZN_def by simp

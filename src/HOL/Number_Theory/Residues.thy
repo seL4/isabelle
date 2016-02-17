@@ -209,7 +209,7 @@ locale residues_prime =
 sublocale residues_prime < residues p
   apply (unfold R_def residues_def)
   using p_prime apply auto
-  apply (metis (full_types) int_1 of_nat_less_iff prime_gt_1_nat)
+  apply (metis (full_types) of_nat_1 of_nat_less_iff prime_gt_1_nat)
   done
 
 context residues_prime
@@ -221,7 +221,7 @@ lemma is_field: "field R"
   apply (auto simp add: res_carrier_eq res_one_eq res_zero_eq res_units_eq)
   apply (rule classical)
   apply (erule notE)
-  apply (subst gcd_commute_int)
+  apply (subst gcd.commute)
   apply (rule prime_imp_coprime_int)
   apply (rule p_prime)
   apply (rule notI)
@@ -232,7 +232,7 @@ lemma is_field: "field R"
 lemma res_prime_units_eq: "Units R = {1..p - 1}"
   apply (subst res_units_eq)
   apply auto
-  apply (subst gcd_commute_int)
+  apply (subst gcd.commute)
   apply (auto simp add: p_prime prime_imp_coprime_int zdvd_not_zless)
   done
 
@@ -256,8 +256,8 @@ lemma phi_def_nat: "phi m = card {x. 0 < x \<and> x < nat m \<and> gcd x (nat m)
   apply (rule bij_betw_same_card [of nat])
   apply (auto simp add: inj_on_def bij_betw_def image_def)
   apply (metis dual_order.irrefl dual_order.strict_trans leI nat_1 transfer_nat_int_gcd(1))
-  apply (metis One_nat_def int_0 int_1 int_less_0_conv int_nat_eq nat_int
-    transfer_int_nat_gcd(1) zless_int)
+  apply (metis One_nat_def of_nat_0 of_nat_1 of_nat_less_0_iff int_nat_eq nat_int
+    transfer_int_nat_gcd(1) of_nat_less_iff)
   done
 
 lemma prime_phi:
@@ -370,7 +370,7 @@ lemma fermat_theorem_nat:
   assumes "prime p" and "\<not> p dvd a"
   shows "[a ^ (p - 1) = 1] (mod p)"
   using fermat_theorem [of p a] assms
-  by (metis int_1 of_nat_power transfer_int_nat_cong zdvd_int)
+  by (metis of_nat_1 of_nat_power transfer_int_nat_cong zdvd_int)
 
 
 subsection \<open>Wilson's theorem\<close>

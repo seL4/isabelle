@@ -1261,7 +1261,7 @@ next
     case True
     def x' \<equiv> "x * 2 ^ nat l"
     have "int x * 2 ^ nat l = x'"
-      by (simp add: x'_def int_mult of_nat_power)
+      by (simp add: x'_def of_nat_mult of_nat_power)
     moreover have "real x * 2 powr l = real x'"
       by (simp add: powr_realpow[symmetric] \<open>0 \<le> l\<close> x'_def)
     ultimately show ?thesis
@@ -1274,7 +1274,7 @@ next
     case False
     def y' \<equiv> "y * 2 ^ nat (- l)"
     from \<open>y \<noteq> 0\<close> have "y' \<noteq> 0" by (simp add: y'_def)
-    have "int y * 2 ^ nat (- l) = y'" by (simp add: y'_def int_mult of_nat_power)
+    have "int y * 2 ^ nat (- l) = y'" by (simp add: y'_def of_nat_mult of_nat_power)
     moreover have "real x * real_of_int (2::int) powr real_of_int l / real y = x / real y'"
       using \<open>\<not> 0 \<le> l\<close>
       by (simp add: powr_realpow[symmetric] powr_minus y'_def field_simps)

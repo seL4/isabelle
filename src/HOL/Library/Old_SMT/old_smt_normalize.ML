@@ -469,7 +469,7 @@ local
     "int (n * m) = int n * int m"
     "int (n div m) = int n div int m"
     "int (n mod m) = int n mod int m"
-    by (auto simp add: int_mult zdiv_int zmod_int)}
+    by (auto simp add: of_nat_mult zdiv_int zmod_int)}
 
   val int_if = mk_meta_eq @{lemma
     "int (if P then n else m) = (if P then int n else int m)"
@@ -479,7 +479,7 @@ local
     let
       val eq = Old_SMT_Utils.mk_cequals lhs (Numeral.mk_cnumber @{ctyp int} i)
       val tac =
-        Simplifier.simp_tac (put_simpset HOL_ss ctxt addsimps [@{thm Int.int_numeral}]) 1
+        Simplifier.simp_tac (put_simpset HOL_ss ctxt addsimps [@{thm of_nat_numeral}]) 1
     in Goal.norm_result ctxt (Goal.prove_internal ctxt [] eq (K tac)) end
 
   fun ite_conv cv1 cv2 =

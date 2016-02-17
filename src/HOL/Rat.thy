@@ -78,7 +78,7 @@ proof -
   from \<open>q = Fract a b\<close> \<open>b \<noteq> 0\<close> \<open>?b \<noteq> 0\<close> have q: "q = Fract ?a ?b"
     by (simp add: eq_rat dvd_div_mult mult.commute [of a])
   from \<open>b \<noteq> 0\<close> have coprime: "coprime ?a ?b"
-    by (auto intro: div_gcd_coprime_int)
+    by (auto intro: div_gcd_coprime)
   show C proof (cases "b > 0")
     case True
     note assms
@@ -287,7 +287,7 @@ lemma normalize_denom_pos: "normalize r = (p, q) \<Longrightarrow> q > 0"
     split:split_if_asm)
 
 lemma normalize_coprime: "normalize r = (p, q) \<Longrightarrow> coprime p q"
-  by (auto simp add: normalize_def Let_def dvd_div_neg div_gcd_coprime_int
+  by (auto simp add: normalize_def Let_def dvd_div_neg div_gcd_coprime
     split:split_if_asm)
 
 lemma normalize_stable [simp]:

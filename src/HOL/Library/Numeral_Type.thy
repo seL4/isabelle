@@ -230,7 +230,7 @@ interpretation bit0:
            "Rep_bit0 :: 'a::finite bit0 \<Rightarrow> int"
            "Abs_bit0 :: int \<Rightarrow> 'a::finite bit0"
 apply (rule mod_type.intro)
-apply (simp add: int_mult type_definition_bit0)
+apply (simp add: of_nat_mult type_definition_bit0)
 apply (rule one_less_int_card)
 apply (rule zero_bit0_def)
 apply (rule one_bit0_def)
@@ -245,7 +245,7 @@ interpretation bit1:
            "Rep_bit1 :: 'a::finite bit1 \<Rightarrow> int"
            "Abs_bit1 :: int \<Rightarrow> 'a::finite bit1"
 apply (rule mod_type.intro)
-apply (simp add: int_mult type_definition_bit1)
+apply (simp add: of_nat_mult type_definition_bit1)
 apply (rule one_less_int_card)
 apply (rule zero_bit1_def)
 apply (rule one_bit1_def)

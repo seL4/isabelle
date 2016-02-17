@@ -999,20 +999,27 @@ apply (subst less_iff_diff_less_0 [of a])
 apply (simp add: algebra_simps)
 done
 
-lemma diff_gt_0_iff_gt [simp]: "a - b > 0 \<longleftrightarrow> a > b"
-by (simp add: less_diff_eq)
+lemma diff_gt_0_iff_gt [simp]:
+  "a - b > 0 \<longleftrightarrow> a > b"
+  by (simp add: less_diff_eq)
 
-lemma diff_le_eq[algebra_simps, field_simps]: "a - b \<le> c \<longleftrightarrow> a \<le> c + b"
-by (auto simp add: le_less diff_less_eq )
+lemma diff_le_eq [algebra_simps, field_simps]:
+  "a - b \<le> c \<longleftrightarrow> a \<le> c + b"
+  by (auto simp add: le_less diff_less_eq )
 
-lemma le_diff_eq[algebra_simps, field_simps]: "a \<le> c - b \<longleftrightarrow> a + b \<le> c"
-by (auto simp add: le_less less_diff_eq)
+lemma le_diff_eq [algebra_simps, field_simps]:
+  "a \<le> c - b \<longleftrightarrow> a + b \<le> c"
+  by (auto simp add: le_less less_diff_eq)
 
 lemma diff_le_0_iff_le [simp]:
   "a - b \<le> 0 \<longleftrightarrow> a \<le> b"
   by (simp add: algebra_simps)
 
 lemmas le_iff_diff_le_0 = diff_le_0_iff_le [symmetric]
+
+lemma diff_ge_0_iff_ge [simp]:
+  "a - b \<ge> 0 \<longleftrightarrow> a \<ge> b"
+  by (simp add: le_diff_eq)
 
 lemma diff_eq_diff_less:
   "a - b = c - d \<Longrightarrow> a < b \<longleftrightarrow> c < d"

@@ -1736,7 +1736,7 @@ lemma prod_gcd_lcm_nat: "(m::nat) * n = gcd m n * lcm m n"
 
 lemma prod_gcd_lcm_int: "\<bar>m::int\<bar> * \<bar>n\<bar> = gcd m n * lcm m n"
   unfolding lcm_int_def gcd_int_def
-  apply (subst int_mult [symmetric])
+  apply (subst of_nat_mult [symmetric])
   apply (subst prod_gcd_lcm_nat [symmetric])
   apply (subst nat_abs_mult_distrib [symmetric])
   apply (simp, simp add: abs_mult)
@@ -2057,42 +2057,6 @@ lemma Gcd_set_int [code]:
 
 text \<open>Fact aliasses\<close>
 
-lemmas gcd_assoc_nat = gcd.assoc [where ?'a = nat]
-lemmas gcd_assoc_int = gcd.assoc [where ?'a = int]
-lemmas gcd_commute_nat = gcd.commute [where ?'a = nat]
-lemmas gcd_commute_int = gcd.commute [where ?'a = int]
-lemmas gcd_left_commute_nat = gcd.left_commute [where ?'a = nat]
-lemmas gcd_left_commute_int = gcd.left_commute [where ?'a = int]
-lemmas gcd_ac_nat = gcd_assoc_nat gcd_commute_nat gcd_left_commute_nat
-lemmas gcd_ac_int = gcd_assoc_int gcd_commute_int gcd_left_commute_int
-lemmas gcd_dvd1_nat = gcd_dvd1 [where ?'a = nat]
-lemmas gcd_dvd1_int = gcd_dvd1 [where ?'a = int]
-lemmas gcd_dvd2_nat = gcd_dvd2 [where ?'a = nat]
-lemmas gcd_dvd2_int = gcd_dvd2 [where ?'a = int]
-lemmas gcd_greatest_nat = gcd_greatest [where ?'a = nat]
-lemmas gcd_greatest_int = gcd_greatest [where ?'a = int]
-lemmas gcd_mult_cancel_nat = gcd_mult_cancel [where ?'a = nat] 
-lemmas gcd_mult_cancel_int = gcd_mult_cancel [where ?'a = int] 
-lemmas gcd_greatest_iff_nat = gcd_greatest_iff [where ?'a = nat]
-lemmas gcd_greatest_iff_int = gcd_greatest_iff [where ?'a = int]
-lemmas gcd_zero_nat = gcd_eq_0_iff [where ?'a = nat]
-lemmas gcd_zero_int = gcd_eq_0_iff [where ?'a = int]
-
-lemmas lcm_assoc_nat = lcm.assoc [where ?'a = nat]
-lemmas lcm_assoc_int = lcm.assoc [where ?'a = int]
-lemmas lcm_commute_nat = lcm.commute [where ?'a = nat]
-lemmas lcm_commute_int = lcm.commute [where ?'a = int]
-lemmas lcm_left_commute_nat = lcm.left_commute [where ?'a = nat]
-lemmas lcm_left_commute_int = lcm.left_commute [where ?'a = int]
-lemmas lcm_ac_nat = lcm_assoc_nat lcm_commute_nat lcm_left_commute_nat
-lemmas lcm_ac_int = lcm_assoc_int lcm_commute_int lcm_left_commute_int
-lemmas lcm_dvd1_nat = dvd_lcm1 [where ?'a = nat]
-lemmas lcm_dvd1_int = dvd_lcm1 [where ?'a = int]
-lemmas lcm_dvd2_nat = dvd_lcm2 [where ?'a = nat]
-lemmas lcm_dvd2_int = dvd_lcm2 [where ?'a = int]
-lemmas lcm_least_nat = lcm_least [where ?'a = nat]
-lemmas lcm_least_int = lcm_least [where ?'a = int]
-
 lemma lcm_0_iff_nat [simp]: "lcm (m::nat) n = 0 \<longleftrightarrow> m = 0 \<or> n= 0"
   by (fact lcm_eq_0_iff)
 
@@ -2110,13 +2074,6 @@ lemma dvd_lcm_I1_int [simp]: "(i::int) dvd m \<Longrightarrow> i dvd lcm m n"
 
 lemma dvd_lcm_I2_int[simp]: "(i::int) dvd n \<Longrightarrow> i dvd lcm m n"
   by (fact dvd_lcmI2)
-
-lemmas coprime_mult_nat = coprime_mult [where ?'a = nat]
-lemmas coprime_mult_int = coprime_mult [where ?'a = int]
-lemmas div_gcd_coprime_nat = div_gcd_coprime [where ?'a = nat]
-lemmas div_gcd_coprime_int = div_gcd_coprime [where ?'a = int]
-lemmas coprime_dvd_mult_nat = coprime_dvd_mult [where ?'a = nat]
-lemmas coprime_dvd_mult_int = coprime_dvd_mult [where ?'a = int]
 
 lemma coprime_dvd_mult_iff_nat: "coprime (k::nat) n \<Longrightarrow>
     (k dvd m * n) = (k dvd m)"
@@ -2136,10 +2093,6 @@ lemmas Gcd_dvd_nat [simp] = Gcd_dvd [where ?'a = nat]
 lemmas Gcd_dvd_int [simp] = Gcd_dvd [where ?'a = int]
 lemmas dvd_Gcd_nat [simp] = dvd_Gcd [where ?'a = nat]
 lemmas dvd_Gcd_int [simp] = dvd_Gcd [where ?'a = int]
-lemmas Gcd_empty_nat = Gcd_empty [where ?'a = nat]
-lemmas Gcd_empty_int = Gcd_empty [where ?'a = int]
-lemmas Gcd_insert_nat = Gcd_insert [where ?'a = nat]
-lemmas Gcd_insert_int = Gcd_insert [where ?'a = int]
 
 lemma dvd_Lcm_int [simp]:
   fixes M :: "int set" assumes "m \<in> M" shows "m dvd Lcm M"

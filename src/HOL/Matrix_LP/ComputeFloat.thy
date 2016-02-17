@@ -155,8 +155,8 @@ lemma not_false_eq_true: "(~ False) = True" by simp
 
 lemma not_true_eq_false: "(~ True) = False" by simp
 
-lemmas powerarith = nat_numeral zpower_numeral_even
-  zpower_numeral_odd zpower_Pls
+lemmas powerarith = nat_numeral power_numeral_even
+  power_numeral_odd zpower_Pls
 
 definition float :: "(int \<times> int) \<Rightarrow> real" where
   "float = (\<lambda>(a, b). real_of_int a * 2 powr real_of_int b)"

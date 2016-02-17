@@ -570,15 +570,19 @@ by (simp add: linorder_not_less)
 lemma negative_eq_positive [simp]: "(- int n = of_nat m) = (n = 0 & m = 0)"
 by (force simp add: order_eq_iff [of "- of_nat n"] int_zle_neg)
 
-lemma zle_iff_zadd: "w \<le> z \<longleftrightarrow> (\<exists>n. z = w + int n)"
-proof -
-  have "(w \<le> z) = (0 \<le> z - w)"
-    by (simp only: le_diff_eq add_0_left)
-  also have "\<dots> = (\<exists>n. z - w = of_nat n)"
-    by (auto elim: zero_le_imp_eq_int)
-  also have "\<dots> = (\<exists>n. z = w + of_nat n)"
-    by (simp only: algebra_simps)
-  finally show ?thesis .
+lemma zle_iff_zadd:
+  "w \<le> z \<longleftrightarrow> (\<exists>n. z = w + int n)" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?Q
+  then show ?P by auto
+next
+  assume ?P
+  then have "0 \<le> z - w" by simp
+  then obtain n where "z - w = int n"
+    using zero_le_imp_eq_int [of "z - w"] by blast
+  then have "z = w + int n"
+    by simp
+  then show ?Q ..
 qed
 
 lemma zadd_int_left: "int m + (int n + z) = int (m + n) + z"
@@ -1725,34 +1729,9 @@ quickcheck_params [default_type = int]
 hide_const (open) Pos Neg sub dup
 
 
-subsection \<open>Legacy theorems\<close>
-
-lemmas inj_int = inj_of_nat [where 'a=int]
-lemmas zadd_int = of_nat_add [where 'a=int, symmetric]
-lemmas int_mult = of_nat_mult [where 'a=int]
-lemmas int_eq_0_conv = of_nat_eq_0_iff [where 'a=int and m="n"] for n
-lemmas zless_int = of_nat_less_iff [where 'a=int]
-lemmas int_less_0_conv = of_nat_less_0_iff [where 'a=int and m="k"] for k
-lemmas zero_less_int_conv = of_nat_0_less_iff [where 'a=int]
-lemmas zero_zle_int = of_nat_0_le_iff [where 'a=int]
-lemmas int_le_0_conv = of_nat_le_0_iff [where 'a=int and m="n"] for n
-lemmas int_0 = of_nat_0 [where 'a=int]
-lemmas int_1 = of_nat_1 [where 'a=int]
-lemmas int_Suc = of_nat_Suc [where 'a=int]
-lemmas int_numeral = of_nat_numeral [where 'a=int]
-lemmas abs_int_eq = abs_of_nat [where 'a=int and n="m"] for m
-lemmas of_int_int_eq = of_int_of_nat_eq [where 'a=int]
-lemmas zdiff_int = of_nat_diff [where 'a=int, symmetric]
-lemmas zpower_numeral_even = power_numeral_even [where 'a=int]
-lemmas zpower_numeral_odd = power_numeral_odd [where 'a=int]
-
 text \<open>De-register \<open>int\<close> as a quotient type:\<close>
 
 lifting_update int.lifting
 lifting_forget int.lifting
-
-text\<open>Also the class for fields with characteristic zero.\<close>
-class field_char_0 = field + ring_char_0
-subclass (in linordered_field) field_char_0 ..
 
 end

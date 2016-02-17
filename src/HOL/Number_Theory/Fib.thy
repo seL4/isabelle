@@ -63,11 +63,11 @@ lemma coprime_fib_Suc_nat: "coprime (fib (n::nat)) (fib (Suc n))"
   done
 
 lemma gcd_fib_add: "gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n)"
-  apply (simp add: gcd_commute_nat [of "fib m"])
+  apply (simp add: gcd.commute [of "fib m"])
   apply (cases m)
   apply (auto simp add: fib_add)
-  apply (metis gcd_commute_nat mult.commute coprime_fib_Suc_nat
-    gcd_add_mult_nat gcd_mult_cancel_nat gcd.commute)
+  apply (metis gcd.commute mult.commute coprime_fib_Suc_nat
+    gcd_add_mult_nat gcd_mult_cancel gcd.commute)
   done
 
 lemma gcd_fib_diff: "m \<le> n \<Longrightarrow> gcd (fib m) (fib (n - m)) = gcd (fib m) (fib n)"
@@ -98,7 +98,7 @@ qed
 
 lemma fib_gcd: "fib (gcd m n) = gcd (fib m) (fib n)"
     -- \<open>Law 6.111\<close>
-  by (induct m n rule: gcd_nat_induct) (simp_all add: gcd_non_0_nat gcd_commute_nat gcd_fib_mod)
+  by (induct m n rule: gcd_nat_induct) (simp_all add: gcd_non_0_nat gcd.commute gcd_fib_mod)
 
 theorem fib_mult_eq_setsum_nat: "fib (Suc n) * fib n = (\<Sum>k \<in> {..n}. fib k * fib k)"
   by (induct n rule: nat.induct) (auto simp add:  field_simps)

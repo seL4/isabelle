@@ -557,13 +557,13 @@ lemma coprime_iff_invertible'_int: "m > (0::int) \<Longrightarrow> coprime a m =
 lemma cong_cong_lcm_nat: "[(x::nat) = y] (mod a) \<Longrightarrow>
     [x = y] (mod b) \<Longrightarrow> [x = y] (mod lcm a b)"
   apply (cases "y \<le> x")
-  apply (metis cong_altdef_nat lcm_least_nat)
+  apply (metis cong_altdef_nat lcm_least)
   apply (metis cong_altdef_nat cong_diff_cong_0'_nat lcm_semilattice_nat.sup.bounded_iff le0 minus_nat.diff_0)
   done
 
 lemma cong_cong_lcm_int: "[(x::int) = y] (mod a) \<Longrightarrow>
     [x = y] (mod b) \<Longrightarrow> [x = y] (mod lcm a b)"
-  by (auto simp add: cong_altdef_int lcm_least_int) [1]
+  by (auto simp add: cong_altdef_int lcm_least) [1]
 
 lemma cong_cong_setprod_coprime_nat [rule_format]: "finite A \<Longrightarrow>
     (\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))) \<longrightarrow>
@@ -591,7 +591,7 @@ proof -
   from cong_solve_coprime_nat [OF a] obtain x1 where one: "[m1 * x1 = 1] (mod m2)"
     by auto
   from a have b: "coprime m2 m1"
-    by (subst gcd_commute_nat)
+    by (subst gcd.commute)
   from cong_solve_coprime_nat [OF b] obtain x2 where two: "[m2 * x2 = 1] (mod m1)"
     by auto
   have "[m1 * x1 = 0] (mod m1)"
@@ -610,7 +610,7 @@ proof -
   from cong_solve_coprime_int [OF a] obtain x1 where one: "[m1 * x1 = 1] (mod m2)"
     by auto
   from a have b: "coprime m2 m1"
-    by (subst gcd_commute_int)
+    by (subst gcd.commute)
   from cong_solve_coprime_int [OF b] obtain x2 where two: "[m2 * x2 = 1] (mod m1)"
     by auto
   have "[m1 * x1 = 0] (mod m1)"

@@ -649,7 +649,7 @@ proof-
       have "p - 1 \<noteq> 0" using prime_ge_2_nat [OF p(1)] by arith
       then have pS: "Suc (p - 1) = p" by arith
       from b have d: "n dvd a^((n - 1) div p)" unfolding b0
-        by (metis b0 diff_0_eq_0 gcd_dvd2_nat gcd_lcm_complete_lattice_nat.inf_bot_left 
+        by (metis b0 diff_0_eq_0 gcd_dvd2 gcd_lcm_complete_lattice_nat.inf_bot_left 
                    gcd_lcm_complete_lattice_nat.inf_top_left) 
       from divides_rexp[OF d, of "p - 1"] pS eq cong_dvd_eq_nat [OF an] n
       have False

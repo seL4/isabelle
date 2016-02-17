@@ -117,7 +117,7 @@ proof -
         order_le_less_trans [of x "(int p - 1) div 2" p]
         order_le_less_trans [of y "(int p - 1) div 2" p] 
     have "x = y"
-      by (metis b c cong_less_imp_eq_int d e zero_less_imp_eq_int zero_zle_int)
+      by (metis b c cong_less_imp_eq_int d e zero_less_imp_eq_int of_nat_0_le_iff)
     } note xy = this
   show ?thesis
     apply (insert p_ge_2 p_a_relprime p_minus_one_l)
@@ -141,12 +141,12 @@ proof -
     by (metis cong_int_def)
   with p_a_relprime p_prime cong_mult_rcancel_int [of a p x y]
   have "[x = y](mod p)" 
-    by (metis cong_mult_self_int dvd_div_mult_self gcd_commute_int prime_imp_coprime_int)
+    by (metis cong_mult_self_int dvd_div_mult_self gcd.commute prime_imp_coprime_int)
   with cong_less_imp_eq_int [of x y p] p_minus_one_l
     order_le_less_trans [of x "(int p - 1) div 2" p]
     order_le_less_trans [of y "(int p - 1) div 2" p] 
   have "x = y"
-    by (metis b c cong_less_imp_eq_int d e zero_less_imp_eq_int zero_zle_int)
+    by (metis b c cong_less_imp_eq_int d e zero_less_imp_eq_int of_nat_0_le_iff)
   then have False
     by (simp add: f)}
   then show ?thesis

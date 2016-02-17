@@ -98,7 +98,7 @@ lemma int_sum_of_fourth_powers:
   "30 * int (\<Sum>i=0..<m. i * i * i * i) =
     int m * (int m - 1) * (int(2 * m) - 1) *
     (int(3 * m * m) - int(3 * m) - 1)"
-  by (induct m) (simp_all add: int_mult)
+  by (induct m) (simp_all add: of_nat_mult)
 
 lemma of_nat_sum_of_fourth_powers:
   "30 * of_nat (\<Sum>i=0..<m. i * i * i * i) =

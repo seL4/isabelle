@@ -88,13 +88,13 @@ fun mir_tac ctxt q =
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = put_simpset HOL_basic_ss ctxt
       addsimps [@{thm "zdvd_int"}, @{thm "of_nat_add"}, @{thm "of_nat_mult"}] @ 
-          map (fn r => r RS sym) [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm nat_numeral}]
+          map (fn r => r RS sym) [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "of_nat_less_iff"}, @{thm nat_numeral}]
       |> Splitter.add_split @{thm "zdiff_int_split"}
     (*simp rules for elimination of int n*)
 
     val simpset2 = put_simpset HOL_basic_ss ctxt
       addsimps [@{thm "nat_0_le"}, @{thm "all_nat"}, @{thm "ex_nat"}, @{thm zero_le_numeral}, 
-                @{thm "int_0"}, @{thm "int_1"}]
+                @{thm "of_nat_0"}, @{thm "of_nat_1"}]
       |> fold Simplifier.add_cong [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
     (* simp rules for elimination of abs *)
     val ct = Thm.cterm_of ctxt (HOLogic.mk_Trueprop t)

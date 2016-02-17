@@ -376,7 +376,7 @@ text \<open>\bigskip Theorems for transforming predicates on nat to predicates o
 
 lemma zdiff_int_split: "P (int (x - y)) =
   ((y \<le> x \<longrightarrow> P (int x - int y)) \<and> (x < y \<longrightarrow> P 0))"
-  by (cases "y \<le> x") (simp_all add: zdiff_int)
+  by (cases "y \<le> x") (simp_all add: of_nat_diff)
 
 text \<open>
   \medskip Specific instances of congruence rules, to prevent

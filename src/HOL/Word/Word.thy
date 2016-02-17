@@ -1416,7 +1416,7 @@ lemma udvd_nat_alt: "a udvd b = (EX n>=0. unat b = n * unat a)"
   apply (unfold udvd_def)
   apply safe
    apply (simp add: unat_def nat_mult_distrib)
-  apply (simp add: uint_nat int_mult)
+  apply (simp add: uint_nat of_nat_mult)
   apply (rule exI)
   apply safe
    prefer 2
@@ -3295,7 +3295,7 @@ lemma and_mask_dvd_nat: "2 ^ n dvd unat w = (w AND mask n = 0)"
   apply (unfold dvd_def) 
   apply auto 
   apply (drule uint_ge_0 [THEN nat_int.Abs_inverse' [simplified], symmetric])
-  apply (simp add : int_mult of_nat_power)
+  apply (simp add : of_nat_mult of_nat_power)
   apply (simp add : nat_mult_distrib nat_power_eq)
   done
 
@@ -4240,9 +4240,10 @@ lemma word_roti_conv_mod': "word_roti n w = word_roti (n mod int (size w)) w"
   apply (simp add: rotater_add [symmetric] rotate_gal [symmetric])
   apply (rule rotater_eqs)
   apply (simp add: word_size nat_mod_distrib)
-  apply (rule int_eq_0_conv [THEN iffD1])
-  apply (simp only: zmod_int of_nat_add)
-  apply (simp add: rdmods)
+  apply (rule of_nat_eq_0_iff [THEN iffD1])
+  apply (auto simp add: not_le mod_eq_0_iff_dvd zdvd_int nat_add_distrib [symmetric])
+  using mod_mod_trivial zmod_eq_dvd_iff
+  apply blast
   done
 
 lemmas word_roti_conv_mod = word_roti_conv_mod' [unfolded word_size]

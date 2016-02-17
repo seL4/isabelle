@@ -37,9 +37,72 @@ INCOMPATIBILITY.
 
 * Class semiring_Lcd merged into semiring_Gcd.  INCOMPATIBILITY.
 
-* Lemma generalization:
-    realpow_minus_mult ~> power_minus_mult
-    realpow_Suc_le_self ~> power_Suc_le_self
+* Dropped various legacy fact bindings, whose replacements are often
+of a more general type also:
+  lcm_left_commute_nat ~> lcm.left_commute
+  lcm_left_commute_int ~> lcm.left_commute
+  gcd_left_commute_nat ~> gcd.left_commute
+  gcd_left_commute_int ~> gcd.left_commute
+  gcd_greatest_iff_nat ~> gcd_greatest_iff
+  gcd_greatest_iff_int ~> gcd_greatest_iff
+  coprime_dvd_mult_nat ~> coprime_dvd_mult
+  coprime_dvd_mult_int ~> coprime_dvd_mult
+  zpower_numeral_even ~> power_numeral_even
+  gcd_mult_cancel_nat ~> gcd_mult_cancel
+  gcd_mult_cancel_int ~> gcd_mult_cancel
+  div_gcd_coprime_nat ~> div_gcd_coprime
+  div_gcd_coprime_int ~> div_gcd_coprime
+  zpower_numeral_odd ~> power_numeral_odd
+  zero_less_int_conv ~> of_nat_0_less_iff
+  gcd_greatest_nat ~> gcd_greatest
+  gcd_greatest_int ~> gcd_greatest
+  coprime_mult_nat ~> coprime_mult
+  coprime_mult_int ~> coprime_mult
+  lcm_commute_nat ~> lcm.commute
+  lcm_commute_int ~> lcm.commute
+  int_less_0_conv ~> of_nat_less_0_iff
+  gcd_commute_nat ~> gcd.commute
+  gcd_commute_int ~> gcd.commute
+  Gcd_insert_nat ~> Gcd_insert
+  Gcd_insert_int ~> Gcd_insert
+  of_int_int_eq ~> of_int_of_nat_eq
+  lcm_least_nat ~> lcm_least
+  lcm_least_int ~> lcm_least
+  lcm_assoc_nat ~> lcm.assoc
+  lcm_assoc_int ~> lcm.assoc
+  int_le_0_conv ~> of_nat_le_0_iff
+  int_eq_0_conv ~> of_nat_eq_0_iff
+  Gcd_empty_nat ~> Gcd_empty
+  Gcd_empty_int ~> Gcd_empty
+  gcd_assoc_nat ~> gcd.assoc
+  gcd_assoc_int ~> gcd.assoc
+  zero_zle_int ~> of_nat_0_le_iff
+  lcm_dvd2_nat ~> dvd_lcm2
+  lcm_dvd2_int ~> dvd_lcm2
+  lcm_dvd1_nat ~> dvd_lcm1
+  lcm_dvd1_int ~> dvd_lcm1
+  gcd_zero_nat ~> gcd_eq_0_iff
+  gcd_zero_int ~> gcd_eq_0_iff
+  gcd_dvd2_nat ~> gcd_dvd2
+  gcd_dvd2_int ~> gcd_dvd2
+  gcd_dvd1_nat ~> gcd_dvd1
+  gcd_dvd1_int ~> gcd_dvd1
+  int_numeral ~> of_nat_numeral
+  lcm_ac_nat ~> ac_simps
+  lcm_ac_int ~> ac_simps
+  gcd_ac_nat ~> ac_simps
+  gcd_ac_int ~> ac_simps
+  abs_int_eq ~> abs_of_nat
+  zless_int ~> of_nat_less_iff
+  zdiff_int ~> of_nat_diff
+  zadd_int ~> of_nat_add
+  int_mult ~> of_nat_mult
+  int_Suc ~> of_nat_Suc
+  inj_int ~> inj_of_nat
+  int_1 ~> of_nat_1
+  int_0 ~> of_nat_0
+  realpow_minus_mult ~> power_minus_mult
+  realpow_Suc_le_self ~> power_Suc_le_self
 INCOMPATIBILITY.
 
 

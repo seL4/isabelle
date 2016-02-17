@@ -1200,7 +1200,7 @@ next
 qed
 
 subclass semiring_Gcd
-  by standard (simp_all add: Gcd_greatest)
+  by standard (auto intro: Gcd_greatest Lcm_least)
 
 lemma GcdI:
   assumes "\<And>a. a \<in> A \<Longrightarrow> b dvd a" and "\<And>c. (\<And>a. a \<in> A \<Longrightarrow> c dvd a) \<Longrightarrow> c dvd b"
@@ -1211,9 +1211,6 @@ lemma GcdI:
 lemma Lcm_Gcd:
   "Lcm A = Gcd {m. \<forall>a\<in>A. a dvd m}"
   by (rule LcmI[symmetric]) (auto intro: dvd_Gcd Gcd_greatest)
-
-subclass semiring_Lcm
-  by standard (simp add: Lcm_Gcd)
 
 lemma Gcd_1:
   "1 \<in> A \<Longrightarrow> Gcd A = 1"

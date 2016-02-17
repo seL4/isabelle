@@ -82,7 +82,7 @@ proof (induct n rule: fib_induct)
   also have "gcd (fib (n + 2)) \<dots> = gcd (fib (n + 2)) (fib (n + 1))"
     by (rule gcd_add2_nat)
   also have "\<dots> = gcd (fib (n + 1)) (fib (n + 1 + 1))"
-    by (simp add: gcd_commute_nat)
+    by (simp add: gcd.commute)
   also assume "\<dots> = 1"
   finally show "?P (n + 2)" .
 qed
@@ -104,16 +104,16 @@ proof (cases m)
 next
   case (Suc k)
   then have "gcd (fib m) (fib (n + m)) = gcd (fib (n + k + 1)) (fib (k + 1))"
-    by (simp add: gcd_commute_nat)
+    by (simp add: gcd.commute)
   also have "fib (n + k + 1)
       = fib (k + 1) * fib (n + 1) + fib k * fib n"
     by (rule fib_add)
   also have "gcd \<dots> (fib (k + 1)) = gcd (fib k * fib n) (fib (k + 1))"
     by (simp add: gcd_mult_add)
   also have "\<dots> = gcd (fib n) (fib (k + 1))"
-    by (simp only: gcd_fib_Suc_eq_1 gcd_mult_cancel_nat)
+    by (simp only: gcd_fib_Suc_eq_1 gcd_mult_cancel)
   also have "\<dots> = gcd (fib m) (fib n)"
-    using Suc by (simp add: gcd_commute_nat)
+    using Suc by (simp add: gcd.commute)
   finally show ?thesis .
 qed
 
@@ -171,7 +171,7 @@ proof (induct m n rule: gcd_nat_induct)
   also from n have "\<dots> = gcd (fib n) (fib m)"
     by (rule gcd_fib_mod)
   also have "\<dots> = gcd (fib m) (fib n)"
-    by (rule gcd_commute_nat)
+    by (rule gcd.commute)
   finally show "fib (gcd m n) = gcd (fib m) (fib n)" .
 qed
 

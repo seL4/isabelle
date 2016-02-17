@@ -833,6 +833,11 @@ lemmas eq_neg_numeral_simps [simp] =
 
 end
 
+text\<open>Also the class for fields with characteristic zero.\<close>
+
+class field_char_0 = field + ring_char_0
+
+
 subsubsection \<open>
   Structures with negation and order: class \<open>linordered_idom\<close>
 \<close>
@@ -1098,6 +1103,8 @@ subsection \<open>Particular lemmas concerning @{term 2}\<close>
 
 context linordered_field
 begin
+
+subclass field_char_0 ..
 
 lemma half_gt_zero_iff:
   "0 < a / 2 \<longleftrightarrow> 0 < a" (is "?P \<longleftrightarrow> ?Q")

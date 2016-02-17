@@ -344,13 +344,13 @@ next
   then have *: "is_prime (nat \<bar>p\<bar>)" by simp
   assume "p dvd k * l"
   then have "nat \<bar>p\<bar> dvd nat \<bar>k * l\<bar>"
-    by (simp add: dvd_int_iff)
+    by (simp add: dvd_int_unfold_dvd_nat)
   then have "nat \<bar>p\<bar> dvd nat \<bar>k\<bar> * nat \<bar>l\<bar>"
     by (simp add: abs_mult nat_mult_distrib)
   with * have "nat \<bar>p\<bar> dvd nat \<bar>k\<bar> \<or> nat \<bar>p\<bar> dvd nat \<bar>l\<bar>"
     using is_primeD [of "nat \<bar>p\<bar>"] by auto
   then show "p dvd k \<or> p dvd l"
-    by (simp add: dvd_int_iff)
+    by (simp add: dvd_int_unfold_dvd_nat)
 next
   fix k :: int
   assume P: "\<And>l. l dvd k \<Longrightarrow> \<not> is_prime l"

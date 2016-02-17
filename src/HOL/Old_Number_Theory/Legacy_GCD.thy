@@ -602,7 +602,7 @@ proof -
   from relprime_dvd_mult [OF g th] obtain h' where h': "nat \<bar>k\<bar> = nat \<bar>i\<bar> * h'"
     unfolding dvd_def by blast
   from h' have "int (nat \<bar>k\<bar>) = int (nat \<bar>i\<bar> * h')" by simp
-  then have "\<bar>k\<bar> = \<bar>i\<bar> * int h'" by (simp add: int_mult)
+  then have "\<bar>k\<bar> = \<bar>i\<bar> * int h'" by (simp add: of_nat_mult)
   then show ?thesis
     apply (subst abs_dvd_iff [symmetric])
     apply (subst dvd_abs_iff [symmetric])

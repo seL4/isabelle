@@ -1282,7 +1282,7 @@ declaration \<open>
       @{thm of_nat_mult}, @{thm of_int_0}, @{thm of_int_1},
       @{thm of_int_add}, @{thm of_int_minus}, @{thm of_int_diff},
       @{thm of_int_mult}, @{thm of_int_of_nat_eq},
-      @{thm of_nat_numeral}, @{thm int_numeral}, @{thm of_int_neg_numeral}]
+      @{thm of_nat_numeral}, @{thm of_nat_numeral}, @{thm of_int_neg_numeral}]
   #> Lin_Arith.add_inj_const (@{const_name of_nat}, @{typ "nat \<Rightarrow> real"})
   #> Lin_Arith.add_inj_const (@{const_name of_int}, @{typ "int \<Rightarrow> real"}))
 \<close>

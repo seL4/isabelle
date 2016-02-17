@@ -42,7 +42,7 @@ lemmas compute_num_conversions =
   nat_numeral nat_0 nat_neg_numeral
   of_int_numeral of_int_neg_numeral of_int_0
 
-lemmas zpowerarith = zpower_numeral_even zpower_numeral_odd zpower_Pls int_pow_1
+lemmas zpowerarith = power_numeral_even power_numeral_odd zpower_Pls int_pow_1
 
 (* div, mod *)
 

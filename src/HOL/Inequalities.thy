@@ -31,7 +31,7 @@ proof -
   have "m*(m-1) \<le> n*(n + 1)"
    using assms by (meson diff_le_self order_trans le_add1 mult_le_mono)
   hence "int(\<Sum> {m..n}) = int((n*(n+1) - m*(m-1)) div 2)" using assms
-    by (auto simp: Setsum_Icc_int[transferred, OF assms] zdiv_int int_mult simp del: of_nat_setsum
+    by (auto simp: Setsum_Icc_int[transferred, OF assms] zdiv_int of_nat_mult simp del: of_nat_setsum
           split: zdiff_int_split)
   thus ?thesis
     using of_nat_eq_iff by blast
@@ -64,7 +64,7 @@ proof -
   { fix i j::nat assume "i<n" "j<n"
     hence "a i - a j \<le> 0 \<and> b i - b j \<ge> 0 \<or> a i - a j \<ge> 0 \<and> b i - b j \<le> 0"
       using assms by (cases "i \<le> j") (auto simp: algebra_simps)
-  } hence "?S \<le> 0"
+  } then have "?S \<le> 0"
     by (auto intro!: setsum_nonpos simp: mult_le_0_iff)
   finally show ?thesis by (simp add: algebra_simps)
 qed

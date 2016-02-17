@@ -62,13 +62,14 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
     val simpset1 =
       put_simpset HOL_basic_ss ctxt
       addsimps @{thms zdvd_int} @ [@{thm "of_nat_add"}, @{thm "of_nat_mult"}] @
-        map (fn r => r RS sym) @{thms int_numeral int_int_eq zle_int zless_int}
+        map (fn r => r RS sym) @{thms of_nat_numeral [where ?'a = int] int_int_eq zle_int of_nat_less_iff [where ?'a = int]}
       |> Splitter.add_split @{thm zdiff_int_split}
     (*simp rules for elimination of int n*)
 
     val simpset2 =
       put_simpset HOL_basic_ss ctxt
-      addsimps [@{thm nat_0_le}, @{thm all_nat}, @{thm ex_nat}, @{thm zero_le_numeral}, @{thm order_refl}(* FIXME: necessary? *), @{thm int_0}, @{thm int_1}]
+      addsimps [@{thm nat_0_le}, @{thm all_nat}, @{thm ex_nat}, @{thm zero_le_numeral}, @{thm order_refl}(* FIXME: necessary? *),
+        @{thm of_nat_0 [where ?'a = int]}, @{thm of_nat_1  [where ?'a = int]}]
       |> fold Simplifier.add_cong @{thms conj_le_cong imp_le_cong}
     (* simp rules for elimination of abs *)
     val simpset3 = put_simpset HOL_basic_ss ctxt |> Splitter.add_split @{thm abs_split}
