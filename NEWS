@@ -33,6 +33,12 @@ typesetting. E.g. to produce proof holes in examples and documentation.
     INCOMPATIBILITY.
 
 
+*** System ***
+
+* SML/NJ is no longer supported.
+
+
+
 New in Isabelle2016 (February 2016)
 -----------------------------------
 

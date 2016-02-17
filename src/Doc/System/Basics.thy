@@ -187,12 +187,6 @@ text \<open>
   of @{setting ML_SYSTEM}, @{setting ML_PLATFORM} and the Isabelle version
   values.
 
-  \<^descr>[@{setting_def ML_SYSTEM_POLYML}\<open>\<^sup>*\<close>] is \<^verbatim>\<open>true\<close> for @{setting ML_SYSTEM}
-  values derived from Poly/ML, as opposed to SML/NJ where it is empty. This is
-  particularly useful with the build option @{system_option condition}
-  (\secref{sec:system-options}) to restrict big sessions to something that
-  SML/NJ can still handle.
-
   \<^descr>[@{setting_def ISABELLE_JDK_HOME}] needs to point to a full JDK (Java
   Development Kit) installation with \<^verbatim>\<open>javac\<close> and \<^verbatim>\<open>jar\<close> executables. This is
   essential for Isabelle/Scala and other JVM-based tools to work properly.

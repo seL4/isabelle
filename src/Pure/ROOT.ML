@@ -76,7 +76,7 @@ use "General/seq.ML";
 use "General/timing.ML";
 
 use "General/sha1.ML";
-if ML_System.is_polyml then use "General/sha1_polyml.ML" else ();
+use "General/sha1_polyml.ML";
 use "General/sha1_samples.ML";
 
 use "PIDE/yxml.ML";
@@ -98,9 +98,7 @@ use "config.ML";
 
 (* concurrency within the ML runtime *)
 
-if ML_System.is_polyml
-then use "ML/exn_properties_polyml.ML"
-else use "ML/exn_properties_dummy.ML";
+use "ML/exn_properties_polyml.ML";
 
 if ML_System.name = "polyml-5.5.0"
   orelse ML_System.name = "polyml-5.5.1"
@@ -123,8 +121,7 @@ use "Concurrent/par_exn.ML";
 use "Concurrent/task_queue.ML";
 use "Concurrent/future.ML";
 use "Concurrent/event_timer.ML";
-
-if ML_System.is_polyml then use "Concurrent/time_limit.ML" else ();
+use "Concurrent/time_limit.ML";
 
 use "Concurrent/lazy.ML";
 if Multithreading.available then ()
@@ -203,13 +200,11 @@ use "assumption.ML";
 use "ML/ml_syntax.ML";
 use "ML/ml_env.ML";
 use "ML/ml_options.ML";
-use "ML/exn_output.ML";
-if ML_System.is_polyml then use "ML/exn_output_polyml.ML" else ();
+use "ML/exn_output_polyml.ML";
 use "ML/ml_options.ML";
 use "Isar/runtime.ML";
 use "PIDE/execution.ML";
-use "ML/ml_compiler.ML";
-if ML_System.is_polyml then use "ML/ml_compiler_polyml.ML" else ();
+use "ML/ml_compiler_polyml.ML";
 
 use "skip_proof.ML";
 use "goal.ML";
@@ -359,7 +354,7 @@ toplevel_pp ["Proof", "state"] "(fn _: Proof.state => Pretty.str \"<Proof.state>
 toplevel_pp ["Toplevel", "state"] "Toplevel.pretty_abstract";
 toplevel_pp ["Morphism", "morphism"] "Morphism.pretty";
 
-if ML_System.is_polyml then use "ML/install_pp_polyml.ML" else ();
+use "ML/install_pp_polyml.ML";
 
 
 (* the Pure theory *)

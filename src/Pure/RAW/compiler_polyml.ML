@@ -11,12 +11,11 @@ fun drop_newline s =
 
 in
 
-fun use_text ({tune_source, name_space, str_of_pos, print, error, ...}: use_context)
+fun use_text ({name_space, str_of_pos, print, error, ...}: use_context)
     {line, file, verbose, debug} text =
   let
     val current_line = Unsynchronized.ref line;
-    val in_buffer =
-      Unsynchronized.ref (String.explode (tune_source (ml_positions line file text)));
+    val in_buffer = Unsynchronized.ref (String.explode (ml_positions line file text));
     val out_buffer = Unsynchronized.ref ([]: string list);
     fun output () = drop_newline (implode (rev (! out_buffer)));
 

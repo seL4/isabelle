@@ -163,8 +163,7 @@ fun name_space {SML, exchange} : ML_Name_Space.T =
   end;
 
 val local_context: use_context =
- {tune_source = ML_Parse.fix_ints,
-  name_space = name_space {SML = false, exchange = false},
+ {name_space = name_space {SML = false, exchange = false},
   str_of_pos = Position.here oo Position.line_file,
   print = writeln,
   error = error};

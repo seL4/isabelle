@@ -4,10 +4,33 @@
 Runtime compilation and evaluation -- Poly/ML version.
 *)
 
+signature ML_COMPILER =
+sig
+  type flags =
+    {SML: bool, exchange: bool, redirect: bool, verbose: bool,
+      debug: bool option, writeln: string -> unit, warning: string -> unit}
+  val flags: flags
+  val verbose: bool -> flags -> flags
+  val eval: flags -> Position.T -> ML_Lex.token list -> unit
+end
+
+
 structure ML_Compiler: ML_COMPILER =
 struct
 
-open ML_Compiler;
+(* flags *)
+
+type flags =
+  {SML: bool, exchange: bool, redirect: bool, verbose: bool,
+    debug: bool option, writeln: string -> unit, warning: string -> unit};
+
+val flags: flags =
+  {SML = false, exchange = false, redirect = false, verbose = false,
+    debug = NONE, writeln = writeln, warning = warning};
+
+fun verbose b (flags: flags) =
+  {SML = #SML flags, exchange = #exchange flags, redirect = #redirect flags,
+    verbose = b, debug = #debug flags, writeln = #writeln flags, warning = #warning flags};
 
 
 (* parse trees *)
