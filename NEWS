@@ -37,6 +37,12 @@ INCOMPATIBILITY.
 
 * Class semiring_Lcd merged into semiring_Gcd.  INCOMPATIBILITY.
 
+* Library/Polynomial.thy contains also derivation of polynomials
+but not gcd/lcm on polynomials over fields.  This has been moved
+to a separate theory Library/Polynomial_GCD_euclidean.thy, to
+pave way for a possible future different type class instantiation
+for polynomials over factorial rings.  INCOMPATIBILITY.
+
 * Dropped various legacy fact bindings, whose replacements are often
 of a more general type also:
   lcm_left_commute_nat ~> lcm.left_commute

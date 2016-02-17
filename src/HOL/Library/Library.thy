@@ -53,7 +53,6 @@ imports
   Parallel
   Permutation
   Permutations
-  Poly_Deriv
   Polynomial
   Preorder
   Product_Vector
