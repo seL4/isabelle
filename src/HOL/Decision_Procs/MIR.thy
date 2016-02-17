@@ -5547,17 +5547,17 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
        of @{code C} i => @{code Mul} (i, num_of_term vs t2)
         | _ => error "num_of_term: unsupported Multiplication")
   | num_of_term vs (@{term "of_int :: int \<Rightarrow> real"} $ (@{term "numeral :: _ \<Rightarrow> int"} $ t')) =
-      mk_C (HOLogic.dest_num t')
+      mk_C (HOLogic.dest_numeral t')
   | num_of_term vs (@{term "of_int :: int \<Rightarrow> real"} $ (@{term "- numeral :: _ \<Rightarrow> int"} $ t')) =
-      mk_C (~ (HOLogic.dest_num t'))
+      mk_C (~ (HOLogic.dest_numeral t'))
   | num_of_term vs (@{term "of_int :: int \<Rightarrow> real"} $ (@{term "floor :: real \<Rightarrow> int"} $ t')) =
       @{code Floor} (num_of_term vs t')
   | num_of_term vs (@{term "of_int :: int \<Rightarrow> real"} $ (@{term "ceiling :: real \<Rightarrow> int"} $ t')) =
       @{code Neg} (@{code Floor} (@{code Neg} (num_of_term vs t')))
   | num_of_term vs (@{term "numeral :: _ \<Rightarrow> real"} $ t') =
-      mk_C (HOLogic.dest_num t')
+      mk_C (HOLogic.dest_numeral t')
   | num_of_term vs (@{term "- numeral :: _ \<Rightarrow> real"} $ t') =
-      mk_C (~ (HOLogic.dest_num t'))
+      mk_C (~ (HOLogic.dest_numeral t'))
   | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term @{context} t);
 
 fun fm_of_term vs @{term True} = @{code T}
@@ -5569,9 +5569,9 @@ fun fm_of_term vs @{term True} = @{code T}
   | fm_of_term vs (@{term "op = :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
   | fm_of_term vs (@{term "op rdvd"} $ (@{term "of_int :: int \<Rightarrow> real"} $ (@{term "numeral :: _ \<Rightarrow> int"} $ t1)) $ t2) =
-      mk_Dvd (HOLogic.dest_num t1, num_of_term vs t2)
+      mk_Dvd (HOLogic.dest_numeral t1, num_of_term vs t2)
   | fm_of_term vs (@{term "op rdvd"} $ (@{term "of_int :: int \<Rightarrow> real"} $ (@{term "- numeral :: _ \<Rightarrow> int"} $ t1)) $ t2) =
-      mk_Dvd (~ (HOLogic.dest_num t1), num_of_term vs t2)
+      mk_Dvd (~ (HOLogic.dest_numeral t1), num_of_term vs t2)
   | fm_of_term vs (@{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (@{term HOL.conj} $ t1 $ t2) =

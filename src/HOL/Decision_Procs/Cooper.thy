@@ -2442,9 +2442,9 @@ fun num_of_term vs (t as Free (xn, xT)) =
   | num_of_term vs @{term "1::int"} = @{code C} (@{code int_of_integer} 1)
   | num_of_term vs @{term "- 1::int"} = @{code C} (@{code int_of_integer} (~ 1))
   | num_of_term vs (@{term "numeral :: _ \<Rightarrow> int"} $ t) =
-      @{code C} (@{code int_of_integer} (HOLogic.dest_num t))
+      @{code C} (@{code int_of_integer} (HOLogic.dest_numeral t))
   | num_of_term vs (@{term "- numeral :: _ \<Rightarrow> int"} $ t) =
-      @{code C} (@{code int_of_integer} (~(HOLogic.dest_num t)))
+      @{code C} (@{code int_of_integer} (~(HOLogic.dest_numeral t)))
   | num_of_term vs (Bound i) = @{code Bound} (@{code nat_of_integer} i)
   | num_of_term vs (@{term "uminus :: int \<Rightarrow> int"} $ t') = @{code Neg} (num_of_term vs t')
   | num_of_term vs (@{term "op + :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =

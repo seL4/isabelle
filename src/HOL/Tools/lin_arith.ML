@@ -175,11 +175,11 @@ let
     | demult (Const (@{const_name Groups.zero}, _), _) = (NONE, Rat.zero)
     | demult (Const (@{const_name Groups.one}, _), m) = (NONE, m)
     (*Warning: in rare cases (neg_)numeral encloses a non-numeral,
-      in which case dest_num raises TERM; hence all the handles below.
+      in which case dest_numeral raises TERM; hence all the handles below.
       Same for Suc-terms that turn out not to be numerals -
       although the simplifier should eliminate those anyway ...*)
     | demult (t as Const ("Num.numeral_class.numeral", _) $ n, m) =
-      ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_num n)))
+      ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_numeral n)))
         handle TERM _ => (SOME t, m))
     | demult (t as Const (@{const_name Suc}, _) $ _, m) =
       ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_nat t)))
@@ -208,7 +208,7 @@ let
     | poly (Const (@{const_name Groups.one}, _), m, (p, i)) =
         (p, Rat.add i m)
     | poly (all as Const ("Num.numeral_class.numeral", Type(_,[_,_])) $ t, m, pi as (p, i)) =
-        (let val k = HOLogic.dest_num t
+        (let val k = HOLogic.dest_numeral t
         in (p, Rat.add i (Rat.mult m (Rat.rat_of_int k))) end
         handle TERM _ => add_atom all m pi)
     | poly (Const (@{const_name Suc}, _) $ t, m, (p, i)) =

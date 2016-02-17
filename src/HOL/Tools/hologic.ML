@@ -100,7 +100,7 @@ sig
   val mk_bit: int -> term
   val dest_bit: term -> int
   val mk_numeral: int -> term
-  val dest_num: term -> int
+  val dest_numeral: term -> int
   val numeral_const: typ -> term
   val add_numerals: term -> (term * typ) list -> (term * typ) list
   val mk_number: typ -> int -> term
@@ -533,10 +533,10 @@ fun mk_numeral i =
   in if i > 0 then mk i else raise TERM ("mk_numeral: " ^ string_of_int i, [])
   end
 
-fun dest_num (Const ("Num.num.One", _)) = 1
-  | dest_num (Const ("Num.num.Bit0", _) $ bs) = 2 * dest_num bs
-  | dest_num (Const ("Num.num.Bit1", _) $ bs) = 2 * dest_num bs + 1
-  | dest_num t = raise TERM ("dest_num", [t]);
+fun dest_numeral (Const ("Num.num.One", _)) = 1
+  | dest_numeral (Const ("Num.num.Bit0", _) $ bs) = 2 * dest_numeral bs
+  | dest_numeral (Const ("Num.num.Bit1", _) $ bs) = 2 * dest_numeral bs + 1
+  | dest_numeral t = raise TERM ("dest_num", [t]);
 
 fun numeral_const T = Const ("Num.numeral_class.numeral", numT --> T);
 
@@ -554,7 +554,7 @@ fun mk_number T 0 = Const ("Groups.zero_class.zero", T)
 fun dest_number (Const ("Groups.zero_class.zero", T)) = (T, 0)
   | dest_number (Const ("Groups.one_class.one", T)) = (T, 1)
   | dest_number (Const ("Num.numeral_class.numeral", Type ("fun", [_, T])) $ t) =
-      (T, dest_num t)
+      (T, dest_numeral t)
   | dest_number (Const ("Groups.uminus_class.uminus", Type ("fun", [_, T])) $ t) =
       apsnd (op ~) (dest_number t)
   | dest_number t = raise TERM ("dest_number", [t]);
