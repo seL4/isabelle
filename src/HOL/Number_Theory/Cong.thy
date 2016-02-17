@@ -527,13 +527,10 @@ lemma cong_solve_coprime_int: "coprime (a::int) n \<Longrightarrow> EX x. [a * x
   apply (metis cong_solve_int)
   done
 
-lemma coprime_iff_invertible_nat: "m > 0 \<Longrightarrow> coprime a m = (EX x. [a * x = Suc 0] (mod m))"
-  apply (auto intro: cong_solve_coprime_nat)
-  apply (metis cong_Suc_0_nat cong_solve_nat gcd_nat.left_neutral)
-  apply (metis One_nat_def cong_gcd_eq_nat coprime_lmult_nat 
-      gcd_lcm_complete_lattice_nat.inf_bot_right gcd.commute)
-  done
-
+lemma coprime_iff_invertible_nat:
+  "m > 0 \<Longrightarrow> coprime a m = (EX x. [a * x = Suc 0] (mod m))"
+  by (metis One_nat_def cong_gcd_eq_nat cong_solve_coprime_nat coprime_lmult_nat gcd.commute gcd_Suc_0)
+  
 lemma coprime_iff_invertible_int: "m > (0::int) \<Longrightarrow> coprime a m = (EX x. [a * x = 1] (mod m))"
   apply (auto intro: cong_solve_coprime_int)
   apply (metis cong_int_def coprime_mul_eq_int gcd_1_int gcd.commute gcd_red_int)
@@ -558,7 +555,7 @@ lemma cong_cong_lcm_nat: "[(x::nat) = y] (mod a) \<Longrightarrow>
     [x = y] (mod b) \<Longrightarrow> [x = y] (mod lcm a b)"
   apply (cases "y \<le> x")
   apply (metis cong_altdef_nat lcm_least)
-  apply (metis cong_altdef_nat cong_diff_cong_0'_nat lcm_semilattice_nat.sup.bounded_iff le0 minus_nat.diff_0)
+  apply (meson cong_altdef_nat cong_sym_nat lcm_least_iff nat_le_linear)
   done
 
 lemma cong_cong_lcm_int: "[(x::int) = y] (mod a) \<Longrightarrow>

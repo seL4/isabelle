@@ -283,7 +283,7 @@ proof -
       next
         case False with \<open>m \<noteq> 1\<close> have "Suc (Suc 0) \<le> m" by arith
         with \<open>m < Suc n\<close> * \<open>m dvd q\<close> have "q dvd m" by simp
-        with \<open>m dvd q\<close> show ?thesis by (simp add: dvd.eq_iff)
+        with \<open>m dvd q\<close> show ?thesis by (simp add: dvd_antisym)
       qed
     }
     then have aux: "\<And>m q. Suc (Suc 0) \<le> q \<Longrightarrow>

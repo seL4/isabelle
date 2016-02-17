@@ -11,7 +11,7 @@ begin
 subsection\<open>Lemmas about previously defined terms\<close>
 
 lemma prime: 
-  "prime p \<longleftrightarrow> p \<noteq> 0 \<and> p\<noteq>1 \<and> (\<forall>m. 0 < m \<and> m < p \<longrightarrow> coprime p m)"
+  "prime p \<longleftrightarrow> p \<noteq> 0 \<and> p \<noteq> 1 \<and> (\<forall>m. 0 < m \<and> m < p \<longrightarrow> coprime p m)"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
   {assume "p=0 \<or> p=1" hence ?thesis
@@ -39,7 +39,7 @@ proof-
       {assume "q\<noteq>p" with qp have qplt: "q < p" by arith
         from H qplt q0 have "coprime p q" by arith
        hence ?lhs using q
-         by (metis gcd_semilattice_nat.inf_absorb2 one_not_prime_nat)}
+         by (auto dest: gcd_nat.absorb2)}
       ultimately have ?lhs by blast}
     ultimately have ?thesis by blast}
   ultimately show ?thesis  by (cases"p=0 \<or> p=1", auto)
@@ -105,16 +105,16 @@ proof-
     by (metis cong_solve_unique neq0_conv p prime_gt_0_nat px)
   {assume y0: "y = 0"
     with y(2) have th: "p dvd a"
-      by (metis cong_dvd_eq_nat gcd_lcm_complete_lattice_nat.top_greatest mult_0_right) 
+      by (auto dest: cong_dvd_eq_nat)
     have False
       by (metis gcd_nat.absorb1 one_not_prime_nat p pa th)}
   with y show ?thesis unfolding Ex1_def using neq0_conv by blast
 qed
 
 lemma cong_unique_inverse_prime:
-  assumes p: "prime p" and x0: "0 < x" and xp: "x < p"
+  assumes "prime p" and "0 < x" and "x < p"
   shows "\<exists>!y. 0 < y \<and> y < p \<and> [x * y = 1] (mod p)"
-by (metis cong_solve_unique_nontrivial gcd_lcm_complete_lattice_nat.inf_bot_left gcd.commute assms) 
+  by (rule cong_solve_unique_nontrivial) (insert assms, simp_all)
 
 lemma chinese_remainder_coprime_unique:
   fixes a::nat 
@@ -469,7 +469,7 @@ lemma prime_divisor_sqrt:
   "prime n \<longleftrightarrow> n \<noteq> 1 \<and> (\<forall>d. d dvd n \<and> d\<^sup>2 \<le> n \<longrightarrow> d = 1)"
 proof -
   {assume "n=0 \<or> n=1" hence ?thesis
-    by (metis dvd.order_refl le_refl one_not_prime_nat power_zero_numeral zero_not_prime_nat)}
+    by auto}
   moreover
   {assume n: "n\<noteq>0" "n\<noteq>1"
     hence np: "n > 1" by arith
@@ -583,9 +583,8 @@ proof -
   {fix d assume d: "d dvd p" "d dvd a" "d \<noteq> 1"
     from pp[unfolded prime_def] d have dp: "d = p" by blast
     from n have "n \<noteq> 0" by simp
-    then have False using d
-      by (metis coprime_minus_one_nat dp lucas_coprime_lemma an coprime_nat 
-           gcd_lcm_complete_lattice_nat.top_greatest pn)} 
+    then have False using d dp pn
+      by auto (metis One_nat_def Suc_pred an dvd_1_iff_1 gcd_greatest_iff lucas_coprime_lemma)} 
   hence cpa: "coprime p a" by auto
   have arp: "coprime (a^r) p"
     by (metis coprime_exp_nat cpa gcd.commute) 
@@ -617,9 +616,8 @@ proof-
     have th: "q dvd p - 1"
       by (metis cong_to_1_nat) 
     have "p - 1 \<noteq> 0" using prime_ge_2_nat [OF p(1)] by arith
-    with pq p have False
-      by (metis Suc_diff_1 gcd_le2_nat gcd_semilattice_nat.inf_absorb1 not_less_eq_eq
-            prime_gt_0_nat th) }
+    with pq th have False
+      by (simp add: nat_dvd_not_less)}
   with n01 show ?ths by blast
 qed
 
@@ -649,8 +647,7 @@ proof-
       have "p - 1 \<noteq> 0" using prime_ge_2_nat [OF p(1)] by arith
       then have pS: "Suc (p - 1) = p" by arith
       from b have d: "n dvd a^((n - 1) div p)" unfolding b0
-        by (metis b0 diff_0_eq_0 gcd_dvd2 gcd_lcm_complete_lattice_nat.inf_bot_left 
-                   gcd_lcm_complete_lattice_nat.inf_top_left) 
+        by auto
       from divides_rexp[OF d, of "p - 1"] pS eq cong_dvd_eq_nat [OF an] n
       have False
         by simp}

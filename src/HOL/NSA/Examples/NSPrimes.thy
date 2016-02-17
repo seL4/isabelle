@@ -27,13 +27,19 @@ where
 | injf_max_Suc:  "injf_max (Suc n) E = choicefun({e. e:E & injf_max n E < e})"
 
 
-lemma dvd_by_all: "\<forall>M. \<exists>N. 0 < N & (\<forall>m. 0 < m & (m::nat) <= M --> m dvd N)"
-apply (rule allI)
-apply (induct_tac "M", auto)
-apply (rule_tac x = "N * (Suc n) " in exI)
-by (metis dvd.order_refl dvd_mult dvd_mult2 le_Suc_eq nat_0_less_mult_iff zero_less_Suc)
+lemma dvd_by_all2:
+  fixes M :: nat
+  shows "\<exists>N>0. \<forall>m. 0 < m \<and> m \<le> M \<longrightarrow> m dvd N"
+apply (induct M)
+apply auto
+apply (rule_tac x = "N * (Suc M) " in exI)
+apply auto
+apply (metis dvdI dvd_add_times_triv_left_iff dvd_add_triv_right_iff dvd_refl dvd_trans le_Suc_eq mult_Suc_right)
+done
 
-lemmas dvd_by_all2 = dvd_by_all [THEN spec]
+lemma dvd_by_all:
+  "\<forall>M::nat. \<exists>N>0. \<forall>m. 0 < m \<and> m \<le> M \<longrightarrow> m dvd N"
+  using dvd_by_all2 by blast
 
 lemma hypnat_of_nat_le_zero_iff [simp]: "(hypnat_of_nat n <= 0) = (n = 0)"
 by (transfer, simp)
@@ -256,8 +262,9 @@ by (cut_tac hypnat_of_nat_one_not_prime, simp)
 lemma hdvd_diff: "!!k m n :: hypnat. [| k dvd m; k dvd n |] ==> k dvd (m - n)"
 by (transfer, rule dvd_diff_nat)
 
-lemma hdvd_one_eq_one: "!!x. x dvd (1::hypnat) ==> x = 1"
-by (transfer, rule gcd_lcm_complete_lattice_nat.le_bot)
+lemma hdvd_one_eq_one:
+  "\<And>x::hypnat. is_unit x \<Longrightarrow> x = 1"
+  by transfer simp
 
 text\<open>Already proved as \<open>primes_infinite\<close>, but now using non-standard naturals.\<close>
 theorem not_finite_prime: "~ finite {p::nat. prime p}"

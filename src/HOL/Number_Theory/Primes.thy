@@ -167,14 +167,19 @@ lemma primes_imp_powers_coprime_nat:
     "prime p \<Longrightarrow> prime q \<Longrightarrow> p ~= q \<Longrightarrow> coprime (p^m) (q^n)"
   by (rule coprime_exp2_nat, rule primes_coprime_nat)
 
-lemma prime_factor_nat: "n \<noteq> (1::nat) \<Longrightarrow> \<exists> p. prime p \<and> p dvd n"
-  apply (induct n rule: nat_less_induct)
-  apply (case_tac "n = 0")
-  using two_is_prime_nat
-  apply blast
-  apply (metis One_nat_def dvd.order_trans dvd_refl less_Suc0 linorder_neqE_nat
-    nat_dvd_not_less neq0_conv prime_def)
-  done
+lemma prime_factor_nat:
+  "n \<noteq> (1::nat) \<Longrightarrow> \<exists>p. prime p \<and> p dvd n"
+proof (induct n rule: nat_less_induct)
+  case (1 n) show ?case
+  proof (cases "n = 0")
+    case True then show ?thesis
+    by (auto intro: two_is_prime_nat)
+  next
+    case False with "1.prems" have "n > 1" by simp
+    with "1.hyps" show ?thesis
+    by (metis One_nat_def dvd_mult dvd_refl not_prime_eq_prod_nat order_less_irrefl)
+  qed
+qed
 
 text \<open>One property of coprimality is easier to prove via prime factors.\<close>
 
@@ -417,11 +422,13 @@ by (metis assms bezout_nat gcd_nat.left_neutral)
 lemma bezout_prime:
   assumes p: "prime p" and pa: "\<not> p dvd a"
   shows "\<exists>x y. a*x = Suc (p*y)"
-proof-
+proof -
   have ap: "coprime a p"
     by (metis gcd.commute p pa prime_imp_coprime_nat)
-  from coprime_bezout_strong[OF ap] show ?thesis
-    by (metis Suc_eq_plus1 gcd_lcm_complete_lattice_nat.bot.extremum pa)
+  moreover from p have "p \<noteq> 1" by auto
+  ultimately have "\<exists>x y. a * x = p * y + 1"
+    by (rule coprime_bezout_strong)
+  then show ?thesis by simp    
 qed
 
 end

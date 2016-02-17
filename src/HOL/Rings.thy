@@ -145,7 +145,7 @@ proof
   show "a = a * 1" by simp
 qed
 
-lemma dvd_trans:
+lemma dvd_trans [trans]:
   assumes "a dvd b" and "b dvd c"
   shows "a dvd c"
 proof -

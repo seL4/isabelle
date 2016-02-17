@@ -21,10 +21,10 @@ definition
 text\<open>Prime Theorems\<close>
 
 lemma prime_iff:
-  "(prime p) = (Suc 0 < p & (\<forall>a b. p dvd a*b --> (p dvd a) | (p dvd b)))"
-apply (auto simp add: prime_gt_Suc_0_nat)
-by (metis (full_types) One_nat_def Suc_lessD dvd.order_refl nat_dvd_not_less not_prime_eq_prod_nat)
-
+  "prime p \<longleftrightarrow> Suc 0 < p \<and> (\<forall>a b. p dvd a * b \<longrightarrow> p dvd a \<or> p dvd b)"
+  by (auto simp add: prime_gt_Suc_0_nat)
+    (metis One_nat_def Suc_lessD dvd_refl nat_dvd_not_less not_prime_eq_prod_nat)
+  
 lemma zero_less_prime_power:
   fixes p::nat shows "prime p ==> 0 < p^a"
 by (force simp add: prime_iff)

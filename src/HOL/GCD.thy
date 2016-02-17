@@ -2167,24 +2167,4 @@ lemma dvd_gcd_D1_int: "i dvd gcd m n \<Longrightarrow> (i::int) dvd m"
 lemma dvd_gcd_D2_int: "i dvd gcd m n \<Longrightarrow> (i::int) dvd n"
   by (fact dvd_gcdD2)
 
-interpretation dvd:
-  order "op dvd" "\<lambda>n m :: nat. n dvd m \<and> m \<noteq> n"
-  by standard (auto intro: dvd_refl dvd_trans dvd_antisym)
-
-interpretation gcd_semilattice_nat:
-  semilattice_inf gcd Rings.dvd "\<lambda>m n::nat. m dvd n \<and> m \<noteq> n"
-  by standard (auto dest: dvd_antisym dvd_trans)
-
-interpretation lcm_semilattice_nat:
-  semilattice_sup lcm Rings.dvd "\<lambda>m n::nat. m dvd n \<and> m \<noteq> n"
-  by standard simp_all
-
-interpretation gcd_lcm_lattice_nat:
-  lattice gcd Rings.dvd "\<lambda>m n::nat. m dvd n \<and> m \<noteq> n" lcm
-  ..
-
-interpretation gcd_lcm_complete_lattice_nat:
-  complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> m \<noteq> n" lcm 1 "0::nat"
-  by standard (auto simp add: Gcd_nat_def Lcm_nat_empty Lcm_nat_infinite)
-
 end

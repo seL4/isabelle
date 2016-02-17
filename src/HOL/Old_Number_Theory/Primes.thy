@@ -819,11 +819,11 @@ lemma coprime_divisors: "d dvd a \<Longrightarrow> e dvd b \<Longrightarrow> cop
   by (auto simp add: dvd_def coprime)
 
 lemma mult_inj_if_coprime_nat:
-  "inj_on f A \<Longrightarrow> inj_on g B \<Longrightarrow> ALL a:A. ALL b:B. coprime (f a) (g b)
-   \<Longrightarrow> inj_on (%(a,b). f a * g b::nat) (A \<times> B)"
-apply(auto simp add:inj_on_def)
-apply(metis coprime_def dvd_triv_left gcd_proj2_if_dvd_nat gcd_semilattice_nat.inf_commute relprime_dvd_mult)
-apply (metis coprime_commute coprime_divprod dvd_triv_right gcd_semilattice_nat.dual_order.strict_trans2)
+  "inj_on f A \<Longrightarrow> inj_on g B \<Longrightarrow> \<forall>a\<in>A. \<forall>b\<in>B. Primes.coprime (f a) (g b) \<Longrightarrow>
+    inj_on (\<lambda>(a, b). f a * g b) (A \<times> B)"
+apply (auto simp add: inj_on_def)
+apply (metis coprime_def dvd_antisym dvd_triv_left relprime_dvd_mult_iff)
+apply (metis coprime_commute coprime_divprod dvd_antisym dvd_triv_right)
 done
 
 declare power_Suc0[simp del]

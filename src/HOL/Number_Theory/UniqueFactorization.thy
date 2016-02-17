@@ -653,9 +653,10 @@ lemma multiplicity_dvd_int:
 
 lemma multiplicity_dvd'_nat:
   fixes x y :: nat
-  shows "0 < x \<Longrightarrow> \<forall>p. prime p \<longrightarrow> multiplicity p x \<le> multiplicity p y \<Longrightarrow> x dvd y"
-  by (metis gcd_lcm_complete_lattice_nat.top_greatest le_refl multiplicity_dvd_nat
-      multiplicity_nonprime_nat neq0_conv)
+  assumes "0 < x"
+  assumes "\<forall>p. prime p \<longrightarrow> multiplicity p x \<le> multiplicity p y"
+  shows "x dvd y"
+  using dvd_0_right assms by (metis (no_types) le0 multiplicity_dvd_nat multiplicity_nonprime_nat not_gr0)
 
 lemma multiplicity_dvd'_int:
   fixes x y :: int
