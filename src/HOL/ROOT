@@ -18,7 +18,7 @@ session "HOL-Proofs" (slow) = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
-  options [condition = ML_SYSTEM_POLYML, document = false, quick_and_dirty = false]
+  options [document = false, quick_and_dirty = false]
   theories Proofs (*sequential change of global flag!*)
   theories "~~/src/HOL/Library/Old_Datatype"
   files
@@ -246,24 +246,24 @@ session "HOL-Hoare_Parallel" in Hoare_Parallel = HOL +
   document_files "root.bib" "root.tex"
 
 session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
-  options [condition = ML_SYSTEM_POLYML, document = false, browser_info = false]
+  options [document = false, browser_info = false]
   theories
     Generate
     Generate_Binary_Nat
     Generate_Target_Nat
     Generate_Efficient_Datastructures
     Generate_Pretty_Char
-  theories [condition = "ML_SYSTEM_POLYML,ISABELLE_GHC"]
+  theories [condition = "ISABELLE_GHC"]
     Code_Test_GHC
-  theories [condition = "ML_SYSTEM_POLYML,ISABELLE_MLTON"]
+  theories [condition = "ISABELLE_MLTON"]
     Code_Test_MLton
-  theories [condition = "ML_SYSTEM_POLYML,ISABELLE_OCAMLC"]
+  theories [condition = "ISABELLE_OCAMLC"]
     Code_Test_OCaml
-  theories [condition = "ML_SYSTEM_POLYML,ISABELLE_POLYML"]
+  theories [condition = "ISABELLE_POLYML"]
     Code_Test_PolyML
-  theories [condition = "ML_SYSTEM_POLYML,ISABELLE_SCALA"]
+  theories [condition = "ISABELLE_SCALA"]
     Code_Test_Scala
-  theories [condition = "ML_SYSTEM_POLYML,ISABELLE_SMLNJ"]
+  theories [condition = "ISABELLE_SMLNJ"]
     Code_Test_SMLNJ
 
 session "HOL-Metis_Examples" in Metis_Examples = HOL +
@@ -395,11 +395,11 @@ session "HOL-Decision_Procs" in Decision_Procs = HOL +
   description {*
     Various decision procedures, typically involving reflection.
   *}
-  options [condition = ML_SYSTEM_POLYML, document = false]
+  options [document = false]
   theories Decision_Procs
 
 session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
-  options [condition = ML_SYSTEM_POLYML, document = false, parallel_proofs = 0]
+  options [document = false, parallel_proofs = 0]
   theories
     Hilbert_Classical
     XML_Data
@@ -408,7 +408,7 @@ session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
   description {*
     Examples for program extraction in Higher-Order Logic.
   *}
-  options [condition = ML_SYSTEM_POLYML, parallel_proofs = 0, quick_and_dirty = false]
+  options [parallel_proofs = 0, quick_and_dirty = false]
   theories [document = false]
     "~~/src/HOL/Library/Code_Target_Numeral"
     "~~/src/HOL/Library/Monad_Syntax"
@@ -433,7 +433,7 @@ session "HOL-Proofs-Lambda" in "Proofs/Lambda" = "HOL-Proofs" +
     The paper "More Church-Rosser Proofs (in Isabelle/HOL)" describes the whole
     theory (see http://www.in.tum.de/~nipkow/pubs/jar2001.html).
   *}
-  options [condition = ML_SYSTEM_POLYML, print_mode = "no_brackets",
+  options [print_mode = "no_brackets",
     parallel_proofs = 0, quick_and_dirty = false]
   theories [document = false]
     "~~/src/HOL/Library/Code_Target_Int"
@@ -532,7 +532,6 @@ session "HOL-ex" in ex = HOL +
   description {*
     Miscellaneous examples for Higher-Order Logic.
   *}
-  options [condition = ML_SYSTEM_POLYML]
   theories [document = false]
     "~~/src/HOL/Library/State_Monad"
     Code_Binary_Nat_examples
@@ -703,7 +702,7 @@ session "HOL-TPTP" in TPTP = HOL +
 
     TPTP-related extensions.
   *}
-  options [condition = ML_SYSTEM_POLYML, document = false]
+  options [document = false]
   theories
     ATP_Theory_Export
     MaSh_Eval
@@ -749,7 +748,7 @@ session "HOL-Nominal" in Nominal = HOL +
   theories Nominal
 
 session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
-  options [condition = ML_SYSTEM_POLYML, document = false]
+  options [document = false]
   theories
     Class3
     CK_Machine
@@ -838,11 +837,11 @@ session "HOL-Mirabelle" in Mirabelle = HOL +
   theories Mirabelle_Test
 
 session "HOL-Mirabelle-ex" in "Mirabelle/ex" = "HOL-Mirabelle" +
-  options [condition = ML_SYSTEM_POLYML, document = false, timeout = 60]
+  options [document = false, timeout = 60]
   theories Ex
 
 session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
-  options [condition = ML_SYSTEM_POLYML, document = false, quick_and_dirty]
+  options [document = false, quick_and_dirty]
   theories
     Boogie
     SMT_Examples
@@ -981,7 +980,7 @@ session "HOL-Quotient_Examples" in Quotient_Examples = HOL +
 
 session "HOL-Predicate_Compile_Examples" in Predicate_Compile_Examples = HOL +
   options [document = false]
-  theories [condition = ML_SYSTEM_POLYML]
+  theories
     Examples
     Predicate_Compile_Tests
     Predicate_Compile_Quickcheck_Examples

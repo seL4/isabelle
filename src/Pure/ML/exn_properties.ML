@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/exn_properties_polyml.ML
+(*  Title:      Pure/ML/exn_properties.ML
     Author:     Makarius
 
-Exception properties for Poly/ML.
+Exception properties.
 *)
 
 signature EXN_PROPERTIES =
@@ -61,4 +61,3 @@ fun update entries exn =
   end;
 
 end;
-

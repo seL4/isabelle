@@ -510,8 +510,7 @@ fun notify_val (string, value) =
 fun abort _ = error "Only value bindings allowed.";
 
 val notifying_context : use_context =
- {tune_source = #tune_source ML_Env.local_context,
-  name_space =
+ {name_space =
    {lookupVal    = #lookupVal ML_Env.local_name_space,
     lookupType   = #lookupType ML_Env.local_name_space,
     lookupFix    = #lookupFix ML_Env.local_name_space,

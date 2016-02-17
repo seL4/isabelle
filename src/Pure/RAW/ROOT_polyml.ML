@@ -102,8 +102,6 @@ val chr = SML90.chr;
 val raw_explode = SML90.explode;
 val implode = SML90.implode;
 
-val io_buffer_size = 4096;
-
 fun quit () = exit 0;
 
 
@@ -190,10 +188,6 @@ fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 :
 use "RAW/ml_parse_tree.ML";
 if ML_System.name = "polyml-5.6"
 then use "RAW/ml_parse_tree_polyml-5.6.ML" else ();
-
-fun toplevel_pp context (_: string list) pp =
-  use_text context {line = 1, file = "pp", verbose = false, debug = false}
-    ("PolyML.addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
 
 fun ml_make_string struct_name =
   "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, " ^

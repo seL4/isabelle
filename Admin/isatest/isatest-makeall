@@ -24,7 +24,7 @@ function usage()
   echo "  Leaves messages in ${ERRORLOG} and ${LOGPREFIX} if it fails."
   echo
   echo "Examples:"
-  echo "  $PRG ~/settings/at-poly ~/settings/at-sml"
+  echo "  $PRG ~/settings/at-poly"
   echo "  $PRG -l \"HOL-Library HOL-Bali\" ~/settings/at-poly"
   exit 1
 }
@@ -92,14 +92,7 @@ for SETTINGS in $@; do
 
     [ -r $SETTINGS ] || fail "Cannot read $SETTINGS."
 
-    case "$SETTINGS" in
-      *sml*)
-        BUILD_ARGS="-o timeout=72000 $BUILD_ARGS"
-        ;;
-      *)
-        BUILD_ARGS="-o timeout=10800 $BUILD_ARGS"
-        ;;
-    esac
+    BUILD_ARGS="-o timeout=10800 $BUILD_ARGS"
 
     # logfile setup
 

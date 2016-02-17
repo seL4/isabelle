@@ -505,7 +505,7 @@ text \<open>
   ML and Isar are intertwined via an open-ended bootstrap process that
   provides more and more programming facilities and logical content in an
   alternating manner. Bootstrapping starts from the raw environment of
-  existing implementations of Standard ML (mainly Poly/ML, but also SML/NJ).
+  existing implementations of Standard ML (mainly Poly/ML).
 
   Isabelle/Pure marks the point where the raw ML toplevel is superseded by
   Isabelle/ML within the Isar theory and proof language, with a uniform
@@ -1379,8 +1379,7 @@ text %mlref \<open>
   \<^descr> Type @{ML_type int} represents regular mathematical integers, which are
   \<^emph>\<open>unbounded\<close>. Overflow is treated properly, but should never happen in
   practice.\<^footnote>\<open>The size limit for integer bit patterns in memory is 64\,MB for
-  32-bit Poly/ML, and much higher for 64-bit systems.\<close> This works uniformly
-  for all supported ML platforms (Poly/ML and SML/NJ).
+  32-bit Poly/ML, and much higher for 64-bit systems.\<close>
 
   Literal integers in ML text are forced to be of this one true integer type
   --- adhoc overloading of SML97 is disabled.

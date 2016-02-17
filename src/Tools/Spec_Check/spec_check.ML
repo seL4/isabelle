@@ -128,8 +128,7 @@ fun determine_type ctxt s =
   let
     val return = Unsynchronized.ref "return"
     val use_context : use_context =
-     {tune_source = #tune_source ML_Env.local_context,
-      name_space = #name_space ML_Env.local_context,
+     {name_space = #name_space ML_Env.local_context,
       str_of_pos = #str_of_pos ML_Env.local_context,
       print = fn r => return := r,
       error = #error ML_Env.local_context}

@@ -1,11 +1,11 @@
 Checklist for official releases
 ===============================
 
-- check latest updates of polyml, smlnj, jdk, scala, jedit;
+- check latest updates of polyml, jdk, scala, jedit;
 
 - check Admin/components;
 
-- test polyml-5.4.1, polyml-5.4.0, polyml-5.3.0, smlnj;
+- test polyml-5.4.1, polyml-5.4.0, polyml-5.3.0;
 
 - test 'display_drafts' command;
 

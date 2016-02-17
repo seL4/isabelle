@@ -7,8 +7,6 @@ ML system and platform operations.
 signature ML_SYSTEM =
 sig
   val name: string
-  val is_polyml: bool
-  val is_smlnj: bool
   val platform: string
   val platform_is_windows: bool
   val share_common_data: unit -> unit
@@ -19,8 +17,6 @@ structure ML_System: ML_SYSTEM =
 struct
 
 val SOME name = OS.Process.getEnv "ML_SYSTEM";
-val is_polyml = String.isPrefix "polyml" name;
-val is_smlnj = String.isPrefix "smlnj" name;
 
 val SOME platform = OS.Process.getEnv "ML_PLATFORM";
 val platform_is_windows = String.isSuffix "windows" platform;

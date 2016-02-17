@@ -290,16 +290,6 @@ ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_IDENTIFIER"
 #enforce JAVA_HOME
 export JAVA_HOME="$ISABELLE_JDK_HOME/jre"
 
-#build condition etc.
-case "$ML_SYSTEM" in
-  polyml*)
-    ML_SYSTEM_POLYML="true"
-    ;;
-  *)
-    ML_SYSTEM_POLYML=""
-    ;;
-esac
-
 set +o allexport
 
 fi

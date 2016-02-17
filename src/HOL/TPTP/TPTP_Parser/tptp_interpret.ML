@@ -169,7 +169,6 @@ fun alphanumerate c =
 fun alphanumerated_name prefix name =
   prefix ^ (raw_explode #> map alphanumerate #> implode) name
 
-(*SMLNJ complains if type annotation not used below*)
 fun mk_binding (config : config) ident =
   let
     val pre_binding = Binding.name (alphanumerated_name "bnd_" ident)

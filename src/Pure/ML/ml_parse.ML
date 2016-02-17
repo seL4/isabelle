@@ -6,7 +6,6 @@ Minimal parsing for SML -- fixing integer numerals.
 
 signature ML_PARSE =
 sig
-  val fix_ints: string -> string
   val global_context: use_context
 end;
 
@@ -43,30 +42,10 @@ val improper = Scan.one ML_Lex.is_improper >> ML_Lex.content_of;
 val blanks = Scan.repeat improper >> implode;
 
 
-(* fix_ints *)
-
-(*approximation only -- corrupts numeric record field patterns *)
-val fix_int =
-  $$$ "#" ^^ blanks ^^ int ||
-  ($$$ "infix" || $$$ "infixr") ^^ blanks ^^ int ||
-  int >> (fn x => "(" ^ x ^ ":int)") ||
-  regular ||
-  bad_input;
-
-val fix_ints =
-  ML_System.is_smlnj ?
-   (Source.of_string #>
-    ML_Lex.source #>
-    Source.source ML_Lex.stopper (Scan.bulk (!!! fix_int)) #>
-    Source.exhaust #>
-    implode);
-
-
 (* global use_context *)
 
 val global_context: use_context =
- {tune_source = fix_ints,
-  name_space = ML_Name_Space.global,
+ {name_space = ML_Name_Space.global,
   str_of_pos = Position.here oo Position.line_file,
   print = writeln,
   error = error};
