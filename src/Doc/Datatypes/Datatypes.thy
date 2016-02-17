@@ -1392,7 +1392,16 @@ recursion is possible. Notably, the map function for the function type
 
 text \<open>
 \noindent
-For convenience, recursion through functions can also be expressed using
+For convenience, the predicator can be used instead of the map function,
+typically when defining predicates. For example:
+\<close>
+
+primrec increasing_tree :: "int \<Rightarrow> int tree\<^sub>f\<^sub>f \<Rightarrow> bool" where
+  "increasing_tree m (Node\<^sub>f\<^sub>f n ts) \<longleftrightarrow> n \<ge> m \<and> pred_list (increasing_tree (n + 1)) ts"
+
+text \<open>
+\noindent
+Also for convenience, recursion through functions can also be expressed using
 $\lambda$-abstractions and function application rather than through composition.
 For example:
 \<close>

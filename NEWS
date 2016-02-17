@@ -13,6 +13,13 @@ New in this Isabelle version
 typesetting. E.g. to produce proof holes in examples and documentation.
 
 
+*** HOL ***
+
+* (Co)datatype package:
+  - "primrec" now allows nested calls through the predicator in addition
+    to the map function.
+
+
 New in Isabelle2016 (February 2016)
 -----------------------------------
 
