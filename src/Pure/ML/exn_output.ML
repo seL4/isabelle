@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/exn_output_polyml.ML
+(*  Title:      Pure/ML/exn_output.ML
     Author:     Makarius
 
-Auxiliary operations for exception output -- Poly/ML version.
+Auxiliary operations for exception output.
 *)
 
 signature EXN_OUTPUT =

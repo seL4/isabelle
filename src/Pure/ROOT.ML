@@ -98,7 +98,7 @@ use "config.ML";
 
 (* concurrency within the ML runtime *)
 
-use "ML/exn_properties_polyml.ML";
+use "ML/exn_properties.ML";
 
 if ML_System.name = "polyml-5.5.0"
   orelse ML_System.name = "polyml-5.5.1"
@@ -200,11 +200,11 @@ use "assumption.ML";
 use "ML/ml_syntax.ML";
 use "ML/ml_env.ML";
 use "ML/ml_options.ML";
-use "ML/exn_output_polyml.ML";
+use "ML/exn_output.ML";
 use "ML/ml_options.ML";
 use "Isar/runtime.ML";
 use "PIDE/execution.ML";
-use "ML/ml_compiler_polyml.ML";
+use "ML/ml_compiler.ML";
 
 use "skip_proof.ML";
 use "goal.ML";

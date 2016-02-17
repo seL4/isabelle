@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/ml_compiler_polyml.ML
+(*  Title:      Pure/ML/ml_compiler.ML
     Author:     Makarius
 
-Runtime compilation and evaluation -- Poly/ML version.
+Runtime compilation and evaluation.
 *)
 
 signature ML_COMPILER =
