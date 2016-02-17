@@ -1434,7 +1434,7 @@ typically when defining predicates. For example:
 \<close>
 
 primrec increasing_tree :: "int \<Rightarrow> int tree\<^sub>f\<^sub>f \<Rightarrow> bool" where
-  "increasing_tree m (Node\<^sub>f\<^sub>f n ts) \<longleftrightarrow> n \<ge> m \<and> pred_list (increasing_tree (n + 1)) ts"
+  "increasing_tree m (Node\<^sub>f\<^sub>f n ts) \<longleftrightarrow> n \<ge> m \<and> list_all (increasing_tree (n + 1)) ts"
 
 text \<open>
 \noindent
@@ -2922,7 +2922,7 @@ register them as BNFs:
       yval :: 'a
 
 text \<open> \blankline \<close>
-    
+
     copy_bnf ('a, 'z) point_ext
 
 text \<open>
