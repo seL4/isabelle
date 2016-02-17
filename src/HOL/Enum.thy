@@ -556,7 +556,7 @@ instance by intro_classes(simp_all add: less_eq_finite_1_def)
 end
 
 instance finite_1 :: complete_distrib_lattice
-by intro_classes(simp_all add: INF_def SUP_def)
+  by standard simp_all
 
 instance finite_1 :: complete_linorder ..
 
@@ -679,7 +679,7 @@ qed(auto simp add: less_eq_finite_2_def less_finite_2_def inf_finite_2_def sup_f
 end
 
 instance finite_2 :: complete_distrib_lattice
-by(intro_classes)(auto simp add: INF_def SUP_def sup_finite_2_def inf_finite_2_def Inf_finite_2_def Sup_finite_2_def)
+  by standard (auto simp add: sup_finite_2_def inf_finite_2_def Inf_finite_2_def Sup_finite_2_def)
 
 instance finite_2 :: complete_linorder ..
 
@@ -797,11 +797,11 @@ proof
     then have "\<And>x. x \<in> B \<Longrightarrow> x = a\<^sub>3"
       by(case_tac x)(auto simp add: Inf_finite_3_def split: split_if_asm)
     then show ?thesis using a\<^sub>2_a\<^sub>3
-      by(auto simp add: INF_def Inf_finite_3_def max_def less_eq_finite_3_def less_finite_3_def split: split_if_asm)
-  qed(auto simp add: INF_def Inf_finite_3_def max_def less_finite_3_def less_eq_finite_3_def split: split_if_asm)
+      by(auto simp add: Inf_finite_3_def max_def less_eq_finite_3_def less_finite_3_def split: split_if_asm)
+  qed (auto simp add: Inf_finite_3_def max_def less_finite_3_def less_eq_finite_3_def split: split_if_asm)
   show "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
-    by(cases a "\<Squnion>B" rule: finite_3.exhaust[case_product finite_3.exhaust])
-      (auto simp add: SUP_def Sup_finite_3_def min_def less_finite_3_def less_eq_finite_3_def split: split_if_asm)
+    by (cases a "\<Squnion>B" rule: finite_3.exhaust[case_product finite_3.exhaust])
+      (auto simp add: Sup_finite_3_def min_def less_finite_3_def less_eq_finite_3_def split: split_if_asm)
 qed
 
 instance finite_3 :: complete_linorder ..
@@ -920,10 +920,10 @@ proof
   fix a :: finite_4 and B
   show "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)"
     by(cases a "\<Sqinter>B" rule: finite_4.exhaust[case_product finite_4.exhaust])
-      (auto simp add: sup_finite_4_def Inf_finite_4_def INF_def split: finite_4.splits split_if_asm)
+      (auto simp add: sup_finite_4_def Inf_finite_4_def split: finite_4.splits split_if_asm)
   show "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
     by(cases a "\<Squnion>B" rule: finite_4.exhaust[case_product finite_4.exhaust])
-      (auto simp add: inf_finite_4_def Sup_finite_4_def SUP_def split: finite_4.splits split_if_asm)
+      (auto simp add: inf_finite_4_def Sup_finite_4_def split: finite_4.splits split_if_asm)
 qed
 
 instantiation finite_4 :: complete_boolean_algebra begin

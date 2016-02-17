@@ -181,7 +181,7 @@ lemma infprod_in_sets[intro]:
 proof -
   have "Pi UNIV E = (\<Inter>i. emb UNIV {..i} (\<Pi>\<^sub>E j\<in>{..i}. E j))"
     using E E[THEN sets.sets_into_space]
-    by (auto simp: prod_emb_def Pi_iff extensional_def) blast
+    by (auto simp: prod_emb_def Pi_iff extensional_def)
   with E show ?thesis by auto
 qed
 
@@ -194,7 +194,7 @@ proof -
     using E by (simp add: measure_PiM_emb)
   moreover have "Pi UNIV E = (\<Inter>n. ?E n)"
     using E E[THEN sets.sets_into_space]
-    by (auto simp: prod_emb_def extensional_def Pi_iff) blast
+    by (auto simp: prod_emb_def extensional_def Pi_iff)
   moreover have "range ?E \<subseteq> sets S"
     using E by auto
   moreover have "decseq ?E"

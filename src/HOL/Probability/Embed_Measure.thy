@@ -36,7 +36,8 @@ next
   then obtain A' where "\<And>i. A i = f ` A' i" "\<And>i. A' i \<in> sets M"
     by (auto simp: subset_eq choice_iff)
   moreover from this have "(\<Union>x. f ` A' x) = f ` (\<Union>x. A' x)" by blast
-  ultimately show "(\<Union>i. A i) \<in> {f ` A |A. A \<in> sets M}" by blast
+  ultimately show "(\<Union>i. A i) \<in> {f ` A |A. A \<in> sets M}"
+    by simp blast
 qed (auto dest: sets.sets_into_space)
 
 lemma the_inv_into_vimage:

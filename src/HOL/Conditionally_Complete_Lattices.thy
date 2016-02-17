@@ -321,10 +321,10 @@ lemma cSUP_lessD: "bdd_above (f`A) \<Longrightarrow> (SUP i:A. f i) < y \<Longri
   by (metis cSUP_upper le_less_trans)
 
 lemma cINF_insert: "A \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> INFIMUM (insert a A) f = inf (f a) (INFIMUM A f)"
-  by (metis cInf_insert Inf_image_eq image_insert image_is_empty)
+  by (metis cInf_insert image_insert image_is_empty)
 
 lemma cSUP_insert: "A \<noteq> {} \<Longrightarrow> bdd_above (f ` A) \<Longrightarrow> SUPREMUM (insert a A) f = sup (f a) (SUPREMUM A f)"
-  by (metis cSup_insert Sup_image_eq image_insert image_is_empty)
+  by (metis cSup_insert image_insert image_is_empty)
 
 lemma cINF_mono: "B \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> (\<And>m. m \<in> B \<Longrightarrow> \<exists>n\<in>A. f n \<le> g m) \<Longrightarrow> INFIMUM A f \<le> INFIMUM B g"
   using cInf_mono [of "g ` B" "f ` A"] by auto

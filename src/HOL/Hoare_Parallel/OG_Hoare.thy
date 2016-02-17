@@ -111,7 +111,8 @@ apply(simp (no_asm) add: L3_5iv L3_5ii Parallel_empty)
 apply(rule conjI)
  apply (blast dest: L3_5i)
 apply(simp add: SEM_def sem_def id_def)
-apply (blast dest: Basic_ntran rtrancl_imp_UN_relpow)
+apply (auto dest: Basic_ntran rtrancl_imp_UN_relpow)
+apply blast
 done
 
 lemma atom_hoare_sound [rule_format]:

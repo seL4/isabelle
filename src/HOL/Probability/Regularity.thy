@@ -138,7 +138,8 @@ proof -
     proof safe
       fix x from X(2)[OF open_ball[of x r]] \<open>r > 0\<close> obtain d where d: "d\<in>X" "d \<in> ball x r" by auto
       show "x \<in> ?U"
-        using X(1) d by (auto intro!: exI[where x="to_nat_on X d"] simp: dist_commute Bex_def)
+        using X(1) d
+        by simp (auto intro!: exI [where x = "to_nat_on X d"] simp: dist_commute Bex_def)
     qed (simp add: sU)
     finally have "(\<lambda>k. M (\<Union>n\<in>{0..k}. cball (from_nat_into X n) r)) \<longlonglongrightarrow> M (space M)" .
   } note M_space = this
@@ -319,8 +320,8 @@ proof -
       by (rule INF_superset_mono) (auto simp add: compact_imp_closed)
     also have "(INF U:{U. U \<subseteq> B \<and> closed U}. M (space M - U)) =
         (INF U:{U. space M - B \<subseteq> U \<and> open U}. emeasure M U)"
-      by (subst INF_image [of "\<lambda>u. space M - u", symmetric, unfolded comp_def])
-        (rule INF_cong, auto simp add: sU intro!: INF_cong)
+      unfolding INF_image [of _ "\<lambda>u. space M - u" _, symmetric, unfolded comp_def]
+        by (rule INF_cong) (auto simp add: sU open_Compl Compl_eq_Diff_UNIV [symmetric, simp])
     finally have
       "(INF U:{U. space M - B \<subseteq> U \<and> open U}. emeasure M U) \<le> emeasure M (space M - B)" .
     moreover have
@@ -335,8 +336,8 @@ proof -
     also have "\<dots> = (SUP U:{U. B \<subseteq> U \<and> open U}. M (space M - U))"
       by (rule SUP_cong) (auto simp add: emeasure_compl sb compact_imp_closed)
     also have "\<dots> = (SUP K:{K. K \<subseteq> space M - B \<and> closed K}. emeasure M K)"
-      by (subst SUP_image [of "\<lambda>u. space M - u", symmetric, simplified comp_def])
-         (rule SUP_cong, auto simp: sU)
+      unfolding SUP_image [of _ "\<lambda>u. space M - u" _, symmetric, unfolded comp_def]
+        by (rule SUP_cong) (auto simp add: sU)
     also have "\<dots> = (SUP K:{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
     proof (safe intro!: antisym SUP_least)
       fix K assume "closed K" "K \<subseteq> space M - B"

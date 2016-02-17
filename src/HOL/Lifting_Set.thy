@@ -138,7 +138,7 @@ lemma image_transfer [transfer_rule]:
 
 lemma UNION_transfer [transfer_rule]:
   "(rel_set A ===> (A ===> rel_set B) ===> rel_set B) UNION UNION"
-  unfolding Union_image_eq [symmetric, abs_def] by transfer_prover
+  by transfer_prover
 
 lemma Ball_transfer [transfer_rule]:
   "(rel_set A ===> (A ===> op =) ===> op =) Ball Ball"
@@ -176,11 +176,11 @@ lemma bind_transfer [transfer_rule]:
 
 lemma INF_parametric [transfer_rule]:
   "(rel_set A ===> (A ===> HOL.eq) ===> HOL.eq) INFIMUM INFIMUM"
-  unfolding INF_def [abs_def] by transfer_prover
+  by transfer_prover
 
 lemma SUP_parametric [transfer_rule]:
   "(rel_set R ===> (R ===> HOL.eq) ===> HOL.eq) SUPREMUM SUPREMUM"
-  unfolding SUP_def [abs_def] by transfer_prover
+  by transfer_prover
 
 
 subsubsection \<open>Rules requiring bi-unique, bi-total or right-total relations\<close>

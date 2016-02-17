@@ -205,7 +205,7 @@ proof (subst emeasure_completion)
     unfolding binary_def by (auto split: split_if_asm)
   show "emeasure M (main_part M (S \<union> T)) = emeasure M (main_part M S \<union> main_part M T)"
     using emeasure_main_part_UN[of "binary S T" M] assms
-    unfolding range_binary_eq Un_range_binary UN by auto
+    by (simp add: range_binary_eq, simp add: Un_range_binary UN)
 qed (auto intro: S T)
 
 lemma sets_completionI_sub:

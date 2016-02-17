@@ -289,7 +289,7 @@ proof
   show "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)"
   proof (cases a)
     case None
-    then show ?thesis by (simp add: INF_def)
+    then show ?thesis by simp
   next
     case (Some c)
     show ?thesis
@@ -303,13 +303,13 @@ proof
       from sup_Inf have "Some c \<squnion> Some (\<Sqinter>Option.these B) = Some (\<Sqinter>b\<in>Option.these B. c \<squnion> b)" by simp
       then have "Some c \<squnion> \<Sqinter>(Some ` Option.these B) = (\<Sqinter>x\<in>Some ` Option.these B. Some c \<squnion> x)"
         by (simp add: Some_INF Some_Inf comp_def)
-      with Some B show ?thesis by (simp add: Some_image_these_eq)
+      with Some B show ?thesis by (simp add: Some_image_these_eq cong del: strong_INF_cong)
     qed
   qed
   show "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
   proof (cases a)
     case None
-    then show ?thesis by (simp add: SUP_def image_constant_conv bot_option_def)
+    then show ?thesis by (simp add: image_constant_conv bot_option_def cong del: strong_SUP_cong)
   next
     case (Some c)
     show ?thesis
@@ -332,7 +332,7 @@ proof
       ultimately have "Some c \<sqinter> \<Squnion>(Some ` Option.these B) = (\<Squnion>x\<in>Some ` Option.these B. Some c \<sqinter> x)"
         by (simp add: Some_SUP Some_Sup comp_def)
       with Some show ?thesis
-        by (simp add: Some_image_these_eq Sup_B SUP_B Sup_None SUP_None SUP_union Sup_union_distrib)
+        by (simp add: Some_image_these_eq Sup_B SUP_B Sup_None SUP_None SUP_union Sup_union_distrib cong del: strong_SUP_cong)
     qed
   qed
 qed

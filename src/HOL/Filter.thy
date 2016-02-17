@@ -437,8 +437,8 @@ proof -
 qed
 
 lemma eventually_INF: "eventually P (INF b:B. F b) \<longleftrightarrow> (\<exists>X\<subseteq>B. finite X \<and> eventually P (INF b:X. F b))"
-  unfolding INF_def[of B] eventually_Inf[of P "F`B"]
-  by (metis Inf_image_eq finite_imageI image_mono finite_subset_image)
+  unfolding eventually_Inf [of P "F`B"]
+  by (metis finite_imageI image_mono finite_subset_image)
 
 lemma Inf_filter_not_bot:
   fixes B :: "'a filter set"
@@ -449,7 +449,7 @@ lemma Inf_filter_not_bot:
 lemma INF_filter_not_bot:
   fixes F :: "'i \<Rightarrow> 'a filter"
   shows "(\<And>X. X \<subseteq> B \<Longrightarrow> finite X \<Longrightarrow> (INF b:X. F b) \<noteq> bot) \<Longrightarrow> (INF b:B. F b) \<noteq> bot"
-  unfolding trivial_limit_def eventually_INF[of _ B]
+  unfolding trivial_limit_def eventually_INF [of _ _ B]
     bot_bool_def [symmetric] bot_fun_def [symmetric] bot_unique by simp
 
 lemma eventually_Inf_base:
@@ -477,7 +477,7 @@ qed (auto intro!: exI[of _ "{x}" for x])
 lemma eventually_INF_base:
   "B \<noteq> {} \<Longrightarrow> (\<And>a b. a \<in> B \<Longrightarrow> b \<in> B \<Longrightarrow> \<exists>x\<in>B. F x \<le> inf (F a) (F b)) \<Longrightarrow>
     eventually P (INF b:B. F b) \<longleftrightarrow> (\<exists>b\<in>B. eventually P (F b))"
-  unfolding INF_def by (subst eventually_Inf_base) auto
+  by (subst eventually_Inf_base) auto
 
 
 subsubsection \<open>Map function for filters\<close>
@@ -573,7 +573,7 @@ lemma inf_principal[simp]: "inf (principal A) (principal B) = principal (A \<int
   by (auto intro: exI[of _ "\<lambda>x. x \<in> A"] exI[of _ "\<lambda>x. x \<in> B"])
 
 lemma SUP_principal[simp]: "(SUP i : I. principal (A i)) = principal (\<Union>i\<in>I. A i)"
-  unfolding filter_eq_iff eventually_Sup SUP_def by (auto simp: eventually_principal)
+  unfolding filter_eq_iff eventually_Sup by (auto simp: eventually_principal)
 
 lemma INF_principal_finite: "finite X \<Longrightarrow> (INF x:X. principal (f x)) = principal (\<Inter>x\<in>X. f x)"
   by (induct X rule: finite_induct) auto

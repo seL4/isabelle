@@ -1990,6 +1990,8 @@ qed
 definition
   "Gcd (M::nat set) = Lcm {d. \<forall>m\<in>M. d dvd m}"
 
+interpretation bla: semilattice_neutr_set gcd "0::nat" ..
+
 instance ..
 
 end
@@ -2012,19 +2014,7 @@ qed
 
 interpretation gcd_lcm_complete_lattice_nat:
   complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat"
-rewrites "Inf.INFIMUM Gcd A f = Gcd (f ` A :: nat set)"
-  and "Sup.SUPREMUM Lcm A f = Lcm (f ` A)"
-proof -
-  show "class.complete_lattice Gcd Lcm gcd Rings.dvd (\<lambda>m n. m dvd n \<and> \<not> n dvd m) lcm 1 (0::nat)"
-    by standard (auto simp add: Gcd_nat_def Lcm_nat_empty Lcm_nat_infinite)
-  then interpret gcd_lcm_complete_lattice_nat:
-    complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat" .
-  from gcd_lcm_complete_lattice_nat.INF_def show "Inf.INFIMUM Gcd A f = Gcd (f ` A)" .
-  from gcd_lcm_complete_lattice_nat.SUP_def show "Sup.SUPREMUM Lcm A f = Lcm (f ` A)" .
-qed
-
-declare gcd_lcm_complete_lattice_nat.Inf_image_eq [simp del]
-declare gcd_lcm_complete_lattice_nat.Sup_image_eq [simp del]
+  by standard (auto simp add: Gcd_nat_def Lcm_nat_empty Lcm_nat_infinite)
 
 lemma Lcm_empty_nat:
   "Lcm {} = (1::nat)"

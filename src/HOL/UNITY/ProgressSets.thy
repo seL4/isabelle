@@ -42,13 +42,11 @@ by (simp add: lattice_def)
 
 lemma UN_in_lattice:
      "[|lattice L; !!i. i\<in>I ==> r i \<in> L|] ==> (\<Union>i\<in>I. r i) \<in> L"
-apply (unfold SUP_def)
 apply (blast intro: Union_in_lattice) 
 done
 
 lemma INT_in_lattice:
      "[|lattice L; !!i. i\<in>I ==> r i \<in> L|] ==> (\<Inter>i\<in>I. r i)  \<in> L"
-apply (unfold INF_def)
 apply (blast intro: Inter_in_lattice) 
 done
 

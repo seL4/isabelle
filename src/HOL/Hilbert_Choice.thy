@@ -253,10 +253,10 @@ apply (auto simp add: bij_def surj_f_inv_f)
 done
 
 lemma image_surj_f_inv_f: "surj f ==> f ` (inv f ` A) = A"
-by (simp add: image_eq_UN surj_f_inv_f)
+  by (simp add: surj_f_inv_f image_comp comp_def)
 
 lemma image_inv_f_f: "inj f ==> inv f ` (f ` A) = A"
-  by (simp add: image_eq_UN)
+  by simp
 
 lemma inv_image_comp: "inj f ==> inv f ` (f ` X) = X"
   by (fact image_inv_f_f)

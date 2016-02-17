@@ -1060,10 +1060,11 @@ lemma Image_INT_subset: "(r `` INTER A B) \<subseteq> (\<Inter>x\<in>A. r `` (B 
 
 text\<open>Converse inclusion requires some assumptions\<close>
 lemma Image_INT_eq:
-     "[|single_valued (r\<inverse>); A\<noteq>{}|] ==> r `` INTER A B = (\<Inter>x\<in>A. r `` B x)"
+  "single_valued (r\<inverse>) \<Longrightarrow> A \<noteq> {} \<Longrightarrow> r `` INTER A B = (\<Inter>x\<in>A. r `` B x)"
 apply (rule equalityI)
  apply (rule Image_INT_subset) 
-apply  (simp add: single_valued_def, blast)
+apply (auto simp add: single_valued_def)
+apply blast
 done
 
 lemma Image_subset_eq: "(r``A \<subseteq> B) = (A \<subseteq> - ((r^-1) `` (-B)))"

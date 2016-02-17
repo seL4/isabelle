@@ -421,13 +421,13 @@ definition interval_lowerbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
 lemma interval_upperbound[simp]:
   "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow>
     interval_upperbound (cbox a b) = (b::'a::euclidean_space)"
-  unfolding interval_upperbound_def euclidean_representation_setsum cbox_def SUP_def
+  unfolding interval_upperbound_def euclidean_representation_setsum cbox_def
   by (safe intro!: cSup_eq) auto
 
 lemma interval_lowerbound[simp]:
   "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow>
     interval_lowerbound (cbox a b) = (a::'a::euclidean_space)"
-  unfolding interval_lowerbound_def euclidean_representation_setsum cbox_def INF_def
+  unfolding interval_lowerbound_def euclidean_representation_setsum cbox_def
   by (safe intro!: cInf_eq) auto
 
 lemmas interval_bounds = interval_upperbound interval_lowerbound
@@ -436,7 +436,7 @@ lemma
   fixes X::"real set"
   shows interval_upperbound_real[simp]: "interval_upperbound X = Sup X"
     and interval_lowerbound_real[simp]: "interval_lowerbound X = Inf X"
-  by (auto simp: interval_upperbound_def interval_lowerbound_def SUP_def INF_def)
+  by (auto simp: interval_upperbound_def interval_lowerbound_def)
 
 lemma interval_bounds'[simp]:
   assumes "cbox a b \<noteq> {}"
@@ -496,7 +496,7 @@ lemma content_cbox':
     using assms box_ne_empty(1) content_cbox by blast
 
 lemma content_real: "a \<le> b \<Longrightarrow> content {a..b} = b - a"
-  by (auto simp: interval_upperbound_def interval_lowerbound_def SUP_def INF_def content_def)
+  by (auto simp: interval_upperbound_def interval_lowerbound_def content_def)
 
 lemma abs_eq_content: "\<bar>y - x\<bar> = (if x\<le>y then content {x .. y} else content {y..x})"
   by (auto simp: content_real)
@@ -856,7 +856,7 @@ proof -
       by auto
     show "\<Union>?A = s1 \<inter> s2"
       apply (rule set_eqI)
-      unfolding * and Union_image_eq UN_iff
+      unfolding * and UN_iff
       using division_ofD(6)[OF assms(1)] and division_ofD(6)[OF assms(2)]
       apply auto
       done
@@ -9394,7 +9394,6 @@ proof -
     prefer 3
     apply assumption
     apply rule
-    apply (rule finite_imageI)
     apply (rule r)
     apply safe
     apply (drule qq)

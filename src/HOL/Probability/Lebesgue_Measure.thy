@@ -536,7 +536,7 @@ proof -
   moreover have "emeasure lborel (\<Union>i. {from_nat_into A i}) = 0"
     by (rule emeasure_UN_eq_0) auto
   ultimately have "emeasure lborel A \<le> 0" using emeasure_mono
-    by (metis assms bot.extremum_unique emeasure_empty image_eq_UN range_from_nat_into sets.empty_sets)
+    by (smt UN_E emeasure_empty equalityI from_nat_into order_refl singletonD subsetI)
   thus ?thesis by (auto simp add: emeasure_le_0_iff)
 qed
 

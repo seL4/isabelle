@@ -6690,7 +6690,7 @@ proof -
     using \<open>open s\<close>
     apply (simp add: open_contains_ball Ball_def)
     apply (erule all_forward)
-    using "*" by blast
+    using "*" by auto blast+
   have 2: "closedin (subtopology euclidean s) (\<Inter>n. {w \<in> s. (deriv ^^ n) f w = 0})"
     using assms
     by (auto intro: continuous_closed_in_preimage_constant holomorphic_on_imp_continuous_on holomorphic_higher_deriv)

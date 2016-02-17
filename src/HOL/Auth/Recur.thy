@@ -337,7 +337,7 @@ lemma resp_analz_insert_lemma:
          RB \<in> responses evs |]
      ==> (Key K \<in> parts{RB} | Key K \<in> analz H)"
 apply (erule rev_mp, erule responses.induct)
-apply (simp_all del: image_insert
+apply (simp_all del: image_insert parts_image
              add: analz_image_freshK_simps resp_analz_image_freshK_lemma)
 txt\<open>Simplification using two distinct treatments of "image"\<close>
 apply (simp add: parts_insert2, blast)
@@ -389,7 +389,7 @@ lemma respond_Spy_not_see_session_key [rule_format]:
 apply (erule respond.induct)
 apply (frule_tac [2] respond_imp_responses)
 apply (frule_tac [2] respond_imp_not_used)
-apply (simp_all del: image_insert
+apply (simp_all del: image_insert parts_image
                 add: analz_image_freshK_simps split_ifs shrK_in_analz_respond
                      resp_analz_image_freshK parts_insert2)
 txt\<open>Base case of respond\<close>

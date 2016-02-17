@@ -1035,7 +1035,7 @@ lemma System_Alloc_Progress:
   apply (simp only: o_apply sub_def)
   apply (insert Alloc_Progress [THEN rename_guarantees_sysOfAlloc_I])
   apply (simp add: o_def del: INT_iff)
-  apply (erule component_guaranteesD)
+  apply (drule component_guaranteesD)
   apply (auto simp add:
     System_Increasing_allocRel [simplified sub_apply o_def]
     System_Increasing_allocAsk [simplified sub_apply o_def]
@@ -1047,6 +1047,7 @@ text{*progress (2), step 10 (final result!) *}
 lemma System_Progress: "System : system_progress"
   apply (unfold system_progress_def)
   apply (cut_tac System_Alloc_Progress)
+  apply auto
   apply (blast intro: LeadsTo_Trans
     System_Follows_allocGiv [THEN Follows_LeadsTo_pfixLe]
     System_Follows_ask [THEN Follows_LeadsTo])

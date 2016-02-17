@@ -84,7 +84,6 @@ by (simp add: Un_ac)
 
 lemma LeadsTo_UN: 
      "(!!i. i \<in> I ==> F \<in> (A i) LeadsTo B) ==> F \<in> (\<Union>i \<in> I. A i) LeadsTo B"
-apply (unfold SUP_def)
 apply (blast intro: LeadsTo_Union)
 done
 
@@ -188,7 +187,6 @@ by (blast intro: LeadsTo_Un LeadsTo_weaken)
 lemma LeadsTo_UN_UN: 
      "(!! i. i \<in> I ==> F \<in> (A i) LeadsTo (A' i))  
       ==> F \<in> (\<Union>i \<in> I. A i) LeadsTo (\<Union>i \<in> I. A' i)"
-apply (simp only: Union_image_eq [symmetric])
 apply (blast intro: LeadsTo_Union LeadsTo_weaken_R)
 done
 

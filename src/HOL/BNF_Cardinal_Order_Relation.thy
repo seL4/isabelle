@@ -711,7 +711,7 @@ qed
 
 lemma card_of_UNION_Sigma:
 "|\<Union>i \<in> I. A i| \<le>o |SIGMA i : I. A i|"
-using Ex_inj_on_UNION_Sigma[of I A] card_of_ordLeq by blast
+using Ex_inj_on_UNION_Sigma [of A I] card_of_ordLeq by blast
 
 lemma card_of_bool:
 assumes "a1 \<noteq> a2"

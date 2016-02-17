@@ -517,7 +517,7 @@ lemma (in group) setmult_subset_G:
 by (auto simp add: set_mult_def subsetD)
 
 lemma (in group) subgroup_mult_id: "subgroup H G \<Longrightarrow> H <#> H = H"
-apply (auto simp add: subgroup.m_closed set_mult_def Sigma_def image_def)
+apply (auto simp add: subgroup.m_closed set_mult_def Sigma_def)
 apply (rule_tac x = x in bexI)
 apply (rule bexI [of _ "\<one>"])
 apply (auto simp add: subgroup.one_closed subgroup.subset [THEN subsetD])
@@ -932,8 +932,20 @@ proof -
   obtain g where g: "g \<in> carrier G" 
              and "X = kernel G H h #> g"
     by (auto simp add: FactGroup_def RCOSETS_def)
-  hence "h ` X = {h g}" by (auto simp add: kernel_def r_coset_def image_def g)
+  hence "h ` X = {h g}" by (auto simp add: kernel_def r_coset_def g intro!: imageI)
   thus ?thesis by (auto simp add: g)
+qed
+
+lemma the_elem_image_unique: -- {* FIXME move *}
+  assumes "A \<noteq> {}"
+  assumes *: "\<And>y. y \<in> A \<Longrightarrow> f y = f x"
+  shows "the_elem (f ` A) = f x"
+unfolding the_elem_def proof (rule the1_equality)
+  from `A \<noteq> {}` obtain y where "y \<in> A" by auto
+  with * have "f x = f y" by simp
+  with `y \<in> A` have "f x \<in> f ` A" by blast
+  with * show "f ` A = {f x}" by auto
+  then show "\<exists>!x. f ` A = {x}" by auto
 qed
 
 lemma (in group_hom) FactGroup_hom:
@@ -952,11 +964,11 @@ proof (intro ballI)
     and Xsub: "X \<subseteq> carrier G" and X'sub: "X' \<subseteq> carrier G"
     by (force simp add: kernel_def r_coset_def image_def)+
   hence "h ` (X <#> X') = {h g \<otimes>\<^bsub>H\<^esub> h g'}" using X X'
-    by (auto dest!: FactGroup_nonempty
-             simp add: set_mult_def image_eq_UN 
+    by (auto dest!: FactGroup_nonempty intro!: image_eqI
+             simp add: set_mult_def 
                        subsetD [OF Xsub] subsetD [OF X'sub]) 
-  thus "the_elem (h ` (X <#> X')) = the_elem (h ` X) \<otimes>\<^bsub>H\<^esub> the_elem (h ` X')"
-    by (simp add: all image_eq_UN FactGroup_nonempty X X')
+  then show "the_elem (h ` (X <#> X')) = the_elem (h ` X) \<otimes>\<^bsub>H\<^esub> the_elem (h ` X')"
+    by (auto simp add: all FactGroup_nonempty X X' the_elem_image_unique)
 qed
 
 
@@ -964,7 +976,7 @@ text\<open>Lemma for the following injectivity result\<close>
 lemma (in group_hom) FactGroup_subset:
      "\<lbrakk>g \<in> carrier G; g' \<in> carrier G; h g = h g'\<rbrakk>
       \<Longrightarrow>  kernel G H h #> g \<subseteq> kernel G H h #> g'"
-apply (clarsimp simp add: kernel_def r_coset_def image_def)
+apply (clarsimp simp add: kernel_def r_coset_def)
 apply (rename_tac y)  
 apply (rule_tac x="y \<otimes> g \<otimes> inv g'" in exI) 
 apply (simp add: G.m_assoc) 
@@ -985,7 +997,7 @@ proof (simp add: inj_on_def, clarify)
     by (force simp add: kernel_def r_coset_def image_def)+
   assume "the_elem (h ` X) = the_elem (h ` X')"
   hence h: "h g = h g'"
-    by (simp add: image_eq_UN all FactGroup_nonempty X X') 
+    by (simp add: all FactGroup_nonempty X X' the_elem_image_unique) 
   show "X=X'" by (rule equalityI) (simp_all add: FactGroup_subset h gX) 
 qed
 
@@ -1006,7 +1018,10 @@ proof
     hence "(\<Union>x\<in>kernel G H h #> g. {h x}) = {y}" 
       by (auto simp add: y kernel_def r_coset_def) 
     with g show "y \<in> (\<lambda>X. the_elem (h ` X)) ` carrier (G Mod kernel G H h)" 
-      by (auto intro!: bexI simp add: FactGroup_def RCOSETS_def image_eq_UN)
+      apply (auto intro!: bexI image_eqI simp add: FactGroup_def RCOSETS_def)
+      apply (subst the_elem_image_unique)
+      apply auto
+      done
   qed
 qed
 
@@ -1018,6 +1033,5 @@ theorem (in group_hom) FactGroup_iso:
    \<Longrightarrow> (\<lambda>X. the_elem (h`X)) \<in> (G Mod (kernel G H h)) \<cong> H"
 by (simp add: iso_def FactGroup_hom FactGroup_inj_on bij_betw_def 
               FactGroup_onto) 
-
 
 end

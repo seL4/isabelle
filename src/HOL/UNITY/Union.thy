@@ -396,11 +396,30 @@ by (simp add: stable_def)
 
 lemma safety_prop_Int [simp]:
   "safety_prop X \<Longrightarrow> safety_prop Y \<Longrightarrow> safety_prop (X \<inter> Y)"
-  by (simp add: safety_prop_def) blast
+proof (clarsimp simp add: safety_prop_def)
+  fix G
+  assume "\<forall>G. Acts G \<subseteq> (\<Union>x\<in>X. Acts x) \<longrightarrow> G \<in> X"
+  then have X: "Acts G \<subseteq> (\<Union>x\<in>X. Acts x) \<Longrightarrow> G \<in> X" by blast
+  assume "\<forall>G. Acts G \<subseteq> (\<Union>x\<in>Y. Acts x) \<longrightarrow> G \<in> Y"
+  then have Y: "Acts G \<subseteq> (\<Union>x\<in>Y. Acts x) \<Longrightarrow> G \<in> Y" by blast
+  assume Acts: "Acts G \<subseteq> (\<Union>x\<in>X \<inter> Y. Acts x)"
+  with X and Y show "G \<in> X \<and> G \<in> Y" by auto
+qed  
 
 lemma safety_prop_INTER [simp]:
   "(\<And>i. i \<in> I \<Longrightarrow> safety_prop (X i)) \<Longrightarrow> safety_prop (\<Inter>i\<in>I. X i)"
-  by (simp add: safety_prop_def) blast
+proof (clarsimp simp add: safety_prop_def)
+  fix G and i
+  assume "\<And>i. i \<in> I \<Longrightarrow> \<bottom> \<in> X i \<and>
+    (\<forall>G. Acts G \<subseteq> (\<Union>x\<in>X i. Acts x) \<longrightarrow> G \<in> X i)"
+  then have *: "i \<in> I \<Longrightarrow> Acts G \<subseteq> (\<Union>x\<in>X i. Acts x) \<Longrightarrow> G \<in> X i"
+    by blast
+  assume "i \<in> I"
+  moreover assume "Acts G \<subseteq> (\<Union>j\<in>\<Inter>i\<in>I. X i. Acts j)"
+  ultimately have "Acts G \<subseteq> (\<Union>i\<in>X i. Acts i)"
+    by auto
+  with * `i \<in> I` show "G \<in> X i" by blast
+qed
 
 lemma safety_prop_INTER1 [simp]:
   "(\<And>i. safety_prop (X i)) \<Longrightarrow> safety_prop (\<Inter>i. X i)"

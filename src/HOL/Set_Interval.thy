@@ -1085,26 +1085,33 @@ next
   qed
 qed
 
-lemma UN_UN_finite_eq: "(\<Union>n::nat. \<Union>i\<in>{0..<n}. A i) = (\<Union>n. A n)"
+lemma UN_UN_finite_eq:
+  "(\<Union>n::nat. \<Union>i\<in>{0..<n}. A i) = (\<Union>n. A n)"
   by (auto simp add: atLeast0LessThan) 
 
-lemma UN_finite_subset: "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> C) \<Longrightarrow> (\<Union>n. A n) \<subseteq> C"
+lemma UN_finite_subset:
+  "(\<And>n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> C) \<Longrightarrow> (\<Union>n. A n) \<subseteq> C"
   by (subst UN_UN_finite_eq [symmetric]) blast
 
 lemma UN_finite2_subset: 
-     "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n+k}. B i)) \<Longrightarrow> (\<Union>n. A n) \<subseteq> (\<Union>n. B n)"
-  apply (rule UN_finite_subset)
-  apply (subst UN_UN_finite_eq [symmetric, of B]) 
-  apply blast
-  done
+  assumes "\<And>n::nat. (\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n + k}. B i)"
+  shows "(\<Union>n. A n) \<subseteq> (\<Union>n. B n)"
+proof (rule UN_finite_subset, rule)
+  fix n and a
+  from assms have "(\<Union>i\<in>{0..<n}. A i) \<subseteq> (\<Union>i\<in>{0..<n + k}. B i)" .
+  moreover assume "a \<in> (\<Union>i\<in>{0..<n}. A i)"
+  ultimately have "a \<in> (\<Union>i\<in>{0..<n + k}. B i)" by blast
+  then show "a \<in> (\<Union>i. B i)" by (auto simp add: UN_UN_finite_eq)
+qed
 
 lemma UN_finite2_eq:
-  "(!!n::nat. (\<Union>i\<in>{0..<n}. A i) = (\<Union>i\<in>{0..<n+k}. B i)) \<Longrightarrow> (\<Union>n. A n) = (\<Union>n. B n)"
+  "(\<And>n::nat. (\<Union>i\<in>{0..<n}. A i) = (\<Union>i\<in>{0..<n + k}. B i)) \<Longrightarrow>
+    (\<Union>n. A n) = (\<Union>n. B n)"
   apply (rule subset_antisym)
    apply (rule UN_finite2_subset, blast)
- apply (rule UN_finite2_subset [where k=k])
- apply (force simp add: atLeastLessThan_add_Un [of 0])
- done
+  apply (rule UN_finite2_subset [where k=k])
+  apply (force simp add: atLeastLessThan_add_Un [of 0])
+  done
 
 
 subsubsection \<open>Cardinality\<close>

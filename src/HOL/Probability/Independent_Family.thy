@@ -491,11 +491,18 @@ proof -
         where a: "a = (\<Inter>k\<in>Ka. Ea k)" "finite Ka" "Ka \<noteq> {}" "Ka \<subseteq> I j" "\<And>k. k\<in>Ka \<Longrightarrow> Ea k \<in> E k" by auto
       fix b assume "b \<in> ?E j" then obtain Kb Eb
         where b: "b = (\<Inter>k\<in>Kb. Eb k)" "finite Kb" "Kb \<noteq> {}" "Kb \<subseteq> I j" "\<And>k. k\<in>Kb \<Longrightarrow> Eb k \<in> E k" by auto
-      let ?A = "\<lambda>k. (if k \<in> Ka \<inter> Kb then Ea k \<inter> Eb k else if k \<in> Kb then Eb k else if k \<in> Ka then Ea k else {})"
-      have "a \<inter> b = INTER (Ka \<union> Kb) ?A"
-        by (simp add: a b set_eq_iff) auto
+      let ?f = "\<lambda>k. (if k \<in> Ka \<inter> Kb then Ea k \<inter> Eb k else if k \<in> Kb then Eb k else if k \<in> Ka then Ea k else {})"
+      have "Ka \<union> Kb = (Ka \<inter> Kb) \<union> (Kb - Ka) \<union> (Ka - Kb)"
+        by blast
+      moreover have "(\<Inter>x\<in>Ka \<inter> Kb. Ea x \<inter> Eb x) \<inter>
+        (\<Inter>x\<in>Kb - Ka. Eb x) \<inter> (\<Inter>x\<in>Ka - Kb. Ea x) = (\<Inter>k\<in>Ka. Ea k) \<inter> (\<Inter>k\<in>Kb. Eb k)"
+        by auto
+      ultimately have "(\<Inter>k\<in>Ka \<union> Kb. ?f k) = (\<Inter>k\<in>Ka. Ea k) \<inter> (\<Inter>k\<in>Kb. Eb k)" (is "?lhs = ?rhs")
+        by (simp only: image_Un Inter_Un_distrib) simp
+      then have "a \<inter> b = (\<Inter>k\<in>Ka \<union> Kb. ?f k)"
+        by (simp only: a(1) b(1))
       with a b \<open>j \<in> J\<close> Int_stableD[OF Int_stable] show "a \<inter> b \<in> ?E j"
-        by (intro CollectI exI[of _ "Ka \<union> Kb"] exI[of _ ?A]) auto
+        by (intro CollectI exI[of _ "Ka \<union> Kb"] exI[of _ ?f]) auto
     qed
   qed
   ultimately show ?thesis
@@ -804,14 +811,18 @@ lemma (in prob_space) borel_0_1_law_AE:
 proof -
   have [measurable]: "\<And>m. {x\<in>space M. P m x} \<in> sets M"
     using assms by (auto simp: indep_events_def)
-  have "prob (\<Inter>n. \<Union>m\<in>{n..}. ?P m) = 0 \<or> prob (\<Inter>n. \<Union>m\<in>{n..}. ?P m) = 1"
-    by (rule borel_0_1_law) fact
-  also have "prob (\<Inter>n. \<Union>m\<in>{n..}. ?P m) = 0 \<longleftrightarrow> (AE x in M. finite {m. P m x})"
-    by (subst prob_eq_0) (auto simp add: finite_nat_iff_bounded Ball_def not_less[symmetric])
+  have *: "(\<Inter>n. \<Union>m\<in>{n..}. {x \<in> space M. P m x}) \<in> events"
+    by simp
+  from assms have "prob (\<Inter>n. \<Union>m\<in>{n..}. ?P m) = 0 \<or> prob (\<Inter>n. \<Union>m\<in>{n..}. ?P m) = 1"
+    by (rule borel_0_1_law)
   also have "prob (\<Inter>n. \<Union>m\<in>{n..}. ?P m) = 1 \<longleftrightarrow> (AE x in M. infinite {m. P m x})"
-    by (subst prob_eq_1) (simp_all add: Bex_def infinite_nat_iff_unbounded_le)
+    using * by (simp add: prob_eq_1)
+      (simp add: Bex_def infinite_nat_iff_unbounded_le)
+  also have "prob (\<Inter>n. \<Union>m\<in>{n..}. ?P m) = 0 \<longleftrightarrow> (AE x in M. finite {m. P m x})"
+    using * by (simp add: prob_eq_0)
+      (auto simp add: Ball_def finite_nat_iff_bounded not_less [symmetric])
   finally show ?thesis
-    by metis
+    by blast
 qed
 
 lemma (in prob_space) indep_sets_finite:

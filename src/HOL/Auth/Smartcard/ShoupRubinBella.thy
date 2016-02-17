@@ -819,9 +819,9 @@ done
 
 (*Because initState contains a set of nonces, this is needed for base case of
   analz_image_freshK*)
-lemma analz_image_Key_Un_Nonce: "analz (Key`K \<union> Nonce`N) = Key`K \<union> Nonce`N"
-apply auto
-done
+lemma analz_image_Key_Un_Nonce:
+  "analz (Key ` K \<union> Nonce ` N) = Key ` K \<union> Nonce ` N"
+  by (auto simp del: parts_image)
 
 method_setup sc_analz_freshK = \<open>
     Scan.succeed (fn ctxt =>

@@ -6,6 +6,10 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* January 2016: Florian Haftmann
+  Abolition of compound operators INFIMUM and SUPREMUM
+  for complete lattices.
+
 
 Contributions to Isabelle2016
 -----------------------------

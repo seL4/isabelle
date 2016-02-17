@@ -207,8 +207,16 @@ apply (rule subsetI)
 apply (erule parts.induct, blast+)
 done
 
-lemma parts_UN [simp]: "parts(\<Union>x\<in>A. H x) = (\<Union>x\<in>A. parts(H x))"
-by (intro equalityI parts_UN_subset1 parts_UN_subset2)
+lemma parts_UN [simp]:
+  "parts (\<Union>x\<in>A. H x) = (\<Union>x\<in>A. parts (H x))"
+  by (intro equalityI parts_UN_subset1 parts_UN_subset2)
+
+lemma parts_image [simp]:
+  "parts (f ` A) = (\<Union>x\<in>A. parts {f x})"
+  apply auto
+  apply (metis (mono_tags, hide_lams) image_iff parts_singleton)
+  apply (metis empty_subsetI image_eqI insert_absorb insert_subset parts_mono)
+  done
 
 text\<open>Added to simplify arguments to parts, analz and synth.
   NOTE: the UN versions are no longer used!\<close>
@@ -299,10 +307,7 @@ apply (blast intro: parts.Fst parts.Snd)+
 done
 
 lemma parts_image_Key [simp]: "parts (Key`N) = Key`N"
-apply auto
-apply (erule parts.induct, auto)
-done
-
+by auto
 
 text\<open>In any message, there is an upper bound N on its greatest nonce.\<close>
 lemma msg_Nonce_supply: "\<exists>N. \<forall>n. N\<le>n --> Nonce n \<notin> parts {msg}"

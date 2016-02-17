@@ -532,7 +532,6 @@ lemma closedin_Inter[intro]:
 lemma closedin_INT[intro]:
   assumes "A \<noteq> {}" "\<And>x. x \<in> A \<Longrightarrow> closedin U (B x)"
   shows "closedin U (\<Inter>x\<in>A. B x)"
-  unfolding Inter_image_eq [symmetric]
   apply (rule closedin_Inter)
   using assms
   apply auto
@@ -605,7 +604,7 @@ proof -
     ultimately have "?L (\<Union>K)" by blast
   }
   ultimately show ?thesis
-    unfolding subset_eq mem_Collect_eq istopology_def by blast
+    unfolding subset_eq mem_Collect_eq istopology_def by auto
 qed
 
 lemma openin_subtopology: "openin (subtopology U V) S \<longleftrightarrow> (\<exists>T. openin U T \<and> S = T \<inter> V)"
@@ -2426,7 +2425,7 @@ next
       fix y
       assume "y \<in> {x<..} \<inter> I"
       with False bnd have "Inf (f ` ({x<..} \<inter> I)) \<le> f y"
-        by (auto intro!: cInf_lower bdd_belowI2 simp del: Inf_image_eq)
+        by (auto intro!: cInf_lower bdd_belowI2)
       with a have "a < f y"
         by (blast intro: less_le_trans)
     }
@@ -3802,7 +3801,7 @@ lemma compact_Union [intro]: "finite S \<Longrightarrow> (\<And>T. T \<in> S \<L
 
 lemma compact_UN [intro]:
   "finite A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> compact (B x)) \<Longrightarrow> compact (\<Union>x\<in>A. B x)"
-  unfolding SUP_def by (rule compact_Union) auto
+  by (rule compact_Union) auto
 
 lemma closed_inter_compact [intro]:
   assumes "closed s"
@@ -4090,7 +4089,7 @@ proof (safe intro!: countably_compactI)
         by metis
       def X \<equiv> "\<lambda>n. X' (from_nat_into A ` {.. n})"
       have X: "\<And>n. X n \<in> U - (\<Union>i\<le>n. from_nat_into A i)"
-        using \<open>A \<noteq> {}\<close> unfolding X_def SUP_def by (intro T) (auto intro: from_nat_into)
+        using \<open>A \<noteq> {}\<close> unfolding X_def by (intro T) (auto intro: from_nat_into)
       then have "range X \<subseteq> U"
         by auto
       with subseq[of X] obtain r x where "x \<in> U" and r: "subseq r" "(X \<circ> r) \<longlonglongrightarrow> x"
@@ -4198,7 +4197,7 @@ proof (rule ccontr)
   then have s: "\<And>x. x \<in> s \<Longrightarrow> \<exists>U. x\<in>U \<and> open U \<and> finite (U \<inter> t)" by metis
   have "s \<subseteq> \<Union>C"
     using \<open>t \<subseteq> s\<close>
-    unfolding C_def Union_image_eq
+    unfolding C_def
     apply (safe dest!: s)
     apply (rule_tac a="U \<inter> t" in UN_I)
     apply (auto intro!: interiorI simp add: finite_subset)
@@ -4211,7 +4210,7 @@ proof (rule ccontr)
     by (rule countably_compactE)
   then obtain E where E: "E \<subseteq> {F. finite F \<and> F \<subseteq> t }" "finite E"
     and s: "s \<subseteq> (\<Union>F\<in>E. interior (F \<union> (- t)))"
-    by (metis (lifting) Union_image_eq finite_subset_image C_def)
+    by (metis (lifting) finite_subset_image C_def)
   from s \<open>t \<subseteq> s\<close> have "t \<subseteq> \<Union>E"
     using interior_subset by blast
   moreover have "finite (\<Union>E)"
@@ -4348,7 +4347,7 @@ proof -
     from Rats_dense_in_real[OF \<open>0 < e / 2\<close>] obtain r where "r \<in> \<rat>" "0 < r" "r < e / 2"
       by auto
     from f[rule_format, of r] \<open>0 < r\<close> \<open>x \<in> s\<close> obtain k where "k \<in> f r" "x \<in> ball k r"
-      unfolding Union_image_eq by auto
+      by auto
     from \<open>r \<in> \<rat>\<close> \<open>0 < r\<close> \<open>k \<in> f r\<close> have "ball k r \<in> K"
       by (auto simp: K_def)
     then show "\<exists>b\<in>K. x \<in> b \<and> b \<inter> s \<subseteq> T"
@@ -7412,7 +7411,7 @@ lemma inter_interval_mixed_eq_empty:
 lemma diameter_cbox:
   fixes a b::"'a::euclidean_space"
   shows "(\<forall>i \<in> Basis. a \<bullet> i \<le> b \<bullet> i) \<Longrightarrow> diameter (cbox a b) = dist a b"
-  by (force simp add: diameter_def SUP_def simp del: Sup_image_eq intro!: cSup_eq_maximum setL2_mono
+  by (force simp add: diameter_def intro!: cSup_eq_maximum setL2_mono
      simp: euclidean_dist_l2[where 'a='a] cbox_def dist_norm)
 
 lemma eucl_less_eq_halfspaces:

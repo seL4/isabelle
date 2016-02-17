@@ -932,7 +932,7 @@ proof (rule ereal_le_mult_one_interval)
         have "a * u x < 1 * u x"
           by (intro ereal_mult_strict_right_mono) (auto simp: image_iff)
         also have "\<dots> \<le> (SUP i. f i x)" using u(2) by (auto simp: le_fun_def)
-        finally obtain i where "a * u x < f i x" unfolding SUP_def
+        finally obtain i where "a * u x < f i x"
           by (auto simp add: less_SUP_iff)
         hence "a * u x \<le> f i x" by auto
         thus ?thesis using \<open>x \<in> space M\<close> by auto
@@ -2042,7 +2042,7 @@ proof (rule order_class.order.antisym)
     by (auto intro!: SUP_least SUP_upper nn_integral_mono)
 next
   have "\<And>x. \<exists>g. incseq g \<and> range g \<subseteq> (\<lambda>i. f i x) ` Y \<and> (SUP i:Y. f i x) = (SUP i. g i)"
-    unfolding Sup_class.SUP_def by(rule Sup_countable_SUP[unfolded Sup_class.SUP_def])(simp add: nonempty)
+    by (rule Sup_countable_SUP) (simp add: nonempty)
   then obtain g where incseq: "\<And>x. incseq (g x)"
     and range: "\<And>x. range (g x) \<subseteq> (\<lambda>i. f i x) ` Y"
     and sup: "\<And>x. (SUP i:Y. f i x) = (SUP i. g x i)" by moura
@@ -2088,8 +2088,8 @@ next
           assume "x \<in> {..<m}"
           hence "x < m" by simp
           have "g x n = f (I x) x" by(simp add: I)
-          also have "\<dots> \<le> (SUP i:?Y. f i) x" unfolding SUP_def Sup_fun_def image_image
-            using \<open>x \<in> {..<m}\<close> by(rule Sup_upper[OF imageI])
+          also have "\<dots> \<le> (SUP i:?Y. f i) x" unfolding Sup_fun_def image_image
+            using \<open>x \<in> {..<m}\<close> by (rule Sup_upper [OF imageI])
           also have "\<dots> = f (I m') x" unfolding m' by simp
           finally show "g x n \<le> f (I m') x" .
         qed
@@ -2264,7 +2264,7 @@ proof -
       by (subst s_eq) (auto simp: image_subset_iff le_fun_def split: split_indicator split_indicator_asm)
   qed
   then show ?thesis
-    unfolding nn_integral_def_finite SUP_def by simp
+    unfolding nn_integral_def_finite by (simp cong del: strong_SUP_cong)
 qed
 
 lemma nn_integral_count_space_indicator:

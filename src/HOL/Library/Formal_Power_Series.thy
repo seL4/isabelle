@@ -3181,7 +3181,7 @@ proof -
   let ?KM = "{(k,m). k + m \<le> n}"
   let ?f = "\<lambda>s. UNION {(0::nat)..s} (\<lambda>i. {(i,s - i)})"
   have th0: "?KM = UNION {0..n} ?f"
-    by (auto simp add: set_eq_iff Bex_def)
+    by auto
   show "?l = ?r "
     unfolding th0
     apply (subst setsum.UNION_disjoint)

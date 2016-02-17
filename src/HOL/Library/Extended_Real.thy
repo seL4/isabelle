@@ -2002,12 +2002,11 @@ lemma SUP_ereal_add_left:
 proof cases
   assume "(SUP i:I. f i) = - \<infinity>"
   moreover then have "\<And>i. i \<in> I \<Longrightarrow> f i = -\<infinity>"
-    unfolding Sup_eq_MInfty Sup_image_eq[symmetric] by auto
+    unfolding Sup_eq_MInfty by auto
   ultimately show ?thesis
     by (cases c) (auto simp: \<open>I \<noteq> {}\<close>)
 next
   assume "(SUP i:I. f i) \<noteq> - \<infinity>" then show ?thesis
-    unfolding Sup_image_eq[symmetric]
     by (subst continuous_at_Sup_mono[where f="\<lambda>x. x + c"])
        (auto simp: continuous_at_imp_continuous_at_within continuous_at mono_def ereal_add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close>)
 qed
@@ -2130,7 +2129,6 @@ proof cases
     by simp
 next
   assume "(SUP i:I. f i) \<noteq> 0" then show ?thesis
-    unfolding SUP_def
     by (subst continuous_at_Sup_mono[where f="\<lambda>x. c * x"])
        (auto simp: mono_def continuous_at continuous_at_imp_continuous_at_within \<open>I \<noteq> {}\<close>
              intro!: ereal_mult_left_mono c)

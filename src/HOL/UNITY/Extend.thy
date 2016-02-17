@@ -382,21 +382,25 @@ lemma project_extend_eq:
                                      (project_act h -` AllowedActs F)})"
 apply (rule program_equalityI)
   apply simp
- apply (simp add: image_eq_UN)
+ apply (simp add: image_image)
 apply (simp add: project_def)
 done
 
 lemma extend_inverse [simp]:
      "project h UNIV (extend h F) = F"
-apply (simp (no_asm_simp) add: project_extend_eq image_eq_UN
+apply (simp (no_asm_simp) add: project_extend_eq
           subset_UNIV [THEN subset_trans, THEN Restrict_triv])
 apply (rule program_equalityI)
 apply (simp_all (no_asm))
 apply (subst insert_absorb)
 apply (simp (no_asm) add: bexI [of _ Id])
 apply auto
+apply (simp add: image_def)
+using project_act_Id apply blast
+apply (simp add: image_def)
 apply (rename_tac "act")
-apply (rule_tac x = "extend_act h act" in bexI, auto)
+apply (rule_tac x = "extend_act h act" in exI)
+apply simp
 done
 
 lemma inj_extend: "inj (extend h)"
@@ -641,11 +645,12 @@ lemma inj_extend_preserves: "inj h ==> (extend h G \<in> preserves g)"
 subsection{*Guarantees*}
 
 lemma project_extend_Join: "project h UNIV ((extend h F)\<squnion>G) = F\<squnion>(project h UNIV G)"
-apply (rule program_equalityI)
-  apply (simp add: project_set_extend_set_Int)
- apply (auto simp add: image_eq_UN)
-done
-
+  apply (rule program_equalityI)
+  apply (auto simp add: project_set_extend_set_Int image_iff)
+  apply (metis Un_iff extend_act_inverse image_iff)
+  apply (metis Un_iff extend_act_inverse image_iff)
+  done
+  
 lemma extend_Join_eq_extend_D:
      "(extend h F)\<squnion>G = extend h H ==> H = F\<squnion>(project h UNIV G)"
 apply (drule_tac f = "project h UNIV" in arg_cong)

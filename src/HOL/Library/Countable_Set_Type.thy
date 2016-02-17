@@ -123,7 +123,11 @@ by auto
 
 lemma cUnion_transfer [transfer_rule]:
   "rel_fun (pcr_cset (pcr_cset A)) (pcr_cset A) Union cUnion"
-unfolding cUnion_def[abs_def] Union_conv_UNION[abs_def] by transfer_prover
+proof -
+  have "rel_fun (pcr_cset (pcr_cset A)) (pcr_cset A) (\<lambda>A. UNION A id) (\<lambda>A. cUNION A id)"
+    by transfer_prover
+  then show ?thesis by (simp add: cUnion_def [symmetric])
+qed
 
 lemmas cset_eqI = set_eqI[Transfer.transferred]
 lemmas cset_eq_iff[no_atp] = set_eq_iff[Transfer.transferred]
@@ -342,11 +346,9 @@ lemmas cminus_mono = Diff_mono[Transfer.transferred]
 lemmas cin_mono = in_mono[Transfer.transferred]
 lemmas cLeast_mono = Least_mono[Transfer.transferred]
 lemmas cequalityI = equalityI[Transfer.transferred]
-lemmas cUnion_cimage_eq [simp] = Union_image_eq[Transfer.transferred]
 lemmas cUN_iff [simp] = UN_iff[Transfer.transferred]
 lemmas cUN_I [intro] = UN_I[Transfer.transferred]
 lemmas cUN_E [elim!] = UN_E[Transfer.transferred]
-lemmas cimage_eq_cUN = image_eq_UN[Transfer.transferred]
 lemmas cUN_upper = UN_upper[Transfer.transferred]
 lemmas cUN_least = UN_least[Transfer.transferred]
 lemmas cUN_cinsert_distrib = UN_insert_distrib[Transfer.transferred]

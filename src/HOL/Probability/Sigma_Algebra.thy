@@ -432,10 +432,10 @@ lemma range_binary_eq: "range(binary a b) = {a,b}"
   by (auto simp add: binary_def)
 
 lemma Un_range_binary: "a \<union> b = (\<Union>i::nat. binary a b i)"
-  by (simp add: SUP_def range_binary_eq)
+  by (simp add: range_binary_eq cong del: strong_SUP_cong)
 
 lemma Int_range_binary: "a \<inter> b = (\<Inter>i::nat. binary a b i)"
-  by (simp add: INF_def range_binary_eq)
+  by (simp add: range_binary_eq cong del: strong_INF_cong)
 
 lemma sigma_algebra_iff2:
      "sigma_algebra \<Omega> M \<longleftrightarrow>
@@ -535,11 +535,14 @@ proof -
   finally show ?thesis .
 qed
 
-lemma sigma_sets_UNION: "countable B \<Longrightarrow> (\<And>b. b \<in> B \<Longrightarrow> b \<in> sigma_sets X A) \<Longrightarrow> (\<Union>B) \<in> sigma_sets X A"
-  using from_nat_into[of B] range_from_nat_into[of B] sigma_sets.Union[of "from_nat_into B" X A]
+lemma sigma_sets_UNION:
+  "countable B \<Longrightarrow> (\<And>b. b \<in> B \<Longrightarrow> b \<in> sigma_sets X A) \<Longrightarrow> (\<Union>B) \<in> sigma_sets X A"
   apply (cases "B = {}")
   apply (simp add: sigma_sets.Empty)
-  apply (simp del: Union_image_eq add: Union_image_eq[symmetric])
+  using from_nat_into [of B] range_from_nat_into [of B] sigma_sets.Union [of "from_nat_into B" X A]
+  apply simp
+  apply auto
+  apply (metis Sup_bot_conv(1) Union_empty `\<lbrakk>B \<noteq> {}; countable B\<rbrakk> \<Longrightarrow> range (from_nat_into B) = B`)
   done
 
 lemma (in sigma_algebra) sigma_sets_eq:
@@ -835,7 +838,7 @@ lemma (in semiring_of_sets) generated_ring_disjoint_Union:
 
 lemma (in semiring_of_sets) generated_ring_disjoint_UNION:
   "finite I \<Longrightarrow> disjoint (A ` I) \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> A i \<in> generated_ring) \<Longrightarrow> UNION I A \<in> generated_ring"
-  unfolding SUP_def by (intro generated_ring_disjoint_Union) auto
+  by (intro generated_ring_disjoint_Union) auto
 
 lemma (in semiring_of_sets) generated_ring_Int:
   assumes a: "a \<in> generated_ring" and b: "b \<in> generated_ring"
@@ -873,7 +876,7 @@ lemma (in semiring_of_sets) generated_ring_Inter:
 
 lemma (in semiring_of_sets) generated_ring_INTER:
   "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> A i \<in> generated_ring) \<Longrightarrow> INTER I A \<in> generated_ring"
-  unfolding INF_def by (intro generated_ring_Inter) auto
+  by (intro generated_ring_Inter) auto
 
 lemma (in semiring_of_sets) generating_ring:
   "ring_of_sets \<Omega> generated_ring"
@@ -898,6 +901,7 @@ proof (rule ring_of_setsI)
         fix a b assume "a \<in> Ca" "b \<in> Cb"
         with Ca Cb Diff_cover[of a b] show "a - b \<in> ?R"
           by (auto simp add: generated_ring_def)
+            (metis DiffI Diff_eq_empty_iff empty_iff)
       next
         show "disjoint ((\<lambda>a'. \<Inter>b'\<in>Cb. a' - b')`Ca)"
           using Ca by (auto simp add: disjoint_def \<open>Cb \<noteq> {}\<close>)
@@ -935,7 +939,7 @@ lemma range_binaryset_eq: "range(binaryset A B) = {A,B,{}}"
   done
 
 lemma UN_binaryset_eq: "(\<Union>i. binaryset A B i) = A \<union> B"
-  by (simp add: SUP_def range_binaryset_eq)
+  by (simp add: range_binaryset_eq cong del: strong_SUP_cong)
 
 subsubsection \<open>Closed CDI\<close>
 

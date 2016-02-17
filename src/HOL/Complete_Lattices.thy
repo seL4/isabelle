@@ -17,28 +17,25 @@ class Inf =
   fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
 begin
 
-definition INFIMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  INF_def: "INFIMUM A f = \<Sqinter>(f ` A)"
-
-lemma Inf_image_eq [simp]:
-  "\<Sqinter>(f ` A) = INFIMUM A f"
-  by (simp add: INF_def)
+abbreviation INFIMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
+where
+  "INFIMUM A f \<equiv> \<Sqinter>(f ` A)"
 
 lemma INF_image [simp]:
   "INFIMUM (f ` A) g = INFIMUM A (g \<circ> f)"
-  by (simp only: INF_def image_comp)
+  by (simp add: image_comp)
 
 lemma INF_identity_eq [simp]:
   "INFIMUM A (\<lambda>x. x) = \<Sqinter>A"
-  by (simp add: INF_def)
+  by simp
 
 lemma INF_id_eq [simp]:
   "INFIMUM A id = \<Sqinter>A"
-  by (simp add: id_def)
+  by simp
 
 lemma INF_cong:
   "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> INFIMUM A C = INFIMUM B D"
-  by (simp add: INF_def image_def)
+  by (simp add: image_def)
 
 lemma strong_INF_cong [cong]:
   "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> INFIMUM A C = INFIMUM B D"
@@ -50,20 +47,17 @@ class Sup =
   fixes Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
 begin
 
-definition SUPREMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  SUP_def: "SUPREMUM A f = \<Squnion>(f ` A)"
-
-lemma Sup_image_eq [simp]:
-  "\<Squnion>(f ` A) = SUPREMUM A f"
-  by (simp add: SUP_def)
+abbreviation SUPREMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
+where
+  "SUPREMUM A f \<equiv> \<Squnion>(f ` A)"
 
 lemma SUP_image [simp]:
   "SUPREMUM (f ` A) g = SUPREMUM A (g \<circ> f)"
-  by (simp only: SUP_def image_comp)
+  by (simp add: image_comp)
 
 lemma SUP_identity_eq [simp]:
   "SUPREMUM A (\<lambda>x. x) = \<Squnion>A"
-  by (simp add: SUP_def)
+  by simp
 
 lemma SUP_id_eq [simp]:
   "SUPREMUM A id = \<Squnion>A"
@@ -71,7 +65,7 @@ lemma SUP_id_eq [simp]:
 
 lemma SUP_cong:
   "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> SUPREMUM A C = SUPREMUM B D"
-  by (simp add: SUP_def image_def)
+  by (simp add: image_def)
 
 lemma strong_SUP_cong [cong]:
   "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> SUPREMUM A C = SUPREMUM B D"
@@ -153,14 +147,6 @@ end
 context complete_lattice
 begin
 
-lemma INF_foundation_dual:
-  "Sup.SUPREMUM Inf = INFIMUM"
-  by (simp add: fun_eq_iff Sup.SUP_def)
-
-lemma SUP_foundation_dual:
-  "Inf.INFIMUM Sup = SUPREMUM"
-  by (simp add: fun_eq_iff Inf.INF_def)
-
 lemma Sup_eqI:
   "(\<And>y. y \<in> A \<Longrightarrow> y \<le> x) \<Longrightarrow> (\<And>y. (\<And>z. z \<in> A \<Longrightarrow> z \<le> y) \<Longrightarrow> x \<le> y) \<Longrightarrow> \<Squnion>A = x"
   by (blast intro: antisym Sup_least Sup_upper)
@@ -217,19 +203,19 @@ lemma Inf_insert [simp]: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
   by (auto intro: le_infI le_infI1 le_infI2 antisym Inf_greatest Inf_lower)
 
 lemma INF_insert [simp]: "(\<Sqinter>x\<in>insert a A. f x) = f a \<sqinter> INFIMUM A f"
-  unfolding INF_def Inf_insert by simp
+  by (simp cong del: strong_INF_cong)
 
 lemma Sup_insert [simp]: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
   by (auto intro: le_supI le_supI1 le_supI2 antisym Sup_least Sup_upper)
 
 lemma SUP_insert [simp]: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> SUPREMUM A f"
-  unfolding SUP_def Sup_insert by simp
+  by (simp cong del: strong_SUP_cong)
 
 lemma INF_empty [simp]: "(\<Sqinter>x\<in>{}. f x) = \<top>"
-  by (simp add: INF_def)
+  by (simp cong del: strong_INF_cong)
 
 lemma SUP_empty [simp]: "(\<Squnion>x\<in>{}. f x) = \<bottom>"
-  by (simp add: SUP_def)
+  by (simp cong del: strong_SUP_cong)
 
 lemma Inf_UNIV [simp]:
   "\<Sqinter>UNIV = \<bottom>"
@@ -308,17 +294,17 @@ proof -
   ultimately show ?thesis by (rule Sup_upper2)
 qed
 
-lemma SUP_eq:
-  assumes "\<And>i. i \<in> A \<Longrightarrow> \<exists>j\<in>B. f i \<le> g j"
-  assumes "\<And>j. j \<in> B \<Longrightarrow> \<exists>i\<in>A. g j \<le> f i"
-  shows "(\<Squnion>i\<in>A. f i) = (\<Squnion>j\<in>B. g j)"
-  by (intro antisym SUP_least) (blast intro: SUP_upper2 dest: assms)+
-
 lemma INF_eq:
   assumes "\<And>i. i \<in> A \<Longrightarrow> \<exists>j\<in>B. f i \<ge> g j"
   assumes "\<And>j. j \<in> B \<Longrightarrow> \<exists>i\<in>A. g j \<ge> f i"
-  shows "(\<Sqinter>i\<in>A. f i) = (\<Sqinter>j\<in>B. g j)"
+  shows "INFIMUM A f = INFIMUM B g"
   by (intro antisym INF_greatest) (blast intro: INF_lower2 dest: assms)+
+
+lemma SUP_eq:
+  assumes "\<And>i. i \<in> A \<Longrightarrow> \<exists>j\<in>B. f i \<le> g j"
+  assumes "\<And>j. j \<in> B \<Longrightarrow> \<exists>i\<in>A. g j \<le> f i"
+  shows "SUPREMUM A f = SUPREMUM B g"
+  by (intro antisym SUP_least) (blast intro: SUP_upper2 dest: assms)+
 
 lemma less_eq_Inf_inter: "\<Sqinter>A \<squnion> \<Sqinter>B \<sqsubseteq> \<Sqinter>(A \<inter> B)"
   by (auto intro: Inf_greatest Inf_lower)
@@ -498,24 +484,24 @@ begin
 
 lemma sup_INF:
   "a \<squnion> (\<Sqinter>b\<in>B. f b) = (\<Sqinter>b\<in>B. a \<squnion> f b)"
-  by (simp only: INF_def sup_Inf image_image)
+  unfolding sup_Inf by simp
 
 lemma inf_SUP:
   "a \<sqinter> (\<Squnion>b\<in>B. f b) = (\<Squnion>b\<in>B. a \<sqinter> f b)"
-  by (simp only: SUP_def inf_Sup image_image)
+  unfolding inf_Sup by simp
 
 lemma dual_complete_distrib_lattice:
   "class.complete_distrib_lattice Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom>"
   apply (rule class.complete_distrib_lattice.intro)
   apply (fact dual_complete_lattice)
   apply (rule class.complete_distrib_lattice_axioms.intro)
-  apply (simp_all only: INF_foundation_dual SUP_foundation_dual inf_Sup sup_Inf)
+  apply (simp_all add: inf_Sup sup_Inf)
   done
 
 subclass distrib_lattice proof
   fix a b c
   from sup_Inf have "a \<squnion> \<Sqinter>{b, c} = (\<Sqinter>d\<in>{b, c}. a \<squnion> d)" .
-  then show "a \<squnion> b \<sqinter> c = (a \<squnion> b) \<sqinter> (a \<squnion> c)" by (simp add: INF_def)
+  then show "a \<squnion> b \<sqinter> c = (a \<squnion> b) \<sqinter> (a \<squnion> c)" by simp
 qed
 
 lemma Inf_sup:
@@ -592,7 +578,7 @@ proof (rule antisym)
 qed
 
 lemma uminus_INF: "- (\<Sqinter>x\<in>A. B x) = (\<Squnion>x\<in>A. - B x)"
-  by (simp only: INF_def SUP_def uminus_Inf image_image)
+  by (simp add: uminus_Inf image_image)
 
 lemma uminus_Sup:
   "- (\<Squnion>A) = \<Sqinter>(uminus ` A)"
@@ -602,7 +588,7 @@ proof -
 qed
   
 lemma uminus_SUP: "- (\<Squnion>x\<in>A. B x) = (\<Sqinter>x\<in>A. - B x)"
-  by (simp only: INF_def SUP_def uminus_Sup image_image)
+  by (simp add: uminus_Sup image_image)
 
 end
 
@@ -731,11 +717,11 @@ lemma True_in_image_Bex [simp]:
 
 lemma INF_bool_eq [simp]:
   "INFIMUM = Ball"
-  by (simp add: fun_eq_iff INF_def)
+  by (simp add: fun_eq_iff)
 
 lemma SUP_bool_eq [simp]:
   "SUPREMUM = Bex"
-  by (simp add: fun_eq_iff SUP_def)
+  by (simp add: fun_eq_iff)
 
 instance bool :: complete_boolean_algebra proof
 qed (auto intro: bool_induct)
@@ -788,8 +774,7 @@ lemma SUP_apply [simp]:
   using Sup_apply [of "f ` A"] by (simp add: comp_def)
 
 instance "fun" :: (type, complete_distrib_lattice) complete_distrib_lattice proof
-qed (auto simp add: INF_def SUP_def inf_Sup sup_Inf fun_eq_iff image_image
-  simp del: Inf_image_eq Sup_image_eq)
+qed (auto simp add: inf_Sup sup_Inf fun_eq_iff image_image)
 
 instance "fun" :: (type, complete_boolean_algebra) complete_boolean_algebra ..
 
@@ -903,7 +888,7 @@ end
 
 instance "set" :: (type) complete_boolean_algebra
 proof
-qed (auto simp add: INF_def SUP_def Inf_set_def Sup_set_def image_def)
+qed (auto simp add: Inf_set_def Sup_set_def image_def)
   
 
 subsubsection \<open>Inter\<close>
@@ -1011,22 +996,18 @@ lemma INTER_eq:
   "(\<Inter>x\<in>A. B x) = {y. \<forall>x\<in>A. y \<in> B x}"
   by (auto intro!: INF_eqI)
 
-lemma Inter_image_eq:
-  "\<Inter>(B ` A) = (\<Inter>x\<in>A. B x)"
-  by (fact Inf_image_eq)
-
 lemma INT_iff [simp]: "b \<in> (\<Inter>x\<in>A. B x) \<longleftrightarrow> (\<forall>x\<in>A. b \<in> B x)"
   using Inter_iff [of _ "B ` A"] by simp
 
 lemma INT_I [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> b \<in> B x) \<Longrightarrow> b \<in> (\<Inter>x\<in>A. B x)"
-  by (auto simp add: INF_def image_def)
+  by auto
 
 lemma INT_D [elim, Pure.elim]: "b \<in> (\<Inter>x\<in>A. B x) \<Longrightarrow> a \<in> A \<Longrightarrow> b \<in> B a"
   by auto
 
 lemma INT_E [elim]: "b \<in> (\<Inter>x\<in>A. B x) \<Longrightarrow> (b \<in> B a \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
   \<comment> \<open>"Classical" elimination -- by the Excluded Middle on @{prop "a\<in>A"}.\<close>
-  by (auto simp add: INF_def image_def)
+  by auto
 
 lemma Collect_ball_eq: "{x. \<forall>y\<in>A. P x y} = (\<Inter>y\<in>A. {x. P x y})"
   by blast
@@ -1198,10 +1179,6 @@ lemma member_bind [simp]:
   "x \<in> Set.bind P f \<longleftrightarrow> x \<in> UNION P f "
   by (simp add: bind_UNION)
 
-lemma Union_image_eq:
-  "\<Union>(B ` A) = (\<Union>x\<in>A. B x)"
-  by (fact Sup_image_eq)
-
 lemma Union_SetCompr_eq: "\<Union>{f x| x. P x} = {a. \<exists>x. P x \<and> a \<in> f x}"
   by blast
 
@@ -1214,10 +1191,7 @@ lemma UN_I [intro]: "a \<in> A \<Longrightarrow> b \<in> B a \<Longrightarrow> b
   by auto
 
 lemma UN_E [elim!]: "b \<in> (\<Union>x\<in>A. B x) \<Longrightarrow> (\<And>x. x\<in>A \<Longrightarrow> b \<in> B x \<Longrightarrow> R) \<Longrightarrow> R"
-  by (auto simp add: SUP_def image_def)
-
-lemma image_eq_UN: "f ` A = (\<Union>x\<in>A. {f x})"
-  by blast
+  by auto
 
 lemma UN_upper: "a \<in> A \<Longrightarrow> B a \<subseteq> (\<Union>x\<in>A. B x)"
   by (fact SUP_upper)
@@ -1273,7 +1247,7 @@ lemma bex_UN: "(\<exists>z \<in> UNION A B. P z) \<longleftrightarrow> (\<exists
   by blast
 
 lemma Un_eq_UN: "A \<union> B = (\<Union>b. if b then A else B)"
-  by (auto simp add: split_if_mem2)
+  by safe (auto simp add: split_if_mem2)
 
 lemma UN_bool_eq: "(\<Union>b. A b) = (A True \<union> A False)"
   by (fact SUP_UNIV_bool_expand)
@@ -1355,7 +1329,7 @@ lemma inj_on_Inter:
 
 lemma inj_on_INTER:
   "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> inj_on f (A i)) \<Longrightarrow> inj_on f (\<Inter>i \<in> I. A i)"
-  unfolding inj_on_def by blast
+  unfolding inj_on_def by safe simp
 
 lemma inj_on_UNION_chain:
   assumes CH: "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i" and
@@ -1414,20 +1388,19 @@ qed
 lemma image_INT:
    "[| inj_on f C;  ALL x:A. B x <= C;  j:A |]
     ==> f ` (INTER A B) = (INT x:A. f ` B x)"
-apply (simp add: inj_on_def, blast)
-done
+  by (simp add: inj_on_def, auto) blast
 
-(*Compare with image_INT: no use of inj_on, and if f is surjective then
-  it doesn't matter whether A is empty*)
 lemma bij_image_INT: "bij f ==> f ` (INTER A B) = (INT x:A. f ` B x)"
-apply (simp add: bij_def)
-apply (simp add: inj_on_def surj_def, blast)
-done
+  apply (simp add: bij_def)
+  apply (simp add: inj_on_def surj_def)
+  apply auto
+  apply blast
+  done
 
 lemma UNION_fun_upd:
-  "UNION J (A(i:=B)) = (UNION (J-{i}) A \<union> (if i\<in>J then B else {}))"
-by (auto split: if_splits)
-
+  "UNION J (A(i := B)) = UNION (J - {i}) A \<union> (if i \<in> J then B else {})"
+  by (auto simp add: set_eq_iff)
+  
 
 subsubsection \<open>Complement\<close>
 

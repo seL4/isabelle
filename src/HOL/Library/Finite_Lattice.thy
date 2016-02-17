@@ -116,12 +116,12 @@ lemma finite_top_prod:
 lemma finite_Inf_prod:
   "Inf(A :: ('a::finite_lattice_complete \<times> 'b::finite_lattice_complete) set) =
     Finite_Set.fold inf top A"
-  by (metis Inf_fold_inf finite_code)
+  by (metis Inf_fold_inf finite)
 
 lemma finite_Sup_prod:
   "Sup (A :: ('a::finite_lattice_complete \<times> 'b::finite_lattice_complete) set) =
     Finite_Set.fold sup bot A"
-  by (metis Sup_fold_sup finite_code)
+  by (metis Sup_fold_sup finite)
 
 instance prod :: (finite_lattice_complete, finite_lattice_complete) finite_lattice_complete
   by standard (auto simp: finite_bot_prod finite_top_prod finite_Inf_prod finite_Sup_prod)
@@ -130,20 +130,20 @@ text \<open>Functions with a finite domain and with a finite lattice as codomain
 already form a finite lattice.\<close>
 
 lemma finite_bot_fun: "(bot :: ('a::finite \<Rightarrow> 'b::finite_lattice_complete)) = Inf_fin UNIV"
-  by (metis Inf_UNIV Inf_fin_Inf empty_not_UNIV finite_code)
+  by (metis Inf_UNIV Inf_fin_Inf empty_not_UNIV finite)
 
 lemma finite_top_fun: "(top :: ('a::finite \<Rightarrow> 'b::finite_lattice_complete)) = Sup_fin UNIV"
-  by (metis Sup_UNIV Sup_fin_Sup empty_not_UNIV finite_code)
+  by (metis Sup_UNIV Sup_fin_Sup empty_not_UNIV finite)
 
 lemma finite_Inf_fun:
   "Inf (A::('a::finite \<Rightarrow> 'b::finite_lattice_complete) set) =
     Finite_Set.fold inf top A"
-  by (metis Inf_fold_inf finite_code)
+  by (metis Inf_fold_inf finite)
 
 lemma finite_Sup_fun:
   "Sup (A::('a::finite \<Rightarrow> 'b::finite_lattice_complete) set) =
     Finite_Set.fold sup bot A"
-  by (metis Sup_fold_sup finite_code)
+  by (metis Sup_fold_sup finite)
 
 instance "fun" :: (finite, finite_lattice_complete) finite_lattice_complete
   by standard (auto simp: finite_bot_fun finite_top_fun finite_Inf_fun finite_Sup_fun)
@@ -165,11 +165,7 @@ lemma finite_distrib_lattice_complete_sup_Inf:
 
 lemma finite_distrib_lattice_complete_inf_Sup:
   "inf (x::'a::finite_distrib_lattice_complete) (Sup A) = (SUP y:A. inf x y)"
-  apply (rule finite_induct)
-  apply (metis finite_code)
-  apply (metis SUP_empty Sup_empty inf_bot_right)
-  apply (metis SUP_insert Sup_insert inf_sup_distrib1)
-  done
+  using finite [of A] by induct (simp_all add: inf_sup_distrib1)
 
 instance finite_distrib_lattice_complete \<subseteq> complete_distrib_lattice
 proof

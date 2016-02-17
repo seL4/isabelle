@@ -884,7 +884,7 @@ proof -
   have "(\<Union>i\<in>I. N i) = \<Union>(N ` range (from_nat_into I))"
     using I by simp
   also have "\<dots> = (\<Union>i. (N \<circ> from_nat_into I) i)"
-    by (simp only: SUP_def image_comp)
+    by simp
   finally show ?thesis by simp
 qed
 
@@ -1228,7 +1228,7 @@ proof -
     range: "range A \<subseteq> sets M" and
     space: "(\<Union>i. A i) = space M" and
     measure: "\<And>i. emeasure M (A i) \<noteq> \<infinity>"
-    using sigma_finite by auto
+    using sigma_finite by blast
   show thesis
   proof (rule that[of "disjointed A"])
     show "range (disjointed A) \<subseteq> sets M"
@@ -1252,7 +1252,7 @@ lemma (in sigma_finite_measure) sigma_finite_incseq:
 proof -
   obtain F :: "nat \<Rightarrow> 'a set" where
     F: "range F \<subseteq> sets M" "(\<Union>i. F i) = space M" "\<And>i. emeasure M (F i) \<noteq> \<infinity>"
-    using sigma_finite by auto
+    using sigma_finite by blast
   show thesis
   proof (rule that[of "\<lambda>n. \<Union>i\<le>n. F i"])
     show "range (\<lambda>n. \<Union>i\<le>n. F i) \<subseteq> sets M"
@@ -1731,8 +1731,10 @@ lemma (in finite_measure) measure_real_sum_image_fn:
   assumes upper: "space M \<subseteq> (\<Union>i \<in> s. f i)"
   shows "measure M e = (\<Sum> x \<in> s. measure M (e \<inter> f x))"
 proof -
-  have e: "e = (\<Union>i \<in> s. e \<inter> f i)"
+  have "e \<subseteq> (\<Union>i\<in>s. f i)"
     using \<open>e \<in> sets M\<close> sets.sets_into_space upper by blast
+  then have e: "e = (\<Union>i \<in> s. e \<inter> f i)"
+    by auto
   hence "measure M e = measure M (\<Union>i \<in> s. e \<inter> f i)" by simp
   also have "\<dots> = (\<Sum> x \<in> s. measure M (e \<inter> f x))"
   proof (rule finite_measure_finite_Union)
@@ -2074,7 +2076,7 @@ proof (rule measure_eqI)
       using E \<Omega> by (subst (1 2) emeasure_restrict_space) (auto simp: sets_eq sets_eq[THEN sets_eq_imp_space_eq])
   next
     show "range (from_nat_into A) \<subseteq> E" "(\<Union>i. from_nat_into A i) = \<Omega>"
-      unfolding Sup_image_eq[symmetric, where f="from_nat_into A"] using A by auto
+      using A by (auto cong del: strong_SUP_cong)
   next
     fix i
     have "emeasure (restrict_space M \<Omega>) (from_nat_into A i) = emeasure M (from_nat_into A i)"
@@ -2333,12 +2335,12 @@ lemma
   assumes A: "Complete_Partial_Order.chain op \<le> (f ` A)" and a: "a \<in> A" "f a \<noteq> bot"
   shows space_SUP: "space (SUP M:A. f M) = space (f a)"
     and sets_SUP: "sets (SUP M:A. f M) = sets (f a)"
-unfolding SUP_def by(rule space_Sup[OF A a(2) imageI[OF a(1)]] sets_Sup[OF A a(2) imageI[OF a(1)]])+
+by(rule space_Sup[OF A a(2) imageI[OF a(1)]] sets_Sup[OF A a(2) imageI[OF a(1)]])+
 
 lemma emeasure_SUP:
   assumes A: "Complete_Partial_Order.chain op \<le> (f ` A)" "A \<noteq> {}"
   assumes "X \<in> sets (SUP M:A. f M)"
   shows "emeasure (SUP M:A. f M) X = (SUP M:A. emeasure (f M)) X"
-using \<open>X \<in> _\<close> unfolding SUP_def by(subst emeasure_Sup[OF A(1)]; simp add: A)
+using \<open>X \<in> _\<close> by(subst emeasure_Sup[OF A(1)]; simp add: A)
 
 end

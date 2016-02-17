@@ -203,7 +203,6 @@ done
 
 lemma leadsTo_UN: 
     "(!!i. i \<in> I ==> F \<in> (A i) leadsTo B) ==> F \<in> (\<Union>i \<in> I. A i) leadsTo B"
-apply (subst Union_image_eq [symmetric])
 apply (blast intro: leadsTo_Union)
 done
 
@@ -310,7 +309,6 @@ by (blast intro: leadsTo_Un leadsTo_weaken)
 lemma leadsTo_UN_UN:
    "(!! i. i \<in> I ==> F \<in> (A i) leadsTo (A' i))  
     ==> F \<in> (\<Union>i \<in> I. A i) leadsTo (\<Union>i \<in> I. A' i)"
-apply (simp only: Union_image_eq [symmetric])
 apply (blast intro: leadsTo_Union leadsTo_weaken_R)
 done
 

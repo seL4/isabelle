@@ -696,7 +696,7 @@ proof safe
   have "A -` y \<inter> space (PiF I M) = (\<Union>J\<in>I. A -` y \<inter> space (PiF {J} M))"
     by (auto simp: space_PiF)
   also have "\<dots> \<in> sets (PiF I M)"
-  proof
+  proof (rule sets.finite_UN)
     show "finite I" by fact
     fix J assume "J \<in> I"
     with assms have "finite J" by simp
@@ -1055,8 +1055,8 @@ proof
           by (intro Pi'_cong) (simp_all add: S_union)
         also have "\<dots> = (\<Union>xs\<in>{xs. length xs = card I}. \<Pi>' j\<in>I. if i = j then A else S j (xs ! T j))"
           using T
-          apply auto
-          apply (simp_all add: Pi'_iff bchoice_iff)
+          apply (auto simp del: Union_iff)
+          apply (simp_all add: Pi'_iff bchoice_iff del: Union_iff)
           apply (erule conjE exE)+
           apply (rule_tac x="map (\<lambda>n. f (the_inv_into I T n)) [0..<card I]" in exI)
           apply (auto simp: bij_betw_def)

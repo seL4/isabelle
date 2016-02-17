@@ -51,7 +51,7 @@ proof -
     space: "(\<Union>i. A i) = space M" and
     measure: "\<And>i. emeasure M (A i) \<noteq> \<infinity>" and
     disjoint: "disjoint_family A"
-    using sigma_finite_disjoint by auto
+    using sigma_finite_disjoint by blast
   let ?B = "\<lambda>i. 2^Suc i * emeasure M (A i)"
   have "\<forall>i. \<exists>x. 0 < x \<and> x < inverse (?B i)"
   proof
@@ -560,7 +560,7 @@ proof -
   proof (rule antisym)
     show "?a \<le> (SUP i. emeasure M (?O i))" unfolding a_Lim
       using Q' by (auto intro!: SUP_mono emeasure_mono)
-    show "(SUP i. emeasure M (?O i)) \<le> ?a" unfolding SUP_def
+    show "(SUP i. emeasure M (?O i)) \<le> ?a"
     proof (safe intro!: Sup_mono, unfold bex_simps)
       fix i
       have *: "(\<Union>(Q' ` {..i})) = ?O i" by auto

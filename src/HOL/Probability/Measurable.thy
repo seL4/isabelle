@@ -152,7 +152,7 @@ lemma pred_intros_countable_bounded[measurable (raw)]:
     "(\<And>i. i \<in> X \<Longrightarrow> pred M (\<lambda>x. x \<in> N x i)) \<Longrightarrow> pred M (\<lambda>x. x \<in> (\<Union>i\<in>X. N x i))"
     "(\<And>i. i \<in> X \<Longrightarrow> pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<forall>i\<in>X. P x i)"
     "(\<And>i. i \<in> X \<Longrightarrow> pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<exists>i\<in>X. P x i)"
-  by (auto simp: Bex_def Ball_def)
+  by simp_all (auto simp: Bex_def Ball_def)
 
 lemma pred_intros_finite[measurable (raw)]:
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> pred M (\<lambda>x. x \<in> N x i)) \<Longrightarrow> pred M (\<lambda>x. x \<in> (\<Inter>i\<in>I. N x i))"

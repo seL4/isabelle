@@ -6774,7 +6774,7 @@ lemma trancl_set_ntrancl [code]:
 
 lemma set_relcomp [code]:
   "set xys O set yzs = set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
-  by (auto simp add: Bex_def)
+  by auto (auto simp add: Bex_def image_def)
 
 lemma wf_set [code]:
   "wf (set xs) = acyclic (set xs)"

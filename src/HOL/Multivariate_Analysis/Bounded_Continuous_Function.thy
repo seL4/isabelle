@@ -116,7 +116,7 @@ proof
     also assume "dist f g = 0"
     finally show "f = g"
       by (auto simp: Rep_bcontfun_inject[symmetric] Abs_bcontfun_inverse)
-  qed (auto simp: dist_bcontfun_def SUP_def simp del: Sup_image_eq intro!: cSup_eq)
+  qed (auto simp: dist_bcontfun_def intro!: cSup_eq)
   show "dist f g \<le> dist f h + dist g h"
   proof (subst dist_bcontfun_def, safe intro!: cSUP_least)
     fix x
@@ -374,7 +374,7 @@ proof
     ultimately
     show "norm (a *\<^sub>R f) = \<bar>a\<bar> * norm f"
       by (simp add: norm_bcontfun_def dist_bcontfun_def norm_conv_dist Abs_bcontfun_inverse
-                    zero_bcontfun_def const_bcontfun SUP_def del: Sup_image_eq)
+        zero_bcontfun_def const_bcontfun image_image) presburger
   qed
 qed (auto simp: norm_bcontfun_def sgn_bcontfun_def)
 

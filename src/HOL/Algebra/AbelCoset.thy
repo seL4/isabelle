@@ -258,7 +258,7 @@ proof -
     from a_subgroup have Hcarr: "H \<subseteq> carrier G"
       unfolding subgroup_def by simp
     from xcarr Hcarr show "(\<Union>h\<in>H. {h \<oplus>\<^bsub>G\<^esub> x}) = (\<Union>h\<in>H. {x \<oplus>\<^bsub>G\<^esub> h})"
-      using m_comm [simplified] by fast
+      using m_comm [simplified] by fastforce
   qed
 qed
 

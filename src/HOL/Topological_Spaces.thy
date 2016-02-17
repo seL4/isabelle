@@ -1133,10 +1133,11 @@ proof -
       using A by auto
     show "nhds x = (INF n. principal (\<Inter>i\<le>n. A i))"
       using A unfolding nhds_def
-      apply (intro INF_eq)
+      apply -
+      apply (rule INF_eq)
       apply simp_all
-      apply force
-      apply (intro exI[of _ "\<Inter>i\<le>n. A i" for n] conjI open_INT)
+      apply fastforce
+      apply (intro exI [of _ "\<Inter>i\<le>n. A i" for n] conjI open_INT)
       apply auto
       done
   qed
@@ -1464,7 +1465,7 @@ lemma continuous_on_open_Union:
 
 lemma continuous_on_open_UN:
   "(\<And>s. s \<in> S \<Longrightarrow> open (A s)) \<Longrightarrow> (\<And>s. s \<in> S \<Longrightarrow> continuous_on (A s) f) \<Longrightarrow> continuous_on (\<Union>s\<in>S. A s) f"
-  unfolding Union_image_eq[symmetric] by (rule continuous_on_open_Union) auto
+  by (rule continuous_on_open_Union) auto
 
 lemma continuous_on_open_Un:
   "open s \<Longrightarrow> open t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t f \<Longrightarrow> continuous_on (s \<union> t) f"
@@ -1689,7 +1690,7 @@ lemma compactE:
 lemma compactE_image:
   assumes "compact s" and "\<forall>t\<in>C. open (f t)" and "s \<subseteq> (\<Union>c\<in>C. f c)"
   obtains C' where "C' \<subseteq> C" and "finite C'" and "s \<subseteq> (\<Union>c\<in>C'. f c)"
-  using assms unfolding ball_simps[symmetric] SUP_def
+  using assms unfolding ball_simps [symmetric]
   by (metis (lifting) finite_subset_image compact_eq_heine_borel[of s])
 
 lemma compact_inter_closed [intro]:

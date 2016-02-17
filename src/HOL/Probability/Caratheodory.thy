@@ -396,8 +396,8 @@ proof -
   from \<open>outer_measure M f X \<noteq> \<infinity>\<close> have fin: "\<bar>outer_measure M f X\<bar> \<noteq> \<infinity>"
     using outer_measure_nonneg[OF posf, of X] by auto
   show ?thesis
-    using Inf_ereal_close[OF fin[unfolded outer_measure_def INF_def], OF \<open>0 < e\<close>]
-    unfolding INF_def[symmetric] outer_measure_def[symmetric] by (auto intro: less_imp_le)
+    using Inf_ereal_close [OF fin [unfolded outer_measure_def], OF \<open>0 < e\<close>]
+    by (auto intro: less_imp_le simp add: outer_measure_def)
 qed
 
 lemma (in ring_of_sets) countably_subadditive_outer_measure:
@@ -574,7 +574,7 @@ lemma volume_finite_additive:
   shows "f (UNION I A) = (\<Sum>i\<in>I. f (A i))"
 proof -
   have "A`I \<subseteq> M" "disjoint (A`I)" "finite (A`I)" "\<Union>(A`I) \<in> M"
-    using A unfolding SUP_def by (auto simp: disjoint_family_on_disjoint_image)
+    using A by (auto simp: disjoint_family_on_disjoint_image)
   with \<open>volume M f\<close> have "f (\<Union>(A`I)) = (\<Sum>a\<in>A`I. f a)"
     unfolding volume_def by blast
   also have "\<dots> = (\<Sum>i\<in>I. f (A i))"
@@ -713,7 +713,7 @@ proof -
     then have "disjoint_family F"
       using F'_disj by (auto simp: disjoint_family_on_def)
     moreover from F' have "(\<Union>i. F i) = \<Union>C"
-      by (auto simp: F_def set_eq_iff split: split_if_asm)
+      by (auto simp add: F_def split: split_if_asm) blast
     moreover have sets_F: "\<And>i. F i \<in> M"
       using F' sets_C by (auto simp: F_def)
     moreover note sets_C
@@ -783,9 +783,10 @@ proof -
           by (auto simp: disjoint_family_on_def f_def)
         moreover
         have Ai_eq: "A i = (\<Union>x<card C. f x)"
-          using f C Ai unfolding bij_betw_def by (simp add: Union_image_eq[symmetric])
+          using f C Ai unfolding bij_betw_def by auto
         then have "\<Union>range f = A i"
-          using f C Ai unfolding bij_betw_def by (auto simp: f_def)
+          using f C Ai unfolding bij_betw_def
+            by (auto simp add: f_def cong del: strong_SUP_cong)
         moreover 
         { have "(\<Sum>j. \<mu>_r (f j)) = (\<Sum>j. if j \<in> {..< card C} then \<mu>_r (f j) else 0)"
             using volume_empty[OF V(1)] by (auto intro!: arg_cong[where f=suminf] simp: f_def)
@@ -841,7 +842,7 @@ proof -
     have "(\<Sum>n. \<mu>_r (A' n)) = (\<Sum>n. \<Sum>c\<in>C'. \<mu>_r (A' n \<inter> c))"
       using C' A'
       by (subst volume_finite_additive[symmetric, OF V(1)])
-         (auto simp: disjoint_def disjoint_family_on_def Union_image_eq[symmetric] simp del: Sup_image_eq Union_image_eq
+         (auto simp: disjoint_def disjoint_family_on_def
                intro!: G.Int G.finite_Union arg_cong[where f="\<lambda>X. suminf (\<lambda>i. \<mu>_r (X i))"] ext
                intro: generated_ringI_Basic)
     also have "\<dots> = (\<Sum>c\<in>C'. \<Sum>n. \<mu>_r (A' n \<inter> c))"
@@ -853,7 +854,7 @@ proof -
     also have "\<dots> = \<mu>_r (\<Union>C')"
       using C' Un_A
       by (subst volume_finite_additive[symmetric, OF V(1)])
-         (auto simp: disjoint_family_on_def disjoint_def Union_image_eq[symmetric] simp del: Sup_image_eq Union_image_eq 
+         (auto simp: disjoint_family_on_def disjoint_def
                intro: generated_ringI_Basic)
     finally show "(\<Sum>n. \<mu>_r (A' n)) = \<mu>_r (\<Union>i. A' i)"
       using C' by simp

@@ -257,8 +257,12 @@ fun mk_Bex X f =
   Const (@{const_name Bex}, fastype_of X --> fastype_of f --> HOLogic.boolT) $ X $ f;
 
 fun mk_UNION X f =
-  let val (T, U) = dest_funT (fastype_of f);
-  in Const (@{const_name SUPREMUM}, fastype_of X --> (T --> U) --> U) $ X $ f end;
+  let
+    val (T, U) = dest_funT (fastype_of f);
+  in
+    Const (@{const_name Sup}, HOLogic.mk_setT U --> U)
+      $ (Const (@{const_name image}, (T --> U) --> fastype_of X --> HOLogic.mk_setT U) $ f $ X)
+  end;
 
 fun mk_Union T =
   Const (@{const_name Sup}, HOLogic.mk_setT (HOLogic.mk_setT T) --> HOLogic.mk_setT T);

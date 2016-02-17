@@ -380,7 +380,7 @@ proof -
   note * = this
 
   have "f (Liminf F g) = (SUP P : {P. eventually P F}. f (Inf (g ` Collect P)))"
-    unfolding Liminf_def SUP_def
+    unfolding Liminf_def
     by (subst continuous_at_Sup_mono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto intro: eventually_True)
   also have "\<dots> = (SUP P : {P. eventually P F}. INFIMUM (g ` Collect P) f)"
@@ -405,7 +405,7 @@ proof -
   note * = this
 
   have "f (Limsup F g) = (INF P : {P. eventually P F}. f (Sup (g ` Collect P)))"
-    unfolding Limsup_def INF_def
+    unfolding Limsup_def
     by (subst continuous_at_Inf_mono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto intro: eventually_True)
   also have "\<dots> = (INF P : {P. eventually P F}. SUPREMUM (g ` Collect P) f)"
@@ -429,7 +429,7 @@ proof -
       by auto
   qed
   have "f (Limsup F g) = (SUP P : {P. eventually P F}. f (Sup (g ` Collect P)))"
-    unfolding Limsup_def INF_def
+    unfolding Limsup_def
     by (subst continuous_at_Inf_antimono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto intro: eventually_True)
   also have "\<dots> = (SUP P : {P. eventually P F}. INFIMUM (g ` Collect P) f)"
@@ -455,7 +455,7 @@ proof -
   note * = this
 
   have "f (Liminf F g) = (INF P : {P. eventually P F}. f (Inf (g ` Collect P)))"
-    unfolding Liminf_def SUP_def
+    unfolding Liminf_def
     by (subst continuous_at_Sup_antimono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto intro: eventually_True)
   also have "\<dots> = (INF P : {P. eventually P F}. SUPREMUM (g ` Collect P) f)"

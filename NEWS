@@ -32,6 +32,9 @@ typesetting. E.g. to produce proof holes in examples and documentation.
       pred_prod_apply ~> pred_prod_inject
     INCOMPATIBILITY.
 
+* Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
+INCOMPATIBILITY.
+
 
 New in Isabelle2016 (February 2016)
 -----------------------------------

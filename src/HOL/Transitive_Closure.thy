@@ -946,7 +946,7 @@ lemma trancl_power:
   apply (rule iffI)
    apply (drule tranclD2)
    apply (clarsimp simp: rtrancl_is_UN_relpow)
-   apply (rule_tac x="Suc n" in exI)
+   apply (rule_tac x="Suc x" in exI)
    apply (clarsimp simp: relcomp_unfold)
    apply fastforce
   apply clarsimp
@@ -1093,9 +1093,9 @@ lemma finite_relcomp[simp,intro]:
 assumes "finite R" and "finite S"
 shows "finite(R O S)"
 proof-
-  have "R O S = (UN (x,y) : R. \<Union>((%(u,v). if u=y then {(x,v)} else {}) ` S))"
-    by(force simp add: split_def)
-  thus ?thesis using assms by(clarsimp)
+  have "R O S = (\<Union>(x, y)\<in>R. \<Union>(u, v)\<in>S. if u = y then {(x, v)} else {})"
+    by (force simp add: split_def image_constant_conv split: if_splits)
+  then show ?thesis using assms by clarsimp
 qed
 
 lemma finite_relpow[simp,intro]:

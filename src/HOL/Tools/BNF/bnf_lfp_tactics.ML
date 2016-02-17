@@ -540,8 +540,8 @@ fun mk_set_tac ctxt foldx = EVERY' [rtac ctxt @{thm ext}, rtac ctxt trans, rtac 
 fun mk_ctor_set_tac ctxt set set_map set_maps =
   let
     val n = length set_maps;
-    fun mk_UN thm = rtac ctxt (thm RS @{thm arg_cong[of _ _ Union]} RS trans) THEN'
-      rtac ctxt @{thm Union_image_eq};
+    fun mk_UN thm = rtac ctxt (thm RS @{thm arg_cong[of _ _ Union]} RS trans)
+      THEN' rtac ctxt @{thm refl};
   in
     EVERY' [rtac ctxt (set RS @{thm comp_eq_dest} RS trans), rtac ctxt Un_cong,
       rtac ctxt (trans OF [set_map, trans_fun_cong_image_id_id_apply]),

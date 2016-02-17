@@ -272,7 +272,7 @@ lemma rename_guarantees_eq_rename_inv:
                 (F \<in> (rename (inv h) ` X) guarantees  
                      (rename (inv h) ` Y))"
 apply (subst rename_rename_guarantees_eq [symmetric], assumption)
-apply (simp add: image_eq_UN o_def bij_is_surj [THEN surj_f_inv_f])
+apply (simp add: o_def bij_is_surj [THEN surj_f_inv_f] image_comp)
 done
 
 lemma rename_preserves:

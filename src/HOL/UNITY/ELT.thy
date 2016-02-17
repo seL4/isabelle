@@ -141,7 +141,6 @@ done
 lemma leadsETo_UN:
     "(!!i. i : I ==> F : (A i) leadsTo[CC] B)  
      ==> F : (UN i:I. A i) leadsTo[CC] B"
-apply (subst Union_image_eq [symmetric])
 apply (blast intro: leadsETo_Union)
 done
 
@@ -397,7 +396,6 @@ done
 lemma LeadsETo_UN:
      "(!!i. i : I ==> F : (A i) LeadsTo[CC] B)  
       ==> F : (UN i:I. A i) LeadsTo[CC] B"
-apply (simp only: Union_image_eq [symmetric])
 apply (blast intro: LeadsETo_Union)
 done
 

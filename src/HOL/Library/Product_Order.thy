@@ -179,7 +179,6 @@ end
 instance prod :: (conditionally_complete_lattice, conditionally_complete_lattice)
     conditionally_complete_lattice
   by standard (force simp: less_eq_prod_def Inf_prod_def Sup_prod_def bdd_below_def bdd_above_def
-    INF_def SUP_def simp del: Inf_image_eq Sup_image_eq
     intro!: cInf_lower cSup_upper cInf_greatest cSup_least)+
 
 instance prod :: (complete_lattice, complete_lattice) complete_lattice
@@ -211,10 +210,10 @@ lemma snd_INF: "snd (INF x:A. f x) = (INF x:A. snd (f x))"
   using snd_Inf [of "f ` A", symmetric] by (simp add: comp_def)
 
 lemma SUP_Pair: "(SUP x:A. (f x, g x)) = (SUP x:A. f x, SUP x:A. g x)"
-  unfolding SUP_def Sup_prod_def by (simp add: comp_def)
+  unfolding Sup_prod_def by (simp add: comp_def)
 
 lemma INF_Pair: "(INF x:A. (f x, g x)) = (INF x:A. f x, INF x:A. g x)"
-  unfolding INF_def Inf_prod_def by (simp add: comp_def)
+  unfolding Inf_prod_def by (simp add: comp_def)
 
 
 text \<open>Alternative formulations for set infima and suprema over the product
@@ -222,11 +221,11 @@ of two complete lattices:\<close>
 
 lemma INF_prod_alt_def:
   "INFIMUM A f = (INFIMUM A (fst o f), INFIMUM A (snd o f))"
-  unfolding INF_def Inf_prod_def by simp
+  unfolding Inf_prod_def by simp
 
 lemma SUP_prod_alt_def:
   "SUPREMUM A f = (SUPREMUM A (fst o f), SUPREMUM A (snd o f))"
-  unfolding SUP_def Sup_prod_def by simp
+  unfolding Sup_prod_def by simp
 
 
 subsection \<open>Complete distributive lattices\<close>

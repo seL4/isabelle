@@ -115,10 +115,7 @@ text\<open>Rewrites should not refer to  @{term "initState(Friend i)"} because
 
 text\<open>Added to extend initstate with set of nonces\<close>
 lemma parts_image_Nonce [simp]: "parts (Nonce`N) = Nonce`N"
-apply auto
-apply (erule parts.induct)
-apply auto
-done
+  by auto
 
 lemma keysFor_parts_initState [simp]: "keysFor (parts (initState C)) = {}"
 apply (unfold keysFor_def)

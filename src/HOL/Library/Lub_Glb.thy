@@ -230,7 +230,7 @@ proof -
     by (intro LIMSEQ_incseq_SUP) (auto simp: incseq_def image_def eq_commute bdd_above_setle)
   also have "(SUP i. X i) = u"
     using isLub_cSup[of "range X"] u[THEN isLubD1]
-    by (intro isLub_unique[OF _ u]) (auto simp add: SUP_def image_def eq_commute)
+    by (intro isLub_unique[OF _ u]) (auto simp add: image_def eq_commute)
   finally show ?thesis .
 qed
 

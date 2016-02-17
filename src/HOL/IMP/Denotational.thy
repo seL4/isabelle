@@ -98,6 +98,9 @@ qed
 theorem lfp_if_cont:
   assumes "cont f" shows "lfp f = (UN n. (f^^n) {})" (is "_ = ?U")
 proof
+  from assms mono_if_cont
+  have mono: "(f ^^ n) {} \<subseteq> (f ^^ Suc n) {}" for n
+    using funpow_decreasing [of n "Suc n"] by auto
   show "lfp f \<subseteq> ?U"
   proof (rule lfp_lowerbound)
     have "f ?U = (UN n. (f^^Suc n){})"
@@ -105,7 +108,7 @@ proof
       by(simp add: cont_def)
     also have "\<dots> = (f^^0){} \<union> \<dots>" by simp
     also have "\<dots> = ?U"
-      using assms funpow_decreasing le_SucI mono_if_cont by blast
+      using mono by auto (metis funpow_simps_right(2) funpow_swap1 o_apply)
     finally show "f ?U \<subseteq> ?U" by simp
   qed
 next
