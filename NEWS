@@ -107,8 +107,32 @@ of a more general type also:
   inj_int ~> inj_of_nat
   int_1 ~> of_nat_1
   int_0 ~> of_nat_0
+  Lcm_empty_nat ~> Lcm_empty
+  Lcm_empty_int ~> Lcm_empty
+  Lcm_insert_nat ~> Lcm_insert
+  Lcm_insert_int ~> Lcm_insert
+  comp_fun_idem_gcd_nat ~> comp_fun_idem_gcd
+  comp_fun_idem_gcd_int ~> comp_fun_idem_gcd
+  comp_fun_idem_lcm_nat ~> comp_fun_idem_lcm
+  comp_fun_idem_lcm_int ~> comp_fun_idem_lcm
+  Lcm_eq_0 ~> Lcm_eq_0_I
+  Lcm0_iff ~> Lcm_0_iff
+  Lcm_dvd_int ~> Lcm_least
+  divides_mult_nat ~> divides_mult
+  divides_mult_int ~> divides_mult
+  lcm_0_nat ~> lcm_0_right
+  lcm_0_int ~> lcm_0_right
+  lcm_0_left_nat ~> lcm_0_left
+  lcm_0_left_int ~> lcm_0_left
+  dvd_gcd_D1_nat ~> dvd_gcdD1
+  dvd_gcd_D1_int ~> dvd_gcdD1
+  dvd_gcd_D2_nat ~> dvd_gcdD2
+  dvd_gcd_D2_int ~> dvd_gcdD2
+  coprime_dvd_mult_iff_nat ~> coprime_dvd_mult_iff
+  coprime_dvd_mult_iff_int ~> coprime_dvd_mult_iff
   realpow_minus_mult ~> power_minus_mult
   realpow_Suc_le_self ~> power_Suc_le_self
+  dvd_Gcd, dvd_Gcd_nat, dvd_Gcd_int removed in favour of Gcd_greatest
 INCOMPATIBILITY.
 
 

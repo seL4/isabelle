@@ -585,10 +585,6 @@ next
       (auto simp add: lcm_eq_0_iff)
 qed
 
-lemma dvd_Gcd: \<comment> \<open>FIXME remove\<close>
-  "\<forall>b\<in>A. a dvd b \<Longrightarrow> a dvd Gcd A"
-  by (blast intro: Gcd_greatest)
-
 lemma Gcd_set [code_unfold]:
   "Gcd (set as) = foldr gcd as 0"
   by (induct as) simp_all
@@ -715,16 +711,16 @@ lemma gcd_neg1_int [simp]: "gcd (-x::int) y = gcd x y"
 lemma gcd_neg2_int [simp]: "gcd (x::int) (-y) = gcd x y"
   by (simp add: gcd_int_def)
 
-lemma abs_gcd_int[simp]: "\<bar>gcd (x::int) y\<bar> = gcd x y"
+lemma abs_gcd_int [simp]: "\<bar>gcd (x::int) y\<bar> = gcd x y"
 by(simp add: gcd_int_def)
 
 lemma gcd_abs_int: "gcd (x::int) y = gcd \<bar>x\<bar> \<bar>y\<bar>"
 by (simp add: gcd_int_def)
 
-lemma gcd_abs1_int[simp]: "gcd \<bar>x\<bar> (y::int) = gcd x y"
+lemma gcd_abs1_int [simp]: "gcd \<bar>x\<bar> (y::int) = gcd x y"
 by (metis abs_idempotent gcd_abs_int)
 
-lemma gcd_abs2_int[simp]: "gcd x \<bar>y::int\<bar> = gcd x y"
+lemma gcd_abs2_int [simp]: "gcd x \<bar>y::int\<bar> = gcd x y"
 by (metis abs_idempotent gcd_abs_int)
 
 lemma gcd_cases_int:
@@ -751,10 +747,10 @@ lemma lcm_abs_int: "lcm (x::int) y = lcm \<bar>x\<bar> \<bar>y\<bar>"
 lemma abs_lcm_int [simp]: "\<bar>lcm i j::int\<bar> = lcm i j"
   by (simp add:lcm_int_def)
 
-lemma lcm_abs1_int[simp]: "lcm \<bar>x\<bar> (y::int) = lcm x y"
+lemma lcm_abs1_int [simp]: "lcm \<bar>x\<bar> (y::int) = lcm x y"
   by (metis abs_idempotent lcm_int_def)
 
-lemma lcm_abs2_int[simp]: "lcm x \<bar>y::int\<bar> = lcm x y"
+lemma lcm_abs2_int [simp]: "lcm x \<bar>y::int\<bar> = lcm x y"
   by (metis abs_idempotent lcm_int_def)
 
 lemma lcm_cases_int:
@@ -1047,38 +1043,44 @@ lemma gcd_dvd_prod_nat: "gcd (m::nat) n dvd k * n"
 
 (* to do: add the three variations of these, and for ints? *)
 
-lemma finite_divisors_nat[simp]:
-  assumes "(m::nat) ~= 0" shows "finite{d. d dvd m}"
+lemma finite_divisors_nat [simp]: -- \<open>FIXME move\<close>
+  fixes m :: nat
+  assumes "m > 0" 
+  shows "finite {d. d dvd m}"
 proof-
-  have "finite{d. d <= m}"
-    by (blast intro: bounded_nat_set_is_finite)
-  from finite_subset[OF _ this] show ?thesis using assms
-    by (metis Collect_mono dvd_imp_le neq0_conv)
+  from assms have "{d. d dvd m} \<subseteq> {d. d \<le> m}"
+    by (auto dest: dvd_imp_le)
+  then show ?thesis
+    using finite_Collect_le_nat by (rule finite_subset)
 qed
 
-lemma finite_divisors_int[simp]:
-  assumes "(i::int) ~= 0" shows "finite{d. d dvd i}"
-proof-
-  have "{d. \<bar>d\<bar> <= \<bar>i\<bar>} = {- \<bar>i\<bar> .. \<bar>i\<bar>}" by(auto simp:abs_if)
-  hence "finite {d. \<bar>d\<bar> <= \<bar>i\<bar>}" by simp
-  from finite_subset[OF _ this] show ?thesis using assms
+lemma finite_divisors_int [simp]:
+  fixes i :: int
+  assumes "i \<noteq> 0"
+  shows "finite {d. d dvd i}"
+proof -
+  have "{d. \<bar>d\<bar> \<le> \<bar>i\<bar>} = {- \<bar>i\<bar>..\<bar>i\<bar>}"
+    by (auto simp: abs_if)
+  then have "finite {d. \<bar>d\<bar> <= \<bar>i\<bar>}"
+    by simp
+  from finite_subset [OF _ this] show ?thesis using assms
     by (simp add: dvd_imp_le_int subset_iff)
 qed
 
-lemma Max_divisors_self_nat[simp]: "n\<noteq>0 \<Longrightarrow> Max{d::nat. d dvd n} = n"
+lemma Max_divisors_self_nat [simp]: "n\<noteq>0 \<Longrightarrow> Max{d::nat. d dvd n} = n"
 apply(rule antisym)
  apply (fastforce intro: Max_le_iff[THEN iffD2] simp: dvd_imp_le)
 apply simp
 done
 
-lemma Max_divisors_self_int[simp]: "n\<noteq>0 \<Longrightarrow> Max{d::int. d dvd n} = \<bar>n\<bar>"
+lemma Max_divisors_self_int [simp]: "n\<noteq>0 \<Longrightarrow> Max{d::int. d dvd n} = \<bar>n\<bar>"
 apply(rule antisym)
  apply(rule Max_le_iff [THEN iffD2])
   apply (auto intro: abs_le_D1 dvd_imp_le_int)
 done
 
 lemma gcd_is_Max_divisors_nat:
-  "m ~= 0 \<Longrightarrow> n ~= 0 \<Longrightarrow> gcd (m::nat) n = (Max {d. d dvd m & d dvd n})"
+  "m > 0 \<Longrightarrow> n > 0 \<Longrightarrow> gcd (m::nat) n = Max {d. d dvd m \<and> d dvd n}"
 apply(rule Max_eqI[THEN sym])
   apply (metis finite_Collect_conjI finite_divisors_nat)
  apply simp
@@ -1438,35 +1440,33 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-lemma pow_divides_eq_nat [simp]: "n ~= 0 \<Longrightarrow> ((a::nat)^n dvd b^n) = (a dvd b)"
+lemma pow_divides_eq_nat [simp]:
+  "n > 0 \<Longrightarrow> (a::nat) ^ n dvd b ^ n \<longleftrightarrow> a dvd b"
   by (auto intro: pow_divides_pow_nat dvd_power_same)
 
-lemma pow_divides_eq_int [simp]: "n ~= 0 \<Longrightarrow> ((a::int)^n dvd b^n) = (a dvd b)"
+lemma pow_divides_eq_int [simp]:
+  "n ~= 0 \<Longrightarrow> (a::int) ^ n dvd b ^ n \<longleftrightarrow> a dvd b"
   by (auto intro: pow_divides_pow_int dvd_power_same)
 
-lemma divides_mult_nat:
-  assumes mr: "(m::nat) dvd r" and nr: "n dvd r" and mn:"coprime m n"
-  shows "m * n dvd r"
+context semiring_gcd
+begin
+
+lemma divides_mult:
+  assumes "a dvd c" and nr: "b dvd c" and "coprime a b"
+  shows "a * b dvd c"
 proof-
-  from mr nr obtain m' n' where m': "r = m*m'" and n': "r = n*n'"
-    unfolding dvd_def by blast
-  from mr n' have "m dvd n'*n" by (simp add: mult.commute)
-  hence "m dvd n'" using coprime_dvd_mult_iff [OF mn] by simp
-  then obtain k where k: "n' = m*k" unfolding dvd_def by blast
-  from n' k show ?thesis unfolding dvd_def by auto
+  from \<open>b dvd c\<close> obtain b' where"c = b * b'" ..
+  with \<open>a dvd c\<close> have "a dvd b' * b"
+    by (simp add: ac_simps)
+  with \<open>coprime a b\<close> have "a dvd b'"
+    by (simp add: coprime_dvd_mult_iff)
+  then obtain a' where "b' = a * a'" ..
+  with \<open>c = b * b'\<close> have "c = (a * b) * a'"
+    by (simp add: ac_simps)
+  then show ?thesis ..
 qed
 
-lemma divides_mult_int:
-  assumes mr: "(m::int) dvd r" and nr: "n dvd r" and mn:"coprime m n"
-  shows "m * n dvd r"
-proof-
-  from mr nr obtain m' n' where m': "r = m*m'" and n': "r = n*n'"
-    unfolding dvd_def by blast
-  from mr n' have "m dvd n'*n" by (simp add: mult.commute)
-  hence "m dvd n'" using coprime_dvd_mult_iff [OF mn] by simp
-  then obtain k where k: "n' = m*k" unfolding dvd_def by blast
-  from n' k show ?thesis unfolding dvd_def by auto
-qed
+end
 
 lemma coprime_plus_one_nat [simp]: "coprime ((n::nat) + 1) n"
   by (simp add: gcd.commute del: One_nat_def)
@@ -1773,18 +1773,6 @@ lemma prod_gcd_lcm_int: "\<bar>m::int\<bar> * \<bar>n\<bar> = gcd m n * lcm m n"
   apply (simp, simp add: abs_mult)
 done
 
-lemma lcm_0_nat [simp]: "lcm (m::nat) 0 = 0"
-  unfolding lcm_nat_def by simp
-
-lemma lcm_0_int [simp]: "lcm (m::int) 0 = 0"
-  unfolding lcm_int_def by simp
-
-lemma lcm_0_left_nat [simp]: "lcm (0::nat) n = 0"
-  unfolding lcm_nat_def by simp
-
-lemma lcm_0_left_int [simp]: "lcm (0::int) n = 0"
-  unfolding lcm_int_def by simp
-
 lemma lcm_pos_nat:
   "(m::nat) > 0 \<Longrightarrow> n>0 \<Longrightarrow> lcm m n > 0"
 by (metis gr0I mult_is_0 prod_gcd_lcm_nat)
@@ -1796,7 +1784,7 @@ lemma lcm_pos_int:
   apply auto
   done
 
-lemma dvd_pos_nat:
+lemma dvd_pos_nat: -- \<open>FIXME move\<close>
   fixes n m :: nat
   assumes "n > 0" and "m dvd n"
   shows "m > 0"
@@ -1828,16 +1816,16 @@ by (subst lcm.commute, erule lcm_proj2_if_dvd_nat)
 lemma lcm_proj1_if_dvd_int [simp]: "(x::int) dvd y \<Longrightarrow> lcm y x = \<bar>y\<bar>"
 by (subst lcm.commute, erule lcm_proj2_if_dvd_int)
 
-lemma lcm_proj1_iff_nat[simp]: "lcm m n = (m::nat) \<longleftrightarrow> n dvd m"
+lemma lcm_proj1_iff_nat [simp]: "lcm m n = (m::nat) \<longleftrightarrow> n dvd m"
 by (metis lcm_proj1_if_dvd_nat lcm_unique_nat)
 
-lemma lcm_proj2_iff_nat[simp]: "lcm m n = (n::nat) \<longleftrightarrow> m dvd n"
+lemma lcm_proj2_iff_nat [simp]: "lcm m n = (n::nat) \<longleftrightarrow> m dvd n"
 by (metis lcm_proj2_if_dvd_nat lcm_unique_nat)
 
-lemma lcm_proj1_iff_int[simp]: "lcm m n = \<bar>m::int\<bar> \<longleftrightarrow> n dvd m"
+lemma lcm_proj1_iff_int [simp]: "lcm m n = \<bar>m::int\<bar> \<longleftrightarrow> n dvd m"
 by (metis dvd_abs_iff lcm_proj1_if_dvd_int lcm_unique_int)
 
-lemma lcm_proj2_iff_int[simp]: "lcm m n = \<bar>n::int\<bar> \<longleftrightarrow> m dvd n"
+lemma lcm_proj2_iff_int [simp]: "lcm m n = \<bar>n::int\<bar> \<longleftrightarrow> m dvd n"
 by (metis dvd_abs_iff lcm_proj2_if_dvd_int lcm_unique_int)
 
 lemma (in semiring_gcd) comp_fun_idem_gcd:
@@ -1848,10 +1836,12 @@ lemma (in semiring_gcd) comp_fun_idem_lcm:
   "comp_fun_idem lcm"
   by standard (simp_all add: fun_eq_iff ac_simps)
 
-lemma lcm_1_iff_nat [simp]: "lcm (m::nat) n = 1 \<longleftrightarrow> m=1 \<and> n=1"
-  by (simp only: lcm_eq_1_iff) simp
+lemma lcm_1_iff_nat [simp]:
+  "lcm (m::nat) n = Suc 0 \<longleftrightarrow> m = Suc 0 \<and> n = Suc 0"
+  using lcm_eq_1_iff [of m n] by simp
   
-lemma lcm_1_iff_int [simp]: "lcm (m::int) n = 1 \<longleftrightarrow> (m=1 \<or> m = -1) \<and> (n=1 \<or> n = -1)"
+lemma lcm_1_iff_int [simp]:
+  "lcm (m::int) n = 1 \<longleftrightarrow> (m=1 \<or> m = -1) \<and> (n=1 \<or> n = -1)"
   by auto
 
 
@@ -1897,14 +1887,15 @@ lemma Lcm_dvd_nat [simp]:
   fixes M :: "nat set"
   assumes "\<forall>m\<in>M. m dvd n"
   shows "Lcm M dvd n"
-proof (cases "n = 0")
-  case True then show ?thesis by simp
+proof (cases "n > 0")
+  case False then show ?thesis by simp
 next
-  case False
+  case True
   then have "finite {d. d dvd n}" by (rule finite_divisors_nat)
   moreover have "M \<subseteq> {d. d dvd n}" using assms by fast
   ultimately have "finite M" by (rule rev_finite_subset)
-  then show ?thesis using assms by (induct M) (simp_all add: Lcm_nat_empty Lcm_nat_insert)
+  then show ?thesis using assms
+    by (induct M) (simp_all add: Lcm_nat_empty Lcm_nat_insert)
 qed
 
 definition
@@ -1933,17 +1924,25 @@ lemma Gcd_nat_eq_one:
 
 text\<open>Alternative characterizations of Gcd:\<close>
 
-lemma Gcd_eq_Max: "finite(M::nat set) \<Longrightarrow> M \<noteq> {} \<Longrightarrow> 0 \<notin> M \<Longrightarrow> Gcd M = Max(\<Inter>m\<in>M. {d. d dvd m})"
-apply(rule antisym)
- apply(rule Max_ge)
-  apply (metis all_not_in_conv finite_divisors_nat finite_INT)
- apply (simp add: Gcd_dvd)
-apply (rule Max_le_iff[THEN iffD2])
-  apply (metis all_not_in_conv finite_divisors_nat finite_INT)
- apply fastforce
-apply clarsimp
-apply (metis Gcd_dvd Max_in dvd_0_left dvd_Gcd dvd_imp_le linorder_antisym_conv3 not_less0)
-done
+lemma Gcd_eq_Max:
+  fixes M :: "nat set"
+  assumes "finite (M::nat set)" and "M \<noteq> {}" and "0 \<notin> M"
+  shows "Gcd M = Max (\<Inter>m\<in>M. {d. d dvd m})"
+proof (rule antisym)
+  from assms obtain m where "m \<in> M" and "m > 0"
+    by auto
+  from \<open>m > 0\<close> have "finite {d. d dvd m}"
+    by (blast intro: finite_divisors_nat)
+  with \<open>m \<in> M\<close> have fin: "finite (\<Inter>m\<in>M. {d. d dvd m})"
+    by blast
+  from fin show "Gcd M \<le> Max (\<Inter>m\<in>M. {d. d dvd m})"
+    by (auto intro: Max_ge Gcd_dvd)
+  from fin show "Max (\<Inter>m\<in>M. {d. d dvd m}) \<le> Gcd M"
+    apply (rule Max.boundedI)
+    apply auto
+    apply (meson Gcd_dvd Gcd_greatest \<open>0 < m\<close> \<open>m \<in> M\<close> dvd_imp_le dvd_pos_nat)
+    done
+qed
 
 lemma Gcd_remove0_nat: "finite M \<Longrightarrow> Gcd M = Gcd (M - {0::nat})"
 apply(induct pred:finite)
@@ -2088,7 +2087,7 @@ lemma Gcd_set_int [code]:
 
 text \<open>Fact aliasses\<close>
 
-lemma lcm_0_iff_nat [simp]: "lcm (m::nat) n = 0 \<longleftrightarrow> m = 0 \<or> n= 0"
+lemma lcm_0_iff_nat [simp]: "lcm (m::nat) n = 0 \<longleftrightarrow> m = 0 \<or> n = 0"
   by (fact lcm_eq_0_iff)
 
 lemma lcm_0_iff_int [simp]: "lcm (m::int) n = 0 \<longleftrightarrow> m = 0 \<or> n = 0"
@@ -2103,16 +2102,8 @@ lemma dvd_lcm_I2_nat [simp]: "(k::nat) dvd n \<Longrightarrow> k dvd lcm m n"
 lemma dvd_lcm_I1_int [simp]: "(i::int) dvd m \<Longrightarrow> i dvd lcm m n"
   by (fact dvd_lcmI1)
 
-lemma dvd_lcm_I2_int[simp]: "(i::int) dvd n \<Longrightarrow> i dvd lcm m n"
+lemma dvd_lcm_I2_int [simp]: "(i::int) dvd n \<Longrightarrow> i dvd lcm m n"
   by (fact dvd_lcmI2)
-
-lemma coprime_dvd_mult_iff_nat: "coprime (k::nat) n \<Longrightarrow>
-    (k dvd m * n) = (k dvd m)"
-  by (fact coprime_dvd_mult_iff)
-
-lemma coprime_dvd_mult_iff_int: "coprime (k::int) n \<Longrightarrow>
-    (k dvd m * n) = (k dvd m)"
-  by (fact coprime_dvd_mult_iff)
 
 lemma coprime_exp2_nat [intro]: "coprime (a::nat) b \<Longrightarrow> coprime (a^n) (b^m)"
   by (fact coprime_exp2)
@@ -2122,28 +2113,12 @@ lemma coprime_exp2_int [intro]: "coprime (a::int) b \<Longrightarrow> coprime (a
 
 lemmas Gcd_dvd_nat [simp] = Gcd_dvd [where ?'a = nat]
 lemmas Gcd_dvd_int [simp] = Gcd_dvd [where ?'a = int]
-lemmas dvd_Gcd_nat [simp] = dvd_Gcd [where ?'a = nat]
-lemmas dvd_Gcd_int [simp] = dvd_Gcd [where ?'a = int]
+lemmas Gcd_greatest_nat [simp] = Gcd_greatest [where ?'a = nat]
+lemmas Gcd_greatest_int [simp] = Gcd_greatest [where ?'a = int]
 
 lemma dvd_Lcm_int [simp]:
   fixes M :: "int set" assumes "m \<in> M" shows "m dvd Lcm M"
   using assms by (fact dvd_Lcm)
-
-lemma Lcm_empty_nat:
-  "Lcm {} = (1::nat)"
-  by (fact Lcm_empty)
-
-lemma Lcm_empty_int:
-  "Lcm {} = (1::int)"
-  by (fact Lcm_empty)
-
-lemma Lcm_insert_nat:
-  "Lcm (insert (n::nat) N) = lcm n (Lcm N)"
-  by (fact Lcm_insert)
-
-lemma Lcm_insert_int:
-  "Lcm (insert (n::int) N) = lcm n (Lcm N)"
-  by (fact Lcm_insert)
 
 lemma gcd_neg_numeral_1_int [simp]:
   "gcd (- numeral n :: int) x = gcd (numeral n) x"
@@ -2159,43 +2134,8 @@ lemma gcd_proj1_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> gcd x y = x
 lemma gcd_proj2_if_dvd_nat [simp]: "(y::nat) dvd x \<Longrightarrow> gcd x y = y"
   by (fact gcd_nat.absorb2)
 
-lemma comp_fun_idem_gcd_nat: "comp_fun_idem (gcd :: nat\<Rightarrow>nat\<Rightarrow>nat)"
-  by (fact comp_fun_idem_gcd)
-
-lemma comp_fun_idem_gcd_int: "comp_fun_idem (gcd :: int\<Rightarrow>int\<Rightarrow>int)"
-  by (fact comp_fun_idem_gcd)
-
-lemma comp_fun_idem_lcm_nat: "comp_fun_idem (lcm :: nat\<Rightarrow>nat\<Rightarrow>nat)"
-  by (fact comp_fun_idem_lcm)
-
-lemma comp_fun_idem_lcm_int: "comp_fun_idem (lcm :: int\<Rightarrow>int\<Rightarrow>int)"
-  by (fact comp_fun_idem_lcm)
-
-lemma Lcm_eq_0 [simp]:
-  "finite (M::nat set) \<Longrightarrow> 0 \<in> M \<Longrightarrow> Lcm M = 0"
-  by (rule Lcm_eq_0_I)
-
-lemma Lcm0_iff [simp]:
-  fixes M :: "nat set"
-  assumes "finite M" and "M \<noteq> {}"
-  shows "Lcm M = 0 \<longleftrightarrow> 0 \<in> M"
-  using assms by (simp add: Lcm_0_iff)
-
-lemma Lcm_dvd_int [simp]:
-  fixes M :: "int set"
-  assumes "\<forall>m\<in>M. m dvd n" shows "Lcm M dvd n"
-  using assms by (auto intro: Lcm_least)
-
-lemma dvd_gcd_D1_nat: "k dvd gcd m n \<Longrightarrow> (k::nat) dvd m"
-  by (fact dvd_gcdD1)
-
-lemma dvd_gcd_D2_nat: "k dvd gcd m n \<Longrightarrow> (k::nat) dvd n"
-  by (fact dvd_gcdD2)
-
-lemma dvd_gcd_D1_int: "i dvd gcd m n \<Longrightarrow> (i::int) dvd m"
-  by (fact dvd_gcdD1)
-
-lemma dvd_gcd_D2_int: "i dvd gcd m n \<Longrightarrow> (i::int) dvd n"
-  by (fact dvd_gcdD2)
+lemmas Lcm_eq_0_I_nat [simp] = Lcm_eq_0_I [where ?'a = nat]
+lemmas Lcm_0_iff_nat [simp] = Lcm_0_iff [where ?'a = nat]
+lemmas Lcm_least_int [simp] = Lcm_least [where ?'a = int]
 
 end

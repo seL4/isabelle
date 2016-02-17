@@ -1064,11 +1064,11 @@ lemma Lcm_empty [simp]:
   "Lcm {} = 1"
   by (simp add: Lcm_1_iff)
 
-lemma Lcm_eq_0 [simp]:
+lemma Lcm_eq_0_I [simp]:
   "0 \<in> A \<Longrightarrow> Lcm A = 0"
   by (drule dvd_Lcm) simp
 
-lemma Lcm0_iff':
+lemma Lcm_0_iff':
   "Lcm A = 0 \<longleftrightarrow> \<not>(\<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l))"
 proof
   assume "Lcm A = 0"
@@ -1092,7 +1092,7 @@ proof
   qed
 qed (simp only: Lcm_Lcm_eucl Lcm_eucl_def if_False)
 
-lemma Lcm0_iff [simp]:
+lemma Lcm_0_iff [simp]:
   "finite A \<Longrightarrow> Lcm A = 0 \<longleftrightarrow> 0 \<in> A"
 proof -
   assume "finite A"
@@ -1108,7 +1108,7 @@ proof -
       done
     moreover from \<open>finite A\<close> have "\<forall>a\<in>A. a dvd \<Prod>A" by blast
     ultimately have "\<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l)" by blast
-    with Lcm0_iff' have "Lcm A \<noteq> 0" by simp
+    with Lcm_0_iff' have "Lcm A \<noteq> 0" by simp
   }
   ultimately show "Lcm A = 0 \<longleftrightarrow> 0 \<in> A" by blast
 qed
@@ -1210,7 +1210,7 @@ lemma GcdI:
 
 lemma Lcm_Gcd:
   "Lcm A = Gcd {m. \<forall>a\<in>A. a dvd m}"
-  by (rule LcmI[symmetric]) (auto intro: dvd_Gcd Gcd_greatest)
+  by (rule LcmI[symmetric]) (auto intro: Gcd_greatest Gcd_greatest)
 
 lemma Gcd_1:
   "1 \<in> A \<Longrightarrow> Gcd A = 1"

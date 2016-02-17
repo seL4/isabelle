@@ -267,7 +267,7 @@ lemma cong_square_int:
 
 lemma cong_mult_rcancel_int:
     "coprime k (m::int) \<Longrightarrow> [a * k = b * k] (mod m) = [a = b] (mod m)"
-  by (metis cong_altdef_int left_diff_distrib coprime_dvd_mult_iff_int gcd.commute)
+  by (metis cong_altdef_int left_diff_distrib coprime_dvd_mult_iff gcd.commute)
 
 lemma cong_mult_rcancel_nat:
     "coprime k (m::nat) \<Longrightarrow> [a * k = b * k] (mod m) = [a = b] (mod m)"
@@ -285,7 +285,7 @@ lemma cong_mult_lcancel_int:
 lemma coprime_cong_mult_int:
   "[(a::int) = b] (mod m) \<Longrightarrow> [a = b] (mod n) \<Longrightarrow> coprime m n
     \<Longrightarrow> [a = b] (mod m * n)"
-by (metis divides_mult_int cong_altdef_int)
+by (metis divides_mult cong_altdef_int)
 
 lemma coprime_cong_mult_nat:
   assumes "[(a::nat) = b] (mod m)" and "[a = b] (mod n)" and "coprime m n"
