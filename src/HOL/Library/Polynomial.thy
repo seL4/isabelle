@@ -1551,7 +1551,7 @@ lemma is_unit_monom_0:
   assumes "a \<noteq> 0"
   shows "is_unit (monom a 0)"
 proof
-  from assms show "1 = monom a 0 * monom (1 / a) 0"
+  from assms show "1 = monom a 0 * monom (inverse a) 0"
     by (simp add: mult_monom)
 qed
 
@@ -1602,7 +1602,7 @@ instantiation poly :: (field) normalization_semidom
 begin
 
 definition normalize_poly :: "'a poly \<Rightarrow> 'a poly"
-  where "normalize_poly p = smult (1 / coeff p (degree p)) p"
+  where "normalize_poly p = smult (inverse (coeff p (degree p))) p"
 
 definition unit_factor_poly :: "'a poly \<Rightarrow> 'a poly"
   where "unit_factor_poly p = monom (coeff p (degree p)) 0"
@@ -1611,8 +1611,9 @@ instance
 proof
   fix p :: "'a poly"
   show "unit_factor p * normalize p = p"
-    by (simp add: normalize_poly_def unit_factor_poly_def)
-      (simp only: mult_smult_left [symmetric] smult_monom, simp)
+    by (cases "p = 0")
+      (simp_all add: normalize_poly_def unit_factor_poly_def,
+      simp only: mult_smult_left [symmetric] smult_monom, simp)
 next
   show "normalize 0 = (0::'a poly)"
     by (simp add: normalize_poly_def)
@@ -1644,6 +1645,21 @@ next
 qed
 
 end
+
+lemma unit_factor_monom [simp]:
+  "unit_factor (monom a n) =
+     (if a = 0 then 0 else monom a 0)"
+  by (simp add: unit_factor_poly_def degree_monom_eq)
+
+lemma unit_factor_pCons [simp]:
+  "unit_factor (pCons a p) =
+     (if p = 0 then monom a 0 else unit_factor p)"
+  by (simp add: unit_factor_poly_def)
+
+lemma normalize_monom [simp]:
+  "normalize (monom a n) =
+     (if a = 0 then 0 else monom 1 n)"
+  by (simp add: normalize_poly_def degree_monom_eq smult_monom)
 
 lemma degree_mod_less:
   "y \<noteq> 0 \<Longrightarrow> x mod y = 0 \<or> degree (x mod y) < degree y"
@@ -1983,20 +1999,16 @@ proof -
     by (rule poly_dvd_antisym)
 qed
 
-interpretation gcd_poly: abel_semigroup "gcd :: _ poly \<Rightarrow> _"
+instance poly :: (field) semiring_gcd
 proof
-  fix x y z :: "'a poly"
-  show "gcd (gcd x y) z = gcd x (gcd y z)"
-    by (rule poly_gcd_unique) (auto intro: dvd_trans simp add: poly_gcd_monic)
-  show "gcd x y = gcd y x"
-    by (rule poly_gcd_unique) (simp_all add: poly_gcd_monic)
-qed
-
-lemmas poly_gcd_assoc = gcd_poly.assoc
-lemmas poly_gcd_commute = gcd_poly.commute
-lemmas poly_gcd_left_commute = gcd_poly.left_commute
-
-lemmas poly_gcd_ac = poly_gcd_assoc poly_gcd_commute poly_gcd_left_commute
+  fix p q :: "'a::field poly"
+  show "normalize (gcd p q) = gcd p q"
+    by (induct p q rule: gcd_poly.induct)
+      (simp_all add: gcd_poly.simps normalize_poly_def)
+  show "lcm p q = normalize (p * q) div gcd p q"
+    by (simp add: coeff_degree_mult div_smult_left div_smult_right lcm_poly_def normalize_poly_def)
+      (metis (no_types, lifting) div_smult_right inverse_mult_distrib inverse_zero mult.commute pdivmod_rel pdivmod_rel_def smult_eq_0_iff)
+qed simp_all
 
 lemma poly_gcd_1_left [simp]: "gcd 1 y = (1 :: _ poly)"
 by (rule poly_gcd_unique) simp_all
@@ -2011,7 +2023,7 @@ lemma poly_gcd_minus_right [simp]: "gcd x (- y) = gcd x (y :: _ poly)"
 by (rule poly_gcd_unique) (simp_all add: poly_gcd_monic)
 
 lemma poly_gcd_code [code]:
-  "gcd x y = (if y = 0 then smult (inverse (coeff x (degree x))) x else gcd y (x mod (y :: _ poly)))"
+  "gcd x y = (if y = 0 then normalize x else gcd y (x mod (y :: _ poly)))"
   by (simp add: gcd_poly.simps)
 
 
