@@ -167,7 +167,7 @@ val nat_basic_lfp_sugar =
 setup \<open>
 let
   fun basic_lfp_sugars_of _ [@{typ nat}] _ _ ctxt =
-      ([], [0], [nat_basic_lfp_sugar], [], [], TrueI (*dummy*), [], false, ctxt)
+      ([], [0], [nat_basic_lfp_sugar], [], [], [], TrueI (*dummy*), [], false, ctxt)
     | basic_lfp_sugars_of bs arg_Ts callers callssss ctxt =
       BNF_LFP_Rec_Sugar.default_basic_lfp_sugars_of bs arg_Ts callers callssss ctxt;
 in

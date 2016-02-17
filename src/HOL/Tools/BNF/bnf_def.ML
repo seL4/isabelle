@@ -115,6 +115,7 @@ sig
   val wit_thmss_of_bnf: bnf -> thm list list
 
   val mk_map: int -> typ list -> typ list -> term -> term
+  val mk_pred: typ list -> term -> term
   val mk_rel: int -> typ list -> typ list -> term -> term
   val build_map: Proof.context -> typ list -> (typ * typ -> term) -> typ * typ -> term
   val build_rel: (string * (int * term)) list -> Proof.context -> typ list -> (typ * typ -> term) ->
@@ -710,6 +711,11 @@ fun minimize_wits wits =
 fun mk_map live Ts Us t =
   let val (Type (_, Ts0), Type (_, Us0)) = strip_typeN (live + 1) (fastype_of t) |>> List.last in
     Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
+  end;
+
+fun mk_pred Ts t =
+  let val Type (_, Ts0) = domain_type (body_fun_type (fastype_of t)) in
+    Term.subst_atomic_types (Ts0 ~~ Ts) t
   end;
 
 fun mk_rel live Ts Us t =

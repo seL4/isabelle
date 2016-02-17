@@ -897,11 +897,11 @@ fun prepare_free_constructors kind prep_plugins prep_term
               val nontriv_disc_thmss =
                 map2 (fn b => if is_disc_binding_valid b then I else K []) disc_bindings disc_thmss;
 
-              fun is_discI_boring b =
+              fun is_discI_triv b =
                 (n = 1 andalso Binding.is_empty b) orelse Binding.eq_name (b, equal_binding);
 
               val nontriv_discI_thms =
-                flat (map2 (fn b => if is_discI_boring b then K [] else single) disc_bindings
+                flat (map2 (fn b => if is_discI_triv b then K [] else single) disc_bindings
                   discI_thms);
 
               val (distinct_disc_thms, (distinct_disc_thmsss', distinct_disc_thmsss)) =

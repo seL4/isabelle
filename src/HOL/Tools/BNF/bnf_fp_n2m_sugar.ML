@@ -10,6 +10,7 @@ sig
   val unfold_lets_splits: term -> term
   val unfold_splits_lets: term -> term
   val dest_map: Proof.context -> string -> term -> term * term list
+  val dest_pred: Proof.context -> string -> term -> term * term list
 
   val mutualize_fp_sugars: (string -> bool) -> BNF_Util.fp_kind -> int list -> binding list ->
     typ list -> term list -> term list list list list -> BNF_FP_Def_Sugar.fp_sugar list ->
@@ -78,27 +79,29 @@ and unfold_splits_lets ((t as Const (@{const_name case_prod}, _)) $ u) =
   | unfold_splits_lets (Abs (s, T, t)) = Abs (s, T, unfold_splits_lets t)
   | unfold_splits_lets t = unfold_lets_splits t;
 
-fun mk_map_pattern ctxt s =
+fun dest_either_map_or_pred map_or_pred_of_bnf ctxt T_name call =
   let
-    val bnf = the (bnf_of ctxt s);
-    val mapx = map_of_bnf bnf;
+    val bnf = the (bnf_of ctxt T_name);
+    val const0 = map_or_pred_of_bnf bnf;
     val live = live_of_bnf bnf;
-    val (f_Ts, _) = strip_typeN live (fastype_of mapx);
-    val fs = map_index (fn (i, T) => Var (("?f", i), T)) f_Ts;
-  in
-    (mapx, betapplys (mapx, fs))
-  end;
-
-fun dest_map ctxt s call =
-  let
-    val (map0, pat) = mk_map_pattern ctxt s;
+    val (f_Ts, _) = strip_typeN live (fastype_of const0);
+    val fs = map_index (fn (i, T) => Var (("f", i), T)) f_Ts;
+    val pat = betapplys (const0, fs);
     val (_, tenv) = fo_match ctxt call pat;
   in
-    (map0, Vartab.fold_rev (fn (_, (_, f)) => cons f) tenv [])
+    (const0, Vartab.fold_rev (fn (_, (_, f)) => cons f) tenv [])
   end;
 
-fun dest_abs_or_applied_map _ _ (Abs (_, _, t)) = (Term.dummy, [t])
-  | dest_abs_or_applied_map ctxt s (t1 $ _) = dest_map ctxt s t1;
+val dest_map = dest_either_map_or_pred map_of_bnf;
+val dest_pred = dest_either_map_or_pred pred_of_bnf;
+
+fun dest_map_or_pred ctxt T_name call =
+  (case try (dest_map ctxt T_name) call of
+    SOME res => res
+  | NONE => dest_pred ctxt T_name call);
+
+fun dest_abs_or_applied_map_or_pred _ _ (Abs (_, _, t)) = (Term.dummy, [t])
+  | dest_abs_or_applied_map_or_pred ctxt s (t1 $ _) = dest_map_or_pred ctxt s t1;
 
 fun map_partition f xs =
   fold_rev (fn x => fn (ys, (good, bad)) =>
@@ -199,7 +202,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
     and freeze_fpTs_call kk fpT calls (T as Type (s, _)) =
         (case map_partition (try (snd o dest_map no_defs_lthy s)) calls of
           ([], _) =>
-          (case map_partition (try (snd o dest_abs_or_applied_map no_defs_lthy s)) calls of
+          (case map_partition (try (snd o dest_abs_or_applied_map_or_pred no_defs_lthy s)) calls of
             ([], _) => freeze_fpTs_mutual_call kk fpT calls T
           | callsp => freeze_fpTs_map kk fpT callsp T)
         | callsp => freeze_fpTs_map kk fpT callsp T)

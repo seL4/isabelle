@@ -28,6 +28,7 @@ sig
     {recx: term,
      fp_nesting_map_ident0s: thm list,
      fp_nesting_map_comps: thm list,
+     fp_nesting_pred_maps: thm list,
      ctr_specs: rec_ctr_spec list}
 
   type basic_lfp_sugar =
@@ -44,16 +45,16 @@ sig
      is_new_datatype: Proof.context -> string -> bool,
      basic_lfp_sugars_of: binding list -> typ list -> term list ->
        (term * term list list) list list -> local_theory ->
-       typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * Token.src list
-       * bool * local_theory,
+       typ list * int list * basic_lfp_sugar list * thm list * thm list * thm list * thm
+       * Token.src list * bool * local_theory,
      rewrite_nested_rec_call: (Proof.context -> (term -> bool) -> (string -> int) -> typ list ->
        term -> term -> term -> term) option};
 
   val register_lfp_rec_extension: lfp_rec_extension -> theory -> theory
   val default_basic_lfp_sugars_of: binding list -> typ list -> term list ->
     (term * term list list) list list -> local_theory ->
-    typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * Token.src list * bool
-    * local_theory
+    typ list * int list * basic_lfp_sugar list * thm list * thm list * thm list * thm
+    * Token.src list * bool * local_theory
   val rec_specs_of: binding list -> typ list -> typ list -> term list ->
     (term * term list list) list list -> local_theory ->
     (bool * rec_spec list * typ list * thm * thm list * Token.src list * typ list) * local_theory
@@ -117,6 +118,7 @@ type rec_spec =
   {recx: term,
    fp_nesting_map_ident0s: thm list,
    fp_nesting_map_comps: thm list,
+   fp_nesting_pred_maps: thm list,
    ctr_specs: rec_ctr_spec list};
 
 type basic_lfp_sugar =
@@ -133,8 +135,8 @@ type lfp_rec_extension =
    is_new_datatype: Proof.context -> string -> bool,
    basic_lfp_sugars_of: binding list -> typ list -> term list ->
      (term * term list list) list list -> local_theory ->
-     typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * Token.src list * bool
-     * local_theory,
+     typ list * int list * basic_lfp_sugar list * thm list * thm list * thm list * thm
+     * Token.src list * bool * local_theory,
    rewrite_nested_rec_call: (Proof.context -> (term -> bool) -> (string -> int) -> typ list ->
      term -> term -> term -> term) option};
 
@@ -172,7 +174,7 @@ fun default_basic_lfp_sugars_of _ [Type (arg_T_name, _)] _ _ ctxt =
         {T = T, fp_res_index = 0, C = C, fun_arg_Tsss = fun_arg_Tsss, ctr_sugar = ctr_sugar,
          recx = casex, rec_thms = case_thms};
     in
-      ([], [0], [basic_lfp_sugar], [], [], TrueI, [], false, ctxt)
+      ([], [0], [basic_lfp_sugar], [], [], [], TrueI (*dummy*), [], false, ctxt)
     end
   | default_basic_lfp_sugars_of _ _ _ _ _ = error "Unsupported mutual recursion at this stage";
 
@@ -199,7 +201,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     val thy = Proof_Context.theory_of lthy0;
 
     val (missing_arg_Ts, perm0_kks, basic_lfp_sugars, fp_nesting_map_ident0s, fp_nesting_map_comps,
-         common_induct, induct_attrs, n2m, lthy) =
+         fp_nesting_pred_maps, common_induct, induct_attrs, n2m, lthy) =
       basic_lfp_sugars_of bs arg_Ts callers callssss0 lthy0;
 
     val perm_basic_lfp_sugars = sort (int_ord o apply2 #fp_res_index) basic_lfp_sugars;
@@ -259,6 +261,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
         ({T, fp_res_index, ctr_sugar = {ctrs, ...}, recx, rec_thms, ...} : basic_lfp_sugar) =
       {recx = mk_co_rec thy Least_FP perm_Cs' (substAT T) recx,
        fp_nesting_map_ident0s = fp_nesting_map_ident0s, fp_nesting_map_comps = fp_nesting_map_comps,
+       fp_nesting_pred_maps = fp_nesting_pred_maps,
        ctr_specs = mk_ctr_specs fp_res_index ctr_offset ctrs rec_thms};
   in
     ((n2m, map2 mk_spec ctr_offsets basic_lfp_sugars, missing_arg_Ts, common_induct, inducts,
@@ -492,10 +495,12 @@ fun find_rec_calls has_call ({ctr, ctr_args, rhs_term, ...} : eqn_data) =
     |> (fn [] => NONE | callss => SOME (ctr, callss))
   end;
 
-fun mk_primrec_tac ctxt num_extra_args map_ident0s map_comps fun_defs recx =
+fun mk_primrec_tac ctxt num_extra_args fp_nesting_map_ident0s fp_nesting_map_comps
+    fp_nesting_pred_maps fun_defs recx =
   unfold_thms_tac ctxt fun_defs THEN
   HEADGOAL (rtac ctxt (funpow num_extra_args (fn thm => thm RS fun_cong) recx RS trans)) THEN
-  unfold_thms_tac ctxt (nested_simps ctxt @ map_ident0s @ map_comps) THEN
+  unfold_thms_tac ctxt (nested_simps ctxt @ fp_nesting_map_ident0s @ fp_nesting_map_comps @
+    fp_nesting_pred_maps) THEN
   HEADGOAL (rtac ctxt refl);
 
 fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
@@ -541,8 +546,8 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
 
     val defs = build_defs lthy nonexhaustives bs mxs funs_data rec_specs has_call;
 
-    fun prove def_thms ({ctr_specs, fp_nesting_map_ident0s, fp_nesting_map_comps, ...} : rec_spec)
-        (fun_data : eqn_data list) lthy' =
+    fun prove def_thms ({ctr_specs, fp_nesting_map_ident0s, fp_nesting_map_comps,
+        fp_nesting_pred_maps, ...} : rec_spec) (fun_data : eqn_data list) lthy' =
       let
         val js =
           find_indices (op = o apply2 (fn {fun_name, ctr, ...} => (fun_name, ctr)))
@@ -556,7 +561,7 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
               Goal.prove_sorry lthy' [] [] user_eqn
                 (fn {context = ctxt, prems = _} =>
                   mk_primrec_tac ctxt num_extra_args fp_nesting_map_ident0s fp_nesting_map_comps
-                    def_thms rec_thm)
+                    fp_nesting_pred_maps def_thms rec_thm)
               |> Thm.close_derivation);
       in
         ((js, simps), lthy')

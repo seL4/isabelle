@@ -36,7 +36,7 @@ fun basic_lfp_sugar_of C fun_arg_Tsss ({T, fp_res_index, fp_ctr_sugar = {ctr_sug
    recx = recx, rec_thms = rec_thms};
 
 fun basic_lfp_sugars_of _ [@{typ nat}] _ _ lthy =
-    ([], [0], [nat_basic_lfp_sugar], [], [], TrueI (*dummy*), [], false, lthy)
+    ([], [0], [nat_basic_lfp_sugar], [], [], [], TrueI (*dummy*), [], false, lthy)
   | basic_lfp_sugars_of bs arg_Ts callers callssss0 lthy0 =
     let
       val ((missing_arg_Ts, perm0_kks,
@@ -63,10 +63,11 @@ fun basic_lfp_sugars_of _ [@{typ nat}] _ _ lthy =
 
       val fp_nesting_map_ident0s = map map_ident0_of_bnf fp_nesting_bnfs;
       val fp_nesting_map_comps = map map_comp_of_bnf fp_nesting_bnfs;
+      val fp_nesting_pred_maps = map pred_map_of_bnf fp_nesting_bnfs;
     in
       (missing_arg_Ts, perm0_kks, @{map 3} basic_lfp_sugar_of Cs fun_arg_Tssss fp_sugars,
-       fp_nesting_map_ident0s, fp_nesting_map_comps, common_induct, induct_attrs,
-       is_some lfp_sugar_thms, lthy)
+       fp_nesting_map_ident0s, fp_nesting_map_comps, fp_nesting_pred_maps, common_induct,
+       induct_attrs, is_some lfp_sugar_thms, lthy)
     end;
 
 exception NO_MAP of term;
@@ -108,7 +109,16 @@ fun massage_nested_rec_call ctxt has_call massage_fun massage_nonfun bound_Ts y 
           in
             Term.list_comb (map', fs')
           end
-        | NONE => raise NO_MAP t)
+        | NONE =>
+          (case try (dest_pred ctxt s) t of
+            SOME (pred0, fs) =>
+            let
+              val pred' = mk_pred Us pred0;
+              val fs' = map_flattened_map_args ctxt s (@{map 3} massage_map_or_map_arg Us Ts) fs;
+            in
+              Term.list_comb (pred', fs')
+            end
+          | NONE => raise NO_MAP t))
       | massage_map _ _ t = raise NO_MAP t
     and massage_map_or_map_arg U T t =
       if T = U then
