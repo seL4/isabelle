@@ -661,7 +661,7 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
 
     val timer = time (timer "FP construction in total");
   in
-    timer; ((pre_bnfs, absT_infos), res)
+    ((pre_bnfs, absT_infos), res)
   end;
 
 fun fp_antiquote_setup binding =

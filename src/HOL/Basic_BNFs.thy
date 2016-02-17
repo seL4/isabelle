@@ -36,6 +36,11 @@ where
   "P1 a \<Longrightarrow> pred_sum P1 P2 (Inl a)"
 | "P2 b \<Longrightarrow> pred_sum P1 P2 (Inr b)"
 
+lemma pred_sum_inject[code, simp]:
+  "pred_sum P1 P2 (Inl a) \<longleftrightarrow> P1 a"
+  "pred_sum P1 P2 (Inr b) \<longleftrightarrow> P2 b"
+  by (simp add: pred_sum.simps)+
+
 bnf "'a + 'b"
   map: map_sum
   sets: setl setr
@@ -114,11 +119,11 @@ inductive
 where
   "\<lbrakk>P1 a; P2 b\<rbrakk> \<Longrightarrow> pred_prod P1 P2 (a, b)"
 
-lemma rel_prod_apply [code, simp]:
+lemma rel_prod_inject [code, simp]:
   "rel_prod R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
   by (auto intro: rel_prod.intros elim: rel_prod.cases)
 
-lemma pred_prod_apply [code, simp]:
+lemma pred_prod_inject [code, simp]:
   "pred_prod P1 P2 (a, b) \<longleftrightarrow> P1 a \<and> P2 b"
   by (auto intro: pred_prod.intros elim: pred_prod.cases)
 
@@ -178,7 +183,7 @@ next
   show "rel_prod R S = (\<lambda>x y.
     \<exists>z. ({fst z} \<subseteq> {(x, y). R x y} \<and> {snd z} \<subseteq> {(x, y). S x y}) \<and>
       map_prod fst fst z = x \<and> map_prod snd snd z = y)"
-  unfolding prod_set_defs rel_prod_apply relcompp.simps conversep.simps fun_eq_iff
+  unfolding prod_set_defs rel_prod_inject relcompp.simps conversep.simps fun_eq_iff
   by auto
 qed auto
 

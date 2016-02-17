@@ -97,7 +97,7 @@ ML_file "Tools/BNF/bnf_lfp_basic_sugar.ML"
 
 ML_file "~~/src/HOL/Tools/Old_Datatype/old_size.ML"
 
-lemma size_bool[code]: "size (b::bool) = 0"
+lemma size_bool[code]: "size (b :: bool) = 0"
   by (cases b) auto
 
 declare prod.size[no_atp]

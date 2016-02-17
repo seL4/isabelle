@@ -299,7 +299,8 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
             co_rec co_rec_def map_thms co_inducts co_rec_thms co_rec_disc_thms co_rec_sel_thmss
             ({fp_ctr_sugar = {ctr_transfers, case_transfers, disc_transfers, sel_transfers, ...},
               fp_bnf_sugar = {map_disc_iffs, map_selss, rel_injects, rel_distincts, rel_sels,
-                rel_intros, rel_cases, set_thms, set_selssss, set_introssss, set_cases, ...},
+                rel_intros, rel_cases, pred_injects, set_thms, set_selssss, set_introssss,
+                set_cases, ...},
               fp_co_induct_sugar = {co_rec_disc_iffs, co_rec_codes, co_rec_transfers,
                 co_rec_o_maps, common_rel_co_inducts, rel_co_inducts, common_set_inducts,
                 set_inducts, ...},
@@ -325,6 +326,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
               rel_sels = rel_sels,
               rel_intros = rel_intros,
               rel_cases = rel_cases,
+              pred_injects = pred_injects,
               set_thms = set_thms,
               set_selssss = set_selssss,
               set_introssss = set_introssss,

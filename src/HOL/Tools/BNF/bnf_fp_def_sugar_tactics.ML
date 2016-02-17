@@ -40,8 +40,8 @@ sig
     tactic
   val mk_rec_transfer_tac: Proof.context -> int -> int list -> cterm list -> cterm list ->
     term list list list list -> thm list -> thm list -> thm list -> thm list -> tactic
-  val mk_rel_cases_tac: Proof.context -> cterm -> cterm -> thm -> thm list -> thm list ->
-    thm list -> thm list -> thm list -> tactic
+  val mk_rel_case_tac: Proof.context -> cterm -> cterm -> thm -> thm list -> thm list -> thm list ->
+    thm list -> thm list -> tactic
   val mk_rel_coinduct0_tac: Proof.context -> thm -> cterm list -> thm list -> thm list ->
     thm list list -> thm list list -> thm list list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> tactic
@@ -79,7 +79,7 @@ val basic_sumprod_thms_set =
   @{thms UN_empty UN_insert  UN_iff Un_empty_left Un_empty_right Un_iff Union_Un_distrib
        o_apply map_prod_simp mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
 val sumprod_thms_set = @{thms UN_simps(10) image_iff} @ basic_sumprod_thms_set;
-val sumprod_thms_rel = @{thms rel_sum_simps rel_prod_apply prod.inject id_apply conj_assoc};
+val sumprod_thms_rel = @{thms rel_sum_simps rel_prod_inject prod.inject id_apply conj_assoc};
 
 fun is_def_looping def =
   (case Thm.prop_of def of
@@ -103,10 +103,10 @@ fun co_induct_inst_as_projs ctxt k thm =
 
 val co_induct_inst_as_projs_tac = PRIMITIVE oo co_induct_inst_as_projs;
 
-fun mk_case_transfer_tac ctxt rel_cases cases =
-  let val n = length (tl (Thm.prems_of rel_cases)) in
+fun mk_case_transfer_tac ctxt rel_case cases =
+  let val n = length (tl (Thm.prems_of rel_case)) in
     REPEAT_DETERM (HEADGOAL (rtac ctxt rel_funI)) THEN
-    HEADGOAL (etac ctxt rel_cases) THEN
+    HEADGOAL (etac ctxt rel_case) THEN
     ALLGOALS (hyp_subst_tac ctxt) THEN
     unfold_thms_tac ctxt cases THEN
     ALLGOALS (fn k => (select_prem_tac ctxt n (dtac ctxt asm_rl) k) k) THEN
@@ -408,7 +408,7 @@ fun mk_map_sel_tac ctxt ct exhaust discs maps sels map_id0s =
     unfold_thms_tac ctxt (@{thm id_apply} :: maps @ sels @ map_id0s) THEN
     ALLGOALS (rtac ctxt refl);
 
-fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_distincts rel_eqs =
+fun mk_rel_case_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_distincts rel_eqs =
   HEADGOAL (rtac ctxt (infer_instantiate' ctxt [SOME ct1] exhaust) THEN_ALL_NEW
     rtac ctxt (infer_instantiate' ctxt [SOME ct2] exhaust) THEN_ALL_NEW
       hyp_subst_tac ctxt) THEN
@@ -436,7 +436,7 @@ fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss 
       unfold_thms_tac ctxt ((discs RL [eqTrueI, eqFalseI]) @ sels @ simp_thms') THEN
       unfold_thms_tac ctxt (dtor_ctor :: rel_pre_def :: abs_inverse :: ctor_inject ::
         abs_inject :: ctor_defs @ nesting_rel_eqs @ simp_thms' @
-        @{thms id_bnf_def rel_sum_simps rel_prod_apply vimage2p_def Inl_Inr_False
+        @{thms id_bnf_def rel_sum_simps rel_prod_inject vimage2p_def Inl_Inr_False
           iffD2[OF eq_False Inr_not_Inl] sum.inject prod.inject}) THEN
       REPEAT_DETERM (HEADGOAL ((REPEAT_DETERM o etac ctxt conjE) THEN'
         (REPEAT_DETERM o rtac ctxt conjI) THEN' (rtac ctxt refl ORELSE' assume_tac ctxt))))
@@ -454,7 +454,7 @@ fun mk_rel_induct0_tac ctxt ctor_rel_induct assms cterms exhausts ctor_defss cto
         unfold_thms_tac ctxt (ctor_inject :: rel_pre_list_def :: ctor_defs @ nesting_rel_eqs @
           @{thms id_bnf_def vimage2p_def}) THEN
         TRYALL (hyp_subst_tac ctxt) THEN
-        unfold_thms_tac ctxt (Abs_inverse :: @{thms rel_sum_simps rel_prod_apply Inl_Inr_False
+        unfold_thms_tac ctxt (Abs_inverse :: @{thms rel_sum_simps rel_prod_inject Inl_Inr_False
           Inr_Inl_False  sum.inject prod.inject}) THEN
         TRYALL (rtac ctxt refl ORELSE' etac ctxt FalseE ORELSE'
           (REPEAT_DETERM o etac ctxt conjE) THEN' assume_tac ctxt))

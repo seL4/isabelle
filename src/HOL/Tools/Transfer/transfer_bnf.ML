@@ -36,14 +36,6 @@ fun mk_Domainp P =
     Const (@{const_name Domainp}, PT --> argT --> HOLogic.boolT) $ P
   end
 
-fun mk_eq_onp arg =
-  let
-    val argT = domain_type (fastype_of arg)
-  in
-    Const (@{const_name eq_onp}, (argT --> HOLogic.boolT) --> argT --> argT --> HOLogic.boolT)
-      $ arg
-  end
-
 fun type_name_of_bnf bnf = T_of_bnf bnf |> dest_Type |> fst
 
 fun is_Type (Type _) = true
@@ -252,57 +244,6 @@ fun lookup_defined_pred_data lthy name =
     SOME data => data
   | NONE => raise NO_PRED_DATA ()
 
-val rel_eq_onp_with_tops_of = Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv
-  (Transfer.top_sweep_rewr_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]})));
-
-fun prove_pred_inject lthy ({T = fpT, fp_nesting_bnfs, live_nesting_bnfs,
-    fp_res = {bnfs = fp_bnfs, ...}, fp_bnf_sugar = {rel_injects, ...}, ...} : fp_sugar) =
-  let
-    val As = snd (dest_Type fpT)
-    val liveness = liveness_of_fp_bnf (length As) (hd fp_bnfs)
-    val lives = map_filter (uncurry (fn true => SOME | false => K NONE)) (liveness ~~ As)
-
-    val involved_bnfs = distinct (op = o @{apply 2} BNF_Def.T_of_bnf)
-      (fp_nesting_bnfs @ live_nesting_bnfs @ fp_bnfs)
-    val eq_onps = map (rel_eq_onp_with_tops_of o rel_eq_onp_of_bnf) involved_bnfs
-    val old_lthy = lthy
-    val (As, lthy) = mk_TFrees' (map Type.sort_of_atyp lives) lthy
-    val predTs = map mk_pred1T As
-    val (preds, lthy) = mk_Frees "P" predTs lthy
-    val args = map mk_eq_onp preds
-    val cTs = map (SOME o Thm.ctyp_of lthy) (maps (replicate 2) As)
-    val cts = map (SOME o Thm.cterm_of lthy) args
-    fun get_rhs thm = thm |> Thm.concl_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd
-    fun is_eqn thm = can get_rhs thm
-    fun rel2pred_massage thm =
-      let
-        val live_step = @{lemma "x = y \<Longrightarrow> (eq_onp P a a \<and> x) = (P a \<and> y)" by (simp only: eq_onp_same_args)}
-        val kill_top1 = @{lemma "(top x \<and> P) = P" by blast}
-        val kill_top2 = @{lemma "(P \<and> top x) = P" by blast}
-        fun pred_eq_onp_conj conjs = List.foldr (fn (_, thm) => thm RS live_step)
-          @{thm refl[of True]} conjs
-        val conjuncts = if is_eqn thm then thm |> get_rhs |> HOLogic.dest_conj else []
-        val kill_top = Local_Defs.unfold lthy [kill_top2] #> Local_Defs.unfold lthy [kill_top1]
-        val kill_True = Local_Defs.unfold lthy [@{thm HOL.simp_thms(21)}]
-      in
-        thm
-        |> Thm.instantiate' cTs cts
-        |> Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg_conv
-          (Raw_Simplifier.rewrite lthy false @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]})))
-        |> Local_Defs.unfold lthy eq_onps
-        |> (fn thm => if conjuncts <> [] then @{thm box_equals}
-              OF [thm, @{thm eq_onp_same_args}, pred_eq_onp_conj conjuncts |> kill_True]
-            else thm RS (@{thm eq_onp_same_args} RS iffD1))
-        |> kill_top
-      end
-  in
-    rel_injects
-    |> map (Local_Defs.unfold lthy [@{thm conj_assoc}])
-    |> map rel2pred_massage
-    |> Variable.export lthy old_lthy
-    |> map Drule.zero_var_indexes
-  end
-
 
 (* fp_sugar interpretation *)
 
@@ -317,28 +258,22 @@ fun fp_sugar_transfer_rules (fp_sugar:fp_sugar) =
     map (fn thm => ((Binding.empty, []), [([thm], transfer_attr)])) transfer_rules
   end
 
-fun pred_injects fp_sugar lthy =
+fun register_pred_injects fp_sugar lthy =
   let
-    val pred_injects = prove_pred_inject lthy fp_sugar
-    fun qualify defname suffix = Binding.qualified true suffix defname
-    val pred_inject_thm_name = qualify (base_name_of_bnf (bnf_of_fp_sugar fp_sugar)) "pred_inject"
-    val simp_attrs = @{attributes [simp]}
+    val pred_injects = #pred_injects (#fp_bnf_sugar fp_sugar)
     val type_name = type_name_of_bnf (#fp_bnf fp_sugar)
     val pred_data = lookup_defined_pred_data lthy type_name 
       |> Transfer.update_pred_simps pred_injects
   in
     lthy 
-    |> Local_Theory.note ((pred_inject_thm_name, simp_attrs), pred_injects) 
-    |> snd
     |> Local_Theory.declaration {syntax = false, pervasive = true}
       (fn phi => Transfer.update_pred_data type_name (Transfer.morph_pred_data phi pred_data))
     |> Local_Theory.restore
   end
 
-
 fun transfer_fp_sugars_interpretation fp_sugar lthy =
   let
-    val lthy = pred_injects fp_sugar lthy
+    val lthy = register_pred_injects fp_sugar lthy
     val transfer_rules_notes = fp_sugar_transfer_rules fp_sugar
   in
     lthy

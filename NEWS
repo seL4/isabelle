@@ -27,6 +27,10 @@ typesetting. E.g. to produce proof holes in examples and documentation.
     "bnf" outputs a new proof obligation expressing pred in terms of set
        (not giving a specification for pred makes this one reflexive)
     INCOMPATIBILITY: manual "bnf" declarations may need adjustment
+  - Renamed lemmas:
+      rel_prod_apply ~> rel_prod_inject
+      pred_prod_apply ~> pred_prod_inject
+    INCOMPATIBILITY.
 
 
 New in Isabelle2016 (February 2016)
