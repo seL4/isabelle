@@ -265,6 +265,10 @@ lemma eq_onp_True: "eq_onp (\<lambda>_. True) = (op =)"
 lemma Ball_image_comp: "Ball (f ` A) g = Ball A (g o f)"
   by auto
 
+lemma rel_fun_Collect_case_prodD:
+  "rel_fun A B f g \<Longrightarrow> X \<subseteq> Collect (case_prod A) \<Longrightarrow> x \<in> X \<Longrightarrow> B ((f o fst) x) ((g o snd) x)"
+  unfolding rel_fun_def by auto
+
 ML_file "Tools/BNF/bnf_util.ML"
 ML_file "Tools/BNF/bnf_tactics.ML"
 ML_file "Tools/BNF/bnf_def_tactics.ML"

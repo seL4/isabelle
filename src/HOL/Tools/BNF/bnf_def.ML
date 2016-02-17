@@ -85,6 +85,8 @@ sig
   val pred_mono_strong_of_bnf: bnf -> thm
   val pred_set_of_bnf: bnf -> thm
   val pred_rel_of_bnf: bnf -> thm
+  val pred_transfer_of_bnf: bnf -> thm
+  val pred_True_of_bnf: bnf -> thm
   val rel_Grp_of_bnf: bnf -> thm
   val rel_OO_Grp_of_bnf: bnf -> thm
   val rel_OO_of_bnf: bnf -> thm
@@ -290,6 +292,7 @@ type facts = {
   rel_transp: thm lazy,
   rel_transfer: thm lazy,
   rel_eq_onp: thm lazy,
+  pred_transfer: thm lazy,
   pred_True: thm lazy,
   pred_map: thm lazy,
   pred_rel: thm lazy,
@@ -304,8 +307,8 @@ fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_con
     inj_map inj_map_strong map_comp map_cong map_cong_simp map_cong_pred map_id map_ident0 map_ident
     map_transfer rel_eq rel_flip set_map rel_cong0 rel_cong rel_cong_simp rel_map rel_mono
     rel_mono_strong0 rel_mono_strong set_transfer rel_Grp rel_conversep rel_OO rel_refl
-    rel_refl_strong rel_reflp rel_symp rel_transp rel_transfer rel_eq_onp pred_True pred_map pred_rel
-    pred_mono_strong0 pred_mono_strong pred_cong0 pred_cong pred_cong_simp = {
+    rel_refl_strong rel_reflp rel_symp rel_transp rel_transfer rel_eq_onp pred_transfer pred_True
+    pred_map pred_rel pred_mono_strong0 pred_mono_strong pred_cong0 pred_cong pred_cong_simp = {
   bd_Card_order = bd_Card_order,
   bd_Cinfinite = bd_Cinfinite,
   bd_Cnotzero = bd_Cnotzero,
@@ -345,6 +348,7 @@ fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_con
   rel_transp = rel_transp,
   set_transfer = set_transfer,
   rel_eq_onp = rel_eq_onp,
+  pred_transfer = pred_transfer,
   pred_True = pred_True,
   pred_map = pred_map,
   pred_rel = pred_rel,
@@ -394,6 +398,7 @@ fun map_facts f {
   rel_transp,
   set_transfer,
   rel_eq_onp,
+  pred_transfer,
   pred_True,
   pred_map,
   pred_rel,
@@ -441,6 +446,7 @@ fun map_facts f {
     rel_transp = Lazy.map f rel_transp,
     set_transfer = Lazy.map (map f) set_transfer,
     rel_eq_onp = Lazy.map f rel_eq_onp,
+    pred_transfer = Lazy.map f pred_transfer,
     pred_True = Lazy.map f pred_True,
     pred_map = Lazy.map f pred_map,
     pred_rel = Lazy.map f pred_rel,
@@ -577,15 +583,17 @@ val map_ident0_of_bnf = Lazy.force o #map_ident0 o #facts o rep_bnf;
 val map_ident_of_bnf = Lazy.force o #map_ident o #facts o rep_bnf;
 val map_transfer_of_bnf = Lazy.force o #map_transfer o #facts o rep_bnf;
 val rel_eq_onp_of_bnf = Lazy.force o #rel_eq_onp o #facts o rep_bnf;
-val pred_rel_of_bnf = Lazy.force o #pred_rel o #facts o rep_bnf;
+val pred_def_of_bnf = #pred_def o #defs o rep_bnf;
 val pred_map_of_bnf = Lazy.force o #pred_map o #facts o rep_bnf;
 val pred_mono_strong0_of_bnf = Lazy.force o #pred_mono_strong0 o #facts o rep_bnf;
 val pred_mono_strong_of_bnf = Lazy.force o #pred_mono_strong o #facts o rep_bnf;
 val pred_cong0_of_bnf = Lazy.force o #pred_cong0 o #facts o rep_bnf;
 val pred_cong_of_bnf = Lazy.force o #pred_cong o #facts o rep_bnf;
 val pred_cong_simp_of_bnf = Lazy.force o #pred_cong_simp o #facts o rep_bnf;
-val pred_def_of_bnf = #pred_def o #defs o rep_bnf;
+val pred_rel_of_bnf = Lazy.force o #pred_rel o #facts o rep_bnf;
 val pred_set_of_bnf = #pred_set o #axioms o rep_bnf;
+val pred_transfer_of_bnf = Lazy.force o #pred_transfer o #facts o rep_bnf;
+val pred_True_of_bnf = Lazy.force o #pred_True o #facts o rep_bnf;
 val rel_Grp_of_bnf = Lazy.force o #rel_Grp o #facts o rep_bnf;
 val rel_OO_Grp_of_bnf = #rel_OO_Grp o #axioms o rep_bnf;
 val rel_OO_of_bnf = Lazy.force o #rel_OO o #facts o rep_bnf;
@@ -794,6 +802,7 @@ val map_identN = "map_ident";
 val map_transferN = "map_transfer";
 val pred_mono_strong0N = "pred_mono_strong0";
 val pred_mono_strongN = "pred_mono_strong";
+val pred_transferN = "pred_transfer";
 val pred_TrueN = "pred_True";
 val pred_mapN = "pred_map";
 val pred_relN = "pred_rel";
@@ -889,6 +898,7 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
            (pred_cong_simpN, [Lazy.force (#pred_cong_simp facts)], []),
            (pred_mapN, [Lazy.force (#pred_map facts)], []),
            (pred_relN, [Lazy.force (#pred_rel facts)], []),
+           (pred_transferN, [Lazy.force (#pred_transfer facts)], []),
            (pred_TrueN, [Lazy.force (#pred_True facts)], []),
            (pred_setN, [#pred_set axioms], []),
            (rel_comppN, [Lazy.force (#rel_OO facts)], []),
@@ -1837,6 +1847,23 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
         val map_transfer = Lazy.lazy mk_map_transfer;
 
+        fun mk_pred_transfer () =
+          let
+            val iff = HOLogic.eq_const HOLogic.boolT;
+            val prem_rels = map (fn T => mk_rel_fun T iff) Rs;
+            val prem_elems = mk_rel_fun (Term.list_comb (rel, Rs)) iff;
+            val goal = HOLogic.mk_Trueprop
+              (fold_rev mk_rel_fun prem_rels prem_elems $ pred $ pred');
+            val vars = Variable.add_free_names lthy goal [];
+          in
+            Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
+              mk_pred_transfer_tac ctxt live (Lazy.force in_rel) (Lazy.force pred_map)
+                (Lazy.force pred_cong))
+            |> Thm.close_derivation
+          end;
+
+        val pred_transfer = Lazy.lazy mk_pred_transfer;
+
         fun mk_rel_transfer () =
           let
             val iff = HOLogic.eq_const HOLogic.boolT;
@@ -1912,8 +1939,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           map_ident0 map_ident map_transfer rel_eq rel_flip set_map rel_cong0 rel_cong rel_cong_simp
           rel_map rel_mono rel_mono_strong0 rel_mono_strong set_transfer rel_Grp rel_conversep
           rel_OO rel_refl rel_refl_strong rel_reflp rel_symp rel_transp rel_transfer rel_eq_onp
-          pred_True pred_map pred_rel pred_mono_strong0 pred_mono_strong pred_cong0 pred_cong
-          pred_cong_simp;
+          pred_transfer pred_True pred_map pred_rel pred_mono_strong0 pred_mono_strong pred_cong0
+          pred_cong pred_cong_simp;
 
         val wits = map2 mk_witness bnf_wits wit_thms;
 

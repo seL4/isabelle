@@ -149,8 +149,8 @@ fun relator_eq bnf =
 
 fun bnf_transfer_rules bnf =
   let
-    val transfer_rules = map_transfer_of_bnf bnf :: rel_transfer_of_bnf bnf 
-      :: set_transfer_of_bnf bnf
+    val transfer_rules = map_transfer_of_bnf bnf :: pred_transfer_of_bnf bnf
+      :: rel_transfer_of_bnf bnf :: set_transfer_of_bnf bnf
     val transfer_attr = @{attributes [transfer_rule]}
   in
     map (fn thm => ((Binding.empty,[]),[([thm],transfer_attr)])) transfer_rules
