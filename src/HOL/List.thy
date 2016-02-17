@@ -14,6 +14,7 @@ datatype (set: 'a) list =
 for
   map: map
   rel: list_all2
+  pred: list_all
 where
   "tl [] = []"
 
@@ -6241,10 +6242,7 @@ lemma in_set_member (* FIXME delete candidate *):
   "x \<in> set xs \<longleftrightarrow> member xs x"
   by (simp add: member_def)
 
-abbreviation "list_all == pred_list"
-
-lemma list_all_iff [code_abbrev]: "list_all P xs \<longleftrightarrow> Ball (set xs) P"
-unfolding pred_list_def ..
+lemmas list_all_iff [code_abbrev] = fun_cong[OF list.pred_set]
 
 definition list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
 list_ex_iff [code_abbrev]: "list_ex P xs \<longleftrightarrow> Bex (set xs) P"
@@ -6305,9 +6303,7 @@ lemma list_ex_length:
   "list_ex P xs \<longleftrightarrow> (\<exists>n < length xs. P (xs ! n))"
   by (auto simp add: list_ex_iff set_conv_nth)
 
-lemma list_all_cong [fundef_cong]:
-  "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_all f xs = list_all g ys"
-  by (simp add: list_all_iff)
+lemmas list_all_cong [fundef_cong] = list.pred_cong
 
 lemma list_ex_cong [fundef_cong]:
   "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_ex f xs = list_ex g ys"

@@ -359,7 +359,7 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
       Cons (infixr "#" 65)
 
     hide_type list
-    hide_const Nil Cons case_list hd tl set map list_all2 rec_list size_list pred_list
+    hide_const Nil Cons case_list hd tl set map list_all2 rec_list size_list list_all
 
     context early
     begin
@@ -370,6 +370,7 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
     for
       map: map
       rel: list_all2
+      pred: list_all
     where
       "tl Nil = Nil"
 
@@ -439,6 +440,7 @@ text \<open> \blankline \<close>
     for
       map: map
       rel: list_all2
+      pred: list_all
 
 text \<open>
 \noindent
@@ -2889,7 +2891,7 @@ occurs implicitly in the goal, in form of the variable
 
     lift_bnf (*<*)(no_warn_wits) (*>*)'a nonempty_list
     proof -
-      fix f and xs :: "'a list"
+      fix f(*<*):: "'a \<Rightarrow> 'c"(*>*) and xs :: "'a list"
       assume "xs \<in> {xs. xs \<noteq> []}"
       then show "map f xs \<in> {xs. xs \<noteq> []}"
         by (cases xs(*<*) rule: list.exhaust(*>*)) auto
