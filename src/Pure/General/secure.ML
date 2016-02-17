@@ -13,7 +13,6 @@ sig
   val use_text: use_context ->
     {line: int, file: string, verbose: bool, debug: bool} -> string -> unit
   val use_file: use_context -> {verbose: bool, debug: bool} -> string -> unit
-  val toplevel_pp: string list -> string -> unit
 end;
 
 structure Secure: SECURE =
@@ -36,11 +35,8 @@ fun secure_mltext () = deny_secure "Cannot evaluate ML source in secure mode";
 
 val raw_use_text = use_text;
 val raw_use_file = use_file;
-val raw_toplevel_pp = toplevel_pp;
 
 fun use_text context flags (text: string) = (secure_mltext (); raw_use_text context flags text);
 fun use_file context flags (file: string) = (secure_mltext (); raw_use_file context flags file);
-
-fun toplevel_pp path pp = (secure_mltext (); raw_toplevel_pp ML_Parse.global_context path pp);
 
 end;

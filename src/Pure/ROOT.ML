@@ -47,8 +47,6 @@ fun use file =
       Secure.use_file ML_Parse.global_context {verbose = true, debug = false} file
         handle ERROR msg => (writeln msg; error "ML error")) ();
 
-val toplevel_pp = Secure.toplevel_pp;
-
 
 
 (** bootstrap phase 1: towards ML within Isar context *)
@@ -332,27 +330,6 @@ use "Tools/named_thms.ML";
 
 structure Output: OUTPUT = Output;  (*seal system channels!*)
 
-
-(* ML toplevel pretty printing *)
-
-toplevel_pp ["Pretty", "T"] "(fn _: Pretty.T => Pretty.str \"<pretty>\")";
-toplevel_pp ["Scan", "lexicon"] "Lexicon.pp_lexicon";
-toplevel_pp ["Task_Queue", "task"] "Pretty.str o Task_Queue.str_of_task";
-toplevel_pp ["Task_Queue", "group"] "Pretty.str o Task_Queue.str_of_group";
-toplevel_pp ["Position", "T"] "Pretty.position";
-toplevel_pp ["Binding", "binding"] "Binding.pp";
-toplevel_pp ["Thm", "thm"] "Proof_Display.pp_thm Thy_Info.pure_theory";
-toplevel_pp ["Thm", "cterm"] "Proof_Display.pp_cterm Thy_Info.pure_theory";
-toplevel_pp ["Thm", "ctyp"] "Proof_Display.pp_ctyp Thy_Info.pure_theory";
-toplevel_pp ["typ"] "Proof_Display.pp_typ Thy_Info.pure_theory";
-toplevel_pp ["Context", "theory"] "Context.pretty_thy";
-toplevel_pp ["Context", "Proof", "context"] "Proof_Display.pp_context";
-toplevel_pp ["Ast", "ast"] "Ast.pretty_ast";
-toplevel_pp ["Path", "T"] "Path.pretty";
-toplevel_pp ["SHA1", "digest"] "Pretty.str o quote o SHA1.rep";
-toplevel_pp ["Proof", "state"] "(fn _: Proof.state => Pretty.str \"<Proof.state>\")";
-toplevel_pp ["Toplevel", "state"] "Toplevel.pretty_abstract";
-toplevel_pp ["Morphism", "morphism"] "Morphism.pretty";
 
 use "ML/install_pp_polyml.ML";
 

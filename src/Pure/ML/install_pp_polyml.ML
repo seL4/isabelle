@@ -1,8 +1,62 @@
 (*  Title:      Pure/ML/install_pp_polyml.ML
     Author:     Makarius
 
-Extra toplevel pretty-printing for Poly/ML.
+ML toplevel pretty-printing for Poly/ML.
 *)
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn _: Pretty.T =>
+  ml_pretty (Pretty.to_ML (Pretty.str "<pretty>")));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn lexicon =>
+  ml_pretty (Pretty.to_ML (Lexicon.pp_lexicon lexicon)));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn task =>
+  ml_pretty (Pretty.to_ML (Pretty.str (Task_Queue.str_of_task task))));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn group =>
+  ml_pretty (Pretty.to_ML (Pretty.str (Task_Queue.str_of_group group))));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn pos =>
+  ml_pretty (Pretty.to_ML (Pretty.position pos)));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn binding =>
+  ml_pretty (Pretty.to_ML (Binding.pp binding)));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn th =>
+  ml_pretty (Pretty.to_ML (Proof_Display.pp_thm Thy_Info.pure_theory th)));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn ct =>
+  ml_pretty (Pretty.to_ML (Proof_Display.pp_cterm Thy_Info.pure_theory ct)));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn cT =>
+  ml_pretty (Pretty.to_ML (Proof_Display.pp_ctyp Thy_Info.pure_theory cT)));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn T =>
+  ml_pretty (Pretty.to_ML (Proof_Display.pp_typ Thy_Info.pure_theory T)));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn thy =>
+  ml_pretty (Pretty.to_ML (Context.pretty_thy thy)));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn ctxt =>
+  ml_pretty (Pretty.to_ML (Proof_Display.pp_context ctxt)));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn ast =>
+  ml_pretty (Pretty.to_ML (Ast.pretty_ast ast)));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn path =>
+  ml_pretty (Pretty.to_ML (Path.pretty path)));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn digest =>
+  ml_pretty (Pretty.to_ML (Pretty.str (quote (SHA1.rep digest)))));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn _: Proof.state =>
+  ml_pretty (Pretty.to_ML (Pretty.str "<Proof.state>")));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn st =>
+  ml_pretty (Pretty.to_ML (Toplevel.pretty_abstract st)));
+
+PolyML.addPrettyPrinter (fn _ => fn _ => fn morphism =>
+  ml_pretty (Pretty.to_ML (Morphism.pretty morphism)));
 
 PolyML.addPrettyPrinter (fn depth => fn _ => fn str =>
   ml_pretty (Pretty.to_ML (ML_Syntax.pretty_string (depth * 100) str)));
@@ -107,4 +161,3 @@ val _ =
 end;
 
 end;
-

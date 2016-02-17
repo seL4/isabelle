@@ -189,10 +189,6 @@ use "RAW/ml_parse_tree.ML";
 if ML_System.name = "polyml-5.6"
 then use "RAW/ml_parse_tree_polyml-5.6.ML" else ();
 
-fun toplevel_pp context (_: string list) pp =
-  use_text context {line = 1, file = "pp", verbose = false, debug = false}
-    ("PolyML.addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
-
 fun ml_make_string struct_name =
   "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, " ^
     struct_name ^ ".ML_print_depth ())))))";
