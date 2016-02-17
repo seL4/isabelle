@@ -31,7 +31,7 @@ theory GCD
 imports Main
 begin
 
-subsection \<open>GCD and LCM definitions\<close>
+subsection \<open>Abstract GCD and LCM\<close>
 
 class gcd = zero + one + dvd +
   fixes gcd :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -66,6 +66,14 @@ lemma gcd_dvdI1:
 lemma gcd_dvdI2:
   "b dvd c \<Longrightarrow> gcd a b dvd c"
   by (rule dvd_trans) (rule gcd_dvd2)
+
+lemma dvd_gcdD1:
+  "a dvd gcd b c \<Longrightarrow> a dvd b"
+  using gcd_dvd1 [of b c] by (blast intro: dvd_trans)
+
+lemma dvd_gcdD2:
+  "a dvd gcd b c \<Longrightarrow> a dvd c"
+  using gcd_dvd2 [of b c] by (blast intro: dvd_trans)
 
 lemma gcd_0_left [simp]:
   "gcd 0 a = normalize a"
@@ -202,6 +210,14 @@ lemma dvd_lcmI1:
 lemma dvd_lcmI2:
   "a dvd c \<Longrightarrow> a dvd lcm b c"
   by (rule dvd_trans) (assumption, blast)
+
+lemma lcm_dvdD1:
+  "lcm a b dvd c \<Longrightarrow> a dvd c"
+  using dvd_lcm1 [of a b] by (blast intro: dvd_trans)
+
+lemma lcm_dvdD2:
+  "lcm a b dvd c \<Longrightarrow> b dvd c"
+  using dvd_lcm2 [of a b] by (blast intro: dvd_trans)
 
 lemma lcm_least:
   assumes "a dvd c" and "b dvd c"
@@ -350,15 +366,78 @@ lemma mult_lcm_right:
   
 end
 
+class ring_gcd = comm_ring_1 + semiring_gcd
+
 class semiring_Gcd = semiring_gcd + Gcd +
   assumes Gcd_dvd: "a \<in> A \<Longrightarrow> Gcd A dvd a"
     and Gcd_greatest: "(\<And>b. b \<in> A \<Longrightarrow> a dvd b) \<Longrightarrow> a dvd Gcd A"
     and normalize_Gcd [simp]: "normalize (Gcd A) = Gcd A"
+  assumes dvd_Lcm: "a \<in> A \<Longrightarrow> a dvd Lcm A"
+    and Lcm_least: "(\<And>b. b \<in> A \<Longrightarrow> b dvd a) \<Longrightarrow> Lcm A dvd a"
+    and normalize_Lcm [simp]: "normalize (Lcm A) = Lcm A"
 begin
+
+lemma Lcm_Gcd:
+  "Lcm A = Gcd {b. \<forall>a\<in>A. a dvd b}"
+  by (rule associated_eqI) (auto intro: Gcd_dvd dvd_Lcm Gcd_greatest Lcm_least)
+
+lemma Gcd_Lcm:
+  "Gcd A = Lcm {b. \<forall>a\<in>A. b dvd a}"
+  by (rule associated_eqI) (auto intro: Gcd_dvd dvd_Lcm Gcd_greatest Lcm_least)
 
 lemma Gcd_empty [simp]:
   "Gcd {} = 0"
   by (rule dvd_0_left, rule Gcd_greatest) simp
+
+lemma Lcm_empty [simp]:
+  "Lcm {} = 1"
+  by (auto intro: associated_eqI Lcm_least)
+
+lemma Gcd_insert [simp]:
+  "Gcd (insert a A) = gcd a (Gcd A)"
+proof -
+  have "Gcd (insert a A) dvd gcd a (Gcd A)"
+    by (auto intro: Gcd_dvd Gcd_greatest)
+  moreover have "gcd a (Gcd A) dvd Gcd (insert a A)"
+  proof (rule Gcd_greatest)
+    fix b
+    assume "b \<in> insert a A"
+    then show "gcd a (Gcd A) dvd b"
+    proof
+      assume "b = a" then show ?thesis by simp
+    next
+      assume "b \<in> A"
+      then have "Gcd A dvd b" by (rule Gcd_dvd)
+      moreover have "gcd a (Gcd A) dvd Gcd A" by simp
+      ultimately show ?thesis by (blast intro: dvd_trans)
+    qed
+  qed
+  ultimately show ?thesis
+    by (auto intro: associated_eqI)
+qed
+
+lemma Lcm_insert [simp]:
+  "Lcm (insert a A) = lcm a (Lcm A)"
+proof (rule sym)
+  have "lcm a (Lcm A) dvd Lcm (insert a A)"
+    by (auto intro: dvd_Lcm Lcm_least)
+  moreover have "Lcm (insert a A) dvd lcm a (Lcm A)"
+  proof (rule Lcm_least)
+    fix b
+    assume "b \<in> insert a A"
+    then show "b dvd lcm a (Lcm A)"
+    proof
+      assume "b = a" then show ?thesis by simp
+    next
+      assume "b \<in> A"
+      then have "b dvd Lcm A" by (rule dvd_Lcm)
+      moreover have "Lcm A dvd lcm a (Lcm A)" by simp
+      ultimately show ?thesis by (blast intro: dvd_trans)
+    qed
+  qed
+  ultimately show "lcm a (Lcm A) = Lcm (insert a A)"
+    by (rule associated_eqI) (simp_all add: lcm_eq_0_iff)
+qed
 
 lemma Gcd_0_iff [simp]:
   "Gcd A = 0 \<longleftrightarrow> A \<subseteq> {0}" (is "?P \<longleftrightarrow> ?Q")
@@ -384,147 +463,6 @@ next
   then show ?P by simp
 qed
 
-lemma unit_factor_Gcd:
-  "unit_factor (Gcd A) = (if \<forall>a\<in>A. a = 0 then 0 else 1)"
-proof (cases "Gcd A = 0")
-  case True then show ?thesis by auto
-next
-  case False
-  from unit_factor_mult_normalize
-  have "unit_factor (Gcd A) * normalize (Gcd A) = Gcd A" .
-  then have "unit_factor (Gcd A) * Gcd A = Gcd A" by simp
-  then have "unit_factor (Gcd A) * Gcd A div Gcd A = Gcd A div Gcd A" by simp
-  with False have "unit_factor (Gcd A) = 1" by simp
-  with False show ?thesis by auto
-qed
-
-lemma Gcd_UNIV [simp]:
-  "Gcd UNIV = 1"
-  by (rule associated_eqI) (auto intro: Gcd_dvd simp add: unit_factor_Gcd)
-
-lemma Gcd_eq_1_I:
-  assumes "is_unit a" and "a \<in> A"
-  shows "Gcd A = 1"
-proof -
-  from assms have "is_unit (Gcd A)"
-    by (blast intro: Gcd_dvd dvd_unit_imp_unit)
-  then have "normalize (Gcd A) = 1"
-    by (rule is_unit_normalize)
-  then show ?thesis
-    by simp
-qed
-
-lemma Gcd_insert [simp]:
-  "Gcd (insert a A) = gcd a (Gcd A)"
-proof -
-  have "Gcd (insert a A) dvd gcd a (Gcd A)"
-    by (auto intro: Gcd_dvd Gcd_greatest)
-  moreover have "gcd a (Gcd A) dvd Gcd (insert a A)"
-  proof (rule Gcd_greatest)
-    fix b
-    assume "b \<in> insert a A"
-    then show "gcd a (Gcd A) dvd b"
-    proof
-      assume "b = a" then show ?thesis by simp
-    next
-      assume "b \<in> A"
-      then have "Gcd A dvd b" by (rule Gcd_dvd)
-      moreover have "gcd a (Gcd A) dvd Gcd A" by simp
-      ultimately show ?thesis by (blast intro: dvd_trans)
-    qed
-  qed
-  ultimately show ?thesis
-    by (auto intro: associated_eqI)
-qed
-
-lemma dvd_Gcd: \<comment> \<open>FIXME remove\<close>
-  "\<forall>b\<in>A. a dvd b \<Longrightarrow> a dvd Gcd A"
-  by (blast intro: Gcd_greatest)
-
-lemma Gcd_set [code_unfold]:
-  "Gcd (set as) = foldr gcd as 0"
-  by (induct as) simp_all
-
-lemma Gcd_image_normalize [simp]:
-  "Gcd (normalize ` A) = Gcd A"
-proof -
-  have "Gcd (normalize ` A) dvd a" if "a \<in> A" for a
-  proof -
-    from that obtain B where "A = insert a B" by blast
-    moreover have " gcd (normalize a) (Gcd (normalize ` B)) dvd normalize a"
-      by (rule gcd_dvd1)
-    ultimately show "Gcd (normalize ` A) dvd a"
-      by simp
-  qed
-  then have "Gcd (normalize ` A) dvd Gcd A" and "Gcd A dvd Gcd (normalize ` A)"
-    by (auto intro!: Gcd_greatest intro: Gcd_dvd)
-  then show ?thesis
-    by (auto intro: associated_eqI)
-qed
-
-end  
-
-class semiring_Lcm = semiring_Gcd +
-  assumes Lcm_Gcd: "Lcm A = Gcd {b. \<forall>a\<in>A. a dvd b}"
-begin
-
-lemma dvd_Lcm:
-  assumes "a \<in> A"
-  shows "a dvd Lcm A"
-  using assms by (auto intro: Gcd_greatest simp add: Lcm_Gcd)
-
-lemma Lcm_least:
-  assumes "\<And>b. b \<in> A \<Longrightarrow> b dvd a"
-  shows "Lcm A dvd a"
-  using assms by (auto intro: Gcd_dvd simp add: Lcm_Gcd)
-
-lemma normalize_Lcm [simp]:
-  "normalize (Lcm A) = Lcm A"
-  by (simp add: Lcm_Gcd)
-
-lemma unit_factor_Lcm:
-  "unit_factor (Lcm A) = (if Lcm A = 0 then 0 else 1)"
-proof (cases "Lcm A = 0")
-  case True then show ?thesis by simp
-next
-  case False
-  with unit_factor_normalize have "unit_factor (normalize (Lcm A)) = 1"
-    by blast
-  with False show ?thesis
-    by simp
-qed
-
-lemma Gcd_Lcm:
-  "Gcd A = Lcm {b. \<forall>a\<in>A. b dvd a}"
-  by (rule associated_eqI) (auto intro: Gcd_dvd dvd_Lcm Gcd_greatest Lcm_least)
- 
-lemma Lcm_empty [simp]:
-  "Lcm {} = 1"
-  by (simp add: Lcm_Gcd)
-
-lemma Lcm_insert [simp]:
-  "Lcm (insert a A) = lcm a (Lcm A)"
-proof (rule sym)
-  have "lcm a (Lcm A) dvd Lcm (insert a A)"
-    by (auto intro: dvd_Lcm Lcm_least)
-  moreover have "Lcm (insert a A) dvd lcm a (Lcm A)"
-  proof (rule Lcm_least)
-    fix b
-    assume "b \<in> insert a A"
-    then show "b dvd lcm a (Lcm A)"
-    proof
-      assume "b = a" then show ?thesis by simp
-    next
-      assume "b \<in> A"
-      then have "b dvd Lcm A" by (rule dvd_Lcm)
-      moreover have "Lcm A dvd lcm a (Lcm A)" by simp
-      ultimately show ?thesis by (blast intro: dvd_trans)
-    qed
-  qed
-  ultimately show "lcm a (Lcm A) = Lcm (insert a A)"
-    by (rule associated_eqI) (simp_all add: lcm_eq_0_iff)
-qed
-
 lemma Lcm_1_iff [simp]:
   "Lcm A = 1 \<longleftrightarrow> (\<forall>a\<in>A. is_unit a)" (is "?P \<longleftrightarrow> ?Q")
 proof
@@ -548,6 +486,44 @@ next
     by simp
 qed
 
+lemma unit_factor_Gcd:
+  "unit_factor (Gcd A) = (if \<forall>a\<in>A. a = 0 then 0 else 1)"
+proof (cases "Gcd A = 0")
+  case True then show ?thesis by auto
+next
+  case False
+  from unit_factor_mult_normalize
+  have "unit_factor (Gcd A) * normalize (Gcd A) = Gcd A" .
+  then have "unit_factor (Gcd A) * Gcd A = Gcd A" by simp
+  then have "unit_factor (Gcd A) * Gcd A div Gcd A = Gcd A div Gcd A" by simp
+  with False have "unit_factor (Gcd A) = 1" by simp
+  with False show ?thesis by auto
+qed
+
+lemma unit_factor_Lcm:
+  "unit_factor (Lcm A) = (if Lcm A = 0 then 0 else 1)"
+proof (cases "Lcm A = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  with unit_factor_normalize have "unit_factor (normalize (Lcm A)) = 1"
+    by blast
+  with False show ?thesis
+    by simp
+qed
+
+lemma Gcd_eq_1_I:
+  assumes "is_unit a" and "a \<in> A"
+  shows "Gcd A = 1"
+proof -
+  from assms have "is_unit (Gcd A)"
+    by (blast intro: Gcd_dvd dvd_unit_imp_unit)
+  then have "normalize (Gcd A) = 1"
+    by (rule is_unit_normalize)
+  then show ?thesis
+    by simp
+qed
+
 lemma Lcm_eq_0_I:
   assumes "0 \<in> A"
   shows "Lcm A = 0"
@@ -557,6 +533,10 @@ proof -
   then show ?thesis
     by simp
 qed
+
+lemma Gcd_UNIV [simp]:
+  "Gcd UNIV = 1"
+  using dvd_refl by (rule Gcd_eq_1_I) simp
 
 lemma Lcm_UNIV [simp]:
   "Lcm UNIV = 0"
@@ -573,25 +553,48 @@ next
       (auto simp add: lcm_eq_0_iff)
 qed
 
+lemma dvd_Gcd: \<comment> \<open>FIXME remove\<close>
+  "\<forall>b\<in>A. a dvd b \<Longrightarrow> a dvd Gcd A"
+  by (blast intro: Gcd_greatest)
+
+lemma Gcd_set [code_unfold]:
+  "Gcd (set as) = foldr gcd as 0"
+  by (induct as) simp_all
+
 lemma Lcm_set [code_unfold]:
   "Lcm (set as) = foldr lcm as 1"
   by (induct as) simp_all
-  
-end
 
-class ring_gcd = comm_ring_1 + semiring_gcd
+lemma Gcd_image_normalize [simp]:
+  "Gcd (normalize ` A) = Gcd A"
+proof -
+  have "Gcd (normalize ` A) dvd a" if "a \<in> A" for a
+  proof -
+    from that obtain B where "A = insert a B" by blast
+    moreover have " gcd (normalize a) (Gcd (normalize ` B)) dvd normalize a"
+      by (rule gcd_dvd1)
+    ultimately show "Gcd (normalize ` A) dvd a"
+      by simp
+  qed
+  then have "Gcd (normalize ` A) dvd Gcd A" and "Gcd A dvd Gcd (normalize ` A)"
+    by (auto intro!: Gcd_greatest intro: Gcd_dvd)
+  then show ?thesis
+    by (auto intro: associated_eqI)
+qed
+
+end  
+
+
+subsection \<open>GCD and LCM on @{typ nat} and @{typ int}\<close>
 
 instantiation nat :: gcd
 begin
 
-fun
-  gcd_nat  :: "nat \<Rightarrow> nat \<Rightarrow> nat"
-where
-  "gcd_nat x y =
-   (if y = 0 then x else gcd y (x mod y))"
+fun gcd_nat  :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+where "gcd_nat x y =
+  (if y = 0 then x else gcd y (x mod y))"
 
-definition
-  lcm_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+definition lcm_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
   "lcm_nat x y = x * y div (gcd x y)"
 
@@ -602,22 +605,17 @@ end
 instantiation int :: gcd
 begin
 
-definition
-  gcd_int  :: "int \<Rightarrow> int \<Rightarrow> int"
-where
-  "gcd_int x y = int (gcd (nat \<bar>x\<bar>) (nat \<bar>y\<bar>))"
+definition gcd_int  :: "int \<Rightarrow> int \<Rightarrow> int"
+  where "gcd_int x y = int (gcd (nat \<bar>x\<bar>) (nat \<bar>y\<bar>))"
 
-definition
-  lcm_int :: "int \<Rightarrow> int \<Rightarrow> int"
-where
-  "lcm_int x y = int (lcm (nat \<bar>x\<bar>) (nat \<bar>y\<bar>))"
+definition lcm_int :: "int \<Rightarrow> int \<Rightarrow> int"
+  where "lcm_int x y = int (lcm (nat \<bar>x\<bar>) (nat \<bar>y\<bar>))"
 
 instance ..
 
 end
 
-
-subsection \<open>Transfer setup\<close>
+text \<open>Transfer setup\<close>
 
 lemma transfer_nat_int_gcd:
   "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> gcd (nat x) (nat y) = nat (gcd x y)"
@@ -646,10 +644,6 @@ lemma transfer_int_nat_gcd_closures:
 declare transfer_morphism_int_nat[transfer add return:
     transfer_int_nat_gcd transfer_int_nat_gcd_closures]
 
-
-subsection \<open>GCD properties\<close>
-
-(* was gcd_induct *)
 lemma gcd_nat_induct:
   fixes m n :: nat
   assumes "\<And>m. P m 0"
@@ -722,11 +716,9 @@ lemma lcm_cases_int:
 lemma lcm_ge_0_int [simp]: "lcm (x::int) y >= 0"
   by (simp add: lcm_int_def)
 
-(* was gcd_0, etc. *)
 lemma gcd_0_nat: "gcd (x::nat) 0 = x"
   by simp
 
-(* was igcd_0, etc. *)
 lemma gcd_0_int [simp]: "gcd (x::int) 0 = \<bar>x\<bar>"
   by (unfold gcd_int_def, auto)
 
@@ -741,7 +733,7 @@ lemma gcd_red_nat: "gcd (x::nat) y = gcd y (x mod y)"
 
 (* weaker, but useful for the simplifier *)
 
-lemma gcd_non_0_nat: "y ~= (0::nat) \<Longrightarrow> gcd (x::nat) y = gcd y (x mod y)"
+lemma gcd_non_0_nat: "y \<noteq> (0::nat) \<Longrightarrow> gcd (x::nat) y = gcd y (x mod y)"
   by simp
 
 lemma gcd_1_nat [simp]: "gcd (m::nat) 1 = 1"
@@ -789,18 +781,6 @@ qed (simp_all add: lcm_nat_def)
 instance int :: ring_gcd
   by standard
     (simp_all add: dvd_int_unfold_dvd_nat gcd_int_def lcm_int_def zdiv_int nat_abs_mult_distrib [symmetric] lcm_gcd gcd_greatest)
-
-lemma dvd_gcd_D1_nat: "k dvd gcd m n \<Longrightarrow> (k::nat) dvd m"
-  by (metis gcd_dvd1 dvd_trans)
-
-lemma dvd_gcd_D2_nat: "k dvd gcd m n \<Longrightarrow> (k::nat) dvd n"
-  by (metis gcd_dvd2 dvd_trans)
-
-lemma dvd_gcd_D1_int: "i dvd gcd m n \<Longrightarrow> (i::int) dvd m"
-  by (metis gcd_dvd1 dvd_trans)
-
-lemma dvd_gcd_D2_int: "i dvd gcd m n \<Longrightarrow> (i::int) dvd n"
-  by (metis gcd_dvd2 dvd_trans)
 
 lemma gcd_le1_nat [simp]: "a \<noteq> 0 \<Longrightarrow> gcd (a::nat) b \<le> a"
   by (rule dvd_imp_le, auto)
@@ -1096,17 +1076,32 @@ proof -
   ultimately show ?thesis using dvd_times_left_cancel_iff [of "gcd a b" _ 1] by simp
 qed
 
+lemma coprime:
+  "coprime a b \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> is_unit d)" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?P then show ?Q by auto
+next
+  assume ?Q
+  then have "is_unit (gcd a b) \<longleftrightarrow> gcd a b dvd a \<and> gcd a b dvd b"
+    by blast
+  then have "is_unit (gcd a b)"
+    by simp
+  then show ?P
+    by simp
+qed
+
 end
 
-lemma coprime_nat: "coprime (a::nat) b \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> d = 1)"
-  using gcd_unique_nat[of 1 a b, simplified] by auto
+lemma coprime_nat:
+  "coprime (a::nat) b \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> d = 1)"
+  using coprime [of a b] by simp
 
 lemma coprime_Suc_0_nat:
-    "coprime (a::nat) b \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> d = Suc 0)"
+  "coprime (a::nat) b \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> d = Suc 0)"
   using coprime_nat by simp
 
-lemma coprime_int: "coprime (a::int) b \<longleftrightarrow>
-    (\<forall>d. d >= 0 \<and> d dvd a \<and> d dvd b \<longleftrightarrow> d = 1)"
+lemma coprime_int:
+  "coprime (a::int) b \<longleftrightarrow> (\<forall>d. d \<ge> 0 \<and> d dvd a \<and> d dvd b \<longleftrightarrow> d = 1)"
   using gcd_unique_int [of 1 a b]
   apply clarsimp
   apply (erule subst)
@@ -1136,7 +1131,6 @@ lemma gcd_coprime_int:
   assumes z: "gcd (a::int) b \<noteq> 0" and a: "a = a' * gcd a b" and
     b: "b = b' * gcd a b"
   shows    "coprime a' b'"
-
   apply (subgoal_tac "a' = a div gcd a b")
   apply (erule ssubst)
   apply (subgoal_tac "b' = b div gcd a b")
@@ -1709,7 +1703,7 @@ proof-
 qed
 
 
-subsection \<open>LCM properties\<close>
+subsection \<open>LCM properties  on @{typ nat} and @{typ int}\<close>
 
 lemma lcm_altdef_int [code]: "lcm (a::int) b = \<bar>a\<bar> * \<bar>b\<bar> div gcd a b"
   by (simp add: lcm_int_def lcm_nat_def zdiv_int gcd_int_def)
@@ -1808,13 +1802,13 @@ lemma lcm_1_iff_int [simp]: "lcm (m::int) n = 1 \<longleftrightarrow> (m=1 \<or>
   by auto
 
 
-subsection \<open>The complete divisibility lattice\<close>
+subsection \<open>The complete divisibility lattice on @{typ nat} and @{typ int}\<close>
 
 text\<open>Lifting gcd and lcm to sets (Gcd/Lcm).
 Gcd is defined via Lcm to facilitate the proof that we have a complete lattice.
 \<close>
 
-instantiation nat :: Gcd
+instantiation nat :: semiring_Gcd
 begin
 
 interpretation semilattice_neutr_set lcm "1::nat"
@@ -1863,35 +1857,22 @@ qed
 definition
   "Gcd (M::nat set) = Lcm {d. \<forall>m\<in>M. d dvd m}"
 
-instance ..
-
-end
-
-instance nat :: semiring_Gcd
-proof
+instance proof
   show "Gcd N dvd n" if "n \<in> N" for N and n :: nat
   using that by (induct N rule: infinite_finite_induct)
     (auto simp add: Gcd_nat_def)
   show "n dvd Gcd N" if "\<And>m. m \<in> N \<Longrightarrow> n dvd m" for N and n :: nat
   using that by (induct N rule: infinite_finite_induct)
     (auto simp add: Gcd_nat_def)
-qed simp
+  show "n dvd Lcm N" if "n \<in> N" for N and n ::nat
+  using that by (induct N rule: infinite_finite_induct)
+    auto
+  show "Lcm N dvd n" if "\<And>m. m \<in> N \<Longrightarrow> m dvd n" for N and n ::nat
+  using that by (induct N rule: infinite_finite_induct)
+    auto
+qed simp_all
 
-instance nat :: semiring_Lcm
-proof
-  show "Lcm N = Gcd {m. \<forall>n\<in>N. n dvd m}" for N :: "nat set"
-    by (rule associated_eqI) (auto intro!: Gcd_dvd Gcd_greatest)
-qed
-
-lemma Lcm_eq_0 [simp]:
-  "finite (M::nat set) \<Longrightarrow> 0 \<in> M \<Longrightarrow> Lcm M = 0"
-  by (rule Lcm_eq_0_I)
-
-lemma Lcm0_iff [simp]:
-  fixes M :: "nat set"
-  assumes "finite M" and "M \<noteq> {}"
-  shows "Lcm M = 0 \<longleftrightarrow> 0 \<in> M"
-  using assms by (simp add: Lcm_0_iff)
+end
 
 text\<open>Alternative characterizations of Gcd:\<close>
 
@@ -1935,8 +1916,7 @@ lemma Lcm_eq_Max_nat:
 apply(rule antisym)
  apply(rule Max_ge, assumption)
  apply(erule (2) Lcm_in_lcm_closed_set_nat)
-apply clarsimp
-apply (metis Lcm0_iff dvd_Lcm_nat dvd_imp_le neq0_conv)
+apply (auto simp add: not_le Lcm_0_iff dvd_imp_le leD le_neq_trans)
 done
 
 lemma mult_inj_if_coprime_nat:
@@ -1956,7 +1936,7 @@ by (simp only: lcm_nat_def Nitpick.nat_lcm_def gcd_eq_nitpick_gcd)
 
 subsubsection \<open>Setwise gcd and lcm for integers\<close>
 
-instantiation int :: Gcd
+instantiation int :: semiring_Gcd
 begin
 
 definition
@@ -1965,63 +1945,45 @@ definition
 definition
   "Gcd M = int (Gcd (nat ` abs ` M))"
 
-instance ..
+instance by standard
+  (auto intro!: Gcd_dvd Gcd_greatest simp add: Gcd_int_def
+    Lcm_int_def int_dvd_iff dvd_int_iff dvd_int_unfold_dvd_nat [symmetric])
 
 end
 
-instance int :: semiring_Gcd
-  by standard (auto intro!: Gcd_dvd Gcd_greatest simp add: Gcd_int_def Lcm_int_def int_dvd_iff dvd_int_iff
-    dvd_int_unfold_dvd_nat [symmetric])
 
-instance int :: semiring_Lcm
-proof
-  fix K :: "int set"
-  have "{n. \<forall>k\<in>K. nat \<bar>k\<bar> dvd n} = ((\<lambda>k. nat \<bar>k\<bar>) ` {l. \<forall>k\<in>K. k dvd l})"
-  proof (rule set_eqI)
-    fix n
-    have "(\<forall>k\<in>K. nat \<bar>k\<bar> dvd n) \<longleftrightarrow> (\<exists>l. (\<forall>k\<in>K. k dvd l) \<and> n = nat \<bar>l\<bar>)" (is "?P \<longleftrightarrow> ?Q")
-    proof
-      assume ?P
-      then have "(\<forall>k\<in>K. k dvd int n) \<and> n = nat \<bar>int n\<bar>"
-        by (auto simp add: dvd_int_unfold_dvd_nat)
-      then show ?Q by blast
-    next
-      assume ?Q then show ?P
-        by (auto simp add: dvd_int_unfold_dvd_nat)
-    qed
-    then show "n \<in> {n. \<forall>k\<in>K. nat \<bar>k\<bar> dvd n} \<longleftrightarrow> n \<in> (\<lambda>k. nat \<bar>k\<bar>) ` {l. \<forall>k\<in>K. k dvd l}"
-      by auto
-  qed
-  then show "Lcm K = Gcd {l. \<forall>k\<in>K. k dvd l}"
-    by (simp add: Gcd_int_def Lcm_int_def Lcm_Gcd image_image)
-qed
+subsection \<open>GCD and LCM on @{typ integer}\<close>
 
-lemma Lcm_dvd_int [simp]:
-  fixes M :: "int set"
-  assumes "\<forall>m\<in>M. m dvd n" shows "Lcm M dvd n"
-  using assms by (auto intro: Lcm_least)
+instantiation integer :: gcd
+begin
 
+context
+  includes integer.lifting
+begin
 
-subsection \<open>gcd and lcm instances for @{typ integer}\<close>
+lift_definition gcd_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
+  is gcd .
+lift_definition lcm_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
+  is lcm .
 
-instantiation integer :: gcd begin
-context includes integer.lifting begin
-lift_definition gcd_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer" is gcd .
-lift_definition lcm_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer" is lcm .
 end
 instance ..
+
 end
+
 lifting_update integer.lifting
 lifting_forget integer.lifting
 
-context includes integer.lifting begin
+context
+  includes integer.lifting
+begin
 
 lemma gcd_code_integer [code]:
   "gcd k l = \<bar>if l = (0::integer) then k else gcd l (\<bar>k\<bar> mod \<bar>l\<bar>)\<bar>"
-by transfer(fact gcd_code_int)
+  by transfer (fact gcd_code_int)
 
 lemma lcm_code_integer [code]: "lcm (a::integer) b = \<bar>a\<bar> * \<bar>b\<bar> div gcd a b"
-by transfer(fact lcm_altdef_int)
+  by transfer (fact lcm_altdef_int)
 
 end
 
@@ -2183,6 +2145,33 @@ lemma comp_fun_idem_lcm_nat: "comp_fun_idem (lcm :: nat\<Rightarrow>nat\<Rightar
 
 lemma comp_fun_idem_lcm_int: "comp_fun_idem (lcm :: int\<Rightarrow>int\<Rightarrow>int)"
   by (fact comp_fun_idem_lcm)
+
+lemma Lcm_eq_0 [simp]:
+  "finite (M::nat set) \<Longrightarrow> 0 \<in> M \<Longrightarrow> Lcm M = 0"
+  by (rule Lcm_eq_0_I)
+
+lemma Lcm0_iff [simp]:
+  fixes M :: "nat set"
+  assumes "finite M" and "M \<noteq> {}"
+  shows "Lcm M = 0 \<longleftrightarrow> 0 \<in> M"
+  using assms by (simp add: Lcm_0_iff)
+
+lemma Lcm_dvd_int [simp]:
+  fixes M :: "int set"
+  assumes "\<forall>m\<in>M. m dvd n" shows "Lcm M dvd n"
+  using assms by (auto intro: Lcm_least)
+
+lemma dvd_gcd_D1_nat: "k dvd gcd m n \<Longrightarrow> (k::nat) dvd m"
+  by (fact dvd_gcdD1)
+
+lemma dvd_gcd_D2_nat: "k dvd gcd m n \<Longrightarrow> (k::nat) dvd n"
+  by (fact dvd_gcdD2)
+
+lemma dvd_gcd_D1_int: "i dvd gcd m n \<Longrightarrow> (i::int) dvd m"
+  by (fact dvd_gcdD1)
+
+lemma dvd_gcd_D2_int: "i dvd gcd m n \<Longrightarrow> (i::int) dvd n"
+  by (fact dvd_gcdD2)
 
 interpretation dvd:
   order "op dvd" "\<lambda>n m :: nat. n dvd m \<and> m \<noteq> n"
