@@ -3537,7 +3537,7 @@ attributes next to the entered formulas.} The less convenient syntax, using the
 \item
 \emph{The \emph{\keyw{primcorec}} command does not allow corecursion under
 @{text "case"}--@{text "of"} for datatypes that are defined without
-discriminators and selectors.
+discriminators and selectors.}
 
 \item
 \emph{There is no way to use an overloaded constant from a syntactic type
