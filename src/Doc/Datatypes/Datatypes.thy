@@ -342,7 +342,7 @@ subsubsection \<open> Auxiliary Constants
 text \<open>
 The @{command datatype} command introduces various constants in addition to
 the constructors. With each datatype are associated set functions, a map
-function, a relator, discriminators, and selectors, all of which can be given
+function,, a predicator, a relator, discriminators, and selectors, all of which can be given
 custom names. In the example below, the familiar names @{text null}, @{text hd},
 @{text tl}, @{text set}, @{text map}, and @{text list_all2} override the
 default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
@@ -654,7 +654,7 @@ Recursor: &
 \noindent
 The discriminators and selectors are generated only if the @{text "discs_sels"}
 option is enabled or if names are specified for discriminators or selectors.
-The set functions, map function, and relator are generated only if $m > 0$.
+The set functions, map function, predicator, and relator are generated only if $m > 0$.
 
 In addition, some of the plugins introduce their own constants
 (Section~\ref{sec:selecting-plugins}). The case combinator, discriminators,
@@ -858,7 +858,7 @@ The functorial theorems are generated for type constructors with at least
 one live type argument (e.g., @{typ "'a list"}). They are partitioned in two
 subgroups. The first subgroup consists of properties involving the
 constructors or the destructors and either a set function, the map function,
-or the relator:
+the predicator, or the relator:
 
 \begin{indentblock}
 \begin{description}
@@ -944,7 +944,7 @@ rel_distinct} are registered with the @{text "[code]"} attribute. The
 (Section~\ref{ssec:code-generator}).
 
 The second subgroup consists of more abstract properties of the set functions,
-the map function, and the relator:
+the map function, the predicator, and the relator:
 
 \begin{indentblock}
 \begin{description}
@@ -955,19 +955,17 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{inj_map_strong}\rm:] ~ \\
 @{thm list.inj_map_strong[no_vars]}
 
-\item[@{text "t."}\hthm{set_map}\rm:] ~ \\
-@{thm list.set_map[no_vars]}
-
-\item[@{text "t."}\hthm{set_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
-@{thm list.set_transfer[no_vars]} \\
-The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
-(Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
+\item[@{text "t."}\hthm{map_comp}\rm:] ~ \\
+@{thm list.map_comp[no_vars]}
 
 \item[@{text "t."}\hthm{map_cong0}\rm:] ~ \\
 @{thm list.map_cong0[no_vars]}
 
 \item[@{text "t."}\hthm{map_cong} @{text "[fundef_cong]"}\rm:] ~ \\
 @{thm list.map_cong[no_vars]}
+
+\item[@{text "t."}\hthm{map_cong_pred}\rm:] ~ \\
+@{thm list.map_cong_pred[no_vars]}
 
 \item[@{text "t."}\hthm{map_cong_simp}\rm:] ~ \\
 @{thm list.map_cong_simp[no_vars]}
@@ -986,6 +984,40 @@ The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
 The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
 (Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
+\item[@{text "t."}\hthm{pred_cong} @{text "[fundef_cong]"}\rm:] ~ \\
+@{thm list.pred_cong[no_vars]}
+
+\item[@{text "t."}\hthm{pred_cong_simp}\rm:] ~ \\
+@{thm list.pred_cong_simp[no_vars]}
+
+\item[@{text "t."}\hthm{pred_map}\rm:] ~ \\
+@{thm list.pred_map[no_vars]}
+
+\item[@{text "t."}\hthm{pred_mono_strong}\rm:] ~ \\
+@{thm list.pred_mono_strong[no_vars]}
+
+\item[@{text "t."}\hthm{pred_rel}\rm:] ~ \\
+@{thm list.pred_rel[no_vars]}
+
+\item[@{text "t."}\hthm{pred_set}\rm:] ~ \\
+@{thm list.pred_set[no_vars]}
+
+\item[@{text "t."}\hthm{pred_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+@{thm list.pred_transfer[no_vars]} \\
+The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+(Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
+
+\item[@{text "t."}\hthm{pred_True}\rm:] ~ \\
+@{thm list.pred_True[no_vars]}
+
+\item[@{text "t."}\hthm{set_map}\rm:] ~ \\
+@{thm list.set_map[no_vars]}
+
+\item[@{text "t."}\hthm{set_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+@{thm list.set_transfer[no_vars]} \\
+The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+(Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
+
 \item[@{text "t."}\hthm{rel_compp} @{text "[relator_distr]"}\rm:] ~ \\
 @{thm list.rel_compp[no_vars]} \\
 The @{text "[relator_distr]"} attribute is set by the @{text lifting} plugin
@@ -996,6 +1028,9 @@ The @{text "[relator_distr]"} attribute is set by the @{text lifting} plugin
 
 \item[@{text "t."}\hthm{rel_eq}\rm:] ~ \\
 @{thm list.rel_eq[no_vars]}
+
+\item[@{text "t."}\hthm{rel_eq_onp}\rm:] ~ \\
+@{thm list.rel_eq_onp[no_vars]}
 
 \item[@{text "t."}\hthm{rel_flip}\rm:] ~ \\
 @{thm list.rel_flip[no_vars]}
@@ -1750,6 +1785,7 @@ definition of lazy lists:
     for
       map: lmap
       rel: llist_all2
+      pred: llist_all
     where
       "ltl LNil = LNil"
 
@@ -2711,7 +2747,12 @@ An $n$-ary BNF is a type constructor equipped with a map function
 (functorial action), $n$ set functions (natural transformations),
 and an infinite cardinal bound that satisfy certain properties.
 For example, @{typ "'a llist"} is a unary BNF.
-Its relator @{text "llist_all2 ::
+Its predicator @{text "llist_all ::
+  ('a \<Rightarrow> bool) \<Rightarrow>
+  'a llist \<Rightarrow> bool"}
+extends unary predicates over elements to unary predicates over
+lazy lists.
+Similarly, its relator @{text "llist_all2 ::
   ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow>
   'a llist \<Rightarrow> 'b llist \<Rightarrow> bool"}
 extends binary predicates over elements to binary predicates over parallel
@@ -2738,7 +2779,7 @@ command. Some of the proof obligations are best viewed with the theory
 
 The type is simply a copy of the function space @{typ "'d \<Rightarrow> 'a"}, where @{typ 'a}
 is live and @{typ 'd} is dead. We introduce it together with its map function,
-set function, and relator.
+set function, predicator, and relator.
 \<close>
 
     typedef ('d, 'a) fn = "UNIV :: ('d \<Rightarrow> 'a) set"
@@ -2756,6 +2797,11 @@ text \<open> \blankline \<close>
 text \<open> \blankline \<close>
 
     lift_definition
+      pred_fn :: "('a \<Rightarrow> bool) \<Rightarrow> ('d, 'a) fn \<Rightarrow> bool"
+    is
+      "pred_fun (\<lambda>_. True)" .
+
+    lift_definition
       rel_fn :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn \<Rightarrow> bool"
     is
       "rel_fun (op =)" .
@@ -2767,6 +2813,7 @@ text \<open> \blankline \<close>
       sets: set_fn
       bd: "natLeq +c |UNIV :: 'd set|"
       rel: rel_fn
+      pred: pred_fn
     proof -
       show "map_fn id = id"
         by transfer auto
@@ -2809,6 +2856,10 @@ text \<open> \blankline \<close>
       show "rel_fn R = (\<lambda>x y. \<exists>z. set_fn z \<subseteq> {(x, y). R x y} \<and> map_fn fst z = x \<and> map_fn snd z = y)"
         unfolding fun_eq_iff relcompp.simps conversep.simps
         by transfer (force simp: rel_fun_def subset_iff)
+    next
+      fix P :: "'a \<Rightarrow> bool"
+      show "pred_fn P = (\<lambda>x. Ball (set_fn x) P)"
+        unfolding fun_eq_iff by transfer simp
     qed
 
 text \<open> \blankline \<close>
@@ -2891,7 +2942,7 @@ occurs implicitly in the goal, in form of the variable
 
     lift_bnf (*<*)(no_warn_wits) (*>*)'a nonempty_list
     proof -
-      fix f(*<*):: "'a \<Rightarrow> 'c"(*>*) and xs :: "'a list"
+      fix f (*<*):: "'a \<Rightarrow> 'c"(*>*)and xs :: "'a list"
       assume "xs \<in> {xs. xs \<noteq> []}"
       then show "map f xs \<in> {xs. xs \<noteq> []}"
         by (cases xs(*<*) rule: list.exhaust(*>*)) auto
@@ -2906,7 +2957,7 @@ text \<open>
 The next example declares a BNF axiomatically. This can be convenient for
 reasoning abstractly about an arbitrary BNF. The @{command bnf_axiomatization}
 command below introduces a type @{text "('a, 'b, 'c) F"}, three set constants,
-a map function, a relator, and a nonemptiness witness that depends only on
+a map function, a predicator, a relator, and a nonemptiness witness that depends only on
 @{typ 'a}. The type @{text "'a \<Rightarrow> ('a, 'b, 'c) F"} of the witness can be read
 as an implication: Given a witness for @{typ 'a}, we can construct a witness for
 @{text "('a, 'b, 'c) F"}. The BNF properties are postulated as axioms.
@@ -2944,7 +2995,7 @@ text \<open>
 \noindent
 The @{command bnf} command registers an existing type as a bounded natural
 functor (BNF). The type must be equipped with an appropriate map function
-(functorial action). In addition, custom set functions, relators, and
+(functorial action). In addition, custom set functions, predicators, relators, and
 nonemptiness witnesses can be specified; otherwise, default versions are used.
 
 The syntactic entity \synt{target} can be used to specify a local context,
@@ -2983,7 +3034,7 @@ type}) using the @{command typedef} command. To achieve this, it lifts the BNF
 structure on the raw type to the abstract type following a @{term
 type_definition} theorem. The theorem is usually inferred from the type, but can
 also be explicitly supplied by means of the optional @{text via} clause. In
-addition, custom names for the set functions, the map function, and the relator,
+addition, custom names for the set functions, the map function, the predicator, and the relator,
 as well as nonemptiness witnesses can be specified.
 
 Nonemptiness witnesses are not lifted from the raw type's BNF, as this would be
@@ -3034,7 +3085,7 @@ text \<open>
 
 \noindent
 The @{command bnf_axiomatization} command declares a new type and associated constants
-(map, set, relator, and cardinal bound) and asserts the BNF properties for
+(map, set, predicator, relator, and cardinal bound) and asserts the BNF properties for
 these constants as axioms.
 
 The syntactic entity \synt{target} can be used to specify a local context,
@@ -3359,9 +3410,6 @@ arguments}, the plugin derives the following properties:
 @{thm list.pred_inject(2)[no_vars]} \\
 This property is generated only for (co)datatypes.
 
-\item[@{text "t."}\hthm{rel_eq_onp}\rm:] ~ \\
-@{thm list.rel_eq_onp[no_vars]}
-
 \item[@{text "t."}\hthm{left_total_rel} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.left_total_rel[no_vars]}
 
@@ -3424,9 +3472,9 @@ The plugin derives the following property:
 \end{indentblock}
 
 In addition, the plugin sets the @{text "[relator_eq]"} attribute on a
-variant of the @{text t.rel_eq_onp} property generated by the @{text lifting}
-plugin, the @{text "[relator_mono]"} attribute on @{text t.rel_mono}, and the
-@{text "[relator_distr]"} attribute on @{text t.rel_compp}.
+variant of the @{text t.rel_eq_onp} property, the @{text "[relator_mono]"}
+attribute on @{text t.rel_mono}, and the @{text "[relator_distr]"} attribute
+on @{text t.rel_compp}.
 \<close>
 
 
