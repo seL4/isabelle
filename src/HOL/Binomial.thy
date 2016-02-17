@@ -1323,7 +1323,7 @@ proof -
   also have "... = (fact (m+r+k) * fact (m+r)) div (fact r * (fact k * fact m) * fact (m+r))"
     apply (subst div_mult_div_if_dvd [symmetric])
     apply (auto simp add: algebra_simps)
-    apply (metis fact_fact_dvd_fact dvd.order.trans nat_mult_dvd_cancel_disj)
+    apply (metis fact_fact_dvd_fact dvd_trans nat_mult_dvd_cancel_disj)
     done
   also have "... = (fact (m+r+k) div (fact k * fact (m+r)) * (fact (m+r) div (fact r * fact m)))"
     apply (subst div_mult_div_if_dvd)

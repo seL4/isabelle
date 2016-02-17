@@ -668,14 +668,6 @@ lemma gcd_neg1_int [simp]: "gcd (-x::int) y = gcd x y"
 lemma gcd_neg2_int [simp]: "gcd (x::int) (-y) = gcd x y"
   by (simp add: gcd_int_def)
 
-lemma gcd_neg_numeral_1_int [simp]:
-  "gcd (- numeral n :: int) x = gcd (numeral n) x"
-  by (fact gcd_neg1_int)
-
-lemma gcd_neg_numeral_2_int [simp]:
-  "gcd x (- numeral n :: int) = gcd x (numeral n)"
-  by (fact gcd_neg2_int)
-
 lemma abs_gcd_int[simp]: "\<bar>gcd (x::int) y\<bar> = gcd x y"
 by(simp add: gcd_int_def)
 
@@ -822,27 +814,11 @@ lemma gcd_le1_int [simp]: "a > 0 \<Longrightarrow> gcd (a::int) b \<le> a"
 lemma gcd_le2_int [simp]: "b > 0 \<Longrightarrow> gcd (a::int) b \<le> b"
   by (rule zdvd_imp_le, auto)
 
-lemma gcd_greatest_iff_nat:
-  "(k dvd gcd (m::nat) n) = (k dvd m & k dvd n)"
-  by (fact gcd_greatest_iff)
-
-lemma gcd_greatest_iff_int:
-  "((k::int) dvd gcd m n) = (k dvd m & k dvd n)"
-  by (fact gcd_greatest_iff)
-
-lemma gcd_zero_nat: 
-  "(gcd (m::nat) n = 0) = (m = 0 & n = 0)"
-  by (fact gcd_eq_0_iff)
-
-lemma gcd_zero_int [simp]:
-  "(gcd (m::int) n = 0) = (m = 0 & n = 0)"
-  by (fact gcd_eq_0_iff)
-
 lemma gcd_pos_nat [simp]: "(gcd (m::nat) n > 0) = (m ~= 0 | n ~= 0)"
-  by (insert gcd_zero_nat [of m n], arith)
+  by (insert gcd_eq_0_iff [of m n], arith)
 
 lemma gcd_pos_int [simp]: "(gcd (m::int) n > 0) = (m ~= 0 | n ~= 0)"
-  by (insert gcd_zero_int [of m n], insert gcd_ge_0_int [of m n], arith)
+  by (insert gcd_eq_0_iff [of m n], insert gcd_ge_0_int [of m n], arith)
 
 lemma gcd_unique_nat: "(d::nat) dvd a \<and> d dvd b \<and>
     (\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d) \<longleftrightarrow> d = gcd a b"
@@ -862,31 +838,14 @@ apply (rule iffI)
 done
 
 interpretation gcd_nat:
-  semilattice_neutr_order gcd "0::nat" Rings.dvd "(\<lambda>m n. m dvd n \<and> \<not> n dvd m)"
-  by standard (auto simp add: gcd_unique_nat [symmetric] intro: dvd.antisym dvd_trans)
-
-lemmas gcd_assoc_nat = gcd.assoc [where ?'a = nat]
-lemmas gcd_commute_nat = gcd.commute [where ?'a = nat]
-lemmas gcd_left_commute_nat = gcd.left_commute [where ?'a = nat]
-lemmas gcd_assoc_int = gcd.assoc [where ?'a = int]
-lemmas gcd_commute_int = gcd.commute [where ?'a = int]
-lemmas gcd_left_commute_int = gcd.left_commute [where ?'a = int]
-
-lemmas gcd_ac_nat = gcd_assoc_nat gcd_commute_nat gcd_left_commute_nat
-
-lemmas gcd_ac_int = gcd_assoc_int gcd_commute_int gcd_left_commute_int
-
-lemma gcd_proj1_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> gcd x y = x"
-  by (fact gcd_nat.absorb1)
-
-lemma gcd_proj2_if_dvd_nat [simp]: "(y::nat) dvd x \<Longrightarrow> gcd x y = y"
-  by (fact gcd_nat.absorb2)
+  semilattice_neutr_order gcd "0::nat" Rings.dvd "\<lambda>m n. m dvd n \<and> m \<noteq> n"
+  by standard (auto simp add: gcd_unique_nat [symmetric] intro: dvd_antisym dvd_trans)
 
 lemma gcd_proj1_if_dvd_int [simp]: "x dvd y \<Longrightarrow> gcd (x::int) y = \<bar>x\<bar>"
   by (metis abs_dvd_iff gcd_0_left_int gcd_abs_int gcd_unique_int)
 
 lemma gcd_proj2_if_dvd_int [simp]: "y dvd x \<Longrightarrow> gcd (x::int) y = \<bar>y\<bar>"
-  by (metis gcd_proj1_if_dvd_int gcd_commute_int)
+  by (metis gcd_proj1_if_dvd_int gcd.commute)
 
 text \<open>
   \medskip Multiplication laws
@@ -926,21 +885,10 @@ next
   ultimately show ?thesis by simp
 qed
 
-end
-
-lemmas coprime_dvd_mult_nat = coprime_dvd_mult [where ?'a = nat]
-lemmas coprime_dvd_mult_int = coprime_dvd_mult [where ?'a = int]
-
-lemma coprime_dvd_mult_iff_nat: "coprime (k::nat) n \<Longrightarrow>
-    (k dvd m * n) = (k dvd m)"
-  by (auto intro: coprime_dvd_mult_nat)
-
-lemma coprime_dvd_mult_iff_int: "coprime (k::int) n \<Longrightarrow>
-    (k dvd m * n) = (k dvd m)"
-  by (auto intro: coprime_dvd_mult_int)
-
-context semiring_gcd
-begin
+lemma coprime_dvd_mult_iff:
+  assumes "coprime a c"
+  shows "a dvd b * c \<longleftrightarrow> a dvd b"
+  using assms by (auto intro: coprime_dvd_mult)
 
 lemma gcd_mult_cancel:
   "coprime c b \<Longrightarrow> gcd (c * a) b = gcd a b"
@@ -951,65 +899,79 @@ lemma gcd_mult_cancel:
   apply (simp_all add: ac_simps)
   done
 
-end  
-
-lemmas gcd_mult_cancel_nat = gcd_mult_cancel [where ?'a = nat] 
-lemmas gcd_mult_cancel_int = gcd_mult_cancel [where ?'a = int] 
-
-lemma coprime_crossproduct_nat:
-  fixes a b c d :: nat
+lemma coprime_crossproduct:
+  fixes a b c d
   assumes "coprime a d" and "coprime b c"
-  shows "a * c = b * d \<longleftrightarrow> a = b \<and> c = d" (is "?lhs \<longleftrightarrow> ?rhs")
+  shows "normalize a * normalize c = normalize b * normalize d
+    \<longleftrightarrow> normalize a = normalize b \<and> normalize c = normalize d" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?rhs then show ?lhs by simp
 next
   assume ?lhs
-  from \<open>?lhs\<close> have "a dvd b * d" by (auto intro: dvdI dest: sym)
-  with \<open>coprime a d\<close> have "a dvd b" by (simp add: coprime_dvd_mult_iff_nat)
-  from \<open>?lhs\<close> have "b dvd a * c" by (auto intro: dvdI dest: sym)
-  with \<open>coprime b c\<close> have "b dvd a" by (simp add: coprime_dvd_mult_iff_nat)
-  from \<open>?lhs\<close> have "c dvd d * b" by (auto intro: dvdI dest: sym simp add: mult.commute)
-  with \<open>coprime b c\<close> have "c dvd d" by (simp add: coprime_dvd_mult_iff_nat gcd_commute_nat)
-  from \<open>?lhs\<close> have "d dvd c * a" by (auto intro: dvdI dest: sym simp add: mult.commute)
-  with \<open>coprime a d\<close> have "d dvd c" by (simp add: coprime_dvd_mult_iff_nat gcd_commute_nat)
-  from \<open>a dvd b\<close> \<open>b dvd a\<close> have "a = b" by (rule Nat.dvd.antisym)
-  moreover from \<open>c dvd d\<close> \<open>d dvd c\<close> have "c = d" by (rule Nat.dvd.antisym)
+  from \<open>?lhs\<close> have "normalize a dvd normalize b * normalize d"
+    by (auto intro: dvdI dest: sym)
+  with \<open>coprime a d\<close> have "a dvd b"
+    by (simp add: coprime_dvd_mult_iff normalize_mult [symmetric])
+  from \<open>?lhs\<close> have "normalize b dvd normalize a * normalize c"
+    by (auto intro: dvdI dest: sym)
+  with \<open>coprime b c\<close> have "b dvd a"
+    by (simp add: coprime_dvd_mult_iff normalize_mult [symmetric])
+  from \<open>?lhs\<close> have "normalize c dvd normalize d * normalize b"
+    by (auto intro: dvdI dest: sym simp add: mult.commute)
+  with \<open>coprime b c\<close> have "c dvd d"
+    by (simp add: coprime_dvd_mult_iff gcd.commute normalize_mult [symmetric])
+  from \<open>?lhs\<close> have "normalize d dvd normalize c * normalize a"
+    by (auto intro: dvdI dest: sym simp add: mult.commute)
+  with \<open>coprime a d\<close> have "d dvd c"
+    by (simp add: coprime_dvd_mult_iff gcd.commute normalize_mult [symmetric])
+  from \<open>a dvd b\<close> \<open>b dvd a\<close> have "normalize a = normalize b"
+    by (rule associatedI)
+  moreover from \<open>c dvd d\<close> \<open>d dvd c\<close> have "normalize c = normalize d"
+    by (rule associatedI)
   ultimately show ?rhs ..
 qed
+
+end
+
+lemma coprime_crossproduct_nat:
+  fixes a b c d :: nat
+  assumes "coprime a d" and "coprime b c"
+  shows "a * c = b * d \<longleftrightarrow> a = b \<and> c = d"
+  using assms coprime_crossproduct [of a d b c] by simp
 
 lemma coprime_crossproduct_int:
   fixes a b c d :: int
   assumes "coprime a d" and "coprime b c"
   shows "\<bar>a\<bar> * \<bar>c\<bar> = \<bar>b\<bar> * \<bar>d\<bar> \<longleftrightarrow> \<bar>a\<bar> = \<bar>b\<bar> \<and> \<bar>c\<bar> = \<bar>d\<bar>"
-  using assms by (intro coprime_crossproduct_nat [transferred]) auto
+  using assms coprime_crossproduct [of a d b c] by simp
 
 text \<open>\medskip Addition laws\<close>
 
 lemma gcd_add1_nat [simp]: "gcd ((m::nat) + n) n = gcd m n"
   apply (case_tac "n = 0")
   apply (simp_all add: gcd_non_0_nat)
-done
+  done
 
 lemma gcd_add2_nat [simp]: "gcd (m::nat) (m + n) = gcd m n"
-  apply (subst (1 2) gcd_commute_nat)
+  apply (subst (1 2) gcd.commute)
   apply (subst add.commute)
   apply simp
-done
+  done
 
 (* to do: add the other variations? *)
 
 lemma gcd_diff1_nat: "(m::nat) >= n \<Longrightarrow> gcd (m - n) n = gcd m n"
-  by (subst gcd_add1_nat [symmetric], auto)
+  by (subst gcd_add1_nat [symmetric]) auto
 
 lemma gcd_diff2_nat: "(n::nat) >= m \<Longrightarrow> gcd (n - m) n = gcd m n"
-  apply (subst gcd_commute_nat)
+  apply (subst gcd.commute)
   apply (subst gcd_diff1_nat [symmetric])
   apply auto
-  apply (subst gcd_commute_nat)
+  apply (subst gcd.commute)
   apply (subst gcd_diff1_nat)
   apply assumption
-  apply (rule gcd_commute_nat)
-done
+  apply (rule gcd.commute)
+  done
 
 lemma gcd_non_0_int: "(y::int) > 0 \<Longrightarrow> gcd x y = gcd y (x mod y)"
   apply (frule_tac b = y and a = x in pos_mod_sign)
@@ -1017,10 +979,10 @@ lemma gcd_non_0_int: "(y::int) > 0 \<Longrightarrow> gcd x y = gcd y (x mod y)"
   apply (auto simp add: gcd_non_0_nat nat_mod_distrib [symmetric]
     zmod_zminus1_eq_if)
   apply (frule_tac a = x in pos_mod_bound)
-  apply (subst (1 2) gcd_commute_nat)
+  apply (subst (1 2) gcd.commute)
   apply (simp del: pos_mod_bound add: nat_diff_distrib gcd_diff2_nat
     nat_le_eq_zle)
-done
+  done
 
 lemma gcd_red_int: "gcd (x::int) y = gcd y (x mod y)"
   apply (case_tac "y = 0")
@@ -1035,13 +997,13 @@ lemma gcd_add1_int [simp]: "gcd ((m::int) + n) n = gcd m n"
 by (metis gcd_red_int mod_add_self1 add.commute)
 
 lemma gcd_add2_int [simp]: "gcd m ((m::int) + n) = gcd m n"
-by (metis gcd_add1_int gcd_commute_int add.commute)
+by (metis gcd_add1_int gcd.commute add.commute)
 
 lemma gcd_add_mult_nat: "gcd (m::nat) (k * m + n) = gcd m n"
-by (metis mod_mult_self3 gcd_commute_nat gcd_red_nat)
+by (metis mod_mult_self3 gcd.commute gcd_red_nat)
 
 lemma gcd_add_mult_int: "gcd (m::int) (k * m + n) = gcd m n"
-by (metis gcd_commute_int gcd_red_int mod_mult_self1 add.commute)
+by (metis gcd.commute gcd_red_int mod_mult_self1 add.commute)
 
 
 (* to do: differences, and all variations of addition rules
@@ -1087,7 +1049,7 @@ lemma gcd_is_Max_divisors_nat:
 apply(rule Max_eqI[THEN sym])
   apply (metis finite_Collect_conjI finite_divisors_nat)
  apply simp
- apply(metis Suc_diff_1 Suc_neq_Zero dvd_imp_le gcd_greatest_iff_nat gcd_pos_nat)
+ apply(metis Suc_diff_1 Suc_neq_Zero dvd_imp_le gcd_greatest_iff gcd_pos_nat)
 apply simp
 done
 
@@ -1096,7 +1058,7 @@ lemma gcd_is_Max_divisors_int:
 apply(rule Max_eqI[THEN sym])
   apply (metis finite_Collect_conjI finite_divisors_int)
  apply simp
- apply (metis gcd_greatest_iff_int gcd_pos_int zdvd_imp_le)
+ apply (metis gcd_greatest_iff gcd_pos_int zdvd_imp_le)
 apply simp
 done
 
@@ -1136,9 +1098,6 @@ qed
 
 end
 
-lemmas div_gcd_coprime_nat = div_gcd_coprime [where ?'a = nat]
-lemmas div_gcd_coprime_int = div_gcd_coprime [where ?'a = int]
-
 lemma coprime_nat: "coprime (a::nat) b \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> d = 1)"
   using gcd_unique_nat[of 1 a b, simplified] by auto
 
@@ -1165,7 +1124,7 @@ lemma gcd_coprime_nat:
   apply (erule ssubst)
   apply (subgoal_tac "b' = b div gcd a b")
   apply (erule ssubst)
-  apply (rule div_gcd_coprime_nat)
+  apply (rule div_gcd_coprime)
   using z apply force
   apply (subst (1) b)
   using z apply force
@@ -1182,7 +1141,7 @@ lemma gcd_coprime_int:
   apply (erule ssubst)
   apply (subgoal_tac "b' = b div gcd a b")
   apply (erule ssubst)
-  apply (rule div_gcd_coprime_int)
+  apply (rule div_gcd_coprime)
   using z apply force
   apply (subst (1) b)
   using z apply force
@@ -1204,9 +1163,6 @@ lemma coprime_mult:
 
 end
 
-lemmas coprime_mult_nat = coprime_mult [where ?'a = nat]
-lemmas coprime_mult_int = coprime_mult [where ?'a = int]
-  
 lemma coprime_lmult_nat:
   assumes dab: "coprime (d::nat) (a * b)" shows "coprime d a"
 proof -
@@ -1246,13 +1202,13 @@ qed
 lemma coprime_mul_eq_nat: "coprime (d::nat) (a * b) \<longleftrightarrow>
     coprime d a \<and>  coprime d b"
   using coprime_rmult_nat[of d a b] coprime_lmult_nat[of d a b]
-    coprime_mult_nat[of d a b]
+    coprime_mult [of d a b]
   by blast
 
 lemma coprime_mul_eq_int: "coprime (d::int) (a * b) \<longleftrightarrow>
     coprime d a \<and>  coprime d b"
   using coprime_rmult_int[of d a b] coprime_lmult_int[of d a b]
-    coprime_mult_int[of d a b]
+    coprime_mult [of d a b]
   by blast
 
 lemma coprime_power_int:
@@ -1268,7 +1224,7 @@ lemma gcd_coprime_exists_nat:
     shows "\<exists>a' b'. a = a' * gcd a b \<and> b = b' * gcd a b \<and> coprime a' b'"
   apply (rule_tac x = "a div gcd a b" in exI)
   apply (rule_tac x = "b div gcd a b" in exI)
-  using nz apply (auto simp add: div_gcd_coprime_nat dvd_div_mult)
+  using nz apply (auto simp add: div_gcd_coprime dvd_div_mult)
 done
 
 lemma gcd_coprime_exists_int:
@@ -1276,14 +1232,14 @@ lemma gcd_coprime_exists_int:
     shows "\<exists>a' b'. a = a' * gcd a b \<and> b = b' * gcd a b \<and> coprime a' b'"
   apply (rule_tac x = "a div gcd a b" in exI)
   apply (rule_tac x = "b div gcd a b" in exI)
-  using nz apply (auto simp add: div_gcd_coprime_int)
+  using nz apply (auto simp add: div_gcd_coprime)
 done
 
 lemma coprime_exp_nat: "coprime (d::nat) a \<Longrightarrow> coprime d (a^n)"
-  by (induct n) (simp_all add: coprime_mult_nat)
+  by (induct n) (simp_all add: coprime_mult)
 
 lemma coprime_exp_int: "coprime (d::int) a \<Longrightarrow> coprime d (a^n)"
-  by (induct n) (simp_all add: coprime_mult_int)
+  by (induct n) (simp_all add: coprime_mult)
 
 context semiring_gcd
 begin
@@ -1302,12 +1258,6 @@ proof (rule coprime_exp_left)
 qed
 
 end
-
-lemma coprime_exp2_nat [intro]: "coprime (a::nat) b \<Longrightarrow> coprime (a^n) (b^m)"
-  by (fact coprime_exp2)
-
-lemma coprime_exp2_int [intro]: "coprime (a::int) b \<Longrightarrow> coprime (a^n) (b^m)"
-  by (fact coprime_exp2)
 
 lemma gcd_exp_nat:
   "gcd ((a :: nat) ^ n) (b ^ n) = gcd a b ^ n"
@@ -1352,7 +1302,7 @@ proof-
     from dc ab'(1,2) have "a'*?g dvd (b'*?g) *c" by auto
     hence "?g*a' dvd ?g * (b' * c)" by (simp add: mult.assoc)
     with z have th_1: "a' dvd b' * c" by auto
-    from coprime_dvd_mult_nat[OF ab'(3)] th_1
+    from coprime_dvd_mult [OF ab'(3)] th_1
     have thc: "a' dvd c" by (subst (asm) mult.commute, blast)
     from ab' have "a = ?g*a'" by algebra
     with thb thc have ?thesis by blast }
@@ -1376,7 +1326,7 @@ proof-
     from dc ab'(1,2) have "a'*?g dvd (b'*?g) *c" by auto
     hence "?g*a' dvd ?g * (b' * c)" by (simp add: ac_simps)
     with z have th_1: "a' dvd b' * c" by auto
-    from coprime_dvd_mult_int[OF ab'(3)] th_1
+    from coprime_dvd_mult [OF ab'(3)] th_1
     have thc: "a' dvd c" by (subst (asm) mult.commute, blast)
     from ab' have "a = ?g*a'" by algebra
     with thb thc have ?thesis by blast }
@@ -1405,7 +1355,7 @@ proof-
     have "a' dvd a'^n" by (simp add: m)
     with th0 have "a' dvd b'^n" using dvd_trans[of a' "a'^n" "b'^n"] by simp
     hence th1: "a' dvd b'^m * b'" by (simp add: m mult.commute)
-    from coprime_dvd_mult_nat[OF coprime_exp_nat [OF ab'(3), of m]] th1
+    from coprime_dvd_mult [OF coprime_exp_nat [OF ab'(3), of m]] th1
     have "a' dvd b'" by (subst (asm) mult.commute, blast)
     hence "a'*?g dvd b'*?g" by simp
     with ab'(1,2)  have ?thesis by simp }
@@ -1434,7 +1384,7 @@ proof-
     with th0 have "a' dvd b'^n"
       using dvd_trans[of a' "a'^n" "b'^n"] by simp
     hence th1: "a' dvd b'^m * b'" by (simp add: m mult.commute)
-    from coprime_dvd_mult_int[OF coprime_exp_int [OF ab'(3), of m]] th1
+    from coprime_dvd_mult [OF coprime_exp_int [OF ab'(3), of m]] th1
     have "a' dvd b'" by (subst (asm) mult.commute, blast)
     hence "a'*?g dvd b'*?g" by simp
     with ab'(1,2)  have ?thesis by simp }
@@ -1454,7 +1404,7 @@ proof-
   from mr nr obtain m' n' where m': "r = m*m'" and n': "r = n*n'"
     unfolding dvd_def by blast
   from mr n' have "m dvd n'*n" by (simp add: mult.commute)
-  hence "m dvd n'" using coprime_dvd_mult_iff_nat[OF mn] by simp
+  hence "m dvd n'" using coprime_dvd_mult_iff [OF mn] by simp
   then obtain k where k: "n' = m*k" unfolding dvd_def by blast
   from n' k show ?thesis unfolding dvd_def by auto
 qed
@@ -1466,7 +1416,7 @@ proof-
   from mr nr obtain m' n' where m': "r = m*m'" and n': "r = n*n'"
     unfolding dvd_def by blast
   from mr n' have "m dvd n'*n" by (simp add: mult.commute)
-  hence "m dvd n'" using coprime_dvd_mult_iff_int[OF mn] by simp
+  hence "m dvd n'" using coprime_dvd_mult_iff [OF mn] by simp
   then obtain k where k: "n' = m*k" unfolding dvd_def by blast
   from n' k show ?thesis unfolding dvd_def by auto
 qed
@@ -1482,29 +1432,27 @@ lemma coprime_plus_one_int [simp]: "coprime ((n::int) + 1) n"
 
 lemma coprime_minus_one_nat: "(n::nat) \<noteq> 0 \<Longrightarrow> coprime (n - 1) n"
   using coprime_plus_one_nat [of "n - 1"]
-    gcd_commute_nat [of "n - 1" n] by auto
+    gcd.commute [of "n - 1" n] by auto
 
 lemma coprime_minus_one_int: "coprime ((n::int) - 1) n"
   using coprime_plus_one_int [of "n - 1"]
-    gcd_commute_int [of "n - 1" n] by auto
+    gcd.commute [of "n - 1" n] by auto
 
-lemma setprod_coprime_nat [rule_format]:
-    "(ALL i: A. coprime (f i) (x::nat)) --> coprime (\<Prod>i\<in>A. f i) x"
-  apply (case_tac "finite A")
-  apply (induct set: finite)
-  apply (auto simp add: gcd_mult_cancel_nat)
-done
+lemma setprod_coprime_nat:
+  fixes x :: nat
+  shows "(\<And>i. i \<in> A \<Longrightarrow> coprime (f i) x) \<Longrightarrow> coprime (\<Prod>i\<in>A. f i) x"
+  by (induct A rule: infinite_finite_induct)
+    (auto simp add: gcd_mult_cancel One_nat_def [symmetric] simp del: One_nat_def)
 
-lemma setprod_coprime_int [rule_format]:
-    "(ALL i: A. coprime (f i) (x::int)) --> coprime (\<Prod>i\<in>A. f i) x"
-  apply (case_tac "finite A")
-  apply (induct set: finite)
-  apply (auto simp add: gcd_mult_cancel_int)
-done
+lemma setprod_coprime_int:
+  fixes x :: int
+  shows "(\<And>i. i \<in> A \<Longrightarrow> coprime (f i) x) \<Longrightarrow> coprime (\<Prod>i\<in>A. f i) x"
+  by (induct A rule: infinite_finite_induct)
+    (auto simp add: gcd_mult_cancel)
 
 lemma coprime_common_divisor_nat: 
   "coprime (a::nat) b \<Longrightarrow> x dvd a \<Longrightarrow> x dvd b \<Longrightarrow> x = 1"
-  by (metis gcd_greatest_iff_nat nat_dvd_1_iff_1)
+  by (metis gcd_greatest_iff nat_dvd_1_iff_1)
 
 lemma coprime_common_divisor_int:
   "coprime (a::int) b \<Longrightarrow> x dvd a \<Longrightarrow> x dvd b \<Longrightarrow> \<bar>x\<bar> = 1"
@@ -1515,10 +1463,10 @@ lemma coprime_divisors_nat:
   by (meson coprime_int dvd_trans gcd_dvd1 gcd_dvd2 gcd_ge_0_int)
 
 lemma invertible_coprime_nat: "(x::nat) * y mod m = 1 \<Longrightarrow> coprime x m"
-by (metis coprime_lmult_nat gcd_1_nat gcd_commute_nat gcd_red_nat)
+by (metis coprime_lmult_nat gcd_1_nat gcd.commute gcd_red_nat)
 
 lemma invertible_coprime_int: "(x::int) * y mod m = 1 \<Longrightarrow> coprime x m"
-by (metis coprime_lmult_int gcd_1_int gcd_commute_int gcd_red_int)
+by (metis coprime_lmult_int gcd_1_int gcd.commute gcd_red_int)
 
 
 subsection \<open>Bezout's theorem\<close>
@@ -1764,8 +1712,7 @@ qed
 subsection \<open>LCM properties\<close>
 
 lemma lcm_altdef_int [code]: "lcm (a::int) b = \<bar>a\<bar> * \<bar>b\<bar> div gcd a b"
-  by (simp add: lcm_int_def lcm_nat_def zdiv_int
-    of_nat_mult gcd_int_def)
+  by (simp add: lcm_int_def lcm_nat_def zdiv_int gcd_int_def)
 
 lemma prod_gcd_lcm_nat: "(m::nat) * n = gcd m n * lcm m n"
   unfolding lcm_nat_def
@@ -1800,70 +1747,21 @@ lemma lcm_pos_int:
   apply (subst lcm_abs_int)
   apply (rule lcm_pos_nat [transferred])
   apply auto
-done
+  done
 
 lemma dvd_pos_nat:
   fixes n m :: nat
   assumes "n > 0" and "m dvd n"
   shows "m > 0"
-using assms by (cases m) auto
-
-lemma lcm_least_nat:
-  assumes "(m::nat) dvd k" and "n dvd k"
-  shows "lcm m n dvd k"
-  using assms by (rule lcm_least)
-
-lemma lcm_least_int:
-  "(m::int) dvd k \<Longrightarrow> n dvd k \<Longrightarrow> lcm m n dvd k"
-  by (rule lcm_least)
-
-lemma lcm_dvd1_nat: "(m::nat) dvd lcm m n"
-  by (fact dvd_lcm1)
-
-lemma lcm_dvd1_int: "(m::int) dvd lcm m n"
-  by (fact dvd_lcm1)
-
-lemma lcm_dvd2_nat: "(n::nat) dvd lcm m n"
-  by (fact dvd_lcm2)
-
-lemma lcm_dvd2_int: "(n::int) dvd lcm m n"
-  by (fact dvd_lcm2)
-
-lemma dvd_lcm_I1_nat[simp]: "(k::nat) dvd m \<Longrightarrow> k dvd lcm m n"
-by(metis lcm_dvd1_nat dvd_trans)
-
-lemma dvd_lcm_I2_nat[simp]: "(k::nat) dvd n \<Longrightarrow> k dvd lcm m n"
-by(metis lcm_dvd2_nat dvd_trans)
-
-lemma dvd_lcm_I1_int[simp]: "(i::int) dvd m \<Longrightarrow> i dvd lcm m n"
-by(metis lcm_dvd1_int dvd_trans)
-
-lemma dvd_lcm_I2_int[simp]: "(i::int) dvd n \<Longrightarrow> i dvd lcm m n"
-by(metis lcm_dvd2_int dvd_trans)
+  using assms by (cases m) auto
 
 lemma lcm_unique_nat: "(a::nat) dvd d \<and> b dvd d \<and>
     (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
-  by (auto intro: dvd_antisym lcm_least_nat lcm_dvd1_nat lcm_dvd2_nat)
+  by (auto intro: dvd_antisym lcm_least)
 
 lemma lcm_unique_int: "d >= 0 \<and> (a::int) dvd d \<and> b dvd d \<and>
     (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
-  using lcm_least_int zdvd_antisym_nonneg by auto
-
-interpretation lcm_nat: abel_semigroup "lcm :: nat \<Rightarrow> nat \<Rightarrow> nat"
-  + lcm_nat: semilattice_neutr "lcm :: nat \<Rightarrow> nat \<Rightarrow> nat" 1
-  by standard (simp_all del: One_nat_def)
-
-interpretation lcm_int: abel_semigroup "lcm :: int \<Rightarrow> int \<Rightarrow> int" ..
-
-lemmas lcm_assoc_nat = lcm.assoc [where ?'a = nat]
-lemmas lcm_commute_nat = lcm.commute [where ?'a = nat]
-lemmas lcm_left_commute_nat = lcm.left_commute [where ?'a = nat]
-lemmas lcm_assoc_int = lcm.assoc [where ?'a = int]
-lemmas lcm_commute_int = lcm.commute [where ?'a = int]
-lemmas lcm_left_commute_int = lcm.left_commute [where ?'a = int]
-
-lemmas lcm_ac_nat = lcm_assoc_nat lcm_commute_nat lcm_left_commute_nat
-lemmas lcm_ac_int = lcm_assoc_int lcm_commute_int lcm_left_commute_int
+  using lcm_least zdvd_antisym_nonneg by auto
 
 lemma lcm_proj2_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> lcm x y = y"
   apply (rule sym)
@@ -1878,10 +1776,10 @@ lemma lcm_proj2_if_dvd_int [simp]: "(x::int) dvd y \<Longrightarrow> lcm x y = \
 done
 
 lemma lcm_proj1_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> lcm y x = y"
-by (subst lcm_commute_nat, erule lcm_proj2_if_dvd_nat)
+by (subst lcm.commute, erule lcm_proj2_if_dvd_nat)
 
 lemma lcm_proj1_if_dvd_int [simp]: "(x::int) dvd y \<Longrightarrow> lcm y x = \<bar>y\<bar>"
-by (subst lcm_commute_int, erule lcm_proj2_if_dvd_int)
+by (subst lcm.commute, erule lcm_proj2_if_dvd_int)
 
 lemma lcm_proj1_iff_nat[simp]: "lcm m n = (m::nat) \<longleftrightarrow> n dvd m"
 by (metis lcm_proj1_if_dvd_nat lcm_unique_nat)
@@ -1903,24 +1801,6 @@ lemma (in semiring_gcd) comp_fun_idem_lcm:
   "comp_fun_idem lcm"
   by standard (simp_all add: fun_eq_iff ac_simps)
 
-lemma comp_fun_idem_gcd_nat: "comp_fun_idem (gcd :: nat\<Rightarrow>nat\<Rightarrow>nat)"
-  by (fact comp_fun_idem_gcd)
-
-lemma comp_fun_idem_gcd_int: "comp_fun_idem (gcd :: int\<Rightarrow>int\<Rightarrow>int)"
-  by (fact comp_fun_idem_gcd)
-
-lemma comp_fun_idem_lcm_nat: "comp_fun_idem (lcm :: nat\<Rightarrow>nat\<Rightarrow>nat)"
-  by (fact comp_fun_idem_lcm)
-
-lemma comp_fun_idem_lcm_int: "comp_fun_idem (lcm :: int\<Rightarrow>int\<Rightarrow>int)"
-  by (fact comp_fun_idem_lcm)
-
-lemma lcm_0_iff_nat [simp]: "lcm (m::nat) n = 0 \<longleftrightarrow> m=0 \<or> n=0"
-  by (fact lcm_eq_0_iff)
-
-lemma lcm_0_iff_int [simp]: "lcm (m::int) n = 0 \<longleftrightarrow> m=0 \<or> n=0"
-  by (fact lcm_eq_0_iff)
-
 lemma lcm_1_iff_nat [simp]: "lcm (m::nat) n = 1 \<longleftrightarrow> m=1 \<and> n=1"
   by (simp only: lcm_eq_1_iff) simp
   
@@ -1930,14 +1810,6 @@ lemma lcm_1_iff_int [simp]: "lcm (m::int) n = 1 \<longleftrightarrow> (m=1 \<or>
 
 subsection \<open>The complete divisibility lattice\<close>
 
-interpretation gcd_semilattice_nat: semilattice_inf gcd Rings.dvd "(\<lambda>m n::nat. m dvd n \<and> \<not> n dvd m)"
-  by standard simp_all
-
-interpretation lcm_semilattice_nat: semilattice_sup lcm Rings.dvd "(\<lambda>m n::nat. m dvd n \<and> \<not> n dvd m)"
-  by standard simp_all
-
-interpretation gcd_lcm_lattice_nat: lattice gcd Rings.dvd "(\<lambda>m n::nat. m dvd n & ~ n dvd m)" lcm ..
-
 text\<open>Lifting gcd and lcm to sets (Gcd/Lcm).
 Gcd is defined via Lcm to facilitate the proof that we have a complete lattice.
 \<close>
@@ -1945,7 +1817,8 @@ Gcd is defined via Lcm to facilitate the proof that we have a complete lattice.
 instantiation nat :: Gcd
 begin
 
-interpretation semilattice_neutr_set lcm "1::nat" ..
+interpretation semilattice_neutr_set lcm "1::nat"
+  by standard simp_all
 
 definition
   "Lcm (M::nat set) = (if finite M then F M else 0)"
@@ -1990,8 +1863,6 @@ qed
 definition
   "Gcd (M::nat set) = Lcm {d. \<forall>m\<in>M. d dvd m}"
 
-interpretation bla: semilattice_neutr_set gcd "0::nat" ..
-
 instance ..
 
 end
@@ -2011,18 +1882,6 @@ proof
   show "Lcm N = Gcd {m. \<forall>n\<in>N. n dvd m}" for N :: "nat set"
     by (rule associated_eqI) (auto intro!: Gcd_dvd Gcd_greatest)
 qed
-
-interpretation gcd_lcm_complete_lattice_nat:
-  complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat"
-  by standard (auto simp add: Gcd_nat_def Lcm_nat_empty Lcm_nat_infinite)
-
-lemma Lcm_empty_nat:
-  "Lcm {} = (1::nat)"
-  by (fact Lcm_empty)
-
-lemma Lcm_insert_nat [simp]:
-  "Lcm (insert (n::nat) N) = lcm n (Lcm N)"
-  by (fact Lcm_insert)
 
 lemma Lcm_eq_0 [simp]:
   "finite (M::nat set) \<Longrightarrow> 0 \<in> M \<Longrightarrow> Lcm M = 0"
@@ -2080,14 +1939,6 @@ apply clarsimp
 apply (metis Lcm0_iff dvd_Lcm_nat dvd_imp_le neq0_conv)
 done
 
-lemma Lcm_set_nat [code, code_unfold]:
-  "Lcm (set ns) = fold lcm ns (1::nat)"
-  by (fact gcd_lcm_complete_lattice_nat.Sup_set_fold)
-
-lemma Gcd_set_nat [code]:
-  "Gcd (set ns) = fold gcd ns (0::nat)"
-  by (fact gcd_lcm_complete_lattice_nat.Inf_set_fold)
-
 lemma mult_inj_if_coprime_nat:
   "inj_on f A \<Longrightarrow> inj_on g B \<Longrightarrow> ALL a:A. ALL b:B. coprime (f a) (g b)
    \<Longrightarrow> inj_on (%(a,b). f a * g b::nat) (A \<times> B)"
@@ -2142,58 +1993,14 @@ proof
       by auto
   qed
   then show "Lcm K = Gcd {l. \<forall>k\<in>K. k dvd l}"
-    by (simp add: Gcd_int_def Lcm_int_def Lcm_Gcd)
+    by (simp add: Gcd_int_def Lcm_int_def Lcm_Gcd image_image)
 qed
-
-lemma Lcm_empty_int [simp]: "Lcm {} = (1::int)"
-  by (fact Lcm_empty)
-
-lemma Lcm_insert_int [simp]:
-  "Lcm (insert (n::int) N) = lcm n (Lcm N)"
-  by (fact Lcm_insert)
-
-lemma dvd_int_iff: "x dvd y \<longleftrightarrow> nat \<bar>x\<bar> dvd nat \<bar>y\<bar>"
-  by (fact dvd_int_unfold_dvd_nat)
-
-lemma dvd_Lcm_int [simp]:
-  fixes M :: "int set" assumes "m \<in> M" shows "m dvd Lcm M"
-  using assms by (fact dvd_Lcm)
 
 lemma Lcm_dvd_int [simp]:
   fixes M :: "int set"
   assumes "\<forall>m\<in>M. m dvd n" shows "Lcm M dvd n"
-  using assms by (simp add: Lcm_int_def dvd_int_iff)
+  using assms by (auto intro: Lcm_least)
 
-lemma Lcm_set_int [code, code_unfold]:
-  "Lcm (set xs) = fold lcm xs (1::int)"
-  by (induct xs rule: rev_induct) (simp_all add: lcm_commute_int)
-
-lemma Gcd_set_int [code]:
-  "Gcd (set xs) = fold gcd xs (0::int)"
-  by (induct xs rule: rev_induct) (simp_all add: gcd_commute_int)
-
-
-text \<open>Fact aliasses\<close>
-
-lemmas gcd_dvd1_nat = gcd_dvd1 [where ?'a = nat]
-  and gcd_dvd2_nat = gcd_dvd2 [where ?'a = nat]
-  and gcd_greatest_nat = gcd_greatest [where ?'a = nat]
-
-lemmas gcd_dvd1_int = gcd_dvd1 [where ?'a = int]
-  and gcd_dvd2_int = gcd_dvd2 [where ?'a = int]
-  and gcd_greatest_int = gcd_greatest [where ?'a = int]
-
-lemmas Gcd_dvd_nat [simp] = Gcd_dvd [where ?'a = nat]
-  and dvd_Gcd_nat [simp] = dvd_Gcd [where ?'a = nat]
-
-lemmas Gcd_dvd_int [simp] = Gcd_dvd [where ?'a = int]
-  and dvd_Gcd_int [simp] = dvd_Gcd [where ?'a = int]
-
-lemmas Gcd_empty_nat = Gcd_empty [where ?'a = nat]
-  and Gcd_insert_nat = Gcd_insert [where ?'a = nat]
-
-lemmas Gcd_empty_int = Gcd_empty [where ?'a = int]
-  and Gcd_insert_int = Gcd_insert [where ?'a = int]
 
 subsection \<open>gcd and lcm instances for @{typ integer}\<close>
 
@@ -2223,5 +2030,178 @@ code_printing constant "gcd :: integer \<Rightarrow> _"
   and (Haskell) "Prelude.gcd"
   and (Scala) "_.gcd'((_)')"
   \<comment> \<open>There is no gcd operation in the SML standard library, so no code setup for SML\<close>
+
+text \<open>Some code equations\<close>
+
+lemma Lcm_set_nat [code, code_unfold]:
+  "Lcm (set ns) = fold lcm ns (1::nat)"
+  using Lcm_set [of ns] by (simp_all add: fun_eq_iff ac_simps foldr_fold [symmetric])
+
+lemma Gcd_set_nat [code]:
+  "Gcd (set ns) = fold gcd ns (0::nat)"
+  using Gcd_set [of ns] by (simp_all add: fun_eq_iff ac_simps foldr_fold [symmetric])
+
+lemma Lcm_set_int [code, code_unfold]:
+  "Lcm (set xs) = fold lcm xs (1::int)"
+  using Lcm_set [of xs] by (simp_all add: fun_eq_iff ac_simps foldr_fold [symmetric])
+
+lemma Gcd_set_int [code]:
+  "Gcd (set xs) = fold gcd xs (0::int)"
+  using Gcd_set [of xs] by (simp_all add: fun_eq_iff ac_simps foldr_fold [symmetric])
+
+text \<open>Fact aliasses\<close>
+
+lemma dvd_int_iff: "x dvd y \<longleftrightarrow> nat \<bar>x\<bar> dvd nat \<bar>y\<bar>"
+  by (fact dvd_int_unfold_dvd_nat)
+
+lemmas gcd_assoc_nat = gcd.assoc [where ?'a = nat]
+lemmas gcd_assoc_int = gcd.assoc [where ?'a = int]
+lemmas gcd_commute_nat = gcd.commute [where ?'a = nat]
+lemmas gcd_commute_int = gcd.commute [where ?'a = int]
+lemmas gcd_left_commute_nat = gcd.left_commute [where ?'a = nat]
+lemmas gcd_left_commute_int = gcd.left_commute [where ?'a = int]
+lemmas gcd_ac_nat = gcd_assoc_nat gcd_commute_nat gcd_left_commute_nat
+lemmas gcd_ac_int = gcd_assoc_int gcd_commute_int gcd_left_commute_int
+lemmas gcd_dvd1_nat = gcd_dvd1 [where ?'a = nat]
+lemmas gcd_dvd1_int = gcd_dvd1 [where ?'a = int]
+lemmas gcd_dvd2_nat = gcd_dvd2 [where ?'a = nat]
+lemmas gcd_dvd2_int = gcd_dvd2 [where ?'a = int]
+lemmas gcd_greatest_nat = gcd_greatest [where ?'a = nat]
+lemmas gcd_greatest_int = gcd_greatest [where ?'a = int]
+lemmas gcd_mult_cancel_nat = gcd_mult_cancel [where ?'a = nat] 
+lemmas gcd_mult_cancel_int = gcd_mult_cancel [where ?'a = int] 
+lemmas gcd_greatest_iff_nat = gcd_greatest_iff [where ?'a = nat]
+lemmas gcd_greatest_iff_int = gcd_greatest_iff [where ?'a = int]
+lemmas gcd_zero_nat = gcd_eq_0_iff [where ?'a = nat]
+lemmas gcd_zero_int = gcd_eq_0_iff [where ?'a = int]
+
+lemmas lcm_assoc_nat = lcm.assoc [where ?'a = nat]
+lemmas lcm_assoc_int = lcm.assoc [where ?'a = int]
+lemmas lcm_commute_nat = lcm.commute [where ?'a = nat]
+lemmas lcm_commute_int = lcm.commute [where ?'a = int]
+lemmas lcm_left_commute_nat = lcm.left_commute [where ?'a = nat]
+lemmas lcm_left_commute_int = lcm.left_commute [where ?'a = int]
+lemmas lcm_ac_nat = lcm_assoc_nat lcm_commute_nat lcm_left_commute_nat
+lemmas lcm_ac_int = lcm_assoc_int lcm_commute_int lcm_left_commute_int
+lemmas lcm_dvd1_nat = dvd_lcm1 [where ?'a = nat]
+lemmas lcm_dvd1_int = dvd_lcm1 [where ?'a = int]
+lemmas lcm_dvd2_nat = dvd_lcm2 [where ?'a = nat]
+lemmas lcm_dvd2_int = dvd_lcm2 [where ?'a = int]
+lemmas lcm_least_nat = lcm_least [where ?'a = nat]
+lemmas lcm_least_int = lcm_least [where ?'a = int]
+
+lemma lcm_0_iff_nat [simp]: "lcm (m::nat) n = 0 \<longleftrightarrow> m = 0 \<or> n= 0"
+  by (fact lcm_eq_0_iff)
+
+lemma lcm_0_iff_int [simp]: "lcm (m::int) n = 0 \<longleftrightarrow> m = 0 \<or> n = 0"
+  by (fact lcm_eq_0_iff)
+
+lemma dvd_lcm_I1_nat [simp]: "(k::nat) dvd m \<Longrightarrow> k dvd lcm m n"
+  by (fact dvd_lcmI1)
+
+lemma dvd_lcm_I2_nat [simp]: "(k::nat) dvd n \<Longrightarrow> k dvd lcm m n"
+  by (fact dvd_lcmI2)
+
+lemma dvd_lcm_I1_int [simp]: "(i::int) dvd m \<Longrightarrow> i dvd lcm m n"
+  by (fact dvd_lcmI1)
+
+lemma dvd_lcm_I2_int[simp]: "(i::int) dvd n \<Longrightarrow> i dvd lcm m n"
+  by (fact dvd_lcmI2)
+
+lemmas coprime_mult_nat = coprime_mult [where ?'a = nat]
+lemmas coprime_mult_int = coprime_mult [where ?'a = int]
+lemmas div_gcd_coprime_nat = div_gcd_coprime [where ?'a = nat]
+lemmas div_gcd_coprime_int = div_gcd_coprime [where ?'a = int]
+lemmas coprime_dvd_mult_nat = coprime_dvd_mult [where ?'a = nat]
+lemmas coprime_dvd_mult_int = coprime_dvd_mult [where ?'a = int]
+
+lemma coprime_dvd_mult_iff_nat: "coprime (k::nat) n \<Longrightarrow>
+    (k dvd m * n) = (k dvd m)"
+  by (fact coprime_dvd_mult_iff)
+
+lemma coprime_dvd_mult_iff_int: "coprime (k::int) n \<Longrightarrow>
+    (k dvd m * n) = (k dvd m)"
+  by (fact coprime_dvd_mult_iff)
+
+lemma coprime_exp2_nat [intro]: "coprime (a::nat) b \<Longrightarrow> coprime (a^n) (b^m)"
+  by (fact coprime_exp2)
+
+lemma coprime_exp2_int [intro]: "coprime (a::int) b \<Longrightarrow> coprime (a^n) (b^m)"
+  by (fact coprime_exp2)
+
+lemmas Gcd_dvd_nat [simp] = Gcd_dvd [where ?'a = nat]
+lemmas Gcd_dvd_int [simp] = Gcd_dvd [where ?'a = int]
+lemmas dvd_Gcd_nat [simp] = dvd_Gcd [where ?'a = nat]
+lemmas dvd_Gcd_int [simp] = dvd_Gcd [where ?'a = int]
+lemmas Gcd_empty_nat = Gcd_empty [where ?'a = nat]
+lemmas Gcd_empty_int = Gcd_empty [where ?'a = int]
+lemmas Gcd_insert_nat = Gcd_insert [where ?'a = nat]
+lemmas Gcd_insert_int = Gcd_insert [where ?'a = int]
+
+lemma dvd_Lcm_int [simp]:
+  fixes M :: "int set" assumes "m \<in> M" shows "m dvd Lcm M"
+  using assms by (fact dvd_Lcm)
+
+lemma Lcm_empty_nat:
+  "Lcm {} = (1::nat)"
+  by (fact Lcm_empty)
+
+lemma Lcm_empty_int:
+  "Lcm {} = (1::int)"
+  by (fact Lcm_empty)
+
+lemma Lcm_insert_nat:
+  "Lcm (insert (n::nat) N) = lcm n (Lcm N)"
+  by (fact Lcm_insert)
+
+lemma Lcm_insert_int:
+  "Lcm (insert (n::int) N) = lcm n (Lcm N)"
+  by (fact Lcm_insert)
+
+lemma gcd_neg_numeral_1_int [simp]:
+  "gcd (- numeral n :: int) x = gcd (numeral n) x"
+  by (fact gcd_neg1_int)
+
+lemma gcd_neg_numeral_2_int [simp]:
+  "gcd x (- numeral n :: int) = gcd x (numeral n)"
+  by (fact gcd_neg2_int)
+
+lemma gcd_proj1_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> gcd x y = x"
+  by (fact gcd_nat.absorb1)
+
+lemma gcd_proj2_if_dvd_nat [simp]: "(y::nat) dvd x \<Longrightarrow> gcd x y = y"
+  by (fact gcd_nat.absorb2)
+
+lemma comp_fun_idem_gcd_nat: "comp_fun_idem (gcd :: nat\<Rightarrow>nat\<Rightarrow>nat)"
+  by (fact comp_fun_idem_gcd)
+
+lemma comp_fun_idem_gcd_int: "comp_fun_idem (gcd :: int\<Rightarrow>int\<Rightarrow>int)"
+  by (fact comp_fun_idem_gcd)
+
+lemma comp_fun_idem_lcm_nat: "comp_fun_idem (lcm :: nat\<Rightarrow>nat\<Rightarrow>nat)"
+  by (fact comp_fun_idem_lcm)
+
+lemma comp_fun_idem_lcm_int: "comp_fun_idem (lcm :: int\<Rightarrow>int\<Rightarrow>int)"
+  by (fact comp_fun_idem_lcm)
+
+interpretation dvd:
+  order "op dvd" "\<lambda>n m :: nat. n dvd m \<and> m \<noteq> n"
+  by standard (auto intro: dvd_refl dvd_trans dvd_antisym)
+
+interpretation gcd_semilattice_nat:
+  semilattice_inf gcd Rings.dvd "\<lambda>m n::nat. m dvd n \<and> m \<noteq> n"
+  by standard (auto dest: dvd_antisym dvd_trans)
+
+interpretation lcm_semilattice_nat:
+  semilattice_sup lcm Rings.dvd "\<lambda>m n::nat. m dvd n \<and> m \<noteq> n"
+  by standard simp_all
+
+interpretation gcd_lcm_lattice_nat:
+  lattice gcd Rings.dvd "\<lambda>m n::nat. m dvd n \<and> m \<noteq> n" lcm
+  ..
+
+interpretation gcd_lcm_complete_lattice_nat:
+  complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> m \<noteq> n" lcm 1 "0::nat"
+  by standard (auto simp add: Gcd_nat_def Lcm_nat_empty Lcm_nat_infinite)
 
 end

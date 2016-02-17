@@ -1934,11 +1934,6 @@ lemma dvd_antisym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
   unfolding dvd_def
   by (force dest: mult_eq_self_implies_10 simp add: mult.assoc)
 
-text \<open>@{term "op dvd"} is a partial order\<close>
-
-interpretation dvd: order "op dvd" "\<lambda>n m :: nat. n dvd m \<and> \<not> m dvd n"
-  proof qed (auto intro: dvd_refl dvd_trans dvd_antisym)
-
 lemma dvd_diff_nat[simp]: "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)"
 unfolding dvd_def
 by (blast intro: diff_mult_distrib2 [symmetric])
