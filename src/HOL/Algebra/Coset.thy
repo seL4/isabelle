@@ -936,18 +936,6 @@ proof -
   thus ?thesis by (auto simp add: g)
 qed
 
-lemma the_elem_image_unique: -- {* FIXME move *}
-  assumes "A \<noteq> {}"
-  assumes *: "\<And>y. y \<in> A \<Longrightarrow> f y = f x"
-  shows "the_elem (f ` A) = f x"
-unfolding the_elem_def proof (rule the1_equality)
-  from `A \<noteq> {}` obtain y where "y \<in> A" by auto
-  with * have "f x = f y" by simp
-  with `y \<in> A` have "f x \<in> f ` A" by blast
-  with * show "f ` A = {f x}" by auto
-  then show "\<exists>!x. f ` A = {x}" by auto
-qed
-
 lemma (in group_hom) FactGroup_hom:
      "(\<lambda>X. the_elem (h`X)) \<in> hom (G Mod (kernel G H h)) H"
 apply (simp add: hom_def FactGroup_the_elem_mem normal.factorgroup_is_group [OF normal_kernel] group.axioms monoid.m_closed)

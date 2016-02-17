@@ -37,6 +37,11 @@ INCOMPATIBILITY.
 
 * Class semiring_Lcd merged into semiring_Gcd.  INCOMPATIBILITY.
 
+* Lemma generalization:
+    realpow_minus_mult ~> power_minus_mult
+    realpow_Suc_le_self ~> power_Suc_le_self
+INCOMPATIBILITY.
+
 
 New in Isabelle2016 (February 2016)
 -----------------------------------

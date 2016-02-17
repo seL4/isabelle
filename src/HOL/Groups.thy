@@ -1382,7 +1382,6 @@ lemmas mult_1 = mult_1_left \<comment> \<open>FIXME duplicate\<close>
 lemmas ab_left_minus = left_minus \<comment> \<open>FIXME duplicate\<close>
 lemmas diff_diff_eq = diff_diff_add \<comment> \<open>FIXME duplicate\<close>
 
-
 subsection \<open>Tools setup\<close>
 
 lemma add_mono_thms_linordered_semiring:

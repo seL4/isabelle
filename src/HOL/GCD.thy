@@ -2057,9 +2057,6 @@ lemma Gcd_set_int [code]:
 
 text \<open>Fact aliasses\<close>
 
-lemma dvd_int_iff: "x dvd y \<longleftrightarrow> nat \<bar>x\<bar> dvd nat \<bar>y\<bar>"
-  by (fact dvd_int_unfold_dvd_nat)
-
 lemmas gcd_assoc_nat = gcd.assoc [where ?'a = nat]
 lemmas gcd_assoc_int = gcd.assoc [where ?'a = int]
 lemmas gcd_commute_nat = gcd.commute [where ?'a = nat]

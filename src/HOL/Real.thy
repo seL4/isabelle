@@ -1037,9 +1037,6 @@ declare of_int_0_le_iff [algebra, presburger]
 declare of_int_1_less_iff [algebra, presburger]
 declare of_int_1_le_iff [algebra, presburger]
 
-lemma of_int_abs [simp]: "of_int \<bar>x\<bar> = (\<bar>of_int x\<bar> :: 'a::linordered_idom)"
-  by (auto simp add: abs_if)
-
 lemma int_less_real_le: "(n < m) = (real_of_int n + 1 <= real_of_int m)"
 proof -
   have "(0::real) \<le> 1"
@@ -1309,21 +1306,8 @@ by auto
 
 subsection \<open>Lemmas about powers\<close>
 
-(* used by Import/HOL/real.imp *)
 lemma two_realpow_ge_one: "(1::real) \<le> 2 ^ n"
   by simp
-
-text \<open>FIXME: no longer real-specific; rename and move elsewhere\<close>
-lemma realpow_Suc_le_self:
-  fixes r :: "'a::linordered_semidom"
-  shows "[| 0 \<le> r; r \<le> 1 |] ==> r ^ Suc n \<le> r"
-by (insert power_decreasing [of 1 "Suc n" r], simp)
-
-text \<open>FIXME: no longer real-specific; rename and move elsewhere\<close>
-lemma realpow_minus_mult:
-  fixes x :: "'a::monoid_mult"
-  shows "0 < n \<Longrightarrow> x ^ (n - 1) * x = x ^ n"
-by (simp add: power_Suc power_commutes split add: nat_diff_split)
 
 text \<open>FIXME: declare this [simp] for all types, or not at all\<close>
 declare sum_squares_eq_zero_iff [simp] sum_power2_eq_zero_iff [simp]

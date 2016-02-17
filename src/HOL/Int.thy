@@ -190,6 +190,21 @@ apply (rule_tac x="c+b - Suc(a+d)" in exI)
 apply arith
 done
 
+lemma zabs_less_one_iff [simp]:
+  fixes z :: int
+  shows "\<bar>z\<bar> < 1 \<longleftrightarrow> z = 0" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?Q then show ?P by simp
+next
+  assume ?P
+  with zless_imp_add1_zle [of "\<bar>z\<bar>" 1] have "\<bar>z\<bar> + 1 \<le> 1"
+    by simp
+  then have "\<bar>z\<bar> \<le> 0"
+    by simp
+  then show ?Q
+    by simp
+qed
+
 lemmas int_distrib =
   distrib_right [of z1 z2 w]
   distrib_left [of w z1 z2]
@@ -319,6 +334,45 @@ lemma of_int_pos: "z > 0 \<Longrightarrow> of_int z > 0"
 
 lemma of_int_nonneg: "z \<ge> 0 \<Longrightarrow> of_int z \<ge> 0"
   by simp
+
+lemma of_int_abs [simp]:
+  "of_int \<bar>x\<bar> = \<bar>of_int x\<bar>"
+  by (auto simp add: abs_if)
+
+lemma of_int_lessD:
+  assumes "\<bar>of_int n\<bar> < x"
+  shows "n = 0 \<or> x > 1"
+proof (cases "n = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  then have "\<bar>n\<bar> \<noteq> 0" by simp
+  then have "\<bar>n\<bar> > 0" by simp
+  then have "\<bar>n\<bar> \<ge> 1"
+    using zless_imp_add1_zle [of 0 "\<bar>n\<bar>"] by simp
+  then have "\<bar>of_int n\<bar> \<ge> 1"
+    unfolding of_int_1_le_iff [of "\<bar>n\<bar>", symmetric] by simp
+  then have "1 < x" using assms by (rule le_less_trans)
+  then show ?thesis ..
+qed
+
+lemma of_int_leD:
+  assumes "\<bar>of_int n\<bar> \<le> x"
+  shows "n = 0 \<or> 1 \<le> x"
+proof (cases "n = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  then have "\<bar>n\<bar> \<noteq> 0" by simp
+  then have "\<bar>n\<bar> > 0" by simp
+  then have "\<bar>n\<bar> \<ge> 1"
+    using zless_imp_add1_zle [of 0 "\<bar>n\<bar>"] by simp
+  then have "\<bar>of_int n\<bar> \<ge> 1"
+    unfolding of_int_1_le_iff [of "\<bar>n\<bar>", symmetric] by simp
+  then have "1 \<le> x" using assms by (rule order_trans)
+  then show ?thesis ..
+qed
+
 
 end
 
@@ -1151,9 +1205,6 @@ done
 
 
 subsection\<open>Products and 1, by T. M. Rasmussen\<close>
-
-lemma zabs_less_one_iff [simp]: "(\<bar>z\<bar> < 1) = (z = (0::int))"
-by arith
 
 lemma abs_zmult_eq_1:
   assumes mn: "\<bar>m * n\<bar> = 1"

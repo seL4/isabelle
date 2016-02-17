@@ -9,9 +9,6 @@ theory Real_Vector_Spaces
 imports Real Topological_Spaces
 begin
 
-lemma (in ordered_ab_group_add) diff_ge_0_iff_ge [simp]: "a - b \<ge> 0 \<longleftrightarrow> a \<ge> b"
-  by (simp add: le_diff_eq)
-
 subsection \<open>Locale for additive functions\<close>
 
 locale additive =

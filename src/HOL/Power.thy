@@ -9,19 +9,6 @@ theory Power
 imports Num Equiv_Relations
 begin
 
-context linordered_ring (* TODO: move *)
-begin
-
-lemma sum_squares_ge_zero:
-  "0 \<le> x * x + y * y"
-  by (intro add_nonneg_nonneg zero_le_square)
-
-lemma not_sum_squares_lt_zero:
-  "\<not> x * x + y * y < 0"
-  by (simp add: not_less sum_squares_ge_zero)
-
-end
-
 subsection \<open>Powers for Arbitrary Monoids\<close>
 
 class power = one + times
@@ -122,6 +109,10 @@ proof (induct n)
     by (simp add: ac_simps)
   finally show ?case .
 qed simp
+
+lemma power_minus_mult:
+  "0 < n \<Longrightarrow> a ^ (n - 1) * a = a ^ n"
+  by (simp add: power_commutes split add: nat_diff_split)
 
 end
 
@@ -584,6 +575,10 @@ lemma power_eq_imp_eq_base:
   "a ^ n = b ^ n \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 < n \<Longrightarrow> a = b"
   by (cases n) (simp_all del: power_Suc, rule power_inject_base)
 
+lemma power_eq_iff_eq_base:
+  "0 < n \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> a ^ n = b ^ n \<longleftrightarrow> a = b"
+  using power_eq_imp_eq_base [of a n b] by auto
+
 lemma power2_le_imp_le:
   "x\<^sup>2 \<le> y\<^sup>2 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x \<le> y"
   unfolding numeral_2_eq_2 by (rule power_le_imp_le_base)
@@ -595,6 +590,10 @@ lemma power2_less_imp_less:
 lemma power2_eq_imp_eq:
   "x\<^sup>2 = y\<^sup>2 \<Longrightarrow> 0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x = y"
   unfolding numeral_2_eq_2 by (erule (2) power_eq_imp_eq_base) simp
+
+lemma power_Suc_le_self:
+  shows "0 \<le> a \<Longrightarrow> a \<le> 1 \<Longrightarrow> a ^ Suc n \<le> a"
+  using power_decreasing [of 1 "Suc n" a] by simp
 
 end
 

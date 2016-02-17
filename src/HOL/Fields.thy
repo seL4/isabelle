@@ -1152,6 +1152,10 @@ by (auto simp: zero_le_divide_iff)
 lemma divide_le_0_abs_iff [simp]: "(a / \<bar>b\<bar> \<le> 0) = (a \<le> 0 | b = 0)"
 by (auto simp: divide_le_0_iff)
 
+lemma inverse_sgn:
+  "sgn (inverse a) = inverse (sgn a)"
+  by (simp add: sgn_if)
+
 lemma field_le_mult_one_interval:
   assumes *: "\<And>z. \<lbrakk> 0 < z ; z < 1 \<rbrakk> \<Longrightarrow> z * x \<le> y"
   shows "x \<le> y"

@@ -10,17 +10,6 @@ theory NthRoot
 imports Deriv Binomial
 begin
 
-lemma abs_sgn_eq: "\<bar>sgn x :: real\<bar> = (if x = 0 then 0 else 1)"
-  by (simp add: sgn_real_def)
-
-lemma inverse_sgn: "sgn (inverse a) = inverse (sgn a :: real)"
-  by (simp add: sgn_real_def)
-
-lemma power_eq_iff_eq_base:
-  fixes a b :: "_ :: linordered_semidom"
-  shows "0 < n \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> a ^ n = b ^ n \<longleftrightarrow> a = b"
-  using power_eq_imp_eq_base[of a n b] by auto
-
 subsection \<open>Existence of Nth Root\<close>
 
 text \<open>Existence follows from the Intermediate Value Theorem\<close>

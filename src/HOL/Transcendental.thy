@@ -29,26 +29,14 @@ next
 qed
 
 
-lemma of_int_leD: 
-  fixes x :: "'a :: linordered_idom"
-  shows "\<bar>of_int n\<bar> \<le> x \<Longrightarrow> n=0 \<or> x\<ge>1"
-  by (metis (no_types) le_less_trans not_less of_int_abs of_int_less_1_iff zabs_less_one_iff)
-
-lemma of_int_lessD: 
-  fixes x :: "'a :: linordered_idom"
-  shows "\<bar>of_int n\<bar> < x \<Longrightarrow> n=0 \<or> x>1"
-  by (metis less_le_trans not_less of_int_abs of_int_less_1_iff zabs_less_one_iff)
-
-lemma fact_in_Reals: "fact n \<in> \<real>" by (induction n) auto
-
-lemma pochhammer_of_real: "pochhammer (of_real x) n = of_real (pochhammer x n)"
-  by (simp add: pochhammer_def)
+lemma fact_in_Reals: "fact n \<in> \<real>"
+  by (induction n) auto
 
 lemma of_real_fact [simp]: "of_real (fact n) = fact n"
   by (metis of_nat_fact of_real_of_nat_eq)
 
-lemma of_int_fact [simp]: "of_int (fact n :: int) = fact n"
-  by (metis of_int_of_nat_eq of_nat_fact)
+lemma pochhammer_of_real: "pochhammer (of_real x) n = of_real (pochhammer x n)"
+  by (simp add: pochhammer_def)
 
 lemma norm_fact [simp]:
   "norm (fact n :: 'a :: {real_normed_algebra_1}) = fact n"
