@@ -42,12 +42,12 @@ lemma
 proof (induct n arbitrary: x)
   case 0
   note prem = \<open>A 0 x\<close>
-  show "P 0 x" sorry
+  show "P 0 x" \<proof>
 next
   case (Suc n)
   note hyp = \<open>\<And>x. A n x \<Longrightarrow> P n x\<close>
     and prem = \<open>A (Suc n) x\<close>
-  show "P (Suc n) x" sorry
+  show "P (Suc n) x" \<proof>
 qed
 
 
@@ -70,13 +70,13 @@ proof (induct n \<equiv> "a x" arbitrary: x)
   case 0
   note prem = \<open>A (a x)\<close>
     and defn = \<open>0 = a x\<close>
-  show "P (a x)" sorry
+  show "P (a x)" \<proof>
 next
   case (Suc n)
   note hyp = \<open>\<And>x. n = a x \<Longrightarrow> A (a x) \<Longrightarrow> P (a x)\<close>
     and prem = \<open>A (a x)\<close>
     and defn = \<open>Suc n = a x\<close>
-  show "P (a x)" sorry
+  show "P (a x)" \<proof>
 qed
 
 text \<open>
@@ -99,18 +99,18 @@ lemma
   shows "P n" and "Q n"
 proof (induct n)
   case 0 case 1
-  show "P 0" sorry
+  show "P 0" \<proof>
 next
   case 0 case 2
-  show "Q 0" sorry
+  show "Q 0" \<proof>
 next
   case (Suc n) case 1
   note hyps = \<open>P n\<close> \<open>Q n\<close>
-  show "P (Suc n)" sorry
+  show "P (Suc n)" \<proof>
 next
   case (Suc n) case 2
   note hyps = \<open>P n\<close> \<open>Q n\<close>
-  show "Q (Suc n)" sorry
+  show "Q (Suc n)" \<proof>
 qed
 
 text \<open>
@@ -127,11 +127,11 @@ proof (induct n)
   {
     case 1
     note \<open>A 0\<close>
-    show "P 0" sorry
+    show "P 0" \<proof>
   next
     case 2
     note \<open>B 0\<close>
-    show "Q 0" sorry
+    show "Q 0" \<proof>
   }
 next
   case (Suc n)
@@ -140,11 +140,11 @@ next
   {
     case 1
     note \<open>A (Suc n)\<close>
-    show "P (Suc n)" sorry
+    show "P (Suc n)" \<proof>
   next
     case 2
     note \<open>B (Suc n)\<close>
-    show "Q (Suc n)" sorry
+    show "Q (Suc n)" \<proof>
   }
 qed
 
@@ -172,26 +172,26 @@ proof (induct n arbitrary: x y)
   {
     case 1
     note prem = \<open>A 0 x\<close>
-    show "P 0 x" sorry
+    show "P 0 x" \<proof>
   }
   {
     case 2
     note prem = \<open>B 0 y\<close>
-    show "Q 0 y" sorry
+    show "Q 0 y" \<proof>
   }
 next
   case (Suc n)
   note hyps = \<open>\<And>x. A n x \<Longrightarrow> P n x\<close> \<open>\<And>y. B n y \<Longrightarrow> Q n y\<close>
-  then have some_intermediate_result sorry
+  then have some_intermediate_result \<proof>
   {
     case 1
     note prem = \<open>A (Suc n) x\<close>
-    show "P (Suc n) x" sorry
+    show "P (Suc n) x" \<proof>
   }
   {
     case 2
     note prem = \<open>B (Suc n) y\<close>
-    show "Q (Suc n) y" sorry
+    show "Q (Suc n) y" \<proof>
   }
 qed
 
@@ -238,22 +238,22 @@ lemma
     and "R bazar"
 proof (induct foo and bar and bazar)
   case (Foo1 n)
-  show "P (Foo1 n)" sorry
+  show "P (Foo1 n)" \<proof>
 next
   case (Foo2 bar)
   note \<open>Q bar\<close>
-  show "P (Foo2 bar)" sorry
+  show "P (Foo2 bar)" \<proof>
 next
   case (Bar1 b)
-  show "Q (Bar1 b)" sorry
+  show "Q (Bar1 b)" \<proof>
 next
   case (Bar2 bazar)
   note \<open>R bazar\<close>
-  show "Q (Bar2 bazar)" sorry
+  show "Q (Bar2 bazar)" \<proof>
 next
   case (Bazar foo)
   note \<open>P foo\<close>
-  show "R (Bazar foo)" sorry
+  show "R (Bazar foo)" \<proof>
 qed
 
 text \<open>
@@ -296,11 +296,11 @@ lemma
   using assms
 proof induct
   case zero
-  show "P 0" sorry
+  show "P 0" \<proof>
 next
   case (double n)
   note \<open>Even n\<close> and \<open>P n\<close>
-  show "P (2 * n)" sorry
+  show "P (2 * n)" \<proof>
 qed
 
 text \<open>
@@ -324,20 +324,20 @@ proof induct
   case zero
   {
     case 1
-    show "P1 0" sorry
+    show "P1 0" \<proof>
   next
     case 2
-    show "P2 0" sorry
+    show "P2 0" \<proof>
   }
 next
   case (double n)
   note \<open>Even n\<close> and \<open>P1 n\<close> and \<open>P2 n\<close>
   {
     case 1
-    show "P1 (2 * n)" sorry
+    show "P1 (2 * n)" \<proof>
   next
     case 2
-    show "P2 (2 * n)" sorry
+    show "P2 (2 * n)" \<proof>
   }
 qed
 
@@ -362,20 +362,20 @@ lemma
     "Odd n \<Longrightarrow> Q2 n"
 proof (induct rule: Evn_Odd.inducts)
   case zero
-  { case 1 show "P1 0" sorry }
-  { case 2 show "P2 0" sorry }
-  { case 3 show "P3 0" sorry }
+  { case 1 show "P1 0" \<proof> }
+  { case 2 show "P2 0" \<proof> }
+  { case 3 show "P3 0" \<proof> }
 next
   case (succ_Evn n)
   note \<open>Evn n\<close> and \<open>P1 n\<close> \<open>P2 n\<close> \<open>P3 n\<close>
-  { case 1 show "Q1 (Suc n)" sorry }
-  { case 2 show "Q2 (Suc n)" sorry }
+  { case 1 show "Q1 (Suc n)" \<proof> }
+  { case 2 show "Q2 (Suc n)" \<proof> }
 next
   case (succ_Odd n)
   note \<open>Odd n\<close> and \<open>Q1 n\<close> \<open>Q2 n\<close>
-  { case 1 show "P1 (Suc n)" sorry }
-  { case 2 show "P2 (Suc n)" sorry }
-  { case 3 show "P3 (Suc n)" sorry }
+  { case 1 show "P1 (Suc n)" \<proof> }
+  { case 2 show "P2 (Suc n)" \<proof> }
+  { case 3 show "P3 (Suc n)" \<proof> }
 qed
 
 

@@ -602,7 +602,7 @@ object Build
 
     private val result =
       Future.thread("build") {
-        Isabelle_System.bash_env(info.dir.file, env, script,
+        Isabelle_System.bash(script, info.dir.file, env,
           progress_stdout = (line: String) =>
             Library.try_unprefix("\floading_theory = ", line) match {
               case Some(theory) => progress.theory(name, theory)
@@ -640,8 +640,8 @@ object Build
       timeout_request.foreach(_.cancel)
 
       if (res.rc == Exn.Interrupt.return_code) {
-        if (was_timeout) res.add_err(Output.error_text("Timeout")).set_rc(1)
-        else res.add_err(Output.error_text("Interrupt"))
+        if (was_timeout) res.error(Output.error_text("Timeout"), 1)
+        else res.error(Output.error_text("Interrupt"))
       }
       else res
     }

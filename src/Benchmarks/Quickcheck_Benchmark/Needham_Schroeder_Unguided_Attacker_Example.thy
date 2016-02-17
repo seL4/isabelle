@@ -1,4 +1,4 @@
-theory Needham_Schroeder_Guided_Attacker_Example
+theory Needham_Schroeder_Unguided_Attacker_Example
 imports Needham_Schroeder_Base
 begin
 
@@ -7,12 +7,8 @@ inductive_set ns_public :: "event list set"
          (*Initial trace is empty*)
    Nil:  "[] \<in> ns_public"
 
- | Fake_NS1:  "\<lbrakk>evs1 \<in> ns_public; Nonce NA \<in> analz (spies evs1) \<rbrakk>
-          \<Longrightarrow> Says Spy B (Crypt (pubEK B) \<lbrace>Nonce NA, Agent A\<rbrace>)
-                # evs1  \<in> ns_public"
- | Fake_NS2:  "\<lbrakk>evs1 \<in> ns_public; Nonce NA \<in> analz (spies evs1); Nonce NB \<in> analz (spies evs1) \<rbrakk>
-          \<Longrightarrow> Says Spy A (Crypt (pubEK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>)
-                # evs1  \<in> ns_public"
+ | Fake:  "\<lbrakk>evs1 \<in> ns_public; X \<in> synth (analz (spies evs1)) \<rbrakk>
+          \<Longrightarrow> Says Spy A X # evs1  \<in> ns_public"
 
          (*Alice initiates a protocol run, sending a nonce to Bob*)
  | NS1:  "\<lbrakk>evs1 \<in> ns_public;  Nonce NA \<notin> used evs1\<rbrakk>
@@ -42,7 +38,7 @@ thm ns_publicp.generator_cps_equation
 
 
 lemma "ns_publicp evs ==> \<not> (Says Alice Bob (Crypt (pubEK Bob) (Nonce NB))) : set evs"
-quickcheck[smart_exhaustive, depth = 5, timeout = 100, expect = counterexample]
+quickcheck[smart_exhaustive, depth = 5, timeout = 200, expect = counterexample]
 (*quickcheck[narrowing, size = 6, timeout = 200, verbose, expect = no_counterexample]*)
 oops
 
@@ -51,11 +47,11 @@ lemma
        \<Longrightarrow> Says B A (Crypt (pubEK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>) : set evs
        \<Longrightarrow> A \<noteq> Spy \<Longrightarrow> B \<noteq> Spy \<Longrightarrow> A \<noteq> B 
            \<Longrightarrow> Nonce NB \<notin> analz (spies evs)"
-(*quickcheck[smart_exhaustive, depth = 6, timeout = 100, expect = counterexample]
-quickcheck[narrowing, size = 7, timeout = 200, expect = no_counterexample]*)
+quickcheck[smart_exhaustive, depth = 6, timeout = 100, expect = no_counterexample]
+(*quickcheck[narrowing, size = 7, timeout = 200, expect = no_counterexample]*)
 oops
 
-section {* Proving the counterexample trace for validation *}
+section \<open>Proving the counterexample trace for validation\<close>
 
 lemma
   assumes "A = Alice" "B = Bob" "C = Spy" "NA = 0" "NB = 1"
@@ -74,8 +70,9 @@ proof -
     show "Nonce 0 ~: used []" by eval
   qed
   then have "[?e1, ?e0] : ns_public"
-  proof (rule Fake_NS1)
-    show "Nonce 0 : analz (knows Spy [?e0])" by eval
+  proof (rule Fake)
+    show "Crypt (pubEK Bob) \<lbrace>Nonce 0, Agent Alice\<rbrace> : synth (analz (knows Spy [?e0]))"
+      by (intro synth.intros(2,3,4,1)) eval+
   qed
   then have "[?e2, ?e1, ?e0] : ns_public"
   proof (rule NS2)
@@ -86,8 +83,7 @@ proof -
   unfolding assms
   proof (rule NS3)
     show "  Says Alice Spy (Crypt (pubEK Spy) \<lbrace>Nonce 0, Agent Alice\<rbrace>) \<in> set [?e2, ?e1, ?e0]" by simp
-    show "Says Bob Alice (Crypt (pubEK Alice) \<lbrace>Nonce 0, Nonce 1\<rbrace>)
-    : set [?e2, ?e1, ?e0]" by simp
+    show "Says Bob Alice (Crypt (pubEK Alice) \<lbrace>Nonce 0, Nonce 1\<rbrace>) : set [?e2, ?e1, ?e0]" by simp
   qed
   from assms show "Nonce NB : analz (knows Spy evs)"
     apply simp

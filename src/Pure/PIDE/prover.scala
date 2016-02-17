@@ -121,7 +121,7 @@ abstract class Prover(
 
   /** process manager **/
 
-  private val process_result =
+  private val process_result: Future[Int] =
     Future.thread("process_result") { system_process.join }
 
   private def terminate_process()
@@ -183,9 +183,15 @@ abstract class Prover(
 
   def terminate()
   {
-    command_input_close()
     system_output("Terminating prover process")
-    terminate_process()
+    command_input_close()
+
+    var count = 10
+    while (!process_result.is_finished && count > 0) {
+      Thread.sleep(100)
+      count -= 1
+    }
+    if (!process_result.is_finished) terminate_process()
   }
 
 

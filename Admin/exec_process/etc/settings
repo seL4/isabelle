@@ -1,3 +1,0 @@
-# -*- shell-script -*- :mode=shellscript:
-
-EXEC_PROCESS="$COMPONENT/${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}/exec_process"

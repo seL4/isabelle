@@ -218,6 +218,20 @@ lemma continuous_on_Pair[continuous_intros]: "continuous_on s f \<Longrightarrow
 lemma continuous_on_swap[continuous_intros]: "continuous_on A prod.swap"
   by (simp add: prod.swap_def continuous_on_fst continuous_on_snd continuous_on_Pair continuous_on_id)
 
+lemma continuous_on_swap_args:
+  assumes "continuous_on (A\<times>B) (\<lambda>(x,y). d x y)" 
+    shows "continuous_on (B\<times>A) (\<lambda>(x,y). d y x)"
+proof -
+  have "(\<lambda>(x,y). d y x) = (\<lambda>(x,y). d x y) o prod.swap"
+    by force
+  then show ?thesis
+    apply (rule ssubst)
+    apply (rule continuous_on_compose)
+     apply (force intro: continuous_on_subset [OF continuous_on_swap])
+    apply (force intro: continuous_on_subset [OF assms])
+    done
+qed
+
 lemma isCont_fst [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. fst (f x)) a"
   by (fact continuous_fst)
 

@@ -1076,6 +1076,9 @@ lemma limI: "X \<longlonglongrightarrow> L ==> lim X = L"
 lemma lim_le: "convergent f \<Longrightarrow> (\<And>n. f n \<le> (x::'a::linorder_topology)) \<Longrightarrow> lim f \<le> x"
   using LIMSEQ_le_const2[of f "lim f" x] by (simp add: convergent_LIMSEQ_iff)
 
+lemma lim_const [simp]: "lim (\<lambda>m. a) = a"
+  by (simp add: limI)
+
 subsubsection\<open>Increasing and Decreasing Series\<close>
 
 lemma incseq_le: "incseq X \<Longrightarrow> X \<longlonglongrightarrow> L \<Longrightarrow> X n \<le> (L::'a::linorder_topology)"

@@ -614,10 +614,9 @@ session "HOL-ex" in ex = HOL +
     Ballot
     Erdoes_Szekeres
     Sum_of_Powers
+    Sudoku
   theories [skip_proofs = false]
     Meson_Test
-  theories [condition = ISABELLE_FULL_TEST]
-    Sudoku
   document_files "root.bib" "root.tex"
 
 session "HOL-Isar_Examples" in Isar_Examples = HOL +
@@ -789,7 +788,7 @@ session "HOL-Cardinals" in Cardinals = HOL +
 
 session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
   description {*
-    (Co)datatype Examples, including large ones from John Harrison.
+    (Co)datatype Examples.
   *}
   options [document = false]
   theories
@@ -808,10 +807,6 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
     Misc_Datatype
     Misc_Primcorec
     Misc_Primrec
-  theories [condition = ISABELLE_FULL_TEST]
-    Brackin
-    IsaFoR
-    Misc_N2M
 
 session "HOL-Word" (main) in Word = HOL +
   theories Word
@@ -851,7 +846,6 @@ session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
     Boogie
     SMT_Examples
     SMT_Word_Examples
-  theories [condition = ISABELLE_FULL_TEST]
     SMT_Tests
   files
     "Boogie_Dijkstra.certs"
@@ -965,13 +959,6 @@ session "HOL-Quickcheck_Examples" in Quickcheck_Examples = HOL +
   theories [condition = ISABELLE_GHC]
     Hotel_Example
     Quickcheck_Narrowing_Examples
-
-session "HOL-Quickcheck_Benchmark" in Quickcheck_Benchmark = HOL +
-  theories [condition = ISABELLE_FULL_TEST, quick_and_dirty]
-    Find_Unused_Assms_Examples
-    Needham_Schroeder_No_Attacker_Example
-    Needham_Schroeder_Guided_Attacker_Example
-    Needham_Schroeder_Unguided_Attacker_Example
 
 session "HOL-Quotient_Examples" in Quotient_Examples = HOL +
   description {*
@@ -1141,12 +1128,3 @@ session "IOA-ex" in "HOLCF/IOA/ex" = IOA +
   theories
     TrivEx
     TrivEx2
-
-session "HOL-Record_Benchmark" in Record_Benchmark = HOL +
-  description {*
-    Some benchmark on large record.
-  *}
-  options [document = false]
-  theories [condition = ISABELLE_FULL_TEST]
-    Record_Benchmark
-

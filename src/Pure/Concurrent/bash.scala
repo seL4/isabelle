@@ -19,13 +19,21 @@ object Bash
   {
     def out: String = cat_lines(out_lines)
     def err: String = cat_lines(err_lines)
-    def add_err(s: String): Result = copy(err_lines = err_lines ::: List(s))
-    def set_rc(i: Int): Result = copy(rc = i)
 
-    def check_error: Result =
+    def error(s: String, err_rc: Int = 0): Result =
+      copy(err_lines = err_lines ::: List(s), rc = rc max err_rc)
+
+    def check: Result =
       if (rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
-      else if (rc != 0) error(err)
+      else if (rc != 0) Library.error(err)
       else this
+
+    def print: Result =
+    {
+      Output.warning(Library.trim_line(err))
+      Output.writeln(Library.trim_line(out))
+      Result(Nil, Nil, rc)
+    }
   }
 
 
@@ -39,9 +47,13 @@ object Bash
       cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*)
     extends Prover.System_Process
   {
-    private val params =
-      List(File.standard_path(Path.explode("~~/lib/scripts/process")), "group", "-", "no_script")
-    private val proc = Isabelle_System.execute_env(cwd, env, redirect, (params ::: args.toList):_*)
+    private val proc =
+    {
+      val params =
+        List(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")), "-", "bash")
+      Isabelle_System.process(
+        cwd, Isabelle_System.settings(env), redirect, (params ::: args.toList):_*)
+    }
 
 
     // channels

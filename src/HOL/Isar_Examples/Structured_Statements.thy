@@ -17,17 +17,17 @@ begin
 
   have "A \<longrightarrow> B"
   proof
-    show B if A using that sorry
+    show B if A using that \<proof>
   qed
 
   have "\<not> A"
   proof
-    show False if A using that sorry
+    show False if A using that \<proof>
   qed
 
   have "\<forall>x. P x"
   proof
-    show "P x" for x sorry
+    show "P x" for x \<proof>
   qed
 end
 
@@ -40,8 +40,8 @@ begin
 
   have "A \<longleftrightarrow> B"
   proof
-    show B if A sorry
-    show A if B sorry
+    show B if A \<proof>
+    show A if B \<proof>
   qed
 next
   fix A B :: bool
@@ -86,16 +86,16 @@ begin
   then have something
   proof cases
     case a  thm \<open>A\<close>
-    then show ?thesis sorry
+    then show ?thesis \<proof>
   next
     case b  thm \<open>B\<close>
-    then show ?thesis sorry
+    then show ?thesis \<proof>
   next
     case c  thm \<open>C\<close>
-    then show ?thesis sorry
+    then show ?thesis \<proof>
   next
     case d  thm \<open>D\<close>
-    then show ?thesis sorry
+    then show ?thesis \<proof>
   qed
 next
   fix A :: "'a \<Rightarrow> bool"
@@ -107,10 +107,10 @@ next
   then have something
   proof cases
     case a  thm \<open>A x\<close>
-    then show ?thesis sorry
+    then show ?thesis \<proof>
   next
     case b  thm \<open>B y z\<close>
-    then show ?thesis sorry
+    then show ?thesis \<proof>
   qed
 end
 
@@ -124,9 +124,9 @@ begin
 
   have "P n"
   proof (induct n)
-    show "P 0" sorry
+    show "P 0" \<proof>
     show "P (Suc n)" if "P n" for n  thm \<open>P n\<close>
-      using that sorry
+      using that \<proof>
   qed
 end
 
@@ -142,8 +142,8 @@ begin
   proof -
     show ?thesis when A (is ?A) and B (is ?B)
       using that by (rule r)
-    show ?A sorry
-    show ?B sorry
+    show ?A \<proof>
+    show ?B \<proof>
   qed
 next
   fix a :: 'a
@@ -153,9 +153,9 @@ next
   have C
   proof -
     show ?thesis when "A x" (is ?A) for x :: 'a  \<comment> \<open>abstract @{term x}\<close>
-      using that sorry
+      using that \<proof>
     show "?A a"  \<comment> \<open>concrete @{term a}\<close>
-      sorry
+      \<proof>
   qed
 end
 

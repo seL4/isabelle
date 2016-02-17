@@ -58,30 +58,30 @@ attribute_setup bounded_linear =
   \<open>Scan.succeed (Thm.declaration_attribute (fn thm =>
     fold (fn (r, s) => Named_Theorems.add_thm s (thm RS r))
       [
-        (@{thm bounded_linear.has_derivative}, "Deriv.derivative_intros"),
-        (@{thm bounded_linear.tendsto}, "Topological_Spaces.tendsto_intros"),
-        (@{thm bounded_linear.continuous}, "Topological_Spaces.continuous_intros"),
-        (@{thm bounded_linear.continuous_on}, "Topological_Spaces.continuous_intros"),
-        (@{thm bounded_linear.uniformly_continuous_on}, "Topological_Spaces.continuous_intros"),
-        (@{thm bounded_linear_compose}, "Bounded_Linear_Function.bounded_linear_intros")
+        (@{thm bounded_linear.has_derivative}, @{named_theorems derivative_intros}),
+        (@{thm bounded_linear.tendsto}, @{named_theorems tendsto_intros}),
+        (@{thm bounded_linear.continuous}, @{named_theorems continuous_intros}),
+        (@{thm bounded_linear.continuous_on}, @{named_theorems continuous_intros}),
+        (@{thm bounded_linear.uniformly_continuous_on}, @{named_theorems continuous_intros}),
+        (@{thm bounded_linear_compose}, @{named_theorems bounded_linear_intros})
       ]))\<close>
 
 attribute_setup bounded_bilinear =
   \<open>Scan.succeed (Thm.declaration_attribute (fn thm =>
     fold (fn (r, s) => Named_Theorems.add_thm s (thm RS r))
       [
-        (@{thm bounded_bilinear.FDERIV}, "Deriv.derivative_intros"),
-        (@{thm bounded_bilinear.tendsto}, "Topological_Spaces.tendsto_intros"),
-        (@{thm bounded_bilinear.continuous}, "Topological_Spaces.continuous_intros"),
-        (@{thm bounded_bilinear.continuous_on}, "Topological_Spaces.continuous_intros"),
+        (@{thm bounded_bilinear.FDERIV}, @{named_theorems derivative_intros}),
+        (@{thm bounded_bilinear.tendsto}, @{named_theorems tendsto_intros}),
+        (@{thm bounded_bilinear.continuous}, @{named_theorems continuous_intros}),
+        (@{thm bounded_bilinear.continuous_on}, @{named_theorems continuous_intros}),
         (@{thm bounded_linear_compose[OF bounded_bilinear.bounded_linear_left]},
-          "Bounded_Linear_Function.bounded_linear_intros"),
+          @{named_theorems bounded_linear_intros}),
         (@{thm bounded_linear_compose[OF bounded_bilinear.bounded_linear_right]},
-          "Bounded_Linear_Function.bounded_linear_intros"),
+          @{named_theorems bounded_linear_intros}),
         (@{thm bounded_linear.uniformly_continuous_on[OF bounded_bilinear.bounded_linear_left]},
-          "Topological_Spaces.continuous_intros"),
+          @{named_theorems continuous_intros}),
         (@{thm bounded_linear.uniformly_continuous_on[OF bounded_bilinear.bounded_linear_right]},
-          "Topological_Spaces.continuous_intros")
+          @{named_theorems continuous_intros})
       ]))\<close>
 
 

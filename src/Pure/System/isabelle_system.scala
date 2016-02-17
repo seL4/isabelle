@@ -51,10 +51,10 @@ object Isabelle_System
 
   @volatile private var _settings: Option[Map[String, String]] = None
 
-  def settings(): Map[String, String] =
+  def settings(env: Map[String, String] = null): Map[String, String] =
   {
     if (_settings.isEmpty) init()  // unsynchronized check
-    _settings.get
+    if (env == null) _settings.get else _settings.get ++ env
   }
 
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized {
@@ -112,7 +112,7 @@ object Isabelle_System
             List(isabelle_root1 + JFile.separator + "bin" + JFile.separator + "isabelle",
               "getenv", "-d", dump.toString)
 
-          val (output, rc) = process_output(raw_execute(null, env, true, (cmd1 ::: cmd2): _*))
+          val (output, rc) = process_output(process(null, env, true, (cmd1 ::: cmd2): _*))
           if (rc != 0) error(output)
 
           val entries =
@@ -133,7 +133,7 @@ object Isabelle_System
 
   /* getenv */
 
-  def getenv(name: String): String = settings.getOrElse(name, "")
+  def getenv(name: String): String = settings().getOrElse(name, "")
 
   def getenv_strict(name: String): String =
   {
@@ -175,9 +175,9 @@ object Isabelle_System
 
   /** external processes **/
 
-  /* raw execute for bootstrapping */
+  /* raw process */
 
-  def raw_execute(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
+  def process(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
   {
     val cmdline = new java.util.LinkedList[String]
     for (s <- args) cmdline.add(s)
@@ -216,8 +216,7 @@ object Isabelle_System
     val cmdline =
       if (Platform.is_windows) List(cygwin_root() + "\\bin\\env.exe") ::: args.toList
       else args
-    val env1 = if (env == null) settings else settings ++ env
-    raw_execute(cwd, env1, redirect, cmdline: _*)
+    process(cwd, settings(env), redirect, cmdline: _*)
   }
 
   def execute(redirect: Boolean, args: String*): Process =
@@ -297,7 +296,7 @@ object Isabelle_System
       if (Platform.is_windows) List(cygwin_root() + "\\bin\\bash.exe")
       else List("/usr/bin/env", "bash")
     val cmdline = bash ::: List("-c", "kill -" + signal + " -" + group_pid)
-    process_output(raw_execute(null, null, true, cmdline: _*))
+    process_output(process(null, null, true, cmdline: _*))
   }
 
 
@@ -316,7 +315,7 @@ object Isabelle_System
     }
   }
 
-  def bash_env(cwd: JFile, env: Map[String, String], script: String,
+  def bash(script: String, cwd: JFile = null, env: Map[String, String] = null,
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
     progress_limit: Option[Long] = None,
@@ -324,7 +323,7 @@ object Isabelle_System
   {
     with_tmp_file("isabelle_script") { script_file =>
       File.write(script_file, script)
-      val proc = Bash.process(cwd, env, false, "bash", File.standard_path(script_file))
+      val proc = Bash.process(cwd, env, false, File.standard_path(script_file))
       proc.stdin.close
 
       val limited = new Limited_Progress(proc, progress_limit)
@@ -341,8 +340,6 @@ object Isabelle_System
       Bash.Result(stdout.join, stderr.join, rc)
     }
   }
-
-  def bash(script: String): Bash.Result = bash_env(null, null, script)
 
 
   /* system tools */

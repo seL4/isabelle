@@ -1,11 +1,11 @@
-(*  Title:      HOL/Datatype_Examples/IsaFoR.thy
+(*  Title:      Benchmarks/Datatype_Benchmark/IsaFoR.thy
     Author:     Rene Thiemann, UIBK
     Copyright   2014
 
 Benchmark consisting of datatypes defined in IsaFoR.
 *)
 
-section {* Benchmark Consisting of Datatypes Defined in IsaFoR *}
+section \<open>Benchmark Consisting of Datatypes Defined in IsaFoR\<close>
 
 theory IsaFoR
 imports Real
