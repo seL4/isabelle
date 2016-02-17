@@ -582,6 +582,20 @@ proof -
     by (auto intro: associated_eqI)
 qed
 
+lemma Gcd_eqI:
+  assumes "normalize a = a"
+  assumes "\<And>b. b \<in> A \<Longrightarrow> a dvd b"
+    and "\<And>c. (\<And>b. b \<in> A \<Longrightarrow> c dvd b) \<Longrightarrow> c dvd a"
+  shows "Gcd A = a"
+  using assms by (blast intro: associated_eqI Gcd_greatest Gcd_dvd normalize_Gcd)
+
+lemma Lcm_eqI:
+  assumes "normalize a = a"
+  assumes "\<And>b. b \<in> A \<Longrightarrow> b dvd a"
+    and "\<And>c. (\<And>b. b \<in> A \<Longrightarrow> b dvd c) \<Longrightarrow> a dvd c"
+  shows "Lcm A = a"
+  using assms by (blast intro: associated_eqI Lcm_least dvd_Lcm normalize_Lcm)
+
 end  
 
 
@@ -655,6 +669,14 @@ lemma gcd_nat_induct:
 done
 
 (* specific to int *)
+
+lemma gcd_eq_int_iff:
+  "gcd k l = int n \<longleftrightarrow> gcd (nat \<bar>k\<bar>) (nat \<bar>l\<bar>) = n"
+  by (simp add: gcd_int_def)
+
+lemma lcm_eq_int_iff:
+  "lcm k l = int n \<longleftrightarrow> lcm (nat \<bar>k\<bar>) (nat \<bar>l\<bar>) = n"
+  by (simp add: lcm_int_def)
 
 lemma gcd_neg1_int [simp]: "gcd (-x::int) y = gcd x y"
   by (simp add: gcd_int_def)
@@ -1874,6 +1896,10 @@ qed simp_all
 
 end
 
+lemma Gcd_nat_eq_one:
+  "1 \<in> N \<Longrightarrow> Gcd N = (1::nat)"
+  by (rule Gcd_eq_1_I) auto
+
 text\<open>Alternative characterizations of Gcd:\<close>
 
 lemma Gcd_eq_Max: "finite(M::nat set) \<Longrightarrow> M \<noteq> {} \<Longrightarrow> 0 \<notin> M \<Longrightarrow> Gcd M = Max(\<Inter>m\<in>M. {d. d dvd m})"
@@ -1940,16 +1966,34 @@ instantiation int :: semiring_Gcd
 begin
 
 definition
-  "Lcm M = int (Lcm (nat ` abs ` M))"
+  "Lcm M = int (Lcm m\<in>M. (nat \<circ> abs) m)"
 
 definition
-  "Gcd M = int (Gcd (nat ` abs ` M))"
+  "Gcd M = int (Gcd m\<in>M. (nat \<circ> abs) m)"
 
 instance by standard
   (auto intro!: Gcd_dvd Gcd_greatest simp add: Gcd_int_def
     Lcm_int_def int_dvd_iff dvd_int_iff dvd_int_unfold_dvd_nat [symmetric])
 
 end
+
+lemma abs_Gcd [simp]:
+  fixes K :: "int set"
+  shows "\<bar>Gcd K\<bar> = Gcd K"
+  using normalize_Gcd [of K] by simp
+
+lemma abs_Lcm [simp]:
+  fixes K :: "int set"
+  shows "\<bar>Lcm K\<bar> = Lcm K"
+  using normalize_Lcm [of K] by simp
+
+lemma Gcm_eq_int_iff:
+  "Gcd K = int n \<longleftrightarrow> Gcd ((nat \<circ> abs) ` K) = n"
+  by (simp add: Gcd_int_def comp_def image_image)
+
+lemma Lcm_eq_int_iff:
+  "Lcm K = int n \<longleftrightarrow> Lcm ((nat \<circ> abs) ` K) = n"
+  by (simp add: Lcm_int_def comp_def image_image)
 
 
 subsection \<open>GCD and LCM on @{typ integer}\<close>
