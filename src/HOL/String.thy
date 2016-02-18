@@ -6,7 +6,91 @@ theory String
 imports Enum
 begin
 
+lemma upt_conv_Cons_Cons: -- \<open>no precondition\<close> -- \<open>FIXME move\<close>
+  "m # n # ns = [m..<q] \<longleftrightarrow> n # ns = [Suc m..<q]"
+proof (cases "m < q")
+  case False then show ?thesis by simp
+next
+  case True then show ?thesis by (simp add: upt_conv_Cons)
+qed
+
+
 subsection \<open>Characters and strings\<close>
+
+subsubsection \<open>Characters as finite algebraic type\<close>
+
+typedef char = "{n::nat. n < 256}"
+  morphisms nat_of_char Abs_char
+proof
+  show "Suc 0 \<in> {n. n < 256}" by simp
+qed
+
+definition char_of_nat :: "nat \<Rightarrow> char"
+where
+  "char_of_nat n = Abs_char (n mod 256)"
+
+lemma char_cases [case_names char_of_nat, cases type: char]:
+  "(\<And>n. c = char_of_nat n \<Longrightarrow> n < 256 \<Longrightarrow> P) \<Longrightarrow> P"
+  by (cases c) (simp add: char_of_nat_def)
+
+lemma char_of_nat_of_char [simp]:
+  "char_of_nat (nat_of_char c) = c"
+  by (cases c) (simp add: char_of_nat_def Abs_char_inject Abs_char_inverse)
+
+lemma inj_nat_of_char:
+  "inj nat_of_char"
+proof (rule injI)
+  fix c d
+  assume "nat_of_char c = nat_of_char d"
+  then have "char_of_nat (nat_of_char c) = char_of_nat (nat_of_char d)"
+    by simp
+  then show "c = d"
+    by simp
+qed
+  
+lemma nat_of_char_eq_iff [simp]:
+  "nat_of_char c = nat_of_char d \<longleftrightarrow> c = d"
+  by (fact nat_of_char_inject)
+
+lemma nat_of_char_of_nat [simp]:
+  "nat_of_char (char_of_nat n) = n mod 256"
+  by (cases "char_of_nat n") (simp add: char_of_nat_def Abs_char_inject Abs_char_inverse)
+
+lemma char_of_nat_mod_256 [simp]:
+  "char_of_nat (n mod 256) = char_of_nat n"
+  by (cases "char_of_nat (n mod 256)") (simp add: char_of_nat_def)
+
+lemma char_of_nat_quasi_inj [simp]:
+  "char_of_nat m = char_of_nat n \<longleftrightarrow> m mod 256 = n mod 256"
+  by (simp add: char_of_nat_def Abs_char_inject)
+
+lemma inj_on_char_of_nat [simp]:
+  "inj_on char_of_nat {0..<256}"
+  by (rule inj_onI) simp
+
+lemma nat_of_char_mod_256 [simp]:
+  "nat_of_char c mod 256 = nat_of_char c"
+  by (cases c) simp
+
+lemma nat_of_char_less_256 [simp]:
+  "nat_of_char c < 256"
+proof -
+  have "nat_of_char c mod 256 < 256"
+    by arith
+  then show ?thesis by simp
+qed
+
+lemma UNIV_char_of_nat:
+  "UNIV = char_of_nat ` {0..<256}"
+proof -
+  { fix c
+    have "c \<in> char_of_nat ` {0..<256}"
+      by (cases c) auto
+  } then show ?thesis by auto
+qed
+
+
+subsubsection \<open>Traditional concrete representation of characters\<close>
 
 datatype (plugins del: transfer) nibble =
     Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 | Nibble6 | Nibble7
@@ -114,8 +198,77 @@ lemma nibble_of_nat_mod_16:
   "nibble_of_nat (n mod 16) = nibble_of_nat n"
   by (simp add: nibble_of_nat_def)
 
-datatype char = Char nibble nibble
+context
+begin
+
+local_setup \<open>Local_Theory.map_background_naming (Name_Space.add_path "char")\<close>
+
+definition Char :: "nibble \<Rightarrow> nibble \<Rightarrow> char"
+where
+  "Char x y = char_of_nat (nat_of_nibble x * 16 + nat_of_nibble y)"
   \<comment> "Note: canonical order of character encoding coincides with standard term ordering"
+
+end
+
+lemma nat_of_char_Char:
+  "nat_of_char (Char x y) = nat_of_nibble x * 16 + nat_of_nibble y" (is "_ = ?rhs")
+proof -
+  have "?rhs < 256"
+    using nat_of_nibble_less_16 [of x] nat_of_nibble_less_16 [of y]
+    by arith
+  then show ?thesis by (simp add: Char_def)
+qed
+
+lemma char_of_nat_Char_nibbles:
+  "char_of_nat n = Char (nibble_of_nat (n div 16)) (nibble_of_nat n)"
+proof -
+  from mod_mult2_eq [of n 16 16]
+  have "n mod 256 = 16 * (n div 16 mod 16) + n mod 16" by simp
+  then show ?thesis
+    by (simp add: Char_def)
+qed
+
+lemma char_of_nat_nibble_pair [simp]:
+  "char_of_nat (nat_of_nibble a * 16 + nat_of_nibble b) = Char a b"
+  by (simp add: nat_of_char_Char [symmetric])
+
+free_constructors char for Char
+proof -
+  fix P c
+  assume hyp: "\<And>x y. c = Char x y \<Longrightarrow> P"
+  have "nat_of_char c \<le> 255"
+    using nat_of_char_less_256 [of c] by arith
+  then have "nat_of_char c div 16 \<le> 255 div 16"
+    by (auto intro: div_le_mono2)
+  then have "nat_of_char c div 16 < 16"
+    by auto
+  then have "nat_of_char c div 16 mod 16 = nat_of_char c div 16"
+    by simp
+  then have "c = Char (nibble_of_nat (nat_of_char c div 16))
+    (nibble_of_nat (nat_of_char c mod 16))"
+    by (simp add: Char_def)
+  then show P by (rule hyp)
+next
+  fix x y z w
+  have "Char x y = Char z w
+    \<longleftrightarrow> nat_of_char (Char x y) = nat_of_char (Char z w)"
+    by auto
+  also have "\<dots> \<longleftrightarrow> nat_of_nibble x = nat_of_nibble z \<and> nat_of_nibble y = nat_of_nibble w" (is "?P \<longleftrightarrow> ?Q \<and> ?R")
+  proof
+    assume "?Q \<and> ?R"
+    then show ?P by (simp add: nat_of_char_Char)
+  next
+    assume ?P
+    then have ?Q
+      using nat_of_nibble_less_16 [of y] nat_of_nibble_less_16 [of w]
+      by (simp add: nat_of_char_Char)
+    moreover with \<open>?P\<close> have ?R by (simp add: nat_of_char_Char)
+    ultimately show "?Q \<and> ?R" ..
+  qed
+  also have "\<dots> \<longleftrightarrow> x = z \<and> y = w"
+    by (simp add: nat_of_nibble_eq_iff)
+  finally show "Char x y = Char z w \<longleftrightarrow> x = z \<and> y = w" .
+qed
 
 syntax
   "_Char" :: "str_position => char"    ("CHR _")
@@ -132,11 +285,6 @@ lemma UNIV_char:
 proof (rule UNIV_eq_I)
   fix x show "x \<in> image (case_prod Char) (UNIV \<times> UNIV)" by (cases x) auto
 qed
-
-lemma size_char [code, simp]:
-  "size_char (c::char) = 0"
-  "size (c::char) = 0"
-  by (cases c, simp)+
 
 instantiation char :: enum
 begin
@@ -238,13 +386,16 @@ lemma card_UNIV_char:
   "card (UNIV :: char set) = 256"
   by (simp add: card_UNIV_length_enum enum_char_def)
 
-definition nat_of_char :: "char \<Rightarrow> nat"
-where
-  "nat_of_char c = (case c of Char x y \<Rightarrow> nat_of_nibble x * 16 + nat_of_nibble y)"
-
-lemma nat_of_char_Char:
-  "nat_of_char (Char x y) = nat_of_nibble x * 16 + nat_of_nibble y"
-  by (simp add: nat_of_char_def)
+lemma enum_char_unfold:
+  "Enum.enum = map char_of_nat [0..<256]"
+proof -
+  have *: "Suc (Suc 0) = 2" by simp
+  have "map nat_of_char Enum.enum = [0..<256]"
+    by (simp add: enum_char_def nat_of_char_Char upt_conv_Cons_Cons *)
+  then have "map char_of_nat (map nat_of_char Enum.enum) =
+    map char_of_nat [0..<256]" by simp
+  then show ?thesis by (simp add: comp_def)
+qed
 
 setup \<open>
 let
@@ -268,7 +419,7 @@ declare nat_of_char_simps [code]
 lemma nibble_of_nat_of_char_div_16:
   "nibble_of_nat (nat_of_char c div 16) = (case c of Char x y \<Rightarrow> x)"
   by (cases c)
-    (simp add: nat_of_char_def add.commute nat_of_nibble_less_16)
+    (simp add: nat_of_char_Char add.commute nat_of_nibble_less_16)
 
 lemma nibble_of_nat_nat_of_char:
   "nibble_of_nat (nat_of_char c) = (case c of Char x y \<Rightarrow> y)"
@@ -278,80 +429,19 @@ proof (cases c)
     by (simp add: nibble_of_nat_mod_16)
   then have "nibble_of_nat (nat_of_nibble y + nat_of_nibble x * 16) = y"
     by (simp only: nibble_of_nat_mod_16)
-  with Char show ?thesis by (simp add: nat_of_char_def add.commute)
+  with Char show ?thesis by (simp add: nat_of_char_Char add.commute)
 qed
 
 code_datatype Char \<comment> \<open>drop case certificate for char\<close>
 
 lemma case_char_code [code]:
-  "case_char f c = (let n = nat_of_char c in f (nibble_of_nat (n div 16)) (nibble_of_nat n))"
+  "char f c = (let n = nat_of_char c in f (nibble_of_nat (n div 16)) (nibble_of_nat n))"
   by (cases c)
     (simp only: Let_def nibble_of_nat_of_char_div_16 nibble_of_nat_nat_of_char char.case)
 
-lemma [code]:
-  "rec_char = case_char"
-  by (simp add: fun_eq_iff split: char.split)
-
-definition char_of_nat :: "nat \<Rightarrow> char" where
+lemma char_of_nat_enum [code]:
   "char_of_nat n = Enum.enum ! (n mod 256)"
-
-lemma char_of_nat_Char_nibbles:
-  "char_of_nat n = Char (nibble_of_nat (n div 16)) (nibble_of_nat n)"
-proof -
-  from mod_mult2_eq [of n 16 16]
-  have "n mod 256 = 16 * (n div 16 mod 16) + n mod 16" by simp
-  then show ?thesis
-    by (simp add: char_of_nat_def enum_char_product_enum_nibble card_UNIV_nibble
-      card_UNIV_length_enum [symmetric] nibble_of_nat_def product_nth add.commute)
-qed
-
-lemma char_of_nat_of_char [simp]:
-  "char_of_nat (nat_of_char c) = c"
-  by (cases c)
-    (simp add: char_of_nat_Char_nibbles nibble_of_nat_of_char_div_16 nibble_of_nat_nat_of_char)
-
-lemma nat_of_char_of_nat [simp]:
-  "nat_of_char (char_of_nat n) = n mod 256"
-proof -
-  have "n mod 256 = n mod (16 * 16)" by simp
-  then have "n div 16 mod 16 * 16 + n mod 16 = n mod 256" by (simp only: mod_mult2_eq)
-  then show ?thesis
-    by (cases "char_of_nat n") (auto simp add: nat_of_char_def char_of_nat_Char_nibbles)
-qed
-
-lemma char_of_nat_nibble_pair [simp]:
-  "char_of_nat (nat_of_nibble a * 16 + nat_of_nibble b) = Char a b"
-  by (simp add: nat_of_char_Char [symmetric])
-
-lemma inj_nat_of_char:
-  "inj nat_of_char"
-  by (rule inj_on_inverseI) (rule char_of_nat_of_char)
-
-lemma nat_of_char_eq_iff:
-  "nat_of_char c = nat_of_char d \<longleftrightarrow> c = d"
-  by (rule inj_eq) (rule inj_nat_of_char)
-
-lemma nat_of_char_less_256:
-  "nat_of_char c < 256"
-proof (cases c)
-  case (Char x y)
-  with nat_of_nibble_less_16 [of x] nat_of_nibble_less_16 [of y]
-  show ?thesis by (simp add: nat_of_char_def)
-qed
-
-lemma char_of_nat_mod_256:
-  "char_of_nat (n mod 256) = char_of_nat n"
-proof -
-  from nibble_of_nat_mod_16 [of "n mod 256"]
-  have "nibble_of_nat (n mod 256) = nibble_of_nat (n mod 256 mod 16)" by simp
-  with nibble_of_nat_mod_16 [of n]
-  have *: "nibble_of_nat (n mod 256) = nibble_of_nat n" by (simp add: mod_mod_cancel)
-  have "n mod 256 = n mod (16 * 16)" by simp
-  then have **: "n mod 256 = n div 16 mod 16 * 16 + n mod 16" by (simp only: mod_mult2_eq)
-  show ?thesis
-    by (simp add: char_of_nat_Char_nibbles *)
-     (simp add: div_add1_eq nibble_of_nat_mod_16 [of "n div 16"] **)
-qed
+  by (simp add: enum_char_unfold)
 
 
 subsection \<open>Strings as dedicated type\<close>

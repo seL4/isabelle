@@ -78,8 +78,8 @@ lemmas integer_of_char_code [code] =
     folded fun_cong[OF integer_of_char_def, unfolded o_apply]]
 
 lemma char_of_integer_code [code]:
-  "char_of_integer n = enum_class.enum ! (nat_of_integer n mod 256)"
-by(simp add: char_of_integer_def char_of_nat_def)
+  "char_of_integer n = Enum.enum ! (nat_of_integer n mod 256)"
+  by (simp add: char_of_integer_def enum_char_unfold)
 
 code_printing
   constant integer_of_char \<rightharpoonup>
@@ -121,4 +121,3 @@ code_printing
     and (Eval) infixl 6 "<"
 
 end
-

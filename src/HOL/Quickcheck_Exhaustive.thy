@@ -630,8 +630,12 @@ lemma check_all_char [code]:
        (Code_Evaluation.term_of (\<lambda>x y. char_of_nat (nat_of_nibble x * 16 + nat_of_nibble y))) (t1 ())) (t2 ()))))"
   by (simp add: check_all_char_def)
 
-lemma full_exhaustive_char_code [code]:
-  "full_exhaustive_class.full_exhaustive f i =
+instantiation char :: full_exhaustive
+begin
+
+definition full_exhaustive_char
+where
+  "full_exhaustive f i =
      (if 0 < i then full_exhaustive_class.full_exhaustive
        (\<lambda>(a, b). full_exhaustive_class.full_exhaustive
           (\<lambda>(c, d).
@@ -641,7 +645,10 @@ lemma full_exhaustive_char_code [code]:
                    (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
                       (b ())) (d ()))) (i - 1)) (i - 1)
     else None)"
-  by (simp add: typerep_fun_def typerep_char_def typerep_nibble_def String.char.full_exhaustive_char.simps)
+
+instance ..
+
+end
 
 hide_fact (open) orelse_def
 no_notation orelse (infixr "orelse" 55)
