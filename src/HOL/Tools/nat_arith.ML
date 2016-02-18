@@ -65,9 +65,9 @@ fun cancel_conv rule ctxt ct =
   in conv ct end
     handle Cancel => raise CTERM ("no_conversion", [])
 
-val cancel_diff_conv = cancel_conv (mk_meta_eq @{thm diff_cancel})
-val cancel_eq_conv = cancel_conv (mk_meta_eq @{thm add_left_cancel})
-val cancel_le_conv = cancel_conv (mk_meta_eq @{thm add_le_cancel_left})
-val cancel_less_conv = cancel_conv (mk_meta_eq @{thm add_less_cancel_left})
+val cancel_diff_conv = cancel_conv (mk_meta_eq @{thm add_diff_cancel_left [where ?'a = nat]})
+val cancel_eq_conv = cancel_conv (mk_meta_eq @{thm add_left_cancel [where ?'a = nat]})
+val cancel_le_conv = cancel_conv (mk_meta_eq @{thm add_le_cancel_left [where ?'a = nat]})
+val cancel_less_conv = cancel_conv (mk_meta_eq @{thm add_less_cancel_left [where ?'a = nat]})
 
 end;

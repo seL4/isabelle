@@ -290,28 +290,8 @@ qed
 
 end
 
-text \<open>Difference distributes over multiplication\<close>
-
-lemma diff_mult_distrib:
-  "((m::nat) - n) * k = (m * k) - (n * k)"
-  by (fact left_diff_distrib')
-
-lemma diff_mult_distrib2:
-  "k * ((m::nat) - n) = (k * m) - (k * n)"
-  by (fact right_diff_distrib')
-
 
 subsubsection \<open>Addition\<close>
-
-lemma nat_add_left_cancel:
-  fixes k m n :: nat
-  shows "k + m = k + n \<longleftrightarrow> m = n"
-  by (fact add_left_cancel)
-
-lemma nat_add_right_cancel:
-  fixes k m n :: nat
-  shows "m + k = n + k \<longleftrightarrow> m = n"
-  by (fact add_right_cancel)
 
 text \<open>Reasoning about \<open>m + 0 = 0\<close>, etc.\<close>
 
@@ -349,46 +329,16 @@ lemma Suc_eq_plus1_left: "Suc n = 1 + n"
 
 subsubsection \<open>Difference\<close>
 
-lemma diff_self_eq_0 [simp]: "(m::nat) - m = 0"
-  by (fact diff_cancel)
-
-lemma diff_diff_left: "(i::nat) - j - k = i - (j + k)"
-  by (fact diff_diff_add)
-
 lemma Suc_diff_diff [simp]: "(Suc m - n) - Suc k = m - n - k"
-  by (simp add: diff_diff_left)
-
-lemma diff_commute: "(i::nat) - j - k = i - k - j"
-  by (fact diff_right_commute)
-
-lemma diff_add_inverse: "(n + m) - n = (m::nat)"
-  by (fact add_diff_cancel_left')
-
-lemma diff_add_inverse2: "(m + n) - n = (m::nat)"
-  by (fact add_diff_cancel_right')
-
-lemma diff_cancel: "(k + m) - (k + n) = m - (n::nat)"
-  by (fact add_diff_cancel_left)
-
-lemma diff_cancel2: "(m + k) - (n + k) = m - (n::nat)"
-  by (fact add_diff_cancel_right)
-
-lemma diff_add_0: "n - (n + m) = (0::nat)"
-  by (fact diff_add_zero)
+  by (simp add: diff_diff_add)
 
 lemma diff_Suc_1 [simp]: "Suc n - 1 = n"
   unfolding One_nat_def by simp
 
 subsubsection \<open>Multiplication\<close>
 
-lemma add_mult_distrib2: "k * (m + n) = (k * m) + ((k * n)::nat)"
-  by (fact distrib_left)
-
 lemma mult_is_0 [simp]: "((m::nat) * n = 0) = (m=0 | n=0)"
   by (induct m) auto
-
-lemmas nat_distrib =
-  add_mult_distrib add_mult_distrib2 diff_mult_distrib diff_mult_distrib2
 
 lemma mult_eq_1_iff [simp]: "(m * n = Suc 0) = (m = Suc 0 & n = Suc 0)"
   apply (induct m)
@@ -1150,7 +1100,7 @@ lemma diff_add_assoc2: "k \<le> (j::nat) ==> (j + i) - k = (j - k) + i"
 by (simp add: add.commute diff_add_assoc)
 
 lemma le_imp_diff_is_add: "i \<le> (j::nat) ==> (j - i = k) = (j = k + i)"
-by (auto simp add: diff_add_inverse2)
+by auto
 
 lemma diff_is_0_eq [simp]: "((m::nat) - n = 0) = (m \<le> n)"
 by (induct m n rule: diff_induct) simp_all
@@ -1176,16 +1126,17 @@ lemma nat_minus_add_max:
     by (simp add: max_def not_le order_less_imp_le)
 
 lemma nat_diff_split:
-  "P(a - b::nat) = ((a<b --> P 0) & (ALL d. a = b + d --> P d))"
+  fixes a b :: nat
+  shows "P (a - b) \<longleftrightarrow> (a < b \<longrightarrow> P 0) \<and> (\<forall>d. a = b + d \<longrightarrow> P d)"
     \<comment> \<open>elimination of \<open>-\<close> on \<open>nat\<close>\<close>
-by (cases "a < b")
-  (auto simp add: diff_is_0_eq [THEN iffD2] diff_add_inverse
-    not_less le_less dest!: add_eq_self_zero add_eq_self_zero[OF sym])
+  by (cases "a < b")
+    (auto simp add: not_less le_less dest!: add_eq_self_zero [OF sym])
 
 lemma nat_diff_split_asm:
-  "P(a - b::nat) = (~ (a < b & ~ P 0 | (EX d. a = b + d & ~ P d)))"
+  fixes a b :: nat
+  shows "P (a - b) \<longleftrightarrow> \<not> (a < b \<and> \<not> P 0 \<or> (\<exists>d. a = b + d \<and> \<not> P d))"
     \<comment> \<open>elimination of \<open>-\<close> on \<open>nat\<close> in assumptions\<close>
-by (auto split: nat_diff_split)
+  by (auto split: nat_diff_split)
 
 lemma Suc_pred': "0 < n ==> n = Suc(n - 1)"
   by simp
@@ -1752,14 +1703,8 @@ lemma less_diff_conv2:
 lemma le_diff_conv: "(j-k \<le> (i::nat)) = (j \<le> i+k)"
 by arith
 
-lemma le_diff_conv2: "k \<le> j ==> (i \<le> j-k) = (i+k \<le> (j::nat))"
-  by (fact le_diff_conv2) \<comment> \<open>FIXME delete\<close>
-
 lemma diff_diff_cancel [simp]: "i \<le> (n::nat) ==> n - (n - i) = i"
 by arith
-
-lemma le_add_diff: "k \<le> (n::nat) ==> m \<le> n + m - k"
-  by (fact le_add_diff) \<comment> \<open>FIXME delete\<close>
 
 (*Replaces the previous diff_less and le_diff_less, which had the stronger
   second premise n\<le>m*)
@@ -1830,7 +1775,7 @@ by simp
       k \<le> j ==> i + (j - k) = i + j - k *)
 lemmas add_diff_assoc = diff_add_assoc [symmetric]
 lemmas add_diff_assoc2 = diff_add_assoc2[symmetric]
-declare diff_diff_left [simp]  add_diff_assoc [simp] add_diff_assoc2[simp]
+declare add_diff_assoc [simp] add_diff_assoc2[simp]
 
 text\<open>At present we prove no analogue of \<open>not_less_Least\<close> or \<open>Least_Suc\<close>, since there appears to be no need.\<close>
 
@@ -1921,55 +1866,68 @@ lemma antimono_funpow:
 
 subsection \<open>The divides relation on @{typ nat}\<close>
 
-lemma dvd_1_left [iff]: "Suc 0 dvd k"
-unfolding dvd_def by simp
+lemma dvd_1_left [iff]:
+  "Suc 0 dvd k"
+  by (simp add: dvd_def)
 
-lemma dvd_1_iff_1 [simp]: "(m dvd Suc 0) = (m = Suc 0)"
-by (simp add: dvd_def)
+lemma dvd_1_iff_1 [simp]:
+  "m dvd Suc 0 \<longleftrightarrow> m = Suc 0"
+  by (simp add: dvd_def)
 
-lemma nat_dvd_1_iff_1 [simp]: "m dvd (1::nat) \<longleftrightarrow> m = 1"
-by (simp add: dvd_def)
+lemma nat_dvd_1_iff_1 [simp]:
+  "m dvd (1::nat) \<longleftrightarrow> m = 1"
+  by (simp add: dvd_def)
 
-lemma dvd_antisym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
+lemma dvd_antisym:
+  "m dvd n \<Longrightarrow> n dvd m \<Longrightarrow> m = (n::nat)"
   unfolding dvd_def
   by (force dest: mult_eq_self_implies_10 simp add: mult.assoc)
 
-lemma dvd_diff_nat[simp]: "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)"
-unfolding dvd_def
-by (blast intro: diff_mult_distrib2 [symmetric])
+lemma dvd_diff_nat [simp]:
+  "k dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd (m - n :: nat)"
+  unfolding dvd_def
+  by (blast intro: right_diff_distrib' [symmetric])
 
-lemma dvd_diffD: "[| k dvd m-n; k dvd n; n\<le>m |] ==> k dvd (m::nat)"
+lemma dvd_diffD:
+  "k dvd m - n \<Longrightarrow> k dvd n \<Longrightarrow> n \<le> m \<Longrightarrow> k dvd (m::nat)"
   apply (erule linorder_not_less [THEN iffD2, THEN add_diff_inverse, THEN subst])
   apply (blast intro: dvd_add)
   done
 
-lemma dvd_diffD1: "[| k dvd m-n; k dvd m; n\<le>m |] ==> k dvd (n::nat)"
-by (drule_tac m = m in dvd_diff_nat, auto)
+lemma dvd_diffD1:
+  "k dvd m - n \<Longrightarrow> k dvd m \<Longrightarrow> n \<le> m \<Longrightarrow> k dvd (n::nat)"
+  by (drule_tac m = m in dvd_diff_nat) auto
 
-lemma dvd_mult_cancel: "!!k::nat. [| k*m dvd k*n; 0<k |] ==> m dvd n"
-  unfolding dvd_def
-  apply (erule exE)
-  apply (simp add: ac_simps)
-  done
-
-lemma dvd_mult_cancel1: "0<m ==> (m*n dvd m) = (n = (1::nat))"
+lemma dvd_mult_cancel:
+  fixes m n k :: nat
+  assumes "k * m dvd k * n" and "0 < k"
+  shows "m dvd n"
+proof -
+  from assms(1) obtain q where "k * n = (k * m) * q" ..
+  then have "k * n = k * (m * q)" by (simp add: ac_simps)
+  with \<open>0 < k\<close> have "n = m * q" by simp
+  then show ?thesis ..
+qed
+  
+lemma dvd_mult_cancel1:
+  "0 < m \<Longrightarrow> m * n dvd m \<longleftrightarrow> n = (1::nat)"
   apply auto
    apply (subgoal_tac "m*n dvd m*1")
    apply (drule dvd_mult_cancel, auto)
   done
 
-lemma dvd_mult_cancel2: "0<m ==> (n*m dvd m) = (n = (1::nat))"
-  apply (subst mult.commute)
-  apply (erule dvd_mult_cancel1)
-  done
+lemma dvd_mult_cancel2:
+  "0 < m \<Longrightarrow> n * m dvd m \<longleftrightarrow> n = (1::nat)"
+  using dvd_mult_cancel1 [of m n] by (simp add: ac_simps)
 
-lemma dvd_imp_le: "[| k dvd n; 0 < n |] ==> k \<le> (n::nat)"
-by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
+lemma dvd_imp_le:
+  "k dvd n \<Longrightarrow> 0 < n \<Longrightarrow> k \<le> (n::nat)"
+  by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
 
 lemma nat_dvd_not_less:
   fixes m n :: nat
   shows "0 < m \<Longrightarrow> m < n \<Longrightarrow> \<not> n dvd m"
-by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
+  by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
 
 lemma less_eq_dvd_minus:
   fixes m n :: nat
@@ -2000,13 +1958,67 @@ proof -
 qed
 
 
-subsection \<open>Aliases\<close>
+subsection \<open>Aliasses\<close>
 
 lemma nat_mult_1: "(1::nat) * n = n"
   by (fact mult_1_left)
 
 lemma nat_mult_1_right: "n * (1::nat) = n"
   by (fact mult_1_right)
+
+lemma nat_add_left_cancel:
+  fixes k m n :: nat
+  shows "k + m = k + n \<longleftrightarrow> m = n"
+  by (fact add_left_cancel)
+
+lemma nat_add_right_cancel:
+  fixes k m n :: nat
+  shows "m + k = n + k \<longleftrightarrow> m = n"
+  by (fact add_right_cancel)
+
+lemma diff_mult_distrib:
+  "((m::nat) - n) * k = (m * k) - (n * k)"
+  by (fact left_diff_distrib')
+
+lemma diff_mult_distrib2:
+  "k * ((m::nat) - n) = (k * m) - (k * n)"
+  by (fact right_diff_distrib')
+
+lemma le_add_diff: "k \<le> (n::nat) ==> m \<le> n + m - k"
+  by (fact le_add_diff) \<comment> \<open>FIXME delete\<close>
+
+lemma le_diff_conv2: "k \<le> j ==> (i \<le> j-k) = (i+k \<le> (j::nat))"
+  by (fact le_diff_conv2) \<comment> \<open>FIXME delete\<close>
+
+lemma diff_self_eq_0 [simp]: "(m::nat) - m = 0"
+  by (fact diff_cancel)
+
+lemma diff_diff_left [simp]: "(i::nat) - j - k = i - (j + k)"
+  by (fact diff_diff_add)
+
+lemma diff_commute: "(i::nat) - j - k = i - k - j"
+  by (fact diff_right_commute)
+
+lemma diff_add_inverse: "(n + m) - n = (m::nat)"
+  by (fact add_diff_cancel_left')
+
+lemma diff_add_inverse2: "(m + n) - n = (m::nat)"
+  by (fact add_diff_cancel_right')
+
+lemma diff_cancel: "(k + m) - (k + n) = m - (n::nat)"
+  by (fact add_diff_cancel_left)
+
+lemma diff_cancel2: "(m + k) - (n + k) = m - (n::nat)"
+  by (fact add_diff_cancel_right)
+
+lemma diff_add_0: "n - (n + m) = (0::nat)"
+  by (fact diff_add_zero)
+
+lemma add_mult_distrib2: "k * (m + n) = (k * m) + ((k * n)::nat)"
+  by (fact distrib_left)
+
+lemmas nat_distrib =
+  add_mult_distrib distrib_left diff_mult_distrib diff_mult_distrib2
 
 
 subsection \<open>Size of a datatype value\<close>
