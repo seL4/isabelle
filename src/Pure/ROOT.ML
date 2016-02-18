@@ -19,8 +19,6 @@ use "General/alist.ML";
 use "General/table.ML";
 
 use "Concurrent/synchronized.ML";
-if Multithreading.available then ()
-else use "Concurrent/synchronized_sequential.ML";
 use "Concurrent/counter.ML";
 use "Concurrent/random.ML";
 
@@ -106,13 +104,10 @@ then use "ML/ml_statistics_polyml-5.5.0.ML"
 else use "ML/ml_statistics_dummy.ML";
 
 use "Concurrent/standard_thread.ML";
-
 use "Concurrent/single_assignment.ML";
-if Multithreading.available then ()
-else use "Concurrent/single_assignment_sequential.ML";
 
-if not Multithreading.available then use "Concurrent/bash_sequential.ML"
-else if ML_System.platform_is_windows then use "Concurrent/bash_windows.ML"
+if ML_System.platform_is_windows
+then use "Concurrent/bash_windows.ML"
 else use "Concurrent/bash.ML";
 
 use "Concurrent/par_exn.ML";
@@ -120,14 +115,8 @@ use "Concurrent/task_queue.ML";
 use "Concurrent/future.ML";
 use "Concurrent/event_timer.ML";
 use "Concurrent/time_limit.ML";
-
 use "Concurrent/lazy.ML";
-if Multithreading.available then ()
-else use "Concurrent/lazy_sequential.ML";
-
 use "Concurrent/par_list.ML";
-if Multithreading.available then ()
-else use "Concurrent/par_list_sequential.ML";
 
 use "Concurrent/mailbox.ML";
 use "Concurrent/cache.ML";

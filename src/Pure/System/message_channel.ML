@@ -56,20 +56,14 @@ fun message_output mbox channel =
   in fn () => continue NONE end;
 
 fun make channel =
-  if Multithreading.available then
-    let
-      val mbox = Mailbox.create ();
-      val thread =
-        Standard_Thread.fork {name = "channel", stack_limit = NONE, interrupts = false}
-          (message_output mbox channel);
-      fun send msg = Mailbox.send mbox (SOME msg);
-      fun shutdown () =
-        (Mailbox.send mbox NONE; Mailbox.await_empty mbox; Standard_Thread.join thread);
-    in Message_Channel {send = send, shutdown = shutdown} end
-  else
-    let
-      fun send msg = (output_message channel msg; flush channel);
-    in Message_Channel {send = send, shutdown = fn () => ()} end;
+  let
+    val mbox = Mailbox.create ();
+    val thread =
+      Standard_Thread.fork {name = "channel", stack_limit = NONE, interrupts = false}
+        (message_output mbox channel);
+    fun send msg = Mailbox.send mbox (SOME msg);
+    fun shutdown () =
+      (Mailbox.send mbox NONE; Mailbox.await_empty mbox; Standard_Thread.join thread);
+  in Message_Channel {send = send, shutdown = shutdown} end;
 
 end;
-

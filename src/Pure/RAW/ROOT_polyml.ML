@@ -75,7 +75,6 @@ else use "RAW/single_assignment_polyml.ML";
 
 open Thread;
 use "RAW/multithreading.ML";
-use "RAW/multithreading_polyml.ML";
 
 if ML_System.name = "polyml-5.6"
 then use "RAW/ml_stack_polyml-5.6.ML"

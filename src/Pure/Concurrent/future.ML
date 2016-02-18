@@ -199,13 +199,11 @@ fun cancel_later group = (*requires SYNCHRONIZED*)
   broadcast scheduler_event);
 
 fun interruptible_task f x =
-  (if Multithreading.available then
-    Multithreading.with_attributes
-      (if is_some (worker_task ())
-       then Multithreading.private_interrupts
-       else Multithreading.public_interrupts)
-      (fn _ => f x)
-   else interruptible f x)
+  Multithreading.with_attributes
+    (if is_some (worker_task ())
+     then Multithreading.private_interrupts
+     else Multithreading.public_interrupts)
+    (fn _ => f x)
   before Multithreading.interrupted ();
 
 
@@ -651,8 +649,7 @@ fun group_snapshot group =
 (* shutdown *)
 
 fun shutdown () =
-  if not Multithreading.available then ()
-  else if is_some (worker_task ()) then
+  if is_some (worker_task ()) then
     raise Fail "Cannot shutdown while running as worker thread"
   else
     SYNCHRONIZED "shutdown" (fn () =>
