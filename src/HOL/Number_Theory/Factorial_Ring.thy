@@ -8,27 +8,6 @@ theory Factorial_Ring
 imports Main Primes "~~/src/HOL/Library/Multiset" (*"~~/src/HOL/Library/Polynomial"*)
 begin
 
-context algebraic_semidom
-begin
-
-lemma is_unit_mult_iff:
-  "is_unit (a * b) \<longleftrightarrow> is_unit a \<and> is_unit b" (is "?P \<longleftrightarrow> ?Q")
-  by (auto dest: dvd_mult_left dvd_mult_right)
-
-lemma is_unit_power_iff:
-  "is_unit (a ^ n) \<longleftrightarrow> is_unit a \<or> n = 0"
-  by (induct n) (auto simp add: is_unit_mult_iff)
-  
-lemma subset_divisors_dvd:
-  "{c. c dvd a} \<subseteq> {c. c dvd b} \<longleftrightarrow> a dvd b"
-  by (auto simp add: subset_iff intro: dvd_trans)
-
-lemma strict_subset_divisors_dvd:
-  "{c. c dvd a} \<subset> {c. c dvd b} \<longleftrightarrow> a dvd b \<and> \<not> b dvd a"
-  by (auto simp add: subset_iff intro: dvd_trans)
-
-end
-
 class factorial_semiring = normalization_semidom +
   assumes finite_divisors: "a \<noteq> 0 \<Longrightarrow> finite {b. b dvd a \<and> normalize b = b}"
   fixes is_prime :: "'a \<Rightarrow> bool"

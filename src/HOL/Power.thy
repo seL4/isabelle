@@ -331,6 +331,10 @@ lemma div_power:
   shows "(a div b) ^ n = a ^ n div b ^ n"
   using assms by (induct n) (simp_all add: div_mult_div_if_dvd dvd_power_same)
 
+lemma is_unit_power_iff:
+  "is_unit (a ^ n) \<longleftrightarrow> is_unit a \<or> n = 0"
+  by (induct n) (auto simp add: is_unit_mult_iff)
+
 end
 
 context normalization_semidom

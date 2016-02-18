@@ -10,7 +10,7 @@
 section \<open>Rings\<close>
 
 theory Rings
-imports Groups
+imports Groups Set
 begin
 
 class semiring = ab_semigroup_add + semigroup_mult +
@@ -154,6 +154,14 @@ proof -
   ultimately have "c = a * (v * w)" by (simp add: mult.assoc)
   then show ?thesis ..
 qed
+
+lemma subset_divisors_dvd:
+  "{c. c dvd a} \<subseteq> {c. c dvd b} \<longleftrightarrow> a dvd b"
+  by (auto simp add: subset_iff intro: dvd_trans)
+
+lemma strict_subset_divisors_dvd:
+  "{c. c dvd a} \<subset> {c. c dvd b} \<longleftrightarrow> a dvd b \<and> \<not> b dvd a"
+  by (auto simp add: subset_iff intro: dvd_trans)
 
 lemma one_dvd [simp]:
   "1 dvd a"
@@ -846,6 +854,10 @@ qed
 lemma unit_prod [intro]:
   "is_unit a \<Longrightarrow> is_unit b \<Longrightarrow> is_unit (a * b)"
   by (subst mult_1_left [of 1, symmetric]) (rule mult_dvd_mono)
+
+lemma is_unit_mult_iff:
+  "is_unit (a * b) \<longleftrightarrow> is_unit a \<and> is_unit b" (is "?P \<longleftrightarrow> ?Q")
+  by (auto dest: dvd_mult_left dvd_mult_right)
 
 lemma unit_div [intro]:
   "is_unit a \<Longrightarrow> is_unit b \<Longrightarrow> is_unit (a div b)"

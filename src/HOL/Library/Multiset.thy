@@ -1164,6 +1164,15 @@ lemma replicate_count_mset_eq_filter_eq:
   "replicate (count (mset xs) k) k = filter (HOL.eq k) xs"
   by (induct xs) auto
 
+lemma replicate_mset_eq_empty_iff [simp]:
+  "replicate_mset n a = {#} \<longleftrightarrow> n = 0"
+  by (induct n) simp_all
+
+lemma replicate_mset_eq_iff:
+  "replicate_mset m a = replicate_mset n b \<longleftrightarrow>
+    m = 0 \<and> n = 0 \<or> m = n \<and> a = b"
+  by (auto simp add: multiset_eq_iff)
+
 
 subsection \<open>Big operators\<close>
 
@@ -1237,6 +1246,12 @@ next
       (simp_all del: mem_set_mset_iff add: size_multiset_overloaded_eq setsum.distrib setsum.delta' insert_absorb, simp)
 qed
 
+syntax (ASCII)
+  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)
+syntax
+  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
+translations
+  "\<Sum>i \<in># A. b" \<rightleftharpoons> "CONST msetsum (CONST image_mset (\<lambda>i. b) A)"
 
 abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset"  ("\<Union>#_" [900] 900)
   where "\<Union># MM \<equiv> msetsum MM"
@@ -1247,12 +1262,14 @@ lemma set_mset_Union_mset[simp]: "set_mset (\<Union># MM) = (\<Union>M \<in> set
 lemma in_Union_mset_iff[iff]: "x \<in># \<Union># MM \<longleftrightarrow> (\<exists>M. M \<in># MM \<and> x \<in># M)"
   by (induct MM) auto
 
-syntax (ASCII)
-  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)
-syntax
-  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
-translations
-  "\<Sum>i \<in># A. b" \<rightleftharpoons> "CONST msetsum (CONST image_mset (\<lambda>i. b) A)"
+lemma count_setsum:
+  "count (setsum f A) x = setsum (\<lambda>a. count (f a) x) A"
+  by (induct A rule: infinite_finite_induct) simp_all
+
+lemma setsum_eq_empty_iff:
+  assumes "finite A"
+  shows "setsum f A = {#} \<longleftrightarrow> (\<forall>a\<in>A. f a = {#})"
+  using assms by induct simp_all
 
 context comm_monoid_mult
 begin
@@ -1301,6 +1318,10 @@ proof -
   then obtain B where "A = B + {#x#}" ..
   then show ?thesis by simp
 qed
+
+lemma (in semidom) msetprod_zero_iff:
+  "msetprod A = 0 \<longleftrightarrow> (\<exists>a\<in>set_mset A. a = 0)"
+  by (induct A) auto
 
 
 subsection \<open>Alternative representations\<close>
