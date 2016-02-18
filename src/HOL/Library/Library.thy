@@ -12,6 +12,7 @@ imports
   ContNotDenum
   Convex
   Countable
+  Countable_Complete_Lattices
   Countable_Set_Type
   Debug
   Diagonal_Subsequence

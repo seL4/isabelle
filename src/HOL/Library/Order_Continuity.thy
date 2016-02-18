@@ -1,30 +1,31 @@
 (*  Title:      HOL/Library/Order_Continuity.thy
-    Author:     David von Oheimb, TU Muenchen
+    Author:     David von Oheimb, TU München
+    Author:     Johannes Hölzl, TU München
 *)
 
-section \<open>Continuity and iterations (of set transformers)\<close>
+section \<open>Continuity and iterations\<close>
 
 theory Order_Continuity
-imports Complex_Main
+imports Complex_Main Countable_Complete_Lattices
 begin
 
 (* TODO: Generalize theory to chain-complete partial orders *)
 
 lemma SUP_nat_binary:
-  "(SUP n::nat. if n = 0 then A else B) = (sup A B::'a::complete_lattice)"
-  apply (auto intro!: antisym SUP_least)
-  apply (rule SUP_upper2[where i=0])
+  "(SUP n::nat. if n = 0 then A else B) = (sup A B::'a::countable_complete_lattice)"
+  apply (auto intro!: antisym ccSUP_least)
+  apply (rule ccSUP_upper2[where i=0])
   apply simp_all
-  apply (rule SUP_upper2[where i=1])
+  apply (rule ccSUP_upper2[where i=1])
   apply simp_all
   done
 
 lemma INF_nat_binary:
-  "(INF n::nat. if n = 0 then A else B) = (inf A B::'a::complete_lattice)"
-  apply (auto intro!: antisym INF_greatest)
-  apply (rule INF_lower2[where i=0])
+  "(INF n::nat. if n = 0 then A else B) = (inf A B::'a::countable_complete_lattice)"
+  apply (auto intro!: antisym ccINF_greatest)
+  apply (rule ccINF_lower2[where i=0])
   apply simp_all
-  apply (rule INF_lower2[where i=1])
+  apply (rule ccINF_lower2[where i=1])
   apply simp_all
   done
 
@@ -39,7 +40,8 @@ named_theorems order_continuous_intros
 subsection \<open>Continuity for complete lattices\<close>
 
 definition
-  sup_continuous :: "('a::complete_lattice \<Rightarrow> 'b::complete_lattice) \<Rightarrow> bool" where
+  sup_continuous :: "('a::countable_complete_lattice \<Rightarrow> 'b::countable_complete_lattice) \<Rightarrow> bool"
+where
   "sup_continuous F \<longleftrightarrow> (\<forall>M::nat \<Rightarrow> 'a. mono M \<longrightarrow> F (SUP i. M i) = (SUP i. F (M i)))"
 
 lemma sup_continuousD: "sup_continuous F \<Longrightarrow> mono M \<Longrightarrow> F (SUP i::nat. M i) = (SUP i. F (M i))"
@@ -79,26 +81,26 @@ qed
 
 lemma sup_continuous_sup[order_continuous_intros]:
   "sup_continuous f \<Longrightarrow> sup_continuous g \<Longrightarrow> sup_continuous (\<lambda>x. sup (f x) (g x))"
-  by (simp add: sup_continuous_def SUP_sup_distrib)
+  by (simp add: sup_continuous_def ccSUP_sup_distrib)
 
 lemma sup_continuous_inf[order_continuous_intros]:
-  fixes P Q :: "'a :: complete_lattice \<Rightarrow> 'b :: complete_distrib_lattice"
+  fixes P Q :: "'a :: countable_complete_lattice \<Rightarrow> 'b :: countable_complete_distrib_lattice"
   assumes P: "sup_continuous P" and Q: "sup_continuous Q"
   shows "sup_continuous (\<lambda>x. inf (P x) (Q x))"
   unfolding sup_continuous_def
 proof (safe intro!: antisym)
   fix M :: "nat \<Rightarrow> 'a" assume M: "incseq M"
   have "inf (P (SUP i. M i)) (Q (SUP i. M i)) \<le> (SUP j i. inf (P (M i)) (Q (M j)))"
-    unfolding sup_continuousD[OF P M] sup_continuousD[OF Q M] inf_SUP SUP_inf ..
+    by (simp add: sup_continuousD[OF P M] sup_continuousD[OF Q M] inf_ccSUP ccSUP_inf)
   also have "\<dots> \<le> (SUP i. inf (P (M i)) (Q (M i)))"
-  proof (intro SUP_least)
+  proof (intro ccSUP_least)
     fix i j from M assms[THEN sup_continuous_mono] show "inf (P (M i)) (Q (M j)) \<le> (SUP i. inf (P (M i)) (Q (M i)))"
-      by (intro SUP_upper2[of "sup i j"] inf_mono) (auto simp: mono_def)
-  qed
+      by (intro ccSUP_upper2[of _ "sup i j"] inf_mono) (auto simp: mono_def)
+  qed auto
   finally show "inf (P (SUP i. M i)) (Q (SUP i. M i)) \<le> (SUP i. inf (P (M i)) (Q (M i)))" .
-  
+
   show "(SUP i. inf (P (M i)) (Q (M i))) \<le> inf (P (SUP i. M i)) (Q (SUP i. M i))"
-    unfolding sup_continuousD[OF P M] sup_continuousD[OF Q M] by (intro SUP_least inf_mono SUP_upper)
+    unfolding sup_continuousD[OF P M] sup_continuousD[OF Q M] by (intro ccSUP_least inf_mono ccSUP_upper) auto
 qed
 
 lemma sup_continuous_and[order_continuous_intros]:
@@ -203,7 +205,8 @@ lemma lfp_transfer:
   by (rule lfp_transfer_bounded[where P=top]) (auto dest: sup_continuousD)
 
 definition
-  inf_continuous :: "('a::complete_lattice \<Rightarrow> 'b::complete_lattice) \<Rightarrow> bool" where
+  inf_continuous :: "('a::countable_complete_lattice \<Rightarrow> 'b::countable_complete_lattice) \<Rightarrow> bool"
+where
   "inf_continuous F \<longleftrightarrow> (\<forall>M::nat \<Rightarrow> 'a. antimono M \<longrightarrow> F (INF i. M i) = (INF i. F (M i)))"
 
 lemma inf_continuousD: "inf_continuous F \<Longrightarrow> antimono M \<Longrightarrow> F (INF i::nat. M i) = (INF i. F (M i))"
@@ -231,25 +234,25 @@ lemma [order_continuous_intros]:
 
 lemma inf_continuous_inf[order_continuous_intros]:
   "inf_continuous f \<Longrightarrow> inf_continuous g \<Longrightarrow> inf_continuous (\<lambda>x. inf (f x) (g x))"
-  by (simp add: inf_continuous_def INF_inf_distrib)
+  by (simp add: inf_continuous_def ccINF_inf_distrib)
 
 lemma inf_continuous_sup[order_continuous_intros]:
-  fixes P Q :: "'a :: complete_lattice \<Rightarrow> 'b :: complete_distrib_lattice"
+  fixes P Q :: "'a :: countable_complete_lattice \<Rightarrow> 'b :: countable_complete_distrib_lattice"
   assumes P: "inf_continuous P" and Q: "inf_continuous Q"
   shows "inf_continuous (\<lambda>x. sup (P x) (Q x))"
   unfolding inf_continuous_def
 proof (safe intro!: antisym)
   fix M :: "nat \<Rightarrow> 'a" assume M: "decseq M"
   show "sup (P (INF i. M i)) (Q (INF i. M i)) \<le> (INF i. sup (P (M i)) (Q (M i)))"
-    unfolding inf_continuousD[OF P M] inf_continuousD[OF Q M] by (intro INF_greatest sup_mono INF_lower)
+    unfolding inf_continuousD[OF P M] inf_continuousD[OF Q M] by (intro ccINF_greatest sup_mono ccINF_lower) auto
 
   have "(INF i. sup (P (M i)) (Q (M i))) \<le> (INF j i. sup (P (M i)) (Q (M j)))"
-  proof (intro INF_greatest)
+  proof (intro ccINF_greatest)
     fix i j from M assms[THEN inf_continuous_mono] show "sup (P (M i)) (Q (M j)) \<ge> (INF i. sup (P (M i)) (Q (M i)))"
-      by (intro INF_lower2[of "sup i j"] sup_mono) (auto simp: mono_def antimono_def)
-  qed
+      by (intro ccINF_lower2[of _ "sup i j"] sup_mono) (auto simp: mono_def antimono_def)
+  qed auto
   also have "\<dots> \<le> sup (P (INF i. M i)) (Q (INF i. M i))"
-    unfolding inf_continuousD[OF P M] inf_continuousD[OF Q M] INF_sup sup_INF ..
+    by (simp add: inf_continuousD[OF P M] inf_continuousD[OF Q M] ccINF_sup sup_ccINF)
   finally show "sup (P (INF i. M i)) (Q (INF i. M i)) \<ge> (INF i. sup (P (M i)) (Q (M i)))" .
 qed
 
@@ -348,7 +351,7 @@ proof (rule antisym)
       using antimono_pow[THEN antimonoD, of "Suc x" "Suc y"]
       unfolding funpow_Suc_right by simp
   qed
-    
+
   have gfp_f: "gfp f = (INF i. (f ^^ i) (f top))"
     unfolding inf_continuous_gfp[OF f]
   proof (rule INF_eq)
@@ -385,6 +388,45 @@ proof (rule antisym)
       by (subst gfp_unfold[OF inf_continuous_mono[OF f]])
          (simp add: monoD[OF mono_g] P_lfp)
   qed (auto intro: Inf_greatest)
+qed
+
+subsubsection \<open>Least fixed points in countable complete lattices\<close>
+
+definition (in countable_complete_lattice) cclfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
+  where "cclfp f = (\<Squnion>i. (f ^^ i) \<bottom>)"
+
+lemma cclfp_unfold:
+  assumes "sup_continuous F" shows "cclfp F = F (cclfp F)"
+proof -
+  have "cclfp F = (\<Squnion>i. F ((F ^^ i) \<bottom>))"
+    unfolding cclfp_def by (subst UNIV_nat_eq) auto
+  also have "\<dots> = F (cclfp F)"
+    unfolding cclfp_def
+    by (intro sup_continuousD[symmetric] assms mono_funpow sup_continuous_mono)
+  finally show ?thesis .
+qed
+
+lemma cclfp_lowerbound: assumes f: "mono f" and A: "f A \<le> A" shows "cclfp f \<le> A"
+  unfolding cclfp_def
+proof (intro ccSUP_least)
+  fix i show "(f ^^ i) \<bottom> \<le> A"
+  proof (induction i)
+    case (Suc i) from monoD[OF f this] A show ?case
+      by auto
+  qed simp
+qed simp
+
+lemma cclfp_transfer:
+  assumes "sup_continuous \<alpha>" "mono f"
+  assumes "\<alpha> \<bottom> = \<bottom>" "\<And>x. \<alpha> (f x) = g (\<alpha> x)"
+  shows "\<alpha> (cclfp f) = cclfp g"
+proof -
+  have "\<alpha> (cclfp f) = (\<Squnion>i. \<alpha> ((f ^^ i) \<bottom>))"
+    unfolding cclfp_def by (intro sup_continuousD assms mono_funpow sup_continuous_mono)
+  moreover have "\<alpha> ((f ^^ i) \<bottom>) = (g ^^ i) \<bottom>" for i
+    by (induction i) (simp_all add: assms)
+  ultimately show ?thesis
+    by (simp add: cclfp_def)
 qed
 
 end
