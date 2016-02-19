@@ -1,6 +1,5 @@
 Tutorials!
   prog-prove      Programming and Proving in Isabelle/HOL
-  tutorial        Tutorial on Isabelle/HOL
   locales         Tutorial on Locales
   classes         Tutorial on Type Classes
   datatypes       Tutorial on (Co)datatype Definitions
@@ -19,6 +18,7 @@ Reference Manuals!
   jedit           Isabelle/jEdit
 
 Old Manuals
+  tutorial        Tutorial on Isabelle/HOL
   intro           Old Introduction to Isabelle
   logics          Isabelle's Logics: HOL and misc logics
   logics-ZF       Isabelle's Logics: FOL and ZF
