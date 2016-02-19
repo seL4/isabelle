@@ -340,7 +340,7 @@ proof-
     proof cases
       assume "x : ?Y"
       have "?L < (\<Sum>x\<in>?X\<inter>?Y. m_ivl(?f x))"
-      proof(rule setsum_strict_mono1, simp)
+      proof(rule setsum_strict_mono_ex1, simp)
         show "\<forall>x\<in>?X\<inter>?Y. m_ivl(?f x \<nabla> ?g x) \<le> m_ivl (?f x)"
           by (metis m_ivl_anti_mono widen1)
       next
@@ -395,7 +395,7 @@ proof-
     by(auto simp: le_st_def narrow_st_def lookup_def intro: n_ivl_narrow
             split: if_splits)
   have "(\<Sum>x\<in>X. n_ivl(lookup (S1 \<triangle> S2) x)) < (\<Sum>x\<in>X. n_ivl(lookup S1 x))"
-    apply(rule setsum_strict_mono1[OF `finite X`]) using 1 2 by blast+
+    apply(rule setsum_strict_mono_ex1[OF `finite X`]) using 1 2 by blast+
   thus ?thesis by(simp add: n_st_def)
 qed
 
@@ -501,7 +501,7 @@ apply(auto simp: m_c_def Let_def Com_def)
 apply(subgoal_tac "length(annos c') = length(annos c)")
 prefer 2 apply (simp add: size_annos_same2)
 apply (auto)
-apply(rule setsum_strict_mono1)
+apply(rule setsum_strict_mono_ex1)
 apply simp
 apply (clarsimp)
 apply(erule m_o_anti_mono)
@@ -522,7 +522,7 @@ apply(auto simp: m_c_def Let_def Com_def)
 apply(subgoal_tac "length(annos c') = length(annos c)")
 prefer 2 apply (simp add: size_annos_same2)
 apply (auto)
-apply(rule setsum_strict_mono1)
+apply(rule setsum_strict_mono_ex1)
 apply simp
 apply (clarsimp)
 apply(rule n_o_mono)

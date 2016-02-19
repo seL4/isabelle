@@ -2,7 +2,7 @@
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
 
-Converted to Isar and polished by lcp    
+Converted to Isar and polished by lcp
 *)
 
 section\<open>Hypernatural numbers\<close>
@@ -108,7 +108,7 @@ lemma hypnat_add_self_le [simp]: "!!x n. (x::hypnat) \<le> n + x"
 by transfer (rule le_add2)
 
 lemma hypnat_add_one_self_less [simp]: "(x::hypnat) < x + (1::hypnat)"
-by (insert add_strict_left_mono [OF zero_less_one], auto)
+  by (fact less_add_one)
 
 lemma hypnat_neq0_conv [iff]: "!!n. (n \<noteq> 0) = (0 < (n::hypnat))"
 by transfer (rule neq0_conv)
@@ -117,14 +117,10 @@ lemma hypnat_gt_zero_iff: "((0::hypnat) < n) = ((1::hypnat) \<le> n)"
 by (auto simp add: linorder_not_less [symmetric])
 
 lemma hypnat_gt_zero_iff2: "(0 < n) = (\<exists>m. n = m + (1::hypnat))"
-apply safe
- apply (rule_tac x = "n - (1::hypnat) " in exI)
- apply (simp add: hypnat_gt_zero_iff) 
-apply (insert add_le_less_mono [OF _ zero_less_one, of 0], auto) 
-done
+  by (auto intro!: add_nonneg_pos exI[of _ "n - 1"] simp: hypnat_gt_zero_iff)
 
 lemma hypnat_add_self_not_less: "~ (x + y < (x::hypnat))"
-by (simp add: linorder_not_le [symmetric] add.commute [of x]) 
+by (simp add: linorder_not_le [symmetric] add.commute [of x])
 
 lemma hypnat_diff_split:
     "P(a - b::hypnat) = ((a<b --> P 0) & (ALL d. a = b + d --> P d))"
@@ -132,12 +128,12 @@ lemma hypnat_diff_split:
 proof (cases "a<b" rule: case_split)
   case True
     thus ?thesis
-      by (auto simp add: hypnat_add_self_not_less order_less_imp_le 
+      by (auto simp add: hypnat_add_self_not_less order_less_imp_le
                          hypnat_diff_is_0_eq [THEN iffD2])
 next
   case False
     thus ?thesis
-      by (auto simp add: linorder_not_less dest: order_le_less_trans) 
+      by (auto simp add: linorder_not_less dest: order_le_less_trans)
 qed
 
 subsection\<open>Properties of the set of embedded natural numbers\<close>
@@ -163,10 +159,10 @@ by transfer simp
 
 lemma of_nat_eq_add [rule_format]:
      "\<forall>d::hypnat. of_nat m = of_nat n + d --> d \<in> range of_nat"
-apply (induct n) 
-apply (auto simp add: add.assoc) 
-apply (case_tac x) 
-apply (auto simp add: add.commute [of 1]) 
+apply (induct n)
+apply (auto simp add: add.assoc)
+apply (case_tac x)
+apply (auto simp add: add.commute [of 1])
 done
 
 lemma Nats_diff [simp]: "[|a \<in> Nats; b \<in> Nats|] ==> (a-b :: hypnat) \<in> Nats"
@@ -337,7 +333,7 @@ apply (auto simp add: HNatInfinite_def)
 done
 
 
-subsubsection\<open>Alternative Characterization of @{term HNatInfinite} using 
+subsubsection\<open>Alternative Characterization of @{term HNatInfinite} using
 Free Ultrafilter\<close>
 
 lemma HNatInfinite_FreeUltrafilterNat:
@@ -353,7 +349,7 @@ by (auto simp add: star_less_def starP2_star_n HNatInfinite_iff SHNat_eq hypnat_
 
 lemma HNatInfinite_FreeUltrafilterNat_iff:
      "(star_n X \<in> HNatInfinite) = (\<forall>u. eventually (\<lambda>n. u < X n) FreeUltrafilterNat)"
-by (rule iffI [OF HNatInfinite_FreeUltrafilterNat 
+by (rule iffI [OF HNatInfinite_FreeUltrafilterNat
                  FreeUltrafilterNat_HNatInfinite])
 
 subsection \<open>Embedding of the Hypernaturals into other types\<close>

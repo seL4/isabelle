@@ -1195,6 +1195,6 @@ lemma setprod_eq_1_iff [simp]:
 
 lemma setprod_pos_nat_iff [simp]:
   "finite A \<Longrightarrow> setprod f A > 0 \<longleftrightarrow> (\<forall>a\<in>A. f a > (0::nat))"
-  using setprod_zero_iff by (simp del:neq0_conv add:neq0_conv [symmetric])
+  using setprod_zero_iff by (simp del: neq0_conv add: zero_less_iff_neq_zero)
 
 end

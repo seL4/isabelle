@@ -5,12 +5,12 @@
 
 theory Int_Pow
 imports Main "~~/src/HOL/Algebra/Group"
-begin                          
+begin
 
 (*
   This file demonstrates how to restore Lifting/Transfer enviromenent.
 
-  We want to define int_pow (a power with an integer exponent) by directly accessing 
+  We want to define int_pow (a power with an integer exponent) by directly accessing
   the representation type "nat * nat" that was used to define integers.
 *)
 
@@ -19,7 +19,7 @@ begin
 
 (* first some additional lemmas that are missing in monoid *)
 
-lemma Units_nat_pow_Units [intro, simp]: 
+lemma Units_nat_pow_Units [intro, simp]:
   "a \<in> Units G \<Longrightarrow> a (^) (c :: nat) \<in> Units G" by (induct c) auto
 
 lemma Units_r_cancel [simp]:
@@ -47,13 +47,13 @@ proof -
   with G show ?thesis by (simp del: Units_l_inv)
 qed
 
-lemma mult_same_comm: 
-  assumes [simp, intro]: "a \<in> Units G" 
+lemma mult_same_comm:
+  assumes [simp, intro]: "a \<in> Units G"
   shows "a (^) (m::nat) \<otimes> inv (a (^) (n::nat)) = inv (a (^) n) \<otimes> a (^) m"
 proof (cases "m\<ge>n")
   have [simp]: "a \<in> carrier G" using `a \<in> _` by (rule Units_closed)
   case True
-    then obtain k where *:"m = k + n" and **:"m = n + k" by (metis Nat.le_iff_add add.commute)
+    then obtain k where *:"m = k + n" and **:"m = n + k" by (metis le_iff_add add.commute)
     have "a (^) (m::nat) \<otimes> inv (a (^) (n::nat)) = a (^) k"
       using * by (auto simp add: nat_pow_mult[symmetric] m_assoc)
     also have "\<dots> = inv (a (^) n) \<otimes> a (^) m"
@@ -62,8 +62,8 @@ proof (cases "m\<ge>n")
 next
   have [simp]: "a \<in> carrier G" using `a \<in> _` by (rule Units_closed)
   case False
-    then obtain k where *:"n = k + m" and **:"n = m + k" 
-      by (metis Nat.le_iff_add add.commute nat_le_linear)
+    then obtain k where *:"n = k + m" and **:"n = m + k"
+      by (metis le_iff_add add.commute nat_le_linear)
     have "a (^) (m::nat) \<otimes> inv (a (^) (n::nat)) = inv(a (^) k)"
       using * by (auto simp add: nat_pow_mult[symmetric] m_assoc[symmetric] inv_mult_units)
     also have "\<dots> = inv (a (^) n) \<otimes> a (^) m"
@@ -71,7 +71,7 @@ next
     finally show ?thesis .
 qed
 
-lemma mult_inv_same_comm: 
+lemma mult_inv_same_comm:
   "a \<in> Units G \<Longrightarrow> inv (a (^) (m::nat)) \<otimes> inv (a (^) (n::nat)) = inv (a (^) n) \<otimes> inv (a (^) m)"
 by (simp add: inv_mult_units[symmetric] nat_pow_mult ac_simps Units_closed)
 
@@ -86,21 +86,21 @@ lemma int_pow_rsp:
 proof(cases "b\<ge>c")
   have [simp]: "a \<in> carrier G" using `a \<in> _` by (rule Units_closed)
   case True
-    then obtain n where "b = n + c" by (metis Nat.le_iff_add add.commute)
+    then obtain n where "b = n + c" by (metis le_iff_add add.commute)
     then have "d = n + e" using eq by arith
-    from `b = _` have "a (^) b \<otimes> inv (a (^) c) = a (^) n" 
+    from `b = _` have "a (^) b \<otimes> inv (a (^) c) = a (^) n"
       by (auto simp add: nat_pow_mult[symmetric] m_assoc)
-    also from `d = _`  have "\<dots> = a (^) d \<otimes> inv (a (^) e)"   
+    also from `d = _`  have "\<dots> = a (^) d \<otimes> inv (a (^) e)"
       by (auto simp add: nat_pow_mult[symmetric] m_assoc)
     finally show ?thesis .
 next
   have [simp]: "a \<in> carrier G" using `a \<in> _` by (rule Units_closed)
   case False
-    then obtain n where "c = n + b" by (metis Nat.le_iff_add add.commute nat_le_linear)
+    then obtain n where "c = n + b" by (metis le_iff_add add.commute nat_le_linear)
     then have "e = n + d" using eq by arith
-    from `c = _` have "a (^) b \<otimes> inv (a (^) c) = inv (a (^) n)" 
+    from `c = _` have "a (^) b \<otimes> inv (a (^) c) = inv (a (^) n)"
       by (auto simp add: nat_pow_mult[symmetric] m_assoc[symmetric] inv_mult_units)
-    also from `e = _` have "\<dots> = a (^) d \<otimes> inv (a (^) e)"   
+    also from `e = _` have "\<dots> = a (^) d \<otimes> inv (a (^) e)"
       by (auto simp add: nat_pow_mult[symmetric] m_assoc[symmetric] inv_mult_units)
     finally show ?thesis .
 qed
@@ -110,12 +110,12 @@ qed
   it doesn't contain a test z < 0 when a (^) z is being defined.
 *)
 
-lift_definition int_pow :: "('a, 'm) monoid_scheme \<Rightarrow> 'a \<Rightarrow> int \<Rightarrow> 'a" is 
-  "\<lambda>G a (n1, n2). if a \<in> Units G \<and> monoid G then (a (^)\<^bsub>G\<^esub> n1) \<otimes>\<^bsub>G\<^esub> (inv\<^bsub>G\<^esub> (a (^)\<^bsub>G\<^esub> n2)) else \<one>\<^bsub>G\<^esub>" 
+lift_definition int_pow :: "('a, 'm) monoid_scheme \<Rightarrow> 'a \<Rightarrow> int \<Rightarrow> 'a" is
+  "\<lambda>G a (n1, n2). if a \<in> Units G \<and> monoid G then (a (^)\<^bsub>G\<^esub> n1) \<otimes>\<^bsub>G\<^esub> (inv\<^bsub>G\<^esub> (a (^)\<^bsub>G\<^esub> n2)) else \<one>\<^bsub>G\<^esub>"
 unfolding intrel_def by (auto intro: monoid.int_pow_rsp)
 
 (*
-  Thus, for example, the proof of distributivity of int_pow and addition 
+  Thus, for example, the proof of distributivity of int_pow and addition
   doesn't require a substantial number of case distinctions.
 *)
 
@@ -125,7 +125,7 @@ lemma int_pow_dist:
 proof -
   {
     fix k l m :: nat
-    have "a (^) l \<otimes> (inv (a (^) m) \<otimes> inv (a (^) k)) = (a (^) l \<otimes> inv (a (^) k)) \<otimes> inv (a (^) m)" 
+    have "a (^) l \<otimes> (inv (a (^) m) \<otimes> inv (a (^) k)) = (a (^) l \<otimes> inv (a (^) k)) \<otimes> inv (a (^) m)"
       (is "?lhs = _")
       by (simp add: mult_inv_same_comm m_assoc Units_closed)
     also have "\<dots> = (inv (a (^) k) \<otimes> a (^) l) \<otimes> inv (a (^) m)"

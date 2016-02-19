@@ -752,6 +752,10 @@ qed
 
 instance nat :: dioid
   proof qed (rule nat_le_iff_add)
+declare le0[simp del] -- \<open>This is now @{thm zero_le}\<close>
+declare le_0_eq[simp del] -- \<open>This is now @{thm le_zero_eq}\<close>
+declare not_less0[simp del] -- \<open>This is now @{thm not_less_zero}\<close>
+declare not_gr0[simp del] -- \<open>This is now @{thm not_gr_zero}\<close>
 
 instance nat :: ordered_cancel_comm_monoid_add
   proof qed

@@ -1312,7 +1312,7 @@ text \<open>Legacy - use \<open>mult_nonpos_nonneg\<close>\<close>
 lemma mult_nonneg_nonpos2: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> b * a \<le> 0"
 by (drule mult_right_mono [of b 0], auto)
 
-lemma split_mult_neg_le: "(0 \<le> a & b \<le> 0) | (a \<le> 0 & 0 \<le> b) \<Longrightarrow> a * b \<le> 0"
+lemma split_mult_neg_le: "(0 \<le> a \<and> b \<le> 0) \<or> (a \<le> 0 \<and> 0 \<le> b) \<Longrightarrow> a * b \<le> 0"
 by (auto simp add: mult_nonneg_nonpos mult_nonneg_nonpos2)
 
 end
@@ -1735,17 +1735,51 @@ subclass ordered_cancel_comm_semiring ..
 
 end
 
-class linordered_semidom = semidom + linordered_comm_semiring_strict +
+class zero_less_one = order + zero + one +
   assumes zero_less_one [simp]: "0 < 1"
+
+class linordered_nonzero_semiring = ordered_comm_semiring + monoid_mult + linorder + zero_less_one
+begin
+
+subclass zero_neq_one
+  proof qed (insert zero_less_one, blast)
+
+subclass comm_semiring_1
+  proof qed (rule mult_1_left)
+
+lemma zero_le_one [simp]: "0 \<le> 1"
+by (rule zero_less_one [THEN less_imp_le])
+
+lemma not_one_le_zero [simp]: "\<not> 1 \<le> 0"
+by (simp add: not_le)
+
+lemma not_one_less_zero [simp]: "\<not> 1 < 0"
+by (simp add: not_less)
+
+lemma mult_left_le: "c \<le> 1 \<Longrightarrow> 0 \<le> a \<Longrightarrow> a * c \<le> a"
+  using mult_left_mono[of c 1 a] by simp
+
+lemma mult_le_one: "a \<le> 1 \<Longrightarrow> 0 \<le> b \<Longrightarrow> b \<le> 1 \<Longrightarrow> a * b \<le> 1"
+  using mult_mono[of a 1 b 1] by simp
+
+lemma zero_less_two: "0 < 1 + 1"
+  using add_pos_pos[OF zero_less_one zero_less_one] .
+
+end
+
+class linordered_semidom = semidom + linordered_comm_semiring_strict + zero_less_one +
   assumes le_add_diff_inverse2 [simp]: "b \<le> a \<Longrightarrow> a - b + b = a"
 begin
+
+subclass linordered_nonzero_semiring
+  proof qed
 
 text \<open>Addition is the inverse of subtraction.\<close>
 
 lemma le_add_diff_inverse [simp]: "b \<le> a \<Longrightarrow> b + (a - b) = a"
   by (frule le_add_diff_inverse2) (simp add: add.commute)
 
-lemma add_diff_inverse: "~ a<b \<Longrightarrow> b + (a - b) = a"
+lemma add_diff_inverse: "\<not> a < b \<Longrightarrow> b + (a - b) = a"
   by simp
 
 lemma add_le_imp_le_diff:
@@ -1771,36 +1805,14 @@ proof -
     by (simp add: add.commute diff_diff_add)
 qed
 
-lemma pos_add_strict:
-  shows "0 < a \<Longrightarrow> b < c \<Longrightarrow> b < a + c"
-  using add_strict_mono [of 0 a b c] by simp
-
-lemma zero_le_one [simp]: "0 \<le> 1"
-by (rule zero_less_one [THEN less_imp_le])
-
-lemma not_one_le_zero [simp]: "\<not> 1 \<le> 0"
-by (simp add: not_le)
-
-lemma not_one_less_zero [simp]: "\<not> 1 < 0"
-by (simp add: not_less)
-
 lemma less_1_mult:
-  assumes "1 < m" and "1 < n"
-  shows "1 < m * n"
-  using assms mult_strict_mono [of 1 m 1 n]
-    by (simp add:  less_trans [OF zero_less_one])
-
-lemma mult_left_le: "c \<le> 1 \<Longrightarrow> 0 \<le> a \<Longrightarrow> a * c \<le> a"
-  using mult_left_mono[of c 1 a] by simp
-
-lemma mult_le_one: "a \<le> 1 \<Longrightarrow> 0 \<le> b \<Longrightarrow> b \<le> 1 \<Longrightarrow> a * b \<le> 1"
-  using mult_mono[of a 1 b 1] by simp
+  "1 < m \<Longrightarrow> 1 < n \<Longrightarrow> 1 < m * n"
+  using mult_strict_mono [of 1 m 1 n] by (simp add: less_trans [OF zero_less_one])
 
 end
 
-class linordered_idom = comm_ring_1 +
-  linordered_comm_semiring_strict + ordered_ab_group_add +
-  abs_if + sgn_if
+class linordered_idom =
+  comm_ring_1 + linordered_comm_semiring_strict + ordered_ab_group_add + abs_if + sgn_if
 begin
 
 subclass linordered_semiring_1_strict ..
@@ -1961,9 +1973,6 @@ proof -
     by (blast intro: zero_less_one add_strict_left_mono)
   thus ?thesis by simp
 qed
-
-lemma zero_less_two: "0 < 1 + 1"
-by (blast intro: less_trans zero_less_one less_add_one)
 
 end
 

@@ -753,6 +753,13 @@ lemmas add_sign_intros =
 end
 
 class strict_ordered_comm_monoid_add = comm_monoid_add + strict_ordered_ab_semigroup_add
+begin
+
+lemma pos_add_strict:
+  shows "0 < a \<Longrightarrow> b < c \<Longrightarrow> b < a + c"
+  using add_strict_mono [of 0 a b c] by simp
+
+end
 
 class ordered_cancel_comm_monoid_add = ordered_comm_monoid_add + cancel_ab_semigroup_add
 begin
@@ -1311,14 +1318,36 @@ class canonically_ordered_monoid_add = comm_monoid_add + order +
   assumes le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists>c. b = a + c)"
 begin
 
-lemma zero_le: "0 \<le> x"
+lemma zero_le[simp]: "0 \<le> x"
   by (auto simp: le_iff_add)
+
+lemma le_zero_eq[simp]: "n \<le> 0 \<longleftrightarrow> n = 0"
+  by (auto intro: antisym)
+
+lemma not_less_zero[simp]: "\<not> n < 0"
+  by (auto simp: less_le)
+
+lemma zero_less_iff_neq_zero: "(0 < n) \<longleftrightarrow> (n \<noteq> 0)"
+  by (auto simp: less_le)
+
+text \<open>This theorem is useful with \<open>blast\<close>\<close>
+lemma gr_zeroI: "(n = 0 \<Longrightarrow> False) \<Longrightarrow> 0 < n"
+  by (rule zero_less_iff_neq_zero[THEN iffD2]) iprover
+
+lemma not_gr_zero[simp]: "(\<not> (0 < n)) \<longleftrightarrow> (n = 0)"
+  by (simp add: zero_less_iff_neq_zero)
 
 subclass ordered_comm_monoid_add
   proof qed (auto simp: le_iff_add add_ac)
 
 lemma add_eq_0_iff_both_eq_0: "x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
   by (intro add_nonneg_eq_0_iff zero_le)
+
+lemma gr_implies_not_zero: "m < n \<Longrightarrow> n \<noteq> 0"
+  using add_eq_0_iff_both_eq_0[of m] by (auto simp: le_iff_add less_le)
+
+lemmas zero_order = zero_le le_zero_eq not_less_zero zero_less_iff_neq_zero not_gr_zero
+  -- \<open>This should be attributed with \<open>[iff]\<close>, but then \<open>blast\<close> fails in \<open>Set\<close>.\<close>
 
 end
 

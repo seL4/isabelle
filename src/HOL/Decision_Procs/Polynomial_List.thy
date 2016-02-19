@@ -572,13 +572,7 @@ lemma (in comm_semiring_1) poly_divides_trans: "p divides q \<Longrightarrow> q 
   done
 
 lemma (in comm_semiring_1) poly_divides_exp: "m \<le> n \<Longrightarrow> (p %^ m) divides (p %^ n)"
-  apply (auto simp add: le_iff_add)
-  apply (induct_tac k)
-  apply (rule_tac [2] poly_divides_trans)
-  apply (auto simp add: divides_def)
-  apply (rule_tac x = p in exI)
-  apply (auto simp add: poly_mult fun_eq_iff ac_simps)
-  done
+  by (auto simp: le_iff_add divides_def poly_exp_add fun_eq_iff)
 
 lemma (in comm_semiring_1) poly_exp_divides: "(p %^ n) divides q \<Longrightarrow> m \<le> n \<Longrightarrow> (p %^ m) divides q"
   by (blast intro: poly_divides_exp poly_divides_trans)

@@ -987,7 +987,8 @@ by (simp add: star_of_int_def)
 lemma star_of_of_int [simp]: "star_of (of_int z) = of_int z"
 by transfer (rule refl)
 
-instance star :: (semiring_char_0) semiring_char_0 proof
+instance star :: (semiring_char_0) semiring_char_0
+proof
   have "inj (star_of :: 'a \<Rightarrow> 'a star)" by (rule injI) simp
   then have "inj (star_of \<circ> of_nat :: nat \<Rightarrow> 'a star)" using inj_of_nat by (rule inj_comp)
   then show "inj (of_nat :: nat \<Rightarrow> 'a star)" by (simp add: comp_def)

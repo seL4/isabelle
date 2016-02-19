@@ -12,6 +12,18 @@ begin
 class infinity =
   fixes infinity :: "'a"  ("\<infinity>")
 
+context
+  fixes f :: "nat \<Rightarrow> 'a::{canonically_ordered_monoid_add, linorder_topology, complete_linorder}"
+begin
+
+lemma sums_SUP[simp, intro]: "f sums (SUP n. \<Sum>i<n. f i)"
+  unfolding sums_def by (intro LIMSEQ_SUP monoI setsum_mono2 zero_le) auto
+
+lemma suminf_eq_SUP: "suminf f = (SUP n. \<Sum>i<n. f i)"
+  using sums_SUP by (rule sums_unique[symmetric])
+
+end
+
 subsection \<open>Type definition\<close>
 
 text \<open>
@@ -71,7 +83,7 @@ primrec the_enat :: "enat \<Rightarrow> nat"
 
 subsection \<open>Constructors and numbers\<close>
 
-instantiation enat :: "{zero, one}"
+instantiation enat :: zero_neq_one
 begin
 
 definition
@@ -80,7 +92,8 @@ definition
 definition
   "1 = enat 1"
 
-instance ..
+instance
+  proof qed (simp add: zero_enat_def one_enat_def)
 
 end
 
@@ -108,7 +121,7 @@ lemma infinity_ne_i0 [simp]: "(\<infinity>::enat) \<noteq> 0"
 lemma i0_ne_infinity [simp]: "0 \<noteq> (\<infinity>::enat)"
   by (simp add: zero_enat_def)
 
-lemma zero_one_enat_neq [simp]:
+lemma zero_one_enat_neq:
   "\<not> 0 = (1::enat)"
   "\<not> 1 = (0::enat)"
   unfolding zero_enat_def one_enat_def by simp_all
@@ -183,12 +196,9 @@ lemma iadd_Suc: "eSuc m + n = eSuc (m + n)"
 lemma iadd_Suc_right: "m + eSuc n = eSuc (m + n)"
   by (simp only: add.commute[of m] iadd_Suc)
 
-lemma iadd_is_0: "(m + n = (0::enat)) = (m = 0 \<and> n = 0)"
-  by (cases m, cases n, simp_all add: zero_enat_def)
-
 subsection \<open>Multiplication\<close>
 
-instantiation enat :: comm_semiring_1
+instantiation enat :: "{comm_semiring_1, semiring_no_zero_divisors}"
 begin
 
 definition times_enat_def [nitpick_simp]:
@@ -209,13 +219,13 @@ proof
   show "(a * b) * c = a * (b * c)"
     unfolding times_enat_def zero_enat_def
     by (simp split: enat.split)
-  show "a * b = b * a"
+  show comm: "a * b = b * a"
     unfolding times_enat_def zero_enat_def
     by (simp split: enat.split)
   show "1 * a = a"
     unfolding times_enat_def zero_enat_def one_enat_def
     by (simp split: enat.split)
-  show "(a + b) * c = a * c + b * c"
+  show distr: "(a + b) * c = a * c + b * c"
     unfolding times_enat_def zero_enat_def
     by (simp split: enat.split add: distrib_right)
   show "0 * a = 0"
@@ -224,9 +234,10 @@ proof
   show "a * 0 = 0"
     unfolding times_enat_def zero_enat_def
     by (simp split: enat.split)
-  show "(0::enat) \<noteq> 1"
-    unfolding zero_enat_def one_enat_def
-    by simp
+  show "a * (b + c) = a * b + a * c"
+    by (cases a b c rule: enat3_cases) (auto simp: times_enat_def zero_enat_def distrib_left)
+  show "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
+    by (cases a b rule: enat2_cases) (auto simp: times_enat_def zero_enat_def)
 qed
 
 end
@@ -249,12 +260,8 @@ proof
   then show "inj (\<lambda>n. of_nat n :: enat)" by (simp add: of_nat_eq_enat)
 qed
 
-lemma imult_is_0 [simp]: "((m::enat) * n = 0) = (m = 0 \<or> n = 0)"
-  by (auto simp add: times_enat_def zero_enat_def split: enat.split)
-
 lemma imult_is_infinity: "((a::enat) * b = \<infinity>) = (a = \<infinity> \<and> b \<noteq> 0 \<or> b = \<infinity> \<and> a \<noteq> 0)"
   by (auto simp add: times_enat_def zero_enat_def split: enat.split)
-
 
 subsection \<open>Numerals\<close>
 
@@ -368,13 +375,15 @@ proof
     by (cases a b rule: enat2_cases) (auto simp: le_iff_add enat_ex_split)
 qed
 
-instance enat :: "ordered_comm_semiring"
+instance enat :: "{linordered_nonzero_semiring, strict_ordered_comm_monoid_add}"
 proof
   fix a b c :: enat
-  assume "a \<le> b" and "0 \<le> c" thus "c * a \<le> c * b"
+  show "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow>c * a \<le> c * b"
     unfolding times_enat_def less_eq_enat_def zero_enat_def
     by (simp split: enat.splits)
-qed
+  show "a < b \<Longrightarrow> c < d \<Longrightarrow> a + c < b + d" for a b c d :: enat
+    by (cases a b c d rule: enat2_cases[case_product enat2_cases]) auto
+qed (simp add: zero_enat_def one_enat_def)
 
 (* BH: These equations are already proven generally for any type in
 class linordered_semidom. However, enat is not in that class because
@@ -386,23 +395,11 @@ lemma enat_ord_number [simp]:
   "(numeral m :: enat) < numeral n \<longleftrightarrow> (numeral m :: nat) < numeral n"
   by (simp_all add: numeral_eq_enat)
 
-lemma i0_lb [simp]: "(0::enat) \<le> n"
-  by (simp add: zero_enat_def less_eq_enat_def split: enat.splits)
-
-lemma ile0_eq [simp]: "n \<le> (0::enat) \<longleftrightarrow> n = 0"
-  by (simp add: zero_enat_def less_eq_enat_def split: enat.splits)
-
 lemma infinity_ileE [elim!]: "\<infinity> \<le> enat m \<Longrightarrow> R"
   by (simp add: zero_enat_def less_eq_enat_def split: enat.splits)
 
 lemma infinity_ilessE [elim!]: "\<infinity> < enat m \<Longrightarrow> R"
   by simp
-
-lemma not_iless0 [simp]: "\<not> n < (0::enat)"
-  by (simp add: zero_enat_def less_enat_def split: enat.splits)
-
-lemma i0_less [simp]: "(0::enat) < n \<longleftrightarrow> n \<noteq> 0"
-  by (simp add: zero_enat_def less_enat_def split: enat.splits)
 
 lemma eSuc_ile_mono [simp]: "eSuc n \<le> eSuc m \<longleftrightarrow> n \<le> m"
   by (simp add: eSuc_def less_eq_enat_def split: enat.splits)
@@ -438,11 +435,10 @@ lemma imult_infinity_right: "(0::enat) < n \<Longrightarrow> n * \<infinity> = \
   by (simp add: zero_enat_def less_enat_def split: enat.splits)
 
 lemma enat_0_less_mult_iff: "(0 < (m::enat) * n) = (0 < m \<and> 0 < n)"
-  by (simp only: i0_less imult_is_0, simp)
+  by (simp only: zero_less_iff_neq_zero mult_eq_0_iff, simp)
 
 lemma mono_eSuc: "mono eSuc"
   by (simp add: mono_def)
-
 
 lemma min_enat_simps [simp]:
   "min (enat m) (enat n) = enat (min m n)"
@@ -470,10 +466,10 @@ lemma iadd_le_enat_iff:
   "x + y \<le> enat n \<longleftrightarrow> (\<exists>y' x'. x = enat x' \<and> y = enat y' \<and> x' + y' \<le> n)"
 by(cases x y rule: enat.exhaust[case_product enat.exhaust]) simp_all
 
-lemma chain_incr: "\<forall>i. \<exists>j. Y i < Y j ==> \<exists>j. enat k < Y j"
+lemma chain_incr: "\<forall>i. \<exists>j. Y i < Y j \<Longrightarrow> \<exists>j. enat k < Y j"
 apply (induct_tac k)
  apply (simp (no_asm) only: enat_0)
- apply (fast intro: le_less_trans [OF i0_lb])
+ apply (fast intro: le_less_trans [OF zero_le])
 apply (erule exE)
 apply (drule spec)
 apply (erule exE)
@@ -677,5 +673,23 @@ subsection \<open>Traditional theorem names\<close>
 
 lemmas enat_defs = zero_enat_def one_enat_def eSuc_def
   plus_enat_def less_eq_enat_def less_enat_def
+
+lemma iadd_is_0: "(m + n = (0::enat)) = (m = 0 \<and> n = 0)"
+  by (rule add_eq_0_iff_both_eq_0)
+
+lemma i0_lb : "(0::enat) \<le> n"
+  by (rule zero_le)
+
+lemma ile0_eq: "n \<le> (0::enat) \<longleftrightarrow> n = 0"
+  by (rule le_zero_eq)
+
+lemma not_iless0: "\<not> n < (0::enat)"
+  by (rule not_less_zero)
+
+lemma i0_less[simp]: "(0::enat) < n \<longleftrightarrow> n \<noteq> 0"
+  by (rule zero_less_iff_neq_zero)
+
+lemma imult_is_0: "((m::enat) * n = 0) = (m = 0 \<or> n = 0)"
+  by (rule mult_eq_0_iff)
 
 end

@@ -490,7 +490,7 @@ lemma eventually_INF_mono:
   shows "\<forall>\<^sub>F x in \<Sqinter>i\<in>I. F' i. T P x"
 proof -
   from * obtain X where "finite X" "X \<subseteq> I" "\<forall>\<^sub>F x in \<Sqinter>i\<in>X. F i. P x"
-    unfolding eventually_INF[of _ I] by auto
+    unfolding eventually_INF[of _ _ I] by auto
   moreover then have "eventually (T P) (INFIMUM X F')"
     apply (induction X arbitrary: P)
     apply (auto simp: eventually_inf T2)

@@ -40,7 +40,7 @@ proof (intro incseq_SucI)
 qed
 
 lemma continuous_at_left_imp_sup_continuous:
-  fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology}"
+  fixes f :: "'a::{complete_linorder, linorder_topology} \<Rightarrow> 'b::{complete_linorder, linorder_topology}"
   assumes "mono f" "\<And>x. continuous (at_left x) f"
   shows "sup_continuous f"
   unfolding sup_continuous_def
@@ -50,7 +50,8 @@ proof safe
 qed
 
 lemma sup_continuous_at_left:
-  fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology, first_countable_topology}"
+  fixes f :: "'a::{complete_linorder, linorder_topology, first_countable_topology} \<Rightarrow>
+    'b::{complete_linorder, linorder_topology}"
   assumes f: "sup_continuous f"
   shows "continuous (at_left x) f"
 proof cases
@@ -71,13 +72,14 @@ next
 qed
 
 lemma sup_continuous_iff_at_left:
-  fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology, first_countable_topology}"
+  fixes f :: "'a::{complete_linorder, linorder_topology, first_countable_topology} \<Rightarrow>
+    'b::{complete_linorder, linorder_topology}"
   shows "sup_continuous f \<longleftrightarrow> (\<forall>x. continuous (at_left x) f) \<and> mono f"
   using sup_continuous_at_left[of f] continuous_at_left_imp_sup_continuous[of f]
     sup_continuous_mono[of f] by auto
 
 lemma continuous_at_right_imp_inf_continuous:
-  fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology}"
+  fixes f :: "'a::{complete_linorder, linorder_topology} \<Rightarrow> 'b::{complete_linorder, linorder_topology}"
   assumes "mono f" "\<And>x. continuous (at_right x) f"
   shows "inf_continuous f"
   unfolding inf_continuous_def
@@ -87,7 +89,8 @@ proof safe
 qed
 
 lemma inf_continuous_at_right:
-  fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology, first_countable_topology}"
+  fixes f :: "'a::{complete_linorder, linorder_topology, first_countable_topology} \<Rightarrow>
+    'b::{complete_linorder, linorder_topology}"
   assumes f: "inf_continuous f"
   shows "continuous (at_right x) f"
 proof cases
@@ -108,7 +111,8 @@ next
 qed
 
 lemma inf_continuous_iff_at_right:
-  fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology, first_countable_topology}"
+  fixes f :: "'a::{complete_linorder, linorder_topology, first_countable_topology} \<Rightarrow>
+    'b::{complete_linorder, linorder_topology}"
   shows "inf_continuous f \<longleftrightarrow> (\<forall>x. continuous (at_right x) f) \<and> mono f"
   using inf_continuous_at_right[of f] continuous_at_right_imp_inf_continuous[of f]
     inf_continuous_mono[of f] by auto

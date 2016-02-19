@@ -172,26 +172,6 @@ qed
 
 text{* ACC for abstract states, via measure functions. *}
 
-(*FIXME mv*)
-lemma setsum_strict_mono1:
-fixes f :: "'a \<Rightarrow> 'b::{comm_monoid_add, ordered_cancel_ab_semigroup_add}"
-assumes "finite A" and "ALL x:A. f x \<le> g x" and "EX a:A. f a < g a"
-shows "setsum f A < setsum g A"
-proof-
-  from assms(3) obtain a where a: "a:A" "f a < g a" by blast
-  have "setsum f A = setsum f ((A-{a}) \<union> {a})"
-    by(simp add:insert_absorb[OF `a:A`])
-  also have "\<dots> = setsum f (A-{a}) + setsum f {a}"
-    using `finite A` by(subst setsum.union_disjoint) auto
-  also have "setsum f (A-{a}) \<le> setsum g (A-{a})"
-    by(rule setsum_mono)(simp add: assms(2))
-  also have "setsum f {a} < setsum g {a}" using a by simp
-  also have "setsum g (A - {a}) + setsum g {a} = setsum g((A-{a}) \<union> {a})"
-    using `finite A` by(subst setsum.union_disjoint[symmetric]) auto
-  also have "\<dots> = setsum g A" by(simp add:insert_absorb[OF `a:A`])
-  finally show ?thesis by (metis add_right_mono add_strict_left_mono)
-qed
-
 lemma measure_st: assumes "(strict{(x,y::'a::SL_top). x \<sqsubseteq> y})^-1 <= measure m"
 and "\<forall>x y::'a::SL_top. x \<sqsubseteq> y \<and> y \<sqsubseteq> x \<longrightarrow> m x = m y"
 shows "(strict{(S,S'::'a::SL_top st). S \<sqsubseteq> S'})^-1 \<subseteq>
@@ -223,7 +203,7 @@ proof-
         by (fastforce simp: le_st_def lookup_def)
       have "(\<Sum>y\<in>?Y'\<inter>?X. m(?g y)+1) < (\<Sum>y\<in>?Y'\<inter>?X. m(?f y)+1)"
         using `u:?X` `u:?Y'` `m(?g u) < m(?f u)`
-        by(fastforce intro!: setsum_strict_mono1[OF _ 1])
+        by(fastforce intro!: setsum_strict_mono_ex1[OF _ 1])
       also have "\<dots> \<le> (\<Sum>y\<in>?X'. m(?f y)+1)"
         by(simp add: setsum_mono3[OF _ `?Y'\<inter>?X <= ?X'`])
       finally show ?thesis .

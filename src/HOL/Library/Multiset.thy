@@ -305,6 +305,9 @@ lemma mset_le_exists_conv: "(A::'a multiset) \<le># B \<longleftrightarrow> (\<e
 interpretation subset_mset: ordered_cancel_comm_monoid_diff  "op +" 0 "op \<le>#" "op <#" "op -"
   by standard (simp, fact mset_le_exists_conv)
 
+declare subset_mset.zero_order[simp del]
+  -- \<open>this removes some simp rules not in the usual order for multisets\<close>
+
 lemma mset_le_mono_add_right_cancel [simp]: "(A::'a multiset) + C \<le># B + C \<longleftrightarrow> A \<le># B"
   by (fact subset_mset.add_le_cancel_right)
 
@@ -382,7 +385,7 @@ lemma mset_less_add_bothsides: "N + {#x#} <# M + {#x#} \<Longrightarrow> N <# M"
   by (fact subset_mset.add_less_imp_less_right)
 
 lemma mset_less_empty_nonempty: "{#} <# S \<longleftrightarrow> S \<noteq> {#}"
-  by (auto simp: subset_mset_def subseteq_mset_def)
+  by (fact subset_mset.zero_less_iff_neq_zero)
 
 lemma mset_less_diff_self: "c \<in># B \<Longrightarrow> B - {#c#} <# B"
   by (auto simp: subset_mset_def subseteq_mset_def multiset_eq_iff)
