@@ -402,6 +402,7 @@ session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
   options [document = false, parallel_proofs = 0]
   theories
     Hilbert_Classical
+    Proof_Terms
     XML_Data
 
 session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +

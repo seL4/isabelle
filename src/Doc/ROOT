@@ -125,7 +125,7 @@ session Intro (doc) in "Intro" = Pure +
     "getting.tex"
     "root.tex"
 
-session Implementation (doc) in "Implementation" = "HOL-Proofs" +
+session Implementation (doc) in "Implementation" = "HOL" +
   options [document_variants = "implementation", quick_and_dirty]
   theories
     Eq
