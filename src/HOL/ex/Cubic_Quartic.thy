@@ -111,11 +111,11 @@ proof-
               ?s2 = - ?s1 * (1 + ii * csqrt 3) / 2 \<and> 
               ?s3 = - ?s1 * (1 - ii * csqrt 3) / 2 \<and> 
               ii^2 + 1 = 0 \<and> csqrt 3^2 = 3"
-    using zero by (simp add: field_simps power2_csqrt ccbrt)
+    using zero by (simp add: field_simps ccbrt)
   from cubic_basic[OF th0, of ?y]
   show ?thesis 
     apply (simp only: Let_def eq)
-    using zero apply (simp add: field_simps ccbrt power2_csqrt)
+    using zero apply (simp add: field_simps ccbrt)
     using zero
     apply (cases "a * (c * 3) = b^2", simp_all add: field_simps)
     done
