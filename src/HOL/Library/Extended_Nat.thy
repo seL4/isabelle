@@ -12,7 +12,6 @@ begin
 class infinity =
   fixes infinity :: "'a"  ("\<infinity>")
 
-
 subsection \<open>Type definition\<close>
 
 text \<open>
@@ -26,7 +25,7 @@ text \<open>TODO: introduce enat as coinductive datatype, enat is just @{const o
 
 definition enat :: "nat \<Rightarrow> enat" where
   "enat n = Abs_enat (Some n)"
- 
+
 instantiation enat :: infinity
 begin
 
@@ -40,7 +39,7 @@ proof
   show "\<exists>to_nat::enat \<Rightarrow> nat. inj to_nat"
     by (rule exI[of _ "to_nat \<circ> Rep_enat"]) (simp add: inj_on_def Rep_enat_inject)
 qed
- 
+
 old_rep_datatype enat "\<infinity> :: enat"
 proof -
   fix P i assume "\<And>j. P (enat j)" "P \<infinity>"
@@ -169,7 +168,7 @@ end
 lemma eSuc_plus_1:
   "eSuc n = n + 1"
   by (cases n) (simp_all add: eSuc_enat one_enat_def)
-  
+
 lemma plus_1_eSuc:
   "1 + q = eSuc q"
   "q + 1 = eSuc q"
@@ -399,7 +398,7 @@ lemma i0_less [simp]: "(0::enat) < n \<longleftrightarrow> n \<noteq> 0"
 
 lemma eSuc_ile_mono [simp]: "eSuc n \<le> eSuc m \<longleftrightarrow> n \<le> m"
   by (simp add: eSuc_def less_eq_enat_def split: enat.splits)
- 
+
 lemma eSuc_mono [simp]: "eSuc n < eSuc m \<longleftrightarrow> n < m"
   by (simp add: eSuc_def less_enat_def split: enat.splits)
 
@@ -479,7 +478,7 @@ done
 lemma eSuc_max: "eSuc (max x y) = max (eSuc x) (eSuc y)"
   by (simp add: eSuc_def split: enat.split)
 
-lemma eSuc_Max: 
+lemma eSuc_Max:
   assumes "finite A" "A \<noteq> {}"
   shows "eSuc (Max A) = Max (eSuc ` A)"
 using assms proof induction

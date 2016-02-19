@@ -393,12 +393,12 @@ qed
 subsubsection \<open>Least fixed points in countable complete lattices\<close>
 
 definition (in countable_complete_lattice) cclfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
-  where "cclfp f = (\<Squnion>i. (f ^^ i) \<bottom>)"
+  where "cclfp f = (SUP i. (f ^^ i) bot)"
 
 lemma cclfp_unfold:
   assumes "sup_continuous F" shows "cclfp F = F (cclfp F)"
 proof -
-  have "cclfp F = (\<Squnion>i. F ((F ^^ i) \<bottom>))"
+  have "cclfp F = (SUP i. F ((F ^^ i) bot))"
     unfolding cclfp_def by (subst UNIV_nat_eq) auto
   also have "\<dots> = F (cclfp F)"
     unfolding cclfp_def
@@ -409,7 +409,7 @@ qed
 lemma cclfp_lowerbound: assumes f: "mono f" and A: "f A \<le> A" shows "cclfp f \<le> A"
   unfolding cclfp_def
 proof (intro ccSUP_least)
-  fix i show "(f ^^ i) \<bottom> \<le> A"
+  fix i show "(f ^^ i) bot \<le> A"
   proof (induction i)
     case (Suc i) from monoD[OF f this] A show ?case
       by auto
@@ -418,12 +418,12 @@ qed simp
 
 lemma cclfp_transfer:
   assumes "sup_continuous \<alpha>" "mono f"
-  assumes "\<alpha> \<bottom> = \<bottom>" "\<And>x. \<alpha> (f x) = g (\<alpha> x)"
+  assumes "\<alpha> bot = bot" "\<And>x. \<alpha> (f x) = g (\<alpha> x)"
   shows "\<alpha> (cclfp f) = cclfp g"
 proof -
-  have "\<alpha> (cclfp f) = (\<Squnion>i. \<alpha> ((f ^^ i) \<bottom>))"
+  have "\<alpha> (cclfp f) = (SUP i. \<alpha> ((f ^^ i) bot))"
     unfolding cclfp_def by (intro sup_continuousD assms mono_funpow sup_continuous_mono)
-  moreover have "\<alpha> ((f ^^ i) \<bottom>) = (g ^^ i) \<bottom>" for i
+  moreover have "\<alpha> ((f ^^ i) bot) = (g ^^ i) bot" for i
     by (induction i) (simp_all add: assms)
   ultimately show ?thesis
     by (simp add: cclfp_def)
