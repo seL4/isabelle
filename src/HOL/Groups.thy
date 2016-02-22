@@ -1203,6 +1203,16 @@ next
   thus "\<bar>a\<bar> \<le> 0" by simp
 qed
 
+lemma abs_le_self_iff [simp]: "\<bar>a\<bar> \<le> a \<longleftrightarrow> 0 \<le> a"
+proof -
+  have "\<forall>a. (0::'a) \<le> \<bar>a\<bar>"
+    using abs_ge_zero by blast
+  then have "\<bar>a\<bar> \<le> a \<Longrightarrow> 0 \<le> a"
+    using order.trans by blast
+  then show ?thesis
+    using abs_of_nonneg eq_refl by blast
+qed
+
 lemma zero_less_abs_iff [simp]: "0 < \<bar>a\<bar> \<longleftrightarrow> a \<noteq> 0"
 by (simp add: less_le)
 

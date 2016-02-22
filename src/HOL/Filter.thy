@@ -990,6 +990,9 @@ syntax
 translations
   "LIM x F1. f :> F2" == "CONST filterlim (\<lambda>x. f) F2 F1"
 
+lemma filterlim_top [simp]: "filterlim f top F"
+  by (simp add: filterlim_def)
+
 lemma filterlim_iff:
   "(LIM x F1. f x :> F2) \<longleftrightarrow> (\<forall>P. eventually P F2 \<longrightarrow> eventually (\<lambda>x. P (f x)) F1)"
   unfolding filterlim_def le_filter_def eventually_filtermap ..

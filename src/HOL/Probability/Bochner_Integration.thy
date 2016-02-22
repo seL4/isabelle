@@ -1229,7 +1229,7 @@ proof -
     s: "\<And>i. simple_function M (s i)" and
     pointwise: "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. s i x) \<longlonglongrightarrow> f x" and
     bound: "\<And>i x. x \<in> space M \<Longrightarrow> norm (s i x) \<le> 2 * norm (f x)"
-    by (simp add: norm_conv_dist) metis
+    by simp metis
   
   show ?thesis
   proof (rule integrableI_sequence)
@@ -2545,7 +2545,7 @@ proof -
   then have s: "\<And>i. simple_function (N \<Otimes>\<^sub>M M) (s i)"
     "\<And>x y. x \<in> space N \<Longrightarrow> y \<in> space M \<Longrightarrow> (\<lambda>i. s i (x, y)) \<longlonglongrightarrow> f x y"
     "\<And>i x y. x \<in> space N \<Longrightarrow> y \<in> space M \<Longrightarrow> norm (s i (x, y)) \<le> 2 * norm (f x y)"
-    by (auto simp: space_pair_measure norm_conv_dist)
+    by (auto simp: space_pair_measure)
 
   have [measurable]: "\<And>i. s i \<in> borel_measurable (N \<Otimes>\<^sub>M M)"
     by (rule borel_measurable_simple_function) fact

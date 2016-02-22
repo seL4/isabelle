@@ -1184,6 +1184,14 @@ lemma snd_image_times [simp]:
   "snd ` (A \<times> B) = (if A = {} then {} else B)"
   by force
 
+lemma fst_image_Sigma:
+  "fst ` (Sigma A B) = {x \<in> A. B(x) \<noteq> {}}"
+  by force
+
+lemma snd_image_Sigma:
+  "snd ` (Sigma A B) = (\<Union> x \<in> A. B x)"
+  by force
+
 lemma vimage_fst:
   "fst -` A = A \<times> UNIV"
   by auto

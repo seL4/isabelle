@@ -74,7 +74,7 @@ qed
 
 subsection \<open>Properties of Power Series\<close>
 
-lemma powser_zero:
+lemma powser_zero [simp]:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_algebra_1"
   shows "(\<Sum>n. f n * 0 ^ n) = f 0"
 proof -
@@ -88,6 +88,11 @@ lemma powser_sums_zero:
   shows "(\<lambda>n. a n * 0^n) sums a 0"
     using sums_finite [of "{0}" "\<lambda>n. a n * 0 ^ n"]
     by simp
+
+lemma powser_sums_zero_iff [simp]:
+  fixes a :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
+  shows "(\<lambda>n. a n * 0^n) sums x \<longleftrightarrow> a 0 = x"
+using powser_sums_zero sums_unique2 by blast
 
 text\<open>Power series has a circle or radius of convergence: if it sums for @{term
   x}, then it sums absolutely for @{term z} with @{term "\<bar>z\<bar> < \<bar>x\<bar>"}.\<close>
@@ -1341,6 +1346,31 @@ corollary exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
 
 lemma exp_setsum: "finite I \<Longrightarrow> exp(setsum f I) = setprod (\<lambda>x. exp(f x)) I"
   by (induction I rule: finite_induct) (auto simp: exp_add_commuting mult.commute)
+
+lemma exp_divide_power_eq:
+  fixes x:: "'a::{real_normed_field,banach}"
+  assumes "n>0" shows "exp (x / of_nat n) ^ n = exp x"
+using assms
+proof (induction n arbitrary: x)
+  case 0 then show ?case by simp
+next
+  case (Suc n)
+  show ?case
+  proof (cases "n=0")
+    case True then show ?thesis by simp
+  next
+    case False
+    then have [simp]: "x * of_nat n / (1 + of_nat n) / of_nat n = x / (1 + of_nat n)"
+      by simp
+    have [simp]: "x / (1 + of_nat n) + x * of_nat n / (1 + of_nat n) = x"
+      apply (simp add: divide_simps)
+      using of_nat_eq_0_iff apply (fastforce simp: distrib_left)
+      done
+    show ?thesis
+      using Suc.IH [of "x * of_nat n / (1 + of_nat n)"] False
+      by (simp add: exp_add [symmetric])
+  qed
+qed
 
 
 subsubsection \<open>Properties of the Exponential Function on Reals\<close>

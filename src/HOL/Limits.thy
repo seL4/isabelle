@@ -21,6 +21,14 @@ lemma eventually_at_infinity: "eventually P at_infinity \<longleftrightarrow> (\
   by (subst eventually_INF_base)
      (auto simp: subset_eq eventually_principal intro!: exI[of _ "max a b" for a b])
 
+corollary eventually_at_infinity_pos:
+   "eventually p at_infinity \<longleftrightarrow> (\<exists>b. 0 < b \<and> (\<forall>x. norm x \<ge> b \<longrightarrow> p x))"
+apply (simp add: eventually_at_infinity, auto)
+apply (case_tac "b \<le> 0")
+using norm_ge_zero order_trans zero_less_one apply blast
+apply (force simp:)
+done
+
 lemma at_infinity_eq_at_top_bot:
   "(at_infinity :: real filter) = sup at_top at_bot"
   apply (simp add: filter_eq_iff eventually_sup eventually_at_infinity
@@ -67,14 +75,14 @@ lemma Bfun_def:
   "Bfun f F \<longleftrightarrow> (\<exists>K>0. eventually (\<lambda>x. norm (f x) \<le> K) F)"
   unfolding Bfun_metric_def norm_conv_dist
 proof safe
-  fix y K assume "0 < K" and *: "eventually (\<lambda>x. dist (f x) y \<le> K) F"
+  fix y K assume K: "0 < K" and *: "eventually (\<lambda>x. dist (f x) y \<le> K) F"
   moreover have "eventually (\<lambda>x. dist (f x) 0 \<le> dist (f x) y + dist 0 y) F"
     by (intro always_eventually) (metis dist_commute dist_triangle)
   with * have "eventually (\<lambda>x. dist (f x) 0 \<le> K + dist 0 y) F"
     by eventually_elim auto
   with \<open>0 < K\<close> show "\<exists>K>0. eventually (\<lambda>x. dist (f x) 0 \<le> K) F"
     by (intro exI[of _ "K + dist 0 y"] add_pos_nonneg conjI zero_le_dist) auto
-qed auto
+qed (force simp del: norm_conv_dist [symmetric])
 
 lemma BfunI:
   assumes K: "eventually (\<lambda>x. norm (f x) \<le> K) F" shows "Bfun f F"
@@ -1036,10 +1044,9 @@ proof -
   proof eventually_elim
     fix x assume A: "dist (f x) c < 1/2" and B: "norm (f x) \<ge> norm c + 1"
     note B
-    also have "norm (f x) = dist (f x) 0" by (simp add: norm_conv_dist)
+    also have "norm (f x) = dist (f x) 0" by simp
     also have "... \<le> dist (f x) c + dist c 0" by (rule dist_triangle)
-    also note A
-    finally show False by (simp add: norm_conv_dist)
+    finally show False using A by simp
   qed
   with assms show False by simp
 qed
@@ -1540,6 +1547,11 @@ lemma Lim_transform2:
   fixes a b :: "'a::real_normed_vector"
   shows "\<lbrakk>(f \<longlongrightarrow> a) F; ((\<lambda>x. f x - g x) \<longlongrightarrow> 0) F\<rbrakk> \<Longrightarrow> (g \<longlongrightarrow> a) F"
   by (erule Lim_transform) (simp add: tendsto_minus_cancel)
+
+proposition Lim_transform_eq:
+  fixes a :: "'a::real_normed_vector"
+  shows "((\<lambda>x. f x - g x) \<longlongrightarrow> 0) F \<Longrightarrow> (f \<longlongrightarrow> a) F \<longleftrightarrow> (g \<longlongrightarrow> a) F"
+using Lim_transform Lim_transform2 by blast
 
 lemma Lim_transform_eventually:
   "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f \<longlongrightarrow> l) net \<Longrightarrow> (g \<longlongrightarrow> l) net"

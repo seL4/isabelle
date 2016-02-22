@@ -862,6 +862,14 @@ lemma norm_neg_numeral [simp]:
   "norm (- numeral w::'a::real_normed_algebra_1) = numeral w"
 by (subst of_real_neg_numeral [symmetric], subst norm_of_real, simp)
 
+lemma norm_of_real_add1 [simp]:
+     "norm (of_real x + 1 :: 'a :: real_normed_div_algebra) = abs (x + 1)"
+  by (metis norm_of_real of_real_1 of_real_add)
+
+lemma norm_of_real_addn [simp]:
+     "norm (of_real x + numeral b :: 'a :: real_normed_div_algebra) = abs (x + numeral b)"
+  by (metis norm_of_real of_real_add of_real_numeral)
+
 lemma norm_of_int [simp]:
   "norm (of_int z::'a::real_normed_algebra_1) = \<bar>of_int z\<bar>"
 by (subst of_real_of_int_eq [symmetric], rule norm_of_real)
@@ -1297,6 +1305,8 @@ lemma sgn_le_0_iff [simp]: "sgn x \<le> 0 \<longleftrightarrow> (x::real) \<le> 
 
 lemma norm_conv_dist: "norm x = dist x 0"
   unfolding dist_norm by simp
+
+declare norm_conv_dist [symmetric, simp]
 
 lemma dist_diff [simp]: "dist a (a - b) = norm b"  "dist (a - b) a = norm b"
   by (simp_all add: dist_norm)
@@ -1868,7 +1878,7 @@ proof (subst lim_sequentially, intro allI impI exI)
   have "inverse e < of_nat (nat \<lceil>inverse e + 1\<rceil>)" by linarith
   also note n
   finally show "dist (1 / of_nat n :: 'a) 0 < e" using e
-    by (simp add: divide_simps mult.commute norm_conv_dist[symmetric] norm_divide)
+    by (simp add: divide_simps mult.commute norm_divide)
 qed
 
 lemma (in metric_space) complete_def:

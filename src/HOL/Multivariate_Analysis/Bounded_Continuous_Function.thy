@@ -259,7 +259,7 @@ proof -
       by (rule dist_triangle_add)
     also have "\<dots> \<le> dist (Abs_bcontfun f) 0 + dist (Abs_bcontfun g) 0"
       unfolding zero_bcontfun_def using assms
-      by (auto intro!: add_mono dist_bounded_Abs const_bcontfun)
+      by (metis add_mono const_bcontfun dist_bounded_Abs)
     finally show "dist (f x + g x) 0 \<le> dist (Abs_bcontfun f) 0 + dist (Abs_bcontfun g) 0" .
   qed (simp add: continuous_on_add)
 qed
@@ -341,7 +341,7 @@ proof
   fix f g :: "('a, 'b) bcontfun"
   show "dist f g = norm (f - g)"
     by (simp add: norm_bcontfun_def dist_bcontfun_def zero_bcontfun_def
-      Abs_bcontfun_inverse const_bcontfun norm_conv_dist[symmetric] dist_norm)
+      Abs_bcontfun_inverse const_bcontfun dist_norm)
   show "norm (f + g) \<le> norm f + norm g"
     unfolding norm_bcontfun_def
   proof (subst dist_bcontfun_def, safe intro!: cSUP_least)
@@ -364,31 +364,30 @@ proof
     proof (intro continuous_at_Sup_mono bdd_aboveI2)
       fix x
       show "dist (Rep_bcontfun f x) 0 \<le> norm f" using dist_bounded[of f x 0]
-        by (simp add: norm_bcontfun_def norm_conv_dist Abs_bcontfun_inverse zero_bcontfun_def
+        by (simp add: norm_bcontfun_def Abs_bcontfun_inverse zero_bcontfun_def
           const_bcontfun)
     qed (auto intro!: monoI mult_left_mono continuous_intros)
     moreover
     have "range (\<lambda>x. dist (Rep_bcontfun (a *\<^sub>R f) x) 0) =
       (\<lambda>x. \<bar>a\<bar> * x) ` (range (\<lambda>x. dist (Rep_bcontfun f x) 0))"
-      by (auto simp: norm_conv_dist[symmetric])
+      by auto
     ultimately
     show "norm (a *\<^sub>R f) = \<bar>a\<bar> * norm f"
-      by (simp add: norm_bcontfun_def dist_bcontfun_def norm_conv_dist Abs_bcontfun_inverse
-        zero_bcontfun_def const_bcontfun image_image) presburger
+      by (simp add: norm_bcontfun_def dist_bcontfun_def Abs_bcontfun_inverse
+        zero_bcontfun_def const_bcontfun image_image)
   qed
 qed (auto simp: norm_bcontfun_def sgn_bcontfun_def)
 
 end
 
 lemma bcontfun_normI: "continuous_on UNIV f \<Longrightarrow> (\<And>x. norm (f x) \<le> b) \<Longrightarrow> f \<in> bcontfun"
-  unfolding norm_conv_dist
-  by (auto intro: bcontfunI)
+  by (metis bcontfunI dist_0_norm dist_commute)
 
 lemma norm_bounded:
   fixes f :: "('a::topological_space, 'b::real_normed_vector) bcontfun"
   shows "norm (Rep_bcontfun f x) \<le> norm f"
   using dist_bounded[of f x 0]
-  by (simp add: norm_bcontfun_def norm_conv_dist Abs_bcontfun_inverse zero_bcontfun_def
+  by (simp add: norm_bcontfun_def Abs_bcontfun_inverse zero_bcontfun_def
     const_bcontfun)
 
 lemma norm_bound:
@@ -396,8 +395,7 @@ lemma norm_bound:
   assumes "\<And>x. norm (Rep_bcontfun f x) \<le> b"
   shows "norm f \<le> b"
   using dist_bound[of f 0 b] assms
-  by (simp add: norm_bcontfun_def norm_conv_dist Abs_bcontfun_inverse zero_bcontfun_def
-    const_bcontfun)
+  by (simp add: norm_bcontfun_def Abs_bcontfun_inverse zero_bcontfun_def const_bcontfun)
 
 
 subsection \<open>Continuously Extended Functions\<close>

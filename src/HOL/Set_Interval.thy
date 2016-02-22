@@ -1640,6 +1640,11 @@ next
   finally show ?case .
 qed
 
+lemma setsum_atMost_shift:
+  fixes f :: "nat \<Rightarrow> 'a::comm_monoid_add"
+  shows "(\<Sum>i\<le>n. f i) = f 0 + (\<Sum>i<n. f (Suc i))"
+by (metis atLeast0AtMost atLeast0LessThan atLeastLessThanSuc_atLeastAtMost atLeastSucAtMost_greaterThanAtMost le0 setsum_head setsum_shift_bounds_Suc_ivl)
+
 lemma setsum_last_plus: fixes n::nat shows "m <= n \<Longrightarrow> (\<Sum>i = m..n. f i) = f n + (\<Sum>i = m..<n. f i)"
   by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost add.commute)
 

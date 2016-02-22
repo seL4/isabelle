@@ -646,4 +646,44 @@ apply (auto simp: cINF_lower)
 apply (metis eq cSUP_upper)
 done 
 
+lemma cSUP_UNION:
+  fixes f :: "_ \<Rightarrow> 'b::conditionally_complete_lattice"
+  assumes ne: "A \<noteq> {}" "\<And>x. x \<in> A \<Longrightarrow> B(x) \<noteq> {}"
+      and bdd_UN: "bdd_above (\<Union>x\<in>A. f ` B x)"
+  shows "(SUP z : \<Union>x\<in>A. B x. f z) = (SUP x:A. SUP z:B x. f z)"
+proof -
+  have bdd: "\<And>x. x \<in> A \<Longrightarrow> bdd_above (f ` B x)"
+    using bdd_UN by (meson UN_upper bdd_above_mono)
+  obtain M where "\<And>x y. x \<in> A \<Longrightarrow> y \<in> B(x) \<Longrightarrow> f y \<le> M"
+    using bdd_UN by (auto simp: bdd_above_def)
+  then have bdd2: "bdd_above ((\<lambda>x. SUP z:B x. f z) ` A)"
+    unfolding bdd_above_def by (force simp: bdd cSUP_le_iff ne(2))
+  have "(SUP z:\<Union>x\<in>A. B x. f z) \<le> (SUP x:A. SUP z:B x. f z)"
+    using assms by (fastforce simp add: intro!: cSUP_least intro: cSUP_upper2 simp: bdd2 bdd)
+  moreover have "(SUP x:A. SUP z:B x. f z) \<le> (SUP z:\<Union>x\<in>A. B x. f z)"
+    using assms by (fastforce simp add: intro!: cSUP_least intro: cSUP_upper simp: image_UN bdd_UN)
+  ultimately show ?thesis
+    by (rule order_antisym)
+qed
+
+lemma cINF_UNION:
+  fixes f :: "_ \<Rightarrow> 'b::conditionally_complete_lattice"
+  assumes ne: "A \<noteq> {}" "\<And>x. x \<in> A \<Longrightarrow> B(x) \<noteq> {}"
+      and bdd_UN: "bdd_below (\<Union>x\<in>A. f ` B x)"
+  shows "(INF z : \<Union>x\<in>A. B x. f z) = (INF x:A. INF z:B x. f z)"
+proof -
+  have bdd: "\<And>x. x \<in> A \<Longrightarrow> bdd_below (f ` B x)"
+    using bdd_UN by (meson UN_upper bdd_below_mono)
+  obtain M where "\<And>x y. x \<in> A \<Longrightarrow> y \<in> B(x) \<Longrightarrow> f y \<ge> M"
+    using bdd_UN by (auto simp: bdd_below_def)
+  then have bdd2: "bdd_below ((\<lambda>x. INF z:B x. f z) ` A)"
+    unfolding bdd_below_def by (force simp: bdd le_cINF_iff ne(2))
+  have "(INF z:\<Union>x\<in>A. B x. f z) \<le> (INF x:A. INF z:B x. f z)"
+    using assms by (fastforce simp add: intro!: cINF_greatest intro: cINF_lower simp: bdd2 bdd)
+  moreover have "(INF x:A. INF z:B x. f z) \<le> (INF z:\<Union>x\<in>A. B x. f z)"
+    using assms  by (fastforce simp add: intro!: cINF_greatest intro: cINF_lower2  simp: bdd bdd_UN bdd2)
+  ultimately show ?thesis
+    by (rule order_antisym)
+qed
+
 end

@@ -6489,7 +6489,7 @@ proof -
        if "z \<in> s" for z
   proof -
     obtain d h N where "0 < d" "summable h" and le_h: "\<And>n y. \<lbrakk>N \<le> n; y \<in> ball z d\<rbrakk> \<Longrightarrow> norm(f n y) \<le> h n"
-      using to_g \<open>z \<in> s\<close> by blast
+      using to_g \<open>z \<in> s\<close> by meson 
     then obtain r where "r>0" and r: "ball z r \<subseteq> ball z d \<inter> s" using \<open>z \<in> s\<close> s
       by (metis Int_iff open_ball centre_in_ball open_Int open_contains_ball_eq)
     have 1: "open (ball z d \<inter> s)"

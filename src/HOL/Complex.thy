@@ -167,10 +167,10 @@ lemma Re_divide_numeral [simp]: "Re (z / numeral w) = Re z / numeral w"
 lemma Im_divide_numeral [simp]: "Im (z / numeral w) = Im z / numeral w"
   by (simp add: Im_divide sqr_conv_mult)
 
-lemma Re_divide_of_nat: "Re (z / of_nat n) = Re z / of_nat n"
+lemma Re_divide_of_nat [simp]: "Re (z / of_nat n) = Re z / of_nat n"
   by (cases n) (simp_all add: Re_divide divide_simps power2_eq_square del: of_nat_Suc)
 
-lemma Im_divide_of_nat: "Im (z / of_nat n) = Im z / of_nat n"
+lemma Im_divide_of_nat [simp]: "Im (z / of_nat n) = Im z / of_nat n"
   by (cases n) (simp_all add: Im_divide divide_simps power2_eq_square del: of_nat_Suc)
 
 lemma of_real_Re [simp]:
@@ -329,6 +329,12 @@ lemma cmod_power2: "cmod z ^ 2 = (Re z)^2 + (Im z)^2"
 
 lemma cmod_plus_Re_le_0_iff: "cmod z + Re z \<le> 0 \<longleftrightarrow> Re z = - cmod z"
   using abs_Re_le_cmod[of z] by auto
+
+lemma cmod_Re_le_iff: "Im x = Im y \<Longrightarrow> cmod x \<le> cmod y \<longleftrightarrow> abs (Re x) \<le> abs (Re y)"
+  by (metis add.commute add_le_cancel_left norm_complex_def real_sqrt_abs real_sqrt_le_iff)
+
+lemma cmod_Im_le_iff: "Re x = Re y \<Longrightarrow> cmod x \<le> cmod y \<longleftrightarrow> abs (Im x) \<le> abs (Im y)"
+  by (metis add_le_cancel_left norm_complex_def real_sqrt_abs real_sqrt_le_iff)
 
 lemma Im_eq_0: "\<bar>Re z\<bar> = cmod z \<Longrightarrow> Im z = 0"
   by (subst (asm) power_eq_iff_eq_base[symmetric, where n=2])

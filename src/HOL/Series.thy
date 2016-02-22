@@ -390,6 +390,9 @@ proof (induct n arbitrary: s)
     by (simp add: ac_simps)
 qed simp
 
+corollary sums_iff_shift': "(\<lambda>i. f (i + n)) sums (s - (\<Sum>i<n. f i)) \<longleftrightarrow> f sums s"
+  by (simp add: sums_iff_shift)
+
 lemma summable_iff_shift: "summable (\<lambda>n. f (n + k)) \<longleftrightarrow> summable f"
   by (metis diff_add_cancel summable_def sums_iff_shift[abs_def])
 
@@ -534,6 +537,12 @@ lemma summable_divide: "summable f \<Longrightarrow> summable (\<lambda>n. f n /
 
 lemma suminf_divide: "summable f \<Longrightarrow> suminf (\<lambda>n. f n / c) = suminf f / c"
   by (rule bounded_linear.suminf [OF bounded_linear_divide, symmetric])
+
+lemma sums_mult_D: "\<lbrakk>(\<lambda>n. c * f n) sums a; c \<noteq> 0\<rbrakk> \<Longrightarrow> f sums (a/c)"
+  using sums_mult_iff by fastforce
+
+lemma summable_mult_D: "\<lbrakk>summable (\<lambda>n. c * f n); c \<noteq> 0\<rbrakk> \<Longrightarrow> summable f"
+  by (auto dest: summable_divide)
 
 text\<open>Sum of a geometric progression.\<close>
 
