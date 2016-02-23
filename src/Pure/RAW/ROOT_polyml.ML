@@ -12,6 +12,9 @@ if ML_System.name = "polyml-5.6"
 then use "RAW/ml_name_space_polyml-5.6.ML"
 else use "RAW/ml_name_space_polyml.ML";
 
+if List.exists (fn (a, _) => a = "FixedInt") (#allStruct ML_Name_Space.global ()) then ()
+else use "RAW/fixed_int_dummy.ML";
+
 structure ML_Name_Space =
 struct
   open ML_Name_Space;
@@ -144,7 +147,8 @@ val pretty_ml =
             val len' = property "length" len;
           in ML_Pretty.Block ((bg, en), consistent, ind, map (convert len') prts) end
       | convert len (PolyML.PrettyString s) =
-          ML_Pretty.String (s, case Int.fromString len of SOME i => i | NONE => size s)
+          ML_Pretty.String
+            (s, FixedInt.fromInt (case Int.fromString len of SOME i => i | NONE => size s))
   in convert "" end;
 
 fun ml_pretty (ML_Pretty.Break (false, width, offset)) = PolyML.PrettyBreak (width, offset)
@@ -157,9 +161,11 @@ fun ml_pretty (ML_Pretty.Break (false, width, offset)) = PolyML.PrettyBreak (wid
         (if en = "" then [] else [PolyML.ContextProperty ("end", en)])
       in PolyML.PrettyBlock (ind, consistent, context, map ml_pretty prts) end
   | ml_pretty (ML_Pretty.String (s, len)) =
-      if len = size s then PolyML.PrettyString s
-      else PolyML.PrettyBlock
-        (0, false, [PolyML.ContextProperty ("length", Int.toString len)], [PolyML.PrettyString s]);
+      if len = FixedInt.fromInt (size s) then PolyML.PrettyString s
+      else
+        PolyML.PrettyBlock
+          (0, false,
+            [PolyML.ContextProperty ("length", FixedInt.toString len)], [PolyML.PrettyString s]);
 
 
 (* ML compiler *)
@@ -189,8 +195,8 @@ if ML_System.name = "polyml-5.6"
 then use "RAW/ml_parse_tree_polyml-5.6.ML" else ();
 
 fun ml_make_string struct_name =
-  "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, " ^
-    struct_name ^ ".ML_print_depth ())))))";
+  "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, FixedInt.fromInt (" ^
+    struct_name ^ ".ML_print_depth ()))))))";
 
 
 (* ML debugger *)

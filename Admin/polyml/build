@@ -80,7 +80,7 @@ esac
   cd "$SOURCE"
   make distclean
 
-  { ./configure --prefix="$PWD/$TARGET" "${OPTIONS[@]}" "${USER_OPTIONS[@]}" && \
+  { ./configure --prefix="$PWD/$TARGET" "${OPTIONS[@]}" --enable-intinf-as-int "${USER_OPTIONS[@]}" && \
     make compiler && \
     make compiler && \
     make install; } || fail "Build failed"

@@ -63,7 +63,7 @@ if [ -z "$INFILE" ]; then
   esac
 else
   check_file "$INFILE"
-  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$PLATFORM_INFILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $INFILE\\n\"); OS.Process.exit OS.Process.success));"
+  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Thread.Thread.broadcastInterrupt ())); PolyML.SaveState.loadState \"$PLATFORM_INFILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $INFILE\\n\"); OS.Process.exit OS.Process.success));"
   EXIT=""
 fi
 

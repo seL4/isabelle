@@ -44,7 +44,7 @@ end;
 val _ =
   PolyML.addPrettyPrinter (fn _ => fn _ => fn exn_id =>
     let val s = print_exn_id exn_id
-    in ml_pretty (ML_Pretty.String (s, size s)) end);
+    in ml_pretty (ML_Pretty.String (s, FixedInt.fromInt (size s))) end);
 
 
 (* hooks *)

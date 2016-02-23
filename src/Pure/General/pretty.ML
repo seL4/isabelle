@@ -375,14 +375,16 @@ fun writeln_chunks2 prts =
 (** ML toplevel pretty printing **)
 
 fun to_ML (Block (m, consistent, indent, prts, _)) =
-      ML_Pretty.Block (m, consistent, indent, map to_ML prts)
-  | to_ML (Break b) = ML_Pretty.Break b
-  | to_ML (Str s) = ML_Pretty.String s;
+      ML_Pretty.Block (m, consistent, FixedInt.fromInt indent, map to_ML prts)
+  | to_ML (Break (force, wd, ind)) =
+      ML_Pretty.Break (force, FixedInt.fromInt wd, FixedInt.fromInt ind)
+  | to_ML (Str (s, len)) = ML_Pretty.String (s, FixedInt.fromInt len);
 
 fun from_ML (ML_Pretty.Block (m, consistent, indent, prts)) =
-      make_block m consistent indent (map from_ML prts)
-  | from_ML (ML_Pretty.Break b) = Break b
-  | from_ML (ML_Pretty.String s) = Str s;
+      make_block m consistent (FixedInt.toInt indent) (map from_ML prts)
+  | from_ML (ML_Pretty.Break (force, wd, ind)) =
+      Break (force, FixedInt.toInt wd, FixedInt.toInt ind)
+  | from_ML (ML_Pretty.String (s, len)) = Str (s, FixedInt.toInt len);
 
 end;
 
