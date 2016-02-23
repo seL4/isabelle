@@ -897,12 +897,15 @@ qed
 lemma open_contains_ball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. ball x e \<subseteq> S)"
   unfolding open_dist subset_eq mem_ball Ball_def dist_commute ..
 
+lemma openI [intro?]: "(\<And>x. x\<in>S \<Longrightarrow> \<exists>e>0. ball x e \<subseteq> S) \<Longrightarrow> open S"
+  by (auto simp: open_contains_ball)
+
 lemma openE[elim?]:
   assumes "open S" "x\<in>S"
   obtains e where "e>0" "ball x e \<subseteq> S"
   using assms unfolding open_contains_ball by auto
 
-lemma open_contains_ball_eq: "open S \<Longrightarrow> \<forall>x. x\<in>S \<longleftrightarrow> (\<exists>e>0. ball x e \<subseteq> S)"
+lemma open_contains_ball_eq: "open S \<Longrightarrow> x\<in>S \<longleftrightarrow> (\<exists>e>0. ball x e \<subseteq> S)"
   by (metis open_contains_ball subset_eq centre_in_ball)
 
 lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
@@ -2251,6 +2254,9 @@ lemma frontier_disjoint_eq: "frontier S \<inter> S = {} \<longleftrightarrow> op
   using frontier_complement frontier_subset_eq[of "- S"]
   unfolding open_closed by auto
 
+lemma frontier_UNIV [simp]: "frontier UNIV = {}"
+  using frontier_complement frontier_empty by fastforce
+
 
 subsection \<open>Filters and the ``eventually true'' quantifier\<close>
 
@@ -2339,7 +2345,7 @@ done
 
 lemma Lim_at: "(f \<longlongrightarrow> l) (at a) \<longleftrightarrow>
     (\<forall>e >0. \<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d  \<longrightarrow> dist (f x) l < e)"
-  by (auto simp add: tendsto_iff eventually_at2)
+  by (auto simp add: tendsto_iff eventually_at)
 
 lemma Lim_at_infinity:
   "(f \<longlongrightarrow> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x. norm x \<ge> b \<longrightarrow> dist (f x) l < e)"
@@ -2354,6 +2360,23 @@ done
 
 lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f \<longlongrightarrow> l) net"
   by (rule topological_tendstoI, auto elim: eventually_mono)
+
+lemma Lim_transform_within_set:
+  fixes a l :: "'a::real_normed_vector"
+  shows "\<lbrakk>(f \<longlongrightarrow> l) (at a within s); eventually (\<lambda>x. x \<in> s \<longleftrightarrow> x \<in> t) (at a)\<rbrakk>
+         \<Longrightarrow> (f \<longlongrightarrow> l) (at a within t)"
+apply (clarsimp simp: eventually_at Lim_within)
+apply (drule_tac x=e in spec, clarify)
+apply (rename_tac k)
+apply (rule_tac x="min d k" in exI)
+apply (simp add:)
+done
+
+lemma Lim_transform_within_set_eq:
+  fixes a l :: "'a::real_normed_vector"
+  shows "eventually (\<lambda>x. x \<in> s \<longleftrightarrow> x \<in> t) (at a)
+         \<Longrightarrow> ((f \<longlongrightarrow> l) (at a within s) \<longleftrightarrow> (f \<longlongrightarrow> l) (at a within t))"
+by (force intro: Lim_transform_within_set elim: eventually_mono)
 
 text\<open>The expected monotonicity property.\<close>
 
@@ -2513,6 +2536,36 @@ lemma Lim_transform_bound:
   shows "(f \<longlongrightarrow> 0) net"
   using assms(1) tendsto_norm_zero [OF assms(2)]
   by (rule Lim_null_comparison)
+
+lemma lim_null_mult_right_bounded:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_div_algebra"
+  assumes f: "(f \<longlongrightarrow> 0) F" and g: "eventually (\<lambda>x. norm(g x) \<le> B) F"
+    shows "((\<lambda>z. f z * g z) \<longlongrightarrow> 0) F"
+proof -
+  have *: "((\<lambda>x. norm (f x) * B) \<longlongrightarrow> 0) F"
+    by (simp add: f tendsto_mult_left_zero tendsto_norm_zero)
+  have "((\<lambda>x. norm (f x) * norm (g x)) \<longlongrightarrow> 0) F"
+    apply (rule Lim_null_comparison [OF _ *])
+    apply (simp add: eventually_mono [OF g] mult_left_mono)
+    done
+  then show ?thesis
+    by (subst tendsto_norm_zero_iff [symmetric]) (simp add: norm_mult)
+qed
+
+lemma lim_null_mult_left_bounded:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_div_algebra"
+  assumes g: "eventually (\<lambda>x. norm(g x) \<le> B) F" and f: "(f \<longlongrightarrow> 0) F"
+    shows "((\<lambda>z. g z * f z) \<longlongrightarrow> 0) F"
+proof -
+  have *: "((\<lambda>x. B * norm (f x)) \<longlongrightarrow> 0) F"
+    by (simp add: f tendsto_mult_right_zero tendsto_norm_zero)
+  have "((\<lambda>x. norm (g x) * norm (f x)) \<longlongrightarrow> 0) F"
+    apply (rule Lim_null_comparison [OF _ *])
+    apply (simp add: eventually_mono [OF g] mult_right_mono)
+    done
+  then show ?thesis
+    by (subst tendsto_norm_zero_iff [symmetric]) (simp add: norm_mult)
+qed
 
 text\<open>Deducing things about the limit from the elements.\<close>
 
@@ -3149,21 +3202,18 @@ next
     by auto
 qed
 
-lemma frontier_ball:
+lemma interior_ball [simp]: "interior (ball x e) = ball x e"
+  by (simp add: interior_open)
+  
+lemma frontier_ball [simp]:
   fixes a :: "'a::real_normed_vector"
-  shows "0 < e \<Longrightarrow> frontier(ball a e) = {x. dist a x = e}"
-  apply (simp add: frontier_def closure_ball interior_open order_less_imp_le)
-  apply (simp add: set_eq_iff)
-  apply arith
-  done
+  shows "0 < e \<Longrightarrow> frontier (ball a e) = sphere a e"
+  by (force simp: frontier_def)
 
-lemma frontier_cball:
+lemma frontier_cball [simp]:
   fixes a :: "'a::{real_normed_vector, perfect_space}"
-  shows "frontier (cball a e) = {x. dist a x = e}"
-  apply (simp add: frontier_def interior_cball closed_cball order_less_imp_le)
-  apply (simp add: set_eq_iff)
-  apply arith
-  done
+  shows "frontier (cball a e) = sphere a e"
+  by (force simp: frontier_def)
 
 lemma cball_eq_empty [simp]: "cball x e = {} \<longleftrightarrow> e < 0"
   apply (simp add: set_eq_iff not_le)
@@ -3340,7 +3390,7 @@ lemma bounded_Int[intro]: "bounded S \<or> bounded T \<Longrightarrow> bounded (
 lemma bounded_diff[intro]: "bounded S \<Longrightarrow> bounded (S - T)"
   by (metis Diff_subset bounded_subset)
 
-lemma not_bounded_UNIV[simp, intro]:
+lemma not_bounded_UNIV[simp]:
   "\<not> bounded (UNIV :: 'a::{real_normed_vector, perfect_space} set)"
 proof (auto simp add: bounded_pos not_le)
   obtain x :: 'a where "x \<noteq> 0"
@@ -4446,6 +4496,11 @@ lemma compact_components:
   shows "\<lbrakk>compact s; c \<in> components s\<rbrakk> \<Longrightarrow> compact c"
 by (meson bounded_subset closed_components in_components_subset compact_eq_bounded_closed)
 
+lemma not_compact_UNIV[simp]:
+  fixes s :: "'a::{real_normed_vector,perfect_space,heine_borel} set"
+  shows "~ compact (UNIV::'a set)"
+    by (simp add: compact_eq_bounded_closed)
+
 (* TODO: is this lemma necessary? *)
 lemma bounded_increasing_convergent:
   fixes s :: "nat \<Rightarrow> real"
@@ -4927,12 +4982,17 @@ lemma compact_frontier[intro]:
   using compact_eq_bounded_closed compact_frontier_bounded
   by blast
 
+corollary compact_sphere:
+  fixes a :: "'a::{real_normed_vector,perfect_space,heine_borel}"
+  shows "compact (sphere a r)"
+using compact_frontier [of "cball a r"] by simp
+
 lemma frontier_subset_compact:
   fixes s :: "'a::heine_borel set"
   shows "compact s \<Longrightarrow> frontier s \<subseteq> s"
   using frontier_subset_closed compact_eq_bounded_closed
   by blast
-
+                 
 subsection\<open>Relations among convergence and absolute convergence for power series.\<close>
 
 lemma summable_imp_bounded:
@@ -5757,11 +5817,12 @@ lemma continuous_closed_preimage_constant:
 
 lemma continuous_constant_on_closure:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
-  assumes "continuous_on (closure s) f"
-    and "\<forall>x \<in> s. f x = a"
-  shows "\<forall>x \<in> (closure s). f x = a"
-    using continuous_closed_preimage_constant[of "closure s" f a]
-      assms closure_minimal[of s "{x \<in> closure s. f x = a}"] closure_subset
+  assumes "continuous_on (closure S) f"
+      and "\<And>x. x \<in> S \<Longrightarrow> f x = a"
+      and "x \<in> closure S"
+  shows "f x = a"
+    using continuous_closed_preimage_constant[of "closure S" f a]
+      assms closure_minimal[of S "{x \<in> closure S. f x = a}"] closure_subset
     unfolding subset_eq
     by auto
 
@@ -5850,6 +5911,27 @@ next
     thus ?thesis using U continuous_on_eq_continuous_at by auto
   qed
 qed
+
+subsection \<open>A function constant on a set\<close>
+
+definition constant_on  (infixl "(constant'_on)" 50)
+  where "f constant_on A \<equiv> \<exists>y. \<forall>x\<in>A. f x = y"
+
+lemma constant_on_subset: "\<lbrakk>f constant_on A; B \<subseteq> A\<rbrakk> \<Longrightarrow> f constant_on B"
+  unfolding constant_on_def by blast
+
+lemma injective_not_constant:
+  fixes S :: "'a::{perfect_space} set"
+  shows "\<lbrakk>open S; inj_on f S; f constant_on S\<rbrakk> \<Longrightarrow> S = {}"
+unfolding constant_on_def
+by (metis equals0I inj_on_contraD islimpt_UNIV islimpt_def)
+
+lemma constant_on_closureI:
+  fixes f :: "_ \<Rightarrow> 'b::t1_space"
+  assumes cof: "f constant_on S" and contf: "continuous_on (closure S) f"
+    shows "f constant_on (closure S)"
+using continuous_constant_on_closure [OF contf] cof unfolding constant_on_def
+by metis
 
 text \<open>Making a continuous function avoid some value in a neighbourhood.\<close>
 
@@ -6317,25 +6399,24 @@ text \<open>For \emph{minimal} distance, we only need closure, not compactness.\
 
 lemma distance_attains_inf:
   fixes a :: "'a::heine_borel"
-  assumes "closed s"
-    and "s \<noteq> {}"
-  shows "\<exists>x\<in>s. \<forall>y\<in>s. dist a x \<le> dist a y"
+  assumes "closed s" and "s \<noteq> {}"
+  obtains x where "x\<in>s" "\<And>y. y \<in> s \<Longrightarrow> dist a x \<le> dist a y"
 proof -
-  from assms(2) obtain b where "b \<in> s" by auto
+  from assms obtain b where "b \<in> s" by auto
   let ?B = "s \<inter> cball a (dist b a)"
   have "?B \<noteq> {}" using \<open>b \<in> s\<close>
-    by (auto simp add: dist_commute)
+    by (auto simp: dist_commute)
   moreover have "continuous_on ?B (dist a)"
     by (auto intro!: continuous_at_imp_continuous_on continuous_dist continuous_at_id continuous_const)
   moreover have "compact ?B"
     by (intro closed_inter_compact \<open>closed s\<close> compact_cball)
   ultimately obtain x where "x \<in> ?B" "\<forall>y\<in>?B. dist a x \<le> dist a y"
     by (metis continuous_attains_inf)
-  then show ?thesis by fastforce
+  with that show ?thesis by fastforce
 qed
 
 
-subsection \<open>Pasted sets\<close>
+subsection \<open>Cartesian products\<close>
 
 lemma bounded_Times:
   assumes "bounded s" "bounded t"
@@ -6746,8 +6827,7 @@ subsection \<open>Separation between points and sets\<close>
 
 lemma separate_point_closed:
   fixes s :: "'a::heine_borel set"
-  assumes "closed s"
-    and "a \<notin> s"
+  assumes "closed s" and "a \<notin> s"
   shows "\<exists>d>0. \<forall>x\<in>s. d \<le> dist a x"
 proof (cases "s = {}")
   case True
@@ -6755,7 +6835,7 @@ proof (cases "s = {}")
 next
   case False
   from assms obtain x where "x\<in>s" "\<forall>y\<in>s. dist a x \<le> dist a y"
-    using \<open>s \<noteq> {}\<close> distance_attains_inf [of s a] by blast
+    using \<open>s \<noteq> {}\<close> by (blast intro: distance_attains_inf [of s a])
   with \<open>x\<in>s\<close> show ?thesis using dist_pos_lt[of a x] and\<open>a \<notin> s\<close>
     by blast
 qed
@@ -7893,9 +7973,8 @@ next
   let ?S'' = "{x::'a. norm x = norm a}"
 
   have "?S'' = frontier(cball 0 (norm a))"
-    unfolding frontier_cball and dist_norm by auto
-  then have "compact ?S''"
-    using compact_frontier[OF compact_cball, of 0 "norm a"] by auto
+    by (simp add: sphere_def dist_norm)
+  then have "compact ?S''" by (metis compact_cball compact_frontier)
   moreover have "?S' = s \<inter> ?S''" by auto
   ultimately have "compact ?S'"
     using closed_inter_compact[of s ?S''] using s(1) by auto

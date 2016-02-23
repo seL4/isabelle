@@ -1534,10 +1534,6 @@ lemma Bseq_inverse:
 
 text\<open>Transformation of limit.\<close>
 
-lemma eventually_at2:
-  "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
-  unfolding eventually_at by auto
-
 lemma Lim_transform:
   fixes a b :: "'a::real_normed_vector"
   shows "\<lbrakk>(g \<longlongrightarrow> a) F; ((\<lambda>x. f x - g x) \<longlongrightarrow> 0) F\<rbrakk> \<Longrightarrow> (f \<longlongrightarrow> a) F"

@@ -74,7 +74,7 @@ lemma continuous_on_exp:
   shows "continuous_on s exp"
 by (simp add: continuous_on_exp continuous_on_id)
 
-lemma holomorphic_on_exp: "exp holomorphic_on s"
+lemma holomorphic_on_exp [holomorphic_intros]: "exp holomorphic_on s"
   by (simp add: complex_differentiable_within_exp holomorphic_on_def)
 
 subsection\<open>Euler and de Moivre formulas.\<close>

@@ -93,7 +93,7 @@ by blast
 
 subsection \<open>Lemmas for Forward Proof\<close>
 
-text\<open>There is a similarity to congruence rules\<close>
+text\<open>There is a similarity to congruence rules. They are also useful in ordinary proofs.\<close>
 
 (*NOTE: could handle conjunctions (faster?) by
     nf(th RS conjunct2) RS (nf(th RS conjunct1) RS conjI) *)
@@ -101,6 +101,9 @@ lemma conj_forward: "[| P'&Q';  P' ==> P;  Q' ==> Q |] ==> P&Q"
 by blast
 
 lemma disj_forward: "[| P'|Q';  P' ==> P;  Q' ==> Q |] ==> P|Q"
+by blast
+
+lemma imp_forward: "[| P' \<longrightarrow> Q';  P ==> P';  Q' ==> Q |] ==> P \<longrightarrow> Q"
 by blast
 
 (*Version of @{text disj_forward} for removal of duplicate literals*)

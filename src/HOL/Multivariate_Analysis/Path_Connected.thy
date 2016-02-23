@@ -1019,7 +1019,7 @@ lemma not_on_path_ball:
   shows "\<exists>e > 0. ball z e \<inter> path_image g = {}"
 proof -
   obtain a where "a \<in> path_image g" "\<forall>y \<in> path_image g. dist z a \<le> dist z y"
-    using distance_attains_inf[OF _ path_image_nonempty, of g z]
+    apply (rule distance_attains_inf[OF _ path_image_nonempty, of g z]) 
     using compact_path_image[THEN compact_imp_closed, OF assms(1)] by auto
   then show ?thesis
     apply (rule_tac x="dist z a" in exI)
@@ -1661,6 +1661,50 @@ lemma connected_diff_ball:
   apply (auto simp: cball_diff_eq_sphere dist_norm)
   done
 
+proposition connected_open_delete:
+  assumes "open S" "connected S" and 2: "2 \<le> DIM('N::euclidean_space)"
+    shows "connected(S - {a::'N})"
+proof (cases "a \<in> S")
+  case True
+  with \<open>open S\<close> obtain \<epsilon> where "\<epsilon> > 0" and \<epsilon>: "cball a \<epsilon> \<subseteq> S"
+    using open_contains_cball_eq by blast
+  have "dist a (a + \<epsilon> *\<^sub>R (SOME i. i \<in> Basis)) = \<epsilon>"
+    by (simp add: dist_norm SOME_Basis \<open>0 < \<epsilon>\<close> less_imp_le)
+  with \<epsilon> have "\<Inter>{S - ball a r |r. 0 < r \<and> r < \<epsilon>} \<subseteq> {} \<Longrightarrow> False"
+    apply (drule_tac c="a + scaleR (\<epsilon>) ((SOME i. i \<in> Basis))" in subsetD)
+    by auto
+  then have nonemp: "(\<Inter>{S - ball a r |r. 0 < r \<and> r < \<epsilon>}) = {} \<Longrightarrow> False"
+    by auto
+  have con: "\<And>r. r < \<epsilon> \<Longrightarrow> connected (S - ball a r)"
+    using \<epsilon> by (force intro: connected_diff_ball [OF \<open>connected S\<close> _ 2])
+  have "x \<in> \<Union>{S - ball a r |r. 0 < r \<and> r < \<epsilon>}" if "x \<in> S - {a}" for x
+    apply (rule UnionI [of "S - ball a (min \<epsilon> (dist a x) / 2)"])
+     using that \<open>0 < \<epsilon>\<close> apply (simp_all add:)
+    apply (rule_tac x="min \<epsilon> (dist a x) / 2" in exI)
+    apply auto
+    done
+  then have "S - {a} = \<Union>{S - ball a r | r. 0 < r \<and> r < \<epsilon>}"
+    by auto
+  then show ?thesis
+    by (auto intro: connected_Union con dest!: nonemp)
+next
+  case False then show ?thesis
+    by (simp add: \<open>connected S\<close>)
+qed
+
+corollary path_connected_open_delete:
+  assumes "open S" "connected S" and 2: "2 \<le> DIM('N::euclidean_space)"
+    shows "path_connected(S - {a::'N})"
+by (simp add: assms connected_open_delete connected_open_path_connected open_delete)
+
+corollary path_connected_punctured_ball:
+   "2 \<le> DIM('N::euclidean_space) \<Longrightarrow> path_connected(ball a r - {a::'N})"
+by (simp add: path_connected_open_delete)
+
+lemma connected_punctured_ball:
+   "2 \<le> DIM('N::euclidean_space) \<Longrightarrow> connected(ball a r - {a::'N})"
+by (simp add: connected_open_delete)
+
 subsection\<open>Relations between components and path components\<close>
 
 lemma open_connected_component:
@@ -1961,13 +2005,54 @@ by (metis bounded_subset [of "connected_component_set (- s) _"] connected_compon
 lemma frontier_interiors: "frontier s = - interior(s) - interior(-s)"
   by (simp add: Int_commute frontier_def interior_closure)
 
-lemma connected_inter_frontier:
+lemma frontier_interior_subset: "frontier(interior S) \<subseteq> frontier S"
+  by (simp add: Diff_mono frontier_interiors interior_mono interior_subset)
+
+lemma connected_Int_frontier:
      "\<lbrakk>connected s; s \<inter> t \<noteq> {}; s - t \<noteq> {}\<rbrakk> \<Longrightarrow> (s \<inter> frontier t \<noteq> {})"
   apply (simp add: frontier_interiors connected_open_in, safe)
   apply (drule_tac x="s \<inter> interior t" in spec, safe)
    apply (drule_tac [2] x="s \<inter> interior (-t)" in spec)
    apply (auto simp: disjoint_eq_subset_Compl dest: interior_subset [THEN subsetD])
   done
+
+lemma frontier_not_empty:
+  fixes S :: "'a :: real_normed_vector set"
+  shows "\<lbrakk>S \<noteq> {}; S \<noteq> UNIV\<rbrakk> \<Longrightarrow> frontier S \<noteq> {}"
+    using connected_Int_frontier [of UNIV S] by auto
+
+lemma frontier_eq_empty:
+  fixes S :: "'a :: real_normed_vector set"
+  shows "frontier S = {} \<longleftrightarrow> S = {} \<or> S = UNIV"
+using frontier_UNIV frontier_empty frontier_not_empty by blast
+
+lemma frontier_of_connected_component_subset:
+  fixes S :: "'a::real_normed_vector set"
+  shows "frontier(connected_component_set S x) \<subseteq> frontier S"
+proof -
+  { fix y
+    assume y1: "y \<in> closure (connected_component_set S x)"
+       and y2: "y \<notin> interior (connected_component_set S x)"
+    have 1: "y \<in> closure S"
+      using y1 closure_mono connected_component_subset by blast
+    have "z \<in> interior (connected_component_set S x)"
+          if "0 < e" "ball y e \<subseteq> interior S" "dist y z < e" for e z
+    proof -
+      have "ball y e \<subseteq> connected_component_set S y"
+        apply (rule connected_component_maximal)
+        using that interior_subset mem_ball apply auto
+        done
+      then show ?thesis
+        using y1 apply (simp add: closure_approachable open_contains_ball_eq [OF open_interior])
+        by (metis (no_types, hide_lams) connected_component_eq_eq connected_component_in subsetD
+                       dist_commute mem_Collect_eq mem_ball mem_interior \<open>0 < e\<close> y2)
+    qed
+    then have 2: "y \<notin> interior S"
+      using y2 by (force simp: open_contains_ball_eq [OF open_interior])
+    note 1 2
+  }
+  then show ?thesis by (auto simp: frontier_def)
+qed
 
 lemma connected_component_UNIV:
     fixes x :: "'a::real_normed_vector"
@@ -1992,7 +2077,7 @@ proof -
     assume x: "x \<in> interior s" and y: "y \<notin> s"
        and cc: "connected_component (- frontier s) x y"
     have "connected_component_set (- frontier s) x \<inter> frontier s \<noteq> {}"
-      apply (rule connected_inter_frontier, simp)
+      apply (rule connected_Int_frontier, simp)
       apply (metis IntI cc connected_component_in connected_component_refl empty_iff interiorE mem_Collect_eq set_rev_mp x)
       using  y cc
       by blast

@@ -1998,7 +1998,7 @@ proof
     apply (rule retract_fixpoint_property[OF *, of "\<lambda>x. scaleR 2 a - x"])
     apply (blast intro: brouwer_ball[OF assms])
     apply (intro continuous_intros)
-    unfolding frontier_cball subset_eq Ball_def image_iff dist_norm
+    unfolding frontier_cball subset_eq Ball_def image_iff dist_norm sphere_def
     apply (auto simp add: ** norm_minus_commute)
     done
   then have "scaleR 2 a = scaleR 1 x + scaleR 1 x"

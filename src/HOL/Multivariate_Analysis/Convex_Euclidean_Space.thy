@@ -324,10 +324,24 @@ lemma scaleR_2:
   unfolding one_add_one [symmetric] scaleR_left_distrib by simp
 
 lemma vector_choose_size:
-  "0 \<le> c \<Longrightarrow> \<exists>x::'a::euclidean_space. norm x = c"
-  apply (rule exI [where x="c *\<^sub>R (SOME i. i \<in> Basis)"])
-  apply (auto simp: SOME_Basis)
-  done
+  assumes "0 \<le> c"
+  obtains x :: "'a::{real_normed_vector, perfect_space}" where "norm x = c"
+proof -
+  obtain a::'a where "a \<noteq> 0"
+    using UNIV_not_singleton UNIV_eq_I set_zero singletonI by fastforce
+  then show ?thesis
+    by (rule_tac x="scaleR (c / norm a) a" in that) (simp add: assms)
+qed
+
+lemma vector_choose_dist:
+  assumes "0 \<le> c"
+  obtains y :: "'a::{real_normed_vector, perfect_space}" where "dist x y = c"
+by (metis add_diff_cancel_left' assms dist_commute dist_norm vector_choose_size)
+
+lemma sphere_eq_empty [simp]:
+  fixes a :: "'a::{real_normed_vector, perfect_space}"
+  shows "sphere a r = {} \<longleftrightarrow> r < 0"
+by (auto simp: sphere_def dist_norm) (metis dist_norm le_less_linear vector_choose_dist)
 
 lemma setsum_delta_notmem:
   assumes "x \<notin> s"
@@ -4300,8 +4314,7 @@ lemma closest_point_exists:
     and "\<forall>y\<in>s. dist a (closest_point s a) \<le> dist a y"
   unfolding closest_point_def
   apply(rule_tac[!] someI2_ex)
-  using distance_attains_inf[OF assms(1,2), of a]
-  apply auto
+  apply (auto intro: distance_attains_inf[OF assms(1,2), of a])
   done
 
 lemma closest_point_in_set: "closed s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> closest_point s a \<in> s"
@@ -4446,9 +4459,8 @@ lemma supporting_hyperplane_closed_point:
     and "z \<notin> s"
   shows "\<exists>a b. \<exists>y\<in>s. inner a z < b \<and> inner a y = b \<and> (\<forall>x\<in>s. inner a x \<ge> b)"
 proof -
-  from distance_attains_inf[OF assms(2-3)]
   obtain y where "y \<in> s" and y: "\<forall>x\<in>s. dist z y \<le> dist z x"
-    by auto
+    by (metis distance_attains_inf[OF assms(2-3)]) 
   show ?thesis
     apply (rule_tac x="y - z" in exI)
     apply (rule_tac x="inner (y - z) y" in exI)
@@ -4497,7 +4509,7 @@ proof (cases "s = {}")
 next
   case False
   obtain y where "y \<in> s" and y: "\<forall>x\<in>s. dist z y \<le> dist z x"
-    using distance_attains_inf[OF assms(2) False] by auto
+    by (metis distance_attains_inf[OF assms(2) False])
   show ?thesis
     apply (rule_tac x="y - z" in exI)
     apply (rule_tac x="inner (y - z) z + (norm (y - z))\<^sup>2 / 2" in exI)
@@ -4657,16 +4669,8 @@ lemma separating_hyperplane_set_0:
   shows "\<exists>a. a \<noteq> 0 \<and> (\<forall>x\<in>s. 0 \<le> inner a x)"
 proof -
   let ?k = "\<lambda>c. {x::'a. 0 \<le> inner c x}"
-  have "frontier (cball 0 1) \<inter> (\<Inter>(?k ` s)) \<noteq> {}"
-    apply (rule compact_imp_fip)
-    apply (rule compact_frontier[OF compact_cball])
-    defer
-    apply rule
-    apply rule
-    apply (erule conjE)
+  have *: "frontier (cball 0 1) \<inter> \<Inter>f \<noteq> {}" if as: "f \<subseteq> ?k ` s" "finite f" for f
   proof -
-    fix f
-    assume as: "f \<subseteq> ?k ` s" "finite f"
     obtain c where c: "f = ?k ` c" "c \<subseteq> s" "finite c"
       using finite_subset_image[OF as(2,1)] by auto
     then obtain a b where ab: "a \<noteq> 0" "0 < b" "\<forall>x\<in>convex hull c. b < inner a x"
@@ -4680,14 +4684,17 @@ proof -
       unfolding subset_eq and inner_scaleR
       by (auto simp add: inner_commute del: ballE elim!: ballE)
     then show "frontier (cball 0 1) \<inter> \<Inter>f \<noteq> {}"
-      unfolding c(1) frontier_cball dist_norm by auto
-  qed (insert closed_halfspace_ge, auto)
+      unfolding c(1) frontier_cball sphere_def dist_norm by auto
+  qed
+  have "frontier (cball 0 1) \<inter> (\<Inter>(?k ` s)) \<noteq> {}"
+    apply (rule compact_imp_fip)
+    apply (rule compact_frontier[OF compact_cball])
+    using * closed_halfspace_ge
+    by auto
   then obtain x where "norm x = 1" "\<forall>y\<in>s. x\<in>?k y"
-    unfolding frontier_cball dist_norm by auto
+    unfolding frontier_cball dist_norm sphere_def by auto
   then show ?thesis
-    apply (rule_tac x=x in exI)
-    apply (auto simp add: inner_commute)
-    done
+    by (metis inner_commute mem_Collect_eq norm_eq_zero zero_neq_one)
 qed
 
 lemma separating_hyperplane_sets:
@@ -9928,8 +9935,9 @@ proof -
     using assms by blast
   then
   have "\<exists>x \<in> s. \<exists>y \<in> t. dist x y \<le> setdist s t"
-    using  distance_attains_inf [where a=0, OF compact_closed_differences [OF s t]] assms
-    apply (clarsimp simp: dist_norm le_setdist_iff, blast)
+    apply (rule distance_attains_inf [where a=0, OF compact_closed_differences [OF s t]])
+    apply (simp add: dist_norm le_setdist_iff)
+    apply blast
     done
   then show ?thesis
     by (blast intro!: antisym [OF _ setdist_le_dist] )
@@ -10008,6 +10016,5 @@ using closure_subset by force
 
 lemma setdist_le_sing: "x \<in> s ==> setdist s t \<le> setdist {x} t"
   using setdist_subset_left by auto
-
 
 end

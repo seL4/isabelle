@@ -6,7 +6,7 @@
 section \<open>Uniform Limit and Uniform Convergence\<close>
 
 theory Uniform_Limit
-imports Topology_Euclidean_Space
+imports Topology_Euclidean_Space Summation
 begin
 
 definition uniformly_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> ('a \<Rightarrow> 'b) filter"
@@ -45,12 +45,12 @@ lemma uniform_limit_sequentially_iff:
 lemma uniform_limit_at_iff:
   "uniform_limit S f l (at x) \<longleftrightarrow>
     (\<forall>e>0. \<exists>d>0. \<forall>z. 0 < dist z x \<and> dist z x < d \<longrightarrow> (\<forall>x\<in>S. dist (f z x) (l x) < e))"
-  unfolding uniform_limit_iff eventually_at2 ..
+  unfolding uniform_limit_iff eventually_at by simp
 
 lemma uniform_limit_at_le_iff:
   "uniform_limit S f l (at x) \<longleftrightarrow>
     (\<forall>e>0. \<exists>d>0. \<forall>z. 0 < dist z x \<and> dist z x < d \<longrightarrow> (\<forall>x\<in>S. dist (f z x) (l x) \<le> e))"
-  unfolding uniform_limit_iff eventually_at2
+  unfolding uniform_limit_iff eventually_at
   by (fastforce dest: spec[where x = "e / 2" for e])
 
 lemma swap_uniform_limit:
@@ -188,6 +188,9 @@ qed (auto simp: uniformly_convergent_on_def)
 
 lemma uniformly_convergentI: "uniform_limit X f l sequentially \<Longrightarrow> uniformly_convergent_on X f"
   unfolding uniformly_convergent_on_def by blast
+
+lemma uniformly_convergent_on_empty [iff]: "uniformly_convergent_on {} f"
+  by (simp add: uniformly_convergent_on_def uniform_limit_sequentially_iff)
 
 lemma Cauchy_uniformly_convergent:
   fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b :: complete_space"
@@ -472,7 +475,7 @@ lemma uniform_limit_on_union:
   "uniform_limit I f g F \<Longrightarrow> uniform_limit J f g F \<Longrightarrow> uniform_limit (I \<union> J) f g F"
   by (auto intro!: uniform_limitI dest!: uniform_limitD elim: eventually_elim2)
 
-lemma uniform_limit_on_empty:
+lemma uniform_limit_on_empty [iff]:
   "uniform_limit {} f g F"
   by (auto intro!: uniform_limitI)
 
@@ -508,5 +511,47 @@ lemma uniformly_convergent_mult:
       uniformly_convergent_on A (\<lambda>k x. c * f k x :: 'a :: {real_normed_algebra})"
   unfolding uniformly_convergent_on_def
   by (blast dest: bounded_linear_uniform_limit_intros(13))
+
+subsection\<open>Power series and uniform convergence\<close>
+
+proposition powser_uniformly_convergent:
+  fixes a :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}"
+  assumes "r < conv_radius a"
+  shows "uniformly_convergent_on (cball \<xi> r) (\<lambda>n x. \<Sum>i<n. a i * (x - \<xi>) ^ i)"
+proof (cases "0 \<le> r")
+  case True
+  then have *: "summable (\<lambda>n. norm (a n) * r ^ n)"
+    using abs_summable_in_conv_radius [of "of_real r" a] assms
+    by (simp add: norm_mult norm_power)
+  show ?thesis
+    by (simp add: weierstrass_m_test'_ev [OF _ *] norm_mult norm_power
+              mult_left_mono power_mono dist_norm norm_minus_commute)
+next
+  case False then show ?thesis by (simp add: not_le)
+qed
+
+lemma powser_uniform_limit:
+  fixes a :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}"
+  assumes "r < conv_radius a"
+  shows "uniform_limit (cball \<xi> r) (\<lambda>n x. \<Sum>i<n. a i * (x - \<xi>) ^ i) (\<lambda>x. suminf (\<lambda>i. a i * (x - \<xi>) ^ i)) sequentially"
+using powser_uniformly_convergent [OF assms]
+by (simp add: Uniform_Limit.uniformly_convergent_uniform_limit_iff Series.suminf_eq_lim)
+
+lemma powser_continuous_suminf:
+  fixes a :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}"
+  assumes "r < conv_radius a"
+  shows "continuous_on (cball \<xi> r) (\<lambda>x. suminf (\<lambda>i. a i * (x - \<xi>) ^ i))"
+apply (rule uniform_limit_theorem [OF _ powser_uniform_limit])
+apply (rule eventuallyI continuous_intros assms)+
+apply (simp add:)
+done
+
+lemma powser_continuous_sums:
+  fixes a :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}"
+  assumes r: "r < conv_radius a"
+      and sm: "\<And>x. x \<in> cball \<xi> r \<Longrightarrow> (\<lambda>n. a n * (x - \<xi>) ^ n) sums (f x)"
+  shows "continuous_on (cball \<xi> r) f"
+apply (rule continuous_on_cong [THEN iffD1, OF refl _ powser_continuous_suminf [OF r]])
+using sm sums_unique by fastforce
 
 end

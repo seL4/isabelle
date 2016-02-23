@@ -583,7 +583,6 @@ lemma conv_radius_altdef:
   "conv_radius f = liminf (\<lambda>n. inverse (ereal (root n (norm (f n)))))"
   by (subst Liminf_inverse_ereal) (simp_all add: real_root_ge_zero conv_radius_def)
 
-
 lemma abs_summable_in_conv_radius:
   fixes f :: "nat \<Rightarrow> 'a :: {banach, real_normed_div_algebra}"
   assumes "ereal (norm z) < conv_radius f"
@@ -905,7 +904,16 @@ proof (rule conv_radius_geI_ex')
   from r have "summable (\<lambda>n. (\<Sum>i\<le>n. (f i * of_real r^i) * (g (n - i) * of_real r^(n - i))))"
     by (intro summable_Cauchy_product abs_summable_in_conv_radius) simp_all
   thus "summable (\<lambda>n. (\<Sum>i\<le>n. f i * g (n - i)) * of_real r ^ n)"
-    by (simp add: algebra_simps of_real_def scaleR_power power_add [symmetric] scaleR_setsum_right)
+    by (simp add: algebra_simps of_real_def power_add [symmetric] scaleR_setsum_right)
 qed
+
+lemma le_conv_radius_iff:
+  fixes a :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}"
+  shows "r \<le> conv_radius a \<longleftrightarrow> (\<forall>x. norm (x-\<xi>) < r \<longrightarrow> summable (\<lambda>i. a i * (x - \<xi>) ^ i))"
+apply (intro iffI allI impI summable_in_conv_radius conv_radius_geI_ex)
+apply (meson less_ereal.simps(1) not_le order_trans)
+apply (rule_tac x="of_real ra" in exI, simp)
+apply (metis abs_of_nonneg add_diff_cancel_left' less_eq_real_def norm_of_real)
+done
 
 end

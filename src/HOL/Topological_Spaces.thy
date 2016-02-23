@@ -194,6 +194,9 @@ text \<open>A perfect space is a topological space with no isolated points.\<clo
 class perfect_space = topological_space +
   assumes not_open_singleton: "\<not> open {x}"
 
+lemma UNIV_not_singleton: "UNIV \<noteq> {x::'a::perfect_space}"
+  by (metis open_UNIV not_open_singleton)
+
 
 subsection \<open>Generators for toplogies\<close>
 

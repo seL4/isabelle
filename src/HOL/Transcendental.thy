@@ -472,10 +472,6 @@ text\<open>Lemma about distributing negation over it\<close>
 lemma diffs_minus: "diffs (\<lambda>n. - c n) = (\<lambda>n. - diffs c n)"
   by (simp add: diffs_def)
 
-lemma sums_Suc_imp:
-  "(f::nat \<Rightarrow> 'a::real_normed_vector) 0 = 0 \<Longrightarrow> (\<lambda>n. f (Suc n)) sums s \<Longrightarrow> (\<lambda>n. f n) sums s"
-  using sums_Suc_iff[of f] by simp
-
 lemma diffs_equiv:
   fixes x :: "'a::{real_normed_vector, ring_1}"
   shows "summable (\<lambda>n. diffs c n * x^n) \<Longrightarrow>

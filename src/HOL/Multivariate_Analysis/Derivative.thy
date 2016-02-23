@@ -1697,15 +1697,15 @@ except of course if we want the fact that the inverse derivative is
 also continuous. So if we know for some other reason that the inverse
 function exists, it's OK.\<close>
 
-lemma has_derivative_locally_injective:
+proposition has_derivative_locally_injective:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "a \<in> s"
-    and "open s"
-    and "bounded_linear g'"
-    and "g' \<circ> f' a = id"
-    and "\<forall>x\<in>s. (f has_derivative f' x) (at x)"
-    and "\<forall>e>0. \<exists>d>0. \<forall>x. dist a x < d \<longrightarrow> onorm (\<lambda>v. f' x v - f' a v) < e"
-  obtains t where "a \<in> t" "open t" "\<forall>x\<in>t. \<forall>x'\<in>t. f x' = f x \<longrightarrow> x' = x"
+      and "open s"
+      and "bounded_linear g'"
+      and "g' \<circ> f' a = id"
+      and "\<And>x. x \<in> s \<Longrightarrow> (f has_derivative f' x) (at x)"
+      and "\<And>e. e > 0 \<Longrightarrow> \<exists>d>0. \<forall>x. dist a x < d \<longrightarrow> onorm (\<lambda>v. f' x v - f' a v) < e"
+  obtains r where "r > 0" "ball a r \<subseteq> s" "inj_on f (ball a r)"
 proof -
   interpret bounded_linear g'
     using assms by auto
@@ -1738,9 +1738,11 @@ proof -
     using real_lbound_gt_zero[OF d1(1) d2(1)] by blast
   show ?thesis
   proof
-    show "a \<in> ball a d"
-      using d by auto
-    show "\<forall>x\<in>ball a d. \<forall>x'\<in>ball a d. f x' = f x \<longrightarrow> x' = x"
+    show "0 < d" by (fact d)
+    show "ball a d \<subseteq> s"
+      using \<open>d < d2\<close> \<open>ball a d2 \<subseteq> s\<close> by auto
+    show "inj_on f (ball a d)"
+    unfolding inj_on_def
     proof (intro strip)
       fix x y
       assume as: "x \<in> ball a d" "y \<in> ball a d" "f x = f y"
@@ -1749,7 +1751,7 @@ proof -
         unfolding ph_def o_def
         unfolding diff
         using f'g'
-        by (auto simp add: algebra_simps)
+        by (auto simp: algebra_simps)
       have "norm (ph x - ph y) \<le> (1 / 2) * norm (x - y)"
         apply (rule differentiable_bound[OF convex_ball _ _ as(1-2), where f'="\<lambda>x v. v - g'(f' x v)"])
         apply (rule_tac[!] ballI)
@@ -1788,7 +1790,7 @@ proof -
           using d1(2)[of u]
           using onorm_neg[where f="\<lambda>x. f' u x - f' a x"]
           using d and u and onorm_pos_le[OF assms(3)]
-          apply (auto simp add: algebra_simps)
+          apply (auto simp: algebra_simps)
           done
         also have "\<dots> \<le> 1 / 2"
           unfolding k_def by auto
@@ -1804,7 +1806,7 @@ proof -
       ultimately show "x = y"
         unfolding norm_minus_commute by auto
     qed
-  qed auto
+  qed
 qed
 
 

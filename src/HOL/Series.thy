@@ -357,9 +357,12 @@ proof
   thus "summable (\<lambda>n. f (Suc n))" unfolding summable_def by blast
 qed (auto simp: sums_Suc_iff summable_def)
 
+lemma sums_Suc_imp: "f 0 = 0 \<Longrightarrow> (\<lambda>n. f (Suc n)) sums s \<Longrightarrow> (\<lambda>n. f n) sums s"
+  using sums_Suc_iff by simp
+
 end
 
-context
+context --\<open>Separate contexts are necessary to allow general use of the results above, here.\<close>
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
 begin
 
@@ -392,6 +395,11 @@ qed simp
 
 corollary sums_iff_shift': "(\<lambda>i. f (i + n)) sums (s - (\<Sum>i<n. f i)) \<longleftrightarrow> f sums s"
   by (simp add: sums_iff_shift)
+
+lemma sums_zero_iff_shift:
+  assumes "\<And>i. i < n \<Longrightarrow> f i = 0"
+  shows "(\<lambda>i. f (i+n)) sums s \<longleftrightarrow> (\<lambda>i. f i) sums s"
+by (simp add: assms sums_iff_shift)
 
 lemma summable_iff_shift: "summable (\<lambda>n. f (n + k)) \<longleftrightarrow> summable f"
   by (metis diff_add_cancel summable_def sums_iff_shift[abs_def])
