@@ -280,15 +280,15 @@ qed
 
 lemma normalize_eq: "normalize (a, b) = (p, q) \<Longrightarrow> Fract p q = Fract a b"
   by (auto simp add: normalize_def Let_def Fract_coprime dvd_div_neg rat_number_collapse
-    split:split_if_asm)
+    split:if_split_asm)
 
 lemma normalize_denom_pos: "normalize r = (p, q) \<Longrightarrow> q > 0"
   by (auto simp add: normalize_def Let_def dvd_div_neg pos_imp_zdiv_neg_iff nonneg1_imp_zdiv_pos_iff
-    split:split_if_asm)
+    split:if_split_asm)
 
 lemma normalize_coprime: "normalize r = (p, q) \<Longrightarrow> coprime p q"
   by (auto simp add: normalize_def Let_def dvd_div_neg div_gcd_coprime
-    split:split_if_asm)
+    split:if_split_asm)
 
 lemma normalize_stable [simp]:
   "q > 0 \<Longrightarrow> coprime p q \<Longrightarrow> normalize (p, q) = (p, q)"

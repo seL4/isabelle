@@ -43,7 +43,7 @@ lemma extensionalD_insert[simp]:
   shows "extensionalD d (insert a A) \<inter> (insert a A \<rightarrow> B) = (\<Union>f \<in> extensionalD d A \<inter> (A \<rightarrow> B). (\<lambda>b. f(a := b)) ` B)"
   apply (rule funset_eq_UN_fun_upd_I)
   using assms
-  by (auto intro!: inj_onI dest: inj_onD split: split_if_asm simp: extensionalD_def)
+  by (auto intro!: inj_onI dest: inj_onD split: if_split_asm simp: extensionalD_def)
 
 lemma finite_extensionalD_funcset[simp, intro]:
   assumes "finite A" "finite B"

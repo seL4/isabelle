@@ -988,7 +988,7 @@ lemma iff_conv_conj_imp: "(P = Q) = ((P \<longrightarrow> Q) \<and> (Q \<longrig
 
 
 lemma cases_simp: "((P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> Q)) = Q"
-  \<comment> \<open>Avoids duplication of subgoals after \<open>split_if\<close>, when the true and false\<close>
+  \<comment> \<open>Avoids duplication of subgoals after \<open>if_split\<close>, when the true and false\<close>
   \<comment> \<open>cases boil down to the same thing.\<close>
   by blast
 
@@ -1036,30 +1036,30 @@ lemma if_P: "P \<Longrightarrow> (if P then x else y) = x"
 lemma if_not_P: "\<not> P \<Longrightarrow> (if P then x else y) = y"
   by (unfold If_def) blast
 
-lemma split_if: "P (if Q then x else y) = ((Q \<longrightarrow> P x) \<and> (\<not> Q \<longrightarrow> P y))"
+lemma if_split: "P (if Q then x else y) = ((Q \<longrightarrow> P x) \<and> (\<not> Q \<longrightarrow> P y))"
   apply (rule case_split [of Q])
    apply (simplesubst if_P)
     prefer 3 apply (simplesubst if_not_P, blast+)
   done
 
-lemma split_if_asm: "P (if Q then x else y) = (\<not> ((Q \<and> \<not> P x) \<or> (\<not> Q \<and> \<not> P y)))"
-by (simplesubst split_if, blast)
+lemma if_split_asm: "P (if Q then x else y) = (\<not> ((Q \<and> \<not> P x) \<or> (\<not> Q \<and> \<not> P y)))"
+by (simplesubst if_split, blast)
 
-lemmas if_splits [no_atp] = split_if split_if_asm
+lemmas if_splits [no_atp] = if_split if_split_asm
 
 lemma if_cancel: "(if c then x else x) = x"
-by (simplesubst split_if, blast)
+by (simplesubst if_split, blast)
 
 lemma if_eq_cancel: "(if x = y then y else x) = x"
-by (simplesubst split_if, blast)
+by (simplesubst if_split, blast)
 
 lemma if_bool_eq_conj: "(if P then Q else R) = ((P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> R))"
   \<comment> \<open>This form is useful for expanding \<open>if\<close>s on the RIGHT of the \<open>\<Longrightarrow>\<close> symbol.\<close>
-  by (rule split_if)
+  by (rule if_split)
 
 lemma if_bool_eq_disj: "(if P then Q else R) = ((P \<and> Q) \<or> (\<not> P \<and> R))"
   \<comment> \<open>And this form is useful for expanding \<open>if\<close>s on the LEFT.\<close>
-  by (simplesubst split_if) blast
+  by (simplesubst if_split) blast
 
 lemma Eq_TrueI: "P \<Longrightarrow> P \<equiv> True" by (unfold atomize_eq) iprover
 lemma Eq_FalseI: "\<not> P \<Longrightarrow> P \<equiv> False" by (unfold atomize_eq) iprover
@@ -1303,7 +1303,7 @@ lemmas [simp] =
   simp_thms
 
 lemmas [cong] = imp_cong simp_implies_cong
-lemmas [split] = split_if
+lemmas [split] = if_split
 
 ML \<open>val HOL_ss = simpset_of @{context}\<close>
 

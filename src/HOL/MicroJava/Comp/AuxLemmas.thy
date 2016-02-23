@@ -108,7 +108,7 @@ lemma map_of_upds_SomeD: "(map_of m (xs[\<mapsto>]ys)) k = Some y
 
 lemma map_of_map_prop:
   "\<lbrakk>map_of (map f xs) k = Some v; \<forall>x \<in> set xs. P1 x; \<forall>x. P1 x \<longrightarrow> P2 (f x)\<rbrakk> \<Longrightarrow> P2 (k, v)"
-  by (induct xs) (auto split: split_if_asm)
+  by (induct xs) (auto split: if_split_asm)
 
 lemma map_of_map2: "\<forall>x \<in> set xs. (fst (f x)) = (fst x) \<Longrightarrow>
   map_of (map f xs) a = map_option (\<lambda> b. (snd (f (a, b)))) (map_of xs a)"

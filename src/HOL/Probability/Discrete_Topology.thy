@@ -34,7 +34,7 @@ instance discrete :: (type) complete_space
 proof
   fix X::"nat\<Rightarrow>'a discrete" assume "Cauchy X"
   hence "\<exists>n. \<forall>m\<ge>n. X n = X m"
-    by (force simp: dist_discrete_def Cauchy_def split: split_if_asm dest:spec[where x=1])
+    by (force simp: dist_discrete_def Cauchy_def split: if_split_asm dest:spec[where x=1])
   then guess n ..
   thus "convergent X"
     by (intro convergentI[where L="X n"] tendstoI eventually_sequentiallyI[of n])

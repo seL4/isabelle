@@ -68,7 +68,7 @@ lemma
   shows setsum_mult_indicator[simp]: "(\<Sum>x \<in> A. f x * indicator B x) = (\<Sum>x \<in> A \<inter> B. f x)"
   and setsum_indicator_mult[simp]: "(\<Sum>x \<in> A. indicator B x * f x) = (\<Sum>x \<in> A \<inter> B. f x)"
   unfolding indicator_def
-  using assms by (auto intro!: setsum.mono_neutral_cong_right split: split_if_asm)
+  using assms by (auto intro!: setsum.mono_neutral_cong_right split: if_split_asm)
 
 lemma setsum_indicator_eq_card:
   assumes "finite A"
@@ -79,7 +79,7 @@ lemma setsum_indicator_eq_card:
 lemma setsum_indicator_scaleR[simp]:
   "finite A \<Longrightarrow>
     (\<Sum>x \<in> A. indicator (B x) (g x) *\<^sub>R f x) = (\<Sum>x \<in> {x\<in>A. g x \<in> B x}. f x::'a::real_vector)"
-  using assms by (auto intro!: setsum.mono_neutral_cong_right split: split_if_asm simp: indicator_def)
+  using assms by (auto intro!: setsum.mono_neutral_cong_right split: if_split_asm simp: indicator_def)
 
 lemma LIMSEQ_indicator_incseq:
   assumes "incseq A"

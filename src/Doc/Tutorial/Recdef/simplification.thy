@@ -40,7 +40,7 @@ simplification steps. Fortunately, this problem can be avoided in many
 different ways.
 
 The most radical solution is to disable the offending theorem
-@{thm[source]split_if},
+@{thm[source]if_split},
 as shown in \S\ref{sec:AutoCaseSplits}.  However, we do not recommend this
 approach: you will often have to invoke the rule explicitly when
 @{text "if"} is involved.

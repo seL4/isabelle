@@ -191,7 +191,7 @@ done
 lemma class_tprgD: 
 "class tprg C = Some z ==> C=Object \<or> C=Base \<or> C=Ext \<or> C=Xcpt NP \<or> C=Xcpt ClassCast \<or> C=Xcpt OutOfMemory"
 apply (unfold ObjectC_def ClassCastC_def NullPointerC_def OutOfMemoryC_def BaseC_def ExtC_def class_def)
-apply (auto split add: split_if_asm simp add: map_of_Cons)
+apply (auto split add: if_split_asm simp add: map_of_Cons)
 done
 
 lemma not_class_subcls_class [elim!]: "(C, C) \<in> (subcls1 tprg)^+ ==> R"
@@ -402,7 +402,7 @@ done
 
 
 lemmas e = NewCI eval_evals_exec.intros
-declare split_if [split del]
+declare if_split [split del]
 declare init_vars_def [simp] c_hupd_def [simp] cast_ok_def [simp]
 schematic_goal exec_test: 
 " [|new_Addr (heap (snd s0)) = (a, None)|] ==>  

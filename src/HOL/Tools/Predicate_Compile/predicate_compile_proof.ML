@@ -320,7 +320,7 @@ fun prove_match2 options ctxt out_ts =
       else all_tac
   in
     split_term_tac (HOLogic.mk_tuple out_ts)
-    THEN (DETERM (TRY ((Splitter.split_asm_tac ctxt @{thms split_if_asm} 1)
+    THEN (DETERM (TRY ((Splitter.split_asm_tac ctxt @{thms if_split_asm} 1)
     THEN (eresolve_tac ctxt @{thms botE} 2))))
   end
 

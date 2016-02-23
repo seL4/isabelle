@@ -581,7 +581,7 @@ lemma measurable_Ex1[measurable (raw)]:
   shows "Measurable.pred M (\<lambda>x. \<exists>!i\<in>I. P i x)"
   unfolding bex1_def by measurable
 
-lemma measurable_split_if[measurable (raw)]:
+lemma measurable_if_split[measurable (raw)]:
   "(c \<Longrightarrow> Measurable.pred M f) \<Longrightarrow> (\<not> c \<Longrightarrow> Measurable.pred M g) \<Longrightarrow>
    Measurable.pred M (if c then f else g)"
   by simp

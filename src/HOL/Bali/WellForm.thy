@@ -2410,7 +2410,7 @@ lemma wt_is_type: "E,dt\<Turnstile>v\<Colon>T \<Longrightarrow>  wf_prog (prg E)
                    | Inr Ts \<Rightarrow> Ball (set Ts) (is_type (prg E)))"
 apply (unfold empty_dt_def)
 apply (erule wt.induct)
-apply (auto split del: split_if_asm simp del: snd_conv 
+apply (auto split del: if_split_asm simp del: snd_conv 
             simp add: is_acc_class_def is_acc_type_def)
 apply    (erule typeof_empty_is_type)
 apply   (frule (1) wf_prog_cdecl [THEN wf_cdecl_supD], 

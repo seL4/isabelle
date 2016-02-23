@@ -115,7 +115,7 @@ lemma map_upds_takeWhile [rule_format]:
    apply (drule_tac x=kr in spec)
    apply (simp only: rev.simps)
    apply (subgoal_tac "(empty(rev kr @ [k'][\<mapsto>]rev xs @ [a])) = empty (rev kr[\<mapsto>]rev xs)([k'][\<mapsto>][a])")
-    apply (simp split:split_if_asm)
+    apply (simp split:if_split_asm)
    apply (simp add: map_upds_append [symmetric])
   apply (case_tac ks)
    apply auto

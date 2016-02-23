@@ -165,7 +165,7 @@ lemma
   shows setsum_mult_indicator[simp]: "(\<Sum>x \<in> A. f x * indicator (B x) (g x)) = (\<Sum>x\<in>{x\<in>A. g x \<in> B x}. f x)"
   and setsum_indicator_mult[simp]: "(\<Sum>x \<in> A. indicator (B x) (g x) * f x) = (\<Sum>x\<in>{x\<in>A. g x \<in> B x}. f x)"
   unfolding indicator_def
-  using assms by (auto intro!: setsum.mono_neutral_cong_right split: split_if_asm)
+  using assms by (auto intro!: setsum.mono_neutral_cong_right split: if_split_asm)
 
 lemma borel_measurable_induct_real[consumes 2, case_names set mult add seq]:
   fixes P :: "('a \<Rightarrow> real) \<Rightarrow> bool"

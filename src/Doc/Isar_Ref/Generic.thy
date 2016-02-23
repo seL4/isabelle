@@ -1086,9 +1086,9 @@ text \<open>
   For technical reasons, there is a distinction between case splitting
   in the conclusion and in the premises of a subgoal.  The former is
   done by @{ML Splitter.split_tac} with rules like @{thm [source]
-  split_if} or @{thm [source] option.split}, which do not split the
+  if_split} or @{thm [source] option.split}, which do not split the
   subgoal, while the latter is done by @{ML Splitter.split_asm_tac}
-  with rules like @{thm [source] split_if_asm} or @{thm [source]
+  with rules like @{thm [source] if_split_asm} or @{thm [source]
   option.split_asm}, which split the subgoal.  The function @{ML
   Splitter.add_split} automatically takes care of which tactic to
   call, analyzing the form of the rules given as argument; it is the

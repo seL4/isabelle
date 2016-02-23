@@ -226,7 +226,7 @@ proof (rule ordIso_symmetric)
   def f \<equiv> "\<lambda>y a. if y = x \<and> a \<in> A then x else undefined"
   have "Func A {x} \<subseteq> f ` {x}" unfolding f_def Func_def by (force simp: fun_eq_iff)
   hence "bij_betw f {x} (Func A {x})" unfolding bij_betw_def inj_on_def f_def Func_def
-    by (auto split: split_if_asm)
+    by (auto split: if_split_asm)
   thus "|{x}| =o |Func A {x}|" using card_of_ordIso by blast
 qed
 
@@ -239,7 +239,7 @@ lemma card_of_Func_squared:
 proof (rule ordIso_symmetric)
   def f \<equiv> "\<lambda>(x::'a,y) b. if A = {} then undefined else if b then x else y"
   have "Func (UNIV :: bool set) A \<subseteq> f ` (A \<times> A)" unfolding f_def Func_def
-    by (auto simp: image_iff fun_eq_iff split: option.splits split_if_asm) blast
+    by (auto simp: image_iff fun_eq_iff split: option.splits if_split_asm) blast
   hence "bij_betw f (A \<times> A) (Func (UNIV :: bool set) A)"
     unfolding bij_betw_def inj_on_def f_def Func_def by (auto simp: fun_eq_iff)
   thus "|A \<times> A| =o |Func (UNIV :: bool set) A|" using card_of_ordIso by blast

@@ -268,11 +268,11 @@ txt{*\noindent
 The goal can be split by a special method, \methdx{split}:
 *}
 
-apply(split split_if)
+apply(split if_split)
 
 txt{*\noindent
 @{subgoals[display,indent=0]}
-where \tdx{split_if} is a theorem that expresses splitting of
+where \tdx{if_split} is a theorem that expresses splitting of
 @{text"if"}s. Because
 splitting the @{text"if"}s is usually the right proof strategy, the
 simplifier does it automatically.  Try \isacommand{apply}@{text"(simp)"}
@@ -316,7 +316,7 @@ either locally
 (*<*)
 lemma "dummy=dummy"
 (*>*)
-apply(simp split del: split_if)
+apply(simp split del: if_split)
 (*<*)
 oops
 (*>*)
@@ -334,11 +334,11 @@ helpful in selectively exploring the effects of splitting.
 
 The split rules shown above are intended to affect only the subgoal's
 conclusion.  If you want to split an @{text"if"} or @{text"case"}-expression
-in the assumptions, you have to apply \tdx{split_if_asm} or
+in the assumptions, you have to apply \tdx{if_split_asm} or
 $t$@{text".split_asm"}: *}
 
 lemma "if xs = [] then ys \<noteq> [] else ys = [] \<Longrightarrow> xs @ ys \<noteq> []"
-apply(split split_if_asm)
+apply(split if_split_asm)
 
 txt{*\noindent
 Unlike splitting the conclusion, this step creates two

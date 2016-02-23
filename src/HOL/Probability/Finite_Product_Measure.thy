@@ -131,7 +131,7 @@ lemma
 
 lemma prod_emb_PiE: "J \<subseteq> I \<Longrightarrow> (\<And>i. i \<in> J \<Longrightarrow> E i \<subseteq> space (M i)) \<Longrightarrow>
     prod_emb I M J (\<Pi>\<^sub>E i\<in>J. E i) = (\<Pi>\<^sub>E i\<in>I. if i \<in> J then E i else space (M i))"
-  by (force simp: prod_emb_def PiE_iff split_if_mem2)
+  by (force simp: prod_emb_def PiE_iff if_split_mem2)
 
 lemma prod_emb_PiE_same_index[simp]:
     "(\<And>i. i \<in> I \<Longrightarrow> E i \<subseteq> space (M i)) \<Longrightarrow> prod_emb I M I (Pi\<^sub>E I E) = Pi\<^sub>E I E"
@@ -145,7 +145,7 @@ lemma prod_emb_Pi:
   assumes "X \<in> (\<Pi> j\<in>J. sets (M j))" "J \<subseteq> K"
   shows "prod_emb K M J (Pi\<^sub>E J X) = (\<Pi>\<^sub>E i\<in>K. if i \<in> J then X i else space (M i))"
   using assms sets.space_closed
-  by (auto simp: prod_emb_def PiE_iff split: split_if_asm) blast+
+  by (auto simp: prod_emb_def PiE_iff split: if_split_asm) blast+
 
 lemma prod_emb_id:
   "B \<subseteq> (\<Pi>\<^sub>E i\<in>L. space (M i)) \<Longrightarrow> prod_emb L M L B = B"
@@ -202,7 +202,7 @@ next
 next
   case (4 x)
   thus ?case using assms 
-    by (auto intro!: setprod.cong split: split_if_asm)
+    by (auto intro!: setprod.cong split: if_split_asm)
 qed
 
 
@@ -581,7 +581,7 @@ proof (unfold measurable_def, intro CollectI conjI ballI)
   fix A assume "A \<in> sets (M i)"
   then have "(\<lambda>x. x i) -` A \<inter> space (Pi\<^sub>M I M) = prod_emb I M {i} (\<Pi>\<^sub>E j\<in>{i}. A)"
     using sets.sets_into_space \<open>i \<in> I\<close>
-    by (fastforce dest: Pi_mem simp: prod_emb_def space_PiM split: split_if_asm)
+    by (fastforce dest: Pi_mem simp: prod_emb_def space_PiM split: if_split_asm)
   then show "(\<lambda>x. x i) -` A \<inter> space (Pi\<^sub>M I M) \<in> sets (Pi\<^sub>M I M)"
     using \<open>A \<in> sets (M i)\<close> \<open>i \<in> I\<close> by (auto intro!: sets_PiM_I)
 qed (insert \<open>i \<in> I\<close>, auto simp: space_PiM)
@@ -911,13 +911,13 @@ proof (induct I arbitrary: A rule: finite_induct)
       by (intro emeasure_distr measurable_add_dim sets_PiM_I) fact+
     also have "?h -` ?p \<inter> space (Pi\<^sub>M I M \<Otimes>\<^sub>M M i) = ?p' \<times> (if i \<in> J then E i else space (M i))"
       using J E[rule_format, THEN sets.sets_into_space]
-      by (force simp: space_pair_measure space_PiM prod_emb_iff PiE_def Pi_iff split: split_if_asm)
+      by (force simp: space_pair_measure space_PiM prod_emb_iff PiE_def Pi_iff split: if_split_asm)
     also have "emeasure (Pi\<^sub>M I M \<Otimes>\<^sub>M (M i)) (?p' \<times> (if i \<in> J then E i else space (M i))) =
       emeasure (Pi\<^sub>M I M) ?p' * emeasure (M i) (if i \<in> J then (E i) else space (M i))"
       using J E by (intro M.emeasure_pair_measure_Times sets_PiM_I) auto
     also have "?p' = (\<Pi>\<^sub>E j\<in>I. if j \<in> J-{i} then E j else space (M j))"
       using J E[rule_format, THEN sets.sets_into_space]
-      by (auto simp: prod_emb_iff PiE_def Pi_iff split: split_if_asm) blast+
+      by (auto simp: prod_emb_iff PiE_def Pi_iff split: if_split_asm) blast+
     also have "emeasure (Pi\<^sub>M I M) (\<Pi>\<^sub>E j\<in>I. if j \<in> J-{i} then E j else space (M j)) =
       (\<Prod> j\<in>I. if j \<in> J-{i} then emeasure (M j) (E j) else emeasure (M j) (space (M j)))"
       using E by (subst insert) (auto intro!: setprod.cong)

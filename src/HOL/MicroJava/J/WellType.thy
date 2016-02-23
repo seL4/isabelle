@@ -215,7 +215,7 @@ lemma wt_is_type: "(E\<turnstile>e::T \<longrightarrow> ws_prog (prg E) \<longri
 apply (rule ty_expr_ty_exprs_wt_stmt.induct)
 apply auto
 apply (   erule typeof_empty_is_type)
-apply (  simp split add: split_if_asm)
+apply (  simp split add: if_split_asm)
 apply ( drule field_fields)
 apply ( drule (1) fields_is_type)
 apply (  simp (no_asm_simp))

@@ -56,7 +56,7 @@ lemma nyinitcls_new_xcpt_var [simp]:
 
 lemma nyinitcls_init_lvars [simp]: 
   "nyinitcls G ((init_lvars G C sig mode a' pvs) s) = nyinitcls G s"
-  by (induct s) (simp add: init_lvars_def2 split add: split_if)
+  by (induct s) (simp add: init_lvars_def2 split add: if_split)
 
 lemma nyinitcls_emptyD: "\<lbrakk>nyinitcls G s = {}; is_class G C\<rbrakk> \<Longrightarrow> initd C s"
   unfolding nyinitcls_def by fast
@@ -74,7 +74,7 @@ apply  clarsimp
 apply  (erule_tac V="nyinitcls G (x, s) = rhs" for rhs in thin_rl)
 apply  (rule card_Suc_lemma [OF _ _ finite_nyinitcls])
 apply   (auto dest!: not_initedD elim!: 
-              simp add: nyinitcls_def inited_def split add: split_if_asm)
+              simp add: nyinitcls_def inited_def split add: if_split_asm)
 done
 
 lemma inited_gext': "\<lbrakk>s\<le>|s';inited C (globs s)\<rbrakk> \<Longrightarrow> inited C (globs s')"
@@ -597,7 +597,7 @@ proof (induct rule: converse_rtrancl_induct)
         with abrupt_s' have "G\<turnstile>s' \<midarrow>c\<rightarrow> s'" by auto
         moreover from abrupt_s' no_cont 
         have no_absorb: "(abupd (absorb (Cont l)) s')=s'"
-          by (cases s') (simp add: absorb_def split: split_if)
+          by (cases s') (simp add: absorb_def split: if_split)
         moreover
         from no_absorb abrupt_s'
         have "G\<turnstile>(abupd (absorb (Cont l)) s') \<midarrow>l\<bullet> While(e) c\<rightarrow> s'"
@@ -1072,7 +1072,7 @@ proof (induct rule: full_nat_induct)
         apply (rule ax_derivs.NewA 
                [where ?Q = "(\<lambda>Y' s' s. normal s \<and> G\<turnstile>s \<midarrow>In1r (init_comp_ty T) 
                               \<succ>\<rightarrow> (Y',s')) \<and>. G\<turnstile>init\<le>n"])
-        apply  (simp add: init_comp_ty_def split add: split_if)
+        apply  (simp add: init_comp_ty_def split add: if_split)
         apply  (rule conjI, clarsimp)
         apply   (rule MGFn_InitD [OF hyp, THEN conseq2])
         apply   (clarsimp intro: eval.Init)

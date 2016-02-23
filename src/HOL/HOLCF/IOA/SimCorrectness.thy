@@ -162,7 +162,7 @@ lemma traces_coincide_sim [rule_format (no_asm)]:
   "is_simulation R C A \<Longrightarrow> ext C = ext A \<Longrightarrow>
     \<forall>s s'. reachable C s \<and> is_exec_frag C (s, ex) \<and> (s, s') \<in> R \<longrightarrow>
       mk_trace C $ ex = mk_trace A $ ((corresp_ex_simC A R $ ex) s')"
-  supply split_if [split del]
+  supply if_split [split del]
   apply (pair_induct ex simp: is_exec_frag_def)
   text \<open>cons case\<close>
   apply auto
@@ -173,7 +173,7 @@ lemma traces_coincide_sim [rule_format (no_asm)]:
   apply (erule_tac x = "t" in allE)
   apply (erule_tac x = "SOME t'. \<exists>ex1. (t, t') \<in> R \<and> move A ex1 s' a t'" in allE)
   apply (simp add: move_subprop5_sim [unfolded Let_def]
-    move_subprop4_sim [unfolded Let_def] split add: split_if)
+    move_subprop4_sim [unfolded Let_def] split add: if_split)
   done
 
 text \<open>Lemma 2: \<open>corresp_ex_sim\<close> is execution\<close>

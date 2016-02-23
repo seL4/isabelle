@@ -495,7 +495,7 @@ proof goal_cases
         with that show ?thesis
           by (auto simp add: rhs_def Let_def List.card_set[symmetric]
             card_UNIV card_gt_0_iff card_Un_Int[where A="set xs" and B="set ys"]
-            dest: card_eq_UNIV_imp_eq_UNIV split: split_if_asm)
+            dest: card_eq_UNIV_imp_eq_UNIV split: if_split_asm)
       qed
     qed
   }

@@ -795,13 +795,13 @@ proof
   proof(cases a "\<Sqinter>B" rule: finite_3.exhaust[case_product finite_3.exhaust])
     case a\<^sub>2_a\<^sub>3
     then have "\<And>x. x \<in> B \<Longrightarrow> x = a\<^sub>3"
-      by(case_tac x)(auto simp add: Inf_finite_3_def split: split_if_asm)
+      by(case_tac x)(auto simp add: Inf_finite_3_def split: if_split_asm)
     then show ?thesis using a\<^sub>2_a\<^sub>3
-      by(auto simp add: Inf_finite_3_def max_def less_eq_finite_3_def less_finite_3_def split: split_if_asm)
-  qed (auto simp add: Inf_finite_3_def max_def less_finite_3_def less_eq_finite_3_def split: split_if_asm)
+      by(auto simp add: Inf_finite_3_def max_def less_eq_finite_3_def less_finite_3_def split: if_split_asm)
+  qed (auto simp add: Inf_finite_3_def max_def less_finite_3_def less_eq_finite_3_def split: if_split_asm)
   show "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
     by (cases a "\<Squnion>B" rule: finite_3.exhaust[case_product finite_3.exhaust])
-      (auto simp add: Sup_finite_3_def min_def less_finite_3_def less_eq_finite_3_def split: split_if_asm)
+      (auto simp add: Sup_finite_3_def min_def less_finite_3_def less_eq_finite_3_def split: if_split_asm)
 qed
 
 instance finite_3 :: complete_linorder ..
@@ -920,10 +920,10 @@ proof
   fix a :: finite_4 and B
   show "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)"
     by(cases a "\<Sqinter>B" rule: finite_4.exhaust[case_product finite_4.exhaust])
-      (auto simp add: sup_finite_4_def Inf_finite_4_def split: finite_4.splits split_if_asm)
+      (auto simp add: sup_finite_4_def Inf_finite_4_def split: finite_4.splits if_split_asm)
   show "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
     by(cases a "\<Squnion>B" rule: finite_4.exhaust[case_product finite_4.exhaust])
-      (auto simp add: inf_finite_4_def Sup_finite_4_def split: finite_4.splits split_if_asm)
+      (auto simp add: inf_finite_4_def Sup_finite_4_def split: finite_4.splits if_split_asm)
 qed
 
 instantiation finite_4 :: complete_boolean_algebra begin
@@ -1022,13 +1022,13 @@ proof intro_classes
   fix A and z :: finite_5
   assume *: "\<And>x. x \<in> A \<Longrightarrow> z \<le> x"
   show "z \<le> \<Sqinter>A"
-    by(auto simp add: less_eq_finite_5_def Inf_finite_5_def split: finite_5.splits split_if_asm dest!: *)
+    by(auto simp add: less_eq_finite_5_def Inf_finite_5_def split: finite_5.splits if_split_asm dest!: *)
 next
   fix A and z :: finite_5
   assume *: "\<And>x. x \<in> A \<Longrightarrow> x \<le> z"
   show "\<Squnion>A \<le> z"
-    by(auto simp add: less_eq_finite_5_def Sup_finite_5_def split: finite_5.splits split_if_asm dest!: *)
-qed(auto simp add: less_eq_finite_5_def less_finite_5_def inf_finite_5_def sup_finite_5_def Inf_finite_5_def Sup_finite_5_def split: finite_5.splits split_if_asm)
+    by(auto simp add: less_eq_finite_5_def Sup_finite_5_def split: finite_5.splits if_split_asm dest!: *)
+qed(auto simp add: less_eq_finite_5_def less_finite_5_def inf_finite_5_def sup_finite_5_def Inf_finite_5_def Sup_finite_5_def split: finite_5.splits if_split_asm)
 
 end
 

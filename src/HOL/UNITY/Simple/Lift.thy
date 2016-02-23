@@ -336,7 +336,7 @@ done
 
 (** Towards lift_4 ***)
  
-declare split_if_asm [split]
+declare if_split_asm [split]
 
 
 (*lem_lift_4_1 *)

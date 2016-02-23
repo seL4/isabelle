@@ -47,7 +47,7 @@ lemma subcls1_def2:
   "subcls1 = 
     (SIGMA C: {C. is_class C} . {D. C\<noteq>Object \<and> super (the (class C)) = D})"
 apply (unfold subcls1_def is_class_def)
-apply (auto split:split_if_asm)
+apply (auto split:if_split_asm)
 done
 
 lemma finite_subcls1: "finite subcls1"

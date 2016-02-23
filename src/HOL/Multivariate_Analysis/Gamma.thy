@@ -2218,7 +2218,7 @@ qed
 lemma rGamma_reflection_complex:
   "rGamma z * rGamma (1 - z :: complex) = sin (of_real pi * z) / of_real pi"
   using Gamma_reflection_complex[of z]
-    by (simp add: Gamma_def divide_simps split: split_if_asm)
+    by (simp add: Gamma_def divide_simps split: if_split_asm)
 
 lemma rGamma_reflection_complex':
   "rGamma z * rGamma (- z :: complex) = -z * sin (of_real pi * z) / of_real pi"

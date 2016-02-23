@@ -280,7 +280,7 @@ proof -
   from assms have "range ?A \<subseteq> M" by auto
   with countable_nat_UN[of "?A \<circ> from_nat"] countable_UN_eq[of ?A M]
   have "(\<Union>x. ?A x) \<in> M" by auto
-  moreover have "(\<Union>x. ?A x) = (\<Union>x\<in>X. A x)" by (auto split: split_if_asm)
+  moreover have "(\<Union>x. ?A x) = (\<Union>x\<in>X. A x)" by (auto split: if_split_asm)
   ultimately show ?thesis by simp
 qed
 
@@ -1194,7 +1194,7 @@ proof -
   have "range ?f = {D, \<Omega> - E, {}}"
     by (auto simp: image_iff)
   moreover have "D \<union> (\<Omega> - E) = (\<Union>i. ?f i)"
-    by (auto simp: image_iff split: split_if_asm)
+    by (auto simp: image_iff split: if_split_asm)
   moreover
   have "disjoint_family ?f" unfolding disjoint_family_on_def
     using \<open>D \<in> M\<close>[THEN sets_into_space] \<open>D \<subseteq> E\<close> by auto

@@ -70,7 +70,7 @@ lemma bounded_lift:
   apply clarify
   apply (erule allE, erule impE, assumption)
   apply (case_tac s)
-  apply (auto simp add: map_snd_def split: split_if_asm)
+  apply (auto simp add: map_snd_def split: if_split_asm)
   done
 
 
@@ -150,7 +150,7 @@ apply (case_tac s)
  apply simp
  apply (drule in_errorD)
  apply simp
-apply (simp add: map_snd_def split: split_if_asm)
+apply (simp add: map_snd_def split: if_split_asm)
  apply fast
 apply (drule in_errorD)
 apply simp

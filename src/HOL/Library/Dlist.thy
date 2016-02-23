@@ -241,7 +241,7 @@ using eq
 proof(induction xs ys rule: wpull.induct)
   case 1 thus ?case by(simp add: Nil)
 next
-  case 2 thus ?case by(simp split: split_if_asm)
+  case 2 thus ?case by(simp split: if_split_asm)
 next
   case Cons: (3 a b xs b' c ys)
   let ?xs = "(a, b) # xs" and ?ys = "(b', c) # ys"
@@ -254,7 +254,7 @@ next
     from xs eq have "b \<in> fst ` set ?ys" by (metis list.set_map set_remdups)
     hence "map_of (rev ?ys) b \<noteq> None" unfolding map_of_eq_None_iff by auto
     then obtain c' where "map_of (rev ?ys) b = Some c'" by blast
-    then have "(b, the (map_of (rev ?ys) b)) \<in> set ?ys" by(auto dest: map_of_SomeD split: split_if_asm)
+    then have "(b, the (map_of (rev ?ys) b)) \<in> set ?ys" by(auto dest: map_of_SomeD split: if_split_asm)
     from xs eq this Cons.IH(1)[OF xs eq] show ?thesis by(rule left)
   next
     case ys
@@ -264,7 +264,7 @@ next
       unfolding map_of_eq_None_iff by(auto simp add: image_image)
     then obtain a' where "map_of (map prod.swap (rev ?xs)) b' = Some a'" by blast
     then have "(the (map_of (map prod.swap (rev ?xs)) b'), b') \<in> set ?xs"
-      by(auto dest: map_of_SomeD split: split_if_asm)
+      by(auto dest: map_of_SomeD split: if_split_asm)
     from ys eq this Cons.IH(2)[OF ys eq] show ?thesis by(rule right)
   next
     case *: step

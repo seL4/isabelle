@@ -753,7 +753,7 @@ ML_Thms.bind_thm ("eval_induct", rearrange_prems
 \<close>
 
 
-declare split_if     [split del] split_if_asm     [split del] 
+declare if_split     [split del] if_split_asm     [split del] 
         option.split [split del] option.split_asm [split del]
 inductive_cases halloc_elim_cases: 
   "G\<turnstile>(Some xc,s) \<midarrow>halloc oi\<succ>a\<rightarrow> s'"
@@ -819,7 +819,7 @@ inductive_cases eval_elim_cases [cases set]:
 declare not_None_eq [simp]  (* IntDef.Zero_def [simp] *)
 declare split_paired_All [simp] split_paired_Ex [simp]
 declaration \<open>K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac)))\<close>
-declare split_if     [split] split_if_asm     [split] 
+declare if_split     [split] if_split_asm     [split] 
         option.split [split] option.split_asm [split]
 
 lemma eval_Inj_elim: 
@@ -1062,7 +1062,7 @@ by auto
 lemma init_retains_locals [rule_format (no_asm)]: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (w,s') \<Longrightarrow>  
   (\<forall>C. t=In1r (Init C) \<longrightarrow> locals (store s) = locals (store s'))"
 apply (erule eval.induct)
-apply (simp (no_asm_use) split del: split_if_asm option.split_asm)+
+apply (simp (no_asm_use) split del: if_split_asm option.split_asm)+
 apply auto
 done
 
@@ -1128,7 +1128,7 @@ subsubsection "single valued"
 lemma unique_halloc [rule_format (no_asm)]: 
   "G\<turnstile>s \<midarrow>halloc oi\<succ>a \<rightarrow> s' \<Longrightarrow> G\<turnstile>s \<midarrow>halloc oi\<succ>a' \<rightarrow> s'' \<longrightarrow> a' = a \<and> s'' = s'"
 apply (erule halloc.induct)
-apply  (auto elim!: halloc_elim_cases split del: split_if split_if_asm)
+apply  (auto elim!: halloc_elim_cases split del: if_split if_split_asm)
 apply (drule trans [THEN sym], erule sym) 
 defer
 apply (drule trans [THEN sym], erule sym)
@@ -1146,7 +1146,7 @@ lemma unique_sxalloc [rule_format (no_asm)]:
   "G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s' \<Longrightarrow> G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s'' \<longrightarrow> s'' = s'"
 apply (erule sxalloc.induct)
 apply   (auto dest: unique_halloc elim!: sxalloc_elim_cases 
-              split del: split_if split_if_asm)
+              split del: if_split if_split_asm)
 done
 
 lemma single_valued_sxalloc: "single_valued {(s,s'). G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s'}"
@@ -1166,12 +1166,12 @@ apply (tactic \<open>ALLGOALS (EVERY'
       [strip_tac @{context}, rotate_tac ~1, eresolve_tac @{context} @{thms eval_elim_cases}])\<close>)
 (* 31 subgoals *)
 prefer 28 (* Try *) 
-apply (simp (no_asm_use) only: split add: split_if_asm)
+apply (simp (no_asm_use) only: split add: if_split_asm)
 (* 34 subgoals *)
 prefer 30 (* Init *)
 apply (case_tac "inited C (globs s0)", (simp only: if_True if_False simp_thms)+)
 prefer 26 (* While *)
-apply (simp (no_asm_use) only: split add: split_if_asm, blast)
+apply (simp (no_asm_use) only: split add: if_split_asm, blast)
 (* 36 subgoals *)
 apply (blast dest: unique_sxalloc unique_halloc split_pairD)+
 done

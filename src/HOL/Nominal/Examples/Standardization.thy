@@ -370,7 +370,7 @@ proof -
     (\<exists>t u us. x \<sharp> r \<longrightarrow> r = (Lam [x].t) \<and> rs = u # us \<and> s = t[x::=u] \<degree>\<degree> us)"
     apply (nominal_induct u \<equiv> "r \<degree>\<degree> rs" s avoiding: x r rs rule: beta.strong_induct)
     apply (simp add: App_eq_foldl_conv)
-    apply (split split_if_asm)
+    apply (split if_split_asm)
     apply simp
     apply blast
     apply simp
@@ -391,12 +391,12 @@ proof -
     apply (rule refl)
     apply (simp add: abs_fresh fresh_atm fresh_left calc_atm subst_rename)
       apply (drule App_eq_foldl_conv [THEN iffD1])
-      apply (split split_if_asm)
+      apply (split if_split_asm)
        apply simp
        apply blast
       apply (force intro!: disjI1 [THEN append_step1I] simp add: fresh_list_append)
      apply (drule App_eq_foldl_conv [THEN iffD1])
-     apply (split split_if_asm)
+     apply (split if_split_asm)
       apply simp
       apply blast
      apply (clarify, auto 0 3 intro!: exI intro: append_step1I)

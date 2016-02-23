@@ -181,7 +181,7 @@ lemma match_any_match_table:
    apply simp
   apply simp
   apply clarify
-  apply (simp split: split_if_asm)
+  apply (simp split: if_split_asm)
   apply (auto simp add: match_exception_entry_def)
   done
 
@@ -189,7 +189,7 @@ lemma match_X_match_table:
   "C \<in> set (match G X pc et) \<Longrightarrow> match_exception_table G C pc et \<noteq> None"
   apply (induct et)
    apply simp
-  apply (simp split: split_if_asm)
+  apply (simp split: if_split_asm)
   done
 
 lemma xcpt_names_in_et:
