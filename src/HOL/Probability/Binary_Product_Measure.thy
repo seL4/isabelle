@@ -169,7 +169,7 @@ proof -
   have "Pair x -` A = (if x \<in> space M1 then Pair x -` A \<inter> space M2 else {})"
     using A[THEN sets.sets_into_space] by (auto simp: space_pair_measure)
   also have "\<dots> \<in> sets M2"
-    using A by (auto simp add: measurable_Pair1' intro!: measurable_sets split: split_if_asm)
+    using A by (auto simp add: measurable_Pair1' intro!: measurable_sets split: if_split_asm)
   finally show ?thesis .
 qed
 
@@ -181,7 +181,7 @@ proof -
   have "(\<lambda>x. (x, y)) -` A = (if y \<in> space M2 then (\<lambda>x. (x, y)) -` A \<inter> space M1 else {})"
     using A[THEN sets.sets_into_space] by (auto simp: space_pair_measure)
   also have "\<dots> \<in> sets M1"
-    using A by (auto simp add: measurable_Pair2' intro!: measurable_sets split: split_if_asm)
+    using A by (auto simp add: measurable_Pair2' intro!: measurable_sets split: if_split_asm)
   finally show ?thesis .
 qed
 

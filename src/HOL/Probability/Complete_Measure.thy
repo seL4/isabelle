@@ -113,15 +113,15 @@ lemma
     and main_part_null_part_Un[simp]: "main_part M S \<union> null_part M S = S"
     and main_part_null_part_Int[simp]: "main_part M S \<inter> null_part M S = {}"
   using split_completion[OF assms]
-  by (auto simp: split_completion_def split: split_if_asm)
+  by (auto simp: split_completion_def split: if_split_asm)
 
 lemma main_part[simp]: "S \<in> sets M \<Longrightarrow> main_part M S = S"
   using split_completion[of S M]
-  by (auto simp: split_completion_def split: split_if_asm)
+  by (auto simp: split_completion_def split: if_split_asm)
 
 lemma null_part:
   assumes "S \<in> sets (completion M)" shows "\<exists>N. N\<in>null_sets M \<and> null_part M S \<subseteq> N"
-  using split_completion[OF assms] by (auto simp: split_completion_def split: split_if_asm)
+  using split_completion[OF assms] by (auto simp: split_completion_def split: if_split_asm)
 
 lemma null_part_sets[intro, simp]:
   assumes "S \<in> sets M" shows "null_part M S \<in> sets M" "emeasure M (null_part M S) = 0"
@@ -202,7 +202,7 @@ lemma emeasure_completion_Un:
   shows "emeasure (completion M) (S \<union> T) = emeasure M (main_part M S \<union> main_part M T)"
 proof (subst emeasure_completion)
   have UN: "(\<Union>i. binary (main_part M S) (main_part M T) i) = (\<Union>i. main_part M (binary S T i))"
-    unfolding binary_def by (auto split: split_if_asm)
+    unfolding binary_def by (auto split: if_split_asm)
   show "emeasure M (main_part M (S \<union> T)) = emeasure M (main_part M S \<union> main_part M T)"
     using emeasure_main_part_UN[of "binary S T" M] assms
     by (simp add: range_binary_eq, simp add: Un_range_binary UN)
@@ -238,7 +238,7 @@ proof -
       (if x \<in> ?N then ?F undefined \<union> ?N
        else if f x = undefined then ?F (f x) \<union> ?N
        else ?F (f x) - ?N)"
-      using N(2) sets.sets_into_space by (auto split: split_if_asm simp: null_sets_def)
+      using N(2) sets.sets_into_space by (auto split: if_split_asm simp: null_sets_def)
     moreover { fix y have "?F y \<union> ?N \<in> sets M"
       proof cases
         assume y: "y \<in> f`space M"

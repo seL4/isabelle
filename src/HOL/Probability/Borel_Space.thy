@@ -970,7 +970,7 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_le])
   fix a :: real and i :: 'a assume "(a, i) \<in> UNIV \<times> Basis"
   then have "i \<in> Basis" by auto
   then have *: "{x::'a. x\<bullet>i \<le> a} = (\<Union>k::nat. {.. (\<Sum>n\<in>Basis. (if n = i then a else real k)*\<^sub>R n)})"
-  proof (safe, simp_all add: eucl_le[where 'a='a] split: split_if_asm)
+  proof (safe, simp_all add: eucl_le[where 'a='a] split: if_split_asm)
     fix x :: 'a
     from real_arch_simple[of "Max ((\<lambda>i. x\<bullet>i)`Basis)"] guess k::nat ..
     then have "\<And>i. i \<in> Basis \<Longrightarrow> x\<bullet>i \<le> real k"
@@ -991,7 +991,7 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_le])
   have "{x::'a. x\<bullet>i \<le> a} = UNIV - {x::'a. a < x\<bullet>i}" by auto
   also have *: "{x::'a. a < x\<bullet>i} =
       (\<Union>k::nat. {x. (\<Sum>n\<in>Basis. (if n = i then a else -real k) *\<^sub>R n) <e x})" using i
-  proof (safe, simp_all add: eucl_less_def split: split_if_asm)
+  proof (safe, simp_all add: eucl_less_def split: if_split_asm)
     fix x :: 'a
     from reals_Archimedean2[of "Max ((\<lambda>i. -x\<bullet>i)`Basis)"]
     guess k::nat .. note k = this
@@ -1017,7 +1017,7 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_ge])
   then have i: "i \<in> Basis" by auto
   have "{x::'a. a \<le> x\<bullet>i} = UNIV - {x::'a. x\<bullet>i < a}" by auto
   also have *: "{x::'a. x\<bullet>i < a} = (\<Union>k::nat. {x. x <e (\<Sum>n\<in>Basis. (if n = i then a else real k) *\<^sub>R n)})" using \<open>i\<in> Basis\<close>
-  proof (safe, simp_all add: eucl_less_def split: split_if_asm)
+  proof (safe, simp_all add: eucl_less_def split: if_split_asm)
     fix x :: 'a
     from reals_Archimedean2[of "Max ((\<lambda>i. x\<bullet>i)`Basis)"]
     guess k::nat .. note k = this
@@ -1454,7 +1454,7 @@ proof -
   { fix x have "H (f x) (g x) = ?F x" by (cases "f x" "g x" rule: ereal2_cases) auto }
   note * = this
   from assms show ?thesis
-    by (subst *) (simp del: space_borel split del: split_if)
+    by (subst *) (simp del: space_borel split del: if_split)
 qed
 
 lemma borel_measurable_ereal_iff:

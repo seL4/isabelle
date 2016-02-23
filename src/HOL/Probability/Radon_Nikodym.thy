@@ -155,7 +155,7 @@ proof -
   { fix n have "A n \<in> sets M"
     proof (induct n)
       case (Suc n) thus "A (Suc n) \<in> sets M"
-        using A'_in_sets[of "A n"] by (auto split: split_if_asm)
+        using A'_in_sets[of "A n"] by (auto split: if_split_asm)
     qed (simp add: A_def) }
   note A_in_sets = this
   hence "range A \<subseteq> sets M" by auto
@@ -870,7 +870,7 @@ proof -
     by (auto simp: indicator_def Q0)
   ultimately have "AE x in M. ?f (space M) x = ?f' (space M) x"
     unfolding AE_all_countable[symmetric]
-    by eventually_elim (auto intro!: AE_I2 split: split_if_asm simp: indicator_def)
+    by eventually_elim (auto intro!: AE_I2 split: if_split_asm simp: indicator_def)
   then show "AE x in M. f x = f' x" by auto
 qed
 

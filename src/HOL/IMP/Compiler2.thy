@@ -465,7 +465,7 @@ lemma bcomp_exec_n [dest]:
          s' = s \<and> stk' = stk"
 using assms proof (induction b arbitrary: f j i n s' stk')
   case Bc thus ?case 
-    by (simp split: split_if_asm add: exec_n_simps exec1_def)
+    by (simp split: if_split_asm add: exec_n_simps exec1_def)
 next
   case (Not b) 
   from Not.prems show ?case
@@ -490,7 +490,7 @@ next
     by (auto dest!: And.IH)
   with b2 j
   show ?case 
-    by (fastforce dest!: And.IH simp: exec_n_end split: split_if_asm)
+    by (fastforce dest!: And.IH simp: exec_n_end split: if_split_asm)
 next
   case Less
   thus ?case by (auto dest!: exec_n_split_full simp: exec_n_simps exec1_def) (* takes time *) 
@@ -547,7 +547,7 @@ next
     show ?thesis
       by simp
          (fastforce dest: exec_n_drop_right 
-                   split: split_if_asm
+                   split: if_split_asm
                    simp: exec_n_simps exec1_def)
   next
     case False with cs'

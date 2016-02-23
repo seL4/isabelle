@@ -32,8 +32,8 @@ open BNF_FP_Util
 val atomize_conjL = @{thm atomize_conjL};
 val falseEs = @{thms not_TrueE FalseE};
 val neq_eq_eq_contradict = @{thm neq_eq_eq_contradict};
-val split_if = @{thm split_if};
-val split_if_asm = @{thm split_if_asm};
+val if_split = @{thm if_split};
+val if_split_asm = @{thm if_split_asm};
 val split_connectI = @{thms allI impI conjI};
 val unfold_lets = @{thms Let_def[abs_def] split_beta}
 
@@ -136,8 +136,8 @@ fun mk_primcorec_sel_tac ctxt fun_defs distincts splits split_asms mapsx map_ide
   HEADGOAL (REPEAT_DETERM o (rtac ctxt refl ORELSE'
     eresolve_tac ctxt falseEs ORELSE'
     resolve_tac ctxt split_connectI ORELSE'
-    Splitter.split_asm_tac ctxt (split_if_asm :: split_asms) ORELSE'
-    Splitter.split_tac ctxt (split_if :: splits) ORELSE'
+    Splitter.split_asm_tac ctxt (if_split_asm :: split_asms) ORELSE'
+    Splitter.split_tac ctxt (if_split :: splits) ORELSE'
     eresolve_tac ctxt (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN'
     assume_tac ctxt ORELSE'
     etac ctxt notE THEN' assume_tac ctxt ORELSE'
@@ -169,7 +169,7 @@ fun inst_split_eq ctxt split =
 fun raw_code_single_tac ctxt distincts discIs splits split_asms m fun_ctr =
   let
     val splits' =
-      map (fn th => th RS iffD2) (@{thm split_if_eq2} :: map (inst_split_eq ctxt) splits);
+      map (fn th => th RS iffD2) (@{thm if_split_eq2} :: map (inst_split_eq ctxt) splits);
   in
     HEADGOAL (REPEAT o (resolve_tac ctxt (splits' @ split_connectI))) THEN
     prelude_tac ctxt [] (fun_ctr RS trans) THEN
@@ -177,8 +177,8 @@ fun raw_code_single_tac ctxt distincts discIs splits split_asms m fun_ctr =
       SELECT_GOAL (SOLVE (HEADGOAL (REPEAT_DETERM o
       (rtac ctxt refl ORELSE' assume_tac ctxt ORELSE'
        resolve_tac ctxt (@{thm Code.abort_def} :: split_connectI) ORELSE'
-       Splitter.split_tac ctxt (split_if :: splits) ORELSE'
-       Splitter.split_asm_tac ctxt (split_if_asm :: split_asms) ORELSE'
+       Splitter.split_tac ctxt (if_split :: splits) ORELSE'
+       Splitter.split_asm_tac ctxt (if_split_asm :: split_asms) ORELSE'
        mk_primcorec_assumption_tac ctxt discIs ORELSE'
        distinct_in_prems_tac ctxt distincts ORELSE'
        (TRY o dresolve_tac ctxt discIs) THEN' etac ctxt notE THEN' assume_tac ctxt)))))
@@ -210,7 +210,7 @@ fun mk_primcorec_code_tac ctxt distincts splits raw =
     SELECT_GOAL (unfold_thms_tac ctxt unfold_lets) THEN' REPEAT_DETERM o
     (rtac ctxt refl ORELSE' assume_tac ctxt ORELSE'
      resolve_tac ctxt split_connectI ORELSE'
-     Splitter.split_tac ctxt (split_if :: splits) ORELSE'
+     Splitter.split_tac ctxt (if_split :: splits) ORELSE'
      distinct_in_prems_tac ctxt distincts ORELSE'
      rtac ctxt sym THEN' assume_tac ctxt ORELSE'
      etac ctxt notE THEN' assume_tac ctxt));

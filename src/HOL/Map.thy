@@ -358,10 +358,10 @@ lemma restrict_out [simp]: "x \<notin> A \<Longrightarrow> (m|`A) x = None"
 by (simp add: restrict_map_def)
 
 lemma ran_restrictD: "y \<in> ran (m|`A) \<Longrightarrow> \<exists>x\<in>A. m x = Some y"
-by (auto simp: restrict_map_def ran_def split: split_if_asm)
+by (auto simp: restrict_map_def ran_def split: if_split_asm)
 
 lemma dom_restrict [simp]: "dom (m|`A) = dom m \<inter> A"
-by (auto simp: restrict_map_def dom_def split: split_if_asm)
+by (auto simp: restrict_map_def dom_def split: if_split_asm)
 
 lemma restrict_upd_same [simp]: "m(x\<mapsto>y)|`(-{x}) = m|`(-{x})"
 by (rule ext) (auto simp: restrict_map_def)
@@ -429,7 +429,7 @@ lemma map_upd_upds_conv_if:
 apply (induct xs arbitrary: x y ys f)
  apply simp
 apply (case_tac ys)
- apply (auto split: split_if simp: fun_upd_twist)
+ apply (auto split: if_split simp: fun_upd_twist)
 done
 
 lemma map_upds_twist [simp]:
@@ -691,7 +691,7 @@ lemma map_add_le_mapI: "\<lbrakk> f \<subseteq>\<^sub>m h; g \<subseteq>\<^sub>m
 lemma dom_eq_singleton_conv: "dom f = {x} \<longleftrightarrow> (\<exists>v. f = [x \<mapsto> v])"
 proof(rule iffI)
   assume "\<exists>v. f = [x \<mapsto> v]"
-  thus "dom f = {x}" by(auto split: split_if_asm)
+  thus "dom f = {x}" by(auto split: if_split_asm)
 next
   assume "dom f = {x}"
   then obtain v where "f x = Some v" by auto

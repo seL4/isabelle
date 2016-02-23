@@ -472,7 +472,7 @@ lemma X_pow_eq_X_pow_iff [simp]:
 proof
   assume "(X :: 'a fps) ^ m = X ^ n"
   hence "(X :: 'a fps) ^ m $ m = X ^ n $ m" by (simp only:)
-  thus "m = n" by (simp split: split_if_asm)
+  thus "m = n" by (simp split: if_split_asm)
 qed simp_all
 
 
@@ -767,7 +767,7 @@ proof
   proof (cases "f = 0")
     assume "f \<noteq> 0"
     with A have "n \<le> subdegree f"
-      by (intro subdegree_geI) (auto simp: fps_eq_iff split: split_if_asm)
+      by (intro subdegree_geI) (auto simp: fps_eq_iff split: if_split_asm)
     thus ?thesis ..
   qed simp
 qed (auto simp: fps_eq_iff intro: nth_less_subdegree_zero)
@@ -824,7 +824,7 @@ definition open_fps_def' [code del]:
 instance
 proof
   show th: "dist a b = 0 \<longleftrightarrow> a = b" for a b :: "'a fps"
-    by (simp add: dist_fps_def split: split_if_asm)
+    by (simp add: dist_fps_def split: if_split_asm)
   then have th'[simp]: "dist a a = 0" for a :: "'a fps" by simp
 
   fix a b c :: "'a fps"
@@ -4376,7 +4376,7 @@ proof (rule ccontr)
   assume "f $ j \<noteq> g $ j"
   hence "f \<noteq> g" by auto
   with assms have "i < subdegree (f - g)"
-    by (simp add: split_if_asm dist_fps_def)
+    by (simp add: if_split_asm dist_fps_def)
   also have "\<dots> \<le> j"
     using \<open>f $ j \<noteq> g $ j\<close> by (intro subdegree_leI) simp_all
   finally show False using \<open>j \<le> i\<close> by simp
@@ -4391,7 +4391,7 @@ proof (cases "f = g")
 next
   case False
   with assms have "dist f g = inverse (2 ^ subdegree (f - g))"
-    by (simp add: split_if_asm dist_fps_def)
+    by (simp add: if_split_asm dist_fps_def)
   moreover
   from assms and False have "i < subdegree (f - g)"
     by (intro subdegree_greaterI) simp_all

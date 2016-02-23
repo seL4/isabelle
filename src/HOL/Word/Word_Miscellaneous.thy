@@ -54,7 +54,7 @@ lemma size_Cons_lem_eq:
   "y = xa # list ==> size y = Suc k ==> size list = k"
   by auto
 
-lemmas ls_splits = prod.split prod.split_asm split_if_asm
+lemmas ls_splits = prod.split prod.split_asm if_split_asm
 
 lemma not_B1_is_B0: "y \<noteq> (1::bit) \<Longrightarrow> y = (0::bit)"
   by (cases y) auto

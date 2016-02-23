@@ -659,7 +659,7 @@ apply assumption
 apply (erule exE)
 \<comment> \<open>define the lub for the interval as\<close>
 apply (rule_tac x = "if S = {} then a else L" in exI)
-apply (simp (no_asm_simp) add: isLub_def split del: split_if)
+apply (simp (no_asm_simp) add: isLub_def split del: if_split)
 apply (intro impI conjI)
 \<comment> \<open>\<open>(if S = {} then a else L) \<in> interval r a b\<close>\<close>
 apply (simp add: CL_imp_PO L_in_interval)

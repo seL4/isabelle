@@ -285,7 +285,7 @@ next
       thus ?thesis by auto
     qed auto
   qed
-qed (auto split: split_if_asm)
+qed (auto split: if_split_asm)
 
 
 text \<open>The result of a unification is either the identity
@@ -458,7 +458,7 @@ proof (induct M N arbitrary: \<sigma> rule: unify.induct)
       by (rule subst_eq_intro, auto simp:subst_eq_dest[OF eqv] subst_eq_dest[OF eqv2])
     thus "\<exists>\<gamma>. \<sigma>' \<doteq> \<sigma> \<lozenge> \<gamma>" ..
   qed
-qed (auto simp: MGU_Const intro: MGU_Var MGU_Var[symmetric] split: split_if_asm)
+qed (auto simp: MGU_Const intro: MGU_Var MGU_Var[symmetric] split: if_split_asm)
 
 
 subsection \<open>Unification returns Idempotent Substitution\<close>

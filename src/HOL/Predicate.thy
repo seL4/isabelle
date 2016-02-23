@@ -346,11 +346,11 @@ lemma not_predI': "\<not> eval P () \<Longrightarrow> eval (not_pred P) ()"
 
 lemma not_predE: "eval (not_pred (Pred (\<lambda>u. P))) x \<Longrightarrow> (\<not> P \<Longrightarrow> thesis) \<Longrightarrow> thesis"
   unfolding not_pred_eq
-  by (auto split: split_if_asm elim: botE)
+  by (auto split: if_split_asm elim: botE)
 
 lemma not_predE': "eval (not_pred P) x \<Longrightarrow> (\<not> eval P x \<Longrightarrow> thesis) \<Longrightarrow> thesis"
   unfolding not_pred_eq
-  by (auto split: split_if_asm elim: botE)
+  by (auto split: if_split_asm elim: botE)
 lemma "f () = False \<or> f () = True"
 by simp
 

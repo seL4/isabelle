@@ -55,7 +55,7 @@ proof safe
   then have "(\<Union>x\<in>f ` space M. if x \<in> A then f -` {x} \<inter> space M else {}) \<in> sets M"
     by (intro sets.finite_UN) auto
   also have "(\<Union>x\<in>f ` space M. if x \<in> A then f -` {x} \<inter> space M else {}) = f -` A \<inter> space M"
-    by (auto split: split_if_asm)
+    by (auto split: if_split_asm)
   finally show "f -` A \<inter> space M \<in> sets M" .
 qed simp
 
@@ -222,7 +222,7 @@ lemma borel_measurable_implies_simple_function_sequence:
 proof -
   def f \<equiv> "\<lambda>x i. if real i \<le> u x then i * 2 ^ i else nat \<lfloor>real_of_ereal (u x) * 2 ^ i\<rfloor>"
   { fix x j have "f x j \<le> j * 2 ^ j" unfolding f_def
-    proof (split split_if, intro conjI impI)
+    proof (split if_split, intro conjI impI)
       assume "\<not> real j \<le> u x"
       then have "nat \<lfloor>real_of_ereal (u x) * 2 ^ j\<rfloor> \<le> nat \<lfloor>j * 2 ^ j\<rfloor>"
          by (cases "u x") (auto intro!: nat_mono floor_mono)
@@ -258,7 +258,7 @@ proof -
     proof (intro incseq_ereal incseq_SucI le_funI)
       fix x and i :: nat
       have "f x i * 2 \<le> f x (Suc i)" unfolding f_def
-      proof ((split split_if)+, intro conjI impI)
+      proof ((split if_split)+, intro conjI impI)
         assume "ereal (real i) \<le> u x" "\<not> ereal (real (Suc i)) \<le> u x"
         then show "i * 2 ^ i * 2 \<le> nat \<lfloor>real_of_ereal (u x) * 2 ^ Suc i\<rfloor>"
           by (cases "u x") (auto intro!: le_nat_floor)
@@ -311,7 +311,7 @@ proof -
           moreover
           have "real (nat \<lfloor>p * 2 ^ max N m\<rfloor>) \<le> r * 2 ^ max N m"
             using *[of "max N m"] m unfolding real_f using ux
-            by (cases "0 \<le> u x") (simp_all add: max_def split: split_if_asm)
+            by (cases "0 \<le> u x") (simp_all add: max_def split: if_split_asm)
           then have "p * 2 ^ max N m - 1 < r * 2 ^ max N m"
             by linarith
           ultimately show False by auto
@@ -467,7 +467,7 @@ proof -
     then have *: "?IF -` {?IF x} \<inter> space M = (if x \<in> A
       then ((F (f x) \<inter> (A \<inter> space M)) \<union> (G (f x) - (G (f x) \<inter> (A \<inter> space M))))
       else ((F (g x) \<inter> (A \<inter> space M)) \<union> (G (g x) - (G (g x) \<inter> (A \<inter> space M)))))"
-      using sets.sets_into_space[OF A] by (auto split: split_if_asm simp: G_def F_def)
+      using sets.sets_into_space[OF A] by (auto split: if_split_asm simp: G_def F_def)
     have [intro]: "\<And>x. F x \<in> sets M" "\<And>x. G x \<in> sets M"
       unfolding F_def G_def using sf[THEN simple_functionD(2)] by auto
     show "?IF -` {?IF x} \<inter> space M \<in> sets M" unfolding * using A by auto
@@ -685,7 +685,7 @@ lemma simple_integral_indicator:
     (\<Sum>x \<in> f ` space M. x * emeasure M (f -` {x} \<inter> space M \<inter> A))"
 proof -
   have eq: "(\<lambda>x. (f x, indicator A x)) ` space M \<inter> {x. snd x = 1} = (\<lambda>x. (f x, 1::ereal))`A"
-    using A[THEN sets.sets_into_space] by (auto simp: indicator_def image_iff split: split_if_asm)
+    using A[THEN sets.sets_into_space] by (auto simp: indicator_def image_iff split: if_split_asm)
   have eq2: "\<And>x. f x \<notin> f ` A \<Longrightarrow> f -` {f x} \<inter> space M \<inter> A = {}"
     by (auto simp: image_iff)
 
@@ -694,7 +694,7 @@ proof -
     using assms by (intro simple_function_partition) auto
   also have "\<dots> = (\<Sum>y\<in>(\<lambda>x. (f x, indicator A x::ereal))`space M.
     if snd y = 1 then fst y * emeasure M (f -` {fst y} \<inter> space M \<inter> A) else 0)"
-    by (auto simp: indicator_def split: split_if_asm intro!: arg_cong2[where f="op *"] arg_cong2[where f=emeasure] setsum.cong)
+    by (auto simp: indicator_def split: if_split_asm intro!: arg_cong2[where f="op *"] arg_cong2[where f=emeasure] setsum.cong)
   also have "\<dots> = (\<Sum>y\<in>(\<lambda>x. (f x, 1::ereal))`A. fst y * emeasure M (f -` {fst y} \<inter> space M \<inter> A))"
     using assms by (subst setsum.If_cases) (auto intro!: simple_functionD(1) simp: eq)
   also have "\<dots> = (\<Sum>y\<in>fst`(\<lambda>x. (f x, 1::ereal))`A. y * emeasure M (f -` {y} \<inter> space M \<inter> A))"
@@ -709,7 +709,7 @@ lemma simple_integral_indicator_only[simp]:
   assumes "A \<in> sets M"
   shows "integral\<^sup>S M (indicator A) = emeasure M A"
   using simple_integral_indicator[OF assms, of "\<lambda>x. 1"] sets.sets_into_space[OF assms]
-  by (simp_all add: image_constant_conv Int_absorb1 split: split_if_asm)
+  by (simp_all add: image_constant_conv Int_absorb1 split: if_split_asm)
 
 lemma simple_integral_null_set:
   assumes "simple_function M u" "\<And>x. 0 \<le> u x" and "N \<in> null_sets M"
@@ -777,7 +777,7 @@ proof (safe intro!: antisym SUP_least)
   let ?g = "\<lambda>y x. if g x = \<infinity> then y else max 0 (g x)"
   from g gM have g_in_A: "\<And>y. 0 \<le> y \<Longrightarrow> y \<noteq> \<infinity> \<Longrightarrow> ?g y \<in> ?A"
     apply (safe intro!: simple_function_max simple_function_If)
-    apply (force simp: max_def le_fun_def split: split_if_asm)+
+    apply (force simp: max_def le_fun_def split: if_split_asm)+
     done
   show "integral\<^sup>S M g \<le> SUPREMUM ?A ?f"
   proof cases
@@ -826,7 +826,7 @@ proof (safe intro!: SUP_mono)
       assume x: "x \<in> space M - N"
       with N have "u x \<le> v x" by auto
       with n(2)[THEN le_funD, of x] x show ?thesis
-        by (auto simp: max_def split: split_if_asm)
+        by (auto simp: max_def split: if_split_asm)
     qed simp }
   then have "?n \<le> max 0 \<circ> v" by (auto simp: le_funI)
   moreover have "integral\<^sup>S M n \<le> integral\<^sup>S M ?n"
@@ -1086,7 +1086,7 @@ lemma nn_integral_const[simp]:
   by (subst nn_integral_eq_simple_integral) auto
 
 lemma nn_integral_const_nonpos: "c \<le> 0 \<Longrightarrow> nn_integral M (\<lambda>x. c) = 0"
-  using nn_integral_max_0[of M "\<lambda>x. c"] by (simp add: max_def split: split_if_asm)
+  using nn_integral_max_0[of M "\<lambda>x. c"] by (simp add: max_def split: if_split_asm)
 
 lemma nn_integral_linear:
   assumes f: "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x" and "0 \<le> a"
@@ -1111,7 +1111,7 @@ proof -
   have pos: "\<And>i. 0 \<le> integral\<^sup>S M (u i)" "\<And>i. 0 \<le> integral\<^sup>S M (v i)" "\<And>i. 0 \<le> a * integral\<^sup>S M (u i)"
     using u v \<open>0 \<le> a\<close> by (auto simp: simple_integral_nonneg)
   { fix i from pos[of i] have "a * integral\<^sup>S M (u i) \<noteq> -\<infinity>" "integral\<^sup>S M (v i) \<noteq> -\<infinity>"
-      by (auto split: split_if_asm) }
+      by (auto split: if_split_asm) }
   note not_MInf = this
 
   have l': "(SUP i. integral\<^sup>S M (l i)) = (SUP i. integral\<^sup>S M (?L' i))"
@@ -1316,7 +1316,7 @@ proof -
   moreover have "0 \<le> (emeasure M) (f -` {\<infinity>} \<inter> space M)"
     by (rule emeasure_nonneg)
   ultimately show ?thesis
-    using assms by (auto split: split_if_asm)
+    using assms by (auto split: if_split_asm)
 qed
 
 lemma nn_integral_PInf_AE:
@@ -1620,7 +1620,7 @@ proof -
     show "integral\<^sup>N M u = 0" by (simp add: u_eq null_sets_def)
   next
     { fix r :: ereal and n :: nat assume gt_1: "1 \<le> real n * r"
-      then have "0 < real n * r" by (cases r) (auto split: split_if_asm simp: one_ereal_def)
+      then have "0 < real n * r" by (cases r) (auto split: if_split_asm simp: one_ereal_def)
       then have "0 \<le> r" by (auto simp add: ereal_zero_less_0_iff) }
     note gt_1 = this
     assume *: "integral\<^sup>N M u = 0"
@@ -2377,7 +2377,7 @@ proof -
       using f \<open>A \<in> sets M\<close>
       by (intro AE_iff_measurable[OF _ refl, symmetric]) auto
     also have "(AE x in M. max 0 (f x) * indicator A x = 0) \<longleftrightarrow> (AE x in M. x \<in> A \<longrightarrow> f x \<le> 0)"
-      by (auto simp add: indicator_def max_def split: split_if_asm)
+      by (auto simp add: indicator_def max_def split: if_split_asm)
     finally have "(\<integral>\<^sup>+x. f x * indicator A x \<partial>M) = 0 \<longleftrightarrow> (AE x in M. x \<in> A \<longrightarrow> f x \<le> 0)" . }
   with f show ?thesis
     by (simp add: null_sets_def emeasure_density cong: conj_cong)

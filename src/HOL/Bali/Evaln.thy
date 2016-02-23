@@ -193,7 +193,7 @@ monos
   if_bool_eq_conj
 
 
-declare split_if     [split del] split_if_asm     [split del]
+declare if_split     [split del] if_split_asm     [split del]
         option.split [split del] option.split_asm [split del]
         not_None_eq [simp del] 
         split_paired_All [simp del] split_paired_Ex [simp del]
@@ -234,7 +234,7 @@ inductive_cases evaln_elim_cases:
         "G\<turnstile>Norm s \<midarrow>In1l ({accC,statT,mode}e\<cdot>mn({pT}p)) \<succ>\<midarrow>n\<rightarrow> (v, s')"
         "G\<turnstile>Norm s \<midarrow>In1r (Init C)                  \<succ>\<midarrow>n\<rightarrow> (x, s')"
 
-declare split_if     [split] split_if_asm     [split] 
+declare if_split     [split] if_split_asm     [split] 
         option.split [split] option.split_asm [split]
         not_None_eq [simp] 
         split_paired_All [simp] split_paired_Ex [simp]
@@ -453,7 +453,7 @@ apply (tactic \<open>ALLGOALS (EVERY' [strip_tac @{context},
   REPEAT o smp_tac @{context} 1, 
   resolve_tac @{context} @{thms evaln.intros} THEN_ALL_NEW TRY o assume_tac @{context}])\<close>)
 (* 3 subgoals *)
-apply (auto split del: split_if)
+apply (auto split del: if_split)
 done
 
 lemmas evaln_nonstrict_Suc = evaln_nonstrict [OF _ le_refl [THEN le_SucI]]

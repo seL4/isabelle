@@ -1578,7 +1578,7 @@ lemma not_square_less_zero [simp]: "\<not> (a * a < 0)"
   by (simp add: not_less)
 
 proposition abs_eq_iff: "\<bar>x\<bar> = \<bar>y\<bar> \<longleftrightarrow> x = y \<or> x = -y"
-  by (auto simp add: abs_if split: split_if_asm)
+  by (auto simp add: abs_if split: if_split_asm)
 
 lemma sum_squares_ge_zero:
   "0 \<le> x * x + y * y"

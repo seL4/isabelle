@@ -304,7 +304,7 @@ proof(intro ccpo.admissibleI strip)
     and P [rule_format]: "\<forall>f\<in>A. \<forall>x. f x \<noteq> c \<longrightarrow> P x (f x)"
     and defined: "fun_lub (flat_lub c) A x \<noteq> c"
   from defined obtain f where f: "f \<in> A" "f x \<noteq> c"
-    by(auto simp add: fun_lub_def flat_lub_def split: split_if_asm)
+    by(auto simp add: fun_lub_def flat_lub_def split: if_split_asm)
   hence "P x (f x)" by(rule P)
   moreover from chain f have "\<forall>f' \<in> A. f' x = c \<or> f' x = f x"
     by(auto 4 4 simp add: Complete_Partial_Order.chain_def flat_ord_def fun_ord_def)

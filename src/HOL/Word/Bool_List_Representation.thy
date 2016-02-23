@@ -922,8 +922,8 @@ lemma bin_rcat_bl:
 lemmas bin_rsplit_aux_simps = bin_rsplit_aux.simps bin_rsplitl_aux.simps
 lemmas rsplit_aux_simps = bin_rsplit_aux_simps
 
-lemmas th_if_simp1 = split_if [where P = "op = l", THEN iffD1, THEN conjunct1, THEN mp] for l
-lemmas th_if_simp2 = split_if [where P = "op = l", THEN iffD1, THEN conjunct2, THEN mp] for l
+lemmas th_if_simp1 = if_split [where P = "op = l", THEN iffD1, THEN conjunct1, THEN mp] for l
+lemmas th_if_simp2 = if_split [where P = "op = l", THEN iffD1, THEN conjunct2, THEN mp] for l
 
 lemmas rsplit_aux_simp1s = rsplit_aux_simps [THEN th_if_simp1]
 
@@ -995,7 +995,7 @@ lemma bin_rsplit_size_sign' [rule_format] :
    apply clarsimp
   apply clarsimp
   apply (drule bthrs)
-  apply (simp (no_asm_use) add: Let_def split: prod.split_asm split_if_asm)
+  apply (simp (no_asm_use) add: Let_def split: prod.split_asm if_split_asm)
   apply clarify
   apply (drule split_bintrunc)
   apply simp
@@ -1011,7 +1011,7 @@ lemma bin_nth_rsplit [rule_format] :
    apply clarsimp
   apply clarsimp
   apply (drule bthrs)
-  apply (simp (no_asm_use) add: Let_def split: prod.split_asm split_if_asm)
+  apply (simp (no_asm_use) add: Let_def split: prod.split_asm if_split_asm)
   apply clarify
   apply (erule allE, erule impE, erule exI)
   apply (case_tac k)

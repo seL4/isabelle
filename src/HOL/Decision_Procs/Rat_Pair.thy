@@ -188,7 +188,7 @@ proof
   proof cases
     case 1
     then show ?thesis
-      using na nb H by (simp add: x y INum_def split_def isnormNum_def split: split_if_asm)
+      using na nb H by (simp add: x y INum_def split_def isnormNum_def split: if_split_asm)
   next
     case 2
     with na nb have pos: "b > 0" "b' > 0"
@@ -599,7 +599,7 @@ proof -
   show ?thesis using nx ny
     apply (simp only: isnormNum_unique[where ?'a = 'a, OF  Nmul_normN[OF nx ny] n0, symmetric]
       Nmul[where ?'a = 'a])
-    apply (simp add: x y INum_def split_def isnormNum_def split: split_if_asm)
+    apply (simp add: x y INum_def split_def isnormNum_def split: if_split_asm)
     done
 qed
 

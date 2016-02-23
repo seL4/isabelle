@@ -193,7 +193,7 @@ lemma method_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
   method (G,C) = (if C = Object then empty else method (G,D)) ++  
   map_of (map (\<lambda>(s,m). (s,(C,m))) ms)"
 apply (unfold method_def)
-apply (simp split del: split_if)
+apply (simp split del: if_split)
 apply (erule (1) class_rec_lemma [THEN trans])
 apply auto
 done
@@ -202,7 +202,7 @@ lemma fields_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)^-1)|] ==>
  fields (G,C) = 
   map (\<lambda>(fn,ft). ((fn,C),ft)) fs @ (if C = Object then [] else fields (G,D))"
 apply (unfold fields_def)
-apply (simp split del: split_if)
+apply (simp split del: if_split)
 apply (erule (1) class_rec_lemma [THEN trans])
 apply auto
 done

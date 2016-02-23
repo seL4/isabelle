@@ -155,7 +155,7 @@ proof (induct t)
 next
   case (Branch color t1 a b t2)
   let ?A = "Set.insert a (dom (rbt_lookup t1) \<union> dom (rbt_lookup t2))"
-  have "dom (rbt_lookup (Branch color t1 a b t2)) \<subseteq> ?A" by (auto split: split_if_asm)
+  have "dom (rbt_lookup (Branch color t1 a b t2)) \<subseteq> ?A" by (auto split: if_split_asm)
   moreover from Branch have "finite (insert a (dom (rbt_lookup t1) \<union> dom (rbt_lookup t2)))" by simp
   ultimately show ?case by (rule finite_subset)
 qed 

@@ -37,7 +37,7 @@ lemma cname_of_xcp:
 proof -
   assume "raise_if b x None = Some xcp"
   hence "xcp = Addr (XcptRef x)"
-    by (simp add: raise_if_def split: split_if_asm)
+    by (simp add: raise_if_def split: if_split_asm)
   moreover
   assume "preallocated hp" 
   then obtain fs where "hp (XcptRef x) = Some (Xcpt x, fs)" ..

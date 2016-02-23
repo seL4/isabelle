@@ -155,7 +155,7 @@ proof -
     apply (erule disjE, simp)
     apply (elim exE conjE)
     apply (erule allE, erule impE, assumption)
-    apply (simp add: exec_all_def exec_d_def split: type_error.splits split_if_asm)
+    apply (simp add: exec_all_def exec_d_def split: type_error.splits if_split_asm)
     apply (rule rtrancl_trans, assumption)
     apply blast
     done

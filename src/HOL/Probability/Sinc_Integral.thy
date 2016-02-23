@@ -196,7 +196,7 @@ proof -
     using interval_integral_FTC2[of "min 0 (x - 1)" 0 "max 0 (x + 1)" sinc x]
     by (auto simp: continuous_at_imp_continuous_on isCont_sinc Si_alt_def[abs_def] zero_ereal_def
                    has_field_derivative_iff_has_vector_derivative
-             split del: split_if)
+             split del: if_split)
 qed
 
 lemma isCont_Si: "isCont Si x"
@@ -389,7 +389,7 @@ proof -
     hence "LBINT x. indicator {0<..<T} x * sin (x * \<theta>) / x =
        - (LBINT x. indicator {0<..<- (T * \<theta>)} x * sin x / x)"
       using assms `0 > \<theta>` unfolding interval_lebesgue_integral_def einterval_eq zero_ereal_def
-        by (auto simp add: field_simps mult_le_0_iff split: split_if_asm)
+        by (auto simp add: field_simps mult_le_0_iff split: if_split_asm)
   } note aux2 = this
   show ?thesis
     using assms unfolding Si_def interval_lebesgue_integral_def sgn_real_def einterval_eq zero_ereal_def

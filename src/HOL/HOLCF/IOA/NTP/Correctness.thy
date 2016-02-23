@@ -61,7 +61,7 @@ text \<open>Proof of correctness\<close>
 lemma ntp_correct:
   "is_weak_ref_map hom (Automata.restrict impl_ioa (externals spec_sig)) spec_ioa"
 apply (unfold Spec.ioa_def is_weak_ref_map_def)
-apply (simp (no_asm) cong del: if_weak_cong split del: split_if add: Correctness.hom_def
+apply (simp (no_asm) cong del: if_weak_cong split del: if_split add: Correctness.hom_def
   cancel_restrict externals_lemma)
 apply (rule conjI)
  apply (simp (no_asm) add: hom_ioas)

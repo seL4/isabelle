@@ -3481,7 +3481,7 @@ proof -
     by (auto intro!: exI[of _ "(a + b) / 2"] simp: box_def)
   then show ?thesis
     using interior_rel_interior_gen[of "cbox a b", symmetric]
-    by (simp split: split_if_asm del: box_real add: box_real[symmetric] interior_cbox)
+    by (simp split: if_split_asm del: box_real add: box_real[symmetric] interior_cbox)
 qed
 
 lemma rel_interior_real_semiline:
@@ -3491,7 +3491,7 @@ proof -
   have *: "{a<..} \<noteq> {}"
     unfolding set_eq_iff by (auto intro!: exI[of _ "a + 1"])
   then show ?thesis using interior_real_semiline interior_rel_interior_gen[of "{a..}"]
-    by (auto split: split_if_asm)
+    by (auto split: if_split_asm)
 qed
 
 subsubsection \<open>Relative open sets\<close>
@@ -6583,7 +6583,7 @@ lemma open_segment_bound1:
   shows "norm (x - a) < norm (b - a)"
 proof -
   obtain u where "x = (1 - u) *\<^sub>R a + u *\<^sub>R b" "0 < u" "u < 1" "a \<noteq> b"
-    using assms by (auto simp add: open_segment_eq split: split_if_asm)
+    using assms by (auto simp add: open_segment_eq split: if_split_asm)
   then show "norm (x - a) < norm (b - a)"
     apply clarify
     apply (auto simp: algebra_simps)

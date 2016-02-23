@@ -101,7 +101,7 @@ proof (clarsimp split: split_root)
   have x: "\<And>a b :: real. (0 < b \<and> a < 0) \<Longrightarrow> \<not> a > b" by auto
   fix a b :: real assume "0 < n" "sgn a * \<bar>a\<bar> ^ n < sgn b * \<bar>b\<bar> ^ n" then show "a < b"
     using power_less_imp_less_base[of a n b]  power_less_imp_less_base[of "-b" n "-a"]
-    by (simp add: sgn_real_def x [of "a ^ n" "- ((- b) ^ n)"] split: split_if_asm)
+    by (simp add: sgn_real_def x [of "a ^ n" "- ((- b) ^ n)"] split: if_split_asm)
 qed
 
 lemma real_root_gt_zero: "\<lbrakk>0 < n; 0 < x\<rbrakk> \<Longrightarrow> 0 < root n x"
@@ -122,13 +122,13 @@ lemma sgn_root: "0 < n \<Longrightarrow> sgn (root n x) = sgn x"
   by (auto split: split_root simp: sgn_real_def)
 
 lemma odd_real_root_pow: "odd n \<Longrightarrow> root n x ^ n = x"
-  using sgn_power_root[of n x] by (simp add: odd_pos sgn_real_def split: split_if_asm)
+  using sgn_power_root[of n x] by (simp add: odd_pos sgn_real_def split: if_split_asm)
 
 lemma real_root_power_cancel: "\<lbrakk>0 < n; 0 \<le> x\<rbrakk> \<Longrightarrow> root n (x ^ n) = x"
   using root_sgn_power[of n x] by (auto simp add: le_less power_0_left)
 
 lemma odd_real_root_power_cancel: "odd n \<Longrightarrow> root n (x ^ n) = x"
-  using root_sgn_power[of n x] by (simp add: odd_pos sgn_real_def power_0_left split: split_if_asm)
+  using root_sgn_power[of n x] by (simp add: odd_pos sgn_real_def power_0_left split: if_split_asm)
 
 lemma real_root_pos_unique: "\<lbrakk>0 < n; 0 \<le> y; y ^ n = x\<rbrakk> \<Longrightarrow> root n x = y"
   using root_sgn_power[of n y] by (auto simp add: le_less power_0_left)

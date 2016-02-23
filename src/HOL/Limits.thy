@@ -1354,7 +1354,7 @@ proof safe
   fix Z :: real assume "0 < Z"
   from f \<open>0 < c\<close> have "eventually (\<lambda>x. c / 2 < f x) F"
     by (auto dest!: tendstoD[where e="c / 2"] elim!: eventually_mono
-             simp: dist_real_def abs_real_def split: split_if_asm)
+             simp: dist_real_def abs_real_def split: if_split_asm)
   moreover from g have "eventually (\<lambda>x. (Z / c * 2) \<le> g x) F"
     unfolding filterlim_at_top by auto
   ultimately show "eventually (\<lambda>x. Z \<le> f x * g x) F"

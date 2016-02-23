@@ -134,12 +134,12 @@ next
         by simp
       with l'_l Some x_l_Some del
       show ?thesis
-        by (auto split: split_if_asm)
+        by (auto split: if_split_asm)
     next
       case None
       with l'_l Some x_l_Some del
       show ?thesis
-        by (fastforce split: split_if_asm)
+        by (fastforce split: if_split_asm)
     qed
   next
     case None
@@ -152,12 +152,12 @@ next
         by simp
       with Some x_l_None del
       show ?thesis
-        by (fastforce split: split_if_asm)
+        by (fastforce split: if_split_asm)
     next
       case None
       with x_l_None del
       show ?thesis
-        by (fastforce split: split_if_asm)
+        by (fastforce split: if_split_asm)
     qed
   qed
 qed
@@ -221,7 +221,7 @@ next
       case None
       with x_l_None del dist_l dist_r d dist_l_r
       show ?thesis
-        by (fastforce split: split_if_asm)
+        by (fastforce split: if_split_asm)
     qed
   qed
 qed
@@ -257,14 +257,14 @@ next
         by simp
       from x_r x_l Some x_l_Some del 
       show ?thesis
-        by (clarsimp split: split_if_asm)
+        by (clarsimp split: if_split_asm)
     next
       case None
       then have "x \<notin> set_of r"
         by (simp add: delete_None_set_of_conv)
       with x_l None x_l_Some del
       show ?thesis
-        by (clarsimp split: split_if_asm)
+        by (clarsimp split: if_split_asm)
     qed
   next
     case None
@@ -279,14 +279,14 @@ next
         by simp
       from x_r x_notin_l Some x_l_None del 
       show ?thesis
-        by (clarsimp split: split_if_asm)
+        by (clarsimp split: if_split_asm)
     next
       case None
       then have "x \<notin> set_of r"
         by (simp add: delete_None_set_of_conv)
       with None x_l_None x_notin_l del
       show ?thesis
-        by (clarsimp split: split_if_asm)
+        by (clarsimp split: if_split_asm)
     qed
   qed
 qed

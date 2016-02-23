@@ -377,7 +377,7 @@ lemma inj_on_choose_pos [OF refl]:
  apply (rule inj_onI)
  apply (drule_tac x="A - {choose A}" in meta_spec, simp)
  apply (simp add: choose_pos.simps)
- apply (simp split: split_if_asm)
+ apply (simp split: if_split_asm)
  apply (erule (1) inj_onD, simp, simp)
 done
 

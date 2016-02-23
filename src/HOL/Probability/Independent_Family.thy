@@ -155,7 +155,7 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
             next
               assume "J \<noteq> {j}"
               have "prob (\<Inter>i\<in>J. A i) = prob ((\<Inter>i\<in>J-{j}. A i) \<inter> X)"
-                using \<open>j \<in> J\<close> \<open>A j = X\<close> by (auto intro!: arg_cong[where f=prob] split: split_if_asm)
+                using \<open>j \<in> J\<close> \<open>A j = X\<close> by (auto intro!: arg_cong[where f=prob] split: if_split_asm)
               also have "\<dots> = prob X * (\<Prod>i\<in>J-{j}. prob (A i))"
               proof (rule indep)
                 show "J - {j} \<noteq> {}" "J - {j} \<subseteq> K" "finite (J - {j})" "j \<notin> J - {j}"
@@ -172,7 +172,7 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
             qed
           next
             assume "j \<notin> J"
-            with J have "\<forall>i\<in>J. A i \<in> G i" by (auto split: split_if_asm)
+            with J have "\<forall>i\<in>J. A i \<in> G i" by (auto split: if_split_asm)
             with J show ?thesis
               by (intro indep_setsD[OF G(1)]) auto
           qed
@@ -192,10 +192,10 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
           have "prob ((\<Inter>j\<in>J. A j) \<inter> (space M - X)) =
               prob ((\<Inter>j\<in>J. A j) - (\<Inter>i\<in>insert j J. (A(j := X)) i))"
             using A_sets sets.sets_into_space[of _ M] X \<open>J \<noteq> {}\<close>
-            by (auto intro!: arg_cong[where f=prob] split: split_if_asm)
+            by (auto intro!: arg_cong[where f=prob] split: if_split_asm)
           also have "\<dots> = prob (\<Inter>j\<in>J. A j) - prob (\<Inter>i\<in>insert j J. (A(j := X)) i)"
             using J \<open>J \<noteq> {}\<close> \<open>j \<notin> J\<close> A_sets X sets.sets_into_space
-            by (auto intro!: finite_measure_Diff sets.finite_INT split: split_if_asm)
+            by (auto intro!: finite_measure_Diff sets.finite_INT split: if_split_asm)
           finally have "prob ((\<Inter>j\<in>J. A j) \<inter> (space M - X)) =
               prob (\<Inter>j\<in>J. A j) - prob (\<Inter>i\<in>insert j J. (A(j := X)) i)" .
           moreover {
@@ -223,7 +223,7 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
           then have A_sets: "\<And>i. i\<in>J \<Longrightarrow> A i \<in> events"
             using G by auto
           have "prob ((\<Inter>j\<in>J. A j) \<inter> (\<Union>k. F k)) = prob (\<Union>k. (\<Inter>i\<in>insert j J. (A(j := F k)) i))"
-            using \<open>J \<noteq> {}\<close> \<open>j \<notin> J\<close> \<open>j \<in> K\<close> by (auto intro!: arg_cong[where f=prob] split: split_if_asm)
+            using \<open>J \<noteq> {}\<close> \<open>j \<notin> J\<close> \<open>j \<in> K\<close> by (auto intro!: arg_cong[where f=prob] split: if_split_asm)
           moreover have "(\<lambda>k. prob (\<Inter>i\<in>insert j J. (A(j := F k)) i)) sums prob (\<Union>k. (\<Inter>i\<in>insert j J. (A(j := F k)) i))"
           proof (rule finite_measure_UNION)
             show "disjoint_family (\<lambda>k. \<Inter>i\<in>insert j J. (A(j := F k)) i)"
@@ -233,7 +233,7 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
           qed
           moreover { fix k
             from J A \<open>j \<in> K\<close> have "prob (\<Inter>i\<in>insert j J. (A(j := F k)) i) = prob (F k) * (\<Prod>i\<in>J. prob (A i))"
-              by (subst indep_setsD[OF F(2)]) (auto intro!: setprod.cong split: split_if_asm)
+              by (subst indep_setsD[OF F(2)]) (auto intro!: setprod.cong split: if_split_asm)
             also have "\<dots> = prob (F k) * prob (\<Inter>i\<in>J. A i)"
               using J A \<open>j \<in> K\<close> by (subst indep_setsD[OF G(1)]) auto
             finally have "prob (\<Inter>i\<in>insert j J. (A(j := F k)) i) = prob (F k) * prob (\<Inter>i\<in>J. A i)" . }
@@ -271,7 +271,7 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
             by (intro indep_setsD[OF indep]) auto
         next
           assume "j \<notin> J"
-          with J A have "\<forall>i\<in>J. A i \<in> G i" by (auto split: split_if_asm)
+          with J A have "\<forall>i\<in>J. A i \<in> G i" by (auto split: if_split_asm)
           with J show ?thesis
             by (intro indep_setsD[OF G(1)]) auto
         qed
@@ -842,10 +842,10 @@ next
     let ?A = "\<lambda>j. if j \<in> J then A j else space M"
     have "prob (\<Inter>j\<in>I. ?A j) = prob (\<Inter>j\<in>J. A j)"
       using subset_trans[OF F(1) sets.space_closed] J A
-      by (auto intro!: arg_cong[where f=prob] split: split_if_asm) blast
+      by (auto intro!: arg_cong[where f=prob] split: if_split_asm) blast
     also
     from A F have "(\<lambda>j. if j \<in> J then A j else space M) \<in> Pi I F" (is "?A \<in> _")
-      by (auto split: split_if_asm)
+      by (auto split: if_split_asm)
     with indep have "prob (\<Inter>j\<in>I. ?A j) = (\<Prod>j\<in>I. prob (?A j))"
       by auto
     also have "\<dots> = (\<Prod>j\<in>J. prob (A j))"
@@ -1089,7 +1089,7 @@ proof -
       then have "emeasure ?D E = emeasure M (?X -` E \<inter> space M)"
         by (simp add: emeasure_distr X)
       also have "?X -` E \<inter> space M = (\<Inter>i\<in>J. X i -` Y i \<inter> space M)"
-        using J \<open>I \<noteq> {}\<close> measurable_space[OF rv] by (auto simp: prod_emb_def PiE_iff split: split_if_asm)
+        using J \<open>I \<noteq> {}\<close> measurable_space[OF rv] by (auto simp: prod_emb_def PiE_iff split: if_split_asm)
       also have "emeasure M (\<Inter>i\<in>J. X i -` Y i \<inter> space M) = (\<Prod> i\<in>J. emeasure M (X i -` Y i \<inter> space M))"
         using \<open>indep_vars M' X I\<close> J \<open>I \<noteq> {}\<close> using indep_varsD[of M' X I J]
         by (auto simp: emeasure_eq_measure setprod_ereal)
@@ -1120,7 +1120,7 @@ proof -
         Y: "\<And>j. j \<in> J \<Longrightarrow> Y' j = X j -` Y j \<inter> space M" "\<And>j. j \<in> J \<Longrightarrow> Y j \<in> sets (M' j)" by auto
       let ?E = "prod_emb I M' J (Pi\<^sub>E J Y)"
       from Y have "(\<Inter>j\<in>J. Y' j) = ?X -` ?E \<inter> space M"
-        using J \<open>I \<noteq> {}\<close> measurable_space[OF rv] by (auto simp: prod_emb_def PiE_iff split: split_if_asm)
+        using J \<open>I \<noteq> {}\<close> measurable_space[OF rv] by (auto simp: prod_emb_def PiE_iff split: if_split_asm)
       then have "emeasure M (\<Inter>j\<in>J. Y' j) = emeasure M (?X -` ?E \<inter> space M)"
         by simp
       also have "\<dots> = emeasure ?D ?E"

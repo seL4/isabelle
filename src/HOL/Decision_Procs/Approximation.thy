@@ -182,7 +182,7 @@ lemma float_power_bnds:
   "(l1, u1) = float_power_bnds prec n l u \<Longrightarrow> x \<in> {l .. u} \<Longrightarrow> (x::real) ^ n \<in> {l1..u1}"
   by (auto
     simp: float_power_bnds_def max_def real_power_up_fl real_power_down_fl minus_le_iff
-    split: split_if_asm
+    split: if_split_asm
     intro!: power_up_le power_down_le le_minus_power_downI
     intro: power_mono_odd power_mono power_mono_even zero_le_even_power)
 
@@ -2771,14 +2771,14 @@ proof -
                                    del: lb_ln.simps ub_ln.simps)
   next
     assume "l1 \<le> 0" "\<not>(l1 = 0 \<and> (u1 = 0 \<or> l2 \<ge> 1))"
-    with lu show ?thesis by (simp add: bnds_powr_def split: split_if_asm)
+    with lu show ?thesis by (simp add: bnds_powr_def split: if_split_asm)
   next
     assume l1: "l1 > 0"
     obtain lm um where lmum:
       "(lm, um) = bnds_mult prec (the (lb_ln prec l1)) (the (ub_ln prec u1)) l2 u2"
       by (cases "bnds_mult prec (the (lb_ln prec l1)) (the (ub_ln prec u1)) l2 u2") simp
     with l1 have "(l, u) = map_bnds lb_exp ub_exp prec (lm, um)"
-      using lu by (simp add: bnds_powr_def del: lb_ln.simps ub_ln.simps split: split_if_asm)
+      using lu by (simp add: bnds_powr_def del: lb_ln.simps ub_ln.simps split: if_split_asm)
     hence "exp (ln x * y) \<in> {real_of_float l..real_of_float u}"
     proof (rule map_bnds[OF _ mono_exp_real], goal_cases)
       case 1
@@ -4229,7 +4229,7 @@ proof (cases f)
       with f_def a b assms
       have "approx_tse_form' prec t (Add rt (Minus x)) s l u' (\<lambda> l u. 0 \<le> l)"
         and "approx_tse_form' prec t (Add x (Minus lf)) s l u' (\<lambda> l u. 0 \<le> l)"
-        unfolding approx_tse_form_def lazy_conj by (auto split: split_if_asm)
+        unfolding approx_tse_form_def lazy_conj by (auto split: if_split_asm)
       from approx_tse_form'_le[OF this(1) bnd] approx_tse_form'_le[OF this(2) bnd]
       show ?case using AtLeastAtMost by auto
     qed (auto simp: f_def approx_tse_form_def elim!: case_optionE)

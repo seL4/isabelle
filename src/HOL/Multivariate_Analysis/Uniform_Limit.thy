@@ -512,6 +512,7 @@ lemma uniformly_convergent_mult:
   unfolding uniformly_convergent_on_def
   by (blast dest: bounded_linear_uniform_limit_intros(13))
 
+
 subsection\<open>Power series and uniform convergence\<close>
 
 proposition powser_uniformly_convergent:
@@ -555,3 +556,4 @@ apply (rule continuous_on_cong [THEN iffD1, OF refl _ powser_continuous_suminf [
 using sm sums_unique by fastforce
 
 end
+

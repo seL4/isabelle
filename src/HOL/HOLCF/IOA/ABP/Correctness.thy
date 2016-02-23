@@ -94,7 +94,7 @@ lemma reduce_hd:
    "if x=hd(reverse(reduce(l))) & reduce(l)~=[] then
        reduce(l@[x])=reduce(l) else
        reduce(l@[x])=reduce(l)@[x]"
-apply (simplesubst split_if)
+apply (simplesubst if_split)
 apply (rule conjI)
 txt \<open>\<open>-->\<close>\<close>
 apply (induct_tac "l")
@@ -115,7 +115,7 @@ apply (simp (no_asm))
 apply (case_tac "list=[]")
 apply (cut_tac [2] l = "list" in cons_not_nil)
 apply simp
-apply (auto simp del: reduce_Cons simp add: last_ind_on_first l_iff_red_nil split: split_if)
+apply (auto simp del: reduce_Cons simp add: last_ind_on_first l_iff_red_nil split: if_split)
 apply simp
 done
 
@@ -134,7 +134,7 @@ done
 
 subsection \<open>Channel Abstraction\<close>
 
-declare split_if [split del]
+declare if_split [split del]
 
 lemma channel_abstraction: "is_weak_ref_map reduce ch_ioa ch_fin_ioa"
 apply (simp (no_asm) add: is_weak_ref_map_def)
@@ -161,7 +161,7 @@ apply (rule bool_if_impl_or [THEN mp])
 apply (erule reduce_tl)
 done
 
-declare split_if [split]
+declare if_split [split]
 
 lemma sender_abstraction: "is_weak_ref_map reduce srch_ioa srch_fin_ioa"
 apply (tactic \<open>

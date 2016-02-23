@@ -468,7 +468,7 @@ lemma analz_insert_Decrypt:
 by (intro equalityI lemma1 lemma2)
 
 text\<open>Case analysis: either the message is secure, or it is not! Effective,
-but can cause subgoals to blow up! Use with \<open>split_if\<close>; apparently
+but can cause subgoals to blow up! Use with \<open>if_split\<close>; apparently
 \<open>split_tac\<close> does not cope with patterns such as @{term"analz (insert
 (Crypt K X) H)"}\<close> 
 lemma analz_Crypt_if [simp]:

@@ -58,11 +58,11 @@ lemma update_eqD: "update k v al = update k v' al' \<Longrightarrow> v = v'"
 proof (induct al arbitrary: al')
   case Nil
   then show ?case
-    by (cases al') (auto split: split_if_asm)
+    by (cases al') (auto split: if_split_asm)
 next
   case Cons
   then show ?case
-    by (cases al') (auto split: split_if_asm)
+    by (cases al') (auto split: if_split_asm)
 qed
 
 lemma update_last [simp]: "update k v (update k v' al) = update k v al"
@@ -293,7 +293,7 @@ lemma map_of_delete_aux:
 by(simp add: map_of_delete_aux')
 
 lemma delete_aux_eq_Nil_conv: "delete_aux k ts = [] \<longleftrightarrow> ts = [] \<or> (\<exists>v. ts = [(k, v)])"
-by(cases ts)(auto split: split_if_asm)
+by(cases ts)(auto split: if_split_asm)
 
 
 subsection \<open>\<open>restrict\<close>\<close>
@@ -574,7 +574,7 @@ termination
 lemma compose_first_None [simp]:
   assumes "map_of xs k = None"
   shows "map_of (compose xs ys) k = None"
-  using assms by (induct xs ys rule: compose.induct) (auto split: option.splits split_if_asm)
+  using assms by (induct xs ys rule: compose.induct) (auto split: option.splits if_split_asm)
 
 lemma compose_conv: "map_of (compose xs ys) k = (map_of ys \<circ>\<^sub>m map_of xs) k"
 proof (induct xs ys rule: compose.induct)

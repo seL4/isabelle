@@ -1592,7 +1592,7 @@ lemma ereal_mult_less_right:
   shows "b < c"
   using assms
   by (cases rule: ereal3_cases[of a b c])
-     (auto split: split_if_asm simp: zero_less_mult_iff zero_le_mult_iff)
+     (auto split: if_split_asm simp: zero_less_mult_iff zero_le_mult_iff)
 
 lemma ereal_mult_divide: fixes a b :: ereal shows "0 < b \<Longrightarrow> b < \<infinity> \<Longrightarrow> b * (a / b) = a"
   by (cases a b rule: ereal2_cases) auto
@@ -1646,7 +1646,7 @@ lemma ereal_divide_left_mono[simp]:
   shows "z / x \<le> z / y"
   using assms
   by (cases x y z rule: ereal3_cases)
-     (auto intro: divide_left_mono simp: field_simps zero_less_mult_iff mult_less_0_iff split: split_if_asm)
+     (auto intro: divide_left_mono simp: field_simps zero_less_mult_iff mult_less_0_iff split: if_split_asm)
 
 lemma ereal_divide_zero_left[simp]:
   fixes a :: ereal
@@ -2852,7 +2852,7 @@ proof (rule topological_tendstoI, unfold eventually_sequentially)
       by (auto simp: dist_real_def abs_diff_less_iff field_simps)
     from dist[OF this] show "u N \<in> S"
       using \<open>u N  \<notin> {\<infinity>, -\<infinity>}\<close>
-      by (auto simp: ereal_real split: split_if_asm)
+      by (auto simp: ereal_real split: if_split_asm)
   qed
 qed
 

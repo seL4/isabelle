@@ -94,7 +94,7 @@ lemma bij_betw_from_nat_into_finite: "finite S \<Longrightarrow> bij_betw (from_
   unfolding from_nat_into_def[abs_def]
   using to_nat_on_finite[of S]
   apply (subst bij_betw_cong)
-  apply (split split_if)
+  apply (split if_split)
   apply (simp add: bij_betw_def)
   apply (auto cong: bij_betw_cong
               intro: bij_betw_inv_into to_nat_on_finite)
@@ -303,7 +303,7 @@ lemma finite_sequence_to_countable_set:
    assumes "countable X" obtains F where "\<And>i. F i \<subseteq> X" "\<And>i. F i \<subseteq> F (Suc i)" "\<And>i. finite (F i)" "(\<Union>i. F i) = X"
 proof -  show thesis
     apply (rule that[of "\<lambda>i. if X = {} then {} else from_nat_into X ` {..i}"])
-    apply (auto simp: image_iff Ball_def intro: from_nat_into split: split_if_asm)
+    apply (auto simp: image_iff Ball_def intro: from_nat_into split: if_split_asm)
   proof -
     fix x n assume "x \<in> X" "\<forall>i m. m \<le> i \<longrightarrow> x \<noteq> from_nat_into X m"
     with from_nat_into_surj[OF \<open>countable X\<close> \<open>x \<in> X\<close>]

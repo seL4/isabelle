@@ -1312,7 +1312,7 @@ apply clarify
 apply (subgoal_tac "finite A & A - {x} <= F")
  prefer 2 apply (blast intro: finite_subset, atomize)
 apply (drule_tac x = "A - {x}" in spec)
-apply (simp add: card_Diff_singleton_if split add: split_if_asm)
+apply (simp add: card_Diff_singleton_if split add: if_split_asm)
 apply (case_tac "card A", auto)
 done
 
