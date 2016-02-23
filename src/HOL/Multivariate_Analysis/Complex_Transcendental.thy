@@ -608,7 +608,7 @@ lemma e_approx_32: "\<bar>exp(1) - 5837465777 / 2147483648\<bar> \<le> (inverse(
 
 lemma e_less_3: "exp 1 < (3::real)"
   using e_approx_32
-  by (simp add: abs_if split: split_if_asm)
+  by (simp add: abs_if split: if_split_asm)
 
 lemma ln3_gt_1: "ln 3 > (1::real)"
   by (metis e_less_3 exp_less_cancel_iff exp_ln_iff less_trans ln_exp)
@@ -1088,7 +1088,7 @@ proof -
     then have "\<bar>Im w\<bar> < pi/2 \<longleftrightarrow> 0 < Re(exp w)"
       apply (auto simp: Re_exp zero_less_mult_iff cos_gt_zero_pi)
       using cos_lt_zero_pi [of "-(Im w)"] cos_lt_zero_pi [of "(Im w)"]
-      apply (simp add: abs_if split: split_if_asm)
+      apply (simp add: abs_if split: if_split_asm)
       apply (metis (no_types) cos_minus cos_pi_half eq_divide_eq_numeral1(1) eq_numeral_simps(4)
                less_numeral_extra(3) linorder_neqE_linordered_idom minus_mult_minus minus_mult_right
                mult_numeral_1_right)
@@ -1110,7 +1110,7 @@ proof -
     then have "\<bar>Im w\<bar> \<le> pi/2 \<longleftrightarrow> 0 \<le> Re(exp w)"
       apply (auto simp: Re_exp zero_le_mult_iff cos_ge_zero)
       using cos_lt_zero_pi [of "- (Im w)"] cos_lt_zero_pi [of "(Im w)"] not_le
-      apply (auto simp: abs_if split: split_if_asm)
+      apply (auto simp: abs_if split: if_split_asm)
       done
   }
   then show ?thesis using assms
@@ -1176,7 +1176,7 @@ subsection\<open>More Properties of Ln\<close>
 lemma cnj_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> cnj(Ln z) = Ln(cnj z)"
   apply (cases "z=0", auto)
   apply (rule exp_complex_eqI)
-  apply (auto simp: abs_if split: split_if_asm)
+  apply (auto simp: abs_if split: if_split_asm)
   using Im_Ln_less_pi Im_Ln_le_pi apply force
   apply (metis complex_cnj_zero_iff diff_minus_eq_add diff_strict_mono minus_less_iff 
           mpi_less_Im_Ln mult.commute mult_2_right)
@@ -1186,7 +1186,7 @@ lemma Ln_inverse: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Ln(i
   apply (cases "z=0", auto)
   apply (rule exp_complex_eqI)
   using mpi_less_Im_Ln [of z] mpi_less_Im_Ln [of "inverse z"]
-  apply (auto simp: abs_if exp_minus split: split_if_asm)
+  apply (auto simp: abs_if exp_minus split: if_split_asm)
   apply (metis Im_Ln_less_pi Im_Ln_le_pi add.commute add_mono_thms_linordered_field(3) inverse_nonzero_iff_nonzero mult_2)
   done
 
@@ -1990,7 +1990,7 @@ proof -
     using nz1 nz2 by auto
   have "Im ((1 - \<i>*z) / (1 + \<i>*z)) = 0 \<Longrightarrow> 0 < Re ((1 - \<i>*z) / (1 + \<i>*z))"
     apply (simp add: divide_complex_def)
-    apply (simp add: divide_simps split: split_if_asm)
+    apply (simp add: divide_simps split: if_split_asm)
     using assms
     apply (auto simp: algebra_simps abs_square_less_1 [unfolded power2_eq_square])
     done
@@ -2400,7 +2400,7 @@ proof -
   also have "... = z"
     apply (subst Complex_Transcendental.Ln_exp)
     using assms
-    apply (auto simp: abs_if simp del: eq_divide_eq_numeral1 split: split_if_asm)
+    apply (auto simp: abs_if simp del: eq_divide_eq_numeral1 split: if_split_asm)
     done
   finally show ?thesis .
 qed

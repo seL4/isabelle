@@ -45,7 +45,7 @@ lemma ifE [elim!]:
     "[| if P then Q else R;     
         [| P;   Q |] ==> S;     
         [| ~ P; R |] ==> S |] ==> S"
-by (simp split: split_if_asm) 
+by (simp split: if_split_asm) 
 
 
 declare Rprg_def [THEN def_prg_Init, simp]

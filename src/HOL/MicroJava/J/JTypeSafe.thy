@@ -171,7 +171,7 @@ done
 
 
 
-declare split_if [split del]
+declare if_split [split del]
 declare fun_upd_apply [simp del]
 declare fun_upd_same [simp]
 declare wf_prog_ws_prog [simp]

@@ -929,7 +929,7 @@ proof safe
       by (auto intro!: image_eqI[of _ _ "a + c"])
   next
     assume "\<not> c < y" with a show ?thesis
-      by (auto intro!: image_eqI[of _ _ x] split: split_if_asm)
+      by (auto intro!: image_eqI[of _ _ x] split: if_split_asm)
   qed
 qed auto
 

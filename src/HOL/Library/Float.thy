@@ -1612,7 +1612,7 @@ proof -
     then have floor_eq: "\<lfloor>b * 2 powr (real_of_int p + 1)\<rfloor> = -1"
       using b_le_1
       by (auto simp: floor_eq_iff algebra_simps pos_divide_le_eq[symmetric] abs_if divide_powr_uminus
-        intro!: mult_neg_pos split: split_if_asm)
+        intro!: mult_neg_pos split: if_split_asm)
     have "\<lfloor>(a + b) * 2 powr q\<rfloor> = \<lfloor>(2*a + 2*b) * 2 powr p * 2 powr (q - p - 1)\<rfloor>"
       by (simp add: algebra_simps powr_realpow[symmetric] powr_add[symmetric] powr_mult_base)
     also have "\<dots> = \<lfloor>(2 * (a * 2 powr p) + 2 * b * 2 powr p) * 2 powr (q - p - 1)\<rfloor>"
@@ -1667,10 +1667,10 @@ next
   have pos: "\<bar>b\<bar> < 1 \<Longrightarrow> 0 < 2 powr k + (r + b)" for b :: real
     using \<open>0 \<le> k\<close> \<open>ai \<noteq> 0\<close>
     by (auto simp add: r_def powr_realpow[symmetric] abs_if sgn_if algebra_simps
-      split: split_if_asm)
+      split: if_split_asm)
   have less: "\<bar>sgn ai * b\<bar> < 1"
     and less': "\<bar>sgn (sgn ai * b) / 2\<bar> < 1"
-    using \<open>\<bar>b\<bar> \<le> _\<close> by (auto simp: abs_if sgn_if split: split_if_asm)
+    using \<open>\<bar>b\<bar> \<le> _\<close> by (auto simp: abs_if sgn_if split: if_split_asm)
 
   have floor_eq: "\<And>b::real. \<bar>b\<bar> \<le> 1 / 2 \<Longrightarrow>
       \<lfloor>log 2 (1 + (r + b) / 2 powr k)\<rfloor> = (if r = 0 \<and> b < 0 then -1 else 0)"
@@ -1751,7 +1751,7 @@ proof -
   finally have b_less_half_a: "\<bar>?b\<bar> < 1/2 * \<bar>?a\<bar>"
     by (simp add: algebra_simps powr_mult_base abs_mult)
   then have a_half_less_sum: "\<bar>?a\<bar> / 2 < \<bar>?sum\<bar>"
-    by (auto simp: field_simps abs_if split: split_if_asm)
+    by (auto simp: field_simps abs_if split: if_split_asm)
 
   from b_less_half_a have "\<bar>?b\<bar> < \<bar>?a\<bar>" "\<bar>?b\<bar> \<le> \<bar>?a\<bar>"
     by simp_all

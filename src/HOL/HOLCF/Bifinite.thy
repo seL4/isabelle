@@ -142,7 +142,7 @@ proof
     let ?S = "insert (\<bottom>::'a discr u) ((\<lambda>x. up\<cdot>x) ` undiscr -` to_nat -` {..<i})"
     show "{x::'a discr u. discr_approx i\<cdot>x = x} \<subseteq> ?S"
       unfolding discr_approx_def
-      by (rule subsetI, case_tac x, simp, simp split: split_if_asm)
+      by (rule subsetI, case_tac x, simp, simp split: if_split_asm)
     show "finite ?S"
       by (simp add: finite_vimageI)
   qed

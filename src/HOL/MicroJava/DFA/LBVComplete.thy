@@ -88,7 +88,7 @@ proof-
            (is "?app ss1") and
       sum: "(map snd [(p',t') \<leftarrow> ss1 . p' = pc+1] ++_f x) = ?s1" 
            (is "?map ss1 ++_f x = _" is "?sum ss1 = _")
-      by (simp split: split_if_asm)
+      by (simp split: if_split_asm)
     from app less 
     have "?app ss2" by (blast dest: trans_r lesub_step_typeD)
     moreover {
@@ -159,7 +159,7 @@ next
   have "?s1' = \<top> \<Longrightarrow> ?thesis" by simp
   moreover {
     assume "?s1' \<noteq> \<top>" 
-    with False have c: "s1 <=_r c!pc" by (simp add: wtc split: split_if_asm)
+    with False have c: "s1 <=_r c!pc" by (simp add: wtc split: if_split_asm)
     with less have "s2 <=_r c!pc" ..
     with False c have ?thesis by (simp add: wtc)
   }
@@ -310,7 +310,7 @@ next
   from suc_pc have pc: "pc < length \<phi>" by simp
   with stable have "?wtc \<noteq> \<top>" by (rule stable_wtc)
   with False have "?wtc = wti c pc (c!pc)" 
-    by (unfold wtc) (simp split: split_if_asm)
+    by (unfold wtc) (simp split: if_split_asm)
   also from pc False have "c!pc = \<phi>!pc" .. 
   finally have "?wtc = wti c pc (\<phi>!pc)" .
   also from stable suc_pc have "wti c pc (\<phi>!pc) <=_r \<phi>!Suc pc" by (rule wti_less)

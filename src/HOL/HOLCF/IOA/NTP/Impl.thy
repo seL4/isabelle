@@ -107,10 +107,10 @@ val rename_ss = simpset_of (put_simpset ss @{context} addsimps @{thms unfold_ren
 
 fun tac ctxt =
   asm_simp_tac (put_simpset ss ctxt
-    |> Simplifier.add_cong @{thm conj_cong} |> Splitter.add_split @{thm split_if})
+    |> Simplifier.add_cong @{thm conj_cong} |> Splitter.add_split @{thm if_split})
 fun tac_ren ctxt =
   asm_simp_tac (put_simpset rename_ss ctxt
-    |> Simplifier.add_cong @{thm conj_cong} |> Splitter.add_split @{thm split_if})
+    |> Simplifier.add_cong @{thm conj_cong} |> Splitter.add_split @{thm if_split})
 \<close>
 
 
@@ -128,7 +128,7 @@ txt \<open>Split proof in two\<close>
 apply (rule conjI)
 
 (* First half *)
-apply (simp add: Impl.inv1_def split del: split_if)
+apply (simp add: Impl.inv1_def split del: if_split)
 apply (induct_tac a)
 
 apply (tactic "EVERY1[tac @{context}, tac @{context}, tac @{context}, tac @{context}]")
@@ -145,7 +145,7 @@ apply (tactic \<open>EVERY1[tac @{context}, tac @{context}, tac @{context}, tac 
 
 
 txt \<open>Now the other half\<close>
-apply (simp add: Impl.inv1_def split del: split_if)
+apply (simp add: Impl.inv1_def split del: if_split)
 apply (induct_tac a)
 apply (tactic "EVERY1 [tac @{context}, tac @{context}]")
 
@@ -155,14 +155,14 @@ apply (tactic "tac_ren @{context} 1")
 apply (rule impI)
 apply (erule conjE)+
 apply (simp (no_asm_simp) add: hdr_sum_def Multiset.count_def Multiset.countm_nonempty_def
-  split add: split_if)
+  split add: if_split)
 txt \<open>detour 2\<close>
 apply (tactic "tac @{context} 1")
 apply (tactic "tac_ren @{context} 1")
 apply (rule impI)
 apply (erule conjE)+
 apply (simp add: Impl.hdr_sum_def Multiset.count_def Multiset.countm_nonempty_def
-  Multiset.delm_nonempty_def split add: split_if)
+  Multiset.delm_nonempty_def split add: if_split)
 apply (rule allI)
 apply (rule conjI)
 apply (rule impI)
@@ -198,7 +198,7 @@ lemma raw_inv2: "invariant impl_ioa inv2"
   txt \<open>Base case\<close>
   apply (simp add: inv2_def receiver_projections sender_projections impl_ioas)
 
-  apply (simp (no_asm_simp) add: impl_ioas split del: split_if)
+  apply (simp (no_asm_simp) add: impl_ioas split del: if_split)
   apply (induct_tac "a")
 
   txt \<open>10 cases. First 4 are simple, since state doesn't change\<close>
@@ -257,7 +257,7 @@ lemma raw_inv3: "invariant impl_ioa inv3"
   txt \<open>Base case\<close>
   apply (simp add: Impl.inv3_def receiver_projections sender_projections impl_ioas)
 
-  apply (simp (no_asm_simp) add: impl_ioas split del: split_if)
+  apply (simp (no_asm_simp) add: impl_ioas split del: if_split)
   apply (induct_tac "a")
 
   ML_prf \<open>val tac3 = asm_full_simp_tac (put_simpset ss @{context} addsimps [@{thm inv3_def}])\<close>
@@ -322,7 +322,7 @@ lemma raw_inv4: "invariant impl_ioa inv4"
   txt \<open>Base case\<close>
   apply (simp add: Impl.inv4_def receiver_projections sender_projections impl_ioas)
 
-  apply (simp (no_asm_simp) add: impl_ioas split del: split_if)
+  apply (simp (no_asm_simp) add: impl_ioas split del: if_split)
   apply (induct_tac "a")
 
   ML_prf \<open>val tac4 =  asm_full_simp_tac (put_simpset ss @{context} addsimps [@{thm inv4_def}])\<close>

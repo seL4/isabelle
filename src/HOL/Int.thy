@@ -1190,7 +1190,7 @@ apply (erule_tac x = n in allE, simp)
 apply (case_tac "k = f (Suc n)")
 apply force
 apply (erule impE)
- apply (simp add: abs_if split add: split_if_asm)
+ apply (simp add: abs_if split add: if_split_asm)
 apply (blast intro: le_SucI)
 done
 

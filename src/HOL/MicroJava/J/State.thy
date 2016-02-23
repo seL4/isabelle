@@ -84,7 +84,7 @@ lemma new_AddrD: "new_Addr hp = (ref, xcp) \<Longrightarrow>
   hp ref = None \<and> xcp = None \<or> xcp = Some (Addr (XcptRef OutOfMemory))"
 apply (drule sym)
 apply (unfold new_Addr_def)
-apply (simp split: split_if_asm)
+apply (simp split: if_split_asm)
 apply (erule LeastI)
 done
 
@@ -164,7 +164,7 @@ definition gen_new_Addr :: "aheap => nat \<Rightarrow> loc \<times> val option" 
 
 lemma new_Addr_code_code [code]:
   "new_Addr h = gen_new_Addr h 0"
-by(simp only: new_Addr_def gen_new_Addr_def split: split_if) simp
+by(simp only: new_Addr_def gen_new_Addr_def split: if_split) simp
 
 lemma gen_new_Addr_code [code]:
   "gen_new_Addr h n = (if h (Loc (nat_to_loc' n)) = None then (Loc (nat_to_loc' n), None) else gen_new_Addr h (Suc n))"

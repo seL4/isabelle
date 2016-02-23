@@ -1046,26 +1046,26 @@ lemma Collect_conv_if2: "{x. a=x & P x} = (if P a then {a} else {})"
   by auto
 
 text \<open>
-  Rewrite rules for boolean case-splitting: faster than \<open>split_if [split]\<close>.
+  Rewrite rules for boolean case-splitting: faster than \<open>if_split [split]\<close>.
 \<close>
 
-lemma split_if_eq1: "((if Q then x else y) = b) = ((Q --> x = b) & (~ Q --> y = b))"
-  by (rule split_if)
+lemma if_split_eq1: "((if Q then x else y) = b) = ((Q --> x = b) & (~ Q --> y = b))"
+  by (rule if_split)
 
-lemma split_if_eq2: "(a = (if Q then x else y)) = ((Q --> a = x) & (~ Q --> a = y))"
-  by (rule split_if)
+lemma if_split_eq2: "(a = (if Q then x else y)) = ((Q --> a = x) & (~ Q --> a = y))"
+  by (rule if_split)
 
 text \<open>
   Split ifs on either side of the membership relation.  Not for \<open>[simp]\<close> -- can cause goals to blow up!
 \<close>
 
-lemma split_if_mem1: "((if Q then x else y) : b) = ((Q --> x : b) & (~ Q --> y : b))"
-  by (rule split_if)
+lemma if_split_mem1: "((if Q then x else y) : b) = ((Q --> x : b) & (~ Q --> y : b))"
+  by (rule if_split)
 
-lemma split_if_mem2: "(a : (if Q then x else y)) = ((Q --> a : x) & (~ Q --> a : y))"
-  by (rule split_if [where P="%S. a : S"])
+lemma if_split_mem2: "(a : (if Q then x else y)) = ((Q --> a : x) & (~ Q --> a : y))"
+  by (rule if_split [where P="%S. a : S"])
 
-lemmas split_ifs = if_bool_eq_conj split_if_eq1 split_if_eq2 split_if_mem1 split_if_mem2
+lemmas split_ifs = if_bool_eq_conj if_split_eq1 if_split_eq2 if_split_mem1 if_split_mem2
 
 (*Would like to add these, but the existing code only searches for the
   outer-level constant, which in this case is just Set.member; we instead need

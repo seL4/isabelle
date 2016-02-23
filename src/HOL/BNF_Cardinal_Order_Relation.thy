@@ -1631,7 +1631,7 @@ proof-
   have "bij_betw F (Pow A) (Func A (UNIV::bool set))"
   unfolding bij_betw_def inj_on_def proof (intro ballI impI conjI)
     fix A1 A2 assume "A1 \<in> Pow A" "A2 \<in> Pow A" "F A1 = F A2"
-    thus "A1 = A2" unfolding F_def Pow_def fun_eq_iff by (auto split: split_if_asm)
+    thus "A1 = A2" unfolding F_def Pow_def fun_eq_iff by (auto split: if_split_asm)
   next
     show "F ` Pow A = Func A UNIV"
     proof safe

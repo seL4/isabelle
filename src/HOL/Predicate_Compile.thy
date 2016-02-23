@@ -59,7 +59,7 @@ by(simp add: contains_pred_def contains_def)
 lemma contains_predE: 
   assumes "Predicate.eval (contains_pred A x) y"
   obtains "contains A x"
-using assms by(simp add: contains_pred_def contains_def split: split_if_asm)
+using assms by(simp add: contains_pred_def contains_def split: if_split_asm)
 
 lemma contains_pred_eq: "contains_pred \<equiv> \<lambda>A x. Predicate.Pred (\<lambda>y. contains A x)"
 by(rule eq_reflection)(auto simp add: contains_pred_def fun_eq_iff contains_def intro: pred_eqI)

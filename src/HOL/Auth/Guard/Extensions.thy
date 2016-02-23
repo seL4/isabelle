@@ -39,7 +39,7 @@ subsubsection\<open>declarations for tactics\<close>
 declare analz_subset_parts [THEN subsetD, dest]
 declare parts_insert2 [simp]
 declare analz_cut [dest]
-declare split_if_asm [split]
+declare if_split_asm [split]
 declare analz_insertI [intro]
 declare Un_Diff [simp]
 

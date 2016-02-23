@@ -871,7 +871,7 @@ next
   then have "ereal c * (\<integral>\<^sup>+ x. g x \<partial>lborel) = ereal r"
     by (subst nn_integral_cmult[symmetric]) auto
   then obtain r' where "(c = 0 \<and> r = 0) \<or> ((\<integral>\<^sup>+ x. ereal (g x) \<partial>lborel) = ereal r' \<and> r = c * r')"
-    by (cases "\<integral>\<^sup>+ x. ereal (g x) \<partial>lborel") (auto split: split_if_asm)
+    by (cases "\<integral>\<^sup>+ x. ereal (g x) \<partial>lborel") (auto split: if_split_asm)
   with mult show ?case
     by (auto intro!: has_integral_cmult_real)
 next
@@ -966,7 +966,7 @@ proof -
   { fix i x have "real_of_ereal (F i x) \<le> f x"
       using F(3,5) F(4)[of x, symmetric] nonneg
       unfolding real_le_ereal_iff
-      by (auto simp: image_iff eq_commute[of \<infinity>] max_def intro: SUP_upper split: split_if_asm) }
+      by (auto simp: image_iff eq_commute[of \<infinity>] max_def intro: SUP_upper split: if_split_asm) }
   note F_le_f = this
   let ?F = "\<lambda>i x. F i x * indicator (?B i) x"
   have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>lborel) = (SUP i. integral\<^sup>N lborel (\<lambda>x. ?F i x))"

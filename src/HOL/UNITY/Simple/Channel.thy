@@ -29,7 +29,7 @@ axiomatization where
 (*None represents "infinity" while Some represents proper integers*)
 lemma minSet_eq_SomeD: "minSet A = Some x ==> x \<in> A"
 apply (unfold minSet_def)
-apply (simp split: split_if_asm)
+apply (simp split: if_split_asm)
 apply (fast intro: LeastI)
 done
 

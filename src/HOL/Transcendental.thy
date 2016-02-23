@@ -4269,11 +4269,11 @@ lemma tan_pos_pi2_le: "0 \<le> x ==> x < pi/2 \<Longrightarrow> 0 \<le> tan x"
 
 lemma cos_tan: "\<bar>x\<bar> < pi/2 \<Longrightarrow> cos(x) = 1 / sqrt(1 + tan(x) ^ 2)"
   using cos_gt_zero_pi [of x]
-  by (simp add: divide_simps tan_def real_sqrt_divide abs_if split: split_if_asm)
+  by (simp add: divide_simps tan_def real_sqrt_divide abs_if split: if_split_asm)
 
 lemma sin_tan: "\<bar>x\<bar> < pi/2 \<Longrightarrow> sin(x) = tan(x) / sqrt(1 + tan(x) ^ 2)"
   using cos_gt_zero [of "x"] cos_gt_zero [of "-x"]
-  by (force simp add: divide_simps tan_def real_sqrt_divide abs_if split: split_if_asm)
+  by (force simp add: divide_simps tan_def real_sqrt_divide abs_if split: if_split_asm)
 
 lemma tan_mono_le: "-(pi/2) < x ==> x \<le> y ==> y < pi/2 \<Longrightarrow> tan(x) \<le> tan(y)"
   using less_eq_real_def tan_monotone by auto
@@ -4288,7 +4288,7 @@ lemma tan_mono_le_eq: "-(pi/2) < x ==> x < pi/2 ==> -(pi/2) < y ==> y < pi/2
 
 lemma tan_bound_pi2: "\<bar>x\<bar> < pi/4 \<Longrightarrow> \<bar>tan x\<bar> < 1"
   using tan_45 tan_monotone [of x "pi/4"] tan_monotone [of "-x" "pi/4"]
-  by (auto simp: abs_if split: split_if_asm)
+  by (auto simp: abs_if split: if_split_asm)
 
 lemma tan_cot: "tan(pi/2 - x) = inverse(tan x)"
   by (simp add: tan_def sin_diff cos_diff)

@@ -539,7 +539,7 @@ by (intro equalityI lemma1 lemma2)
 
 (*Case analysis: either the message is secure, or it is not!
   Effective, but can cause subgoals to blow up!
-  Use with split_if;  apparently split_tac does not cope with patterns
+  Use with if_split;  apparently split_tac does not cope with patterns
   such as "analz (insert (Crypt K X) H)" *)
 lemma analz_Crypt_if [simp]:
      "analz (insert (Crypt K X) H) =

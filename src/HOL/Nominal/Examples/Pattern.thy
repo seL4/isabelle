@@ -640,7 +640,7 @@ proof
     apply simp
     apply (simp add: split_paired_all supp_eqvt)
     apply (drule perm_mem_left)
-    apply (simp add: calc_atm split: split_if_asm)
+    apply (simp add: calc_atm split: if_split_asm)
     apply (auto dest: perm_mem_right)
     done
 qed

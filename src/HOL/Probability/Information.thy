@@ -1105,7 +1105,7 @@ proof -
       by (intro nn_integral_0_iff_AE[THEN iffD1]) auto
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. Pxyz x = 0"
       using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
-      by eventually_elim (auto split: split_if_asm simp: mult_le_0_iff divide_le_0_iff)
+      by eventually_elim (auto split: if_split_asm simp: mult_le_0_iff divide_le_0_iff)
     then have "(\<integral>\<^sup>+ x. ereal (Pxyz x) \<partial>S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) = 0"
       by (subst nn_integral_cong_AE[of _ "\<lambda>x. 0"]) auto
     with P.emeasure_space_1 show False
@@ -1362,7 +1362,7 @@ proof -
       by (intro nn_integral_0_iff_AE[THEN iffD1]) (auto intro!: borel_measurable_ereal measurable_If)
     then have "AE x in S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P. Pxyz x = 0"
       using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
-      by eventually_elim (auto split: split_if_asm simp: mult_le_0_iff divide_le_0_iff)
+      by eventually_elim (auto split: if_split_asm simp: mult_le_0_iff divide_le_0_iff)
     then have "(\<integral>\<^sup>+ x. ereal (Pxyz x) \<partial>S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) = 0"
       by (subst nn_integral_cong_AE[of _ "\<lambda>x. 0"]) auto
     with P.emeasure_space_1 show False

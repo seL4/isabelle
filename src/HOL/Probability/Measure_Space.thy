@@ -1897,7 +1897,7 @@ proof cases
   proof (intro iffI impI)
     assume "emeasure (count_space A) X = 0"
     with X show "X = {}"
-      by (subst (asm) emeasure_count_space) (auto split: split_if_asm)
+      by (subst (asm) emeasure_count_space) (auto split: if_split_asm)
   qed simp
 qed (simp add: emeasure_notin_sets)
 

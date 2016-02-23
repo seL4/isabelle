@@ -876,7 +876,7 @@ lemma pmf_cond: "pmf cond_pmf x = (if x \<in> s then pmf p x / measure p s else 
   by transfer (simp add: emeasure_measure_pmf_not_zero pmf.rep_eq)
 
 lemma set_cond_pmf[simp]: "set_pmf cond_pmf = set_pmf p \<inter> s"
-  by (auto simp add: set_pmf_iff pmf_cond measure_measure_pmf_not_zero split: split_if_asm)
+  by (auto simp add: set_pmf_iff pmf_cond measure_measure_pmf_not_zero split: if_split_asm)
 
 end
 

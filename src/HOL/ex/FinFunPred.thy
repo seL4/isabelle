@@ -142,7 +142,7 @@ by(auto simp add: finfun_Ball_except_def is_list_UNIV_iff)
 
 lemma finfun_Ball_except_update:
   "finfun_Ball_except xs (A(a $:= b)) P = ((a \<in> set xs \<or> (b \<longrightarrow> P a)) \<and> finfun_Ball_except (a # xs) A P)"
-by(fastforce simp add: finfun_Ball_except_def finfun_upd_apply split: split_if_asm)
+by(fastforce simp add: finfun_Ball_except_def finfun_upd_apply split: if_split_asm)
 
 lemma finfun_Ball_except_update_code [code]:
   fixes a :: "'a :: card_UNIV"
@@ -169,7 +169,7 @@ by(auto simp add: finfun_Bex_except_def is_list_UNIV_iff)
 
 lemma finfun_Bex_except_update: 
   "finfun_Bex_except xs (A(a $:= b)) P \<longleftrightarrow> (a \<notin> set xs \<and> b \<and> P a) \<or> finfun_Bex_except (a # xs) A P"
-by(fastforce simp add: finfun_Bex_except_def finfun_upd_apply dest: bspec split: split_if_asm)
+by(fastforce simp add: finfun_Bex_except_def finfun_upd_apply dest: bspec split: if_split_asm)
 
 lemma finfun_Bex_except_update_code [code]:
   fixes a :: "'a :: card_UNIV"

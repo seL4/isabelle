@@ -195,7 +195,7 @@ lemma (in prob_space) integral_le_const:
 lemma (in prob_space) nn_integral_ge_const:
   "(AE x in M. c \<le> f x) \<Longrightarrow> c \<le> (\<integral>\<^sup>+x. f x \<partial>M)"
   using nn_integral_mono_AE[of "\<lambda>x. c" f M] emeasure_space_1
-  by (simp add: nn_integral_const_If split: split_if_asm)
+  by (simp add: nn_integral_const_If split: if_split_asm)
 
 lemma (in prob_space) expectation_less:
   fixes X :: "_ \<Rightarrow> real"

@@ -66,7 +66,7 @@ lemma weak_ref_map2ref_map: "ext C = ext A \<Longrightarrow> is_weak_ref_map f C
 lemma imp_conj_lemma: "(P \<Longrightarrow> Q \<longrightarrow> R) \<Longrightarrow> P \<and> Q \<longrightarrow> R"
   by blast
 
-declare split_if [split del]
+declare if_split [split del]
 declare if_weak_cong [cong del]
 
 lemma rename_through_pmap:
@@ -81,7 +81,7 @@ lemma rename_through_pmap:
   apply (simp (no_asm) add: rename_def rename_set_def)
   apply (simp add: externals_def asig_inputs_def asig_outputs_def asig_of_def trans_of_def)
   apply safe
-  apply (simplesubst split_if)
+  apply (simplesubst if_split)
    apply (rule conjI)
    apply (rule impI)
    apply (erule disjE)
@@ -108,7 +108,7 @@ lemma rename_through_pmap:
   apply auto
   done
 
-declare split_if [split]
+declare if_split [split]
 declare if_weak_cong [cong]
 
 end

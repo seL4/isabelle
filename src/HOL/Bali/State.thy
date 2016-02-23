@@ -501,7 +501,7 @@ lemma split_abrupt_if:
 "P (abrupt_if c x' x) = 
       ((c \<and> x = None \<longrightarrow> P x') \<and> (\<not> (c \<and> x = None) \<longrightarrow> P x))"
 apply (unfold abrupt_if_def)
-apply (split split_if)
+apply (split if_split)
 apply auto
 done
 
@@ -756,25 +756,25 @@ lemma error_free_abupd_absorb [simp,intro]:
  "error_free s \<Longrightarrow> error_free (abupd (absorb j) s)"
 by (cases s) 
    (auto simp add: error_free_def absorb_def
-         split: split_if_asm)
+         split: if_split_asm)
 
 lemma error_free_absorb [simp,intro]: 
  "error_free (a,s) \<Longrightarrow> error_free (absorb j a, s)"
 by (auto simp add: error_free_def absorb_def
-            split: split_if_asm)
+            split: if_split_asm)
 
 lemma error_free_abrupt_if [simp,intro]:
 "\<lbrakk>error_free s; \<not> (\<exists> err. x=Error err)\<rbrakk>
  \<Longrightarrow> error_free (abupd (abrupt_if p (Some x)) s)"
 by (cases s)
    (auto simp add: abrupt_if_def
-            split: split_if)
+            split: if_split)
 
 lemma error_free_abrupt_if1 [simp,intro]:
 "\<lbrakk>error_free (a,s); \<not> (\<exists> err. x=Error err)\<rbrakk>
  \<Longrightarrow> error_free (abrupt_if p (Some x) a, s)"
 by  (auto simp add: abrupt_if_def
-            split: split_if)
+            split: if_split)
 
 lemma error_free_abrupt_if_Xcpt [simp,intro]:
  "error_free s 

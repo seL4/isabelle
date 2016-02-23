@@ -572,7 +572,7 @@ fun nat_get_Suc_simproc n_sucs ts =
 
 val no_split_ss =
   simpset_of (put_simpset HOL_ss @{context}
-    |> Splitter.del_split @{thm split_if});
+    |> Splitter.del_split @{thm if_split});
 
 val expand_word_eq_sss =
   (simpset_of (put_simpset HOL_basic_ss @{context} addsimps

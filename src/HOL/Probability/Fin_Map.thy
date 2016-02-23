@@ -194,7 +194,7 @@ proof safe
   moreover assume "\<forall>S. open S \<longrightarrow> a \<in> S \<longrightarrow> eventually (\<lambda>x. x \<in> S) F" "a i \<in> S"
   ultimately have "eventually (\<lambda>x. x \<in> ?S) F" by auto
   thus "eventually (\<lambda>x. (x)\<^sub>F i \<in> S) F"
-    by eventually_elim (insert \<open>a i \<in> S\<close>, force simp: Pi'_iff split: split_if_asm)
+    by eventually_elim (insert \<open>a i \<in> S\<close>, force simp: Pi'_iff split: if_split_asm)
 qed
 
 lemma continuous_proj:
@@ -298,7 +298,7 @@ qed
 
 lemma dist_le_1_imp_domain_eq:
   shows "dist P Q < 1 \<Longrightarrow> domain P = domain Q"
-  by (simp add: dist_finmap_def finite_proj_diag split: split_if_asm)
+  by (simp add: dist_finmap_def finite_proj_diag split: if_split_asm)
 
 lemma dist_proj:
   shows "dist ((x)\<^sub>F i) ((y)\<^sub>F i) \<le> dist x y"
@@ -724,7 +724,7 @@ proof -
       by (auto intro!: exI[where x="to_nat l"])
   next
     fix x n assume "x \<in> (let s = set (from_nat n) in if P s then f s else {})"
-    thus "x \<in> \<Union>{f s|s. P s}" using assms by (auto simp: Let_def split: split_if_asm)
+    thus "x \<in> \<Union>{f s|s. P s}" using assms by (auto simp: Let_def split: if_split_asm)
   qed
   hence "\<Union>{f s|s. P s} = (\<Union>n. let s = set (from_nat n) in if P s then f s else {})" by simp
   also have "\<dots> \<in> sets M" using assms by (auto simp: Let_def)
@@ -975,7 +975,7 @@ next
     by auto
   then have "A = (\<Pi>' j \<in> I. if j = i then B else space (M j))"
     using sets.sets_into_space[OF A(3)]
-    apply (auto simp: Pi'_iff split: split_if_asm)
+    apply (auto simp: Pi'_iff split: if_split_asm)
     apply blast
     done
   also have "\<dots> \<in> sigma_sets ?\<Omega> {Pi' I X |X. X \<in> (\<Pi> j\<in>I. sets (M j))}"
@@ -1050,7 +1050,7 @@ proof
       proof
         fix A assume A: "A \<in> E i"
         then have "(\<lambda>x. (x)\<^sub>F i) -` A \<inter> space ?P = (\<Pi>' j\<in>I. if i = j then A else space (M j))"
-          using E_closed \<open>i \<in> I\<close> by (auto simp: space_P Pi_iff subset_eq split: split_if_asm)
+          using E_closed \<open>i \<in> I\<close> by (auto simp: space_P Pi_iff subset_eq split: if_split_asm)
         also have "\<dots> = (\<Pi>' j\<in>I. \<Union>n. if i = j then A else S j n)"
           by (intro Pi'_cong) (simp_all add: S_union)
         also have "\<dots> = (\<Union>xs\<in>{xs. length xs = card I}. \<Pi>' j\<in>I. if i = j then A else S j (xs ! T j))"

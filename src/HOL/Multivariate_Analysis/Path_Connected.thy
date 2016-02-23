@@ -504,7 +504,7 @@ proof -
   show ?thesis
     using assms
     apply (simp add: arc_def simple_path_def path_join, clarify)
-    apply (simp add: joinpaths_def split: split_if_asm)
+    apply (simp add: joinpaths_def split: if_split_asm)
     apply (force dest: inj_onD [OF injg1])
     apply (metis *)
     apply (metis **)
@@ -542,7 +542,7 @@ proof -
   show ?thesis
     apply (simp add: arc_def inj_on_def)
     apply (clarsimp simp add: arc_imp_path assms path_join)
-    apply (simp add: joinpaths_def split: split_if_asm)
+    apply (simp add: joinpaths_def split: if_split_asm)
     apply (force dest: inj_onD [OF injg1])
     apply (metis *)
     apply (metis *)
@@ -642,7 +642,7 @@ proof (rule iffI)
     then have "x = y \<or> x = u \<and> y = v \<or> x = v \<and> y = u"
     using sim [of "(x-u)/(v-u)" "(y-u)/(v-u)"] p
     by (auto simp: closed_segment_real_eq image_affinity_atLeastAtMost divide_simps
-       split: split_if_asm)
+       split: if_split_asm)
   } moreover
   have "path(subpath u v g) \<and> u\<noteq>v"
     using sim [of "1/3" "2/3"] p
@@ -678,7 +678,7 @@ proof (rule iffI)
     then have "x = y"
     using sim [of "(x-u)/(v-u)" "(y-u)/(v-u)"] p
     by (force simp add: inj_on_def closed_segment_real_eq image_affinity_atLeastAtMost divide_simps
-       split: split_if_asm)
+       split: if_split_asm)
   } moreover
   have "path(subpath u v g) \<and> u\<noteq>v"
     using sim [of "1/3" "2/3"] p
@@ -807,7 +807,7 @@ proof -
     apply (auto simp: closed_segment_eq_real_ivl pathstart_def pathfinish_def subpath_def)
     apply (rename_tac y)
     apply (drule_tac x="y/u" in spec)
-    apply (auto split: split_if_asm)
+    apply (auto split: if_split_asm)
     done
 qed
 
@@ -1530,7 +1530,7 @@ next
     unfolding image_iff
     apply (rule_tac x=x in bexI)
     unfolding mem_Collect_eq
-    apply (auto split: split_if_asm)
+    apply (auto split: if_split_asm)
     done
   have "continuous_on (- {0}) (\<lambda>x::'a. 1 / norm x)"
     by (auto intro!: continuous_intros)

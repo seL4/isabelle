@@ -50,7 +50,7 @@ lemma exec_instr_xcpt:
   "(fst (exec_instr i G hp stk vars Cl sig pc frs) = Some xcp)
   = (\<exists>stk'. exec_instr i G hp stk vars Cl sig pc frs = 
             (Some xcp, hp, (stk', vars, Cl, sig, pc)#frs))"
-  by (cases i, auto simp add: split_beta split: split_if_asm)
+  by (cases i, auto simp add: split_beta split: if_split_asm)
 
 
 text \<open>
@@ -120,7 +120,7 @@ lemma match_et_imp_match:
   \<Longrightarrow> match G X pc et = [Xcpt X]"
   apply (simp add: match_some_entry)
   apply (induct et)
-  apply (auto split: split_if_asm)
+  apply (auto split: if_split_asm)
   done
 
 text \<open>
@@ -257,7 +257,7 @@ lemma exec_instr_xcpt_hp:
   (is "\<lbrakk> ?xcpt; ?wt; ?correct \<rbrakk> \<Longrightarrow> ?thesis")
 proof -
   note [simp] = split_beta raise_system_xcpt_def
-  note [split] = split_if_asm option.split_asm 
+  note [split] = if_split_asm option.split_asm 
   
   assume wt: ?wt ?correct
   hence pre: "preallocated hp" by (simp add: correct_state_def)
@@ -348,7 +348,7 @@ proof -
     have state': 
       "state' = (None, hp, ([xcp], loc, C, sig, handler)#frs)"
       by (cases "ins!pc") (auto simp add: raise_system_xcpt_def split_beta 
-                               split: split_if_asm) (* takes long! *)
+                               split: if_split_asm) (* takes long! *)
 
     let ?f' = "([xcp], loc, C, sig, handler)"
     from eff
@@ -357,7 +357,7 @@ proof -
       frame': "correct_frame G hp (ST',LT') maxl ins ?f'" 
     proof (cases "ins!pc")
       case Return \<comment> "can't generate exceptions:"
-      with xp' have False by (simp add: split_beta split: split_if_asm)
+      with xp' have False by (simp add: split_beta split: if_split_asm)
       thus ?thesis ..
     next
       case New
@@ -393,7 +393,7 @@ proof -
       case Getfield
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef NullPointer)"
-        by (simp add: raise_system_xcpt_def split_beta split: split_if_asm)
+        by (simp add: raise_system_xcpt_def split_beta split: if_split_asm)
       with prehp have "cname_of hp xcp = Xcpt NullPointer" ..
       with Getfield some_handler phi_pc eff 
       obtain ST' LT' where
@@ -423,7 +423,7 @@ proof -
       case Putfield
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef NullPointer)"
-        by (simp add: raise_system_xcpt_def split_beta split: split_if_asm)
+        by (simp add: raise_system_xcpt_def split_beta split: if_split_asm)
       with prehp have "cname_of hp xcp = Xcpt NullPointer" ..
       with Putfield some_handler phi_pc eff 
       obtain ST' LT' where
@@ -453,7 +453,7 @@ proof -
       case Checkcast
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef ClassCast)"
-        by (simp add: raise_system_xcpt_def split_beta split: split_if_asm)
+        by (simp add: raise_system_xcpt_def split_beta split: if_split_asm)
       with prehp have "cname_of hp xcp = Xcpt ClassCast" ..
       with Checkcast some_handler phi_pc eff 
       obtain ST' LT' where
@@ -655,7 +655,7 @@ lemma Checkcast_correct:
     G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd>;
     fst (exec_instr (ins!pc) G hp stk loc C sig pc frs) = None \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs2 wt_jvm_prog_def split: split_if_asm)
+apply (clarsimp simp add: defs2 wt_jvm_prog_def split: if_split_asm)
 apply (blast intro: Cast_conf2)
 done
 
@@ -670,7 +670,7 @@ lemma Getfield_correct:
   fst (exec_instr (ins!pc) G hp stk loc C sig pc frs) = None \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs2 wt_jvm_prog_def split_beta
-                split: option.split split_if_asm)
+                split: option.split if_split_asm)
 apply (frule conf_widen)
 apply assumption+
 apply (drule conf_RefTD)
@@ -702,7 +702,7 @@ lemma Putfield_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd>;
   fst (exec_instr (ins!pc) G hp stk loc C sig pc frs) = None \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs2 split_beta split: option.split list.split split_if_asm)
+apply (clarsimp simp add: defs2 split_beta split: option.split list.split if_split_asm)
 apply (frule conf_widen)
 prefer 2
   apply assumption
@@ -1328,7 +1328,7 @@ lemma
   assumes wf: "wf_prog wf_mb \<Gamma>"
   shows hconf_start: "\<Gamma> \<turnstile>h (start_heap \<Gamma>) \<surd>"
   apply (unfold hconf_def start_heap_def)
-  apply (auto simp add: fun_upd_apply blank_def oconf_def split: split_if_asm)
+  apply (auto simp add: fun_upd_apply blank_def oconf_def split: if_split_asm)
   apply (simp add: fields_is_type 
           [OF _ wf [THEN wf_prog_ws_prog] 
                 is_class_xcpt [OF wf [THEN wf_prog_ws_prog]]])+

@@ -903,7 +903,7 @@ proof -
           unfolding y_def
           by (rule cSup_upper) simp
         thus False using \<open>d > 0\<close> \<open>y < b\<close>
-          by (simp add: d'_def min_def split: split_if_asm)
+          by (simp add: d'_def min_def split: if_split_asm)
       qed
     } moreover {
       assume "a = y"
@@ -2689,7 +2689,7 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
   from fx[OF \<open>x \<in> X\<close> \<open>y \<in> Y\<close>, unfolded has_derivative_within, THEN conjunct2, THEN tendstoD, OF \<open>0 < e\<close>]
   have "\<forall>\<^sub>F x' in at x within X. ?le x'"
     by eventually_elim
-       (auto simp: dist_norm divide_simps blinfun.bilinear_simps field_simps split: split_if_asm)
+       (auto simp: dist_norm divide_simps blinfun.bilinear_simps field_simps split: if_split_asm)
   then have "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. ?le x'"
     by (rule eventually_at_Pair_within_TimesI1)
        (simp add: blinfun.bilinear_simps)

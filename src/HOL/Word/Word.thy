@@ -1545,7 +1545,7 @@ ML \<open>
 fun uint_arith_simpset ctxt = 
   ctxt addsimps @{thms uint_arith_simps}
      delsimps @{thms word_uint.Rep_inject}
-     |> fold Splitter.add_split @{thms split_if_asm}
+     |> fold Splitter.add_split @{thms if_split_asm}
      |> fold Simplifier.add_cong @{thms power_False_cong}
 
 fun uint_arith_tacs ctxt = 
@@ -1748,7 +1748,7 @@ lemma udvd_incr2_K:
   using [[simproc del: linordered_ring_less_cancel_factor]]
   apply (unfold udvd_def)
   apply clarify
-  apply (simp add: uint_arith_simps split: split_if_asm)
+  apply (simp add: uint_arith_simps split: if_split_asm)
    prefer 2 
    apply (insert uint_range' [of s])[1]
    apply arith
@@ -2047,7 +2047,7 @@ ML \<open>
 fun unat_arith_simpset ctxt = 
   ctxt addsimps @{thms unat_arith_simps}
      delsimps @{thms word_unat.Rep_inject}
-     |> fold Splitter.add_split @{thms split_if_asm}
+     |> fold Splitter.add_split @{thms if_split_asm}
      |> fold Simplifier.add_cong @{thms power_False_cong}
 
 fun unat_arith_tacs ctxt =   
@@ -4217,7 +4217,7 @@ proof -
 
   show ?thesis
   apply (unfold word_rot_defs)
-  apply (simp only: split: split_if)
+  apply (simp only: split: if_split)
   apply (safe intro!: abl_cong)
   apply (simp_all only: to_bl_rotl [THEN word_bl.Rep_inverse'] 
                     to_bl_rotl

@@ -161,7 +161,7 @@ next
   assume "\<And>x. ?set ls \<Longrightarrow> ?merge ls x \<Longrightarrow> ?P ls" hence "?P ls" using set merge' .
   moreover
   from merge set
-  have "pc' \<noteq> pc+1 \<longrightarrow> s' <=_r (c!pc')" by (simp add: l split: split_if_asm)
+  have "pc' \<noteq> pc+1 \<longrightarrow> s' <=_r (c!pc')" by (simp add: l split: if_split_asm)
   ultimately
   show "?P (l#ls)" by (simp add: l)
 qed
@@ -223,7 +223,7 @@ lemma (in lbv) merge_not_top_s:
 proof -
   from ss m have "\<forall>(pc',s') \<in> set ss. (pc' \<noteq> pc+1 \<longrightarrow> s' <=_r c!pc')" 
     by (rule merge_not_top)
-  with x ss m show ?thesis by - (drule merge_def, auto split: split_if_asm)
+  with x ss m show ?thesis by - (drule merge_def, auto split: if_split_asm)
 qed
 
 subsection "wtl-inst-list"

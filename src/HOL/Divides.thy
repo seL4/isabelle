@@ -1002,7 +1002,7 @@ next
   assume "m \<noteq> 0"
   hence "\<And>a b. divmod_nat_rel n q (a, b) \<Longrightarrow> divmod_nat_rel (m * n) (m * q) (a, m * b)"
     unfolding divmod_nat_rel_def
-    by (auto split: split_if_asm, simp_all add: algebra_simps)
+    by (auto split: if_split_asm, simp_all add: algebra_simps)
   moreover from divmod_nat_rel have "divmod_nat_rel n q (n div q, n mod q)" .
   ultimately have "divmod_nat_rel (m * n) (m * q) (n div q, m * (n mod q))" .
   thus "(m * n) div (m * q) = n div q" by (rule div_nat_unique)
@@ -1660,7 +1660,7 @@ lemma unique_quotient_lemma_neg:
 
 lemma unique_quotient:
   "divmod_int_rel a b (q, r) \<Longrightarrow> divmod_int_rel a b (q', r') \<Longrightarrow> q = q'"
-apply (simp add: divmod_int_rel_def linorder_neq_iff split: split_if_asm)
+apply (simp add: divmod_int_rel_def linorder_neq_iff split: if_split_asm)
 apply (blast intro: order_antisym
              dest: order_eq_refl [THEN unique_quotient_lemma]
              order_eq_refl [THEN unique_quotient_lemma_neg] sym)+
@@ -2072,7 +2072,7 @@ lemma zmult2_lemma: "[| divmod_int_rel a b (q, r); 0 < c |]
       ==> divmod_int_rel a (b * c) (q div c, b*(q mod c) + r)"
 by (auto simp add: mult.assoc divmod_int_rel_def linorder_neq_iff
                    zero_less_mult_iff distrib_left [symmetric]
-                   zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4 mult_less_0_iff split: split_if_asm)
+                   zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4 mult_less_0_iff split: if_split_asm)
 
 lemma zdiv_zmult2_eq:
   fixes a b c :: int

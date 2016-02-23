@@ -354,7 +354,7 @@ proof (cases l "0 :: real" rule: linorder_cases)
     then have "AE x in lborel. x \<le> (0::real)"
       apply eventually_elim
       using \<open>l < 0\<close>
-      apply (auto simp: exponential_density_def zero_le_mult_iff split: split_if_asm)
+      apply (auto simp: exponential_density_def zero_le_mult_iff split: if_split_asm)
       done
     then show "emeasure lborel {x :: real \<in> space lborel. 0 < x} = 0"
       by (subst (asm) AE_iff_measurable[OF _ refl]) (auto simp: not_le greaterThan_def[symmetric])
@@ -543,7 +543,7 @@ proof
     have 3: "1 = integral\<^sup>N lborel (\<lambda>xa. ?LHS xa * indicator {0<..} xa)"
       by (subst 2[symmetric])
          (auto intro!: nn_integral_cong_AE AE_I[where N="{0}"]
-               simp: erlang_density_def  nn_integral_multc[symmetric] indicator_def split: split_if_asm)
+               simp: erlang_density_def  nn_integral_multc[symmetric] indicator_def split: if_split_asm)
     also have "... = integral\<^sup>N lborel (\<lambda>x. (ereal (?C) * ?I) * ((erlang_density ?s l x) * indicator {0<..} x))"
       by (auto intro!: nn_integral_cong simp: * split: split_indicator)
     also have "... = ereal (?C) * ?I"

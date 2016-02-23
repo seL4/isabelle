@@ -302,7 +302,7 @@ lemma interval_integral_reflect:
 proof (induct a b rule: linorder_wlog)
   case (sym a b) then show ?case
     by (auto simp add: interval_lebesgue_integral_def interval_integrable_endpoints_reverse
-             split: split_if_asm)
+             split: if_split_asm)
 next
   case (le a b) then show ?case
     unfolding interval_lebesgue_integral_def
