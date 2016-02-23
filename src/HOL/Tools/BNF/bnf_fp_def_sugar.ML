@@ -448,7 +448,7 @@ fun zipper_map f =
       | zed xs (y :: ys) = f (xs, y, ys) :: zed (xs @ [y]) ys;
   in zed [] end;
 
-fun unfla xss = fold_map (fn _ => fn (c :: cs) => (c,cs)) xss;
+fun unfla xs = fold_map (fn _ => fn (c :: cs) => (c, cs)) xs;
 fun unflat xss = fold_map unfla xss;
 fun unflatt xsss = fold_map unflat xsss;
 fun unflattt xssss = fold_map unflatt xssss;
@@ -2724,7 +2724,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
         ctr_mixfixess ctr_Tsss disc_bindingss sel_bindingsss raw_sel_default_eqss
       |> wrap_ctrs_derive_map_set_rel_pred_thms_define_co_rec_for_types
       |> case_fp fp derive_note_induct_recs_thms_for_types
-           derive_note_coinduct_corecs_thms_for_types;
+        derive_note_coinduct_corecs_thms_for_types;
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       co_prefix fp ^ "datatype"));
