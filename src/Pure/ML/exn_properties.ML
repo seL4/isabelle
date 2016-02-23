@@ -26,9 +26,9 @@ fun props_of (loc: PolyML.location) =
 
 fun position_of loc =
   Position.make
-   {line = #startLine loc,
-    offset = #startPosition loc,
-    end_offset = #endPosition loc,
+   {line = FixedInt.toInt (#startLine loc),
+    offset = FixedInt.toInt (#startPosition loc),
+    end_offset = FixedInt.toInt (#endPosition loc),
     props = props_of loc};
 
 

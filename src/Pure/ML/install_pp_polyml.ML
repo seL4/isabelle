@@ -59,10 +59,10 @@ PolyML.addPrettyPrinter (fn _ => fn _ => fn morphism =>
   ml_pretty (Pretty.to_ML (Morphism.pretty morphism)));
 
 PolyML.addPrettyPrinter (fn depth => fn _ => fn str =>
-  ml_pretty (Pretty.to_ML (ML_Syntax.pretty_string (depth * 100) str)));
+  ml_pretty (Pretty.to_ML (ML_Syntax.pretty_string (FixedInt.toInt (depth * 100)) str)));
 
 PolyML.addPrettyPrinter (fn depth => fn _ => fn tree =>
-  ml_pretty (Pretty.to_ML (XML.pretty depth tree)));
+  ml_pretty (Pretty.to_ML (XML.pretty (FixedInt.toInt depth) tree)));
 
 PolyML.addPrettyPrinter (fn depth => fn pretty => fn var =>
   pretty (Synchronized.value var, depth));
@@ -87,13 +87,13 @@ val from_ML = Pretty.from_ML o pretty_ml;
 fun prt_app name prt = Pretty.block [Pretty.str (name ^ " "), prt];
 fun prt_apps name = Pretty.enum "," (name ^ " (") ")";
 
-fun prt_term parens dp t =
+fun prt_term parens (dp: FixedInt.int) t =
   if dp <= 0 then Pretty.str "..."
   else
     (case t of
       _ $ _ =>
         op :: (strip_comb t)
-        |> map_index (fn (i, u) => prt_term true (dp - i - 1) u)
+        |> map_index (fn (i, u) => prt_term true (dp - FixedInt.fromInt i - 1) u)
         |> Pretty.separate " $"
         |> (if parens then Pretty.enclose "(" ")" else Pretty.block)
     | Abs (a, T, b) =>
@@ -142,7 +142,8 @@ fun prt_proof parens dp prf =
 and prt_proofs parens dp prf =
   let
     val (head, args) = strip_proof prf [];
-    val prts = head (dp - 1) :: flat (map_index (fn (i, prt) => prt (dp - i - 2)) args);
+    val prts =
+      head (dp - 1) :: flat (map_index (fn (i, prt) => prt (dp - FixedInt.fromInt i - 2)) args);
   in if parens then Pretty.enclose "(" ")" prts else Pretty.block prts end
 
 and strip_proof (p % t) res =

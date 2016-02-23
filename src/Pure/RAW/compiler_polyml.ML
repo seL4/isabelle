@@ -29,7 +29,7 @@ fun use_text ({name_space, str_of_pos, print, error, ...}: use_context)
      (put (if hard then "Error: " else "Warning: ");
       PolyML.prettyPrint (put, 76) msg1;
       (case context of NONE => () | SOME msg2 => PolyML.prettyPrint (put, 76) msg2);
-      put ("At" ^ str_of_pos message_line file ^ "\n"));
+      put ("At" ^ str_of_pos (FixedInt.toInt message_line) file ^ "\n"));
 
     val parameters =
      [PolyML.Compiler.CPOutStream put,
