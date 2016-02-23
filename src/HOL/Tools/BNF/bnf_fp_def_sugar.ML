@@ -465,13 +465,13 @@ fun choose_binary_fun fs AB =
 fun build_binary_fun_app fs t u =
   Option.map (rapp u o rapp t) (choose_binary_fun fs (fastype_of t, fastype_of u));
 
-fun build_the_rel rel_table ctxt Rs Ts A B =
-  build_rel rel_table ctxt Ts (the o choose_binary_fun Rs) (A, B);
+fun build_the_rel ctxt Rs Ts A B =
+  build_rel [] ctxt Ts (the o choose_binary_fun Rs) (A, B);
 fun build_rel_app ctxt Rs Ts t u =
-  build_the_rel [] ctxt Rs Ts (fastype_of t) (fastype_of u) $ t $ u;
+  build_the_rel ctxt Rs Ts (fastype_of t) (fastype_of u) $ t $ u;
 
 fun mk_parametricity_goal ctxt Rs t u =
-  let val prem = build_the_rel [] ctxt Rs [] (fastype_of t) (fastype_of u) in
+  let val prem = build_the_rel ctxt Rs [] (fastype_of t) (fastype_of u) in
     HOLogic.mk_Trueprop (prem $ t $ u)
   end;
 
@@ -1426,7 +1426,7 @@ fun derive_rel_induct_thms_for_types lthy nn fpA_Ts As Bs ctrAss ctrAs_Tsss exha
       end;
 
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
-      (map2 (build_the_rel [] lthy (Rs @ IRs) []) fpA_Ts fpB_Ts) IRs));
+      (map2 (build_the_rel lthy (Rs @ IRs) []) fpA_Ts fpB_Ts) IRs));
     val vars = Variable.add_free_names lthy goal [];
 
     val rel_induct0_thm =
@@ -1681,7 +1681,7 @@ fun derive_rel_coinduct_thms_for_types lthy nn fpA_Ts ns As Bs mss (ctr_sugars :
       end;
 
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
-      IRs (map2 (build_the_rel [] lthy (Rs @ IRs) []) fpA_Ts fpB_Ts)));
+      IRs (map2 (build_the_rel lthy (Rs @ IRs) []) fpA_Ts fpB_Ts)));
     val vars = Variable.add_free_names lthy goal [];
 
     val rel_coinduct0_thm =
