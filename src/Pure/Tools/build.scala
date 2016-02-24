@@ -752,7 +752,7 @@ object Build
     system_mode: Boolean = false,
     verbose: Boolean = false,
     exclude_sessions: List[String] = Nil,
-    sessions: List[String] = Nil): Map[String, Int] =
+    sessions: List[String] = Nil): Map[String, Option[Process_Result]] =
   {
     /* session tree and dependencies */
 
@@ -835,7 +835,14 @@ object Build
     }
 
     // scheduler loop
-    case class Result(current: Boolean, heap: String, rc: Int)
+    case class Result(current: Boolean, heap: String, process: Option[Process_Result])
+    {
+      def ok: Boolean =
+        process match {
+          case None => false
+          case Some(res) => res.rc == 0
+        }
+    }
 
     def sleep()
     {
@@ -887,7 +894,7 @@ object Build
                 no_heap
               }
             loop(pending - name, running - name,
-              results + (name -> Result(false, heap, process_result.rc)))
+              results + (name -> Result(false, heap, Some(process_result.clear))))
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
@@ -895,7 +902,7 @@ object Build
               case Some((name, info)) =>
                 val parent_result =
                   info.parent match {
-                    case None => Result(true, no_heap, 0)
+                    case None => Result(true, no_heap, Some(Process_Result(0)))
                     case Some(parent) => results(parent)
                   }
                 val output = output_dir + Path.basic(name)
@@ -918,12 +925,14 @@ object Build
                 val all_current = current && parent_result.current
 
                 if (all_current)
-                  loop(pending - name, running, results + (name -> Result(true, heap, 0)))
+                  loop(pending - name, running,
+                    results + (name -> Result(true, heap, Some(Process_Result(0)))))
                 else if (no_build) {
                   if (verbose) progress.echo("Skipping " + name + " ...")
-                  loop(pending - name, running, results + (name -> Result(false, heap, 1)))
+                  loop(pending - name, running,
+                    results + (name -> Result(false, heap, Some(Process_Result(1)))))
                 }
-                else if (parent_result.rc == 0 && !progress.stopped) {
+                else if (parent_result.ok && !progress.stopped) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job =
                     new Job(progress, name, info, output, do_output, verbose, browser_info,
@@ -932,7 +941,7 @@ object Build
                 }
                 else {
                   progress.echo(name + " CANCELLED")
-                  loop(pending - name, running, results + (name -> Result(false, heap, 1)))
+                  loop(pending - name, running, results + (name -> Result(false, heap, None)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
@@ -959,7 +968,7 @@ object Build
       val browser_chapters =
         (for {
           (name, result) <- results.iterator
-          if result.rc == 0 && !is_pure(name)
+          if result.ok && !is_pure(name)
           info = full_tree(name)
           if info.options.bool("browser_info")
         } yield (info.chapter, (name, info.description))).toList.groupBy(_._1).
@@ -972,9 +981,9 @@ object Build
     }
 
 
-    /* results */
+    /* process results */
 
-    results.map({ case (name, result) => (name, result.rc) })
+    (for ((name, result) <- results.iterator) yield (name, result.process)).toMap
   }
 
 
@@ -1005,10 +1014,13 @@ object Build
         dirs, select_dirs, exclude_session_groups, session_groups, max_jobs, list_files,
         check_keywords, no_build, system_mode, verbose, exclude_sessions, sessions)
 
-    val rc = (0 /: results)({ case (rc1, (_, rc2)) => rc1 max rc2 })
+    val rc = (0 /: results.iterator.flatMap(p => p._2.map(_.rc)))(_ max _)
     if (rc != 0 && (verbose || !no_build)) {
       val unfinished =
-        (for ((name, r) <- results.iterator if r != 0) yield name).toList.sorted
+        (for {
+          (name, r) <- results.iterator
+          if r.isEmpty || r.isDefined && !r.get.ok
+         } yield name).toList.sorted
       progress.echo("Unfinished session(s): " + commas(unfinished))
     }
     rc
