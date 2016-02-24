@@ -28,12 +28,10 @@ final case class Process_Result(
     else if (interrupted) throw Exn.Interrupt()
     else Library.error(err)
 
-  def clear: Process_Result = copy(out_lines = Nil, err_lines = Nil)
-
   def print: Process_Result =
   {
     Output.warning(Library.trim_line(err))
     Output.writeln(Library.trim_line(out))
-    clear
+    copy(out_lines = Nil, err_lines = Nil)
   }
 }

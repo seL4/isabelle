@@ -875,6 +875,14 @@ object Build
             val process_result = job.join
             progress.echo(process_result.err)
 
+            val process_result_tail =
+            {
+              val lines = process_result.out_lines.filterNot(_.startsWith("\f"))
+              val tail = lines.drop(lines.length - 20 max 0)
+              process_result.copy(out_lines =
+                "(see also " + (output_dir + log(name)).file.toString + ")" :: tail)
+            }
+
             val heap =
               if (process_result.ok) {
                 (output_dir + log(name)).file.delete
@@ -892,17 +900,12 @@ object Build
 
                 File.write(output_dir + log(name), Library.terminate_lines(process_result.out_lines))
                 progress.echo(name + " FAILED")
-                if (!process_result.interrupted) {
-                  progress.echo("(see also " + (output_dir + log(name)).file.toString + ")")
-                  val lines = process_result.out_lines.filterNot(_.startsWith("\f"))
-                  val tail = lines.drop(lines.length - 20 max 0)
-                  progress.echo("\n" + cat_lines(tail))
-                }
+                if (!process_result.interrupted) progress.echo(process_result_tail.out)
 
                 no_heap
               }
             loop(pending - name, running - name,
-              results + (name -> Result(false, heap, Some(process_result.clear))))
+              results + (name -> Result(false, heap, Some(process_result_tail))))
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
