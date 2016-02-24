@@ -155,7 +155,7 @@ definition Basis_complex_def:
   "Basis = {1, ii}"
 
 instance
-  by standard (auto simp add: Basis_complex_def intro: complex_eqI split: split_if_asm)
+  by standard (auto simp add: Basis_complex_def intro: complex_eqI split: if_split_asm)
 
 end
 
@@ -192,7 +192,7 @@ next
   assume "u \<in> Basis" and "v \<in> Basis"
   thus "inner u v = (if u = v then 1 else 0)"
     unfolding Basis_prod_def inner_prod_def
-    by (auto simp add: inner_Basis split: split_if_asm)
+    by (auto simp add: inner_Basis split: if_split_asm)
 next
   fix x :: "'a \<times> 'b"
   show "(\<forall>u\<in>Basis. inner x u = 0) \<longleftrightarrow> x = 0"

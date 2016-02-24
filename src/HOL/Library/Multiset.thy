@@ -357,13 +357,13 @@ apply (rule conjI)
 apply (clarsimp simp: subset_mset_def subseteq_mset_def)
 apply safe
  apply (erule_tac x = a in allE)
- apply (auto split: split_if_asm)
+ apply (auto split: if_split_asm)
 done
 
 lemma mset_le_insertD: "(A + {#x#} \<le># B) \<Longrightarrow> (x \<in># B \<and> A \<le># B)"
 apply (rule conjI)
  apply (simp add: mset_leD)
-apply (force simp: subset_mset_def subseteq_mset_def split: split_if_asm)
+apply (force simp: subset_mset_def subseteq_mset_def split: if_split_asm)
 done
 
 lemma mset_less_of_empty[simp]: "A <# {#} \<longleftrightarrow> False"

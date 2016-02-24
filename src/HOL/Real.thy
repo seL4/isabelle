@@ -476,7 +476,7 @@ lemma inverse_Real:
   shows "inverse (Real X) =
     (if vanishes X then 0 else Real (\<lambda>n. inverse (X n)))"
   using assms inverse_real.transfer zero_real.transfer
-  unfolding cr_real_eq rel_fun_def by (simp split: split_if_asm, metis)
+  unfolding cr_real_eq rel_fun_def by (simp split: if_split_asm, metis)
 
 instance proof
   fix a b c :: real

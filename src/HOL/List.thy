@@ -620,7 +620,7 @@ fun tac ctxt [] =
       resolve_tac ctxt [set_singleton] 1 ORELSE
       resolve_tac ctxt [inst_Collect_mem_eq] 1
   | tac ctxt (If :: cont) =
-      Splitter.split_tac ctxt @{thms split_if} 1
+      Splitter.split_tac ctxt @{thms if_split} 1
       THEN resolve_tac ctxt @{thms conjI} 1
       THEN resolve_tac ctxt @{thms impI} 1
       THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
@@ -1469,7 +1469,7 @@ proof (induct xs)
   case Nil thus ?case by simp
 next
   case (Cons x xs) thus ?case
-    apply (auto split:split_if_asm)
+    apply (auto split:if_split_asm)
     using length_filter_le[of P xs] apply arith
   done
 qed
@@ -1918,7 +1918,7 @@ lemma append_butlast_last_id [simp]:
 by (induct xs) auto
 
 lemma in_set_butlastD: "x : set (butlast xs) ==> x : set xs"
-by (induct xs) (auto split: split_if_asm)
+by (induct xs) (auto split: if_split_asm)
 
 lemma in_set_butlast_appendI:
   "x : set (butlast xs) | x : set (butlast ys) ==> x : set (butlast (xs @ ys))"
@@ -2261,10 +2261,10 @@ lemma dropWhile_last:
 by (auto simp add: dropWhile_append3 in_set_conv_decomp)
 
 lemma set_dropWhileD: "x \<in> set (dropWhile P xs) \<Longrightarrow> x \<in> set xs"
-by (induct xs) (auto split: split_if_asm)
+by (induct xs) (auto split: if_split_asm)
 
 lemma set_takeWhileD: "x : set (takeWhile P xs) ==> x : set xs \<and> P x"
-by (induct xs) (auto split: split_if_asm)
+by (induct xs) (auto split: if_split_asm)
 
 lemma takeWhile_eq_all_conv[simp]:
   "(takeWhile P xs = xs) = (\<forall>x \<in> set xs. P x)"
@@ -3322,7 +3322,7 @@ next
   next
     case True with Cons.prems
     have "card (set xs) = Suc (length xs)"
-      by (simp add: card_insert_if split: split_if_asm)
+      by (simp add: card_insert_if split: if_split_asm)
     moreover have "card (set xs) \<le> length xs" by (rule card_length)
     ultimately have False by simp
     thus ?thesis ..
@@ -3335,7 +3335,7 @@ by (induct xs) (auto)
 lemma not_distinct_decomp: "~ distinct ws ==> EX xs ys zs y. ws = xs@[y]@ys@[y]@zs"
 apply (induct n == "length ws" arbitrary:ws) apply simp
 apply(case_tac ws) apply simp
-apply (simp split:split_if_asm)
+apply (simp split:if_split_asm)
 apply (metis Cons_eq_appendI eq_Nil_appendI split_list)
 done
 
@@ -3657,7 +3657,7 @@ by (induct xs\<^sub>1 rule: remdups_adj.induct, simp_all)
 
 lemma remdups_adj_singleton:
   "remdups_adj xs = [x] \<Longrightarrow> xs = replicate (length xs) x"
-by (induct xs rule: remdups_adj.induct, auto split: split_if_asm)
+by (induct xs rule: remdups_adj.induct, auto split: if_split_asm)
 
 lemma remdups_adj_map_injective:
   assumes "inj f"
@@ -4814,7 +4814,7 @@ by (induct l) (auto simp: sorted_Cons)
 
 lemma sorted_remdups_adj[simp]:
   "sorted xs \<Longrightarrow> sorted (remdups_adj xs)"
-by (induct xs rule: remdups_adj.induct, simp_all split: split_if_asm add: sorted_Cons)
+by (induct xs rule: remdups_adj.induct, simp_all split: if_split_asm add: sorted_Cons)
 
 lemma sorted_distinct_set_unique:
 assumes "sorted xs" "distinct xs" "sorted ys" "distinct ys" "set xs = set ys"
@@ -6766,7 +6766,7 @@ lemma Id_on_set [code]:
 
 lemma [code]:
   "R `` S = List.map_project (%(x, y). if x : S then Some y else None) R"
-unfolding map_project_def by (auto split: prod.split split_if_asm)
+unfolding map_project_def by (auto split: prod.split if_split_asm)
 
 lemma trancl_set_ntrancl [code]:
   "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"

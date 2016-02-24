@@ -222,7 +222,7 @@ proof (rule kuhn_counting_lemma)
     proof cases
       assume *: "{..n} \<subseteq> rl ` s"
       with rl rl_bd[OF s] have rl_s: "rl ` s = {..n}"
-        by (auto simp add: atMost_Suc subset_insert_iff split: split_if_asm)
+        by (auto simp add: atMost_Suc subset_insert_iff split: if_split_asm)
       then have "\<not> inj_on rl s"
         by (intro pigeonhole) simp
       then obtain a b where ab: "a \<in> s" "b \<in> s" "rl a = rl b" "a \<noteq> b"
@@ -320,7 +320,7 @@ proof
   then have "\<And>i. i \<le> n \<Longrightarrow> enum i j = p'"
     unfolding s_eq by auto
   from this[of 0] this[of n] have "j \<notin> upd ` {..< n}"
-    by (auto simp: enum_def fun_eq_iff split: split_if_asm)
+    by (auto simp: enum_def fun_eq_iff split: if_split_asm)
   with upd \<open>j < n\<close> show False
     by (auto simp: bij_betw_def)
 qed
@@ -479,7 +479,7 @@ next
     with enum_eq[of "Suc j"] enum_eq[of "Suc (Suc j)"]
     have "u_s (Suc j) = u_t (Suc j)"
       using s.enum_Suc[of "Suc j"] t.enum_Suc[of "Suc j"]
-      by (auto simp: fun_eq_iff split: split_if_asm) }
+      by (auto simp: fun_eq_iff split: if_split_asm) }
   then have "\<And>j. 0 < j \<Longrightarrow> j < n \<Longrightarrow> u_s j = u_t j"
     by (auto simp: gr0_conv_Suc)
   with \<open>n \<noteq> 0\<close> have "u_t 0 = u_s 0"
@@ -518,7 +518,7 @@ next
     with enum_eq[of j] enum_eq[of "Suc j"]
     have "u_s j = u_t j"
       using s.enum_Suc[of j] t.enum_Suc[of j]
-      by (auto simp: Suc fun_eq_iff split: split_if_asm) }
+      by (auto simp: Suc fun_eq_iff split: if_split_asm) }
   then have "\<And>j. j < n' \<Longrightarrow> u_s j = u_t j"
     by (auto simp: gr0_conv_Suc)
   then have "u_t n' = u_s n'"
@@ -541,7 +541,7 @@ proof (rule finite_subset)
     then interpret kuhn_simplex p n b u s .
     from s_space \<open>a \<in> s\<close> out_eq_p[OF \<open>a \<in> s\<close>]
     have "a \<in> (\<lambda>f x. if n \<le> x then p else f x) ` ({..< n} \<rightarrow>\<^sub>E {.. p})"
-      by (auto simp: image_iff subset_eq Pi_iff split: split_if_asm
+      by (auto simp: image_iff subset_eq Pi_iff split: if_split_asm
                intro!: bexI[of _ "restrict a {..< n}"]) }
   then show "{s. ksimplex p n s} \<subseteq> Pow ((\<lambda>f x. if n \<le> x then p else f x) ` ({..< n} \<rightarrow>\<^sub>E {.. p}))"
     by auto
@@ -577,7 +577,7 @@ proof safe
       by auto
     then have "upd 0 = n"
       using \<open>a n < p\<close> \<open>a = enum 0\<close> na[rule_format, of "enum 1"]
-      by (auto simp: fun_eq_iff enum_Suc split: split_if_asm)
+      by (auto simp: fun_eq_iff enum_Suc split: if_split_asm)
     then have "bij_betw upd (Suc ` {..< n}) {..< n}"
       using upd
       by (subst notIn_Un_bij_betw3[where b=0])
@@ -1006,7 +1006,7 @@ proof cases
           using i by (simp add: k \<open>Suc l = k\<close> i'_def)
         then have False
           using \<open>l < k\<close> \<open>k \<le> n\<close> \<open>Suc i' < n\<close>
-          by (auto simp: t.enum_Suc enum_Suc l upd_inj fun_eq_iff split: split_if_asm)
+          by (auto simp: t.enum_Suc enum_Suc l upd_inj fun_eq_iff split: if_split_asm)
              (metis Suc_lessD n_not_Suc_n upd_inj) }
       with \<open>l < k\<close> have "Suc l < k"
         by arith
@@ -1042,7 +1042,7 @@ proof cases
         using \<open>Suc l < k\<close> \<open>k \<le> n\<close> by (simp add: t.enum_Suc l t.upd_inj)
       finally have "(u l = upd i' \<and> u (Suc l) = upd (Suc i')) \<or>
         (u l = upd (Suc i') \<and> u (Suc l) = upd i')"
-        using \<open>Suc i' < n\<close> by (auto simp: enum_Suc fun_eq_iff split: split_if_asm)
+        using \<open>Suc i' < n\<close> by (auto simp: enum_Suc fun_eq_iff split: if_split_asm)
 
       then have "t = s \<or> t = b.enum ` {..n}"
       proof (elim disjE conjE)

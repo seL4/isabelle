@@ -60,7 +60,7 @@ lemma error_free_check_field_access_eq:
 apply (cases s)
 apply (auto simp add: check_field_access_def Let_def error_free_def 
                       abrupt_if_def 
-            split: split_if_asm)
+            split: if_split_asm)
 done
 
 lemma error_free_check_method_access_eq:
@@ -213,7 +213,7 @@ prefer 26
 apply (auto del: conjI  dest!: not_initedD gext_new sxalloc_gext halloc_gext
  simp  add: lvar_def fvar_def2 avar_def2 init_lvars_def2 
             check_field_access_def check_method_access_def Let_def
- split del: split_if_asm split add: sum3.split)
+ split del: if_split_asm split add: sum3.split)
 (* 6 subgoals *)
 apply force+
 done
@@ -232,9 +232,9 @@ apply auto
 done
 
 lemma init_yields_initd: "G\<turnstile>Norm s1 \<midarrow>Init C\<rightarrow> s2 \<Longrightarrow> initd C s2"
-apply (erule eval_cases , auto split del: split_if_asm)
+apply (erule eval_cases , auto split del: if_split_asm)
 apply (case_tac "inited C (globs s1)")
-apply  (clarsimp split del: split_if_asm)+
+apply  (clarsimp split del: if_split_asm)+
 apply (drule eval_gext')+
 apply (drule init_class_obj_inited)
 apply (erule inited_gext)
@@ -724,7 +724,7 @@ proof -
 qed
 
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
-declare split_if     [split del] split_if_asm     [split del] 
+declare if_split     [split del] if_split_asm     [split del] 
         option.split [split del] option.split_asm [split del]
 setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
 setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
@@ -753,7 +753,7 @@ apply   (force elim!: conforms_upd_gobj)
 apply   (blast intro: FVar_lemma2)
 done
 declare split_paired_All [simp] split_paired_Ex [simp] 
-declare split_if     [split] split_if_asm     [split] 
+declare if_split     [split] if_split_asm     [split] 
         option.split [split] option.split_asm [split]
 setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac))\<close>
 setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>
@@ -869,7 +869,7 @@ lemma np_no_jump: "x\<noteq>Some (Jump j) \<Longrightarrow> (np a') x \<noteq> S
 by (auto simp add: abrupt_if_def)
 
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
-declare split_if     [split del] split_if_asm     [split del] 
+declare if_split     [split del] if_split_asm     [split del] 
         option.split [split del] option.split_asm [split del]
 setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
 setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
@@ -902,7 +902,7 @@ lemma conforms_init_lvars:
                               then None else Some (Class declC)))"
 apply (simp add: init_lvars_def2)
 apply (rule conforms_set_locals)
-apply  (simp (no_asm_simp) split add: split_if)
+apply  (simp (no_asm_simp) split add: if_split)
 apply (drule  (4) DynT_conf)
 apply clarsimp
 (* apply intro *)
@@ -922,7 +922,7 @@ apply     simp
 apply     (simp add: np_no_jump)
 done
 declare split_paired_All [simp] split_paired_Ex [simp] 
-declare split_if     [split] split_if_asm     [split] 
+declare if_split     [split] if_split_asm     [split] 
         option.split [split] option.split_asm [split]
 setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac))\<close>
 setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>

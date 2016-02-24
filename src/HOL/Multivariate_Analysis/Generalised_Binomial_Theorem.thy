@@ -167,7 +167,7 @@ proof -
     note A[OF this]
     also have "complex_of_real (-x + -y) = - complex_of_real (x + y)" by simp
     also from xy assms have "... powr a = (-1) powr -a * of_real (x + y) powr a"
-      by (subst powr_neg_real_complex) (simp add: abs_real_def split: split_if_asm)
+      by (subst powr_neg_real_complex) (simp add: abs_real_def split: if_split_asm)
     also {
       fix n :: nat
       from y have "(a gchoose n) * of_real (-x) ^ n * of_real (-y) powr (a - of_nat n) = 

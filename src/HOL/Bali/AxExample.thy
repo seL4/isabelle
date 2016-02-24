@@ -37,7 +37,7 @@ apply (simp (no_asm))
 done
 
 
-declare split_if_asm [split del]
+declare if_split_asm [split del]
 declare lvar_def [simp]
 
 ML \<open>
@@ -202,7 +202,7 @@ apply     (tactic "ax_tac @{context} 1" (* FVar *))
 apply      (tactic "ax_tac @{context} 2" (* StatRef *))
 apply     (rule ax_derivs.Done [THEN conseq1])
 apply     (tactic \<open>inst1_tac @{context} "Q" "\<lambda>vf. Normal ((\<lambda>Y s Z. vf=lvar (VName e) (snd s)) \<and>. heap_free four \<and>. initd Base \<and>. initd Ext)" []\<close>)
-apply     (clarsimp split del: split_if)
+apply     (clarsimp split del: if_split)
 apply     (frule atleast_free_weaken [THEN atleast_free_weaken])
 apply     (drule initedD)
 apply     (clarsimp elim!: atleast_free_SucD simp add: arr_inv_def)

@@ -1064,7 +1064,7 @@ lemma zero_singleton[simp]: "zero {(z,z)} = z"
 
 lemma FinFunc_singleton: "FinFunc {(z,z)} s = {\<lambda>x. if x \<in> Field s then z else undefined}"
   unfolding FinFunc_def Func_def fin_support_def support_def
-  by (auto simp: fun_eq_iff split: split_if_asm intro!: finite_subset[of _ "{}"])
+  by (auto simp: fun_eq_iff split: if_split_asm intro!: finite_subset[of _ "{}"])
 
 lemma oone_ordIso_oexp:
   assumes "r =o oone" and s: "Well_order s"
@@ -1301,7 +1301,7 @@ proof -
     if z \<in> Field t then r.zero else undefined"
   from *(4) x(2) the_inv_into_f_eq[OF *(1)] have FLR: "F ` Field ?L \<subseteq> Field ?R"
     unfolding rt.Field_oexp rs.Field_oexp FinFunc_def Func_def fin_support_def support_def F_def
-    by (fastforce split: option.splits split_if_asm elim!: finite_surj[of _ _ f])
+    by (fastforce split: option.splits if_split_asm elim!: finite_surj[of _ _ f])
   have "inj_on F (Field ?L)" unfolding rs.Field_oexp inj_on_def fun_eq_iff
   proof safe
     fix g h x assume "g \<in> FinFunc r s" "h \<in> FinFunc r s" "\<forall>y. F g y = F h y"

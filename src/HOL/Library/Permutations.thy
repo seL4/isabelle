@@ -1033,7 +1033,7 @@ proof -
         by simp
       then have bc: "b = c"
         by (simp add: permutes_def pa qa o_def fun_upd_def Fun.swap_def id_def
-            cong del: if_weak_cong split: split_if_asm)
+            cong del: if_weak_cong split: if_split_asm)
       from eq[unfolded bc] have "(\<lambda>p. Fun.swap a c id \<circ> p) (Fun.swap a c id \<circ> p) =
         (\<lambda>p. Fun.swap a c id \<circ> p) (Fun.swap a c id \<circ> q)" by simp
       then have "p = q"

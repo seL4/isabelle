@@ -121,14 +121,14 @@ lemma tsuffix_TL [rule_format]: "s \<noteq> UU \<and> s \<noteq> nil \<longright
 lemmas tsuffix_TL2 = conjI [THEN tsuffix_TL]
 
 lemma LTL1: "s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> (s \<Turnstile> \<box>F \<^bold>\<longrightarrow> (F \<^bold>\<and> (Next (\<box>F))))"
-  supply split_if [split del] 
+  supply if_split [split del] 
   apply (unfold Next_def satisfies_def NOT_def IMPLIES_def AND_def Box_def)
   apply auto
   text \<open>\<open>\<box>F \<^bold>\<longrightarrow> F\<close>\<close>
   apply (erule_tac x = "s" in allE)
   apply (simp add: tsuffix_def suffix_refl)
   text \<open>\<open>\<box>F \<^bold>\<longrightarrow> Next \<box>F\<close>\<close>
-  apply (simp split add: split_if)
+  apply (simp split add: if_split)
   apply auto
   apply (drule tsuffix_TL2)
   apply assumption+

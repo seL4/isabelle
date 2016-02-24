@@ -640,7 +640,7 @@ lemma content_eq_0_gen:
   shows "content s = 0 \<longleftrightarrow> (\<exists>i\<in>Basis. \<exists>v. \<forall>x \<in> s. x \<bullet> i = v)"  (is "_ = ?rhs")
 proof safe
   assume "content s = 0" then show ?rhs
-    apply (clarsimp simp: ex_in_conv content_def split: split_if_asm)
+    apply (clarsimp simp: ex_in_conv content_def split: if_split_asm)
     apply (rule_tac x=a in bexI)
     apply (rule_tac x="interval_lowerbound s \<bullet> a" in exI)
     apply (clarsimp simp: interval_upperbound_def interval_lowerbound_def)
@@ -3213,7 +3213,7 @@ proof (unfold has_integral, rule, rule, goal_cases)
       by (rule setsum.mono_neutral_left) auto
     let ?M1 = "{(x, kk \<inter> {x. x\<bullet>k \<le> c}) |x kk. (x, kk) \<in> p \<and> kk \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
     have d1_fine: "d1 fine ?M1"
-      by (force intro: fineI dest: fineD[OF p(2)] simp add: split: split_if_asm)
+      by (force intro: fineI dest: fineD[OF p(2)] simp add: split: if_split_asm)
     have "norm ((\<Sum>(x, k)\<in>?M1. content k *\<^sub>R f x) - i) < e/2"
     proof (rule d1norm [OF tagged_division_ofI d1_fine])
       show "finite ?M1"
@@ -3252,7 +3252,7 @@ proof (unfold has_integral, rule, rule, goal_cases)
     moreover
     let ?M2 = "{(x,kk \<inter> {x. x\<bullet>k \<ge> c}) |x kk. (x,kk) \<in> p \<and> kk \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}}"
     have d2_fine: "d2 fine ?M2"
-      by (force intro: fineI dest: fineD[OF p(2)] simp add: split: split_if_asm)
+      by (force intro: fineI dest: fineD[OF p(2)] simp add: split: if_split_asm)
     have "norm ((\<Sum>(x, k)\<in>?M2. content k *\<^sub>R f x) - j) < e/2"
     proof (rule d2norm [OF tagged_division_ofI d2_fine])
       show "finite ?M2"
@@ -3749,10 +3749,10 @@ proof -
       apply (rule bexI[OF _ \<open>l \<in> d\<close>])
       using as(1-3,5) fstx
       unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] as
-      apply (auto split: split_if_asm)
+      apply (auto split: if_split_asm)
       done
     show "snd x < b \<bullet> fst x"
-      using as(2) \<open>c < b\<bullet>k\<close> by (auto split: split_if_asm)
+      using as(2) \<open>c < b\<bullet>k\<close> by (auto split: if_split_asm)
   qed
   show ?t2
     unfolding division_points_def interval_split[OF k, of a b]
@@ -3780,10 +3780,10 @@ proof -
       apply (rule bexI[OF _ \<open>l \<in> d\<close>])
       using as(1-3,5) fstx
       unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] as
-      apply (auto split: split_if_asm)
+      apply (auto split: if_split_asm)
       done
     show "a \<bullet> fst x < snd x"
-      using as(1) \<open>a\<bullet>k < c\<close> by (auto split: split_if_asm)
+      using as(1) \<open>a\<bullet>k < c\<close> by (auto split: if_split_asm)
    qed
 qed
 
@@ -4368,7 +4368,7 @@ proof -
     then show False
       unfolding inner_simps
       using rsum_component_le[OF p(1) le]
-      by (simp add: abs_real_def split: split_if_asm)
+      by (simp add: abs_real_def split: if_split_asm)
   qed
   show ?thesis
   proof (cases "\<exists>a b. s = cbox a b")
@@ -4391,7 +4391,7 @@ proof -
       guess w1 using B(2)[OF ab(1)] .. note w1=conjunctD2[OF this]
       guess w2 using B(4)[OF ab(2)] .. note w2=conjunctD2[OF this]
       have *: "\<And>w1 w2 j i::real .\<bar>w1 - i\<bar> < (i - j) / 3 \<Longrightarrow> \<bar>w2 - j\<bar> < (i - j) / 3 \<Longrightarrow> w1 \<le> w2 \<Longrightarrow> False"
-        by (simp add: abs_real_def split: split_if_asm)
+        by (simp add: abs_real_def split: if_split_asm)
       note le_less_trans[OF Basis_le_norm[OF k]]
       note this[OF w1(2)] this[OF w2(2)]
       moreover
@@ -6086,7 +6086,7 @@ proof goal_cases
   def Dg \<equiv> "\<lambda>n s. if n < p then (-1)^n * (b - s)^(p - 1 - n) / fact (p - 1 - n) else 0"
   have g0: "Dg 0 = g"
     using \<open>p > 0\<close>
-    by (auto simp add: Dg_def divide_simps g_def split: split_if_asm)
+    by (auto simp add: Dg_def divide_simps g_def split: if_split_asm)
   {
     fix m
     assume "p > Suc m"
@@ -8476,7 +8476,7 @@ lemma has_integral_spike_set_eq:
   shows "(f has_integral y) s \<longleftrightarrow> (f has_integral y) t"
   unfolding has_integral_restrict_univ[symmetric,of f]
   apply (rule has_integral_spike_eq[OF assms])
-  by (auto split: split_if_asm)
+  by (auto split: if_split_asm)
 
 lemma has_integral_spike_set[dest]:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
@@ -8998,7 +8998,7 @@ proof -
         \<bar>ga - i\<bar> < e / 3 \<and> \<bar>gc - i\<bar> < e / 3 \<and> \<bar>ha - j\<bar> < e / 3 \<and>
         \<bar>hc - j\<bar> < e / 3 \<and> \<bar>i - j\<bar> < e / 3 \<and> ga \<le> fa \<and> fa \<le> ha \<and> gc \<le> fc \<and> fc \<le> hc \<Longrightarrow>
         \<bar>fa - fc\<bar> < e"
-        by (simp add: abs_real_def split: split_if_asm)
+        by (simp add: abs_real_def split: if_split_asm)
       show "norm (integral (cbox a b) (\<lambda>x. if x \<in> s then f x else 0) - integral (cbox c d)
         (\<lambda>x. if x \<in> s then f x else 0)) < e"
         unfolding real_norm_def

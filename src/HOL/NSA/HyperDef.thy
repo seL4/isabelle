@@ -276,7 +276,7 @@ by (simp add: hypreal_epsilon_inverse_omega)
 subsection\<open>Absolute Value Function for the Hyperreals\<close>
 
 lemma hrabs_add_less: "[| \<bar>x\<bar> < r; \<bar>y\<bar> < s |] ==> \<bar>x + y\<bar> < r + (s::hypreal)"
-by (simp add: abs_if split: split_if_asm)
+by (simp add: abs_if split: if_split_asm)
 
 lemma hrabs_less_gt_zero: "\<bar>x\<bar> < r ==> (0::hypreal) < r"
 by (blast intro!: order_le_less_trans abs_ge_zero)
@@ -285,7 +285,7 @@ lemma hrabs_disj: "\<bar>x\<bar> = (x::'a::abs_if) \<or> \<bar>x\<bar> = -x"
 by (simp add: abs_if)
 
 lemma hrabs_add_lemma_disj: "(y::hypreal) + - x + (y + - z) = \<bar>x + - z\<bar> ==> y = z | x = y"
-by (simp add: abs_if split add: split_if_asm)
+by (simp add: abs_if split add: if_split_asm)
 
 
 subsection\<open>Embedding the Naturals into the Hyperreals\<close>

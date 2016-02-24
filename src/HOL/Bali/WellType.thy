@@ -456,7 +456,7 @@ notation (ASCII)
   ty_exprs_syntax  ("_|-_:#_" [51,51,51] 50)
 
 declare not_None_eq [simp del] 
-declare split_if [split del] split_if_asm [split del]
+declare if_split [split del] if_split_asm [split del]
 declare split_paired_All [simp del] split_paired_Ex [simp del]
 setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
 
@@ -492,7 +492,7 @@ inductive_cases wt_elim_cases [cases set]:
         "E,dt\<Turnstile>In1r (c1 Finally c2)         \<Colon>x"
         "E,dt\<Turnstile>In1r (Init C)                \<Colon>x"
 declare not_None_eq [simp] 
-declare split_if [split] split_if_asm [split]
+declare if_split [split] if_split_asm [split]
 declare split_paired_All [simp] split_paired_Ex [simp]
 setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>
 
@@ -655,7 +655,7 @@ lemma single_valued_tys_lemma [rule_format (no_asm)]:
      G = prg E \<longrightarrow> (\<forall>T'. E,dt\<Turnstile>t\<Colon>T' \<longrightarrow> T  = T')"
 apply (cases "E", erule wt.induct)
 apply (safe del: disjE)
-apply (simp_all (no_asm_use) split del: split_if_asm)
+apply (simp_all (no_asm_use) split del: if_split_asm)
 apply (safe del: disjE)
 (* 17 subgoals *)
 apply (tactic \<open>ALLGOALS (fn i =>
@@ -666,7 +666,7 @@ apply (tactic \<open>ALLGOALS (fn i =>
   else Rule_Insts.thin_tac @{context} "All P" [(@{binding P}, NONE, NoSyn)] i)\<close>)
 (*apply (safe del: disjE elim!: wt_elim_cases)*)
 apply (tactic \<open>ALLGOALS (eresolve_tac @{context} @{thms wt_elim_cases})\<close>)
-apply (simp_all (no_asm_use) split del: split_if_asm)
+apply (simp_all (no_asm_use) split del: if_split_asm)
 apply (erule_tac [12] V = "All P" for P in thin_rl) (* Call *)
 apply (blast del: equalityCE dest: sym [THEN trans])+
 done

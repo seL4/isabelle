@@ -202,7 +202,7 @@ proof -
   thus ?thesis
     apply (unfold sup_def subtype_def) 
     apply (cases s)
-    apply (auto split: ty.split_asm ref_ty.split_asm split_if_asm)
+    apply (auto split: ty.split_asm ref_ty.split_asm if_split_asm)
     done
 qed
 
@@ -248,7 +248,7 @@ proof -
          "subtype G a c" "subtype G b c" "sup G a b = OK d"
   thus ?thesis
     by (auto simp add: subtype_def sup_def 
-             split: ty.split_asm ref_ty.split_asm split_if_asm)
+             split: ty.split_asm ref_ty.split_asm if_split_asm)
 qed
 
 lemma sup_exists:

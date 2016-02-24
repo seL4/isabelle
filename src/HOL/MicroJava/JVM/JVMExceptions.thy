@@ -52,7 +52,7 @@ text \<open>
 \<close>
 lemma match_exception_table_in_et:
   "match_exception_table G C pc et = Some pc' \<Longrightarrow> \<exists>e \<in> set et. pc' = fst (snd (snd e))"
-  by (induct et) (auto split: split_if_asm)
+  by (induct et) (auto split: if_split_asm)
 
 
 end

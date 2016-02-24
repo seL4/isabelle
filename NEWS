@@ -32,6 +32,9 @@ typesetting. E.g. to produce proof holes in examples and documentation.
       pred_prod_apply ~> pred_prod_inject
     INCOMPATIBILITY.
 
+* Renamed split_if -> if_split and split_if_asm -> if_split_asm
+  to resemble the f.split naming convention.
+
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
 INCOMPATIBILITY.
 

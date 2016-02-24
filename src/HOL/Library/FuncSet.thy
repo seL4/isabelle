@@ -151,7 +151,7 @@ lemma Pi_cancel_fupd[simp]: "i \<notin> I \<Longrightarrow> x(i := a) \<in> Pi I
 lemma Pi_fupd_iff: "i \<in> I \<Longrightarrow> f \<in> Pi I (B(i := A)) \<longleftrightarrow> f \<in> Pi (I - {i}) B \<and> f i \<in> A"
   apply auto
   apply (drule_tac x=x in Pi_mem)
-  apply (simp_all split: split_if_asm)
+  apply (simp_all split: if_split_asm)
   apply (drule_tac x=i in Pi_mem)
   apply (auto dest!: Pi_mem)
   done
@@ -527,7 +527,7 @@ lemma extensional_funcset_extend_domain_inj_on_eq:
   apply (auto intro: PiE_mem del: PiE_I PiE_E)
   apply (rule_tac x="xa(x := undefined)" in exI)
   apply (auto intro!: extensional_funcset_fun_upd_restricts_rangeI)
-  apply (auto dest!: PiE_mem split: split_if_asm)
+  apply (auto dest!: PiE_mem split: if_split_asm)
   done
 
 lemma extensional_funcset_extend_domain_inj_onI:
@@ -555,7 +555,7 @@ proof (safe intro!: inj_onI ext)
     unfolding fun_eq_iff by auto
   from this[of x] show "y = z" by simp
   fix i from *[of i] \<open>x \<notin> S\<close> fg show "f i = g i"
-    by (auto split: split_if_asm simp: PiE_def extensional_def)
+    by (auto split: if_split_asm simp: PiE_def extensional_def)
 qed
 
 lemma card_PiE: "finite S \<Longrightarrow> card (\<Pi>\<^sub>E i \<in> S. T i) = (\<Prod> i\<in>S. card (T i))"

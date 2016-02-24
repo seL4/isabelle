@@ -182,14 +182,14 @@ lemma lemma_1:
   "is_ref_map f C A \<Longrightarrow> ext C = ext A \<Longrightarrow>
     \<forall>s. reachable C s \<and> is_exec_frag C (s, xs) \<longrightarrow>
       mk_trace C $ xs = mk_trace A $ (snd (corresp_ex A f (s, xs)))"
-  supply split_if [split del]
+  supply if_split [split del]
   apply (unfold corresp_ex_def)
   apply (pair_induct xs simp: is_exec_frag_def)
   text \<open>cons case\<close>
   apply (auto simp add: mk_traceConc)
   apply (frule reachable.reachable_n)
   apply assumption
-  apply (auto simp add: move_subprop4 split add: split_if)
+  apply (auto simp add: move_subprop4 split add: if_split)
   done
 
 

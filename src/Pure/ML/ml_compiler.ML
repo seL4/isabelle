@@ -201,7 +201,7 @@ fun eval (flags: flags) pos toks =
 
     (* results *)
 
-    val depth = ML_Options.get_print_depth ();
+    val depth = FixedInt.fromInt (ML_Options.get_print_depth ());
 
     fun apply_result {fixes, types, signatures, structures, functors, values} =
       let

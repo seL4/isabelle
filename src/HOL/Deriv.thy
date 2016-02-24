@@ -961,7 +961,7 @@ proof -
     fix h::real
     assume "0 < h" "h < s"
     with all [of h] show "f x < f (x+h)"
-    proof (simp add: abs_if pos_less_divide_eq split add: split_if_asm)
+    proof (simp add: abs_if pos_less_divide_eq split add: if_split_asm)
       assume "~ (f (x+h) - f x) / h < l" and h: "0 < h"
       with l
       have "0 < (f (x+h) - f x) / h" by arith
@@ -990,7 +990,7 @@ proof -
     fix h::real
     assume "0 < h" "h < s"
     with all [of "-h"] show "f x < f (x-h)"
-    proof (simp add: abs_if pos_less_divide_eq split add: split_if_asm)
+    proof (simp add: abs_if pos_less_divide_eq split add: if_split_asm)
       assume " - ((f (x-h) - f x) / h) < l" and h: "0 < h"
       with l
       have "0 < (f (x-h) - f x) / h" by arith

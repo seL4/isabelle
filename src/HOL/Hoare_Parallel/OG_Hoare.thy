@@ -408,13 +408,13 @@ apply (ind_cases "(Parallel Ts, s) -P1\<rightarrow> (Parallel Rs, t)" for Ts s R
 apply(rule conjI)
  apply clarify
  apply(case_tac "i=j")
-  apply(simp split del:split_if)
+  apply(simp split del:if_split)
   apply(erule Strong_Soundness_aux_aux,simp+)
    apply force
   apply force
- apply(simp split del: split_if)
+ apply(simp split del: if_split)
  apply(erule Parallel_Strong_Soundness_aux_aux)
- apply(simp_all add: split del:split_if)
+ apply(simp_all add: split del:if_split)
  apply force
 apply(rule interfree_lemma)
 apply simp_all

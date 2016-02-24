@@ -106,7 +106,7 @@ lemma comp2_reachable: "[| reachable (C1||C2) s|] ==> reachable C2 (snd s)"
     split add: option.split)
   done
 
-declare split_if [split del] if_weak_cong [cong del]
+declare if_split [split del] if_weak_cong [cong del]
 
 (*Composition of possibility-mappings *)
 lemma fxg_is_weak_pmap_of_product_IOA: 
@@ -126,7 +126,7 @@ lemma fxg_is_weak_pmap_of_product_IOA:
   apply (simp (no_asm) add: externals_of_par_extra)
   apply (simp (no_asm) add: par_def)
   apply (simp add: trans_of_def)
-  apply (simplesubst split_if)
+  apply (simplesubst if_split)
   apply (rule conjI)
   apply (rule impI)
   apply (erule disjE)
@@ -143,7 +143,7 @@ lemma fxg_is_weak_pmap_of_product_IOA:
 (* delete auxiliary subgoal *)
   prefer 2
   apply force
-  apply (simp (no_asm) add: conj_disj_distribR cong add: conj_cong split add: split_if)
+  apply (simp (no_asm) add: conj_disj_distribR cong add: conj_cong split add: if_split)
   apply (tactic {*
     REPEAT((resolve_tac @{context} [conjI, impI] 1 ORELSE eresolve_tac @{context} [conjE] 1) THEN
       asm_full_simp_tac(@{context} addsimps [@{thm comp1_reachable}, @{thm comp2_reachable}]) 1) *})
@@ -172,7 +172,7 @@ lemma rename_through_pmap: "[| is_weak_pmap f C A |]
   apply (simp (no_asm) add: rename_def)
   apply (simp add: externals_def asig_inputs_def asig_outputs_def asig_of_def trans_of_def)
   apply safe
-  apply (simplesubst split_if)
+  apply (simplesubst if_split)
   apply (rule conjI)
   apply (rule impI)
   apply (erule disjE)
@@ -204,6 +204,6 @@ lemma rename_through_pmap: "[| is_weak_pmap f C A |]
   apply auto
   done
 
-declare split_if [split] if_weak_cong [cong]
+declare if_split [split] if_weak_cong [cong]
 
 end

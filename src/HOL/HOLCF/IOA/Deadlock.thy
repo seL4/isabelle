@@ -64,7 +64,7 @@ lemma IOA_deadlock_free:
     and "compatible A B"
     and "input_enabled B"
   shows "(sch @@ a \<leadsto> nil) \<in> schedules (A \<parallel> B)"
-  supply split_if [split del]
+  supply if_split [split del]
   apply (insert assms)
   apply (simp add: compositionality_sch locals_def)
   apply (rule conjI)

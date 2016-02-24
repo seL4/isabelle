@@ -42,21 +42,21 @@ proof -
        apply (case_tac r)
          apply simp
         apply (simp add: App_eq_foldl_conv)
-        apply (split split_if_asm)
+        apply (split if_split_asm)
          apply simp
          apply blast
         apply simp
        apply (simp add: App_eq_foldl_conv)
-       apply (split split_if_asm)
+       apply (split if_split_asm)
         apply simp
        apply simp
       apply (drule App_eq_foldl_conv [THEN iffD1])
-      apply (split split_if_asm)
+      apply (split if_split_asm)
        apply simp
        apply blast
       apply (force intro!: disjI1 [THEN append_step1I])
      apply (drule App_eq_foldl_conv [THEN iffD1])
-     apply (split split_if_asm)
+     apply (split if_split_asm)
       apply simp
       apply blast
      apply (clarify, auto 0 3 intro!: exI intro: append_step1I)

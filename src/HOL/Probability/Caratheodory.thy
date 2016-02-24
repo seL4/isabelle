@@ -713,7 +713,7 @@ proof -
     then have "disjoint_family F"
       using F'_disj by (auto simp: disjoint_family_on_def)
     moreover from F' have "(\<Union>i. F i) = \<Union>C"
-      by (auto simp add: F_def split: split_if_asm) blast
+      by (auto simp add: F_def split: if_split_asm) blast
     moreover have sets_F: "\<And>i. F i \<in> M"
       using F' sets_C by (auto simp: F_def)
     moreover note sets_C

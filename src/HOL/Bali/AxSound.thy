@@ -1356,12 +1356,12 @@ next
           proof -
             from s2_no_return s3
             have "abrupt s3 \<noteq> Some (Jump Ret)"
-              by (cases s2) (auto simp add: init_lvars_def2 split: split_if_asm)
+              by (cases s2) (auto simp add: init_lvars_def2 split: if_split_asm)
             moreover
             obtain abr2 str2 where s2: "s2=(abr2,str2)"
               by (cases s2)
             from s3 s2 conf_s2 have "(abrupt s3,str2)\<Colon>\<preceq>(G, L)"
-              by (auto simp add: init_lvars_def2 split: split_if_asm)
+              by (auto simp add: init_lvars_def2 split: if_split_asm)
             ultimately show ?thesis
               using s3 s2 eq_s3'_s3
               apply (simp add: init_lvars_def2)
@@ -1661,7 +1661,7 @@ next
           by (rule jumpNestingOk_evalE) (auto intro: jmpOk simp add: s1_no_jmp)
         moreover note s3
         ultimately show ?thesis 
-          by (force split: split_if)
+          by (force split: if_split)
       qed
       with R v s4 
       have "R \<lfloor>v\<rfloor>\<^sub>e s4 Z"
@@ -1923,7 +1923,7 @@ next
       from wt obtain  
         wt_e: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>e\<Colon>-PrimT Boolean" and
         wt_then_else: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>(if the_Bool b then c1 else c2)\<Colon>\<surd>"
-        by cases (simp split: split_if)
+        by cases (simp split: if_split)
       from da obtain E S where
         da_e: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s0)) \<guillemotright>\<langle>e\<rangle>\<^sub>e\<guillemotright> E" and
         da_then_else: 
@@ -2587,7 +2587,7 @@ next
         from this wt_super wf
         have s1_no_ret: "\<And> j. abrupt s1 \<noteq> Some (Jump j)"
           by - (rule eval_statement_no_jump 
-                 [where ?Env="\<lparr>prg=G,cls=accC,lcl=L\<rparr>"], auto split: split_if)
+                 [where ?Env="\<lparr>prg=G,cls=accC,lcl=L\<rparr>"], auto split: if_split)
         with conf_s1
         show ?thesis
           by (cases s1) (auto intro: conforms_set_locals)

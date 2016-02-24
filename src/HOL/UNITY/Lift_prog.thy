@@ -129,7 +129,7 @@ lemma insert_map_eq_diff:
       ==> \<exists>g'. insert_map i s' f = insert_map j t g'"
 apply (subst insert_map_upd_same [symmetric])
 apply (erule ssubst)
-apply (simp only: insert_map_upd if_False split: split_if, blast)
+apply (simp only: insert_map_upd if_False split: if_split, blast)
 done
 
 lemma lift_map_eq_diff: 

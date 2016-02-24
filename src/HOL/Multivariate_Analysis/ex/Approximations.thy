@@ -333,7 +333,7 @@ proof -
     by (subst (asm) hsum_63) simp
   have "ln (64::real) = real (6::nat) * ln 2" by (subst ln_realpow[symmetric]) simp_all
   hence "ln (real_of_nat (Suc 63)) \<in> {4.158883083293<..<4.158883083367}" using ln_2_64
-    by (simp add: abs_real_def split: split_if_asm)
+    by (simp add: abs_real_def split: if_split_asm)
   from euler_mascheroni_bounds'[OF _ this]
     have "(euler_mascheroni :: real) \<in> {l<..<u}"
     by (simp add: hsum_63 del: greaterThanLessThan_iff) (simp only: l_def u_def)

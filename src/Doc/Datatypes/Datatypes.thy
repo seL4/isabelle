@@ -342,7 +342,7 @@ subsubsection \<open> Auxiliary Constants
 text \<open>
 The @{command datatype} command introduces various constants in addition to
 the constructors. With each datatype are associated set functions, a map
-function,, a predicator, a relator, discriminators, and selectors, all of which can be given
+function, a predicator, a relator, discriminators, and selectors, all of which can be given
 custom names. In the example below, the familiar names @{text null}, @{text hd},
 @{text tl}, @{text set}, @{text map}, and @{text list_all2} override the
 default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
@@ -916,6 +916,10 @@ The @{text "[code]"} attribute is set by the @{text code} plugin
 \item[@{text "t."}\hthm{map_sel}\rm:] ~ \\
 @{thm list.map_sel[no_vars]}
 
+\item[@{text "t."}\hthm{pred_inject} @{text "[simp]"}\rm:] ~ \\
+@{thm list.pred_inject(1)[no_vars]} \\
+@{thm list.pred_inject(2)[no_vars]}
+
 \item[@{text "t."}\hthm{rel_inject} @{text "[simp]"}\rm:] ~ \\
 @{thm list.rel_inject(1)[no_vars]} \\
 @{thm list.rel_inject(2)[no_vars]}
@@ -1475,7 +1479,8 @@ map function, typically when defining predicates. For example:
 \<close>
 
     primrec increasing_tree :: "int \<Rightarrow> int tree\<^sub>f\<^sub>f \<Rightarrow> bool" where
-      "increasing_tree m (Node\<^sub>f\<^sub>f n ts) \<longleftrightarrow> n \<ge> m \<and> list_all (increasing_tree (n + 1)) ts"
+      "increasing_tree m (Node\<^sub>f\<^sub>f n ts) \<longleftrightarrow>
+       n \<ge> m \<and> list_all (increasing_tree (n + 1)) ts"
 
 
 subsubsection \<open> Nested-as-Mutual Recursion
@@ -1512,7 +1517,7 @@ Appropriate induction rules are generated as
 @{thm [source] at\<^sub>f\<^sub>f.induct},
 @{thm [source] ats\<^sub>f\<^sub>f.induct}, and
 @{thm [source] at\<^sub>f\<^sub>f_ats\<^sub>f\<^sub>f.induct}. The
-induction rules and the underlying recursors are generated on a per-need basis
+induction rules and the underlying recursors are generated dynamically
 and are kept in a cache to speed up subsequent definitions.
 
 Here is a second example:
@@ -2352,7 +2357,7 @@ Coinduction rules are generated as
 @{thm [source] iterates\<^sub>i\<^sub>i.coinduct}, and
 @{thm [source] iterate\<^sub>i\<^sub>i_iterates\<^sub>i\<^sub>i.coinduct}
 and analogously for @{text coinduct_strong}. These rules and the
-underlying corecursors are generated on a per-need basis and are kept in a cache
+underlying corecursors are generated dynamically and are kept in a cache
 to speed up subsequent definitions.
 \<close>
 
@@ -2986,7 +2991,7 @@ text \<open>
   @@{command bnf} target? (name ':')? type \<newline>
     'map:' term ('sets:' (term +))? 'bd:' term \<newline>
     ('wits:' (term +))? ('rel:' term)? \<newline>
-    @{syntax plugins}?
+    ('pred:' term)? @{syntax plugins}?
 \<close>}
 
 \medskip
@@ -3403,11 +3408,6 @@ arguments}, the plugin derives the following properties:
 
 \item[@{text "t."}\hthm{Domainp_rel} @{text "[relator_domain]"}\rm:] ~ \\
 @{thm list.Domainp_rel[no_vars]}
-
-\item[@{text "t."}\hthm{pred_inject} @{text "[simp]"}\rm:] ~ \\
-@{thm list.pred_inject(1)[no_vars]} \\
-@{thm list.pred_inject(2)[no_vars]} \\
-This property is generated only for (co)datatypes.
 
 \item[@{text "t."}\hthm{left_total_rel} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.left_total_rel[no_vars]}

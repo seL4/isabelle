@@ -188,7 +188,7 @@ lemma piecewise_differentiable_D2:
   apply (intro ballI)
   apply (rule_tac d="dist ((x+1)/2) (1/2)" and f = "(g1 +++ g2) o (\<lambda>x. (x+1)/2)"
           in differentiable_transform_within)
-  apply (auto simp: dist_real_def joinpaths_def abs_if field_simps split: split_if_asm)
+  apply (auto simp: dist_real_def joinpaths_def abs_if field_simps split: if_split_asm)
   apply (rule differentiable_chain_within derivative_intros | simp)+
   apply (rule differentiable_subset)
   apply (force simp: divide_simps)+
@@ -765,7 +765,7 @@ proof -
             vector_derivative (\<lambda>x. if x*2 \<le> 1 then g1 (2*x) else g2 (2*x - 1)) (at z) =
             2 *\<^sub>R vector_derivative g1 (at (z*2))" for z
     apply (rule vector_derivative_at [OF has_vector_derivative_transform_within [where f = "(\<lambda>x. g1(2*x))" and d = "\<bar>z - 1/2\<bar>"]])
-    apply (simp_all add: dist_real_def abs_if split: split_if_asm)
+    apply (simp_all add: dist_real_def abs_if split: if_split_asm)
     apply (rule vector_diff_chain_at [of "\<lambda>x. 2*x" 2 _ g1, simplified o_def])
     apply (simp add: has_vector_derivative_def has_derivative_def bounded_linear_mult_left)
     using s1
@@ -775,7 +775,7 @@ proof -
             vector_derivative (\<lambda>x. if x*2 \<le> 1 then g1 (2*x) else g2 (2*x - 1)) (at z) =
             2 *\<^sub>R vector_derivative g2 (at (z*2 - 1))" for z
     apply (rule vector_derivative_at [OF has_vector_derivative_transform_within [where f = "(\<lambda>x. g2 (2*x - 1))" and d = "\<bar>z - 1/2\<bar>"]])
-    apply (simp_all add: dist_real_def abs_if split: split_if_asm)
+    apply (simp_all add: dist_real_def abs_if split: if_split_asm)
     apply (rule vector_diff_chain_at [of "\<lambda>x. 2*x - 1" 2 _ g2, simplified o_def])
     apply (simp add: has_vector_derivative_def has_derivative_def bounded_linear_mult_left)
     using s2
@@ -826,7 +826,7 @@ proof -
             vector_derivative (\<lambda>x. if x*2 \<le> 1 then g1 (2*x) else g2 (2*x - 1)) (at (z/2)) =
             2 *\<^sub>R vector_derivative g1 (at z)"  for z
     apply (rule vector_derivative_at [OF has_vector_derivative_transform_within [where f = "(\<lambda>x. g1(2*x))" and d = "\<bar>(z-1)/2\<bar>"]])
-    apply (simp_all add: field_simps dist_real_def abs_if split: split_if_asm)
+    apply (simp_all add: field_simps dist_real_def abs_if split: if_split_asm)
     apply (rule vector_diff_chain_at [of "\<lambda>x. x*2" 2 _ g1, simplified o_def])
     using s1
     apply (auto simp: vector_derivative_works has_vector_derivative_def has_derivative_def bounded_linear_mult_left)
@@ -860,7 +860,7 @@ proof -
             vector_derivative (\<lambda>x. if x*2 \<le> 1 then g1 (2*x) else g2 (2*x - 1)) (at (z/2+1/2)) =
             2 *\<^sub>R vector_derivative g2 (at z)" for z
     apply (rule vector_derivative_at [OF has_vector_derivative_transform_within [where f = "(\<lambda>x. g2(2*x-1))" and d = "\<bar>z/2\<bar>"]])
-    apply (simp_all add: field_simps dist_real_def abs_if split: split_if_asm)
+    apply (simp_all add: field_simps dist_real_def abs_if split: if_split_asm)
     apply (rule vector_diff_chain_at [of "\<lambda>x. x*2-1" 2 _ g2, simplified o_def])
     using s2
     apply (auto simp: has_vector_derivative_def has_derivative_def bounded_linear_mult_left
@@ -926,7 +926,7 @@ proof -
          vector_derivative (shiftpath a g) (at x) = vector_derivative g (at (x + a))"
       unfolding shiftpath_def
       apply (rule vector_derivative_at [OF has_vector_derivative_transform_within [where f = "(\<lambda>x. g(a+x))" and d = "dist(1-a) x"]])
-        apply (auto simp: field_simps dist_real_def abs_if split: split_if_asm)
+        apply (auto simp: field_simps dist_real_def abs_if split: if_split_asm)
       apply (rule vector_diff_chain_at [of "\<lambda>x. x+a" 1 _ g, simplified o_def scaleR_one])
        apply (intro derivative_eq_intros | simp)+
       using g
@@ -939,7 +939,7 @@ proof -
           vector_derivative (shiftpath a g) (at x) = vector_derivative g (at (x + a - 1))"
       unfolding shiftpath_def
       apply (rule vector_derivative_at [OF has_vector_derivative_transform_within [where f = "(\<lambda>x. g(a+x-1))" and d = "dist (1-a) x"]])
-        apply (auto simp: field_simps dist_real_def abs_if split: split_if_asm)
+        apply (auto simp: field_simps dist_real_def abs_if split: if_split_asm)
       apply (rule vector_diff_chain_at [of "\<lambda>x. x+a-1" 1 _ g, simplified o_def scaleR_one])
        apply (intro derivative_eq_intros | simp)+
       using g
@@ -1000,7 +1000,7 @@ proof -
       apply (auto simp: finite_imp_closed open_Diff shiftpath_shiftpath
                         vector_derivative_within_interior vector_derivative_works [symmetric])
       apply (rule differentiable_transform_within [OF gx, of "min x (1-x)"])
-      apply (auto simp: dist_real_def shiftpath_shiftpath abs_if split: split_if_asm)
+      apply (auto simp: dist_real_def shiftpath_shiftpath abs_if split: if_split_asm)
       done
   } note vd = this
   have fi: "(f has_contour_integral i) (shiftpath (1 - a) (shiftpath a g))"
@@ -3079,7 +3079,7 @@ proof -
       } note ind = this
       have "contour_integral h f = contour_integral g f"
         using ind [OF order_refl] N joins
-        by (simp add: linked_paths_def pathstart_def pathfinish_def split: split_if_asm)
+        by (simp add: linked_paths_def pathstart_def pathfinish_def split: if_split_asm)
     }
     ultimately
     have "path_image g \<subseteq> s \<and> path_image h \<subseteq> s \<and> (\<forall>f. f holomorphic_on s \<longrightarrow> contour_integral h f = contour_integral g f)"
@@ -3897,7 +3897,7 @@ proof -
   }
   then show ?thesis
     using assms
-    by (simp add: Groups.abs_if_class.abs_if winding_number_pos_meets split: split_if_asm)
+    by (simp add: Groups.abs_if_class.abs_if winding_number_pos_meets split: if_split_asm)
 qed
 
 lemma winding_number_less_1:
@@ -4463,7 +4463,7 @@ proof -
       and ks: "k ` ({0..1} \<times> {0..1}) \<subseteq> s"
       and k [simp]: "\<forall>x. k (0, x) = g x" "\<forall>x. k (1, x) = h x"
       and ksf: "\<forall>t\<in>{0..1}. linked_paths atends g (\<lambda>x. k (t, x))"
-      using hom pathsf by (auto simp: linked_paths_def homotopic_paths_def homotopic_loops_def homotopic_with_def split: split_if_asm)
+      using hom pathsf by (auto simp: linked_paths_def homotopic_paths_def homotopic_loops_def homotopic_with_def split: if_split_asm)
   have ucontk: "uniformly_continuous_on ({0..1} \<times> {0..1}) k"
     by (blast intro: compact_Times compact_uniformly_continuous [OF contk])
   { fix t::real assume t: "t \<in> {0..1}"

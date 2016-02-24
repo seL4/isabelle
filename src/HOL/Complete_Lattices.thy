@@ -1247,7 +1247,7 @@ lemma bex_UN: "(\<exists>z \<in> UNION A B. P z) \<longleftrightarrow> (\<exists
   by blast
 
 lemma Un_eq_UN: "A \<union> B = (\<Union>b. if b then A else B)"
-  by safe (auto simp add: split_if_mem2)
+  by safe (auto simp add: if_split_mem2)
 
 lemma UN_bool_eq: "(\<Union>b. A b) = (A True \<union> A False)"
   by (fact SUP_UNIV_bool_expand)
