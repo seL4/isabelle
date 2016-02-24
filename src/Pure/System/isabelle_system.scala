@@ -319,7 +319,7 @@ object Isabelle_System
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
     progress_limit: Option[Long] = None,
-    strict: Boolean = true): Bash.Result =
+    strict: Boolean = true): Process_Result =
   {
     with_tmp_file("isabelle_script") { script_file =>
       File.write(script_file, script)
@@ -337,7 +337,7 @@ object Isabelle_System
         catch { case Exn.Interrupt() => proc.terminate; Exn.Interrupt.return_code }
       if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
 
-      Bash.Result(stdout.join, stderr.join, rc)
+      Process_Result(stdout.join, stderr.join, rc)
     }
   }
 
@@ -367,8 +367,9 @@ object Isabelle_System
   def pdf_viewer(arg: Path): Unit =
     bash("exec \"$PDF_VIEWER\" '" + File.standard_path(arg) + "' >/dev/null 2>/dev/null &")
 
-  def hg(cmd_line: String, cwd: Path = Path.current): Bash.Result =
+  def hg(cmd_line: String, cwd: Path = Path.current): Process_Result =
     bash("cd " + File.shell_path(cwd) + " && \"${HG:-hg}\" " + cmd_line)
+
 
 
   /** Isabelle resources **/

@@ -628,7 +628,7 @@ object Build
       else None
     }
 
-    def join: Bash.Result =
+    def join: Process_Result =
     {
       val res = result.join
 

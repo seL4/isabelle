@@ -82,6 +82,7 @@ declare -a SOURCES=(
   System/options.scala
   System/platform.scala
   System/posix_interrupt.scala
+  System/process_result.scala
   System/progress.scala
   System/system_channel.scala
   System/utf8.scala
