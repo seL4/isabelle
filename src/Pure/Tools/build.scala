@@ -734,6 +734,14 @@ object Build
 
   /* build_results */
 
+  class Build_Results private [Build](results: Map[String, Option[Process_Result]])
+  {
+    def sessions: Set[String] = results.keySet
+    def cancelled(name: String): Boolean = results(name).isEmpty
+    def process_result(name: String): Process_Result = results(name).getOrElse(Process_Result(1))
+    val rc = (0 /: results.iterator.map({ case (_, Some(r)) => r.rc case (_, None) => 1 }))(_ max _)
+  }
+
   def build_results(
     options: Options,
     progress: Progress = Ignore_Progress,
@@ -752,7 +760,7 @@ object Build
     system_mode: Boolean = false,
     verbose: Boolean = false,
     exclude_sessions: List[String] = Nil,
-    sessions: List[String] = Nil): Map[String, Option[Process_Result]] =
+    sessions: List[String] = Nil): Build_Results =
   {
     /* session tree and dependencies */
 
@@ -980,10 +988,7 @@ object Build
       if (browser_chapters.nonEmpty) Present.make_global_index(browser_info)
     }
 
-
-    /* process results */
-
-    (for ((name, result) <- results.iterator) yield (name, result.process)).toMap
+    new Build_Results((for ((name, result) <- results.iterator) yield (name, result.process)).toMap)
   }
 
 
@@ -1014,16 +1019,16 @@ object Build
         dirs, select_dirs, exclude_session_groups, session_groups, max_jobs, list_files,
         check_keywords, no_build, system_mode, verbose, exclude_sessions, sessions)
 
-    val rc = (0 /: results.iterator.flatMap(p => p._2.map(_.rc)))(_ max _)
-    if (rc != 0 && (verbose || !no_build)) {
+    if (results.rc != 0 && (verbose || !no_build)) {
       val unfinished =
         (for {
-          (name, r) <- results.iterator
-          if r.isEmpty || r.isDefined && !r.get.ok
+          name <- results.sessions.iterator
+          if !results.process_result(name).ok
          } yield name).toList.sorted
       progress.echo("Unfinished session(s): " + commas(unfinished))
     }
-    rc
+
+    results.rc
   }
 
 
