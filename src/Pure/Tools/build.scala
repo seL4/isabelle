@@ -642,7 +642,7 @@ object Build
 
       if (res.interrupted) {
         was_timeout match {
-          case Some(t) => res.error(Output.error_text("Timeout"), 1).set_timeout(t)
+          case Some(t) => res.error(Output.error_text("Timeout")).set_timeout(t)
           case None => res.error(Output.error_text("Interrupt"))
         }
       }

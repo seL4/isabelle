@@ -14,11 +14,9 @@ final case class Process_Result(
 {
   def out: String = cat_lines(out_lines)
   def err: String = cat_lines(err_lines)
+  def error(s: String): Process_Result = copy(err_lines = err_lines ::: List(s))
 
-  def error(s: String, err_rc: Int = 0): Process_Result =
-    copy(err_lines = err_lines ::: List(s), rc = rc max err_rc)
-
-  def set_timeout(t: Time): Process_Result = copy(timeout = Some(t))
+  def set_timeout(t: Time): Process_Result = copy(rc = 1, timeout = Some(t))
 
   def ok: Boolean = rc == 0
   def interrupted: Boolean = rc == Exn.Interrupt.return_code
