@@ -619,12 +619,13 @@ object Build
     def terminate: Unit = result.cancel
     def is_finished: Boolean = result.is_finished
 
-    @volatile private var was_timeout = false
+    @volatile private var was_timeout: Option[Time] = None
     private val timeout_request: Option[Event_Timer.Request] =
     {
       val timeout = info.timeout
+      val t0 = Time.now()
       if (timeout > Time.zero)
-        Some(Event_Timer.request(Time.now() + timeout) { terminate; was_timeout = true })
+        Some(Event_Timer.request(t0 + timeout) { terminate; was_timeout = Some(Time.now() - t0) })
       else None
     }
 
@@ -639,9 +640,11 @@ object Build
       args_file.delete
       timeout_request.foreach(_.cancel)
 
-      if (res.rc == Exn.Interrupt.return_code) {
-        if (was_timeout) res.error(Output.error_text("Timeout"), 1)
-        else res.error(Output.error_text("Interrupt"))
+      if (res.interrupted) {
+        was_timeout match {
+          case Some(t) => res.error(Output.error_text("Timeout"), 1).set_timeout(t)
+          case None => res.error(Output.error_text("Interrupt"))
+        }
       }
       else res
     }
@@ -854,17 +857,17 @@ object Build
           case Some((name, (parent_heap, job))) =>
             //{{{ finish job
 
-            val res = job.join
-            progress.echo(res.err)
+            val process_result = job.join
+            progress.echo(process_result.err)
 
             val heap =
-              if (res.ok) {
+              if (process_result.ok) {
                 (output_dir + log(name)).file.delete
 
                 val sources = make_stamp(name)
                 val heap = heap_stamp(job.output_path)
                 File.write_gzip(output_dir + log_gz(name),
-                  Library.terminate_lines(sources :: parent_heap :: heap :: res.out_lines))
+                  Library.terminate_lines(sources :: parent_heap :: heap :: process_result.out_lines))
 
                 heap
               }
@@ -872,11 +875,11 @@ object Build
                 (output_dir + Path.basic(name)).file.delete
                 (output_dir + log_gz(name)).file.delete
 
-                File.write(output_dir + log(name), Library.terminate_lines(res.out_lines))
+                File.write(output_dir + log(name), Library.terminate_lines(process_result.out_lines))
                 progress.echo(name + " FAILED")
-                if (res.rc != Exn.Interrupt.return_code) {
+                if (!process_result.interrupted) {
                   progress.echo("(see also " + (output_dir + log(name)).file.toString + ")")
-                  val lines = res.out_lines.filterNot(_.startsWith("\f"))
+                  val lines = process_result.out_lines.filterNot(_.startsWith("\f"))
                   val tail = lines.drop(lines.length - 20 max 0)
                   progress.echo("\n" + cat_lines(tail))
                 }
@@ -884,7 +887,7 @@ object Build
                 no_heap
               }
             loop(pending - name, running - name,
-              results + (name -> Result(false, heap, res.rc)))
+              results + (name -> Result(false, heap, process_result.rc)))
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job

@@ -6,13 +6,16 @@ Result of system process.
 
 package isabelle
 
-final case class Process_Result(out_lines: List[String], err_lines: List[String], rc: Int)
+final case class Process_Result(
+  out_lines: List[String], err_lines: List[String], rc: Int, timeout: Option[Time])
 {
   def out: String = cat_lines(out_lines)
   def err: String = cat_lines(err_lines)
 
   def error(s: String, err_rc: Int = 0): Process_Result =
     copy(err_lines = err_lines ::: List(s), rc = rc max err_rc)
+
+  def set_timeout(t: Time): Process_Result = copy(timeout = Some(t))
 
   def ok: Boolean = rc == 0
   def interrupted: Boolean = rc == Exn.Interrupt.return_code
@@ -26,6 +29,6 @@ final case class Process_Result(out_lines: List[String], err_lines: List[String]
   {
     Output.warning(Library.trim_line(err))
     Output.writeln(Library.trim_line(out))
-    Process_Result(Nil, Nil, rc)
+    copy(out_lines = Nil, err_lines = Nil)
   }
 }

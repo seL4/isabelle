@@ -337,7 +337,7 @@ object Isabelle_System
         catch { case Exn.Interrupt() => proc.terminate; Exn.Interrupt.return_code }
       if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
 
-      Process_Result(stdout.join, stderr.join, rc)
+      Process_Result(stdout.join, stderr.join, rc, None)
     }
   }
 
