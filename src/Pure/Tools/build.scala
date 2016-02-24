@@ -738,8 +738,10 @@ object Build
   {
     def sessions: Set[String] = results.keySet
     def cancelled(name: String): Boolean = results(name).isEmpty
-    def process_result(name: String): Process_Result = results(name).getOrElse(Process_Result(1))
+    def apply(name: String): Process_Result = results(name).getOrElse(Process_Result(1))
     val rc = (0 /: results.iterator.map({ case (_, Some(r)) => r.rc case (_, None) => 1 }))(_ max _)
+
+    override def toString: String = rc.toString
   }
 
   def build_results(
@@ -1026,7 +1028,7 @@ object Build
       val unfinished =
         (for {
           name <- results.sessions.iterator
-          if !results.process_result(name).ok
+          if !results(name).ok
          } yield name).toList.sorted
       progress.echo("Unfinished session(s): " + commas(unfinished))
     }
