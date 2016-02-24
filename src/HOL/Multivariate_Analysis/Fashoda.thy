@@ -8,14 +8,6 @@ theory Fashoda
 imports Brouwer_Fixpoint Path_Connected Cartesian_Euclidean_Space
 begin
 
-(* move *)
-
-lemma cart_eq_inner_axis: "a $ i = a \<bullet> axis i 1"
-  by (simp add: inner_axis)
-
-lemma axis_in_Basis: "a \<in> Basis \<Longrightarrow> axis i a \<in> Basis"
-  by (auto simp add: Basis_vec_def axis_eq_axis)
-
 subsection \<open>Bijections between intervals.\<close>
 
 definition interval_bij :: "'a \<times> 'a \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<Rightarrow> 'a::euclidean_space"

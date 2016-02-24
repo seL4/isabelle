@@ -508,44 +508,47 @@ lemma complex_derivative_chain:
     \<Longrightarrow> deriv (g o f) x = deriv g (f x) * deriv f x"
   by (metis DERIV_deriv_iff_complex_differentiable DERIV_chain DERIV_imp_deriv)
 
-lemma deriv_linear: "deriv (\<lambda>w. c * w) = (\<lambda>z. c)"
+lemma deriv_linear [simp]: "deriv (\<lambda>w. c * w) = (\<lambda>z. c)"
   by (metis DERIV_imp_deriv DERIV_cmult_Id)
 
-lemma deriv_ident: "deriv (\<lambda>w. w) = (\<lambda>z. 1)"
+lemma deriv_ident [simp]: "deriv (\<lambda>w. w) = (\<lambda>z. 1)"
   by (metis DERIV_imp_deriv DERIV_ident)
 
-lemma deriv_const: "deriv (\<lambda>w. c) = (\<lambda>z. 0)"
+lemma deriv_id [simp]: "deriv id = (\<lambda>z. 1)"
+  by (simp add: id_def)
+
+lemma deriv_const [simp]: "deriv (\<lambda>w. c) = (\<lambda>z. 0)"
   by (metis DERIV_imp_deriv DERIV_const)
 
-lemma complex_derivative_add:
+lemma complex_derivative_add [simp]:
   "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>
    \<Longrightarrow> deriv (\<lambda>w. f w + g w) z = deriv f z + deriv g z"
   unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_intros)
 
-lemma complex_derivative_diff:
+lemma complex_derivative_diff [simp]:
   "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>
    \<Longrightarrow> deriv (\<lambda>w. f w - g w) z = deriv f z - deriv g z"
   unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_intros)
 
-lemma complex_derivative_mult:
+lemma complex_derivative_mult [simp]:
   "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>
    \<Longrightarrow> deriv (\<lambda>w. f w * g w) z = f z * deriv g z + deriv f z * g z"
   unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
 
-lemma complex_derivative_cmult:
+lemma complex_derivative_cmult [simp]:
   "f complex_differentiable at z \<Longrightarrow> deriv (\<lambda>w. c * f w) z = c * deriv f z"
   unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
 
-lemma complex_derivative_cmult_right:
+lemma complex_derivative_cmult_right [simp]:
   "f complex_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w * c) z = deriv f z * c"
   unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
 
-lemma complex_derivative_cdivide_right:
+lemma complex_derivative_cdivide_right [simp]:
   "f complex_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w / c) z = deriv f z / c"
   unfolding Fields.field_class.field_divide_inverse
   by (blast intro: complex_derivative_cmult_right)

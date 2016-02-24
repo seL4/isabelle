@@ -1308,6 +1308,11 @@ lemma norm_conv_dist: "norm x = dist x 0"
 
 declare norm_conv_dist [symmetric, simp]
 
+lemma dist_0_norm [simp]:
+  fixes x :: "'a::real_normed_vector"
+  shows "dist 0 x = norm x"
+unfolding dist_norm by simp
+
 lemma dist_diff [simp]: "dist a (a - b) = norm b"  "dist (a - b) a = norm b"
   by (simp_all add: dist_norm)
 

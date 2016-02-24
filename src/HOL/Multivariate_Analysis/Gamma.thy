@@ -1738,7 +1738,7 @@ proof -
 
     moreover from z double_in_nonpos_Ints_imp[of z] have "2 * z \<notin> \<int>\<^sub>\<le>\<^sub>0" by auto
     hence "?g \<longlonglongrightarrow> ?powr 2 (2*z) * Gamma z * Gamma (z+1/2) / Gamma (2*z)"
-      using lim_subseq[of "op * 2", OF _ Gamma_series'_LIMSEQ, of "2*z"]
+      using LIMSEQ_subseq_LIMSEQ[OF Gamma_series'_LIMSEQ, of "op*2" "2*z"]
       by (intro tendsto_intros Gamma_series'_LIMSEQ)
          (simp_all add: o_def subseq_def Gamma_eq_zero_iff)
     ultimately have "?h \<longlonglongrightarrow> ?powr 2 (2*z) * Gamma z * Gamma (z+1/2) / Gamma (2*z)"

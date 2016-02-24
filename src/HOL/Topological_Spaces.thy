@@ -1296,6 +1296,11 @@ abbreviation
 lemma tendsto_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f \<longlongrightarrow> l) (at a within S) \<longleftrightarrow> (f \<midarrow>a\<rightarrow> l)"
   unfolding tendsto_def by (simp add: at_within_open[where S=S])
 
+lemma tendsto_within_open_NO_MATCH:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
+  shows "a \<in> S \<Longrightarrow> NO_MATCH UNIV S \<Longrightarrow> open S \<Longrightarrow> (f \<longlongrightarrow> l)(at a within S) \<longleftrightarrow> (f \<longlongrightarrow> l)(at a)"
+using tendsto_within_open by blast
+
 lemma LIM_const_not_eq[tendsto_intros]:
   fixes a :: "'a::perfect_space"
   fixes k L :: "'b::t2_space"
@@ -2012,6 +2017,9 @@ apply (drule_tac x="-B" in spec)
 apply (fastforce simp add: open_closed [symmetric])
 done
 
+lemma connected_closedD:
+    "\<lbrakk>connected s; A \<inter> B \<inter> s = {}; s \<subseteq> A \<union> B; closed A; closed B\<rbrakk> \<Longrightarrow> A \<inter> s = {} \<or> B \<inter> s = {}"
+by (simp add: connected_closed)
 
 lemma connected_Union:
   assumes cs: "\<And>s. s \<in> S \<Longrightarrow> connected s" and ne: "\<Inter>S \<noteq> {}"

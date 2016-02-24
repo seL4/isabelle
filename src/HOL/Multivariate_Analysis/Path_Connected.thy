@@ -444,7 +444,7 @@ proof -
     done
   show ?thesis
     apply (subst *)
-    apply (rule continuous_on_union)
+    apply (rule continuous_on_closed_Un)
     using 1 2
     apply auto
     done
@@ -757,9 +757,9 @@ proof -
   { assume "u \<noteq> 0"
     then have "u > 0" using \<open>0 \<le> u\<close> by auto
     { fix e::real assume "e > 0"
-      obtain d where "d>0" and d: "\<And>x'. \<lbrakk>x' \<in> {0..1}; dist x' u < d\<rbrakk> \<Longrightarrow> dist (g x') (g u) < e"
-        using continuous_onD [OF gcon _ \<open>e > 0\<close>] \<open>0 \<le> _\<close> \<open>_ \<le> 1\<close> atLeastAtMost_iff by auto
-      have *: "dist (max 0 (u - d / 2)) u < d"
+      obtain d where "d>0" and d: "\<And>x'. \<lbrakk>x' \<in> {0..1}; dist x' u \<le> d\<rbrakk> \<Longrightarrow> dist (g x') (g u) < e"
+        using continuous_onE [OF gcon _ \<open>e > 0\<close>] \<open>0 \<le> _\<close> \<open>_ \<le> 1\<close> atLeastAtMost_iff by auto
+      have *: "dist (max 0 (u - d / 2)) u \<le> d"
         using \<open>0 \<le> u\<close> \<open>u \<le> 1\<close> \<open>d > 0\<close> by (simp add: dist_real_def)
       have "\<exists>y\<in>S. dist y (g u) < e"
         using \<open>0 < u\<close> \<open>u \<le> 1\<close> \<open>d > 0\<close>
@@ -891,7 +891,7 @@ proof -
     by auto
   show ?thesis
     unfolding path_def shiftpath_def *
-    apply (rule continuous_on_union)
+    apply (rule continuous_on_closed_Un)
     apply (rule closed_real_atLeastAtMost)+
     apply (rule continuous_on_eq[of _ "g \<circ> (\<lambda>x. a + x)"])
     prefer 3

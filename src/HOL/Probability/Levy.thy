@@ -527,12 +527,11 @@ proof -
     have 3: "\<And>t. (\<lambda>n. char ((M \<circ> s) n) t) \<longlonglongrightarrow> char \<nu> t" by (intro levy_continuity1 [OF 2 * nu])
     have 4: "\<And>t. (\<lambda>n. char ((M \<circ> s) n) t) = ((\<lambda>n. char (M n) t) \<circ> s)" by (rule ext, simp)
     have 5: "\<And>t. (\<lambda>n. char ((M \<circ> s) n) t) \<longlonglongrightarrow> char M' t"
-      by (subst 4, rule lim_subseq [OF s], rule assms)
+      by (subst 4, rule LIMSEQ_subseq_LIMSEQ [OF _ s], rule assms)
     hence "char \<nu> = char M'" by (intro ext, intro LIMSEQ_unique [OF 3 5])
     hence "\<nu> = M'" by (rule Levy_uniqueness [OF * `real_distribution M'`])
     thus "weak_conv_m (M \<circ> s) M'" 
-      apply (elim subst)
-      by (rule nu)  
+      by (elim subst) (rule nu)  
   qed
 qed
 

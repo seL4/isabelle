@@ -263,7 +263,7 @@ proof -
   qed
   ultimately have M: "real_distribution (interval_measure F)" "cdf (interval_measure F) = F"
     using F by (auto intro!: real_distribution_interval_measure cdf_interval_measure simp: mono_def)
-  with lim_F lim_subseq M have "weak_conv_m (\<mu> \<circ> s \<circ> r) (interval_measure F)"
+  with lim_F LIMSEQ_subseq_LIMSEQ M have "weak_conv_m (\<mu> \<circ> s \<circ> r) (interval_measure F)"
     by (auto simp: weak_conv_def weak_conv_m_def f_def comp_def)
   then show "\<exists>r M. subseq r \<and> (real_distribution M \<and> weak_conv_m (\<mu> \<circ> s \<circ> r) M)"
     using F M by auto

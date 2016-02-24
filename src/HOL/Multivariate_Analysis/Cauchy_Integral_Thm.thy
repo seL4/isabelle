@@ -573,7 +573,7 @@ lemma contour_integral_unique: "(f has_contour_integral i)  g \<Longrightarrow> 
   by (auto simp: contour_integral_def has_contour_integral_def integral_def [symmetric])
 
 corollary has_contour_integral_eqpath:
-     "\<lbrakk>(f has_contour_integral y) p; f contour_integrable_on \<gamma>; 
+     "\<lbrakk>(f has_contour_integral y) p; f contour_integrable_on \<gamma>;
        contour_integral p f = contour_integral \<gamma> f\<rbrakk>
       \<Longrightarrow> (f has_contour_integral y) \<gamma>"
 using contour_integrable_on_def contour_integral_unique by auto
@@ -1725,6 +1725,14 @@ lemma triangle_linear_has_chain_integral:
 lemma has_chain_integral_chain_integral3:
      "(f has_contour_integral i) (linepath a b +++ linepath b c +++ linepath c d)
       \<Longrightarrow> contour_integral (linepath a b) f + contour_integral (linepath b c) f + contour_integral (linepath c d) f = i"
+  apply (subst contour_integral_unique [symmetric], assumption)
+  apply (drule has_contour_integral_integrable)
+  apply (simp add: valid_path_join)
+  done
+
+lemma has_chain_integral_chain_integral4:
+     "(f has_contour_integral i) (linepath a b +++ linepath b c +++ linepath c d +++ linepath d e)
+      \<Longrightarrow> contour_integral (linepath a b) f + contour_integral (linepath b c) f + contour_integral (linepath c d) f + contour_integral (linepath d e) f = i"
   apply (subst contour_integral_unique [symmetric], assumption)
   apply (drule has_contour_integral_integrable)
   apply (simp add: valid_path_join)
@@ -6489,7 +6497,7 @@ proof -
        if "z \<in> s" for z
   proof -
     obtain d h N where "0 < d" "summable h" and le_h: "\<And>n y. \<lbrakk>N \<le> n; y \<in> ball z d\<rbrakk> \<Longrightarrow> norm(f n y) \<le> h n"
-      using to_g \<open>z \<in> s\<close> by meson 
+      using to_g \<open>z \<in> s\<close> by meson
     then obtain r where "r>0" and r: "ball z r \<subseteq> ball z d \<inter> s" using \<open>z \<in> s\<close> s
       by (metis Int_iff open_ball centre_in_ball open_Int open_contains_ball_eq)
     have 1: "open (ball z d \<inter> s)"
@@ -6588,7 +6596,7 @@ proposition power_series_and_derivative:
   using power_series_and_derivative_0 [OF assms]
   apply clarify
   apply (rule_tac g="(\<lambda>z. g(z - w))" in that)
-  using DERIV_shift [where z="-w"] 
+  using DERIV_shift [where z="-w"]
   apply (auto simp: norm_minus_commute Ball_def dist_norm)
   done
 
@@ -6917,7 +6925,7 @@ proof -
                          dist ((\<lambda>(x,y). F x y) x') ((\<lambda>(x,y). F x y) x) < \<epsilon>/norm(b - a)"
       apply (rule uniformly_continuous_onE [where e = "\<epsilon>/norm(b - a)"])
       using \<open>0 < \<epsilon>\<close> \<open>a \<noteq> b\<close> by auto
-    have \<eta>: "\<lbrakk>norm (w - x1) \<le> \<delta>;   x2 \<in> closed_segment a b; 
+    have \<eta>: "\<lbrakk>norm (w - x1) \<le> \<delta>;   x2 \<in> closed_segment a b;
               norm (w - x1') \<le> \<delta>;  x2' \<in> closed_segment a b; norm ((x1', x2') - (x1, x2)) < \<eta>\<rbrakk>
               \<Longrightarrow> norm (F x1' x2' - F x1 x2) \<le> \<epsilon> / cmod (b - a)"
              for x1 x2 x1' x2'
@@ -6940,12 +6948,12 @@ proof -
       apply (auto simp: dist_norm contour_integral_diff [OF cont_dw cont_dw, symmetric] \<open>w \<in> u\<close> intro: le_ee)
       done
   qed
-  show ?thesis 
+  show ?thesis
     apply (rule continuous_onI)
     apply (cases "a=b")
     apply (auto intro: *)
     done
-qed  
+qed
 
 text\<open>This version has @{term"polynomial_function \<gamma>"} as an additional assumption.\<close>
 lemma Cauchy_integral_formula_global_weak:
@@ -7189,7 +7197,7 @@ proof -
       by (simp add: V)
     have cond_uu: "continuous_on (u \<times> u) (\<lambda>(x,y). d x y)"
       apply (simp add: continuous_on_eq_continuous_within d_def continuous_within tendsto_f')
-      apply (simp add: Lim_within_open_NO_MATCH open_Times u, clarify)
+      apply (simp add: tendsto_within_open_NO_MATCH open_Times u, clarify)
       apply (rule Lim_transform_within_open [OF _ open_uu_Id, where f = "(\<lambda>(x,y). (f y - f x) / (y - x))"])
       using con_ff
       apply (auto simp: continuous_within)

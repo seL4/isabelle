@@ -549,4 +549,10 @@ lemma DIM_cart[simp]: "DIM('a^'b) = CARD('b) * DIM('a)"
 
 end
 
+lemma cart_eq_inner_axis: "a $ i = inner a (axis i 1)"
+  by (simp add: inner_axis)
+
+lemma axis_in_Basis: "a \<in> Basis \<Longrightarrow> axis i a \<in> Basis"
+  by (auto simp add: Basis_vec_def axis_eq_axis)
+
 end

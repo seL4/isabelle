@@ -413,7 +413,7 @@ proof (rule emeasure_lim)
     have "(\<lambda>i. fm n (y (Suc (diagseq i)))) \<longlonglongrightarrow> finmap_of (Utn ` J n) z"
       by (rule tendsto_finmap)
     hence "((\<lambda>i. fm n (y (Suc (diagseq i)))) o (\<lambda>i. i + n)) \<longlonglongrightarrow> finmap_of (Utn ` J n) z"
-      by (intro lim_subseq) (simp add: subseq_def)
+      by (rule LIMSEQ_subseq_LIMSEQ) (simp add: subseq_def)
     moreover
     have "(\<forall>i. ((\<lambda>i. fm n (y (Suc (diagseq i)))) o (\<lambda>i. i + n)) i \<in> K' n)"
       apply (auto simp add: o_def intro!: fm_in_K' \<open>1 \<le> n\<close> le_SucI)

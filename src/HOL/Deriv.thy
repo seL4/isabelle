@@ -387,8 +387,7 @@ next
     done
 next
   fix y::'a assume h: "y \<noteq> x" "dist y x < norm x"
-  then have "y \<noteq> 0"
-    by (auto simp: norm_conv_dist dist_commute)
+  then have "y \<noteq> 0" by auto
   have "norm (?inv y - ?inv x - ?f (y -x)) / norm (y - x) = norm ((?inv y - ?inv x) * (y - x) * ?inv x) / norm (y - x)"
     apply (subst inverse_diff_inverse [OF \<open>y \<noteq> 0\<close> x])
     apply (subst minus_diff_minus)

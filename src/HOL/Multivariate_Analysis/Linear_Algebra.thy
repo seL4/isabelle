@@ -683,23 +683,6 @@ lemma forall_pos_mono_1:
   apply (metis Suc_pred of_nat_Suc)
   done
 
-lemma real_archimedian_rdiv_eq_0:
-  assumes x0: "x \<ge> 0"
-    and c: "c \<ge> 0"
-    and xc: "\<forall>(m::nat) > 0. real m * x \<le> c"
-  shows "x = 0"
-proof (rule ccontr)
-  assume "x \<noteq> 0"
-  with x0 have xp: "x > 0" by arith
-  from reals_Archimedean3[OF xp, rule_format, of c]
-  obtain n :: nat where n: "c < real n * x"
-    by blast
-  with xc[rule_format, of n] have "n = 0"
-    by arith
-  with n c show False
-    by simp
-qed
-
 
 subsection\<open>A bit of linear algebra.\<close>
 

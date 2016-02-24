@@ -1143,6 +1143,13 @@ lemma reals_Archimedean3:
   shows "\<forall>y. \<exists>n. y < real n * x"
   using \<open>0 < x\<close> by (auto intro: ex_less_of_nat_mult)
 
+lemma real_archimedian_rdiv_eq_0:
+  assumes x0: "x \<ge> 0"
+      and c: "c \<ge> 0"
+      and xc: "\<And>m::nat. m > 0 \<Longrightarrow> real m * x \<le> c"
+    shows "x = 0"
+by (metis reals_Archimedean3 dual_order.order_iff_strict le0 le_less_trans not_le x0 xc)
+
 
 subsection\<open>Rationals\<close>
 

@@ -29,35 +29,9 @@ lemma image_affinity_interval:
   apply fastforce
   done
 
-lemma dist_0_norm:
-  fixes x :: "'a::real_normed_vector"
-  shows "dist 0 x = norm x"
-unfolding dist_norm by simp
-
-lemma dist_double: "dist x y < d / 2 \<Longrightarrow> dist x z < d / 2 \<Longrightarrow> dist y z < d"
-  using dist_triangle[of y z x] by (simp add: dist_commute)
-
-(* LEGACY *)
-lemma lim_subseq: "subseq r \<Longrightarrow> s \<longlonglongrightarrow> l \<Longrightarrow> (s \<circ> r) \<longlonglongrightarrow> l"
-  by (rule LIMSEQ_subseq_LIMSEQ)
-
 lemma countable_PiE:
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (PiE I F)"
   by (induct I arbitrary: F rule: finite_induct) (auto simp: PiE_insert_eq)
-
-lemma Lim_within_open:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
-  shows "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f \<longlongrightarrow> l)(at a within S) \<longleftrightarrow> (f \<longlongrightarrow> l)(at a)"
-  by (fact tendsto_within_open)
-
-lemma Lim_within_open_NO_MATCH:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
-  shows "a \<in> S \<Longrightarrow> NO_MATCH UNIV S \<Longrightarrow> open S \<Longrightarrow> (f \<longlongrightarrow> l)(at a within S) \<longleftrightarrow> (f \<longlongrightarrow> l)(at a)"
-using tendsto_within_open by blast
-
-lemma continuous_on_union:
-  "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t f \<Longrightarrow> continuous_on (s \<union> t) f"
-  by (fact continuous_on_closed_Un)
 
 lemma continuous_on_cases:
   "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t g \<Longrightarrow>
@@ -4405,7 +4379,7 @@ proof -
       fix y
       assume "y \<in> ball k r"
       with \<open>r < e / 2\<close> \<open>x \<in> ball k r\<close> have "dist x y < e"
-        by (intro dist_double[where x = k and d=e]) (auto simp: dist_commute)
+        by (intro dist_triangle_half_r [of k _ e]) (auto simp: dist_commute)
       with \<open>ball x e \<subseteq> T\<close> show "y \<in> T"
         by auto
     next
@@ -5374,10 +5348,14 @@ lemma uniformly_continuous_on_def:
 
 text\<open>Some simple consequential lemmas.\<close>
 
-lemma continuous_onD:
+lemma continuous_onE:
     assumes "continuous_on s f" "x\<in>s" "e>0"
-    obtains d where "d>0"  "\<And>x'. \<lbrakk>x' \<in> s; dist x' x < d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
-  using assms [unfolded continuous_on_iff] by blast
+    obtains d where "d>0"  "\<And>x'. \<lbrakk>x' \<in> s; dist x' x \<le> d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
+  using assms
+  apply (simp add: continuous_on_iff)
+  apply (elim ballE allE)
+  apply (auto intro: that [where d="d/2" for d])
+  done
 
 lemma uniformly_continuous_onE:
   assumes "uniformly_continuous_on s f" "0 < e"
@@ -6291,9 +6269,9 @@ proof (cases, safe)
       by blast
     moreover assume "dist x x' < Min (snd`D) / 2"
     ultimately have "dist y x' < d"
-      by (intro dist_double[where x=x and d=d]) (auto simp: dist_commute)
+      by (intro dist_triangle_half_r[of x _ d]) (auto simp: dist_commute)
     with D x in_s show  "dist (f x) (f x') < e"
-      by (intro dist_double[where x="f y" and d=e]) (auto simp: dist_commute subset_eq)
+      by (intro dist_triangle_half_r[of "f y" _ e]) (auto simp: dist_commute subset_eq)
   qed (insert D, auto)
 qed auto
 

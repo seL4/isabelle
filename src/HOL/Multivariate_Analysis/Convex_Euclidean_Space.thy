@@ -107,13 +107,14 @@ proof -
     fix x :: "'n::euclidean_space"
     def y \<equiv> "(e / norm x) *\<^sub>R x"
     then have "y \<in> cball 0 e"
-      using cball_def dist_norm[of 0 y] assms by auto
+      using assms by auto
     moreover have *: "x = (norm x / e) *\<^sub>R y"
       using y_def assms by simp
     moreover from * have "x = (norm x/e) *\<^sub>R y"
       by auto
     ultimately have "x \<in> span (cball 0 e)"
-      using span_mul[of y "cball 0 e" "norm x/e"] span_inc[of "cball 0 e"] by auto
+      using span_mul[of y "cball 0 e" "norm x/e"] span_inc[of "cball 0 e"]
+      by (simp add: span_superset)
   }
   then have "span (cball 0 e) = (UNIV :: 'n::euclidean_space set)"
     by auto
@@ -5183,9 +5184,7 @@ proof -
     done
   ultimately obtain u y where obt: "u\<ge>0" "u \<le> b / norm x" "y = u *\<^sub>R x"
     "y \<in> ?A" "y \<in> s" "\<forall>z\<in>?A \<inter> s. dist 0 z \<le> dist 0 y"
-    using distance_attains_sup[OF compact_inter[OF _ assms(1), of ?A], of 0]
-    by auto
-
+    using distance_attains_sup[OF compact_inter[OF _ assms(1), of ?A], of 0] by blast
   have "norm x > 0"
     using assms(3)[unfolded zero_less_norm_iff[symmetric]] by auto
   {
