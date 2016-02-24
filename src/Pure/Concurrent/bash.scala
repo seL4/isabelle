@@ -23,10 +23,13 @@ object Bash
     def error(s: String, err_rc: Int = 0): Result =
       copy(err_lines = err_lines ::: List(s), rc = rc max err_rc)
 
+    def ok: Boolean = rc == 0
+    def interrupted: Boolean = rc == Exn.Interrupt.return_code
+
     def check: Result =
-      if (rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
-      else if (rc != 0) Library.error(err)
-      else this
+      if (ok) this
+      else if (interrupted) throw Exn.Interrupt()
+      else Library.error(err)
 
     def print: Result =
     {

@@ -632,7 +632,7 @@ object Build
     {
       val res = result.join
 
-      if (res.rc == 0 && !is_pure(name))
+      if (res.ok && !is_pure(name))
         Present.finish(progress, browser_info, graph_file, info, name)
 
       graph_file.delete
@@ -858,7 +858,7 @@ object Build
             progress.echo(res.err)
 
             val heap =
-              if (res.rc == 0) {
+              if (res.ok) {
                 (output_dir + log(name)).file.delete
 
                 val sources = make_stamp(name)
