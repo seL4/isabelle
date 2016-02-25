@@ -880,9 +880,10 @@ object Build
             val process_result_tail =
             {
               val lines = process_result.out_lines.filterNot(_.startsWith("\f"))
-              val tail = lines.drop(lines.length - 20 max 0)
+              val tail = job.info.options.int("process_output_tail")
+              val lines1 = if (tail == 0) lines else lines.drop(lines.length - tail max 0)
               process_result.copy(out_lines =
-                "(see also " + (output_dir + log(name)).file.toString + ")" :: tail)
+                "(see also " + (output_dir + log(name)).file.toString + ")" :: lines1)
             }
 
             val heap =

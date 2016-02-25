@@ -96,7 +96,10 @@ option timeout_scale : real = 1.0
   -- "scale factor for session timeout"
 
 option process_output_limit : int = 100
-  -- "build process output limit in million characters (0 = unlimited)"
+  -- "build process output limit (in million characters, 0 = unlimited)"
+
+option process_output_tail : int = 40
+  -- "build process output tail shown to user (in lines, 0 = unlimited)"
 
 
 section "ML System"
