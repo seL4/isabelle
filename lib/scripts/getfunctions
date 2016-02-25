@@ -28,25 +28,6 @@ if [ -x /usr/bin/gnutar ]; then
   export -f tar
 fi
 
-#main executables
-function isabelle ()
-{
-  "$ISABELLE_TOOL" "$@"
-}
-export -f isabelle
-
-function isabelle_process ()
-{
-  "$ISABELLE_PROCESS" "$@"
-}
-export -f isabelle_process
-
-function isabelle_scala_script ()
-{
-  "$ISABELLE_SCALA_SCRIPT" "$@"
-}
-export -f isabelle_scala_script
-
 #shared library convenience
 function librarypath ()
 {
