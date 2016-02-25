@@ -12,6 +12,10 @@ text \<open>
 
 text\<open>The combinatorial argument is in theory Exponent\<close>
 
+lemma le_extend_mult: 
+  fixes c::nat shows "\<lbrakk>0 < c; a \<le> b\<rbrakk> \<Longrightarrow> a \<le> b * c"
+by (metis divisors_zero dvd_triv_left leI less_le_trans nat_dvd_not_less zero_less_iff_neq_zero)
+
 locale sylow = group +
   fixes p and a and m and calM and RelM
   assumes prime_p:   "prime p"
@@ -20,13 +24,14 @@ locale sylow = group +
   defines "calM == {s. s \<subseteq> carrier(G) & card(s) = p^a}"
       and "RelM == {(N1,N2). N1 \<in> calM & N2 \<in> calM &
                              (\<exists>g \<in> carrier(G). N1 = (N2 #> g) )}"
+begin
 
-lemma (in sylow) RelM_refl_on: "refl_on calM RelM"
+lemma RelM_refl_on: "refl_on calM RelM"
 apply (auto simp add: refl_on_def RelM_def calM_def)
 apply (blast intro!: coset_mult_one [symmetric])
 done
 
-lemma (in sylow) RelM_sym: "sym RelM"
+lemma RelM_sym: "sym RelM"
 proof (unfold sym_def RelM_def, clarify)
   fix y g
   assume   "y \<in> calM"
@@ -35,19 +40,20 @@ proof (unfold sym_def RelM_def, clarify)
   thus "\<exists>g'\<in>carrier G. y = y #> g #> g'" by (blast intro: g)
 qed
 
-lemma (in sylow) RelM_trans: "trans RelM"
+lemma RelM_trans: "trans RelM"
 by (auto simp add: trans_def RelM_def calM_def coset_mult_assoc)
 
-lemma (in sylow) RelM_equiv: "equiv calM RelM"
+lemma RelM_equiv: "equiv calM RelM"
 apply (unfold equiv_def)
 apply (blast intro: RelM_refl_on RelM_sym RelM_trans)
 done
 
-lemma (in sylow) M_subset_calM_prep: "M' \<in> calM // RelM  ==> M' \<subseteq> calM"
+lemma M_subset_calM_prep: "M' \<in> calM // RelM  ==> M' \<subseteq> calM"
 apply (unfold RelM_def)
 apply (blast elim!: quotientE)
 done
 
+end
 
 subsection\<open>Main Part of the Proof\<close>
 
@@ -58,102 +64,87 @@ locale sylow_central = sylow +
       and M1_in_M:    "M1 \<in> M"
   defines "H == {g. g\<in>carrier G & M1 #> g = M1}"
 
-lemma (in sylow_central) M_subset_calM: "M \<subseteq> calM"
-by (rule M_in_quot [THEN M_subset_calM_prep])
+begin
 
-lemma (in sylow_central) card_M1: "card(M1) = p^a"
-apply (cut_tac M_subset_calM M1_in_M)
-apply (simp add: calM_def, blast)
-done
+lemma M_subset_calM: "M \<subseteq> calM"
+  by (rule M_in_quot [THEN M_subset_calM_prep])
 
-lemma card_nonempty: "0 < card(S) ==> S \<noteq> {}"
-by force
+lemma card_M1: "card(M1) = p^a"
+  using M1_in_M M_subset_calM calM_def by blast
+ 
+lemma exists_x_in_M1: "\<exists>x. x \<in> M1"
+using prime_p [THEN prime_gt_Suc_0_nat] card_M1
+by (metis Suc_lessD card_eq_0_iff empty_subsetI equalityI gr_implies_not0 nat_zero_less_power_iff subsetI)
 
-lemma (in sylow_central) exists_x_in_M1: "\<exists>x. x\<in>M1"
-apply (subgoal_tac "0 < card M1")
- apply (blast dest: card_nonempty)
-apply (cut_tac prime_p [THEN prime_gt_Suc_0_nat])
-apply (simp (no_asm_simp) add: card_M1)
-done
+lemma M1_subset_G [simp]: "M1 \<subseteq> carrier G"
+  using M1_in_M  M_subset_calM calM_def mem_Collect_eq subsetCE by blast
 
-lemma (in sylow_central) M1_subset_G [simp]: "M1 \<subseteq> carrier G"
-apply (rule subsetD [THEN PowD])
-apply (rule_tac [2] M1_in_M)
-apply (rule M_subset_calM [THEN subset_trans])
-apply (auto simp add: calM_def)
-done
-
-lemma (in sylow_central) M1_inj_H: "\<exists>f \<in> H\<rightarrow>M1. inj_on f H"
-  proof -
-    from exists_x_in_M1 obtain m1 where m1M: "m1 \<in> M1"..
-    have m1G: "m1 \<in> carrier G" by (simp add: m1M M1_subset_G [THEN subsetD])
-    show ?thesis
-    proof
-      show "inj_on (\<lambda>z\<in>H. m1 \<otimes> z) H"
-        by (simp add: inj_on_def l_cancel [of m1 x y, THEN iffD1] H_def m1G)
-      show "restrict (op \<otimes> m1) H \<in> H \<rightarrow> M1"
-      proof (rule restrictI)
-        fix z assume zH: "z \<in> H"
-        show "m1 \<otimes> z \<in> M1"
-        proof -
-          from zH
-          have zG: "z \<in> carrier G" and M1zeq: "M1 #> z = M1"
-            by (auto simp add: H_def)
-          show ?thesis
-            by (rule subst [OF M1zeq], simp add: m1M zG rcosI)
-        qed
+lemma M1_inj_H: "\<exists>f \<in> H\<rightarrow>M1. inj_on f H"
+proof -
+  from exists_x_in_M1 obtain m1 where m1M: "m1 \<in> M1"..
+  have m1G: "m1 \<in> carrier G" by (simp add: m1M M1_subset_G [THEN subsetD])
+  show ?thesis
+  proof
+    show "inj_on (\<lambda>z\<in>H. m1 \<otimes> z) H"
+      by (simp add: inj_on_def l_cancel [of m1 x y, THEN iffD1] H_def m1G)
+    show "restrict (op \<otimes> m1) H \<in> H \<rightarrow> M1"
+    proof (rule restrictI)
+      fix z assume zH: "z \<in> H"
+      show "m1 \<otimes> z \<in> M1"
+      proof -
+        from zH
+        have zG: "z \<in> carrier G" and M1zeq: "M1 #> z = M1"
+          by (auto simp add: H_def)
+        show ?thesis
+          by (rule subst [OF M1zeq], simp add: m1M zG rcosI)
       qed
     qed
   qed
+qed
 
+end
 
 subsection\<open>Discharging the Assumptions of @{text sylow_central}\<close>
 
-lemma (in sylow) EmptyNotInEquivSet: "{} \<notin> calM // RelM"
+context sylow
+begin
+
+lemma EmptyNotInEquivSet: "{} \<notin> calM // RelM"
 by (blast elim!: quotientE dest: RelM_equiv [THEN equiv_class_self])
 
-lemma (in sylow) existsM1inM: "M \<in> calM // RelM ==> \<exists>M1. M1 \<in> M"
-apply (subgoal_tac "M \<noteq> {}")
- apply blast
-apply (cut_tac EmptyNotInEquivSet, blast)
-done
+lemma existsM1inM: "M \<in> calM // RelM ==> \<exists>M1. M1 \<in> M"
+  using RelM_equiv equiv_Eps_in by blast
 
-lemma (in sylow) zero_less_o_G: "0 < order(G)"
-apply (unfold order_def)
-apply (blast intro: zero_less_card_empty)
-done
+lemma zero_less_o_G: "0 < order(G)"
+  by (simp add: order_def card_gt_0_iff carrier_not_empty)
 
-lemma (in sylow) zero_less_m: "m > 0"
-apply (cut_tac zero_less_o_G)
-apply (simp add: order_G)
-done
+lemma zero_less_m: "m > 0"
+  using zero_less_o_G by (simp add: order_G)
 
-lemma (in sylow) card_calM: "card(calM) = (p^a) * m choose p^a"
+lemma card_calM: "card(calM) = (p^a) * m choose p^a"
 by (simp add: calM_def n_subsets order_G [symmetric] order_def)
 
-lemma (in sylow) zero_less_card_calM: "card calM > 0"
+lemma zero_less_card_calM: "card calM > 0"
 by (simp add: card_calM zero_less_binomial le_extend_mult zero_less_m)
 
-lemma (in sylow) max_p_div_calM:
+lemma max_p_div_calM:
      "~ (p ^ Suc(exponent p m) dvd card(calM))"
-apply (subgoal_tac "exponent p m = exponent p (card calM) ")
- apply (cut_tac zero_less_card_calM prime_p)
- apply (force dest: power_Suc_exponent_Not_dvd)
-apply (simp add: card_calM zero_less_m [THEN const_p_fac])
-done
+proof -
+  have "exponent p m = exponent p (card calM)"
+    by (simp add: card_calM const_p_fac zero_less_m)
+  then show ?thesis
+    by (metis Suc_n_not_le_n exponent_ge prime_p zero_less_card_calM)
+qed
 
-lemma (in sylow) finite_calM: "finite calM"
-apply (unfold calM_def)
-apply (rule_tac B = "Pow (carrier G) " in finite_subset)
-apply auto
-done
+lemma finite_calM: "finite calM"
+  unfolding calM_def
+  by (rule_tac B = "Pow (carrier G) " in finite_subset) auto
 
-lemma (in sylow) lemma_A1:
+lemma lemma_A1:
      "\<exists>M \<in> calM // RelM. ~ (p ^ Suc(exponent p m) dvd card(M))"
-apply (rule max_p_div_calM [THEN contrapos_np])
-apply (simp add: finite_calM equiv_imp_dvd_card [OF _ RelM_equiv])
-done
+  using RelM_equiv equiv_imp_dvd_card finite_calM max_p_div_calM by blast
 
+end
 
 subsubsection\<open>Introduction and Destruct Rules for @{term H}\<close>
 
@@ -196,11 +187,7 @@ lemma (in sylow_central) finite_M1: "finite M1"
 by (rule finite_subset [OF M1_subset_G finite_G])
 
 lemma (in sylow_central) finite_rcosetGM1g: "g\<in>carrier G ==> finite (M1 #> g)"
-apply (rule finite_subset)
-apply (rule subsetI)
-apply (erule rcosetGM1g_subset_G, assumption)
-apply (rule finite_G)
-done
+  using rcosetGM1g_subset_G finite_G M1_subset_G cosets_finite rcosetsI by blast
 
 lemma (in sylow_central) M1_cardeq_rcosetGM1g:
      "g \<in> carrier G ==> card(M1 #> g) = card(M1)"
@@ -242,7 +229,7 @@ lemma (in sylow_central) M_funcset_rcosets_H:
      "(%x:M. H #> (SOME g. g \<in> carrier G & M1 #> g = x)) \<in> M \<rightarrow> rcosets H"
   by (metis (lifting) H_is_subgroup M_elem_map_carrier rcosetsI restrictI subgroup_imp_subset)
 
-lemma (in sylow_central) inj_M_GmodH: "\<exists>f \<in> M\<rightarrow>rcosets H. inj_on f M"
+lemma (in sylow_central) inj_M_GmodH: "\<exists>f \<in> M \<rightarrow> rcosets H. inj_on f M"
 apply (rule bexI)
 apply (rule_tac [2] M_funcset_rcosets_H)
 apply (rule inj_onI, simp)
