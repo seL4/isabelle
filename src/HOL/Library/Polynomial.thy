@@ -258,6 +258,11 @@ proof -
 qed
 
 
+subsection \<open>Quickcheck generator for polynomials\<close>
+
+quickcheck_generator poly constructors: "0 :: _ poly", pCons
+
+
 subsection \<open>List-style syntax for polynomials\<close>
 
 syntax

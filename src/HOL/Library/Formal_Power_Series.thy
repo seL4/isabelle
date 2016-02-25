@@ -1361,7 +1361,7 @@ instantiation fps :: (field) euclidean_ring
 begin
 
 definition fps_euclidean_size_def:
-  "euclidean_size f = (if f = 0 then 0 else Suc (subdegree f))"
+  "euclidean_size f = (if f = 0 then 0 else 2 ^ subdegree f)"
 
 instance proof
   fix f g :: "'a fps" assume [simp]: "g \<noteq> 0"
@@ -1372,7 +1372,7 @@ instance proof
     apply (rule disjE[OF le_less_linear[of "subdegree g" "subdegree f"]])
     apply (simp_all add: fps_mod_eq_zero fps_euclidean_size_def subdegree_mod)
     done
-qed
+qed (simp_all add: fps_euclidean_size_def)
 
 end
 
@@ -1382,7 +1382,7 @@ definition fps_gcd_def: "(gcd :: 'a fps \<Rightarrow> _) = gcd_eucl"
 definition fps_lcm_def: "(lcm :: 'a fps \<Rightarrow> _) = lcm_eucl"
 definition fps_Gcd_def: "(Gcd :: 'a fps set \<Rightarrow> _) = Gcd_eucl"
 definition fps_Lcm_def: "(Lcm :: 'a fps set \<Rightarrow> _) = Lcm_eucl"
-instance by intro_classes (simp_all add: fps_gcd_def fps_lcm_def fps_Gcd_def fps_Lcm_def)
+instance by standard (simp_all add: fps_gcd_def fps_lcm_def fps_Gcd_def fps_Lcm_def)
 end
 
 lemma fps_gcd:
@@ -1473,11 +1473,12 @@ proof (cases "bdd_above (subdegree`A)")
     from unbounded obtain f where f: "f \<in> A" "subdegree (Lcm A) < subdegree f"
       unfolding bdd_above_def by (auto simp: not_le)
     moreover from this and \<open>Lcm A \<noteq> 0\<close> have "subdegree f \<le> subdegree (Lcm A)"
-      by (intro dvd_imp_subdegree_le) simp_all
+      by (intro dvd_imp_subdegree_le dvd_Lcm) simp_all
     ultimately show False by simp
   qed
   with unbounded show ?thesis by simp
-qed (simp_all add: fps_Lcm)
+qed (simp_all add: fps_Lcm Lcm_eq_0_I)
+
 
 
 subsection \<open>Formal Derivatives, and the MacLaurin theorem around 0\<close>
@@ -4254,6 +4255,7 @@ lemma fps_demoivre:
 
 subsection \<open>Hypergeometric series\<close>
 
+(* TODO: Rename this *)
 definition "F as bs (c::'a::{field_char_0,field}) =
   Abs_fps (\<lambda>n. (foldl (\<lambda>r a. r* pochhammer a n) 1 as * c^n) /
     (foldl (\<lambda>r b. r * pochhammer b n) 1 bs * of_nat (fact n)))"
