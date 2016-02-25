@@ -15,17 +15,17 @@ then
   :
 else
 
-set -o allexport
-
 if [ "$OSTYPE" = cygwin ]; then
   function platform_path() { cygpath -i -C UTF8 -w -p "$@"; }
 else
   function platform_path() { echo "$@"; }
 fi
+export -f platform_path
 
 #GNU tar (notably on Mac OS X)
 if [ -x /usr/bin/gnutar ]; then
   function tar() { /usr/bin/gnutar "$@"; }
+  export -f tar
 fi
 
 #main executables
@@ -33,14 +33,19 @@ function isabelle ()
 {
   "$ISABELLE_TOOL" "$@"
 }
+export -f isabelle
+
 function isabelle_process ()
 {
   "$ISABELLE_PROCESS" "$@"
 }
+export -f isabelle_process
+
 function isabelle_scala_script ()
 {
   "$ISABELLE_SCALA_SCRIPT" "$@"
 }
+export -f isabelle_scala_script
 
 #shared library convenience
 function librarypath ()
@@ -67,6 +72,7 @@ function librarypath ()
     esac
   done
 }
+export -f librarypath
 
 #robust invocation via ISABELLE_JDK_HOME
 function isabelle_jdk ()
@@ -79,6 +85,7 @@ function isabelle_jdk ()
     "$ISABELLE_JDK_HOME/bin/$PRG" "$@"
   fi
 }
+export -f isabelle_jdk
 
 #robust invocation via JAVA_HOME
 function isabelle_java ()
@@ -91,6 +98,7 @@ function isabelle_java ()
     "$JAVA_HOME/bin/$PRG" "$@"
   fi
 }
+export -f isabelle_java
 
 #robust invocation via SCALA_HOME
 function isabelle_scala ()
@@ -106,6 +114,7 @@ function isabelle_scala ()
     "$SCALA_HOME/bin/$PRG" "$@"
   fi
 }
+export -f isabelle_scala
 
 #classpath
 function classpath ()
@@ -120,6 +129,7 @@ function classpath ()
   done
   export ISABELLE_CLASSPATH
 }
+export -f classpath
 
 #administrative build
 if [ -e "$ISABELLE_HOME/Admin/build" ]; then
@@ -130,6 +140,7 @@ if [ -e "$ISABELLE_HOME/Admin/build" ]; then
 else
   function isabelle_admin_build () { return 0; }
 fi
+export -f isabelle_admin_build
 
 #arrays
 function splitarray ()
@@ -141,6 +152,7 @@ function splitarray ()
     SPLITARRAY["${#SPLITARRAY[@]}"]="$X"
   done
 }
+export -f splitarray
 
 #init component tree
 function init_component ()
@@ -181,6 +193,7 @@ function init_component ()
     init_components "$COMPONENT" "$COMPONENT/etc/components"
   fi
 }
+export -f init_component
 
 #init component forest
 function init_components ()
@@ -211,7 +224,6 @@ function init_components ()
     init_component "$COMPONENT"
   done
 }
-
-set +o allexport
+export -f init_components
 
 fi
