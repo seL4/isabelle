@@ -1,0 +1,217 @@
+# -*- shell-script -*- :mode=shellscript:
+#
+# Author: Makarius
+#
+# Isabelle shell functions, with on-demand re-initialization for
+# non-interactive bash processess. NB: bash shell functions are not portable
+# and may be dropped by aggressively POSIX-conformant versions of /bin/sh.
+
+if [ -z "$ISABELLE_SETTINGS_PRESENT" ]
+then
+  echo 1>&2 "Missing Isabelle settings environment"
+  exit 2
+elif type splitarray >/dev/null 2>/dev/null
+then
+  :
+else
+
+set -o allexport
+
+if [ "$OSTYPE" = cygwin ]; then
+  function platform_path() { cygpath -i -C UTF8 -w -p "$@"; }
+else
+  function platform_path() { echo "$@"; }
+fi
+
+#GNU tar (notably on Mac OS X)
+if [ -x /usr/bin/gnutar ]; then
+  function tar() { /usr/bin/gnutar "$@"; }
+fi
+
+#main executables
+function isabelle ()
+{
+  "$ISABELLE_TOOL" "$@"
+}
+function isabelle_process ()
+{
+  "$ISABELLE_PROCESS" "$@"
+}
+function isabelle_scala_script ()
+{
+  "$ISABELLE_SCALA_SCRIPT" "$@"
+}
+
+#shared library convenience
+function librarypath ()
+{
+  for X in "$@"
+  do
+    case "$ISABELLE_PLATFORM" in
+      *-darwin)
+        if [ -z "$DYLD_LIBRARY_PATH" ]; then
+          DYLD_LIBRARY_PATH="$X"
+        else
+          DYLD_LIBRARY_PATH="$X:$DYLD_LIBRARY_PATH"
+        fi
+        export DYLD_LIBRARY_PATH
+        ;;
+      *)
+        if [ -z "$LD_LIBRARY_PATH" ]; then
+          LD_LIBRARY_PATH="$X"
+        else
+          LD_LIBRARY_PATH="$X:$LD_LIBRARY_PATH"
+        fi
+        export LD_LIBRARY_PATH
+        ;;
+    esac
+  done
+}
+
+#robust invocation via ISABELLE_JDK_HOME
+function isabelle_jdk ()
+{
+  if [ -z "$ISABELLE_JDK_HOME" ]; then
+    echo "Unknown ISABELLE_JDK_HOME -- Java development tools unavailable" >&2
+    return 127
+  else
+    local PRG="$1"; shift
+    "$ISABELLE_JDK_HOME/bin/$PRG" "$@"
+  fi
+}
+
+#robust invocation via JAVA_HOME
+function isabelle_java ()
+{
+  if [ -z "$JAVA_HOME" ]; then
+    echo "Unknown JAVA_HOME -- Java unavailable" >&2
+    return 127
+  else
+    local PRG="$1"; shift
+    "$JAVA_HOME/bin/$PRG" "$@"
+  fi
+}
+
+#robust invocation via SCALA_HOME
+function isabelle_scala ()
+{
+  if [ -z "$JAVA_HOME" ]; then
+    echo "Unknown JAVA_HOME -- Java unavailable" >&2
+    return 127
+  elif [ -z "$SCALA_HOME" ]; then
+    echo "Unknown SCALA_HOME -- Scala unavailable" >&2
+    return 127
+  else
+    local PRG="$1"; shift
+    "$SCALA_HOME/bin/$PRG" "$@"
+  fi
+}
+
+#classpath
+function classpath ()
+{
+  for X in "$@"
+  do
+    if [ -z "$ISABELLE_CLASSPATH" ]; then
+      ISABELLE_CLASSPATH="$X"
+    else
+      ISABELLE_CLASSPATH="$ISABELLE_CLASSPATH:$X"
+    fi
+  done
+  export ISABELLE_CLASSPATH
+}
+
+#administrative build
+if [ -e "$ISABELLE_HOME/Admin/build" ]; then
+  function isabelle_admin_build ()
+  {
+    "$ISABELLE_HOME/Admin/build" "$@"
+  }
+else
+  function isabelle_admin_build () { return 0; }
+fi
+
+#arrays
+function splitarray ()
+{
+  SPLITARRAY=()
+  local IFS="$1"; shift
+  for X in $*
+  do
+    SPLITARRAY["${#SPLITARRAY[@]}"]="$X"
+  done
+}
+
+#init component tree
+function init_component ()
+{
+  local COMPONENT="$1"
+  case "$COMPONENT" in
+    /*) ;;
+    *)
+      echo >&2 "Absolute component path required: \"$COMPONENT\""
+      exit 2
+      ;;
+  esac
+
+  if [ -d "$COMPONENT" ]; then
+    if [ -z "$ISABELLE_COMPONENTS" ]; then
+      ISABELLE_COMPONENTS="$COMPONENT"
+    else
+      ISABELLE_COMPONENTS="$ISABELLE_COMPONENTS:$COMPONENT"
+    fi
+  else
+    echo >&2 "### Missing Isabelle component: \"$COMPONENT\""
+    if [ -z "$ISABELLE_COMPONENTS_MISSING" ]; then
+      ISABELLE_COMPONENTS_MISSING="$COMPONENT"
+    else
+      ISABELLE_COMPONENTS_MISSING="$ISABELLE_COMPONENTS_MISSING:$COMPONENT"
+    fi
+  fi
+
+  if [ -f "$COMPONENT/etc/settings" ]; then
+    source "$COMPONENT/etc/settings"
+    local RC="$?"
+    if [ "$RC" -ne 0 ]; then
+      echo >&2 "Return code $RC from bash script: \"$COMPONENT/etc/settings\""
+      exit 2
+    fi
+  fi
+  if [ -f "$COMPONENT/etc/components" ]; then
+    init_components "$COMPONENT" "$COMPONENT/etc/components"
+  fi
+}
+
+#init component forest
+function init_components ()
+{
+  local BASE="$1"
+  local CATALOG="$2"
+  local COMPONENT=""
+  local -a COMPONENTS=()
+
+  if [ ! -f "$CATALOG" ]; then
+    echo >&2 "Bad component catalog file: \"$CATALOG\""
+    exit 2
+  fi
+
+  {
+    while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
+    do
+      case "$REPLY" in
+        \#* | "") ;;
+        /*) COMPONENTS["${#COMPONENTS[@]}"]="$REPLY" ;;
+        *) COMPONENTS["${#COMPONENTS[@]}"]="$BASE/$REPLY" ;;
+      esac
+    done
+  } < "$CATALOG"
+
+  for COMPONENT in "${COMPONENTS[@]}"
+  do
+    init_component "$COMPONENT"
+  done
+}
+
+set +o allexport
+
+fi

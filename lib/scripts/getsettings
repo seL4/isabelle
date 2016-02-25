@@ -1,8 +1,8 @@
 # -*- shell-script -*- :mode=shellscript:
 #
-# Author: Markus Wenzel, TU Muenchen
+# Author: Makarius
 #
-# getsettings - bash source script to augment current env.
+# Static Isabelle environment for root of process tree.
 
 if [ -z "$ISABELLE_SETTINGS_PRESENT" ]
 then
@@ -11,10 +11,9 @@ set -o allexport
 
 ISABELLE_SETTINGS_PRESENT=true
 
-#GNU tar (notably on Mac OS X)
-if [ -x /usr/bin/gnutar ]; then
-  function tar() { /usr/bin/gnutar "$@"; }
-fi
+BASH_ENV="$ISABELLE_HOME/lib/scripts/getfunctions"
+source "$BASH_ENV"
+set -o allexport
 
 #sane environment defaults (notably on Mac OS X)
 if [ "$ISABELLE_APP" = true -a -x /usr/libexec/path_helper ]; then
@@ -36,7 +35,6 @@ then
     USER_HOME="$(cygpath -u "$USERPROFILE")"
   fi
 
-  function platform_path() { cygpath -i -C UTF8 -w -p "$@"; }
   CYGWIN_ROOT="$(platform_path "/")"
   ISABELLE_ROOT="$(platform_path "$ISABELLE_HOME")"
 
@@ -49,33 +47,16 @@ else
 
   ISABELLE_ROOT="$ISABELLE_HOME"
 
-  function platform_path() { echo "$@"; }
-
   ISABELLE_CLASSPATH="$CLASSPATH"
   unset CLASSPATH
 fi
 
 export ISABELLE_HOME
 
-#key executables
+#main executables
 ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
 ISABELLE_PROCESS="$ISABELLE_HOME/bin/isabelle_process"
 ISABELLE_SCALA_SCRIPT="$ISABELLE_HOME/bin/isabelle_scala_script"
-
-function isabelle ()
-{
-  "$ISABELLE_TOOL" "$@"
-}
-
-function isabelle_process ()
-{
-  "$ISABELLE_PROCESS" "$@"
-}
-
-function isabelle_scala_script ()
-{
-  "$ISABELLE_SCALA_SCRIPT" "$@"
-}
 
 #platform
 source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
@@ -88,185 +69,11 @@ fi
 ISABELLE_ID=""
 [ -z "$ISABELLE_IDENTIFIER" ] && ISABELLE_IDENTIFIER=""
 
-#sometimes users put strange things in here ...
-unset ENV
-unset BASH_ENV
-
-#shared library convenience
-function librarypath ()
-{
-  for X in "$@"
-  do
-    case "$ISABELLE_PLATFORM" in
-      *-darwin)
-        if [ -z "$DYLD_LIBRARY_PATH" ]; then
-          DYLD_LIBRARY_PATH="$X"
-        else
-          DYLD_LIBRARY_PATH="$X:$DYLD_LIBRARY_PATH"
-        fi
-        export DYLD_LIBRARY_PATH
-        ;;
-      *)
-        if [ -z "$LD_LIBRARY_PATH" ]; then
-          LD_LIBRARY_PATH="$X"
-        else
-          LD_LIBRARY_PATH="$X:$LD_LIBRARY_PATH"
-        fi
-        export LD_LIBRARY_PATH
-        ;;
-    esac
-  done
-}
-
-#robust invocation via ISABELLE_JDK_HOME
-function isabelle_jdk ()
-{
-  if [ -z "$ISABELLE_JDK_HOME" ]; then
-    echo "Unknown ISABELLE_JDK_HOME -- Java development tools unavailable" >&2
-    return 127
-  else
-    local PRG="$1"; shift
-    "$ISABELLE_JDK_HOME/bin/$PRG" "$@"
-  fi
-}
-
-#robust invocation via JAVA_HOME
-function isabelle_java ()
-{
-  if [ -z "$JAVA_HOME" ]; then
-    echo "Unknown JAVA_HOME -- Java unavailable" >&2
-    return 127
-  else
-    local PRG="$1"; shift
-    "$JAVA_HOME/bin/$PRG" "$@"
-  fi
-}
-
-#robust invocation via SCALA_HOME
-function isabelle_scala ()
-{
-  if [ -z "$JAVA_HOME" ]; then
-    echo "Unknown JAVA_HOME -- Java unavailable" >&2
-    return 127
-  elif [ -z "$SCALA_HOME" ]; then
-    echo "Unknown SCALA_HOME -- Scala unavailable" >&2
-    return 127
-  else
-    local PRG="$1"; shift
-    "$SCALA_HOME/bin/$PRG" "$@"
-  fi
-}
-
-#administrative build
-if [ -e "$ISABELLE_HOME/Admin/build" ]; then
-  function isabelle_admin_build ()
-  {
-    "$ISABELLE_HOME/Admin/build" "$@"
-  }
-else
-  function isabelle_admin_build () { return 0; }
-fi
-
-#classpath
-function classpath ()
-{
-  for X in "$@"
-  do
-    if [ -z "$ISABELLE_CLASSPATH" ]; then
-      ISABELLE_CLASSPATH="$X"
-    else
-      ISABELLE_CLASSPATH="$ISABELLE_CLASSPATH:$X"
-    fi
-  done
-  export ISABELLE_CLASSPATH
-}
-
-#arrays
-function splitarray ()
-{
-  SPLITARRAY=()
-  local IFS="$1"; shift
-  for X in $*
-  do
-    SPLITARRAY["${#SPLITARRAY[@]}"]="$X"
-  done
-}
-
 
 # components
 
 ISABELLE_COMPONENTS=""
 ISABELLE_COMPONENTS_MISSING=""
-
-#init component tree
-function init_component ()
-{
-  local COMPONENT="$1"
-  case "$COMPONENT" in
-    /*) ;;
-    *)
-      echo >&2 "Absolute component path required: \"$COMPONENT\""
-      exit 2
-      ;;
-  esac
-
-  if [ -d "$COMPONENT" ]; then
-    if [ -z "$ISABELLE_COMPONENTS" ]; then
-      ISABELLE_COMPONENTS="$COMPONENT"
-    else
-      ISABELLE_COMPONENTS="$ISABELLE_COMPONENTS:$COMPONENT"
-    fi
-  else
-    echo >&2 "### Missing Isabelle component: \"$COMPONENT\""
-    if [ -z "$ISABELLE_COMPONENTS_MISSING" ]; then
-      ISABELLE_COMPONENTS_MISSING="$COMPONENT"
-    else
-      ISABELLE_COMPONENTS_MISSING="$ISABELLE_COMPONENTS_MISSING:$COMPONENT"
-    fi
-  fi
-
-  if [ -f "$COMPONENT/etc/settings" ]; then
-    source "$COMPONENT/etc/settings"
-    local RC="$?"
-    if [ "$RC" -ne 0 ]; then
-      echo >&2 "Return code $RC from bash script: \"$COMPONENT/etc/settings\""
-      exit 2
-    fi
-  fi
-  if [ -f "$COMPONENT/etc/components" ]; then
-    init_components "$COMPONENT" "$COMPONENT/etc/components"
-  fi
-}
-
-#init component forest
-function init_components ()
-{
-  local BASE="$1"
-  local CATALOG="$2"
-  local COMPONENT=""
-  local -a COMPONENTS=()
-
-  if [ ! -f "$CATALOG" ]; then
-    echo >&2 "Bad component catalog file: \"$CATALOG\""
-    exit 2
-  fi
-
-  {
-    while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
-    do
-      case "$REPLY" in
-        \#* | "") ;;
-        /*) COMPONENTS["${#COMPONENTS[@]}"]="$REPLY" ;;
-        *) COMPONENTS["${#COMPONENTS[@]}"]="$BASE/$REPLY" ;;
-      esac
-    done
-  } < "$CATALOG"
-
-  for COMPONENT in "${COMPONENTS[@]}"
-  do
-    init_component "$COMPONENT"
-  done
-}
 
 #main components
 init_component "$ISABELLE_HOME"
