@@ -4,13 +4,16 @@
 #
 # Static Isabelle environment for root of process tree.
 
+export ISABELLE_HOME
+
+export BASH_ENV="$ISABELLE_HOME/lib/scripts/getfunctions"
+source "$BASH_ENV"
+
+
 if [ -z "$ISABELLE_SETTINGS_PRESENT" ]
 then
 
 export ISABELLE_SETTINGS_PRESENT=true
-
-export BASH_ENV="$ISABELLE_HOME/lib/scripts/getfunctions"
-source "$BASH_ENV"
 
 set -o allexport
 
@@ -49,8 +52,6 @@ else
   ISABELLE_CLASSPATH="$CLASSPATH"
   unset CLASSPATH
 fi
-
-export ISABELLE_HOME
 
 #main executables
 ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
