@@ -393,7 +393,7 @@ lemma complex_differentiable_within_open:
   unfolding complex_differentiable_def
   by (metis at_within_open)
 
-subsection\<open>Caratheodory characterization.\<close>
+subsection\<open>Caratheodory characterization\<close>
 
 lemma complex_differentiable_caratheodory_at:
   "f complex_differentiable (at z) \<longleftrightarrow>
@@ -750,7 +750,6 @@ proof (intro ballI)
     by (metis e e' min_less_iff_conj)
 qed
 
-
 lemma analytic_on_divide:
   assumes f: "f analytic_on s"
       and g: "g analytic_on s"
@@ -767,7 +766,30 @@ lemma analytic_on_setsum:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on s) \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) I) analytic_on s"
   by (induct I rule: infinite_finite_induct) (auto simp: analytic_on_const analytic_on_add)
 
-subsection\<open>analyticity at a point.\<close>
+lemma deriv_left_inverse:
+  assumes "f holomorphic_on S" and "g holomorphic_on T"
+      and "open S" and "open T"
+      and "f ` S \<subseteq> T"
+      and [simp]: "\<And>z. z \<in> S \<Longrightarrow> g (f z) = z"
+      and "w \<in> S"
+    shows "deriv f w * deriv g (f w) = 1"
+proof -
+  have "deriv f w * deriv g (f w) = deriv g (f w) * deriv f w"
+    by (simp add: algebra_simps)
+  also have "... = deriv (g o f) w"
+    using assms
+    by (metis analytic_on_imp_differentiable_at analytic_on_open complex_derivative_chain image_subset_iff)
+  also have "... = deriv id w"
+    apply (rule complex_derivative_transform_within_open [where s=S])
+    apply (rule assms holomorphic_on_compose_gen holomorphic_intros)+
+    apply simp
+    done
+  also have "... = 1"
+    by simp
+  finally show ?thesis .
+qed
+
+subsection\<open>analyticity at a point\<close>
 
 lemma analytic_at_ball:
   "f analytic_on {z} \<longleftrightarrow> (\<exists>e. 0<e \<and> f holomorphic_on ball z e)"
@@ -972,7 +994,7 @@ lemma complex_differentiable_bound:
   apply fact
   done
 
-subsection\<open>Inverse function theorem for complex derivatives.\<close>
+subsection\<open>Inverse function theorem for complex derivatives\<close>
 
 lemma has_complex_derivative_inverse_basic:
   fixes f :: "complex \<Rightarrow> complex"
@@ -1118,7 +1140,7 @@ proof -
   finally show ?thesis .
 qed
 
-text\<open>Something more like the traditional MVT for real components.\<close>
+text\<open>Something more like the traditional MVT for real components\<close>
 
 lemma complex_mvt_line:
   assumes "\<And>u. u \<in> closed_segment w z \<Longrightarrow> (f has_field_derivative f'(u)) (at u)"

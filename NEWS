@@ -38,6 +38,9 @@ resemble the f.split naming convention, INCOMPATIBILITY.
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
 INCOMPATIBILITY.
 
+* More complex analysis including Cauchy's inequality, Liouville theorem,
+open mapping theorem, maximum modulus principle, Schwarz Lemma.
+
 * "Gcd (f ` A)" and "Lcm (f ` A)" are printed with optional
 comprehension-like syntax analogously to "Inf (f ` A)" and "Sup (f ` A)".
 

@@ -577,7 +577,7 @@ next
 qed
 
 
-lemma eq_id_iff[simp]: "(\<forall>x. f x = x) \<longleftrightarrow> f = id"
+lemma eq_id_iff: "(\<forall>x. f x = x) \<longleftrightarrow> f = id"
   by auto
 
 lemma det_linear_rows_setsum_lemma:
@@ -592,7 +592,7 @@ proof (induct T arbitrary: a c set: finite)
   have th0: "\<And>x y. (\<chi> i. if i \<in> {} then x i else y i) = (\<chi> i. y i)"
     by vector
   from empty.prems show ?case
-    unfolding th0 by simp
+    unfolding th0 by (simp add: eq_id_iff)
 next
   case (insert z T a c)
   let ?F = "\<lambda>T. {f. (\<forall>i \<in> T. f i \<in> S) \<and> (\<forall>i. i \<notin> T \<longrightarrow> f i = i)}"

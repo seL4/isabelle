@@ -2506,6 +2506,22 @@ lemma vector_derivative_chain_at:
          vector_derivative f (at x) *\<^sub>R vector_derivative g (at (f x))"
 by (metis vector_diff_chain_at vector_derivative_at vector_derivative_works assms)
 
+lemma field_vector_diff_chain_at:  (*thanks to Wenda Li*)
+ assumes Df: "(f has_vector_derivative f') (at x)"
+     and Dg: "(g has_field_derivative g') (at (f x))"
+ shows "((g \<circ> f) has_vector_derivative (f' * g')) (at x)"
+using diff_chain_at[OF Df[unfolded has_vector_derivative_def]
+                       Dg [unfolded has_field_derivative_def]]
+ by (auto simp: o_def mult.commute has_vector_derivative_def)
+
+lemma vector_derivative_chain_at_general:  (*thanks to Wenda Li*)
+ assumes "f differentiable at x" "(\<exists>g'. (g has_field_derivative g') (at (f x)))"
+ shows "vector_derivative (g \<circ> f) (at x) =
+        vector_derivative f (at x) * deriv g (f x)"
+apply (rule vector_derivative_at [OF field_vector_diff_chain_at])
+using assms
+by (auto simp: vector_derivative_works DERIV_deriv_iff_has_field_derivative)
+
 
 subsection \<open>Relation between convexity and derivative\<close>
 
