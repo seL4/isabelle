@@ -743,13 +743,19 @@ fun build_map_or_rel mk const of_bnf dest pre_cst_table ctxt simple_Ts build_sim
           (Type (s, Ts), Type (s', Us)) =>
           if s = s' then
             let
-              val (live, cst0) =
-                (case AList.lookup (op =) pre_cst_table s of
-                  NONE => let val bnf = the (bnf_of ctxt s) in (live_of_bnf bnf, of_bnf bnf) end
-                | SOME p => p);
-              val cst = mk live Ts Us cst0;
-              val TUs' = map dest (fst (strip_typeN live (fastype_of cst)));
-            in Term.list_comb (cst, map build TUs') end
+              fun recurse (live, cst0) =
+                let
+                  val cst = mk live Ts Us cst0;
+                  val TUs' = map dest (fst (strip_typeN live (fastype_of cst)));
+                in Term.list_comb (cst, map build TUs') end;
+            in
+              (case AList.lookup (op =) pre_cst_table s of
+                NONE =>
+                (case bnf_of ctxt s of
+                  SOME bnf => recurse (live_of_bnf bnf, of_bnf bnf)
+                | NONE => build_simple TU)
+              | SOME entry => recurse entry)
+            end
           else
             build_simple TU
         | _ => build_simple TU);
