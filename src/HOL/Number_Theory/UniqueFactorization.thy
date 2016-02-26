@@ -99,7 +99,7 @@ proof (cases "a \<in> set_mset M")
   moreover
   have "coprime (a ^ count M a) (\<Prod>i \<in> (set_mset N - {a}). i ^ count N i)"
     apply (subst gcd.commute)
-    apply (rule setprod_coprime_nat)
+    apply (rule setprod_coprime)
     apply (rule primes_imp_powers_coprime_nat)
     using assms True
     apply auto

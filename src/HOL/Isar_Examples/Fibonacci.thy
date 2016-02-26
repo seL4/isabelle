@@ -80,7 +80,7 @@ proof (induct n rule: fib_induct)
   also have "\<dots> = fib (n + 2) + fib (n + 1)"
     by simp
   also have "gcd (fib (n + 2)) \<dots> = gcd (fib (n + 2)) (fib (n + 1))"
-    by (rule gcd_add2_nat)
+    by (rule gcd_add2)
   also have "\<dots> = gcd (fib (n + 1)) (fib (n + 1 + 1))"
     by (simp add: gcd.commute)
   also assume "\<dots> = 1"

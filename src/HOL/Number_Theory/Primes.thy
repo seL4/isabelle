@@ -152,11 +152,11 @@ lemma "prime(997::nat)" by eval
 
 
 lemma prime_imp_power_coprime_nat: "prime p \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
-  by (metis coprime_exp_nat gcd.commute prime_imp_coprime_nat)
+  by (metis coprime_exp gcd.commute prime_imp_coprime_nat)
 
 lemma prime_imp_power_coprime_int:
   fixes a::int shows "prime p \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
-  by (metis coprime_exp_int gcd.commute prime_imp_coprime_int)
+  by (metis coprime_exp gcd.commute prime_imp_coprime_int)
 
 lemma primes_coprime_nat: "prime p \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> coprime p q"
   by (metis gcd_nat.absorb1 gcd_nat.absorb2 prime_imp_coprime_nat)
@@ -203,7 +203,7 @@ proof-
       with p have "coprime b p"
         by (subst gcd.commute, intro prime_imp_coprime_nat)
       then have pnb: "coprime (p^n) b"
-        by (subst gcd.commute, rule coprime_exp_nat)
+        by (subst gcd.commute, rule coprime_exp)
       from coprime_dvd_mult[OF pnb pab] have ?thesis by blast }
     moreover
     { assume pb: "p dvd b"
@@ -213,7 +213,7 @@ proof-
       with p have "coprime a p"
         by (subst gcd.commute, intro prime_imp_coprime_nat)
       then have pna: "coprime (p^n) a"
-        by (subst gcd.commute, rule coprime_exp_nat)
+        by (subst gcd.commute, rule coprime_exp)
       from coprime_dvd_mult[OF pna pnba] have ?thesis by blast }
     ultimately have ?thesis by blast }
   ultimately show ?thesis by blast
@@ -374,7 +374,7 @@ subsection \<open>Chinese Remainder Theorem Variants\<close>
 lemma bezout_gcd_nat:
   fixes a::nat shows "\<exists>x y. a * x - b * y = gcd a b \<or> b * x - a * y = gcd a b"
   using bezout_nat[of a b]
-by (metis bezout_nat diff_add_inverse gcd_add_mult_nat gcd.commute
+by (metis bezout_nat diff_add_inverse gcd_add_mult gcd.commute
   gcd_nat.right_neutral mult_0)
 
 lemma gcd_bezout_sum_nat:

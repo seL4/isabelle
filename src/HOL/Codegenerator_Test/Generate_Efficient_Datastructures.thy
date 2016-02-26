@@ -60,7 +60,19 @@ lemma [code, code del]:
 
 lemma [code, code del]:
   "(Lcm :: int set \<Rightarrow> int) = Lcm" ..
-  
+
+lemma [code, code del]:
+  "(Gcd :: _ poly set \<Rightarrow> _) = Gcd" ..
+
+lemma [code, code del]:
+  "(Lcm :: _ poly set \<Rightarrow> _) = Lcm" ..
+
+lemma [code, code del]:
+  "Gcd_eucl = Gcd_eucl" ..
+
+lemma [code, code del]:
+  "Lcm_eucl = Lcm_eucl" ..
+
 (*
   If the code generation ends with an exception with the following message:
   '"List.set" is not a constructor, on left hand side of equation: ...',
