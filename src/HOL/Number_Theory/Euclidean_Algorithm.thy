@@ -99,6 +99,8 @@ definition Gcd_eucl :: "'a set \<Rightarrow> 'a"
 where
   "Gcd_eucl A = Lcm_eucl {d. \<forall>a\<in>A. d dvd a}"
 
+declare Lcm_eucl_def Gcd_eucl_def [code del]
+
 lemma gcd_eucl_0:
   "gcd_eucl a 0 = normalize a"
   by (simp add: gcd_eucl.simps [of a 0])
@@ -959,9 +961,14 @@ lemma Lcm_finite:
   by (induct rule: finite.induct[OF \<open>finite A\<close>])
     (simp_all add: comp_fun_idem.fold_insert_idem[OF comp_fun_idem_lcm])
 
-lemma Lcm_set [code_unfold]:
-  "Lcm (set xs) = fold lcm xs 1"
-  using comp_fun_idem.fold_set_fold[OF comp_fun_idem_lcm] Lcm_finite by (simp add: ac_simps)
+lemma Lcm_set:
+  "Lcm (set xs) = foldl lcm 1 xs"
+  using comp_fun_idem.fold_set_fold[OF comp_fun_idem_lcm] Lcm_finite
+  by (simp add: foldl_conv_fold lcm.commute)
+
+lemma Lcm_eucl_set [code]:
+  "Lcm_eucl (set xs) = foldl lcm_eucl 1 xs"
+  by (simp add: Lcm_Lcm_eucl [symmetric] lcm_lcm_eucl Lcm_set)
 
 lemma Lcm_singleton [simp]:
   "Lcm {a} = normalize a"
@@ -1013,9 +1020,14 @@ lemma Gcd_finite:
   by (induct rule: finite.induct[OF \<open>finite A\<close>])
     (simp_all add: comp_fun_idem.fold_insert_idem[OF comp_fun_idem_gcd])
 
-lemma Gcd_set [code_unfold]:
-  "Gcd (set xs) = fold gcd xs 0"
-  using comp_fun_idem.fold_set_fold[OF comp_fun_idem_gcd] Gcd_finite by (simp add: ac_simps)
+lemma Gcd_set:
+  "Gcd (set xs) = foldl gcd 0 xs"
+  using comp_fun_idem.fold_set_fold[OF comp_fun_idem_gcd] Gcd_finite
+  by (simp add: foldl_conv_fold gcd.commute)
+
+lemma Gcd_eucl_set [code]:
+  "Gcd_eucl (set xs) = foldl gcd_eucl 0 xs"
+  by (simp add: Gcd_Gcd_eucl [symmetric] gcd_gcd_eucl Gcd_set)
 
 lemma Gcd_singleton [simp]: "Gcd {a} = normalize a"
   by simp
