@@ -171,11 +171,11 @@ lift_definition Float :: "int \<Rightarrow> int \<Rightarrow> float" is "\<lambd
   by simp
 declare Float.rep_eq[simp]
 
+code_datatype Float
+
 lemma compute_real_of_float[code]:
   "real_of_float (Float m e) = (if e \<ge> 0 then m * 2 ^ nat e else m / 2 ^ (nat (-e)))"
   by (simp add: powr_int)
-
-code_datatype Float
 
 
 subsection \<open>Arithmetic operations on floating point numbers\<close>
