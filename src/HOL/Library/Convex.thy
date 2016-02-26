@@ -323,9 +323,9 @@ lemma convex_on_linorderI [intro?]:
   shows   "convex_on A f"
 proof
   fix t x y assume A: "x \<in> A" "y \<in> A" "(t::real) > 0" "t < 1"
-  case (goal1 t x y)
-  with goal1 assms[of t x y] assms[of "1 - t" y x]
-    show ?case by (cases x y rule: linorder_cases) (auto simp: algebra_simps)
+  with assms[of t x y] assms[of "1 - t" y x]
+  show "f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
+    by (cases x y rule: linorder_cases) (auto simp: algebra_simps)
 qed
 
 lemma convex_onD:

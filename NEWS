@@ -156,6 +156,10 @@ INCOMPATIBILITY.
 
 *** System ***
 
+* The Isabelle system environment always ensures that the main
+executables are found within the PATH: isabelle, isabelle_process,
+isabelle_scala_script.
+
 * SML/NJ is no longer supported.
 
 

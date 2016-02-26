@@ -40,9 +40,7 @@ definition prime :: "nat \<Rightarrow> bool"
 subsection \<open>Primes\<close>
 
 lemma prime_odd_nat: "prime p \<Longrightarrow> p > 2 \<Longrightarrow> odd p"
-  apply (auto simp add: prime_def even_iff_mod_2_eq_zero dvd_eq_mod_eq_0)
-  apply (metis dvd_eq_mod_eq_0 even_Suc mod_by_1 nat_dvd_not_less not_mod_2_eq_0_eq_1 zero_less_numeral)
-  done
+  using nat_dvd_1_iff_1 odd_one prime_def by blast
 
 lemma prime_gt_0_nat: "prime p \<Longrightarrow> p > 0"
   unfolding prime_def by auto

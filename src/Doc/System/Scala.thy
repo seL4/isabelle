@@ -77,11 +77,7 @@ section \<open>Scala script wrapper\<close>
 text \<open>
   The executable @{executable "$ISABELLE_HOME/bin/isabelle_scala_script"}
   allows to run Isabelle/Scala source files stand-alone programs, by using a
-  suitable ``hash-bang'' line and executable file permissions.
-
-  The subsequent example assumes that the main Isabelle binaries have been
-  installed in some directory that is included in @{setting PATH} (see also
-  @{tool "install"}):
+  suitable ``hash-bang'' line and executable file permissions. For example:
   @{verbatim [display]
 \<open>#!/usr/bin/env isabelle_scala_script
 
@@ -89,8 +85,12 @@ val options = isabelle.Options.init()
 Console.println("browser_info = " + options.bool("browser_info"))
 Console.println("document = " + options.string("document"))\<close>}
 
-  Alternatively the full @{file "$ISABELLE_HOME/bin/isabelle_scala_script"}
-  may be specified in expanded form.
+  This assumes that the executable may be found via the @{setting PATH} from
+  the process environment: this is the case when Isabelle settings are active,
+  e.g.\ in the context of the main Isabelle tool wrapper
+  \secref{sec:isabelle-tool}. Alternatively, the full @{file
+  "$ISABELLE_HOME/bin/isabelle_scala_script"} may be specified in expanded
+  form.
 \<close>
 
 end
