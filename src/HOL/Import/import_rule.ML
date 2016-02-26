@@ -219,8 +219,9 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
     val tfrees = Term.add_tfrees c []
     val tnames = sort_strings (map fst tfrees)
     val typedef_bindings =
-      Typedef.make_morphisms (Binding.name tycname)
-        (SOME (Binding.name rep_name, Binding.name abs_name))
+     {Rep_name = Binding.name rep_name,
+      Abs_name = Binding.name abs_name,
+      type_definition_name = Binding.name ("type_definition_" ^ tycname)}
     val ((_, typedef_info), thy') =
      Typedef.add_typedef_global {overloaded = false}
        (Binding.name tycname, map (rpair dummyS) tnames, NoSyn) c

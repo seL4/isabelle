@@ -176,27 +176,30 @@ fun primitive_typedef {overloaded} type_definition_name newT oldT Rep_name Abs_n
 
 type bindings = {Rep_name: binding, Abs_name: binding, type_definition_name: binding};
 
+fun prefix_binding prfx name =
+  Binding.qualified false (prfx ^ Binding.name_of name) name;
+
+fun qualify_binding name = Binding.qualify false (Binding.name_of name);
+
 fun default_bindings name =
- {Rep_name = Binding.prefix_name "Rep_" name,
-  Abs_name = Binding.prefix_name "Abs_" name,
-  type_definition_name = Binding.prefix_name "type_definition_" name};
+ {Rep_name = prefix_binding "Rep_" name,
+  Abs_name = prefix_binding "Abs_" name,
+  type_definition_name = prefix_binding "type_definition_" name};
 
 fun make_bindings name NONE = default_bindings name
   | make_bindings _ (SOME bindings) = bindings;
 
 fun make_morphisms name NONE = default_bindings name
   | make_morphisms name (SOME (Rep_name, Abs_name)) =
-      {Rep_name = Rep_name, Abs_name = Abs_name,
-        type_definition_name = #type_definition_name (default_bindings name)};
+     {Rep_name = qualify_binding name Rep_name,
+      Abs_name = qualify_binding name Abs_name,
+      type_definition_name = #type_definition_name (default_bindings name)};
 
 
 (* prepare_typedef *)
 
 fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindings lthy =
   let
-    val bname = Binding.name_of name;
-
-
     (* rhs *)
 
     val tmp_ctxt = lthy |> fold (Variable.declare_typ o TFree) raw_args;
@@ -207,6 +210,7 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
       error ("Not a set type: " ^ quote (Syntax.string_of_typ lthy setT));
 
+    val bname = Binding.name_of name;
     val goal = mk_inhabited set;
     val goal_pat = mk_inhabited (Var (the_default (bname, 0) (Lexicon.read_variable bname), setT));
 
@@ -235,8 +239,8 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
 
     (* result *)
 
-    fun note_qualify ((b, atts), th) =
-      Local_Theory.note ((Binding.qualify false bname b, map (Attrib.internal o K) atts), [th])
+    fun note ((b, atts), th) =
+      Local_Theory.note ((b, map (Attrib.internal o K) atts), [th])
       #>> (fn (_, [th']) => th');
 
     fun typedef_result inhabited lthy1 =
@@ -246,25 +250,25 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
         val (((((((((((_, [type_definition]), Rep), Rep_inverse), Abs_inverse), Rep_inject),
             Abs_inject), Rep_cases), Abs_cases), Rep_induct), Abs_induct), lthy2) = lthy1
           |> Local_Theory.note ((type_definition_name, []), [typedef'])
-          ||>> note_qualify ((Rep_name, []), make @{thm type_definition.Rep})
-          ||>> note_qualify ((Binding.suffix_name "_inverse" Rep_name, []),
+          ||>> note ((Rep_name, []), make @{thm type_definition.Rep})
+          ||>> note ((Binding.suffix_name "_inverse" Rep_name, []),
               make @{thm type_definition.Rep_inverse})
-          ||>> note_qualify ((Binding.suffix_name "_inverse" Abs_name, []),
+          ||>> note ((Binding.suffix_name "_inverse" Abs_name, []),
               make @{thm type_definition.Abs_inverse})
-          ||>> note_qualify ((Binding.suffix_name "_inject" Rep_name, []),
+          ||>> note ((Binding.suffix_name "_inject" Rep_name, []),
               make @{thm type_definition.Rep_inject})
-          ||>> note_qualify ((Binding.suffix_name "_inject" Abs_name, []),
+          ||>> note ((Binding.suffix_name "_inject" Abs_name, []),
               make @{thm type_definition.Abs_inject})
-          ||>> note_qualify ((Binding.suffix_name "_cases" Rep_name,
+          ||>> note ((Binding.suffix_name "_cases" Rep_name,
                 [Rule_Cases.case_names [Binding.name_of Rep_name], Induct.cases_pred full_name]),
               make @{thm type_definition.Rep_cases})
-          ||>> note_qualify ((Binding.suffix_name "_cases" Abs_name,
+          ||>> note ((Binding.suffix_name "_cases" Abs_name,
                 [Rule_Cases.case_names [Binding.name_of Abs_name], Induct.cases_type full_name]),
               make @{thm type_definition.Abs_cases})
-          ||>> note_qualify ((Binding.suffix_name "_induct" Rep_name,
+          ||>> note ((Binding.suffix_name "_induct" Rep_name,
                 [Rule_Cases.case_names [Binding.name_of Rep_name], Induct.induct_pred full_name]),
               make @{thm type_definition.Rep_induct})
-          ||>> note_qualify ((Binding.suffix_name "_induct" Abs_name,
+          ||>> note ((Binding.suffix_name "_induct" Abs_name,
                 [Rule_Cases.case_names [Binding.name_of Abs_name], Induct.induct_type full_name]),
               make @{thm type_definition.Abs_induct});
 
