@@ -1213,4 +1213,41 @@ definition Lcm_poly :: "'a poly set \<Rightarrow> 'a poly" where
 instance by standard (simp_all only: gcd_poly_def lcm_poly_def Gcd_poly_def Lcm_poly_def)
 end
 
+lemma poly_gcd_monic:
+  "lead_coeff (gcd x y) = (if x = 0 \<and> y = 0 then 0 else 1)"
+  using unit_factor_gcd[of x y]
+  by (simp add: unit_factor_poly_def monom_0 one_poly_def lead_coeff_def split: if_split_asm)
+
+lemma poly_dvd_antisym:
+  fixes p q :: "'a::idom poly"
+  assumes coeff: "coeff p (degree p) = coeff q (degree q)"
+  assumes dvd1: "p dvd q" and dvd2: "q dvd p" shows "p = q"
+proof (cases "p = 0")
+  case True with coeff show "p = q" by simp
+next
+  case False with coeff have "q \<noteq> 0" by auto
+  have degree: "degree p = degree q"
+    using \<open>p dvd q\<close> \<open>q dvd p\<close> \<open>p \<noteq> 0\<close> \<open>q \<noteq> 0\<close>
+    by (intro order_antisym dvd_imp_degree_le)
+
+  from \<open>p dvd q\<close> obtain a where a: "q = p * a" ..
+  with \<open>q \<noteq> 0\<close> have "a \<noteq> 0" by auto
+  with degree a \<open>p \<noteq> 0\<close> have "degree a = 0"
+    by (simp add: degree_mult_eq)
+  with coeff a show "p = q"
+    by (cases a, auto split: if_splits)
+qed
+
+lemma poly_gcd_unique:
+  fixes d x y :: "_ poly"
+  assumes dvd1: "d dvd x" and dvd2: "d dvd y"
+    and greatest: "\<And>k. k dvd x \<Longrightarrow> k dvd y \<Longrightarrow> k dvd d"
+    and monic: "coeff d (degree d) = (if x = 0 \<and> y = 0 then 0 else 1)"
+  shows "d = gcd x y"
+  using assms by (intro gcdI) (auto simp: normalize_poly_def split: if_split_asm)
+
+lemma poly_gcd_code [code]:
+  "gcd x y = (if y = 0 then normalize x else gcd y (x mod (y :: _ poly)))"
+  by (simp add: gcd_0 gcd_non_0)
+
 end
