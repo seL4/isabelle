@@ -93,7 +93,7 @@ proof (cases "a \<in> set_mset M")
   next
     case False
     then show ?thesis
-      by auto
+      by (auto simp add: not_in_iff)
   qed
   finally have "a ^ count M a dvd a ^ count N a * (\<Prod>i \<in> (set_mset N - {a}). i ^ count N i)" .
   moreover
@@ -111,7 +111,7 @@ proof (cases "a \<in> set_mset M")
 next
   case False
   then show ?thesis
-    by auto
+    by (auto simp add: not_in_iff)
 qed
 
 lemma multiset_prime_factorization_unique:
@@ -437,7 +437,7 @@ lemma multiplicity_nonprime_nat [simp]:
   apply (cases "n = 0")
   apply auto
   apply (frule multiset_prime_factorization)
-  apply (auto simp add: set_mset_def multiplicity_nat_def)
+  apply (auto simp add: multiplicity_nat_def count_eq_zero_iff)
   done
 
 lemma multiplicity_not_factor_nat [simp]:

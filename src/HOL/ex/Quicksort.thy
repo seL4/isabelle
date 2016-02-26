@@ -25,7 +25,11 @@ lemma quicksort_permutes [simp]:
   by (induct xs rule: quicksort.induct) (simp_all add: ac_simps)
 
 lemma set_quicksort [simp]: "set (quicksort xs) = set xs"
-  by (simp add: set_count_greater_0)
+proof -
+  have "set_mset (mset (quicksort xs)) = set_mset (mset xs)"
+    by simp
+  then show ?thesis by (simp only: set_mset_mset)
+qed
 
 lemma sorted_quicksort: "sorted (quicksort xs)"
   by (induct xs rule: quicksort.induct) (auto simp add: sorted_Cons sorted_append not_le less_imp_le)
