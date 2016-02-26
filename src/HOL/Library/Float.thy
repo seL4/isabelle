@@ -578,16 +578,10 @@ lift_definition is_float_pos :: "float \<Rightarrow> bool" is "op < 0 :: real \<
 qualified lemma compute_is_float_pos[code]: "is_float_pos (Float m e) \<longleftrightarrow> 0 < m"
   by transfer (auto simp add: zero_less_mult_iff not_le[symmetric, of _ 0])
 
-qualified lemma compute_float_less[code]: "a < b \<longleftrightarrow> is_float_pos (b - a)"
-  by transfer (simp add: field_simps)
-
 lift_definition is_float_nonneg :: "float \<Rightarrow> bool" is "op \<le> 0 :: real \<Rightarrow> bool" .
 
 qualified lemma compute_is_float_nonneg[code]: "is_float_nonneg (Float m e) \<longleftrightarrow> 0 \<le> m"
   by transfer (auto simp add: zero_le_mult_iff not_less[symmetric, of _ 0])
-
-qualified lemma compute_float_le[code]: "a \<le> b \<longleftrightarrow> is_float_nonneg (b - a)"
-  by transfer (simp add: field_simps)
 
 lift_definition is_float_zero :: "float \<Rightarrow> bool"  is "op = 0 :: real \<Rightarrow> bool" .
 
@@ -1904,6 +1898,14 @@ qualified lemma compute_float_plus_up[code]: "float_plus_up p x y = - float_plus
 
 lemma mantissa_zero[simp]: "mantissa 0 = 0"
   by (metis mantissa_0 zero_float.abs_eq)
+
+qualified lemma compute_float_less[code]: "a < b \<longleftrightarrow> is_float_pos (float_plus_down 0 b (- a))"
+  using truncate_down[of 0 "b - a"] truncate_down_pos[of "b - a" 0]
+  by transfer (auto simp: plus_down_def)
+
+qualified lemma compute_float_le[code]: "a \<le> b \<longleftrightarrow> is_float_nonneg (float_plus_down 0 b (- a))"
+  using truncate_down[of 0 "b - a"] truncate_down_nonneg[of "b - a" 0]
+  by transfer (auto simp: plus_down_def)
 
 end
 
