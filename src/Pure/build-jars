@@ -75,6 +75,7 @@ declare -a SOURCES=(
   ROOT.scala
   System/command_line.scala
   System/cygwin.scala
+  System/getopts.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala
   System/isabelle_process.scala
