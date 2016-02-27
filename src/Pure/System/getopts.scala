@@ -37,6 +37,7 @@ class Getopts private(usage_text: () => String, options: Map[Char, (Boolean, Str
   private def is_option0(opt: Char): Boolean = is_option(opt) && !options(opt)._1
   private def is_option1(opt: Char): Boolean = is_option(opt) && options(opt)._1
   private def option(opt: Char, opt_arg: List[Char]): Unit = options(opt)._2.apply(opt_arg.mkString)
+  private def print_option(opt: Char): String = quote("-" + opt.toString)
 
   private def getopts(args: List[List[Char]]): List[List[Char]] =
     args match {
@@ -50,10 +51,10 @@ class Getopts private(usage_text: () => String, options: Map[Char, (Boolean, Str
       case List('-', opt) :: opt_arg :: rest_args if is_option1(opt) =>
         option(opt, opt_arg); getopts(rest_args)
       case List(List('-', opt)) if is_option1(opt) =>
-        Output.error_message("Command-line option " + quote(opt.toString) + " requires an argument")
+        Output.error_message("Command-line option " + print_option(opt) + " requires an argument")
         usage()
       case ('-' :: opt :: _) :: _ if !is_option(opt) =>
-        Output.error_message("Illegal command-line option " + quote(opt.toString))
+        if (opt != '?') Output.error_message("Illegal command-line option " + print_option(opt))
         usage()
       case _ => args
   }
