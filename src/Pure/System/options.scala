@@ -145,21 +145,49 @@ object Options
   def main(args: Array[String])
   {
     Command_Line.tool0 {
-      args.toList match {
-        case get_option :: export_file :: more_options =>
-          val options = (Options.init() /: more_options)(_ + _)
+      var build_options = false
+      var get_option = ""
+      var list_options = false
+      var export_file = ""
 
-          if (get_option != "")
-            Console.println(options.check_name(get_option).value)
+      val getopts = Getopts(() => """
+Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
 
-          if (export_file != "")
-            File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
+  Options are:
+    -b           include $ISABELLE_BUILD_OPTIONS
+    -g OPTION    get value of OPTION
+    -l           list options
+    -x FILE      export options to FILE in YXML format
 
-          if (get_option == "" && export_file == "")
-            Console.println(options.print)
+  Report Isabelle system options, augmented by MORE_OPTIONS given as
+  arguments NAME=VAL or NAME.
+""",
+        "b" -> (_ => build_options = true),
+        "g:" -> (arg => get_option = arg),
+        "l" -> (_ => list_options = true),
+        "x:" -> (arg => export_file = arg))
 
-        case _ => error("Bad arguments:\n" + cat_lines(args))
+      val more_options = getopts(args)
+      if (get_option == "" && !list_options && export_file == "") getopts.usage()
+
+      val options =
+      {
+        val options0 = Options.init()
+        val options1 =
+          if (build_options)
+            (options0 /: Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")))(_ + _)
+          else options0
+        (options1 /: more_options)(_ + _)
       }
+
+      if (get_option != "")
+        Console.println(options.check_name(get_option).value)
+
+      if (export_file != "")
+        File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
+
+      if (get_option == "" && export_file == "")
+        Console.println(options.print)
     }
   }
 }
