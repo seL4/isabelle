@@ -36,8 +36,13 @@ class Getopts private(usage_text: () => String, options: Map[Char, (Boolean, Str
   private def is_option(opt: Char): Boolean = options.isDefinedAt(opt)
   private def is_option0(opt: Char): Boolean = is_option(opt) && !options(opt)._1
   private def is_option1(opt: Char): Boolean = is_option(opt) && options(opt)._1
-  private def option(opt: Char, opt_arg: List[Char]): Unit = options(opt)._2.apply(opt_arg.mkString)
   private def print_option(opt: Char): String = quote("-" + opt.toString)
+  private def option(opt: Char, opt_arg: List[Char]): Unit =
+    try { options(opt)._2.apply(opt_arg.mkString) }
+    catch {
+      case ERROR(msg) =>
+        cat_error(msg, "The error(s) above occurred in command-line option " + print_option(opt))
+    }
 
   private def getopts(args: List[List[Char]]): List[List[Char]] =
     args match {
