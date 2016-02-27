@@ -7,6 +7,11 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* New symbol \<circle>, e.g. for temporal operator.
+
+
 *** Isar ***
 
 * Command '\<proof>' is an alias for 'sorry', with different

@@ -220,6 +220,7 @@
 \<exists>               code: 0x002203  group: logic  abbrev: ?  abbrev: EX
 \<nexists>              code: 0x002204  group: logic  abbrev: ~?
 \<not>                  code: 0x0000ac  group: logic  abbrev: ~
+\<circle>               code: 0x0025cb  group: logic
 \<box>                  code: 0x0025a1  group: logic
 \<diamond>              code: 0x0025c7  group: logic
 \<diamondop>            code: 0x0022c4  group: operator
