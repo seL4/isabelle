@@ -425,11 +425,7 @@ fun process_line str tstate =
       | process tstate (#"l", [t1, t2]) =
           gettm t1 tstate ||>> gettm t2 |>> (fn (t1, t2) => Thm.lambda t1 t2) |-> settm
       | process (thy, state) (#"+", [s]) =
-          let
-            val _ = tracing ("NOTING " ^ log_timestamp () ^ ": " ^ s)
-          in
-            (store_thm (Binding.name (transl_dot s)) (last_thm state) thy, state)
-          end
+          (store_thm (Binding.name (transl_dot s)) (last_thm state) thy, state)
       | process _ (c, _) = error ("process: unknown command: " ^ String.implode [c])
 
     fun parse_line s =
