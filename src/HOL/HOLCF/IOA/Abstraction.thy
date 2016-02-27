@@ -53,7 +53,7 @@ axiomatization where
 
 (* analog to the proved thm strength_Next - proof skipped as trivial *)
 axiomatization where
-  weak_Next: "temp_weakening P Q h \<Longrightarrow> temp_weakening (Next P) (Next Q) h"
+  weak_Next: "temp_weakening P Q h \<Longrightarrow> temp_weakening (\<circle>P) (\<circle>Q) h"
 
 
 subsection \<open>\<open>cex_abs\<close>\<close>
@@ -382,7 +382,7 @@ lemma ex2seqnilTL: "TL $ (ex2seq ex) \<noteq> nil \<longleftrightarrow> snd ex \
   apply (pair a)
   done
 
-lemma strength_Next: "temp_strengthening P Q h \<Longrightarrow> temp_strengthening (Next P) (Next Q) h"
+lemma strength_Next: "temp_strengthening P Q h \<Longrightarrow> temp_strengthening (\<circle>P) (\<circle>Q) h"
   apply (unfold temp_strengthening_def state_strengthening_def temp_sat_def satisfies_def Next_def)
   apply simp
   apply auto
