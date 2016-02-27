@@ -96,13 +96,20 @@ object Doc
   def main(args: Array[String])
   {
     Command_Line.tool0 {
+      val getopts = Getopts(() => """
+Usage: isabelle doc [DOC ...]
+
+  View Isabelle documentation.
+""")
+      val docs = getopts(args)
+
       val entries = contents()
-      if (args.isEmpty) Console.println(cat_lines(contents_lines().map(_._2)))
+      if (docs.isEmpty) Console.println(cat_lines(contents_lines().map(_._2)))
       else {
-        args.foreach(arg =>
-          entries.collectFirst { case Doc(name, _, path) if arg == name => path } match {
+        docs.foreach(doc =>
+          entries.collectFirst { case Doc(name, _, path) if doc == name => path } match {
             case Some(path) => view(path)
-            case None => error("No Isabelle documentation entry: " + quote(arg))
+            case None => error("No Isabelle documentation entry: " + quote(doc))
           }
         )
       }
