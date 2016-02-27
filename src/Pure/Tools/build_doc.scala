@@ -72,20 +72,35 @@ object Build_Doc
   def main(args: Array[String])
   {
     Command_Line.tool {
-      args.toList match {
-        case
-          Properties.Value.Boolean(all_docs) ::
-          Properties.Value.Int(max_jobs) ::
-          Properties.Value.Boolean(system_mode) ::
-          Command_Line.Chunks(docs) =>
-            val options = Options.init()
-            val progress = new Console_Progress()
-            progress.interrupt_handler {
-              build_doc(options, progress, all_docs, max_jobs, system_mode, docs)
-            }
-        case _ => error("Bad arguments:\n" + cat_lines(args))
+      var all_docs = false
+      var max_jobs = 1
+      var system_mode = false
+
+      val getopts =
+        Getopts(() => """
+Usage: isabelle build_doc [OPTIONS] [DOCS ...]"
+
+  Options are:
+    -a           select all documentation sessions
+    -j INT       maximum number of parallel jobs (default 1)
+    -s           system build mode
+
+  Build Isabelle documentation from documentation sessions with
+  suitable document_variants entry.
+""",
+        "a" -> (_ => all_docs = true),
+        "j:" -> (arg => max_jobs = Properties.Value.Int.parse(arg)),
+        "s" -> (_ => system_mode = true))
+
+      val docs = getopts(args)
+
+      if (!all_docs && docs.isEmpty) getopts.usage()
+
+      val options = Options.init()
+      val progress = new Console_Progress()
+      progress.interrupt_handler {
+        build_doc(options, progress, all_docs, max_jobs, system_mode, docs)
       }
     }
   }
 }
-

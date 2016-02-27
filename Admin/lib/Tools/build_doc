@@ -4,7 +4,8 @@
 #
 # DESCRIPTION: build Isabelle documentation
 
-## settings
+isabelle_admin_build jars || exit $?
+
 
 case "$ISABELLE_JAVA_PLATFORM" in
   x86-*)
@@ -15,75 +16,6 @@ case "$ISABELLE_JAVA_PLATFORM" in
     ;;
 esac
 
-
-## diagnostics
-
-PRG="$(basename "$0")"
-
-function usage()
-{
-  echo
-  echo "Usage: isabelle $PRG [OPTIONS] [DOCS ...]"
-  echo
-  echo "  Options are:"
-  echo "    -a           select all documentation sessions"
-  echo "    -j INT       maximum number of parallel jobs (default 1)"
-  echo "    -s           system build mode"
-  echo
-  echo "  Build Isabelle documentation from documentation sessions with"
-  echo "  suitable document_variants entry."
-  echo
-  exit 1
-}
-
-function fail()
-{
-  echo "$1" >&2
-  exit 2
-}
-
-function check_number()
-{
-  [ -n "$1" -a -z "$(echo "$1" | tr -d '[0-9]')" ] || fail "Bad number: \"$1\""
-}
-
-
-## process command line
-
-ALL_DOCS="false"
-MAX_JOBS="1"
-SYSTEM_MODE="false"
-
-while getopts "aj:s" OPT
-do
-  case "$OPT" in
-    a)
-      ALL_DOCS="true"
-      ;;
-    j)
-      check_number "$OPTARG"
-      MAX_JOBS="$OPTARG"
-      ;;
-    s)
-      SYSTEM_MODE="true"
-      ;;
-    \?)
-      usage
-      ;;
-  esac
-done
-
-shift $(($OPTIND - 1))
-
-[ "$ALL_DOCS" = false -a "$#" -eq 0 ] && usage
-
-
-## main
-
-isabelle_admin_build jars || exit $?
-
 declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
 
-"$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Build_Doc \
-  "$ALL_DOCS" "$MAX_JOBS" "$SYSTEM_MODE" "$@"
-
+"$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Build_Doc "$@"
