@@ -12,7 +12,7 @@ Checklist for official releases
 - test "#!/usr/bin/env isabelle_scala_script";
 
 - check sources:
-    isabelle java isabelle.Check_Source '~~' '$AFP_BASE'
+    isabelle check_sources '~~' '$AFP_BASE'
 
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
 

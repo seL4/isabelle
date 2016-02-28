@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/check_source.scala
+/*  Title:      Pure/Tools/check_sources.scala
     Author:     Makarius
 
 Some sanity checks for Isabelle sources.
@@ -7,7 +7,7 @@ Some sanity checks for Isabelle sources.
 package isabelle
 
 
-object Check_Source
+object Check_Sources
 {
   def check_file(path: Path)
   {
@@ -54,8 +54,16 @@ object Check_Source
   def main(args: Array[String])
   {
     Command_Line.tool0 {
-      for (root <- args) check_hg(Path.explode(root))
+      val getopts = Getopts(() => """
+Usage: isabelle check_sources [ROOT_DIRS...]
+
+  Check .thy, .ML, ROOT files from manifest of Mercurial ROOT_DIRS.
+""")
+
+      val specs = getopts(args)
+      if (specs.isEmpty) getopts.usage()
+
+      for (root <- specs) check_hg(Path.explode(root))
     }
   }
 }
-
