@@ -59,13 +59,9 @@ exception Interrupt = SML90.Interrupt;
 
 use "RAW/exn.ML";
 
-fun print_exception_trace (_: exn -> string) (_: string -> unit) = PolyML.exception_trace;
-
-if ML_System.name = "polyml-5.5.1"
-  orelse ML_System.name = "polyml-5.5.2"
-  orelse ML_System.name = "polyml-5.6"
-then use "RAW/exn_trace_polyml-5.5.1.ML"
-else ();
+if ML_System.name = "polyml-5.6"
+then use "RAW/exn_trace.ML"
+else use "RAW/exn_trace_raw.ML";
 
 
 (* multithreading *)

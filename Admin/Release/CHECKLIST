@@ -5,7 +5,7 @@ Checklist for official releases
 
 - check Admin/components;
 
-- test polyml-5.4.1, polyml-5.4.0, polyml-5.3.0;
+- test polyml-5.3.0;
 
 - test 'display_drafts' command;
 

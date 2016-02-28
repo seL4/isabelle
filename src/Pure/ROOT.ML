@@ -96,11 +96,8 @@ use "config.ML";
 
 use "ML/exn_properties.ML";
 
-if ML_System.name = "polyml-5.5.0"
-  orelse ML_System.name = "polyml-5.5.1"
-  orelse ML_System.name = "polyml-5.5.2"
-  orelse ML_System.name = "polyml-5.6"
-then use "ML/ml_statistics_polyml-5.5.0.ML"
+if ML_System.name = "polyml-5.6"
+then use "ML/ml_statistics.ML"
 else use "ML/ml_statistics_dummy.ML";
 
 use "Concurrent/standard_thread.ML";

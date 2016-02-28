@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# :mode=shellscript:
 #
 # Author: Makarius
 #
-# Startup script for Poly/ML 5.5.2.
+# Startup script for Poly/ML 5.3.0.
 
 export -n INFILE OUTFILE MLTEXT TERMINATE NOWRITE
 
@@ -65,21 +64,15 @@ fi
 
 MLTEXT="$INIT $EXIT $MLTEXT"
 
-if [ -n "$TERMINATE" -a -z "$MLEXIT" ]; then
-  "$POLY" -q -i $ML_OPTIONS --eval "$(perl "$ISABELLE_HOME/lib/scripts/recode.pl" "$MLTEXT")" \
-    --error-exit </dev/null
-  RC="$?"
+if [ -z "$TERMINATE" ]; then
+  FEEDER_OPTS=""
 else
-  if [ -z "$TERMINATE" ]; then
-    FEEDER_OPTS=""
-  else
-    FEEDER_OPTS="-q"
-    ML_OPTIONS="$ML_OPTIONS --error-exit"
-  fi
-  "$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
-    { read FPID; "$POLY" -q -i $ML_OPTIONS; RC="$?"; kill -TERM "$FPID"; exit "$RC"; }
-  RC="$?"
+  FEEDER_OPTS="-q"
 fi
+
+"$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
+  { read FPID; "$POLY" -q $ML_OPTIONS; RC="$?"; kill -TERM "$FPID"; exit "$RC"; }
+RC="$?"
 
 [ -n "$OUTFILE" -a -f "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 
