@@ -9,7 +9,7 @@ package isabelle
 
 object Getopts
 {
-  def apply(usage_text: () => String, option_specs: (String, String => Unit)*): Getopts =
+  def apply(usage_text: String, option_specs: (String, String => Unit)*): Getopts =
   {
     val options =
       (Map.empty[Char, (Boolean, String => Unit)] /: option_specs) {
@@ -25,11 +25,11 @@ object Getopts
   }
 }
 
-class Getopts private(usage_text: () => String, options: Map[Char, (Boolean, String => Unit)])
+class Getopts private(usage_text: String, options: Map[Char, (Boolean, String => Unit)])
 {
   def usage(): Nothing =
   {
-    Console.println(usage_text())
+    Console.println(usage_text)
     sys.exit(1)
   }
 

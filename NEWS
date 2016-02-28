@@ -11,6 +11,9 @@ New in this Isabelle version
 
 * New symbol \<circle>, e.g. for temporal operator.
 
+* Old 'header' command is no longer supported (legacy since
+Isabelle2015).
+
 
 *** Isar ***
 
@@ -181,6 +184,10 @@ INCOMPATIBILITY.
 * The Isabelle system environment always ensures that the main
 executables are found within the PATH: isabelle, isabelle_process,
 isabelle_scala_script.
+
+* The somewhat pointless command-line tool "isabelle yxml" has been
+discontinued. INCOMPATIBILITY, use operations from the modules "XML" and
+"YXML" in Isabelle/ML or Isabelle/Scala.
 
 * SML/NJ is no longer supported.
 

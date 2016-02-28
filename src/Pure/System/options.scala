@@ -150,7 +150,7 @@ object Options
       var list_options = false
       var export_file = ""
 
-      val getopts = Getopts(() => """
+      val getopts = Getopts("""
 Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
 
   Options are:
