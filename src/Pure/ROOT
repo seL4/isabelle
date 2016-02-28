@@ -3,12 +3,12 @@ chapter Pure
 session RAW =
   theories
   files
-    "RAW/ROOT_polyml-5.5.2.ML"
     "RAW/ROOT_polyml-5.6.ML"
     "RAW/ROOT_polyml.ML"
     "RAW/compiler_polyml.ML"
     "RAW/exn.ML"
-    "RAW/exn_trace_polyml-5.5.1.ML"
+    "RAW/exn_trace.ML"
+    "RAW/exn_trace_dummy.ML"
     "RAW/fixed_int_dummy.ML"
     "RAW/ml_compiler_parameters.ML"
     "RAW/ml_compiler_parameters_polyml-5.6.ML"
@@ -35,12 +35,12 @@ session RAW =
 session Pure =
   global_theories Pure
   files
-    "RAW/ROOT_polyml-5.5.2.ML"
     "RAW/ROOT_polyml-5.6.ML"
     "RAW/ROOT_polyml.ML"
     "RAW/compiler_polyml.ML"
     "RAW/exn.ML"
-    "RAW/exn_trace_polyml-5.5.1.ML"
+    "RAW/exn_trace.ML"
+    "RAW/exn_trace_dummy.ML"
     "RAW/fixed_int_dummy.ML"
     "RAW/ml_compiler_parameters.ML"
     "RAW/ml_compiler_parameters_polyml-5.6.ML"
@@ -169,8 +169,8 @@ session Pure =
     "ML/ml_lex.ML"
     "ML/ml_options.ML"
     "ML/ml_parse.ML"
+    "ML/ml_statistics.ML"
     "ML/ml_statistics_dummy.ML"
-    "ML/ml_statistics_polyml-5.5.0.ML"
     "ML/ml_syntax.ML"
     "PIDE/active.ML"
     "PIDE/command.ML"

@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/ml_statistics_polyml-5.5.0.ML
+(*  Title:      Pure/ML/ml_statistics.ML
     Author:     Makarius
 
-ML runtime statistics for Poly/ML 5.5.0.
+ML runtime statistics for Poly/ML 5.5.0 or later.
 *)
 
 signature ML_STATISTICS =
@@ -57,4 +57,3 @@ fun get () =
   end;
 
 end;
-
