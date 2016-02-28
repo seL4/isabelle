@@ -96,7 +96,7 @@ object Doc
   def main(args: Array[String])
   {
     Command_Line.tool0 {
-      val getopts = Getopts(() => """
+      val getopts = Getopts("""
 Usage: isabelle doc [DOC ...]
 
   View Isabelle documentation.

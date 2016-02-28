@@ -77,7 +77,7 @@ object Build_Doc
       var system_mode = false
 
       val getopts =
-        Getopts(() => """
+        Getopts("""
 Usage: isabelle build_doc [OPTIONS] [DOCS ...]"
 
   Options are:

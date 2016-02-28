@@ -90,7 +90,7 @@ object Update_Cartouches
       var replace_comment = false
       var replace_text = false
 
-      val getopts = Getopts(() => """
+      val getopts = Getopts("""
 Usage: isabelle update_cartouches [FILES|DIRS...]
 
   Options are:

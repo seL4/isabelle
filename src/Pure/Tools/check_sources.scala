@@ -54,7 +54,7 @@ object Check_Sources
   def main(args: Array[String])
   {
     Command_Line.tool0 {
-      val getopts = Getopts(() => """
+      val getopts = Getopts("""
 Usage: isabelle check_sources [ROOT_DIRS...]
 
   Check .thy, .ML, ROOT files from manifest of Mercurial ROOT_DIRS.

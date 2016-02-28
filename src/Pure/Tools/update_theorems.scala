@@ -34,7 +34,7 @@ object Update_Theorems
   def main(args: Array[String])
   {
     Command_Line.tool0 {
-      val getopts = Getopts(() => """
+      val getopts = Getopts("""
 Usage: isabelle update_theorems [FILES|DIRS...]
 
   Recursively find .thy files and update toplevel theorem keywords:

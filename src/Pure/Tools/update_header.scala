@@ -33,7 +33,7 @@ object Update_Header
     Command_Line.tool0 {
       var section = "section"
 
-      val getopts = Getopts(() => """
+      val getopts = Getopts("""
 Usage: isabelle update_header [FILES|DIRS...]
 
   Options are:

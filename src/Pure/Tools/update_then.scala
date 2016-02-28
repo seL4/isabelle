@@ -33,7 +33,7 @@ object Update_Then
   def main(args: Array[String])
   {
     Command_Line.tool0 {
-      val getopts = Getopts(() => """
+      val getopts = Getopts("""
 Usage: isabelle update_then [FILES|DIRS...]
 
   Recursively find .thy files and expand old Isar command conflations:
