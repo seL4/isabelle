@@ -182,6 +182,10 @@ INCOMPATIBILITY.
 executables are found within the PATH: isabelle, isabelle_process,
 isabelle_scala_script.
 
+* The somewhat pointless command-line tool "isabelle yxml" has been
+discontinued. INCOMPATIBILITY, use operations from the modules "XML" and
+"YXML" in Isabelle/ML or Isabelle/Scala.
+
 * SML/NJ is no longer supported.
 
 
