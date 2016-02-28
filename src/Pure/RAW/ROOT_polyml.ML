@@ -61,7 +61,7 @@ use "RAW/exn.ML";
 
 if ML_System.name = "polyml-5.6"
 then use "RAW/exn_trace.ML"
-else use "RAW/exn_trace_dummy.ML";
+else use "RAW/exn_trace_raw.ML";
 
 
 (* multithreading *)
