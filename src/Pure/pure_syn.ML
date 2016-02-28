@@ -14,10 +14,6 @@ structure Pure_Syn: PURE_SYN =
 struct
 
 val _ =
-  Outer_Syntax.command ("header", @{here}) "theory header"
-    (Parse.document_source >> Thy_Output.old_header_command);
-
-val _ =
   Outer_Syntax.command ("chapter", @{here}) "chapter heading"
     (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
 

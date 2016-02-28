@@ -35,7 +35,6 @@ sig
   val string_of_margin: Proof.context -> Pretty.T -> string
   val output: Proof.context -> Pretty.T list -> string
   val verbatim_text: Proof.context -> string -> string
-  val old_header_command: Input.source -> Toplevel.transition -> Toplevel.transition
   val document_command: {markdown: bool} -> (xstring * Position.T) option * Input.source ->
     Toplevel.transition -> Toplevel.transition
 end;
@@ -647,14 +646,7 @@ end;
 
 
 
-(** document commands **)
-
-fun old_header_command txt =
-  Toplevel.keep (fn state =>
-    if Toplevel.is_toplevel state then
-     (legacy_feature "Obsolete 'header' command -- use 'chapter', 'section' etc. instead";
-      ignore (output_text state {markdown = false} txt))
-    else raise Toplevel.UNDEF);
+(** document command **)
 
 fun document_command markdown (loc, txt) =
   Toplevel.keep (fn state =>

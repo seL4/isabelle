@@ -11,6 +11,9 @@ New in this Isabelle version
 
 * New symbol \<circle>, e.g. for temporal operator.
 
+* Old 'header' command is no longer supported (legacy since
+Isabelle2015).
+
 
 *** Isar ***
 
