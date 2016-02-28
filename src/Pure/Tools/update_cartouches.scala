@@ -87,13 +87,31 @@ object Update_Cartouches
   def main(args: Array[String])
   {
     Command_Line.tool0 {
-      args.toList match {
-        case Properties.Value.Boolean(replace_comment) ::
-            Properties.Value.Boolean(replace_text) :: files =>
-          files.foreach(file =>
-            update_cartouches(replace_comment, replace_text, Path.explode(file)))
-        case _ => error("Bad arguments:\n" + cat_lines(args))
-      }
+      var replace_comment = false
+      var replace_text = false
+
+      val getopts = Getopts(() => """
+Usage: isabelle update_cartouches [FILES|DIRS...]
+
+  Options are:
+    -c           replace comment marker "--" by symbol "\<comment>"
+    -t           replace @{text} antiquotations within text tokens
+
+  Recursively find .thy files and update theory syntax to use cartouches
+  instead of old-style {* verbatim *} or `alt_string` tokens.
+
+  Old versions of files are preserved by appending "~~".
+""",
+        "c" -> (_ => replace_comment = true),
+        "t" -> (_ => replace_text = true))
+
+      val specs = getopts(args)
+      if (specs.isEmpty) getopts.usage()
+
+      for {
+        spec <- specs
+        file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
+      } update_cartouches(replace_comment, replace_text, Path.explode(File.standard_path(file)))
     }
   }
 }
