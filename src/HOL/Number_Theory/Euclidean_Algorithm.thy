@@ -234,67 +234,89 @@ end
 class euclidean_ring = euclidean_semiring + idom
 begin
 
-function euclid_ext :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a \<times> 'a" where
-  "euclid_ext a b = 
-     (if b = 0 then 
-        (1 div unit_factor a, 0, normalize a)
-      else
-        case euclid_ext b (a mod b) of
-            (s, t, c) \<Rightarrow> (t, s - t * (a div b), c))"
-  by pat_completeness simp
-termination
-  by (relation "measure (euclidean_size \<circ> snd)") (simp_all add: mod_size_less)
+function euclid_ext_aux :: "'a \<Rightarrow> _" where
+  "euclid_ext_aux r' r s' s t' t = (
+     if r = 0 then let c = 1 div unit_factor r' in (s' * c, t' * c, normalize r')
+     else let q = r' div r
+          in  euclid_ext_aux r (r' mod r) s (s' - q * s) t (t' - q * t))"
+by auto
+termination by (relation "measure (\<lambda>(_,b,_,_,_,_). euclidean_size b)") (simp_all add: mod_size_less)
 
-declare euclid_ext.simps [simp del]
+declare euclid_ext_aux.simps [simp del]
+
+lemma euclid_ext_aux_correct:
+  assumes "gcd_eucl r' r = gcd_eucl x y"
+  assumes "s' * x + t' * y = r'"
+  assumes "s * x + t * y = r"
+  shows   "case euclid_ext_aux r' r s' s t' t of (a,b,c) \<Rightarrow>
+             a * x + b * y = c \<and> c = gcd_eucl x y" (is "?P (euclid_ext_aux r' r s' s t' t)")
+using assms
+proof (induction r' r s' s t' t rule: euclid_ext_aux.induct)
+  case (1 r' r s' s t' t)
+  show ?case
+  proof (cases "r = 0")
+    case True
+    hence "euclid_ext_aux r' r s' s t' t = 
+             (s' div unit_factor r', t' div unit_factor r', normalize r')"
+      by (subst euclid_ext_aux.simps) (simp add: Let_def)
+    also have "?P \<dots>"
+    proof safe
+      have "s' div unit_factor r' * x + t' div unit_factor r' * y = 
+                (s' * x + t' * y) div unit_factor r'"
+        by (cases "r' = 0") (simp_all add: unit_div_commute)
+      also have "s' * x + t' * y = r'" by fact
+      also have "\<dots> div unit_factor r' = normalize r'" by simp
+      finally show "s' div unit_factor r' * x + t' div unit_factor r' * y = normalize r'" .
+    next
+      from "1.prems" True show "normalize r' = gcd_eucl x y" by (simp add: gcd_eucl_0)
+    qed
+    finally show ?thesis .
+  next
+    case False
+    hence "euclid_ext_aux r' r s' s t' t = 
+             euclid_ext_aux r (r' mod r) s (s' - r' div r * s) t (t' - r' div r * t)"
+      by (subst euclid_ext_aux.simps) (simp add: Let_def)
+    also from "1.prems" False have "?P \<dots>"
+    proof (intro "1.IH")
+      have "(s' - r' div r * s) * x + (t' - r' div r * t) * y =
+              (s' * x + t' * y) - r' div r * (s * x + t * y)" by (simp add: algebra_simps)
+      also have "s' * x + t' * y = r'" by fact
+      also have "s * x + t * y = r" by fact
+      also have "r' - r' div r * r = r' mod r" using mod_div_equality[of r' r]
+        by (simp add: algebra_simps)
+      finally show "(s' - r' div r * s) * x + (t' - r' div r * t) * y = r' mod r" .
+    qed (auto simp: gcd_eucl_non_0 algebra_simps div_mod_equality')
+    finally show ?thesis .
+  qed
+qed
+
+definition euclid_ext where
+  "euclid_ext a b = euclid_ext_aux a b 1 0 0 1"
 
 lemma euclid_ext_0: 
   "euclid_ext a 0 = (1 div unit_factor a, 0, normalize a)"
-  by (simp add: euclid_ext.simps [of a 0])
+  by (simp add: euclid_ext_def euclid_ext_aux.simps)
 
 lemma euclid_ext_left_0: 
   "euclid_ext 0 a = (0, 1 div unit_factor a, normalize a)"
-  by (simp add: euclid_ext_0 euclid_ext.simps [of 0 a])
+  by (simp add: euclid_ext_def euclid_ext_aux.simps)
 
-lemma euclid_ext_non_0: 
-  "b \<noteq> 0 \<Longrightarrow> euclid_ext a b = (case euclid_ext b (a mod b) of
-    (s, t, c) \<Rightarrow> (t, s - t * (a div b), c))"
-  by (simp add: euclid_ext.simps [of a b] euclid_ext.simps [of b 0])
+lemma euclid_ext_correct':
+  "case euclid_ext x y of (a,b,c) \<Rightarrow> a * x + b * y = c \<and> c = gcd_eucl x y"
+  unfolding euclid_ext_def by (rule euclid_ext_aux_correct) simp_all
 
-lemma euclid_ext_code [code]:
-  "euclid_ext a b = (if b = 0 then (1 div unit_factor a, 0, normalize a)
-    else let (s, t, c) = euclid_ext b (a mod b) in  (t, s - t * (a div b), c))"
-  by (simp add: euclid_ext.simps [of a b] euclid_ext.simps [of b 0])
+definition euclid_ext' where
+  "euclid_ext' x y = (case euclid_ext x y of (a, b, _) \<Rightarrow> (a, b))"
 
-lemma euclid_ext_correct:
-  "case euclid_ext a b of (s, t, c) \<Rightarrow> s * a + t * b = c"
-proof (induct a b rule: gcd_eucl_induct)
-  case (zero a) then show ?case
-    by (simp add: euclid_ext_0 ac_simps)
-next
-  case (mod a b)
-  obtain s t c where stc: "euclid_ext b (a mod b) = (s,t,c)"
-    by (cases "euclid_ext b (a mod b)") blast
-  with mod have "c = s * b + t * (a mod b)" by simp
-  also have "... = t * ((a div b) * b + a mod b) + (s - t * (a div b)) * b"
-    by (simp add: algebra_simps) 
-  also have "(a div b) * b + a mod b = a" using mod_div_equality .
-  finally show ?case
-    by (subst euclid_ext.simps) (simp add: stc mod ac_simps)
-qed
-
-definition euclid_ext' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<times> 'a"
-where
-  "euclid_ext' a b = (case euclid_ext a b of (s, t, _) \<Rightarrow> (s, t))"
+lemma euclid_ext'_correct':
+  "case euclid_ext' x y of (a,b) \<Rightarrow> a * x + b * y = gcd_eucl x y"
+  using euclid_ext_correct'[of x y] by (simp add: case_prod_unfold euclid_ext'_def)
 
 lemma euclid_ext'_0: "euclid_ext' a 0 = (1 div unit_factor a, 0)" 
   by (simp add: euclid_ext'_def euclid_ext_0)
 
 lemma euclid_ext'_left_0: "euclid_ext' 0 a = (0, 1 div unit_factor a)" 
   by (simp add: euclid_ext'_def euclid_ext_left_0)
-  
-lemma euclid_ext'_non_0: "b \<noteq> 0 \<Longrightarrow> euclid_ext' a b = (snd (euclid_ext' b (a mod b)),
-  fst (euclid_ext' b (a mod b)) - snd (euclid_ext' b (a mod b)) * (a div b))"
-  by (simp add: euclid_ext'_def euclid_ext_non_0 split_def)
 
 end
 
@@ -412,21 +434,21 @@ subclass ring_gcd ..
 
 lemma euclid_ext_gcd [simp]:
   "(case euclid_ext a b of (_, _ , t) \<Rightarrow> t) = gcd a b"
-  by (induct a b rule: gcd_eucl_induct)
-    (simp_all add: euclid_ext_0 euclid_ext_non_0 ac_simps split: prod.split prod.split_asm)
+  using euclid_ext_correct'[of a b] by (simp add: case_prod_unfold Let_def gcd_gcd_eucl)
 
 lemma euclid_ext_gcd' [simp]:
   "euclid_ext a b = (r, s, t) \<Longrightarrow> t = gcd a b"
   by (insert euclid_ext_gcd[of a b], drule (1) subst, simp)
+
+lemma euclid_ext_correct:
+  "case euclid_ext x y of (a,b,c) \<Rightarrow> a * x + b * y = c \<and> c = gcd x y"
+  using euclid_ext_correct'[of x y]
+  by (simp add: gcd_gcd_eucl case_prod_unfold)
   
 lemma euclid_ext'_correct:
   "fst (euclid_ext' a b) * a + snd (euclid_ext' a b) * b = gcd a b"
-proof-
-  obtain s t c where "euclid_ext a b = (s,t,c)"
-    by (cases "euclid_ext a b", blast)
-  with euclid_ext_correct[of a b] euclid_ext_gcd[of a b]
-    show ?thesis unfolding euclid_ext'_def by simp
-qed
+  using euclid_ext_correct'[of a b]
+  by (simp add: gcd_gcd_eucl case_prod_unfold euclid_ext'_def)
 
 lemma bezout: "\<exists>s t. s * a + t * b = gcd a b"
   using euclid_ext'_correct by blast
