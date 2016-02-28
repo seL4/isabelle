@@ -200,7 +200,7 @@ subsubsection\<open>The concept of continuously differentiable\<close>
 text \<open>
 John Harrison writes as follows:
 
-``The usual assumption in complex analysis texts is that a path \<gamma> should be piecewise
+``The usual assumption in complex analysis texts is that a path \<open>\<gamma>\<close> should be piecewise
 continuously differentiable, which ensures that the path integral exists at least for any continuous
 f, since all piecewise continuous functions are integrable. However, our notion of validity is
 weaker, just piecewise differentiability... [namely] continuity plus differentiability except on a
