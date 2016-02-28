@@ -34,7 +34,26 @@ object Update_Theorems
   def main(args: Array[String])
   {
     Command_Line.tool0 {
-      args.foreach(arg => update_theorems(Path.explode(arg)))
+      val getopts = Getopts(() => """
+Usage: isabelle update_theorems [FILES|DIRS...]
+
+  Recursively find .thy files and update toplevel theorem keywords:
+
+    theorems             ~>  lemmas
+    schematic_theorem    ~>  schematic_goal
+    schematic_lemma      ~>  schematic_goal
+    schematic_corollary  ~>  schematic_goal
+
+  Old versions of files are preserved by appending "~~".
+""")
+
+      val specs = getopts(args)
+      if (specs.isEmpty) getopts.usage()
+
+      for {
+        spec <- specs
+        file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
+      } update_theorems(Path.explode(File.standard_path(file)))
     }
   }
 }
