@@ -31,14 +31,32 @@ object Update_Header
   def main(args: Array[String])
   {
     Command_Line.tool0 {
-      args.toList match {
-        case section :: files =>
-          if (!headings.contains(section))
-            error("Bad heading command: " + quote(section))
-          files.foreach(file => update_header(section, Path.explode(file)))
-        case _ =>
-            error("Bad arguments:\n" + cat_lines(args))
-      }
+      var section = "section"
+
+      val getopts = Getopts(() => """
+Usage: isabelle update_header [FILES|DIRS...]
+
+  Options are:
+    -s COMMAND   alternative heading command (default 'section')
+
+  Recursively find .thy files and replace obsolete theory header commands
+  by 'chapter', 'section' (default), 'subsection', 'subsubsection',
+  'paragraph', 'subparagraph'.
+
+  Old versions of files are preserved by appending "~~".
+""",
+        "s:" -> (arg => section = arg))
+
+      val specs = getopts(args)
+      if (specs.isEmpty) getopts.usage()
+
+      if (!headings.contains(section))
+        error("Bad heading command: " + quote(section))
+
+      for {
+        spec <- specs
+        file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
+      } update_header(section, Path.explode(File.standard_path(file)))
     }
   }
 }
