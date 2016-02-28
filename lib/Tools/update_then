@@ -4,35 +4,6 @@
 #
 # DESCRIPTION: expand old Isar command conflations 'hence' and 'thus'
 
+isabelle_admin_build jars || exit $?
 
-## diagnostics
-
-PRG="$(basename "$0")"
-
-function usage()
-{
-  echo
-  echo "Usage: isabelle $PRG [FILES|DIRS...]"
-  echo
-  echo "  Recursively find .thy files and expand old Isar command conflations:"
-  echo
-  echo "    hence  ~>  then have"
-  echo "    thus   ~>  then show"
-  echo
-  echo "  Old versions of files are preserved by appending \"~~\"."
-  echo
-  exit 1
-}
-
-
-## process command line
-
-[ "$#" -eq 0 -o "$1" = "-?" ] && usage
-
-SPECS="$@"; shift "$#"
-
-
-## main
-
-find $SPECS -name \*.thy -print0 | \
-  xargs -0 "$ISABELLE_TOOL" java isabelle.Update_Then
+"$ISABELLE_TOOL" java isabelle.Update_Then "$@"

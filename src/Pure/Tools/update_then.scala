@@ -33,7 +33,24 @@ object Update_Then
   def main(args: Array[String])
   {
     Command_Line.tool0 {
-      args.foreach(arg => update_then(Path.explode(arg)))
+      val getopts = Getopts(() => """
+Usage: isabelle update_then [FILES|DIRS...]
+
+  Recursively find .thy files and expand old Isar command conflations:
+
+    hence  ~>  then have
+    thus   ~>  then show
+
+  Old versions of files are preserved by appending "~~".
+""")
+
+      val specs = getopts(args)
+      if (specs.isEmpty) getopts.usage()
+
+      for {
+        spec <- specs
+        file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
+      } update_then(Path.explode(File.standard_path(file)))
     }
   }
 }
