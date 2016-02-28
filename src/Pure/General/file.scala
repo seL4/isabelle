@@ -196,13 +196,13 @@ object File
   def write_backup(path: Path, text: CharSequence)
   {
     path.file renameTo path.backup.file
-    File.write(path, text)
+    write(path, text)
   }
 
   def write_backup2(path: Path, text: CharSequence)
   {
     path.file renameTo path.backup2.file
-    File.write(path, text)
+    write(path, text)
   }
 
 
