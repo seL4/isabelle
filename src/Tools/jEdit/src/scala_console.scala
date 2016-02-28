@@ -27,23 +27,10 @@ class Scala_Console extends Shell("Scala")
 
   private def reconstruct_classpath(): String =
   {
-    def find_files(start: JFile, ok: JFile => Boolean = _ => true): List[JFile] =
-    {
-      val files = new mutable.ListBuffer[JFile]
-      val filter = new FileFilter { def accept(entry: JFile) = entry.isDirectory || ok(entry) }
-      def find_entry(entry: JFile)
-      {
-        if (ok(entry)) files += entry
-        if (entry.isDirectory) entry.listFiles(filter).foreach(find_entry)
-      }
-      find_entry(start)
-      files.toList
-    }
-
     def find_jars(start: String): List[String] =
       if (start != null)
-        find_files(new JFile(start),
-          entry => entry.isFile && entry.getName.endsWith(".jar")).map(_.getAbsolutePath)
+        File.find_files(new JFile(start), file => file.getName.endsWith(".jar")).
+          map(_.getAbsolutePath)
       else Nil
 
     val initial_class_path =

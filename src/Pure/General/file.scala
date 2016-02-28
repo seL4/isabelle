@@ -10,7 +10,8 @@ package isabelle
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   OutputStream, InputStream, FileInputStream, BufferedInputStream, BufferedReader,
   InputStreamReader, File => JFile, IOException}
-import java.nio.file.{StandardCopyOption, Files}
+import java.nio.file.{StandardCopyOption, Path => JPath, Files, SimpleFileVisitor, FileVisitResult}
+import java.nio.file.attribute.BasicFileAttributes
 import java.net.{URL, URLDecoder, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.regex.Pattern
@@ -107,23 +108,28 @@ object File
   def shell_path(file: JFile): String = shell_quote(standard_path(file))
 
 
-  /* directory content */
+  /* find files */
 
-  def read_dir(dir: Path): List[String] =
+  def find_files(start: JFile, pred: JFile => Boolean = _ => true): List[JFile] =
   {
-    if (!dir.is_dir) error("Bad directory: " + dir.toString)
-    val files = dir.file.listFiles
-    if (files == null) Nil
-    else files.toList.map(_.getName)
-  }
+    val result = new mutable.ListBuffer[JFile]
 
-  def find_files(dir: Path): Stream[Path] =
-    read_dir(dir).toStream.map(name =>
-      if (Path.is_wellformed(name)) {
-        val path = dir + Path.basic(name)
-        path #:: (if (path.is_dir) find_files(path) else Stream.empty)
-      }
-      else Stream.empty).flatten
+    if (start.isFile && pred(start)) result += start
+    else if (start.isDirectory) {
+      Files.walkFileTree(start.toPath,
+        new SimpleFileVisitor[JPath] {
+          override def visitFile(path: JPath, attrs: BasicFileAttributes): FileVisitResult =
+          {
+            val file = path.toFile
+            if (pred(file)) result += file
+            FileVisitResult.CONTINUE
+          }
+        }
+      )
+    }
+
+    result.toList
+  }
 
 
   /* read */
