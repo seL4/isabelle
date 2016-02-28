@@ -234,6 +234,8 @@ end
 class euclidean_ring = euclidean_semiring + idom
 begin
 
+subclass ring_div ..
+
 function euclid_ext_aux :: "'a \<Rightarrow> _" where
   "euclid_ext_aux r' r s' s t' t = (
      if r = 0 then let c = 1 div unit_factor r' in (s' * c, t' * c, normalize r')
@@ -304,6 +306,10 @@ lemma euclid_ext_left_0:
 lemma euclid_ext_correct':
   "case euclid_ext x y of (a,b,c) \<Rightarrow> a * x + b * y = c \<and> c = gcd_eucl x y"
   unfolding euclid_ext_def by (rule euclid_ext_aux_correct) simp_all
+
+lemma euclid_ext_gcd_eucl:
+  "(case euclid_ext x y of (a,b,c) \<Rightarrow> c) = gcd_eucl x y"
+  using euclid_ext_correct'[of x y] by (simp add: case_prod_unfold)
 
 definition euclid_ext' where
   "euclid_ext' x y = (case euclid_ext x y of (a, b, _) \<Rightarrow> (a, b))"
