@@ -166,7 +166,6 @@ fun build args_file = Command_Line.tool0 (fn () =>
       val _ = Par_Exn.release_all [res1, res2];
 
       val _ = Options.reset_default ();
-      val _ = Session.shutdown ();
       val _ = if do_output then (ML_Heap.share_common_data (); ML_Heap.save_state output) else ();
     in () end);
 
