@@ -642,10 +642,14 @@ definition contour_integrable_on
   where "f contour_integrable_on g \<equiv> \<exists>i. (f has_contour_integral i) g"
 
 definition contour_integral
-  where "contour_integral g f \<equiv> @i. (f has_contour_integral i) g"
+  where "contour_integral g f \<equiv> @i. (f has_contour_integral i) g \<or> ~ f contour_integrable_on g \<and> i=0"
 
-lemma contour_integral_unique: "(f has_contour_integral i)  g \<Longrightarrow> contour_integral g f = i"
-  by (auto simp: contour_integral_def has_contour_integral_def integral_def [symmetric])
+lemma not_integrable_contour_integral: "~ f contour_integrable_on g \<Longrightarrow> contour_integral g f = 0"
+  unfolding contour_integrable_on_def contour_integral_def by blast 
+
+lemma contour_integral_unique: "(f has_contour_integral i) g \<Longrightarrow> contour_integral g f = i"
+  apply (simp add: contour_integral_def has_contour_integral_def contour_integrable_on_def)
+  using has_integral_unique by blast
 
 corollary has_contour_integral_eqpath:
      "\<lbrakk>(f has_contour_integral y) p; f contour_integrable_on \<gamma>;
@@ -769,8 +773,16 @@ lemma contour_integrable_reversepath_eq:
   using contour_integrable_reversepath valid_path_reversepath by fastforce
 
 lemma contour_integral_reversepath:
-    "\<lbrakk>valid_path g; f contour_integrable_on g\<rbrakk> \<Longrightarrow> contour_integral (reversepath g) f = -(contour_integral g f)"
-  using has_contour_integral_reversepath contour_integrable_on_def contour_integral_unique by blast
+  assumes "valid_path g"
+    shows "contour_integral (reversepath g) f = - (contour_integral g f)"
+proof (cases "f contour_integrable_on g")
+  case True then show ?thesis
+    by (simp add: assms contour_integral_unique has_contour_integral_integral has_contour_integral_reversepath)
+next
+  case False then have "~ f contour_integrable_on (reversepath g)"
+    by (simp add: assms contour_integrable_reversepath_eq)
+  with False show ?thesis by (simp add: not_integrable_contour_integral)
+qed
 
 
 subsection\<open>Joining two paths together\<close>
@@ -1093,10 +1105,16 @@ lemma has_contour_integral_shiftpath_eq:
     shows "(f has_contour_integral i) (shiftpath a g) \<longleftrightarrow> (f has_contour_integral i) g"
   using assms has_contour_integral_shiftpath has_contour_integral_shiftpath_D by blast
 
+lemma contour_integrable_on_shiftpath_eq:
+  assumes "valid_path g" "pathfinish g = pathstart g" "a \<in> {0..1}"
+    shows "f contour_integrable_on (shiftpath a g) \<longleftrightarrow> f contour_integrable_on g"
+using assms contour_integrable_on_def has_contour_integral_shiftpath_eq by auto
+
 lemma contour_integral_shiftpath:
   assumes "valid_path g" "pathfinish g = pathstart g" "a \<in> {0..1}"
     shows "contour_integral (shiftpath a g) f = contour_integral g f"
-   using assms by (simp add: contour_integral_def has_contour_integral_shiftpath_eq)
+   using assms   
+   by (simp add: contour_integral_def contour_integrable_on_def has_contour_integral_shiftpath_eq)
 
 
 subsection\<open>More about straight-line paths\<close>
@@ -1325,8 +1343,8 @@ next
 qed
 
 lemma contour_integral_integral:
-  shows "contour_integral g f = integral {0..1} (\<lambda>x. f (g x) * vector_derivative g (at x))"
-  by (simp add: contour_integral_def integral_def has_contour_integral)
+     "contour_integral g f = integral {0..1} (\<lambda>x. f (g x) * vector_derivative g (at x))"
+  by (simp add: contour_integral_def integral_def has_contour_integral contour_integrable_on)
 
 
 subsection\<open>Segments via convex hulls\<close>
@@ -1577,7 +1595,9 @@ lemma contour_integral_div:
 
 lemma contour_integral_eq:
     "(\<And>x. x \<in> path_image p \<Longrightarrow> f x = g x) \<Longrightarrow> contour_integral p f = contour_integral p g"
-  by (simp add: contour_integral_def) (metis has_contour_integral_eq)
+  apply (simp add: contour_integral_def)
+  using has_contour_integral_eq
+  by (metis contour_integral_unique has_contour_integral_integrable has_contour_integral_integral)
 
 lemma contour_integral_eq_0:
     "(\<And>z. z \<in> path_image g \<Longrightarrow> f z = 0) \<Longrightarrow> contour_integral g f = 0"
@@ -1877,16 +1897,16 @@ proof -
     done
   also have "... = integral {0..1}
                      (\<lambda>y. contour_integral g (\<lambda>x. f x (h y) * vector_derivative h (at y)))"
-    apply (simp add: contour_integral_integral)
+    apply (simp only: contour_integral_integral)
     apply (subst integral_swap_continuous [where 'a = real and 'b = real, of 0 0 1 1, simplified])
-    apply (rule fgh gvcon' hvcon' continuous_intros | simp add: split_def)+
-    apply (simp add: algebra_simps)
+     apply (rule fgh gvcon' hvcon' continuous_intros | simp add: split_def)+
+    unfolding integral_mult_left [symmetric]
+    apply (simp only: mult_ac)
     done
   also have "... = contour_integral h (\<lambda>z. contour_integral g (\<lambda>w. f w z))"
     apply (simp add: contour_integral_integral)
     apply (rule integral_cong)
-    apply (subst integral_mult_left [symmetric])
-    apply (blast intro: vdg)
+    unfolding integral_mult_left [symmetric]
     apply (simp add: algebra_simps)
     done
   finally show ?thesis

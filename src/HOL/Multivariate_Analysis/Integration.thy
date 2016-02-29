@@ -1806,10 +1806,13 @@ lemma has_integral_altD:
 definition integrable_on (infixr "integrable'_on" 46)
   where "f integrable_on i \<longleftrightarrow> (\<exists>y. (f has_integral y) i)"
 
-definition "integral i f = (SOME y. (f has_integral y) i)"
+definition "integral i f = (SOME y. (f has_integral y) i \<or> ~ f integrable_on i \<and> y=0)"
 
 lemma integrable_integral[dest]: "f integrable_on i \<Longrightarrow> (f has_integral (integral i f)) i"
-  unfolding integrable_on_def integral_def by (rule someI_ex)
+  unfolding integrable_on_def integral_def by (metis (mono_tags, lifting) someI_ex)
+
+lemma not_integrable_integral: "~ f integrable_on i \<Longrightarrow> integral i f = 0"
+  unfolding integrable_on_def integral_def by blast 
 
 lemma has_integral_integrable[intro]: "(f has_integral i) s \<Longrightarrow> f integrable_on s"
   unfolding integrable_on_def by auto
@@ -2328,6 +2331,12 @@ lemma integral_unique [intro]: "(f has_integral y) k \<Longrightarrow> integral 
   unfolding integral_def
   by (rule some_equality) (auto intro: has_integral_unique)
 
+lemma eq_integralD: "integral k f = y \<Longrightarrow> (f has_integral y) k \<or> ~ f integrable_on k \<and> y=0"
+  unfolding integral_def integrable_on_def
+  apply (erule subst)
+  apply (rule someI_ex)
+  by blast
+
 lemma has_integral_is_0:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::real_normed_vector"
   assumes "\<forall>x\<in>s. f x = 0"
@@ -2468,14 +2477,29 @@ lemma has_integral_scaleR_left:
   using has_integral_linear[OF _ bounded_linear_scaleR_left] by (simp add: comp_def)
 
 lemma has_integral_mult_left:
-  fixes c :: "_ :: {real_normed_algebra}"
+  fixes c :: "_ :: real_normed_algebra"
   shows "(f has_integral y) s \<Longrightarrow> ((\<lambda>x. f x * c) has_integral (y * c)) s"
   using has_integral_linear[OF _ bounded_linear_mult_left] by (simp add: comp_def)
 
-corollary integral_mult_left:
-  fixes c:: "'a::real_normed_algebra"
-  shows "f integrable_on s \<Longrightarrow> integral s (\<lambda>x. f x * c) = integral s f * c"
-  by (blast intro:  has_integral_mult_left)
+text\<open>The case analysis eliminates the condition @{term "f integrable_on s"} at the cost
+     of the type class constraint @{text"division_ring"}\<close>
+corollary integral_mult_left [simp]:
+  fixes c:: "'a::{real_normed_algebra,division_ring}"
+  shows "integral s (\<lambda>x. f x * c) = integral s f * c"
+proof (cases "f integrable_on s \<or> c = 0")
+  case True then show ?thesis
+    by (force intro: has_integral_mult_left)
+next
+  case False then have "~ (\<lambda>x. f x * c) integrable_on s"
+    using has_integral_mult_left [of "(\<lambda>x. f x * c)" _ s "inverse c"]
+    by (force simp add: mult.assoc)
+  with False show ?thesis by (simp add: not_integrable_integral)
+qed
+
+corollary integral_mult_right [simp]:
+  fixes c:: "'a::{real_normed_field}"
+  shows "integral s (\<lambda>x. c * f x) = c * integral s f"
+by (simp add: mult.commute [of c])
 
 lemma has_integral_mult_right:
   fixes c :: "'a :: real_normed_algebra"
@@ -2499,7 +2523,7 @@ next
     unfolding real_scaleR_def .
 qed
 
-lemma has_integral_neg: "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. -(f x)) has_integral (-k)) s"
+lemma has_integral_neg: "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. -(f x)) has_integral -k) s"
   by (drule_tac c="-1" in has_integral_cmul) auto
 
 lemma has_integral_add:
@@ -2608,7 +2632,7 @@ lemma has_integral_sub:
   unfolding algebra_simps
   by auto
 
-lemma integral_0:
+lemma integral_0 [simp]:
   "integral s (\<lambda>x::'n::euclidean_space. 0::'m::real_normed_vector) = 0"
   by (rule integral_unique has_integral_0)+
 
@@ -2616,11 +2640,26 @@ lemma integral_add: "f integrable_on s \<Longrightarrow> g integrable_on s \<Lon
     integral s (\<lambda>x. f x + g x) = integral s f + integral s g"
   by (rule integral_unique) (metis integrable_integral has_integral_add)
 
-lemma integral_cmul: "f integrable_on s \<Longrightarrow> integral s (\<lambda>x. c *\<^sub>R f x) = c *\<^sub>R integral s f"
-  by (rule integral_unique) (metis integrable_integral has_integral_cmul)
+lemma integral_cmul [simp]: "integral s (\<lambda>x. c *\<^sub>R f x) = c *\<^sub>R integral s f"
+proof (cases "f integrable_on s \<or> c = 0")
+  case True with has_integral_cmul show ?thesis by force
+next
+  case False then have "~ (\<lambda>x. c *\<^sub>R f x) integrable_on s"
+    using has_integral_cmul [of "(\<lambda>x. c *\<^sub>R f x)" _ s "inverse c"]
+    by force
+  with False show ?thesis by (simp add: not_integrable_integral)
+qed
 
-lemma integral_neg: "f integrable_on s \<Longrightarrow> integral s (\<lambda>x. - f x) = - integral s f"
-  by (rule integral_unique) (metis integrable_integral has_integral_neg)
+lemma integral_neg [simp]: "integral s (\<lambda>x. - f x) = - integral s f"
+proof (cases "f integrable_on s")
+  case True then show ?thesis
+    by (simp add: has_integral_neg integrable_integral integral_unique)
+next
+  case False then have "~ (\<lambda>x. - f x) integrable_on s"
+    using has_integral_neg [of "(\<lambda>x. - f x)" _ s ]
+    by force
+  with False show ?thesis by (simp add: not_integrable_integral)
+qed
 
 lemma integral_diff: "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow>
     integral s (\<lambda>x. f x - g x) = integral s f - integral s g"
@@ -2715,7 +2754,7 @@ lemma integral_cong:
   assumes "\<And>x. x \<in> s \<Longrightarrow> f x = g x"
   shows "integral s f = integral s g"
   unfolding integral_def
-  by (metis assms has_integral_cong)
+by (metis (full_types, hide_lams) assms has_integral_cong integrable_eq)
 
 lemma has_integral_null [intro]:
   assumes "content(cbox a b) = 0"
@@ -4427,12 +4466,17 @@ lemma has_integral_component_nonneg:
 lemma integral_component_nonneg:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "k \<in> Basis"
-    and "f integrable_on s" "\<forall>x\<in>s. 0 \<le> (f x)\<bullet>k"
+    and  "\<forall>x\<in>s. 0 \<le> (f x)\<bullet>k"
   shows "0 \<le> (integral s f)\<bullet>k"
-  apply (rule has_integral_component_nonneg)
-  using assms
-  apply auto
-  done
+proof (cases "f integrable_on s")
+  case True show ?thesis
+    apply (rule has_integral_component_nonneg)
+    using assms True
+    apply auto
+    done
+next
+  case False then show ?thesis by (simp add: not_integrable_integral)
+qed
 
 lemma has_integral_component_neg:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -5345,9 +5389,7 @@ lemma integral_spike:
   assumes "negligible s"
     and "\<forall>x\<in>(t - s). g x = f x"
   shows "integral t f = integral t g"
-  unfolding integral_def
-  using has_integral_spike_eq[OF assms]
-  by auto
+  using has_integral_spike_eq[OF assms] by (simp add: integral_def integrable_on_def)
 
 
 subsection \<open>Some other trivialities about negligible sets.\<close>
@@ -8146,10 +8188,7 @@ proof -
     using p by auto
   have **: "g integrable_on cbox c d"
     apply (rule integrable_spike_interior[where f=f])
-    unfolding g_def
-    defer
-    apply (rule has_integral_integrable)
-    using assms(1)
+    unfolding g_def  using assms(1)
     apply auto
     done
   moreover
@@ -9426,12 +9465,7 @@ proof -
     note kl = tagged_division_ofD(3,4)[OF qq[THEN conjunct1]]
     from this(2)[OF as(4,1)] guess u v by (elim exE) note uv=this
     have *: "interior (k \<inter> l) = {}"
-      unfolding interior_Int
-      apply (rule q')
-      using as
-      unfolding r_def
-      apply auto
-      done
+      by (metis DiffE \<open>T1 = qq k\<close> \<open>T1 \<noteq> T2\<close> \<open>T2 = qq l\<close> as(4) as(5) interior_Int q'(5) r_def)
     have "interior m = {}"
       unfolding subset_empty[symmetric]
       unfolding *[symmetric]
@@ -10234,7 +10268,6 @@ proof -
     apply (rule_tac x="integral s (f k)" in bexI)
     prefer 3
     apply (rule_tac x=k in exI)
-    unfolding integral_neg[OF assm(1)]
     apply auto
     done
   have "(\<lambda>x. - g x) integrable_on s \<and>
@@ -10254,14 +10287,8 @@ proof -
     done
   note * = conjunctD2[OF this]
   show ?thesis
-    apply rule
-    using integrable_neg[OF *(1)]
-    defer
-    using tendsto_minus[OF *(2)]
-    unfolding integral_neg[OF assm(1)]
-    unfolding integral_neg[OF *(1),symmetric]
-    apply auto
-    done
+    using integrable_neg[OF *(1)] tendsto_minus[OF *(2)]
+    by auto
 qed
 
 
@@ -11402,11 +11429,9 @@ next
         unfolding inner_minus_left[symmetric]
         defer
         apply (subst integral_neg[symmetric])
-        defer
         apply (rule_tac[1-2] integral_component_le[OF i])
-        apply (rule integrable_neg)
         using integrable_on_subcbox[OF assms(1),of a b]
-          integrable_on_subcbox[OF assms(2),of a b] i
+          integrable_on_subcbox[OF assms(2),of a b] i  integrable_neg
         unfolding ab
         apply auto
         done

@@ -1521,10 +1521,7 @@ next
   then have 2: "contour_integral (linepath b c) f =
                 contour_integral (linepath b a') f + contour_integral (linepath a' c) f"
     by (rule contour_integral_split_linepath [OF _ a'])
-  have "f contour_integrable_on linepath b' a'"
-    by (meson a'b' contf continuous_on_subset contour_integrable_continuous_linepath
-              convex_contains_segment \<open>convex S\<close>)
-  then have 3: "contour_integral (reversepath (linepath b' a')) f =
+  have 3: "contour_integral (reversepath (linepath b' a')) f =
                 - contour_integral (linepath b' a') f"
     by (rule contour_integral_reversepath [OF valid_path_linepath])
   have fcd_le: "f complex_differentiable at x"
