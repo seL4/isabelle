@@ -22,8 +22,8 @@ definition Init :: "'a predicate \<Rightarrow> 'a temporal"  ("\<langle>_\<rangl
   where "Init P s = P (unlift (HD $ s))"
     \<comment> \<open>this means that for \<open>nil\<close> and \<open>UU\<close> the effect is unpredictable\<close>
 
-definition Next :: "'a temporal \<Rightarrow> 'a temporal"
-  where "(Next P) s \<longleftrightarrow> (if TL $ s = UU \<or> TL $ s = nil then P s else P (TL $ s))"
+definition Next :: "'a temporal \<Rightarrow> 'a temporal"  ("\<circle>(_)" [80] 80)
+  where "(\<circle>P) s \<longleftrightarrow> (if TL $ s = UU \<or> TL $ s = nil then P s else P (TL $ s))"
 
 definition suffix :: "'a Seq \<Rightarrow> 'a Seq \<Rightarrow> bool"
   where "suffix s2 s \<longleftrightarrow> (\<exists>s1. Finite s1 \<and> s = s1 @@ s2)"
@@ -120,14 +120,14 @@ lemma tsuffix_TL [rule_format]: "s \<noteq> UU \<and> s \<noteq> nil \<longright
 
 lemmas tsuffix_TL2 = conjI [THEN tsuffix_TL]
 
-lemma LTL1: "s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> (s \<Turnstile> \<box>F \<^bold>\<longrightarrow> (F \<^bold>\<and> (Next (\<box>F))))"
+lemma LTL1: "s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> (s \<Turnstile> \<box>F \<^bold>\<longrightarrow> (F \<^bold>\<and> (\<circle>(\<box>F))))"
   supply if_split [split del] 
   apply (unfold Next_def satisfies_def NOT_def IMPLIES_def AND_def Box_def)
   apply auto
   text \<open>\<open>\<box>F \<^bold>\<longrightarrow> F\<close>\<close>
   apply (erule_tac x = "s" in allE)
   apply (simp add: tsuffix_def suffix_refl)
-  text \<open>\<open>\<box>F \<^bold>\<longrightarrow> Next \<box>F\<close>\<close>
+  text \<open>\<open>\<box>F \<^bold>\<longrightarrow> \<circle>\<box>F\<close>\<close>
   apply (simp split add: if_split)
   apply auto
   apply (drule tsuffix_TL2)
@@ -135,13 +135,13 @@ lemma LTL1: "s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> (s \<Turnstil
   apply auto
   done
 
-lemma LTL2a: "s \<Turnstile> \<^bold>\<not> (Next F) \<^bold>\<longrightarrow> (Next (\<^bold>\<not> F))"
+lemma LTL2a: "s \<Turnstile> \<^bold>\<not> (\<circle>F) \<^bold>\<longrightarrow> (\<circle>(\<^bold>\<not> F))"
   by (simp add: Next_def satisfies_def NOT_def IMPLIES_def)
 
-lemma LTL2b: "s \<Turnstile> (Next (\<^bold>\<not> F)) \<^bold>\<longrightarrow> (\<^bold>\<not> (Next F))"
+lemma LTL2b: "s \<Turnstile> (\<circle>(\<^bold>\<not> F)) \<^bold>\<longrightarrow> (\<^bold>\<not> (\<circle>F))"
   by (simp add: Next_def satisfies_def NOT_def IMPLIES_def)
 
-lemma LTL3: "ex \<Turnstile> (Next (F \<^bold>\<longrightarrow> G)) \<^bold>\<longrightarrow> (Next F) \<^bold>\<longrightarrow> (Next G)"
+lemma LTL3: "ex \<Turnstile> (\<circle>(F \<^bold>\<longrightarrow> G)) \<^bold>\<longrightarrow> (\<circle>F) \<^bold>\<longrightarrow> (\<circle>G)"
   by (simp add: Next_def satisfies_def NOT_def IMPLIES_def)
 
 lemma ModusPonens: "\<^bold>\<TTurnstile> (P \<^bold>\<longrightarrow> Q) \<Longrightarrow> \<^bold>\<TTurnstile> P \<Longrightarrow> \<^bold>\<TTurnstile> Q"

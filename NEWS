@@ -7,6 +7,14 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* New symbol \<circle>, e.g. for temporal operator.
+
+* Old 'header' command is no longer supported (legacy since
+Isabelle2015).
+
+
 *** Isar ***
 
 * Command '\<proof>' is an alias for 'sorry', with different
@@ -34,6 +42,23 @@ typesetting. E.g. to produce proof holes in examples and documentation.
 
 * Renamed split_if -> if_split and split_if_asm -> if_split_asm to
 resemble the f.split naming convention, INCOMPATIBILITY.
+
+* Multiset membership is now expressed using set_mset rather than count.
+ASCII infix syntax ":#" has been discontinued.
+
+  - Expressions "count M a > 0" and similar simplify to membership
+    by default.
+
+  - Converting between "count M a = 0" and non-membership happens using
+    equations count_eq_zero_iff and not_in_iff.
+
+  - Rules count_inI and in_countE obtain facts of the form
+    "count M a = n" from membership.
+
+  - Rules count_in_diffI and in_diff_countE obtain facts of the form
+    "count M a = n + count N a" from membership on difference sets.
+
+INCOMPATIBILITY.
 
 * Compound constants INFIMUM and SUPREMUM are mere abbreviations now.
 INCOMPATIBILITY.
@@ -159,6 +184,10 @@ INCOMPATIBILITY.
 * The Isabelle system environment always ensures that the main
 executables are found within the PATH: isabelle, isabelle_process,
 isabelle_scala_script.
+
+* The somewhat pointless command-line tool "isabelle yxml" has been
+discontinued. INCOMPATIBILITY, use operations from the modules "XML" and
+"YXML" in Isabelle/ML or Isabelle/Scala.
 
 * SML/NJ is no longer supported.
 

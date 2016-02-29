@@ -77,22 +77,29 @@ text \<open>The Huet--Oppen ordering:\<close>
 definition less_multiset\<^sub>H\<^sub>O where
   "less_multiset\<^sub>H\<^sub>O M N \<longleftrightarrow> M \<noteq> N \<and> (\<forall>y. count N y < count M y \<longrightarrow> (\<exists>x. y < x \<and> count M x < count N x))"
 
-lemma mult_imp_less_multiset\<^sub>H\<^sub>O: "(M, N) \<in> mult {(x, y). x < y} \<Longrightarrow> less_multiset\<^sub>H\<^sub>O M N"
-proof (unfold mult_def less_multiset\<^sub>H\<^sub>O_def, induct rule: trancl_induct)
+lemma mult_imp_less_multiset\<^sub>H\<^sub>O:
+  "(M, N) \<in> mult {(x, y). x < y} \<Longrightarrow> less_multiset\<^sub>H\<^sub>O M N"
+proof (unfold mult_def, induct rule: trancl_induct)
   case (base P)
-  then show ?case unfolding mult1_def by force
+  then show ?case
+    by (auto elim!: mult1_lessE simp add: count_eq_zero_iff less_multiset\<^sub>H\<^sub>O_def split: if_splits dest!: Suc_lessD)
 next
   case (step N P)
+  from step(3) have "M \<noteq> N" and
+    **: "\<And>y. count N y < count M y \<Longrightarrow> (\<exists>x>y. count M x < count N x)"
+    by (simp_all add: less_multiset\<^sub>H\<^sub>O_def)
   from step(2) obtain M0 a K where
-    *: "P = M0 + {#a#}" "N = M0 + K" "\<And>b. b \<in># K \<Longrightarrow> b < a"
-    unfolding mult1_def by blast
-  then have count_K_a: "count K a = 0" by auto
-  with step(3) *(1,2) have "M \<noteq> P" by (force dest: *(3) split: if_splits)
+    *: "P = M0 + {#a#}" "N = M0 + K" "a \<notin># K" "\<And>b. b \<in># K \<Longrightarrow> b < a"
+    by (blast elim: mult1_lessE)
+  from \<open>M \<noteq> N\<close> ** *(1,2,3) have "M \<noteq> P" by (force dest: *(4) split: if_splits)
   moreover
   { assume "count P a \<le> count M a"
-    with count_K_a have "count N a < count M a" unfolding *(1,2) by auto
-      with step(3) obtain z where z: "z > a" "count M z < count N z" by blast
-      with * have "count N z \<le> count P z" by force
+    with \<open>a \<notin># K\<close> have "count N a < count M a" unfolding *(1,2)
+      by (auto simp add: not_in_iff)
+      with ** obtain z where z: "z > a" "count M z < count N z"
+        by blast
+      with * have "count N z \<le> count P z" 
+        by (force simp add: not_in_iff)
       with z have "\<exists>z > a. count M z < count P z" by auto
   } note count_a = this
   { fix y
@@ -106,27 +113,29 @@ next
       show ?thesis
       proof (cases "y \<in># K")
         case True
-        with *(3) have "y < a" by simp
+        with *(4) have "y < a" by simp
         then show ?thesis by (cases "count P a \<le> count M a") (auto dest: count_a intro: less_trans)
       next
         case False
-        with \<open>y \<noteq> a\<close> have "count P y = count N y" unfolding *(1,2) by simp
-        with count_y step(3) obtain z where z: "z > y" "count M z < count N z" by auto
+        with \<open>y \<noteq> a\<close> have "count P y = count N y" unfolding *(1,2)
+          by (simp add: not_in_iff)
+        with count_y ** obtain z where z: "z > y" "count M z < count N z" by auto
         show ?thesis
         proof (cases "z \<in># K")
           case True
-          with *(3) have "z < a" by simp
+          with *(4) have "z < a" by simp
           with z(1) show ?thesis
             by (cases "count P a \<le> count M a") (auto dest!: count_a intro: less_trans)
         next
           case False
-          with count_K_a have "count N z \<le> count P z" unfolding * by auto
+          with \<open>a \<notin># K\<close> have "count N z \<le> count P z" unfolding *
+            by (auto simp add: not_in_iff)
           with z show ?thesis by auto
         qed
       qed
     qed
   }
-  ultimately show ?case by blast
+  ultimately show ?case unfolding less_multiset\<^sub>H\<^sub>O_def by blast
 qed
 
 lemma less_multiset\<^sub>D\<^sub>M_imp_mult:
@@ -157,10 +166,12 @@ proof (intro iffI exI conjI)
   proof (intro allI impI)
     fix k
     assume "k \<in># Y"
-    then have "count N k < count M k" unfolding Y_def by auto
+    then have "count N k < count M k" unfolding Y_def
+      by (auto simp add: in_diff_count)
     with \<open>less_multiset\<^sub>H\<^sub>O M N\<close> obtain a where "k < a" and "count M a < count N a"
       unfolding less_multiset\<^sub>H\<^sub>O_def by blast
-    then show "\<exists>a. a \<in># X \<and> k < a" unfolding X_def by auto
+    then show "\<exists>a. a \<in># X \<and> k < a" unfolding X_def
+      by (auto simp add: in_diff_count)
   qed
 qed
 
@@ -295,12 +306,13 @@ lemma
     add.commute)+
 
 lemma ex_gt_imp_less_multiset: "(\<exists>y :: 'a :: linorder. y \<in># N \<and> (\<forall>x. x \<in># M \<longrightarrow> x < y)) \<Longrightarrow> M #\<subset># N"
-  unfolding less_multiset\<^sub>H\<^sub>O by (metis less_irrefl less_nat_zero_code not_gr0)
-
+  unfolding less_multiset\<^sub>H\<^sub>O
+  by (metis count_eq_zero_iff count_greater_zero_iff less_le_not_le)
+  
 lemma ex_gt_count_imp_less_multiset:
   "(\<forall>y :: 'a :: linorder. y \<in># M + N \<longrightarrow> y \<le> x) \<Longrightarrow> count M x < count N x \<Longrightarrow> M #\<subset># N"
-  unfolding less_multiset\<^sub>H\<^sub>O by (metis add.left_neutral add_lessD1 dual_order.strict_iff_order
-    less_not_sym mset_leD mset_le_add_left)  
+  unfolding less_multiset\<^sub>H\<^sub>O
+  by (metis add_gr_0 count_union mem_Collect_eq not_gr0 not_le not_less_iff_gr_or_eq set_mset_def)
 
 lemma union_less_diff_plus: "P \<le># M \<Longrightarrow> N #\<subset># P \<Longrightarrow> M - P + N #\<subset># M"
   by (drule subset_mset.diff_add[symmetric]) (metis union_less_mono2)

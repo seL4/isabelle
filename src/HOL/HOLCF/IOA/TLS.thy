@@ -137,7 +137,7 @@ subsection \<open>Interface TL -- TLS\<close>
 lemma TL_TLS:
   "\<forall>s a t. (P s) \<and> s \<midarrow>a\<midarrow>A\<rightarrow> t \<longrightarrow> (Q t)
     \<Longrightarrow> ex \<TTurnstile> (Init (\<lambda>(s, a, t). P s) \<^bold>\<and> Init (\<lambda>(s, a, t). s \<midarrow>a\<midarrow>A\<rightarrow> t)
-              \<^bold>\<longrightarrow> (Next (Init (\<lambda>(s, a, t). Q s))))"
+              \<^bold>\<longrightarrow> (\<circle>(Init (\<lambda>(s, a, t). Q s))))"
   apply (unfold Init_def Next_def temp_sat_def satisfies_def IMPLIES_def AND_def)
   apply clarify
   apply (simp split add: if_split)

@@ -447,4 +447,41 @@ text \<open>
   @{verbatim [display] \<open>isabelle getenv ISABELLE_HOME_USER\<close>}
 \<close>
 
+
+section \<open>YXML versus XML\<close>
+
+text \<open>
+  Isabelle tools often use YXML, which is a simple and efficient syntax for
+  untyped XML trees. The YXML format is defined as follows.
+
+    \<^enum> The encoding is always UTF-8.
+
+    \<^enum> Body text is represented verbatim (no escaping, no special treatment of
+    white space, no named entities, no CDATA chunks, no comments).
+
+    \<^enum> Markup elements are represented via ASCII control characters \<open>\<^bold>X = 5\<close>
+    and \<open>\<^bold>Y = 6\<close> as follows:
+
+    \begin{tabular}{ll}
+      XML & YXML \\\hline
+      \<^verbatim>\<open><\<close>\<open>name attribute\<close>\<^verbatim>\<open>=\<close>\<open>value \<dots>\<close>\<^verbatim>\<open>>\<close> &
+      \<open>\<^bold>X\<^bold>Yname\<^bold>Yattribute\<close>\<^verbatim>\<open>=\<close>\<open>value\<dots>\<^bold>X\<close> \\
+      \<^verbatim>\<open></\<close>\<open>name\<close>\<^verbatim>\<open>>\<close> & \<open>\<^bold>X\<^bold>Y\<^bold>X\<close> \\
+    \end{tabular}
+
+    There is no special case for empty body text, i.e.\ \<^verbatim>\<open><foo/>\<close> is treated
+    like \<^verbatim>\<open><foo></foo>\<close>. Also note that \<open>\<^bold>X\<close> and \<open>\<^bold>Y\<close> may never occur in
+    well-formed XML documents.
+
+  Parsing YXML is pretty straight-forward: split the text into chunks
+  separated by \<open>\<^bold>X\<close>, then split each chunk into sub-chunks separated by \<open>\<^bold>Y\<close>.
+  Markup chunks start with an empty sub-chunk, and a second empty sub-chunk
+  indicates close of an element. Any other non-empty chunk consists of plain
+  text. For example, see @{file "~~/src/Pure/PIDE/yxml.ML"} or @{file
+  "~~/src/Pure/PIDE/yxml.scala"}.
+
+  YXML documents may be detected quickly by checking that the first two
+  characters are \<open>\<^bold>X\<^bold>Y\<close>.
+\<close>
+
 end

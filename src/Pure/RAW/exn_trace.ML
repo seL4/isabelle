@@ -1,7 +1,7 @@
-(*  Title:      Pure/RAW/exn_trace_polyml-5.5.1.ML
+(*  Title:      Pure/RAW/exn_trace.ML
     Author:     Makarius
 
-Exception trace for Poly/ML 5.5.1 via ML output.
+Exception trace via ML output, for Poly/ML 5.5.1 or later.
 *)
 
 fun print_exception_trace exn_message output e =
@@ -13,4 +13,3 @@ fun print_exception_trace exn_message output e =
       in reraise exn end);
 
 PolyML.Compiler.reportExhaustiveHandlers := true;
-

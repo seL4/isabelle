@@ -75,6 +75,7 @@ declare -a SOURCES=(
   ROOT.scala
   System/command_line.scala
   System/cygwin.scala
+  System/getopts.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala
   System/isabelle_process.scala
@@ -96,7 +97,7 @@ declare -a SOURCES=(
   Tools/build_console.scala
   Tools/build_doc.scala
   Tools/check_keywords.scala
-  Tools/check_source.scala
+  Tools/check_sources.scala
   Tools/debugger.scala
   Tools/doc.scala
   Tools/main.scala
@@ -107,7 +108,6 @@ declare -a SOURCES=(
   Tools/task_statistics.scala
   Tools/update_cartouches.scala
   Tools/update_header.scala
-  Tools/update_semicolons.scala
   Tools/update_then.scala
   Tools/update_theorems.scala
   library.scala

@@ -42,8 +42,6 @@ fun make name imports keywords : header =
 
 (* bootstrap keywords *)
 
-val headerN = "header";  (* FIXME legacy *)
-
 val chapterN = "chapter";
 val sectionN = "section";
 val subsectionN = "subsection";
@@ -72,7 +70,6 @@ val bootstrap_keywords =
      ((beginN, @{here}), NONE),
      ((importsN, @{here}), NONE),
      ((keywordsN, @{here}), NONE),
-     ((headerN, @{here}), SOME ((Keyword.document_heading, []), [])),
      ((chapterN, @{here}), SOME ((Keyword.document_heading, []), [])),
      ((sectionN, @{here}), SOME ((Keyword.document_heading, []), [])),
      ((subsectionN, @{here}), SOME ((Keyword.document_heading, []), [])),
@@ -147,8 +144,7 @@ end;
 (* read header *)
 
 val heading =
-  (Parse.command headerN ||
-    Parse.command chapterN ||
+  (Parse.command chapterN ||
     Parse.command sectionN ||
     Parse.command subsectionN ||
     Parse.command subsubsectionN ||

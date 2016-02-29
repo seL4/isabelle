@@ -23,6 +23,8 @@ object Properties
           case "false" => Some(false)
           case _ => None
         }
+      def parse(s: java.lang.String): scala.Boolean =
+        unapply(s) getOrElse error("Bad boolean: " + quote(s))
     }
 
     object Int
@@ -31,6 +33,8 @@ object Properties
       def unapply(s: java.lang.String): Option[scala.Int] =
         try { Some(Integer.parseInt(s)) }
         catch { case _: NumberFormatException => None }
+      def parse(s: java.lang.String): scala.Int =
+        unapply(s) getOrElse error("Bad integer: " + quote(s))
     }
 
     object Long
@@ -39,6 +43,8 @@ object Properties
       def unapply(s: java.lang.String): Option[scala.Long] =
         try { Some(java.lang.Long.parseLong(s)) }
         catch { case _: NumberFormatException => None }
+      def parse(s: java.lang.String): scala.Long =
+        unapply(s) getOrElse error("Bad integer: " + quote(s))
     }
 
     object Double
@@ -47,6 +53,8 @@ object Properties
       def unapply(s: java.lang.String): Option[scala.Double] =
         try { Some(java.lang.Double.parseDouble(s)) }
         catch { case _: NumberFormatException => None }
+      def parse(s: java.lang.String): scala.Double =
+        unapply(s) getOrElse error("Bad real: " + quote(s))
     }
   }
 

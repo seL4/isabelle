@@ -59,7 +59,7 @@ subsection \<open>Law 6.111 of Concrete Mathematics\<close>
 lemma coprime_fib_Suc_nat: "coprime (fib (n::nat)) (fib (Suc n))"
   apply (induct n rule: fib.induct)
   apply auto
-  apply (metis gcd_add1_nat add.commute)
+  apply (metis gcd_add1 add.commute)
   done
 
 lemma gcd_fib_add: "gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n)"
@@ -67,7 +67,7 @@ lemma gcd_fib_add: "gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n)"
   apply (cases m)
   apply (auto simp add: fib_add)
   apply (metis gcd.commute mult.commute coprime_fib_Suc_nat
-    gcd_add_mult_nat gcd_mult_cancel gcd.commute)
+    gcd_add_mult gcd_mult_cancel gcd.commute)
   done
 
 lemma gcd_fib_diff: "m \<le> n \<Longrightarrow> gcd (fib m) (fib (n - m)) = gcd (fib m) (fib n)"

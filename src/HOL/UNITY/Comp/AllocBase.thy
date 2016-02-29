@@ -41,7 +41,7 @@ done
 lemma bag_of_append [simp]: "bag_of (l@l') = bag_of l + bag_of l'"
   by (induct l) (simp_all add: ac_simps)
 
-lemma subseteq_le_multiset: "A #<=# A + B"
+lemma subseteq_le_multiset: "A #\<subseteq># A + B"
 unfolding le_multiset_def apply (cases B; simp)
 apply (rule HOL.disjI1)
 apply (rule union_less_mono2[of "{#}" "_ + {#_#}" A, simplified])

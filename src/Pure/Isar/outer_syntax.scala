@@ -237,7 +237,7 @@ final class Outer_Syntax private(
     val name = command.span.name
     name match {
       case Thy_Header.CHAPTER => Some(0)
-      case Thy_Header.SECTION | Thy_Header.HEADER => Some(1)
+      case Thy_Header.SECTION => Some(1)
       case Thy_Header.SUBSECTION => Some(2)
       case Thy_Header.SUBSUBSECTION => Some(3)
       case Thy_Header.PARAGRAPH => Some(4)

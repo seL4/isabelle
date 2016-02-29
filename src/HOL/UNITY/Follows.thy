@@ -36,10 +36,17 @@ done
 lemma Follows_constant [iff]: "F \<in> (%s. c) Fols (%s. c)"
 by (simp add: Follows_def)
 
-lemma mono_Follows_o: "mono h ==> f Fols g \<subseteq> (h o f) Fols (h o g)"
-by (auto simp add: Follows_def mono_Increasing_o [THEN [2] rev_subsetD]
-                   mono_Always_o [THEN [2] rev_subsetD]
-                   mono_LeadsTo_o [THEN [2] rev_subsetD, THEN INT_D])
+lemma mono_Follows_o:
+  assumes "mono h"
+  shows "f Fols g \<subseteq> (h o f) Fols (h o g)"
+proof
+  fix x
+  assume "x \<in> f Fols g"
+  with assms show "x \<in> (h \<circ> f) Fols (h \<circ> g)"
+  by (auto simp add: Follows_def mono_Increasing_o [THEN [2] rev_subsetD]
+    mono_Always_o [THEN [2] rev_subsetD]
+    mono_LeadsTo_o [THEN [2] rev_subsetD, THEN INT_D])
+qed
 
 lemma mono_Follows_apply:
      "mono h ==> f Fols g \<subseteq> (%x. h (f x)) Fols (%x. h (g x))"
@@ -173,10 +180,10 @@ instantiation multiset :: (order) ordered_ab_semigroup_add
 begin
 
 definition less_multiset :: "'a::order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
-  "M' < M \<longleftrightarrow> M' #<# M"
+  "M' < M \<longleftrightarrow> M' #\<subset># M"
 
 definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
-   "(M'::'a multiset) \<le> M \<longleftrightarrow> M' #<=# M"
+   "(M'::'a multiset) \<le> M \<longleftrightarrow> M' #\<subseteq># M"
 
 instance
   by standard (auto simp add: less_eq_multiset_def less_multiset_def multiset_order.less_le_not_le add.commute multiset_order.add_right_mono)
