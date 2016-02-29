@@ -3437,7 +3437,7 @@ proof -
 qed
 
 lemma bounded_uminus [simp]:
-  fixes X :: "'a::euclidean_space set"
+  fixes X :: "'a::real_normed_vector set"
   shows "bounded (uminus ` X) \<longleftrightarrow> bounded X"
 by (auto simp: bounded_def dist_norm; rule_tac x="-x" in exI; force simp add: add.commute norm_minus_commute)
 
