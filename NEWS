@@ -185,6 +185,11 @@ INCOMPATIBILITY.
 executables are found within the PATH: isabelle, isabelle_process,
 isabelle_scala_script.
 
+* The isabelle_process executable no longer supports writable heap
+images. INCOMPATIBILITY in exotic situations where "isabelle build"
+cannot be used: the structure ML_Heap provides operations to save the ML
+heap under program control.
+
 * The somewhat pointless command-line tool "isabelle yxml" has been
 discontinued. INCOMPATIBILITY, use operations from the modules "XML" and
 "YXML" in Isabelle/ML or Isabelle/Scala.

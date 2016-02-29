@@ -13,7 +13,6 @@ sig
     (Path.T * Path.T) list -> Path.T -> string -> string * string -> bool -> unit
   val shutdown: unit -> unit
   val finish: unit -> unit
-  val save: string -> unit
   val protocol_handler: string -> unit
   val init_protocol_handlers: unit -> unit
 end;
@@ -74,11 +73,6 @@ fun finish () =
     fold (curry Keyword.merge_keywords o Thy_Header.get_keywords o Thy_Info.get_theory)
       (Thy_Info.get_names ()) Keyword.empty_keywords;
   session_finished := true);
-
-fun save heap =
- (shutdown ();
-  ML_System.share_common_data ();
-  ML_System.save_state heap);
 
 
 

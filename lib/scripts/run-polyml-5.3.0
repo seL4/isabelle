@@ -4,7 +4,7 @@
 #
 # Startup script for Poly/ML 5.3.0.
 
-export -n INFILE OUTFILE MLTEXT TERMINATE NOWRITE
+export -n HEAP_FILE ML_TEXT TERMINATE
 
 
 ## diagnostics
@@ -15,54 +15,28 @@ function fail()
   exit 2
 }
 
-function fail_out()
-{
-  fail "Unable to create output heap file: \"$OUTFILE\""
-}
-
 function check_file()
 {
   [ ! -f "$1" ] && fail "Unable to locate \"$1\""
 }
 
 
-## compiler executables and libraries
-
-[ -z "$ML_HOME" ] && fail "Missing ML installation (ML_HOME)"
-
-POLY="$ML_HOME/poly"
-check_file "$POLY"
-
-librarypath "$ML_HOME"
-
-
-
 ## prepare databases
 
-if [ -z "$INFILE" ]; then
-  INIT=""
-  EXIT="fun exit rc = Posix.Process.exit (Word8.fromInt rc);"
+if [ -z "$HEAP_FILE" ]; then
+  INIT="fun exit rc = Posix.Process.exit (Word8.fromInt rc);"
 else
-  check_file "$INFILE"
-  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$INFILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $INFILE\\n\"); Posix.Process.exit 0w1));"
-  EXIT=""
-fi
-
-if [ -z "$OUTFILE" ]; then
-  MLEXIT=""
-else
-  if [ -z "$INFILE" ]; then
-    MLEXIT="(PolyML.shareCommonData PolyML.rootFunction; TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.SaveState.saveState \"$OUTFILE\"; true) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $OUTFILE\\n\"); Posix.Process.exit 0w1);"
-  else
-    MLEXIT="Session.save \"$OUTFILE\";"
-  fi
-  [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
+  check_file "$HEAP_FILE"
+  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$HEAP_FILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $HEAP_FILE\\n\"); Posix.Process.exit 0w1));"
 fi
 
 
-## run it!
+## poly process
 
-MLTEXT="$INIT $EXIT $MLTEXT"
+ML_TEXT="$INIT $ML_TEXT"
+
+check_file "$ML_HOME/poly"
+librarypath "$ML_HOME"
 
 if [ -z "$TERMINATE" ]; then
   FEEDER_OPTS=""
@@ -70,11 +44,9 @@ else
   FEEDER_OPTS="-q"
 fi
 
-"$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
-  { read FPID; "$POLY" -q $ML_OPTIONS; RC="$?"; kill -TERM "$FPID"; exit "$RC"; }
+"$ISABELLE_HOME/lib/scripts/feeder" -p -h "$ML_TEXT" $FEEDER_OPTS | \
+  { read FPID; "$ML_HOME/poly" -q $ML_OPTIONS; RC="$?"; kill -TERM "$FPID"; exit "$RC"; }
 RC="$?"
-
-[ -n "$OUTFILE" -a -f "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 
 exit "$RC"
 

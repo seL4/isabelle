@@ -45,7 +45,7 @@ struct
 (* system path representations *)
 
 val standard_path = Path.implode o Path.expand;
-val platform_path = ml_platform_path o standard_path;
+val platform_path = ML_System.platform_path o standard_path;
 
 val shell_quote = enclose "'" "'";
 val shell_path = shell_quote o standard_path;

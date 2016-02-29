@@ -1031,8 +1031,8 @@ structure Any = struct type T = exn end;
 
 (* current directory *)
 
-val cd = OS.FileSys.chDir o ml_platform_path;
-val pwd = ml_standard_path o OS.FileSys.getDir;
+val cd = OS.FileSys.chDir o ML_System.platform_path;
+val pwd = ML_System.standard_path o OS.FileSys.getDir;
 
 
 (* getenv *)

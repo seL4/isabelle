@@ -29,23 +29,11 @@ struct
 end;
 
 
-(* ML system operations *)
+(* ML heap operations *)
 
 if ML_System.name = "polyml-5.3.0"
-then use "RAW/share_common_data_polyml-5.3.0.ML"
-else ();
-
-fun ml_platform_path (s: string) = s;
-fun ml_standard_path (s: string) = s;
-
-if ML_System.platform_is_windows then use "RAW/windows_path.ML" else ();
-
-structure ML_System =
-struct
-  open ML_System;
-  fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
-  val save_state = PolyML.SaveState.saveState o ml_platform_path;
-end;
+then use "RAW/ml_heap_polyml-5.3.0.ML"
+else use "RAW/ml_heap.ML";
 
 
 (* exceptions *)
@@ -183,8 +171,8 @@ use "RAW/compiler_polyml.ML";
 PolyML.Compiler.reportUnreferencedIds := true;
 PolyML.Compiler.printInAlphabeticalOrder := false;
 PolyML.Compiler.maxInlineSize := 80;
-
-fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 := p2);
+PolyML.Compiler.prompt1 := "ML> ";
+PolyML.Compiler.prompt2 := "ML# ";
 
 use "RAW/ml_parse_tree.ML";
 if ML_System.name = "polyml-5.6"

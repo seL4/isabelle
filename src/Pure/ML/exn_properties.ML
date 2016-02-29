@@ -21,7 +21,7 @@ fun props_of (loc: PolyML.location) =
     [] => []
   | [XML.Text file] =>
       if file = "Standard Basis" then []
-      else [(Markup.fileN, ml_standard_path file)]
+      else [(Markup.fileN, ML_System.standard_path file)]
   | body => XML.Decode.properties body);
 
 fun position_of loc =

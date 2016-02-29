@@ -541,6 +541,7 @@ object Build
     browser_info: Path, session_graph: Graph_Display.Graph, command_timings: List[Properties.T])
   {
     def output_path: Option[Path] = if (do_output) Some(output) else None
+    def output_standard_path: String = if (do_output) File.standard_path(output) else ""
 
     private val parent = info.parent.getOrElse("")
 
@@ -555,25 +556,25 @@ object Build
         {
           val theories = info.theories.map(x => (x._2, x._3))
           import XML.Encode._
-          pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(Options.encode,
+          pair(list(pair(string, int)), pair(list(properties), pair(string, pair(Options.encode,
             pair(bool, pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
             pair(string, pair(string, pair(string,
             list(pair(Options.encode, list(Path.encode))))))))))))))(
-          (Symbol.codes, (command_timings, (do_output, (info.options,
+          (Symbol.codes, (command_timings, (output_standard_path, (info.options,
             (verbose, (browser_info, (info.document_files, (File.standard_path(graph_file),
             (parent, (info.chapter, (name,
             theories))))))))))))
         }))
 
     private val env =
-      Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> File.standard_path(output),
+      Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> output_standard_path,
         (if (is_pure(name)) "ISABELLE_PROCESS_OPTIONS" else "ARGS_FILE") ->
           File.standard_path(args_file))
 
     private val script =
       if (is_pure(name)) {
         if (do_output) "./build " + name + " \"$OUTPUT\""
-        else """ rm -f "$OUTPUT"; ./build """ + name
+        else "./build " + name
       }
       else {
         """
@@ -581,11 +582,13 @@ object Build
         """ +
           (if (do_output)
             """
-            "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q -w "$INPUT" "$OUTPUT"
+            rm -f "$OUTPUT"
+            "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q "$INPUT" && chmod -w "$OUTPUT"
             """
           else
             """
-            rm -f "$OUTPUT"; "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -r -q "$INPUT"
+            rm -f "$OUTPUT"
+            "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q "$INPUT"
             """) +
         """
         RC="$?"

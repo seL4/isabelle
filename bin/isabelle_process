@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Author: Markus Wenzel, TU Muenchen
+# Author: Makarius
 #
 # Isabelle process startup script.
 
@@ -23,23 +23,20 @@ source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
 function usage()
 {
   echo
-  echo "Usage: $PRG [OPTIONS] [INPUT] [OUTPUT]"
+  echo "Usage: $PRG [OPTIONS] [HEAP]"
   echo
   echo "  Options are:"
   echo "    -O           system options from given YXML file"
   echo "    -P SOCKET    startup process wrapper via TCP socket"
   echo "    -S           secure mode -- disallow critical operations"
-  echo "    -e MLTEXT    pass MLTEXT to the ML session"
+  echo "    -e ML_TEXT   pass ML_TEXT to the ML session"
   echo "    -m MODE      add print mode for output"
   echo "    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)"
   echo "    -q           non-interactive session"
-  echo "    -r           open heap file read-only"
-  echo "    -w           reset write permissions on OUTPUT"
   echo
-  echo "  INPUT (default \"$ISABELLE_LOGIC\") and OUTPUT specify in/out heaps."
-  echo "  These are either names to be searched in the Isabelle path, or"
-  echo "  actual file names (containing at least one /)."
-  echo "  If INPUT is \"RAW_ML_SYSTEM\", just start the bare bones ML system."
+  echo "  If HEAP is a plain name (default \"$ISABELLE_LOGIC\"), it is searched in \$ISABELLE_PATH;"
+  echo "  if it contains a slash, it is taken as literal file; if it is RAW_ML_SYSTEM,"
+  echo "  the initial ML heap is used."
   echo
   exit 1
 }
@@ -58,14 +55,12 @@ function fail()
 OPTIONS_FILE=""
 PROCESS_SOCKET=""
 SECURE=""
-MLTEXT=""
+ML_TEXT=""
 MODES=""
 declare -a SYSTEM_OPTIONS=()
 TERMINATE=""
-READONLY=""
-NOWRITE=""
 
-while getopts "O:P:Se:m:o:qrw" OPT
+while getopts "O:P:Se:m:o:q" OPT
 do
   case "$OPT" in
     O)
@@ -78,7 +73,7 @@ do
       SECURE=true
       ;;
     e)
-      MLTEXT="$MLTEXT $OPTARG"
+      ML_TEXT="$ML_TEXT $OPTARG"
       ;;
     m)
       if [ -z "$MODES" ]; then
@@ -93,12 +88,6 @@ do
     q)
       TERMINATE=true
       ;;
-    r)
-      READONLY=true
-      ;;
-    w)
-      NOWRITE=true
-      ;;
     \?)
       usage
       ;;
@@ -110,16 +99,10 @@ shift $(($OPTIND - 1))
 
 # args
 
-INPUT=""
-OUTPUT=""
+HEAP=""
 
 if [ "$#" -ge 1 ]; then
-  INPUT="$1"
-  shift
-fi
-
-if [ "$#" -ge 1 ]; then
-  OUTPUT="$1"
+  HEAP="$1"
   shift
 fi
 
@@ -131,20 +114,20 @@ fi
 [ -z "$ML_SYSTEM" ] && fail "Missing ML system settings! Unable to run Isabelle."
 
 
-## input heap file
+## heap file
 
-[ -z "$INPUT" ] && INPUT="$ISABELLE_LOGIC"
+[ -z "$HEAP" ] && HEAP="$ISABELLE_LOGIC"
 
-case "$INPUT" in
+case "$HEAP" in
   RAW_ML_SYSTEM)
-    INFILE=""
+    HEAP_FILE=""
     ;;
   */*)
-    INFILE="$INPUT"
-    [ ! -f "$INFILE" ] && fail "Bad heap file: \"$INFILE\""
+    HEAP_FILE="$HEAP"
+    [ ! -f "$HEAP_FILE" ] && fail "Bad heap file: \"$HEAP_FILE\""
     ;;
   *)
-    INFILE=""
+    HEAP_FILE=""
     ISA_PATH=""
 
     splitarray ":" "$ISABELLE_PATH"; PATHS=("${SPLITARRAY[@]}")
@@ -152,35 +135,17 @@ case "$INPUT" in
     do
       DIR="$DIR/$ML_IDENTIFIER"
       ISA_PATH="$ISA_PATH  $DIR\n"
-      [ -z "$INFILE" -a -f "$DIR/$INPUT" ] && INFILE="$DIR/$INPUT"
+      [ -z "$HEAP_FILE" -a -f "$DIR/$HEAP" ] && HEAP_FILE="$DIR/$HEAP"
     done
 
-    if [ -z "$INFILE" ]; then
-      echo "Unknown logic \"$INPUT\" -- no heap file found in:" >&2
+    if [ -z "$HEAP_FILE" ]; then
+      echo "Unknown logic \"$HEAP\" -- no heap file found in:" >&2
       echo -ne "$ISA_PATH" >&2
       exit 2
     fi
     ;;
 esac
 
-
-## output heap file
-
-case "$OUTPUT" in
-  "")
-    if [ -z "$READONLY" -a -w "$INFILE" ]; then
-      perl -e "exit (((stat('$INFILE'))[2] & 0222) != 0 ? 0 : 1);" && OUTFILE="$INFILE"
-    fi
-    ;;
-  */*)
-    OUTFILE="$OUTPUT"
-    ;;
-  *)
-    mkdir -p "$ISABELLE_OUTPUT"
-    chmod $(umask -S) "$ISABELLE_OUTPUT"
-    OUTFILE="$ISABELLE_OUTPUT/$OUTPUT"
-    ;;
-esac
 
 
 ## prepare tmp directory
@@ -196,12 +161,12 @@ chmod $(umask -S) "$ISABELLE_TMP"
 
 ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 
-[ -n "$MODES" ] && MLTEXT="Unsynchronized.change print_mode (append [$MODES]); $MLTEXT"
+[ -n "$MODES" ] && ML_TEXT="Unsynchronized.change print_mode (append [$MODES]); $ML_TEXT"
 
-[ -n "$SECURE" ] && MLTEXT="$MLTEXT; Secure.set_secure ();"
+[ -n "$SECURE" ] && ML_TEXT="$ML_TEXT; Secure.set_secure ();"
 
 if [ -n "$PROCESS_SOCKET" ]; then
-  MLTEXT="$MLTEXT; Isabelle_Process.init \"$PROCESS_SOCKET\";"
+  ML_TEXT="$ML_TEXT; Isabelle_Process.init \"$PROCESS_SOCKET\";"
 else
   ISABELLE_PROCESS_OPTIONS="$ISABELLE_TMP/options"
   if [ -n "$OPTIONS_FILE" ]; then
@@ -213,12 +178,12 @@ else
     "$ISABELLE_TOOL" options -x "$ISABELLE_PROCESS_OPTIONS" -- "${SYSTEM_OPTIONS[@]}" || \
       fail "Failed to retrieve Isabelle system options"
   fi
-  if [ "$INPUT" != RAW_ML_SYSTEM -a "$INPUT" != RAW ]; then
-    MLTEXT="Exn.capture_exit 2 Options.load_default (); $MLTEXT"
+  if [ "$HEAP" != RAW_ML_SYSTEM -a "$HEAP" != RAW ]; then
+    ML_TEXT="Exn.capture_exit 2 Options.load_default (); $ML_TEXT"
   fi
 fi
 
-export INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_PID ISABELLE_TMP ISABELLE_PROCESS_OPTIONS
+export HEAP_FILE ML_TEXT TERMINATE ISABELLE_PID ISABELLE_TMP ISABELLE_PROCESS_OPTIONS
 
 if [ -f "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM" ]; then
   "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM"
