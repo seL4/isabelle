@@ -582,11 +582,13 @@ object Build
         """ +
           (if (do_output)
             """
+            rm -f "$OUTPUT"
             "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -r -q "$INPUT" && chmod -w "$OUTPUT"
             """
           else
             """
-            rm -f "$OUTPUT"; "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -r -q "$INPUT"
+            rm -f "$OUTPUT"
+            "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -r -q "$INPUT"
             """) +
         """
         RC="$?"
