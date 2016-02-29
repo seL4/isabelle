@@ -64,11 +64,13 @@ if [ "$TARGET" = RAW ]; then
       -e "use \"$COMPAT\" handle _ => OS.Process.exit OS.Process.failure;" \
       -q RAW_ML_SYSTEM
   else
+    rm -f "$OUTPUT"
     "$ISABELLE_PROCESS" \
       -e "use \"$COMPAT\" handle _ => OS.Process.exit OS.Process.failure;" \
       -e "structure Isar = struct fun main () = () end;" \
       -e "ml_prompts \"ML> \" \"ML# \";" \
-      -q -w RAW_ML_SYSTEM "$OUTPUT"
+      -e "ML_Heap.share_common_data (); ML_Heap.save_state \"$OUTPUT\";" \
+      -q RAW_ML_SYSTEM && chmod -w "$OUTPUT"
   fi
 else
   if [ -z "$OUTPUT" ]; then
@@ -76,12 +78,15 @@ else
       -e "(use \"$COMPAT\"; use \"ROOT.ML\") handle _ => OS.Process.exit OS.Process.failure;" \
       -q RAW_ML_SYSTEM
   else
+    rm -f "$OUTPUT"
     "$ISABELLE_PROCESS" \
       -e "(use \"$COMPAT\"; use \"ROOT.ML\") handle _ => OS.Process.exit OS.Process.failure;" \
       -e "ml_prompts \"ML> \" \"ML# \";" \
       -e "Command_Line.tool0 Session.finish;" \
       -e "Options.reset_default ();" \
-      -q -w RAW_ML_SYSTEM "$OUTPUT"
+      -e "Session.shutdown ();" \
+      -e "ML_Heap.share_common_data (); ML_Heap.save_state \"$OUTPUT\";" \
+      -q RAW_ML_SYSTEM && chmod -w "$OUTPUT"
   fi
 fi
 
