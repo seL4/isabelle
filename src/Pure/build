@@ -68,7 +68,6 @@ if [ "$TARGET" = RAW ]; then
     "$ISABELLE_PROCESS" \
       -e "use \"$COMPAT\" handle _ => OS.Process.exit OS.Process.failure;" \
       -e "structure Isar = struct fun main () = () end;" \
-      -e "ml_prompts \"ML> \" \"ML# \";" \
       -e "ML_Heap.share_common_data (); ML_Heap.save_state \"$OUTPUT\";" \
       -q RAW_ML_SYSTEM && chmod -w "$OUTPUT"
   fi
@@ -81,7 +80,6 @@ else
     rm -f "$OUTPUT"
     "$ISABELLE_PROCESS" \
       -e "(use \"$COMPAT\"; use \"ROOT.ML\") handle _ => OS.Process.exit OS.Process.failure;" \
-      -e "ml_prompts \"ML> \" \"ML# \";" \
       -e "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default (); Session.shutdown (); ML_Heap.share_common_data (); ML_Heap.save_state \"$OUTPUT\"));" \
       -q RAW_ML_SYSTEM && chmod -w "$OUTPUT"
   fi

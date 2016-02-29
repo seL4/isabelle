@@ -171,8 +171,8 @@ use "RAW/compiler_polyml.ML";
 PolyML.Compiler.reportUnreferencedIds := true;
 PolyML.Compiler.printInAlphabeticalOrder := false;
 PolyML.Compiler.maxInlineSize := 80;
-
-fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 := p2);
+PolyML.Compiler.prompt1 := "ML> ";
+PolyML.Compiler.prompt2 := "ML# ";
 
 use "RAW/ml_parse_tree.ML";
 if ML_System.name = "polyml-5.6"
