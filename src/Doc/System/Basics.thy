@@ -291,28 +291,25 @@ section \<open>The raw Isabelle process \label{sec:isabelle-process}\<close>
 text \<open>
   The @{executable_def "isabelle_process"} executable runs bare-bones Isabelle
   logic sessions --- either interactively or in batch mode. It provides an
-  abstraction over the underlying ML system, and over the actual heap file
-  locations. Its usage is:
+  abstraction over the underlying ML system and its saved heap files. Its
+  usage is:
   @{verbatim [display]
-\<open>Usage: isabelle_process [OPTIONS] [INPUT] [OUTPUT]
+\<open>Usage: isabelle_process [OPTIONS] [HEAP]
 
   Options are:
     -O           system options from given YXML file
     -P SOCKET    startup process wrapper via TCP socket
     -S           secure mode -- disallow critical operations
-    -e MLTEXT    pass MLTEXT to the ML session
+    -e ML_TEXT   pass ML_TEXT to the ML session
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -q           non-interactive session
-    -r           open heap file read-only
-    -w           reset write permissions on OUTPUT
 
-  INPUT (default "$ISABELLE_LOGIC") and OUTPUT specify in/out heaps.
-  These are either names to be searched in the Isabelle path, or
-  actual file names (containing at least one /).
-  If INPUT is "RAW_ML_SYSTEM", just start the bare bones ML system.\<close>}
+  If HEAP is a plain name (default "HOL"), it is searched in $ISABELLE_PATH;
+  if it contains a slash, it is taken as literal file; if it is RAW_ML_SYSTEM,
+  the initial ML heap is used.\<close>}
 
-  Input files without path specifications are looked up in the @{setting
+  Heap files without path specifications are looked up in the @{setting
   ISABELLE_PATH} setting, which may consist of multiple components separated
   by colons --- these are tried in the given order with the value of @{setting
   ML_IDENTIFIER} appended internally. In a similar way, base names are
@@ -326,24 +323,6 @@ text \<open>
 subsubsection \<open>Options\<close>
 
 text \<open>
-  If the input heap file does not have write permission bits set, or the \<^verbatim>\<open>-r\<close>
-  option is given explicitly, then the session started will be read-only. That
-  is, the ML world cannot be committed back into the image file. Otherwise, a
-  writable session enables commits into either the input file, or into another
-  output heap file (if that is given as the second argument on the command
-  line).
-
-  The read-write state of sessions is determined at startup only, it cannot be
-  changed intermediately. Also note that heap images may require considerable
-  amounts of disk space (hundreds of MB or some GB). Users are responsible for
-  themselves to dispose their heap files when they are no longer needed.
-
-  \<^medskip>
-  The \<^verbatim>\<open>-w\<close> option makes the output heap file read-only after terminating.
-  Thus subsequent invocations cause the logic image to be read-only
-  automatically.
-
-  \<^medskip>
   Using the \<^verbatim>\<open>-e\<close> option, arbitrary ML code may be passed to the Isabelle
   session from the command line. Multiple \<^verbatim>\<open>-e\<close> options are evaluated in the
   given order. Strange things may happen when erroneous ML code is provided.
@@ -385,30 +364,14 @@ text \<open>
   @{setting ISABELLE_LOGIC} setting) like this:
   @{verbatim [display] \<open>isabelle_process\<close>}
 
-  Usually @{setting ISABELLE_LOGIC} refers to one of the standard logic
-  images, which are read-only by default. A writable session --- based on
-  \<^verbatim>\<open>HOL\<close>, but output to \<^verbatim>\<open>Test\<close> (in the directory specified by the @{setting
-  ISABELLE_OUTPUT} setting) --- may be invoked as follows:
-  @{verbatim [display] \<open>isabelle_process HOL Test\<close>}
-
-  Ending this session normally (e.g.\ by typing control-D) dumps the whole ML
-  system state into \<^verbatim>\<open>Test\<close> (be prepared for more than 100\,MB):
-
-  The \<^verbatim>\<open>Test\<close> session may be continued later (still in writable state) by:
-  @{verbatim [display] \<open>isabelle_process Test\<close>}
-
-  A read-only \<^verbatim>\<open>Test\<close> session may be started by:
-  @{verbatim [display] \<open>isabelle_process -r Test\<close>}
-
-  \<^bigskip>
+  \<^medskip>
   The next example demonstrates batch execution of Isabelle. We retrieve the
   \<^verbatim>\<open>Main\<close> theory value from the theory loader within ML (observe the delicate
   quoting rules for the Bash shell vs.\ ML):
-  @{verbatim [display] \<open>isabelle_process -e 'Thy_Info.get_theory "Main";' -q -r HOL\<close>}
+  @{verbatim [display] \<open>isabelle_process -e 'Thy_Info.get_theory "Main";' -q HOL\<close>}
 
   Note that the output text will be interspersed with additional junk messages
-  by the ML runtime environment. The \<^verbatim>\<open>-W\<close> option allows to communicate with
-  the Isabelle process via an external program in a more robust fashion.
+  by the ML runtime environment.
 \<close>
 
 
