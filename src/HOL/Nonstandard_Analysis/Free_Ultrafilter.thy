@@ -1,4 +1,4 @@
-(*  Title:      HOL/NSA/Free_Ultrafilter.thy
+(*  Title:      HOL/Nonstandard_Analysis/Free_Ultrafilter.thy
     Author:     Jacques D. Fleuriot, University of Cambridge
     Author:     Lawrence C Paulson
     Author:     Brian Huffman

@@ -1,6 +1,6 @@
-(*  Title       : CStar.thy
-    Author      : Jacques D. Fleuriot
-    Copyright   : 2001 University of Edinburgh
+(*  Title:      HOL/Nonstandard_Analysis/CStar.thy
+    Author:     Jacques D. Fleuriot
+    Copyright:  2001 University of Edinburgh
 *)
 
 section\<open>Star-transforms in NSA, Extending Sets of Complex Numbers

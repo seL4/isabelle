@@ -1,4 +1,4 @@
-(*  Title:      HOL/NSA/NSComplex.thy
+(*  Title:      HOL/Nonstandard_Analysis/NSComplex.thy
     Author:     Jacques D. Fleuriot, University of Edinburgh
     Author:     Lawrence C Paulson
 *)

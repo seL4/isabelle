@@ -178,6 +178,8 @@ of a more general type also:
   dvd_Gcd, dvd_Gcd_nat, dvd_Gcd_int removed in favour of Gcd_greatest
 INCOMPATIBILITY.
 
+* Session HOL-NSA has been renamed to HOL-Nonstandard_Analysis.
+
 
 *** System ***
 

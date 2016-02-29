@@ -1,5 +1,5 @@
-(*  Title       : HOL/Hyperreal/StarDef.thy
-    Author      : Jacques D. Fleuriot and Brian Huffman
+(*  Title:      HOL/Nonstandard_Analysis/StarDef.thy
+    Author:     Jacques D. Fleuriot and Brian Huffman
 *)
 
 section \<open>Construction of Star Types Using Ultrafilters\<close>

@@ -1,6 +1,6 @@
-(*  Title       : NatStar.thy
-    Author      : Jacques D. Fleuriot
-    Copyright   : 1998  University of Cambridge
+(*  Title:      HOL/Nonstandard_Analysis/NatStar.thy
+    Author:     Jacques D. Fleuriot
+    Copyright:  1998  University of Cambridge
 
 Converted to Isar and polished by lcp
 *)

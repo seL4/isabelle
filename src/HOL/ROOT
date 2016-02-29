@@ -821,14 +821,15 @@ session "HOL-Statespace" in Statespace = HOL +
     StateSpaceEx
   document_files "root.tex"
 
-session "HOL-NSA" in NSA = HOL +
+session "HOL-Nonstandard_Analysis" in Nonstandard_Analysis = HOL +
   description {*
     Nonstandard analysis.
   *}
-  theories Hypercomplex
+  theories
+    Nonstandard_Analysis
   document_files "root.tex"
 
-session "HOL-NSA-Examples" in "NSA/Examples" = "HOL-NSA" +
+session "HOL-Nonstandard_Analysis-Examples" in "Nonstandard_Analysis/Examples" = "HOL-Nonstandard_Analysis" +
   options [document = false]
   theories NSPrimes
 

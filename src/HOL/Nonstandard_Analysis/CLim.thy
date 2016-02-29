@@ -1,6 +1,6 @@
-(*  Title       : CLim.thy
-    Author      : Jacques D. Fleuriot
-    Copyright   : 2001 University of Edinburgh
+(*  Title:      HOL/Nonstandard_Analysis/CLim.thy
+    Author:     Jacques D. Fleuriot
+    Copyright:  2001 University of Edinburgh
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 

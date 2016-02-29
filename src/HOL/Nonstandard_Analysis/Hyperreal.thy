@@ -1,4 +1,4 @@
-(*  Title:      HOL/NSA/Hyperreal.thy
+(*  Title:      HOL/Nonstandard_Analysis/Hyperreal.thy
     Author:     Jacques Fleuriot, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 

@@ -1,6 +1,6 @@
-(*  Title       : NSA/NSCA.thy
-    Author      : Jacques D. Fleuriot
-    Copyright   : 2001,2002 University of Edinburgh
+(*  Title:      HOL/Nonstandard_Analysis/NSCA.thy
+    Author:     Jacques D. Fleuriot
+    Copyright:  2001, 2002 University of Edinburgh
 *)
 
 section\<open>Non-Standard Complex Analysis\<close>

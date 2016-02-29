@@ -1,6 +1,6 @@
-(*  Title       : HTranscendental.thy
-    Author      : Jacques D. Fleuriot
-    Copyright   : 2001 University of Edinburgh
+(*  Title:      HOL/Nonstandard_Analysis/HTranscendental.thy
+    Author:     Jacques D. Fleuriot
+    Copyright:  2001 University of Edinburgh
 
 Converted to Isar and polished by lcp
 *)

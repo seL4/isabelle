@@ -1,9 +1,11 @@
-(*  Title       : HSEQ.thy
-    Author      : Jacques D. Fleuriot
-    Copyright   : 1998  University of Cambridge
-    Description : Convergence of sequences and series
-    Conversion to Isar and new proofs by Lawrence C Paulson, 2004
-    Additional contributions by Jeremy Avigad and Brian Huffman
+(*  Title:      HOL/Nonstandard_Analysis/HSEQ.thy
+    Author:     Jacques D. Fleuriot
+    Copyright:  1998  University of Cambridge
+
+Convergence of sequences and series.
+
+Conversion to Isar and new proofs by Lawrence C Paulson, 2004
+Additional contributions by Jeremy Avigad and Brian Huffman.
 *)
 
 section \<open>Sequences and Convergence (Nonstandard)\<close>

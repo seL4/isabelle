@@ -1,6 +1,6 @@
-(*  Title       : Deriv.thy
-    Author      : Jacques D. Fleuriot
-    Copyright   : 1998  University of Cambridge
+(*  Title:      HOL/Nonstandard_Analysis/HDeriv.thy
+    Author:     Jacques D. Fleuriot
+    Copyright:  1998  University of Cambridge
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 

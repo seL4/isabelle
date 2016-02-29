@@ -1,4 +1,4 @@
-(*  Title:      HOL/NSA/NSA.thy
+(*  Title:      HOL/Nonstandard_Analysis/NSA.thy
     Author:     Jacques D. Fleuriot, University of Cambridge
     Author:     Lawrence C Paulson, University of Cambridge
 *)

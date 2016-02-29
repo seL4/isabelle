@@ -1,6 +1,6 @@
-(*  Title       : HLog.thy
-    Author      : Jacques D. Fleuriot
-    Copyright   : 2000,2001 University of Edinburgh
+(*  Title:      HOL/Nonstandard_Analysis/HLog.thy
+    Author:     Jacques D. Fleuriot
+    Copyright:  2000, 2001 University of Edinburgh
 *)
 
 section\<open>Logarithms: Non-Standard Version\<close>
