@@ -13,5 +13,5 @@ end;
 structure ML_Heap: ML_HEAP =
 struct
   fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
-  val save_state = PolyML.SaveState.saveState o ml_platform_path;
+  val save_state = PolyML.SaveState.saveState o ML_System.platform_path;
 end;

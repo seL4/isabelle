@@ -31,7 +31,6 @@ session RAW =
     "RAW/single_assignment_polyml.ML"
     "RAW/unsynchronized.ML"
     "RAW/use_context.ML"
-    "RAW/windows_path.ML"
 
 session Pure =
   global_theories Pure
@@ -64,7 +63,6 @@ session Pure =
     "RAW/single_assignment_polyml.ML"
     "RAW/unsynchronized.ML"
     "RAW/use_context.ML"
-    "RAW/windows_path.ML"
 
     "Concurrent/bash.ML"
     "Concurrent/bash_windows.ML"
