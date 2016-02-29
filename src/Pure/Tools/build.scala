@@ -572,36 +572,57 @@ object Build
           File.standard_path(args_file))
 
     private val script =
-      if (is_pure(name)) {
-        if (do_output) "./build " + name + " \"$OUTPUT\""
-        else "./build " + name
-      }
-      else {
-        """
-        . "$ISABELLE_HOME/lib/scripts/timestart.bash"
-        """ +
-          (if (do_output)
-            """
+      """
+      . "$ISABELLE_HOME/lib/scripts/timestart.bash"
+      """ +
+      (if (is_pure(name)) {
+        val ml_system = Isabelle_System.getenv("ML_SYSTEM")
+        val ml_system_base = Library.space_explode('-', ml_system).headOption getOrElse ml_system
+        val ml_root =
+          List(ml_system, ml_system_base).map(a => "RAW/ROOT_" + a + ".ML").
+            find(b => Path.explode("~~/src/Pure/" + b).file.isFile) getOrElse
+            error("Missing compatibility file for ML system " + quote(ml_system))
+
+        if (name == "RAW") {
+          """
             rm -f "$OUTPUT"
-            "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q "$INPUT" && chmod -w "$OUTPUT"
-            """
-          else
-            """
+            "$ISABELLE_PROCESS" \
+              -e 'use """ + quote(ml_root) + """ handle _ => OS.Process.exit OS.Process.failure;' \
+              -e "ML_Heap.share_common_data (); ML_Heap.save_state \"$OUTPUT\";" \
+              -q RAW_ML_SYSTEM && chmod -w "$OUTPUT"
+          """
+        }
+        else {
+          """
             rm -f "$OUTPUT"
-            "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q "$INPUT"
-            """) +
-        """
-        RC="$?"
-
-        . "$ISABELLE_HOME/lib/scripts/timestop.bash"
-
-        if [ "$RC" -eq 0 ]; then
-          echo "Finished $TARGET ($TIMES_REPORT)" >&2
-        fi
-
-        exit "$RC"
-        """
+            "$ISABELLE_PROCESS" \
+              -e '(use """ + quote(ml_root) + """; use "ROOT.ML") handle _ => OS.Process.exit OS.Process.failure;' \
+              -e "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default (); Session.shutdown (); ML_Heap.share_common_data (); ML_Heap.save_state \"$OUTPUT\"));" \
+              -q RAW_ML_SYSTEM && chmod -w "$OUTPUT"
+          """
+        }
       }
+      else if (do_output)
+        """
+        rm -f "$OUTPUT"
+        "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q "$INPUT" && chmod -w "$OUTPUT"
+        """
+      else
+        """
+        rm -f "$OUTPUT"
+        "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q "$INPUT"
+        """) +
+      """
+      RC="$?"
+
+      . "$ISABELLE_HOME/lib/scripts/timestop.bash"
+
+      if [ "$RC" -eq 0 ]; then
+        echo "Finished $TARGET ($TIMES_REPORT)" >&2
+      fi
+
+      exit "$RC"
+      """
 
     private val result =
       Future.thread("build") {
@@ -923,7 +944,7 @@ object Build
                     case Some(parent) => results(parent)
                   }
                 val output = output_dir + Path.basic(name)
-                val do_output = build_heap || queue.is_inner(name)
+                val do_output = build_heap || is_pure(name) || queue.is_inner(name)
 
                 val (current, heap) =
                 {
