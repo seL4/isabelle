@@ -123,8 +123,8 @@ val _ =
         handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn);
 
 val _ =
-  Isabelle_Process.protocol_command "ML_System.share_common_data"
-    (fn [] => ML_System.share_common_data ());
+  Isabelle_Process.protocol_command "ML_Heap.share_common_data"
+    (fn [] => ML_Heap.share_common_data ());
 
 end;
 

@@ -77,8 +77,8 @@ fun finish () =
 
 fun save heap =
  (shutdown ();
-  ML_System.share_common_data ();
-  ML_System.save_state heap);
+  ML_Heap.share_common_data ();
+  ML_Heap.save_state heap);
 
 
 
