@@ -697,9 +697,8 @@ proof (cases "n = 0")
   then show ?thesis by simp
 next
   case False
-  from this setprod_constant[of "{0 .. n - 1}" "- (1:: 'a)"]
-  have eq: "(- (1::'a)) ^ n = setprod (\<lambda>i. - 1) {0 .. n - 1}"
-    by auto
+  then have eq: "(- 1) ^ n = (\<Prod>i = 0..n - 1. - 1)"
+    by (auto simp add: setprod_constant)
   from False show ?thesis
     by (simp add: pochhammer_def gbinomial_def field_simps
       eq setprod.distrib[symmetric])

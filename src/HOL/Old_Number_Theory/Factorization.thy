@@ -220,10 +220,12 @@ lemma ex_nondec_lemma:
   done
 
 lemma not_prime_ex_mk:
-  "Suc 0 < n \<and> \<not> prime n ==>
+  "Suc 0 < n \<and> \<not> prime n \<Longrightarrow>
     \<exists>m k. Suc 0 < m \<and> Suc 0 < k \<and> m < n \<and> k < n \<and> n = m * k"
   apply (unfold prime_def dvd_def)
   apply (auto intro: n_less_m_mult_n n_less_n_mult_m one_less_m one_less_k)
+  using n_less_m_mult_n n_less_n_mult_m one_less_m one_less_k
+  apply (metis Suc_lessD Suc_lessI mult.commute)
   done
 
 lemma split_primel:

@@ -441,6 +441,8 @@ qed
 
 end
 
+class semiring_1_no_zero_divisors = semiring_1 + semiring_no_zero_divisors
+
 class semiring_no_zero_divisors_cancel = semiring_no_zero_divisors +
   assumes mult_cancel_right [simp]: "a * c = b * c \<longleftrightarrow> c = 0 \<or> a = b"
     and mult_cancel_left [simp]: "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b"
@@ -479,6 +481,8 @@ end
 class ring_1_no_zero_divisors = ring_1 + ring_no_zero_divisors
 begin
 
+subclass semiring_1_no_zero_divisors ..
+
 lemma square_eq_1_iff:
   "x * x = 1 \<longleftrightarrow> x = 1 \<or> x = - 1"
 proof -
@@ -509,6 +513,11 @@ by (insert mult_cancel_left [of c a 1], simp)
 end
 
 class semidom = comm_semiring_1_cancel + semiring_no_zero_divisors
+begin
+
+subclass semiring_1_no_zero_divisors ..
+
+end
 
 class idom = comm_ring_1 + semiring_no_zero_divisors
 begin

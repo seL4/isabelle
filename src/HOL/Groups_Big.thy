@@ -6,7 +6,7 @@
 section \<open>Big sum and product over finite (non-empty) sets\<close>
 
 theory Groups_Big
-imports Finite_Set
+imports Finite_Set Power
 begin
 
 subsection \<open>Generic monoid operation over a set\<close>
@@ -1145,6 +1145,18 @@ next
   qed
 qed
 
+lemma setsum_zero_power [simp]:
+  fixes c :: "nat \<Rightarrow> 'a::division_ring"
+  shows "(\<Sum>i\<in>A. c i * 0^i) = (if finite A \<and> 0 \<in> A then c 0 else 0)"
+apply (cases "finite A")
+  by (induction A rule: finite_induct) auto
+
+lemma setsum_zero_power' [simp]:
+  fixes c :: "nat \<Rightarrow> 'a::field"
+  shows "(\<Sum>i\<in>A. c i * 0^i / d i) = (if finite A \<and> 0 \<in> A then c 0 / d 0 else 0)"
+  using setsum_zero_power [of "\<lambda>i. c i / d i" A]
+  by auto
+
 lemma (in field) setprod_inversef:
   "finite A \<Longrightarrow> setprod (inverse \<circ> f) A = inverse (setprod f A)"
   by (induct A rule: finite_induct) simp_all
@@ -1196,5 +1208,52 @@ lemma setprod_eq_1_iff [simp]:
 lemma setprod_pos_nat_iff [simp]:
   "finite A \<Longrightarrow> setprod f A > 0 \<longleftrightarrow> (\<forall>a\<in>A. f a > (0::nat))"
   using setprod_zero_iff by (simp del: neq0_conv add: zero_less_iff_neq_zero)
+
+lemma setprod_constant:
+  "(\<Prod>x\<in> A. (y::'a::comm_monoid_mult)) = y ^ card A"
+  by (induct A rule: infinite_finite_induct) simp_all
+
+lemma setprod_power_distrib:
+  fixes f :: "'a \<Rightarrow> 'b::comm_semiring_1"
+  shows "setprod f A ^ n = setprod (\<lambda>x. (f x) ^ n) A"
+proof (cases "finite A")
+  case True then show ?thesis
+    by (induct A rule: finite_induct) (auto simp add: power_mult_distrib)
+next
+  case False then show ?thesis
+    by simp
+qed
+
+lemma power_setsum:
+  "c ^ (\<Sum>a\<in>A. f a) = (\<Prod>a\<in>A. c ^ f a)"
+  by (induct A rule: infinite_finite_induct) (simp_all add: power_add)
+
+lemma setprod_gen_delta:
+  assumes fS: "finite S"
+  shows "setprod (\<lambda>k. if k=a then b k else c) S = (if a \<in> S then (b a ::'a::comm_monoid_mult) * c^ (card S - 1) else c^ card S)"
+proof-
+  let ?f = "(\<lambda>k. if k=a then b k else c)"
+  {assume a: "a \<notin> S"
+    hence "\<forall> k\<in> S. ?f k = c" by simp
+    hence ?thesis using a setprod_constant by simp }
+  moreover
+  {assume a: "a \<in> S"
+    let ?A = "S - {a}"
+    let ?B = "{a}"
+    have eq: "S = ?A \<union> ?B" using a by blast
+    have dj: "?A \<inter> ?B = {}" by simp
+    from fS have fAB: "finite ?A" "finite ?B" by auto
+    have fA0:"setprod ?f ?A = setprod (\<lambda>i. c) ?A"
+      by (rule setprod.cong) auto
+    have cA: "card ?A = card S - 1" using fS a by auto
+    have fA1: "setprod ?f ?A = c ^ card ?A"
+      unfolding fA0 by (rule setprod_constant)
+    have "setprod ?f ?A * setprod ?f ?B = setprod ?f S"
+      using setprod.union_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
+      by simp
+    then have ?thesis using a cA
+      by (simp add: fA1 field_simps cong add: setprod.cong cong del: if_weak_cong)}
+  ultimately show ?thesis by blast
+qed
 
 end

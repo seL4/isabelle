@@ -6,7 +6,7 @@
 section \<open>Finite sets\<close>
 
 theory Finite_Set
-imports Product_Type Sum_Type Nat
+imports Product_Type Sum_Type Fields
 begin
 
 subsection \<open>Predicate for finite sets\<close>

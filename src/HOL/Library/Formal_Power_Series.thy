@@ -2305,7 +2305,7 @@ next
   have "(a ^m)$0 = setprod (\<lambda>i. a$0) {0..n}"
     by (simp add: Suc fps_power_nth del: replicate.simps power_Suc)
   also have "\<dots> = (a$0) ^ m"
-   unfolding c by (rule setprod_constant) simp
+   unfolding c by (rule setprod_constant)
  finally show ?thesis .
 qed
 

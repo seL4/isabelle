@@ -6,7 +6,7 @@
 section \<open>Exponentiation\<close>
 
 theory Power
-imports Num Equiv_Relations
+imports Num
 begin
 
 subsection \<open>Powers for Arbitrary Monoids\<close>
@@ -232,7 +232,7 @@ qed
 
 end
 
-class semiring_1_no_zero_divisors = semiring_1 + semiring_no_zero_divisors
+context semiring_1_no_zero_divisors
 begin
 
 subclass power .
@@ -248,13 +248,6 @@ lemma power_not_zero:
 lemma zero_eq_power2 [simp]:
   "a\<^sup>2 = 0 \<longleftrightarrow> a = 0"
   unfolding power2_eq_square by simp
-
-end
-
-context semidom
-begin
-
-subclass semiring_1_no_zero_divisors ..
 
 end
 
@@ -306,8 +299,6 @@ end
 
 context ring_1_no_zero_divisors
 begin
-
-subclass semiring_1_no_zero_divisors ..
 
 lemma power2_eq_1_iff:
   "a\<^sup>2 = 1 \<longleftrightarrow> a = 1 \<or> a = - 1"
@@ -850,70 +841,6 @@ next
     done
 qed
 
-
-subsubsection \<open>Generalized sum over a set\<close>
-
-lemma setsum_zero_power [simp]:
-  fixes c :: "nat \<Rightarrow> 'a::division_ring"
-  shows "(\<Sum>i\<in>A. c i * 0^i) = (if finite A \<and> 0 \<in> A then c 0 else 0)"
-apply (cases "finite A")
-  by (induction A rule: finite_induct) auto
-
-lemma setsum_zero_power' [simp]:
-  fixes c :: "nat \<Rightarrow> 'a::field"
-  shows "(\<Sum>i\<in>A. c i * 0^i / d i) = (if finite A \<and> 0 \<in> A then c 0 / d 0 else 0)"
-  using setsum_zero_power [of "\<lambda>i. c i / d i" A]
-  by auto
-
-
-subsubsection \<open>Generalized product over a set\<close>
-
-lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{comm_monoid_mult})) = y^(card A)"
-apply (erule finite_induct)
-apply auto
-done
-
-lemma setprod_power_distrib:
-  fixes f :: "'a \<Rightarrow> 'b::comm_semiring_1"
-  shows "setprod f A ^ n = setprod (\<lambda>x. (f x) ^ n) A"
-proof (cases "finite A")
-  case True then show ?thesis
-    by (induct A rule: finite_induct) (auto simp add: power_mult_distrib)
-next
-  case False then show ?thesis
-    by simp
-qed
-
-lemma power_setsum:
-  "c ^ (\<Sum>a\<in>A. f a) = (\<Prod>a\<in>A. c ^ f a)"
-  by (induct A rule: infinite_finite_induct) (simp_all add: power_add)
-
-lemma setprod_gen_delta:
-  assumes fS: "finite S"
-  shows "setprod (\<lambda>k. if k=a then b k else c) S = (if a \<in> S then (b a ::'a::comm_monoid_mult) * c^ (card S - 1) else c^ card S)"
-proof-
-  let ?f = "(\<lambda>k. if k=a then b k else c)"
-  {assume a: "a \<notin> S"
-    hence "\<forall> k\<in> S. ?f k = c" by simp
-    hence ?thesis  using a setprod_constant[OF fS, of c] by simp }
-  moreover
-  {assume a: "a \<in> S"
-    let ?A = "S - {a}"
-    let ?B = "{a}"
-    have eq: "S = ?A \<union> ?B" using a by blast
-    have dj: "?A \<inter> ?B = {}" by simp
-    from fS have fAB: "finite ?A" "finite ?B" by auto
-    have fA0:"setprod ?f ?A = setprod (\<lambda>i. c) ?A"
-      apply (rule setprod.cong) by auto
-    have cA: "card ?A = card S - 1" using fS a by auto
-    have fA1: "setprod ?f ?A = c ^ card ?A"  unfolding fA0 apply (rule setprod_constant) using fS by auto
-    have "setprod ?f ?A * setprod ?f ?B = setprod ?f S"
-      using setprod.union_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
-      by simp
-    then have ?thesis using a cA
-      by (simp add: fA1 field_simps cong add: setprod.cong cong del: if_weak_cong)}
-  ultimately show ?thesis by blast
-qed
 
 subsection \<open>Code generator tweak\<close>
 

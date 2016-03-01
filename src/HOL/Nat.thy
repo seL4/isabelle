@@ -8,14 +8,13 @@ and * (for div and mod, see theory Divides).
 section \<open>Natural numbers\<close>
 
 theory Nat
-imports Inductive Typedef Fun Fields
+imports Inductive Typedef Fun Rings
 begin
 
 ML_file "~~/src/Tools/rat.ML"
 
 named_theorems arith "arith facts -- only ground formulas"
 ML_file "Tools/arith_data.ML"
-ML_file "~~/src/Provers/Arith/fast_lin_arith.ML"
 
 
 subsection \<open>Type \<open>ind\<close>\<close>
@@ -724,11 +723,16 @@ lemma le_Suc_ex: "(k::nat) \<le> l \<Longrightarrow> (\<exists>n. l = k + n)"
   by (auto simp: less_Suc_eq_le[symmetric] dest: less_imp_Suc_add)
 
 text \<open>strict, in 1st argument; proof is by induction on \<open>k > 0\<close>\<close>
-lemma mult_less_mono2: "(i::nat) < j ==> 0<k ==> k * i < k * j"
-apply(auto simp: gr0_conv_Suc)
-apply (induct_tac m)
-apply (simp_all add: add_less_mono)
-done
+lemma mult_less_mono2:
+  fixes i j :: nat
+  assumes "i < j" and "0 < k"
+  shows "k * i < k * j"
+using \<open>0 < k\<close> proof (induct k)
+  case 0 then show ?case by simp
+next
+  case (Suc k) with \<open>i < j\<close> show ?case
+    by (cases k) (simp_all add: add_less_mono)
+qed
 
 text \<open>Addition is the inverse of subtraction:
   if @{term "n \<le> m"} then @{term "n + (m - n) = m"}.\<close>
@@ -1103,8 +1107,18 @@ by (cases n) (auto simp add: le_simps)
 lemma diff_add_assoc: "k \<le> (j::nat) ==> (i + j) - k = i + (j - k)"
 by (induct j k rule: diff_induct) simp_all
 
+lemma add_diff_assoc [simp]:
+  fixes i j k :: nat
+  shows "k \<le> j \<Longrightarrow> i + (j - k) = i + j - k"
+  by (fact diff_add_assoc [symmetric])
+
 lemma diff_add_assoc2: "k \<le> (j::nat) ==> (j + i) - k = (j - k) + i"
-by (simp add: add.commute diff_add_assoc)
+  by (simp add: ac_simps)
+
+lemma add_diff_assoc2 [simp]:
+  fixes i j k :: nat
+  shows "k \<le> j \<Longrightarrow> j - k + i = j + i - k"
+  by (fact diff_add_assoc2 [symmetric])
 
 lemma le_imp_diff_is_add: "i \<le> (j::nat) ==> (j - i = k) = (j = k + i)"
 by auto
@@ -1457,6 +1471,14 @@ end
 
 declare of_nat_code [code]
 
+context ring_1
+begin
+
+lemma of_nat_diff: "n \<le> m \<Longrightarrow> of_nat (m - n) = of_nat m - of_nat n"
+by (simp add: algebra_simps of_nat_add [symmetric])
+
+end
+
 text\<open>Class for unital semirings with characteristic zero.
  Includes non-ordered rings like the complex numbers.\<close>
 
@@ -1484,6 +1506,8 @@ lemma of_nat_0_neq [simp]:
   unfolding of_nat_0_eq_iff by simp
 
 end
+
+class ring_char_0 = ring_1 + semiring_char_0
 
 context linordered_semidom
 begin
@@ -1518,14 +1542,6 @@ lemma of_nat_le_0_iff [simp]: "of_nat m \<le> 0 \<longleftrightarrow> m = 0"
 
 lemma of_nat_0_less_iff [simp]: "0 < of_nat n \<longleftrightarrow> 0 < n"
   by (rule of_nat_less_iff [of 0, simplified])
-
-end
-
-context ring_1
-begin
-
-lemma of_nat_diff: "n \<le> m \<Longrightarrow> of_nat (m - n) = of_nat m - of_nat n"
-by (simp add: algebra_simps of_nat_add [symmetric])
 
 end
 
@@ -1621,21 +1637,6 @@ simproc_setup natdiff_cancel_sums
   ("(l::nat) + m - n" | "(l::nat) - (m + n)" | "Suc m - n" | "m - Suc n") =
   \<open>fn phi => try o Nat_Arith.cancel_diff_conv\<close>
 
-ML_file "Tools/lin_arith.ML"
-setup \<open>Lin_Arith.global_setup\<close>
-declaration \<open>K Lin_Arith.setup\<close>
-
-simproc_setup fast_arith_nat ("(m::nat) < n" | "(m::nat) \<le> n" | "(m::nat) = n") =
-  \<open>K Lin_Arith.simproc\<close>
-(* Because of this simproc, the arithmetic solver is really only
-useful to detect inconsistencies among the premises for subgoals which are
-*not* themselves (in)equalities, because the latter activate
-fast_nat_arith_simproc anyway. However, it seems cheaper to activate the
-solver all the time rather than add the additional check. *)
-
-
-lemmas [arith_split] = nat_diff_split split_min split_max
-
 context order
 begin
 
@@ -1695,62 +1696,95 @@ qed
 
 text\<open>Subtraction laws, mostly by Clemens Ballarin\<close>
 
-lemma diff_less_mono: "[| a < (b::nat); c \<le> a |] ==> a-c < b-c"
-by arith
+lemma diff_less_mono:
+  fixes a b c :: nat
+  assumes "a < b" and "c \<le> a"
+  shows "a - c < b - c"
+proof -
+  from assms obtain d e where "b = c + (d + e)" and "a = c + e" and "d > 0"
+    by (auto dest!: le_Suc_ex less_imp_Suc_add simp add: ac_simps)
+  then show ?thesis by simp
+qed
 
-lemma less_diff_conv: "(i < j-k) = (i+k < (j::nat))"
-by arith
+lemma less_diff_conv:
+  fixes i j k :: nat
+  shows "i < j - k \<longleftrightarrow> i + k < j" (is "?P \<longleftrightarrow> ?Q")
+  by (cases "k \<le> j")
+    (auto simp add: not_le dest: less_imp_Suc_add le_Suc_ex)
 
 lemma less_diff_conv2:
   fixes j k i :: nat
   assumes "k \<le> j"
-  shows "j - k < i \<longleftrightarrow> j < i + k"
-  using assms by arith
+  shows "j - k < i \<longleftrightarrow> j < i + k" (is "?P \<longleftrightarrow> ?Q")
+  using assms by (auto dest: le_Suc_ex)
 
-lemma le_diff_conv: "(j-k \<le> (i::nat)) = (j \<le> i+k)"
-by arith
+lemma le_diff_conv:
+  fixes j k i :: nat
+  shows "j - k \<le> i \<longleftrightarrow> j \<le> i + k"
+  by (cases "k \<le> j")
+    (auto simp add: not_le dest!: less_imp_Suc_add le_Suc_ex)
 
-lemma diff_diff_cancel [simp]: "i \<le> (n::nat) ==> n - (n - i) = i"
-by arith
+lemma diff_diff_cancel [simp]:
+  fixes i n :: nat
+  shows "i \<le> n \<Longrightarrow> n - (n - i) = i"
+  by (auto dest: le_Suc_ex)
 
-(*Replaces the previous diff_less and le_diff_less, which had the stronger
-  second premise n\<le>m*)
-lemma diff_less[simp]: "!!m::nat. [| 0<n; 0<m |] ==> m - n < m"
-by arith
+lemma diff_less [simp]:
+  fixes i n :: nat
+  shows "0 < n \<Longrightarrow> 0 < m \<Longrightarrow> m - n < m"
+  by (auto dest: less_imp_Suc_add)
 
 text \<open>Simplification of relational expressions involving subtraction\<close>
 
-lemma diff_diff_eq: "[| k \<le> m;  k \<le> (n::nat) |] ==> ((m-k) - (n-k)) = (m-n)"
-by (simp split add: nat_diff_split)
+lemma diff_diff_eq:
+  fixes m n k :: nat
+  shows "k \<le> m \<Longrightarrow> k \<le> n \<Longrightarrow> m - k - (n - k) = m - n"
+  by (auto dest!: le_Suc_ex)
 
 hide_fact (open) diff_diff_eq
 
-lemma eq_diff_iff: "[| k \<le> m;  k \<le> (n::nat) |] ==> (m-k = n-k) = (m=n)"
-by (auto split add: nat_diff_split)
+lemma eq_diff_iff:
+  fixes m n k :: nat
+  shows "k \<le> m \<Longrightarrow> k \<le> n \<Longrightarrow> m - k = n - k \<longleftrightarrow> m = n"
+  by (auto dest: le_Suc_ex)
 
-lemma less_diff_iff: "[| k \<le> m;  k \<le> (n::nat) |] ==> (m-k < n-k) = (m<n)"
-by (auto split add: nat_diff_split)
+lemma less_diff_iff:
+  fixes m n k :: nat
+  shows "k \<le> m \<Longrightarrow> k \<le> n \<Longrightarrow> m - k < n - k \<longleftrightarrow> m < n"
+  by (auto dest!: le_Suc_ex)
 
-lemma le_diff_iff: "[| k \<le> m;  k \<le> (n::nat) |] ==> (m-k \<le> n-k) = (m\<le>n)"
-by (auto split add: nat_diff_split)
+lemma le_diff_iff:
+  fixes m n k :: nat
+  shows "k \<le> m \<Longrightarrow> k \<le> n \<Longrightarrow> m - k \<le> n - k \<longleftrightarrow> m \<le> n"
+  by (auto dest!: le_Suc_ex)
 
 text\<open>(Anti)Monotonicity of subtraction -- by Stephan Merz\<close>
 
-(* Monotonicity of subtraction in first argument *)
-lemma diff_le_mono: "m \<le> (n::nat) ==> (m-l) \<le> (n-l)"
-by (simp split add: nat_diff_split)
+lemma diff_le_mono:
+  fixes m n l :: nat
+  shows "m \<le> n \<Longrightarrow> m - l \<le> n - l"
+  by (auto dest: less_imp_le less_imp_Suc_add split add: nat_diff_split)
 
-lemma diff_le_mono2: "m \<le> (n::nat) ==> (l-n) \<le> (l-m)"
-by (simp split add: nat_diff_split)
+lemma diff_le_mono2:
+  fixes m n l :: nat
+  shows "m \<le> n \<Longrightarrow> l - n \<le> l - m"
+  by (auto dest: less_imp_le le_Suc_ex less_imp_Suc_add less_le_trans split add: nat_diff_split)
 
-lemma diff_less_mono2: "[| m < (n::nat); m<l |] ==> (l-n) < (l-m)"
-by (simp split add: nat_diff_split)
+lemma diff_less_mono2:
+  fixes m n l :: nat
+  shows "m < n \<Longrightarrow> m < l \<Longrightarrow> l - n < l - m"
+  by (auto dest: less_imp_Suc_add split add: nat_diff_split)
 
-lemma diffs0_imp_equal: "!!m::nat. [| m-n = 0; n-m = 0 |] ==>  m=n"
-by (simp split add: nat_diff_split)
+lemma diffs0_imp_equal:
+  fixes m n :: nat
+  shows "m - n = 0 \<Longrightarrow> n - m = 0 \<Longrightarrow> m = n"
+  by (simp split add: nat_diff_split)
 
-lemma min_diff: "min (m - (i::nat)) (n - i) = min m n - i"
-by auto
+lemma min_diff:
+  fixes m n i :: nat
+  shows "min (m - i) (n - i) = min m n - i" (is "?lhs = ?rhs")
+  by (cases m n rule: le_cases)
+    (auto simp add: not_le min.absorb1 min.absorb2 min.absorb_iff1 [symmetric] diff_le_mono)
 
 lemma inj_on_diff_nat:
   assumes k_le_n: "\<forall>n \<in> N. k \<le> (n::nat)"
@@ -1759,78 +1793,130 @@ proof (rule inj_onI)
   fix x y
   assume a: "x \<in> N" "y \<in> N" "x - k = y - k"
   with k_le_n have "x - k + k = y - k + k" by auto
-  with a k_le_n show "x = y" by auto
+  with a k_le_n show "x = y" by (auto simp add: eq_diff_iff)
 qed
 
 text\<open>Rewriting to pull differences out\<close>
 
-lemma diff_diff_right [simp]: "k\<le>j --> i - (j - k) = i + (k::nat) - j"
-by arith
+lemma diff_diff_right [simp]:
+  fixes i j k :: nat
+  shows "k \<le> j \<Longrightarrow> i - (j - k) = i + k - j"
+  by (fact diff_diff_right)
 
-lemma diff_Suc_diff_eq1 [simp]: "k \<le> j ==> m - Suc (j - k) = m + k - Suc j"
-by arith
+lemma diff_Suc_diff_eq1 [simp]:
+  assumes "k \<le> j"
+  shows "i - Suc (j - k) = i + k - Suc j"
+proof -
+  from assms have *: "Suc (j - k) = Suc j - k"
+    by (simp add: Suc_diff_le)
+  from assms have "k \<le> Suc j"
+    by (rule order_trans) simp
+  with diff_diff_right [of k "Suc j" i] * show ?thesis
+    by simp
+qed
 
-lemma diff_Suc_diff_eq2 [simp]: "k \<le> j ==> Suc (j - k) - m = Suc j - (k + m)"
-by arith
+lemma diff_Suc_diff_eq2 [simp]:
+  assumes "k \<le> j"
+  shows "Suc (j - k) - i = Suc j - (k + i)"
+proof -
+  from assms obtain n where "j = k + n"
+    by (auto dest: le_Suc_ex)
+  moreover have "Suc n - i = (k + Suc n) - (k + i)"
+    using add_diff_cancel_left [of k "Suc n" i] by simp
+  ultimately show ?thesis by simp
+qed
 
-lemma Suc_diff_Suc: "n < m \<Longrightarrow> Suc (m - Suc n) = m - n"
-by simp
+lemma Suc_diff_Suc:
+  assumes "n < m"
+  shows "Suc (m - Suc n) = m - n"
+proof -
+  from assms obtain q where "m = n + Suc q"
+    by (auto dest: less_imp_Suc_add)
+  moreover def r \<equiv> "Suc q"
+  ultimately have "Suc (m - Suc n) = r" and "m = n + r"
+    by simp_all
+  then show ?thesis by simp
+qed
 
-(*The others are
-      i - j - k = i - (j + k),
-      k \<le> j ==> j - k + i = j + i - k,
-      k \<le> j ==> i + (j - k) = i + j - k *)
-lemmas add_diff_assoc = diff_add_assoc [symmetric]
-lemmas add_diff_assoc2 = diff_add_assoc2[symmetric]
-declare add_diff_assoc [simp] add_diff_assoc2[simp]
+lemma one_less_mult:
+  "Suc 0 < n \<Longrightarrow> Suc 0 < m \<Longrightarrow> Suc 0 < m * n"
+  using less_1_mult [of n m] by (simp add: ac_simps)
 
-text\<open>At present we prove no analogue of \<open>not_less_Least\<close> or \<open>Least_Suc\<close>, since there appears to be no need.\<close>
+lemma n_less_m_mult_n:
+  "0 < n \<Longrightarrow> Suc 0 < m \<Longrightarrow> n < m * n"
+  using mult_strict_right_mono [of 1 m n] by simp
 
-text\<open>Lemmas for ex/Factorization\<close>
-
-lemma one_less_mult: "[| Suc 0 < n; Suc 0 < m |] ==> Suc 0 < m*n"
-by (cases m) auto
-
-lemma n_less_m_mult_n: "[| Suc 0 < n; Suc 0 < m |] ==> n<m*n"
-by (cases m) auto
-
-lemma n_less_n_mult_m: "[| Suc 0 < n; Suc 0 < m |] ==> n<n*m"
-by (cases m) auto
+lemma n_less_n_mult_m:
+  "0 < n \<Longrightarrow> Suc 0 < m \<Longrightarrow> n < n * m"
+  using mult_strict_left_mono [of 1 m n] by simp
 
 text \<open>Specialized induction principles that work "backwards":\<close>
 
-lemma inc_induct[consumes 1, case_names base step]:
+lemma inc_induct [consumes 1, case_names base step]:
   assumes less: "i \<le> j"
   assumes base: "P j"
   assumes step: "\<And>n. i \<le> n \<Longrightarrow> n < j \<Longrightarrow> P (Suc n) \<Longrightarrow> P n"
   shows "P i"
   using less step
-proof (induct d\<equiv>"j - i" arbitrary: i)
+proof (induct "j - i" arbitrary: i)
   case (0 i)
-  hence "i = j" by simp
+  then have "i = j" by simp
   with base show ?case by simp
 next
   case (Suc d n)
-  hence "n \<le> n" "n < j" "P (Suc n)"
-    by simp_all
-  then show "P n" by fact
+  from Suc.hyps have "n \<noteq> j" by auto
+  with Suc have "n < j" by (simp add: less_le)
+  from \<open>Suc d = j - n\<close> have "d + 1 = j - n" by simp
+  then have "d + 1 - 1 = j - n - 1" by simp
+  then have "d = j - n - 1" by simp
+  then have "d = j - (n + 1)" 
+    by (simp add: diff_diff_eq)
+  then have "d = j - Suc n"
+    by simp
+  moreover from \<open>n < j\<close> have "Suc n \<le> j"
+    by (simp add: Suc_le_eq)
+  ultimately have "P (Suc n)"
+  thm Suc.hyps TrueI Suc.prems
+  proof (rule Suc.hyps)
+    fix q
+    assume "Suc n \<le> q"
+    then have "n \<le> q" by (simp add: Suc_le_eq less_imp_le)
+    moreover assume "q < j"
+    moreover assume "P (Suc q)"
+    ultimately show "P q"
+      by (rule Suc.prems)
+  qed
+  with order_refl \<open>n < j\<close> show "P n"
+    by (rule Suc.prems)
 qed
-
-lemma strict_inc_induct[consumes 1, case_names base step]:
+    
+lemma strict_inc_induct [consumes 1, case_names base step]:
   assumes less: "i < j"
-  assumes base: "!!i. j = Suc i ==> P i"
-  assumes step: "!!i. [| i < j; P (Suc i) |] ==> P i"
+  assumes base: "\<And>i. j = Suc i \<Longrightarrow> P i"
+  assumes step: "\<And>i. i < j \<Longrightarrow> P (Suc i) \<Longrightarrow> P i"
   shows "P i"
-  using less
-proof (induct d=="j - i - 1" arbitrary: i)
+using less proof (induct "j - i - 1" arbitrary: i)
   case (0 i)
-  with \<open>i < j\<close> have "j = Suc i" by simp
+  from \<open>i < j\<close> obtain n where "j = i + n" and "n > 0"
+    by (auto dest!: less_imp_Suc_add)
+  with 0 have "j = Suc i"
+    by (auto intro: order_antisym simp add: Suc_le_eq)
   with base show ?case by simp
 next
   case (Suc d i)
-  hence "i < j" "P (Suc i)"
-    by simp_all
-  thus "P i" by (rule step)
+  from \<open>Suc d = j - i - 1\<close> have *: "Suc d = j - Suc i"
+    by (simp add: diff_diff_add)
+  then have "Suc d - 1 = j - Suc i - 1"
+    by simp
+  then have "d = j - Suc i - 1"
+    by simp
+  moreover from * have "j - Suc i \<noteq> 0"
+    by auto
+  then have "Suc i < j"
+    by (simp add: not_le)
+  ultimately have "P (Suc i)"
+    by (rule Suc.hyps)
+  with \<open>i < j\<close> show "P i" by (rule step)
 qed
 
 lemma zero_induct_lemma: "P k ==> (!!n. P (Suc n) ==> P n) ==> P (k - i)"
@@ -1841,9 +1927,35 @@ lemma zero_induct: "P k ==> (!!n. P (Suc n) ==> P n) ==> P 0"
 
 text \<open>Further induction rule similar to @{thm inc_induct}\<close>
 
-lemma dec_induct[consumes 1, case_names base step]:
+lemma dec_induct [consumes 1, case_names base step]:
   "i \<le> j \<Longrightarrow> P i \<Longrightarrow> (\<And>n. i \<le> n \<Longrightarrow> n < j \<Longrightarrow> P n \<Longrightarrow> P (Suc n)) \<Longrightarrow> P j"
-  by (induct j arbitrary: i) (auto simp: le_Suc_eq)
+proof (induct j arbitrary: i)
+  case 0 then show ?case by simp
+next
+  case (Suc j)
+  from Suc.prems have "i \<le> j \<or> i = Suc j"
+    by (simp add: le_Suc_eq)
+  then show ?case proof
+    assume "i \<le> j"
+    moreover have "j < Suc j" by simp
+    moreover have "P j" using \<open>i \<le> j\<close> \<open>P i\<close>
+    proof (rule Suc.hyps)
+      fix q
+      assume "i \<le> q"
+      moreover assume "q < j" then have "q < Suc j"
+        by (simp add: less_Suc_eq)
+      moreover assume "P q"
+      ultimately show "P (Suc q)"
+        by (rule Suc.prems)
+    qed
+    ultimately show "P (Suc j)"
+      by (rule Suc.prems)
+  next
+    assume "i = Suc j"
+    with \<open>P i\<close> show "P (Suc j)" by simp
+  qed
+qed
+
 
 subsection \<open> Monotonicity of funpow \<close>
 
@@ -1912,7 +2024,7 @@ lemma dvd_mult_cancel:
 proof -
   from assms(1) obtain q where "k * n = (k * m) * q" ..
   then have "k * n = k * (m * q)" by (simp add: ac_simps)
-  with \<open>0 < k\<close> have "n = m * q" by simp
+  with \<open>0 < k\<close> have "n = m * q" by (auto simp add: mult_left_cancel)
   then show ?thesis ..
 qed
   
@@ -1949,7 +2061,7 @@ qed
 lemma dvd_minus_self:
   fixes m n :: nat
   shows "m dvd n - m \<longleftrightarrow> n < m \<or> m dvd n"
-  by (cases "n < m") (auto elim!: dvdE simp add: not_less le_imp_diff_is_add)
+  by (cases "n < m") (auto elim!: dvdE simp add: not_less le_imp_diff_is_add dest: less_imp_le)
 
 lemma dvd_minus_add:
   fixes m n q r :: nat

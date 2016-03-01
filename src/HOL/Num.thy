@@ -761,7 +761,7 @@ subsubsection \<open>
   Equality and negation: class \<open>ring_char_0\<close>
 \<close>
 
-class ring_char_0 = ring_1 + semiring_char_0
+context ring_char_0
 begin
 
 lemma not_iszero_numeral [simp]: "\<not> iszero (numeral w)"
@@ -832,10 +832,6 @@ lemmas eq_neg_numeral_simps [simp] =
   neg_one_neq_one one_neq_neg_one
 
 end
-
-text\<open>Also the class for fields with characteristic zero.\<close>
-
-class field_char_0 = field + ring_char_0
 
 
 subsubsection \<open>

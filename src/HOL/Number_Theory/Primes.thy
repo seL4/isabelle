@@ -96,11 +96,11 @@ lemma prime_dvd_mult_eq_int [simp]:
   shows "prime p \<Longrightarrow> p dvd m * n = (p dvd m \<or> p dvd n)"
   by (rule iffI, rule prime_dvd_mult_int, auto)
 
-lemma not_prime_eq_prod_nat: "(n::nat) > 1 \<Longrightarrow> ~ prime n \<Longrightarrow>
-    EX m k. n = m * k & 1 < m & m < n & 1 < k & k < n"
-  unfolding prime_def dvd_def apply auto
-  by (metis mult.commute linorder_neq_iff linorder_not_le mult_1
-      n_less_n_mult_m one_le_mult_iff less_imp_le_nat)
+lemma not_prime_eq_prod_nat:
+  "1 < n \<Longrightarrow> \<not> prime n \<Longrightarrow>
+    \<exists>m k. n = m * k \<and> 1 < m \<and> m < n \<and> 1 < k \<and> k < n"
+  unfolding prime_def dvd_def apply (auto simp add: ac_simps)
+  by (metis Suc_lessD Suc_lessI n_less_m_mult_n n_less_n_mult_m nat_0_less_mult_iff)
 
 lemma prime_dvd_power_nat: "prime p \<Longrightarrow> p dvd x^n \<Longrightarrow> p dvd x"
   by (induct n) auto

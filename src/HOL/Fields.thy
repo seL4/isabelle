@@ -10,7 +10,7 @@
 section \<open>Fields\<close>
 
 theory Fields
-imports Rings
+imports Nat
 begin
 
 subsection \<open>Division rings\<close>
@@ -28,6 +28,24 @@ where
   "inverse_divide \<equiv> divide"
 
 end
+
+text \<open>Setup for linear arithmetic prover\<close>
+
+ML_file "~~/src/Provers/Arith/fast_lin_arith.ML"
+ML_file "Tools/lin_arith.ML"
+setup \<open>Lin_Arith.global_setup\<close>
+declaration \<open>K Lin_Arith.setup\<close>
+
+simproc_setup fast_arith_nat ("(m::nat) < n" | "(m::nat) \<le> n" | "(m::nat) = n") =
+  \<open>K Lin_Arith.simproc\<close>
+(* Because of this simproc, the arithmetic solver is really only
+useful to detect inconsistencies among the premises for subgoals which are
+*not* themselves (in)equalities, because the latter activate
+fast_nat_arith_simproc anyway. However, it seems cheaper to activate the
+solver all the time rather than add the additional check. *)
+
+lemmas [arith_split] = nat_diff_split split_min split_max
+
 
 text\<open>Lemmas \<open>divide_simps\<close> move division to the outside and eliminates them on (in)equalities.\<close>
 
@@ -489,6 +507,8 @@ lemma add_num_frac:
   by (simp add: add_divide_distrib add.commute)
 
 end
+
+class field_char_0 = field + ring_char_0
 
 
 subsection \<open>Ordered fields\<close>
