@@ -10,6 +10,37 @@ package isabelle
 
 object Exn
 {
+  /* user errors */
+
+  class User_Error(message: String) extends RuntimeException(message)
+  {
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: User_Error => message == other.getMessage
+        case _ => false
+      }
+    override def hashCode: Int = message.hashCode
+
+    override def toString: String = "ERROR(" + message + ")"
+  }
+
+  object ERROR
+  {
+    def apply(message: String): User_Error = new User_Error(message)
+    def unapply(exn: Throwable): Option[String] = user_message(exn)
+  }
+
+  def error(message: String): Nothing = throw ERROR(message)
+
+  def cat_message(msg1: String, msg2: String): String =
+    if (msg1 == "") msg2
+    else if (msg2 == "") msg1
+    else msg1 + "\n" + msg2
+
+  def cat_error(msg1: String, msg2: String): Nothing =
+    error(cat_message(msg1, msg2))
+
+
   /* exceptions as values */
 
   sealed abstract class Result[A]
@@ -88,7 +119,7 @@ object Exn
 
   def user_message(exn: Throwable): Option[String] =
     if (exn.getClass == classOf[RuntimeException] ||
-        exn.getClass == classOf[Library.User_Error])
+        exn.getClass == classOf[User_Error])
     {
       val msg = exn.getMessage
       Some(if (msg == null || msg == "") "Error" else msg)

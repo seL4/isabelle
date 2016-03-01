@@ -36,6 +36,17 @@ end;
 structure Exn: EXN =
 struct
 
+(* user errors *)
+
+exception ERROR of string;
+
+fun error msg = raise ERROR msg;
+
+fun cat_error "" msg = error msg
+  | cat_error msg "" = error msg
+  | cat_error msg1 msg2 = error (msg1 ^ "\n" ^ msg2);
+
+
 (* exceptions as values *)
 
 datatype 'a result =
@@ -93,17 +104,6 @@ fun capture_exit rc f x =
 (* concatenated exceptions *)
 
 exception EXCEPTIONS of exn list;
-
-
-(* user errors *)
-
-exception ERROR of string;
-
-fun error msg = raise ERROR msg;
-
-fun cat_error "" msg = error msg
-  | cat_error msg "" = error msg
-  | cat_error msg1 msg2 = error (msg1 ^ "\n" ^ msg2);
 
 end;
 

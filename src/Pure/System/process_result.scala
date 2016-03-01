@@ -24,7 +24,7 @@ final case class Process_Result(
   def check: Process_Result =
     if (ok) this
     else if (interrupted) throw Exn.Interrupt()
-    else Library.error(err)
+    else Exn.error(err)
 
   def print: Process_Result =
   {

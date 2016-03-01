@@ -88,7 +88,7 @@ object Document
       def error(msg: String): Header = copy(errors = errors ::: List(msg))
 
       def cat_errors(msg2: String): Header =
-        copy(errors = errors.map(msg1 => Library.cat_message(msg1, msg2)))
+        copy(errors = errors.map(msg1 => Exn.cat_message(msg1, msg2)))
     }
 
     val no_header = Header(Nil, Nil, Nil)

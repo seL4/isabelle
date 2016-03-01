@@ -14,37 +14,6 @@ import scala.util.matching.Regex
 
 object Library
 {
-  /* user errors */
-
-  class User_Error(message: String) extends RuntimeException(message)
-  {
-    override def equals(that: Any): Boolean =
-      that match {
-        case other: User_Error => message == other.getMessage
-        case _ => false
-      }
-    override def hashCode: Int = message.hashCode
-
-    override def toString: String = "ERROR(" + message + ")"
-  }
-
-  object ERROR
-  {
-    def apply(message: String): User_Error = new User_Error(message)
-    def unapply(exn: Throwable): Option[String] = Exn.user_message(exn)
-  }
-
-  def error(message: String): Nothing = throw ERROR(message)
-
-  def cat_message(msg1: String, msg2: String): String =
-    if (msg1 == "") msg2
-    else if (msg2 == "") msg1
-    else msg1 + "\n" + msg2
-
-  def cat_error(msg1: String, msg2: String): Nothing =
-    error(cat_message(msg1, msg2))
-
-
   /* integers */
 
   private val small_int = 10000
@@ -214,19 +183,4 @@ object Library
   def insert[A](x: A)(xs: List[A]): List[A] = if (xs.contains(x)) xs else x :: xs
   def remove[A, B](x: B)(xs: List[A]): List[A] = if (member(xs)(x)) xs.filterNot(_ == x) else xs
   def update[A](x: A)(xs: List[A]): List[A] = x :: remove(x)(xs)
-}
-
-
-class Basic_Library
-{
-  val ERROR = Library.ERROR
-  val error = Library.error _
-  val cat_error = Library.cat_error _
-
-  val space_explode = Library.space_explode _
-  val split_lines = Library.split_lines _
-  val cat_lines = Library.cat_lines _
-  val quote = Library.quote _
-  val commas = Library.commas _
-  val commas_quote = Library.commas_quote _
 }
