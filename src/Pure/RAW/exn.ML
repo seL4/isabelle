@@ -4,8 +4,16 @@
 Support for exceptions.
 *)
 
+signature BASIC_EXN =
+sig
+  exception ERROR of string
+  val error: string -> 'a
+  val cat_error: string -> string -> 'a
+end;
+
 signature EXN =
 sig
+  include BASIC_EXN
   datatype 'a result = Res of 'a | Exn of exn
   val get_res: 'a result -> 'a option
   val get_exn: 'a result -> exn option
@@ -86,6 +94,20 @@ fun capture_exit rc f x =
 
 exception EXCEPTIONS of exn list;
 
+
+(* user errors *)
+
+exception ERROR of string;
+
+fun error msg = raise ERROR msg;
+
+fun cat_error "" msg = error msg
+  | cat_error msg "" = error msg
+  | cat_error msg1 msg2 = error (msg1 ^ "\n" ^ msg2);
+
 end;
 
 datatype illegal = Interrupt;
+
+structure Basic_Exn: BASIC_EXN = Exn;
+open Basic_Exn;

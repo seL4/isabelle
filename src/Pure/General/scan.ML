@@ -109,7 +109,7 @@ exception ABORT of message;  (*dead end*)
 fun !! err scan xs = scan xs handle FAIL msg => raise ABORT (err (xs, msg));
 fun permissive scan xs = scan xs handle MORE () => raise FAIL NONE | ABORT _ => raise FAIL NONE;
 fun strict scan xs = scan xs handle MORE () => raise FAIL NONE;
-fun error scan xs = scan xs handle ABORT msg => Library.error (msg ());
+fun error scan xs = scan xs handle ABORT msg => Exn.error (msg ());
 
 fun catch scan xs = scan xs
   handle ABORT msg => raise Fail (msg ())

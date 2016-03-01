@@ -28,11 +28,6 @@ sig
   val funpow: int -> ('a -> 'a) -> 'a -> 'a
   val funpow_yield: int -> ('a -> 'b * 'a) -> 'a -> 'b list * 'a
 
-  (*user errors*)
-  exception ERROR of string
-  val error: string -> 'a
-  val cat_error: string -> string -> 'a
-
   (*pairs*)
   val pair: 'a -> 'b -> 'a * 'b
   val rpair: 'a -> 'b -> 'b * 'a
@@ -250,16 +245,6 @@ fun funpow (0 : int) _ = I
 
 fun funpow_yield (0 : int) _ x = ([], x)
   | funpow_yield n f x = x |> f ||>> funpow_yield (n - 1) f |>> op ::;
-
-
-(* user errors *)
-
-exception ERROR of string;
-fun error msg = raise ERROR msg;
-
-fun cat_error "" msg = error msg
-  | cat_error msg "" = error msg
-  | cat_error msg1 msg2 = error (msg1 ^ "\n" ^ msg2);
 
 
 (* pairs *)
