@@ -13,9 +13,9 @@ sig
     Context.generic -> Context.generic
   val get_breakpoint: Context.generic -> serial -> (bool Unsynchronized.ref * Position.T) option
   val add_name_space: {SML: bool} -> ML_Name_Space.T -> Context.generic -> Context.generic
-  val name_space: {SML: bool, exchange: bool} -> ML_Name_Space.T
-  val local_context: ML_Compiler0.context
-  val local_name_space: ML_Name_Space.T
+  val make_name_space: {SML: bool, exchange: bool} -> ML_Name_Space.T
+  val context: ML_Compiler0.context
+  val name_space: ML_Name_Space.T
   val check_functor: string -> unit
 end
 
@@ -108,7 +108,7 @@ fun add_name_space {SML} (space: ML_Name_Space.T) =
             in (val2, type2, fixity2, structure2, signature2, functor2) end);
     in make_data (bootstrap, tables', sml_tables', breakpoints) end);
 
-fun name_space {SML, exchange} : ML_Name_Space.T =
+fun make_name_space {SML, exchange} : ML_Name_Space.T =
   let
     fun lookup sel1 sel2 name =
       if SML then
@@ -162,15 +162,15 @@ fun name_space {SML, exchange} : ML_Name_Space.T =
     allFunct     = all #6 #allFunct}
   end;
 
-val local_context: ML_Compiler0.context =
- {name_space = name_space {SML = false, exchange = false},
+val context: ML_Compiler0.context =
+ {name_space = make_name_space {SML = false, exchange = false},
   here = Position.here oo Position.line_file,
   print = writeln,
   error = error};
 
-val local_name_space = #name_space local_context;
+val name_space = #name_space context;
 
-val is_functor = is_some o #lookupFunct local_name_space;
+val is_functor = is_some o #lookupFunct name_space;
 
 fun check_functor name =
   if not (is_functor "Table") (*mask dummy version of name_space*) orelse is_functor name then ()

@@ -206,7 +206,7 @@ val pnf_narrowing_engine =
 
 fun exec verbose code =
   ML_Context.exec (fn () =>
-    ML_Compiler0.use_text ML_Env.local_context
+    ML_Compiler0.use_text ML_Env.context
       {line = 0, file = "generated code", verbose = verbose, debug = false} code)
 
 fun with_overlord_dir name f =
