@@ -82,7 +82,7 @@ val trace = Attrib.setup_config_bool @{binding "code_runtime_trace"} (K false);
 fun exec ctxt verbose code =
  (if Config.get ctxt trace then tracing code else ();
   ML_Context.exec (fn () =>
-    use_text ML_Env.local_context
+    ML_Compiler0.use_text ML_Env.local_context
       {line = 0, file = "generated code", verbose = verbose, debug = false} code));
 
 fun value ctxt (get, put, put_ml) (prelude, value) =
@@ -509,7 +509,7 @@ fun notify_val (string, value) =
 
 fun abort _ = error "Only value bindings allowed.";
 
-val notifying_context : use_context =
+val notifying_context : ML_Compiler0.context =
  {name_space =
    {lookupVal    = #lookupVal ML_Env.local_name_space,
     lookupType   = #lookupType ML_Env.local_name_space,
@@ -540,7 +540,7 @@ fun use_file filepath thy =
     val thy' = Loaded_Values.put [] thy;
     val _ = Context.set_thread_data ((SOME o Context.Theory) thy');
     val _ =
-      use_text notifying_context
+      ML_Compiler0.use_text notifying_context
         {line = 0, file = Path.implode filepath, verbose = false, debug = false}
         (File.read filepath);
     val thy'' = Context.the_theory (Context.the_thread_data ());

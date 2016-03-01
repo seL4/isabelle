@@ -127,7 +127,7 @@ fun checkOne ctxt show (tag, prop) obj =
 fun determine_type ctxt s =
   let
     val return = Unsynchronized.ref "return"
-    val use_context : use_context =
+    val context : ML_Compiler0.context =
      {name_space = #name_space ML_Env.local_context,
       here = #here ML_Env.local_context,
       print = fn r => return := r,
@@ -135,7 +135,7 @@ fun determine_type ctxt s =
     val _ =
       Context.setmp_thread_data (SOME (Context.Proof ctxt))
         (fn () =>
-          use_text use_context
+          ML_Compiler0.use_text context
             {line = 0, file = "generated code", verbose = true, debug = false} s) ()
   in
     Gen_Construction.parse_pred (! return)
@@ -145,7 +145,7 @@ fun determine_type ctxt s =
 fun run_test ctxt s =
   Context.setmp_thread_data (SOME (Context.Proof ctxt))
     (fn () =>
-      use_text ML_Env.local_context
+      ML_Compiler0.use_text ML_Env.local_context
         {line = 0, file = "generated code", verbose = false, debug = false} s) ();
 
 (*split input into tokens*)

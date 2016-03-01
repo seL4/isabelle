@@ -36,17 +36,18 @@ use "ML/ml_lex.ML";
 
 val {use, use_debug, use_no_debug} =
   let
-    val global_context: use_context =
+    val context: ML_Compiler0.context =
      {name_space = ML_Name_Space.global,
       here = Position.here oo Position.line_file,
       print = writeln,
-      error = error}
+      error = error};
   in
-    use_operations (fn opt_debug => fn file =>
+    ML_Compiler0.use_operations (fn opt_debug => fn file =>
       Position.setmp_thread_data (Position.file_only file)
         (fn () =>
-          use_file global_context {verbose = true, debug = use_debug_option opt_debug} file
-            handle ERROR msg => (writeln msg; error "ML error")) ())
+          ML_Compiler0.use_file context
+            {verbose = true, debug = ML_Compiler0.debug_option opt_debug} file
+          handle ERROR msg => (writeln msg; error "ML error")) ())
   end;
 
 
@@ -228,7 +229,7 @@ use "ML/ml_context.ML";
 use "ML/ml_antiquotation.ML";
 
 val {use, use_debug, use_no_debug} =
-  use_operations (fn opt_debug => fn file =>
+  ML_Compiler0.use_operations (fn opt_debug => fn file =>
     let val flags = ML_Compiler.verbose true (ML_Compiler.debug_flags opt_debug) in
       ML_Context.eval_file flags (Path.explode file)
         handle ERROR msg => (writeln msg; error "ML error")

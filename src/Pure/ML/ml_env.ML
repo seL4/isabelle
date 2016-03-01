@@ -14,7 +14,7 @@ sig
   val get_breakpoint: Context.generic -> serial -> (bool Unsynchronized.ref * Position.T) option
   val add_name_space: {SML: bool} -> ML_Name_Space.T -> Context.generic -> Context.generic
   val name_space: {SML: bool, exchange: bool} -> ML_Name_Space.T
-  val local_context: use_context
+  val local_context: ML_Compiler0.context
   val local_name_space: ML_Name_Space.T
   val check_functor: string -> unit
 end
@@ -162,7 +162,7 @@ fun name_space {SML, exchange} : ML_Name_Space.T =
     allFunct     = all #6 #allFunct}
   end;
 
-val local_context: use_context =
+val local_context: ML_Compiler0.context =
  {name_space = name_space {SML = false, exchange = false},
   here = Position.here oo Position.line_file,
   print = writeln,

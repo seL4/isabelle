@@ -167,7 +167,7 @@ if ML_System.name = "polyml-5.6"
 then use "RAW/ml_compiler_parameters_polyml-5.6.ML" else ();
 
 use "RAW/ml_positions.ML";
-use "RAW/compiler_polyml.ML";
+use "RAW/ml_compiler0.ML";
 
 PolyML.Compiler.reportUnreferencedIds := true;
 PolyML.Compiler.printInAlphabeticalOrder := false;

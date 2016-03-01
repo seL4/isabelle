@@ -1,30 +1,37 @@
-(*  Title:      Pure/RAW/compiler_polyml.ML
+(*  Title:      Pure/RAW/ml_compiler0.ML
 
-Basic runtime compilation for Poly/ML (cf. Pure/ML/ml_compiler_polyml.ML).
+Runtime compilation and evaluation (bootstrap version of
+Pure/ML/ml_compiler.ML).
 *)
 
-type use_context =
+signature ML_COMPILER0 =
+sig
+  type context =
+   {name_space: ML_Name_Space.T,
+    here: int -> string -> string,
+    print: string -> unit,
+    error: string -> unit}
+  val use_text: context -> {debug: bool, file: string, line: int, verbose: bool} -> string -> unit
+  val use_file: context -> {debug: bool, verbose: bool} -> string -> unit
+  val debug_option: bool option -> bool
+  val use_operations: (bool option -> string -> unit) ->
+    {use: string -> unit, use_debug: string -> unit, use_no_debug: string -> unit}
+end;
+
+structure ML_Compiler0: ML_COMPILER0 =
+struct
+
+type context =
  {name_space: ML_Name_Space.T,
   here: int -> string -> string,
   print: string -> unit,
   error: string -> unit};
 
-local
-
-val boot_context: use_context =
- {name_space = ML_Name_Space.global,
-  here = fn line => fn file => " (line " ^ Int.toString line ^ " of \"" ^ file ^ "\")",
-  print = fn s => (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut),
-  error = fn s => error s};
-
 fun drop_newline s =
   if String.isSuffix "\n" s then String.substring (s, 0, size s - 1)
   else s;
 
-in
-
-fun use_text ({name_space, here, print, error, ...}: use_context)
-    {line, file, verbose, debug} text =
+fun use_text ({name_space, here, print, error, ...}: context) {line, file, verbose, debug} text =
   let
     val _ = Secure.deny_ml ();
 
@@ -70,15 +77,24 @@ fun use_file context {verbose, debug} file =
   in use_text context {line = 1, file = file, verbose = verbose, debug = debug} text end;
 
 
-fun use_debug_option NONE = OS.Process.getEnv "ISABELLE_ML_DEBUGGER" = SOME "true"
-  | use_debug_option (SOME debug) = debug;
+fun debug_option NONE = OS.Process.getEnv "ISABELLE_ML_DEBUGGER" = SOME "true"
+  | debug_option (SOME debug) = debug;
 
 fun use_operations (use_ : bool option -> string -> unit) =
   {use = use_ NONE, use_debug = use_ (SOME true), use_no_debug = use_ (SOME false)};
 
-val {use, use_debug, use_no_debug} =
-  use_operations (fn opt_debug => fn file =>
-    use_file boot_context {verbose = true, debug = use_debug_option opt_debug} file
-      handle ERROR msg => (#print boot_context msg; raise error "ML error"));
-
 end;
+
+val {use, use_debug, use_no_debug} =
+  let
+    val context: ML_Compiler0.context =
+     {name_space = ML_Name_Space.global,
+      here = fn line => fn file => " (line " ^ Int.toString line ^ " of \"" ^ file ^ "\")",
+      print = fn s => (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut),
+      error = fn s => error s};
+  in
+    ML_Compiler0.use_operations (fn opt_debug => fn file =>
+      ML_Compiler0.use_file context
+        {verbose = true, debug = ML_Compiler0.debug_option opt_debug} file
+      handle ERROR msg => (#print context msg; raise error "ML error"))
+  end;
