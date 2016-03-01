@@ -28,6 +28,7 @@ session RAW =
     "RAW/ml_stack_polyml-5.6.ML"
     "RAW/ml_system.ML"
     "RAW/multithreading.ML"
+    "RAW/secure.ML"
     "RAW/single_assignment_polyml.ML"
     "RAW/unsynchronized.ML"
 
@@ -59,6 +60,7 @@ session Pure =
     "RAW/ml_stack_polyml-5.6.ML"
     "RAW/ml_system.ML"
     "RAW/multithreading.ML"
+    "RAW/secure.ML"
     "RAW/single_assignment_polyml.ML"
     "RAW/unsynchronized.ML"
 
@@ -105,7 +107,6 @@ session Pure =
     "General/queue.ML"
     "General/same.ML"
     "General/scan.ML"
-    "General/secure.ML"
     "General/seq.ML"
     "General/sha1.ML"
     "General/sha1_polyml.ML"
@@ -166,7 +167,6 @@ session Pure =
     "ML/ml_file.ML"
     "ML/ml_lex.ML"
     "ML/ml_options.ML"
-    "ML/ml_parse.ML"
     "ML/ml_statistics.ML"
     "ML/ml_statistics_dummy.ML"
     "ML/ml_syntax.ML"

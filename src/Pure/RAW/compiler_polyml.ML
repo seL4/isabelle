@@ -5,7 +5,7 @@ Basic runtime compilation for Poly/ML (cf. Pure/ML/ml_compiler_polyml.ML).
 
 type use_context =
  {name_space: ML_Name_Space.T,
-  str_of_pos: int -> string -> string,
+  here: int -> string -> string,
   print: string -> unit,
   error: string -> unit};
 
@@ -13,9 +13,9 @@ local
 
 val boot_context: use_context =
  {name_space = ML_Name_Space.global,
-  str_of_pos = fn line => fn file => " (line " ^ Int.toString line ^ " of \"" ^ file ^ "\")",
+  here = fn line => fn file => " (line " ^ Int.toString line ^ " of \"" ^ file ^ "\")",
   print = fn s => (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut),
-  error = fn s => raise Fail s};
+  error = fn s => error s};
 
 fun drop_newline s =
   if String.isSuffix "\n" s then String.substring (s, 0, size s - 1)
@@ -23,9 +23,11 @@ fun drop_newline s =
 
 in
 
-fun use_text ({name_space, str_of_pos, print, error, ...}: use_context)
+fun use_text ({name_space, here, print, error, ...}: use_context)
     {line, file, verbose, debug} text =
   let
+    val _ = Secure.deny_ml ();
+
     val current_line = Unsynchronized.ref line;
     val in_buffer = Unsynchronized.ref (String.explode (ml_positions line file text));
     val out_buffer = Unsynchronized.ref ([]: string list);
@@ -41,7 +43,7 @@ fun use_text ({name_space, str_of_pos, print, error, ...}: use_context)
      (put (if hard then "Error: " else "Warning: ");
       PolyML.prettyPrint (put, 76) msg1;
       (case context of NONE => () | SOME msg2 => PolyML.prettyPrint (put, 76) msg2);
-      put ("At" ^ str_of_pos (FixedInt.toInt message_line) file ^ "\n"));
+      put ("At" ^ here (FixedInt.toInt message_line) file ^ "\n"));
 
     val parameters =
      [PolyML.Compiler.CPOutStream put,
@@ -71,18 +73,12 @@ fun use_file context {verbose, debug} file =
 fun use_debug_option NONE = OS.Process.getEnv "ISABELLE_ML_DEBUGGER" = SOME "true"
   | use_debug_option (SOME debug) = debug;
 
-local
+fun use_operations (use_ : bool option -> string -> unit) =
+  {use = use_ NONE, use_debug = use_ (SOME true), use_no_debug = use_ (SOME false)};
 
-fun use_ opt_debug file =
-  use_file boot_context {verbose = true, debug = use_debug_option opt_debug} file
-    handle Fail msg => (#print boot_context msg; raise Fail "ML error");
-
-in
-
-val use = use_ NONE;
-val use_debug = use_ (SOME true);
-val use_no_debug = use_ (SOME false);
-
-end;
+val {use, use_debug, use_no_debug} =
+  use_operations (fn opt_debug => fn file =>
+    use_file boot_context {verbose = true, debug = use_debug_option opt_debug} file
+      handle ERROR msg => (#print boot_context msg; raise error "ML error"));
 
 end;

@@ -1,6 +1,6 @@
 (*** Isabelle/Pure bootstrap from "RAW" environment ***)
 
-(** bootstrap phase 0: towards secure ML barrier *)
+(** bootstrap phase 0: towards ML within position context *)
 
 structure Distribution =     (*filled-in by makedist*)
 struct
@@ -33,24 +33,21 @@ use "General/symbol_pos.ML";
 use "General/input.ML";
 use "General/antiquote.ML";
 use "ML/ml_lex.ML";
-use "ML/ml_parse.ML";
-use "General/secure.ML";
 
-val use_text = Secure.use_text;
-val use_file = Secure.use_file;
-
-local
-  fun use_ opt_debug file =
-    Position.setmp_thread_data (Position.file_only file)
-      (fn () =>
-        Secure.use_file ML_Parse.global_context
-          {verbose = true, debug = use_debug_option opt_debug} file
-        handle ERROR msg => (writeln msg; error "ML error")) ();
-in
-  val use = use_ NONE;
-  val use_debug = use_ (SOME true);
-  val use_no_debug = use_ (SOME false);
-end;
+val {use, use_debug, use_no_debug} =
+  let
+    val global_context: use_context =
+     {name_space = ML_Name_Space.global,
+      here = Position.here oo Position.line_file,
+      print = writeln,
+      error = error}
+  in
+    use_operations (fn opt_debug => fn file =>
+      Position.setmp_thread_data (Position.file_only file)
+        (fn () =>
+          use_file global_context {verbose = true, debug = use_debug_option opt_debug} file
+            handle ERROR msg => (writeln msg; error "ML error")) ())
+  end;
 
 
 
@@ -230,19 +227,12 @@ use "Thy/latex.ML";
 use "ML/ml_context.ML";
 use "ML/ml_antiquotation.ML";
 
-local
-  fun use_ opt_debug file =
-    let val flags = ML_Compiler.debug_flags opt_debug |> ML_Compiler.verbose true in
+val {use, use_debug, use_no_debug} =
+  use_operations (fn opt_debug => fn file =>
+    let val flags = ML_Compiler.verbose true (ML_Compiler.debug_flags opt_debug) in
       ML_Context.eval_file flags (Path.explode file)
         handle ERROR msg => (writeln msg; error "ML error")
-    end;
-in
-
-val use = use_ NONE;
-val use_debug = use_ (SOME true);
-val use_no_debug = use_ (SOME false);
-
-end;
+    end);
 
 
 

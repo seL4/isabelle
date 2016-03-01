@@ -129,13 +129,13 @@ fun determine_type ctxt s =
     val return = Unsynchronized.ref "return"
     val use_context : use_context =
      {name_space = #name_space ML_Env.local_context,
-      str_of_pos = #str_of_pos ML_Env.local_context,
+      here = #here ML_Env.local_context,
       print = fn r => return := r,
       error = #error ML_Env.local_context}
     val _ =
       Context.setmp_thread_data (SOME (Context.Proof ctxt))
         (fn () =>
-          Secure.use_text use_context
+          use_text use_context
             {line = 0, file = "generated code", verbose = true, debug = false} s) ()
   in
     Gen_Construction.parse_pred (! return)
@@ -145,7 +145,7 @@ fun determine_type ctxt s =
 fun run_test ctxt s =
   Context.setmp_thread_data (SOME (Context.Proof ctxt))
     (fn () =>
-      Secure.use_text ML_Env.local_context
+      use_text ML_Env.local_context
         {line = 0, file = "generated code", verbose = false, debug = false} s) ();
 
 (*split input into tokens*)

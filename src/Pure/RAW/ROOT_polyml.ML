@@ -154,6 +154,8 @@ fun ml_pretty (ML_Pretty.Break (false, width, offset)) = PolyML.PrettyBreak (wid
 
 (* ML compiler *)
 
+use "RAW/secure.ML";
+
 structure ML_Name_Space =
 struct
   open ML_Name_Space;

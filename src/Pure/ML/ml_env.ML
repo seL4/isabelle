@@ -164,7 +164,7 @@ fun name_space {SML, exchange} : ML_Name_Space.T =
 
 val local_context: use_context =
  {name_space = name_space {SML = false, exchange = false},
-  str_of_pos = Position.here oo Position.line_file,
+  here = Position.here oo Position.line_file,
   print = writeln,
   error = error};
 
