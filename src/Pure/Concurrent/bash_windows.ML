@@ -12,10 +12,6 @@ end;
 structure Bash: BASH =
 struct
 
-fun cygwin_bash arg =
-  let val cmd = getenv_strict "CYGWIN_ROOT" ^ "\\bin\\bash.exe"
-  in Windows.simpleExecute (cmd, quote cmd ^ " -c " ^ quote arg) end;
-
 val process = uninterruptible (fn restore_attributes => fn script =>
   let
     datatype result = Wait | Signal | Result of int;
@@ -39,12 +35,15 @@ val process = uninterruptible (fn restore_attributes => fn script =>
         Multithreading.with_attributes Multithreading.private_interrupts (fn _ =>
           let
             val _ = File.write script_path script;
+            val bash_script =
+              "bash " ^ File.shell_path script_path ^
+                " > " ^ File.shell_path out_path ^
+                " 2> " ^ File.shell_path err_path;
+            val bash_process = getenv_strict "ISABELLE_BASH_PROCESS";
             val rc =
-              cygwin_bash
-                ("echo $$ > " ^ File.shell_path pid_path ^ "; exec bash " ^
-                  File.shell_path script_path ^
-                  " > " ^ File.shell_path out_path ^
-                  " 2> " ^ File.shell_path err_path)
+              Windows.simpleExecute ("",
+                quote (ML_System.platform_path bash_process) ^ " " ^
+                quote (File.platform_path pid_path) ^ " bash -c " ^ quote bash_script)
               |> Windows.fromStatus |> SysWord.toInt;
             val res = if rc = 130 orelse rc = 512 then Signal else Result rc;
           in Synchronized.change result (K res) end
@@ -61,8 +60,14 @@ val process = uninterruptible (fn restore_attributes => fn script =>
       | terminate (SOME pid) =
           let
             fun kill s =
-              OS.Process.isSuccess (cygwin_bash ("kill -" ^ s ^ " -" ^ string_of_int pid))
-                handle OS.SysErr _ => false;
+              let
+                val cmd = getenv_strict "CYGWIN_ROOT" ^ "\\bin\\bash.exe";
+                val arg = "kill -" ^ s ^ " -" ^ string_of_int pid;
+              in
+                OS.Process.isSuccess (Windows.simpleExecute ("", quote cmd ^ " -c " ^ quote arg))
+                  handle OS.SysErr _ => false
+              end;
+
             fun multi_kill count s =
               count = 0 orelse
                 (kill s; kill "0") andalso
