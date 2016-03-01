@@ -9,11 +9,11 @@ sig
   type flags =
     {SML: bool, exchange: bool, redirect: bool, verbose: bool,
       debug: bool option, writeln: string -> unit, warning: string -> unit}
+  val debug_flags: bool option -> flags
   val flags: flags
   val verbose: bool -> flags -> flags
   val eval: flags -> Position.T -> ML_Lex.token list -> unit
-end
-
+end;
 
 structure ML_Compiler: ML_COMPILER =
 struct
@@ -24,9 +24,11 @@ type flags =
   {SML: bool, exchange: bool, redirect: bool, verbose: bool,
     debug: bool option, writeln: string -> unit, warning: string -> unit};
 
-val flags: flags =
+fun debug_flags opt_debug : flags =
   {SML = false, exchange = false, redirect = false, verbose = false,
-    debug = NONE, writeln = writeln, warning = warning};
+    debug = opt_debug, writeln = writeln, warning = warning};
+
+val flags = debug_flags NONE;
 
 fun verbose b (flags: flags) =
   {SML = #SML flags, exchange = #exchange flags, redirect = #redirect flags,

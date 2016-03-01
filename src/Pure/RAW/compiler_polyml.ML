@@ -3,7 +3,19 @@
 Basic runtime compilation for Poly/ML (cf. Pure/ML/ml_compiler_polyml.ML).
 *)
 
+type use_context =
+ {name_space: ML_Name_Space.T,
+  str_of_pos: int -> string -> string,
+  print: string -> unit,
+  error: string -> unit};
+
 local
+
+val boot_context: use_context =
+ {name_space = ML_Name_Space.global,
+  str_of_pos = fn line => fn file => " (line " ^ Int.toString line ^ " of \"" ^ file ^ "\")",
+  print = fn s => (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut),
+  error = fn s => raise Fail s};
 
 fun drop_newline s =
   if String.isSuffix "\n" s then String.substring (s, 0, size s - 1)
@@ -55,8 +67,22 @@ fun use_file context {verbose, debug} file =
     val text = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
   in use_text context {line = 1, file = file, verbose = verbose, debug = debug} text end;
 
-fun use file =
-  use_file boot_context {verbose = true, debug = false} file
+
+fun use_debug_option NONE = OS.Process.getEnv "ISABELLE_ML_DEBUGGER" = SOME "true"
+  | use_debug_option (SOME debug) = debug;
+
+local
+
+fun use_ opt_debug file =
+  use_file boot_context {verbose = true, debug = use_debug_option opt_debug} file
     handle Fail msg => (#print boot_context msg; raise Fail "ML error");
+
+in
+
+val use = use_ NONE;
+val use_debug = use_ (SOME true);
+val use_no_debug = use_ (SOME false);
+
+end;
 
 end;

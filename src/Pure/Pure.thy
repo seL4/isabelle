@@ -107,7 +107,7 @@ ML_file "Tools/class_deps.ML"
 ML_file "Tools/find_theorems.ML"
 ML_file "Tools/find_consts.ML"
 ML_file "Tools/simplifier_trace.ML"
-ML_file "Tools/debugger.ML"
+ML_file_no_debug "Tools/debugger.ML"
 ML_file "Tools/named_theorems.ML"
 ML_file "Tools/jedit.ML"
 

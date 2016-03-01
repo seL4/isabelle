@@ -39,11 +39,18 @@ use "General/secure.ML";
 val use_text = Secure.use_text;
 val use_file = Secure.use_file;
 
-fun use file =
-  Position.setmp_thread_data (Position.file_only file)
-    (fn () =>
-      Secure.use_file ML_Parse.global_context {verbose = true, debug = false} file
+local
+  fun use_ opt_debug file =
+    Position.setmp_thread_data (Position.file_only file)
+      (fn () =>
+        Secure.use_file ML_Parse.global_context
+          {verbose = true, debug = use_debug_option opt_debug} file
         handle ERROR msg => (writeln msg; error "ML error")) ();
+in
+  val use = use_ NONE;
+  val use_debug = use_ (SOME true);
+  val use_no_debug = use_ (SOME false);
+end;
 
 
 
@@ -223,9 +230,19 @@ use "Thy/latex.ML";
 use "ML/ml_context.ML";
 use "ML/ml_antiquotation.ML";
 
-fun use s =
-  ML_Context.eval_file (ML_Compiler.verbose true ML_Compiler.flags) (Path.explode s)
-    handle ERROR msg => (writeln msg; error "ML error");
+local
+  fun use_ opt_debug file =
+    let val flags = ML_Compiler.debug_flags opt_debug |> ML_Compiler.verbose true in
+      ML_Context.eval_file flags (Path.explode file)
+        handle ERROR msg => (writeln msg; error "ML error")
+    end;
+in
+
+val use = use_ NONE;
+val use_debug = use_ (SOME true);
+val use_no_debug = use_ (SOME false);
+
+end;
 
 
 

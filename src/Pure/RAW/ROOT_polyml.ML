@@ -164,7 +164,6 @@ use "RAW/ml_compiler_parameters.ML";
 if ML_System.name = "polyml-5.6"
 then use "RAW/ml_compiler_parameters_polyml-5.6.ML" else ();
 
-use "RAW/use_context.ML";
 use "RAW/ml_positions.ML";
 use "RAW/compiler_polyml.ML";
 
@@ -186,5 +185,5 @@ fun ml_make_string struct_name =
 (* ML debugger *)
 
 if ML_System.name = "polyml-5.6"
-then use "RAW/ml_debugger_polyml-5.6.ML"
-else use "RAW/ml_debugger.ML";
+then use_no_debug "RAW/ml_debugger_polyml-5.6.ML"
+else use_no_debug "RAW/ml_debugger.ML";
