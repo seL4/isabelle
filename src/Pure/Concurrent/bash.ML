@@ -35,16 +35,13 @@ val process = uninterruptible (fn restore_attributes => fn script =>
         Multithreading.with_attributes Multithreading.private_interrupts (fn _ =>
           let
             val _ = File.write script_path script;
-            val bash_script =
-              "exec bash " ^
-                File.shell_path script_path ^
-                " > " ^ File.shell_path out_path ^
-                " 2> " ^ File.shell_path err_path;
             val _ = getenv_strict "ISABELLE_BASH_PROCESS";
             val status =
               OS.Process.system
                 ("exec \"$ISABELLE_BASH_PROCESS\" " ^ File.shell_path pid_path ^
-                  " bash -c " ^ quote bash_script);
+                  " bash " ^ File.shell_path script_path ^
+                  " > " ^ File.shell_path out_path ^
+                  " 2> " ^ File.shell_path err_path);
             val res =
               (case Posix.Process.fromStatus status of
                 Posix.Process.W_EXITED => Result 0
