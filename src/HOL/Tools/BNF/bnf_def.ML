@@ -224,7 +224,7 @@ fun zip_axioms mid mcomp mcong smap bdco bdinf sbd le_rel_OO rel pred =
   [mid, mcomp, mcong] @ smap @ [bdco, bdinf] @ sbd @ [le_rel_OO, rel, pred];
 
 fun map_axioms f {map_id0, map_comp0, map_cong0, set_map0, bd_card_order, bd_cinfinite, set_bd,
-  le_rel_OO, rel_OO_Grp,pred_set} =
+  le_rel_OO, rel_OO_Grp, pred_set} =
   {map_id0 = f map_id0,
     map_comp0 = f map_comp0,
     map_cong0 = f map_cong0,
@@ -761,7 +761,8 @@ fun build_map_or_rel mk const of_bnf dest pre_cst_table ctxt simple_Ts build_sim
         | _ => build_simple TU);
   in build end;
 
-val build_map = build_map_or_rel mk_map HOLogic.id_const map_of_bnf dest_funT [];
+val build_map = build_map_or_rel mk_map HOLogic.id_const map_of_bnf dest_funT
+  [(@{type_name set}, (1, @{term image}))];
 val build_rel = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T o append
   [(@{type_name set}, (1, @{term rel_set})), (@{type_name fun}, (2, @{term rel_fun}))];
 
