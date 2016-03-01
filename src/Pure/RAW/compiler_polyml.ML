@@ -55,4 +55,8 @@ fun use_file context {verbose, debug} file =
     val text = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
   in use_text context {line = 1, file = file, verbose = verbose, debug = debug} text end;
 
+fun use file =
+  use_file boot_context {verbose = true, debug = false} file
+    handle Fail msg => (#print boot_context msg; raise Fail "ML error");
+
 end;
