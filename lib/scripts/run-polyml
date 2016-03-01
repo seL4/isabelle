@@ -43,7 +43,7 @@ else
       PLATFORM_HEAP_FILE="$HEAP_FILE"
       ;;
   esac
-  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Thread.Thread.broadcastInterrupt ())); PolyML.SaveState.loadState \"$PLATFORM_HEAP_FILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $HEAP_FILE\\n\"); OS.Process.exit OS.Process.success));"
+  INIT="PolyML.SaveState.loadState \"$PLATFORM_HEAP_FILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $HEAP_FILE\\n\"); OS.Process.exit OS.Process.success);"
 fi
 
 
