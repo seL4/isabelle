@@ -589,7 +589,7 @@ object Build
             "$ISABELLE_PROCESS" \
               -e 'use """ + quote(ml_root) + """ handle _ => OS.Process.exit OS.Process.failure;' \
               -e "ML_Heap.share_common_data (); ML_Heap.save_state \"$OUTPUT\";" \
-              -q RAW_ML_SYSTEM && chmod -w "$OUTPUT"
+              -q RAW_ML_SYSTEM
           """
         }
         else {
@@ -598,15 +598,10 @@ object Build
             "$ISABELLE_PROCESS" \
               -e '(use """ + quote(ml_root) + """; use "ROOT.ML") handle _ => OS.Process.exit OS.Process.failure;' \
               -e "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default (); Session.shutdown (); ML_Heap.share_common_data (); ML_Heap.save_state \"$OUTPUT\"));" \
-              -q RAW_ML_SYSTEM && chmod -w "$OUTPUT"
+              -q RAW_ML_SYSTEM
           """
         }
       }
-      else if (do_output)
-        """
-        rm -f "$OUTPUT"
-        "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q "$INPUT" && chmod -w "$OUTPUT"
-        """
       else
         """
         rm -f "$OUTPUT"
