@@ -537,7 +537,8 @@ fun old_of_new f (ts, _, simpss) = (ts, f simpss);
 val primrec = apfst (old_of_new flat) ooo BNF_LFP_Rec_Sugar.primrec;
 val primrec_global = apfst (old_of_new flat) ooo BNF_LFP_Rec_Sugar.primrec_global;
 val primrec_overloaded = apfst (old_of_new flat) oooo BNF_LFP_Rec_Sugar.primrec_overloaded;
-val primrec_simple = apfst (apsnd (old_of_new (flat o snd))) ooo BNF_LFP_Rec_Sugar.primrec_simple;
+val primrec_simple = apfst (apfst fst o apsnd (old_of_new (flat o snd))) ooo
+  BNF_LFP_Rec_Sugar.primrec_simple;
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword datatype_compat}

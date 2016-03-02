@@ -73,7 +73,8 @@ sig
     (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> theory -> (term list * thm list * thm list list) * theory
   val primrec_simple: ((binding * typ) * mixfix) list -> term list -> local_theory ->
-    (string list * (term list * thm list * (int list list * thm list list))) * local_theory
+    ((string list * (binding -> binding) list) *
+    (term list * thm list * (int list list * thm list list))) * local_theory
 end;
 
 structure BNF_LFP_Rec_Sugar : BNF_LFP_REC_SUGAR =
@@ -509,6 +510,7 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
 
     val (bs, mxs) = map_split (apfst fst) fixes;
     val fun_names = map Binding.name_of bs;
+    val qualifys = map (fold_rev (uncurry Binding.qualify o swap) o Binding.path_of) bs;
     val eqns_data = map (dissect_eqn lthy0 fun_names) specs;
     val funs_data = eqns_data
       |> partition_eq (op = o apply2 #fun_name)
@@ -569,21 +571,23 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
 
     val notes =
       (if n2m then
-         map2 (fn name => fn thm => (name, inductN, [thm], induct_attrs)) fun_names
-           (take actual_nn inducts)
+         @{map 3} (fn name => fn qualify => fn thm => (name, qualify, inductN, [thm], induct_attrs))
+         fun_names qualifys (take actual_nn inducts)
        else
          [])
-      |> map (fn (prefix, thmN, thms, attrs) =>
-        ((Binding.qualify true prefix (Binding.name thmN), attrs), [(thms, [])]));
+      |> map (fn (prefix, qualify, thmN, thms, attrs) =>
+        ((qualify (Binding.qualify true prefix (Binding.name thmN)), attrs), [(thms, [])]));
 
     val common_name = mk_common_name fun_names;
+    val common_qualify = fold_rev I qualifys;
 
     val common_notes =
       (if n2m then [(inductN, [common_induct], [])] else [])
       |> map (fn (thmN, thms, attrs) =>
-        ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
+        ((common_qualify (Binding.qualify true common_name (Binding.name thmN)), attrs),
+          [(thms, [])]));
   in
-    (((fun_names, defs),
+    (((fun_names, qualifys, defs),
       fn lthy => fn defs =>
         let
           val def_thms = map (snd o snd) defs;
@@ -606,14 +610,14 @@ fun primrec_simple0 plugins nonexhaustive transfer fixes ts lthy =
     val nonexhaustives = replicate actual_nn nonexhaustive;
     val transfers = replicate actual_nn transfer;
 
-    val (((names, defs), prove), lthy') =
+    val (((names, qualifys, defs), prove), lthy') =
       prepare_primrec plugins nonexhaustives transfers fixes ts lthy;
   in
     lthy'
     |> fold_map Local_Theory.define defs
     |-> (fn defs => fn lthy =>
       let val ((jss, simpss), lthy) = prove lthy defs in
-        ((names, (map fst defs, map (snd o snd) defs, (jss, simpss))), lthy)
+        (((names, qualifys), (map fst defs, map (snd o snd) defs, (jss, simpss))), lthy)
       end)
   end;
 
@@ -621,7 +625,8 @@ fun primrec_simple fixes ts lthy =
   primrec_simple0 Plugin_Name.default_filter false false fixes ts lthy
   handle OLD_PRIMREC () =>
     Old_Primrec.primrec_simple fixes ts lthy
-    |>> apsnd (fn (ts, thms) => (ts, [], ([], [thms]))) o apfst single;
+    |>> apsnd (fn (ts, thms) => (ts, [], ([], [thms]))) o apfst single
+    |>> apfst (map_split (rpair I));
 
 fun gen_primrec old_primrec prep_spec opts raw_fixes raw_specs lthy =
   let
@@ -638,7 +643,7 @@ fun gen_primrec old_primrec prep_spec opts raw_fixes raw_specs lthy =
     val (fixes, specs) = fst (prep_spec raw_fixes raw_specs lthy);
 
     val mk_notes =
-      flat ooo @{map 3} (fn js => fn prefix => fn thms =>
+      flat oooo @{map 4} (fn js => fn prefix => fn qualify => fn thms =>
         let
           val (bs, attrss) = map_split (fst o nth specs) js;
           val notes =
@@ -647,14 +652,14 @@ fun gen_primrec old_primrec prep_spec opts raw_fixes raw_specs lthy =
                  [([thm], [])]))
               bs attrss thms;
         in
-          ((Binding.qualify true prefix (Binding.name simpsN), []), [(thms, [])]) :: notes
+          ((qualify (Binding.qualify true prefix (Binding.name simpsN)), []), [(thms, [])]) :: notes
         end);
   in
     lthy
     |> primrec_simple0 plugins nonexhaustive transfer fixes (map snd specs)
-    |-> (fn (names, (ts, defs, (jss, simpss))) =>
+    |-> (fn ((names, qualifys), (ts, defs, (jss, simpss))) =>
       Spec_Rules.add Spec_Rules.Equational (ts, flat simpss)
-      #> Local_Theory.notes (mk_notes jss names simpss)
+      #> Local_Theory.notes (mk_notes jss names qualifys simpss)
       #>> (fn notes => (ts, defs, map_filter (fn ("", _) => NONE | (_, thms) => SOME thms) notes)))
   end
   handle OLD_PRIMREC () =>

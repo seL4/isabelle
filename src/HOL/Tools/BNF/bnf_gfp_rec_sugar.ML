@@ -1098,6 +1098,7 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     val transfers = replicate actual_nn (exists (can (fn Transfer_Option => ())) opts);
 
     val fun_names = map Binding.name_of bs;
+    val qualifys = map (fold_rev (uncurry Binding.qualify o swap) o Binding.path_of) bs;
     val basic_ctr_specss = map (basic_corec_specs_of lthy) res_Ts;
     val frees = map (fst #>> Binding.name_of #> Free) fixes;
     val has_call = Term.exists_subterm (member (op =) frees);
@@ -1520,6 +1521,7 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
         val simp_thmss = map2 append disc_iff_or_disc_thmss sel_thmss;
 
         val common_name = mk_common_name fun_names;
+        val common_qualify = fold_rev I qualifys;
 
         val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
 
@@ -1532,7 +1534,8 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
            (coinduct_strongN, if n2m then [coinduct_strong_thm] else [], common_coinduct_attrs)]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
-            ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
+            ((common_qualify (Binding.qualify true common_name (Binding.name thmN)), attrs),
+              [(thms, [])]));
 
         val notes =
           [(coinductN, map (if n2m then single else K []) coinduct_thms, coinduct_attrs),
@@ -1547,9 +1550,10 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
            (selN, sel_thmss, simp_attrs),
            (simpsN, simp_thmss, [])]
           |> maps (fn (thmN, thmss, attrs) =>
-            map2 (fn fun_name => fn thms =>
-                ((Binding.qualify true fun_name (Binding.name thmN), attrs), [(thms, [])]))
-              fun_names (take actual_nn thmss))
+            @{map 3} (fn fun_name => fn qualify => fn thms =>
+                ((qualify (Binding.qualify true fun_name (Binding.name thmN)), attrs),
+                  [(thms, [])]))
+              fun_names qualifys (take actual_nn thmss))
           |> filter_out (null o fst o hd o snd);
 
         val fun_ts0 = map fst def_infos;
