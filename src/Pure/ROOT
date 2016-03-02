@@ -157,6 +157,7 @@ session Pure =
     "Isar/token.ML"
     "Isar/toplevel.ML"
     "Isar/typedecl.ML"
+    "ML/exn_debugger.ML"
     "ML/exn_output.ML"
     "ML/exn_properties.ML"
     "ML/install_pp_polyml.ML"

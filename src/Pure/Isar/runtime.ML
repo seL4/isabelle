@@ -19,6 +19,8 @@ sig
   val exn_system_message: exn -> unit
   val exn_trace: (unit -> 'a) -> 'a
   val exn_trace_system: (unit -> 'a) -> 'a
+  val exn_debugger: (unit -> 'a) -> 'a
+  val exn_debugger_system: (unit -> 'a) -> 'a
   val debugging: Context.generic option -> ('a -> 'b) -> 'a -> 'b
   val controlled_execution: Context.generic option -> ('a -> 'b) -> 'a -> 'b
   val toplevel_error: (exn -> unit) -> ('a -> 'b) -> 'a -> 'b
@@ -143,12 +145,44 @@ fun exn_trace e = print_exception_trace exn_message tracing e;
 fun exn_trace_system e = print_exception_trace exn_message Output.system_message e;
 
 
+(* exception debugger *)
+
+local
+
+fun print_entry (name, loc) =
+  Markup.markup Markup.item (name ^ Position.here (Exn_Properties.position_of loc));
+
+fun exception_debugger output e =
+  let
+    val (trace, result) = Exn_Debugger.capture_exception_trace e;
+    val _ =
+      (case (trace, result) of
+        (_ :: _, Exn.Exn exn) =>
+          output (cat_lines ("Exception trace - " ^ exn_message exn :: map print_entry trace))
+      | _ => ());
+  in Exn.release result end;
+
+in
+
+fun exn_debugger e = exception_debugger tracing e;
+fun exn_debugger_system e = exception_debugger Output.system_message e;
+
+end;
+
+
 
 (** controlled execution **)
 
-fun debugging opt_context f x =
+fun debugging1 opt_context f x =
   if ML_Options.exception_trace_enabled opt_context
   then exn_trace (fn () => f x) else f x;
+
+fun debugging2 opt_context f x =
+  if ML_Options.exception_debugger_enabled opt_context
+  then exn_debugger (fn () => f x) else f x;
+
+fun debugging opt_context f =
+  f |> debugging1 opt_context |> debugging2 opt_context;
 
 fun controlled_execution opt_context f x =
   (f |> debugging opt_context |> Future.interruptible_task) x;
@@ -169,4 +203,3 @@ fun toplevel_program body =
   (body |> controlled_execution NONE |> toplevel_error exn_error_message) ();
 
 end;
-

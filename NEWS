@@ -181,6 +181,15 @@ INCOMPATIBILITY.
 * Session HOL-NSA has been renamed to HOL-Nonstandard_Analysis.
 
 
+*** ML ***
+
+* Option ML_exception_debugger controls detailed exception trace via the
+Poly/ML debugger. Relevant ML modules need to be compiled beforehand
+with ML_file_debug, or with ML_file and option ML_debugger enabled. Note
+debugger information requires consirable time and space: main
+Isabelle/HOL with full debugger support may need ML_system_64.
+
+
 *** System ***
 
 * The Isabelle system environment always ensures that the main
