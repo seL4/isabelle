@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/ml_pretty.ML
+(*  Title:      Pure/ML/ml_pretty.ML
     Author:     Makarius
 
 Minimal support for raw ML pretty printing, notably for toplevel pp.

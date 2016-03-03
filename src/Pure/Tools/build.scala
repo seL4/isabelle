@@ -54,7 +54,7 @@ object Build
     def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
   }
 
-  def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
+  def is_pure(name: String): Boolean = name == "Pure"
 
   def session_info(options: Options, select: Boolean, dir: Path,
       chapter: String, entry: Session_Entry): (String, Session_Info) =
@@ -581,33 +581,13 @@ object Build
       """
       . "$ISABELLE_HOME/lib/scripts/timestart.bash"
       """ +
-      (if (is_pure(name)) {
-        val ml_system = Isabelle_System.getenv("ML_SYSTEM")
-        val ml_system_base = Library.space_explode('-', ml_system).headOption getOrElse ml_system
-        val ml_root =
-          List(ml_system, ml_system_base).map(a => "RAW/ROOT_" + a + ".ML").
-            find(b => Path.explode("~~/src/Pure/" + b).file.isFile) getOrElse
-            error("Missing compatibility file for ML system " + quote(ml_system))
-
-        if (name == "RAW") {
-          """
-            rm -f "$OUTPUT"
-            "$ISABELLE_PROCESS" \
-              -e 'use """ + quote(ml_root) + """ handle _ => OS.Process.exit OS.Process.failure;' \
-              -e "ML_Heap.share_common_data (); ML_Heap.save_state \"$OUTPUT\";" \
-              -q RAW_ML_SYSTEM
-          """
-        }
-        else {
-          """
-            rm -f "$OUTPUT"
-            "$ISABELLE_PROCESS" \
-              -e '(use """ + quote(ml_root) + """; use "ROOT.ML") handle _ => OS.Process.exit OS.Process.failure;' \
-              -e "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default (); Session.shutdown (); ML_Heap.share_common_data (); ML_Heap.save_state \"$OUTPUT\"));" \
-              -q RAW_ML_SYSTEM
-          """
-        }
-      }
+      (if (is_pure(name))
+        """
+          rm -f "$OUTPUT"
+          "$ISABELLE_PROCESS" -f "ROOT.ML" \
+            -e "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default (); Session.shutdown (); ML_Heap.share_common_data (); ML_Heap.save_state \"$OUTPUT\"));" \
+            -q RAW_ML_SYSTEM
+        """
       else
         """
         rm -f "$OUTPUT"

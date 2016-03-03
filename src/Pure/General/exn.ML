@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/exn.ML
+(*  Title:      Pure/General/exn.ML
     Author:     Makarius
 
 Support for exceptions.

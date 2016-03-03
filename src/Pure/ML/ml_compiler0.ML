@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/ml_compiler0.ML
+(*  Title:      Pure/ML/ml_compiler0.ML
 
 Runtime compilation and evaluation (bootstrap version of
 Pure/ML/ml_compiler.ML).

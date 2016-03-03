@@ -28,6 +28,7 @@ declare -a SOURCES=(
   General/antiquote.scala
   General/bytes.scala
   General/completion.scala
+  General/exn.scala
   General/file.scala
   General/graph.scala
   General/graph_display.scala
@@ -71,7 +72,6 @@ declare -a SOURCES=(
   PIDE/text.scala
   PIDE/xml.scala
   PIDE/yxml.scala
-  RAW/exn.scala
   ROOT.scala
   System/command_line.scala
   System/cygwin.scala

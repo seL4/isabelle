@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/ml_heap.ML
+(*  Title:      Pure/ML/ml_heap.ML
     Author:     Makarius
 
 ML heap operations.

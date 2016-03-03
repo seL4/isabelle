@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/ml_name_space.ML
+(*  Title:      Pure/ML/ml_name_space.ML
     Author:     Makarius
 
 Name space for Poly/ML.

@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/secure.ML
+(*  Title:      Pure/General/secure.ML
     Author:     Makarius
 
 Secure critical operations.

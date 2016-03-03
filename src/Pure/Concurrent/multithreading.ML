@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/multithreading.ML
+(*  Title:      Pure/Concurrent/multithreading.ML
     Author:     Makarius
 
 Multithreading in Poly/ML (cf. polyml/basis/Thread.sml).
