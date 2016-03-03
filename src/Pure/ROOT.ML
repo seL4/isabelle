@@ -1,6 +1,14 @@
-(*** Isabelle/Pure bootstrap from "RAW" environment ***)
+(*** Isabelle/Pure bootstrap from RAW_ML_SYSTEM ***)
 
-(** bootstrap phase 0: towards ML within position context *)
+(** bootstrap phase 0: Poly/ML setup **)
+
+(* initial ML name space *)
+
+use "ML/ml_system.ML";
+use "ML/ml_name_space.ML";
+
+if List.exists (fn (a, _) => a = "FixedInt") (#allStruct ML_Name_Space.global ()) then ()
+else use "ML/fixed_int_dummy.ML";
 
 structure Distribution =     (*filled-in by makedist*)
 struct
@@ -9,6 +17,87 @@ struct
   val is_official = false;
 end;
 
+
+(* multithreading *)
+
+use "General/exn.ML";
+
+val seconds = Time.fromReal;
+
+open Thread;
+use "Concurrent/multithreading.ML";
+
+use "Concurrent/unsynchronized.ML";
+val _ = PolyML.Compiler.forgetValue "ref";
+val _ = PolyML.Compiler.forgetType "ref";
+
+
+(* pervasive environment *)
+
+val _ = PolyML.Compiler.forgetValue "isSome";
+val _ = PolyML.Compiler.forgetValue "getOpt";
+val _ = PolyML.Compiler.forgetValue "valOf";
+val _ = PolyML.Compiler.forgetValue "foldl";
+val _ = PolyML.Compiler.forgetValue "foldr";
+val _ = PolyML.Compiler.forgetValue "print";
+val _ = PolyML.Compiler.forgetValue "explode";
+val _ = PolyML.Compiler.forgetValue "concat";
+
+val ord = SML90.ord;
+val chr = SML90.chr;
+val raw_explode = SML90.explode;
+val implode = SML90.implode;
+
+fun quit () = exit 0;
+
+
+(* ML runtime system *)
+
+use "ML/ml_heap.ML";
+use "ML/ml_profiling.ML";
+
+val pointer_eq = PolyML.pointerEq;
+
+
+(* ML toplevel pretty printing *)
+
+use "ML/ml_pretty.ML";
+
+local
+  val depth = Unsynchronized.ref 10;
+in
+  fun get_default_print_depth () = ! depth;
+  fun default_print_depth n = (depth := n; PolyML.print_depth n);
+  val _ = default_print_depth 10;
+end;
+
+val error_depth = PolyML.error_depth;
+
+
+(* ML compiler *)
+
+use "General/secure.ML";
+use "ML/ml_compiler0.ML";
+
+PolyML.Compiler.reportUnreferencedIds := true;
+PolyML.Compiler.reportExhaustiveHandlers := true;
+PolyML.Compiler.printInAlphabeticalOrder := false;
+PolyML.Compiler.maxInlineSize := 80;
+PolyML.Compiler.prompt1 := "ML> ";
+PolyML.Compiler.prompt2 := "ML# ";
+
+fun ml_make_string struct_name =
+  "(fn x => Pretty.string_of (Pretty.from_ML (ML_Pretty.from_polyml (PolyML.prettyRepresentation (x, FixedInt.fromInt (" ^
+    struct_name ^ ".ML_print_depth ()))))))";
+
+
+(* ML debugger *)
+
+use_no_debug "ML/ml_debugger.ML";
+
+
+
+(** bootstrap phase 1: towards ML within position context *)
 
 (* library of general tools *)
 
@@ -52,7 +141,7 @@ val {use, use_debug, use_no_debug} =
 
 
 
-(** bootstrap phase 1: towards ML within Isar context *)
+(** bootstrap phase 2: towards ML within Isar context *)
 
 (* library of general tools *)
 
@@ -101,9 +190,7 @@ use "config.ML";
 
 use "ML/exn_properties.ML";
 
-if ML_System.name = "polyml-5.6"
-then use "ML/ml_statistics.ML"
-else use "ML/ml_statistics_dummy.ML";
+use "ML/ml_statistics.ML";
 
 use "Concurrent/standard_thread.ML";
 use "Concurrent/single_assignment.ML";
@@ -238,7 +325,7 @@ val {use, use_debug, use_no_debug} =
 
 
 
-(** bootstrap phase 2: towards Pure.thy and final ML toplevel setup *)
+(** bootstrap phase 3: towards Pure.thy and final ML toplevel setup *)
 
 (*basic proof engine*)
 use "par_tactical.ML";

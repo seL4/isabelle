@@ -129,7 +129,7 @@ ML {*
       val t1 = (parse_timed file |> fst)
       val t2 = (interpret_timed timeout file thy |> fst)
         handle exn => (*FIXME*)
-          if Exn.is_interrupt exn then reraise exn
+          if Exn.is_interrupt exn then Exn.reraise exn
           else
             (warning (" test: file " ^ Path.print file ^
              " raised exception: " ^ Runtime.exn_message exn);

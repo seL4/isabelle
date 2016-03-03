@@ -1154,7 +1154,7 @@ text %mlref \<open>
   @{index_ML_exception ERROR: string} \\
   @{index_ML_exception Fail: string} \\
   @{index_ML Exn.is_interrupt: "exn -> bool"} \\
-  @{index_ML reraise: "exn -> 'a"} \\
+  @{index_ML Exn.reraise: "exn -> 'a"} \\
   @{index_ML Runtime.exn_trace: "(unit -> 'a) -> 'a"} \\
   \end{mldecls}
 
@@ -1176,7 +1176,7 @@ text %mlref \<open>
   concrete exception constructors in user code. Handled interrupts need to be
   re-raised promptly!
 
-  \<^descr> @{ML reraise}~\<open>exn\<close> raises exception \<open>exn\<close> while preserving its implicit
+  \<^descr> @{ML Exn.reraise}~\<open>exn\<close> raises exception \<open>exn\<close> while preserving its implicit
   position information (if possible, depending on the ML platform).
 
   \<^descr> @{ML Runtime.exn_trace}~@{ML_text "(fn () =>"}~\<open>e\<close>@{ML_text ")"} evaluates

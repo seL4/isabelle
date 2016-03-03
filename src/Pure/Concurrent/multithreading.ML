@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/multithreading.ML
+(*  Title:      Pure/Concurrent/multithreading.ML
     Author:     Makarius
 
 Multithreading in Poly/ML (cf. polyml/basis/Thread.sml).
@@ -88,8 +88,13 @@ fun uninterruptible f x =
 
 (* options *)
 
+fun num_processors () =
+  (case Thread.numPhysicalProcessors () of
+    SOME n => n
+  | NONE => Thread.numProcessors ());
+
 fun max_threads_result m =
-  if m > 0 then m else Int.min (Int.max (Thread.numProcessors (), 1), 8);
+  if m > 0 then m else Int.min (Int.max (num_processors (), 1), 8);
 
 val max_threads = ref 1;
 

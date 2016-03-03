@@ -486,7 +486,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
                           else NONE
                       | NONE => NONE)) node ()
                    else ())
-                   handle exn => (Output.system_message (Runtime.exn_message exn); reraise exn);
+                   handle exn => (Output.system_message (Runtime.exn_message exn); Exn.reraise exn);
                 val future =
                   (singleton o Future.forks)
                    {name = "theory:" ^ name,

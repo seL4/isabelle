@@ -348,7 +348,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
      (Multithreading.tracing 1 (fn () => "SCHEDULER: Interrupt");
       List.app cancel_later (cancel_all ());
       signal work_available; true)
-    else reraise exn;
+    else Exn.reraise exn;
 
 fun scheduler_loop () =
  (while
@@ -409,8 +409,8 @@ fun assign_result group result res =
     val _ = Single_Assignment.assign result res
       handle exn as Fail _ =>
         (case Single_Assignment.peek result of
-          SOME (Exn.Exn e) => reraise (if Exn.is_interrupt e then e else exn)
-        | _ => reraise exn);
+          SOME (Exn.Exn e) => Exn.reraise (if Exn.is_interrupt e then e else exn)
+        | _ => Exn.reraise exn);
     val ok =
       (case the (Single_Assignment.peek result) of
         Exn.Exn exn =>
@@ -600,7 +600,7 @@ fun promise_group group abort : 'a future =
         | exn =>
             if Exn.is_interrupt exn
             then raise Fail "Concurrent attempt to fulfill promise"
-            else reraise exn;
+            else Exn.reraise exn;
     fun job () =
       Multithreading.with_attributes Multithreading.no_interrupts
         (fn _ => Exn.release (Exn.capture assign () before abort ()));

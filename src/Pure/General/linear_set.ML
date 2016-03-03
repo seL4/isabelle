@@ -137,9 +137,11 @@ fun delete_after hook set = set |> map_set (fn (start, entries) =>
 
 val _ =
   PolyML.addPrettyPrinter (fn depth => fn pretty => fn set =>
-    ml_pretty
+    ML_Pretty.to_polyml
       (ML_Pretty.enum "," "{" "}"
-        (ML_Pretty.pair (pretty_ml o PolyML.prettyRepresentation) (pretty_ml o pretty))
+        (ML_Pretty.pair
+          (ML_Pretty.from_polyml o PolyML.prettyRepresentation)
+          (ML_Pretty.from_polyml o pretty))
         (dest set, depth)));
 
 end;

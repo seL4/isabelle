@@ -49,14 +49,14 @@ end;
 type params = {name: string, stack_limit: int option, interrupts: bool};
 
 fun attributes ({stack_limit, interrupts, ...}: params) =
-  ML_Stack.limit stack_limit @
+  Thread.MaximumMLStack stack_limit ::
   (if interrupts then Multithreading.public_interrupts else Multithreading.no_interrupts);
 
 fun fork (params: params) body =
   Thread.fork (fn () =>
-    print_exception_trace General.exnMessage tracing (fn () =>
+    Exn.trace General.exnMessage tracing (fn () =>
       (set_name (#name params); body ())
-        handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn),
+        handle exn => if Exn.is_interrupt exn then () (*sic!*) else Exn.reraise exn),
     attributes params);
 
 

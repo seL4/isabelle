@@ -1,4 +1,4 @@
-/*  Title:      Pure/RAW/exn.scala
+/*  Title:      Pure/General/exn.scala
     Module:     PIDE
     Author:     Makarius
 

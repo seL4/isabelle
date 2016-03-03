@@ -29,7 +29,8 @@ function usage()
   echo "    -O           system options from given YXML file"
   echo "    -P SOCKET    startup process wrapper via TCP socket"
   echo "    -S           secure mode -- disallow critical operations"
-  echo "    -e ML_TEXT   pass ML_TEXT to the ML session"
+  echo "    -e ML_EXPR   evaluate ML expression on startup"
+  echo "    -f ML_FILE   evaluate ML file on startup"
   echo "    -m MODE      add print mode for output"
   echo "    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)"
   echo "    -q           non-interactive session"
@@ -47,6 +48,11 @@ function fail()
   exit 2
 }
 
+function check_file()
+{
+  [ ! -f "$1" ] && fail "Bad file: \"$1\""
+}
+
 
 ## process command line
 
@@ -55,12 +61,12 @@ function fail()
 OPTIONS_FILE=""
 PROCESS_SOCKET=""
 SECURE=""
-ML_TEXT=""
+declare -a LAST_ML_OPTIONS=()
 MODES=""
 declare -a SYSTEM_OPTIONS=()
 TERMINATE=""
 
-while getopts "O:P:Se:m:o:q" OPT
+while getopts "O:P:Se:f:m:o:q" OPT
 do
   case "$OPT" in
     O)
@@ -73,7 +79,12 @@ do
       SECURE=true
       ;;
     e)
-      ML_TEXT="$ML_TEXT $OPTARG"
+      LAST_ML_OPTIONS["${#LAST_ML_OPTIONS[@]}"]="--eval"
+      LAST_ML_OPTIONS["${#LAST_ML_OPTIONS[@]}"]="$OPTARG"
+      ;;
+    f)
+      LAST_ML_OPTIONS["${#LAST_ML_OPTIONS[@]}"]="--use"
+      LAST_ML_OPTIONS["${#LAST_ML_OPTIONS[@]}"]="$OPTARG"
       ;;
     m)
       if [ -z "$MODES" ]; then
@@ -116,6 +127,8 @@ fi
 
 ## heap file
 
+declare -a FIRST_ML_OPTIONS=()
+
 [ -z "$HEAP" ] && HEAP="$ISABELLE_LOGIC"
 
 case "$HEAP" in
@@ -146,6 +159,31 @@ case "$HEAP" in
     ;;
 esac
 
+if [ -z "$HEAP_FILE" ]; then
+  case "$ML_PLATFORM" in
+    *-windows)
+      FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="--eval"
+      FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="fun exit 0 = OS.Process.exit OS.Process.success | exit 1 = OS.Process.exit OS.Process.failure | exit rc = OS.Process.exit (RunCall.unsafeCast (Word8.fromInt rc))"
+      ;;
+    *)
+      FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="--eval"
+      FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="fun exit rc = Posix.Process.exit (Word8.fromInt rc)"
+      ;;
+  esac
+else
+  check_file "$HEAP_FILE"
+  case "$ML_PLATFORM" in
+    *-windows)
+      PLATFORM_HEAP_FILE="$(platform_path -m "$HEAP_FILE")"
+      ;;
+    *)
+      PLATFORM_HEAP_FILE="$HEAP_FILE"
+      ;;
+  esac
+  PLATFORM_HEAP_FILE="$(perl "$ISABELLE_HOME/lib/scripts/recode.pl" "$PLATFORM_HEAP_FILE")"
+  FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="--eval"
+  FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="PolyML.SaveState.loadState \"$PLATFORM_HEAP_FILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $HEAP_FILE\\n\"); OS.Process.exit OS.Process.failure)"
+fi
 
 
 ## prepare tmp directory
@@ -157,16 +195,21 @@ mkdir -p "$ISABELLE_TMP"
 chmod $(umask -S) "$ISABELLE_TMP"
 
 
-## run it!
+## ML text
 
-ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
+if [ -n "$MODES" ]; then
+  FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="--eval"
+  FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="Unsynchronized.change print_mode (append [$MODES])"
+fi
 
-[ -n "$MODES" ] && ML_TEXT="Unsynchronized.change print_mode (append [$MODES]); $ML_TEXT"
-
-[ -n "$SECURE" ] && ML_TEXT="$ML_TEXT; Secure.set_secure ();"
+if [ -n "$SECURE" ]; then
+  LAST_ML_OPTIONS["${#LAST_ML_OPTIONS[@]}"]="--eval"
+  LAST_ML_OPTIONS["${#LAST_ML_OPTIONS[@]}"]="Secure.set_secure ()"
+fi
 
 if [ -n "$PROCESS_SOCKET" ]; then
-  ML_TEXT="$ML_TEXT; Isabelle_Process.init \"$PROCESS_SOCKET\";"
+  LAST_ML_OPTIONS["${#LAST_ML_OPTIONS[@]}"]="--eval"
+  LAST_ML_OPTIONS["${#LAST_ML_OPTIONS[@]}"]="Isabelle_Process.init \"$PROCESS_SOCKET\""
 else
   ISABELLE_PROCESS_OPTIONS="$ISABELLE_TMP/options"
   if [ -n "$OPTIONS_FILE" ]; then
@@ -179,18 +222,33 @@ else
       fail "Failed to retrieve Isabelle system options"
   fi
   if [ "$HEAP" != RAW_ML_SYSTEM -a "$HEAP" != RAW ]; then
-    ML_TEXT="Exn.capture_exit 2 Options.load_default (); $ML_TEXT"
+    FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="--eval"
+    FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="Exn.capture_exit 2 Options.load_default ()"
   fi
 fi
 
-export HEAP_FILE ML_TEXT TERMINATE ISABELLE_PID ISABELLE_TMP ISABELLE_PROCESS_OPTIONS
 
-if [ -f "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM" ]; then
-  "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM"
+## ML process
+
+check_file "$ML_HOME/poly"
+librarypath "$ML_HOME"
+
+export ISABELLE_PID ISABELLE_TMP ISABELLE_PROCESS_OPTIONS
+
+if [ -n "$TERMINATE" ]; then
+  "$ML_HOME/poly" --error-exit -q -i $ML_OPTIONS \
+    "${FIRST_ML_OPTIONS[@]}" "${LAST_ML_OPTIONS[@]}" </dev/null
+  RC="$?"
 else
-  "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE"
+  "$ISABELLE_HOME/lib/scripts/feeder" -p | \
+    {
+      read FPID; "$ML_HOME/poly" -q -i $ML_OPTIONS "${FIRST_ML_OPTIONS[@]}" "${LAST_ML_OPTIONS[@]}"
+      RC="$?"
+      kill -TERM "$FPID"
+      exit "$RC"
+    }
+  RC="$?"
 fi
-RC="$?"
 
 [ -n "$ISABELLE_PROCESS_OPTIONS" ] && rm -f "$ISABELLE_PROCESS_OPTIONS"
 rmdir "$ISABELLE_TMP"

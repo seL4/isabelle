@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/exn.ML
+(*  Title:      Pure/General/exn.ML
     Author:     Makarius
 
 Support for exceptions.
@@ -14,6 +14,7 @@ end;
 signature EXN =
 sig
   include BASIC_EXN
+  val reraise: exn -> 'a
   datatype 'a result = Res of 'a | Exn of exn
   val get_res: 'a result -> 'a option
   val get_exn: 'a result -> exn option
@@ -31,10 +32,19 @@ sig
   val return_code: exn -> int -> int
   val capture_exit: int -> ('a -> 'b) -> 'a -> 'b
   exception EXCEPTIONS of exn list
+  val trace: (exn -> string) -> (string -> unit) -> (unit -> 'a) -> 'a
 end;
 
 structure Exn: EXN =
 struct
+
+(* reraise *)
+
+fun reraise exn =
+  (case PolyML.exceptionLocation exn of
+    NONE => raise exn
+  | SOME location => PolyML.raiseWithLocation (exn, location));
+
 
 (* user errors *)
 
@@ -75,7 +85,7 @@ fun map_exn f (Res x) = Res x
 
 (* interrupts *)
 
-exception Interrupt = Interrupt;
+exception Interrupt = SML90.Interrupt;
 
 fun interrupt () = raise Interrupt;
 
@@ -104,6 +114,17 @@ fun capture_exit rc f x =
 (* concatenated exceptions *)
 
 exception EXCEPTIONS of exn list;
+
+
+(* low-level trace *)
+
+fun trace exn_message output e =
+  PolyML.Exception.traceException
+    (e, fn (trace, exn) =>
+      let
+        val title = "Exception trace - " ^ exn_message exn;
+        val () = output (String.concatWith "\n" (title :: trace));
+      in reraise exn end);
 
 end;
 

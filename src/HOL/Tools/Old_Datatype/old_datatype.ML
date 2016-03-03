@@ -778,7 +778,7 @@ fun gen_add_datatype prep_specs config raw_specs thy =
       Old_Datatype_Aux.check_nonempty descr
         handle (exn as Old_Datatype_Aux.Datatype_Empty s) =>
           if #strict config then error ("Nonemptiness check failed for datatype " ^ quote s)
-          else reraise exn;
+          else Exn.reraise exn;
 
     val _ =
       Old_Datatype_Aux.message config

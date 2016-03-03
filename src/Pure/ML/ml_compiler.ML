@@ -65,7 +65,7 @@ fun report_parse_tree redirect depth space parse_tree =
           let
             val xml =
               ML_Name_Space.displayTypeExpression (types, depth, space)
-              |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
+              |> ML_Pretty.from_polyml |> Pretty.from_ML |> Pretty.string_of
               |> Output.output |> YXML.parse_body;
           in cons (pos, fn () => Markup.ML_typing, fn () => YXML.string_of_body xml) end
       end;
@@ -98,10 +98,8 @@ fun report_parse_tree redirect depth space parse_tree =
       | reported loc (PolyML.PTdeclaredAt decl) = reported_entity Markup.ML_defN loc decl
       | reported loc (PolyML.PTopenedAt decl) = reported_entity Markup.ML_openN loc decl
       | reported loc (PolyML.PTstructureAt decl) = reported_entity Markup.ML_structureN loc decl
-      | reported loc pt =
-          (case ML_Parse_Tree.completions pt of
-            SOME names => reported_completions loc names
-          | NONE => I)
+      | reported loc (PolyML.PTcompletions names) = reported_completions loc names
+      | reported _ _ = I
     and reported_tree (loc, props) = fold (reported loc) props;
 
     val persistent_reports = reported_tree parse_tree [];
@@ -123,16 +121,14 @@ fun report_parse_tree redirect depth space parse_tree =
 
     fun breakpoints _ (PolyML.PTnextSibling tree) = breakpoints_tree (tree ())
       | breakpoints _ (PolyML.PTfirstChild tree) = breakpoints_tree (tree ())
-      | breakpoints loc pt =
-          (case ML_Parse_Tree.breakpoint pt of
-            SOME b =>
-              let val pos = breakpoint_position loc in
-                if is_reported pos then
-                  let val id = serial ();
-                  in cons ((pos, Markup.ML_breakpoint id), (id, (b, pos))) end
-                else I
-              end
-          | NONE => I)
+      | breakpoints loc (PolyML.PTbreakPoint b) =
+          let val pos = breakpoint_position loc in
+            if is_reported pos then
+              let val id = serial ();
+              in cons ((pos, Markup.ML_breakpoint id), (id, (b, pos))) end
+            else I
+          end
+      | breakpoints _ _ = I
     and breakpoints_tree (loc, props) = fold (breakpoints loc) props;
 
     val all_breakpoints = rev (breakpoints_tree parse_tree []);
@@ -197,7 +193,7 @@ fun eval (flags: flags) pos toks =
         val pos = Exn_Properties.position_of loc;
         val txt =
           (if hard then "ML error" else "ML warning") ^ Position.here pos ^ ":\n" ^
-          Pretty.string_of (Pretty.from_ML (pretty_ml msg));
+          Pretty.string_of (Pretty.from_ML (ML_Pretty.from_polyml msg));
       in if hard then err txt else warn txt end;
 
 
@@ -209,7 +205,8 @@ fun eval (flags: flags) pos toks =
       let
         fun display disp x =
           if depth > 0 then
-            (disp x |> pretty_ml |> Pretty.from_ML |> Pretty.string_of |> write; write "\n")
+            (write (disp x |> ML_Pretty.from_polyml |> Pretty.from_ML |> Pretty.string_of);
+              write "\n")
           else ();
 
         fun apply_fix (a, b) =
@@ -264,14 +261,14 @@ fun eval (flags: flags) pos toks =
       PolyML.Compiler.CPFileName location_props,
       PolyML.Compiler.CPPrintDepth ML_Options.get_print_depth,
       PolyML.Compiler.CPCompilerResultFun result_fun,
-      PolyML.Compiler.CPPrintInAlphabeticalOrder false] @
-     ML_Compiler_Parameters.debug debug;
+      PolyML.Compiler.CPPrintInAlphabeticalOrder false,
+      PolyML.Compiler.CPDebug debug];
 
     val _ =
       (while not (List.null (! input_buffer)) do
         PolyML.compiler (get, parameters) ())
       handle exn =>
-        if Exn.is_interrupt exn then reraise exn
+        if Exn.is_interrupt exn then Exn.reraise exn
         else
           let
             val exn_msg =

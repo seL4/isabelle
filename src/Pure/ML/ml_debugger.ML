@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/ml_debugger_polyml-5.6.ML
+(*  Title:      Pure/ML/ml_debugger.ML
     Author:     Makarius
 
 ML debugger interface -- for Poly/ML 5.6, or later.
@@ -44,7 +44,7 @@ end;
 val _ =
   PolyML.addPrettyPrinter (fn _ => fn _ => fn exn_id =>
     let val s = print_exn_id exn_id
-    in ml_pretty (ML_Pretty.String (s, FixedInt.fromInt (size s))) end);
+    in ML_Pretty.to_polyml (ML_Pretty.String (s, FixedInt.fromInt (size s))) end);
 
 
 (* hooks *)

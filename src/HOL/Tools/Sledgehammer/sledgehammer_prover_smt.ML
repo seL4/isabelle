@@ -123,7 +123,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
           SMT_Solver.smt_filter ctxt goal facts i slice_timeout
           handle exn =>
             if Exn.is_interrupt exn orelse debug then
-              reraise exn
+              Exn.reraise exn
             else
               {outcome = SOME (SMT_Failure.Other_Failure (Runtime.exn_message exn)),
                fact_ids = NONE, atp_proof = K []}

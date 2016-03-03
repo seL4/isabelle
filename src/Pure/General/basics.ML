@@ -102,7 +102,7 @@ fun eq_option eq (SOME x, SOME y) = eq (x, y)
 (* partiality *)
 
 fun try f x = SOME (f x)
-  handle exn => if Exn.is_interrupt exn then reraise exn else NONE;
+  handle exn => if Exn.is_interrupt exn then Exn.reraise exn else NONE;
 
 fun can f x = is_some (try f x);
 

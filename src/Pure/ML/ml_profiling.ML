@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/ml_profiling_polyml-5.6.ML
+(*  Title:      Pure/ML/ml_profiling.ML
     Author:     Makarius
 
 Profiling for Poly/ML 5.6.

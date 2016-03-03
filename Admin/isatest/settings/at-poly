@@ -2,11 +2,7 @@
 
 init_components /home/isabelle/contrib "$HOME/admin/components/main"
 
-  POLYML_HOME="/home/polyml/polyml-5.3.0"
-  ML_SYSTEM="polyml-5.3.0"
-  ML_PLATFORM="x86-linux"
-  ML_HOME="$POLYML_HOME/$ML_PLATFORM"
-  ML_OPTIONS="-H 1000"
+ML_OPTIONS="-H 1000 --gcthreads 1"
 
 ISABELLE_GHC=/usr/bin/ghc
 
@@ -35,4 +31,3 @@ ISABELLE_OCAMLC=ocamlc
 ISABELLE_POLYML="$ML_HOME/poly"
 ISABELLE_SCALA="$SCALA_HOME/bin"
 ISABELLE_SMLNJ="/home/smlnj/bin/sml"
-

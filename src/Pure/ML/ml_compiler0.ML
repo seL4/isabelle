@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/ml_compiler0.ML
+(*  Title:      Pure/ML/ml_compiler0.ML
 
 Runtime compilation and evaluation (bootstrap version of
 Pure/ML/ml_compiler.ML).
@@ -31,6 +31,16 @@ fun drop_newline s =
   if String.isSuffix "\n" s then String.substring (s, 0, size s - 1)
   else s;
 
+fun ml_positions start_line name txt =
+  let
+    fun positions line (#"@" :: #"{" :: #"h" :: #"e" :: #"r" :: #"e" :: #"}" :: cs) res =
+          let val s = "(Position.line_file_only " ^ Int.toString line ^ " \"" ^ name ^ "\")"
+          in positions line cs (s :: res) end
+      | positions line (c :: cs) res =
+          positions (if c = #"\n" then line + 1 else line) cs (str c :: res)
+      | positions _ [] res = rev res;
+  in String.concat (positions start_line (String.explode txt) []) end;
+
 fun use_text ({name_space, here, print, error, ...}: context) {line, file, verbose, debug} text =
   let
     val _ = Secure.deny_ml ();
@@ -58,16 +68,16 @@ fun use_text ({name_space, here, print, error, ...}: context) {line, file, verbo
       PolyML.Compiler.CPErrorMessageProc put_message,
       PolyML.Compiler.CPLineNo (fn () => ! current_line),
       PolyML.Compiler.CPFileName file,
-      PolyML.Compiler.CPPrintInAlphabeticalOrder false] @
-      ML_Compiler_Parameters.debug debug;
+      PolyML.Compiler.CPPrintInAlphabeticalOrder false,
+      PolyML.Compiler.CPDebug debug];
     val _ =
       (while not (List.null (! in_buffer)) do
         PolyML.compiler (get, parameters) ())
       handle exn =>
-        if Exn.is_interrupt exn then reraise exn
+        if Exn.is_interrupt exn then Exn.reraise exn
         else
          (put ("Exception- " ^ General.exnMessage exn ^ " raised");
-          error (output ()); reraise exn);
+          error (output ()); Exn.reraise exn);
   in if verbose then print (output ()) else () end;
 
 fun use_file context {verbose, debug} file =

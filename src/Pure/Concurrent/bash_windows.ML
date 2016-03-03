@@ -48,7 +48,7 @@ val process = uninterruptible (fn restore_attributes => fn script =>
             val res = if rc = 130 orelse rc = 512 then Signal else Result rc;
           in Synchronized.change result (K res) end
           handle exn =>
-            (Synchronized.change result (fn Wait => Signal | res => res); reraise exn)));
+            (Synchronized.change result (fn Wait => Signal | res => res); Exn.reraise exn)));
 
     fun read_pid 0 = NONE
       | read_pid count =
@@ -93,7 +93,7 @@ val process = uninterruptible (fn restore_attributes => fn script =>
       val pid = read_pid 1;
       val _ = cleanup ();
     in {out = out, err = err, rc = rc, terminate = fn () => terminate pid} end
-    handle exn => (terminate (read_pid 10); cleanup (); reraise exn)
+    handle exn => (terminate (read_pid 10); cleanup (); Exn.reraise exn)
   end);
 
 end;

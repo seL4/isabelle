@@ -205,7 +205,7 @@ heap under program control.
 discontinued. INCOMPATIBILITY, use operations from the modules "XML" and
 "YXML" in Isabelle/ML or Isabelle/Scala.
 
-* SML/NJ is no longer supported.
+* SML/NJ and old versions of Poly/ML are no longer supported.
 
 
 New in Isabelle2016 (February 2016)
@@ -998,7 +998,15 @@ provided in src/Pure/Isar/method.ML for convenience. INCOMPATIBILITY.
 
 *** System ***
 
-* Command-line tool "isabelle console" enables print mode "ASCII".
+* Command-line tool "isabelle_process" supports ML evaluation of literal
+expressions (option -e) or files (option -f). Errors lead to premature
+exit of the ML process with return code 1.
+
+* Command-line tool "isabelle console -r" helps to bootstrap
+Isabelle/Pure interactively.
+
+* Command-line tool "isabelle console" enables print mode "ASCII" for
+regular logic sessions.
 
 * Command-line tool "isabelle update_then" expands old Isar command
 conflations:

@@ -1,4 +1,4 @@
-(*  Title:      Pure/RAW/unsynchronized.ML
+(*  Title:      Pure/Concurrent/unsynchronized.ML
     Author:     Makarius
 
 Raw ML references as unsynchronized state variables.
