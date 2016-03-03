@@ -182,7 +182,7 @@ else
   esac
   PLATFORM_HEAP_FILE="$(perl "$ISABELLE_HOME/lib/scripts/recode.pl" "$PLATFORM_HEAP_FILE")"
   FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="--eval"
-  FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="PolyML.SaveState.loadState \"$PLATFORM_HEAP_FILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $HEAP_FILE\\n\"); OS.Process.exit OS.Process.success)"
+  FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="PolyML.SaveState.loadState \"$PLATFORM_HEAP_FILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $HEAP_FILE\\n\"); OS.Process.exit OS.Process.failure)"
 fi
 
 
