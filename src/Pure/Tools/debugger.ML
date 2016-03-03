@@ -190,7 +190,8 @@ fun print_vals thread_name index SML txt =
 
     fun print x =
       Pretty.from_ML
-        (ML_Name_Space.display_val (x, FixedInt.fromInt (ML_Options.get_print_depth ()), space));
+        (ML_Pretty.from_polyml
+          (ML_Name_Space.displayVal (x, FixedInt.fromInt (ML_Options.get_print_depth ()), space)));
     fun print_all () =
       #allVal (ML_Debugger.debug_local_name_space (the_debug_state thread_name index)) ()
       |> sort_by #1 |> map (Pretty.item o single o print o #2)

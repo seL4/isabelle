@@ -12,19 +12,6 @@ use "RAW/ml_name_space.ML";
 if List.exists (fn (a, _) => a = "FixedInt") (#allStruct ML_Name_Space.global ()) then ()
 else use "RAW/fixed_int_dummy.ML";
 
-structure ML_Name_Space =
-struct
-  open ML_Name_Space;
-  val initial_val =
-    List.filter (fn (a, _) => a <> "use" andalso a <> "exit" andalso a <> "commit")
-      (#allVal global ());
-  val initial_type = #allType global ();
-  val initial_fixity = #allFix global ();
-  val initial_structure = #allStruct global ();
-  val initial_signature = #allSig global ();
-  val initial_functor = #allFunct global ();
-end;
-
 
 (* exceptions *)
 
@@ -103,7 +90,6 @@ struct
   val display_val = ML_Pretty.from_polyml o displayVal;
 end;
 
-use "RAW/ml_positions.ML";
 use "RAW/ml_compiler0.ML";
 
 PolyML.Compiler.reportUnreferencedIds := true;
