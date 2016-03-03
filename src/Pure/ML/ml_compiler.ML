@@ -268,7 +268,7 @@ fun eval (flags: flags) pos toks =
       (while not (List.null (! input_buffer)) do
         PolyML.compiler (get, parameters) ())
       handle exn =>
-        if Exn.is_interrupt exn then reraise exn
+        if Exn.is_interrupt exn then Exn.reraise exn
         else
           let
             val exn_msg =

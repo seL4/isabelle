@@ -73,7 +73,7 @@ fun plain_exn (Exn.Res _) = NONE
 fun release_first results =
   (case get_first plain_exn results of
     NONE => release_all results
-  | SOME exn => reraise exn);
+  | SOME exn => Exn.reraise exn);
 
 end;
 

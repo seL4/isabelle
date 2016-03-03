@@ -141,8 +141,8 @@ fun exn_message exn =
 
 val exn_error_message = Output.error_message o exn_message;
 val exn_system_message = Output.system_message o exn_message;
-fun exn_trace e = print_exception_trace exn_message tracing e;
-fun exn_trace_system e = print_exception_trace exn_message Output.system_message e;
+fun exn_trace e = Exn.trace exn_message tracing e;
+fun exn_trace_system e = Exn.trace exn_message Output.system_message e;
 
 
 (* exception debugger *)
@@ -189,7 +189,7 @@ fun controlled_execution opt_context f x =
 
 fun toplevel_error output_exn f x = f x
   handle exn =>
-    if Exn.is_interrupt exn then reraise exn
+    if Exn.is_interrupt exn then Exn.reraise exn
     else
       let
         val opt_ctxt =

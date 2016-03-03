@@ -195,7 +195,7 @@ fun check_cmts span tr st' =
       Outer_Syntax.side_comments span |> maps (fn cmt =>
         (Thy_Output.output_text st' {markdown = false} (Token.input_of cmt); [])
           handle exn =>
-            if Exn.is_interrupt exn then reraise exn
+            if Exn.is_interrupt exn then Exn.reraise exn
             else Runtime.exn_messages_ids exn)) ();
 
 fun report tr m =
@@ -277,7 +277,7 @@ val print_functions =
 fun print_error tr opt_context e =
   (Toplevel.setmp_thread_position tr o Runtime.controlled_execution opt_context) e ()
     handle exn =>
-      if Exn.is_interrupt exn then reraise exn
+      if Exn.is_interrupt exn then Exn.reraise exn
       else List.app (Future.error_message (Toplevel.pos_of tr)) (Runtime.exn_messages_ids exn);
 
 fun print_finished (Print {print_process, ...}) = Lazy.is_finished print_process;
@@ -312,7 +312,7 @@ fun print command_visible command_overlays keywords command_name eval old_prints
 
     fun bad_print name args exn =
       make_print name args {delay = NONE, pri = 0, persistent = false,
-        strict = false, print_fn = fn _ => fn _ => reraise exn};
+        strict = false, print_fn = fn _ => fn _ => Exn.reraise exn};
 
     fun new_print name args get_pr =
       let

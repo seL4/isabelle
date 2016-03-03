@@ -71,11 +71,11 @@ fun log_exn log tag id e = log (tag id ^ "exception:\n" ^ General.exnMessage e)
 
 fun catch tag f id (st as {log, ...}: run_args) = (f id st; ())
   handle exn =>
-    if Exn.is_interrupt exn then reraise exn else (log_exn log tag id exn; ())
+    if Exn.is_interrupt exn then Exn.reraise exn else (log_exn log tag id exn; ())
 
 fun catch_result tag d f id (st as {log, ...}: run_args) = f id st
   handle exn =>
-    if Exn.is_interrupt exn then reraise exn else (log_exn log tag id exn; d)
+    if Exn.is_interrupt exn then Exn.reraise exn else (log_exn log tag id exn; d)
 
 fun register (init, run, done) thy =
   let val id = length (Actions.get thy) + 1

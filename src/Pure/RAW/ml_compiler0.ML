@@ -74,10 +74,10 @@ fun use_text ({name_space, here, print, error, ...}: context) {line, file, verbo
       (while not (List.null (! in_buffer)) do
         PolyML.compiler (get, parameters) ())
       handle exn =>
-        if Exn.is_interrupt exn then reraise exn
+        if Exn.is_interrupt exn then Exn.reraise exn
         else
          (put ("Exception- " ^ General.exnMessage exn ^ " raised");
-          error (output ()); reraise exn);
+          error (output ()); Exn.reraise exn);
   in if verbose then print (output ()) else () end;
 
 fun use_file context {verbose, debug} file =

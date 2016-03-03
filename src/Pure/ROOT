@@ -5,7 +5,6 @@ session RAW =
   files
     "RAW/ROOT_polyml.ML"
     "RAW/exn.ML"
-    "RAW/exn_trace.ML"
     "RAW/fixed_int_dummy.ML"
     "RAW/ml_compiler0.ML"
     "RAW/ml_debugger.ML"
@@ -23,7 +22,6 @@ session Pure =
   files
     "RAW/ROOT_polyml.ML"
     "RAW/exn.ML"
-    "RAW/exn_trace.ML"
     "RAW/fixed_int_dummy.ML"
     "RAW/ml_compiler0.ML"
     "RAW/ml_debugger.ML"

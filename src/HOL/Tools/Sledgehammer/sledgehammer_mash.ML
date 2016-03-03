@@ -573,7 +573,7 @@ fun try_graph ctxt when def f =
     (trace_msg ctxt (fn () => "Unknown fact " ^ quote name ^ " when " ^ when); def)
   | exn =>
     if Exn.is_interrupt exn then
-      reraise exn
+      Exn.reraise exn
     else
       (trace_msg ctxt (fn () => "Internal error when " ^ when ^ ":\n" ^ Runtime.exn_message exn);
        def)

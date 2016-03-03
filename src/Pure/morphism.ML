@@ -52,7 +52,8 @@ type 'a funs = (string * ('a -> 'a)) list;
 exception MORPHISM of string * exn;
 
 fun app (name, f) x = f x
-  handle exn => if Exn.is_interrupt exn then reraise exn else raise MORPHISM (name, exn);
+  handle exn =>
+    if Exn.is_interrupt exn then Exn.reraise exn else raise MORPHISM (name, exn);
 
 fun apply fs = fold_rev app fs;
 

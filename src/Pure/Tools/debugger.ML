@@ -33,7 +33,7 @@ val error_message = output_message Markup.errorN;
 
 fun error_wrapper e = e ()
   handle exn =>
-    if Exn.is_interrupt exn then reraise exn
+    if Exn.is_interrupt exn then Exn.reraise exn
     else error_message (Runtime.exn_message exn);
 
 

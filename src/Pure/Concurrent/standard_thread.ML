@@ -54,9 +54,9 @@ fun attributes ({stack_limit, interrupts, ...}: params) =
 
 fun fork (params: params) body =
   Thread.fork (fn () =>
-    print_exception_trace General.exnMessage tracing (fn () =>
+    Exn.trace General.exnMessage tracing (fn () =>
       (set_name (#name params); body ())
-        handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn),
+        handle exn => if Exn.is_interrupt exn then () (*sic!*) else Exn.reraise exn),
     attributes params);
 
 

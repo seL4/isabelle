@@ -114,7 +114,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
                   (true, (_, outcome)) => List.app Output.information outcome
                 | _ => ())
               else ()
-            end handle exn => if Exn.is_interrupt exn then reraise exn else ()}
+            end handle exn => if Exn.is_interrupt exn then Exn.reraise exn else ()}
       else NONE)
 
 

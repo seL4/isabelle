@@ -405,7 +405,7 @@ val _ =
         (case result of
           SOME promise => Future.fulfill promise reply
         | NONE => ()) (* FIXME handle protocol failure, just like in active.ML (!?) *)
-      end handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn)
+      end handle exn => if Exn.is_interrupt exn then () (*sic!*) else Exn.reraise exn)
 
 
 

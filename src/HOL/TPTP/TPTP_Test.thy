@@ -60,7 +60,7 @@ ML {*
      (*otherwise report exceptions as warnings*)
      handle exn =>
        if Exn.is_interrupt exn then
-         reraise exn
+         Exn.reraise exn
        else
          (report ctxt (msg ^ " test: file " ^ Path.print file_name ^
           " raised exception: " ^ Runtime.exn_message exn);

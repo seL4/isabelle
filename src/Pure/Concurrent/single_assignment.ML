@@ -39,7 +39,7 @@ fun await (v as Var {name, lock, cond, ...}) =
           NONE =>
             (case Multithreading.sync_wait NONE NONE cond lock of
               Exn.Res _ => wait ()
-            | Exn.Exn exn => reraise exn)
+            | Exn.Exn exn => Exn.reraise exn)
         | SOME x => x);
     in wait () end);
 

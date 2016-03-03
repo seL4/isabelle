@@ -192,7 +192,7 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
              handle
                ERROR msg => (unknownN, fn () => "Error: " ^ msg ^ "\n")
              | exn =>
-               if Exn.is_interrupt exn then reraise exn
+               if Exn.is_interrupt exn then Exn.reraise exn
                else (unknownN, fn () => "Internal error:\n" ^ Runtime.exn_message exn ^ "\n"))
 
         val _ =

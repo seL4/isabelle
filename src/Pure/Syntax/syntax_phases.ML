@@ -310,7 +310,7 @@ fun failed_results results = map_filter (fn (y, Exn.Exn e) => SOME (y, e) | _ =>
 
 fun report_result ctxt pos ambig_msgs results =
   (case (proper_results results, failed_results results) of
-    ([], (reports, exn) :: _) => (Context_Position.reports_text ctxt reports; reraise exn)
+    ([], (reports, exn) :: _) => (Context_Position.reports_text ctxt reports; Exn.reraise exn)
   | ([(reports, x)], _) => (Context_Position.reports_text ctxt reports; x)
   | _ =>
       if null ambig_msgs then

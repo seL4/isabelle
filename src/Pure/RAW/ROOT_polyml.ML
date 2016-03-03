@@ -15,15 +15,7 @@ else use "RAW/fixed_int_dummy.ML";
 
 (* exceptions *)
 
-fun reraise exn =
-  (case PolyML.exceptionLocation exn of
-    NONE => raise exn
-  | SOME location => PolyML.raiseWithLocation (exn, location));
-
-exception Interrupt = SML90.Interrupt;
-
 use "RAW/exn.ML";
-use "RAW/exn_trace.ML";
 
 
 (* multithreading *)
@@ -83,16 +75,10 @@ val error_depth = PolyML.error_depth;
 (* ML compiler *)
 
 use "RAW/secure.ML";
-
-structure ML_Name_Space =
-struct
-  open ML_Name_Space;
-  val display_val = ML_Pretty.from_polyml o displayVal;
-end;
-
 use "RAW/ml_compiler0.ML";
 
 PolyML.Compiler.reportUnreferencedIds := true;
+PolyML.Compiler.reportExhaustiveHandlers := true;
 PolyML.Compiler.printInAlphabeticalOrder := false;
 PolyML.Compiler.maxInlineSize := 80;
 PolyML.Compiler.prompt1 := "ML> ";
