@@ -300,7 +300,8 @@ text \<open>
     -O           system options from given YXML file
     -P SOCKET    startup process wrapper via TCP socket
     -S           secure mode -- disallow critical operations
-    -e ML_TEXT   pass ML_TEXT to the ML session
+    -e ML_EXPR   evaluate ML expression on startup
+    -f ML_FILE   evaluate ML file on startup
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -q           non-interactive session
@@ -323,10 +324,10 @@ text \<open>
 subsubsection \<open>Options\<close>
 
 text \<open>
-  Using the \<^verbatim>\<open>-e\<close> option, arbitrary ML code may be passed to the Isabelle
-  session from the command line. Multiple \<^verbatim>\<open>-e\<close> options are evaluated in the
-  given order. Strange things may happen when erroneous ML code is provided.
-  Also make sure that the ML commands are terminated properly by semicolon.
+  Options \<^verbatim>\<open>-e\<close> and \<^verbatim>\<open>-f\<close> allow to evaluate ML code, before the ML process is
+  started. The source is either given literally or taken from a file. Multiple
+  \<^verbatim>\<open>-e\<close> and \<^verbatim>\<open>-f\<close> options are evaluated in the given order. Errors lead to
+  premature exit of the ML process with return code 1.
 
   \<^medskip>
   The \<^verbatim>\<open>-m\<close> option adds identifiers of print modes to be made active for this

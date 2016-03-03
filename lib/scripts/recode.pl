@@ -7,6 +7,5 @@
 for (@ARGV) {
   utf8::upgrade($_);
   s/([\x80-\xff])/\\${\(ord($1))}/g;
-  print $_, " ";
+  print $_;
 }
-

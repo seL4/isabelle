@@ -998,6 +998,10 @@ provided in src/Pure/Isar/method.ML for convenience. INCOMPATIBILITY.
 
 *** System ***
 
+* Command-line tool "isabelle_process" supports ML evaluation of literal
+expressions (option -e) or files (option -f). Errors lead to premature
+exit of the ML process with return code 1.
+
 * Command-line tool "isabelle console" enables print mode "ASCII".
 
 * Command-line tool "isabelle update_then" expands old Isar command
