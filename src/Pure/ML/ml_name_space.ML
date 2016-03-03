@@ -15,9 +15,7 @@ struct
   type valueVal = Values.value;
   fun displayVal (x, depth, space) = Values.printWithType (x, depth, SOME space);
   fun displayTypeExpression (x, depth, space) = Values.printType (x, depth, SOME space);
-  val initial_val =
-    List.filter (fn (a, _) => a <> "use" andalso a <> "exit" andalso a <> "commit")
-      (#allVal global ());
+  val initial_val = List.filter (fn (a, _) => a <> "use" andalso a <> "exit") (#allVal global ());
 
   type typeVal = TypeConstrs.typeConstr;
   fun displayType (x, depth, space) = TypeConstrs.print (x, depth, SOME space);
