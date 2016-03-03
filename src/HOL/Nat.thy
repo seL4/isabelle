@@ -1876,7 +1876,6 @@ next
   moreover from \<open>n < j\<close> have "Suc n \<le> j"
     by (simp add: Suc_le_eq)
   ultimately have "P (Suc n)"
-  thm Suc.hyps TrueI Suc.prems
   proof (rule Suc.hyps)
     fix q
     assume "Suc n \<le> q"
