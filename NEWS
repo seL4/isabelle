@@ -205,7 +205,7 @@ heap under program control.
 discontinued. INCOMPATIBILITY, use operations from the modules "XML" and
 "YXML" in Isabelle/ML or Isabelle/Scala.
 
-* SML/NJ is no longer supported.
+* SML/NJ and old versions of Poly/ML are no longer supported.
 
 
 New in Isabelle2016 (February 2016)

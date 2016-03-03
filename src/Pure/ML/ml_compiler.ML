@@ -98,10 +98,8 @@ fun report_parse_tree redirect depth space parse_tree =
       | reported loc (PolyML.PTdeclaredAt decl) = reported_entity Markup.ML_defN loc decl
       | reported loc (PolyML.PTopenedAt decl) = reported_entity Markup.ML_openN loc decl
       | reported loc (PolyML.PTstructureAt decl) = reported_entity Markup.ML_structureN loc decl
-      | reported loc pt =
-          (case ML_Parse_Tree.completions pt of
-            SOME names => reported_completions loc names
-          | NONE => I)
+      | reported loc (PolyML.PTcompletions names) = reported_completions loc names
+      | reported _ _ = I
     and reported_tree (loc, props) = fold (reported loc) props;
 
     val persistent_reports = reported_tree parse_tree [];
@@ -123,16 +121,14 @@ fun report_parse_tree redirect depth space parse_tree =
 
     fun breakpoints _ (PolyML.PTnextSibling tree) = breakpoints_tree (tree ())
       | breakpoints _ (PolyML.PTfirstChild tree) = breakpoints_tree (tree ())
-      | breakpoints loc pt =
-          (case ML_Parse_Tree.breakpoint pt of
-            SOME b =>
-              let val pos = breakpoint_position loc in
-                if is_reported pos then
-                  let val id = serial ();
-                  in cons ((pos, Markup.ML_breakpoint id), (id, (b, pos))) end
-                else I
-              end
-          | NONE => I)
+      | breakpoints loc (PolyML.PTbreakPoint b) =
+          let val pos = breakpoint_position loc in
+            if is_reported pos then
+              let val id = serial ();
+              in cons ((pos, Markup.ML_breakpoint id), (id, (b, pos))) end
+            else I
+          end
+      | breakpoints _ _ = I
     and breakpoints_tree (loc, props) = fold (breakpoints loc) props;
 
     val all_breakpoints = rev (breakpoints_tree parse_tree []);
@@ -264,8 +260,8 @@ fun eval (flags: flags) pos toks =
       PolyML.Compiler.CPFileName location_props,
       PolyML.Compiler.CPPrintDepth ML_Options.get_print_depth,
       PolyML.Compiler.CPCompilerResultFun result_fun,
-      PolyML.Compiler.CPPrintInAlphabeticalOrder false] @
-     ML_Compiler_Parameters.debug debug;
+      PolyML.Compiler.CPPrintInAlphabeticalOrder false,
+      PolyML.Compiler.CPDebug debug];
 
     val _ =
       (while not (List.null (! input_buffer)) do

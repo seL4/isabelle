@@ -7,10 +7,7 @@ Compatibility wrapper for Poly/ML.
 (* initial ML name space *)
 
 use "RAW/ml_system.ML";
-
-if ML_System.name = "polyml-5.6"
-then use "RAW/ml_name_space_polyml-5.6.ML"
-else use "RAW/ml_name_space_polyml.ML";
+use "RAW/ml_name_space.ML";
 
 if List.exists (fn (a, _) => a = "FixedInt") (#allStruct ML_Name_Space.global ()) then ()
 else use "RAW/fixed_int_dummy.ML";
@@ -29,13 +26,6 @@ struct
 end;
 
 
-(* ML heap operations *)
-
-if ML_System.name = "polyml-5.3.0"
-then use "RAW/ml_heap_polyml-5.3.0.ML"
-else use "RAW/ml_heap.ML";
-
-
 (* exceptions *)
 
 fun reraise exn =
@@ -46,26 +36,15 @@ fun reraise exn =
 exception Interrupt = SML90.Interrupt;
 
 use "RAW/exn.ML";
-
-if ML_System.name = "polyml-5.6"
-then use "RAW/exn_trace.ML"
-else use "RAW/exn_trace_raw.ML";
+use "RAW/exn_trace.ML";
 
 
 (* multithreading *)
 
 val seconds = Time.fromReal;
 
-if List.exists (fn s => s = "SingleAssignment") (PolyML.Compiler.structureNames ())
-then ()
-else use "RAW/single_assignment_polyml.ML";
-
 open Thread;
 use "RAW/multithreading.ML";
-
-if ML_System.name = "polyml-5.6"
-then use "RAW/ml_stack_polyml-5.6.ML"
-else use "RAW/ml_stack_dummy.ML";
 
 use "RAW/unsynchronized.ML";
 val _ = PolyML.Compiler.forgetValue "ref";
@@ -93,9 +72,8 @@ fun quit () = exit 0;
 
 (* ML runtime system *)
 
-if ML_System.name = "polyml-5.6"
-then use "RAW/ml_profiling_polyml-5.6.ML"
-else use "RAW/ml_profiling_polyml.ML";
+use "RAW/ml_heap.ML";
+use "RAW/ml_profiling.ML";
 
 val pointer_eq = PolyML.pointerEq;
 
@@ -162,10 +140,6 @@ struct
   val display_val = pretty_ml o displayVal;
 end;
 
-use "RAW/ml_compiler_parameters.ML";
-if ML_System.name = "polyml-5.6"
-then use "RAW/ml_compiler_parameters_polyml-5.6.ML" else ();
-
 use "RAW/ml_positions.ML";
 use "RAW/ml_compiler0.ML";
 
@@ -175,10 +149,6 @@ PolyML.Compiler.maxInlineSize := 80;
 PolyML.Compiler.prompt1 := "ML> ";
 PolyML.Compiler.prompt2 := "ML# ";
 
-use "RAW/ml_parse_tree.ML";
-if ML_System.name = "polyml-5.6"
-then use "RAW/ml_parse_tree_polyml-5.6.ML" else ();
-
 fun ml_make_string struct_name =
   "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, FixedInt.fromInt (" ^
     struct_name ^ ".ML_print_depth ()))))))";
@@ -186,6 +156,4 @@ fun ml_make_string struct_name =
 
 (* ML debugger *)
 
-if ML_System.name = "polyml-5.6"
-then use_no_debug "RAW/ml_debugger_polyml-5.6.ML"
-else use_no_debug "RAW/ml_debugger.ML";
+use_no_debug "RAW/ml_debugger.ML";

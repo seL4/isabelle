@@ -32,8 +32,7 @@ fun input_line (System_Channel (in_stream, _)) =
   in read [] end;
 
 fun inputN (System_Channel (in_stream, _)) n =
-  if n = 0 then ""  (*workaround for polyml-5.5.1 or earlier*)
-  else Byte.bytesToString (BinIO.inputN (in_stream, n));
+  Byte.bytesToString (BinIO.inputN (in_stream, n));
 
 fun output (System_Channel (_, out_stream)) s =
   File.output out_stream s;

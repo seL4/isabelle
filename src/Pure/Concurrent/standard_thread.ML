@@ -49,7 +49,7 @@ end;
 type params = {name: string, stack_limit: int option, interrupts: bool};
 
 fun attributes ({stack_limit, interrupts, ...}: params) =
-  ML_Stack.limit stack_limit @
+  Thread.MaximumMLStack stack_limit ::
   (if interrupts then Multithreading.public_interrupts else Multithreading.no_interrupts);
 
 fun fork (params: params) body =

@@ -58,8 +58,8 @@ fun use_text ({name_space, here, print, error, ...}: context) {line, file, verbo
       PolyML.Compiler.CPErrorMessageProc put_message,
       PolyML.Compiler.CPLineNo (fn () => ! current_line),
       PolyML.Compiler.CPFileName file,
-      PolyML.Compiler.CPPrintInAlphabeticalOrder false] @
-      ML_Compiler_Parameters.debug debug;
+      PolyML.Compiler.CPPrintInAlphabeticalOrder false,
+      PolyML.Compiler.CPDebug debug];
     val _ =
       (while not (List.null (! in_buffer)) do
         PolyML.compiler (get, parameters) ())

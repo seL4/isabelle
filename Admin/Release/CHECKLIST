@@ -5,8 +5,6 @@ Checklist for official releases
 
 - check Admin/components;
 
-- test polyml-5.3.0;
-
 - test 'display_drafts' command;
 
 - test "#!/usr/bin/env isabelle_scala_script";
