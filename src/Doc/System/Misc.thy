@@ -65,10 +65,11 @@ text \<open>
 
   Options are:
     -d DIR       include session directory
-    -l NAME      logic session name (default ISABELLE_LOGIC)
+    -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
     -m MODE      add print mode for output
     -n           no build of session image on startup
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -r           logic session is RAW_ML_SYSTEM
     -s           system build mode for session image
 
   Run Isabelle process with raw ML console and line editor
@@ -76,6 +77,9 @@ text \<open>
 
   The \<^verbatim>\<open>-l\<close> option specifies the logic session name. By default, its heap
   image is checked and built on demand, but the option \<^verbatim>\<open>-n\<close> skips that.
+
+  Option \<^verbatim>\<open>-r\<close> abbreviates \<^verbatim>\<open>-l RAW_ML_SYSTEM\<close>, which is relevant to bootstrap
+  Isabelle/Pure interactively.
 
   Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-o\<close>, \<^verbatim>\<open>-s\<close> are passed directly to @{tool build}
   (\secref{sec:tool-build}).

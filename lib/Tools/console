@@ -31,6 +31,7 @@ function usage()
   echo "    -m MODE      add print mode for output"
   echo "    -n           no build of session image on startup"
   echo "    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)"
+  echo "    -r           logic session is RAW_ML_SYSTEM"
   echo "    -s           system build mode for session image"
   echo
   echo "  Run Isabelle process with raw ML console and line editor"
@@ -52,7 +53,7 @@ NO_BUILD="false"
 declare -a SYSTEM_OPTIONS=()
 SYSTEM_MODE="false"
 
-while getopts "d:l:m:no:s" OPT
+while getopts "d:l:m:no:rs" OPT
 do
   case "$OPT" in
     d)
@@ -70,6 +71,9 @@ do
       ;;
     o)
       SYSTEM_OPTIONS["${#SYSTEM_OPTIONS[@]}"]="$OPTARG"
+      ;;
+    r)
+      LOGIC="RAW_ML_SYSTEM"
       ;;
     s)
       SYSTEM_MODE="true"
@@ -97,14 +101,15 @@ declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
 mkdir -p "$ISABELLE_TMP_PREFIX" || exit $?
 OPTIONS_FILE="$ISABELLE_TMP_PREFIX/options$$"
 
-"$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Build_Console \
-  "$LOGIC" "$NO_BUILD" "$SYSTEM_MODE" "$OPTIONS_FILE" \
-  "${INCLUDE_DIRS[@]}" $'\n' "${SYSTEM_OPTIONS[@]}" || {
-  rm -f "$OPTIONS_FILE"
-  exit "$?"
-}
-
-if [ "$LOGIC" != "RAW" ]; then
+if [ "$LOGIC" = "RAW_ML_SYSTEM" ]; then
+  "$ISABELLE_TOOL" options -x "$OPTIONS_FILE"
+else
+  "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Build_Console \
+    "$LOGIC" "$NO_BUILD" "$SYSTEM_MODE" "$OPTIONS_FILE" \
+    "${INCLUDE_DIRS[@]}" $'\n' "${SYSTEM_OPTIONS[@]}" || {
+    rm -f "$OPTIONS_FILE"
+    exit "$?"
+  }
   ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="-m"
   ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="ASCII"
 fi
