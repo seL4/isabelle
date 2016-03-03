@@ -1421,6 +1421,7 @@ fun get_def_of_const thy table (x as (s, _)) =
   x |> def_props_for_const thy table |> List.last
     |> normalized_rhs_of |> Option.map (prefix_abs_vars s)
   handle List.Empty => NONE
+       | TERM _ => NONE
 
 fun def_of_const_ext thy (unfold_table, fallback_table) (x as (s, _)) =
   if is_built_in_const x orelse original_name s <> s then
