@@ -10,6 +10,9 @@ Contributions to this Isabelle version
   Abolition of compound operators INFIMUM and SUPREMUM
   for complete lattices.
 
+* March 2016: Florian Haftmann
+  Abstract factorial rings with unique factorization.
+
 
 Contributions to Isabelle2016
 -----------------------------
