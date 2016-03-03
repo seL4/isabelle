@@ -20,7 +20,7 @@ fun position exn =
 
 fun pretty (exn: exn) =
   Pretty.from_ML
-    (pretty_ml
+    (ML_Pretty.from_polyml
       (PolyML.prettyRepresentation (exn, FixedInt.fromInt (ML_Options.get_print_depth ()))));
 
 end;
