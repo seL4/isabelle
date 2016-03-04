@@ -8,8 +8,8 @@ Coinduction method that avoids some boilerplate compared to coinduct.
 
 signature COINDUCTION =
 sig
-  val coinduction_context_tactic: term list -> thm option -> thm list -> int -> context_tactic
-  val coinduction_tac: Proof.context -> term list -> thm option -> thm list -> int -> tactic
+  val coinduction_context_tactic: term list -> thm list option -> thm list -> int -> context_tactic
+  val coinduction_tac: Proof.context -> term list -> thm list option -> thm list -> int -> tactic
 end;
 
 structure Coinduction : COINDUCTION =
@@ -38,17 +38,23 @@ fun DELETE_PREMS_AFTER skip tac i st =
     (THEN_ALL_NEW_SKIP skip tac (REPEAT_DETERM_N n o eresolve0_tac [thin_rl])) i st
   end;
 
-fun coinduction_context_tactic raw_vars opt_raw_thm prems =
+fun coinduction_context_tactic raw_vars opt_raw_thms prems =
   CONTEXT_SUBGOAL (fn (goal, i) => fn (ctxt, st) =>
     let
       val lhs_of_eq = HOLogic.dest_Trueprop #> HOLogic.dest_eq #> fst;
       fun find_coinduct t =
         Induct.find_coinductP ctxt t @
         (try (Induct.find_coinductT ctxt o fastype_of o lhs_of_eq) t |> the_default []);
-      val raw_thm =
-        (case opt_raw_thm of
-          SOME raw_thm => raw_thm
-        | NONE => goal |> Logic.strip_assums_concl |> find_coinduct |> hd);
+      val raw_thms =
+        (case opt_raw_thms of
+          SOME raw_thms => raw_thms
+        | NONE => goal |> Logic.strip_assums_concl |> find_coinduct);
+      val thy = Proof_Context.theory_of ctxt;
+      val concl = Variable.focus NONE goal ctxt |> fst |> snd |> Logic.strip_imp_concl |> @{print};
+      val raw_thm = (case find_first (fn thm =>
+            Pattern.matches thy (Thm.concl_of thm, concl)) raw_thms of
+          SOME thm => thm
+        | NONE => error "No matching coinduction rule found")
       val skip = Integer.max 1 (Rule_Cases.get_consumes raw_thm) - 1;
       val cases = Rule_Cases.get raw_thm |> fst;
     in
@@ -126,8 +132,6 @@ local
 
 val ruleN = "rule"
 val arbitraryN = "arbitrary"
-fun single_rule [rule] = rule
-  | single_rule _ = error "Single rule expected";
 
 fun named_rule k arg get =
   Scan.lift (Args.$$$ k -- Args.colon) |-- Scan.repeat arg :|--
@@ -141,8 +145,8 @@ fun rule get_type get_pred =
   named_rule Induct.setN (Args.const {proper = false, strict = false}) get_pred ||
   Scan.lift (Args.$$$ ruleN -- Args.colon) |-- Attrib.thms;
 
-val coinduct_rule =
-  rule Induct.lookup_coinductT Induct.lookup_coinductP >> single_rule;
+val coinduct_rules =
+  rule Induct.lookup_coinductT Induct.lookup_coinductP;
 
 fun unless_more_args scan = Scan.unless (Scan.lift
   ((Args.$$$ arbitraryN || Args.$$$ Induct.typeN ||
@@ -156,9 +160,9 @@ in
 val _ =
   Theory.setup
     (Method.setup @{binding coinduction}
-      (arbitrary -- Scan.option coinduct_rule >>
-        (fn (arbitrary, opt_rule) => fn _ => fn facts =>
-          Seq.DETERM (coinduction_context_tactic arbitrary opt_rule facts 1)))
+      (arbitrary -- Scan.option coinduct_rules >>
+        (fn (arbitrary, opt_rules) => fn _ => fn facts =>
+          Seq.DETERM (coinduction_context_tactic arbitrary opt_rules facts 1)))
       "coinduction on types or predicates/sets");
 
 end;
