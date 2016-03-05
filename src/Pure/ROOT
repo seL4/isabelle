@@ -118,7 +118,6 @@ session Pure =
     "ML/ml_pretty.ML"
     "ML/ml_profiling.ML"
     "ML/ml_statistics.ML"
-    "ML/ml_statistics_dummy.ML"
     "ML/ml_syntax.ML"
     "ML/ml_system.ML"
     "PIDE/active.ML"
