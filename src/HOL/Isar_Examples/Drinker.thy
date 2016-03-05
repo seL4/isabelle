@@ -19,14 +19,14 @@ lemma de_Morgan:
   assumes "\<not> (\<forall>x. P x)"
   shows "\<exists>x. \<not> P x"
 proof (rule classical)
-  assume "\<not> (\<exists>x. \<not> P x)"
+  assume "\<nexists>x. \<not> P x"
   have "\<forall>x. P x"
   proof
     fix x show "P x"
     proof (rule classical)
       assume "\<not> P x"
       then have "\<exists>x. \<not> P x" ..
-      with \<open>\<not> (\<exists>x. \<not> P x)\<close> show ?thesis by contradiction
+      with \<open>\<nexists>x. \<not> P x\<close> show ?thesis by contradiction
     qed
   qed
   with \<open>\<not> (\<forall>x. P x)\<close> show ?thesis by contradiction
