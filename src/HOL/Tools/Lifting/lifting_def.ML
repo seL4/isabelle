@@ -610,7 +610,7 @@ fun add_lift_def (config: config) var qty rhs rsp_thm par_thms lthy =
     lthy
       |> Local_Theory.notes (notes (#notes config)) |> snd
       |> ` (fn lthy => morph_lift_def (Local_Theory.target_morphism lthy) lift_def)
-      ||> Local_Theory.restore
+      ||> Local_Theory.reset
   end
 
 (* This is not very cheap way of getting the rules but we have only few active

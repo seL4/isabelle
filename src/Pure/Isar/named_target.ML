@@ -176,7 +176,7 @@ fun switch NONE (Context.Theory thy) =
   | switch (SOME name) (Context.Theory thy) =
       (Context.Theory o exit, begin name thy)
   | switch NONE (Context.Proof lthy) =
-      (Context.Proof o Local_Theory.restore, lthy)
+      (Context.Proof o Local_Theory.reset, lthy)
   | switch (SOME name) (Context.Proof lthy) =
       (Context.Proof o init (target_of lthy) o exit,
         (begin name o exit o Local_Theory.assert_nonbrittle) lthy);

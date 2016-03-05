@@ -211,7 +211,7 @@ fun lift qty (quot_thm, (lthy, rel_eq_onps)) =
           handle THM _ => error ("code_dt: " ^ quote (Tname qty) ^ " was not defined as a subtype."))
         val code_dt = mk_code_dt rty qty wit wit_thm NONE
       in
-        (quot_thm, (update_code_dt code_dt lthy |> Local_Theory.restore, rel_eq_onps))
+        (quot_thm, (update_code_dt code_dt lthy |> Local_Theory.reset, rel_eq_onps))
       end
     else
       (quot_thm, (lthy, rel_eq_onps))
@@ -340,7 +340,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     val lthy = lthy  
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => fn context => Data.map (Item_Net.update (morph_code_dt phi (code_dt phi context))) context)
-      |> Local_Theory.restore
+      |> Local_Theory.reset
 
     (* in order to make the qty qty_isom isomorphism executable we have to define discriminators 
       and selectors for qty_isom *)
@@ -571,12 +571,12 @@ and constr qty (quot_thm, (lthy, rel_eq_onps)) =
         val config = { notes = false}
         val (binding, lthy) = conceal_naming_result (Lifting_Setup.setup_by_typedef_thm
           config type_definition_thm) lthy
-        val lthy = Local_Theory.restore lthy
+        val lthy = Local_Theory.reset lthy
         val (wit, wit_thm) = mk_witness quot_thm;
         val code_dt = mk_code_dt rty qty wit wit_thm NONE;
         val lthy = lthy
           |> update_code_dt code_dt
-          |> Local_Theory.restore
+          |> Local_Theory.reset
           |> mk_rep_isom binding (rty, qty, qty_isom) |> snd
       in
         (quot_thm, (lthy, rel_eq_onps))

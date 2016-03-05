@@ -189,6 +189,14 @@ with ML_file_debug, or with ML_file and option ML_debugger enabled. Note
 debugger information requires consirable time and space: main
 Isabelle/HOL with full debugger support may need ML_system_64.
 
+* Local_Theory.restore has been renamed to Local_Theory.reset to
+emphasize its disruptive impact on the cumulative context, notably the
+scope of 'private' or 'qualified' names. Note that Local_Theory.reset is
+only appropriate when targets are managed, e.g. starting from a global
+theory and returning to it. Regular definitional packages should use
+balanced blocks of Local_Theory.open_target versus
+Local_Theory.close_target instead. Rare INCOMPATIBILITY.
+
 
 *** System ***
 

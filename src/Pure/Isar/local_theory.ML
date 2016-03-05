@@ -16,7 +16,7 @@ signature LOCAL_THEORY =
 sig
   type operations
   val assert: local_theory -> local_theory
-  val restore: local_theory -> local_theory
+  val reset: local_theory -> local_theory
   val level: Proof.context -> int
   val assert_bottom: bool -> local_theory -> local_theory
   val mark_brittle: local_theory -> local_theory
@@ -132,7 +132,7 @@ fun map_top f =
   Data.map (fn {background_naming, operations, after_close, brittle, target} :: parents =>
     make_lthy (f (background_naming, operations, after_close, brittle, target)) :: parents);
 
-fun restore lthy = #target (top_of lthy) |> Data.put (Data.get lthy);
+fun reset lthy = #target (top_of lthy) |> Data.put (Data.get lthy);
 
 
 (* nested structure *)
@@ -388,6 +388,6 @@ fun close_target lthy =
   let
     val _ = assert_bottom false lthy;
     val ({after_close, ...} :: rest) = Data.get lthy;
-  in lthy |> Data.put rest |> restore |> after_close end;
+  in lthy |> Data.put rest |> reset |> after_close end;
 
 end;

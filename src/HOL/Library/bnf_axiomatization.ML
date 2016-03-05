@@ -83,7 +83,7 @@ fun prepare_decl prepare_plugins prepare_constraint prepare_typ
 
     val (((_, [raw_thms])), (lthy_old, lthy)) = Local_Theory.background_theory_result
       (Specification.axiomatization [] [((mk_b "axioms" Binding.empty, []), flat all_goalss)]) lthy
-      ||> `Local_Theory.restore;
+      ||> `Local_Theory.reset;
 
     fun mk_wit_thms set_maps =
       Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals)
