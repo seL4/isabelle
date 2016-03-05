@@ -217,10 +217,17 @@ INCOMPATIBILITY.
 executables are found within the PATH: isabelle, isabelle_process,
 isabelle_scala_script.
 
-* The isabelle_process executable no longer supports writable heap
+* Command-line tool "isabelle_process" no longer supports writable heap
 images. INCOMPATIBILITY in exotic situations where "isabelle build"
 cannot be used: the structure ML_Heap provides operations to save the ML
 heap under program control.
+
+* Command-line tool "isabelle_process" supports ML evaluation of literal
+expressions (option -e) or files (option -f). Errors lead to premature
+exit of the ML process with return code 1.
+
+* Command-line tool "isabelle console -r" helps to bootstrap
+Isabelle/Pure interactively.
 
 * The somewhat pointless command-line tool "isabelle yxml" has been
 discontinued. INCOMPATIBILITY, use operations from the modules "XML" and
@@ -1019,15 +1026,7 @@ provided in src/Pure/Isar/method.ML for convenience. INCOMPATIBILITY.
 
 *** System ***
 
-* Command-line tool "isabelle_process" supports ML evaluation of literal
-expressions (option -e) or files (option -f). Errors lead to premature
-exit of the ML process with return code 1.
-
-* Command-line tool "isabelle console -r" helps to bootstrap
-Isabelle/Pure interactively.
-
-* Command-line tool "isabelle console" enables print mode "ASCII" for
-regular logic sessions.
+* Command-line tool "isabelle console" enables print mode "ASCII".
 
 * Command-line tool "isabelle update_then" expands old Isar command
 conflations:
