@@ -155,7 +155,7 @@ notation (ASCII)
   Ex  (binder "EX " 10) and
   Ex1  (binder "EX! " 10)
 
-notation (HOL)
+notation (input)
   All  (binder "! " 10) and
   Ex  (binder "? " 10) and
   Ex1  (binder "?! " 10)

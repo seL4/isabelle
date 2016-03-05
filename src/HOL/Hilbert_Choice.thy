@@ -17,7 +17,7 @@ axiomatization Eps :: "('a => bool) => 'a" where
 
 syntax (epsilon)
   "_Eps"        :: "[pttrn, bool] => 'a"    ("(3\<some>_./ _)" [0, 10] 10)
-syntax (HOL)
+syntax (input)
   "_Eps"        :: "[pttrn, bool] => 'a"    ("(3@ _./ _)" [0, 10] 10)
 syntax
   "_Eps"        :: "[pttrn, bool] => 'a"    ("(3SOME _./ _)" [0, 10] 10)
