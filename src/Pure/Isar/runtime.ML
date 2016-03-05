@@ -9,6 +9,7 @@ sig
   exception UNDEF
   exception EXCURSION_FAIL of exn * string
   exception TOPLEVEL_ERROR
+  val pretty_exn: exn -> Pretty.T
   val exn_context: Proof.context option -> exn -> exn
   val thread_context: exn -> exn
   type error = ((serial * string) * string option)
@@ -35,6 +36,14 @@ struct
 exception UNDEF;
 exception EXCURSION_FAIL of exn * string;
 exception TOPLEVEL_ERROR;
+
+
+(* pretty *)
+
+fun pretty_exn (exn: exn) =
+  Pretty.from_ML
+    (ML_Pretty.from_polyml
+      (PolyML.prettyRepresentation (exn, FixedInt.fromInt (ML_Options.get_print_depth ()))));
 
 
 (* exn_context *)
@@ -85,7 +94,7 @@ in
 fun exn_messages_ids e =
   let
     fun raised exn name msgs =
-      let val pos = Position.here (Exn_Output.position exn) in
+      let val pos = Position.here (Exn_Properties.position exn) in
         (case msgs of
           [] => "exception " ^ name ^ " raised" ^ pos
         | [msg] => "exception " ^ name ^ " raised" ^ pos ^ ": " ^ msg
@@ -123,7 +132,7 @@ fun exn_messages_ids e =
             | THM (msg, i, thms) =>
                 raised exn ("THM " ^ string_of_int i)
                   (msg :: robust_context context Thm.string_of_thm thms)
-            | _ => raised exn (robust (Pretty.string_of o Exn_Output.pretty) exn) []);
+            | _ => raised exn (robust (Pretty.string_of o pretty_exn) exn) []);
         in [((i, msg), id)] end)
       and sorted_msgs context exn =
         sort_distinct (int_ord o apply2 (fst o fst)) (maps exn_msgs (flatten context exn));
@@ -150,7 +159,7 @@ fun exn_trace_system e = Exn.trace exn_message Output.system_message e;
 local
 
 fun print_entry (name, loc) =
-  Markup.markup Markup.item (name ^ Position.here (Exn_Properties.position_of loc));
+  Markup.markup Markup.item (name ^ Position.here (Exn_Properties.position_of_location loc));
 
 fun exception_debugger output e =
   let

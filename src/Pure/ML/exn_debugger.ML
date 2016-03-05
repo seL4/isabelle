@@ -40,7 +40,7 @@ end;
 
 local
   fun eq_exn exns =
-    op = (apply2 General.exnName exns) andalso op = (apply2 Exn_Output.position exns);
+    op = (apply2 General.exnName exns) andalso op = (apply2 Exn_Properties.position exns);
 in
 
 fun capture_exception_trace e =

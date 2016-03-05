@@ -6,7 +6,8 @@ Exception properties.
 
 signature EXN_PROPERTIES =
 sig
-  val position_of: PolyML.location -> Position.T
+  val position_of_location: PolyML.location -> Position.T
+  val position: exn -> Position.T
   val get: exn -> Properties.T
   val update: Properties.entry list -> exn -> exn
 end;
@@ -16,7 +17,7 @@ struct
 
 (* source locations *)
 
-fun props_of (loc: PolyML.location) =
+fun props_of_location (loc: PolyML.location) =
   (case YXML.parse_body (#file loc) of
     [] => []
   | [XML.Text file] =>
@@ -24,12 +25,17 @@ fun props_of (loc: PolyML.location) =
       else [(Markup.fileN, ML_System.standard_path file)]
   | body => XML.Decode.properties body);
 
-fun position_of loc =
+fun position_of_location loc =
   Position.make
    {line = FixedInt.toInt (#startLine loc),
     offset = FixedInt.toInt (#startPosition loc),
     end_offset = FixedInt.toInt (#endPosition loc),
-    props = props_of loc};
+    props = props_of_location loc};
+
+fun position exn =
+  (case PolyML.exceptionLocation exn of
+    NONE => Position.none
+  | SOME loc => position_of_location loc);
 
 
 (* exception properties *)
@@ -37,14 +43,14 @@ fun position_of loc =
 fun get exn =
   (case PolyML.exceptionLocation exn of
     NONE => []
-  | SOME loc => props_of loc);
+  | SOME loc => props_of_location loc);
 
 fun update entries exn =
   let
     val loc =
       the_default {file = "", startLine = 0, endLine = 0, startPosition = 0, endPosition = 0}
         (PolyML.exceptionLocation exn);
-    val props = props_of loc;
+    val props = props_of_location loc;
     val props' = fold Properties.put entries props;
   in
     if props = props' then exn

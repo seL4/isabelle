@@ -38,7 +38,7 @@ fun verbose b (flags: flags) =
 (* parse trees *)
 
 fun breakpoint_position loc =
-  let val pos = Position.reset_range (Exn_Properties.position_of loc) in
+  let val pos = Position.reset_range (Exn_Properties.position_of_location loc) in
     (case Position.offset_of pos of
       NONE => pos
     | SOME 1 => pos
@@ -60,7 +60,7 @@ fun report_parse_tree redirect depth space parse_tree =
     (* syntax reports *)
 
     fun reported_types loc types =
-      let val pos = Exn_Properties.position_of loc in
+      let val pos = Exn_Properties.position_of_location loc in
         is_reported pos ?
           let
             val xml =
@@ -72,8 +72,8 @@ fun report_parse_tree redirect depth space parse_tree =
 
     fun reported_entity kind loc decl =
       let
-        val pos = Exn_Properties.position_of loc;
-        val def_pos = Exn_Properties.position_of decl;
+        val pos = Exn_Properties.position_of_location loc;
+        val def_pos = Exn_Properties.position_of_location decl;
       in
         (is_reported pos andalso pos <> def_pos) ?
           let
@@ -83,7 +83,7 @@ fun report_parse_tree redirect depth space parse_tree =
       end;
 
     fun reported_completions loc names =
-      let val pos = Exn_Properties.position_of loc in
+      let val pos = Exn_Properties.position_of_location loc in
         if is_reported pos andalso not (null names) then
           let
             val completion = Completion.names pos (map (fn a => (a, ("ML", a))) names);
@@ -190,7 +190,7 @@ fun eval (flags: flags) pos toks =
 
     fun message {message = msg, hard, location = loc, context = _} =
       let
-        val pos = Exn_Properties.position_of loc;
+        val pos = Exn_Properties.position_of_location loc;
         val txt =
           (if hard then "ML error" else "ML warning") ^ Position.here pos ^ ":\n" ^
           Pretty.string_of (Pretty.from_ML (ML_Pretty.from_polyml msg));
@@ -275,7 +275,7 @@ fun eval (flags: flags) pos toks =
               (case exn of
                 STATIC_ERRORS () => ""
               | Runtime.TOPLEVEL_ERROR => ""
-              | _ => "Exception- " ^ Pretty.string_of (Exn_Output.pretty exn) ^ " raised");
+              | _ => "Exception- " ^ Pretty.string_of (Runtime.pretty_exn exn) ^ " raised");
             val _ = output_warnings ();
             val _ = output_writeln ();
           in raise_error exn_msg end;
