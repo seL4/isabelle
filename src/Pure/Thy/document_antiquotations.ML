@@ -154,8 +154,11 @@ val _ = Theory.setup
 
 val _ =
   Theory.setup
-    (Thy_Output.antiquotation @{binding verbatim} (Scan.lift Args.text)
-      (Thy_Output.verbatim_text o #context));
+    (Thy_Output.antiquotation @{binding verbatim} (Scan.lift Args.text_input)
+      (fn {context = ctxt, ...} => fn source =>
+       (Context_Position.report ctxt (Input.pos_of source)
+          (Markup.language_verbatim (Input.is_delimited source));
+        Thy_Output.verbatim_text ctxt (Input.source_content source))));
 
 
 (* ML text *)
