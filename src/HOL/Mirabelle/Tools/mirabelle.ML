@@ -156,7 +156,7 @@ fun can_apply time tac st =
     val {context = ctxt, facts, goal} = Proof.goal st
     val full_tac = HEADGOAL (Method.insert_tac ctxt facts THEN' tac ctxt)
   in
-    (case try (TimeLimit.timeLimit time (Seq.pull o full_tac)) goal of
+    (case try (Timeout.apply time (Seq.pull o full_tac)) goal of
       SOME (SOME _) => true
     | _ => false)
   end

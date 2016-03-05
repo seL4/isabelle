@@ -633,7 +633,7 @@ val remote_pirate = (remote_prefix ^ pirateN, fn () => remote_pirate_config)
 val remote_systems = Synchronized.var "atp_remote_systems" ([] : string list)
 
 fun get_remote_systems () =
-  TimeLimit.timeLimit (seconds 10.0) (fn () =>
+  Timeout.apply (seconds 10.0) (fn () =>
     (case Isabelle_System.bash_output "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
       (output, 0) => split_lines output
     | (output, _) =>
@@ -641,7 +641,7 @@ fun get_remote_systems () =
          (case extract_known_atp_failure known_perl_failures output of
            SOME failure => string_of_atp_failure failure
          | NONE => trim_line output ^ "."); []))) ()
-  handle TimeLimit.TimeOut => []
+  handle Timeout.TIMEOUT _ => []
 
 fun find_remote_system name [] systems =
     find_first (String.isPrefix (name ^ "---")) systems

@@ -207,12 +207,12 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
       in (outcome_code, message) end
   in
     if mode = Auto_Try then
-      let val (outcome_code, message) = TimeLimit.timeLimit timeout go () in
+      let val (outcome_code, message) = Timeout.apply timeout go () in
         (outcome_code, if outcome_code = someN then [message ()] else [])
       end
     else
       let
-        val (outcome_code, message) = TimeLimit.timeLimit hard_timeout go ()
+        val (outcome_code, message) = Timeout.apply hard_timeout go ()
         val outcome =
           if outcome_code = someN orelse mode = Normal then quote name ^ ": " ^ message () else ""
         val _ =
@@ -305,7 +305,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, max_facts, ...}) mode wr
           end
       in
         launch_provers ()
-        handle TimeLimit.TimeOut =>
+        handle Timeout.TIMEOUT _ =>
           (print "Sledgehammer ran out of time."; (unknownN, []))
       end
       |> `(fn (outcome_code, _) => outcome_code = someN))

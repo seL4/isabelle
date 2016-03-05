@@ -137,10 +137,8 @@ fun SOLVE_TIMEOUT seconds name tac st =
   let
     val _ = writeln ("running " ^ name ^ " for " ^ string_of_int seconds ^ " s")
     val result =
-      TimeLimit.timeLimit (Time.fromSeconds seconds) (fn () => SINGLE (SOLVE tac) st) ()
-      handle
-        TimeLimit.TimeOut => NONE
-      | ERROR _ => NONE
+      Timeout.apply (Time.fromSeconds seconds) (fn () => SINGLE (SOLVE tac) st) ()
+        handle Timeout.TIMEOUT _ => NONE | ERROR _ => NONE
   in
     (case result of
       NONE => (writeln ("FAILURE: " ^ name); Seq.empty)

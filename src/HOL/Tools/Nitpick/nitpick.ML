@@ -211,6 +211,7 @@ fun plazy f = Pretty.para (f ())
 fun pick_them_nits_in_term deadline state (params : params) mode i n step
                            subst def_assm_ts nondef_assm_ts orig_t =
   let
+    val time_start = Time.now ()
     val timer = Timer.startRealTimer ()
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -248,10 +249,11 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val print_v = pprint_v o K o plazy
 
     fun check_deadline () =
-      if Time.compare (Time.now (), deadline) <> LESS then
-        raise TimeLimit.TimeOut
-      else
-        ()
+      let val t = Time.now () in
+        if Time.compare (t, deadline) <> LESS
+        then raise Timeout.TIMEOUT (Time.- (t, time_start))
+        else ()
+      end
 
     val (def_assm_ts, nondef_assm_ts) =
       if assms orelse mode <> Normal then (def_assm_ts, nondef_assm_ts)
@@ -376,9 +378,9 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
        (not (is_pure_typedef ctxt T) orelse is_univ_typedef ctxt T)) orelse
       is_number_type ctxt T orelse is_bit_type T
     fun is_type_actually_monotonic T =
-      TimeLimit.timeLimit tac_timeout (formulas_monotonic hol_ctxt binarize T)
+      Timeout.apply tac_timeout (formulas_monotonic hol_ctxt binarize T)
                           (nondef_ts, def_ts)
-      handle TimeLimit.TimeOut => false
+        handle Timeout.TIMEOUT _ => false
     fun is_type_kind_of_monotonic T =
       case triple_lookup (type_match thy) monos T of
         SOME (SOME false) => false
@@ -806,7 +808,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                 end
             end
           | KK.TimedOut unsat_js =>
-            (update_checked_problems problems unsat_js; raise TimeLimit.TimeOut)
+            (update_checked_problems problems unsat_js; raise Timeout.TIMEOUT Time.zeroTime)
           | KK.Error (s, unsat_js) =>
             (update_checked_problems problems unsat_js;
              print_v (K ("Kodkod error: " ^ s ^ "."));
@@ -958,7 +960,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val outcome_code =
       run_batches 0 (length batches) batches
                   (false, max_potential, max_genuine, 0)
-      handle TimeLimit.TimeOut =>
+      handle Timeout.TIMEOUT _ =>
              (print_nt (fn () => excipit "ran out of time after checking");
               if !met_potential > 0 then potentialN else unknownN)
     val _ = print_v (fn () =>
@@ -986,7 +988,7 @@ fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
         val unknown_outcome = (unknownN, [])
         val deadline = Time.+ (Time.now (), timeout)
         val outcome as (outcome_code, _) =
-          TimeLimit.timeLimit (Time.+ (timeout, timeout_bonus))
+          Timeout.apply (Time.+ (timeout, timeout_bonus))
               (pick_them_nits_in_term deadline state params mode i n step subst
                                       def_assm_ts nondef_assm_ts) orig_t
           handle TOO_LARGE (_, details) =>
@@ -999,7 +1001,7 @@ fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
                  (print_t "% SZS status GaveUp";
                   print_nt ("Malformed Kodkodi output: " ^ details ^ ".");
                   unknown_outcome)
-               | TimeLimit.TimeOut =>
+               | Timeout.TIMEOUT _ =>
                  (print_t "% SZS status TimedOut";
                   print_nt "Nitpick ran out of time."; unknown_outcome)
       in

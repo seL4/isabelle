@@ -273,7 +273,7 @@ val specialize_type = ATP_Util.specialize_type
 val eta_expand = ATP_Util.eta_expand
 
 fun DETERM_TIMEOUT delay tac st =
-  Seq.of_list (the_list (TimeLimit.timeLimit delay (fn () => SINGLE tac st) ()))
+  Seq.of_list (the_list (Timeout.apply delay (fn () => SINGLE tac st) ()))
 
 val indent_size = 2
 

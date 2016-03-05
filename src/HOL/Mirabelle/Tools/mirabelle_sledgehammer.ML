@@ -404,7 +404,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
     val time_limit =
       (case hard_timeout of
         NONE => I
-      | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
+      | SOME secs => Timeout.apply (Time.fromSeconds secs))
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], used_from = [],
         preferred_methss = (Sledgehammer_Proof_Methods.Auto_Method, []), run_time = Time.zeroTime,
@@ -434,7 +434,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
           {comment = "", state = st', goal = goal, subgoal = i,
            subgoal_count = Sledgehammer_Util.subgoal_count st, factss = factss}
       in prover params problem end)) ()
-      handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
+      handle Timeout.TIMEOUT _ => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time |> Time.toMilliseconds
     val msg = message (fn () => Sledgehammer.play_one_line_proof minimize preplay_timeout used_facts
@@ -590,7 +590,7 @@ fun run_proof_method trivial full name meth named_thms id
           "succeeded (" ^ string_of_int t ^ ")")
     fun timed_method named_thms =
       (with_time (Mirabelle.cpu_time apply_method named_thms), true)
-      handle TimeLimit.TimeOut => (change_data id inc_proof_method_timeout; ("timeout", false))
+      handle Timeout.TIMEOUT _ => (change_data id inc_proof_method_timeout; ("timeout", false))
            | ERROR msg => ("error: " ^ msg, false)
 
     val _ = log separator
@@ -628,7 +628,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
             if AList.lookup (op =) args check_trivialK |> the_default trivial_default
                             |> Markup.parse_bool then
               Try0.try0 (SOME try_timeout) ([], [], [], []) pre
-              handle TimeLimit.TimeOut => false
+              handle Timeout.TIMEOUT _ => false
             else false
           fun apply_method () =
             (Mirabelle.catch_result (proof_method_tag meth) false

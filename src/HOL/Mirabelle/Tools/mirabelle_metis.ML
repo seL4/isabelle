@@ -27,7 +27,7 @@ fun run id ({pre, post, timeout, log, ...}: Mirabelle.run_args) =
     |> add_info
     |> log
   end
-  handle TimeLimit.TimeOut => log (metis_tag id ^ "timeout")
+  handle Timeout.TIMEOUT _ => log (metis_tag id ^ "timeout")
        | ERROR msg => log (metis_tag id ^ "error: " ^ msg)
 
 fun invoke _ = Mirabelle.register (init, Mirabelle.catch metis_tag run, done)

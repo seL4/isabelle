@@ -1060,7 +1060,7 @@ local
           tactic takes too long*)
         val try_make_step =
           (*FIXME const timeout*)
-          (* TimeLimit.timeLimit (Time.fromSeconds 5) *)
+          (* Timeout.apply (Time.fromSeconds 5) *)
           (fn ctxt' =>
              let
                fun thm ctxt'' = prover_tac ctxt'' prob_name (hd skel |> stock_to_string)

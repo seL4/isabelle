@@ -162,14 +162,14 @@ fun check_formulas tsp =
       Nitpick_Mono.formulas_monotonic hol_ctxt binarize T tsp
     val free_Ts = fold Term.add_tfrees (op @ tsp) [] |> map TFree
     val (mono_free_Ts, nonmono_free_Ts) =
-      TimeLimit.timeLimit mono_timeout
+      Timeout.apply mono_timeout
           (List.partition is_type_actually_monotonic) free_Ts
   in
     if not (null mono_free_Ts) then "MONO"
     else if not (null nonmono_free_Ts) then "NONMONO"
     else "NIX"
   end
-  handle TimeLimit.TimeOut => "TIMEOUT"
+  handle Timeout.TIMEOUT _ => "TIMEOUT"
        | NOT_SUPPORTED _ => "UNSUP"
        | exn => if Exn.is_interrupt exn then Exn.reraise exn else "UNKNOWN"
 
@@ -182,11 +182,11 @@ fun check_theory thy =
         val t = th |> Thm.prop_of |> Type.legacy_freeze |> close_form
         val neg_t = Logic.mk_implies (t, @{prop False})
         val (nondef_ts, def_ts, _, _, _, _) =
-          TimeLimit.timeLimit preproc_timeout (preprocess_formulas hol_ctxt [])
+          Timeout.apply preproc_timeout (preprocess_formulas hol_ctxt [])
                               neg_t
         val res = name ^ ": " ^ check_formulas (nondef_ts, def_ts)
       in File.append path (res ^ "\n"); writeln res end
-      handle TimeLimit.TimeOut => ()
+      handle Timeout.TIMEOUT _ => ()
   in thy |> theorems_of |> List.app check_theorem end
 *}
 

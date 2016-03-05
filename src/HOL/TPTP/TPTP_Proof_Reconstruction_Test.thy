@@ -634,7 +634,7 @@ ML {*
     let
       val timer = Timer.startRealTimer ()
     in
-      TimeLimit.timeLimit (Time.fromSeconds (if timeout = 0 then 60 else timeout))
+      Timeout.apply (Time.fromSeconds (if timeout = 0 then 60 else timeout))
        (test_partial_reconstruction thy
         #> light_output ? erase_inference_fmlas
         #> @{make_string} (* FIXME *)
@@ -662,7 +662,7 @@ ML {*
         |> Path.implode
         |> TPTP_Problem_Name.Nonstandard
     in
-      TimeLimit.timeLimit (Time.fromSeconds (if timeout = 0 then 60 else timeout))
+      Timeout.apply (Time.fromSeconds (if timeout = 0 then 60 else timeout))
        (fn prob_name =>
         (can
           (TPTP_Reconstruct.reconstruct ctxt (fn prob_name =>

@@ -1031,7 +1031,7 @@ fun find_model ctxt
           let
             val msecs_spent = Time.toMilliseconds (Timer.checkRealTimer timer)
             val _ = maxtime = 0 orelse msecs_spent < 1000 * maxtime
-                    orelse raise TimeLimit.TimeOut
+                    orelse raise Timeout.TIMEOUT (Time.fromMilliseconds msecs_spent)
             val init_model = (universe, [])
             val init_args  = {maxvars = maxvars, def_eq = false, next_idx = 1,
               bounds = [], wellformed = True}
@@ -1115,9 +1115,9 @@ fun find_model ctxt
       ^ (if negate then "refutes" else "satisfies") ^ ": "
       ^ Syntax.string_of_term ctxt t);
     if maxtime > 0 then (
-      TimeLimit.timeLimit (Time.fromSeconds maxtime)
+      Timeout.apply (Time.fromSeconds maxtime)
         wrapper ()
-      handle TimeLimit.TimeOut =>
+      handle Timeout.TIMEOUT _ =>
         (writeln ("Search terminated, time limit (" ^
             string_of_int maxtime
             ^ (if maxtime=1 then " second" else " seconds") ^ ") exceeded.");

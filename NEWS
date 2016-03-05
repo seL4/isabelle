@@ -197,6 +197,10 @@ theory and returning to it. Regular definitional packages should use
 balanced blocks of Local_Theory.open_target versus
 Local_Theory.close_target instead. Rare INCOMPATIBILITY.
 
+* Structure TimeLimit (originally from the SML/NJ library) has been
+replaced by structure Timeout, with slightly different signature.
+INCOMPATIBILITY.
+
 
 *** System ***
 

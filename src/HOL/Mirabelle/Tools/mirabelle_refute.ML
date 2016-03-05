@@ -14,7 +14,7 @@ fun refute_action args timeout {pre=st, ...} =
     val thm = #goal (Proof.raw_goal st)
 
     val refute = Refute.refute_goal thy args thm
-    val _ = TimeLimit.timeLimit timeout refute subgoal
+    val _ = Timeout.apply timeout refute subgoal
   in
     val writ_log = Substring.full (the (Symtab.lookup tab "writeln"))
     val warn_log = Substring.full (the (Symtab.lookup tab "warning"))

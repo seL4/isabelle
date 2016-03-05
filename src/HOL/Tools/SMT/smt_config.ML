@@ -196,8 +196,8 @@ fun statistics_msg ctxt = cond_trace (Config.get ctxt statistics)
 (* tools *)
 
 fun with_time_limit ctxt timeout_config f x =
-  TimeLimit.timeLimit (seconds (Config.get ctxt timeout_config)) f x
-  handle TimeLimit.TimeOut => raise SMT_Failure.SMT SMT_Failure.Time_Out
+  Timeout.apply (seconds (Config.get ctxt timeout_config)) f x
+    handle Timeout.TIMEOUT _ => raise SMT_Failure.SMT SMT_Failure.Time_Out
 
 fun with_timeout ctxt = with_time_limit ctxt timeout
 

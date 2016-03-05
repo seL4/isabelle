@@ -35,7 +35,7 @@ subsection "Multiple tests"
 ML {*
   (*default timeout is 1 min*)
   fun interpret timeout file thy =
-    TimeLimit.timeLimit (Time.fromSeconds (if timeout = 0 then 60 else timeout))
+    Timeout.apply (Time.fromSeconds (if timeout = 0 then 60 else timeout))
      (TPTP_Interpret.interpret_file
        false
        [Path.explode "$TPTP"]

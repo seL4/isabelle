@@ -63,11 +63,11 @@ fun run_atp ctxt format problem =
       arguments ctxt false "" atp_timeout (File.shell_path prob_file)
                 (ord, K [], K [])
     val outcome =
-      TimeLimit.timeLimit atp_timeout Isabelle_System.bash_output command
+      Timeout.apply atp_timeout Isabelle_System.bash_output command
       |> fst
       |> extract_tstplike_proof_and_outcome false proof_delims known_failures
       |> snd
-      handle TimeLimit.TimeOut => SOME TimedOut
+      handle Timeout.TIMEOUT _ => SOME TimedOut
     val _ =
       tracing ("Ran ATP: " ^
                (case outcome of

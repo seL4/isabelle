@@ -418,7 +418,7 @@ fun instantiate_if_induct_rule ctxt stmt stmt_xs (ax as (_, th)) =
     let val thy = Proof_Context.theory_of ctxt in
       stmt_xs
       |> filter (fn (_, T) => type_match thy (T, ind_T))
-      |> map_filter (try (TimeLimit.timeLimit instantiate_induct_timeout
+      |> map_filter (try (Timeout.apply instantiate_induct_timeout
         (instantiate_induct_rule ctxt stmt p_name ax)))
     end
   | NONE => [ax])

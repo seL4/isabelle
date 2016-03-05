@@ -296,7 +296,7 @@ fun run_atp mode name
               |> File.write_list prob_path
 
             val ((output, run_time), (atp_proof, outcome)) =
-              TimeLimit.timeLimit generous_slice_timeout Isabelle_System.bash_output command
+              Timeout.apply generous_slice_timeout Isabelle_System.bash_output command
               |>> (if overlord then prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") else I)
               |> fst |> split_time
               |> (fn accum as (output, _) =>
@@ -305,7 +305,7 @@ fun run_atp mode name
                  |>> atp_proof_of_tstplike_proof (perhaps (try (unprefix remote_prefix)) name)
                    atp_problem
                  handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofUnparsable)))
-              handle TimeLimit.TimeOut => (("", slice_timeout), ([], SOME TimedOut))
+              handle Timeout.TIMEOUT _ => (("", slice_timeout), ([], SOME TimedOut))
 
             val outcome =
               (case outcome of

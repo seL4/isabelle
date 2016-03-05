@@ -203,7 +203,7 @@ use "Concurrent/par_exn.ML";
 use "Concurrent/task_queue.ML";
 use "Concurrent/future.ML";
 use "Concurrent/event_timer.ML";
-use "Concurrent/time_limit.ML";
+use "Concurrent/timeout.ML";
 use "Concurrent/lazy.ML";
 use "Concurrent/par_list.ML";
 

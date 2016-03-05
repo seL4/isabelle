@@ -97,8 +97,8 @@ fun preplay_trace ctxt assmsp concl outcome =
 
 fun take_time timeout tac arg =
   let val timing = Timing.start () in
-    (TimeLimit.timeLimit timeout tac arg; Played (#cpu (Timing.result timing)))
-    handle TimeLimit.TimeOut => Play_Timed_Out timeout
+    (Timeout.apply timeout tac arg; Played (#cpu (Timing.result timing)))
+    handle Timeout.TIMEOUT _ => Play_Timed_Out timeout
   end
 
 fun resolve_fact_names ctxt names =

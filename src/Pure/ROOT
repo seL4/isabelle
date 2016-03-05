@@ -19,7 +19,7 @@ session Pure =
     "Concurrent/standard_thread.ML"
     "Concurrent/synchronized.ML"
     "Concurrent/task_queue.ML"
-    "Concurrent/time_limit.ML"
+    "Concurrent/timeout.ML"
     "Concurrent/unsynchronized.ML"
     "General/alist.ML"
     "General/antiquote.ML"

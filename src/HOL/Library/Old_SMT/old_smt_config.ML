@@ -177,8 +177,8 @@ fun trace_msg ctxt = cond_trace (Config.get ctxt trace)
 (* tools *)
 
 fun with_timeout ctxt f x =
-  TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) f x
-  handle TimeLimit.TimeOut => raise Old_SMT_Failure.SMT Old_SMT_Failure.Time_Out
+  Timeout.apply (seconds (Config.get ctxt timeout)) f x
+    handle Timeout.TIMEOUT _ => raise Old_SMT_Failure.SMT Old_SMT_Failure.Time_Out
 
 
 (* certificates *)

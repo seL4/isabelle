@@ -110,7 +110,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
               val auto_time_limit = Options.default_real @{system_option auto_time_limit}
             in
               if auto_time_limit > 0.0 then
-                (case TimeLimit.timeLimit (seconds auto_time_limit) (fn () => tool true state) () of
+                (case Timeout.apply (seconds auto_time_limit) (fn () => tool true state) () of
                   (true, (_, outcome)) => List.app Output.information outcome
                 | _ => ())
               else ()

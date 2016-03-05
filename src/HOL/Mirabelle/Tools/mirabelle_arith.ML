@@ -14,7 +14,7 @@ fun run id ({pre, timeout, log, ...}: Mirabelle.run_args) =
   if Mirabelle.can_apply timeout Arith_Data.arith_tac pre
   then log (arith_tag id ^ "succeeded")
   else ()
-  handle TimeLimit.TimeOut => log (arith_tag id ^ "timeout")
+  handle Timeout.TIMEOUT _ => log (arith_tag id ^ "timeout")
 
 fun invoke _ = Mirabelle.register (init, Mirabelle.catch arith_tag run, done)
 

@@ -110,7 +110,7 @@ type report = entry list
 (** quickcheck **)
 
 fun invoke_quickcheck change_options thy t =
-  TimeLimit.timeLimit (seconds 30.0)
+  Timeout.apply (seconds 30.0)
       (fn _ =>
           let
             val ctxt' = change_options (Proof_Context.init_global thy)
@@ -123,7 +123,7 @@ fun invoke_quickcheck change_options thy t =
               NONE => (NoCex, Quickcheck.timings_of result)
             | SOME _ => (GenuineCex, Quickcheck.timings_of result)
           end) ()
-  handle TimeLimit.TimeOut =>
+  handle Timeout.TIMEOUT _ =>
          (Timeout, [("timelimit", Real.floor (Options.default_real @{system_option auto_time_limit}))])
 
 fun quickcheck_mtd change_options quickcheck_generator =
@@ -314,7 +314,7 @@ fun is_executable_term thy t =
   let
     val ctxt = Proof_Context.init_global thy
   in
-    can (TimeLimit.timeLimit (seconds 30.0)
+    can (Timeout.apply (seconds 30.0)
       (Quickcheck.test_terms
         ((Context.proof_map (Quickcheck.set_active_testers ["exhaustive"]) #>
           Config.put Quickcheck.finite_types true #>
