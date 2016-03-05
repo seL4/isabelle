@@ -105,6 +105,12 @@ definition Ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<exist
 
 subsubsection \<open>Additional concrete syntax\<close>
 
+abbreviation Not_Ex :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<nexists>" 10)
+  where "\<nexists>x. P x \<equiv> \<not> (\<exists>x. P x)"
+
+abbreviation Not_Ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<nexists>!" 10)
+  where "\<nexists>!x. P x \<equiv> \<not> (\<exists>!x. P x)"
+
 abbreviation not_equal :: "['a, 'a] \<Rightarrow> bool"  (infixl "\<noteq>" 50)
   where "x \<noteq> y \<equiv> \<not> (x = y)"
 
