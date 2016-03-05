@@ -46,24 +46,26 @@ fun get exn =
   | SOME loc => props_of_location loc);
 
 fun update entries exn =
-  let
-    val loc =
-      the_default {file = "", startLine = 0, endLine = 0, startPosition = 0, endPosition = 0}
-        (PolyML.exceptionLocation exn);
-    val props = props_of_location loc;
-    val props' = fold Properties.put entries props;
-  in
-    if props = props' then exn
-    else
-      let
-        val loc' =
-          {file = YXML.string_of_body (XML.Encode.properties props'),
-            startLine = #startLine loc, endLine = #endLine loc,
-            startPosition = #startPosition loc, endPosition = #endPosition loc};
-      in
-        uninterruptible (fn _ => fn () => PolyML.raiseWithLocation (exn, loc')) ()
-          handle exn' => exn'
-      end
-  end;
+  if Exn.is_interrupt exn then exn
+  else
+    let
+      val loc =
+        the_default {file = "", startLine = 0, endLine = 0, startPosition = 0, endPosition = 0}
+          (PolyML.exceptionLocation exn);
+      val props = props_of_location loc;
+      val props' = fold Properties.put entries props;
+    in
+      if props = props' then exn
+      else
+        let
+          val loc' =
+            {file = YXML.string_of_body (XML.Encode.properties props'),
+              startLine = #startLine loc, endLine = #endLine loc,
+              startPosition = #startPosition loc, endPosition = #endPosition loc};
+        in
+          uninterruptible (fn _ => fn () =>
+            PolyML.raiseWithLocation (exn, loc') handle exn' => exn') ()
+        end
+    end;
 
 end;
