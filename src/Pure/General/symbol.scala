@@ -54,6 +54,12 @@ object Symbol
   def is_ascii_identifier(s: String): Boolean =
     s.length > 0 && is_ascii_letter(s(0)) && s.forall(is_ascii_letdig)
 
+  def ascii(c: Char): Symbol =
+  {
+    if (c > 127) error("Non-ASCII character: " + quote(c.toString))
+    else char_symbols(c.toInt)
+  }
+
 
   /* symbol matching */
 
