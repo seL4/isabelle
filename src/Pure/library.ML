@@ -693,7 +693,7 @@ fun unenclose str = String.substring (str, 1, size str - 2);
 (*simple quoting (does not escape special chars)*)
 val quote = enclose "\"" "\"";
 
-val cartouche = enclose "\\<open>" "\\<close>";
+val cartouche = enclose "\<open>" "\<close>";
 
 val space_implode = String.concatWith;
 

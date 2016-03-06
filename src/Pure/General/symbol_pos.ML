@@ -201,9 +201,9 @@ fun cartouche_content syms =
         ^ quote (content syms) ^ Position.here (#1 (range syms)));
   in
     (case syms of
-      ("\\<open>", _) :: rest =>
+      ("\<open>", _) :: rest =>
         (case rev rest of
-          ("\\<close>", _) :: rrest => rev rrest
+          ("\<close>", _) :: rrest => rev rrest
         | _ => err ())
     | _ => err ())
   end;
@@ -279,7 +279,7 @@ local
 val letter = Scan.one (symbol #> Symbol.is_letter);
 val letdigs1 = Scan.many1 (symbol #> Symbol.is_letdig);
 
-val sub = Scan.one (symbol #> (fn s => s = "\\<^sub>"));
+val sub = Scan.one (symbol #> (fn s => s = "\<^sub>"));
 
 in
 

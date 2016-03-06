@@ -95,8 +95,8 @@ type symbol = string;
 val STX = chr 2;
 val DEL = chr 127;
 
-val open_ = "\\<open>";
-val close = "\\<close>";
+val open_ = "\<open>";
+val close = "\<close>";
 
 val space = chr 32;
 
@@ -110,14 +110,14 @@ in
         Vector.sub (small_spaces, n mod 64);
 end;
 
-val comment = "\\<comment>";
+val comment = "\<comment>";
 
 fun is_char s = size s = 1;
 
 fun is_utf8 s = size s > 0 andalso forall_string (fn c => ord c >= 128) s;
 
 fun raw_symbolic s =
-  String.isPrefix "\\<" s andalso String.isSuffix ">" s andalso not (String.isPrefix "\\<^" s);
+  String.isPrefix "\<" s andalso String.isSuffix ">" s andalso not (String.isPrefix "\<^" s);
 
 fun is_symbolic s =
   s <> open_ andalso s <> close andalso raw_symbolic s;
@@ -129,7 +129,7 @@ fun is_printable s =
   else is_utf8 s orelse raw_symbolic s;
 
 fun is_control s =
-  String.isPrefix "\\<^" s andalso String.isSuffix ">" s;
+  String.isPrefix "\<^" s andalso String.isSuffix ">" s;
 
 
 (* input source control *)
@@ -140,8 +140,8 @@ fun not_eof s = s <> eof;
 val stopper = Scan.stopper (K eof) is_eof;
 
 fun is_malformed s =
-  String.isPrefix "\\<" s andalso not (String.isSuffix ">" s)
-  orelse s = "\\<>" orelse s = "\\<^>";
+  String.isPrefix "\<" s andalso not (String.isSuffix ">" s)
+  orelse s = "\<>" orelse s = "\<^>";
 
 fun malformed_msg s = "Malformed symbolic character: " ^ quote s;
 
@@ -199,9 +199,9 @@ fun raw_chr c =
 fun encode_raw "" = ""
   | encode_raw str =
       let
-        val raw0 = enclose "\\<^raw:" ">";
+        val raw0 = enclose "\<^raw:" ">";
         val raw1 = raw0 o implode;
-        val raw2 = enclose "\\<^raw" ">" o string_of_int o ord;
+        val raw2 = enclose "\<^raw" ">" o string_of_int o ord;
 
         fun encode cs = enc (take_prefix raw_chr cs)
         and enc ([], []) = []
@@ -231,11 +231,11 @@ fun beginning n cs =
 (* decode_raw *)
 
 fun is_raw s =
-  String.isPrefix "\\<^raw" s andalso String.isSuffix ">" s;
+  String.isPrefix "\<^raw" s andalso String.isSuffix ">" s;
 
 fun decode_raw s =
   if not (is_raw s) then error (malformed_msg s)
-  else if String.isPrefix "\\<^raw:" s then String.substring (s, 7, size s - 8)
+  else if String.isPrefix "\<^raw:" s then String.substring (s, 7, size s - 8)
   else chr (#1 (Library.read_int (raw_explode (String.substring (s, 6, size s - 7)))));
 
 
@@ -260,144 +260,144 @@ fun decode s =
 local
   val letter_symbols =
     Symtab.make_set [
-      "\\<A>",
-      "\\<B>",
-      "\\<C>",
-      "\\<D>",
-      "\\<E>",
-      "\\<F>",
-      "\\<G>",
-      "\\<H>",
-      "\\<I>",
-      "\\<J>",
-      "\\<K>",
-      "\\<L>",
-      "\\<M>",
-      "\\<N>",
-      "\\<O>",
-      "\\<P>",
-      "\\<Q>",
-      "\\<R>",
-      "\\<S>",
-      "\\<T>",
-      "\\<U>",
-      "\\<V>",
-      "\\<W>",
-      "\\<X>",
-      "\\<Y>",
-      "\\<Z>",
-      "\\<a>",
-      "\\<b>",
-      "\\<c>",
-      "\\<d>",
-      "\\<e>",
-      "\\<f>",
-      "\\<g>",
-      "\\<h>",
-      "\\<i>",
-      "\\<j>",
-      "\\<k>",
-      "\\<l>",
-      "\\<m>",
-      "\\<n>",
-      "\\<o>",
-      "\\<p>",
-      "\\<q>",
-      "\\<r>",
-      "\\<s>",
-      "\\<t>",
-      "\\<u>",
-      "\\<v>",
-      "\\<w>",
-      "\\<x>",
-      "\\<y>",
-      "\\<z>",
-      "\\<AA>",
-      "\\<BB>",
-      "\\<CC>",
-      "\\<DD>",
-      "\\<EE>",
-      "\\<FF>",
-      "\\<GG>",
-      "\\<HH>",
-      "\\<II>",
-      "\\<JJ>",
-      "\\<KK>",
-      "\\<LL>",
-      "\\<MM>",
-      "\\<NN>",
-      "\\<OO>",
-      "\\<PP>",
-      "\\<QQ>",
-      "\\<RR>",
-      "\\<SS>",
-      "\\<TT>",
-      "\\<UU>",
-      "\\<VV>",
-      "\\<WW>",
-      "\\<XX>",
-      "\\<YY>",
-      "\\<ZZ>",
-      "\\<aa>",
-      "\\<bb>",
-      "\\<cc>",
-      "\\<dd>",
-      "\\<ee>",
-      "\\<ff>",
-      "\\<gg>",
-      "\\<hh>",
-      "\\<ii>",
-      "\\<jj>",
-      "\\<kk>",
-      "\\<ll>",
-      "\\<mm>",
-      "\\<nn>",
-      "\\<oo>",
-      "\\<pp>",
-      "\\<qq>",
-      "\\<rr>",
-      "\\<ss>",
-      "\\<tt>",
-      "\\<uu>",
-      "\\<vv>",
-      "\\<ww>",
-      "\\<xx>",
-      "\\<yy>",
-      "\\<zz>",
-      "\\<alpha>",
-      "\\<beta>",
-      "\\<gamma>",
-      "\\<delta>",
-      "\\<epsilon>",
-      "\\<zeta>",
-      "\\<eta>",
-      "\\<theta>",
-      "\\<iota>",
-      "\\<kappa>",
-      (*"\\<lambda>", sic!*)
-      "\\<mu>",
-      "\\<nu>",
-      "\\<xi>",
-      "\\<pi>",
-      "\\<rho>",
-      "\\<sigma>",
-      "\\<tau>",
-      "\\<upsilon>",
-      "\\<phi>",
-      "\\<chi>",
-      "\\<psi>",
-      "\\<omega>",
-      "\\<Gamma>",
-      "\\<Delta>",
-      "\\<Theta>",
-      "\\<Lambda>",
-      "\\<Xi>",
-      "\\<Pi>",
-      "\\<Sigma>",
-      "\\<Upsilon>",
-      "\\<Phi>",
-      "\\<Psi>",
-      "\\<Omega>"
+      "\<A>",
+      "\<B>",
+      "\<C>",
+      "\<D>",
+      "\<E>",
+      "\<F>",
+      "\<G>",
+      "\<H>",
+      "\<I>",
+      "\<J>",
+      "\<K>",
+      "\<L>",
+      "\<M>",
+      "\<N>",
+      "\<O>",
+      "\<P>",
+      "\<Q>",
+      "\<R>",
+      "\<S>",
+      "\<T>",
+      "\<U>",
+      "\<V>",
+      "\<W>",
+      "\<X>",
+      "\<Y>",
+      "\<Z>",
+      "\<a>",
+      "\<b>",
+      "\<c>",
+      "\<d>",
+      "\<e>",
+      "\<f>",
+      "\<g>",
+      "\<h>",
+      "\<i>",
+      "\<j>",
+      "\<k>",
+      "\<l>",
+      "\<m>",
+      "\<n>",
+      "\<o>",
+      "\<p>",
+      "\<q>",
+      "\<r>",
+      "\<s>",
+      "\<t>",
+      "\<u>",
+      "\<v>",
+      "\<w>",
+      "\<x>",
+      "\<y>",
+      "\<z>",
+      "\<AA>",
+      "\<BB>",
+      "\<CC>",
+      "\<DD>",
+      "\<EE>",
+      "\<FF>",
+      "\<GG>",
+      "\<HH>",
+      "\<II>",
+      "\<JJ>",
+      "\<KK>",
+      "\<LL>",
+      "\<MM>",
+      "\<NN>",
+      "\<OO>",
+      "\<PP>",
+      "\<QQ>",
+      "\<RR>",
+      "\<SS>",
+      "\<TT>",
+      "\<UU>",
+      "\<VV>",
+      "\<WW>",
+      "\<XX>",
+      "\<YY>",
+      "\<ZZ>",
+      "\<aa>",
+      "\<bb>",
+      "\<cc>",
+      "\<dd>",
+      "\<ee>",
+      "\<ff>",
+      "\<gg>",
+      "\<hh>",
+      "\<ii>",
+      "\<jj>",
+      "\<kk>",
+      "\<ll>",
+      "\<mm>",
+      "\<nn>",
+      "\<oo>",
+      "\<pp>",
+      "\<qq>",
+      "\<rr>",
+      "\<ss>",
+      "\<tt>",
+      "\<uu>",
+      "\<vv>",
+      "\<ww>",
+      "\<xx>",
+      "\<yy>",
+      "\<zz>",
+      "\<alpha>",
+      "\<beta>",
+      "\<gamma>",
+      "\<delta>",
+      "\<epsilon>",
+      "\<zeta>",
+      "\<eta>",
+      "\<theta>",
+      "\<iota>",
+      "\<kappa>",
+      (*"\<lambda>", sic!*)
+      "\<mu>",
+      "\<nu>",
+      "\<xi>",
+      "\<pi>",
+      "\<rho>",
+      "\<sigma>",
+      "\<tau>",
+      "\<upsilon>",
+      "\<phi>",
+      "\<chi>",
+      "\<psi>",
+      "\<omega>",
+      "\<Gamma>",
+      "\<Delta>",
+      "\<Theta>",
+      "\<Lambda>",
+      "\<Xi>",
+      "\<Pi>",
+      "\<Sigma>",
+      "\<Upsilon>",
+      "\<Phi>",
+      "\<Psi>",
+      "\<Omega>"
     ];
 in
 
@@ -421,7 +421,7 @@ fun is_digit s = kind s = Digit;
 fun is_quasi s = kind s = Quasi;
 fun is_blank s = kind s = Blank;
 
-val is_block_ctrl = member (op =) ["\\<^bsub>", "\\<^esub>", "\\<^bsup>", "\\<^esup>"];
+val is_block_ctrl = member (op =) ["\<^bsub>", "\<^esub>", "\<^bsup>", "\<^esup>"];
 
 fun is_quasi_letter s = let val k = kind s in k = Letter orelse k = Quasi end;
 fun is_letdig s = let val k = kind s in k = Letter orelse k = Digit orelse k = Quasi end;
@@ -531,7 +531,7 @@ val trim_blanks = sym_explode #> trim is_blank #> implode;
 
 (* bump string -- treat as base 26 or base 1 numbers *)
 
-fun symbolic_end (_ :: "\\<^sub>" :: _) = true
+fun symbolic_end (_ :: "\<^sub>" :: _) = true
   | symbolic_end ("'" :: ss) = symbolic_end ss
   | symbolic_end (s :: _) = raw_symbolic s
   | symbolic_end [] = false;
@@ -561,8 +561,8 @@ fun bump_string str =
 
 fun sym_len s =
   if not (is_printable s) then (0: int)
-  else if String.isPrefix "\\<long" s then 2
-  else if String.isPrefix "\\<Long" s then 2
+  else if String.isPrefix "\<long" s then 2
+  else if String.isPrefix "\<Long" s then 2
   else 1;
 
 fun sym_length ss = fold (fn s => fn n => sym_len s + n) ss 0;

@@ -179,7 +179,7 @@ fun parsetree_to_ast ctxt trf parsetree =
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_position", [Parser.Tip tok])) = asts_of_position "_constrain" tok
       | asts_of (Parser.Node ("_position_sort", [Parser.Tip tok])) = asts_of_position "_ofsort" tok
-      | asts_of (Parser.Node (a as "\\<^const>Pure.dummy_pattern", [Parser.Tip tok])) =
+      | asts_of (Parser.Node (a as "\<^const>Pure.dummy_pattern", [Parser.Tip tok])) =
           [ast_of_dummy a tok]
       | asts_of (Parser.Node (a as "_idtdummy", [Parser.Tip tok])) =
           [ast_of_dummy a tok]
@@ -797,7 +797,7 @@ end;
 
 (* type propositions *)
 
-fun type_prop_tr' ctxt T [Const ("\\<^const>Pure.sort_constraint", _)] =
+fun type_prop_tr' ctxt T [Const ("\<^const>Pure.sort_constraint", _)] =
       Syntax.const "_sort_constraint" $ term_of_typ (Config.put show_sorts true ctxt) T
   | type_prop_tr' ctxt T [t] =
       Syntax.const "_ofclass" $ term_of_typ ctxt T $ t
@@ -839,7 +839,7 @@ val _ = Theory.setup
     ("_context_xconst", const_ast_tr false)] #>
   Sign.typed_print_translation
    [("_type_prop", type_prop_tr'),
-    ("\\<^const>Pure.type", type_tr'),
+    ("\<^const>Pure.type", type_tr'),
     ("_type_constraint_", type_constraint_tr')]);
 
 

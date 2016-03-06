@@ -140,7 +140,7 @@ val typ_to_nonterm1 = typ_to_nt "logic";
 
 local
 
-val is_meta = member (op =) ["(", ")", "/", "_", "\\<index>"];
+val is_meta = member (op =) ["(", ")", "/", "_", "\<index>"];
 
 val scan_delim_char =
   $$ "'" |-- Scan.one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
@@ -151,7 +151,7 @@ fun read_int ["0", "0"] = ~1
 
 val scan_sym =
   $$ "_" >> K (Argument ("", 0)) ||
-  $$ "\\<index>" >> K index ||
+  $$ "\<index>" >> K index ||
   $$ "(" |-- Scan.many Symbol.is_digit >> (Bg o read_int) ||
   $$ ")" >> K En ||
   $$ "/" -- $$ "/" >> K (Brk ~1) ||
@@ -168,7 +168,7 @@ val read_symbs = map_filter I o the o Scan.read Symbol.stopper scan_symbs;
 
 fun unique_index xsymbs =
   if length (filter is_index xsymbs) <= 1 then xsymbs
-  else error "Duplicate index arguments (\\<index>)";
+  else error "Duplicate index arguments (\<index>)";
 
 in
 

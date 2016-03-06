@@ -304,7 +304,7 @@ val scan_vname =
 
     fun idxname cs ds = (implode (rev cs), nat 0 ds);
     fun chop_idx [] ds = idxname [] ds
-      | chop_idx (cs as (_ :: "\\<^sub>" :: _)) ds = idxname cs ds
+      | chop_idx (cs as (_ :: "\<^sub>" :: _)) ds = idxname cs ds
       | chop_idx (c :: cs) ds =
           if Symbol.is_digit c then chop_idx cs (c :: ds)
           else idxname (c :: cs) ds;
@@ -426,10 +426,10 @@ fun read_float str =
 
 fun marker s = (prefix s, unprefix s);
 
-val (mark_class, unmark_class) = marker "\\<^class>";
-val (mark_type, unmark_type) = marker "\\<^type>";
-val (mark_const, unmark_const) = marker "\\<^const>";
-val (mark_fixed, unmark_fixed) = marker "\\<^fixed>";
+val (mark_class, unmark_class) = marker "\<^class>";
+val (mark_type, unmark_type) = marker "\<^type>";
+val (mark_const, unmark_const) = marker "\<^const>";
+val (mark_fixed, unmark_fixed) = marker "\<^fixed>";
 
 fun unmark {case_class, case_type, case_const, case_fixed, case_default} s =
   (case try unmark_class s of
