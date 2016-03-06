@@ -81,9 +81,8 @@ fun prepare_decl prepare_plugins prepare_constraint prepare_typ
     val wit_goals = map Logic.mk_conjunction_balanced wit_goalss;
     val all_goalss = map single goals @ (if nwits > 0 then wit_goalss else []);
 
-    val (((_, [raw_thms])), (lthy_old, lthy)) = Local_Theory.background_theory_result
-      (Specification.axiomatization [] [((mk_b "axioms" Binding.empty, []), flat all_goalss)]) lthy
-      ||> `Local_Theory.reset;
+    val (((_, [raw_thms])), lthy) = Local_Theory.background_theory_result
+      (Specification.axiomatization [] [((mk_b "axioms" Binding.empty, []), flat all_goalss)]) lthy;
 
     fun mk_wit_thms set_maps =
       Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals)
@@ -92,7 +91,7 @@ fun prepare_decl prepare_plugins prepare_constraint prepare_typ
       |> Conjunction.elim_balanced (length wit_goals)
       |> map2 (Conjunction.elim_balanced o length) wit_goalss
       |> (map o map) (Thm.forall_elim_vars 0);
-    val phi = Proof_Context.export_morphism lthy_old lthy;
+    val phi = Local_Theory.target_morphism lthy;
     val thms = unflat all_goalss (Morphism.fact phi raw_thms);
 
     val (bnf, lthy') = after_qed mk_wit_thms thms lthy

@@ -215,7 +215,6 @@ fun predicator bnf lthy =
     |> snd
     |> Local_Theory.declaration {syntax = false, pervasive = true}
       (fn phi => Transfer.update_pred_data type_name (Transfer.morph_pred_data phi pred_data))
-    |> Local_Theory.reset
   end
 
 (* BNF interpretation *)
@@ -250,8 +249,8 @@ fun lookup_defined_pred_data lthy name =
 fun fp_sugar_transfer_rules (fp_sugar:fp_sugar) =
   let
     val fp_ctr_sugar = #fp_ctr_sugar fp_sugar
-    val transfer_rules = #ctr_transfers fp_ctr_sugar @ #case_transfers fp_ctr_sugar 
-      @ #disc_transfers fp_ctr_sugar @ #sel_transfers fp_ctr_sugar 
+    val transfer_rules = #ctr_transfers fp_ctr_sugar @ #case_transfers fp_ctr_sugar
+      @ #disc_transfers fp_ctr_sugar @ #sel_transfers fp_ctr_sugar
       @ (#co_rec_transfers o #fp_co_induct_sugar) fp_sugar
     val transfer_attr = @{attributes [transfer_rule]}
   in
@@ -262,13 +261,12 @@ fun register_pred_injects fp_sugar lthy =
   let
     val pred_injects = #pred_injects (#fp_bnf_sugar fp_sugar)
     val type_name = type_name_of_bnf (#fp_bnf fp_sugar)
-    val pred_data = lookup_defined_pred_data lthy type_name 
+    val pred_data = lookup_defined_pred_data lthy type_name
       |> Transfer.update_pred_simps pred_injects
   in
-    lthy 
+    lthy
     |> Local_Theory.declaration {syntax = false, pervasive = true}
       (fn phi => Transfer.update_pred_data type_name (Transfer.morph_pred_data phi pred_data))
-    |> Local_Theory.reset
   end
 
 fun transfer_fp_sugars_interpretation fp_sugar lthy =
