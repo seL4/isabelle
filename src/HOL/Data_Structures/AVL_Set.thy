@@ -108,7 +108,7 @@ by(induction t arbitrary: t' rule: del_max.induct)
 
 lemma inorder_del_root:
   "inorder (del_root (Node h l a r)) = inorder l @ inorder r"
-by(induction "Node h l a r" arbitrary: l a r h rule: del_root.induct)
+by(cases "Node h l a r" rule: del_root.cases)
   (auto simp: inorder_balL inorder_balR inorder_del_maxD split: if_splits prod.splits)
 
 theorem inorder_delete:

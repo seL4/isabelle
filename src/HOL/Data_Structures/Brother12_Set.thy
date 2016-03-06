@@ -160,7 +160,7 @@ by(induction h arbitrary: t) (auto simp: elems_simps2 split: if_splits)
 subsubsection "Proofs for insertion"
 
 lemma inorder_n1: "inorder(n1 t) = inorder t"
-by(induction t rule: n1.induct) (auto simp: sorted_lems)
+by(cases t rule: n1.cases) (auto simp: sorted_lems)
 
 context insert
 begin
@@ -190,7 +190,7 @@ lemma inorder_tree: "inorder(tree t) = inorder t"
 by(cases t) auto
 
 lemma inorder_n2: "inorder(n2 l a r) = inorder l @ a # inorder r"
-by(induction l a r rule: n2.induct) (auto)
+by(cases "(l,a,r)" rule: n2.cases) (auto)
 
 lemma inorder_del_min:
   "t \<in> T h \<Longrightarrow> (del_min t = None \<longleftrightarrow> inorder t = []) \<and>

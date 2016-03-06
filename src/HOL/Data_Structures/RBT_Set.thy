@@ -47,11 +47,11 @@ definition delete :: "'a::cmp \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 subsection "Functional Correctness Proofs"
 
 lemma inorder_paint: "inorder(paint c t) = inorder t"
-by(induction t) (auto)
+by(cases t) (auto)
 
 lemma inorder_bal:
   "inorder(bal l a r) = inorder l @ a # inorder r"
-by(induction l a r rule: bal.induct) (auto)
+by(cases "(l,a,r)" rule: bal.cases) (auto)
 
 lemma inorder_ins:
   "sorted(inorder t) \<Longrightarrow> inorder(ins x t) = ins_list x (inorder t)"
@@ -63,11 +63,11 @@ by (simp add: insert_def inorder_ins inorder_paint)
 
 lemma inorder_balL:
   "inorder(balL l a r) = inorder l @ a # inorder r"
-by(induction l a r rule: balL.induct)(auto simp: inorder_bal inorder_paint)
+by(cases "(l,a,r)" rule: balL.cases)(auto simp: inorder_bal inorder_paint)
 
 lemma inorder_balR:
   "inorder(balR l a r) = inorder l @ a # inorder r"
-by(induction l a r rule: balR.induct) (auto simp: inorder_bal inorder_paint)
+by(cases "(l,a,r)" rule: balR.cases) (auto simp: inorder_bal inorder_paint)
 
 lemma inorder_combine:
   "inorder(combine l r) = inorder l @ inorder r"

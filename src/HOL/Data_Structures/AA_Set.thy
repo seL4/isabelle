@@ -120,10 +120,10 @@ lemma lvl_Suc_iff: "lvl t = Suc n \<longleftrightarrow> (\<exists> l a r. t = No
 by(cases t) auto
 
 lemma lvl_skew: "lvl (skew t) = lvl t"
-by(induction t rule: skew.induct) auto
+by(cases t rule: skew.cases) auto
 
 lemma lvl_split: "lvl (split t) = lvl t \<or> lvl (split t) = lvl t + 1 \<and> sngl (split t)"
-by(induction t rule: split.induct) auto
+by(cases t rule: split.cases) auto
 
 lemma invar_2Nodes:"invar (Node lv l x (Node rlv rl rx rr)) =
      (invar l \<and> invar \<langle>rlv, rl, rx, rr\<rangle> \<and> lv = Suc (lvl l) \<and>
@@ -155,7 +155,7 @@ lemma lvl_insert: obtains
 using lvl_insert_aux by blast
 
 lemma lvl_insert_sngl: "invar t \<Longrightarrow> sngl t \<Longrightarrow> lvl(insert x t) = lvl t"
-proof (induction t rule: "insert.induct" )
+proof (induction t rule: insert.induct)
   case (2 x lv t1 a t2)
   consider (LT) "x < a" | (GT) "x > a" | (EQ) "x = a" 
     using less_linear by blast 
@@ -174,10 +174,10 @@ proof (induction t rule: "insert.induct" )
 qed simp
 
 lemma skew_invar: "invar t \<Longrightarrow> skew t = t"
-by(induction t rule: skew.induct) auto
+by(cases t rule: skew.cases) auto
 
 lemma split_invar: "invar t \<Longrightarrow> split t = t"
-by(induction t rule: split.induct) clarsimp+
+by(cases t rule: split.cases) clarsimp+
 
 lemma invar_NodeL:
   "\<lbrakk> invar(Node n l x r); invar l'; lvl l' = lvl l \<rbrakk> \<Longrightarrow> invar(Node n l' x r)"
@@ -468,7 +468,7 @@ by(induction t) (auto simp: ins_list_simps inorder_split inorder_skew)
 subsubsection "Proofs for delete"
 
 lemma inorder_adjust: "t \<noteq> Leaf \<Longrightarrow> pre_adjust t \<Longrightarrow> inorder(adjust t) = inorder t"
-by(induction t)
+by(cases t)
   (auto simp: adjust_def inorder_skew inorder_split invar.simps(2) pre_adjust.simps
      split: tree.splits)
 
