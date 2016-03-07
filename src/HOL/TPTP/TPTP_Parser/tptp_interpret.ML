@@ -756,8 +756,7 @@ fun resolve_include_path path_prefixes path_suffix =
   case find_first (fn prefix => File.exists (Path.append prefix path_suffix))
          path_prefixes of
     SOME prefix => Path.append prefix path_suffix
-  | NONE =>
-    error ("Cannot find include file " ^ quote (Path.implode path_suffix))
+  | NONE => error ("Cannot find include file " ^ Path.print path_suffix)
 
 (* Ideally, to be in sync with TFF1, we should perform full type skolemization here.
    But the problems originating from HOL systems are restricted to top-level
