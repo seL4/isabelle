@@ -78,7 +78,8 @@ object ML_Process
       Word.explode(Isabelle_System.getenv("ML_OPTIONS")) :::
       (eval_heaps ::: eval_exit ::: eval_secure ::: eval_modes ::: eval_options ::: eval_process).
         map(eval => List("--eval", eval)).flatten ::: args
-    val bash_script =
+
+    Bash.process(env = env, script =
       """
         [ -z "$ISABELLE_TMP_PREFIX" ] && ISABELLE_TMP_PREFIX=/tmp/isabelle
 
@@ -95,8 +96,6 @@ object ML_Process
         rmdir "$ISABELLE_TMP"
 
         exit "$RC"
-      """
-
-    Bash.process(bash_script, env = env)
+      """)
   }
 }
