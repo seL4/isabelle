@@ -58,7 +58,7 @@ object Batch_Session
         case _ =>
       }
 
-    prover_session.start("Isabelle", "-q " + quote(parent_session))
+    prover_session.start("Isabelle", List("-q", parent_session))
 
     batch_session
   }

@@ -26,20 +26,21 @@ object Bash
     }
   }
 
-  def process(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
-    new Process(cwd, env, redirect, args:_*)
+  def process(script: String,
+      cwd: JFile = null, env: Map[String, String] = null, redirect: Boolean = false): Process =
+    new Process(script, cwd, env, redirect)
 
   class Process private [Bash](
-      cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*)
+      script: String, cwd: JFile, env: Map[String, String], redirect: Boolean)
     extends Prover.System_Process
   {
+    val script_file = Isabelle_System.tmp_file("bash_script")
+    File.write(script_file, script)
+
     private val proc =
-    {
-      val params =
-        List(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")), "-", "bash")
-      Isabelle_System.process(
-        cwd, Isabelle_System.settings(env), redirect, (params ::: args.toList):_*)
-    }
+      Isabelle_System.process(cwd, Isabelle_System.settings(env), redirect,
+        File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")), "-",
+          "bash", File.standard_path(script_file))
 
 
     // channels
@@ -90,14 +91,20 @@ object Bash
     try { Runtime.getRuntime.addShutdownHook(shutdown_hook) }
     catch { case _: IllegalStateException => }
 
-    private def cleanup() =
-      try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
-      catch { case _: IllegalStateException => }
-
 
     /* join */
 
-    def join: Int = { val rc = proc.waitFor; cleanup(); rc }
+    def join: Int =
+    {
+      val rc = proc.waitFor
+
+      try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
+      catch { case _: IllegalStateException => }
+
+      script_file.delete
+
+      rc
+    }
 
 
     /* result */

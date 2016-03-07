@@ -101,11 +101,34 @@ object File
   }
 
 
-  /* shell path (bash) */
+  /* bash path */
 
-  def shell_quote(s: String): String = "'" + s + "'"
-  def shell_path(path: Path): String = shell_quote(standard_path(path))
-  def shell_path(file: JFile): String = shell_quote(standard_path(file))
+  private def bash_escape(c: Byte): String =
+  {
+    val ch = c.toChar
+    ch match {
+      case '\t' => "$'\\t'"
+      case '\n' => "$'\\n'"
+      case '\f' => "$'\\f'"
+      case '\r' => "$'\\r'"
+      case _ =>
+        if (Symbol.is_ascii_letter(ch) || Symbol.is_ascii_digit(ch) || "-./:_".contains(ch))
+          Symbol.ascii(ch)
+        else if (c < 0) "$'\\x" + Integer.toHexString(256 + c) + "'"
+        else if (c < 16) "$'\\x0" + Integer.toHexString(c) + "'"
+        else if (c < 32) "$'\\x" + Integer.toHexString(c) + "'"
+        else  "\\" + ch
+    }
+  }
+
+  def bash_escape(s: String): String =
+    UTF8.bytes(s).iterator.map(bash_escape(_)).mkString
+
+  def bash_escape(args: List[String]): String =
+    args.iterator.map(bash_escape(_)).mkString(" ")
+
+  def bash_path(path: Path): String = bash_escape(standard_path(path))
+  def bash_path(file: JFile): String = bash_escape(standard_path(file))
 
 
   /* directory entries */

@@ -167,7 +167,7 @@ object Isabelle_System
 
   def mkdirs(path: Path): Unit =
     if (!path.is_dir) {
-      bash("perl -e \"use File::Path make_path; make_path(" + File.shell_path(path) + ");\"")
+      bash("perl -e \"use File::Path make_path; make_path('" + File.standard_path(path) + "');\"")
       if (!path.is_dir) error("Failed to create directory: " + quote(File.platform_path(path)))
     }
 
@@ -308,11 +308,7 @@ object Isabelle_System
     progress_limit: Option[Long] = None,
     strict: Boolean = true): Process_Result =
   {
-    with_tmp_file("isabelle_script") { script_file =>
-      File.write(script_file, script)
-      Bash.process(cwd, env, false, File.standard_path(script_file)).
-        result(progress_stdout, progress_stderr, progress_limit, strict)
-    }
+    Bash.process(script, cwd, env).result(progress_stdout, progress_stderr, progress_limit, strict)
   }
 
 
@@ -342,7 +338,7 @@ object Isabelle_System
     bash("exec \"$PDF_VIEWER\" '" + File.standard_path(arg) + "' >/dev/null 2>/dev/null &")
 
   def hg(cmd_line: String, cwd: Path = Path.current): Process_Result =
-    bash("cd " + File.shell_path(cwd) + " && \"${HG:-hg}\" " + cmd_line)
+    bash("cd " + File.bash_path(cwd) + " && \"${HG:-hg}\" " + cmd_line)
 
 
 

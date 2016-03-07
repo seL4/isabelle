@@ -66,13 +66,18 @@ object ML_Process
     // options
     val isabelle_process_options = Isabelle_System.tmp_file("options")
     File.write(isabelle_process_options, YXML.string_of_body(options.encode))
-    val bash_env = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
+    val env = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
     val eval_options = List("Options.load_default ()")
 
     val eval_process =
       if (process_socket == "") Nil
       else List("Isabelle_Process.init " + ML_Syntax.print_string_raw(process_socket))
 
+    // bash
+    val bash_args =
+      Word.explode(Isabelle_System.getenv("ML_OPTIONS")) :::
+      (eval_heaps ::: eval_exit ::: eval_secure ::: eval_modes ::: eval_options ::: eval_process).
+        map(eval => List("--eval", eval)).flatten ::: args
     val bash_script =
       """
         [ -z "$ISABELLE_TMP_PREFIX" ] && ISABELLE_TMP_PREFIX=/tmp/isabelle
@@ -83,7 +88,7 @@ object ML_Process
         chmod $(umask -S) "$ISABELLE_TMP"
 
         librarypath "$ML_HOME"
-        "$ML_HOME/poly" -q -i $ML_OPTIONS "$@"
+        "$ML_HOME/poly" -q -i """ + File.bash_escape(bash_args) + """
         RC="$?"
 
         rm -f "$ISABELLE_PROCESS_OPTIONS"
@@ -92,11 +97,6 @@ object ML_Process
         exit "$RC"
       """
 
-    val bash_args =
-      List("-c", bash_script, "ml_process") :::
-      (eval_heaps ::: eval_exit ::: eval_secure ::: eval_modes ::: eval_options ::: eval_process).
-        map(eval => List("--eval", eval)).flatten ::: args
-
-    Bash.process(null, bash_env, false, bash_args:_*)
+    Bash.process(bash_script, env = env)
   }
 }
