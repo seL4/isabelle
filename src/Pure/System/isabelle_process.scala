@@ -17,8 +17,8 @@ object Isabelle_Process
     val system_process =
       try {
         val process =
-          Bash.process("\"$ISABELLE_PROCESS\" -P " + File.bash_escape(system_channel.server_name) +
-            " " + File.bash_escape(prover_args))
+          Bash.process("\"$ISABELLE_PROCESS\" -P " + File.bash_string(system_channel.server_name) +
+            " " + File.bash_args(prover_args))
         process.stdin.close
         process
       }

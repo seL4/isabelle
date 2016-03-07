@@ -103,7 +103,7 @@ object File
 
   /* bash path */
 
-  private def bash_escape(c: Byte): String =
+  private def bash_chr(c: Byte): String =
   {
     val ch = c.toChar
     ch match {
@@ -116,19 +116,19 @@ object File
           Symbol.ascii(ch)
         else if (c < 0) "$'\\x" + Integer.toHexString(256 + c) + "'"
         else if (c < 16) "$'\\x0" + Integer.toHexString(c) + "'"
-        else if (c < 32) "$'\\x" + Integer.toHexString(c) + "'"
+        else if (c < 32 || c >= 127) "$'\\x" + Integer.toHexString(c) + "'"
         else  "\\" + ch
     }
   }
 
-  def bash_escape(s: String): String =
-    UTF8.bytes(s).iterator.map(bash_escape(_)).mkString
+  def bash_string(s: String): String =
+    UTF8.bytes(s).iterator.map(bash_chr(_)).mkString
 
-  def bash_escape(args: List[String]): String =
-    args.iterator.map(bash_escape(_)).mkString(" ")
+  def bash_args(args: List[String]): String =
+    args.iterator.map(bash_string(_)).mkString(" ")
 
-  def bash_path(path: Path): String = bash_escape(standard_path(path))
-  def bash_path(file: JFile): String = bash_escape(standard_path(file))
+  def bash_path(path: Path): String = bash_string(standard_path(path))
+  def bash_path(file: JFile): String = bash_string(standard_path(file))
 
 
   /* directory entries */

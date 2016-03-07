@@ -88,7 +88,7 @@ object ML_Process
         chmod $(umask -S) "$ISABELLE_TMP"
 
         librarypath "$ML_HOME"
-        "$ML_HOME/poly" -q -i """ + File.bash_escape(bash_args) + """
+        "$ML_HOME/poly" -q -i """ + File.bash_args(bash_args) + """
         RC="$?"
 
         rm -f "$ISABELLE_PROCESS_OPTIONS"
