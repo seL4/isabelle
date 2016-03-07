@@ -33,4 +33,7 @@ object ML_Syntax
 
   def print_string_raw(str: String): String =
     quote(UTF8.bytes(str).iterator.map(print_chr(_)).mkString)
+
+  def print_list[A](f: A => String)(list: List[A]): String =
+    "[" + commas(list.map(f)) + "]"
 }

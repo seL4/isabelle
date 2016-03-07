@@ -108,6 +108,15 @@ object File
   def shell_path(file: JFile): String = shell_quote(standard_path(file))
 
 
+  /* directory entries */
+
+  def check_dir(path: Path): Path =
+    if (path.is_dir) path else error("No such directory: " + path)
+
+  def check_file(path: Path): Path =
+    if (path.is_file) path else error("No such file: " + path)
+
+
   /* find files */
 
   def find_files(start: JFile, pred: JFile => Boolean = _ => true): List[JFile] =
