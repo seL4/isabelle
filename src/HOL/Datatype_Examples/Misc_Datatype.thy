@@ -57,11 +57,18 @@ datatype (discs_sels) 'a par_lambda =
   ('a, 'b1, 'b2) F2 = unit + 'b1 * 'b2
 *)
 
-datatype (discs_sels) 'a I1 = I11 'a "'a I1" | I12 'a "'a I2"
-and 'a I2 = I21 | I22 "'a I1" "'a I2"
+locale loc =
+  fixes c :: 'a and d :: 'a
+  assumes "c \<noteq> d"
+begin
 
-datatype (discs_sels) 'a tree = TEmpty | TNode 'a "'a forest"
-and 'a forest = FNil | FCons "'a tree" "'a forest"
+datatype (discs_sels) 'b I1 = I11 'b "'b I1" | I12 'b "'b I2"
+and 'b I2 = I21 | I22 "'b I1" "'b I2"
+
+datatype (discs_sels) 'b tree = TEmpty | TNode 'b "'b forest"
+and 'b forest = FNil | FCons "'b tree" "'b forest"
+
+end
 
 datatype (discs_sels) 'a tree' = TEmpty' | TNode' "'a branch" "'a branch"
 and 'a branch = Branch 'a "'a tree'"
@@ -217,12 +224,6 @@ instance par_lambda :: (countable) countable
   by countable_datatype
 *)
 
-instance I1 and I2 :: (countable) countable
-  by countable_datatype
-
-instance tree and forest :: (countable) countable
-  by countable_datatype
-
 instance tree' and branch :: (countable) countable
   by countable_datatype
 
@@ -318,8 +319,6 @@ datatype_compat simple'
 datatype_compat simple''
 datatype_compat mylist
 datatype_compat some_passive
-datatype_compat I1 I2
-datatype_compat tree forest
 datatype_compat tree' branch
 datatype_compat bin_rose_tree
 datatype_compat exp trm factor

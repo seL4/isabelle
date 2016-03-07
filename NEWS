@@ -48,6 +48,7 @@ eliminated altogether.
       rel_prod_apply ~> rel_prod_inject
       pred_prod_apply ~> pred_prod_inject
     INCOMPATIBILITY.
+  - The "size" plugin has been made compatible again with locales.
 
 * Renamed split_if -> if_split and split_if_asm -> if_split_asm to
 resemble the f.split naming convention, INCOMPATIBILITY.

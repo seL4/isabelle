@@ -53,14 +53,17 @@ primrec rename_lam :: "(string \<Rightarrow> string) \<Rightarrow> lambda \<Righ
   "rename_lam f (Abs s l) = Abs (f s) (rename_lam f l)" |
   "rename_lam f (Let SL l) = Let (fimage (map_prod f (rename_lam f)) SL) (rename_lam f l)"
 
-primrec
-  sum_i1 :: "('a::{zero,plus}) I1 \<Rightarrow> 'a" and
-  sum_i2 :: "'a I2 \<Rightarrow> 'a"
+primrec (in loc)
+  sum_i1 :: "('b::{zero,plus}) I1 \<Rightarrow> 'b" and
+  sum_i2 :: "'b I2 \<Rightarrow> 'b"
 where
   "sum_i1 (I11 n i) = n + sum_i1 i" |
   "sum_i1 (I12 n i) = n + sum_i2 i" |
   "sum_i2 I21 = 0" |
   "sum_i2 (I22 i j) = sum_i1 i + sum_i2 j"
+
+context loc
+begin
 
 primrec forest_of_mylist :: "'a tree mylist \<Rightarrow> 'a forest" where
   "forest_of_mylist MyNil = FNil" |
@@ -89,6 +92,8 @@ where
   "mylist_of_tree' TEmpty' = MyNil" |
   "mylist_of_tree' (TNode' b b') = myapp (mylist_of_branch b) (mylist_of_branch b')" |
   "mylist_of_branch (Branch x t) = MyCons x (mylist_of_tree' t)"
+
+end
 
 primrec
   id_tree :: "'a bin_rose_tree \<Rightarrow> 'a bin_rose_tree" and

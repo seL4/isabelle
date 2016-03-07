@@ -77,7 +77,8 @@ val size_of = Symtab.lookup o Data.get o Context.Proof;
 val size_of_global = Symtab.lookup o Data.get o Context.Theory;
 
 fun all_overloaded_size_defs_of ctxt =
-  Symtab.fold (fn (_, (_, (overloaded_size_def, _, _))) => cons overloaded_size_def)
+  Symtab.fold (fn (_, (_, (overloaded_size_def, _, _))) =>
+      can (Logic.dest_equals o Thm.prop_of) overloaded_size_def ? cons overloaded_size_def)
     (Data.get (Context.Proof ctxt)) [];
 
 val size_gen_o_map_simps = @{thms inj_on_id snd_comp_apfst[unfolded apfst_def]};
