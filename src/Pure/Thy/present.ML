@@ -35,7 +35,7 @@ val document_path = Path.basic documentN;
 val doc_indexN = "session";
 val session_graph_path = Path.basic "session_graph.pdf";
 
-fun show_path path = Path.implode (Path.expand (Path.append (File.pwd ()) path));
+fun show_path path = Path.implode (Path.expand (File.full_path Path.current path));
 
 
 
