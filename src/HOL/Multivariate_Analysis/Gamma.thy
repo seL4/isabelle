@@ -1384,6 +1384,8 @@ declare has_field_derivative_rGamma_complex'[THEN DERIV_chain2, derivative_intro
 
 
 lemma complex_differentiable_Polygamma:
+  fixes z::complex
+  shows
   "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Polygamma n complex_differentiable (at z within A)"
   using has_field_derivative_Polygamma[of z n] unfolding complex_differentiable_def by auto
 

@@ -5277,7 +5277,7 @@ proof -
     proof -
       assume "v < 1"
       then show False
-        using v(3)[THEN spec[where x=1]] using x and fs by auto
+        using v(3)[THEN spec[where x=1]] using x fs by (simp add: pth_1 subset_iff)
     next
       assume "v > 1"
       then show False
@@ -5294,8 +5294,7 @@ proof -
       apply (cases "u = 1")
         using assms(3)[THEN bspec[where x=x], THEN spec[where x=u]]
         using \<open>0\<le>u\<close> and x and fs
-        apply auto
-        done
+        by auto
     qed auto
   qed
 
@@ -9866,7 +9865,7 @@ next
     apply (rule le_setdistI, blast)
     using False apply (fastforce intro: le_setdistI)
     apply (simp add: algebra_simps)
-    apply (metis dist_commute dist_triangle_alt order_trans [OF setdist_le_dist])
+    apply (metis dist_commute dist_triangle3 order_trans [OF setdist_le_dist])
     done
   then have "setdist s t - setdist {a} t \<le> setdist s {a}"
     using False by (fastforce intro: le_setdistI)

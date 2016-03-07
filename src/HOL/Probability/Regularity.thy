@@ -249,7 +249,7 @@ proof -
         fix d
         have "?G d = (\<lambda>x. infdist x A) -` {..<d}" by auto
         also have "open \<dots>"
-          by (intro continuous_open_vimage) (auto intro!: continuous_infdist continuous_at_id)
+          by (intro continuous_open_vimage) (auto intro!: continuous_infdist continuous_ident)
         finally have "open (?G d)" .
       } note open_G = this
       from in_closed_iff_infdist_zero[OF \<open>closed A\<close> \<open>A \<noteq> {}\<close>]

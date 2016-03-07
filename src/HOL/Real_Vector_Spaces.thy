@@ -1050,15 +1050,14 @@ proof (rule order_antisym)
     using dist_triangle2 [of y x y] by simp
 qed
 
+lemma dist_commute_lessI: "dist y x < e \<Longrightarrow> dist x y < e"
+  by (simp add: dist_commute)
+
 lemma dist_triangle: "dist x z \<le> dist x y + dist y z"
-using dist_triangle2 [of x z y] by (simp add: dist_commute)
+  using dist_triangle2 [of x z y] by (simp add: dist_commute)
 
 lemma dist_triangle3: "dist x y \<le> dist a x + dist a y"
-using dist_triangle2 [of x y a] by (simp add: dist_commute)
-
-lemma dist_triangle_alt:
-  shows "dist y z <= dist x y + dist x z"
-by (rule dist_triangle3)
+  using dist_triangle2 [of x y a] by (simp add: dist_commute)
 
 lemma dist_pos_lt:
   shows "x \<noteq> y ==> 0 < dist x y"
@@ -1336,6 +1335,11 @@ locale linear = additive f for f :: "'a::real_vector \<Rightarrow> 'b::real_vect
 lemma linear_imp_scaleR:
   assumes "linear D" obtains d where "D = (\<lambda>x. x *\<^sub>R d)"
   by (metis assms linear.scaleR mult.commute mult.left_neutral real_scaleR_def)
+
+corollary real_linearD:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "linear f" obtains c where "f = op* c"
+by (rule linear_imp_scaleR [OF assms]) (force simp: scaleR_conv_of_real)
 
 lemma linearI:
   assumes "\<And>x y. f (x + y) = f x + f y"

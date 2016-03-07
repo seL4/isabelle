@@ -556,6 +556,190 @@ lemma reversepath_joinpaths:
   by (rule ext) (auto simp: mult.commute)
 
 
+subsection\<open>Some reversed and "if and only if" versions of joining theorems\<close>
+
+lemma path_join_path_ends: 
+  fixes g1 :: "real \<Rightarrow> 'a::metric_space"
+  assumes "path(g1 +++ g2)" "path g2" 
+    shows "pathfinish g1 = pathstart g2"
+proof (rule ccontr)
+  def e \<equiv> "dist (g1 1) (g2 0)"
+  assume Neg: "pathfinish g1 \<noteq> pathstart g2"
+  then have "0 < dist (pathfinish g1) (pathstart g2)"
+    by auto
+  then have "e > 0"
+    by (metis e_def pathfinish_def pathstart_def) 
+  then obtain d1 where "d1 > 0" 
+       and d1: "\<And>x'. \<lbrakk>x'\<in>{0..1}; norm x' < d1\<rbrakk> \<Longrightarrow> dist (g2 x') (g2 0) < e/2"
+    using assms(2) unfolding path_def continuous_on_iff
+    apply (drule_tac x=0 in bspec, simp)
+    by (metis half_gt_zero_iff norm_conv_dist)
+  obtain d2 where "d2 > 0" 
+       and d2: "\<And>x'. \<lbrakk>x'\<in>{0..1}; dist x' (1/2) < d2\<rbrakk> 
+                      \<Longrightarrow> dist ((g1 +++ g2) x') (g1 1) < e/2"
+    using assms(1) \<open>e > 0\<close> unfolding path_def continuous_on_iff
+    apply (drule_tac x="1/2" in bspec, simp)
+    apply (drule_tac x="e/2" in spec)
+    apply (force simp: joinpaths_def)
+    done
+  have int01_1: "min (1/2) (min d1 d2) / 2 \<in> {0..1}"
+    using \<open>d1 > 0\<close> \<open>d2 > 0\<close> by (simp add: min_def)
+  have dist1: "norm (min (1 / 2) (min d1 d2) / 2) < d1"
+    using \<open>d1 > 0\<close> \<open>d2 > 0\<close> by (simp add: min_def dist_norm)
+  have int01_2: "1/2 + min (1/2) (min d1 d2) / 4 \<in> {0..1}"
+    using \<open>d1 > 0\<close> \<open>d2 > 0\<close> by (simp add: min_def)
+  have dist2: "dist (1 / 2 + min (1 / 2) (min d1 d2) / 4) (1 / 2) < d2"
+    using \<open>d1 > 0\<close> \<open>d2 > 0\<close> by (simp add: min_def dist_norm)
+  have [simp]: "~ min (1 / 2) (min d1 d2) \<le> 0"
+    using \<open>d1 > 0\<close> \<open>d2 > 0\<close> by (simp add: min_def)
+  have "dist (g2 (min (1 / 2) (min d1 d2) / 2)) (g1 1) < e/2"
+       "dist (g2 (min (1 / 2) (min d1 d2) / 2)) (g2 0) < e/2"
+    using d1 [OF int01_1 dist1] d2 [OF int01_2 dist2] by (simp_all add: joinpaths_def)
+  then have "dist (g1 1) (g2 0) < e/2 + e/2"
+    using dist_triangle_half_r e_def by blast
+  then show False 
+    by (simp add: e_def [symmetric])
+qed
+
+lemma path_join_eq [simp]:  
+  fixes g1 :: "real \<Rightarrow> 'a::metric_space"
+  assumes "path g1" "path g2"
+    shows "path(g1 +++ g2) \<longleftrightarrow> pathfinish g1 = pathstart g2"
+  using assms by (metis path_join_path_ends path_join_imp)
+
+lemma simple_path_joinE: 
+  assumes "simple_path(g1 +++ g2)" and "pathfinish g1 = pathstart g2"
+  obtains "arc g1" "arc g2" 
+          "path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g1, pathstart g2}"
+proof -
+  have *: "\<And>x y. \<lbrakk>0 \<le> x; x \<le> 1; 0 \<le> y; y \<le> 1; (g1 +++ g2) x = (g1 +++ g2) y\<rbrakk> 
+               \<Longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
+    using assms by (simp add: simple_path_def)
+  have "path g1" 
+    using assms path_join simple_path_imp_path by blast
+  moreover have "inj_on g1 {0..1}"
+  proof (clarsimp simp: inj_on_def)
+    fix x y
+    assume "g1 x = g1 y" "0 \<le> x" "x \<le> 1" "0 \<le> y" "y \<le> 1"
+    then show "x = y"
+      using * [of "x/2" "y/2"] by (simp add: joinpaths_def split_ifs)
+  qed
+  ultimately have "arc g1"
+    using assms  by (simp add: arc_def)
+  have [simp]: "g2 0 = g1 1"
+    using assms by (metis pathfinish_def pathstart_def) 
+  have "path g2"
+    using assms path_join simple_path_imp_path by blast
+  moreover have "inj_on g2 {0..1}"
+  proof (clarsimp simp: inj_on_def)
+    fix x y
+    assume "g2 x = g2 y" "0 \<le> x" "x \<le> 1" "0 \<le> y" "y \<le> 1"
+    then show "x = y"
+      using * [of "(x + 1) / 2" "(y + 1) / 2"]
+      by (force simp: joinpaths_def split_ifs divide_simps)
+  qed
+  ultimately have "arc g2"
+    using assms  by (simp add: arc_def)
+  have "g2 y = g1 0 \<or> g2 y = g1 1" 
+       if "g1 x = g2 y" "0 \<le> x" "x \<le> 1" "0 \<le> y" "y \<le> 1" for x y
+      using * [of "x / 2" "(y + 1) / 2"] that
+      by (auto simp: joinpaths_def split_ifs divide_simps)
+  then have "path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g1, pathstart g2}"
+    by (fastforce simp: pathstart_def pathfinish_def path_image_def)
+  with \<open>arc g1\<close> \<open>arc g2\<close> show ?thesis using that by blast
+qed
+
+lemma simple_path_join_loop_eq:
+  assumes "pathfinish g2 = pathstart g1" "pathfinish g1 = pathstart g2" 
+    shows "simple_path(g1 +++ g2) \<longleftrightarrow>
+             arc g1 \<and> arc g2 \<and> path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g1, pathstart g2}"
+by (metis assms simple_path_joinE simple_path_join_loop)
+
+lemma arc_join_eq:
+  assumes "pathfinish g1 = pathstart g2" 
+    shows "arc(g1 +++ g2) \<longleftrightarrow>
+           arc g1 \<and> arc g2 \<and> path_image g1 \<inter> path_image g2 \<subseteq> {pathstart g2}"
+           (is "?lhs = ?rhs")
+proof 
+  assume ?lhs
+  then have "simple_path(g1 +++ g2)" by (rule arc_imp_simple_path)
+  then have *: "\<And>x y. \<lbrakk>0 \<le> x; x \<le> 1; 0 \<le> y; y \<le> 1; (g1 +++ g2) x = (g1 +++ g2) y\<rbrakk> 
+               \<Longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
+    using assms by (simp add: simple_path_def)
+  have False if "g1 0 = g2 u" "0 \<le> u" "u \<le> 1" for u
+    using * [of 0 "(u + 1) / 2"] that assms arc_distinct_ends [OF \<open>?lhs\<close>]
+    by (auto simp: joinpaths_def pathstart_def pathfinish_def split_ifs divide_simps)
+  then have n1: "~ (pathstart g1 \<in> path_image g2)"
+    unfolding pathstart_def path_image_def
+    using atLeastAtMost_iff by blast
+  show ?rhs using \<open>?lhs\<close>
+    apply (rule simple_path_joinE [OF arc_imp_simple_path assms])
+    using n1 by force
+next
+  assume ?rhs then show ?lhs
+    using assms
+    by (fastforce simp: pathfinish_def pathstart_def intro!: arc_join)
+qed
+
+lemma arc_join_eq_alt: 
+        "pathfinish g1 = pathstart g2
+        \<Longrightarrow> (arc(g1 +++ g2) \<longleftrightarrow>
+             arc g1 \<and> arc g2 \<and>
+             path_image g1 \<inter> path_image g2 = {pathstart g2})"
+using pathfinish_in_path_image by (fastforce simp: arc_join_eq)
+
+
+subsection\<open>The joining of paths is associative\<close>
+
+lemma path_assoc:
+    "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart r\<rbrakk>
+     \<Longrightarrow> path(p +++ (q +++ r)) \<longleftrightarrow> path((p +++ q) +++ r)"
+by simp
+
+lemma simple_path_assoc: 
+  assumes "pathfinish p = pathstart q" "pathfinish q = pathstart r" 
+    shows "simple_path (p +++ (q +++ r)) \<longleftrightarrow> simple_path ((p +++ q) +++ r)"
+proof (cases "pathstart p = pathfinish r")
+  case True show ?thesis
+  proof
+    assume "simple_path (p +++ q +++ r)"
+    with assms True show "simple_path ((p +++ q) +++ r)"
+      by (fastforce simp add: simple_path_join_loop_eq arc_join_eq path_image_join 
+                    dest: arc_distinct_ends [of r])
+  next
+    assume 0: "simple_path ((p +++ q) +++ r)"
+    with assms True have q: "pathfinish r \<notin> path_image q"
+      using arc_distinct_ends  
+      by (fastforce simp add: simple_path_join_loop_eq arc_join_eq path_image_join)
+    have "pathstart r \<notin> path_image p"
+      using assms
+      by (metis 0 IntI arc_distinct_ends arc_join_eq_alt empty_iff insert_iff 
+              pathfinish_in_path_image pathfinish_join simple_path_joinE)
+    with assms 0 q True show "simple_path (p +++ q +++ r)"
+      by (auto simp: simple_path_join_loop_eq arc_join_eq path_image_join 
+               dest!: subsetD [OF _ IntI])
+  qed
+next
+  case False
+  { fix x :: 'a
+    assume a: "path_image p \<inter> path_image q \<subseteq> {pathstart q}"
+              "(path_image p \<union> path_image q) \<inter> path_image r \<subseteq> {pathstart r}"
+              "x \<in> path_image p" "x \<in> path_image r"
+    have "pathstart r \<in> path_image q"
+      by (metis assms(2) pathfinish_in_path_image)
+    with a have "x = pathstart q"
+      by blast
+  }
+  with False assms show ?thesis 
+    by (auto simp: simple_path_eq_arc simple_path_join_loop_eq arc_join_eq path_image_join)
+qed
+
+lemma arc_assoc: 
+     "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart r\<rbrakk>
+      \<Longrightarrow> arc(p +++ (q +++ r)) \<longleftrightarrow> arc((p +++ q) +++ r)"
+by (simp add: arc_simple_path simple_path_assoc)
+
+
 section\<open>Choosing a subpath of an existing path\<close>
 
 definition subpath :: "real \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a::real_normed_vector"
@@ -2525,6 +2709,58 @@ lemma bounded_unique_outside:
   apply (rule iffI)
   apply (metis cobounded_unique_unbounded_components connected_outside double_compl outside_bounded_nonempty outside_in_components unbounded_outside)
   by (simp add: connected_outside outside_bounded_nonempty outside_in_components unbounded_outside)
+
+subsection\<open>Condition for an open map's image to contain a ball\<close>
+
+lemma ball_subset_open_map_image:
+  fixes f :: "'a::heine_borel \<Rightarrow> 'b :: {real_normed_vector,heine_borel}"
+  assumes contf: "continuous_on (closure S) f"
+      and oint: "open (f ` interior S)"
+      and le_no: "\<And>z. z \<in> frontier S \<Longrightarrow> r \<le> norm(f z - f a)"
+      and "bounded S" "a \<in> S" "0 < r"
+    shows "ball (f a) r \<subseteq> f ` S"
+proof (cases "f ` S = UNIV")
+  case True then show ?thesis by simp
+next
+  case False
+    obtain w where w: "w \<in> frontier (f ` S)"
+               and dw_le: "\<And>y. y \<in> frontier (f ` S) \<Longrightarrow> norm (f a - w) \<le> norm (f a - y)"
+      apply (rule distance_attains_inf [of "frontier(f ` S)" "f a"])
+      using \<open>a \<in> S\<close> by (auto simp: frontier_eq_empty dist_norm False)
+    then obtain \<xi> where \<xi>: "\<And>n. \<xi> n \<in> f ` S" and tendsw: "\<xi> \<longlonglongrightarrow> w"
+      by (metis Diff_iff frontier_def closure_sequential)
+    then have "\<And>n. \<exists>x \<in> S. \<xi> n = f x" by force
+    then obtain z where zs: "\<And>n. z n \<in> S" and fz: "\<And>n. \<xi> n = f (z n)"
+      by metis
+    then obtain y K where y: "y \<in> closure S" and "subseq K" and Klim: "(z \<circ> K) \<longlonglongrightarrow> y"
+      using \<open>bounded S\<close>
+      apply (simp add: compact_closure [symmetric] compact_def)
+      apply (drule_tac x=z in spec)
+      using closure_subset apply force
+      done
+    then have ftendsw: "((\<lambda>n. f (z n)) \<circ> K) \<longlonglongrightarrow> w"
+      by (metis LIMSEQ_subseq_LIMSEQ fun.map_cong0 fz tendsw)
+    have zKs: "\<And>n. (z o K) n \<in> S" by (simp add: zs)
+    have "f \<circ> z = \<xi>"  "(\<lambda>n. f (z n)) = \<xi>"
+      using fz by auto
+    moreover then have "(\<xi> \<circ> K) \<longlonglongrightarrow> f y"
+      by (metis (no_types) Klim zKs y contf comp_assoc continuous_on_closure_sequentially)
+    ultimately have wy: "w = f y" using fz LIMSEQ_unique ftendsw by auto
+    have rle: "r \<le> norm (f y - f a)"
+      apply (rule le_no)
+      using w wy oint
+      by (force simp: imageI image_mono interiorI interior_subset frontier_def y)
+    have **: "(~(b \<inter> (- S) = {}) \<and> ~(b - (- S) = {}) \<Longrightarrow> (b \<inter> f \<noteq> {}))
+              \<Longrightarrow> (b \<inter> S \<noteq> {}) \<Longrightarrow> b \<inter> f = {} \<Longrightarrow>
+              b \<subseteq> S" for b f and S :: "'b set" 
+      by blast
+    show ?thesis
+      apply (rule **)   (*such a horrible mess*)
+      apply (rule connected_Int_frontier [where t = "f`S", OF connected_ball])
+      using \<open>a \<in> S\<close> \<open>0 < r\<close> 
+      apply (auto simp: disjoint_iff_not_equal  dist_norm)
+      by (metis dw_le norm_minus_commute not_less order_trans rle wy)
+qed
 
 section\<open> Homotopy of maps p,q : X=>Y with property P of all intermediate maps.\<close>
 

@@ -2501,6 +2501,12 @@ corollary integral_mult_right [simp]:
   shows "integral s (\<lambda>x. c * f x) = c * integral s f"
 by (simp add: mult.commute [of c])
 
+corollary integral_divide [simp]:
+  fixes z :: "'a::real_normed_field"
+  shows "integral S (\<lambda>x. f x / z) = integral S (\<lambda>x. f x) / z"
+using integral_mult_left [of S f "inverse z"]
+  by (simp add: divide_inverse_commute)
+
 lemma has_integral_mult_right:
   fixes c :: "'a :: real_normed_algebra"
   shows "(f has_integral y) i \<Longrightarrow> ((\<lambda>x. c * f x) has_integral (c * y)) i"
@@ -2681,6 +2687,12 @@ lemma integrable_on_cmult_iff:
   using integrable_cmul[of "\<lambda>x. c * f x" s "1 / c"] integrable_cmul[of f s c] \<open>c \<noteq> 0\<close>
   by auto
 
+lemma integrable_on_cmult_left:
+  assumes "f integrable_on s"
+  shows "(\<lambda>x. of_real c * f x) integrable_on s"
+    using integrable_cmul[of f s "of_real c"] assms
+    by (simp add: scaleR_conv_of_real)
+
 lemma integrable_neg: "f integrable_on s \<Longrightarrow> (\<lambda>x. -f(x)) integrable_on s"
   unfolding integrable_on_def by(auto intro: has_integral_neg)
 
@@ -2755,6 +2767,45 @@ lemma integral_cong:
   shows "integral s f = integral s g"
   unfolding integral_def
 by (metis (full_types, hide_lams) assms has_integral_cong integrable_eq)
+
+lemma integrable_on_cmult_left_iff [simp]:
+  assumes "c \<noteq> 0"
+  shows "(\<lambda>x. of_real c * f x) integrable_on s \<longleftrightarrow> f integrable_on s"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then have "(\<lambda>x. of_real (1 / c) * (of_real c * f x)) integrable_on s"
+    using integrable_cmul[of "\<lambda>x. of_real c * f x" s "1 / of_real c"]
+    by (simp add: scaleR_conv_of_real)
+  then have "(\<lambda>x. (of_real (1 / c) * of_real c * f x)) integrable_on s"
+    by (simp add: algebra_simps)
+  with \<open>c \<noteq> 0\<close> show ?rhs
+    by (metis (no_types, lifting) integrable_eq mult.left_neutral nonzero_divide_eq_eq of_real_1 of_real_mult)
+qed (blast intro: integrable_on_cmult_left)
+
+lemma integrable_on_cmult_right:
+  fixes f :: "_ \<Rightarrow> 'b :: {comm_ring,real_algebra_1,real_normed_vector}"
+  assumes "f integrable_on s"
+  shows "(\<lambda>x. f x * of_real c) integrable_on s"
+using integrable_on_cmult_left [OF assms] by (simp add: mult.commute)
+
+lemma integrable_on_cmult_right_iff [simp]:
+  fixes f :: "_ \<Rightarrow> 'b :: {comm_ring,real_algebra_1,real_normed_vector}"
+  assumes "c \<noteq> 0"
+  shows "(\<lambda>x. f x * of_real c) integrable_on s \<longleftrightarrow> f integrable_on s"
+using integrable_on_cmult_left_iff [OF assms] by (simp add: mult.commute)
+
+lemma integrable_on_cdivide:
+  fixes f :: "_ \<Rightarrow> 'b :: real_normed_field"
+  assumes "f integrable_on s"
+  shows "(\<lambda>x. f x / of_real c) integrable_on s"
+by (simp add: integrable_on_cmult_right divide_inverse assms of_real_inverse [symmetric] del: of_real_inverse)
+
+lemma integrable_on_cdivide_iff [simp]:
+  fixes f :: "_ \<Rightarrow> 'b :: real_normed_field"
+  assumes "c \<noteq> 0"
+  shows "(\<lambda>x. f x / of_real c) integrable_on s \<longleftrightarrow> f integrable_on s"
+by (simp add: divide_inverse assms of_real_inverse [symmetric] del: of_real_inverse)
 
 lemma has_integral_null [intro]:
   assumes "content(cbox a b) = 0"
@@ -6065,6 +6116,30 @@ proof safe
   qed
 qed
 
+lemma ident_has_integral:
+  fixes a::real
+  assumes "a \<le> b"
+  shows "((\<lambda>x. x) has_integral (b\<^sup>2 - a\<^sup>2) / 2) {a..b}"
+proof -
+  have "((\<lambda>x. x) has_integral inverse 2 * b\<^sup>2 - inverse 2 * a\<^sup>2) {a..b}"
+    apply (rule fundamental_theorem_of_calculus [OF assms], clarify)
+    unfolding power2_eq_square
+    by (rule derivative_eq_intros | simp)+
+  then show ?thesis
+    by (simp add: field_simps)
+qed
+
+lemma integral_ident [simp]:
+  fixes a::real
+  assumes "a \<le> b"
+  shows "integral {a..b} (\<lambda>x. x) = (if a \<le> b then (b\<^sup>2 - a\<^sup>2) / 2 else 0)"
+using ident_has_integral integral_unique by fastforce
+
+lemma ident_integrable_on:
+  fixes a::real
+  shows "(\<lambda>x. x) integrable_on {a..b}"
+by (metis atLeastatMost_empty_iff integrable_on_def has_integral_empty ident_has_integral)
+
 
 subsection \<open>Taylor series expansion\<close>
 
@@ -6737,27 +6812,18 @@ lemma interval_image_affinity_interval:
 lemma content_image_affinity_cbox:
   "content((\<lambda>x::'a::euclidean_space. m *\<^sub>R x + c) ` cbox a b) =
     \<bar>m\<bar> ^ DIM('a) * content (cbox a b)" (is "?l = ?r")
-proof -
-  {
-    presume *: "cbox a b \<noteq> {} \<Longrightarrow> ?thesis"
-    show ?thesis
-      apply cases
-      apply (rule *)
-      apply assumption
-      unfolding not_not
-      using content_empty
-      apply auto
-      done
-  }
-  assume as: "cbox a b \<noteq> {}"
+proof (cases "cbox a b = {}")
+  case True then show ?thesis by simp
+next
+  case False
   show ?thesis
   proof (cases "m \<ge> 0")
     case True
-    with as have "cbox (m *\<^sub>R a + c) (m *\<^sub>R b + c) \<noteq> {}"
+    with \<open>cbox a b \<noteq> {}\<close> have "cbox (m *\<^sub>R a + c) (m *\<^sub>R b + c) \<noteq> {}"
       unfolding box_ne_empty
       apply (intro ballI)
       apply (erule_tac x=i in ballE)
-      apply (auto simp: inner_simps intro!: mult_left_mono)
+      apply (auto simp: inner_simps mult_left_mono)
       done
     moreover from True have *: "\<And>i. (m *\<^sub>R b + c) \<bullet> i - (m *\<^sub>R a + c) \<bullet> i = m *\<^sub>R (b - a) \<bullet> i"
       by (simp add: inner_simps field_simps)
@@ -6766,11 +6832,11 @@ proof -
         setprod.distrib setprod_constant inner_diff_left)
   next
     case False
-    with as have "cbox (m *\<^sub>R b + c) (m *\<^sub>R a + c) \<noteq> {}"
+    with \<open>cbox a b \<noteq> {}\<close> have "cbox (m *\<^sub>R b + c) (m *\<^sub>R a + c) \<noteq> {}"
       unfolding box_ne_empty
       apply (intro ballI)
       apply (erule_tac x=i in ballE)
-      apply (auto simp: inner_simps intro!: mult_left_mono)
+      apply (auto simp: inner_simps mult_left_mono)
       done
     moreover from False have *: "\<And>i. (m *\<^sub>R a + c) \<bullet> i - (m *\<^sub>R b + c) \<bullet> i = (-m) *\<^sub>R (b - a) \<bullet> i"
       by (simp add: inner_simps field_simps)

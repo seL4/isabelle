@@ -277,10 +277,13 @@ lemma Lim_null_comparison_Re:
 
 subsection\<open>Holomorphic functions\<close>
 
-text\<open>Could be generalized to real normed fields, but in practice that would only include the reals\<close>
-definition complex_differentiable :: "[complex \<Rightarrow> complex, complex filter] \<Rightarrow> bool"
+definition complex_differentiable :: "['a \<Rightarrow> 'a::real_normed_field, 'a filter] \<Rightarrow> bool"
            (infixr "(complex'_differentiable)" 50)
   where "f complex_differentiable F \<equiv> \<exists>f'. (f has_field_derivative f') F"
+
+lemma complex_differentiable_derivI:
+    "f complex_differentiable (at x) \<Longrightarrow> (f has_field_derivative deriv f x) (at x)"
+by (simp add: complex_differentiable_def DERIV_deriv_iff_has_field_derivative)
 
 lemma complex_differentiable_imp_continuous_at:
     "f complex_differentiable (at x within s) \<Longrightarrow> continuous (at x within s) f"
@@ -297,24 +300,24 @@ lemma complex_differentiable_at_within:
   unfolding complex_differentiable_def
   by (metis DERIV_subset top_greatest)
 
-lemma complex_differentiable_linear [derivative_intros]: "(op * c) complex_differentiable F"
+lemma complex_differentiable_linear [simp,derivative_intros]: "(op * c) complex_differentiable F"
 proof -
   show ?thesis
     unfolding complex_differentiable_def has_field_derivative_def mult_commute_abs
     by (force intro: has_derivative_mult_right)
 qed
 
-lemma complex_differentiable_const [derivative_intros]: "(\<lambda>z. c) complex_differentiable F"
+lemma complex_differentiable_const [simp,derivative_intros]: "(\<lambda>z. c) complex_differentiable F"
   unfolding complex_differentiable_def has_field_derivative_def
   by (rule exI [where x=0])
      (metis has_derivative_const lambda_zero)
 
-lemma complex_differentiable_ident [derivative_intros]: "(\<lambda>z. z) complex_differentiable F"
+lemma complex_differentiable_ident [simp,derivative_intros]: "(\<lambda>z. z) complex_differentiable F"
   unfolding complex_differentiable_def has_field_derivative_def
   by (rule exI [where x=1])
      (simp add: lambda_one [symmetric])
 
-lemma complex_differentiable_id [derivative_intros]: "id complex_differentiable F"
+lemma complex_differentiable_id [simp,derivative_intros]: "id complex_differentiable F"
   unfolding id_def by (rule complex_differentiable_ident)
 
 lemma complex_differentiable_minus [derivative_intros]:
@@ -327,6 +330,10 @@ lemma complex_differentiable_add [derivative_intros]:
     shows "(\<lambda>z. f z + g z) complex_differentiable F"
   using assms unfolding complex_differentiable_def
   by (metis field_differentiable_add)
+
+lemma complex_differentiable_add_const [simp,derivative_intros]:
+     "op + c complex_differentiable F"
+  by (simp add: complex_differentiable_add)
 
 lemma complex_differentiable_setsum [derivative_intros]:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i) complex_differentiable F) \<Longrightarrow> (\<lambda>z. \<Sum>i\<in>I. f i z) complex_differentiable F"
@@ -503,6 +510,11 @@ lemma DERIV_deriv_iff_complex_differentiable:
   "DERIV f x :> deriv f x \<longleftrightarrow> f complex_differentiable at x"
   unfolding complex_differentiable_def by (metis DERIV_imp_deriv)
 
+lemma holomorphic_derivI:
+     "\<lbrakk>f holomorphic_on S; open S; x \<in> S\<rbrakk>
+      \<Longrightarrow> (f has_field_derivative deriv f x) (at x within T)"
+by (metis DERIV_deriv_iff_complex_differentiable at_within_open  holomorphic_on_def has_field_derivative_at_within)
+
 lemma complex_derivative_chain:
   "f complex_differentiable at x \<Longrightarrow> g complex_differentiable at (f x)
     \<Longrightarrow> deriv (g o f) x = deriv g (f x) * deriv f x"
@@ -567,6 +579,20 @@ apply (simp add: DERIV_deriv_iff_complex_differentiable [symmetric])
 apply (drule DERIV_chain' [of "times c" c z UNIV f "deriv f (c * z)", OF DERIV_cmult_Id])
 apply (simp add: algebra_simps)
 done
+
+lemma nonzero_deriv_nonconstant:
+  assumes df: "DERIV f \<xi> :> df" and S: "open S" "\<xi> \<in> S" and "df \<noteq> 0"
+    shows "\<not> f constant_on S"
+unfolding constant_on_def
+by (metis \<open>df \<noteq> 0\<close> DERIV_transform_within_open [OF df S] DERIV_const DERIV_unique)
+
+lemma holomorphic_nonconstant:
+  assumes holf: "f holomorphic_on S" and "open S" "\<xi> \<in> S" "deriv f \<xi> \<noteq> 0"
+    shows "\<not> f constant_on S"
+    apply (rule nonzero_deriv_nonconstant [of f "deriv f \<xi>" \<xi> S])
+    using assms
+    apply (auto simp: holomorphic_derivI)
+    done
 
 subsection\<open>Analyticity on a set\<close>
 

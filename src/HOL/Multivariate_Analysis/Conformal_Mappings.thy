@@ -1722,4 +1722,412 @@ proof -
     done
 qed
 
+subsection\<open>Bloch's theorem\<close>
+
+lemma Bloch_lemma_0:
+  assumes holf: "f holomorphic_on cball 0 r" and "0 < r"
+      and [simp]: "f 0 = 0"
+      and le: "\<And>z. norm z < r \<Longrightarrow> norm(deriv f z) \<le> 2 * norm(deriv f 0)"
+    shows "ball 0 ((3 - 2 * sqrt 2) * r * norm(deriv f 0)) \<subseteq> f ` ball 0 r"
+proof -
+  have "sqrt 2 < 3/2"
+    by (rule real_less_lsqrt) (auto simp: power2_eq_square)
+  then have sq3: "0 < 3 - 2 * sqrt 2" by simp
+  show ?thesis
+  proof (cases "deriv f 0 = 0")
+    case True then show ?thesis by simp
+  next
+    case False
+    def C \<equiv> "2 * norm(deriv f 0)"
+    have "0 < C" using False by (simp add: C_def)
+    have holf': "f holomorphic_on ball 0 r" using holf
+      using ball_subset_cball holomorphic_on_subset by blast
+    then have holdf': "deriv f holomorphic_on ball 0 r"
+      by (rule holomorphic_deriv [OF _ open_ball])
+    have "Le1": "norm(deriv f z - deriv f 0) \<le> norm z / (r - norm z) * C"
+                if "norm z < r" for z
+    proof -
+      have T1: "norm(deriv f z - deriv f 0) \<le> norm z / (R - norm z) * C"
+              if R: "norm z < R" "R < r" for R
+      proof -
+        have "0 < R" using R
+          by (metis less_trans norm_zero zero_less_norm_iff)
+        have df_le: "\<And>x. norm x < r \<Longrightarrow> norm (deriv f x) \<le> C"
+          using le by (simp add: C_def)
+        have hol_df: "deriv f holomorphic_on cball 0 R"
+          apply (rule holomorphic_on_subset) using R holdf' by auto
+        have *: "((\<lambda>w. deriv f w / (w - z)) has_contour_integral 2 * pi * \<i> * deriv f z) (circlepath 0 R)"
+                 if "norm z < R" for z
+          using \<open>0 < R\<close> that Cauchy_integral_formula_convex_simple [OF convex_cball hol_df, of _ "circlepath 0 R"]
+          by (force simp: winding_number_circlepath)
+        have **: "((\<lambda>x. deriv f x / (x - z) - deriv f x / x) has_contour_integral
+                   of_real (2 * pi) * \<i> * (deriv f z - deriv f 0))
+                  (circlepath 0 R)"
+           using has_contour_integral_diff [OF * [of z] * [of 0]] \<open>0 < R\<close> that
+           by (simp add: algebra_simps)
+        have [simp]: "\<And>x. norm x = R \<Longrightarrow> x \<noteq> z"  using that(1) by blast
+        have "norm (deriv f x / (x - z) - deriv f x / x)
+                     \<le> C * norm z / (R * (R - norm z))"
+                  if "norm x = R" for x
+        proof -
+          have [simp]: "norm (deriv f x * x - deriv f x * (x - z)) =
+                        norm (deriv f x) * norm z"
+            by (simp add: norm_mult right_diff_distrib')
+          show ?thesis
+            using  \<open>0 < R\<close> \<open>0 < C\<close> R that
+            apply (simp add: norm_mult norm_divide divide_simps)
+            using df_le norm_triangle_ineq2 \<open>0 < C\<close> apply (auto intro!: mult_mono)
+            done
+        qed
+        then show ?thesis
+          using has_contour_integral_bound_circlepath
+                  [OF **, of "C * norm z/(R*(R - norm z))"]
+                \<open>0 < R\<close> \<open>0 < C\<close> R
+          apply (simp add: norm_mult norm_divide)
+          apply (simp add: divide_simps mult.commute)
+          done
+      qed
+      obtain r' where r': "norm z < r'" "r' < r"
+        using Rats_dense_in_real [of "norm z" r] \<open>norm z < r\<close> by blast
+      then have [simp]: "closure {r'<..<r} = {r'..r}" by simp
+      show ?thesis
+        apply (rule continuous_ge_on_closure
+                 [where f = "\<lambda>r. norm z / (r - norm z) * C" and s = "{r'<..<r}",
+                  OF _ _ T1])
+        apply (intro continuous_intros)
+        using that r'
+        apply (auto simp: not_le)
+        done
+    qed
+    have "*": "(norm z - norm z^2/(r - norm z)) * norm(deriv f 0) \<le> norm(f z)"
+              if r: "norm z < r" for z
+    proof -
+      have 1: "\<And>x. x \<in> ball 0 r \<Longrightarrow>
+              ((\<lambda>z. f z - deriv f 0 * z) has_field_derivative deriv f x - deriv f 0)
+               (at x within ball 0 r)"
+        by (rule derivative_eq_intros holomorphic_derivI holf' | simp)+
+      have 2: "closed_segment 0 z \<subseteq> ball 0 r"
+        by (metis \<open>0 < r\<close> convex_ball convex_contains_segment dist_self mem_ball mem_ball_0 that)
+      have 3: "(\<lambda>t. (norm z)\<^sup>2 * t / (r - norm z) * C) integrable_on {0..1}"
+        apply (rule integrable_on_cmult_right [where 'b=real, simplified])
+        apply (rule integrable_on_cdivide [where 'b=real, simplified])
+        apply (rule integrable_on_cmult_left [where 'b=real, simplified])
+        apply (rule ident_integrable_on)
+        done
+      have 4: "norm (deriv f (x *\<^sub>R z) - deriv f 0) * norm z \<le> norm z * norm z * x * C / (r - norm z)"
+              if x: "0 \<le> x" "x \<le> 1" for x
+      proof -
+        have [simp]: "x * norm z < r"
+          using r x by (meson le_less_trans mult_le_cancel_right2 norm_not_less_zero)
+        have "norm (deriv f (x *\<^sub>R z) - deriv f 0) \<le> norm (x *\<^sub>R z) / (r - norm (x *\<^sub>R z)) * C"
+          apply (rule Le1) using r x \<open>0 < r\<close> by simp
+        also have "... \<le> norm (x *\<^sub>R z) / (r - norm z) * C"
+          using r x \<open>0 < r\<close>
+          apply (simp add: divide_simps)
+          by (simp add: \<open>0 < C\<close> mult.assoc mult_left_le_one_le ordered_comm_semiring_class.comm_mult_left_mono)
+        finally have "norm (deriv f (x *\<^sub>R z) - deriv f 0) * norm z \<le> norm (x *\<^sub>R z)  / (r - norm z) * C * norm z"
+          by (rule mult_right_mono) simp
+        with x show ?thesis by (simp add: algebra_simps)
+      qed
+      have le_norm: "abc \<le> norm d - e \<Longrightarrow> norm(f - d) \<le> e \<Longrightarrow> abc \<le> norm f" for abc d e and f::complex
+        by (metis add_diff_cancel_left' add_diff_eq diff_left_mono norm_diff_ineq order_trans)
+      have "norm (integral {0..1} (\<lambda>x. (deriv f (x *\<^sub>R z) - deriv f 0) * z))
+            \<le> integral {0..1} (\<lambda>t. (norm z)\<^sup>2 * t / (r - norm z) * C)"
+        apply (rule integral_norm_bound_integral)
+        using contour_integral_primitive [OF 1, of "linepath 0 z"] 2
+        apply (simp add: has_contour_integral_linepath has_integral_integrable_integral)
+        apply (rule 3)
+        apply (simp add: norm_mult power2_eq_square 4)
+        done
+      then have int_le: "norm (f z - deriv f 0 * z) \<le> (norm z)\<^sup>2 * norm(deriv f 0) / ((r - norm z))"
+        using contour_integral_primitive [OF 1, of "linepath 0 z"] 2
+        apply (simp add: has_contour_integral_linepath has_integral_integrable_integral C_def)
+        done
+      show ?thesis
+        apply (rule le_norm [OF _ int_le])
+        using \<open>norm z < r\<close>
+        apply (simp add: power2_eq_square divide_simps C_def norm_mult)
+        proof -
+          have "norm z * (norm (deriv f 0) * (r - norm z - norm z)) \<le> norm z * (norm (deriv f 0) * (r - norm z) - norm (deriv f 0) * norm z)"
+            by (simp add: linordered_field_class.sign_simps(38))
+          then show "(norm z * (r - norm z) - norm z * norm z) * norm (deriv f 0) \<le> norm (deriv f 0) * norm z * (r - norm z) - norm z * norm z * norm (deriv f 0)"
+            by (simp add: linordered_field_class.sign_simps(38) mult.commute mult.left_commute)
+        qed
+    qed
+    have sq201 [simp]: "0 < (1 - sqrt 2 / 2)" "(1 - sqrt 2 / 2)  < 1"
+      by (auto simp:  sqrt2_less_2)
+    have 1: "continuous_on (closure (ball 0 ((1 - sqrt 2 / 2) * r))) f"
+      apply (rule continuous_on_subset [OF holomorphic_on_imp_continuous_on [OF holf]])
+      apply (subst closure_ball)
+      using \<open>0 < r\<close> mult_pos_pos sq201
+      apply (auto simp: cball_subset_cball_iff)
+      done
+    have 2: "open (f ` interior (ball 0 ((1 - sqrt 2 / 2) * r)))"
+      apply (rule open_mapping_thm [OF holf' open_ball connected_ball], force)
+      using \<open>0 < r\<close> mult_pos_pos sq201 apply (simp add: ball_subset_ball_iff)
+      using False \<open>0 < r\<close> centre_in_ball holf' holomorphic_nonconstant by blast
+    have "ball 0 ((3 - 2 * sqrt 2) * r * norm (deriv f 0)) =
+          ball (f 0) ((3 - 2 * sqrt 2) * r * norm (deriv f 0))"
+      by simp
+    also have "...  \<subseteq> f ` ball 0 ((1 - sqrt 2 / 2) * r)"
+    proof -
+      have 3: "(3 - 2 * sqrt 2) * r * norm (deriv f 0) \<le> norm (f z)"
+           if "norm z = (1 - sqrt 2 / 2) * r" for z
+        apply (rule order_trans [OF _ *])
+        using  \<open>0 < r\<close>
+        apply (simp_all add: field_simps  power2_eq_square that)
+        apply (simp add: mult.assoc [symmetric])
+        done
+      show ?thesis
+        apply (rule ball_subset_open_map_image [OF 1 2 _ bounded_ball])
+        using \<open>0 < r\<close> sq201 3 apply simp_all
+        using C_def \<open>0 < C\<close> sq3 apply force
+        done
+     qed
+    also have "...  \<subseteq> f ` ball 0 r"
+      apply (rule image_subsetI [OF imageI], simp)
+      apply (erule less_le_trans)
+      using \<open>0 < r\<close> apply (auto simp: field_simps)
+      done
+    finally show ?thesis .
+  qed
+qed
+
+lemma Bloch_lemma: 
+  assumes holf: "f holomorphic_on cball a r" and "0 < r"
+      and le: "\<And>z. z \<in> ball a r \<Longrightarrow> norm(deriv f z) \<le> 2 * norm(deriv f a)"
+    shows "ball (f a) ((3 - 2 * sqrt 2) * r * norm(deriv f a)) \<subseteq> f ` ball a r"
+proof -
+  have fz: "(\<lambda>z. f (a + z)) = f o (\<lambda>z. (a + z))"
+    by (simp add: o_def)
+  have hol0: "(\<lambda>z. f (a + z)) holomorphic_on cball 0 r"
+    unfolding fz by (intro holomorphic_intros holf holomorphic_on_compose | simp)+
+  then have [simp]: "\<And>x. norm x < r \<Longrightarrow> (\<lambda>z. f (a + z)) complex_differentiable at x"
+    by (metis Topology_Euclidean_Space.open_ball at_within_open ball_subset_cball diff_0 dist_norm holomorphic_on_def holomorphic_on_subset mem_ball norm_minus_cancel)
+  have [simp]: "\<And>z. norm z < r \<Longrightarrow> f complex_differentiable at (a + z)"
+    by (metis holf open_ball add_diff_cancel_left' dist_complex_def holomorphic_on_imp_differentiable_at holomorphic_on_subset interior_cball interior_subset mem_ball norm_minus_commute)
+  then have [simp]: "f complex_differentiable at a"
+    by (metis add.comm_neutral \<open>0 < r\<close> norm_eq_zero)
+  have hol1: "(\<lambda>z. f (a + z) - f a) holomorphic_on cball 0 r"
+    by (intro holomorphic_intros hol0)
+  then have "ball 0 ((3 - 2 * sqrt 2) * r * norm (deriv (\<lambda>z. f (a + z) - f a) 0))
+             \<subseteq> (\<lambda>z. f (a + z) - f a) ` ball 0 r"
+    apply (rule Bloch_lemma_0)
+    apply (simp_all add: \<open>0 < r\<close>)
+    apply (simp add: fz complex_derivative_chain)
+    apply (simp add: dist_norm le)
+    done
+  then show ?thesis
+    apply clarify
+    apply (drule_tac c="x - f a" in subsetD)
+     apply (force simp: fz \<open>0 < r\<close> dist_norm complex_derivative_chain complex_differentiable_compose)+
+    done
+qed
+
+proposition Bloch_unit: 
+  assumes holf: "f holomorphic_on ball a 1" and [simp]: "deriv f a = 1"
+  obtains b r where "1/12 < r" "ball b r \<subseteq> f ` (ball a 1)"
+proof -
+  def r \<equiv> "249/256::real"
+  have "0 < r" "r < 1" by (auto simp: r_def)
+  def g \<equiv> "\<lambda>z. deriv f z * of_real(r - norm(z - a))"
+  have "deriv f holomorphic_on ball a 1"
+    by (rule holomorphic_deriv [OF holf open_ball])
+  then have "continuous_on (ball a 1) (deriv f)"
+    using holomorphic_on_imp_continuous_on by blast
+  then have "continuous_on (cball a r) (deriv f)"
+    by (rule continuous_on_subset) (simp add: cball_subset_ball_iff \<open>r < 1\<close>)
+  then have "continuous_on (cball a r) g"
+    by (simp add: g_def continuous_intros)
+  then have 1: "compact (g ` cball a r)"
+    by (rule compact_continuous_image [OF _ compact_cball])
+  have 2: "g ` cball a r \<noteq> {}"
+    using \<open>r > 0\<close> by auto
+  obtain p where pr: "p \<in> cball a r" 
+             and pge: "\<And>y. y \<in> cball a r \<Longrightarrow> norm (g y) \<le> norm (g p)"
+    using distance_attains_sup [OF 1 2, of 0] by force
+  def t \<equiv> "(r - norm(p - a)) / 2"
+  have "norm (p - a) \<noteq> r"
+    using pge [of a] \<open>r > 0\<close> by (auto simp: g_def norm_mult)
+  then have "norm (p - a) < r" using pr 
+    by (simp add: norm_minus_commute dist_norm)
+  then have "0 < t" 
+    by (simp add: t_def)
+  have cpt: "cball p t \<subseteq> ball a r"
+    using \<open>0 < t\<close> by (simp add: cball_subset_ball_iff dist_norm t_def field_simps)
+  have gen_le_dfp: "norm (deriv f y) * (r - norm (y - a)) / (r - norm (p - a)) \<le> norm (deriv f p)" 
+            if "y \<in> cball a r" for y
+  proof -
+    have [simp]: "norm (y - a) \<le> r"
+      using that by (simp add: dist_norm norm_minus_commute) 
+    have "norm (g y) \<le> norm (g p)"
+      using pge [OF that] by simp
+    then have "norm (deriv f y) * abs (r - norm (y - a)) \<le> norm (deriv f p) * abs (r - norm (p - a))"
+      by (simp only: dist_norm g_def norm_mult norm_of_real)
+    with that \<open>norm (p - a) < r\<close> show ?thesis
+      by (simp add: dist_norm divide_simps)
+  qed
+  have le_norm_dfp: "r / (r - norm (p - a)) \<le> norm (deriv f p)"
+    using gen_le_dfp [of a] \<open>r > 0\<close> by auto
+  have 1: "f holomorphic_on cball p t"
+    apply (rule holomorphic_on_subset [OF holf])
+    using cpt \<open>r < 1\<close> order_subst1 subset_ball by auto
+  have 2: "norm (deriv f z) \<le> 2 * norm (deriv f p)" if "z \<in> ball p t" for z
+  proof -
+    have z: "z \<in> cball a r"
+      by (meson ball_subset_cball subsetD cpt that)
+    then have "norm(z - a) < r"
+      by (metis ball_subset_cball contra_subsetD cpt dist_norm mem_ball norm_minus_commute that)
+    have "norm (deriv f z) * (r - norm (z - a)) / (r - norm (p - a)) \<le> norm (deriv f p)" 
+      using gen_le_dfp [OF z] by simp
+    with \<open>norm (z - a) < r\<close> \<open>norm (p - a) < r\<close> 
+    have "norm (deriv f z) \<le> (r - norm (p - a)) / (r - norm (z - a)) * norm (deriv f p)"
+       by (simp add: field_simps)
+    also have "... \<le> 2 * norm (deriv f p)"
+      apply (rule mult_right_mono)
+      using that \<open>norm (p - a) < r\<close> \<open>norm(z - a) < r\<close> 
+      apply (simp_all add: field_simps t_def dist_norm [symmetric])
+      using dist_triangle3 [of z a p] by linarith
+    finally show ?thesis .
+  qed
+  have sqrt2: "sqrt 2 < 2113/1494"
+    by (rule real_less_lsqrt) (auto simp: power2_eq_square)
+  then have sq3: "0 < 3 - 2 * sqrt 2" by simp
+  have "1 / 12 / ((3 - 2 * sqrt 2) / 2) < r"
+    using sq3 sqrt2 by (auto simp: field_simps r_def) 
+  also have "... \<le> cmod (deriv f p) * (r - cmod (p - a))"
+    using \<open>norm (p - a) < r\<close> le_norm_dfp   by (simp add: pos_divide_le_eq)    
+  finally have "1 / 12 < cmod (deriv f p) * (r - cmod (p - a)) * ((3 - 2 * sqrt 2) / 2)"  
+    using pos_divide_less_eq half_gt_zero_iff sq3 by blast
+  then have **: "1 / 12 < (3 - 2 * sqrt 2) * t * norm (deriv f p)"
+    using sq3 by (simp add: mult.commute t_def)
+  have "ball (f p) ((3 - 2 * sqrt 2) * t * norm (deriv f p)) \<subseteq> f ` ball p t"
+    by (rule Bloch_lemma [OF 1 \<open>0 < t\<close> 2])
+  also have "... \<subseteq> f ` ball a 1"
+    apply (rule image_mono)
+    apply (rule order_trans [OF ball_subset_cball])
+    apply (rule order_trans [OF cpt])
+    using \<open>0 < t\<close> \<open>r < 1\<close> apply (simp add: ball_subset_ball_iff dist_norm)
+    done
+  finally have "ball (f p) ((3 - 2 * sqrt 2) * t * norm (deriv f p)) \<subseteq> f ` ball a 1" .
+  with ** show ?thesis
+    by (rule that)
+qed
+
+
+theorem Bloch:
+  assumes holf: "f holomorphic_on ball a r" and "0 < r" 
+      and r': "r' \<le> r * norm (deriv f a) / 12"
+  obtains b where "ball b r' \<subseteq> f ` (ball a r)"
+proof (cases "deriv f a = 0")
+  case True with r' show ?thesis
+    using ball_eq_empty that by fastforce
+next
+  case False
+    def C \<equiv> "deriv f a"
+    have "0 < norm C" using False by (simp add: C_def)
+    have dfa: "f complex_differentiable at a"
+      apply (rule holomorphic_on_imp_differentiable_at [OF holf])
+      using \<open>0 < r\<close> by auto
+    have fo: "(\<lambda>z. f (a + of_real r * z)) = f o (\<lambda>z. (a + of_real r * z))"
+      by (simp add: o_def)
+    have holf': "f holomorphic_on (\<lambda>z. a + complex_of_real r * z) ` ball 0 1"
+      apply (rule holomorphic_on_subset [OF holf])
+      using \<open>0 < r\<close> apply (force simp: dist_norm norm_mult)
+      done
+    have 1: "(\<lambda>z. f (a + r * z) / (C * r)) holomorphic_on ball 0 1"
+      apply (rule holomorphic_intros holomorphic_on_compose holf' | simp add: fo)+
+      using \<open>0 < r\<close> by (simp add: C_def False)
+    have "((\<lambda>z. f (a + of_real r * z) / (C * of_real r)) has_field_derivative
+          (deriv f (a + of_real r * z) / C)) (at z)" 
+         if "norm z < 1" for z
+    proof -
+    have *: "((\<lambda>x. f (a + of_real r * x)) has_field_derivative
+             (deriv f (a + of_real r * z) * of_real r)) (at z)"
+        apply (simp add: fo)
+        apply (rule DERIV_chain [OF complex_differentiable_derivI])
+        apply (rule holomorphic_on_imp_differentiable_at [OF holf], simp)
+        using \<open>0 < r\<close> apply (simp add: dist_norm norm_mult that)
+        apply (rule derivative_eq_intros | simp)+
+        done
+      show ?thesis
+        apply (rule derivative_eq_intros * | simp)+
+        using \<open>0 < r\<close> by (auto simp: C_def False)
+    qed
+    have 2: "deriv (\<lambda>z. f (a + of_real r * z) / (C * of_real r)) 0 = 1"
+      apply (subst complex_derivative_cdivide_right)
+      apply (simp add: complex_differentiable_def fo)
+      apply (rule exI)
+      apply (rule DERIV_chain [OF complex_differentiable_derivI])
+      apply (simp add: dfa)
+      apply (rule derivative_eq_intros | simp add: C_def False fo)+
+      using \<open>0 < r\<close> 
+      apply (simp add: C_def False fo)
+      apply (simp add: derivative_intros dfa complex_derivative_chain)
+      done
+    have sb1: "op * (C * r) ` (\<lambda>z. f (a + of_real r * z) / (C * r)) ` ball 0 1 
+               \<subseteq> f ` ball a r"
+      using \<open>0 < r\<close> by (auto simp: dist_norm norm_mult C_def False)
+    have sb2: "ball (C * r * b) r' \<subseteq> op * (C * r) ` ball b t" 
+               if "1 / 12 < t" for b t
+    proof -
+      have *: "r * cmod (deriv f a) / 12 \<le> r * (t * cmod (deriv f a))"
+        using that \<open>0 < r\<close> less_eq_real_def mult.commute mult.right_neutral mult_left_mono norm_ge_zero times_divide_eq_right 
+        by auto
+      show ?thesis
+        apply clarify
+        apply (rule_tac x="x / (C * r)" in image_eqI)
+        using \<open>0 < r\<close>  
+        apply (simp_all add: dist_norm norm_mult norm_divide C_def False field_simps)
+        apply (erule less_le_trans)
+        apply (rule order_trans [OF r' *])
+        done
+    qed
+    show ?thesis
+      apply (rule Bloch_unit [OF 1 2])
+      apply (rename_tac t)
+      apply (rule_tac b="(C * of_real r) * b" in that)
+      apply (drule image_mono [where f = "\<lambda>z. (C * of_real r) * z"])
+      using sb1 sb2
+      apply force
+      done
+qed
+
+corollary Bloch_general:
+  assumes holf: "f holomorphic_on s" and "a \<in> s" 
+      and tle: "\<And>z. z \<in> frontier s \<Longrightarrow> t \<le> dist a z"
+      and rle: "r \<le> t * norm(deriv f a) / 12"
+  obtains b where "ball b r \<subseteq> f ` s"
+proof -
+  consider "r \<le> 0" | "0 < t * norm(deriv f a) / 12" using rle by force
+  then show ?thesis
+  proof cases
+    case 1 then show ?thesis
+      by (simp add: Topology_Euclidean_Space.ball_empty that)
+  next
+    case 2
+    show ?thesis
+    proof (cases "deriv f a = 0")
+      case True then show ?thesis
+        using rle by (simp add: Topology_Euclidean_Space.ball_empty that)
+    next
+      case False
+      then have "t > 0"
+        using 2 by (force simp: zero_less_mult_iff)
+      have "~ ball a t \<subseteq> s \<Longrightarrow> ball a t \<inter> frontier s \<noteq> {}"
+        apply (rule connected_Int_frontier [of "ball a t" s], simp_all)
+        using \<open>0 < t\<close> \<open>a \<in> s\<close> centre_in_ball apply blast
+        done
+      with tle have *: "ball a t \<subseteq> s" by fastforce
+      then have 1: "f holomorphic_on ball a t"
+        using holf using holomorphic_on_subset by blast
+      show ?thesis
+        apply (rule Bloch [OF 1 \<open>t > 0\<close> rle])
+        apply (rule_tac b=b in that)
+        using * apply force
+        done
+    qed
+  qed
+qed
+
 end

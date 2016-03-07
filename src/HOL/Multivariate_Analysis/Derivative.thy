@@ -194,6 +194,9 @@ lemma differentiableI: "(f has_derivative f') net \<Longrightarrow> f differenti
   unfolding differentiable_def
   by auto
 
+lemma differentiable_onD: "\<lbrakk>f differentiable_on S; x \<in> S\<rbrakk> \<Longrightarrow> f differentiable (at x within S)"
+  using differentiable_on_def by blast
+
 lemma differentiable_at_withinI: "f differentiable (at x) \<Longrightarrow> f differentiable (at x within s)"
   unfolding differentiable_def
   using has_derivative_at_within

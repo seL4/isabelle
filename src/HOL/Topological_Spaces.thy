@@ -399,7 +399,7 @@ subsubsection \<open>Topological filters\<close>
 definition (in topological_space) nhds :: "'a \<Rightarrow> 'a filter"
   where "nhds a = (INF S:{S. open S \<and> a \<in> S}. principal S)"
 
-definition (in topological_space) at_within :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a filter" ("at (_) within (_)" [1000, 60] 60)
+definition (in topological_space) at_within :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a filter" ("at (_)/ within (_)" [1000, 60] 60)
   where "at a within s = inf (nhds a) (principal (s - {a}))"
 
 abbreviation (in topological_space) at :: "'a \<Rightarrow> 'a filter" ("at") where

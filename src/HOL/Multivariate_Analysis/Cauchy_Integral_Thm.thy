@@ -2678,6 +2678,7 @@ qed
 (** Existence of a primitive.*)
 
 lemma holomorphic_starlike_primitive:
+  fixes f :: "complex \<Rightarrow> complex"
   assumes contf: "continuous_on s f"
       and s: "starlike s" and os: "open s"
       and k: "finite k"
@@ -2796,6 +2797,8 @@ lemma contour_integral_convex_primitive:
   done
 
 lemma holomorphic_convex_primitive:
+  fixes f :: "complex \<Rightarrow> complex"
+  shows
   "\<lbrakk>convex s; finite k; continuous_on s f;
     \<And>x. x \<in> interior s - k \<Longrightarrow> f complex_differentiable at x\<rbrakk>
    \<Longrightarrow> \<exists>g. \<forall>x \<in> s. (g has_field_derivative f x) (at x within s)"

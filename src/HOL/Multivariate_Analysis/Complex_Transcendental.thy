@@ -1633,13 +1633,15 @@ lemma has_field_derivative_powr_right:
   done
 
 lemma complex_differentiable_powr_right:
+  fixes w::complex
+  shows
     "w \<noteq> 0 \<Longrightarrow> (\<lambda>z. w powr z) complex_differentiable (at z)"
 using complex_differentiable_def has_field_derivative_powr_right by blast
 
 lemma holomorphic_on_powr_right:
     "f holomorphic_on s \<Longrightarrow> w \<noteq> 0 \<Longrightarrow> (\<lambda>z. w powr (f z)) holomorphic_on s"
-    unfolding holomorphic_on_def
-    using DERIV_chain' complex_differentiable_def has_field_derivative_powr_right by fastforce
+    unfolding holomorphic_on_def complex_differentiable_def
+by (metis (full_types) DERIV_chain' has_field_derivative_powr_right) 
 
 lemma norm_powr_real_powr:
   "w \<in> \<real> \<Longrightarrow> 0 < Re w \<Longrightarrow> norm(w powr z) = Re w powr Re z"
