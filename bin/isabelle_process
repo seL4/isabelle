@@ -199,7 +199,7 @@ chmod $(umask -S) "$ISABELLE_TMP"
 
 if [ -n "$MODES" ]; then
   FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="--eval"
-  FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="Unsynchronized.change print_mode (append [$MODES])"
+  FIRST_ML_OPTIONS["${#FIRST_ML_OPTIONS[@]}"]="Print_Mode.add_modes [$MODES]"
 fi
 
 if [ -n "$SECURE" ]; then
