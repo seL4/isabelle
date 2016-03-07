@@ -50,9 +50,8 @@ object ML_Process
             "fun exit 0 = OS.Process.exit OS.Process.success" +
             " | exit 1 = OS.Process.exit OS.Process.failure" +
             " | exit rc = OS.Process.exit (RunCall.unsafeCast (Word8.fromInt rc))"
-          else
-            "fun exit rc = Posix.Process.exit (Word8.fromInt rc)"
-        )
+          else "fun exit rc = Posix.Process.exit (Word8.fromInt rc)",
+          "PolyML.print_depth 10")
       }
       else Nil
 
@@ -67,7 +66,7 @@ object ML_Process
     val isabelle_process_options = Isabelle_System.tmp_file("options")
     File.write(isabelle_process_options, YXML.string_of_body(options.encode))
     val env = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
-    val eval_options = List("Options.load_default ()")
+    val eval_options = if (load_heaps.isEmpty) Nil else List("Options.load_default ()")
 
     val eval_process =
       if (process_socket == "") Nil
