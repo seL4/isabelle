@@ -51,7 +51,7 @@ fun isabelle_tool name args =
         then SOME path
         else NONE
       end handle OS.SysErr _ => NONE) of
-    SOME path => bash (File.shell_path path ^ " " ^ args)
+    SOME path => bash (File.bash_path path ^ " " ^ args)
   | NONE => (warning ("Unknown Isabelle tool: " ^ name); 2));
 
 fun system_command cmd =
@@ -64,7 +64,7 @@ fun system_command cmd =
 fun mkdirs path =
   if File.is_dir path then ()
   else
-   (bash ("perl -e \"use File::Path make_path; make_path(" ^ File.shell_path path ^ ");\"");
+   (bash ("perl -e \"use File::Path make_path; make_path('" ^ File.standard_path path ^ "');\"");
     if File.is_dir path then () else error ("Failed to create directory: " ^ Path.print path));
 
 fun mkdir path =
@@ -72,7 +72,7 @@ fun mkdir path =
 
 fun copy_dir src dst =
   if File.eq (src, dst) then ()
-  else (system_command ("cp -p -R -f " ^ File.shell_path src ^ "/. " ^ File.shell_path dst); ());
+  else (system_command ("cp -p -R -f " ^ File.bash_path src ^ "/. " ^ File.bash_path dst); ());
 
 fun copy_file src0 dst0 =
   let
@@ -82,7 +82,7 @@ fun copy_file src0 dst0 =
   in
     if File.eq (src, target) then ()
     else
-      ignore (system_command ("cp -p -f " ^ File.shell_path src ^ " " ^ File.shell_path target))
+      ignore (system_command ("cp -p -f " ^ File.bash_path src ^ " " ^ File.bash_path target))
   end;
 
 fun copy_file_base (base_dir, src0) target_dir =
@@ -112,7 +112,7 @@ fun with_tmp_file name ext f =
 
 (* tmp dirs *)
 
-fun rm_tree path = system_command ("rm -r -f " ^ File.shell_path path);
+fun rm_tree path = system_command ("rm -r -f " ^ File.bash_path path);
 
 fun with_tmp_dir name f =
   let

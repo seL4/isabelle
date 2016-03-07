@@ -382,9 +382,9 @@ fun mk_driver_mlton _ path _ value_name =
       driverN
 
     val compile_cmd =
-      File.shell_path (Path.variable ISABELLE_MLTON) ^
-      " -default-type intinf " ^ File.shell_path ml_basis_path
-    val run_cmd = File.shell_path (Path.append path (Path.basic projectN))
+      File.bash_path (Path.variable ISABELLE_MLTON) ^
+      " -default-type intinf " ^ File.bash_path ml_basis_path
+    val run_cmd = File.bash_path (Path.append path (Path.basic projectN))
   in
     {files = [(driver_path, driver), (ml_basis_path, ml_basis)],
      compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = K code_path}
@@ -464,7 +464,7 @@ fun mk_driver_ocaml _ path _ value_name =
       " -I " ^ Path.implode path ^
       " nums.cma " ^ Path.implode code_path ^ " " ^ Path.implode driver_path
 
-    val run_cmd = File.shell_path compiled_path
+    val run_cmd = File.bash_path compiled_path
   in
     {files = [(driver_path, driver)],
      compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = K code_path}
@@ -509,7 +509,7 @@ fun mk_driver_ghc ctxt path modules value_name =
       Config.get ctxt ghc_options ^ " -o " ^ Path.implode compiled_path ^ " " ^
       Path.implode driver_path ^ " -i" ^ Path.implode path
 
-    val run_cmd = File.shell_path compiled_path
+    val run_cmd = File.bash_path compiled_path
   in
     {files = [(driver_path, driver)],
      compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = mk_code_file}
@@ -551,12 +551,12 @@ fun mk_driver_scala _ path _ value_name =
 
     val compile_cmd =
       Path.implode (Path.append (Path.variable ISABELLE_SCALA) (Path.basic "scalac")) ^
-      " -d " ^ File.shell_path path ^ " -classpath " ^ File.shell_path path ^ " " ^
-      File.shell_path code_path ^ " " ^ File.shell_path driver_path
+      " -d " ^ File.bash_path path ^ " -classpath " ^ File.bash_path path ^ " " ^
+      File.bash_path code_path ^ " " ^ File.bash_path driver_path
 
     val run_cmd =
       Path.implode (Path.append (Path.variable ISABELLE_SCALA) (Path.basic "scala")) ^
-      " -cp " ^ File.shell_path path ^ " Test"
+      " -cp " ^ File.bash_path path ^ " Test"
   in
     {files = [(driver_path, driver)],
      compile_cmd = SOME compile_cmd, run_cmd = run_cmd, mk_code_file = K code_path}

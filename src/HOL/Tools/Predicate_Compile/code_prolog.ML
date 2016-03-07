@@ -818,7 +818,7 @@ fun invoke system file =
     if getenv env_var = "" then
       (warning (env_var ^ " not set; could not execute code for " ^ string_of_system system); "")
     else
-      (case Isabelle_System.bash_output (cmd ^ File.shell_path file) of
+      (case Isabelle_System.bash_output (cmd ^ File.bash_path file) of
         (out, 0) => out
       | (_, rc) =>
           error ("Error caused by prolog system " ^ env_var ^

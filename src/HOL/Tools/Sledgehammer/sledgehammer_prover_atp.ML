@@ -283,10 +283,10 @@ fun run_atp mode name
 
             val ord = effective_term_order ctxt name
             val args =
-              arguments ctxt full_proofs extra slice_timeout (File.shell_path prob_path)
+              arguments ctxt full_proofs extra slice_timeout (File.bash_path prob_path)
                 (ord, ord_info, sel_weights)
             val command =
-              "(exec 2>&1; " ^ File.shell_path command0 ^ " " ^ args ^ " " ^ ")"
+              "(exec 2>&1; " ^ File.bash_path command0 ^ " " ^ args ^ " " ^ ")"
               |> enclose "TIMEFORMAT='%3R'; { time " " ; }"
 
             val _ =

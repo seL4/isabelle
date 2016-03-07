@@ -36,9 +36,9 @@ val process = uninterruptible (fn restore_attributes => fn script =>
           let
             val _ = File.write script_path script;
             val bash_script =
-              "bash " ^ File.shell_path script_path ^
-                " > " ^ File.shell_path out_path ^
-                " 2> " ^ File.shell_path err_path;
+              "bash " ^ File.bash_path script_path ^
+                " > " ^ File.bash_path out_path ^
+                " 2> " ^ File.bash_path err_path;
             val bash_process = getenv_strict "ISABELLE_BASH_PROCESS";
             val rc =
               Windows.simpleExecute ("",

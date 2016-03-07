@@ -40,7 +40,7 @@ fun run_solver ctxt input =
 
         val (output, rc) =
           Isabelle_System.bash_output
-            ("\"$ISABELLE_CSDP\" " ^ File.shell_path in_path ^ " " ^ File.shell_path out_path)
+            ("\"$ISABELLE_CSDP\" " ^ File.bash_path in_path ^ " " ^ File.bash_path out_path)
         val _ = Sum_of_Squares.debug_message ctxt (fn () => "Solver output:\n" ^ output)
 
         val result = if File.exists out_path then File.read out_path else ""

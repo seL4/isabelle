@@ -385,7 +385,7 @@ fun check_code_for ctxt target_name strict args program all_public syms =
           generatedN args program all_public syms);
         val cmd = make_command generatedN;
       in
-        if Isabelle_System.bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
+        if Isabelle_System.bash ("cd " ^ File.bash_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
         then error ("Code check failed for " ^ target_name ^ ": " ^ cmd)
         else ()
       end;

@@ -213,6 +213,14 @@ INCOMPATIBILITY.
 
 *** System ***
 
+* File.bash_string, File.bash_path etc. represent Isabelle/ML and
+Isabelle/Scala strings authentically within GNU bash. This is useful to
+produce robust shell scripts under program control, without worrying
+about spaces or special characters. Note that user output works via
+Path.print (ML) or Path.toString (Scala). INCOMPATIBILITY, the old (and
+less versatile) operations File.shell_quote, File.shell_path etc. have
+been discontinued.
+
 * The Isabelle system environment always ensures that the main
 executables are found within the PATH: isabelle, isabelle_process,
 isabelle_scala_script.

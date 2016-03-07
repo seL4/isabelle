@@ -633,7 +633,7 @@ let
     val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
     val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
     val proofpath  = File.tmp_path (Path.explode ("result" ^ serial_str ^ ".prf"))
-    val cmd        = getenv "MINISAT_HOME" ^ "/minisat " ^ File.shell_path inpath ^ " -r " ^ File.shell_path outpath ^ " -t " ^ File.shell_path proofpath ^ "> /dev/null"
+    val cmd        = "\"$MINISAT_HOME/minisat\" " ^ File.bash_path inpath ^ " -r " ^ File.bash_path outpath ^ " -t " ^ File.bash_path proofpath ^ "> /dev/null"
     fun writefn fm = SAT_Solver.write_dimacs_cnf_file inpath fm
     fun readfn ()  = SAT_Solver.read_std_result_file outpath ("SAT", "", "UNSAT")
     val _ = if File.exists inpath then warning ("overwriting existing file " ^ Path.print inpath) else ()
@@ -809,7 +809,7 @@ let
     val serial_str = serial_string ()
     val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
     val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
-    val cmd        = getenv "MINISAT_HOME" ^ "/minisat " ^ File.shell_path inpath ^ " -r " ^ File.shell_path outpath ^ " > /dev/null"
+    val cmd        = "\"$MINISAT_HOME/minisat\" " ^ File.bash_path inpath ^ " -r " ^ File.bash_path outpath ^ " > /dev/null"
     fun writefn fm = SAT_Solver.write_dimacs_cnf_file inpath (Prop_Logic.defcnf fm)
     fun readfn ()  = SAT_Solver.read_std_result_file outpath ("SAT", "", "UNSAT")
     val _ = if File.exists inpath then warning ("overwriting existing file " ^ Path.print inpath) else ()
@@ -965,7 +965,7 @@ let
     val serial_str = serial_string ()
     val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
     val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
-    val cmd        = getenv "ZCHAFF_HOME" ^ "/zchaff " ^ File.shell_path inpath ^ " > " ^ File.shell_path outpath
+    val cmd        = "\"$ZCHAFF_HOME/zchaff\" " ^ File.bash_path inpath ^ " > " ^ File.bash_path outpath
     fun writefn fm = SAT_Solver.write_dimacs_cnf_file inpath (Prop_Logic.defcnf fm)
     fun readfn ()  = SAT_Solver.read_std_result_file outpath ("Instance Satisfiable", "", "Instance Unsatisfiable")
     val _ = if File.exists inpath then warning ("overwriting existing file " ^ Path.print inpath) else ()
@@ -991,8 +991,7 @@ let
     val serial_str = serial_string ()
     val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
     val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
-    val exec       = getenv "BERKMIN_EXE"
-    val cmd        = getenv "BERKMIN_HOME" ^ "/" ^ (if exec = "" then "BerkMin561" else exec) ^ " " ^ File.shell_path inpath ^ " > " ^ File.shell_path outpath
+    val cmd        = "\"$BERKMIN_HOME/${BERKMIN_EXE:-BerkMin561}\" " ^ File.bash_path inpath ^ " > " ^ File.bash_path outpath
     fun writefn fm = SAT_Solver.write_dimacs_cnf_file inpath (Prop_Logic.defcnf fm)
     fun readfn ()  = SAT_Solver.read_std_result_file outpath ("Satisfiable          !!", "solution =", "UNSATISFIABLE          !!")
     val _ = if File.exists inpath then warning ("overwriting existing file " ^ Path.print inpath) else ()
@@ -1018,7 +1017,7 @@ let
     val serial_str = serial_string ()
     val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
     val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
-    val cmd        = getenv "JERUSAT_HOME" ^ "/Jerusat1.3 " ^ File.shell_path inpath ^ " > " ^ File.shell_path outpath
+    val cmd        = "\"$JERUSAT_HOME/Jerusat1.3\" " ^ File.bash_path inpath ^ " > " ^ File.bash_path outpath
     fun writefn fm = SAT_Solver.write_dimacs_cnf_file inpath (Prop_Logic.defcnf fm)
     fun readfn ()  = SAT_Solver.read_std_result_file outpath ("s SATISFIABLE", "v ", "s UNSATISFIABLE")
     val _ = if File.exists inpath then warning ("overwriting existing file " ^ Path.print inpath) else ()
