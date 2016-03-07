@@ -117,8 +117,8 @@ fun mk_case_transfer_tac ctxt rel_case cases =
 fun mk_ctr_transfer_tac ctxt rel_intros rel_eqs =
   HEADGOAL Goal.conjunction_tac THEN
   ALLGOALS (REPEAT o (resolve_tac ctxt (rel_funI :: rel_intros) THEN'
-    TRY o (REPEAT_DETERM1 o (assume_tac ctxt ORELSE'
-      K (unfold_thms_tac ctxt rel_eqs) THEN' hyp_subst_tac ctxt THEN' rtac ctxt refl))));
+    TRY o (REPEAT_DETERM1 o (SELECT_GOAL (unfold_thms_tac ctxt rel_eqs) THEN'
+      (assume_tac ctxt ORELSE' hyp_subst_tac ctxt THEN' rtac ctxt refl)))));
 
 fun mk_disc_transfer_tac ctxt rel_sel exhaust_disc distinct_disc =
   let
