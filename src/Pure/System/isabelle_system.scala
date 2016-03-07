@@ -302,19 +302,6 @@ object Isabelle_System
 
   /* bash */
 
-  private class Limited_Progress(proc: Bash.Process, progress_limit: Option[Long])
-  {
-    private var count = 0L
-    def apply(progress: String => Unit)(line: String): Unit = synchronized {
-      progress(line)
-      count = count + line.length + 1
-      progress_limit match {
-        case Some(limit) if count > limit => proc.terminate
-        case _ =>
-      }
-    }
-  }
-
   def bash(script: String, cwd: JFile = null, env: Map[String, String] = null,
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
@@ -323,21 +310,8 @@ object Isabelle_System
   {
     with_tmp_file("isabelle_script") { script_file =>
       File.write(script_file, script)
-      val proc = Bash.process(cwd, env, false, File.standard_path(script_file))
-      proc.stdin.close
-
-      val limited = new Limited_Progress(proc, progress_limit)
-      val stdout =
-        Future.thread("bash_stdout") { File.read_lines(proc.stdout, limited(progress_stdout)) }
-      val stderr =
-        Future.thread("bash_stderr") { File.read_lines(proc.stderr, limited(progress_stderr)) }
-
-      val rc =
-        try { proc.join }
-        catch { case Exn.Interrupt() => proc.terminate; Exn.Interrupt.return_code }
-      if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
-
-      Process_Result(rc, out_lines = stdout.join, err_lines = stderr.join)
+      Bash.process(cwd, env, false, File.standard_path(script_file)).
+        result(progress_stdout, progress_stderr, progress_limit, strict)
     }
   }
 

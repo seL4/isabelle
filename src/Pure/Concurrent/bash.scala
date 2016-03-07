@@ -13,6 +13,19 @@ import java.io.{File => JFile, BufferedReader, InputStreamReader,
 
 object Bash
 {
+  private class Limited_Progress(proc: Process, progress_limit: Option[Long])
+  {
+    private var count = 0L
+    def apply(progress: String => Unit)(line: String): Unit = synchronized {
+      progress(line)
+      count = count + line.length + 1
+      progress_limit match {
+        case Some(limit) if count > limit => proc.terminate
+        case _ =>
+      }
+    }
+  }
+
   def process(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
     new Process(cwd, env, redirect, args:_*)
 
@@ -82,8 +95,33 @@ object Bash
       catch { case _: IllegalStateException => }
 
 
-    /* result */
+    /* join */
 
     def join: Int = { val rc = proc.waitFor; cleanup(); rc }
+
+
+    /* result */
+
+    def result(
+      progress_stdout: String => Unit = (_: String) => (),
+      progress_stderr: String => Unit = (_: String) => (),
+      progress_limit: Option[Long] = None,
+      strict: Boolean = true): Process_Result =
+    {
+      stdin.close
+
+      val limited = new Limited_Progress(this, progress_limit)
+      val out_lines =
+        Future.thread("bash_stdout") { File.read_lines(stdout, limited(progress_stdout)) }
+      val err_lines =
+        Future.thread("bash_stderr") { File.read_lines(stderr, limited(progress_stderr)) }
+
+      val rc =
+        try { join }
+        catch { case Exn.Interrupt() => terminate; Exn.Interrupt.return_code }
+      if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
+
+      Process_Result(rc, out_lines.join, err_lines.join)
+    }
   }
 }
