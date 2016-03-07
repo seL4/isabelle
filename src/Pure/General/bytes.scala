@@ -20,7 +20,7 @@ object Bytes
     val str = s.toString
     if (str.isEmpty) empty
     else {
-      val b = str.getBytes(UTF8.charset)
+      val b = UTF8.bytes(str)
       new Bytes(b, 0, b.length)
     }
   }

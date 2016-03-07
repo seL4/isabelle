@@ -39,10 +39,10 @@ fun make_symbols codes =
     val mapping =
       map (apsnd (fn c => "&#" ^ Markup.print_int c ^ ";")) codes @
        [("'", "&#39;"),
-        ("\\<^bsub>", hidden "&#8664;" ^ "<sub>"),
-        ("\\<^esub>", hidden "&#8665;" ^ "</sub>"),
-        ("\\<^bsup>", hidden "&#8663;" ^ "<sup>"),
-        ("\\<^esup>", hidden "&#8662;" ^ "</sup>")];
+        ("\<^bsub>", hidden "&#8664;" ^ "<sub>"),
+        ("\<^esub>", hidden "&#8665;" ^ "</sub>"),
+        ("\<^bsup>", hidden "&#8663;" ^ "<sup>"),
+        ("\<^esup>", hidden "&#8662;" ^ "</sup>")];
   in Symbols (fold Symtab.update mapping Symtab.empty) end;
 
 val no_symbols = make_symbols [];
@@ -70,9 +70,9 @@ fun output_syms _ [] result = implode (rev result)
       let
         val (s2, ss) = (case rest of [] => ("", []) | s2 :: ss => (s2, ss));
         val (s, r) =
-          if s1 = "\\<^sub>" then (output_sub symbols "&#8681;" s2, ss)
-          else if s1 = "\\<^sup>" then (output_sup symbols "&#8679;" s2, ss)
-          else if s1 = "\\<^bold>" then (output_bold symbols "&#10073;" s2, ss)
+          if s1 = "\<^sub>" then (output_sub symbols "&#8681;" s2, ss)
+          else if s1 = "\<^sup>" then (output_sup symbols "&#8679;" s2, ss)
+          else if s1 = "\<^bold>" then (output_bold symbols "&#10073;" s2, ss)
           else (output_sym symbols s1, rest);
       in output_syms symbols r (s :: result) end;
 
@@ -120,19 +120,19 @@ fun para txt = "\n<p>" ^ txt ^ "</p>\n";
 (* document *)
 
 fun begin_document symbols title =
-  "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n\
-  \<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \
-  \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n\
-  \<html xmlns=\"http://www.w3.org/1999/xhtml\">\n\
-  \<head>\n\
-  \<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>\n\
-  \<title>" ^ output symbols (title ^ " (" ^ Distribution.version ^ ")") ^ "</title>\n\
-  \<link media=\"all\" rel=\"stylesheet\" type=\"text/css\" href=\"isabelle.css\"/>\n\
-  \</head>\n\
-  \\n\
-  \<body>\n\
-  \<div class=\"head\">\
-  \<h1>" ^ output symbols title ^ "</h1>\n";
+  "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n" ^
+  "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" " ^
+  "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" ^
+  "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" ^
+  "<head>\n" ^
+  "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>\n" ^
+  "<title>" ^ output symbols (title ^ " (" ^ Distribution.version ^ ")") ^ "</title>\n" ^
+  "<link media=\"all\" rel=\"stylesheet\" type=\"text/css\" href=\"isabelle.css\"/>\n" ^
+  "</head>\n" ^
+  "\n" ^
+  "<body>\n" ^
+  "<div class=\"head\">" ^
+  "<h1>" ^ output symbols title ^ "</h1>\n";
 
 val end_document = "\n</div>\n</body>\n</html>\n";
 

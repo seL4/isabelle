@@ -211,7 +211,7 @@ fun reserved x =
   group (fn () => "reserved identifier " ^ quote x)
     (RESET_VALUE (Scan.one (Token.ident_with (fn y => x = y)) >> Token.content_of));
 
-val dots = sym_ident :-- (fn "\\<dots>" => Scan.succeed () | _ => Scan.fail) >> #1;
+val dots = sym_ident :-- (fn "\<dots>" => Scan.succeed () | _ => Scan.fail) >> #1;
 
 val minus = sym_ident :-- (fn "-" => Scan.succeed () | _ => Scan.fail) >> #1;
 

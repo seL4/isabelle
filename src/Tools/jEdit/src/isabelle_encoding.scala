@@ -56,7 +56,7 @@ class Isabelle_Encoding extends Encoding
       override def flush()
       {
         val text = Symbol.encode(toString(UTF8.charset_name))
-        out.write(text.getBytes(UTF8.charset))
+        out.write(UTF8.bytes(text))
         out.flush()
       }
       override def close() { out.close() }

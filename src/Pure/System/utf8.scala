@@ -20,6 +20,8 @@ object UTF8
   val charset: Charset = Charset.forName(charset_name)
   def codec(): Codec = Codec(charset)
 
+  def bytes(s: String): Array[Byte] = s.getBytes(charset)
+
 
   /* permissive UTF-8 decoding */
 

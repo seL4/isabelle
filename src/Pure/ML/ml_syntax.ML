@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML/ml_syntax.ML
     Author:     Makarius
 
-Basic ML syntax operations.
+Concrete ML syntax for basic values.
 *)
 
 signature ML_SYNTAX =
@@ -59,20 +59,25 @@ fun print_list f = enclose "[" "]" o commas o map f;
 fun print_option f NONE = "NONE"
   | print_option f (SOME x) = "SOME (" ^ f x ^ ")";
 
+fun print_chr s =
+  if Symbol.is_char s then
+    (case ord s of
+      34 => "\\\""
+    | 92 => "\\\\"
+    | 9 => "\\t"
+    | 10 => "\\n"
+    | 11 => "\\f"
+    | 13 => "\\r"
+    | c =>
+        if c < 32 then "\\^" ^ chr (c + 64)
+        else if c < 127 then s
+        else "\\" ^ string_of_int c)
+  else error ("Bad character: " ^ quote s);
+
 fun print_char s =
-  if not (Symbol.is_char s) then s
-  else if s = "\"" then "\\\""
-  else if s = "\\" then "\\\\"
-  else if s = "\t" then "\\t"
-  else if s = "\n" then "\\n"
-  else if s = "\f" then "\\f"
-  else if s = "\r" then "\\r"
-  else
-    let val c = ord s in
-      if c < 32 then "\\^" ^ chr (c + ord "@")
-      else if c < 127 then s
-      else "\\" ^ string_of_int c
-    end;
+  if Symbol.is_char s then print_chr s
+  else if Symbol.is_utf8 s then translate_string print_chr s
+  else s;
 
 val print_string = quote o implode o map print_char o Symbol.explode;
 val print_strings = print_list print_string;

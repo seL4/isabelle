@@ -49,7 +49,7 @@ fun print_kind Itemize = "itemize"
 
 val kinds = [("item", Itemize), ("enum", Enumerate), ("descr", Description)];
 
-val is_control = member (op =) ["\\<^item>", "\\<^enum>", "\\<^descr>"];
+val is_control = member (op =) ["\<^item>", "\<^enum>", "\<^descr>"];
 
 
 (* document lines *)

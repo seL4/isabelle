@@ -102,7 +102,7 @@ fun tapp_ast_tr [ty, c] = Ast.Appl [c, ty]
 fun tappl_ast_tr [ty, tys, c] = Ast.mk_appl c (ty :: Ast.unfold_ast "_types" tys)
   | tappl_ast_tr asts = raise Ast.AST ("tappl_ast_tr", asts);
 
-fun bracket_ast_tr [dom, cod] = Ast.fold_ast_p "\\<^type>fun" (Ast.unfold_ast "_types" dom, cod)
+fun bracket_ast_tr [dom, cod] = Ast.fold_ast_p "\<^type>fun" (Ast.unfold_ast "_types" dom, cod)
   | bracket_ast_tr asts = raise Ast.AST ("bracket_ast_tr", asts);
 
 
@@ -152,18 +152,18 @@ fun mk_binder_tr (syn, name) =
 
 fun mk_type ty =
   Syntax.const "_constrain" $
-    Syntax.const "\\<^const>Pure.type" $ (Syntax.const "\\<^type>itself" $ ty);
+    Syntax.const "\<^const>Pure.type" $ (Syntax.const "\<^type>itself" $ ty);
 
 fun ofclass_tr [ty, cls] = cls $ mk_type ty
   | ofclass_tr ts = raise TERM ("ofclass_tr", ts);
 
-fun sort_constraint_tr [ty] = Syntax.const "\\<^const>Pure.sort_constraint" $ mk_type ty
+fun sort_constraint_tr [ty] = Syntax.const "\<^const>Pure.sort_constraint" $ mk_type ty
   | sort_constraint_tr ts = raise TERM ("sort_constraint_tr", ts);
 
 
 (* meta propositions *)
 
-fun aprop_tr [t] = Syntax.const "_constrain" $ t $ Syntax.const "\\<^type>prop"
+fun aprop_tr [t] = Syntax.const "_constrain" $ t $ Syntax.const "\<^type>prop"
   | aprop_tr ts = raise TERM ("aprop_tr", ts);
 
 
@@ -174,7 +174,7 @@ fun bigimpl_ast_tr (asts as [asms, concl]) =
         (case Ast.unfold_ast_p "_asms" asms of
           (asms', Ast.Appl [Ast.Constant "_asm", asm']) => asms' @ [asm']
         | _ => raise Ast.AST ("bigimpl_ast_tr", asts))
-      in Ast.fold_ast_p "\\<^const>Pure.imp" (prems, concl) end
+      in Ast.fold_ast_p "\<^const>Pure.imp" (prems, concl) end
   | bigimpl_ast_tr asts = raise Ast.AST ("bigimpl_ast_tr", asts);
 
 
@@ -273,7 +273,7 @@ fun tappl_ast_tr' (f, []) = raise Ast.AST ("tappl_ast_tr'", [f])
 fun fun_ast_tr' asts =
   if no_brackets () orelse no_type_brackets () then raise Match
   else
-    (case Ast.unfold_ast_p "\\<^type>fun" (Ast.Appl (Ast.Constant "\\<^type>fun" :: asts)) of
+    (case Ast.unfold_ast_p "\<^type>fun" (Ast.Appl (Ast.Constant "\<^type>fun" :: asts)) of
       (dom as _ :: _ :: _, cod)
         => Ast.Appl [Ast.Constant "_bracket", Ast.fold_ast "_types" dom, cod]
     | _ => raise Match);
@@ -389,8 +389,8 @@ fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant "_constrain", x, ty], xs] =
 fun impl_ast_tr' asts =
   if no_brackets () then raise Match
   else
-    (case Ast.unfold_ast_p "\\<^const>Pure.imp"
-        (Ast.Appl (Ast.Constant "\\<^const>Pure.imp" :: asts)) of
+    (case Ast.unfold_ast_p "\<^const>Pure.imp"
+        (Ast.Appl (Ast.Constant "\<^const>Pure.imp" :: asts)) of
       (prems as _ :: _ :: _, concl) =>
         let
           val (asms, asm) = split_last prems;
@@ -501,11 +501,11 @@ val pure_parse_translation =
   ("_struct", struct_tr)];
 
 val pure_print_ast_translation =
- [("\\<^type>fun", fn _ => fun_ast_tr'),
+ [("\<^type>fun", fn _ => fun_ast_tr'),
   ("_abs", fn _ => abs_ast_tr'),
   ("_idts", fn _ => idtyp_ast_tr' "_idts"),
   ("_pttrns", fn _ => idtyp_ast_tr' "_pttrns"),
-  ("\\<^const>Pure.imp", fn _ => impl_ast_tr'),
+  ("\<^const>Pure.imp", fn _ => impl_ast_tr'),
   ("_index", fn _ => index_ast_tr'),
   ("_struct", struct_ast_tr')];
 
