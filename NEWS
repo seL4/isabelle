@@ -210,6 +210,11 @@ Local_Theory.close_target instead. Rare INCOMPATIBILITY.
 replaced by structure Timeout, with slightly different signature.
 INCOMPATIBILITY.
 
+* Discontinued cd and pwd operations, which are not well-defined in a
+multi-threaded environment. Note that files are usually located
+relatively to the master directory of a theory (see also
+File.full_path). Potential INCOMPATIBILITY.
+
 
 *** System ***
 

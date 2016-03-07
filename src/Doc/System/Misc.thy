@@ -94,8 +94,7 @@ text \<open>
 
   Interaction works via the raw ML toplevel loop: this is neither
   Isabelle/Isar nor Isabelle/ML within the usual formal context. Some useful
-  ML commands at this stage are @{ML cd}, @{ML pwd}, @{ML use}, @{ML use_thy},
-  @{ML use_thys}.
+  ML commands at this stage are @{ML use}, @{ML use_thy}, @{ML use_thys}.
 \<close>
 
 

@@ -11,8 +11,6 @@ sig
   val bash_string: string -> string
   val bash_args: string list -> string
   val bash_path: Path.T -> string
-  val cd: Path.T -> unit
-  val pwd: unit -> Path.T
   val full_path: Path.T -> Path.T -> Path.T
   val tmp_path: Path.T -> Path.T
   val exists: Path.T -> bool
@@ -69,12 +67,6 @@ val bash_args = space_implode " " o map bash_string;
 val bash_path = bash_string o standard_path;
 
 
-(* current working directory *)
-
-val cd = cd o standard_path;
-val pwd = Path.explode o pwd;
-
-
 (* full_path *)
 
 fun full_path dir path =
@@ -84,7 +76,7 @@ fun full_path dir path =
     val path'' = Path.append dir path';
   in
     if Path.is_absolute path'' then path''
-    else Path.append (pwd ()) path''
+    else Path.append (Path.explode (ML_System.standard_path (OS.FileSys.getDir ()))) path''
   end;
 
 

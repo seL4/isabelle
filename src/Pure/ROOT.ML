@@ -429,6 +429,4 @@ fun use_thys args =
   Runtime.toplevel_program (fn () => Thy_Info.use_thys (map (rpair Position.none) args));
 val use_thy = use_thys o single;
 
-val cd = File.cd o Path.explode;
-
 Proofterm.proofs := 0;
