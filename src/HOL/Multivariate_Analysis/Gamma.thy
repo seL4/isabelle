@@ -1355,21 +1355,21 @@ lemma Gamma_complex_real:
   "z \<in> \<real> \<Longrightarrow> Gamma z \<in> (\<real> :: complex set)" and rGamma_complex_real: "z \<in> \<real> \<Longrightarrow> rGamma z \<in> \<real>"
   by (simp_all add: Reals_cnj_iff cnj_Gamma cnj_rGamma)
 
-lemma complex_differentiable_rGamma: "rGamma complex_differentiable (at z within A)"
-  using has_field_derivative_rGamma[of z] unfolding complex_differentiable_def by blast
+lemma field_differentiable_rGamma: "rGamma field_differentiable (at z within A)"
+  using has_field_derivative_rGamma[of z] unfolding field_differentiable_def by blast
 
 lemma holomorphic_on_rGamma: "rGamma holomorphic_on A"
-  unfolding holomorphic_on_def by (auto intro!: complex_differentiable_rGamma)
+  unfolding holomorphic_on_def by (auto intro!: field_differentiable_rGamma)
 
 lemma analytic_on_rGamma: "rGamma analytic_on A"
   unfolding analytic_on_def by (auto intro!: exI[of _ 1] holomorphic_on_rGamma)
 
 
-lemma complex_differentiable_Gamma: "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Gamma complex_differentiable (at z within A)"
-  using has_field_derivative_Gamma[of z] unfolding complex_differentiable_def by auto
+lemma field_differentiable_Gamma: "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Gamma field_differentiable (at z within A)"
+  using has_field_derivative_Gamma[of z] unfolding field_differentiable_def by auto
 
 lemma holomorphic_on_Gamma: "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longrightarrow> Gamma holomorphic_on A"
-  unfolding holomorphic_on_def by (auto intro!: complex_differentiable_Gamma)
+  unfolding holomorphic_on_def by (auto intro!: field_differentiable_Gamma)
 
 lemma analytic_on_Gamma: "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longrightarrow> Gamma analytic_on A"
   by (rule analytic_on_subset[of _ "UNIV - \<int>\<^sub>\<le>\<^sub>0"], subst analytic_on_open)
@@ -1383,14 +1383,14 @@ lemma has_field_derivative_rGamma_complex' [derivative_intros]:
 declare has_field_derivative_rGamma_complex'[THEN DERIV_chain2, derivative_intros]
 
 
-lemma complex_differentiable_Polygamma:
+lemma field_differentiable_Polygamma:
   fixes z::complex
   shows
-  "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Polygamma n complex_differentiable (at z within A)"
-  using has_field_derivative_Polygamma[of z n] unfolding complex_differentiable_def by auto
+  "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Polygamma n field_differentiable (at z within A)"
+  using has_field_derivative_Polygamma[of z n] unfolding field_differentiable_def by auto
 
 lemma holomorphic_on_Polygamma: "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longrightarrow> Polygamma n holomorphic_on A"
-  unfolding holomorphic_on_def by (auto intro!: complex_differentiable_Polygamma)
+  unfolding holomorphic_on_def by (auto intro!: field_differentiable_Polygamma)
 
 lemma analytic_on_Polygamma: "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longrightarrow> Polygamma n analytic_on A"
   by (rule analytic_on_subset[of _ "UNIV - \<int>\<^sub>\<le>\<^sub>0"], subst analytic_on_open)

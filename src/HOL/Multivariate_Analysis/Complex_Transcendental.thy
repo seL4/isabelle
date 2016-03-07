@@ -3,7 +3,7 @@ section \<open>Complex Transcendental Functions\<close>
 text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2015)\<close>
 
 theory Complex_Transcendental
-imports 
+imports
   Complex_Analysis_Basics
   Summation
 begin
@@ -11,7 +11,7 @@ begin
 (* TODO: Figure out what to do with Möbius transformations *)
 definition "moebius a b c d = (\<lambda>z. (a*z+b) / (c*z+d :: 'a :: field))"
 
-lemma moebius_inverse: 
+lemma moebius_inverse:
   assumes "a * d \<noteq> b * c" "c * z + d \<noteq> 0"
   shows   "moebius d (-b) (-c) a (moebius a b c d z) = z"
 proof -
@@ -21,7 +21,7 @@ proof -
     unfolding moebius_def by (simp add: moebius_def divide_simps) (simp add: algebra_simps)?
 qed
 
-lemma moebius_inverse': 
+lemma moebius_inverse':
   assumes "a * d \<noteq> b * c" "c * z - a \<noteq> 0"
   shows   "moebius a b c d (moebius d (-b) (-c) a z) = z"
   using assms moebius_inverse[of d a "-b" "-c" z]
@@ -61,21 +61,16 @@ lemma cmod_square_less_1_plus:
 
 subsection\<open>The Exponential Function is Differentiable and Continuous\<close>
 
-lemma complex_differentiable_within_exp: "exp complex_differentiable (at z within s)"
-  using DERIV_exp complex_differentiable_at_within complex_differentiable_def by blast
+lemma field_differentiable_within_exp: "exp field_differentiable (at z within s)"
+  using DERIV_exp field_differentiable_at_within field_differentiable_def by blast
 
 lemma continuous_within_exp:
   fixes z::"'a::{real_normed_field,banach}"
   shows "continuous (at z within s) exp"
 by (simp add: continuous_at_imp_continuous_within)
 
-lemma continuous_on_exp:
-  fixes s::"'a::{real_normed_field,banach} set"
-  shows "continuous_on s exp"
-by (simp add: continuous_on_exp continuous_on_id)
-
 lemma holomorphic_on_exp [holomorphic_intros]: "exp holomorphic_on s"
-  by (simp add: complex_differentiable_within_exp holomorphic_on_def)
+  by (simp add: field_differentiable_within_exp holomorphic_on_def)
 
 subsection\<open>Euler and de Moivre formulas.\<close>
 
@@ -158,23 +153,23 @@ lemma cnj_sin: "cnj(sin z) = sin(cnj z)"
 lemma cnj_cos: "cnj(cos z) = cos(cnj z)"
   by (simp add: cos_exp_eq exp_cnj field_simps)
 
-lemma complex_differentiable_at_sin: "sin complex_differentiable at z"
-  using DERIV_sin complex_differentiable_def by blast
+lemma field_differentiable_at_sin: "sin field_differentiable at z"
+  using DERIV_sin field_differentiable_def by blast
 
-lemma complex_differentiable_within_sin: "sin complex_differentiable (at z within s)"
-  by (simp add: complex_differentiable_at_sin complex_differentiable_at_within)
+lemma field_differentiable_within_sin: "sin field_differentiable (at z within s)"
+  by (simp add: field_differentiable_at_sin field_differentiable_at_within)
 
-lemma complex_differentiable_at_cos: "cos complex_differentiable at z"
-  using DERIV_cos complex_differentiable_def by blast
+lemma field_differentiable_at_cos: "cos field_differentiable at z"
+  using DERIV_cos field_differentiable_def by blast
 
-lemma complex_differentiable_within_cos: "cos complex_differentiable (at z within s)"
-  by (simp add: complex_differentiable_at_cos complex_differentiable_at_within)
+lemma field_differentiable_within_cos: "cos field_differentiable (at z within s)"
+  by (simp add: field_differentiable_at_cos field_differentiable_at_within)
 
 lemma holomorphic_on_sin: "sin holomorphic_on s"
-  by (simp add: complex_differentiable_within_sin holomorphic_on_def)
+  by (simp add: field_differentiable_within_sin holomorphic_on_def)
 
 lemma holomorphic_on_cos: "cos holomorphic_on s"
-  by (simp add: complex_differentiable_within_cos holomorphic_on_def)
+  by (simp add: field_differentiable_within_cos holomorphic_on_def)
 
 subsection\<open>Get a nice real/imaginary separation in Euler's formula.\<close>
 
@@ -887,13 +882,13 @@ subsection\<open>Analytic properties of tangent function\<close>
 lemma cnj_tan: "cnj(tan z) = tan(cnj z)"
   by (simp add: cnj_cos cnj_sin tan_def)
 
-lemma complex_differentiable_at_tan: "~(cos z = 0) \<Longrightarrow> tan complex_differentiable at z"
-  unfolding complex_differentiable_def
+lemma field_differentiable_at_tan: "~(cos z = 0) \<Longrightarrow> tan field_differentiable at z"
+  unfolding field_differentiable_def
   using DERIV_tan by blast
 
-lemma complex_differentiable_within_tan: "~(cos z = 0)
-         \<Longrightarrow> tan complex_differentiable (at z within s)"
-  using complex_differentiable_at_tan complex_differentiable_at_within by blast
+lemma field_differentiable_within_tan: "~(cos z = 0)
+         \<Longrightarrow> tan field_differentiable (at z within s)"
+  using field_differentiable_at_tan field_differentiable_at_within by blast
 
 lemma continuous_within_tan: "~(cos z = 0) \<Longrightarrow> continuous (at z within s) tan"
   using continuous_at_imp_continuous_within isCont_tan by blast
@@ -902,7 +897,7 @@ lemma continuous_on_tan [continuous_intros]: "(\<And>z. z \<in> s \<Longrightarr
   by (simp add: continuous_at_imp_continuous_on)
 
 lemma holomorphic_on_tan: "(\<And>z. z \<in> s \<Longrightarrow> ~(cos z = 0)) \<Longrightarrow> tan holomorphic_on s"
-  by (simp add: complex_differentiable_within_tan holomorphic_on_def)
+  by (simp add: field_differentiable_within_tan holomorphic_on_def)
 
 
 subsection\<open>Complex logarithms (the conventional principal value)\<close>
@@ -1033,28 +1028,28 @@ proof -
     by (metis (no_types) Im_exp Ln_in_Reals assms complex_nonpos_Reals_iff complex_is_Real_iff exp_Ln mult_zero_right not_less pi_neq_zero sin_pi znz)
   then show *: "Im (Ln z) < pi" using assms Im_Ln_le_pi
     by (simp add: le_neq_trans znz)
-  show "(Ln has_field_derivative inverse(z)) (at z)"
+  have "(exp has_field_derivative z) (at (Ln z))"
+    by (metis znz DERIV_exp exp_Ln)
+  then show "(Ln has_field_derivative inverse(z)) (at z)"
     apply (rule has_complex_derivative_inverse_strong_x
-              [where f = exp and s = "{w. -pi < Im(w) & Im(w) < pi}"])
+              [where s = "{w. -pi < Im(w) \<and> Im(w) < pi}"])
     using znz *
-    apply (auto simp: continuous_on_exp open_Collect_conj open_halfspace_Im_gt open_halfspace_Im_lt)
-    apply (metis DERIV_exp exp_Ln)
-    apply (metis mpi_less_Im_Ln)
+    apply (auto simp: Transcendental.continuous_on_exp [OF continuous_on_id] open_Collect_conj open_halfspace_Im_gt open_halfspace_Im_lt mpi_less_Im_Ln)
     done
 qed
 
 declare has_field_derivative_Ln [derivative_intros]
 declare has_field_derivative_Ln [THEN DERIV_chain2, derivative_intros]
 
-lemma complex_differentiable_at_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Ln complex_differentiable at z"
-  using complex_differentiable_def has_field_derivative_Ln by blast
+lemma field_differentiable_at_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Ln field_differentiable at z"
+  using field_differentiable_def has_field_derivative_Ln by blast
 
-lemma complex_differentiable_within_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0
-         \<Longrightarrow> Ln complex_differentiable (at z within s)"
-  using complex_differentiable_at_Ln complex_differentiable_within_subset by blast
+lemma field_differentiable_within_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0
+         \<Longrightarrow> Ln field_differentiable (at z within s)"
+  using field_differentiable_at_Ln field_differentiable_within_subset by blast
 
 lemma continuous_at_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z) Ln"
-  by (simp add: complex_differentiable_imp_continuous_at complex_differentiable_within_Ln)
+  by (simp add: field_differentiable_imp_continuous_at field_differentiable_within_Ln)
 
 lemma isCont_Ln' [simp]:
    "\<lbrakk>isCont f z; f z \<notin> \<real>\<^sub>\<le>\<^sub>0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. Ln (f x)) z"
@@ -1067,7 +1062,7 @@ lemma continuous_on_Ln [continuous_intros]: "(\<And>z. z \<in> s \<Longrightarro
   by (simp add: continuous_at_imp_continuous_on continuous_within_Ln)
 
 lemma holomorphic_on_Ln: "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> Ln holomorphic_on s"
-  by (simp add: complex_differentiable_within_Ln holomorphic_on_def)
+  by (simp add: field_differentiable_within_Ln holomorphic_on_def)
 
 
 subsection\<open>Quadrant-type results for Ln\<close>
@@ -1163,11 +1158,11 @@ lemma Im_Ln_pos_lt_imp: "0 < Im(z) \<Longrightarrow> 0 < Im(Ln z) \<and> Im(Ln z
 
 text\<open>A reference to the set of positive real numbers\<close>
 lemma Im_Ln_eq_0: "z \<noteq> 0 \<Longrightarrow> (Im(Ln z) = 0 \<longleftrightarrow> 0 < Re(z) \<and> Im(z) = 0)"
-by (metis Im_complex_of_real Im_exp Ln_in_Reals Re_Ln_pos_lt Re_Ln_pos_lt_imp 
+by (metis Im_complex_of_real Im_exp Ln_in_Reals Re_Ln_pos_lt Re_Ln_pos_lt_imp
           Re_complex_of_real complex_is_Real_iff exp_Ln exp_of_real pi_gt_zero)
 
 lemma Im_Ln_eq_pi: "z \<noteq> 0 \<Longrightarrow> (Im(Ln z) = pi \<longleftrightarrow> Re(z) < 0 \<and> Im(z) = 0)"
-by (metis Im_Ln_eq_0 Im_Ln_pos_le Im_Ln_pos_lt add.left_neutral complex_eq less_eq_real_def 
+by (metis Im_Ln_eq_0 Im_Ln_pos_le Im_Ln_pos_lt add.left_neutral complex_eq less_eq_real_def
     mult_zero_right not_less_iff_gr_or_eq pi_ge_zero pi_neq_zero rcis_zero_arg rcis_zero_mod)
 
 
@@ -1178,7 +1173,7 @@ lemma cnj_Ln: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> cnj(Ln z
   apply (rule exp_complex_eqI)
   apply (auto simp: abs_if split: if_split_asm)
   using Im_Ln_less_pi Im_Ln_le_pi apply force
-  apply (metis complex_cnj_zero_iff diff_minus_eq_add diff_strict_mono minus_less_iff 
+  apply (metis complex_cnj_zero_iff diff_minus_eq_add diff_strict_mono minus_less_iff
           mpi_less_Im_Ln mult.commute mult_2_right)
   by (metis exp_Ln exp_cnj)
 
@@ -1267,7 +1262,7 @@ next
     done
   also have "... = - Ln (- z) + \<i> * complex_of_real pi"
     apply (subst Ln_inverse)
-    using z by (auto simp add: complex_nonneg_Reals_iff) 
+    using z by (auto simp add: complex_nonneg_Reals_iff)
   also have "... = - (Ln z) + \<i> * 2 * complex_of_real pi"
     apply (subst Ln_minus [OF assms])
     using assms z
@@ -1340,7 +1335,7 @@ proof -
   have [simp]: "\<And>x. \<lbrakk>Im x \<noteq> 0\<rbrakk> \<Longrightarrow> Im (Ln (- x)) + pi = Arg x"
       using Arg_Ln Arg_gt_0 complex_is_Real_iff by auto
   consider "Re z < 0" | "Im z \<noteq> 0" using assms
-    using complex_nonneg_Reals_iff not_le by blast 
+    using complex_nonneg_Reals_iff not_le by blast
   then have [simp]: "(\<lambda>z. Im (Ln (- z)) + pi) \<midarrow>z\<rightarrow> Arg z"
       using "*"  by (simp add: isCont_def) (metis Arg_Ln Arg_gt_0 complex_is_Real_iff)
   show ?thesis
@@ -1375,7 +1370,7 @@ proof -
       by (auto intro!: derivative_eq_intros simp: complex_nonpos_Reals_iff)
     moreover have "(?F has_field_derivative ?F' z) (at z)" using t r
       by (intro termdiffs_strong[of _ t] summable_in_conv_radius) simp_all
-    ultimately have "((\<lambda>z. ln (1 + z) - ?F z) has_field_derivative (inverse (1 + z) - ?F' z)) 
+    ultimately have "((\<lambda>z. ln (1 + z) - ?F z) has_field_derivative (inverse (1 + z) - ?F' z))
                        (at z within ball 0 1)"
       by (intro derivative_intros) (simp_all add: at_within_open[OF z'])
     also have "(\<lambda>n. of_nat n * ?f n * z ^ (n - Suc 0)) sums ?F' z" using t r
@@ -1412,13 +1407,13 @@ proof -
   also have A: "summable (\<lambda>n. norm z^2 * (inverse (real_of_nat (Suc (Suc n))) * cmod z ^ n))"
     by (rule summable_mult, rule summable_comparison_test_ev[OF _ summable_geometric[of "norm z"]])
        (auto simp: assms field_simps intro!: always_eventually)
-  hence "norm (\<Sum>i. (-(z^2)) * inverse (of_nat (i+2)) * (-z)^i) \<le> 
+  hence "norm (\<Sum>i. (-(z^2)) * inverse (of_nat (i+2)) * (-z)^i) \<le>
              (\<Sum>i. norm (-(z^2) * inverse (of_nat (i+2)) * (-z)^i))"
     by (intro summable_norm)
        (auto simp: norm_power norm_inverse norm_mult mult_ac simp del: of_nat_add of_nat_Suc)
   also have "norm ((-z)^2 * (-z)^i) * inverse (of_nat (i+2)) \<le> norm ((-z)^2 * (-z)^i) * 1" for i
     by (intro mult_left_mono) (simp_all add: divide_simps)
-  hence "(\<Sum>i. norm (-(z^2) * inverse (of_nat (i+2)) * (-z)^i)) \<le> 
+  hence "(\<Sum>i. norm (-(z^2) * inverse (of_nat (i+2)) * (-z)^i)) \<le>
            (\<Sum>i. norm (-(z^2) * (-z)^i))" using A assms
     apply (simp_all only: norm_power norm_inverse norm_divide norm_mult)
     apply (intro suminf_le summable_mult summable_geometric)
@@ -1632,16 +1627,16 @@ lemma has_field_derivative_powr_right:
   apply (intro derivative_eq_intros | simp add: assms)+
   done
 
-lemma complex_differentiable_powr_right:
+lemma field_differentiable_powr_right:
   fixes w::complex
   shows
-    "w \<noteq> 0 \<Longrightarrow> (\<lambda>z. w powr z) complex_differentiable (at z)"
-using complex_differentiable_def has_field_derivative_powr_right by blast
+    "w \<noteq> 0 \<Longrightarrow> (\<lambda>z. w powr z) field_differentiable (at z)"
+using field_differentiable_def has_field_derivative_powr_right by blast
 
 lemma holomorphic_on_powr_right:
     "f holomorphic_on s \<Longrightarrow> w \<noteq> 0 \<Longrightarrow> (\<lambda>z. w powr (f z)) holomorphic_on s"
-    unfolding holomorphic_on_def complex_differentiable_def
-by (metis (full_types) DERIV_chain' has_field_derivative_powr_right) 
+    unfolding holomorphic_on_def field_differentiable_def
+by (metis (full_types) DERIV_chain' has_field_derivative_powr_right)
 
 lemma norm_powr_real_powr:
   "w \<in> \<real> \<Longrightarrow> 0 < Re w \<Longrightarrow> norm(w powr z) = Re w powr Re z"
@@ -1814,7 +1809,7 @@ lemma cnj_csqrt:
 proof (cases "z=0", simp)
   assume "z \<noteq> 0"
   then show ?thesis
-     by (simp add: assms cnj_Ln csqrt_exp_Ln exp_cnj) 
+     by (simp add: assms cnj_Ln csqrt_exp_Ln exp_cnj)
 qed
 
 lemma has_field_derivative_csqrt:
@@ -1839,17 +1834,17 @@ proof -
     done
 qed
 
-lemma complex_differentiable_at_csqrt:
-    "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> csqrt complex_differentiable at z"
-  using complex_differentiable_def has_field_derivative_csqrt by blast
+lemma field_differentiable_at_csqrt:
+    "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> csqrt field_differentiable at z"
+  using field_differentiable_def has_field_derivative_csqrt by blast
 
-lemma complex_differentiable_within_csqrt:
-    "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> csqrt complex_differentiable (at z within s)"
-  using complex_differentiable_at_csqrt complex_differentiable_within_subset by blast
+lemma field_differentiable_within_csqrt:
+    "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> csqrt field_differentiable (at z within s)"
+  using field_differentiable_at_csqrt field_differentiable_within_subset by blast
 
 lemma continuous_at_csqrt:
     "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z) csqrt"
-  by (simp add: complex_differentiable_within_csqrt complex_differentiable_imp_continuous_at)
+  by (simp add: field_differentiable_within_csqrt field_differentiable_imp_continuous_at)
 
 corollary isCont_csqrt' [simp]:
    "\<lbrakk>isCont f z; f z \<notin> \<real>\<^sub>\<le>\<^sub>0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. csqrt (f x)) z"
@@ -1857,7 +1852,7 @@ corollary isCont_csqrt' [simp]:
 
 lemma continuous_within_csqrt:
     "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z within s) csqrt"
-  by (simp add: complex_differentiable_imp_continuous_at complex_differentiable_within_csqrt)
+  by (simp add: field_differentiable_imp_continuous_at field_differentiable_within_csqrt)
 
 lemma continuous_on_csqrt [continuous_intros]:
     "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> continuous_on s csqrt"
@@ -1865,7 +1860,7 @@ lemma continuous_on_csqrt [continuous_intros]:
 
 lemma holomorphic_on_csqrt:
     "(\<And>z. z \<in> s \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> csqrt holomorphic_on s"
-  by (simp add: complex_differentiable_within_csqrt holomorphic_on_def)
+  by (simp add: field_differentiable_within_csqrt holomorphic_on_def)
 
 lemma continuous_within_closed_nontrivial:
     "closed s \<Longrightarrow> a \<notin> s ==> continuous (at a within s) f"
@@ -1875,7 +1870,7 @@ lemma continuous_within_closed_nontrivial:
 lemma continuous_within_csqrt_posreal:
     "continuous (at z within (\<real> \<inter> {w. 0 \<le> Re(w)})) csqrt"
 proof (cases "z \<in> \<real>\<^sub>\<le>\<^sub>0")
-  case True 
+  case True
   then have "Im z = 0" "Re z < 0 \<or> z = 0"
     using cnj.code complex_cnj_zero_iff  by (auto simp: complex_nonpos_Reals_iff) fastforce
   then show ?thesis
@@ -2013,20 +2008,20 @@ proof -
     done
 qed
 
-lemma complex_differentiable_at_Arctan: "(Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> Arctan complex_differentiable at z"
+lemma field_differentiable_at_Arctan: "(Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> Arctan field_differentiable at z"
   using has_field_derivative_Arctan
-  by (auto simp: complex_differentiable_def)
+  by (auto simp: field_differentiable_def)
 
-lemma complex_differentiable_within_Arctan:
-    "(Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> Arctan complex_differentiable (at z within s)"
-  using complex_differentiable_at_Arctan complex_differentiable_at_within by blast
+lemma field_differentiable_within_Arctan:
+    "(Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> Arctan field_differentiable (at z within s)"
+  using field_differentiable_at_Arctan field_differentiable_at_within by blast
 
 declare has_field_derivative_Arctan [derivative_intros]
 declare has_field_derivative_Arctan [THEN DERIV_chain2, derivative_intros]
 
 lemma continuous_at_Arctan:
     "(Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> continuous (at z) Arctan"
-  by (simp add: complex_differentiable_imp_continuous_at complex_differentiable_within_Arctan)
+  by (simp add: field_differentiable_imp_continuous_at field_differentiable_within_Arctan)
 
 lemma continuous_within_Arctan:
     "(Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> continuous (at z within s) Arctan"
@@ -2038,7 +2033,7 @@ lemma continuous_on_Arctan [continuous_intros]:
 
 lemma holomorphic_on_Arctan:
     "(\<And>z. z \<in> s \<Longrightarrow> Re z = 0 \<Longrightarrow> \<bar>Im z\<bar> < 1) \<Longrightarrow> Arctan holomorphic_on s"
-  by (simp add: complex_differentiable_within_Arctan holomorphic_on_def)
+  by (simp add: field_differentiable_within_Arctan holomorphic_on_def)
 
 lemma Arctan_series:
   assumes z: "norm (z :: complex) < 1"
@@ -2051,20 +2046,20 @@ proof -
   have summable: "summable (\<lambda>n. g n * u^n)" if "norm u < 1" for u
   proof (cases "u = 0")
     assume u: "u \<noteq> 0"
-    have "(\<lambda>n. ereal (norm (h u n) / norm (h u (Suc n)))) = (\<lambda>n. ereal (inverse (norm u)^2) * 
+    have "(\<lambda>n. ereal (norm (h u n) / norm (h u (Suc n)))) = (\<lambda>n. ereal (inverse (norm u)^2) *
               ereal ((2 + inverse (real (Suc n))) / (2 - inverse (real (Suc n)))))"
     proof
       fix n
-      have "ereal (norm (h u n) / norm (h u (Suc n))) = 
-             ereal (inverse (norm u)^2) * ereal ((of_nat (2*Suc n+1) / of_nat (Suc n)) / 
+      have "ereal (norm (h u n) / norm (h u (Suc n))) =
+             ereal (inverse (norm u)^2) * ereal ((of_nat (2*Suc n+1) / of_nat (Suc n)) /
                  (of_nat (2*Suc n-1) / of_nat (Suc n)))"
-      by (simp add: h_def norm_mult norm_power norm_divide divide_simps 
+      by (simp add: h_def norm_mult norm_power norm_divide divide_simps
                     power2_eq_square eval_nat_numeral del: of_nat_add of_nat_Suc)
       also have "of_nat (2*Suc n+1) / of_nat (Suc n) = (2::real) + inverse (real (Suc n))"
         by (auto simp: divide_simps simp del: of_nat_Suc) simp_all?
       also have "of_nat (2*Suc n-1) / of_nat (Suc n) = (2::real) - inverse (real (Suc n))"
-        by (auto simp: divide_simps simp del: of_nat_Suc) simp_all?      
-      finally show "ereal (norm (h u n) / norm (h u (Suc n))) = ereal (inverse (norm u)^2) * 
+        by (auto simp: divide_simps simp del: of_nat_Suc) simp_all?
+      finally show "ereal (norm (h u n) / norm (h u (Suc n))) = ereal (inverse (norm u)^2) *
               ereal ((2 + inverse (real (Suc n))) / (2 - inverse (real (Suc n))))" .
     qed
     also have "\<dots> \<longlonglongrightarrow> ereal (inverse (norm u)^2) * ereal ((2 + 0) / (2 - 0))"
@@ -2076,7 +2071,7 @@ proof -
     ultimately have A: "liminf (\<lambda>n. ereal (cmod (h u n) / cmod (h u (Suc n)))) > 1" by simp
     from u have "summable (h u)"
       by (intro summable_norm_cancel[OF ratio_test_convergence[OF _ A]])
-         (auto simp: h_def norm_divide norm_mult norm_power simp del: of_nat_Suc 
+         (auto simp: h_def norm_divide norm_mult norm_power simp del: of_nat_Suc
                intro!: mult_pos_pos divide_pos_pos always_eventually)
     thus "summable (\<lambda>n. g n * u^n)"
       by (subst summable_mono_reindex[of "\<lambda>n. 2*n+1", symmetric])
@@ -2095,10 +2090,10 @@ proof -
     also have "(\<lambda>n. diffs g n * u^n) = (\<lambda>n. if even n then (\<i>*u)^n else 0)"
       by (intro ext) (simp_all del: of_nat_Suc add: g_def diffs_def power_mult_distrib)
     also have "suminf \<dots> = (\<Sum>n. (-(u^2))^n)"
-      by (subst suminf_mono_reindex[of "\<lambda>n. 2*n", symmetric]) 
+      by (subst suminf_mono_reindex[of "\<lambda>n. 2*n", symmetric])
          (auto elim!: evenE simp: subseq_def power_mult power_mult_distrib)
     also from u have "norm u^2 < 1^2" by (intro power_strict_mono) simp_all
-    hence "(\<Sum>n. (-(u^2))^n) = inverse (1 + u^2)" 
+    hence "(\<Sum>n. (-(u^2))^n) = inverse (1 + u^2)"
       by (subst suminf_geometric) (simp_all add: norm_power inverse_eq_divide)
     finally have "(G has_field_derivative inverse (1 + u\<^sup>2)) (at u)" .
     from DERIV_diff[OF has_field_derivative_Arctan this] Im_u u
@@ -2126,12 +2121,12 @@ proof -
   hence "norm (\<i> * y) < 1" unfolding y_def by (subst norm_mult) simp
   hence "(\<lambda>n. (-2*\<i>) * ((-1)^n / of_nat (2*n+1) * (\<i>*y)^(2*n+1))) sums ((-2*\<i>) * Arctan (\<i>*y))"
     by (intro Arctan_series sums_mult) simp_all
-  also have "(\<lambda>n. (-2*\<i>) * ((-1)^n / of_nat (2*n+1) * (\<i>*y)^(2*n+1))) = 
+  also have "(\<lambda>n. (-2*\<i>) * ((-1)^n / of_nat (2*n+1) * (\<i>*y)^(2*n+1))) =
                  (\<lambda>n. (-2*\<i>) * ((-1)^n * (\<i>*y*(-y\<^sup>2)^n)/of_nat (2*n+1)))"
     by (intro ext) (simp_all add: power_mult power_mult_distrib)
   also have "\<dots> = (\<lambda>n. 2*y* ((-1) * (-y\<^sup>2))^n/of_nat (2*n+1))"
     by (intro ext, subst power_mult_distrib) (simp add: algebra_simps power_mult)
-  also have "\<dots> = (\<lambda>n. 2*y^(2*n+1) / of_nat (2*n+1))" 
+  also have "\<dots> = (\<lambda>n. 2*y^(2*n+1) / of_nat (2*n+1))"
     by (subst power_add, subst power_mult) (simp add: mult_ac)
   also have "\<dots> = (\<lambda>n. of_real (2*((x-1)/(x+1))^(2*n+1) / of_nat (2*n+1)))"
     by (intro ext) (simp add: y_def)
@@ -2261,7 +2256,7 @@ proof -
   { fix w::complex and z::complex
     assume *: "w \<in> \<real>" "z \<in> \<real>"
     have "cmod (Arctan w - Arctan z) \<le> 1 * cmod (w-z)"
-      apply (rule complex_differentiable_bound [OF convex_Reals, of Arctan _ 1])
+      apply (rule field_differentiable_bound [OF convex_Reals, of Arctan _ 1])
       apply (rule has_field_derivative_at_within [OF has_field_derivative_Arctan])
       apply (force simp add: Reals_def)
       apply (simp add: norm_divide divide_simps in_Reals_norm complex_is_Real_iff power2_eq_square)
@@ -2303,7 +2298,7 @@ lemma Im_Arcsin: "Im(Arcsin z) = - ln (cmod (\<i> * z + csqrt (1 - z\<^sup>2)))"
 lemma one_minus_z2_notin_nonpos_Reals:
   assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
   shows "1 - z\<^sup>2 \<notin> \<real>\<^sub>\<le>\<^sub>0"
-    using assms  
+    using assms
     apply (auto simp: complex_nonpos_Reals_iff Re_power2 Im_power2)
     using power2_less_0 [of "Im z"] apply force
     using abs_square_less_1 not_le by blast
@@ -2441,13 +2436,13 @@ qed
 declare has_field_derivative_Arcsin [derivative_intros]
 declare has_field_derivative_Arcsin [THEN DERIV_chain2, derivative_intros]
 
-lemma complex_differentiable_at_Arcsin:
-    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arcsin complex_differentiable at z"
-  using complex_differentiable_def has_field_derivative_Arcsin by blast
+lemma field_differentiable_at_Arcsin:
+    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arcsin field_differentiable at z"
+  using field_differentiable_def has_field_derivative_Arcsin by blast
 
-lemma complex_differentiable_within_Arcsin:
-    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arcsin complex_differentiable (at z within s)"
-  using complex_differentiable_at_Arcsin complex_differentiable_within_subset by blast
+lemma field_differentiable_within_Arcsin:
+    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arcsin field_differentiable (at z within s)"
+  using field_differentiable_at_Arcsin field_differentiable_within_subset by blast
 
 lemma continuous_within_Arcsin:
     "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> continuous (at z within s) Arcsin"
@@ -2458,7 +2453,7 @@ lemma continuous_on_Arcsin [continuous_intros]:
   by (simp add: continuous_at_imp_continuous_on)
 
 lemma holomorphic_on_Arcsin: "(\<And>z. z \<in> s \<Longrightarrow> Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arcsin holomorphic_on s"
-  by (simp add: complex_differentiable_within_Arcsin holomorphic_on_def)
+  by (simp add: field_differentiable_within_Arcsin holomorphic_on_def)
 
 
 subsection\<open>Inverse Cosine\<close>
@@ -2483,7 +2478,7 @@ lemma Im_Arccos: "Im(Arccos z) = - ln (cmod (z + \<i> * csqrt (1 - z\<^sup>2)))"
 
 text\<open>A very tricky argument to find!\<close>
 lemma isCont_Arccos_lemma:
-  assumes eq0: "Im (z + \<i> * csqrt (1 - z\<^sup>2)) = 0" and "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)" 
+  assumes eq0: "Im (z + \<i> * csqrt (1 - z\<^sup>2)) = 0" and "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
     shows False
 proof (cases "Im z = 0")
   case True
@@ -2608,13 +2603,13 @@ qed
 declare has_field_derivative_Arcsin [derivative_intros]
 declare has_field_derivative_Arcsin [THEN DERIV_chain2, derivative_intros]
 
-lemma complex_differentiable_at_Arccos:
-    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arccos complex_differentiable at z"
-  using complex_differentiable_def has_field_derivative_Arccos by blast
+lemma field_differentiable_at_Arccos:
+    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arccos field_differentiable at z"
+  using field_differentiable_def has_field_derivative_Arccos by blast
 
-lemma complex_differentiable_within_Arccos:
-    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arccos complex_differentiable (at z within s)"
-  using complex_differentiable_at_Arccos complex_differentiable_within_subset by blast
+lemma field_differentiable_within_Arccos:
+    "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arccos field_differentiable (at z within s)"
+  using field_differentiable_at_Arccos field_differentiable_within_subset by blast
 
 lemma continuous_within_Arccos:
     "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> continuous (at z within s) Arccos"
@@ -2625,7 +2620,7 @@ lemma continuous_on_Arccos [continuous_intros]:
   by (simp add: continuous_at_imp_continuous_on)
 
 lemma holomorphic_on_Arccos: "(\<And>z. z \<in> s \<Longrightarrow> Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1) \<Longrightarrow> Arccos holomorphic_on s"
-  by (simp add: complex_differentiable_within_Arccos holomorphic_on_def)
+  by (simp add: field_differentiable_within_Arccos holomorphic_on_def)
 
 
 subsection\<open>Upper and Lower Bounds for Inverse Sine and Cosine\<close>

@@ -671,7 +671,7 @@ proof -
     by (auto intro: holomorphic_factor_order_of_zero [OF assms])
   have con: "continuous_on (ball \<xi> r) (\<lambda>z. deriv g z / g z)"
     by (rule continuous_intros) (auto simp: gne holg holomorphic_deriv holomorphic_on_imp_continuous_on)
-  have cd: "\<And>x. dist \<xi> x < r \<Longrightarrow> (\<lambda>z. deriv g z / g z) complex_differentiable at x"
+  have cd: "\<And>x. dist \<xi> x < r \<Longrightarrow> (\<lambda>z. deriv g z / g z) field_differentiable at x"
     apply (rule derivative_intros)+
     using holg mem_ball apply (blast intro: holomorphic_deriv holomorphic_on_imp_differentiable_at)
     apply (metis Topology_Euclidean_Space.open_ball at_within_open holg holomorphic_on_def mem_ball)
@@ -687,7 +687,7 @@ proof -
     by (auto intro!: continuous_intros simp add: holg holomorphic_on_imp_continuous_on gne)
   have 0: "dist \<xi> x < r \<Longrightarrow> ((\<lambda>x. exp (h x) / g x) has_field_derivative 0) (at x)" for x
     apply (rule h derivative_eq_intros | simp)+
-    apply (rule DERIV_deriv_iff_complex_differentiable [THEN iffD2])
+    apply (rule DERIV_deriv_iff_field_differentiable [THEN iffD2])
     using holg apply (auto simp: holomorphic_on_imp_differentiable_at gne h)
     done
   obtain c where c: "\<And>x. x \<in> ball \<xi> r \<Longrightarrow> exp (h x) / g x = c"
@@ -852,15 +852,15 @@ proof -
     have holh: "h holomorphic_on S"
     proof (simp add: holomorphic_on_def, clarify)
       fix z assume "z \<in> S"
-      show "h complex_differentiable at z within S"
+      show "h field_differentiable at z within S"
       proof (cases "z = \<xi>")
         case True then show ?thesis
-          using complex_differentiable_at_within complex_differentiable_def h0 by blast
+          using field_differentiable_at_within field_differentiable_def h0 by blast
       next
         case False
-        then have "f complex_differentiable at z within S"
+        then have "f field_differentiable at z within S"
           using holomorphic_onD [OF holf, of z] \<open>z \<in> S\<close>
-          unfolding complex_differentiable_def DERIV_within_iff
+          unfolding field_differentiable_def DERIV_within_iff
           by (force intro: exI [where x="dist \<xi> z"] elim: Lim_transform_within_set [unfolded eventually_at])
         then show ?thesis
           by (simp add: h_def power2_eq_square derivative_intros)
@@ -1131,7 +1131,7 @@ proof -
     apply (rule has_derivative_locally_injective [OF S, where f=f and f' = "\<lambda>z h. deriv f z * h" and g' = g'])
     using g' *
     apply (simp_all add: linear_conv_bounded_linear that)
-    using DERIV_deriv_iff_complex_differentiable has_field_derivative_imp_has_derivative holf
+    using DERIV_deriv_iff_field_differentiable has_field_derivative_imp_has_derivative holf
         holomorphic_on_imp_differentiable_at \<open>open S\<close> apply blast
     done
 qed
@@ -1204,7 +1204,7 @@ proof -
         using holg by (simp add: holomorphic_on_subset subset_ball)
       have gd: "\<And>w. dist \<xi> w < \<delta> \<Longrightarrow> (g has_field_derivative deriv g w) (at w)"
         using holg
-        by (simp add: DERIV_deriv_iff_complex_differentiable holomorphic_on_def at_within_open_NO_MATCH)
+        by (simp add: DERIV_deriv_iff_field_differentiable holomorphic_on_def at_within_open_NO_MATCH)
       have *: "\<And>w. w \<in> ball \<xi> (min r \<delta>)
             \<Longrightarrow> ((\<lambda>w. (w - \<xi>) * g w) has_field_derivative ((w - \<xi>) * deriv g w + g w))
                 (at w)"
@@ -1266,7 +1266,7 @@ proof -
   have *: "(the_inv_into S f has_field_derivative inverse (deriv f z)) (at (f z))" if "z \<in> S" for z
   proof -
     have 1: "(f has_field_derivative deriv f z) (at z)"
-      using DERIV_deriv_iff_complex_differentiable \<open>z \<in> S\<close> \<open>open S\<close> holf holomorphic_on_imp_differentiable_at
+      using DERIV_deriv_iff_field_differentiable \<open>z \<in> S\<close> \<open>open S\<close> holf holomorphic_on_imp_differentiable_at
       by blast
     have 2: "deriv f z \<noteq> 0"
       using \<open>z \<in> S\<close> \<open>open S\<close> holf holomorphic_injective_imp_regular injf by blast
@@ -1524,7 +1524,7 @@ next
   have 3: "contour_integral (reversepath (linepath b' a')) f =
                 - contour_integral (linepath b' a') f"
     by (rule contour_integral_reversepath [OF valid_path_linepath])
-  have fcd_le: "f complex_differentiable at x"
+  have fcd_le: "f field_differentiable at x"
                if "x \<in> interior S \<and> x \<in> interior {x. d \<bullet> x \<le> k}" for x
   proof -
     have "f holomorphic_on S \<inter> {c. d \<bullet> c < k}"
@@ -1532,7 +1532,7 @@ next
     then have "\<exists>C D. x \<in> interior C \<inter> interior D \<and> f holomorphic_on interior C \<inter> interior D"
       using that
       by (metis Collect_mem_eq Int_Collect \<open>d \<noteq> 0\<close> interior_halfspace_le interior_open \<open>open S\<close>)
-    then show "f complex_differentiable at x"
+    then show "f field_differentiable at x"
       by (metis at_within_interior holomorphic_on_def interior_Int interior_interior)
   qed
   have ab_le: "\<And>x. x \<in> closed_segment a b \<Longrightarrow> d \<bullet> x \<le> k"
@@ -1557,7 +1557,7 @@ next
                 contour_integral (linepath a' b') f +
                 contour_integral (linepath b' a) f = 0"
     by (rule has_chain_integral_chain_integral4)
-  have fcd_ge: "f complex_differentiable at x"
+  have fcd_ge: "f field_differentiable at x"
                if "x \<in> interior S \<and> x \<in> interior {x. k \<le> d \<bullet> x}" for x
   proof -
     have f2: "f holomorphic_on S \<inter> {c. k < d \<bullet> c}"
@@ -1566,7 +1566,7 @@ next
       by (simp add: interior_open \<open>open S\<close>)
     then have "x \<in> S \<inter> interior {c. k \<le> d \<bullet> c}"
       using that by simp
-    then show "f complex_differentiable at x"
+    then show "f field_differentiable at x"
       using f3 f2 unfolding holomorphic_on_def
       by (metis (no_types) \<open>d \<noteq> 0\<close> at_within_interior interior_Int interior_halfspace_ge interior_interior)
   qed
@@ -1688,10 +1688,10 @@ proof -
     apply (intro continuous_intros continuous_on_compose continuous_on_subset [OF contf])
     using cnjs apply auto
     done
-  have "cnj \<circ> f \<circ> cnj complex_differentiable at x within S \<inter> {z. Im z < 0}"
-        if "x \<in> S" "Im x < 0" "f complex_differentiable at (cnj x) within S \<inter> {z. 0 < Im z}" for x
+  have "cnj \<circ> f \<circ> cnj field_differentiable at x within S \<inter> {z. Im z < 0}"
+        if "x \<in> S" "Im x < 0" "f field_differentiable at (cnj x) within S \<inter> {z. 0 < Im z}" for x
     using that
-    apply (simp add: complex_differentiable_def Derivative.DERIV_within_iff Lim_within dist_norm, clarify)
+    apply (simp add: field_differentiable_def Derivative.DERIV_within_iff Lim_within dist_norm, clarify)
     apply (rule_tac x="cnj f'" in exI)
     apply (elim all_forward ex_forward conj_forward imp_forward asm_rl, clarify)
     apply (drule_tac x="cnj xa" in bspec)
@@ -1902,11 +1902,11 @@ proof -
     by (simp add: o_def)
   have hol0: "(\<lambda>z. f (a + z)) holomorphic_on cball 0 r"
     unfolding fz by (intro holomorphic_intros holf holomorphic_on_compose | simp)+
-  then have [simp]: "\<And>x. norm x < r \<Longrightarrow> (\<lambda>z. f (a + z)) complex_differentiable at x"
+  then have [simp]: "\<And>x. norm x < r \<Longrightarrow> (\<lambda>z. f (a + z)) field_differentiable at x"
     by (metis Topology_Euclidean_Space.open_ball at_within_open ball_subset_cball diff_0 dist_norm holomorphic_on_def holomorphic_on_subset mem_ball norm_minus_cancel)
-  have [simp]: "\<And>z. norm z < r \<Longrightarrow> f complex_differentiable at (a + z)"
+  have [simp]: "\<And>z. norm z < r \<Longrightarrow> f field_differentiable at (a + z)"
     by (metis holf open_ball add_diff_cancel_left' dist_complex_def holomorphic_on_imp_differentiable_at holomorphic_on_subset interior_cball interior_subset mem_ball norm_minus_commute)
-  then have [simp]: "f complex_differentiable at a"
+  then have [simp]: "f field_differentiable at a"
     by (metis add.comm_neutral \<open>0 < r\<close> norm_eq_zero)
   have hol1: "(\<lambda>z. f (a + z) - f a) holomorphic_on cball 0 r"
     by (intro holomorphic_intros hol0)
@@ -1920,7 +1920,7 @@ proof -
   then show ?thesis
     apply clarify
     apply (drule_tac c="x - f a" in subsetD)
-     apply (force simp: fz \<open>0 < r\<close> dist_norm complex_derivative_chain complex_differentiable_compose)+
+     apply (force simp: fz \<open>0 < r\<close> dist_norm complex_derivative_chain field_differentiable_compose)+
     done
 qed
 
@@ -2026,7 +2026,7 @@ next
   case False
     def C \<equiv> "deriv f a"
     have "0 < norm C" using False by (simp add: C_def)
-    have dfa: "f complex_differentiable at a"
+    have dfa: "f field_differentiable at a"
       apply (rule holomorphic_on_imp_differentiable_at [OF holf])
       using \<open>0 < r\<close> by auto
     have fo: "(\<lambda>z. f (a + of_real r * z)) = f o (\<lambda>z. (a + of_real r * z))"
@@ -2045,7 +2045,7 @@ next
     have *: "((\<lambda>x. f (a + of_real r * x)) has_field_derivative
              (deriv f (a + of_real r * z) * of_real r)) (at z)"
         apply (simp add: fo)
-        apply (rule DERIV_chain [OF complex_differentiable_derivI])
+        apply (rule DERIV_chain [OF field_differentiable_derivI])
         apply (rule holomorphic_on_imp_differentiable_at [OF holf], simp)
         using \<open>0 < r\<close> apply (simp add: dist_norm norm_mult that)
         apply (rule derivative_eq_intros | simp)+
@@ -2055,10 +2055,10 @@ next
         using \<open>0 < r\<close> by (auto simp: C_def False)
     qed
     have 2: "deriv (\<lambda>z. f (a + of_real r * z) / (C * of_real r)) 0 = 1"
-      apply (subst complex_derivative_cdivide_right)
-      apply (simp add: complex_differentiable_def fo)
+      apply (subst deriv_cdivide_right)
+      apply (simp add: field_differentiable_def fo)
       apply (rule exI)
-      apply (rule DERIV_chain [OF complex_differentiable_derivI])
+      apply (rule DERIV_chain [OF field_differentiable_derivI])
       apply (simp add: dfa)
       apply (rule derivative_eq_intros | simp add: C_def False fo)+
       using \<open>0 < r\<close> 

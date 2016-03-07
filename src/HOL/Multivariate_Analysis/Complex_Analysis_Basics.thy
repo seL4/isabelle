@@ -277,159 +277,159 @@ lemma Lim_null_comparison_Re:
 
 subsection\<open>Holomorphic functions\<close>
 
-definition complex_differentiable :: "['a \<Rightarrow> 'a::real_normed_field, 'a filter] \<Rightarrow> bool"
-           (infixr "(complex'_differentiable)" 50)
-  where "f complex_differentiable F \<equiv> \<exists>f'. (f has_field_derivative f') F"
+definition field_differentiable :: "['a \<Rightarrow> 'a::real_normed_field, 'a filter] \<Rightarrow> bool"
+           (infixr "(field'_differentiable)" 50)
+  where "f field_differentiable F \<equiv> \<exists>f'. (f has_field_derivative f') F"
 
-lemma complex_differentiable_derivI:
-    "f complex_differentiable (at x) \<Longrightarrow> (f has_field_derivative deriv f x) (at x)"
-by (simp add: complex_differentiable_def DERIV_deriv_iff_has_field_derivative)
+lemma field_differentiable_derivI:
+    "f field_differentiable (at x) \<Longrightarrow> (f has_field_derivative deriv f x) (at x)"
+by (simp add: field_differentiable_def DERIV_deriv_iff_has_field_derivative)
 
-lemma complex_differentiable_imp_continuous_at:
-    "f complex_differentiable (at x within s) \<Longrightarrow> continuous (at x within s) f"
-  by (metis DERIV_continuous complex_differentiable_def)
+lemma field_differentiable_imp_continuous_at:
+    "f field_differentiable (at x within s) \<Longrightarrow> continuous (at x within s) f"
+  by (metis DERIV_continuous field_differentiable_def)
 
-lemma complex_differentiable_within_subset:
-    "\<lbrakk>f complex_differentiable (at x within s); t \<subseteq> s\<rbrakk>
-     \<Longrightarrow> f complex_differentiable (at x within t)"
-  by (metis DERIV_subset complex_differentiable_def)
+lemma field_differentiable_within_subset:
+    "\<lbrakk>f field_differentiable (at x within s); t \<subseteq> s\<rbrakk>
+     \<Longrightarrow> f field_differentiable (at x within t)"
+  by (metis DERIV_subset field_differentiable_def)
 
-lemma complex_differentiable_at_within:
-    "\<lbrakk>f complex_differentiable (at x)\<rbrakk>
-     \<Longrightarrow> f complex_differentiable (at x within s)"
-  unfolding complex_differentiable_def
+lemma field_differentiable_at_within:
+    "\<lbrakk>f field_differentiable (at x)\<rbrakk>
+     \<Longrightarrow> f field_differentiable (at x within s)"
+  unfolding field_differentiable_def
   by (metis DERIV_subset top_greatest)
 
-lemma complex_differentiable_linear [simp,derivative_intros]: "(op * c) complex_differentiable F"
+lemma field_differentiable_linear [simp,derivative_intros]: "(op * c) field_differentiable F"
 proof -
   show ?thesis
-    unfolding complex_differentiable_def has_field_derivative_def mult_commute_abs
+    unfolding field_differentiable_def has_field_derivative_def mult_commute_abs
     by (force intro: has_derivative_mult_right)
 qed
 
-lemma complex_differentiable_const [simp,derivative_intros]: "(\<lambda>z. c) complex_differentiable F"
-  unfolding complex_differentiable_def has_field_derivative_def
+lemma field_differentiable_const [simp,derivative_intros]: "(\<lambda>z. c) field_differentiable F"
+  unfolding field_differentiable_def has_field_derivative_def
   by (rule exI [where x=0])
      (metis has_derivative_const lambda_zero)
 
-lemma complex_differentiable_ident [simp,derivative_intros]: "(\<lambda>z. z) complex_differentiable F"
-  unfolding complex_differentiable_def has_field_derivative_def
+lemma field_differentiable_ident [simp,derivative_intros]: "(\<lambda>z. z) field_differentiable F"
+  unfolding field_differentiable_def has_field_derivative_def
   by (rule exI [where x=1])
      (simp add: lambda_one [symmetric])
 
-lemma complex_differentiable_id [simp,derivative_intros]: "id complex_differentiable F"
-  unfolding id_def by (rule complex_differentiable_ident)
+lemma field_differentiable_id [simp,derivative_intros]: "id field_differentiable F"
+  unfolding id_def by (rule field_differentiable_ident)
 
-lemma complex_differentiable_minus [derivative_intros]:
-  "f complex_differentiable F \<Longrightarrow> (\<lambda>z. - (f z)) complex_differentiable F"
-  using assms unfolding complex_differentiable_def
+lemma field_differentiable_minus [derivative_intros]:
+  "f field_differentiable F \<Longrightarrow> (\<lambda>z. - (f z)) field_differentiable F"
+  using assms unfolding field_differentiable_def
   by (metis field_differentiable_minus)
 
-lemma complex_differentiable_add [derivative_intros]:
-  assumes "f complex_differentiable F" "g complex_differentiable F"
-    shows "(\<lambda>z. f z + g z) complex_differentiable F"
-  using assms unfolding complex_differentiable_def
+lemma field_differentiable_add [derivative_intros]:
+  assumes "f field_differentiable F" "g field_differentiable F"
+    shows "(\<lambda>z. f z + g z) field_differentiable F"
+  using assms unfolding field_differentiable_def
   by (metis field_differentiable_add)
 
-lemma complex_differentiable_add_const [simp,derivative_intros]:
-     "op + c complex_differentiable F"
-  by (simp add: complex_differentiable_add)
+lemma field_differentiable_add_const [simp,derivative_intros]:
+     "op + c field_differentiable F"
+  by (simp add: field_differentiable_add)
 
-lemma complex_differentiable_setsum [derivative_intros]:
-  "(\<And>i. i \<in> I \<Longrightarrow> (f i) complex_differentiable F) \<Longrightarrow> (\<lambda>z. \<Sum>i\<in>I. f i z) complex_differentiable F"
+lemma field_differentiable_setsum [derivative_intros]:
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) field_differentiable F) \<Longrightarrow> (\<lambda>z. \<Sum>i\<in>I. f i z) field_differentiable F"
   by (induct I rule: infinite_finite_induct)
-     (auto intro: complex_differentiable_add complex_differentiable_const)
+     (auto intro: field_differentiable_add field_differentiable_const)
 
-lemma complex_differentiable_diff [derivative_intros]:
-  assumes "f complex_differentiable F" "g complex_differentiable F"
-    shows "(\<lambda>z. f z - g z) complex_differentiable F"
-  using assms unfolding complex_differentiable_def
+lemma field_differentiable_diff [derivative_intros]:
+  assumes "f field_differentiable F" "g field_differentiable F"
+    shows "(\<lambda>z. f z - g z) field_differentiable F"
+  using assms unfolding field_differentiable_def
   by (metis field_differentiable_diff)
 
-lemma complex_differentiable_inverse [derivative_intros]:
-  assumes "f complex_differentiable (at a within s)" "f a \<noteq> 0"
-  shows "(\<lambda>z. inverse (f z)) complex_differentiable (at a within s)"
-  using assms unfolding complex_differentiable_def
+lemma field_differentiable_inverse [derivative_intros]:
+  assumes "f field_differentiable (at a within s)" "f a \<noteq> 0"
+  shows "(\<lambda>z. inverse (f z)) field_differentiable (at a within s)"
+  using assms unfolding field_differentiable_def
   by (metis DERIV_inverse_fun)
 
-lemma complex_differentiable_mult [derivative_intros]:
-  assumes "f complex_differentiable (at a within s)"
-          "g complex_differentiable (at a within s)"
-    shows "(\<lambda>z. f z * g z) complex_differentiable (at a within s)"
-  using assms unfolding complex_differentiable_def
+lemma field_differentiable_mult [derivative_intros]:
+  assumes "f field_differentiable (at a within s)"
+          "g field_differentiable (at a within s)"
+    shows "(\<lambda>z. f z * g z) field_differentiable (at a within s)"
+  using assms unfolding field_differentiable_def
   by (metis DERIV_mult [of f _ a s g])
 
-lemma complex_differentiable_divide [derivative_intros]:
-  assumes "f complex_differentiable (at a within s)"
-          "g complex_differentiable (at a within s)"
+lemma field_differentiable_divide [derivative_intros]:
+  assumes "f field_differentiable (at a within s)"
+          "g field_differentiable (at a within s)"
           "g a \<noteq> 0"
-    shows "(\<lambda>z. f z / g z) complex_differentiable (at a within s)"
-  using assms unfolding complex_differentiable_def
+    shows "(\<lambda>z. f z / g z) field_differentiable (at a within s)"
+  using assms unfolding field_differentiable_def
   by (metis DERIV_divide [of f _ a s g])
 
-lemma complex_differentiable_power [derivative_intros]:
-  assumes "f complex_differentiable (at a within s)"
-    shows "(\<lambda>z. f z ^ n) complex_differentiable (at a within s)"
-  using assms unfolding complex_differentiable_def
+lemma field_differentiable_power [derivative_intros]:
+  assumes "f field_differentiable (at a within s)"
+    shows "(\<lambda>z. f z ^ n) field_differentiable (at a within s)"
+  using assms unfolding field_differentiable_def
   by (metis DERIV_power)
 
-lemma complex_differentiable_transform_within:
+lemma field_differentiable_transform_within:
   "0 < d \<Longrightarrow>
         x \<in> s \<Longrightarrow>
         (\<And>x'. x' \<in> s \<Longrightarrow> dist x' x < d \<Longrightarrow> f x' = g x') \<Longrightarrow>
-        f complex_differentiable (at x within s)
-        \<Longrightarrow> g complex_differentiable (at x within s)"
-  unfolding complex_differentiable_def has_field_derivative_def
+        f field_differentiable (at x within s)
+        \<Longrightarrow> g field_differentiable (at x within s)"
+  unfolding field_differentiable_def has_field_derivative_def
   by (blast intro: has_derivative_transform_within)
 
-lemma complex_differentiable_compose_within:
-  assumes "f complex_differentiable (at a within s)"
-          "g complex_differentiable (at (f a) within f`s)"
-    shows "(g o f) complex_differentiable (at a within s)"
-  using assms unfolding complex_differentiable_def
+lemma field_differentiable_compose_within:
+  assumes "f field_differentiable (at a within s)"
+          "g field_differentiable (at (f a) within f`s)"
+    shows "(g o f) field_differentiable (at a within s)"
+  using assms unfolding field_differentiable_def
   by (metis DERIV_image_chain)
 
-lemma complex_differentiable_compose:
-  "f complex_differentiable at z \<Longrightarrow> g complex_differentiable at (f z)
-          \<Longrightarrow> (g o f) complex_differentiable at z"
-by (metis complex_differentiable_at_within complex_differentiable_compose_within)
+lemma field_differentiable_compose:
+  "f field_differentiable at z \<Longrightarrow> g field_differentiable at (f z)
+          \<Longrightarrow> (g o f) field_differentiable at z"
+by (metis field_differentiable_at_within field_differentiable_compose_within)
 
-lemma complex_differentiable_within_open:
-     "\<lbrakk>a \<in> s; open s\<rbrakk> \<Longrightarrow> f complex_differentiable at a within s \<longleftrightarrow>
-                          f complex_differentiable at a"
-  unfolding complex_differentiable_def
+lemma field_differentiable_within_open:
+     "\<lbrakk>a \<in> s; open s\<rbrakk> \<Longrightarrow> f field_differentiable at a within s \<longleftrightarrow>
+                          f field_differentiable at a"
+  unfolding field_differentiable_def
   by (metis at_within_open)
 
 subsection\<open>Caratheodory characterization\<close>
 
-lemma complex_differentiable_caratheodory_at:
-  "f complex_differentiable (at z) \<longleftrightarrow>
+lemma field_differentiable_caratheodory_at:
+  "f field_differentiable (at z) \<longleftrightarrow>
          (\<exists>g. (\<forall>w. f(w) - f(z) = g(w) * (w - z)) \<and> continuous (at z) g)"
   using CARAT_DERIV [of f]
-  by (simp add: complex_differentiable_def has_field_derivative_def)
+  by (simp add: field_differentiable_def has_field_derivative_def)
 
-lemma complex_differentiable_caratheodory_within:
-  "f complex_differentiable (at z within s) \<longleftrightarrow>
+lemma field_differentiable_caratheodory_within:
+  "f field_differentiable (at z within s) \<longleftrightarrow>
          (\<exists>g. (\<forall>w. f(w) - f(z) = g(w) * (w - z)) \<and> continuous (at z within s) g)"
   using DERIV_caratheodory_within [of f]
-  by (simp add: complex_differentiable_def has_field_derivative_def)
+  by (simp add: field_differentiable_def has_field_derivative_def)
 
 subsection\<open>Holomorphic\<close>
 
 definition holomorphic_on :: "[complex \<Rightarrow> complex, complex set] \<Rightarrow> bool"
            (infixl "(holomorphic'_on)" 50)
-  where "f holomorphic_on s \<equiv> \<forall>x\<in>s. f complex_differentiable (at x within s)"
+  where "f holomorphic_on s \<equiv> \<forall>x\<in>s. f field_differentiable (at x within s)"
 
 named_theorems holomorphic_intros "structural introduction rules for holomorphic_on"
 
-lemma holomorphic_onI [intro?]: "(\<And>x. x \<in> s \<Longrightarrow> f complex_differentiable (at x within s)) \<Longrightarrow> f holomorphic_on s"
+lemma holomorphic_onI [intro?]: "(\<And>x. x \<in> s \<Longrightarrow> f field_differentiable (at x within s)) \<Longrightarrow> f holomorphic_on s"
   by (simp add: holomorphic_on_def)
 
-lemma holomorphic_onD [dest?]: "\<lbrakk>f holomorphic_on s; x \<in> s\<rbrakk> \<Longrightarrow> f complex_differentiable (at x within s)"
+lemma holomorphic_onD [dest?]: "\<lbrakk>f holomorphic_on s; x \<in> s\<rbrakk> \<Longrightarrow> f field_differentiable (at x within s)"
   by (simp add: holomorphic_on_def)
 
 lemma holomorphic_on_imp_differentiable_at:
-   "\<lbrakk>f holomorphic_on s; open s; x \<in> s\<rbrakk> \<Longrightarrow> f complex_differentiable (at x)"
+   "\<lbrakk>f holomorphic_on s; open s; x \<in> s\<rbrakk> \<Longrightarrow> f field_differentiable (at x)"
 using at_within_open holomorphic_on_def by fastforce
 
 lemma holomorphic_on_empty [holomorphic_intros]: "f holomorphic_on {}"
@@ -437,38 +437,38 @@ lemma holomorphic_on_empty [holomorphic_intros]: "f holomorphic_on {}"
 
 lemma holomorphic_on_open:
     "open s \<Longrightarrow> f holomorphic_on s \<longleftrightarrow> (\<forall>x \<in> s. \<exists>f'. DERIV f x :> f')"
-  by (auto simp: holomorphic_on_def complex_differentiable_def has_field_derivative_def at_within_open [of _ s])
+  by (auto simp: holomorphic_on_def field_differentiable_def has_field_derivative_def at_within_open [of _ s])
 
 lemma holomorphic_on_imp_continuous_on:
     "f holomorphic_on s \<Longrightarrow> continuous_on s f"
-  by (metis complex_differentiable_imp_continuous_at continuous_on_eq_continuous_within holomorphic_on_def)
+  by (metis field_differentiable_imp_continuous_at continuous_on_eq_continuous_within holomorphic_on_def)
 
 lemma holomorphic_on_subset:
     "f holomorphic_on s \<Longrightarrow> t \<subseteq> s \<Longrightarrow> f holomorphic_on t"
   unfolding holomorphic_on_def
-  by (metis complex_differentiable_within_subset subsetD)
+  by (metis field_differentiable_within_subset subsetD)
 
 lemma holomorphic_transform: "\<lbrakk>f holomorphic_on s; \<And>x. x \<in> s \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> g holomorphic_on s"
-  by (metis complex_differentiable_transform_within linordered_field_no_ub holomorphic_on_def)
+  by (metis field_differentiable_transform_within linordered_field_no_ub holomorphic_on_def)
 
 lemma holomorphic_cong: "s = t ==> (\<And>x. x \<in> s \<Longrightarrow> f x = g x) \<Longrightarrow> f holomorphic_on s \<longleftrightarrow> g holomorphic_on t"
   by (metis holomorphic_transform)
 
 lemma holomorphic_on_linear [simp, holomorphic_intros]: "(op * c) holomorphic_on s"
-  unfolding holomorphic_on_def by (metis complex_differentiable_linear)
+  unfolding holomorphic_on_def by (metis field_differentiable_linear)
 
 lemma holomorphic_on_const [simp, holomorphic_intros]: "(\<lambda>z. c) holomorphic_on s"
-  unfolding holomorphic_on_def by (metis complex_differentiable_const)
+  unfolding holomorphic_on_def by (metis field_differentiable_const)
 
 lemma holomorphic_on_ident [simp, holomorphic_intros]: "(\<lambda>x. x) holomorphic_on s"
-  unfolding holomorphic_on_def by (metis complex_differentiable_ident)
+  unfolding holomorphic_on_def by (metis field_differentiable_ident)
 
 lemma holomorphic_on_id [simp, holomorphic_intros]: "id holomorphic_on s"
   unfolding id_def by (rule holomorphic_on_ident)
 
 lemma holomorphic_on_compose:
   "f holomorphic_on s \<Longrightarrow> g holomorphic_on (f ` s) \<Longrightarrow> (g o f) holomorphic_on s"
-  using complex_differentiable_compose_within[of f _ s g]
+  using field_differentiable_compose_within[of f _ s g]
   by (auto simp: holomorphic_on_def)
 
 lemma holomorphic_on_compose_gen:
@@ -476,49 +476,49 @@ lemma holomorphic_on_compose_gen:
   by (metis holomorphic_on_compose holomorphic_on_subset)
 
 lemma holomorphic_on_minus [holomorphic_intros]: "f holomorphic_on s \<Longrightarrow> (\<lambda>z. -(f z)) holomorphic_on s"
-  by (metis complex_differentiable_minus holomorphic_on_def)
+  by (metis field_differentiable_minus holomorphic_on_def)
 
 lemma holomorphic_on_add [holomorphic_intros]:
   "\<lbrakk>f holomorphic_on s; g holomorphic_on s\<rbrakk> \<Longrightarrow> (\<lambda>z. f z + g z) holomorphic_on s"
-  unfolding holomorphic_on_def by (metis complex_differentiable_add)
+  unfolding holomorphic_on_def by (metis field_differentiable_add)
 
 lemma holomorphic_on_diff [holomorphic_intros]:
   "\<lbrakk>f holomorphic_on s; g holomorphic_on s\<rbrakk> \<Longrightarrow> (\<lambda>z. f z - g z) holomorphic_on s"
-  unfolding holomorphic_on_def by (metis complex_differentiable_diff)
+  unfolding holomorphic_on_def by (metis field_differentiable_diff)
 
 lemma holomorphic_on_mult [holomorphic_intros]:
   "\<lbrakk>f holomorphic_on s; g holomorphic_on s\<rbrakk> \<Longrightarrow> (\<lambda>z. f z * g z) holomorphic_on s"
-  unfolding holomorphic_on_def by (metis complex_differentiable_mult)
+  unfolding holomorphic_on_def by (metis field_differentiable_mult)
 
 lemma holomorphic_on_inverse [holomorphic_intros]:
   "\<lbrakk>f holomorphic_on s; \<And>z. z \<in> s \<Longrightarrow> f z \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>z. inverse (f z)) holomorphic_on s"
-  unfolding holomorphic_on_def by (metis complex_differentiable_inverse)
+  unfolding holomorphic_on_def by (metis field_differentiable_inverse)
 
 lemma holomorphic_on_divide [holomorphic_intros]:
   "\<lbrakk>f holomorphic_on s; g holomorphic_on s; \<And>z. z \<in> s \<Longrightarrow> g z \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>z. f z / g z) holomorphic_on s"
-  unfolding holomorphic_on_def by (metis complex_differentiable_divide)
+  unfolding holomorphic_on_def by (metis field_differentiable_divide)
 
 lemma holomorphic_on_power [holomorphic_intros]:
   "f holomorphic_on s \<Longrightarrow> (\<lambda>z. (f z)^n) holomorphic_on s"
-  unfolding holomorphic_on_def by (metis complex_differentiable_power)
+  unfolding holomorphic_on_def by (metis field_differentiable_power)
 
 lemma holomorphic_on_setsum [holomorphic_intros]:
   "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on s) \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) I) holomorphic_on s"
-  unfolding holomorphic_on_def by (metis complex_differentiable_setsum)
+  unfolding holomorphic_on_def by (metis field_differentiable_setsum)
 
-lemma DERIV_deriv_iff_complex_differentiable:
-  "DERIV f x :> deriv f x \<longleftrightarrow> f complex_differentiable at x"
-  unfolding complex_differentiable_def by (metis DERIV_imp_deriv)
+lemma DERIV_deriv_iff_field_differentiable:
+  "DERIV f x :> deriv f x \<longleftrightarrow> f field_differentiable at x"
+  unfolding field_differentiable_def by (metis DERIV_imp_deriv)
 
 lemma holomorphic_derivI:
      "\<lbrakk>f holomorphic_on S; open S; x \<in> S\<rbrakk>
       \<Longrightarrow> (f has_field_derivative deriv f x) (at x within T)"
-by (metis DERIV_deriv_iff_complex_differentiable at_within_open  holomorphic_on_def has_field_derivative_at_within)
+by (metis DERIV_deriv_iff_field_differentiable at_within_open  holomorphic_on_def has_field_derivative_at_within)
 
 lemma complex_derivative_chain:
-  "f complex_differentiable at x \<Longrightarrow> g complex_differentiable at (f x)
+  "f field_differentiable at x \<Longrightarrow> g field_differentiable at (f x)
     \<Longrightarrow> deriv (g o f) x = deriv g (f x) * deriv f x"
-  by (metis DERIV_deriv_iff_complex_differentiable DERIV_chain DERIV_imp_deriv)
+  by (metis DERIV_deriv_iff_field_differentiable DERIV_chain DERIV_imp_deriv)
 
 lemma deriv_linear [simp]: "deriv (\<lambda>w. c * w) = (\<lambda>z. c)"
   by (metis DERIV_imp_deriv DERIV_cmult_Id)
@@ -532,50 +532,50 @@ lemma deriv_id [simp]: "deriv id = (\<lambda>z. 1)"
 lemma deriv_const [simp]: "deriv (\<lambda>w. c) = (\<lambda>z. 0)"
   by (metis DERIV_imp_deriv DERIV_const)
 
-lemma complex_derivative_add [simp]:
-  "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>
+lemma deriv_add [simp]:
+  "\<lbrakk>f field_differentiable at z; g field_differentiable at z\<rbrakk>
    \<Longrightarrow> deriv (\<lambda>w. f w + g w) z = deriv f z + deriv g z"
-  unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
+  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_intros)
 
-lemma complex_derivative_diff [simp]:
-  "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>
+lemma deriv_diff [simp]:
+  "\<lbrakk>f field_differentiable at z; g field_differentiable at z\<rbrakk>
    \<Longrightarrow> deriv (\<lambda>w. f w - g w) z = deriv f z - deriv g z"
-  unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
+  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_intros)
 
-lemma complex_derivative_mult [simp]:
-  "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>
+lemma deriv_mult [simp]:
+  "\<lbrakk>f field_differentiable at z; g field_differentiable at z\<rbrakk>
    \<Longrightarrow> deriv (\<lambda>w. f w * g w) z = f z * deriv g z + deriv f z * g z"
-  unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
+  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
 
-lemma complex_derivative_cmult [simp]:
-  "f complex_differentiable at z \<Longrightarrow> deriv (\<lambda>w. c * f w) z = c * deriv f z"
-  unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
+lemma deriv_cmult [simp]:
+  "f field_differentiable at z \<Longrightarrow> deriv (\<lambda>w. c * f w) z = c * deriv f z"
+  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
 
-lemma complex_derivative_cmult_right [simp]:
-  "f complex_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w * c) z = deriv f z * c"
-  unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
+lemma deriv_cmult_right [simp]:
+  "f field_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w * c) z = deriv f z * c"
+  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
 
-lemma complex_derivative_cdivide_right [simp]:
-  "f complex_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w / c) z = deriv f z / c"
+lemma deriv_cdivide_right [simp]:
+  "f field_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w / c) z = deriv f z / c"
   unfolding Fields.field_class.field_divide_inverse
-  by (blast intro: complex_derivative_cmult_right)
+  by (blast intro: deriv_cmult_right)
 
 lemma complex_derivative_transform_within_open:
   "\<lbrakk>f holomorphic_on s; g holomorphic_on s; open s; z \<in> s; \<And>w. w \<in> s \<Longrightarrow> f w = g w\<rbrakk>
    \<Longrightarrow> deriv f z = deriv g z"
   unfolding holomorphic_on_def
   by (rule DERIV_imp_deriv)
-     (metis DERIV_deriv_iff_complex_differentiable DERIV_transform_within_open at_within_open)
+     (metis DERIV_deriv_iff_field_differentiable DERIV_transform_within_open at_within_open)
 
-lemma complex_derivative_compose_linear:
-  "f complex_differentiable at (c * z) \<Longrightarrow> deriv (\<lambda>w. f (c * w)) z = c * deriv f (c * z)"
+lemma deriv_compose_linear:
+  "f field_differentiable at (c * z) \<Longrightarrow> deriv (\<lambda>w. f (c * w)) z = c * deriv f (c * z)"
 apply (rule DERIV_imp_deriv)
-apply (simp add: DERIV_deriv_iff_complex_differentiable [symmetric])
+apply (simp add: DERIV_deriv_iff_field_differentiable [symmetric])
 apply (drule DERIV_chain' [of "times c" c z UNIV f "deriv f (c * z)", OF DERIV_cmult_Id])
 apply (simp add: algebra_simps)
 done
@@ -602,7 +602,7 @@ definition analytic_on (infixl "(analytic'_on)" 50)
 
 lemma analytic_imp_holomorphic: "f analytic_on s \<Longrightarrow> f holomorphic_on s"
   by (simp add: at_within_open [OF _ open_ball] analytic_on_def holomorphic_on_def)
-     (metis centre_in_ball complex_differentiable_at_within)
+     (metis centre_in_ball field_differentiable_at_within)
 
 lemma analytic_on_open: "open s \<Longrightarrow> f analytic_on s \<longleftrightarrow> f holomorphic_on s"
 apply (auto simp: analytic_imp_holomorphic)
@@ -610,9 +610,9 @@ apply (auto simp: analytic_on_def holomorphic_on_def)
 by (metis holomorphic_on_def holomorphic_on_subset open_contains_ball)
 
 lemma analytic_on_imp_differentiable_at:
-  "f analytic_on s \<Longrightarrow> x \<in> s \<Longrightarrow> f complex_differentiable (at x)"
+  "f analytic_on s \<Longrightarrow> x \<in> s \<Longrightarrow> f field_differentiable (at x)"
  apply (auto simp: analytic_on_def holomorphic_on_def)
-by (metis Topology_Euclidean_Space.open_ball centre_in_ball complex_differentiable_within_open)
+by (metis Topology_Euclidean_Space.open_ball centre_in_ball field_differentiable_within_open)
 
 lemma analytic_on_subset: "f analytic_on s \<Longrightarrow> t \<subseteq> s \<Longrightarrow> f analytic_on t"
   by (auto simp: analytic_on_def)
@@ -674,7 +674,7 @@ proof (intro ballI)
   obtain e' where e': "0 < e'" and gh: "g holomorphic_on ball (f x) e'" using g
     by (metis analytic_on_def g image_eqI x)
   have "isCont f x"
-    by (metis analytic_on_imp_differentiable_at complex_differentiable_imp_continuous_at f x)
+    by (metis analytic_on_imp_differentiable_at field_differentiable_imp_continuous_at f x)
   with e' obtain d where d: "0 < d" and fd: "f ` ball x d \<subseteq> ball (f x) e'"
      by (auto simp: continuous_at_ball)
   have "g \<circ> f holomorphic_on ball x (min d e)"
@@ -864,25 +864,25 @@ proof -
   show "deriv (\<lambda>w. f w + g w) z = deriv f z + deriv g z"
     apply (rule DERIV_imp_deriv [OF DERIV_add])
     using s
-    apply (auto simp: holomorphic_on_open complex_differentiable_def DERIV_deriv_iff_complex_differentiable)
+    apply (auto simp: holomorphic_on_open field_differentiable_def DERIV_deriv_iff_field_differentiable)
     done
   show "deriv (\<lambda>w. f w - g w) z = deriv f z - deriv g z"
     apply (rule DERIV_imp_deriv [OF DERIV_diff])
     using s
-    apply (auto simp: holomorphic_on_open complex_differentiable_def DERIV_deriv_iff_complex_differentiable)
+    apply (auto simp: holomorphic_on_open field_differentiable_def DERIV_deriv_iff_field_differentiable)
     done
   show "deriv (\<lambda>w. f w * g w) z = f z * deriv g z + deriv f z * g z"
     apply (rule DERIV_imp_deriv [OF DERIV_mult'])
     using s
-    apply (auto simp: holomorphic_on_open complex_differentiable_def DERIV_deriv_iff_complex_differentiable)
+    apply (auto simp: holomorphic_on_open field_differentiable_def DERIV_deriv_iff_field_differentiable)
     done
 qed
 
-lemma complex_derivative_cmult_at:
+lemma deriv_cmult_at:
   "f analytic_on {z} \<Longrightarrow>  deriv (\<lambda>w. c * f w) z = c * deriv f z"
 by (auto simp: complex_derivative_mult_at deriv_const analytic_on_const)
 
-lemma complex_derivative_cmult_right_at:
+lemma deriv_cmult_right_at:
   "f analytic_on {z} \<Longrightarrow>  deriv (\<lambda>w. f w * c) z = deriv f z * c"
 by (auto simp: complex_derivative_mult_at deriv_const analytic_on_const)
 
@@ -927,7 +927,6 @@ proof -
   qed
 qed
 
-
 lemma has_complex_derivative_series:
   fixes s :: "complex set"
   assumes cvs: "convex s"
@@ -970,13 +969,13 @@ proof -
 qed
 
 
-lemma complex_differentiable_series:
+lemma field_differentiable_series:
   fixes f :: "nat \<Rightarrow> complex \<Rightarrow> complex"
   assumes "convex s" "open s"
   assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
   assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
   assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)" and x: "x \<in> s"
-  shows   "summable (\<lambda>n. f n x)" and "(\<lambda>x. \<Sum>n. f n x) complex_differentiable (at x)"
+  shows   "summable (\<lambda>n. f n x)" and "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x)"
 proof -
   from assms(4) obtain g' where A: "uniform_limit s (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
     unfolding uniformly_convergent_on_def by blast
@@ -991,22 +990,22 @@ proof -
   have "((\<lambda>x. \<Sum>n. f n x) has_derivative op * (g' x)) (at x)"
     by (rule has_derivative_transform_within_open[OF g' \<open>open s\<close> x])
        (insert g, auto simp: sums_iff)
-  thus "(\<lambda>x. \<Sum>n. f n x) complex_differentiable (at x)" unfolding differentiable_def
-    by (auto simp: summable_def complex_differentiable_def has_field_derivative_def)
+  thus "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x)" unfolding differentiable_def
+    by (auto simp: summable_def field_differentiable_def has_field_derivative_def)
 qed
 
-lemma complex_differentiable_series':
+lemma field_differentiable_series':
   fixes f :: "nat \<Rightarrow> complex \<Rightarrow> complex"
   assumes "convex s" "open s"
   assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
   assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
   assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)"
-  shows   "(\<lambda>x. \<Sum>n. f n x) complex_differentiable (at x0)"
-  using complex_differentiable_series[OF assms, of x0] \<open>x0 \<in> s\<close> by blast+
+  shows   "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x0)"
+  using field_differentiable_series[OF assms, of x0] \<open>x0 \<in> s\<close> by blast+
 
 subsection\<open>Bound theorem\<close>
 
-lemma complex_differentiable_bound:
+lemma field_differentiable_bound:
   fixes s :: "complex set"
   assumes cvs: "convex s"
       and df:  "\<And>z. z \<in> s \<Longrightarrow> (f has_field_derivative f' z) (at z within s)"
@@ -1155,7 +1154,7 @@ proof -
                         (\<Sum>i\<le>n. f i z * (z - z) ^ i / (fact i)))"
     by (simp add: norm_minus_commute)
   also have "... \<le> B * cmod (z - w) ^ n / (fact n) * cmod (w - z)"
-    apply (rule complex_differentiable_bound
+    apply (rule field_differentiable_bound
       [where f' = "\<lambda>w. f (Suc n) w * (z - w)^n / (fact n)"
          and s = "closed_segment w z", OF convex_closed_segment])
     apply (auto simp: ends_in_segment DERIV_subset [OF sum_deriv wzs]

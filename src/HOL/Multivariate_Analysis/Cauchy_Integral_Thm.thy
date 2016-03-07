@@ -208,7 +208,7 @@ weaker, just piecewise differentiability... [namely] continuity plus differentia
 the Riemann or Lebesgue theory (but in common with a simple notion based on antiderivatives), this
 can integrate all derivatives.''
 
-"Formalizing basic complex analysis." From Insight to Proof: Festschrift in Honour of Andrzej Trybulec. 
+"Formalizing basic complex analysis." From Insight to Proof: Festschrift in Honour of Andrzej Trybulec.
 Studies in Logic, Grammar and Rhetoric 10.23 (2007): 151-165.
 
 And indeed he does not assume that his derivatives are continuous, but the penalty is unreasonably
@@ -645,7 +645,7 @@ definition contour_integral
   where "contour_integral g f \<equiv> @i. (f has_contour_integral i) g \<or> ~ f contour_integrable_on g \<and> i=0"
 
 lemma not_integrable_contour_integral: "~ f contour_integrable_on g \<Longrightarrow> contour_integral g f = 0"
-  unfolding contour_integrable_on_def contour_integral_def by blast 
+  unfolding contour_integrable_on_def contour_integral_def by blast
 
 lemma contour_integral_unique: "(f has_contour_integral i) g \<Longrightarrow> contour_integral g f = i"
   apply (simp add: contour_integral_def has_contour_integral_def contour_integrable_on_def)
@@ -1113,7 +1113,7 @@ using assms contour_integrable_on_def has_contour_integral_shiftpath_eq by auto
 lemma contour_integral_shiftpath:
   assumes "valid_path g" "pathfinish g = pathstart g" "a \<in> {0..1}"
     shows "contour_integral (shiftpath a g) f = contour_integral g f"
-   using assms   
+   using assms
    by (simp add: contour_integral_def contour_integrable_on_def has_contour_integral_shiftpath_eq)
 
 
@@ -1398,7 +1398,7 @@ proof -
   have cfg: "continuous_on {a..b} (\<lambda>x. f (g x))"
     apply (rule continuous_on_compose [OF cg, unfolded o_def])
     using assms
-    apply (metis complex_differentiable_def complex_differentiable_imp_continuous_at continuous_on_eq_continuous_within continuous_on_subset image_subset_iff)
+    apply (metis field_differentiable_def field_differentiable_imp_continuous_at continuous_on_eq_continuous_within continuous_on_subset image_subset_iff)
     done
   { fix x::real
     assume a: "a < x" and b: "x < b" and xk: "x \<notin> k"
@@ -2034,7 +2034,7 @@ lemma triangle_points_closer:
 lemma holomorphic_point_small_triangle:
   assumes x: "x \<in> s"
       and f: "continuous_on s f"
-      and cd: "f complex_differentiable (at x within s)"
+      and cd: "f field_differentiable (at x within s)"
       and e: "0 < e"
     shows "\<exists>k>0. \<forall>a b c. dist a b \<le> k \<and> dist b c \<le> k \<and> dist c a \<le> k \<and>
               x \<in> convex hull {a,b,c} \<and> convex hull {a,b,c} \<subseteq> s
@@ -2089,7 +2089,7 @@ proof -
   } note * = this
   show ?thesis
     using cd e
-    apply (simp add: complex_differentiable_def has_field_derivative_def has_derivative_within_alt approachable_lt_le2 Ball_def)
+    apply (simp add: field_differentiable_def has_field_derivative_def has_derivative_within_alt approachable_lt_le2 Ball_def)
     apply (clarify dest!: spec mp)
     using *
     apply (simp add: dist_norm, blast)
@@ -2204,7 +2204,7 @@ proof -
     then obtain x where x: "\<And>n. x \<in> convex hull {fa n, fb n, fc n}" by auto
     then have xin: "x \<in> convex hull {a,b,c}"
       using assms f0 by blast
-    then have fx: "f complex_differentiable at x within (convex hull {a,b,c})"
+    then have fx: "f field_differentiable at x within (convex hull {a,b,c})"
       using assms holomorphic_on_def by blast
     { fix k n
       assume k: "0 < k"
@@ -2506,7 +2506,7 @@ subsection\<open>Version allowing finite number of exceptional points\<close>
 lemma Cauchy_theorem_triangle_cofinite:
   assumes "continuous_on (convex hull {a,b,c}) f"
       and "finite s"
-      and "(\<And>x. x \<in> interior(convex hull {a,b,c}) - s \<Longrightarrow> f complex_differentiable (at x))"
+      and "(\<And>x. x \<in> interior(convex hull {a,b,c}) - s \<Longrightarrow> f field_differentiable (at x))"
      shows "(f has_contour_integral 0) (linepath a b +++ linepath b c +++ linepath c a)"
 using assms
 proof (induction "card s" arbitrary: a b c s rule: less_induct)
@@ -2514,7 +2514,7 @@ proof (induction "card s" arbitrary: a b c s rule: less_induct)
   show ?case
   proof (cases "s={}")
     case True with less show ?thesis
-      by (fastforce simp: holomorphic_on_def complex_differentiable_at_within
+      by (fastforce simp: holomorphic_on_def field_differentiable_at_within
                     Cauchy_theorem_triangle_interior)
   next
     case False
@@ -2682,7 +2682,7 @@ lemma holomorphic_starlike_primitive:
   assumes contf: "continuous_on s f"
       and s: "starlike s" and os: "open s"
       and k: "finite k"
-      and fcd: "\<And>x. x \<in> s - k \<Longrightarrow> f complex_differentiable at x"
+      and fcd: "\<And>x. x \<in> s - k \<Longrightarrow> f field_differentiable at x"
     shows "\<exists>g. \<forall>x \<in> s. (g has_field_derivative f x) (at x)"
 proof -
   obtain a where a: "a\<in>s" and a_cs: "\<And>x. x\<in>s \<Longrightarrow> closed_segment a x \<subseteq> s"
@@ -2709,7 +2709,7 @@ qed
 
 lemma Cauchy_theorem_starlike:
  "\<lbrakk>open s; starlike s; finite k; continuous_on s f;
-   \<And>x. x \<in> s - k \<Longrightarrow> f complex_differentiable at x;
+   \<And>x. x \<in> s - k \<Longrightarrow> f field_differentiable at x;
    valid_path g; path_image g \<subseteq> s; pathfinish g = pathstart g\<rbrakk>
    \<Longrightarrow> (f has_contour_integral 0)  g"
   by (metis holomorphic_starlike_primitive Cauchy_theorem_primitive at_within_open)
@@ -2800,7 +2800,7 @@ lemma holomorphic_convex_primitive:
   fixes f :: "complex \<Rightarrow> complex"
   shows
   "\<lbrakk>convex s; finite k; continuous_on s f;
-    \<And>x. x \<in> interior s - k \<Longrightarrow> f complex_differentiable at x\<rbrakk>
+    \<And>x. x \<in> interior s - k \<Longrightarrow> f field_differentiable at x\<rbrakk>
    \<Longrightarrow> \<exists>g. \<forall>x \<in> s. (g has_field_derivative f x) (at x within s)"
 apply (rule contour_integral_convex_primitive [OF _ _ Cauchy_theorem_triangle_cofinite])
 prefer 3
@@ -2810,7 +2810,7 @@ by (metis Diff_iff convex_contains_segment insert_absorb insert_subset interior_
 
 lemma Cauchy_theorem_convex:
     "\<lbrakk>continuous_on s f; convex s; finite k;
-      \<And>x. x \<in> interior s - k \<Longrightarrow> f complex_differentiable at x;
+      \<And>x. x \<in> interior s - k \<Longrightarrow> f field_differentiable at x;
      valid_path g; path_image g \<subseteq> s;
      pathfinish g = pathstart g\<rbrakk> \<Longrightarrow> (f has_contour_integral 0) g"
   by (metis holomorphic_convex_primitive Cauchy_theorem_primitive)
@@ -2828,7 +2828,7 @@ lemma Cauchy_theorem_convex_simple:
 text\<open>In particular for a disc\<close>
 lemma Cauchy_theorem_disc:
     "\<lbrakk>finite k; continuous_on (cball a e) f;
-      \<And>x. x \<in> ball a e - k \<Longrightarrow> f complex_differentiable at x;
+      \<And>x. x \<in> ball a e - k \<Longrightarrow> f field_differentiable at x;
      valid_path g; path_image g \<subseteq> cball a e;
      pathfinish g = pathstart g\<rbrakk> \<Longrightarrow> (f has_contour_integral 0) g"
   apply (rule Cauchy_theorem_convex)
@@ -2914,7 +2914,7 @@ lemma contour_integrable_holomorphic:
       and os: "open s"
       and k: "finite k"
       and g: "valid_path g" "path_image g \<subseteq> s"
-      and fcd: "\<And>x. x \<in> s - k \<Longrightarrow> f complex_differentiable at x"
+      and fcd: "\<And>x. x \<in> s - k \<Longrightarrow> f field_differentiable at x"
     shows "f contour_integrable_on g"
 proof -
   { fix z
@@ -2944,7 +2944,7 @@ lemma contour_integrable_holomorphic_simple:
     shows "f contour_integrable_on g"
   apply (rule contour_integrable_holomorphic [OF _ os Finite_Set.finite.emptyI g])
   apply (simp add: fh holomorphic_on_imp_continuous_on)
-  using fh  by (simp add: complex_differentiable_def holomorphic_on_open os)
+  using fh  by (simp add: field_differentiable_def holomorphic_on_open os)
 
 lemma continuous_on_inversediff:
   fixes z:: "'a::real_normed_field" shows "z \<notin> s \<Longrightarrow> continuous_on s (\<lambda>w. 1 / (w - z))"
@@ -3819,7 +3819,7 @@ proof -
       by (auto simp: intro!: derivative_eq_intros)
     ultimately have "\<exists>h. \<forall>y. norm(y - w) < norm(w - z) \<longrightarrow> (h has_field_derivative 1/(y - z)) (at y)"
       using holomorphic_convex_primitive [of "ball w (norm(w - z))" "{}" "\<lambda>w. 1/(w - z)"]
-      by (simp add: complex_differentiable_def Ball_def dist_norm at_within_open_NO_MATCH norm_minus_commute)
+      by (simp add: field_differentiable_def Ball_def dist_norm at_within_open_NO_MATCH norm_minus_commute)
   }
   then obtain h where h: "\<And>w y. w \<noteq> z \<Longrightarrow> norm(y - w) < norm(w - z) \<Longrightarrow> (h w has_field_derivative 1/(y - z)) (at y)"
     by meson
@@ -3840,8 +3840,8 @@ proof -
     assume t: "t \<in> {a..b}"
     have cball: "continuous_on (ball (\<gamma> t) (dist (\<gamma> t) z)) (\<lambda>x. inverse (x - z))"
         using z by (auto intro!: continuous_intros simp: dist_norm)
-    have icd: "\<And>x. cmod (\<gamma> t - x) < cmod (\<gamma> t - z) \<Longrightarrow> (\<lambda>w. inverse (w - z)) complex_differentiable at x"
-      unfolding complex_differentiable_def by (force simp: intro!: derivative_eq_intros)
+    have icd: "\<And>x. cmod (\<gamma> t - x) < cmod (\<gamma> t - z) \<Longrightarrow> (\<lambda>w. inverse (w - z)) field_differentiable at x"
+      unfolding field_differentiable_def by (force simp: intro!: derivative_eq_intros)
     obtain h where h: "\<And>x. cmod (\<gamma> t - x) < cmod (\<gamma> t - z) \<Longrightarrow>
                        (h has_field_derivative inverse (x - z)) (at x within {y. cmod (\<gamma> t - y) < cmod (\<gamma> t - z)})"
       using holomorphic_convex_primitive [where f = "\<lambda>w. inverse(w - z)", OF convex_ball finite.emptyI cball icd]
@@ -4492,13 +4492,13 @@ subsection\<open>Cauchy's integral formula, again for a convex enclosing set.\<c
 
 lemma Cauchy_integral_formula_weak:
     assumes s: "convex s" and "finite k" and conf: "continuous_on s f"
-        and fcd: "(\<And>x. x \<in> interior s - k \<Longrightarrow> f complex_differentiable at x)"
+        and fcd: "(\<And>x. x \<in> interior s - k \<Longrightarrow> f field_differentiable at x)"
         and z: "z \<in> interior s - k" and vpg: "valid_path \<gamma>"
         and pasz: "path_image \<gamma> \<subseteq> s - {z}" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
       shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * ii * winding_number \<gamma> z * f z)) \<gamma>"
 proof -
   obtain f' where f': "(f has_field_derivative f') (at z)"
-    using fcd [OF z] by (auto simp: complex_differentiable_def)
+    using fcd [OF z] by (auto simp: field_differentiable_def)
   have pas: "path_image \<gamma> \<subseteq> s" and znotin: "z \<notin> path_image \<gamma>" using pasz by blast+
   have c: "continuous (at x within s) (\<lambda>w. if w = z then f' else (f w - f z) / (w - z))" if "x \<in> s" for x
   proof (cases "x = z")
@@ -4525,7 +4525,7 @@ proof -
     apply (rule Cauchy_theorem_convex [OF _ s fink' _ vpg pas loop])
     using c apply (force simp: continuous_on_eq_continuous_within)
     apply (rename_tac w)
-    apply (rule_tac d="dist w z" and f = "\<lambda>w. (f w - f z)/(w - z)" in complex_differentiable_transform_within)
+    apply (rule_tac d="dist w z" and f = "\<lambda>w. (f w - f z)/(w - z)" in field_differentiable_transform_within)
     apply (simp_all add: dist_pos_lt dist_commute)
     apply (metis less_irrefl)
     apply (rule derivative_intros fcd | simp)+
@@ -5675,7 +5675,7 @@ proof -
       using open_contains_cball \<open>z \<in> s\<close> \<open>open s\<close> by blast
     then have holf_cball: "f holomorphic_on cball z r"
       apply (simp add: holomorphic_on_def)
-      using complex_differentiable_at_within complex_differentiable_def fder by blast
+      using field_differentiable_at_within field_differentiable_def fder by blast
     then have "continuous_on (path_image (circlepath z r)) f"
       using \<open>r > 0\<close> by (force elim: holomorphic_on_subset [THEN holomorphic_on_imp_continuous_on])
     then have contfpi: "continuous_on (path_image (circlepath z r)) (\<lambda>x. 1/(2 * of_real pi*ii) * f x)"
@@ -5715,7 +5715,7 @@ qed
 
 lemma holomorphic_deriv [holomorphic_intros]:
     "\<lbrakk>f holomorphic_on s; open s\<rbrakk> \<Longrightarrow> (deriv f) holomorphic_on s"
-by (metis DERIV_deriv_iff_complex_differentiable at_within_open derivative_is_holomorphic holomorphic_on_def)
+by (metis DERIV_deriv_iff_field_differentiable at_within_open derivative_is_holomorphic holomorphic_on_def)
 
 lemma analytic_deriv: "f analytic_on s \<Longrightarrow> (deriv f) analytic_on s"
   using analytic_on_holomorphic holomorphic_deriv by auto
@@ -5729,7 +5729,7 @@ lemma analytic_higher_deriv: "f analytic_on s \<Longrightarrow> (deriv ^^ n) f a
 lemma has_field_derivative_higher_deriv:
      "\<lbrakk>f holomorphic_on s; open s; x \<in> s\<rbrakk>
       \<Longrightarrow> ((deriv ^^ n) f has_field_derivative (deriv ^^ (Suc n)) f x) (at x)"
-by (metis (no_types, hide_lams) DERIV_deriv_iff_complex_differentiable at_within_open comp_apply
+by (metis (no_types, hide_lams) DERIV_deriv_iff_field_differentiable at_within_open comp_apply
          funpow.simps(2) holomorphic_higher_deriv holomorphic_on_def)
 
 
@@ -5968,7 +5968,7 @@ next
     apply (simp add: Suc.IH)
     done
   also have "... = u^n * deriv (\<lambda>z. (deriv ^^ n) f (u * z)) z"
-    apply (rule complex_derivative_cmult)
+    apply (rule deriv_cmult)
     apply (rule analytic_on_imp_differentiable_at [OF _ Suc.prems])
     apply (rule analytic_on_compose_gen [where g="(deriv ^^ n) f" and t=t, unfolded o_def])
     apply (simp add: analytic_on_linear)
@@ -5978,7 +5978,7 @@ next
   also have "... = u * u ^ n * deriv ((deriv ^^ n) f) (u * z)"
       apply (subst complex_derivative_chain [where g = "(deriv ^^ n) f" and f = "op*u", unfolded o_def])
       apply (rule derivative_intros)
-      using Suc.prems complex_differentiable_def f fg has_field_derivative_higher_deriv t apply blast
+      using Suc.prems field_differentiable_def f fg has_field_derivative_higher_deriv t apply blast
       apply (simp add: deriv_linear)
       done
   finally show ?case
@@ -6030,8 +6030,8 @@ proposition no_isolated_singularity:
     shows "f holomorphic_on s"
 proof -
   { fix z
-    assume "z \<in> s" and cdf: "\<And>x. x\<in>s - k \<Longrightarrow> f complex_differentiable at x"
-    have "f complex_differentiable at z"
+    assume "z \<in> s" and cdf: "\<And>x. x\<in>s - k \<Longrightarrow> f field_differentiable at x"
+    have "f field_differentiable at z"
     proof (cases "z \<in> k")
       case False then show ?thesis by (blast intro: cdf \<open>z \<in> s\<close>)
     next
@@ -6059,19 +6059,19 @@ proof -
     qed
   }
   with holf s k show ?thesis
-    by (simp add: holomorphic_on_open open_Diff finite_imp_closed complex_differentiable_def [symmetric])
+    by (simp add: holomorphic_on_open open_Diff finite_imp_closed field_differentiable_def [symmetric])
 qed
 
 proposition Cauchy_integral_formula_convex:
     assumes s: "convex s" and k: "finite k" and contf: "continuous_on s f"
-        and fcd: "(\<And>x. x \<in> interior s - k \<Longrightarrow> f complex_differentiable at x)"
+        and fcd: "(\<And>x. x \<in> interior s - k \<Longrightarrow> f field_differentiable at x)"
         and z: "z \<in> interior s" and vpg: "valid_path \<gamma>"
         and pasz: "path_image \<gamma> \<subseteq> s - {z}" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
       shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * ii * winding_number \<gamma> z * f z)) \<gamma>"
   apply (rule Cauchy_integral_formula_weak [OF s finite.emptyI contf])
-  apply (simp add: holomorphic_on_open [symmetric] complex_differentiable_def)
+  apply (simp add: holomorphic_on_open [symmetric] field_differentiable_def)
   using no_isolated_singularity [where s = "interior s"]
-  apply (metis k contf fcd holomorphic_on_open complex_differentiable_def continuous_on_subset
+  apply (metis k contf fcd holomorphic_on_open field_differentiable_def continuous_on_subset
                has_field_derivative_at_within holomorphic_on_def interior_subset open_interior)
   using assms
   apply auto
@@ -6103,8 +6103,8 @@ next
     by (rule contour_integral_unique)
   have "\<And>n. ((deriv ^^ n) f has_field_derivative deriv ((deriv ^^ n) f) w) (at w)"
     using Suc.prems assms has_field_derivative_higher_deriv by auto
-  then have dnf_diff: "\<And>n. (deriv ^^ n) f complex_differentiable (at w)"
-    by (force simp add: complex_differentiable_def)
+  then have dnf_diff: "\<And>n. (deriv ^^ n) f field_differentiable (at w)"
+    by (force simp add: field_differentiable_def)
   have "deriv (\<lambda>w. complex_of_real (2 * pi) * \<i> / (fact k) * (deriv ^^ k) f w) w =
           of_nat (Suc k) * contour_integral (circlepath z r) (\<lambda>u. f u / (u - w) ^ Suc (Suc k))"
     by (force intro!: DERIV_imp_deriv Cauchy_next_derivative_circlepath [OF f Suc.IH _ Suc.prems])
@@ -6112,7 +6112,7 @@ next
     by (simp only: con)
   finally have "deriv (\<lambda>w. ((2 * pi) * \<i> / (fact k)) * (deriv ^^ k) f w) w = of_nat (Suc k) * X" .
   then have "((2 * pi) * \<i> / (fact k)) * deriv (\<lambda>w. (deriv ^^ k) f w) w = of_nat (Suc k) * X"
-    by (metis complex_derivative_cmult dnf_diff)
+    by (metis deriv_cmult dnf_diff)
   then have "deriv (\<lambda>w. (deriv ^^ k) f w) w = of_nat (Suc k) * X / ((2 * pi) * \<i> / (fact k))"
     by (simp add: field_simps)
   then show ?case
@@ -6432,7 +6432,7 @@ proof -
   let ?conint = "contour_integral (circlepath z r)"
   have g: "continuous_on (cball z r) g" "g holomorphic_on ball z r"
     by (rule holomorphic_uniform_limit [OF eventually_mono [OF cont] lim F];
-             auto simp: holomorphic_on_open complex_differentiable_def)+
+             auto simp: holomorphic_on_open field_differentiable_def)+
   then obtain g' where g': "\<And>x. x \<in> ball z r \<Longrightarrow> (g has_field_derivative g' x) (at x)"
     using DERIV_deriv_iff_has_field_derivative
     by (fastforce simp add: holomorphic_on_open)
@@ -6845,54 +6845,54 @@ lemma pole_lemma:
     shows "(\<lambda>z. if z = a then deriv f a
                  else (f z - f a) / (z - a)) holomorphic_on s" (is "?F holomorphic_on s")
 proof -
-  have F1: "?F complex_differentiable (at u within s)" if "u \<in> s" "u \<noteq> a" for u
+  have F1: "?F field_differentiable (at u within s)" if "u \<in> s" "u \<noteq> a" for u
   proof -
-    have fcd: "f complex_differentiable at u within s"
+    have fcd: "f field_differentiable at u within s"
       using holf holomorphic_on_def by (simp add: \<open>u \<in> s\<close>)
-    have cd: "(\<lambda>z. (f z - f a) / (z - a)) complex_differentiable at u within s"
+    have cd: "(\<lambda>z. (f z - f a) / (z - a)) field_differentiable at u within s"
       by (rule fcd derivative_intros | simp add: that)+
     have "0 < dist a u" using that dist_nz by blast
     then show ?thesis
-      by (rule complex_differentiable_transform_within [OF _ _ _ cd]) (auto simp: \<open>u \<in> s\<close>)
+      by (rule field_differentiable_transform_within [OF _ _ _ cd]) (auto simp: \<open>u \<in> s\<close>)
   qed
-  have F2: "?F complex_differentiable at a" if "0 < e" "ball a e \<subseteq> s" for e
+  have F2: "?F field_differentiable at a" if "0 < e" "ball a e \<subseteq> s" for e
   proof -
     have holfb: "f holomorphic_on ball a e"
       by (rule holomorphic_on_subset [OF holf \<open>ball a e \<subseteq> s\<close>])
     have 2: "?F holomorphic_on ball a e - {a}"
       apply (rule holomorphic_on_subset [where s = "s - {a}"])
-      apply (simp add: holomorphic_on_def complex_differentiable_def [symmetric])
+      apply (simp add: holomorphic_on_def field_differentiable_def [symmetric])
       using mem_ball that
-      apply (auto intro: F1 complex_differentiable_within_subset)
+      apply (auto intro: F1 field_differentiable_within_subset)
       done
     have "isCont (\<lambda>z. if z = a then deriv f a else (f z - f a) / (z - a)) x"
             if "dist a x < e" for x
     proof (cases "x=a")
       case True then show ?thesis
       using holfb \<open>0 < e\<close>
-      apply (simp add: holomorphic_on_open complex_differentiable_def [symmetric])
+      apply (simp add: holomorphic_on_open field_differentiable_def [symmetric])
       apply (drule_tac x=a in bspec)
-      apply (auto simp: DERIV_deriv_iff_complex_differentiable [symmetric] continuous_at DERIV_iff2
+      apply (auto simp: DERIV_deriv_iff_field_differentiable [symmetric] continuous_at DERIV_iff2
                 elim: rev_iffD1 [OF _ LIM_equal])
       done
     next
       case False with 2 that show ?thesis
-        by (force simp: holomorphic_on_open open_Diff complex_differentiable_def [symmetric] complex_differentiable_imp_continuous_at)
+        by (force simp: holomorphic_on_open open_Diff field_differentiable_def [symmetric] field_differentiable_imp_continuous_at)
     qed
     then have 1: "continuous_on (ball a e) ?F"
       by (clarsimp simp:  continuous_on_eq_continuous_at)
     have "?F holomorphic_on ball a e"
       by (auto intro: no_isolated_singularity [OF 1 2])
     with that show ?thesis
-      by (simp add: holomorphic_on_open complex_differentiable_def [symmetric]
-                    complex_differentiable_at_within)
+      by (simp add: holomorphic_on_open field_differentiable_def [symmetric]
+                    field_differentiable_at_within)
   qed
   show ?thesis
   proof
-    fix x assume "x \<in> s" show "?F complex_differentiable at x within s"
+    fix x assume "x \<in> s" show "?F field_differentiable at x within s"
     proof (cases "x=a")
       case True then show ?thesis
-      using a by (auto simp: mem_interior intro: complex_differentiable_at_within F2)
+      using a by (auto simp: mem_interior intro: field_differentiable_at_within F2)
     next
       case False with F1 \<open>x \<in> s\<close>
       show ?thesis by blast
@@ -6916,8 +6916,8 @@ proof (cases "a \<in> s")
     show ?thesis by fastforce
 next
   case False with assms show ?thesis
-    apply (simp add: holomorphic_on_def complex_differentiable_def [symmetric], clarify)
-    apply (rule complex_differentiable_transform_within [where f = "\<lambda>z. (f z - f a)/(z - a)" and d = 1])
+    apply (simp add: holomorphic_on_def field_differentiable_def [symmetric], clarify)
+    apply (rule field_differentiable_transform_within [where f = "\<lambda>z. (f z - f a)/(z - a)" and d = 1])
     apply (rule derivative_intros | force)+
     done
 qed
@@ -7082,16 +7082,16 @@ proof -
     have *: "(\<lambda>c. if c = y then deriv f y else (f c - f y) / (c - y)) holomorphic_on u"
       by (simp add: holf pole_lemma_open u)
     then have "isCont (\<lambda>x. if x = y then deriv f y else (f x - f y) / (x - y)) y"
-      using at_within_open complex_differentiable_imp_continuous_at holomorphic_on_def that u by fastforce
+      using at_within_open field_differentiable_imp_continuous_at holomorphic_on_def that u by fastforce
     then have "continuous_on u (d y)"
       apply (simp add: d_def continuous_on_eq_continuous_at u, clarify)
       using * holomorphic_on_def
-      by (meson complex_differentiable_within_open complex_differentiable_imp_continuous_at u)
+      by (meson field_differentiable_within_open field_differentiable_imp_continuous_at u)
     moreover have "d y holomorphic_on u - {y}"
-      apply (simp add: d_def holomorphic_on_open u open_delete complex_differentiable_def [symmetric])
+      apply (simp add: d_def holomorphic_on_open u open_delete field_differentiable_def [symmetric])
       apply (intro ballI)
       apply (rename_tac w)
-      apply (rule_tac d="dist w y" and f = "\<lambda>w. (f w - f y)/(w - y)" in complex_differentiable_transform_within)
+      apply (rule_tac d="dist w y" and f = "\<lambda>w. (f w - f y)/(w - y)" in field_differentiable_transform_within)
       apply (auto simp: dist_pos_lt dist_commute intro!: derivative_intros)
       using analytic_on_imp_differentiable_at analytic_on_open holf u apply blast
       done
@@ -7262,7 +7262,7 @@ proof -
         have derf_le: "w \<in> closed_segment x' z' \<Longrightarrow> z' \<noteq> x' \<Longrightarrow> cmod (deriv f w - deriv f x) \<le> e" for w
           by (blast intro: cs_less less_k1 k1 [unfolded divide_const_simps dist_norm] less_imp_le le_less_trans)
         have f_has_der: "\<And>x. x \<in> u \<Longrightarrow> (f has_field_derivative deriv f x) (at x within u)"
-          by (metis DERIV_deriv_iff_complex_differentiable at_within_open holf holomorphic_on_def u)
+          by (metis DERIV_deriv_iff_field_differentiable at_within_open holf holomorphic_on_def u)
         have "closed_segment x' z' \<subseteq> u"
           by (rule order_trans [OF _ k2]) (simp add: cs_less  le_less_trans [OF _ less_k2] dist_complex_def norm_minus_commute subset_iff)
         then have cint_derf: "(deriv f has_contour_integral f z' - f x') (linepath x' z')"
@@ -7306,14 +7306,14 @@ proof -
         by (rule continuous_on_compose continuous_intros continuous_on_subset [OF cond_uu] | force intro: that)+
       then have *: "continuous_on u (\<lambda>z. if w = z then deriv f z else (f w - f z) / (w - z))"
         by (rule rev_iffD1 [OF _ continuous_on_cong [OF refl]]) (simp add: d_def field_simps)
-      have **: "\<And>x. \<lbrakk>x \<in> u; x \<noteq> w\<rbrakk> \<Longrightarrow> (\<lambda>z. if w = z then deriv f z else (f w - f z) / (w - z)) complex_differentiable at x"
-        apply (rule_tac f = "\<lambda>x. (f w - f x)/(w - x)" and d = "dist x w" in complex_differentiable_transform_within)
+      have **: "\<And>x. \<lbrakk>x \<in> u; x \<noteq> w\<rbrakk> \<Longrightarrow> (\<lambda>z. if w = z then deriv f z else (f w - f z) / (w - z)) field_differentiable at x"
+        apply (rule_tac f = "\<lambda>x. (f w - f x)/(w - x)" and d = "dist x w" in field_differentiable_transform_within)
         apply (rule u derivative_intros holomorphic_on_imp_differentiable_at [OF holf] | force simp add: dist_commute)+
         done
       show ?thesis
         unfolding d_def
         apply (rule no_isolated_singularity [OF * _ u, where k = "{w}"])
-        apply (auto simp: complex_differentiable_def [symmetric] holomorphic_on_open open_Diff u **)
+        apply (auto simp: field_differentiable_def [symmetric] holomorphic_on_open open_Diff u **)
         done
     qed
     { fix a b
@@ -7388,14 +7388,14 @@ proof -
         by (simp add: h_def x au o_def)
     qed
     show ?thesis
-    proof (simp add: holomorphic_on_open complex_differentiable_def [symmetric], clarify)
+    proof (simp add: holomorphic_on_open field_differentiable_def [symmetric], clarify)
       fix z0
       consider "z0 \<in> v" | "z0 \<in> u" using uv_Un by blast
-      then show "h complex_differentiable at z0"
+      then show "h field_differentiable at z0"
       proof cases
         assume "z0 \<in> v" then show ?thesis
           using Cauchy_next_derivative [OF con_pa_f le_B f_has_cint _ ov] V f_has_cint \<open>valid_path \<gamma>\<close>
-          by (auto simp: complex_differentiable_def v_def)
+          by (auto simp: field_differentiable_def v_def)
       next
         assume "z0 \<in> u" then
         obtain e where "e>0" and e: "ball z0 e \<subseteq> u" by (blast intro: openE [OF u])
