@@ -32,4 +32,11 @@ final case class Process_Result(
     Output.writeln(Library.trim_line(out))
     copy(out_lines = Nil, err_lines = Nil)
   }
+
+  def print_stdout: Process_Result =
+  {
+    Output.warning(Library.trim_line(err), stdout = true)
+    Output.writeln(Library.trim_line(out), stdout = true)
+    copy(out_lines = Nil, err_lines = Nil)
+  }
 }
