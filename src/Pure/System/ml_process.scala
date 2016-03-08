@@ -72,11 +72,14 @@ object ML_Process
     val eval_secure = if (secure) List("Secure.set_secure ()") else Nil
 
     val eval_process =
-      channel match {
-        case None => List("Isabelle_Process.init_options ()")
-        case Some(ch) =>
-          List("Isabelle_Process.init_protocol " + ML_Syntax.print_string_raw(ch.server_name))
-      }
+      if (load_heaps.isEmpty) Nil
+      else
+        channel match {
+          case None =>
+            List("Isabelle_Process.init_options ()")
+          case Some(ch) =>
+            List("Isabelle_Process.init_protocol " + ML_Syntax.print_string_raw(ch.server_name))
+        }
 
     // bash
     val bash_args =
