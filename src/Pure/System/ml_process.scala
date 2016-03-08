@@ -15,7 +15,7 @@ object ML_Process
     modes: List[String] = Nil,
     secure: Boolean = false,
     redirect: Boolean = false,
-    process_socket: String = ""): Bash.Process =
+    channel: Option[System_Channel] = None): Bash.Process =
   {
     val load_heaps =
     {
@@ -72,8 +72,11 @@ object ML_Process
     val eval_secure = if (secure) List("Secure.set_secure ()") else Nil
 
     val eval_process =
-      if (process_socket == "") List("Isabelle_Process.init_options ()")
-      else List("Isabelle_Process.init " + ML_Syntax.print_string_raw(process_socket))
+      channel match {
+        case None => List("Isabelle_Process.init_options ()")
+        case Some(ch) =>
+          List("Isabelle_Process.init_protocol " + ML_Syntax.print_string_raw(ch.server_name))
+      }
 
     // bash
     val bash_args =

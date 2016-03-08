@@ -21,7 +21,7 @@ object Isabelle_Process
     val process =
       try {
         ML_Process(options, heap = heap, args = args, modes = modes, secure = secure,
-          process_socket = channel.server_name)
+          channel = Some(channel))
       }
       catch { case exn @ ERROR(_) => channel.accepted(); throw exn }
     process.stdin.close
