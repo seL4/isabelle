@@ -11,6 +11,7 @@ sig
   val reset_tracing: Document_ID.exec -> unit
   val crashes: exn list Synchronized.var
   val init: string -> unit
+  val init_options: unit -> unit
 end;
 
 structure Isabelle_Process: ISABELLE_PROCESS =
@@ -203,5 +204,13 @@ val init = uninterruptible (fn _ => fn socket =>
     val _ = loop channel;
   in Message_Channel.shutdown msg_channel end);
 
-end;
 
+(* init options *)
+
+fun init_options () =
+ (Future.ML_statistics := Options.default_bool "ML_statistics";
+  Multithreading.trace := Options.default_int "threads_trace";
+  Multithreading.max_threads_update (Options.default_int "threads");
+  Goal.parallel_proofs := Options.default_int "parallel_proofs");
+
+end;

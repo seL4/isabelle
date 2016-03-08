@@ -72,7 +72,7 @@ object ML_Process
     val eval_secure = if (secure) List("Secure.set_secure ()") else Nil
 
     val eval_process =
-      if (process_socket == "") Nil
+      if (process_socket == "") List("Isabelle_Process.init_options ()")
       else List("Isabelle_Process.init " + ML_Syntax.print_string_raw(process_socket))
 
     // bash
