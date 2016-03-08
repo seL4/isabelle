@@ -14,6 +14,7 @@ object ML_Process
     args: List[String] = Nil,
     modes: List[String] = Nil,
     secure: Boolean = false,
+    redirect: Boolean = false,
     process_socket: String = ""): Bash.Process =
   {
     val load_heaps =
@@ -77,7 +78,7 @@ object ML_Process
       (eval_heaps ::: eval_exit ::: eval_modes ::: eval_options ::: eval_secure ::: eval_process).
         map(eval => List("--eval", eval)).flatten ::: args
 
-    Bash.process(env = env, script =
+    Bash.process(env = env, redirect = redirect, script =
       """
         [ -z "$ISABELLE_TMP_PREFIX" ] && ISABELLE_TMP_PREFIX=/tmp/isabelle
 
