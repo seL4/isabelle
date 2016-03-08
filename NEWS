@@ -239,10 +239,8 @@ heap under program control.
 expressions (option -e) or files (option -f). Errors lead to premature
 exit of the ML process with return code 1.
 
-* Command-line tool "isabelle console" is now based on Isabelle/Scala
-and uses the built-in JLine editor instead of ISABELLE_LINE_EDITOR
-(default "rlwrap"). The new option "-r" helps to bootstrap Isabelle/Pure
-interactively.
+* Command-line tool "isabelle console -r" helps to bootstrap
+Isabelle/Pure interactively.
 
 * The somewhat pointless command-line tool "isabelle yxml" has been
 discontinued. INCOMPATIBILITY, use operations from the modules "XML" and

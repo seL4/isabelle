@@ -65,14 +65,15 @@ text \<open>
 
   Options are:
     -d DIR       include session directory
-    -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
+    -l NAME      logic session name (default ISABELLE_LOGIC)
     -m MODE      add print mode for output
     -n           no build of session image on startup
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -r           logic session is RAW_ML_SYSTEM
     -s           system build mode for session image
 
-  Run Isabelle process with raw ML console and line editor.\<close>}
+  Run Isabelle process with raw ML console and line editor
+  (default ISABELLE_LINE_EDITOR).\<close>}
 
   Option \<^verbatim>\<open>-l\<close> specifies the logic session name. By default, its heap image is
   checked and built on demand, but the option \<^verbatim>\<open>-n\<close> skips that. Option \<^verbatim>\<open>-r\<close>
@@ -86,11 +87,15 @@ text \<open>
   isabelle_process} (\secref{sec:isabelle-process}).
 
   \<^medskip>
-  Interaction works via the built-in line editor of Scala, which is based on
-  JLine\<^footnote>\<open>@{url "https://github.com/jline"}\<close>. The user is connected to the raw
-  ML toplevel loop: this is neither Isabelle/Isar nor Isabelle/ML within the
-  usual formal context. The most relevant ML commands at this stage are @{ML
-  use}, @{ML use_thy}, @{ML use_thys}.
+  The Isabelle/ML process is run through the line editor that is specified via
+  the settings variable @{setting ISABELLE_LINE_EDITOR} (e.g.\
+  @{executable_def rlwrap} for GNU readline); the fall-back is to use plain
+  standard input/output.
+
+  The user is connected to the raw ML toplevel loop: this is neither
+  Isabelle/Isar nor Isabelle/ML within the usual formal context. The most
+  relevant ML commands at this stage are @{ML use}, @{ML use_thy}, @{ML
+  use_thys}.
 \<close>
 
 

@@ -19,4 +19,10 @@ declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
 
 mkdir -p "$ISABELLE_TMP_PREFIX" || exit $?
 
-"$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.ML_Console "$@"
+if type -p "$ISABELLE_LINE_EDITOR" > /dev/null
+then
+  exec "$ISABELLE_LINE_EDITOR" "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.ML_Console "$@"
+else
+  echo "### No line editor: \"$ISABELLE_LINE_EDITOR\""
+  exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.ML_Console "$@"
+fi

@@ -7,12 +7,7 @@ Run Isabelle process with raw ML console and line editor.
 package isabelle
 
 
-import java.io.IOException
-
-import scala.annotation.tailrec
-
-import jline.console.ConsoleReader
-import jline.console.history.FileHistory
+import java.io.{IOException, BufferedReader, InputStreamReader}
 
 
 object ML_Console
@@ -41,7 +36,8 @@ Usage: isabelle console [OPTIONS]
     -r           logic session is RAW_ML_SYSTEM
     -s           system build mode for session image
 
-  Run Isabelle process with raw ML console and line editor.
+  Run Isabelle process with raw ML console and line editor
+  (ISABELLE_LINE_EDITOR=""" + quote(Isabelle_System.getenv("ISABELLE_LINE_EDITOR")) + """.
 """,
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "l:" -> (arg => logic = arg),
@@ -69,11 +65,6 @@ Usage: isabelle console [OPTIONS]
           if (rc != 0) sys.exit(rc)
         }
       }
-
-      // reader with history
-      val history = new FileHistory(Path.explode("$ISABELLE_HOME_USER/console_history").file)
-      val reader = new ConsoleReader
-      reader.setHistory(history)
 
       // process loop
       val process =
@@ -105,6 +96,7 @@ Usage: isabelle console [OPTIONS]
         catch { case e: IOException => case Exn.Interrupt() => }
       }
       val process_input = Future.thread[Unit]("process_input") {
+        val reader = new BufferedReader(new InputStreamReader(System.in))
         POSIX_Interrupt.handler { process.interrupt } {
           try {
             var finished = false
@@ -131,10 +123,7 @@ Usage: isabelle console [OPTIONS]
 
       process_output.join
       process_input.join
-
-      val rc = process_result.join
-      history.flush()
-      rc
+      process_result.join
     }
   }
 }

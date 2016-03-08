@@ -209,6 +209,9 @@ text \<open>
   \<^descr>[@{setting_def ISABELLE_LOGIC}] specifies the default logic to load if none
   is given explicitely by the user. The default value is \<^verbatim>\<open>HOL\<close>.
 
+  \<^descr>[@{setting_def ISABELLE_LINE_EDITOR}] specifies the line editor for the
+  @{tool_ref console} interface.
+
   \<^descr>[@{setting_def ISABELLE_LATEX}, @{setting_def ISABELLE_PDFLATEX},
   @{setting_def ISABELLE_BIBTEX}] refer to {\LaTeX} related tools for Isabelle
   document preparation (see also \secref{sec:tool-latex}).
