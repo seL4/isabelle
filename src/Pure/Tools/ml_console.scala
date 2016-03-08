@@ -7,6 +7,8 @@ Run Isabelle process with raw ML console and line editor.
 package isabelle
 
 
+import java.io.IOException
+
 import scala.annotation.tailrec
 
 import jline.console.ConsoleReader
@@ -78,41 +80,47 @@ Usage: isabelle console [OPTIONS]
         ML_Process(options, heap = logic,
           modes = if (logic == "RAW_ML_SYSTEM") Nil else modes ::: List("ASCII"))
       val process_output = Future.thread[Unit]("process_output") {
-        var result = new StringBuilder(100)
-        var finished = false
-        while (!finished) {
-          var c = -1
-          var done = false
-          while (!done && (result.length == 0 || process.stdout.ready)) {
-            c = process.stdout.read
-            if (c >= 0) result.append(c.asInstanceOf[Char])
-            else done = true
-          }
-          if (result.length > 0) {
-            System.out.print(result.toString)
-            System.out.flush()
-            result.length = 0
-          }
-          else {
-            process.stdout.close()
-            finished = true
+        try {
+          var result = new StringBuilder(100)
+          var finished = false
+          while (!finished) {
+            var c = -1
+            var done = false
+            while (!done && (result.length == 0 || process.stdout.ready)) {
+              c = process.stdout.read
+              if (c >= 0) result.append(c.asInstanceOf[Char])
+              else done = true
+            }
+            if (result.length > 0) {
+              System.out.print(result.toString)
+              System.out.flush()
+              result.length = 0
+            }
+            else {
+              process.stdout.close()
+              finished = true
+            }
           }
         }
+        catch { case e: IOException => case Exn.Interrupt() => }
       }
       val process_input = Future.thread[Unit]("process_input") {
         POSIX_Interrupt.handler { process.interrupt } {
-          var finished = false
-          while (!finished) {
-            reader.readLine() match {
-              case null =>
-                process.stdin.close()
-                finished = true
-              case line =>
-                process.stdin.write(line)
-                process.stdin.write("\n")
-                process.stdin.flush()
+          try {
+            var finished = false
+            while (!finished) {
+              reader.readLine() match {
+                case null =>
+                  process.stdin.close()
+                  finished = true
+                case line =>
+                  process.stdin.write(line)
+                  process.stdin.write("\n")
+                  process.stdin.flush()
+              }
             }
           }
+          catch { case e: IOException => case Exn.Interrupt() => }
         }
       }
       val process_result = Future.thread[Int]("process_result") {
