@@ -59,6 +59,9 @@ object Bash
 
     private val pid = stdout.readLine
 
+    def interrupt()
+    { Exn.Interrupt.postpone { Isabelle_System.kill("INT", pid) } }
+
     private def kill(signal: String): Boolean =
       Exn.Interrupt.postpone {
         Isabelle_System.kill(signal, pid)
@@ -80,7 +83,6 @@ object Bash
       running
     }
 
-    def interrupt() { multi_kill("INT") }
     def terminate() { multi_kill("INT") && multi_kill("TERM") && kill("KILL"); proc.destroy }
 
 
