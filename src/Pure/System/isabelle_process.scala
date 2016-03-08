@@ -33,7 +33,6 @@ object Isabelle_Process
   def main(args: Array[String])
   {
     Command_Line.tool {
-      var secure = false
       var ml_args: List[String] = Nil
       var modes: List[String] = Nil
       var options = Options.init()
@@ -42,7 +41,6 @@ object Isabelle_Process
 Usage: isabelle_process [OPTIONS] [HEAP]
 
   Options are:
-    -S           secure mode -- disallow critical operations
     -e ML_EXPR   evaluate ML expression on startup
     -f ML_FILE   evaluate ML file on startup
     -m MODE      add print mode for output
@@ -52,7 +50,6 @@ Usage: isabelle_process [OPTIONS] [HEAP]
   $ISABELLE_PATH; if it contains a slash, it is taken as literal file;
   if it is RAW_ML_SYSTEM, the initial ML heap is used.
 """,
-        "S" -> (_ => secure = true),
         "e:" -> (arg => ml_args = ml_args ::: List("--eval", arg)),
         "f:" -> (arg => ml_args = ml_args ::: List("--use", arg)),
         "m:" -> (arg => modes = arg :: modes),
@@ -65,7 +62,7 @@ Usage: isabelle_process [OPTIONS] [HEAP]
           case _ => getopts.usage()
         }
 
-      ML_Process(options, heap = heap, args = ml_args, secure = secure, modes = modes).
+      ML_Process(options, heap = heap, args = ml_args, modes = modes).
         result().print_stdout.rc
     }
   }
