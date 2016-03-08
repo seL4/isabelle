@@ -12,9 +12,9 @@ object ML_Process
   def apply(options: Options,
     heap: String = "",
     args: List[String] = Nil,
-    process_socket: String = "",
+    modes: List[String] = Nil,
     secure: Boolean = false,
-    modes: List[String] = Nil): Bash.Process =
+    process_socket: String = ""): Bash.Process =
   {
     val load_heaps =
     {
@@ -55,18 +55,17 @@ object ML_Process
       }
       else Nil
 
-    val eval_secure = if (secure) List("Secure.set_secure ()") else Nil
-
     val eval_modes =
       if (modes.isEmpty) Nil
       else List("Print_Mode.add_modes " + ML_Syntax.print_list(ML_Syntax.print_string_raw _)(modes))
-
 
     // options
     val isabelle_process_options = Isabelle_System.tmp_file("options")
     File.write(isabelle_process_options, YXML.string_of_body(options.encode))
     val env = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
     val eval_options = if (load_heaps.isEmpty) Nil else List("Options.load_default ()")
+
+    val eval_secure = if (secure) List("Secure.set_secure ()") else Nil
 
     val eval_process =
       if (process_socket == "") Nil
@@ -75,7 +74,7 @@ object ML_Process
     // bash
     val bash_args =
       Word.explode(Isabelle_System.getenv("ML_OPTIONS")) :::
-      (eval_heaps ::: eval_exit ::: eval_secure ::: eval_modes ::: eval_options ::: eval_process).
+      (eval_heaps ::: eval_exit ::: eval_modes ::: eval_options ::: eval_secure ::: eval_process).
         map(eval => List("--eval", eval)).flatten ::: args
 
     Bash.process(env = env, script =

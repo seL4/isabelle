@@ -10,21 +10,23 @@ package isabelle
 object Isabelle_Process
 {
   def apply(
-    receiver: Prover.Message => Unit = Console.println(_),
-    prover_args: List[String] = Nil): Isabelle_Process =
+    options: Options,
+    heap: String = "",
+    args: List[String] = Nil,
+    modes: List[String] = Nil,
+    secure: Boolean = false,
+    receiver: Prover.Receiver = Console.println(_)): Isabelle_Process =
   {
-    val system_channel = System_Channel()
-    val system_process =
+    val channel = System_Channel()
+    val process =
       try {
-        val process =
-          Bash.process("\"$ISABELLE_PROCESS\" -P " + File.bash_string(system_channel.server_name) +
-            " " + File.bash_args(prover_args))
-        process.stdin.close
-        process
+        ML_Process(options, heap = heap, args = args, modes = modes, secure = secure,
+          process_socket = channel.server_name)
       }
-      catch { case exn @ ERROR(_) => system_channel.accepted(); throw exn }
+      catch { case exn @ ERROR(_) => channel.accepted(); throw exn }
+    process.stdin.close
 
-    new Isabelle_Process(receiver, system_channel, system_process)
+    new Isabelle_Process(receiver, channel, process)
   }
 
 
@@ -33,7 +35,7 @@ object Isabelle_Process
   def main(args: Array[String])
   {
     Command_Line.tool {
-      var ml_args: List[String] = Nil
+      var eval_args: List[String] = Nil
       var modes: List[String] = Nil
       var options = Options.init()
 
@@ -50,8 +52,8 @@ Usage: isabelle_process [OPTIONS] [HEAP]
   $ISABELLE_PATH; if it contains a slash, it is taken as literal file;
   if it is RAW_ML_SYSTEM, the initial ML heap is used.
 """,
-        "e:" -> (arg => ml_args = ml_args ::: List("--eval", arg)),
-        "f:" -> (arg => ml_args = ml_args ::: List("--use", arg)),
+        "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
+        "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
         "m:" -> (arg => modes = arg :: modes),
         "o:" -> (arg => options = options + arg))
 
@@ -62,17 +64,15 @@ Usage: isabelle_process [OPTIONS] [HEAP]
           case _ => getopts.usage()
         }
 
-      ML_Process(options, heap = heap, args = ml_args, modes = modes).
+      ML_Process(options, heap = heap, args = eval_args ::: args.toList, modes = modes).
         result().print_stdout.rc
     }
   }
 }
 
 class Isabelle_Process private(
-    receiver: Prover.Message => Unit,
-    system_channel: System_Channel,
-    system_process: Prover.System_Process)
-  extends Prover(receiver, system_channel, system_process)
+    receiver: Prover.Receiver, channel: System_Channel, process: Prover.System_Process)
+  extends Prover(receiver, channel, process)
 {
   def encode(s: String): String = Symbol.encode(s)
   def decode(s: String): String = Symbol.decode(s)

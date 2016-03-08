@@ -212,7 +212,7 @@ class Session(val resources: Resources)
 
   /* internal messages */
 
-  private case class Start(name: String, args: List[String])
+  private case class Start(start_prover: Prover.Receiver => Prover)
   private case object Stop
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Protocol_Command(name: String, args: List[String])
@@ -532,10 +532,10 @@ class Session(val resources: Resources)
           case input: Prover.Input =>
             all_messages.post(input)
 
-          case Start(name, args) if !prover.defined =>
+          case Start(start_prover) if !prover.defined =>
             if (phase == Session.Inactive || phase == Session.Failed) {
               phase = Session.Startup
-              prover.set(resources.start_prover(manager.send(_), name, args))
+              prover.set(start_prover(manager.send(_)))
             }
 
           case Stop =>
@@ -601,8 +601,8 @@ class Session(val resources: Resources)
       pending_edits: List[Text.Edit] = Nil): Document.Snapshot =
     global_state.value.snapshot(name, pending_edits)
 
-  def start(name: String, args: List[String])
-  { manager.send(Start(name, args)) }
+  def start(start_prover: Prover.Receiver => Prover)
+  { manager.send(Start(start_prover)) }
 
   def stop()
   {

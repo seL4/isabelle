@@ -39,6 +39,7 @@ object Prover
   /* messages */
 
   sealed abstract class Message
+  type Receiver = Message => Unit
 
   class Input(val name: String, val args: List[String]) extends Message
   {
@@ -85,7 +86,7 @@ object Prover
 
 
 abstract class Prover(
-  receiver: Prover.Message => Unit,
+  receiver: Prover.Receiver,
   system_channel: System_Channel,
   system_process: Prover.System_Process) extends Protocol
 {

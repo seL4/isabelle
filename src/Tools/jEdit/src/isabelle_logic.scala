@@ -69,14 +69,15 @@ object Isabelle_Logic
       dirs = session_dirs(), sessions = List(session_name()))
   }
 
-  def session_args(): List[String] =
+  def session_start()
   {
-    (space_explode(',', PIDE.options.string("jedit_print_mode")) :::
-     space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).
-      map(m => List("-m", m)).flatten ::: List("-q", session_name())
+    val modes =
+      (space_explode(',', PIDE.options.string("jedit_print_mode")) :::
+       space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse
+    PIDE.session.start(receiver =>
+      Isabelle_Process(
+        PIDE.options.value, heap = session_name(), modes = modes, receiver = receiver))
   }
-
-  def session_start(): Unit = PIDE.session.start("Isabelle", session_args())
 
   def session_dirs(): List[Path] = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
 
