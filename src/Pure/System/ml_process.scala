@@ -44,14 +44,17 @@ object ML_Process
         ML_Syntax.print_string_raw(": " + load_heap.toString + "\n") +
         "); OS.Process.exit OS.Process.failure)")
 
-    val eval_exit =
+    val eval_initial =
       if (load_heaps.isEmpty) {
         List(
           if (Platform.is_windows)
             "fun exit 0 = OS.Process.exit OS.Process.success" +
             " | exit 1 = OS.Process.exit OS.Process.failure" +
             " | exit rc = OS.Process.exit (RunCall.unsafeCast (Word8.fromInt rc))"
-          else "fun exit rc = Posix.Process.exit (Word8.fromInt rc)",
+          else
+            "fun exit rc = Posix.Process.exit (Word8.fromInt rc)",
+          "PolyML.Compiler.prompt1 := \"ML> \"",
+          "PolyML.Compiler.prompt2 := \"ML# \"",
           "PolyML.print_depth 10")
       }
       else Nil
@@ -75,7 +78,7 @@ object ML_Process
     // bash
     val bash_args =
       Word.explode(Isabelle_System.getenv("ML_OPTIONS")) :::
-      (eval_heaps ::: eval_exit ::: eval_modes ::: eval_options ::: eval_secure ::: eval_process).
+      (eval_heaps ::: eval_initial ::: eval_modes ::: eval_options ::: eval_secure ::: eval_process).
         map(eval => List("--eval", eval)).flatten ::: args
 
     Bash.process(env = env, redirect = redirect, script =
