@@ -27,13 +27,6 @@ unset XMODIFIERS
 
 
 ###
-### Interactive sessions (cf. isabelle console)
-###
-
-ISABELLE_LINE_EDITOR="rlwrap"
-
-
-###
 ### Batch sessions (cf. isabelle build)
 ###
 

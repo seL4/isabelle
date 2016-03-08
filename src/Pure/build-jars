@@ -96,13 +96,13 @@ declare -a SOURCES=(
   Thy/thy_syntax.scala
   Tools/bibtex.scala
   Tools/build.scala
-  Tools/build_console.scala
   Tools/build_doc.scala
   Tools/check_keywords.scala
   Tools/check_sources.scala
   Tools/debugger.scala
   Tools/doc.scala
   Tools/main.scala
+  Tools/ml_console.scala
   Tools/ml_statistics.scala
   Tools/news.scala
   Tools/print_operation.scala
