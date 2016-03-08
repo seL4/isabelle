@@ -482,7 +482,7 @@ fun construct_dictionaries ctxt (proj_sort, algebra) permissive some_thm (ty, so
         val sort' = proj_sort sort;
       in map_index (fn (n, class) => (Weakening ([], Local (v, (n, sort'))), class)) sort' end;
     val typarg_witnesses = Sorts.of_sort_derivation algebra
-      {class_relation = K (Sorts.classrel_derivation algebra class_relation),
+      {class_relation = fn _ => fn _ => Sorts.classrel_derivation algebra class_relation,
        type_constructor = type_constructor,
        type_variable = type_variable} (ty, proj_sort sort)
       handle Sorts.CLASS_ERROR e => not_wellsorted ctxt permissive some_thm deps ty sort e;
