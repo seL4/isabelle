@@ -113,11 +113,27 @@ subsubsection \<open>Conversion to set and membership\<close>
 definition set_mset :: "'a multiset \<Rightarrow> 'a set"
   where "set_mset M = {x. count M x > 0}"
 
-abbreviation Melem :: "'a \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<in>#" 50)
-  where "a \<in># M \<equiv> a \<in> set_mset M"
+abbreviation Melem :: "'a \<Rightarrow> 'a multiset \<Rightarrow> bool"
+  where "Melem a M \<equiv> a \<in> set_mset M"
 
-abbreviation not_Melem :: "'a \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<notin>#" 50)
-  where "a \<notin># M \<equiv> a \<notin> set_mset M"
+notation
+  Melem  ("op \<in>#") and
+  Melem  ("(_/ \<in># _)" [51, 51] 50)
+
+notation  (ASCII)
+  Melem  ("op :#") and
+  Melem  ("(_/ :# _)" [51, 51] 50)
+
+abbreviation not_Melem :: "'a \<Rightarrow> 'a multiset \<Rightarrow> bool"
+  where "not_Melem a M \<equiv> a \<notin> set_mset M"
+
+notation
+  not_Melem  ("op \<notin>#") and
+  not_Melem  ("(_/ \<notin># _)" [51, 51] 50)
+
+notation  (ASCII)
+  not_Melem  ("op ~:#") and
+  not_Melem  ("(_/ ~:# _)" [51, 51] 50)
 
 context
 begin
@@ -133,6 +149,10 @@ end
 syntax
   "_MBall"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<forall>_\<in>#_./ _)" [0, 0, 10] 10)
   "_MBex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>_\<in>#_./ _)" [0, 0, 10] 10)
+
+syntax  (ASCII)
+  "_MBall"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<forall>_:#_./ _)" [0, 0, 10] 10)
+  "_MBex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>_:#_./ _)" [0, 0, 10] 10)
 
 translations
   "\<forall>x\<in>#A. P" \<rightleftharpoons> "CONST Multiset.Ball A (\<lambda>x. P)"
