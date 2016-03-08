@@ -19,7 +19,7 @@ sig
       Dict of (class * class) list * plain_dict
   and plain_dict = 
       Dict_Const of (string * class) * dict list list
-    | Dict_Var of vname * (int * int);
+    | Dict_Var of { var: vname, index: int, length: int };
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname;
@@ -132,7 +132,7 @@ datatype dict =
     Dict of (class * class) list * plain_dict
 and plain_dict = 
     Dict_Const of (string * class) * dict list list
-  | Dict_Var of vname * (int * int);
+  | Dict_Var of { var: vname, index: int, length: int };
 
 datatype itype =
     `%% of string * itype list
@@ -760,8 +760,8 @@ and translate_dicts ctxt algbr eqngr permissive some_thm (ty, sort) =
           ensure_inst ctxt algbr eqngr permissive inst
           ##>> (fold_map o fold_map) mk_dict dss
           #>> (fn (inst, dss) => Dict_Const (inst, dss))
-      | mk_plain_dict (Local (v, (n, sort))) =
-          pair (Dict_Var (unprefix "'" v, (n, length sort)))
+      | mk_plain_dict (Local (v, (index, sort))) =
+          pair (Dict_Var { var = unprefix "'" v, index = index, length = length sort })
   in
     construct_dictionaries ctxt algbr permissive some_thm (ty, sort)
     #-> (fn typarg_witnesses => fold_map mk_dict typarg_witnesses)

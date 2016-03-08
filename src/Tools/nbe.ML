@@ -311,8 +311,8 @@ fun assemble_eqnss ctxt idx_of deps eqnss =
           assemble_classrels classrels (assemble_plain_dict x)
     and assemble_plain_dict (Dict_Const (inst, dss)) =
           assemble_constapp (Class_Instance inst) dss []
-      | assemble_plain_dict (Dict_Var (v, (n, _))) =
-          nbe_dict v n
+      | assemble_plain_dict (Dict_Var { var, index, ... }) =
+          nbe_dict var index
 
     fun assemble_iterm constapp =
       let
