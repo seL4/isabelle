@@ -3,6 +3,7 @@
 Bash process with separate process group id.
 */
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,6 +56,12 @@ int main(int argc, char *argv[])
     if (pid == -1) fail("Cannot set session id (failed to fork)");
     else if (pid != 0) {
       int status;
+
+      // ingore SIGINT
+      struct sigaction sa;
+      memset(&sa, 0, sizeof(sa));
+      sa.sa_handler = SIG_IGN;
+      sigaction(SIGINT, &sa, 0);
 
       if (waitpid(pid, &status, 0) == -1) {
         fail("Cannot join forked process");
