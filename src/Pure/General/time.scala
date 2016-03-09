@@ -46,5 +46,11 @@ final class Time private(val ms: Long) extends AnyVal
   override def toString: String = Time.print_seconds(seconds)
 
   def message: String = toString + "s"
-}
 
+  def message_hms: String =
+  {
+    val s = ms / 1000
+    String.format(Locale.ROOT, "%d:%02d:%02d",
+      new java.lang.Long(s / 3600), new java.lang.Long((s / 60) % 60), new java.lang.Long(s % 60))
+  }
+}
