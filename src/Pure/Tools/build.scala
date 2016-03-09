@@ -605,7 +605,7 @@ object Build
       exit "$RC"
       """
 
-    private val result =
+    private val future_result =
       Future.thread("build") {
         Isabelle_System.bash(script, info.dir.file, env,
           progress_stdout = (line: String) =>
@@ -621,8 +621,8 @@ object Build
           strict = false)
       }
 
-    def terminate: Unit = result.cancel
-    def is_finished: Boolean = result.is_finished
+    def terminate: Unit = future_result.cancel
+    def is_finished: Boolean = future_result.is_finished
 
     @volatile private var was_timeout = false
     private val timeout_request: Option[Event_Timer.Request] =
@@ -634,20 +634,20 @@ object Build
 
     def join: Process_Result =
     {
-      val res = result.join
+      val result = future_result.join
 
-      if (res.ok && !is_pure(name))
+      if (result.ok && !is_pure(name))
         Present.finish(progress, browser_info, graph_file, info, name)
 
       graph_file.delete
       args_file.delete
       timeout_request.foreach(_.cancel)
 
-      if (res.interrupted) {
-        if (was_timeout) res.error(Output.error_text("Timeout")).was_timeout
-        else res.error(Output.error_text("Interrupt"))
+      if (result.interrupted) {
+        if (was_timeout) result.error(Output.error_text("Timeout")).was_timeout
+        else result.error(Output.error_text("Interrupt"))
       }
-      else res
+      else result
     }
   }
 
