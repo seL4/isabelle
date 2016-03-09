@@ -27,7 +27,9 @@ object Bash
   }
 
   def process(script: String,
-      cwd: JFile = null, env: Map[String, String] = null, redirect: Boolean = false): Process =
+      cwd: JFile = null,
+      env: Map[String, String] = Map.empty,
+      redirect: Boolean = false): Process =
     new Process(script, cwd, env, redirect)
 
   class Process private [Bash](

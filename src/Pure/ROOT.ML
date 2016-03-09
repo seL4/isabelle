@@ -83,8 +83,6 @@ PolyML.Compiler.reportUnreferencedIds := true;
 PolyML.Compiler.reportExhaustiveHandlers := true;
 PolyML.Compiler.printInAlphabeticalOrder := false;
 PolyML.Compiler.maxInlineSize := 80;
-PolyML.Compiler.prompt1 := "ML> ";
-PolyML.Compiler.prompt2 := "ML# ";
 
 fun ml_make_string struct_name =
   "(fn x => Pretty.string_of (Pretty.from_ML (ML_Pretty.from_polyml (PolyML.prettyRepresentation (x, FixedInt.fromInt (" ^

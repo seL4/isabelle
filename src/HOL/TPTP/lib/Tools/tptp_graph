@@ -118,7 +118,7 @@ function generate_dot()
 begin ML_file \"$TPTP_HOME/TPTP_Parser/tptp_to_dot.ML\" \
 ML {* TPTP_To_Dot.write_proof_dot \"$1\" \"$2\" *} end" \
         > $WORKDIR/$LOADER.thy
-  "$ISABELLE_PROCESS" -e "use_thy \"$WORKDIR/$LOADER\";" -q Pure
+  "$ISABELLE_PROCESS" -e "use_thy \"$WORKDIR/$LOADER\";" Pure
 }
 
 function cleanup_workdir()

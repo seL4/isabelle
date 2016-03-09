@@ -51,7 +51,7 @@ object Isabelle_System
 
   @volatile private var _settings: Option[Map[String, String]] = None
 
-  def settings(env: Map[String, String] = null): Map[String, String] =
+  def settings(env: Map[String, String] = Map.empty): Map[String, String] =
   {
     if (_settings.isEmpty) init()  // unsynchronized check
     if (env == null) _settings.get else _settings.get ++ env
@@ -302,7 +302,7 @@ object Isabelle_System
 
   /* bash */
 
-  def bash(script: String, cwd: JFile = null, env: Map[String, String] = null,
+  def bash(script: String, cwd: JFile = null, env: Map[String, String] = Map.empty,
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
     progress_limit: Option[Long] = None,

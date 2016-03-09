@@ -7,6 +7,9 @@ The underlying ML process.
 package isabelle
 
 
+import java.io.{File => JFile}
+
+
 object ML_Process
 {
   def apply(options: Options,
@@ -14,6 +17,8 @@ object ML_Process
     args: List[String] = Nil,
     modes: List[String] = Nil,
     secure: Boolean = false,
+    cwd: JFile = null,
+    env: Map[String, String] = Map.empty,
     redirect: Boolean = false,
     channel: Option[System_Channel] = None): Bash.Process =
   {
@@ -66,7 +71,7 @@ object ML_Process
     // options
     val isabelle_process_options = Isabelle_System.tmp_file("options")
     File.write(isabelle_process_options, YXML.string_of_body(options.encode))
-    val env = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
+    val env_options = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
     val eval_options = if (load_heaps.isEmpty) Nil else List("Options.load_default ()")
 
     val eval_secure = if (secure) List("Secure.set_secure ()") else Nil
@@ -87,7 +92,7 @@ object ML_Process
       (eval_heaps ::: eval_initial ::: eval_modes ::: eval_options ::: eval_secure ::: eval_process).
         map(eval => List("--eval", eval)).flatten ::: args
 
-    Bash.process(env = env, redirect = redirect, script =
+    Bash.process(
       """
         [ -z "$ISABELLE_TMP_PREFIX" ] && ISABELLE_TMP_PREFIX=/tmp/isabelle
 
@@ -104,6 +109,6 @@ object ML_Process
         rmdir "$ISABELLE_TMP"
 
         exit "$RC"
-      """)
+      """, cwd = cwd, env = env ++ env_options, redirect = redirect)
   }
 }

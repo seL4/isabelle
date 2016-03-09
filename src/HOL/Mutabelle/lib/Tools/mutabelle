@@ -134,7 +134,7 @@ end" > "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test.thy"
 # execution
 
 "$ISABELLE_PROCESS" -o auto_time_limit=10.0 \
-  -e 'use_thy "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test"' -q "$MUTABELLE_LOGIC" > "$MUTABELLE_OUTPUT_PATH/err" 2>&1
+  -e 'use_thy "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test"' "$MUTABELLE_LOGIC" > "$MUTABELLE_OUTPUT_PATH/err" 2>&1
 
 
 [ $? -ne 0 ] && echo "isabelle processing of mutabelle failed"

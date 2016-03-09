@@ -159,8 +159,7 @@ if ($output_log) { print "Mirabelle: $thy_file\n"; }
 
 my $cmd =
   "\"$ENV{'ISABELLE_PROCESS'}\" " .
-  "-o quick_and_dirty -e 'Multithreading.max_threads_setmp 1 use_thy \"$path/$new_thy_name\"' -q $mirabelle_logic" .
-  $quiet;
+  "-o quick_and_dirty -o threads=1 -e 'use_thy \"$path/$new_thy_name\"' $mirabelle_logic" . $quiet;
 my $result = system "bash", "-c", $cmd;
 
 if ($output_log) {
