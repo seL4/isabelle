@@ -68,7 +68,7 @@ Usage: isabelle console [OPTIONS]
 
       // process loop
       val process =
-        ML_Process(options, heap = logic,
+        ML_Process(options, heap = logic, args = List("-i"),
           modes = if (logic == "RAW_ML_SYSTEM") Nil else modes ::: List("ASCII"))
       val process_output = Future.thread[Unit]("process_output") {
         try {
