@@ -567,17 +567,17 @@ lemma bounded_valid_path_image: "valid_path g \<Longrightarrow> bounded(path_ima
 lemma closed_valid_path_image: "valid_path g \<Longrightarrow> closed(path_image g)"
   by (metis closed_path_image valid_path_imp_path)
 
-lemma valid_path_compose:
-  assumes "valid_path g"
-      and der:"\<And>x. x \<in> path_image g \<Longrightarrow> \<exists>f'. (f has_field_derivative f') (at x)"
-      and con: "continuous_on {0..1} (\<lambda>x. deriv f (g x))"
+proposition valid_path_compose:
+  assumes "valid_path g" 
+      and der: "\<And>x. x \<in> path_image g \<Longrightarrow> \<exists>f'. (f has_field_derivative f') (at x)"
+      and con: "continuous_on (path_image g) (deriv f)"
     shows "valid_path (f o g)"
 proof -
   obtain s where "finite s" and g_diff: "g C1_differentiable_on {0..1} - s"
     using `valid_path g` unfolding valid_path_def piecewise_C1_differentiable_on_def by auto
-  have "f \<circ> g differentiable at t" if "t \<in> {0..1} - s" for t
+  have "f \<circ> g differentiable at t" when "t\<in>{0..1} - s" for t
     proof (rule differentiable_chain_at)
-      show "g differentiable at t" using `valid_path g`
+      show "g differentiable at t" using `valid_path g` 
         by (meson C1_differentiable_on_eq \<open>g C1_differentiable_on {0..1} - s\<close> that)
     next
       have "g t\<in>path_image g" using that DiffD1 image_eqI path_image_def by metis
@@ -588,38 +588,42 @@ proof -
       then show "f differentiable at (g t)" using differentiableI by auto
     qed
   moreover have "continuous_on ({0..1} - s) (\<lambda>x. vector_derivative (f \<circ> g) (at x))"
-  proof (rule continuous_on_eq [where f = "\<lambda>x. vector_derivative g (at x) * deriv f (g x)"],
-      rule continuous_intros)
-    show "continuous_on ({0..1} - s) (\<lambda>x. vector_derivative g (at x))"
-      using g_diff C1_differentiable_on_eq by auto
-  next
-    show "continuous_on ({0..1} - s) (\<lambda>x. deriv f (g x))"
-      using con continuous_on_subset by blast
-  next
-    show "vector_derivative g (at t) * deriv f (g t) = vector_derivative (f \<circ> g) (at t)"
-         if "t \<in> {0..1} - s" for t
-    proof (rule vector_derivative_chain_at_general[symmetric])
-      show "g differentiable at t" by (meson C1_differentiable_on_eq g_diff that)
+    proof (rule continuous_on_eq [where f = "\<lambda>x. vector_derivative g (at x) * deriv f (g x)"],
+        rule continuous_intros)
+      show "continuous_on ({0..1} - s) (\<lambda>x. vector_derivative g (at x))"
+        using g_diff C1_differentiable_on_eq by auto
     next
-      have "g t\<in>path_image g" using that DiffD1 image_eqI path_image_def by metis
-      then obtain f' where "(f has_field_derivative f') (at (g t))"
-        using der by auto
-      then show "\<exists>g'. (f has_field_derivative g') (at (g t))" by auto
+      have "continuous_on {0..1} (\<lambda>x. deriv f (g x))" 
+        using continuous_on_compose[OF _ con[unfolded path_image_def],unfolded comp_def] 
+          `valid_path g` piecewise_C1_differentiable_on_def valid_path_def 
+        by blast
+      then show "continuous_on ({0..1} - s) (\<lambda>x. deriv f (g x))" 
+        using continuous_on_subset by blast
+    next
+      show "vector_derivative g (at t) * deriv f (g t) = vector_derivative (f \<circ> g) (at t)"
+          when "t \<in> {0..1} - s" for t
+        proof (rule vector_derivative_chain_at_general[symmetric])
+          show "g differentiable at t" by (meson C1_differentiable_on_eq g_diff that)
+        next
+          have "g t\<in>path_image g" using that DiffD1 image_eqI path_image_def by metis
+          then obtain f' where "(f has_field_derivative f') (at (g t))"
+            using der by auto
+          then show "\<exists>g'. (f has_field_derivative g') (at (g t))" by auto
+        qed
     qed
-  qed
   ultimately have "f o g C1_differentiable_on {0..1} - s"
     using C1_differentiable_on_eq by blast
-  moreover have "path (f o g)"
-  proof -
-    have "isCont f x" if "x \<in> path_image g" for x
-      proof -
-        obtain f' where "(f has_field_derivative f') (at x)"
-          using der `x\<in>path_image g` by auto
-        thus ?thesis using DERIV_isCont by auto
-      qed
-    then have "continuous_on (path_image g) f" using continuous_at_imp_continuous_on by auto
-    then show ?thesis using path_continuous_image `valid_path g` valid_path_imp_path by auto
-  qed
+  moreover have "path (f o g)" 
+    proof -
+      have "isCont f x" when "x\<in>path_image g" for x 
+        proof -
+          obtain f' where "(f has_field_derivative f') (at x)" 
+            using der[rule_format] `x\<in>path_image g` by auto
+          thus ?thesis using DERIV_isCont by auto
+        qed
+      then have "continuous_on (path_image g) f" using continuous_at_imp_continuous_on by auto
+      then show ?thesis using path_continuous_image `valid_path g` valid_path_imp_path by auto
+    qed
   ultimately show ?thesis unfolding valid_path_def piecewise_C1_differentiable_on_def path_def
     using `finite s` by auto
 qed
@@ -725,7 +729,7 @@ proof -
     by (auto simp: valid_path_def piecewise_C1_differentiable_on_def path_def [symmetric])
 qed
 
-lemma valid_path_reversepath: "valid_path(reversepath g) \<longleftrightarrow> valid_path g"
+lemma valid_path_reversepath [simp]: "valid_path(reversepath g) \<longleftrightarrow> valid_path g"
   using valid_path_imp_reverse by force
 
 lemma has_contour_integral_reversepath:
@@ -5731,6 +5735,20 @@ lemma has_field_derivative_higher_deriv:
       \<Longrightarrow> ((deriv ^^ n) f has_field_derivative (deriv ^^ (Suc n)) f x) (at x)"
 by (metis (no_types, hide_lams) DERIV_deriv_iff_field_differentiable at_within_open comp_apply
          funpow.simps(2) holomorphic_higher_deriv holomorphic_on_def)
+
+lemma valid_path_compose_holomorphic:
+  assumes "valid_path g" and holo:"f holomorphic_on s" and "open s" "path_image g \<subseteq> s"
+  shows "valid_path (f o g)"
+proof (rule valid_path_compose[OF `valid_path g`])
+  fix x assume "x \<in> path_image g"
+  then show "\<exists>f'. (f has_field_derivative f') (at x)"
+    using holo holomorphic_on_open[OF `open s`] `path_image g \<subseteq> s` by auto 
+next
+  have "deriv f holomorphic_on s"
+    using holomorphic_deriv holo `open s` by auto
+  then show "continuous_on (path_image g) (deriv f)" 
+    using assms(4) holomorphic_on_imp_continuous_on holomorphic_on_subset by auto
+qed
 
 
 subsection\<open> Morera's theorem.\<close>
