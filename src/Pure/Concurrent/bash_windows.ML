@@ -43,7 +43,7 @@ val process = uninterruptible (fn restore_attributes => fn script =>
             val rc =
               Windows.simpleExecute ("",
                 quote (ML_System.platform_path bash_process) ^ " " ^
-                quote (File.platform_path pid_path) ^ " bash -c " ^ quote bash_script)
+                quote (File.platform_path pid_path) ^  " \"\" bash -c " ^ quote bash_script)
               |> Windows.fromStatus |> SysWord.toInt;
             val res = if rc = 130 orelse rc = 512 then Signal else Result rc;
           in Synchronized.change result (K res) end

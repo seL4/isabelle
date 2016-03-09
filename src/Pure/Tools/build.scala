@@ -624,13 +624,11 @@ object Build
     def terminate: Unit = result.cancel
     def is_finished: Boolean = result.is_finished
 
-    @volatile private var was_timeout: Option[Time] = None
+    @volatile private var was_timeout = false
     private val timeout_request: Option[Event_Timer.Request] =
     {
-      val timeout = info.timeout
-      val t0 = Time.now()
-      if (timeout > Time.zero)
-        Some(Event_Timer.request(t0 + timeout) { terminate; was_timeout = Some(Time.now() - t0) })
+      if (info.timeout > Time.zero)
+        Some(Event_Timer.request(Time.now() + info.timeout) { terminate; was_timeout = true })
       else None
     }
 
@@ -646,10 +644,8 @@ object Build
       timeout_request.foreach(_.cancel)
 
       if (res.interrupted) {
-        was_timeout match {
-          case Some(t) => res.error(Output.error_text("Timeout")).set_timeout(t)
-          case None => res.error(Output.error_text("Interrupt"))
-        }
+        if (was_timeout) res.error(Output.error_text("Timeout")).was_timeout
+        else res.error(Output.error_text("Interrupt"))
       }
       else res
     }

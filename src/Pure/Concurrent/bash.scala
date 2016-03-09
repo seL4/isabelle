@@ -34,13 +34,16 @@ object Bash
       script: String, cwd: JFile, env: Map[String, String], redirect: Boolean)
     extends Prover.System_Process
   {
-    val script_file = Isabelle_System.tmp_file("bash_script")
+    private val timing_file = Isabelle_System.tmp_file("bash_script")
+    private val timing = Synchronized[Option[Timing]](None)
+
+    private val script_file = Isabelle_System.tmp_file("bash_script")
     File.write(script_file, script)
 
     private val proc =
       Isabelle_System.process(cwd, Isabelle_System.settings(env), redirect,
         File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")), "-",
-          "bash", File.standard_path(script_file))
+          File.standard_path(timing_file), "bash", File.standard_path(script_file))
 
 
     // channels
@@ -105,6 +108,19 @@ object Bash
 
       script_file.delete
 
+      timing.change {
+        case None =>
+          val t =
+            Word.explode(File.read(timing_file)) match {
+              case List(Properties.Value.Long(elapsed), Properties.Value.Long(cpu)) =>
+                Timing(Time.ms(elapsed), Time.ms(cpu), Time.zero)
+              case _ => Timing.zero
+            }
+          timing_file.delete
+          Some(t)
+        case some => some
+      }
+
       rc
     }
 
@@ -130,7 +146,7 @@ object Bash
         catch { case Exn.Interrupt() => terminate; Exn.Interrupt.return_code }
       if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
 
-      Process_Result(rc, out_lines.join, err_lines.join)
+      Process_Result(rc, out_lines.join, err_lines.join, false, timing.value.get)
     }
   }
 }
