@@ -88,7 +88,12 @@ object Bash
       running
     }
 
-    def terminate() { multi_kill("INT") && multi_kill("TERM") && kill("KILL"); proc.destroy }
+    def terminate()
+    {
+      multi_kill("INT") && multi_kill("TERM") && kill("KILL")
+      proc.destroy
+      cleanup()
+    }
 
 
     // JVM shutdown hook
@@ -99,12 +104,10 @@ object Bash
     catch { case _: IllegalStateException => }
 
 
-    /* join */
+    // cleanup
 
-    def join: Int =
+    private def cleanup()
     {
-      val rc = proc.waitFor
-
       try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
       catch { case _: IllegalStateException => }
 
@@ -112,22 +115,33 @@ object Bash
 
       timing.change {
         case None =>
-          val t =
-            Word.explode(File.read(timing_file)) match {
-              case List(Properties.Value.Long(elapsed), Properties.Value.Long(cpu)) =>
-                Timing(Time.ms(elapsed), Time.ms(cpu), Time.zero)
-              case _ => Timing.zero
-            }
-          timing_file.delete
-          Some(t)
+          if (timing_file.isFile) {
+            val t =
+              Word.explode(File.read(timing_file)) match {
+                case List(Properties.Value.Long(elapsed), Properties.Value.Long(cpu)) =>
+                  Timing(Time.ms(elapsed), Time.ms(cpu), Time.zero)
+                case _ => Timing.zero
+              }
+            timing_file.delete
+            Some(t)
+          }
+          else Some(Timing.zero)
         case some => some
       }
+    }
 
+
+    // join
+
+    def join: Int =
+    {
+      val rc = proc.waitFor
+      cleanup()
       rc
     }
 
 
-    /* result */
+    // result
 
     def result(
       progress_stdout: String => Unit = (_: String) => (),
@@ -145,10 +159,10 @@ object Bash
 
       val rc =
         try { join }
-        catch { case Exn.Interrupt() => terminate; Exn.Interrupt.return_code }
+        catch { case Exn.Interrupt() => terminate(); Exn.Interrupt.return_code }
       if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
 
-      Process_Result(rc, out_lines.join, err_lines.join, false, timing.value.get)
+      Process_Result(rc, out_lines.join, err_lines.join, false, timing.value getOrElse Timing.zero)
     }
   }
 }
