@@ -51,7 +51,7 @@ object Isabelle_System
 
   @volatile private var _settings: Option[Map[String, String]] = None
 
-  def settings(env: Map[String, String] = null): Map[String, String] =
+  def settings(env: Map[String, String] = Map.empty): Map[String, String] =
   {
     if (_settings.isEmpty) init()  // unsynchronized check
     if (env == null) _settings.get else _settings.get ++ env
@@ -167,7 +167,7 @@ object Isabelle_System
 
   def mkdirs(path: Path): Unit =
     if (!path.is_dir) {
-      bash("perl -e \"use File::Path make_path; make_path(" + File.shell_path(path) + ");\"")
+      bash("perl -e \"use File::Path make_path; make_path('" + File.standard_path(path) + "');\"")
       if (!path.is_dir) error("Failed to create directory: " + quote(File.platform_path(path)))
     }
 
@@ -302,43 +302,13 @@ object Isabelle_System
 
   /* bash */
 
-  private class Limited_Progress(proc: Bash.Process, progress_limit: Option[Long])
-  {
-    private var count = 0L
-    def apply(progress: String => Unit)(line: String): Unit = synchronized {
-      progress(line)
-      count = count + line.length + 1
-      progress_limit match {
-        case Some(limit) if count > limit => proc.terminate
-        case _ =>
-      }
-    }
-  }
-
-  def bash(script: String, cwd: JFile = null, env: Map[String, String] = null,
+  def bash(script: String, cwd: JFile = null, env: Map[String, String] = Map.empty,
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
     progress_limit: Option[Long] = None,
     strict: Boolean = true): Process_Result =
   {
-    with_tmp_file("isabelle_script") { script_file =>
-      File.write(script_file, script)
-      val proc = Bash.process(cwd, env, false, File.standard_path(script_file))
-      proc.stdin.close
-
-      val limited = new Limited_Progress(proc, progress_limit)
-      val stdout =
-        Future.thread("bash_stdout") { File.read_lines(proc.stdout, limited(progress_stdout)) }
-      val stderr =
-        Future.thread("bash_stderr") { File.read_lines(proc.stderr, limited(progress_stderr)) }
-
-      val rc =
-        try { proc.join }
-        catch { case Exn.Interrupt() => proc.terminate; Exn.Interrupt.return_code }
-      if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
-
-      Process_Result(rc, out_lines = stdout.join, err_lines = stderr.join)
-    }
+    Bash.process(script, cwd, env).result(progress_stdout, progress_stderr, progress_limit, strict)
   }
 
 
@@ -368,7 +338,7 @@ object Isabelle_System
     bash("exec \"$PDF_VIEWER\" '" + File.standard_path(arg) + "' >/dev/null 2>/dev/null &")
 
   def hg(cmd_line: String, cwd: Path = Path.current): Process_Result =
-    bash("cd " + File.shell_path(cwd) + " && \"${HG:-hg}\" " + cmd_line)
+    bash("cd " + File.bash_path(cwd) + " && \"${HG:-hg}\" " + cmd_line)
 
 
 

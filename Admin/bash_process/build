@@ -37,15 +37,15 @@ mkdir -p "$TARGET"
 
 case "$TARGET" in
   x86_64-linux | x86_64-darwin)
-    cc -m64 bash_process.c -o "$TARGET/bash_process"
+    cc -Wall -m64 bash_process.c -o "$TARGET/bash_process"
     ;;
   x86-linux | x86-darwin)
-    cc -m32 bash_process.c -o "$TARGET/bash_process"
+    cc -Wall -m32 bash_process.c -o "$TARGET/bash_process"
     ;;
   x86-cygwin)
-    cc bash_process.c -o "$TARGET/bash_process.exe"
+    cc -Wall bash_process.c -o "$TARGET/bash_process.exe"
     ;;
   *)
-    cc bash_process.c -o "$TARGET/bash_process"
+    cc -Wall bash_process.c -o "$TARGET/bash_process"
     ;;
 esac

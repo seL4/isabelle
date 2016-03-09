@@ -101,11 +101,43 @@ object File
   }
 
 
-  /* shell path (bash) */
+  /* bash path */
 
-  def shell_quote(s: String): String = "'" + s + "'"
-  def shell_path(path: Path): String = shell_quote(standard_path(path))
-  def shell_path(file: JFile): String = shell_quote(standard_path(file))
+  private def bash_chr(c: Byte): String =
+  {
+    val ch = c.toChar
+    ch match {
+      case '\t' => "$'\\t'"
+      case '\n' => "$'\\n'"
+      case '\f' => "$'\\f'"
+      case '\r' => "$'\\r'"
+      case _ =>
+        if (Symbol.is_ascii_letter(ch) || Symbol.is_ascii_digit(ch) || "-./:_".contains(ch))
+          Symbol.ascii(ch)
+        else if (c < 0) "$'\\x" + Integer.toHexString(256 + c) + "'"
+        else if (c < 16) "$'\\x0" + Integer.toHexString(c) + "'"
+        else if (c < 32 || c >= 127) "$'\\x" + Integer.toHexString(c) + "'"
+        else  "\\" + ch
+    }
+  }
+
+  def bash_string(s: String): String =
+    UTF8.bytes(s).iterator.map(bash_chr(_)).mkString
+
+  def bash_args(args: List[String]): String =
+    args.iterator.map(bash_string(_)).mkString(" ")
+
+  def bash_path(path: Path): String = bash_string(standard_path(path))
+  def bash_path(file: JFile): String = bash_string(standard_path(file))
+
+
+  /* directory entries */
+
+  def check_dir(path: Path): Path =
+    if (path.is_dir) path else error("No such directory: " + path)
+
+  def check_file(path: Path): Path =
+    if (path.is_file) path else error("No such file: " + path)
 
 
   /* find files */

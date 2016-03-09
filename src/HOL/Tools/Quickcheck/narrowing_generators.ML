@@ -251,10 +251,10 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
         val _ = map (uncurry File.write) (includes @
           [(narrowing_engine_file, if contains_existentials then pnf_narrowing_engine else narrowing_engine),
            (code_file, code), (main_file, main)])
-        val executable = File.shell_path (Path.append in_path (Path.basic "isabelle_quickcheck_narrowing"))
+        val executable = File.bash_path (Path.append in_path (Path.basic "isabelle_quickcheck_narrowing"))
         val cmd = "exec \"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^
           ghc_options ^ " " ^
-          (space_implode " " (map File.shell_path (map fst includes @ [code_file, narrowing_engine_file, main_file]))) ^
+          (space_implode " " (map File.bash_path (map fst includes @ [code_file, narrowing_engine_file, main_file]))) ^
           " -o " ^ executable ^ ";"
         val (_, compilation_time) =
           elapsed_time "Haskell compilation" (fn () => Isabelle_System.bash cmd)

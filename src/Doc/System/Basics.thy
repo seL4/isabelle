@@ -22,9 +22,7 @@ text \<open>
   to all Isabelle executables (including tools and user interfaces).
 
   \<^enum> The raw \<^emph>\<open>Isabelle process\<close> (@{executable_ref "isabelle_process"}) runs
-  logic sessions either interactively or in batch mode. In particular, this
-  view abstracts over the invocation of the actual ML system to be used.
-  Regular users rarely need to care about the low-level process.
+  logic sessions in batch mode. This is rarely required for regular users.
 
   \<^enum> The main \<^emph>\<open>Isabelle tool wrapper\<close> (@{executable_ref isabelle}) provides a
   generic startup environment Isabelle related utilities, user interfaces etc.
@@ -289,35 +287,25 @@ text \<open>
 section \<open>The raw Isabelle process \label{sec:isabelle-process}\<close>
 
 text \<open>
-  The @{executable_def "isabelle_process"} executable runs bare-bones Isabelle
-  logic sessions --- either interactively or in batch mode. It provides an
-  abstraction over the underlying ML system and its saved heap files. Its
-  usage is:
+  The @{executable_def "isabelle_process"} executable runs a bare-bone
+  Isabelle logic session in batch mode:
   @{verbatim [display]
 \<open>Usage: isabelle_process [OPTIONS] [HEAP]
 
   Options are:
-    -O           system options from given YXML file
-    -P SOCKET    startup process wrapper via TCP socket
-    -S           secure mode -- disallow critical operations
     -e ML_EXPR   evaluate ML expression on startup
     -f ML_FILE   evaluate ML file on startup
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -q           non-interactive session
 
-  If HEAP is a plain name (default "HOL"), it is searched in $ISABELLE_PATH;
-  if it contains a slash, it is taken as literal file; if it is RAW_ML_SYSTEM,
-  the initial ML heap is used.\<close>}
+  If HEAP is a plain name (default $ISABELLE_LOGIC), it is searched in
+  $ISABELLE_PATH; if it contains a slash, it is taken as literal file;
+  if it is RAW_ML_SYSTEM, the initial ML heap is used.\<close>}
 
-  Heap files without path specifications are looked up in the @{setting
-  ISABELLE_PATH} setting, which may consist of multiple components separated
-  by colons --- these are tried in the given order with the value of @{setting
-  ML_IDENTIFIER} appended internally. In a similar way, base names are
-  relative to the directory specified by @{setting ISABELLE_OUTPUT}. In any
-  case, actual file locations may also be given by including at least one
-  slash (\<^verbatim>\<open>/\<close>) in the name (hint: use \<^verbatim>\<open>./\<close> to refer to the current
-  directory).
+  Heap files without explicit directory specifications are looked up in the
+  @{setting ISABELLE_PATH} setting, which may consist of multiple components
+  separated by colons --- these are tried in the given order with the value of
+  @{setting ML_IDENTIFIER} appended internally.
 \<close>
 
 
@@ -331,48 +319,22 @@ text \<open>
 
   \<^medskip>
   The \<^verbatim>\<open>-m\<close> option adds identifiers of print modes to be made active for this
-  session. Typically, this is used by some user interface, e.g.\ to enable
-  output of proper mathematical symbols.
-
-  \<^medskip>
-  Isabelle normally enters an interactive top-level loop (after processing the
-  \<^verbatim>\<open>-e\<close> texts). The \<^verbatim>\<open>-q\<close> option inhibits interaction, thus providing a pure
-  batch mode facility.
+  session. For example, \<^verbatim>\<open>-m ASCII\<close> prefers ASCII replacement syntax over
+  mathematical Isabelle symbols.
 
   \<^medskip>
   Option \<^verbatim>\<open>-o\<close> allows to override Isabelle system options for this process,
-  see also \secref{sec:system-options}. Alternatively, option \<^verbatim>\<open>-O\<close> specifies
-  the full environment of system options as a file in YXML format (according
-  to the Isabelle/Scala function \<^verbatim>\<open>isabelle.Options.encode\<close>).
-
-  \<^medskip>
-  The \<^verbatim>\<open>-P\<close> option starts the Isabelle process wrapper for Isabelle/Scala,
-  with a private protocol running over the specified TCP socket. Isabelle/ML
-  and Isabelle/Scala provide various programming interfaces to invoke protocol
-  functions over untyped strings and XML trees.
-
-  \<^medskip>
-  The \<^verbatim>\<open>-S\<close> option makes the Isabelle process more secure by disabling some
-  critical operations, notably runtime compilation and evaluation of ML source
-  code.
+  see also \secref{sec:system-options}.
 \<close>
 
 
 subsubsection \<open>Examples\<close>
 
 text \<open>
-  Run an interactive session of the default object-logic (as specified by the
-  @{setting ISABELLE_LOGIC} setting) like this:
-  @{verbatim [display] \<open>isabelle_process\<close>}
-
-  \<^medskip>
-  The next example demonstrates batch execution of Isabelle. We retrieve the
-  \<^verbatim>\<open>Main\<close> theory value from the theory loader within ML (observe the delicate
-  quoting rules for the Bash shell vs.\ ML):
-  @{verbatim [display] \<open>isabelle_process -e 'Thy_Info.get_theory "Main"' -q HOL\<close>}
-
-  Note that the output text will be interspersed with additional junk messages
-  by the ML runtime environment.
+  In order to demonstrate batch execution of Isabelle, we retrieve the \<^verbatim>\<open>Main\<close>
+  theory value from the theory loader within ML (observe the delicate quoting
+  rules for the Bash shell vs.\ ML):
+  @{verbatim [display] \<open>isabelle_process -e 'Thy_Info.get_theory "Main"' HOL\<close>}
 \<close>
 
 

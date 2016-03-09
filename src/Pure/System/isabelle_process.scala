@@ -10,31 +10,69 @@ package isabelle
 object Isabelle_Process
 {
   def apply(
-    receiver: Prover.Message => Unit = Console.println(_),
-    prover_args: String = ""): Isabelle_Process =
+    options: Options,
+    heap: String = "",
+    args: List[String] = Nil,
+    modes: List[String] = Nil,
+    secure: Boolean = false,
+    receiver: Prover.Receiver = Console.println(_)): Isabelle_Process =
   {
-    val system_channel = System_Channel()
-    val system_process =
+    val channel = System_Channel()
+    val process =
       try {
-        val script =
-          File.shell_quote(Isabelle_System.getenv_strict("ISABELLE_PROCESS")) +
-            " -P " + system_channel.server_name +
-            (if (prover_args == "") "" else " " + prover_args)
-        val process = Bash.process(null, null, false, "-c", script)
-        process.stdin.close
-        process
+        ML_Process(options, heap = heap, args = args, modes = modes, secure = secure,
+          channel = Some(channel))
       }
-      catch { case exn @ ERROR(_) => system_channel.accepted(); throw exn }
+      catch { case exn @ ERROR(_) => channel.accepted(); throw exn }
+    process.stdin.close
 
-    new Isabelle_Process(receiver, system_channel, system_process)
+    new Isabelle_Process(receiver, channel, process)
+  }
+
+
+  /* command line entry point */
+
+  def main(args: Array[String])
+  {
+    Command_Line.tool {
+      var eval_args: List[String] = Nil
+      var modes: List[String] = Nil
+      var options = Options.init()
+
+      val getopts = Getopts("""
+Usage: isabelle_process [OPTIONS] [HEAP]
+
+  Options are:
+    -e ML_EXPR   evaluate ML expression on startup
+    -f ML_FILE   evaluate ML file on startup
+    -m MODE      add print mode for output
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+
+  If HEAP is a plain name (default $ISABELLE_LOGIC), it is searched in
+  $ISABELLE_PATH; if it contains a slash, it is taken as literal file;
+  if it is RAW_ML_SYSTEM, the initial ML heap is used.
+""",
+        "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
+        "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
+        "m:" -> (arg => modes = arg :: modes),
+        "o:" -> (arg => options = options + arg))
+
+      val heap =
+        getopts(args) match {
+          case Nil => ""
+          case List(heap) => heap
+          case _ => getopts.usage()
+        }
+
+      ML_Process(options, heap = heap, args = eval_args ::: args.toList, modes = modes).
+        result().print_stdout.rc
+    }
   }
 }
 
 class Isabelle_Process private(
-    receiver: Prover.Message => Unit,
-    system_channel: System_Channel,
-    system_process: Prover.System_Process)
-  extends Prover(receiver, system_channel, system_process)
+    receiver: Prover.Receiver, channel: System_Channel, process: Prover.System_Process)
+  extends Prover(receiver, channel, process)
 {
   def encode(s: String): String = Symbol.encode(s)
   def decode(s: String): String = Symbol.decode(s)

@@ -1797,7 +1797,7 @@ fun import_thm cautious path_prefixes file_name
     val fms = get_fmlas_of_prob thy1 prob_name
   in
     if List.null fms then
-      (warning ("File " ^ Path.implode file_name ^ " appears empty!");
+      (warning ("File " ^ Path.print file_name ^ " appears empty!");
        TPTP_Reconstruction_Data.map (cons ((prob_name, empty_pannot prob_name))) thy1)
     else
       let

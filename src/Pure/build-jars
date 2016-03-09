@@ -81,6 +81,7 @@ declare -a SOURCES=(
   System/isabelle_charset.scala
   System/isabelle_process.scala
   System/isabelle_system.scala
+  System/ml_process.scala
   System/options.scala
   System/platform.scala
   System/posix_interrupt.scala
@@ -95,13 +96,13 @@ declare -a SOURCES=(
   Thy/thy_syntax.scala
   Tools/bibtex.scala
   Tools/build.scala
-  Tools/build_console.scala
   Tools/build_doc.scala
   Tools/check_keywords.scala
   Tools/check_sources.scala
   Tools/debugger.scala
   Tools/doc.scala
   Tools/main.scala
+  Tools/ml_console.scala
   Tools/ml_statistics.scala
   Tools/news.scala
   Tools/print_operation.scala

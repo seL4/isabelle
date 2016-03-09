@@ -8,10 +8,9 @@ signature FILE =
 sig
   val standard_path: Path.T -> string
   val platform_path: Path.T -> string
-  val shell_quote: string -> string
-  val shell_path: Path.T -> string
-  val cd: Path.T -> unit
-  val pwd: unit -> Path.T
+  val bash_string: string -> string
+  val bash_args: string list -> string
+  val bash_path: Path.T -> string
   val full_path: Path.T -> Path.T -> Path.T
   val tmp_path: Path.T -> Path.T
   val exists: Path.T -> bool
@@ -47,14 +46,25 @@ struct
 val standard_path = Path.implode o Path.expand;
 val platform_path = ML_System.platform_path o standard_path;
 
-val shell_quote = enclose "'" "'";
-val shell_path = shell_quote o standard_path;
+val bash_string =
+  translate_string (fn ch =>
+    let val c = ord ch in
+      (case ch of
+        "\t" => "$'\\t'"
+      | "\n" => "$'\\n'"
+      | "\f" => "$'\\f'"
+      | "\r" => "$'\\r'"
+      | _ =>
+          if Symbol.is_ascii_letter ch orelse Symbol.is_ascii_digit ch orelse
+            exists_string (fn c => c = ch) "-./:_" then ch
+          else if c < 16 then "$'\\x0" ^ Int.fmt StringCvt.HEX c ^ "'"
+          else if c < 32 orelse c >= 127 then "$'\\x" ^ Int.fmt StringCvt.HEX c ^ "'"
+          else "\\" ^ ch)
+    end);
 
+val bash_args = space_implode " " o map bash_string;
 
-(* current working directory *)
-
-val cd = cd o standard_path;
-val pwd = Path.explode o pwd;
+val bash_path = bash_string o standard_path;
 
 
 (* full_path *)
@@ -66,7 +76,7 @@ fun full_path dir path =
     val path'' = Path.append dir path';
   in
     if Path.is_absolute path'' then path''
-    else Path.append (pwd ()) path''
+    else Path.append (Path.explode (ML_System.standard_path (OS.FileSys.getDir ()))) path''
   end;
 
 

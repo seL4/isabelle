@@ -8,6 +8,9 @@ Basic support for time measurement.
 package isabelle
 
 
+import java.util.Locale
+
+
 object Timing
 {
   val zero = Timing(Time.zero, Time.zero, Time.zero)
@@ -35,9 +38,20 @@ sealed case class Timing(elapsed: Time, cpu: Time, gc: Time)
 
   def + (t: Timing): Timing = Timing(elapsed + t.elapsed, cpu + t.cpu, gc + t.gc)
 
+  def message_resources: String =
+  {
+    val resources = cpu + gc
+    val t1 = elapsed.seconds
+    val t2 = resources.seconds
+    val factor =
+      if (t1 >= 5.0 && t2 >= 5.0)
+        String.format(Locale.ROOT, ", factor %.2f", new java.lang.Double(t2 / t1))
+      else ""
+    elapsed.message_hms + " elapsed time, " + resources.message_hms + " cpu time" + factor
+  }
+
   def message: String =
     elapsed.message + " elapsed time, " + cpu.message + " cpu time, " + gc.message + " GC time"
 
   override def toString: String = message
 }
-

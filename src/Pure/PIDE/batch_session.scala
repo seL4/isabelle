@@ -58,7 +58,8 @@ object Batch_Session
         case _ =>
       }
 
-    prover_session.start("Isabelle", "-q " + quote(parent_session))
+    prover_session.start(receiver =>
+      Isabelle_Process(options, heap = parent_session, receiver = receiver))
 
     batch_session
   }

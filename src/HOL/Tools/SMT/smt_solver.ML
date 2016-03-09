@@ -49,8 +49,8 @@ struct
 local
 
 fun make_command command options problem_path proof_path =
-  "(exec 2>&1;" :: map File.shell_quote (command () @ options) @
-  [File.shell_path problem_path, ")", ">", File.shell_path proof_path]
+  "(exec 2>&1;" :: map File.bash_string (command () @ options) @
+  [File.bash_path problem_path, ")", ">", File.bash_path proof_path]
   |> space_implode " "
 
 fun with_trace ctxt msg f x =
@@ -79,7 +79,7 @@ fun run ctxt name mk_cmd input =
             Cache_IO.run_and_cache certs key mk_cmd input
       | (SOME output, _) =>
           with_trace ctxt ("Using cached certificate from " ^
-            File.shell_path (Cache_IO.cache_path_of certs) ^ " ...") I output))
+            Path.print (Cache_IO.cache_path_of certs) ^ " ...") I output))
 
 (* Z3 returns 1 if "get-model" or "get-model" fails *)
 val normal_return_codes = [0, 1]

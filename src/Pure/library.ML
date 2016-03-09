@@ -206,8 +206,6 @@ sig
   eqtype stamp
   val stamp: unit -> stamp
   structure Any: sig type T = exn end
-  val cd: string -> unit
-  val pwd: unit -> string
   val getenv: string -> string
   val getenv_strict: string -> string
 end;
@@ -1012,12 +1010,6 @@ fun stamp () = Stamp (serial ());
 (*note that the builtin exception datatype may be extended by new
   constructors at any time*)
 structure Any = struct type T = exn end;
-
-
-(* current directory *)
-
-val cd = OS.FileSys.chDir o ML_System.platform_path;
-val pwd = ML_System.standard_path o OS.FileSys.getDir;
 
 
 (* getenv *)

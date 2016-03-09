@@ -348,9 +348,8 @@ fun invoke_serializer ctxt target_name some_width raw_module_name args program a
 fun assert_module_name "" = error "Empty module name not allowed here"
   | assert_module_name module_name = module_name;
 
-fun using_master_directory ctxt =
-  Option.map (Path.append (File.pwd ()) o
-    Path.append (Resources.master_directory (Proof_Context.theory_of ctxt)));
+val using_master_directory =
+  Option.map o File.full_path o Resources.master_directory o Proof_Context.theory_of;
 
 in
 
@@ -385,7 +384,7 @@ fun check_code_for ctxt target_name strict args program all_public syms =
           generatedN args program all_public syms);
         val cmd = make_command generatedN;
       in
-        if Isabelle_System.bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
+        if Isabelle_System.bash ("cd " ^ File.bash_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
         then error ("Code check failed for " ^ target_name ^ ": " ^ cmd)
         else ()
       end;

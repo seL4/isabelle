@@ -550,6 +550,7 @@ object Build
     catch { case ERROR(_) => /*error should be exposed in ML*/ }
 
     private val args_file = Isabelle_System.tmp_file("args")
+    private val args_standard_path = File.standard_path(args_file)
     File.write(args_file, YXML.string_of_body(
       if (is_pure(name)) Options.encode(info.options)
       else
@@ -566,48 +567,28 @@ object Build
             theories))))))))))))
         }))
 
-    private val env =
-    {
-      val env0 =
-        Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> output_standard_path,
-          (if (is_pure(name)) "ISABELLE_PROCESS_OPTIONS" else "ARGS_FILE") ->
-            File.standard_path(args_file))
-      if (is_pure(name))
-        env0 + ("ISABELLE_ML_DEBUGGER" -> info.options.bool("ML_debugger").toString)
-      else env0
-    }
+    output.file.delete
 
-    private val script =
-      """
-      . "$ISABELLE_HOME/lib/scripts/timestart.bash"
-      """ +
-      (if (is_pure(name))
-        """
-          rm -f "$OUTPUT"
-          "$ISABELLE_PROCESS" -f "ROOT.ML" \
-            -e "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default (); Session.shutdown (); ML_Heap.share_common_data (); ML_Heap.save_state \"$OUTPUT\"));" \
-            -q RAW_ML_SYSTEM
-        """
-      else
-        """
-        rm -f "$OUTPUT"
-        "$ISABELLE_PROCESS" -e "Build.build \"$ARGS_FILE\";" -q "$INPUT"
-        """) +
-      """
-      RC="$?"
+    private val env = Map("ISABELLE_ML_DEBUGGER" -> info.options.bool("ML_debugger").toString)
 
-      . "$ISABELLE_HOME/lib/scripts/timestop.bash"
-
-      if [ "$RC" -eq 0 ]; then
-        echo "Finished $TARGET ($TIMES_REPORT)" >&2
-      fi
-
-      exit "$RC"
-      """
-
-    private val result =
+    private val future_result: Future[Process_Result] =
       Future.thread("build") {
-        Isabelle_System.bash(script, info.dir.file, env,
+        val process =
+          if (is_pure(name)) {
+            val eval =
+              "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default ();" +
+              " Session.shutdown (); ML_Heap.share_common_data ();" +
+              " ML_Heap.save_state " + ML_Syntax.print_string_raw(output_standard_path) + "));"
+            val env1 = env + ("ISABELLE_PROCESS_OPTIONS" -> args_standard_path)
+            ML_Process(info.options, "RAW_ML_SYSTEM", List("--use", "ROOT.ML", "--eval", eval),
+              cwd = info.dir.file, env = env1)
+          }
+          else {
+            ML_Process(info.options, parent,
+              List("--eval", "Build.build " + ML_Syntax.print_string_raw(args_standard_path)),
+              cwd = info.dir.file, env = env)
+          }
+        process.result(
           progress_stdout = (line: String) =>
             Library.try_unprefix("\floading_theory = ", line) match {
               case Some(theory) => progress.theory(name, theory)
@@ -621,37 +602,33 @@ object Build
           strict = false)
       }
 
-    def terminate: Unit = result.cancel
-    def is_finished: Boolean = result.is_finished
+    def terminate: Unit = future_result.cancel
+    def is_finished: Boolean = future_result.is_finished
 
-    @volatile private var was_timeout: Option[Time] = None
+    @volatile private var was_timeout = false
     private val timeout_request: Option[Event_Timer.Request] =
     {
-      val timeout = info.timeout
-      val t0 = Time.now()
-      if (timeout > Time.zero)
-        Some(Event_Timer.request(t0 + timeout) { terminate; was_timeout = Some(Time.now() - t0) })
+      if (info.timeout > Time.zero)
+        Some(Event_Timer.request(Time.now() + info.timeout) { terminate; was_timeout = true })
       else None
     }
 
     def join: Process_Result =
     {
-      val res = result.join
+      val result = future_result.join
 
-      if (res.ok && !is_pure(name))
+      if (result.ok && !is_pure(name))
         Present.finish(progress, browser_info, graph_file, info, name)
 
       graph_file.delete
       args_file.delete
       timeout_request.foreach(_.cancel)
 
-      if (res.interrupted) {
-        was_timeout match {
-          case Some(t) => res.error(Output.error_text("Timeout")).set_timeout(t)
-          case None => res.error(Output.error_text("Interrupt"))
-        }
+      if (result.interrupted) {
+        if (was_timeout) result.error(Output.error_text("Timeout")).was_timeout
+        else result.error(Output.error_text("Interrupt"))
       }
-      else res
+      else result
     }
   }
 
@@ -880,7 +857,9 @@ object Build
             //{{{ finish job
 
             val process_result = job.join
-            progress.echo(process_result.err)
+            process_result.err_lines.foreach(progress.echo(_))
+            if (process_result.ok)
+              progress.echo("Finished " + name + " (" + process_result.timing.message_resources + ")")
 
             val process_result_tail =
             {

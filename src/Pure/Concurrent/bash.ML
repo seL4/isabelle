@@ -38,10 +38,10 @@ val process = uninterruptible (fn restore_attributes => fn script =>
             val _ = getenv_strict "ISABELLE_BASH_PROCESS";
             val status =
               OS.Process.system
-                ("exec \"$ISABELLE_BASH_PROCESS\" " ^ File.shell_path pid_path ^
-                  " bash " ^ File.shell_path script_path ^
-                  " > " ^ File.shell_path out_path ^
-                  " 2> " ^ File.shell_path err_path);
+                ("exec \"$ISABELLE_BASH_PROCESS\" " ^ File.bash_path pid_path ^ " \"\"" ^
+                  " bash " ^ File.bash_path script_path ^
+                  " > " ^ File.bash_path out_path ^
+                  " 2> " ^ File.bash_path err_path);
             val res =
               (case Posix.Process.fromStatus status of
                 Posix.Process.W_EXITED => Result 0

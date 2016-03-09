@@ -51,9 +51,10 @@ struct
 
 local
 
-fun make_cmd command options problem_path proof_path = space_implode " " (
-  "(exec 2>&1;" :: map File.shell_quote (command () @ options) @
-  [File.shell_path problem_path, ")", ">", File.shell_path proof_path])
+fun make_cmd command options problem_path proof_path =
+  space_implode " "
+    ("(exec 2>&1;" :: map File.bash_string (command () @ options) @
+      [File.bash_path problem_path, ")", ">", File.bash_path proof_path])
 
 fun trace_and ctxt msg f x =
   let val _ = Old_SMT_Config.trace_msg ctxt (fn () => msg) ()
@@ -82,7 +83,7 @@ fun run ctxt name mk_cmd input =
             Cache_IO.run_and_cache certs key mk_cmd input
       | (SOME output, _) =>
           trace_and ctxt ("Using cached certificate from " ^
-            File.shell_path (Cache_IO.cache_path_of certs) ^ " ...")
+            Path.print (Cache_IO.cache_path_of certs) ^ " ...")
             I output))
 
 fun run_solver ctxt name mk_cmd input =

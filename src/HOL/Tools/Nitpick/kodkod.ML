@@ -1028,8 +1028,8 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
           val outcome =
             let
               val code =
-                Isabelle_System.bash ("cd " ^ File.shell_quote temp_dir ^ ";\n\
-                      \\"$KODKODI\"/bin/kodkodi" ^
+                Isabelle_System.bash ("cd " ^ File.bash_string temp_dir ^ ";\n\
+                      \\"$KODKODI/bin/kodkodi\"" ^
                       (if ms >= 0 then " -max-msecs " ^ string_of_int ms
                        else "") ^
                       (if max_solutions > 1 then " -solve-all" else "") ^
@@ -1038,9 +1038,9 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                          " -max-threads " ^ string_of_int max_threads
                        else
                          "") ^
-                      " < " ^ File.shell_path in_path ^
-                      " > " ^ File.shell_path out_path ^
-                      " 2> " ^ File.shell_path err_path)
+                      " < " ^ File.bash_path in_path ^
+                      " > " ^ File.bash_path out_path ^
+                      " 2> " ^ File.bash_path err_path)
               val (io_error, (ps, nontriv_js)) =
                 read_output_file out_path
                 ||> apfst (map (apfst reindex)) ||> apsnd (map reindex)

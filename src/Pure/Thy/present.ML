@@ -35,7 +35,7 @@ val document_path = Path.basic documentN;
 val doc_indexN = "session";
 val session_graph_path = Path.basic "session_graph.pdf";
 
-fun show_path path = Path.implode (Path.expand (Path.append (File.pwd ()) path));
+fun show_path path = Path.implode (Path.expand (File.full_path Path.current path));
 
 
 
@@ -216,7 +216,7 @@ fun init symbols build info info_path doc document_output doc_variants doc_files
 fun isabelle_document {verbose, purge} format name tags dir =
   let
     val s = "\"$ISABELLE_TOOL\" document" ^ (if purge then " -c" else "") ^ " -o '" ^ format ^ "' \
-      \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.shell_path dir ^ " 2>&1";
+      \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.bash_path dir ^ " 2>&1";
     val doc_path = Path.appends [dir, Path.parent, Path.basic name |> Path.ext format];
     val _ = if verbose then writeln s else ();
     val (out, rc) = Isabelle_System.bash_output s;
@@ -270,7 +270,7 @@ fun finish () =
         val _ = Isabelle_System.mkdirs doc_dir;
         val _ =
           Isabelle_System.isabelle_tool "latex"
-            ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex")));
+            ("-o sty " ^ File.bash_path (Path.append doc_dir (Path.basic "root.tex")));
         val _ = List.app (fn file => Isabelle_System.copy_file_base file doc_dir) doc_files;
         val _ = Isabelle_System.copy_file graph_file (Path.append doc_dir session_graph_path);
         val _ = write_tex_index tex_index doc_dir;
@@ -360,8 +360,8 @@ fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
     val _ = Isabelle_System.mkdirs doc_path;
     val root_path = Path.append doc_path (Path.basic "root.tex");
     val _ = Isabelle_System.copy_file (Path.explode "~~/lib/texinputs/draft.tex") root_path;
-    val _ = Isabelle_System.isabelle_tool "latex" ("-o sty " ^ File.shell_path root_path);
-    val _ = Isabelle_System.isabelle_tool "latex" ("-o syms " ^ File.shell_path root_path);
+    val _ = Isabelle_System.isabelle_tool "latex" ("-o sty " ^ File.bash_path root_path);
+    val _ = Isabelle_System.isabelle_tool "latex" ("-o syms " ^ File.bash_path root_path);
 
     fun known name =
       let val ss = split_lines (File.read (Path.append doc_path (Path.basic name)))
@@ -383,7 +383,7 @@ fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
     val _ = Isabelle_System.mkdirs target_dir;
     val _ = Isabelle_System.copy_file result target;
   in
-    Isabelle_System.isabelle_tool "display" (File.shell_path target ^ " &")
+    Isabelle_System.isabelle_tool "display" (File.bash_path target ^ " &")
   end);
 
 end;

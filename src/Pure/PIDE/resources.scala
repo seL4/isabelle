@@ -132,11 +132,5 @@ class Resources(
     Thy_Syntax.parse_change(this, reparse_limit, previous, doc_blobs, edits)
 
   def commit(change: Session.Change) { }
-
-
-  /* prover process */
-
-  def start_prover(receiver: Prover.Message => Unit, name: String, args: String): Prover =
-    Isabelle_Process(receiver, args)
 }
 

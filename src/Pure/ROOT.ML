@@ -83,8 +83,6 @@ PolyML.Compiler.reportUnreferencedIds := true;
 PolyML.Compiler.reportExhaustiveHandlers := true;
 PolyML.Compiler.printInAlphabeticalOrder := false;
 PolyML.Compiler.maxInlineSize := 80;
-PolyML.Compiler.prompt1 := "ML> ";
-PolyML.Compiler.prompt2 := "ML# ";
 
 fun ml_make_string struct_name =
   "(fn x => Pretty.string_of (Pretty.from_ML (ML_Pretty.from_polyml (PolyML.prettyRepresentation (x, FixedInt.fromInt (" ^
@@ -428,7 +426,5 @@ structure Pure = struct val thy = Thy_Info.pure_theory () end;
 fun use_thys args =
   Runtime.toplevel_program (fn () => Thy_Info.use_thys (map (rpair Position.none) args));
 val use_thy = use_thys o single;
-
-val cd = File.cd o Path.explode;
 
 Proofterm.proofs := 0;

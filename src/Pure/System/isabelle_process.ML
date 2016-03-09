@@ -10,7 +10,8 @@ sig
   val protocol_command: string -> (string list -> unit) -> unit
   val reset_tracing: Document_ID.exec -> unit
   val crashes: exn list Synchronized.var
-  val init: string -> unit
+  val init_protocol: string -> unit
+  val init_options: unit -> unit
 end;
 
 structure Isabelle_Process: ISABELLE_PROCESS =
@@ -180,12 +181,12 @@ fun loop channel =
 end;
 
 
-(* init *)
+(* init protocol *)
 
 val default_modes1 = [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN];
 val default_modes2 = [Symbol.xsymbolsN, isabelle_processN, Pretty.symbolicN];
 
-val init = uninterruptible (fn _ => fn socket =>
+val init_protocol = uninterruptible (fn _ => fn socket =>
   let
     val _ = SHA1_Samples.test ()
       handle exn as Fail msg => (Output.physical_stderr (msg ^ "\n"); Exn.reraise exn);
@@ -203,5 +204,13 @@ val init = uninterruptible (fn _ => fn socket =>
     val _ = loop channel;
   in Message_Channel.shutdown msg_channel end);
 
-end;
 
+(* init options *)
+
+fun init_options () =
+ (Future.ML_statistics := Options.default_bool "ML_statistics";
+  Multithreading.trace := Options.default_int "threads_trace";
+  Multithreading.max_threads_update (Options.default_int "threads");
+  Goal.parallel_proofs := Options.default_int "parallel_proofs");
+
+end;
