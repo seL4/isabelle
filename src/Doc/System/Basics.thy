@@ -335,9 +335,6 @@ text \<open>
   theory value from the theory loader within ML (observe the delicate quoting
   rules for the Bash shell vs.\ ML):
   @{verbatim [display] \<open>isabelle_process -e 'Thy_Info.get_theory "Main"' HOL\<close>}
-
-  Note that the output text will be interspersed with additional junk messages
-  by the ML runtime environment.
 \<close>
 
 

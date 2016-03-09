@@ -44,8 +44,8 @@ object ML_Process
 
     val eval_heaps =
       load_heaps.map(load_heap =>
-        "PolyML.SaveState.loadState " + ML_Syntax.print_string_raw(File.platform_path(load_heap)) +
-        " handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ " +
+        "(PolyML.SaveState.loadState " + ML_Syntax.print_string_raw(File.platform_path(load_heap)) +
+        "; PolyML.print_depth 0) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ " +
         ML_Syntax.print_string_raw(": " + load_heap.toString + "\n") +
         "); OS.Process.exit OS.Process.failure)")
 
@@ -59,8 +59,7 @@ object ML_Process
           else
             "fun exit rc = Posix.Process.exit (Word8.fromInt rc)",
           "PolyML.Compiler.prompt1 := \"ML> \"",
-          "PolyML.Compiler.prompt2 := \"ML# \"",
-          "PolyML.print_depth 10")
+          "PolyML.Compiler.prompt2 := \"ML# \"")
       }
       else Nil
 
@@ -77,13 +76,15 @@ object ML_Process
     val eval_secure = if (secure) List("Secure.set_secure ()") else Nil
 
     val eval_process =
-      if (load_heaps.isEmpty) Nil
+      if (load_heaps.isEmpty)
+        List("PolyML.print_depth 10")
       else
         channel match {
           case None =>
-            List("Isabelle_Process.init_options ()")
+            List("(default_print_depth 10; Isabelle_Process.init_options ())")
           case Some(ch) =>
-            List("Isabelle_Process.init_protocol " + ML_Syntax.print_string_raw(ch.server_name))
+            List("(default_print_depth 10; Isabelle_Process.init_protocol " +
+              ML_Syntax.print_string_raw(ch.server_name) + ")")
         }
 
     // bash
