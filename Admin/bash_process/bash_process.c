@@ -20,6 +20,17 @@ static void fail(const char *msg)
   exit(2);
 }
 
+static time_t now()
+{
+  struct timeval tv;
+  if (gettimeofday(&tv, NULL) == 0) {
+    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+  }
+  else {
+    return time(NULL) * 1000;
+  }
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -36,7 +47,7 @@ int main(int argc, char *argv[])
 
   /* potential fork */
 
-  time_t time_start = time(NULL);
+  time_t time_start = now();
 
   if (strlen(timing_name) > 0 || setsid() == -1) {
     pid_t pid = fork();
@@ -52,7 +63,7 @@ int main(int argc, char *argv[])
       /* report timing */
 
       if (strlen(timing_name) > 0) {
-        long long timing_elapsed = (time(NULL) - time_start) * 1000;
+        long long timing_elapsed = now() - time_start;
 
         struct rusage ru;
         getrusage(RUSAGE_CHILDREN, &ru);
