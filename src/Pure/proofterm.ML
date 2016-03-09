@@ -1057,7 +1057,7 @@ in
 
 fun of_sort_proof thy hyps =
   Sorts.of_sort_derivation (Sign.classes_of thy)
-   {class_relation = fn typ => fn (prf, c1) => fn c2 =>
+   {class_relation = fn typ => fn _ => fn (prf, c1) => fn c2 =>
       if c1 = c2 then prf
       else canonical_instance [typ] (classrel_proof thy (c1, c2)) %% prf,
     type_constructor = fn (a, typs) => fn dom => fn c =>

@@ -55,7 +55,7 @@ sig
   val meet_sort_typ: algebra -> typ * sort -> typ -> typ   (*exception CLASS_ERROR*)
   val of_sort: algebra -> typ * sort -> bool
   val of_sort_derivation: algebra ->
-    {class_relation: typ -> 'a * class -> class -> 'a,
+    {class_relation: typ -> bool -> 'a * class -> class -> 'a,
      type_constructor: string * typ list -> ('a * class) list list -> class -> 'a,
      type_variable: typ -> ('a * class) list} ->
     typ * sort -> 'a list   (*exception CLASS_ERROR*)
@@ -403,9 +403,10 @@ fun of_sort_derivation algebra {class_relation, type_constructor, type_variable}
         if S1 = S2 then map fst D1
         else
           S2 |> map (fn c2 =>
-            (case D1 |> find_first (fn (_, c1) => class_le algebra (c1, c2)) of
-              SOME d1 => class_relation T d1 c2
-            | NONE => raise CLASS_ERROR (No_Subsort (S1, S2))))
+            (case D1 |> filter (fn (_, c1) => class_le algebra (c1, c2)) of
+              [d1] => class_relation T true d1 c2
+            | (d1 :: _ :: _) => class_relation T false d1 c2
+            | [] => raise CLASS_ERROR (No_Subsort (S1, S2))))
       end;
 
     fun derive (_, []) = []

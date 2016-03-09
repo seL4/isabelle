@@ -19,7 +19,7 @@ sig
       Dict of (class * class) list * plain_dict
   and plain_dict = 
       Dict_Const of (string * class) * dict list list
-    | Dict_Var of vname * (int * int);
+    | Dict_Var of { var: vname, index: int, length: int };
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname;
@@ -132,7 +132,7 @@ datatype dict =
     Dict of (class * class) list * plain_dict
 and plain_dict = 
     Dict_Const of (string * class) * dict list list
-  | Dict_Var of vname * (int * int);
+  | Dict_Var of { var: vname, index: int, length: int };
 
 datatype itype =
     `%% of string * itype list
@@ -482,7 +482,7 @@ fun construct_dictionaries ctxt (proj_sort, algebra) permissive some_thm (ty, so
         val sort' = proj_sort sort;
       in map_index (fn (n, class) => (Weakening ([], Local (v, (n, sort'))), class)) sort' end;
     val typarg_witnesses = Sorts.of_sort_derivation algebra
-      {class_relation = K (Sorts.classrel_derivation algebra class_relation),
+      {class_relation = fn _ => fn _ => Sorts.classrel_derivation algebra class_relation,
        type_constructor = type_constructor,
        type_variable = type_variable} (ty, proj_sort sort)
       handle Sorts.CLASS_ERROR e => not_wellsorted ctxt permissive some_thm deps ty sort e;
@@ -760,8 +760,8 @@ and translate_dicts ctxt algbr eqngr permissive some_thm (ty, sort) =
           ensure_inst ctxt algbr eqngr permissive inst
           ##>> (fold_map o fold_map) mk_dict dss
           #>> (fn (inst, dss) => Dict_Const (inst, dss))
-      | mk_plain_dict (Local (v, (n, sort))) =
-          pair (Dict_Var (unprefix "'" v, (n, length sort)))
+      | mk_plain_dict (Local (v, (index, sort))) =
+          pair (Dict_Var { var = unprefix "'" v, index = index, length = length sort })
   in
     construct_dictionaries ctxt algbr permissive some_thm (ty, sort)
     #-> (fn typarg_witnesses => fold_map mk_dict typarg_witnesses)

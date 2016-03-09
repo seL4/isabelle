@@ -54,7 +54,6 @@ eliminated altogether.
 resemble the f.split naming convention, INCOMPATIBILITY.
 
 * Multiset membership is now expressed using set_mset rather than count.
-ASCII infix syntax ":#" has been discontinued.
 
   - Expressions "count M a > 0" and similar simplify to membership
     by default.
