@@ -6,4 +6,4 @@
 
 isabelle_admin_build jars || exit $?
 
-isabelle java isabelle.Update_Cartouches "$@"
+exec isabelle java isabelle.Update_Cartouches "$@"

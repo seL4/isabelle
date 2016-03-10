@@ -6,4 +6,4 @@
 
 isabelle_admin_build jars || exit $?
 
-isabelle java isabelle.Doc "$@"
+exec isabelle java isabelle.Doc "$@"
