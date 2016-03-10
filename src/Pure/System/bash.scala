@@ -1,4 +1,4 @@
-/*  Title:      Pure/Concurrent/bash.scala
+/*  Title:      Pure/System/bash.scala
     Author:     Makarius
 
 GNU bash processes, with propagation of interrupts.

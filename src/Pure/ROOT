@@ -3,8 +3,6 @@ chapter Pure
 session Pure =
   global_theories Pure
   files
-    "Concurrent/bash.ML"
-    "Concurrent/bash_windows.ML"
     "Concurrent/cache.ML"
     "Concurrent/counter.ML"
     "Concurrent/event_timer.ML"
@@ -153,6 +151,8 @@ session Pure =
     "Syntax/syntax_trans.ML"
     "Syntax/term_position.ML"
     "Syntax/type_annotation.ML"
+    "System/bash.ML"
+    "System/bash_windows.ML"
     "System/command_line.ML"
     "System/invoke_scala.ML"
     "System/isabelle_process.ML"

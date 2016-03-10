@@ -1,4 +1,4 @@
-(*  Title:      Pure/Concurrent/bash.ML
+(*  Title:      Pure/System/bash.ML
     Author:     Makarius
 
 GNU bash processes, with propagation of interrupts -- POSIX version.

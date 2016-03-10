@@ -193,10 +193,6 @@ use "ML/ml_statistics.ML";
 use "Concurrent/standard_thread.ML";
 use "Concurrent/single_assignment.ML";
 
-if ML_System.platform_is_windows
-then use "Concurrent/bash_windows.ML"
-else use "Concurrent/bash.ML";
-
 use "Concurrent/par_exn.ML";
 use "Concurrent/task_queue.ML";
 use "Concurrent/future.ML";
@@ -371,8 +367,13 @@ use "Proof/proof_rewrite_rules.ML";
 use "Proof/proof_checker.ML";
 use "Proof/extraction.ML";
 
-(*theory documents*)
+(*Isabelle system*)
+if ML_System.platform_is_windows
+then use "System/bash_windows.ML"
+else use "System/bash.ML";
 use "System/isabelle_system.ML";
+
+(*theory documents*)
 use "Thy/term_style.ML";
 use "Isar/outer_syntax.ML";
 use "Thy/thy_output.ML";

@@ -9,7 +9,6 @@
 ## sources
 
 declare -a SOURCES=(
-  Concurrent/bash.scala
   Concurrent/consumer_thread.scala
   Concurrent/counter.scala
   Concurrent/event_timer.scala
@@ -74,6 +73,7 @@ declare -a SOURCES=(
   PIDE/xml.scala
   PIDE/yxml.scala
   ROOT.scala
+  System/bash.scala
   System/command_line.scala
   System/cygwin.scala
   System/getopts.scala
