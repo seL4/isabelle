@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/ml_console.scala
     Author:     Makarius
 
-Run Isabelle process with raw ML console and line editor.
+The raw ML process with interaction (line editor).
 */
 
 package isabelle

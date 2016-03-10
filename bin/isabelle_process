@@ -15,4 +15,4 @@ source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
 
 isabelle_admin_build jars || exit $?
 
-"$ISABELLE_TOOL" java isabelle.Isabelle_Process "$@"
+"$ISABELLE_TOOL" java isabelle.ML_Process "$@"
