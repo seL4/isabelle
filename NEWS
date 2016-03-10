@@ -218,16 +218,22 @@ File.full_path). Potential INCOMPATIBILITY.
 
 *** System ***
 
-* SML/NJ and old versions of Poly/ML are no longer supported.
-
-* The executable "isabelle_process" has been discontinued. Tools and
-prover front-ends should use ML_Process or Isabelle_Process in
-Isabelle/Scala. Command-line usage works via "isabelle process" or
-"isabelle console". INCOMPATIBILITY.
-
 * The Isabelle system environment always ensures that the main
 executables are found within the shell search $PATH: "isabelle" and
 "isabelle_scala_script".
+
+* The Isabelle ML process is now managed directly by Isabelle/Scala, and
+shell scripts merely provide optional command-line access. In
+particular:
+
+  . Scala module ML_Process to connect to the raw ML process,
+    with interaction via stdin/stdout/stderr or in batch mode;
+  . command-line tool "isabelle console" as interactive wrapper;
+  . command-line tool "isabelle process" as batch mode wrapper.
+
+* The executable "isabelle_process" has been discontinued. Tools and
+prover front-ends should use ML_Process or Isabelle_Process in
+Isabelle/Scala. INCOMPATIBILITY.
 
 * New command-line tool "isabelle process" supports ML evaluation of
 literal expressions (option -e) or files (option -f) in the context of a
@@ -248,6 +254,8 @@ about spaces or special characters. Note that user output works via
 Path.print (ML) or Path.toString (Scala). INCOMPATIBILITY, the old (and
 less versatile) operations File.shell_quote, File.shell_path etc. have
 been discontinued.
+
+* SML/NJ and old versions of Poly/ML are no longer supported.
 
 
 
