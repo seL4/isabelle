@@ -3006,6 +3006,14 @@ by simp
 lemma upt_conv_Cons: "i < j ==> [i..<j] = i # [Suc i..<j]"
 by (simp add: upt_rec)
 
+lemma upt_conv_Cons_Cons: -- \<open>no precondition\<close>
+  "m # n # ns = [m..<q] \<longleftrightarrow> n # ns = [Suc m..<q]"
+proof (cases "m < q")
+  case False then show ?thesis by simp
+next
+  case True then show ?thesis by (simp add: upt_conv_Cons)
+qed
+
 lemma upt_add_eq_append: "i<=j ==> [i..<j+k] = [i..<j]@[j..<j+k]"
 \<comment> \<open>LOOPS as a simprule, since \<open>j <= j\<close>.\<close>
 by (induct k) auto

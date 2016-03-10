@@ -6,15 +6,6 @@ theory String
 imports Enum
 begin
 
-lemma upt_conv_Cons_Cons: -- \<open>no precondition\<close> -- \<open>FIXME move\<close>
-  "m # n # ns = [m..<q] \<longleftrightarrow> n # ns = [Suc m..<q]"
-proof (cases "m < q")
-  case False then show ?thesis by simp
-next
-  case True then show ?thesis by (simp add: upt_conv_Cons)
-qed
-
-
 subsection \<open>Characters and strings\<close>
 
 subsubsection \<open>Characters as finite algebraic type\<close>
