@@ -55,7 +55,6 @@ fi
 
 #main executables
 ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
-ISABELLE_PROCESS="$ISABELLE_HOME/bin/isabelle_process"
 ISABELLE_SCALA_SCRIPT="$ISABELLE_HOME/bin/isabelle_scala_script"
 PATH="$ISABELLE_HOME/bin:$PATH"
 

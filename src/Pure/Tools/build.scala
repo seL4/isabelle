@@ -1027,29 +1027,113 @@ object Build
   def main(args: Array[String])
   {
     Command_Line.tool {
-      args.toList match {
-        case
-          Properties.Value.Boolean(requirements) ::
-          Properties.Value.Boolean(all_sessions) ::
-          Properties.Value.Boolean(build_heap) ::
-          Properties.Value.Boolean(clean_build) ::
-          Properties.Value.Int(max_jobs) ::
-          Properties.Value.Boolean(list_files) ::
-          Properties.Value.Boolean(no_build) ::
-          Properties.Value.Boolean(system_mode) ::
-          Properties.Value.Boolean(verbose) ::
-          Command_Line.Chunks(dirs, select_dirs, session_groups, check_keywords,
-              build_options, exclude_session_groups, exclude_sessions, sessions) =>
-            val options = (Options.init() /: build_options)(_ + _)
-            val progress = new Console_Progress(verbose)
-            progress.interrupt_handler {
-              build(options, progress, requirements, all_sessions, build_heap, clean_build,
-                dirs.map(Path.explode(_)), select_dirs.map(Path.explode(_)), exclude_session_groups,
-                session_groups, max_jobs, list_files, check_keywords.toSet, no_build, system_mode,
-                verbose, exclude_sessions, sessions)
-            }
-        case _ => error("Bad arguments:\n" + cat_lines(args))
+      def show_settings(): String =
+        cat_lines(List(
+          "ISABELLE_BUILD_OPTIONS=" +
+            quote(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")),
+          "",
+          "ISABELLE_BUILD_JAVA_OPTIONS=" +
+            quote(Isabelle_System.getenv("ISABELLE_BUILD_JAVA_OPTIONS")) +
+          "",
+          "ML_PLATFORM=" + quote(Isabelle_System.getenv("ML_PLATFORM")),
+          "ML_HOME=" + quote(Isabelle_System.getenv("ML_HOME")),
+          "ML_SYSTEM=" + quote(Isabelle_System.getenv("ML_SYSTEM")),
+          "ML_OPTIONS=" + quote(Isabelle_System.getenv("ML_OPTIONS"))))
+
+      val build_options = Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS"))
+
+      var select_dirs: List[Path] = Nil
+      var requirements = false
+      var exclude_session_groups: List[String] = Nil
+      var all_sessions = false
+      var build_heap = false
+      var clean_build = false
+      var dirs: List[Path] = Nil
+      var session_groups: List[String] = Nil
+      var max_jobs = 1
+      var check_keywords: Set[String] = Set.empty
+      var list_files = false
+      var no_build = false
+      var options = (Options.init() /: build_options)(_ + _)
+      var system_mode = false
+      var verbose = false
+      var exclude_sessions: List[String] = Nil
+
+      val getopts = Getopts("""
+Usage: isabelle build [OPTIONS] [SESSIONS ...]
+
+  Options are:
+    -D DIR       include session directory and select its sessions
+    -R           operate on requirements of selected sessions
+    -X NAME      exclude sessions from group NAME and all descendants
+    -a           select all sessions
+    -b           build heap images
+    -c           clean build
+    -d DIR       include session directory
+    -g NAME      select session group NAME
+    -j INT       maximum number of parallel jobs (default 1)
+    -k KEYWORD   check theory sources for conflicts with proposed keywords
+    -l           list session source files
+    -n           no build -- test dependencies only
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -s           system build mode: produce output in ISABELLE_HOME
+    -v           verbose
+    -x NAME      exclude session NAME and all descendants
+
+  Build and manage Isabelle sessions, depending on implicit
+""" + Library.prefix_lines("  ", show_settings()),
+        "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+        "R" -> (_ => requirements = true),
+        "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
+        "a" -> (_ => all_sessions = true),
+        "b" -> (_ => build_heap = true),
+        "c" -> (_ => clean_build = true),
+        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "g:" -> (arg => session_groups = session_groups ::: List(arg)),
+        "j:" -> (arg => max_jobs = Properties.Value.Int.parse(arg)),
+        "k:" -> (arg => check_keywords = check_keywords + arg),
+        "l" -> (_ => list_files = true),
+        "n" -> (_ => no_build = true),
+        "o:" -> (arg => options = options + arg),
+        "s" -> (_ => system_mode = true),
+        "v" -> (_ => verbose = true),
+        "x:" -> (arg => exclude_sessions = exclude_sessions ::: List(arg)))
+
+      val sessions = getopts(args)
+
+      val progress = new Console_Progress(verbose)
+      val start_time = Time.now()
+      val show_timing = !no_build && verbose
+
+      if (show_timing) {
+        progress.echo(
+          Library.trim_line(
+            Isabelle_System.bash(
+              """echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))" """).out))
+        progress.echo(show_settings())
       }
+
+      val results =
+        progress.interrupt_handler {
+          build_results(options, progress, requirements, all_sessions, build_heap, clean_build,
+            dirs, select_dirs, exclude_session_groups, session_groups, max_jobs, list_files,
+            check_keywords, no_build, system_mode, verbose, exclude_sessions, sessions)
+        }
+
+      if (show_timing) {
+        val elapsed_time = Time.now() - start_time
+
+        progress.echo(
+          Library.trim_line(
+            Isabelle_System.bash("""echo "Finished at "; date""").out))
+
+        val total_timing =
+          (Timing.zero /: results.sessions.iterator.map(a => results(a).timing))(_ + _).
+            copy(elapsed = elapsed_time)
+        progress.echo(total_timing.message_resources)
+      }
+
+      results.rc
     }
   }
 

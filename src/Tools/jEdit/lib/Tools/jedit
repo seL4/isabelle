@@ -209,7 +209,7 @@ done
 ## dependencies
 
 if [ -e "$ISABELLE_HOME/Admin/build" ]; then
-  "$ISABELLE_TOOL" browser -b || exit $?
+  isabelle browser -b || exit $?
   "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?
 fi
 
@@ -361,5 +361,5 @@ if [ "$BUILD_ONLY" = false ]
 then
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_PRINT_MODE JEDIT_BUILD_MODE
   classpath "$JEDIT_HOME/dist/jedit.jar"
-  exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"
+  exec isabelle java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"
 fi

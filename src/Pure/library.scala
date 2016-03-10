@@ -97,6 +97,10 @@ object Library
 
   def split_lines(str: String): List[String] = space_explode('\n', str)
 
+  def prefix_lines(prfx: String, str: String): String =
+    if (str == "") str
+    else cat_lines(split_lines(str).map(s => prfx + s))
+
   def first_line(source: CharSequence): String =
   {
     val lines = separated_chunks(_ == '\n', source)

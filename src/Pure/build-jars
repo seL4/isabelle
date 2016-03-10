@@ -9,7 +9,6 @@
 ## sources
 
 declare -a SOURCES=(
-  Concurrent/bash.scala
   Concurrent/consumer_thread.scala
   Concurrent/counter.scala
   Concurrent/event_timer.scala
@@ -74,6 +73,7 @@ declare -a SOURCES=(
   PIDE/xml.scala
   PIDE/yxml.scala
   ROOT.scala
+  System/bash.scala
   System/command_line.scala
   System/cygwin.scala
   System/getopts.scala
@@ -81,7 +81,6 @@ declare -a SOURCES=(
   System/isabelle_charset.scala
   System/isabelle_process.scala
   System/isabelle_system.scala
-  System/ml_process.scala
   System/options.scala
   System/platform.scala
   System/posix_interrupt.scala
@@ -103,6 +102,7 @@ declare -a SOURCES=(
   Tools/doc.scala
   Tools/main.scala
   Tools/ml_console.scala
+  Tools/ml_process.scala
   Tools/ml_statistics.scala
   Tools/news.scala
   Tools/print_operation.scala

@@ -17,11 +17,10 @@ text \<open>
 
   The tools @{tool_ref mkroot} and @{tool_ref build} provide the primary means
   for managing Isabelle sessions, including proper setup for presentation;
-  @{tool build} takes care to have @{executable_ref "isabelle_process"} run
-  any additional stages required for document preparation, notably the
-  @{tool_ref document} and @{tool_ref latex}. The complete tool chain for
-  managing batch-mode Isabelle sessions is illustrated in
-  \figref{fig:session-tools}.
+  @{tool build} tells the Isabelle process to run any additional stages
+  required for document preparation, notably the @{tool_ref document} and
+  @{tool_ref latex}. The complete tool chain for managing batch-mode Isabelle
+  sessions is illustrated in \figref{fig:session-tools}.
 
   \begin{figure}[htbp]
   \begin{center}
@@ -34,8 +33,7 @@ text \<open>
       @{tool_ref build} & invoked repeatedly by the user to keep
       session output up-to-date (HTML, documents etc.); \\
 
-      @{executable "isabelle_process"} & run through @{tool_ref
-      build}; \\
+      @{tool_ref process} & run through @{tool_ref build}; \\
 
       @{tool_ref document} & run by the Isabelle process if document
       preparation is enabled; \\
