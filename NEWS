@@ -218,6 +218,29 @@ File.full_path). Potential INCOMPATIBILITY.
 
 *** System ***
 
+* SML/NJ and old versions of Poly/ML are no longer supported.
+
+* The executable "isabelle_process" has been discontinued. Tools and
+prover front-ends should use ML_Process or Isabelle_Process in
+Isabelle/Scala. Command-line usage works via "isabelle process" or
+"isabelle console". INCOMPATIBILITY.
+
+* The Isabelle system environment always ensures that the main
+executables are found within the shell search $PATH: "isabelle" and
+"isabelle_scala_script".
+
+* New command-line tool "isabelle process" supports ML evaluation of
+literal expressions (option -e) or files (option -f) in the context of a
+given heap image. Errors lead to premature exit of the ML process with
+return code 1.
+
+* Command-line tool "isabelle console" provides option -r to help to
+bootstrapping Isabelle/Pure interactively.
+
+* Command-line tool "isabelle yxml" has been discontinued.
+INCOMPATIBILITY, use operations from the modules "XML" and "YXML" in
+Isabelle/ML or Isabelle/Scala.
+
 * File.bash_string, File.bash_path etc. represent Isabelle/ML and
 Isabelle/Scala strings authentically within GNU bash. This is useful to
 produce robust shell scripts under program control, without worrying
@@ -226,27 +249,6 @@ Path.print (ML) or Path.toString (Scala). INCOMPATIBILITY, the old (and
 less versatile) operations File.shell_quote, File.shell_path etc. have
 been discontinued.
 
-* The Isabelle system environment always ensures that the main
-executables are found within the PATH: isabelle, isabelle_process,
-isabelle_scala_script.
-
-* Command-line tool "isabelle_process" no longer supports writable heap
-images. INCOMPATIBILITY in exotic situations where "isabelle build"
-cannot be used: the structure ML_Heap provides operations to save the ML
-heap under program control.
-
-* Command-line tool "isabelle_process" supports ML evaluation of literal
-expressions (option -e) or files (option -f). Errors lead to premature
-exit of the ML process with return code 1.
-
-* Command-line tool "isabelle console -r" helps to bootstrap
-Isabelle/Pure interactively.
-
-* The somewhat pointless command-line tool "isabelle yxml" has been
-discontinued. INCOMPATIBILITY, use operations from the modules "XML" and
-"YXML" in Isabelle/ML or Isabelle/Scala.
-
-* SML/NJ and old versions of Poly/ML are no longer supported.
 
 
 New in Isabelle2016 (February 2016)

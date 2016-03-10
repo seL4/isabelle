@@ -36,7 +36,7 @@ object ML_Process
         dirs.map(_ + Path.basic(heap_name)).find(_.is_file) match {
           case Some(heap_path) => List(heap_path)
           case None =>
-            error("Unknown logic " + quote(heap) + " -- no heap file found in:\n" +
+            error("Unknown logic " + quote(heap_name) + " -- no heap file found in:\n" +
               cat_lines(dirs.map(dir => "  " + dir.implode)))
         }
       }
@@ -124,7 +124,7 @@ object ML_Process
       var options = Options.init()
 
       val getopts = Getopts("""
-Usage: isabelle_process [OPTIONS] [HEAP]
+Usage: isabelle process [OPTIONS] [HEAP]
 
   Options are:
     -e ML_EXPR   evaluate ML expression on startup
@@ -132,15 +132,19 @@ Usage: isabelle_process [OPTIONS] [HEAP]
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
-  If HEAP is a plain name (default $ISABELLE_LOGIC), it is searched in
-  $ISABELLE_PATH; if it contains a slash, it is taken as literal file;
-  if it is RAW_ML_SYSTEM, the initial ML heap is used.
+  Run the raw Isabelle ML process in batch mode, using a given heap image.
+
+  If HEAP is a plain name (default ISABELLE_LOGIC=""" +
+  quote(Isabelle_System.getenv("ISABELLE_LOGIC")) + """), it is searched in
+  ISABELLE_PATH; if it contains a slash, it is taken as literal file;
+  if it is "RAW_ML_SYSTEM", the initial ML heap is used.
 """,
         "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
         "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
         "m:" -> (arg => modes = arg :: modes),
         "o:" -> (arg => options = options + arg))
 
+      if (args.isEmpty) getopts.usage()
       val heap =
         getopts(args) match {
           case Nil => ""

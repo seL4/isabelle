@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/ml_console.scala
     Author:     Makarius
 
-The raw ML process with interaction (line editor).
+The raw ML process in interactive mode.
 */
 
 package isabelle
@@ -33,11 +33,12 @@ Usage: isabelle console [OPTIONS]
     -m MODE      add print mode for output
     -n           no build of session image on startup
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -r           logic session is RAW_ML_SYSTEM
+    -r           logic session is "RAW_ML_SYSTEM"
     -s           system build mode for session image
 
-  Run Isabelle process with raw ML console and line editor
-  (ISABELLE_LINE_EDITOR=""" + quote(Isabelle_System.getenv("ISABELLE_LINE_EDITOR")) + """.
+  Build a logic session image and run the raw Isabelle ML process
+  in interactive mode, with line editor ISABELLE_LINE_EDITOR=""" +
+  quote(Isabelle_System.getenv("ISABELLE_LINE_EDITOR")) + """.
 """,
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "l:" -> (arg => logic = arg),

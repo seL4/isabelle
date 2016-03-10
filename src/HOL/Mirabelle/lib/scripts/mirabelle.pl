@@ -158,7 +158,7 @@ if (defined $be_quiet and $be_quiet ne "") {
 if ($output_log) { print "Mirabelle: $thy_file\n"; }
 
 my $cmd =
-  "\"$ENV{'ISABELLE_PROCESS'}\" " .
+  "\"$ENV{'ISABELLE_TOOL'}\" process " .
   "-o quick_and_dirty -o threads=1 -e 'use_thy \"$path/$new_thy_name\"' $mirabelle_logic" . $quiet;
 my $result = system "bash", "-c", $cmd;
 
