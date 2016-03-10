@@ -43,9 +43,8 @@ sig
   val is_pred_equation : thm -> bool
   val is_intro : string -> thm -> bool
   val is_predT : typ -> bool
-  val get_constrs : theory -> (string * (int * string)) list
-  val is_constrt : theory -> term -> bool
-  val is_constr : Proof.context -> string -> bool
+  val lookup_constr : Proof.context -> (string * typ) -> int option
+  val is_constrt : Proof.context -> term -> bool
   val strip_ex : term -> (string * typ) list * term
   val focus_ex : term -> Name.context -> ((string * typ) list * term) * Name.context
   val strip_all : term -> (string * typ) list * term
@@ -165,8 +164,6 @@ end
 
 structure Predicate_Compile_Aux : PREDICATE_COMPILE_AUX =
 struct
-
-val no_constr = [@{const_name STR}];
 
 (* general functions *)
 
@@ -478,36 +475,31 @@ fun is_intro constname t = is_intro_term constname (Thm.prop_of t)
 fun is_predT (T as Type("fun", [_, _])) = (body_type T = @{typ bool})
   | is_predT _ = false
 
-fun get_constrs thy =
+fun lookup_constr ctxt =
   let
-    val ctxt = Proof_Context.init_global thy
-  in
-    Ctr_Sugar.ctr_sugars_of ctxt
-    |> maps (map_filter (try dest_Const) o #ctrs)
-    |> map (apsnd (fn T => (BNF_Util.num_binder_types T, fst (dest_Type (body_type T)))))
-  end
+    val tab = Ctr_Sugar.ctr_sugars_of ctxt
+      |> maps (map_filter (try dest_Const) o #ctrs)
+      |> map (fn (c, T) => ((c, (fst o dest_Type o body_type) T), BNF_Util.num_binder_types T))
+  in fn (c, T) =>
+    case body_type T of
+      Type (Tname, _) => AList.lookup (op =) tab (c, Tname)
+    | _ => NONE
+  end;
 
-(*** check if a term contains only constructor functions ***)
-(* TODO: another copy in the core! *)
-(* FIXME: constructor terms are supposed to be seen in the way the code generator
-  sees constructors.*)
-fun is_constrt thy =
+fun is_constrt ctxt =
   let
-    val cnstrs = get_constrs thy
+    val lookup_constr = lookup_constr ctxt
     fun check t =
       (case strip_comb t of
         (Var _, []) => true
       | (Free _, []) => true
-      | (Const (s, T), ts) =>
-          (case (AList.lookup (op =) cnstrs s, body_type T) of
-            (SOME (i, Tname), Type (Tname', _)) =>
-              length ts = i andalso Tname = Tname' andalso forall check ts
+      | (Const cT, ts) =>
+          (case lookup_constr cT of
+            SOME i =>
+              length ts = i andalso forall check ts
           | _ => false)
       | _ => false)
   in check end
-
-fun is_constr ctxt c =
-  not (member (op =) no_constr c) andalso Code.is_constr (Proof_Context.theory_of ctxt) c;
 
 fun strip_all t = (Term.strip_all_vars t, Term.strip_all_body t)
 

@@ -41,19 +41,19 @@ fun import (_, intros) args ctxt =
   end
 
 (* patterns only constructed of variables and pairs/tuples are trivial constructor terms*)
-fun is_nontrivial_constrt thy t =
+fun is_nontrivial_constrt ctxt t =
   let
-    val cnstrs = get_constrs thy
+    val lookup_constr = lookup_constr ctxt
     fun check t =
       (case strip_comb t of
         (Var _, []) => (true, true)
       | (Free _, []) => (true, true)
       | (Const (@{const_name Pair}, _), ts) =>
         apply2 (forall I) (split_list (map check ts))
-      | (Const (s, T), ts) =>
-          (case (AList.lookup (op =) cnstrs s, body_type T) of
-            (SOME (i, Tname), Type (Tname', _)) => (false,
-              length ts = i andalso Tname = Tname' andalso forall (snd o check) ts)
+      | (Const cT, ts) =>
+          (case lookup_constr cT of
+            SOME i => (false,
+              length ts = i andalso forall (snd o check) ts)
           | _ => (false, false))
       | _ => (false, false))
   in check t = (false, true) end
@@ -167,7 +167,7 @@ and find_specialisations black_list specs thy =
             val Ts = binder_types (Sign.the_const_type thy pred_name)
             val pats = restrict_pattern thy Ts args
           in
-            if (exists (is_nontrivial_constrt thy) pats)
+            if (exists (is_nontrivial_constrt ctxt) pats)
               orelse (has_duplicates (op =) (fold add_vars pats [])) then
               let
                 val thy' =

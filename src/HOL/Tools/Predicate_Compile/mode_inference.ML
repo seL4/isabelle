@@ -167,7 +167,8 @@ fun find_least ord xs =
     fold find' xs NONE
   end
   
-fun is_invertible_function ctxt (Const (f, _)) = is_constr ctxt f
+fun is_invertible_function ctxt (Const cT) =
+      is_some (lookup_constr ctxt cT)
   | is_invertible_function ctxt _ = false
 
 fun non_invertible_subterms ctxt (Free _) = []

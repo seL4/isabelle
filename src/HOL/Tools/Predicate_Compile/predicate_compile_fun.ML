@@ -94,6 +94,7 @@ fun keep_functions thy t =
 
 fun flatten thy lookup_pred t (names, prems) =
   let
+    val ctxt = Proof_Context.init_global thy;
     fun lift t (names, prems) =
       (case lookup_pred (Envir.eta_contract t) of
         SOME pred => [(pred, (names, prems))]
@@ -139,7 +140,9 @@ fun flatten thy lookup_pred t (names, prems) =
       | flatten' (t as Free _) (names, prems) = [(t, (names, prems))]
       | flatten' (t as Abs _) (names, prems) = [(t, (names, prems))]
       | flatten' (t as _ $ _) (names, prems) =
-      if Predicate_Compile_Aux.is_constrt thy t orelse keep_functions thy t then
+      if is_constrt ctxt t orelse keep_functions thy t then
+       (* FIXME: constructor terms are supposed to be seen in the way the code generator
+          sees constructors?*)
         [(t, (names, prems))]
       else
         case (fst (strip_comb t)) of
