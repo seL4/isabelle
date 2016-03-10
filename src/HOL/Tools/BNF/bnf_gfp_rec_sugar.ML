@@ -131,9 +131,7 @@ fun unexpected_corec_call ctxt eqns t =
   error_at ctxt eqns ("Unexpected corecursive call in " ^ quote (Syntax.string_of_term ctxt t));
 fun unsupported_case_around_corec_call ctxt eqns t =
   error_at ctxt eqns ("Unsupported corecursive call under case expression " ^
-    quote (Syntax.string_of_term ctxt t) ^ "\n(Define " ^
-    quote (Syntax.string_of_typ ctxt (domain_type (fastype_of t))) ^
-    " with  discriminators and selectors to circumvent this limitation.)");
+    quote (Syntax.string_of_term ctxt t) ^ " for datatype with no discriminators and selectors");
 fun use_primcorecursive () =
   error ("\"auto\" failed (try " ^ quote (#1 @{command_keyword primcorecursive}) ^ " instead of " ^
     quote (#1 @{command_keyword primcorec}) ^ ")");
