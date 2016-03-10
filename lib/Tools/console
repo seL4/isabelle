@@ -21,8 +21,8 @@ mkdir -p "$ISABELLE_TMP_PREFIX" || exit $?
 
 if type -p "$ISABELLE_LINE_EDITOR" > /dev/null
 then
-  exec "$ISABELLE_LINE_EDITOR" "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.ML_Console "$@"
+  exec "$ISABELLE_LINE_EDITOR" isabelle java "${JAVA_ARGS[@]}" isabelle.ML_Console "$@"
 else
   echo "### No line editor: \"$ISABELLE_LINE_EDITOR\""
-  exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.ML_Console "$@"
+  exec isabelle java "${JAVA_ARGS[@]}" isabelle.ML_Console "$@"
 fi

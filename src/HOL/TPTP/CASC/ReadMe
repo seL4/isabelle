@@ -67,7 +67,7 @@ Notes to Geoff:
   year, because Isabelle now includes its own version of Java, but the solution
   back then was to replace
 
-  	exec "$ISABELLE_TOOL" java
+  	exec isabelle java
 
   in the last line of the "contrib/kodkodi-1.5.2/bin/kodkodi" script with
 

@@ -128,12 +128,12 @@ function prep_tags ()
     ./build "$OUTFORMAT" "$NAME"
     RC="$?"
   else
-    "$ISABELLE_TOOL" latex -o sty "$ROOT_NAME.tex" && \
-    "$ISABELLE_TOOL" latex -o "$OUTFORMAT" "$ROOT_NAME.tex" && \
-    { [ ! -f "$ROOT_NAME.bib" ] || "$ISABELLE_TOOL" latex -o bbl "$ROOT_NAME.tex"; } && \
-    { [ ! -f "$ROOT_NAME.idx" ] || "$ISABELLE_TOOL" latex -o idx "$ROOT_NAME.tex"; } && \
-    "$ISABELLE_TOOL" latex -o "$OUTFORMAT" "$ROOT_NAME.tex" && \
-    "$ISABELLE_TOOL" latex -o "$OUTFORMAT" "$ROOT_NAME.tex"
+    isabelle latex -o sty "$ROOT_NAME.tex" && \
+    isabelle latex -o "$OUTFORMAT" "$ROOT_NAME.tex" && \
+    { [ ! -f "$ROOT_NAME.bib" ] || isabelle latex -o bbl "$ROOT_NAME.tex"; } && \
+    { [ ! -f "$ROOT_NAME.idx" ] || isabelle latex -o idx "$ROOT_NAME.tex"; } && \
+    isabelle latex -o "$OUTFORMAT" "$ROOT_NAME.tex" && \
+    isabelle latex -o "$OUTFORMAT" "$ROOT_NAME.tex"
     RC="$?"
   fi
 

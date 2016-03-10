@@ -19,4 +19,4 @@ declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
 
 mkdir -p "$ISABELLE_TMP_PREFIX" || exit $?
 
-"$ISABELLE_TOOL" java isabelle.ML_Process "$@"
+isabelle java isabelle.ML_Process "$@"

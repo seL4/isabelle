@@ -6,4 +6,4 @@
 
 isabelle_admin_build jars || exit $?
 
-"$ISABELLE_TOOL" java isabelle.Check_Sources "$@"
+isabelle java isabelle.Check_Sources "$@"

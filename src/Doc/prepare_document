@@ -4,13 +4,13 @@ set -e
 
 FORMAT="$1"
 
-"$ISABELLE_TOOL" latex -o sty
+isabelle latex -o sty
 cp "$ISABELLE_HOME/src/Doc/pdfsetup.sty" .
 
-"$ISABELLE_TOOL" latex -o "$FORMAT"
-"$ISABELLE_TOOL" latex -o bbl
+isabelle latex -o "$FORMAT"
+isabelle latex -o bbl
 [ -f root.idx ] && "$ISABELLE_HOME/src/Doc/sedindex" root
-"$ISABELLE_TOOL" latex -o "$FORMAT"
+isabelle latex -o "$FORMAT"
 [ -f root.out ] && "$ISABELLE_HOME/src/Doc/fixbookmarks" root.out
-"$ISABELLE_TOOL" latex -o "$FORMAT"
+isabelle latex -o "$FORMAT"
 

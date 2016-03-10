@@ -5,6 +5,6 @@ set -e
 FORMAT="$1"
 VARIANT="$2"
 
-"$ISABELLE_TOOL" logo -n isabelle_sledgehammer "S/H"
+isabelle logo -n isabelle_sledgehammer "S/H"
 "$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
 

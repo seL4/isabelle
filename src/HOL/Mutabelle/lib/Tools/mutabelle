@@ -133,7 +133,7 @@ end" > "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test.thy"
 
 # execution
 
-"$ISABELLE_TOOL" process -o auto_time_limit=10.0 \
+isabelle process -o auto_time_limit=10.0 \
   -e 'use_thy "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test"' "$MUTABELLE_LOGIC" > "$MUTABELLE_OUTPUT_PATH/err" 2>&1
 
 

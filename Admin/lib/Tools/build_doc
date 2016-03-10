@@ -18,4 +18,4 @@ esac
 
 declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
 
-"$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Build_Doc "$@"
+isabelle java "${JAVA_ARGS[@]}" isabelle.Build_Doc "$@"

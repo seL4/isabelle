@@ -169,7 +169,7 @@ declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
 
 . "$ISABELLE_HOME/lib/scripts/timestart.bash"
 
-"$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Build \
+isabelle java "${JAVA_ARGS[@]}" isabelle.Build \
   "$REQUIREMENTS" "$ALL_SESSIONS" "$BUILD_HEAP" "$CLEAN_BUILD" "$MAX_JOBS" \
   "$LIST_FILES" "$NO_BUILD" "$SYSTEM_MODE" "$VERBOSE" \
   "${INCLUDE_DIRS[@]}" $'\n' "${SELECT_DIRS[@]}" $'\n' \
