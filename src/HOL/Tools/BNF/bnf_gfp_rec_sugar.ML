@@ -359,7 +359,7 @@ fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_T
 
     fun massage_mutual_call bound_Ts (Type (@{type_name fun}, [_, U2]))
         (Type (@{type_name fun}, [T1, T2])) t =
-        Abs (Name.uu, T1, massage_mutual_call bound_Ts U2 T2 (incr_boundvars 1 t $ Bound 0))
+        Abs (Name.uu, T1, massage_mutual_call (T1 :: bound_Ts) U2 T2 (incr_boundvars 1 t $ Bound 0))
       | massage_mutual_call bound_Ts U T t =
         (if has_call t then massage_call else massage_noncall) bound_Ts U T t;
 
