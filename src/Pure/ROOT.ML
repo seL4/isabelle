@@ -107,8 +107,8 @@ use "General/table.ML";
 
 use "Concurrent/synchronized.ML";
 use "Concurrent/counter.ML";
-use "Concurrent/random.ML";
 
+use "General/random.ML";
 use "General/properties.ML";
 use "General/output.ML";
 use "PIDE/markup.ML";
