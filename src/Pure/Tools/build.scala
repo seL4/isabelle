@@ -1102,10 +1102,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       val sessions = getopts(args)
 
       val progress = new Console_Progress(verbose)
-      val start_time = Time.now()
-      val show_timing = !no_build && verbose
 
-      if (show_timing) {
+      if (verbose) {
         progress.echo(
           Library.trim_line(
             Isabelle_System.bash(
@@ -1113,25 +1111,25 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         progress.echo(show_settings())
       }
 
+      val start_time = Time.now()
       val results =
         progress.interrupt_handler {
           build_results(options, progress, requirements, all_sessions, build_heap, clean_build,
             dirs, select_dirs, exclude_session_groups, session_groups, max_jobs, list_files,
             check_keywords, no_build, system_mode, verbose, exclude_sessions, sessions)
         }
+      val elapsed_time = Time.now() - start_time
 
-      if (show_timing) {
-        val elapsed_time = Time.now() - start_time
-
+      if (verbose) {
         progress.echo(
           Library.trim_line(
             Isabelle_System.bash("""echo "Finished at "; date""").out))
-
-        val total_timing =
-          (Timing.zero /: results.sessions.iterator.map(a => results(a).timing))(_ + _).
-            copy(elapsed = elapsed_time)
-        progress.echo(total_timing.message_resources)
       }
+
+      val total_timing =
+        (Timing.zero /: results.sessions.iterator.map(a => results(a).timing))(_ + _).
+          copy(elapsed = elapsed_time)
+      progress.echo(total_timing.message_resources)
 
       results.rc
     }
