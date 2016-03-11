@@ -1031,9 +1031,8 @@ object Build
         cat_lines(List(
           "ISABELLE_BUILD_OPTIONS=" +
             quote(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")),
-          "",
           "ISABELLE_BUILD_JAVA_OPTIONS=" +
-            quote(Isabelle_System.getenv("ISABELLE_BUILD_JAVA_OPTIONS")) +
+            quote(Isabelle_System.getenv("ISABELLE_BUILD_JAVA_OPTIONS")),
           "",
           "ML_PLATFORM=" + quote(Isabelle_System.getenv("ML_PLATFORM")),
           "ML_HOME=" + quote(Isabelle_System.getenv("ML_HOME")),
@@ -1080,7 +1079,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Build and manage Isabelle sessions, depending on implicit
+  Build and manage Isabelle sessions, depending on implicit settings:
+
 """ + Library.prefix_lines("  ", show_settings()),
         "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
         "R" -> (_ => requirements = true),
@@ -1107,8 +1107,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         progress.echo(
           Library.trim_line(
             Isabelle_System.bash(
-              """echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))" """).out))
-        progress.echo(show_settings())
+              """echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))" """).out) + "\n")
+        progress.echo(show_settings() + "\n")
       }
 
       val start_time = Time.now()
@@ -1121,9 +1121,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       val elapsed_time = Time.now() - start_time
 
       if (verbose) {
-        progress.echo(
+        progress.echo("\n" +
           Library.trim_line(
-            Isabelle_System.bash("""echo "Finished at "; date""").out))
+            Isabelle_System.bash("""echo -n "Finished at "; date""").out))
       }
 
       val total_timing =
