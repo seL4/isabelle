@@ -12,7 +12,7 @@ begin
 
 subsection \<open>@{typ bool} is a datatype\<close>
 
-free_constructors case_bool for True | False
+free_constructors (discs_sels) case_bool for True | False
   by auto
 
 text \<open>Avoid name clashes by prefixing the output of \<open>old_rep_datatype\<close> with \<open>old\<close>.\<close>
