@@ -14,11 +14,7 @@ val _ =
 val _ =
   Isabelle_Process.protocol_command "Prover.options"
     (fn [options_yxml] =>
-      let val options = Options.decode (YXML.parse_body options_yxml) in
-        Options.set_default options;
-        Isabelle_Process.init_options ();
-        Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 3 else 0)
-      end);
+      Isabelle_Process.init_protocol_options (Options.decode (YXML.parse_body options_yxml)));
 
 val _ =
   Isabelle_Process.protocol_command "Document.define_blob"

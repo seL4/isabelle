@@ -549,27 +549,12 @@ object Build
     try { isabelle.graphview.Graph_File.write(info.options, graph_file, session_graph) }
     catch { case ERROR(_) => /*error should be exposed in ML*/ }
 
-    private val args_file = Isabelle_System.tmp_file("args")
-    private val args_standard_path = File.standard_path(args_file)
-    File.write(args_file, YXML.string_of_body(
-      if (is_pure(name)) Options.encode(info.options)
-      else
-        {
-          val theories = info.theories.map(x => (x._2, x._3))
-          import XML.Encode._
-          pair(list(pair(string, int)), pair(list(properties), pair(string, pair(Options.encode,
-            pair(bool, pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
-            pair(string, pair(string, pair(string,
-            list(pair(Options.encode, list(Path.encode))))))))))))))(
-          (Symbol.codes, (command_timings, (output_standard_path, (info.options,
-            (verbose, (browser_info, (info.document_files, (File.standard_path(graph_file),
-            (parent, (info.chapter, (name,
-            theories))))))))))))
-        }))
-
     output.file.delete
 
     private val env = Map("ISABELLE_ML_DEBUGGER" -> info.options.bool("ML_debugger").toString)
+
+    private val args_file =
+      if (is_pure(name)) None else Some(Isabelle_System.tmp_file("args"))
 
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
@@ -579,13 +564,26 @@ object Build
               "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default ();" +
               " Session.shutdown (); ML_Heap.share_common_data ();" +
               " ML_Heap.save_state " + ML_Syntax.print_string_raw(output_standard_path) + "));"
-            val env1 = env + ("ISABELLE_PROCESS_OPTIONS" -> args_standard_path)
             ML_Process(info.options, "RAW_ML_SYSTEM", List("--use", "ROOT.ML", "--eval", eval),
-              cwd = info.dir.file, env = env1)
+              cwd = info.dir.file, env = env)
           }
           else {
+            File.write(args_file.get, YXML.string_of_body(
+                {
+                  val theories = info.theories.map(x => (x._2, x._3))
+                  import XML.Encode._
+                  pair(list(pair(string, int)), pair(list(properties), pair(string, pair(bool,
+                    pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
+                    pair(string, pair(string, pair(string,
+                    list(pair(Options.encode, list(Path.encode)))))))))))))(
+                  (Symbol.codes, (command_timings, (output_standard_path, (verbose,
+                    (browser_info, (info.document_files, (File.standard_path(graph_file),
+                    (parent, (info.chapter, (name,
+                    theories)))))))))))
+                }))
             ML_Process(info.options, parent,
-              List("--eval", "Build.build " + ML_Syntax.print_string_raw(args_standard_path)),
+              List("--eval", "Build.build " +
+                ML_Syntax.print_string_raw(File.standard_path(args_file.get))),
               cwd = info.dir.file, env = env)
           }
         process.result(
@@ -621,7 +619,7 @@ object Build
         Present.finish(progress, browser_info, graph_file, info, name)
 
       graph_file.delete
-      args_file.delete
+      args_file.foreach(_.delete)
       timeout_request.foreach(_.cancel)
 
       if (result.interrupted) {

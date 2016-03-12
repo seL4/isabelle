@@ -124,30 +124,30 @@ fun build args_file = Command_Line.tool0 (fn () =>
     let
       val _ = SHA1_Samples.test ();
 
-      val (symbol_codes, (command_timings, (output, (options, (verbose, (browser_info,
-          (document_files, (graph_file, (parent_name, (chapter, (name, theories))))))))))) =
+      val (symbol_codes, (command_timings, (output, (verbose, (browser_info,
+            (document_files, (graph_file, (parent_name, (chapter, (name, theories)))))))))) =
         File.read (Path.explode args_file) |> YXML.parse_body |>
           let open XML.Decode in
-            pair (list (pair string int)) (pair (list properties) (pair string (pair Options.decode
+            pair (list (pair string int)) (pair (list properties) (pair string
               (pair bool (pair string (pair (list (pair string string)) (pair string
                 (pair string (pair string (pair string
-                ((list (pair Options.decode (list (string #> rpair Position.none)))))))))))))))
+                ((list (pair Options.decode (list (string #> rpair Position.none))))))))))))))
           end;
       val do_output = output <> "";
 
       val symbols = HTML.make_symbols symbol_codes;
-      val _ = Options.set_default options;
+      val _ = Isabelle_Process.init_build_options ();
 
       val _ = writeln ("\fSession.name = " ^ name);
       val _ =
         Session.init
           symbols
           do_output
-          (Options.bool options "browser_info")
+          (Options.default_bool "browser_info")
           (Path.explode browser_info)
-          (Options.string options "document")
-          (Options.string options "document_output")
-          (Present.document_variants (Options.string options "document_variants"))
+          (Options.default_string "document")
+          (Options.default_string "document_output")
+          (Present.document_variants (Options.default_string "document_variants"))
           (map (apply2 Path.explode) document_files)
           (Path.explode graph_file)
           parent_name (chapter, name)
@@ -160,7 +160,7 @@ fun build args_file = Command_Line.tool0 (fn () =>
           (List.app (build_theories symbols last_timing Path.current)
             |> session_timing name verbose
             |> Unsynchronized.setmp Output.protocol_message_fn protocol_message
-            |> Multithreading.max_threads_setmp (Options.int options "threads")
+            |> Multithreading.max_threads_setmp (Options.default_int "threads")
             |> Exn.capture);
       val res2 = Exn.capture Session.finish ();
       val _ = Par_Exn.release_all [res1, res2];
