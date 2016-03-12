@@ -87,6 +87,10 @@ object ML_Process
               ML_Syntax.print_string_raw(ch.server_name) + ")")
         }
 
+    // ISABELLE_TMP
+    val isabelle_tmp = Isabelle_System.tmp_dir("process")
+    val env_tmp = Map("ISABELLE_TMP" -> File.standard_path(isabelle_tmp))
+
     // bash
     val bash_args =
       Word.explode(Isabelle_System.getenv("ML_OPTIONS")) :::
@@ -95,21 +99,15 @@ object ML_Process
 
     Bash.process(
       """
-        [ -z "$ISABELLE_TMP_PREFIX" ] && ISABELLE_TMP_PREFIX=/tmp/isabelle
-
-        export ISABELLE_TMP="$ISABELLE_TMP_PREFIX$$"
-        mkdir -p "$ISABELLE_TMP"
-        chmod $(umask -S) "$ISABELLE_TMP"
-
         librarypath "$ML_HOME"
         "$ML_HOME/poly" -q """ + File.bash_args(bash_args) + """
         RC="$?"
 
-        rm -f "$ISABELLE_PROCESS_OPTIONS"
+        [ -e "$ISABELLE_PROCESS_OPTIONS" ] && rm -f "$ISABELLE_PROCESS_OPTIONS"
         rmdir "$ISABELLE_TMP"
 
         exit "$RC"
-      """, cwd = cwd, env = env ++ env_options, redirect = redirect)
+      """, cwd = cwd, env = env ++ env_options ++ env_tmp, redirect = redirect)
   }
 
 
