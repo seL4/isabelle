@@ -69,7 +69,7 @@ corresponding to {0..255}.
     * All other canonical characters are printed as »CHAR 0xXX«
       with XX being the hexadecimal character code.  »CHAR n«
       is parsable for every numeral expression n.
-    * Non-canonial characters have no special syntax and are
+    * Non-canonical characters have no special syntax and are
       printed as their logical representation.
   - Explicit conversions from and to the natural numbers are
     provided as char_of_nat, nat_of_char (as before).
