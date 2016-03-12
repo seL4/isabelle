@@ -53,17 +53,13 @@ subsection \<open>Inner syntax: string literals via cartouche\<close>
 
 ML \<open>
   local
-    val mk_nib =
-      Syntax.const o Lexicon.mark_const o
-        fst o Term.dest_Const o HOLogic.mk_nibble;
-
     fun mk_char (s, pos) =
       let
         val c =
           if Symbol.is_ascii s then ord s
           else if s = "\<newline>" then 10
           else error ("String literal contains illegal symbol: " ^ quote s ^ Position.here pos);
-      in Syntax.const @{const_syntax Char} $ mk_nib (c div 16) $ mk_nib (c mod 16) end;
+      in Syntax.const @{const_syntax Char} $ HOLogic.mk_numeral c end;
 
     fun mk_string [] = Const (@{const_syntax Nil}, @{typ string})
       | mk_string (s :: ss) =

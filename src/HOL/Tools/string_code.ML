@@ -16,34 +16,22 @@ struct
 
 open Basic_Code_Thingol;
 
-val cs_nibbles = [@{const_name Nibble0}, @{const_name Nibble1},
-  @{const_name Nibble2}, @{const_name Nibble3},
-  @{const_name Nibble4}, @{const_name Nibble5},
-  @{const_name Nibble6}, @{const_name Nibble7},
-  @{const_name Nibble8}, @{const_name Nibble9},
-  @{const_name NibbleA}, @{const_name NibbleB},
-  @{const_name NibbleC}, @{const_name NibbleD},
-  @{const_name NibbleE}, @{const_name NibbleF}];
+fun decode_char_nonzero t =
+  case Numeral.dest_num t of
+    SOME n => if 0 < n andalso n < 256 then SOME n else NONE
+  | _ => NONE;
 
-fun decode_char tt =
-  let
-    fun idx c = find_index (curry (op =) c) cs_nibbles;
-    fun decode ~1 _ = NONE
-      | decode _ ~1 = NONE
-      | decode n m = SOME (chr (n * 16 + m));
-  in case tt
-   of (IConst { sym = Code_Symbol.Constant c1, ... }, IConst { sym = Code_Symbol.Constant c2, ... }) => decode (idx c1) (idx c2)
-    | _ => NONE
-  end;
-   
+fun decode_char (IConst { sym = Code_Symbol.Constant @{const_name Groups.zero}, ... }) =
+     SOME 0
+  | decode_char (IConst { sym = Code_Symbol.Constant @{const_name Char}, ... } `$ t) =
+      decode_char_nonzero t
+  | decode_char _ = NONE
+
 fun implode_string literals ts =
   let
-    fun implode_char (IConst { sym = Code_Symbol.Constant @{const_name Char}, ... } `$ t1 `$ t2) =
-          decode_char (t1, t2)
-      | implode_char _ = NONE;
-    val ts' = map_filter implode_char ts;
-  in if length ts = length ts'
-    then (SOME o Code_Printer.str o Code_Printer.literal_string literals o implode) ts'
+    val is = map_filter decode_char ts;
+  in if length ts = length is
+    then (SOME o Code_Printer.str o Code_Printer.literal_string literals o implode o map chr) is
     else NONE
   end;
 
@@ -64,13 +52,20 @@ fun add_literal_list_string target =
 
 fun add_literal_char target thy =
   let
-    fun pretty literals _ thm _ _ [(t1, _), (t2, _)] =
-      case decode_char (t1, t2)
-       of SOME c => (Code_Printer.str o Code_Printer.literal_char literals) c
+    fun pr literals =
+      Code_Printer.str o Code_Printer.literal_char literals o chr;
+    fun pretty_zero literals _ _ _ _ [] =
+      pr literals 0
+    fun pretty_Char literals _ thm _ _ [(t, _)] =
+      case decode_char_nonzero t
+       of SOME i => pr literals i
         | NONE => Code_Printer.eqn_error thy thm "Illegal character expression";
   in
-    Code_Target.set_printings (Code_Symbol.Constant (@{const_name Char},
-      [(target, SOME (Code_Printer.complex_const_syntax (2, pretty)))])) thy
+    thy
+    |> Code_Target.set_printings (Code_Symbol.Constant (@{const_name String.zero_char_inst.zero_char},
+      [(target, SOME (Code_Printer.complex_const_syntax (0, pretty_zero)))]))
+    |> Code_Target.set_printings (Code_Symbol.Constant (@{const_name Char},
+      [(target, SOME (Code_Printer.complex_const_syntax (1, pretty_Char)))]))
   end;
 
 fun add_literal_string target thy =
@@ -82,8 +77,9 @@ fun add_literal_string target thy =
               | NONE => Code_Printer.eqn_error thy thm "Illegal string literal expression")
         | NONE => Code_Printer.eqn_error thy thm "Illegal string literal expression";
   in
-    Code_Target.set_printings (Code_Symbol.Constant (@{const_name STR},
-      [(target, SOME (Code_Printer.complex_const_syntax (1, pretty)))])) thy
+    thy
+    |> Code_Target.set_printings (Code_Symbol.Constant (@{const_name STR},
+      [(target, SOME (Code_Printer.complex_const_syntax (1, pretty)))]))
   end;
 
 end;

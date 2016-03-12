@@ -1635,6 +1635,37 @@ lemma Suc_0_mod_numeral [simp]:
   shows "Suc 0 mod numeral k = snd (divmod Num.One k)"
   by (simp_all add: snd_divmod)
 
+lemma cut_eq_simps: -- \<open>rewriting equivalence on @{text "n mod 2 ^ q"}\<close>
+  fixes m n q :: num
+  shows
+    "numeral n mod numeral Num.One = (0::nat)
+      \<longleftrightarrow> True"
+    "numeral (Num.Bit0 n) mod numeral (Num.Bit0 q) = (0::nat)
+      \<longleftrightarrow> numeral n mod numeral q = (0::nat)"
+    "numeral (Num.Bit1 n) mod numeral (Num.Bit0 q) = (0::nat)
+      \<longleftrightarrow> False"
+    "numeral m mod numeral Num.One = (numeral n mod numeral Num.One :: nat)
+      \<longleftrightarrow> True"
+    "numeral Num.One mod numeral (Num.Bit0 q) = (numeral Num.One mod numeral (Num.Bit0 q) :: nat)
+      \<longleftrightarrow> True"
+    "numeral Num.One mod numeral (Num.Bit0 q) = (numeral (Num.Bit0 n) mod numeral (Num.Bit0 q) :: nat)
+      \<longleftrightarrow> False"
+    "numeral Num.One mod numeral (Num.Bit0 q) = (numeral (Num.Bit1 n) mod numeral (Num.Bit0 q) :: nat)
+      \<longleftrightarrow> (numeral n mod numeral q :: nat) = 0"
+    "numeral (Num.Bit0 m) mod numeral (Num.Bit0 q) = (numeral Num.One mod numeral (Num.Bit0 q) :: nat)
+      \<longleftrightarrow> False"
+    "numeral (Num.Bit0 m) mod numeral (Num.Bit0 q) = (numeral (Num.Bit0 n) mod numeral (Num.Bit0 q) :: nat)
+      \<longleftrightarrow> numeral m mod numeral q = (numeral n mod numeral q :: nat)"
+    "numeral (Num.Bit0 m) mod numeral (Num.Bit0 q) = (numeral (Num.Bit1 n) mod numeral (Num.Bit0 q) :: nat)
+      \<longleftrightarrow> False"
+    "numeral (Num.Bit1 m) mod numeral (Num.Bit0 q) = (numeral Num.One mod numeral (Num.Bit0 q) :: nat)
+      \<longleftrightarrow> (numeral m mod numeral q :: nat) = 0"
+    "numeral (Num.Bit1 m) mod numeral (Num.Bit0 q) = (numeral (Num.Bit0 n) mod numeral (Num.Bit0 q) :: nat)
+      \<longleftrightarrow> False"
+    "numeral (Num.Bit1 m) mod numeral (Num.Bit0 q) = (numeral (Num.Bit1 n) mod numeral (Num.Bit0 q) :: nat)
+      \<longleftrightarrow> numeral m mod numeral q = (numeral n mod numeral q :: nat)"
+  by (auto simp add: case_prod_beta Suc_double_not_eq_double double_not_eq_Suc_double)
+
 
 subsection \<open>Division on @{typ int}\<close>
 

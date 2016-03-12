@@ -77,7 +77,8 @@ val lazy_conj_simproc =
 
 fun string_eq_simp_tac ctxt =
   simp_tac (put_simpset HOL_basic_ss ctxt
-    addsimps (@{thms list.inject} @ @{thms char.inject} @ @{thms list.distinct} @ @{thms simp_thms})
+    addsimps @{thms list.inject list.distinct Char_eq_Char_iff
+      cut_eq_simps simp_thms}
     addsimprocs [lazy_conj_simproc]
     |> Simplifier.add_cong @{thm block_conj_cong});
 
@@ -85,7 +86,7 @@ end;
 
 val lookup_ss =
   simpset_of (put_simpset HOL_basic_ss @{context}
-    addsimps (@{thms list.inject} @ @{thms char.inject}
+    addsimps (@{thms list.inject} @ @{thms Char_eq_Char_iff}
       @ @{thms list.distinct} @ @{thms simp_thms}
       @ [@{thm StateFun.lookup_update_id_same}, @{thm StateFun.id_id_cancel},
         @{thm StateFun.lookup_update_same}, @{thm StateFun.lookup_update_other}])
@@ -162,7 +163,7 @@ local
 val meta_ext = @{thm StateFun.meta_ext};
 val ss' =
   simpset_of (put_simpset HOL_ss @{context} addsimps
-    (@{thm StateFun.update_apply} :: @{thm Fun.o_apply} :: @{thms list.inject} @ @{thms char.inject}
+    (@{thm StateFun.update_apply} :: @{thm Fun.o_apply} :: @{thms list.inject} @ @{thms Char_eq_Char_iff}
       @ @{thms list.distinct})
     addsimprocs [lazy_conj_simproc, StateSpace.distinct_simproc]
     |> fold Simplifier.add_cong @{thms block_conj_cong});

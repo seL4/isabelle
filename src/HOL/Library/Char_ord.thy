@@ -8,28 +8,6 @@ theory Char_ord
 imports Main
 begin
 
-instantiation nibble :: linorder
-begin
-
-definition "n \<le> m \<longleftrightarrow> nat_of_nibble n \<le> nat_of_nibble m"
-definition "n < m \<longleftrightarrow> nat_of_nibble n < nat_of_nibble m"
-
-instance
-  by standard (auto simp add: less_eq_nibble_def less_nibble_def not_le nat_of_nibble_eq_iff)
-
-end
-
-instantiation nibble :: distrib_lattice
-begin
-
-definition "(inf :: nibble \<Rightarrow> _) = min"
-definition "(sup :: nibble \<Rightarrow> _) = max"
-
-instance
-  by standard (auto simp add: inf_nibble_def sup_nibble_def max_min_distrib2)
-
-end
-
 instantiation char :: linorder
 begin
 
@@ -37,40 +15,22 @@ definition "c1 \<le> c2 \<longleftrightarrow> nat_of_char c1 \<le> nat_of_char c
 definition "c1 < c2 \<longleftrightarrow> nat_of_char c1 < nat_of_char c2"
 
 instance
-  by standard (auto simp add: less_eq_char_def less_char_def nat_of_char_eq_iff)
+  by standard (auto simp add: less_eq_char_def less_char_def)
 
 end
 
-lemma less_eq_char_Char:
-  "Char n1 m1 \<le> Char n2 m2 \<longleftrightarrow> n1 < n2 \<or> n1 = n2 \<and> m1 \<le> m2"
-proof -
-  {
-    assume "nat_of_nibble n1 * 16 + nat_of_nibble m1
-      \<le> nat_of_nibble n2 * 16 + nat_of_nibble m2"
-    then have "nat_of_nibble n1 \<le> nat_of_nibble n2"
-    using nat_of_nibble_less_16 [of m1] nat_of_nibble_less_16 [of m2] by auto
-  }
-  note * = this
-  show ?thesis
-    using nat_of_nibble_less_16 [of m1] nat_of_nibble_less_16 [of m2]
-    by (auto simp add: less_eq_char_def nat_of_char_Char less_eq_nibble_def less_nibble_def not_less nat_of_nibble_eq_iff dest: *)
-qed
+lemma less_eq_char_simps:
+  "(0 :: char) \<le> c"
+  "Char k \<le> 0 \<longleftrightarrow> numeral k mod 256 = (0 :: nat)"
+  "Char k \<le> Char l \<longleftrightarrow> numeral k mod 256 \<le> (numeral l mod 256 :: nat)"
+  by (simp_all add: Char_def less_eq_char_def)
 
-lemma less_char_Char:
-  "Char n1 m1 < Char n2 m2 \<longleftrightarrow> n1 < n2 \<or> n1 = n2 \<and> m1 < m2"
-proof -
-  {
-    assume "nat_of_nibble n1 * 16 + nat_of_nibble m1
-      < nat_of_nibble n2 * 16 + nat_of_nibble m2"
-    then have "nat_of_nibble n1 \<le> nat_of_nibble n2"
-    using nat_of_nibble_less_16 [of m1] nat_of_nibble_less_16 [of m2] by auto
-  }
-  note * = this
-  show ?thesis
-    using nat_of_nibble_less_16 [of m1] nat_of_nibble_less_16 [of m2]
-    by (auto simp add: less_char_def nat_of_char_Char less_eq_nibble_def less_nibble_def not_less nat_of_nibble_eq_iff dest: *)
-qed
-
+lemma less_char_simps:
+  "\<not> c < (0 :: char)"
+  "0 < Char k \<longleftrightarrow> (0 :: nat) < numeral k mod 256"
+  "Char k < Char l \<longleftrightarrow> numeral k mod 256 < (numeral l mod 256 :: nat)"
+  by (simp_all add: Char_def less_char_def)
+  
 instantiation char :: distrib_lattice
 begin
 
@@ -111,14 +71,4 @@ by(simp add: less_eq_literal.rep_eq fun_eq_iff)
 lifting_update literal.lifting
 lifting_forget literal.lifting
 
-text \<open>Legacy aliasses\<close>
-
-lemmas nibble_less_eq_def = less_eq_nibble_def
-lemmas nibble_less_def = less_nibble_def
-lemmas char_less_eq_def = less_eq_char_def
-lemmas char_less_def = less_char_def
-lemmas char_less_eq_simp = less_eq_char_Char
-lemmas char_less_simp = less_char_Char
-
 end
-

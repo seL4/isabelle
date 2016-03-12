@@ -21,7 +21,17 @@ setup \<open>
 \<close>
 
 code_printing
-  class_instance char :: equal \<rightharpoonup>
+  constant integer_of_char \<rightharpoonup>
+    (SML) "!(IntInf.fromInt o Char.ord)"
+    and (OCaml) "Big'_int.big'_int'_of'_int (Char.code _)"
+    and (Haskell) "Prelude.toInteger (Prelude.fromEnum (_ :: Prelude.Char))"
+    and (Scala) "BigInt(_.toInt)"
+| constant char_of_integer \<rightharpoonup>
+    (SML) "!(Char.chr o IntInf.toInt)"
+    and (OCaml) "Char.chr (Big'_int.int'_of'_big'_int _)"
+    and (Haskell) "!(let chr k | (0 <= k && k < 256) = Prelude.toEnum k :: Prelude.Char in chr . Prelude.fromInteger)"
+    and (Scala) "!((k: BigInt) => if (BigInt(0) <= k && k < BigInt(256)) k.charValue else error(\"character value out of range\"))"
+| class_instance char :: equal \<rightharpoonup>
     (Haskell) -
 | constant "HOL.equal :: char \<Rightarrow> char \<Rightarrow> bool" \<rightharpoonup>
     (SML) "!((_ : char) = _)"
@@ -54,45 +64,8 @@ code_printing
     and (Haskell) "_"
     and (Scala) "!(_.toList)"
 
-
-definition integer_of_char :: "char \<Rightarrow> integer"
-where
-  "integer_of_char = integer_of_nat o nat_of_char"
-
-definition char_of_integer :: "integer \<Rightarrow> char"
-where
-  "char_of_integer = char_of_nat \<circ> nat_of_integer"
-
-lemma [code]:
-  "nat_of_char = nat_of_integer o integer_of_char"
-  by (simp add: integer_of_char_def fun_eq_iff)
-
-lemma [code]:
-  "char_of_nat = char_of_integer o integer_of_nat"
-  by (simp add: char_of_integer_def fun_eq_iff)
-
-lemmas integer_of_char_code [code] =
-  nat_of_char_simps[
-    THEN arg_cong[where f="integer_of_nat"],
-    unfolded integer_of_nat_numeral integer_of_nat_1 integer_of_nat_0,
-    folded fun_cong[OF integer_of_char_def, unfolded o_apply]]
-
-lemma char_of_integer_code [code]:
-  "char_of_integer n = Enum.enum ! (nat_of_integer n mod 256)"
-  by (simp add: char_of_integer_def enum_char_unfold)
-
 code_printing
-  constant integer_of_char \<rightharpoonup>
-    (SML) "!(IntInf.fromInt o Char.ord)"
-    and (OCaml) "Big'_int.big'_int'_of'_int (Char.code _)"
-    and (Haskell) "Prelude.toInteger (Prelude.fromEnum (_ :: Prelude.Char))"
-    and (Scala) "BigInt(_.toInt)"
-| constant char_of_integer \<rightharpoonup>
-    (SML) "!(Char.chr o IntInf.toInt)"
-    and (OCaml) "Char.chr (Big'_int.int'_of'_big'_int _)"
-    and (Haskell) "!(let chr k | (0 <= k && k < 256) = Prelude.toEnum k :: Prelude.Char in chr . Prelude.fromInteger)"
-    and (Scala) "!((k: BigInt) => if (BigInt(0) <= k && k < BigInt(256)) k.charValue else error(\"character value out of range\"))"
-| constant "Orderings.less_eq :: char \<Rightarrow> char \<Rightarrow> bool" \<rightharpoonup>
+  constant "Orderings.less_eq :: char \<Rightarrow> char \<Rightarrow> bool" \<rightharpoonup>
     (SML) "!((_ : char) <= _)"
     and (OCaml) "!((_ : char) <= _)"
     and (Haskell) infix 4 "<="

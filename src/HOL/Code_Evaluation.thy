@@ -105,12 +105,14 @@ declare [[code drop: rec_term case_term "HOL.equal :: term \<Rightarrow> _"
   "term_of :: typerep \<Rightarrow> _" "term_of :: term \<Rightarrow> _" "term_of :: String.literal \<Rightarrow> _"
   "term_of :: _ Predicate.pred \<Rightarrow> term" "term_of :: _ Predicate.seq \<Rightarrow> term"]]
 
-lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def, code]:
-  "Code_Evaluation.term_of c = (case c of Char x y \<Rightarrow>
-   Code_Evaluation.App (Code_Evaluation.App
-    (Code_Evaluation.Const (STR ''String.char.Char'') (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
-      (Code_Evaluation.term_of x)) (Code_Evaluation.term_of y))"
-  by (subst term_of_anything) rule 
+definition case_char :: "'a \<Rightarrow> (num \<Rightarrow> 'a) \<Rightarrow> char \<Rightarrow> 'a"
+  where "case_char f g c = (if c = 0 then f else g (num_of_nat (nat_of_char c)))"
+
+lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_num_def, code]:
+  "term_of =
+    case_char (Const (STR ''Groups.zero_class.zero'') (TYPEREP(char)))
+    (\<lambda>k. App (Const (STR ''String.Char'') (TYPEREP(num \<Rightarrow> char))) (term_of k))"
+  by (rule ext) (rule term_of_anything [THEN meta_eq_to_obj_eq])
 
 lemma term_of_string [code]:
    "term_of s = App (Const (STR ''STR'')
@@ -133,7 +135,7 @@ lemma term_of_integer [unfolded typerep_fun_def typerep_num_def typerep_integer_
    else
      App (Const (STR ''Groups.uminus_class.uminus'') TYPEREP(integer \<Rightarrow> integer))
        (term_of (- i)))"
-by(rule term_of_anything[THEN meta_eq_to_obj_eq])
+  by (rule term_of_anything [THEN meta_eq_to_obj_eq])
 
 code_reserved Eval HOLogic
 

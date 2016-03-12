@@ -379,42 +379,13 @@ instance ..
 
 end
 
-instantiation nibble :: check_all
+(* FIXME instantiation char :: check_all
 begin
 
 definition
-  "check_all f =
-    f (Code_Evaluation.valtermify Nibble0) orelse
-    f (Code_Evaluation.valtermify Nibble1) orelse
-    f (Code_Evaluation.valtermify Nibble2) orelse
-    f (Code_Evaluation.valtermify Nibble3) orelse
-    f (Code_Evaluation.valtermify Nibble4) orelse
-    f (Code_Evaluation.valtermify Nibble5) orelse
-    f (Code_Evaluation.valtermify Nibble6) orelse
-    f (Code_Evaluation.valtermify Nibble7) orelse
-    f (Code_Evaluation.valtermify Nibble8) orelse
-    f (Code_Evaluation.valtermify Nibble9) orelse
-    f (Code_Evaluation.valtermify NibbleA) orelse
-    f (Code_Evaluation.valtermify NibbleB) orelse
-    f (Code_Evaluation.valtermify NibbleC) orelse
-    f (Code_Evaluation.valtermify NibbleD) orelse
-    f (Code_Evaluation.valtermify NibbleE) orelse
-    f (Code_Evaluation.valtermify NibbleF)"
-
-definition enum_term_of_nibble :: "nibble itself => unit => term list"
-where
-  "enum_term_of_nibble = (%_ _. map Code_Evaluation.term_of (Enum.enum :: nibble list))"
-
-instance ..
-
-end
-
-
-instantiation char :: check_all
-begin
-
-definition
-  "check_all f = check_all (%(x, t1). check_all (%(y, t2). f (Char x y, %_. Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.term_of Char) (t1 ())) (t2 ()))))"
+  "check_all f = check_all (%(x, t1). check_all (%(y, t2).
+     f (Char x y, %_. Code_Evaluation.App
+       (Code_Evaluation.App (Code_Evaluation.term_of Char) (t1 ())) (t2 ()))))"
 
 definition enum_term_of_char :: "char itself => unit => term list"
 where
@@ -422,8 +393,7 @@ where
 
 instance ..
 
-end
-
+end *)
 
 instantiation option :: (check_all) check_all
 begin
@@ -624,13 +594,7 @@ subsection \<open>Defining generators for abstract types\<close>
 
 ML_file "Tools/Quickcheck/abstract_generators.ML"
 
-lemma check_all_char [code]:
-  "check_all f = check_all (\<lambda>(x, t1). check_all (\<lambda>(y, t2).
-     f (char_of_nat (nat_of_nibble x * 16 + nat_of_nibble y), \<lambda>_. Code_Evaluation.App (Code_Evaluation.App
-       (Code_Evaluation.term_of (\<lambda>x y. char_of_nat (nat_of_nibble x * 16 + nat_of_nibble y))) (t1 ())) (t2 ()))))"
-  by (simp add: check_all_char_def)
-
-instantiation char :: full_exhaustive
+(* FIXME instantiation char :: full_exhaustive
 begin
 
 definition full_exhaustive_char
@@ -648,7 +612,7 @@ where
 
 instance ..
 
-end
+end *)
 
 hide_fact (open) orelse_def
 no_notation orelse (infixr "orelse" 55)

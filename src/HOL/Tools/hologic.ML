@@ -108,9 +108,6 @@ sig
   val code_integerT: typ
   val code_naturalT: typ
   val realT: typ
-  val nibbleT: typ
-  val mk_nibble: int -> term
-  val dest_nibble: term -> int
   val charT: typ
   val mk_char: int -> term
   val dest_char: term -> int
@@ -594,42 +591,27 @@ fun dest_list (Const ("List.list.Nil", _)) = []
   | dest_list t = raise TERM ("dest_list", [t]);
 
 
-(* nibble *)
-
-val nibbleT = Type ("String.nibble", []);
-
-fun mk_nibble n =
-  let val s =
-    if 0 <= n andalso n <= 9 then chr (n + ord "0")
-    else if 10 <= n andalso n <= 15 then chr (n + ord "A" - 10)
-    else raise TERM ("mk_nibble", [])
-  in Const ("String.nibble.Nibble" ^ s, nibbleT) end;
-
-fun dest_nibble t =
-  let fun err () = raise TERM ("dest_nibble", [t]) in
-    (case try (unprefix "String.nibble.Nibble" o fst o Term.dest_Const) t of
-      NONE => err ()
-    | SOME c =>
-        if size c <> 1 then err ()
-        else if "0" <= c andalso c <= "9" then ord c - ord "0"
-        else if "A" <= c andalso c <= "F" then ord c - ord "A" + 10
-        else err ())
-  end;
-
-
 (* char *)
 
 val charT = Type ("String.char", []);
 
-fun mk_char n =
-  if 0 <= n andalso n <= 255 then
-    Const ("String.char.Char", nibbleT --> nibbleT --> charT) $
-      mk_nibble (n div 16) $ mk_nibble (n mod 16)
-  else raise TERM ("mk_char", []);
+val Char_const = Const ("String.Char", numT --> charT);
 
-fun dest_char (Const ("String.char.Char", _) $ t $ u) =
-      dest_nibble t * 16 + dest_nibble u
-  | dest_char t = raise TERM ("dest_char", [t]);
+fun mk_char 0 = Const ("Groups.zero_class.zero", charT)
+  | mk_char i =
+      if 1 <= i andalso i <= 255 then Char_const $ mk_numeral i
+      else raise TERM ("mk_char", []);
+
+fun dest_char t =
+  let
+    val (T, n) = case t of
+      Const ("Groups.zero_class.zero", T) => (T, 0)
+    | (Const ("String.Char", Type ("fun", [_, T])) $ t) => (T, dest_numeral t)
+    | _ => raise TERM ("dest_char", [t]);
+  in
+    if T = charT then n
+    else raise TERM ("dest_char", [t])
+  end;
 
 
 (* string *)

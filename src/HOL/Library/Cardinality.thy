@@ -149,15 +149,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma card_nibble: "CARD(nibble) = 16"
-unfolding UNIV_nibble by simp
-
-lemma card_UNIV_char: "CARD(char) = 256"
-proof -
-  have "inj (\<lambda>(x, y). Char x y)" by(auto intro: injI)
-  thus ?thesis unfolding UNIV_char by(simp add: card_image card_nibble)
-qed
-
 lemma card_literal: "CARD(String.literal) = 0"
 by(simp add: card_eq_0_iff infinite_literal)
 
@@ -261,12 +252,6 @@ instantiation bool :: card_UNIV begin
 definition "finite_UNIV = Phantom(bool) True"
 definition "card_UNIV = Phantom(bool) 2"
 instance by(intro_classes)(simp_all add: card_UNIV_bool_def finite_UNIV_bool_def)
-end
-
-instantiation nibble :: card_UNIV begin
-definition "finite_UNIV = Phantom(nibble) True"
-definition "card_UNIV = Phantom(nibble) 16"
-instance by(intro_classes)(simp_all add: card_UNIV_nibble_def card_nibble finite_UNIV_nibble_def)
 end
 
 instantiation char :: card_UNIV begin

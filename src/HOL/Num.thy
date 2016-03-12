@@ -297,12 +297,9 @@ parse_translation \<open>
 
 typed_print_translation \<open>
   let
-    fun dest_num (Const (@{const_syntax Bit0}, _) $ n) = 2 * dest_num n
-      | dest_num (Const (@{const_syntax Bit1}, _) $ n) = 2 * dest_num n + 1
-      | dest_num (Const (@{const_syntax One}, _)) = 1;
     fun num_tr' ctxt T [n] =
       let
-        val k = dest_num n;
+        val k = Numeral.dest_num_syntax n;
         val t' =
           Syntax.const @{syntax_const "_Numeral"} $
             Syntax.free (string_of_int k);

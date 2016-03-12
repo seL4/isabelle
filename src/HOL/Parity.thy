@@ -180,6 +180,21 @@ lemma odd_pos:
   "odd (n :: nat) \<Longrightarrow> 0 < n"
   by (auto elim: oddE)
 
+lemma Suc_double_not_eq_double:
+  fixes m n :: nat
+  shows "Suc (2 * m) \<noteq> 2 * n"
+proof
+  assume "Suc (2 * m) = 2 * n"
+  moreover have "odd (Suc (2 * m))" and "even (2 * n)"
+    by simp_all
+  ultimately show False by simp
+qed
+
+lemma double_not_eq_Suc_double:
+  fixes m n :: nat
+  shows "2 * m \<noteq> Suc (2 * n)"
+  using Suc_double_not_eq_double [of n m] by simp
+
 lemma even_diff_iff [simp]:
   fixes k l :: int
   shows "2 dvd (k - l) \<longleftrightarrow> 2 dvd (k + l)"

@@ -14,6 +14,11 @@ begin
 nitpick_params [verbose, card = 1-8, max_potential = 0,
                 sat_solver = MiniSat_JNI, max_threads = 1, timeout = 240]
 
+datatype nibble = Nibble0 | Nibble1 | Nibble2 | Nibble3
+  | Nibble4 | Nibble5 | Nibble6 | Nibble7
+  | Nibble8 | Nibble9 | NibbleA | NibbleB
+  | NibbleC | NibbleD | NibbleE | NibbleF
+
 primrec rot where
 "rot Nibble0 = Nibble1" | "rot Nibble1 = Nibble2" | "rot Nibble2 = Nibble3" |
 "rot Nibble3 = Nibble4" | "rot Nibble4 = Nibble5" | "rot Nibble5 = Nibble6" |

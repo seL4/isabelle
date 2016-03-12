@@ -6,9 +6,12 @@ Logical operations on numerals (see also HOL/Tools/hologic.ML).
 
 signature NUMERAL =
 sig
-  val mk_cnumeral: int -> cterm
   val mk_cnumber: ctyp -> int -> cterm
   val mk_number_syntax: int -> term
+  val mk_cnumeral: int -> cterm
+  val mk_num_syntax: int -> term
+  val dest_num_syntax: term -> int
+  val dest_num: Code_Thingol.iterm -> int option
   val add_code: string -> (int -> int) -> (Code_Printer.literals -> int -> string) -> string -> theory -> theory
 end;
 
@@ -16,6 +19,18 @@ structure Numeral: NUMERAL =
 struct
 
 (* numeral *)
+
+fun dest_num_syntax (Const (@{const_syntax Num.Bit0}, _) $ t) = 2 * dest_num_syntax t
+  | dest_num_syntax (Const (@{const_syntax Num.Bit1}, _) $ t) = 2 * dest_num_syntax t + 1
+  | dest_num_syntax (Const (@{const_syntax Num.One}, _)) = 1;
+
+fun mk_num_syntax n =
+  if n > 0 then
+    (case IntInf.quotRem (n, 2) of
+      (0, 1) => Syntax.const @{const_syntax One}
+    | (n, 0) => Syntax.const @{const_syntax Bit0} $ mk_num_syntax n
+    | (n, 1) => Syntax.const @{const_syntax Bit1} $ mk_num_syntax n)
+  else raise Match
 
 fun mk_cbit 0 = @{cterm "Num.Bit0"}
   | mk_cbit 1 = @{cterm "Num.Bit1"}
@@ -67,14 +82,6 @@ fun mk_cnumber T 0 = instT T zero_tvar zero
 
 end;
 
-fun mk_num_syntax n =
-  if n > 0 then
-    (case IntInf.quotRem (n, 2) of
-      (0, 1) => Syntax.const @{const_syntax One}
-    | (n, 0) => Syntax.const @{const_syntax Bit0} $ mk_num_syntax n
-    | (n, 1) => Syntax.const @{const_syntax Bit1} $ mk_num_syntax n)
-  else raise Match
-
 fun mk_number_syntax n =
   if n = 0 then Syntax.const @{const_syntax Groups.zero}
   else if n = 1 then Syntax.const @{const_syntax Groups.one}
@@ -85,17 +92,25 @@ fun mk_number_syntax n =
 
 local open Basic_Code_Thingol in
 
+fun dest_num (IConst { sym = Code_Symbol.Constant @{const_name Num.One}, ... }) = SOME 1
+  | dest_num (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit0}, ... } `$ t) =
+     (case dest_num t of
+        SOME n => SOME (2 * n)
+      | _ => NONE)
+  | dest_num (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit1}, ... } `$ t) =
+     (case dest_num t of
+        SOME n => SOME (2 * n + 1)
+      | _ => NONE)
+  | dest_num _ = NONE;
+
 fun add_code number_of preproc print target thy =
   let
     fun pretty literals _ thm _ _ [(t, _)] =
       let
-        fun dest_bit (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit0}, ... }) = 0
-          | dest_bit (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit1}, ... }) = 1
-          | dest_bit _ = Code_Printer.eqn_error thy thm "Illegal numeral expression: illegal bit";
-        fun dest_num (IConst { sym = Code_Symbol.Constant @{const_name Num.One}, ... }) = 1
-          | dest_num (t1 `$ t2) = 2 * dest_num t2 + dest_bit t1
-          | dest_num _ = Code_Printer.eqn_error thy thm "Illegal numeral expression: illegal term";
-      in (Code_Printer.str o print literals o preproc o dest_num) t end;
+        val n = case dest_num t of
+          SOME n => n
+        | NONE => Code_Printer.eqn_error thy thm "Illegal numeral expression: illegal term"
+      in (Code_Printer.str o print literals o preproc) n end;
   in
     thy |> Code_Target.set_printings (Code_Symbol.Constant (number_of,
       [(target, SOME (Code_Printer.complex_const_syntax (1, pretty)))]))
