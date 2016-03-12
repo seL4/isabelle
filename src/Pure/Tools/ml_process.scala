@@ -20,6 +20,7 @@ object ML_Process
     cwd: JFile = null,
     env: Map[String, String] = Map.empty,
     redirect: Boolean = false,
+    cleanup: () => Unit = () => (),
     channel: Option[System_Channel] = None): Bash.Process =
   {
     val load_heaps =
@@ -107,6 +108,7 @@ object ML_Process
         {
           isabelle_process_options.delete
           Isabelle_System.rm_tree(isabelle_tmp)
+          cleanup()
         })
   }
 

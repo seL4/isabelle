@@ -553,9 +553,6 @@ object Build
 
     private val env = Map("ISABELLE_ML_DEBUGGER" -> info.options.bool("ML_debugger").toString)
 
-    private val args_file =
-      if (is_pure(name)) None else Some(Isabelle_System.tmp_file("args"))
-
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
         val process =
@@ -568,7 +565,8 @@ object Build
               cwd = info.dir.file, env = env)
           }
           else {
-            File.write(args_file.get, YXML.string_of_body(
+            val args_file = Isabelle_System.tmp_file("build")
+            File.write(args_file, YXML.string_of_body(
                 {
                   val theories = info.theories.map(x => (x._2, x._3))
                   import XML.Encode._
@@ -582,9 +580,10 @@ object Build
                     theories)))))))))))
                 }))
             ML_Process(info.options, parent,
-              List("--eval", "Build.build " +
-                ML_Syntax.print_string_raw(File.standard_path(args_file.get))),
-              cwd = info.dir.file, env = env)
+              List("--eval",
+                "Build.build " + ML_Syntax.print_string_raw(File.standard_path(args_file))),
+              cwd = info.dir.file, env = env,
+              cleanup = () => args_file.delete)
           }
         process.result(
           progress_stdout = (line: String) =>
@@ -619,7 +618,6 @@ object Build
         Present.finish(progress, browser_info, graph_file, info, name)
 
       graph_file.delete
-      args_file.foreach(_.delete)
       timeout_request.foreach(_.cancel)
 
       if (result.interrupted) {
