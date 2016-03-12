@@ -315,7 +315,6 @@ fun hammer_away override_params writeln_result subcommand opt_i fact_override st
     val ctxt = Proof.context_of state
 
     val override_params = override_params |> map (normalize_raw_param ctxt)
-    val _ = Isabelle_System.mkdir (Path.explode (getenv "ISABELLE_TMP"))
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in

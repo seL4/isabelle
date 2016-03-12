@@ -20,6 +20,7 @@ object ML_Process
     cwd: JFile = null,
     env: Map[String, String] = Map.empty,
     redirect: Boolean = false,
+    cleanup: () => Unit = () => (),
     channel: Option[System_Channel] = None): Bash.Process =
   {
     val load_heaps =
@@ -87,6 +88,10 @@ object ML_Process
               ML_Syntax.print_string_raw(ch.server_name) + ")")
         }
 
+    // ISABELLE_TMP
+    val isabelle_tmp = Isabelle_System.tmp_dir("process")
+    val env_tmp = Map("ISABELLE_TMP" -> File.standard_path(isabelle_tmp))
+
     // bash
     val bash_args =
       Word.explode(Isabelle_System.getenv("ML_OPTIONS")) :::
@@ -95,22 +100,16 @@ object ML_Process
 
     Bash.process(
       """
-        [ -z "$ISABELLE_TMP_PREFIX" ] && ISABELLE_TMP_PREFIX=/tmp/isabelle
-
-        export ISABELLE_PID="$$"
-        export ISABELLE_TMP="$ISABELLE_TMP_PREFIX$ISABELLE_PID"
-        mkdir -p "$ISABELLE_TMP"
-        chmod $(umask -S) "$ISABELLE_TMP"
-
         librarypath "$ML_HOME"
-        "$ML_HOME/poly" -q """ + File.bash_args(bash_args) + """
-        RC="$?"
-
-        rm -f "$ISABELLE_PROCESS_OPTIONS"
-        rmdir "$ISABELLE_TMP"
-
-        exit "$RC"
-      """, cwd = cwd, env = env ++ env_options, redirect = redirect)
+        exec "$ML_HOME/poly" -q """ + File.bash_args(bash_args) + """
+      """,
+      cwd = cwd, env = env ++ env_options ++ env_tmp, redirect = redirect,
+      cleanup = () =>
+        {
+          isabelle_process_options.delete
+          Isabelle_System.rm_tree(isabelle_tmp)
+          cleanup()
+        })
   }
 
 

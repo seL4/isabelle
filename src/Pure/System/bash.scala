@@ -29,14 +29,19 @@ object Bash
   def process(script: String,
       cwd: JFile = null,
       env: Map[String, String] = Map.empty,
-      redirect: Boolean = false): Process =
-    new Process(script, cwd, env, redirect)
+      redirect: Boolean = false,
+      cleanup: () => Unit = () => ()): Process =
+    new Process(script, cwd, env, redirect, cleanup)
 
   class Process private [Bash](
-      script: String, cwd: JFile, env: Map[String, String], redirect: Boolean)
+      script: String,
+      cwd: JFile,
+      env: Map[String, String],
+      redirect: Boolean,
+      cleanup: () => Unit)
     extends Prover.System_Process
   {
-    private val timing_file = Isabelle_System.tmp_file("bash_script")
+    private val timing_file = Isabelle_System.tmp_file("bash_timing")
     private val timing = Synchronized[Option[Timing]](None)
 
     private val script_file = Isabelle_System.tmp_file("bash_script")
@@ -92,7 +97,7 @@ object Bash
     {
       multi_kill("INT") && multi_kill("TERM") && kill("KILL")
       proc.destroy
-      cleanup()
+      do_cleanup()
     }
 
 
@@ -106,7 +111,7 @@ object Bash
 
     // cleanup
 
-    private def cleanup()
+    private def do_cleanup()
     {
       try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
       catch { case _: IllegalStateException => }
@@ -128,6 +133,8 @@ object Bash
           else Some(Timing.zero)
         case some => some
       }
+
+      cleanup()
     }
 
 
@@ -136,7 +143,7 @@ object Bash
     def join: Int =
     {
       val rc = proc.waitFor
-      cleanup()
+      do_cleanup()
       rc
     }
 
