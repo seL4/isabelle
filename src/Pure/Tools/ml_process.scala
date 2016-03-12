@@ -99,10 +99,7 @@ object ML_Process
         map(eval => List("--eval", eval)).flatten ::: args
 
     Bash.process(
-      """
-        librarypath "$ML_HOME"
-        exec "$ML_HOME/poly" -q """ + File.bash_args(bash_args) + """
-      """,
+      """librarypath "$ML_HOME"; exec "$ML_HOME/poly" -q """ + File.bash_args(bash_args),
       cwd = cwd, env = env ++ env_options ++ env_tmp, redirect = redirect,
       cleanup = () =>
         {
