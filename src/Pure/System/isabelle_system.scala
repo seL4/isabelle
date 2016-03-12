@@ -306,9 +306,11 @@ object Isabelle_System
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
     progress_limit: Option[Long] = None,
-    strict: Boolean = true): Process_Result =
+    strict: Boolean = true,
+    cleanup: () => Unit = () => ()): Process_Result =
   {
-    Bash.process(script, cwd, env).result(progress_stdout, progress_stderr, progress_limit, strict)
+    Bash.process(script, cwd = cwd, env = env, cleanup = cleanup).
+      result(progress_stdout, progress_stderr, progress_limit, strict)
   }
 
 

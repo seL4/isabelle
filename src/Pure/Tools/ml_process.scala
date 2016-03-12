@@ -100,14 +100,14 @@ object ML_Process
     Bash.process(
       """
         librarypath "$ML_HOME"
-        "$ML_HOME/poly" -q """ + File.bash_args(bash_args) + """
-        RC="$?"
-
-        [ -e "$ISABELLE_PROCESS_OPTIONS" ] && rm -f "$ISABELLE_PROCESS_OPTIONS"
-        rmdir "$ISABELLE_TMP"
-
-        exit "$RC"
-      """, cwd = cwd, env = env ++ env_options ++ env_tmp, redirect = redirect)
+        exec "$ML_HOME/poly" -q """ + File.bash_args(bash_args) + """
+      """,
+      cwd = cwd, env = env ++ env_options ++ env_tmp, redirect = redirect,
+      cleanup = () =>
+        {
+          isabelle_process_options.delete
+          Isabelle_System.rm_tree(isabelle_tmp)
+        })
   }
 
 
