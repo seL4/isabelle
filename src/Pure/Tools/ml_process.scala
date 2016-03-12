@@ -97,8 +97,7 @@ object ML_Process
       """
         [ -z "$ISABELLE_TMP_PREFIX" ] && ISABELLE_TMP_PREFIX=/tmp/isabelle
 
-        export ISABELLE_PID="$$"
-        export ISABELLE_TMP="$ISABELLE_TMP_PREFIX$ISABELLE_PID"
+        export ISABELLE_TMP="$ISABELLE_TMP_PREFIX$$"
         mkdir -p "$ISABELLE_TMP"
         chmod $(umask -S) "$ISABELLE_TMP"
 
