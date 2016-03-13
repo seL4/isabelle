@@ -307,10 +307,10 @@ object Isabelle_System
   }
 
   def open(arg: String): Unit =
-    bash("exec \"$ISABELLE_OPEN\" '" + arg + "' >/dev/null 2>/dev/null &")
+    bash("exec \"$ISABELLE_OPEN\" " + File.bash_string(arg) + " >/dev/null 2>/dev/null &")
 
   def pdf_viewer(arg: Path): Unit =
-    bash("exec \"$PDF_VIEWER\" '" + File.standard_path(arg) + "' >/dev/null 2>/dev/null &")
+    bash("exec \"$PDF_VIEWER\" " + File.bash_path(arg) + " >/dev/null 2>/dev/null &")
 
   def hg(cmd_line: String, cwd: JFile = null): Process_Result =
     bash("\"${HG:-hg}\" " + cmd_line, cwd = cwd)
