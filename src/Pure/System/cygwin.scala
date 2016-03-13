@@ -21,11 +21,11 @@ object Cygwin
   {
     require(Platform.is_windows)
 
-    def execute(args: String*)
+    def exec(cmdline: String*)
     {
       val cwd = new JFile(isabelle_root)
-      val env = Map("CYGWIN" -> "nodosfilewarning")
-      val proc = Isabelle_System.process(cwd, env, true, args: _*)
+      val env = sys.env + ("CYGWIN" -> "nodosfilewarning")
+      val proc = Isabelle_System.process(cmdline.toList, cwd = cwd, env = env, redirect = true)
       val (output, rc) = Isabelle_System.process_output(proc)
       if (rc != 0) error(output)
     }
@@ -58,8 +58,8 @@ object Cygwin
       }
       recover_symlinks(symlinks)
 
-      execute(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall")
-      execute(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall")
+      exec(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall")
+      exec(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall")
     }
   }
 }

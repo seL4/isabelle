@@ -51,10 +51,10 @@ object Isabelle_System
 
   @volatile private var _settings: Option[Map[String, String]] = None
 
-  def settings(env: Map[String, String] = Map.empty): Map[String, String] =
+  def settings(): Map[String, String] =
   {
     if (_settings.isEmpty) init()  // unsynchronized check
-    if (env == null) _settings.get else _settings.get ++ env
+    _settings.get
   }
 
   def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized {
@@ -112,11 +112,11 @@ object Isabelle_System
             List(isabelle_root1 + JFile.separator + "bin" + JFile.separator + "isabelle",
               "getenv", "-d", dump.toString)
 
-          val (output, rc) = process_output(process(null, env, true, (cmd1 ::: cmd2): _*))
+          val (output, rc) = process_output(process(cmd1 ::: cmd2, env = env, redirect = true))
           if (rc != 0) error(output)
 
           val entries =
-            (for (entry <- File.read(dump) split "\u0000" if entry != "") yield {
+            (for (entry <- File.read(dump).split("\u0000") if entry != "") yield {
               val i = entry.indexOf('=')
               if (i <= 0) entry -> ""
               else entry.substring(0, i) -> entry.substring(i + 1)
@@ -177,10 +177,13 @@ object Isabelle_System
 
   /* raw process */
 
-  def process(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
+  def process(command_line: List[String],
+    cwd: JFile = null,
+    env: Map[String, String] = settings(),
+    redirect: Boolean = false): Process =
   {
     val cmdline = new java.util.LinkedList[String]
-    for (s <- args) cmdline.add(s)
+    for (s <- command_line) cmdline.add(s)
 
     val proc = new ProcessBuilder(cmdline)
     if (cwd != null) proc.directory(cwd)
@@ -211,16 +214,14 @@ object Isabelle_System
 
   /* plain execute */
 
-  def execute_env(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
+  def execute(command_line: List[String],
+    cwd: JFile = null, env: Map[String, String] = null, redirect: Boolean = false): Process =
   {
-    val cmdline =
-      if (Platform.is_windows) List(cygwin_root() + "\\bin\\env.exe") ::: args.toList
-      else args
-    process(cwd, settings(env), redirect, cmdline: _*)
+    val command_line1 =
+      if (Platform.is_windows) List(cygwin_root() + "\\bin\\env.exe") ::: command_line
+      else command_line
+    process(command_line1, cwd = cwd, env = env, redirect = redirect)
   }
-
-  def execute(redirect: Boolean, args: String*): Process =
-    execute_env(null, null, redirect, args: _*)
 
 
   /* tmp files */
@@ -295,21 +296,23 @@ object Isabelle_System
     val bash =
       if (Platform.is_windows) List(cygwin_root() + "\\bin\\bash.exe")
       else List("/usr/bin/env", "bash")
-    val cmdline = bash ::: List("-c", "kill -" + signal + " -" + group_pid)
-    process_output(process(null, null, true, cmdline: _*))
+    process_output(process(bash ::: List("-c", "kill -" + signal + " -" + group_pid)))
   }
 
 
   /* bash */
 
-  def bash(script: String, cwd: JFile = null, env: Map[String, String] = Map.empty,
+  def bash(script: String,
+    cwd: JFile = null,
+    env: Map[String, String] = settings(),
+    redirect: Boolean = false,
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
     progress_limit: Option[Long] = None,
     strict: Boolean = true,
     cleanup: () => Unit = () => ()): Process_Result =
   {
-    Bash.process(script, cwd = cwd, env = env, cleanup = cleanup).
+    Bash.process(script, cwd = cwd, env = env, redirect = redirect, cleanup = cleanup).
       result(progress_stdout, progress_stderr, progress_limit, strict)
   }
 
@@ -328,7 +331,7 @@ object Isabelle_System
     } match {
       case Some(dir) =>
         val file = File.standard_path(dir + Path.basic(name))
-        process_output(execute(true, (List(file) ::: args.toList): _*))
+        process_output(execute(file :: args.toList, redirect = true))
       case None => ("Unknown Isabelle tool: " + name, 2)
     }
   }

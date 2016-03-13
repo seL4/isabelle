@@ -18,7 +18,7 @@ object ML_Process
     modes: List[String] = Nil,
     secure: Boolean = false,
     cwd: JFile = null,
-    env: Map[String, String] = Map.empty,
+    env: Map[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
     cleanup: () => Unit = () => (),
     channel: Option[System_Channel] = None): Bash.Process =

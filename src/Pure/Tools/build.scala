@@ -551,7 +551,9 @@ object Build
 
     output.file.delete
 
-    private val env = Map("ISABELLE_ML_DEBUGGER" -> info.options.bool("ML_debugger").toString)
+    private val env =
+      Isabelle_System.settings() +
+        ("ISABELLE_ML_DEBUGGER" -> info.options.bool("ML_debugger").toString)
 
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
@@ -582,8 +584,7 @@ object Build
             ML_Process(info.options, parent,
               List("--eval",
                 "Build.build " + ML_Syntax.print_string_raw(File.standard_path(args_file))),
-              cwd = info.dir.file, env = env,
-              cleanup = () => args_file.delete)
+              cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
           }
         process.result(
           progress_stdout = (line: String) =>

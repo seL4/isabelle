@@ -28,7 +28,7 @@ object Bash
 
   def process(script: String,
       cwd: JFile = null,
-      env: Map[String, String] = Map.empty,
+      env: Map[String, String] = Isabelle_System.settings(),
       redirect: Boolean = false,
       cleanup: () => Unit = () => ()): Process =
     new Process(script, cwd, env, redirect, cleanup)
@@ -48,9 +48,10 @@ object Bash
     File.write(script_file, script)
 
     private val proc =
-      Isabelle_System.process(cwd, Isabelle_System.settings(env), redirect,
-        File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")), "-",
-          File.standard_path(timing_file), "bash", File.standard_path(script_file))
+      Isabelle_System.process(
+        List(File.platform_path(Path.variable("ISABELLE_BASH_PROCESS")), "-",
+          File.standard_path(timing_file), "bash", File.standard_path(script_file)),
+        cwd = cwd, env = env, redirect = redirect)
 
 
     // channels
