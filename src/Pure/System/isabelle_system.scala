@@ -172,41 +172,6 @@ object Isabelle_System
     }
 
 
-
-  /** external processes **/
-
-  /* raw process */
-
-  def process(command_line: List[String],
-    cwd: JFile = null,
-    env: Map[String, String] = settings(),
-    redirect: Boolean = false): Process =
-  {
-    val proc = new ProcessBuilder
-    proc.command(command_line:_*)  // fragile on Windows
-    if (cwd != null) proc.directory(cwd)
-    proc.environment.clear; for ((x, y) <- env) proc.environment.put(x, y)
-    proc.redirectErrorStream(redirect)
-    proc.start
-  }
-
-  def process_output(proc: Process): (String, Int) =
-  {
-    proc.getOutputStream.close
-
-    val output = File.read_stream(proc.getInputStream)
-    val rc =
-      try { proc.waitFor }
-      finally {
-        proc.getInputStream.close
-        proc.getErrorStream.close
-        proc.destroy
-        Thread.interrupted
-      }
-    (output, rc)
-  }
-
-
   /* tmp files */
 
   private def isabelle_tmp_prefix(): JFile =
@@ -272,7 +237,39 @@ object Isabelle_System
   }
 
 
-  /* kill */
+
+  /** external processes **/
+
+  /* raw process */
+
+  def process(command_line: List[String],
+    cwd: JFile = null,
+    env: Map[String, String] = settings(),
+    redirect: Boolean = false): Process =
+  {
+    val proc = new ProcessBuilder
+    proc.command(command_line:_*)  // fragile on Windows
+    if (cwd != null) proc.directory(cwd)
+    proc.environment.clear; for ((x, y) <- env) proc.environment.put(x, y)
+    proc.redirectErrorStream(redirect)
+    proc.start
+  }
+
+  def process_output(proc: Process): (String, Int) =
+  {
+    proc.getOutputStream.close
+
+    val output = File.read_stream(proc.getInputStream)
+    val rc =
+      try { proc.waitFor }
+      finally {
+        proc.getInputStream.close
+        proc.getErrorStream.close
+        proc.destroy
+        Thread.interrupted
+      }
+    (output, rc)
+  }
 
   def kill(signal: String, group_pid: String): (String, Int) =
   {
@@ -283,7 +280,7 @@ object Isabelle_System
   }
 
 
-  /* bash */
+  /* GNU bash */
 
   def bash(script: String,
     cwd: JFile = null,
