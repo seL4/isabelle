@@ -24,33 +24,6 @@ if [ -x /usr/bin/gnutar ]; then
   export -f tar
 fi
 
-#shared library convenience
-function librarypath ()
-{
-  for X in "$@"
-  do
-    case "$ISABELLE_PLATFORM" in
-      *-darwin)
-        if [ -z "$DYLD_LIBRARY_PATH" ]; then
-          DYLD_LIBRARY_PATH="$X"
-        else
-          DYLD_LIBRARY_PATH="$X:$DYLD_LIBRARY_PATH"
-        fi
-        export DYLD_LIBRARY_PATH
-        ;;
-      *)
-        if [ -z "$LD_LIBRARY_PATH" ]; then
-          LD_LIBRARY_PATH="$X"
-        else
-          LD_LIBRARY_PATH="$X:$LD_LIBRARY_PATH"
-        fi
-        export LD_LIBRARY_PATH
-        ;;
-    esac
-  done
-}
-export -f librarypath
-
 #robust invocation via ISABELLE_JDK_HOME
 function isabelle_jdk ()
 {

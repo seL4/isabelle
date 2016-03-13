@@ -98,9 +98,12 @@ object ML_Process
       (eval_heaps ::: eval_initial ::: eval_modes ::: eval_options ::: eval_secure ::: eval_process).
         map(eval => List("--eval", eval)).flatten ::: args
 
-    Bash.process(
-      """librarypath "$ML_HOME"; exec "$ML_HOME/poly" -q """ + File.bash_args(bash_args),
-      cwd = cwd, env = env ++ env_options ++ env_tmp, redirect = redirect,
+    Bash.process("""exec "$ML_HOME/poly" -q """ + File.bash_args(bash_args),
+      cwd = cwd,
+      env =
+        Isabelle_System.library_path(env ++ env_options ++ env_tmp,
+          Isabelle_System.getenv_strict("ML_HOME")),
+      redirect = redirect,
       cleanup = () =>
         {
           isabelle_process_options.delete
