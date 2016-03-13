@@ -212,18 +212,6 @@ object Isabelle_System
   }
 
 
-  /* plain execute */
-
-  def execute(command_line: List[String],
-    cwd: JFile = null, env: Map[String, String] = null, redirect: Boolean = false): Process =
-  {
-    val command_line1 =
-      if (Platform.is_windows) List(cygwin_root() + "\\bin\\env.exe") ::: command_line
-      else command_line
-    process(command_line1, cwd = cwd, env = env, redirect = redirect)
-  }
-
-
   /* tmp files */
 
   private def isabelle_tmp_prefix(): JFile =
@@ -314,26 +302,6 @@ object Isabelle_System
   {
     Bash.process(script, cwd = cwd, env = env, redirect = redirect, cleanup = cleanup).
       result(progress_stdout, progress_stderr, progress_limit, strict)
-  }
-
-
-  /* system tools */
-
-  def isabelle_tool(name: String, args: String*): (String, Int) =
-  {
-    Path.split(getenv_strict("ISABELLE_TOOLS")).find { dir =>
-      val file = (dir + Path.basic(name)).file
-      try {
-        file.isFile && file.canRead && file.canExecute &&
-          !name.endsWith("~") && !name.endsWith(".orig")
-      }
-      catch { case _: SecurityException => false }
-    } match {
-      case Some(dir) =>
-        val file = File.standard_path(dir + Path.basic(name))
-        process_output(execute(file :: args.toList, redirect = true))
-      case None => ("Unknown Isabelle tool: " + name, 2)
-    }
   }
 
   def open(arg: String): Unit =
