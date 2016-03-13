@@ -1025,10 +1025,10 @@ lemma add_le_mono: "[| i \<le> j;  k \<le> l |] ==> i + k \<le> j + (l::nat)"
 by (rule add_mono)
 
 lemma le_add2: "n \<le> ((m + n)::nat)"
-by (insert add_right_mono [of 0 m n], simp)
+  by simp
 
 lemma le_add1: "n \<le> ((n + m)::nat)"
-by (simp add: add.commute, rule le_add2)
+  by simp
 
 lemma less_add_Suc1: "i < Suc (i + m)"
 by (rule le_less_trans, rule le_add1, rule lessI)

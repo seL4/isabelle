@@ -310,6 +310,27 @@ proof -
   then show "c = a - b" by simp
 qed
 
+lemma add_cancel_right_right [simp]:
+  "a = a + b \<longleftrightarrow> b = 0" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?Q then show ?P by simp
+next
+  assume ?P then have "a - a = a + b - a" by simp
+  then show ?Q by simp
+qed
+
+lemma add_cancel_right_left [simp]:
+  "a = b + a \<longleftrightarrow> b = 0"
+  using add_cancel_right_right [of a b] by (simp add: ac_simps)
+
+lemma add_cancel_left_right [simp]:
+  "a + b = a \<longleftrightarrow> b = 0"
+  by (auto dest: sym)
+
+lemma add_cancel_left_left [simp]:
+  "b + a = a \<longleftrightarrow> b = 0"
+  by (auto dest: sym)
+
 end
 
 class comm_monoid_diff = cancel_comm_monoid_add +

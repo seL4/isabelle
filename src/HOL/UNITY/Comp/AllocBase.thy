@@ -12,38 +12,32 @@ consts Nclients :: nat  (*Number of clients*)
 axiomatization NbT :: nat  (*Number of tokens in system*)
   where NbT_pos: "0 < NbT"
 
-(*This function merely sums the elements of a list*)
-primrec tokens :: "nat list => nat" where
-  "tokens [] = 0"
-| "tokens (x#xs) = x + tokens xs"
+abbreviation (input) tokens :: "nat list \<Rightarrow> nat"
+where
+  "tokens \<equiv> listsum"
 
-abbreviation (input) "bag_of \<equiv> mset"
+abbreviation (input)
+  "bag_of \<equiv> mset"
 
-lemma setsum_fun_mono [rule_format]:
-     "!!f :: nat=>nat.  
-      (ALL i. i<n --> f i <= g i) -->  
-      setsum f (lessThan n) <= setsum g (lessThan n)"
-apply (induct_tac "n")
-apply (auto simp add: lessThan_Suc)
-done
+lemma setsum_fun_mono:
+  fixes f :: "nat \<Rightarrow> nat"
+  shows "(\<And>i. i < n \<Longrightarrow> f i \<le> g i) \<Longrightarrow> setsum f {..<n} \<le> setsum g {..<n}"
+  by (induct n) (auto simp add: lessThan_Suc add_le_mono)
 
-lemma tokens_mono_prefix: "xs <= ys ==> tokens xs <= tokens ys"
+lemma tokens_mono_prefix: "xs \<le> ys \<Longrightarrow> tokens xs \<le> tokens ys"
   by (induct ys arbitrary: xs) (auto simp add: prefix_Cons)
 
 lemma mono_tokens: "mono tokens"
-apply (unfold mono_def)
-apply (blast intro: tokens_mono_prefix)
-done
+  using tokens_mono_prefix by (rule monoI)
 
 
 (** bag_of **)
 
 lemma bag_of_append [simp]: "bag_of (l@l') = bag_of l + bag_of l'"
-  by (induct l) (simp_all add: ac_simps)
+  by (fact mset_append)
 
 lemma subseteq_le_multiset: "A #\<subseteq># A + B"
 unfolding le_multiset_def apply (cases B; simp)
-apply (rule HOL.disjI1)
 apply (rule union_less_mono2[of "{#}" "_ + {#_#}" A, simplified])
 apply (simp add: less_multiset\<^sub>H\<^sub>O)
 done
@@ -92,9 +86,10 @@ lemma bag_of_sublist_UN_disjoint [rule_format]:
      "[| finite I; ALL i:I. ALL j:I. i~=j --> A i Int A j = {} |]  
       ==> bag_of (sublist l (UNION I A)) =   
           (\<Sum>i\<in>I. bag_of (sublist l (A i)))"
-apply (simp del: UN_simps 
-            add: UN_simps [symmetric] add: bag_of_sublist)
-apply (subst setsum.UNION_disjoint, auto)
+apply (auto simp add: bag_of_sublist)
+unfolding UN_simps [symmetric]
+apply (subst setsum.UNION_disjoint)
+apply auto
 done
 
 end
