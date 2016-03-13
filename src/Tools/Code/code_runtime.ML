@@ -52,7 +52,6 @@ structure Code_Runtime : CODE_RUNTIME =
 struct
 
 open Basic_Code_Symbol;
-open Basic_Code_Thingol;
 
 (** evaluation **)
 
@@ -319,10 +318,6 @@ fun static_value_exn' cookie { ctxt, lift_postproc, consts, T } =
   in fn ctxt' =>
     evaluator ctxt' o reject_vars ctxt' o Syntax.check_term ctxt' o Type.constraint T
   end;
-
-fun static_value_strict' cookie = Exn.release ooo static_value_exn' cookie;
-
-fun static_value' cookie = partiality_as_none ooo static_value_exn' cookie;
 
 fun static_value_strict' cookie = Exn.release ooo static_value_exn' cookie;
 
