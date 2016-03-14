@@ -673,9 +673,10 @@ qed
 
 subsection\<open>Polar Form for Complex Numbers\<close>
 
-lemma complex_unimodular_polar: "(norm z = 1) \<Longrightarrow> \<exists>x. z = Complex (cos x) (sin x)"
-  using sincos_total_2pi [of "Re z" "Im z"]
-  by auto (metis cmod_power2 complex_eq power_one)
+lemma complex_unimodular_polar:
+  assumes "(norm z = 1)"
+  obtains t where "0 \<le> t" "t < 2*pi" "z = Complex (cos t) (sin t)"
+by (metis cmod_power2 one_power2 complex_surj sincos_total_2pi [of "Re z" "Im z"] assms)
 
 subsubsection \<open>$\cos \theta + i \sin \theta$\<close>
 

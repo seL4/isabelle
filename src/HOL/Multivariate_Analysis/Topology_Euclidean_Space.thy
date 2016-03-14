@@ -7792,10 +7792,10 @@ lemma homeomorphic_sym: "s homeomorphic t \<longleftrightarrow> t homeomorphic s
   unfolding homeomorphism_def
   by blast
 
-lemma homeomorphic_trans:
+lemma homeomorphic_trans [trans]:
   assumes "s homeomorphic t"
-    and "t homeomorphic u"
-  shows "s homeomorphic u"
+      and "t homeomorphic u"
+    shows "s homeomorphic u"
 proof -
   obtain f1 g1 where fg1: "\<forall>x\<in>s. g1 (f1 x) = x"  "f1 ` s = t"
     "continuous_on s f1" "\<forall>y\<in>t. f1 (g1 y) = y" "g1 ` t = s" "continuous_on t g1"

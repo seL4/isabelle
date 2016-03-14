@@ -223,6 +223,20 @@ lemma compact_interval:
   shows "compact {a .. b}"
   by (metis compact_cbox interval_cbox)
 
+lemma homeomorphic_closed_intervals:
+  fixes a :: "'a::euclidean_space" and b and c :: "'a::euclidean_space" and d
+  assumes "box a b \<noteq> {}" and "box c d \<noteq> {}"
+    shows "(cbox a b) homeomorphic (cbox c d)"
+apply (rule homeomorphic_convex_compact)
+using assms apply auto
+done
+
+lemma homeomorphic_closed_intervals_real:
+  fixes a::real and b and c::real and d
+  assumes "a<b" and "c<d"
+    shows "{a..b} homeomorphic {c..d}"
+by (metis assms compact_interval continuous_on_id convex_real_interval(5) emptyE homeomorphic_convex_compact interior_atLeastAtMost_real mvt)
+
 no_notation
   eucl_less (infix "<e" 50)
 
