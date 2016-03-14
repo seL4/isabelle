@@ -210,7 +210,7 @@ by simp
 lemma bij_id[simp]: "bij id"
 by (simp add: bij_betw_def)
 
-lemma inj_onI:
+lemma inj_onI [intro?]:
     "(!! x y. [|  x:A;  y:A;  f(x) = f(y) |] ==> x=y) ==> inj_on f A"
 by (simp add: inj_on_def)
 

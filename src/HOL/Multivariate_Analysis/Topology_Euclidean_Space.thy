@@ -7310,7 +7310,7 @@ proof -
   finally show "closed (cbox a b)" .
 qed
 
-lemma interior_cbox [intro]:
+lemma interior_cbox [simp]:
   fixes a b :: "'a::euclidean_space"
   shows "interior (cbox a b) = box a b" (is "?L = ?R")
 proof(rule subset_antisym)
@@ -7376,7 +7376,7 @@ proof -
     unfolding cbox_def bounded_iff by auto
 qed
 
-lemma bounded_box:
+lemma bounded_box [simp]:
   fixes a :: "'a::euclidean_space"
   shows "bounded (box a b)"
   using bounded_cbox[of a b]
@@ -7384,12 +7384,12 @@ lemma bounded_box:
   using bounded_subset[of "cbox a b" "box a b"]
   by simp
 
-lemma not_interval_univ:
+lemma not_interval_UNIV [simp]:
   fixes a :: "'a::euclidean_space"
   shows "cbox a b \<noteq> UNIV" "box a b \<noteq> UNIV"
-  using bounded_box[of a b] bounded_cbox[of a b] by auto
+  using bounded_box[of a b] bounded_cbox[of a b] by force+
 
-lemma compact_cbox:
+lemma compact_cbox [simp]:
   fixes a :: "'a::euclidean_space"
   shows "compact (cbox a b)"
   using bounded_closed_imp_seq_compact[of "cbox a b"] using bounded_cbox[of a b]

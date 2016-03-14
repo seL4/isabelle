@@ -1152,7 +1152,7 @@ lemma continuous_on_linepath [intro,continuous_intros]: "continuous_on s (linepa
   using continuous_linepath_at
   by (auto intro!: continuous_at_imp_continuous_on)
 
-lemma path_linepath[intro]: "path (linepath a b)"
+lemma path_linepath[iff]: "path (linepath a b)"
   unfolding path_def
   by (rule continuous_on_linepath)
 
@@ -1168,8 +1168,7 @@ lemma linepath_0 [simp]: "linepath 0 b x = x *\<^sub>R b"
   by (simp add: linepath_def)
 
 lemma arc_linepath:
-  assumes "a \<noteq> b"
-  shows "arc (linepath a b)"
+  assumes "a \<noteq> b" shows [simp]: "arc (linepath a b)"
 proof -
   {
     fix x y :: "real"
@@ -1192,6 +1191,54 @@ lemma linepath_trivial [simp]: "linepath a a x = a"
 
 lemma subpath_refl: "subpath a a g = linepath (g a) (g a)"
   by (simp add: subpath_def linepath_def algebra_simps)
+
+lemma linepath_of_real: "(linepath (of_real a) (of_real b) x) = of_real ((1 - x)*a + x*b)"
+  by (simp add: scaleR_conv_of_real linepath_def)
+
+lemma of_real_linepath: "of_real (linepath a b x) = linepath (of_real a) (of_real b) x"
+  by (metis linepath_of_real mult.right_neutral of_real_def real_scaleR_def)
+
+
+subsection\<open>Segments via convex hulls\<close>
+
+lemma segments_subset_convex_hull:
+    "closed_segment a b \<subseteq> (convex hull {a,b,c})"
+    "closed_segment a c \<subseteq> (convex hull {a,b,c})"
+    "closed_segment b c \<subseteq> (convex hull {a,b,c})"
+    "closed_segment b a \<subseteq> (convex hull {a,b,c})"
+    "closed_segment c a \<subseteq> (convex hull {a,b,c})"
+    "closed_segment c b \<subseteq> (convex hull {a,b,c})"
+by (auto simp: segment_convex_hull linepath_of_real  elim!: rev_subsetD [OF _ hull_mono])
+
+lemma midpoints_in_convex_hull:
+  assumes "x \<in> convex hull s" "y \<in> convex hull s"
+    shows "midpoint x y \<in> convex hull s"
+proof -
+  have "(1 - inverse(2)) *\<^sub>R x + inverse(2) *\<^sub>R y \<in> convex hull s"
+    apply (rule convexD_alt)
+    using assms
+    apply (auto simp: convex_convex_hull)
+    done
+  then show ?thesis
+    by (simp add: midpoint_def algebra_simps)
+qed
+
+lemma convex_hull_subset:
+    "s \<subseteq> convex hull t \<Longrightarrow> convex hull s \<subseteq> convex hull t"
+  by (simp add: convex_convex_hull subset_hull)
+
+lemma not_in_interior_convex_hull_3:
+  fixes a :: "complex"
+  shows "a \<notin> interior(convex hull {a,b,c})"
+        "b \<notin> interior(convex hull {a,b,c})"
+        "c \<notin> interior(convex hull {a,b,c})"
+  by (auto simp: card_insert_le_m1 not_in_interior_convex_hull)
+
+lemma midpoint_in_closed_segment [simp]: "midpoint a b \<in> closed_segment a b"
+  using midpoints_in_convex_hull segment_convex_hull by blast
+
+lemma midpoint_in_open_segment [simp]: "midpoint a b \<in> open_segment a b \<longleftrightarrow> a \<noteq> b"
+  by (simp add: midpoint_eq_endpoint(1) midpoint_eq_endpoint(2) open_segment_def)
 
 
 subsection \<open>Bounding a point away from a path\<close>

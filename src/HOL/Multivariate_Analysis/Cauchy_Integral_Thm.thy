@@ -1175,12 +1175,6 @@ lemma Re_linepath: "Re(linepath (of_real a) (of_real b) x) = (1 - x)*a + x*b"
 lemma Im_linepath: "Im(linepath (of_real a) (of_real b) x) = 0"
   by (simp add: linepath_def)
 
-lemma linepath_of_real: "(linepath (of_real a) (of_real b) x) = of_real ((1 - x)*a + x*b)"
-  by (simp add: scaleR_conv_of_real linepath_def)
-
-lemma of_real_linepath: "of_real (linepath a b x) = linepath (of_real a) (of_real b) x"
-  by (metis linepath_of_real mult.right_neutral of_real_def real_scaleR_def)
-
 lemma has_contour_integral_trivial [iff]: "(f has_contour_integral 0) (linepath a a)"
   by (simp add: has_contour_integral_linepath)
 
@@ -1349,42 +1343,6 @@ qed
 lemma contour_integral_integral:
      "contour_integral g f = integral {0..1} (\<lambda>x. f (g x) * vector_derivative g (at x))"
   by (simp add: contour_integral_def integral_def has_contour_integral contour_integrable_on)
-
-
-subsection\<open>Segments via convex hulls\<close>
-
-lemma segments_subset_convex_hull:
-    "closed_segment a b \<subseteq> (convex hull {a,b,c})"
-    "closed_segment a c \<subseteq> (convex hull {a,b,c})"
-    "closed_segment b c \<subseteq> (convex hull {a,b,c})"
-    "closed_segment b a \<subseteq> (convex hull {a,b,c})"
-    "closed_segment c a \<subseteq> (convex hull {a,b,c})"
-    "closed_segment c b \<subseteq> (convex hull {a,b,c})"
-by (auto simp: segment_convex_hull linepath_of_real  elim!: rev_subsetD [OF _ hull_mono])
-
-lemma midpoints_in_convex_hull:
-  assumes "x \<in> convex hull s" "y \<in> convex hull s"
-    shows "midpoint x y \<in> convex hull s"
-proof -
-  have "(1 - inverse(2)) *\<^sub>R x + inverse(2) *\<^sub>R y \<in> convex hull s"
-    apply (rule convexD_alt)
-    using assms
-    apply (auto simp: convex_convex_hull)
-    done
-  then show ?thesis
-    by (simp add: midpoint_def algebra_simps)
-qed
-
-lemma convex_hull_subset:
-    "s \<subseteq> convex hull t \<Longrightarrow> convex hull s \<subseteq> convex hull t"
-  by (simp add: convex_convex_hull subset_hull)
-
-lemma not_in_interior_convex_hull_3:
-  fixes a :: "complex"
-  shows "a \<notin> interior(convex hull {a,b,c})"
-        "b \<notin> interior(convex hull {a,b,c})"
-        "c \<notin> interior(convex hull {a,b,c})"
-  by (auto simp: card_insert_le_m1 not_in_interior_convex_hull)
 
 
 text\<open>Cauchy's theorem where there's a primitive\<close>

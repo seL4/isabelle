@@ -324,6 +324,16 @@ lemma scaleR_2:
   shows "scaleR 2 x = x + x"
   unfolding one_add_one [symmetric] scaleR_left_distrib by simp
 
+lemma scaleR_half_double [simp]:
+  fixes a :: "'a::real_normed_vector"
+  shows "(1 / 2) *\<^sub>R (a + a) = a"
+proof -
+  have "\<And>r. r *\<^sub>R (a + a) = (r * 2) *\<^sub>R a"
+    by (metis scaleR_2 scaleR_scaleR)
+  then show ?thesis
+    by simp
+qed
+
 lemma vector_choose_size:
   assumes "0 \<le> c"
   obtains x :: "'a::{real_normed_vector, perfect_space}" where "norm x = c"
@@ -5759,7 +5769,7 @@ lemma is_interval_connected:
   shows "is_interval s \<Longrightarrow> connected s"
   using is_interval_convex convex_connected by auto
 
-lemma convex_box: "convex (cbox a b)" "convex (box a (b::'a::euclidean_space))"
+lemma convex_box [simp]: "convex (cbox a b)" "convex (box a (b::'a::euclidean_space))"
   apply (rule_tac[!] is_interval_convex)+
   using is_interval_box is_interval_cbox
   apply auto
@@ -6573,15 +6583,12 @@ lemma open_segment_image_interval:
 
 lemmas segment_image_interval = closed_segment_image_interval open_segment_image_interval
 
-lemma open_segment_eq: "open_segment a b = (if a=b then {} else {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real. 0 < u \<and> u < 1})"
-  by (auto simp: open_segment_def closed_segment_def segment_degen_0 segment_degen_1)
-
 lemma open_segment_bound1:
   assumes "x \<in> open_segment a b"
   shows "norm (x - a) < norm (b - a)"
 proof -
   obtain u where "x = (1 - u) *\<^sub>R a + u *\<^sub>R b" "0 < u" "u < 1" "a \<noteq> b"
-    using assms by (auto simp add: open_segment_eq split: if_split_asm)
+    using assms by (auto simp add: open_segment_image_interval split: if_split_asm)
   then show "norm (x - a) < norm (b - a)"
     apply clarify
     apply (auto simp: algebra_simps)
@@ -6657,7 +6664,21 @@ lemma affine_hull_open_segment [simp]:
     shows "affine hull (open_segment a b) = (if a = b then {} else affine hull {a,b})"
 by (metis affine_hull_convex_hull affine_hull_empty closure_open_segment closure_same_affine_hull segment_convex_hull)
 
-subsubsection\<open>Betweenness\<close>
+lemma rel_interior_closure_convex_segment:
+  fixes S :: "_::euclidean_space set"
+  assumes "convex S" "a \<in> rel_interior S" "b \<in> closure S"
+    shows "open_segment a b \<subseteq> rel_interior S"
+proof
+  fix x
+  have [simp]: "(1 - u) *\<^sub>R a + u *\<^sub>R b = b - (1 - u) *\<^sub>R (b - a)" for u
+    by (simp add: algebra_simps)
+  assume "x \<in> open_segment a b"
+  then show "x \<in> rel_interior S"
+    unfolding closed_segment_def open_segment_def  using assms
+    by (auto intro: rel_interior_closure_convex_shrink)
+qed
+
+subsection\<open>Betweenness\<close>
 
 lemma between_mem_segment: "between (a,b) x \<longleftrightarrow> x \<in> closed_segment a b"
   unfolding between_def by auto

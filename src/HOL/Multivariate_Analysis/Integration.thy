@@ -1193,13 +1193,8 @@ next
   show ?thesis
   proof (cases "cbox a b \<inter> cbox c d = {}")
     case True
-    show ?thesis
-      apply (rule that[of "{cbox c d}"])
-      apply (subst insert_is_Un)
-      apply (rule division_disjoint_union)
-      using \<open>cbox c d \<noteq> {}\<close> True assms interior_subset
-      apply auto
-      done
+    then show ?thesis
+      by (metis that False assms division_disjoint_union division_of_self insert_is_Un interior_Int interior_empty)
   next
     case False
     obtain u v where uv: "cbox a b \<inter> cbox c d = cbox u v"
@@ -1220,13 +1215,14 @@ next
     finally have [simp]: "interior (cbox a b) \<inter> interior (\<Union>(p - {cbox u v})) = {}" by simp
     have cbe: "cbox a b \<union> cbox c d = cbox a b \<union> \<Union>(p - {cbox u v})"
       using p(8) unfolding uv[symmetric] by auto
-    show ?thesis
-      apply (rule that[of "p - {cbox u v}"])
-      apply (simp add: cbe)
-      apply (subst insert_is_Un)
-      apply (rule division_disjoint_union)
-      apply (simp_all add: assms division_of_self)
-      by (metis Diff_subset division_of_subset p(1) p(8))
+    have "insert (cbox a b) (p - {cbox u v}) division_of cbox a b \<union> \<Union>(p - {cbox u v})"
+    proof -
+      have "{cbox a b} division_of cbox a b"
+        by (simp add: assms division_of_self)
+      then show "insert (cbox a b) (p - {cbox u v}) division_of cbox a b \<union> \<Union>(p - {cbox u v})"
+        by (metis (no_types) Diff_subset \<open>interior (cbox a b) \<inter> interior (\<Union>(p - {cbox u v})) = {}\<close> division_disjoint_union division_of_subset insert_is_Un p(1) p(8))
+    qed
+    with that[of "p - {cbox u v}"] show ?thesis by (simp add: cbe)
   qed
 qed
 
@@ -1323,21 +1319,21 @@ proof -
           presume "k = cbox a b \<Longrightarrow> ?thesis"
             and "k' = cbox a b \<Longrightarrow> ?thesis"
             and "k \<noteq> cbox a b \<Longrightarrow> k' \<noteq> cbox a b \<Longrightarrow> ?thesis"
-          then show ?thesis by auto
+          then show ?thesis by linarith
         next
           assume as': "k  = cbox a b"
           show ?thesis
-            using as' k' q(5) x' by auto
+            using as' k' q(5) x' by blast 
         next
           assume as': "k' = cbox a b"
           show ?thesis
-            using as' k'(2) q(5) x by auto
+            using as' k'(2) q(5) x by blast
         }
         assume as': "k \<noteq> cbox a b" "k' \<noteq> cbox a b"
         obtain c d where k: "k = cbox c d"
           using q(4)[OF x(2,1)] by blast
         have "interior k \<inter> interior (cbox a b) = {}"
-          using as' k'(2) q(5) x by auto
+          using as' k'(2) q(5) x by blast
         then have "interior k \<subseteq> interior x"
         using interior_subset_union_intervals
           by (metis as(2) k q(2) x interior_subset_union_intervals)
@@ -1345,7 +1341,7 @@ proof -
         obtain c d where c_d: "k' = cbox c d"
           using q(4)[OF x'(2,1)] by blast
         have "interior k' \<inter> interior (cbox a b) = {}"
-          using as'(2) q(5) x' by auto
+          using as'(2) q(5) x' by blast
         then have "interior k' \<subseteq> interior x'"
           by (metis as(2) c_d interior_subset_union_intervals q(2) x'(1) x'(2))
         ultimately show ?thesis

@@ -291,6 +291,11 @@ next
   then show "finite A" by simp
 qed
 
+lemma finite_image_iff:
+  assumes "inj_on f A"
+  shows "finite (f ` A) \<longleftrightarrow> finite A"
+using assms finite_imageD by blast
+
 lemma finite_surj:
   "finite A \<Longrightarrow> B \<subseteq> f ` A \<Longrightarrow> finite B"
   by (erule finite_subset) (rule finite_imageI)
