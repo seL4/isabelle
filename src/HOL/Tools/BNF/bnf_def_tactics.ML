@@ -106,7 +106,7 @@ fun mk_rel_Grp_tac ctxt rel_OO_Grps map_id0 map_cong0 map_id map_comp set_maps =
   in
     if null set_maps then
       unfold_thms_tac ctxt ((map_id0 RS @{thm Grp_UNIV_id}) :: rel_OO_Grps) THEN
-      rtac ctxt @{thm Grp_UNIV_idI[OF refl]} 1
+      resolve_tac ctxt @{thms refl Grp_UNIV_idI[OF refl]} 1
     else
       EVERY' [rel_OO_Grps_tac, rtac ctxt @{thm antisym}, rtac ctxt @{thm predicate2I},
         REPEAT_DETERM o eresolve_tac ctxt
@@ -139,7 +139,7 @@ fun mk_rel_Grp_tac ctxt rel_OO_Grps map_id0 map_cong0 map_id map_comp set_maps =
 fun mk_rel_eq_tac ctxt n rel_Grp rel_cong map_id0 =
   (EVERY' (rtac ctxt (rel_cong RS trans) :: replicate n (rtac ctxt @{thm eq_alt})) THEN'
   rtac ctxt (rel_Grp RSN (2, @{thm box_equals[OF _ sym sym[OF eq_alt]]})) THEN'
-  (if n = 0 then rtac ctxt refl
+  (if n = 0 then SELECT_GOAL (unfold_thms_tac ctxt (no_refl [map_id0])) THEN' rtac ctxt refl
   else EVERY' [rtac ctxt @{thm arg_cong2[of _ _ _ _ "Grp"]},
     rtac ctxt @{thm equalityI}, rtac ctxt subset_UNIV, rtac ctxt subsetI, rtac ctxt CollectI,
     CONJ_WRAP' (K (rtac ctxt subset_UNIV)) (1 upto n), rtac ctxt map_id0])) 1;
