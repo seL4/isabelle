@@ -21,7 +21,7 @@ sig
 
   exception BAD_DEAD of typ * typ
 
-  val bnf_of_typ: BNF_Def.inline_policy -> (binding -> binding) ->
+  val bnf_of_typ: bool -> BNF_Def.inline_policy -> (binding -> binding) ->
     ((string * sort) list list -> (string * sort) list) -> (string * sort) list ->
     (string * sort) list -> typ -> (comp_cache * unfold_set) * local_theory ->
     (BNF_Def.bnf * (typ list * typ list)) * ((comp_cache * unfold_set) * local_theory)
@@ -964,10 +964,10 @@ fun seal_bnf qualify (unfold_set : unfold_set) b has_live_phantoms Ds bnf lthy =
 
 exception BAD_DEAD of typ * typ;
 
-fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
+fun bnf_of_typ _ _ _ _ _ Ds0 (T as TFree T') accum =
     (if member (op =) Ds0 T' then (DEADID_bnf, ([T], [])) else (ID_bnf, ([], [T])), accum)
-  | bnf_of_typ _ _ _ _ _ (TVar _) _ = error "Unexpected schematic variable"
-  | bnf_of_typ const_policy qualify' flatten_tyargs Xs Ds0 (T as Type (C, Ts))
+  | bnf_of_typ _ _ _ _ _ _ (TVar _) _ = error "Unexpected schematic variable"
+  | bnf_of_typ optim const_policy qualify' flatten_tyargs Xs Ds0 (T as Type (C, Ts))
       (accum as (_, lthy)) =
     let
       fun check_bad_dead ((_, (deads, _)), _) =
@@ -982,7 +982,7 @@ fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
       (case bnf_opt of
         NONE => ((DEADID_bnf, ([T], [])), accum)
       | SOME bnf =>
-        if forall (can Term.dest_TFree) Ts andalso length Ts = length tfrees then
+        if optim andalso forall (can Term.dest_TFree) Ts andalso length Ts = length tfrees then
           let
             val T' = T_of_bnf bnf;
             val deads = deads_of_bnf bnf;
@@ -1007,8 +1007,8 @@ fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
             val oDs = map (nth Ts) oDs_pos;
             val Ts' = map (nth Ts) (subtract (op =) oDs_pos (0 upto length Ts - 1));
             val ((inners, (Dss, Ass)), (accum', lthy')) =
-              apfst (apsnd split_list o split_list)
-                (@{fold_map 2} (fn i => bnf_of_typ Smart_Inline (qualify i) flatten_tyargs Xs Ds0)
+              apfst (apsnd split_list o split_list) (@{fold_map 2}
+                (fn i => bnf_of_typ optim Smart_Inline (qualify i) flatten_tyargs Xs Ds0)
                 (if length Ts' = 1 then [0] else 1 upto length Ts') Ts' accum);
           in
             compose_bnf const_policy qualify flatten_tyargs bnf inners oDs Dss Ass (accum', lthy')

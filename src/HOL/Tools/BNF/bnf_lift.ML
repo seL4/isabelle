@@ -79,7 +79,7 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
 
     (* get the bnf for RepT *)
     val ((bnf, (deads, alphas)),((_, unfolds), lthy)) =
-      bnf_of_typ Dont_Inline (Binding.qualify true AbsT_name) flatten_tyargs []
+      bnf_of_typ true Dont_Inline (Binding.qualify true AbsT_name) flatten_tyargs []
         Ds0 RepT ((empty_comp_cache, empty_unfolds), lthy);
 
     val set_bs =
