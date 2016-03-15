@@ -343,11 +343,7 @@ object Build
 
   /* log files */
 
-  private def log(name: String): Path = Path.basic("log") + Path.basic(name)
-  private def log_gz(name: String): Path = log(name).ext("gz")
-
   private val SESSION_NAME = "\fSession.name = "
-
 
   sealed case class Log_Info(
     name: String,
@@ -465,22 +461,7 @@ object Build
     def session_sources_stamp(name: String): String =
       sources_stamp(selected_tree(name).meta_digest :: deps.sources(name))
 
-
-    /* persistent information */
-
-    val (input_dirs, output_dir, browser_info) =
-      if (system_mode) {
-        val output_dir = Path.explode("~~/heaps/$ML_IDENTIFIER")
-        (List(output_dir), output_dir, Path.explode("~~/browser_info"))
-      }
-      else {
-        val output_dir = Path.explode("$ISABELLE_OUTPUT")
-        (output_dir :: Isabelle_System.find_logics_dirs(), output_dir,
-         Path.explode("$ISABELLE_BROWSER_INFO"))
-      }
-
-    def find_log(name: String): Option[(Path, Path)] =
-      input_dirs.find(dir => (dir + log(name)).is_file).map(dir => (dir, dir + log(name)))
+    val store = Sessions.store(system_mode)
 
 
     /* queue with scheduling information */
@@ -488,11 +469,11 @@ object Build
     def load_timings(name: String): (List[Properties.T], Double) =
     {
       val (path, text) =
-        find_log(name + ".gz") match {
-          case Some((_, path)) => (path, File.read_gzip(path))
+        store.find_log_gz(name) match {
+          case Some(path) => (path, File.read_gzip(path))
           case None =>
-            find_log(name) match {
-              case Some((_, path)) => (path, File.read(path))
+            store.find_log(name) match {
+              case Some(path) => (path, File.read(path))
               case None => (Path.current, "")
             }
         }
@@ -520,14 +501,14 @@ object Build
 
     /* main build process */
 
-    // prepare log dir
-    Isabelle_System.mkdirs(output_dir + Path.basic("log"))
+    store.prepare_output()
 
     // optional cleanup
     if (clean_build) {
       for (name <- full_tree.graph.all_succs(selected)) {
         val files =
-          List(Path.basic(name), log(name), log_gz(name)).map(output_dir + _).filter(_.is_file)
+          List(Path.basic(name), Sessions.log(name), Sessions.log_gz(name)).
+            map(store.output_dir + _).filter(_.is_file)
         if (files.nonEmpty) progress.echo("Cleaning " + name + " ...")
         if (!files.forall(p => p.file.delete)) progress.echo(name + " FAILED to delete")
       }
@@ -573,18 +554,20 @@ object Build
               val lines = process_result.out_lines.filterNot(_.startsWith("\f"))
               val tail = job.info.options.int("process_output_tail")
               val lines1 = if (tail == 0) lines else lines.drop(lines.length - tail max 0)
-              process_result.copy(out_lines =
-                "(see also " + (output_dir + log(name)).file.toString + ")" :: lines1)
+              process_result.copy(
+                out_lines =
+                  "(see also " + (store.output_dir + Sessions.log(name)).file.toString + ")" ::
+                  lines1)
             }
 
             val heaps =
               if (process_result.ok) {
-                (output_dir + log(name)).file.delete
+                (store.output_dir + Sessions.log(name)).file.delete
                 val heaps =
                   (for (path <- job.output_path; stamp <- time_stamp(path))
                     yield stamp).toList
 
-                File.write_gzip(output_dir + log_gz(name),
+                File.write_gzip(store.output_dir + Sessions.log_gz(name),
                   Library.terminate_lines(
                     session_sources_stamp(name) ::
                     input_heaps.map(INPUT_HEAP + _) :::
@@ -594,10 +577,11 @@ object Build
                 heaps
               }
               else {
-                (output_dir + Path.basic(name)).file.delete
-                (output_dir + log_gz(name)).file.delete
+                (store.output_dir + Path.basic(name)).file.delete
+                (store.output_dir + Sessions.log_gz(name)).file.delete
 
-                File.write(output_dir + log(name), Library.terminate_lines(process_result.out_lines))
+                File.write(store.output_dir + Sessions.log(name),
+                  Library.terminate_lines(process_result.out_lines))
                 progress.echo(name + " FAILED")
                 if (!process_result.interrupted) progress.echo(process_result_tail.out)
 
@@ -613,16 +597,16 @@ object Build
                 val ancestor_results = selected_tree.ancestors(name).map(results(_))
                 val ancestor_heaps = ancestor_results.map(_.heaps).flatten
 
-                val output = output_dir + Path.basic(name)
+                val output = store.output_dir + Path.basic(name)
                 val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
 
                 val (current, heaps) =
                 {
-                  find_log(name + ".gz") match {
-                    case Some((dir, path)) =>
-                      read_stamps(path) match {
+                  store.find(name) match {
+                    case Some((heap, log_gz)) =>
+                      read_stamps(log_gz) match {
                         case Some((sources, input_heaps, output_heaps)) =>
-                          val heaps = time_stamp(dir + Path.basic(name)).toList
+                          val heaps = time_stamp(heap).toList
                           val current =
                             sources == session_sources_stamp(name) &&
                             input_heaps == ancestor_heaps.map(INPUT_HEAP + _) &&
@@ -647,7 +631,7 @@ object Build
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job =
-                    new Job(progress, name, info, output, do_output, verbose, browser_info,
+                    new Job(progress, name, info, output, do_output, verbose, store.browser_info,
                       deps(name).session_graph, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
@@ -687,9 +671,9 @@ object Build
             map({ case (chapter, es) => (chapter, es.map(_._2)) }).filterNot(_._2.isEmpty)
 
       for ((chapter, entries) <- browser_chapters)
-        Present.update_chapter_index(browser_info, chapter, entries)
+        Present.update_chapter_index(store.browser_info, chapter, entries)
 
-      if (browser_chapters.nonEmpty) Present.make_global_index(browser_info)
+      if (browser_chapters.nonEmpty) Present.make_global_index(store.browser_info)
     }
 
     new Build_Results((for ((name, result) <- results.iterator) yield (name, result.process)).toMap)

@@ -316,4 +316,36 @@ object Sessions
         info <- find_dir(select, dir)
       } yield info)
   }
+
+
+  /* persistent store */
+
+  def log(name: String): Path = Path.basic("log") + Path.basic(name)
+  def log_gz(name: String): Path = log(name).ext("gz")
+
+  def store(system_mode: Boolean = false): Store = new Store(system_mode)
+
+  class Store private [Sessions](system_mode: Boolean)
+  {
+    val output_dir: Path =
+      if (system_mode) Path.explode("~~/heaps/$ML_IDENTIFIER")
+      else Path.explode("$ISABELLE_OUTPUT")
+
+    val browser_info: Path =
+      if (system_mode) Path.explode("~~/browser_info")
+      else Path.explode("$ISABELLE_BROWSER_INFO")
+
+    private val input_dirs =
+      if (system_mode) List(output_dir)
+      else output_dir :: Isabelle_System.find_logics_dirs()
+
+    def find(name: String): Option[(Path, Path)] =
+      input_dirs.find(dir => (dir + log_gz(name)).is_file).map(dir =>
+        (dir + Path.basic(name), dir + log_gz(name)))
+
+    def find_log(name: String): Option[Path] = input_dirs.map(_ + log(name)).find(_.is_file)
+    def find_log_gz(name: String): Option[Path] = input_dirs.map(_ + log_gz(name)).find(_.is_file)
+
+    def prepare_output() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
+  }
 }
