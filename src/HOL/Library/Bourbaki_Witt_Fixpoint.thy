@@ -22,6 +22,9 @@ lemma FieldI1: "(i, j) \<in> R \<Longrightarrow> i \<in> Field R"
 lemma Chains_FieldD: "\<lbrakk> M \<in> Chains r; x \<in> M \<rbrakk> \<Longrightarrow> x \<in> Field r"
 by(auto simp add: Chains_def intro: FieldI1 FieldI2)
 
+lemma in_Chains_conv_chain: "M \<in> Chains r \<longleftrightarrow> Complete_Partial_Order.chain (\<lambda>x y. (x, y) \<in> r) M"
+by(simp add: Chains_def chain_def)
+
 lemma partial_order_on_trans:
   "\<lbrakk> partial_order_on A r; (x, y) \<in> r; (y, z) \<in> r \<rbrakk> \<Longrightarrow> (x, z) \<in> r"
 by(auto simp add: order_on_defs dest: transD)
@@ -218,24 +221,6 @@ qed
 lemma fixp_iterates_above: "a \<in> Field leq \<Longrightarrow> fixp_above a \<in> iterates_above a"
 unfolding fixp_above_def by(rule iterates_above.Sup)(blast intro: chain_iterates_above)+
 
-lemma
-  assumes b: "b \<in> iterates_above a"
-  and fb: "f b = b"
-  and x: "x \<in> iterates_above a"
-  and a: "a \<in> Field leq"
-  shows "b \<in> iterates_above x"
-using x
-proof(induction)
-  case base show ?case using b by simp
-next
-  case (step x)
-  from step.hyps a have "x \<in> Field leq" by(rule iterates_above_Field)
-  from iterates_above_successor[OF step.IH this] fb
-  show ?case by(auto)
-next
-  case (Sup M)
-  oops
-
 lemma fixp_above_Field: "a \<in> Field leq \<Longrightarrow> fixp_above a \<in> Field leq"
 using fixp_iterates_above by(rule iterates_above_Field)
 
@@ -250,6 +235,20 @@ proof(rule leq_antisym)
 qed
 
 end
+
+lemma fixp_induct [case_names adm closed base step]:
+  assumes adm: "ccpo.admissible lub (\<lambda>x y. (x, y) \<in> leq) P"
+  and a: "a \<in> Field leq"
+  and base: "P a"
+  and step: "\<And>x. P x \<Longrightarrow> P (f x)"
+  shows "P (fixp_above a)"
+using adm chain_iterates_above[OF a] unfolding fixp_above_def in_Chains_conv_chain
+proof(rule ccpo.admissibleD)
+  have "a \<in> iterates_above a" ..
+  then show "iterates_above a \<noteq> {}" by(auto)
+  show "P x" if "x \<in> iterates_above a" for x using that
+    by induction(auto intro: base step simp add: in_Chains_conv_chain dest: ccpo.admissibleD[OF adm])
+qed
 
 end
 
