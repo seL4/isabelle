@@ -59,8 +59,8 @@ object ML_Process
             " | exit rc = OS.Process.exit (RunCall.unsafeCast (Word8.fromInt rc))"
           else
             "fun exit rc = Posix.Process.exit (Word8.fromInt rc)",
-          "PolyML.Compiler.prompt1 := \"ML> \"",
-          "PolyML.Compiler.prompt2 := \"ML# \"")
+          "PolyML.Compiler.prompt1 := \"Poly/ML> \"",
+          "PolyML.Compiler.prompt2 := \"Poly/ML# \"")
       }
       else Nil
 
