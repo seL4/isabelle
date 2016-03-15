@@ -544,7 +544,10 @@ object Build
     browser_info: Path, session_graph: Graph_Display.Graph, command_timings: List[Properties.T])
   {
     def output_path: Option[Path] = if (do_output) Some(output) else None
-    def output_standard_path: String = if (do_output) File.standard_path(output) else ""
+    def output_save_state: String =
+      if (do_output)
+        "PolyML.SaveState.saveState " + ML_Syntax.print_string_raw(File.platform_path(output))
+      else ""
 
     private val parent = info.parent.getOrElse("")
 
@@ -564,8 +567,7 @@ object Build
           if (is_pure(name)) {
             val eval =
               "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default ();" +
-              " Session.shutdown (); ML_Heap.share_common_data ();" +
-              " ML_Heap.save_state " + ML_Syntax.print_string_raw(output_standard_path) + "));"
+              " Session.shutdown (); ML_Heap.share_common_data (); " + output_save_state + "));"
             ML_Process(info.options, "RAW_ML_SYSTEM", List("--use", "ROOT.ML", "--eval", eval),
               cwd = info.dir.file, env = env)
           }
@@ -575,18 +577,21 @@ object Build
                 {
                   val theories = info.theories.map(x => (x._2, x._3))
                   import XML.Encode._
-                  pair(list(pair(string, int)), pair(list(properties), pair(string, pair(bool,
+                  pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(bool,
                     pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
                     pair(string, pair(string, pair(string,
                     list(pair(Options.encode, list(Path.encode)))))))))))))(
-                  (Symbol.codes, (command_timings, (output_standard_path, (verbose,
+                  (Symbol.codes, (command_timings, (do_output, (verbose,
                     (browser_info, (info.document_files, (File.standard_path(graph_file),
                     (parent, (info.chapter, (name,
                     theories)))))))))))
                 }))
-            ML_Process(info.options, parent,
-              List("--eval",
-                "Build.build " + ML_Syntax.print_string_raw(File.standard_path(args_file))),
+            val eval =
+              "Command_Line.tool0 (fn () => (" +
+              "Build.build " + ML_Syntax.print_string_raw(File.standard_path(args_file)) +
+              (if (do_output) "; ML_Heap.share_common_data (); " + output_save_state
+               else "") + "));"
+            ML_Process(info.options, parent, List("--eval", eval),
               cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
           }
         process.result(
