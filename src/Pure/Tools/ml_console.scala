@@ -70,7 +70,8 @@ Usage: isabelle console [OPTIONS]
       // process loop
       val process =
         ML_Process(options, heap = logic, args = List("-i"),
-          modes = if (logic == "RAW_ML_SYSTEM") Nil else modes ::: List("ASCII"))
+          modes = if (logic == "RAW_ML_SYSTEM") Nil else modes ::: List("ASCII"),
+          store = Sessions.store(system_mode))
       val process_output = Future.thread[Unit]("process_output") {
         try {
           var result = new StringBuilder(100)

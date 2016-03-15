@@ -335,16 +335,26 @@ object Sessions
       if (system_mode) Path.explode("~~/browser_info")
       else Path.explode("$ISABELLE_BROWSER_INFO")
 
-    private val input_dirs =
+    val input_dirs =
       if (system_mode) List(output_dir)
-      else output_dir :: Isabelle_System.find_logics_dirs()
+      else {
+        val ml_ident = Path.explode("$ML_IDENTIFIER").expand
+        output_dir :: Path.split(Isabelle_System.getenv_strict("ISABELLE_PATH")).map(_ + ml_ident)
+      }
 
+    //optional heap + log_gz
     def find(name: String): Option[(Path, Path)] =
       input_dirs.find(dir => (dir + log_gz(name)).is_file).map(dir =>
         (dir + Path.basic(name), dir + log_gz(name)))
 
-    def find_log(name: String): Option[Path] = input_dirs.map(_ + log(name)).find(_.is_file)
-    def find_log_gz(name: String): Option[Path] = input_dirs.map(_ + log_gz(name)).find(_.is_file)
+    def find_heap(name: String): Option[Path] =
+      input_dirs.map(_ + Path.basic(name)).find(_.is_file)
+
+    def find_log(name: String): Option[Path] =
+      input_dirs.map(_ + log(name)).find(_.is_file)
+
+    def find_log_gz(name: String): Option[Path] =
+      input_dirs.map(_ + log_gz(name)).find(_.is_file)
 
     def prepare_output() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
   }

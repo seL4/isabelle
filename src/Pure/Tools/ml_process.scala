@@ -21,7 +21,8 @@ object ML_Process
     env: Map[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
     cleanup: () => Unit = () => (),
-    channel: Option[System_Channel] = None): Bash.Process =
+    channel: Option[System_Channel] = None,
+    store: Sessions.Store = Sessions.store()): Bash.Process =
   {
     val load_heaps =
     {
@@ -32,13 +33,12 @@ object ML_Process
         List(heap_path)
       }
       else {
-        val dirs = Isabelle_System.find_logics_dirs()
-        val heap_name = if (heap == "") Isabelle_System.getenv_strict("ISABELLE_LOGIC") else heap
-        dirs.map(_ + Path.basic(heap_name)).find(_.is_file) match {
+        val heap_name = Isabelle_System.default_logic(heap)
+        store.find_heap(heap_name) match {
           case Some(heap_path) => List(heap_path)
           case None =>
             error("Unknown logic " + quote(heap_name) + " -- no heap file found in:\n" +
-              cat_lines(dirs.map(dir => "  " + dir.implode)))
+              cat_lines(store.input_dirs.map(dir => "  " + dir.implode)))
         }
       }
     }

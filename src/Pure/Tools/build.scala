@@ -228,23 +228,23 @@ object Build
 
   /* jobs */
 
-  private class Job(progress: Progress,
-    name: String, val info: Sessions.Info, output: Path, do_output: Boolean, verbose: Boolean,
-    browser_info: Path, session_graph: Graph_Display.Graph, command_timings: List[Properties.T])
+  private class Job(progress: Progress, name: String, val info: Sessions.Info,
+    store: Sessions.Store, do_output: Boolean, verbose: Boolean,
+    session_graph: Graph_Display.Graph, command_timings: List[Properties.T])
   {
+    val output = store.output_dir + Path.basic(name)
     def output_path: Option[Path] = if (do_output) Some(output) else None
     def output_save_state: String =
       if (do_output)
         "PolyML.SaveState.saveState " + ML_Syntax.print_string_raw(File.platform_path(output))
       else ""
+    output.file.delete
 
     private val parent = info.parent.getOrElse("")
 
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
     try { isabelle.graphview.Graph_File.write(info.options, graph_file, session_graph) }
     catch { case ERROR(_) => /*error should be exposed in ML*/ }
-
-    output.file.delete
 
     private val env =
       Isabelle_System.settings() +
@@ -258,7 +258,7 @@ object Build
               "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default ();" +
               " Session.shutdown (); ML_Heap.share_common_data (); " + output_save_state + "));"
             ML_Process(info.options, "RAW_ML_SYSTEM", List("--use", "ROOT.ML", "--eval", eval),
-              cwd = info.dir.file, env = env)
+              cwd = info.dir.file, env = env, store = store)
           }
           else {
             val args_file = Isabelle_System.tmp_file("build")
@@ -271,7 +271,7 @@ object Build
                     pair(string, pair(string, pair(string,
                     list(pair(Options.encode, list(Path.encode)))))))))))))(
                   (Symbol.codes, (command_timings, (do_output, (verbose,
-                    (browser_info, (info.document_files, (File.standard_path(graph_file),
+                    (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                     (parent, (info.chapter, (name,
                     theories)))))))))))
                 }))
@@ -280,8 +280,8 @@ object Build
               "Build.build " + ML_Syntax.print_string_raw(File.standard_path(args_file)) +
               (if (do_output) "; ML_Heap.share_common_data (); " + output_save_state
                else "") + "));"
-            ML_Process(info.options, parent, List("--eval", eval),
-              cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
+            ML_Process(info.options, parent, List("--eval", eval), cwd = info.dir.file,
+              env = env, cleanup = () => args_file.delete, store = store)
           }
         process.result(
           progress_stdout = (line: String) =>
@@ -313,7 +313,7 @@ object Build
       val result = future_result.join
 
       if (result.ok && !Sessions.is_pure(name))
-        Present.finish(progress, browser_info, graph_file, info, name)
+        Present.finish(progress, store.browser_info, graph_file, info, name)
 
       graph_file.delete
       timeout_request.foreach(_.cancel)
@@ -597,7 +597,6 @@ object Build
                 val ancestor_results = selected_tree.ancestors(name).map(results(_))
                 val ancestor_heaps = ancestor_results.map(_.heaps).flatten
 
-                val output = store.output_dir + Path.basic(name)
                 val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
 
                 val (current, heaps) =
@@ -631,7 +630,7 @@ object Build
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job =
-                    new Job(progress, name, info, output, do_output, verbose, store.browser_info,
+                    new Job(progress, name, info, store, do_output, verbose,
                       deps(name).session_graph, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }

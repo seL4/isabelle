@@ -76,7 +76,8 @@ object Isabelle_Logic
        space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse
     PIDE.session.start(receiver =>
       Isabelle_Process(
-        PIDE.options.value, heap = session_name(), modes = modes, receiver = receiver))
+        PIDE.options.value, heap = session_name(), modes = modes, receiver = receiver,
+        store = Sessions.store(session_build_mode() == "system")))
   }
 
   def session_dirs(): List[Path] = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
