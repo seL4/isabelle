@@ -19,324 +19,13 @@ import scala.annotation.tailrec
 
 object Build
 {
-  /** session information **/
-
-  // external version
-  abstract class Entry
-  sealed case class Chapter(name: String) extends Entry
-  sealed case class Session_Entry(
-    pos: Position.T,
-    name: String,
-    groups: List[String],
-    path: String,
-    parent: Option[String],
-    description: String,
-    options: List[Options.Spec],
-    theories: List[(Boolean, List[Options.Spec], List[String])],
-    files: List[String],
-    document_files: List[(String, String)]) extends Entry
-
-  // internal version
-  sealed case class Session_Info(
-    chapter: String,
-    select: Boolean,
-    pos: Position.T,
-    groups: List[String],
-    dir: Path,
-    parent: Option[String],
-    description: String,
-    options: Options,
-    theories: List[(Boolean, Options, List[Path])],
-    files: List[Path],
-    document_files: List[(Path, Path)],
-    entry_digest: SHA1.Digest)
-  {
-    def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
-  }
-
-  def is_pure(name: String): Boolean = name == "Pure"
-
-  def session_info(options: Options, select: Boolean, dir: Path,
-      chapter: String, entry: Session_Entry): (String, Session_Info) =
-    try {
-      val name = entry.name
-
-      if (name == "") error("Bad session name")
-      if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
-      if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
-
-      val session_options = options ++ entry.options
-
-      val theories =
-        entry.theories.map({ case (global, opts, thys) =>
-          (global, session_options ++ opts, thys.map(Path.explode(_))) })
-      val files = entry.files.map(Path.explode(_))
-      val document_files =
-        entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
-
-      val entry_digest =
-        SHA1.digest((chapter, name, entry.parent, entry.options,
-          entry.theories, entry.files, entry.document_files).toString)
-
-      val info =
-        Session_Info(chapter, select, entry.pos, entry.groups, dir + Path.explode(entry.path),
-          entry.parent, entry.description, session_options, theories, files,
-          document_files, entry_digest)
-
-      (name, info)
-    }
-    catch {
-      case ERROR(msg) =>
-        error(msg + "\nThe error(s) above occurred in session entry " +
-          quote(entry.name) + Position.here(entry.pos))
-    }
-
-
-  /* session tree */
-
-  object Session_Tree
-  {
-    def apply(infos: Seq[(String, Session_Info)]): Session_Tree =
-    {
-      val graph1 =
-        (Graph.string[Session_Info] /: infos) {
-          case (graph, (name, info)) =>
-            if (graph.defined(name))
-              error("Duplicate session " + quote(name) + Position.here(info.pos) +
-                Position.here(graph.get_node(name).pos))
-            else graph.new_node(name, info)
-        }
-      val graph2 =
-        (graph1 /: graph1.iterator) {
-          case (graph, (name, (info, _))) =>
-            info.parent match {
-              case None => graph
-              case Some(parent) =>
-                if (!graph.defined(parent))
-                  error("Bad parent session " + quote(parent) + " for " +
-                    quote(name) + Position.here(info.pos))
-
-                try { graph.add_edge_acyclic(parent, name) }
-                catch {
-                  case exn: Graph.Cycles[_] =>
-                    error(cat_lines(exn.cycles.map(cycle =>
-                      "Cyclic session dependency of " +
-                        cycle.map(c => quote(c.toString)).mkString(" via "))) +
-                          Position.here(info.pos))
-                }
-            }
-        }
-      new Session_Tree(graph2)
-    }
-  }
-
-  final class Session_Tree private(val graph: Graph[String, Session_Info])
-    extends PartialFunction[String, Session_Info]
-  {
-    def apply(name: String): Session_Info = graph.get_node(name)
-    def isDefinedAt(name: String): Boolean = graph.defined(name)
-
-    def selection(
-      requirements: Boolean = false,
-      all_sessions: Boolean = false,
-      exclude_session_groups: List[String] = Nil,
-      exclude_sessions: List[String] = Nil,
-      session_groups: List[String] = Nil,
-      sessions: List[String] = Nil): (List[String], Session_Tree) =
-    {
-      val bad_sessions =
-        SortedSet((exclude_sessions ::: sessions).filterNot(isDefinedAt(_)): _*).toList
-      if (bad_sessions.nonEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
-
-      val excluded =
-      {
-        val exclude_group = exclude_session_groups.toSet
-        val exclude_group_sessions =
-          (for {
-            (name, (info, _)) <- graph.iterator
-            if apply(name).groups.exists(exclude_group)
-          } yield name).toList
-        graph.all_succs(exclude_group_sessions ::: exclude_sessions).toSet
-      }
-
-      val pre_selected =
-      {
-        if (all_sessions) graph.keys
-        else {
-          val select_group = session_groups.toSet
-          val select = sessions.toSet
-          (for {
-            (name, (info, _)) <- graph.iterator
-            if info.select || select(name) || apply(name).groups.exists(select_group)
-          } yield name).toList
-        }
-      }.filterNot(excluded)
-
-      val selected =
-        if (requirements) (graph.all_preds(pre_selected).toSet -- pre_selected).toList
-        else pre_selected
-
-      val graph1 = graph.restrict(graph.all_preds(selected).toSet)
-      (selected, new Session_Tree(graph1))
-    }
-
-    def ancestors(name: String): List[String] =
-      graph.all_preds(List(name)).tail.reverse
-
-    def topological_order: List[(String, Session_Info)] =
-      graph.topological_order.map(name => (name, apply(name)))
-
-    override def toString: String = graph.keys_iterator.mkString("Session_Tree(", ", ", ")")
-  }
-
-
-  /* parser */
-
-  val chapter_default = "Unsorted"
-
-  private val CHAPTER = "chapter"
-  private val SESSION = "session"
-  private val IN = "in"
-  private val DESCRIPTION = "description"
-  private val OPTIONS = "options"
-  private val GLOBAL_THEORIES = "global_theories"
-  private val THEORIES = "theories"
-  private val FILES = "files"
-  private val DOCUMENT_FILES = "document_files"
-
-  lazy val root_syntax =
-    Outer_Syntax.init() + "(" + ")" + "+" + "," + "=" + "[" + "]" +
-      (CHAPTER, Keyword.THY_DECL) + (SESSION, Keyword.THY_DECL) +
-      IN + DESCRIPTION + OPTIONS + GLOBAL_THEORIES + THEORIES + FILES + DOCUMENT_FILES
-
-  object Parser extends Parse.Parser
-  {
-    private val chapter: Parser[Chapter] =
-    {
-      val chapter_name = atom("chapter name", _.is_name)
-
-      command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter(a) }
-    }
-
-    private val session_entry: Parser[Session_Entry] =
-    {
-      val session_name = atom("session name", _.is_name)
-
-      val option =
-        name ~ opt($$$("=") ~! name ^^ { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
-      val options = $$$("[") ~> rep1sep(option, $$$(",")) <~ $$$("]")
-
-      val theories =
-        ($$$(GLOBAL_THEORIES) | $$$(THEORIES)) ~!
-          ((options | success(Nil)) ~ rep(theory_xname)) ^^
-          { case x ~ (y ~ z) => (x == GLOBAL_THEORIES, y, z) }
-
-      val document_files =
-        $$$(DOCUMENT_FILES) ~!
-          (($$$("(") ~! ($$$(IN) ~! (path ~ $$$(")"))) ^^
-              { case _ ~ (_ ~ (x ~ _)) => x } | success("document")) ~
-            rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
-
-      command(SESSION) ~!
-        (position(session_name) ~
-          (($$$("(") ~! (rep1(name) <~ $$$(")")) ^^ { case _ ~ x => x }) | success(Nil)) ~
-          (($$$(IN) ~! path ^^ { case _ ~ x => x }) | success(".")) ~
-          ($$$("=") ~!
-            (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~
-              (($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
-              (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
-              rep1(theories) ~
-              (($$$(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
-              (rep(document_files) ^^ (x => x.flatten))))) ^^
-        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
-    }
-
-    def parse_entries(root: Path): List[(String, Session_Entry)] =
-    {
-      val toks = Token.explode(root_syntax.keywords, File.read(root))
-      val start = Token.Pos.file(root.implode)
-
-      parse_all(rep(chapter | session_entry), Token.reader(toks, start)) match {
-        case Success(result, _) =>
-          var chapter = chapter_default
-          val entries = new mutable.ListBuffer[(String, Session_Entry)]
-          result.foreach {
-            case Chapter(name) => chapter = name
-            case session_entry: Session_Entry => entries += ((chapter, session_entry))
-          }
-          entries.toList
-        case bad => error(bad.toString)
-      }
-    }
-  }
-
-
-  /* find sessions within certain directories */
-
-  private val ROOT = Path.explode("ROOT")
-  private val ROOTS = Path.explode("ROOTS")
-
-  private def is_session_dir(dir: Path): Boolean =
-    (dir + ROOT).is_file || (dir + ROOTS).is_file
-
-  private def check_session_dir(dir: Path): Path =
-    if (is_session_dir(dir)) dir
-    else error("Bad session root directory: " + dir.toString)
-
-  def find_sessions(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil)
-    : Session_Tree =
-  {
-    def find_dir(select: Boolean, dir: Path): List[(String, Session_Info)] =
-      find_root(select, dir) ::: find_roots(select, dir)
-
-    def find_root(select: Boolean, dir: Path): List[(String, Session_Info)] =
-    {
-      val root = dir + ROOT
-      if (root.is_file)
-        Parser.parse_entries(root).map(p => session_info(options, select, dir, p._1, p._2))
-      else Nil
-    }
-
-    def find_roots(select: Boolean, dir: Path): List[(String, Session_Info)] =
-    {
-      val roots = dir + ROOTS
-      if (roots.is_file) {
-        for {
-          line <- split_lines(File.read(roots))
-          if !(line == "" || line.startsWith("#"))
-          dir1 =
-            try { check_session_dir(dir + Path.explode(line)) }
-            catch {
-              case ERROR(msg) =>
-                error(msg + "\nThe error(s) above occurred in session catalog " + roots.toString)
-            }
-          info <- find_dir(select, dir1)
-        } yield info
-      }
-      else Nil
-    }
-
-    val default_dirs = Isabelle_System.components().filter(is_session_dir(_))
-    dirs.foreach(check_session_dir(_))
-    select_dirs.foreach(check_session_dir(_))
-
-    Session_Tree(
-      for {
-        (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
-        info <- find_dir(select, dir)
-      } yield info)
-  }
-
-
-
-  /** build **/
+  /** auxiliary **/
 
   /* queue */
 
-  object Queue
+  private object Queue
   {
-    def apply(tree: Session_Tree, load_timings: String => (List[Properties.T], Double)): Queue =
+    def apply(tree: Sessions.Tree, load_timings: String => (List[Properties.T], Double)): Queue =
     {
       val graph = tree.graph
       val sessions = graph.keys
@@ -378,8 +67,8 @@ object Build
     }
   }
 
-  final class Queue private(
-    graph: Graph[String, Session_Info],
+  private final class Queue private(
+    graph: Graph[String, Sessions.Info],
     order: SortedSet[String],
     val command_timings: String => List[Properties.T])
   {
@@ -392,7 +81,7 @@ object Build
         order - name,  // FIXME scala-2.10.0 TreeSet problem!?
         command_timings)
 
-    def dequeue(skip: String => Boolean): Option[(String, Session_Info)] =
+    def dequeue(skip: String => Boolean): Option[(String, Sessions.Info)] =
     {
       val it = order.iterator.dropWhile(name =>
         skip(name)
@@ -427,7 +116,7 @@ object Build
       verbose: Boolean = false,
       list_files: Boolean = false,
       check_keywords: Set[String] = Set.empty,
-      tree: Session_Tree): Deps =
+      tree: Sessions.Tree): Deps =
     Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
           if (progress.stopped) throw Exn.Interrupt()
@@ -520,7 +209,7 @@ object Build
     dirs: List[Path],
     sessions: List[String]): Deps =
   {
-    val (_, tree) = find_sessions(options, dirs = dirs).selection(sessions = sessions)
+    val (_, tree) = Sessions.find(options, dirs = dirs).selection(sessions = sessions)
     dependencies(inlined_files = inlined_files, tree = tree)
   }
 
@@ -540,7 +229,7 @@ object Build
   /* jobs */
 
   private class Job(progress: Progress,
-    name: String, val info: Session_Info, output: Path, do_output: Boolean, verbose: Boolean,
+    name: String, val info: Sessions.Info, output: Path, do_output: Boolean, verbose: Boolean,
     browser_info: Path, session_graph: Graph_Display.Graph, command_timings: List[Properties.T])
   {
     def output_path: Option[Path] = if (do_output) Some(output) else None
@@ -564,7 +253,7 @@ object Build
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
         val process =
-          if (is_pure(name)) {
+          if (Sessions.is_pure(name)) {
             val eval =
               "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default ();" +
               " Session.shutdown (); ML_Heap.share_common_data (); " + output_save_state + "));"
@@ -623,7 +312,7 @@ object Build
     {
       val result = future_result.join
 
-      if (result.ok && !is_pure(name))
+      if (result.ok && !Sessions.is_pure(name))
         Present.finish(progress, browser_info, graph_file, info, name)
 
       graph_file.delete
@@ -731,7 +420,8 @@ object Build
     else None
 
 
-  /* build_results */
+
+  /** build_results **/
 
   class Build_Results private [Build](results: Map[String, Option[Process_Result]])
   {
@@ -765,7 +455,7 @@ object Build
   {
     /* session tree and dependencies */
 
-    val full_tree = find_sessions(options.int("completion_limit") = 0, dirs, select_dirs)
+    val full_tree = Sessions.find(options.int("completion_limit") = 0, dirs, select_dirs)
     val (selected, selected_tree) =
       full_tree.selection(requirements, all_sessions,
         exclude_session_groups, exclude_sessions, session_groups, sessions)
@@ -773,7 +463,7 @@ object Build
     val deps = dependencies(progress, true, verbose, list_files, check_keywords, selected_tree)
 
     def session_sources_stamp(name: String): String =
-      sources_stamp(selected_tree(name).entry_digest :: deps.sources(name))
+      sources_stamp(selected_tree(name).meta_digest :: deps.sources(name))
 
 
     /* persistent information */
@@ -924,7 +614,7 @@ object Build
                 val ancestor_heaps = ancestor_results.map(_.heaps).flatten
 
                 val output = output_dir + Path.basic(name)
-                val do_output = build_heap || is_pure(name) || queue.is_inner(name)
+                val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
 
                 val (current, heaps) =
                 {
@@ -990,7 +680,7 @@ object Build
       val browser_chapters =
         (for {
           (name, result) <- results.iterator
-          if result.ok && !is_pure(name)
+          if result.ok && !Sessions.is_pure(name)
           info = full_tree(name)
           if info.options.bool("browser_info")
         } yield (info.chapter, (name, info.description))).toList.groupBy(_._1).
@@ -1006,7 +696,8 @@ object Build
   }
 
 
-  /* build */
+
+  /** build **/
 
   def build(
     options: Options,
