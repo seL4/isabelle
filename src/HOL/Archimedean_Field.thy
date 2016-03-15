@@ -31,7 +31,7 @@ proof -
   then show ?thesis ..
 qed
 
-lemma ex_less_of_nat:
+lemma reals_Archimedean2:
   fixes x :: "'a::archimedean_field" shows "\<exists>n. x < of_nat n"
 proof -
   obtain z where "x < of_int z" using ex_less_of_int ..
@@ -40,24 +40,24 @@ proof -
   finally show ?thesis ..
 qed
 
-lemma ex_le_of_nat:
+lemma real_arch_simple:
   fixes x :: "'a::archimedean_field" shows "\<exists>n. x \<le> of_nat n"
 proof -
-  obtain n where "x < of_nat n" using ex_less_of_nat ..
+  obtain n where "x < of_nat n" using reals_Archimedean2 ..
   then have "x \<le> of_nat n" by simp
   then show ?thesis ..
 qed
 
 text \<open>Archimedean fields have no infinitesimal elements.\<close>
 
-lemma ex_inverse_of_nat_Suc_less:
+lemma reals_Archimedean:
   fixes x :: "'a::archimedean_field"
   assumes "0 < x" shows "\<exists>n. inverse (of_nat (Suc n)) < x"
 proof -
   from \<open>0 < x\<close> have "0 < inverse x"
     by (rule positive_imp_inverse_positive)
   obtain n where "inverse x < of_nat n"
-    using ex_less_of_nat ..
+    using reals_Archimedean2 ..
   then obtain m where "inverse x < of_nat (Suc m)"
     using \<open>0 < inverse x\<close> by (cases n) (simp_all del: of_nat_Suc)
   then have "inverse (of_nat (Suc m)) < inverse (inverse x)"
@@ -70,13 +70,13 @@ qed
 lemma ex_inverse_of_nat_less:
   fixes x :: "'a::archimedean_field"
   assumes "0 < x" shows "\<exists>n>0. inverse (of_nat n) < x"
-  using ex_inverse_of_nat_Suc_less [OF \<open>0 < x\<close>] by auto
+  using reals_Archimedean [OF \<open>0 < x\<close>] by auto
 
 lemma ex_less_of_nat_mult:
   fixes x :: "'a::archimedean_field"
   assumes "0 < x" shows "\<exists>n. y < of_nat n * x"
 proof -
-  obtain n where "y / x < of_nat n" using ex_less_of_nat ..
+  obtain n where "y / x < of_nat n" using reals_Archimedean2 ..
   with \<open>0 < x\<close> have "y < of_nat n * x" by (simp add: pos_divide_less_eq)
   then show ?thesis ..
 qed
@@ -105,7 +105,7 @@ proof (cases)
   assume "0 \<le> x"
   then have "\<not> x < of_nat 0" by simp
   then have "\<exists>n. \<not> x < of_nat n \<and> x < of_nat (Suc n)"
-    using ex_less_of_nat by (rule exists_least_lemma)
+    using reals_Archimedean2 by (rule exists_least_lemma)
   then obtain n where "\<not> x < of_nat n \<and> x < of_nat (Suc n)" ..
   then have "of_int (int n) \<le> x \<and> x < of_int (int n + 1)" by simp
   then show ?thesis ..
@@ -113,7 +113,7 @@ next
   assume "\<not> 0 \<le> x"
   then have "\<not> - x \<le> of_nat 0" by simp
   then have "\<exists>n. \<not> - x \<le> of_nat n \<and> - x \<le> of_nat (Suc n)"
-    using ex_le_of_nat by (rule exists_least_lemma)
+    using real_arch_simple by (rule exists_least_lemma)
   then obtain n where "\<not> - x \<le> of_nat n \<and> - x \<le> of_nat (Suc n)" ..
   then have "of_int (- int n - 1) \<le> x \<and> x < of_int (- int n - 1 + 1)" by simp
   then show ?thesis ..

@@ -2143,7 +2143,7 @@ proof (rule tendstoI)
     by (auto simp: lim_sequentially dist_real_def)
   { fix x :: real
     obtain n where "x \<le> real_of_nat n"
-      using ex_le_of_nat[of x] ..
+      using real_arch_simple[of x] ..
     note monoD[OF mono this]
     also have "f (real_of_nat n) \<le> y"
       by (rule LIMSEQ_le_const[OF limseq]) (auto intro!: exI[of _ n] monoD[OF mono])

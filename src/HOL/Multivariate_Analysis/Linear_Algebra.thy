@@ -581,15 +581,8 @@ lemma hull_redundant: "a \<in> (S hull s) \<Longrightarrow> S hull (insert a s) 
 
 subsection \<open>Archimedean properties and useful consequences\<close>
 
-lemma real_arch_simple: "\<exists>n::nat. x \<le> real n"
-  by (rule ex_le_of_nat)
-
-lemma real_arch_inv: "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
-  using reals_Archimedean[of e] less_trans[of 0 "1 / real n" e for n::nat]
-  by (auto simp add: field_simps cong: conj_cong simp del: of_nat_Suc)
-
 text\<open>Bernoulli's inequality\<close>
-lemma Bernoulli_inequality:
+proposition Bernoulli_inequality:
   fixes x :: real
   assumes "-1 \<le> x"
     shows "1 + n * x \<le> (1 + x) ^ n"
@@ -607,7 +600,7 @@ next
   finally show ?case .
 qed
 
-lemma Bernoulli_inequality_even:
+corollary Bernoulli_inequality_even:
   fixes x :: real
   assumes "even n"
     shows "1 + n * x \<le> (1 + x) ^ n"
@@ -629,7 +622,7 @@ next
   finally show ?thesis .
 qed
 
-lemma real_arch_pow:
+corollary real_arch_pow:
   fixes x :: real
   assumes x: "1 < x"
   shows "\<exists>n. y < x^n"
@@ -644,12 +637,7 @@ proof -
   then show ?thesis by metis
 qed
 
-lemma real_arch_pow2:
-  fixes x :: real
-  shows "\<exists>n. x < 2^ n"
-  using real_arch_pow[of 2 x] by simp
-
-lemma real_arch_pow_inv:
+corollary real_arch_pow_inv:
   fixes x y :: real
   assumes y: "y > 0"
     and x1: "x < 1"
@@ -673,7 +661,7 @@ qed
 lemma forall_pos_mono:
   "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
     (\<And>n::nat. n \<noteq> 0 \<Longrightarrow> P (inverse (real n))) \<Longrightarrow> (\<And>e. 0 < e \<Longrightarrow> P e)"
-  by (metis real_arch_inv)
+  by (metis real_arch_inverse)
 
 lemma forall_pos_mono_1:
   "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>

@@ -5525,7 +5525,7 @@ next
       fix e :: real
       assume "e > 0"
       then obtain N :: nat where "N \<noteq> 0" and N: "0 < inverse (real N) \<and> inverse (real N) < e"
-        unfolding real_arch_inv[of e] by auto
+        unfolding real_arch_inverse[of e] by auto
       {
         fix n :: nat
         assume "n \<ge> N"
@@ -7492,7 +7492,7 @@ proof -
         fix e :: real
         assume "e > 0"
         then have "\<exists>N::nat. inverse (real (N + 1)) < e"
-          using real_arch_inv[of e]
+          using real_arch_inverse[of e]
           apply (auto simp add: Suc_pred')
           apply (metis Suc_pred' of_nat_Suc)
           done

@@ -725,7 +725,7 @@ proof -
   { fix e::real
     assume e: "0 < e"
     then obtain N::nat where N: "0 < N" "0 < inverse N" "inverse N < e"
-      by (auto simp: real_arch_inv [of e])
+      by (auto simp: real_arch_inverse [of e])
     { fix n :: nat and x :: 'a and g :: "'a \<Rightarrow> real"
       assume n: "N \<le> n"  "\<forall>x\<in>s. \<bar>f x - g x\<bar> < 1 / (1 + real n)"
       assume x: "x \<in> s"

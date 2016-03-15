@@ -270,7 +270,7 @@ proof -
     proof (rule ccontr)
       assume "\<not> 0 \<le> ?d B"
       hence "0 < - ?d B" by auto
-      from ex_inverse_of_nat_Suc_less[OF this]
+      from reals_Archimedean[OF this]
       obtain n where *: "?d B < - 1 / real (Suc n)"
         by (auto simp: field_simps)
       also have "\<dots> \<le> - 1 / real (Suc (Suc n))"

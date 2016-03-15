@@ -1135,8 +1135,9 @@ by (insert real_of_nat_div2 [of n x], simp)
 
 subsection \<open>The Archimedean Property of the Reals\<close>
 
-lemmas reals_Archimedean = ex_inverse_of_nat_Suc_less  (*FIXME*)
-lemmas reals_Archimedean2 = ex_less_of_nat
+lemma real_arch_inverse: "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
+  using reals_Archimedean[of e] less_trans[of 0 "1 / real n" e for n::nat]
+  by (auto simp add: field_simps cong: conj_cong simp del: of_nat_Suc)
 
 lemma reals_Archimedean3:
   assumes x_greater_zero: "0 < x"

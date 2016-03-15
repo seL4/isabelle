@@ -82,7 +82,7 @@ lemmas scaleR_simps = scaleR_zero_left scaleR_minus_left scaleR_left_diff_distri
 
 lemma real_arch_invD:
   "0 < (e::real) \<Longrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
-  by (subst(asm) real_arch_inv)
+  by (subst(asm) real_arch_inverse)
 
 
 subsection \<open>Sundries\<close>
@@ -2109,7 +2109,7 @@ proof -
     if e: "0 < e" for e
   proof -
     obtain n where n: "(\<Sum>i\<in>Basis. b \<bullet> i - a \<bullet> i) / e < 2 ^ n"
-      using real_arch_pow2[of "(setsum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis) / e"] ..
+      using real_arch_pow[of 2 "(setsum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis) / e"] by auto
     show ?thesis
     proof (rule exI [where x=n], clarify)
       fix x y
@@ -2947,7 +2947,7 @@ next
   have "Cauchy (\<lambda>n. setsum (\<lambda>(x,k). content k *\<^sub>R (f x)) (p n))"
   proof (rule CauchyI, goal_cases)
     case (1 e)
-    then guess N unfolding real_arch_inv[of e] .. note N=this
+    then guess N unfolding real_arch_inverse[of e] .. note N=this
     show ?case
       apply (rule_tac x=N in exI)
     proof clarify
@@ -2967,7 +2967,7 @@ next
     fix e :: real
     assume "e>0"
     then have *:"e/2 > 0" by auto
-    then guess N1 unfolding real_arch_inv[of "e/2"] .. note N1=this
+    then guess N1 unfolding real_arch_inverse[of "e/2"] .. note N1=this
     then have N1': "N1 = N1 - 1 + 1"
       by auto
     guess N2 using y[OF *] .. note N2=this
@@ -4620,7 +4620,7 @@ next
       using True by (auto simp add: field_simps)
     then obtain M :: nat
          where M: "M \<noteq> 0" "0 < inverse (real_of_nat M)" "inverse (of_nat M) < e / 4 / content (cbox a b)"
-      by (subst (asm) real_arch_inv) auto
+      by (subst (asm) real_arch_inverse) auto
     show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (i m) (i n) < e"
     proof (rule exI [where x=M], clarify)
       fix m n

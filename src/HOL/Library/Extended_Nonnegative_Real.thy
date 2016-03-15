@@ -613,7 +613,7 @@ proof (intro antisym top_greatest le_SUP_iff[THEN iffD2] allI impI)
   then obtain r where "y = ennreal r"
     by (cases y rule: ennreal_cases) auto
   then show "\<exists>i\<in>UNIV. y < of_nat i"
-    using ex_less_of_nat[of "max 1 r"] zero_less_one
+    using reals_Archimedean2[of "max 1 r"] zero_less_one
     by (auto simp: ennreal_of_nat_eq_real_of_nat ennreal_def less_ennreal.abs_eq eq_onp_def max.absorb2
              dest!: one_less_of_natD intro: less_trans)
 qed

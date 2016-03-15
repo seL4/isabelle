@@ -600,7 +600,7 @@ lemma closed_valid_path_image: "valid_path g \<Longrightarrow> closed(path_image
   by (metis closed_path_image valid_path_imp_path)
 
 proposition valid_path_compose:
-  assumes "valid_path g" 
+  assumes "valid_path g"
       and der: "\<And>x. x \<in> path_image g \<Longrightarrow> \<exists>f'. (f has_field_derivative f') (at x)"
       and con: "continuous_on (path_image g) (deriv f)"
     shows "valid_path (f o g)"
@@ -609,7 +609,7 @@ proof -
     using `valid_path g` unfolding valid_path_def piecewise_C1_differentiable_on_def by auto
   have "f \<circ> g differentiable at t" when "t\<in>{0..1} - s" for t
     proof (rule differentiable_chain_at)
-      show "g differentiable at t" using `valid_path g` 
+      show "g differentiable at t" using `valid_path g`
         by (meson C1_differentiable_on_eq \<open>g C1_differentiable_on {0..1} - s\<close> that)
     next
       have "g t\<in>path_image g" using that DiffD1 image_eqI path_image_def by metis
@@ -625,11 +625,11 @@ proof -
       show "continuous_on ({0..1} - s) (\<lambda>x. vector_derivative g (at x))"
         using g_diff C1_differentiable_on_eq by auto
     next
-      have "continuous_on {0..1} (\<lambda>x. deriv f (g x))" 
-        using continuous_on_compose[OF _ con[unfolded path_image_def],unfolded comp_def] 
-          `valid_path g` piecewise_C1_differentiable_on_def valid_path_def 
+      have "continuous_on {0..1} (\<lambda>x. deriv f (g x))"
+        using continuous_on_compose[OF _ con[unfolded path_image_def],unfolded comp_def]
+          `valid_path g` piecewise_C1_differentiable_on_def valid_path_def
         by blast
-      then show "continuous_on ({0..1} - s) (\<lambda>x. deriv f (g x))" 
+      then show "continuous_on ({0..1} - s) (\<lambda>x. deriv f (g x))"
         using continuous_on_subset by blast
     next
       show "vector_derivative g (at t) * deriv f (g t) = vector_derivative (f \<circ> g) (at t)"
@@ -645,11 +645,11 @@ proof -
     qed
   ultimately have "f o g C1_differentiable_on {0..1} - s"
     using C1_differentiable_on_eq by blast
-  moreover have "path (f o g)" 
+  moreover have "path (f o g)"
     proof -
-      have "isCont f x" when "x\<in>path_image g" for x 
+      have "isCont f x" when "x\<in>path_image g" for x
         proof -
-          obtain f' where "(f has_field_derivative f') (at x)" 
+          obtain f' where "(f has_field_derivative f') (at x)"
             using der[rule_format] `x\<in>path_image g` by auto
           thus ?thesis using DERIV_isCont by auto
         qed
@@ -2236,7 +2236,8 @@ proof -
     have ?thesis
       using holomorphic_point_small_triangle [OF xin contf fx, of "e/10"] e
       apply clarsimp
-      apply (rule_tac x1="K/k" in exE [OF real_arch_pow2], blast)
+      apply (rule_tac y1="K/k" in exE [OF real_arch_pow[of 2]])
+      apply force+
       done
   }
   moreover have "f contour_integrable_on (linepath a b +++ linepath b c +++ linepath c a)"
@@ -3012,7 +3013,7 @@ proof -
     unfolding uniformly_continuous_on_def dist_norm real_norm_def
     by (metis divide_pos_pos enz zero_less_numeral)
   then obtain N::nat where N: "N>0" "inverse N < d"
-    using real_arch_inv [of d]   by auto
+    using real_arch_inverse [of d]   by auto
   { fix g h
     assume g: "valid_path g" and gp: "\<forall>t\<in>{0..1}. cmod (g t - p t) < e / 3"
        and h: "valid_path h" and hp: "\<forall>t\<in>{0..1}. cmod (h t - p t) < e / 3"
@@ -5732,11 +5733,11 @@ lemma valid_path_compose_holomorphic:
 proof (rule valid_path_compose[OF `valid_path g`])
   fix x assume "x \<in> path_image g"
   then show "\<exists>f'. (f has_field_derivative f') (at x)"
-    using holo holomorphic_on_open[OF `open s`] `path_image g \<subseteq> s` by auto 
+    using holo holomorphic_on_open[OF `open s`] `path_image g \<subseteq> s` by auto
 next
   have "deriv f holomorphic_on s"
     using holomorphic_deriv holo `open s` by auto
-  then show "continuous_on (path_image g) (deriv f)" 
+  then show "continuous_on (path_image g) (deriv f)"
     using assms(4) holomorphic_on_imp_continuous_on holomorphic_on_subset by auto
 qed
 
