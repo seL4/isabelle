@@ -342,10 +342,9 @@ object Sessions
         output_dir :: Path.split(Isabelle_System.getenv_strict("ISABELLE_PATH")).map(_ + ml_ident)
       }
 
-    //optional heap + log_gz
-    def find(name: String): Option[(Path, Path)] =
+    def find(name: String): Option[(Path, Option[String])] =
       input_dirs.find(dir => (dir + log_gz(name)).is_file).map(dir =>
-        (dir + Path.basic(name), dir + log_gz(name)))
+        (dir + log_gz(name), File.time_stamp(dir + Path.basic(name))))
 
     def find_heap(name: String): Option[Path] =
       input_dirs.map(_ + Path.basic(name)).find(_.is_file)

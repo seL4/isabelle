@@ -380,13 +380,6 @@ object Build
   private def sources_stamp(digests: List[SHA1.Digest]): String =
     digests.map(_.toString).sorted.mkString(SOURCES, " ", "")
 
-  private def time_stamp(path: Path): Option[String] =
-  {
-    val file = path.file
-    if (file.isFile) Some(file.length.toString + " " + file.lastModified.toString)
-    else None
-  }
-
   private def read_stamps(path: Path): Option[(String, List[String], List[String])] =
     if (path.is_file) {
       val stream = new GZIPInputStream(new BufferedInputStream(new FileInputStream(path.file)))
@@ -515,7 +508,7 @@ object Build
     }
 
     // scheduler loop
-    case class Result(current: Boolean, heaps: List[String], process: Option[Process_Result])
+    case class Result(current: Boolean, heap_stamp: Option[String], process: Option[Process_Result])
     {
       def ok: Boolean =
         process match {
@@ -560,21 +553,21 @@ object Build
                   lines1)
             }
 
-            val heaps =
+            val heap_stamp =
               if (process_result.ok) {
                 (store.output_dir + Sessions.log(name)).file.delete
-                val heaps =
-                  (for (path <- job.output_path; stamp <- time_stamp(path))
-                    yield stamp).toList
+                val heap_stamp =
+                  for (path <- job.output_path; stamp <- File.time_stamp(path))
+                    yield stamp
 
                 File.write_gzip(store.output_dir + Sessions.log_gz(name),
                   Library.terminate_lines(
                     session_sources_stamp(name) ::
                     input_heaps.map(INPUT_HEAP + _) :::
-                    heaps.map(OUTPUT_HEAP + _) :::
+                    heap_stamp.toList.map(OUTPUT_HEAP + _) :::
                     List(LOG_START) ::: process_result.out_lines))
 
-                heaps
+                heap_stamp
               }
               else {
                 (store.output_dir + Path.basic(name)).file.delete
@@ -585,47 +578,46 @@ object Build
                 progress.echo(name + " FAILED")
                 if (!process_result.interrupted) progress.echo(process_result_tail.out)
 
-                Nil
+                None
               }
             loop(pending - name, running - name,
-              results + (name -> Result(false, heaps, Some(process_result_tail))))
+              results + (name -> Result(false, heap_stamp, Some(process_result_tail))))
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
             pending.dequeue(running.isDefinedAt(_)) match {
               case Some((name, info)) =>
                 val ancestor_results = selected_tree.ancestors(name).map(results(_))
-                val ancestor_heaps = ancestor_results.map(_.heaps).flatten
+                val ancestor_heaps = ancestor_results.flatMap(_.heap_stamp)
 
                 val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
 
-                val (current, heaps) =
+                val (current, heap_stamp) =
                 {
                   store.find(name) match {
-                    case Some((heap, log_gz)) =>
+                    case Some((log_gz, heap_stamp)) =>
                       read_stamps(log_gz) match {
                         case Some((sources, input_heaps, output_heaps)) =>
-                          val heaps = time_stamp(heap).toList
                           val current =
                             sources == session_sources_stamp(name) &&
                             input_heaps == ancestor_heaps.map(INPUT_HEAP + _) &&
-                            output_heaps == heaps.map(OUTPUT_HEAP + _) &&
-                            !(do_output && heaps.isEmpty)
-                          (current, heaps)
-                        case None => (false, Nil)
+                            output_heaps == heap_stamp.toList.map(OUTPUT_HEAP + _) &&
+                            !(do_output && heap_stamp.isEmpty)
+                          (current, heap_stamp)
+                        case None => (false, None)
                       }
-                    case None => (false, Nil)
+                    case None => (false, None)
                   }
                 }
                 val all_current = current && ancestor_results.forall(_.current)
 
                 if (all_current)
                   loop(pending - name, running,
-                    results + (name -> Result(true, heaps, Some(Process_Result(0)))))
+                    results + (name -> Result(true, heap_stamp, Some(Process_Result(0)))))
                 else if (no_build) {
                   if (verbose) progress.echo("Skipping " + name + " ...")
                   loop(pending - name, running,
-                    results + (name -> Result(false, heaps, Some(Process_Result(1)))))
+                    results + (name -> Result(false, heap_stamp, Some(Process_Result(1)))))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
@@ -636,7 +628,7 @@ object Build
                 }
                 else {
                   progress.echo(name + " CANCELLED")
-                  loop(pending - name, running, results + (name -> Result(false, heaps, None)))
+                  loop(pending - name, running, results + (name -> Result(false, heap_stamp, None)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
