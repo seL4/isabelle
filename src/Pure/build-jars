@@ -90,6 +90,7 @@ declare -a SOURCES=(
   System/utf8.scala
   Thy/html.scala
   Thy/present.scala
+  Thy/sessions.scala
   Thy/thy_header.scala
   Thy/thy_info.scala
   Thy/thy_syntax.scala

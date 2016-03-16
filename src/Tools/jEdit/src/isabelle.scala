@@ -51,7 +51,7 @@ object Isabelle
     mode match {
       case "isabelle" => Some(PIDE.resources.base_syntax.asInstanceOf[Outer_Syntax])
       case "isabelle-options" => Some(Options.options_syntax)
-      case "isabelle-root" => Some(Build.root_syntax)
+      case "isabelle-root" => Some(Sessions.root_syntax)
       case "isabelle-ml" => Some(ml_syntax)
       case "isabelle-news" => Some(news_syntax)
       case "isabelle-output" => None

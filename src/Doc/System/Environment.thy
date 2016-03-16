@@ -1,6 +1,6 @@
-(*:maxLineLen=78:*)
+     (*:maxLineLen=78:*)
 
-theory Basics
+theory Environment
 imports Base
 begin
 
@@ -302,34 +302,27 @@ subsection \<open>Batch mode \label{sec:tool-process}\<close>
 text \<open>
   The @{tool_def process} tool runs the raw ML process in batch mode:
   @{verbatim [display]
-\<open>Usage: isabelle process [OPTIONS] [HEAP]
+\<open>Usage: isabelle process [OPTIONS]
 
   Options are:
+    -d DIR       include session directory
     -e ML_EXPR   evaluate ML expression on startup
     -f ML_FILE   evaluate ML file on startup
+    -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
-  Run the raw Isabelle ML process in batch mode, using a given heap image.
+  Run the raw Isabelle ML process in batch mode.\<close>}
 
-  If HEAP is a plain name (default ISABELLE_LOGIC), it is searched in
-  ISABELLE_PATH; if it contains a slash, it is taken as literal file;
-  if it is RAW_ML_SYSTEM, the initial ML heap is used.\<close>}
-
-  Heap files without explicit directory specifications are looked up in the
-  @{setting ISABELLE_PATH} setting, which may consist of multiple components
-  separated by colons --- these are tried in the given order with the value of
-  @{setting ML_IDENTIFIER} appended internally.
-\<close>
-
-
-subsubsection \<open>Options\<close>
-
-text \<open>
+  \<^medskip>
   Options \<^verbatim>\<open>-e\<close> and \<^verbatim>\<open>-f\<close> allow to evaluate ML code, before the ML process is
   started. The source is either given literally or taken from a file. Multiple
   \<^verbatim>\<open>-e\<close> and \<^verbatim>\<open>-f\<close> options are evaluated in the given order. Errors lead to
   premature exit of the ML process with return code 1.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-l\<close> specifies the logic session name. Option \<^verbatim>\<open>-d\<close> specifies
+  additional directories for session roots, see also \secref{sec:tool-build}.
 
   \<^medskip>
   The \<^verbatim>\<open>-m\<close> option adds identifiers of print modes to be made active for this
@@ -347,7 +340,7 @@ subsubsection \<open>Example\<close>
 text \<open>
   The subsequent example retrieves the \<^verbatim>\<open>Main\<close> theory value from the theory
   loader within ML:
-  @{verbatim [display] \<open>isabelle process -e 'Thy_Info.get_theory "Main"' HOL\<close>}
+  @{verbatim [display] \<open>isabelle process -e 'Thy_Info.get_theory "Main"'\<close>}
 
   Observe the delicate quoting rules for the Bash shell vs.\ ML. The
   Isabelle/ML and Scala libraries provide functions for that, but here we need
@@ -369,22 +362,25 @@ text \<open>
     -m MODE      add print mode for output
     -n           no build of session image on startup
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -r           logic session is RAW_ML_SYSTEM
+    -r           bootstrap from raw Poly/ML
     -s           system build mode for session image
 
   Build a logic session image and run the raw Isabelle ML process
   in interactive mode, with line editor ISABELLE_LINE_EDITOR.\<close>}
 
+  \<^medskip>
   Option \<^verbatim>\<open>-l\<close> specifies the logic session name. By default, its heap image is
-  checked and built on demand, but the option \<^verbatim>\<open>-n\<close> skips that. Option \<^verbatim>\<open>-r\<close>
-  abbreviates \<^verbatim>\<open>-l RAW_ML_SYSTEM\<close>, which is relevant to bootstrap
-  Isabelle/Pure interactively.
+  checked and built on demand, but the option \<^verbatim>\<open>-n\<close> skips that.
 
-  Options \<^verbatim>\<open>-d\<close> and \<^verbatim>\<open>-s\<close> have the same meaning as for @{tool build}
-  (\secref{sec:tool-build}).
+  Option \<^verbatim>\<open>-r\<close> indicates a bootstrap from the raw Poly/ML system, which is
+  relevant for Isabelle/Pure development.
 
-  Options \<^verbatim>\<open>-m\<close> and \<^verbatim>\<open>-o\<close> have the same meaning as for @{tool process}
+  \<^medskip>
+  Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-m\<close>, \<^verbatim>\<open>-o\<close> have the same meaning as for @{tool process}
   (\secref{sec:tool-process}).
+
+  Option \<^verbatim>\<open>-s\<close> has the same meaning as for @{tool build}
+  (\secref{sec:tool-build}).
 
   \<^medskip>
   The Isabelle/ML process is run through the line editor that is specified via

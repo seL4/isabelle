@@ -19,321 +19,13 @@ import scala.annotation.tailrec
 
 object Build
 {
-  /** session information **/
-
-  // external version
-  abstract class Entry
-  sealed case class Chapter(name: String) extends Entry
-  sealed case class Session_Entry(
-    pos: Position.T,
-    name: String,
-    groups: List[String],
-    path: String,
-    parent: Option[String],
-    description: String,
-    options: List[Options.Spec],
-    theories: List[(Boolean, List[Options.Spec], List[String])],
-    files: List[String],
-    document_files: List[(String, String)]) extends Entry
-
-  // internal version
-  sealed case class Session_Info(
-    chapter: String,
-    select: Boolean,
-    pos: Position.T,
-    groups: List[String],
-    dir: Path,
-    parent: Option[String],
-    description: String,
-    options: Options,
-    theories: List[(Boolean, Options, List[Path])],
-    files: List[Path],
-    document_files: List[(Path, Path)],
-    entry_digest: SHA1.Digest)
-  {
-    def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
-  }
-
-  def is_pure(name: String): Boolean = name == "Pure"
-
-  def session_info(options: Options, select: Boolean, dir: Path,
-      chapter: String, entry: Session_Entry): (String, Session_Info) =
-    try {
-      val name = entry.name
-
-      if (name == "") error("Bad session name")
-      if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
-      if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
-
-      val session_options = options ++ entry.options
-
-      val theories =
-        entry.theories.map({ case (global, opts, thys) =>
-          (global, session_options ++ opts, thys.map(Path.explode(_))) })
-      val files = entry.files.map(Path.explode(_))
-      val document_files =
-        entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
-
-      val entry_digest =
-        SHA1.digest((chapter, name, entry.parent, entry.options,
-          entry.theories, entry.files, entry.document_files).toString)
-
-      val info =
-        Session_Info(chapter, select, entry.pos, entry.groups, dir + Path.explode(entry.path),
-          entry.parent, entry.description, session_options, theories, files,
-          document_files, entry_digest)
-
-      (name, info)
-    }
-    catch {
-      case ERROR(msg) =>
-        error(msg + "\nThe error(s) above occurred in session entry " +
-          quote(entry.name) + Position.here(entry.pos))
-    }
-
-
-  /* session tree */
-
-  object Session_Tree
-  {
-    def apply(infos: Seq[(String, Session_Info)]): Session_Tree =
-    {
-      val graph1 =
-        (Graph.string[Session_Info] /: infos) {
-          case (graph, (name, info)) =>
-            if (graph.defined(name))
-              error("Duplicate session " + quote(name) + Position.here(info.pos) +
-                Position.here(graph.get_node(name).pos))
-            else graph.new_node(name, info)
-        }
-      val graph2 =
-        (graph1 /: graph1.iterator) {
-          case (graph, (name, (info, _))) =>
-            info.parent match {
-              case None => graph
-              case Some(parent) =>
-                if (!graph.defined(parent))
-                  error("Bad parent session " + quote(parent) + " for " +
-                    quote(name) + Position.here(info.pos))
-
-                try { graph.add_edge_acyclic(parent, name) }
-                catch {
-                  case exn: Graph.Cycles[_] =>
-                    error(cat_lines(exn.cycles.map(cycle =>
-                      "Cyclic session dependency of " +
-                        cycle.map(c => quote(c.toString)).mkString(" via "))) +
-                          Position.here(info.pos))
-                }
-            }
-        }
-      new Session_Tree(graph2)
-    }
-  }
-
-  final class Session_Tree private(val graph: Graph[String, Session_Info])
-    extends PartialFunction[String, Session_Info]
-  {
-    def apply(name: String): Session_Info = graph.get_node(name)
-    def isDefinedAt(name: String): Boolean = graph.defined(name)
-
-    def selection(
-      requirements: Boolean = false,
-      all_sessions: Boolean = false,
-      exclude_session_groups: List[String] = Nil,
-      exclude_sessions: List[String] = Nil,
-      session_groups: List[String] = Nil,
-      sessions: List[String] = Nil): (List[String], Session_Tree) =
-    {
-      val bad_sessions =
-        SortedSet((exclude_sessions ::: sessions).filterNot(isDefinedAt(_)): _*).toList
-      if (bad_sessions.nonEmpty) error("Undefined session(s): " + commas_quote(bad_sessions))
-
-      val excluded =
-      {
-        val exclude_group = exclude_session_groups.toSet
-        val exclude_group_sessions =
-          (for {
-            (name, (info, _)) <- graph.iterator
-            if apply(name).groups.exists(exclude_group)
-          } yield name).toList
-        graph.all_succs(exclude_group_sessions ::: exclude_sessions).toSet
-      }
-
-      val pre_selected =
-      {
-        if (all_sessions) graph.keys
-        else {
-          val select_group = session_groups.toSet
-          val select = sessions.toSet
-          (for {
-            (name, (info, _)) <- graph.iterator
-            if info.select || select(name) || apply(name).groups.exists(select_group)
-          } yield name).toList
-        }
-      }.filterNot(excluded)
-
-      val selected =
-        if (requirements) (graph.all_preds(pre_selected).toSet -- pre_selected).toList
-        else pre_selected
-
-      val graph1 = graph.restrict(graph.all_preds(selected).toSet)
-      (selected, new Session_Tree(graph1))
-    }
-
-    def topological_order: List[(String, Session_Info)] =
-      graph.topological_order.map(name => (name, apply(name)))
-
-    override def toString: String = graph.keys_iterator.mkString("Session_Tree(", ", ", ")")
-  }
-
-
-  /* parser */
-
-  val chapter_default = "Unsorted"
-
-  private val CHAPTER = "chapter"
-  private val SESSION = "session"
-  private val IN = "in"
-  private val DESCRIPTION = "description"
-  private val OPTIONS = "options"
-  private val GLOBAL_THEORIES = "global_theories"
-  private val THEORIES = "theories"
-  private val FILES = "files"
-  private val DOCUMENT_FILES = "document_files"
-
-  lazy val root_syntax =
-    Outer_Syntax.init() + "(" + ")" + "+" + "," + "=" + "[" + "]" +
-      (CHAPTER, Keyword.THY_DECL) + (SESSION, Keyword.THY_DECL) +
-      IN + DESCRIPTION + OPTIONS + GLOBAL_THEORIES + THEORIES + FILES + DOCUMENT_FILES
-
-  object Parser extends Parse.Parser
-  {
-    private val chapter: Parser[Chapter] =
-    {
-      val chapter_name = atom("chapter name", _.is_name)
-
-      command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter(a) }
-    }
-
-    private val session_entry: Parser[Session_Entry] =
-    {
-      val session_name = atom("session name", _.is_name)
-
-      val option =
-        name ~ opt($$$("=") ~! name ^^ { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
-      val options = $$$("[") ~> rep1sep(option, $$$(",")) <~ $$$("]")
-
-      val theories =
-        ($$$(GLOBAL_THEORIES) | $$$(THEORIES)) ~!
-          ((options | success(Nil)) ~ rep(theory_xname)) ^^
-          { case x ~ (y ~ z) => (x == GLOBAL_THEORIES, y, z) }
-
-      val document_files =
-        $$$(DOCUMENT_FILES) ~!
-          (($$$("(") ~! ($$$(IN) ~! (path ~ $$$(")"))) ^^
-              { case _ ~ (_ ~ (x ~ _)) => x } | success("document")) ~
-            rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
-
-      command(SESSION) ~!
-        (position(session_name) ~
-          (($$$("(") ~! (rep1(name) <~ $$$(")")) ^^ { case _ ~ x => x }) | success(Nil)) ~
-          (($$$(IN) ~! path ^^ { case _ ~ x => x }) | success(".")) ~
-          ($$$("=") ~!
-            (opt(session_name ~! $$$("+") ^^ { case x ~ _ => x }) ~
-              (($$$(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
-              (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
-              rep1(theories) ~
-              (($$$(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
-              (rep(document_files) ^^ (x => x.flatten))))) ^^
-        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
-    }
-
-    def parse_entries(root: Path): List[(String, Session_Entry)] =
-    {
-      val toks = Token.explode(root_syntax.keywords, File.read(root))
-      val start = Token.Pos.file(root.implode)
-
-      parse_all(rep(chapter | session_entry), Token.reader(toks, start)) match {
-        case Success(result, _) =>
-          var chapter = chapter_default
-          val entries = new mutable.ListBuffer[(String, Session_Entry)]
-          result.foreach {
-            case Chapter(name) => chapter = name
-            case session_entry: Session_Entry => entries += ((chapter, session_entry))
-          }
-          entries.toList
-        case bad => error(bad.toString)
-      }
-    }
-  }
-
-
-  /* find sessions within certain directories */
-
-  private val ROOT = Path.explode("ROOT")
-  private val ROOTS = Path.explode("ROOTS")
-
-  private def is_session_dir(dir: Path): Boolean =
-    (dir + ROOT).is_file || (dir + ROOTS).is_file
-
-  private def check_session_dir(dir: Path): Path =
-    if (is_session_dir(dir)) dir
-    else error("Bad session root directory: " + dir.toString)
-
-  def find_sessions(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil)
-    : Session_Tree =
-  {
-    def find_dir(select: Boolean, dir: Path): List[(String, Session_Info)] =
-      find_root(select, dir) ::: find_roots(select, dir)
-
-    def find_root(select: Boolean, dir: Path): List[(String, Session_Info)] =
-    {
-      val root = dir + ROOT
-      if (root.is_file)
-        Parser.parse_entries(root).map(p => session_info(options, select, dir, p._1, p._2))
-      else Nil
-    }
-
-    def find_roots(select: Boolean, dir: Path): List[(String, Session_Info)] =
-    {
-      val roots = dir + ROOTS
-      if (roots.is_file) {
-        for {
-          line <- split_lines(File.read(roots))
-          if !(line == "" || line.startsWith("#"))
-          dir1 =
-            try { check_session_dir(dir + Path.explode(line)) }
-            catch {
-              case ERROR(msg) =>
-                error(msg + "\nThe error(s) above occurred in session catalog " + roots.toString)
-            }
-          info <- find_dir(select, dir1)
-        } yield info
-      }
-      else Nil
-    }
-
-    val default_dirs = Isabelle_System.components().filter(is_session_dir(_))
-    dirs.foreach(check_session_dir(_))
-    select_dirs.foreach(check_session_dir(_))
-
-    Session_Tree(
-      for {
-        (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
-        info <- find_dir(select, dir)
-      } yield info)
-  }
-
-
-
-  /** build **/
+  /** auxiliary **/
 
   /* queue */
 
-  object Queue
+  private object Queue
   {
-    def apply(tree: Session_Tree, load_timings: String => (List[Properties.T], Double)): Queue =
+    def apply(tree: Sessions.Tree, load_timings: String => (List[Properties.T], Double)): Queue =
     {
       val graph = tree.graph
       val sessions = graph.keys
@@ -375,8 +67,8 @@ object Build
     }
   }
 
-  final class Queue private(
-    graph: Graph[String, Session_Info],
+  private final class Queue private(
+    graph: Graph[String, Sessions.Info],
     order: SortedSet[String],
     val command_timings: String => List[Properties.T])
   {
@@ -389,7 +81,7 @@ object Build
         order - name,  // FIXME scala-2.10.0 TreeSet problem!?
         command_timings)
 
-    def dequeue(skip: String => Boolean): Option[(String, Session_Info)] =
+    def dequeue(skip: String => Boolean): Option[(String, Sessions.Info)] =
     {
       val it = order.iterator.dropWhile(name =>
         skip(name)
@@ -424,7 +116,7 @@ object Build
       verbose: Boolean = false,
       list_files: Boolean = false,
       check_keywords: Set[String] = Set.empty,
-      tree: Session_Tree): Deps =
+      tree: Sessions.Tree): Deps =
     Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
           if (progress.stopped) throw Exn.Interrupt()
@@ -517,7 +209,7 @@ object Build
     dirs: List[Path],
     sessions: List[String]): Deps =
   {
-    val (_, tree) = find_sessions(options, dirs = dirs).selection(sessions = sessions)
+    val (_, tree) = Sessions.load(options, dirs = dirs).selection(sessions = sessions)
     dependencies(inlined_files = inlined_files, tree = tree)
   }
 
@@ -536,20 +228,24 @@ object Build
 
   /* jobs */
 
-  private class Job(progress: Progress,
-    name: String, val info: Session_Info, output: Path, do_output: Boolean, verbose: Boolean,
-    browser_info: Path, session_graph: Graph_Display.Graph, command_timings: List[Properties.T])
+  private class Job(progress: Progress, name: String, val info: Sessions.Info, tree: Sessions.Tree,
+    store: Sessions.Store, do_output: Boolean, verbose: Boolean,
+    session_graph: Graph_Display.Graph, command_timings: List[Properties.T])
   {
+    val output = store.output_dir + Path.basic(name)
     def output_path: Option[Path] = if (do_output) Some(output) else None
-    def output_standard_path: String = if (do_output) File.standard_path(output) else ""
+    def output_save_state: String =
+      if (do_output)
+        "PolyML.SaveState.saveChild (" + ML_Syntax.print_string0(File.platform_path(output)) +
+          ", List.length (PolyML.SaveState.showHierarchy ()))"
+      else ""
+    output.file.delete
 
     private val parent = info.parent.getOrElse("")
 
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
     try { isabelle.graphview.Graph_File.write(info.options, graph_file, session_graph) }
     catch { case ERROR(_) => /*error should be exposed in ML*/ }
-
-    output.file.delete
 
     private val env =
       Isabelle_System.settings() +
@@ -558,13 +254,13 @@ object Build
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
         val process =
-          if (is_pure(name)) {
+          if (Sessions.is_pure(name)) {
             val eval =
               "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default ();" +
-              " Session.shutdown (); ML_Heap.share_common_data ();" +
-              " ML_Heap.save_state " + ML_Syntax.print_string_raw(output_standard_path) + "));"
-            ML_Process(info.options, "RAW_ML_SYSTEM", List("--use", "ROOT.ML", "--eval", eval),
-              cwd = info.dir.file, env = env)
+              " Session.shutdown (); ML_Heap.share_common_data (); " + output_save_state + "));"
+            ML_Process(info.options,
+              raw_ml_system = true, args = List("--use", "ROOT.ML", "--eval", eval),
+              cwd = info.dir.file, env = env, tree = Some(tree), store = store)
           }
           else {
             val args_file = Isabelle_System.tmp_file("build")
@@ -572,19 +268,22 @@ object Build
                 {
                   val theories = info.theories.map(x => (x._2, x._3))
                   import XML.Encode._
-                  pair(list(pair(string, int)), pair(list(properties), pair(string, pair(bool,
+                  pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(bool,
                     pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
                     pair(string, pair(string, pair(string,
                     list(pair(Options.encode, list(Path.encode)))))))))))))(
-                  (Symbol.codes, (command_timings, (output_standard_path, (verbose,
-                    (browser_info, (info.document_files, (File.standard_path(graph_file),
+                  (Symbol.codes, (command_timings, (do_output, (verbose,
+                    (store.browser_info, (info.document_files, (File.standard_path(graph_file),
                     (parent, (info.chapter, (name,
                     theories)))))))))))
                 }))
-            ML_Process(info.options, parent,
-              List("--eval",
-                "Build.build " + ML_Syntax.print_string_raw(File.standard_path(args_file))),
-              cwd = info.dir.file, env = env, cleanup = () => args_file.delete)
+            val eval =
+              "Command_Line.tool0 (fn () => (" +
+              "Build.build " + ML_Syntax.print_string0(File.standard_path(args_file)) +
+              (if (do_output) "; ML_Heap.share_common_data (); " + output_save_state
+               else "") + "));"
+            ML_Process(info.options, parent, List("--eval", eval), cwd = info.dir.file,
+              env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
           }
         process.result(
           progress_stdout = (line: String) =>
@@ -615,8 +314,8 @@ object Build
     {
       val result = future_result.join
 
-      if (result.ok && !is_pure(name))
-        Present.finish(progress, browser_info, graph_file, info, name)
+      if (result.ok && !Sessions.is_pure(name))
+        Present.finish(progress, store.browser_info, graph_file, info, name)
 
       graph_file.delete
       timeout_request.foreach(_.cancel)
@@ -646,12 +345,7 @@ object Build
 
   /* log files */
 
-  private val LOG = Path.explode("log")
-  private def log(name: String): Path = LOG + Path.basic(name)
-  private def log_gz(name: String): Path = log(name).ext("gz")
-
   private val SESSION_NAME = "\fSession.name = "
-
 
   sealed case class Log_Info(
     name: String,
@@ -679,51 +373,59 @@ object Build
 
   /* sources and heaps */
 
+  private val SOURCES = "sources: "
+  private val INPUT_HEAP = "input_heap: "
+  private val OUTPUT_HEAP = "output_heap: "
+  private val LOG_START = "log:"
+  private val line_prefixes = List(SOURCES, INPUT_HEAP, OUTPUT_HEAP, LOG_START)
+
   private def sources_stamp(digests: List[SHA1.Digest]): String =
-    digests.map(_.toString).sorted.mkString("sources: ", " ", "")
+    digests.map(_.toString).sorted.mkString(SOURCES, " ", "")
 
-  private val no_heap: String = "heap: -"
-
-  private def heap_stamp(heap: Option[Path]): String =
-  {
-    "heap: " +
-      (heap match {
-        case Some(path) =>
-          val file = path.file
-          if (file.isFile) file.length.toString + " " + file.lastModified.toString
-          else "-"
-        case None => "-"
-      })
-  }
-
-  private def read_stamps(path: Path): Option[(String, String, String)] =
+  private def read_stamps(path: Path): Option[(String, List[String], List[String])] =
     if (path.is_file) {
-      val stream = new GZIPInputStream (new BufferedInputStream(new FileInputStream(path.file)))
+      val stream = new GZIPInputStream(new BufferedInputStream(new FileInputStream(path.file)))
       val reader = new BufferedReader(new InputStreamReader(stream, UTF8.charset))
-      val (s, h1, h2) =
-        try { (reader.readLine, reader.readLine, reader.readLine) }
+      val lines =
+      {
+        val lines = new mutable.ListBuffer[String]
+        try {
+          var finished = false
+          while (!finished) {
+            val line = reader.readLine
+            if (line != null && line_prefixes.exists(line.startsWith(_)))
+              lines += line
+            else finished = true
+          }
+        }
         finally { reader.close }
-      if (s != null && s.startsWith("sources: ") &&
-          h1 != null && h1.startsWith("heap: ") &&
-          h2 != null && h2.startsWith("heap: ")) Some((s, h1, h2))
+        lines.toList
+      }
+
+      if (!lines.isEmpty && lines.last.startsWith(LOG_START)) {
+        lines.find(_.startsWith(SOURCES)).map(s =>
+          (s, lines.filter(_.startsWith(INPUT_HEAP)), lines.filter(_.startsWith(OUTPUT_HEAP))))
+      }
       else None
     }
     else None
 
 
-  /* build_results */
 
-  class Build_Results private [Build](results: Map[String, Option[Process_Result]])
+  /** build with results **/
+
+  class Results private [Build](results: Map[String, Option[Process_Result]])
   {
     def sessions: Set[String] = results.keySet
     def cancelled(name: String): Boolean = results(name).isEmpty
     def apply(name: String): Process_Result = results(name).getOrElse(Process_Result(1))
     val rc = (0 /: results.iterator.map({ case (_, Some(r)) => r.rc case (_, None) => 1 }))(_ max _)
+    def ok: Boolean = rc == 0
 
     override def toString: String = rc.toString
   }
 
-  def build_results(
+  def build(
     options: Options,
     progress: Progress = Ignore_Progress,
     requirements: Boolean = false,
@@ -741,36 +443,21 @@ object Build
     system_mode: Boolean = false,
     verbose: Boolean = false,
     exclude_sessions: List[String] = Nil,
-    sessions: List[String] = Nil): Build_Results =
+    sessions: List[String] = Nil): Results =
   {
     /* session tree and dependencies */
 
-    val full_tree = find_sessions(options.int("completion_limit") = 0, dirs, select_dirs)
+    val full_tree = Sessions.load(options.int("completion_limit") = 0, dirs, select_dirs)
     val (selected, selected_tree) =
       full_tree.selection(requirements, all_sessions,
         exclude_session_groups, exclude_sessions, session_groups, sessions)
 
     val deps = dependencies(progress, true, verbose, list_files, check_keywords, selected_tree)
 
-    def make_stamp(name: String): String =
-      sources_stamp(selected_tree(name).entry_digest :: deps.sources(name))
+    def session_sources_stamp(name: String): String =
+      sources_stamp(selected_tree(name).meta_digest :: deps.sources(name))
 
-
-    /* persistent information */
-
-    val (input_dirs, output_dir, browser_info) =
-      if (system_mode) {
-        val output_dir = Path.explode("~~/heaps/$ML_IDENTIFIER")
-        (List(output_dir), output_dir, Path.explode("~~/browser_info"))
-      }
-      else {
-        val output_dir = Path.explode("$ISABELLE_OUTPUT")
-        (output_dir :: Isabelle_System.find_logics_dirs(), output_dir,
-         Path.explode("$ISABELLE_BROWSER_INFO"))
-      }
-
-    def find_log(name: String): Option[(Path, Path)] =
-      input_dirs.find(dir => (dir + log(name)).is_file).map(dir => (dir, dir + log(name)))
+    val store = Sessions.store(system_mode)
 
 
     /* queue with scheduling information */
@@ -778,11 +465,11 @@ object Build
     def load_timings(name: String): (List[Properties.T], Double) =
     {
       val (path, text) =
-        find_log(name + ".gz") match {
-          case Some((_, path)) => (path, File.read_gzip(path))
+        store.find_log_gz(name) match {
+          case Some(path) => (path, File.read_gzip(path))
           case None =>
-            find_log(name) match {
-              case Some((_, path)) => (path, File.read(path))
+            store.find_log(name) match {
+              case Some(path) => (path, File.read(path))
               case None => (Path.current, "")
             }
         }
@@ -810,21 +497,21 @@ object Build
 
     /* main build process */
 
-    // prepare log dir
-    Isabelle_System.mkdirs(output_dir + LOG)
+    store.prepare_output()
 
     // optional cleanup
     if (clean_build) {
       for (name <- full_tree.graph.all_succs(selected)) {
         val files =
-          List(Path.basic(name), log(name), log_gz(name)).map(output_dir + _).filter(_.is_file)
+          List(Path.basic(name), Sessions.log(name), Sessions.log_gz(name)).
+            map(store.output_dir + _).filter(_.is_file)
         if (files.nonEmpty) progress.echo("Cleaning " + name + " ...")
         if (!files.forall(p => p.file.delete)) progress.echo(name + " FAILED to delete")
       }
     }
 
     // scheduler loop
-    case class Result(current: Boolean, heap: String, process: Option[Process_Result])
+    case class Result(current: Boolean, heap_stamp: Option[String], process: Option[Process_Result])
     {
       def ok: Boolean =
         process match {
@@ -841,7 +528,7 @@ object Build
 
     @tailrec def loop(
       pending: Queue,
-      running: Map[String, (String, Job)],
+      running: Map[String, (List[String], Job)],
       results: Map[String, Result]): Map[String, Result] =
     {
       if (pending.is_empty) results
@@ -850,7 +537,7 @@ object Build
           for ((_, (_, job)) <- running) job.terminate
 
         running.find({ case (_, (_, job)) => job.is_finished }) match {
-          case Some((name, (parent_heap, job))) =>
+          case Some((name, (input_heaps, job))) =>
             //{{{ finish job
 
             val process_result = job.join
@@ -863,80 +550,88 @@ object Build
               val lines = process_result.out_lines.filterNot(_.startsWith("\f"))
               val tail = job.info.options.int("process_output_tail")
               val lines1 = if (tail == 0) lines else lines.drop(lines.length - tail max 0)
-              process_result.copy(out_lines =
-                "(see also " + (output_dir + log(name)).file.toString + ")" :: lines1)
+              process_result.copy(
+                out_lines =
+                  "(see also " + (store.output_dir + Sessions.log(name)).file.toString + ")" ::
+                  lines1)
             }
 
-            val heap =
+            val heap_stamp =
               if (process_result.ok) {
-                (output_dir + log(name)).file.delete
+                (store.output_dir + Sessions.log(name)).file.delete
+                val heap_stamp =
+                  for (path <- job.output_path; stamp <- File.time_stamp(path))
+                    yield stamp
 
-                val sources = make_stamp(name)
-                val heap = heap_stamp(job.output_path)
-                File.write_gzip(output_dir + log_gz(name),
-                  Library.terminate_lines(sources :: parent_heap :: heap :: process_result.out_lines))
+                File.write_gzip(store.output_dir + Sessions.log_gz(name),
+                  Library.terminate_lines(
+                    session_sources_stamp(name) ::
+                    input_heaps.map(INPUT_HEAP + _) :::
+                    heap_stamp.toList.map(OUTPUT_HEAP + _) :::
+                    List(LOG_START) ::: process_result.out_lines))
 
-                heap
+                heap_stamp
               }
               else {
-                (output_dir + Path.basic(name)).file.delete
-                (output_dir + log_gz(name)).file.delete
+                (store.output_dir + Path.basic(name)).file.delete
+                (store.output_dir + Sessions.log_gz(name)).file.delete
 
-                File.write(output_dir + log(name), Library.terminate_lines(process_result.out_lines))
+                File.write(store.output_dir + Sessions.log(name),
+                  Library.terminate_lines(process_result.out_lines))
                 progress.echo(name + " FAILED")
                 if (!process_result.interrupted) progress.echo(process_result_tail.out)
 
-                no_heap
+                None
               }
             loop(pending - name, running - name,
-              results + (name -> Result(false, heap, Some(process_result_tail))))
+              results + (name -> Result(false, heap_stamp, Some(process_result_tail))))
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
             pending.dequeue(running.isDefinedAt(_)) match {
               case Some((name, info)) =>
-                val parent_result =
-                  info.parent match {
-                    case None => Result(true, no_heap, Some(Process_Result(0)))
-                    case Some(parent) => results(parent)
-                  }
-                val output = output_dir + Path.basic(name)
-                val do_output = build_heap || is_pure(name) || queue.is_inner(name)
+                val ancestor_results = selected_tree.ancestors(name).map(results(_))
+                val ancestor_heaps = ancestor_results.flatMap(_.heap_stamp)
 
-                val (current, heap) =
+                val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
+
+                val (current, heap_stamp) =
                 {
-                  find_log(name + ".gz") match {
-                    case Some((dir, path)) =>
-                      read_stamps(path) match {
-                        case Some((s, h1, h2)) =>
-                          val heap = heap_stamp(Some(dir + Path.basic(name)))
-                          (s == make_stamp(name) && h1 == parent_result.heap && h2 == heap &&
-                            !(do_output && heap == no_heap), heap)
-                        case None => (false, no_heap)
+                  store.find(name) match {
+                    case Some((log_gz, heap_stamp)) =>
+                      read_stamps(log_gz) match {
+                        case Some((sources, input_heaps, output_heaps)) =>
+                          val current =
+                            sources == session_sources_stamp(name) &&
+                            input_heaps == ancestor_heaps.map(INPUT_HEAP + _) &&
+                            output_heaps == heap_stamp.toList.map(OUTPUT_HEAP + _) &&
+                            !(do_output && heap_stamp.isEmpty)
+                          (current, heap_stamp)
+                        case None => (false, None)
                       }
-                    case None => (false, no_heap)
+                    case None => (false, None)
                   }
                 }
-                val all_current = current && parent_result.current
+                val all_current = current && ancestor_results.forall(_.current)
 
                 if (all_current)
                   loop(pending - name, running,
-                    results + (name -> Result(true, heap, Some(Process_Result(0)))))
+                    results + (name -> Result(true, heap_stamp, Some(Process_Result(0)))))
                 else if (no_build) {
                   if (verbose) progress.echo("Skipping " + name + " ...")
                   loop(pending - name, running,
-                    results + (name -> Result(false, heap, Some(Process_Result(1)))))
+                    results + (name -> Result(false, heap_stamp, Some(Process_Result(1)))))
                 }
-                else if (parent_result.ok && !progress.stopped) {
+                else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job =
-                    new Job(progress, name, info, output, do_output, verbose, browser_info,
+                    new Job(progress, name, info, selected_tree, store, do_output, verbose,
                       deps(name).session_graph, queue.command_timings(name))
-                  loop(pending, running + (name -> (parent_result.heap, job)), results)
+                  loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
                 else {
                   progress.echo(name + " CANCELLED")
-                  loop(pending - name, running, results + (name -> Result(false, heap, None)))
+                  loop(pending - name, running, results + (name -> Result(false, heap_stamp, None)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
@@ -949,62 +644,15 @@ object Build
 
     /* build results */
 
-    val results =
+    val results0 =
       if (deps.is_empty) {
         progress.echo(Output.warning_text("Nothing to build"))
         Map.empty[String, Result]
       }
       else loop(queue, Map.empty, Map.empty)
 
-
-    /* global browser info */
-
-    if (!no_build) {
-      val browser_chapters =
-        (for {
-          (name, result) <- results.iterator
-          if result.ok && !is_pure(name)
-          info = full_tree(name)
-          if info.options.bool("browser_info")
-        } yield (info.chapter, (name, info.description))).toList.groupBy(_._1).
-            map({ case (chapter, es) => (chapter, es.map(_._2)) }).filterNot(_._2.isEmpty)
-
-      for ((chapter, entries) <- browser_chapters)
-        Present.update_chapter_index(browser_info, chapter, entries)
-
-      if (browser_chapters.nonEmpty) Present.make_global_index(browser_info)
-    }
-
-    new Build_Results((for ((name, result) <- results.iterator) yield (name, result.process)).toMap)
-  }
-
-
-  /* build */
-
-  def build(
-    options: Options,
-    progress: Progress = Ignore_Progress,
-    requirements: Boolean = false,
-    all_sessions: Boolean = false,
-    build_heap: Boolean = false,
-    clean_build: Boolean = false,
-    dirs: List[Path] = Nil,
-    select_dirs: List[Path] = Nil,
-    exclude_session_groups: List[String] = Nil,
-    session_groups: List[String] = Nil,
-    max_jobs: Int = 1,
-    list_files: Boolean = false,
-    check_keywords: Set[String] = Set.empty,
-    no_build: Boolean = false,
-    system_mode: Boolean = false,
-    verbose: Boolean = false,
-    exclude_sessions: List[String] = Nil,
-    sessions: List[String] = Nil): Int =
-  {
     val results =
-      build_results(options, progress, requirements, all_sessions, build_heap, clean_build,
-        dirs, select_dirs, exclude_session_groups, session_groups, max_jobs, list_files,
-        check_keywords, no_build, system_mode, verbose, exclude_sessions, sessions)
+      new Results((for ((name, result) <- results0.iterator) yield (name, result.process)).toMap)
 
     if (results.rc != 0 && (verbose || !no_build)) {
       val unfinished =
@@ -1015,7 +663,26 @@ object Build
       progress.echo("Unfinished session(s): " + commas(unfinished))
     }
 
-    results.rc
+
+    /* global browser info */
+
+    if (!no_build) {
+      val browser_chapters =
+        (for {
+          (name, result) <- results0.iterator
+          if result.ok && !Sessions.is_pure(name)
+          info = full_tree(name)
+          if info.options.bool("browser_info")
+        } yield (info.chapter, (name, info.description))).toList.groupBy(_._1).
+            map({ case (chapter, es) => (chapter, es.map(_._2)) }).filterNot(_._2.isEmpty)
+
+      for ((chapter, entries) <- browser_chapters)
+        Present.update_chapter_index(store.browser_info, chapter, entries)
+
+      if (browser_chapters.nonEmpty) Present.make_global_index(store.browser_info)
+    }
+
+    results
   }
 
 
@@ -1111,7 +778,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       val start_time = Time.now()
       val results =
         progress.interrupt_handler {
-          build_results(options, progress, requirements, all_sessions, build_heap, clean_build,
+          build(options, progress, requirements, all_sessions, build_heap, clean_build,
             dirs, select_dirs, exclude_session_groups, session_groups, max_jobs, list_files,
             check_keywords, no_build, system_mode, verbose, exclude_sessions, sessions)
         }

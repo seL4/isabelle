@@ -1,4 +1,4 @@
-(*** Isabelle/Pure bootstrap from RAW_ML_SYSTEM ***)
+(*** Isabelle/Pure bootstrap ***)
 
 (** bootstrap phase 0: Poly/ML setup **)
 

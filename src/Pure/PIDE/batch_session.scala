@@ -18,15 +18,14 @@ object Batch_Session
     dirs: List[Path] = Nil,
     session: String): Batch_Session =
   {
-    val (_, session_tree) =
-      Build.find_sessions(options, dirs).selection(sessions = List(session))
+    val (_, session_tree) = Sessions.load(options, dirs).selection(sessions = List(session))
     val session_info = session_tree(session)
     val parent_session =
       session_info.parent getOrElse error("No parent session for " + quote(session))
 
-    if (Build.build(options, new Console_Progress(verbose),
+    if (!Build.build(options, new Console_Progress(verbose),
         verbose = verbose, build_heap = true,
-        dirs = dirs, sessions = List(parent_session)) != 0)
+        dirs = dirs, sessions = List(parent_session)).ok)
       new RuntimeException
 
     val deps = Build.dependencies(verbose = verbose, tree = session_tree)
@@ -59,7 +58,7 @@ object Batch_Session
       }
 
     prover_session.start(receiver =>
-      Isabelle_Process(options, heap = parent_session, receiver = receiver))
+      Isabelle_Process(options, logic = parent_session, receiver = receiver))
 
     batch_session
   }

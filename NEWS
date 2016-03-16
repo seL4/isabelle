@@ -58,16 +58,16 @@ corresponding to {0..255}.
 
   - Logical representation:
     * 0 is instantiated to the ASCII zero character.
-    * All other characters are represented as »Char n«
+    * All other characters are represented as "Char n"
       with n being a raw numeral expression less than 256.
-    * Expressions of the form »Char n« with n greater than 255
+    * Expressions of the form "Char n" with n greater than 255
       are non-canonical.
   - Printing and parsing:
-    * Printable characters are printed and parsed as »CHR ''…''«
+    * Printable characters are printed and parsed as "CHR ''\<dots>''"
       (as before).
-    * The ASCII zero character is printed and parsed as »0«.
-    * All other canonical characters are printed as »CHAR 0xXX«
-      with XX being the hexadecimal character code.  »CHAR n«
+    * The ASCII zero character is printed and parsed as "0".
+    * All other canonical characters are printed as "CHAR 0xXX"
+      with XX being the hexadecimal character code.  "CHAR n"
       is parsable for every numeral expression n.
     * Non-canonical characters have no special syntax and are
       printed as their logical representation.
@@ -280,6 +280,9 @@ less versatile) operations File.shell_quote, File.shell_path etc. have
 been discontinued.
 
 * SML/NJ and old versions of Poly/ML are no longer supported.
+
+* Poly/ML heaps now follow the hierarchy of sessions, and thus require
+much less disk space.
 
 
 

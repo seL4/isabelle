@@ -325,19 +325,7 @@ object Isabelle_System
     Path.split(getenv_strict("ISABELLE_COMPONENTS"))
 
 
-  /* logic images */
-
-  def find_logics_dirs(): List[Path] =
-  {
-    val ml_ident = Path.explode("$ML_IDENTIFIER").expand
-    Path.split(getenv_strict("ISABELLE_PATH")).map(_ + ml_ident)
-  }
-
-  def find_logics(): List[String] =
-    (for {
-      dir <- find_logics_dirs()
-      files = dir.file.listFiles() if files != null
-      file <- files.toList if file.isFile } yield file.getName).sorted
+  /* default logic */
 
   def default_logic(args: String*): String =
   {

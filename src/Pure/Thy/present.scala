@@ -96,7 +96,7 @@ object Present
     progress: Progress,
     browser_info: Path,
     graph_file: JFile,
-    info: Build.Session_Info,
+    info: Sessions.Info,
     name: String)
   {
     val session_prefix = browser_info + Path.basic(info.chapter) + Path.basic(name)

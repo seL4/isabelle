@@ -254,4 +254,14 @@ object File
   }
 
   def copy(path1: Path, path2: Path): Unit = copy(path1.file, path2.file)
+
+
+  /* approximative time stamp */
+
+  def time_stamp(path: Path): Option[String] =
+  {
+    val file = path.file
+    if (file.isFile) Some(file.length.toString + " " + file.lastModified.toString)
+    else None
+  }
 }

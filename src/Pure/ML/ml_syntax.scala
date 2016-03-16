@@ -31,7 +31,7 @@ object ML_Syntax
   def print_string(str: String): String =
     quote(Symbol.iterator(str).map(print_char(_)).mkString)
 
-  def print_string_raw(str: String): String =
+  def print_string0(str: String): String =
     quote(UTF8.bytes(str).iterator.map(print_chr(_)).mkString)
 
   def print_list[A](f: A => String)(list: List[A]): String =
