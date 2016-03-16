@@ -18,7 +18,7 @@ object Batch_Session
     dirs: List[Path] = Nil,
     session: String): Batch_Session =
   {
-    val (_, session_tree) = Sessions.find(options, dirs).selection(sessions = List(session))
+    val (_, session_tree) = Sessions.load(options, dirs).selection(sessions = List(session))
     val session_info = session_tree(session)
     val parent_session =
       session_info.parent getOrElse error("No parent session for " + quote(session))

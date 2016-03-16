@@ -209,7 +209,7 @@ object Build
     dirs: List[Path],
     sessions: List[String]): Deps =
   {
-    val (_, tree) = Sessions.find(options, dirs = dirs).selection(sessions = sessions)
+    val (_, tree) = Sessions.load(options, dirs = dirs).selection(sessions = sessions)
     dependencies(inlined_files = inlined_files, tree = tree)
   }
 
@@ -451,7 +451,7 @@ object Build
   {
     /* session tree and dependencies */
 
-    val full_tree = Sessions.find(options.int("completion_limit") = 0, dirs, select_dirs)
+    val full_tree = Sessions.load(options.int("completion_limit") = 0, dirs, select_dirs)
     val (selected, selected_tree) =
       full_tree.selection(requirements, all_sessions,
         exclude_session_groups, exclude_sessions, session_groups, sessions)

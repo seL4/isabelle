@@ -84,7 +84,7 @@ object Isabelle_Logic
 
   def session_list(): List[String] =
   {
-    val session_tree = Sessions.find(PIDE.options.value, dirs = session_dirs())
+    val session_tree = Sessions.load(PIDE.options.value, dirs = session_dirs())
     val (main_sessions, other_sessions) =
       session_tree.topological_order.partition(p => p._2.groups.contains("main"))
     main_sessions.map(_._1).sorted ::: other_sessions.map(_._1).sorted

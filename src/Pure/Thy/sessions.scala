@@ -270,7 +270,7 @@ object Sessions
   }
 
 
-  /* find sessions within certain directories */
+  /* load sessions from certain directories */
 
   private def is_session_dir(dir: Path): Boolean =
     (dir + ROOT).is_file || (dir + ROOTS).is_file
@@ -279,15 +279,15 @@ object Sessions
     if (is_session_dir(dir)) dir
     else error("Bad session root directory: " + dir.toString)
 
-  def find(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil): Tree =
+  def load(options: Options, dirs: List[Path] = Nil, select_dirs: List[Path] = Nil): Tree =
   {
-    def find_dir(select: Boolean, dir: Path): List[(String, Info)] =
-      find_root(select, dir) ::: find_roots(select, dir)
+    def load_dir(select: Boolean, dir: Path): List[(String, Info)] =
+      load_root(select, dir) ::: load_roots(select, dir)
 
-    def find_root(select: Boolean, dir: Path): List[(String, Info)] =
+    def load_root(select: Boolean, dir: Path): List[(String, Info)] =
       Parser.parse(options, select, dir)
 
-    def find_roots(select: Boolean, dir: Path): List[(String, Info)] =
+    def load_roots(select: Boolean, dir: Path): List[(String, Info)] =
     {
       val roots = dir + ROOTS
       if (roots.is_file) {
@@ -300,7 +300,7 @@ object Sessions
               case ERROR(msg) =>
                 error(msg + "\nThe error(s) above occurred in session catalog " + roots.toString)
             }
-          info <- find_dir(select, dir1)
+          info <- load_dir(select, dir1)
         } yield info
       }
       else Nil
@@ -313,7 +313,7 @@ object Sessions
     Tree(
       for {
         (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
-        info <- find_dir(select, dir)
+        info <- load_dir(select, dir)
       } yield info)
   }
 
