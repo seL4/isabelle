@@ -11,7 +11,7 @@ object Isabelle_Process
 {
   def apply(
     options: Options,
-    heap: String = "",
+    logic: String = "",
     args: List[String] = Nil,
     modes: List[String] = Nil,
     secure: Boolean = false,
@@ -21,7 +21,7 @@ object Isabelle_Process
     val channel = System_Channel()
     val process =
       try {
-        ML_Process(options, heap = heap, args = args, modes = modes, secure = secure,
+        ML_Process(options, logic = logic, args = args, modes = modes, secure = secure,
           channel = Some(channel), store = store)
       }
       catch { case exn @ ERROR(_) => channel.accepted(); throw exn }

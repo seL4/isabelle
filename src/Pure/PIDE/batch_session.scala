@@ -58,7 +58,7 @@ object Batch_Session
       }
 
     prover_session.start(receiver =>
-      Isabelle_Process(options, heap = parent_session, receiver = receiver))
+      Isabelle_Process(options, logic = parent_session, receiver = receiver))
 
     batch_session
   }

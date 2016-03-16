@@ -13,7 +13,7 @@ import java.io.{File => JFile}
 object ML_Process
 {
   def apply(options: Options,
-    heap: String = "",
+    logic: String = "",
     args: List[String] = Nil,
     modes: List[String] = Nil,
     secure: Boolean = false,
@@ -24,34 +24,27 @@ object ML_Process
     channel: Option[System_Channel] = None,
     store: Sessions.Store = Sessions.store()): Bash.Process =
   {
-    val load_heaps =
-    {
-      if (heap == "RAW_ML_SYSTEM") Nil
-      else if (heap.iterator.contains('/')) {
-        val heap_path = Path.explode(heap)
-        if (!heap_path.is_file) error("Bad heap file: " + heap_path)
-        List(heap_path)
+    val heaps =
+      Isabelle_System.default_logic(logic) match {
+        case "RAW_ML_SYSTEM" => Nil
+        case name =>
+          store.find_heap(name) match {
+            case Some(path) => List(path)
+            case None =>
+              error("Unknown logic " + quote(name) + " -- no heap file found in:\n" +
+                cat_lines(store.input_dirs.map(dir => "  " + dir.implode)))
+          }
       }
-      else {
-        val heap_name = Isabelle_System.default_logic(heap)
-        store.find_heap(heap_name) match {
-          case Some(heap_path) => List(heap_path)
-          case None =>
-            error("Unknown logic " + quote(heap_name) + " -- no heap file found in:\n" +
-              cat_lines(store.input_dirs.map(dir => "  " + dir.implode)))
-        }
-      }
-    }
 
     val eval_heaps =
-      load_heaps.map(load_heap =>
-        "(PolyML.SaveState.loadState " + ML_Syntax.print_string_raw(File.platform_path(load_heap)) +
+      heaps.map(heap =>
+        "(PolyML.SaveState.loadState " + ML_Syntax.print_string_raw(File.platform_path(heap)) +
         "; PolyML.print_depth 0) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ " +
-        ML_Syntax.print_string_raw(": " + load_heap.toString + "\n") +
+        ML_Syntax.print_string_raw(": " + heap.toString + "\n") +
         "); OS.Process.exit OS.Process.failure)")
 
     val eval_initial =
-      if (load_heaps.isEmpty) {
+      if (heaps.isEmpty) {
         List(
           if (Platform.is_windows)
             "fun exit 0 = OS.Process.exit OS.Process.success" +
@@ -72,12 +65,12 @@ object ML_Process
     val isabelle_process_options = Isabelle_System.tmp_file("options")
     File.write(isabelle_process_options, YXML.string_of_body(options.encode))
     val env_options = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
-    val eval_options = if (load_heaps.isEmpty) Nil else List("Options.load_default ()")
+    val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
 
     val eval_secure = if (secure) List("Secure.set_secure ()") else Nil
 
     val eval_process =
-      if (load_heaps.isEmpty)
+      if (heaps.isEmpty)
         List("PolyML.print_depth 10")
       else
         channel match {
@@ -119,39 +112,32 @@ object ML_Process
   {
     Command_Line.tool {
       var eval_args: List[String] = Nil
+      var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
       var modes: List[String] = Nil
       var options = Options.init()
 
       val getopts = Getopts("""
-Usage: isabelle process [OPTIONS] [HEAP]
+Usage: isabelle process [OPTIONS]
 
   Options are:
     -e ML_EXPR   evaluate ML expression on startup
     -f ML_FILE   evaluate ML file on startup
+    -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
-  Run the raw Isabelle ML process in batch mode, using a given heap image.
-
-  If HEAP is a plain name (default ISABELLE_LOGIC=""" +
-  quote(Isabelle_System.getenv("ISABELLE_LOGIC")) + """), it is searched in
-  ISABELLE_PATH; if it contains a slash, it is taken as literal file;
-  if it is "RAW_ML_SYSTEM", the initial ML heap is used.
+  Run the raw Isabelle ML process in batch mode.
 """,
         "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
         "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
+        "l:" -> (arg => logic = arg),
         "m:" -> (arg => modes = arg :: modes),
         "o:" -> (arg => options = options + arg))
 
-      if (args.isEmpty) getopts.usage()
-      val heap =
-        getopts(args) match {
-          case Nil => ""
-          case List(heap) => heap
-          case _ => getopts.usage()
-        }
+      val more_args = getopts(args)
+      if (args.isEmpty || !more_args.isEmpty) getopts.usage()
 
-      ML_Process(options, heap = heap, args = eval_args ::: args.toList, modes = modes).
+      ML_Process(options, logic = logic, args = eval_args ::: args.toList, modes = modes).
         result().print_stdout.rc
     }
   }

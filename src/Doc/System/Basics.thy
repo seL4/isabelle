@@ -302,24 +302,16 @@ subsection \<open>Batch mode \label{sec:tool-process}\<close>
 text \<open>
   The @{tool_def process} tool runs the raw ML process in batch mode:
   @{verbatim [display]
-\<open>Usage: isabelle process [OPTIONS] [HEAP]
+\<open>Usage: isabelle process [OPTIONS]
 
   Options are:
     -e ML_EXPR   evaluate ML expression on startup
     -f ML_FILE   evaluate ML file on startup
+    -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
-  Run the raw Isabelle ML process in batch mode, using a given heap image.
-
-  If HEAP is a plain name (default ISABELLE_LOGIC), it is searched in
-  ISABELLE_PATH; if it contains a slash, it is taken as literal file;
-  if it is RAW_ML_SYSTEM, the initial ML heap is used.\<close>}
-
-  Heap files without explicit directory specifications are looked up in the
-  @{setting ISABELLE_PATH} setting, which may consist of multiple components
-  separated by colons --- these are tried in the given order with the value of
-  @{setting ML_IDENTIFIER} appended internally.
+  Run the raw Isabelle ML process in batch mode.\<close>}
 \<close>
 
 
@@ -330,6 +322,9 @@ text \<open>
   started. The source is either given literally or taken from a file. Multiple
   \<^verbatim>\<open>-e\<close> and \<^verbatim>\<open>-f\<close> options are evaluated in the given order. Errors lead to
   premature exit of the ML process with return code 1.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-l\<close> specifies the logic session name.
 
   \<^medskip>
   The \<^verbatim>\<open>-m\<close> option adds identifiers of print modes to be made active for this
@@ -347,7 +342,7 @@ subsubsection \<open>Example\<close>
 text \<open>
   The subsequent example retrieves the \<^verbatim>\<open>Main\<close> theory value from the theory
   loader within ML:
-  @{verbatim [display] \<open>isabelle process -e 'Thy_Info.get_theory "Main"' HOL\<close>}
+  @{verbatim [display] \<open>isabelle process -e 'Thy_Info.get_theory "Main"'\<close>}
 
   Observe the delicate quoting rules for the Bash shell vs.\ ML. The
   Isabelle/ML and Scala libraries provide functions for that, but here we need
