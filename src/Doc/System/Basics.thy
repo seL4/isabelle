@@ -305,6 +305,7 @@ text \<open>
 \<open>Usage: isabelle process [OPTIONS]
 
   Options are:
+    -d DIR       include session directory
     -e ML_EXPR   evaluate ML expression on startup
     -f ML_FILE   evaluate ML file on startup
     -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
@@ -324,7 +325,8 @@ text \<open>
   premature exit of the ML process with return code 1.
 
   \<^medskip>
-  Option \<^verbatim>\<open>-l\<close> specifies the logic session name.
+  Option \<^verbatim>\<open>-l\<close> specifies the logic session name. Option \<^verbatim>\<open>-d\<close> specifies
+  additional directories for session roots, see also \secref{sec:tool-build}.
 
   \<^medskip>
   The \<^verbatim>\<open>-m\<close> option adds identifiers of print modes to be made active for this
@@ -375,11 +377,11 @@ text \<open>
   abbreviates \<^verbatim>\<open>-l RAW_ML_SYSTEM\<close>, which is relevant to bootstrap
   Isabelle/Pure interactively.
 
-  Options \<^verbatim>\<open>-d\<close> and \<^verbatim>\<open>-s\<close> have the same meaning as for @{tool build}
-  (\secref{sec:tool-build}).
-
-  Options \<^verbatim>\<open>-m\<close> and \<^verbatim>\<open>-o\<close> have the same meaning as for @{tool process}
+  Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-m\<close>, \<^verbatim>\<open>-o\<close> have the same meaning as for @{tool process}
   (\secref{sec:tool-process}).
+
+  Option \<^verbatim>\<open>-s\<close> has the same meaning as for @{tool build}
+  (\secref{sec:tool-build}).
 
   \<^medskip>
   The Isabelle/ML process is run through the line editor that is specified via

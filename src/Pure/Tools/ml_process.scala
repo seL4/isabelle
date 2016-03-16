@@ -109,6 +109,7 @@ object ML_Process
   def main(args: Array[String])
   {
     Command_Line.tool {
+      var dirs: List[Path] = Nil
       var eval_args: List[String] = Nil
       var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
       var modes: List[String] = Nil
@@ -118,6 +119,7 @@ object ML_Process
 Usage: isabelle process [OPTIONS]
 
   Options are:
+    -d DIR       include session directory
     -e ML_EXPR   evaluate ML expression on startup
     -f ML_FILE   evaluate ML file on startup
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
@@ -126,6 +128,7 @@ Usage: isabelle process [OPTIONS]
 
   Run the raw Isabelle ML process in batch mode.
 """,
+        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
         "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
         "l:" -> (arg => logic = arg),
@@ -135,7 +138,7 @@ Usage: isabelle process [OPTIONS]
       val more_args = getopts(args)
       if (args.isEmpty || !more_args.isEmpty) getopts.usage()
 
-      ML_Process(options, logic = logic, args = eval_args ::: args.toList, modes = modes).
+      ML_Process(options, logic = logic, args = eval_args, dirs = dirs, modes = modes).
         result().print_stdout.rc
     }
   }
