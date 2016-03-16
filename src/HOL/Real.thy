@@ -1404,21 +1404,6 @@ lemma real_gt_half_sum: "x < y ==> (x+y)/(2::real) < y"
 lemma real_sum_of_halves: "x/2 + x/2 = (x::real)"
   by simp
 
-subsection\<open>Absolute Value Function for the Reals\<close>
-
-lemma abs_minus_add_cancel: "\<bar>x + (- y)\<bar> = \<bar>y + (- (x::real))\<bar>"
-  by (simp add: abs_if)
-
-lemma abs_add_one_gt_zero: "(0::real) < 1 + \<bar>x\<bar>"
-  by (simp add: abs_if)
-
-lemma abs_add_one_not_less_self: "~ \<bar>x\<bar> + (1::real) < x"
-  by simp
-
-lemma abs_sum_triangle_ineq: "\<bar>(x::real) + y + (-l + -m)\<bar> \<le> \<bar>x + -l\<bar> + \<bar>y + -m\<bar>"
-  by simp
-
-
 subsection\<open>Floor and Ceiling Functions from the Reals to the Integers\<close>
 
 (* FIXME: theorems for negative numerals. Many duplicates, e.g. from Archimedean_Field.thy. *)
@@ -1564,7 +1549,7 @@ lemma floor_power:
 proof -
   have "x ^ n = of_int (\<lfloor>x\<rfloor> ^ n)"
     using assms by (induct n arbitrary: x) simp_all
-  then show ?thesis by (metis floor_of_int) 
+  then show ?thesis by (metis floor_of_int)
 qed
 
 lemma floor_numeral_power[simp]:

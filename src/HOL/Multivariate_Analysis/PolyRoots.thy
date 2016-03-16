@@ -169,9 +169,13 @@ next
     qed
 qed
 
-lemma norm_lemma_xy: "\<lbrakk>\<bar>b\<bar> + 1 \<le> norm(y) - a; norm(x) \<le> a\<rbrakk> \<Longrightarrow> b \<le> norm(x + y)"
-  by (metis abs_add_one_not_less_self add.commute diff_le_eq dual_order.trans le_less_linear
-         norm_diff_ineq)
+lemma norm_lemma_xy: assumes "\<bar>b\<bar> + 1 \<le> norm(y) - a" "norm(x) \<le> a" shows "b \<le> norm(x + y)"
+proof -
+  have "b \<le> norm y - norm x"
+    using assms by linarith
+  then show ?thesis
+    by (metis (no_types) add.commute norm_diff_ineq order_trans)
+qed
 
 lemma polyfun_extremal:
   fixes c :: "nat \<Rightarrow> 'a::real_normed_div_algebra"

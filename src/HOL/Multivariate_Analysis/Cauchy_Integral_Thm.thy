@@ -6286,7 +6286,13 @@ proof (rule ccontr)
   obtain B where B: "\<And>x. B \<le> cmod x \<Longrightarrow> norm (f x) * 2 < cmod (f z)"
     by (auto simp: dist_norm)
   def R \<equiv> "1 + \<bar>B\<bar> + norm z"
-  have "R > 0" unfolding R_def by (meson abs_add_one_gt_zero le_less_trans less_add_same_cancel2 norm_ge_zero)
+  have "R > 0" unfolding R_def 
+  proof -
+    have "0 \<le> cmod z + \<bar>B\<bar>"
+      by (metis (full_types) add_nonneg_nonneg norm_ge_zero real_norm_def)
+    then show "0 < 1 + \<bar>B\<bar> + cmod z"
+      by linarith
+  qed 
   have *: "((\<lambda>u. f u / (u - z)) has_contour_integral 2 * complex_of_real pi * \<i> * f z) (circlepath z R)"
     apply (rule Cauchy_integral_circlepath)
     using \<open>R > 0\<close> apply (auto intro: holomorphic_on_subset [OF holf] holomorphic_on_imp_continuous_on)+

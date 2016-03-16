@@ -6377,11 +6377,14 @@ definition closed_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a 
 definition open_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "open_segment a b \<equiv> closed_segment a b - {a,b}"
 
+lemmas segment = open_segment_def closed_segment_def
+
 definition "between = (\<lambda>(a,b) x. x \<in> closed_segment a b)"
 
 definition "starlike s \<longleftrightarrow> (\<exists>a\<in>s. \<forall>x\<in>s. closed_segment a x \<subseteq> s)"
 
-lemmas segment = open_segment_def closed_segment_def
+lemma starlike_UNIV [simp]: "starlike UNIV"
+  by (simp add: starlike_def)
 
 lemma midpoint_refl: "midpoint x x = x"
   unfolding midpoint_def
@@ -6540,6 +6543,9 @@ lemma closed_segment_idem [simp]: "closed_segment a a = {a}"
 lemma open_segment_idem [simp]: "open_segment a a = {}"
   by (simp add: open_segment_def)
 
+lemma closed_segment_eq_open: "closed_segment a b = open_segment a b \<union> {a,b}"
+  using open_segment_def by auto
+  
 lemma closed_segment_eq_real_ivl:
   fixes a b::real
   shows "closed_segment a b = (if a \<le> b then {a .. b} else {b .. a})"
@@ -7903,6 +7909,28 @@ qed
 
 lemmas rel_interior_segment = rel_interior_closed_segment rel_interior_open_segment
 
+lemma starlike_convex_tweak_boundary_points:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "S \<noteq> {}" and ST: "rel_interior S \<subseteq> T" and TS: "T \<subseteq> closure S"
+  shows "starlike T"
+proof -
+  have "rel_interior S \<noteq> {}"
+    by (simp add: assms rel_interior_eq_empty)
+  then obtain a where a: "a \<in> rel_interior S"  by blast 
+  with ST have "a \<in> T"  by blast 
+  have *: "\<And>x. x \<in> T \<Longrightarrow> open_segment a x \<subseteq> rel_interior S"
+    apply (rule rel_interior_closure_convex_segment [OF \<open>convex S\<close> a])
+    using assms by blast
+  show ?thesis
+    unfolding starlike_def
+    apply (rule bexI [OF _ \<open>a \<in> T\<close>])
+    apply (simp add: closed_segment_eq_open)
+    apply (intro conjI ballI a \<open>a \<in> T\<close> rel_interior_closure_convex_segment [OF \<open>convex S\<close> a])
+    apply (simp add: order_trans [OF * ST])
+    done
+qed
+
+subsection\<open>The relative frontier of a set\<close>
 
 definition "rel_frontier S = closure S - rel_interior S"
 

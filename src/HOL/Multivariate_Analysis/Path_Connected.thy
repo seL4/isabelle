@@ -3128,9 +3128,9 @@ proposition homotopic_with_compose_continuous_left:
   done
 
 proposition homotopic_compose_continuous_left:
-   "homotopic_with (\<lambda>f. True) X Y f g \<and>
-        continuous_on Y h \<and> image h Y \<subseteq> Z
-        \<Longrightarrow> homotopic_with (\<lambda>f. True) X Z (h o f) (h o g)"
+   "\<lbrakk>homotopic_with (\<lambda>_. True) X Y f g;
+     continuous_on Y h; h ` Y \<subseteq> Z\<rbrakk>
+    \<Longrightarrow> homotopic_with (\<lambda>f. True) X Z (h o f) (h o g)"
   using homotopic_with_compose_continuous_left by fastforce
 
 proposition homotopic_with_Pair:
@@ -4051,6 +4051,269 @@ proof -
   qed
   with assms show ?thesis
     by (simp add: simply_connected_eq_contractible_loop_any pathfinish_def pathstart_def)
+qed
+
+subsection\<open>Contractible sets\<close>
+
+definition contractible where
+ "contractible S \<equiv> \<exists>a. homotopic_with (\<lambda>x. True) S S id (\<lambda>x. a)"
+
+proposition contractible_imp_simply_connected:
+  fixes S :: "_::real_normed_vector set"
+  assumes "contractible S" shows "simply_connected S"
+proof (cases "S = {}")
+  case True then show ?thesis by force
+next
+  case False
+  obtain a where a: "homotopic_with (\<lambda>x. True) S S id (\<lambda>x. a)"
+    using assms by (force simp add: contractible_def)
+  then have "a \<in> S"
+    by (metis False homotopic_constant_maps homotopic_with_symD homotopic_with_trans path_component_mem(2))
+  show ?thesis
+    apply (simp add: simply_connected_eq_contractible_loop_all False)
+    apply (rule bexI [OF _ \<open>a \<in> S\<close>])
+    using a apply (simp add: homotopic_loops_def homotopic_with_def path_def path_image_def pathfinish_def pathstart_def)
+    apply clarify
+    apply (rule_tac x="(h o (\<lambda>y. (fst y, (p \<circ> snd) y)))" in exI)
+    apply (intro conjI continuous_on_compose continuous_intros)
+    apply (erule continuous_on_subset | force)+
+    done
+qed
+
+corollary contractible_imp_connected:
+  fixes S :: "_::real_normed_vector set"
+  shows "contractible S \<Longrightarrow> connected S"
+by (simp add: contractible_imp_simply_connected simply_connected_imp_connected)
+
+lemma contractible_imp_path_connected:
+  fixes S :: "_::real_normed_vector set"
+  shows "contractible S \<Longrightarrow> path_connected S"
+by (simp add: contractible_imp_simply_connected simply_connected_imp_path_connected)
+
+lemma nullhomotopic_through_contractible:
+  fixes S :: "_::topological_space set"
+  assumes f: "continuous_on S f" "f ` S \<subseteq> T"
+      and g: "continuous_on T g" "g ` T \<subseteq> U"
+      and T: "contractible T"
+    obtains c where "homotopic_with (\<lambda>h. True) S U (g o f) (\<lambda>x. c)"
+proof -
+  obtain b where b: "homotopic_with (\<lambda>x. True) T T id (\<lambda>x. b)"
+    using assms by (force simp add: contractible_def)
+  have "homotopic_with (\<lambda>f. True) T U (g \<circ> id) (g \<circ> (\<lambda>x. b))"
+    by (rule homotopic_compose_continuous_left [OF b g])
+  then have "homotopic_with (\<lambda>f. True) S U (g \<circ> id \<circ> f) (g \<circ> (\<lambda>x. b) \<circ> f)"
+    by (rule homotopic_compose_continuous_right [OF _ f])
+  then show ?thesis
+    by (simp add: comp_def that)
+qed
+
+lemma nullhomotopic_into_contractible:
+  assumes f: "continuous_on S f" "f ` S \<subseteq> T"
+      and T: "contractible T"
+    obtains c where "homotopic_with (\<lambda>h. True) S T f (\<lambda>x. c)"
+apply (rule nullhomotopic_through_contractible [OF f, of id T])
+using assms
+apply (auto simp: continuous_on_id)
+done
+
+lemma nullhomotopic_from_contractible:
+  assumes f: "continuous_on S f" "f ` S \<subseteq> T"
+      and S: "contractible S"
+    obtains c where "homotopic_with (\<lambda>h. True) S T f (\<lambda>x. c)"
+apply (rule nullhomotopic_through_contractible [OF continuous_on_id _ f S, of S])
+using assms
+apply (auto simp: comp_def)
+done
+
+lemma homotopic_through_contractible:
+  fixes S :: "_::real_normed_vector set"
+  assumes "continuous_on S f1" "f1 ` S \<subseteq> T"
+          "continuous_on T g1" "g1 ` T \<subseteq> U"
+          "continuous_on S f2" "f2 ` S \<subseteq> T"
+          "continuous_on T g2" "g2 ` T \<subseteq> U"
+          "contractible T" "path_connected U"
+   shows "homotopic_with (\<lambda>h. True) S U (g1 o f1) (g2 o f2)"
+proof -
+  obtain c1 where c1: "homotopic_with (\<lambda>h. True) S U (g1 o f1) (\<lambda>x. c1)"
+    apply (rule nullhomotopic_through_contractible [of S f1 T g1 U])
+    using assms apply (auto simp: )
+    done
+  obtain c2 where c2: "homotopic_with (\<lambda>h. True) S U (g2 o f2) (\<lambda>x. c2)"
+    apply (rule nullhomotopic_through_contractible [of S f2 T g2 U])
+    using assms apply (auto simp: )
+    done
+  have *: "S = {} \<or> (\<exists>t. path_connected t \<and> t \<subseteq> U \<and> c2 \<in> t \<and> c1 \<in> t)"
+  proof (cases "S = {}")
+    case True then show ?thesis by force
+  next
+    case False
+    with c1 c2 have "c1 \<in> U" "c2 \<in> U"
+      using homotopic_with_imp_subset2 all_not_in_conv image_subset_iff by blast+
+    with \<open>path_connected U\<close> show ?thesis by blast
+  qed
+  show ?thesis
+    apply (rule homotopic_with_trans [OF c1])
+    apply (rule homotopic_with_symD)
+    apply (rule homotopic_with_trans [OF c2])
+    apply (simp add: path_component homotopic_constant_maps *)
+    done
+qed
+
+lemma homotopic_into_contractible:
+  fixes S :: "'a::real_normed_vector set" and T:: "'b::real_normed_vector set"
+  assumes f: "continuous_on S f" "f ` S \<subseteq> T"
+      and g: "continuous_on S g" "g ` S \<subseteq> T"
+      and T: "contractible T"
+    shows "homotopic_with (\<lambda>h. True) S T f g"
+using homotopic_through_contractible [of S f T id T g id]
+by (simp add: assms contractible_imp_path_connected continuous_on_id)
+
+lemma homotopic_from_contractible:
+  fixes S :: "'a::real_normed_vector set" and T:: "'b::real_normed_vector set"
+  assumes f: "continuous_on S f" "f ` S \<subseteq> T"
+      and g: "continuous_on S g" "g ` S \<subseteq> T"
+      and "contractible S" "path_connected T"
+    shows "homotopic_with (\<lambda>h. True) S T f g"
+using homotopic_through_contractible [of S id S f T id g]
+by (simp add: assms contractible_imp_path_connected continuous_on_id)
+
+lemma starlike_imp_contractible_gen:
+  fixes S :: "'a::real_normed_vector set"
+  assumes S: "starlike S"
+      and P: "\<And>a T. \<lbrakk>a \<in> S; 0 \<le> T; T \<le> 1\<rbrakk> \<Longrightarrow> P(\<lambda>x. (1 - T) *\<^sub>R x + T *\<^sub>R a)"
+    obtains a where "homotopic_with P S S (\<lambda>x. x) (\<lambda>x. a)"
+proof -
+  obtain a where "a \<in> S" and a: "\<And>x. x \<in> S \<Longrightarrow> closed_segment a x \<subseteq> S"
+    using S by (auto simp add: starlike_def)
+  have "(\<lambda>y. (1 - fst y) *\<^sub>R snd y + fst y *\<^sub>R a) ` ({0..1} \<times> S) \<subseteq> S"
+    apply clarify
+    apply (erule a [unfolded closed_segment_def, THEN subsetD])
+    apply (simp add: )
+    apply (metis add_diff_cancel_right' diff_ge_0_iff_ge le_add_diff_inverse pth_c(1))
+    done
+  then show ?thesis
+    apply (rule_tac a="a" in that)
+    using \<open>a \<in> S\<close>
+    apply (simp add: homotopic_with_def)
+    apply (rule_tac x="\<lambda>y. (1 - (fst y)) *\<^sub>R snd y + (fst y) *\<^sub>R a" in exI)
+    apply (intro conjI ballI continuous_on_compose continuous_intros)
+    apply (simp_all add: P)
+    done
+qed
+
+lemma starlike_imp_contractible:
+  fixes S :: "'a::real_normed_vector set"
+  shows "starlike S \<Longrightarrow> contractible S"
+using starlike_imp_contractible_gen contractible_def by (fastforce simp: id_def)
+
+lemma contractible_UNIV: "contractible (UNIV :: 'a::real_normed_vector set)"
+  by (simp add: starlike_imp_contractible)
+
+lemma starlike_imp_simply_connected:
+  fixes S :: "'a::real_normed_vector set"
+  shows "starlike S \<Longrightarrow> simply_connected S"
+by (simp add: contractible_imp_simply_connected starlike_imp_contractible)
+
+lemma convex_imp_simply_connected:
+  fixes S :: "'a::real_normed_vector set"
+  shows "convex S \<Longrightarrow> simply_connected S"
+using convex_imp_starlike starlike_imp_simply_connected by blast
+
+lemma starlike_imp_path_connected:
+  fixes S :: "'a::real_normed_vector set"
+  shows "starlike S \<Longrightarrow> path_connected S"
+by (simp add: simply_connected_imp_path_connected starlike_imp_simply_connected)
+
+lemma starlike_imp_connected:
+  fixes S :: "'a::real_normed_vector set"
+  shows "starlike S \<Longrightarrow> connected S"
+by (simp add: path_connected_imp_connected starlike_imp_path_connected)
+
+lemma is_interval_simply_connected_1:
+  fixes S :: "real set"
+  shows "is_interval S \<longleftrightarrow> simply_connected S"
+using convex_imp_simply_connected is_interval_convex_1 is_interval_path_connected_1 simply_connected_imp_path_connected by auto
+
+lemma contractible_empty: "contractible {}"
+  by (simp add: continuous_on_empty contractible_def homotopic_with)
+
+lemma contractible_convex_tweak_boundary_points:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" and TS: "rel_interior S \<subseteq> T" "T \<subseteq> closure S"
+  shows "contractible T"
+proof (cases "S = {}")
+  case True
+  with assms show ?thesis
+    by (simp add: contractible_empty subsetCE)
+next
+  case False
+  show ?thesis
+    apply (rule starlike_imp_contractible)
+    apply (rule starlike_convex_tweak_boundary_points [OF \<open>convex S\<close> False TS])
+    done
+qed
+
+lemma convex_imp_contractible:
+  fixes S :: "'a::real_normed_vector set"
+  shows "convex S \<Longrightarrow> contractible S"
+using contractible_empty convex_imp_starlike starlike_imp_contractible by auto
+
+lemma contractible_sing:
+  fixes a :: "'a::real_normed_vector"
+  shows "contractible {a}"
+by (rule convex_imp_contractible [OF convex_singleton])
+
+lemma is_interval_contractible_1:
+  fixes S :: "real set"
+  shows  "is_interval S \<longleftrightarrow> contractible S"
+using contractible_imp_simply_connected convex_imp_contractible is_interval_convex_1 
+      is_interval_simply_connected_1 by auto
+
+lemma contractible_times:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes S: "contractible S" and T: "contractible T"
+  shows "contractible (S \<times> T)"
+proof -
+  obtain a h where conth: "continuous_on ({0..1} \<times> S) h" 
+             and hsub: "h ` ({0..1} \<times> S) \<subseteq> S"
+             and [simp]: "\<And>x. x \<in> S \<Longrightarrow> h (0, x) = x" 
+             and [simp]: "\<And>x. x \<in> S \<Longrightarrow>  h (1::real, x) = a"
+    using S by (auto simp add: contractible_def homotopic_with)
+  obtain b k where contk: "continuous_on ({0..1} \<times> T) k" 
+             and ksub: "k ` ({0..1} \<times> T) \<subseteq> T"
+             and [simp]: "\<And>x. x \<in> T \<Longrightarrow> k (0, x) = x" 
+             and [simp]: "\<And>x. x \<in> T \<Longrightarrow>  k (1::real, x) = b"
+    using T by (auto simp add: contractible_def homotopic_with)
+  show ?thesis
+    apply (simp add: contractible_def homotopic_with)
+    apply (rule exI [where x=a])
+    apply (rule exI [where x=b])
+    apply (rule exI [where x = "\<lambda>z. (h (fst z, fst(snd z)), k (fst z, snd(snd z)))"])
+    apply (intro conjI ballI continuous_intros continuous_on_compose2 [OF conth] continuous_on_compose2 [OF contk])
+    using hsub ksub 
+    apply (auto simp: )
+    done
+qed
+
+lemma homotopy_dominated_contractibility: 
+  fixes S :: "'a::real_normed_vector set" and T :: "'b::real_normed_vector set"
+  assumes S: "contractible S"
+      and f: "continuous_on S f" "image f S \<subseteq> T" 
+      and g: "continuous_on T g" "image g T \<subseteq> S" 
+      and hom: "homotopic_with (\<lambda>x. True) T T (f o g) id"
+    shows "contractible T"
+proof -
+  obtain b where "homotopic_with (\<lambda>h. True) S T f (\<lambda>x. b)"
+    using nullhomotopic_from_contractible [OF f S] .
+  then have homg: "homotopic_with (\<lambda>x. True) T T ((\<lambda>x. b) \<circ> g) (f \<circ> g)"
+    by (rule homotopic_with_compose_continuous_right [OF homotopic_with_symD g])
+  show ?thesis
+    apply (simp add: contractible_def)
+    apply (rule exI [where x = b])
+    apply (rule homotopic_with_symD)
+    apply (rule homotopic_with_trans [OF _ hom])
+    using homg apply (simp add: o_def)
+    done
 qed
 
 end

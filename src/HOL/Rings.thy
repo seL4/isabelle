@@ -2088,6 +2088,9 @@ lemma abs_diff_le_iff:
    "\<bar>x - a\<bar> \<le> r \<longleftrightarrow> a - r \<le> x \<and> x \<le> a + r"
   by (auto simp add: diff_le_eq ac_simps abs_le_iff)
 
+lemma abs_add_one_gt_zero: "0 < 1 + \<bar>x\<bar>"
+  by (force simp: abs_if not_less intro: zero_less_one add_strict_increasing less_trans)
+
 end
 
 subsection \<open>Dioids\<close>

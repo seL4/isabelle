@@ -686,4 +686,67 @@ proof -
     by (rule order_antisym)
 qed
 
+lemma cSup_abs_le: 
+  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
+  shows "S \<noteq> {} \<Longrightarrow> (\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Sup S\<bar> \<le> a"
+  apply (auto simp add: abs_le_iff intro: cSup_least)
+  by (metis bdd_aboveI cSup_upper neg_le_iff_le order_trans)
+
+lemma cInf_abs_ge:
+  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
+  assumes "S \<noteq> {}" and bdd: "\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a"
+  shows "\<bar>Inf S\<bar> \<le> a"
+proof -
+  have "Sup (uminus ` S) = - (Inf S)"
+  proof (rule antisym)
+    show "- (Inf S) \<le> Sup(uminus ` S)"
+      apply (subst minus_le_iff)
+      apply (rule cInf_greatest [OF \<open>S \<noteq> {}\<close>])
+      apply (subst minus_le_iff)
+      apply (rule cSup_upper, force)
+      using bdd apply (force simp add: abs_le_iff bdd_above_def)
+      done
+  next
+    show "Sup (uminus ` S) \<le> - Inf S"
+      apply (rule cSup_least)
+       using \<open>S \<noteq> {}\<close> apply (force simp add: )
+      apply clarsimp  
+      apply (rule cInf_lower)
+      apply assumption
+      using bdd apply (simp add: bdd_below_def)
+      apply (rule_tac x="-a" in exI)
+      apply force
+      done
+  qed
+  with cSup_abs_le [of "uminus ` S"] assms show ?thesis by fastforce
+qed
+
+lemma cSup_asclose:
+  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
+  assumes S: "S \<noteq> {}"
+    and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e"
+  shows "\<bar>Sup S - l\<bar> \<le> e"
+proof -
+  have th: "\<And>(x::'a) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e"
+    by arith
+  have "bdd_above S"
+    using b by (auto intro!: bdd_aboveI[of _ "l + e"])
+  with S b show ?thesis
+    unfolding th by (auto intro!: cSup_upper2 cSup_least)
+qed
+
+lemma cInf_asclose:
+  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
+  assumes S: "S \<noteq> {}"
+    and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e"
+  shows "\<bar>Inf S - l\<bar> \<le> e"
+proof -
+  have th: "\<And>(x::'a) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e"
+    by arith
+  have "bdd_below S"
+    using b by (auto intro!: bdd_belowI[of _ "l - e"])
+  with S b show ?thesis
+    unfolding th by (auto intro!: cInf_lower2 cInf_greatest)
+qed
+
 end
