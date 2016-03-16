@@ -236,7 +236,7 @@ object Build
     def output_path: Option[Path] = if (do_output) Some(output) else None
     def output_save_state: String =
       if (do_output)
-        "PolyML.SaveState.saveChild (" + ML_Syntax.print_string_raw(File.platform_path(output)) +
+        "PolyML.SaveState.saveChild (" + ML_Syntax.print_string0(File.platform_path(output)) +
           ", List.length (PolyML.SaveState.showHierarchy ()))"
       else ""
     output.file.delete
@@ -278,7 +278,7 @@ object Build
                 }))
             val eval =
               "Command_Line.tool0 (fn () => (" +
-              "Build.build " + ML_Syntax.print_string_raw(File.standard_path(args_file)) +
+              "Build.build " + ML_Syntax.print_string0(File.standard_path(args_file)) +
               (if (do_output) "; ML_Heap.share_common_data (); " + output_save_state
                else "") + "));"
             ML_Process(info.options, parent, List("--eval", eval), cwd = info.dir.file,

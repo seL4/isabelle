@@ -50,14 +50,14 @@ object ML_Process
       else
         List(
           "(PolyML.SaveState.loadHierarchy " +
-            ML_Syntax.print_list(ML_Syntax.print_string_raw)(heaps) +
+            ML_Syntax.print_list(ML_Syntax.print_string0)(heaps) +
           "; PolyML.print_depth 0) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ " +
-          ML_Syntax.print_string_raw(": " + logic_name + "\n") +
+          ML_Syntax.print_string0(": " + logic_name + "\n") +
           "); OS.Process.exit OS.Process.failure)")
 
     val eval_modes =
       if (modes.isEmpty) Nil
-      else List("Print_Mode.add_modes " + ML_Syntax.print_list(ML_Syntax.print_string_raw _)(modes))
+      else List("Print_Mode.add_modes " + ML_Syntax.print_list(ML_Syntax.print_string0)(modes))
 
     // options
     val isabelle_process_options = Isabelle_System.tmp_file("options")
@@ -76,7 +76,7 @@ object ML_Process
             List("(default_print_depth 10; Isabelle_Process.init_options ())")
           case Some(ch) =>
             List("(default_print_depth 10; Isabelle_Process.init_protocol " +
-              ML_Syntax.print_string_raw(ch.server_name) + ")")
+              ML_Syntax.print_string0(ch.server_name) + ")")
         }
 
     // ISABELLE_TMP
