@@ -258,7 +258,8 @@ object Build
             val eval =
               "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default ();" +
               " Session.shutdown (); ML_Heap.share_common_data (); " + output_save_state + "));"
-            ML_Process(info.options, "RAW_ML_SYSTEM", List("--use", "ROOT.ML", "--eval", eval),
+            ML_Process(info.options,
+              raw_ml_system = true, args = List("--use", "ROOT.ML", "--eval", eval),
               cwd = info.dir.file, env = env, tree = Some(tree), store = store)
           }
           else {

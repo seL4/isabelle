@@ -1,4 +1,4 @@
-(*:maxLineLen=78:*)
+     (*:maxLineLen=78:*)
 
 theory Environment
 imports Base
@@ -313,12 +313,8 @@ text \<open>
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
   Run the raw Isabelle ML process in batch mode.\<close>}
-\<close>
 
-
-subsubsection \<open>Options\<close>
-
-text \<open>
+  \<^medskip>
   Options \<^verbatim>\<open>-e\<close> and \<^verbatim>\<open>-f\<close> allow to evaluate ML code, before the ML process is
   started. The source is either given literally or taken from a file. Multiple
   \<^verbatim>\<open>-e\<close> and \<^verbatim>\<open>-f\<close> options are evaluated in the given order. Errors lead to
@@ -366,17 +362,20 @@ text \<open>
     -m MODE      add print mode for output
     -n           no build of session image on startup
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -r           logic session is RAW_ML_SYSTEM
+    -r           bootstrap from raw Poly/ML
     -s           system build mode for session image
 
   Build a logic session image and run the raw Isabelle ML process
   in interactive mode, with line editor ISABELLE_LINE_EDITOR.\<close>}
 
+  \<^medskip>
   Option \<^verbatim>\<open>-l\<close> specifies the logic session name. By default, its heap image is
-  checked and built on demand, but the option \<^verbatim>\<open>-n\<close> skips that. Option \<^verbatim>\<open>-r\<close>
-  abbreviates \<^verbatim>\<open>-l RAW_ML_SYSTEM\<close>, which is relevant to bootstrap
-  Isabelle/Pure interactively.
+  checked and built on demand, but the option \<^verbatim>\<open>-n\<close> skips that.
 
+  Option \<^verbatim>\<open>-r\<close> indicates a bootstrap from the raw Poly/ML system, which is
+  relevant for Isabelle/Pure development.
+
+  \<^medskip>
   Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-m\<close>, \<^verbatim>\<open>-o\<close> have the same meaning as for @{tool process}
   (\secref{sec:tool-process}).
 

@@ -22,6 +22,7 @@ object ML_Console
       var modes: List[String] = Nil
       var no_build = false
       var options = Options.init()
+      var raw_ml_system = false
       var system_mode = false
 
       val getopts = Getopts("""
@@ -33,7 +34,7 @@ Usage: isabelle console [OPTIONS]
     -m MODE      add print mode for output
     -n           no build of session image on startup
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -r           logic session is "RAW_ML_SYSTEM"
+    -r           bootstrap from raw Poly/ML
     -s           system build mode for session image
 
   Build a logic session image and run the raw Isabelle ML process
@@ -45,7 +46,7 @@ Usage: isabelle console [OPTIONS]
         "m:" -> (arg => modes = arg :: modes),
         "n" -> (arg => no_build = true),
         "o:" -> (arg => options = options + arg),
-        "r" -> (_ => logic = "RAW_ML_SYSTEM"),
+        "r" -> (_ => raw_ml_system = true),
         "s" -> (_ => system_mode = true))
 
       val more_args = getopts(args)
@@ -53,7 +54,7 @@ Usage: isabelle console [OPTIONS]
 
 
       // build
-      if (!no_build && logic != "RAW_ML_SYSTEM" &&
+      if (!no_build && !raw_ml_system &&
           !Build.build(options = options, build_heap = true, no_build = true,
             dirs = dirs, system_mode = system_mode, sessions = List(logic)).ok)
       {
@@ -70,8 +71,8 @@ Usage: isabelle console [OPTIONS]
       // process loop
       val process =
         ML_Process(options, logic = logic, args = List("-i"),
-          modes = if (logic == "RAW_ML_SYSTEM") Nil else modes ::: List("ASCII"),
-          store = Sessions.store(system_mode))
+          modes = if (raw_ml_system) Nil else modes ::: List("ASCII"),
+          raw_ml_system = raw_ml_system, store = Sessions.store(system_mode))
       val process_output = Future.thread[Unit]("process_output") {
         try {
           var result = new StringBuilder(100)

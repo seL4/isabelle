@@ -17,6 +17,7 @@ object ML_Process
     args: List[String] = Nil,
     dirs: List[Path] = Nil,
     modes: List[String] = Nil,
+    raw_ml_system: Boolean = false,
     secure: Boolean = false,
     cwd: JFile = null,
     env: Map[String, String] = Isabelle_System.settings(),
@@ -28,7 +29,7 @@ object ML_Process
   {
     val logic_name = Isabelle_System.default_logic(logic)
     val heaps: List[String] =
-      if (logic_name == "RAW_ML_SYSTEM") Nil
+      if (raw_ml_system) Nil
       else {
         val session_tree = tree.getOrElse(Sessions.load(options, dirs))
         (session_tree.ancestors(logic_name) ::: List(logic_name)).
