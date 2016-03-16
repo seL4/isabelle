@@ -31,7 +31,8 @@ object ML_Process
     val heaps: List[String] =
       if (raw_ml_system) Nil
       else {
-        val session_tree = tree.getOrElse(Sessions.load(options, dirs))
+        val (_, session_tree) =
+          tree.getOrElse(Sessions.load(options, dirs)).selection(sessions = List(logic_name))
         (session_tree.ancestors(logic_name) ::: List(logic_name)).
           map(a => File.platform_path(store.heap(a)))
       }
