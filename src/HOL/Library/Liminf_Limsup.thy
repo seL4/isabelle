@@ -3,17 +3,57 @@
     Author:     Manuel Eberl, TU München
 *)
 
-section \<open>Liminf and Limsup on complete lattices\<close>
+section \<open>Liminf and Limsup on conditionally complete lattices\<close>
 
 theory Liminf_Limsup
 imports Complex_Main
 begin
+
+lemma (in conditionally_complete_linorder) le_cSup_iff:
+  assumes "A \<noteq> {}" "bdd_above A"
+  shows "x \<le> Sup A \<longleftrightarrow> (\<forall>y<x. \<exists>a\<in>A. y < a)"
+proof safe
+  fix y assume "x \<le> Sup A" "y < x"
+  then have "y < Sup A" by auto
+  then show "\<exists>a\<in>A. y < a"
+    unfolding less_cSup_iff[OF assms] .
+qed (auto elim!: allE[of _ "Sup A"] simp add: not_le[symmetric] cSup_upper assms)
+
+lemma (in conditionally_complete_linorder) le_cSUP_iff:
+  "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longrightarrow> x \<le> SUPREMUM A f \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y < f i)"
+  using le_cSup_iff [of "f ` A"] by simp
+
+lemma le_cSup_iff_less:
+  fixes x :: "'a :: {conditionally_complete_linorder, dense_linorder}"
+  shows "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longrightarrow> x \<le> (SUP i:A. f i) \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y \<le> f i)"
+  by (simp add: le_cSUP_iff)
+     (blast intro: less_imp_le less_trans less_le_trans dest: dense)
 
 lemma le_Sup_iff_less:
   fixes x :: "'a :: {complete_linorder, dense_linorder}"
   shows "x \<le> (SUP i:A. f i) \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y \<le> f i)" (is "?lhs = ?rhs")
   unfolding le_SUP_iff
   by (blast intro: less_imp_le less_trans less_le_trans dest: dense)
+
+lemma (in conditionally_complete_linorder) cInf_le_iff:
+  assumes "A \<noteq> {}" "bdd_below A"
+  shows "Inf A \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>a\<in>A. y > a)"
+proof safe
+  fix y assume "x \<ge> Inf A" "y > x"
+  then have "y > Inf A" by auto
+  then show "\<exists>a\<in>A. y > a"
+    unfolding cInf_less_iff[OF assms] .
+qed (auto elim!: allE[of _ "Inf A"] simp add: not_le[symmetric] cInf_lower assms)
+
+lemma (in conditionally_complete_linorder) cINF_le_iff:
+  "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> INFIMUM A f \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. y > f i)"
+  using cInf_le_iff [of "f ` A"] by simp
+
+lemma cInf_le_iff_less:
+  fixes x :: "'a :: {conditionally_complete_linorder, dense_linorder}"
+  shows "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> (INF i:A. f i) \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. f i \<le> y)"
+  by (simp add: cINF_le_iff)
+     (blast intro: less_imp_le less_trans le_less_trans dest: dense)
 
 lemma Inf_le_iff_less:
   fixes x :: "'a :: {complete_linorder, dense_linorder}"

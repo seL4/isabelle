@@ -363,7 +363,7 @@ proof (rule AE_I2)
         done
     qed auto }
   then show "(\<lambda>x. indicator (\<Union>i. A i) x *\<^sub>R f x) \<in> borel_measurable M"
-    apply (rule borel_measurable_LIMSEQ)
+    apply (rule borel_measurable_LIMSEQ_real)
     apply assumption
     apply (intro borel_measurable_integrable intgbl)
     done
