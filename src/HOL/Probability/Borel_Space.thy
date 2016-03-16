@@ -1678,6 +1678,58 @@ lemma borel_measurable_extreal_suminf[measurable (raw)]:
   shows "(\<lambda>x. (\<Sum>i. f i x)) \<in> borel_measurable M"
   unfolding suminf_def sums_def[abs_def] lim_def[symmetric] by simp
 
+subsection "Borel space on the extended non-negative reals"
+
+text \<open> @{type ennreal} is a topological monoid, so no rules for plus are required, also all order
+  statements are usually done on type classes. \<close>
+
+lemma measurable_enn2ereal[measurable]: "enn2ereal \<in> borel \<rightarrow>\<^sub>M borel"
+  by (intro borel_measurable_continuous_on1 continuous_on_enn2ereal)
+
+lemma measurable_e2ennreal[measurable]: "e2ennreal \<in> borel \<rightarrow>\<^sub>M borel"
+  by (intro borel_measurable_continuous_on1 continuous_on_e2ennreal)
+
+definition [simp]: "is_borel f M \<longleftrightarrow> f \<in> borel_measurable M"
+
+lemma is_borel_transfer[transfer_rule]: "rel_fun (rel_fun op = pcr_ennreal) op = is_borel is_borel"
+  unfolding is_borel_def[abs_def]
+proof (safe intro!: rel_funI ext dest!: rel_fun_eq_pcr_ennreal[THEN iffD1])
+  fix f and M :: "'a measure"
+  show "f \<in> borel_measurable M" if f: "enn2ereal \<circ> f \<in> borel_measurable M"
+    using measurable_compose[OF f measurable_e2ennreal] by simp
+qed simp
+
+lemma measurable_ennreal[measurable]: "ennreal \<in> borel \<rightarrow>\<^sub>M borel"
+  unfolding is_borel_def[symmetric] by transfer simp
+
+lemma borel_measurable_times_ennreal[measurable (raw)]:
+  fixes f g :: "'a \<Rightarrow> ennreal"
+  shows "f \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> g \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> (\<lambda>x. f x * g x) \<in> M \<rightarrow>\<^sub>M borel"
+  unfolding is_borel_def[symmetric] by transfer simp
+
+lemma borel_measurable_inverse_ennreal[measurable (raw)]:
+  fixes f :: "'a \<Rightarrow> ennreal"
+  shows "f \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> (\<lambda>x. inverse (f x)) \<in> M \<rightarrow>\<^sub>M borel"
+  unfolding is_borel_def[symmetric] by transfer simp
+
+lemma borel_measurable_divide_ennreal[measurable (raw)]:
+  fixes f :: "'a \<Rightarrow> ennreal"
+  shows "f \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> g \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> (\<lambda>x. f x / g x) \<in> M \<rightarrow>\<^sub>M borel"
+  unfolding divide_ennreal_def by simp
+
+lemma borel_measurable_minus_ennreal[measurable (raw)]:
+  fixes f :: "'a \<Rightarrow> ennreal"
+  shows "f \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> g \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> (\<lambda>x. f x - g x) \<in> M \<rightarrow>\<^sub>M borel"
+  unfolding is_borel_def[symmetric] by transfer simp
+
+lemma borel_measurable_setprod_ennreal[measurable (raw)]:
+  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> ennreal"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
+  shows "(\<lambda>x. \<Prod>i\<in>S. f i x) \<in> borel_measurable M"
+  using assms by (induction S rule: infinite_finite_induct) auto
+
+hide_const (open) is_borel
+
 subsection \<open>LIMSEQ is borel measurable\<close>
 
 lemma borel_measurable_LIMSEQ_real:
