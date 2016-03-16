@@ -15,6 +15,7 @@ object ML_Process
   def apply(options: Options,
     logic: String = "",
     args: List[String] = Nil,
+    dirs: List[Path] = Nil,
     modes: List[String] = Nil,
     secure: Boolean = false,
     cwd: JFile = null,
@@ -22,28 +23,19 @@ object ML_Process
     redirect: Boolean = false,
     cleanup: () => Unit = () => (),
     channel: Option[System_Channel] = None,
+    tree: Option[Sessions.Tree] = None,
     store: Sessions.Store = Sessions.store()): Bash.Process =
   {
-    val heaps =
-      Isabelle_System.default_logic(logic) match {
-        case "RAW_ML_SYSTEM" => Nil
-        case name =>
-          store.find_heap(name) match {
-            case Some(path) => List(path)
-            case None =>
-              error("Unknown logic " + quote(name) + " -- no heap file found in:\n" +
-                cat_lines(store.input_dirs.map(dir => "  " + dir.implode)))
-          }
+    val logic_name = Isabelle_System.default_logic(logic)
+    val heaps: List[String] =
+      if (logic_name == "RAW_ML_SYSTEM") Nil
+      else {
+        val session_tree = tree.getOrElse(Sessions.load(options, dirs))
+        (session_tree.ancestors(logic_name) ::: List(logic_name)).
+          map(a => File.platform_path(store.heap(a)))
       }
 
-    val eval_heaps =
-      heaps.map(heap =>
-        "(PolyML.SaveState.loadState " + ML_Syntax.print_string_raw(File.platform_path(heap)) +
-        "; PolyML.print_depth 0) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ " +
-        ML_Syntax.print_string_raw(": " + heap.toString + "\n") +
-        "); OS.Process.exit OS.Process.failure)")
-
-    val eval_initial =
+    val eval_init =
       if (heaps.isEmpty) {
         List(
           if (Platform.is_windows)
@@ -55,7 +47,13 @@ object ML_Process
           "PolyML.Compiler.prompt1 := \"Poly/ML> \"",
           "PolyML.Compiler.prompt2 := \"Poly/ML# \"")
       }
-      else Nil
+      else
+        List(
+          "(PolyML.SaveState.loadHierarchy " +
+            ML_Syntax.print_list(ML_Syntax.print_string_raw)(heaps) +
+          "; PolyML.print_depth 0) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ " +
+          ML_Syntax.print_string_raw(": " + logic_name + "\n") +
+          "); OS.Process.exit OS.Process.failure)")
 
     val eval_modes =
       if (modes.isEmpty) Nil
@@ -88,7 +86,7 @@ object ML_Process
     // bash
     val bash_args =
       Word.explode(Isabelle_System.getenv("ML_OPTIONS")) :::
-      (eval_heaps ::: eval_initial ::: eval_modes ::: eval_options ::: eval_secure ::: eval_process).
+      (eval_init ::: eval_modes ::: eval_options ::: eval_secure ::: eval_process).
         map(eval => List("--eval", eval)).flatten ::: args
 
     Bash.process("""exec "$ML_HOME/poly" -q """ + File.bash_args(bash_args),

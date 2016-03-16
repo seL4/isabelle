@@ -228,7 +228,7 @@ object Build
 
   /* jobs */
 
-  private class Job(progress: Progress, name: String, val info: Sessions.Info,
+  private class Job(progress: Progress, name: String, val info: Sessions.Info, tree: Sessions.Tree,
     store: Sessions.Store, do_output: Boolean, verbose: Boolean,
     session_graph: Graph_Display.Graph, command_timings: List[Properties.T])
   {
@@ -236,7 +236,8 @@ object Build
     def output_path: Option[Path] = if (do_output) Some(output) else None
     def output_save_state: String =
       if (do_output)
-        "PolyML.SaveState.saveState " + ML_Syntax.print_string_raw(File.platform_path(output))
+        "PolyML.SaveState.saveChild (" + ML_Syntax.print_string_raw(File.platform_path(output)) +
+          ", List.length (PolyML.SaveState.showHierarchy ()))"
       else ""
     output.file.delete
 
@@ -258,7 +259,7 @@ object Build
               "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default ();" +
               " Session.shutdown (); ML_Heap.share_common_data (); " + output_save_state + "));"
             ML_Process(info.options, "RAW_ML_SYSTEM", List("--use", "ROOT.ML", "--eval", eval),
-              cwd = info.dir.file, env = env, store = store)
+              cwd = info.dir.file, env = env, tree = Some(tree), store = store)
           }
           else {
             val args_file = Isabelle_System.tmp_file("build")
@@ -281,7 +282,7 @@ object Build
               (if (do_output) "; ML_Heap.share_common_data (); " + output_save_state
                else "") + "));"
             ML_Process(info.options, parent, List("--eval", eval), cwd = info.dir.file,
-              env = env, cleanup = () => args_file.delete, store = store)
+              env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
           }
         process.result(
           progress_stdout = (line: String) =>
@@ -622,7 +623,7 @@ object Build
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job =
-                    new Job(progress, name, info, store, do_output, verbose,
+                    new Job(progress, name, info, selected_tree, store, do_output, verbose,
                       deps(name).session_graph, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }

@@ -318,7 +318,8 @@ object Sessions
   }
 
 
-  /* persistent store */
+
+  /** persistent store **/
 
   def log(name: String): Path = Path.basic("log") + Path.basic(name)
   def log_gz(name: String): Path = log(name).ext("gz")
@@ -327,15 +328,22 @@ object Sessions
 
   class Store private [Sessions](system_mode: Boolean)
   {
-    val output_dir: Path =
-      if (system_mode) Path.explode("~~/heaps/$ML_IDENTIFIER")
-      else Path.explode("$ISABELLE_OUTPUT")
+    /* output */
 
     val browser_info: Path =
       if (system_mode) Path.explode("~~/browser_info")
       else Path.explode("$ISABELLE_BROWSER_INFO")
 
-    val input_dirs =
+    val output_dir: Path =
+      if (system_mode) Path.explode("~~/heaps/$ML_IDENTIFIER")
+      else Path.explode("$ISABELLE_OUTPUT")
+
+    def prepare_output() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
+
+
+    /* input */
+
+    private val input_dirs =
       if (system_mode) List(output_dir)
       else {
         val ml_ident = Path.explode("$ML_IDENTIFIER").expand
@@ -346,15 +354,18 @@ object Sessions
       input_dirs.find(dir => (dir + log_gz(name)).is_file).map(dir =>
         (dir + log_gz(name), File.time_stamp(dir + Path.basic(name))))
 
-    def find_heap(name: String): Option[Path] =
-      input_dirs.map(_ + Path.basic(name)).find(_.is_file)
-
     def find_log(name: String): Option[Path] =
       input_dirs.map(_ + log(name)).find(_.is_file)
 
     def find_log_gz(name: String): Option[Path] =
       input_dirs.map(_ + log_gz(name)).find(_.is_file)
 
-    def prepare_output() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
+    def find_heap(name: String): Option[Path] =
+      input_dirs.map(_ + Path.basic(name)).find(_.is_file)
+
+    def heap(name: String): Path =
+      find_heap(name) getOrElse
+        error("Unknown logic " + quote(name) + " -- no heap file found in:\n" +
+          cat_lines(input_dirs.map(dir => "  " + dir.implode)))
   }
 }
