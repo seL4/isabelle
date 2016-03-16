@@ -1,6 +1,6 @@
 (*:maxLineLen=78:*)
 
-theory Basics
+theory Environment
 imports Base
 begin
 
