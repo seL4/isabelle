@@ -23,9 +23,9 @@ object Batch_Session
     val parent_session =
       session_info.parent getOrElse error("No parent session for " + quote(session))
 
-    if (Build.build(options, new Console_Progress(verbose),
+    if (!Build.build(options, new Console_Progress(verbose),
         verbose = verbose, build_heap = true,
-        dirs = dirs, sessions = List(parent_session)) != 0)
+        dirs = dirs, sessions = List(parent_session)).ok)
       new RuntimeException
 
     val deps = Build.dependencies(verbose = verbose, tree = session_tree)

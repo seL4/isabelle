@@ -66,7 +66,7 @@ object Isabelle_Logic
 
     Build.build(options = PIDE.options.value, progress = progress,
       build_heap = true, no_build = no_build, system_mode = mode == "" || mode == "system",
-      dirs = session_dirs(), sessions = List(session_name()))
+      dirs = session_dirs(), sessions = List(session_name())).rc
   }
 
   def session_start()

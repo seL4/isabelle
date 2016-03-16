@@ -411,19 +411,20 @@ object Build
 
 
 
-  /** build_results **/
+  /** build with results **/
 
-  class Build_Results private [Build](results: Map[String, Option[Process_Result]])
+  class Results private [Build](results: Map[String, Option[Process_Result]])
   {
     def sessions: Set[String] = results.keySet
     def cancelled(name: String): Boolean = results(name).isEmpty
     def apply(name: String): Process_Result = results(name).getOrElse(Process_Result(1))
     val rc = (0 /: results.iterator.map({ case (_, Some(r)) => r.rc case (_, None) => 1 }))(_ max _)
+    def ok: Boolean = rc == 0
 
     override def toString: String = rc.toString
   }
 
-  def build_results(
+  def build(
     options: Options,
     progress: Progress = Ignore_Progress,
     requirements: Boolean = false,
@@ -441,7 +442,7 @@ object Build
     system_mode: Boolean = false,
     verbose: Boolean = false,
     exclude_sessions: List[String] = Nil,
-    sessions: List[String] = Nil): Build_Results =
+    sessions: List[String] = Nil): Results =
   {
     /* session tree and dependencies */
 
@@ -642,12 +643,24 @@ object Build
 
     /* build results */
 
-    val results =
+    val results0 =
       if (deps.is_empty) {
         progress.echo(Output.warning_text("Nothing to build"))
         Map.empty[String, Result]
       }
       else loop(queue, Map.empty, Map.empty)
+
+    val results =
+      new Results((for ((name, result) <- results0.iterator) yield (name, result.process)).toMap)
+
+    if (results.rc != 0 && (verbose || !no_build)) {
+      val unfinished =
+        (for {
+          name <- results.sessions.iterator
+          if !results(name).ok
+         } yield name).toList.sorted
+      progress.echo("Unfinished session(s): " + commas(unfinished))
+    }
 
 
     /* global browser info */
@@ -655,7 +668,7 @@ object Build
     if (!no_build) {
       val browser_chapters =
         (for {
-          (name, result) <- results.iterator
+          (name, result) <- results0.iterator
           if result.ok && !Sessions.is_pure(name)
           info = full_tree(name)
           if info.options.bool("browser_info")
@@ -668,48 +681,7 @@ object Build
       if (browser_chapters.nonEmpty) Present.make_global_index(store.browser_info)
     }
 
-    new Build_Results((for ((name, result) <- results.iterator) yield (name, result.process)).toMap)
-  }
-
-
-
-  /** build **/
-
-  def build(
-    options: Options,
-    progress: Progress = Ignore_Progress,
-    requirements: Boolean = false,
-    all_sessions: Boolean = false,
-    build_heap: Boolean = false,
-    clean_build: Boolean = false,
-    dirs: List[Path] = Nil,
-    select_dirs: List[Path] = Nil,
-    exclude_session_groups: List[String] = Nil,
-    session_groups: List[String] = Nil,
-    max_jobs: Int = 1,
-    list_files: Boolean = false,
-    check_keywords: Set[String] = Set.empty,
-    no_build: Boolean = false,
-    system_mode: Boolean = false,
-    verbose: Boolean = false,
-    exclude_sessions: List[String] = Nil,
-    sessions: List[String] = Nil): Int =
-  {
-    val results =
-      build_results(options, progress, requirements, all_sessions, build_heap, clean_build,
-        dirs, select_dirs, exclude_session_groups, session_groups, max_jobs, list_files,
-        check_keywords, no_build, system_mode, verbose, exclude_sessions, sessions)
-
-    if (results.rc != 0 && (verbose || !no_build)) {
-      val unfinished =
-        (for {
-          name <- results.sessions.iterator
-          if !results(name).ok
-         } yield name).toList.sorted
-      progress.echo("Unfinished session(s): " + commas(unfinished))
-    }
-
-    results.rc
+    results
   }
 
 
@@ -805,7 +777,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       val start_time = Time.now()
       val results =
         progress.interrupt_handler {
-          build_results(options, progress, requirements, all_sessions, build_heap, clean_build,
+          build(options, progress, requirements, all_sessions, build_heap, clean_build,
             dirs, select_dirs, exclude_session_groups, session_groups, max_jobs, list_files,
             check_keywords, no_build, system_mode, verbose, exclude_sessions, sessions)
         }

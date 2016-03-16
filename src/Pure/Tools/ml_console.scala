@@ -54,16 +54,16 @@ Usage: isabelle console [OPTIONS]
 
       // build
       if (!no_build && logic != "RAW_ML_SYSTEM" &&
-          Build.build(options = options, build_heap = true, no_build = true,
-            dirs = dirs, system_mode = system_mode, sessions = List(logic)) != 0)
+          !Build.build(options = options, build_heap = true, no_build = true,
+            dirs = dirs, system_mode = system_mode, sessions = List(logic)).ok)
       {
         val progress = new Console_Progress
         progress.echo("Build started for Isabelle/" + logic + " ...")
         progress.interrupt_handler {
-          val rc =
+          val res =
             Build.build(options = options, progress = progress, build_heap = true,
               dirs = dirs, system_mode = system_mode, sessions = List(logic))
-          if (rc != 0) sys.exit(rc)
+          if (!res.ok) sys.exit(res.rc)
         }
       }
 

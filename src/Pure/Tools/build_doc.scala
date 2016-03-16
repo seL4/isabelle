@@ -40,30 +40,30 @@ object Build_Doc
 
     progress.echo("Build started for documentation " + commas_quote(selected_docs))
 
-    val rc1 =
+    val res1 =
       Build.build(options, progress, requirements = true, build_heap = true,
         max_jobs = max_jobs, system_mode = system_mode, sessions = sessions)
-    if (rc1 == 0) {
+    if (res1.ok) {
       Isabelle_System.with_tmp_dir("document_output")(output =>
         {
-          val rc2 =
+          val res2 =
             Build.build(
               options.bool.update("browser_info", false).
                 string.update("document", "pdf").
                 string.update("document_output", File.standard_path(output)),
               progress, clean_build = true, max_jobs = max_jobs, system_mode = system_mode,
               sessions = sessions)
-          if (rc2 == 0) {
+          if (res2.ok) {
             val doc_dir = Path.explode("$ISABELLE_HOME/doc").file
             for (doc <- selected_docs) {
               val name = doc + ".pdf"
               File.copy(new JFile(output, name), new JFile(doc_dir, name))
             }
           }
-          rc2
+          res2.rc
         })
     }
-    else rc1
+    else res1.rc
   }
 
 
