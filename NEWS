@@ -281,6 +281,9 @@ been discontinued.
 
 * SML/NJ and old versions of Poly/ML are no longer supported.
 
+* Poly/ML heaps now follow the hierarchy of sessions, and thus require
+much less disk space.
+
 
 
 New in Isabelle2016 (February 2016)
