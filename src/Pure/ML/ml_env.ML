@@ -77,7 +77,7 @@ val inherit = Env.put o Env.get;
 fun forget_structure name =
   Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
     let
-      val _ = if bootstrap then ML_Name_Space.forget_global_structure name else ();
+      val _ = if bootstrap then ML_Name_Space.forget_structure name else ();
       val tables' =
         (#1 tables, #2 tables, #3 tables, Symtab.delete_safe name (#4 tables), #5 tables, #6 tables);
     in make_data (bootstrap, tables', sml_tables, breakpoints) end);

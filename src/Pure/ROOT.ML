@@ -28,20 +28,20 @@ open Thread;
 use "Concurrent/multithreading.ML";
 
 use "Concurrent/unsynchronized.ML";
-val _ = PolyML.Compiler.forgetValue "ref";
-val _ = PolyML.Compiler.forgetType "ref";
+val _ = ML_Name_Space.forget_val "ref";
+val _ = ML_Name_Space.forget_type "ref";
 
 
 (* pervasive environment *)
 
-val _ = PolyML.Compiler.forgetValue "isSome";
-val _ = PolyML.Compiler.forgetValue "getOpt";
-val _ = PolyML.Compiler.forgetValue "valOf";
-val _ = PolyML.Compiler.forgetValue "foldl";
-val _ = PolyML.Compiler.forgetValue "foldr";
-val _ = PolyML.Compiler.forgetValue "print";
-val _ = PolyML.Compiler.forgetValue "explode";
-val _ = PolyML.Compiler.forgetValue "concat";
+val _ = ML_Name_Space.forget_val "isSome";
+val _ = ML_Name_Space.forget_val "getOpt";
+val _ = ML_Name_Space.forget_val "valOf";
+val _ = ML_Name_Space.forget_val "foldl";
+val _ = ML_Name_Space.forget_val "foldr";
+val _ = ML_Name_Space.forget_val "print";
+val _ = ML_Name_Space.forget_val "explode";
+val _ = ML_Name_Space.forget_val "concat";
 
 val ord = SML90.ord;
 val chr = SML90.chr;
