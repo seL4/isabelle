@@ -57,7 +57,13 @@ where
 | Sup: "\<lbrakk> M \<in> Chains leq; M \<noteq> {}; \<And>x. x \<in> M \<Longrightarrow> x \<in> iterates_above a \<rbrakk> \<Longrightarrow> lub M \<in> iterates_above a"
 
 definition fixp_above :: "'a \<Rightarrow> 'a"
-where "fixp_above a = lub (iterates_above a)"
+where "fixp_above a = (if a \<in> Field leq then lub (iterates_above a) else a)"
+
+lemma fixp_above_outside: "a \<notin> Field leq \<Longrightarrow> fixp_above a = a"
+by(simp add: fixp_above_def)
+
+lemma fixp_above_inside: "a \<in> Field leq \<Longrightarrow> fixp_above a = lub (iterates_above a)"
+by(simp add: fixp_above_def)
 
 context 
   notes leq_refl [intro!, simp]
@@ -218,8 +224,8 @@ proof (rule ChainsI)
   ultimately show "(x, y) \<in> leq \<or> (y, x) \<in> leq" by(auto dest: iterates_above_ge)
 qed
 
-lemma fixp_iterates_above: "a \<in> Field leq \<Longrightarrow> fixp_above a \<in> iterates_above a"
-unfolding fixp_above_def by(rule iterates_above.Sup)(blast intro: chain_iterates_above)+
+lemma fixp_iterates_above: "fixp_above a \<in> iterates_above a"
+by(auto intro: chain_iterates_above simp add: fixp_above_def)
 
 lemma fixp_above_Field: "a \<in> Field leq \<Longrightarrow> fixp_above a \<in> Field leq"
 using fixp_iterates_above by(rule iterates_above_Field)
@@ -230,25 +236,29 @@ lemma fixp_above_unfold:
 proof(rule leq_antisym)
   show "(?a, f ?a) \<in> leq" using fixp_above_Field[OF a] by(rule increasing)
   
-  have "f ?a \<in> iterates_above a" using fixp_iterates_above[OF a] by(rule iterates_above.step)
-  with chain_iterates_above[OF a] show "(f ?a, ?a) \<in> leq" unfolding fixp_above_def by(rule lub_upper)
+  have "f ?a \<in> iterates_above a" using fixp_iterates_above by(rule iterates_above.step)
+  with chain_iterates_above[OF a] show "(f ?a, ?a) \<in> leq"
+    by(simp add: fixp_above_inside assms lub_upper)
 qed
 
 end
 
-lemma fixp_induct [case_names adm closed base step]:
+lemma fixp_induct [case_names adm base step]:
   assumes adm: "ccpo.admissible lub (\<lambda>x y. (x, y) \<in> leq) P"
-  and a: "a \<in> Field leq"
   and base: "P a"
   and step: "\<And>x. P x \<Longrightarrow> P (f x)"
   shows "P (fixp_above a)"
-using adm chain_iterates_above[OF a] unfolding fixp_above_def in_Chains_conv_chain
-proof(rule ccpo.admissibleD)
-  have "a \<in> iterates_above a" ..
-  then show "iterates_above a \<noteq> {}" by(auto)
-  show "P x" if "x \<in> iterates_above a" for x using that
-    by induction(auto intro: base step simp add: in_Chains_conv_chain dest: ccpo.admissibleD[OF adm])
-qed
+proof(cases "a \<in> Field leq")
+  case True
+  from adm chain_iterates_above[OF True]
+  show ?thesis unfolding fixp_above_inside[OF True] in_Chains_conv_chain
+  proof(rule ccpo.admissibleD)
+    have "a \<in> iterates_above a" ..
+    then show "iterates_above a \<noteq> {}" by(auto)
+    show "P x" if "x \<in> iterates_above a" for x using that
+      by induction(auto intro: base step simp add: in_Chains_conv_chain dest: ccpo.admissibleD[OF adm])
+  qed
+qed(simp add: fixp_above_outside base)
 
 end
 
