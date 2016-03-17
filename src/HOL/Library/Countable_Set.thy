@@ -294,6 +294,14 @@ by(cases x) auto
 
 subsection \<open>Misc lemmas\<close>
 
+lemma infinite_countable_subset':
+  assumes X: "infinite X" shows "\<exists>C\<subseteq>X. countable C \<and> infinite C"
+proof -
+  from infinite_countable_subset[OF X] guess f ..
+  then show ?thesis
+    by (intro exI[of _ "range f"]) (auto simp: range_inj_infinite)
+qed
+
 lemma countable_all:
   assumes S: "countable S"
   shows "(\<forall>s\<in>S. P s) \<longleftrightarrow> (\<forall>n::nat. from_nat_into S n \<in> S \<longrightarrow> P (from_nat_into S n))"

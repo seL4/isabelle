@@ -88,7 +88,7 @@ proof cases
   assume "\<exists>i. x \<in> A i"
   then obtain i where "x \<in> A i"
     by auto
-  then have 
+  then have
     "\<And>n. (indicator (A (n + i)) x :: 'a) = 1"
     "(indicator (\<Union>i. A i) x :: 'a) = 1"
     using incseqD[OF \<open>incseq A\<close>, of i "n + i" for n] \<open>x \<in> A i\<close> by (auto simp: indicator_def)
@@ -113,7 +113,7 @@ proof cases
   assume "\<exists>i. x \<notin> A i"
   then obtain i where "x \<notin> A i"
     by auto
-  then have 
+  then have
     "\<And>n. (indicator (A (n + i)) x :: 'a) = 0"
     "(indicator (\<Inter>i. A i) x :: 'a) = 0"
     using decseqD[OF \<open>decseq A\<close>, of i "n + i" for n] \<open>x \<notin> A i\<close> by (auto simp: indicator_def)
@@ -148,7 +148,7 @@ lemma mult_indicator_subset:
   "A \<subseteq> B \<Longrightarrow> indicator A x * indicator B x = (indicator A x :: 'a::{comm_semiring_1})"
   by (auto split: split_indicator simp: fun_eq_iff)
 
-lemma indicator_sums: 
+lemma indicator_sums:
   assumes "\<And>i j. i \<noteq> j \<Longrightarrow> A i \<inter> A j = {}"
   shows "(\<lambda>i. indicator (A i) x::real) sums indicator (\<Union>i. A i) x"
 proof cases

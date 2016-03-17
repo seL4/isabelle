@@ -560,6 +560,9 @@ proof
     by (cases rule: ereal3_cases[of a b c]) auto
 qed
 
+lemma ereal_one_not_less_zero_ereal[simp]: "\<not> 1 < (0::ereal)"
+  by (simp add: zero_ereal_def)
+
 lemma real_of_ereal_positive_mono:
   fixes x y :: ereal
   shows "0 \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<noteq> \<infinity> \<Longrightarrow> real_of_ereal x \<le> real_of_ereal y"
@@ -1395,6 +1398,11 @@ lemma ereal_minus_mono:
   shows "A - C \<le> B - D"
   using assms
   by (cases rule: ereal3_cases[case_product ereal_cases, of A B C D]) simp_all
+
+lemma ereal_mono_minus_cancel:
+  fixes a b c :: ereal
+  shows "c - a \<le> c - b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c < \<infinity> \<Longrightarrow> b \<le> a"
+  by (cases a b c rule: ereal3_cases) auto
 
 lemma real_of_ereal_minus:
   fixes a b :: ereal

@@ -5,7 +5,7 @@
 subsection \<open>The type of non-negative extended real numbers\<close>
 
 theory Extended_Nonnegative_Real
-  imports Extended_Real
+  imports Extended_Real Indicator_Function
 begin
 
 context linordered_nonzero_semiring
@@ -847,5 +847,310 @@ lemma ennreal_suminf_bound_add:
   fixes f :: "nat \<Rightarrow> ennreal"
   shows "(\<And>N. (\<Sum>n<N. f n) + y \<le> x) \<Longrightarrow> suminf f + y \<le> x"
   by transfer (auto intro!: suminf_bound_add)
+
+lemma divide_right_mono_ennreal:
+  fixes a b c :: ennreal
+  shows "a \<le> b \<Longrightarrow> a / c \<le> b / c"
+  unfolding divide_ennreal_def by (intro mult_mono) auto
+
+lemma SUP_mult_left_ennreal: "c * (SUP i:I. f i) = (SUP i:I. c * f i ::ennreal)"
+proof cases
+  assume "I \<noteq> {}" then show ?thesis
+    by transfer (auto simp add: SUP_ereal_mult_left max_absorb2 SUP_upper2)
+qed (simp add: bot_ennreal)
+
+lemma SUP_mult_right_ennreal: "(SUP i:I. f i) * c = (SUP i:I. f i * c ::ennreal)"
+  using SUP_mult_left_ennreal by (simp add: mult.commute)
+
+lemma SUP_divide_ennreal: "(SUP i:I. f i) / c = (SUP i:I. f i / c ::ennreal)"
+  using SUP_mult_right_ennreal by (simp add: divide_ennreal_def)
+
+lemma of_nat_Sup_ennreal:
+  assumes "A \<noteq> {}" "bdd_above A"
+  shows "of_nat (Sup A) = (SUP a:A. of_nat a :: ennreal)"
+proof (intro antisym)
+  show "(SUP a:A. of_nat a::ennreal) \<le> of_nat (Sup A)"
+    by (intro SUP_least of_nat_mono) (auto intro: cSup_upper assms)
+  have "Sup A \<in> A"
+    unfolding Sup_nat_def using assms by (intro Max_in) (auto simp: bdd_above_nat)
+  then show "of_nat (Sup A) \<le> (SUP a:A. of_nat a::ennreal)"
+    by (intro SUP_upper)
+qed
+
+lemma mult_divide_eq_ennreal:
+  fixes a b :: ennreal
+  shows "b \<noteq> 0 \<Longrightarrow> b \<noteq> top \<Longrightarrow> (a * b) / b = a"
+  unfolding divide_ennreal_def
+  apply transfer
+  apply (subst mult.assoc)
+  apply (simp add: top_ereal_def divide_ereal_def[symmetric])
+  done
+
+lemma divide_mult_eq: "a \<noteq> 0 \<Longrightarrow> a \<noteq> \<infinity> \<Longrightarrow> x * a / (b * a) = x / (b::ennreal)"
+  unfolding divide_ennreal_def infinity_ennreal_def
+  apply transfer
+  subgoal for a b c
+    apply (cases a b c rule: ereal3_cases)
+    apply (auto simp: top_ereal_def)
+    done
+  done
+
+lemma ennreal_power: "0 \<le> r \<Longrightarrow> ennreal r ^ n = ennreal (r ^ n)"
+  by (induction n) (auto simp: ennreal_mult)
+
+lemma top_power_ennreal: "top ^ n = (if n = 0 then 1 else top :: ennreal)"
+  by (induction n) (simp_all add: ennreal_mult_eq_top_iff)
+
+lemma power_eq_top_ennreal: "x ^ n = top \<longleftrightarrow> (n \<noteq> 0 \<and> (x::ennreal) = top)"
+  by (cases x rule: ennreal_cases)
+     (auto simp: ennreal_power top_power_ennreal)
+
+lemma ennreal_mult_divide_eq:
+  fixes a b :: ennreal
+  shows "b \<noteq> 0 \<Longrightarrow> b \<noteq> top \<Longrightarrow> (a * b) / b = a"
+  unfolding divide_ennreal_def
+  apply transfer
+  apply (subst mult.assoc)
+  apply (simp add: top_ereal_def divide_ereal_def[symmetric])
+  done
+
+lemma enn2ereal_of_nat[simp]: "enn2ereal (of_nat n) = ereal n"
+  by (induction n) (auto simp: zero_ennreal.rep_eq one_ennreal.rep_eq plus_ennreal.rep_eq)
+
+lemma enn2ereal_numeral[simp]: "enn2ereal (numeral a) = numeral a"
+  apply (subst of_nat_numeral[of a, symmetric])
+  apply (subst enn2ereal_of_nat)
+  apply simp
+  done
+
+lemma transfer_numeral[transfer_rule]: "pcr_ennreal (numeral a) (numeral a)"
+  unfolding cr_ennreal_def pcr_ennreal_def by auto
+
+lemma ennreal_half[simp]: "ennreal (1/2) = inverse 2"
+  by transfer (simp add: max.absorb2)
+
+lemma numeral_eq_of_nat: "(numeral a::ennreal) = of_nat (numeral a)"
+  by simp
+
+lemma of_nat_less_top: "of_nat i < (top::ennreal)"
+  using less_le_trans[of "of_nat i" "of_nat (Suc i)" "top::ennreal"]
+  by simp
+
+lemma top_neq_numeral[simp]: "top \<noteq> ((numeral i)::ennreal)"
+  using of_nat_less_top[of "numeral i"] by simp
+
+lemma sup_continuous_mult_left_ennreal':
+  fixes c :: "ennreal"
+  shows "sup_continuous (\<lambda>x. c * x)"
+  unfolding sup_continuous_def
+  by transfer (auto simp: SUP_ereal_mult_left max.absorb2 SUP_upper2)
+
+lemma sup_continuous_mult_left_ennreal[order_continuous_intros]:
+  "sup_continuous f \<Longrightarrow> sup_continuous (\<lambda>x. c * f x :: ennreal)"
+  by (rule sup_continuous_compose[OF sup_continuous_mult_left_ennreal'])
+
+lemma sup_continuous_mult_right_ennreal[order_continuous_intros]:
+  "sup_continuous f \<Longrightarrow> sup_continuous (\<lambda>x. f x * c :: ennreal)"
+  using sup_continuous_mult_left_ennreal[of f c] by (simp add: mult.commute)
+
+lemma sup_continuous_divide_ennreal[order_continuous_intros]:
+  fixes f g :: "'a::complete_lattice \<Rightarrow> ennreal"
+  shows "sup_continuous f \<Longrightarrow> sup_continuous (\<lambda>x. f x / c)"
+  unfolding divide_ennreal_def by (rule sup_continuous_mult_right_ennreal)
+
+lemma ennreal_add_bot[simp]: "bot + x = (x::ennreal)"
+  by transfer simp
+
+lemma sup_continuous_transfer[transfer_rule]:
+  "(rel_fun (rel_fun (op =) pcr_ennreal) op =) sup_continuous sup_continuous"
+proof (safe intro!: rel_funI dest!: rel_fun_eq_pcr_ennreal[THEN iffD1])
+  show "sup_continuous (enn2ereal \<circ> f) \<Longrightarrow> sup_continuous f" for f :: "'a \<Rightarrow> _"
+    using sup_continuous_e2ennreal[of "enn2ereal \<circ> f"] by simp
+  show "sup_continuous f \<Longrightarrow> sup_continuous (enn2ereal \<circ> f)" for f :: "'a \<Rightarrow> _"
+    using sup_continuous_enn2ereal[of f] by (simp add: comp_def)
+qed
+
+lemma sup_continuous_add_ennreal[order_continuous_intros]:
+  fixes f g :: "'a::complete_lattice \<Rightarrow> ennreal"
+  shows "sup_continuous f \<Longrightarrow> sup_continuous g \<Longrightarrow> sup_continuous (\<lambda>x. f x + g x)"
+  by transfer (auto intro!: sup_continuous_add)
+
+lemmas ennreal2_cases = ennreal_cases[case_product ennreal_cases]
+lemmas ennreal3_cases = ennreal_cases[case_product ennreal2_cases]
+
+lemma ennreal_minus_eq_0:
+  "a - b = 0 \<Longrightarrow> a \<le> (b::ennreal)"
+  apply transfer
+  subgoal for a b
+    apply (cases a b rule: ereal2_cases)
+    apply (auto simp: zero_ereal_def ereal_max[symmetric] max.absorb2 simp del: ereal_max)
+    done
+  done
+
+lemma ennreal_mono_minus_cancel:
+  fixes a b c :: ennreal
+  shows "a - b \<le> a - c \<Longrightarrow> a < top \<Longrightarrow> b \<le> a \<Longrightarrow> c \<le> a \<Longrightarrow> c \<le> b"
+  by transfer
+     (auto simp add: max.absorb2 ereal_diff_positive top_ereal_def dest: ereal_mono_minus_cancel)
+
+lemma ennreal_mono_minus:
+  fixes a b c :: ennreal
+  shows "c \<le> b \<Longrightarrow> a - b \<le> a - c"
+  apply transfer
+  apply (rule max.mono)
+  apply simp
+  subgoal for a b c
+    by (cases a b c rule: ereal3_cases) auto
+  done
+
+lemma ennreal_minus_pos_iff:
+  fixes a b :: ennreal
+  shows "a < top \<or> b < top \<Longrightarrow> 0 < a - b \<Longrightarrow> b < a"
+  apply transfer
+  subgoal for a b
+    by (cases a b rule: ereal2_cases) (auto simp: less_max_iff_disj)
+  done
+
+lemma ennreal_SUP_add:
+  fixes f g :: "nat \<Rightarrow> ennreal"
+  shows "incseq f \<Longrightarrow> incseq g \<Longrightarrow> (SUP i. f i + g i) = SUPREMUM UNIV f + SUPREMUM UNIV g"
+  unfolding incseq_def le_fun_def
+  by transfer
+     (simp add: SUP_ereal_add incseq_def le_fun_def max_absorb2 SUP_upper2)
+
+lemma ennreal_top_mult: "top * a = (if a = 0 then 0 else top :: ennreal)"
+  by (simp add: ennreal_mult_eq_top_iff)
+
+lemma ennreal_mult_top: "a * top = (if a = 0 then 0 else top :: ennreal)"
+  by (simp add: ennreal_mult_eq_top_iff)
+
+lemma ennreal_less: "0 \<le> r \<Longrightarrow> ennreal r < ennreal q \<longleftrightarrow> r < q"
+  unfolding not_le[symmetric] by auto
+
+lemma ennreal_numeral_less_top[simp]: "numeral i < (top::ennreal)"
+  using of_nat_less_top[of "numeral i"] by simp
+
+lemma real_of_nat_Sup:
+  assumes "A \<noteq> {}" "bdd_above A"
+  shows "of_nat (Sup A) = (SUP a:A. of_nat a :: real)"
+proof (intro antisym)
+  show "(SUP a:A. of_nat a::real) \<le> of_nat (Sup A)"
+    using assms by (intro cSUP_least of_nat_mono) (auto intro: cSup_upper)
+  have "Sup A \<in> A"
+    unfolding Sup_nat_def using assms by (intro Max_in) (auto simp: bdd_above_nat)
+  then show "of_nat (Sup A) \<le> (SUP a:A. of_nat a::real)"
+    by (intro cSUP_upper bdd_above_image_mono assms) (auto simp: mono_def)
+qed
+
+definition "enn2real x = real_of_ereal (enn2ereal x)"
+
+lemma enn2real_nonneg: "0 \<le> enn2real x"
+  by (auto simp: enn2real_def intro!: real_of_ereal_pos enn2ereal_nonneg)
+
+lemma enn2real_mono: "a \<le> b \<Longrightarrow> b < top \<Longrightarrow> enn2real a \<le> enn2real b"
+  by (auto simp add: enn2real_def less_eq_ennreal.rep_eq intro!: real_of_ereal_positive_mono enn2ereal_nonneg)
+
+lemma enn2real_of_nat[simp]: "enn2real (of_nat n) = n"
+  by (auto simp: enn2real_def)
+
+lemma enn2real_ennreal[simp]: "0 \<le> r \<Longrightarrow> enn2real (ennreal r) = r"
+  by (simp add: enn2real_def)
+
+lemma of_nat_le_ennreal_iff[simp]: "0 \<le> r \<Longrightarrow> of_nat i \<le> ennreal r \<longleftrightarrow> of_nat i \<le> r"
+  by (simp add: ennreal_of_nat_eq_real_of_nat)
+
+lemma min_ennreal: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> min (ennreal x) (ennreal y) = ennreal (min x y)"
+  by (auto split: split_min)
+
+lemma ennreal_approx_unit:
+  "(\<And>a::ennreal. 0 < a \<Longrightarrow> a < 1 \<Longrightarrow> a * z \<le> y) \<Longrightarrow> z \<le> y"
+  apply (subst SUP_mult_right_ennreal[of "\<lambda>x. x" "{0 <..< 1}" z, simplified])
+  apply (rule SUP_least)
+  apply auto
+  done
+
+lemma ennreal_mult_strict_right_mono: "(a::ennreal) < c \<Longrightarrow> 0 < b \<Longrightarrow> b < top \<Longrightarrow> a * b < c * b"
+  by transfer (auto intro!: ereal_mult_strict_right_mono)
+
+lemma ennreal_SUP_setsum:
+  fixes f :: "'a \<Rightarrow> nat \<Rightarrow> ennreal"
+  shows "(\<And>i. i \<in> I \<Longrightarrow> incseq (f i)) \<Longrightarrow> (SUP n. \<Sum>i\<in>I. f i n) = (\<Sum>i\<in>I. SUP n. f i n)"
+  unfolding incseq_def
+  by transfer
+     (simp add: SUP_ereal_setsum incseq_def SUP_upper2 max_absorb2 setsum_nonneg)
+
+lemma ennreal_indicator_less[simp]:
+  "indicator A x \<le> (indicator B x::ennreal) \<longleftrightarrow> (x \<in> A \<longrightarrow> x \<in> B)"
+  by (simp add: indicator_def not_le)
+
+lemma rel_fun_liminf[transfer_rule]: "rel_fun (rel_fun op = pcr_ennreal) pcr_ennreal liminf liminf"
+proof -
+  have "rel_fun (rel_fun op = pcr_ennreal) pcr_ennreal (\<lambda>x. sup 0 (liminf x)) liminf"
+    unfolding liminf_SUP_INF[abs_def] by (transfer_prover_start, transfer_step+; simp)
+  then show ?thesis
+    apply (subst (asm) (2) rel_fun_def)
+    apply (subst (2) rel_fun_def)
+    apply (auto simp: comp_def max.absorb2 Liminf_bounded enn2ereal_nonneg rel_fun_eq_pcr_ennreal)
+    done
+qed
+
+lemma rel_fun_limsup[transfer_rule]: "rel_fun (rel_fun op = pcr_ennreal) pcr_ennreal limsup limsup"
+proof -
+  have "rel_fun (rel_fun op = pcr_ennreal) pcr_ennreal (\<lambda>x. INF n. sup 0 (SUP i:{n..}. x i)) limsup"
+    unfolding limsup_INF_SUP[abs_def] by (transfer_prover_start, transfer_step+; simp)
+  then show ?thesis
+    unfolding limsup_INF_SUP[abs_def]
+    apply (subst (asm) (2) rel_fun_def)
+    apply (subst (2) rel_fun_def)
+    apply (auto simp: comp_def max.absorb2 Sup_upper2 enn2ereal_nonneg rel_fun_eq_pcr_ennreal)
+    apply (subst (asm) max.absorb2)
+    apply (rule SUP_upper2)
+    apply (auto simp: enn2ereal_nonneg)
+    done
+qed
+
+lemma ennreal_liminf_minus:
+  fixes f :: "nat \<Rightarrow> ennreal"
+  shows "(\<And>n. f n \<le> c) \<Longrightarrow> liminf (\<lambda>n. c - f n) = c - limsup f"
+  apply transfer
+  apply (simp add: ereal_diff_positive max.absorb2 liminf_ereal_cminus)
+  apply (subst max.absorb2)
+  apply (rule ereal_diff_positive)
+  apply (rule Limsup_bounded)
+  apply auto
+  done
+
+lemma inverse_ennreal: "0 < r \<Longrightarrow> inverse (ennreal r) = ennreal (inverse r)"
+  by transfer (simp add: max.absorb2)
+
+lemma divide_ennreal: "0 \<le> r \<Longrightarrow> 0 < q \<Longrightarrow> ennreal r / ennreal q = ennreal (r / q)"
+  by (simp add: divide_ennreal_def inverse_ennreal ennreal_mult[symmetric] inverse_eq_divide)
+
+lemma ennreal_inverse_top[simp]: "inverse top = (0::ennreal)"
+  by transfer (simp add: top_ereal_def ereal_inverse_eq_0)
+
+lemma ennreal_inverse_zero[simp]: "inverse 0 = (top::ennreal)"
+  by transfer (simp add: top_ereal_def ereal_inverse_eq_0)
+
+lemma ennreal_top_divide: "top / (x::ennreal) = (if x = top then 0 else top)"
+  unfolding divide_ennreal_def
+  by transfer (simp add: top_ereal_def ereal_inverse_eq_0 ereal_0_gt_inverse)
+
+lemma ennreal_zero_divide[simp]: "0 / (x::ennreal) = 0"
+  by (simp add: divide_ennreal_def)
+
+lemma ennreal_divide_zero[simp]: "x / (0::ennreal) = (if x = 0 then 0 else top)"
+  by (simp add: divide_ennreal_def ennreal_mult_top)
+
+lemma ennreal_divide_top[simp]: "x / (top::ennreal) = 0"
+  by (simp add: divide_ennreal_def ennreal_top_mult)
+
+lemma ennreal_times_divide: "a * (b / c) = a * b / (c::ennreal)"
+  unfolding divide_ennreal_def
+  by transfer (simp add: divide_ereal_def[symmetric] ereal_times_divide_eq)
+
+lemma ennreal_zero_less_divide: "0 < a / b \<longleftrightarrow> (0 < a \<and> b < (top::ennreal))"
+  unfolding divide_ennreal_def
+  by transfer (auto simp: ereal_zero_less_0_iff top_ereal_def ereal_0_gt_inverse)
 
 end
