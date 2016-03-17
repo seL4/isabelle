@@ -69,10 +69,6 @@ PolyML.Compiler.reportExhaustiveHandlers := true;
 PolyML.Compiler.printInAlphabeticalOrder := false;
 PolyML.Compiler.maxInlineSize := 80;
 
-fun ml_make_string struct_name =
-  "(fn x => Pretty.string_of (Pretty.from_ML (ML_Pretty.from_polyml (PolyML.prettyRepresentation (x, FixedInt.fromInt (" ^
-    struct_name ^ ".ML_print_depth ()))))))";
-
 
 (* ML debugger *)
 

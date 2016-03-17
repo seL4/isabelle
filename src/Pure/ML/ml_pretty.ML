@@ -19,6 +19,9 @@ sig
   val from_polyml: PolyML.pretty -> pretty
   val get_print_depth: unit -> int
   val print_depth: int -> unit
+  val format_polyml: int -> PolyML.pretty -> string
+  val format: int -> pretty -> string
+  val make_string_fn: string -> string
 end;
 
 structure ML_Pretty: ML_PRETTY =
@@ -94,6 +97,35 @@ in
   fun get_print_depth () = ! depth;
   fun print_depth n = (depth := n; PolyML.print_depth n);
   val _ = print_depth 10;
+end;
+
+
+(* format *)
+
+fun format_polyml margin prt =
+  let
+    val result = Unsynchronized.ref [];
+    val () = PolyML.prettyPrint (fn s => result := s :: ! result, margin) prt
+  in String.concat (List.rev (! result)) end;
+
+fun format margin = format_polyml margin o to_polyml;
+
+
+(* make string *)
+
+local
+  fun pretty_string_of s =
+    "(fn x => Pretty.string_of (Pretty.from_ML (ML_Pretty.from_polyml (" ^ s ^ "))))";
+  fun pretty_value depth = "PolyML.prettyRepresentation (x, FixedInt.fromInt (" ^ depth ^ "))";
+in
+
+fun make_string_fn local_env =
+  if local_env <> "" then
+    pretty_string_of (pretty_value (local_env ^ ".ML_print_depth ()"))
+  else if List.exists (fn (a, _) => a = "Pretty") (#allStruct ML_Name_Space.global ()) then
+    pretty_string_of (pretty_value "ML_Pretty.get_print_depth ()")
+  else "(fn x => ML_Pretty.format_polyml 78 (" ^ pretty_value "ML_Pretty.get_print_depth ()" ^ "))";
+
 end;
 
 end;

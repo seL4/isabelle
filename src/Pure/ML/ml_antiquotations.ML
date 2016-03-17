@@ -21,9 +21,6 @@ val _ = Theory.setup
   ML_Antiquotation.inline @{binding assert}
     (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")") #>
 
-  ML_Antiquotation.inline @{binding make_string}
-    (Args.context >> (ml_make_string o ML_Context.struct_name)) #>
-
   ML_Antiquotation.declaration @{binding print}
     (Scan.lift (Scan.optional Args.name "Output.writeln"))
       (fn src => fn output => fn ctxt =>
@@ -36,7 +33,8 @@ val _ = Theory.setup
             \  (" ^ output ^ ") o (fn s => s ^ Position.here (" ^
             ML_Syntax.print_position pos ^ "));\n";
           val body =
-            "(fn x => (" ^ struct_name ^ "." ^ a ^ " (" ^ ml_make_string struct_name ^ " x); x))";
+            "(fn x => (" ^ struct_name ^ "." ^ a ^
+              " (" ^ ML_Pretty.make_string_fn struct_name ^ " x); x))";
         in (K (env, body), ctxt') end));
 
 
