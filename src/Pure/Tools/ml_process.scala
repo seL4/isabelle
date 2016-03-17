@@ -75,9 +75,9 @@ object ML_Process
       else
         channel match {
           case None =>
-            List("(default_print_depth 10; Isabelle_Process.init_options ())")
+            List("(ML_Pretty.print_depth 10; Isabelle_Process.init_options ())")
           case Some(ch) =>
-            List("(default_print_depth 10; Isabelle_Process.init_protocol " +
+            List("(ML_Pretty.print_depth 10; Isabelle_Process.init_protocol " +
               ML_Syntax.print_string0(ch.server_name) + ")")
         }
 

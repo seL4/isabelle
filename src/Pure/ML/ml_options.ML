@@ -66,12 +66,12 @@ fun debugger_enabled NONE =
 (* print depth *)
 
 val print_depth_raw =
-  Config.declare ("ML_print_depth", @{here}) (fn _ => Config.Int (get_default_print_depth ()));
+  Config.declare ("ML_print_depth", @{here}) (fn _ => Config.Int (ML_Pretty.get_print_depth ()));
 val print_depth = Config.int print_depth_raw;
 
 fun get_print_depth () =
   (case Context.thread_data () of
-    NONE => get_default_print_depth ()
+    NONE => ML_Pretty.get_print_depth ()
   | SOME context => Config.get_generic context print_depth);
 
 fun get_print_depth_default default =

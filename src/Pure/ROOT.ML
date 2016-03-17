@@ -56,14 +56,6 @@ val pointer_eq = PolyML.pointerEq;
 
 use "ML/ml_pretty.ML";
 
-local
-  val depth = Unsynchronized.ref 10;
-in
-  fun get_default_print_depth () = ! depth;
-  fun default_print_depth n = (depth := n; PolyML.print_depth n);
-  val _ = default_print_depth 10;
-end;
-
 val error_depth = PolyML.error_depth;
 
 

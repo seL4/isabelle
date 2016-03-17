@@ -17,10 +17,14 @@ sig
   val enum: string -> string -> string -> ('a * int -> pretty) -> 'a list * int -> pretty
   val to_polyml: pretty -> PolyML.pretty
   val from_polyml: PolyML.pretty -> pretty
+  val get_print_depth: unit -> int
+  val print_depth: int -> unit
 end;
 
 structure ML_Pretty: ML_PRETTY =
 struct
+
+(* datatype pretty *)
 
 datatype pretty =
   Block of (string * string) * bool * FixedInt.int * pretty list |
@@ -80,5 +84,16 @@ val from_polyml =
       | convert len (PolyML.PrettyString s) =
           String (s, FixedInt.fromInt (case Int.fromString len of SOME i => i | NONE => size s))
   in convert "" end;
+
+
+(* default print depth *)
+
+local
+  val depth = Unsynchronized.ref 0;
+in
+  fun get_print_depth () = ! depth;
+  fun print_depth n = (depth := n; PolyML.print_depth n);
+  val _ = print_depth 10;
+end;
 
 end;
