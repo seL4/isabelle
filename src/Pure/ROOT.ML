@@ -34,14 +34,9 @@ val _ = ML_Name_Space.forget_type "ref";
 
 (* pervasive environment *)
 
-val _ = ML_Name_Space.forget_val "isSome";
-val _ = ML_Name_Space.forget_val "getOpt";
-val _ = ML_Name_Space.forget_val "valOf";
-val _ = ML_Name_Space.forget_val "foldl";
-val _ = ML_Name_Space.forget_val "foldr";
-val _ = ML_Name_Space.forget_val "print";
-val _ = ML_Name_Space.forget_val "explode";
-val _ = ML_Name_Space.forget_val "concat";
+val _ =
+  List.app ML_Name_Space.forget_val
+    ["isSome", "getOpt", "valOf", "foldl", "foldr", "print", "explode", "concat"];
 
 val ord = SML90.ord;
 val chr = SML90.chr;
@@ -164,6 +159,8 @@ use "General/timing.ML";
 use "General/sha1.ML";
 use "General/sha1_polyml.ML";
 use "General/sha1_samples.ML";
+
+val _ = List.app ML_Name_Space.forget_structure ML_Name_Space.critical_structures;
 
 use "PIDE/yxml.ML";
 use "PIDE/document_id.ML";

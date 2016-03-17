@@ -6,6 +6,8 @@ Name space for Poly/ML.
 
 structure ML_Name_Space =
 struct
+  val critical_structures = ["CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal"];
+
   open PolyML.NameSpace;
 
   type T = PolyML.NameSpace.nameSpace;
@@ -28,7 +30,9 @@ struct
 
   type structureVal = Structures.structureVal;
   fun displayStruct (x, depth, space) = Structures.print (x, depth, SOME space);
-  val initial_structure = #allStruct global ();
+  val initial_structure =
+    List.filter (fn (a, _) => not (List.exists (fn b => a = b) critical_structures))
+      (#allStruct global ());
   val forget_structure = PolyML.Compiler.forgetStructure;
 
   type signatureVal = Signatures.signatureVal;
