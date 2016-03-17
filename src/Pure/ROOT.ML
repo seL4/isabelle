@@ -48,8 +48,6 @@ val chr = SML90.chr;
 val raw_explode = SML90.explode;
 val implode = SML90.implode;
 
-fun quit () = exit 0;
-
 
 (* ML runtime system *)
 
