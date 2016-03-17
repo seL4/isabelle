@@ -833,12 +833,12 @@ text \<open>Simplification procedures are ML functions that produce proven
   procedure that is invoked by the Simplifier whenever any of the
   given term patterns match the current redex.  The implementation,
   which is provided as ML source text, needs to be of type @{ML_type
-  "morphism -> simpset -> cterm -> thm option"}, where the @{ML_type
+  "morphism -> Proof.context -> cterm -> thm option"}, where the @{ML_type
   cterm} represents the current redex \<open>r\<close> and the result is
   supposed to be some proven rewrite rule \<open>r \<equiv> r'\<close> (or a
   generalized version), or @{ML NONE} to indicate failure.  The
-  @{ML_type simpset} argument holds the full context of the current
-  Simplifier invocation, including the actual Isar proof context.  The
+  @{ML_type Proof.context} argument holds the full context of the current
+  Simplifier invocation.  The
   @{ML_type morphism} informs about the difference of the original
   compilation context wrt.\ the one of the actual application later
   on.  The optional @{keyword "identifier"} specifies theorems that
