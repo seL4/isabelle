@@ -581,17 +581,6 @@ text \<open>
   Simplifier, which is also known as ``simpset'' internally; the ``\<open>!\<close>''
   option indicates extra verbosity.
 
-  For historical reasons, simpsets may occur independently from the current
-  context, but are conceptually dependent on it. When the Simplifier is
-  invoked via one of its main entry points in the Isar source language (as
-  proof method \secref{sec:simp-meth} or rule attribute
-  \secref{sec:simp-meth}), its simpset is derived from the current proof
-  context, and carries a back-reference to that for other tools that might get
-  invoked internally (e.g.\ simplification procedures \secref{sec:simproc}). A
-  mismatch of the context of the simpset and the context of the problem being
-  simplified may lead to unexpected results.
-
-
   The implicit simpset of the theory context is propagated monotonically
   through the theory hierarchy: forming a new theory, the union of the
   simpsets of its imports are taken as starting point. Also note that
