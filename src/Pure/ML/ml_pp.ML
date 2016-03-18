@@ -104,7 +104,7 @@ in
 
 val _ =
   PolyML.addPrettyPrinter (fn depth => fn _ => fn prf =>
-    ML_Pretty.to_polyml (Pretty.to_ML (prt_proof false depth prf)));
+    ML_Pretty.to_polyml (Pretty.to_ML ~1 (prt_proof false depth prf)));
 
 end;
 
