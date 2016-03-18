@@ -180,7 +180,7 @@ Notes to myself:
 
   Then I ran
 
-    ./bin/isabelle process -e 'use_thy "/tmp/T";'  
+    ./bin/isabelle process -T /tmp/T
 
   I also performed the aforementioned sanity tests.
 

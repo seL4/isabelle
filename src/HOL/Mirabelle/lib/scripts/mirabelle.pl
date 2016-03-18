@@ -159,7 +159,7 @@ if ($output_log) { print "Mirabelle: $thy_file\n"; }
 
 my $cmd =
   "isabelle process -o quick_and_dirty -o threads=1" .
-  " -e 'use_thy \"$path/$new_thy_name\"' -l $mirabelle_logic" . $quiet;
+  " -T \"$path/$new_thy_name\" -l $mirabelle_logic" . $quiet;
 my $result = system "bash", "-c", $cmd;
 
 if ($output_log) {

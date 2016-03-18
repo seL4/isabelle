@@ -305,6 +305,7 @@ text \<open>
 \<open>Usage: isabelle process [OPTIONS]
 
   Options are:
+    -T THEORY    load theory
     -d DIR       include session directory
     -e ML_EXPR   evaluate ML expression on startup
     -f ML_FILE   evaluate ML file on startup
@@ -319,6 +320,10 @@ text \<open>
   started. The source is either given literally or taken from a file. Multiple
   \<^verbatim>\<open>-e\<close> and \<^verbatim>\<open>-f\<close> options are evaluated in the given order. Errors lead to
   premature exit of the ML process with return code 1.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-T\<close> loads a specified theory file. This is a wrapper for \<^verbatim>\<open>-e\<close> with
+  a suitable @{ML use_thy} invocation.
 
   \<^medskip>
   Option \<^verbatim>\<open>-l\<close> specifies the logic session name. Option \<^verbatim>\<open>-d\<close> specifies
