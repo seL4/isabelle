@@ -393,8 +393,7 @@ use "Tools/named_thms.ML";
 
 structure Output: OUTPUT = Output;  (*seal system channels!*)
 
-
-use "ML/install_pp_polyml.ML";
+use "ML/ml_pp.ML";
 
 
 (* the Pure theory *)
