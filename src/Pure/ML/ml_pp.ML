@@ -8,24 +8,23 @@ structure ML_PP: sig end =
 struct
 
 val _ =
-  PolyML.addPrettyPrinter
-    (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_context);
+  PolyML.addPrettyPrinter (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_context);
 
 val _ =
-  PolyML.addPrettyPrinter
-    (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_thm Thy_Info.pure_theory);
+  PolyML.addPrettyPrinter (fn depth => fn _ =>
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_thm Thy_Info.pure_theory);
 
 val _ =
-  PolyML.addPrettyPrinter
-    (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_cterm Thy_Info.pure_theory);
+  PolyML.addPrettyPrinter (fn depth => fn _ =>
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_cterm Thy_Info.pure_theory);
 
 val _ =
-  PolyML.addPrettyPrinter
-    (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_ctyp Thy_Info.pure_theory);
+  PolyML.addPrettyPrinter (fn depth => fn _ =>
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_ctyp Thy_Info.pure_theory);
 
 val _ =
-  PolyML.addPrettyPrinter
-    (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_typ Thy_Info.pure_theory);
+  PolyML.addPrettyPrinter (fn depth => fn _ =>
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_typ Thy_Info.pure_theory);
 
 
 local
