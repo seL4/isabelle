@@ -59,7 +59,7 @@ next
   proof (cases "a = b")
     case True    
     have "((I + {#b#}) + K, (I + {#b#}) + J) \<in> mult R"
-      apply (rule one_step_implies_mult[OF transR])
+      apply (rule one_step_implies_mult)
       apply (auto simp add: decomposed)
       done
     then show ?thesis
@@ -71,7 +71,7 @@ next
     case False
     from False lprod_list have False: "(a, b) \<in> R" by blast
     have "(I + (K + {#a#}), I + (J + {#b#})) \<in> mult R"
-      apply (rule one_step_implies_mult[OF transR])
+      apply (rule one_step_implies_mult)
       apply (auto simp add: False decomposed)
       done
     then show ?thesis

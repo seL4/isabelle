@@ -2062,7 +2062,7 @@ apply (simp add: ac_simps)
 done
 
 lemma one_step_implies_mult:
-  "trans r \<Longrightarrow> J \<noteq> {#} \<Longrightarrow> \<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> r
+  "J \<noteq> {#} \<Longrightarrow> \<forall>k \<in> set_mset K. \<exists>j \<in> set_mset J. (k, j) \<in> r
     \<Longrightarrow> (I + K, I + J) \<in> mult r"
 using one_step_implies_mult_aux by blast
 
