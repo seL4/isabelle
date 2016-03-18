@@ -24,6 +24,9 @@ lemma size1_simps[simp]:
   "size1 \<langle>l, x, r\<rangle> = size1 l + size1 r"
 by (simp_all add: size1_def)
 
+lemma size1_ge0[simp]: "0 < size1 t"
+by (simp add: size1_def)
+
 lemma size_0_iff_Leaf: "size t = 0 \<longleftrightarrow> t = Leaf"
 by(cases t) auto
 
