@@ -13,6 +13,9 @@ Contributions to this Isabelle version
 * March 2016: Florian Haftmann
   Abstract factorial rings with unique factorization.
 
+* March 2016: Andreas Lochbihler
+  Reasoning support for monotonicity, continuity and
+  admissibility in chain-complete partial orders.
 
 Contributions to Isabelle2016
 -----------------------------
