@@ -144,7 +144,6 @@ fun report_parse_tree redirect depth space parse_tree =
 
 fun eval (flags: flags) pos toks =
   let
-    val _ = Secure.deny_ml ();
     val space = ML_Env.make_name_space {SML = #SML flags, exchange = #exchange flags};
     val opt_context = Context.thread_data ();
 

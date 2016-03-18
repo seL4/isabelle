@@ -47,7 +47,6 @@ session Pure =
     "General/random.ML"
     "General/same.ML"
     "General/scan.ML"
-    "General/secure.ML"
     "General/seq.ML"
     "General/sha1.ML"
     "General/socket_io.ML"

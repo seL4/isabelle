@@ -61,7 +61,6 @@ val error_depth = PolyML.error_depth;
 
 (* ML compiler *)
 
-use "General/secure.ML";
 use "ML/ml_compiler0.ML";
 
 PolyML.Compiler.reportUnreferencedIds := true;

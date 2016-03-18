@@ -47,8 +47,6 @@ fun ml_input start_line name txt =
 
 fun use_text ({name_space, here, print, error, ...}: context) {line, file, verbose, debug} text =
   let
-    val _ = Secure.deny_ml ();
-
     val current_line = Unsynchronized.ref line;
     val in_buffer = Unsynchronized.ref (String.explode (ml_input line file text));
     val out_buffer = Unsynchronized.ref ([]: string list);
