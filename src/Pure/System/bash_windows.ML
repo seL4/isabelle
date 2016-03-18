@@ -1,4 +1,4 @@
-(*  Title:      Pure/Concurrent/bash_windows.ML
+(*  Title:      Pure/System/bash_windows.ML
     Author:     Makarius
 
 GNU bash processes, with propagation of interrupts -- Windows version.

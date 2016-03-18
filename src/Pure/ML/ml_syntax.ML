@@ -123,4 +123,8 @@ fun pretty_string max_len str =
       else take (Int.max (max_len, 0)) body @ ["..."];
   in Pretty.str (quote (implode (map print_char body'))) end;
 
+val _ =
+  PolyML.addPrettyPrinter (fn depth => fn _ => fn str =>
+    Pretty.to_polyml (pretty_string (FixedInt.toInt (depth * 100)) str));
+
 end;

@@ -170,6 +170,9 @@ val output = Buffer.output o buffer_of ~1;
 fun pretty depth tree =
   Pretty.str (Buffer.content (buffer_of (Int.max (0, depth)) tree));
 
+val _ =
+  PolyML.addPrettyPrinter (fn depth => fn _ => Pretty.to_polyml o pretty (FixedInt.toInt depth));
+
 
 
 (** XML parsing **)

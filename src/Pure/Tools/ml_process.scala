@@ -18,7 +18,6 @@ object ML_Process
     dirs: List[Path] = Nil,
     modes: List[String] = Nil,
     raw_ml_system: Boolean = false,
-    secure: Boolean = false,
     cwd: JFile = null,
     env: Map[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
@@ -67,17 +66,15 @@ object ML_Process
     val env_options = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
     val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
 
-    val eval_secure = if (secure) List("Secure.set_secure ()") else Nil
-
     val eval_process =
       if (heaps.isEmpty)
         List("PolyML.print_depth 10")
       else
         channel match {
           case None =>
-            List("(default_print_depth 10; Isabelle_Process.init_options ())")
+            List("(ML_Pretty.print_depth 10; Isabelle_Process.init_options ())")
           case Some(ch) =>
-            List("(default_print_depth 10; Isabelle_Process.init_protocol " +
+            List("(ML_Pretty.print_depth 10; Isabelle_Process.init_protocol " +
               ML_Syntax.print_string0(ch.server_name) + ")")
         }
 
@@ -88,7 +85,7 @@ object ML_Process
     // bash
     val bash_args =
       Word.explode(Isabelle_System.getenv("ML_OPTIONS")) :::
-      (eval_init ::: eval_modes ::: eval_options ::: eval_secure ::: eval_process).
+      (eval_init ::: eval_modes ::: eval_options ::: eval_process).
         map(eval => List("--eval", eval)).flatten ::: args
 
     Bash.process("""exec "$ML_HOME/poly" -q """ + File.bash_args(bash_args),

@@ -71,6 +71,8 @@ type declaration = morphism -> Context.generic -> Context.generic;
 
 fun pretty (Morphism {names, ...}) = Pretty.enum ";" "{" "}" (map Pretty.str (rev names));
 
+val _ = PolyML.addPrettyPrinter (fn _ => fn _ => Pretty.to_polyml o pretty);
+
 fun binding (Morphism {binding, ...}) = apply binding;
 fun typ (Morphism {typ, ...}) = apply typ;
 fun term (Morphism {term, ...}) = apply term;

@@ -11,8 +11,6 @@ package isabelle
 import java.lang.Thread
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue, ThreadFactory}
 
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
-
 
 object Standard_Thread
 {
@@ -49,9 +47,6 @@ object Standard_Thread
         })
       executor
     }
-
-  lazy val execution_context: ExecutionContextExecutor =
-    ExecutionContext.fromExecutorService(pool)
 
 
   /* delayed events */

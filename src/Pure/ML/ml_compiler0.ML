@@ -33,19 +33,20 @@ fun drop_newline s =
 
 fun ml_input start_line name txt =
   let
-    fun positions line (#"@" :: #"{" :: #"h" :: #"e" :: #"r" :: #"e" :: #"}" :: cs) res =
+    fun input line (#"@" :: #"{" :: #"h" :: #"e" :: #"r" :: #"e" :: #"}" :: cs) res =
           let val s = "(Position.line_file_only " ^ Int.toString line ^ " \"" ^ name ^ "\")"
-          in positions line cs (s :: res) end
-      | positions line (#"\\" :: #"<" :: cs) res = positions line cs ("\\\\<" :: res)
-      | positions line (#"\n" :: cs) res = positions (line + 1) cs ("\n" :: res)
-      | positions line (c :: cs) res = positions line cs (str c :: res)
-      | positions _ [] res = rev res;
-  in String.concat (positions start_line (String.explode txt) []) end;
+          in input line cs (s :: res) end
+      | input line (#"@" :: #"{" :: #"m" :: #"a" :: #"k" :: #"e" :: #"_" ::
+            #"s" :: #"t" :: #"r" :: #"i" :: #"n" :: #"g" :: #"}" :: cs) res =
+          input line cs (ML_Pretty.make_string_fn "" :: res)
+      | input line (#"\\" :: #"<" :: cs) res = input line cs ("\\\\<" :: res)
+      | input line (#"\n" :: cs) res = input (line + 1) cs ("\n" :: res)
+      | input line (c :: cs) res = input line cs (str c :: res)
+      | input _ [] res = rev res;
+  in String.concat (input start_line (String.explode txt) []) end;
 
 fun use_text ({name_space, here, print, error, ...}: context) {line, file, verbose, debug} text =
   let
-    val _ = Secure.deny_ml ();
-
     val current_line = Unsynchronized.ref line;
     val in_buffer = Unsynchronized.ref (String.explode (ml_input line file text));
     val out_buffer = Unsynchronized.ref ([]: string list);

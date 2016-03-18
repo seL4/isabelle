@@ -28,27 +28,20 @@ open Thread;
 use "Concurrent/multithreading.ML";
 
 use "Concurrent/unsynchronized.ML";
-val _ = PolyML.Compiler.forgetValue "ref";
-val _ = PolyML.Compiler.forgetType "ref";
+val _ = ML_Name_Space.forget_val "ref";
+val _ = ML_Name_Space.forget_type "ref";
 
 
 (* pervasive environment *)
 
-val _ = PolyML.Compiler.forgetValue "isSome";
-val _ = PolyML.Compiler.forgetValue "getOpt";
-val _ = PolyML.Compiler.forgetValue "valOf";
-val _ = PolyML.Compiler.forgetValue "foldl";
-val _ = PolyML.Compiler.forgetValue "foldr";
-val _ = PolyML.Compiler.forgetValue "print";
-val _ = PolyML.Compiler.forgetValue "explode";
-val _ = PolyML.Compiler.forgetValue "concat";
+val _ =
+  List.app ML_Name_Space.forget_val
+    ["isSome", "getOpt", "valOf", "foldl", "foldr", "print", "explode", "concat"];
 
 val ord = SML90.ord;
 val chr = SML90.chr;
 val raw_explode = SML90.explode;
 val implode = SML90.implode;
-
-fun quit () = exit 0;
 
 
 (* ML runtime system *)
@@ -63,30 +56,17 @@ val pointer_eq = PolyML.pointerEq;
 
 use "ML/ml_pretty.ML";
 
-local
-  val depth = Unsynchronized.ref 10;
-in
-  fun get_default_print_depth () = ! depth;
-  fun default_print_depth n = (depth := n; PolyML.print_depth n);
-  val _ = default_print_depth 10;
-end;
-
 val error_depth = PolyML.error_depth;
 
 
 (* ML compiler *)
 
-use "General/secure.ML";
 use "ML/ml_compiler0.ML";
 
 PolyML.Compiler.reportUnreferencedIds := true;
 PolyML.Compiler.reportExhaustiveHandlers := true;
 PolyML.Compiler.printInAlphabeticalOrder := false;
 PolyML.Compiler.maxInlineSize := 80;
-
-fun ml_make_string struct_name =
-  "(fn x => Pretty.string_of (Pretty.from_ML (ML_Pretty.from_polyml (PolyML.prettyRepresentation (x, FixedInt.fromInt (" ^
-    struct_name ^ ".ML_print_depth ()))))))";
 
 
 (* ML debugger *)
@@ -162,10 +142,9 @@ use "General/binding.ML";
 use "General/socket_io.ML";
 use "General/seq.ML";
 use "General/timing.ML";
-
 use "General/sha1.ML";
-use "General/sha1_polyml.ML";
-use "General/sha1_samples.ML";
+
+val _ = List.app ML_Name_Space.forget_structure ML_Name_Space.critical_structures;
 
 use "PIDE/yxml.ML";
 use "PIDE/document_id.ML";
@@ -410,8 +389,7 @@ use "Tools/named_thms.ML";
 
 structure Output: OUTPUT = Output;  (*seal system channels!*)
 
-
-use "ML/install_pp_polyml.ML";
+use "ML/ml_pp.ML";
 
 
 (* the Pure theory *)

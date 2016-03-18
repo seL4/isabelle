@@ -99,7 +99,16 @@ fun future params x =
   if is_finished x then Future.value_result (force_result x)
   else (singleton o Future.forks) params (fn () => force x);
 
+
+(* toplevel pretty printing *)
+
+val _ =
+  PolyML.addPrettyPrinter (fn depth => fn pretty => fn x =>
+    (case peek x of
+      NONE => PolyML.PrettyString "<lazy>"
+    | SOME (Exn.Exn _) => PolyML.PrettyString "<failed>"
+    | SOME (Exn.Res y) => pretty (y, depth)));
+
 end;
 
 type 'a lazy = 'a Lazy.lazy;
-

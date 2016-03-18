@@ -247,24 +247,23 @@ text \<open>
 
 section \<open>The Simplifier \label{sec:simplifier}\<close>
 
-text \<open>The Simplifier performs conditional and unconditional
-  rewriting and uses contextual information: rule declarations in the
-  background theory or local proof context are taken into account, as
-  well as chained facts and subgoal premises (``local assumptions'').
-  There are several general hooks that allow to modify the
-  simplification strategy, or incorporate other proof tools that solve
-  sub-problems, produce rewrite rules on demand etc.
+text \<open>
+  The Simplifier performs conditional and unconditional rewriting and uses
+  contextual information: rule declarations in the background theory or local
+  proof context are taken into account, as well as chained facts and subgoal
+  premises (``local assumptions''). There are several general hooks that allow
+  to modify the simplification strategy, or incorporate other proof tools that
+  solve sub-problems, produce rewrite rules on demand etc.
 
-  The rewriting strategy is always strictly bottom up, except for
-  congruence rules, which are applied while descending into a term.
-  Conditions in conditional rewrite rules are solved recursively
-  before the rewrite rule is applied.
+  The rewriting strategy is always strictly bottom up, except for congruence
+  rules, which are applied while descending into a term. Conditions in
+  conditional rewrite rules are solved recursively before the rewrite rule is
+  applied.
 
-  The default Simplifier setup of major object logics (HOL, HOLCF,
-  FOL, ZF) makes the Simplifier ready for immediate use, without
-  engaging into the internal structures.  Thus it serves as
-  general-purpose proof tool with the main focus on equational
-  reasoning, and a bit more than that.
+  The default Simplifier setup of major object logics (HOL, HOLCF, FOL, ZF)
+  makes the Simplifier ready for immediate use, without engaging into the
+  internal structures. Thus it serves as general-purpose proof tool with the
+  main focus on equational reasoning, and a bit more than that.
 \<close>
 
 
@@ -288,69 +287,63 @@ text \<open>
       'cong' (() | 'add' | 'del')) ':' @{syntax thmrefs}
   \<close>}
 
-  \<^descr> @{method simp} invokes the Simplifier on the first subgoal,
-  after inserting chained facts as additional goal premises; further
-  rule declarations may be included via \<open>(simp add: facts)\<close>.
-  The proof method fails if the subgoal remains unchanged after
-  simplification.
+  \<^descr> @{method simp} invokes the Simplifier on the first subgoal, after
+  inserting chained facts as additional goal premises; further rule
+  declarations may be included via \<open>(simp add: facts)\<close>. The proof method fails
+  if the subgoal remains unchanged after simplification.
 
-  Note that the original goal premises and chained facts are subject
-  to simplification themselves, while declarations via \<open>add\<close>/\<open>del\<close> merely follow the policies of the object-logic
-  to extract rewrite rules from theorems, without further
-  simplification.  This may lead to slightly different behavior in
-  either case, which might be required precisely like that in some
-  boundary situations to perform the intended simplification step!
-
-  \<^medskip>
-  The \<open>only\<close> modifier first removes all other rewrite
-  rules, looper tactics (including split rules), congruence rules, and
-  then behaves like \<open>add\<close>.  Implicit solvers remain, which means
-  that trivial rules like reflexivity or introduction of \<open>True\<close> are available to solve the simplified subgoals, but also
-  non-trivial tools like linear arithmetic in HOL.  The latter may
-  lead to some surprise of the meaning of ``only'' in Isabelle/HOL
-  compared to English!
+  Note that the original goal premises and chained facts are subject to
+  simplification themselves, while declarations via \<open>add\<close>/\<open>del\<close> merely follow
+  the policies of the object-logic to extract rewrite rules from theorems,
+  without further simplification. This may lead to slightly different behavior
+  in either case, which might be required precisely like that in some boundary
+  situations to perform the intended simplification step!
 
   \<^medskip>
-  The \<open>split\<close> modifiers add or delete rules for the
-  Splitter (see also \secref{sec:simp-strategies} on the looper).
-  This works only if the Simplifier method has been properly setup to
-  include the Splitter (all major object logics such HOL, HOLCF, FOL,
-  ZF do this already).
+  The \<open>only\<close> modifier first removes all other rewrite rules, looper tactics
+  (including split rules), congruence rules, and then behaves like \<open>add\<close>.
+  Implicit solvers remain, which means that trivial rules like reflexivity or
+  introduction of \<open>True\<close> are available to solve the simplified subgoals, but
+  also non-trivial tools like linear arithmetic in HOL. The latter may lead to
+  some surprise of the meaning of ``only'' in Isabelle/HOL compared to
+  English!
+
+  \<^medskip>
+  The \<open>split\<close> modifiers add or delete rules for the Splitter (see also
+  \secref{sec:simp-strategies} on the looper). This works only if the
+  Simplifier method has been properly setup to include the Splitter (all major
+  object logics such HOL, HOLCF, FOL, ZF do this already).
 
   There is also a separate @{method_ref split} method available for
-  single-step case splitting.  The effect of repeatedly applying
-  \<open>(split thms)\<close> can be imitated by ``\<open>(simp only:
-  split: thms)\<close>''.
+  single-step case splitting. The effect of repeatedly applying \<open>(split thms)\<close>
+  can be imitated by ``\<open>(simp only: split: thms)\<close>''.
 
   \<^medskip>
-  The \<open>cong\<close> modifiers add or delete Simplifier
-  congruence rules (see also \secref{sec:simp-rules}); the default is
-  to add.
+  The \<open>cong\<close> modifiers add or delete Simplifier congruence rules (see also
+  \secref{sec:simp-rules}); the default is to add.
 
-  \<^descr> @{method simp_all} is similar to @{method simp}, but acts on
-  all goals, working backwards from the last to the first one as usual
-  in Isabelle.\<^footnote>\<open>The order is irrelevant for goals without
-  schematic variables, so simplification might actually be performed
-  in parallel here.\<close>
+  \<^descr> @{method simp_all} is similar to @{method simp}, but acts on all goals,
+  working backwards from the last to the first one as usual in Isabelle.\<^footnote>\<open>The
+  order is irrelevant for goals without schematic variables, so simplification
+  might actually be performed in parallel here.\<close>
 
-  Chained facts are inserted into all subgoals, before the
-  simplification process starts.  Further rule declarations are the
-  same as for @{method simp}.
+  Chained facts are inserted into all subgoals, before the simplification
+  process starts. Further rule declarations are the same as for @{method
+  simp}.
 
   The proof method fails if all subgoals remain unchanged after
   simplification.
 
-  \<^descr> @{attribute simp_depth_limit} limits the number of recursive
-  invocations of the Simplifier during conditional rewriting.
+  \<^descr> @{attribute simp_depth_limit} limits the number of recursive invocations
+  of the Simplifier during conditional rewriting.
 
 
-  By default the Simplifier methods above take local assumptions fully
-  into account, using equational assumptions in the subsequent
-  normalization process, or simplifying assumptions themselves.
-  Further options allow to fine-tune the behavior of the Simplifier
-  in this respect, corresponding to a variety of ML tactics as
-  follows.\<^footnote>\<open>Unlike the corresponding Isar proof methods, the
-  ML tactics do not insist in changing the goal state.\<close>
+  By default the Simplifier methods above take local assumptions fully into
+  account, using equational assumptions in the subsequent normalization
+  process, or simplifying assumptions themselves. Further options allow to
+  fine-tune the behavior of the Simplifier in this respect, corresponding to a
+  variety of ML tactics as follows.\<^footnote>\<open>Unlike the corresponding Isar proof
+  methods, the ML tactics do not insist in changing the goal state.\<close>
 
   \begin{center}
   \small
@@ -358,24 +351,21 @@ text \<open>
   \hline
   Isar method & ML tactic & behavior \\\hline
 
-  \<open>(simp (no_asm))\<close> & @{ML simp_tac} & assumptions are ignored
-  completely \\\hline
+  \<open>(simp (no_asm))\<close> & @{ML simp_tac} & assumptions are ignored completely
+  \\\hline
 
-  \<open>(simp (no_asm_simp))\<close> & @{ML asm_simp_tac} & assumptions
-  are used in the simplification of the conclusion but are not
-  themselves simplified \\\hline
+  \<open>(simp (no_asm_simp))\<close> & @{ML asm_simp_tac} & assumptions are used in the
+  simplification of the conclusion but are not themselves simplified \\\hline
 
-  \<open>(simp (no_asm_use))\<close> & @{ML full_simp_tac} & assumptions
-  are simplified but are not used in the simplification of each other
-  or the conclusion \\\hline
+  \<open>(simp (no_asm_use))\<close> & @{ML full_simp_tac} & assumptions are simplified but
+  are not used in the simplification of each other or the conclusion \\\hline
 
-  \<open>(simp)\<close> & @{ML asm_full_simp_tac} & assumptions are used in
-  the simplification of the conclusion and to simplify other
-  assumptions \\\hline
+  \<open>(simp)\<close> & @{ML asm_full_simp_tac} & assumptions are used in the
+  simplification of the conclusion and to simplify other assumptions \\\hline
 
-  \<open>(simp (asm_lr))\<close> & @{ML asm_lr_simp_tac} & compatibility
-  mode: an assumption is only used for simplifying assumptions which
-  are to the right of it \\\hline
+  \<open>(simp (asm_lr))\<close> & @{ML asm_lr_simp_tac} & compatibility mode: an
+  assumption is only used for simplifying assumptions which are to the right
+  of it \\\hline
 
   \end{tabular}
   \end{center}
@@ -384,18 +374,19 @@ text \<open>
 
 subsubsection \<open>Examples\<close>
 
-text \<open>We consider basic algebraic simplifications in Isabelle/HOL.
-  The rather trivial goal @{prop "0 + (x + 0) = x + 0 + 0"} looks like
-  a good candidate to be solved by a single call of @{method simp}:
+text \<open>
+  We consider basic algebraic simplifications in Isabelle/HOL. The rather
+  trivial goal @{prop "0 + (x + 0) = x + 0 + 0"} looks like a good candidate
+  to be solved by a single call of @{method simp}:
 \<close>
 
 lemma "0 + (x + 0) = x + 0 + 0" apply simp? oops
 
-text \<open>The above attempt \<^emph>\<open>fails\<close>, because @{term "0"} and @{term
-  "op +"} in the HOL library are declared as generic type class
-  operations, without stating any algebraic laws yet.  More specific
-  types are required to get access to certain standard simplifications
-  of the theory context, e.g.\ like this:\<close>
+text \<open>
+  The above attempt \<^emph>\<open>fails\<close>, because @{term "0"} and @{term "op +"} in the
+  HOL library are declared as generic type class operations, without stating
+  any algebraic laws yet. More specific types are required to get access to
+  certain standard simplifications of the theory context, e.g.\ like this:\<close>
 
 lemma fixes x :: nat shows "0 + (x + 0) = x + 0 + 0" by simp
 lemma fixes x :: int shows "0 + (x + 0) = x + 0 + 0" by simp
@@ -403,39 +394,38 @@ lemma fixes x :: "'a :: monoid_add" shows "0 + (x + 0) = x + 0 + 0" by simp
 
 text \<open>
   \<^medskip>
-  In many cases, assumptions of a subgoal are also needed in
-  the simplification process.  For example:
+  In many cases, assumptions of a subgoal are also needed in the
+  simplification process. For example:
 \<close>
 
 lemma fixes x :: nat shows "x = 0 \<Longrightarrow> x + x = 0" by simp
 lemma fixes x :: nat assumes "x = 0" shows "x + x = 0" apply simp oops
 lemma fixes x :: nat assumes "x = 0" shows "x + x = 0" using assms by simp
 
-text \<open>As seen above, local assumptions that shall contribute to
-  simplification need to be part of the subgoal already, or indicated
-  explicitly for use by the subsequent method invocation.  Both too
-  little or too much information can make simplification fail, for
-  different reasons.
+text \<open>
+  As seen above, local assumptions that shall contribute to simplification
+  need to be part of the subgoal already, or indicated explicitly for use by
+  the subsequent method invocation. Both too little or too much information
+  can make simplification fail, for different reasons.
 
-  In the next example the malicious assumption @{prop "\<And>x::nat. f x =
-  g (f (g x))"} does not contribute to solve the problem, but makes
-  the default @{method simp} method loop: the rewrite rule \<open>f
-  ?x \<equiv> g (f (g ?x))\<close> extracted from the assumption does not
-  terminate.  The Simplifier notices certain simple forms of
-  nontermination, but not this one.  The problem can be solved
-  nonetheless, by ignoring assumptions via special options as
-  explained before:
+  In the next example the malicious assumption @{prop "\<And>x::nat. f x = g (f (g
+  x))"} does not contribute to solve the problem, but makes the default
+  @{method simp} method loop: the rewrite rule \<open>f ?x \<equiv> g (f (g ?x))\<close> extracted
+  from the assumption does not terminate. The Simplifier notices certain
+  simple forms of nontermination, but not this one. The problem can be solved
+  nonetheless, by ignoring assumptions via special options as explained
+  before:
 \<close>
 
 lemma "(\<And>x::nat. f x = g (f (g x))) \<Longrightarrow> f 0 = f 0 + 0"
   by (simp (no_asm))
 
-text \<open>The latter form is typical for long unstructured proof
-  scripts, where the control over the goal content is limited.  In
-  structured proofs it is usually better to avoid pushing too many
-  facts into the goal state in the first place.  Assumptions in the
-  Isar proof context do not intrude the reasoning if not used
-  explicitly.  This is illustrated for a toplevel statement and a
+text \<open>
+  The latter form is typical for long unstructured proof scripts, where the
+  control over the goal content is limited. In structured proofs it is usually
+  better to avoid pushing too many facts into the goal state in the first
+  place. Assumptions in the Isar proof context do not intrude the reasoning if
+  not used explicitly. This is illustrated for a toplevel statement and a
   local proof body as follows:
 \<close>
 
@@ -451,26 +441,26 @@ end
 
 text \<open>
   \<^medskip>
-  Because assumptions may simplify each other, there
-  can be very subtle cases of nontermination. For example, the regular
-  @{method simp} method applied to @{prop "P (f x) \<Longrightarrow> y = x \<Longrightarrow> f x = f y
-  \<Longrightarrow> Q"} gives rise to the infinite reduction sequence
+  Because assumptions may simplify each other, there can be very subtle cases
+  of nontermination. For example, the regular @{method simp} method applied to
+  @{prop "P (f x) \<Longrightarrow> y = x \<Longrightarrow> f x = f y \<Longrightarrow> Q"} gives rise to the infinite
+  reduction sequence
   \[
   \<open>P (f x)\<close> \stackrel{\<open>f x \<equiv> f y\<close>}{\longmapsto}
   \<open>P (f y)\<close> \stackrel{\<open>y \<equiv> x\<close>}{\longmapsto}
   \<open>P (f x)\<close> \stackrel{\<open>f x \<equiv> f y\<close>}{\longmapsto} \cdots
   \]
-  whereas applying the same to @{prop "y = x \<Longrightarrow> f x = f y \<Longrightarrow> P (f x) \<Longrightarrow>
-  Q"} terminates (without solving the goal):
+  whereas applying the same to @{prop "y = x \<Longrightarrow> f x = f y \<Longrightarrow> P (f x) \<Longrightarrow> Q"}
+  terminates (without solving the goal):
 \<close>
 
 lemma "y = x \<Longrightarrow> f x = f y \<Longrightarrow> P (f x) \<Longrightarrow> Q"
   apply simp
   oops
 
-text \<open>See also \secref{sec:simp-trace} for options to enable
-  Simplifier trace mode, which often helps to diagnose problems with
-  rewrite systems.
+text \<open>
+  See also \secref{sec:simp-trace} for options to enable Simplifier trace
+  mode, which often helps to diagnose problems with rewrite systems.
 \<close>
 
 
@@ -491,200 +481,180 @@ text \<open>
     @@{command print_simpset} ('!'?)
   \<close>}
 
-  \<^descr> @{attribute simp} declares rewrite rules, by adding or
-  deleting them from the simpset within the theory or proof context.
-  Rewrite rules are theorems expressing some form of equality, for
-  example:
+  \<^descr> @{attribute simp} declares rewrite rules, by adding or deleting them from
+  the simpset within the theory or proof context. Rewrite rules are theorems
+  expressing some form of equality, for example:
 
   \<open>Suc ?m + ?n = ?m + Suc ?n\<close> \\
   \<open>?P \<and> ?P \<longleftrightarrow> ?P\<close> \\
   \<open>?A \<union> ?B \<equiv> {x. x \<in> ?A \<or> x \<in> ?B}\<close>
 
   \<^medskip>
-  Conditional rewrites such as \<open>?m < ?n \<Longrightarrow> ?m div ?n = 0\<close> are
-  also permitted; the conditions can be arbitrary formulas.
+  Conditional rewrites such as \<open>?m < ?n \<Longrightarrow> ?m div ?n = 0\<close> are also permitted;
+  the conditions can be arbitrary formulas.
 
   \<^medskip>
-  Internally, all rewrite rules are translated into Pure
-  equalities, theorems with conclusion \<open>lhs \<equiv> rhs\<close>. The
-  simpset contains a function for extracting equalities from arbitrary
-  theorems, which is usually installed when the object-logic is
-  configured initially. For example, \<open>\<not> ?x \<in> {}\<close> could be
-  turned into \<open>?x \<in> {} \<equiv> False\<close>. Theorems that are declared as
-  @{attribute simp} and local assumptions within a goal are treated
-  uniformly in this respect.
+  Internally, all rewrite rules are translated into Pure equalities, theorems
+  with conclusion \<open>lhs \<equiv> rhs\<close>. The simpset contains a function for extracting
+  equalities from arbitrary theorems, which is usually installed when the
+  object-logic is configured initially. For example, \<open>\<not> ?x \<in> {}\<close> could be
+  turned into \<open>?x \<in> {} \<equiv> False\<close>. Theorems that are declared as @{attribute
+  simp} and local assumptions within a goal are treated uniformly in this
+  respect.
 
-  The Simplifier accepts the following formats for the \<open>lhs\<close>
-  term:
+  The Simplifier accepts the following formats for the \<open>lhs\<close> term:
 
-    \<^enum> First-order patterns, considering the sublanguage of
-    application of constant operators to variable operands, without
-    \<open>\<lambda>\<close>-abstractions or functional variables.
-    For example:
+    \<^enum> First-order patterns, considering the sublanguage of application of
+    constant operators to variable operands, without \<open>\<lambda>\<close>-abstractions or
+    functional variables. For example:
 
     \<open>(?x + ?y) + ?z \<equiv> ?x + (?y + ?z)\<close> \\
     \<open>f (f ?x ?y) ?z \<equiv> f ?x (f ?y ?z)\<close>
 
-    \<^enum> Higher-order patterns in the sense of @{cite "nipkow-patterns"}.
-    These are terms in \<open>\<beta>\<close>-normal form (this will always be the
-    case unless you have done something strange) where each occurrence
-    of an unknown is of the form \<open>?F x\<^sub>1 \<dots> x\<^sub>n\<close>, where the
-    \<open>x\<^sub>i\<close> are distinct bound variables.
+    \<^enum> Higher-order patterns in the sense of @{cite "nipkow-patterns"}. These
+    are terms in \<open>\<beta>\<close>-normal form (this will always be the case unless you have
+    done something strange) where each occurrence of an unknown is of the form
+    \<open>?F x\<^sub>1 \<dots> x\<^sub>n\<close>, where the \<open>x\<^sub>i\<close> are distinct bound variables.
 
-    For example, \<open>(\<forall>x. ?P x \<and> ?Q x) \<equiv> (\<forall>x. ?P x) \<and> (\<forall>x. ?Q x)\<close>
-    or its symmetric form, since the \<open>rhs\<close> is also a
-    higher-order pattern.
+    For example, \<open>(\<forall>x. ?P x \<and> ?Q x) \<equiv> (\<forall>x. ?P x) \<and> (\<forall>x. ?Q x)\<close> or its
+    symmetric form, since the \<open>rhs\<close> is also a higher-order pattern.
 
-    \<^enum> Physical first-order patterns over raw \<open>\<lambda>\<close>-term
-    structure without \<open>\<alpha>\<beta>\<eta>\<close>-equality; abstractions and bound
-    variables are treated like quasi-constant term material.
+    \<^enum> Physical first-order patterns over raw \<open>\<lambda>\<close>-term structure without
+    \<open>\<alpha>\<beta>\<eta>\<close>-equality; abstractions and bound variables are treated like
+    quasi-constant term material.
 
-    For example, the rule \<open>?f ?x \<in> range ?f = True\<close> rewrites the
-    term \<open>g a \<in> range g\<close> to \<open>True\<close>, but will fail to
-    match \<open>g (h b) \<in> range (\<lambda>x. g (h x))\<close>. However, offending
-    subterms (in our case \<open>?f ?x\<close>, which is not a pattern) can
-    be replaced by adding new variables and conditions like this: \<open>?y = ?f ?x \<Longrightarrow> ?y \<in> range ?f = True\<close> is acceptable as a conditional
-    rewrite rule of the second category since conditions can be
-    arbitrary terms.
+    For example, the rule \<open>?f ?x \<in> range ?f = True\<close> rewrites the term \<open>g a \<in>
+    range g\<close> to \<open>True\<close>, but will fail to match \<open>g (h b) \<in> range (\<lambda>x. g (h
+    x))\<close>. However, offending subterms (in our case \<open>?f ?x\<close>, which is not a
+    pattern) can be replaced by adding new variables and conditions like this:
+    \<open>?y = ?f ?x \<Longrightarrow> ?y \<in> range ?f = True\<close> is acceptable as a conditional rewrite
+    rule of the second category since conditions can be arbitrary terms.
 
   \<^descr> @{attribute split} declares case split rules.
 
-  \<^descr> @{attribute cong} declares congruence rules to the Simplifier
-  context.
+  \<^descr> @{attribute cong} declares congruence rules to the Simplifier context.
 
   Congruence rules are equalities of the form @{text [display]
   "\<dots> \<Longrightarrow> f ?x\<^sub>1 \<dots> ?x\<^sub>n = f ?y\<^sub>1 \<dots> ?y\<^sub>n"}
 
-  This controls the simplification of the arguments of \<open>f\<close>.  For
-  example, some arguments can be simplified under additional
-  assumptions: @{text [display] "?P\<^sub>1 \<longleftrightarrow> ?Q\<^sub>1 \<Longrightarrow> (?Q\<^sub>1 \<Longrightarrow> ?P\<^sub>2 \<longleftrightarrow> ?Q\<^sub>2) \<Longrightarrow>
-  (?P\<^sub>1 \<longrightarrow> ?P\<^sub>2) \<longleftrightarrow> (?Q\<^sub>1 \<longrightarrow> ?Q\<^sub>2)"}
+  This controls the simplification of the arguments of \<open>f\<close>. For example, some
+  arguments can be simplified under additional assumptions:
+  @{text [display]
+    "?P\<^sub>1 \<longleftrightarrow> ?Q\<^sub>1 \<Longrightarrow>
+    (?Q\<^sub>1 \<Longrightarrow> ?P\<^sub>2 \<longleftrightarrow> ?Q\<^sub>2) \<Longrightarrow>
+    (?P\<^sub>1 \<longrightarrow> ?P\<^sub>2) \<longleftrightarrow> (?Q\<^sub>1 \<longrightarrow> ?Q\<^sub>2)"}
 
-  Given this rule, the Simplifier assumes \<open>?Q\<^sub>1\<close> and extracts
-  rewrite rules from it when simplifying \<open>?P\<^sub>2\<close>.  Such local
-  assumptions are effective for rewriting formulae such as \<open>x =
-  0 \<longrightarrow> y + x = y\<close>.
+  Given this rule, the Simplifier assumes \<open>?Q\<^sub>1\<close> and extracts rewrite rules
+  from it when simplifying \<open>?P\<^sub>2\<close>. Such local assumptions are effective for
+  rewriting formulae such as \<open>x = 0 \<longrightarrow> y + x = y\<close>.
 
   %FIXME
   %The local assumptions are also provided as theorems to the solver;
   %see \secref{sec:simp-solver} below.
 
   \<^medskip>
-  The following congruence rule for bounded quantifiers also
-  supplies contextual information --- about the bound variable:
-  @{text [display] "(?A = ?B) \<Longrightarrow> (\<And>x. x \<in> ?B \<Longrightarrow> ?P x \<longleftrightarrow> ?Q x) \<Longrightarrow>
+  The following congruence rule for bounded quantifiers also supplies
+  contextual information --- about the bound variable: @{text [display]
+  "(?A = ?B) \<Longrightarrow>
+    (\<And>x. x \<in> ?B \<Longrightarrow> ?P x \<longleftrightarrow> ?Q x) \<Longrightarrow>
     (\<forall>x \<in> ?A. ?P x) \<longleftrightarrow> (\<forall>x \<in> ?B. ?Q x)"}
 
   \<^medskip>
-  This congruence rule for conditional expressions can
-  supply contextual information for simplifying the arms:
-  @{text [display] "?p = ?q \<Longrightarrow> (?q \<Longrightarrow> ?a = ?c) \<Longrightarrow> (\<not> ?q \<Longrightarrow> ?b = ?d) \<Longrightarrow>
+  This congruence rule for conditional expressions can supply contextual
+  information for simplifying the arms: @{text [display]
+  "?p = ?q \<Longrightarrow>
+    (?q \<Longrightarrow> ?a = ?c) \<Longrightarrow>
+    (\<not> ?q \<Longrightarrow> ?b = ?d) \<Longrightarrow>
     (if ?p then ?a else ?b) = (if ?q then ?c else ?d)"}
 
-  A congruence rule can also \<^emph>\<open>prevent\<close> simplification of some
-  arguments.  Here is an alternative congruence rule for conditional
-  expressions that conforms to non-strict functional evaluation:
-  @{text [display] "?p = ?q \<Longrightarrow> (if ?p then ?a else ?b) = (if ?q then ?a else ?b)"}
+  A congruence rule can also \<^emph>\<open>prevent\<close> simplification of some arguments. Here
+  is an alternative congruence rule for conditional expressions that conforms
+  to non-strict functional evaluation: @{text [display]
+  "?p = ?q \<Longrightarrow>
+    (if ?p then ?a else ?b) = (if ?q then ?a else ?b)"}
 
-  Only the first argument is simplified; the others remain unchanged.
-  This can make simplification much faster, but may require an extra
-  case split over the condition \<open>?q\<close> to prove the goal.
+  Only the first argument is simplified; the others remain unchanged. This can
+  make simplification much faster, but may require an extra case split over
+  the condition \<open>?q\<close> to prove the goal.
 
-  \<^descr> @{command "print_simpset"} prints the collection of rules declared
-  to the Simplifier, which is also known as ``simpset'' internally; the
-  ``\<open>!\<close>'' option indicates extra verbosity.
+  \<^descr> @{command "print_simpset"} prints the collection of rules declared to the
+  Simplifier, which is also known as ``simpset'' internally; the ``\<open>!\<close>''
+  option indicates extra verbosity.
 
-  For historical reasons, simpsets may occur independently from the
-  current context, but are conceptually dependent on it.  When the
-  Simplifier is invoked via one of its main entry points in the Isar
-  source language (as proof method \secref{sec:simp-meth} or rule
-  attribute \secref{sec:simp-meth}), its simpset is derived from the
-  current proof context, and carries a back-reference to that for
-  other tools that might get invoked internally (e.g.\ simplification
-  procedures \secref{sec:simproc}).  A mismatch of the context of the
-  simpset and the context of the problem being simplified may lead to
-  unexpected results.
-
-
-  The implicit simpset of the theory context is propagated
-  monotonically through the theory hierarchy: forming a new theory,
-  the union of the simpsets of its imports are taken as starting
-  point.  Also note that definitional packages like @{command
-  "datatype"}, @{command "primrec"}, @{command "fun"} routinely
-  declare Simplifier rules to the target context, while plain
-  @{command "definition"} is an exception in \<^emph>\<open>not\<close> declaring
+  The implicit simpset of the theory context is propagated monotonically
+  through the theory hierarchy: forming a new theory, the union of the
+  simpsets of its imports are taken as starting point. Also note that
+  definitional packages like @{command "datatype"}, @{command "primrec"},
+  @{command "fun"} routinely declare Simplifier rules to the target context,
+  while plain @{command "definition"} is an exception in \<^emph>\<open>not\<close> declaring
   anything.
 
   \<^medskip>
-  It is up the user to manipulate the current simpset further
-  by explicitly adding or deleting theorems as simplification rules,
-  or installing other tools via simplification procedures
-  (\secref{sec:simproc}).  Good simpsets are hard to design.  Rules
-  that obviously simplify, like \<open>?n + 0 \<equiv> ?n\<close> are good
-  candidates for the implicit simpset, unless a special
-  non-normalizing behavior of certain operations is intended.  More
-  specific rules (such as distributive laws, which duplicate subterms)
-  should be added only for specific proof steps.  Conversely,
-  sometimes a rule needs to be deleted just for some part of a proof.
-  The need of frequent additions or deletions may indicate a poorly
-  designed simpset.
+  It is up the user to manipulate the current simpset further by explicitly
+  adding or deleting theorems as simplification rules, or installing other
+  tools via simplification procedures (\secref{sec:simproc}). Good simpsets
+  are hard to design. Rules that obviously simplify, like \<open>?n + 0 \<equiv> ?n\<close> are
+  good candidates for the implicit simpset, unless a special non-normalizing
+  behavior of certain operations is intended. More specific rules (such as
+  distributive laws, which duplicate subterms) should be added only for
+  specific proof steps. Conversely, sometimes a rule needs to be deleted just
+  for some part of a proof. The need of frequent additions or deletions may
+  indicate a poorly designed simpset.
 
   \begin{warn}
-  The union of simpsets from theory imports (as described above) is
-  not always a good starting point for the new theory.  If some
-  ancestors have deleted simplification rules because they are no
-  longer wanted, while others have left those rules in, then the union
-  will contain the unwanted rules, and thus have to be deleted again
-  in the theory body.
+  The union of simpsets from theory imports (as described above) is not always
+  a good starting point for the new theory. If some ancestors have deleted
+  simplification rules because they are no longer wanted, while others have
+  left those rules in, then the union will contain the unwanted rules, and
+  thus have to be deleted again in the theory body.
   \end{warn}
 \<close>
 
 
 subsection \<open>Ordered rewriting with permutative rules\<close>
 
-text \<open>A rewrite rule is \<^emph>\<open>permutative\<close> if the left-hand side and
-  right-hand side are the equal up to renaming of variables.  The most
-  common permutative rule is commutativity: \<open>?x + ?y = ?y +
-  ?x\<close>.  Other examples include \<open>(?x - ?y) - ?z = (?x - ?z) -
-  ?y\<close> in arithmetic and \<open>insert ?x (insert ?y ?A) = insert ?y
-  (insert ?x ?A)\<close> for sets.  Such rules are common enough to merit
-  special attention.
+text \<open>
+  A rewrite rule is \<^emph>\<open>permutative\<close> if the left-hand side and right-hand side
+  are the equal up to renaming of variables. The most common permutative rule
+  is commutativity: \<open>?x + ?y = ?y + ?x\<close>. Other examples include \<open>(?x - ?y) -
+  ?z = (?x - ?z) - ?y\<close> in arithmetic and \<open>insert ?x (insert ?y ?A) = insert ?y
+  (insert ?x ?A)\<close> for sets. Such rules are common enough to merit special
+  attention.
 
-  Because ordinary rewriting loops given such rules, the Simplifier
-  employs a special strategy, called \<^emph>\<open>ordered rewriting\<close>.
-  Permutative rules are detected and only applied if the rewriting
-  step decreases the redex wrt.\ a given term ordering.  For example,
-  commutativity rewrites \<open>b + a\<close> to \<open>a + b\<close>, but then
-  stops, because the redex cannot be decreased further in the sense of
-  the term ordering.
+  Because ordinary rewriting loops given such rules, the Simplifier employs a
+  special strategy, called \<^emph>\<open>ordered rewriting\<close>. Permutative rules are
+  detected and only applied if the rewriting step decreases the redex wrt.\ a
+  given term ordering. For example, commutativity rewrites \<open>b + a\<close> to \<open>a + b\<close>,
+  but then stops, because the redex cannot be decreased further in the sense
+  of the term ordering.
 
-  The default is lexicographic ordering of term structure, but this
-  could be also changed locally for special applications via
-  @{index_ML Simplifier.set_termless} in Isabelle/ML.
+  The default is lexicographic ordering of term structure, but this could be
+  also changed locally for special applications via @{index_ML
+  Simplifier.set_termless} in Isabelle/ML.
 
   \<^medskip>
-  Permutative rewrite rules are declared to the Simplifier
-  just like other rewrite rules.  Their special status is recognized
-  automatically, and their application is guarded by the term ordering
-  accordingly.\<close>
+  Permutative rewrite rules are declared to the Simplifier just like other
+  rewrite rules. Their special status is recognized automatically, and their
+  application is guarded by the term ordering accordingly.
+\<close>
 
 
 subsubsection \<open>Rewriting with AC operators\<close>
 
-text \<open>Ordered rewriting is particularly effective in the case of
-  associative-commutative operators.  (Associativity by itself is not
-  permutative.)  When dealing with an AC-operator \<open>f\<close>, keep
-  the following points in mind:
+text \<open>
+  Ordered rewriting is particularly effective in the case of
+  associative-commutative operators. (Associativity by itself is not
+  permutative.) When dealing with an AC-operator \<open>f\<close>, keep the following
+  points in mind:
 
-  \<^item> The associative law must always be oriented from left to
-  right, namely \<open>f (f x y) z = f x (f y z)\<close>.  The opposite
-  orientation, if used with commutativity, leads to looping in
-  conjunction with the standard term order.
+    \<^item> The associative law must always be oriented from left to right, namely
+    \<open>f (f x y) z = f x (f y z)\<close>. The opposite orientation, if used with
+    commutativity, leads to looping in conjunction with the standard term
+    order.
 
-  \<^item> To complete your set of rewrite rules, you must add not just
-  associativity (A) and commutativity (C) but also a derived rule
-  \<^emph>\<open>left-commutativity\<close> (LC): \<open>f x (f y z) = f y (f x z)\<close>.
-
+    \<^item> To complete your set of rewrite rules, you must add not just
+    associativity (A) and commutativity (C) but also a derived rule
+    \<^emph>\<open>left-commutativity\<close> (LC): \<open>f x (f y z) = f y (f x z)\<close>.
 
   Ordered rewriting with the combination of A, C, and LC sorts a term
   lexicographically --- the rewriting engine imitates bubble-sort.
@@ -704,9 +674,11 @@ qed
 
 lemmas AC_rules = assoc commute left_commute
 
-text \<open>Thus the Simplifier is able to establish equalities with
-  arbitrary permutations of subterms, by normalizing to a common
-  standard form.  For example:\<close>
+text \<open>
+  Thus the Simplifier is able to establish equalities with arbitrary
+  permutations of subterms, by normalizing to a common standard form. For
+  example:
+\<close>
 
 lemma "(b \<bullet> c) \<bullet> a = xxx"
   apply (simp only: AC_rules)
@@ -719,10 +691,11 @@ lemma "(b \<bullet> c) \<bullet> a = (c \<bullet> b) \<bullet> a" by (simp only:
 
 end
 
-text \<open>Martin and Nipkow @{cite "martin-nipkow"} discuss the theory and
-  give many examples; other algebraic structures are amenable to
-  ordered rewriting, such as Boolean rings.  The Boyer-Moore theorem
-  prover @{cite bm88book} also employs ordered rewriting.
+text \<open>
+  Martin and Nipkow @{cite "martin-nipkow"} discuss the theory and give many
+  examples; other algebraic structures are amenable to ordered rewriting, such
+  as Boolean rings. The Boyer-Moore theorem prover @{cite bm88book} also
+  employs ordered rewriting.
 \<close>
 
 
@@ -761,29 +734,29 @@ text \<open>
   These attributes and configurations options control various aspects of
   Simplifier tracing and debugging.
 
-  \<^descr> @{attribute simp_trace} makes the Simplifier output internal
-  operations.  This includes rewrite steps, but also bookkeeping like
-  modifications of the simpset.
+  \<^descr> @{attribute simp_trace} makes the Simplifier output internal operations.
+  This includes rewrite steps, but also bookkeeping like modifications of the
+  simpset.
 
-  \<^descr> @{attribute simp_trace_depth_limit} limits the effect of
-  @{attribute simp_trace} to the given depth of recursive Simplifier
-  invocations (when solving conditions of rewrite rules).
+  \<^descr> @{attribute simp_trace_depth_limit} limits the effect of @{attribute
+  simp_trace} to the given depth of recursive Simplifier invocations (when
+  solving conditions of rewrite rules).
 
-  \<^descr> @{attribute simp_debug} makes the Simplifier output some extra
-  information about internal operations.  This includes any attempted
-  invocation of simplification procedures.
+  \<^descr> @{attribute simp_debug} makes the Simplifier output some extra information
+  about internal operations. This includes any attempted invocation of
+  simplification procedures.
 
   \<^descr> @{attribute simp_trace_new} controls Simplifier tracing within
   Isabelle/PIDE applications, notably Isabelle/jEdit @{cite "isabelle-jedit"}.
-  This provides a hierarchical representation of the rewriting steps
-  performed by the Simplifier.
+  This provides a hierarchical representation of the rewriting steps performed
+  by the Simplifier.
 
   Users can configure the behaviour by specifying breakpoints, verbosity and
   enabling or disabling the interactive mode. In normal verbosity (the
-  default), only rule applications matching a breakpoint will be shown to
-  the user. In full verbosity, all rule applications will be logged.
-  Interactive mode interrupts the normal flow of the Simplifier and defers
-  the decision how to continue to the user via some GUI dialog.
+  default), only rule applications matching a breakpoint will be shown to the
+  user. In full verbosity, all rule applications will be logged. Interactive
+  mode interrupts the normal flow of the Simplifier and defers the decision
+  how to continue to the user via some GUI dialog.
 
   \<^descr> @{attribute simp_break} declares term or theorem breakpoints for
   @{attribute simp_trace_new} as described above. Term breakpoints are
@@ -800,21 +773,19 @@ declare [[simp_break "?x \<and> ?y"]]
 
 subsection \<open>Simplification procedures \label{sec:simproc}\<close>
 
-text \<open>Simplification procedures are ML functions that produce proven
-  rewrite rules on demand.  They are associated with higher-order
-  patterns that approximate the left-hand sides of equations.  The
-  Simplifier first matches the current redex against one of the LHS
-  patterns; if this succeeds, the corresponding ML function is
-  invoked, passing the Simplifier context and redex term.  Thus rules
-  may be specifically fashioned for particular situations, resulting
-  in a more powerful mechanism than term rewriting by a fixed set of
-  rules.
+text \<open>
+  Simplification procedures are ML functions that produce proven rewrite rules
+  on demand. They are associated with higher-order patterns that approximate
+  the left-hand sides of equations. The Simplifier first matches the current
+  redex against one of the LHS patterns; if this succeeds, the corresponding
+  ML function is invoked, passing the Simplifier context and redex term. Thus
+  rules may be specifically fashioned for particular situations, resulting in
+  a more powerful mechanism than term rewriting by a fixed set of rules.
 
-  Any successful result needs to be a (possibly conditional) rewrite
-  rule \<open>t \<equiv> u\<close> that is applicable to the current redex.  The
-  rule will be applied just as any ordinary rewrite rule.  It is
-  expected to be already in \<^emph>\<open>internal form\<close>, bypassing the
-  automatic preprocessing of object-level equivalences.
+  Any successful result needs to be a (possibly conditional) rewrite rule \<open>t \<equiv>
+  u\<close> that is applicable to the current redex. The rule will be applied just as
+  any ordinary rewrite rule. It is expected to be already in \<^emph>\<open>internal form\<close>,
+  bypassing the automatic preprocessing of object-level equivalences.
 
   \begin{matharray}{rcl}
     @{command_def "simproc_setup"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
@@ -829,40 +800,39 @@ text \<open>Simplification procedures are ML functions that produce proven
     @@{attribute simproc} (('add' ':')? | 'del' ':') (@{syntax name}+)
   \<close>}
 
-  \<^descr> @{command "simproc_setup"} defines a named simplification
-  procedure that is invoked by the Simplifier whenever any of the
-  given term patterns match the current redex.  The implementation,
-  which is provided as ML source text, needs to be of type @{ML_type
-  "morphism -> simpset -> cterm -> thm option"}, where the @{ML_type
-  cterm} represents the current redex \<open>r\<close> and the result is
-  supposed to be some proven rewrite rule \<open>r \<equiv> r'\<close> (or a
-  generalized version), or @{ML NONE} to indicate failure.  The
-  @{ML_type simpset} argument holds the full context of the current
-  Simplifier invocation, including the actual Isar proof context.  The
-  @{ML_type morphism} informs about the difference of the original
-  compilation context wrt.\ the one of the actual application later
-  on.  The optional @{keyword "identifier"} specifies theorems that
-  represent the logical content of the abstract theory of this
-  simproc.
+  \<^descr> @{command "simproc_setup"} defines a named simplification procedure that
+  is invoked by the Simplifier whenever any of the given term patterns match
+  the current redex. The implementation, which is provided as ML source text,
+  needs to be of type
+  @{ML_type "morphism -> Proof.context -> cterm -> thm option"}, where the
+  @{ML_type cterm} represents the current redex \<open>r\<close> and the result is supposed
+  to be some proven rewrite rule \<open>r \<equiv> r'\<close> (or a generalized version), or @{ML
+  NONE} to indicate failure. The @{ML_type Proof.context} argument holds the
+  full context of the current Simplifier invocation. The @{ML_type morphism}
+  informs about the difference of the original compilation context wrt.\ the
+  one of the actual application later on. The optional @{keyword "identifier"}
+  specifies theorems that represent the logical content of the abstract theory
+  of this simproc.
 
-  Morphisms and identifiers are only relevant for simprocs that are
-  defined within a local target context, e.g.\ in a locale.
+  Morphisms and identifiers are only relevant for simprocs that are defined
+  within a local target context, e.g.\ in a locale.
 
-  \<^descr> \<open>simproc add: name\<close> and \<open>simproc del: name\<close>
-  add or delete named simprocs to the current Simplifier context.  The
-  default is to add a simproc.  Note that @{command "simproc_setup"}
-  already adds the new simproc to the subsequent context.
+  \<^descr> \<open>simproc add: name\<close> and \<open>simproc del: name\<close> add or delete named simprocs
+  to the current Simplifier context. The default is to add a simproc. Note
+  that @{command "simproc_setup"} already adds the new simproc to the
+  subsequent context.
 \<close>
 
 
 subsubsection \<open>Example\<close>
 
-text \<open>The following simplification procedure for @{thm
-  [source=false, show_types] unit_eq} in HOL performs fine-grained
-  control over rule application, beyond higher-order pattern matching.
-  Declaring @{thm unit_eq} as @{attribute simp} directly would make
-  the Simplifier loop!  Note that a version of this simplification
-  procedure is already active in Isabelle/HOL.\<close>
+text \<open>
+  The following simplification procedure for @{thm [source = false,
+  show_types] unit_eq} in HOL performs fine-grained control over rule
+  application, beyond higher-order pattern matching. Declaring @{thm unit_eq}
+  as @{attribute simp} directly would make the Simplifier loop! Note that a
+  version of this simplification procedure is already active in Isabelle/HOL.
+\<close>
 
 (*<*)experiment begin(*>*)
 simproc_setup unit ("x::unit") =
@@ -871,20 +841,20 @@ simproc_setup unit ("x::unit") =
     else SOME (mk_meta_eq @{thm unit_eq})\<close>
 (*<*)end(*>*)
 
-text \<open>Since the Simplifier applies simplification procedures
-  frequently, it is important to make the failure check in ML
-  reasonably fast.\<close>
+text \<open>
+  Since the Simplifier applies simplification procedures frequently, it is
+  important to make the failure check in ML reasonably fast.\<close>
 
 
 subsection \<open>Configurable Simplifier strategies \label{sec:simp-strategies}\<close>
 
-text \<open>The core term-rewriting engine of the Simplifier is normally
-  used in combination with some add-on components that modify the
-  strategy and allow to integrate other non-Simplifier proof tools.
-  These may be reconfigured in ML as explained below.  Even if the
-  default strategies of object-logics like Isabelle/HOL are used
-  unchanged, it helps to understand how the standard Simplifier
-  strategies work.\<close>
+text \<open>
+  The core term-rewriting engine of the Simplifier is normally used in
+  combination with some add-on components that modify the strategy and allow
+  to integrate other non-Simplifier proof tools. These may be reconfigured in
+  ML as explained below. Even if the default strategies of object-logics like
+  Isabelle/HOL are used unchanged, it helps to understand how the standard
+  Simplifier strategies work.\<close>
 
 
 subsubsection \<open>The subgoaler\<close>
@@ -897,21 +867,20 @@ text \<open>
   \end{mldecls}
 
   The subgoaler is the tactic used to solve subgoals arising out of
-  conditional rewrite rules or congruence rules.  The default should
-  be simplification itself.  In rare situations, this strategy may
-  need to be changed.  For example, if the premise of a conditional
-  rule is an instance of its conclusion, as in \<open>Suc ?m < ?n \<Longrightarrow>
-  ?m < ?n\<close>, the default strategy could loop.  % FIXME !??
+  conditional rewrite rules or congruence rules. The default should be
+  simplification itself. In rare situations, this strategy may need to be
+  changed. For example, if the premise of a conditional rule is an instance of
+  its conclusion, as in \<open>Suc ?m < ?n \<Longrightarrow> ?m < ?n\<close>, the default strategy could
+  loop. % FIXME !??
 
-  \<^descr> @{ML Simplifier.set_subgoaler}~\<open>tac ctxt\<close> sets the
-  subgoaler of the context to \<open>tac\<close>.  The tactic will
-  be applied to the context of the running Simplifier instance.
+    \<^descr> @{ML Simplifier.set_subgoaler}~\<open>tac ctxt\<close> sets the subgoaler of the
+    context to \<open>tac\<close>. The tactic will be applied to the context of the running
+    Simplifier instance.
 
-  \<^descr> @{ML Simplifier.prems_of}~\<open>ctxt\<close> retrieves the current
-  set of premises from the context.  This may be non-empty only if
-  the Simplifier has been told to utilize local assumptions in the
-  first place (cf.\ the options in \secref{sec:simp-meth}).
-
+    \<^descr> @{ML Simplifier.prems_of}~\<open>ctxt\<close> retrieves the current set of premises
+    from the context. This may be non-empty only if the Simplifier has been
+    told to utilize local assumptions in the first place (cf.\ the options in
+    \secref{sec:simp-meth}).
 
   As an example, consider the following alternative subgoaler:
 \<close>
@@ -923,9 +892,9 @@ ML_val \<open>
     asm_simp_tac ctxt
 \<close>
 
-text \<open>This tactic first tries to solve the subgoal by assumption or
-  by resolving with with one of the premises, calling simplification
-  only if that fails.\<close>
+text \<open>
+  This tactic first tries to solve the subgoal by assumption or by resolving
+  with with one of the premises, calling simplification only if that fails.\<close>
 
 
 subsubsection \<open>The solver\<close>
@@ -941,89 +910,76 @@ text \<open>
   @{index_ML_op addSSolver: "Proof.context * solver -> Proof.context"} \\
   \end{mldecls}
 
-  A solver is a tactic that attempts to solve a subgoal after
-  simplification.  Its core functionality is to prove trivial subgoals
-  such as @{prop "True"} and \<open>t = t\<close>, but object-logics might
-  be more ambitious.  For example, Isabelle/HOL performs a restricted
-  version of linear arithmetic here.
+  A solver is a tactic that attempts to solve a subgoal after simplification.
+  Its core functionality is to prove trivial subgoals such as @{prop "True"}
+  and \<open>t = t\<close>, but object-logics might be more ambitious. For example,
+  Isabelle/HOL performs a restricted version of linear arithmetic here.
 
-  Solvers are packaged up in abstract type @{ML_type solver}, with
-  @{ML Simplifier.mk_solver} as the only operation to create a solver.
+  Solvers are packaged up in abstract type @{ML_type solver}, with @{ML
+  Simplifier.mk_solver} as the only operation to create a solver.
 
   \<^medskip>
-  Rewriting does not instantiate unknowns.  For example,
-  rewriting alone cannot prove \<open>a \<in> ?A\<close> since this requires
-  instantiating \<open>?A\<close>.  The solver, however, is an arbitrary
-  tactic and may instantiate unknowns as it pleases.  This is the only
-  way the Simplifier can handle a conditional rewrite rule whose
-  condition contains extra variables.  When a simplification tactic is
-  to be combined with other provers, especially with the Classical
-  Reasoner, it is important whether it can be considered safe or not.
-  For this reason a simpset contains two solvers: safe and unsafe.
+  Rewriting does not instantiate unknowns. For example, rewriting alone cannot
+  prove \<open>a \<in> ?A\<close> since this requires instantiating \<open>?A\<close>. The solver, however,
+  is an arbitrary tactic and may instantiate unknowns as it pleases. This is
+  the only way the Simplifier can handle a conditional rewrite rule whose
+  condition contains extra variables. When a simplification tactic is to be
+  combined with other provers, especially with the Classical Reasoner, it is
+  important whether it can be considered safe or not. For this reason a
+  simpset contains two solvers: safe and unsafe.
 
-  The standard simplification strategy solely uses the unsafe solver,
-  which is appropriate in most cases.  For special applications where
-  the simplification process is not allowed to instantiate unknowns
-  within the goal, simplification starts with the safe solver, but may
-  still apply the ordinary unsafe one in nested simplifications for
-  conditional rules or congruences. Note that in this way the overall
-  tactic is not totally safe: it may instantiate unknowns that appear
-  also in other subgoals.
+  The standard simplification strategy solely uses the unsafe solver, which is
+  appropriate in most cases. For special applications where the simplification
+  process is not allowed to instantiate unknowns within the goal,
+  simplification starts with the safe solver, but may still apply the ordinary
+  unsafe one in nested simplifications for conditional rules or congruences.
+  Note that in this way the overall tactic is not totally safe: it may
+  instantiate unknowns that appear also in other subgoals.
 
-  \<^descr> @{ML Simplifier.mk_solver}~\<open>name tac\<close> turns \<open>tac\<close> into a solver; the \<open>name\<close> is only attached as a
-  comment and has no further significance.
+  \<^descr> @{ML Simplifier.mk_solver}~\<open>name tac\<close> turns \<open>tac\<close> into a solver; the
+  \<open>name\<close> is only attached as a comment and has no further significance.
 
-  \<^descr> \<open>ctxt setSSolver solver\<close> installs \<open>solver\<close> as
-  the safe solver of \<open>ctxt\<close>.
+  \<^descr> \<open>ctxt setSSolver solver\<close> installs \<open>solver\<close> as the safe solver of \<open>ctxt\<close>.
 
-  \<^descr> \<open>ctxt addSSolver solver\<close> adds \<open>solver\<close> as an
-  additional safe solver; it will be tried after the solvers which had
-  already been present in \<open>ctxt\<close>.
+  \<^descr> \<open>ctxt addSSolver solver\<close> adds \<open>solver\<close> as an additional safe solver; it
+  will be tried after the solvers which had already been present in \<open>ctxt\<close>.
 
-  \<^descr> \<open>ctxt setSolver solver\<close> installs \<open>solver\<close> as the
-  unsafe solver of \<open>ctxt\<close>.
+  \<^descr> \<open>ctxt setSolver solver\<close> installs \<open>solver\<close> as the unsafe solver of \<open>ctxt\<close>.
 
-  \<^descr> \<open>ctxt addSolver solver\<close> adds \<open>solver\<close> as an
-  additional unsafe solver; it will be tried after the solvers which
-  had already been present in \<open>ctxt\<close>.
+  \<^descr> \<open>ctxt addSolver solver\<close> adds \<open>solver\<close> as an additional unsafe solver; it
+  will be tried after the solvers which had already been present in \<open>ctxt\<close>.
 
 
   \<^medskip>
-  The solver tactic is invoked with the context of the
-  running Simplifier.  Further operations
-  may be used to retrieve relevant information, such as the list of
-  local Simplifier premises via @{ML Simplifier.prems_of} --- this
-  list may be non-empty only if the Simplifier runs in a mode that
-  utilizes local assumptions (see also \secref{sec:simp-meth}).  The
-  solver is also presented the full goal including its assumptions in
-  any case.  Thus it can use these (e.g.\ by calling @{ML
-  assume_tac}), even if the Simplifier proper happens to ignore local
-  premises at the moment.
+  The solver tactic is invoked with the context of the running Simplifier.
+  Further operations may be used to retrieve relevant information, such as the
+  list of local Simplifier premises via @{ML Simplifier.prems_of} --- this
+  list may be non-empty only if the Simplifier runs in a mode that utilizes
+  local assumptions (see also \secref{sec:simp-meth}). The solver is also
+  presented the full goal including its assumptions in any case. Thus it can
+  use these (e.g.\ by calling @{ML assume_tac}), even if the Simplifier proper
+  happens to ignore local premises at the moment.
 
   \<^medskip>
-  As explained before, the subgoaler is also used to solve
-  the premises of congruence rules.  These are usually of the form
-  \<open>s = ?x\<close>, where \<open>s\<close> needs to be simplified and
-  \<open>?x\<close> needs to be instantiated with the result.  Typically,
+  As explained before, the subgoaler is also used to solve the premises of
+  congruence rules. These are usually of the form \<open>s = ?x\<close>, where \<open>s\<close> needs to
+  be simplified and \<open>?x\<close> needs to be instantiated with the result. Typically,
   the subgoaler will invoke the Simplifier at some point, which will
-  eventually call the solver.  For this reason, solver tactics must be
-  prepared to solve goals of the form \<open>t = ?x\<close>, usually by
-  reflexivity.  In particular, reflexivity should be tried before any
-  of the fancy automated proof tools.
+  eventually call the solver. For this reason, solver tactics must be prepared
+  to solve goals of the form \<open>t = ?x\<close>, usually by reflexivity. In particular,
+  reflexivity should be tried before any of the fancy automated proof tools.
 
-  It may even happen that due to simplification the subgoal is no
-  longer an equality.  For example, \<open>False \<longleftrightarrow> ?Q\<close> could be
-  rewritten to \<open>\<not> ?Q\<close>.  To cover this case, the solver could
-  try resolving with the theorem \<open>\<not> False\<close> of the
+  It may even happen that due to simplification the subgoal is no longer an
+  equality. For example, \<open>False \<longleftrightarrow> ?Q\<close> could be rewritten to \<open>\<not> ?Q\<close>. To cover
+  this case, the solver could try resolving with the theorem \<open>\<not> False\<close> of the
   object-logic.
 
   \<^medskip>
   \begin{warn}
-  If a premise of a congruence rule cannot be proved, then the
-  congruence is ignored.  This should only happen if the rule is
-  \<^emph>\<open>conditional\<close> --- that is, contains premises not of the form
-  \<open>t = ?x\<close>.  Otherwise it indicates that some congruence rule,
-  or possibly the subgoaler or solver, is faulty.
+  If a premise of a congruence rule cannot be proved, then the congruence is
+  ignored. This should only happen if the rule is \<^emph>\<open>conditional\<close> --- that is,
+  contains premises not of the form \<open>t = ?x\<close>. Otherwise it indicates that some
+  congruence rule, or possibly the subgoaler or solver, is faulty.
   \end{warn}
 \<close>
 
@@ -1042,69 +998,62 @@ text \<open>
   @{index_ML Splitter.del_split: "thm -> Proof.context -> Proof.context"} \\
   \end{mldecls}
 
-  The looper is a list of tactics that are applied after
-  simplification, in case the solver failed to solve the simplified
-  goal.  If the looper succeeds, the simplification process is started
-  all over again.  Each of the subgoals generated by the looper is
-  attacked in turn, in reverse order.
+  The looper is a list of tactics that are applied after simplification, in
+  case the solver failed to solve the simplified goal. If the looper succeeds,
+  the simplification process is started all over again. Each of the subgoals
+  generated by the looper is attacked in turn, in reverse order.
 
-  A typical looper is \<^emph>\<open>case splitting\<close>: the expansion of a
-  conditional.  Another possibility is to apply an elimination rule on
-  the assumptions.  More adventurous loopers could start an induction.
+  A typical looper is \<^emph>\<open>case splitting\<close>: the expansion of a conditional.
+  Another possibility is to apply an elimination rule on the assumptions. More
+  adventurous loopers could start an induction.
 
-  \<^descr> \<open>ctxt setloop tac\<close> installs \<open>tac\<close> as the only
-  looper tactic of \<open>ctxt\<close>.
+    \<^descr> \<open>ctxt setloop tac\<close> installs \<open>tac\<close> as the only looper tactic of \<open>ctxt\<close>.
 
-  \<^descr> \<open>ctxt addloop (name, tac)\<close> adds \<open>tac\<close> as an
-  additional looper tactic with name \<open>name\<close>, which is
-  significant for managing the collection of loopers.  The tactic will
-  be tried after the looper tactics that had already been present in
-  \<open>ctxt\<close>.
+    \<^descr> \<open>ctxt addloop (name, tac)\<close> adds \<open>tac\<close> as an additional looper tactic
+    with name \<open>name\<close>, which is significant for managing the collection of
+    loopers. The tactic will be tried after the looper tactics that had
+    already been present in \<open>ctxt\<close>.
 
-  \<^descr> \<open>ctxt delloop name\<close> deletes the looper tactic that was
-  associated with \<open>name\<close> from \<open>ctxt\<close>.
+    \<^descr> \<open>ctxt delloop name\<close> deletes the looper tactic that was associated with
+    \<open>name\<close> from \<open>ctxt\<close>.
 
-  \<^descr> @{ML Splitter.add_split}~\<open>thm ctxt\<close> adds split tactics
-  for \<open>thm\<close> as additional looper tactics of \<open>ctxt\<close>.
+    \<^descr> @{ML Splitter.add_split}~\<open>thm ctxt\<close> adds split tactics for \<open>thm\<close> as
+    additional looper tactics of \<open>ctxt\<close>.
 
-  \<^descr> @{ML Splitter.del_split}~\<open>thm ctxt\<close> deletes the split
-  tactic corresponding to \<open>thm\<close> from the looper tactics of
-  \<open>ctxt\<close>.
+    \<^descr> @{ML Splitter.del_split}~\<open>thm ctxt\<close> deletes the split tactic
+    corresponding to \<open>thm\<close> from the looper tactics of \<open>ctxt\<close>.
 
-
-  The splitter replaces applications of a given function; the
-  right-hand side of the replacement can be anything.  For example,
-  here is a splitting rule for conditional expressions:
+  The splitter replaces applications of a given function; the right-hand side
+  of the replacement can be anything. For example, here is a splitting rule
+  for conditional expressions:
 
   @{text [display] "?P (if ?Q ?x ?y) \<longleftrightarrow> (?Q \<longrightarrow> ?P ?x) \<and> (\<not> ?Q \<longrightarrow> ?P ?y)"}
 
-  Another example is the elimination operator for Cartesian products
-  (which happens to be called @{const case_prod} in Isabelle/HOL:
+  Another example is the elimination operator for Cartesian products (which
+  happens to be called @{const case_prod} in Isabelle/HOL:
 
   @{text [display] "?P (case_prod ?f ?p) \<longleftrightarrow> (\<forall>a b. ?p = (a, b) \<longrightarrow> ?P (f a b))"}
 
-  For technical reasons, there is a distinction between case splitting
-  in the conclusion and in the premises of a subgoal.  The former is
-  done by @{ML Splitter.split_tac} with rules like @{thm [source]
-  if_split} or @{thm [source] option.split}, which do not split the
-  subgoal, while the latter is done by @{ML Splitter.split_asm_tac}
-  with rules like @{thm [source] if_split_asm} or @{thm [source]
-  option.split_asm}, which split the subgoal.  The function @{ML
-  Splitter.add_split} automatically takes care of which tactic to
-  call, analyzing the form of the rules given as argument; it is the
-  same operation behind \<open>split\<close> attribute or method modifier
-  syntax in the Isar source language.
+  For technical reasons, there is a distinction between case splitting in the
+  conclusion and in the premises of a subgoal. The former is done by @{ML
+  Splitter.split_tac} with rules like @{thm [source] if_split} or @{thm
+  [source] option.split}, which do not split the subgoal, while the latter is
+  done by @{ML Splitter.split_asm_tac} with rules like @{thm [source]
+  if_split_asm} or @{thm [source] option.split_asm}, which split the subgoal.
+  The function @{ML Splitter.add_split} automatically takes care of which
+  tactic to call, analyzing the form of the rules given as argument; it is the
+  same operation behind \<open>split\<close> attribute or method modifier syntax in the
+  Isar source language.
 
-  Case splits should be allowed only when necessary; they are
-  expensive and hard to control.  Case-splitting on if-expressions in
-  the conclusion is usually beneficial, so it is enabled by default in
-  Isabelle/HOL and Isabelle/FOL/ZF.
+  Case splits should be allowed only when necessary; they are expensive and
+  hard to control. Case-splitting on if-expressions in the conclusion is
+  usually beneficial, so it is enabled by default in Isabelle/HOL and
+  Isabelle/FOL/ZF.
 
   \begin{warn}
-  With @{ML Splitter.split_asm_tac} as looper component, the
-  Simplifier may split subgoals!  This might cause unexpected problems
-  in tactic expressions that silently assume 0 or 1 subgoals after
-  simplification.
+  With @{ML Splitter.split_asm_tac} as looper component, the Simplifier may
+  split subgoals! This might cause unexpected problems in tactic expressions
+  that silently assume 0 or 1 subgoals after simplification.
   \end{warn}
 \<close>
 
@@ -1123,18 +1072,17 @@ text \<open>
     opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use') ')'
   \<close>}
 
-  \<^descr> @{attribute simplified}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> causes a theorem to
-  be simplified, either by exactly the specified rules \<open>a\<^sub>1, \<dots>,
-  a\<^sub>n\<close>, or the implicit Simplifier context if no arguments are given.
-  The result is fully simplified by default, including assumptions and
-  conclusion; the options \<open>no_asm\<close> etc.\ tune the Simplifier in
-  the same way as the for the \<open>simp\<close> method.
+  \<^descr> @{attribute simplified}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> causes a theorem to be simplified,
+  either by exactly the specified rules \<open>a\<^sub>1, \<dots>, a\<^sub>n\<close>, or the implicit
+  Simplifier context if no arguments are given. The result is fully simplified
+  by default, including assumptions and conclusion; the options \<open>no_asm\<close> etc.\
+  tune the Simplifier in the same way as the for the \<open>simp\<close> method.
 
-  Note that forward simplification restricts the Simplifier to its
-  most basic operation of term rewriting; solver and looper tactics
-  (\secref{sec:simp-strategies}) are \<^emph>\<open>not\<close> involved here.  The
-  @{attribute simplified} attribute should be only rarely required
-  under normal circumstances.
+  Note that forward simplification restricts the Simplifier to its most basic
+  operation of term rewriting; solver and looper tactics
+  (\secref{sec:simp-strategies}) are \<^emph>\<open>not\<close> involved here. The @{attribute
+  simplified} attribute should be only rarely required under normal
+  circumstances.
 \<close>
 
 

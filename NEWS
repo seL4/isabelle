@@ -220,6 +220,9 @@ INCOMPATIBILITY.
 
 *** ML ***
 
+* Antiquotation @{make_string} is available during Pure bootstrap --
+with approximative output quality.
+
 * Option ML_exception_debugger controls detailed exception trace via the
 Poly/ML debugger. Relevant ML modules need to be compiled beforehand
 with ML_file_debug, or with ML_file and option ML_debugger enabled. Note

@@ -72,8 +72,10 @@ sig
   val block_enclose: T * T -> T list -> T
   val writeln_chunks: T list -> unit
   val writeln_chunks2: T list -> unit
-  val to_ML: T -> ML_Pretty.pretty
+  val to_ML: int -> T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
+  val to_polyml: T -> PolyML.pretty
+  val from_polyml: PolyML.pretty -> T
 end;
 
 structure Pretty: PRETTY =
@@ -372,13 +374,14 @@ fun writeln_chunks2 prts =
 
 
 
-(** ML toplevel pretty printing **)
+(** toplevel pretty printing **)
 
-fun to_ML (Block (m, consistent, indent, prts, _)) =
-      ML_Pretty.Block (m, consistent, FixedInt.fromInt indent, map to_ML prts)
-  | to_ML (Break (force, wd, ind)) =
+fun to_ML 0 (Block _) = ML_Pretty.str "..."
+  | to_ML depth (Block (m, consistent, indent, prts, _)) =
+      ML_Pretty.Block (m, consistent, FixedInt.fromInt indent, map (to_ML (depth - 1)) prts)
+  | to_ML _ (Break (force, wd, ind)) =
       ML_Pretty.Break (force, FixedInt.fromInt wd, FixedInt.fromInt ind)
-  | to_ML (Str (s, len)) = ML_Pretty.String (s, FixedInt.fromInt len);
+  | to_ML _ (Str (s, len)) = ML_Pretty.String (s, FixedInt.fromInt len);
 
 fun from_ML (ML_Pretty.Block (m, consistent, indent, prts)) =
       make_block m consistent (FixedInt.toInt indent) (map from_ML prts)
@@ -386,6 +389,14 @@ fun from_ML (ML_Pretty.Block (m, consistent, indent, prts)) =
       Break (force, FixedInt.toInt wd, FixedInt.toInt ind)
   | from_ML (ML_Pretty.String (s, len)) = Str (s, FixedInt.toInt len);
 
+val to_polyml = to_ML ~1 #> ML_Pretty.to_polyml;
+val from_polyml = ML_Pretty.from_polyml #> from_ML;
+
 end;
+
+val _ =
+  PolyML.addPrettyPrinter (fn depth => fn _ => ML_Pretty.to_polyml o to_ML (depth * 2 + 1) o quote);
+
+val _ = PolyML.addPrettyPrinter (fn _ => fn _ => to_polyml o position);
 
 end;

@@ -14,15 +14,14 @@ object Isabelle_Process
     logic: String = "",
     args: List[String] = Nil,
     modes: List[String] = Nil,
-    secure: Boolean = false,
     receiver: Prover.Receiver = Console.println(_),
     store: Sessions.Store = Sessions.store()): Isabelle_Process =
   {
     val channel = System_Channel()
     val process =
       try {
-        ML_Process(options, logic = logic, args = args, modes = modes, secure = secure,
-          channel = Some(channel), store = store)
+        ML_Process(options, logic = logic, args = args, modes = modes, store = store,
+          channel = Some(channel))
       }
       catch { case exn @ ERROR(_) => channel.accepted(); throw exn }
     process.stdin.close

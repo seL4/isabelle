@@ -35,7 +35,6 @@ sig
   val concealed: binding -> binding
   val pretty: binding -> Pretty.T
   val print: binding -> string
-  val pp: binding -> Pretty.T
   val bad: binding -> string
   val check: binding -> unit
   val name_spec: scope list -> (string * bool) list -> binding ->
@@ -155,7 +154,7 @@ fun pretty (Binding {prefix, qualifier, name, pos, ...}) =
 
 val print = Pretty.unformatted_string_of o pretty;
 
-val pp = pretty o set_pos Position.none;
+val _ = PolyML.addPrettyPrinter (fn _ => fn _ => Pretty.to_polyml o pretty o set_pos Position.none);
 
 
 (* check *)
@@ -190,6 +189,7 @@ fun name_spec scopes path binding =
       exists (fn (a, _) => member (op =) bad_specs a orelse exists_string (fn s => s = "\"") a) spec
       andalso error (bad binding);
   in {restriction = restriction, concealed = concealed, spec = if null spec2 then [] else spec} end;
+
 
 end;
 
