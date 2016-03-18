@@ -165,7 +165,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
 
     val rel_unfolds = maps (no_refl o single o rel_def_of_bnf) pre_bnfs;
     val rel_xtor_co_inducts = of_fp_res (split_conj_thm o #xtor_rel_co_induct)
-      |> map (unfold_thms lthy (id_apply :: rel_unfolds));
+      |> map (zero_var_indexes o unfold_thms lthy (id_apply :: rel_unfolds));
 
     val rel_defs = map rel_def_of_bnf bnfs;
     val rel_monos = map rel_mono_of_bnf bnfs;
