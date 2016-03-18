@@ -4,80 +4,20 @@
 ML toplevel pretty-printing for Poly/ML.
 *)
 
-PolyML.addPrettyPrinter (fn _ => fn _ => fn _: Pretty.T =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Pretty.str "<pretty>")));
+PolyML.addPrettyPrinter
+  (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_context);
 
-PolyML.addPrettyPrinter (fn _ => fn _ => fn lexicon =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Lexicon.pp_lexicon lexicon)));
+PolyML.addPrettyPrinter
+  (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_thm Thy_Info.pure_theory);
 
-PolyML.addPrettyPrinter (fn _ => fn _ => fn task =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Pretty.str (Task_Queue.str_of_task task))));
+PolyML.addPrettyPrinter
+  (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_cterm Thy_Info.pure_theory);
 
-PolyML.addPrettyPrinter (fn _ => fn _ => fn group =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Pretty.str (Task_Queue.str_of_group group))));
+PolyML.addPrettyPrinter
+  (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_ctyp Thy_Info.pure_theory);
 
-PolyML.addPrettyPrinter (fn _ => fn _ => fn pos =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Pretty.position pos)));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn binding =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Binding.pp binding)));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn th =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Proof_Display.pp_thm Thy_Info.pure_theory th)));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn ct =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Proof_Display.pp_cterm Thy_Info.pure_theory ct)));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn cT =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Proof_Display.pp_ctyp Thy_Info.pure_theory cT)));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn T =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Proof_Display.pp_typ Thy_Info.pure_theory T)));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn thy =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Context.pretty_thy thy)));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn ctxt =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Proof_Display.pp_context ctxt)));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn ast =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Ast.pretty_ast ast)));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn path =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Path.pretty path)));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn digest =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Pretty.str (quote (SHA1.rep digest)))));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn _: Proof.state =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Pretty.str "<Proof.state>")));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn st =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Toplevel.pretty_abstract st)));
-
-PolyML.addPrettyPrinter (fn _ => fn _ => fn morphism =>
-  ML_Pretty.to_polyml (Pretty.to_ML (Morphism.pretty morphism)));
-
-PolyML.addPrettyPrinter (fn depth => fn _ => fn str =>
-  ML_Pretty.to_polyml (Pretty.to_ML (ML_Syntax.pretty_string (FixedInt.toInt (depth * 100)) str)));
-
-PolyML.addPrettyPrinter (fn depth => fn _ => fn tree =>
-  ML_Pretty.to_polyml (Pretty.to_ML (XML.pretty (FixedInt.toInt depth) tree)));
-
-PolyML.addPrettyPrinter (fn depth => fn pretty => fn var =>
-  pretty (Synchronized.value var, depth));
-
-PolyML.addPrettyPrinter (fn depth => fn pretty => fn x =>
-  (case Future.peek x of
-    NONE => PolyML.PrettyString "<future>"
-  | SOME (Exn.Exn _) => PolyML.PrettyString "<failed>"
-  | SOME (Exn.Res y) => pretty (y, depth)));
-
-PolyML.addPrettyPrinter (fn depth => fn pretty => fn x =>
-  (case Lazy.peek x of
-    NONE => PolyML.PrettyString "<lazy>"
-  | SOME (Exn.Exn _) => PolyML.PrettyString "<failed>"
-  | SOME (Exn.Res y) => pretty (y, depth)));
+PolyML.addPrettyPrinter
+  (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_typ Thy_Info.pure_theory);
 
 
 local

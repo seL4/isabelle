@@ -65,7 +65,7 @@ fun report_parse_tree redirect depth space parse_tree =
           let
             val xml =
               ML_Name_Space.displayTypeExpression (types, depth, space)
-              |> ML_Pretty.from_polyml |> Pretty.from_ML |> Pretty.string_of
+              |> Pretty.from_polyml |> Pretty.string_of
               |> Output.output |> YXML.parse_body;
           in cons (pos, fn () => Markup.ML_typing, fn () => YXML.string_of_body xml) end
       end;
@@ -193,7 +193,7 @@ fun eval (flags: flags) pos toks =
         val pos = Exn_Properties.position_of_location loc;
         val txt =
           (if hard then "ML error" else "ML warning") ^ Position.here pos ^ ":\n" ^
-          Pretty.string_of (Pretty.from_ML (ML_Pretty.from_polyml msg));
+          Pretty.string_of (Pretty.from_polyml msg);
       in if hard then err txt else warn txt end;
 
 
@@ -205,8 +205,7 @@ fun eval (flags: flags) pos toks =
       let
         fun display disp x =
           if depth > 0 then
-            (write (disp x |> ML_Pretty.from_polyml |> Pretty.from_ML |> Pretty.string_of);
-              write "\n")
+            (write (disp x |> Pretty.from_polyml |> Pretty.string_of); write "\n")
           else ();
 
         fun apply_fix (a, b) =

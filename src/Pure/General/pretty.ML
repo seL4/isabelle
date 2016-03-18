@@ -74,6 +74,8 @@ sig
   val writeln_chunks2: T list -> unit
   val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
+  val to_polyml: T -> PolyML.pretty
+  val from_polyml: PolyML.pretty -> T
 end;
 
 structure Pretty: PRETTY =
@@ -372,7 +374,7 @@ fun writeln_chunks2 prts =
 
 
 
-(** ML toplevel pretty printing **)
+(** toplevel pretty printing **)
 
 fun to_ML (Block (m, consistent, indent, prts, _)) =
       ML_Pretty.Block (m, consistent, FixedInt.fromInt indent, map to_ML prts)
@@ -386,6 +388,12 @@ fun from_ML (ML_Pretty.Block (m, consistent, indent, prts)) =
       Break (force, FixedInt.toInt wd, FixedInt.toInt ind)
   | from_ML (ML_Pretty.String (s, len)) = Str (s, FixedInt.toInt len);
 
+val to_polyml = to_ML #> ML_Pretty.to_polyml;
+val from_polyml = ML_Pretty.from_polyml #> from_ML;
+
 end;
+
+val _ = PolyML.addPrettyPrinter (fn _ => fn _ => fn _: T => to_polyml (str "<pretty>"));
+val _ = PolyML.addPrettyPrinter (fn _ => fn _ => to_polyml o position);
 
 end;

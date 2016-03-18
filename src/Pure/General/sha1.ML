@@ -139,4 +139,6 @@ fun rep (Digest s) = s;
 
 val fake = Digest;
 
+val _ = PolyML.addPrettyPrinter (fn _ => fn _ => Pretty.to_polyml o Pretty.str o quote o rep);
+
 end;

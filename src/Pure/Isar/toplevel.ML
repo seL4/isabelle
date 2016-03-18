@@ -199,6 +199,8 @@ val string_of_state = pretty_state #> Pretty.chunks #> Pretty.string_of;
 
 fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 
+val _ = PolyML.addPrettyPrinter (fn _ => fn _ => Pretty.to_polyml o pretty_abstract);
+
 
 
 (** toplevel transitions **)

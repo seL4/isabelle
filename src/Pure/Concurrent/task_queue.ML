@@ -394,4 +394,10 @@ fun dequeue_deps thread deps (queue as Queue {groups, jobs, urgent}) =
         | NONE => ((NONE, deps'), queue)))
   end;
 
+
+(* toplevel pretty printing *)
+
+val _ = PolyML.addPrettyPrinter (fn _ => fn _ => Pretty.to_polyml o Pretty.str o str_of_task);
+val _ = PolyML.addPrettyPrinter (fn _ => fn _ => Pretty.to_polyml o Pretty.str o str_of_group);
+
 end;
