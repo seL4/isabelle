@@ -11,6 +11,7 @@ imports
   Code_Test
   ContNotDenum
   Convex
+  Complete_Partial_Order2
   Countable
   Countable_Complete_Lattices
   Countable_Set_Type
