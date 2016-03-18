@@ -143,10 +143,7 @@ use "General/binding.ML";
 use "General/socket_io.ML";
 use "General/seq.ML";
 use "General/timing.ML";
-
 use "General/sha1.ML";
-use "General/sha1_polyml.ML";
-use "General/sha1_samples.ML";
 
 val _ = List.app ML_Name_Space.forget_structure ML_Name_Space.critical_structures;
 

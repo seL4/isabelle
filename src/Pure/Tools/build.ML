@@ -122,7 +122,7 @@ fun build_theories symbols last_timing master_dir (options, thys) =
 
 fun build args_file =
   let
-    val _ = SHA1_Samples.test ();
+    val _ = SHA1.test_samples ();
 
     val (symbol_codes, (command_timings, (do_output, (verbose, (browser_info,
           (document_files, (graph_file, (parent_name, (chapter, (name, theories)))))))))) =

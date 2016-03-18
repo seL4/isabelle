@@ -190,7 +190,7 @@ val default_modes2 = [Symbol.xsymbolsN, isabelle_processN, Pretty.symbolicN];
 
 val init_protocol = uninterruptible (fn _ => fn socket =>
   let
-    val _ = SHA1_Samples.test ()
+    val _ = SHA1.test_samples ()
       handle exn as Fail msg => (Output.physical_stderr (msg ^ "\n"); Exn.reraise exn);
     val _ = Output.physical_stderr Symbol.STX;
 
