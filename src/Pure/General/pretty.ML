@@ -394,9 +394,7 @@ val from_polyml = ML_Pretty.from_polyml #> from_ML;
 
 end;
 
-val _ =
-  PolyML.addPrettyPrinter (fn depth => fn _ => ML_Pretty.to_polyml o to_ML (depth * 2 + 1) o quote);
-
+val _ = PolyML.addPrettyPrinter (fn d => fn _ => ML_Pretty.to_polyml o to_ML (d + 1) o quote);
 val _ = PolyML.addPrettyPrinter (fn _ => fn _ => to_polyml o position);
 
 end;

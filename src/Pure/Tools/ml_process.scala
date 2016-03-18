@@ -68,13 +68,13 @@ object ML_Process
 
     val eval_process =
       if (heaps.isEmpty)
-        List("PolyML.print_depth 10")
+        List("PolyML.print_depth 20")
       else
         channel match {
           case None =>
-            List("(ML_Pretty.print_depth 10; Isabelle_Process.init_options ())")
+            List("(ML_Pretty.print_depth 20; Isabelle_Process.init_options ())")
           case Some(ch) =>
-            List("(ML_Pretty.print_depth 10; Isabelle_Process.init_protocol " +
+            List("(ML_Pretty.print_depth 20; Isabelle_Process.init_protocol " +
               ML_Syntax.print_string0(ch.server_name) + ")")
         }
 
