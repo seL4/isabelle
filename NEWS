@@ -66,8 +66,8 @@ corresponding to {0..255}.
     * Printable characters are printed and parsed as "CHR ''\<dots>''"
       (as before).
     * The ASCII zero character is printed and parsed as "0".
-    * All other canonical characters are printed as "CHAR 0xXX"
-      with XX being the hexadecimal character code.  "CHAR n"
+    * All other canonical characters are printed as "CHR 0xXX"
+      with XX being the hexadecimal character code.  "CHR n"
       is parsable for every numeral expression n.
     * Non-canonical characters have no special syntax and are
       printed as their logical representation.
