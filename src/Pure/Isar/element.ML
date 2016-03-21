@@ -40,10 +40,9 @@ sig
   val witness_proof_eqs: (witness list list -> thm list -> Proof.context -> Proof.context) ->
     term list list -> term list -> Proof.context -> Proof.state
   val witness_local_proof: (witness list list -> Proof.state -> Proof.state) ->
-    string -> term list list -> Proof.context -> bool -> Proof.state -> Proof.state
+    string -> term list list -> Proof.context -> Proof.state -> Proof.state
   val witness_local_proof_eqs: (witness list list -> thm list -> Proof.state -> Proof.state) ->
-    string -> term list list -> term list -> Proof.context -> bool -> Proof.state ->
-    Proof.state
+    string -> term list list -> term list -> Proof.context -> Proof.state -> Proof.state
   val transform_witness: morphism -> witness -> witness
   val conclude_witness: Proof.context -> witness -> thm
   val pretty_witness: Proof.context -> witness -> Pretty.T
@@ -285,7 +284,7 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
       in after_qed ((map2 o map2) (curry Witness) wit_propss wits) eqs end;
   in proof after_qed' propss #> refine_witness end;
 
-fun proof_local cmd goal_ctxt int after_qed propp =
+fun proof_local cmd goal_ctxt after_qed propp =
   let
     fun after_qed' (result_ctxt, results) state' =
       after_qed (burrow (Proof_Context.export result_ctxt (Proof.context_of state')) results) state';
@@ -303,12 +302,12 @@ fun witness_proof after_qed wit_propss =
 
 val witness_proof_eqs = gen_witness_proof (Proof.theorem NONE);
 
-fun witness_local_proof after_qed cmd wit_propss goal_ctxt int =
-  gen_witness_proof (proof_local cmd goal_ctxt int)
+fun witness_local_proof after_qed cmd wit_propss goal_ctxt =
+  gen_witness_proof (proof_local cmd goal_ctxt)
     (fn wits => fn _ => after_qed wits) wit_propss [];
 
-fun witness_local_proof_eqs after_qed cmd wit_propss eq_props goal_ctxt int =
-  gen_witness_proof (proof_local cmd goal_ctxt int) after_qed wit_propss eq_props;
+fun witness_local_proof_eqs after_qed cmd wit_propss eq_props goal_ctxt =
+  gen_witness_proof (proof_local cmd goal_ctxt) after_qed wit_propss eq_props;
 
 end;
 

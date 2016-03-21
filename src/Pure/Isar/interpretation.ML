@@ -11,10 +11,8 @@ sig
   type 'a rewrites = (Attrib.binding * 'a) list
 
   (*interpretation in proofs*)
-  val interpret: Expression.expression_i ->
-    term rewrites -> bool -> Proof.state -> Proof.state
-  val interpret_cmd: Expression.expression ->
-    string rewrites -> bool -> Proof.state -> Proof.state
+  val interpret: Expression.expression_i -> term rewrites -> Proof.state -> Proof.state
+  val interpret_cmd: Expression.expression -> string rewrites -> Proof.state -> Proof.state
 
   (*interpretation in local theories*)
   val interpretation: Expression.expression_i ->
@@ -160,7 +158,7 @@ end;
 
 local
 
-fun gen_interpret prep_interpretation expression raw_eqns int state =
+fun gen_interpret prep_interpretation expression raw_eqns state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
@@ -168,7 +166,7 @@ fun gen_interpret prep_interpretation expression raw_eqns int state =
       Proof.map_context (after_qed witss eqns) #> Proof.reset_facts;
     fun setup_proof after_qed propss eqns goal_ctxt =
       Element.witness_local_proof_eqs (lift_after_qed after_qed) "interpret"
-        propss eqns goal_ctxt int state;
+        propss eqns goal_ctxt state;
   in
     generic_interpretation prep_interpretation setup_proof
       Attrib.local_notes (Context.proof_map ooo Locale.add_registration) expression raw_eqns ctxt

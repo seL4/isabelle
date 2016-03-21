@@ -396,7 +396,7 @@ val _ =
   Outer_Syntax.command @{command_keyword interpret}
     "prove interpretation of locale expression in proof context"
     (interpretation_args >> (fn (expr, equations) =>
-      Toplevel.proof' (Interpretation.interpret_cmd expr equations)));
+      Toplevel.proof (Interpretation.interpret_cmd expr equations)));
 
 val interpretation_args_with_defs =
   Parse.!!! Parse_Spec.locale_expression --
