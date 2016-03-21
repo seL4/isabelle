@@ -12,7 +12,7 @@ begin
 
 text \<open>A fact theorem on reals.\<close>
 
-lemma square_fact_le_2_fact: 
+lemma square_fact_le_2_fact:
   shows "fact n * fact n \<le> (fact (2 * n) :: real)"
 proof (induct n)
   case 0 then show ?case by simp
@@ -2377,8 +2377,8 @@ lemmas powr_le_iff = le_log_iff[symmetric]
   and less_powr_iff = log_less_iff[symmetric]
   and le_powr_iff = log_le_iff[symmetric]
 
-lemma
-  floor_log_eq_powr_iff: "x > 0 \<Longrightarrow> b > 1 \<Longrightarrow> \<lfloor>log b x\<rfloor> = k \<longleftrightarrow> b powr k \<le> x \<and> x < b powr (k + 1)"
+lemma floor_log_eq_powr_iff:
+  "x > 0 \<Longrightarrow> b > 1 \<Longrightarrow> \<lfloor>log b x\<rfloor> = k \<longleftrightarrow> b powr k \<le> x \<and> x < b powr (k + 1)"
   by (auto simp add: floor_eq_iff powr_le_iff less_powr_iff)
 
 lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
@@ -2387,10 +2387,10 @@ lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
 lemma powr_numeral: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
   by (metis of_nat_numeral powr_realpow)
 
-lemma powr_real_of_int: 
+lemma powr_real_of_int:
   "x > 0 \<Longrightarrow> x powr real_of_int n = (if n \<ge> 0 then x ^ nat n else inverse (x ^ nat (-n)))"
   using powr_realpow[of x "nat n"] powr_realpow[of x "nat (-n)"]
-  by (auto simp: field_simps powr_minus)  
+  by (auto simp: field_simps powr_minus)
 
 lemma powr2_sqrt[simp]: "0 < x \<Longrightarrow> sqrt x powr 2 = x"
 by(simp add: powr_numeral)
@@ -2455,6 +2455,18 @@ lemma log_powr: "x \<noteq> 0 \<Longrightarrow> log b (x powr y) = y * log b x"
 lemma log_nat_power: "0 < x \<Longrightarrow> log b (x^n) = real n * log b x"
   by (simp add: log_powr powr_realpow [symmetric])
 
+lemma le_log_of_power: assumes "1 < b" "b ^ n \<le> m" shows "n \<le> log b m"
+proof -
+   from assms have "0 < m"
+     by (metis less_trans zero_less_power less_le_trans zero_less_one)
+   have "n = log b (b ^ n)" using assms(1) by (simp add: log_nat_power)
+   also have "\<dots> \<le> log b m" using assms `0 < m` by simp
+   finally show ?thesis .
+qed
+
+lemma le_log2_of_power: "2 ^ n \<le> (m::nat) \<Longrightarrow> n \<le> log 2 m"
+  using le_log_of_power[of 2] by simp
+
 lemma log_base_change: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> log b x = log a x / log a b"
   by (simp add: log_def)
 
@@ -2517,9 +2529,9 @@ lemma powr_half_sqrt: "0 \<le> x \<Longrightarrow> x powr (1/2) = sqrt x"
   by (simp add: powr_def root_powr_inverse sqrt_def)
 
 lemma ln_powr_bound:
-  fixes x::real shows "1 <= x ==> 0 < a ==> ln x <= (x powr a) / a"
-by (metis exp_gt_zero linear ln_eq_zero_iff ln_exp ln_less_self ln_powr mult.commute mult_imp_le_div_pos not_less powr_gt_zero)
-
+  fixes x::real shows "1 \<le> x \<Longrightarrow> 0 < a \<Longrightarrow> ln x \<le> (x powr a) / a"
+  by (metis exp_gt_zero linear ln_eq_zero_iff ln_exp ln_less_self ln_powr mult.commute
+            mult_imp_le_div_pos not_less powr_gt_zero)
 
 lemma ln_powr_bound2:
   fixes x::real
@@ -3615,13 +3627,13 @@ proof -
     by (auto simp: algebra_simps cos_diff assms)
   then have "\<exists>!x. 0 \<le> x \<and> x \<le> pi \<and> cos x = 0"
     by (auto simp: intro!: cos_total)
-  then obtain \<theta> where \<theta>: "0 \<le> \<theta>" "\<theta> \<le> pi" "cos \<theta> = 0" 
+  then obtain \<theta> where \<theta>: "0 \<le> \<theta>" "\<theta> \<le> pi" "cos \<theta> = 0"
                   and uniq: "\<And>\<phi>. \<lbrakk>0 \<le> \<phi>; \<phi> \<le> pi; cos \<phi> = 0\<rbrakk> \<Longrightarrow> \<phi> = \<theta>"
     by blast
   then have "x - real n * pi = \<theta>"
     using x by blast
   moreover have "pi/2 = \<theta>"
-    using pi_half_ge_zero uniq by fastforce 
+    using pi_half_ge_zero uniq by fastforce
   ultimately show ?thesis
     by (rule_tac x = "Suc (2 * n)" in exI) (simp add: algebra_simps)
 qed
@@ -3650,7 +3662,7 @@ proof -
     assume "cos x = 0" then show ?rhs
       using cos_zero_lemma [of x] cos_zero_lemma [of "-x"] by force
   next
-    assume ?rhs then show "cos x = 0" 
+    assume ?rhs then show "cos x = 0"
     by (auto dest: * simp del: eq_divide_eq_numeral1)
   qed
 qed
@@ -3663,7 +3675,7 @@ proof
   assume "sin x = 0" then show ?rhs
     using sin_zero_lemma [of x] sin_zero_lemma [of "-x"] by force
 next
-  assume ?rhs then show "sin x = 0" 
+  assume ?rhs then show "sin x = 0"
     by (auto elim: evenE)
 qed
 
@@ -3690,7 +3702,7 @@ lemma sin_zero_iff_int:
 proof safe
   assume "sin x = 0"
   then show "\<exists>n. even n \<and> x = of_int n * (pi / 2)"
-    apply (simp add: sin_zero_iff, safe)    
+    apply (simp add: sin_zero_iff, safe)
     apply (metis even_int_iff of_int_of_nat_eq)
     apply (rule_tac x="- (int n)" in exI, simp)
     done
@@ -4233,7 +4245,7 @@ proof (cases "0 \<le> i")
   case True
   hence i_nat: "of_int i = of_int (nat i)" by auto
   show ?thesis unfolding i_nat
-    by (metis of_int_of_nat_eq tan_periodic_nat) 
+    by (metis of_int_of_nat_eq tan_periodic_nat)
 next
   case False
   hence i_nat: "of_int i = - of_int (nat (-i))" by auto
@@ -4241,7 +4253,7 @@ next
     by auto
   also have "\<dots> = tan (x + of_int i * pi)"
     unfolding i_nat mult_minus_left diff_minus_eq_add
-    by (metis of_int_of_nat_eq tan_periodic_nat)    
+    by (metis of_int_of_nat_eq tan_periodic_nat)
   finally show ?thesis by auto
 qed
 
@@ -4950,7 +4962,7 @@ qed
 lemma machin_Euler: "5 * arctan(1/7) + 2 * arctan(3/79) = pi/4"
 proof -
   have 17: "\<bar>1/7\<bar> < (1 :: real)" by auto
-  with arctan_double have "2 * arctan (1/7) = arctan (7/24)" 
+  with arctan_double have "2 * arctan (1/7) = arctan (7/24)"
     by simp (simp add: field_simps)
   moreover have "\<bar>7/24\<bar> < (1 :: real)" by auto
   with arctan_double have "2 * arctan (7/24) = arctan (336/527)"  by simp (simp add: field_simps)
