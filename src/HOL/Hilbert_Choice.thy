@@ -762,7 +762,7 @@ proof -
   next
     fix n m :: nat assume "m < n" "n \<le> N"
     then show "f m < f n"
-    proof (induct rule: less_Suc_induct[consumes 1])
+    proof (induct rule: less_Suc_induct)
       case (1 i)
       then have "i < N" by simp
       then have "f i \<noteq> f (Suc i)"

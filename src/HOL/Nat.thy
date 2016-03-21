@@ -928,7 +928,7 @@ lemma full_nat_induct:
   by (rule less_induct) (auto intro: step simp:le_simps)
 
 text\<open>An induction rule for estabilishing binary relations\<close>
-lemma less_Suc_induct:
+lemma less_Suc_induct [consumes 1]:
   assumes less:  "i < j"
      and  step:  "!!i. P i (Suc i)"
      and  trans: "!!i j k. i < j ==> j < k ==>  P i j ==> P j k ==> P i k"
@@ -1646,7 +1646,7 @@ lemma lift_Suc_mono_le:
 proof (cases "n < n'")
   case True
   then show ?thesis
-    by (induct n n' rule: less_Suc_induct [consumes 1]) (auto intro: mono)
+    by (induct n n' rule: less_Suc_induct) (auto intro: mono)
 qed (insert \<open>n \<le> n'\<close>, auto) \<comment> \<open>trivial for @{prop "n = n'"}\<close>
 
 lemma lift_Suc_antimono_le:
@@ -1655,14 +1655,14 @@ lemma lift_Suc_antimono_le:
 proof (cases "n < n'")
   case True
   then show ?thesis
-    by (induct n n' rule: less_Suc_induct [consumes 1]) (auto intro: mono)
+    by (induct n n' rule: less_Suc_induct) (auto intro: mono)
 qed (insert \<open>n \<le> n'\<close>, auto) \<comment> \<open>trivial for @{prop "n = n'"}\<close>
 
 lemma lift_Suc_mono_less:
   assumes mono: "\<And>n. f n < f (Suc n)" and "n < n'"
   shows "f n < f n'"
 using \<open>n < n'\<close>
-by (induct n n' rule: less_Suc_induct [consumes 1]) (auto intro: mono)
+by (induct n n' rule: less_Suc_induct) (auto intro: mono)
 
 lemma lift_Suc_mono_less_iff:
   "(\<And>n. f n < f (Suc n)) \<Longrightarrow> f n < f m \<longleftrightarrow> n < m"
