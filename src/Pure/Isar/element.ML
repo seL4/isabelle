@@ -230,11 +230,13 @@ fun pretty_statement ctxt kind raw_th =
     val (prems, concl) = Logic.strip_horn prop;
     val concl_term = Object_Logic.drop_judgment ctxt concl;
 
-    val fixes = fold_aterms (fn v as Free (x, T) =>
-        if Variable.is_newly_fixed ctxt' ctxt x andalso not (v aconv concl_term)
-        then insert (op =) (Variable.revert_fixed ctxt' x, T) else I | _ => I) prop [] |> rev;
-    val (assumes, cases) = take_suffix (fn prem =>
-      is_elim andalso concl aconv Logic.strip_assums_concl prem) prems;
+    val (assumes, cases) =
+      take_suffix (fn prem => is_elim andalso concl aconv Logic.strip_assums_concl prem) prems;
+    val is_thesis = if null cases then K false else fn v => v aconv concl_term;
+    val fixes =
+      rev (fold_aterms (fn v as Free (x, T) =>
+        if Variable.is_newly_fixed ctxt' ctxt x andalso not (is_thesis v)
+        then insert (op =) (Variable.revert_fixed ctxt' x, T) else I | _ => I) prop []);
   in
     pretty_ctxt ctxt' (Fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) fixes)) @
     pretty_ctxt ctxt' (Assumes (map (fn t => (Attrib.empty_binding, [(t, [])])) assumes)) @
