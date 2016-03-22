@@ -260,7 +260,7 @@ friend_of_corec f22 :: "('h \<Rightarrow> 'h tree) \<Rightarrow> 'h list \<Right
   sorry
 
 corec f23 where
-  "f23 xh = Node undefined 
+  "f23 xh = Node undefined
     (if is_H1 xh then
       (f23 (h_tail xh)) # (branches (h_a xh))
     else if is_H1 xh then
@@ -269,7 +269,7 @@ corec f23 where
       [])"
 
 friend_of_corec f23 where
-  "f23 xh = Node undefined 
+  "f23 xh = Node undefined
     (if is_H1 xh then
       (f23 (h_tail xh)) # (branches (h_a xh))
     else if is_H1 xh then
@@ -279,7 +279,7 @@ friend_of_corec f23 where
   sorry
 
 corec f24 where
-  "f24 xh = 
+  "f24 xh =
     (if is_H1 xh then
       Node 0 ((f24 (h_tail xh)) # (h_a xh 0))
     else if is_H2 xh then
@@ -288,7 +288,7 @@ corec f24 where
       Node 0 [])"
 
 friend_of_corec f24 :: "(('b :: {zero}) \<Rightarrow> 'b tree list, 'b, 'b \<Rightarrow> 'b tree list) h \<Rightarrow> 'b tree" where
-  "f24 xh = 
+  "f24 xh =
     (if is_H1 xh then
       Node 0 ((f24 (h_tail xh)) # (h_a xh 0))
     else if is_H2 xh then

@@ -66,7 +66,7 @@ corecursive sp_comp (infixl "oo" 65) where
   by (relation "map_prod In In ` sub <*lex*> map_prod In In ` sub")
     (auto simp: inj_on_def out_def split: sp\<^sub>\<nu>.splits intro: wf_map_prod_image)
 
-lemma run_copy_unique: 
+lemma run_copy_unique:
     "(\<And>s. h s = shd s ## h (stl s)) \<Longrightarrow> h = run copy"
 apply corec_unique
 apply(rule ext)

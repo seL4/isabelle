@@ -102,21 +102,21 @@ consts
 friend_of_corec h1 where
   "h1 x = ACons undefined undefined" sorry
 
-friend_of_corec h2 where 
-  "h2 x = (case x of 
-    ACons a t \<Rightarrow> ACons a (h1 (h2 t)) 
+friend_of_corec h2 where
+  "h2 x = (case x of
+    ACons a t \<Rightarrow> ACons a (h1 (h2 t))
   | BCons b t \<Rightarrow> BCons b (h1 (h2 t)))"
   sorry
 
 friend_of_corec h3 where
-  "h3 x = (case x of 
-    ACons a t \<Rightarrow> ACons a (h1 (h3 t)) 
+  "h3 x = (case x of
+    ACons a t \<Rightarrow> ACons a (h1 (h3 t))
   | BCons b t \<Rightarrow> BCons b (h1 (h3 t)))"
   sorry
 
 friend_of_corec h4 where
-  "h4 x = (case x of 
-    ACons a t \<Rightarrow> ACons a (h1 (h4 t)) 
+  "h4 x = (case x of
+    ACons a t \<Rightarrow> ACons a (h1 (h4 t))
   | BCons b t \<Rightarrow> BCons b (h1 (h4 t)))"
   sorry
 

@@ -55,7 +55,7 @@ proof(intro set_eqI iffI)
   show "x \<in> lset xs \<inter> {x. P x}" if "x \<in> lset (lfilter P xs)" for x using that
   proof(induction ys\<equiv>"lfilter P xs" arbitrary: xs rule: llist.set_induct)
     case (LCons1 x xs ys)
-    from this show ?case 
+    from this show ?case
       apply(induction arg\<equiv>"(P, ys)" arbitrary: ys rule: lfilter.inner_induct)
       subgoal by(subst (asm) (2) lfilter.code)(auto split: if_split_asm elim: llist.set_cases)
       done
@@ -94,7 +94,7 @@ proof(rule ext)
       apply auto
       done
   qed
-qed   
+qed
 
 lemma lfilter_lfilter: "lfilter P \<circ> lfilter Q = lfilter (\<lambda>x. P x \<and> Q x)"
   by(rule lfilter_unique)(auto elim: llist.set_cases)

@@ -121,7 +121,7 @@ val parse_bnf_axiomatization =
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword bnf_axiomatization} "bnf declaration"
-    (parse_bnf_axiomatization >> 
+    (parse_bnf_axiomatization >>
       (fn (((((plugins, bsTs), b), witTs), mx), (mapb, relb, predb)) =>
          bnf_axiomatization_cmd plugins bsTs b mx mapb relb predb witTs #> snd));
 

@@ -1329,7 +1329,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         val vars = Variable.add_free_names lthy goal [];
       in
         (Goal.prove_sorry lthy vars [] goal
-          (fn {context = ctxt, prems = _} => 
+          (fn {context = ctxt, prems = _} =>
             mk_ctor_induct_tac ctxt m set_mapss init_induct_thm morE_thms mor_Abs_thm
             Rep_inverses Abs_inverses Reps)
         |> Thm.close_derivation,

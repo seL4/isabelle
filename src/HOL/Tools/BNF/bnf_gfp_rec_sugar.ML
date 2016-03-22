@@ -1455,7 +1455,7 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                     val (distincts, discIs, _, split_sels, split_sel_asms) =
                       case_thms_of_term lthy raw_rhs;
 
-                    val raw_code_thm = 
+                    val raw_code_thm =
                       Goal.prove_sorry lthy [] [] raw_goal
                         (fn {context = ctxt, prems = _} =>
                           mk_primcorec_raw_code_tac ctxt distincts discIs split_sels split_sel_asms
