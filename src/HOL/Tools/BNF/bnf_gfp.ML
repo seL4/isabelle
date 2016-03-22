@@ -56,7 +56,8 @@ fun tree_to_coind_wits _ (Wit_Leaf _) = []
      ((i, I), nth (nth lwitss i) nwit) :: maps (tree_to_coind_wits lwitss) subtrees;
 
 (*all BNFs have the same lives*)
-fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) bnfs _ lthy =
+fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) bnfs absT_infos
+    lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -2691,10 +2692,10 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val lthy' = lthy |> internals ? snd o Local_Theory.notes (common_notes @ notes @ Jbnf_notes);
 
     val fp_res =
-      {Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors, xtor_un_folds = unfolds,
-       xtor_co_recs = corecs, xtor_co_induct = dtor_coinduct_thm, dtor_ctors = dtor_ctor_thms,
-       ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
-       dtor_injects = dtor_inject_thms, xtor_maps = dtor_Jmap_thms,
+      {Ts = Ts, bnfs = Jbnfs, pre_bnfs = bnfs, absT_infos = absT_infos,
+       ctors = ctors, dtors = dtors, xtor_un_folds = unfolds, xtor_co_recs = corecs,
+       xtor_co_induct = dtor_coinduct_thm, dtor_ctors = dtor_ctor_thms, ctor_dtors = ctor_dtor_thms,
+       ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms, xtor_maps = dtor_Jmap_thms,
        xtor_map_uniques = dtor_Jmap_unique_thms, xtor_setss = dtor_Jset_thmss',
        xtor_rels = dtor_Jrel_thms, xtor_un_fold_thms = dtor_unfold_thms,
        xtor_co_rec_thms = dtor_corec_thms, xtor_un_fold_uniques = dtor_unfold_unique_thms,

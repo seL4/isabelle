@@ -13,6 +13,8 @@ sig
   type fp_result =
     {Ts: typ list,
      bnfs: BNF_Def.bnf list,
+     pre_bnfs: BNF_Def.bnf list,
+     absT_infos: BNF_Comp.absT_info list,
      ctors: term list,
      dtors: term list,
      xtor_un_folds: term list,
@@ -213,6 +215,8 @@ open BNF_Util
 type fp_result =
   {Ts: typ list,
    bnfs: bnf list,
+   pre_bnfs: BNF_Def.bnf list,
+   absT_infos: BNF_Comp.absT_info list,
    ctors: term list,
    dtors: term list,
    xtor_un_folds: term list,
@@ -237,13 +241,15 @@ type fp_result =
    xtor_rel_co_induct: thm,
    dtor_set_inducts: thm list};
 
-fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_un_folds, xtor_co_recs, xtor_co_induct,
-    dtor_ctors, ctor_dtors, ctor_injects, dtor_injects, xtor_maps, xtor_map_uniques, xtor_setss,
-    xtor_rels, xtor_un_fold_thms, xtor_co_rec_thms, xtor_un_fold_uniques, xtor_co_rec_uniques,
-    xtor_un_fold_o_maps, xtor_co_rec_o_maps, xtor_un_fold_transfers, xtor_co_rec_transfers,
-    xtor_rel_co_induct, dtor_set_inducts} =
+fun morph_fp_result phi {Ts, bnfs, pre_bnfs, absT_infos, ctors, dtors, xtor_un_folds, xtor_co_recs,
+    xtor_co_induct, dtor_ctors, ctor_dtors, ctor_injects, dtor_injects, xtor_maps, xtor_map_uniques,
+    xtor_setss, xtor_rels, xtor_un_fold_thms, xtor_co_rec_thms, xtor_un_fold_uniques,
+    xtor_co_rec_uniques, xtor_un_fold_o_maps, xtor_co_rec_o_maps, xtor_un_fold_transfers,
+    xtor_co_rec_transfers, xtor_rel_co_induct, dtor_set_inducts} =
   {Ts = map (Morphism.typ phi) Ts,
    bnfs = map (morph_bnf phi) bnfs,
+   pre_bnfs = map (morph_bnf phi) pre_bnfs,
+   absT_infos = map (morph_absT_info phi) absT_infos,
    ctors = map (Morphism.term phi) ctors,
    dtors = map (Morphism.term phi) dtors,
    xtor_un_folds = map (Morphism.term phi) xtor_un_folds,

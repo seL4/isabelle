@@ -779,8 +779,8 @@ fun mk_repT absT repT absU =
     (case (absT, absU) of
       (Type (C, Ts), Type (C', Us)) =>
         if C = C' then Term.typ_subst_atomic (Ts ~~ Us) repT
-        else raise Term.TYPE ("mk_repT", [absT, repT, absT], [])
-    | _ => raise Term.TYPE ("mk_repT", [absT, repT, absT], []));
+        else raise Term.TYPE ("mk_repT", [absT, repT, absU], [])
+    | _ => raise Term.TYPE ("mk_repT", [absT, repT, absU], []));
 
 fun mk_abs_or_rep _ absU (Const (@{const_name id_bnf}, _)) =
     Const (@{const_name id_bnf}, absU --> absU)

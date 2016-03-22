@@ -27,7 +27,8 @@ open BNF_LFP_Util
 open BNF_LFP_Tactics
 
 (*all BNFs have the same lives*)
-fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) bnfs _ lthy =
+fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) bnfs absT_infos
+    lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -1951,8 +1952,9 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val lthy' = lthy |> internals ? snd o Local_Theory.notes (common_notes @ notes @ Ibnf_notes);
 
     val fp_res =
-      {Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, xtor_un_folds = folds,
-       xtor_co_recs = recs, xtor_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
+      {Ts = Ts, bnfs = Ibnfs, pre_bnfs = bnfs, absT_infos = absT_infos,
+       ctors = ctors, dtors = dtors, xtor_un_folds = folds, xtor_co_recs = recs,
+       xtor_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
        ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
        dtor_injects = dtor_inject_thms, xtor_maps = ctor_Imap_thms,
        xtor_map_uniques = ctor_Imap_unique_thms, xtor_setss = ctor_Iset_thmss',
