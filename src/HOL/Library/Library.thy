@@ -5,6 +5,7 @@ imports
   BigO
   Bit
   BNF_Axiomatization
+  BNF_Corec
   Boolean_Algebra
   Bourbaki_Witt_Fixpoint
   Char_ord
