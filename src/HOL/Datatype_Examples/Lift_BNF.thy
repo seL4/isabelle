@@ -1,3 +1,12 @@
+(*  Title:      HOL/Datatype_Examples/Lift_BNF.thy
+    Author:     Dmitriy Traytel, ETH Zürich
+    Copyright   2015
+
+Demonstration of the "lift_bnf" command.
+*)
+
+section {* Demonstration of the @{command lift_bnf} Command *}
+
 theory Lift_BNF
 imports Main
 begin
