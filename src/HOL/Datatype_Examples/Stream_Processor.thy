@@ -17,8 +17,12 @@ declare [[typedef_overloaded]]
 
 section {* Continuous Functions on Streams *}
 
-datatype ('a, 'b, 'c) sp\<^sub>\<mu> = Get "'a \<Rightarrow> ('a, 'b, 'c) sp\<^sub>\<mu>" | Put "'b" "'c"
-codatatype ('a, 'b) sp\<^sub>\<nu> = In (out: "('a, 'b, ('a, 'b) sp\<^sub>\<nu>) sp\<^sub>\<mu>")
+datatype ('a, 'b, 'c) sp\<^sub>\<mu> =
+  Get "'a \<Rightarrow> ('a, 'b, 'c) sp\<^sub>\<mu>"
+| Put "'b" "'c"
+
+codatatype ('a, 'b) sp\<^sub>\<nu> =
+  In (out: "('a, 'b, ('a, 'b) sp\<^sub>\<nu>) sp\<^sub>\<mu>")
 
 primrec run\<^sub>\<mu> :: "('a, 'b, 'c) sp\<^sub>\<mu> \<Rightarrow> 'a stream \<Rightarrow> ('b \<times> 'c) \<times> 'a stream" where
   "run\<^sub>\<mu> (Get f) s = run\<^sub>\<mu> (f (shd s)) (stl s)"

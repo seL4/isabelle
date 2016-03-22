@@ -792,7 +792,6 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
   *}
   options [document = false]
   theories
-    "~~/src/HOL/Library/Old_Datatype"
     Compat
     Lambda_Term
     Process
@@ -807,6 +806,15 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
     Misc_Datatype
     Misc_Primcorec
     Misc_Primrec
+
+session "HOL-Corec_Examples" in Corec_Examples = HOL +
+  description {*
+    Corecursion Examples.
+  *}
+  options [document = false]
+  theories
+    LFilter
+    Stream_Processor
 
 session "HOL-Word" (main) in Word = HOL +
   theories Word
