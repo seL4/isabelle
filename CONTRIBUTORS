@@ -20,9 +20,14 @@ Contributions to this Isabelle version
 Contributions to Isabelle2016
 -----------------------------
 
+* Winter 2016: Jasmin Blanchette, Inria & LORIA & MPII, Aymeric Bouzy,
+  Ecole polytechnique, Andreas Lochbihler, ETH Zurich, and Dmitriy Traytel,
+  ETH Zurich
+  'corec' command and friends.
+
 * Winter 2016: Manuel Eberl, TUM
   Support for real exponentiation ("powr") in the "approximation" method.
-  (This was removed in Isabelle 2015 due to a changed definition of "powr")
+  (This was removed in Isabelle 2015 due to a changed definition of "powr".)
 
 * Summer 2015 - Winter 2016: Lawrence C Paulson, Cambridge
   General, homology form of Cauchy's integral theorem and supporting material
