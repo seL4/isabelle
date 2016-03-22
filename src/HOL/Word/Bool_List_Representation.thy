@@ -329,13 +329,15 @@ lemma bl_to_bin_lt2p_aux:
   apply (drule meta_spec, erule xtrans(8) [rotated], simp add: Bit_def)+
   done
 
-lemma bl_to_bin_lt2p: "bl_to_bin bs < (2 ^ length bs)"
-  apply (unfold bl_to_bin_def)
-  apply (rule xtrans(1))
-   prefer 2
-   apply (rule bl_to_bin_lt2p_aux)
-  apply simp
-  done
+lemma bl_to_bin_lt2p_drop:
+  "bl_to_bin bs < 2 ^ length (dropWhile Not bs)"
+proof (induct bs)
+  case (Cons b bs) with bl_to_bin_lt2p_aux[where w=1]
+  show ?case unfolding bl_to_bin_def by simp
+qed simp
+
+lemma bl_to_bin_lt2p: "bl_to_bin bs < 2 ^ length bs"
+  by (metis bin_bl_bin bintr_lt2p bl_bin_bl)
 
 lemma bl_to_bin_ge2p_aux:
   "bl_to_bin_aux bs w >= w * (2 ^ length bs)"
