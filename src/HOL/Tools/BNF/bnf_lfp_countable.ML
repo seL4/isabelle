@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/bnf_lfp_countable.ML
+(*  Title:      HOL/Tools/BNF/bnf_lfp_countable.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2014
 

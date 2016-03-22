@@ -13,6 +13,6 @@ keywords
   "bnf_axiomatization" :: thy_decl
 begin
 
-ML_file "bnf_axiomatization.ML"
+ML_file "../Tools/BNF/bnf_axiomatization.ML"
 
 end

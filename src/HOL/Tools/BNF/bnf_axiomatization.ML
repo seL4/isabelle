@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/bnf_axiomatization.ML
+(*  Title:      HOL/Tools/BNF/bnf_axiomatization.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2013
 
