@@ -249,6 +249,9 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
           fp_bnf (construct_mutualized_fp fp mutual_cliques unsorted_fpTs fp_results) fp_bs
             unsorted_As' killed_As' fp_eqs no_defs_lthy;
 
+        val time = time lthy;
+        val timer = time (Timer.startRealTimer ());
+
         val fp_abs_inverses = map #abs_inverse fp_absT_infos;
         val fp_type_definitions = map #type_definition fp_absT_infos;
 
@@ -273,6 +276,8 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
             fp_bs xtor_co_recs lthy
           |>> split_list;
 
+        val timer = time (timer ("High-level " ^ co_prefix fp ^ "recursors"));
+
         val ((common_co_inducts, co_inductss', co_rec_thmss, co_rec_disc_thmss, co_rec_sel_thmsss),
              fp_sugar_thms) =
           if fp = Least_FP then
@@ -293,6 +298,8 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
               (map snd coinduct_thms_pairs, map fst coinduct_thms_pairs, corec_thmss,
                corec_disc_thmss, corec_sel_thmsss))
             ||> (fn info => (NONE, SOME info));
+
+        val timer = time (timer ("High-level " ^ co_prefix fp ^ "induction principles"));
 
         val names_lthy = lthy |> fold Variable.declare_typ (As @ Cs @ Xs);
         val phi = Proof_Context.export_morphism names_lthy lthy;

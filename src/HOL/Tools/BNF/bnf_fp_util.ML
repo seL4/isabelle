@@ -276,7 +276,7 @@ fun morph_fp_result phi {Ts, bnfs, pre_bnfs, absT_infos, ctors, dtors, xtor_un_f
 
 fun time ctxt timer msg = (if Config.get ctxt bnf_timing
   then warning (msg ^ ": " ^ string_of_int (Time.toMilliseconds (Timer.checkRealTimer timer)) ^
-    "ms")
+    " ms")
   else (); Timer.startRealTimer ());
 
 val preN = "pre_"
