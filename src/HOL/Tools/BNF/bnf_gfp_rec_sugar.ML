@@ -57,6 +57,7 @@ sig
   val s_disjs: term list -> term
   val s_dnf: term list list -> term list
 
+  val case_of: Proof.context -> string -> (string * bool) option
   val fold_rev_let_if_case: Proof.context -> (term list -> term -> 'a -> 'a) -> typ list ->
     term -> 'a -> 'a
   val massage_let_if_case: Proof.context -> (term -> bool) -> (typ list -> term -> term) ->
