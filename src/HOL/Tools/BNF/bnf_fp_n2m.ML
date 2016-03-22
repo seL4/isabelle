@@ -50,11 +50,18 @@ fun mk_map_sum f g =
 fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_result) list) bs resBs
     (resDs, Dss) bnfs (absT_infos : absT_info list) lthy =
   let
+    val time = time lthy;
+    val timer = time (Timer.startRealTimer ());
+
+    val b_names = map Binding.name_of bs;
+    val b_name = mk_common_name b_names;
+    val b = Binding.name b_name;
+
     fun of_fp_res get = map (uncurry nth o swap o apsnd get) fp_results;
     fun mk_co_algT T U = case_fp fp (T --> U) (U --> T);
     fun co_swap pair = case_fp fp I swap pair;
     val mk_co_comp = HOLogic.mk_comp o co_swap;
-    val co_productC = BNF_FP_Rec_Sugar_Util.case_fp fp @{type_name prod} @{type_name sum};
+    val co_productC = case_fp fp @{type_name prod} @{type_name sum};
 
     val dest_co_algT = co_swap o dest_funT;
     val co_alg_argT = case_fp fp range_type domain_type;
@@ -251,6 +258,8 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_resul
             |> funpow n (fn thm => thm RS mp)
           end);
 
+    val timer = time (timer "Nested-to-mutual (co)induction");
+
     val fold_preTs = map2 (fn Ds => mk_T_of_bnf Ds allAs) Dss bnfs;
     val rec_preTs = map (Term.typ_subst_atomic rec_theta) fold_preTs;
 
@@ -260,7 +269,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_resul
     val ((rec_strs, rec_strs'), names_lthy) = names_lthy
       |> mk_Frees' "s" rec_strTs;
 
-    val co_recs = of_fp_res #xtor_co_recs;
+    val xtor_co_recs = of_fp_res #xtor_co_recs;
     val ns = map (length o #Ts o snd) fp_results;
 
     fun foldT_of_recT recT =
@@ -317,7 +326,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_resul
         val i = find_index (fn T => x = T) Xs;
         val TUrec =
           (case find_first (fn f => body_fun_type (fastype_of f) = TU) recs of
-            NONE => force_rec i TU (nth co_recs i)
+            NONE => force_rec i TU (nth xtor_co_recs i)
           | SOME f => f);
 
         val TUs = binder_fun_types (fastype_of TUrec);
@@ -395,21 +404,21 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_resul
         mk_rec (SOME b) recs lthy TU |>> (fn (f, d) => (f :: recs, d :: defs)))
       resTs (map (Binding.suffix_name ("_" ^ recN)) bs) (([], []), lthy)
       |>> map_prod rev rev;
-    val ((raw_co_recs, raw_co_rec_defs), (lthy, raw_lthy)) = lthy
+    val ((raw_xtor_co_recs, raw_xtor_co_rec_defs), (lthy, raw_lthy)) = lthy
       |> Local_Theory.open_target |> snd
       |> mk_recs
       ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism raw_lthy lthy;
 
-    val co_recs = map (Morphism.term phi) raw_co_recs;
+    val xtor_co_recs = map (Morphism.term phi) raw_xtor_co_recs;
 
     val fp_rec_o_maps = of_fp_res #xtor_co_rec_o_maps
       |> maps (fn thm => [thm, thm RS rewrite_comp_comp]);
 
     val xtor_co_rec_thms =
       let
-        val recs = map (fn r => Term.list_comb (r, rec_strs)) raw_co_recs;
+        val recs = map (fn r => Term.list_comb (r, rec_strs)) raw_xtor_co_recs;
         val rec_mapTs = co_swap (As @ fpTs, As @ map2 mk_co_productT fpTs Xs);
         val pre_rec_maps =
           map2 (fn Ds => fn bnf =>
@@ -463,7 +472,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_resul
         val Rep_o_Abss = maps mk_Rep_o_Abs type_definitions;
 
         fun tac {context = ctxt, prems = _} =
-          unfold_thms_tac ctxt (flat [rec_thms, raw_co_rec_defs, pre_map_defs,
+          unfold_thms_tac ctxt (flat [rec_thms, raw_xtor_co_rec_defs, pre_map_defs,
             fp_pre_map_defs, fp_xtor_co_recs, fp_rec_o_maps, map_thms, fp_Rep_o_Abss,
             Rep_o_Abss]) THEN
           CONJ_WRAP (K (HEADGOAL (rtac ctxt refl))) bnfs;
@@ -478,12 +487,38 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_resul
         |> map (fn thm => thm RS @{thm comp_eq_dest})
       end;
 
+    val timer = time (timer "Nested-to-mutual (co)recursion");
+
+    val common_notes =
+      (case fp of
+        Least_FP =>
+        [(ctor_inductN, [xtor_co_induct_thm]),
+         (ctor_rel_inductN, [xtor_rel_co_induct])]
+      | Greatest_FP =>
+        [(dtor_coinductN, [xtor_co_induct_thm]),
+         (dtor_rel_coinductN, [xtor_rel_co_induct])])
+      |> map (fn (thmN, thms) =>
+        ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
+
+    val notes =
+      (case fp of
+        Least_FP => [(ctor_recN, xtor_co_rec_thms)]
+      | Greatest_FP => [(dtor_corecN, xtor_co_rec_thms)])
+      |> map (apsnd (map single))
+      |> maps (fn (thmN, thmss) =>
+        map2 (fn b => fn thms =>
+          ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
+        bs thmss);
+
+    val lthy = lthy |> Config.get lthy bnf_internals
+      ? snd o Local_Theory.notes (common_notes @ notes);
+
     (* These results are half broken. This is deliberate. We care only about those fields that are
        used by "primrec", "primcorecursive", and "datatype_compat". *)
     val fp_res =
       ({Ts = fpTs, bnfs = of_fp_res #bnfs, pre_bnfs = bnfs, absT_infos = absT_infos,
         dtors = dtors, ctors = ctors,
-        xtor_un_folds = co_recs (*wrong*), xtor_co_recs = co_recs,
+        xtor_un_folds = xtor_co_recs (*wrong*), xtor_co_recs = xtor_co_recs,
         xtor_co_induct = xtor_co_induct_thm,
         dtor_ctors = of_fp_res #dtor_ctors (*too general types*),
         ctor_dtors = of_fp_res #ctor_dtors (*too general types*),
@@ -501,7 +536,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_resul
         xtor_rel_co_induct = xtor_rel_co_induct, dtor_set_inducts = []}
        |> morph_fp_result (Morphism.term_morphism "BNF" (singleton (Variable.polymorphic lthy))));
   in
-    (fp_res, lthy)
+    timer; (fp_res, lthy)
   end;
 
 end;

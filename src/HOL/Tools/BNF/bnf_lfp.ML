@@ -580,7 +580,6 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val timer = time (timer "Bounds");
 
-
     (* minimal algebra *)
 
     fun mk_minG Asi i k = mk_UNION (mk_underS suc_bd $ i)
