@@ -34,6 +34,9 @@ sig
   val finds: ('a * 'b -> bool) -> 'a list -> 'b list -> ('a * 'b list) list * 'b list
   val find_indices: ('b * 'a -> bool) -> 'a list -> 'b list -> int list
 
+  val order_strong_conn: ('a * 'a -> bool) -> ((('a * unit) * 'a list) list -> 'b) ->
+    ('b -> 'a list) -> ('a * 'a list) list -> 'a list list -> 'a list list
+
   val mk_common_name: string list -> string
 
   val num_binder_types: typ -> int
@@ -102,9 +105,26 @@ fun finds eq = fold_map (fn x => List.partition (curry eq x) #>> pair x);
 fun find_indices eq xs ys =
   map_filter I (map_index (fn (i, y) => if member eq xs y then SOME i else NONE) ys);
 
+fun order_strong_conn eq make_graph topological_order deps sccs =
+  let
+    val normals = maps (fn x :: xs => map (fn y => (y, x)) xs) sccs;
+    fun normal s = AList.lookup eq normals s |> the_default s;
+
+    val normal_deps = deps
+      |> map (fn (x, xs) => let val x' = normal x in
+          (x', fold (insert eq o normal) xs [] |> remove eq x')
+        end)
+      |> AList.group eq
+      |> map (apsnd (fn xss => fold (union eq) xss []));
+
+    val normal_G = make_graph (map (apfst (rpair ())) normal_deps);
+    val ordered_normals = rev (topological_order normal_G);
+  in
+    map (fn x => the (find_first (fn (y :: _) => eq (y, x)) sccs)) ordered_normals
+  end;
+
 val mk_common_name = space_implode "_";
 
-(*stolen from ~~/src/HOL/Tools/Nitpick/nitpick_hol.ML*)
 fun num_binder_types (Type (@{type_name fun}, [_, T])) = 1 + num_binder_types T
   | num_binder_types _ = 0;
 

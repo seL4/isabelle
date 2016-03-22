@@ -2137,19 +2137,18 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     val _ =
       let
-        fun mk_edges Xs ctrXs_Tsss =
-          let
-            fun add_edges i =
-              fold (fn T => fold_index (fn (j, X) =>
-                Term.exists_subtype (curry (op =) X) T ? cons (i, j)) Xs);
-          in
-            fold_index (uncurry (fold o add_edges)) ctrXs_Tsss []
-          end;
+        fun add_deps i =
+          fold (fn T => fold_index (fn (j, X) =>
+            (i <> j andalso Term.exists_subtype (curry (op =) X) T) ? insert (op =) (i, j)) Xs);
 
-        fun mk_graph nn edges =
-          Int_Graph.empty
-          |> fold (fn kk => Int_Graph.new_node (kk, ())) (0 upto nn - 1)
-          |> fold Int_Graph.add_edge edges;
+        val add_missing_nodes = fold (AList.default (op =) o rpair []) (0 upto nn - 1);
+
+        val deps = fold_index (uncurry (fold o add_deps)) ctrXs_Tsss []
+          |> AList.group (op =)
+          |> add_missing_nodes;
+
+        val G = Int_Graph.make (map (apfst (rpair ())) deps);
+        val sccs = map (sort int_ord) (Int_Graph.strong_conn G);
 
         val str_of_scc = curry (op ^) (co_prefix fp ^ "datatype ") o
           space_implode " and " o map (suffix " = \<dots>" o Long_Name.base_name);
@@ -2159,11 +2158,9 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
             warning ("Defined types not fully mutually " ^ co_prefix fp ^ "recursive\n\
               \Alternative specification:\n" ^
               cat_lines (map (prefix "  " o str_of_scc o map (nth fp_b_names)) sccs));
-
-        val edges = mk_edges Xs ctrXs_Tsss;
-        val G = mk_graph nn edges;
-        val sccs = rev (map (sort int_ord) (Int_Graph.strong_conn G));
-      in warn sccs end;
+      in
+        warn (order_strong_conn (op =) Int_Graph.make Int_Graph.topological_order deps sccs)
+      end;
 
     val fp_eqs = map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctrXs_repTs;
 
