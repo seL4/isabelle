@@ -400,43 +400,37 @@ fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_ca
         else
           not_co_datatype0 T
       | not_co_datatype T = not_co_datatype0 T;
-    fun not_mutually_nested_rec Ts1 Ts2 =
-      error (qsotys Ts1 ^ " is neither mutually " ^ co_prefix fp ^ "recursive with " ^ qsotys Ts2 ^
-        " nor nested " ^ co_prefix fp ^ "recursive through " ^
-        (if Ts1 = Ts2 andalso length Ts1 = 1 then "itself" else qsotys Ts2));
 
     val sorted_actual_Ts =
       sort (prod_ord int_ord Term_Ord.typ_ord o apply2 (`Term.size_of_typ)) actual_Ts;
 
     fun the_ctrs_of (Type (s, Ts)) = map (mk_ctr Ts) (#ctrs (the (ctr_sugar_of lthy s)));
 
+    fun gen_rhss_in gen_Ts rho (subTs as Type (_, sub_tyargs) :: _) =
+      let
+        fun maybe_insert (T, Type (_, gen_tyargs)) =
+            member (op =) subTs T ? insert (op =) gen_tyargs
+          | maybe_insert _ = I;
+
+        val gen_ctrs = maps the_ctrs_of gen_Ts;
+        val gen_ctr_Ts = maps (binder_types o fastype_of) gen_ctrs;
+        val ctr_Ts = map (Term.typ_subst_atomic rho) gen_ctr_Ts;
+      in
+        (case fold (fold_subtype_pairs maybe_insert) (ctr_Ts ~~ gen_ctr_Ts) [] of
+          [] => [map (typ_subst_nonatomic (map swap rho)) sub_tyargs]
+        | gen_tyargss => gen_tyargss)
+      end;
+
     fun the_fp_sugar_of (T as Type (T_name, _)) =
       (case fp_sugar_of lthy T_name of
         SOME (fp_sugar as {fp = fp', ...}) => if fp = fp' then fp_sugar else not_co_datatype T
       | NONE => not_co_datatype T);
-
-    fun gen_rhss_in gen_Ts rho subTs =
-      let
-        fun maybe_insert (T, Type (_, gen_tyargs)) =
-            if member (op =) subTs T then insert (op =) gen_tyargs else I
-          | maybe_insert _ = I;
-
-        val ctrs = maps the_ctrs_of gen_Ts;
-        val gen_ctr_Ts = maps (binder_types o fastype_of) ctrs;
-        val ctr_Ts = map (Term.typ_subst_atomic rho) gen_ctr_Ts;
-      in
-        fold (fold_subtype_pairs maybe_insert) (ctr_Ts ~~ gen_ctr_Ts) []
-      end;
 
     fun gather_types _ _ rev_seens gen_seen [] = (rev rev_seens, gen_seen)
       | gather_types lthy rho rev_seens gen_seen ((T as Type (_, tyargs)) :: Ts) =
         let
           val {T = Type (_, tyargs0), fp_res = {Ts = mutual_Ts0, ...}, ...} = the_fp_sugar_of T;
           val mutual_Ts = map (retypargs tyargs) mutual_Ts0;
-
-          val rev_seen = flat rev_seens;
-          val _ = null rev_seens orelse exists (exists_strict_subtype_in rev_seen) mutual_Ts orelse
-            not_mutually_nested_rec mutual_Ts rev_seen;
 
           fun fresh_tyargs () =
             let
@@ -451,7 +445,7 @@ fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_ca
             end;
 
           val (rho', gen_tyargs, gen_seen', lthy') =
-            if exists (exists_subtype_in rev_seen) mutual_Ts then
+            if exists (exists_subtype_in (flat rev_seens)) mutual_Ts then
               (case gen_rhss_in gen_seen rho mutual_Ts of
                 [] => fresh_tyargs ()
               | gen_tyargs :: gen_tyargss_tl =>
