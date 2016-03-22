@@ -5,7 +5,7 @@
 Demonstration of the "lift_bnf" command.
 *)
 
-section {* Demonstration of the @{command lift_bnf} Command *}
+section {* Demonstration of the \textbf{lift_bnf} Command *}
 
 theory Lift_BNF
 imports Main
