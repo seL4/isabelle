@@ -815,6 +815,15 @@ session "HOL-Corec_Examples" in Corec_Examples = HOL +
   theories
     LFilter
     Stream_Processor
+    "Tests/Simple_Nesting"
+  theories [quick_and_dirty]
+    "Tests/GPV_Bare_Bones"
+    "Tests/Merge_D"
+    "Tests/Merge_Poly"
+    "Tests/Misc_Mono"
+    "Tests/Misc_Poly"
+    "Tests/Small_Concrete"
+    "Tests/TLList_Friends"
 
 session "HOL-Word" (main) in Word = HOL +
   theories Word
