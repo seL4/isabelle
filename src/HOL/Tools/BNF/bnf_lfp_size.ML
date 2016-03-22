@@ -187,8 +187,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
             fold_map mk_size_of_arg xs []
             |>> remove (op =) HOLogic.zero;
           val sum =
-            if null summands then base_case
-            else foldl1 mk_plus_nat (summands @ [HOLogic.Suc_zero]);
+            if null summands then base_case else foldl1 mk_plus_nat (summands @ [HOLogic.Suc_zero]);
         in
           append size_gen_o_mapss
           #> pair (fold_rev Term.lambda (map substCnatT xs) sum)
@@ -313,7 +312,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
       val maps0 = map map_of_bnf fp_bnfs;
 
       val size_gen_o_map_thmss =
-        if live = 0 then replicate nn []
+        if live = 0 then
+          replicate nn []
         else
           let
             val gmaps = map (fn map0 => Term.list_comb (mk_map live As Bs map0, live_gs)) maps0;
@@ -337,7 +337,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
                 curry HOLogic.mk_eq) size_gen_o_map_lhss size_gen_o_map_rhss;
 
             val rec_o_maps =
-              fold_rev (curry (op @) o (#co_rec_o_maps o #fp_co_induct_sugar)) fp_sugars [];
+              fold_rev (curry (op @) o #co_rec_o_maps o #fp_co_induct_sugar) fp_sugars [];
 
             val size_gen_o_map_thmss =
               if nested_size_gen_o_maps_complete then

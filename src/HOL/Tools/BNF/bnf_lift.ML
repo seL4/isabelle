@@ -61,6 +61,9 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
     val tvs = AbsT |> dest_Type |> snd |> map (fst o dest_TVar);
     val alpha0s = map (TFree o snd) specs;
 
+    val _ = length tvs = length alpha0s orelse
+      error ("Expected " ^ string_of_int (length tvs) ^ " type argument(s) to " ^ quote AbsT_name);
+
     (* instantiate the new type variables newtvs to oldtvs *)
     val subst = subst_TVars (tvs ~~ alpha0s);
     val typ_subst = typ_subst_TVars (tvs ~~ alpha0s);
