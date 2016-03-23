@@ -225,12 +225,12 @@ fun derive_case_dtor ctxt fpT_name =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    val SOME ({fp_res_index, fp_res = {dtors, dtor_ctors, ...},
+    val SOME ({fp_res_index, fp_res = {dtors = dtors0, dtor_ctors, ...},
         absT_info = {rep = rep0, abs_inverse, ...},
         fp_ctr_sugar = {ctr_defs, ctr_sugar = {casex, exhaust, case_thms, ...}, ...}, ...}) =
       fp_sugar_of ctxt fpT_name;
 
-    val (f_Ts, Type (_, [fpT, _])) = strip_fun_type (fastype_of casex);
+    val (f_Ts, Type (_, [fpT as Type (_, As), _])) = strip_fun_type (fastype_of casex);
     val x_Tss = map binder_types f_Ts;
 
     val (((u, fs), xss), _) = ctxt
@@ -238,7 +238,9 @@ fun derive_case_dtor ctxt fpT_name =
       ||>> mk_Frees "f" f_Ts
       ||>> mk_Freess "x" x_Tss;
 
-    val dtor = nth dtors fp_res_index;
+    val dtor0 = nth dtors0 fp_res_index;
+    val dtor = mk_dtor As dtor0;
+
     val u' = dtor $ u;
 
     val absT = fastype_of u';
@@ -264,7 +266,7 @@ fun derive_case_trivial ctxt fpT_name =
     val fpT0 as Type (_, As0) = domain_type (body_fun_type (fastype_of casex));
 
     val (As, _) = ctxt
-      |> mk_TFrees (length As0);
+      |> mk_TFrees' (map Type.sort_of_atyp As0);
     val fpT = Type (fpT_name, As);
 
     val (var_name, ()) = singleton (Variable.variant_frees ctxt []) ("x", ());
@@ -666,7 +668,7 @@ fun derive_cong_intros lthy ctr_names friend_names
     Symtab.make_list (names ~~ thms)
   end;
 
-fun derive_coinduct ctxt (fpT as Type (fpT_name, _)) dtor_coinduct =
+fun derive_coinduct ctxt (fpT as Type (fpT_name, fpT_args)) dtor_coinduct =
   let
     val thy = Proof_Context.theory_of ctxt;
 
@@ -677,14 +679,15 @@ fun derive_coinduct ctxt (fpT as Type (fpT_name, _)) dtor_coinduct =
     val SOME {X as TVar ((X_s, _), _), fp_res = {dtor_ctors, ...}, pre_bnf,
         absT_info = {abs_inverse, ...}, live_nesting_bnfs,
         fp_ctr_sugar = {ctrXs_Tss, ctr_defs,
-          ctr_sugar = ctr_sugar0 as {T = T0, ctrs = ctrs0, discs = discs0, ...}, ...}, ...} =
+          ctr_sugar = ctr_sugar0 as {T = Type (_, T0_args), ctrs = ctrs0, discs = discs0, ...},
+            ...}, ...} =
       fp_sugar_of ctxt fpT_name;
 
     val n = length ctrXs_Tss;
     val ms = map length ctrXs_Tss;
 
     val X' = TVar ((X_s, maxidx_of_typ fpT + 1), @{sort type});
-    val As_rho = tvar_subst thy [T0] [fpT];
+    val As_rho = tvar_subst thy T0_args fpT_args;
     val substXAT = Term.typ_subst_TVars As_rho o Tsubst X X';
     val substXA = Term.subst_TVars As_rho o substT X X';
     val phi = Morphism.typ_morphism "BNF" substXAT $> Morphism.term_morphism "BNF" substXA;
@@ -1970,9 +1973,7 @@ fun derive_coinduct_cong_intros
   end;
 
 fun update_coinduct_cong_intross_dynamic fpT_name lthy =
-  let
-    val all_corec_infos = corec_infos_of lthy fpT_name;
-  in
+  let val all_corec_infos = corec_infos_of lthy fpT_name in
     lthy
     |> fold_map (apfst snd oo derive_coinduct_cong_intros) all_corec_infos
     |> snd

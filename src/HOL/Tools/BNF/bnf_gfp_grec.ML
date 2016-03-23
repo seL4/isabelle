@@ -555,8 +555,9 @@ fun define_sig_type fp_b version fp_alives Es Y rhsT lthy =
 
     val T_name = Local_Theory.full_name lthy T_b;
 
-    val tyargs = map2 (fn alive => pair (if alive then SOME Binding.empty else NONE)
-      o rpair @{sort type}) (fp_alives @ [true]) (Es @ [Y]);
+    val tyargs = map2 (fn alive => fn T =>
+        (if alive then SOME Binding.empty else NONE, (T, Type.sort_of_atyp T)))
+      (fp_alives @ [true]) (Es @ [Y]);
     val ctr_specs = [(((Binding.empty, ctr_b), [(sel_b, rhsT)]), NoSyn)];
     val spec = (((((tyargs, T_b), NoSyn), ctr_specs),
       (Binding.empty, Binding.empty, Binding.empty)), []);
@@ -590,8 +591,9 @@ fun define_ssig_type fp_b version fp_alives Es Y fpT lthy =
     val As = Es @ [Y];
     val ssig_sig_T = Type (sig_T_name, Es @ [Type (T_name, As)]);
 
-    val tyargs = map2 (fn alive => pair (if alive then SOME Binding.empty else NONE)
-      o rpair @{sort type}) (fp_alives @ [true]) As;
+    val tyargs = map2 (fn alive => fn T =>
+        (if alive then SOME Binding.empty else NONE, (T, Type.sort_of_atyp T)))
+      (fp_alives @ [true]) (Es @ [Y]);
     val ctr_specs =
       [(((Binding.empty, Oper_b), [(Binding.empty, ssig_sig_T)]), NoSyn),
        (((Binding.empty, VLeaf_b), [(Binding.empty, Y)]), NoSyn),
@@ -2066,12 +2068,12 @@ fun derive_corecUU_base fpT_name lthy =
   let
     val fp_sugar as {T = Type (_, fpT_args0), pre_bnf, fp_bnf, fp_res, ...} =
       checked_fp_sugar_of lthy fpT_name;
-    val num_fp_tyargs = length fpT_args0;
-    val fp_alives = liveness_of_fp_bnf num_fp_tyargs fp_bnf;
+    val fpT_Ss = map Type.sort_of_atyp fpT_args0;
+    val fp_alives = liveness_of_fp_bnf (length fpT_args0) fp_bnf;
 
     val (((Es, Fs0), [Y, Z]), names_lthy) = lthy
-      |> mk_TFrees num_fp_tyargs
-      ||>> mk_TFrees num_fp_tyargs
+      |> mk_TFrees' fpT_Ss
+      ||>> mk_TFrees' fpT_Ss
       ||>> mk_TFrees 2;
     val Fs = @{map 3} (fn alive => fn E => fn F => if alive then F else E) fp_alives Es Fs0;
 
@@ -2602,13 +2604,13 @@ fun derive_corecUU_merge (fpT as Type (fpT_name, res_Ds))
      : corec_info)
     lthy =
   let
-    val {pre_bnf = live_pre_bnf, fp_bnf = live_fp_bnf, fp_res, ...} =
+    val {T = Type (_, fpT_args0), pre_bnf = live_pre_bnf, fp_bnf = live_fp_bnf, fp_res, ...} =
       checked_fp_sugar_of lthy fpT_name;
-    val num_fp_tyargs = length res_Ds;
-    val live_fp_alives = liveness_of_fp_bnf num_fp_tyargs live_fp_bnf;
+    val fpT_Ss = map Type.sort_of_atyp fpT_args0;
+    val live_fp_alives = liveness_of_fp_bnf (length fpT_args0) live_fp_bnf;
 
     val ((Ds, [Y, Z]), names_lthy) = lthy
-      |> mk_TFrees num_fp_tyargs
+      |> mk_TFrees' fpT_Ss
       ||>> mk_TFrees 2;
 
     (* FIXME *)
@@ -3077,11 +3079,11 @@ fun prepare_friend_corec friend_name friend_T lthy =
     val _ = not (null arg_Ts) orelse
       error "Function with no argument cannot be registered as friend";
 
-    val {pre_bnf, fp_bnf = live_fp_bnf, fp_res, ...} = checked_fp_sugar_of lthy fpT_name;
-    val num_fp_tyargs = length res_Ds;
+    val {T = Type (fpT_name, fpT_args0), pre_bnf, fp_bnf = live_fp_bnf, fp_res, ...} =
+      checked_fp_sugar_of lthy fpT_name;
+    val num_fp_tyargs = length fpT_args0;
+    val fpT_Ss = map Type.sort_of_atyp fpT_args0;
     val live_fp_alives = liveness_of_fp_bnf num_fp_tyargs live_fp_bnf;
-
-    val fpT_name = fst (dest_Type res_T);
 
     val (old_info as {friend_names = old_friend_names, sig_fp_sugars = old_sig_fp_sugar :: _,
            buffer = old_buffer, ...}, lthy) =
@@ -3099,7 +3101,7 @@ fun prepare_friend_corec friend_name friend_T lthy =
 
     val lthy = lthy |> Variable.declare_typ friend_T;
     val ((Ds, [Y, Z]), _) = lthy
-      |> mk_TFrees num_fp_tyargs
+      |> mk_TFrees' fpT_Ss
       ||>> mk_TFrees 2;
 
     (* FIXME *)
