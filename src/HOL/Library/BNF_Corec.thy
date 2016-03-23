@@ -7,7 +7,7 @@
 Generalized corecursor sugar ("corec" and friends).
 *)
 
-chapter {* Generalized Corecursor Sugar (corec and friends) *}
+section \<open>Generalized Corecursor Sugar (corec and friends)\<close>
 
 theory BNF_Corec
 imports Main
@@ -61,7 +61,7 @@ lemma if_distrib_fun: "(if c then f else g) x = (if c then f x else g x)"
   by simp
 
 
-section \<open>Coinduction\<close>
+subsection \<open>Coinduction\<close>
 
 lemma eq_comp_compI: "a o b = f o x \<Longrightarrow> x o c = id \<Longrightarrow> f = a o (b o c)"
   unfolding fun_eq_iff by simp
