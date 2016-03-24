@@ -560,8 +560,8 @@ object Build
               if (process_result.ok) {
                 (store.output_dir + Sessions.log(name)).file.delete
                 val heap_stamp =
-                  for (path <- job.output_path; stamp <- File.time_stamp(path))
-                    yield stamp
+                  for (path <- job.output_path if path.is_file)
+                    yield Sessions.write_heap_digest(path)
 
                 File.write_gzip(store.output_dir + Sessions.log_gz(name),
                   Library.terminate_lines(

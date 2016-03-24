@@ -6,6 +6,9 @@ Session information.
 
 package isabelle
 
+import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
+import java.nio.file.StandardOpenOption
 
 import scala.collection.SortedSet
 import scala.collection.mutable
@@ -319,6 +322,54 @@ object Sessions
 
 
 
+  /** heap file with SHA1 digest **/
+
+  private val sha1_prefix = "SHA1:"
+
+  def read_heap_digest(heap: Path): Option[String] =
+  {
+    if (heap.is_file) {
+      val file = FileChannel.open(heap.file.toPath, StandardOpenOption.READ)
+      try {
+        val len = file.size
+        val n = sha1_prefix.length + SHA1.digest_length
+        if (len >= n) {
+          file.position(len - n)
+
+          val buf = ByteBuffer.allocate(n)
+          var i = 0
+          var m = 0
+          do {
+            m = file.read(buf)
+            if (m != -1) i += m
+          }
+          while (m != -1 && n > i)
+
+          if (i == n) {
+            val prefix = new String(buf.array(), 0, sha1_prefix.length, UTF8.charset)
+            val s = new String(buf.array(), sha1_prefix.length, SHA1.digest_length, UTF8.charset)
+            if (prefix == sha1_prefix) Some(s) else None
+          }
+          else None
+        }
+        else None
+      }
+      finally { file.close }
+    }
+    else None
+  }
+
+  def write_heap_digest(heap: Path): String =
+    read_heap_digest(heap) match {
+      case None =>
+        val s = SHA1.digest(heap).rep
+        File.append(heap, sha1_prefix + s)
+        s
+      case Some(s) => s
+    }
+
+
+
   /** persistent store **/
 
   def log(name: String): Path = Path.basic("log") + Path.basic(name)
@@ -352,7 +403,7 @@ object Sessions
 
     def find(name: String): Option[(Path, Option[String])] =
       input_dirs.find(dir => (dir + log_gz(name)).is_file).map(dir =>
-        (dir + log_gz(name), File.time_stamp(dir + Path.basic(name))))
+        (dir + log_gz(name), read_heap_digest(dir + Path.basic(name))))
 
     def find_log(name: String): Option[Path] =
       input_dirs.map(_ + log(name)).find(_.is_file)
