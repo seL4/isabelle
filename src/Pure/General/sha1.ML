@@ -8,9 +8,9 @@ Digesting strings according to SHA-1 (see RFC 3174).
 signature SHA1 =
 sig
   eqtype digest
-  val digest: string -> digest
   val rep: digest -> string
   val fake: string -> digest
+  val digest: string -> digest
   val test_samples: unit -> unit
 end;
 
