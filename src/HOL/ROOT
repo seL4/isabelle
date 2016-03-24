@@ -173,6 +173,7 @@ session "HOL-Data_Structures" in Data_Structures = HOL +
   options [document_variants = document]
   theories [document = false]
     "Less_False"
+    "~~/src/HOL/Library/Multiset"
   theories
     Tree_Map
     AVL_Map
@@ -182,6 +183,7 @@ session "HOL-Data_Structures" in Data_Structures = HOL +
     Brother12_Map
     AA_Map
     Splay_Map
+    Leftist_Heap
   document_files "root.tex" "root.bib"
 
 session "HOL-Import" in Import = HOL +
