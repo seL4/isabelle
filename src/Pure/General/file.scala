@@ -10,7 +10,8 @@ package isabelle
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   OutputStream, InputStream, FileInputStream, BufferedInputStream, BufferedReader,
   InputStreamReader, File => JFile, IOException}
-import java.nio.file.{StandardCopyOption, Path => JPath, Files, SimpleFileVisitor, FileVisitResult}
+import java.nio.file.{StandardOpenOption, StandardCopyOption, Path => JPath,
+  Files, SimpleFileVisitor, FileVisitResult}
 import java.nio.file.attribute.BasicFileAttributes
 import java.net.{URL, URLDecoder, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
@@ -236,6 +237,15 @@ object File
     path.file renameTo path.backup2.file
     write(path, text)
   }
+
+
+  /* append */
+
+  def append(file: JFile, text: CharSequence): Unit =
+    Files.write(file.toPath, UTF8.bytes(text.toString),
+      StandardOpenOption.APPEND, StandardOpenOption.CREATE)
+
+  def append(path: Path, text: CharSequence): Unit = append(path.file, text)
 
 
   /* copy */
