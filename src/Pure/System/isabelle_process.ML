@@ -12,7 +12,6 @@ sig
   val crashes: exn list Synchronized.var
   val init_protocol: string -> unit
   val init_options: unit -> unit
-  val init_build_options: unit -> unit
   val init_protocol_options: Options.T -> unit
 end;
 
@@ -215,10 +214,6 @@ fun init_options () =
   Multithreading.trace := Options.default_int "threads_trace";
   Multithreading.max_threads_update (Options.default_int "threads");
   Goal.parallel_proofs := Options.default_int "parallel_proofs");
-
-fun init_build_options () =
- (Options.load_default ();
-  init_options ());
 
 fun init_protocol_options options =
  (Options.set_default options;

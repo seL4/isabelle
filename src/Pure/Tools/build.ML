@@ -135,7 +135,8 @@ fun build args_file =
         end;
 
     val symbols = HTML.make_symbols symbol_codes;
-    val _ = Isabelle_Process.init_build_options ();
+    val _ = Options.load_default ();
+    val _ = Isabelle_Process.init_options ();
 
     val _ = writeln ("\fSession.name = " ^ name);
     val _ =
