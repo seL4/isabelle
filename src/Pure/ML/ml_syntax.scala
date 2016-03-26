@@ -9,6 +9,17 @@ package isabelle
 
 object ML_Syntax
 {
+  /* int */
+
+  private def signed_int(sign: Boolean, s: String): String =
+    if (sign) { assert(s(0) == '-'); "~" + s.substring(1) } else s
+
+  def print_int(i: Int): String = signed_int(i < 0, Properties.Value.Int(i))
+  def print_long(i: Long): String = signed_int(i < 0, Properties.Value.Long(i))
+
+
+  /* string */
+
   private def print_chr(c: Byte): String =
     c match {
       case 34 => "\\\""
@@ -33,6 +44,9 @@ object ML_Syntax
 
   def print_string0(str: String): String =
     quote(UTF8.bytes(str).iterator.map(print_chr(_)).mkString)
+
+
+  /* list */
 
   def print_list[A](f: A => String)(list: List[A]): String =
     "[" + commas(list.map(f)) + "]"
