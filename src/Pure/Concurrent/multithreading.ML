@@ -21,7 +21,6 @@ sig
   val with_attributes: Thread.threadAttribute list -> (Thread.threadAttribute list -> 'a) -> 'a
   val max_threads_value: unit -> int
   val max_threads_update: int -> unit
-  val max_threads_setmp: int -> ('a -> 'b) -> 'a -> 'b
   val enabled: unit -> bool
   val sync_wait: Thread.threadAttribute list option -> Time.time option ->
     ConditionVar.conditionVar -> Mutex.mutex -> bool Exn.result
@@ -97,19 +96,8 @@ fun max_threads_result m =
   if m > 0 then m else Int.min (Int.max (num_processors (), 1), 8);
 
 val max_threads = ref 1;
-
 fun max_threads_value () = ! max_threads;
-
 fun max_threads_update m = max_threads := max_threads_result m;
-
-fun max_threads_setmp m f x =
-  uninterruptible (fn restore_attributes => fn () =>
-    let
-      val max_threads_orig = ! max_threads;
-      val _ = max_threads_update m;
-      val result = Exn.capture (restore_attributes f) x;
-      val _ = max_threads := max_threads_orig;
-    in Exn.release result end) ();
 
 fun enabled () = max_threads_value () > 1;
 

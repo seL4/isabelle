@@ -157,7 +157,6 @@ fun build args_file =
         (List.app (build_theories symbols last_timing Path.current)
           |> session_timing name verbose
           |> Unsynchronized.setmp Output.protocol_message_fn protocol_message
-          |> Multithreading.max_threads_setmp (Options.default_int "threads")
           |> Exn.capture);
     val res2 = Exn.capture Session.finish ();
     val _ = Par_Exn.release_all [res1, res2];
