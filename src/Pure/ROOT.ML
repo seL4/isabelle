@@ -250,7 +250,6 @@ use "ML/ml_syntax.ML";
 use "ML/ml_env.ML";
 use "ML/ml_options.ML";
 use_no_debug "ML/exn_debugger.ML";
-use "ML/ml_options.ML";
 use_no_debug "Isar/runtime.ML";
 use "PIDE/execution.ML";
 use "ML/ml_compiler.ML";
