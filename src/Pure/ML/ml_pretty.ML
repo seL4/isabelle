@@ -96,7 +96,6 @@ local
 in
   fun get_print_depth () = ! depth;
   fun print_depth n = (depth := n; PolyML.print_depth n);
-  val _ = print_depth 20;
 end;
 
 

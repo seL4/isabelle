@@ -104,6 +104,9 @@ option process_output_tail : int = 40
 
 section "ML System"
 
+option ML_print_depth : int = 20
+  -- "ML print depth for toplevel pretty-printing"
+
 public option ML_exception_trace : bool = false
   -- "ML exception trace for toplevel command execution"
 

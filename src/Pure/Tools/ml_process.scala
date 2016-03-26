@@ -66,15 +66,16 @@ object ML_Process
     val env_options = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
     val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
 
+    val print_depth = ML_Syntax.print_int(options.int("ML_print_depth"))
     val eval_process =
       if (heaps.isEmpty)
-        List("PolyML.print_depth 20")
+        List("PolyML.print_depth " + print_depth)
       else
         channel match {
           case None =>
-            List("(ML_Pretty.print_depth 20; Isabelle_Process.init_options ())")
+            List("(ML_Pretty.print_depth " + print_depth + "; Isabelle_Process.init_options ())")
           case Some(ch) =>
-            List("(ML_Pretty.print_depth 20; Isabelle_Process.init_protocol " +
+            List("(ML_Pretty.print_depth " + print_depth + "; Isabelle_Process.init_protocol " +
               ML_Syntax.print_string0(ch.server_name) + ")")
         }
 
