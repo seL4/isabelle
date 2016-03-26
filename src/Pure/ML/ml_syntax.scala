@@ -11,11 +11,11 @@ object ML_Syntax
 {
   /* int */
 
-  private def signed_int(sign: Boolean, s: String): String =
-    if (sign) { assert(s(0) == '-'); "~" + s.substring(1) } else s
+  private def signed_int(s: String): String =
+    if (s(0) == '-') "~" + s.substring(1) else s
 
-  def print_int(i: Int): String = signed_int(i < 0, Properties.Value.Int(i))
-  def print_long(i: Long): String = signed_int(i < 0, Properties.Value.Long(i))
+  def print_int(i: Int): String = signed_int(Properties.Value.Int(i))
+  def print_long(i: Long): String = signed_int(Properties.Value.Long(i))
 
 
   /* string */
