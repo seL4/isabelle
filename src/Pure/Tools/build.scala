@@ -447,7 +447,8 @@ object Build
   {
     /* session tree and dependencies */
 
-    val full_tree = Sessions.load(options.int("completion_limit") = 0, dirs, select_dirs)
+    val build_options = options.int.update("completion_limit", 0).bool.update("ML_statistics", true)
+    val full_tree = Sessions.load(build_options, dirs, select_dirs)
     val (selected, selected_tree) =
       full_tree.selection(requirements, all_sessions,
         exclude_session_groups, exclude_sessions, session_groups, sessions)

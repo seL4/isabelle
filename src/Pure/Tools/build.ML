@@ -104,17 +104,14 @@ fun build_theories symbols last_timing master_dir (options, thys) =
   in
     if null conds then
       (Options.set_default options;
+        Isabelle_Process.init_options ();
         (Thy_Info.use_theories {
           document = Present.document_enabled (Options.string options "document"),
           symbols = symbols,
           last_timing = last_timing,
           master_dir = master_dir}
         |> Unsynchronized.setmp print_mode
-            (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
-        |> Unsynchronized.setmp Goal.parallel_proofs (Options.int options "parallel_proofs")
-        |> Multithreading.max_threads_setmp (Options.int options "threads")
-        |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
-        |> Unsynchronized.setmp Future.ML_statistics true) thys)
+            (space_explode "," (Options.string options "print_mode") @ print_mode_value ())) thys)
     else
       Output.physical_stderr ("Skipping theories " ^ commas_quote (map #1 thys) ^
         " (undefined " ^ commas conds ^ ")\n")
