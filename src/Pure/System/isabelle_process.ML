@@ -210,7 +210,8 @@ val init_protocol = uninterruptible (fn _ => fn socket =>
 (* init options *)
 
 fun init_options () =
- (Future.ML_statistics := Options.default_bool "ML_statistics";
+ (ML_Pretty.print_depth (Options.default_int "ML_print_depth");
+  Future.ML_statistics := Options.default_bool "ML_statistics";
   Multithreading.trace := Options.default_int "threads_trace";
   Multithreading.max_threads_update (Options.default_int "threads");
   Goal.parallel_proofs := Options.default_int "parallel_proofs");
