@@ -8,6 +8,7 @@ signature ML_COMPILER0 =
 sig
   type context =
    {name_space: ML_Name_Space.T,
+    print_depth: int option,
     here: int -> string -> string,
     print: string -> unit,
     error: string -> unit}
@@ -23,6 +24,7 @@ struct
 
 type context =
  {name_space: ML_Name_Space.T,
+  print_depth: int option,
   here: int -> string -> string,
   print: string -> unit,
   error: string -> unit};
@@ -45,7 +47,8 @@ fun ml_input start_line name txt =
       | input _ [] res = rev res;
   in String.concat (input start_line (String.explode txt) []) end;
 
-fun use_text ({name_space, here, print, error, ...}: context) {line, file, verbose, debug} text =
+fun use_text ({name_space, print_depth, here, print, error, ...}: context)
+    {line, file, verbose, debug} text =
   let
     val current_line = Unsynchronized.ref line;
     val in_buffer = Unsynchronized.ref (String.explode (ml_input line file text));
@@ -71,7 +74,8 @@ fun use_text ({name_space, here, print, error, ...}: context) {line, file, verbo
       PolyML.Compiler.CPLineNo (fn () => ! current_line),
       PolyML.Compiler.CPFileName file,
       PolyML.Compiler.CPPrintInAlphabeticalOrder false,
-      PolyML.Compiler.CPDebug debug];
+      PolyML.Compiler.CPDebug debug] @
+     (case print_depth of NONE => [] | SOME d => [PolyML.Compiler.CPPrintDepth (fn () => d)]);
     val _ =
       (while not (List.null (! in_buffer)) do
         PolyML.compiler (get, parameters) ())
@@ -101,6 +105,7 @@ val {use, use_debug, use_no_debug} =
   let
     val context: ML_Compiler0.context =
      {name_space = ML_Name_Space.global,
+      print_depth = NONE,
       here = fn line => fn file => " (line " ^ Int.toString line ^ " of \"" ^ file ^ "\")",
       print = fn s => (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut),
       error = fn s => error s};

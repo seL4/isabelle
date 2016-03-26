@@ -129,6 +129,7 @@ fun determine_type ctxt s =
     val return = Unsynchronized.ref "return"
     val context : ML_Compiler0.context =
      {name_space = #name_space ML_Env.context,
+      print_depth = SOME 1000000,
       here = #here ML_Env.context,
       print = fn r => return := r,
       error = #error ML_Env.context}

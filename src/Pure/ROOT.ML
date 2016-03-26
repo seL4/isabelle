@@ -105,6 +105,7 @@ val {use, use_debug, use_no_debug} =
   let
     val context: ML_Compiler0.context =
      {name_space = ML_Name_Space.global,
+      print_depth = NONE,
       here = Position.here oo Position.line_file,
       print = writeln,
       error = error};

@@ -164,6 +164,7 @@ fun make_name_space {SML, exchange} : ML_Name_Space.T =
 
 val context: ML_Compiler0.context =
  {name_space = make_name_space {SML = false, exchange = false},
+  print_depth = NONE,
   here = Position.here oo Position.line_file,
   print = writeln,
   error = error};

@@ -524,6 +524,7 @@ val notifying_context : ML_Compiler0.context =
     allStruct    = #allStruct ML_Env.name_space,
     allSig       = #allSig ML_Env.name_space,
     allFunct     = #allFunct ML_Env.name_space},
+  print_depth = NONE,
   here = #here ML_Env.context,
   print = #print ML_Env.context,
   error = #error ML_Env.context};
