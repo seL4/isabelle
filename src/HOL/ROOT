@@ -816,6 +816,7 @@ session "HOL-Corec_Examples" in Corec_Examples = HOL +
   options [document = false]
   theories
     LFilter
+    Paper_Examples
     Stream_Processor
     "Tests/Simple_Nesting"
   theories [quick_and_dirty]
