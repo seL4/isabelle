@@ -6,13 +6,13 @@
 Tests polymorphic merges.
 *)
 
-section {* Tests Polymorphic Merges *}
+section \<open>Tests Polymorphic Merges\<close>
 
 theory Merge_Poly
 imports "~~/src/HOL/Library/BNF_Corec"
 begin
 
-subsection {* A Monomorphic Example *}
+subsection \<open>A Monomorphic Example\<close>
 
 codatatype r = R (rhd: nat) (rtl: r)
 
@@ -46,7 +46,7 @@ corec id_rx :: "r \<Rightarrow> r" where
   "id_rx r = f1 (f2 (f3 (R (rhd r) (id_rx (rtl r)))))"
 
 
-subsection {* The Polymorphic Version *}
+subsection \<open>The Polymorphic Version\<close>
 
 codatatype 'a s = S (shd: 'a) (stl: "'a s")
 

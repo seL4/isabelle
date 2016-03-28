@@ -6,7 +6,7 @@
 Tests theory merges.
 *)
 
-section {* Tests Theory Merges *}
+section \<open>Tests Theory Merges\<close>
 
 theory Merge_D
 imports Merge_B Merge_C

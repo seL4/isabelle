@@ -6,7 +6,7 @@
 Miscellaneous monomorphic examples.
 *)
 
-section {* Miscellaneous Monomorphic Examples *}
+section \<open>Miscellaneous Monomorphic Examples\<close>
 
 theory Misc_Mono
 imports "~~/src/HOL/Library/BNF_Corec"

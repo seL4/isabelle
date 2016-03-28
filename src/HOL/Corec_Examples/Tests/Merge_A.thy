@@ -6,7 +6,7 @@
 Tests theory merges.
 *)
 
-section {* Tests Theory Merges *}
+section \<open>Tests Theory Merges\<close>
 
 theory Merge_A
 imports "~~/src/HOL/Library/BNF_Corec"

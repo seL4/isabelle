@@ -6,7 +6,7 @@
 A bare bones version of generative probabilistic values (GPVs).
 *)
 
-section {* A Bare Bones Version of Generative Probabilistic Values (GPVs) *}
+section \<open>A Bare Bones Version of Generative Probabilistic Values (GPVs)\<close>
 
 theory GPV_Bare_Bones
 imports "~~/src/HOL/Library/BNF_Corec"

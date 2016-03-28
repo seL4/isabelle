@@ -6,7 +6,7 @@
 Miscellaneous polymorphic examples.
 *)
 
-section {* Miscellaneous Polymorphic Examples *}
+section \<open>Miscellaneous Polymorphic Examples\<close>
 
 theory Misc_Poly
 imports "~~/src/HOL/Library/BNF_Corec"

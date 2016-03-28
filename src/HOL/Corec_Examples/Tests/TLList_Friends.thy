@@ -3,10 +3,10 @@
     Author:     Jasmin Blanchette, Inria, LORIA, MPII
     Copyright   2015, 2016
 
-Terminated lists examples
+Friendly functions on terminated lists.
 *)
 
-section {* Small Concrete Examples *}
+section \<open>Friendly Functions on Terminated Lists\<close>
 
 theory TLList_Friends
 imports "~~/src/HOL/Library/BNF_Corec"
@@ -43,7 +43,7 @@ friend_of_corec Exp where
 corec prd2 :: "(nat, 'b) tllist \<Rightarrow> (nat, 'b) tllist \<Rightarrow> (nat, 'b) tllist" where
   "prd2 xs ys = TLCons (tlhd xs * tlhd ys) (pls (prd xs (tltl ys)) (prd2 (tltl xs) ys))"
 
-text {* Outer if: *}
+text \<open>Outer if:\<close>
 
 corec takeUntilOdd :: "(int, int) tllist \<Rightarrow> (int, int) tllist" where
   "takeUntilOdd xs =
@@ -75,7 +75,7 @@ friend_of_corec takeUntilEven where
         else TLNil y)"
         sorry
 
-text {* If inside the constructor: *}
+text \<open>If inside the constructor:\<close>
 
 corec prd3 :: "(nat, 'b) tllist \<Rightarrow> (nat, 'b) tllist \<Rightarrow> (nat, 'b) tllist" where
   "prd3 xs ys = TLCons (tlhd xs * tlhd ys)
@@ -88,7 +88,7 @@ friend_of_corec prd3 where
       else prd3 (tltl xs) (tltl ys))"
  sorry
 
-text {* If inside the inner friendly operation: *}
+text \<open>If inside the inner friendly operation:\<close>
 
 corec prd4 :: "(nat, 'b) tllist \<Rightarrow> (nat, 'b) tllist \<Rightarrow> (nat, 'b) tllist" where
   "prd4 xs ys = TLCons (tlhd xs * tlhd ys)
@@ -99,7 +99,7 @@ friend_of_corec prd4 :: "(nat, 'b) tllist \<Rightarrow> (nat, 'b) tllist \<Right
      (pls (if undefined then prd xs (tltl ys) else xs) (prd (tltl xs) ys))"
   sorry
 
-text {* Lots of if's: *}
+text \<open>Lots of if's:\<close>
 
 corec iffy :: "(nat, 'b) tllist \<Rightarrow> (nat, 'b) tllist" where
   "iffy xs =

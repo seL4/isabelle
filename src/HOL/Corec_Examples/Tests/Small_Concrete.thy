@@ -6,13 +6,13 @@
 Small concrete examples.
 *)
 
-section {* Small Concrete Examples *}
+section \<open>Small Concrete Examples\<close>
 
 theory Small_Concrete
 imports "~~/src/HOL/Library/BNF_Corec"
 begin
 
-subsection {* Streams of Natural Numbers *}
+subsection \<open>Streams of Natural Numbers\<close>
 
 codatatype natstream = S (head: nat) (tail: natstream)
 
@@ -130,7 +130,7 @@ lemma "(\<forall>m. f m = S m (f (m + 1))) \<Longrightarrow> f m = enum m"
   done
 
 
-subsection {* Lazy Lists of Natural Numbers *}
+subsection \<open>Lazy Lists of Natural Numbers\<close>
 
 codatatype llist = LNil | LCons nat llist
 
@@ -150,7 +150,7 @@ corec (friend) fold_map where
   "fold_map f a s = (let v = f a (head s) in S v (fold_map f v (tail s)))"
 
 
-subsection {* Coinductie Natural Numbers *}
+subsection \<open>Coinductie Natural Numbers\<close>
 
 codatatype conat = CoZero | CoSuc conat
 

@@ -6,13 +6,13 @@
 Tests "corec"'s parsing of map functions.
 *)
 
-section {* Tests "corec"'s Parsing of Map Functions *}
+section \<open>Tests "corec"'s Parsing of Map Functions\<close>
 
 theory Simple_Nesting
 imports "~~/src/HOL/Library/BNF_Corec"
 begin
 
-subsection {* Corecursion via Map Functions *}
+subsection \<open>Corecursion via Map Functions\<close>
 
 consts
   g :: 'a
@@ -59,7 +59,7 @@ corec k3' :: "nat \<Rightarrow> tree" where
     (map Inl (h x)))"
 
 
-subsection {* Constructors instead of Maps *}
+subsection \<open>Constructors instead of Maps\<close>
 
 codatatype 'a y = Y 'a "'a y list"
 
@@ -78,7 +78,7 @@ corec gg where
   "gg a = X a (Some (gg a))"
 
 
-subsection {* Some Friends *}
+subsection \<open>Some Friends\<close>
 
 codatatype u =
   U (lab: nat) (sub: "u list")

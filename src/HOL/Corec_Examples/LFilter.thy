@@ -7,7 +7,7 @@
 The filter function on lazy lists.
 *)
 
-section {* The Filter Function on Lazy Lists *}
+section \<open>The Filter Function on Lazy Lists\<close>
 
 theory LFilter
 imports "~~/src/HOL/Library/BNF_Corec"
