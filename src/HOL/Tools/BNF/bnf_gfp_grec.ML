@@ -1161,7 +1161,7 @@ fun derive_eval_core_flat ctxt Y Z preT ssig_T dead_pre_map dead_ssig_map flat e
 
 fun derive_eval_thm ctxt dtor_inject dtor_unfold_thm eval_def =
   (trans OF [iffD2 OF [dtor_inject, eval_def RS meta_eq_to_obj_eq RS fun_cong], dtor_unfold_thm])
-  |> unfold_thms ctxt [o_apply, eval_def RS Drule.symmetric_thm];
+  |> unfold_thms ctxt [o_apply, eval_def RS symmetric_thm];
 
 fun derive_eval_flat ctxt Y Z fpT ssig_T dead_ssig_map flat eval x dead_pre_map_comp0
     dtor_unfold_unique ssig_map_id ssig_map_comp flat_pointful_natural eval_core_pointful_natural
@@ -1360,8 +1360,8 @@ fun derive_corecU_ctor_unique ctxt Y Z preT fpT ssig_T dead_pre_map ctor dtor VL
       in
         unfold_thms ctxt @{thms atomize_imp}
           (((inject_refine' OF [extdd_o_VLeaf, extdd_o_VLeaf] RS iffD1)
-            OF [Drule.asm_rl, corecU_pointfree])
-           OF [Drule.asm_rl, trans OF [dtor_unfold_unique, dtor_unfold_unique RS sym]
+            OF [asm_rl, corecU_pointfree])
+           OF [asm_rl, trans OF [dtor_unfold_unique, dtor_unfold_unique RS sym]
              OF [extdd_mor, corecU_pointfree RS extdd_mor]])
         RS @{thm obj_distinct_prems}
       end;

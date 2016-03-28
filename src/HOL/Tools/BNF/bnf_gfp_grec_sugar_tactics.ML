@@ -47,15 +47,13 @@ fun apply_func f =
   end;
 
 fun instantiate_distrib thm ctxt t =
-  Drule.infer_instantiate' ctxt [SOME (Thm.incr_indexes_cterm 1 (Thm.cterm_of ctxt t))] thm;
+  infer_instantiate' ctxt [SOME (Thm.incr_indexes_cterm 1 (Thm.cterm_of ctxt t))] thm;
 
-(* TODO (here and elsewhere): Use metaequality in goal instead and keep uninstianted version of
-   theorem? *)
 val mk_if_distrib_of = instantiate_distrib @{thm if_distrib};
 val mk_case_sum_distrib_of = instantiate_distrib @{thm sum.case_distrib};
 
 fun mk_case_dtor_tac ctxt u abs_inverse dtor_ctor ctr_defs exhaust cases =
-  let val exhaust' = Drule.infer_instantiate' ctxt [SOME (Thm.cterm_of ctxt u)] exhaust in
+  let val exhaust' = infer_instantiate' ctxt [SOME (Thm.cterm_of ctxt u)] exhaust in
     HEADGOAL (rtac ctxt exhaust') THEN
     REPEAT_DETERM (HEADGOAL (etac ctxt ssubst THEN'
       SELECT_GOAL (unfold_thms_tac ctxt cases THEN
@@ -180,7 +178,7 @@ fun mk_eq_corecUU_tac ctxt num_args fpsig_nesting_maps ssig_map eval pre_map_def
   end;
 
 fun mk_last_disc_tac ctxt u exhaust discs' =
-  let val exhaust' = Drule.infer_instantiate' ctxt [SOME (Thm.cterm_of ctxt u)] exhaust in
+  let val exhaust' = infer_instantiate' ctxt [SOME (Thm.cterm_of ctxt u)] exhaust in
     HEADGOAL (rtac ctxt exhaust') THEN
     REPEAT_DETERM (HEADGOAL (etac ctxt ssubst THEN'
       simp_tac (ss_only (distinct Thm.eq_thm discs' @ @{thms simp_thms}) ctxt)))

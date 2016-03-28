@@ -163,7 +163,7 @@ fun mk_corecUU_pointfree_tac ctxt dead_pre_map_comp0 dead_pre_map_comp dtor_ctor
     sctr_pointful_natural eval_sctr_pointful corecUU_def =
   unfold_thms_tac ctxt [corecUU_def] THEN
   HEADGOAL (rtac ctxt ext THEN' subst_tac ctxt NONE [corecU_ctor RS sym]) THEN
-  unfold_thms_tac ctxt [corecUU_def RS Drule.symmetric_thm] THEN
+  unfold_thms_tac ctxt [corecUU_def RS symmetric_thm] THEN
   HEADGOAL (rtac ctxt (dtor_inject RS iffD1) THEN'
     mk_corecUU_tail_tac ctxt dead_pre_map_comp0 dead_pre_map_comp dtor_ctor ssig_map_comp
       flat_pointful_natural eval_core_pointful_natural eval eval_flat sctr_pointful_natural
@@ -241,7 +241,7 @@ fun mk_eval_embL_tac ctxt dead_pre_map_comp0 dtor_unfold_unique embL_pointful_na
     old_eval eval =
   HEADGOAL (rtac ctxt (unfold_thms ctxt [o_apply]
       (trans OF [dtor_unfold_unique, dtor_unfold_unique RS sym] OF [ext, ext])
-    OF [Drule.asm_rl, old_eval RS sym])) THEN
+    OF [asm_rl, old_eval RS sym])) THEN
   unfold_thms_tac ctxt [dead_pre_map_comp0, embL_pointful_natural, eval_core_embL, eval,
     o_apply] THEN
   HEADGOAL (rtac ctxt refl);
@@ -359,7 +359,7 @@ fun mk_mor_cutSsig_flat_tac ctxt eval_core_o_map dead_pre_map_comp0 dead_pre_map
   asm_simp_tac (ss_only_silent ((mk_pointful ctxt prem RS sym) :: dead_pre_map_comp0 ::
     cutSsig_def_pointful_natural :: flat_simps @
     @{thms o_apply convol_apply map_prod_simp id_apply}) ctxt) THEN'
-  rtac ctxt (dead_pre_map_cong OF [Drule.asm_rl, refl]) THEN'
+  rtac ctxt (dead_pre_map_cong OF [asm_rl, refl]) THEN'
   asm_simp_tac (ss_only_silent (ssig_map_comp :: cutSsig_def :: flat_pointful_natural ::
     eval_core_flat :: unfold_thms ctxt [o_def] dead_pre_map_comp :: (dead_ssig_map_comp0 RS sym) ::
     (flat_flat RS sym) ::

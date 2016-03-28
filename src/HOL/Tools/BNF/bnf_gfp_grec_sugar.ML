@@ -273,7 +273,7 @@ fun derive_case_trivial ctxt fpT_name =
     val var = Free (var_name, fpT);
     val goal = mk_Trueprop_eq (expand_to_ctr_term ctxt fpT var, var);
 
-    val exhaust' = Drule.infer_instantiate' ctxt [SOME (Thm.cterm_of ctxt var)] exhaust;
+    val exhaust' = infer_instantiate' ctxt [SOME (Thm.cterm_of ctxt var)] exhaust;
   in
     Goal.prove_sorry ctxt [var_name] [] goal (fn {context = ctxt, prems = _} =>
       HEADGOAL (rtac ctxt exhaust') THEN ALLGOALS (hyp_subst_tac ctxt) THEN
