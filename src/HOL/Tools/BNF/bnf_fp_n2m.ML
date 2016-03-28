@@ -518,7 +518,7 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
     val fp_res =
       ({Ts = fpTs, bnfs = of_fp_res #bnfs, pre_bnfs = bnfs, absT_infos = absT_infos,
         dtors = dtors, ctors = ctors,
-        xtor_un_folds = xtor_co_recs (*wrong*), xtor_co_recs = xtor_co_recs,
+        xtor_un_folds_legacy = xtor_co_recs (*wrong*), xtor_co_recs = xtor_co_recs,
         xtor_co_induct = xtor_co_induct_thm,
         dtor_ctors = of_fp_res #dtor_ctors (*too general types*),
         ctor_dtors = of_fp_res #ctor_dtors (*too general types*),
@@ -527,12 +527,12 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
         xtor_maps = of_fp_res #xtor_maps (*too general types and terms*), xtor_map_uniques = [],
         xtor_setss = of_fp_res #xtor_setss (*too general types and terms*),
         xtor_rels = of_fp_res #xtor_rels (*too general types and terms*),
-        xtor_un_fold_thms = xtor_co_rec_thms (*wrong*),
+        xtor_un_fold_thms_legacy = xtor_co_rec_thms (*wrong*),
         xtor_co_rec_thms = xtor_co_rec_thms (*too general types and terms*),
-        xtor_un_fold_uniques = [], xtor_co_rec_uniques = [],
-        xtor_un_fold_o_maps = fp_rec_o_maps (*wrong*),
+        xtor_un_fold_uniques_legacy = [], xtor_co_rec_uniques = [],
+        xtor_un_fold_o_maps_legacy = fp_rec_o_maps (*wrong*),
         xtor_co_rec_o_maps = fp_rec_o_maps (*theorems about old constants*),
-        xtor_un_fold_transfers = [], xtor_co_rec_transfers = [],
+        xtor_un_fold_transfers_legacy = [], xtor_co_rec_transfers = [],
         xtor_rel_co_induct = xtor_rel_co_induct, dtor_set_inducts = []}
        |> morph_fp_result (Morphism.term_morphism "BNF" (singleton (Variable.polymorphic lthy))));
   in
