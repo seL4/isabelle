@@ -241,12 +241,11 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
             in fold Term.add_tfreesT dead_Us [] end);
 
         val fp_absT_infos = map #absT_info fp_sugars0;
-
-        val fp_results = map (apsnd #fp_res o `(#fp_res_index)) fp_sugars0
+        val indexed_fp_ress = map (apsnd #fp_res o `(#fp_res_index)) fp_sugars0;
 
         val ((pre_bnfs, absT_infos), (fp_res as {xtor_co_recs = xtor_co_recs0, xtor_co_induct,
                dtor_injects, dtor_ctors, xtor_co_rec_thms, ...}, lthy)) =
-          fp_bnf (construct_mutualized_fp fp mutual_cliques unsorted_fpTs fp_results) fp_bs
+          fp_bnf (construct_mutualized_fp fp mutual_cliques unsorted_fpTs indexed_fp_ress) fp_bs
             unsorted_As' killed_As' fp_eqs no_defs_lthy;
 
         val time = time lthy;

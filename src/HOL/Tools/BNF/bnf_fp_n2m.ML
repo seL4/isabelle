@@ -47,8 +47,8 @@ fun mk_map_sum f g =
     Const (@{const_name map_sum}, fT --> gT --> mk_sumT (fAT, gAT) --> mk_sumT (fBT, gBT)) $ f $ g
   end;
 
-fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_result) list) bs resBs
-    (resDs, Dss) bnfs (absT_infos : absT_info list) lthy =
+fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs (resDs, Dss) bnfs
+    (absT_infos : absT_info list) lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -57,7 +57,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_resul
     val b_name = mk_common_name b_names;
     val b = Binding.name b_name;
 
-    fun of_fp_res get = map (uncurry nth o swap o apsnd get) fp_results;
+    fun of_fp_res get = map (uncurry nth o swap o apsnd get) indexed_fp_ress;
     fun mk_co_algT T U = case_fp fp (T --> U) (U --> T);
     fun co_swap pair = case_fp fp I swap pair;
     val mk_co_comp = HOLogic.mk_comp o co_swap;
@@ -202,11 +202,11 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_resul
         val raw_phis = map (extract o HOLogic.dest_Trueprop o Thm.concl_of) rel_xtor_co_inducts;
         val thetas =
           AList.group (op =)
-            (mutual_cliques ~~
+            (flat_mutual_cliques ~~
               map (fn (t, u) => (#1 (dest_Var t), Thm.cterm_of lthy u)) (raw_phis ~~ pre_phis));
       in
         map2 (infer_instantiate lthy o the o AList.lookup (op =) thetas)
-        mutual_cliques rel_xtor_co_inducts
+        flat_mutual_cliques rel_xtor_co_inducts
       end
 
     val xtor_rel_co_induct =
@@ -270,7 +270,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_resul
       |> mk_Frees' "s" rec_strTs;
 
     val xtor_co_recs = of_fp_res #xtor_co_recs;
-    val ns = map (length o #Ts o snd) fp_results;
+    val ns = map (length o #Ts o snd) indexed_fp_ress;
 
     fun foldT_of_recT recT =
       let
@@ -303,10 +303,10 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_results : (int * fp_resul
         val (mutual_clique, TUs) =
           map_split dest_co_algT (binder_fun_types (foldT_of_recT (fastype_of approx_rec)))
           |>> map subst
-          |> `(fn (_, Ys) =>
-            nth mutual_cliques (find_index (fn X => X = the (find_first (can dest_TFree) Ys)) Xs))
+          |> `(fn (_, Ys) => nth flat_mutual_cliques
+            (find_index (fn X => X = the (find_first (can dest_TFree) Ys)) Xs))
           ||> uncurry (map2 mk_co_algT);
-        val cands = mutual_cliques ~~ map2 mk_co_algT fold_preTs' Xs;
+        val cands = flat_mutual_cliques ~~ map2 mk_co_algT fold_preTs' Xs;
         val js = find_indices (fn ((cl, cand), TU) =>
           cl = mutual_clique andalso Type.could_unify (TU, cand)) TUs cands;
         val Tpats = map (fn j => mk_co_algT (nth fold_pre_deads_only_Ts j) (nth Xs j)) js;
