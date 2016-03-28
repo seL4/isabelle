@@ -786,16 +786,10 @@ fun check_corec_equation ctxt fun_frees (lhs, rhs) =
       | arg :: _ => error ("Repeated argument: " ^ quote (Syntax.string_of_term ctxt arg)));
 
     fun check_no_other_frees () =
-      let
-        val known_frees = fun_frees @ arg_ts;
-
-        fun check_free (t as Free (s, _)) =
-            Variable.is_fixed ctxt s orelse member (op aconv) known_frees t orelse
-            error ("Unexpected variable: " ^ quote s)
-          | check_free _ = false;
-      in
-        Term.exists_subterm check_free rhs
-      end;
+      (case Term.add_frees rhs [] |> map Free |> subtract (op =) (fun_frees @ arg_ts)
+          |> filter_out (Variable.is_fixed ctxt o fst o dest_Free) of
+        [] => ()
+      | Free (s, _) :: _ => error ("Extra variable on right-hand side: " ^ quote s));
   in
     check_no_duplicate_arg ();
     check_fun_name ();
