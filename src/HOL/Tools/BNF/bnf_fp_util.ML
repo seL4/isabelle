@@ -197,8 +197,9 @@ sig
   val mk_xtor_un_fold_o_map_thms: BNF_Util.fp_kind -> bool -> int -> thm -> thm list -> thm list ->
     thm list -> thm list -> thm list
 
-  val fixpoint_bnf: (binding list -> (string * sort) list -> typ list * typ list list ->
-      BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory -> 'a) ->
+  val fixpoint_bnf: (binding -> binding) ->
+      (binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
+      BNF_Comp.absT_info list -> local_theory -> 'a) ->
     binding list -> (string * sort) list -> (string * sort) list -> ((string * sort) * typ) list ->
     BNF_Comp.comp_cache -> local_theory ->
     ((BNF_Def.bnf list * BNF_Comp.absT_info list) * BNF_Comp.comp_cache) * 'a
@@ -610,7 +611,7 @@ fun mk_xtor_un_fold_o_map_thms fp is_rec m un_fold_unique xtor_maps xtor_un_fold
     split_conj_thm (un_fold_unique OF map (case_fp fp I mk_sym) unique_prems)
   end;
 
-fun fixpoint_bnf construct_fp bs resBs Ds0 fp_eqs comp_cache0 lthy =
+fun fixpoint_bnf extra_qualify construct_fp bs resBs Ds0 fp_eqs comp_cache0 lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -628,7 +629,7 @@ fun fixpoint_bnf construct_fp bs resBs Ds0 fp_eqs comp_cache0 lthy =
       in
         Binding.prefix_name rawN
         #> fold_rev (fn (s, mand) => Binding.qualify mand s) (qs @ [(n, true)])
-        #> Binding.concealed
+        #> extra_qualify #> Binding.concealed
       end;
 
     val ((bnfs, (deadss, livess)), (comp_cache, unfold_set)) =
@@ -637,8 +638,9 @@ fun fixpoint_bnf construct_fp bs resBs Ds0 fp_eqs comp_cache0 lthy =
           (fn b => bnf_of_typ true Smart_Inline (raw_qualify b) flatten_tyargs Xs Ds0) bs rhsXs
           ((comp_cache0, empty_unfolds), lthy));
 
-    fun norm_qualify i = Binding.qualify true (Binding.name_of (nth bs (Int.max (0, i - 1))))
-      #> Binding.concealed;
+    fun norm_qualify i =
+      Binding.qualify true (Binding.name_of (nth bs (Int.max (0, i - 1))))
+      #> extra_qualify #> Binding.concealed;
 
     val Ass = map (map dest_TFree) livess;
     val Ds' = fold (fold Term.add_tfreesT) deadss [];
@@ -654,7 +656,9 @@ fun fixpoint_bnf construct_fp bs resBs Ds0 fp_eqs comp_cache0 lthy =
 
     val Dss = @{map 3} (uncurry append oo curry swap oo map o nth) livess kill_poss deadss;
 
-    fun pre_qualify b = Binding.qualify false (Binding.name_of b)
+    fun pre_qualify b =
+      Binding.qualify false (Binding.name_of b)
+      #> extra_qualify
       #> not (Config.get lthy' bnf_internals) ? Binding.concealed;
 
     val ((pre_bnfs, (deadss, absT_infos)), lthy'') =
