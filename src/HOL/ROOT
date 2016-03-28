@@ -825,6 +825,7 @@ session "HOL-Corec_Examples" in Corec_Examples = HOL +
     "Tests/Misc_Mono"
     "Tests/Misc_Poly"
     "Tests/Small_Concrete"
+    "Tests/Stream_Friends"
     "Tests/TLList_Friends"
 
 session "HOL-Word" (main) in Word = HOL +
