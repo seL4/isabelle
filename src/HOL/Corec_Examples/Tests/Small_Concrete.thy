@@ -146,11 +146,16 @@ corec h3 where
     LNil \<Rightarrow> LNil
   | LCons x r \<Rightarrow> LCons x (h3 r))"
 
-corec (friend) fold_map where
+corec fold_map where
   "fold_map f a s = (let v = f a (head s) in S v (fold_map f v (tail s)))"
 
+friend_of_corec fold_map where
+  "fold_map f a s = (let v = f a (head s) in S v (fold_map f v (tail s)))"
+   apply (rule fold_map.code)
+  sorry
 
-subsection \<open>Coinductie Natural Numbers\<close>
+
+subsection \<open>Coinductive Natural Numbers\<close>
 
 codatatype conat = CoZero | CoSuc conat
 
