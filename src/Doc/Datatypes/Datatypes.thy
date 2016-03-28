@@ -19,8 +19,8 @@ imports
   "~~/src/HOL/Library/Simps_Case_Conv"
 begin
 
-section \<open> Introduction
-  \label{sec:introduction} \<close>
+section \<open>Introduction
+  \label{sec:introduction}\<close>
 
 text \<open>
 The 2013 edition of Isabelle introduced a definitional package for freely
@@ -147,16 +147,16 @@ be directed to the first author at \authoremaili{} or to the
 \<close>
 
 
-section \<open> Defining Datatypes
-  \label{sec:defining-datatypes} \<close>
+section \<open>Defining Datatypes
+  \label{sec:defining-datatypes}\<close>
 
 text \<open>
 Datatypes can be specified using the @{command datatype} command.
 \<close>
 
 
-subsection \<open> Introductory Examples
-  \label{ssec:datatype-introductory-examples} \<close>
+subsection \<open>Introductory Examples
+  \label{ssec:datatype-introductory-examples}\<close>
 
 text \<open>
 Datatypes are illustrated through concrete examples featuring different flavors
@@ -165,8 +165,8 @@ of recursion. More examples can be found in the directory
 \<close>
 
 
-subsubsection \<open> Nonrecursive Types
-  \label{sssec:datatype-nonrecursive-types} \<close>
+subsubsection \<open>Nonrecursive Types
+  \label{sssec:datatype-nonrecursive-types}\<close>
 
 text \<open>
 Datatypes are introduced by specifying the desired names and argument types for
@@ -217,8 +217,8 @@ enclosed in double quotes, as is customary in Isabelle.
 \<close>
 
 
-subsubsection \<open> Simple Recursion
-  \label{sssec:datatype-simple-recursion} \<close>
+subsubsection \<open>Simple Recursion
+  \label{sssec:datatype-simple-recursion}\<close>
 
 text \<open>
 Natural numbers are the simplest example of a recursive type:
@@ -235,8 +235,8 @@ stores a value of type @{typ 'b} at the very end:
     datatype (*<*)(in early) (*>*)('a, 'b) tlist = TNil 'b | TCons 'a "('a, 'b) tlist"
 
 
-subsubsection \<open> Mutual Recursion
-  \label{sssec:datatype-mutual-recursion} \<close>
+subsubsection \<open>Mutual Recursion
+  \label{sssec:datatype-mutual-recursion}\<close>
 
 text \<open>
 \emph{Mutually recursive} types are introduced simultaneously and may refer to
@@ -261,8 +261,8 @@ expressions:
       Const 'a | Var 'b | Expr "('a, 'b) exp"
 
 
-subsubsection \<open> Nested Recursion
-  \label{sssec:datatype-nested-recursion} \<close>
+subsubsection \<open>Nested Recursion
+  \label{sssec:datatype-nested-recursion}\<close>
 
 text \<open>
 \emph{Nested recursion} occurs when recursive occurrences of a type appear under
@@ -336,8 +336,8 @@ another type constructor.
 \<close>
 
 
-subsubsection \<open> Auxiliary Constants
-  \label{sssec:datatype-auxiliary-constants} \<close>
+subsubsection \<open>Auxiliary Constants
+  \label{sssec:datatype-auxiliary-constants}\<close>
 
 text \<open>
 The @{command datatype} command introduces various constants in addition to
@@ -432,7 +432,7 @@ constructors. For example:
 (*>*)
     datatype ('a, 'b) prod (infixr "*" 20) = Pair 'a 'b
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     datatype (set: 'a) list =
       null: Nil ("[]")
@@ -449,18 +449,18 @@ Incidentally, this is how the traditional syntax can be set up:
 
     syntax "_list" :: "args \<Rightarrow> 'a list" ("[(_)]")
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     translations
       "[x, xs]" == "x # [xs]"
       "[x]" == "x # []"
 
 
-subsection \<open> Command Syntax
-  \label{ssec:datatype-command-syntax} \<close>
+subsection \<open>Command Syntax
+  \label{ssec:datatype-command-syntax}\<close>
 
-subsubsection \<open> \keyw{datatype}
-  \label{sssec:datatype-new} \<close>
+subsubsection \<open>\keyw{datatype}
+  \label{sssec:datatype-new}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -570,8 +570,8 @@ supplied, the default name is @{text un_C\<^sub>ji}.
 \<close>
 
 
-subsubsection \<open> \keyw{datatype_compat}
-  \label{sssec:datatype-compat} \<close>
+subsubsection \<open>\keyw{datatype_compat}
+  \label{sssec:datatype-compat}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -591,9 +591,9 @@ old-style datatypes and invokes the old-style plugins. For example:
 
     datatype_compat even_nat odd_nat
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
-    ML \<open> Old_Datatype_Data.get_info @{theory} @{type_name even_nat} \<close>
+    ML \<open>Old_Datatype_Data.get_info @{theory} @{type_name even_nat}\<close>
 
 text \<open>
 The syntactic entity \synt{name} denotes an identifier @{cite "isabelle-isar-ref"}.
@@ -620,8 +620,8 @@ or the function type.
 \<close>
 
 
-subsection \<open> Generated Constants
-  \label{ssec:datatype-generated-constants} \<close>
+subsection \<open>Generated Constants
+  \label{ssec:datatype-generated-constants}\<close>
 
 text \<open>
 Given a datatype @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"} with $m$ live type variables
@@ -663,8 +663,8 @@ and selectors are collectively called \emph{destructors}. The prefix
 \<close>
 
 
-subsection \<open> Generated Theorems
-  \label{ssec:datatype-generated-theorems} \<close>
+subsection \<open>Generated Theorems
+  \label{ssec:datatype-generated-theorems}\<close>
 
 text \<open>
 The characteristic theorems generated by @{command datatype} are grouped in
@@ -706,8 +706,8 @@ to the top of the theory file.
 \<close>
 
 
-subsubsection \<open> Free Constructor Theorems
-  \label{sssec:free-constructor-theorems} \<close>
+subsubsection \<open>Free Constructor Theorems
+  \label{sssec:free-constructor-theorems}\<close>
 
 (*<*)
     consts nonnull :: 'a
@@ -850,8 +850,8 @@ In addition, equational versions of @{text t.disc} are registered with the
 \<close>
 
 
-subsubsection \<open> Functorial Theorems
-  \label{sssec:functorial-theorems} \<close>
+subsubsection \<open>Functorial Theorems
+  \label{sssec:functorial-theorems}\<close>
 
 text \<open>
 The functorial theorems are generated for type constructors with at least
@@ -1082,8 +1082,8 @@ The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
 \<close>
 
 
-subsubsection \<open> Inductive Theorems
-  \label{sssec:inductive-theorems} \<close>
+subsubsection \<open>Inductive Theorems
+  \label{sssec:inductive-theorems}\<close>
 
 text \<open>
 The inductive theorems are as follows:
@@ -1135,11 +1135,11 @@ For convenience, @{command datatype} also provides the following collection:
 \<close>
 
 
-subsection \<open> Proof Method
-  \label{ssec:datatype-proof-method} \<close>
+subsection \<open>Proof Method
+  \label{ssec:datatype-proof-method}\<close>
 
-subsubsection \<open> \textit{countable_datatype}
-  \label{sssec:datatype-compat} \<close>
+subsubsection \<open>\textit{countable_datatype}
+  \label{sssec:datatype-compat}\<close>
 
 text \<open>
 The theory @{file "~~/src/HOL/Library/Countable.thy"} provides a
@@ -1152,8 +1152,8 @@ appearing in their definitions and of any type arguments. For example:
       by countable_datatype
 
 
-subsection \<open> Compatibility Issues
-  \label{ssec:datatype-compatibility-issues} \<close>
+subsection \<open>Compatibility Issues
+  \label{ssec:datatype-compatibility-issues}\<close>
 
 text \<open>
 The command @{command datatype} has been designed to be highly compatible with
@@ -1233,8 +1233,8 @@ to derive discriminators and selectors, this can be achieved using
 \<close>
 
 
-section \<open> Defining Primitively Recursive Functions
-  \label{sec:defining-primitively-recursive-functions} \<close>
+section \<open>Defining Primitively Recursive Functions
+  \label{sec:defining-primitively-recursive-functions}\<close>
 
 text \<open>
 Recursive functions over datatypes can be specified using the @{command primrec}
@@ -1245,8 +1245,8 @@ described in a separate tutorial @{cite "isabelle-function"}.
 \<close>
 
 
-subsection \<open> Introductory Examples
-  \label{ssec:primrec-introductory-examples} \<close>
+subsection \<open>Introductory Examples
+  \label{ssec:primrec-introductory-examples}\<close>
 
 text \<open>
 Primitive recursion is illustrated through concrete examples based on the
@@ -1255,8 +1255,8 @@ examples can be found in the directory @{file "~~/src/HOL/Datatype_Examples"}.
 \<close>
 
 
-subsubsection \<open> Nonrecursive Types
-  \label{sssec:primrec-nonrecursive-types} \<close>
+subsubsection \<open>Nonrecursive Types
+  \label{sssec:primrec-nonrecursive-types}\<close>
 
 text \<open>
 Primitive recursion removes one layer of constructors on the left-hand side in
@@ -1267,19 +1267,19 @@ each equation. For example:
       "bool_of_trool Faalse \<longleftrightarrow> False"
     | "bool_of_trool Truue \<longleftrightarrow> True"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primrec the_list :: "'a option \<Rightarrow> 'a list" where
       "the_list None = []"
     | "the_list (Some a) = [a]"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primrec the_default :: "'a \<Rightarrow> 'a option \<Rightarrow> 'a" where
       "the_default d None = d"
     | "the_default _ (Some a) = a"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primrec mirrror :: "('a, 'b, 'c) triple \<Rightarrow> ('c, 'b, 'a) triple" where
       "mirrror (Triple a b c) = Triple c b a"
@@ -1293,8 +1293,8 @@ in all equations.
 \<close>
 
 
-subsubsection \<open> Simple Recursion
-  \label{sssec:primrec-simple-recursion} \<close>
+subsubsection \<open>Simple Recursion
+  \label{sssec:primrec-simple-recursion}\<close>
 
 text \<open>
 For simple recursive types, recursive calls on a constructor argument are
@@ -1305,7 +1305,7 @@ allowed on the right-hand side:
       "replicate Zero _ = []"
     | "replicate (Succ n) x = x # replicate n x"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primrec (nonexhaustive) at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
       "at (x # xs) j =
@@ -1313,7 +1313,7 @@ text \<open> \blankline \<close>
             Zero \<Rightarrow> x
           | Succ j' \<Rightarrow> at xs j')"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primrec (*<*)(in early) (transfer) (*>*)tfold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) tlist \<Rightarrow> 'b" where
       "tfold _ (TNil y) = y"
@@ -1344,8 +1344,8 @@ restrictions imposed on primitively recursive functions:
     | "at_least_two _ \<longleftrightarrow> False"
 
 
-subsubsection \<open> Mutual Recursion
-  \label{sssec:primrec-mutual-recursion} \<close>
+subsubsection \<open>Mutual Recursion
+  \label{sssec:primrec-mutual-recursion}\<close>
 
 text \<open>
 The syntax for mutually recursive functions over mutually recursive datatypes
@@ -1360,7 +1360,7 @@ is straightforward:
     | "nat_of_even_nat (Even_Succ n) = Succ (nat_of_odd_nat n)"
     | "nat_of_odd_nat (Odd_Succ n) = Succ (nat_of_even_nat n)"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primrec
       eval\<^sub>e :: "('a \<Rightarrow> int) \<Rightarrow> ('b \<Rightarrow> int) \<Rightarrow> ('a, 'b) exp \<Rightarrow> int" and
@@ -1390,8 +1390,8 @@ Mutual recursion is possible within a single type, using \keyw{fun}:
     | "odd (Succ n) = even n"
 
 
-subsubsection \<open> Nested Recursion
-  \label{sssec:primrec-nested-recursion} \<close>
+subsubsection \<open>Nested Recursion
+  \label{sssec:primrec-nested-recursion}\<close>
 
 text \<open>
 In a departure from the old datatype package, nested recursion is normally
@@ -1442,7 +1442,7 @@ For example:
       "relabel_ft f (FTLeaf x) = FTLeaf (f x)"
     | "relabel_ft f (FTNode g) = FTNode (\<lambda>x. relabel_ft f (g x))"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primrec (nonexhaustive) subtree_ft :: "'a \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
       "subtree_ft x (FTNode g) = g x"
@@ -1456,19 +1456,19 @@ $n = 2$:
 
     datatype 'a ftree2 = FTLeaf2 'a | FTNode2 "'a \<Rightarrow> 'a \<Rightarrow> 'a ftree2"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primrec (*<*)(in early) (*>*)relabel_ft2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
       "relabel_ft2 f (FTLeaf2 x) = FTLeaf2 (f x)"
     | "relabel_ft2 f (FTNode2 g) = FTNode2 (op \<circ> (op \<circ> (relabel_ft2 f)) g)"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primrec relabel_ft2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
       "relabel_ft2 f (FTLeaf2 x) = FTLeaf2 (f x)"
     | "relabel_ft2 f (FTNode2 g) = FTNode2 (\<lambda>x y. relabel_ft2 f (g x y))"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primrec (nonexhaustive) subtree_ft2 :: "'a \<Rightarrow> 'a \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
       "subtree_ft2 x y (FTNode2 g) = g x y"
@@ -1483,8 +1483,8 @@ map function, typically when defining predicates. For example:
        n \<ge> m \<and> list_all (increasing_tree (n + 1)) ts"
 
 
-subsubsection \<open> Nested-as-Mutual Recursion
-  \label{sssec:primrec-nested-as-mutual-recursion} \<close>
+subsubsection \<open>Nested-as-Mutual Recursion
+  \label{sssec:primrec-nested-as-mutual-recursion}\<close>
 
 (*<*)
     locale n2m
@@ -1565,11 +1565,11 @@ text \<open>
 (*>*)
 
 
-subsection \<open> Command Syntax
-  \label{ssec:primrec-command-syntax} \<close>
+subsection \<open>Command Syntax
+  \label{ssec:primrec-command-syntax}\<close>
 
-subsubsection \<open> \keyw{primrec}
-  \label{sssec:primrec-new} \<close>
+subsubsection \<open>\keyw{primrec}
+  \label{sssec:primrec-new}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -1622,8 +1622,8 @@ should be generated and proved @{text "by transfer_prover"}. The
 \<close>
 
 
-subsection \<open> Generated Theorems
-  \label{ssec:primrec-generated-theorems} \<close>
+subsection \<open>Generated Theorems
+  \label{ssec:primrec-generated-theorems}\<close>
 
 (*<*)
     context early
@@ -1668,8 +1668,8 @@ simultaneously.
 (*>*)
 
 
-subsection \<open> Recursive Default Values for Selectors
-  \label{ssec:primrec-recursive-default-values-for-selectors} \<close>
+subsection \<open>Recursive Default Values for Selectors
+  \label{ssec:primrec-recursive-default-values-for-selectors}\<close>
 
 text \<open>
 A datatype selector @{text un_D} can have a default value for each constructor
@@ -1712,7 +1712,7 @@ The following example illustrates this procedure:
 (*>*)
     consts termi\<^sub>0 :: 'a
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     datatype ('a, 'b) tlist =
       TNil (termi: 'b)
@@ -1721,7 +1721,7 @@ text \<open> \blankline \<close>
       "ttl (TNil y) = TNil y"
     | "termi (TCons _ xs) = termi\<^sub>0 xs"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     overloading
       termi\<^sub>0 \<equiv> "termi\<^sub>0 :: ('a, 'b) tlist \<Rightarrow> 'b"
@@ -1731,14 +1731,14 @@ text \<open> \blankline \<close>
     | "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
     end
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     lemma termi_TCons[simp]: "termi (TCons x xs) = termi xs"
       by (cases xs) auto
 
 
-subsection \<open> Compatibility Issues
-  \label{ssec:primrec-compatibility-issues} \<close>
+subsection \<open>Compatibility Issues
+  \label{ssec:primrec-compatibility-issues}\<close>
 
 text \<open>
 The command @{command primrec}'s behavior on new-style datatypes has been
@@ -1757,8 +1757,8 @@ subcollections @{text "f\<^sub>i.simps"}.
 \<close>
 
 
-section \<open> Defining Codatatypes
-  \label{sec:defining-codatatypes} \<close>
+section \<open>Defining Codatatypes
+  \label{sec:defining-codatatypes}\<close>
 
 text \<open>
 Codatatypes can be specified using the @{command codatatype} command. The
@@ -1770,11 +1770,11 @@ includes some useful codatatypes, notably for lazy lists @{cite
 \<close>
 
 
-subsection \<open> Introductory Examples
-  \label{ssec:codatatype-introductory-examples} \<close>
+subsection \<open>Introductory Examples
+  \label{ssec:codatatype-introductory-examples}\<close>
 
-subsubsection \<open> Simple Corecursion
-  \label{sssec:codatatype-simple-corecursion} \<close>
+subsubsection \<open>Simple Corecursion
+  \label{sssec:codatatype-simple-corecursion}\<close>
 
 text \<open>
 Non-corecursive codatatypes coincide with the corresponding datatypes, so they
@@ -1836,8 +1836,8 @@ and @{const Action}.
 \<close>
 
 
-subsubsection \<open> Mutual Corecursion
-  \label{sssec:codatatype-mutual-corecursion} \<close>
+subsubsection \<open>Mutual Corecursion
+  \label{sssec:codatatype-mutual-corecursion}\<close>
 
 text \<open>
 \noindent
@@ -1848,8 +1848,8 @@ The example below introduces a pair of \emph{mutually corecursive} types:
     and odd_enat = Odd_ESucc even_enat
 
 
-subsubsection \<open> Nested Corecursion
-  \label{sssec:codatatype-nested-corecursion} \<close>
+subsubsection \<open>Nested Corecursion
+  \label{sssec:codatatype-nested-corecursion}\<close>
 
 text \<open>
 \noindent
@@ -1858,20 +1858,20 @@ The next examples feature \emph{nested corecursion}:
 
     codatatype 'a tree\<^sub>i\<^sub>i = Node\<^sub>i\<^sub>i (lbl\<^sub>i\<^sub>i: 'a) (sub\<^sub>i\<^sub>i: "'a tree\<^sub>i\<^sub>i llist")
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     codatatype 'a tree\<^sub>i\<^sub>s = Node\<^sub>i\<^sub>s (lbl\<^sub>i\<^sub>s: 'a) (sub\<^sub>i\<^sub>s: "'a tree\<^sub>i\<^sub>s fset")
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     codatatype 'a sm = SM (accept: bool) (trans: "'a \<Rightarrow> 'a sm")
 
 
-subsection \<open> Command Syntax
-  \label{ssec:codatatype-command-syntax} \<close>
+subsection \<open>Command Syntax
+  \label{ssec:codatatype-command-syntax}\<close>
 
-subsubsection \<open> \keyw{codatatype}
-  \label{sssec:codatatype} \<close>
+subsubsection \<open>\keyw{codatatype}
+  \label{sssec:codatatype}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -1892,8 +1892,8 @@ codatatypes.
 \<close>
 
 
-subsection \<open> Generated Constants
-  \label{ssec:codatatype-generated-constants} \<close>
+subsection \<open>Generated Constants
+  \label{ssec:codatatype-generated-constants}\<close>
 
 text \<open>
 Given a codatatype @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
@@ -1911,8 +1911,8 @@ Corecursor: &
 \<close>
 
 
-subsection \<open> Generated Theorems
-  \label{ssec:codatatype-generated-theorems} \<close>
+subsection \<open>Generated Theorems
+  \label{ssec:codatatype-generated-theorems}\<close>
 
 text \<open>
 The characteristic theorems generated by @{command codatatype} are grouped in
@@ -1938,8 +1938,8 @@ The first two categories are exactly as for datatypes.
 \<close>
 
 
-subsubsection \<open> Coinductive Theorems
-  \label{sssec:coinductive-theorems} \<close>
+subsubsection \<open>Coinductive Theorems
+  \label{sssec:coinductive-theorems}\<close>
 
 text \<open>
 The coinductive theorems are listed below for @{typ "'a llist"}:
@@ -2030,8 +2030,8 @@ For convenience, @{command codatatype} also provides the following collection:
 \<close>
 
 
-section \<open> Defining Primitively Corecursive Functions
-  \label{sec:defining-primitively-corecursive-functions} \<close>
+section \<open>Defining Primitively Corecursive Functions
+  \label{sec:defining-primitively-corecursive-functions}\<close>
 
 text \<open>
 Corecursive functions can be specified using the @{command primcorec} and
@@ -2079,8 +2079,8 @@ characteristic theorems for all three styles are generated.
 \<close>
 
 
-subsection \<open> Introductory Examples
-  \label{ssec:primcorec-introductory-examples} \<close>
+subsection \<open>Introductory Examples
+  \label{ssec:primcorec-introductory-examples}\<close>
 
 text \<open>
 Primitive corecursion is illustrated through concrete examples based on the
@@ -2092,8 +2092,8 @@ present the same examples expressed using the constructor and destructor views.
 \<close>
 
 
-subsubsection \<open> Simple Corecursion
-  \label{sssec:primcorec-simple-corecursion} \<close>
+subsubsection \<open>Simple Corecursion
+  \label{sssec:primcorec-simple-corecursion}\<close>
 
 text \<open>
 Following the code view, corecursive calls are allowed on the right-hand side as
@@ -2104,7 +2104,7 @@ the right of the equal sign or in a conditional expression:
     primcorec (*<*)(transfer) (*>*)literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
       "literate g x = LCons x (literate g (g x))"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
       "siterate g x = SCons x (siterate g (g x))"
@@ -2201,8 +2201,8 @@ destructor views offer nonsequential alternatives.
 \<close>
 
 
-subsubsection \<open> Mutual Corecursion
-  \label{sssec:primcorec-mutual-corecursion} \<close>
+subsubsection \<open>Mutual Corecursion
+  \label{sssec:primcorec-mutual-corecursion}\<close>
 
 text \<open>
 The syntax for mutually corecursive functions over mutually corecursive
@@ -2217,8 +2217,8 @@ datatypes is unsurprising:
     | "odd_infty = Odd_ESucc even_infty"
 
 
-subsubsection \<open> Nested Corecursion
-  \label{sssec:primcorec-nested-corecursion} \<close>
+subsubsection \<open>Nested Corecursion
+  \label{sssec:primcorec-nested-corecursion}\<close>
 
 text \<open>
 The next pair of examples generalize the @{const literate} and @{const siterate}
@@ -2231,7 +2231,7 @@ the nesting type constructors to lift the corecursive calls:
     primcorec iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
       "iterate\<^sub>i\<^sub>i g x = Node\<^sub>i\<^sub>i x (lmap (iterate\<^sub>i\<^sub>i g) (g x))"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primcorec iterate\<^sub>i\<^sub>s :: "('a \<Rightarrow> 'a fset) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>s" where
       "iterate\<^sub>i\<^sub>s g x = Node\<^sub>i\<^sub>s x (fimage (iterate\<^sub>i\<^sub>s g) (g x))"
@@ -2285,17 +2285,17 @@ than through composition. For example:
     primcorec sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a sm" where
       "sm_of_dfa \<delta> F q = SM (q \<in> F) (\<lambda>a. sm_of_dfa \<delta> F (\<delta> q a))"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primcorec empty_sm :: "'a sm" where
       "empty_sm = SM False (\<lambda>_. empty_sm)"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primcorec not_sm :: "'a sm \<Rightarrow> 'a sm" where
       "not_sm M = SM (\<not> accept M) (\<lambda>a. not_sm (trans M a))"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primcorec or_sm :: "'a sm \<Rightarrow> 'a sm \<Rightarrow> 'a sm" where
       "or_sm M N =
@@ -2311,14 +2311,14 @@ $n = 2$:
     codatatype ('a, 'b) sm2 =
       SM2 (accept2: bool) (trans2: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) sm2")
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primcorec
       (*<*)(in early) (*>*)sm2_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> ('a, 'b) sm2"
     where
       "sm2_of_dfa \<delta> F q = SM2 (q \<in> F) (op \<circ> (op \<circ> (sm2_of_dfa \<delta> F)) (\<delta> q))"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primcorec
       sm2_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> ('a, 'b) sm2"
@@ -2326,8 +2326,8 @@ text \<open> \blankline \<close>
       "sm2_of_dfa \<delta> F q = SM2 (q \<in> F) (\<lambda>a b. sm2_of_dfa \<delta> F (\<delta> q a b))"
 
 
-subsubsection \<open> Nested-as-Mutual Corecursion
-  \label{sssec:primcorec-nested-as-mutual-corecursion} \<close>
+subsubsection \<open>Nested-as-Mutual Corecursion
+  \label{sssec:primcorec-nested-as-mutual-corecursion}\<close>
 
 text \<open>
 Just as it is possible to recurse over nested recursive datatypes as if they
@@ -2366,8 +2366,8 @@ to speed up subsequent definitions.
 (*>*)
 
 
-subsubsection \<open> Constructor View
-  \label{ssec:primrec-constructor-view} \<close>
+subsubsection \<open>Constructor View
+  \label{ssec:primrec-constructor-view}\<close>
 
 (*<*)
     locale ctr_view
@@ -2437,8 +2437,8 @@ the generated properties.
 \<close>
 
 
-subsubsection \<open> Destructor View
-  \label{ssec:primrec-destructor-view} \<close>
+subsubsection \<open>Destructor View
+  \label{ssec:primrec-destructor-view}\<close>
 
 (*<*)
     locale dtr_view
@@ -2457,13 +2457,13 @@ Consider the following examples:
     | "lhd (literate _ x) = x"
     | "ltl (literate g x) = literate g (g x)"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
       "shd (siterate _ x) = x"
     | "stl (siterate g x) = siterate g (g x)"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primcorec every_snd :: "'a stream \<Rightarrow> 'a stream" where
       "shd (every_snd s) = shd s"
@@ -2544,7 +2544,7 @@ Here are more examples to conclude:
     | "un_Even_ESucc even_infty = odd_infty"
     | "un_Odd_ESucc odd_infty = even_infty"
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     primcorec iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
       "lbl\<^sub>i\<^sub>i (iterate\<^sub>i\<^sub>i g x) = x"
@@ -2554,11 +2554,11 @@ text \<open> \blankline \<close>
 (*>*)
 
 
-subsection \<open> Command Syntax
-  \label{ssec:primcorec-command-syntax} \<close>
+subsection \<open>Command Syntax
+  \label{ssec:primcorec-command-syntax}\<close>
 
-subsubsection \<open> \keyw{primcorec} and \keyw{primcorecursive}
-  \label{sssec:primcorecursive-and-primcorec} \<close>
+subsubsection \<open>\keyw{primcorec} and \keyw{primcorecursive}
+  \label{sssec:primcorecursive-and-primcorec}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -2621,8 +2621,8 @@ obligations.
 \<close>
 
 
-subsection \<open> Generated Theorems
-  \label{ssec:primcorec-generated-theorems} \<close>
+subsection \<open>Generated Theorems
+  \label{ssec:primcorec-generated-theorems}\<close>
 
 text \<open>
 The @{command primcorec} and @{command primcorecursive} commands generate the
@@ -2719,8 +2719,8 @@ provide the following collection:
 
 
 (*
-subsection \<open> Recursive Default Values for Selectors
-  \label{ssec:primcorec-recursive-default-values-for-selectors} \<close>
+subsection \<open>Recursive Default Values for Selectors
+  \label{ssec:primcorec-recursive-default-values-for-selectors}\<close>
 
 text \<open>
 partial_function to the rescue
@@ -2728,8 +2728,8 @@ partial_function to the rescue
 *)
 
 
-section \<open> Registering Bounded Natural Functors
-  \label{sec:registering-bounded-natural-functors} \<close>
+section \<open>Registering Bounded Natural Functors
+  \label{sec:registering-bounded-natural-functors}\<close>
 
 text \<open>
 The (co)datatype package can be set up to allow nested recursion through
@@ -2739,8 +2739,8 @@ without specifying its internal structure.
 \<close>
 
 
-subsection \<open> Bounded Natural Functors
-  \label{ssec:bounded-natural-functors} \<close>
+subsection \<open>Bounded Natural Functors
+  \label{ssec:bounded-natural-functors}\<close>
 
 text \<open>
 Bounded natural functors (BNFs) are a semantic criterion for where
@@ -2773,8 +2773,8 @@ and on which the map function acts, are \emph{live}; any other variables are
 \<close>
 
 
-subsection \<open> Introductory Examples
-  \label{ssec:bnf-introductory-examples} \<close>
+subsection \<open>Introductory Examples
+  \label{ssec:bnf-introductory-examples}\<close>
 
 text \<open>
 The example below shows how to register a type as a BNF using the @{command bnf}
@@ -2789,16 +2789,16 @@ set function, predicator, and relator.
     typedef ('d, 'a) fn = "UNIV :: ('d \<Rightarrow> 'a) set"
       by simp
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     setup_lifting type_definition_fn
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     lift_definition map_fn :: "('a \<Rightarrow> 'b) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn" is "op \<circ>" .
     lift_definition set_fn :: "('d, 'a) fn \<Rightarrow> 'a set" is range .
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     lift_definition
       pred_fn :: "('a \<Rightarrow> bool) \<Rightarrow> ('d, 'a) fn \<Rightarrow> bool"
@@ -2810,7 +2810,7 @@ text \<open> \blankline \<close>
     is
       "rel_fun (op =)" .
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     bnf "('d, 'a) fn"
       map: map_fn
@@ -2866,7 +2866,7 @@ text \<open> \blankline \<close>
         unfolding fun_eq_iff by transfer simp
     qed
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     print_theorems
     print_bnfs
@@ -2925,7 +2925,7 @@ register them as BNFs:
       xval :: 'a
       yval :: 'a
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     copy_bnf ('a, 'z) point_ext
 
@@ -2970,17 +2970,17 @@ as an implication: Given a witness for @{typ 'a}, we can construct a witness for
     bnf_axiomatization (setA: 'a, setB: 'b, setC: 'c) F
       [wits: "'a \<Rightarrow> ('a, 'b, 'c) F"]
 
-text \<open> \blankline \<close>
+text \<open>\blankline\<close>
 
     print_theorems
     print_bnfs
 
 
-subsection \<open> Command Syntax
-  \label{ssec:bnf-command-syntax} \<close>
+subsection \<open>Command Syntax
+  \label{ssec:bnf-command-syntax}\<close>
 
-subsubsection \<open> \keyw{bnf}
-  \label{sssec:bnf} \<close>
+subsubsection \<open>\keyw{bnf}
+  \label{sssec:bnf}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -3012,8 +3012,8 @@ The @{syntax plugins} option indicates which plugins should be enabled
 %%% TODO: elaborate on proof obligations
 \<close>
 
-subsubsection \<open> \keyw{lift_bnf}
-  \label{sssec:lift-bnf} \<close>
+subsubsection \<open>\keyw{lift_bnf}
+  \label{sssec:lift-bnf}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -3048,8 +3048,8 @@ type's BNF but not supplied by the user. The warning can be disabled by
 specifying the @{text no_warn_wits} option.
 \<close>
 
-subsubsection \<open> \keyw{copy_bnf}
-  \label{sssec:copy-bnf} \<close>
+subsubsection \<open>\keyw{copy_bnf}
+  \label{sssec:copy-bnf}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -3069,8 +3069,8 @@ without requiring the user to discharge any proof obligations or provide
 nonemptiness witnesses.
 \<close>
 
-subsubsection \<open> \keyw{bnf_axiomatization}
-  \label{sssec:bnf-axiomatization} \<close>
+subsubsection \<open>\keyw{bnf_axiomatization}
+  \label{sssec:bnf-axiomatization}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -3114,8 +3114,8 @@ to use this functionality.
 \<close>
 
 
-subsubsection \<open> \keyw{print_bnfs}
-  \label{sssec:print-bnfs} \<close>
+subsubsection \<open>\keyw{print_bnfs}
+  \label{sssec:print-bnfs}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -3128,8 +3128,8 @@ text \<open>
 \<close>
 
 
-section \<open> Deriving Destructors and Theorems for Free Constructors
-  \label{sec:deriving-destructors-and-theorems-for-free-constructors} \<close>
+section \<open>Deriving Destructors and Theorems for Free Constructors
+  \label{sec:deriving-destructors-and-theorems-for-free-constructors}\<close>
 
 text \<open>
 The derivation of convenience theorems for types equipped with free constructors,
@@ -3146,16 +3146,16 @@ is available as a stand-alone command called @{command free_constructors}.
 
 
 (*
-subsection \<open> Introductory Example
-  \label{ssec:ctors-introductory-example} \<close>
+subsection \<open>Introductory Example
+  \label{ssec:ctors-introductory-example}\<close>
 *)
 
 
-subsection \<open> Command Syntax
-  \label{ssec:ctors-command-syntax} \<close>
+subsection \<open>Command Syntax
+  \label{ssec:ctors-command-syntax}\<close>
 
-subsubsection \<open> \keyw{free_constructors}
-  \label{sssec:free-constructors} \<close>
+subsubsection \<open>\keyw{free_constructors}
+  \label{sssec:free-constructors}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -3195,8 +3195,8 @@ added manually using \keyw{declare}.
 \<close>
 
 
-subsubsection \<open> \keyw{simps_of_case}
-  \label{sssec:simps-of-case} \<close>
+subsubsection \<open>\keyw{simps_of_case}
+  \label{sssec:simps-of-case}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -3234,8 +3234,8 @@ translates @{thm lapp.code[no_vars]} into
 \<close>
 
 
-subsubsection \<open> \keyw{case_of_simps}
-  \label{sssec:case-of-simps} \<close>
+subsubsection \<open>\keyw{case_of_simps}
+  \label{sssec:case-of-simps}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -3275,8 +3275,8 @@ into @{thm lapp_case[no_vars]}.
 
 
 (*
-section \<open> Using the Standard ML Interface
-  \label{sec:using-the-standard-ml-interface} \<close>
+section \<open>Using the Standard ML Interface
+  \label{sec:using-the-standard-ml-interface}\<close>
 
 text \<open>
 The package's programmatic interface.
@@ -3284,8 +3284,8 @@ The package's programmatic interface.
 *)
 
 
-section \<open> Selecting Plugins
-  \label{sec:selecting-plugins} \<close>
+section \<open>Selecting Plugins
+  \label{sec:selecting-plugins}\<close>
 
 text \<open>
 Plugins extend the (co)datatype package to interoperate with other Isabelle
@@ -3305,8 +3305,8 @@ Beyond the standard plugins, the \emph{Archive of Formal Proofs} includes a
 @{cite "sternagel-thiemann-2015"}.
 \<close>
 
-subsection \<open> Code Generator
-  \label{ssec:code-generator} \<close>
+subsection \<open>Code Generator
+  \label{ssec:code-generator}\<close>
 
 text \<open>
 The \hthm{code} plugin registers freely generated types, including
@@ -3342,8 +3342,8 @@ and~\ref{ssec:primcorec-generated-theorems}.
 \<close>
 
 
-subsection \<open> Size
-  \label{ssec:size} \<close>
+subsection \<open>Size
+  \label{ssec:size}\<close>
 
 text \<open>
 For each datatype @{text t}, the \hthm{size} plugin generates a generic size
@@ -3392,8 +3392,8 @@ the ML function @{ML BNF_LFP_Size.register_size} or
 \<close>
 
 
-subsection \<open> Transfer
-  \label{ssec:transfer} \<close>
+subsection \<open>Transfer
+  \label{ssec:transfer}\<close>
 
 text \<open>
 For each (co)datatype with live type arguments and each manually registered BNF,
@@ -3451,8 +3451,8 @@ conditioned by the @{text transfer} option, and sets the
 \<close>
 
 
-subsection \<open> Lifting
-  \label{ssec:lifting} \<close>
+subsection \<open>Lifting
+  \label{ssec:lifting}\<close>
 
 text \<open>
 For each (co)datatype and each manually registered BNF with at least one live
@@ -3477,8 +3477,8 @@ on @{text t.rel_compp}.
 \<close>
 
 
-subsection \<open> Quickcheck
-  \label{ssec:quickcheck} \<close>
+subsection \<open>Quickcheck
+  \label{ssec:quickcheck}\<close>
 
 text \<open>
 The integration of datatypes with Quickcheck is accomplished by the
@@ -3496,8 +3496,8 @@ They are listed below:
 \<close>
 
 
-subsection \<open> Program Extraction
-  \label{ssec:program-extraction} \<close>
+subsection \<open>Program Extraction
+  \label{ssec:program-extraction}\<close>
 
 text \<open>
 The \hthm{extraction} plugin provides realizers for induction and case analysis,
@@ -3507,13 +3507,12 @@ session.
 \<close>
 
 
-section \<open> Known Bugs and Limitations
-  \label{sec:known-bugs-and-limitations} \<close>
+section \<open>Known Bugs and Limitations
+  \label{sec:known-bugs-and-limitations}\<close>
 
 text \<open>
-This section lists the known bugs and limitations in the (co)datatype package at
-the time of this writing. Many of them are expected to be addressed in future
-releases.
+This section lists the known bugs and limitations of the (co)datatype package at
+the time of this writing.
 
 \begin{enumerate}
 \setlength{\itemsep}{0pt}
