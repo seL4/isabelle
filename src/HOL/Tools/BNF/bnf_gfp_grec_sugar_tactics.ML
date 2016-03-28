@@ -69,7 +69,8 @@ fun mk_cong_intro_ctr_or_friend_tac ctxt ctr_or_friend_def extra_simps cong_alg_
     rtac ctxt cong_alg_intro) THEN
   unfold_thms_tac ctxt (extra_simps @ sumprod_thms_rel @
     @{thms vimage2p_def prod.rel_eq sum.rel_eq}) THEN
-  REPEAT_DETERM (HEADGOAL (rtac ctxt conjI ORELSE' assume_tac ctxt ORELSE' rtac ctxt refl));
+  REPEAT_DETERM (HEADGOAL (etac ctxt subst ORELSE' rtac ctxt conjI ORELSE' assume_tac ctxt ORELSE'
+    rtac ctxt refl));
 
 val shared_simps =
   @{thms map_prod_simp map_sum.simps sum.case prod.case_eq_if split_beta' prod.sel
