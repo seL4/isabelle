@@ -898,7 +898,7 @@ fun derive_transfer_by_transfer_prover ctxt live_AsBs Rs R const const_defs rel_
     val goal = mk_parametricity_goal ctxt (Rs @ [R]) const constB;
   in
     Variable.add_free_names ctxt goal []
-    |> (fn vars => Goal.prove_sorry (*FIXME*) (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
+    |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_transfer_by_transfer_prover_tac ctxt (const_defs @ map (fn thm => thm RS sym) rel_eqs)
         rel_eqs transfers))
     |> Thm.close_derivation
@@ -917,7 +917,7 @@ fun derive_dtor_transfer ctxt live_EsFs Y Z pre_rel fp_rel Rs dtor dtor_rel_thm 
     val goal = HOLogic.mk_Trueprop (mk_rel_fun Rfp_rel (Rpre_rel $ Rfp_rel) $ dtor $ dtorB);
   in
     Variable.add_free_names ctxt goal []
-    |> (fn vars => Goal.prove_sorry (*FIXME*) (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
+    |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_dtor_transfer_tac ctxt dtor_rel_thm))
     |> Thm.close_derivation
   end;
@@ -942,7 +942,7 @@ fun derive_Lam_or_eval_core_transfer ctxt live_AsBs Y Z preT ssig_T Rs R pre_rel
       |> HOLogic.mk_Trueprop;
   in
     Variable.add_free_names ctxt goal []
-    |> (fn vars => Goal.prove_sorry (*FIXME*) (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
+    |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_transfer_by_transfer_prover_tac ctxt [const_def] rel_eqs transfers))
     |> Thm.close_derivation
   end;
@@ -955,7 +955,7 @@ fun derive_proto_sctr_transfer_step_or_merge ctxt Y Z R dead_pre_rel dead_sig_re
       |> HOLogic.mk_Trueprop;
   in
     Variable.add_free_names ctxt goal []
-    |> (fn vars => Goal.prove_sorry (*FIXME*) (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
+    |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_transfer_by_transfer_prover_tac ctxt [proto_sctr_def] fp_k_T_rel_eqs transfers))
     |> Thm.close_derivation
   end;
@@ -973,7 +973,7 @@ fun derive_sctr_transfer ctxt live_AsBs Y Z ssig_T Rs R pre_rel ssig_rel sctr sc
     val goal = HOLogic.mk_Trueprop (mk_rel_fun (Rpre_rel' $ RRssig_rel) RRssig_rel $ sctr $ sctrB);
   in
     Variable.add_free_names ctxt goal []
-    |> (fn vars => Goal.prove_sorry (*FIXME*) (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
+    |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_transfer_by_transfer_prover_tac ctxt [sctr_def] fp_k_T_rel_eqs transfers))
     |> Thm.close_derivation
   end;
@@ -998,7 +998,7 @@ fun derive_corecUU_transfer ctxt live_AsBs Y Z Rs R preT ssig_T pre_rel fp_rel s
       |> HOLogic.mk_Trueprop;
   in
     Variable.add_free_names ctxt goal []
-    |> (fn vars => Goal.prove_sorry (*FIXME*) (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
+    |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_transfer_by_transfer_prover_tac ctxt [cutSsig_def, corecU_def, corecUU_def] fp_k_T_rel_eqs
         transfers))
     |> Thm.close_derivation

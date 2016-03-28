@@ -527,7 +527,7 @@ fun derive_eq_algrho ctxt {sig_fp_sugars, ssig_fp_sugar, eval, eval_simps, all_a
       (case Thm.prop_of thm of @{const Trueprop} $ (_ $ cst $ _) => cst);
 
     val eq_algrho =
-      Goal.prove_sorry (*FIXME*) (*no sorry*) ctxt [] [] goal (fn {context = ctxt, prems = _} =>
+      Goal.prove (*no sorry*) ctxt [] [] goal (fn {context = ctxt, prems = _} =>
         mk_eq_algrho_tac ctxt fpsig_nesting_maps abs rep ctor ssig_map eval pre_map_def abs_inverse
           fpsig_nesting_map_ident0s fpsig_nesting_map_comps fpsig_nesting_map_thms
           live_nesting_map_ident0s fp_map_ident dtor_ctor ctor_iff_dtor ctr_defs nullary_disc_defs
@@ -575,7 +575,7 @@ fun derive_rho_transfer_folded ctxt fpT_name const_transfers rho_def goal =
     val SOME {abs_rep_transfers, ...} = codatatype_extra_of ctxt fpT_name;
   in
     Variable.add_free_names ctxt goal []
-    |> (fn vars => Goal.prove_sorry (*FIXME*) (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
+    |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
       mk_rho_transfer_tac ctxt (null abs_rep_transfers) (rel_def_of_bnf pre_bnf)
       const_transfers))
     |> unfold_thms ctxt [rho_def RS @{thm symmetric}]
@@ -1163,7 +1163,6 @@ fun extract_rho_from_equation
                 |> `(curry fastype_of1 bound_Ts)
                 |>> build_params bound_Us bound_Ts
                 |-> explore;
-              (* FIXME: This looks suspicious *)
               val Us = map (fpT_to ssig_T) (snd (dest_Type (fastype_of1 (bound_Us, mapped_arg'))));
               val temporary_map = map_tm
                 |> mk_map n Us Ts;
@@ -2179,7 +2178,7 @@ fun prepare_corec_ursive_cmd long_cmd opts (raw_fixes, raw_eq) lthy =
 
     fun prove_transfer_goal ctxt goal =
       Variable.add_free_names ctxt goal []
-      |> (fn vars => Goal.prove_sorry (*FIXME*) (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
+      |> (fn vars => Goal.prove (*no sorry*) ctxt vars [] goal (fn {context = ctxt, prems = _} =>
         HEADGOAL (Transfer.transfer_prover_tac ctxt)))
       |> Thm.close_derivation;
 
