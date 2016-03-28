@@ -45,9 +45,11 @@ fun sthe_default :: "'a stream \<Rightarrow> nat \<Rightarrow> 'a stream option 
   "sthe_default s _ None = s"
 | "sthe_default _ _ (Some t) = t"
 
+(* FIXME:
 friend_of_corec sthe_default where
   "sthe_default s n opt = SCons (shd (case opt of None \<Rightarrow> s | Some t \<Rightarrow> t)) (stl (case opt of None \<Rightarrow> s | Some t \<Rightarrow> t))"
   sorry
+*)
 
 corec funky0 :: "nat \<Rightarrow> nat stream" where
   "funky0 n = SCons 0 (sthe_default undefined n (map_option funky0 undefined))"
@@ -70,9 +72,11 @@ corec funky'' :: "nat \<Rightarrow> nat stream" where
 corec phunky0 :: "nat \<Rightarrow> nat stream" where
   "phunky0 n = sthe_default undefined n undefined"
 
+(* FIXME:
 fun lthe_default :: "'a stream \<Rightarrow> 'a stream option \<Rightarrow> 'a stream" where
   "lthe_default s None = s"
 | "lthe_default _ (Some t) = t"
+*)
 
 friend_of_corec lthe_default where
   "lthe_default s opt = SCons (shd (case opt of None \<Rightarrow> s | Some t \<Rightarrow> t)) (stl (case opt of None \<Rightarrow> s | Some t \<Rightarrow> t))"
