@@ -15,7 +15,7 @@ sig
   type atp_formula_role = ATP_Problem.atp_formula_role
   type 'a atp_problem = 'a ATP_Problem.atp_problem
 
-  datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter | Translator
+  datatype mode = Metis | Sledgehammer | Sledgehammer_Completish of int | Exporter | Translator
 
   datatype scope = Global | Local | Assum | Chained
   datatype status = General | Induction | Intro | Inductive | Elim | Simp | Non_Rec_Def | Rec_Def
@@ -126,7 +126,7 @@ struct
 open ATP_Util
 open ATP_Problem
 
-datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter | Translator
+datatype mode = Metis | Sledgehammer | Sledgehammer_Completish of int | Exporter | Translator
 
 datatype scope = Global | Local | Assum | Chained
 datatype status = General | Induction | Intro | Inductive | Elim | Simp | Non_Rec_Def | Rec_Def
@@ -1530,7 +1530,7 @@ val fTrue_iconst = IConst ((const_prefix ^ "fTrue", @{const_name fTrue}), @{typ 
 val predicator_iconst = IConst (`(make_fixed_const NONE) predicator_name, @{typ "bool => bool"}, [])
 
 fun predicatify completish tm =
-  if completish then
+  if completish > 0 then
     IApp (IApp (IConst (`I tptp_equal, @{typ "bool => bool => bool"}, []), tm), fTrue_iconst)
   else
     IApp (predicator_iconst, tm)
@@ -1734,14 +1734,14 @@ fun add_helper_facts_of_sym ctxt format type_enc completish (s, {types, ...} : s
       fold (fn ((helper_s, needs_sound), ths) =>
                if (needs_sound andalso not sound) orelse
                   (helper_s <> unmangled_s andalso
-                   (not completish orelse could_specialize)) then
+                   (completish < 2 orelse could_specialize)) then
                  I
                else
                  ths ~~ (1 upto length ths)
                  |> maps (dub_and_inst needs_sound o apfst (apsnd Thm.prop_of))
                  |> make_facts
                  |> union (op = o apply2 #iformula))
-           (if completish then completish_helper_table else helper_table)
+           (if completish >= 2 then completish_helper_table else helper_table)
     end
   | NONE => I)
 fun helper_facts_of_sym_table ctxt format type_enc completish sym_tab =
@@ -2169,7 +2169,7 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
 fun default_mono level completish =
   {maybe_finite_Ts = [@{typ bool}],
    surely_infinite_Ts = (case level of Nonmono_Types (Strict, _) => [] | _ => known_infinite_types),
-   maybe_nonmono_Ts = [if completish then tvar_a else @{typ bool}]}
+   maybe_nonmono_Ts = [if completish >= 2 then tvar_a else @{typ bool}]}
 
 (* This inference is described in section 4 of Blanchette et al., "Encoding
    monomorphic and polymorphic types", TACAS 2013. *)
@@ -2572,13 +2572,13 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
   let
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
-    val completish = (mode = Sledgehammer_Completish)
+    val completish = (case mode of Sledgehammer_Completish k => k | _ => 0)
     (* Forcing explicit applications is expensive for polymorphic encodings,
        because it takes only one existential variable ranging over "'a => 'b" to
        ruin everything. Hence we do it only if there are few facts (which is
        normally the case for "metis" and the minimizer). *)
     val app_op_level =
-      if completish then
+      if completish > 0 then
         Full_App_Op_And_Predicator
       else if length facts + length hyp_ts >= app_op_and_predicator_threshold then
         if is_type_enc_polymorphic type_enc then Min_App_Op else Sufficient_App_Op

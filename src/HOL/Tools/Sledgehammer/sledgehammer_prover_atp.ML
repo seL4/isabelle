@@ -13,7 +13,7 @@ sig
 
   val atp_dest_dir : string Config.T
   val atp_problem_prefix : string Config.T
-  val atp_completish : bool Config.T
+  val atp_completish : int Config.T
   val atp_full_names : bool Config.T
 
   val is_ho_atp : Proof.context -> string -> bool
@@ -41,7 +41,7 @@ open Sledgehammer_Prover
 val atp_dest_dir = Attrib.setup_config_string @{binding sledgehammer_atp_dest_dir} (K "")
 val atp_problem_prefix =
   Attrib.setup_config_string @{binding sledgehammer_atp_problem_prefix} (K "prob")
-val atp_completish = Attrib.setup_config_bool @{binding sledgehammer_atp_completish} (K false)
+val atp_completish = Attrib.setup_config_int @{binding sledgehammer_atp_completish} (K 0)
 (* In addition to being easier to read, readable names are often much shorter, especially if types
    are mangled in names. This makes a difference for some provers (e.g., E). For these reason, short
    names are enabled by default. *)
@@ -146,7 +146,8 @@ fun run_atp mode name
     val waldmeister_new = (local_name = waldmeister_newN)
     val spassy = (local_name = pirateN orelse local_name = spassN)
 
-    val atp_mode = if Config.get ctxt atp_completish then Sledgehammer_Completish else Sledgehammer
+    val completish = Config.get ctxt atp_completish
+    val atp_mode = if completish > 0 then Sledgehammer_Completish completish else Sledgehammer
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
     val (dest_dir, problem_prefix) =
       if overlord then overlord_file_location_of_prover name
