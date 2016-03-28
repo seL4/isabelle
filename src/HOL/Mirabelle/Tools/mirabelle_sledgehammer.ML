@@ -432,7 +432,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
         val prover = get_prover ctxt prover_name params goal facts
         val problem =
           {comment = "", state = st', goal = goal, subgoal = i,
-           subgoal_count = Sledgehammer_Util.subgoal_count st, factss = factss}
+           subgoal_count = Sledgehammer_Util.subgoal_count st, factss = factss, found_proof = I}
       in prover params problem end)) ()
       handle Timeout.TIMEOUT _ => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
