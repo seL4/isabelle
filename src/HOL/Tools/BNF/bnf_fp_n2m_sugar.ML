@@ -31,6 +31,7 @@ struct
 open Ctr_Sugar
 open BNF_Util
 open BNF_Def
+open BNF_Comp
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
 open BNF_FP_N2M
@@ -243,10 +244,10 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
         val fp_absT_infos = map #absT_info fp_sugars0;
         val indexed_fp_ress = map (apsnd #fp_res o `(#fp_res_index)) fp_sugars0;
 
-        val ((pre_bnfs, absT_infos), (fp_res as {xtor_co_recs = xtor_co_recs0, xtor_co_induct,
+        val (((pre_bnfs, absT_infos), _), (fp_res as {xtor_co_recs = xtor_co_recs0, xtor_co_induct,
                dtor_injects, dtor_ctors, xtor_co_rec_thms, ...}, lthy)) =
-          fp_bnf (construct_mutualized_fp fp mutual_cliques unsorted_fpTs indexed_fp_ress) fp_bs
-            unsorted_As' killed_As' fp_eqs no_defs_lthy;
+          fixpoint_bnf (construct_mutualized_fp fp mutual_cliques unsorted_fpTs indexed_fp_ress)
+            fp_bs unsorted_As' killed_As' fp_eqs empty_comp_cache no_defs_lthy;
 
         val time = time lthy;
         val timer = time (Timer.startRealTimer ());
@@ -389,7 +390,6 @@ val impossible_caller = Bound ~1;
 fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_callssss0 lthy =
   let
     val qsoty = quote o Syntax.string_of_typ lthy;
-    val qsotys = space_implode " or " o map qsoty;
 
     fun not_co_datatype0 T = error (qsoty T ^ " is not a " ^ co_prefix fp ^ "datatype");
     fun not_co_datatype (T as Type (s, _)) =

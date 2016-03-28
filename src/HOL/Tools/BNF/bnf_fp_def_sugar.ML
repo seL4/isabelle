@@ -2168,14 +2168,14 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       map_filter (fn (A, set_bos) => if exists is_none set_bos then SOME A else NONE)
         (unsorted_As ~~ transpose set_boss);
 
-    val ((pre_bnfs, absT_infos), (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0,
+    val (((pre_bnfs, absT_infos), _), (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0,
              dtors = dtors0, xtor_co_recs = xtor_co_recs0, xtor_co_induct, dtor_ctors,
              ctor_dtors, ctor_injects, dtor_injects, xtor_maps, xtor_setss, xtor_rels,
              xtor_co_rec_thms, xtor_rel_co_induct, dtor_set_inducts,
              xtor_co_rec_transfers, xtor_co_rec_o_maps, ...},
            lthy)) =
-      fp_bnf (construct_fp mixfixes map_bs rel_bs pred_bs set_bss) fp_bs
-        (map dest_TFree unsorted_As) (map dest_TFree killed_As) fp_eqs no_defs_lthy
+      fixpoint_bnf (construct_fp mixfixes map_bs rel_bs pred_bs set_bss) fp_bs
+        (map dest_TFree unsorted_As) (map dest_TFree killed_As) fp_eqs empty_comp_cache no_defs_lthy
       handle BAD_DEAD (X, X_backdrop) =>
         (case X_backdrop of
           Type (bad_tc, _) =>

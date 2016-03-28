@@ -197,10 +197,11 @@ sig
   val mk_xtor_un_fold_o_map_thms: BNF_Util.fp_kind -> bool -> int -> thm -> thm list -> thm list ->
     thm list -> thm list -> thm list
 
-  val fp_bnf: (binding list -> (string * sort) list -> typ list * typ list list ->
+  val fixpoint_bnf: (binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory -> 'a) ->
     binding list -> (string * sort) list -> (string * sort) list -> ((string * sort) * typ) list ->
-    local_theory -> (BNF_Def.bnf list * BNF_Comp.absT_info list) * 'a
+    BNF_Comp.comp_cache -> local_theory ->
+    ((BNF_Def.bnf list * BNF_Comp.absT_info list) * BNF_Comp.comp_cache) * 'a
   val fp_antiquote_setup: binding -> theory -> theory
 end;
 
@@ -608,7 +609,7 @@ fun mk_xtor_un_fold_o_map_thms fp is_rec m un_fold_unique xtor_maps xtor_un_fold
     split_conj_thm (un_fold_unique OF map (case_fp fp I mk_sym) unique_prems)
   end;
 
-fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
+fun fixpoint_bnf construct_fp bs resBs Ds0 fp_eqs comp_cache0 lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -629,11 +630,11 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
         #> Binding.concealed
       end;
 
-    val ((bnfs, (deadss, livess)), accum) =
+    val ((bnfs, (deadss, livess)), (comp_cache, unfold_set)) =
       apfst (apsnd split_list o split_list)
         (@{fold_map 2}
           (fn b => bnf_of_typ true Smart_Inline (raw_qualify b) flatten_tyargs Xs Ds0) bs rhsXs
-          ((empty_comp_cache, empty_unfolds), lthy));
+          ((comp_cache0, empty_unfolds), lthy));
 
     fun norm_qualify i = Binding.qualify true (Binding.name_of (nth bs (Int.max (0, i - 1))))
       #> Binding.concealed;
@@ -647,8 +648,8 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
 
     val timer = time (timer "Construction of BNFs");
 
-    val ((kill_poss, _), (bnfs', ((_, unfold_set'), lthy'))) =
-      normalize_bnfs norm_qualify Ass Ds (K (resBs' @ Xs)) bnfs accum;
+    val ((kill_poss, _), (bnfs', ((comp_cache', unfold_set'), lthy'))) =
+      normalize_bnfs norm_qualify Ass Ds (K (resBs' @ Xs)) bnfs (comp_cache, unfold_set);
 
     val Dss = @{map 3} (uncurry append oo curry swap oo map o nth) livess kill_poss deadss;
 
@@ -667,7 +668,7 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
 
     val timer = time (timer "FP construction in total");
   in
-    ((pre_bnfs, absT_infos), res)
+    (((pre_bnfs, absT_infos), comp_cache'), res)
   end;
 
 fun fp_antiquote_setup binding =
