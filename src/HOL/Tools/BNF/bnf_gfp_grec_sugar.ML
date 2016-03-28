@@ -305,12 +305,6 @@ fun setup_base fpT_name =
   register_coinduct_dynamic_base fpT_name
   #> ensure_codatatype_extra fpT_name;
 
-(*TODO: Merge with primcorec "case_of"*)
-fun case_of ctxt fcT_name =
-  (case ctr_sugar_of ctxt fcT_name of
-    SOME {casex = Const (s, _), ...} => SOME s
-  | _ => NONE);
-
 fun is_set ctxt (const_name, T) =
   (case T of
     Type (@{type_name fun}, [Type (fpT_name, _), Type (@{type_name set}, [_])]) =>
@@ -1476,7 +1470,7 @@ fun extract_rho_from_equation
             if n < length args then
               (case gen_body_fun_T of
                 Type (_, [Type (T_name, _), _]) =>
-                if case_of lthy T_name = SOME c then
+                if case_of lthy T_name = SOME (c, true) then
                   let
                     val brancheTs = binder_fun_types (fastype_of1 (bound_Ts, casex));
                     val obj_leftover_Ts = map (curry fastype_of1 bound_Ts) obj_leftovers;
