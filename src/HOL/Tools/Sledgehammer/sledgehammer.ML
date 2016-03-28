@@ -109,7 +109,7 @@ fun play_one_line_proof minimize timeout used_facts0 state i (preferred_meth, me
 
 fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout, preplay_timeout,
       expect, ...}) mode writeln_result only learn
-    {comment, state, goal, subgoal, subgoal_count, factss as (_, facts) :: _} name =
+    {comment, state, goal, subgoal, subgoal_count, factss as (_, facts) :: _, found_proof} name =
   let
     val ctxt = Proof.context_of state
 
@@ -124,7 +124,8 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
        factss = factss
        |> map (apsnd ((not (is_ho_atp ctxt name)
            ? filter_out (fn ((_, (_, Induction)), _) => true | _ => false))
-         #> take num_facts))}
+         #> take num_facts)),
+       found_proof = found_proof}
 
     fun print_used_facts used_facts used_from =
       tag_list 1 used_from
@@ -244,8 +245,18 @@ fun run_sledgehammer (params as {verbose, spy, provers, max_facts, ...}) mode wr
     | n =>
       let
         val _ = Proof.assert_backward state
-        val print =
-          if mode = Normal andalso is_none writeln_result then writeln else K ()
+        val print = if mode = Normal andalso is_none writeln_result then writeln else K ()
+
+        val found_proof =
+          if mode = Normal then
+            let val proof_found = Synchronized.var "proof_found" false in
+              fn () =>
+                if Synchronized.change_result proof_found (rpair true) then ()
+                else (writeln_result |> the_default writeln) "Proof found..."
+            end
+          else
+            I
+
         val ctxt = Proof.context_of state
         val keywords = Thy_Header.get_keywords' ctxt
         val {facts = chained, goal, ...} = Proof.goal state
@@ -288,7 +299,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, max_facts, ...}) mode wr
             val factss = get_factss provers
             val problem =
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
-               factss = factss}
+               factss = factss, found_proof = found_proof}
             val learn = mash_learn_proof ctxt params (Thm.prop_of goal) all_facts
             val launch = launch_prover params mode writeln_result only learn
           in

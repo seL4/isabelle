@@ -834,7 +834,7 @@ fun run_prover_for_mash ctxt params prover goal_name facts goal =
   let
     val problem =
       {comment = "Goal: " ^ goal_name, state = Proof.init ctxt, goal = goal, subgoal = 1,
-       subgoal_count = 1, factss = [("", facts)]}
+       subgoal_count = 1, factss = [("", facts)], found_proof = I}
   in
     get_minimizing_prover ctxt MaSh (K ()) prover params problem
   end

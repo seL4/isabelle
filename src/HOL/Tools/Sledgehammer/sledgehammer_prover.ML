@@ -49,7 +49,8 @@ sig
      goal : thm,
      subgoal : int,
      subgoal_count : int,
-     factss : (string * fact list) list}
+     factss : (string * fact list) list,
+     found_proof : unit -> unit}
 
   type prover_result =
     {outcome : atp_failure option,
@@ -133,7 +134,8 @@ type prover_problem =
    goal : thm,
    subgoal : int,
    subgoal_count : int,
-   factss : (string * fact list) list}
+   factss : (string * fact list) list,
+   found_proof : unit -> unit}
 
 type prover_result =
   {outcome : atp_failure option,

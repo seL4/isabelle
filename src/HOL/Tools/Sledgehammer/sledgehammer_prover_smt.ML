@@ -180,7 +180,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
 
 fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, try0, smt_proofs,
       minimize, preplay_timeout, ...})
-    ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
+    ({state, goal, subgoal, subgoal_count, factss, found_proof, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -199,6 +199,7 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
       (case outcome of
         NONE =>
         let
+          val _ = found_proof ();
           val smt_method = smt_proofs <> SOME false
           val preferred_methss =
             (if smt_method then SMT_Method else Metis_Method (NONE, NONE),
