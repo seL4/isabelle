@@ -355,7 +355,7 @@ type corec_info =
    corecUU_unique: thm,
    corecUU_transfer: thm,
    buffer: buffer,
-   all_dead_k_bnfs: BNF_Def.bnf list,
+   all_dead_k_bnfs: bnf list,
    Retr: term,
    equivp_Retr: thm,
    Retr_coinduct: thm,
@@ -2144,7 +2144,6 @@ fun derive_corecUU_base fpT_name lthy =
     val ssig_map = mk_mapN lthy live_AsBs ssig_T ssig_bnf;
     val ssig_rel = mk_relN lthy live_AsBs ssig_T ssig_bnf;
     val dead_ssig_map = mk_map 1 As Bs (map_of_bnf dead_ssig_bnf);
-    val dead_ssig_rel = mk_rel 1 As Bs (rel_of_bnf dead_ssig_bnf);
 
     val ((Lam, Lam_def), lthy) = lthy
       |> define_Lam_base fp_b version Y Z preT ssig_T dead_pre_map Sig unsig dead_sig_map Oper
@@ -2384,7 +2383,6 @@ fun derive_corecUU_step (fpT as Type (fpT_name, res_Ds))
     val ssig_map = mk_mapN lthy live_AsBs ssig_T ssig_bnf;
     val ssig_rel = mk_relN lthy live_AsBs ssig_T ssig_bnf;
     val dead_ssig_map = mk_map 1 res_As res_Bs (map_of_bnf dead_ssig_bnf);
-    val dead_ssig_rel = mk_rel 1 res_As res_Bs (rel_of_bnf dead_ssig_bnf);
     val old_Lam = enforce_type lthy domain_type old_Lam_domT old_Lam0;
     val old_proto_sctr = enforce_type lthy domain_type preT old_proto_sctr0;
     val old_flat = enforce_type lthy range_type old_ssig_T old_flat0;
@@ -2409,7 +2407,6 @@ fun derive_corecUU_step (fpT as Type (fpT_name, res_Ds))
     val dead_pre_map_comp0 = map_comp0_of_bnf dead_pre_bnf;
     val dead_pre_map_comp = map_comp_of_bnf dead_pre_bnf;
     val fp_map_id = map_id_of_bnf fp_bnf;
-    val fp_rel_eq = rel_eq_of_bnf fp_bnf;
     val [ctor_dtor] = #ctor_dtors fp_res;
     val [dtor_inject] = #dtor_injects fp_res;
     val [dtor_unfold_thm] = #xtor_un_fold_thms_legacy fp_res;

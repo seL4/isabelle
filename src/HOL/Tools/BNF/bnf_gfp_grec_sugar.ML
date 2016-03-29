@@ -20,8 +20,8 @@ sig
   val build_corecUU_arg_and_goals: bool -> term -> term list * term -> local_theory ->
     (((thm list * thm list * thm list) * term list) * term) * local_theory
   val derive_eq_corecUU: Proof.context -> BNF_GFP_Grec.corec_info -> term -> term -> thm -> thm
-  val derive_unique: Proof.context -> morphism -> term -> BNF_GFP_Grec.corec_info -> typ -> thm ->
-    thm
+  val derive_unique: Proof.context -> morphism -> term -> BNF_GFP_Grec.corec_info -> string ->
+    thm -> thm
 
   val corec_cmd: corec_option list -> (binding * string option * mixfix) list * string ->
     local_theory -> local_theory
@@ -262,7 +262,7 @@ fun derive_case_trivial ctxt fpT_name =
   let
     val SOME {casex, exhaust, case_thms, ...} = ctr_sugar_of ctxt fpT_name;
 
-    val fpT0 as Type (_, As0) = domain_type (body_fun_type (fastype_of casex));
+    val Type (_, As0) = domain_type (body_fun_type (fastype_of casex));
 
     val (As, _) = ctxt
       |> mk_TFrees' (map Type.sort_of_atyp As0);
@@ -321,7 +321,7 @@ fun all_algrho_eqs_of ctxt =
   maps (#algrho_eqs o snd) (all_friend_extras_of ctxt);
 
 fun derive_code ctxt inner_fp_simps goal
-    {sig_fp_sugars, ssig_fp_sugar, eval, eval_simps, all_algLam_algs, corecUU_thm, ...} res_T fun_t
+    {sig_fp_sugars, ssig_fp_sugar, eval, eval_simps, all_algLam_algs, corecUU_thm, ...} fun_t
     fun_def =
   let
     val fun_T = fastype_of fun_t;
@@ -366,8 +366,8 @@ fun derive_code ctxt inner_fp_simps goal
   end;
 
 fun derive_unique ctxt phi code_goal
-    {sig_fp_sugars, ssig_fp_sugar, eval, eval_simps, all_algLam_algs, corecUU_unique, ...}
-    (res_T as Type (fpT_name, _)) eq_corecUU =
+    {sig_fp_sugars, ssig_fp_sugar, eval, eval_simps, all_algLam_algs, corecUU_unique, ...} fpT_name
+    eq_corecUU =
   let
     val SOME {pre_bnf, fp_bnf, absT_info, fp_nesting_bnfs, live_nesting_bnfs, fp_ctr_sugar, ...} =
       fp_sugar_of ctxt fpT_name;
@@ -590,8 +590,8 @@ fun mk_cong_intro_ctr_or_friend_goal ctxt fpT Rcong alg =
       ||>> mk_Frees "y" xy_Ts;
 
     fun mk_prem xy_T x y =
-      BNF_Def.build_rel [] ctxt [fpT]
-        (fn (T, _) => if T = fpT then Rcong else HOLogic.eq_const T) (xy_T, xy_T) $ x $ y;
+      build_rel [] ctxt [fpT] (fn (T, _) => if T = fpT then Rcong else HOLogic.eq_const T)
+        (xy_T, xy_T) $ x $ y;
 
     val prems = @{map 3} mk_prem xy_Ts xs ys;
     val concl = Rcong $ list_comb (alg, xs) $ list_comb (alg, ys);
@@ -1055,7 +1055,7 @@ fun extract_rho_from_equation
           |> singleton (Type_Infer.fixate lthy)
           |> type_of
           |> dest_funT
-          |-> BNF_GFP_Grec_Sugar_Util.generalize_types 1
+          |-> generalize_types 1
           |> funT_of_tupleT m;
 
         val j = maxidx_of_typ deadfixed_T + 1;
@@ -2110,7 +2110,7 @@ fun prepare_corec_ursive_cmd long_cmd opts (raw_fixes, raw_eq) lthy =
 
         val lthy = lthy |> friend ? derive_and_note_friend_extra_theorems;
 
-        val code_thm = derive_code lthy inner_fp_simps code_goal corec_info res_T fun_t fun_def;
+        val code_thm = derive_code lthy inner_fp_simps code_goal corec_info fun_t fun_def;
 (* TODO:
         val ctr_thmss = map mk_thm (#2 views);
         val disc_thmss = map mk_thm (#3 views);
@@ -2119,8 +2119,10 @@ fun prepare_corec_ursive_cmd long_cmd opts (raw_fixes, raw_eq) lthy =
 *)
 
         val uniques =
-          if null inner_fp_simps then [derive_unique lthy phi (#1 views0) corec_info res_T fun_def]
-          else [];
+          if null inner_fp_simps then
+            [derive_unique lthy phi (#1 views0) corec_info fpT_name fun_def]
+          else
+            [];
 
 (* TODO:
         val disc_iff_or_disc_thmss =
@@ -2299,7 +2301,7 @@ fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
           |> derive_and_update_coinduct_cong_intross [corec_info];
         val cong_intros_pairs = AList.group (op =) cong_intro_pairs;
 
-        val unique = derive_unique lthy Morphism.identity code_goal corec_info res_T eq_corecUU;
+        val unique = derive_unique lthy Morphism.identity code_goal corec_info fpT_name eq_corecUU;
 
         val notes =
           [(codeN, [code_thm], []),

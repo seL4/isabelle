@@ -55,6 +55,8 @@ fun corec_unique_tac ctxt =
         | NONE => error ("No corecursor for " ^ quote (Syntax.string_of_typ ctxt res_T) ^
           " (use " ^ quote (#1 @{command_keyword coinduction_upto}) ^ " to derive it)"));
 
+      val Type (fpT_name, _) = res_T;
+
       val parsed_eq = parse_corec_equation ctxt [fun_t] code_goal;
       val explored_eq =
         explore_corec_equation ctxt false false "" fun_t corec_parse_info res_T parsed_eq;
@@ -62,7 +64,7 @@ fun corec_unique_tac ctxt =
       val ((_, corecUU_arg), _) = build_corecUU_arg_and_goals false fun_t explored_eq ctxt;
       val eq_corecUU = derive_eq_corecUU ctxt corec_info fun_t corecUU_arg code_thm;
 
-      val unique' = derive_unique ctxt Morphism.identity code_goal corec_info res_T eq_corecUU
+      val unique' = derive_unique ctxt Morphism.identity code_goal corec_info fpT_name eq_corecUU
         |> funpow num_args_in_concl (fn thm => thm RS fun_cong);
     in
       HEADGOAL ((K all_tac APPEND' rtac ctxt sym) THEN' rtac ctxt unique' THEN'
