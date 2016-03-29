@@ -87,29 +87,31 @@ val non_opt_flag = nitpick_prefix ^ "non_opt"
 
 type atom_pool = ((string * int) * int list) list
 
+fun mixfix (sy, ps, p) = Mixfix (Input.string sy, ps, p, Position.no_range)
+
 fun add_wacky_syntax ctxt =
   let
     val name_of = fst o dest_Const
     val thy = Proof_Context.theory_of ctxt
     val (unrep_s, thy) = thy
       |> Sign.declare_const_global ((@{binding nitpick_unrep}, @{typ 'a}),
-        Mixfix (unrep_mixfix (), [], 1000))
+        mixfix (unrep_mixfix (), [], 1000))
       |>> name_of
     val (maybe_s, thy) = thy
       |> Sign.declare_const_global ((@{binding nitpick_maybe}, @{typ "'a => 'a"}),
-        Mixfix (maybe_mixfix (), [1000], 1000))
+        mixfix (maybe_mixfix (), [1000], 1000))
       |>> name_of
     val (abs_s, thy) = thy
       |> Sign.declare_const_global ((@{binding nitpick_abs}, @{typ "'a => 'b"}),
-        Mixfix (abs_mixfix (), [40], 40))
+        mixfix (abs_mixfix (), [40], 40))
       |>> name_of
     val (base_s, thy) = thy
       |> Sign.declare_const_global ((@{binding nitpick_base}, @{typ "'a => 'a"}),
-        Mixfix (base_mixfix (), [1000], 1000))
+        mixfix (base_mixfix (), [1000], 1000))
       |>> name_of
     val (step_s, thy) = thy
       |> Sign.declare_const_global ((@{binding nitpick_step}, @{typ "'a => 'a"}),
-        Mixfix (step_mixfix (), [1000], 1000))
+        mixfix (step_mixfix (), [1000], 1000))
       |>> name_of
   in
     (((unrep_s, maybe_s, abs_s), (base_s, step_s)),

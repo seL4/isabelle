@@ -7,8 +7,7 @@ Syntax extension.
 signature SYNTAX_EXT =
 sig
   val dddot_indexname: indexname
-  datatype mfix = Mfix of string * typ * string * int list * int
-  val err_in_mfix: string -> mfix -> 'a
+  datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int
   val typ_to_nonterm: typ -> string
   datatype xsymb =
     Delim of string |
@@ -28,8 +27,8 @@ sig
       print_translation: (string * ((Proof.context -> typ -> term list -> term) * stamp)) list,
       print_rules: (Ast.ast * Ast.ast) list,
       print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list}
-  val mfix_delims: string -> string list
-  val mfix_args: string -> int
+  val mfix_args: Symbol_Pos.T list -> int
+  val mixfix_args: Input.source -> int
   val escape: string -> string
   val syn_ext': string list -> mfix list ->
     (string * string) list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
@@ -112,16 +111,16 @@ fun delims_of xprods =
 (** datatype mfix **)
 
 (*Mfix (sy, ty, c, ps, p):
-    sy: rhs of production as symbolic string
+    sy: rhs of production as symbolic text
     ty: type description of production
     c: head of parse tree
     ps: priorities of arguments in sy
     p: priority of production*)
 
-datatype mfix = Mfix of string * typ * string * int list * int;
+datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int;
 
 fun err_in_mfix msg (Mfix (sy, _, const, _, _)) =
-  cat_error msg ("in mixfix annotation " ^ quote sy ^ " for " ^ quote const);
+  cat_error msg ("in mixfix annotation " ^ quote (Symbol_Pos.content sy) ^ " for " ^ quote const);
 
 
 (* typ_to_nonterm *)
@@ -140,11 +139,17 @@ val typ_to_nonterm1 = typ_to_nt "logic";
 
 local
 
+open Basic_Symbol_Pos;
+
+fun scan_one pred = Scan.one (pred o Symbol_Pos.symbol);
+fun scan_many pred = Scan.many (pred o Symbol_Pos.symbol);
+fun scan_many1 pred = Scan.many1 (pred o Symbol_Pos.symbol);
+
 val is_meta = member (op =) ["(", ")", "/", "_", "\<index>"];
 
 val scan_delim_char =
-  $$ "'" |-- Scan.one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
-  Scan.one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof);
+  $$ "'" |-- scan_one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
+  scan_one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof);
 
 fun read_int ["0", "0"] = ~1
   | read_int cs = #1 (Library.read_int cs);
@@ -152,19 +157,19 @@ fun read_int ["0", "0"] = ~1
 val scan_sym =
   $$ "_" >> K (Argument ("", 0)) ||
   $$ "\<index>" >> K index ||
-  $$ "(" |-- Scan.many Symbol.is_digit >> (Bg o read_int) ||
+  $$ "(" |-- scan_many Symbol.is_digit >> (Bg o read_int o map Symbol_Pos.symbol) ||
   $$ ")" >> K En ||
   $$ "/" -- $$ "/" >> K (Brk ~1) ||
-  $$ "/" |-- Scan.many Symbol.is_blank >> (Brk o length) ||
-  Scan.many1 Symbol.is_blank >> (Space o implode) ||
-  Scan.repeat1 scan_delim_char >> (Delim o implode);
+  $$ "/" |-- scan_many Symbol.is_blank >> (Brk o length) ||
+  scan_many1 Symbol.is_blank >> (Space o Symbol_Pos.content) ||
+  Scan.repeat1 scan_delim_char >> (Delim o Symbol_Pos.content);
 
 val scan_symb =
   scan_sym >> SOME ||
-  $$ "'" -- Scan.one Symbol.is_blank >> K NONE;
+  $$ "'" -- scan_one Symbol.is_blank >> K NONE;
 
 val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (~$$ "'");
-val read_symbs = map_filter I o the o Scan.read Symbol.stopper scan_symbs;
+val read_symbs = map_filter I o the o Scan.read Symbol_Pos.stopper scan_symbs;
 
 fun unique_index xsymbs =
   if length (filter is_index xsymbs) <= 1 then xsymbs
@@ -172,10 +177,10 @@ fun unique_index xsymbs =
 
 in
 
-val read_mfix = unique_index o read_symbs o Symbol.explode;
+val read_mfix = unique_index o read_symbs;
 
-fun mfix_delims sy = fold_rev (fn Delim s => cons s | _ => I) (read_mfix sy) [];
 val mfix_args = length o filter is_argument o read_mfix;
+val mixfix_args = mfix_args o Input.source_explode;
 
 val escape = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
 

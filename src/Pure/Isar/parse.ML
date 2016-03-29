@@ -317,22 +317,33 @@ val type_args_constrained = type_arguments (type_ident -- Scan.option ($$$ "::" 
 
 local
 
-val mfix = string --
-  !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] --
-    Scan.optional nat 1000) >> (Mixfix o Scan.triple2);
+val mfix =
+  input string --
+    !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] -- Scan.optional nat 1000)
+  >> (fn (sy, (ps, p)) => Mixfix (sy, ps, p, Position.no_range));
 
-val infx = $$$ "infix" |-- !!! (string -- nat >> Infix);
-val infxl = $$$ "infixl" |-- !!! (string -- nat >> Infixl);
-val infxr = $$$ "infixr" |-- !!! (string -- nat >> Infixr);
-val strcture = $$$ "structure" >> K Structure;
+val infx =
+  $$$ "infix" |-- !!! (input string -- nat >> (fn (sy, p) => Infix (sy, p, Position.no_range)));
 
-val binder = $$$ "binder" |--
-  !!! (string -- ($$$ "[" |-- nat --| $$$ "]" -- nat || nat >> (fn n => (n, n))))
-  >> (Binder o Scan.triple2);
+val infxl =
+  $$$ "infixl" |-- !!! (input string -- nat >> (fn (sy, p) => Infixl (sy, p, Position.no_range)));
+
+val infxr =
+  $$$ "infixr" |-- !!! (input string -- nat >> (fn (sy, p) => Infixr (sy, p, Position.no_range)));
+
+val strcture = $$$ "structure" >> K (Structure Position.no_range);
+
+val binder =
+  $$$ "binder" |--
+    !!! (input string -- ($$$ "[" |-- nat --| $$$ "]" -- nat || nat >> (fn n => (n, n))))
+  >> (fn (sy, (p, q)) => Binder (sy, p, q, Position.no_range));
 
 val mixfix_body = mfix || strcture || binder || infxl || infxr || infx;
 
-fun annotation guard body = $$$ "(" |-- guard (body --| $$$ ")");
+fun annotation guard body =
+  Scan.trace ($$$ "(" |-- guard (body --| $$$ ")"))
+    >> (fn (mx, toks) => Mixfix.set_range (Token.range_of toks) mx);
+
 fun opt_annotation guard body = Scan.optional (annotation guard body) NoSyn;
 
 in

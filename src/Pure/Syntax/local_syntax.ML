@@ -76,20 +76,21 @@ datatype kind = Type | Const | Fixed;
 
 local
 
-fun prep_mixfix _ _ (_, (_, _, Structure)) = NONE
+fun prep_mixfix _ _ (_, (_, _, Structure _)) = NONE
   | prep_mixfix add mode (Type, decl as (x, _, _)) = SOME ((x, false), ((true, add, mode), decl))
   | prep_mixfix add mode (Const, decl as (x, _, _)) = SOME ((x, false), ((false, add, mode), decl))
   | prep_mixfix add mode (Fixed, (x, T, mx)) =
       SOME ((x, true), ((false, add, mode), (Lexicon.mark_fixed x, T, mx)));
 
-fun prep_struct (Fixed, (c, _, Structure)) = SOME c
-  | prep_struct (_, (c, _, Structure)) = error ("Bad mixfix declaration for " ^ quote c)
+fun prep_struct (Fixed, (c, _, Structure _)) = SOME c
+  | prep_struct (_, (c, _, mx as Structure _)) =
+      error ("Bad mixfix declaration for " ^ quote c ^ Position.here (Mixfix.pos_of mx))
   | prep_struct _ = NONE;
 
 in
 
 fun update_syntax ctxt add raw_decls (syntax as (Syntax {mode, mixfixes, ...})) =
-  (case filter_out (fn (_, (_, _, mx)) => mx = NoSyn) raw_decls of
+  (case filter_out (Mixfix.is_empty o #3 o #2) raw_decls of
     [] => (NONE, syntax)
   | decls =>
       let

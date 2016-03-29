@@ -15,6 +15,7 @@ sig
   val string: string -> source
   val source_explode: source -> Symbol_Pos.T list
   val source_content: source -> string
+  val equal_content: source * source -> bool
 end;
 
 structure Input: INPUT =
@@ -37,6 +38,8 @@ fun source_explode (Source {text, range = (pos, _), ...}) =
   Symbol_Pos.explode (text, pos);
 
 val source_content = source_explode #> Symbol_Pos.content;
+
+val equal_content = (op =) o apply2 source_content;
 
 end;
 

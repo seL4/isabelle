@@ -85,8 +85,11 @@ fun parameters_of thy strict (expr, fixed) =
         [] => ()
       | dups => error (message ^ commas dups));
 
-    fun parm_eq ((p1: string, mx1: mixfix), (p2, mx2)) = p1 = p2 andalso
-      (mx1 = mx2 orelse error ("Conflicting syntax for parameter " ^ quote p1 ^ " in expression"));
+    fun parm_eq ((p1, mx1), (p2, mx2)) =
+      p1 = p2 andalso
+        (Mixfix.equal (mx1, mx2) orelse
+          error ("Conflicting syntax for parameter " ^ quote p1 ^ " in expression" ^
+            Position.here_list [Mixfix.pos_of mx1, Mixfix.pos_of mx2]));
 
     fun params_loc loc = Locale.params_of thy loc |> map (apfst #1);
     fun params_inst (loc, (prfx, Positional insts)) =

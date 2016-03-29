@@ -103,14 +103,17 @@ fun check_mixfix ctxt (b, extra_tfrees) mx =
       warning
         ("Additional type variable(s) in specification of " ^ Binding.print b ^ ": " ^
           commas (map (Syntax.string_of_typ ctxt o TFree) (sort_by #1 extra_tfrees)) ^
-          (if mx = NoSyn then ""
-           else "\nDropping mixfix syntax " ^ Pretty.string_of (Mixfix.pretty_mixfix mx)))
+          (if Mixfix.is_empty mx then ""
+           else
+            "\nDropping mixfix syntax " ^ Pretty.string_of (Mixfix.pretty_mixfix mx) ^
+              Position.here (Mixfix.pos_of mx)))
     else (); NoSyn);
 
 fun check_mixfix_global (b, no_params) mx =
-  if no_params orelse mx = NoSyn then mx
-  else (warning ("Dropping global mixfix syntax: " ^ Binding.print b ^ " " ^
-    Pretty.string_of (Mixfix.pretty_mixfix mx)); NoSyn);
+  if no_params orelse Mixfix.is_empty mx then mx
+  else
+    (warning ("Dropping global mixfix syntax: " ^ Binding.print b ^ " " ^
+      Pretty.string_of (Mixfix.pretty_mixfix mx) ^ Position.here (Mixfix.pos_of mx)); NoSyn);
 
 fun same_const (Const (c, _), Const (c', _)) = c = c'
   | same_const (t $ _, t' $ _) = same_const (t, t')
