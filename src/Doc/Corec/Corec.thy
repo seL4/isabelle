@@ -21,7 +21,7 @@ section \<open>Introduction
 
 text \<open>
 ...
-\cite{isabelle-datatypes}
+@{cite "isabelle-datatypes"}
 
 * friend
 * up to
@@ -31,6 +31,8 @@ text \<open>
 BNF
 
 link to papers
+
+* plugins (code)
 \<close>
 
 
@@ -45,15 +47,13 @@ subsection \<open>Simple Corecursion
   \label{ssec:simple-corecursion}\<close>
 
 text \<open>
-The case studies by Rutten~\cite{rutten05} and Hinze~\cite{hinze10} on stream
+The case studies by Rutten~@{cite rutten05} and Hinze~@{cite hinze10} on stream
 calculi serve as our starting point. Streams can be defined as follows
 (cf. @{file "~~/src/HOL/Library/Stream.thy"}):
 \<close>
 
-    codatatype (sset: 'a) stream =
+    codatatype 'a stream =
       SCons (shd: 'a) (stl: "'a stream")
-    for
-      map: smap
 
 text \<open>
 The @{command corec} command makes it possible to define functions where the
@@ -92,8 +92,8 @@ the outermost position on the right-hand side. Here, we can simply reuse the
 
 text \<open>
 \noindent
-The command emits two proof goals. The first one corresponds to the equation we
-specified and is trivial to discharge. The second one is a parametricity goal
+The command emits two subgoals. The first one corresponds to the equation we
+specified and is trivial to discharge. The second one is a parametricity subgoal
 and can usually be discharged using the @{text transfer_prover} proof method.
 
 After registering @{const ssum} as a friend, we can use it in the corecursive
@@ -126,7 +126,7 @@ text \<open>\blankline\<close>
 
 text \<open>
 \noindent
-The parametricity proof goal is given to @{text transfer_prover}.
+The parametricity subgoal is given to @{text transfer_prover}.
 
 The @{const sprod} and @{const sexp} functions provide shuffle product and
 exponentiation on streams. We can use them to define the stream of factorial
@@ -196,6 +196,43 @@ call context:
       "ttimes t u = Node (lab t * lab u)
          (map (\<lambda>(t', u'). tplus (ttimes t u') (ttimes t' u)) (zip (sub t) (sub u)))"
 
+text \<open>
+All the syntactic convenience provided by \keyw{primcorec} is also supported by
+@{command corec}, @{command corecursive}, and @{command friend_of_corec}. In
+particular, nesting through the function type can be expressed using
+@{text \<lambda>}-abstractions and function applications rather than through composition
+(@{term "op \<circ>"}, the map function for @{text \<Rightarrow>}). For example:
+\<close>
+
+    codatatype 'a language =
+      Lang (\<oo>: bool) (\<dd>: "'a \<Rightarrow> 'a language")
+
+text \<open>\blankline\<close>
+
+    corec (friend) Plus :: "'a language \<Rightarrow> 'a language \<Rightarrow> 'a language" where
+      "Plus r s = Lang (\<oo> r \<or> \<oo> s) (\<lambda>a. Plus (\<dd> r a) (\<dd> s a))"
+
+text \<open>\blankline\<close>
+
+    corec (friend) Times :: "'a language \<Rightarrow> 'a language \<Rightarrow> 'a language" where
+      "Times r s = Lang (\<oo> r \<and> \<oo> s)
+         (\<lambda>a. if \<oo> r then Plus (Times (\<dd> r a) s) (\<dd> s a) else Times (\<dd> r a) s)"
+
+text \<open>\blankline\<close>
+
+    corec (friend) Star :: "'a language \<Rightarrow> 'a language" where
+      "Star r = Lang True (\<lambda>a. Times (\<dd> r a) (Star r))"
+
+text \<open>\blankline\<close>
+
+    corec (friend) Inter :: "'a language \<Rightarrow> 'a language \<Rightarrow> 'a language" where
+      "Inter r s = Lang (\<oo> r \<and> \<oo> s) (\<lambda>a. Inter (\<dd> r a) (\<dd> s a))"
+
+text \<open>\blankline\<close>
+
+    corec (friend) PLUS :: "'a language list \<Rightarrow> 'a language" where
+      "PLUS xs = Lang (\<exists>x \<in> set xs. \<oo> x) (\<lambda>a. PLUS (map (\<lambda>r. \<dd> r a) xs))"
+
 
 subsection \<open>Mixed Recursion--Corecursion
   \label{ssec:mixed-recursion-corecursion}\<close>
@@ -209,7 +246,7 @@ reaching a guarded corecursive call.
 Intuitively, the unguarded recursive call can be unfolded to arbitrary finite
 depth, ultimately yielding a purely corecursive definition. An example is the
 @{term primes} function from Di Gianantonio and Miculan
-\cite{di-gianantonio-miculan-2003}:
+@{cite "di-gianantonio-miculan-2003"}:
 \<close>
 
     corecursive primes :: "nat \<Rightarrow> nat \<Rightarrow> nat stream" where
@@ -241,16 +278,21 @@ For any positive integers @{term m} and @{term n}, the numbers @{term m} and
 most finitely often before taking the then branch and producing one constructor.
 There is a slight complication when @{term "m = 0 \<and> n > 1"}: Without the first
 disjunct in the @{text "if"} condition, the function could stall. (This corner
-case was overlooked in the original example \cite{di-gianantonio-miculan-2003}.)
+case was overlooked in the original example
+@{cite "di-gianantonio-miculan-2003"}.)
 
-In the following example, which defines the stream of Catalan numbers,
-termination is discharged automatically using @{text lexicographic_order}:
+In the following examples, termination is discharged automatically by
+@{command corec} by invoking @{method lexicographic_order}:
 \<close>
 
     corec catalan :: "nat \<Rightarrow> nat stream" where
       "catalan n =
        (if n > 0 then ssum (catalan (n - 1)) (SCons 0 (catalan (n + 1)))
         else SCons 1 (catalan 1))"
+
+    corec collatz :: "nat \<Rightarrow> nat stream" where
+      "collatz n = (if even n \<and> n > 0 then collatz (n div 2)
+         else SCons n (collatz (3 * n + 1)))"
 
 text \<open>
 A more elaborate case study, revolving around the filter function on lazy lists,
@@ -292,7 +334,9 @@ specifications, our package provides the more advanced proof principle of
 The structural coinduction principle for @{typ "'a stream"}, called
 @{thm [source] stream.coinduct}, is as follows:
 %
-\[@{thm stream.coinduct[no_vars]}\]
+\begin{indentblock}
+@{thm stream.coinduct[no_vars]}
+\end{indentblock}
 %
 Coinduction allows us to prove an equality @{text "l = r"} on streams by
 providing a relation @{text R} that relates @{text l} and @{text r} (first
@@ -301,10 +345,12 @@ related by a bisimulation cannot be distinguished by taking observations (via
 the selectors @{const shd} and @{const stl}); hence they must be equal.
 
 The coinduction up-to principle after registering @{const sskew} as friendly is
-available as @{thm [source] sskew.coinduct} or
-@{thm [source] stream.coinduct_upto(2)}:
+available as @{thm [source] sskew.coinduct} and as one of the components of
+the collection @{thm [source] stream.coinduct_upto}:
 %
-\[@{thm sfsup.coinduct[no_vars]}\]
+\begin{indentblock}
+@{thm sfsup.coinduct[no_vars]}
+\end{indentblock}
 %
 This rule is almost identical to structural coinduction, except that the
 corecursive application of @{term R} is replaced by
@@ -366,12 +412,9 @@ coinduction principles. This can be done using the @{command coinduction_upto}
 command. Consider the following definitions:
 \<close>
 
-    codatatype (tset: 'a, 'b) tllist =
-      TNil (terminal : 'b)
-    | TCons (thd : 'a) (ttl : "('a, 'b) tllist")
-    for
-      map: tmap
-      rel: tllist_all2
+    codatatype ('a, 'b) tllist =
+      TNil (terminal: 'b)
+    | TCons (thd: 'a) (ttl: "('a, 'b) tllist")
 
     corec (friend) square_elems :: "(nat, 'b) tllist \<Rightarrow> (nat, 'b) tllist" where
       "square_elems xs =
@@ -411,9 +454,11 @@ we can use the following command:
     coinduction_upto nat_int_tllist: "(nat, int) tllist"
 
 text \<open>
+\noindent
 This produces the theorems @{thm [source] nat_int_tllist.coinduct_upto} and
 @{thm [source] nat_int_tllist.cong_intros} (as well as the individually named
-introduction rules), and extends @{thm [source] tllist.coinduct_upto}.
+introduction rules) and extends @{thm [source] tllist.coinduct_upto} and
+@{thm [source] tllist.cong_intros}.
 \<close>
 
 
@@ -421,26 +466,99 @@ subsection \<open>Uniqueness Reasoning
   \label{ssec:uniqueness-reasoning}\<close>
 
 text \<open>
-t is sometimes possible to achieve better automation by using a more specialized
-proof method than coinduction. Uniqueness principles maintain a good balance
-between expressiveness and automation. They exploit the property that a
+It is sometimes possible to achieve better automation by using a more
+specialized proof method than coinduction. Uniqueness principles maintain a good
+balance between expressiveness and automation. They exploit the property that a
 corecursive specification is the unique solution to a fixpoint equation.
+
+The @{command corec}, @{command corecursive}, and @{command friend_of_corec}
+commands generate a property @{text f.unique} about the function of interest
+@{term f} that can be used to prove that any function that satisfies
+@{term f}'s corecursive specification must be equal to @{term f}. For example:
+\[@{thm ssum.unique[no_vars]}\]
+
+The uniqueness principles are not restricted to functions defined using
+@{command corec} or @{command corecursive} or registered with
+@{command friend_of_corec}. Suppose @{term "t x"} is an arbitrary term
+depending on @{term x}. The @{method corec_unique} proof method, provided by our
+tool, transforms subgoals of the form
+\[@{term "(\<forall>x. f x = H x f) \<Longrightarrow> f x = t x"}\]
+into
+\[@{term "\<forall>x. t x = H x t"}\]
+The higher-order functional @{term H} must be such that the equation
+@{term "f x = H x f"} would be a valid @{command corec} specification---but
+without nested self-calls or unguarded calls. Thus, @{method corec_unique}
+proves uniqueness of @{term t} with respect to the given fixpoint equation
+regardless of how @{term t} was defined. For example:
 \<close>
+
+    lemma
+      fixes f :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream"
+      assumes "\<forall>xs ys. f xs ys =
+        SCons (shd ys * shd xs) (ssum (f xs (stl ys)) (f (stl xs) ys))"
+      shows "f = sprod"
+        using assms
+      proof corec_unique
+        show "sprod = (\<lambda>xs ys :: nat stream.
+            SCons (shd ys * shd xs) (ssum (sprod xs (stl ys)) (sprod (stl xs) ys)))"
+          apply (rule ext)+
+          apply (subst sprod.code)
+          by simp
+      qed
 
 
 section \<open>Command Syntax
   \label{sec:command-syntax}\<close>
 
-text \<open>
-...
-\<close>
-
-
 subsection \<open>\keyw{corec} and \keyw{corecursive}
   \label{ssec:corec-and-corecursive}\<close>
 
 text \<open>
-...
+\begin{matharray}{rcl}
+  @{command_def "corec"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+  @{command_def "corecursive"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+\end{matharray}
+
+@{rail \<open>
+  (@@{command corec} | @@{command corecursive}) target? \<newline>
+    @{syntax cr_options}? fix @'where' prop
+  ;
+  @{syntax_def cr_options}: '(' ((@{syntax plugins} | 'friend' | 'transfer') + ',') ')'
+\<close>}
+
+\medskip
+
+\noindent
+The @{command corec} and @{command corecursive} commands introduce a corecursive
+function over a codatatype.
+
+The syntactic entity \synt{target} can be used to specify a local context,
+\synt{fix} denotes name with an optional type signature, and \synt{prop} denotes
+a HOL proposition @{cite "isabelle-isar-ref"}.
+
+The optional target is optionally followed by a combination of the following
+options:
+
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+
+\item
+The @{text plugins} option indicates which plugins should be enabled
+(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+
+\item
+The @{text friend} option indicates that the defined function should be
+registered as a friend. This gives rise to additional proof obligations.
+
+\item
+The @{text transfer} option indicates that an unconditional transfer rule
+should be generated and proved @{text "by transfer_prover"}. The
+@{text "[transfer_rule]"} attribute is set on the generated theorem.
+\end{itemize}
+
+The @{command corec} command is an abbreviation for @{command corecursive} with
+@{text "apply transfer_prover"} or @{text "apply lexicographic_order"} to
+discharge any emerging proof obligations.
 \<close>
 
 
@@ -448,7 +566,42 @@ subsection \<open>\keyw{friend_of_corec}
   \label{ssec:friend-of-corec}\<close>
 
 text \<open>
-...
+\begin{matharray}{rcl}
+  @{command_def "friend_of_corec"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+\end{matharray}
+
+@{rail \<open>
+  @@{command friend_of_corec} target? \<newline>
+    @{syntax foc_options}? fix @'where' prop
+  ;
+  @{syntax_def foc_options}: '(' ((@{syntax plugins} | 'transfer') + ',') ')'
+\<close>}
+
+\medskip
+
+\noindent
+The @{command friend_of_corec} command registers a corecursive function as
+friendly.
+
+The syntactic entity \synt{target} can be used to specify a local context,
+\synt{fix} denotes name with an optional type signature, and \synt{prop} denotes
+a HOL proposition @{cite "isabelle-isar-ref"}.
+
+The optional target is optionally followed by a combination of the following
+options:
+
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+
+\item
+The @{text plugins} option indicates which plugins should be enabled
+(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+
+\item
+The @{text transfer} option indicates that an unconditional transfer rule
+should be generated and proved @{text "by transfer_prover"}. The
+@{text "[transfer_rule]"} attribute is set on the generated theorem.
+\end{itemize}
 \<close>
 
 
@@ -456,7 +609,23 @@ subsection \<open>\keyw{coinduction_upto}
   \label{ssec:coinduction-upto}\<close>
 
 text \<open>
-...
+\begin{matharray}{rcl}
+  @{command_def "coinduction_upto"} & : & @{text "local_theory \<rightarrow> local_theory"}
+\end{matharray}
+
+@{rail \<open>
+  @@{command coinduction_upto} target? name ':' type
+\<close>}
+
+\medskip
+
+\noindent
+The @{command coinduction_upto} generates a coinduction up-to rule for a given
+instance of a (possibly polymorphic) codatatype and notes the result with the
+specified prefix.
+
+The syntactic entity \synt{name} denotes an identifier and \synt{type} denotes a
+type @{cite "isabelle-isar-ref"}.
 \<close>
 
 
@@ -526,6 +695,7 @@ the time of this writing.
   * unfinished tactics
   * polymorphism of corecUU_transfer
   * alternative views
+  * plugins
 
 \end{enumerate}
 \<close>

@@ -3094,8 +3094,9 @@ these constants as axioms.
 
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{name} denotes an identifier, \synt{typefree} denotes fixed type variable
-(@{typ 'a}, @{typ 'b}, \ldots), and \synt{mixfix} denotes the usual
-parenthesized mixfix notation @{cite "isabelle-isar-ref"}.
+(@{typ 'a}, @{typ 'b}, \ldots), \synt{mixfix} denotes the usual parenthesized
+mixfix notation, and \synt{types} denotes a space-separated list of types
+@{cite "isabelle-isar-ref"}.
 
 The @{syntax plugins} option indicates which plugins should be enabled
 (@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
