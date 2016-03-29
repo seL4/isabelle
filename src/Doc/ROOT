@@ -43,6 +43,22 @@ session Codegen (doc) in "Codegen" = "Codegen_Basics" +
     "root.tex"
     "style.sty"
 
+session Corec (doc) in "Corec" = HOL +
+  options [document_variants = "corec"]
+  theories [document = false] "../Datatypes/Setup"
+  theories Corec
+  document_files (in "..")
+    "prepare_document"
+    "pdfsetup.sty"
+    "iman.sty"
+    "extra.sty"
+    "isar.sty"
+    "manual.bib"
+  document_files
+    "build"
+    "root.tex"
+    "style.sty"
+
 session Datatypes (doc) in "Datatypes" = HOL +
   options [document_variants = "datatypes"]
   theories [document = false] Setup

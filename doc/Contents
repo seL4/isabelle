@@ -4,6 +4,7 @@ Tutorials!
   classes         Tutorial on Type Classes
   datatypes       Tutorial on (Co)datatype Definitions
   functions       Tutorial on Function Definitions
+  corec           Tutorial on Nonprimitively Corecursive Definitions
   codegen         Tutorial on Code Generation
   nitpick         User's Guide to Nitpick
   sledgehammer    User's Guide to Sledgehammer
@@ -22,4 +23,3 @@ Old Manuals
   intro           Old Introduction to Isabelle
   logics          Isabelle's Logics: HOL and misc logics
   logics-ZF       Isabelle's Logics: FOL and ZF
-

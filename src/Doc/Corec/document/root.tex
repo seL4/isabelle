@@ -1,0 +1,92 @@
+\documentclass[12pt,a4paper]{article} % fleqn
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{cite}
+\usepackage{enumitem}
+\usepackage{footmisc}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{iman}
+\usepackage{extra}
+\usepackage{isar}
+\usepackage{isabelle}
+\usepackage{isabellesym}
+\usepackage{style}
+\usepackage{pdfsetup}
+\usepackage{railsetup}
+\usepackage{framed}
+\usepackage{regexpatch}
+
+\makeatletter
+\xpatchcmd{\chaptermark}{\MakeUppercase}{}{}{}%
+\xpatchcmd{\sectionmark}{\MakeUppercase}{}{}{}%
+\xpatchcmd*{\tableofcontents}{\MakeUppercase}{}{}{}%
+\makeatother
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\renewcommand\_{\hbox{\textunderscore\kern-.05ex}}
+
+\newbox\boxA
+\setbox\boxA=\hbox{\ }
+\parindent=4\wd\boxA
+
+\newcommand\blankline{\vskip-.25\baselineskip}
+
+\newenvironment{indentblock}{\list{}{\setlength{\leftmargin}{\parindent}}\item[]}{\endlist}
+
+\newcommand{\keyw}[1]{\textbf{#1}}
+\newcommand{\synt}[1]{\textit{#1}}
+\newcommand{\hthm}[1]{\textbf{\textit{#1}}}
+
+%\renewcommand{\isactrlsub}[1]{\/$\sb{\mathrm{#1}}$}
+\renewcommand\isactrlsub[1]{\/$\sb{#1}$}
+\renewcommand\isadigit[1]{\/\ensuremath{\mathrm{#1}}}
+\renewcommand\isacharprime{\isamath{{'}\mskip-2mu}}
+\renewcommand\isacharunderscore{\mbox{\_}}
+\renewcommand\isacharunderscorekeyword{\mbox{\_}}
+\renewcommand\isachardoublequote{\mbox{\upshape{``}}}
+\renewcommand\isachardoublequoteopen{\mbox{\upshape{``}\kern.1ex}}
+\renewcommand\isachardoublequoteclose{\/\kern.15ex\mbox{\upshape{''}}}
+\renewcommand\isacharverbatimopen{\isacharbraceleft\isacharasterisk}
+\renewcommand\isacharverbatimclose{\isacharasterisk\isacharbraceright}
+\renewcommand{\isasyminverse}{\isamath{{}^{-}}}
+
+\hyphenation{isa-belle}
+
+\isadroptag{theory}
+
+\title{%\includegraphics[scale=0.5]{isabelle_hol} \\[4ex]
+Defining Nonprimitively (Co)recursive Functions in Isabelle/HOL}
+\author{Jasmin Christian Blanchette, Aymeric Bouzy, \\
+Andreas Lochbihler, Andrei Popescu, and \\
+Dmitriy Traytel}
+
+\urlstyle{tt}
+
+\begin{document}
+
+\maketitle
+
+\begin{sloppy}
+\begin{abstract}
+\noindent
+This tutorial describes the definitional package for nonprimitively corecursive functions
+in Isabelle/HOL. The following commands are provided:
+\keyw{corec}, \keyw{corecursive}, \keyw{friend\_of\_corec}, and \keyw{coinduction\_upto}.
+They complement \keyw{codatatype}, \keyw{primcorec}, and \keyw{primcorecursive}, which
+define codatatypes and primitively corecursive functions.
+\end{abstract}
+\end{sloppy}
+
+\tableofcontents
+
+\input{Corec.tex}
+
+\let\em=\sl
+\bibliography{manual}{}
+\bibliographystyle{abbrv}
+
+\end{document}
