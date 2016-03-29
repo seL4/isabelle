@@ -1959,8 +1959,8 @@ fun values param_user_modes ((raw_expected, stats), comp_options) k t_compr ctxt
     val ((T, ts), statistics) = eval ctxt stats param_user_modes comp_options k t_compr
     val setT = HOLogic.mk_setT T
     val elems = HOLogic.mk_set T ts
-    val ([dots], ctxt') =
-      Proof_Context.add_fixes [(@{binding dots}, SOME setT, Mixfix ("...", [], 1000))] ctxt
+    val ([dots], ctxt') = ctxt
+      |> Proof_Context.add_fixes [(@{binding dots}, SOME setT, Delimfix (\<open>...\<close>, Position.no_range))]
     (* check expected values *)
     val union = Const (@{const_abbrev Set.union}, setT --> setT --> setT)
     val () =

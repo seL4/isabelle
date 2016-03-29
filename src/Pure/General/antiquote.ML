@@ -16,7 +16,7 @@ sig
   val scan_control: Symbol_Pos.T list -> control * Symbol_Pos.T list
   val scan_antiq: Symbol_Pos.T list -> antiq * Symbol_Pos.T list
   val scan_antiquote: Symbol_Pos.T list -> text_antiquote * Symbol_Pos.T list
-  val read': Position.T -> Symbol_Pos.T list -> text_antiquote list
+  val parse: Position.T -> Symbol_Pos.T list -> text_antiquote list
   val read: Input.source -> text_antiquote list
 end;
 
@@ -123,11 +123,15 @@ end;
 
 (* read *)
 
-fun read' pos syms =
+fun parse pos syms =
   (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_antiquote) syms of
-    SOME ants => (Position.reports (antiq_reports ants); ants)
+    SOME ants => ants
   | NONE => error ("Malformed quotation/antiquotation source" ^ Position.here pos));
 
-fun read source = read' (Input.pos_of source) (Input.source_explode source);
+fun read source =
+  let
+    val ants = parse (Input.pos_of source) (Input.source_explode source);
+    val _ = Position.reports (antiq_reports ants);
+  in ants end;
 
 end;

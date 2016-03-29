@@ -158,9 +158,11 @@ fun define_overloaded (c, U) (v, checked) (b_def, rhs) =
 fun foundation (((b, U), mx), (b_def, rhs)) params lthy =
   (case operation lthy b of
     SOME (c, (v, checked)) =>
-      if mx <> NoSyn
-      then error ("Illegal mixfix syntax for overloaded constant " ^ quote c)
-      else lthy |> define_overloaded (c, U) (v, checked) (b_def, rhs)
+      if Mixfix.is_empty mx then
+        lthy |> define_overloaded (c, U) (v, checked) (b_def, rhs)
+      else
+        error ("Illegal mixfix syntax for overloaded constant " ^ quote c ^
+          Position.here (Mixfix.pos_of mx))
   | NONE => lthy |> Generic_Target.theory_target_foundation (((b, U), mx), (b_def, rhs)) params);
 
 fun pretty lthy =

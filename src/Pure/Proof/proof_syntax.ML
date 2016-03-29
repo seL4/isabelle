@@ -30,6 +30,7 @@ val paramsT = Type ("params", []);
 val idtT = Type ("idt", []);
 val aT = TFree (Name.aT, []);
 
+
 (** constants for theorems and axioms **)
 
 fun add_proof_atom_consts names thy =
@@ -37,7 +38,11 @@ fun add_proof_atom_consts names thy =
   |> Sign.root_path
   |> Sign.add_consts (map (fn name => (Binding.qualified_name name, proofT, NoSyn)) names);
 
+
 (** constants for application and abstraction **)
+
+fun mixfix (sy, ps, p) = Mixfix (Input.string sy, ps, p, Position.no_range);
+fun delimfix sy = Delimfix (Input.string sy, Position.no_range);
 
 fun add_proof_syntax thy =
   thy
@@ -46,29 +51,29 @@ fun add_proof_syntax thy =
   |> Sign.add_types_global
     [(Binding.make ("proof", @{here}), 0, NoSyn)]
   |> fold (snd oo Sign.declare_const_global)
-    [((Binding.make ("Appt", @{here}), [proofT, aT] ---> proofT), Mixfix ("(1_ \<cdot>/ _)", [4, 5], 4)),
-     ((Binding.make ("AppP", @{here}), [proofT, proofT] ---> proofT), Mixfix ("(1_ \<bullet>/ _)", [4, 5], 4)),
+    [((Binding.make ("Appt", @{here}), [proofT, aT] ---> proofT), mixfix ("(1_ \<cdot>/ _)", [4, 5], 4)),
+     ((Binding.make ("AppP", @{here}), [proofT, proofT] ---> proofT), mixfix ("(1_ \<bullet>/ _)", [4, 5], 4)),
      ((Binding.make ("Abst", @{here}), (aT --> proofT) --> proofT), NoSyn),
      ((Binding.make ("AbsP", @{here}), [propT, proofT --> proofT] ---> proofT), NoSyn),
      ((Binding.make ("Hyp", @{here}), propT --> proofT), NoSyn),
      ((Binding.make ("Oracle", @{here}), propT --> proofT), NoSyn),
      ((Binding.make ("OfClass", @{here}), (Term.a_itselfT --> propT) --> proofT), NoSyn),
-     ((Binding.make ("MinProof", @{here}), proofT), Delimfix "?")]
+     ((Binding.make ("MinProof", @{here}), proofT), delimfix "?")]
   |> Sign.add_nonterminals_global
     [Binding.make ("param", @{here}),
      Binding.make ("params", @{here})]
   |> Sign.add_syntax Syntax.mode_default
-    [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\<^bold>\<lambda>_./ _)", [0, 3], 3)),
-     ("_Lam0", [paramT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
-     ("_Lam0", [idtT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
-     ("_Lam1", [idtT, propT] ---> paramT, Mixfix ("_: _", [0, 0], 0)),
-     ("", paramT --> paramT, Delimfix "'(_')"),
-     ("", idtT --> paramsT, Delimfix "_"),
-     ("", paramT --> paramsT, Delimfix "_")]
+    [("_Lam", [paramsT, proofT] ---> proofT, mixfix ("(1\<^bold>\<lambda>_./ _)", [0, 3], 3)),
+     ("_Lam0", [paramT, paramsT] ---> paramsT, mixfix ("_/ _", [1, 0], 0)),
+     ("_Lam0", [idtT, paramsT] ---> paramsT, mixfix ("_/ _", [1, 0], 0)),
+     ("_Lam1", [idtT, propT] ---> paramT, mixfix ("_: _", [0, 0], 0)),
+     ("", paramT --> paramT, delimfix "'(_')"),
+     ("", idtT --> paramsT, delimfix "_"),
+     ("", paramT --> paramsT, delimfix "_")]
   |> Sign.add_syntax (Print_Mode.ASCII, true)
-    [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
-     (Lexicon.mark_const "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ %/ _)", [4, 5], 4)),
-     (Lexicon.mark_const "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ %%/ _)", [4, 5], 4))]
+    [("_Lam", [paramsT, proofT] ---> proofT, mixfix ("(1Lam _./ _)", [0, 3], 3)),
+     (Lexicon.mark_const "Appt", [proofT, aT] ---> proofT, mixfix ("(1_ %/ _)", [4, 5], 4)),
+     (Lexicon.mark_const "AppP", [proofT, proofT] ---> proofT, mixfix ("(1_ %%/ _)", [4, 5], 4))]
   |> Sign.add_trrules (map Syntax.Parse_Print_Rule
     [(Ast.mk_appl (Ast.Constant "_Lam")
         [Ast.mk_appl (Ast.Constant "_Lam0")

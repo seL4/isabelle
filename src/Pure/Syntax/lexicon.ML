@@ -327,7 +327,7 @@ end;
 (* indexname *)
 
 fun read_indexname s =
-  (case Scan.read Symbol_Pos.stopper scan_indexname (Symbol_Pos.explode (s, Position.none)) of
+  (case Scan.read Symbol_Pos.stopper scan_indexname (Symbol_Pos.explode0 s) of
     SOME xi => xi
   | _ => error ("Lexical error in variable name: " ^ quote s));
 
@@ -341,14 +341,14 @@ fun read_var str =
         >> Syntax.var ||
       Scan.many (Symbol.not_eof o Symbol_Pos.symbol)
         >> (Syntax.free o implode o map Symbol_Pos.symbol);
-  in the (Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode (str, Position.none))) end;
+  in the (Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode0 str)) end;
 
 
 (* read_variable *)
 
 fun read_variable str =
   let val scan = $$ "?" |-- scan_indexname || scan_indexname
-  in Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode (str, Position.none)) end;
+  in Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode0 str) end;
 
 
 (* read numbers *)
@@ -361,10 +361,10 @@ fun nat cs =
 
 in
 
-fun read_nat s = nat (Symbol_Pos.explode (s, Position.none));
+fun read_nat s = nat (Symbol_Pos.explode0 s);
 
 fun read_int s =
-  (case Symbol_Pos.explode (s, Position.none) of
+  (case Symbol_Pos.explode0 s of
     ("-", _) :: cs => Option.map ~ (nat cs)
   | cs => nat cs);
 

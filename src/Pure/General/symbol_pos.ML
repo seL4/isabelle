@@ -42,6 +42,7 @@ sig
   val implode: T list -> text
   val implode_range: Position.range -> T list -> text * Position.range
   val explode: text * Position.T -> T list
+  val explode0: string -> T list
   val scan_ident: T list -> T list * T list
   val is_identifier: string -> bool
 end;
@@ -271,6 +272,8 @@ fun explode (str, pos) =
         (Symbol.explode str) ([], Position.reset_range pos);
   in fold (fn (s, p) => if s = Symbol.DEL then I else cons (s, p)) res [] end;
 
+fun explode0 str = explode (str, Position.none);
+
 
 (* identifiers *)
 
@@ -289,7 +292,7 @@ end;
 
 fun is_identifier s =
   Symbol.is_ascii_identifier s orelse
-    (case try (Scan.finite stopper scan_ident) (explode (s, Position.none)) of
+    (case try (Scan.finite stopper scan_ident) (explode0 s) of
       SOME (_, []) => true
     | _ => false);
 
@@ -302,4 +305,3 @@ struct
   val $$$ = Symbol_Pos.$$$;
   val ~$$$ = Symbol_Pos.~$$$;
 end;
-

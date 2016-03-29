@@ -7,8 +7,7 @@ Syntax extension.
 signature SYNTAX_EXT =
 sig
   val dddot_indexname: indexname
-  datatype mfix = Mfix of string * typ * string * int list * int
-  val err_in_mfix: string -> mfix -> 'a
+  datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Position.T
   val typ_to_nonterm: typ -> string
   datatype xsymb =
     Delim of string |
@@ -28,8 +27,8 @@ sig
       print_translation: (string * ((Proof.context -> typ -> term list -> term) * stamp)) list,
       print_rules: (Ast.ast * Ast.ast) list,
       print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list}
-  val mfix_delims: string -> string list
-  val mfix_args: string -> int
+  val mfix_args: Symbol_Pos.T list -> int
+  val mixfix_args: Input.source -> int
   val escape: string -> string
   val syn_ext': string list -> mfix list ->
     (string * string) list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
@@ -111,17 +110,15 @@ fun delims_of xprods =
 
 (** datatype mfix **)
 
-(*Mfix (sy, ty, c, ps, p):
-    sy: rhs of production as symbolic string
+(*Mfix (sy, ty, c, ps, p, pos):
+    sy: rhs of production as symbolic text
     ty: type description of production
     c: head of parse tree
     ps: priorities of arguments in sy
-    p: priority of production*)
+    p: priority of production
+    pos: source position*)
 
-datatype mfix = Mfix of string * typ * string * int list * int;
-
-fun err_in_mfix msg (Mfix (sy, _, const, _, _)) =
-  cat_error msg ("in mixfix annotation " ^ quote sy ^ " for " ^ quote const);
+datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Position.T;
 
 
 (* typ_to_nonterm *)
@@ -140,11 +137,17 @@ val typ_to_nonterm1 = typ_to_nt "logic";
 
 local
 
+open Basic_Symbol_Pos;
+
+fun scan_one pred = Scan.one (pred o Symbol_Pos.symbol);
+fun scan_many pred = Scan.many (pred o Symbol_Pos.symbol);
+fun scan_many1 pred = Scan.many1 (pred o Symbol_Pos.symbol);
+
 val is_meta = member (op =) ["(", ")", "/", "_", "\<index>"];
 
 val scan_delim_char =
-  $$ "'" |-- Scan.one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
-  Scan.one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof);
+  $$ "'" |-- scan_one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
+  scan_one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof);
 
 fun read_int ["0", "0"] = ~1
   | read_int cs = #1 (Library.read_int cs);
@@ -152,19 +155,19 @@ fun read_int ["0", "0"] = ~1
 val scan_sym =
   $$ "_" >> K (Argument ("", 0)) ||
   $$ "\<index>" >> K index ||
-  $$ "(" |-- Scan.many Symbol.is_digit >> (Bg o read_int) ||
+  $$ "(" |-- scan_many Symbol.is_digit >> (Bg o read_int o map Symbol_Pos.symbol) ||
   $$ ")" >> K En ||
   $$ "/" -- $$ "/" >> K (Brk ~1) ||
-  $$ "/" |-- Scan.many Symbol.is_blank >> (Brk o length) ||
-  Scan.many1 Symbol.is_blank >> (Space o implode) ||
-  Scan.repeat1 scan_delim_char >> (Delim o implode);
+  $$ "/" |-- scan_many Symbol.is_blank >> (Brk o length) ||
+  scan_many1 Symbol.is_blank >> (Space o Symbol_Pos.content) ||
+  Scan.repeat1 scan_delim_char >> (Delim o Symbol_Pos.content);
 
 val scan_symb =
   scan_sym >> SOME ||
-  $$ "'" -- Scan.one Symbol.is_blank >> K NONE;
+  $$ "'" -- scan_one Symbol.is_blank >> K NONE;
 
 val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (~$$ "'");
-val read_symbs = map_filter I o the o Scan.read Symbol.stopper scan_symbs;
+val read_symbs = map_filter I o the o Scan.read Symbol_Pos.stopper scan_symbs;
 
 fun unique_index xsymbs =
   if length (filter is_index xsymbs) <= 1 then xsymbs
@@ -172,10 +175,10 @@ fun unique_index xsymbs =
 
 in
 
-val read_mfix = unique_index o read_symbs o Symbol.explode;
+val read_mfix = unique_index o read_symbs;
 
-fun mfix_delims sy = fold_rev (fn Delim s => cons s | _ => I) (read_mfix sy) [];
 val mfix_args = length o filter is_argument o read_mfix;
+val mixfix_args = mfix_args o Input.source_explode;
 
 val escape = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
 
@@ -184,13 +187,15 @@ end;
 
 (* mfix_to_xprod *)
 
-fun mfix_to_xprod logical_types (mfix as Mfix (sy, typ, const, pris, pri)) =
+fun mfix_to_xprod logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
   let
     val is_logtype = member (op =) logical_types;
 
+    fun err msg = error (msg ^ " in mixfix annotation" ^ Position.here pos);
+
     fun check_pri p =
       if p >= 0 andalso p <= 1000 then ()
-      else err_in_mfix ("Precedence out of range: " ^ string_of_int p) mfix;
+      else err ("Precedence " ^ string_of_int p ^ " out of range");
 
     fun blocks_ok [] 0 = true
       | blocks_ok [] _ = false
@@ -201,21 +206,20 @@ fun mfix_to_xprod logical_types (mfix as Mfix (sy, typ, const, pris, pri)) =
 
     fun check_blocks syms =
       if blocks_ok syms 0 then ()
-      else err_in_mfix "Unbalanced block parentheses" mfix;
+      else err "Unbalanced block parentheses";
 
 
     val cons_fst = apfst o cons;
 
     fun add_args [] ty [] = ([], typ_to_nonterm1 ty)
-      | add_args [] _ _ = err_in_mfix "Too many precedences" mfix
+      | add_args [] _ _ = err "Too many precedences"
       | add_args ((arg as Argument ("index", _)) :: syms) ty ps =
           cons_fst arg (add_args syms ty ps)
       | add_args (Argument _ :: syms) (Type ("fun", [ty, tys])) [] =
           cons_fst (Argument (typ_to_nonterm ty, 0)) (add_args syms tys [])
       | add_args (Argument _ :: syms) (Type ("fun", [ty, tys])) (p :: ps) =
           cons_fst (Argument (typ_to_nonterm ty, p)) (add_args syms tys ps)
-      | add_args (Argument _ :: _) _ _ =
-          err_in_mfix "More arguments than in corresponding type" mfix
+      | add_args (Argument _ :: _) _ _ = err "More arguments than in corresponding type"
       | add_args (sym :: syms) ty ps = cons_fst sym (add_args syms ty ps);
 
     fun rem_pri (Argument (s, _)) = Argument (s, chain_pri)
@@ -226,7 +230,7 @@ fun mfix_to_xprod logical_types (mfix as Mfix (sy, typ, const, pris, pri)) =
       | logify_types a = a;
 
 
-    val raw_symbs = read_mfix sy handle ERROR msg => err_in_mfix msg mfix;
+    val raw_symbs = read_mfix sy handle ERROR msg => err msg;
     val args = filter (fn Argument _ => true | _ => false) raw_symbs;
     val (const', typ', syntax_consts, parse_rules) =
       if not (exists is_index args) then (const, typ, NONE, NONE)
@@ -234,9 +238,9 @@ fun mfix_to_xprod logical_types (mfix as Mfix (sy, typ, const, pris, pri)) =
         let
           val indexed_const =
             if const <> "" then const ^ "_indexed"
-            else err_in_mfix "Missing constant name for indexed syntax" mfix;
+            else err "Missing constant name for indexed syntax";
           val rangeT = Term.range_type typ handle Match =>
-            err_in_mfix "Missing structure argument for indexed syntax" mfix;
+            err "Missing structure argument for indexed syntax";
 
           val xs = map Ast.Variable (Name.invent Name.context "xa" (length args - 1));
           val (xs1, xs2) = chop (find_index is_index args) xs;
@@ -263,10 +267,10 @@ fun mfix_to_xprod logical_types (mfix as Mfix (sy, typ, const, pris, pri)) =
 
     val _ = (List.app check_pri pris; check_pri pri; check_blocks symbs');
     val xprod' =
-      if Lexicon.is_terminal lhs' then err_in_mfix ("Illegal lhs: " ^ lhs') mfix
+      if Lexicon.is_terminal lhs' then err ("Illegal lhs " ^ quote lhs')
       else if const <> "" then xprod
       else if length (filter is_argument symbs') <> 1 then
-        err_in_mfix "Copy production must have exactly one argument" mfix
+        err "Copy production must have exactly one argument"
       else if exists is_terminal symbs' then xprod
       else XProd (lhs', map rem_pri symbs', "", chain_pri);
 
