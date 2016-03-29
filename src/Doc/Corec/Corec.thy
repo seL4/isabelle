@@ -26,6 +26,8 @@ text \<open>
 * friend
 * up to
 
+* versioning
+
 BNF
 
 link to papers
@@ -60,6 +62,8 @@ corecursive call occurs under two or more constructors:
 
     corec oneTwos :: "nat stream" where
       "oneTwos = SCons 1 (SCons 2 oneTwos)"
+
+thm oneTwos.cong_intros
 
 text \<open>
 \noindent
@@ -306,27 +310,121 @@ This rule is almost identical to structural coinduction, except that the
 corecursive application of @{term R} is replaced by
 @{term "stream.v5.congclp R"}. The @{const stream.v5.congclp} predicate is
 equipped with the following introduction rules:
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{thm [source] sskew.cong_base}\rm:] ~ \\
+@{thm sskew.cong_base[no_vars]}
+
+\item[@{thm [source] sskew.cong_refl}\rm:] ~ \\
+@{thm sskew.cong_refl[no_vars]}
+
+\item[@{thm [source] sskew.cong_sym}\rm:] ~ \\
+@{thm sskew.cong_sym[no_vars]}
+
+\item[@{thm [source] sskew.cong_trans}\rm:] ~ \\
+@{thm sskew.cong_trans[no_vars]}
+
+\item[@{thm [source] sskew.cong_SCons}\rm:] ~ \\
+@{thm sskew.cong_SCons[no_vars]}
+
+\item[@{thm [source] sskew.cong_ssum}\rm:] ~ \\
+@{thm sskew.cong_ssum[no_vars]}
+
+\item[@{thm [source] sskew.cong_sprod}\rm:] ~ \\
+@{thm sskew.cong_sprod[no_vars]}
+
+\item[@{thm [source] sskew.cong_sskew}\rm:] ~ \\
+@{thm sskew.cong_sskew[no_vars]}
+
+\end{description}
+\end{indentblock}
+%
+The introduction rules are also available as
+@{thm [source] sskew.cong_intros}.
+
+Notice that there is no introduction rule corresponding to @{const sexp},
+because @{const sexp} has a more restrictive result type than @{const sskew}
+(@{typ "nat stream"} vs. @{typ "('a :: {plus,times}) stream"}.
+
+Since the package maintains a set of incomparable corecursors, there is also a
+set of associated coinduction principles and a set of sets of introduction
+rules. A technically subtle point is to make Isabelle choose the right rules in
+most situations. For this purpose, the package maintains the collection
+@{thm [source] stream.coinduct_upto} of coinduction principles ordered by
+increasing generality, which works well with Isabelle's philosophy of applying
+the first rule that matches. For example, after registering @{const ssum} as a
+friend, proving the equality @{term "l = r"} on @{typ "nat stream"} might
+require coinduction principle for @{term "nat stream"}, which is up to
+@{const ssum}.
+
+The collection @{thm [source] stream.coinduct_upto} is guaranteed to be complete
+and up to date with respect to the type instances of definitions considered so
+far, but occasionally it may be necessary to take the union of two incomparable
+coinduction principles. This can be done using the @{command coinduction_upto}
+command. Consider the following definitions:
 \<close>
 
-(* FIXME:
-thm
-  sskew.cong_base
-  sskew.cong_refl
-  sskew.cong_intros
+    codatatype (tset: 'a, 'b) tllist =
+      TNil (terminal : 'b)
+    | TCons (thd : 'a) (ttl : "('a, 'b) tllist")
+    for
+      map: tmap
+      rel: tllist_all2
 
-thm stream.coinduct_upto(2)
-  sskew.coinduct
+    corec (friend) square_elems :: "(nat, 'b) tllist \<Rightarrow> (nat, 'b) tllist" where
+      "square_elems xs =
+       (case xs of
+         TNil z \<Rightarrow> TNil z
+       | TCons y ys \<Rightarrow> TCons (y ^^ 2) (square_elems ys))"
 
-thm stream.cong_intros
-thm sfsup.cong_intros
-*)
+    corec (friend) square_terminal :: "('a, int) tllist \<Rightarrow> ('a, int) tllist" where
+      "square_terminal xs =
+       (case xs of
+         TNil z \<Rightarrow> TNil (z ^^ 2)
+       | TCons y ys \<Rightarrow> TCons y (square_terminal ys))"
+
+text \<open>
+At this point, @{thm [source] tllist.coinduct_upto} contains three variants of the
+coinduction principles:
+%
+\begin{itemize}
+\item @{typ "('a, int) tllist"} up to @{const TNil}, @{const TCons}, and
+  @{const square_terminal};
+\item @{typ "(nat, 'b) tllist"} up to @{const TNil}, @{const TCons}, and
+  @{const square_elems};
+\item @{typ "('a, 'b) tllist"} up to @{const TNil} and @{const TCons}.
+\end{itemize}
+%
+The following variant is missing:
+%
+\begin{itemize}
+\item @{typ "(nat, int) tllist"} up to @{const TNil}, @{const TCons},
+  @{const square_elems}, and @{const square_terminal}.
+\end{itemize}
+%
+To generate it, without having to define a new function with @{command corec},
+we can use the following command:
+\<close>
+
+    coinduction_upto nat_int_tllist: "(nat, int) tllist"
+
+text \<open>
+This produces the theorems @{thm [source] nat_int_tllist.coinduct_upto} and
+@{thm [source] nat_int_tllist.cong_intros} (as well as the individually named
+introduction rules), and extends @{thm [source] tllist.coinduct_upto}.
+\<close>
 
 
 subsection \<open>Uniqueness Reasoning
   \label{ssec:uniqueness-reasoning}\<close>
 
 text \<open>
-...
+t is sometimes possible to achieve better automation by using a more specialized
+proof method than coinduction. Uniqueness principles maintain a good balance
+between expressiveness and automation. They exploit the property that a
+corecursive specification is the unique solution to a fixpoint equation.
 \<close>
 
 
