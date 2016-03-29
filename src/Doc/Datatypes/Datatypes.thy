@@ -460,7 +460,7 @@ subsection \<open>Command Syntax
   \label{ssec:datatype-command-syntax}\<close>
 
 subsubsection \<open>\keyw{datatype}
-  \label{sssec:datatype-new}\<close>
+  \label{sssec:datatype}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
@@ -1569,7 +1569,7 @@ subsection \<open>Command Syntax
   \label{ssec:primrec-command-syntax}\<close>
 
 subsubsection \<open>\keyw{primrec}
-  \label{sssec:primrec-new}\<close>
+  \label{sssec:primrec}\<close>
 
 text \<open>
 \begin{matharray}{rcl}
