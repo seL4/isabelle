@@ -135,22 +135,22 @@ fun make_type n = replicate n typeT ---> typeT;
 
 fun syn_ext_types type_decls =
   let
-    fun mk_infix sy ty t p1 p2 p3 =
+    fun mk_infix sy ty t p1 p2 p3 range =
       Syntax_Ext.Mfix
         (Symbol_Pos.explode0 "(_ " @ Input.source_explode sy @ Symbol_Pos.explode0 "/ _)",
-          ty, t, [p1, p2], p3);
+          ty, t, [p1, p2], p3, Position.set_range range);
 
     fun mfix_of (_, _, NoSyn) = NONE
-      | mfix_of (t, ty, Mixfix (sy, ps, p, _)) =
-          SOME (Syntax_Ext.Mfix (Input.source_explode sy, ty, t, ps, p))
-      | mfix_of (t, ty, Delimfix (sy, _)) =
-          SOME (Syntax_Ext.Mfix (Input.source_explode sy, ty, t, [], 1000))
-      | mfix_of (t, ty, Infix (sy, p, _)) = SOME (mk_infix sy ty t (p + 1) (p + 1) p)
-      | mfix_of (t, ty, Infixl (sy, p, _)) = SOME (mk_infix sy ty t p (p + 1) p)
-      | mfix_of (t, ty, Infixr (sy, p, _)) = SOME (mk_infix sy ty t (p + 1) p p)
+      | mfix_of (t, ty, Mixfix (sy, ps, p, range)) =
+          SOME (Syntax_Ext.Mfix (Input.source_explode sy, ty, t, ps, p, Position.set_range range))
+      | mfix_of (t, ty, Delimfix (sy, range)) =
+          SOME (Syntax_Ext.Mfix (Input.source_explode sy, ty, t, [], 1000, Position.set_range range))
+      | mfix_of (t, ty, Infix (sy, p, range)) = SOME (mk_infix sy ty t (p + 1) (p + 1) p range)
+      | mfix_of (t, ty, Infixl (sy, p, range)) = SOME (mk_infix sy ty t p (p + 1) p range)
+      | mfix_of (t, ty, Infixr (sy, p, range)) = SOME (mk_infix sy ty t (p + 1) p p range)
       | mfix_of (t, _, _) = error ("Bad mixfix declaration for " ^ quote t);
 
-    fun check_args (_, ty, mx) (SOME (mfix as Syntax_Ext.Mfix (sy, _, _, _, _))) =
+    fun check_args (_, ty, mx) (SOME (Syntax_Ext.Mfix (sy, _, _, _, _, _))) =
           if length (Term.binder_types ty) = Syntax_Ext.mfix_args sy then ()
           else
             error ("Bad number of type constructor arguments in mixfix annotation" ^
@@ -170,29 +170,30 @@ val binder_name = suffix "_binder";
 
 fun syn_ext_consts logical_types const_decls =
   let
-    fun mk_infix sy ty c p1 p2 p3 =
+    fun mk_infix sy ty c p1 p2 p3 range =
       [Syntax_Ext.Mfix
-        (Symbol_Pos.explode0 "op " @ Input.source_explode sy, ty, c, [], 1000),
+        (Symbol_Pos.explode0 "op " @ Input.source_explode sy,
+          ty, c, [], 1000, Position.set_range range),
        Syntax_Ext.Mfix
         (Symbol_Pos.explode0 "(_ " @ Input.source_explode sy @ Symbol_Pos.explode0 "/ _)",
-          ty, c, [p1, p2], p3)];
+          ty, c, [p1, p2], p3, Position.set_range range)];
 
     fun binder_typ _ (Type ("fun", [Type ("fun", [_, ty2]), ty3])) =
           [Type ("idts", []), ty2] ---> ty3
       | binder_typ c _ = error ("Bad type of binder: " ^ quote c);
 
     fun mfix_of (_, _, NoSyn) = []
-      | mfix_of (c, ty, Mixfix (sy, ps, p, _)) =
-          [Syntax_Ext.Mfix (Input.source_explode sy, ty, c, ps, p)]
-      | mfix_of (c, ty, Delimfix (sy, _)) =
-          [Syntax_Ext.Mfix (Input.source_explode sy, ty, c, [], 1000)]
-      | mfix_of (c, ty, Infix (sy, p, _)) = mk_infix sy ty c (p + 1) (p + 1) p
-      | mfix_of (c, ty, Infixl (sy, p, _)) = mk_infix sy ty c p (p + 1) p
-      | mfix_of (c, ty, Infixr (sy, p, _)) = mk_infix sy ty c (p + 1) p p
-      | mfix_of (c, ty, Binder (sy, p, q, _)) =
+      | mfix_of (c, ty, Mixfix (sy, ps, p, range)) =
+          [Syntax_Ext.Mfix (Input.source_explode sy, ty, c, ps, p, Position.set_range range)]
+      | mfix_of (c, ty, Delimfix (sy, range)) =
+          [Syntax_Ext.Mfix (Input.source_explode sy, ty, c, [], 1000, Position.set_range range)]
+      | mfix_of (c, ty, Infix (sy, p, range)) = mk_infix sy ty c (p + 1) (p + 1) p range
+      | mfix_of (c, ty, Infixl (sy, p, range)) = mk_infix sy ty c p (p + 1) p range
+      | mfix_of (c, ty, Infixr (sy, p, range)) = mk_infix sy ty c (p + 1) p p range
+      | mfix_of (c, ty, Binder (sy, p, q, range)) =
           [Syntax_Ext.Mfix
             (Symbol_Pos.explode0 "(3" @ Input.source_explode sy @ Symbol_Pos.explode0 "_./ _)",
-              binder_typ c ty, (binder_name c), [0, p], q)]
+              binder_typ c ty, (binder_name c), [0, p], q, Position.set_range range)]
       | mfix_of (c, _, mx) =
           error ("Bad mixfix declaration for " ^ quote c ^ Position.here (pos_of mx));
 
