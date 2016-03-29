@@ -54,7 +54,6 @@ val reflN = "refl";
 val symN = "sym";
 val transN = "trans";
 val cong_introsN = prefix cong_N "intros";
-val cong_intros_friendN = "cong_intros_friend";
 val codeN = "code";
 val coinductN = "coinduct";
 val coinduct_uptoN = "coinduct_upto";
@@ -2303,9 +2302,9 @@ fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
         val unique = derive_unique lthy Morphism.identity code_goal corec_info res_T eq_corecUU;
 
         val notes =
-          [(cong_intros_friendN, maps snd cong_intros_pairs, []),
-           (codeN, [code_thm], []),
+          [(codeN, [code_thm], []),
            (coinductN, [coinduct], coinduct_attrs),
+           (cong_introsN, maps snd cong_intros_pairs, []),
            (uniqueN, [unique], [])] @
            map (fn (thmN, thms) => (thmN, thms, [])) cong_intros_pairs @
           (if Config.get lthy bnf_internals then
