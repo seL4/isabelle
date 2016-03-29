@@ -135,7 +135,7 @@ fun id id = Pos ((0, 1, 0), [(Markup.idN, id)]);
 fun id_only id = Pos ((0, 0, 0), [(Markup.idN, id)]);
 
 fun get_id (Pos (_, props)) = Properties.get props Markup.idN;
-fun put_id id (Pos (count, props)) = Pos (count, Properties.put (Markup.idN, id) props);
+fun put_id id (Pos (count, props)) = Pos (count, norm_props (Properties.put (Markup.idN, id) props));
 
 fun parse_id pos = Option.map Markup.parse_int (get_id pos);
 
