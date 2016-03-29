@@ -195,9 +195,18 @@ end;
 
 fun output_text state {markdown} source =
   let
+    val is_reported =
+      (case try Toplevel.context_of state of
+        SOME ctxt => Context_Position.is_visible ctxt
+      | NONE => true);
+
     val pos = Input.pos_of source;
-    val _ = Position.report pos (Markup.language_document (Input.is_delimited source));
     val syms = Input.source_explode source;
+
+    val _ =
+      if is_reported then
+        Position.report pos (Markup.language_document (Input.is_delimited source))
+      else ();
 
     val output_antiquotes = map (eval_antiquote state) #> implode;
 
@@ -214,14 +223,16 @@ fun output_text state {markdown} source =
     else if markdown andalso exists (Markdown.is_control o Symbol_Pos.symbol) syms
     then
       let
-        val ants = Antiquote.read' pos syms;
+        val ants = Antiquote.parse pos syms;
+        val reports = Antiquote.antiq_reports ants;
         val blocks = Markdown.read_antiquotes ants;
-        val _ = Position.reports (Markdown.reports blocks);
+        val _ = if is_reported then Position.reports (reports @ Markdown.reports blocks) else ();
       in output_blocks blocks end
     else
       let
-        val ants = Antiquote.read' pos (Symbol_Pos.trim_blanks syms);
-        val _ = Position.reports (Markdown.text_reports ants);
+        val ants = Antiquote.parse pos (Symbol_Pos.trim_blanks syms);
+        val reports = Antiquote.antiq_reports ants;
+        val _ = if is_reported then Position.reports (reports @ Markdown.text_reports ants) else ();
       in output_antiquotes ants end
   end;
 
