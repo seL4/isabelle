@@ -5,7 +5,22 @@
 Railroad diagrams in LaTeX.
 *)
 
-structure Rail: sig end =
+signature RAIL =
+sig
+  datatype rails =
+    Cat of int * rail list
+  and rail =
+    Bar of rails list |
+    Plus of rails * rails |
+    Newline of int |
+    Nonterminal of string |
+    Terminal of bool * string |
+    Antiquote of bool * Antiquote.antiq
+  val read: Proof.context -> Input.source -> (string Antiquote.antiquote * rail) list
+  val output_rules: Toplevel.state -> (string Antiquote.antiquote * rail) list -> string
+end;
+
+structure Rail: RAIL =
 struct
 
 (** lexical syntax **)
@@ -313,6 +328,8 @@ and vertical_range (Bar cats) y =
   | vertical_range (Newline _) y = (Newline (y + 2), y + 3)
   | vertical_range atom y = (atom, y + 1);
 
+in
+
 fun output_rules state rules =
   let
     val output_antiq = Thy_Output.eval_antiquote state o Antiquote.Antiq;
@@ -356,8 +373,6 @@ fun output_rules state rules =
       end;
   in Latex.environment "railoutput" (implode (map output_rule rules)) end;
 
-in
-
 val _ = Theory.setup
   (Thy_Output.antiquotation @{binding rail} (Scan.lift Args.text_input)
     (fn {state, context, ...} => output_rules state o read context));
@@ -365,4 +380,3 @@ val _ = Theory.setup
 end;
 
 end;
-
