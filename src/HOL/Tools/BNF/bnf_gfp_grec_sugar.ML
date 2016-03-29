@@ -119,11 +119,11 @@ val transfer_codatatype_extra = morph_codatatype_extra o Morphism.transfer_morph
 type coinduct_extra =
   {coinduct: thm,
    coinduct_attrs: Token.src list,
-   cong_intro_tab: thm list Symtab.table};
+   cong_intro_pairs: (string * thm) list};
 
-fun morph_coinduct_extra phi ({coinduct, coinduct_attrs, cong_intro_tab} : coinduct_extra) =
+fun morph_coinduct_extra phi ({coinduct, coinduct_attrs, cong_intro_pairs} : coinduct_extra) =
   {coinduct = Morphism.thm phi coinduct, coinduct_attrs = coinduct_attrs,
-   cong_intro_tab = Symtab.map (K (Morphism.fact phi)) cong_intro_tab};
+   cong_intro_pairs = map (apsnd (Morphism.thm phi)) cong_intro_pairs};
 
 val transfer_coinduct_extra = morph_coinduct_extra o Morphism.transfer_morphism;
 
@@ -188,10 +188,10 @@ fun coinduct_extras_of_generic context =
 fun get_coinduct_uptos fpT_name context =
   coinduct_extras_of_generic context fpT_name |> map #coinduct;
 fun get_cong_all_intros fpT_name context =
-  coinduct_extras_of_generic context fpT_name |> maps (#cong_intro_tab #> Symtab.dest #> maps snd);
+  coinduct_extras_of_generic context fpT_name |> maps (#cong_intro_pairs #> map snd);
 fun get_cong_intros fpT_name name context =
   coinduct_extras_of_generic context fpT_name
-  |> maps (#cong_intro_tab #> (fn tab => Symtab.lookup_list tab name));
+  |> map_filter (#cong_intro_pairs #> (fn ps => AList.lookup (op =) ps name));
 
 fun ctr_names_of_fp_name lthy fpT_name =
   fpT_name |> fp_sugar_of lthy |> the |> #fp_ctr_sugar |> #ctr_sugar |> #ctrs
@@ -658,7 +658,7 @@ fun derive_cong_intros lthy ctr_names friend_names
       derive_cong_ctr_intros lthy cong_ctor_intro @
       map (derive_cong_friend_intro lthy) cong_algrho_intros;
   in
-    Symtab.make_list (names ~~ thms)
+    names ~~ thms
   end;
 
 fun derive_coinduct ctxt (fpT as Type (fpT_name, fpT_args)) dtor_coinduct =
@@ -1946,13 +1946,13 @@ fun derive_coinduct_cong_intros
       let
         val ctr_names = ctr_names_of_fp_name lthy fpT_name;
         val friend_names = friend_names0 |> map Long_Name.base_name |> rev;
-        val cong_intro_tab = derive_cong_intros lthy ctr_names friend_names dtor_coinduct_info;
+        val cong_intro_pairs = derive_cong_intros lthy ctr_names friend_names dtor_coinduct_info;
         val (coinduct, coinduct_attrs) = derive_coinduct lthy fpT0 dtor_coinduct;
         val ((_, [coinduct]), lthy) = (* TODO check: only if most_general?*)
           Local_Theory.note ((Binding.empty, coinduct_attrs), [coinduct]) lthy;
 
         val extra = {coinduct = coinduct, coinduct_attrs = coinduct_attrs,
-          cong_intro_tab = cong_intro_tab};
+          cong_intro_pairs = cong_intro_pairs};
       in
         ((most_general, extra), lthy |> most_general ? register_coinduct_extra corecUU_name extra)
       end)
@@ -2128,9 +2128,9 @@ fun prepare_corec_ursive_cmd long_cmd opts (raw_fixes, raw_eq) lthy =
         val simp_thmss = map2 append disc_iff_or_disc_thmss sel_thmss;
 *)
 
-        val ((_, [{cong_intro_tab, coinduct, coinduct_attrs}]), lthy) = lthy
+        val ((_, [{cong_intro_pairs, coinduct, coinduct_attrs}]), lthy) = lthy
           |> derive_and_update_coinduct_cong_intross [corec_info];
-        val cong_intros_pairs = Symtab.dest cong_intro_tab;
+        val cong_intros_pairs = AList.group (op =) cong_intro_pairs;
 
         val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
 
@@ -2293,11 +2293,11 @@ fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
         val (eq_algrho, algrho_eq) = derive_eq_algrho lthy corec_info friend_info fun_t k_T
           code_goal const_transfers rho_def eq_corecUU;
 
-        val ((_, [{cong_intro_tab, coinduct, coinduct_attrs}]), lthy) = lthy
+        val ((_, [{cong_intro_pairs, coinduct, coinduct_attrs}]), lthy) = lthy
           |> register_friend_extra fun_name eq_algrho algrho_eq
           |> register_coinduct_dynamic_friend fpT_name fun_name
           |> derive_and_update_coinduct_cong_intross [corec_info];
-        val cong_intros_pairs = Symtab.dest cong_intro_tab;
+        val cong_intros_pairs = AList.group (op =) cong_intro_pairs;
 
         val unique = derive_unique lthy Morphism.identity code_goal corec_info res_T eq_corecUU;
 
@@ -2343,10 +2343,10 @@ fun coinduction_upto_cmd (base_name, raw_fpT) lthy =
       |> corec_info_of fpT;
     val lthy = lthy |> no_base ? setup_base fpT_name;
 
-    val ((changed, [{cong_intro_tab, coinduct, coinduct_attrs}]), lthy) = lthy
+    val ((changed, [{cong_intro_pairs, coinduct, coinduct_attrs}]), lthy) = lthy
       |> derive_and_update_coinduct_cong_intross [corec_info];
     val lthy = lthy |> (changed orelse no_base) ? update_coinduct_cong_intross_dynamic fpT_name;
-    val cong_intros_pairs = Symtab.dest cong_intro_tab;
+    val cong_intros_pairs = AList.group (op =) cong_intro_pairs;
 
     val notes =
       [(cong_introsN, maps snd cong_intros_pairs, []),
