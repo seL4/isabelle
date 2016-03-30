@@ -163,21 +163,16 @@ val scan_sym =
   Scan.repeat1 scan_delim_char >> (Delim o Symbol_Pos.content);
 
 val scan_symb =
-  scan_sym >> SOME ||
+  Symbol_Pos.scan_pos -- scan_sym >> (SOME o swap) ||
   $$ "'" -- scan_one Symbol.is_blank >> K NONE;
 
 val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (~$$ "'");
-val read_symbs = map_filter I o the o Scan.read Symbol_Pos.stopper scan_symbs;
-
-fun unique_index xsymbs =
-  if length (filter is_index xsymbs) <= 1 then xsymbs
-  else error "Duplicate index arguments (\<index>)";
 
 in
 
-val read_mfix = unique_index o read_symbs;
+val read_mfix = map_filter I o the o Scan.read Symbol_Pos.stopper scan_symbs;
 
-val mfix_args = length o filter is_argument o read_mfix;
+val mfix_args = length o filter (is_argument o #1) o read_mfix;
 val mixfix_args = mfix_args o Input.source_explode;
 
 val escape = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
@@ -189,64 +184,58 @@ end;
 
 fun mfix_to_xprod logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
   let
-    val is_logtype = member (op =) logical_types;
+    fun err_in_mixfix msg = error (msg ^ " in mixfix annotation" ^ Position.here pos);
 
-    fun err msg = error (msg ^ " in mixfix annotation" ^ Position.here pos);
-
-    fun check_pri p =
-      if p >= 0 andalso p <= 1000 then ()
-      else err ("Precedence " ^ string_of_int p ^ " out of range");
-
-    fun blocks_ok [] 0 = true
-      | blocks_ok [] _ = false
-      | blocks_ok (Bg _ :: syms) n = blocks_ok syms (n + 1)
-      | blocks_ok (En :: _) 0 = false
-      | blocks_ok (En :: syms) n = blocks_ok syms (n - 1)
-      | blocks_ok (_ :: syms) n = blocks_ok syms n;
-
-    fun check_blocks syms =
-      if blocks_ok syms 0 then ()
-      else err "Unbalanced block parentheses";
-
-
-    val cons_fst = apfst o cons;
+    fun check_blocks [] pending bad = pending @ bad
+      | check_blocks ((Bg _, pos) :: rest) pending bad = check_blocks rest (pos :: pending) bad
+      | check_blocks ((En, pos) :: rest) [] bad = check_blocks rest [] (pos :: bad)
+      | check_blocks ((En, _) :: rest) (_ :: pending) bad = check_blocks rest pending bad
+      | check_blocks (_ :: rest) pending bad = check_blocks rest pending bad;
 
     fun add_args [] ty [] = ([], typ_to_nonterm1 ty)
-      | add_args [] _ _ = err "Too many precedences"
-      | add_args ((arg as Argument ("index", _)) :: syms) ty ps =
-          cons_fst arg (add_args syms ty ps)
-      | add_args (Argument _ :: syms) (Type ("fun", [ty, tys])) [] =
-          cons_fst (Argument (typ_to_nonterm ty, 0)) (add_args syms tys [])
-      | add_args (Argument _ :: syms) (Type ("fun", [ty, tys])) (p :: ps) =
-          cons_fst (Argument (typ_to_nonterm ty, p)) (add_args syms tys ps)
-      | add_args (Argument _ :: _) _ _ = err "More arguments than in corresponding type"
-      | add_args (sym :: syms) ty ps = cons_fst sym (add_args syms ty ps);
+      | add_args [] _ _ = err_in_mixfix "Too many precedences"
+      | add_args ((sym as (Argument ("index", _), _)) :: syms) ty ps =
+          add_args syms ty ps |>> cons sym
+      | add_args ((Argument _, pos) :: syms) (Type ("fun", [ty, tys])) [] =
+          add_args syms tys [] |>> cons (Argument (typ_to_nonterm ty, 0), pos)
+      | add_args ((Argument _, pos) :: syms) (Type ("fun", [ty, tys])) (p :: ps) =
+          add_args syms tys ps |>> cons (Argument (typ_to_nonterm ty, p), pos)
+      | add_args ((Argument _, _) :: _) _ _ =
+          err_in_mixfix "More arguments than in corresponding type"
+      | add_args (sym :: syms) ty ps = add_args syms ty ps |>> cons sym;
+
+    fun logical_args (a as (Argument (s, p))) =
+          if s <> "prop" andalso member (op =) logical_types s then Argument ("logic", p) else a
+      | logical_args a = a;
 
     fun rem_pri (Argument (s, _)) = Argument (s, chain_pri)
       | rem_pri sym = sym;
 
-    fun logify_types (a as (Argument (s, p))) =
-          if s <> "prop" andalso is_logtype s then Argument ("logic", p) else a
-      | logify_types a = a;
 
+    val raw_symbs = read_mfix sy;
 
-    val raw_symbs = read_mfix sy handle ERROR msg => err msg;
-    val args = filter (fn Argument _ => true | _ => false) raw_symbs;
+    val indexes = filter (is_index o #1) raw_symbs;
+    val _ =
+      if length indexes <= 1 then ()
+      else error ("More than one index argument" ^ Position.here_list (map #2 indexes));
+
+    val args = map_filter (fn (arg as Argument _, _) => SOME arg | _ => NONE) raw_symbs;
     val (const', typ', syntax_consts, parse_rules) =
       if not (exists is_index args) then (const, typ, NONE, NONE)
       else
         let
           val indexed_const =
             if const <> "" then const ^ "_indexed"
-            else err "Missing constant name for indexed syntax";
+            else err_in_mixfix "Missing constant name for indexed syntax";
           val rangeT = Term.range_type typ handle Match =>
-            err "Missing structure argument for indexed syntax";
+            err_in_mixfix "Missing structure argument for indexed syntax";
 
           val xs = map Ast.Variable (Name.invent Name.context "xa" (length args - 1));
           val (xs1, xs2) = chop (find_index is_index args) xs;
           val i = Ast.Variable "i";
-          val lhs = Ast.mk_appl (Ast.Constant indexed_const)
-            (xs1 @ [Ast.mk_appl (Ast.Constant "_index") [i]] @ xs2);
+          val lhs =
+            Ast.mk_appl (Ast.Constant indexed_const)
+              (xs1 @ [Ast.mk_appl (Ast.Constant "_index") [i]] @ xs2);
           val rhs = Ast.mk_appl (Ast.Constant const) (i :: xs);
         in (indexed_const, rangeT, SOME (indexed_const, const), SOME (lhs, rhs)) end;
 
@@ -256,23 +245,32 @@ fun mfix_to_xprod logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
       (lhs = "prop" orelse lhs = "logic")
         andalso const <> ""
         andalso not (null symbs)
-        andalso not (exists is_delim symbs);
+        andalso not (exists (is_delim o #1) symbs);
     val lhs' =
-      if copy_prod orelse lhs = "prop" andalso symbs = [Argument ("prop'", 0)] then lhs
+      if copy_prod orelse lhs = "prop" andalso map #1 symbs = [Argument ("prop'", 0)] then lhs
       else if lhs = "prop" then "prop'"
-      else if is_logtype lhs then "logic"
+      else if member (op =) logical_types lhs then "logic"
       else lhs;
-    val symbs' = map logify_types symbs;
-    val xprod = XProd (lhs', symbs', const', pri);
+    val symbs' = map (apfst logical_args) symbs;
 
-    val _ = (List.app check_pri pris; check_pri pri; check_blocks symbs');
+    val _ =
+      (pri :: pris) |> List.app (fn p =>
+        if p >= 0 andalso p <= 1000 then ()
+        else err_in_mixfix ("Precedence " ^ string_of_int p ^ " out of range"));
+    val _ =
+      (case check_blocks symbs' [] [] of
+        [] => ()
+      | bad => error ("Unbalanced block parentheses" ^ Position.here_list bad));
+
+    val xprod = XProd (lhs', map #1 symbs', const', pri);
     val xprod' =
-      if Lexicon.is_terminal lhs' then err ("Illegal lhs " ^ quote lhs')
+      if Lexicon.is_terminal lhs' then
+        err_in_mixfix ("Illegal use of terminal " ^ quote lhs' ^ " as nonterminal")
       else if const <> "" then xprod
-      else if length (filter is_argument symbs') <> 1 then
-        err "Copy production must have exactly one argument"
-      else if exists is_terminal symbs' then xprod
-      else XProd (lhs', map rem_pri symbs', "", chain_pri);
+      else if length (filter (is_argument o #1) symbs') <> 1 then
+        err_in_mixfix "Copy production must have exactly one argument"
+      else if exists (is_terminal o #1) symbs' then xprod
+      else XProd (lhs', map (rem_pri o #1) symbs', "", chain_pri);
 
   in (xprod', syntax_consts, parse_rules) end;
 
