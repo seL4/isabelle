@@ -1060,7 +1060,7 @@ end;
 
 fun declare_var (x, opt_T, mx) ctxt =
   let val T = (case opt_T of SOME T => T | NONE => Mixfix.mixfixT mx)
-  in ((x, T, mx), ctxt |> Variable.declare_constraints (Free (x, T))) end;
+  in (T, ctxt |> Variable.declare_constraints (Free (x, T))) end;
 
 fun add_syntax vars ctxt =
   map_syntax_idents (Local_Syntax.add_syntax ctxt (map (pair Local_Syntax.Fixed) vars)) ctxt;
@@ -1076,11 +1076,10 @@ fun check_var internal b =
 
 local
 
-fun check_mixfix ctxt (b, opt_T, mx) =
+fun check_mixfix ctxt (b, T, mx) =
   let
     val ([x], ctxt') = Variable.add_fixes_binding [Binding.reset_pos b] ctxt;
     val mx' = Mixfix.reset_pos mx;
-    val T = #2 (#1 (declare_var (x, opt_T, mx') ctxt));
     val _ = add_syntax [(x, T, if Context_Position.is_visible ctxt then mx else mx')] ctxt';
   in mx' end;
 
@@ -1091,9 +1090,9 @@ fun prep_var prep_typ internal (b, raw_T, mx) ctxt =
       if internal then T
       else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
     val opt_T = Option.map (cond_tvars o prep_typ ctxt) raw_T;
-    val mx' = if Mixfix.is_empty mx then mx else check_mixfix ctxt (b, opt_T, mx);
-    val (_, ctxt') = ctxt |> declare_var (x, opt_T, mx');
-  in ((b, opt_T, mx'), ctxt') end;
+    val (T, ctxt') = ctxt |> declare_var (x, opt_T, mx);
+    val mx' = if Mixfix.is_empty mx then mx else check_mixfix ctxt' (b, T, mx);
+  in ((b, SOME T, mx'), ctxt') end;
 
 in
 
@@ -1194,12 +1193,10 @@ fun gen_fixes prep_var raw_vars ctxt =
   let
     val (vars, _) = fold_map prep_var raw_vars ctxt;
     val (xs, ctxt') = Variable.add_fixes_binding (map #1 vars) ctxt;
-  in
-    ctxt'
-    |> fold_map declare_var (map2 (fn x => fn (_, T, mx) => (x, T, mx)) xs vars)
-    |-> add_syntax
-    |> pair xs
-  end;
+    val vars' = map2 (fn x => fn (_, opt_T, mx) => (x, opt_T, mx)) xs vars;
+    val (Ts, ctxt'') = fold_map declare_var vars' ctxt';
+    val vars'' = map2 (fn T => fn (x, _, mx) => (x, T, mx)) Ts vars';
+  in (xs, add_syntax vars'' ctxt'') end;
 
 in
 
