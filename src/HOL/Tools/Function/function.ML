@@ -78,10 +78,13 @@ fun add_simps fnames post sort extra_qualify label mod_binding moreatts
     (saved_simps, fold2 add_for_f fnames simps_by_f lthy)
   end
 
-fun prepare_function do_print prep default_constraint fixspec eqns config lthy =
+fun prepare_function do_print prep fixspec eqns config lthy =
   let
-    val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
-    val ((fixes0, spec0), ctxt') = prep (constrn_fxs fixspec) eqns lthy
+    val ((fixes0, spec0), ctxt') =
+      lthy
+      |> Proof_Context.set_object_logic_constraint
+      |> prep fixspec eqns
+      ||> Proof_Context.restore_object_logic_constraint lthy;
     val fixes = map (apfst (apfst Binding.name_of)) fixes0;
     val spec = map (fn (bnd, prop) => (bnd, [prop])) spec0;
     val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec
@@ -143,10 +146,10 @@ fun prepare_function do_print prep default_constraint fixspec eqns config lthy =
     ((goal_state, afterqed), lthy')
   end
 
-fun gen_add_function do_print prep default_constraint fixspec eqns config tac lthy =
+fun gen_add_function do_print prep fixspec eqns config tac lthy =
   let
     val ((goal_state, afterqed), lthy') =
-      prepare_function do_print prep default_constraint fixspec eqns config lthy
+      prepare_function do_print prep fixspec eqns config lthy
     val pattern_thm =
       case SINGLE (tac lthy') goal_state of
         NONE => error "pattern completeness and compatibility proof failed"
@@ -156,28 +159,21 @@ fun gen_add_function do_print prep default_constraint fixspec eqns config tac lt
     |> afterqed [[pattern_thm]]
   end
 
-val default_constraint_any = Type_Infer.anyT @{sort type};
-val default_constraint_any' = YXML.string_of_body (Term_XML.Encode.typ default_constraint_any);
+val add_function = gen_add_function false Specification.check_spec
+fun add_function_cmd a b c d int = gen_add_function int Specification.read_spec a b c d
 
-val add_function =
-  gen_add_function false Specification.check_spec default_constraint_any
-fun add_function_cmd a b c d int =
-  gen_add_function int Specification.read_spec default_constraint_any' a b c d
-
-fun gen_function do_print prep default_constraint fixspec eqns config lthy =
+fun gen_function do_print prep fixspec eqns config lthy =
   let
     val ((goal_state, afterqed), lthy') =
-      prepare_function do_print prep default_constraint fixspec eqns config lthy
+      prepare_function do_print prep fixspec eqns config lthy
   in
     lthy'
     |> Proof.theorem NONE (snd oo afterqed) [[(Logic.unprotect (Thm.concl_of goal_state), [])]]
     |> Proof.refine_singleton (Method.primitive_text (K (K goal_state)))
   end
 
-val function =
-  gen_function false Specification.check_spec default_constraint_any
-fun function_cmd a b c int =
-  gen_function int Specification.read_spec default_constraint_any' a b c
+val function = gen_function false Specification.check_spec
+fun function_cmd a b c int = gen_function int Specification.read_spec a b c
 
 fun prepare_termination_proof prep_term raw_term_opt lthy =
   let
