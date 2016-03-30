@@ -617,9 +617,7 @@ fun foundation (((b, U), mx), (b_def, rhs)) params lthy =
   (case instantiation_param lthy b of
     SOME c =>
       if Mixfix.is_empty mx then lthy |> define_overloaded (c, U) (Binding.name_of b) (b_def, rhs)
-      else
-        error ("Illegal mixfix syntax for overloaded constant " ^ quote c ^
-          Position.here (Mixfix.pos_of mx))
+      else error ("Illegal mixfix syntax for overloaded constant " ^ quote c)
   | NONE => lthy |> Generic_Target.theory_target_foundation (((b, U), mx), (b_def, rhs)) params);
 
 fun pretty lthy =
