@@ -99,6 +99,14 @@ fun delims_of xprods =
     fold (fn Delim s => insert (op =) s | _ => I) xsymbs) xprods []
   |> map Symbol.explode;
 
+fun reports_of (xsym, pos: Position.T) =
+  (case xsym of
+    Delim _ => [(pos, Markup.literal)]
+  | Bg _ => [(pos, Markup.keyword3)]
+  | Brk _ => [(pos, Markup.keyword3)]
+  | En => [(pos, Markup.keyword3)]
+  | _ => []);
+
 
 
 (** datatype mfix **)
@@ -156,16 +164,21 @@ val scan_sym =
   Scan.repeat1 scan_delim_char >> (Delim o Symbol_Pos.content);
 
 val scan_symb =
-  Symbol_Pos.scan_pos -- scan_sym >> (SOME o swap) ||
+  Scan.trace scan_sym >>
+    (fn (syms, trace) => SOME (syms, Position.set_range (Symbol_Pos.range trace))) ||
   $$ "'" -- scan_one Symbol.is_blank >> K NONE;
 
 val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (~$$ "'");
 
 in
 
-val read_mfix = map_filter I o the o Scan.read Symbol_Pos.stopper scan_symbs;
+fun read_mfix ss =
+  let
+    val xsymbs = map_filter I (the (Scan.read Symbol_Pos.stopper scan_symbs ss));
+    val _ = Position.reports (maps reports_of xsymbs);
+  in xsymbs end;
 
-val mfix_args = length o filter (is_argument o #1) o read_mfix;
+val mfix_args = length o filter (is_argument o #1) o read_mfix o map (apsnd (K Position.none));
 val mixfix_args = mfix_args o Input.source_explode;
 
 val escape = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
@@ -177,6 +190,8 @@ end;
 
 fun mfix_to_xprod logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
   let
+    val symbs0 = read_mfix sy;
+
     fun err_in_mixfix msg = error (msg ^ " in mixfix annotation" ^ Position.here pos);
 
     fun check_blocks [] pending bad = pending @ bad
@@ -204,15 +219,12 @@ fun mfix_to_xprod logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
     fun rem_pri (Argument (s, _)) = Argument (s, chain_pri)
       | rem_pri sym = sym;
 
-
-    val raw_symbs = read_mfix sy;
-
-    val indexes = filter (is_index o #1) raw_symbs;
+    val indexes = filter (is_index o #1) symbs0;
     val _ =
       if length indexes <= 1 then ()
       else error ("More than one index argument" ^ Position.here_list (map #2 indexes));
 
-    val args = map_filter (fn (arg as Argument _, _) => SOME arg | _ => NONE) raw_symbs;
+    val args = map_filter (fn (arg as Argument _, _) => SOME arg | _ => NONE) symbs0;
     val (const', typ', syntax_consts, parse_rules) =
       if not (exists is_index args) then (const, typ, NONE, NONE)
       else
@@ -232,38 +244,38 @@ fun mfix_to_xprod logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
           val rhs = Ast.mk_appl (Ast.Constant const) (i :: xs);
         in (indexed_const, rangeT, SOME (indexed_const, const), SOME (lhs, rhs)) end;
 
-    val (symbs, lhs) = add_args raw_symbs typ' pris;
+    val (symbs1, lhs) = add_args symbs0 typ' pris;
 
     val copy_prod =
       (lhs = "prop" orelse lhs = "logic")
         andalso const <> ""
-        andalso not (null symbs)
-        andalso not (exists (is_delim o #1) symbs);
+        andalso not (null symbs1)
+        andalso not (exists (is_delim o #1) symbs1);
     val lhs' =
-      if copy_prod orelse lhs = "prop" andalso map #1 symbs = [Argument ("prop'", 0)] then lhs
+      if copy_prod orelse lhs = "prop" andalso map #1 symbs1 = [Argument ("prop'", 0)] then lhs
       else if lhs = "prop" then "prop'"
       else if member (op =) logical_types lhs then "logic"
       else lhs;
-    val symbs' = map (apfst logical_args) symbs;
+    val symbs2 = map (apfst logical_args) symbs1;
 
     val _ =
       (pri :: pris) |> List.app (fn p =>
         if p >= 0 andalso p <= 1000 then ()
         else err_in_mixfix ("Precedence " ^ string_of_int p ^ " out of range"));
     val _ =
-      (case check_blocks symbs' [] [] of
+      (case check_blocks symbs2 [] [] of
         [] => ()
       | bad => error ("Unbalanced block parentheses" ^ Position.here_list bad));
 
-    val xprod = XProd (lhs', map #1 symbs', const', pri);
+    val xprod = XProd (lhs', map #1 symbs2, const', pri);
     val xprod' =
       if Lexicon.is_terminal lhs' then
         err_in_mixfix ("Illegal use of terminal " ^ quote lhs' ^ " as nonterminal")
       else if const <> "" then xprod
-      else if length (filter (is_argument o #1) symbs') <> 1 then
+      else if length (filter (is_argument o #1) symbs2) <> 1 then
         err_in_mixfix "Copy production must have exactly one argument"
-      else if exists (is_terminal o #1) symbs' then xprod
-      else XProd (lhs', map (rem_pri o #1) symbs', "", chain_pri);
+      else if exists (is_terminal o #1) symbs2 then xprod
+      else XProd (lhs', map (rem_pri o #1) symbs2, "", chain_pri);
 
   in (xprod', syntax_consts, parse_rules) end;
 
