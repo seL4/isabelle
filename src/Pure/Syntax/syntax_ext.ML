@@ -190,6 +190,7 @@ end;
 
 fun mfix_to_xprod logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
   let
+    val _ = Position.report pos Markup.language_mixfix;
     val symbs0 = read_mfix sy;
 
     fun err_in_mixfix msg = error (msg ^ " in mixfix annotation" ^ Position.here pos);

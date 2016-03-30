@@ -568,7 +568,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
               else "breakpoint (disabled)"
             Some(add(prev, r, (true, XML.Text(text))))
           case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _, _, _), _))) =>
-            Some(add(prev, r, (true, XML.Text("language: " + language))))
+            val lang = Word.implode(Word.explode('_', language))
+            Some(add(prev, r, (true, XML.Text("language: " + lang))))
 
           case (prev, Text.Info(r, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
             Some(add(prev, r, (true, XML.Text("Markdown: paragraph"))))
