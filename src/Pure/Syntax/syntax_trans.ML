@@ -184,11 +184,6 @@ fun type_tr [ty] = mk_type ty
   | type_tr ts = raise TERM ("type_tr", ts);
 
 
-(* dddot *)
-
-fun dddot_tr ts = Term.list_comb (Syntax.var Syntax_Ext.dddot_indexname, ts);
-
-
 (* quote / antiquote *)
 
 fun antiquote_tr name =
@@ -495,7 +490,6 @@ val pure_parse_translation =
   ("_ofclass", fn _ => ofclass_tr),
   ("_sort_constraint", fn _ => sort_constraint_tr),
   ("_TYPE", fn _ => type_tr),
-  ("_DDDOT", fn _ => dddot_tr),
   ("_update_name", fn _ => update_name_tr),
   ("_index", fn _ => index_tr),
   ("_struct", struct_tr)];

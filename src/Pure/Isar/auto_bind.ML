@@ -12,6 +12,7 @@ sig
   val assmsN: string
   val abs_params: term -> term -> term
   val goal: Proof.context -> term list -> (indexname * term option) list
+  val dddot: indexname
   val facts: Proof.context -> term list -> (indexname * term option) list
   val no_facts: indexname list
 end;
@@ -40,6 +41,15 @@ fun goal ctxt [prop] = statement_binds ctxt thesisN prop
   | goal _ _ = [((thesisN, 0), NONE)];
 
 
+(* dddot *)
+
+val dddot = ("dddot", 0);
+
+val _ =
+  Theory.setup (Sign.parse_translation
+    [("_DDDOT", fn _ => fn ts => Term.list_comb (Syntax.var dddot, ts))]);
+
+
 (* facts *)
 
 fun get_arg ctxt prop =
@@ -50,9 +60,8 @@ fun get_arg ctxt prop =
 fun facts ctxt props =
   (case try List.last props of
     NONE => []
-  | SOME prop =>
-      [(Syntax_Ext.dddot_indexname, get_arg ctxt prop)] @ statement_binds ctxt thisN prop);
+  | SOME prop => [(dddot, get_arg ctxt prop)] @ statement_binds ctxt thisN prop);
 
-val no_facts = [Syntax_Ext.dddot_indexname, (thisN, 0)];
+val no_facts = [dddot, (thisN, 0)];
 
 end;

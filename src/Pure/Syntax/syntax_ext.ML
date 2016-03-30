@@ -6,7 +6,6 @@ Syntax extension.
 
 signature SYNTAX_EXT =
 sig
-  val dddot_indexname: indexname
   datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Position.T
   val typ_to_nonterm: typ -> string
   datatype xsymb =
@@ -55,12 +54,6 @@ end;
 
 structure Syntax_Ext: SYNTAX_EXT =
 struct
-
-
-(** misc definitions **)
-
-val dddot_indexname = ("dddot", 0);
-
 
 (** datatype xprod **)
 
