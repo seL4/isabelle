@@ -86,7 +86,7 @@ The package, like its predecessor, fully adheres to the LCF philosophy
 \footnote{However, some of the
 internal constructions and most of the internal proof obligations are omitted
 if the @{text quick_and_dirty} option is enabled.}
-The package is described in a number of papers
+The package is described in a number of scientific papers
 @{cite "traytel-et-al-2012" and "blanchette-et-al-2014-impl" and
 "panny-et-al-2014" and "blanchette-et-al-2015-wit"}.
 The central notion is that of a \emph{bounded natural functor} (BNF)---a
@@ -103,7 +103,7 @@ describes how to specify datatypes using the @{command datatype} command.
 \item Section \ref{sec:defining-primitively-recursive-functions}, ``Defining
 Primitively Recursive Functions,'' describes how to specify functions
 using @{command primrec}. (A separate tutorial @{cite "isabelle-function"}
-describes the more general \keyw{fun} and \keyw{function} commands.)
+describes the more powerful \keyw{fun} and \keyw{function} commands.)
 
 \item Section \ref{sec:defining-codatatypes}, ``Defining Codatatypes,''
 describes how to specify codatatypes using the @{command codatatype} command.
@@ -111,7 +111,9 @@ describes how to specify codatatypes using the @{command codatatype} command.
 \item Section \ref{sec:defining-primitively-corecursive-functions},
 ``Defining Primitively Corecursive Functions,'' describes how to specify
 functions using the @{command primcorec} and
-@{command primcorecursive} commands.
+@{command primcorecursive} commands. (A separate tutorial
+@{cite "isabelle-corec"} describes the more powerful \keyw{corec} and
+\keyw{corecursive} commands.)
 
 \item Section \ref{sec:registering-bounded-natural-functors}, ``Registering
 Bounded Natural Functors,'' explains how to use the @{command bnf} command
@@ -132,17 +134,17 @@ with the package's interoperability with other Isabelle packages and tools, such
 as the code generator, Transfer, Lifting, and Quickcheck.
 
 \item Section \ref{sec:known-bugs-and-limitations}, ``Known Bugs and
-Limitations,'' concludes with known open issues at the time of writing.
+Limitations,'' concludes with known open issues.
 \end{itemize}
 
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{NOSPAM}}
 
-\newcommand\authoremaili{\texttt{blan{\color{white}NOSPAM}\kern-\wd\boxA{}chette@\allowbreak
-in.\allowbreak tum.\allowbreak de}}
+\newcommand\authoremaili{\texttt{jasmin.blan{\color{white}NOSPAM}\kern-\wd\boxA{}chette@\allowbreak
+gmail.\allowbreak com}}
 
 Comments and bug reports concerning either the package or this tutorial should
-be directed to the first author at \authoremaili{} or to the
+be directed to the second author at \authoremaili{} or to the
 \texttt{cl-isabelle-users} mailing list.
 \<close>
 
@@ -161,7 +163,7 @@ subsection \<open>Introductory Examples
 text \<open>
 Datatypes are illustrated through concrete examples featuring different flavors
 of recursion. More examples can be found in the directory
-@{file "~~/src/HOL/Datatype_Examples"}
+@{file "~~/src/HOL/Datatype_Examples"}.
 \<close>
 
 
@@ -687,23 +689,17 @@ are properties of datatypes related to their inductive nature.
 \end{itemize}
 
 \noindent
-The full list of named theorems can be obtained as usual by entering the
-command \keyw{print_theorems} immediately after the datatype definition.
-This list includes theorems produced by plugins
-(Section~\ref{sec:selecting-plugins}), but normally excludes low-level
-theorems that reveal internal constructions. To make these accessible, add
-the line
+The full list of named theorems can be obtained by issuing the command
+\keyw{print_theorems} immediately after the datatype definition. This list
+includes theorems produced by plugins (Section~\ref{sec:selecting-plugins}),
+but normally excludes low-level theorems that reveal internal constructions.
+To make these accessible, add the line
 \<close>
 
     declare [[bnf_internals]]
 (*<*)
     declare [[bnf_internals = false]]
 (*>*)
-
-text \<open>
-\noindent
-to the top of the theory file.
-\<close>
 
 
 subsubsection \<open>Free Constructor Theorems
@@ -812,7 +808,7 @@ with a single nullary constructor, because a property of the form
 \item[@{text "t."}\hthm{distinct_disc} @{text "[dest]"}\rm:] ~ \\
 These properties are missing for @{typ "'a list"} because there is only one
 proper discriminator. If the datatype had been introduced with a second
-discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
+discriminator called @{const nonnull}, they would have read as follows: \\[\jot]
 @{prop "null list \<Longrightarrow> \<not> nonnull list"} \\
 @{prop "nonnull list \<Longrightarrow> \<not> null list"}
 
@@ -1143,7 +1139,7 @@ subsubsection \<open>\textit{countable_datatype}
 
 text \<open>
 The theory @{file "~~/src/HOL/Library/Countable.thy"} provides a
-proof method called @{text countable_datatype} that can be used to prove the
+proof method called @{method countable_datatype} that can be used to prove the
 countability of many datatypes, building on the countability of the types
 appearing in their definitions and of any type arguments. For example:
 \<close>
@@ -2037,11 +2033,12 @@ text \<open>
 Corecursive functions can be specified using the @{command primcorec} and
 \keyw{prim\-corec\-ursive} commands, which support primitive corecursion.
 Other approaches include the more general \keyw{partial_function} command, the
-forthcoming \keyw{corec} command @{cite "blanchette-et-al-2015-corec"}, and
-techniques based on domains and topologies @{cite "lochbihler-hoelzl-2014"}.
-In this tutorial, the focus is on @{command primcorec} and
-@{command primcorecursive}. More examples can be found in the directory
-@{file "~~/src/HOL/Datatype_Examples"}.
+\keyw{corec} and \keyw{corecursive} commands, and techniques based on domains
+and topologies @{cite "lochbihler-hoelzl-2014"}. In this tutorial, the focus is
+on @{command primcorec} and @{command primcorecursive}; \keyw{corec} and
+\keyw{corecursive} are described in a separate tutorial
+@{cite "isabelle-corec"}. More examples can be found in the directories
+@{file "~~/src/HOL/Datatype_Examples"} and @{file "~~/src/HOL/Corec_Examples"}.
 
 Whereas recursive functions consume datatypes one constructor at a time,
 corecursive functions construct codatatypes one constructor at a time.
