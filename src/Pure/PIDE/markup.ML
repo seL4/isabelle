@@ -43,6 +43,7 @@ sig
   val language_verbatim: bool -> T
   val language_rail: T
   val language_path: T
+  val language_mixfix: T
   val bindingN: string val binding: T
   val entityN: string val entity: string -> string -> T
   val get_entity_kind: T -> string option
@@ -317,9 +318,11 @@ val language_document = language' {name = "document", symbols = false, antiquote
 val language_antiquotation =
   language {name = "antiquotation", symbols = true, antiquotes = false, delimited = true};
 val language_text = language' {name = "text", symbols = true, antiquotes = false};
-val language_verbatim = language' {name = "verbatim", symbols = true, antiquotes = false};
+val language_verbatim = language' {name = "verbatim_text", symbols = true, antiquotes = false};
 val language_rail = language {name = "rail", symbols = true, antiquotes = true, delimited = true};
 val language_path = language {name = "path", symbols = false, antiquotes = false, delimited = true};
+val language_mixfix =
+  language {name = "mixfix_annotation", symbols = true, antiquotes = false, delimited = true};
 
 
 (* formal entities *)

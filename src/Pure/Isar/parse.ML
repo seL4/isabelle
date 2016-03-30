@@ -320,29 +320,29 @@ local
 val mfix =
   input string --
     !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] -- Scan.optional nat 1000)
-  >> (fn (sy, (ps, p)) => Mixfix (sy, ps, p, Position.no_range));
+  >> (fn (sy, (ps, p)) => fn range => Mixfix (sy, ps, p, range));
 
 val infx =
-  $$$ "infix" |-- !!! (input string -- nat >> (fn (sy, p) => Infix (sy, p, Position.no_range)));
+  $$$ "infix" |-- !!! (input string -- nat >> (fn (sy, p) => fn range => Infix (sy, p, range)));
 
 val infxl =
-  $$$ "infixl" |-- !!! (input string -- nat >> (fn (sy, p) => Infixl (sy, p, Position.no_range)));
+  $$$ "infixl" |-- !!! (input string -- nat >> (fn (sy, p) => fn range => Infixl (sy, p, range)));
 
 val infxr =
-  $$$ "infixr" |-- !!! (input string -- nat >> (fn (sy, p) => Infixr (sy, p, Position.no_range)));
+  $$$ "infixr" |-- !!! (input string -- nat >> (fn (sy, p) => fn range => Infixr (sy, p, range)));
 
-val strcture = $$$ "structure" >> K (Structure Position.no_range);
+val strcture = $$$ "structure" >> K Structure;
 
 val binder =
   $$$ "binder" |--
     !!! (input string -- ($$$ "[" |-- nat --| $$$ "]" -- nat || nat >> (fn n => (n, n))))
-  >> (fn (sy, (p, q)) => Binder (sy, p, q, Position.no_range));
+  >> (fn (sy, (p, q)) => fn range => Binder (sy, p, q, range));
 
 val mixfix_body = mfix || strcture || binder || infxl || infxr || infx;
 
 fun annotation guard body =
   Scan.trace ($$$ "(" |-- guard (body --| $$$ ")"))
-    >> (fn (mx, toks) => Mixfix.set_range (Token.range_of toks) mx);
+    >> (fn (mx, toks) => mx (Token.range_of toks));
 
 fun opt_annotation guard body = Scan.optional (annotation guard body) NoSyn;
 

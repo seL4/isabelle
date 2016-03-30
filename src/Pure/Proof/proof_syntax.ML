@@ -42,7 +42,6 @@ fun add_proof_atom_consts names thy =
 (** constants for application and abstraction **)
 
 fun mixfix (sy, ps, p) = Mixfix (Input.string sy, ps, p, Position.no_range);
-fun delimfix sy = Delimfix (Input.string sy, Position.no_range);
 
 fun add_proof_syntax thy =
   thy
@@ -58,7 +57,7 @@ fun add_proof_syntax thy =
      ((Binding.make ("Hyp", @{here}), propT --> proofT), NoSyn),
      ((Binding.make ("Oracle", @{here}), propT --> proofT), NoSyn),
      ((Binding.make ("OfClass", @{here}), (Term.a_itselfT --> propT) --> proofT), NoSyn),
-     ((Binding.make ("MinProof", @{here}), proofT), delimfix "?")]
+     ((Binding.make ("MinProof", @{here}), proofT), Mixfix.mixfix "?")]
   |> Sign.add_nonterminals_global
     [Binding.make ("param", @{here}),
      Binding.make ("params", @{here})]
@@ -67,9 +66,9 @@ fun add_proof_syntax thy =
      ("_Lam0", [paramT, paramsT] ---> paramsT, mixfix ("_/ _", [1, 0], 0)),
      ("_Lam0", [idtT, paramsT] ---> paramsT, mixfix ("_/ _", [1, 0], 0)),
      ("_Lam1", [idtT, propT] ---> paramT, mixfix ("_: _", [0, 0], 0)),
-     ("", paramT --> paramT, delimfix "'(_')"),
-     ("", idtT --> paramsT, delimfix "_"),
-     ("", paramT --> paramsT, delimfix "_")]
+     ("", paramT --> paramT, Mixfix.mixfix "'(_')"),
+     ("", idtT --> paramsT, Mixfix.mixfix "_"),
+     ("", paramT --> paramsT, Mixfix.mixfix "_")]
   |> Sign.add_syntax (Print_Mode.ASCII, true)
     [("_Lam", [paramsT, proofT] ---> proofT, mixfix ("(1Lam _./ _)", [0, 3], 3)),
      (Lexicon.mark_const "Appt", [proofT, aT] ---> proofT, mixfix ("(1_ %/ _)", [4, 5], 4)),

@@ -83,8 +83,7 @@ fun prep_mixfix _ _ (_, (_, _, Structure _)) = NONE
       SOME ((x, true), ((false, add, mode), (Lexicon.mark_fixed x, T, mx)));
 
 fun prep_struct (Fixed, (c, _, Structure _)) = SOME c
-  | prep_struct (_, (c, _, mx as Structure _)) =
-      error ("Bad mixfix declaration for " ^ quote c ^ Position.here (Mixfix.pos_of mx))
+  | prep_struct (_, (c, _, Structure _)) = error ("Bad structure mixfix declaration for " ^ quote c)
   | prep_struct _ = NONE;
 
 in

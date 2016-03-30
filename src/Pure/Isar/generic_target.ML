@@ -10,6 +10,7 @@ sig
   (*auxiliary*)
   val export_abbrev: Proof.context ->
       (term -> term) -> term -> term * ((string * sort) list * (term list * term list))
+  val check_mixfix: Proof.context -> binding * (string * sort) list -> mixfix -> mixfix
   val check_mixfix_global: binding * bool -> mixfix -> mixfix
 
   (*background primitives*)
@@ -104,16 +105,14 @@ fun check_mixfix ctxt (b, extra_tfrees) mx =
         ("Additional type variable(s) in specification of " ^ Binding.print b ^ ": " ^
           commas (map (Syntax.string_of_typ ctxt o TFree) (sort_by #1 extra_tfrees)) ^
           (if Mixfix.is_empty mx then ""
-           else
-            "\nDropping mixfix syntax " ^ Pretty.string_of (Mixfix.pretty_mixfix mx) ^
-              Position.here (Mixfix.pos_of mx)))
+           else "\nDropping mixfix syntax " ^ Pretty.string_of (Mixfix.pretty_mixfix mx)))
     else (); NoSyn);
 
 fun check_mixfix_global (b, no_params) mx =
   if no_params orelse Mixfix.is_empty mx then mx
   else
     (warning ("Dropping global mixfix syntax: " ^ Binding.print b ^ " " ^
-      Pretty.string_of (Mixfix.pretty_mixfix mx) ^ Position.here (Mixfix.pos_of mx)); NoSyn);
+      Pretty.string_of (Mixfix.pretty_mixfix mx)); NoSyn);
 
 fun same_const (Const (c, _), Const (c', _)) = c = c'
   | same_const (t $ _, t' $ _) = same_const (t, t')
@@ -148,10 +147,12 @@ fun const_decl phi_pred prmode ((b, mx), rhs) phi context =
           |> Morphism.form (Proof_Context.generic_notation true prmode [(rhs', mx)])
       | NONE =>
           context
-          |> Proof_Context.generic_add_abbrev Print_Mode.internal (b', Term.close_schematic_term rhs')
+          |> Proof_Context.generic_add_abbrev Print_Mode.internal
+            (b', Term.close_schematic_term rhs')
           |-> (fn (const as Const (c, _), _) => same_stem ?
                 (Proof_Context.generic_revert_abbrev (#1 prmode) c #>
-                 same_shape ? Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)]))))
+                 same_shape ?
+                  Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)]))))
     end
   else context;
 
@@ -347,8 +348,10 @@ fun theory_target_abbrev prmode (b, mx) global_rhs params =
     (Sign.add_abbrev (#1 prmode) (b, global_rhs) #->
       (fn (lhs, _) =>  (* FIXME type_params!? *)
         Sign.notation true prmode [(lhs, check_mixfix_global (b, null (snd params)) mx)] #> pair lhs))
-  #-> (fn lhs => standard_const (op <>) prmode
-          ((b, if null (snd params) then NoSyn else mx), Term.list_comb (Logic.unvarify_global lhs, snd params)));
+  #-> (fn lhs =>
+        standard_const (op <>) prmode
+          ((b, if null (snd params) then NoSyn else mx),
+            Term.list_comb (Logic.unvarify_global lhs, snd params)));
 
 
 (** theory operations **)

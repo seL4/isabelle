@@ -624,7 +624,7 @@ fun mark_atoms is_syntax_const ctxt tm =
             else Syntax.const "_free" $ t
           end
       | mark (t as Var (xi, T)) =
-          if xi = Syntax_Ext.dddot_indexname then Const ("_DDDOT", T)
+          if xi = Auto_Bind.dddot then Const ("_DDDOT", T)
           else Syntax.const "_var" $ t
       | mark a = a;
   in mark tm end;

@@ -417,6 +417,6 @@ object Sessions
     def heap(name: String): Path =
       find_heap(name) getOrElse
         error("Unknown logic " + quote(name) + " -- no heap file found in:\n" +
-          cat_lines(input_dirs.map(dir => "  " + dir.implode)))
+          cat_lines(input_dirs.map(dir => "  " + dir.expand.implode)))
   }
 }

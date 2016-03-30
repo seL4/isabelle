@@ -232,7 +232,7 @@ fun gen_def prep (raw_var, raw_spec) int lthy =
       fst (prep (the_list raw_var) [raw_spec] lthy);
     val (((x, T), rhs), prove) = Local_Defs.derived_def lthy true prop;
     val _ = Name.reject_internal (x, []);
-    val var as (b, _) =
+    val (b, mx) =
       (case vars of
         [] => (Binding.make (x, get_pos x), NoSyn)
       | [((b, _), mx)] =>
@@ -244,7 +244,7 @@ fun gen_def prep (raw_var, raw_spec) int lthy =
           in (b, mx) end);
     val name = Binding.reset_pos (Thm.def_binding_optional b raw_name);
     val ((lhs, (_, raw_th)), lthy2) = lthy
-      |> Local_Theory.define_internal (var, ((Binding.suffix_name "_raw" name, []), rhs));
+      |> Local_Theory.define_internal ((b, mx), ((Binding.suffix_name "_raw" name, []), rhs));
 
     val th = prove lthy2 raw_th;
     val lthy3 = lthy2 |> Spec_Rules.add Spec_Rules.Equational ([lhs], [th]);
@@ -275,7 +275,7 @@ fun gen_abbrev prep mode (raw_var, raw_prop) int lthy =
         (lthy1 |> Proof_Context.set_mode Proof_Context.mode_abbrev);
     val ((x, T), rhs) = Local_Defs.abs_def (#2 (Local_Defs.cert_def lthy1 prop));
     val _ = Name.reject_internal (x, []);
-    val var =
+    val (b, mx) =
       (case vars of
         [] => (Binding.make (x, get_pos x), NoSyn)
       | [((b, _), mx)] =>
@@ -286,7 +286,7 @@ fun gen_abbrev prep mode (raw_var, raw_prop) int lthy =
                 Position.here (Binding.pos_of b));
           in (b, mx) end);
     val lthy2 = lthy1
-      |> Local_Theory.abbrev mode (var, rhs) |> snd
+      |> Local_Theory.abbrev mode ((b, mx), rhs) |> snd
       |> Proof_Context.restore_syntax_mode lthy;
 
     val _ = Proof_Display.print_consts int (Position.thread_data ()) lthy2 (K false) [(x, T)];

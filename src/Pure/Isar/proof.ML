@@ -594,21 +594,25 @@ end;
 
 local
 
-fun gen_write prep_arg mode args =
-  assert_forward
-  #> map_context (fn ctxt => ctxt |> Proof_Context.notation true mode (map (prep_arg ctxt) args))
-  #> reset_facts;
-
-fun read_arg ctxt (c, mx) =
+fun read_arg (c, mx) ctxt =
   (case Proof_Context.read_const {proper = false, strict = false} ctxt c of
     Free (x, _) =>
-      let val T = Proof_Context.infer_type ctxt (x, Mixfix.mixfixT mx)
-      in (Free (x, T), mx) end
-  | t => (t, mx));
+      let
+        val ctxt' =
+          ctxt |> is_none (Variable.default_type ctxt x) ?
+            Variable.declare_constraints (Free (x, Proof_Context.default_constraint ctxt mx));
+        val t = Free (#1 (Proof_Context.inferred_param x ctxt'));
+      in ((t, mx), ctxt') end
+  | t => ((t, mx), ctxt));
+
+fun gen_write prep_arg mode args =
+  assert_forward
+  #> map_context (fold_map prep_arg args #-> Proof_Context.notation true mode)
+  #> reset_facts;
 
 in
 
-val write = gen_write (K I);
+val write = gen_write pair;
 val write_cmd = gen_write read_arg;
 
 end;
