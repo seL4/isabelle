@@ -134,7 +134,11 @@ fun gen_quotient_def prep_var parse_term (raw_var, (attr, (raw_lhs, raw_rhs))) l
     val (opt_var, ctxt) =
       (case raw_var of
         NONE => (NONE, lthy)
-      | SOME var => prep_var var lthy |>> SOME)
+      | SOME var =>
+          Proof_Context.set_object_logic_constraint lthy
+          |> prep_var var
+          ||> Proof_Context.restore_object_logic_constraint lthy
+          |>> SOME)
     val lhs_constraint = (case opt_var of SOME (_, SOME T, _) => T | _ => dummyT)
 
     fun prep_term T = parse_term ctxt #> Type.constraint T #> Syntax.check_term ctxt;
