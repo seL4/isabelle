@@ -13,7 +13,7 @@ plugin.isabelle.jedit.Plugin.activate=startup
 plugin.isabelle.jedit.Plugin.usePluginHome=false
 
 #dependencies
-plugin.isabelle.jedit.Plugin.depend.0=jdk 1.7
+plugin.isabelle.jedit.Plugin.depend.0=jdk 1.8
 plugin.isabelle.jedit.Plugin.depend.1=jedit 05.03.00.00
 plugin.isabelle.jedit.Plugin.depend.2=plugin console.ConsolePlugin 5.1.4
 plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 2.3
