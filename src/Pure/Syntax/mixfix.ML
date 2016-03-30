@@ -164,8 +164,8 @@ fun syn_ext_consts logical_types const_decls =
   let
     fun mk_infix sy ty c p1 p2 p3 range =
       [Syntax_Ext.Mfix
-        (Symbol_Pos.explode0 "op " @ Input.source_explode sy,
-          ty, c, [], 1000, Position.set_range range),
+        (Symbol_Pos.explode0 "op " @ Input.source_explode (Input.reset_pos sy),
+          ty, c, [], 1000, Position.none),
        Syntax_Ext.Mfix
         (Symbol_Pos.explode0 "(_ " @ Input.source_explode sy @ Symbol_Pos.explode0 "/ _)",
           ty, c, [p1, p2], p3, Position.set_range range)];
