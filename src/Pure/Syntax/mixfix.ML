@@ -22,7 +22,6 @@ sig
   include BASIC_MIXFIX
   val is_empty: mixfix -> bool
   val equal: mixfix * mixfix -> bool
-  val set_range: Position.range -> mixfix -> mixfix
   val range_of: mixfix -> Position.range
   val pos_of: mixfix -> Position.T
   val reset_pos: mixfix -> mixfix
@@ -64,17 +63,6 @@ fun equal (NoSyn, NoSyn) = true
       Input.equal_content (sy, sy') andalso p = p' andalso q = q'
   | equal (Structure _, Structure _) = true
   | equal _ = false;
-
-fun set_range range mx =
-  (case mx of
-    NoSyn => NoSyn
-  | Mixfix (sy, ps, p, _) => Mixfix (sy, ps, p, range)
-  | Delimfix (sy, _) => Delimfix (sy, range)
-  | Infix (sy, p, _) => Infix (sy, p, range)
-  | Infixl (sy, p, _) => Infixl (sy, p, range)
-  | Infixr (sy, p, _) => Infixr (sy, p, range)
-  | Binder (sy, p, q, _) => Binder (sy, p, q, range)
-  | Structure _ => Structure range);
 
 fun range_of NoSyn = Position.no_range
   | range_of (Mixfix (_, _, _, range)) = range
