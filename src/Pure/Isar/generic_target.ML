@@ -98,30 +98,21 @@ fun export_abbrev lthy preprocess rhs =
   in (global_rhs, (extra_tfrees, (type_params, term_params))) end;
 
 fun check_mixfix ctxt (b, extra_tfrees) mx =
-  let
-    val visible = Context_Position.is_visible ctxt;
-    val _ =
-      ctxt |> Proof_Context.add_fixes
-        [(Binding.reset_pos b, NONE, if visible then mx else Mixfix.reset_pos mx)];
-    val mx' =
-      if null extra_tfrees then mx
-      else
-       (if visible then
-          warning
-            ("Additional type variable(s) in specification of " ^ Binding.print b ^ ": " ^
-              commas (map (Syntax.string_of_typ ctxt o TFree) (sort_by #1 extra_tfrees)) ^
-              (if Mixfix.is_empty mx then ""
-               else
-                "\nDropping mixfix syntax " ^ Pretty.string_of (Mixfix.pretty_mixfix mx) ^
-                  Position.here (Mixfix.pos_of mx)))
-        else (); NoSyn);
-  in Mixfix.reset_pos mx' end;
+  if null extra_tfrees then mx
+  else
+   (if Context_Position.is_visible ctxt then
+      warning
+        ("Additional type variable(s) in specification of " ^ Binding.print b ^ ": " ^
+          commas (map (Syntax.string_of_typ ctxt o TFree) (sort_by #1 extra_tfrees)) ^
+          (if Mixfix.is_empty mx then ""
+           else "\nDropping mixfix syntax " ^ Pretty.string_of (Mixfix.pretty_mixfix mx)))
+    else (); NoSyn);
 
 fun check_mixfix_global (b, no_params) mx =
   if no_params orelse Mixfix.is_empty mx then mx
   else
     (warning ("Dropping global mixfix syntax: " ^ Binding.print b ^ " " ^
-      Pretty.string_of (Mixfix.pretty_mixfix mx) ^ Position.here (Mixfix.pos_of mx)); NoSyn);
+      Pretty.string_of (Mixfix.pretty_mixfix mx)); NoSyn);
 
 fun same_const (Const (c, _), Const (c', _)) = c = c'
   | same_const (t $ _, t' $ _) = same_const (t, t')
