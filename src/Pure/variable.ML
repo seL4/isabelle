@@ -230,6 +230,9 @@ val declare_type_occs = map_type_occs o decl_type_occs;
 
 (* constraints *)
 
+fun constrain_var (xi, T) =
+  if T = dummyT then Vartab.delete_safe xi else Vartab.update (xi, T);
+
 fun constrain_tvar (xi, raw_S) =
   let val S = #2 (Term_Position.decode_positionS raw_S)
   in if S = dummyS then Vartab.delete_safe xi else Vartab.update (xi, S) end;
@@ -237,8 +240,8 @@ fun constrain_tvar (xi, raw_S) =
 fun declare_constraints t = map_constraints (fn (types, sorts) =>
   let
     val types' = fold_aterms
-      (fn Free (x, T) => Vartab.update ((x, ~1), T)
-        | Var v => Vartab.update v
+      (fn Free (x, T) => constrain_var ((x, ~1), T)
+        | Var v => constrain_var v
         | _ => I) t types;
     val sorts' = (fold_types o fold_atyps)
       (fn TFree (x, S) => constrain_tvar ((x, ~1), S)
