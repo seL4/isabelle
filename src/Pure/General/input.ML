@@ -13,6 +13,7 @@ sig
   val range_of: source -> Position.range
   val source: bool -> Symbol_Pos.text -> Position.range -> source
   val string: string -> source
+  val reset_pos: source -> source
   val source_explode: source -> Symbol_Pos.T list
   val source_content: source -> string
   val equal_content: source * source -> bool
@@ -24,6 +25,9 @@ struct
 abstype source = Source of {delimited: bool, text: Symbol_Pos.text, range: Position.range}
 with
 
+
+(* source *)
+
 fun is_delimited (Source {delimited, ...}) = delimited;
 fun text_of (Source {text, ...}) = text;
 fun pos_of (Source {range = (pos, _), ...}) = pos;
@@ -33,6 +37,11 @@ fun source delimited text range =
   Source {delimited = delimited, text = text, range = range};
 
 fun string text = source true text Position.no_range;
+
+fun reset_pos (Source {delimited, text, ...}) = source delimited text Position.no_range;
+
+
+(* content *)
 
 fun source_explode (Source {text, range = (pos, _), ...}) =
   Symbol_Pos.explode (text, pos);
@@ -44,4 +53,3 @@ val equal_content = (op =) o apply2 source_content;
 end;
 
 end;
-

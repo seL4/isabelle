@@ -25,6 +25,7 @@ sig
   val set_range: Position.range -> mixfix -> mixfix
   val range_of: mixfix -> Position.range
   val pos_of: mixfix -> Position.T
+  val reset_pos: mixfix -> mixfix
   val pretty_mixfix: mixfix -> Pretty.T
   val mixfix_args: mixfix -> int
   val mixfixT: mixfix -> typ
@@ -85,6 +86,15 @@ fun range_of NoSyn = Position.no_range
   | range_of (Structure range) = range;
 
 val pos_of = Position.set_range o range_of;
+
+fun reset_pos NoSyn = NoSyn
+  | reset_pos (Mixfix (sy, ps, p, _)) = Mixfix (Input.reset_pos sy, ps, p, Position.no_range)
+  | reset_pos (Delimfix (sy, _)) = Delimfix (Input.reset_pos sy, Position.no_range)
+  | reset_pos (Infix (sy, p, _)) = Infix (Input.reset_pos sy, p, Position.no_range)
+  | reset_pos (Infixl (sy, p, _)) = Infixl (Input.reset_pos sy, p, Position.no_range)
+  | reset_pos (Infixr (sy, p, _)) = Infixr (Input.reset_pos sy, p, Position.no_range)
+  | reset_pos (Binder (sy, p, q, _)) = Binder (Input.reset_pos sy, p, q, Position.no_range)
+  | reset_pos (Structure _) = Structure Position.no_range;
 
 
 (* pretty_mixfix *)
