@@ -620,8 +620,8 @@ fun scan_token keywords = !!! "bad input"
         Lexicon.scan_var >> pair Var ||
         Lexicon.scan_tid >> pair Type_Ident ||
         Lexicon.scan_tvar >> pair Type_Var ||
-        Lexicon.scan_float >> pair Float ||
-        Lexicon.scan_nat >> pair Nat ||
+        Symbol_Pos.scan_float >> pair Float ||
+        Symbol_Pos.scan_nat >> pair Nat ||
         scan_symid >> pair Sym_Ident) >> uncurry token));
 
 fun recover msg =

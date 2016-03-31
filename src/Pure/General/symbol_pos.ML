@@ -46,6 +46,8 @@ sig
   val explode0: string -> T list
   val scan_ident: T list -> T list * T list
   val is_identifier: string -> bool
+  val scan_nat: T list -> T list * T list
+  val scan_float: T list -> T list * T list
 end;
 
 structure Symbol_Pos: SYMBOL_POS =
@@ -299,6 +301,12 @@ fun is_identifier s =
     (case try (Scan.finite stopper scan_ident) (explode0 s) of
       SOME (_, []) => true
     | _ => false);
+
+
+(* numerals *)
+
+val scan_nat = Scan.many1 (Symbol.is_digit o symbol);
+val scan_float = scan_nat @@@ $$$ "." @@@ scan_nat;
 
 end;
 
