@@ -38,6 +38,8 @@ fun mk_rel_xtor_co_induct_tactic fp abs_inverses co_inducts0 rel_defs rel_monos 
         |> op RS
         |> unfold)
       folded_C_IHs rel_monos unfolds;
+
+    val sym_nested_rel_eqs = map mk_sym nesting_rel_eqs;
   in
     unfold_thms_tac ctxt vimage2p_unfolds THEN
     HEADGOAL (CONJ_WRAP_GEN' (rtac ctxt @{thm context_conjI})
@@ -45,7 +47,10 @@ fun mk_rel_xtor_co_induct_tactic fp abs_inverses co_inducts0 rel_defs rel_monos 
          REPEAT_ALL_NEW (FIRST' [eresolve_tac ctxt C_IHs, eresolve_tac ctxt C_IH_monos,
            SELECT_GOAL (unfold_thms_tac ctxt nesting_rel_eqs) THEN' rtac ctxt @{thm order_refl},
            assume_tac ctxt, resolve_tac ctxt co_inducts,
-           resolve_tac ctxt C_IH_monos THEN' REPEAT_ALL_NEW (eresolve_tac ctxt nesting_rel_monos)])))
+           resolve_tac ctxt C_IH_monos THEN_ALL_NEW (TRY o FIRST'
+             [SELECT_GOAL (unfold_thms_tac ctxt sym_nested_rel_eqs) THEN' assume_tac ctxt,
+              rtac ctxt @{thm order_refl},
+              REPEAT_ALL_NEW (eresolve_tac ctxt nesting_rel_monos)])])))
     co_inducts)
   end;
 
