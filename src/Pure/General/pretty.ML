@@ -23,7 +23,9 @@ sig
   val default_indent: string -> int -> Output.output
   val add_mode: string -> (string -> int -> Output.output) -> unit
   type T
-  val make_block: Output.output * Output.output -> bool -> int -> T list -> T
+  val make_block: {markup: Output.output * Output.output, consistent: bool, indent: int} ->
+    T list -> T
+  val markup_block: {markup: Markup.T, consistent: bool, indent: int} -> T list -> T
   val str: string -> T
   val brk: int -> T
   val brk_indent: int -> int -> T
@@ -119,7 +121,7 @@ fun length (Block (_, _, _, _, len)) = len
   | length (Break (_, wd, _)) = wd
   | length (Str (_, len)) = len;
 
-fun make_block markup consistent indent body =
+fun make_block {markup, consistent, indent} body =
   let
     fun body_length prts len =
       let
@@ -133,8 +135,8 @@ fun make_block markup consistent indent body =
       end;
   in Block (markup, consistent, indent, body, body_length body 0) end;
 
-fun markup_block markup indent es =
-  make_block (Markup.output markup) false indent es;
+fun markup_block {markup, consistent, indent} es =
+  make_block {markup = Markup.output markup, consistent = consistent, indent = indent} es;
 
 
 
@@ -149,11 +151,13 @@ val fbrk = Break (true, 1, 0);
 fun breaks prts = Library.separate (brk 1) prts;
 fun fbreaks prts = Library.separate fbrk prts;
 
-fun blk (ind, es) = markup_block Markup.empty ind es;
+fun blk (indent, es) =
+  markup_block {markup = Markup.empty, consistent = false, indent = indent} es;
+
 fun block prts = blk (2, prts);
 val strs = block o breaks o map str;
 
-fun markup m = markup_block m 0;
+fun markup m = markup_block {markup = m, consistent = false, indent = 0};
 fun mark m prt = if m = Markup.empty then prt else markup m [prt];
 fun mark_str (m, s) = mark m (str s);
 fun marks_str (ms, s) = fold_rev mark ms (str s);
@@ -384,7 +388,8 @@ fun to_ML 0 (Block _) = ML_Pretty.str "..."
   | to_ML _ (Str (s, len)) = ML_Pretty.String (s, FixedInt.fromInt len);
 
 fun from_ML (ML_Pretty.Block (m, consistent, indent, prts)) =
-      make_block m consistent (FixedInt.toInt indent) (map from_ML prts)
+      make_block {markup = m, consistent = consistent, indent = FixedInt.toInt indent}
+        (map from_ML prts)
   | from_ML (ML_Pretty.Break (force, wd, ind)) =
       Break (force, FixedInt.toInt wd, FixedInt.toInt ind)
   | from_ML (ML_Pretty.String (s, len)) = Str (s, FixedInt.toInt len);

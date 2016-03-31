@@ -750,7 +750,8 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
         let
           val ((bg1, bg2), en) = typing_elem;
           val bg = bg1 ^ Pretty.symbolic_output (pretty_typ_ast Markup.empty ty) ^ bg2;
-        in SOME (Pretty.make_block (bg, en) false 0 [pretty_ast Markup.empty t]) end
+          val info = {markup = (bg, en), consistent = false, indent = 0};
+        in SOME (Pretty.make_block info [pretty_ast Markup.empty t]) end
       else NONE
 
     and ofsort_trans ty s =
@@ -758,7 +759,8 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
         let
           val ((bg1, bg2), en) = sorting_elem;
           val bg = bg1 ^ Pretty.symbolic_output (pretty_typ_ast Markup.empty s) ^ bg2;
-        in SOME (Pretty.make_block (bg, en) false 0 [pretty_typ_ast Markup.empty ty]) end
+          val info = {markup = (bg, en), consistent = false, indent = 0};
+        in SOME (Pretty.make_block info [pretty_typ_ast Markup.empty ty]) end
       else NONE
 
     and pretty_typ_ast m ast = ast

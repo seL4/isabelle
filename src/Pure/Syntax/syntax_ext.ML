@@ -8,11 +8,15 @@ signature SYNTAX_EXT =
 sig
   datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Position.T
   val typ_to_nonterm: typ -> string
+  type block_info = {markup: Markup.T, consistent: bool, indent: int}
+  val block_indent: int -> block_info
   datatype xsymb =
     Delim of string |
     Argument of string * int |
     Space of string |
-    Bg of int | Brk of int | En
+    Bg of block_info |
+    Brk of int |
+    En
   datatype xprod = XProd of string * xsymb list * string * int
   val chain_pri: int
   val delims_of: xprod list -> string list list
@@ -62,11 +66,16 @@ struct
   Space s: some white space for printing
   Bg, Brk, En: blocks and breaks for pretty printing*)
 
+type block_info = {markup: Markup.T, consistent: bool, indent: int};
+fun block_indent indent = {markup = Markup.empty, consistent = false, indent = indent};
+
 datatype xsymb =
   Delim of string |
   Argument of string * int |
   Space of string |
-  Bg of int | Brk of int | En;
+  Bg of block_info |
+  Brk of int |
+  En;
 
 fun is_delim (Delim _) = true
   | is_delim _ = false;
@@ -144,19 +153,57 @@ fun scan_one pred = Scan.one (pred o Symbol_Pos.symbol);
 fun scan_many pred = Scan.many (pred o Symbol_Pos.symbol);
 fun scan_many1 pred = Scan.many1 (pred o Symbol_Pos.symbol);
 
+(*block properties*)
+local
+  val err_prefix = "Error in mixfix block properties: ";
+  val !!! = Symbol_Pos.!!! (fn () => err_prefix ^ "expected identifier or numeral or cartouche");
+
+  val scan_atom =
+    Symbol_Pos.scan_ident ||
+    ($$$ "-" @@@ (Symbol_Pos.scan_float || Symbol_Pos.scan_nat)) ||
+    Symbol_Pos.scan_float || Symbol_Pos.scan_nat ||
+    Symbol_Pos.scan_cartouche_content err_prefix;
+
+  val scan_blanks = scan_many Symbol.is_blank;
+  val scan_item = scan_blanks |-- scan_atom --| scan_blanks >> Symbol_Pos.content;
+
+  val scan_prop = scan_item -- Scan.optional ($$ "=" |-- !!! scan_item) "true";
+  val scan_end = Scan.ahead (Scan.one Symbol_Pos.is_eof) >> K "" || !!! Scan.fail;
+in
+  fun read_block_properties ss =
+    let
+      fun err msg = error (msg ^ Position.here (#1 (Symbol_Pos.range ss)));
+      val props = the (Scan.read Symbol_Pos.stopper (Scan.repeat1 scan_prop --| scan_end) ss);
+
+      val markup_name = Markup.get_markup props;
+      val markup_props =
+        fold Properties.remove [Markup.markupN, Markup.consistentN, Markup.indentN] props;
+      val _ =
+        if markup_name = "" andalso not (null markup_props) then
+          err ("Markup name required for block properties: " ^ commas_quote (map #1 markup_props))
+        else ();
+
+      val consistent = Markup.get_consistent props handle Fail msg => err msg;
+      val indent = Markup.get_indent props handle Fail msg => err msg;
+    in Bg {markup = (markup_name, markup_props), consistent = consistent, indent = indent} end;
+end;
+
+val read_block_indent =
+  map Symbol_Pos.symbol #> (fn ss =>
+    Bg (block_indent (if ss = ["0", "0"] then ~1 else #1 (Library.read_int ss))));
+
 val is_meta = member (op =) ["(", ")", "/", "_", "\<index>"];
 
 val scan_delim_char =
   $$ "'" |-- scan_one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
   scan_one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof);
 
-fun read_int ["0", "0"] = ~1
-  | read_int cs = #1 (Library.read_int cs);
-
 val scan_sym =
   $$ "_" >> K (Argument ("", 0)) ||
   $$ "\<index>" >> K index ||
-  $$ "(" |-- scan_many Symbol.is_digit >> (Bg o read_int o map Symbol_Pos.symbol) ||
+  $$ "(" |--
+   (Symbol_Pos.scan_cartouche_content "Error in mixfix annotation: " >> read_block_properties ||
+    scan_many Symbol.is_digit >> read_block_indent) ||
   $$ ")" >> K En ||
   $$ "/" -- $$ "/" >> K (Brk ~1) ||
   $$ "/" |-- scan_many Symbol.is_blank >> (Brk o length) ||
