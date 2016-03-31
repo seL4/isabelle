@@ -30,9 +30,10 @@ sig
   val quote_string_q: string -> string
   val quote_string_qq: string -> string
   val quote_string_bq: string -> string
-  val scan_cartouche: string -> T list -> T list * T list
-  val recover_cartouche: T list -> T list * T list
   val cartouche_content: T list -> T list
+  val scan_cartouche: string -> T list -> T list * T list
+  val scan_cartouche_content: string -> T list -> T list * T list
+  val recover_cartouche: T list -> T list * T list
   val scan_comment: string -> T list -> T list * T list
   val scan_comment_body: string -> T list -> T list * T list
   val recover_comment: T list -> T list * T list
@@ -177,6 +178,20 @@ end;
 
 (* nested text cartouches *)
 
+fun cartouche_content syms =
+  let
+    fun err () =
+      error ("Malformed text cartouche: "
+        ^ quote (content syms) ^ Position.here (#1 (range syms)));
+  in
+    (case syms of
+      ("\<open>", _) :: rest =>
+        (case rev rest of
+          ("\<close>", _) :: rrest => rev rrest
+        | _ => err ())
+    | _ => err ())
+  end;
+
 val scan_cartouche_depth =
   Scan.repeat1 (Scan.depend (fn (depth: int option) =>
     (case depth of
@@ -193,21 +208,10 @@ fun scan_cartouche err_prefix =
     !!! (fn () => err_prefix ^ "unclosed text cartouche")
       (Scan.provide is_none (SOME 0) scan_cartouche_depth);
 
-val recover_cartouche = Scan.pass (SOME 0) scan_cartouche_depth;
+fun scan_cartouche_content err_prefix =
+  scan_cartouche err_prefix >> cartouche_content;
 
-fun cartouche_content syms =
-  let
-    fun err () =
-      error ("Malformed text cartouche: "
-        ^ quote (content syms) ^ Position.here (#1 (range syms)));
-  in
-    (case syms of
-      ("\<open>", _) :: rest =>
-        (case rev rest of
-          ("\<close>", _) :: rrest => rev rrest
-        | _ => err ())
-    | _ => err ())
-  end;
+val recover_cartouche = Scan.pass (SOME 0) scan_cartouche_depth;
 
 
 (* ML-style comments *)
