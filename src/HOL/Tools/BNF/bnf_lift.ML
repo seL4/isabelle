@@ -20,8 +20,8 @@ sig
       string) * (Facts.ref * Token.src list) option) * (binding * binding * binding) ->
       local_theory -> local_theory
   val lift_bnf:
-    (((lift_bnf_option list * (binding option * (string * sort option)) list) *
-      string) * thm option) * (binding * binding * binding) ->
+    ((((lift_bnf_option list * (binding option * (string * sort option)) list) *
+      string) * term list option) * thm option) * (binding * binding * binding) ->
       ({context: Proof.context, prems: thm list} -> tactic) list ->
       local_theory -> local_theory
   val lift_bnf_cmd:
@@ -378,7 +378,7 @@ fun prepare_solve prepare_name prepare_typ prepare_sort prepare_thm tacs =
   (fn (goals, after_qed, _, lthy) =>
     lthy
     |> after_qed (map2 (single oo Goal.prove lthy [] []) goals (tacs (length goals)))) oo
-  prepare_common prepare_name prepare_typ prepare_sort prepare_thm o apfst (apfst (rpair NONE));
+  prepare_common prepare_name prepare_typ prepare_sort prepare_thm;
 
 in
 
@@ -387,14 +387,17 @@ val lift_bnf_cmd =
     (fst o dest_Type oo Proof_Context.read_type_name {proper = true, strict = false})
     Syntax.read_sort Syntax.read_term (singleton o Attrib.eval_thms);
 
-fun lift_bnf args tacs = prepare_solve (K I) (K I) (K I) (K I) (K tacs) args;
+fun lift_bnf args tacs =
+  prepare_solve (K I) (K I) (K I) (K I) (K tacs) args;
 
 val copy_bnf =
-  prepare_solve (K I) (K I) (K I) (K I)
+  apfst (apfst (rpair NONE))
+  #> prepare_solve (K I) (K I) (K I) (K I)
     (fn n => replicate n (fn {context = ctxt, prems = _} => rtac ctxt UNIV_I 1));
 
 val copy_bnf_cmd =
-  prepare_solve
+  apfst (apfst (rpair NONE))
+  #> prepare_solve
     (fst o dest_Type oo Proof_Context.read_type_name {proper = true, strict = false})
     Syntax.read_sort Syntax.read_term (singleton o Attrib.eval_thms)
     (fn n => replicate n (fn {context = ctxt, prems = _} => rtac ctxt UNIV_I 1));

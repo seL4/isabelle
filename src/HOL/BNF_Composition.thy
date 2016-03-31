@@ -81,9 +81,6 @@ lemma comp_set_bd_Union_o_collect: "|\<Union>\<Union>((\<lambda>f. f x) ` X)| \<
 lemma Collect_inj: "Collect P = Collect Q \<Longrightarrow> P = Q"
   by blast
 
-lemma Ball_Collect: "Ball A P = (A \<subseteq> (Collect P))"
-by auto
-
 lemma Grp_fst_snd: "(Grp (Collect (case_prod R)) fst)^--1 OO Grp (Collect (case_prod R)) snd = R"
   unfolding Grp_def fun_eq_iff relcompp.simps by auto
 
