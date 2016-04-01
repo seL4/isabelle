@@ -390,6 +390,7 @@ val impossible_caller = Bound ~1;
 fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_callssss0 lthy =
   let
     val qsoty = quote o Syntax.string_of_typ lthy;
+    val qsotys = space_implode " or " o map qsoty;
 
     fun not_co_datatype0 T = error (qsoty T ^ " is not a " ^ co_prefix fp ^ "datatype");
     fun not_co_datatype (T as Type (s, _)) =
@@ -399,6 +400,10 @@ fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_ca
         else
           not_co_datatype0 T
       | not_co_datatype T = not_co_datatype0 T;
+    fun not_mutually_nested_rec Ts1 Ts2 =
+      error (qsotys Ts1 ^ " is neither mutually " ^ co_prefix fp ^ "recursive with " ^ qsotys Ts2 ^
+        " nor nested " ^ co_prefix fp ^ "recursive through " ^
+        (if Ts1 = Ts2 andalso length Ts1 = 1 then "itself" else qsotys Ts2));
 
     val sorted_actual_Ts =
       sort (prod_ord int_ord Term_Ord.typ_ord o apply2 (`Term.size_of_typ)) actual_Ts;
@@ -430,6 +435,10 @@ fun nested_to_mutual_fps plugins fp actual_bs actual_Ts actual_callers actual_ca
         let
           val {T = Type (_, tyargs0), fp_res = {Ts = mutual_Ts0, ...}, ...} = the_fp_sugar_of T;
           val mutual_Ts = map (retypargs tyargs) mutual_Ts0;
+
+          val rev_seen = flat rev_seens;
+          val _ = null rev_seens orelse exists (exists_strict_subtype_in rev_seen) mutual_Ts orelse
+            not_mutually_nested_rec mutual_Ts rev_seen;
 
           fun fresh_tyargs () =
             let
