@@ -153,7 +153,7 @@ local
 open Basic_Symbol_Pos;
 
 val err_prefix = "Error in mixfix block properties: ";
-val !!! = Symbol_Pos.!!! (fn () => err_prefix ^ "expected identifier or numeral or cartouche");
+val !!! = Symbol_Pos.!!! (fn () => err_prefix ^ "atom expected (identifier, numeral, cartouche)");
 
 val scan_atom =
   Symbol_Pos.scan_ident ||
@@ -170,8 +170,6 @@ val scan_prop =
   scan_item -- Scan.optional ($$ "=" |-- !!! scan_item >> #1) "true"
     >> (fn ((x, pos), y) => (x, (y, pos)));
 
-val scan_end = Scan.ahead (Scan.one Symbol_Pos.is_eof) >> K ("", Position.none) || !!! Scan.fail;
-
 fun get_property default parse name props =
   (case AList.lookup (op =) props name of
     NONE => default
@@ -185,7 +183,10 @@ fun show_props props =
 
 fun read_properties ss =
   let
-    val props = the (Scan.read Symbol_Pos.stopper (Scan.repeat1 scan_prop --| scan_end) ss);
+    val props =
+      (case Scan.error (Scan.finite Symbol_Pos.stopper (Scan.repeat scan_prop)) ss of
+        (props, []) => props
+      | (_, (_, pos) :: _) => error (err_prefix ^ "bad input" ^ Position.here pos));
     val _ =
       (case duplicates (eq_fst op =) props of
         [] => ()
@@ -204,6 +205,8 @@ end;
 local
 
 open Basic_Symbol_Pos;
+
+val err_prefix = "Error in mixfix annotation: ";
 
 fun scan_one pred = Scan.one (pred o Symbol_Pos.symbol);
 fun scan_many pred = Scan.many (pred o Symbol_Pos.symbol);
@@ -231,7 +234,7 @@ fun read_block_properties ss =
 val read_block_indent =
   Bg o block_indent o #1 o Library.read_int o map Symbol_Pos.symbol;
 
-val is_meta = member (op =) ["(", ")", "/", "_", "\<index>"];
+val is_meta = member (op =) ["(", ")", "/", "_", "\<index>", Symbol.open_, Symbol.close];
 
 val scan_delim_char =
   $$ "'" |-- scan_one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
@@ -241,7 +244,7 @@ val scan_sym =
   $$ "_" >> K (Argument ("", 0)) ||
   $$ "\<index>" >> K index ||
   $$ "(" |--
-   (Symbol_Pos.scan_cartouche_content "Error in mixfix annotation: " >> read_block_properties ||
+   (Symbol_Pos.scan_cartouche_content err_prefix >> read_block_properties ||
     scan_many Symbol.is_digit >> read_block_indent) ||
   $$ ")" >> K En ||
   $$ "/" -- $$ "/" >> K (Brk ~1) ||
@@ -259,7 +262,10 @@ in
 
 fun read_mfix ss =
   let
-    val xsymbs = map_filter I (the (Scan.read Symbol_Pos.stopper scan_symbs ss));
+    val xsymbs =
+      (case Scan.error (Scan.finite Symbol_Pos.stopper scan_symbs) ss of
+        (res, []) => map_filter I res
+      | (_, (_, pos) :: _) => error (err_prefix ^ "bad input" ^ Position.here pos));
     val _ = Position.reports (maps reports_of xsymbs);
   in xsymbs end;
 
