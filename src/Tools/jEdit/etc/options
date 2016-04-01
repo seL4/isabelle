@@ -37,7 +37,7 @@ public option jedit_symbols_search_limit : int = 50
   -- "maximum number of symbols in search result"
 
 public option jedit_timing_threshold : real = 0.1
-  -- "default threshold for timing display"
+  -- "default threshold for timing display (seconds)"
 
 
 section "Completion"
