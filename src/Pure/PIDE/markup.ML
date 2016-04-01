@@ -66,10 +66,10 @@ sig
   val pathN: string val path: string -> T
   val urlN: string val url: string -> T
   val docN: string val doc: string -> T
-  val markupN: string val get_markup: Properties.T -> string
-  val consistentN: string val get_consistent: Properties.T -> bool
+  val markupN: string
+  val consistentN: string
   val block_properties: string list
-  val indentN: string val get_indent: Properties.T -> int
+  val indentN: string
   val widthN: string
   val blockN: string val block: bool -> int -> T
   val breakN: string val break: int -> int -> T
@@ -400,14 +400,6 @@ val consistentN = "consistent";
 val indentN = "indent";
 
 val block_properties = [markupN, consistentN, indentN];
-
-fun get_markup props = the_default "" (Properties.get props markupN);
-
-fun get_consistent props =
-  the_default false (Option.map parse_bool (Properties.get props consistentN));
-
-fun get_indent props =
-  the_default 0 (Option.map parse_int (Properties.get props indentN));
 
 val widthN = "width";
 
