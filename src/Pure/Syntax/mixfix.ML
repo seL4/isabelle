@@ -71,7 +71,7 @@ fun range_of NoSyn = Position.no_range
   | range_of (Binder (_, _, _, range)) = range
   | range_of (Structure range) = range;
 
-val pos_of = Position.set_range o range_of;
+val pos_of = Position.range_position o range_of;
 
 fun reset_pos NoSyn = NoSyn
   | reset_pos (Mixfix (sy, ps, p, _)) = Mixfix (Input.reset_pos sy, ps, p, Position.no_range)

@@ -37,7 +37,7 @@ fun antiquote_range (Text ss) = Symbol_Pos.range ss
 
 fun range ants =
   if null ants then Position.no_range
-  else Position.range (#1 (antiquote_range (hd ants))) (#2 (antiquote_range (List.last ants)));
+  else Position.range (#1 (antiquote_range (hd ants)), #2 (antiquote_range (List.last ants)));
 
 
 (* split lines *)
@@ -110,9 +110,9 @@ val scan_antiq =
     Symbol_Pos.!!! (fn () => err_prefix ^ "missing closing brace")
       (Scan.repeats scan_antiq_body -- Symbol_Pos.scan_pos -- ($$ "}" |-- Symbol_Pos.scan_pos))) >>
     (fn (pos1, (pos2, ((body, pos3), pos4))) =>
-      {start = Position.set_range (pos1, pos2),
-       stop = Position.set_range (pos3, pos4),
-       range = Position.range pos1 pos4,
+      {start = Position.range_position (pos1, pos2),
+       stop = Position.range_position (pos3, pos4),
+       range = Position.range (pos1, pos4),
        body = body});
 
 val scan_antiquote =

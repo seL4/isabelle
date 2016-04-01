@@ -312,7 +312,7 @@ fun gen_read SML pos text =
         let
           val pos1 = List.last syms |-> Position.advance;
           val pos2 = Position.advance Symbol.space pos1;
-        in [Antiquote.Text (Token (Position.range pos1 pos2, (Space, Symbol.space)))] end;
+        in [Antiquote.Text (Token (Position.range (pos1, pos2), (Space, Symbol.space)))] end;
 
     val scan = if SML then scan_sml else scan_ml_antiq;
     fun check (Antiquote.Text tok) = (check_content_of tok; if SML then () else warn tok)

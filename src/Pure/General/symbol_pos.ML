@@ -63,7 +63,7 @@ val content = implode o map symbol;
 
 fun range (syms as (_, pos) :: _) =
       let val pos' = List.last syms |-> Position.advance
-      in Position.range pos pos' end
+      in Position.range (pos, pos') end
   | range [] = Position.no_range;
 
 

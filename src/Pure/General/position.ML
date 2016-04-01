@@ -51,9 +51,9 @@ sig
   val here_list: T list -> string
   type range = T * T
   val no_range: range
-  val set_range: range -> T
+  val range_position: range -> T
+  val range: T * T -> range
   val reset_range: T -> T
-  val range: T -> T -> range
   val range_of_properties: Properties.T -> range
   val properties_of_range: range -> Properties.T
   val thread_data: unit -> T
@@ -223,10 +223,10 @@ type range = T * T;
 
 val no_range = (none, none);
 
-fun set_range (Pos ((i, j, _), props), Pos ((_, j', _), _)) = Pos ((i, j, j'), props);
-fun reset_range (Pos ((i, j, _), props)) = Pos ((i, j, 0), props);
+fun range_position (Pos ((i, j, _), props), Pos ((_, j', _), _)) = Pos ((i, j, j'), props);
+fun range (pos, pos') = (range_position (pos, pos'), pos');
 
-fun range pos pos' = (set_range (pos, pos'), pos');
+fun reset_range (Pos ((i, j, _), props)) = Pos ((i, j, 0), props);
 
 fun range_of_properties props =
   let
