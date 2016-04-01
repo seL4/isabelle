@@ -183,10 +183,6 @@ type src = T list;
 fun pos_of (Token ((_, (pos, _)), _, _)) = pos;
 fun end_pos_of (Token ((_, (_, pos)), _, _)) = pos;
 
-fun reset_range pos (Token ((x, _), y, z)) =
-  let val pos' = Position.reset_range pos
-  in Token ((x, (pos', pos')), y, z) end;
-
 fun range_of (toks as tok :: _) =
       let val pos' = end_pos_of (List.last toks)
       in Position.range (pos_of tok, pos') end
@@ -677,8 +673,10 @@ fun make ((k, n), s) pos =
   in (tok, pos') end;
 
 fun make_string (s, pos) =
-  #1 (make ((~1, 0), Symbol_Pos.quote_string_qq s) Position.none)
-  |> reset_range pos;
+  let
+    val Token ((x, _), y, z) = #1 (make ((~1, 0), Symbol_Pos.quote_string_qq s) Position.none);
+    val pos' = Position.reset_range pos;
+  in Token ((x, (pos', pos')), y, z) end;
 
 fun make_src a args = make_string a :: args;
 
