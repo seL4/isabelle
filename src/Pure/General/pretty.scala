@@ -64,6 +64,8 @@ object Pretty
       indent: Int,
       body: List[Tree]): Tree =
   {
+    val indent1 = force_nat(indent)
+
     def body_length(prts: List[Tree], len: Double): Double =
     {
       val (line, rest) =
@@ -71,15 +73,17 @@ object Pretty
       val len1 = ((0.0 /: line) { case (l, t) => l + t.length }) max len
       rest match {
         case Break(true, _, ind) :: rest1 =>
-          body_length(Break(false, indent + ind, 0) :: rest1, len1)
+          body_length(Break(false, indent1 + ind, 0) :: rest1, len1)
         case Nil => len1
       }
     }
-    Block(markup, consistent, indent, body, body_length(body, 0.0))
+    Block(markup, consistent, indent1, body, body_length(body, 0.0))
   }
 
 
   /* formatted output */
+
+  private def force_nat(i: Int): Int = i max 0
 
   private sealed case class Text(tx: XML.Body = Nil, pos: Double = 0.0, nl: Int = 0)
   {
@@ -125,7 +129,7 @@ object Pretty
             case Markup.Block(consistent, indent) =>
               List(make_block(None, consistent, indent, make_tree(body)))
             case Markup.Break(width, indent) =>
-              List(Break(false, width, indent))
+              List(Break(false, force_nat(width), force_nat(indent)))
             case Markup(Markup.ITEM, _) =>
               List(make_block(None, false, 2,
                 make_tree(XML.elem(Markup.BULLET, space) :: space ::: body)))

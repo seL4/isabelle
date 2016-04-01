@@ -110,6 +110,8 @@ val add_indent = Buffer.add o output_spaces;
 
 (** printing items: compound phrases, strings, and breaks **)
 
+val force_nat = Integer.max 0;
+
 abstype T =
     Block of (Output.output * Output.output) * bool * int * T list * int
       (*markup output, consistent, indentation, body, length*)
@@ -123,6 +125,7 @@ fun length (Block (_, _, _, _, len)) = len
 
 fun make_block {markup, consistent, indent} body =
   let
+    val indent' = force_nat indent;
     fun body_length prts len =
       let
         val (line, rest) = take_prefix (fn Break (true, _, _) => false | _ => true) prts;
@@ -130,10 +133,10 @@ fun make_block {markup, consistent, indent} body =
       in
         (case rest of
           Break (true, _, ind) :: rest' =>
-            body_length (Break (false, indent + ind, 0) :: rest') len'
+            body_length (Break (false, indent' + ind, 0) :: rest') len'
         | [] => len')
       end;
-  in Block (markup, consistent, indent, body, body_length body 0) end;
+  in Block (markup, consistent, indent', body, body_length body 0) end;
 
 fun markup_block {markup, consistent, indent} es =
   make_block {markup = Markup.output markup, consistent = consistent, indent = indent} es;
@@ -142,10 +145,10 @@ fun markup_block {markup, consistent, indent} es =
 
 (** derived operations to create formatting expressions **)
 
-val str = Str o Output.output_width;
+val str = Output.output_width ##> force_nat #> Str;
 
-fun brk wd = Break (false, wd, 0);
-fun brk_indent wd ind = Break (false, wd, ind);
+fun brk wd = Break (false, force_nat wd, 0);
+fun brk_indent wd ind = Break (false, force_nat wd, ind);
 val fbrk = Break (true, 1, 0);
 
 fun breaks prts = Library.separate (brk 1) prts;
@@ -392,7 +395,7 @@ fun from_ML (ML_Pretty.Block (m, consistent, indent, prts)) =
         (map from_ML prts)
   | from_ML (ML_Pretty.Break (force, wd, ind)) =
       Break (force, FixedInt.toInt wd, FixedInt.toInt ind)
-  | from_ML (ML_Pretty.String (s, len)) = Str (s, FixedInt.toInt len);
+  | from_ML (ML_Pretty.String (s, len)) = Str (s, FixedInt.toInt (force_nat len));
 
 val to_polyml = to_ML ~1 #> ML_Pretty.to_polyml;
 val from_polyml = ML_Pretty.from_polyml #> from_ML;
