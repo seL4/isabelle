@@ -275,7 +275,7 @@ fun explode (str, pos) =
   let
     val (res, _) =
       fold (fn s => fn (res, p) => ((s, p) :: res, Position.advance s p))
-        (Symbol.explode str) ([], Position.reset_range pos);
+        (Symbol.explode str) ([], Position.no_range_position pos);
   in fold (fn (s, p) => if s = Symbol.DEL then I else cons (s, p)) res [] end;
 
 fun explode0 str = explode (str, Position.none);

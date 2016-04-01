@@ -338,7 +338,7 @@ fun parse_asts ctxt raw root (syms, pos) =
       if len <= 1 then []
       else
         [cat_lines
-          (("Ambiguous input" ^ Position.here (Position.reset_range pos) ^
+          (("Ambiguous input" ^ Position.here (Position.no_range_position pos) ^
             " produces " ^ string_of_int len ^ " parse trees" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
             map (Pretty.string_of o Pretty.item o single o Parser.pretty_parsetree)

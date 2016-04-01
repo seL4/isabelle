@@ -675,7 +675,7 @@ fun make ((k, n), s) pos =
 fun make_string (s, pos) =
   let
     val Token ((x, _), y, z) = #1 (make ((~1, 0), Symbol_Pos.quote_string_qq s) Position.none);
-    val pos' = Position.reset_range pos;
+    val pos' = Position.no_range_position pos;
   in Token ((x, (pos', pos')), y, z) end;
 
 fun make_src a args = make_string a :: args;
