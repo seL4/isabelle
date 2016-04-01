@@ -131,6 +131,15 @@ object Markup
   /* expression */
 
   val EXPRESSION = "expression"
+  object Expression
+  {
+    def unapply(markup: Markup): Option[String] =
+      markup match {
+        case Markup(EXPRESSION, Kind(kind)) => Some(kind)
+        case Markup(EXPRESSION, _) => Some("")
+        case _ => None
+      }
+  }
 
 
   /* citation */

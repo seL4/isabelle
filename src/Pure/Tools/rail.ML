@@ -188,7 +188,7 @@ fun reports_of_tree ctxt =
     let
       fun reports r =
         if r = Position.no_range then []
-        else [(Position.range_position r, Markup.expression)];
+        else [(Position.range_position r, Markup.expression "")];
       fun trees (CAT (ts, r)) = reports r @ maps tree ts
       and tree (BAR (Ts, r)) = reports r @ maps trees Ts
         | tree (STAR ((T1, T2), r)) = reports r @ trees T1 @ trees T2

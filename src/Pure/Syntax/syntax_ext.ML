@@ -110,15 +110,6 @@ fun delims_of xprods =
     fold (fn Delim s => insert (op =) s | _ => I) xsymbs) xprods []
   |> map Symbol.explode;
 
-fun reports_of (xsym, pos: Position.T) =
-  (pos, Markup.expression) ::
-    (case xsym of
-      Delim _ => [(pos, Markup.literal)]
-    | Bg _ => [(pos, Markup.keyword3)]
-    | Brk _ => [(pos, Markup.keyword3)]
-    | En => [(pos, Markup.keyword3)]
-    | _ => []);
-
 
 
 (** datatype mfix **)
@@ -210,6 +201,18 @@ fun scan_one pred = Scan.one (pred o Symbol_Pos.symbol);
 fun scan_many pred = Scan.many (pred o Symbol_Pos.symbol);
 fun scan_many1 pred = Scan.many1 (pred o Symbol_Pos.symbol);
 
+fun reports_of_block pos =
+  [(pos, Markup.expression "mixfix block begin"), (pos, Markup.keyword3)];
+
+fun reports_of (xsym, pos: Position.T) =
+  (case xsym of
+    Delim _ => [(pos, Markup.expression "mixfix delimiter"), (pos, Markup.literal)]
+  | Argument _ => [(pos, Markup.expression "mixfix argument")]
+  | Space _ => [(pos, Markup.expression "mixfix space")]
+  | Bg _ => reports_of_block pos
+  | Brk _ => [(pos, Markup.expression "mixfix break"), (pos, Markup.keyword3)]
+  | En => [(pos, Markup.expression "mixfix block end"), (pos, Markup.keyword3)]);
+
 fun read_block_properties ss =
   let
     val props = read_properties ss;
@@ -227,8 +230,12 @@ fun read_block_properties ss =
     val unbreakable = get_bool Markup.unbreakableN props;
     val indent = get_nat Markup.indentN props;
   in Bg {markup = markup, consistent = consistent, unbreakable = unbreakable, indent = indent} end
-  handle ERROR msg => error (msg ^
-    Markup.markup_report (Position.reported_text (#1 (Symbol_Pos.range ss)) Markup.keyword3 ""));
+  handle ERROR msg =>
+    let
+      val reported_texts =
+        reports_of_block (#1 (Symbol_Pos.range ss))
+        |> map (fn (p, m) => Markup.markup_report (Position.reported_text p m ""))
+    in error (msg ^ implode reported_texts) end;
 
 val read_block_indent =
   Bg o block_indent o #1 o Library.read_int o map Symbol_Pos.symbol;

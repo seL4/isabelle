@@ -61,7 +61,7 @@ sig
   val position_properties': string list
   val position_properties: string list
   val positionN: string val position: T
-  val expressionN: string val expression: T
+  val expressionN: string val expression: string -> T
   val citationN: string val citation: string -> T
   val pathN: string val path: string -> T
   val urlN: string val url: string -> T
@@ -379,7 +379,8 @@ val (positionN, position) = markup_elem "position";
 
 (* expression *)
 
-val (expressionN, expression) = markup_elem "expression";
+val expressionN = "expression";
+fun expression kind = (expressionN, if kind = "" then [] else [(kindN, kind)]);
 
 
 (* citation *)
