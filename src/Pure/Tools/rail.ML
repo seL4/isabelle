@@ -53,7 +53,7 @@ fun end_pos_of (Token ((_, pos), _)) = pos;
 
 fun range_of (toks as tok :: _) =
       let val pos' = end_pos_of (List.last toks)
-      in Position.range (pos_of tok) pos' end
+      in Position.range (pos_of tok, pos') end
   | range_of [] = Position.no_range;
 
 fun kind_of (Token (_, (k, _))) = k;
@@ -116,7 +116,7 @@ val scan_token =
   scan_keyword >> (token Keyword o single) ||
   Lexicon.scan_id >> token Ident ||
   Symbol_Pos.scan_string_q err_prefix >> (fn (pos1, (ss, pos2)) =>
-    [Token (Position.range pos1 pos2, (String, Symbol_Pos.content ss))]);
+    [Token (Position.range (pos1, pos2), (String, Symbol_Pos.content ss))]);
 
 val scan =
   Scan.repeats scan_token --|
@@ -188,7 +188,7 @@ fun reports_of_tree ctxt =
     let
       fun reports r =
         if r = Position.no_range then []
-        else [(Position.set_range r, Markup.expression)];
+        else [(Position.range_position r, Markup.expression "")];
       fun trees (CAT (ts, r)) = reports r @ maps tree ts
       and tree (BAR (Ts, r)) = reports r @ maps trees Ts
         | tree (STAR ((T1, T2), r)) = reports r @ trees T1 @ trees T2

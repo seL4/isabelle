@@ -81,8 +81,11 @@ fun protocol_message props output =
           val name = the_default "" (Properties.get args Markup.nameN);
           val pos = Position.of_properties args;
           val {elapsed, ...} = Markup.parse_timing_properties args;
+          val is_significant =
+            Timing.is_relevant_time elapsed andalso
+            Time.>= (elapsed, Options.default_seconds "command_timing_threshold");
         in
-          if Timing.is_relevant_time elapsed then
+          if is_significant then
             (case approximative_id name pos of
               SOME id => inline_message (#2 function) (Markup.command_timing_properties id elapsed)
             | NONE => ())

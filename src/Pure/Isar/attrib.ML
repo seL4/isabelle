@@ -153,9 +153,7 @@ fun check_src ctxt src =
   let
     val _ =
       if Token.checked_src src then ()
-      else
-        Context_Position.report ctxt
-          (Position.set_range (Token.range_of src)) Markup.language_attribute;
+      else Context_Position.report ctxt (#1 (Token.range_of src)) Markup.language_attribute;
   in #1 (Token.check_src ctxt get_attributes src) end;
 
 val attribs =

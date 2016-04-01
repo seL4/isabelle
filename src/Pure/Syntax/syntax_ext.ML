@@ -8,11 +8,15 @@ signature SYNTAX_EXT =
 sig
   datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Position.T
   val typ_to_nonterm: typ -> string
+  type block_info = {markup: Markup.T, consistent: bool, unbreakable: bool, indent: int}
+  val block_indent: int -> block_info
   datatype xsymb =
     Delim of string |
     Argument of string * int |
     Space of string |
-    Bg of int | Brk of int | En
+    Bg of block_info |
+    Brk of int |
+    En
   datatype xprod = XProd of string * xsymb list * string * int
   val chain_pri: int
   val delims_of: xprod list -> string list list
@@ -62,11 +66,18 @@ struct
   Space s: some white space for printing
   Bg, Brk, En: blocks and breaks for pretty printing*)
 
+type block_info = {markup: Markup.T, consistent: bool, unbreakable: bool, indent: int};
+
+fun block_indent indent : block_info =
+  {markup = Markup.empty, consistent = false, unbreakable = false, indent = indent};
+
 datatype xsymb =
   Delim of string |
   Argument of string * int |
   Space of string |
-  Bg of int | Brk of int | En;
+  Bg of block_info |
+  Brk of int |
+  En;
 
 fun is_delim (Delim _) = true
   | is_delim _ = false;
@@ -99,14 +110,6 @@ fun delims_of xprods =
     fold (fn Delim s => insert (op =) s | _ => I) xsymbs) xprods []
   |> map Symbol.explode;
 
-fun reports_of (xsym, pos: Position.T) =
-  (case xsym of
-    Delim _ => [(pos, Markup.literal)]
-  | Bg _ => [(pos, Markup.keyword3)]
-  | Brk _ => [(pos, Markup.keyword3)]
-  | En => [(pos, Markup.keyword3)]
-  | _ => []);
-
 
 
 (** datatype mfix **)
@@ -134,39 +137,139 @@ val typ_to_nonterm = typ_to_nt "any";
 val typ_to_nonterm1 = typ_to_nt "logic";
 
 
+(* properties *)
+
+local
+
+open Basic_Symbol_Pos;
+
+val err_prefix = "Error in mixfix block properties: ";
+val !!! = Symbol_Pos.!!! (fn () => err_prefix ^ "atom expected (identifier, numeral, cartouche)");
+
+val scan_atom =
+  Symbol_Pos.scan_ident ||
+  ($$$ "-" @@@ (Symbol_Pos.scan_float || Symbol_Pos.scan_nat)) ||
+  Symbol_Pos.scan_float || Symbol_Pos.scan_nat ||
+  Symbol_Pos.scan_cartouche_content err_prefix;
+
+val scan_blanks = Scan.many (Symbol.is_blank o Symbol_Pos.symbol);
+val scan_item =
+  scan_blanks |-- scan_atom --| scan_blanks
+    >> (fn ss => (Symbol_Pos.content ss, #1 (Symbol_Pos.range ss)));
+
+val scan_prop =
+  scan_item -- Scan.optional ($$ "=" |-- !!! scan_item >> #1) "true"
+    >> (fn ((x, pos), y) => (x, (y, pos)));
+
+fun get_property default parse name props =
+  (case AList.lookup (op =) props name of
+    NONE => default
+  | SOME (s, pos) =>
+      (parse s handle Fail msg => error (msg ^ " for property " ^ quote name ^ Position.here pos)));
+
+in
+
+fun read_properties ss =
+  let
+    val props =
+      (case Scan.error (Scan.finite Symbol_Pos.stopper (Scan.repeat scan_prop)) ss of
+        (props, []) => props
+      | (_, (_, pos) :: _) => error (err_prefix ^ "bad input" ^ Position.here pos));
+    val _ =
+      (case AList.group (op =) props |> filter (fn (_, [_]) => false | _ => true) of
+        [] => ()
+      | dups => error ("Duplicate properties: " ^ commas_quote (map #1 dups) ^
+          Position.here_list (map #2 (maps #2 dups))));
+  in props end;
+
+val get_string = get_property "" I;
+val get_bool = get_property false Markup.parse_bool;
+val get_nat = get_property 0 Markup.parse_nat;
+
+end;
+
+
 (* read mixfix annotations *)
 
 local
 
 open Basic_Symbol_Pos;
 
+val err_prefix = "Error in mixfix annotation: ";
+
 fun scan_one pred = Scan.one (pred o Symbol_Pos.symbol);
 fun scan_many pred = Scan.many (pred o Symbol_Pos.symbol);
 fun scan_many1 pred = Scan.many1 (pred o Symbol_Pos.symbol);
 
-val is_meta = member (op =) ["(", ")", "/", "_", "\<index>"];
+fun reports_of_block pos =
+  [(pos, Markup.expression "mixfix block begin"), (pos, Markup.keyword3)];
+
+fun reports_of (xsym, pos) =
+  (case xsym of
+    Delim _ => [(pos, Markup.expression "mixfix delimiter"), (pos, Markup.literal)]
+  | Argument _ => [(pos, Markup.expression "mixfix argument")]
+  | Space _ => [(pos, Markup.expression "mixfix space")]
+  | Bg _ => reports_of_block pos
+  | Brk _ => [(pos, Markup.expression "mixfix break"), (pos, Markup.keyword3)]
+  | En => [(pos, Markup.expression "mixfix block end"), (pos, Markup.keyword3)]);
+
+fun reports_text_of (xsym, pos) =
+  (case xsym of
+    Delim s =>
+      if Position.is_reported pos andalso exists Symbol.is_utf8 (Symbol.explode s) then
+        [((pos, Markup.bad),
+          "Mixfix delimiter contains raw Unicode -- this is non-portable and unreliable")]
+      else []
+  | _ => []);
+
+fun read_block_properties ss =
+  let
+    val props = read_properties ss;
+
+    val markup_name = get_string Markup.markupN props;
+    val markup_props = fold (AList.delete (op =)) Markup.block_properties props;
+    val markup = (markup_name, map (apsnd #1) markup_props);
+    val _ =
+      if markup_name = "" andalso not (null markup_props) then
+        error ("Markup name required for block properties: " ^
+          commas_quote (map #1 markup_props) ^ Position.here_list (map (#2 o #2) markup_props))
+      else ();
+
+    val consistent = get_bool Markup.consistentN props;
+    val unbreakable = get_bool Markup.unbreakableN props;
+    val indent = get_nat Markup.indentN props;
+  in Bg {markup = markup, consistent = consistent, unbreakable = unbreakable, indent = indent} end
+  handle ERROR msg =>
+    let
+      val reported_texts =
+        reports_of_block (#1 (Symbol_Pos.range ss))
+        |> map (fn (p, m) => Markup.markup_report (Position.reported_text p m ""))
+    in error (msg ^ implode reported_texts) end;
+
+val read_block_indent =
+  Bg o block_indent o #1 o Library.read_int o map Symbol_Pos.symbol;
+
+val is_meta = member (op =) ["(", ")", "/", "_", "\<index>", Symbol.open_, Symbol.close];
 
 val scan_delim_char =
   $$ "'" |-- scan_one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
   scan_one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof);
 
-fun read_int ["0", "0"] = ~1
-  | read_int cs = #1 (Library.read_int cs);
-
 val scan_sym =
   $$ "_" >> K (Argument ("", 0)) ||
   $$ "\<index>" >> K index ||
-  $$ "(" |-- scan_many Symbol.is_digit >> (Bg o read_int o map Symbol_Pos.symbol) ||
+  $$ "(" |--
+   (Symbol_Pos.scan_cartouche_content err_prefix >> read_block_properties ||
+    scan_many Symbol.is_digit >> read_block_indent) ||
   $$ ")" >> K En ||
   $$ "/" -- $$ "/" >> K (Brk ~1) ||
-  $$ "/" |-- scan_many Symbol.is_blank >> (Brk o length) ||
-  scan_many1 Symbol.is_blank >> (Space o Symbol_Pos.content) ||
+  $$ "/" |-- scan_many Symbol.is_space >> (Brk o length) ||
+  scan_many1 Symbol.is_space >> (Space o Symbol_Pos.content) ||
   Scan.repeat1 scan_delim_char >> (Delim o Symbol_Pos.content);
 
 val scan_symb =
-  Scan.trace scan_sym >>
-    (fn (syms, trace) => SOME (syms, Position.set_range (Symbol_Pos.range trace))) ||
-  $$ "'" -- scan_one Symbol.is_blank >> K NONE;
+  Scan.trace scan_sym >> (fn (syms, trace) => SOME (syms, #1 (Symbol_Pos.range trace))) ||
+  $$ "'" -- scan_one Symbol.is_space >> K NONE;
 
 val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (~$$ "'");
 
@@ -174,8 +277,12 @@ in
 
 fun read_mfix ss =
   let
-    val xsymbs = map_filter I (the (Scan.read Symbol_Pos.stopper scan_symbs ss));
+    val xsymbs =
+      (case Scan.error (Scan.finite Symbol_Pos.stopper scan_symbs) ss of
+        (res, []) => map_filter I res
+      | (_, (_, pos) :: _) => error (err_prefix ^ "bad input" ^ Position.here pos));
     val _ = Position.reports (maps reports_of xsymbs);
+    val _ = Position.reports_text (maps reports_text_of xsymbs);
   in xsymbs end;
 
 val mfix_args = length o filter (is_argument o #1) o read_mfix o map (apsnd (K Position.none));

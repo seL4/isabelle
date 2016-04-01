@@ -66,10 +66,10 @@ syntax (ASCII)
   "_INTER_less" :: "'a => 'a => 'b set => 'b set"       ("(3INT _<_./ _)" [0, 0, 10] 10)
 
 syntax (latex output)
-  "_UNION_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Union>(00_ \<le> _)/ _)" [0, 0, 10] 10)
-  "_UNION_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Union>(00_ < _)/ _)" [0, 0, 10] 10)
-  "_INTER_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Inter>(00_ \<le> _)/ _)" [0, 0, 10] 10)
-  "_INTER_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Inter>(00_ < _)/ _)" [0, 0, 10] 10)
+  "_UNION_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Union>(\<open>unbreakable\<close>_ \<le> _)/ _)" [0, 0, 10] 10)
+  "_UNION_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Union>(\<open>unbreakable\<close>_ < _)/ _)" [0, 0, 10] 10)
+  "_INTER_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Inter>(\<open>unbreakable\<close>_ \<le> _)/ _)" [0, 0, 10] 10)
+  "_INTER_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Inter>(\<open>unbreakable\<close>_ < _)/ _)" [0, 0, 10] 10)
 
 syntax
   "_UNION_le"   :: "'a => 'a => 'b set => 'b set"       ("(3\<Union>_\<le>_./ _)" [0, 0, 10] 10)

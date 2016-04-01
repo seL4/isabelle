@@ -23,7 +23,9 @@ sig
   val default_indent: string -> int -> Output.output
   val add_mode: string -> (string -> int -> Output.output) -> unit
   type T
-  val make_block: Output.output * Output.output -> bool -> int -> T list -> T
+  val make_block: {markup: Output.output * Output.output, consistent: bool, indent: int} ->
+    T list -> T
+  val markup_block: {markup: Markup.T, consistent: bool, indent: int} -> T list -> T
   val str: string -> T
   val brk: int -> T
   val brk_indent: int -> int -> T
@@ -72,7 +74,7 @@ sig
   val block_enclose: T * T -> T list -> T
   val writeln_chunks: T list -> unit
   val writeln_chunks2: T list -> unit
-  val to_ML: int -> T -> ML_Pretty.pretty
+  val to_ML: FixedInt.int -> T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
   val to_polyml: T -> PolyML.pretty
   val from_polyml: PolyML.pretty -> T
@@ -108,6 +110,8 @@ val add_indent = Buffer.add o output_spaces;
 
 (** printing items: compound phrases, strings, and breaks **)
 
+val force_nat = Integer.max 0;
+
 abstype T =
     Block of (Output.output * Output.output) * bool * int * T list * int
       (*markup output, consistent, indentation, body, length*)
@@ -119,8 +123,9 @@ fun length (Block (_, _, _, _, len)) = len
   | length (Break (_, wd, _)) = wd
   | length (Str (_, len)) = len;
 
-fun make_block markup consistent indent body =
+fun make_block {markup, consistent, indent} body =
   let
+    val indent' = force_nat indent;
     fun body_length prts len =
       let
         val (line, rest) = take_prefix (fn Break (true, _, _) => false | _ => true) prts;
@@ -128,32 +133,34 @@ fun make_block markup consistent indent body =
       in
         (case rest of
           Break (true, _, ind) :: rest' =>
-            body_length (Break (false, indent + ind, 0) :: rest') len'
+            body_length (Break (false, indent' + ind, 0) :: rest') len'
         | [] => len')
       end;
-  in Block (markup, consistent, indent, body, body_length body 0) end;
+  in Block (markup, consistent, indent', body, body_length body 0) end;
 
-fun markup_block markup indent es =
-  make_block (Markup.output markup) false indent es;
+fun markup_block {markup, consistent, indent} es =
+  make_block {markup = Markup.output markup, consistent = consistent, indent = indent} es;
 
 
 
 (** derived operations to create formatting expressions **)
 
-val str = Str o Output.output_width;
+val str = Output.output_width ##> force_nat #> Str;
 
-fun brk wd = Break (false, wd, 0);
-fun brk_indent wd ind = Break (false, wd, ind);
+fun brk wd = Break (false, force_nat wd, 0);
+fun brk_indent wd ind = Break (false, force_nat wd, ind);
 val fbrk = Break (true, 1, 0);
 
 fun breaks prts = Library.separate (brk 1) prts;
 fun fbreaks prts = Library.separate fbrk prts;
 
-fun blk (ind, es) = markup_block Markup.empty ind es;
+fun blk (indent, es) =
+  markup_block {markup = Markup.empty, consistent = false, indent = indent} es;
+
 fun block prts = blk (2, prts);
 val strs = block o breaks o map str;
 
-fun markup m = markup_block m 0;
+fun markup m = markup_block {markup = m, consistent = false, indent = 0};
 fun mark m prt = if m = Markup.empty then prt else markup m [prt];
 fun mark_str (m, s) = mark m (str s);
 fun marks_str (ms, s) = fold_rev mark ms (str s);
@@ -384,10 +391,11 @@ fun to_ML 0 (Block _) = ML_Pretty.str "..."
   | to_ML _ (Str (s, len)) = ML_Pretty.String (s, FixedInt.fromInt len);
 
 fun from_ML (ML_Pretty.Block (m, consistent, indent, prts)) =
-      make_block m consistent (FixedInt.toInt indent) (map from_ML prts)
+      make_block {markup = m, consistent = consistent, indent = FixedInt.toInt indent}
+        (map from_ML prts)
   | from_ML (ML_Pretty.Break (force, wd, ind)) =
       Break (force, FixedInt.toInt wd, FixedInt.toInt ind)
-  | from_ML (ML_Pretty.String (s, len)) = Str (s, FixedInt.toInt len);
+  | from_ML (ML_Pretty.String (s, len)) = Str (s, FixedInt.toInt (force_nat len));
 
 val to_polyml = to_ML ~1 #> ML_Pretty.to_polyml;
 val from_polyml = ML_Pretty.from_polyml #> from_ML;

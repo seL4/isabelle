@@ -13,6 +13,7 @@ sig
   val open_: symbol
   val close: symbol
   val space: symbol
+  val is_space: symbol -> bool
   val comment: symbol
   val is_char: symbol -> bool
   val is_utf8: symbol -> bool
@@ -99,6 +100,7 @@ val open_ = "\<open>";
 val close = "\<close>";
 
 val space = chr 32;
+fun is_space s = s = space;
 
 local
   val small_spaces = Vector.tabulate (65, fn i => replicate_string i space);

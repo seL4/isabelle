@@ -621,7 +621,7 @@ fun sect (modifier : modifier parser) = Scan.depend (fn context =>
                   Attrib.generic_notes "" (Attrib.transform_facts phi facts) #> snd;
 
                 val modifier_report =
-                  (Position.set_range (Token.range_of modifier_toks),
+                  (#1 (Token.range_of modifier_toks),
                     Markup.properties (Position.def_properties_of pos)
                       (Markup.entity Markup.method_modifierN ""));
                 val _ =
@@ -747,7 +747,7 @@ val _ = Theory.setup
           if detect_closure_state st then NONE
           else
             SOME (fn () => ("Excessive case name(s): " ^ commas_quote (map Token.content_of bad) ^
-              Position.here (Position.set_range (Token.range_of bad)))))
+              Position.here (#1 (Token.range_of bad)))))
       |> (fn SOME msg => Seq.single (Seq.Error msg)
            | NONE => goal_cases_tac (map Token.content_of names) (ctxt, st)))))
     "bind cases for goals" #>

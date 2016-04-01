@@ -38,7 +38,7 @@ fun verbose b (flags: flags) =
 (* parse trees *)
 
 fun breakpoint_position loc =
-  let val pos = Position.reset_range (Exn_Properties.position_of_location loc) in
+  let val pos = Position.no_range_position (Exn_Properties.position_of_location loc) in
     (case Position.offset_of pos of
       NONE => pos
     | SOME 1 => pos
