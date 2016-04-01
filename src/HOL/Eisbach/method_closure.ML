@@ -85,8 +85,7 @@ fun read ctxt src =
     SOME (text, range) =>
       if Method.checked_text text then text
       else (Method.report (text, range); Method.check_text ctxt text)
-  | NONE =>
-      error ("Failed to parse method" ^ Position.here (Position.set_range (Token.range_of src))));
+  | NONE => error ("Failed to parse method" ^ Position.here (#1 (Token.range_of src))));
 
 fun read_closure ctxt src0 =
   let

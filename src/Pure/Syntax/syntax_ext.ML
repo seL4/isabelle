@@ -250,8 +250,7 @@ val scan_sym =
   Scan.repeat1 scan_delim_char >> (Delim o Symbol_Pos.content);
 
 val scan_symb =
-  Scan.trace scan_sym >>
-    (fn (syms, trace) => SOME (syms, Position.set_range (Symbol_Pos.range trace))) ||
+  Scan.trace scan_sym >> (fn (syms, trace) => SOME (syms, #1 (Symbol_Pos.range trace))) ||
   $$ "'" -- scan_one Symbol.is_blank >> K NONE;
 
 val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (~$$ "'");
