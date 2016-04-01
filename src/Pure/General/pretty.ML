@@ -74,7 +74,7 @@ sig
   val block_enclose: T * T -> T list -> T
   val writeln_chunks: T list -> unit
   val writeln_chunks2: T list -> unit
-  val to_ML: int -> T -> ML_Pretty.pretty
+  val to_ML: FixedInt.int -> T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
   val to_polyml: T -> PolyML.pretty
   val from_polyml: PolyML.pretty -> T

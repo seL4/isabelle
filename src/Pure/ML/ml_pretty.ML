@@ -13,8 +13,10 @@ sig
   val block: pretty list -> pretty
   val str: string -> pretty
   val brk: FixedInt.int -> pretty
-  val pair: ('a * int -> pretty) -> ('b * int -> pretty) -> ('a * 'b) * int -> pretty
-  val enum: string -> string -> string -> ('a * int -> pretty) -> 'a list * int -> pretty
+  val pair: ('a * FixedInt.int -> pretty) -> ('b * FixedInt.int -> pretty) ->
+    ('a * 'b) * FixedInt.int -> pretty
+  val enum: string -> string -> string -> ('a * FixedInt.int -> pretty) ->
+    'a list * FixedInt.int -> pretty
   val to_polyml: pretty -> PolyML.pretty
   val from_polyml: PolyML.pretty -> pretty
   val get_print_depth: unit -> int
