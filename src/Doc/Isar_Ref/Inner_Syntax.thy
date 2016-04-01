@@ -286,7 +286,7 @@ text \<open>
         @'binder' @{syntax template} prios? @{syntax nat} |
         @'structure') ')'
     ;
-    template: string
+    @{syntax template}: string
     ;
     prios: '[' (@{syntax nat} + ',') ']'
   \<close>}
@@ -342,6 +342,7 @@ text \<open>
     \<^verbatim>\<open>(\<close> & open parenthesis \\
     \<^verbatim>\<open>)\<close> & close parenthesis \\
     \<^verbatim>\<open>/\<close> & slash \\
+    \<open>\<open> \<close>\<close> & cartouche delimiters \\
   \end{tabular}
   \<^medskip>
 
@@ -360,9 +361,13 @@ text \<open>
   \<^descr> \<open>s\<close> is a non-empty sequence of spaces for printing. This and the following
   specifications do not affect parsing at all.
 
-  \<^descr> \<^verbatim>\<open>(\<close>\<open>n\<close> opens a pretty printing block. The optional number specifies how
-  much indentation to add when a line break occurs within the block. If the
-  parenthesis is not followed by digits, the indentation defaults to 0.
+  \<^descr> \<^verbatim>\<open>(\<close>\<open>n\<close> opens a pretty printing block. The optional natural number
+  specifies the block indentation, i.e. how much spaces to add when a line
+  break occurs within the block. The default indentation is 0.
+
+  \<^descr> \<^verbatim>\<open>(\<close>\<open>\<open>properties\<close>\<close> opens a pretty printing block, with properties
+  specified within the given text cartouche. The syntax and semantics of
+  the category @{syntax_ref mixfix_properties} is described below.
 
   \<^descr> \<^verbatim>\<open>)\<close> closes a pretty printing block.
 
@@ -373,8 +378,39 @@ text \<open>
   is \<^emph>\<open>not\<close> taken.
 
 
-  The general idea of pretty printing with blocks and breaks is also described
-  in @{cite "paulson-ml2"}; it goes back to @{cite "Oppen:1980"}.
+  \<^medskip>
+  Block properties allow more control over the details of pretty-printed
+  output. The concrete syntax is defined as follows.
+
+  @{rail \<open>
+    @{syntax_def "mixfix_properties"}: (entry *)
+    ;
+    entry: atom ('=' atom)?
+    ;
+    atom: @{syntax ident} | @{syntax int} | @{syntax float} | @{syntax cartouche}
+  \<close>}
+
+  Each @{syntax entry} is a name-value pair: if the value is omitted, if
+  defaults to \<^verbatim>\<open>true\<close> (intended for Boolean properties). The following
+  standard block properties are supported:
+
+    \<^item> \<open>indent\<close> (natural number): the block indentation --- the same as for the
+    simple syntax without block properties.
+
+    \<^item> \<open>consistent\<close> (Boolean): this block has consistent breaks (if one break
+    is taken, all breaks are taken).
+
+    \<^item> \<open>unbreakable\<close> (Boolean): all possible breaks of the block are disabled
+    (turned into spaces).
+
+    \<^item> \<open>markup\<close> (string): the optional name of the markup node. If this is
+    provided, all remaining properties are turned into its XML attributes.
+    This allows to specify free-form PIDE markup, e.g.\ for specialized
+    output.
+
+  \<^medskip>
+  Note that the general idea of pretty printing with blocks and breaks is
+  described in @{cite "paulson-ml2"}; it goes back to @{cite "Oppen:1980"}.
 \<close>
 
 

@@ -9,8 +9,11 @@ New in this Isabelle version
 
 *** General ***
 
-* Mixfix annotation syntax: "(\<open>unbreakable\<close>" supersedes "(00"; the old
-form has been discontinued. INCOMPATIBILITY.
+* Mixfix annotations support general block properties, with syntax
+"(\<open>x=a y=b z \<dots>\<close>". Notable property names are "indent", "consistent",
+"unbreakable", "markup". The existing notation "(DIGITS" is equivalent
+to "(\<open>indent=DIGITS\<close>". The former notation "(00" for unbreakable blocks
+is superseded by "(\<open>unbreabable\<close>" --- rare INCOMPATIBILITY.
 
 * New symbol \<circle>, e.g. for temporal operator.
 
