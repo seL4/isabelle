@@ -10,7 +10,20 @@ theory Hebrew
 imports Main
 begin
 
-text \<open>The Hebrew Alef-Bet (א-ב).\<close>
+subsection \<open>Warning: formal Unicode considered harmful\<close>
+
+text \<open>
+  Important note: editors or browsers that implement the \<^emph>\<open>Unicode
+  Bidirectional Algorithm\<close> correctly (!) will display the following mix of
+  left-to-right versus right-to-left characters in a way that is logical
+  nonsense.
+
+  To avoid such uncertainty, formal notation should be restricted to
+  well-known Isabelle symbols and their controlled rendering (in Unicode or
+  LaTeX).
+\<close>
+
+subsection \<open>The Hebrew Alef-Bet (א-ב).\<close>
 
 datatype alef_bet =
     Alef    ("א")
@@ -39,9 +52,9 @@ datatype alef_bet =
 thm alef_bet.induct
 
 
-text \<open>Interpreting Hebrew letters as numbers.\<close>
+subsection \<open>Interpreting Hebrew letters as numbers.\<close>
 
-primrec mispar :: "alef_bet => nat"
+primrec mispar :: "alef_bet \<Rightarrow> nat"
 where
   "mispar א = 1"
 | "mispar ב = 2"

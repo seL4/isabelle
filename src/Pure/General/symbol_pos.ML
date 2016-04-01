@@ -30,9 +30,10 @@ sig
   val quote_string_q: string -> string
   val quote_string_qq: string -> string
   val quote_string_bq: string -> string
-  val scan_cartouche: string -> T list -> T list * T list
-  val recover_cartouche: T list -> T list * T list
   val cartouche_content: T list -> T list
+  val scan_cartouche: string -> T list -> T list * T list
+  val scan_cartouche_content: string -> T list -> T list * T list
+  val recover_cartouche: T list -> T list * T list
   val scan_comment: string -> T list -> T list * T list
   val scan_comment_body: string -> T list -> T list * T list
   val recover_comment: T list -> T list * T list
@@ -45,6 +46,8 @@ sig
   val explode0: string -> T list
   val scan_ident: T list -> T list * T list
   val is_identifier: string -> bool
+  val scan_nat: T list -> T list * T list
+  val scan_float: T list -> T list * T list
 end;
 
 structure Symbol_Pos: SYMBOL_POS =
@@ -60,7 +63,7 @@ val content = implode o map symbol;
 
 fun range (syms as (_, pos) :: _) =
       let val pos' = List.last syms |-> Position.advance
-      in Position.range pos pos' end
+      in Position.range (pos, pos') end
   | range [] = Position.no_range;
 
 
@@ -177,6 +180,20 @@ end;
 
 (* nested text cartouches *)
 
+fun cartouche_content syms =
+  let
+    fun err () =
+      error ("Malformed text cartouche: "
+        ^ quote (content syms) ^ Position.here (#1 (range syms)));
+  in
+    (case syms of
+      ("\<open>", _) :: rest =>
+        (case rev rest of
+          ("\<close>", _) :: rrest => rev rrest
+        | _ => err ())
+    | _ => err ())
+  end;
+
 val scan_cartouche_depth =
   Scan.repeat1 (Scan.depend (fn (depth: int option) =>
     (case depth of
@@ -193,21 +210,10 @@ fun scan_cartouche err_prefix =
     !!! (fn () => err_prefix ^ "unclosed text cartouche")
       (Scan.provide is_none (SOME 0) scan_cartouche_depth);
 
-val recover_cartouche = Scan.pass (SOME 0) scan_cartouche_depth;
+fun scan_cartouche_content err_prefix =
+  scan_cartouche err_prefix >> cartouche_content;
 
-fun cartouche_content syms =
-  let
-    fun err () =
-      error ("Malformed text cartouche: "
-        ^ quote (content syms) ^ Position.here (#1 (range syms)));
-  in
-    (case syms of
-      ("\<open>", _) :: rest =>
-        (case rev rest of
-          ("\<close>", _) :: rrest => rev rrest
-        | _ => err ())
-    | _ => err ())
-  end;
+val recover_cartouche = Scan.pass (SOME 0) scan_cartouche_depth;
 
 
 (* ML-style comments *)
@@ -269,7 +275,7 @@ fun explode (str, pos) =
   let
     val (res, _) =
       fold (fn s => fn (res, p) => ((s, p) :: res, Position.advance s p))
-        (Symbol.explode str) ([], Position.reset_range pos);
+        (Symbol.explode str) ([], Position.no_range_position pos);
   in fold (fn (s, p) => if s = Symbol.DEL then I else cons (s, p)) res [] end;
 
 fun explode0 str = explode (str, Position.none);
@@ -295,6 +301,12 @@ fun is_identifier s =
     (case try (Scan.finite stopper scan_ident) (explode0 s) of
       SOME (_, []) => true
     | _ => false);
+
+
+(* numerals *)
+
+val scan_nat = Scan.many1 (Symbol.is_digit o symbol);
+val scan_float = scan_nat @@@ $$$ "." @@@ scan_nat;
 
 end;
 

@@ -172,7 +172,6 @@ object Rendering
 
   private val tooltip_descriptions =
     Map(
-      Markup.EXPRESSION -> "expression",
       Markup.CITATION -> "citation",
       Markup.TOKEN_RANGE -> "inner syntax token",
       Markup.FREE -> "free variable",
@@ -183,9 +182,9 @@ object Rendering
       Markup.TVAR -> "schematic type variable")
 
   private val tooltip_elements =
-    Markup.Elements(Markup.LANGUAGE, Markup.TIMING, Markup.ENTITY, Markup.SORTING,
-      Markup.TYPING, Markup.ML_TYPING, Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC,
-      Markup.URL, Markup.MARKDOWN_PARAGRAPH, Markup.Markdown_List.name) ++
+    Markup.Elements(Markup.LANGUAGE, Markup.EXPRESSION, Markup.TIMING, Markup.ENTITY,
+      Markup.SORTING, Markup.TYPING, Markup.ML_TYPING, Markup.ML_BREAKPOINT, Markup.PATH,
+      Markup.DOC, Markup.URL, Markup.MARKDOWN_PARAGRAPH, Markup.Markdown_List.name) ++
     Markup.Elements(tooltip_descriptions.keySet)
 
   private val gutter_elements =
@@ -567,9 +566,14 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
               if (Debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
               else "breakpoint (disabled)"
             Some(add(prev, r, (true, XML.Text(text))))
+
           case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _, _, _), _))) =>
             val lang = Word.implode(Word.explode('_', language))
             Some(add(prev, r, (true, XML.Text("language: " + lang))))
+
+          case (prev, Text.Info(r, XML.Elem(Markup.Expression(kind), _))) =>
+            val descr = if (kind == "") "expression" else "expression: " + kind
+            Some(add(prev, r, (true, XML.Text(descr))))
 
           case (prev, Text.Info(r, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
             Some(add(prev, r, (true, XML.Text("Markdown: paragraph"))))

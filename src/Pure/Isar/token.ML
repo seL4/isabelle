@@ -183,13 +183,9 @@ type src = T list;
 fun pos_of (Token ((_, (pos, _)), _, _)) = pos;
 fun end_pos_of (Token ((_, (_, pos)), _, _)) = pos;
 
-fun reset_pos pos (Token ((x, _), y, z)) =
-  let val pos' = Position.reset_range pos
-  in Token ((x, (pos', pos')), y, z) end;
-
 fun range_of (toks as tok :: _) =
       let val pos' = end_pos_of (List.last toks)
-      in Position.range (pos_of tok) pos' end
+      in Position.range (pos_of tok, pos') end
   | range_of [] = Position.no_range;
 
 
@@ -620,8 +616,8 @@ fun scan_token keywords = !!! "bad input"
         Lexicon.scan_var >> pair Var ||
         Lexicon.scan_tid >> pair Type_Ident ||
         Lexicon.scan_tvar >> pair Type_Var ||
-        Lexicon.scan_float >> pair Float ||
-        Lexicon.scan_nat >> pair Nat ||
+        Symbol_Pos.scan_float >> pair Float ||
+        Symbol_Pos.scan_nat >> pair Nat ||
         scan_symid >> pair Sym_Ident) >> uncurry token));
 
 fun recover msg =
@@ -666,7 +662,7 @@ fun explode keywords pos =
 fun make ((k, n), s) pos =
   let
     val pos' = Position.advance_offset n pos;
-    val range = Position.range pos pos';
+    val range = Position.range (pos, pos');
     val tok =
       if 0 <= k andalso k < Vector.length immediate_kinds then
         Token ((s, range), (Vector.sub (immediate_kinds, k), s), Slot)
@@ -677,8 +673,10 @@ fun make ((k, n), s) pos =
   in (tok, pos') end;
 
 fun make_string (s, pos) =
-  #1 (make ((~1, 0), Symbol_Pos.quote_string_qq s) Position.none)
-  |> reset_pos pos;
+  let
+    val Token ((x, _), y, z) = #1 (make ((~1, 0), Symbol_Pos.quote_string_qq s) Position.none);
+    val pos' = Position.no_range_position pos;
+  in Token ((x, (pos', pos')), y, z) end;
 
 fun make_src a args = make_string a :: args;
 

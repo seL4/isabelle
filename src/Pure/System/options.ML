@@ -19,6 +19,7 @@ sig
   val bool: T -> string -> bool
   val int: T -> string -> int
   val real: T -> string -> real
+  val seconds: T -> string -> Time.time
   val string: T -> string -> string
   val put_bool: string -> bool -> T -> T
   val put_int: string -> int -> T -> T
@@ -33,6 +34,7 @@ sig
   val default_bool: string -> bool
   val default_int: string -> int
   val default_real: string -> real
+  val default_seconds: string -> Time.time
   val default_string: string -> string
   val default_put_bool: string -> bool -> unit
   val default_put_int: string -> int -> unit
@@ -115,6 +117,7 @@ fun get T parse options name =
 val bool = get boolT (try Markup.parse_bool);
 val int = get intT (try Markup.parse_int);
 val real = get realT (try Markup.parse_real);
+val seconds = Time.fromReal oo real;
 val string = get stringT SOME;
 
 val put_bool = put boolT Markup.print_bool;
@@ -191,6 +194,7 @@ fun default_typ name = typ (default ()) name;
 fun default_bool name = bool (default ()) name;
 fun default_int name = int (default ()) name;
 fun default_real name = real (default ()) name;
+fun default_seconds name = seconds (default ()) name;
 fun default_string name = string (default ()) name;
 
 val default_put_bool = change_default put_bool;

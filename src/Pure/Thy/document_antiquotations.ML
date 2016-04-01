@@ -15,7 +15,7 @@ fun markdown_error binding =
   Thy_Output.antiquotation binding (Scan.succeed ())
     (fn {source, ...} => fn _ =>
       error ("Bad Markdown structure: illegal " ^ quote (Binding.name_of binding) ^
-        Position.here (Position.reset_range (#1 (Token.range_of source)))))
+        Position.here (Position.no_range_position (#1 (Token.range_of source)))))
 
 in
 

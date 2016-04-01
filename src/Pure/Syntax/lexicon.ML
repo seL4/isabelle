@@ -15,8 +15,6 @@ sig
   val scan_id: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_longid: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_tid: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
-  val scan_nat: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
-  val scan_float: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_hex: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_bin: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_var: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
@@ -96,13 +94,11 @@ val scan_id = Symbol_Pos.scan_ident;
 val scan_longid = scan_id @@@ Scan.repeats1 ($$$ "." @@@ scan_id);
 val scan_tid = $$$ "'" @@@ scan_id;
 
-val scan_nat = Scan.many1 (Symbol.is_digit o Symbol_Pos.symbol);
-val scan_float = scan_nat @@@ $$$ "." @@@ scan_nat;
 val scan_hex = $$$ "0" @@@ $$$ "x" @@@ Scan.many1 (Symbol.is_ascii_hex o Symbol_Pos.symbol);
 val scan_bin = $$$ "0" @@@ $$$ "b" @@@ Scan.many1 (fn (s, _) => s = "0" orelse s = "1");
-val scan_num = scan_hex || scan_bin || scan_nat;
+val scan_num = scan_hex || scan_bin || Symbol_Pos.scan_nat;
 
-val scan_id_nat = scan_id @@@ Scan.optional ($$$ "." @@@ scan_nat) [];
+val scan_id_nat = scan_id @@@ Scan.optional ($$$ "." @@@ Symbol_Pos.scan_nat) [];
 val scan_var = $$$ "?" @@@ scan_id_nat;
 val scan_tvar = $$$ "?" @@@ $$$ "'" @@@ scan_id_nat;
 
@@ -264,7 +260,7 @@ fun tokenize lex xids syms =
       scan_tvar >> token TVarSy ||
       scan_var >> token VarSy ||
       scan_tid >> token TFreeSy ||
-      scan_float >> token FloatSy ||
+      Symbol_Pos.scan_float >> token FloatSy ||
       scan_num >> token NumSy ||
       scan_longid >> token LongIdentSy ||
       scan_xid >> token IdentSy;
@@ -310,7 +306,7 @@ val scan_vname =
 
     val scan =
       (scan_id >> map Symbol_Pos.symbol) --
-      Scan.optional ($$ "." |-- scan_nat >> (nat 0 o map Symbol_Pos.symbol)) ~1;
+      Scan.optional ($$ "." |-- Symbol_Pos.scan_nat >> (nat 0 o map Symbol_Pos.symbol)) ~1;
   in
     scan >>
       (fn (cs, ~1) => chop_idx (rev cs) []
@@ -357,7 +353,7 @@ local
 
 fun nat cs =
   Option.map (#1 o Library.read_int o map Symbol_Pos.symbol)
-    (Scan.read Symbol_Pos.stopper scan_nat cs);
+    (Scan.read Symbol_Pos.stopper Symbol_Pos.scan_nat cs);
 
 in
 
