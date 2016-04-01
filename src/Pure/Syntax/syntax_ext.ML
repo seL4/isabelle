@@ -178,9 +178,6 @@ fun get_property default parse name props =
 
 in
 
-fun show_props props =
-  commas_quote (map #1 props) ^ Position.here_list (map (#2 o #2) props);
-
 fun read_properties ss =
   let
     val props =
@@ -188,9 +185,10 @@ fun read_properties ss =
         (props, []) => props
       | (_, (_, pos) :: _) => error (err_prefix ^ "bad input" ^ Position.here pos));
     val _ =
-      (case duplicates (eq_fst op =) props of
+      (case AList.group (op =) props |> filter (fn (_, [_]) => false | _ => true) of
         [] => ()
-      | dups => error ("Duplicate properties: " ^ show_props dups));
+      | dups => error ("Duplicate properties: " ^ commas_quote (map #1 dups) ^
+          Position.here_list (map #2 (maps #2 dups))));
   in props end;
 
 val get_string = get_property "" I;
@@ -221,7 +219,8 @@ fun read_block_properties ss =
     val markup = (markup_name, map (apsnd #1) markup_props);
     val _ =
       if markup_name = "" andalso not (null markup_props) then
-        error ("Markup name required for block properties: " ^ show_props markup_props)
+        error ("Markup name required for block properties: " ^
+          commas_quote (map #1 markup_props) ^ Position.here_list (map (#2 o #2) markup_props))
       else ();
 
     val consistent = get_bool Markup.consistentN props;
