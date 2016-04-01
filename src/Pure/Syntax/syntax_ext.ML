@@ -204,7 +204,7 @@ fun scan_many1 pred = Scan.many1 (pred o Symbol_Pos.symbol);
 fun reports_of_block pos =
   [(pos, Markup.expression "mixfix block begin"), (pos, Markup.keyword3)];
 
-fun reports_of (xsym, pos: Position.T) =
+fun reports_of (xsym, pos) =
   (case xsym of
     Delim _ => [(pos, Markup.expression "mixfix delimiter"), (pos, Markup.literal)]
   | Argument _ => [(pos, Markup.expression "mixfix argument")]
@@ -212,6 +212,15 @@ fun reports_of (xsym, pos: Position.T) =
   | Bg _ => reports_of_block pos
   | Brk _ => [(pos, Markup.expression "mixfix break"), (pos, Markup.keyword3)]
   | En => [(pos, Markup.expression "mixfix block end"), (pos, Markup.keyword3)]);
+
+fun reports_text_of (xsym, pos) =
+  (case xsym of
+    Delim s =>
+      if Position.is_reported pos andalso exists Symbol.is_utf8 (Symbol.explode s) then
+        [((pos, Markup.bad),
+          "Mixfix delimiter contains raw Unicode -- this is non-portable and unreliable")]
+      else []
+  | _ => []);
 
 fun read_block_properties ss =
   let
@@ -273,6 +282,7 @@ fun read_mfix ss =
         (res, []) => map_filter I res
       | (_, (_, pos) :: _) => error (err_prefix ^ "bad input" ^ Position.here pos));
     val _ = Position.reports (maps reports_of xsymbs);
+    val _ = Position.reports_text (maps reports_text_of xsymbs);
   in xsymbs end;
 
 val mfix_args = length o filter (is_argument o #1) o read_mfix o map (apsnd (K Position.none));
