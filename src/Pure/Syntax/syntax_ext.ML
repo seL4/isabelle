@@ -109,12 +109,13 @@ fun delims_of xprods =
   |> map Symbol.explode;
 
 fun reports_of (xsym, pos: Position.T) =
-  (case xsym of
-    Delim _ => [(pos, Markup.literal)]
-  | Bg _ => [(pos, Markup.keyword3)]
-  | Brk _ => [(pos, Markup.keyword3)]
-  | En => [(pos, Markup.keyword3)]
-  | _ => []);
+  (pos, Markup.expression) ::
+    (case xsym of
+      Delim _ => [(pos, Markup.literal)]
+    | Bg _ => [(pos, Markup.keyword3)]
+    | Brk _ => [(pos, Markup.keyword3)]
+    | En => [(pos, Markup.keyword3)]
+    | _ => []);
 
 
 
@@ -220,7 +221,9 @@ fun read_block_properties ss =
 
     val consistent = get_bool Markup.consistentN props;
     val indent = get_nat Markup.indentN props;
-  in Bg {markup = markup, consistent = consistent, indent = indent} end;
+  in Bg {markup = markup, consistent = consistent, indent = indent} end
+  handle ERROR msg => error (msg ^
+    Markup.markup_report (Position.reported_text (#1 (Symbol_Pos.range ss)) Markup.keyword3 ""));
 
 val read_block_indent =
   map Symbol_Pos.symbol #> (fn ss =>
