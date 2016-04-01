@@ -247,13 +247,13 @@ val scan_sym =
     scan_many Symbol.is_digit >> read_block_indent) ||
   $$ ")" >> K En ||
   $$ "/" -- $$ "/" >> K (Brk ~1) ||
-  $$ "/" |-- scan_many Symbol.is_blank >> (Brk o length) ||
-  scan_many1 Symbol.is_blank >> (Space o Symbol_Pos.content) ||
+  $$ "/" |-- scan_many Symbol.is_space >> (Brk o length) ||
+  scan_many1 Symbol.is_space >> (Space o Symbol_Pos.content) ||
   Scan.repeat1 scan_delim_char >> (Delim o Symbol_Pos.content);
 
 val scan_symb =
   Scan.trace scan_sym >> (fn (syms, trace) => SOME (syms, #1 (Symbol_Pos.range trace))) ||
-  $$ "'" -- scan_one Symbol.is_blank >> K NONE;
+  $$ "'" -- scan_one Symbol.is_space >> K NONE;
 
 val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (~$$ "'");
 
