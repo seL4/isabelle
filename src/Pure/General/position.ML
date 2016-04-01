@@ -214,7 +214,7 @@ fun here pos =
     else s1 ^ Markup.markup (Markup.properties props Markup.position) s2
   end;
 
-val here_list = space_implode " " o map here;
+val here_list = implode o map here;
 
 
 (* range *)
