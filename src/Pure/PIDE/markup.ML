@@ -8,6 +8,7 @@ signature MARKUP =
 sig
   val parse_bool: string -> bool
   val print_bool: bool -> string
+  val parse_nat: string -> int
   val parse_int: string -> int
   val print_int: int -> string
   val parse_real: string -> real
@@ -67,6 +68,7 @@ sig
   val docN: string val doc: string -> T
   val markupN: string val get_markup: Properties.T -> string
   val consistentN: string val get_consistent: Properties.T -> bool
+  val block_properties: string list
   val indentN: string val get_indent: Properties.T -> int
   val widthN: string
   val blockN: string val block: bool -> int -> T
@@ -228,23 +230,32 @@ struct
 
 fun parse_bool "true" = true
   | parse_bool "false" = false
-  | parse_bool s = raise Fail ("Bad boolean: " ^ quote s);
+  | parse_bool s = raise Fail ("Bad boolean " ^ quote s);
 
 val print_bool = Bool.toString;
+
+
+fun parse_nat s =
+  let val i = Int.fromString s in
+    if is_none i orelse the i < 0
+    then raise Fail ("Bad natural number " ^ quote s)
+    else the i
+  end;
 
 fun parse_int s =
   let val i = Int.fromString s in
     if is_none i orelse String.isPrefix "~" s
-    then raise Fail ("Bad integer: " ^ quote s)
+    then raise Fail ("Bad integer " ^ quote s)
     else the i
   end;
 
 val print_int = signed_string_of_int;
 
+
 fun parse_real s =
   (case Real.fromString s of
     SOME x => x
-  | NONE => raise Fail ("Bad real: " ^ quote s));
+  | NONE => raise Fail ("Bad real " ^ quote s));
 
 fun print_real x =
   let val s = signed_string_of_real x in
@@ -385,13 +396,16 @@ val (docN, doc) = markup_string "doc" nameN;
 (* pretty printing *)
 
 val markupN = "markup";
+val consistentN = "consistent";
+val indentN = "indent";
+
+val block_properties = [markupN, consistentN, indentN];
+
 fun get_markup props = the_default "" (Properties.get props markupN);
 
-val consistentN = "consistent";
 fun get_consistent props =
   the_default false (Option.map parse_bool (Properties.get props consistentN));
 
-val indentN = "indent";
 fun get_indent props =
   the_default 0 (Option.map parse_int (Properties.get props indentN));
 

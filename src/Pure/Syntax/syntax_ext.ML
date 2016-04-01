@@ -143,6 +143,59 @@ val typ_to_nonterm = typ_to_nt "any";
 val typ_to_nonterm1 = typ_to_nt "logic";
 
 
+(* properties *)
+
+local
+
+open Basic_Symbol_Pos;
+
+val err_prefix = "Error in mixfix block properties: ";
+val !!! = Symbol_Pos.!!! (fn () => err_prefix ^ "expected identifier or numeral or cartouche");
+
+val scan_atom =
+  Symbol_Pos.scan_ident ||
+  ($$$ "-" @@@ (Symbol_Pos.scan_float || Symbol_Pos.scan_nat)) ||
+  Symbol_Pos.scan_float || Symbol_Pos.scan_nat ||
+  Symbol_Pos.scan_cartouche_content err_prefix;
+
+val scan_blanks = Scan.many (Symbol.is_blank o Symbol_Pos.symbol);
+val scan_item =
+  scan_blanks |-- scan_atom --| scan_blanks
+    >> (fn ss => (Symbol_Pos.content ss, #1 (Symbol_Pos.range ss)));
+
+val scan_prop =
+  scan_item -- Scan.optional ($$ "=" |-- !!! scan_item >> #1) "true"
+    >> (fn ((x, pos), y) => (x, (y, pos)));
+
+val scan_end = Scan.ahead (Scan.one Symbol_Pos.is_eof) >> K ("", Position.none) || !!! Scan.fail;
+
+fun get_property default parse name props =
+  (case AList.lookup (op =) props name of
+    NONE => default
+  | SOME (s, pos) =>
+      (parse s handle Fail msg => error (msg ^ " for property " ^ quote name ^ Position.here pos)));
+
+in
+
+fun show_props props =
+  commas_quote (map #1 props) ^ Position.here_list (map (#2 o #2) props);
+
+fun read_properties ss =
+  let
+    val props = the (Scan.read Symbol_Pos.stopper (Scan.repeat1 scan_prop --| scan_end) ss);
+    val _ =
+      (case duplicates (eq_fst op =) props of
+        [] => ()
+      | dups => error ("Duplicate properties: " ^ show_props dups));
+  in props end;
+
+val get_string = get_property "" I;
+val get_bool = get_property false Markup.parse_bool;
+val get_nat = get_property 0 Markup.parse_nat;
+
+end;
+
+
 (* read mixfix annotations *)
 
 local
@@ -153,40 +206,21 @@ fun scan_one pred = Scan.one (pred o Symbol_Pos.symbol);
 fun scan_many pred = Scan.many (pred o Symbol_Pos.symbol);
 fun scan_many1 pred = Scan.many1 (pred o Symbol_Pos.symbol);
 
-(*block properties*)
-local
-  val err_prefix = "Error in mixfix block properties: ";
-  val !!! = Symbol_Pos.!!! (fn () => err_prefix ^ "expected identifier or numeral or cartouche");
+fun read_block_properties ss =
+  let
+    val props = read_properties ss;
 
-  val scan_atom =
-    Symbol_Pos.scan_ident ||
-    ($$$ "-" @@@ (Symbol_Pos.scan_float || Symbol_Pos.scan_nat)) ||
-    Symbol_Pos.scan_float || Symbol_Pos.scan_nat ||
-    Symbol_Pos.scan_cartouche_content err_prefix;
+    val markup_name = get_string Markup.markupN props;
+    val markup_props = fold (AList.delete (op =)) Markup.block_properties props;
+    val markup = (markup_name, map (apsnd #1) markup_props);
+    val _ =
+      if markup_name = "" andalso not (null markup_props) then
+        error ("Markup name required for block properties: " ^ show_props markup_props)
+      else ();
 
-  val scan_blanks = scan_many Symbol.is_blank;
-  val scan_item = scan_blanks |-- scan_atom --| scan_blanks >> Symbol_Pos.content;
-
-  val scan_prop = scan_item -- Scan.optional ($$ "=" |-- !!! scan_item) "true";
-  val scan_end = Scan.ahead (Scan.one Symbol_Pos.is_eof) >> K "" || !!! Scan.fail;
-in
-  fun read_block_properties ss =
-    let
-      fun err msg = error (msg ^ Position.here (#1 (Symbol_Pos.range ss)));
-      val props = the (Scan.read Symbol_Pos.stopper (Scan.repeat1 scan_prop --| scan_end) ss);
-
-      val markup_name = Markup.get_markup props;
-      val markup_props =
-        fold Properties.remove [Markup.markupN, Markup.consistentN, Markup.indentN] props;
-      val _ =
-        if markup_name = "" andalso not (null markup_props) then
-          err ("Markup name required for block properties: " ^ commas_quote (map #1 markup_props))
-        else ();
-
-      val consistent = Markup.get_consistent props handle Fail msg => err msg;
-      val indent = Markup.get_indent props handle Fail msg => err msg;
-    in Bg {markup = (markup_name, markup_props), consistent = consistent, indent = indent} end;
-end;
+    val consistent = get_bool Markup.consistentN props;
+    val indent = get_nat Markup.indentN props;
+  in Bg {markup = markup, consistent = consistent, indent = indent} end;
 
 val read_block_indent =
   map Symbol_Pos.symbol #> (fn ss =>
