@@ -86,7 +86,7 @@ datatype symb =
   TypArg of int |
   String of bool * string |
   Break of int |
-  Block of {markup: Markup.T, consistent: bool, indent: int} * symb list;
+  Block of Syntax_Ext.block_info * symb list;
 
 type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 
@@ -202,11 +202,13 @@ fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
               then Pretty.marks_str (m @ [Lexicon.literal_markup s], s)
               else Pretty.str s;
           in (T :: Ts, args') end
-      | synT m (Block (info, bsymbs) :: symbs, args) =
+      | synT m (Block ({markup, consistent, unbreakable, indent}, bsymbs) :: symbs, args) =
           let
             val (bTs, args') = synT m (bsymbs, args);
             val (Ts, args'') = synT m (symbs, args');
-            val T = Pretty.markup_block info bTs |> #indent info < 0 ? Pretty.unbreakable;
+            val T =
+              Pretty.markup_block {markup = markup, consistent = consistent, indent = indent} bTs
+              |> unbreakable ? Pretty.unbreakable;
           in (T :: Ts, args'') end
       | synT m (Break i :: symbs, args) =
           let

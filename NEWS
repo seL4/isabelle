@@ -9,6 +9,9 @@ New in this Isabelle version
 
 *** General ***
 
+* Mixfix annotation syntax: "(\<open>unbreakable\<close>" supersedes "(00"; the old
+form has been discontinued. INCOMPATIBILITY.
+
 * New symbol \<circle>, e.g. for temporal operator.
 
 * Old 'header' command is no longer supported (legacy since

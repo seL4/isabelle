@@ -362,8 +362,7 @@ text \<open>
 
   \<^descr> \<^verbatim>\<open>(\<close>\<open>n\<close> opens a pretty printing block. The optional number specifies how
   much indentation to add when a line break occurs within the block. If the
-  parenthesis is not followed by digits, the indentation defaults to 0. A
-  block specified via \<^verbatim>\<open>(00\<close> is unbreakable.
+  parenthesis is not followed by digits, the indentation defaults to 0.
 
   \<^descr> \<^verbatim>\<open>)\<close> closes a pretty printing block.
 

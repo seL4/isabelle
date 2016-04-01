@@ -68,6 +68,7 @@ sig
   val docN: string val doc: string -> T
   val markupN: string
   val consistentN: string
+  val unbreakableN: string
   val block_properties: string list
   val indentN: string
   val widthN: string
@@ -397,9 +398,10 @@ val (docN, doc) = markup_string "doc" nameN;
 
 val markupN = "markup";
 val consistentN = "consistent";
+val unbreakableN = "unbreakable";
 val indentN = "indent";
 
-val block_properties = [markupN, consistentN, indentN];
+val block_properties = [markupN, consistentN, unbreakableN, indentN];
 
 val widthN = "width";
 

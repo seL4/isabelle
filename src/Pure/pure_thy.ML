@@ -153,7 +153,7 @@ val _ = Theory.setup
     ("_position",   typ "float_token => float_position", Mixfix.mixfix "_"),
     ("_constify",   typ "num_position => num_const",   Mixfix.mixfix "_"),
     ("_constify",   typ "float_position => float_const", Mixfix.mixfix "_"),
-    ("_index",      typ "logic => index",              Mixfix.mixfix "(00\<^bsub>_\<^esub>)"),
+    ("_index",      typ "logic => index",              Mixfix.mixfix "(\<open>unbreakable\<close>\<^bsub>_\<^esub>)"),
     ("_indexdefault", typ "index",                     Mixfix.mixfix ""),
     ("_indexvar",   typ "index",                       Mixfix.mixfix "'\<index>"),
     ("_struct",     typ "index => logic",              NoSyn),

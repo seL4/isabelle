@@ -8,7 +8,7 @@ signature SYNTAX_EXT =
 sig
   datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Position.T
   val typ_to_nonterm: typ -> string
-  type block_info = {markup: Markup.T, consistent: bool, indent: int}
+  type block_info = {markup: Markup.T, consistent: bool, unbreakable: bool, indent: int}
   val block_indent: int -> block_info
   datatype xsymb =
     Delim of string |
@@ -66,8 +66,10 @@ struct
   Space s: some white space for printing
   Bg, Brk, En: blocks and breaks for pretty printing*)
 
-type block_info = {markup: Markup.T, consistent: bool, indent: int};
-fun block_indent indent = {markup = Markup.empty, consistent = false, indent = indent};
+type block_info = {markup: Markup.T, consistent: bool, unbreakable: bool, indent: int};
+
+fun block_indent indent : block_info =
+  {markup = Markup.empty, consistent = false, unbreakable = false, indent = indent};
 
 datatype xsymb =
   Delim of string |
@@ -220,14 +222,14 @@ fun read_block_properties ss =
       else ();
 
     val consistent = get_bool Markup.consistentN props;
+    val unbreakable = get_bool Markup.unbreakableN props;
     val indent = get_nat Markup.indentN props;
-  in Bg {markup = markup, consistent = consistent, indent = indent} end
+  in Bg {markup = markup, consistent = consistent, unbreakable = unbreakable, indent = indent} end
   handle ERROR msg => error (msg ^
     Markup.markup_report (Position.reported_text (#1 (Symbol_Pos.range ss)) Markup.keyword3 ""));
 
 val read_block_indent =
-  map Symbol_Pos.symbol #> (fn ss =>
-    Bg (block_indent (if ss = ["0", "0"] then ~1 else #1 (Library.read_int ss))));
+  Bg o block_indent o #1 o Library.read_int o map Symbol_Pos.symbol;
 
 val is_meta = member (op =) ["(", ")", "/", "_", "\<index>"];
 
