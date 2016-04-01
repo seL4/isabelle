@@ -138,6 +138,7 @@ my $setup_import = substr("\"$setup_full_name\"" . (" " x 1000), 0, 1000);
 my $thy_text = join("", @lines);
 my $old_len = length($thy_text);
 $thy_text =~ s/(theory\s+)\"?$thy_name\"?/$1"$new_thy_name"/g;
+$thy_text =~ s/\b$thy_name\./$new_thy_name./g;
 $thy_text =~ s/(imports)(\s+)/$1 $setup_import$2/g;
 die "No 'imports' found" if length($thy_text) == $old_len;
 
