@@ -52,7 +52,7 @@ fun par_list_map_filter_with_timeout _ _ _ _ [] = []
 
       fun apply_f x =
         let val timeout = !next_timeout in
-          if Time.<= (timeout, min_timeout) then
+          if timeout <= min_timeout then
             NONE
           else
             let val y = f timeout x in
@@ -188,7 +188,7 @@ fun time_of_play (Played time) = time
 
 fun add_preplay_outcomes Play_Failed _ = Play_Failed
   | add_preplay_outcomes _ Play_Failed = Play_Failed
-  | add_preplay_outcomes (Played time1) (Played time2) = Played (Time.+ (time1, time2))
+  | add_preplay_outcomes (Played time1) (Played time2) = Played (time1 + time2)
   | add_preplay_outcomes play1 play2 =
     Play_Timed_Out (Time.+ (apply2 time_of_play (play1, play2)))
 

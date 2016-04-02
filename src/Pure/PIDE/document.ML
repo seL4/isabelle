@@ -464,7 +464,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
       val delay = seconds (Options.default_real "editor_execution_delay");
 
       val _ = Future.cancel delay_request;
-      val delay_request' = Event_Timer.future (Time.+ (Time.now (), delay));
+      val delay_request' = Event_Timer.future (Time.now () + delay);
 
       fun finished_import (name, (node, _)) =
         finished_result node orelse is_some (loaded_theory name);

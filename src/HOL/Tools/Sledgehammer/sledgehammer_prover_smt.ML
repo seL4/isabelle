@@ -130,8 +130,8 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
 
         val death = Timer.checkRealTimer timer
         val outcome0 = if is_none outcome0 then SOME outcome else outcome0
-        val time_so_far = Time.+ (time_so_far, Time.- (death, birth))
-        val timeout = Time.- (timeout, Timer.checkRealTimer timer)
+        val time_so_far = time_so_far + (death - birth)
+        val timeout = timeout - Timer.checkRealTimer timer
 
         val too_many_facts_perhaps =
           (case outcome of
@@ -143,7 +143,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
           | SOME (SMT_Failure.Other_Failure _) => true)
       in
         if too_many_facts_perhaps andalso slice < max_slices andalso num_facts > 0 andalso
-           Time.> (timeout, Time.zeroTime) then
+           timeout > Time.zeroTime then
           let
             val new_num_facts =
               Real.ceil (Config.get ctxt smt_slice_fact_frac * Real.fromInt num_facts)

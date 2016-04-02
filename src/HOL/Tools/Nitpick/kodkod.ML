@@ -989,7 +989,7 @@ fun serial_string_and_temporary_dir_for_overlord overlord =
 val fudge_ms = 250
 
 fun milliseconds_until_deadline deadline =
-  Int.max (0, Time.toMilliseconds (Time.- (deadline, Time.now ())) - fudge_ms)
+  Int.max (0, Time.toMilliseconds (deadline - Time.now ()) - fudge_ms)
 
 fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                                problems =

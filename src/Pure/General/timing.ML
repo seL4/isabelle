@@ -76,7 +76,7 @@ fun timing f x =
 
 val min_time = Time.fromMilliseconds 1;
 
-fun is_relevant_time time = Time.>= (time, min_time);
+fun is_relevant_time time = time >= min_time;
 
 fun is_relevant {elapsed, cpu, gc} =
   is_relevant_time elapsed orelse

@@ -168,7 +168,7 @@ fun avg [] = 0.0
 
 fun normalize_scores _ [] = []
   | normalize_scores max_facts xs =
-    map (apsnd (curry Real.* (1.0 / avg (map snd (take max_facts xs))))) xs
+    map (apsnd (curry (op *) (1.0 / avg (map snd (take max_facts xs))))) xs
 
 fun mesh_facts maybe_distinct _ max_facts [(_, (sels, unks))] =
     map fst (take max_facts sels) @ take (max_facts - length sels) unks
@@ -655,7 +655,7 @@ fun load_state ctxt (time_state as (memory_time, _)) =
     (case try OS.FileSys.modTime (File.platform_path path) of
       NONE => time_state
     | SOME disk_time =>
-      if Time.>= (memory_time, disk_time) then
+      if memory_time >= disk_time then
         time_state
       else
         (disk_time,
@@ -700,7 +700,7 @@ fun save_state _ (time_state as (_, {dirty_facts = SOME [], ...})) = time_state
       val dirty_facts' =
         (case try OS.FileSys.modTime (File.platform_path path) of
           NONE => NONE
-        | SOME disk_time => if Time.<= (disk_time, memory_time) then dirty_facts else NONE)
+        | SOME disk_time => if disk_time <= memory_time then dirty_facts else NONE)
       val (banner, entries) =
         (case dirty_facts' of
           SOME names => (NONE, fold (append_entry o Graph.get_entry access_G) names [])
@@ -1278,7 +1278,7 @@ fun launch_thread timeout task =
   let
     val hard_timeout = time_mult learn_timeout_slack timeout
     val birth_time = Time.now ()
-    val death_time = Time.+ (birth_time, hard_timeout)
+    val death_time = birth_time + hard_timeout
     val desc = ("Machine learner for Sledgehammer", "")
   in
     Async_Manager_Legacy.thread MaShN birth_time death_time desc task
@@ -1328,7 +1328,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
     learn_timeout facts =
   let
     val timer = Timer.startRealTimer ()
-    fun next_commit_time () = Time.+ (Timer.checkRealTimer timer, commit_timeout)
+    fun next_commit_time () = Timer.checkRealTimer timer + commit_timeout
 
     val {access_G, ...} = peek_state ctxt
     val is_in_access_G = is_fact_in_graph access_G o snd
@@ -1408,11 +1408,11 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
               val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
               val learns = (name, parents, feats, deps) :: learns
               val (learns, next_commit) =
-                if Time.> (Timer.checkRealTimer timer, next_commit) then
+                if Timer.checkRealTimer timer > next_commit then
                   (commit false learns [] []; ([], next_commit_time ()))
                 else
                   (learns, next_commit)
-              val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
+              val timed_out = Timer.checkRealTimer timer > learn_timeout
             in
               (learns, (num_nontrivial, next_commit, timed_out))
             end
@@ -1443,11 +1443,11 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
                   SOME deps => (num_nontrivial + 1, (name, deps) :: relearns, flops)
                 | NONE => (num_nontrivial, relearns, name :: flops))
               val (relearns, flops, next_commit) =
-                if Time.> (Timer.checkRealTimer timer, next_commit) then
+                if Timer.checkRealTimer timer > next_commit then
                   (commit false [] relearns flops; ([], [], next_commit_time ()))
                 else
                   (relearns, flops, next_commit)
-              val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
+              val timed_out = Timer.checkRealTimer timer > learn_timeout
             in
               ((relearns, flops), (num_nontrivial, next_commit, timed_out))
             end

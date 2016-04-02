@@ -251,7 +251,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     fun check_deadline () =
       let val t = Time.now () in
         if Time.compare (t, deadline) <> LESS
-        then raise Timeout.TIMEOUT (Time.- (t, time_start))
+        then raise Timeout.TIMEOUT (t - time_start)
         else ()
       end
 
@@ -540,7 +540,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         val bit_width = if bits = 0 then 16 else bits + 1
         val delay =
           if unsound then
-            unsound_delay_for_timeout (Time.- (deadline, Time.now ()))
+            unsound_delay_for_timeout (deadline - Time.now ())
           else
             0
         val settings = [("solver", commas_quote kodkod_sat_solver),
@@ -986,9 +986,9 @@ fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
     else
       let
         val unknown_outcome = (unknownN, [])
-        val deadline = Time.+ (Time.now (), timeout)
+        val deadline = Time.now () + timeout
         val outcome as (outcome_code, _) =
-          Timeout.apply (Time.+ (timeout, timeout_bonus))
+          Timeout.apply (timeout + timeout_bonus)
               (pick_them_nits_in_term deadline state params mode i n step subst
                                       def_assm_ts nondef_assm_ts) orig_t
           handle TOO_LARGE (_, details) =>

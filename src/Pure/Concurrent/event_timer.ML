@@ -52,7 +52,7 @@ fun next_request_event t0 (requests: requests) =
   (case Requests.min requests of
     NONE => NONE
   | SOME (time, entries) =>
-      if Time.< (t0, time) then NONE
+      if t0 < time then NONE
       else
         let
           val (rest, (_, event)) = split_last entries;

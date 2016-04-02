@@ -22,7 +22,7 @@ fun update_timings props =
   (case Markup.parse_command_timing_properties props of
     SOME ({file, offset, name}, time) =>
       Symtab.map_default (file, Inttab.empty)
-        (Inttab.map_default (offset, (name, time)) (fn (_, t) => (name, Time.+ (t, time))))
+        (Inttab.map_default (offset, (name, time)) (fn (_, t) => (name, t + time)))
   | NONE => I);
 
 fun approximative_id name pos =
@@ -83,7 +83,7 @@ fun protocol_message props output =
           val {elapsed, ...} = Markup.parse_timing_properties args;
           val is_significant =
             Timing.is_relevant_time elapsed andalso
-            Time.>= (elapsed, Options.default_seconds "command_timing_threshold");
+            elapsed >= Options.default_seconds "command_timing_threshold";
         in
           if is_significant then
             (case approximative_id name pos of

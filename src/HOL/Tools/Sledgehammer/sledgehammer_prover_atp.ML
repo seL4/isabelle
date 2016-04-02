@@ -250,7 +250,7 @@ fun run_atp mode name
               * 0.001
               |> seconds
             val generous_slice_timeout =
-              if mode = MaSh then one_day else Time.+ (slice_timeout, atp_timeout_slack)
+              if mode = MaSh then one_day else slice_timeout + atp_timeout_slack
             val _ =
               if debug then
                 quote name ^ " slice #" ^ string_of_int (slice + 1) ^
@@ -328,14 +328,14 @@ fun run_atp mode name
         val timer = Timer.startRealTimer ()
 
         fun maybe_run_slice slice (result as (cache, (_, run_time0, _, _, SOME _), _)) =
-            let val time_left = Time.- (timeout, Timer.checkRealTimer timer) in
-              if Time.<= (time_left, Time.zeroTime) then
+            let val time_left = timeout - Timer.checkRealTimer timer in
+              if time_left <= Time.zeroTime then
                 result
               else
                 run_slice time_left cache slice
                 |> (fn (cache, (output, run_time, used_from, atp_proof, outcome),
                         format_type_enc) =>
-                  (cache, (output, Time.+ (run_time0, run_time), used_from, atp_proof, outcome),
+                  (cache, (output, run_time0 + run_time, used_from, atp_proof, outcome),
                    format_type_enc))
             end
           | maybe_run_slice _ result = result

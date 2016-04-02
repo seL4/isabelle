@@ -96,7 +96,7 @@ fun check_thread_manager () = Synchronized.change global_state
       let
         fun time_limit timeout_heap =
           (case try Thread_Heap.min timeout_heap of
-            NONE => Time.+ (Time.now (), max_wait_time)
+            NONE => Time.now () + max_wait_time
           | SOME (time, _) => time)
 
         (*action: find threads whose timeout is reached, and interrupt canceling threads*)

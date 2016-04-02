@@ -127,10 +127,10 @@ fun tracing level msg =
 fun tracing_time detailed time =
   tracing
    (if not detailed then 5
-    else if Time.>= (time, seconds 1.0) then 1
-    else if Time.>= (time, seconds 0.1) then 2
-    else if Time.>= (time, seconds 0.01) then 3
-    else if Time.>= (time, seconds 0.001) then 4 else 5);
+    else if time >= seconds 1.0 then 1
+    else if time >= seconds 0.1 then 2
+    else if time >= seconds 0.01 then 3
+    else if time >= seconds 0.001 then 4 else 5);
 
 fun real_time f x =
   let

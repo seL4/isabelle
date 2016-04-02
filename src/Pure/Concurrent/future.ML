@@ -126,7 +126,7 @@ fun wait cond = (*requires SYNCHRONIZED*)
   Multithreading.sync_wait NONE NONE cond lock;
 
 fun wait_timeout timeout cond = (*requires SYNCHRONIZED*)
-  Multithreading.sync_wait NONE (SOME (Time.+ (Time.now (), timeout))) cond lock;
+  Multithreading.sync_wait NONE (SOME (Time.now () + timeout)) cond lock;
 
 fun signal cond = (*requires SYNCHRONIZED*)
   ConditionVar.signal cond;
@@ -280,7 +280,7 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 fun scheduler_next () = (*requires SYNCHRONIZED*)
   let
     val now = Time.now ();
-    val tick = Time.<= (Time.+ (! last_round, next_round), now);
+    val tick = ! last_round + next_round <= now;
     val _ = if tick then last_round := now else ();
 
 

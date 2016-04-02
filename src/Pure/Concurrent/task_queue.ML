@@ -139,7 +139,7 @@ fun update_timing update (Task {timing, ...}) e =
     let
       val start = Time.now ();
       val result = Exn.capture (restore_attributes e) ();
-      val t = Time.- (Time.now (), start);
+      val t = Time.now () - start;
       val _ = (case timing of NONE => () | SOME var => Synchronized.change var (update t));
     in Exn.release result end) ();
 
@@ -167,14 +167,14 @@ structure Task_Graph = Graph(type key = task val ord = task_ord);
 (* timing *)
 
 fun running task =
-  update_timing (fn t => fn (a, b, ds) => (Time.+ (a, t), b, ds)) task;
+  update_timing (fn t => fn (a, b, ds) => (a + t, b, ds)) task;
 
 fun joining task =
-  update_timing (fn t => fn (a, b, ds) => (Time.- (a, t), b, ds)) task;
+  update_timing (fn t => fn (a, b, ds) => (a - t, b, ds)) task;
 
 fun waiting task deps =
   update_timing (fn t => fn (a, b, ds) =>
-    (Time.- (a, t), Time.+ (b, t),
+    (a - t, b + t,
       if ! Multithreading.trace > 0
       then fold (insert (op =) o name_of_task) deps ds else ds)) task;
 

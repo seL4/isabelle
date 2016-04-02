@@ -23,7 +23,7 @@ fun apply timeout f x =
       val start = Time.now ();
 
       val request =
-        Event_Timer.request (Time.+ (start, timeout))
+        Event_Timer.request (start + timeout)
           (fn () => Standard_Thread.interrupt_unsynchronized self);
       val result =
         Exn.capture (fn () => Multithreading.with_attributes orig_atts (fn _ => f x)) ();
@@ -33,7 +33,7 @@ fun apply timeout f x =
       val test = Exn.capture Multithreading.interrupted ();
     in
       if was_timeout andalso (Exn.is_interrupt_exn result orelse Exn.is_interrupt_exn test)
-      then raise TIMEOUT (Time.- (stop, start))
+      then raise TIMEOUT (stop - start)
       else (Exn.release test; Exn.release result)
     end);
 

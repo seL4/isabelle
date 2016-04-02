@@ -103,8 +103,8 @@ val merge_slack_time = seconds 0.01
 val merge_slack_factor = 1.5
 
 fun adjust_merge_timeout max time =
-  let val timeout = time_mult merge_slack_factor (Time.+ (merge_slack_time, time)) in
-    if Time.< (max, timeout) then max else timeout
+  let val timeout = time_mult merge_slack_factor (merge_slack_time + time) in
+    if max < timeout then max else timeout
   end
 
 val compress_degree = 2
@@ -171,7 +171,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
               val step'' = Prove (qs, xs, l, t, subs'', (lfs'', gfs''), meths'', comment)
 
               (* check if the modified step can be preplayed fast enough *)
-              val timeout = adjust_merge_timeout preplay_timeout (Time.+ (time, reference_time l'))
+              val timeout = adjust_merge_timeout preplay_timeout (time + reference_time l')
             in
               (case preplay_isar_step ctxt [] timeout hopeless step'' of
                 meths_outcomes as (_, Played time'') :: _ =>
@@ -215,7 +215,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
               | SOME times0 =>
                 let
                   val n = length labels
-                  val total_time = Library.foldl Time.+ (reference_time l, times0)
+                  val total_time = Library.foldl (op +) (reference_time l, times0)
                   val timeout = adjust_merge_timeout preplay_timeout
                     (Time.fromReal (Time.toReal total_time / Real.fromInt n))
                   val meths_outcomess =

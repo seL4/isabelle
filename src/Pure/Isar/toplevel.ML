@@ -651,7 +651,7 @@ fun timing_estimate include_head elem =
     val timings = map get_timing trs;
   in
     if forall is_some timings then
-      SOME (fold (curry Time.+ o the) timings Time.zeroTime)
+      SOME (fold (curry (op +) o the) timings Time.zeroTime)
     else NONE
   end;
 

@@ -417,7 +417,7 @@ fun run_print execution_id (Print {name, delay, pri, exec_id, print_process, ...
     in
       (case delay of
         NONE => fork ()
-      | SOME d => ignore (Event_Timer.request (Time.+ (Time.now (), d)) fork))
+      | SOME d => ignore (Event_Timer.request (Time.now () + d) fork))
     end
   else run_process execution_id exec_id print_process;
 
