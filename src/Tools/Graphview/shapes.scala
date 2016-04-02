@@ -60,7 +60,10 @@ object Shapes
       (info.lines.length max 1) * metrics.height.ceil
     val x = (s.getCenterX - text_width / 2).round.toInt
     var y = (s.getCenterY - text_height / 2 + metrics.ascent).round.toInt
-    for (line <- info.lines) { gfx.drawString(line, x, y); y += metrics.height.ceil.toInt }
+    for (line <- info.lines) {
+      gfx.drawString(Word.bidi_override(line), x, y)
+      y += metrics.height.ceil.toInt
+    }
   }
 
   def paint_dummy(gfx: Graphics2D, graphview: Graphview, info: Layout.Info)

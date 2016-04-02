@@ -420,19 +420,19 @@ class Rich_Text_Area(
               val s2 = str.substring(i, j)
               val s3 = str.substring(j)
 
-              if (s1.nonEmpty) gfx.drawString(s1, x1, y)
+              if (s1.nonEmpty) gfx.drawString(Word.bidi_override(s1), x1, y)
 
-              val astr = new AttributedString(s2)
+              val astr = new AttributedString(Word.bidi_override(s2))
               astr.addAttribute(TextAttribute.FONT, chunk_font)
               astr.addAttribute(TextAttribute.FOREGROUND, caret_color(rendering, r.start))
               astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON)
               gfx.drawString(astr.getIterator, x1 + string_width(s1), y)
 
               if (s3.nonEmpty)
-                gfx.drawString(s3, x1 + string_width(str.substring(0, j)), y)
+                gfx.drawString(Word.bidi_override(s3), x1 + string_width(str.substring(0, j)), y)
 
             case _ =>
-              gfx.drawString(str, x1, y)
+              gfx.drawString(Word.bidi_override(str), x1, y)
           }
           x1 += string_width(str)
         }

@@ -15,6 +15,7 @@ body { background-color: #FFFFFF; }
 
 .head     { background-color: #FFFFFF; }
 .source   {
+  direction: ltr; unicode-bidi: bidi-override;
   background-color: #FFFFFF;
   padding: 10px;
   font-family: IsabelleText;
