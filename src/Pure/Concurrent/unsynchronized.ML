@@ -28,3 +28,6 @@ fun setmp flag value f x =
     in Exn.release result end) ();
 
 end;
+
+val _ = ML_Name_Space.forget_val "ref";
+val _ = ML_Name_Space.forget_type "ref";

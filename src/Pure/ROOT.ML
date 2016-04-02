@@ -6,6 +6,7 @@
 
 use "ML/ml_system.ML";
 use "ML/ml_name_space.ML";
+use "ML/ml_pervasive.ML";
 
 if List.exists (fn (a, _) => a = "FixedInt") (#allStruct ML_Name_Space.global ()) then ()
 else use "ML/fixed_int_dummy.ML";
@@ -22,50 +23,16 @@ end;
 
 use "General/exn.ML";
 
-val seconds = Time.fromReal;
-
-open Thread;
 use "Concurrent/multithreading.ML";
-
 use "Concurrent/unsynchronized.ML";
-val _ = ML_Name_Space.forget_val "ref";
-val _ = ML_Name_Space.forget_type "ref";
 
 
-(* pervasive environment *)
-
-val _ =
-  List.app ML_Name_Space.forget_val
-    ["isSome", "getOpt", "valOf", "foldl", "foldr", "print", "explode", "concat"];
-
-val ord = SML90.ord;
-val chr = SML90.chr;
-val raw_explode = SML90.explode;
-val implode = SML90.implode;
-
-
-(* ML runtime system *)
+(* ML system *)
 
 use "ML/ml_heap.ML";
 use "ML/ml_profiling.ML";
-
-val pointer_eq = PolyML.pointerEq;
-
-
-(* ML toplevel pretty printing *)
-
 use "ML/ml_pretty.ML";
-
-val error_depth = PolyML.error_depth;
-
-
-(* ML compiler *)
-
 use "ML/ml_compiler0.ML";
-
-
-(* ML debugger *)
-
 use_no_debug "ML/ml_debugger.ML";
 
 
