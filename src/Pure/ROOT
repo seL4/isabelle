@@ -101,6 +101,8 @@ session Pure =
     "ML/ml_antiquotation.ML"
     "ML/ml_compiler.ML"
     "ML/ml_compiler0.ML"
+    "ML/ml_compiler1.ML"
+    "ML/ml_compiler2.ML"
     "ML/ml_context.ML"
     "ML/ml_debugger.ML"
     "ML/ml_env.ML"

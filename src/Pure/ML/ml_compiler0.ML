@@ -1,7 +1,8 @@
 (*  Title:      Pure/ML/ml_compiler0.ML
+    Author:     Makarius
 
-Runtime compilation and evaluation (bootstrap version of
-Pure/ML/ml_compiler.ML).
+Runtime compilation and evaluation for bootstrap.
+Initial ML use operations.
 *)
 
 signature ML_COMPILER0 =
@@ -12,6 +13,7 @@ sig
     here: int -> string -> string,
     print: string -> unit,
     error: string -> unit}
+  val make_context: ML_Name_Space.T -> context
   val use_text: context -> {debug: bool, file: string, line: int, verbose: bool} -> string -> unit
   val use_file: context -> {debug: bool, verbose: bool} -> string -> unit
   val debug_option: bool option -> bool
@@ -22,12 +24,34 @@ end;
 structure ML_Compiler0: ML_COMPILER0 =
 struct
 
+(* global options *)
+
+val _ = PolyML.Compiler.reportUnreferencedIds := true;
+val _ = PolyML.Compiler.reportExhaustiveHandlers := true;
+val _ = PolyML.Compiler.printInAlphabeticalOrder := false;
+val _ = PolyML.Compiler.maxInlineSize := 80;
+
+
+(* context *)
+
 type context =
  {name_space: ML_Name_Space.T,
   print_depth: int option,
   here: int -> string -> string,
   print: string -> unit,
   error: string -> unit};
+
+fun make_context name_space : context =
+ {name_space = name_space,
+  print_depth = NONE,
+  here = fn line => fn file => " (line " ^ Int.toString line ^ " of \"" ^ file ^ "\")",
+  print = fn s => (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut),
+  error = fn s => error s};
+
+
+(* use operations *)
+
+local
 
 fun drop_newline s =
   if String.isSuffix "\n" s then String.substring (s, 0, size s - 1)
@@ -46,6 +70,8 @@ fun ml_input start_line name txt =
       | input line (c :: cs) res = input line cs (str c :: res)
       | input _ [] res = rev res;
   in String.concat (input start_line (String.explode txt) []) end;
+
+in
 
 fun use_text ({name_space, print_depth, here, print, error, ...}: context)
     {line, file, verbose, debug} text =
@@ -86,30 +112,28 @@ fun use_text ({name_space, print_depth, here, print, error, ...}: context)
           error (output ()); Exn.reraise exn);
   in if verbose then print (output ()) else () end;
 
+end;
+
 fun use_file context {verbose, debug} file =
   let
     val instream = TextIO.openIn file;
     val text = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
   in use_text context {line = 1, file = file, verbose = verbose, debug = debug} text end;
 
+fun use_operations (use_ : bool option -> string -> unit) =
+  {use = use_ NONE, use_debug = use_ (SOME true), use_no_debug = use_ (SOME false)};
+
 
 fun debug_option NONE = OS.Process.getEnv "ISABELLE_ML_DEBUGGER" = SOME "true"
   | debug_option (SOME debug) = debug;
 
-fun use_operations (use_ : bool option -> string -> unit) =
-  {use = use_ NONE, use_debug = use_ (SOME true), use_no_debug = use_ (SOME false)};
-
 end;
 
+
+(* initial use operations *)
+
 val {use, use_debug, use_no_debug} =
-  let
-    val context: ML_Compiler0.context =
-     {name_space = ML_Name_Space.global,
-      print_depth = NONE,
-      here = fn line => fn file => " (line " ^ Int.toString line ^ " of \"" ^ file ^ "\")",
-      print = fn s => (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut),
-      error = fn s => error s};
-  in
+  let val context = ML_Compiler0.make_context ML_Name_Space.global in
     ML_Compiler0.use_operations (fn opt_debug => fn file =>
       ML_Compiler0.use_file context
         {verbose = true, debug = ML_Compiler0.debug_option opt_debug} file

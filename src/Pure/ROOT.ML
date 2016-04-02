@@ -63,11 +63,6 @@ val error_depth = PolyML.error_depth;
 
 use "ML/ml_compiler0.ML";
 
-PolyML.Compiler.reportUnreferencedIds := true;
-PolyML.Compiler.reportExhaustiveHandlers := true;
-PolyML.Compiler.printInAlphabeticalOrder := false;
-PolyML.Compiler.maxInlineSize := 80;
-
 
 (* ML debugger *)
 
@@ -100,24 +95,7 @@ use "General/symbol_pos.ML";
 use "General/input.ML";
 use "General/antiquote.ML";
 use "ML/ml_lex.ML";
-
-val {use, use_debug, use_no_debug} =
-  let
-    val context: ML_Compiler0.context =
-     {name_space = ML_Name_Space.global,
-      print_depth = NONE,
-      here = Position.here oo Position.line_file,
-      print = writeln,
-      error = error};
-  in
-    ML_Compiler0.use_operations (fn opt_debug => fn file =>
-      Position.setmp_thread_data (Position.file_only file)
-        (fn () =>
-          ML_Compiler0.use_file context
-            {verbose = true, debug = ML_Compiler0.debug_option opt_debug} file
-          handle ERROR msg => (writeln msg; error "ML error")) ())
-  end;
-
+use "ML/ml_compiler1.ML";
 
 
 (** bootstrap phase 2: towards ML within Isar context *)
@@ -287,13 +265,7 @@ use "Thy/latex.ML";
 (*ML with context and antiquotations*)
 use "ML/ml_context.ML";
 use "ML/ml_antiquotation.ML";
-
-val {use, use_debug, use_no_debug} =
-  ML_Compiler0.use_operations (fn opt_debug => fn file =>
-    let val flags = ML_Compiler.verbose true (ML_Compiler.debug_flags opt_debug) in
-      ML_Context.eval_file flags (Path.explode file)
-        handle ERROR msg => (writeln msg; error "ML error")
-    end);
+use "ML/ml_compiler2.ML";
 
 
 
