@@ -812,11 +812,11 @@ The individual rules making up @{text "f.cong_intros"} are available as
 
 \item[@{text "f."}\hthm{cong_trans}]
 
-\item[@{text "f."}\hthm{cong_C\textsubscript{1}}, \ldots, @{text "f."}\hthm{cong_C\textsubscript{\textit{n}}}] ~ \\
+\item[@{text "f."}\hthm{cong_C}@{text "\<^sub>1"}, \ldots, @{text "f."}\hthm{cong_C}@{text "\<^sub>n"}] ~ \\
 where @{text "C\<^sub>1"}, @{text "\<dots>"}, @{text "C\<^sub>n"} are @{text t}'s
 constructors
 
-\item[@{text "f."}\hthm{cong_f\textsubscript{1}}, \ldots, @{text "f."}\hthm{cong_f\textsubscript{\textit{m}}}] ~ \\
+\item[@{text "f."}\hthm{cong_f}@{text "\<^sub>1"}, \ldots, @{text "f."}\hthm{cong_f}@{text "\<^sub>m"}] ~ \\
 where @{text "f\<^sub>1"}, @{text "\<dots>"}, @{text "f\<^sub>m"} are the available
 friends for @{text t}
 
