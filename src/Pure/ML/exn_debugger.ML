@@ -6,7 +6,8 @@ Detailed exception trace via ML debugger.
 
 signature EXN_DEBUGGER =
 sig
-  val capture_exception_trace: (unit -> 'a) -> (string * ML_Debugger.location) list * 'a Exn.result
+  val capture_exception_trace:
+    (unit -> 'a) -> (string * ML_Compiler0.polyml_location) list * 'a Exn.result
 end;
 
 structure Exn_Debugger: EXN_DEBUGGER =
@@ -15,7 +16,8 @@ struct
 (* thread data *)
 
 local
-  val tag = Universal.tag () : ((string * ML_Debugger.location) * exn) list option Universal.tag;
+  val tag =
+    Universal.tag () : ((string * ML_Compiler0.polyml_location) * exn) list option Universal.tag;
 in
 
 fun start_trace () = Thread.setLocal (tag, SOME []);

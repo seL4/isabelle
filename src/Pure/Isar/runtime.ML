@@ -159,7 +159,7 @@ fun exn_trace_system e = Exn.trace exn_message Output.system_message e;
 local
 
 fun print_entry (name, loc) =
-  Markup.markup Markup.item (name ^ Position.here (Exn_Properties.position_of_location loc));
+  Markup.markup Markup.item (name ^ Position.here (Exn_Properties.position_of_polyml_location loc));
 
 fun exception_debugger output e =
   let

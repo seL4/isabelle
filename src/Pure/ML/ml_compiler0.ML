@@ -7,6 +7,7 @@ Initial ML use operations.
 
 signature ML_COMPILER0 =
 sig
+  type polyml_location = PolyML.location
   type context =
    {name_space: ML_Name_Space.T,
     print_depth: int option,
@@ -23,6 +24,9 @@ end;
 
 structure ML_Compiler0: ML_COMPILER0 =
 struct
+
+type polyml_location = PolyML.location;
+
 
 (* global options *)
 

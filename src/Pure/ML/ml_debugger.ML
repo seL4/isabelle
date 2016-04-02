@@ -10,17 +10,16 @@ sig
   val exn_id: exn -> exn_id
   val print_exn_id: exn_id -> string
   val eq_exn_id: exn_id * exn_id -> bool
-  type location
-  val on_entry: (string * location -> unit) option -> unit
-  val on_exit: (string * location -> unit) option -> unit
-  val on_exit_exception: (string * location -> exn -> unit) option -> unit
-  val on_breakpoint: (location * bool Unsynchronized.ref -> unit) option -> unit
+  val on_entry: (string * ML_Compiler0.polyml_location -> unit) option -> unit
+  val on_exit: (string * ML_Compiler0.polyml_location -> unit) option -> unit
+  val on_exit_exception: (string * ML_Compiler0.polyml_location -> exn -> unit) option -> unit
+  val on_breakpoint: (ML_Compiler0.polyml_location * bool Unsynchronized.ref -> unit) option -> unit
   type state
   val state: Thread.thread -> state list
   val debug_function: state -> string
   val debug_function_arg: state -> ML_Name_Space.valueVal
   val debug_function_result: state -> ML_Name_Space.valueVal
-  val debug_location: state -> location
+  val debug_location: state -> ML_Compiler0.polyml_location
   val debug_name_space: state -> ML_Name_Space.T
   val debug_local_name_space: state -> ML_Name_Space.T
 end;
@@ -48,8 +47,6 @@ val _ =
 
 
 (* hooks *)
-
-type location = PolyML.location;
 
 val on_entry = PolyML.DebuggerInterface.setOnEntry;
 val on_exit = PolyML.DebuggerInterface.setOnExit;

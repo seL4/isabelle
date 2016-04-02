@@ -209,7 +209,8 @@ fun debugger_state thread_name =
   Output.protocol_message (Markup.debugger_state thread_name)
    [get_debugging ()
     |> map (fn st =>
-      (Position.properties_of (Exn_Properties.position_of_location (ML_Debugger.debug_location st)),
+      (Position.properties_of
+        (Exn_Properties.position_of_polyml_location (ML_Debugger.debug_location st)),
        ML_Debugger.debug_function st))
     |> let open XML.Encode in list (pair properties string) end
     |> YXML.string_of_body];

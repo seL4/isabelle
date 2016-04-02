@@ -14,6 +14,7 @@ end;
 signature EXN =
 sig
   include BASIC_EXN
+  val polyml_location: exn -> PolyML.location option
   val reraise: exn -> 'a
   datatype 'a result = Res of 'a | Exn of exn
   val get_res: 'a result -> 'a option
@@ -38,12 +39,11 @@ end;
 structure Exn: EXN =
 struct
 
-(* reraise *)
+(* location *)
 
-fun reraise exn =
-  (case PolyML.exceptionLocation exn of
-    NONE => raise exn
-  | SOME location => PolyML.raiseWithLocation (exn, location));
+val polyml_location = PolyML.Exception.exceptionLocation;
+
+val reraise = PolyML.Exception.reraise;
 
 
 (* user errors *)

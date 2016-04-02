@@ -38,7 +38,7 @@ fun verbose b (flags: flags) =
 (* parse trees *)
 
 fun breakpoint_position loc =
-  let val pos = Position.no_range_position (Exn_Properties.position_of_location loc) in
+  let val pos = Position.no_range_position (Exn_Properties.position_of_polyml_location loc) in
     (case Position.offset_of pos of
       NONE => pos
     | SOME 1 => pos
@@ -60,7 +60,7 @@ fun report_parse_tree redirect depth space parse_tree =
     (* syntax reports *)
 
     fun reported_types loc types =
-      let val pos = Exn_Properties.position_of_location loc in
+      let val pos = Exn_Properties.position_of_polyml_location loc in
         is_reported pos ?
           let
             val xml =
@@ -72,8 +72,8 @@ fun report_parse_tree redirect depth space parse_tree =
 
     fun reported_entity kind loc decl =
       let
-        val pos = Exn_Properties.position_of_location loc;
-        val def_pos = Exn_Properties.position_of_location decl;
+        val pos = Exn_Properties.position_of_polyml_location loc;
+        val def_pos = Exn_Properties.position_of_polyml_location decl;
       in
         (is_reported pos andalso pos <> def_pos) ?
           let
@@ -83,7 +83,7 @@ fun report_parse_tree redirect depth space parse_tree =
       end;
 
     fun reported_completions loc names =
-      let val pos = Exn_Properties.position_of_location loc in
+      let val pos = Exn_Properties.position_of_polyml_location loc in
         if is_reported pos andalso not (null names) then
           let
             val completion = Completion.names pos (map (fn a => (a, ("ML", a))) names);
@@ -189,7 +189,7 @@ fun eval (flags: flags) pos toks =
 
     fun message {message = msg, hard, location = loc, context = _} =
       let
-        val pos = Exn_Properties.position_of_location loc;
+        val pos = Exn_Properties.position_of_polyml_location loc;
         val txt =
           (if hard then "ML error" else "ML warning") ^ Position.here pos ^ ":\n" ^
           Pretty.string_of (Pretty.from_polyml msg);
