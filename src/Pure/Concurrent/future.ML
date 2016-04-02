@@ -100,7 +100,7 @@ fun peek x = Single_Assignment.peek (result_of x);
 fun is_finished x = is_some (peek x);
 
 val _ =
-  PolyML.addPrettyPrinter (fn depth => fn pretty => fn x =>
+  ML_system_pp (fn depth => fn pretty => fn x =>
     (case peek x of
       NONE => PolyML.PrettyString "<future>"
     | SOME (Exn.Exn _) => PolyML.PrettyString "<failed>"

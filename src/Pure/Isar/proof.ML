@@ -174,7 +174,7 @@ and goal =
       (context * thm list list -> context -> context)};
 
 val _ =
-  PolyML.addPrettyPrinter (fn _ => fn _ => fn _: state =>
+  ML_system_pp (fn _ => fn _ => fn _: state =>
     Pretty.to_polyml (Pretty.str "<Proof.state>"));
 
 fun make_goal (statement, using, goal, before_qed, after_qed) =

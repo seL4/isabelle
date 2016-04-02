@@ -116,16 +116,16 @@ use "General/queue.ML";
 use "Concurrent/mailbox.ML";
 use "Concurrent/cache.ML";
 
-PolyML.addPrettyPrinter (fn depth => fn pretty => fn var =>
+ML_system_pp (fn depth => fn pretty => fn var =>
   pretty (Synchronized.value var, depth));
 
-PolyML.addPrettyPrinter (fn depth => fn pretty => fn x =>
+ML_system_pp (fn depth => fn pretty => fn x =>
   (case Future.peek x of
     NONE => PolyML.PrettyString "<future>"
   | SOME (Exn.Exn _) => PolyML.PrettyString "<failed>"
   | SOME (Exn.Res y) => pretty (y, depth)));
 
-PolyML.addPrettyPrinter (fn depth => fn pretty => fn x =>
+ML_system_pp (fn depth => fn pretty => fn x =>
   (case Lazy.peek x of
     NONE => PolyML.PrettyString "<lazy>"
   | SOME (Exn.Exn _) => PolyML.PrettyString "<failed>"

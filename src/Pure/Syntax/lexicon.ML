@@ -451,7 +451,7 @@ val fun_type = Syntax.const (mark_type "fun");
 (* toplevel pretty printing *)
 
 val _ =
-  PolyML.addPrettyPrinter (fn _ => fn _ =>
+  ML_system_pp (fn _ => fn _ =>
     Pretty.to_polyml o Pretty.str_list "{" "}" o map quote o Scan.dest_lexicon);
 
 end;

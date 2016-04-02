@@ -154,7 +154,7 @@ fun pretty (Binding {prefix, qualifier, name, pos, ...}) =
 
 val print = Pretty.unformatted_string_of o pretty;
 
-val _ = PolyML.addPrettyPrinter (fn _ => fn _ => Pretty.to_polyml o pretty o set_pos Position.none);
+val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty o set_pos Position.none);
 
 
 (* check *)

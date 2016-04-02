@@ -103,7 +103,7 @@ fun future params x =
 (* toplevel pretty printing *)
 
 val _ =
-  PolyML.addPrettyPrinter (fn depth => fn pretty => fn x =>
+  ML_system_pp (fn depth => fn pretty => fn x =>
     (case peek x of
       NONE => PolyML.PrettyString "<lazy>"
     | SOME (Exn.Exn _) => PolyML.PrettyString "<failed>"

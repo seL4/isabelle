@@ -116,7 +116,7 @@ fun format margin = format_polyml margin o to_polyml;
 
 local
   fun pretty_string_of s = "(fn x => Pretty.string_of (Pretty.from_polyml (" ^ s ^ ")))";
-  fun pretty_value depth = "PolyML.prettyRepresentation (x, FixedInt.fromInt (" ^ depth ^ "))";
+  fun pretty_value depth = "ML_system_pretty (x, FixedInt.fromInt (" ^ depth ^ "))";
 in
 
 fun make_string_fn local_env =

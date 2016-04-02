@@ -173,7 +173,7 @@ fun pretty path =
 
 val print = Pretty.unformatted_string_of o pretty;
 
-val _ = PolyML.addPrettyPrinter (fn _ => fn _ => Pretty.to_polyml o pretty);
+val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty);
 
 
 (* base element *)

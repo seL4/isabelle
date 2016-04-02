@@ -69,6 +69,6 @@ end;
 
 (* toplevel pretty printing *)
 
-val _ = PolyML.addPrettyPrinter (fn depth => fn pretty => fn var => pretty (value var, depth));
+val _ = ML_system_pp (fn depth => fn pretty => fn var => pretty (value var, depth));
 
 end;

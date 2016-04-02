@@ -66,7 +66,7 @@ fun pretty_ast (Constant a) = Pretty.quote (Pretty.str a)
 fun pretty_rule (lhs, rhs) =
   Pretty.block [pretty_ast lhs, Pretty.str "  ->", Pretty.brk 2, pretty_ast rhs];
 
-val _ = PolyML.addPrettyPrinter (fn _ => fn _ => Pretty.to_polyml o pretty_ast);
+val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty_ast);
 
 
 (* strip_positions *)

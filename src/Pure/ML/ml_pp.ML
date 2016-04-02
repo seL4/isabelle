@@ -8,22 +8,22 @@ structure ML_PP: sig end =
 struct
 
 val _ =
-  PolyML.addPrettyPrinter (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_context);
+  ML_system_pp (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_context);
 
 val _ =
-  PolyML.addPrettyPrinter (fn depth => fn _ =>
+  ML_system_pp (fn depth => fn _ =>
     ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_thm Thy_Info.pure_theory);
 
 val _ =
-  PolyML.addPrettyPrinter (fn depth => fn _ =>
+  ML_system_pp (fn depth => fn _ =>
     ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_cterm Thy_Info.pure_theory);
 
 val _ =
-  PolyML.addPrettyPrinter (fn depth => fn _ =>
+  ML_system_pp (fn depth => fn _ =>
     ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_ctyp Thy_Info.pure_theory);
 
 val _ =
-  PolyML.addPrettyPrinter (fn depth => fn _ =>
+  ML_system_pp (fn depth => fn _ =>
     ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_typ Thy_Info.pure_theory);
 
 
@@ -43,17 +43,17 @@ fun prt_term parens (dp: FixedInt.int) t =
         |> (if parens then Pretty.enclose "(" ")" else Pretty.block)
     | Abs (a, T, b) =>
         prt_apps "Abs"
-         [Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1)),
-          Pretty.from_polyml (PolyML.prettyRepresentation (T, dp - 2)),
+         [Pretty.from_polyml (ML_system_pretty (a, dp - 1)),
+          Pretty.from_polyml (ML_system_pretty (T, dp - 2)),
           prt_term false (dp - 3) b]
-    | Const a => prt_app "Const" (Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1)))
-    | Free a => prt_app "Free" (Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1)))
-    | Var a => prt_app "Var" (Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1)))
-    | Bound a => prt_app "Bound" (Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1))));
+    | Const a => prt_app "Const" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
+    | Free a => prt_app "Free" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
+    | Var a => prt_app "Var" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
+    | Bound a => prt_app "Bound" (Pretty.from_polyml (ML_system_pretty (a, dp - 1))));
 
 in
 
-val _ = PolyML.addPrettyPrinter (fn depth => fn _ => Pretty.to_polyml o prt_term false depth);
+val _ = ML_system_pp (fn depth => fn _ => Pretty.to_polyml o prt_term false depth);
 
 
 local
@@ -66,22 +66,22 @@ fun prt_proof parens dp prf =
     | _ %% _ => prt_proofs parens dp prf
     | Abst (a, T, b) =>
         prt_apps "Abst"
-         [Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1)),
-          Pretty.from_polyml (PolyML.prettyRepresentation (T, dp - 2)),
+         [Pretty.from_polyml (ML_system_pretty (a, dp - 1)),
+          Pretty.from_polyml (ML_system_pretty (T, dp - 2)),
           prt_proof false (dp - 3) b]
     | AbsP (a, t, b) =>
         prt_apps "AbsP"
-         [Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1)),
-          Pretty.from_polyml (PolyML.prettyRepresentation (t, dp - 2)),
+         [Pretty.from_polyml (ML_system_pretty (a, dp - 1)),
+          Pretty.from_polyml (ML_system_pretty (t, dp - 2)),
           prt_proof false (dp - 3) b]
     | Hyp t => prt_app "Hyp" (prt_term true (dp - 1) t)
     | MinProof => Pretty.str "MinProof"
-    | PBound a => prt_app "PBound" (Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1)))
-    | PAxm a => prt_app "PAxm" (Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1)))
-    | OfClass a => prt_app "OfClass" (Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1)))
-    | Oracle a => prt_app "Oracle" (Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1)))
-    | Promise a => prt_app "Promise" (Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1)))
-    | PThm a => prt_app "PThm" (Pretty.from_polyml (PolyML.prettyRepresentation (a, dp - 1))))
+    | PBound a => prt_app "PBound" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
+    | PAxm a => prt_app "PAxm" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
+    | OfClass a => prt_app "OfClass" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
+    | Oracle a => prt_app "Oracle" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
+    | Promise a => prt_app "Promise" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
+    | PThm a => prt_app "PThm" (Pretty.from_polyml (ML_system_pretty (a, dp - 1))))
 
 and prt_proofs parens dp prf =
   let
@@ -94,7 +94,7 @@ and strip_proof (p % t) res =
       strip_proof p
         ((fn d =>
           [Pretty.str " %", Pretty.brk 1,
-            Pretty.from_polyml (PolyML.prettyRepresentation (t, d))]) :: res)
+            Pretty.from_polyml (ML_system_pretty (t, d))]) :: res)
   | strip_proof (p %% q) res =
       strip_proof p ((fn d => [Pretty.str " %%", Pretty.brk 1, prt_proof true d q]) :: res)
   | strip_proof p res = (fn d => prt_proof true d p, res);
@@ -102,7 +102,7 @@ and strip_proof (p % t) res =
 in
 
 val _ =
-  PolyML.addPrettyPrinter (fn depth => fn _ => fn prf =>
+  ML_system_pp (fn depth => fn _ => fn prf =>
     ML_Pretty.to_polyml (Pretty.to_ML ~1 (prt_proof false depth prf)));
 
 end;

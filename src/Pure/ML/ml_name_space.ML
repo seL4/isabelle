@@ -11,7 +11,31 @@ struct
   open PolyML.NameSpace;
 
   type T = PolyML.NameSpace.nameSpace;
+
   val global = PolyML.globalNameSpace;
+  fun global_values values : T =
+   {lookupVal = #lookupVal global,
+    lookupType = #lookupType global,
+    lookupStruct = #lookupStruct global,
+    lookupFix = #lookupFix global,
+    lookupSig = #lookupSig global,
+    lookupFunct = #lookupFunct global,
+    enterVal =
+      fn (x, value) =>
+        (case List.find (fn (y, _) => x = y) values of
+          SOME (_, x') => #enterVal global (x', value)
+        | NONE => ()),
+    enterType = fn _ => (),
+    enterFix = fn _ => (),
+    enterStruct = fn _ => (),
+    enterSig = fn _ => (),
+    enterFunct = fn _ => (),
+    allVal = #allVal global,
+    allType = #allType global,
+    allFix = #allFix global,
+    allStruct = #allStruct global,
+    allSig = #allSig global,
+    allFunct = #allFunct global};
 
   type valueVal = Values.value;
   fun displayVal (x, depth, space) = Values.printWithType (x, depth, SOME space);

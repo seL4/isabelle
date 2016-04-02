@@ -42,7 +42,7 @@ fun eq_exn_id (Exn_Id (_, id1), Exn_Id (_, id2)) = PolyML.pointerEq (id1, id2);
 end;
 
 val _ =
-  PolyML.addPrettyPrinter (fn _ => fn _ => fn exn_id =>
+  ML_system_pp (fn _ => fn _ => fn exn_id =>
     let val s = print_exn_id exn_id
     in ML_Pretty.to_polyml (ML_Pretty.String (s, FixedInt.fromInt (size s))) end);
 
