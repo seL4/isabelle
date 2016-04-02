@@ -28,7 +28,7 @@ object Check_Sources
             Position.here(line_pos(i)))
         }
       }
-      catch { case ERROR(msg) => Output.error_message(msg + Position.here(line_pos(i))) }
+      catch { case ERROR(msg) => Output.warning(msg + Position.here(line_pos(i))) }
 
       if (line.contains('\t'))
         Output.warning("TAB character" + Position.here(line_pos(i)))
@@ -36,6 +36,9 @@ object Check_Sources
 
     if (content.contains('\r'))
       Output.warning("CR character" + Position.here(file_pos))
+
+    if (Word.bidi_detect(content))
+      Output.warning("Bidirectional Unicode text " + Position.here(file_pos))
   }
 
   def check_hg(root: Path)
