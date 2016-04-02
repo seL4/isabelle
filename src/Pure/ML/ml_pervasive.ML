@@ -4,6 +4,12 @@
 Pervasive ML environment.
 *)
 
+structure PolyML_Pretty =
+struct
+  datatype context = datatype PolyML.context;
+  datatype pretty = datatype PolyML.pretty;
+end;
+
 val seconds = Time.fromReal;
 
 val _ =

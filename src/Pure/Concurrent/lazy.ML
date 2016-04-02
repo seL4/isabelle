@@ -105,8 +105,8 @@ fun future params x =
 val _ =
   ML_system_pp (fn depth => fn pretty => fn x =>
     (case peek x of
-      NONE => PolyML.PrettyString "<lazy>"
-    | SOME (Exn.Exn _) => PolyML.PrettyString "<failed>"
+      NONE => PolyML_Pretty.PrettyString "<lazy>"
+    | SOME (Exn.Exn _) => PolyML_Pretty.PrettyString "<failed>"
     | SOME (Exn.Res y) => pretty (y, depth)));
 
 end;

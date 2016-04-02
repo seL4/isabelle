@@ -17,11 +17,11 @@ sig
     ('a * 'b) * FixedInt.int -> pretty
   val enum: string -> string -> string -> ('a * FixedInt.int -> pretty) ->
     'a list * FixedInt.int -> pretty
-  val to_polyml: pretty -> PolyML.pretty
-  val from_polyml: PolyML.pretty -> pretty
+  val to_polyml: pretty -> PolyML_Pretty.pretty
+  val from_polyml: PolyML_Pretty.pretty -> pretty
   val get_print_depth: unit -> int
   val print_depth: int -> unit
-  val format_polyml: int -> PolyML.pretty -> string
+  val format_polyml: int -> PolyML_Pretty.pretty -> string
   val format: int -> pretty -> string
   val make_string_fn: string -> string
 end;
@@ -54,39 +54,39 @@ fun enum sep lpar rpar pretty (args, depth: FixedInt.int) =
 
 (* convert *)
 
-fun to_polyml (Break (false, width, offset)) = PolyML.PrettyBreak (width, offset)
+fun to_polyml (Break (false, width, offset)) = PolyML_Pretty.PrettyBreak (width, offset)
   | to_polyml (Break (true, _, _)) =
-      PolyML.PrettyBlock (0, false, [PolyML.ContextProperty ("fbrk", "")],
-        [PolyML.PrettyString " "])
+      PolyML_Pretty.PrettyBlock (0, false, [PolyML_Pretty.ContextProperty ("fbrk", "")],
+        [PolyML_Pretty.PrettyString " "])
   | to_polyml (Block ((bg, en), consistent, ind, prts)) =
       let val context =
-        (if bg = "" then [] else [PolyML.ContextProperty ("begin", bg)]) @
-        (if en = "" then [] else [PolyML.ContextProperty ("end", en)])
-      in PolyML.PrettyBlock (ind, consistent, context, map to_polyml prts) end
+        (if bg = "" then [] else [PolyML_Pretty.ContextProperty ("begin", bg)]) @
+        (if en = "" then [] else [PolyML_Pretty.ContextProperty ("end", en)])
+      in PolyML_Pretty.PrettyBlock (ind, consistent, context, map to_polyml prts) end
   | to_polyml (String (s, len)) =
-      if len = FixedInt.fromInt (size s) then PolyML.PrettyString s
+      if len = FixedInt.fromInt (size s) then PolyML_Pretty.PrettyString s
       else
-        PolyML.PrettyBlock
+        PolyML_Pretty.PrettyBlock
           (0, false,
-            [PolyML.ContextProperty ("length", FixedInt.toString len)], [PolyML.PrettyString s]);
+            [PolyML_Pretty.ContextProperty ("length", FixedInt.toString len)], [PolyML_Pretty.PrettyString s]);
 
 val from_polyml =
   let
-    fun convert _ (PolyML.PrettyBreak (width, offset)) = Break (false, width, offset)
-      | convert _ (PolyML.PrettyBlock (_, _,
-            [PolyML.ContextProperty ("fbrk", _)], [PolyML.PrettyString " "])) =
+    fun convert _ (PolyML_Pretty.PrettyBreak (width, offset)) = Break (false, width, offset)
+      | convert _ (PolyML_Pretty.PrettyBlock (_, _,
+            [PolyML_Pretty.ContextProperty ("fbrk", _)], [PolyML_Pretty.PrettyString " "])) =
           Break (true, 1, 0)
-      | convert len (PolyML.PrettyBlock (ind, consistent, context, prts)) =
+      | convert len (PolyML_Pretty.PrettyBlock (ind, consistent, context, prts)) =
           let
             fun property name default =
-              (case List.find (fn PolyML.ContextProperty (a, _) => name = a | _ => false) context of
-                SOME (PolyML.ContextProperty (_, b)) => b
+              (case List.find (fn PolyML_Pretty.ContextProperty (a, _) => name = a | _ => false) context of
+                SOME (PolyML_Pretty.ContextProperty (_, b)) => b
               | _ => default);
             val bg = property "begin" "";
             val en = property "end" "";
             val len' = property "length" len;
           in Block ((bg, en), consistent, ind, map (convert len') prts) end
-      | convert len (PolyML.PrettyString s) =
+      | convert len (PolyML_Pretty.PrettyString s) =
           String (s, FixedInt.fromInt (case Int.fromString len of SOME i => i | NONE => size s))
   in convert "" end;
 
