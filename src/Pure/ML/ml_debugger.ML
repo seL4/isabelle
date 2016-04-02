@@ -36,7 +36,7 @@ fun exn_id exn =
   Exn_Id (General.exnName exn, RunCall.run_call2 RuntimeCalls.POLY_SYS_load_word (exn, 0));
 
 fun print_exn_id (Exn_Id (name, _)) = name;
-fun eq_exn_id (Exn_Id (_, id1), Exn_Id (_, id2)) = PolyML.pointerEq (id1, id2);
+fun eq_exn_id (Exn_Id (_, id1), Exn_Id (_, id2)) = pointer_eq (id1, id2);
 
 end;
 
