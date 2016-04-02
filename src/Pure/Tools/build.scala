@@ -235,9 +235,7 @@ object Build
     val output = store.output_dir + Path.basic(name)
     def output_path: Option[Path] = if (do_output) Some(output) else None
     def output_save_state: String =
-      if (do_output)
-        "PolyML.SaveState.saveChild (" + ML_Syntax.print_string0(File.platform_path(output)) +
-          ", List.length (PolyML.SaveState.showHierarchy ()))"
+      if (do_output) "ML_Heap.save_child " + ML_Syntax.print_string0(File.platform_path(output))
       else ""
     output.file.delete
 

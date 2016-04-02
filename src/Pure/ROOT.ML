@@ -346,3 +346,5 @@ fun use_thys args =
 val use_thy = use_thys o single;
 
 Proofterm.proofs := 0;
+
+structure PolyML = struct structure IntInf = PolyML.IntInf end;
