@@ -395,7 +395,7 @@ fun from_ML (ML_Pretty.Block (m, consistent, indent, prts)) =
         (map from_ML prts)
   | from_ML (ML_Pretty.Break (force, wd, ind)) =
       Break (force, FixedInt.toInt wd, FixedInt.toInt ind)
-  | from_ML (ML_Pretty.String (s, len)) = Str (s, FixedInt.toInt (force_nat len));
+  | from_ML (ML_Pretty.String (s, len)) = Str (s, force_nat (FixedInt.toInt len));
 
 val to_polyml = to_ML ~1 #> ML_Pretty.to_polyml;
 val from_polyml = ML_Pretty.from_polyml #> from_ML;

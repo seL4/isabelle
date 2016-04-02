@@ -48,6 +48,8 @@ object Pretty
 
   /* markup trees with physical blocks and breaks */
 
+  private def force_nat(i: Int): Int = i max 0
+
   private sealed abstract class Tree { def length: Double }
   private case class Block(
     markup: Option[(Markup, Option[XML.Body])],
@@ -82,8 +84,6 @@ object Pretty
 
 
   /* formatted output */
-
-  private def force_nat(i: Int): Int = i max 0
 
   private sealed case class Text(tx: XML.Body = Nil, pos: Double = 0.0, nl: Int = 0)
   {
