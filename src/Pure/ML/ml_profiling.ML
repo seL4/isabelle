@@ -4,7 +4,14 @@
 Profiling for Poly/ML 5.6.
 *)
 
-structure ML_Profiling =
+signature ML_PROFILING =
+sig
+  val profile_time: ((int * string) list -> unit) -> ('a -> 'b) -> 'a -> 'b
+  val profile_time_thread: ((int * string) list -> unit) -> ('a -> 'b) -> 'a -> 'b
+  val profile_allocations: ((int * string) list -> unit) -> ('a -> 'b) -> 'a -> 'b
+end;
+
+structure ML_Profiling: ML_PROFILING =
 struct
 
 fun profile_time pr f x =
