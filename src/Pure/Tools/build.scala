@@ -693,8 +693,6 @@ object Build
       cat_lines(List(
         "ISABELLE_BUILD_OPTIONS=" +
           quote(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")),
-        "ISABELLE_BUILD_JAVA_OPTIONS=" +
-          quote(Isabelle_System.getenv("ISABELLE_BUILD_JAVA_OPTIONS")),
         "",
         "ML_PLATFORM=" + quote(Isabelle_System.getenv("ML_PLATFORM")),
         "ML_HOME=" + quote(Isabelle_System.getenv("ML_HOME")),

@@ -259,6 +259,12 @@ File.full_path). Potential INCOMPATIBILITY.
 
 *** System ***
 
+* Many Isabelle tools that require a Java runtime system refer to the
+settings ISABELLE_TOOL_JAVA_OPTIONS32 / ISABELLE_TOOL_JAVA_OPTIONS64,
+depending on the underlying platform. The settings for "isabelle build"
+ISABELLE_BUILD_JAVA_OPTIONS32 / ISABELLE_BUILD_JAVA_OPTIONS64 have been
+discontinued. Potential INCOMPATIBILITY.
+
 * The Isabelle system environment always ensures that the main
 executables are found within the shell search $PATH: "isabelle" and
 "isabelle_scala_script".
