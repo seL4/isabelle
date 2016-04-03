@@ -18,46 +18,40 @@ ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
 source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
 
 
-## diagnostics
+## external tool (shell script)
 
-function usage()
-{
-  echo
-  echo "Usage: $PRG NAME [ARGS ...]"
-  echo
-  echo "  Start Isabelle tool NAME with ARGS; pass \"-?\" for tool specific help."
-  echo
-  echo "Available tools:"
-  perl -w "$ISABELLE_HOME/lib/scripts/tools.pl"
-  exit 1
-}
+if [ "$#" -ge 1 -a "$1" != "-?" ]
+then
+  TOOL_NAME="$1"
 
-function fail()
-{
-  echo "$1" >&2
-  exit 2
-}
-
-
-## args
-
-[ "$#" -lt 1 -o "$1" = "-?" ] && usage
-
-TOOLNAME="$1"
-shift
+  splitarray ":" "$ISABELLE_TOOLS"; TOOLS=("${SPLITARRAY[@]}")
+  for DIR in "${TOOLS[@]}"
+  do
+    TOOL="$DIR/$TOOL_NAME"
+    case "$TOOL" in
+      *~ | *.orig) ;;
+      *)
+        if [ -f "$TOOL" -a -x "$TOOL" ]; then
+          shift
+          exec "$TOOL" "$@"
+        fi
+        ;;
+    esac
+  done
+fi
 
 
-## main
+## internal tool or usage (Scala)
 
-splitarray ":" "$ISABELLE_TOOLS"; TOOLS=("${SPLITARRAY[@]}")
+isabelle_admin_build jars || exit $?
 
-for DIR in "${TOOLS[@]}"
-do
-  TOOL="$DIR/$TOOLNAME"
-  case "$TOOL" in
-    *~ | *.orig) ;;
-    *) [ -f "$TOOL" -a -x "$TOOL" ] && exec "$TOOL" "$@" ;;
-  esac
-done
+case "$ISABELLE_JAVA_PLATFORM" in
+  x86-*)
+    eval "declare -a JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS32)"
+    ;;
+  x86_64-*)
+    eval "declare -a JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS64)"
+    ;;
+esac
 
-fail "Unknown Isabelle tool: $TOOLNAME"
+exec isabelle java "${JAVA_ARGS[@]}" isabelle.Isabelle_Tool "$@"

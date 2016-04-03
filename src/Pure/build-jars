@@ -81,6 +81,7 @@ declare -a SOURCES=(
   System/isabelle_charset.scala
   System/isabelle_process.scala
   System/isabelle_system.scala
+  System/isabelle_tool.scala
   System/options.scala
   System/platform.scala
   System/posix_interrupt.scala

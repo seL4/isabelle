@@ -141,7 +141,15 @@ object File
     if (path.is_file) path else error("No such file: " + path)
 
 
-  /* find files */
+  /* directory content */
+
+  def read_dir(dir: Path): List[String] =
+  {
+    if (!dir.is_dir) error("Bad directory: " + dir.toString)
+    val files = dir.file.listFiles
+    if (files == null) Nil
+    else files.toList.map(_.getName)
+  }
 
   def find_files(start: JFile, pred: JFile => Boolean = _ => true): List[JFile] =
   {

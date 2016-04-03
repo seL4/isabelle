@@ -157,17 +157,6 @@ fun check_system_option ctxt (name, pos) =
   (Context_Position.report ctxt pos (Options.default_markup (name, pos)); true)
     handle ERROR _ => false;
 
-fun check_tool ctxt (name, pos) =
-  let
-    fun tool dir =
-      let val path = Path.append dir (Path.basic name)
-      in if File.exists path then SOME path else NONE end;
-  in
-    (case get_first tool (Path.split (getenv "ISABELLE_TOOLS")) of
-      NONE => false
-    | SOME path => (Context_Position.report ctxt pos (Markup.path (Path.implode path)); true))
-  end;
-
 val arg = enclose "{" "}" o clean_string;
 
 fun entity check markup binding index =
@@ -220,7 +209,7 @@ val _ =
     entity_antiqs check_system_option "isasystem" @{binding system_option} #>
     entity_antiqs no_check "" @{binding inference} #>
     entity_antiqs no_check "isasystem" @{binding executable} #>
-    entity_antiqs check_tool "isatool" @{binding tool} #>
+    entity_antiqs no_check "isatool" @{binding tool} #>
     entity_antiqs ML_Context.check_antiquotation "" @{binding ML_antiquotation} #>
     entity_antiqs (K JEdit.check_action) "isasystem" @{binding action});
 

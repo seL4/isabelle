@@ -267,7 +267,7 @@ text \<open>
   @{verbatim [display]
 \<open>Usage: isabelle TOOL [ARGS ...]
 
-  Start Isabelle tool NAME with ARGS; pass "-?" for tool specific help.
+  Start Isabelle TOOL with ARGS; pass "-?" for tool-specific help.
 
 Available tools:
   ...\<close>}
