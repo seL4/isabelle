@@ -69,6 +69,7 @@ object Isabelle_Tool
     }
 
   register(Doc.isabelle_tool)
+  register(Options.isabelle_tool)
 
 
   /* command line entry point */
