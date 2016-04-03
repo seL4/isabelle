@@ -68,6 +68,7 @@ object Isabelle_Tool
             args => Command_Line.tool0 { isabelle_tool.body(args) }))
     }
 
+  register(Build.isabelle_tool)
   register(Doc.isabelle_tool)
   register(Options.isabelle_tool)
 
