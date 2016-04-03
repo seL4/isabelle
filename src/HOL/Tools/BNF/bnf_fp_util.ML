@@ -191,10 +191,10 @@ sig
   val mk_xtor_rel_co_induct_thm: BNF_Util.fp_kind -> term list -> term list -> term list ->
     term list -> term list -> term list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> Proof.context -> thm
-  val mk_co_iter_transfer_thms: BNF_Util.fp_kind -> term list -> term list -> term list ->
+  val mk_xtor_co_iter_transfer_thms: BNF_Util.fp_kind -> term list -> term list -> term list ->
     term list -> term list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> Proof.context -> thm list
-  val mk_xtor_un_fold_o_map_thms: BNF_Util.fp_kind -> bool -> int -> thm -> thm list -> thm list ->
+  val mk_xtor_co_iter_o_map_thms: BNF_Util.fp_kind -> bool -> int -> thm -> thm list -> thm list ->
     thm list -> thm list -> thm list
 
   val fixpoint_bnf: (binding -> binding) ->
@@ -560,7 +560,7 @@ fun mk_xtor_rel_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's 
     |> (fn thm => thm OF (replicate (length pre_rels) @{thm allI[OF allI[OF impI]]}))
   end;
 
-fun mk_co_iter_transfer_thms fp pre_rels pre_iphis pre_ophis rels phis un_folds un_folds' tac lthy =
+fun mk_xtor_co_iter_transfer_thms fp pre_rels pre_iphis pre_ophis rels phis un_folds un_folds' tac lthy =
   let
     val pre_relphis = map (fn rel => Term.list_comb (rel, phis @ pre_iphis)) pre_rels;
     val relphis = map (fn rel => Term.list_comb (rel, phis)) rels;
@@ -579,7 +579,7 @@ fun mk_co_iter_transfer_thms fp pre_rels pre_iphis pre_ophis rels phis un_folds 
     |> split_conj_thm
   end;
 
-fun mk_xtor_un_fold_o_map_thms fp is_rec m un_fold_unique xtor_maps xtor_un_folds sym_map_comps
+fun mk_xtor_co_iter_o_map_thms fp is_rec m un_fold_unique xtor_maps xtor_un_folds sym_map_comps
     map_cong0s =
   let
     val n = length sym_map_comps;

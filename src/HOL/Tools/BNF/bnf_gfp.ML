@@ -2630,10 +2630,10 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       |> mk_Frees "R" JphiTs
       ||>> mk_Frees "S" activephiTs;
 
-    val dtor_unfold_o_Jmap_thms = mk_xtor_un_fold_o_map_thms Greatest_FP false m
+    val dtor_unfold_o_Jmap_thms = mk_xtor_co_iter_o_map_thms Greatest_FP false m
       dtor_unfold_unique_thm dtor_Jmap_o_thms (map (mk_pointfree lthy) dtor_unfold_thms)
       sym_map_comps map_cong0s;
-    val dtor_corec_o_Jmap_thms = mk_xtor_un_fold_o_map_thms Greatest_FP true m
+    val dtor_corec_o_Jmap_thms = mk_xtor_co_iter_o_map_thms Greatest_FP true m
       dtor_corec_unique_thm dtor_Jmap_o_thms (map (mk_pointfree lthy) dtor_corec_thms)
       sym_map_comps map_cong0s;
 
@@ -2642,7 +2642,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       else map (mk_rel_of_bnf deads passiveAs passiveBs) Jbnfs;
 
     val dtor_unfold_transfer_thms =
-      mk_co_iter_transfer_thms Greatest_FP rels activephis activephis Jrels Jphis
+      mk_xtor_co_iter_transfer_thms Greatest_FP rels activephis activephis Jrels Jphis
         (mk_unfolds passiveAs activeAs) (mk_unfolds passiveBs activeBs)
         (fn {context = ctxt, prems = _} => mk_unfold_transfer_tac ctxt m Jrel_coinduct_thm
           (map map_transfer_of_bnf bnfs) dtor_unfold_thms)
@@ -2654,7 +2654,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val corec_activephis =
       map2 (fn Jrel => mk_rel_sum (Term.list_comb (Jrel, Jphis))) Jrels activephis;
     val dtor_corec_transfer_thms =
-      mk_co_iter_transfer_thms Greatest_FP corec_rels corec_activephis activephis Jrels Jphis
+      mk_xtor_co_iter_transfer_thms Greatest_FP corec_rels corec_activephis activephis Jrels Jphis
         (mk_corecs Ts passiveAs activeAs) (mk_corecs Ts' passiveBs activeBs)
         (fn {context = ctxt, prems = _} => mk_dtor_corec_transfer_tac ctxt n m corec_defs
            dtor_unfold_transfer_thms (map map_transfer_of_bnf bnfs) dtor_Jrel_thms)

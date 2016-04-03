@@ -1886,9 +1886,9 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       ||>> mk_Frees "S" activephiTs
       ||>> mk_Frees "IR" activeIphiTs;
 
-    val ctor_fold_o_Imap_thms = mk_xtor_un_fold_o_map_thms Least_FP false m ctor_fold_unique_thm
+    val ctor_fold_o_Imap_thms = mk_xtor_co_iter_o_map_thms Least_FP false m ctor_fold_unique_thm
       ctor_Imap_o_thms (map (mk_pointfree lthy) ctor_fold_thms) sym_map_comps map_cong0s;
-    val ctor_rec_o_Imap_thms = mk_xtor_un_fold_o_map_thms Least_FP true m ctor_rec_unique_thm
+    val ctor_rec_o_Imap_thms = mk_xtor_co_iter_o_map_thms Least_FP true m ctor_rec_unique_thm
       ctor_Imap_o_thms (map (mk_pointfree lthy) ctor_rec_thms) sym_map_comps map_cong0s;
 
     val Irels = if m = 0 then map HOLogic.eq_const Ts
@@ -1900,7 +1900,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
     val ctor_fold_transfer_thms =
-      mk_co_iter_transfer_thms Least_FP rels activephis activephis Irels Iphis
+      mk_xtor_co_iter_transfer_thms Least_FP rels activephis activephis Irels Iphis
         (mk_folds passiveAs activeAs) (mk_folds passiveBs activeBs)
         (fn {context = ctxt, prems = _} => mk_fold_transfer_tac ctxt m Irel_induct_thm
           (map map_transfer_of_bnf bnfs) ctor_fold_thms)
@@ -1912,7 +1912,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val rec_activephis =
       map2 (fn Irel => mk_rel_prod (Term.list_comb (Irel, Iphis))) Irels activephis;
     val ctor_rec_transfer_thms =
-      mk_co_iter_transfer_thms Least_FP rec_rels rec_activephis activephis Irels Iphis
+      mk_xtor_co_iter_transfer_thms Least_FP rec_rels rec_activephis activephis Irels Iphis
         (mk_recs Ts passiveAs activeAs) (mk_recs Ts' passiveBs activeBs)
         (fn {context = ctxt, prems = _} => mk_ctor_rec_transfer_tac ctxt n m rec_defs
            ctor_fold_transfer_thms (map map_transfer_of_bnf bnfs) ctor_Irel_thms)
