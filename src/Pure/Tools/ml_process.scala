@@ -102,18 +102,17 @@ object ML_Process
   }
 
 
-  /* command line entry point */
+  /* Isabelle tool wrapper */
 
-  def main(args: Array[String])
+  val isabelle_tool = Isabelle_Tool("process", "raw ML process (batch mode)", args =>
   {
-    Command_Line.tool {
-      var dirs: List[Path] = Nil
-      var eval_args: List[String] = Nil
-      var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
-      var modes: List[String] = Nil
-      var options = Options.init()
+    var dirs: List[Path] = Nil
+    var eval_args: List[String] = Nil
+    var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
+    var modes: List[String] = Nil
+    var options = Options.init()
 
-      val getopts = Getopts("""
+    val getopts = Getopts("""
 Usage: isabelle process [OPTIONS]
 
   Options are:
@@ -127,20 +126,19 @@ Usage: isabelle process [OPTIONS]
 
   Run the raw Isabelle ML process in batch mode.
 """,
-        "T:" -> (arg =>
-          eval_args = eval_args ::: List("--eval", "use_thy " + ML_Syntax.print_string0(arg))),
-        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-        "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
-        "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
-        "l:" -> (arg => logic = arg),
-        "m:" -> (arg => modes = arg :: modes),
-        "o:" -> (arg => options = options + arg))
+      "T:" -> (arg =>
+        eval_args = eval_args ::: List("--eval", "use_thy " + ML_Syntax.print_string0(arg))),
+      "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+      "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
+      "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
+      "l:" -> (arg => logic = arg),
+      "m:" -> (arg => modes = arg :: modes),
+      "o:" -> (arg => options = options + arg))
 
-      val more_args = getopts(args)
-      if (args.isEmpty || !more_args.isEmpty) getopts.usage()
+    val more_args = getopts(args)
+    if (args.isEmpty || !more_args.isEmpty) getopts.usage()
 
-      ML_Process(options, logic = logic, args = eval_args, dirs = dirs, modes = modes).
-        result().print_stdout.rc
-    }
-  }
+    ML_Process(options, logic = logic, args = eval_args, dirs = dirs, modes = modes).
+      result().print_stdout.rc
+  })
 }
