@@ -82,11 +82,11 @@ object Update_Cartouches
   }
 
 
-  /* command line entry point */
+  /* Isabelle tool wrapper */
 
-  def main(args: Array[String])
-  {
-    Command_Line.tool0 {
+  val isabelle_tool =
+    Isabelle_Tool("update_cartouches", "update theory syntax to use cartouches", args =>
+    {
       var replace_comment = false
       var replace_text = false
 
@@ -112,6 +112,5 @@ Usage: isabelle update_cartouches [FILES|DIRS...]
         spec <- specs
         file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
       } update_cartouches(replace_comment, replace_text, Path.explode(File.standard_path(file)))
-    }
-  }
+    })
 }

@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-#
-# Author: Makarius
-#
-# DESCRIPTION: update theory syntax to use cartouches
-
-isabelle_admin_build jars || exit $?
-
-exec isabelle java isabelle.Update_Cartouches "$@"

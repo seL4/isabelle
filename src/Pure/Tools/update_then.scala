@@ -28,11 +28,11 @@ object Update_Then
   }
 
 
-  /* command line entry point */
+  /* Isabelle tool wrapper */
 
-  def main(args: Array[String])
-  {
-    Command_Line.tool0 {
+  val isabelle_tool =
+    Isabelle_Tool("update_then", "expand old Isar command conflations 'hence' and 'thus'", args =>
+    {
       val getopts = Getopts("""
 Usage: isabelle update_then [FILES|DIRS...]
 
@@ -51,6 +51,5 @@ Usage: isabelle update_then [FILES|DIRS...]
         spec <- specs
         file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
       } update_then(Path.explode(File.standard_path(file)))
-    }
-  }
+    })
 }

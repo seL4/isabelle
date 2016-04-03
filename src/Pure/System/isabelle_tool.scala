@@ -73,6 +73,10 @@ object Isabelle_Tool
   register(Doc.isabelle_tool)
   register(ML_Process.isabelle_tool)
   register(Options.isabelle_tool)
+  register(Update_Cartouches.isabelle_tool)
+  register(Update_Header.isabelle_tool)
+  register(Update_Then.isabelle_tool)
+  register(Update_Theorems.isabelle_tool)
 
 
   /* command line entry point */
