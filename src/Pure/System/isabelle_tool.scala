@@ -69,6 +69,7 @@ object Isabelle_Tool
     }
 
   register(Build.isabelle_tool)
+  register(Build_Doc.isabelle_tool)
   register(Check_Sources.isabelle_tool)
   register(Doc.isabelle_tool)
   register(ML_Process.isabelle_tool)

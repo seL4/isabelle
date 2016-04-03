@@ -67,17 +67,16 @@ object Build_Doc
   }
 
 
-  /* command line entry point */
+  /* Isabelle tool wrapper */
 
-  def main(args: Array[String])
+  val isabelle_tool = Isabelle_Tool("build_doc", "build Isabelle documentation", args =>
   {
-    Command_Line.tool {
-      var all_docs = false
-      var max_jobs = 1
-      var system_mode = false
+    var all_docs = false
+    var max_jobs = 1
+    var system_mode = false
 
-      val getopts =
-        Getopts("""
+    val getopts =
+      Getopts("""
 Usage: isabelle build_doc [OPTIONS] [DOCS ...]"
 
   Options are:
@@ -88,19 +87,20 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]"
   Build Isabelle documentation from documentation sessions with
   suitable document_variants entry.
 """,
-        "a" -> (_ => all_docs = true),
-        "j:" -> (arg => max_jobs = Properties.Value.Int.parse(arg)),
-        "s" -> (_ => system_mode = true))
+      "a" -> (_ => all_docs = true),
+      "j:" -> (arg => max_jobs = Properties.Value.Int.parse(arg)),
+      "s" -> (_ => system_mode = true))
 
-      val docs = getopts(args)
+    val docs = getopts(args)
 
-      if (!all_docs && docs.isEmpty) getopts.usage()
+    if (!all_docs && docs.isEmpty) getopts.usage()
 
-      val options = Options.init()
-      val progress = new Console_Progress()
+    val options = Options.init()
+    val progress = new Console_Progress()
+    val rc =
       progress.interrupt_handler {
         build_doc(options, progress, all_docs, max_jobs, system_mode, docs)
       }
-    }
-  }
+    sys.exit(rc)
+  })
 }
