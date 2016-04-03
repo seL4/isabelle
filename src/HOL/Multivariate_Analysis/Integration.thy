@@ -2409,7 +2409,7 @@ lemma has_integral_mult_left:
   using has_integral_linear[OF _ bounded_linear_mult_left] by (simp add: comp_def)
 
 text\<open>The case analysis eliminates the condition @{term "f integrable_on s"} at the cost
-     of the type class constraint @{text"division_ring"}\<close>
+     of the type class constraint \<open>division_ring\<close>\<close>
 corollary integral_mult_left [simp]:
   fixes c:: "'a::{real_normed_algebra,division_ring}"
   shows "integral s (\<lambda>x. f x * c) = integral s f * c"

@@ -443,7 +443,7 @@ notation (ASCII)
 
 interpretation subset_mset: ordered_ab_semigroup_add_imp_le "op +" "op -" "op \<subseteq>#" "op \<subset>#"
   by standard (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order_trans antisym)
-  -- \<open>FIXME: avoid junk stemming from type class interpretation\<close>
+  \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 lemma mset_less_eqI:
   "(\<And>a. count A a \<le> count B a) \<Longrightarrow> A \<subseteq># B"
@@ -464,7 +464,7 @@ interpretation subset_mset: ordered_cancel_comm_monoid_diff  "op +" 0 "op \<le>#
   by standard (simp, fact mset_le_exists_conv)
 
 declare subset_mset.zero_order[simp del]
-  -- \<open>this removes some simp rules not in the usual order for multisets\<close>
+  \<comment> \<open>this removes some simp rules not in the usual order for multisets\<close>
 
 lemma mset_le_mono_add_right_cancel [simp]: "(A::'a multiset) + C \<subseteq># B + C \<longleftrightarrow> A \<subseteq># B"
    by (fact subset_mset.add_le_cancel_right)
@@ -587,7 +587,7 @@ proof -
   show "class.semilattice_inf op #\<inter> op \<subseteq># op \<subset>#"
     by standard (auto simp add: multiset_inter_def subseteq_mset_def)
 qed
-  -- \<open>FIXME: avoid junk stemming from type class interpretation\<close>
+  \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
 lemma multiset_inter_count [simp]:
   fixes A B :: "'a multiset"
@@ -712,7 +712,7 @@ lemma inter_subset_eq_union:
 subsubsection \<open>Bounded union\<close>
 
 definition sup_subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset"(infixl "#\<union>" 70)
-  where "sup_subset_mset A B = A + (B - A)" -- \<open>FIXME irregular fact name\<close>
+  where "sup_subset_mset A B = A + (B - A)" \<comment> \<open>FIXME irregular fact name\<close>
 
 interpretation subset_mset: semilattice_sup sup_subset_mset "op \<subseteq>#" "op \<subset>#"
 proof -
@@ -721,9 +721,9 @@ proof -
   show "class.semilattice_sup op #\<union> op \<subseteq># op \<subset>#"
     by standard (auto simp add: sup_subset_mset_def subseteq_mset_def)
 qed
-  -- \<open>FIXME: avoid junk stemming from type class interpretation\<close>
+  \<comment> \<open>FIXME: avoid junk stemming from type class interpretation\<close>
 
-lemma sup_subset_mset_count [simp]: -- \<open>FIXME irregular fact name\<close>
+lemma sup_subset_mset_count [simp]: \<comment> \<open>FIXME irregular fact name\<close>
   "count (A #\<union> B) x = max (count A x) (count B x)"
   by (simp add: sup_subset_mset_def)
 
@@ -1554,8 +1554,8 @@ translations
   "\<Sum>i \<in># A. b" \<rightleftharpoons> "CONST msetsum (CONST image_mset (\<lambda>i. b) A)"
 
 abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset"  ("\<Union>#_" [900] 900)
-  where "\<Union># MM \<equiv> msetsum MM" -- \<open>FIXME ambiguous notation --
-    could likewise refer to @{text "\<Squnion>#"}\<close>
+  where "\<Union># MM \<equiv> msetsum MM" \<comment> \<open>FIXME ambiguous notation --
+    could likewise refer to \<open>\<Squnion>#\<close>\<close>
 
 lemma set_mset_Union_mset[simp]: "set_mset (\<Union># MM) = (\<Union>M \<in> set_mset MM. set_mset M)"
   by (induct MM) auto
@@ -2115,7 +2115,7 @@ proof -
     unfolding less_multiset_def mult_def by (blast intro: trancl_trans)
   show "class.order (le_multiset :: 'a multiset \<Rightarrow> _) less_multiset"
     by standard (auto simp add: le_multiset_def irrefl dest: trans)
-qed -- \<open>FIXME avoid junk stemming from type class interpretation\<close>
+qed \<comment> \<open>FIXME avoid junk stemming from type class interpretation\<close>
 
 lemma mult_less_irrefl [elim!]:
   fixes M :: "'a::order multiset"

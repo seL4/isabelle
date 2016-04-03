@@ -606,10 +606,10 @@ proposition valid_path_compose:
     shows "valid_path (f o g)"
 proof -
   obtain s where "finite s" and g_diff: "g C1_differentiable_on {0..1} - s"
-    using `valid_path g` unfolding valid_path_def piecewise_C1_differentiable_on_def by auto
+    using \<open>valid_path g\<close> unfolding valid_path_def piecewise_C1_differentiable_on_def by auto
   have "f \<circ> g differentiable at t" when "t\<in>{0..1} - s" for t
     proof (rule differentiable_chain_at)
-      show "g differentiable at t" using `valid_path g`
+      show "g differentiable at t" using \<open>valid_path g\<close>
         by (meson C1_differentiable_on_eq \<open>g C1_differentiable_on {0..1} - s\<close> that)
     next
       have "g t\<in>path_image g" using that DiffD1 image_eqI path_image_def by metis
@@ -627,7 +627,7 @@ proof -
     next
       have "continuous_on {0..1} (\<lambda>x. deriv f (g x))"
         using continuous_on_compose[OF _ con[unfolded path_image_def],unfolded comp_def]
-          `valid_path g` piecewise_C1_differentiable_on_def valid_path_def
+          \<open>valid_path g\<close> piecewise_C1_differentiable_on_def valid_path_def
         by blast
       then show "continuous_on ({0..1} - s) (\<lambda>x. deriv f (g x))"
         using continuous_on_subset by blast
@@ -650,14 +650,14 @@ proof -
       have "isCont f x" when "x\<in>path_image g" for x
         proof -
           obtain f' where "(f has_field_derivative f') (at x)"
-            using der[rule_format] `x\<in>path_image g` by auto
+            using der[rule_format] \<open>x\<in>path_image g\<close> by auto
           thus ?thesis using DERIV_isCont by auto
         qed
       then have "continuous_on (path_image g) f" using continuous_at_imp_continuous_on by auto
-      then show ?thesis using path_continuous_image `valid_path g` valid_path_imp_path by auto
+      then show ?thesis using path_continuous_image \<open>valid_path g\<close> valid_path_imp_path by auto
     qed
   ultimately show ?thesis unfolding valid_path_def piecewise_C1_differentiable_on_def path_def
-    using `finite s` by auto
+    using \<open>finite s\<close> by auto
 qed
 
 
@@ -5730,13 +5730,13 @@ by (metis (no_types, hide_lams) DERIV_deriv_iff_field_differentiable at_within_o
 lemma valid_path_compose_holomorphic:
   assumes "valid_path g" and holo:"f holomorphic_on s" and "open s" "path_image g \<subseteq> s"
   shows "valid_path (f o g)"
-proof (rule valid_path_compose[OF `valid_path g`])
+proof (rule valid_path_compose[OF \<open>valid_path g\<close>])
   fix x assume "x \<in> path_image g"
   then show "\<exists>f'. (f has_field_derivative f') (at x)"
-    using holo holomorphic_on_open[OF `open s`] `path_image g \<subseteq> s` by auto
+    using holo holomorphic_on_open[OF \<open>open s\<close>] \<open>path_image g \<subseteq> s\<close> by auto
 next
   have "deriv f holomorphic_on s"
-    using holomorphic_deriv holo `open s` by auto
+    using holomorphic_deriv holo \<open>open s\<close> by auto
   then show "continuous_on (path_image g) (deriv f)"
     using assms(4) holomorphic_on_imp_continuous_on holomorphic_on_subset by auto
 qed
