@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-#
-# Author: Makarius
-#
-# DESCRIPTION: some sanity checks for Isabelle sources
-
-isabelle_admin_build jars || exit $?
-
-isabelle java isabelle.Check_Sources "$@"

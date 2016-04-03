@@ -52,11 +52,11 @@ object Check_Sources
   }
 
 
-  /* command line entry point */
+  /* Isabelle tool wrapper */
 
-  def main(args: Array[String])
-  {
-    Command_Line.tool0 {
+  val isabelle_tool =
+    Isabelle_Tool("check_sources", "some sanity checks for Isabelle sources", args =>
+    {
       val getopts = Getopts("""
 Usage: isabelle check_sources [ROOT_DIRS...]
 
@@ -67,6 +67,5 @@ Usage: isabelle check_sources [ROOT_DIRS...]
       if (specs.isEmpty) getopts.usage()
 
       for (root <- specs) check_hg(Path.explode(root))
-    }
-  }
+    })
 }
