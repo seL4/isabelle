@@ -57,12 +57,12 @@ structure Env = Generic_Data
   val empty =
     make_data (true,
       (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty),
-      (Symtab.make ML_Name_Space.initial_val,
-       Symtab.make ML_Name_Space.initial_type,
-       Symtab.make ML_Name_Space.initial_fixity,
-       Symtab.make ML_Name_Space.initial_structure,
-       Symtab.make ML_Name_Space.initial_signature,
-       Symtab.make ML_Name_Space.initial_functor),
+      (Symtab.make ML_Name_Space.sml_val,
+       Symtab.make ML_Name_Space.sml_type,
+       Symtab.make ML_Name_Space.sml_fixity,
+       Symtab.make ML_Name_Space.sml_structure,
+       Symtab.make ML_Name_Space.sml_signature,
+       Symtab.make ML_Name_Space.sml_functor),
       Inttab.empty);
   fun extend (data : T) = make_data (false, #tables data, #sml_tables data, #breakpoints data);
   fun merge (data : T * T) =
