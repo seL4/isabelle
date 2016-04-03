@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-#
-# Author: Markus Wenzel, TU Muenchen
-#
-# DESCRIPTION: view Isabelle documentation
-
-isabelle_admin_build jars || exit $?
-
-exec isabelle java isabelle.Doc "$@"
