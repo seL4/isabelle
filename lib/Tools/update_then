@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-#
-# Author: Makarius
-#
-# DESCRIPTION: expand old Isar command conflations 'hence' and 'thus'
-
-isabelle_admin_build jars || exit $?
-
-exec isabelle java isabelle.Update_Then "$@"

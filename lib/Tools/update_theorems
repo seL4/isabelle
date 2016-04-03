@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-#
-# Author: Makarius
-#
-# DESCRIPTION: update toplevel theorem keywords
-
-isabelle_admin_build jars || exit $?
-
-exec isabelle java isabelle.Update_Theorems "$@"

@@ -23,14 +23,14 @@ object Update_Header
   }
 
 
-  /* command line entry point */
+  /* Isabelle tool wrapper */
 
   private val headings =
     Set("chapter", "section", "subsection", "subsubsection", "paragraph", "subparagraph")
 
-  def main(args: Array[String])
-  {
-    Command_Line.tool0 {
+  val isabelle_tool =
+    Isabelle_Tool("update_header", "replace obsolete theory header command", args =>
+    {
       var section = "section"
 
       val getopts = Getopts("""
@@ -57,6 +57,5 @@ Usage: isabelle update_header [FILES|DIRS...]
         spec <- specs
         file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
       } update_header(section, Path.explode(File.standard_path(file)))
-    }
-  }
+    })
 }

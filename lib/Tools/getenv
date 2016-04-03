@@ -57,6 +57,7 @@ shift $(($OPTIND - 1))
 
 # args
 
+[ -z "$ALL" -a -z "$DUMP" -a "$#" -eq 0 ] && usage
 [ -n "$ALL" -a "$#" -ne 0 ] && usage
 
 

@@ -29,12 +29,11 @@ object Update_Theorems
   }
 
 
-  /* command line entry point */
+  /* Isabelle tool wrapper */
 
-  def main(args: Array[String])
+  val isabelle_tool = Isabelle_Tool("update_theorems", "update toplevel theorem keywords", args =>
   {
-    Command_Line.tool0 {
-      val getopts = Getopts("""
+    val getopts = Getopts("""
 Usage: isabelle update_theorems [FILES|DIRS...]
 
   Recursively find .thy files and update toplevel theorem keywords:
@@ -47,13 +46,12 @@ Usage: isabelle update_theorems [FILES|DIRS...]
   Old versions of files are preserved by appending "~~".
 """)
 
-      val specs = getopts(args)
-      if (specs.isEmpty) getopts.usage()
+    val specs = getopts(args)
+    if (specs.isEmpty) getopts.usage()
 
-      for {
-        spec <- specs
-        file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
-      } update_theorems(Path.explode(File.standard_path(file)))
-    }
-  }
+    for {
+      spec <- specs
+      file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
+    } update_theorems(Path.explode(File.standard_path(file)))
+  })
 }

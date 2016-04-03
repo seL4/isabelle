@@ -270,7 +270,6 @@ text \<open>
   Build and manage Isabelle sessions, depending on implicit settings:
 
   ISABELLE_BUILD_OPTIONS="..."
-  ISABELLE_BUILD_JAVA_OPTIONS="..."
 
   ML_PLATFORM="..."
   ML_HOME="..."

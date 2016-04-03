@@ -964,7 +964,7 @@ next
     proof -
       have f0: "(f \<longlongrightarrow> 0) at_infinity"
       proof -
-        have DIM_complex[intro]: "2 \<le> DIM(complex)"  --\<open>should not be necessary!\<close>
+        have DIM_complex[intro]: "2 \<le> DIM(complex)"  \<comment>\<open>should not be necessary!\<close>
           by simp
         have "continuous_on (inverse ` (ball 0 r - {0})) f"
           using continuous_on_subset holf holomorphic_on_imp_continuous_on by blast
@@ -2149,61 +2149,61 @@ proof -
     proof -
       assume "n>m"
       have "(h \<longlongrightarrow> 0) (at z within ball z r)" 
-        proof (rule Lim_transform_within[OF _ `r>0`, where f="\<lambda>w. (w - z) ^ (n - m) * g w"]) 
-          have "\<forall>w\<in>ball z r. w\<noteq>z \<longrightarrow> h w = (w-z)^(n-m) * g w" using `n>m` asm
+        proof (rule Lim_transform_within[OF _ \<open>r>0\<close>, where f="\<lambda>w. (w - z) ^ (n - m) * g w"]) 
+          have "\<forall>w\<in>ball z r. w\<noteq>z \<longrightarrow> h w = (w-z)^(n-m) * g w" using \<open>n>m\<close> asm
             by (auto simp add:field_simps power_diff)
           then show "\<lbrakk>x' \<in> ball z r; 0 < dist x' z;dist x' z < r\<rbrakk> 
             \<Longrightarrow> (x' - z) ^ (n - m) * g x' = h x'" for x' by auto
         next
           def F\<equiv>"at z within ball z r"
             and f'\<equiv>"\<lambda>x. (x - z) ^ (n-m)"
-          have "f' z=0" using `n>m` unfolding f'_def by auto
+          have "f' z=0" using \<open>n>m\<close> unfolding f'_def by auto
           moreover have "continuous F f'" unfolding f'_def F_def
             by (intro continuous_intros)
           ultimately have "(f' \<longlongrightarrow> 0) F" unfolding F_def
             by (simp add: continuous_within)            
           moreover have "(g \<longlongrightarrow> g z) F"
-            using holomorphic_on_imp_continuous_on[OF g_holo,unfolded continuous_on_def] `r>0`
+            using holomorphic_on_imp_continuous_on[OF g_holo,unfolded continuous_on_def] \<open>r>0\<close>
             unfolding F_def by auto
           ultimately show " ((\<lambda>w. f' w * g w) \<longlongrightarrow> 0) F" using tendsto_mult by fastforce
         qed
       moreover have "(h \<longlongrightarrow> h z) (at z within ball z r)" 
         using holomorphic_on_imp_continuous_on[OF h_holo] 
-        by (auto simp add:continuous_on_def `r>0`) 
-      moreover have "at z within ball z r \<noteq> bot" using `r>0` 
+        by (auto simp add:continuous_on_def \<open>r>0\<close>) 
+      moreover have "at z within ball z r \<noteq> bot" using \<open>r>0\<close> 
         by (auto simp add:trivial_limit_within islimpt_ball)
       ultimately have "h z=0" by (auto intro: tendsto_unique)
-      thus False using asm `r>0` by auto
+      thus False using asm \<open>r>0\<close> by auto
     qed
   moreover have "m>n \<Longrightarrow> False"
     proof -
       assume "m>n"
       have "(g \<longlongrightarrow> 0) (at z within ball z r)" 
-        proof (rule Lim_transform_within[OF _ `r>0`, where f="\<lambda>w. (w - z) ^ (m - n) * h w"]) 
-          have "\<forall>w\<in>ball z r. w\<noteq>z \<longrightarrow> g w = (w-z)^(m-n) * h w" using `m>n` asm
+        proof (rule Lim_transform_within[OF _ \<open>r>0\<close>, where f="\<lambda>w. (w - z) ^ (m - n) * h w"]) 
+          have "\<forall>w\<in>ball z r. w\<noteq>z \<longrightarrow> g w = (w-z)^(m-n) * h w" using \<open>m>n\<close> asm
             by (auto simp add:field_simps power_diff)
           then show "\<lbrakk>x' \<in> ball z r; 0 < dist x' z;dist x' z < r\<rbrakk> 
             \<Longrightarrow> (x' - z) ^ (m - n) * h x' = g x'" for x' by auto
         next
           def F\<equiv>"at z within ball z r"
             and f'\<equiv>"\<lambda>x. (x - z) ^ (m-n)"
-          have "f' z=0" using `m>n` unfolding f'_def by auto
+          have "f' z=0" using \<open>m>n\<close> unfolding f'_def by auto
           moreover have "continuous F f'" unfolding f'_def F_def
             by (intro continuous_intros)
           ultimately have "(f' \<longlongrightarrow> 0) F" unfolding F_def
             by (simp add: continuous_within)            
           moreover have "(h \<longlongrightarrow> h z) F"
-            using holomorphic_on_imp_continuous_on[OF h_holo,unfolded continuous_on_def] `r>0`
+            using holomorphic_on_imp_continuous_on[OF h_holo,unfolded continuous_on_def] \<open>r>0\<close>
             unfolding F_def by auto
           ultimately show " ((\<lambda>w. f' w * h w) \<longlongrightarrow> 0) F" using tendsto_mult by fastforce
         qed
       moreover have "(g \<longlongrightarrow> g z) (at z within ball z r)" 
         using holomorphic_on_imp_continuous_on[OF g_holo] 
-        by (auto simp add:continuous_on_def `r>0`) 
-      moreover have "at z within ball z r \<noteq> bot" using `r>0` 
+        by (auto simp add:continuous_on_def \<open>r>0\<close>) 
+      moreover have "at z within ball z r \<noteq> bot" using \<open>r>0\<close> 
         by (auto simp add:trivial_limit_within islimpt_ball)
       ultimately have "g z=0" by (auto intro: tendsto_unique)
-      thus False using asm `r>0` by auto
+      thus False using asm \<open>r>0\<close> by auto
     qed
   ultimately show "n=m" by fastforce
 qed
@@ -2220,18 +2220,18 @@ proof (rule ex_ex1I)
           g:"g holomorphic_on ball z r"
           "\<And>w. w \<in> ball z r \<Longrightarrow> f w = (w - z) ^ n * g w" 
           "\<And>w. w \<in> ball z r \<Longrightarrow> g w \<noteq> 0"
-    using holomorphic_factor_zero_nonconstant[OF holo `open s` `connected s` `z\<in>s` `f z=0`]
+    using holomorphic_factor_zero_nonconstant[OF holo \<open>open s\<close> \<open>connected s\<close> \<open>z\<in>s\<close> \<open>f z=0\<close>]
     by (metis assms(3) assms(5) assms(6))
   def r'\<equiv>"r/2"
   have "cball z r' \<subseteq> ball z r" unfolding r'_def by (simp add: \<open>0 < r\<close> cball_subset_ball_iff)
   hence "cball z r' \<subseteq> s" "g holomorphic_on cball z r'" 
       "(\<forall>w\<in>cball z r'. f w = (w - z) ^ n * g w \<and> g w \<noteq> 0)"
-    using g `ball z r \<subseteq> s` by auto
-  moreover have "r'>0" unfolding r'_def using `0<r` by auto
+    using g \<open>ball z r \<subseteq> s\<close> by auto
+  moreover have "r'>0" unfolding r'_def using \<open>0<r\<close> by auto
   ultimately show "\<exists>n g r. 0 < n \<and> 0 < r  \<and> g holomorphic_on cball z r 
           \<and> (\<forall>w\<in>cball z r. f w = (w - z) ^ n * g w \<and> g w \<noteq> 0)"
     apply (intro exI[of _ n] exI[of _ g] exI[of _ r'])
-    by (simp add:`0 < n`)
+    by (simp add:\<open>0 < n\<close>)
 next
   fix m n 
   def fac\<equiv>"\<lambda>n g r. \<forall>w\<in>cball z r. f w = (w - z) ^ n * g w \<and> g w \<noteq> 0"  
@@ -2242,7 +2242,7 @@ next
   obtain h r2 where "0 < m" "0 < r2" and h_holo: "h holomorphic_on cball z r2"  
     and "fac m h r2" using m_asm by auto
   def r\<equiv>"min r1 r2"
-  have "r>0" using `r1>0` `r2>0` unfolding r_def by auto
+  have "r>0" using \<open>r1>0\<close> \<open>r2>0\<close> unfolding r_def by auto
   moreover have "\<forall>w\<in>ball z r. f w = (w-z)^n * g w \<and> g w\<noteq>0 \<and> f w = (w - z)^m * h w \<and> h w\<noteq>0" 
     using \<open>fac m h r2\<close> \<open>fac n g r1\<close>   unfolding fac_def r_def
     by fastforce
@@ -2257,11 +2257,11 @@ lemma finite_ball_avoid:
 proof
   fix p assume "p\<in>s"
   then obtain e1 where "0 < e1" and e1_b:"ball p e1 \<subseteq> s" 
-    using open_contains_ball_eq[OF `open s`] by auto
+    using open_contains_ball_eq[OF \<open>open s\<close>] by auto
   obtain e2 where "0<e2" and "\<forall>x\<in>pts. x \<noteq> p \<longrightarrow> e2 \<le> dist p x" 
-    using finite_set_avoid[OF `finite pts`,of p] by auto
+    using finite_set_avoid[OF \<open>finite pts\<close>,of p] by auto
   hence "\<forall>w\<in>ball p (min e1 e2). w\<in>s \<and> (w\<noteq>p \<longrightarrow> w\<notin>pts)" using e1_b by auto
-  thus "\<exists>e>0. \<forall>w\<in>ball p e. w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> pts)" using `e2>0` `e1>0` 
+  thus "\<exists>e>0. \<forall>w\<in>ball p e. w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> pts)" using \<open>e2>0\<close> \<open>e1>0\<close> 
     apply (rule_tac x="min e1 e2" in exI)
     by auto
 qed
@@ -2275,33 +2275,33 @@ proof
   then obtain e1 where "e1>0" and e1: "\<forall>w\<in>ball p e1. w\<in>s \<and> (w\<noteq>p \<longrightarrow> w\<notin>pts)" 
     using finite_ball_avoid[OF assms] by auto
   def e2\<equiv>"e1/2"
-  have "e2>0" and "e2<e1" unfolding e2_def using `e1>0` by auto
+  have "e2>0" and "e2<e1" unfolding e2_def using \<open>e1>0\<close> by auto
   then have "cball p e2 \<subseteq> ball p e1" by (subst cball_subset_ball_iff,auto)
-  then show "\<exists>e>0. \<forall>w\<in>cball p e. w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> pts)" using `e2>0` e1 by auto
+  then show "\<exists>e>0. \<forall>w\<in>cball p e. w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> pts)" using \<open>e2>0\<close> e1 by auto
 qed
 
 lemma get_integrable_path:
   assumes "open s" "connected (s-pts)" "finite pts" "f holomorphic_on (s-pts) " "a\<in>s-pts" "b\<in>s-pts"
   obtains g where "valid_path g" "pathstart g = a" "pathfinish g = b" 
     "path_image g \<subseteq> s-pts" "f contour_integrable_on g" using assms
-proof (induct arbitrary:s thesis a rule:finite_induct[OF `finite pts`]) print_cases
+proof (induct arbitrary:s thesis a rule:finite_induct[OF \<open>finite pts\<close>]) print_cases
   case 1
   obtain g where "valid_path g" "path_image g \<subseteq> s" "pathstart g = a" "pathfinish g = b"
-    using connected_open_polynomial_connected[OF `open s`,of a b ] `connected (s - {})`
+    using connected_open_polynomial_connected[OF \<open>open s\<close>,of a b ] \<open>connected (s - {})\<close>
       valid_path_polynomial_function "1.prems"(6) "1.prems"(7) by auto
   moreover have "f contour_integrable_on g" 
-    using contour_integrable_holomorphic_simple[OF _ `open s` `valid_path g` `path_image g \<subseteq> s`,of f]
-      `f holomorphic_on s - {}`
+    using contour_integrable_holomorphic_simple[OF _ \<open>open s\<close> \<open>valid_path g\<close> \<open>path_image g \<subseteq> s\<close>,of f]
+      \<open>f holomorphic_on s - {}\<close>
     by auto
   ultimately show ?case using "1"(1)[of g] by auto
 next
   case idt:(2 p pts) 
   obtain e where "e>0" and e:"\<forall>w\<in>ball a e. w \<in> s \<and> (w \<noteq> a \<longrightarrow> w \<notin> insert p pts)"
-    using finite_ball_avoid[OF `open s` `finite (insert p pts)`,rule_format,of a]  
-      `a \<in> s - insert p pts`
+    using finite_ball_avoid[OF \<open>open s\<close> \<open>finite (insert p pts)\<close>,rule_format,of a]  
+      \<open>a \<in> s - insert p pts\<close>
     by auto
   def a'\<equiv>"a+e/2"
-  have "a'\<in>s-{p} -pts"  using e[rule_format,of "a+e/2"] `e>0`  
+  have "a'\<in>s-{p} -pts"  using e[rule_format,of "a+e/2"] \<open>e>0\<close>  
     by (auto simp add:dist_complex_def a'_def)
   then obtain g' where g'[simp]:"valid_path g'" "pathstart g' = a'" "pathfinish g' = b" 
     "path_image g' \<subseteq> s - {p} - pts" "f contour_integrable_on g'"    
@@ -2312,7 +2312,7 @@ next
   moreover have "pathstart g = a" and  "pathfinish g = b" unfolding g_def by auto 
   moreover have "path_image g \<subseteq> s - insert p pts" unfolding g_def 
     proof (rule subset_path_image_join)
-      have "closed_segment a a' \<subseteq> ball a e" using `e>0` 
+      have "closed_segment a a' \<subseteq> ball a e" using \<open>e>0\<close> 
         by (auto dest!:segment_bound1 simp:a'_def dist_complex_def norm_minus_commute)
       then show "path_image (linepath a a') \<subseteq> s - insert p pts" using e idt(9)
         by auto
@@ -2321,7 +2321,7 @@ next
     qed
   moreover have "f contour_integrable_on g"  
     proof -
-      have "closed_segment a a' \<subseteq> ball a e" using `e>0` 
+      have "closed_segment a a' \<subseteq> ball a e" using \<open>e>0\<close> 
         by (auto dest!:segment_bound1 simp:a'_def dist_complex_def norm_minus_commute)
       then have "continuous_on (closed_segment a a') f" 
         using e idt.prems(6) holomorphic_on_imp_continuous_on[OF idt.prems(5)]
@@ -2331,7 +2331,7 @@ next
         using contour_integrable_continuous_linepath by auto
       then show ?thesis unfolding g_def
         apply (rule contour_integrable_joinI)
-        by (auto simp add: `e>0`)
+        by (auto simp add: \<open>e>0\<close>)
     qed
   ultimately show ?case using idt.prems(1)[of g] by auto
 qed
@@ -2343,32 +2343,32 @@ lemma Cauchy_theorem_aux:
           "\<forall>p\<in>s. h p>0 \<and> (\<forall>w\<in>cball p (h p). w\<in>s \<and> (w\<noteq>p \<longrightarrow> w \<notin> pts))"
   shows "contour_integral g f = (\<Sum>p\<in>pts. winding_number g p * contour_integral (circlepath p (h p)) f)"
     using assms
-proof (induct arbitrary:s g rule:finite_induct[OF `finite pts`]) 
+proof (induct arbitrary:s g rule:finite_induct[OF \<open>finite pts\<close>]) 
   case 1
   then show ?case by (simp add: Cauchy_theorem_global contour_integral_unique)
 next
   case (2 p pts) 
-  note fin[simp] = `finite (insert p pts)`
-    and connected = `connected (s - insert p pts)`
-    and valid[simp] = `valid_path g`
-    and g_loop[simp] = `pathfinish g = pathstart g`
-    and holo[simp]= `f holomorphic_on s - insert p pts`
-    and path_img = `path_image g \<subseteq> s - insert p pts`
-    and winding = `\<forall>z. z \<notin> s \<longrightarrow> winding_number g z = 0`
-    and h = `\<forall>pa\<in>s. 0 < h pa \<and> (\<forall>w\<in>cball pa (h pa). w \<in> s \<and> (w \<noteq> pa \<longrightarrow> w \<notin> insert p pts))`
+  note fin[simp] = \<open>finite (insert p pts)\<close>
+    and connected = \<open>connected (s - insert p pts)\<close>
+    and valid[simp] = \<open>valid_path g\<close>
+    and g_loop[simp] = \<open>pathfinish g = pathstart g\<close>
+    and holo[simp]= \<open>f holomorphic_on s - insert p pts\<close>
+    and path_img = \<open>path_image g \<subseteq> s - insert p pts\<close>
+    and winding = \<open>\<forall>z. z \<notin> s \<longrightarrow> winding_number g z = 0\<close>
+    and h = \<open>\<forall>pa\<in>s. 0 < h pa \<and> (\<forall>w\<in>cball pa (h pa). w \<in> s \<and> (w \<noteq> pa \<longrightarrow> w \<notin> insert p pts))\<close>
   have "h p>0" and "p\<in>s"
     and h_p: "\<forall>w\<in>cball p (h p). w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> insert p pts)"
-    using h `insert p pts \<subseteq> s` by auto
+    using h \<open>insert p pts \<subseteq> s\<close> by auto
   obtain pg where pg[simp]: "valid_path pg" "pathstart pg = pathstart g" "pathfinish pg=p+h p" 
       "path_image pg \<subseteq> s-insert p pts" "f contour_integrable_on pg" 
     proof -
       have "p + h p\<in>cball p (h p)" using h[rule_format,of p] 
         by (simp add: \<open>p \<in> s\<close> dist_norm)
-      then have "p + h p \<in> s - insert p pts" using h[rule_format,of p] `insert p pts \<subseteq> s` 
+      then have "p + h p \<in> s - insert p pts" using h[rule_format,of p] \<open>insert p pts \<subseteq> s\<close> 
         by fastforce
       moreover have "pathstart g \<in> s - insert p pts " using path_img by auto
       ultimately show ?thesis
-        using get_integrable_path[OF `open s` connected fin holo,of "pathstart g" "p+h p"] that
+        using get_integrable_path[OF \<open>open s\<close> connected fin holo,of "pathstart g" "p+h p"] that
         by blast
     qed
   obtain n::int where "n=winding_number g p"
@@ -2394,7 +2394,7 @@ next
         and "pathstart (n_circ 0) = p + h p"
         and "pathfinish (n_circ 0) = p + h p"
         and "p \<notin> path_image (n_circ 0)"
-        unfolding n_circ_def p_circ_pt_def using `h p > 0`
+        unfolding n_circ_def p_circ_pt_def using \<open>h p > 0\<close>
         by (auto simp add: dist_norm)
       show "winding_number (n_circ 0) p'=0 \<and> p'\<notin>path_image (n_circ 0)" when "p'\<notin>s- pts" for p' 
         unfolding n_circ_def p_circ_pt_def
@@ -2409,7 +2409,7 @@ next
       case (Suc k)
       have n_Suc:"n_circ (Suc k) = p_circ +++ n_circ k" unfolding n_circ_def by auto
       have pcirc:"p \<notin> path_image p_circ" "valid_path p_circ" "pathfinish p_circ = pathstart (n_circ k)" 
-        using Suc(3) unfolding p_circ_def using `h p > 0` by (auto simp add: p_circ_def)
+        using Suc(3) unfolding p_circ_def using \<open>h p > 0\<close> by (auto simp add: p_circ_def)
       have pcirc_image:"path_image p_circ \<subseteq> s - insert p pts" 
         proof -
           have "path_image p_circ \<subseteq> cball p (h p)" using \<open>0 < h p\<close> p_circ_def by auto
@@ -2426,15 +2426,15 @@ next
         proof -
           have "path_image p_circ = sphere p (h p)" 
             unfolding p_circ_def using \<open>0 < h p\<close> by auto
-          then show ?thesis unfolding n_Suc  using Suc.hyps(5)  `h p>0`
+          then show ?thesis unfolding n_Suc  using Suc.hyps(5)  \<open>h p>0\<close>
             by (auto simp add:  path_image_join[OF pcirc(3)]  dist_norm)
         qed
-      then show "p \<notin> path_image (n_circ (Suc k))" using `h p>0` by auto
+      then show "p \<notin> path_image (n_circ (Suc k))" using \<open>h p>0\<close> by auto
       show "winding_number (n_circ (Suc k)) p = of_nat (Suc k)" 
         proof -
           have "winding_number p_circ p = 1" 
-            by (simp add: `h p > 0` p_circ_def winding_number_circlepath_centre)
-          moreover have "p \<notin> path_image (n_circ k)" using Suc(5) `h p>0` by auto
+            by (simp add: \<open>h p > 0\<close> p_circ_def winding_number_circlepath_centre)
+          moreover have "p \<notin> path_image (n_circ k)" using Suc(5) \<open>h p>0\<close> by auto
           then have "winding_number (p_circ +++ n_circ k) p 
               = winding_number p_circ p + winding_number (n_circ k) p"
             using  valid_path_imp_path Suc.hyps(1) Suc.hyps(2) pcirc 
@@ -2485,14 +2485,14 @@ next
         using n_circ unfolding cp_def by auto
     next
       have "sphere p (h p) \<subseteq>  s - insert p pts" 
-        using h[rule_format,of p] `insert p pts \<subseteq> s` by force
+        using h[rule_format,of p] \<open>insert p pts \<subseteq> s\<close> by force
       moreover  have "p + complex_of_real (h p) \<in> s - insert p pts" 
         using pg(3) pg(4) by (metis pathfinish_in_path_image subsetCE)
       ultimately show "path_image cp \<subseteq>  s - insert p pts" unfolding cp_def
         using n_circ(5)  by auto
     next
       show "winding_number cp p = - n" 
-        unfolding cp_def using winding_number_reversepath n_circ `h p>0` by auto
+        unfolding cp_def using winding_number_reversepath n_circ \<open>h p>0\<close> by auto
     next
       show "winding_number cp p'=0 \<and> p' \<notin> path_image cp" when "p'\<notin>s - pts" for p'
         unfolding cp_def
@@ -2509,11 +2509,11 @@ next
     qed
   def g'\<equiv>"g +++ pg +++ cp +++ (reversepath pg)"
   have "contour_integral g' f = (\<Sum>p\<in>pts. winding_number g' p * contour_integral (circlepath p (h p)) f)"
-    proof (rule "2.hyps"(3)[of "s-{p}" "g'",OF _ _ `finite pts` ]) 
+    proof (rule "2.hyps"(3)[of "s-{p}" "g'",OF _ _ \<open>finite pts\<close> ]) 
       show "connected (s - {p} - pts)" using connected by (metis Diff_insert2)
-      show "open (s - {p})" using `open s` by auto
-      show " pts \<subseteq> s - {p}" using `insert p pts \<subseteq> s` ` p \<notin> pts`  by blast 
-      show "f holomorphic_on s - {p} - pts" using holo `p \<notin> pts` by (metis Diff_insert2)
+      show "open (s - {p})" using \<open>open s\<close> by auto
+      show " pts \<subseteq> s - {p}" using \<open>insert p pts \<subseteq> s\<close> \<open> p \<notin> pts\<close>  by blast 
+      show "f holomorphic_on s - {p} - pts" using holo \<open>p \<notin> pts\<close> by (metis Diff_insert2)
       show "valid_path g'" 
         unfolding g'_def cp_def using n_circ valid pg g_loop
         by (auto intro!:valid_path_join )
@@ -2536,7 +2536,7 @@ next
           have "winding_number (g +++ pg +++ cp +++ reversepath pg) z = winding_number g z 
               + winding_number (pg +++ cp +++ (reversepath pg)) z"
             proof (rule winding_number_join)
-              show "path g" using `valid_path g` by simp
+              show "path g" using \<open>valid_path g\<close> by simp
               show "z \<notin> path_image g" using z path_img by auto
               show "path (pg +++ cp +++ reversepath pg)" using pg(3) cp by auto
             next
@@ -2568,7 +2568,7 @@ next
           finally have "winding_number g' z = winding_number g z + winding_number cp z" 
             unfolding g'_def .
           moreover have "winding_number g z + winding_number cp z = 0" 
-            using winding z `n=winding_number g p` by auto
+            using winding z \<open>n=winding_number g p\<close> by auto
           ultimately show "winding_number g' z = 0" unfolding g'_def by auto
         qed
       show "\<forall>pa\<in>s - {p}. 0 < h pa \<and> (\<forall>w\<in>cball pa (h pa). w \<in> s - {p} \<and> (w \<noteq> pa \<longrightarrow> w \<notin> pts))"
@@ -2581,7 +2581,7 @@ next
         + contour_integral (pg +++ cp +++ reversepath pg) f"
         unfolding g'_def
         apply (subst Cauchy_Integral_Thm.contour_integral_join) 
-        by (auto simp add:open_Diff[OF `open s`,OF finite_imp_closed[OF fin]]
+        by (auto simp add:open_Diff[OF \<open>open s\<close>,OF finite_imp_closed[OF fin]]
           intro!: contour_integrable_holomorphic_simple[OF holo _ _ path_img]  
           contour_integrable_reversepath)
       also have "... = contour_integral g f + contour_integral pg f 
@@ -2596,7 +2596,7 @@ next
         using contour_integral_reversepath
         by (auto simp add:contour_integrable_reversepath)
       also have "... = contour_integral g f - winding_number g p * contour_integral p_circ f"
-        using `n=winding_number g p` by auto
+        using \<open>n=winding_number g p\<close> by auto
       finally show ?thesis .
     qed
   moreover have "winding_number g' p' = winding_number g p'" when "p'\<in>pts" for p' 
@@ -2631,7 +2631,7 @@ next
   ultimately show ?case unfolding p_circ_def 
     apply (subst (asm) setsum.cong[OF refl, 
         of pts _ "\<lambda>p. winding_number g p * contour_integral (circlepath p (h p)) f"])
-    by (auto simp add:setsum.insert[OF `finite pts` `p\<notin>pts`] algebra_simps)         
+    by (auto simp add:setsum.insert[OF \<open>finite pts\<close> \<open>p\<notin>pts\<close>] algebra_simps)         
 qed  
 
 
@@ -2652,7 +2652,7 @@ proof -
   have "pts=pts1 \<union> pts2" "pts1 \<inter> pts2 = {}" "pts2 \<inter> s={}" "pts1\<subseteq>s" 
     unfolding pts1_def pts2_def by auto
   have "contour_integral g f =  (\<Sum>p\<in>pts1. circ p)" unfolding circ_def
-    proof (rule Cauchy_theorem_aux[OF `open s` _ _ `pts1\<subseteq>s` _ `valid_path g` loop _ homo])
+    proof (rule Cauchy_theorem_aux[OF \<open>open s\<close> _ _ \<open>pts1\<subseteq>s\<close> _ \<open>valid_path g\<close> loop _ homo])
       show "connected (s - pts1)" by (metis Diff_Int2 Int_absorb assms(2) pts1_def)
       show "finite pts1" using \<open>pts = pts1 \<union> pts2\<close> assms(3) by auto
       show "f holomorphic_on s - pts1" by (metis Diff_Int2 Int_absorb holo pts1_def)
@@ -2663,14 +2663,14 @@ proof -
   moreover have "setsum circ pts2=0"
     proof -
       have "winding_number g p=0" when "p\<in>pts2" for p 
-        using  `pts2 \<inter> s={}` that homo[rule_format,of p] by auto
+        using  \<open>pts2 \<inter> s={}\<close> that homo[rule_format,of p] by auto
       thus ?thesis unfolding circ_def
         apply (intro setsum.neutral)
         by auto
     qed
   moreover have "?R=setsum circ pts1 + setsum circ pts2"
     unfolding circ_def 
-    using setsum.union_disjoint[OF _ _ `pts1 \<inter> pts2 = {}`] `finite pts` `pts=pts1 \<union> pts2`
+    using setsum.union_disjoint[OF _ _ \<open>pts1 \<inter> pts2 = {}\<close>] \<open>finite pts\<close> \<open>pts=pts1 \<union> pts2\<close>
     by blast
   ultimately show ?thesis
     apply (fold circ_def)
@@ -2717,8 +2717,8 @@ proof -
   have "(\<exists>!n. n>0 \<and> (\<exists> h r. P h r n))"
     proof -
       have "\<exists>!n. \<exists>h r. n>0 \<and> P h r n"
-        using holomorphic_factor_zero_Ex1[OF `open s` `connected s` `z\<in>s` holo `f z=0` 
-          `\<exists>w\<in>s. f w\<noteq>0`] unfolding P_def
+        using holomorphic_factor_zero_Ex1[OF \<open>open s\<close> \<open>connected s\<close> \<open>z\<in>s\<close> holo \<open>f z=0\<close> 
+          \<open>\<exists>w\<in>s. f w\<noteq>0\<close>] unfolding P_def
         apply (subst mult.commute)
         by auto
       thus ?thesis by auto
@@ -2738,10 +2738,10 @@ proof -
   obtain r2 where "r2>0" "cball z r2 \<subseteq> s" 
     using assms(3) assms(5) open_contains_cball_eq by blast
   def r3\<equiv>"min r1 r2"
-  have "P h r3 n" using `P h r1 n` `r2>0` unfolding P_def r3_def
+  have "P h r3 n" using \<open>P h r1 n\<close> \<open>r2>0\<close> unfolding P_def r3_def
     by auto
-  moreover have "cball z r3 \<subseteq> s" using `cball z r2 \<subseteq> s` unfolding r3_def by auto
-  ultimately show ?thesis using `n>0` unfolding P_def by auto
+  moreover have "cball z r3 \<subseteq> s" using \<open>cball z r2 \<subseteq> s\<close> unfolding r3_def by auto
+  ultimately show ?thesis using \<open>n>0\<close> unfolding P_def by auto
 qed    
 
 lemma porder_exist:  
@@ -2756,8 +2756,8 @@ proof -
   def zo\<equiv>"zorder (inverse \<circ> f) z" and zp\<equiv>"zer_poly (inverse \<circ> f) z"
   obtain r where "0 < zo" "0 < r" "cball z r \<subseteq> s" and zp_holo: "zp holomorphic_on cball z r" and
       zp_fac: "\<forall>w\<in>cball z r. (inverse \<circ> f) w = zp w * (w - z) ^ zo \<and> zp w \<noteq> 0"
-    using zorder_exist[OF `open s` `connected s` `z\<in>s` holo,folded zo_def zp_def] 
-      `f z=0` `\<exists>w\<in>s. f w\<noteq>0`
+    using zorder_exist[OF \<open>open s\<close> \<open>connected s\<close> \<open>z\<in>s\<close> holo,folded zo_def zp_def] 
+      \<open>f z=0\<close> \<open>\<exists>w\<in>s. f w\<noteq>0\<close>
     by auto
   have n:"n=zo" and h:"h=inverse o zp" 
     unfolding n_def zo_def porder_def h_def zp_def pol_poly_def by simp_all
@@ -2767,8 +2767,8 @@ proof -
     using zp_fac unfolding h n comp_def
     by (metis divide_inverse_commute field_class.field_inverse_zero inverse_inverse_eq 
       inverse_mult_distrib mult.commute)
-  moreover have "0 < n" unfolding n using `zo>0` by simp
-  ultimately show ?thesis using `0 < r` `cball z r \<subseteq> s` by auto
+  moreover have "0 < n" unfolding n using \<open>zo>0\<close> by simp
+  ultimately show ?thesis using \<open>0 < r\<close> \<open>cball z r \<subseteq> s\<close> by auto
 qed
 
 lemma base_residue:  
@@ -2785,7 +2785,7 @@ proof -
       r_b:"cball z r \<subseteq> s" and
       h_holo:"h holomorphic_on cball z r" 
       and h:"(\<forall>w\<in>cball z r. f w = h w / (w - z) ^ n \<and> h w \<noteq> 0)"
-    using porder_exist[OF `open s` `connected s` `z\<in>s` holo `f z=0` non_c]
+    using porder_exist[OF \<open>open s\<close> \<open>connected s\<close> \<open>z\<in>s\<close> holo \<open>f z=0\<close> non_c]
     unfolding n_def h_def by auto
   def c\<equiv>"complex_of_real (2 * pi) * \<i>"
   have "residue f z =  (deriv ^^ (n - 1)) h z / fact (n-1)"
@@ -2795,15 +2795,15 @@ proof -
   then have "((\<lambda>u. h u / (u - z) ^ n) has_contour_integral c * residue f z)
           (circlepath z r)"
     using Cauchy_has_contour_integral_higher_derivative_circlepath[of z r h z "n -1"
-        ,unfolded Suc_diff_1[OF `n>0`],folded c_def] h_holo r_b
-    by (auto simp add:`r>0` holomorphic_on_imp_continuous_on holomorphic_on_subset)
+        ,unfolded Suc_diff_1[OF \<open>n>0\<close>],folded c_def] h_holo r_b
+    by (auto simp add:\<open>r>0\<close> holomorphic_on_imp_continuous_on holomorphic_on_subset)
   then have "(f has_contour_integral c * residue f z) (circlepath z r)"
     proof (elim has_contour_integral_eq)
       fix x assume "x \<in> path_image (circlepath z r)" 
       hence "x\<in>cball z r" using \<open>0 < r\<close> by auto
       then show "h x / (x - z) ^ n = f x" using h by auto
     qed
-  then show ?thesis using `r>0` `cball z r \<subseteq> s` unfolding c_def by auto
+  then show ?thesis using \<open>r>0\<close> \<open>cball z r \<subseteq> s\<close> unfolding c_def by auto
 qed
 
 theorem residue_theorem:
@@ -2822,26 +2822,26 @@ proof -
   def contour\<equiv>"\<lambda>p e. (f has_contour_integral c * residue f p) (circlepath p e)"
   def avoid\<equiv>"\<lambda>p e. \<forall>w\<in>cball p e. w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> pts)"
   have "poles \<subseteq> pts" and "finite pts"
-    using poles `finite {p. f p=0}` unfolding pts_def is_pole_def by auto
+    using poles \<open>finite {p. f p=0}\<close> unfolding pts_def is_pole_def by auto
   have "\<exists>e>0. avoid p e \<and> (p\<in>poles \<longrightarrow> contour p e)" 
       when "p\<in>s" for p 
     proof -
       obtain e1 where e:"e1>0" and e:"avoid p e1"
-        using finite_cball_avoid[OF `open s` `finite pts`] `p\<in>s` unfolding avoid_def by auto
+        using finite_cball_avoid[OF \<open>open s\<close> \<open>finite pts\<close>] \<open>p\<in>s\<close> unfolding avoid_def by auto
       have "\<exists>e2>0. cball p e2 \<subseteq> ball p e1 \<and> contour p e2"
         when "p\<in>poles" unfolding c_def contour_def
-        proof (rule base_residue[of "ball p e1" p f,simplified,OF `e1>0`])
+        proof (rule base_residue[of "ball p e1" p f,simplified,OF \<open>e1>0\<close>])
           show "inverse \<circ> f holomorphic_on ball p e1" 
             proof -
               def f'\<equiv>"inverse o f"
               have "f holomorphic_on ball p e1 - {p}" 
-                using holo e `poles \<subseteq> pts` unfolding avoid_def
+                using holo e \<open>poles \<subseteq> pts\<close> unfolding avoid_def
                 apply (elim holomorphic_on_subset)
                 by auto
               then have f'_holo:"f' holomorphic_on ball p e1 - {p}" unfolding f'_def comp_def 
                 apply (elim holomorphic_on_inverse)
                 using e pts_def  ball_subset_cball unfolding avoid_def by blast
-              moreover have "isCont f' p" using `p\<in>poles` poles unfolding f'_def is_pole_def by auto
+              moreover have "isCont f' p" using \<open>p\<in>poles\<close> poles unfolding f'_def is_pole_def by auto
               ultimately show "f' holomorphic_on ball p e1"
                 apply (elim no_isolated_singularity[rotated])
                 apply (auto simp add:continuous_on_eq_continuous_at[of "ball p e1",simplified])
@@ -2849,10 +2849,10 @@ proof -
                   holomorphic_on_imp_differentiable_at by fastforce
             qed
         next
-          show "f p = 0" using `p\<in>poles` poles unfolding is_pole_def by auto
+          show "f p = 0" using \<open>p\<in>poles\<close> poles unfolding is_pole_def by auto
         next
           def p'\<equiv>"p+e1/2"
-          have "p'\<in>ball p e1" and "p'\<noteq>p" using `e1>0` unfolding p'_def by (auto simp add:dist_norm)
+          have "p'\<in>ball p e1" and "p'\<noteq>p" using \<open>e1>0\<close> unfolding p'_def by (auto simp add:dist_norm)
           then show "\<exists>w\<in>ball p e1. f w \<noteq> 0" using e unfolding avoid_def
             apply (rule_tac x=p' in bexI)
             by (auto simp add:pts_def)
@@ -2861,7 +2861,7 @@ proof -
       def e3\<equiv>"if p\<in>poles then e2 else e1"
       have "avoid p e3" 
         using e2 e that  avoid_def e3_def by auto
-      moreover have "e3>0" using `e1>0` e2 unfolding e3_def by auto        
+      moreover have "e3>0" using \<open>e1>0\<close> e2 unfolding e3_def by auto        
       moreover have " p\<in>poles \<longrightarrow> contour p e3" using e2 unfolding e3_def by auto 
       ultimately show ?thesis by auto
     qed  
@@ -2870,12 +2870,12 @@ proof -
   def cont\<equiv>"\<lambda>p. contour_integral (circlepath p (h p)) f"
   have "contour_integral \<gamma> f = (\<Sum>p\<in>poles. winding_number \<gamma> p * cont p)"
     unfolding cont_def
-    proof (rule Cauchy_theorem_singularities[OF `open s` `connected (s-poles)` _ holo `valid_path \<gamma>` 
-        loop `path_image \<gamma> \<subseteq> s-poles` homo])
-      show "finite poles" using `poles \<subseteq> pts` and `finite pts` by (simp add: finite_subset)
+    proof (rule Cauchy_theorem_singularities[OF \<open>open s\<close> \<open>connected (s-poles)\<close> _ holo \<open>valid_path \<gamma>\<close> 
+        loop \<open>path_image \<gamma> \<subseteq> s-poles\<close> homo])
+      show "finite poles" using \<open>poles \<subseteq> pts\<close> and \<open>finite pts\<close> by (simp add: finite_subset)
     next
       show "\<forall>p\<in>s. 0 < h p \<and> (\<forall>w\<in>cball p (h p). w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> poles))"
-        using   `poles \<subseteq> pts` h unfolding avoid_def by blast
+        using   \<open>poles \<subseteq> pts\<close> h unfolding avoid_def by blast
     qed
   also have "... = (\<Sum>p\<in>poles. c * (winding_number \<gamma> p * residue f p))" 
     proof (rule setsum.cong[of poles poles,simplified])
@@ -2886,7 +2886,7 @@ proof -
           then have "cont p=c*residue f p"
             unfolding cont_def
             apply (intro contour_integral_unique)
-            using h[unfolded contour_def] `p \<in> poles` by blast
+            using h[unfolded contour_def] \<open>p \<in> poles\<close> by blast
           then show ?thesis by auto
         next
           assume "p\<notin>s"
@@ -2925,12 +2925,12 @@ proof -
   def cont_zero\<equiv>"\<lambda>ff p e. (ff has_contour_integral c * zorder f p * h p ) (circlepath p e)"
   def avoid\<equiv>"\<lambda>p e. \<forall>w\<in>cball p e. w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> pts)"
   have "poles \<subseteq> pts" and "zeros \<subseteq> pts" and "finite zeros" and "pts=zeros \<union> poles"
-    using poles `finite pts` unfolding pts_def zeros_def is_pole_def by auto
+    using poles \<open>finite pts\<close> unfolding pts_def zeros_def is_pole_def by auto
   have "\<exists>e>0. avoid p e \<and> (p\<in>poles \<longrightarrow> cont_pole ff p e) \<and> (p\<in>zeros \<longrightarrow> cont_zero ff p e)" 
       when "p\<in>s" for p 
     proof -
       obtain e1 where e:"e1>0" and e:"avoid p e1"
-        using finite_cball_avoid[OF `open s` `finite pts`] `p\<in>s` unfolding avoid_def by auto
+        using finite_cball_avoid[OF \<open>open s\<close> \<open>finite pts\<close>] \<open>p\<in>s\<close> unfolding avoid_def by auto
       have "\<exists>e2>0. cball p e2 \<subseteq> ball p e1 \<and> cont_pole ff p e2"
         when "p\<in>poles" 
         proof - 
@@ -2941,7 +2941,7 @@ proof -
           have "inverse \<circ> f holomorphic_on ball p e1" 
             proof -
               have "f holomorphic_on ball p e1 - {p}" 
-                using f_holo e `poles \<subseteq> pts` unfolding avoid_def
+                using f_holo e \<open>poles \<subseteq> pts\<close> unfolding avoid_def
                 apply (elim holomorphic_on_subset)
                 by auto
               then have inv_holo:"(inverse o f) holomorphic_on ball p e1 - {p}" 
@@ -2949,7 +2949,7 @@ proof -
                 apply (elim holomorphic_on_inverse)
                 using e pts_def  ball_subset_cball unfolding avoid_def by blast
               moreover have "isCont (inverse o f) p" 
-                using `p\<in>poles` poles unfolding is_pole_def by auto
+                using \<open>p\<in>poles\<close> poles unfolding is_pole_def by auto
               ultimately show "(inverse o f) holomorphic_on ball p e1"
                 apply (elim no_isolated_singularity[rotated])
                 apply (auto simp add:continuous_on_eq_continuous_at[of "ball p e1",simplified])
@@ -2957,11 +2957,11 @@ proof -
                   holomorphic_on_imp_differentiable_at unfolding comp_def
                   by fastforce
             qed
-          moreover have "f p = 0" using `p\<in>poles` poles unfolding is_pole_def by auto
+          moreover have "f p = 0" using \<open>p\<in>poles\<close> poles unfolding is_pole_def by auto
           moreover have "\<exists>w\<in>ball p e1. f w \<noteq> 0" 
             proof -
               def p'\<equiv>"p+e1/2"
-              have "p'\<in>ball p e1" and "p'\<noteq>p" using `e1>0` unfolding p'_def by (auto simp add:dist_norm)
+              have "p'\<in>ball p e1" and "p'\<noteq>p" using \<open>e1>0\<close> unfolding p'_def by (auto simp add:dist_norm)
               then show "\<exists>w\<in>ball p e1. f w \<noteq> 0" using e unfolding avoid_def
                 apply (rule_tac x=p' in bexI)
                 by (auto simp add:pts_def)
@@ -2971,50 +2971,50 @@ proof -
               "cball p r \<subseteq> ball p e1" and
               pp_holo:"pp holomorphic_on cball p r" and
               pp_po:"(\<forall>w\<in>cball p r. f w = pp w / (w - p) ^ po \<and> pp w \<noteq> 0)"
-            using porder_exist[of "ball p e1" p f,simplified,OF `e1>0`] unfolding po_def pp_def
+            using porder_exist[of "ball p e1" p f,simplified,OF \<open>e1>0\<close>] unfolding po_def pp_def
             by auto    
           def e2\<equiv>"r/2"
-          have "e2>0" using `r>0` unfolding e2_def by auto
+          have "e2>0" using \<open>r>0\<close> unfolding e2_def by auto
           def anal\<equiv>"\<lambda>w. deriv pp w * h w / pp w" and prin\<equiv>"\<lambda>w. - of_nat po * h w / (w - p)"
           have "((\<lambda>w.  prin w + anal w) has_contour_integral - c * po * h p) (circlepath p e2)"
             proof (rule  has_contour_integral_add[of _ _ _ _ 0,simplified])
               have "ball p r \<subseteq> s" 
                 using \<open>cball p r \<subseteq> ball p e1\<close> avoid_def ball_subset_cball e by blast
               then have "cball p e2 \<subseteq> s"
-                using `r>0` unfolding e2_def by auto  
+                using \<open>r>0\<close> unfolding e2_def by auto  
               then have "(\<lambda>w. - of_nat po * h w) holomorphic_on cball p e2" 
                 using h_holo
                 by (auto intro!: holomorphic_intros)
               then show "(prin has_contour_integral - c * of_nat po * h p ) (circlepath p e2)"
                 using Cauchy_integral_circlepath_simple[folded c_def, of "\<lambda>w. - of_nat po * h w"]
-                  `e2>0`
+                  \<open>e2>0\<close>
                 unfolding prin_def
                 by (auto simp add: mult.assoc)
               have "anal holomorphic_on ball p r" unfolding anal_def 
-                using pp_holo h_holo pp_po `ball p r \<subseteq> s`
+                using pp_holo h_holo pp_po \<open>ball p r \<subseteq> s\<close>
                 by (auto intro!: holomorphic_intros)
               then show "(anal has_contour_integral 0) (circlepath p e2)"
-                using e2_def `r>0`
+                using e2_def \<open>r>0\<close>
                 by (auto elim!: Cauchy_theorem_disc_simple)
             qed
           then have "cont_pole ff' p e2" unfolding cont_pole_def po_def
             proof (elim has_contour_integral_eq)
               fix w assume "w \<in> path_image (circlepath p e2)" 
-              then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using `r>0` by auto
+              then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using \<open>r>0\<close> by auto
               def wp\<equiv>"w-p"
               have "wp\<noteq>0" and "pp w \<noteq>0" 
-                unfolding wp_def using `w\<noteq>p` `w\<in>ball p r` pp_po by auto 
+                unfolding wp_def using \<open>w\<noteq>p\<close> \<open>w\<in>ball p r\<close> pp_po by auto 
               moreover have der_f':"deriv f' w = - po * pp w / (w-p)^(po+1) + deriv pp w / (w-p)^po" 
                 proof (rule DERIV_imp_deriv)
                   def der \<equiv> "- po * pp w / (w-p)^(po+1) + deriv pp w / (w-p)^po"
-                  have po:"po = Suc (po - Suc 0) " using `po>0` by auto
+                  have po:"po = Suc (po - Suc 0) " using \<open>po>0\<close> by auto
                   have "(pp has_field_derivative (deriv pp w)) (at w)" 
-                    using DERIV_deriv_iff_field_differentiable `w\<in>ball p r`
+                    using DERIV_deriv_iff_field_differentiable \<open>w\<in>ball p r\<close>
                           holomorphic_on_imp_differentiable_at[of _ "ball p r"] 
                           holomorphic_on_subset [OF pp_holo ball_subset_cball]
                     by (metis open_ball)
                   then show "(f' has_field_derivative  der) (at w)" 
-                    using `w\<noteq>p` `po>0` unfolding der_def f'_def
+                    using \<open>w\<noteq>p\<close> \<open>po>0\<close> unfolding der_def f'_def
                     apply (auto intro!: derivative_eq_intros simp add:field_simps)
                     apply (subst (4) po)
                     apply (subst power_Suc)
@@ -3030,7 +3030,7 @@ proof -
           then have "cont_pole ff p e2" unfolding cont_pole_def   
             proof (elim has_contour_integral_eq)
               fix w assume "w \<in> path_image (circlepath p e2)"
-              then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using `r>0` by auto
+              then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using \<open>r>0\<close> by auto
               have "deriv f' w =  deriv f w" 
               proof (rule complex_derivative_transform_within_open[where s="ball p r - {p}"])
                 show "f' holomorphic_on ball p r - {p}" unfolding f'_def using pp_holo
@@ -3038,14 +3038,14 @@ proof -
               next                
                 have "ball p e1 - {p} \<subseteq> s - poles" 
                   using avoid_def ball_subset_cball e \<open>poles \<subseteq> pts\<close> by auto
-                then have "ball p r - {p} \<subseteq> s - poles" using `cball p r \<subseteq> ball p e1`
+                then have "ball p r - {p} \<subseteq> s - poles" using \<open>cball p r \<subseteq> ball p e1\<close>
                   using ball_subset_cball by blast
                 then show "f holomorphic_on ball p r - {p}" using f_holo
                   by auto
               next
                 show "open (ball p r - {p})" by auto
               next
-                show "w \<in> ball p r - {p}" using `w\<in>ball p r` `w\<noteq>p` by auto
+                show "w \<in> ball p r - {p}" using \<open>w\<in>ball p r\<close> \<open>w\<noteq>p\<close> by auto
               next
                 fix x assume "x \<in> ball p r - {p}"
                 then show "f' x = f x" 
@@ -3058,7 +3058,7 @@ proof -
             qed
           moreover have "cball p e2 \<subseteq> ball p e1" 
             using \<open>0 < r\<close> \<open>cball p r \<subseteq> ball p e1\<close> e2_def by auto
-          ultimately show ?thesis using `e2>0` by auto
+          ultimately show ?thesis using \<open>e2>0\<close> by auto
         qed
       then obtain e2 where e2:"p\<in>poles \<longrightarrow> e2>0 \<and> cball p e2 \<subseteq> ball p e1 \<and> cont_pole ff p e2"
         by auto
@@ -3075,12 +3075,12 @@ proof -
                 using \<open>poles \<subseteq> pts\<close> avoid_def ball_subset_cball e that zeros_def by fastforce
               thus ?thesis using f_holo by auto
             qed
-          moreover have "f p = 0" using `p\<in>zeros` 
+          moreover have "f p = 0" using \<open>p\<in>zeros\<close> 
             using DiffD1 mem_Collect_eq pts_def zeros_def by blast
           moreover have "\<exists>w\<in>ball p e1. f w \<noteq> 0" 
             proof -
               def p'\<equiv>"p+e1/2"
-              have "p'\<in>ball p e1" and "p'\<noteq>p" using `e1>0` unfolding p'_def by (auto simp add:dist_norm)
+              have "p'\<in>ball p e1" and "p'\<noteq>p" using \<open>e1>0\<close> unfolding p'_def by (auto simp add:dist_norm)
               then show "\<exists>w\<in>ball p e1. f w \<noteq> 0" using e unfolding avoid_def
                 apply (rule_tac x=p' in bexI)
                 by (auto simp add:pts_def)
@@ -3090,50 +3090,50 @@ proof -
               "cball p r \<subseteq> ball p e1" and
               pp_holo:"zp holomorphic_on cball p r" and
               pp_po:"(\<forall>w\<in>cball p r. f w = zp w * (w - p) ^ zo \<and> zp w \<noteq> 0)"
-            using zorder_exist[of "ball p e1" p f,simplified,OF `e1>0`] unfolding zo_def zp_def
+            using zorder_exist[of "ball p e1" p f,simplified,OF \<open>e1>0\<close>] unfolding zo_def zp_def
             by auto    
           def e2\<equiv>"r/2"
-          have "e2>0" using `r>0` unfolding e2_def by auto
+          have "e2>0" using \<open>r>0\<close> unfolding e2_def by auto
           def anal\<equiv>"\<lambda>w. deriv zp w * h w / zp w" and prin\<equiv>"\<lambda>w. of_nat zo * h w / (w - p)"
           have "((\<lambda>w.  prin w + anal w) has_contour_integral c * zo * h p) (circlepath p e2)"
             proof (rule  has_contour_integral_add[of _ _ _ _ 0,simplified])
               have "ball p r \<subseteq> s" 
                 using \<open>cball p r \<subseteq> ball p e1\<close> avoid_def ball_subset_cball e by blast
               then have "cball p e2 \<subseteq> s"
-                using `r>0` unfolding e2_def by auto  
+                using \<open>r>0\<close> unfolding e2_def by auto  
               then have "(\<lambda>w. of_nat zo * h w) holomorphic_on cball p e2" 
                 using h_holo
                 by (auto intro!: holomorphic_intros)
               then show "(prin has_contour_integral c * of_nat zo * h p ) (circlepath p e2)"
                 using Cauchy_integral_circlepath_simple[folded c_def, of "\<lambda>w. of_nat zo * h w"]
-                  `e2>0`
+                  \<open>e2>0\<close>
                 unfolding prin_def
                 by (auto simp add: mult.assoc)
               have "anal holomorphic_on ball p r" unfolding anal_def 
-                using pp_holo h_holo pp_po `ball p r \<subseteq> s`
+                using pp_holo h_holo pp_po \<open>ball p r \<subseteq> s\<close>
                 by (auto intro!: holomorphic_intros)
               then show "(anal has_contour_integral 0) (circlepath p e2)"
-                using e2_def `r>0`
+                using e2_def \<open>r>0\<close>
                 by (auto elim!: Cauchy_theorem_disc_simple)
             qed
           then have "cont_zero ff' p e2" unfolding cont_zero_def zo_def
             proof (elim has_contour_integral_eq)
               fix w assume "w \<in> path_image (circlepath p e2)" 
-              then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using `r>0` by auto
+              then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using \<open>r>0\<close> by auto
               def wp\<equiv>"w-p"
               have "wp\<noteq>0" and "zp w \<noteq>0" 
-                unfolding wp_def using `w\<noteq>p` `w\<in>ball p r` pp_po by auto 
+                unfolding wp_def using \<open>w\<noteq>p\<close> \<open>w\<in>ball p r\<close> pp_po by auto 
               moreover have der_f':"deriv f' w = zo * zp w * (w-p)^(zo-1) + deriv zp w * (w-p)^zo" 
                 proof (rule DERIV_imp_deriv)
                   def der\<equiv>"zo * zp w * (w-p)^(zo-1) + deriv zp w * (w-p)^zo"
-                  have po:"zo = Suc (zo - Suc 0) " using `zo>0` by auto
+                  have po:"zo = Suc (zo - Suc 0) " using \<open>zo>0\<close> by auto
                   have "(zp has_field_derivative (deriv zp w)) (at w)" 
-                    using DERIV_deriv_iff_field_differentiable `w\<in>ball p r`
+                    using DERIV_deriv_iff_field_differentiable \<open>w\<in>ball p r\<close>
                           holomorphic_on_imp_differentiable_at[of _ "ball p r"] 
                           holomorphic_on_subset [OF pp_holo ball_subset_cball]
                     by (metis open_ball)
                   then show "(f' has_field_derivative  der) (at w)" 
-                    using `w\<noteq>p` `zo>0` unfolding der_def f'_def
+                    using \<open>w\<noteq>p\<close> \<open>zo>0\<close> unfolding der_def f'_def
                     by (auto intro!: derivative_eq_intros simp add:field_simps)
                 qed
               ultimately show "prin w + anal w = ff' w"
@@ -3147,7 +3147,7 @@ proof -
           then have "cont_zero ff p e2" unfolding cont_zero_def   
             proof (elim has_contour_integral_eq)
               fix w assume "w \<in> path_image (circlepath p e2)"
-              then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using `r>0` by auto
+              then have "w\<in>ball p r" and "w\<noteq>p" unfolding e2_def using \<open>r>0\<close> by auto
               have "deriv f' w =  deriv f w" 
                 proof (rule complex_derivative_transform_within_open[where s="ball p r - {p}"])
                   show "f' holomorphic_on ball p r - {p}" unfolding f'_def using pp_holo
@@ -3155,14 +3155,14 @@ proof -
                 next                
                   have "ball p e1 - {p} \<subseteq> s - poles" 
                     using avoid_def ball_subset_cball e \<open>poles \<subseteq> pts\<close> by auto
-                  then have "ball p r - {p} \<subseteq> s - poles" using `cball p r \<subseteq> ball p e1`
+                  then have "ball p r - {p} \<subseteq> s - poles" using \<open>cball p r \<subseteq> ball p e1\<close>
                     using ball_subset_cball by blast
                   then show "f holomorphic_on ball p r - {p}" using f_holo
                     by auto
                 next
                   show "open (ball p r - {p})" by auto
                 next
-                  show "w \<in> ball p r - {p}" using `w\<in>ball p r` `w\<noteq>p` by auto
+                  show "w \<in> ball p r - {p}" using \<open>w\<in>ball p r\<close> \<open>w\<noteq>p\<close> by auto
                 next
                   fix x assume "x \<in> ball p r - {p}"
                   then show "f' x = f x" 
@@ -3175,13 +3175,13 @@ proof -
             qed
           moreover have "cball p e2 \<subseteq> ball p e1" 
             using \<open>0 < r\<close> \<open>cball p r \<subseteq> ball p e1\<close> e2_def by auto
-          ultimately show ?thesis using `e2>0` by auto
+          ultimately show ?thesis using \<open>e2>0\<close> by auto
         qed
       then obtain e3 where e3:"p\<in>zeros \<longrightarrow> e3>0 \<and> cball p e3 \<subseteq> ball p e1 \<and> cont_zero ff p e3"
         by auto          
       def e4\<equiv>"if p\<in>poles then e2 else if p\<in>zeros then e3 else e1"
-      have "e4>0" using e2 e3 `e1>0` unfolding e4_def by auto
-      moreover have "avoid p e4" using e2 e3 `e1>0` e unfolding e4_def avoid_def by auto
+      have "e4>0" using e2 e3 \<open>e1>0\<close> unfolding e4_def by auto
+      moreover have "avoid p e4" using e2 e3 \<open>e1>0\<close> e unfolding e4_def avoid_def by auto
       moreover have "p\<in>poles \<longrightarrow> cont_pole ff p e4" and "p\<in>zeros \<longrightarrow> cont_zero ff p e4" 
         by (auto simp add: e2 e3 e4_def pts_def zeros_def)
       ultimately show ?thesis by auto
@@ -3193,17 +3193,17 @@ proof -
   def w\<equiv>"\<lambda>p. winding_number g p"
   have "contour_integral g ff = (\<Sum>p\<in>pts. w p * cont p)"
     unfolding cont_def w_def
-    proof (rule Cauchy_theorem_singularities[OF `open s` connected finite _ `valid_path g` loop 
+    proof (rule Cauchy_theorem_singularities[OF \<open>open s\<close> connected finite _ \<open>valid_path g\<close> loop 
         path_img homo])
-      have "open (s - pts)" using open_Diff[OF _ finite_imp_closed[OF finite]] `open s` by auto 
-      then show "ff holomorphic_on s - pts" unfolding ff_def using f_holo `poles \<subseteq> pts` h_holo
+      have "open (s - pts)" using open_Diff[OF _ finite_imp_closed[OF finite]] \<open>open s\<close> by auto 
+      then show "ff holomorphic_on s - pts" unfolding ff_def using f_holo \<open>poles \<subseteq> pts\<close> h_holo
         by (auto intro!: holomorphic_intros simp add:pts_def)
     next
       show "\<forall>p\<in>s. 0 < get_e p \<and> (\<forall>w\<in>cball p (get_e p). w \<in> s \<and> (w \<noteq> p \<longrightarrow> w \<notin> pts))"
         using get_e using avoid_def by blast
     qed
   also have "... = (\<Sum>p\<in>zeros. w p * cont p) + (\<Sum>p\<in>poles. w p * cont p)"
-    using `finite pts` unfolding `pts=zeros \<union> poles`
+    using \<open>finite pts\<close> unfolding \<open>pts=zeros \<union> poles\<close>
     apply (subst setsum.union_disjoint)
     by (auto simp add:zeros_def)
   also have "... = c * ((\<Sum>p\<in>zeros. w p *  h p * zorder f p) - (\<Sum>p\<in>poles. w p *  h p * porder f p))"
@@ -3216,7 +3216,7 @@ proof -
               assume "p \<in> s"
               have "cont p = c * h p * (zorder f p)" unfolding cont_def
                 apply (rule contour_integral_unique)
-                using get_e `p\<in>s` `p\<in>zeros` unfolding cont_zero_def                
+                using get_e \<open>p\<in>s\<close> \<open>p\<in>zeros\<close> unfolding cont_zero_def                
                 by (metis mult.assoc mult.commute)
               thus ?thesis by auto
             next
@@ -3236,7 +3236,7 @@ proof -
               assume "p \<in> s"
               have "cont p = - c * h p * (porder f p)" unfolding cont_def
                 apply (rule contour_integral_unique)
-                using get_e `p\<in>s` `p\<in>poles` unfolding cont_pole_def               
+                using get_e \<open>p\<in>s\<close> \<open>p\<in>poles\<close> unfolding cont_pole_def               
                 by (metis mult.assoc mult.commute)
               thus ?thesis by auto
             next
@@ -3259,7 +3259,7 @@ lemma holomorphic_imp_diff_on:
 proof (rule differentiable_at_imp_differentiable_on)
   fix x assume "x\<in>s"
   obtain f' where "(f has_field_derivative f') (at x) "
-    using holomorphic_on_imp_differentiable_at[OF f_holo `open s` `x\<in>s`] 
+    using holomorphic_on_imp_differentiable_at[OF f_holo \<open>open s\<close> \<open>x\<in>s\<close>] 
     unfolding field_differentiable_def by auto
   then have " (f has_derivative op * f') (at x)"
     using has_field_derivative_imp_has_derivative[of f f' "at x"] by auto
@@ -3290,8 +3290,8 @@ proof -
     proof -
       have False when "z\<in>path_image \<gamma>" and "f z + g z=0" for z 
         proof -
-          have "cmod (f z) > cmod (g z)" using `z\<in>path_image \<gamma>` path_less by auto
-          moreover have "f z = - g z"  using `f z + g z =0` by (simp add: eq_neg_iff_add_eq_0)
+          have "cmod (f z) > cmod (g z)" using \<open>z\<in>path_image \<gamma>\<close> path_less by auto
+          moreover have "f z = - g z"  using \<open>f z + g z =0\<close> by (simp add: eq_neg_iff_add_eq_0)
           then have "cmod (f z) = cmod (g z)" by auto
           ultimately show False by auto
         qed
@@ -3301,8 +3301,8 @@ proof -
     proof -
       have False when "z\<in>path_image \<gamma>" and "f z =0" for z 
         proof -
-          have "cmod (g z) < cmod (f z) " using `z\<in>path_image \<gamma>` path_less by auto
-          then have "cmod (g z) < 0" using `f z=0` by auto          
+          have "cmod (g z) < cmod (f z) " using \<open>z\<in>path_image \<gamma>\<close> path_less by auto
+          then have "cmod (g z) < 0" using \<open>f z=0\<close> by auto          
           then show False by auto
         qed
       then show ?thesis unfolding zeros_f_def using path_img by auto 
@@ -3312,7 +3312,7 @@ proof -
   def h\<equiv>"\<lambda>p. g p / f p + 1" 
   obtain spikes
     where "finite spikes" and spikes: "\<forall>x\<in>{0..1} - spikes. \<gamma> differentiable at x"
-    using `valid_path \<gamma>`
+    using \<open>valid_path \<gamma>\<close>
     by (auto simp: valid_path_def piecewise_C1_differentiable_on_def C1_differentiable_on_eq)
   have h_contour:"((\<lambda>x. deriv h x / h x) has_contour_integral 0) \<gamma>" 
     proof -
@@ -3334,12 +3334,12 @@ proof -
             by auto
         qed
       have valid_h:"valid_path (h \<circ> \<gamma>)"
-        proof (rule valid_path_compose_holomorphic[OF `valid_path \<gamma>` _ _ path_f])
+        proof (rule valid_path_compose_holomorphic[OF \<open>valid_path \<gamma>\<close> _ _ path_f])
           show "h holomorphic_on s - zeros_f" 
             unfolding h_def using f_holo g_holo
             by (auto intro!: holomorphic_intros simp add:zeros_f_def)
         next
-          show "open (s - zeros_f)" using `finite zeros_f` `open s` finite_imp_closed
+          show "open (s - zeros_f)" using \<open>finite zeros_f\<close> \<open>open s\<close> finite_imp_closed
             by auto
         qed
       have "((\<lambda>z. 1/z) has_contour_integral 0) (h \<circ> \<gamma>)" 
@@ -3362,7 +3362,7 @@ proof -
       moreover have "vector_derivative (h \<circ> \<gamma>) (at x) = vector_derivative \<gamma> (at x) * deriv h (\<gamma> x)"
           when "x\<in>{0..1} - spikes" for x 
         proof (rule vector_derivative_chain_at_general)
-          show "\<gamma> differentiable at x" using that `valid_path \<gamma>` spikes by auto
+          show "\<gamma> differentiable at x" using that \<open>valid_path \<gamma>\<close> spikes by auto
         next
           def der\<equiv>"\<lambda>p. (deriv g p * f p - g p * deriv f p)/(f p * f p)"
           def t\<equiv>"\<gamma> x"
@@ -3374,13 +3374,13 @@ proof -
             unfolding h_def der_def using g_holo f_holo
             apply (auto intro!: derivative_eq_intros)
             by (auto simp add: DERIV_deriv_iff_field_differentiable 
-              holomorphic_on_imp_differentiable_at[OF _ `open s`])
+              holomorphic_on_imp_differentiable_at[OF _ \<open>open s\<close>])
           then show "\<exists>g'. (h has_field_derivative g') (at (\<gamma> x))" unfolding t_def by auto
         qed
       then have " (op / 1 has_contour_integral 0) (h \<circ> \<gamma>) 
           = ((\<lambda>x. deriv h x / h x) has_contour_integral 0) \<gamma>"  
         unfolding has_contour_integral
-        apply (intro has_integral_spike_eq[OF negligible_finite, OF `finite spikes`])
+        apply (intro has_integral_spike_eq[OF negligible_finite, OF \<open>finite spikes\<close>])
         by auto
       ultimately show ?thesis by auto
     qed
@@ -3390,8 +3390,8 @@ proof -
       + contour_integral \<gamma> (\<lambda>p. deriv h p / h p)" 
     proof -
       have "(\<lambda>p. deriv f p / f p) contour_integrable_on \<gamma>" 
-        proof (rule contour_integrable_holomorphic_simple[OF _ _ `valid_path \<gamma>` path_f])
-          show "open (s - zeros_f)" using finite_imp_closed[OF `finite zeros_f`] `open s` 
+        proof (rule contour_integrable_holomorphic_simple[OF _ _ \<open>valid_path \<gamma>\<close> path_f])
+          show "open (s - zeros_f)" using finite_imp_closed[OF \<open>finite zeros_f\<close>] \<open>open s\<close> 
             by auto
           then show "(\<lambda>p. deriv f p / f p) holomorphic_on s - zeros_f"
             using f_holo
@@ -3420,23 +3420,23 @@ proof -
               ultimately show False by auto
             qed
           have der_fg:"deriv fg p =  deriv f p + deriv g p" unfolding fg_def
-            using f_holo g_holo holomorphic_on_imp_differentiable_at[OF _  `open s`] path_img that
+            using f_holo g_holo holomorphic_on_imp_differentiable_at[OF _  \<open>open s\<close>] path_img that
             by (auto intro!: deriv_add)
           have der_h:"deriv h p = (deriv g p * f p - g p * deriv f p)/(f p * f p)"
             proof -
               def der\<equiv>"\<lambda>p. (deriv g p * f p - g p * deriv f p)/(f p * f p)"          
               have "p\<in>s" using path_img that by auto
               then have "(h has_field_derivative der p) (at p)"
-                unfolding h_def der_def using g_holo f_holo `f p\<noteq>0`
+                unfolding h_def der_def using g_holo f_holo \<open>f p\<noteq>0\<close>
                 apply (auto intro!: derivative_eq_intros)
                 by (auto simp add: DERIV_deriv_iff_field_differentiable 
-                    holomorphic_on_imp_differentiable_at[OF _ `open s`])
+                    holomorphic_on_imp_differentiable_at[OF _ \<open>open s\<close>])
               then show ?thesis unfolding der_def using DERIV_imp_deriv by auto
             qed
           show ?thesis
             apply (simp only:der_fg der_h)   
-            apply (auto simp add:field_simps `h p\<noteq>0` `f p\<noteq>0` `fg p\<noteq>0`)
-            by (auto simp add:field_simps h_def `f p\<noteq>0` fg_def) 
+            apply (auto simp add:field_simps \<open>h p\<noteq>0\<close> \<open>f p\<noteq>0\<close> \<open>fg p\<noteq>0\<close>)
+            by (auto simp add:field_simps h_def \<open>f p\<noteq>0\<close> fg_def) 
         qed
       then have "contour_integral \<gamma> (\<lambda>p. deriv fg p / fg p) 
           = contour_integral \<gamma> (\<lambda>p. deriv f p / f p + deriv h p / h p)"
@@ -3445,19 +3445,19 @@ proof -
     qed
   moreover have "contour_integral \<gamma> (\<lambda>x. deriv fg x / fg x) = c * (\<Sum>p\<in>zeros_fg. w p * zorder fg p)"
     unfolding c_def zeros_fg_def w_def 
-    proof (rule argument_principle[OF `open s` _ _ _ `valid_path \<gamma>` loop _ homo, of _ "{}" "\<lambda>_. 1",simplified])
+    proof (rule argument_principle[OF \<open>open s\<close> _ _ _ \<open>valid_path \<gamma>\<close> loop _ homo, of _ "{}" "\<lambda>_. 1",simplified])
       show "connected (s - {p. fg p = 0})" using connected_fg unfolding zeros_fg_def .
       show "fg holomorphic_on s" unfolding fg_def using f_holo g_holo holomorphic_on_add by auto
       show "path_image \<gamma> \<subseteq> s - {p. fg p = 0}" using path_fg unfolding zeros_fg_def .
-      show " finite {p. fg p = 0}" using `finite zeros_fg` unfolding zeros_fg_def .
+      show " finite {p. fg p = 0}" using \<open>finite zeros_fg\<close> unfolding zeros_fg_def .
     qed
   moreover have "contour_integral \<gamma> (\<lambda>x. deriv f x / f x) = c * (\<Sum>p\<in>zeros_f. w p * zorder f p)"
     unfolding c_def zeros_f_def w_def 
-    proof (rule argument_principle[OF `open s` _ _ _ `valid_path \<gamma>` loop _ homo, of _ "{}" "\<lambda>_. 1",simplified])
+    proof (rule argument_principle[OF \<open>open s\<close> _ _ _ \<open>valid_path \<gamma>\<close> loop _ homo, of _ "{}" "\<lambda>_. 1",simplified])
       show "connected (s - {p. f p = 0})" using connected_f unfolding zeros_f_def .
       show "f holomorphic_on s" using f_holo g_holo holomorphic_on_add by auto
       show "path_image \<gamma> \<subseteq> s - {p. f p = 0}" using path_f unfolding zeros_f_def .
-      show "finite {p. f p = 0}" using `finite zeros_f` unfolding zeros_f_def .
+      show "finite {p. f p = 0}" using \<open>finite zeros_f\<close> unfolding zeros_f_def .
     qed  
   ultimately have "c * (\<Sum>p\<in>zeros_fg. w p * (zorder fg p)) = c* (\<Sum>p\<in>zeros_f. w p * (zorder f p))"
     by auto

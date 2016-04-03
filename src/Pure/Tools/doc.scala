@@ -91,28 +91,26 @@ object Doc
   }
 
 
-  /* command line entry point */
+  /* Isabelle tool wrapper */
 
-  def main(args: Array[String])
+  val isabelle_tool = Isabelle_Tool("doc", "view Isabelle documentation", args =>
   {
-    Command_Line.tool0 {
-      val getopts = Getopts("""
+    val getopts = Getopts("""
 Usage: isabelle doc [DOC ...]
 
   View Isabelle documentation.
 """)
-      val docs = getopts(args)
+    val docs = getopts(args)
 
-      val entries = contents()
-      if (docs.isEmpty) Console.println(cat_lines(contents_lines().map(_._2)))
-      else {
-        docs.foreach(doc =>
-          entries.collectFirst { case Doc(name, _, path) if doc == name => path } match {
-            case Some(path) => view(path)
-            case None => error("No Isabelle documentation entry: " + quote(doc))
-          }
-        )
-      }
+    val entries = contents()
+    if (docs.isEmpty) Console.println(cat_lines(contents_lines().map(_._2)))
+    else {
+      docs.foreach(doc =>
+        entries.collectFirst { case Doc(name, _, path) if doc == name => path } match {
+          case Some(path) => view(path)
+          case None => error("No Isabelle documentation entry: " + quote(doc))
+        }
+      )
     }
-  }
+  })
 }

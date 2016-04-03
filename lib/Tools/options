@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-#
-# Author: Makarius
-#
-# DESCRIPTION: print Isabelle system options
-
-isabelle_admin_build jars || exit $?
-
-exec isabelle java isabelle.Options "$@"

@@ -269,8 +269,8 @@ fun finish () =
         val doc_dir = Path.append doc_prefix (Path.basic doc_name);
         val _ = Isabelle_System.mkdirs doc_dir;
         val _ =
-          Isabelle_System.isabelle_tool "latex"
-            ("-o sty " ^ File.bash_path (Path.append doc_dir (Path.basic "root.tex")));
+          Isabelle_System.bash ("isabelle latex -o sty " ^
+            File.bash_path (Path.append doc_dir (Path.basic "root.tex")));
         val _ = List.app (fn file => Isabelle_System.copy_file_base file doc_dir) doc_files;
         val _ = Isabelle_System.copy_file graph_file (Path.append doc_dir session_graph_path);
         val _ = write_tex_index tex_index doc_dir;
@@ -360,8 +360,8 @@ fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
     val _ = Isabelle_System.mkdirs doc_path;
     val root_path = Path.append doc_path (Path.basic "root.tex");
     val _ = Isabelle_System.copy_file (Path.explode "~~/lib/texinputs/draft.tex") root_path;
-    val _ = Isabelle_System.isabelle_tool "latex" ("-o sty " ^ File.bash_path root_path);
-    val _ = Isabelle_System.isabelle_tool "latex" ("-o syms " ^ File.bash_path root_path);
+    val _ = Isabelle_System.bash ("isabelle latex -o sty " ^ File.bash_path root_path);
+    val _ = Isabelle_System.bash ("isabelle latex -o syms " ^ File.bash_path root_path);
 
     fun known name =
       let val ss = split_lines (File.read (Path.append doc_path (Path.basic name)))
@@ -382,8 +382,6 @@ fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
     val target = Path.explode "$ISABELLE_HOME_USER/tmp/drafts.pdf"
     val _ = Isabelle_System.mkdirs target_dir;
     val _ = Isabelle_System.copy_file result target;
-  in
-    Isabelle_System.isabelle_tool "display" (File.bash_path target ^ " &")
-  end);
+  in Isabelle_System.bash ("isabelle display " ^ File.bash_path target ^ " &") end);
 
 end;

@@ -2,7 +2,7 @@
     Author:     Andreas Lochbihler, ETH Zurich
 *)
 
-section {* Formalisation of chain-complete partial orders, continuity and admissibility *}
+section \<open>Formalisation of chain-complete partial orders, continuity and admissibility\<close>
 
 theory Complete_Partial_Order2 imports 
   Main
@@ -83,10 +83,10 @@ proof(rule monotoneI)
     fix x'
     assume "x' \<in> (\<lambda>f. f x) ` Y"
     then obtain f where "f \<in> Y" "x' = f x" by blast
-    note `x' = f x` also
-    from `f \<in> Y` `x \<sqsubseteq> y` have "f x \<le> f y" by(blast dest: mono monotoneD)
+    note \<open>x' = f x\<close> also
+    from \<open>f \<in> Y\<close> \<open>x \<sqsubseteq> y\<close> have "f x \<le> f y" by(blast dest: mono monotoneD)
     also have "\<dots> \<le> \<Squnion>((\<lambda>f. f y) ` Y)" using chain''
-      by(rule ccpo_Sup_upper)(simp add: `f \<in> Y`)
+      by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> Y\<close>)
     finally show "x' \<le> \<Squnion>((\<lambda>f. f y) ` Y)" .
   qed
 qed
@@ -108,9 +108,9 @@ proof(rule ccpo_Sup_least)
   fix x'
   assume "x' \<in> f x ` Y"
   then obtain y' where "y' \<in> Y" "x' = f x y'" by blast note this(2)
-  also from mono1[OF `y' \<in> Y`] le have "\<dots> \<le> f y y'" by(rule monotoneD)
+  also from mono1[OF \<open>y' \<in> Y\<close>] le have "\<dots> \<le> f y y'" by(rule monotoneD)
   also have "\<dots> \<le> ?rhs" using chain'[OF y]
-    by (auto intro!: ccpo_Sup_upper simp add: `y' \<in> Y`)
+    by (auto intro!: ccpo_Sup_upper simp add: \<open>y' \<in> Y\<close>)
   finally show "x' \<le> ?rhs" .
 qed(rule x)
 
@@ -128,17 +128,17 @@ proof(rule antisym)
     fix x'
     assume "x' \<in> (\<lambda>x. \<Squnion>(f x ` Y)) ` Y"
     then obtain y' where "y' \<in> Y" "x' = \<Squnion>(f y' ` Y)" by blast note this(2)
-    also have "\<dots> \<le> ?rhs" using chain2[OF `y' \<in> Y`]
+    also have "\<dots> \<le> ?rhs" using chain2[OF \<open>y' \<in> Y\<close>]
     proof(rule ccpo_Sup_least)
       fix x
       assume "x \<in> f y' ` Y"
       then obtain y where "y \<in> Y" and x: "x = f y' y" by blast
       def y'' \<equiv> "if y \<sqsubseteq> y' then y' else y"
-      from chain `y \<in> Y` `y' \<in> Y` have "y \<sqsubseteq> y' \<or> y' \<sqsubseteq> y" by(rule chainD)
-      hence "f y' y \<le> f y'' y''" using `y \<in> Y` `y' \<in> Y`
+      from chain \<open>y \<in> Y\<close> \<open>y' \<in> Y\<close> have "y \<sqsubseteq> y' \<or> y' \<sqsubseteq> y" by(rule chainD)
+      hence "f y' y \<le> f y'' y''" using \<open>y \<in> Y\<close> \<open>y' \<in> Y\<close>
         by(auto simp add: y''_def intro: mono2 monotoneD[OF mono1])
-      also from `y \<in> Y` `y' \<in> Y` have "y'' \<in> Y" by(simp add: y''_def)
-      from chain3 have "f y'' y'' \<le> ?rhs" by(rule ccpo_Sup_upper)(simp add: `y'' \<in> Y`)
+      also from \<open>y \<in> Y\<close> \<open>y' \<in> Y\<close> have "y'' \<in> Y" by(simp add: y''_def)
+      from chain3 have "f y'' y'' \<le> ?rhs" by(rule ccpo_Sup_upper)(simp add: \<open>y'' \<in> Y\<close>)
       finally show "x \<le> ?rhs" by(simp add: x)
     qed
     finally show "x' \<le> ?rhs" .
@@ -149,9 +149,9 @@ proof(rule antisym)
     fix y
     assume "y \<in> (\<lambda>x. f x x) ` Y"
     then obtain x where "x \<in> Y" and "y = f x x" by blast note this(2)
-    also from chain2[OF `x \<in> Y`] have "\<dots> \<le> \<Squnion>(f x ` Y)"
-      by(rule ccpo_Sup_upper)(simp add: `x \<in> Y`)
-    also have "\<dots> \<le> ?lhs" by(rule ccpo_Sup_upper[OF chain1])(simp add: `x \<in> Y`)
+    also from chain2[OF \<open>x \<in> Y\<close>] have "\<dots> \<le> \<Squnion>(f x ` Y)"
+      by(rule ccpo_Sup_upper)(simp add: \<open>x \<in> Y\<close>)
+    also have "\<dots> \<le> ?lhs" by(rule ccpo_Sup_upper[OF chain1])(simp add: \<open>x \<in> Y\<close>)
     finally show "y \<le> ?lhs" .
   qed
 qed
@@ -171,8 +171,8 @@ proof(rule ccpo_Sup_least)
   fix x
   assume "x \<in> f ` Y"
   then obtain y where "y \<in> Y" and "x = f y" by blast note this(2)
-  also have "y \<sqsubseteq> \<Or>Y" using ccpo chain `y \<in> Y` by(rule ccpo.ccpo_Sup_upper)
-  hence "f y \<le> f (\<Or>Y)" using `y \<in> Y` by(rule mono)
+  also have "y \<sqsubseteq> \<Or>Y" using ccpo chain \<open>y \<in> Y\<close> by(rule ccpo.ccpo_Sup_upper)
+  hence "f y \<le> f (\<Or>Y)" using \<open>y \<in> Y\<close> by(rule mono)
   finally show "x \<le> \<dots>" .
 qed
 
@@ -196,14 +196,14 @@ next
     fix f g
     assume "f \<in> Z" "g \<in> Z"
       and "fun_ord op \<le> f g"
-    from chain1[OF `f \<in> Z`] show "\<Squnion>(f ` Y) \<le> \<Squnion>(g ` Y)"
+    from chain1[OF \<open>f \<in> Z\<close>] show "\<Squnion>(f ` Y) \<le> \<Squnion>(g ` Y)"
     proof(rule ccpo_Sup_least)
       fix x
       assume "x \<in> f ` Y"
       then obtain y where "y \<in> Y" "x = f y" by blast note this(2)
-      also have "\<dots> \<le> g y" using `fun_ord op \<le> f g` by(simp add: fun_ord_def)
-      also have "\<dots> \<le> \<Squnion>(g ` Y)" using chain1[OF `g \<in> Z`]
-        by(rule ccpo_Sup_upper)(simp add: `y \<in> Y`)
+      also have "\<dots> \<le> g y" using \<open>fun_ord op \<le> f g\<close> by(simp add: fun_ord_def)
+      also have "\<dots> \<le> \<Squnion>(g ` Y)" using chain1[OF \<open>g \<in> Z\<close>]
+        by(rule ccpo_Sup_upper)(simp add: \<open>y \<in> Y\<close>)
       finally show "x \<le> \<Squnion>(g ` Y)" .
     qed
   qed
@@ -219,9 +219,9 @@ next
       fix x'
       assume "x' \<in> (\<lambda>f. f x) ` Z"
       then obtain f where "f \<in> Z" "x' = f x" by blast note this(2)
-      also have "f x \<le> f y" using `f \<in> Z` `x \<sqsubseteq> y` by(rule monotoneD[OF mono])
+      also have "f x \<le> f y" using \<open>f \<in> Z\<close> \<open>x \<sqsubseteq> y\<close> by(rule monotoneD[OF mono])
       also have "f y \<le> ?rhs" using chain3
-        by(rule ccpo_Sup_upper)(simp add: `f \<in> Z`)
+        by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> Z\<close>)
       finally show "x' \<le> ?rhs" .
     qed
   qed
@@ -231,14 +231,14 @@ next
     fix x
     assume "x \<in> (\<lambda>x. \<Squnion>(x ` Y)) ` Z"
     then obtain f where "f \<in> Z" "x = \<Squnion>(f ` Y)" by blast note this(2)
-    also have "\<dots> \<le> ?rhs" using chain1[OF `f \<in> Z`]
+    also have "\<dots> \<le> ?rhs" using chain1[OF \<open>f \<in> Z\<close>]
     proof(rule ccpo_Sup_least)
       fix x'
       assume "x' \<in> f ` Y"
       then obtain y where "y \<in> Y" "x' = f y" by blast note this(2)
       also have "f y \<le> \<Squnion>((\<lambda>f. f y) ` Z)" using chain3
-        by(rule ccpo_Sup_upper)(simp add: `f \<in> Z`)
-      also have "\<dots> \<le> ?rhs" using chain4 by(rule ccpo_Sup_upper)(simp add: `y \<in> Y`)
+        by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> Z\<close>)
+      also have "\<dots> \<le> ?rhs" using chain4 by(rule ccpo_Sup_upper)(simp add: \<open>y \<in> Y\<close>)
       finally show "x' \<le> ?rhs" .
     qed
     finally show "x \<le> ?rhs" .
@@ -254,10 +254,10 @@ next
       fix x'
       assume "x' \<in> (\<lambda>f. f y) ` Z"
       then obtain f where "f \<in> Z" "x' = f y" by blast note this(2)
-      also have "f y \<le> \<Squnion>(f ` Y)" using chain1[OF `f \<in> Z`]
-        by(rule ccpo_Sup_upper)(simp add: `y \<in> Y`)
+      also have "f y \<le> \<Squnion>(f ` Y)" using chain1[OF \<open>f \<in> Z\<close>]
+        by(rule ccpo_Sup_upper)(simp add: \<open>y \<in> Y\<close>)
       also have "\<dots> \<le> ?lhs" using chain2
-        by(rule ccpo_Sup_upper)(simp add: `f \<in> Z`)
+        by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> Z\<close>)
       finally show "x' \<le> ?lhs" .
     qed
     finally show "x \<le> ?lhs" .
@@ -314,9 +314,9 @@ proof(rule monotoneI)
     assume "x' \<in> (\<lambda>f. f x) ` ?iter"
     then obtain f where "f \<in> ?iter" "x' = f x" by blast note this(2)
     also have "f x \<le> f y"
-      by(rule monotoneD[OF iterates_mono[OF `f \<in> ?iter` mono2]])(blast intro: `x \<sqsubseteq> y`)+
+      by(rule monotoneD[OF iterates_mono[OF \<open>f \<in> ?iter\<close> mono2]])(blast intro: \<open>x \<sqsubseteq> y\<close>)+
     also have "f y \<le> \<Squnion>((\<lambda>f. f y) ` ?iter)" using chain
-      by(rule ccpo_Sup_upper)(simp add: `f \<in> ?iter`)
+      by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> ?iter\<close>)
     finally show "x' \<le> \<dots>" .
   qed
 qed
@@ -333,7 +333,7 @@ lemma monotone2monotone:
   shows "monotone orda ordc (\<lambda>x. f x (t x))"
 by(blast intro: monotoneI transpD[OF trans] monotoneD[OF t] monotoneD[OF 2] monotoneD[OF 1])
 
-subsection {* Continuity *}
+subsection \<open>Continuity\<close>
 
 definition cont :: "('a set \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('b set \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
 where
@@ -345,10 +345,10 @@ where
   "mcont luba orda lubb ordb f \<longleftrightarrow>
    monotone orda ordb f \<and> cont luba orda lubb ordb f"
 
-subsubsection {* Theorem collection @{text cont_intro} *}
+subsubsection \<open>Theorem collection \<open>cont_intro\<close>\<close>
 
 named_theorems cont_intro "continuity and admissibility intro rules"
-ML {*
+ML \<open>
 (* apply cont_intro rules as intro and try to solve 
    the remaining of the emerging subgoals with simp *)
 fun cont_intro_tac ctxt =
@@ -374,13 +374,13 @@ fun cont_intro_simproc ctxt ct =
   end
   handle THM _ => NONE 
   | TYPE _ => NONE
-*}
+\<close>
 
 simproc_setup "cont_intro"
   ( "ccpo.admissible lub ord P"
   | "mcont lub ord lub' ord' f"
   | "monotone ord ord' f"
-  ) = {* K cont_intro_simproc *}
+  ) = \<open>K cont_intro_simproc\<close>
 
 lemmas [cont_intro] =
   call_mono
@@ -604,10 +604,10 @@ proof(intro conjI monotoneI contI)
       fix x'
       assume "x' \<in> (\<lambda>f. f x) ` ?iter"
       then obtain f where "f \<in> ?iter" "x' = f x" by blast note this(2)
-      also from _ `x \<sqsubseteq> y` have "f x \<le> f y"
-        by(rule mcont_monoD[OF iterates_mcont[OF `f \<in> ?iter` mcont]])
+      also from _ \<open>x \<sqsubseteq> y\<close> have "f x \<le> f y"
+        by(rule mcont_monoD[OF iterates_mcont[OF \<open>f \<in> ?iter\<close> mcont]])
       also have "f y \<le> \<Squnion>((\<lambda>f. f y) ` ?iter)" using chain
-        by(rule ccpo_Sup_upper)(simp add: `f \<in> ?iter`)
+        by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> ?iter\<close>)
       finally show "x' \<le> \<dots>" .
     qed
   next
@@ -783,7 +783,7 @@ unfolding g[abs_def] using ccpo mono cont bot by(rule ccpo.mcont_if_bot[OF Parti
 
 end
 
-subsection {* Admissibility *}
+subsection \<open>Admissibility\<close>
 
 lemma admissible_subst:
   assumes adm: "ccpo.admissible luba orda (\<lambda>x. P x)"
@@ -860,10 +860,10 @@ proof(rule ccpo.admissibleI)
     fix x
     assume "x \<in> f ` A"
     then obtain y where "y \<in> A" "x = f y" by blast note this(2)
-    also have "f y \<le> g y" using le `y \<in> A` by simp
+    also have "f y \<le> g y" using le \<open>y \<in> A\<close> by simp
     also have "Complete_Partial_Order.chain op \<le> (g ` A)"
       using chain by(rule chain_imageI)(rule mcont_monoD[OF g])
-    hence "g y \<le> \<Squnion>(g ` A)" by(rule ccpo_Sup_upper)(simp add: `y \<in> A`)
+    hence "g y \<le> \<Squnion>(g ` A)" by(rule ccpo_Sup_upper)(simp add: \<open>y \<in> A\<close>)
     finally show "x \<le> \<dots>" .
   qed
   also have "\<dots> = g (luba A)" by(simp add: mcont_contD[OF g] chain False)
@@ -992,7 +992,7 @@ done
 
 end
 
-subsection {* @{term "op ="} as order *}
+subsection \<open>@{term "op ="} as order\<close>
 
 definition lub_singleton :: "('a set \<Rightarrow> 'a) \<Rightarrow> bool"
 where "lub_singleton lub \<longleftrightarrow> (\<forall>a. lub {a} = a)"
@@ -1038,7 +1038,7 @@ lemma mcont_eqI [cont_intro, simp]:
   \<Longrightarrow> mcont the_Sup op = lub ord f"
 by(simp add: mcont_def cont_eqI monotone_eqI)
 
-subsection {* ccpo for products *}
+subsection \<open>ccpo for products\<close>
 
 definition prod_lub :: "('a set \<Rightarrow> 'a) \<Rightarrow> ('b set \<Rightarrow> 'b) \<Rightarrow> ('a \<times> 'b) set \<Rightarrow> 'a \<times> 'b"
 where "prod_lub Sup_a Sup_b Y = (Sup_a (fst ` Y), Sup_b (snd ` Y))"
@@ -1197,7 +1197,7 @@ proof(rule contI)
   with cont have "f (prod_lub luba lubb ?Y) = lubc (f ` ?Y)" by(rule contD)
   moreover have "f ` ?Y = (\<lambda>y. f (x, y)) ` Y" by auto
   ultimately show "f (x, lubb Y) = lubc ((\<lambda>y. f (x, y)) ` Y)" using luba
-    by(simp add: prod_lub_def `Y \<noteq> {}` lub_singleton_def)
+    by(simp add: prod_lub_def \<open>Y \<noteq> {}\<close> lub_singleton_def)
 qed
 
 lemma cont_prodD2: 
@@ -1253,9 +1253,9 @@ proof(rule contI)
   have "f (prod_lub luba lubb Y) = f (luba (fst ` Y), lubb (snd ` Y))"
     by(simp add: prod_lub_def)
   also from cont2 have "f (luba (fst ` Y), lubb (snd ` Y)) = \<Squnion>((\<lambda>x. f (x, lubb (snd ` Y))) ` fst ` Y)"
-    by(rule contD)(simp_all add: chain_rel_prodD1[OF chain] `Y \<noteq> {}`)
+    by(rule contD)(simp_all add: chain_rel_prodD1[OF chain] \<open>Y \<noteq> {}\<close>)
   also from cont1 have "\<And>x. f (x, lubb (snd ` Y)) = \<Squnion>((\<lambda>y. f (x, y)) ` snd ` Y)"
-    by(rule contD)(simp_all add: chain_rel_prodD2[OF chain] `Y \<noteq> {}`)
+    by(rule contD)(simp_all add: chain_rel_prodD2[OF chain] \<open>Y \<noteq> {}\<close>)
   hence "\<Squnion>((\<lambda>x. f (x, lubb (snd ` Y))) ` fst ` Y) = \<Squnion>((\<lambda>x. \<dots> x) ` fst ` Y)" by simp
   also have "\<dots> = \<Squnion>((\<lambda>x. f (fst x, snd x)) ` Y)"
     unfolding image_image split_def using chain
@@ -1330,7 +1330,7 @@ lemma mono2mono_case_prod [cont_intro]:
   shows "monotone orda ordb (\<lambda>f. case_prod (pair f) x)"
 by(rule monotoneI)(auto split: prod.split dest: monotoneD[OF assms])
 
-subsection {* Complete lattices as ccpo *}
+subsection \<open>Complete lattices as ccpo\<close>
 
 context complete_lattice begin
 
@@ -1374,8 +1374,8 @@ proof(rule Sup_eqI)
   fix y
   assume "y \<in> op \<squnion> x ` Y"
   then obtain z where "y = x \<squnion> z" and "z \<in> Y" by blast
-  from `z \<in> Y` have "z \<le> \<Squnion>Y" by(rule Sup_upper)
-  with _ show "y \<le> x \<squnion> \<Squnion>Y" unfolding `y = x \<squnion> z` by(rule sup_mono) simp
+  from \<open>z \<in> Y\<close> have "z \<le> \<Squnion>Y" by(rule Sup_upper)
+  with _ show "y \<le> x \<squnion> \<Squnion>Y" unfolding \<open>y = x \<squnion> z\<close> by(rule sup_mono) simp
 next
   fix y
   assume upper: "\<And>z. z \<in> op \<squnion> x ` Y \<Longrightarrow> z \<le> y"
@@ -1385,8 +1385,8 @@ next
     assume "z \<in> insert x Y"
     from assms obtain z' where "z' \<in> Y" by blast
     let ?z = "if z \<in> Y then x \<squnion> z else x \<squnion> z'"
-    have "z \<le> x \<squnion> ?z" using `z' \<in> Y` `z \<in> insert x Y` by auto
-    also have "\<dots> \<le> y" by(rule upper)(auto split: if_split_asm intro: `z' \<in> Y`)
+    have "z \<le> x \<squnion> ?z" using \<open>z' \<in> Y\<close> \<open>z \<in> insert x Y\<close> by auto
+    also have "\<dots> \<le> y" by(rule upper)(auto split: if_split_asm intro: \<open>z' \<in> Y\<close>)
     finally show "z \<le> y" .
   qed
 qed
@@ -1426,14 +1426,14 @@ end
 interpretation lfp: partial_function_definitions "op \<le> :: _ :: complete_lattice \<Rightarrow> _" Sup
 by(rule complete_lattice_partial_function_definitions)
 
-declaration {* Partial_Function.init "lfp" @{term lfp.fixp_fun} @{term lfp.mono_body}
-  @{thm lfp.fixp_rule_uc} @{thm lfp.fixp_induct_uc} NONE *}
+declaration \<open>Partial_Function.init "lfp" @{term lfp.fixp_fun} @{term lfp.mono_body}
+  @{thm lfp.fixp_rule_uc} @{thm lfp.fixp_induct_uc} NONE\<close>
 
 interpretation gfp: partial_function_definitions "op \<ge> :: _ :: complete_lattice \<Rightarrow> _" Inf
 by(rule complete_lattice_partial_function_definitions_dual)
 
-declaration {* Partial_Function.init "gfp" @{term gfp.fixp_fun} @{term gfp.mono_body}
-  @{thm gfp.fixp_rule_uc} @{thm gfp.fixp_induct_uc} NONE *}
+declaration \<open>Partial_Function.init "gfp" @{term gfp.fixp_fun} @{term gfp.mono_body}
+  @{thm gfp.fixp_rule_uc} @{thm gfp.fixp_induct_uc} NONE\<close>
 
 lemma insert_mono [partial_function_mono]:
    "monotone (fun_ord op \<subseteq>) op \<subseteq> A \<Longrightarrow> monotone (fun_ord op \<subseteq>) op \<subseteq> (\<lambda>y. insert x (A y))"
@@ -1505,23 +1505,23 @@ proof(rule contI)
         fix u
         assume "u \<in> (\<lambda>x. g x z) ` Y"
         then obtain y' where "u = g y' z" "y' \<in> Y" by auto
-        from chain `y \<in> Y` `y' \<in> Y` have "ord y y' \<or> ord y' y" by(rule chainD)
+        from chain \<open>y \<in> Y\<close> \<open>y' \<in> Y\<close> have "ord y y' \<or> ord y' y" by(rule chainD)
         thus "u \<le> ?rhs"
         proof
-          note `u = g y' z` also
+          note \<open>u = g y' z\<close> also
           assume "ord y y'"
           with f have "f y \<subseteq> f y'" by(rule mcont_monoD)
-          with `z \<in> f y`
+          with \<open>z \<in> f y\<close>
           have "g y' z \<le> \<Squnion>(g y' ` f y')" by(auto intro: Sup_upper)
-          also have "\<dots> \<le> ?rhs" using `y' \<in> Y` by(auto intro: Sup_upper)
+          also have "\<dots> \<le> ?rhs" using \<open>y' \<in> Y\<close> by(auto intro: Sup_upper)
           finally show ?thesis .
         next
-          note `u = g y' z` also
+          note \<open>u = g y' z\<close> also
           assume "ord y' y"
           with g have "g y' z \<le> g y z" by(rule mcont_monoD)
-          also have "\<dots> \<le> \<Squnion>(g y ` f y)" using `z \<in> f y`
+          also have "\<dots> \<le> \<Squnion>(g y ` f y)" using \<open>z \<in> f y\<close>
             by(auto intro: Sup_upper)
-          also have "\<dots> \<le> ?rhs" using `y \<in> Y` by(auto intro: Sup_upper)
+          also have "\<dots> \<le> ?rhs" using \<open>y \<in> Y\<close> by(auto intro: Sup_upper)
           finally show ?thesis .
         qed
       qed
@@ -1537,11 +1537,11 @@ proof(rule contI)
         fix u
         assume "u \<in> g y ` f y"
         then obtain z where "u = g y z" "z \<in> f y" by auto
-        note `u = g y z`
+        note \<open>u = g y z\<close>
         also have "g y z \<le> \<Squnion>((\<lambda>x. g x z) ` Y)"
-          using `y \<in> Y` by(auto intro: Sup_upper)
+          using \<open>y \<in> Y\<close> by(auto intro: Sup_upper)
         also have "\<dots> = g (lub Y) z" by(simp add: mcont_contD[OF g chain Y])
-        also have "\<dots> \<le> ?lhs" using `z \<in> f y` `y \<in> Y`
+        also have "\<dots> \<le> ?lhs" using \<open>z \<in> f y\<close> \<open>y \<in> Y\<close>
           by(auto intro: Sup_upper simp add: mcont_contD[OF f chain Y])
         finally show "u \<le> ?lhs" .
       qed
@@ -1567,7 +1567,7 @@ lemma admissible_Bex'[THEN admissible_subst, cont_intro, simp]:
   shows admissible_Bex: "ccpo.admissible Union op \<subseteq> (\<lambda>A. \<exists>x\<in>A. P x)"
 by(rule ccpo.admissibleI)(auto)
 
-subsection {* Parallel fixpoint induction *}
+subsection \<open>Parallel fixpoint induction\<close>
 
 context
   fixes luba :: "'a set \<Rightarrow> 'a"

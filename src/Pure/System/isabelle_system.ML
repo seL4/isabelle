@@ -6,7 +6,6 @@ Isabelle system support.
 
 signature ISABELLE_SYSTEM =
 sig
-  val isabelle_tool: string -> string -> int
   val mkdirs: Path.T -> unit
   val mkdir: Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit
@@ -37,29 +36,12 @@ fun bash s =
   in rc end;
 
 
-(* system commands *)
-
-fun isabelle_tool name args =
-  (case space_explode ":" (getenv "ISABELLE_TOOLS") |> get_first (fn dir =>
-      let
-        val path = Path.append (Path.explode dir) (Path.basic name);
-        val platform_path = File.platform_path path;
-      in
-        if can OS.FileSys.modTime platform_path andalso
-          not (OS.FileSys.isDir platform_path) andalso
-          OS.FileSys.access (platform_path, [OS.FileSys.A_READ, OS.FileSys.A_EXEC])
-        then SOME path
-        else NONE
-      end handle OS.SysErr _ => NONE) of
-    SOME path => bash (File.bash_path path ^ " " ^ args)
-  | NONE => (warning ("Unknown Isabelle tool: " ^ name); 2));
+(* directory operations *)
 
 fun system_command cmd =
-  if bash cmd <> 0 then error ("System command failed: " ^ cmd)
-  else ();
+  if bash cmd <> 0 then error ("System command failed: " ^ cmd) else ();
 
-
-(* directory operations *)
+fun rm_tree path = system_command ("rm -r -f " ^ File.bash_path path);
 
 fun mkdirs path =
   if File.is_dir path then ()
@@ -112,8 +94,6 @@ fun with_tmp_file name ext f =
 
 (* tmp dirs *)
 
-fun rm_tree path = system_command ("rm -r -f " ^ File.bash_path path);
-
 fun with_tmp_dir name f =
   let
     val path = create_tmp_path name "";
@@ -121,4 +101,3 @@ fun with_tmp_dir name f =
   in Exn.release (Exn.capture f path before ignore (try rm_tree path)) end;
 
 end;
-
