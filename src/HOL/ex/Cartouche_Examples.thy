@@ -274,8 +274,6 @@ ML \<open>
 
 text \<open>Nested ML evaluation:\<close>
 ML \<open>
-  val ML = ML_Context.eval_source ML_Compiler.flags;
-
   ML \<open>ML \<open>val a = @{thm refl}\<close>\<close>;
   ML \<open>val b = @{thm sym}\<close>;
   val c = @{thm trans}

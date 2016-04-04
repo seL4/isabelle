@@ -280,9 +280,7 @@ use "Proof/proof_checker.ML";
 use "Proof/extraction.ML";
 
 (*Isabelle system*)
-if ML_System.platform_is_windows
-then use "System/bash_windows.ML"
-else use "System/bash.ML";
+use "System/bash.ML";
 use "System/isabelle_system.ML";
 
 

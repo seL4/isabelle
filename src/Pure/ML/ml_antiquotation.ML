@@ -42,6 +42,11 @@ val _ = Theory.setup
     (Args.context >> (ML_Pretty.make_string_fn o ML_Context.struct_name)) #>
 
   value (Binding.make ("binding", @{here}))
-    (Scan.lift (Parse.position Args.name) >> ML_Syntax.make_binding));
+    (Scan.lift (Parse.position Args.name) >> ML_Syntax.make_binding) #>
+
+  value (Binding.make ("cartouche", @{here}))
+    (Scan.lift Args.cartouche_input >> (fn source =>
+      "Input.source true " ^ ML_Syntax.print_string (Input.text_of source) ^ " " ^
+        ML_Syntax.atomic (ML_Syntax.print_range (Input.range_of source)))));
 
 end;

@@ -155,7 +155,6 @@ session Pure =
     "Syntax/term_position.ML"
     "Syntax/type_annotation.ML"
     "System/bash.ML"
-    "System/bash_windows.ML"
     "System/command_line.ML"
     "System/distribution.ML"
     "System/invoke_scala.ML"
