@@ -42,7 +42,7 @@ eliminated altogether.
   - New commands for defining corecursive functions and reasoning about
     them in "~~/src/HOL/Library/BNF_Corec.thy": 'corec', 'corecursive',
     'friend_of_corec', and 'corecursion_upto'; and 'corec_unique' proof
-    method.
+    method. See 'isabelle doc corec'.
   - The predicator :: ('a => bool) => 'a F => bool is now a first-class
     citizen in bounded natural functors
   - 'primrec' now allows nested calls through the predicator in addition
