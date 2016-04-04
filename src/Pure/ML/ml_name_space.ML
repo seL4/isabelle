@@ -1,13 +1,11 @@
 (*  Title:      Pure/ML/ml_name_space.ML
     Author:     Makarius
 
-Name space for Poly/ML.
+ML name space, with initial entries for strict Standard ML.
 *)
 
 structure ML_Name_Space =
 struct
-  val critical_structures = ["CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal"];
-
   open PolyML.NameSpace;
 
   type T = PolyML.NameSpace.nameSpace;
@@ -67,10 +65,9 @@ struct
   val sml_fixity = #allFix global ();
   val sml_structure =
     List.filter (fn (a, _) =>
-      not (List.exists (fn b => a = b)
-        ["ML_System", "PolyML", "CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal"]))
+      List.all (fn b => a <> b)
+        ["PolyML", "CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal"])
       (#allStruct global ());
-  val sml_signature =
-    List.filter (fn (a, _) => a <> "ML_SYSTEM" andalso a <> "ML_NAME_SPACE") (#allSig global ());
+  val sml_signature = #allSig global ();
   val sml_functor = #allFunct global ();
 end;

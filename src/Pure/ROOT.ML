@@ -4,9 +4,9 @@
 
 (* initial ML name space *)
 
-use "ML/ml_system.ML";
 use "ML/ml_name_space.ML";
 use "ML/ml_pervasive_initial.ML";
+use "ML/ml_system.ML";
 
 if List.exists (fn (a, _) => a = "FixedInt") (#allStruct ML_Name_Space.global ()) then ()
 else use "ML/fixed_int_dummy.ML";
