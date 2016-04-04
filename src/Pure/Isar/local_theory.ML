@@ -309,17 +309,21 @@ fun set_defsort S =
 fun type_notation add mode raw_args lthy =
   let
     val args = map (apfst (Logic.type_map (Assumption.export_term lthy (target_of lthy)))) raw_args;
+    val args' = map (apsnd Mixfix.reset_pos) args;
+    val _ = lthy |> Context_Position.is_visible lthy ? Proof_Context.type_notation add mode args;
   in
     declaration {syntax = true, pervasive = false}
-      (Proof_Context.generic_type_notation add mode args) lthy
+      (Proof_Context.generic_type_notation add mode args') lthy
   end;
 
 fun notation add mode raw_args lthy =
   let
     val args = map (apfst (Assumption.export_term lthy (target_of lthy))) raw_args
+    val args' = map (apsnd Mixfix.reset_pos) args;
+    val _ = lthy |> Context_Position.is_visible lthy ? Proof_Context.notation add mode args;
   in
     declaration {syntax = true, pervasive = false}
-      (Proof_Context.generic_notation add mode args) lthy
+      (Proof_Context.generic_notation add mode args') lthy
   end;
 
 
