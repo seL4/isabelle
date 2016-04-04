@@ -388,3 +388,5 @@ fun register_thy theory =
 fun finish () = change_thys (String_Graph.map (fn _ => fn (_, entry) => (NONE, entry)));
 
 end;
+
+fun use_thy name = Runtime.toplevel_program (fn () => Thy_Info.use_thy (name, Position.none));

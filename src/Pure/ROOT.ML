@@ -321,7 +321,7 @@ use "Tools/build.ML";
 use "Tools/named_thms.ML";
 use "ML/ml_pp.ML";
 use "ML/ml_file.ML";
-Runtime.toplevel_program (fn () => Thy_Info.use_thy ("Pure", Position.none));
+use_thy "Pure";
 
 
 (* final ML setup *)

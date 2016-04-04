@@ -152,7 +152,6 @@ text \<open>
 text %mlref \<open>
   \begin{mldecls}
   @{index_ML use_thy: "string -> unit"} \\
-  @{index_ML use_thys: "string list -> unit"} \\[0.5ex]
   @{index_ML Thy_Info.get_theory: "string -> theory"} \\
   @{index_ML Thy_Info.remove_thy: "string -> unit"} \\
   @{index_ML Thy_Info.register_thy: "theory -> unit"} \\
@@ -160,14 +159,6 @@ text %mlref \<open>
 
   \<^descr> @{ML use_thy}~\<open>A\<close> ensures that theory \<open>A\<close> is fully up-to-date wrt.\ the
   external file store; outdated ancestors are reloaded on demand.
-
-  \<^descr> @{ML use_thys} is similar to @{ML use_thy}, but handles several theories
-  simultaneously. Thus it acts like processing the import header of a theory,
-  without performing the merge of the result. By loading a whole sub-graph of
-  theories, the intrinsic parallelism can be exploited by the system to
-  speedup loading.
-
-  This variant is used by default in @{tool build} @{cite "isabelle-system"}.
 
   \<^descr> @{ML Thy_Info.get_theory}~\<open>A\<close> retrieves the theory value presently
   associated with name \<open>A\<close>. Note that the result might be outdated wrt.\ the
