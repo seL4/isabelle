@@ -85,8 +85,6 @@ use "General/seq.ML";
 use "General/timing.ML";
 use "General/sha1.ML";
 
-val _ = List.app ML_Name_Space.forget_structure ML_Name_Space.critical_structures;
-
 use "PIDE/yxml.ML";
 use "PIDE/document_id.ML";
 
@@ -321,26 +319,11 @@ use "PIDE/protocol.ML";
 
 use "Tools/build.ML";
 use "Tools/named_thms.ML";
-
-structure Output: OUTPUT = Output;  (*seal system channels!*)
-
 use "ML/ml_pp.ML";
-
-
-(* the Pure theory *)
-
 use "ML/ml_file.ML";
 Runtime.toplevel_program (fn () => Thy_Info.use_thy ("Pure", Position.none));
-Context.set_thread_data NONE;
-structure Pure = struct val thy = Thy_Info.pure_theory () end;
 
 
-(* ML toplevel commands *)
+(* final ML setup *)
 
-fun use_thys args =
-  Runtime.toplevel_program (fn () => Thy_Info.use_thys (map (rpair Position.none) args));
-val use_thy = use_thys o single;
-
-Proofterm.proofs := 0;
-
-structure PolyML = struct structure IntInf = PolyML.IntInf end;
+use "ML/ml_final.ML";
