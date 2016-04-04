@@ -66,8 +66,10 @@ struct
   val sml_type = #allType global ();
   val sml_fixity = #allFix global ();
   val sml_structure =
-    List.filter (fn (a, _) => a <> "PolyML" andalso a <> "ML_System" andalso
-      not (List.exists (fn b => a = b) critical_structures)) (#allStruct global ());
+    List.filter (fn (a, _) =>
+      not (List.exists (fn b => a = b)
+        ["ML_System", "PolyML", "CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal"]))
+      (#allStruct global ());
   val sml_signature =
     List.filter (fn (a, _) => a <> "ML_SYSTEM" andalso a <> "ML_NAME_SPACE") (#allSig global ());
   val sml_functor = #allFunct global ();

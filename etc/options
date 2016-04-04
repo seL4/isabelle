@@ -126,6 +126,9 @@ public option ML_statistics : bool = true
 public option ML_system_64 : bool = false
   -- "ML system for 64bit platform is used if possible (change requires restart)"
 
+option ML_system_unsafe : bool = false
+  -- "provide access to low-level ML system structures"
+
 
 section "Editor Reactivity"
 

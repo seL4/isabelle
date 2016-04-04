@@ -4,9 +4,11 @@
 Final setup of ML environment.
 *)
 
-(*no access to system internals!*)
-structure PolyML = struct structure IntInf = PolyML.IntInf end;
-val _ = List.app ML_Name_Space.forget_structure ML_Name_Space.critical_structures;
+if Options.default_bool "ML_system_unsafe" then ()
+else
+  (List.app ML_Name_Space.forget_structure
+    ["CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal"];
+   ML \<open>structure PolyML = struct structure IntInf = PolyML.IntInf end\<close>);
 
 structure Output: OUTPUT = Output;  (*seal system channels!*)
 
