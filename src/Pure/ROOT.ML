@@ -316,6 +316,7 @@ use "PIDE/protocol.ML";
 use "ML/ml_pp.ML";
 use "ML/ml_antiquotations.ML";
 use "ML/ml_thms.ML";
+use "ML/ml_file.ML";
 
 use "Tools/build.ML";
 use "Tools/named_thms.ML";

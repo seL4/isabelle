@@ -1026,7 +1026,7 @@ section \<open>Incorporating ML code \label{sec:ML}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def "SML_file"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def "SML_file"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "ML_file"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "ML"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "ML_prf"} & : & \<open>proof \<rightarrow> proof\<close> \\
@@ -1052,11 +1052,11 @@ text \<open>
   \<close>}
 
   \<^descr> \<^theory_text>\<open>SML_file name\<close> reads and evaluates the given Standard ML file. Top-level
-  SML bindings are stored within the theory context; the initial environment
-  is restricted to the Standard ML implementation of Poly/ML, without the many
-  add-ons of Isabelle/ML. Multiple \<^theory_text>\<open>SML_file\<close> commands may be used to build
-  larger Standard ML projects, independently of the regular Isabelle/ML
-  environment.
+  SML bindings are stored within the (global or local) theory context; the
+  initial environment is restricted to the Standard ML implementation of
+  Poly/ML, without the many add-ons of Isabelle/ML. Multiple \<^theory_text>\<open>SML_file\<close>
+  commands may be used to build larger Standard ML projects, independently of
+  the regular Isabelle/ML environment.
 
   \<^descr> \<^theory_text>\<open>ML_file name\<close> reads and evaluates the given ML file. The current theory
   context is passed down to the ML toplevel and may be modified, using @{ML
