@@ -1,4 +1,4 @@
-(*  Title:      HOL/Corec_Examples/Tests/GPV_Bare_Bones
+(*  Title:      HOL/Corec_Examples/Tests/GPV_Bare_Bones.thy
     Author:     Andreas Lochbihler, ETH Zuerich
     Author:     Jasmin Blanchette, Inria, LORIA, MPII
     Copyright   2016

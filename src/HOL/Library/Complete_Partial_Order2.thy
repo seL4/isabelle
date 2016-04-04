@@ -1,4 +1,4 @@
-(*  Title:      src/HOL/Library/Complete_Partial_Order2
+(*  Title:      HOL/Library/Complete_Partial_Order2.thy
     Author:     Andreas Lochbihler, ETH Zurich
 *)
 

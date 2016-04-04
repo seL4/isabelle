@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/BNF/bnf_gfp_grec_tactics.ML
+(*  Title:      HOL/Tools/BNF/bnf_gfp_grec_sugar_tactics.ML
     Author:     Jasmin Blanchette, Inria, LORIA, MPII
     Copyright   2016
 

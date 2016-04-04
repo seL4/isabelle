@@ -1,4 +1,4 @@
-(*  Title:      HOL/Corec_Examples/Tests/Merge_A.thy
+(*  Title:      HOL/Corec_Examples/Tests/Merge_D.thy
     Author:     Aymeric Bouzy, Ecole polytechnique
     Author:     Jasmin Blanchette, Inria, LORIA, MPII
     Copyright   2015, 2016
