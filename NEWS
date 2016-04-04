@@ -230,6 +230,10 @@ INCOMPATIBILITY.
 
 *** ML ***
 
+* The ML function "ML" provides easy access to run-time compilation.
+This is particularly useful for conditional compilation, without
+requiring separate files.
+
 * Low-level ML system structures (like PolyML and RunCall) are no longer
 exposed to Isabelle/ML user-space. The system option ML_system_unsafe
 allows to override this for special test situations.
