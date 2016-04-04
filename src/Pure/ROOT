@@ -98,7 +98,6 @@ session Pure =
     "Isar/typedecl.ML"
     "ML/exn_debugger.ML"
     "ML/exn_properties.ML"
-    "ML/fixed_int_dummy.ML"
     "ML/ml_antiquotation.ML"
     "ML/ml_antiquotations.ML"
     "ML/ml_compiler.ML"
