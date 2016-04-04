@@ -11,13 +11,6 @@ use "ML/ml_pervasive.ML";
 if List.exists (fn (a, _) => a = "FixedInt") (#allStruct ML_Name_Space.global ()) then ()
 else use "ML/fixed_int_dummy.ML";
 
-structure Distribution =     (*filled-in by makedist*)
-struct
-  val version = "unidentified repository version";
-  val is_identified = false;
-  val is_official = false;
-end;
-
 
 (* multithreading *)
 
@@ -28,6 +21,8 @@ use "Concurrent/unsynchronized.ML";
 
 
 (* ML system *)
+
+use "System/distribution.ML";
 
 use "ML/ml_heap.ML";
 use "ML/ml_profiling.ML";
@@ -290,6 +285,7 @@ if ML_System.platform_is_windows
 then use "System/bash_windows.ML"
 else use "System/bash.ML";
 use "System/isabelle_system.ML";
+
 
 (*theory documents*)
 use "Thy/term_style.ML";

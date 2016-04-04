@@ -7,13 +7,6 @@ Root of isabelle package.
 
 package object isabelle
 {
-  object Distribution     /*filled-in by makedist*/
-  {
-    val version = "unidentified repository version"
-    val is_identified = false
-    val is_official = false
-  }
-
   val ERROR = Exn.ERROR
   val error = Exn.error _
   val cat_error = Exn.cat_error _

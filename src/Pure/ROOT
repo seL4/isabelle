@@ -154,6 +154,7 @@ session Pure =
     "System/bash.ML"
     "System/bash_windows.ML"
     "System/command_line.ML"
+    "System/distribution.ML"
     "System/invoke_scala.ML"
     "System/isabelle_process.ML"
     "System/isabelle_system.ML"
