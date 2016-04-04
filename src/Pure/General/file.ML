@@ -46,21 +46,22 @@ struct
 val standard_path = Path.implode o Path.expand;
 val platform_path = ML_System.platform_path o standard_path;
 
-val bash_string =
-  translate_string (fn ch =>
-    let val c = ord ch in
-      (case ch of
-        "\t" => "$'\\t'"
-      | "\n" => "$'\\n'"
-      | "\f" => "$'\\f'"
-      | "\r" => "$'\\r'"
-      | _ =>
-          if Symbol.is_ascii_letter ch orelse Symbol.is_ascii_digit ch orelse
-            exists_string (fn c => c = ch) "-./:_" then ch
-          else if c < 16 then "$'\\x0" ^ Int.fmt StringCvt.HEX c ^ "'"
-          else if c < 32 orelse c >= 127 then "$'\\x" ^ Int.fmt StringCvt.HEX c ^ "'"
-          else "\\" ^ ch)
-    end);
+fun bash_string "" = "\"\""
+  | bash_string str =
+      str |> translate_string (fn ch =>
+        let val c = ord ch in
+          (case ch of
+            "\t" => "$'\\t'"
+          | "\n" => "$'\\n'"
+          | "\f" => "$'\\f'"
+          | "\r" => "$'\\r'"
+          | _ =>
+              if Symbol.is_ascii_letter ch orelse Symbol.is_ascii_digit ch orelse
+                exists_string (fn c => c = ch) "-./:_" then ch
+              else if c < 16 then "$'\\x0" ^ Int.fmt StringCvt.HEX c ^ "'"
+              else if c < 32 orelse c >= 127 then "$'\\x" ^ Int.fmt StringCvt.HEX c ^ "'"
+              else "\\" ^ ch)
+        end);
 
 val bash_args = space_implode " " o map bash_string;
 
