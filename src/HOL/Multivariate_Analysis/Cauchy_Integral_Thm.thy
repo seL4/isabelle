@@ -3388,7 +3388,7 @@ proof -
       by (auto simp: Ball_def) (metis IntI empty_iff one_neq_zero tue)
   }
   then show ?thesis
-    by (simp add: connected_closed_in_eq)
+    by (simp add: connected_closedin_eq)
 qed
 
 lemma continuous_disconnected_range_constant_eq:
@@ -6814,7 +6814,7 @@ proof -
     using "*" by auto blast+
   have 2: "closedin (subtopology euclidean s) (\<Inter>n. {w \<in> s. (deriv ^^ n) f w = 0})"
     using assms
-    by (auto intro: continuous_closed_in_preimage_constant holomorphic_on_imp_continuous_on holomorphic_higher_deriv)
+    by (auto intro: continuous_closedin_preimage_constant holomorphic_on_imp_continuous_on holomorphic_higher_deriv)
   obtain e where "e>0" and e: "ball w e \<subseteq> s" using openE [OF \<open>open s\<close> \<open>w \<in> s\<close>] .
   then have holfb: "f holomorphic_on ball w e"
     using holf holomorphic_on_subset by blast

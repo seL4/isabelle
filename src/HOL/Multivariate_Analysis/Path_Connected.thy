@@ -1712,16 +1712,22 @@ by (auto simp: linear_continuous_on assms path_connected_continuous_image)
 lemma is_interval_path_connected: "is_interval s \<Longrightarrow> path_connected s"
   by (simp add: convex_imp_path_connected is_interval_convex)
 
-lemma linear_homeomorphic_image:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
+lemma linear_homeomorphism_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" "inj f"
-    shows "s homeomorphic f ` s"
-    using assms unfolding homeomorphic_def homeomorphism_def
-    apply (rule_tac x=f in exI)
-    apply (rule_tac x="inv f" in exI)
-    using inj_linear_imp_inv_linear linear_continuous_on
-    apply (auto simp:  linear_conv_bounded_linear)
-    done
+    obtains g where "homeomorphism (f ` S) S g f"
+using linear_injective_left_inverse [OF assms]
+apply clarify
+apply (rule_tac g=g in that)
+using assms
+apply (auto simp: homeomorphism_def eq_id_iff [symmetric] image_comp comp_def linear_conv_bounded_linear linear_continuous_on)
+done
+
+lemma linear_homeomorphic_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "inj f"
+    shows "S homeomorphic f ` S"
+by (meson homeomorphic_def homeomorphic_sym linear_homeomorphism_image [OF assms])
 
 lemma path_connected_Times:
   assumes "path_connected s" "path_connected t"
@@ -2329,7 +2335,7 @@ lemma frontier_interior_subset: "frontier(interior S) \<subseteq> frontier S"
 
 lemma connected_Int_frontier:
      "\<lbrakk>connected s; s \<inter> t \<noteq> {}; s - t \<noteq> {}\<rbrakk> \<Longrightarrow> (s \<inter> frontier t \<noteq> {})"
-  apply (simp add: frontier_interiors connected_open_in, safe)
+  apply (simp add: frontier_interiors connected_openin, safe)
   apply (drule_tac x="s \<inter> interior t" in spec, safe)
    apply (drule_tac [2] x="s \<inter> interior (-t)" in spec)
    apply (auto simp: disjoint_eq_subset_Compl dest: interior_subset [THEN subsetD])
@@ -2412,7 +2418,7 @@ lemma frontier_Union_subset:
 by (rule order_trans [OF frontier_Union_subset_closure])
    (auto simp: closure_subset_eq)
 
-lemma connected_component_UNIV:
+lemma connected_component_UNIV [simp]:
     fixes x :: "'a::real_normed_vector"
     shows "connected_component_set UNIV x = UNIV"
 using connected_iff_eq_connected_component_set [of "UNIV::'a set"] connected_UNIV
@@ -3146,7 +3152,7 @@ proposition homotopic_with_Pair:
   apply (auto intro!: q [unfolded case_prod_unfold])
   done
 
-lemma homotopic_on_empty: "homotopic_with (\<lambda>x. True) {} t f g"
+lemma homotopic_on_empty [simp]: "homotopic_with (\<lambda>x. True) {} t f g"
   by (metis continuous_on_def empty_iff homotopic_with_equal image_subset_iff)
 
 

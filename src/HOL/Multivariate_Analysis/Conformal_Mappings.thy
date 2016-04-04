@@ -441,8 +441,10 @@ proof -
     ultimately show ?thesis
       by (rule *)
   qed
+  then have "open (f ` \<Union>components U)"
+    by (metis (no_types, lifting) imageE image_Union open_Union)
   then show ?thesis
-    by (subst Union_components [of U]) (auto simp: image_Union)
+    by force
 qed
 
 
@@ -454,10 +456,10 @@ corollary open_mapping_thm2:
       and fnc: "\<And>X. \<lbrakk>open X; X \<subseteq> S; X \<noteq> {}\<rbrakk> \<Longrightarrow> ~ f constant_on X"
     shows "open (f ` U)"
 proof -
-  have "S = \<Union>(components S)" by (fact Union_components)
+  have "S = \<Union>(components S)" by simp
   with \<open>U \<subseteq> S\<close> have "U = (\<Union>C \<in> components S. C \<inter> U)" by auto
   then have "f ` U = (\<Union>C \<in> components S. f ` (C \<inter> U))"
-    by auto
+    using image_UN by fastforce
   moreover
   { fix C assume "C \<in> components S"
     with S \<open>C \<in> components S\<close> open_components in_components_connected
@@ -1028,7 +1030,7 @@ proof -
     apply (rule allI continuous_closed_preimage_univ continuous_intros)+
     using \<open>compact K\<close> compact_eq_bounded_closed by blast
   ultimately show ?thesis
-    using closed_inter_compact [OF \<open>closed S\<close>] compact_eq_bounded_closed by blast
+    using closed_Int_compact [OF \<open>closed S\<close>] compact_eq_bounded_closed by blast
 qed
 
 corollary proper_map_polyfun_univ:

@@ -22,7 +22,10 @@ lemma mono_Un: "mono A \<Longrightarrow> (\<Union>i\<le>n. A i) = A n"
 
 subsection \<open>Set of Disjoint Sets\<close>
 
-definition "disjoint A \<longleftrightarrow> (\<forall>a\<in>A. \<forall>b\<in>A. a \<noteq> b \<longrightarrow> a \<inter> b = {})"
+abbreviation disjoint :: "'a set set \<Rightarrow> bool" where "disjoint \<equiv> pairwise disjnt"
+
+lemma disjoint_def: "disjoint A \<longleftrightarrow> (\<forall>a\<in>A. \<forall>b\<in>A. a \<noteq> b \<longrightarrow> a \<inter> b = {})"
+  unfolding pairwise_def disjnt_def by auto
 
 lemma disjointI:
   "(\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> a \<inter> b = {}) \<Longrightarrow> disjoint A"
@@ -31,9 +34,6 @@ lemma disjointI:
 lemma disjointD:
   "disjoint A \<Longrightarrow> a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> a \<inter> b = {}"
   unfolding disjoint_def by auto
-
-lemma disjoint_empty[iff]: "disjoint {}"
-  by (auto simp: disjoint_def)
 
 lemma disjoint_INT:
   assumes *: "\<And>i. i \<in> I \<Longrightarrow> disjoint (F i)"
@@ -47,9 +47,6 @@ proof (safe intro!: disjointI del: equalityI)
     using *[OF \<open>i\<in>I\<close>, THEN disjointD, of "A i" "B i"]
     by (auto simp: INT_Int_distrib[symmetric])
 qed
-
-lemma disjoint_singleton[simp]: "disjoint {A}"
-  by(simp add: disjoint_def)
 
 subsubsection "Family of Disjoint Sets"
 

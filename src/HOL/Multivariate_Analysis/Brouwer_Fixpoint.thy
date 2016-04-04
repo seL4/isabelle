@@ -1781,7 +1781,7 @@ subsection \<open>Retractions\<close>
 
 definition "retraction s t r \<longleftrightarrow> t \<subseteq> s \<and> continuous_on s r \<and> r ` s \<subseteq> t \<and> (\<forall>x\<in>t. r x = x)"
 
-definition retract_of (infixl "retract'_of" 12)
+definition retract_of (infixl "retract'_of" 50)
   where "(t retract_of s) \<longleftrightarrow> (\<exists>r. retraction s t r)"
 
 lemma retraction_idempotent: "retraction s t r \<Longrightarrow> x \<in> s \<Longrightarrow>  r (r x) = r x"

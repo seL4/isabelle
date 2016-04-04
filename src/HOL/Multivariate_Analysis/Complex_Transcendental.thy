@@ -992,13 +992,20 @@ corollary ln_cmod_le:
   using norm_exp [of "Ln z", simplified exp_Ln [OF z]]
   by (metis Re_Ln complex_Re_le_cmod z)
 
-lemma exists_complex_root:
-  fixes a :: complex
-  shows "n \<noteq> 0 \<Longrightarrow> \<exists>z. z ^ n = a"
-  apply (cases "a=0", simp)
-  apply (rule_tac x= "exp(Ln(a) / n)" in exI)
-  apply (auto simp: exp_of_nat_mult [symmetric])
+proposition exists_complex_root:
+  fixes z :: complex
+  assumes "n \<noteq> 0"  obtains w where "z = w ^ n"
+  apply (cases "z=0")
+  using assms apply (simp add: power_0_left)
+  apply (rule_tac w = "exp(Ln z / n)" in that)
+  apply (auto simp: assms exp_of_nat_mult [symmetric])
   done
+
+corollary exists_complex_root_nonzero:
+  fixes z::complex
+  assumes "z \<noteq> 0" "n \<noteq> 0"
+  obtains w where "w \<noteq> 0" "z = w ^ n"
+  by (metis exists_complex_root [of n z] assms power_0_left)
 
 subsection\<open>The Unwinding Number and the Ln-product Formula\<close>
 

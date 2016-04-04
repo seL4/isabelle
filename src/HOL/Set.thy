@@ -833,6 +833,9 @@ lemma singleton_insert_inj_eq' [iff]:
 lemma subset_singletonD: "A \<subseteq> {x} ==> A = {} | A = {x}"
   by fast
 
+lemma subset_singleton_iff: "X \<subseteq> {a} \<longleftrightarrow> X = {} \<or> X = {a}"
+  by blast
+
 lemma singleton_conv [simp]: "{x. x = a} = {a}"
   by blast
 
@@ -1564,6 +1567,8 @@ lemma Diff_Compl [simp]: "A - (- B) = A \<inter> B"
 lemma Compl_Diff_eq [simp]: "- (A - B) = -A \<union> B"
   by blast
 
+lemma subset_Compl_singleton [simp]: "A \<subseteq> - {b} \<longleftrightarrow> (b \<notin> A)"
+  by blast
 
 text \<open>\medskip Quantification over type @{typ bool}.\<close>
 
@@ -1896,6 +1901,14 @@ end
 text \<open>Misc\<close>
 
 definition "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<in> S. x\<noteq>y \<longrightarrow> R x y)"
+
+definition disjnt where "disjnt A B \<equiv> A \<inter> B = {}"
+
+lemma pairwise_disjoint_empty [simp]: "pairwise disjnt {}"
+  by (simp add: pairwise_def disjnt_def)
+
+lemma pairwise_disjoint_singleton [simp]: "pairwise disjnt {A}"
+  by (simp add: pairwise_def disjnt_def)
 
 hide_const (open) member not_member
 

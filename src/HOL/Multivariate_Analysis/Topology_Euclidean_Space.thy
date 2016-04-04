@@ -412,14 +412,14 @@ typedef 'a topology = "{L::('a set) \<Rightarrow> bool. istopology L}"
   morphisms "openin" "topology"
   unfolding istopology_def by blast
 
-lemma istopology_open_in[intro]: "istopology(openin U)"
+lemma istopology_openin[intro]: "istopology(openin U)"
   using openin[of U] by blast
 
 lemma topology_inverse': "istopology U \<Longrightarrow> openin (topology U) = U"
   using topology_inverse[unfolded mem_Collect_eq] .
 
 lemma topology_inverse_iff: "istopology U \<longleftrightarrow> openin (topology U) = U"
-  using topology_inverse[of U] istopology_open_in[of "topology U"] by auto
+  using topology_inverse[of U] istopology_openin[of "topology U"] by auto
 
 lemma topology_eq: "T1 = T2 \<longleftrightarrow> (\<forall>S. openin T1 S \<longleftrightarrow> openin T2 S)"
 proof
@@ -450,19 +450,19 @@ lemma openin_subset[intro]: "openin U S \<Longrightarrow> S \<subseteq> topspace
   unfolding topspace_def by blast
 
 lemma openin_empty[simp]: "openin U {}"
-  by (simp add: openin_clauses)
+  by (rule openin_clauses)
 
 lemma openin_Int[intro]: "openin U S \<Longrightarrow> openin U T \<Longrightarrow> openin U (S \<inter> T)"
-  using openin_clauses by simp
+  by (rule openin_clauses)
 
-lemma openin_Union[intro]: "(\<forall>S \<in>K. openin U S) \<Longrightarrow> openin U (\<Union>K)"
-  using openin_clauses by simp
+lemma openin_Union[intro]: "(\<And>S. S \<in> K \<Longrightarrow> openin U S) \<Longrightarrow> openin U (\<Union>K)"
+  using openin_clauses by blast 
 
 lemma openin_Un[intro]: "openin U S \<Longrightarrow> openin U T \<Longrightarrow> openin U (S \<union> T)"
   using openin_Union[of "{S,T}" U] by auto
 
 lemma openin_topspace[intro, simp]: "openin U (topspace U)"
-  by (simp add: openin_Union topspace_def)
+  by (force simp add: openin_Union topspace_def)
 
 lemma openin_subopen: "openin U S \<longleftrightarrow> (\<forall>x \<in> S. \<exists>T. openin U T \<and> x \<in> T \<and> T \<subseteq> S)"
   (is "?lhs \<longleftrightarrow> ?rhs")
@@ -472,7 +472,7 @@ proof
 next
   assume H: ?rhs
   let ?t = "\<Union>{T. openin U T \<and> T \<subseteq> S}"
-  have "openin U ?t" by (simp add: openin_Union)
+  have "openin U ?t" by (force simp add: openin_Union)
   also have "?t = S" using H by auto
   finally show "openin U S" .
 qed
@@ -709,7 +709,7 @@ next
     unfolding openin_open open_dist by fast
 qed
 
-lemma connected_open_in:
+lemma connected_openin:
       "connected s \<longleftrightarrow>
        ~(\<exists>e1 e2. openin (subtopology euclidean s) e1 \<and>
                  openin (subtopology euclidean s) e2 \<and>
@@ -718,17 +718,17 @@ lemma connected_open_in:
   apply (simp_all, blast+)  \<comment>\<open>slow\<close>
   done
 
-lemma connected_open_in_eq:
+lemma connected_openin_eq:
       "connected s \<longleftrightarrow>
        ~(\<exists>e1 e2. openin (subtopology euclidean s) e1 \<and>
                  openin (subtopology euclidean s) e2 \<and>
                  e1 \<union> e2 = s \<and> e1 \<inter> e2 = {} \<and>
                  e1 \<noteq> {} \<and> e2 \<noteq> {})"
-  apply (simp add: connected_open_in, safe)
+  apply (simp add: connected_openin, safe)
   apply blast
   by (metis Int_lower1 Un_subset_iff openin_open subset_antisym)
 
-lemma connected_closed_in:
+lemma connected_closedin:
       "connected s \<longleftrightarrow>
        ~(\<exists>e1 e2.
              closedin (subtopology euclidean s) e1 \<and>
@@ -759,14 +759,14 @@ proof -
     done
 qed
 
-lemma connected_closed_in_eq:
+lemma connected_closedin_eq:
       "connected s \<longleftrightarrow>
            ~(\<exists>e1 e2.
                  closedin (subtopology euclidean s) e1 \<and>
                  closedin (subtopology euclidean s) e2 \<and>
                  e1 \<union> e2 = s \<and> e1 \<inter> e2 = {} \<and>
                  e1 \<noteq> {} \<and> e2 \<noteq> {})"
-  apply (simp add: connected_closed_in, safe)
+  apply (simp add: connected_closedin, safe)
   apply blast
   by (metis Int_lower1 Un_subset_iff closedin_closed subset_antisym)
 
@@ -788,8 +788,8 @@ lemma closedin_trans[trans]:
 lemma closedin_closed_trans: "closedin (subtopology euclidean T) S \<Longrightarrow> closed T \<Longrightarrow> closed S"
   by (auto simp add: closedin_closed intro: closedin_trans)
 
-lemma openin_subtopology_inter_subset:
-   "openin (subtopology euclidean u) (u \<inter> s) \<and> v \<subseteq> u \<Longrightarrow> openin (subtopology euclidean v) (v \<inter> s)"
+lemma openin_subtopology_Int_subset:
+   "\<lbrakk>openin (subtopology euclidean u) (u \<inter> S); v \<subseteq> u\<rbrakk> \<Longrightarrow> openin (subtopology euclidean v) (v \<inter> S)"
   by (auto simp: openin_subtopology)
 
 lemma openin_open_eq: "open s \<Longrightarrow> (openin (subtopology euclidean s) t \<longleftrightarrow> open t \<and> t \<subseteq> s)"
@@ -900,6 +900,34 @@ lemma openE[elim?]:
 lemma open_contains_ball_eq: "open S \<Longrightarrow> x\<in>S \<longleftrightarrow> (\<exists>e>0. ball x e \<subseteq> S)"
   by (metis open_contains_ball subset_eq centre_in_ball)
 
+lemma openin_contains_ball:
+    "openin (subtopology euclidean t) s \<longleftrightarrow>
+     s \<subseteq> t \<and> (\<forall>x \<in> s. \<exists>e. 0 < e \<and> ball x e \<inter> t \<subseteq> s)"
+    (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply (simp add: openin_open)
+    apply (metis Int_commute Int_mono inf.cobounded2 open_contains_ball order_refl subsetCE)
+    done
+next
+  assume ?rhs
+  then show ?lhs
+    apply (simp add: openin_euclidean_subtopology_iff)
+    by (metis (no_types) Int_iff dist_commute inf.absorb_iff2 mem_ball)
+qed
+
+lemma openin_contains_cball:
+   "openin (subtopology euclidean t) s \<longleftrightarrow>
+        s \<subseteq> t \<and>
+        (\<forall>x \<in> s. \<exists>e. 0 < e \<and> cball x e \<inter> t \<subseteq> s)"
+apply (simp add: openin_contains_ball)
+apply (rule iffI)
+apply (auto dest!: bspec)
+apply (rule_tac x="e/2" in exI)
+apply force+
+done
+    
 lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
   unfolding mem_ball set_eq_iff
   apply (simp add: not_less)
@@ -1763,7 +1791,7 @@ lemma closure_subset_eq: "closure S \<subseteq> S \<longleftrightarrow> closed S
   using closure_eq[of S] closure_subset[of S]
   by simp
 
-lemma open_inter_closure_eq_empty:
+lemma open_Int_closure_eq_empty:
   "open S \<Longrightarrow> (S \<inter> closure T) = {} \<longleftrightarrow> S \<inter> T = {}"
   using open_subset_interior[of S "- T"]
   using interior_subset[of "- T"]
@@ -1824,7 +1852,7 @@ lemma islimpt_in_closure: "(x islimpt S) = (x:closure(S-{x}))"
   unfolding closure_def using islimpt_punctured by blast
 
 lemma connected_imp_connected_closure: "connected s \<Longrightarrow> connected (closure s)"
-    by (rule connectedI) (meson closure_subset open_Int open_inter_closure_eq_empty subset_trans connectedD)
+    by (rule connectedI) (meson closure_subset open_Int open_Int_closure_eq_empty subset_trans connectedD)
 
 lemma limpt_of_limpts:
       fixes x :: "'a::metric_space"
@@ -1845,7 +1873,7 @@ lemma limpt_of_closure:
       shows "x islimpt closure s \<longleftrightarrow> x islimpt s"
   by (auto simp: closure_def islimpt_Un dest: limpt_of_limpts)
 
-lemma closed_in_limpt:
+lemma closedin_limpt:
    "closedin (subtopology euclidean t) s \<longleftrightarrow> s \<subseteq> t \<and> (\<forall>x. x islimpt s \<and> x \<in> t \<longrightarrow> x \<in> s)"
   apply (simp add: closedin_closed, safe)
   apply (simp add: closed_limpt islimpt_subset)
@@ -1856,7 +1884,7 @@ lemma closed_in_limpt:
 
 lemma closedin_closed_eq:
     "closed s \<Longrightarrow> (closedin (subtopology euclidean s) t \<longleftrightarrow> closed t \<and> t \<subseteq> s)"
-  by (meson closed_in_limpt closed_subset closedin_closed_trans)
+  by (meson closedin_limpt closed_subset closedin_closed_trans)
 
 lemma bdd_below_closure:
   fixes A :: "real set"
@@ -2070,10 +2098,11 @@ definition components:: "'a::topological_space set \<Rightarrow> 'a set set" whe
 lemma components_iff: "s \<in> components u \<longleftrightarrow> (\<exists>x. x \<in> u \<and> s = connected_component_set u x)"
   by (auto simp: components_def)
 
-lemma Union_components: "u = \<Union>(components u)"
+lemma Union_components [simp]: "\<Union>(components u) = u"
   apply (rule subset_antisym)
+  using Union_connected_component components_def apply fastforce
   apply (metis Union_connected_component components_def set_eq_subset)
-  using Union_connected_component components_def by fastforce
+  done
 
 lemma pairwise_disjoint_components: "pairwise (\<lambda>X Y. X \<inter> Y = {}) (components u)"
   apply (simp add: pairwise_def)
@@ -2174,17 +2203,17 @@ proof (rule connectedI)
   have "A \<inter> closure s \<noteq> {}"
     using Alap Int_absorb1 ts by blast
   then have Alaps: "A \<inter> s \<noteq> {}"
-    by (simp add: A open_inter_closure_eq_empty)
+    by (simp add: A open_Int_closure_eq_empty)
   have "B \<inter> closure s \<noteq> {}"
     using Blap Int_absorb1 ts by blast
   then have Blaps: "B \<inter> s \<noteq> {}"
-    by (simp add: B open_inter_closure_eq_empty)
+    by (simp add: B open_Int_closure_eq_empty)
   then show False
     using cs [unfolded connected_def] A B disjs Alaps Blaps cover st
     by blast
 qed
 
-lemma closed_in_connected_component: "closedin (subtopology euclidean s) (connected_component_set s x)"
+lemma closedin_connected_component: "closedin (subtopology euclidean s) (connected_component_set s x)"
 proof (cases "connected_component_set s x = {}")
   case True then show ?thesis
     by (metis closedin_empty)
@@ -3715,7 +3744,7 @@ lemma islimpt_finite:
   shows "finite s \<Longrightarrow> \<not> x islimpt s"
   by (induct set: finite) (simp_all add: islimpt_insert)
 
-lemma islimpt_union_finite:
+lemma islimpt_Un_finite:
   fixes x :: "'a::t1_space"
   shows "finite s \<Longrightarrow> x islimpt (s \<union> t) \<longleftrightarrow> x islimpt t"
   by (simp add: islimpt_Un islimpt_finite)
@@ -3769,7 +3798,7 @@ proof (rule ccontr)
   then have "l' islimpt (f ` {..<N} \<union> f ` {N..})"
     by (simp add: image_Un)
   then have "l' islimpt (f ` {N..})"
-    by (simp add: islimpt_union_finite)
+    by (simp add: islimpt_Un_finite)
   then obtain y where "y \<in> f ` {N..}" "y \<in> s" "y \<noteq> l'"
     using \<open>l' \<in> s\<close> \<open>open s\<close> by (rule islimptE)
   then obtain n where "N \<le> n" "f n \<in> s" "f n \<noteq> l'"
@@ -3822,7 +3851,7 @@ qed
 
 text\<open>In particular, some common special cases.\<close>
 
-lemma compact_union [intro]:
+lemma compact_Un [intro]:
   assumes "compact s"
     and "compact t"
   shows " compact (s \<union> t)"
@@ -3845,19 +3874,19 @@ lemma compact_UN [intro]:
   "finite A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> compact (B x)) \<Longrightarrow> compact (\<Union>x\<in>A. B x)"
   by (rule compact_Union) auto
 
-lemma closed_inter_compact [intro]:
+lemma closed_Int_compact [intro]:
   assumes "closed s"
     and "compact t"
   shows "compact (s \<inter> t)"
-  using compact_inter_closed [of t s] assms
+  using compact_Int_closed [of t s] assms
   by (simp add: Int_commute)
 
-lemma compact_inter [intro]:
+lemma compact_Int [intro]:
   fixes s t :: "'a :: t2_space set"
   assumes "compact s"
     and "compact t"
   shows "compact (s \<inter> t)"
-  using assms by (intro compact_inter_closed compact_imp_closed)
+  using assms by (intro compact_Int_closed compact_imp_closed)
 
 lemma compact_sing [simp]: "compact {a}"
   unfolding compact_eq_heine_borel by auto
@@ -3867,7 +3896,7 @@ lemma compact_insert [simp]:
   shows "compact (insert x s)"
 proof -
   have "compact ({x} \<union> s)"
-    using compact_sing assms by (rule compact_union)
+    using compact_sing assms by (rule compact_Un)
   then show ?thesis by simp
 qed
 
@@ -3935,7 +3964,7 @@ proof (intro allI iffI impI compact_fip[THEN iffD2] notI)
   proof safe
     fix P Q R S
     assume "eventually R F" "open S" "x \<in> S"
-    with open_inter_closure_eq_empty[of S "{x. R x}"] x[of "closure {x. R x}"]
+    with open_Int_closure_eq_empty[of S "{x. R x}"] x[of "closure {x. R x}"]
     have "S \<inter> {x. R x} \<noteq> {}" by (auto simp: Z_def)
     moreover assume "Ball S Q" "\<forall>x. Q x \<and> R x \<longrightarrow> bot x"
     ultimately show False by (auto simp: set_eq_iff)
@@ -4083,7 +4112,7 @@ proof (rule ccontr)
     by simp
 qed
 
-lemma seq_compact_inter_closed:
+lemma seq_compact_Int_closed:
   assumes "seq_compact s" and "closed t"
   shows "seq_compact (s \<inter> t)"
 proof (rule seq_compactI)
@@ -4104,7 +4133,7 @@ qed
 lemma seq_compact_closed_subset:
   assumes "closed s" and "s \<subseteq> t" and "seq_compact t"
   shows "seq_compact s"
-  using assms seq_compact_inter_closed [of t s] by (simp add: Int_absorb1)
+  using assms seq_compact_Int_closed [of t s] by (simp add: Int_absorb1)
 
 lemma seq_compact_imp_countably_compact:
   fixes U :: "'a :: first_countable_topology set"
@@ -4917,7 +4946,7 @@ proof (unfold closed_sequential_limits, clarify)
     by simp
 qed
 
-lemma complete_inter_closed:
+lemma complete_Int_closed:
   fixes s :: "'a::metric_space set"
   assumes "complete s" and "closed t"
   shows "complete (s \<inter> t)"
@@ -4937,7 +4966,7 @@ lemma complete_closed_subset:
   fixes s :: "'a::metric_space set"
   assumes "closed s" and "s \<subseteq> t" and "complete t"
   shows "complete s"
-  using assms complete_inter_closed [of t s] by (simp add: Int_absorb1)
+  using assms complete_Int_closed [of t s] by (simp add: Int_absorb1)
 
 lemma complete_eq_closed:
   fixes s :: "('a::complete_space) set"
@@ -5802,7 +5831,7 @@ qed
 
 text \<open>Equality of continuous functions on closure and related results.\<close>
 
-lemma continuous_closed_in_preimage_constant:
+lemma continuous_closedin_preimage_constant:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
   shows "continuous_on s f \<Longrightarrow> closedin (subtopology euclidean s) {x \<in> s. f x = a}"
   using continuous_closedin_preimage[of s f "{a}"] by auto
@@ -6087,20 +6116,20 @@ lemma continuous_on_open_avoid:
 
 text \<open>Proving a function is constant by proving open-ness of level set.\<close>
 
-lemma continuous_levelset_open_in_cases:
+lemma continuous_levelset_openin_cases:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
   shows "connected s \<Longrightarrow> continuous_on s f \<Longrightarrow>
         openin (subtopology euclidean s) {x \<in> s. f x = a}
         \<Longrightarrow> (\<forall>x \<in> s. f x \<noteq> a) \<or> (\<forall>x \<in> s. f x = a)"
   unfolding connected_clopen
-  using continuous_closed_in_preimage_constant by auto
+  using continuous_closedin_preimage_constant by auto
 
-lemma continuous_levelset_open_in:
+lemma continuous_levelset_openin:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
   shows "connected s \<Longrightarrow> continuous_on s f \<Longrightarrow>
         openin (subtopology euclidean s) {x \<in> s. f x = a} \<Longrightarrow>
         (\<exists>x \<in> s. f x = a)  \<Longrightarrow> (\<forall>x \<in> s. f x = a)"
-  using continuous_levelset_open_in_cases[of s f ]
+  using continuous_levelset_openin_cases[of s f ]
   by meson
 
 lemma continuous_levelset_open:
@@ -6110,7 +6139,7 @@ lemma continuous_levelset_open:
     and "open {x \<in> s. f x = a}"
     and "\<exists>x \<in> s.  f x = a"
   shows "\<forall>x \<in> s. f x = a"
-  using continuous_levelset_open_in[OF assms(1,2), of a, unfolded openin_open]
+  using continuous_levelset_openin[OF assms(1,2), of a, unfolded openin_open]
   using assms (3,4)
   by fast
 
@@ -6511,7 +6540,7 @@ proof -
   moreover have "continuous_on ?B (dist a)"
     by (auto intro!: continuous_at_imp_continuous_on continuous_dist continuous_ident continuous_const)
   moreover have "compact ?B"
-    by (intro closed_inter_compact \<open>closed s\<close> compact_cball)
+    by (intro closed_Int_compact \<open>closed s\<close> compact_cball)
   ultimately obtain x where "x \<in> ?B" "\<forall>y\<in>?B. dist a x \<le> dist a y"
     by (metis continuous_attains_inf)
   with that show ?thesis by fastforce
@@ -7172,11 +7201,11 @@ lemma Lim_topological:
 
 text \<open>Continuity relative to a union.\<close>
 
-lemma continuous_on_union_local:
+lemma continuous_on_Un_local:
     "\<lbrakk>closedin (subtopology euclidean (s \<union> t)) s; closedin (subtopology euclidean (s \<union> t)) t;
       continuous_on s f; continuous_on t f\<rbrakk>
      \<Longrightarrow> continuous_on (s \<union> t) f"
-  unfolding continuous_on closed_in_limpt
+  unfolding continuous_on closedin_limpt
   by (metis Lim_trivial_limit Lim_within_union Un_iff trivial_limit_within)
 
 lemma continuous_on_cases_local:
@@ -7184,7 +7213,7 @@ lemma continuous_on_cases_local:
        continuous_on s f; continuous_on t g;
        \<And>x. \<lbrakk>x \<in> s \<and> ~P x \<or> x \<in> t \<and> P x\<rbrakk> \<Longrightarrow> f x = g x\<rbrakk>
       \<Longrightarrow> continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
-  by (rule continuous_on_union_local) (auto intro: continuous_on_eq)
+  by (rule continuous_on_Un_local) (auto intro: continuous_on_eq)
 
 lemma continuous_on_cases_le:
   fixes h :: "'a :: topological_space \<Rightarrow> real"
@@ -7588,7 +7617,7 @@ lemma inter_interval_mixed_eq_empty:
    assumes "box c d \<noteq> {}"
   shows "box a b \<inter> cbox c d = {} \<longleftrightarrow> box a b \<inter> box c d = {}"
   unfolding closure_box[OF assms, symmetric]
-  unfolding open_inter_closure_eq_empty[OF open_box] ..
+  unfolding open_Int_closure_eq_empty[OF open_box] ..
 
 lemma diameter_cbox:
   fixes a b::"'a::euclidean_space"
@@ -8079,7 +8108,7 @@ next
   then have "compact ?S''" by (metis compact_cball compact_frontier)
   moreover have "?S' = s \<inter> ?S''" by auto
   ultimately have "compact ?S'"
-    using closed_inter_compact[of s ?S''] using s(1) by auto
+    using closed_Int_compact[of s ?S''] using s(1) by auto
   moreover have *:"f ` ?S' = ?S" by auto
   ultimately have "compact ?S"
     using compact_continuous_image[OF linear_continuous_on[OF f(1)], of ?S'] by auto

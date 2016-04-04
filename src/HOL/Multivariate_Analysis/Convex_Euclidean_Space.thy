@@ -5202,7 +5202,7 @@ proof -
     done
   ultimately obtain u y where obt: "u\<ge>0" "u \<le> b / norm x" "y = u *\<^sub>R x"
     "y \<in> ?A" "y \<in> s" "\<forall>z\<in>?A \<inter> s. dist 0 z \<le> dist 0 y"
-    using distance_attains_sup[OF compact_inter[OF _ assms(1), of ?A], of 0] by blast
+    using distance_attains_sup[OF compact_Int[OF _ assms(1), of ?A], of 0] by blast
   have "norm x > 0"
     using assms(3)[unfolded zero_less_norm_iff[symmetric]] by auto
   {
@@ -7879,7 +7879,7 @@ lemma open_inter_closure_rel_interior:
   assumes "convex S"
     and "open A"
   shows "A \<inter> closure S = {} \<longleftrightarrow> A \<inter> rel_interior S = {}"
-  by (metis assms convex_closure_rel_interior open_inter_closure_eq_empty)
+  by (metis assms convex_closure_rel_interior open_Int_closure_eq_empty)
 
 lemma rel_interior_open_segment:
   fixes a :: "'a :: euclidean_space"

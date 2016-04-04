@@ -1540,10 +1540,10 @@ corollary closed_vimage[continuous_intros]:
   shows "closed (f -` s)"
   using closed_vimage_Int [OF assms] by simp
 
-lemma continuous_on_empty: "continuous_on {} f"
+lemma continuous_on_empty [simp]: "continuous_on {} f"
   by (simp add: continuous_on_def)
 
-lemma continuous_on_sing: "continuous_on {x} f"
+lemma continuous_on_sing [simp]: "continuous_on {x} f"
   by (simp add: continuous_on_def at_within_def)
 
 lemma continuous_on_open_Union:
@@ -1780,7 +1780,7 @@ lemma compactE_image:
   using assms unfolding ball_simps [symmetric]
   by (metis (lifting) finite_subset_image compact_eq_heine_borel[of s])
 
-lemma compact_inter_closed [intro]:
+lemma compact_Int_closed [intro]:
   assumes "compact s" and "closed t"
   shows "compact (s \<inter> t)"
 proof (rule compactI)
@@ -1911,7 +1911,7 @@ proof (clarsimp simp add: assms(3))
     by (rule continuous_on_subset)
   moreover have "compact (s - B)"
     using \<open>open B\<close> and \<open>compact s\<close>
-    unfolding Diff_eq by (intro compact_inter_closed closed_Compl)
+    unfolding Diff_eq by (intro compact_Int_closed closed_Compl)
   ultimately have "compact (f ` (s - B))"
     by (rule compact_continuous_image)
   hence "closed (f ` (s - B))"

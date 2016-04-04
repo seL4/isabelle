@@ -36,6 +36,9 @@ lemma image_id [simp]: "image id = id"
 lemma vimage_id [simp]: "vimage id = id"
   by (simp add: id_def fun_eq_iff)
 
+lemma eq_id_iff: "(\<forall>x. f x = x) \<longleftrightarrow> f = id"
+  by auto
+
 code_printing
   constant id \<rightharpoonup> (Haskell) "id"
 

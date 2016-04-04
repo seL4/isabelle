@@ -23,7 +23,7 @@ lemma compact_UNIV:
 lemma compact_eq_closed:
   fixes S :: "'a::{complete_linorder,linorder_topology,second_countable_topology} set"
   shows "compact S \<longleftrightarrow> closed S"
-  using closed_inter_compact[of S, OF _ compact_UNIV] compact_imp_closed
+  using closed_Int_compact[of S, OF _ compact_UNIV] compact_imp_closed
   by auto
 
 lemma closed_contains_Sup_cl:

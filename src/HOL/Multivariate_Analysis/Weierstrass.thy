@@ -248,7 +248,7 @@ proof -
                    and pf01: "\<And>t. t \<in> s-U \<Longrightarrow> pf t ` s \<subseteq> {0..1}"
     by metis
   have com_sU: "compact (s-U)"
-    using compact closed_inter_compact U by (simp add: Diff_eq compact_inter_closed open_closed)
+    using compact closed_Int_compact U by (simp add: Diff_eq compact_Int_closed open_closed)
   have "\<And>t. t \<in> s-U \<Longrightarrow> \<exists>A. open A \<and> A \<inter> s = {x\<in>s. 0 < pf t x}"
     apply (rule open_Collect_positive)
     by (metis pf continuous)
@@ -451,7 +451,7 @@ proof -
   then have setsum_max_0: "A \<subseteq> (\<Union>x \<in> A. Vf x)"
     by blast
   have com_A: "compact A" using A
-    by (metis compact compact_inter_closed inf.absorb_iff2)
+    by (metis compact compact_Int_closed inf.absorb_iff2)
   obtain subA where subA: "subA \<subseteq> A" "finite subA" "A \<subseteq> (\<Union>x \<in> subA. Vf x)"
     by (blast intro: that open_Vf compactE_image [OF com_A _ setsum_max_0])
   then have [simp]: "subA \<noteq> {}"

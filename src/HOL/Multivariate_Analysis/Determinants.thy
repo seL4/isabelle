@@ -577,9 +577,6 @@ next
 qed
 
 
-lemma eq_id_iff: "(\<forall>x. f x = x) \<longleftrightarrow> f = id"
-  by auto
-
 lemma det_linear_rows_setsum_lemma:
   assumes fS: "finite S"
     and fT: "finite T"
