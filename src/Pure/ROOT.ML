@@ -318,14 +318,13 @@ use "PIDE/protocol.ML";
 
 (* miscellaneous tools and packages for Pure Isabelle *)
 
-use "Tools/build.ML";
-use "Tools/named_thms.ML";
 use "ML/ml_pp.ML";
-use "ML/ml_file.ML";
 use "ML/ml_antiquotations.ML";
 use "ML/ml_thms.ML";
-use "Tools/print_operation.ML";
 
+use "Tools/build.ML";
+use "Tools/named_thms.ML";
+use "Tools/print_operation.ML";
 use "Tools/bibtex.ML";
 use "Tools/rail.ML";
 use "Tools/rule_insts.ML";

@@ -108,7 +108,6 @@ session Pure =
     "ML/ml_context.ML"
     "ML/ml_debugger.ML"
     "ML/ml_env.ML"
-    "ML/ml_file.ML"
     "ML/ml_final.ML"
     "ML/ml_heap.ML"
     "ML/ml_lex.ML"
