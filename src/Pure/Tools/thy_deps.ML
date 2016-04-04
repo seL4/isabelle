@@ -42,13 +42,4 @@ val thy_deps =
 
 val thy_deps_cmd = Graph_Display.display_graph oo gen_thy_deps Theory.check;
 
-val theory_bounds =
-  Parse.position Parse.theory_xname >> single ||
-  (@{keyword "("} |-- Parse.enum "|" (Parse.position Parse.theory_xname) --| @{keyword ")"});
-
-val _ =
-  Outer_Syntax.command @{command_keyword thy_deps} "visualize theory dependencies"
-    (Scan.option theory_bounds -- Scan.option theory_bounds >>
-      (fn args => Toplevel.keep (fn st => thy_deps_cmd (Toplevel.context_of st) args)));
-
 end;

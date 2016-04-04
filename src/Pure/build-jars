@@ -76,6 +76,7 @@ declare -a SOURCES=(
   System/bash.scala
   System/command_line.scala
   System/cygwin.scala
+  System/distribution.scala
   System/getopts.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala

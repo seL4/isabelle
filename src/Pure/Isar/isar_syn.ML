@@ -148,6 +148,12 @@ val _ =
       >> (fn (facts, fixes) =>
           #2 oo Specification.theorems_cmd "" [(Attrib.empty_binding, flat facts)] fixes));
 
+val _ =
+  Outer_Syntax.local_theory @{command_keyword named_theorems}
+    "declare named collection of theorems"
+    (Parse.and_list1 (Parse.binding -- Scan.optional Parse.text "") >>
+      fold (fn (b, descr) => snd o Named_Theorems.declare b descr));
+
 
 (* hide names *)
 
@@ -183,6 +189,23 @@ end;
 
 (* use ML text *)
 
+local
+
+fun ML_file_cmd debug files = Toplevel.generic_theory (fn gthy =>
+  let
+    val [{src_path, lines, digest, pos}: Token.file] = files (Context.theory_of gthy);
+    val provide = Resources.provide (src_path, digest);
+    val source = Input.source true (cat_lines lines) (pos, pos);
+    val flags: ML_Compiler.flags =
+      {SML = false, exchange = false, redirect = true, verbose = true,
+        debug = debug, writeln = writeln, warning = warning};
+  in
+    gthy
+    |> ML_Context.exec (fn () => ML_Context.eval_source flags source)
+    |> Local_Theory.propagate_ml_env
+    |> Context.mapping provide (Local_Theory.background_theory provide)
+  end);
+
 fun SML_file_cmd debug files = Toplevel.theory (fn thy =>
   let
     val ([{lines, pos, ...}: Token.file], thy') = files thy;
@@ -194,6 +217,22 @@ fun SML_file_cmd debug files = Toplevel.theory (fn thy =>
     thy' |> Context.theory_map
       (ML_Context.exec (fn () => ML_Context.eval_source flags source))
   end);
+
+in
+
+val _ =
+  Outer_Syntax.command ("ML_file", @{here}) "read and evaluate Isabelle/ML file"
+    (Resources.parse_files "ML_file" >> ML_file_cmd NONE);
+
+val _ =
+  Outer_Syntax.command ("ML_file_debug", @{here})
+    "read and evaluate Isabelle/ML file (with debugger information)"
+    (Resources.parse_files "ML_file_debug" >> ML_file_cmd (SOME true));
+
+val _ =
+  Outer_Syntax.command ("ML_file_no_debug", @{here})
+    "read and evaluate Isabelle/ML file (no debugger information)"
+    (Resources.parse_files "ML_file_no_debug" >> ML_file_cmd (SOME false));
 
 val _ =
   Outer_Syntax.command @{command_keyword SML_file} "read and evaluate Standard ML file"
@@ -208,6 +247,8 @@ val _ =
   Outer_Syntax.command @{command_keyword SML_file_no_debug}
     "read and evaluate Standard ML file (no debugger information)"
     (Resources.provide_parse_files "SML_file_no_debug" >> SML_file_cmd (SOME false));
+
+end;
 
 val _ =
   Outer_Syntax.command @{command_keyword SML_export} "evaluate SML within Isabelle/ML environment"
@@ -233,14 +274,6 @@ val _ =
           (ML_Context.exec (fn () => ML_Context.eval_source flags source) #>
             Local_Theory.propagate_ml_env)
       end));
-
-val _ =
-  Outer_Syntax.command @{command_keyword ML} "ML text within theory or local theory"
-    (Parse.ML_source >> (fn source =>
-      Toplevel.generic_theory
-        (ML_Context.exec (fn () =>
-            ML_Context.eval_source (ML_Compiler.verbose true ML_Compiler.flags) source) #>
-          Local_Theory.propagate_ml_env)));
 
 val _ =
   Outer_Syntax.command @{command_keyword ML_prf} "ML text within proof"
@@ -728,6 +761,34 @@ val _ =
 end;
 
 
+(* calculation *)
+
+val calculation_args =
+  Scan.option (@{keyword "("} |-- Parse.!!! ((Parse.xthms1 --| @{keyword ")"})));
+
+val _ =
+  Outer_Syntax.command @{command_keyword also} "combine calculation and current facts"
+    (calculation_args >> (Toplevel.proofs' o Calculation.also_cmd));
+
+val _ =
+  Outer_Syntax.command @{command_keyword finally}
+    "combine calculation and current facts, exhibit result"
+    (calculation_args >> (Toplevel.proofs' o Calculation.finally_cmd));
+
+val _ =
+  Outer_Syntax.command @{command_keyword moreover} "augment calculation by current facts"
+    (Scan.succeed (Toplevel.proof' Calculation.moreover));
+
+val _ =
+  Outer_Syntax.command @{command_keyword ultimately}
+    "augment calculation by current facts, exhibit result"
+    (Scan.succeed (Toplevel.proof' Calculation.ultimately));
+
+val _ =
+  Outer_Syntax.command @{command_keyword print_trans_rules} "print transitivity rules"
+    (Scan.succeed (Toplevel.keep (Calculation.print_rules o Toplevel.context_of)));
+
+
 (* proof navigation *)
 
 fun report_back () =
@@ -934,6 +995,96 @@ val _ =
     "display raw source files with symbols"
     (Scan.repeat1 Parse.path >> (fn names =>
       Toplevel.keep (fn _ => ignore (Present.display_drafts (map Path.explode names)))));
+
+
+(* deps *)
+
+local
+  val theory_bounds =
+    Parse.position Parse.theory_xname >> single ||
+    (@{keyword "("} |-- Parse.enum "|" (Parse.position Parse.theory_xname) --| @{keyword ")"});
+in
+
+val _ =
+  Outer_Syntax.command @{command_keyword thy_deps} "visualize theory dependencies"
+    (Scan.option theory_bounds -- Scan.option theory_bounds >>
+      (fn args => Toplevel.keep (fn st => Thy_Deps.thy_deps_cmd (Toplevel.context_of st) args)));
+
+end;
+
+local
+  val class_bounds =
+    Parse.sort >> single ||
+    (@{keyword "("} |-- Parse.enum "|" Parse.sort --| @{keyword ")"});
+in
+
+val _ =
+  Outer_Syntax.command @{command_keyword class_deps} "visualize class dependencies"
+    (Scan.option class_bounds -- Scan.option class_bounds >> (fn args =>
+      Toplevel.keep (fn st => Class_Deps.class_deps_cmd (Toplevel.context_of st) args)));
+
+end;
+
+val _ =
+  Outer_Syntax.command @{command_keyword thm_deps} "visualize theorem dependencies"
+    (Parse.xthms1 >> (fn args =>
+      Toplevel.keep (fn st =>
+        Thm_Deps.thm_deps (Toplevel.theory_of st)
+          (Attrib.eval_thms (Toplevel.context_of st) args))));
+
+local
+  val thy_names =
+    Scan.repeat1 (Scan.unless Parse.minus (Parse.position Parse.theory_xname));
+in
+
+val _ =
+  Outer_Syntax.command @{command_keyword unused_thms} "find unused theorems"
+    (Scan.option ((thy_names --| Parse.minus) -- Scan.option thy_names) >> (fn opt_range =>
+        Toplevel.keep (fn st =>
+          let
+            val thy = Toplevel.theory_of st;
+            val ctxt = Toplevel.context_of st;
+            fun pretty_thm (a, th) = Proof_Context.pretty_fact ctxt (a, [th]);
+            val check = Theory.check ctxt;
+          in
+            Thm_Deps.unused_thms
+              (case opt_range of
+                NONE => (Theory.parents_of thy, [thy])
+              | SOME (xs, NONE) => (map check xs, [thy])
+              | SOME (xs, SOME ys) => (map check xs, map check ys))
+            |> map pretty_thm |> Pretty.writeln_chunks
+          end)));
+
+end;
+
+
+(* find *)
+
+val _ =
+  Outer_Syntax.command @{command_keyword find_consts}
+    "find constants by name / type patterns"
+    (Find_Consts.query_parser >> (fn spec =>
+      Toplevel.keep (fn st =>
+        Pretty.writeln (Find_Consts.pretty_consts (Toplevel.context_of st) spec))));
+
+local
+  val options =
+    Scan.optional
+      (Parse.$$$ "(" |--
+        Parse.!!! (Scan.option Parse.nat --
+          Scan.optional (Parse.reserved "with_dups" >> K false) true --| Parse.$$$ ")"))
+      (NONE, true);
+in
+
+val _ =
+  Outer_Syntax.command @{command_keyword find_theorems}
+    "find theorems meeting specified criteria"
+    (options -- Find_Theorems.query_parser >> (fn ((opt_lim, rem_dups), spec) =>
+      Toplevel.keep (fn st =>
+        Pretty.writeln
+          (Find_Theorems.pretty_theorems (Find_Theorems.proof_state st) opt_lim rem_dups spec))));
+
+end;
 
 
 

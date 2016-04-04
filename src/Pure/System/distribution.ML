@@ -1,0 +1,12 @@
+(*  Title:      Pure/System/distribution.ML
+    Author:     Makarius
+
+The Isabelle system distribution -- filled-in by makedist.
+*)
+
+structure Distribution =
+struct
+  val version = "unidentified repository version";
+  val is_identified = false;
+  val is_official = false;
+end;

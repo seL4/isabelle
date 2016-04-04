@@ -306,4 +306,15 @@ fun check_command ctxt (name, pos) =
       in error ("Bad command " ^ quote name ^ Position.here pos ^ report) end
   end;
 
+
+(* 'ML' command -- required for bootstrapping Isar *)
+
+val _ =
+  command ("ML", @{here}) "ML text within theory or local theory"
+    (Parse.ML_source >> (fn source =>
+      Toplevel.generic_theory
+        (ML_Context.exec (fn () =>
+            ML_Context.eval_source (ML_Compiler.verbose true ML_Compiler.flags) source) #>
+          Local_Theory.propagate_ml_env)));
+
 end;

@@ -395,8 +395,8 @@ text \<open>
 
   The user is connected to the raw ML toplevel loop: this is neither
   Isabelle/Isar nor Isabelle/ML within the usual formal context. The most
-  relevant ML commands at this stage are @{ML use}, @{ML use_thy}, @{ML
-  use_thys}.
+  relevant ML commands at this stage are @{ML use} (for ML files) and
+  @{ML use_thy} (for theory files).
 \<close>
 
 

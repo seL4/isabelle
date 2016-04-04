@@ -4,19 +4,9 @@
 
 (* initial ML name space *)
 
-use "ML/ml_system.ML";
 use "ML/ml_name_space.ML";
-use "ML/ml_pervasive.ML";
-
-if List.exists (fn (a, _) => a = "FixedInt") (#allStruct ML_Name_Space.global ()) then ()
-else use "ML/fixed_int_dummy.ML";
-
-structure Distribution =     (*filled-in by makedist*)
-struct
-  val version = "unidentified repository version";
-  val is_identified = false;
-  val is_official = false;
-end;
+use "ML/ml_pervasive_initial.ML";
+use "ML/ml_system.ML";
 
 
 (* multithreading *)
@@ -28,6 +18,8 @@ use "Concurrent/unsynchronized.ML";
 
 
 (* ML system *)
+
+use "System/distribution.ML";
 
 use "ML/ml_heap.ML";
 use "ML/ml_profiling.ML";
@@ -89,8 +81,6 @@ use "General/socket_io.ML";
 use "General/seq.ML";
 use "General/timing.ML";
 use "General/sha1.ML";
-
-val _ = List.app ML_Name_Space.forget_structure ML_Name_Space.critical_structures;
 
 use "PIDE/yxml.ML";
 use "PIDE/document_id.ML";
@@ -248,6 +238,7 @@ use "Isar/proof.ML";
 use "Isar/element.ML";
 use "Isar/obtain.ML";
 use "Isar/subgoal.ML";
+use "Isar/calculation.ML";
 
 (*local theories and targets*)
 use "Isar/locale.ML";
@@ -286,10 +277,9 @@ use "Proof/proof_checker.ML";
 use "Proof/extraction.ML";
 
 (*Isabelle system*)
-if ML_System.platform_is_windows
-then use "System/bash_windows.ML"
-else use "System/bash.ML";
+use "System/bash.ML";
 use "System/isabelle_system.ML";
+
 
 (*theory documents*)
 use "Thy/term_style.ML";
@@ -323,28 +313,26 @@ use "PIDE/protocol.ML";
 
 (* miscellaneous tools and packages for Pure Isabelle *)
 
+use "ML/ml_pp.ML";
+use "ML/ml_antiquotations.ML";
+use "ML/ml_thms.ML";
+
 use "Tools/build.ML";
 use "Tools/named_thms.ML";
+use "Tools/print_operation.ML";
+use "Tools/bibtex.ML";
+use "Tools/rail.ML";
+use "Tools/rule_insts.ML";
+use "Tools/thm_deps.ML";
+use "Tools/thy_deps.ML";
+use "Tools/class_deps.ML";
+use "Tools/find_theorems.ML";
+use "Tools/find_consts.ML";
+use "Tools/simplifier_trace.ML";
+use_no_debug "Tools/debugger.ML";
+use "Tools/named_theorems.ML";
+use "Tools/jedit.ML";
 
-structure Output: OUTPUT = Output;  (*seal system channels!*)
+use_thy "Pure";
 
-use "ML/ml_pp.ML";
-
-
-(* the Pure theory *)
-
-use "ML/ml_file.ML";
-Runtime.toplevel_program (fn () => Thy_Info.use_thy ("Pure", Position.none));
-Context.set_thread_data NONE;
-structure Pure = struct val thy = Thy_Info.pure_theory () end;
-
-
-(* ML toplevel commands *)
-
-fun use_thys args =
-  Runtime.toplevel_program (fn () => Thy_Info.use_thys (map (rpair Position.none) args));
-val use_thy = use_thys o single;
-
-Proofterm.proofs := 0;
-
-structure PolyML = struct structure IntInf = PolyML.IntInf end;
+use "ML/ml_pervasive_final.ML";

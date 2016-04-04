@@ -47,12 +47,6 @@ fun thm_deps thy thms =
     |> Graph_Display.display_graph_old
   end;
 
-val _ =
-  Outer_Syntax.command @{command_keyword thm_deps} "visualize theorem dependencies"
-    (Parse.xthms1 >> (fn args =>
-      Toplevel.keep (fn st =>
-        thm_deps (Toplevel.theory_of st) (Attrib.eval_thms (Toplevel.context_of st) args))));
-
 
 (* unused_thms *)
 
@@ -106,26 +100,5 @@ fun unused_thms (base_thys, thys) =
              else ((a, th) :: thms, Inttab.update (grp, ()) seen_groups))
       else q) new_thms ([], Inttab.empty);
   in rev thms' end;
-
-val thy_names =
-  Scan.repeat1 (Scan.unless Parse.minus (Parse.position Parse.theory_xname));
-
-val _ =
-  Outer_Syntax.command @{command_keyword unused_thms} "find unused theorems"
-    (Scan.option ((thy_names --| Parse.minus) -- Scan.option thy_names) >> (fn opt_range =>
-        Toplevel.keep (fn st =>
-          let
-            val thy = Toplevel.theory_of st;
-            val ctxt = Toplevel.context_of st;
-            fun pretty_thm (a, th) = Proof_Context.pretty_fact ctxt (a, [th]);
-            val check = Theory.check ctxt;
-          in
-            unused_thms
-              (case opt_range of
-                NONE => (Theory.parents_of thy, [thy])
-              | SOME (xs, NONE) => (map check xs, [thy])
-              | SOME (xs, SOME ys) => (map check xs, map check ys))
-            |> map pretty_thm |> Pretty.writeln_chunks
-          end)));
 
 end;

@@ -85,6 +85,7 @@ sig
   val mixfix': mixfix parser
   val opt_mixfix: mixfix parser
   val opt_mixfix': mixfix parser
+  val syntax_mode: Syntax.mode parser
   val where_: string parser
   val const_decl: (string * string * mixfix) parser
   val const_binding: (binding * string * mixfix) parser
@@ -354,6 +355,15 @@ val opt_mixfix = opt_annotation !!! mixfix_body;
 val opt_mixfix' = opt_annotation I mixfix_body;
 
 end;
+
+
+(* syntax mode *)
+
+val syntax_mode_spec =
+  ($$$ "output" >> K ("", false)) || name -- Scan.optional ($$$ "output" >> K false) true;
+
+val syntax_mode =
+  Scan.optional ($$$ "(" |-- !!! (syntax_mode_spec --| $$$ ")")) Syntax.mode_default;
 
 
 (* fixes *)

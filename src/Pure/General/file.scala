@@ -123,7 +123,8 @@ object File
   }
 
   def bash_string(s: String): String =
-    UTF8.bytes(s).iterator.map(bash_chr(_)).mkString
+    if (s == "") "\"\""
+    else UTF8.bytes(s).iterator.map(bash_chr(_)).mkString
 
   def bash_args(args: List[String]): String =
     args.iterator.map(bash_string(_)).mkString(" ")

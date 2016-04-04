@@ -57,9 +57,7 @@ object Thy_Header extends Parse.Parser
       (TXT, Some(((Keyword.DOCUMENT_BODY, Nil), Nil)), None),
       (TEXT_RAW, Some(((Keyword.DOCUMENT_RAW, Nil), Nil)), None),
       (THEORY, Some((Keyword.THY_BEGIN, Nil), List("theory")), None),
-      ("ML_file", Some((Keyword.THY_LOAD, Nil), List("ML")), None),
-      ("ML_file_debug", Some((Keyword.THY_LOAD, Nil), List("ML")), None),
-      ("ML_file_no_debug", Some((Keyword.THY_LOAD, Nil), List("ML")), None))
+      ("ML", Some((Keyword.THY_DECL, Nil), List("ML")), None))
 
   private val bootstrap_keywords =
     Keyword.Keywords.empty.add_keywords(bootstrap_header)
