@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/ml_pervasive.ML
+(*  Title:      Pure/ML/ml_pervasive_initial.ML
     Author:     Makarius
 
-Pervasive ML environment.
+Pervasive ML environment: initial setup.
 *)
 
 structure PolyML_Pretty =

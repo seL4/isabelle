@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/ml_final.ML
+(*  Title:      Pure/ML/ml_pervasive_final.ML
     Author:     Makarius
 
-Final setup of ML environment.
+Pervasive ML environment: final setup.
 *)
 
 if Options.default_bool "ML_system_unsafe" then ()
