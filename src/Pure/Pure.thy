@@ -93,23 +93,7 @@ theory Pure
   and "named_theorems" :: thy_decl
 begin
 
-ML_file "ML/ml_antiquotations.ML"
-ML_file "ML/ml_thms.ML"
-ML_file "Tools/print_operation.ML"
 ML_file "Isar/isar_syn.ML"
-ML_file "Isar/calculation.ML"
-ML_file "Tools/bibtex.ML"
-ML_file "Tools/rail.ML"
-ML_file "Tools/rule_insts.ML"
-ML_file "Tools/thm_deps.ML"
-ML_file "Tools/thy_deps.ML"
-ML_file "Tools/class_deps.ML"
-ML_file "Tools/find_theorems.ML"
-ML_file "Tools/find_consts.ML"
-ML_file "Tools/simplifier_trace.ML"
-ML_file_no_debug "Tools/debugger.ML"
-ML_file "Tools/named_theorems.ML"
-ML_file "Tools/jedit.ML"
 
 
 section \<open>Basic attributes\<close>

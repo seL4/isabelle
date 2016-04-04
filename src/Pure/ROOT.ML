@@ -241,6 +241,7 @@ use "Isar/proof.ML";
 use "Isar/element.ML";
 use "Isar/obtain.ML";
 use "Isar/subgoal.ML";
+use "Isar/calculation.ML";
 
 (*local theories and targets*)
 use "Isar/locale.ML";
@@ -321,6 +322,23 @@ use "Tools/build.ML";
 use "Tools/named_thms.ML";
 use "ML/ml_pp.ML";
 use "ML/ml_file.ML";
+use "ML/ml_antiquotations.ML";
+use "ML/ml_thms.ML";
+use "Tools/print_operation.ML";
+
+use "Tools/bibtex.ML";
+use "Tools/rail.ML";
+use "Tools/rule_insts.ML";
+use "Tools/thm_deps.ML";
+use "Tools/thy_deps.ML";
+use "Tools/class_deps.ML";
+use "Tools/find_theorems.ML";
+use "Tools/find_consts.ML";
+use "Tools/simplifier_trace.ML";
+use_no_debug "Tools/debugger.ML";
+use "Tools/named_theorems.ML";
+use "Tools/jedit.ML";
+
 use_thy "Pure";
 
 

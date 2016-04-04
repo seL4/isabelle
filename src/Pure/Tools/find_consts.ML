@@ -11,6 +11,8 @@ sig
       Strict of string
     | Loose of string
     | Name of string
+  val pretty_consts: Proof.context -> (bool * criterion) list -> Pretty.T
+  val query_parser: (bool * criterion) list parser
   val read_query: Position.T -> string -> (bool * criterion) list
   val find_consts : Proof.context -> (bool * criterion) list -> unit
 end;
@@ -138,24 +140,17 @@ val criterion =
   Parse.reserved "strict" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.typ) >> Strict ||
   Parse.typ >> Loose;
 
-val query = Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion);
-
 val query_keywords = Keyword.add_keywords [((":", @{here}), NONE)] Keyword.empty_keywords;
 
 in
 
+val query_parser = Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion);
+
 fun read_query pos str =
   Token.explode query_keywords pos str
   |> filter Token.is_proper
-  |> Scan.error (Scan.finite Token.stopper (Parse.!!! (query --| Scan.ahead Parse.eof)))
+  |> Scan.error (Scan.finite Token.stopper (Parse.!!! (query_parser --| Scan.ahead Parse.eof)))
   |> #1;
-
-val _ =
-  Outer_Syntax.command @{command_keyword find_consts}
-    "find constants by name / type patterns"
-    (query >> (fn spec =>
-      Toplevel.keep (fn st =>
-        Pretty.writeln (pretty_consts (Toplevel.context_of st) spec))));
 
 end;
 

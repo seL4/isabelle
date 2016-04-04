@@ -15,12 +15,16 @@ sig
     rem_dups: bool,
     criteria: (bool * 'term criterion) list
   }
+  val query_parser: (bool * string criterion) list parser
   val read_query: Position.T -> string -> (bool * string criterion) list
   val find_theorems: Proof.context -> thm option -> int option -> bool ->
     (bool * term criterion) list -> int option * (Facts.ref * thm) list
   val find_theorems_cmd: Proof.context -> thm option -> int option -> bool ->
     (bool * string criterion) list -> int option * (Facts.ref * thm) list
   val pretty_thm: Proof.context -> Facts.ref * thm -> Pretty.T
+  val pretty_theorems: Proof.state ->
+    int option -> bool -> (bool * string criterion) list -> Pretty.T
+  val proof_state: Toplevel.state -> Proof.state
 end;
 
 structure Find_Theorems: FIND_THEOREMS =
@@ -502,11 +506,6 @@ end;
 
 (** Isar command syntax **)
 
-fun proof_state st =
-  (case try Toplevel.proof_of st of
-    SOME state => state
-  | NONE => Proof.init (Toplevel.context_of st));
-
 local
 
 val criterion =
@@ -518,36 +517,28 @@ val criterion =
   Parse.reserved "simp" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.term) >> Simp ||
   Parse.term >> Pattern;
 
-val options =
-  Scan.optional
-    (Parse.$$$ "(" |--
-      Parse.!!! (Scan.option Parse.nat -- Scan.optional (Parse.reserved "with_dups" >> K false) true
-        --| Parse.$$$ ")")) (NONE, true);
-
-val query = Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion);
-
 val query_keywords = Keyword.add_keywords [((":", @{here}), NONE)] Keyword.empty_keywords;
 
 in
 
+val query_parser = Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion);
+
 fun read_query pos str =
   Token.explode query_keywords pos str
   |> filter Token.is_proper
-  |> Scan.error (Scan.finite Token.stopper (Parse.!!! (query --| Scan.ahead Parse.eof)))
+  |> Scan.error (Scan.finite Token.stopper (Parse.!!! (query_parser --| Scan.ahead Parse.eof)))
   |> #1;
-
-val _ =
-  Outer_Syntax.command @{command_keyword find_theorems}
-    "find theorems meeting specified criteria"
-    (options -- query >> (fn ((opt_lim, rem_dups), spec) =>
-      Toplevel.keep (fn st =>
-        Pretty.writeln (pretty_theorems (proof_state st) opt_lim rem_dups spec))));
 
 end;
 
 
 
 (** PIDE query operation **)
+
+fun proof_state st =
+  (case try Toplevel.proof_of st of
+    SOME state => state
+  | NONE => Proof.init (Toplevel.context_of st));
 
 val _ =
   Query_Operation.register {name = "find_theorems", pri = Task_Queue.urgent_pri}
@@ -563,4 +554,3 @@ val _ =
       else error "Unknown context");
 
 end;
-

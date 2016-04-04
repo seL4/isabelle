@@ -148,6 +148,12 @@ val _ =
       >> (fn (facts, fixes) =>
           #2 oo Specification.theorems_cmd "" [(Attrib.empty_binding, flat facts)] fixes));
 
+val _ =
+  Outer_Syntax.local_theory @{command_keyword named_theorems}
+    "declare named collection of theorems"
+    (Parse.and_list1 (Parse.binding -- Scan.optional Parse.text "") >>
+      fold (fn (b, descr) => snd o Named_Theorems.declare b descr));
+
 
 (* hide names *)
 
@@ -728,6 +734,34 @@ val _ =
 end;
 
 
+(* calculation *)
+
+val calculation_args =
+  Scan.option (@{keyword "("} |-- Parse.!!! ((Parse.xthms1 --| @{keyword ")"})));
+
+val _ =
+  Outer_Syntax.command @{command_keyword also} "combine calculation and current facts"
+    (calculation_args >> (Toplevel.proofs' o Calculation.also_cmd));
+
+val _ =
+  Outer_Syntax.command @{command_keyword finally}
+    "combine calculation and current facts, exhibit result"
+    (calculation_args >> (Toplevel.proofs' o Calculation.finally_cmd));
+
+val _ =
+  Outer_Syntax.command @{command_keyword moreover} "augment calculation by current facts"
+    (Scan.succeed (Toplevel.proof' Calculation.moreover));
+
+val _ =
+  Outer_Syntax.command @{command_keyword ultimately}
+    "augment calculation by current facts, exhibit result"
+    (Scan.succeed (Toplevel.proof' Calculation.ultimately));
+
+val _ =
+  Outer_Syntax.command @{command_keyword print_trans_rules} "print transitivity rules"
+    (Scan.succeed (Toplevel.keep (Calculation.print_rules o Toplevel.context_of)));
+
+
 (* proof navigation *)
 
 fun report_back () =
@@ -934,6 +968,96 @@ val _ =
     "display raw source files with symbols"
     (Scan.repeat1 Parse.path >> (fn names =>
       Toplevel.keep (fn _ => ignore (Present.display_drafts (map Path.explode names)))));
+
+
+(* deps *)
+
+local
+  val theory_bounds =
+    Parse.position Parse.theory_xname >> single ||
+    (@{keyword "("} |-- Parse.enum "|" (Parse.position Parse.theory_xname) --| @{keyword ")"});
+in
+
+val _ =
+  Outer_Syntax.command @{command_keyword thy_deps} "visualize theory dependencies"
+    (Scan.option theory_bounds -- Scan.option theory_bounds >>
+      (fn args => Toplevel.keep (fn st => Thy_Deps.thy_deps_cmd (Toplevel.context_of st) args)));
+
+end;
+
+local
+  val class_bounds =
+    Parse.sort >> single ||
+    (@{keyword "("} |-- Parse.enum "|" Parse.sort --| @{keyword ")"});
+in
+
+val _ =
+  Outer_Syntax.command @{command_keyword class_deps} "visualize class dependencies"
+    (Scan.option class_bounds -- Scan.option class_bounds >> (fn args =>
+      Toplevel.keep (fn st => Class_Deps.class_deps_cmd (Toplevel.context_of st) args)));
+
+end;
+
+val _ =
+  Outer_Syntax.command @{command_keyword thm_deps} "visualize theorem dependencies"
+    (Parse.xthms1 >> (fn args =>
+      Toplevel.keep (fn st =>
+        Thm_Deps.thm_deps (Toplevel.theory_of st)
+          (Attrib.eval_thms (Toplevel.context_of st) args))));
+
+local
+  val thy_names =
+    Scan.repeat1 (Scan.unless Parse.minus (Parse.position Parse.theory_xname));
+in
+
+val _ =
+  Outer_Syntax.command @{command_keyword unused_thms} "find unused theorems"
+    (Scan.option ((thy_names --| Parse.minus) -- Scan.option thy_names) >> (fn opt_range =>
+        Toplevel.keep (fn st =>
+          let
+            val thy = Toplevel.theory_of st;
+            val ctxt = Toplevel.context_of st;
+            fun pretty_thm (a, th) = Proof_Context.pretty_fact ctxt (a, [th]);
+            val check = Theory.check ctxt;
+          in
+            Thm_Deps.unused_thms
+              (case opt_range of
+                NONE => (Theory.parents_of thy, [thy])
+              | SOME (xs, NONE) => (map check xs, [thy])
+              | SOME (xs, SOME ys) => (map check xs, map check ys))
+            |> map pretty_thm |> Pretty.writeln_chunks
+          end)));
+
+end;
+
+
+(* find *)
+
+val _ =
+  Outer_Syntax.command @{command_keyword find_consts}
+    "find constants by name / type patterns"
+    (Find_Consts.query_parser >> (fn spec =>
+      Toplevel.keep (fn st =>
+        Pretty.writeln (Find_Consts.pretty_consts (Toplevel.context_of st) spec))));
+
+local
+  val options =
+    Scan.optional
+      (Parse.$$$ "(" |--
+        Parse.!!! (Scan.option Parse.nat --
+          Scan.optional (Parse.reserved "with_dups" >> K false) true --| Parse.$$$ ")"))
+      (NONE, true);
+in
+
+val _ =
+  Outer_Syntax.command @{command_keyword find_theorems}
+    "find theorems meeting specified criteria"
+    (options -- Find_Theorems.query_parser >> (fn ((opt_lim, rem_dups), spec) =>
+      Toplevel.keep (fn st =>
+        Pretty.writeln
+          (Find_Theorems.pretty_theorems (Find_Theorems.proof_state st) opt_lim rem_dups spec))));
+
+end;
 
 
 

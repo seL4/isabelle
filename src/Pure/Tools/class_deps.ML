@@ -37,13 +37,4 @@ fun gen_class_deps prep_sort ctxt bounds =
 val class_deps = gen_class_deps (Type.cert_sort o Proof_Context.tsig_of);
 val class_deps_cmd = Graph_Display.display_graph oo gen_class_deps Syntax.read_sort;
 
-val class_bounds =
-  Parse.sort >> single ||
-  (@{keyword "("} |-- Parse.enum "|" Parse.sort --| @{keyword ")"});
-
-val _ =
-  Outer_Syntax.command @{command_keyword class_deps} "visualize class dependencies"
-    (Scan.option class_bounds -- Scan.option class_bounds >> (fn args =>
-      Toplevel.keep (fn st => class_deps_cmd (Toplevel.context_of st) args)));
-
 end;
