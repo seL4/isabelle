@@ -5,7 +5,7 @@ Final stage of bootstrapping Pure, based on implicit background theory.
 *)
 
 theory Pure
-  keywords
+keywords
     "!!" "!" "+" "--" ":" ";" "<" "<=" "=" "=>" "?" "[" "\<comment>" "\<equiv>"
     "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
     "\<subseteq>" "]" "assumes" "attach" "binder" "constrains"
