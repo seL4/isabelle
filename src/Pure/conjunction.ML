@@ -30,7 +30,7 @@ struct
 
 (** abstract syntax **)
 
-fun certify t = Thm.global_cterm_of (Context.the_theory (Context.the_thread_data ())) t;
+fun certify t = Thm.global_cterm_of (Context.the_global_context ()) t;
 val read_prop = certify o Simple_Syntax.read_prop;
 
 val true_prop = certify Logic.true_prop;
@@ -76,7 +76,7 @@ val ABC = read_prop "A ==> B ==> C";
 val A_B = read_prop "A &&& B";
 
 val conjunction_def =
-  Thm.unvarify_axiom (Context.the_theory (Context.the_thread_data ())) "Pure.conjunction_def";
+  Thm.unvarify_axiom (Context.the_global_context ()) "Pure.conjunction_def";
 
 fun conjunctionD which =
   Drule.implies_intr_list [A, B] (Thm.assume (which (A, B))) COMP
@@ -137,7 +137,7 @@ fun elim_balanced 0 _ = []
 
 local
 
-val bootstrap_thy = Context.theory_of (Context.the_thread_data ());
+val bootstrap_thy = Context.the_global_context ();
 
 fun conjs n =
   let

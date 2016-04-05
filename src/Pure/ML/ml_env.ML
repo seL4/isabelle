@@ -130,7 +130,7 @@ fun make_name_space {SML, exchange} : ML_Name_Space.T =
   let
     fun lookup sel1 sel2 name =
       if SML then
-        Context.the_thread_data ()
+        Context.the_generic_context ()
         |> (fn context => Symtab.lookup (sel1 (#sml_tables (Env.get context))) name)
       else
         Context.thread_data ()
@@ -139,7 +139,7 @@ fun make_name_space {SML, exchange} : ML_Name_Space.T =
 
     fun all sel1 sel2 () =
       (if SML then
-        Context.the_thread_data ()
+        Context.the_generic_context ()
         |> (fn context => Symtab.dest (sel1 (#sml_tables (Env.get context))))
       else
         Context.thread_data ()

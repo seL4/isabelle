@@ -260,7 +260,7 @@ fun load_thy document symbols last_timing
     val text_pos = Position.put_id (Document_ID.print exec_id) (Path.position thy_path);
     val (theory, present, weight) =
       Resources.load_thy document symbols last_timing update_time dir header text_pos text
-        (if name = Context.PureN then [ML_Context.the_global_context ()] else parents);
+        (if name = Context.PureN then [Context.the_global_context ()] else parents);
     fun commit () = update_thy deps theory;
   in
     Result {theory = theory, exec_id = exec_id, present = present, commit = commit, weight = weight}

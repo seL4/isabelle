@@ -1392,11 +1392,10 @@ fun gen_norm_hhf ss ctxt =
   Variable.gen_all ctxt;
 
 val hhf_ss =
-  simpset_of (empty_simpset (Context.proof_of (Context.the_thread_data ()))
-    addsimps Drule.norm_hhf_eqs);
+  simpset_of (empty_simpset (Context.the_local_context ()) addsimps Drule.norm_hhf_eqs);
 
 val hhf_protect_ss =
-  simpset_of (empty_simpset (Context.proof_of (Context.the_thread_data ()))
+  simpset_of (empty_simpset (Context.the_local_context ())
     addsimps Drule.norm_hhf_eqs |> add_eqcong Drule.protect_cong);
 
 in

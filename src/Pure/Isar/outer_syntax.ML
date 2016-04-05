@@ -120,7 +120,7 @@ fun add_command name cmd thy =
         NONE => ()
       | SOME cmd' => err_dup_command name [command_pos cmd, command_pos cmd']);
     val _ =
-      Context_Position.report_generic (ML_Context.the_generic_context ())
+      Context_Position.report_generic (Context.the_generic_context ())
         (command_pos cmd) (command_markup true (name, cmd));
   in Data.map (Symtab.update (name, cmd)) thy end;
 

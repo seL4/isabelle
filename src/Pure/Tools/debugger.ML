@@ -155,7 +155,7 @@ fun eval_setup thread_name index SML context =
 
 fun eval_context thread_name index SML toks =
   let
-    val context = ML_Context.the_generic_context ();
+    val context = Context.the_generic_context ();
     val context1 =
       if SML orelse forall (fn Antiquote.Text tok => ML_Lex.is_improper tok | _ => false) toks
       then context

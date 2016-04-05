@@ -113,7 +113,7 @@ structure Stored_Thms = Theory_Data
   fun merge _ = [];
 );
 
-fun get_stored_thms () = Stored_Thms.get (ML_Context.the_global_context ());
+fun get_stored_thms () = Stored_Thms.get (Context.the_global_context ());
 val get_stored_thm = hd o get_stored_thms;
 
 fun ml_store get (name, ths) =

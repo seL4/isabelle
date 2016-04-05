@@ -155,7 +155,7 @@ fun compose_printer _ Var = "Int.toString"
 
 (*produce compilable string*)
 fun build_check ctxt name (ty, spec) =
-  "Spec_Check.checkGen (ML_Context.the_local_context ()) ("
+  "Spec_Check.checkGen (Context.the_local_context ()) ("
   ^ compose_generator ctxt ty ^ ", SOME (" ^ compose_printer ctxt ty ^ ")) (\""
   ^ name ^ "\", Property.pred (" ^ spec ^ "));";
 

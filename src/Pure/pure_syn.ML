@@ -55,7 +55,7 @@ val _ =
       (fn _ => Toplevel.init_theory (fn () => error "Missing theory initialization")));
 
 
-val bootstrap_thy = ML_Context.the_global_context ();
+val bootstrap_thy = Context.the_global_context ();
 
 val _ = Theory.setup (Config.put_global Outer_Syntax.bootstrap false);
 

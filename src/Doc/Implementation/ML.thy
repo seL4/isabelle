@@ -616,15 +616,15 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{index_ML ML_Context.the_generic_context: "unit -> Context.generic"} \\
+  @{index_ML Context.the_generic_context: "unit -> Context.generic"} \\
   @{index_ML "Context.>>": "(Context.generic -> Context.generic) -> unit"} \\
   @{index_ML ML_Thms.bind_thms: "string * thm list -> unit"} \\
   @{index_ML ML_Thms.bind_thm: "string * thm -> unit"} \\
   \end{mldecls}
 
-    \<^descr> @{ML "ML_Context.the_generic_context ()"} refers to the theory context of
+    \<^descr> @{ML "Context.the_generic_context ()"} refers to the theory context of
     the ML toplevel --- at compile time. ML code needs to take care to refer to
-    @{ML "ML_Context.the_generic_context ()"} correctly. Recall that evaluation
+    @{ML "Context.the_generic_context ()"} correctly. Recall that evaluation
     of a function body is delayed until actual run-time.
 
     \<^descr> @{ML "Context.>>"}~\<open>f\<close> applies context transformation \<open>f\<close> to the implicit
