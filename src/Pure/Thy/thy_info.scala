@@ -14,6 +14,9 @@ object Thy_Info
   sealed case class Dep(
     name: Document.Node.Name,
     header: Document.Node.Header)
+  {
+    override def toString: String = name.toString
+  }
 }
 
 class Thy_Info(resources: Resources)
@@ -94,6 +97,8 @@ class Thy_Info(resources: Resources)
       val dep_files = Par_List.map(loaded _, rev_deps)
       ((Nil: List[Path]) /: dep_files) { case (acc_files, files) => files ::: acc_files }
     }
+
+    override def toString: String = deps.toString
   }
 
   private def require_thys(session: String, initiators: List[Document.Node.Name],
