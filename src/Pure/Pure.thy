@@ -101,16 +101,16 @@ ML \<open>
 local
 
 val _ =
-  Outer_Syntax.command ("ML_file", @{here}) "read and evaluate Isabelle/ML file"
+  Outer_Syntax.command @{command_keyword ML_file} "read and evaluate Isabelle/ML file"
     (Resources.parse_files "ML_file" >> ML_File.ML NONE);
 
 val _ =
-  Outer_Syntax.command ("ML_file_debug", @{here})
+  Outer_Syntax.command @{command_keyword ML_file_debug}
     "read and evaluate Isabelle/ML file (with debugger information)"
     (Resources.parse_files "ML_file_debug" >> ML_File.ML (SOME true));
 
 val _ =
-  Outer_Syntax.command ("ML_file_no_debug", @{here})
+  Outer_Syntax.command @{command_keyword ML_file_no_debug}
     "read and evaluate Isabelle/ML file (no debugger information)"
     (Resources.parse_files "ML_file_no_debug" >> ML_File.ML (SOME false));
 
