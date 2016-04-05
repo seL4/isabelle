@@ -335,5 +335,6 @@ use "Tools/named_theorems.ML";
 use "Tools/jedit.ML";
 
 use_thy "Pure";
+use_thy "ML/ML_Root";
 
 use "ML/ml_pervasive_final.ML";
