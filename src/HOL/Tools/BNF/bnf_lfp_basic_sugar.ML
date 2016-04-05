@@ -33,14 +33,16 @@ fun trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map
     val xtors = [Const (@{const_name xtor}, fpT --> fpT)];
     val co_recs = [Const (@{const_name ctor_rec}, (fpT --> C) --> (fpT --> C))];
     val co_rec_thms = [map_id0_of_bnf fp_bnf RS @{thm ctor_rec}];
+    val co_rec_unique_thm = map_id0_of_bnf fp_bnf RS @{thm ctor_rec_unique};
   in
     {Ts = [fpT], bnfs = [fp_bnf], pre_bnfs = [ID_bnf], absT_infos = [trivial_absT_info_of fpT],
      ctors = xtors, dtors = xtors, xtor_un_folds_legacy = co_recs,
      xtor_co_recs = co_recs, xtor_co_induct = @{thm xtor_induct}, dtor_ctors = @{thms xtor_xtor},
      ctor_dtors = @{thms xtor_xtor}, ctor_injects = @{thms xtor_inject},
-     dtor_injects = @{thms xtor_inject}, xtor_maps = [xtor_map], xtor_map_uniques = [],
-     xtor_setss = [xtor_sets], xtor_rels = [xtor_rel], xtor_un_fold_thms_legacy = co_rec_thms,
-     xtor_co_rec_thms = co_rec_thms, xtor_un_fold_uniques_legacy = [], xtor_co_rec_uniques = [],
+     dtor_injects = @{thms xtor_inject}, xtor_maps = [xtor_map],
+     xtor_map_unique = @{thm xtor_map_unique}, xtor_setss = [xtor_sets], xtor_rels = [xtor_rel],
+     xtor_un_fold_thms_legacy = co_rec_thms, xtor_co_rec_thms = co_rec_thms,
+     xtor_un_fold_unique_legacy = co_rec_unique_thm, xtor_co_rec_unique = co_rec_unique_thm,
      xtor_un_fold_o_maps_legacy = [ctor_rec_o_map], xtor_co_rec_o_maps = [ctor_rec_o_map],
      xtor_un_fold_transfers_legacy = [], xtor_co_rec_transfers = [],
      xtor_rel_co_induct = xtor_rel_induct, dtor_set_inducts = []}

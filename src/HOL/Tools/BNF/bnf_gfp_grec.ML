@@ -2160,7 +2160,7 @@ fun derive_corecUU_base fpT_name lthy =
     val [dtor_ctor] = #dtor_ctors fp_res;
     val [dtor_inject] = #dtor_injects fp_res;
     val [dtor_unfold_thm] = #xtor_un_fold_thms_legacy fp_res;
-    val [dtor_unfold_unique] = #xtor_un_fold_uniques_legacy fp_res;
+    val dtor_unfold_unique = #xtor_un_fold_unique_legacy fp_res;
     val [dtor_unfold_transfer] = #xtor_un_fold_transfers_legacy fp_res;
     val [dtor_rel_thm] = #xtor_rels fp_res;
     val unsig_thm = the_single (the_single (#sel_thmss sig_ctr_sugar));
@@ -2410,7 +2410,7 @@ fun derive_corecUU_step (fpT as Type (fpT_name, res_Ds))
     val [ctor_dtor] = #ctor_dtors fp_res;
     val [dtor_inject] = #dtor_injects fp_res;
     val [dtor_unfold_thm] = #xtor_un_fold_thms_legacy fp_res;
-    val [dtor_unfold_unique] = #xtor_un_fold_uniques_legacy fp_res;
+    val dtor_unfold_unique = #xtor_un_fold_unique_legacy fp_res;
     val [dtor_unfold_transfer] = #xtor_un_fold_transfers_legacy fp_res;
     val fp_k_T_rel_eqs =
       map rel_eq_of_bnf (map_filter (bnf_of lthy) (fold add_type_namesT [fpT, k_T] []));
@@ -2762,7 +2762,7 @@ fun derive_corecUU_merge (fpT as Type (fpT_name, res_Ds))
     val [ctor_dtor] = #ctor_dtors fp_res;
     val [dtor_inject] = #dtor_injects fp_res;
     val [dtor_unfold_thm] = #xtor_un_fold_thms_legacy fp_res;
-    val [dtor_unfold_unique] = #xtor_un_fold_uniques_legacy fp_res;
+    val dtor_unfold_unique = #xtor_un_fold_unique_legacy fp_res;
     val [dtor_unfold_transfer] = #xtor_un_fold_transfers_legacy fp_res;
     val unsig_thm = the_single (the_single (#sel_thmss sig_ctr_sugar));
     val [sig_map_thm] = #map_thms sig_fp_bnf_sugar;

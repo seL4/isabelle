@@ -1745,6 +1745,32 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     fun mk_dtor_map_DEADID_thm dtor_inject map_id0 =
       trans OF [iffD2 OF [dtor_inject, id_apply], map_id0 RS sym];
 
+    fun mk_dtor_map_unique_DEADID_thm () =
+      let
+        val (funs, algs) =
+          HOLogic.conjuncts (HOLogic.dest_Trueprop (Thm.concl_of dtor_unfold_unique_thm))
+          |> map_split HOLogic.dest_eq
+          ||>  snd o strip_comb o hd
+          |> @{apply 2} (map (fst o dest_Var));
+        fun mk_fun_insts T ix = Thm.cterm_of lthy (Var (ix, T --> T));
+        val theta =
+          (funs ~~ @{map 2} mk_fun_insts Ts funs) @ (algs ~~ map (Thm.cterm_of lthy) dtors);
+        val dtor_unfold_dtors = (dtor_unfold_unique_thm OF
+          map (fn thm => mk_trans (thm RS @{thm arg_cong2[of _ _ _ _ "op o", OF _ refl]})
+            @{thm trans[OF id_o o_id[symmetric]]}) map_id0s)
+          |> split_conj_thm |> map mk_sym;
+      in
+        infer_instantiate lthy theta dtor_unfold_unique_thm
+        |> Morphism.thm (Local_Theory.target_morphism lthy)
+        |> unfold_thms lthy dtor_unfold_dtors
+        |> (fn thm => thm OF replicate n sym)
+      end;
+(*
+thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
+  OF trans[OF arg_cong2[of _ _ _ _ "op o", OF pre_x.map_id0 refl] trans[OF id_o o_id[symmetric]]]],
+  OF sym]
+*)
+
     fun mk_dtor_Jrel_DEADID_thm dtor_inject bnf =
       trans OF [rel_eq_of_bnf bnf RS @{thm predicate2_eqD}, dtor_inject] RS sym;
 
@@ -1773,12 +1799,14 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           REPEAT_DETERM (rtac ctxt allI 1) THEN rtac ctxt (dtor_coinduct_thm OF prems) 1)) lthy;
 
     (*register new codatatypes as BNFs*)
-    val (timer, Jbnfs, (dtor_Jmap_o_thms, dtor_Jmap_thms), dtor_Jmap_unique_thms, dtor_Jset_thmss',
+    val (timer, Jbnfs, (dtor_Jmap_o_thms, dtor_Jmap_thms), dtor_Jmap_unique_thm, dtor_Jset_thmss',
       dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_notes, dtor_Jset_induct_thms, lthy) =
       if m = 0 then
         (timer, replicate n DEADID_bnf,
-        map_split (`(mk_pointfree lthy)) (map2 mk_dtor_map_DEADID_thm dtor_inject_thms map_ids), [],
-        replicate n [], map2 mk_dtor_Jrel_DEADID_thm dtor_inject_thms bnfs,
+        map_split (`(mk_pointfree lthy)) (map2 mk_dtor_map_DEADID_thm dtor_inject_thms map_ids),
+        mk_dtor_map_unique_DEADID_thm (),
+        replicate n [],
+        map2 mk_dtor_Jrel_DEADID_thm dtor_inject_thms bnfs,
         mk_Jrel_DEADID_coinduct_thm (), [], [], lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
@@ -2620,7 +2648,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-        (timer, Jbnfs, (Jmap_thms, dtor_Jmap_thms), dtor_Jmap_unique_thms, dtor_Jset_thmss',
+        (timer, Jbnfs, (Jmap_thms, dtor_Jmap_thms), dtor_Jmap_unique_thm, dtor_Jset_thmss',
           dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_common_notes @ Jbnf_notes, dtor_Jset_induct_thms,
           lthy)
       end;
@@ -2696,10 +2724,10 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
        ctors = ctors, dtors = dtors, xtor_un_folds_legacy = unfolds, xtor_co_recs = corecs,
        xtor_co_induct = dtor_coinduct_thm, dtor_ctors = dtor_ctor_thms, ctor_dtors = ctor_dtor_thms,
        ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms, xtor_maps = dtor_Jmap_thms,
-       xtor_map_uniques = dtor_Jmap_unique_thms, xtor_setss = dtor_Jset_thmss',
+       xtor_map_unique = dtor_Jmap_unique_thm, xtor_setss = dtor_Jset_thmss',
        xtor_rels = dtor_Jrel_thms, xtor_un_fold_thms_legacy = dtor_unfold_thms,
-       xtor_co_rec_thms = dtor_corec_thms, xtor_un_fold_uniques_legacy = dtor_unfold_unique_thms,
-       xtor_co_rec_uniques = dtor_corec_unique_thms,
+       xtor_co_rec_thms = dtor_corec_thms, xtor_un_fold_unique_legacy = dtor_unfold_unique_thm,
+       xtor_co_rec_unique = dtor_corec_unique_thm,
        xtor_un_fold_o_maps_legacy = dtor_unfold_o_Jmap_thms,
        xtor_co_rec_o_maps = dtor_corec_o_Jmap_thms,
        xtor_un_fold_transfers_legacy = dtor_unfold_transfer_thms,

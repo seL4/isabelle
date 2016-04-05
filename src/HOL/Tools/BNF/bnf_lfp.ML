@@ -1384,6 +1384,26 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     fun mk_ctor_map_DEADID_thm ctor_inject map_id0 =
       trans OF [id_apply, iffD2 OF [ctor_inject, map_id0 RS sym]];
 
+    fun mk_ctor_map_unique_DEADID_thm () =
+      let
+        val (funs, algs) =
+          HOLogic.conjuncts (HOLogic.dest_Trueprop (Thm.concl_of ctor_fold_unique_thm))
+          |> map_split HOLogic.dest_eq
+          ||>  snd o strip_comb o hd
+          |> @{apply 2} (map (fst o dest_Var));
+        fun mk_fun_insts T ix = Thm.cterm_of lthy (Var (ix, T --> T));
+        val theta =
+          (funs ~~ @{map 2} mk_fun_insts Ts funs) @ (algs ~~ map (Thm.cterm_of lthy) ctors);
+        val ctor_fold_ctors = (ctor_fold_unique_thm OF
+          map (fn thm => mk_trans @{thm id_o} (mk_sym (thm RS
+            @{thm trans[OF arg_cong2[of _ _ _ _ "op o", OF refl] o_id]}))) map_id0s)
+          |> split_conj_thm |> map mk_sym;
+      in
+        infer_instantiate lthy theta ctor_fold_unique_thm
+        |> unfold_thms lthy ctor_fold_ctors
+        |> Morphism.thm (Local_Theory.target_morphism lthy)
+      end;
+
     fun mk_ctor_Irel_DEADID_thm ctor_inject bnf =
       trans OF [ctor_inject, rel_eq_of_bnf bnf RS @{thm predicate2_eqD} RS sym];
 
@@ -1396,11 +1416,12 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
 
     (*register new datatypes as BNFs*)
-    val (timer, Ibnfs, (ctor_Imap_o_thms, ctor_Imap_thms), ctor_Imap_unique_thms, ctor_Iset_thmss',
+    val (timer, Ibnfs, (ctor_Imap_o_thms, ctor_Imap_thms), ctor_Imap_unique_thm, ctor_Iset_thmss',
         ctor_Irel_thms, Ibnf_notes, lthy) =
       if m = 0 then
         (timer, replicate n DEADID_bnf,
-        map_split (`(mk_pointfree lthy)) (map2 mk_ctor_map_DEADID_thm ctor_inject_thms map_ids), [],
+        map_split (`(mk_pointfree lthy)) (map2 mk_ctor_map_DEADID_thm ctor_inject_thms map_ids),
+        mk_ctor_map_unique_DEADID_thm (),
         replicate n [], map2 mk_ctor_Irel_DEADID_thm ctor_inject_thms bnfs, [], lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
@@ -1874,7 +1895,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-        (timer, Ibnfs, (ctor_Imap_o_thms, ctor_Imap_thms), ctor_Imap_unique_thms, ctor_Iset_thmss',
+        (timer, Ibnfs, (ctor_Imap_o_thms, ctor_Imap_thms), ctor_Imap_unique_thm, ctor_Iset_thmss',
           ctor_Irel_thms, Ibnf_common_notes @ Ibnf_notes, lthy)
       end;
 
@@ -1956,10 +1977,10 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
        xtor_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
        ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
        dtor_injects = dtor_inject_thms, xtor_maps = ctor_Imap_thms,
-       xtor_map_uniques = ctor_Imap_unique_thms, xtor_setss = ctor_Iset_thmss',
+       xtor_map_unique = ctor_Imap_unique_thm, xtor_setss = ctor_Iset_thmss',
        xtor_rels = ctor_Irel_thms, xtor_un_fold_thms_legacy = ctor_fold_thms,
-       xtor_co_rec_thms = ctor_rec_thms, xtor_un_fold_uniques_legacy = ctor_fold_unique_thms,
-       xtor_co_rec_uniques = ctor_rec_unique_thms,
+       xtor_co_rec_thms = ctor_rec_thms, xtor_un_fold_unique_legacy = ctor_fold_unique_thm,
+       xtor_co_rec_unique = ctor_rec_unique_thm,
        xtor_un_fold_o_maps_legacy = ctor_fold_o_Imap_thms,
        xtor_co_rec_o_maps = ctor_rec_o_Imap_thms,
        xtor_un_fold_transfers_legacy = ctor_fold_transfer_thms,

@@ -15,6 +15,9 @@ definition xtor :: "'a \<Rightarrow> 'a" where
 lemma xtor_map: "f (xtor x) = xtor (f x)"
   unfolding xtor_def by (rule refl)
 
+lemma xtor_map_unique: "u \<circ> xtor = xtor \<circ> f \<Longrightarrow> u = f"
+  unfolding o_def xtor_def .
+
 lemma xtor_set: "f (xtor x) = f x"
   unfolding xtor_def by (rule refl)
 
@@ -48,6 +51,9 @@ definition ctor_rec :: "'a \<Rightarrow> 'a" where
   "ctor_rec x = x"
 
 lemma ctor_rec: "g = id \<Longrightarrow> ctor_rec f (xtor x) = f ((id_bnf \<circ> g \<circ> id_bnf) x)"
+  unfolding ctor_rec_def id_bnf_def xtor_def comp_def id_def by hypsubst (rule refl)
+
+lemma ctor_rec_unique: "g = id \<Longrightarrow> f \<circ> xtor = s \<circ> (id_bnf \<circ> g \<circ> id_bnf) \<Longrightarrow> f = ctor_rec s"
   unfolding ctor_rec_def id_bnf_def xtor_def comp_def id_def by hypsubst (rule refl)
 
 lemma ctor_rec_def_alt: "f = ctor_rec (f \<circ> id_bnf)"
