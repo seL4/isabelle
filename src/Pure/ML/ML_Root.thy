@@ -10,6 +10,8 @@ keywords "use" "use_debug" "use_no_debug" :: thy_load
   and "use_thy" :: thy_load
 begin
 
+setup \<open>Context.theory_map ML_Env.init_bootstrap\<close>
+
 ML \<open>
 local
 

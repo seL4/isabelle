@@ -7,7 +7,7 @@ Runtime compilation and evaluation.
 signature ML_COMPILER =
 sig
   type flags =
-    {SML: bool, exchange: bool, redirect: bool, verbose: bool,
+    {SML_syntax: bool, SML_env: bool, exchange: bool, redirect: bool, verbose: bool,
       debug: bool option, writeln: string -> unit, warning: string -> unit}
   val debug_flags: bool option -> flags
   val flags: flags
@@ -21,18 +21,19 @@ struct
 (* flags *)
 
 type flags =
-  {SML: bool, exchange: bool, redirect: bool, verbose: bool,
+  {SML_syntax: bool, SML_env: bool, exchange: bool, redirect: bool, verbose: bool,
     debug: bool option, writeln: string -> unit, warning: string -> unit};
 
 fun debug_flags opt_debug : flags =
-  {SML = false, exchange = false, redirect = false, verbose = false,
+  {SML_syntax = false, SML_env = false, exchange = false, redirect = false, verbose = false,
     debug = opt_debug, writeln = writeln, warning = warning};
 
 val flags = debug_flags NONE;
 
 fun verbose b (flags: flags) =
-  {SML = #SML flags, exchange = #exchange flags, redirect = #redirect flags,
-    verbose = b, debug = #debug flags, writeln = #writeln flags, warning = #warning flags};
+  {SML_syntax = #SML_syntax flags, SML_env = #SML_env flags, exchange = #exchange flags,
+    redirect = #redirect flags, verbose = b, debug = #debug flags,
+    writeln = #writeln flags, warning = #warning flags};
 
 
 (* parse trees *)
@@ -144,7 +145,7 @@ fun report_parse_tree redirect depth space parse_tree =
 
 fun eval (flags: flags) pos toks =
   let
-    val space = ML_Env.make_name_space {SML = #SML flags, exchange = #exchange flags};
+    val space = ML_Env.make_name_space {SML = #SML_env flags, exchange = #exchange flags};
     val opt_context = Context.thread_data ();
 
 
@@ -153,7 +154,7 @@ fun eval (flags: flags) pos toks =
     val location_props = op ^ (YXML.output_markup (":", #props (Position.dest pos)));
 
     val input_explode =
-      if #SML flags then String.explode
+      if #SML_syntax flags then String.explode
       else maps (String.explode o Symbol.esc) o Symbol.explode;
 
     val input_buffer =

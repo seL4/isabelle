@@ -197,8 +197,8 @@ fun ML_file_cmd debug files = Toplevel.generic_theory (fn gthy =>
     val provide = Resources.provide (src_path, digest);
     val source = Input.source true (cat_lines lines) (pos, pos);
     val flags: ML_Compiler.flags =
-      {SML = false, exchange = false, redirect = true, verbose = true,
-        debug = debug, writeln = writeln, warning = warning};
+      {SML_syntax = false, SML_env = false, exchange = false, redirect = true,
+        verbose = true, debug = debug, writeln = writeln, warning = warning};
   in
     gthy
     |> ML_Context.exec (fn () => ML_Context.eval_source flags source)
@@ -211,8 +211,8 @@ fun SML_file_cmd debug files = Toplevel.theory (fn thy =>
     val ([{lines, pos, ...}: Token.file], thy') = files thy;
     val source = Input.source true (cat_lines lines) (pos, pos);
     val flags: ML_Compiler.flags =
-      {SML = true, exchange = false, redirect = true, verbose = true,
-        debug = debug, writeln = writeln, warning = warning};
+      {SML_syntax = true, SML_env = true, exchange = false, redirect = true,
+        verbose = true, debug = debug, writeln = writeln, warning = warning};
   in
     thy' |> Context.theory_map
       (ML_Context.exec (fn () => ML_Context.eval_source flags source))
@@ -255,8 +255,8 @@ val _ =
     (Parse.ML_source >> (fn source =>
       let
         val flags: ML_Compiler.flags =
-          {SML = true, exchange = true, redirect = false, verbose = true,
-            debug = NONE, writeln = writeln, warning = warning};
+          {SML_syntax = true, SML_env = true, exchange = true, redirect = false,
+            verbose = true, debug = NONE, writeln = writeln, warning = warning};
       in
         Toplevel.theory
           (Context.theory_map (ML_Context.exec (fn () => ML_Context.eval_source flags source)))
@@ -267,8 +267,8 @@ val _ =
     (Parse.ML_source >> (fn source =>
       let
         val flags: ML_Compiler.flags =
-          {SML = false, exchange = true, redirect = false, verbose = true,
-            debug = NONE, writeln = writeln, warning = warning};
+          {SML_syntax = false, SML_env = false, exchange = true, redirect = false,
+            verbose = true, debug = NONE, writeln = writeln, warning = warning};
       in
         Toplevel.generic_theory
           (ML_Context.exec (fn () => ML_Context.eval_source flags source) #>

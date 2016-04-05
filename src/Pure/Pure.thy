@@ -133,8 +133,8 @@ val _ =
     (Parse.ML_source >> (fn source =>
       let
         val flags: ML_Compiler.flags =
-          {SML = true, exchange = true, redirect = false, verbose = true,
-            debug = NONE, writeln = writeln, warning = warning};
+          {SML_syntax = true, SML_env = true, exchange = true, redirect = false,
+            verbose = true, debug = NONE, writeln = writeln, warning = warning};
       in
         Toplevel.theory
           (Context.theory_map (ML_Context.exec (fn () => ML_Context.eval_source flags source)))
@@ -145,8 +145,8 @@ val _ =
     (Parse.ML_source >> (fn source =>
       let
         val flags: ML_Compiler.flags =
-          {SML = false, exchange = true, redirect = false, verbose = true,
-            debug = NONE, writeln = writeln, warning = warning};
+          {SML_syntax = false, SML_env = false, exchange = true, redirect = false,
+            verbose = true, debug = NONE, writeln = writeln, warning = warning};
       in
         Toplevel.generic_theory
           (ML_Context.exec (fn () => ML_Context.eval_source flags source) #>
