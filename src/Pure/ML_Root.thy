@@ -1,11 +1,11 @@
-(*  Title:      Pure/ML/ML_Root.thy
+(*  Title:      Pure/ML_Root.thy
     Author:     Makarius
 
 Support for ML project ROOT file, with imitation of ML "use" commands.
 *)
 
 theory ML_Root
-imports "../Pure"
+imports Pure
 keywords "use" "use_debug" "use_no_debug" :: thy_load
   and "use_thy" :: thy_load
 begin
