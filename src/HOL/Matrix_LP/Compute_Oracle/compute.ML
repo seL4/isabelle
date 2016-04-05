@@ -582,7 +582,7 @@ in
             case match_aterms varsubst b' a' of
                 NONE => 
                 let
-                    fun mk s = Syntax.string_of_term_global Pure.thy
+                    fun mk s = Syntax.string_of_term_global @{theory Pure}
                       (infer_types (naming_of computer) (encoding_of computer) ty s)
                     val left = "computed left side: "^(mk a')
                     val right = "computed right side: "^(mk b')

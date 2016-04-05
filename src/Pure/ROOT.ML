@@ -226,7 +226,7 @@ use "ML/ml_compiler2.ML";
 
 
 
-(** bootstrap phase 3: towards Pure.thy and final ML toplevel setup *)
+(** bootstrap phase 3: towards theory "Pure" and final ML toplevel setup *)
 
 (*basic proof engine*)
 use "par_tactical.ML";
