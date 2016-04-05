@@ -7,7 +7,7 @@ Support for ML project ROOT file, with imitation of ML "use" commands.
 theory ML_Root
 imports Pure
 keywords "use" "use_debug" "use_no_debug" :: thy_load
-  and "use_thy" :: thy_load
+  and "use_thy" :: thy_load ("thy")
 begin
 
 setup \<open>Context.theory_map ML_Env.init_bootstrap\<close>

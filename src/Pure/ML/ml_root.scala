@@ -23,7 +23,7 @@ object ML_Root
       (USE, Some((Keyword.THY_LOAD, Nil)), None) +
       (USE_DEBUG, Some((Keyword.THY_LOAD, Nil)), None) +
       (USE_NO_DEBUG, Some((Keyword.THY_LOAD, Nil)), None) +
-      (USE_THY, Some((Keyword.THY_LOAD, Nil)), None)
+      (USE_THY, Some((Keyword.THY_LOAD, List("thy"))), None)
 
   private object Parser extends Parse.Parser
   {
