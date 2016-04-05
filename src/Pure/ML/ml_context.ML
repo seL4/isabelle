@@ -6,9 +6,6 @@ ML context and antiquotations.
 
 signature ML_CONTEXT =
 sig
-  val the_generic_context: unit -> Context.generic
-  val the_global_context: unit -> theory
-  val the_local_context: unit -> Proof.context
   val thm: xstring -> thm
   val thms: xstring -> thm list
   val exec: (unit -> unit) -> Context.generic -> Context.generic
@@ -35,12 +32,8 @@ struct
 
 (** implicit ML context **)
 
-val the_generic_context = Context.the_thread_data;
-val the_global_context = Context.theory_of o the_generic_context;
-val the_local_context = Context.proof_of o the_generic_context;
-
-fun thm name = Proof_Context.get_thm (the_local_context ()) name;
-fun thms name = Proof_Context.get_thms (the_local_context ()) name;
+fun thm name = Proof_Context.get_thm (Context.the_local_context ()) name;
+fun thms name = Proof_Context.get_thms (Context.the_local_context ()) name;
 
 fun exec (e: unit -> unit) context =
   (case Context.setmp_thread_data (SOME context) (fn () => (e (); Context.thread_data ())) () of
@@ -123,10 +116,10 @@ fun make_env name visible =
   (ML_Lex.tokenize
     ("structure " ^ name ^ " =\nstruct\n\
      \val ML_context = Context_Position.set_visible " ^ Bool.toString visible ^
-     " (ML_Context.the_local_context ());\n\
+     " (Context.the_local_context ());\n\
      \val ML_print_depth =\n\
-     \  let val default = ML_Options.get_print_depth ()\n\
-     \  in fn () => ML_Options.get_print_depth_default default end;\n"),
+     \  let val default = ML_Print_Depth.get_print_depth ()\n\
+     \  in fn () => ML_Print_Depth.get_print_depth_default default end;\n"),
    ML_Lex.tokenize "end;");
 
 fun reset_env name = ML_Lex.tokenize ("structure " ^ name ^ " = struct end");
@@ -218,7 +211,7 @@ fun eval_file flags path =
   in eval flags pos (ML_Lex.read_pos pos (File.read path)) end;
 
 fun eval_source flags source =
-  eval flags (Input.pos_of source) (ML_Lex.read_source (#SML flags) source);
+  eval flags (Input.pos_of source) (ML_Lex.read_source (#SML_syntax flags) source);
 
 fun eval_in ctxt flags pos ants =
   Context.setmp_thread_data (Option.map Context.Proof ctxt)
@@ -233,7 +226,7 @@ fun expression range name constraint body ants =
     eval ML_Compiler.flags (#1 range)
      (ML_Lex.read "Context.set_thread_data (SOME (let val " @ ML_Lex.read_set_range range name @
       ML_Lex.read (": " ^ constraint ^ " =") @ ants @
-      ML_Lex.read ("in " ^ body ^ " end (ML_Context.the_generic_context ())));")));
+      ML_Lex.read ("in " ^ body ^ " end (Context.the_generic_context ())));")));
 
 end;
 

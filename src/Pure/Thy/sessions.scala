@@ -18,9 +18,6 @@ object Sessions
 {
   /* info */
 
-  val ROOT = Path.explode("ROOT")
-  val ROOTS = Path.explode("ROOTS")
-
   def is_pure(name: String): Boolean = name == "Pure"
 
   sealed case class Info(
@@ -141,6 +138,9 @@ object Sessions
 
   /* parser */
 
+  val ROOT = Path.explode("ROOT")
+  val ROOTS = Path.explode("ROOTS")
+
   private val CHAPTER = "chapter"
   private val SESSION = "session"
   private val IN = "in"
@@ -156,7 +156,7 @@ object Sessions
       (CHAPTER, Keyword.THY_DECL) + (SESSION, Keyword.THY_DECL) +
       IN + DESCRIPTION + OPTIONS + GLOBAL_THEORIES + THEORIES + FILES + DOCUMENT_FILES
 
-  object Parser extends Parse.Parser
+  private object Parser extends Parse.Parser
   {
     private abstract class Entry
     private sealed case class Chapter(name: String) extends Entry

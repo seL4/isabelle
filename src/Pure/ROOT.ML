@@ -23,6 +23,7 @@ use "System/distribution.ML";
 
 use "ML/ml_heap.ML";
 use "ML/ml_profiling.ML";
+use "ML/ml_print_depth0.ML";
 use "ML/ml_pretty.ML";
 use "ML/ml_compiler0.ML";
 use_no_debug "ML/ml_debugger.ML";
@@ -185,6 +186,7 @@ use "assumption.ML";
 use "ML/ml_syntax.ML";
 use "ML/ml_env.ML";
 use "ML/ml_options.ML";
+use "ML/ml_print_depth.ML";
 use_no_debug "ML/exn_debugger.ML";
 use_no_debug "Isar/runtime.ML";
 use "PIDE/execution.ML";
@@ -226,7 +228,7 @@ use "ML/ml_compiler2.ML";
 
 
 
-(** bootstrap phase 3: towards Pure.thy and final ML toplevel setup *)
+(** bootstrap phase 3: towards theory "Pure" and final ML toplevel setup *)
 
 (*basic proof engine*)
 use "par_tactical.ML";
@@ -277,7 +279,7 @@ use "Proof/proof_checker.ML";
 use "Proof/extraction.ML";
 
 (*Isabelle system*)
-use "System/bash.ML";
+use "System/$ISABELLE_WINDOWS_PREFIX/bash.ML";
 use "System/isabelle_system.ML";
 
 
@@ -337,3 +339,4 @@ use "Tools/jedit.ML";
 use_thy "Pure";
 
 use "ML/ml_pervasive_final.ML";
+use_thy "ML_Root";

@@ -101,16 +101,16 @@ ML \<open>
 local
 
 val _ =
-  Outer_Syntax.command ("ML_file", @{here}) "read and evaluate Isabelle/ML file"
+  Outer_Syntax.command @{command_keyword ML_file} "read and evaluate Isabelle/ML file"
     (Resources.parse_files "ML_file" >> ML_File.ML NONE);
 
 val _ =
-  Outer_Syntax.command ("ML_file_debug", @{here})
+  Outer_Syntax.command @{command_keyword ML_file_debug}
     "read and evaluate Isabelle/ML file (with debugger information)"
     (Resources.parse_files "ML_file_debug" >> ML_File.ML (SOME true));
 
 val _ =
-  Outer_Syntax.command ("ML_file_no_debug", @{here})
+  Outer_Syntax.command @{command_keyword ML_file_no_debug}
     "read and evaluate Isabelle/ML file (no debugger information)"
     (Resources.parse_files "ML_file_no_debug" >> ML_File.ML (SOME false));
 
@@ -133,8 +133,8 @@ val _ =
     (Parse.ML_source >> (fn source =>
       let
         val flags: ML_Compiler.flags =
-          {SML = true, exchange = true, redirect = false, verbose = true,
-            debug = NONE, writeln = writeln, warning = warning};
+          {SML_syntax = true, SML_env = true, exchange = true, redirect = false,
+            verbose = true, debug = NONE, writeln = writeln, warning = warning};
       in
         Toplevel.theory
           (Context.theory_map (ML_Context.exec (fn () => ML_Context.eval_source flags source)))
@@ -145,8 +145,8 @@ val _ =
     (Parse.ML_source >> (fn source =>
       let
         val flags: ML_Compiler.flags =
-          {SML = false, exchange = true, redirect = false, verbose = true,
-            debug = NONE, writeln = writeln, warning = warning};
+          {SML_syntax = false, SML_env = false, exchange = true, redirect = false,
+            verbose = true, debug = NONE, writeln = writeln, warning = warning};
       in
         Toplevel.generic_theory
           (ML_Context.exec (fn () => ML_Context.eval_source flags source) #>

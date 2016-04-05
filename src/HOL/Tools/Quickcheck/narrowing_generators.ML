@@ -280,7 +280,7 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
                   val output_value = the_default "NONE"
                     (try (snd o split_last o filter_out (fn s => s = "") o split_lines) response)
                   val ml_code = "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
-                    ^ " (fn () => " ^ output_value ^ ")) (ML_Context.the_generic_context ())))";
+                    ^ " (fn () => " ^ output_value ^ ")) (Context.the_generic_context ())))";
                   val ctxt' = ctxt
                     |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
                     |> Context.proof_map (exec false ml_code);

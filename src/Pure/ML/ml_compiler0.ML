@@ -69,7 +69,7 @@ fun ml_input start_line name txt =
       | input line (#"@" :: #"{" :: #"m" :: #"a" :: #"k" :: #"e" :: #"_" ::
             #"s" :: #"t" :: #"r" :: #"i" :: #"n" :: #"g" :: #"}" :: cs) res =
           input line cs (ML_Pretty.make_string_fn "" :: res)
-      | input line (#"\\" :: #"<" :: cs) res = input line cs ("\\\\<" :: res)
+      | input line (#"\\" :: #"<" :: cs) res = input line cs ("\092\092<" :: res)
       | input line (#"\n" :: cs) res = input (line + 1) cs ("\n" :: res)
       | input line (c :: cs) res = input line cs (str c :: res)
       | input _ [] res = rev res;

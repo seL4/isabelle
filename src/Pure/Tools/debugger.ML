@@ -143,7 +143,7 @@ val context_attempts =
 
 fun evaluate {SML, verbose} =
   ML_Context.eval
-    {SML = SML, exchange = false, redirect = false, verbose = verbose,
+    {SML_syntax = SML, SML_env = SML, exchange = false, redirect = false, verbose = verbose,
       debug = SOME false, writeln = writeln_message, warning = warning_message}
     Position.none;
 
@@ -155,7 +155,7 @@ fun eval_setup thread_name index SML context =
 
 fun eval_context thread_name index SML toks =
   let
-    val context = ML_Context.the_generic_context ();
+    val context = Context.the_generic_context ();
     val context1 =
       if SML orelse forall (fn Antiquote.Text tok => ML_Lex.is_improper tok | _ => false) toks
       then context
@@ -190,7 +190,7 @@ fun print_vals thread_name index SML txt =
 
     fun print x =
       Pretty.from_polyml
-        (ML_Name_Space.displayVal (x, FixedInt.fromInt (ML_Options.get_print_depth ()), space));
+        (ML_Name_Space.displayVal (x, FixedInt.fromInt (ML_Print_Depth.get_print_depth ()), space));
     fun print_all () =
       #allVal (ML_Debugger.debug_local_name_space (the_debug_state thread_name index)) ()
       |> sort_by #1 |> map (Pretty.item o single o print o #2)

@@ -88,7 +88,7 @@ fun value ctxt (get, put, put_ml) (prelude, value) =
   let
     val code = (prelude
       ^ "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
-      ^ " (fn () => " ^ value ^ ")) (ML_Context.the_generic_context ())))");
+      ^ " (fn () => " ^ value ^ ")) (Context.the_generic_context ())))");
     val ctxt' = ctxt
       |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
       |> Context.proof_map (exec ctxt false code);
@@ -539,7 +539,7 @@ fun use_file filepath thy =
       ML_Compiler0.use_text notifying_context
         {line = 0, file = Path.implode filepath, verbose = false, debug = false}
         (File.read filepath);
-    val thy'' = Context.the_theory (Context.the_thread_data ());
+    val thy'' = Context.the_global_context ();
     val names = Loaded_Values.get thy'';
   in (names, thy'') end;
 
