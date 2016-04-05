@@ -60,13 +60,15 @@ struct
 
   (* Standard ML name space *)
 
-  val exclude_structures = ["PolyML", "CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal"];
+  val excluded_values = ["use", "exit"];
+  val excluded_structures = ["PolyML", "CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal"];
 
-  val sml_val = List.filter (fn (a, _) => a <> "use" andalso a <> "exit") (#allVal global ());
+  val sml_val =
+    List.filter (fn (a, _) => List.all (fn b => a <> b) excluded_values) (#allVal global ());
   val sml_type = #allType global ();
   val sml_fixity = #allFix global ();
   val sml_structure =
-    List.filter (fn (a, _) => List.all (fn b => a <> b) exclude_structures) (#allStruct global ());
+    List.filter (fn (a, _) => List.all (fn b => a <> b) excluded_structures) (#allStruct global ());
   val sml_signature = #allSig global ();
   val sml_functor = #allFunct global ();
 end;
