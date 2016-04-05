@@ -118,8 +118,8 @@ fun make_env name visible =
      \val ML_context = Context_Position.set_visible " ^ Bool.toString visible ^
      " (Context.the_local_context ());\n\
      \val ML_print_depth =\n\
-     \  let val default = ML_Options.get_print_depth ()\n\
-     \  in fn () => ML_Options.get_print_depth_default default end;\n"),
+     \  let val default = ML_Print_Depth.get_print_depth ()\n\
+     \  in fn () => ML_Print_Depth.get_print_depth_default default end;\n"),
    ML_Lex.tokenize "end;");
 
 fun reset_env name = ML_Lex.tokenize ("structure " ^ name ^ " = struct end");

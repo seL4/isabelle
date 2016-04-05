@@ -222,6 +222,6 @@ fun load_default () =
       end);
 
 val _ = load_default ();
-val _ = ML_Pretty.print_depth (default_int "ML_print_depth");
+val _ = ML_Print_Depth.set_print_depth (default_int "ML_print_depth");
 
 end;

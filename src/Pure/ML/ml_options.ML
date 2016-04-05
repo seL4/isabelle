@@ -17,10 +17,6 @@ sig
   val debugger_raw: Config.raw
   val debugger: bool Config.T
   val debugger_enabled: Context.generic option -> bool
-  val print_depth_raw: Config.raw
-  val print_depth: int Config.T
-  val get_print_depth: unit -> int
-  val get_print_depth_default: int -> int
 end;
 
 structure ML_Options: ML_OPTIONS =
@@ -61,22 +57,5 @@ val debugger = Config.bool debugger_raw;
 fun debugger_enabled NONE =
       (Options.default_bool (Config.name_of debugger_raw) handle ERROR _ => false)
   | debugger_enabled (SOME context) = Config.get_generic context debugger;
-
-
-(* print depth *)
-
-val print_depth_raw =
-  Config.declare ("ML_print_depth", @{here}) (fn _ => Config.Int (ML_Pretty.get_print_depth ()));
-val print_depth = Config.int print_depth_raw;
-
-fun get_print_depth () =
-  (case Context.thread_data () of
-    NONE => ML_Pretty.get_print_depth ()
-  | SOME context => Config.get_generic context print_depth);
-
-fun get_print_depth_default default =
-  (case Context.thread_data () of
-    NONE => default
-  | SOME context => Config.get_generic context print_depth);
 
 end;

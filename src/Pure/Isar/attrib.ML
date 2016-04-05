@@ -515,11 +515,11 @@ val _ = Theory.setup
   register_config Name_Space.names_long_raw #>
   register_config Name_Space.names_short_raw #>
   register_config Name_Space.names_unique_raw #>
+  register_config ML_Print_Depth.print_depth_raw #>
   register_config ML_Options.source_trace_raw #>
   register_config ML_Options.exception_trace_raw #>
   register_config ML_Options.exception_debugger_raw #>
   register_config ML_Options.debugger_raw #>
-  register_config ML_Options.print_depth_raw #>
   register_config Proof_Context.show_abbrevs_raw #>
   register_config Goal_Display.goals_limit_raw #>
   register_config Goal_Display.show_main_goal_raw #>

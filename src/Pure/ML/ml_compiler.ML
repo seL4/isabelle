@@ -199,7 +199,7 @@ fun eval (flags: flags) pos toks =
 
     (* results *)
 
-    val depth = FixedInt.fromInt (ML_Options.get_print_depth ());
+    val depth = FixedInt.fromInt (ML_Print_Depth.get_print_depth ());
 
     fun apply_result {fixes, types, signatures, structures, functors, values} =
       let
@@ -258,7 +258,7 @@ fun eval (flags: flags) pos toks =
       PolyML.Compiler.CPLineNo (the_default 0 o Position.line_of o get_pos),
       PolyML.Compiler.CPLineOffset (the_default 0 o Position.offset_of o get_pos),
       PolyML.Compiler.CPFileName location_props,
-      PolyML.Compiler.CPPrintDepth ML_Options.get_print_depth,
+      PolyML.Compiler.CPPrintDepth ML_Print_Depth.get_print_depth,
       PolyML.Compiler.CPCompilerResultFun result_fun,
       PolyML.Compiler.CPPrintInAlphabeticalOrder false,
       PolyML.Compiler.CPDebug debug];

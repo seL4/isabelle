@@ -23,6 +23,7 @@ use "System/distribution.ML";
 
 use "ML/ml_heap.ML";
 use "ML/ml_profiling.ML";
+use "ML/ml_print_depth0.ML";
 use "ML/ml_pretty.ML";
 use "ML/ml_compiler0.ML";
 use_no_debug "ML/ml_debugger.ML";
@@ -185,6 +186,7 @@ use "assumption.ML";
 use "ML/ml_syntax.ML";
 use "ML/ml_env.ML";
 use "ML/ml_options.ML";
+use "ML/ml_print_depth.ML";
 use_no_debug "ML/exn_debugger.ML";
 use_no_debug "Isar/runtime.ML";
 use "PIDE/execution.ML";
