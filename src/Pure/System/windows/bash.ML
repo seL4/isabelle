@@ -1,7 +1,7 @@
-(*  Title:      Pure/System/bash.ML
+(*  Title:      Pure/System/windows/bash.ML
     Author:     Makarius
 
-GNU bash processes, with propagation of interrupts -- POSIX version.
+GNU bash processes, with propagation of interrupts -- Windows version.
 *)
 
 signature BASH =
@@ -35,23 +35,17 @@ val process = uninterruptible (fn restore_attributes => fn script =>
         Multithreading.with_attributes Multithreading.private_interrupts (fn _ =>
           let
             val _ = File.write script_path script;
-            val _ = getenv_strict "ISABELLE_BASH_PROCESS";
-            val status =
-              OS.Process.system
-                ("exec \"$ISABELLE_BASH_PROCESS\" " ^ File.bash_path pid_path ^ " \"\"" ^
-                  " bash " ^ File.bash_path script_path ^
-                  " > " ^ File.bash_path out_path ^
-                  " 2> " ^ File.bash_path err_path);
-            val res =
-              (case Posix.Process.fromStatus status of
-                Posix.Process.W_EXITED => Result 0
-              | Posix.Process.W_EXITSTATUS 0wx82 => Signal
-              | Posix.Process.W_EXITSTATUS w => Result (Word8.toInt w)
-              | Posix.Process.W_SIGNALED s =>
-                  if s = Posix.Signal.int then Signal
-                  else Result (256 + LargeWord.toInt (Posix.Signal.toWord s))
-              | Posix.Process.W_STOPPED s =>
-                  Result (512 + LargeWord.toInt (Posix.Signal.toWord s)));
+            val bash_script =
+              "bash " ^ File.bash_path script_path ^
+                " > " ^ File.bash_path out_path ^
+                " 2> " ^ File.bash_path err_path;
+            val bash_process = getenv_strict "ISABELLE_BASH_PROCESS";
+            val rc =
+              Windows.simpleExecute ("",
+                quote (ML_System.platform_path bash_process) ^ " " ^
+                quote (File.platform_path pid_path) ^  " \"\" bash -c " ^ quote bash_script)
+              |> Windows.fromStatus |> SysWord.toInt;
+            val res = if rc = 130 orelse rc = 512 then Signal else Result rc;
           in Synchronized.change result (K res) end
           handle exn =>
             (Synchronized.change result (fn Wait => Signal | res => res); Exn.reraise exn)));
@@ -66,18 +60,22 @@ val process = uninterruptible (fn restore_attributes => fn script =>
       | terminate (SOME pid) =
           let
             fun kill s =
-              (Posix.Process.kill
-                (Posix.Process.K_GROUP (Posix.Process.wordToPid (LargeWord.fromInt pid)), s); true)
-              handle OS.SysErr _ => false;
+              let
+                val cmd = getenv_strict "CYGWIN_ROOT" ^ "\\bin\\bash.exe";
+                val arg = "kill -" ^ s ^ " -" ^ string_of_int pid;
+              in
+                OS.Process.isSuccess (Windows.simpleExecute ("", quote cmd ^ " -c " ^ quote arg))
+                  handle OS.SysErr _ => false
+              end;
 
             fun multi_kill count s =
               count = 0 orelse
-                (kill s; kill (Posix.Signal.fromWord 0w0)) andalso
+                (kill s; kill "0") andalso
                 (OS.Process.sleep (seconds 0.1); multi_kill (count - 1) s);
             val _ =
-              multi_kill 10 Posix.Signal.int andalso
-              multi_kill 10 Posix.Signal.term andalso
-              multi_kill 10 Posix.Signal.kill;
+              multi_kill 10 "INT" andalso
+              multi_kill 10 "TERM" andalso
+              multi_kill 10 "KILL";
           in () end;
 
     fun cleanup () =

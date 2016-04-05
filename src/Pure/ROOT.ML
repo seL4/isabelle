@@ -279,7 +279,7 @@ use "Proof/proof_checker.ML";
 use "Proof/extraction.ML";
 
 (*Isabelle system*)
-use "System/bash.ML";
+use "System/$ISABELLE_WINDOWS_PREFIX/bash.ML";
 use "System/isabelle_system.ML";
 
 
