@@ -16,21 +16,22 @@ local
 val _ =
   Outer_Syntax.command @{command_keyword use}
     "read and evaluate Isabelle/ML or SML file"
-    (Resources.parse_files "use" >> ML_File.use NONE);
+    (Resources.parse_files "use" --| @{keyword ";"} >> ML_File.use NONE);
 
 val _ =
   Outer_Syntax.command @{command_keyword use_debug}
     "read and evaluate Isabelle/ML or SML file (with debugger information)"
-    (Resources.parse_files "use_debug" >> ML_File.use (SOME true));
+    (Resources.parse_files "use_debug" --| @{keyword ";"} >> ML_File.use (SOME true));
 
 val _ =
   Outer_Syntax.command @{command_keyword use_no_debug}
     "read and evaluate Isabelle/ML or SML file (no debugger information)"
-    (Resources.parse_files "use_no_debug" >> ML_File.use (SOME false));
+    (Resources.parse_files "use_no_debug" --| @{keyword ";"} >> ML_File.use (SOME false));
 
 val _ =
   Outer_Syntax.command @{command_keyword use_thy} "undefined dummy command"
-    (Scan.succeed (Toplevel.keep (fn _ => error "Undefined command 'use_thy'")));
+    (Parse.path -- @{keyword ";"} >> (fn _ =>
+      Toplevel.keep (fn _ => error "Undefined command 'use_thy'")));
 
 in end
 \<close>
