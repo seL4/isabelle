@@ -119,7 +119,7 @@ fun is_char s = size s = 1;
 fun is_utf8 s = size s > 0 andalso forall_string (fn c => ord c >= 128) s;
 
 fun raw_symbolic s =
-  String.isPrefix "\<" s andalso String.isSuffix ">" s andalso not (String.isPrefix "\<^" s);
+  String.isPrefix "\092<" s andalso String.isSuffix ">" s andalso not (String.isPrefix "\092<^" s);
 
 fun is_symbolic s =
   s <> open_ andalso s <> close andalso raw_symbolic s;
@@ -131,7 +131,7 @@ fun is_printable s =
   else is_utf8 s orelse raw_symbolic s;
 
 fun is_control s =
-  String.isPrefix "\<^" s andalso String.isSuffix ">" s;
+  String.isPrefix "\092<^" s andalso String.isSuffix ">" s;
 
 
 (* input source control *)
@@ -142,8 +142,8 @@ fun not_eof s = s <> eof;
 val stopper = Scan.stopper (K eof) is_eof;
 
 fun is_malformed s =
-  String.isPrefix "\<" s andalso not (String.isSuffix ">" s)
-  orelse s = "\<>" orelse s = "\<^>";
+  String.isPrefix "\092<" s andalso not (String.isSuffix ">" s)
+  orelse s = "\092<>" orelse s = "\092<^>";
 
 fun malformed_msg s = "Malformed symbolic character: " ^ quote s;
 
@@ -201,9 +201,9 @@ fun raw_chr c =
 fun encode_raw "" = ""
   | encode_raw str =
       let
-        val raw0 = enclose "\<^raw:" ">";
+        val raw0 = enclose "\092<^raw:" ">";
         val raw1 = raw0 o implode;
-        val raw2 = enclose "\<^raw" ">" o string_of_int o ord;
+        val raw2 = enclose "\092<^raw" ">" o string_of_int o ord;
 
         fun encode cs = enc (take_prefix raw_chr cs)
         and enc ([], []) = []
@@ -233,11 +233,11 @@ fun beginning n cs =
 (* decode_raw *)
 
 fun is_raw s =
-  String.isPrefix "\<^raw" s andalso String.isSuffix ">" s;
+  String.isPrefix "\092<^raw" s andalso String.isSuffix ">" s;
 
 fun decode_raw s =
   if not (is_raw s) then error (malformed_msg s)
-  else if String.isPrefix "\<^raw:" s then String.substring (s, 7, size s - 8)
+  else if String.isPrefix "\092<^raw:" s then String.substring (s, 7, size s - 8)
   else chr (#1 (Library.read_int (raw_explode (String.substring (s, 6, size s - 7)))));
 
 
@@ -563,8 +563,8 @@ fun bump_string str =
 
 fun sym_len s =
   if not (is_printable s) then (0: int)
-  else if String.isPrefix "\<long" s then 2
-  else if String.isPrefix "\<Long" s then 2
+  else if String.isPrefix "\092<long" s then 2
+  else if String.isPrefix "\092<Long" s then 2
   else 1;
 
 fun sym_length ss = fold (fn s => fn n => sym_len s + n) ss 0;
