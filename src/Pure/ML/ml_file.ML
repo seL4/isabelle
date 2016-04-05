@@ -8,7 +8,7 @@ signature ML_FILE =
 sig
   val ML: bool option -> (theory -> Token.file list) -> Toplevel.transition -> Toplevel.transition
   val SML: bool option -> (theory -> Token.file list) -> Toplevel.transition -> Toplevel.transition
-  val any: bool option -> (theory -> Token.file list) -> Toplevel.transition -> Toplevel.transition
+  val use: bool option -> (theory -> Token.file list) -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure ML_File: ML_FILE =
@@ -32,7 +32,7 @@ fun command SML debug files = Toplevel.generic_theory (fn gthy =>
 val ML = command (K false);
 val SML = command (K true);
 
-val any =
+val use =
   command (fn path =>
     (case try (#2 o Path.split_ext) path of
       SOME "ML" => false

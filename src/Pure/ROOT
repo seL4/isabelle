@@ -1,5 +1,9 @@
 chapter Pure
 
 session Pure =
-  global_theories Pure
-  files "ROOT.ML"
+  global_theories
+    Pure
+  theories
+    "ML/ML_Root"
+  files
+    "ROOT.ML"
