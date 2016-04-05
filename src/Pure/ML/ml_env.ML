@@ -101,11 +101,11 @@ val init_bootstrap =
             let
               val val2 =
                 fold (fn (x, y) =>
-                  member (op =) ML_Name_Space.excluded_values x ? Symtab.update (x, y))
+                  member (op =) ML_Name_Space.bootstrap_values x ? Symtab.update (x, y))
                 (#allVal ML_Name_Space.global ()) val1;
               val structure2 =
                 fold (fn (x, y) =>
-                  member (op =) ML_Name_Space.excluded_structures x ? Symtab.update (x, y))
+                  member (op =) ML_Name_Space.bootstrap_structures x ? Symtab.update (x, y))
                 (#allStruct ML_Name_Space.global ()) structure1;
             in (val2, type1, fixity1, structure2, signature1, functor1) end);
     in make_data (bootstrap, tables, sml_tables', breakpoints) end);
