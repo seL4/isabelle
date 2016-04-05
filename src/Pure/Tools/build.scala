@@ -173,7 +173,11 @@ object Build
             val syntax = thy_deps.syntax.asInstanceOf[Outer_Syntax]
 
             val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
-            val loaded_files = if (inlined_files) thy_deps.loaded_files else Nil
+            val loaded_files =
+              if (inlined_files)
+                thy_deps.loaded_files :::
+                  (if (Sessions.is_pure(name)) ML_Root.read(info.dir).map(_._2) else Nil)
+              else Nil
 
             val all_files =
               (theory_files ::: loaded_files :::
