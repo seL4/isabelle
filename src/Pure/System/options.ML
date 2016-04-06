@@ -215,9 +215,7 @@ fun load_default () =
   | name =>
       let val path = Path.explode name in
         (case try File.read path of
-          SOME s =>
-            (set_default (decode (YXML.parse_body s));
-             if default_bool "ML_system_bootstrap" then () else ignore (try File.rm path))
+          SOME s => set_default (decode (YXML.parse_body s))
         | NONE => ())
       end);
 
