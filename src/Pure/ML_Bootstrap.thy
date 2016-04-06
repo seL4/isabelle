@@ -1,10 +1,10 @@
-(*  Title:      Pure/ML_Root.thy
+(*  Title:      Pure/ML_Bootstrap.thy
     Author:     Makarius
 
-Support for ML project ROOT file, with imitation of ML "use" commands.
+ML bootstrap environment -- with access to low-level structures!
 *)
 
-theory ML_Root
+theory ML_Bootstrap
 imports Pure
 keywords "use" "use_debug" "use_no_debug" :: thy_load
 begin

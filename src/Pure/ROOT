@@ -4,4 +4,4 @@ session Pure =
   global_theories
     Pure
   theories
-    ML_Root
+    ML_Bootstrap
