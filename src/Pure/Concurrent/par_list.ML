@@ -33,7 +33,7 @@ fun managed_results name f xs =
   if null xs orelse null (tl xs) orelse not (Multithreading.enabled ())
   then map (Exn.capture f) xs
   else
-    uninterruptible (fn restore_attributes => fn () =>
+    Multithreading.uninterruptible (fn restore_attributes => fn () =>
       let
         val (group, pri) =
           (case Future.worker_task () of

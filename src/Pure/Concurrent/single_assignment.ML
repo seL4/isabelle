@@ -48,7 +48,7 @@ fun assign (v as Var {name, lock, cond, var}) x =
     (case peek v of
       SOME _ => raise Fail ("Duplicate assignment to " ^ name)
     | NONE =>
-        uninterruptible (fn _ => fn () =>
+        Multithreading.uninterruptible (fn _ => fn () =>
          (SingleAssignment.saset (var, x); ConditionVar.broadcast cond)) ()));
 
 end;

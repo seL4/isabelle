@@ -187,7 +187,7 @@ end;
 val default_modes1 = [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN];
 val default_modes2 = [Symbol.xsymbolsN, isabelle_processN, Pretty.symbolicN];
 
-val init_protocol = uninterruptible (fn _ => fn socket =>
+val init_protocol = Multithreading.uninterruptible (fn _ => fn socket =>
   let
     val _ = SHA1.test_samples ()
       handle exn as Fail msg => (Output.physical_stderr (msg ^ "\n"); Exn.reraise exn);

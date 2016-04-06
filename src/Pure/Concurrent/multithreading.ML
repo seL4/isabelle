@@ -4,21 +4,16 @@
 Multithreading in Poly/ML (cf. polyml/basis/Thread.sml).
 *)
 
-signature BASIC_MULTITHREADING =
-sig
-  val interruptible: ('a -> 'b) -> 'a -> 'b
-  val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
-end;
-
 signature MULTITHREADING =
 sig
-  include BASIC_MULTITHREADING
   val no_interrupts: Thread.threadAttribute list
   val public_interrupts: Thread.threadAttribute list
   val private_interrupts: Thread.threadAttribute list
   val sync_interrupts: Thread.threadAttribute list -> Thread.threadAttribute list
   val interrupted: unit -> unit  (*exception Interrupt*)
   val with_attributes: Thread.threadAttribute list -> (Thread.threadAttribute list -> 'a) -> 'a
+  val interruptible: ('a -> 'b) -> 'a -> 'b
+  val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
   val max_threads_value: unit -> int
   val max_threads_update: int -> unit
   val enabled: unit -> bool
@@ -74,9 +69,6 @@ fun with_attributes new_atts e =
       (Thread.setAttributes (safe_interrupts new_atts); e orig_atts)) ();
     val _ = Thread.setAttributes orig_atts;
   in Exn.release result end;
-
-
-(* portable wrappers *)
 
 fun interruptible f x = with_attributes public_interrupts (fn _ => f x);
 
@@ -179,6 +171,3 @@ val serial = uninterruptible (fn _ => fn () =>
 end;
 
 end;
-
-structure Basic_Multithreading: BASIC_MULTITHREADING = Multithreading;
-open Basic_Multithreading;

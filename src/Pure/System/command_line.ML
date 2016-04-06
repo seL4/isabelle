@@ -14,7 +14,7 @@ structure Command_Line: COMMAND_LINE =
 struct
 
 fun tool body =
-  uninterruptible (fn restore_attributes => fn () =>
+  Multithreading.uninterruptible (fn restore_attributes => fn () =>
     let
       val rc =
         restore_attributes body () handle exn =>

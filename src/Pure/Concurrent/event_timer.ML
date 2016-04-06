@@ -109,7 +109,7 @@ fun manager_check manager =
       manager_loop);
 
 fun shutdown () =
-  uninterruptible (fn restore_attributes => fn () =>
+  Multithreading.uninterruptible (fn restore_attributes => fn () =>
     if Synchronized.change_result state (fn st as State {requests, manager, ...} =>
       if is_shutdown Normal st then (false, st)
       else if is_shutdown Shutdown_Ack st orelse is_shutdown_req st then
@@ -144,7 +144,7 @@ fun cancel req =
       val manager' = manager_check manager;
     in (canceled, make_state (requests', status, manager')) end);
 
-val future = uninterruptible (fn _ => fn time =>
+val future = Multithreading.uninterruptible (fn _ => fn time =>
   let
     val req: request Single_Assignment.var = Single_Assignment.var "request";
     fun abort () = ignore (cancel (Single_Assignment.await req));

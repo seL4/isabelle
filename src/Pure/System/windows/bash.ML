@@ -12,7 +12,7 @@ end;
 structure Bash: BASH =
 struct
 
-val process = uninterruptible (fn restore_attributes => fn script =>
+val process = Multithreading.uninterruptible (fn restore_attributes => fn script =>
   let
     datatype result = Wait | Signal | Result of int;
     val result = Synchronized.var "bash_result" Wait;

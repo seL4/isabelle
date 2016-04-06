@@ -227,7 +227,7 @@ fun debugger_command thread_name =
 in
 
 fun debugger_loop thread_name =
-  uninterruptible (fn restore_attributes => fn () =>
+  Multithreading.uninterruptible (fn restore_attributes => fn () =>
     let
       fun loop () =
         (debugger_state thread_name; if debugger_command thread_name then loop () else ());

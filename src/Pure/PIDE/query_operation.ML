@@ -19,7 +19,7 @@ fun register {name, pri} f =
   Command.print_function (name ^ "_query")
     (fn {args = instance :: args, ...} =>
       SOME {delay = NONE, pri = pri, persistent = false, strict = false,
-        print_fn = fn _ => uninterruptible (fn restore_attributes => fn state =>
+        print_fn = fn _ => Multithreading.uninterruptible (fn restore_attributes => fn state =>
           let
             fun output_result s = Output.result [(Markup.instanceN, instance)] [s];
             fun status m = output_result (Markup.markup_only m);

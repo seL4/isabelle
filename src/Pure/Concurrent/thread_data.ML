@@ -39,7 +39,8 @@ end;
 
 (* thread attributes *)
 
-local
+structure Multithreading =
+struct
 
 val no_interrupts =
   [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer];
@@ -56,8 +57,6 @@ fun with_attributes new_atts e =
       (Thread.setAttributes (safe_interrupts new_atts); e orig_atts)) ();
     val _ = Thread.setAttributes orig_atts;
   in Exn.release result end;
-
-in
 
 fun uninterruptible f x =
   with_attributes no_interrupts (fn atts =>
@@ -81,7 +80,7 @@ fun get (Var tag) =
 fun put (Var tag) data = Thread.setLocal (tag, data);
 
 fun setmp v data f x =
-  uninterruptible (fn restore_attributes => fn () =>
+  Multithreading.uninterruptible (fn restore_attributes => fn () =>
     let
       val orig_data = get v;
       val _ = put v data;
