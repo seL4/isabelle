@@ -63,7 +63,7 @@ struct
   val bootstrap_values =
     ["use", "exit", "ML_system_pretty", "ML_system_pp", "ML_system_overload"];
   val bootstrap_structures =
-    ["PolyML", "CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal"];
+    ["PolyML", "CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal", "Thread_Data"];
 
 
   (* Standard ML environment *)

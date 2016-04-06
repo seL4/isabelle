@@ -12,7 +12,6 @@ use "System/distribution.ML";
 use "General/exn.ML";
 
 use "Concurrent/multithreading.ML";
-use "Concurrent/thread_data.ML";
 use "Concurrent/unsynchronized.ML";
 
 use "ML/ml_heap.ML";
