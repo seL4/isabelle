@@ -12,7 +12,6 @@ sig
   val sync_interrupts: Thread.threadAttribute list -> Thread.threadAttribute list
   val interrupted: unit -> unit  (*exception Interrupt*)
   val with_attributes: Thread.threadAttribute list -> (Thread.threadAttribute list -> 'a) -> 'a
-  val interruptible: ('a -> 'b) -> 'a -> 'b
   val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
   val max_threads_value: unit -> int
   val max_threads_update: int -> unit
@@ -69,8 +68,6 @@ fun with_attributes new_atts e =
       (Thread.setAttributes (safe_interrupts new_atts); e orig_atts)) ();
     val _ = Thread.setAttributes orig_atts;
   in Exn.release result end;
-
-fun interruptible f x = with_attributes public_interrupts (fn _ => f x);
 
 fun uninterruptible f x =
   with_attributes no_interrupts (fn atts =>
