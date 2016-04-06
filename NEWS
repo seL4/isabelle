@@ -235,8 +235,7 @@ This is particularly useful for conditional compilation, without
 requiring separate files.
 
 * Low-level ML system structures (like PolyML and RunCall) are no longer
-exposed to Isabelle/ML user-space. The system option ML_system_bootstrap
-allows to override this for special test situations.
+exposed to Isabelle/ML user-space. Potential INCOMPATIBILITY.
 
 * Antiquotation @{make_string} is available during Pure bootstrap --
 with approximative output quality.

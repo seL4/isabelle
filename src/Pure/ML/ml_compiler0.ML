@@ -154,4 +154,4 @@ ML_Compiler0.use_text
        ("addPrettyPrinter", "ML_system_pp"),
        ("addOverload", "ML_system_overload")]))
   {debug = false, file = "", line = 0, verbose = false}
-  "open PolyML RunCall";
+  "open PolyML RunCall" handle ERROR _ => ();
