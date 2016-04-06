@@ -5,5 +5,3 @@ session Pure =
     Pure
   theories
     ML_Root
-  files
-    "ROOT.ML"

@@ -175,8 +175,8 @@ object Build
             val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
             val loaded_files =
               if (inlined_files)
-                thy_deps.loaded_files :::
-                  (if (Sessions.is_pure(name)) ML_Root.read(info.dir).map(_._2) else Nil)
+                (if (Sessions.pure_name(name)) Sessions.pure_files(info.dir) else Nil) :::
+                  thy_deps.loaded_files
               else Nil
 
             val all_files =
@@ -256,12 +256,13 @@ object Build
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
         val process =
-          if (Sessions.is_pure(name)) {
+          if (Sessions.pure_name(name)) {
+            val roots = Sessions.pure_roots.flatMap(root => List("--use", File.platform_path(root)))
             val eval =
               "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default ();" +
               " Session.shutdown (); ML_Heap.share_common_data (); " + output_save_state + "));"
             ML_Process(info.options,
-              raw_ml_system = true, args = List("--use", "ROOT.ML", "--eval", eval),
+              raw_ml_system = true, args = roots ::: List("--eval", eval),
               cwd = info.dir.file, env = env, tree = Some(tree), store = store)
           }
           else {
@@ -316,7 +317,7 @@ object Build
     {
       val result = future_result.join
 
-      if (result.ok && !Sessions.is_pure(name))
+      if (result.ok && !Sessions.pure_name(name))
         Present.finish(progress, store.browser_info, graph_file, info, name)
 
       graph_file.delete
@@ -596,7 +597,7 @@ object Build
                 val ancestor_results = selected_tree.ancestors(name).map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_stamp)
 
-                val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
+                val do_output = build_heap || Sessions.pure_name(name) || queue.is_inner(name)
 
                 val (current, heap_stamp) =
                 {
@@ -673,7 +674,7 @@ object Build
       val browser_chapters =
         (for {
           (name, result) <- results0.iterator
-          if result.ok && !Sessions.is_pure(name)
+          if result.ok && !Sessions.pure_name(name)
           info = full_tree(name)
           if info.options.bool("browser_info")
         } yield (info.chapter, (name, info.description))).toList.groupBy(_._1).

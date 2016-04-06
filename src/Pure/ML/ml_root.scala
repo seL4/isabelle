@@ -11,8 +11,6 @@ object ML_Root
 {
   /* parser */
 
-  val ROOT_ML = Path.explode("ROOT.ML")
-
   val USE = "use"
   val USE_DEBUG = "use_debug"
   val USE_NO_DEBUG = "use_no_debug"
@@ -27,27 +25,23 @@ object ML_Root
 
   private object Parser extends Parse.Parser
   {
-    val entry: Parser[(String, String)] =
-      (command(USE) | command(USE_DEBUG) | command(USE_NO_DEBUG) | command(USE_THY)) ~!
-        (string ~ $$$(";")) ^^ { case a ~ (b ~ _) => (a, b) }
+    val entry: Parser[Path] =
+      command(USE_THY) ~! string ^^
+        { case _ ~ a => Resources.thy_path(Path.explode(a)) } |
+      (command(USE) | command(USE_DEBUG) | command(USE_NO_DEBUG)) ~! string ^^
+        { case _ ~ a => Path.explode(a) }
 
-    def parse(in: Token.Reader): ParseResult[List[(String, String)]] =
-      parse_all(rep(entry), in)
+    val entries: Parser[List[Path]] =
+      rep(entry <~ $$$(";"))
   }
 
-  def read(dir: Path): List[(String, Path)] =
+  def read_files(root: Path): List[Path] =
   {
-    val root = dir + ROOT_ML
-
     val toks = Token.explode(syntax.keywords, File.read(root))
     val start = Token.Pos.file(root.implode)
 
-    Parser.parse(Token.reader(toks, start)) match {
-      case Parser.Success(entries, _) =>
-        for ((a, b) <- entries) yield {
-          val path = dir + Path.explode(b)
-          (a, if (a == USE_THY) Resources.thy_path(path) else path)
-        }
+    Parser.parse_all(Parser.entries, Token.reader(toks, start)) match {
+      case Parser.Success(entries, _) => entries
       case bad => error(bad.toString)
     }
   }

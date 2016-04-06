@@ -1,25 +1,18 @@
 (*** Isabelle/Pure bootstrap ***)
 
+use "ML/ml_name_space.ML";
+
+
 (** bootstrap phase 0: Poly/ML setup **)
 
-(* initial ML name space *)
-
-use "ML/ml_name_space.ML";
-use "ML/ml_pervasive_initial.ML";
+use "ML/ml_pervasive0.ML";
 use "ML/ml_system.ML";
-
-
-(* multithreading *)
+use "System/distribution.ML";
 
 use "General/exn.ML";
 
 use "Concurrent/multithreading.ML";
 use "Concurrent/unsynchronized.ML";
-
-
-(* ML system *)
-
-use "System/distribution.ML";
 
 use "ML/ml_heap.ML";
 use "ML/ml_profiling.ML";
@@ -335,8 +328,3 @@ use "Tools/simplifier_trace.ML";
 use_no_debug "Tools/debugger.ML";
 use "Tools/named_theorems.ML";
 use "Tools/jedit.ML";
-
-use_thy "Pure";
-
-use "ML/ml_pervasive_final.ML";
-use_thy "ML_Root";

@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML/ml_pervasive_initial.ML
+(*  Title:      Pure/ML/ml_pervasive0.ML
     Author:     Makarius
 
 Pervasive ML environment: initial setup.

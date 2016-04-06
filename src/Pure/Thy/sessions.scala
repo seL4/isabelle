@@ -16,9 +16,17 @@ import scala.collection.mutable
 
 object Sessions
 {
-  /* info */
+  /* Pure */
 
-  def is_pure(name: String): Boolean = name == "Pure"
+  def pure_name(name: String): Boolean = name == "Pure"
+
+  val pure_roots: List[Path] = List("ROOT0.ML", "ROOT.ML", "ROOT1.ML").map(Path.explode(_))
+
+  def pure_files(dir: Path): List[Path] =
+    (pure_roots ::: pure_roots.flatMap(root => ML_Root.read_files(dir + root))).map(dir + _)
+
+
+  /* info */
 
   sealed case class Info(
     chapter: String,
@@ -221,8 +229,8 @@ object Sessions
           val name = entry.name
 
           if (name == "") error("Bad session name")
-          if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
-          if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
+          if (pure_name(name) && entry.parent.isDefined) error("Illegal parent session")
+          if (!pure_name(name) && !entry.parent.isDefined) error("Missing parent session")
 
           val session_options = options ++ entry.options
 
