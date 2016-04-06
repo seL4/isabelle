@@ -66,7 +66,11 @@ object Thy_Header extends Parse.Parser
     Outer_Syntax.init().add_keywords(bootstrap_header)
 
 
-  /* theory file name */
+  /* file name */
+
+  val ML_BOOTSTRAP = "ML_Bootstrap"
+  val ML_ROOT = "ML_Root"
+  val ROOT_ML = "ROOT.ML"
 
   private val Base_Name = new Regex(""".*?([^/\\:]+)""")
   private val Thy_Name = new Regex(""".*?([^/\\:]+)\.thy""")
@@ -75,7 +79,11 @@ object Thy_Header extends Parse.Parser
     s match { case Base_Name(name) => name case _ => error("Malformed import: " + quote(s)) }
 
   def thy_name(s: String): Option[String] =
-    s match { case Thy_Name(name) => Some(name) case _ => None }
+    s match {
+      case Thy_Name(name) => Some(name)
+      case Base_Name(ROOT_ML) => Some(ML_ROOT)
+      case _ => None
+    }
 
 
   /* header */

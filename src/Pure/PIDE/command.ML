@@ -28,6 +28,7 @@ sig
   val print_function: string -> print_function -> unit
   val no_print_function: string -> unit
   type exec = eval * print list
+  val init_exec: theory option -> exec
   val no_exec: exec
   val exec_ids: exec option -> Document_ID.exec list
   val exec: Document_ID.execution -> exec -> unit
@@ -153,7 +154,11 @@ end;
 (* eval *)
 
 type eval_state = {failed: bool, command: Toplevel.transition, state: Toplevel.state};
-val init_eval_state = {failed = false, command = Toplevel.empty, state = Toplevel.toplevel};
+
+fun init_eval_state opt_thy =
+ {failed = false,
+  command = Toplevel.empty,
+  state = (case opt_thy of NONE => Toplevel.toplevel | SOME thy => Toplevel.theory_toplevel thy)};
 
 datatype eval = Eval of {exec_id: Document_ID.exec, eval_process: eval_state lazy};
 
@@ -380,8 +385,11 @@ val _ =
 (* combined execution *)
 
 type exec = eval * print list;
-val no_exec: exec =
-  (Eval {exec_id = Document_ID.none, eval_process = Lazy.value init_eval_state}, []);
+
+fun init_exec opt_thy : exec =
+  (Eval {exec_id = Document_ID.none, eval_process = Lazy.value (init_eval_state opt_thy)}, []);
+
+val no_exec = init_exec NONE;
 
 fun exec_ids NONE = []
   | exec_ids (SOME (eval, prints)) = eval_exec_id eval :: map print_exec_id prints;

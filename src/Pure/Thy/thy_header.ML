@@ -17,6 +17,9 @@ sig
   val add_keywords: keywords -> theory -> theory
   val get_keywords: theory -> Keyword.keywords
   val get_keywords': Proof.context -> Keyword.keywords
+  val ml_bootstrapN: string
+  val ml_rootN: string
+  val root_mlN: string
   val args: header parser
   val read: Position.T -> string -> header
   val read_tokens: Token.T list -> header
@@ -101,6 +104,13 @@ val get_keywords' = get_keywords o Proof_Context.theory_of;
 
 
 (** concrete syntax **)
+
+(* names *)
+
+val ml_bootstrapN = "ML_Bootstrap";
+val ml_rootN = "ML_Root";
+val root_mlN = "ROOT.ML";
+
 
 (* header args *)
 

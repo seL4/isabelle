@@ -210,9 +210,6 @@ fun the_entry node id =
     NONE => err_undef "command entry" id
   | SOME (exec, _) => exec);
 
-fun the_default_entry node (SOME id) = (id, the_default Command.no_exec (the_entry node id))
-  | the_default_entry _ NONE = (Document_ID.none, Command.no_exec);
-
 fun assign_entry (command_id, exec) node =
   if is_none (Entries.lookup (get_entries node) command_id) then node
   else map_entries (Entries.update (command_id, exec)) node;
@@ -548,6 +545,15 @@ fun init_theory deps node span =
     val _ = Position.reports (map #2 parents_reports);
   in Resources.begin_theory master_dir header parents end;
 
+fun check_ml_root node =
+  if #1 (#name (#header (get_header node))) = Thy_Header.ml_rootN then
+    let
+      val master_dir = master_directory node;
+      val header = #header (get_header node);
+      val parent = Thy_Info.get_theory Thy_Header.ml_bootstrapN;
+    in SOME (Resources.begin_theory master_dir header [parent]) end
+  else NONE;
+
 fun check_theory full name node =
   is_some (loaded_theory name) orelse
   null (#errors (get_header node)) andalso (not full orelse is_some (get_result node));
@@ -599,7 +605,7 @@ fun last_common keywords state node_required node0 node =
       else (common, flags);
   in (assign_update', common', flags') end;
 
-fun illegal_init _ = error "Illegal theory header after end of theory";
+fun illegal_init _ = error "Illegal theory header";
 
 fun new_exec keywords state node proper_init command_id' (assign_update, command_exec, init) =
   if not proper_init andalso is_none init then NONE
@@ -651,6 +657,7 @@ fun update old_version_id new_version_id edits state = Runtime.exn_trace_system 
               timeit ("Document.update " ^ name) (fn () =>
                 Runtime.exn_trace_system (fn () =>
                   let
+                    val ml_root = check_ml_root node;
                     val keywords = the_default (Session.get_keywords ()) (get_keywords node);
                     val imports = map (apsnd Future.join) deps;
                     val imports_result_changed = exists (#4 o #1 o #2) imports;
@@ -663,13 +670,18 @@ fun update old_version_id new_version_id edits state = Runtime.exn_trace_system 
                         val node0 = node_of old_version name;
                         val init = init_theory imports node;
                         val proper_init =
-                          check_theory false name node andalso
-                          forall (fn (name, (_, node)) => check_theory true name node) imports;
+                          is_some ml_root orelse
+                            check_theory false name node andalso
+                            forall (fn (name, (_, node)) => check_theory true name node) imports;
 
                         val (print_execs, common, (still_visible, initial)) =
                           if imports_result_changed then (assign_update_empty, NONE, (true, true))
                           else last_common keywords state node_required node0 node;
-                        val common_command_exec = the_default_entry node common;
+
+                        val common_command_exec =
+                          (case common of
+                            SOME id => (id, the_default Command.no_exec (the_entry node id))
+                          | NONE => (Document_ID.none, Command.init_exec ml_root));
 
                         val (updated_execs, (command_id', (eval', _)), _) =
                           (print_execs, common_command_exec, if initial then SOME init else NONE)
@@ -727,4 +739,3 @@ fun state () = Synchronized.value global_state;
 val change_state = Synchronized.change global_state;
 
 end;
-

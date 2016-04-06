@@ -77,7 +77,11 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   {
     GUI_Thread.require {}
 
-    if (is_theory) {
+    if (node_name.theory == Thy_Header.ML_ROOT)
+      Document.Node.Header(
+        List((PIDE.resources.import_name("", node_name, Thy_Header.ML_BOOTSTRAP), Position.none)),
+          Nil, Nil)
+    else if (is_theory) {
       JEdit_Lib.buffer_lock(buffer) {
         Token_Markup.line_token_iterator(
           Thy_Header.bootstrap_syntax, buffer, 0, buffer.getLineCount).collectFirst(
