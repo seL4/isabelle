@@ -140,7 +140,8 @@ Usage: isabelle process [OPTIONS]
     val more_args = getopts(args)
     if (args.isEmpty || !more_args.isEmpty) getopts.usage()
 
-    ML_Process(options, logic = logic, args = eval_args, dirs = dirs, modes = modes).
+    val rc = ML_Process(options, logic = logic, args = eval_args, dirs = dirs, modes = modes).
       result().print_stdout.rc
+    sys.exit(rc)
   })
 }
