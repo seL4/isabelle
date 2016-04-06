@@ -10,6 +10,7 @@ keywords "use" "use_debug" "use_no_debug" :: thy_load
 begin
 
 setup \<open>Context.theory_map ML_Env.init_bootstrap\<close>
+SML_import \<open>structure Thread_Data = Thread_Data_Virtual\<close>
 
 ML \<open>
 local

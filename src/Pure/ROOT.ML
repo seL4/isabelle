@@ -99,6 +99,7 @@ use "ML/exn_properties.ML";
 
 use "ML/ml_statistics.ML";
 
+use "Concurrent/thread_data_virtual.ML";
 use "Concurrent/standard_thread.ML";
 use "Concurrent/single_assignment.ML";
 
