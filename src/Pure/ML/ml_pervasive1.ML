@@ -10,8 +10,6 @@ else
     (remove (op =) "PolyML" ML_Name_Space.bootstrap_structures);
    ML \<open>structure PolyML = struct structure IntInf = PolyML.IntInf end\<close>);
 
-structure Output: OUTPUT = Output;  (*seal system channels!*)
-
 Proofterm.proofs := 0;
 
 Context.set_thread_data NONE;

@@ -193,3 +193,5 @@ val _ =
     in Output.protocol_message (Markup.build_theories_result id) [result] end);
 
 end;
+
+structure Output: OUTPUT = Output;  (*seal system channels!*)
