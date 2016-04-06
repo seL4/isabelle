@@ -147,11 +147,13 @@ val {use, use_debug, use_no_debug} =
 
 (* export type-dependent functions *)
 
-ML_Compiler0.use_text
-  (ML_Compiler0.make_context
-    (ML_Name_Space.global_values
-      [("prettyRepresentation", "ML_system_pretty"),
-       ("addPrettyPrinter", "ML_system_pp"),
-       ("addOverload", "ML_system_overload")]))
-  {debug = false, file = "", line = 0, verbose = false}
-  "open PolyML RunCall" handle ERROR _ => ();
+if Thread_Data.is_virtual then ()
+else
+  ML_Compiler0.use_text
+    (ML_Compiler0.make_context
+      (ML_Name_Space.global_values
+        [("prettyRepresentation", "ML_system_pretty"),
+         ("addPrettyPrinter", "ML_system_pp"),
+         ("addOverload", "ML_system_overload")]))
+    {debug = false, file = "", line = 0, verbose = false}
+    "open PolyML RunCall";

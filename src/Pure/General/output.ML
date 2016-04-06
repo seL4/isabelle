@@ -74,7 +74,8 @@ local
   val modes = Synchronized.var "Output.modes" (Symtab.make [("", default)]);
 in
   fun add_mode name output escape =
-    Synchronized.change modes (Symtab.update_new (name, {output = output, escape = escape}));
+    if Thread_Data.is_virtual then ()
+    else Synchronized.change modes (Symtab.update_new (name, {output = output, escape = escape}));
   fun get_mode () =
     the_default default
       (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));
