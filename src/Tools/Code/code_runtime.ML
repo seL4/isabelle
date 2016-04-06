@@ -86,9 +86,9 @@ fun exec ctxt verbose code =
 
 fun value ctxt (get, put, put_ml) (prelude, value) =
   let
-    val code = (prelude
-      ^ "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
-      ^ " (fn () => " ^ value ^ ")) (Context.the_generic_context ())))");
+    val code =
+      prelude ^ "\nval _ = Context.put_generic_context (SOME (Context.map_proof (" ^
+      put_ml ^ " (fn () => " ^ value ^ ")) (Context.the_generic_context ())))";
     val ctxt' = ctxt
       |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
       |> Context.proof_map (exec ctxt false code);
@@ -534,7 +534,7 @@ in
 fun use_file filepath thy =
   let
     val thy' = Loaded_Values.put [] thy;
-    val _ = Context.set_thread_data ((SOME o Context.Theory) thy');
+    val _ = Context.put_generic_context ((SOME o Context.Theory) thy');
     val _ =
       ML_Compiler0.use_text notifying_context
         {line = 0, file = Path.implode filepath, verbose = false, debug = false}

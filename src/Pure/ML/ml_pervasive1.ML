@@ -11,4 +11,4 @@ structure PolyML = struct structure IntInf = PolyML.IntInf end;
 
 Proofterm.proofs := 0;
 
-Context.set_thread_data NONE;
+Context.put_generic_context NONE;

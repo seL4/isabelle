@@ -134,7 +134,7 @@ fun determine_type ctxt s =
       print = fn r => return := r,
       error = #error ML_Env.context}
     val _ =
-      Context.setmp_thread_data (SOME (Context.Proof ctxt))
+      Context.setmp_generic_context (SOME (Context.Proof ctxt))
         (fn () =>
           ML_Compiler0.use_text context
             {line = 0, file = "generated code", verbose = true, debug = false} s) ()
@@ -144,7 +144,7 @@ fun determine_type ctxt s =
 
 (*call the compiler and run the test*)
 fun run_test ctxt s =
-  Context.setmp_thread_data (SOME (Context.Proof ctxt))
+  Context.setmp_generic_context (SOME (Context.Proof ctxt))
     (fn () =>
       ML_Compiler0.use_text ML_Env.context
         {line = 0, file = "generated code", verbose = false, debug = false} s) ();

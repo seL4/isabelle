@@ -39,7 +39,7 @@ fun pp_context ctxt =
   else Pretty.str "<context>");
 
 fun default_context mk_thy =
-  (case Context.thread_data () of
+  (case Context.get_generic_context () of
     SOME (Context.Proof ctxt) => ctxt
   | SOME (Context.Theory thy) =>
       (case try Syntax.init_pretty_global thy of

@@ -355,8 +355,7 @@ val parse_tactic =
              ML_Lex.read_source false source);
         val tac = the_tactic context';
       in
-        fn phi =>
-          set_tactic (fn _ => Context.setmp_thread_data (SOME context) (tac phi))
+        fn phi => set_tactic (fn _ => Context.setmp_generic_context (SOME context) (tac phi))
       end)) >> (fn decl => Morphism.form (the_tactic (Morphism.form decl context))));
 
 

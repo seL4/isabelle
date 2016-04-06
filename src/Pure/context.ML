@@ -73,9 +73,9 @@ sig
   val theory_of: generic -> theory  (*total*)
   val proof_of: generic -> Proof.context  (*total*)
   (*thread data*)
-  val thread_data: unit -> generic option
-  val set_thread_data: generic option -> unit
-  val setmp_thread_data: generic option -> ('a -> 'b) -> 'a -> 'b
+  val get_generic_context: unit -> generic option
+  val put_generic_context: generic option -> unit
+  val setmp_generic_context: generic option -> ('a -> 'b) -> 'a -> 'b
   val the_generic_context: unit -> generic
   val the_global_context: unit -> theory
   val the_local_context: unit -> Proof.context
@@ -491,18 +491,14 @@ val proof_of = cases Proof_Context.init_global I;
 
 (** thread data **)
 
-local val tag = Universal.tag () : generic option Universal.tag in
+local val generic_context_var = Thread_Data.var () : generic Thread_Data.var in
 
-fun thread_data () =
-  (case Thread.getLocal tag of
-    SOME (SOME context) => SOME context
-  | _ => NONE);
-
-fun set_thread_data context = Thread.setLocal (tag, context);
-fun setmp_thread_data context = Library.setmp_thread_data tag (thread_data ()) context;
+fun get_generic_context () = Thread_Data.get generic_context_var;
+val put_generic_context = Thread_Data.put generic_context_var;
+fun setmp_generic_context opt_context = Thread_Data.setmp generic_context_var opt_context;
 
 fun the_generic_context () =
-  (case thread_data () of
+  (case get_generic_context () of
     SOME context => context
   | _ => error "Unknown context");
 
@@ -514,13 +510,13 @@ end;
 fun >>> f =
   let
     val (res, context') = f (the_generic_context ());
-    val _ = set_thread_data (SOME context');
+    val _ = put_generic_context (SOME context');
   in res end;
 
 nonfix >>;
 fun >> f = >>> (fn context => ((), f context));
 
-val _ = set_thread_data (SOME (Theory pre_pure_thy));
+val _ = put_generic_context (SOME (Theory pre_pure_thy));
 
 end;
 

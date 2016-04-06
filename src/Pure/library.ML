@@ -48,7 +48,6 @@ sig
   val andf: ('a -> bool) * ('a -> bool) -> 'a -> bool
   val exists: ('a -> bool) -> 'a list -> bool
   val forall: ('a -> bool) -> 'a list -> bool
-  val setmp_thread_data: 'a Universal.tag -> 'a -> 'a -> ('b -> 'c) -> 'b -> 'c
 
   (*lists*)
   val single: 'a -> 'a list
@@ -276,17 +275,6 @@ fun p andf q = fn x => p x andalso q x;
 
 val exists = List.exists;
 val forall = List.all;
-
-
-(* thread data *)
-
-fun setmp_thread_data tag orig_data data f x =
-  uninterruptible (fn restore_attributes => fn () =>
-    let
-      val _ = Thread.setLocal (tag, data);
-      val result = Exn.capture (restore_attributes f) x;
-      val _ = Thread.setLocal (tag, orig_data);
-    in Exn.release result end) ();
 
 
 

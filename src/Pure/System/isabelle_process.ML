@@ -194,7 +194,7 @@ val init_protocol = uninterruptible (fn _ => fn socket =>
     val _ = Output.physical_stderr Symbol.STX;
 
     val _ = Printer.show_markup_default := true;
-    val _ = Context.set_thread_data NONE;
+    val _ = Context.put_generic_context NONE;
     val _ =
       Unsynchronized.change print_mode
         (fn mode => (mode @ default_modes1) |> fold (update op =) default_modes2);

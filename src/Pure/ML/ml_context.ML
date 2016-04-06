@@ -36,7 +36,8 @@ fun thm name = Proof_Context.get_thm (Context.the_local_context ()) name;
 fun thms name = Proof_Context.get_thms (Context.the_local_context ()) name;
 
 fun exec (e: unit -> unit) context =
-  (case Context.setmp_thread_data (SOME context) (fn () => (e (); Context.thread_data ())) () of
+  (case Context.setmp_generic_context (SOME context)
+      (fn () => (e (); Context.get_generic_context ())) () of
     SOME context' => context'
   | NONE => error "Missing context after execution");
 
@@ -170,7 +171,7 @@ fun eval flags pos ants =
     val non_verbose = ML_Compiler.verbose false flags;
 
     (*prepare source text*)
-    val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.thread_data ());
+    val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.get_generic_context ());
     val _ =
       (case env_ctxt of
         SOME ctxt =>
@@ -181,9 +182,10 @@ fun eval flags pos ants =
 
     (*prepare environment*)
     val _ =
-      Context.setmp_thread_data
+      Context.setmp_generic_context
         (Option.map (Context.Proof o Context_Position.set_visible false) env_ctxt)
-        (fn () => (ML_Compiler.eval non_verbose Position.none env; Context.thread_data ())) ()
+        (fn () =>
+          (ML_Compiler.eval non_verbose Position.none env; Context.get_generic_context ())) ()
       |> (fn NONE => () | SOME context' => Context.>> (ML_Env.inherit context'));
 
     (*eval body*)
@@ -191,7 +193,7 @@ fun eval flags pos ants =
 
     (*clear environment*)
     val _ =
-      (case (env_ctxt, is_some (Context.thread_data ())) of
+      (case (env_ctxt, is_some (Context.get_generic_context ())) of
         (SOME ctxt, true) =>
           let
             val name = struct_name ctxt;
@@ -214,17 +216,17 @@ fun eval_source flags source =
   eval flags (Input.pos_of source) (ML_Lex.read_source (#SML_syntax flags) source);
 
 fun eval_in ctxt flags pos ants =
-  Context.setmp_thread_data (Option.map Context.Proof ctxt)
+  Context.setmp_generic_context (Option.map Context.Proof ctxt)
     (fn () => eval flags pos ants) ();
 
 fun eval_source_in ctxt flags source =
-  Context.setmp_thread_data (Option.map Context.Proof ctxt)
+  Context.setmp_generic_context (Option.map Context.Proof ctxt)
     (fn () => eval_source flags source) ();
 
 fun expression range name constraint body ants =
   exec (fn () =>
     eval ML_Compiler.flags (#1 range)
-     (ML_Lex.read "Context.set_thread_data (SOME (let val " @ ML_Lex.read_set_range range name @
+     (ML_Lex.read "Context.put_generic_context (SOME (let val " @ ML_Lex.read_set_range range name @
       ML_Lex.read (": " ^ constraint ^ " =") @ ants @
       ML_Lex.read ("in " ^ body ^ " end (Context.the_generic_context ())));")));
 

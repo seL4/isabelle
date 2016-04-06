@@ -25,12 +25,12 @@ val print_depth_raw =
 val print_depth = Config.int print_depth_raw;
 
 fun get_print_depth () =
-  (case Context.thread_data () of
+  (case Context.get_generic_context () of
     NONE => ML_Print_Depth.get_print_depth ()
   | SOME context => Config.get_generic context print_depth);
 
 fun get_print_depth_default default =
-  (case Context.thread_data () of
+  (case Context.get_generic_context () of
     NONE => default
   | SOME context => Config.get_generic context print_depth);
 

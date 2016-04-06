@@ -52,7 +52,7 @@ fun breakpoint_position loc =
 fun report_parse_tree redirect depth space parse_tree =
   let
     val is_visible =
-      (case Context.thread_data () of
+      (case Context.get_generic_context () of
         SOME context => Context_Position.is_visible_generic context
       | NONE => true);
     fun is_reported pos = is_visible andalso Position.is_reported pos;
@@ -135,7 +135,7 @@ fun report_parse_tree redirect depth space parse_tree =
     val all_breakpoints = rev (breakpoints_tree parse_tree []);
     val _ = Position.reports (map #1 all_breakpoints);
     val _ =
-      if is_some (Context.thread_data ()) then
+      if is_some (Context.get_generic_context ()) then
         Context.>> (fold (ML_Env.add_breakpoint o #2) all_breakpoints)
       else ();
   in () end;
@@ -146,7 +146,7 @@ fun report_parse_tree redirect depth space parse_tree =
 fun eval (flags: flags) pos toks =
   let
     val space = ML_Env.make_name_space {SML = #SML_env flags, exchange = #exchange flags};
-    val opt_context = Context.thread_data ();
+    val opt_context = Context.get_generic_context ();
 
 
     (* input *)

@@ -243,13 +243,9 @@ fun properties_of_range (pos, pos') =
 
 (* thread data *)
 
-local val tag = Universal.tag () : T Universal.tag in
-
-fun thread_data () = the_default none (Thread.getLocal tag);
-
-fun setmp_thread_data pos = Library.setmp_thread_data tag (thread_data ()) pos;
-
-end;
+val thread_data_var = Thread_Data.var () : T Thread_Data.var;
+fun thread_data () = the_default none (Thread_Data.get thread_data_var);
+fun setmp_thread_data pos = Thread_Data.setmp thread_data_var (SOME pos);
 
 fun default pos =
   if pos = none then (false, thread_data ())

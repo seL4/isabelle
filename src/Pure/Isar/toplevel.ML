@@ -574,7 +574,7 @@ in
 fun transition int tr st =
   let
     val (st', opt_err) =
-      Context.setmp_thread_data (try (Context.Proof o presentation_context_of) st)
+      Context.setmp_generic_context (try (Context.Proof o presentation_context_of) st)
         (fn () => app int tr st) ();
     val opt_err' = opt_err |> Option.map
       (fn Runtime.EXCURSION_FAIL exn_info => exn_info

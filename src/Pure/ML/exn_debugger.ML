@@ -15,27 +15,23 @@ struct
 
 (* thread data *)
 
-local
-  val tag =
-    Universal.tag () : ((string * ML_Compiler0.polyml_location) * exn) list option Universal.tag;
-in
+val trace_var =
+  Thread_Data.var () : ((string * ML_Compiler0.polyml_location) * exn) list Thread_Data.var;
 
-fun start_trace () = Thread.setLocal (tag, SOME []);
+fun start_trace () = Thread_Data.put trace_var (SOME []);
 
 fun update_trace entry exn =
-  (case Thread.getLocal tag of
-    SOME (SOME trace) => Thread.setLocal (tag, SOME ((entry, exn) :: trace))
-  | _ => ());
+  (case Thread_Data.get trace_var of
+    SOME trace => Thread_Data.put trace_var (SOME ((entry, exn) :: trace))
+  | NONE => ());
 
 fun stop_trace () =
   let
-    val trace = (case Thread.getLocal tag of SOME (SOME trace) => trace | _ => []);
-    val _ = Thread.setLocal (tag, NONE);
+    val trace = the_default [] (Thread_Data.get trace_var);
+    val _ = Thread_Data.put trace_var NONE;
   in trace end;
 
 val _ = ML_Debugger.on_exit_exception (SOME update_trace);
-
-end;
 
 
 (* capture exception trace *)

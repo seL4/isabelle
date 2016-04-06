@@ -27,11 +27,11 @@ fun is_self thread = Thread.equal (Thread.self (), thread);
 (* unique name *)
 
 local
-  val tag = Universal.tag () : string Universal.tag;
+  val name_var = Thread_Data.var () : string Thread_Data.var;
   val count = Counter.make ();
 in
 
-fun get_name () = Thread.getLocal tag;
+fun get_name () = Thread_Data.get name_var;
 
 fun the_name () =
   (case get_name () of
@@ -39,7 +39,7 @@ fun the_name () =
   | SOME name => name);
 
 fun set_name base =
-  Thread.setLocal (tag, base ^ "/" ^ string_of_int (count ()));
+  Thread_Data.put name_var (SOME (base ^ "/" ^ string_of_int (count ())));
 
 end;
 

@@ -54,7 +54,7 @@ fun exn_context NONE exn = exn
   | exn_context (SOME ctxt) exn = if Exn.is_interrupt exn then exn else CONTEXT (ctxt, exn);
 
 fun thread_context exn =
-  exn_context (Option.map Context.proof_of (Context.thread_data ())) exn;
+  exn_context (Option.map Context.proof_of (Context.get_generic_context ())) exn;
 
 
 (* exn_message *)
@@ -202,7 +202,7 @@ fun toplevel_error output_exn f x = f x
     else
       let
         val opt_ctxt =
-          (case Context.thread_data () of
+          (case Context.get_generic_context () of
             NONE => NONE
           | SOME context => try Context.proof_of context);
         val _ = output_exn (exn_context opt_ctxt exn);

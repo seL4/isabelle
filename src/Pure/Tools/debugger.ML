@@ -83,17 +83,13 @@ end;
 
 (* stack frame during debugging *)
 
-local
-  val tag = Universal.tag () : ML_Debugger.state list Universal.tag;
-in
+val debugging_var = Thread_Data.var () : ML_Debugger.state list Thread_Data.var;
 
-fun get_debugging () = the_default [] (Thread.getLocal tag);
+fun get_debugging () = the_default [] (Thread_Data.get debugging_var);
 val is_debugging = not o null o get_debugging;
 
 fun with_debugging e =
-  setmp_thread_data tag (get_debugging ()) (ML_Debugger.state (Thread.self ())) e ();
-
-end;
+  Thread_Data.setmp debugging_var (SOME (ML_Debugger.state (Thread.self ()))) e ();
 
 fun the_debug_state thread_name index =
   (case get_debugging () of
@@ -109,14 +105,10 @@ fun the_debug_state thread_name index =
 
 datatype stepping = Stepping of bool * int;  (*stepping enabled, stack depth limit*)
 
-local
-  val tag = Universal.tag () : stepping Universal.tag;
-in
+val stepping_var = Thread_Data.var () : stepping Thread_Data.var;
 
-fun get_stepping () = the_default (Stepping (false, ~1)) (Thread.getLocal tag);
-fun put_stepping stepping = Thread.setLocal (tag, Stepping stepping);
-
-end;
+fun get_stepping () = the_default (Stepping (false, ~1)) (Thread_Data.get stepping_var);
+fun put_stepping stepping = Thread_Data.put stepping_var (SOME (Stepping stepping));
 
 fun is_stepping () =
   let
@@ -137,9 +129,9 @@ local
 
 val context_attempts =
   map ML_Lex.read
-   ["Context.set_thread_data (SOME (Context.Theory ML_context))",
-    "Context.set_thread_data (SOME (Context.Proof ML_context))",
-    "Context.set_thread_data (SOME ML_context)"];
+   ["Context.put_generic_context (SOME (Context.Theory ML_context))",
+    "Context.put_generic_context (SOME (Context.Proof ML_context))",
+    "Context.put_generic_context (SOME ML_context)"];
 
 fun evaluate {SML, verbose} =
   ML_Context.eval
@@ -180,7 +172,7 @@ fun eval thread_name index SML txt1 txt2 =
   let
     val (toks1, toks2) = apply2 (ML_Lex.read_source SML o Input.string) (txt1, txt2);
     val context = eval_context thread_name index SML toks1;
-  in Context.setmp_thread_data (SOME context) (evaluate {SML = SML, verbose = true}) toks2 end;
+  in Context.setmp_generic_context (SOME context) (evaluate {SML = SML, verbose = true}) toks2 end;
 
 fun print_vals thread_name index SML txt =
   let
@@ -195,7 +187,7 @@ fun print_vals thread_name index SML txt =
       #allVal (ML_Debugger.debug_local_name_space (the_debug_state thread_name index)) ()
       |> sort_by #1 |> map (Pretty.item o single o print o #2)
       |> Pretty.chunks |> Pretty.string_of |> writeln_message;
-  in Context.setmp_thread_data (SOME context) print_all () end;
+  in Context.setmp_generic_context (SOME context) print_all () end;
 
 end;
 

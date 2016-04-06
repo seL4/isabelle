@@ -58,10 +58,10 @@ val new_group = Task_Queue.new_group;
 (* identifiers *)
 
 local
-  val tag = Universal.tag () : task option Universal.tag;
+  val worker_task_var = Thread_Data.var () : task Thread_Data.var;
 in
-  fun worker_task () = the_default NONE (Thread.getLocal tag);
-  fun setmp_worker_task task f x = setmp_thread_data tag (worker_task ()) (SOME task) f x;
+  fun worker_task () = Thread_Data.get worker_task_var;
+  fun setmp_worker_task task f x = Thread_Data.setmp worker_task_var (SOME task) f x;
 end;
 
 val worker_group = Option.map Task_Queue.group_of_task o worker_task;
@@ -432,14 +432,14 @@ fun future_job group atts (e: unit -> 'a) =
   let
     val result = Single_Assignment.var "future" : 'a result;
     val pos = Position.thread_data ();
-    val context = Context.thread_data ();
+    val context = Context.get_generic_context ();
     fun job ok =
       let
         val res =
           if ok then
             Exn.capture (fn () =>
               Multithreading.with_attributes atts (fn _ =>
-                (Position.setmp_thread_data pos o Context.setmp_thread_data context) e ())) ()
+                (Position.setmp_thread_data pos o Context.setmp_generic_context context) e ())) ()
           else Exn.interrupt_exn;
       in assign_result group result (identify_result pos res) end;
   in (result, job) end;
