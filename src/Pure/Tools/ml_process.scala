@@ -39,7 +39,15 @@ object ML_Process
     val eval_init =
       if (heaps.isEmpty) {
         List(
-          "val ML_file = PolyML.use",
+          """
+          fun chapter (_: string) = ();
+          fun section (_: string) = ();
+          fun subsection (_: string) = ();
+          fun subsubsection (_: string) = ();
+          fun paragraph (_: string) = ();
+          fun subparagraph (_: string) = ();
+          val ML_file = PolyML.use;
+          """,
           if (Isabelle_System.getenv("ML_SYSTEM") == "polyml-5.6") "structure FixedInt = IntInf"
           else "",
           if (Platform.is_windows)

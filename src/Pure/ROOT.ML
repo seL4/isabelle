@@ -1,9 +1,9 @@
-(*** Isabelle/Pure bootstrap ***)
+chapter "Isabelle/Pure bootstrap";
 
 ML_file "ML/ml_name_space.ML";
 
 
-(** bootstrap phase 0: Poly/ML setup **)
+section "Bootstrap phase 0: Poly/ML setup";
 
 ML_file "ML/ml_pervasive0.ML";
 ML_file "ML/ml_system.ML";
@@ -22,10 +22,9 @@ ML_file "ML/ml_compiler0.ML";
 ML_file_no_debug "ML/ml_debugger.ML";
 
 
+section "Bootstrap phase 1: towards ML within position context";
 
-(** bootstrap phase 1: towards ML within position context *)
-
-(* library of general tools *)
+subsection "Library of general tools";
 
 ML_file "General/basics.ML";
 ML_file "library.ML";
@@ -51,9 +50,9 @@ ML_file "ML/ml_lex.ML";
 ML_file "ML/ml_compiler1.ML";
 
 
-(** bootstrap phase 2: towards ML within Isar context *)
+section "Bootstrap phase 2: towards ML within Isar context";
 
-(* library of general tools *)
+subsection "Library of general tools";
 
 ML_file "General/integer.ML";
 ML_file "General/stack.ML";
@@ -83,7 +82,7 @@ ML_file "General/change_table.ML";
 ML_file "General/graph.ML";
 
 
-(* fundamental structures *)
+subsection "Fundamental structures";
 
 ML_file "name.ML";
 ML_file "term.ML";
@@ -93,7 +92,7 @@ ML_file "System/options.ML";
 ML_file "config.ML";
 
 
-(* concurrency within the ML runtime *)
+subsection "Concurrency within the ML runtime";
 
 ML_file "ML/exn_properties.ML";
 
@@ -117,7 +116,7 @@ ML_file "Concurrent/cache.ML";
 ML_file "PIDE/active.ML";
 
 
-(* inner syntax *)
+subsection "Inner syntax";
 
 ML_file "Syntax/type_annotation.ML";
 ML_file "Syntax/term_position.ML";
@@ -131,7 +130,7 @@ ML_file "Syntax/printer.ML";
 ML_file "Syntax/syntax.ML";
 
 
-(* core of tactical proof system *)
+subsection "Core of tactical proof system";
 
 ML_file "term_ord.ML";
 ML_file "term_subst.ML";
@@ -174,7 +173,7 @@ ML_file "conjunction.ML";
 ML_file "assumption.ML";
 
 
-(* Isar -- Intelligible Semi-Automated Reasoning *)
+subsection "Isar -- Intelligible Semi-Automated Reasoning";
 
 (*ML support and global execution*)
 ML_file "ML/ml_syntax.ML";
@@ -221,8 +220,7 @@ ML_file "ML/ml_antiquotation.ML";
 ML_file "ML/ml_compiler2.ML";
 
 
-
-(** bootstrap phase 3: towards theory "Pure" and final ML toplevel setup *)
+section "Bootstrap phase 3: towards theory Pure and final ML toplevel setup";
 
 (*basic proof engine*)
 ML_file "par_tactical.ML";
@@ -297,7 +295,7 @@ ML_file "PIDE/document.ML";
 ML_file "Isar/isar_cmd.ML";
 
 
-(* Isabelle/Isar system *)
+subsection "Isabelle/Isar system";
 
 ML_file "System/command_line.ML";
 ML_file "System/system_channel.ML";
@@ -307,7 +305,7 @@ ML_file "System/invoke_scala.ML";
 ML_file "PIDE/protocol.ML";
 
 
-(* miscellaneous tools and packages for Pure Isabelle *)
+subsection "Miscellaneous tools and packages for Pure Isabelle";
 
 ML_file "ML/ml_pp.ML";
 ML_file "ML/ml_antiquotations.ML";

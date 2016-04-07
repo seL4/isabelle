@@ -13,29 +13,37 @@ end;
 structure Pure_Syn: PURE_SYN =
 struct
 
+val semi = Scan.option (Parse.$$$ ";");
+
 val _ =
   Outer_Syntax.command ("chapter", @{here}) "chapter heading"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
+    (Parse.opt_target -- Parse.document_source --| semi
+      >> Thy_Output.document_command {markdown = false});
 
 val _ =
   Outer_Syntax.command ("section", @{here}) "section heading"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
+    (Parse.opt_target -- Parse.document_source --| semi
+      >> Thy_Output.document_command {markdown = false});
 
 val _ =
   Outer_Syntax.command ("subsection", @{here}) "subsection heading"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
+    (Parse.opt_target -- Parse.document_source --| semi
+      >> Thy_Output.document_command {markdown = false});
 
 val _ =
   Outer_Syntax.command ("subsubsection", @{here}) "subsubsection heading"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
+    (Parse.opt_target -- Parse.document_source --| semi
+      >> Thy_Output.document_command {markdown = false});
 
 val _ =
   Outer_Syntax.command ("paragraph", @{here}) "paragraph heading"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
+    (Parse.opt_target -- Parse.document_source --| semi
+      >> Thy_Output.document_command {markdown = false});
 
 val _ =
   Outer_Syntax.command ("subparagraph", @{here}) "subparagraph heading"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
+    (Parse.opt_target -- Parse.document_source --| semi
+      >> Thy_Output.document_command {markdown = false});
 
 val _ =
   Outer_Syntax.command ("text", @{here}) "formal comment (primary style)"

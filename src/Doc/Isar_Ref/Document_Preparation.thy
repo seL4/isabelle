@@ -49,8 +49,9 @@ text \<open>
 
   @{rail \<open>
     (@@{command chapter} | @@{command section} | @@{command subsection} |
-      @@{command subsubsection} | @@{command paragraph} | @@{command subparagraph} |
-      @@{command text} | @@{command txt} | @@{command text_raw}) @{syntax text}
+      @@{command subsubsection} | @@{command paragraph} | @@{command subparagraph})
+      @{syntax text} ';'? |
+    (@@{command text} | @@{command txt} | @@{command text_raw}) @{syntax text}
   \<close>}
 
     \<^descr> @{command chapter}, @{command section}, @{command subsection} etc.\ mark
