@@ -8,7 +8,7 @@ Standard Isabelle syntax, based on arbitrary context-free grammars
 signature SYNTAX =
 sig
   type operations
-  val install_operations: operations -> unit
+  val install_operations: operations -> theory -> theory
   val root: string Config.T
   val ambiguity_warning_raw: Config.raw
   val ambiguity_warning: bool Config.T
@@ -123,7 +123,7 @@ struct
 
 (** inner syntax operations **)
 
-(* back-patched operations *)
+(* operations *)
 
 type operations =
  {parse_sort: Proof.context -> string -> sort,
@@ -139,11 +139,21 @@ type operations =
   uncheck_typs: Proof.context -> typ list -> typ list,
   uncheck_terms: Proof.context -> term list -> term list};
 
-val operations: operations Single_Assignment.var = Single_Assignment.var "Syntax.operations";
-fun install_operations ops = Single_Assignment.assign operations ops;
+structure Operations = Theory_Data
+(
+  type T = operations option;
+  val empty = NONE;
+  val extend = I;
+  val merge = merge_options;
+);
+
+fun install_operations ops =
+  Operations.map
+    (fn NONE => SOME ops
+      | SOME _ => raise Fail "Inner syntax operations already installed");
 
 fun operation which ctxt x =
-  (case Single_Assignment.peek operations of
+  (case Operations.get (Proof_Context.theory_of ctxt) of
     NONE => raise Fail "Inner syntax operations not installed"
   | SOME ops => which ops ctxt x);
 

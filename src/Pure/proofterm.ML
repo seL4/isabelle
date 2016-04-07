@@ -127,7 +127,7 @@ sig
   val of_sort_proof: theory -> (typ * class -> proof) -> typ * sort -> proof list
   val install_axclass_proofs:
    {classrel_proof: theory -> class * class -> proof,
-    arity_proof: theory -> string * sort list * class -> proof} -> unit
+    arity_proof: theory -> string * sort list * class -> proof} -> theory -> theory
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> oracle * proof
 
@@ -1027,20 +1027,28 @@ type axclass_proofs =
  {classrel_proof: theory -> class * class -> proof,
   arity_proof: theory -> string * sort list * class -> proof};
 
-val axclass_proofs: axclass_proofs Single_Assignment.var =
-  Single_Assignment.var "Proofterm.axclass_proofs";
+structure Axclass_Proofs = Theory_Data
+(
+  type T = axclass_proofs option;
+  val empty = NONE;
+  val extend = I;
+  val merge = merge_options;
+);
 
-fun axclass_proof which thy x =
-  (case Single_Assignment.peek axclass_proofs of
+fun the_axclass_proofs which thy x =
+  (case Axclass_Proofs.get thy of
     NONE => raise Fail "Axclass proof operations not installed"
-  | SOME prfs => which prfs thy x);
+  | SOME proofs => which proofs thy x);
 
 in
 
-val classrel_proof = axclass_proof #classrel_proof;
-val arity_proof = axclass_proof #arity_proof;
+val classrel_proof = the_axclass_proofs #classrel_proof;
+val arity_proof = the_axclass_proofs #arity_proof;
 
-fun install_axclass_proofs prfs = Single_Assignment.assign axclass_proofs prfs;
+fun install_axclass_proofs proofs =
+  Axclass_Proofs.map
+    (fn NONE => SOME proofs
+      | SOME _ => raise Fail "Axclass proof operations already installed");
 
 end;
 

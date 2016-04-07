@@ -983,18 +983,20 @@ val _ = Context.>>
 
 (** install operations **)
 
-val _ = Syntax.install_operations
-  {parse_sort = parse_sort,
-   parse_typ = parse_typ,
-   parse_term = parse_term false,
-   parse_prop = parse_term true,
-   unparse_sort = unparse_sort,
-   unparse_typ = unparse_typ,
-   unparse_term = unparse_term,
-   check_typs = check_typs,
-   check_terms = check_terms,
-   check_props = check_props,
-   uncheck_typs = uncheck_typs,
-   uncheck_terms = uncheck_terms};
+val _ =
+  Theory.setup
+   (Syntax.install_operations
+     {parse_sort = parse_sort,
+      parse_typ = parse_typ,
+      parse_term = parse_term false,
+      parse_prop = parse_term true,
+      unparse_sort = unparse_sort,
+      unparse_typ = unparse_typ,
+      unparse_term = unparse_term,
+      check_typs = check_typs,
+      check_terms = check_terms,
+      check_props = check_props,
+      uncheck_typs = uncheck_typs,
+      uncheck_terms = uncheck_terms});
 
 end;
