@@ -273,7 +273,7 @@ ML_file "Proof/proof_checker.ML";
 ML_file "Proof/extraction.ML";
 
 (*Isabelle system*)
-ML_file "System/$ISABELLE_WINDOWS_PREFIX/bash.ML";
+ML_file "System/bash.ML";
 ML_file "System/isabelle_system.ML";
 
 
