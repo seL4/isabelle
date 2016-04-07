@@ -23,8 +23,7 @@ sig
   val format: int -> pretty -> string
   val default_margin: int
   val string_of_polyml: PolyML_Pretty.pretty -> string
-  val make_string_global: string
-  val make_string_local: string -> string
+  val make_string_fn: string
 end;
 
 structure ML_Pretty: ML_PRETTY =
@@ -109,10 +108,8 @@ val default_margin = 76;
 
 val string_of_polyml = format_polyml default_margin;
 
-fun make_string depth =
-  "(fn x => ML_Pretty.string_of_polyml (ML_system_pretty (x, FixedInt.fromInt (" ^ depth ^ "))))";
-
-val make_string_global = make_string "ML_Print_Depth.get_print_depth ()";
-fun make_string_local local_env = make_string (local_env ^ ".ML_print_depth ()");
+val make_string_fn =
+  "(fn x => ML_Pretty.string_of_polyml (ML_system_pretty \
+    \(x, FixedInt.fromInt (ML_Print_Depth.get_print_depth ()))))";
 
 end;

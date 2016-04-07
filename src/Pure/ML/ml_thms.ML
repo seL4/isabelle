@@ -138,4 +138,3 @@ fun bind_thm (name, thm) = store_thm (name, Drule.export_without_context thm);
 fun bind_thms (name, thms) = store_thms (name, map Drule.export_without_context thms);
 
 end;
-

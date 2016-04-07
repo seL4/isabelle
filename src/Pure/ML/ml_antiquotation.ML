@@ -38,8 +38,7 @@ val _ = Theory.setup
     (fn src => fn () =>
       ML_Context.value_decl "position" (ML_Syntax.print_position (#2 (Token.name_of_src src)))) #>
 
-  inline (Binding.make ("make_string", @{here}))
-    (Args.context >> (ML_Pretty.make_string_local o ML_Context.struct_name)) #>
+  inline (Binding.make ("make_string", @{here})) (Args.context >> K ML_Pretty.make_string_fn) #>
 
   value (Binding.make ("binding", @{here}))
     (Scan.lift (Parse.position Args.name) >> ML_Syntax.make_binding) #>

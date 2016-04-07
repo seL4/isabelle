@@ -8,7 +8,6 @@ signature ML_PRINT_DEPTH =
 sig
   val set_print_depth: int -> unit
   val get_print_depth: unit -> int
-  val get_print_depth_default: int -> int
 end;
 
 structure ML_Print_Depth: ML_PRINT_DEPTH =
@@ -18,6 +17,5 @@ val depth = Unsynchronized.ref 0;
 
 fun set_print_depth n = (depth := n; PolyML.print_depth n);
 fun get_print_depth () = ! depth;
-fun get_print_depth_default _ = ! depth;
 
 end;
