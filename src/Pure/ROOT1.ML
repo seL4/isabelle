@@ -3,4 +3,4 @@
 use_thy "Pure";
 use_thy "ML_Bootstrap";
 
-use "ML/ml_pervasive1.ML";
+ML_file "ML/ml_pervasive1.ML";

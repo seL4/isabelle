@@ -81,7 +81,7 @@ val trace = Attrib.setup_config_bool @{binding "code_runtime_trace"} (K false);
 fun exec ctxt verbose code =
  (if Config.get ctxt trace then tracing code else ();
   ML_Context.exec (fn () =>
-    ML_Compiler0.use_text ML_Env.context
+    ML_Compiler0.ML ML_Env.context
       {line = 0, file = "generated code", verbose = verbose, debug = false} code));
 
 fun value ctxt (get, put, put_ml) (prelude, value) =
@@ -536,7 +536,7 @@ fun use_file filepath thy =
     val thy' = Loaded_Values.put [] thy;
     val _ = Context.put_generic_context ((SOME o Context.Theory) thy');
     val _ =
-      ML_Compiler0.use_text notifying_context
+      ML_Compiler0.ML notifying_context
         {line = 0, file = Path.implode filepath, verbose = false, debug = false}
         (File.read filepath);
     val thy'' = Context.the_global_context ();

@@ -2,7 +2,7 @@
     Author:     Makarius
 
 Runtime compilation and evaluation for bootstrap.
-Initial ML use operations.
+Initial ML file operations.
 *)
 
 signature ML_COMPILER0 =
@@ -15,11 +15,11 @@ sig
     print: string -> unit,
     error: string -> unit}
   val make_context: ML_Name_Space.T -> context
-  val use_text: context -> {debug: bool, file: string, line: int, verbose: bool} -> string -> unit
-  val use_file: context -> {debug: bool, verbose: bool} -> string -> unit
+  val ML: context -> {debug: bool, file: string, line: int, verbose: bool} -> string -> unit
+  val ML_file: context -> {debug: bool, verbose: bool} -> string -> unit
   val debug_option: bool option -> bool
-  val use_operations: (bool option -> string -> unit) ->
-    {use: string -> unit, use_debug: string -> unit, use_no_debug: string -> unit}
+  val ML_file_operations: (bool option -> string -> unit) ->
+    {ML_file: string -> unit, ML_file_debug: string -> unit, ML_file_no_debug: string -> unit}
 end;
 
 structure ML_Compiler0: ML_COMPILER0 =
@@ -53,7 +53,7 @@ fun make_context name_space : context =
   error = fn s => error s};
 
 
-(* use operations *)
+(* ML file operations *)
 
 local
 
@@ -77,8 +77,7 @@ fun ml_input start_line name txt =
 
 in
 
-fun use_text ({name_space, print_depth, here, print, error, ...}: context)
-    {line, file, verbose, debug} text =
+fun ML {name_space, print_depth, here, print, error, ...} {line, file, verbose, debug} text =
   let
     val current_line = Unsynchronized.ref line;
     val in_buffer = Unsynchronized.ref (String.explode (ml_input line file text));
@@ -118,14 +117,14 @@ fun use_text ({name_space, print_depth, here, print, error, ...}: context)
 
 end;
 
-fun use_file context {verbose, debug} file =
+fun ML_file context {verbose, debug} file =
   let
     val instream = TextIO.openIn file;
     val text = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
-  in use_text context {line = 1, file = file, verbose = verbose, debug = debug} text end;
+  in ML context {line = 1, file = file, verbose = verbose, debug = debug} text end;
 
-fun use_operations (use_ : bool option -> string -> unit) =
-  {use = use_ NONE, use_debug = use_ (SOME true), use_no_debug = use_ (SOME false)};
+fun ML_file_operations (f: bool option -> string -> unit) =
+  {ML_file = f NONE, ML_file_debug = f (SOME true), ML_file_no_debug = f (SOME false)};
 
 
 fun debug_option NONE = OS.Process.getEnv "ISABELLE_ML_DEBUGGER" = SOME "true"
@@ -134,12 +133,12 @@ fun debug_option NONE = OS.Process.getEnv "ISABELLE_ML_DEBUGGER" = SOME "true"
 end;
 
 
-(* initial use operations *)
+(* initial ML_file operations *)
 
-val {use, use_debug, use_no_debug} =
+val {ML_file, ML_file_debug, ML_file_no_debug} =
   let val context = ML_Compiler0.make_context ML_Name_Space.global in
-    ML_Compiler0.use_operations (fn opt_debug => fn file =>
-      ML_Compiler0.use_file context
+    ML_Compiler0.ML_file_operations (fn opt_debug => fn file =>
+      ML_Compiler0.ML_file context
         {verbose = true, debug = ML_Compiler0.debug_option opt_debug} file
       handle ERROR msg => (#print context msg; raise error "ML error"))
   end;
@@ -149,7 +148,7 @@ val {use, use_debug, use_no_debug} =
 
 if Thread_Data.is_virtual then ()
 else
-  ML_Compiler0.use_text
+  ML_Compiler0.ML
     (ML_Compiler0.make_context
       (ML_Name_Space.global_values
         [("prettyRepresentation", "ML_system_pretty"),

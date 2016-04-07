@@ -136,7 +136,7 @@ fun determine_type ctxt s =
     val _ =
       Context.setmp_generic_context (SOME (Context.Proof ctxt))
         (fn () =>
-          ML_Compiler0.use_text context
+          ML_Compiler0.ML context
             {line = 0, file = "generated code", verbose = true, debug = false} s) ()
   in
     Gen_Construction.parse_pred (! return)
@@ -146,7 +146,7 @@ fun determine_type ctxt s =
 fun run_test ctxt s =
   Context.setmp_generic_context (SOME (Context.Proof ctxt))
     (fn () =>
-      ML_Compiler0.use_text ML_Env.context
+      ML_Compiler0.ML ML_Env.context
         {line = 0, file = "generated code", verbose = false, debug = false} s) ();
 
 (*split input into tokens*)

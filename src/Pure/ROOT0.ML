@@ -1,3 +1,3 @@
 (*** Isabelle/Pure bootstrap: initial setup ***)
 
-use "Concurrent/thread_data.ML";
+ML_file "Concurrent/thread_data.ML";

@@ -1,10 +1,10 @@
 (*  Title:      Pure/ML/ml_compiler1.ML
     Author:     Makarius
 
-Refined ML use operations for bootstrap.
+Refined ML file operations for bootstrap.
 *)
 
-val {use, use_debug, use_no_debug} =
+val {ML_file, ML_file_debug, ML_file_no_debug} =
   let
     val context: ML_Compiler0.context =
      {name_space = ML_Name_Space.global,
@@ -13,10 +13,10 @@ val {use, use_debug, use_no_debug} =
       print = writeln,
       error = error};
   in
-    ML_Compiler0.use_operations (fn opt_debug => fn file =>
+    ML_Compiler0.ML_file_operations (fn opt_debug => fn file =>
       Position.setmp_thread_data (Position.file_only file)
         (fn () =>
-          ML_Compiler0.use_file context
+          ML_Compiler0.ML_file context
             {verbose = true, debug = ML_Compiler0.debug_option opt_debug} file
           handle ERROR msg => (writeln msg; error "ML error")) ())
   end;

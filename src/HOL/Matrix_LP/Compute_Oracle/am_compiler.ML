@@ -184,7 +184,7 @@ fun load_rules sname name prog =
 
     in
         compiled_rewriter := NONE;      
-        ML_Compiler0.use_text ML_Env.context
+        ML_Compiler0.ML ML_Env.context
           {line = 1, file = "", verbose = false, debug = false} (!buffer);
         case !compiled_rewriter of 
             NONE => raise (Compile "cannot communicate with compiled function")

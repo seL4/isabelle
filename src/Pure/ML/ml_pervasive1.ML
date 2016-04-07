@@ -12,3 +12,5 @@ structure PolyML = struct structure IntInf = PolyML.IntInf end;
 Proofterm.proofs := 0;
 
 Context.put_generic_context NONE;
+
+val use = ML_file;

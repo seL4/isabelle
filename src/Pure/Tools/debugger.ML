@@ -135,7 +135,7 @@ val context_attempts =
 
 fun evaluate {SML, verbose} =
   ML_Context.eval
-    {SML_syntax = SML, SML_env = SML, exchange = false, redirect = false, verbose = verbose,
+    {SML = SML, exchange = false, redirect = false, verbose = verbose,
       debug = SOME false, writeln = writeln_message, warning = warning_message}
     Position.none;
 

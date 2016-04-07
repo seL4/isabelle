@@ -174,9 +174,12 @@ object Build
 
             val theory_files = thy_deps.deps.map(dep => Path.explode(dep.name.node))
             val loaded_files =
-              if (inlined_files)
-                (if (Sessions.pure_name(name)) Sessions.pure_files(info.dir) else Nil) :::
-                  thy_deps.loaded_files
+              if (inlined_files) {
+                val pure_files =
+                  if (Sessions.pure_name(name)) Sessions.pure_files(resources, syntax, info.dir)
+                  else Nil
+                pure_files ::: thy_deps.loaded_files
+              }
               else Nil
 
             val all_files =
@@ -257,7 +260,7 @@ object Build
       Future.thread("build") {
         val process =
           if (Sessions.pure_name(name)) {
-            val roots = Sessions.pure_roots.flatMap(root => List("--use", File.platform_path(root)))
+            val roots = Sessions.pure_roots.flatMap(root => List("--use", root))
             val eval =
               "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default ();" +
               " Session.shutdown (); ML_Heap.share_common_data (); " + output_save_state + "));"

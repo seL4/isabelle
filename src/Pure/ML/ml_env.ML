@@ -13,6 +13,7 @@ sig
     Context.generic -> Context.generic
   val get_breakpoint: Context.generic -> serial -> (bool Unsynchronized.ref * Position.T) option
   val init_bootstrap: Context.generic -> Context.generic
+  val SML_environment: bool Config.T
   val add_name_space: {SML: bool} -> ML_Name_Space.T -> Context.generic -> Context.generic
   val make_name_space: {SML: bool, exchange: bool} -> ML_Name_Space.T
   val context: ML_Compiler0.context
@@ -91,6 +92,18 @@ fun add_breakpoint breakpoint =
 val get_breakpoint = Inttab.lookup o #breakpoints o Env.get;
 
 
+(* SML environment for Isabelle/ML *)
+
+val SML_environment =
+  Config.bool (Config.declare ("SML_environment", @{here}) (fn _ => Config.Bool false));
+
+fun sml_env SML =
+  SML orelse
+    (case Context.get_generic_context () of
+      NONE => false
+    | SOME context => Config.get_generic context SML_environment);
+
+
 (* name space *)
 
 val init_bootstrap =
@@ -114,7 +127,7 @@ fun add_name_space {SML} (space: ML_Name_Space.T) =
   Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
     let
       val (tables', sml_tables') =
-        (tables, sml_tables) |> (if SML then apsnd else apfst)
+        (tables, sml_tables) |> (if sml_env SML then apsnd else apfst)
           (fn (val1, type1, fixity1, structure1, signature1, functor1) =>
             let
               val val2 = fold Symtab.update (#allVal space ()) val1;
@@ -129,7 +142,7 @@ fun add_name_space {SML} (space: ML_Name_Space.T) =
 fun make_name_space {SML, exchange} : ML_Name_Space.T =
   let
     fun lookup sel1 sel2 name =
-      if SML then
+      if sml_env SML then
         Context.the_generic_context ()
         |> (fn context => Symtab.lookup (sel1 (#sml_tables (Env.get context))) name)
       else
@@ -138,7 +151,7 @@ fun make_name_space {SML, exchange} : ML_Name_Space.T =
         |> (fn NONE => sel2 ML_Name_Space.global name | some => some);
 
     fun all sel1 sel2 () =
-      (if SML then
+      (if sml_env SML then
         Context.the_generic_context ()
         |> (fn context => Symtab.dest (sel1 (#sml_tables (Env.get context))))
       else
@@ -148,7 +161,7 @@ fun make_name_space {SML, exchange} : ML_Name_Space.T =
       |> sort_distinct (string_ord o apply2 #1);
 
     fun enter ap1 sel2 entry =
-      if SML <> exchange then
+      if sml_env SML <> exchange then
         Context.>> (Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
           let val sml_tables' = ap1 (Symtab.update entry) sml_tables
           in make_data (bootstrap, tables, sml_tables', breakpoints) end))
