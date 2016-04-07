@@ -21,7 +21,10 @@ sig
   val from_polyml: PolyML_Pretty.pretty -> pretty
   val format_polyml: int -> PolyML_Pretty.pretty -> string
   val format: int -> pretty -> string
-  val make_string_fn: string -> string
+  val default_margin: int
+  val string_of_polyml: PolyML_Pretty.pretty -> string
+  val make_string_global: string
+  val make_string_local: string -> string
 end;
 
 structure ML_Pretty: ML_PRETTY =
@@ -99,21 +102,17 @@ fun format_polyml margin prt =
 
 fun format margin = format_polyml margin o to_polyml;
 
+val default_margin = 76;
+
 
 (* make string *)
 
-local
-  fun pretty_string_of s = "(fn x => Pretty.string_of (Pretty.from_polyml (" ^ s ^ ")))";
-  fun pretty_value depth = "ML_system_pretty (x, FixedInt.fromInt (" ^ depth ^ "))";
-in
+val string_of_polyml = format_polyml default_margin;
 
-fun make_string_fn local_env =
-  if local_env <> "" then
-    pretty_string_of (pretty_value (local_env ^ ".ML_print_depth ()"))
-  else if List.exists (fn (a, _) => a = "Pretty") (#allStruct ML_Name_Space.global ()) then
-    pretty_string_of (pretty_value "ML_Print_Depth.get_print_depth ()")
-  else "(fn x => ML_Pretty.format_polyml 78 (" ^ pretty_value "ML_Print_Depth.get_print_depth ()" ^ "))";
+fun make_string depth =
+  "(fn x => ML_Pretty.string_of_polyml (ML_system_pretty (x, FixedInt.fromInt (" ^ depth ^ "))))";
 
-end;
+val make_string_global = make_string "ML_Print_Depth.get_print_depth ()";
+fun make_string_local local_env = make_string (local_env ^ ".ML_print_depth ()");
 
 end;

@@ -29,7 +29,7 @@ val _ = Theory.setup
             ML_Syntax.print_position pos ^ "));\n";
           val body =
             "(fn x => (" ^ struct_name ^ "." ^ a ^
-              " (" ^ ML_Pretty.make_string_fn struct_name ^ " x); x))";
+              " (" ^ ML_Pretty.make_string_local struct_name ^ " x); x))";
         in (K (env, body), ctxt') end));
 
 

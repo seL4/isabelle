@@ -334,7 +334,7 @@ fun unformatted prt =
 
 (* output interfaces *)
 
-val margin_default = Unsynchronized.ref 76;  (*right margin, or page width*)
+val margin_default = Unsynchronized.ref ML_Pretty.default_margin;  (*right margin, or page width*)
 
 val symbolicN = "pretty_symbolic";
 
@@ -405,4 +405,10 @@ end;
 val _ = ML_system_pp (fn d => fn _ => ML_Pretty.to_polyml o to_ML (d + 1) o quote);
 val _ = ML_system_pp (fn _ => fn _ => to_polyml o position);
 
+end;
+
+structure ML_Pretty =
+struct
+  open ML_Pretty;
+  val string_of_polyml = Pretty.string_of o Pretty.from_polyml;
 end;
