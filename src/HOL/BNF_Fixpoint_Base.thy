@@ -242,6 +242,49 @@ lemma eq_onp_live_step: "x = y \<Longrightarrow> eq_onp P a a \<and> x \<longlef
 lemma top_conj: "top x \<and> P \<longleftrightarrow> P" "P \<and> top x \<longleftrightarrow> P"
   by blast+
 
+lemma fst_convol': "fst (\<langle>f, g\<rangle> x) = f x"
+  using fst_convol unfolding convol_def by simp
+
+lemma snd_convol': "snd (\<langle>f, g\<rangle> x) = g x"
+  using snd_convol unfolding convol_def by simp
+
+lemma convol_expand_snd: "fst o f = g \<Longrightarrow> \<langle>g, snd o f\<rangle> = f"
+  unfolding convol_def by auto
+
+lemma convol_expand_snd':
+  assumes "(fst o f = g)"
+  shows "h = snd o f \<longleftrightarrow> \<langle>g, h\<rangle> = f"
+proof -
+  from assms have *: "\<langle>g, snd o f\<rangle> = f" by (rule convol_expand_snd)
+  then have "h = snd o f \<longleftrightarrow> h = snd o \<langle>g, snd o f\<rangle>" by simp
+  moreover have "\<dots> \<longleftrightarrow> h = snd o f" by (simp add: snd_convol)
+  moreover have "\<dots> \<longleftrightarrow> \<langle>g, h\<rangle> = f" by (subst (2) *[symmetric]) (auto simp: convol_def fun_eq_iff)
+  ultimately show ?thesis by simp
+qed
+
+lemma case_sum_expand_Inr_pointfree: "f o Inl = g \<Longrightarrow> case_sum g (f o Inr) = f"
+  by (auto split: sum.splits)
+
+lemma case_sum_expand_Inr': "f o Inl = g \<Longrightarrow> h = f o Inr \<longleftrightarrow> case_sum g h = f"
+  by (rule iffI) (auto simp add: fun_eq_iff split: sum.splits)
+
+lemma case_sum_expand_Inr: "f o Inl = g \<Longrightarrow> f x = case_sum g (f o Inr) x"
+  by (auto split: sum.splits)
+
+lemma id_transfer: "rel_fun A A id id"
+  unfolding rel_fun_def by simp
+
+lemma fst_transfer: "rel_fun (rel_prod A B) A fst fst"
+  unfolding rel_fun_def by simp
+
+lemma snd_transfer: "rel_fun (rel_prod A B) B snd snd"
+  unfolding rel_fun_def by simp
+
+lemma convol_transfer:
+  "rel_fun (rel_fun R S) (rel_fun (rel_fun R T) (rel_fun R (rel_prod S T))) BNF_Def.convol BNF_Def.convol"
+  unfolding rel_fun_def convol_def by auto
+
+ML_file "Tools/BNF/bnf_fp_util_tactics.ML"
 ML_file "Tools/BNF/bnf_fp_util.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar.ML"

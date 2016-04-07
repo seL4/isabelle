@@ -1202,50 +1202,6 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val timer = time (timer "dtor definitions & thms");
 
-    val fst_rec_pair_thms =
-      let
-        val mor = mor_comp_thm OF [mor_fold_thm, mor_convol_thm];
-      in
-        map2 (fn unique => fn fold_ctor =>
-          trans OF [mor RS unique, fold_ctor]) fold_unique_mor_thms fold_ctor_thms
-      end;
-
-    fun rec_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctor_recN ^ "_");
-    val rec_def_bind = rpair [] o Binding.concealed o Thm.def_binding o rec_bind;
-
-    fun mk_rec_strs rec_ss =
-      @{map 3} (fn ctor => fn prod_s => fn mapx =>
-        mk_convol (HOLogic.mk_comp (ctor, Term.list_comb (mapx, passive_ids @ rec_fsts)), prod_s))
-      ctors rec_ss rec_maps;
-
-    fun rec_spec i T AT =
-      fold_rev (Term.absfree o Term.dest_Free) rec_ss
-        (HOLogic.mk_comp (snd_const (HOLogic.mk_prodT (T, AT)), mk_fold Ts (mk_rec_strs rec_ss) i));
-
-    val ((rec_frees, (_, rec_def_frees)), (lthy, lthy_old)) =
-      lthy
-      |> Local_Theory.open_target |> snd
-      |> @{fold_map 3} (fn i => fn T => fn AT =>
-        Local_Theory.define ((rec_bind i, NoSyn), (rec_def_bind i, rec_spec i T AT))) ks Ts activeAs
-      |>> apsnd split_list o split_list
-      ||> `Local_Theory.close_target;
-
-    val phi = Proof_Context.export_morphism lthy_old lthy;
-    val recs = map (Morphism.term phi) rec_frees;
-    val rec_names = map (fst o dest_Const) recs;
-    fun mk_recs Ts passives actives =
-      let val Tactives = map2 (curry HOLogic.mk_prodT) Ts actives;
-      in
-        @{map 3} (fn name => fn T => fn active =>
-          Const (name, Library.foldr (op -->)
-            (map2 (curry op -->) (mk_FTs (passives @ Tactives)) actives, T --> active)))
-        rec_names Ts actives
-      end;
-    fun mk_rec ss i = Term.list_comb (Const (nth rec_names (i - 1), Library.foldr (op -->)
-      (map fastype_of ss, nth Ts (i - 1) --> range_type (fastype_of (nth ss (i - 1))))), ss);
-    val rec_defs = map (fn def =>
-      mk_unabs_def n (Morphism.thm phi def RS meta_eq_to_obj_eq)) rec_def_frees;
-
     val (((((((((Izs, (Izs1, Izs1'))), (Izs2, Izs2')), xFs), yFs), fs), rec_ss), init_phis), _) =
       lthy
       |> mk_Frees "z" Ts
@@ -1259,48 +1215,6 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val phis = map2 retype_const_or_free (map mk_pred1T Ts) init_phis;
     val phi2s = map2 retype_const_or_free (map2 mk_pred2T Ts Ts') init_phis;
-
-    val convols = map2 (fn T => fn i => mk_convol (HOLogic.id_const T, mk_rec rec_ss i)) Ts ks;
-    val ctor_rec_thms =
-      let
-        fun mk_goal i rec_s rec_map ctor x =
-          let
-            val lhs = mk_rec rec_ss i $ (ctor $ x);
-            val rhs = rec_s $ (Term.list_comb (rec_map, passive_ids @ convols) $ x);
-          in
-            mk_Trueprop_eq (lhs, rhs)
-          end;
-        val goals = @{map 5} mk_goal ks rec_ss rec_maps_rev ctors xFs;
-      in
-        map2 (fn goal => fn foldx =>
-          Variable.add_free_names lthy goal []
-          |> (fn vars => Goal.prove_sorry lthy vars [] goal
-            (fn {context = ctxt, prems = _} => mk_rec_tac ctxt rec_defs foldx fst_rec_pair_thms))
-          |> Thm.close_derivation)
-        goals ctor_fold_thms
-      end;
-
-    val rec_unique_mor_thm =
-      let
-        val id_fs = map2 (fn T => fn f => mk_convol (HOLogic.id_const T, f)) Ts fs;
-        val prem = HOLogic.mk_Trueprop (mk_mor UNIVs ctors rec_UNIVs (mk_rec_strs rec_ss) id_fs);
-        fun mk_fun_eq f i = HOLogic.mk_eq (f, mk_rec rec_ss i);
-        val unique = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_fun_eq fs ks));
-        val vars = fold (Variable.add_free_names lthy) [prem, unique] [];
-      in
-        Goal.prove_sorry lthy vars [] (Logic.mk_implies (prem, unique))
-          (fn {context = ctxt, prems = _} => mk_rec_unique_mor_tac ctxt rec_defs fst_rec_pair_thms
-            fold_unique_mor_thm)
-          |> Thm.close_derivation
-      end;
-
-    val (ctor_rec_unique_thms, ctor_rec_unique_thm) =
-      `split_conj_thm (split_conj_prems n
-        (mor_UNIV_thm RS iffD2 RS rec_unique_mor_thm)
-        |> unfold_thms lthy (@{thms convol_o comp_id id_comp comp_assoc fst_convol} @
-           map_id0s @ sym_map_comps) OF replicate n @{thm arg_cong2[of _ _ _ _ convol, OF refl]});
-
-    val timer = time (timer "rec definitions & thms");
 
     val (ctor_induct_thm, induct_params) =
       let
@@ -1909,8 +1823,6 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ctor_fold_o_Imap_thms = mk_xtor_co_iter_o_map_thms Least_FP false m ctor_fold_unique_thm
       ctor_Imap_o_thms (map (mk_pointfree lthy) ctor_fold_thms) sym_map_comps map_cong0s;
-    val ctor_rec_o_Imap_thms = mk_xtor_co_iter_o_map_thms Least_FP true m ctor_rec_unique_thm
-      ctor_Imap_o_thms (map (mk_pointfree lthy) ctor_rec_thms) sym_map_comps map_cong0s;
 
     val Irels = if m = 0 then map HOLogic.eq_const Ts
       else map (mk_rel_of_bnf deads passiveAs passiveBs) Ibnfs;
@@ -1927,19 +1839,17 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           (map map_transfer_of_bnf bnfs) ctor_fold_thms)
         lthy;
 
-    val rec_allAs = passiveAs @ map2 (curry HOLogic.mk_prodT) Ts activeAs;
-    val rec_allBs = passiveBs @ map2 (curry HOLogic.mk_prodT) Ts' activeBs;
-    val rec_rels = map2 (fn Ds => mk_rel_of_bnf Ds rec_allAs rec_allBs) Dss bnfs;
-    val rec_activephis =
-      map2 (fn Irel => mk_rel_prod (Term.list_comb (Irel, Iphis))) Irels activephis;
-    val ctor_rec_transfer_thms =
-      mk_xtor_co_iter_transfer_thms Least_FP rec_rels rec_activephis activephis Irels Iphis
-        (mk_recs Ts passiveAs activeAs) (mk_recs Ts' passiveBs activeBs)
-        (fn {context = ctxt, prems = _} => mk_ctor_rec_transfer_tac ctxt n m rec_defs
-           ctor_fold_transfer_thms (map map_transfer_of_bnf bnfs) ctor_Irel_thms)
-        lthy;
-
     val timer = time (timer "relator induction");
+
+    fun mk_Ts As = map (typ_subst_atomic (passiveAs ~~ As)) Ts;
+    val export = map (Morphism.term (Local_Theory.target_morphism lthy))
+    val ((recs, (ctor_rec_thms, ctor_rec_unique_thm, ctor_rec_o_Imap_thms, ctor_rec_transfer_thms)),
+        lthy) = lthy
+      |> derive_xtor_co_recs Least_FP external_bs mk_Ts (Dss, resDs) bnfs
+        (export ctors) (export folds)
+        ctor_fold_unique_thm ctor_fold_thms ctor_fold_transfer_thms ctor_Imap_thms ctor_Irel_thms;
+
+    val timer = time (timer "recursor");
 
     val common_notes =
       [(ctor_inductN, [ctor_induct_thm]),
@@ -1955,11 +1865,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       (ctor_fold_o_mapN, ctor_fold_o_Imap_thms),
       (ctor_fold_transferN, ctor_fold_transfer_thms),
       (ctor_fold_uniqueN, ctor_fold_unique_thms),
-      (ctor_rec_o_mapN, ctor_rec_o_Imap_thms),
-      (ctor_rec_transferN, ctor_rec_transfer_thms),
-      (ctor_rec_uniqueN, ctor_rec_unique_thms),
       (ctor_injectN, ctor_inject_thms),
-      (ctor_recN, ctor_rec_thms),
       (dtor_ctorN, dtor_ctor_thms),
       (dtor_exhaustN, dtor_exhaust_thms),
       (dtor_injectN, dtor_inject_thms)]
@@ -1973,7 +1879,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val fp_res =
       {Ts = Ts, bnfs = Ibnfs, pre_bnfs = bnfs, absT_infos = absT_infos,
-       ctors = ctors, dtors = dtors, xtor_un_folds_legacy = folds, xtor_co_recs = recs,
+       ctors = ctors, dtors = dtors, xtor_un_folds_legacy = folds, xtor_co_recs = export recs,
        xtor_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
        ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
        dtor_injects = dtor_inject_thms, xtor_maps = ctor_Imap_thms,

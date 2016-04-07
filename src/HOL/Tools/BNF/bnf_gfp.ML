@@ -1602,52 +1602,6 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val timer = time (timer "ctor definitions & thms");
 
-    val corec_Inl_sum_thms =
-      let
-        val mor = mor_comp_thm OF [mor_case_sum_thm, mor_unfold_thm];
-      in
-        map2 (fn unique => fn unfold_dtor =>
-          trans OF [mor RS unique, unfold_dtor]) unfold_unique_mor_thms unfold_dtor_thms
-      end;
-
-    fun corec_bind i = nth external_bs (i - 1) |> Binding.prefix_name (dtor_corecN ^ "_");
-    val corec_def_bind = rpair [] o Binding.concealed o Thm.def_binding o corec_bind;
-
-    fun mk_corec_strs corec_ss =
-      @{map 3} (fn dtor => fn sum_s => fn mapx =>
-        mk_case_sum
-          (HOLogic.mk_comp (Term.list_comb (mapx, passive_ids @ corec_Inls), dtor), sum_s))
-      dtors corec_ss corec_maps;
-
-    fun corec_spec i T AT =
-      fold_rev (Term.absfree o Term.dest_Free) corec_ss
-        (HOLogic.mk_comp (mk_unfold Ts (mk_corec_strs corec_ss) i, Inr_const T AT));
-
-    val ((corec_frees, (_, corec_def_frees)), (lthy, lthy_old)) =
-      lthy
-      |> Local_Theory.open_target |> snd
-      |> @{fold_map 3} (fn i => fn T => fn AT =>
-        Local_Theory.define ((corec_bind i, NoSyn), (corec_def_bind i, corec_spec i T AT)))
-          ks Ts activeAs
-      |>> apsnd split_list o split_list
-      ||> `Local_Theory.close_target;
-
-    val phi = Proof_Context.export_morphism lthy_old lthy;
-    val corecs = map (Morphism.term phi) corec_frees;
-    val corec_names = map (fst o dest_Const) corecs;
-    fun mk_corecs Ts passives actives =
-      let val Tactives = map2 (curry mk_sumT) Ts actives;
-      in
-        @{map 3} (fn name => fn T => fn active =>
-          Const (name, Library.foldr (op -->)
-            (map2 (curry op -->) actives (mk_FTs (passives @ Tactives)), active --> T)))
-        corec_names Ts actives
-      end;
-    fun mk_corec ss i = Term.list_comb (Const (nth corec_names (i - 1), Library.foldr (op -->)
-      (map fastype_of ss, domain_type (fastype_of (nth ss (i - 1))) --> nth Ts (i - 1))), ss);
-    val corec_defs = map (fn def =>
-      mk_unabs_def n (Morphism.thm phi def RS meta_eq_to_obj_eq)) corec_def_frees;
-
     val ((((((((zs, Jzs), Jzs_copy), Jzs1), Jzs2), unfold_fs), corec_ss), phis), _) =
       lthy
       |> mk_Frees "b" activeAs
@@ -1658,57 +1612,6 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       ||>> mk_Frees "f" unfold_fTs
       ||>> mk_Frees "s" corec_sTs
       ||>> mk_Frees "P" (map2 mk_pred2T Ts Ts);
-
-    val case_sums =
-      map2 (fn T => fn i => mk_case_sum (HOLogic.id_const T, mk_corec corec_ss i)) Ts ks;
-    val dtor_corec_thms =
-      let
-        fun mk_goal i corec_s corec_map dtor z =
-          let
-            val lhs = dtor $ (mk_corec corec_ss i $ z);
-            val rhs = Term.list_comb (corec_map, passive_ids @ case_sums) $ (corec_s $ z);
-          in
-            mk_Trueprop_eq (lhs, rhs)
-          end;
-        val goals = @{map 5} mk_goal ks corec_ss corec_maps_rev dtors zs;
-      in
-        @{map 3} (fn goal => fn unfold => fn map_cong0 =>
-          Variable.add_free_names lthy goal []
-          |> (fn vars => Goal.prove_sorry lthy vars [] goal
-            (fn {context = ctxt, prems = _} => mk_corec_tac ctxt m corec_defs unfold map_cong0
-              corec_Inl_sum_thms))
-          |> Thm.close_derivation)
-        goals dtor_unfold_thms map_cong0s
-      end;
-
-    val corec_unique_mor_thm =
-      let
-        val id_fs = map2 (fn T => fn f => mk_case_sum (HOLogic.id_const T, f)) Ts unfold_fs;
-        val prem = HOLogic.mk_Trueprop (mk_mor corec_UNIVs (mk_corec_strs corec_ss) UNIVs dtors id_fs);
-        fun mk_fun_eq f i = HOLogic.mk_eq (f, mk_corec corec_ss i);
-        val unique = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-          (map2 mk_fun_eq unfold_fs ks));
-        val vars = fold (Variable.add_free_names lthy) [prem, unique] [];
-      in
-        Goal.prove_sorry lthy vars [] (Logic.mk_implies (prem, unique))
-          (fn {context = ctxt, prems = _} => mk_corec_unique_mor_tac ctxt corec_defs
-            corec_Inl_sum_thms unfold_unique_mor_thm)
-          |> Thm.close_derivation
-      end;
-
-    val map_id0s_o_id =
-      map (fn thm =>
-        mk_trans (thm RS @{thm arg_cong2[of _ _ _ _ "op o", OF _ refl]}) @{thm id_comp})
-      map_id0s;
-
-    val (dtor_corec_unique_thms, dtor_corec_unique_thm) =
-      `split_conj_thm (split_conj_prems n
-        (mor_UNIV_thm RS iffD2 RS corec_unique_mor_thm)
-        |> unfold_thms lthy (@{thms o_case_sum comp_id id_comp comp_assoc[symmetric]
-           case_sum_o_inj(1)} @ map_id0s_o_id @ sym_map_comps)
-        OF replicate n @{thm arg_cong2[of _ _ _ _ case_sum, OF refl]});
-
-    val timer = time (timer "corec definitions & thms");
 
     val (coinduct_params, dtor_coinduct_thm) =
       let
@@ -2661,9 +2564,6 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
     val dtor_unfold_o_Jmap_thms = mk_xtor_co_iter_o_map_thms Greatest_FP false m
       dtor_unfold_unique_thm dtor_Jmap_o_thms (map (mk_pointfree lthy) dtor_unfold_thms)
       sym_map_comps map_cong0s;
-    val dtor_corec_o_Jmap_thms = mk_xtor_co_iter_o_map_thms Greatest_FP true m
-      dtor_corec_unique_thm dtor_Jmap_o_thms (map (mk_pointfree lthy) dtor_corec_thms)
-      sym_map_comps map_cong0s;
 
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
     val Jrels = if m = 0 then map HOLogic.eq_const Ts
@@ -2676,19 +2576,18 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
           (map map_transfer_of_bnf bnfs) dtor_unfold_thms)
         lthy;
 
-    val corec_allAs = passiveAs @ map2 (curry mk_sumT) Ts activeAs;
-    val corec_allBs = passiveBs @ map2 (curry mk_sumT) Ts' activeBs;
-    val corec_rels = map2 (fn Ds => mk_rel_of_bnf Ds corec_allAs corec_allBs) Dss bnfs;
-    val corec_activephis =
-      map2 (fn Jrel => mk_rel_sum (Term.list_comb (Jrel, Jphis))) Jrels activephis;
-    val dtor_corec_transfer_thms =
-      mk_xtor_co_iter_transfer_thms Greatest_FP corec_rels corec_activephis activephis Jrels Jphis
-        (mk_corecs Ts passiveAs activeAs) (mk_corecs Ts' passiveBs activeBs)
-        (fn {context = ctxt, prems = _} => mk_dtor_corec_transfer_tac ctxt n m corec_defs
-           dtor_unfold_transfer_thms (map map_transfer_of_bnf bnfs) dtor_Jrel_thms)
-        lthy;
-
     val timer = time (timer "relator coinduction");
+
+    fun mk_Ts As = map (typ_subst_atomic (passiveAs ~~ As)) Ts;
+    val export = map (Morphism.term (Local_Theory.target_morphism lthy))
+    val ((corecs, (dtor_corec_thms, dtor_corec_unique_thm, dtor_corec_o_Jmap_thms,
+        dtor_corec_transfer_thms)), lthy) = lthy
+      |> derive_xtor_co_recs Greatest_FP external_bs mk_Ts (Dss, resDs) bnfs
+        (export dtors) (export unfolds)
+        dtor_unfold_unique_thm dtor_unfold_thms dtor_unfold_transfer_thms
+        dtor_Jmap_thms dtor_Jrel_thms;
+
+    val timer = time (timer "recursor");
 
     val common_notes =
       [(dtor_coinductN, [dtor_coinduct_thm]),
@@ -2700,10 +2599,6 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
       [(ctor_dtorN, ctor_dtor_thms),
       (ctor_exhaustN, ctor_exhaust_thms),
       (ctor_injectN, ctor_inject_thms),
-      (dtor_corecN, dtor_corec_thms),
-      (dtor_corec_o_mapN, dtor_corec_o_Jmap_thms),
-      (dtor_corec_transferN, dtor_corec_transfer_thms),
-      (dtor_corec_uniqueN, dtor_corec_unique_thms),
       (dtor_ctorN, dtor_ctor_thms),
       (dtor_exhaustN, dtor_exhaust_thms),
       (dtor_injectN, dtor_inject_thms),
@@ -2721,7 +2616,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
 
     val fp_res =
       {Ts = Ts, bnfs = Jbnfs, pre_bnfs = bnfs, absT_infos = absT_infos,
-       ctors = ctors, dtors = dtors, xtor_un_folds_legacy = unfolds, xtor_co_recs = corecs,
+       ctors = ctors, dtors = dtors, xtor_un_folds_legacy = unfolds, xtor_co_recs = export corecs,
        xtor_co_induct = dtor_coinduct_thm, dtor_ctors = dtor_ctor_thms, ctor_dtors = ctor_dtor_thms,
        ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms, xtor_maps = dtor_Jmap_thms,
        xtor_map_unique = dtor_Jmap_unique_thm, xtor_setss = dtor_Jset_thmss',

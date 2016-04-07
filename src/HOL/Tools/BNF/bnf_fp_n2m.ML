@@ -24,12 +24,6 @@ open BNF_FP_Def_Sugar
 open BNF_Tactics
 open BNF_FP_N2M_Tactics
 
-fun force_typ ctxt T =
-  Term.map_types Type_Infer.paramify_vars
-  #> Type.constraint T
-  #> Syntax.check_term ctxt
-  #> singleton (Variable.polymorphic ctxt);
-
 fun mk_prod_map f g =
   let
     val ((fAT, fBT), fT) = `dest_funT (fastype_of f);

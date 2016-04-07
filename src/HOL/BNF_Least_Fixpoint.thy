@@ -40,26 +40,6 @@ lemma underS_Field: "i \<in> underS R j \<Longrightarrow> i \<in> Field R"
 lemma FieldI2: "(i, j) \<in> R \<Longrightarrow> j \<in> Field R"
   unfolding Field_def by auto
 
-lemma fst_convol': "fst (\<langle>f, g\<rangle> x) = f x"
-  using fst_convol unfolding convol_def by simp
-
-lemma snd_convol': "snd (\<langle>f, g\<rangle> x) = g x"
-  using snd_convol unfolding convol_def by simp
-
-lemma convol_expand_snd: "fst o f = g \<Longrightarrow> \<langle>g, snd o f\<rangle> = f"
-  unfolding convol_def by auto
-
-lemma convol_expand_snd':
-  assumes "(fst o f = g)"
-  shows "h = snd o f \<longleftrightarrow> \<langle>g, h\<rangle> = f"
-proof -
-  from assms have *: "\<langle>g, snd o f\<rangle> = f" by (rule convol_expand_snd)
-  then have "h = snd o f \<longleftrightarrow> h = snd o \<langle>g, snd o f\<rangle>" by simp
-  moreover have "\<dots> \<longleftrightarrow> h = snd o f" by (simp add: snd_convol)
-  moreover have "\<dots> \<longleftrightarrow> \<langle>g, h\<rangle> = f" by (subst (2) *[symmetric]) (auto simp: convol_def fun_eq_iff)
-  ultimately show ?thesis by simp
-qed
-
 lemma bij_betwE: "bij_betw f A B \<Longrightarrow> \<forall>a\<in>A. f a \<in> B"
   unfolding bij_betw_def by auto
 
@@ -171,19 +151,6 @@ qed
 
 lemma predicate2D_vimage2p: "\<lbrakk>R \<le> vimage2p f g S; R x y\<rbrakk> \<Longrightarrow> S (f x) (g y)"
   unfolding vimage2p_def by auto
-
-lemma id_transfer: "rel_fun A A id id"
-  unfolding rel_fun_def by simp
-
-lemma fst_transfer: "rel_fun (rel_prod A B) A fst fst"
-  unfolding rel_fun_def by simp
-
-lemma snd_transfer: "rel_fun (rel_prod A B) B snd snd"
-  unfolding rel_fun_def by simp
-
-lemma convol_transfer:
-  "rel_fun (rel_fun R S) (rel_fun (rel_fun R T) (rel_fun R (rel_prod S T))) BNF_Def.convol BNF_Def.convol"
-  unfolding rel_fun_def convol_def by auto
 
 lemma ssubst_Pair_rhs: "\<lbrakk>(r, s) \<in> R; s' = s\<rbrakk> \<Longrightarrow> (r, s') \<in> R"
   by (rule ssubst)
