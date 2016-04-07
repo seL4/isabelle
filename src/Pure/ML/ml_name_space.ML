@@ -63,7 +63,10 @@ struct
   val bootstrap_values =
     ["use", "exit", "ML_file", "ML_system_pretty", "ML_system_pp", "ML_system_overload"];
   val bootstrap_structures =
-    ["PolyML", "CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal", "Thread_Data"];
+    ["PolyML", "CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal", "Thread_Data",
+      "ML_Recursive"];
+  val bootstrap_signatures =
+    ["THREAD_DATA", "ML_RECURSIVE"];
 
 
   (* Standard ML environment *)
@@ -74,6 +77,7 @@ struct
   val sml_fixity = #allFix global ();
   val sml_structure =
     List.filter (fn (a, _) => List.all (fn b => a <> b) bootstrap_structures) (#allStruct global ());
-  val sml_signature = #allSig global ();
+  val sml_signature =
+    List.filter (fn (a, _) => List.all (fn b => a <> b) bootstrap_signatures) (#allSig global ());
   val sml_functor = #allFunct global ();
 end;

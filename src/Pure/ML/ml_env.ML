@@ -120,7 +120,11 @@ val init_bootstrap =
                 fold (fn (x, y) =>
                   member (op =) ML_Name_Space.bootstrap_structures x ? Symtab.update (x, y))
                 (#allStruct ML_Name_Space.global ()) structure1;
-            in (val2, type1, fixity1, structure2, signature1, functor1) end);
+              val signature2 =
+                fold (fn (x, y) =>
+                  member (op =) ML_Name_Space.bootstrap_signatures x ? Symtab.update (x, y))
+                (#allSig ML_Name_Space.global ()) signature1;
+            in (val2, type1, fixity1, structure2, signature2, functor1) end);
     in make_data (bootstrap, tables, sml_tables', breakpoints) end);
 
 fun add_name_space {SML} (space: ML_Name_Space.T) =

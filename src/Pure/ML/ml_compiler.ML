@@ -144,7 +144,10 @@ fun report_parse_tree redirect depth space parse_tree =
 
 fun eval (flags: flags) pos toks =
   let
-    val space = ML_Env.make_name_space {SML = #SML flags, exchange = #exchange flags};
+    val space =
+      (case (#SML flags orelse #exchange flags, ML_Recursive.get ()) of
+        (false, SOME space) => space
+      | _ => ML_Env.make_name_space {SML = #SML flags, exchange = #exchange flags});
     val opt_context = Context.get_generic_context ();
 
 
@@ -264,7 +267,7 @@ fun eval (flags: flags) pos toks =
 
     val _ =
       (while not (List.null (! input_buffer)) do
-        PolyML.compiler (get, parameters) ())
+        ML_Recursive.recursive space (fn () => PolyML.compiler (get, parameters) ()))
       handle exn =>
         if Exn.is_interrupt exn then Exn.reraise exn
         else

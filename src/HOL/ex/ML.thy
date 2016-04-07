@@ -56,6 +56,17 @@ ML \<open>
   val t = Syntax.read_term @{context} (Syntax.implode_input s);
 \<close>
 
+
+section \<open>Recursive ML evaluation\<close>
+
+ML \<open>
+  ML \<open>ML \<open>val a = @{thm refl}\<close>\<close>;
+  ML \<open>val b = @{thm sym}\<close>;
+  val c = @{thm trans}
+  val thms = [a, b, c];
+\<close>
+
+
 section \<open>IDE support\<close>
 
 text \<open>

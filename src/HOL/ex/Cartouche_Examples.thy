@@ -272,12 +272,4 @@ ML \<open>
     if Symbol.is_digit s then Position.report pos Markup.ML_numeral else ());
 \<close>
 
-text \<open>Nested ML evaluation:\<close>
-ML \<open>
-  ML \<open>ML \<open>val a = @{thm refl}\<close>\<close>;
-  ML \<open>val b = @{thm sym}\<close>;
-  val c = @{thm trans}
-  val thms = [a, b, c];
-\<close>
-
 end
