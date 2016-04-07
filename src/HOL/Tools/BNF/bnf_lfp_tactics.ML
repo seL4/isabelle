@@ -169,11 +169,11 @@ fun mk_copy_tac ctxt m alg_def mor_def alg_sets set_mapss =
     val n = length alg_sets;
     fun set_tac thm =
       EVERY' [rtac ctxt ord_eq_le_trans, rtac ctxt thm, rtac ctxt subset_trans, etac ctxt @{thm image_mono},
-        rtac ctxt equalityD1, etac ctxt @{thm bij_betw_imageE}];
+        rtac ctxt equalityD1, etac ctxt @{thm bij_betw_imp_surj_on}];
     val alg_tac =
       CONJ_WRAP' (fn (set_maps, alg_set) =>
         EVERY' [rtac ctxt ballI, REPEAT_DETERM o eresolve_tac ctxt [CollectE, conjE], rtac ctxt set_mp,
-          rtac ctxt equalityD1, etac ctxt @{thm bij_betw_imageE[OF bij_betw_the_inv_into]},
+          rtac ctxt equalityD1, etac ctxt @{thm bij_betw_imp_surj_on[OF bij_betw_the_inv_into]},
           rtac ctxt imageI, etac ctxt alg_set, EVERY' (map set_tac (drop m set_maps))])
       (set_mapss ~~ alg_sets);
 

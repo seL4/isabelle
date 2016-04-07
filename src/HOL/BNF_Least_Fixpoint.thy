@@ -43,9 +43,6 @@ lemma FieldI2: "(i, j) \<in> R \<Longrightarrow> j \<in> Field R"
 lemma bij_betwE: "bij_betw f A B \<Longrightarrow> \<forall>a\<in>A. f a \<in> B"
   unfolding bij_betw_def by auto
 
-lemma bij_betw_imageE: "bij_betw f A B \<Longrightarrow> f ` A = B"
-  unfolding bij_betw_def by auto
-
 lemma f_the_inv_into_f_bij_betw:
   "bij_betw f A B \<Longrightarrow> (bij_betw f A B \<Longrightarrow> x \<in> B) \<Longrightarrow> f (the_inv_into A f x) = x"
   unfolding bij_betw_def by (blast intro: f_the_inv_into_f)
