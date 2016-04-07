@@ -329,3 +329,5 @@ use "Tools/simplifier_trace.ML";
 use_no_debug "Tools/debugger.ML";
 use "Tools/named_theorems.ML";
 use "Tools/jedit.ML";
+
+(* :mode=isabelle: *)
