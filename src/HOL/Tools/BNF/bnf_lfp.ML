@@ -1879,17 +1879,17 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val fp_res =
       {Ts = Ts, bnfs = Ibnfs, pre_bnfs = bnfs, absT_infos = absT_infos,
-       ctors = ctors, dtors = dtors, xtor_un_folds_legacy = folds, xtor_co_recs = export recs,
+       ctors = ctors, dtors = dtors, xtor_un_folds = folds, xtor_co_recs = export recs,
        xtor_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
        ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
        dtor_injects = dtor_inject_thms, xtor_maps = ctor_Imap_thms,
        xtor_map_unique = ctor_Imap_unique_thm, xtor_setss = ctor_Iset_thmss',
-       xtor_rels = ctor_Irel_thms, xtor_un_fold_thms_legacy = ctor_fold_thms,
-       xtor_co_rec_thms = ctor_rec_thms, xtor_un_fold_unique_legacy = ctor_fold_unique_thm,
+       xtor_rels = ctor_Irel_thms, xtor_un_fold_thms = ctor_fold_thms,
+       xtor_co_rec_thms = ctor_rec_thms, xtor_un_fold_unique = ctor_fold_unique_thm,
        xtor_co_rec_unique = ctor_rec_unique_thm,
-       xtor_un_fold_o_maps_legacy = ctor_fold_o_Imap_thms,
+       xtor_un_fold_o_maps = ctor_fold_o_Imap_thms,
        xtor_co_rec_o_maps = ctor_rec_o_Imap_thms,
-       xtor_un_fold_transfers_legacy = ctor_fold_transfer_thms,
+       xtor_un_fold_transfers = ctor_fold_transfer_thms,
        xtor_co_rec_transfers = ctor_rec_transfer_thms, xtor_rel_co_induct = Irel_induct_thm,
        dtor_set_inducts = []};
   in

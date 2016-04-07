@@ -2135,7 +2135,7 @@ fun derive_corecUU_base fpT_name lthy =
     val dead_pre_map = mk_map1 lthy Y Z preT dead_pre_bnf;
     val fp_rel = mk_relN lthy live_EsFs fpT fp_bnf;
     val dtor_unfold = mk_co_rec (Proof_Context.theory_of lthy) Greatest_FP [Z] fpT
-      (the_single (#xtor_un_folds_legacy fp_res));
+      (the_single (#xtor_un_folds fp_res));
     val Sig = mk_ctr As (the_single (#ctrs sig_ctr_sugar));
     val unsig = mk_disc_or_sel As (the_single (the_single (#selss sig_ctr_sugar)));
     val sig_rel = mk_relN lthy live_AsBs sig_T sig_bnf;
@@ -2159,9 +2159,9 @@ fun derive_corecUU_base fpT_name lthy =
     val [ctor_dtor] = #ctor_dtors fp_res;
     val [dtor_ctor] = #dtor_ctors fp_res;
     val [dtor_inject] = #dtor_injects fp_res;
-    val [dtor_unfold_thm] = #xtor_un_fold_thms_legacy fp_res;
-    val dtor_unfold_unique = #xtor_un_fold_unique_legacy fp_res;
-    val [dtor_unfold_transfer] = #xtor_un_fold_transfers_legacy fp_res;
+    val [dtor_unfold_thm] = #xtor_un_fold_thms fp_res;
+    val dtor_unfold_unique = #xtor_un_fold_unique fp_res;
+    val [dtor_unfold_transfer] = #xtor_un_fold_transfers fp_res;
     val [dtor_rel_thm] = #xtor_rels fp_res;
     val unsig_thm = the_single (the_single (#sel_thmss sig_ctr_sugar));
     val [sig_map_thm] = #map_thms sig_fp_bnf_sugar;
@@ -2369,7 +2369,7 @@ fun derive_corecUU_step (fpT as Type (fpT_name, res_Ds))
     val dead_pre_rel = mk_rel1 lthy Y Z preT dead_pre_bnf;
     val fp_rel = mk_relN lthy live_EsFs fpT fp_bnf;
     val dtor_unfold = mk_co_rec (Proof_Context.theory_of lthy) Greatest_FP [Z] fpT
-      (the_single (#xtor_un_folds_legacy fp_res));
+      (the_single (#xtor_un_folds fp_res));
     val dead_k_map = mk_map1 lthy Y Z k_T dead_k_bnf;
     val Sig = mk_ctr res_As (the_single (#ctrs sig_ctr_sugar));
     val unsig = mk_disc_or_sel res_As (the_single (the_single (#selss sig_ctr_sugar)));
@@ -2409,9 +2409,9 @@ fun derive_corecUU_step (fpT as Type (fpT_name, res_Ds))
     val fp_map_id = map_id_of_bnf fp_bnf;
     val [ctor_dtor] = #ctor_dtors fp_res;
     val [dtor_inject] = #dtor_injects fp_res;
-    val [dtor_unfold_thm] = #xtor_un_fold_thms_legacy fp_res;
-    val dtor_unfold_unique = #xtor_un_fold_unique_legacy fp_res;
-    val [dtor_unfold_transfer] = #xtor_un_fold_transfers_legacy fp_res;
+    val [dtor_unfold_thm] = #xtor_un_fold_thms fp_res;
+    val dtor_unfold_unique = #xtor_un_fold_unique fp_res;
+    val [dtor_unfold_transfer] = #xtor_un_fold_transfers fp_res;
     val fp_k_T_rel_eqs =
       map rel_eq_of_bnf (map_filter (bnf_of lthy) (fold add_type_namesT [fpT, k_T] []));
     val unsig_thm = the_single (the_single (#sel_thmss sig_ctr_sugar));
@@ -2710,7 +2710,7 @@ fun derive_corecUU_merge (fpT as Type (fpT_name, res_Ds))
     val dead_pre_rel = mk_rel1 lthy Y Z preT dead_pre_bnf;
     val fp_rel = mk_relN lthy live_EsFs fpT fp_bnf;
     val dtor_unfold = mk_co_rec (Proof_Context.theory_of lthy) Greatest_FP [Z] fpT
-      (the_single (#xtor_un_folds_legacy fp_res));
+      (the_single (#xtor_un_folds fp_res));
     val Sig = mk_ctr res_As (the_single (#ctrs sig_ctr_sugar));
     val unsig = mk_disc_or_sel res_As (the_single (the_single (#selss sig_ctr_sugar)));
     val sig_rel = mk_relN lthy live_AsBs sig_T sig_bnf;
@@ -2761,9 +2761,9 @@ fun derive_corecUU_merge (fpT as Type (fpT_name, res_Ds))
     val fp_rel_eq = rel_eq_of_bnf fp_bnf;
     val [ctor_dtor] = #ctor_dtors fp_res;
     val [dtor_inject] = #dtor_injects fp_res;
-    val [dtor_unfold_thm] = #xtor_un_fold_thms_legacy fp_res;
-    val dtor_unfold_unique = #xtor_un_fold_unique_legacy fp_res;
-    val [dtor_unfold_transfer] = #xtor_un_fold_transfers_legacy fp_res;
+    val [dtor_unfold_thm] = #xtor_un_fold_thms fp_res;
+    val dtor_unfold_unique = #xtor_un_fold_unique fp_res;
+    val [dtor_unfold_transfer] = #xtor_un_fold_transfers fp_res;
     val unsig_thm = the_single (the_single (#sel_thmss sig_ctr_sugar));
     val [sig_map_thm] = #map_thms sig_fp_bnf_sugar;
     val old1_sig_map_comp = map_comp_of_bnf old1_sig_bnf;
