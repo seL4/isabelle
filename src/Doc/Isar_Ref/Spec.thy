@@ -1027,7 +1027,11 @@ section \<open>Incorporating ML code \label{sec:ML}\<close>
 text \<open>
   \begin{matharray}{rcl}
     @{command_def "SML_file"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "SML_file_debug"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "SML_file_no_debug"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "ML_file"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "ML_file_debug"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "ML_file_no_debug"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "ML"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "ML_prf"} & : & \<open>proof \<rightarrow> proof\<close> \\
     @{command_def "ML_val"} & : & \<open>any \<rightarrow>\<close> \\
@@ -1039,11 +1043,18 @@ text \<open>
   \begin{tabular}{rcll}
     @{attribute_def ML_print_depth} & : & \<open>attribute\<close> & default 10 \\
     @{attribute_def ML_source_trace} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def ML_debugger} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def ML_exception_trace} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def ML_exception_debugger} & : & \<open>attribute\<close> & default \<open>false\<close> \\
   \end{tabular}
 
   @{rail \<open>
-    (@@{command SML_file} | @@{command ML_file}) @{syntax name}
+    (@@{command SML_file} |
+      @@{command SML_file_debug} |
+      @@{command SML_file_no_debug} |
+      @@{command ML_file} |
+      @@{command ML_file_debug} |
+      @@{command ML_file_no_debug}) @{syntax name} ';'?
     ;
     (@@{command ML} | @@{command ML_prf} | @@{command ML_val} |
       @@{command ML_command} | @@{command setup} | @@{command local_setup}) @{syntax text}
@@ -1062,7 +1073,11 @@ text \<open>
   context is passed down to the ML toplevel and may be modified, using @{ML
   "Context.>>"} or derived ML commands. Top-level ML bindings are stored
   within the (global or local) theory context.
-  
+
+  \<^descr> \<^theory_text>\<open>SML_file_debug\<close>, \<^theory_text>\<open>SML_file_no_debug\<close>, \<^theory_text>\<open>ML_file_debug\<close>, and
+  \<^theory_text>\<open>ML_file_no_debug\<close> change the @{attribute ML_debugger} option locally while
+  the given file is compiled.
+
   \<^descr> \<^theory_text>\<open>ML text\<close> is similar to \<^theory_text>\<open>ML_file\<close>, but evaluates directly the given
   \<open>text\<close>. Top-level ML bindings are stored within the (global or local) theory
   context.
@@ -1097,40 +1112,48 @@ text \<open>
 \<close>
 
 (*<*)experiment begin(*>*)
-  attribute_setup my_rule =
-    \<open>Attrib.thms >> (fn ths =>
-      Thm.rule_attribute ths
-        (fn context: Context.generic => fn th: thm =>
-          let val th' = th OF ths
-          in th' end))\<close>
+        attribute_setup my_rule =
+          \<open>Attrib.thms >> (fn ths =>
+            Thm.rule_attribute ths
+              (fn context: Context.generic => fn th: thm =>
+                let val th' = th OF ths
+                in th' end))\<close>
 
-  attribute_setup my_declaration =
-    \<open>Attrib.thms >> (fn ths =>
-      Thm.declaration_attribute
-        (fn th: thm => fn context: Context.generic =>
-          let val context' = context
-          in context' end))\<close>
+        attribute_setup my_declaration =
+          \<open>Attrib.thms >> (fn ths =>
+            Thm.declaration_attribute
+              (fn th: thm => fn context: Context.generic =>
+                let val context' = context
+                in context' end))\<close>
 (*<*)end(*>*)
 
 text \<open>
   \<^descr> @{attribute ML_print_depth} controls the printing depth of the ML toplevel
-  pretty printer; the precise effect depends on the ML compiler and run-time
-  system. Typically the limit should be less than 10. Bigger values such as
-  100--1000 are occasionally useful for debugging.
+  pretty printer. Typically the limit should be less than 10. Bigger values
+  such as 100--1000 are occasionally useful for debugging.
 
   \<^descr> @{attribute ML_source_trace} indicates whether the source text that is
   given to the ML compiler should be output: it shows the raw Standard ML
   after expansion of Isabelle/ML antiquotations.
 
+  \<^descr> @{attribute ML_debugger} controls compilation of sources with or without
+  debugging information. The global system option @{system_option_ref
+  ML_debugger} does the same when building a session image. It is also
+  possible use commands like \<^theory_text>\<open>ML_file_debug\<close> etc. The ML debugger is
+  explained further in @{cite "isabelle-jedit"}.
+
   \<^descr> @{attribute ML_exception_trace} indicates whether the ML run-time system
   should print a detailed stack trace on exceptions. The result is dependent
-  on the particular ML compiler version. Note that after Poly/ML 5.3 some
-  optimizations in the run-time systems may hinder exception traces.
+  on various ML compiler optimizations. The boundary for the exception trace
+  is the current Isar command transactions: it is occasionally better to
+  insert the combinator @{ML Runtime.exn_trace} into ML code for debugging
+  @{cite "isabelle-implementation"}, closer to the point where it actually
+  happens.
 
-  The boundary for the exception trace is the current Isar command
-  transactions. It is occasionally better to insert the combinator @{ML
-  Runtime.exn_trace} into ML code for debugging @{cite
-  "isabelle-implementation"}, closer to the point where it actually happens.
+  \<^descr> @{attribute ML_exception_debugger} controls detailed exception trace via
+  the Poly/ML debugger, at the cost of extra compile-time and run-time
+  overhead. Relevant ML modules need to be compiled beforehand with debugging
+  enabled, see @{attribute ML_debugger} above.
 \<close>
 
 
