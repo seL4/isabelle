@@ -9,7 +9,6 @@ infix 1 THEN_MAYBE THEN_MAYBE';
 
 signature SEARCH =
 sig
-  val trace_DEPTH_FIRST: bool Unsynchronized.ref
   val DEPTH_FIRST: (thm -> bool) -> tactic -> tactic
   val has_fewer_prems: int -> thm -> bool
   val IF_UNSOLVED: tactic -> tactic
@@ -20,14 +19,11 @@ sig
   val DEPTH_SOLVE_1: tactic -> tactic
   val THEN_ITER_DEEPEN: int -> tactic -> (thm -> bool) -> (int -> tactic) -> tactic
   val ITER_DEEPEN: int -> (thm -> bool) -> (int -> tactic) -> tactic
-  val trace_DEEPEN: bool Unsynchronized.ref
   val DEEPEN: int * int -> (int -> int -> tactic) -> int -> int -> tactic
-  val trace_BEST_FIRST: bool Unsynchronized.ref
   val THEN_BEST_FIRST: tactic -> (thm -> bool) * (thm -> int) -> tactic -> tactic
   val BEST_FIRST: (thm -> bool) * (thm -> int) -> tactic -> tactic
   val BREADTH_FIRST: (thm -> bool) -> tactic -> tactic
   val QUIET_BREADTH_FIRST: (thm -> bool) -> tactic -> tactic
-  val trace_ASTAR: bool Unsynchronized.ref
   val THEN_ASTAR: tactic -> (thm -> bool) * (int -> thm -> int) -> tactic -> tactic
   val ASTAR: (thm -> bool) * (int -> thm -> int) -> tactic -> tactic
 end;
@@ -37,13 +33,10 @@ struct
 
 (**** Depth-first search ****)
 
-val trace_DEPTH_FIRST = Unsynchronized.ref false;
-
 (*Searches until "satp" reports proof tree as satisfied.
   Suppresses duplicate solutions to minimize search space.*)
 fun DEPTH_FIRST satp tac =
   let
-    val tac = tracify trace_DEPTH_FIRST tac
     fun depth used [] = NONE
       | depth used (q :: qs) =
           (case Seq.pull q of
@@ -52,7 +45,7 @@ fun DEPTH_FIRST satp tac =
               if satp st andalso not (member Thm.eq_thm used st) then
                 SOME (st, Seq.make (fn() => depth (st :: used) (stq :: qs)))
               else depth used (tac st :: stq :: qs));
-  in traced_tac (fn st => depth [] [Seq.single st]) end;
+  in fn st => Seq.make (fn () => depth [] [Seq.single st]) end;
 
 
 (*Predicate: Does the rule have fewer than n premises?*)
@@ -99,12 +92,8 @@ fun prune (new as (k', np':int, rgd', stq), qs) =
     fun prune_aux (qs, []) = new :: qs
       | prune_aux (qs, (k, np, rgd, q) :: rqs) =
           if np' + 1 = np andalso rgd then
-            (if !trace_DEPTH_FIRST then
-                 tracing ("Pruning " ^
-                          string_of_int (1+length rqs) ^ " levels")
-             else ();
              (*Use OLD k: zero-cost solution; see Stickel, p 365*)
-             (k, np', rgd', stq) :: qs)
+             (k, np', rgd', stq) :: qs
           else prune_aux ((k, np, rgd, q) :: qs, rqs)
       fun take ([], rqs) = ([], rqs)
         | take (arg as ((k, np, rgd, stq) :: qs, rqs)) =
@@ -117,35 +106,21 @@ fun prune (new as (k', np':int, rgd', stq), qs) =
   The solution sequence is redundant: the cutoff heuristic makes it impossible
   to suppress solutions arising from earlier searches, as the accumulated cost
   (k) can be wrong.*)
-fun THEN_ITER_DEEPEN lim tac0 satp tac1 = traced_tac (fn st =>
+fun THEN_ITER_DEEPEN lim tac0 satp tac1 st =
   let
     val countr = Unsynchronized.ref 0
-    and tf = tracify trace_DEPTH_FIRST (tac1 1)
+    and tf = tac1 1
     and qs0 = tac0 st
      (*bnd = depth bound; inc = estimate of increment required next*)
     fun depth (bnd, inc) [] =
-          if bnd > lim then
-           (if !trace_DEPTH_FIRST then
-             tracing (string_of_int (! countr) ^
-              " inferences so far.  Giving up at " ^ string_of_int bnd)
-            else ();
-            NONE)
+          if bnd > lim then NONE
           else
-           (if !trace_DEPTH_FIRST then
-              tracing (string_of_int (!countr) ^
-                " inferences so far.  Searching to depth " ^ string_of_int bnd)
-            else ();
             (*larger increments make it run slower for the hard problems*)
-            depth (bnd + inc, 10)) [(0, 1, false, qs0)]
+            depth (bnd + inc, 10) [(0, 1, false, qs0)]
       | depth (bnd, inc) ((k, np, rgd, q) :: qs) =
           if k >= bnd then depth (bnd, inc) qs
           else
-           (case
-             (Unsynchronized.inc countr;
-              if !trace_DEPTH_FIRST then
-                tracing (string_of_int np ^ implode (map (fn _ => "*") qs))
-              else ();
-              Seq.pull q) of
+           (case (Unsynchronized.inc countr; Seq.pull q) of
              NONE => depth (bnd, inc) qs
            | SOME (st, stq) =>
               if satp st then (*solution!*)
@@ -162,26 +137,20 @@ fun THEN_ITER_DEEPEN lim tac0 satp tac1 = traced_tac (fn st =>
                   then depth (bnd, inc) (prune ((k', np', rgd', tf st), (k, np, rgd, stq) :: qs))
                   else depth (bnd, inc) ((k', np', rgd', tf st) :: (k, np, rgd, stq) :: qs)
                 end)
-  in depth (0, 5) [] end);
+  in Seq.make (fn () => depth (0, 5) []) end;
 
 fun ITER_DEEPEN lim = THEN_ITER_DEEPEN lim all_tac;
 
 
 (*Simple iterative deepening tactical.  It merely "deepens" any search tactic
   using increment "inc" up to limit "lim". *)
-val trace_DEEPEN = Unsynchronized.ref false;
-
 fun DEEPEN (inc, lim) tacf m i =
   let
     fun dpn m st =
       st |>
        (if has_fewer_prems i st then no_tac
-        else if m > lim then
-          (if !trace_DEEPEN then tracing "Search depth limit exceeded: giving up" else ();
-            no_tac)
-        else
-          (if !trace_DEEPEN then tracing ("Search depth = " ^ string_of_int m) else ();
-            tacf m i  ORELSE  dpn (m+inc)))
+        else if m > lim then no_tac
+        else tacf m i  ORELSE  dpn (m+inc))
   in  dpn m  end;
 
 
@@ -193,8 +162,6 @@ structure Thm_Heap = Heap
   type elem = int * thm;
   val ord = prod_ord int_ord (Term_Ord.term_ord o apply2 Thm.prop_of);
 );
-
-val trace_BEST_FIRST = Unsynchronized.ref false;
 
 (*For creating output sequence*)
 fun some_of_list [] = NONE
@@ -210,9 +177,8 @@ fun delete_all_min prf heap =
 (*Best-first search for a state that satisfies satp (incl initial state)
   Function sizef estimates size of problem remaining (smaller means better).
   tactic tac0 sets up the initial priority queue, while tac1 searches it. *)
-fun THEN_BEST_FIRST tac0 (satp, sizef) tac1 =
+fun THEN_BEST_FIRST tac0 (satp, sizef) tac =
   let
-    val tac = tracify trace_BEST_FIRST tac1;
     fun pairsize th = (sizef th, th);
     fun bfs (news, nprf_heap) =
       (case List.partition satp news of
@@ -223,15 +189,11 @@ fun THEN_BEST_FIRST tac0 (satp, sizef) tac1 =
       else
         let
           val (n, prf) = Thm_Heap.min nprf_heap;
-          val _ =
-            if !trace_BEST_FIRST
-            then tracing("state size = " ^ string_of_int n)
-            else ();
         in
           bfs (Seq.list_of (tac prf), delete_all_min prf (Thm_Heap.delete_min nprf_heap))
         end;
     fun btac st = bfs (Seq.list_of (tac0 st), Thm_Heap.empty)
-  in traced_tac btac end;
+  in fn st => Seq.make (fn () => btac st) end;
 
 (*Ordinary best-first search, with no initial tactic*)
 val BEST_FIRST = THEN_BEST_FIRST all_tac;
@@ -271,11 +233,8 @@ fun insert_with_level (lnth: int * int * thm) [] = [lnth]
 fun some_of_list [] = NONE
   | some_of_list (x :: xs) = SOME (x, Seq.make (fn () => some_of_list xs));
 
-val trace_ASTAR = Unsynchronized.ref false;
-
-fun THEN_ASTAR tac0 (satp, costf) tac1 =
+fun THEN_ASTAR tac0 (satp, costf) tac =
   let
-    val tf = tracify trace_ASTAR tac1;
     fun bfs (news, nprfs, level) =
       let fun cost thm = (level, costf level thm, thm) in
         (case List.partition satp news of
@@ -283,15 +242,8 @@ fun THEN_ASTAR tac0 (satp, costf) tac1 =
         | (sats, _) => some_of_list sats)
       end
     and next [] = NONE
-      | next ((level, n, prf) :: nprfs) =
-         (if !trace_ASTAR then
-          tracing ("level = " ^ string_of_int level ^
-                   "  cost = " ^ string_of_int n ^
-                   "  queue length =" ^ string_of_int (length nprfs))
-          else ();
-          bfs (Seq.list_of (tf prf), nprfs, level + 1))
-    fun tf st = bfs (Seq.list_of (tac0 st), [], 0);
-  in traced_tac tf end;
+      | next ((level, n, prf) :: nprfs) = bfs (Seq.list_of (tac prf), nprfs, level + 1)
+  in fn st => Seq.make (fn () => bfs (Seq.list_of (tac0 st), [], 0)) end;
 
 (*Ordinary ASTAR, with no initial tactic*)
 val ASTAR = THEN_ASTAR all_tac;

@@ -31,11 +31,6 @@ sig
   val FIRST1: (int -> tactic) list -> tactic
   val RANGE: (int -> tactic) list -> int -> tactic
   val print_tac: Proof.context -> string -> tactic
-  val pause_tac: tactic
-  val trace_REPEAT: bool Unsynchronized.ref
-  val suppress_tracing: bool Unsynchronized.ref
-  val tracify: bool Unsynchronized.ref -> tactic -> tactic
-  val traced_tac: (thm -> (thm * thm Seq.seq) option) -> tactic
   val REPEAT_DETERM_N: int -> tactic -> tactic
   val REPEAT_DETERM: tactic -> tactic
   val REPEAT: tactic -> tactic
@@ -179,59 +174,10 @@ fun RANGE [] _ = all_tac
   | RANGE (tac :: tacs) i = RANGE tacs (i + 1) THEN tac i;
 
 
-(*** Tracing tactics ***)
-
 (*Print the current proof state and pass it on.*)
 fun print_tac ctxt msg st =
  (tracing (msg ^ "\n" ^ Pretty.string_of (Pretty.chunks (Goal_Display.pretty_goals ctxt st)));
   Seq.single st);
-
-(*Pause until a line is typed -- if non-empty then fail. *)
-fun pause_tac st =
- (tracing "** Press RETURN to continue:";
-  if TextIO.inputLine TextIO.stdIn = SOME "\n" then Seq.single st
-  else (tracing "Goodbye";  Seq.empty));
-
-exception TRACE_EXIT of thm
-and TRACE_QUIT;
-
-(*Tracing flags*)
-val trace_REPEAT= Unsynchronized.ref false
-and suppress_tracing = Unsynchronized.ref false;
-
-(*Handle all tracing commands for current state and tactic *)
-fun exec_trace_command flag (tac, st) =
-  (case TextIO.inputLine TextIO.stdIn of
-    SOME "\n" => tac st
-  | SOME "f\n" => Seq.empty
-  | SOME "o\n" => (flag := false;  tac st)
-  | SOME "s\n" => (suppress_tracing := true;  tac st)
-  | SOME "x\n" => (tracing "Exiting now";  raise (TRACE_EXIT st))
-  | SOME "quit\n" => raise TRACE_QUIT
-  | _  =>
-    (tracing
-      "Type RETURN to continue or...\n\
-      \     f    - to fail here\n\
-      \     o    - to switch tracing off\n\
-      \     s    - to suppress tracing until next entry to a tactical\n\
-      \     x    - to exit at this point\n\
-      \     quit - to abort this tracing run\n\
-      \** Well? ";  exec_trace_command flag (tac, st)));
-
-
-(*Extract from a tactic, a thm->thm seq function that handles tracing*)
-fun tracify flag tac st =
-  if !flag andalso not (!suppress_tracing) then
-    (tracing (Pretty.string_of (Pretty.chunks
-        (Goal_Display.pretty_goals (Syntax.init_pretty_global (Thm.theory_of_thm st)) st @
-          [Pretty.str "** Press RETURN to continue:"])));
-     exec_trace_command flag (tac, st))
-  else tac st;
-
-(*Create a tactic whose outcome is given by seqf, handling TRACE_EXIT*)
-fun traced_tac seqf st =
- (suppress_tracing := false;
-  Seq.make (fn () => seqf st handle TRACE_EXIT st' => SOME (st', Seq.empty)));
 
 
 (*Deterministic REPEAT: only retains the first outcome;
@@ -239,13 +185,12 @@ fun traced_tac seqf st =
   If non-negative, n bounds the number of repetitions.*)
 fun REPEAT_DETERM_N n tac =
   let
-    val tac = tracify trace_REPEAT tac;
     fun drep 0 st = SOME (st, Seq.empty)
       | drep n st =
           (case Seq.pull (tac st) of
             NONE => SOME(st, Seq.empty)
           | SOME (st', _) => drep (n - 1) st');
-  in traced_tac (drep n) end;
+  in fn st => Seq.make (fn () => drep n st) end;
 
 (*Allows any number of repetitions*)
 val REPEAT_DETERM = REPEAT_DETERM_N ~1;
@@ -253,7 +198,6 @@ val REPEAT_DETERM = REPEAT_DETERM_N ~1;
 (*General REPEAT: maintains a stack of alternatives; tail recursive*)
 fun REPEAT tac =
   let
-    val tac = tracify trace_REPEAT tac;
     fun rep qs st =
       (case Seq.pull (tac st) of
         NONE => SOME (st, Seq.make (fn () => repq qs))
@@ -263,7 +207,7 @@ fun REPEAT tac =
           (case Seq.pull q of
             NONE => repq qs
           | SOME (st, q) => rep (q :: qs) st);
-  in traced_tac (rep []) end;
+  in fn st => Seq.make (fn () => rep [] st) end;
 
 (*Repeat 1 or more times*)
 fun REPEAT_DETERM1 tac = DETERM tac THEN REPEAT_DETERM tac;
