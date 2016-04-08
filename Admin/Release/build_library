@@ -75,10 +75,8 @@ tar -x -z -f "$ARCHIVE_FULL"
 cd *
 ISABELLE_NAME="$(basename "$PWD")"
 
-echo "ISABELLE_FULL_TEST=true" >> etc/settings
-
 env ISABELLE_IDENTIFIER="${ISABELLE_NAME}-build" \
-  ./bin/isabelle build $JOBS -s -c -a -o browser_info \
+  ./bin/isabelle build $JOBS -s -c -a -d '~~/src/Benchmarks' -o browser_info \
     -o "document=pdf" -o "document_variants=document:outline=/proof,/ML"
 RC="$?"
 
