@@ -101,7 +101,7 @@ end
 val real_linarith_proc =
   Simplifier.make_simproc @{context} "fast_real_arith"
    {lhss = [@{term "(m::real) < n"}, @{term "(m::real) \<le> n"}, @{term "(m::real) = n"}],
-    proc = K Lin_Arith.simproc, identifier = []}
+    proc = K Lin_Arith.simproc}
 
 
 (* setup *)

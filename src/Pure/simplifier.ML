@@ -36,8 +36,7 @@ sig
   val cong_del: attribute
   val check_simproc: Proof.context -> xstring * Position.T -> string
   val the_simproc: Proof.context -> string -> simproc
-  type 'a simproc_spec =
-    {lhss: 'a list, proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list}
+  type 'a simproc_spec = {lhss: 'a list, proc: morphism -> Proof.context -> cterm -> thm option}
   val make_simproc: Proof.context -> string -> term simproc_spec -> simproc
   val define_simproc: binding -> term simproc_spec -> local_theory -> local_theory
   val define_simproc_cmd: binding -> string simproc_spec -> local_theory -> local_theory
@@ -117,25 +116,22 @@ val _ = Theory.setup
 
 (* define simprocs *)
 
-type 'a simproc_spec =
-  {lhss: 'a list, proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list};
+type 'a simproc_spec = {lhss: 'a list, proc: morphism -> Proof.context -> cterm -> thm option};
 
-fun make_simproc ctxt name {lhss, proc, identifier} =
+fun make_simproc ctxt name {lhss, proc} =
   let
     val ctxt' = fold Variable.auto_fixes lhss ctxt;
     val lhss' = Variable.export_terms ctxt' ctxt lhss;
   in
-    cert_simproc (Proof_Context.theory_of ctxt) name
-      {lhss = lhss', proc = proc, identifier = identifier}
+    cert_simproc (Proof_Context.theory_of ctxt) name {lhss = lhss', proc = proc}
   end;
 
 local
 
-fun def_simproc prep b {lhss, proc, identifier} lthy =
+fun def_simproc prep b {lhss, proc} lthy =
   let
     val simproc =
-      make_simproc lthy (Local_Theory.full_name lthy b)
-        {lhss = prep lthy lhss, proc = proc, identifier = identifier};
+      make_simproc lthy (Local_Theory.full_name lthy b) {lhss = prep lthy lhss, proc = proc};
   in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
       let

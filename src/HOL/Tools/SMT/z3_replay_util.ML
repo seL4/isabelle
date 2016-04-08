@@ -126,13 +126,13 @@ local
       addsimprocs [@{simproc numeral_divmod},
         Simplifier.make_simproc @{context} "fast_int_arith"
          {lhss = [@{term "(m::int) < n"}, @{term "(m::int) \<le> n"}, @{term "(m::int) = n"}],
-          proc = K Lin_Arith.simproc, identifier = []},
+          proc = K Lin_Arith.simproc},
         Simplifier.make_simproc @{context} "antisym_le"
          {lhss = [@{term "(x::'a::order) \<le> y"}],
-          proc = K prove_antisym_le, identifier = []},
+          proc = K prove_antisym_le},
         Simplifier.make_simproc @{context} "antisym_less"
          {lhss = [@{term "\<not> (x::'a::linorder) < y"}],
-          proc = K prove_antisym_less, identifier = []}])
+          proc = K prove_antisym_less}])
 
   structure Simpset = Generic_Data
   (

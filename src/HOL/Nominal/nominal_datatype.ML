@@ -122,7 +122,7 @@ fun perm_simproc' ctxt ct =
 
 val perm_simproc =
   Simplifier.make_simproc @{context} "perm_simp"
-   {lhss = [@{term "pi1 \<bullet> (pi2 \<bullet> x)"}], proc = K perm_simproc', identifier = []};
+   {lhss = [@{term "pi1 \<bullet> (pi2 \<bullet> x)"}], proc = K perm_simproc'};
 
 fun projections ctxt rule =
   Project_Rule.projections ctxt rule

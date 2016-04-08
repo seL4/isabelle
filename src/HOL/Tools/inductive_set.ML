@@ -98,8 +98,7 @@ fun strong_ind_simproc tab =
               end
             else NONE
         | _ => NONE)
-      end,
-    identifier = []};
+      end};
 
 (* only eta contract terms occurring as arguments of functions satisfying p *)
 fun eta_contract p =
@@ -319,8 +318,7 @@ fun to_pred_simproc rules =
       {lhss = [anyt],
        proc = fn _ => fn ctxt => fn ct =>
         lookup_rule (Proof_Context.theory_of ctxt)
-          (Thm.prop_of #> Logic.dest_equals) rules' (Thm.term_of ct),
-       identifier = []}
+          (Thm.prop_of #> Logic.dest_equals) rules' (Thm.term_of ct)}
   end;
 
 fun to_pred_proc thy rules t =

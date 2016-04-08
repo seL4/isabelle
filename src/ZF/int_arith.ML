@@ -212,19 +212,19 @@ val cancel_numerals =
      [@{term "l $+ m = n"}, @{term "l = m $+ n"},
       @{term "l $- m = n"}, @{term "l = m $- n"},
       @{term "l $* m = n"}, @{term "l = m $* n"}],
-    proc = K EqCancelNumerals.proc, identifier = []},
+    proc = K EqCancelNumerals.proc},
   Simplifier.make_simproc @{context} "intless_cancel_numerals"
    {lhss =
      [@{term "l $+ m $< n"}, @{term "l $< m $+ n"},
       @{term "l $- m $< n"}, @{term "l $< m $- n"},
       @{term "l $* m $< n"}, @{term "l $< m $* n"}],
-    proc = K LessCancelNumerals.proc, identifier = []},
+    proc = K LessCancelNumerals.proc},
   Simplifier.make_simproc @{context} "intle_cancel_numerals"
    {lhss =
      [@{term "l $+ m $\<le> n"}, @{term "l $\<le> m $+ n"},
       @{term "l $- m $\<le> n"}, @{term "l $\<le> m $- n"},
       @{term "l $* m $\<le> n"}, @{term "l $\<le> m $* n"}],
-    proc = K LeCancelNumerals.proc, identifier = []}];
+    proc = K LeCancelNumerals.proc}];
 
 
 (*version without the hyps argument*)
@@ -269,7 +269,7 @@ structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 val combine_numerals =
   Simplifier.make_simproc @{context} "int_combine_numerals"
     {lhss = [@{term "i $+ j"}, @{term "i $- j"}],
-     proc = K CombineNumerals.proc, identifier = []};
+     proc = K CombineNumerals.proc};
 
 
 
@@ -315,7 +315,7 @@ structure CombineNumeralsProd = CombineNumeralsFun(CombineNumeralsProdData);
 
 val combine_numerals_prod =
   Simplifier.make_simproc @{context} "int_combine_numerals_prod"
-   {lhss = [@{term "i $* j"}], proc = K CombineNumeralsProd.proc, identifier = []};
+   {lhss = [@{term "i $* j"}], proc = K CombineNumeralsProd.proc};
 
 end;
 

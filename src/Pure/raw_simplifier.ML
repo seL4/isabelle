@@ -36,8 +36,7 @@ sig
   type simproc
   val eq_simproc: simproc * simproc -> bool
   val cert_simproc: theory -> string ->
-    {lhss: term list, proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list}
-    -> simproc
+    {lhss: term list, proc: morphism -> Proof.context -> cterm -> thm option} -> simproc
   val transform_simproc: morphism -> simproc -> simproc
   val simpset_of: Proof.context -> simpset
   val put_simpset: simpset -> Proof.context -> Proof.context
@@ -220,12 +219,9 @@ datatype proc =
    {name: string,
     lhs: term,
     proc: Proof.context -> cterm -> thm option,
-    id: stamp * thm list};
+    stamp: stamp};
 
-fun eq_procid ((s1: stamp, ths1: thm list), (s2, ths2)) =
-  s1 = s2 andalso eq_list Thm.eq_thm (ths1, ths2);
-
-fun eq_proc (Proc {id = id1, ...}, Proc {id = id2, ...}) = eq_procid (id1, id2);
+fun eq_proc (Proc {stamp = stamp1, ...}, Proc {stamp = stamp2, ...}) = stamp1 = stamp2;
 
 
 (* solvers *)
@@ -298,8 +294,8 @@ fun dest_ss (Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...})) =
  {simps = Net.entries rules
     |> map (fn {name, thm, ...} => (name, thm)),
   procs = Net.entries procs
-    |> map (fn Proc {name, lhs, id, ...} => ((name, lhs), id))
-    |> partition_eq (eq_snd eq_procid)
+    |> map (fn Proc {name, lhs, stamp, ...} => ((name, lhs), stamp))
+    |> partition_eq (eq_snd op =)
     |> map (fn ps => (fst (fst (hd ps)), map (snd o fst) ps)),
   congs = #1 congs,
   weak_congs = #2 congs,
@@ -667,20 +663,19 @@ datatype simproc =
     {name: string,
      lhss: term list,
      proc: morphism -> Proof.context -> cterm -> thm option,
-     id: stamp * thm list};
+     stamp: stamp};
 
-fun eq_simproc (Simproc {id = id1, ...}, Simproc {id = id2, ...}) = eq_procid (id1, id2);
+fun eq_simproc (Simproc {stamp = stamp1, ...}, Simproc {stamp = stamp2, ...}) = stamp1 = stamp2;
 
-fun cert_simproc thy name {lhss, proc, identifier} =
-  Simproc {name = name, lhss = map (Sign.cert_term thy) lhss, proc = proc,
-    id = (stamp (), map Thm.trim_context identifier)};
+fun cert_simproc thy name {lhss, proc} =
+  Simproc {name = name, lhss = map (Sign.cert_term thy) lhss, proc = proc, stamp = stamp ()};
 
-fun transform_simproc phi (Simproc {name, lhss, proc, id = (s, ths)}) =
+fun transform_simproc phi (Simproc {name, lhss, proc, stamp}) =
   Simproc
    {name = name,
     lhss = map (Morphism.term phi) lhss,
     proc = Morphism.transform phi proc,
-    id = (s, Morphism.fact phi ths)};
+    stamp = stamp};
 
 local
 
@@ -704,8 +699,8 @@ fun del_proc (proc as Proc {name, lhs, ...}) ctxt =
     (cond_warning ctxt (fn () => "Simplification procedure " ^ quote name ^ " not in simpset");
       ctxt);
 
-fun prep_procs (Simproc {name, lhss, proc, id}) =
-  lhss |> map (fn lhs => Proc {name = name, lhs = lhs, proc = Morphism.form proc, id = id});
+fun prep_procs (Simproc {name, lhss, proc, stamp}) =
+  lhss |> map (fn lhs => Proc {name = name, lhs = lhs, proc = Morphism.form proc, stamp = stamp});
 
 in
 

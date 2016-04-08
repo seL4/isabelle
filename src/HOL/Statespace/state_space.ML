@@ -218,8 +218,7 @@ val distinct_simproc =
         Const (@{const_name HOL.eq},_) $ (x as Free _) $ (y as Free _) =>
           Option.map (fn neq => DistinctTreeProver.neq_to_eq_False OF [neq])
             (neq_x_y ctxt x y)
-      | _ => NONE),
-    identifier = []};
+      | _ => NONE)};
 
 fun interprete_parent name dist_thm_name parent_expr thy =
   let

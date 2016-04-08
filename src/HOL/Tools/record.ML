@@ -1116,8 +1116,7 @@ val simproc =
               end
             else NONE
         | _ => NONE)
-      end,
-    identifier = []};
+      end};
 
 fun get_upd_acc_cong_thm upd acc thy ss =
   let
@@ -1250,8 +1249,7 @@ val upd_simproc =
             (prove_unfold_defs thy noops' [simproc]
               (Logic.list_all (vars, Logic.mk_equals (lhs, rhs))))
         else NONE
-      end,
-    identifier = []};
+      end};
 
 end;
 
@@ -1282,8 +1280,7 @@ val eq_simproc =
               (case get_equalities (Proof_Context.theory_of ctxt) name of
                 NONE => NONE
               | SOME thm => SOME (thm RS @{thm Eq_TrueI})))
-      | _ => NONE),
-    identifier = []};
+      | _ => NONE)};
 
 
 (* split_simproc *)
@@ -1320,8 +1317,7 @@ fun split_simproc P =
                   else NONE
                 end)
           else NONE
-      | _ => NONE),
-    identifier = []};
+      | _ => NONE)};
 
 val ex_sel_eq_simproc =
   Simplifier.make_simproc @{context} "ex_sel_eq"
@@ -1362,8 +1358,7 @@ val ex_sel_eq_simproc =
                     addsimps @{thms simp_thms} addsimprocs [split_simproc (K ~1)]) 1))
             end handle TERM _ => NONE)
         | _ => NONE)
-      end,
-    identifier = []};
+      end};
 
 
 (* split_simp_tac *)

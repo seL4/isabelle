@@ -107,7 +107,7 @@ struct
 
   val conv =
     Simplifier.make_simproc @{context} "data_free"
-     {lhss = [@{term "(x::i) = y"}], proc = K proc, identifier = []};
+     {lhss = [@{term "(x::i) = y"}], proc = K proc};
 
 end;
 \<close>

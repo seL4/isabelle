@@ -6,9 +6,6 @@ ML context and antiquotations.
 
 signature ML_CONTEXT =
 sig
-  val thm: xstring -> thm
-  val thms: xstring -> thm list
-  val exec: (unit -> unit) -> Context.generic -> Context.generic
   val check_antiquotation: Proof.context -> xstring * Position.T -> string
   val struct_name: Proof.context -> string
   val variant: string -> Proof.context -> string * Proof.context
@@ -23,25 +20,13 @@ sig
   val eval_in: Proof.context option -> ML_Compiler.flags -> Position.T ->
     ML_Lex.token Antiquote.antiquote list -> unit
   val eval_source_in: Proof.context option -> ML_Compiler.flags -> Input.source -> unit
+  val exec: (unit -> unit) -> Context.generic -> Context.generic
   val expression: Position.range -> string -> string -> string ->
     ML_Lex.token Antiquote.antiquote list -> Context.generic -> Context.generic
 end
 
 structure ML_Context: ML_CONTEXT =
 struct
-
-(** implicit ML context **)
-
-fun thm name = Proof_Context.get_thm (Context.the_local_context ()) name;
-fun thms name = Proof_Context.get_thms (Context.the_local_context ()) name;
-
-fun exec (e: unit -> unit) context =
-  (case Context.setmp_generic_context (SOME context)
-      (fn () => (e (); Context.get_generic_context ())) () of
-    SOME context' => context'
-  | NONE => error "Missing context after execution");
-
-
 
 (** ML antiquotations **)
 
@@ -219,6 +204,12 @@ fun eval_in ctxt flags pos ants =
 fun eval_source_in ctxt flags source =
   Context.setmp_generic_context (Option.map Context.Proof ctxt)
     (fn () => eval_source flags source) ();
+
+fun exec (e: unit -> unit) context =
+  (case Context.setmp_generic_context (SOME context)
+      (fn () => (e (); Context.get_generic_context ())) () of
+    SOME context' => context'
+  | NONE => error "Missing context after execution");
 
 fun expression range name constraint body ants =
   exec (fn () =>

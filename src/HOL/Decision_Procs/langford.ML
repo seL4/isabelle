@@ -171,7 +171,7 @@ in
 
 val reduce_ex_simproc =
   Simplifier.make_simproc @{context} "reduce_ex_simproc"
-    {lhss = [@{term "\<exists>x. P x"}], proc = K proc, identifier = []};
+    {lhss = [@{term "\<exists>x. P x"}], proc = K proc};
 
 end;
 

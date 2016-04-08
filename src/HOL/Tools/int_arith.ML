@@ -29,8 +29,7 @@ val zero_to_of_int_zero_simproc =
       let val T = Thm.ctyp_of_cterm ct in
         if Thm.typ_of T = @{typ int} then NONE
         else SOME (Thm.instantiate' [SOME T] [] zeroth)
-      end,
-     identifier = []};
+      end};
 
 val oneth = Thm.symmetric (mk_meta_eq @{thm of_int_1});
 
@@ -41,8 +40,7 @@ val one_to_of_int_one_simproc =
       let val T = Thm.ctyp_of_cterm ct in
         if Thm.typ_of T = @{typ int} then NONE
         else SOME (Thm.instantiate' [SOME T] [] oneth)
-      end,
-    identifier = []};
+      end};
 
 fun check (Const (@{const_name Groups.one}, @{typ int})) = false
   | check (Const (@{const_name Groups.one}, _)) = true
@@ -71,8 +69,7 @@ val zero_one_idom_simproc =
     proc = fn _ => fn ctxt => fn ct =>
       if check (Thm.term_of ct)
       then SOME (Simplifier.rewrite (put_simpset conv_ss ctxt) ct)
-      else NONE,
-    identifier = []};
+      else NONE};
 
 
 fun number_of ctxt T n =

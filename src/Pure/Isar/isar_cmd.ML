@@ -18,7 +18,7 @@ sig
   val oracle: bstring * Position.range -> Input.source -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} -> Input.source -> local_theory -> local_theory
   val simproc_setup: string * Position.T -> string list -> Input.source ->
-    string list -> local_theory -> local_theory
+    local_theory -> local_theory
   val qed: Method.text_range option -> Toplevel.transition -> Toplevel.transition
   val terminal_proof: Method.text_range * Method.text_range option ->
     Toplevel.transition -> Toplevel.transition
@@ -151,14 +151,13 @@ fun declaration {syntax, pervasive} source =
 
 (* simprocs *)
 
-fun simproc_setup name lhss source identifier =
+fun simproc_setup name lhss source =
   ML_Lex.read_source false source
   |> ML_Context.expression (Input.range_of source) "proc"
     "Morphism.morphism -> Proof.context -> cterm -> thm option"
     ("Context.map_proof (Simplifier.define_simproc_cmd " ^
       ML_Syntax.atomic (ML_Syntax.make_binding name) ^
-      "{lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \
-      \identifier = Library.maps ML_Context.thms " ^ ML_Syntax.print_strings identifier ^ "})")
+      "{lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc})")
   |> Context.proof_map;
 
 

@@ -72,8 +72,7 @@ val lazy_conj_simproc =
                 else SOME (conj_cong OF [P_P', Q_Q'])
               end
            end
-      | _ => NONE),
-    identifier = []};
+      | _ => NONE)};
 
 fun string_eq_simp_tac ctxt =
   simp_tac (put_simpset HOL_basic_ss ctxt
@@ -154,8 +153,7 @@ val lookup_simproc =
           else SOME thm
         end
         handle Option.Option => NONE)
-      | _ => NONE),
-  identifier = []};
+      | _ => NONE)};
 
 
 local
@@ -260,8 +258,7 @@ val update_simproc =
                 in SOME (Thm.transitive eq1 eq2) end
             | _ => NONE)
           end
-      | _ => NONE),
-  identifier = []};
+      | _ => NONE)};
 
 end;
 
@@ -326,8 +323,7 @@ val ex_lookup_eq_simproc =
               val thm' = if swap then swap_ex_eq OF [thm] else thm
             in SOME thm' end handle TERM _ => NONE)
         | _ => NONE)
-      end handle Option.Option => NONE,
-  identifier = []};
+      end handle Option.Option => NONE};
 
 end;
 

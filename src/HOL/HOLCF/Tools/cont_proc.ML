@@ -127,7 +127,7 @@ local
 in
   val cont_proc =
     Simplifier.make_simproc @{context} "cont_proc"
-     {lhss = [@{term "cont f"}], proc = K solve_cont, identifier = []}
+     {lhss = [@{term "cont f"}], proc = K solve_cont}
 end
 
 val setup = map_theory_simpset (fn ctxt => ctxt addsimprocs [cont_proc])

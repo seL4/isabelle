@@ -360,8 +360,7 @@ fun distinct_simproc names =
         Const (@{const_name HOL.eq}, _) $ x $ y =>
           Option.map (fn neq => @{thm neq_to_eq_False} OF [neq])
             (get_fst_success (neq_x_y ctxt x y) names)
-      | _ => NONE),
-    identifier = []};
+      | _ => NONE)};
 
 end;
 

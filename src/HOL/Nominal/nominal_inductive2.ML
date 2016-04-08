@@ -51,8 +51,7 @@ fun mk_perm_bool_simproc names =
         Const (@{const_name Nominal.perm}, _) $ _ $ t =>
           if member (op =) names (the_default "" (try (head_of #> dest_Const #> fst) t))
           then SOME perm_bool else NONE
-       | _ => NONE),
-    identifier = []};
+       | _ => NONE)};
 
 fun transp ([] :: _) = []
   | transp xs = map hd xs :: transp (map tl xs);

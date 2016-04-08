@@ -451,16 +451,14 @@ val field_divide_cancel_numeral_factor =
       @{term "((numeral v)::'a::field) / (- numeral w)"},
       @{term "((- numeral v)::'a::field) / (numeral w)"},
       @{term "((- numeral v)::'a::field) / (- numeral w)"}],
-    proc = K DivideCancelNumeralFactor.proc,
-    identifier = []}
+    proc = K DivideCancelNumeralFactor.proc}
 
 val field_cancel_numeral_factors =
   [Simplifier.make_simproc @{context} "field_eq_cancel_numeral_factor"
     {lhss =
        [@{term "(l::'a::field) * m = n"},
         @{term "(l::'a::field) = m * n"}],
-      proc = K EqCancelNumeralFactor.proc,
-      identifier = []},
+      proc = K EqCancelNumeralFactor.proc},
    field_divide_cancel_numeral_factor]
 
 
@@ -693,12 +691,12 @@ fun proc3 ctxt ct =
 val add_frac_frac_simproc =
   Simplifier.make_simproc @{context} "add_frac_frac_simproc"
    {lhss = [@{term "(x::'a::field) / y + (w::'a::field) / z"}],
-    proc = K proc, identifier = []}
+    proc = K proc}
 
 val add_frac_num_simproc =
   Simplifier.make_simproc @{context} "add_frac_num_simproc"
    {lhss = [@{term "(x::'a::field) / y + z"}, @{term "z + (x::'a::field) / y"}],
-    proc = K proc2, identifier = []}
+    proc = K proc2}
 
 val ord_frac_simproc =
   Simplifier.make_simproc @{context} "ord_frac_simproc"
@@ -709,7 +707,7 @@ val ord_frac_simproc =
       @{term "c \<le> (a::'a::{field,ord}) / b"},
       @{term "c = (a::'a::{field,ord}) / b"},
       @{term "(a::'a::{field, ord}) / b = c"}],
-    proc = K proc3, identifier = []}
+    proc = K proc3}
 
 val ths =
  [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},

@@ -9,7 +9,7 @@ keywords
     "!!" "!" "+" "--" ":" ";" "<" "<=" "=" "=>" "?" "[" "\<comment>" "\<equiv>"
     "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
     "\<subseteq>" "]" "assumes" "attach" "binder" "constrains"
-    "defines" "rewrites" "fixes" "for" "identifier" "if" "in" "includes" "infix"
+    "defines" "rewrites" "fixes" "for" "if" "in" "includes" "infix"
     "infixl" "infixr" "is" "notes" "obtains" "open" "output"
     "overloaded" "pervasive" "premises" "private" "qualified" "rewrites"
     "shows" "structure" "unchecked" "where" "when" "|"
@@ -210,8 +210,7 @@ val _ =
   Outer_Syntax.local_theory @{command_keyword simproc_setup} "define simproc in ML"
     (Parse.position Parse.name --
       (@{keyword "("} |-- Parse.enum1 "|" Parse.term --| @{keyword ")"} --| @{keyword "="}) --
-      Parse.ML_source -- Scan.optional (@{keyword "identifier"} |-- Scan.repeat1 Parse.xname) []
-    >> (fn (((a, b), c), d) => Isar_Cmd.simproc_setup a b c d));
+      Parse.ML_source >> (fn ((a, b), c) => Isar_Cmd.simproc_setup a b c));
 
 in end\<close>
 

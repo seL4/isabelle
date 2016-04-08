@@ -794,8 +794,7 @@ text \<open>
 
   @{rail \<open>
     @@{command simproc_setup} @{syntax name} '(' (@{syntax term} + '|') ')' '='
-      @{syntax text} \<newline> (@'identifier' (@{syntax nameref}+))?
-    ;
+      @{syntax text};
 
     @@{attribute simproc} (('add' ':')? | 'del' ':') (@{syntax name}+)
   \<close>}
@@ -810,12 +809,10 @@ text \<open>
   NONE} to indicate failure. The @{ML_type Proof.context} argument holds the
   full context of the current Simplifier invocation. The @{ML_type morphism}
   informs about the difference of the original compilation context wrt.\ the
-  one of the actual application later on. The optional @{keyword "identifier"}
-  specifies theorems that represent the logical content of the abstract theory
-  of this simproc.
+  one of the actual application later on.
 
-  Morphisms and identifiers are only relevant for simprocs that are defined
-  within a local target context, e.g.\ in a locale.
+  Morphisms are only relevant for simprocs that are defined within a local
+  target context, e.g.\ in a locale.
 
   \<^descr> \<open>simproc add: name\<close> and \<open>simproc del: name\<close> add or delete named simprocs
   to the current Simplifier context. The default is to add a simproc. Note

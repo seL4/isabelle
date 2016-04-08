@@ -150,8 +150,7 @@ fun eq_imp_rel_get ctxt =
 val regularize_simproc =
   Simplifier.make_simproc @{context} "regularize"
     {lhss = [@{term "Ball (Respects (R1 ===> R2)) P"}, @{term "Bex (Respects (R1 ===> R2)) P"}],
-     proc = K ball_bex_range_simproc,
-     identifier = []};
+     proc = K ball_bex_range_simproc};
 
 fun regularize_tac ctxt =
   let

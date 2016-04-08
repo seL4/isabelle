@@ -1327,8 +1327,7 @@ setup \<open>
   Code_Preproc.map_pre (fn ctxt => ctxt addsimprocs
     [Simplifier.make_simproc @{context} "set comprehension"
       {lhss = [@{term "Collect P"}],
-       proc = K Set_Comprehension_Pointfree.code_simproc,
-       identifier = []}])
+       proc = K Set_Comprehension_Pointfree.code_simproc}])
 \<close>
 
 

@@ -204,19 +204,19 @@ val nat_cancel =
      [@{term "l #+ m = n"}, @{term "l = m #+ n"},
       @{term "l #* m = n"}, @{term "l = m #* n"},
       @{term "succ(m) = n"}, @{term "m = succ(n)"}],
-    proc = K EqCancelNumerals.proc, identifier = []},
+    proc = K EqCancelNumerals.proc},
   Simplifier.make_simproc @{context} "natless_cancel_numerals"
    {lhss =
      [@{term "l #+ m < n"}, @{term "l < m #+ n"},
       @{term "l #* m < n"}, @{term "l < m #* n"},
       @{term "succ(m) < n"}, @{term "m < succ(n)"}],
-    proc = K LessCancelNumerals.proc, identifier = []},
+    proc = K LessCancelNumerals.proc},
   Simplifier.make_simproc @{context} "natdiff_cancel_numerals"
    {lhss =
      [@{term "(l #+ m) #- n"}, @{term "l #- (m #+ n)"},
       @{term "(l #* m) #- n"}, @{term "l #- (m #* n)"},
       @{term "succ(m) #- n"}, @{term "m #- succ(n)"}],
-    proc = K DiffCancelNumerals.proc, identifier = []}];
+    proc = K DiffCancelNumerals.proc}];
 
 end;
 

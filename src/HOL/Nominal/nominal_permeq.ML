@@ -114,7 +114,7 @@ fun perm_simproc_app' ctxt ct =
 
 val perm_simproc_app =
   Simplifier.make_simproc @{context} "perm_simproc_app"
-   {lhss = [@{term "Nominal.perm pi x"}], proc = K perm_simproc_app', identifier = []}
+   {lhss = [@{term "Nominal.perm pi x"}], proc = K perm_simproc_app'}
 
 (* a simproc that deals with permutation instances in front of functions  *)
 fun perm_simproc_fun' ctxt ct =
@@ -136,7 +136,7 @@ fun perm_simproc_fun' ctxt ct =
 
 val perm_simproc_fun =
   Simplifier.make_simproc @{context} "perm_simproc_fun"
-   {lhss = [@{term "Nominal.perm pi x"}], proc = K perm_simproc_fun', identifier = []}
+   {lhss = [@{term "Nominal.perm pi x"}], proc = K perm_simproc_fun'}
 
 (* function for simplyfying permutations          *)
 (* stac contains the simplifiation tactic that is *)
@@ -219,7 +219,7 @@ fun perm_compose_simproc' ctxt ct =
 val perm_compose_simproc =
   Simplifier.make_simproc @{context} "perm_compose"
    {lhss = [@{term "Nominal.perm pi1 (Nominal.perm pi2 t)"}],
-    proc = K perm_compose_simproc', identifier = []}
+    proc = K perm_compose_simproc'}
 
 fun perm_compose_tac ctxt i =
   ("analysing permutation compositions on the lhs",
