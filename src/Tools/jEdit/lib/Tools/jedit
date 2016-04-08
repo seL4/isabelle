@@ -105,6 +105,7 @@ function usage()
   echo "    -l NAME      logic session name"
   echo "    -m MODE      add print mode for output"
   echo "    -n           no build of session image on startup"
+  echo "    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)"
   echo "    -s           system build mode for session image"
   echo
   echo "  Start jEdit with Isabelle plugin setup and open FILES"
@@ -135,11 +136,12 @@ JEDIT_SESSION_DIRS=""
 JEDIT_LOGIC=""
 JEDIT_PRINT_MODE=""
 JEDIT_BUILD_MODE="normal"
+JEDIT_SYSTEM_OPTIONS=""
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "D:J:bd:fj:l:m:ns" OPT
+  while getopts "D:J:bd:fj:l:m:no:s" OPT
   do
     case "$OPT" in
       D)
@@ -176,6 +178,13 @@ function getoptions()
         ;;
       n)
         JEDIT_BUILD_MODE="none"
+        ;;
+      o)
+        if [ -z "$JEDIT_SYSTEM_OPTIONS" ]; then
+          JEDIT_SYSTEM_OPTIONS="$OPTARG"
+        else
+          JEDIT_SYSTEM_OPTIONS="$JEDIT_SYSTEM_OPTIONS,$OPTARG"
+        fi
         ;;
       s)
         JEDIT_BUILD_MODE="system"
@@ -359,7 +368,7 @@ popd >/dev/null
 
 if [ "$BUILD_ONLY" = false ]
 then
-  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_PRINT_MODE JEDIT_BUILD_MODE
+  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_PRINT_MODE JEDIT_BUILD_MODE JEDIT_SYSTEM_OPTIONS
   classpath "$JEDIT_HOME/dist/jedit.jar"
   exec isabelle java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"
 fi

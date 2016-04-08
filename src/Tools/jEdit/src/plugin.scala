@@ -400,7 +400,10 @@ class Plugin extends EBPlugin
       Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
       PIDE.plugin = this
-      PIDE.options.store(Options.init())
+
+      val options =
+        (Options.init() /: Word.explode(Isabelle_System.getenv("JEDIT_SYSTEM_OPTIONS")))(_ + _)
+      PIDE.options.store(options)
       PIDE.completion_history.load()
       PIDE.spell_checker.update(PIDE.options.value)
 

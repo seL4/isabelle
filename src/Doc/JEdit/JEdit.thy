@@ -241,6 +241,7 @@ text \<open>
     -l NAME      logic image name
     -m MODE      add print mode for output
     -n           no build of session image on startup
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s           system build mode for session image
 
   Start jEdit with Isabelle plugin setup and open FILES
@@ -260,6 +261,12 @@ text \<open>
   Note that the system option @{system_option_ref jedit_print_mode} allows to
   do the same persistently (e.g.\ via the \<^emph>\<open>Plugin Options\<close> dialog of
   Isabelle/jEdit), without requiring command-line invocation.
+
+  The \<^verbatim>\<open>-o\<close> option specifies Isabelle system options that override the
+  persistent preferences (see also \secref{sec:options}). Options may be
+  changed on the command line via \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=\<close>\<open>value\<close> or \<^verbatim>\<open>-o\<close>~\<open>name\<close>,
+  which abbreviates \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=true\<close> for Boolean options. Multiple
+  occurrences of \<^verbatim>\<open>-o\<close> on the command-line are applied in the given order.
 
   The \<^verbatim>\<open>-J\<close> and \<^verbatim>\<open>-j\<close> options allow to pass additional low-level options to
   the JVM or jEdit, respectively. The defaults are provided by the Isabelle
