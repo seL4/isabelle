@@ -146,7 +146,7 @@ text \<open>
   @{command definition}).  The concluding @{command instance} opens a
   proof that the given parameters actually conform to the class
   specification.  Note that the first proof step is the @{method
-  default} method, which for such instance proofs maps to the @{method
+  standard} method, which for such instance proofs maps to the @{method
   intro_classes} method.  This reduces an instance judgement to the
   relevant primitive proof goals; typically it is the first method
   applied in an instantiation proof.

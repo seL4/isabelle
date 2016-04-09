@@ -941,13 +941,6 @@ fun standard_tac ctxt facts =
   HEADGOAL (some_rule_tac ctxt facts) ORELSE
   Class.standard_intro_classes_tac ctxt facts;
 
-fun default_tac ctxt facts st =
-  (if Method.detect_closure_state st then
-    legacy_feature
-      ("Old method \"default\"; use \"standard\" instead" ^ Position.here (Position.thread_data ()))
-   else ();
-   standard_tac ctxt facts st);
-
 end;
 
 
@@ -973,8 +966,6 @@ val _ =
   Theory.setup
    (Method.setup @{binding standard} (Scan.succeed (METHOD o standard_tac))
       "standard proof step: classical intro/elim rule or class introduction" #>
-    Method.setup @{binding default} (Scan.succeed (METHOD o default_tac))
-      "standard proof step: classical intro/elim rule or class introduction (legacy)" #>
     Method.setup @{binding rule}
       (Attrib.thms >> (fn rules => fn ctxt => METHOD (HEADGOAL o rule_tac ctxt rules)))
       "apply some intro/elim rule (potentially classical)" #>

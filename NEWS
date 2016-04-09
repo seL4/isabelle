@@ -36,6 +36,9 @@ itself.
 * Command '\<proof>' is an alias for 'sorry', with different
 typesetting. E.g. to produce proof holes in examples and documentation.
 
+* The old proof method "default" has been removed (legacy since
+Isabelle2016). INCOMPATIBILITY, use "standard" instead.
+
 
 *** HOL ***
 
