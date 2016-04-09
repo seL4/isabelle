@@ -20,12 +20,11 @@ end;
 structure Session: SESSION =
 struct
 
-(** session identification -- not thread-safe **)
+(** persistent session information **)
 
-val session = Unsynchronized.ref {chapter = "Pure", name = "Pure"};
-val session_finished = Unsynchronized.ref false;
+val session = Synchronized.var "Session.session" ({chapter = "Pure", name = "Pure"}, false);
 
-fun get_name () = #name (! session);
+fun get_name () = #name (#1 (Synchronized.value session));
 
 fun description () = "Isabelle/" ^ get_name ();
 
@@ -37,24 +36,26 @@ fun welcome () =
 
 (* base syntax *)
 
-val keywords = Unsynchronized.ref Keyword.empty_keywords;
-fun get_keywords () = ! keywords;
+val keywords = Synchronized.var "Session.keywords" Keyword.empty_keywords;
+
+fun get_keywords () = Synchronized.value keywords;
+
+fun update_keywords () =
+  Synchronized.change keywords
+    (K (fold (curry Keyword.merge_keywords o Thy_Header.get_keywords o Thy_Info.get_theory)
+      (Thy_Info.get_names ()) Keyword.empty_keywords));
 
 
 (* init *)
 
 fun init symbols build info info_path doc doc_output doc_variants doc_files graph_file
     parent (chapter, name) verbose =
-  if get_name () <> parent orelse not (! session_finished) then
-    error ("Unfinished parent session " ^ quote parent ^ " for " ^ quote name)
-  else
-    let
-      val _ = session := {chapter = chapter, name = name};
-      val _ = session_finished := false;
-    in
-      Present.init symbols build info info_path (if doc = "false" then "" else doc)
-        doc_output doc_variants doc_files graph_file (chapter, name) verbose
-    end;
+  (Synchronized.change session (fn ({name = parent_name, ...}, parent_finished) =>
+    if parent_name <> parent orelse not parent_finished then
+      error ("Unfinished parent session " ^ quote parent ^ " for " ^ quote name)
+    else ({chapter = chapter, name = name}, false));
+    Present.init symbols build info info_path (if doc = "false" then "" else doc)
+      doc_output doc_variants doc_files graph_file (chapter, name) verbose);
 
 
 (* finish *)
@@ -69,10 +70,8 @@ fun finish () =
   Thy_Info.finish ();
   Present.finish ();
   shutdown ();
-  keywords :=
-    fold (curry Keyword.merge_keywords o Thy_Header.get_keywords o Thy_Info.get_theory)
-      (Thy_Info.get_names ()) Keyword.empty_keywords;
-  session_finished := true);
+  update_keywords ();
+  Synchronized.change session (apsnd (K true)));
 
 
 
