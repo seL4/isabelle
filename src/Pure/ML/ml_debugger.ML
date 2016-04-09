@@ -17,8 +17,8 @@ sig
   type state
   val state: Thread.thread -> state list
   val debug_function: state -> string
-  val debug_function_arg: state -> ML_Name_Space.valueVal
-  val debug_function_result: state -> ML_Name_Space.valueVal
+  val debug_function_arg: state -> PolyML.NameSpace.Values.value
+  val debug_function_result: state -> PolyML.NameSpace.Values.value
   val debug_location: state -> ML_Compiler0.polyml_location
   val debug_name_space: state -> ML_Name_Space.T
   val debug_local_name_space: state -> ML_Name_Space.T

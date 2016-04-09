@@ -27,12 +27,12 @@ struct
 (* context data *)
 
 type tables =
-  ML_Name_Space.valueVal Symtab.table *
-  ML_Name_Space.typeVal Symtab.table *
-  ML_Name_Space.fixityVal Symtab.table *
-  ML_Name_Space.structureVal Symtab.table *
-  ML_Name_Space.signatureVal Symtab.table *
-  ML_Name_Space.functorVal Symtab.table;
+  PolyML.NameSpace.Values.value Symtab.table *
+  PolyML.NameSpace.TypeConstrs.typeConstr Symtab.table *
+  PolyML.NameSpace.Infixes.fixity Symtab.table *
+  PolyML.NameSpace.Structures.structureVal Symtab.table *
+  PolyML.NameSpace.Signatures.signatureVal Symtab.table *
+  PolyML.NameSpace.Functors.functorVal Symtab.table;
 
 fun merge_tables
   ((val1, type1, fixity1, structure1, signature1, functor1),
