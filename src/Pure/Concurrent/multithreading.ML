@@ -14,7 +14,6 @@ sig
   val trace: int ref
   val tracing: int -> (unit -> string) -> unit
   val tracing_time: bool -> Time.time -> (unit -> string) -> unit
-  val real_time: ('a -> unit) -> 'a -> Time.time
   val synchronized: string -> Mutex.mutex -> (unit -> 'a) -> 'a
 end;
 
@@ -77,13 +76,6 @@ fun tracing_time detailed time =
     else if time >= seconds 0.01 then 3
     else if time >= seconds 0.001 then 4 else 5);
 
-fun real_time f x =
-  let
-    val timer = Timer.startRealTimer ();
-    val () = f x;
-    val time = Timer.checkRealTimer timer;
-  in time end;
-
 
 (* synchronized evaluation *)
 
@@ -95,7 +87,9 @@ fun synchronized name lock e =
         else
           let
             val _ = tracing 5 (fn () => name ^ ": locking ...");
-            val time = real_time Mutex.lock lock;
+            val timer = Timer.startRealTimer ();
+            val _ = Mutex.lock lock;
+            val time = Timer.checkRealTimer timer;
             val _ = tracing_time true time (fn () => name ^ ": locked after " ^ Time.toString time);
           in false end;
       val result = Exn.capture (restore_attributes e) ();
