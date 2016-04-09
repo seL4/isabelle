@@ -6,7 +6,7 @@ Multithreading in Poly/ML (cf. polyml/basis/Thread.sml).
 
 signature MULTITHREADING =
 sig
-  val max_threads_value: unit -> int
+  val max_threads: unit -> int
   val max_threads_update: int -> unit
   val enabled: unit -> bool
   val sync_wait: Thread.threadAttribute list option -> Time.time option ->
@@ -21,7 +21,9 @@ end;
 structure Multithreading: MULTITHREADING =
 struct
 
-(* options *)
+(* max_threads *)
+
+local
 
 fun num_processors () =
   (case Thread.numPhysicalProcessors () of
@@ -31,11 +33,15 @@ fun num_processors () =
 fun max_threads_result m =
   if m > 0 then m else Int.min (Int.max (num_processors (), 1), 8);
 
-val max_threads = ref 1;
-fun max_threads_value () = ! max_threads;
-fun max_threads_update m = max_threads := max_threads_result m;
+val max_threads_state = ref 1;
 
-fun enabled () = max_threads_value () > 1;
+in
+
+fun max_threads () = ! max_threads_state;
+fun max_threads_update m = max_threads_state := max_threads_result m;
+fun enabled () = max_threads () > 1;
+
+end;
 
 
 (* synchronous wait *)

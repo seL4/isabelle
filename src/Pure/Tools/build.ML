@@ -51,7 +51,7 @@ fun session_timing name verbose f x =
     val y = f x;
     val timing = Timing.result start;
 
-    val threads = string_of_int (Multithreading.max_threads_value ());
+    val threads = string_of_int (Multithreading.max_threads ());
     val factor = Time.toReal (#cpu timing) / Time.toReal (#elapsed timing)
       |> Real.fmt (StringCvt.FIX (SOME 2));
 

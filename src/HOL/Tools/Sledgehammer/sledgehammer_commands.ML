@@ -178,7 +178,7 @@ fun default_provers_param_value mode ctxt =
   [cvc4N, z3N, spassN, eN, vampireN, veritN, e_sineN]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   (* In "try" mode, leave at least one thread to another slow tool (e.g. Nitpick) *)
-  |> take (Multithreading.max_threads_value () - (if mode = Try then 1 else 0))
+  |> take (Multithreading.max_threads () - (if mode = Try then 1 else 0))
   |> implode_param
 
 fun set_default_raw_param param thy =

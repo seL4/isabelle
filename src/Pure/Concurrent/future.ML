@@ -311,7 +311,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
 
     val m =
       if ! do_shutdown andalso Task_Queue.all_passive (! queue) then 0
-      else Multithreading.max_threads_value ();
+      else Multithreading.max_threads ();
     val _ = max_active := m;
     val _ = max_workers := 2 * m;
 

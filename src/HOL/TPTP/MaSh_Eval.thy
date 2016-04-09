@@ -15,7 +15,7 @@ sledgehammer_params
    lam_trans = combs, timeout = 30, dont_preplay, minimize]
 
 ML {*
-Multithreading.max_threads_value ()
+Multithreading.max_threads ()
 *}
 
 ML {*

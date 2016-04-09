@@ -20,7 +20,7 @@ declare [[sledgehammer_instantiate_inducts = false]]
 hide_fact (open) HOL.ext
 
 ML {*
-Multithreading.max_threads_value ()
+Multithreading.max_threads ()
 *}
 
 ML {*
