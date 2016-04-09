@@ -31,7 +31,7 @@ fun stop_trace () =
     val _ = Thread_Data.put trace_var NONE;
   in trace end;
 
-val _ = ML_Debugger.on_exit_exception (SOME update_trace);
+val _ = PolyML.DebuggerInterface.setOnExitException (SOME update_trace);
 
 
 (* capture exception trace *)

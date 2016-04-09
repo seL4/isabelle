@@ -21,7 +21,6 @@ ML_file "ML/ml_profiling.ML";
 ML_file "ML/ml_print_depth0.ML";
 ML_file "ML/ml_pretty.ML";
 ML_file "ML/ml_compiler0.ML";
-ML_file_no_debug "ML/ml_debugger.ML";
 
 
 section "Bootstrap phase 1: towards ML within position context";

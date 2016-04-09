@@ -83,13 +83,13 @@ end;
 
 (* stack frame during debugging *)
 
-val debugging_var = Thread_Data.var () : ML_Debugger.state list Thread_Data.var;
+val debugging_var = Thread_Data.var () : PolyML.DebuggerInterface.debugState list Thread_Data.var;
 
 fun get_debugging () = the_default [] (Thread_Data.get debugging_var);
 val is_debugging = not o null o get_debugging;
 
 fun with_debugging e =
-  Thread_Data.setmp debugging_var (SOME (ML_Debugger.state (Thread.self ()))) e ();
+  Thread_Data.setmp debugging_var (SOME (PolyML.DebuggerInterface.debugState (Thread.self ()))) e ();
 
 fun the_debug_state thread_name index =
   (case get_debugging () of
@@ -112,7 +112,7 @@ fun put_stepping stepping = Thread_Data.put stepping_var (SOME (Stepping steppin
 
 fun is_stepping () =
   let
-    val stack = ML_Debugger.state (Thread.self ());
+    val stack = PolyML.DebuggerInterface.debugState (Thread.self ());
     val Stepping (stepping, depth) = get_stepping ();
   in stepping andalso (depth < 0 orelse length stack <= depth) end;
 
@@ -143,7 +143,7 @@ fun eval_setup thread_name index SML context =
   context
   |> Context_Position.set_visible_generic false
   |> ML_Env.add_name_space {SML = SML}
-      (ML_Debugger.debug_name_space (the_debug_state thread_name index));
+      (PolyML.DebuggerInterface.debugNameSpace (the_debug_state thread_name index));
 
 fun eval_context thread_name index SML toks =
   let
@@ -178,14 +178,14 @@ fun print_vals thread_name index SML txt =
   let
     val toks = ML_Lex.read_source SML (Input.string txt)
     val context = eval_context thread_name index SML toks;
-    val space = ML_Debugger.debug_name_space (the_debug_state thread_name index);
+    val space = PolyML.DebuggerInterface.debugNameSpace (the_debug_state thread_name index);
 
     fun print x =
       Pretty.from_polyml
         (PolyML.NameSpace.Values.printWithType
           (x, FixedInt.fromInt (ML_Print_Depth.get_print_depth ()), SOME space));
     fun print_all () =
-      #allVal (ML_Debugger.debug_local_name_space (the_debug_state thread_name index)) ()
+      #allVal (PolyML.DebuggerInterface.debugLocalNameSpace (the_debug_state thread_name index)) ()
       |> sort_by #1 |> map (Pretty.item o single o print o #2)
       |> Pretty.chunks |> Pretty.string_of |> writeln_message;
   in Context.setmp_generic_context (SOME context) print_all () end;
@@ -203,8 +203,8 @@ fun debugger_state thread_name =
    [get_debugging ()
     |> map (fn st =>
       (Position.properties_of
-        (Exn_Properties.position_of_polyml_location (ML_Debugger.debug_location st)),
-       ML_Debugger.debug_function st))
+        (Exn_Properties.position_of_polyml_location (PolyML.DebuggerInterface.debugLocation st)),
+       PolyML.DebuggerInterface.debugFunction st))
     |> let open XML.Encode in list (pair properties string) end
     |> YXML.string_of_body];
 
@@ -246,7 +246,7 @@ val _ =
   Isabelle_Process.protocol_command "Debugger.init"
     (fn [] =>
      (init_input ();
-      ML_Debugger.on_breakpoint
+      PolyML.DebuggerInterface.setOnBreakPoint
         (SOME (fn (_, break) =>
           if not (is_debugging ()) andalso (! break orelse is_break () orelse is_stepping ())
           then
@@ -257,7 +257,7 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.exit"
-    (fn [] => (ML_Debugger.on_breakpoint NONE; exit_input ()));
+    (fn [] => (PolyML.DebuggerInterface.setOnBreakPoint NONE; exit_input ()));
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.break"
