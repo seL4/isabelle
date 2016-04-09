@@ -22,4 +22,6 @@ fun report_fn x = ! Private_Output.report_fn x;
 fun result_fn x y = ! Private_Output.result_fn x y;
 fun protocol_message_fn x y = ! Private_Output.protocol_message_fn x y;
 
+val markup_fn = Markup.output;
+
 end;

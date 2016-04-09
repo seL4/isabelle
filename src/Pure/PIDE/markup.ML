@@ -212,7 +212,6 @@ sig
   val simp_trace_ignoreN: string
   val simp_trace_cancel: serial -> Properties.T
   val no_output: Output.output * Output.output
-  val default_output: T -> Output.output * Output.output
   val add_mode: string -> (T -> Output.output * Output.output) -> unit
   val output: T -> Output.output * Output.output
   val enclose: T -> Output.output -> Output.output
@@ -683,10 +682,9 @@ fun simp_trace_cancel i = [(functionN, "simp_trace_cancel"), (serialN, print_int
 (** print mode operations **)
 
 val no_output = ("", "");
-fun default_output (_: T) = no_output;
 
 local
-  val default = {output = default_output};
+  val default = {output = Output_Primitives.markup_fn};
   val modes = Synchronized.var "Markup.modes" (Symtab.make [("", default)]);
 in
   fun add_mode name output =

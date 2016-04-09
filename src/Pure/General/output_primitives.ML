@@ -21,6 +21,7 @@ sig
   val report_fn: output list -> unit
   val result_fn: properties -> output list -> unit
   val protocol_message_fn: properties -> output list -> unit
+  val markup_fn: string * properties -> output * output
 end;
 
 structure Output_Primitives: OUTPUT_PRIMITIVES =
@@ -44,5 +45,7 @@ val status_fn = ignore_outputs;
 val report_fn = ignore_outputs;
 fun result_fn (_: properties) = ignore_outputs;
 fun protocol_message_fn (_: properties) = ignore_outputs;
+
+fun markup_fn (_: string * properties) = ("", "");
 
 end;
