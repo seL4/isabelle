@@ -1188,8 +1188,8 @@ text %mlref \<open>
   @{index_ML_type proof_body} \\
   @{index_ML proofs: "int Unsynchronized.ref"} \\
   @{index_ML Reconstruct.reconstruct_proof:
-  "theory -> term -> proof -> proof"} \\
-  @{index_ML Reconstruct.expand_proof: "theory ->
+  "Proof.context -> term -> proof -> proof"} \\
+  @{index_ML Reconstruct.expand_proof: "Proof.context ->
   (string * term option) list -> proof -> proof"} \\
   @{index_ML Proof_Checker.thm_of_proof: "theory -> proof -> thm"} \\
   @{index_ML Proof_Syntax.read_proof: "theory -> bool -> bool -> string -> proof"} \\
@@ -1221,7 +1221,7 @@ text %mlref \<open>
   records full proof terms. Officially named theorems that contribute to a
   result are recorded in any case.
 
-  \<^descr> @{ML Reconstruct.reconstruct_proof}~\<open>thy prop prf\<close> turns the implicit
+  \<^descr> @{ML Reconstruct.reconstruct_proof}~\<open>ctxt prop prf\<close> turns the implicit
   proof term \<open>prf\<close> into a full proof of the given proposition.
 
   Reconstruction may fail if \<open>prf\<close> is not a proof of \<open>prop\<close>, or if it does not
@@ -1229,7 +1229,7 @@ text %mlref \<open>
   for proofs that are constructed manually, but not for those produced
   automatically by the inference kernel.
 
-  \<^descr> @{ML Reconstruct.expand_proof}~\<open>thy [thm\<^sub>1, \<dots>, thm\<^sub>n] prf\<close> expands and
+  \<^descr> @{ML Reconstruct.expand_proof}~\<open>ctxt [thm\<^sub>1, \<dots>, thm\<^sub>n] prf\<close> expands and
   reconstructs the proofs of all specified theorems, with the given (full)
   proof. Theorems that are not unique specified via their name may be
   disambiguated by giving their proposition.

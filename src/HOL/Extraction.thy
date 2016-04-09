@@ -16,12 +16,14 @@ setup \<open>
   Extraction.add_types
       [("bool", ([], NONE))] #>
   Extraction.set_preprocessor (fn thy =>
+    let val ctxt = Proof_Context.init_global thy in
       Proofterm.rewrite_proof_notypes
         ([], RewriteHOLProof.elim_cong :: ProofRewriteRules.rprocs true) o
       Proofterm.rewrite_proof thy
         (RewriteHOLProof.rews,
-         ProofRewriteRules.rprocs true @ [ProofRewriteRules.expand_of_class thy]) o
-      ProofRewriteRules.elim_vars (curry Const @{const_name default}))
+         ProofRewriteRules.rprocs true @ [ProofRewriteRules.expand_of_class ctxt]) o
+      ProofRewriteRules.elim_vars (curry Const @{const_name default})
+    end)
 \<close>
 
 lemmas [extraction_expand] =

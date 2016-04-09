@@ -19,9 +19,9 @@ fun name_of_thm thm =
     [name] => name
   | _ => raise THM ("name_of_thm: bad proof of theorem", 0, [thm]));
 
-fun prf_of thy thm =
-  Reconstruct.proof_of thy thm
-  |> Reconstruct.expand_proof thy [("", NONE)];  (* FIXME *)
+fun prf_of ctxt thm =
+  Reconstruct.proof_of ctxt thm
+  |> Reconstruct.expand_proof ctxt [("", NONE)];  (* FIXME *)
 
 fun subsets [] = [[]]
   | subsets (x::xs) =
@@ -257,6 +257,7 @@ fun add_dummies f [] _ thy =
 
 fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
   let
+    val ctxt = Proof_Context.init_global thy;
     val rvs = map fst (relevant_vars (Thm.prop_of rule));
     val xs = rev (Term.add_vars (Thm.prop_of rule) []);
     val vs1 = map Var (filter_out (fn ((a, _), _) => member (op =) rvs a) xs);
@@ -268,7 +269,7 @@ fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
     if rt = Extraction.nullt then rt else fold_rev lambda vs1 rt,
     Extraction.abs_corr_shyps thy rule vs vs2
       (ProofRewriteRules.un_hhf_proof rlz' (attach_typeS rlz)
-         (fold_rev Proofterm.forall_intr_proof' rs (prf_of thy rrule)))))
+         (fold_rev Proofterm.forall_intr_proof' rs (prf_of ctxt rrule)))))
   end;
 
 fun rename tab = map (fn x => the_default x (AList.lookup op = tab x));

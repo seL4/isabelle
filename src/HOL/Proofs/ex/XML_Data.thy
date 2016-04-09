@@ -12,15 +12,16 @@ begin
 subsection \<open>Export and re-import of global proof terms\<close>
 
 ML \<open>
-  fun export_proof thy thm =
+  fun export_proof ctxt thm =
     let
+      val thy = Proof_Context.theory_of ctxt;
       val (_, prop) =
         Logic.unconstrainT (Thm.shyps_of thm)
           (Logic.list_implies (Thm.hyps_of thm, Thm.prop_of thm));
       val prf =
         Proofterm.proof_of (Proofterm.strip_thm (Thm.proof_body_of thm)) |>
-        Reconstruct.reconstruct_proof thy prop |>
-        Reconstruct.expand_proof thy [("", NONE)] |>
+        Reconstruct.reconstruct_proof ctxt prop |>
+        Reconstruct.expand_proof ctxt [("", NONE)] |>
         Proofterm.rew_proof thy |>
         Proofterm.no_thm_proofs;
     in Proofterm.encode prf end;
@@ -40,24 +41,24 @@ ML \<open>val thy1 = @{theory}\<close>
 lemma ex: "A \<longrightarrow> A" ..
 
 ML_val \<open>
-  val xml = export_proof @{theory} @{thm ex};
+  val xml = export_proof @{context} @{thm ex};
   val thm = import_proof thy1 xml;
 \<close>
 
 ML_val \<open>
-  val xml = export_proof @{theory} @{thm de_Morgan};
+  val xml = export_proof @{context} @{thm de_Morgan};
   val thm = import_proof thy1 xml;
 \<close>
 
 ML_val \<open>
-  val xml = export_proof @{theory} @{thm Drinker's_Principle};
+  val xml = export_proof @{context} @{thm Drinker's_Principle};
   val thm = import_proof thy1 xml;
 \<close>
 
 text \<open>Some fairly large proof:\<close>
 
 ML_val \<open>
-  val xml = export_proof @{theory} @{thm abs_less_iff};
+  val xml = export_proof @{context} @{thm abs_less_iff};
   val thm = import_proof thy1 xml;
   @{assert} (size (YXML.string_of_body xml) > 1000000);
 \<close>
