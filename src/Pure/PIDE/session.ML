@@ -80,14 +80,18 @@ fun finish () =
 val protocol_handlers = Synchronized.var "protocol_handlers" ([]: string list);
 
 fun protocol_handler name =
-  Synchronized.change protocol_handlers (fn handlers =>
-   (Output.try_protocol_message (Markup.protocol_handler name) [];
-    if not (member (op =) handlers name) then ()
-    else warning ("Redefining protocol handler: " ^ quote name);
-    update (op =) name handlers));
+  if Thread_Data.is_virtual then ()
+  else
+    Synchronized.change protocol_handlers (fn handlers =>
+     (Output.try_protocol_message (Markup.protocol_handler name) [];
+      if not (member (op =) handlers name) then ()
+      else warning ("Redefining protocol handler: " ^ quote name);
+      update (op =) name handlers));
 
 fun init_protocol_handlers () =
-  Synchronized.value protocol_handlers
-  |> List.app (fn name => Output.try_protocol_message (Markup.protocol_handler name) []);
+  if Thread_Data.is_virtual then ()
+  else
+    Synchronized.value protocol_handlers
+    |> List.app (fn name => Output.try_protocol_message (Markup.protocol_handler name) []);
 
 end;
