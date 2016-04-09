@@ -42,7 +42,7 @@ local
 in
 
 fun capture_exception_trace e =
-  Multithreading.uninterruptible (fn restore_attributes => fn () =>
+  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
     let
       val _ = start_trace ();
       val result = Exn.interruptible_capture (restore_attributes e) ();

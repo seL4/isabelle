@@ -17,7 +17,7 @@ struct
 exception TIMEOUT of Time.time;
 
 fun apply timeout f x =
-  Multithreading.with_attributes Multithreading.no_interrupts (fn orig_atts =>
+  Thread_Attributes.with_attributes Thread_Attributes.no_interrupts (fn orig_atts =>
     let
       val self = Thread.self ();
       val start = Time.now ();
@@ -26,7 +26,7 @@ fun apply timeout f x =
         Event_Timer.request (start + timeout)
           (fn () => Standard_Thread.interrupt_unsynchronized self);
       val result =
-        Exn.capture (fn () => Multithreading.with_attributes orig_atts (fn _ => f x)) ();
+        Exn.capture (fn () => Thread_Attributes.with_attributes orig_atts (fn _ => f x)) ();
 
       val stop = Time.now ();
       val was_timeout = not (Event_Timer.cancel request);

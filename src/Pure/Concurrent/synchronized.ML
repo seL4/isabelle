@@ -51,7 +51,7 @@ fun timed_access (Var {name, lock, cond, var}) time_limit f =
               | Exn.Res false => NONE
               | Exn.Exn exn => Exn.reraise exn)
           | SOME (y, x') =>
-              Multithreading.uninterruptible (fn _ => fn () =>
+              Thread_Attributes.uninterruptible (fn _ => fn () =>
                 (var := x'; ConditionVar.broadcast cond; SOME y)) ())
         end;
     in try_change () end);

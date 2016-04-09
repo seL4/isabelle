@@ -185,7 +185,7 @@ val schedule_seq =
         in result_theory result end
     | Finished thy => thy)) #> ignore;
 
-val schedule_futures = Multithreading.uninterruptible (fn _ => fn tasks =>
+val schedule_futures = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
   let
     val futures = tasks
       |> String_Graph.schedule (fn deps => fn (name, task) =>

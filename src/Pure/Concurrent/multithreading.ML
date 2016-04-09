@@ -6,13 +6,7 @@ Multithreading in Poly/ML (cf. polyml/basis/Thread.sml).
 
 signature MULTITHREADING =
 sig
-  val no_interrupts: Thread.threadAttribute list
-  val public_interrupts: Thread.threadAttribute list
-  val private_interrupts: Thread.threadAttribute list
-  val sync_interrupts: Thread.threadAttribute list -> Thread.threadAttribute list
   val interrupted: unit -> unit  (*exception Interrupt*)
-  val with_attributes: Thread.threadAttribute list -> (Thread.threadAttribute list -> 'a) -> 'a
-  val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
   val max_threads_value: unit -> int
   val max_threads_update: int -> unit
   val enabled: unit -> bool
@@ -28,49 +22,15 @@ end;
 structure Multithreading: MULTITHREADING =
 struct
 
-(* thread attributes *)
-
-val no_interrupts =
-  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer];
-
-val test_interrupts =
-  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptSynch];
-
-val public_interrupts =
-  [Thread.EnableBroadcastInterrupt true, Thread.InterruptState Thread.InterruptAsynchOnce];
-
-val private_interrupts =
-  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptAsynchOnce];
-
-val sync_interrupts = map
-  (fn x as Thread.InterruptState Thread.InterruptDefer => x
-    | Thread.InterruptState _ => Thread.InterruptState Thread.InterruptSynch
-    | x => x);
-
-val safe_interrupts = map
-  (fn Thread.InterruptState Thread.InterruptAsynch =>
-      Thread.InterruptState Thread.InterruptAsynchOnce
-    | x => x);
+(* interrupts *)
 
 fun interrupted () =
   let
-    val orig_atts = safe_interrupts (Thread.getAttributes ());
-    val _ = Thread.setAttributes test_interrupts;
+    val orig_atts = Thread_Attributes.safe_interrupts (Thread.getAttributes ());
+    val _ = Thread.setAttributes Thread_Attributes.test_interrupts;
     val test = Exn.capture Thread.testInterrupt ();
     val _ = Thread.setAttributes orig_atts;
   in Exn.release test end;
-
-fun with_attributes new_atts e =
-  let
-    val orig_atts = safe_interrupts (Thread.getAttributes ());
-    val result = Exn.capture (fn () =>
-      (Thread.setAttributes (safe_interrupts new_atts); e orig_atts)) ();
-    val _ = Thread.setAttributes orig_atts;
-  in Exn.release result end;
-
-fun uninterruptible f x =
-  with_attributes no_interrupts (fn atts =>
-    f (fn g => fn y => with_attributes atts (fn _ => g y)) x);
 
 
 (* options *)
@@ -93,8 +53,9 @@ fun enabled () = max_threads_value () > 1;
 (* synchronous wait *)
 
 fun sync_wait opt_atts time cond lock =
-  with_attributes
-    (sync_interrupts (case opt_atts of SOME atts => atts | NONE => Thread.getAttributes ()))
+  Thread_Attributes.with_attributes
+    (Thread_Attributes.sync_interrupts
+      (case opt_atts of SOME atts => atts | NONE => Thread.getAttributes ()))
     (fn _ =>
       (case time of
         SOME t => Exn.Res (ConditionVar.waitUntil (cond, lock, t))
@@ -108,7 +69,7 @@ val trace = ref 0;
 
 fun tracing level msg =
   if level > ! trace then ()
-  else uninterruptible (fn _ => fn () =>
+  else Thread_Attributes.uninterruptible (fn _ => fn () =>
     (TextIO.output (TextIO.stdErr, (">>> " ^ msg () ^ "\n")); TextIO.flushOut TextIO.stdErr)
       handle _ (*sic*) => ()) ();
 
@@ -131,7 +92,7 @@ fun real_time f x =
 (* synchronized evaluation *)
 
 fun synchronized name lock e =
-  Exn.release (uninterruptible (fn restore_attributes => fn () =>
+  Exn.release (Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
     let
       val immediate =
         if Mutex.trylock lock then true

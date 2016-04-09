@@ -89,7 +89,7 @@ fun status task markups =
 type params = {name: string, pos: Position.T, pri: int};
 
 fun fork ({name, pos, pri}: params) e =
-  Multithreading.uninterruptible (fn _ => Position.setmp_thread_data pos (fn () =>
+  Thread_Attributes.uninterruptible (fn _ => Position.setmp_thread_data pos (fn () =>
     let
       val exec_id = the_default 0 (Position.parse_id pos);
       val group = Future.worker_subgroup ();

@@ -14,7 +14,7 @@ if ML_System.platform_is_windows then ML
 structure Bash: BASH =
 struct
 
-val process = Multithreading.uninterruptible (fn restore_attributes => fn script =>
+val process = Thread_Attributes.uninterruptible (fn restore_attributes => fn script =>
   let
     datatype result = Wait | Signal | Result of int;
     val result = Synchronized.var "bash_result" Wait;
@@ -34,7 +34,7 @@ val process = Multithreading.uninterruptible (fn restore_attributes => fn script
 
     val system_thread =
       Standard_Thread.fork {name = "bash", stack_limit = NONE, interrupts = false} (fn () =>
-        Multithreading.with_attributes Multithreading.private_interrupts (fn _ =>
+        Thread_Attributes.with_attributes Thread_Attributes.private_interrupts (fn _ =>
           let
             val _ = File.write script_path script;
             val bash_script =
@@ -105,7 +105,7 @@ else ML
 structure Bash: BASH =
 struct
 
-val process = Multithreading.uninterruptible (fn restore_attributes => fn script =>
+val process = Thread_Attributes.uninterruptible (fn restore_attributes => fn script =>
   let
     datatype result = Wait | Signal | Result of int;
     val result = Synchronized.var "bash_result" Wait;
@@ -125,7 +125,7 @@ val process = Multithreading.uninterruptible (fn restore_attributes => fn script
 
     val system_thread =
       Standard_Thread.fork {name = "bash", stack_limit = NONE, interrupts = false} (fn () =>
-        Multithreading.with_attributes Multithreading.private_interrupts (fn _ =>
+        Thread_Attributes.with_attributes Thread_Attributes.private_interrupts (fn _ =>
           let
             val _ = File.write script_path script;
             val _ = getenv_strict "ISABELLE_BASH_PROCESS";

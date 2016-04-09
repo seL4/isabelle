@@ -127,8 +127,3 @@ fun trace exn_message output e =
       in reraise exn end);
 
 end;
-
-datatype illegal = Interrupt;
-
-structure Basic_Exn: BASIC_EXN = Exn;
-open Basic_Exn;

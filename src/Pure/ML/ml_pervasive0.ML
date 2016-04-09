@@ -26,3 +26,8 @@ val pointer_eq = PolyML.pointerEq;
 val error_depth = PolyML.error_depth;
 
 open Thread;
+
+datatype illegal = Interrupt;
+
+structure Basic_Exn: BASIC_EXN = Exn;
+open Basic_Exn;

@@ -7,8 +7,6 @@ Thread-local data -- virtual version with context management.
 structure Thread_Data_Virtual: THREAD_DATA =
 struct
 
-(* context data *)
-
 structure Data = Generic_Data
 (
   type T = Universal.universal Inttab.table;
@@ -33,7 +31,7 @@ fun put (Var (i, tag)) data =
     | SOME x => Inttab.update (i, Universal.tagInject tag x));
 
 fun setmp v data f x =
-  Multithreading.uninterruptible (fn restore_attributes => fn () =>
+  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
     let
       val orig_data = get v;
       val _ = put v data;

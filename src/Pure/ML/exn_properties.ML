@@ -63,7 +63,7 @@ fun update entries exn =
               startLine = #startLine loc, endLine = #endLine loc,
               startPosition = #startPosition loc, endPosition = #endPosition loc};
         in
-          Multithreading.uninterruptible (fn _ => fn () =>
+          Thread_Attributes.uninterruptible (fn _ => fn () =>
             PolyML.raiseWithLocation (exn, loc') handle exn' => exn') ()
         end
     end;

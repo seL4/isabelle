@@ -206,10 +206,10 @@ fun cancel_later group = (*requires SYNCHRONIZED*)
   broadcast scheduler_event);
 
 fun interruptible_task f x =
-  Multithreading.with_attributes
+  Thread_Attributes.with_attributes
     (if is_some (worker_task ())
-     then Multithreading.private_interrupts
-     else Multithreading.public_interrupts)
+     then Thread_Attributes.private_interrupts
+     else Thread_Attributes.public_interrupts)
     (fn _ => f x)
   before Multithreading.interrupted ();
 
@@ -359,8 +359,8 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
 
 fun scheduler_loop () =
  (while
-    Multithreading.with_attributes
-      (Multithreading.sync_interrupts Multithreading.public_interrupts)
+    Thread_Attributes.with_attributes
+      (Thread_Attributes.sync_interrupts Thread_Attributes.public_interrupts)
       (fn _ => SYNCHRONIZED "scheduler" (fn () => scheduler_next ()))
   do (); last_round := Time.zeroTime);
 
@@ -438,7 +438,7 @@ fun future_job group atts (e: unit -> 'a) =
         val res =
           if ok then
             Exn.capture (fn () =>
-              Multithreading.with_attributes atts (fn _ =>
+              Thread_Attributes.with_attributes atts (fn _ =>
                 (Position.setmp_thread_data pos o Context.setmp_generic_context context) e ())) ()
           else Exn.interrupt_exn;
       in assign_result group result (identify_result pos res) end;
@@ -462,8 +462,8 @@ fun forks ({name, group, deps, pri, interrupts}: params) es =
         let
           val atts =
             if interrupts
-            then Multithreading.private_interrupts
-            else Multithreading.no_interrupts;
+            then Thread_Attributes.private_interrupts
+            else Thread_Attributes.no_interrupts;
           val (result, job) = future_job grp atts e;
           val (task, queue') = Task_Queue.enqueue name grp deps pri job queue;
           val future = Future {promised = false, task = task, result = result};
@@ -504,7 +504,7 @@ fun join_next atts deps = (*requires SYNCHRONIZED*)
       (NONE, []) => NONE
     | (NONE, deps') =>
        (worker_waiting deps' (fn () =>
-          Multithreading.with_attributes atts (fn _ =>
+          Thread_Attributes.with_attributes atts (fn _ =>
             Exn.release (worker_wait Waiting work_finished)));
         join_next atts deps')
     | (SOME work, deps') => SOME (work, deps'));
@@ -521,7 +521,7 @@ fun join_results xs =
     val _ =
       if forall is_finished xs then ()
       else if is_some (worker_task ()) then
-        Multithreading.with_attributes Multithreading.no_interrupts
+        Thread_Attributes.with_attributes Thread_Attributes.no_interrupts
           (fn orig_atts => join_loop orig_atts (map task_of xs))
       else List.app (ignore o Single_Assignment.await o result_of) xs;
   in map get_result xs end;
@@ -544,7 +544,7 @@ fun join_tasks tasks =
 (* task context for running thread *)
 
 fun task_context name group f x =
-  Multithreading.with_attributes Multithreading.no_interrupts (fn orig_atts =>
+  Thread_Attributes.with_attributes Thread_Attributes.no_interrupts (fn orig_atts =>
     let
       val (result, job) = future_job group orig_atts (fn () => f x);
       val task =
@@ -581,7 +581,7 @@ fun map_future f x =
       val task = task_of x;
       val group = Task_Queue.group_of_task task;
       val (result, job) =
-        future_job group Multithreading.private_interrupts (fn () => f (join x));
+        future_job group Thread_Attributes.private_interrupts (fn () => f (join x));
 
       val extended = SYNCHRONIZED "extend" (fn () =>
         (case Task_Queue.extend task job (! queue) of
@@ -609,7 +609,7 @@ fun promise_group group abort : 'a future =
             then raise Fail "Concurrent attempt to fulfill promise"
             else Exn.reraise exn;
     fun job () =
-      Multithreading.with_attributes Multithreading.no_interrupts
+      Thread_Attributes.with_attributes Thread_Attributes.no_interrupts
         (fn _ => Exn.release (Exn.capture assign () before abort ()));
     val task = SYNCHRONIZED "enqueue_passive" (fn () =>
       Unsynchronized.change_result queue (Task_Queue.enqueue_passive group job));
@@ -626,7 +626,7 @@ fun fulfill_result (Future {promised, task, result}) res =
       fun job ok =
         assign_result group result (if ok then identify_result pos res else Exn.interrupt_exn);
       val _ =
-        Multithreading.with_attributes Multithreading.no_interrupts (fn _ =>
+        Thread_Attributes.with_attributes Thread_Attributes.no_interrupts (fn _ =>
           let
             val passive_job =
               SYNCHRONIZED "fulfill_result" (fn () =>

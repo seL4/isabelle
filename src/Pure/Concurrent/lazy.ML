@@ -61,7 +61,7 @@ fun force_result (Lazy var) =
   (case peek (Lazy var) of
     SOME res => res
   | NONE =>
-      Multithreading.uninterruptible (fn restore_attributes => fn () =>
+      Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
         let
           val (expr, x) =
             Synchronized.change_result var

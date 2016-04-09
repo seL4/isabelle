@@ -19,7 +19,7 @@ fun inc i = (i := ! i + (1: int); ! i);
 fun dec i = (i := ! i - (1: int); ! i);
 
 fun setmp flag value f x =
-  Multithreading.uninterruptible (fn restore_attributes => fn () =>
+  Thread_Attributes.uninterruptible (fn restore_attributes => fn () =>
     let
       val orig_value = ! flag;
       val _ = flag := value;

@@ -4,8 +4,7 @@
 Pervasive ML environment: final setup.
 *)
 
-List.app ML_Name_Space.forget_structure
-  (remove (op =) "PolyML" ML_Name_Space.bootstrap_structures);
+List.app ML_Name_Space.forget_structure ML_Name_Space.hidden_structures;
 
 structure PolyML = struct structure IntInf = PolyML.IntInf end;
 

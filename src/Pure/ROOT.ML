@@ -9,7 +9,6 @@ ML_file "ML/ml_pervasive0.ML";
 ML_file "ML/ml_system.ML";
 ML_file "System/distribution.ML";
 
-ML_file "General/exn.ML";
 ML_file "General/basics.ML";
 
 ML_file "Concurrent/multithreading.ML";
