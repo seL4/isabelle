@@ -108,7 +108,7 @@ fun prune (new as (k', np':int, rgd', stq), qs) =
   (k) can be wrong.*)
 fun THEN_ITER_DEEPEN lim tac0 satp tac1 st =
   let
-    val countr = Unsynchronized.ref 0
+    val counter = Unsynchronized.ref 0
     and tf = tac1 1
     and qs0 = tac0 st
      (*bnd = depth bound; inc = estimate of increment required next*)
@@ -120,7 +120,7 @@ fun THEN_ITER_DEEPEN lim tac0 satp tac1 st =
       | depth (bnd, inc) ((k, np, rgd, q) :: qs) =
           if k >= bnd then depth (bnd, inc) qs
           else
-           (case (Unsynchronized.inc countr; Seq.pull q) of
+           (case (Unsynchronized.inc counter; Seq.pull q) of
              NONE => depth (bnd, inc) qs
            | SOME (st, stq) =>
               if satp st then (*solution!*)
