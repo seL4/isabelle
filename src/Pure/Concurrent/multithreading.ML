@@ -6,7 +6,6 @@ Multithreading in Poly/ML (cf. polyml/basis/Thread.sml).
 
 signature MULTITHREADING =
 sig
-  val interrupted: unit -> unit  (*exception Interrupt*)
   val max_threads_value: unit -> int
   val max_threads_update: int -> unit
   val enabled: unit -> bool
@@ -21,17 +20,6 @@ end;
 
 structure Multithreading: MULTITHREADING =
 struct
-
-(* interrupts *)
-
-fun interrupted () =
-  let
-    val orig_atts = Thread_Attributes.safe_interrupts (Thread.getAttributes ());
-    val _ = Thread.setAttributes Thread_Attributes.test_interrupts;
-    val test = Exn.capture Thread.testInterrupt ();
-    val _ = Thread.setAttributes orig_atts;
-  in Exn.release test end;
-
 
 (* options *)
 

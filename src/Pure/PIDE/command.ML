@@ -216,7 +216,7 @@ fun proof_status tr st =
 
 fun eval_state keywords span tr ({state, ...}: eval_state) =
   let
-    val _ = Multithreading.interrupted ();
+    val _ = Thread_Attributes.expose_interrupt ();
 
     val st = reset_state keywords tr state;
 
