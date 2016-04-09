@@ -986,7 +986,7 @@ fun partition_eq (eq: 'a * 'a -> bool) =
 (* serial numbers and abstract stamps *)
 
 type serial = int;
-val serial = Multithreading.serial;
+val serial = Counter.make ();
 val serial_string = string_of_int o serial;
 
 datatype stamp = Stamp of serial;

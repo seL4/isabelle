@@ -56,7 +56,7 @@ fun timed_access (Var {name, lock, cond, var}) time_limit f =
         end;
     in try_change () end);
 
-fun guarded_access var f = the (timed_access var (K NONE) f);
+fun guarded_access var f = the (timed_access var (fn _ => NONE) f);
 
 
 (* unconditional change *)
@@ -65,10 +65,5 @@ fun change_result var f = guarded_access var (SOME o f);
 fun change var f = change_result var (fn x => ((), f x));
 
 end;
-
-
-(* toplevel pretty printing *)
-
-val _ = ML_system_pp (fn depth => fn pretty => fn var => pretty (value var, depth));
 
 end;

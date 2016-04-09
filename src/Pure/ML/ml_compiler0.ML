@@ -156,3 +156,5 @@ else
          ("addOverload", "ML_system_overload")]))
     {debug = false, file = "", line = 0, verbose = false}
     "open PolyML RunCall";
+
+ML_system_pp (fn depth => fn pretty => fn var => pretty (Synchronized.value var, depth));

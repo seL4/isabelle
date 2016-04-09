@@ -10,9 +10,12 @@ ML_file "ML/ml_system.ML";
 ML_file "System/distribution.ML";
 
 ML_file "General/exn.ML";
+ML_file "General/basics.ML";
 
 ML_file "Concurrent/multithreading.ML";
 ML_file "Concurrent/unsynchronized.ML";
+ML_file "Concurrent/synchronized.ML";
+ML_file "Concurrent/counter.ML";
 
 ML_file "ML/ml_heap.ML";
 ML_file "ML/ml_profiling.ML";
@@ -26,14 +29,10 @@ section "Bootstrap phase 1: towards ML within position context";
 
 subsection "Library of general tools";
 
-ML_file "General/basics.ML";
 ML_file "library.ML";
 ML_file "General/print_mode.ML";
 ML_file "General/alist.ML";
 ML_file "General/table.ML";
-
-ML_file "Concurrent/synchronized.ML";
-ML_file "Concurrent/counter.ML";
 
 ML_file "General/random.ML";
 ML_file "General/properties.ML";

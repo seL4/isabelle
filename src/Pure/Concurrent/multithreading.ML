@@ -23,7 +23,6 @@ sig
   val tracing_time: bool -> Time.time -> (unit -> string) -> unit
   val real_time: ('a -> unit) -> 'a -> Time.time
   val synchronized: string -> Mutex.mutex -> (unit -> 'a) -> 'a
-  val serial: unit -> int
 end;
 
 structure Multithreading: MULTITHREADING =
@@ -146,25 +145,5 @@ fun synchronized name lock e =
       val _ = if immediate then () else tracing 5 (fn () => name ^ ": unlocking ...");
       val _ = Mutex.unlock lock;
     in result end) ());
-
-
-(* serial numbers *)
-
-local
-
-val serial_lock = Mutex.mutex ();
-val serial_count = ref 0;
-
-in
-
-val serial = uninterruptible (fn _ => fn () =>
-  let
-    val _ = Mutex.lock serial_lock;
-    val _ = serial_count := ! serial_count + 1;
-    val res = ! serial_count;
-    val _ = Mutex.unlock serial_lock;
-  in res end);
-
-end;
 
 end;
