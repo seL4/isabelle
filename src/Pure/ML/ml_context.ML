@@ -220,4 +220,4 @@ fun expression range name constraint body ants =
 
 end;
 
-val ML = ML_Context.eval_source ML_Compiler.flags;
+val ML = ML_Context.eval_source (ML_Compiler.verbose true ML_Compiler.flags);
