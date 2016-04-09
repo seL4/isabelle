@@ -9,8 +9,6 @@ text \<open>
   complex numbers etc.
 \<close>
 
-text \<open>See further @{cite "Nipkow-et-al:2002:tutorial"}\<close>
-
 no_notation
   bot ("\<bottom>") and
   top ("\<top>") and
