@@ -77,7 +77,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   {
     GUI_Thread.require {}
 
-    if (node_name.theory == Thy_Header.ML_ROOT)
+    if (Thy_Header.ml_roots.exists({ case (_, name) => name == node_name.theory }))
       Document.Node.Header(
         List((PIDE.resources.import_name("", node_name, Thy_Header.ML_BOOTSTRAP), Position.none)),
           Nil, Nil)

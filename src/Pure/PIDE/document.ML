@@ -546,7 +546,7 @@ fun init_theory deps node span =
   in Resources.begin_theory master_dir header parents end;
 
 fun check_ml_root node =
-  if #1 (#name (#header (get_header node))) = Thy_Header.ml_rootN then
+  if member (op =) Thy_Header.ml_roots (#1 (#name (#header (get_header node)))) then
     let
       val master_dir = master_directory node;
       val header = #header (get_header node);
