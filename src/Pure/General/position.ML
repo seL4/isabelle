@@ -243,9 +243,8 @@ fun properties_of_range (pos, pos') =
 
 (* thread data *)
 
-val thread_data_var = Thread_Data.var () : T Thread_Data.var;
-fun thread_data () = the_default none (Thread_Data.get thread_data_var);
-fun setmp_thread_data pos = Thread_Data.setmp thread_data_var (SOME pos);
+val thread_data = of_properties o Thread_Position.get;
+fun setmp_thread_data pos = Thread_Position.setmp (properties_of pos);
 
 fun default pos =
   if pos = none then (false, thread_data ())
