@@ -31,7 +31,9 @@ fun num_processors () =
   | NONE => Thread.numProcessors ());
 
 fun max_threads_result m =
-  if m > 0 then m else Int.min (Int.max (num_processors (), 1), 8);
+  if Thread_Data.is_virtual then 1
+  else if m > 0 then m
+  else Int.min (Int.max (num_processors (), 1), 8);
 
 val max_threads_state = ref 1;
 
