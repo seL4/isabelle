@@ -4,7 +4,19 @@
 Raw ML references as unsynchronized state variables.
 *)
 
-structure Unsynchronized =
+signature UNSYNCHRONIZED =
+sig
+  datatype ref = datatype ref
+  val := : 'a ref * 'a -> unit
+  val ! : 'a ref -> 'a
+  val change: 'a ref -> ('a -> 'a) -> unit
+  val change_result: 'a ref -> ('a -> 'b * 'a) -> 'b
+  val inc: int ref -> int
+  val dec: int ref -> int
+  val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
+end;
+
+structure Unsynchronized: UNSYNCHRONIZED =
 struct
 
 datatype ref = datatype ref;
@@ -29,5 +41,5 @@ fun setmp flag value f x =
 
 end;
 
-val _ = ML_Name_Space.forget_val "ref";
-val _ = ML_Name_Space.forget_type "ref";
+ML_Name_Space.forget_val "ref";
+ML_Name_Space.forget_type "ref";
