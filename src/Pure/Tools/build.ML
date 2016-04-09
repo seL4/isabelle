@@ -159,7 +159,7 @@ fun build args_file =
       theories |>
         (List.app (build_theories symbols last_timing Path.current)
           |> session_timing name verbose
-          |> Unsynchronized.setmp Output.protocol_message_fn protocol_message
+          |> Unsynchronized.setmp Private_Output.protocol_message_fn protocol_message
           |> Exn.capture);
     val res2 = Exn.capture Session.finish ();
     val _ = Par_Exn.release_all [res1, res2];
@@ -193,5 +193,3 @@ val _ =
     in Output.protocol_message (Markup.build_theories_result id) [result] end);
 
 end;
-
-structure Output: OUTPUT = Output;  (*seal system channels!*)

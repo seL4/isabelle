@@ -301,6 +301,7 @@ ML_file "System/message_channel.ML";
 ML_file "System/isabelle_process.ML";
 ML_file "System/invoke_scala.ML";
 ML_file "PIDE/protocol.ML";
+ML_file "General/output_primitives_virtual.ML";
 
 
 subsection "Miscellaneous tools and packages for Pure Isabelle";

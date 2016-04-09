@@ -114,21 +114,22 @@ fun init_channels channel =
             | _ => props);
         in message name props' body end;
   in
-    Output.status_fn := standard_message [] Markup.statusN;
-    Output.report_fn := standard_message [] Markup.reportN;
-    Output.result_fn :=
+    Private_Output.status_fn := standard_message [] Markup.statusN;
+    Private_Output.report_fn := standard_message [] Markup.reportN;
+    Private_Output.result_fn :=
       (fn props => fn s => standard_message (props @ serial_props ()) Markup.resultN s);
-    Output.writeln_fn := (fn s => standard_message (serial_props ()) Markup.writelnN s);
-    Output.state_fn := (fn s => standard_message (serial_props ()) Markup.stateN s);
-    Output.information_fn := (fn s => standard_message (serial_props ()) Markup.informationN s);
-    Output.tracing_fn :=
+    Private_Output.writeln_fn := (fn s => standard_message (serial_props ()) Markup.writelnN s);
+    Private_Output.state_fn := (fn s => standard_message (serial_props ()) Markup.stateN s);
+    Private_Output.information_fn :=
+      (fn s => standard_message (serial_props ()) Markup.informationN s);
+    Private_Output.tracing_fn :=
       (fn s => (update_tracing (); standard_message (serial_props ()) Markup.tracingN s));
-    Output.warning_fn := (fn s => standard_message (serial_props ()) Markup.warningN s);
-    Output.legacy_fn := (fn s => standard_message (serial_props ()) Markup.legacyN s);
-    Output.error_message_fn :=
+    Private_Output.warning_fn := (fn s => standard_message (serial_props ()) Markup.warningN s);
+    Private_Output.legacy_fn := (fn s => standard_message (serial_props ()) Markup.legacyN s);
+    Private_Output.error_message_fn :=
       (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s);
-    Output.system_message_fn := message Markup.systemN [];
-    Output.protocol_message_fn := message Markup.protocolN;
+    Private_Output.system_message_fn := message Markup.systemN [];
+    Private_Output.protocol_message_fn := message Markup.protocolN;
     message Markup.initN [] [Session.welcome ()];
     msg_channel
   end;

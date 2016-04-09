@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/output.ML
-    Author:     Makarius, Hagia Maria Sion Abbey (Jerusalem)
+    Author:     Makarius
 
-Isabelle channels for diagnostic output.
+Isabelle output channels.
 *)
 
 signature BASIC_OUTPUT =
@@ -59,7 +59,7 @@ sig
   val protocol_message_fn: (Properties.T -> output list -> unit) Unsynchronized.ref
 end;
 
-structure Output: PRIVATE_OUTPUT =
+structure Private_Output: PRIVATE_OUTPUT =
 struct
 
 (** print modes **)
@@ -90,7 +90,23 @@ fun escape x = #escape (get_mode ()) x;
 
 (** output channels **)
 
-(* raw output primitives -- not to be used in user-space *)
+(* primitives -- provided via bootstrap environment *)
+
+val writeln_fn = Unsynchronized.ref Output_Primitives.writeln_fn;
+val state_fn = Unsynchronized.ref Output_Primitives.state_fn;
+val information_fn = Unsynchronized.ref Output_Primitives.information_fn;
+val tracing_fn = Unsynchronized.ref Output_Primitives.tracing_fn;
+val warning_fn = Unsynchronized.ref Output_Primitives.warning_fn;
+val legacy_fn = Unsynchronized.ref Output_Primitives.legacy_fn;
+val error_message_fn = Unsynchronized.ref Output_Primitives.error_message_fn;
+val system_message_fn = Unsynchronized.ref Output_Primitives.system_message_fn;
+val status_fn = Unsynchronized.ref Output_Primitives.status_fn;
+val report_fn = Unsynchronized.ref Output_Primitives.report_fn;
+val result_fn = Unsynchronized.ref Output_Primitives.result_fn;
+val protocol_message_fn = Unsynchronized.ref Output_Primitives.protocol_message_fn;
+
+
+(* physical output -- not to be used in user-space *)
 
 fun physical_stdout s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
 fun physical_stderr s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
@@ -103,21 +119,18 @@ fun physical_writeln "" = ()
 
 exception Protocol_Message of Properties.T;
 
-val writeln_fn = Unsynchronized.ref (physical_writeln o implode);
-val state_fn = Unsynchronized.ref (fn ss => ! writeln_fn ss);
-val information_fn = Unsynchronized.ref (fn ss => ! writeln_fn ss);
-val tracing_fn = Unsynchronized.ref (fn ss => ! writeln_fn ss);
-val warning_fn = Unsynchronized.ref (physical_writeln o prefix_lines "### " o implode);
-val legacy_fn = Unsynchronized.ref (fn ss => ! warning_fn ss);
-
-val error_message_fn =
-  Unsynchronized.ref (fn (_: serial, ss) => physical_writeln (prefix_lines "*** " (implode ss)));
-val system_message_fn = Unsynchronized.ref (fn ss => ! writeln_fn ss);
-val status_fn = Unsynchronized.ref (fn _: output list => ());
-val report_fn = Unsynchronized.ref (fn _: output list => ());
-val result_fn = Unsynchronized.ref (fn _: Properties.T => fn _: output list => ());
-val protocol_message_fn: (Properties.T -> output list -> unit) Unsynchronized.ref =
-  Unsynchronized.ref (fn props => fn _ => raise Protocol_Message props);
+val _ =
+  if Thread_Data.is_virtual then ()
+  else
+   (writeln_fn := (physical_writeln o implode);
+    state_fn := (fn ss => ! writeln_fn ss);
+    information_fn := (fn ss => ! writeln_fn ss);
+    tracing_fn := (fn ss => ! writeln_fn ss);
+    warning_fn := (physical_writeln o prefix_lines "### " o implode);
+    legacy_fn := (fn ss => ! warning_fn ss);
+    error_message_fn := (fn (_, ss) => physical_writeln (prefix_lines "*** " (implode ss)));
+    system_message_fn := (fn ss => ! writeln_fn ss);
+    protocol_message_fn := (fn props => fn _ => raise Protocol_Message props));
 
 fun writelns ss = ! writeln_fn (map output ss);
 fun writeln s = writelns [s];
@@ -171,5 +184,6 @@ end;
 
 end;
 
+structure Output: OUTPUT = Private_Output;
 structure Basic_Output: BASIC_OUTPUT = Output;
 open Basic_Output;

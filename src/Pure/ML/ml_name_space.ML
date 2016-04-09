@@ -65,10 +65,11 @@ struct
       "chapter", "section", "subsection", "subsubsection", "paragraph", "subparagraph"];
   val hidden_structures = ["CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal"];
   val bootstrap_structures =
-    ["Exn", "Basic_Exn", "Thread_Data", "Thread_Position", "ML_Recursive", "PolyML"] @
-      hidden_structures;
+    ["Exn", "Output_Primitives", "Basic_Exn", "Thread_Data", "Thread_Position", "ML_Recursive",
+      "Private_Output", "PolyML"] @ hidden_structures;
   val bootstrap_signatures =
-    ["EXN", "BASIC_EXN", "THREAD_DATA", "THREAD_POSITION", "ML_RECURSIVE"];
+    ["EXN", "OUTPUT_PRIMITIVES", "BASIC_EXN", "THREAD_DATA", "THREAD_POSITION", "ML_RECURSIVE",
+      "PRIVATE_OUTPUT"];
 
 
   (* Standard ML environment *)

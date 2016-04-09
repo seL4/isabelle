@@ -2,7 +2,7 @@
     Module:     PIDE
     Author:     Makarius
 
-Isabelle channels for diagnostic output.
+Isabelle output channels.
 */
 
 package isabelle
