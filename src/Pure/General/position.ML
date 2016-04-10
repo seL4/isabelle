@@ -7,8 +7,8 @@ Source positions: counting Isabelle symbols, starting from 1.
 signature POSITION =
 sig
   eqtype T
-  val make: {line: int, offset: int, end_offset: int, props: Properties.T} -> T
-  val dest: T -> {line: int, offset: int, end_offset: int, props: Properties.T}
+  val make: Thread_Position.T -> T
+  val dest: T -> Thread_Position.T
   val line_of: T -> int option
   val offset_of: T -> int option
   val end_offset_of: T -> int option
@@ -243,8 +243,8 @@ fun properties_of_range (pos, pos') =
 
 (* thread data *)
 
-val thread_data = of_properties o Thread_Position.get;
-fun setmp_thread_data pos = Thread_Position.setmp (properties_of pos);
+val thread_data = make o Thread_Position.get;
+fun setmp_thread_data pos = Thread_Position.setmp (dest pos);
 
 fun default pos =
   if pos = none then (false, thread_data ())

@@ -6,21 +6,22 @@ Thread-local position information.
 
 signature THREAD_POSITION =
 sig
-  val get: unit -> (string * string) list
-  val setmp: (string * string) list -> ('a -> 'b) -> 'a -> 'b
+  type T = {line: int, offset: int, end_offset: int, props: (string * string) list}
+  val none: T
+  val get: unit -> T
+  val setmp: T -> ('a -> 'b) -> 'a -> 'b
 end;
 
 structure Thread_Position: THREAD_POSITION =
 struct
 
-val var = Thread_Data.var () : (string * string) list Thread_Data.var;
+type T = {line: int, offset: int, end_offset: int, props: (string * string) list};
 
-fun get () =
-  (case Thread_Data.get var of
-    NONE => []
-  | SOME props => props);
+val var = Thread_Data.var () : T Thread_Data.var;
 
-fun setmp props f x =
-  Thread_Data.setmp var (if List.null props then NONE else SOME props) f x;
+val none: T = {line = 0, offset = 0, end_offset = 0, props = []};
+
+fun get () = (case Thread_Data.get var of NONE => none | SOME pos => pos);
+fun setmp pos f x = Thread_Data.setmp var (if pos = none then NONE else SOME pos) f x;
 
 end;
