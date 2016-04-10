@@ -20,14 +20,12 @@ object Sessions
 
   def pure_name(name: String): Boolean = name == "Pure"
 
-  val pure_roots: List[String] = List("ROOT0.ML", "ROOT.ML")
-
   def pure_files(resources: Resources, syntax: Outer_Syntax, dir: Path): List[Path] =
   {
+    val roots = Thy_Header.ml_roots.map(_._1)
     val loaded_files =
-      pure_roots.flatMap(root =>
-        resources.loaded_files(syntax, File.read(dir + Path.explode(root))))
-    (pure_roots ::: loaded_files).map(file => dir + Path.explode(file))
+      roots.flatMap(root => resources.loaded_files(syntax, File.read(dir + Path.explode(root))))
+    (roots ::: loaded_files).map(file => dir + Path.explode(file))
   }
 
 

@@ -281,7 +281,9 @@ object Build
         val process =
           if (Sessions.pure_name(name)) {
             ML_Process(info.options, raw_ml_system = true, cwd = info.dir.file,
-              args = List("--use", "ROOT0.ML", "--use", "ROOT.ML", "--eval", eval),
+              args =
+                (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
+                List("--eval", eval),
               env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
           }
           else {

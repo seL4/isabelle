@@ -69,7 +69,7 @@ object Thy_Header extends Parse.Parser
   /* file name */
 
   val ML_BOOTSTRAP = "ML_Bootstrap"
-  val ml_roots = Map("ROOT0.ML" -> "ML_Root0", "ROOT.ML" -> "ML_Root")
+  val ml_roots = List("ROOT0.ML" -> "ML_Root0", "ROOT.ML" -> "ML_Root")
 
   private val Base_Name = new Regex(""".*?([^/\\:]+)""")
   private val Thy_Name = new Regex(""".*?([^/\\:]+)\.thy""")
@@ -80,7 +80,7 @@ object Thy_Header extends Parse.Parser
   def thy_name(s: String): Option[String] =
     s match {
       case Thy_Name(name) => Some(name)
-      case Base_Name(name) => ml_roots.get(name)
+      case Base_Name(name) => ml_roots.collectFirst({ case (a, b) if a == name => b })
       case _ => None
     }
 
