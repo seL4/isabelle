@@ -103,7 +103,7 @@ fun get_theory name =
     SOME theory => theory
   | _ => error ("Theory loader: undefined entry for theory " ^ quote name));
 
-fun pure_theory () = get_theory "Pure";
+fun pure_theory () = get_theory Context.PureN;
 
 val get_imports = Resources.imports_of o get_theory;
 
