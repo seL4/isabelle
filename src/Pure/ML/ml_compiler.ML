@@ -48,7 +48,7 @@ fun breakpoint_position loc =
         |> Position.of_properties)
   end;
 
-fun report_parse_tree redirect depth space parse_tree =
+fun report_parse_tree redirect depth name_space parse_tree =
   let
     val is_visible =
       (case Context.get_generic_context () of
@@ -64,7 +64,7 @@ fun report_parse_tree redirect depth space parse_tree =
         is_reported pos ?
           let
             val xml =
-              PolyML.NameSpace.Values.printType (types, depth, SOME space)
+              PolyML.NameSpace.Values.printType (types, depth, SOME name_space)
               |> Pretty.from_polyml |> Pretty.string_of
               |> Output.output |> YXML.parse_body;
           in cons (pos, fn () => Markup.ML_typing, fn () => YXML.string_of_body xml) end
@@ -133,22 +133,25 @@ fun report_parse_tree redirect depth space parse_tree =
 
     val all_breakpoints = rev (breakpoints_tree parse_tree []);
     val _ = Position.reports (map #1 all_breakpoints);
-    val _ =
-      if is_some (Context.get_generic_context ()) then
-        Context.>> (fold (ML_Env.add_breakpoint o #2) all_breakpoints)
-      else ();
-  in () end;
+ in map (fn (_, (id, (b, pos))) => (id, (b, Position.dest pos))) all_breakpoints end;
 
 
 (* eval ML source tokens *)
 
 fun eval (flags: flags) pos toks =
   let
-    val space =
-      (case (#SML flags orelse #exchange flags, ML_Recursive.get ()) of
-        (false, SOME space) => space
-      | _ => ML_Env.make_name_space {SML = #SML flags, exchange = #exchange flags});
     val opt_context = Context.get_generic_context ();
+
+    val env as {debug, name_space, add_breakpoints} =
+      (case (ML_Recursive.get (), #SML flags orelse #exchange flags) of
+        (SOME env, false) => env
+      | _ =>
+       {debug =
+          (case #debug flags of
+            SOME debug => debug
+          | NONE => ML_Options.debugger_enabled opt_context),
+        name_space = ML_Env.make_name_space {SML = #SML flags, exchange = #exchange flags},
+        add_breakpoints = ML_Env.add_breakpoints});
 
 
     (* input *)
@@ -211,20 +214,23 @@ fun eval (flags: flags) pos toks =
           else ();
 
         fun apply_fix (a, b) =
-          (#enterFix space (a, b); display PolyML.NameSpace.Infixes.print b);
+          (#enterFix name_space (a, b);
+            display PolyML.NameSpace.Infixes.print b);
         fun apply_type (a, b) =
-          (#enterType space (a, b);
-            display PolyML.NameSpace.TypeConstrs.print (b, depth, SOME space));
+          (#enterType name_space (a, b);
+            display PolyML.NameSpace.TypeConstrs.print (b, depth, SOME name_space));
         fun apply_sig (a, b) =
-          (#enterSig space (a, b); display PolyML.NameSpace.Signatures.print (b, depth, SOME space));
+          (#enterSig name_space (a, b);
+            display PolyML.NameSpace.Signatures.print (b, depth, SOME name_space));
         fun apply_struct (a, b) =
-          (#enterStruct space (a, b);
-            display PolyML.NameSpace.Structures.print (b, depth, SOME space));
+          (#enterStruct name_space (a, b);
+            display PolyML.NameSpace.Structures.print (b, depth, SOME name_space));
         fun apply_funct (a, b) =
-          (#enterFunct space (a, b); display PolyML.NameSpace.Functors.print (b, depth, SOME space));
+          (#enterFunct name_space (a, b);
+            display PolyML.NameSpace.Functors.print (b, depth, SOME name_space));
         fun apply_val (a, b) =
-          (#enterVal space (a, b);
-            display PolyML.NameSpace.Values.printWithType (b, depth, SOME space));
+          (#enterVal name_space (a, b);
+            display PolyML.NameSpace.Values.printWithType (b, depth, SOME name_space));
       in
         List.app apply_fix fixes;
         List.app apply_type types;
@@ -239,7 +245,8 @@ fun eval (flags: flags) pos toks =
     fun result_fun (phase1, phase2) () =
      ((case phase1 of
         NONE => ()
-      | SOME parse_tree => report_parse_tree (#redirect flags) depth space parse_tree);
+      | SOME parse_tree =>
+          add_breakpoints (report_parse_tree (#redirect flags) depth name_space parse_tree));
       (case phase2 of
         NONE => raise STATIC_ERRORS ()
       | SOME code =>
@@ -251,14 +258,9 @@ fun eval (flags: flags) pos toks =
 
     (* compiler invocation *)
 
-    val debug =
-      (case #debug flags of
-        SOME debug => debug
-      | NONE => ML_Options.debugger_enabled opt_context);
-
     val parameters =
      [PolyML.Compiler.CPOutStream write,
-      PolyML.Compiler.CPNameSpace space,
+      PolyML.Compiler.CPNameSpace name_space,
       PolyML.Compiler.CPErrorMessageProc message,
       PolyML.Compiler.CPLineNo (the_default 0 o Position.line_of o get_pos),
       PolyML.Compiler.CPLineOffset (the_default 0 o Position.offset_of o get_pos),
@@ -270,7 +272,7 @@ fun eval (flags: flags) pos toks =
 
     val _ =
       (while not (List.null (! input_buffer)) do
-        ML_Recursive.recursive space (fn () => PolyML.compiler (get, parameters) ()))
+        ML_Recursive.recursive env (fn () => PolyML.compiler (get, parameters) ()))
       handle exn =>
         if Exn.is_interrupt exn then Exn.reraise exn
         else

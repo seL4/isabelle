@@ -9,9 +9,8 @@ signature ML_ENV =
 sig
   val inherit: Context.generic -> Context.generic -> Context.generic
   val forget_structure: string -> Context.generic -> Context.generic
-  val add_breakpoint: serial * (bool Unsynchronized.ref * Position.T) ->
-    Context.generic -> Context.generic
   val get_breakpoint: Context.generic -> serial -> (bool Unsynchronized.ref * Position.T) option
+  val add_breakpoints: (serial * (bool Unsynchronized.ref * Thread_Position.T)) list -> unit
   val init_bootstrap: Context.generic -> Context.generic
   val SML_environment: bool Config.T
   val add_name_space: {SML: bool} -> ML_Name_Space.T -> Context.generic -> Context.generic
@@ -84,12 +83,16 @@ fun forget_structure name =
         (#1 tables, #2 tables, #3 tables, Symtab.delete_safe name (#4 tables), #5 tables, #6 tables);
     in make_data (bootstrap, tables', sml_tables, breakpoints) end);
 
-fun add_breakpoint breakpoint =
-  Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
-    let val breakpoints' = Inttab.update_new breakpoint breakpoints;
-    in make_data (bootstrap, tables, sml_tables, breakpoints') end);
-
 val get_breakpoint = Inttab.lookup o #breakpoints o Env.get;
+
+fun add_breakpoints more_breakpoints =
+  if is_some (Context.get_generic_context ()) then
+    Context.>>
+      (Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
+        let val breakpoints' =
+          fold (Inttab.update_new o (apsnd o apsnd) Position.make) more_breakpoints breakpoints;
+        in make_data (bootstrap, tables, sml_tables, breakpoints') end))
+  else ();
 
 
 (* SML environment for Isabelle/ML *)
