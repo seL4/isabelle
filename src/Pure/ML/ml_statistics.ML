@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML/ml_statistics.ML
     Author:     Makarius
 
-ML runtime statistics for Poly/ML 5.5.0 or later.
+ML runtime statistics.
 *)
 
 signature ML_STATISTICS =

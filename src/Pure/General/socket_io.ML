@@ -4,8 +4,6 @@
 
 Stream IO over TCP sockets.  Following example 10.2 in "The Standard
 ML Basis Library" by Emden R. Gansner and John H. Reppy.
-
-Note: BinIO requires Poly/ML 5.5.x to work reliably.
 *)
 
 signature SOCKET_IO =

@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML/ml_profiling.ML
     Author:     Makarius
 
-Profiling for Poly/ML 5.6.
+ML profiling.
 *)
 
 signature ML_PROFILING =
