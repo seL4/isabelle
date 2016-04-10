@@ -10,3 +10,5 @@ val {ML_file, ML_file_debug, ML_file_no_debug} =
       ML_Context.eval_file flags (Path.explode file)
         handle ERROR msg => (writeln msg; error "ML error")
     end);
+
+val use = ML_file;

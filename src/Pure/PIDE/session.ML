@@ -22,7 +22,7 @@ struct
 
 (** persistent session information **)
 
-val session = Synchronized.var "Session.session" ({chapter = "Pure", name = "Pure"}, false);
+val session = Synchronized.var "Session.session" ({chapter = "", name = ""}, true);
 
 fun get_name () = #name (#1 (Synchronized.value session));
 

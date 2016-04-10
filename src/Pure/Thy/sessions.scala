@@ -20,7 +20,7 @@ object Sessions
 
   def pure_name(name: String): Boolean = name == "Pure"
 
-  val pure_roots: List[String] = List("ROOT0.ML", "ROOT.ML", "ROOT1.ML")
+  val pure_roots: List[String] = List("ROOT0.ML", "ROOT.ML")
 
   def pure_files(resources: Resources, syntax: Outer_Syntax, dir: Path): List[Path] =
   {

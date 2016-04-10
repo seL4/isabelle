@@ -258,36 +258,33 @@ object Build
 
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
+        val args_file = Isabelle_System.tmp_file("build")
+        File.write(args_file, YXML.string_of_body(
+            {
+              val theories = info.theories.map(x => (x._2, x._3))
+              import XML.Encode._
+              pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(bool,
+                pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
+                pair(string, pair(string, pair(string,
+                list(pair(Options.encode, list(Path.encode)))))))))))))(
+              (Symbol.codes, (command_timings, (do_output, (verbose,
+                (store.browser_info, (info.document_files, (File.standard_path(graph_file),
+                (parent, (info.chapter, (name,
+                theories)))))))))))
+            }))
+
+        val eval =
+          "Command_Line.tool0 (fn () => (" +
+          "Build.build " + ML_Syntax.print_string0(File.standard_path(args_file)) +
+          (if (do_output) "; ML_Heap.share_common_data (); " + output_save_state
+           else "") + "));"
         val process =
           if (Sessions.pure_name(name)) {
-            val roots = Sessions.pure_roots.flatMap(root => List("--use", root))
-            val eval =
-              "Command_Line.tool0 (fn () => (Session.finish (); Options.reset_default ();" +
-              " Session.shutdown (); ML_Heap.share_common_data (); " + output_save_state + "));"
-            ML_Process(info.options,
-              raw_ml_system = true, args = roots ::: List("--eval", eval),
-              cwd = info.dir.file, env = env, tree = Some(tree), store = store)
+            ML_Process(info.options, raw_ml_system = true, cwd = info.dir.file,
+              args = List("--use", "ROOT0.ML", "--use", "ROOT.ML", "--eval", eval),
+              env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
           }
           else {
-            val args_file = Isabelle_System.tmp_file("build")
-            File.write(args_file, YXML.string_of_body(
-                {
-                  val theories = info.theories.map(x => (x._2, x._3))
-                  import XML.Encode._
-                  pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(bool,
-                    pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
-                    pair(string, pair(string, pair(string,
-                    list(pair(Options.encode, list(Path.encode)))))))))))))(
-                  (Symbol.codes, (command_timings, (do_output, (verbose,
-                    (store.browser_info, (info.document_files, (File.standard_path(graph_file),
-                    (parent, (info.chapter, (name,
-                    theories)))))))))))
-                }))
-            val eval =
-              "Command_Line.tool0 (fn () => (" +
-              "Build.build " + ML_Syntax.print_string0(File.standard_path(args_file)) +
-              (if (do_output) "; ML_Heap.share_common_data (); " + output_save_state
-               else "") + "));"
             ML_Process(info.options, parent, List("--eval", eval), cwd = info.dir.file,
               env = env, tree = Some(tree), store = store, cleanup = () => args_file.delete)
           }
@@ -320,7 +317,7 @@ object Build
     {
       val result = future_result.join
 
-      if (result.ok && !Sessions.pure_name(name))
+      if (result.ok)
         Present.finish(progress, store.browser_info, graph_file, info, name)
 
       graph_file.delete
@@ -677,7 +674,7 @@ object Build
       val browser_chapters =
         (for {
           (name, result) <- results0.iterator
-          if result.ok && !Sessions.pure_name(name)
+          if result.ok
           info = full_tree(name)
           if info.options.bool("browser_info")
         } yield (info.chapter, (name, info.description))).toList.groupBy(_._1).

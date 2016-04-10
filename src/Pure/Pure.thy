@@ -1,7 +1,7 @@
 (*  Title:      Pure/Pure.thy
     Author:     Makarius
 
-Final stage of bootstrapping Pure, based on implicit background theory.
+The Pure theory, with definitions of Isar commands and some lemmas.
 *)
 
 theory Pure
@@ -1282,7 +1282,7 @@ val _ =
 in end\<close>
 
 
-section \<open>Further content for the Pure theory\<close>
+section \<open>Auxiliary lemmas\<close>
 
 subsection \<open>Meta-level connectives in assumptions\<close>
 

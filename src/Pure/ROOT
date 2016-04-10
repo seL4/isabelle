@@ -1,6 +1,9 @@
 chapter Pure
 
 session Pure =
+  description {*
+    The Pure logical framework
+  *}
   global_theories
     Pure
   theories
