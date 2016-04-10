@@ -19,7 +19,7 @@ what you are dreaming of. Or at least almost \dots  *}
 
 text {* Isabelle allows to add new top-level commands to the
 system. Building on the locale infrastructure, we provide a command
-\isacommand{statespace} like this:*}
+\<^theory_text>\<open>statespace\<close> like this:*}
 
 statespace vars =
   n::nat
@@ -29,7 +29,7 @@ print_locale vars_namespace
 print_locale vars_valuetypes
 print_locale vars
 
-text {* \noindent This resembles a \isacommand{record} definition, 
+text {* \noindent This resembles a \<^theory_text>\<open>record\<close> definition, 
 but introduces sophisticated locale
 infrastructure instead of HOL type schemes.  The resulting context
 postulates two distinct names @{term "n"} and @{term "b"} and

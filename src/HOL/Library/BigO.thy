@@ -29,7 +29,7 @@ Note also since the Big O library includes rules that demonstrate set
 inclusion, to use the automated reasoners effectively with the library
 one should redeclare the theorem \<open>subsetI\<close> as an intro rule,
 rather than as an \<open>intro!\<close> rule, for example, using
-\isa{\isakeyword{declare}}~\<open>subsetI [del, intro]\<close>.
+\<^theory_text>\<open>declare subsetI [del, intro]\<close>.
 \<close>
 
 subsection \<open>Definitions\<close>

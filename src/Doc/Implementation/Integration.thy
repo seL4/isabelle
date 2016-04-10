@@ -84,8 +84,8 @@ text \<open>
   The operational part is represented as the sequential union of a list of
   partial functions, which are tried in turn until the first one succeeds.
   This acts like an outer case-expression for various alternative state
-  transitions. For example, \isakeyword{qed} works differently for a local
-  proofs vs.\ the global ending of an outermost proof.
+  transitions. For example, \<^theory_text>\<open>qed\<close> works differently for a local proofs vs.\
+  the global ending of an outermost proof.
 
   Transitions are composed via transition transformers. Internally, Isar
   commands are put together from an empty transition extended by name and
