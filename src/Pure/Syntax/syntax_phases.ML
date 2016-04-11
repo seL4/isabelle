@@ -970,18 +970,7 @@ val uncheck_terms = apply_term_uncheck;
 end;
 
 
-(* standard phases *)
-
-val _ = Context.>>
- (typ_check 0 "standard" Proof_Context.standard_typ_check #>
-  term_check 0 "standard"
-    (fn ctxt => Type_Infer_Context.infer_types ctxt #> map (Proof_Context.expand_abbrevs ctxt)) #>
-  term_check 100 "standard_finish" Proof_Context.standard_term_check_finish #>
-  term_uncheck 0 "standard" Proof_Context.standard_term_uncheck);
-
-
-
-(** install operations **)
+(* install operations *)
 
 val _ =
   Theory.setup
@@ -1000,3 +989,13 @@ val _ =
       uncheck_terms = uncheck_terms});
 
 end;
+
+
+(* standard phases *)
+
+val _ = Context.>>
+ (Syntax_Phases.typ_check 0 "standard" Proof_Context.standard_typ_check #>
+  Syntax_Phases.term_check 0 "standard"
+    (fn ctxt => Type_Infer_Context.infer_types ctxt #> map (Proof_Context.expand_abbrevs ctxt)) #>
+  Syntax_Phases.term_check 100 "standard_finish" Proof_Context.standard_term_check_finish #>
+  Syntax_Phases.term_uncheck 0 "standard" Proof_Context.standard_term_uncheck);
