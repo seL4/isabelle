@@ -145,7 +145,7 @@ fun gen_quotient_def prep_var parse_term (raw_var, (attr, (raw_lhs, raw_rhs))) l
     val lhs = prep_term lhs_constraint raw_lhs
     val rhs = prep_term dummyT raw_rhs
 
-    val (lhs_str, lhs_ty) = dest_Free lhs handle TERM _ => error "Constant already defined."
+    val (lhs_str, lhs_ty) = dest_Free lhs handle TERM _ => error "Constant already defined"
     val _ = if null (strip_abs_vars rhs) then () else error "The definiens cannot be an abstraction"
     val _ = if is_Const rhs then () else warning "The definiens is not a constant"
 
