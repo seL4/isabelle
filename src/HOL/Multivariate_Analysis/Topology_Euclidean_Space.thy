@@ -629,6 +629,31 @@ lemma subtopology_topspace[simp]: "subtopology U (topspace U) = U"
 lemma subtopology_UNIV[simp]: "subtopology U UNIV = U"
   by (simp add: subtopology_superset)
 
+lemma openin_subtopology_empty:
+   "openin (subtopology U {}) s \<longleftrightarrow> s = {}"
+by (metis Int_empty_right openin_empty openin_subtopology)
+
+lemma closedin_subtopology_empty:
+   "closedin (subtopology U {}) s \<longleftrightarrow> s = {}"
+by (metis Int_empty_right closedin_empty closedin_subtopology)
+
+lemma closedin_subtopology_refl:
+   "closedin (subtopology U u) u \<longleftrightarrow> u \<subseteq> topspace U"
+by (metis closedin_def closedin_topspace inf.absorb_iff2 le_inf_iff topspace_subtopology)
+
+lemma openin_imp_subset:
+   "openin (subtopology U s) t \<Longrightarrow> t \<subseteq> s"
+by (metis Int_iff openin_subtopology subsetI)
+
+lemma closedin_imp_subset:
+   "closedin (subtopology U s) t \<Longrightarrow> t \<subseteq> s"
+by (simp add: closedin_def topspace_subtopology)
+
+lemma openin_subtopology_Un:
+    "openin (subtopology U t) s \<and> openin (subtopology U u) s
+     \<Longrightarrow> openin (subtopology U (t \<union> u)) s"
+by (simp add: openin_subtopology) blast
+
 
 subsubsection \<open>The standard Euclidean topology\<close>
 
@@ -656,6 +681,9 @@ lemma closed_closedin: "closed S \<longleftrightarrow> closedin euclidean S"
 
 lemma open_subopen: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S)"
   by (simp add: open_openin openin_subopen[symmetric])
+
+lemma openin_subtopology_self [simp]: "openin (subtopology euclidean S) S"
+  by (metis openin_topspace topspace_euclidean_subtopology)
 
 text \<open>Basic "localization" results are handy for connectedness.\<close>
 
@@ -3483,11 +3511,15 @@ proof -
     by (auto intro!: exI[of _ "b + norm a"])
 qed
 
+lemma bounded_translation_minus:
+  fixes S :: "'a::real_normed_vector set"
+  shows "bounded S \<Longrightarrow> bounded ((\<lambda>x. x - a) ` S)"
+using bounded_translation [of S "-a"] by simp
+
 lemma bounded_uminus [simp]:
   fixes X :: "'a::real_normed_vector set"
   shows "bounded (uminus ` X) \<longleftrightarrow> bounded X"
 by (auto simp: bounded_def dist_norm; rule_tac x="-x" in exI; force simp add: add.commute norm_minus_commute)
-
 
 text\<open>Some theorems on sups and infs using the notion "bounded".\<close>
 
@@ -3907,6 +3939,12 @@ lemma open_delete:
   fixes s :: "'a::t1_space set"
   shows "open s \<Longrightarrow> open (s - {x})"
   by (simp add: open_Diff)
+
+lemma openin_delete:
+  fixes a :: "'a :: t1_space"
+  shows "openin (subtopology euclidean u) s
+         \<Longrightarrow> openin (subtopology euclidean u) (s - {a})"
+by (metis Int_Diff open_delete openin_open)
 
 text\<open>Compactness expressed with filters\<close>
 
@@ -6043,6 +6081,118 @@ proof (intro allI impI)
   qed
 qed
 
+subsection\<open>Quotient maps\<close>
+
+lemma quotient_map_imp_continuous_open:
+  assumes t: "f ` s \<subseteq> t"
+      and ope: "\<And>u. u \<subseteq> t
+              \<Longrightarrow> (openin (subtopology euclidean s) {x. x \<in> s \<and> f x \<in> u} \<longleftrightarrow>
+                   openin (subtopology euclidean t) u)"
+    shows "continuous_on s f"
+proof -
+  have [simp]: "{x \<in> s. f x \<in> f ` s} = s" by auto
+  show ?thesis
+    using ope [OF t]
+    apply (simp add: continuous_on_open)
+    by (metis (no_types, lifting) "ope"  openin_imp_subset openin_trans)
+qed
+
+lemma quotient_map_imp_continuous_closed:
+  assumes t: "f ` s \<subseteq> t"
+      and ope: "\<And>u. u \<subseteq> t
+                  \<Longrightarrow> (closedin (subtopology euclidean s) {x. x \<in> s \<and> f x \<in> u} \<longleftrightarrow>
+                       closedin (subtopology euclidean t) u)"
+    shows "continuous_on s f"
+proof -
+  have [simp]: "{x \<in> s. f x \<in> f ` s} = s" by auto
+  show ?thesis
+    using ope [OF t]
+    apply (simp add: continuous_on_closed)
+    by (metis (no_types, lifting) "ope" closedin_imp_subset closedin_subtopology_refl closedin_trans openin_subtopology_refl openin_subtopology_self)
+qed
+
+lemma open_map_imp_quotient_map:
+  assumes contf: "continuous_on s f"
+      and t: "t \<subseteq> f ` s"
+      and ope: "\<And>t. openin (subtopology euclidean s) t
+                   \<Longrightarrow> openin (subtopology euclidean (f ` s)) (f ` t)"
+    shows "openin (subtopology euclidean s) {x \<in> s. f x \<in> t} =
+           openin (subtopology euclidean (f ` s)) t"
+proof -
+  have "t = image f {x. x \<in> s \<and> f x \<in> t}"
+    using t by blast
+  then show ?thesis
+    using "ope" contf continuous_on_open by fastforce
+qed
+
+lemma closed_map_imp_quotient_map:
+  assumes contf: "continuous_on s f"
+      and t: "t \<subseteq> f ` s"
+      and ope: "\<And>t. closedin (subtopology euclidean s) t
+              \<Longrightarrow> closedin (subtopology euclidean (f ` s)) (f ` t)"
+    shows "openin (subtopology euclidean s) {x \<in> s. f x \<in> t} \<longleftrightarrow>
+           openin (subtopology euclidean (f ` s)) t"
+          (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then have *: "closedin (subtopology euclidean s) (s - {x \<in> s. f x \<in> t})"
+    using closedin_diff by fastforce
+  have [simp]: "(f ` s - f ` (s - {x \<in> s. f x \<in> t})) = t"
+    using t by blast
+  show ?rhs
+    using ope [OF *, unfolded closedin_def] by auto
+next
+  assume ?rhs
+  with contf show ?lhs
+    by (auto simp: continuous_on_open)
+qed
+
+lemma continuous_right_inverse_imp_quotient_map:
+  assumes contf: "continuous_on s f" and imf: "f ` s \<subseteq> t"
+      and contg: "continuous_on t g" and img: "g ` t \<subseteq> s"
+      and fg [simp]: "\<And>y. y \<in> t \<Longrightarrow> f(g y) = y"
+      and u: "u \<subseteq> t"
+    shows "openin (subtopology euclidean s) {x. x \<in> s \<and> f x \<in> u} \<longleftrightarrow>
+           openin (subtopology euclidean t) u"
+          (is "?lhs = ?rhs")
+proof -
+  have f: "\<And>z. openin (subtopology euclidean (f ` s)) z \<Longrightarrow>
+                openin (subtopology euclidean s) {x \<in> s. f x \<in> z}"
+  and  g: "\<And>z. openin (subtopology euclidean (g ` t)) z \<Longrightarrow>
+                openin (subtopology euclidean t) {x \<in> t. g x \<in> z}"
+    using contf contg by (auto simp: continuous_on_open)
+  show ?thesis
+  proof
+    have "{x \<in> t. g x \<in> g ` t \<and> g x \<in> s \<and> f (g x) \<in> u} = {x \<in> t. f (g x) \<in> u}"
+      using imf img by blast
+    also have "... = u"
+      using u by auto
+    finally have [simp]: "{x \<in> t. g x \<in> g ` t \<and> g x \<in> s \<and> f (g x) \<in> u} = u" .
+    assume ?lhs
+    then have *: "openin (subtopology euclidean (g ` t)) (g ` t \<inter> {x \<in> s. f x \<in> u})"
+      by (meson img openin_Int openin_subtopology_Int_subset openin_subtopology_self)
+    show ?rhs
+      using g [OF *] by simp
+  next
+    assume rhs: ?rhs
+    show ?lhs
+      apply (rule f)
+      by (metis fg image_eqI image_subset_iff imf img openin_subopen openin_subtopology_self openin_trans rhs)
+  qed
+qed
+
+lemma continuous_left_inverse_imp_quotient_map:
+  assumes "continuous_on s f"
+      and "continuous_on (f ` s) g"
+      and  "\<And>x. x \<in> s \<Longrightarrow> g(f x) = x"
+      and "u \<subseteq> f ` s"
+    shows "openin (subtopology euclidean s) {x. x \<in> s \<and> f x \<in> u} \<longleftrightarrow>
+           openin (subtopology euclidean (f ` s)) u"
+apply (rule continuous_right_inverse_imp_quotient_map)
+using assms
+apply force+
+done
+
 subsection \<open>A function constant on a set\<close>
 
 definition constant_on  (infixl "(constant'_on)" 50)
@@ -7803,13 +7953,23 @@ definition "homeomorphism s t f g \<longleftrightarrow>
   (\<forall>x\<in>s. (g(f x) = x)) \<and> (f ` s = t) \<and> continuous_on s f \<and>
   (\<forall>y\<in>t. (f(g y) = y)) \<and> (g ` t = s) \<and> continuous_on t g"
 
+lemma homeomorphism_translation:
+  fixes a :: "'a :: real_normed_vector"
+  shows "homeomorphism (op + a ` S) S (op + (- a)) (op + a)"
+unfolding homeomorphism_def by (auto simp: algebra_simps continuous_intros)
+
+lemma homeomorphism_symD: "homeomorphism S t f g \<Longrightarrow> homeomorphism t S g f"
+  by (simp add: homeomorphism_def)
+
+lemma homeomorphism_sym: "homeomorphism S t f g = homeomorphism t S g f"
+  by (force simp: homeomorphism_def)
+
 definition homeomorphic :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
     (infixr "homeomorphic" 60)
   where "s homeomorphic t \<equiv> (\<exists>f g. homeomorphism s t f g)"
 
 lemma homeomorphic_refl: "s homeomorphic s"
-  unfolding homeomorphic_def
-  unfolding homeomorphism_def
+  unfolding homeomorphic_def homeomorphism_def
   using continuous_on_id
   apply (rule_tac x = "(\<lambda>x. x)" in exI)
   apply (rule_tac x = "(\<lambda>x. x)" in exI)
@@ -7817,8 +7977,7 @@ lemma homeomorphic_refl: "s homeomorphic s"
   done
 
 lemma homeomorphic_sym: "s homeomorphic t \<longleftrightarrow> t homeomorphic s"
-  unfolding homeomorphic_def
-  unfolding homeomorphism_def
+  unfolding homeomorphic_def homeomorphism_def
   by blast
 
 lemma homeomorphic_trans [trans]:

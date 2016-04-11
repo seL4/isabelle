@@ -784,7 +784,7 @@ lemma span_empty[simp]: "span {} = {0}"
   apply (auto simp add: subspace_def)
   done
 
-lemma (in real_vector) independent_empty[intro]: "independent {}"
+lemma (in real_vector) independent_empty [iff]: "independent {}"
   by (simp add: dependent_def)
 
 lemma dependent_single[simp]: "dependent {x} \<longleftrightarrow> x = 0"

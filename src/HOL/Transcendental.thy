@@ -3569,6 +3569,20 @@ lemma sin_le_zero: "pi \<le> x \<Longrightarrow> x < 2*pi \<Longrightarrow> sin 
   using sin_ge_zero [of "x-pi"]
   by (simp add: sin_diff)
 
+lemma sin_pi_divide_n_ge_0 [simp]:
+  assumes "n \<noteq> 0" shows "0 \<le> sin (pi / real n)"
+apply (rule sin_ge_zero)
+using assms
+apply (simp_all add: divide_simps)
+done
+
+lemma sin_pi_divide_n_gt_0:
+  assumes "2 \<le> n" shows "0 < sin (pi / real n)"
+apply (rule sin_gt_zero)
+using assms
+apply (simp_all add: divide_simps)
+done
+
 text \<open>FIXME: This proof is almost identical to lemma \<open>cos_is_zero\<close>.
   It should be possible to factor out some of the common parts.\<close>
 

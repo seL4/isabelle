@@ -1388,8 +1388,6 @@ lemma path_component_maximal:
      "\<lbrakk>x \<in> t; path_connected t; t \<subseteq> s\<rbrakk> \<Longrightarrow> t \<subseteq> (path_component_set s x)"
   by (metis path_component_mono path_connected_component_set)
 
-subsection \<open>More about path-connectedness\<close>
-
 lemma convex_imp_path_connected:
   fixes s :: "'a::real_normed_vector set"
   assumes "convex s"
@@ -1771,6 +1769,60 @@ lemma is_interval_path_connected_1:
   fixes s :: "real set"
   shows "is_interval s \<longleftrightarrow> path_connected s"
 using is_interval_connected_1 is_interval_path_connected path_connected_imp_connected by blast
+
+
+lemma Union_path_component [simp]:
+   "Union {path_component_set S x |x. x \<in> S} = S"
+apply (rule subset_antisym)
+using path_component_subset apply force
+using path_component_refl by auto
+
+lemma path_component_disjoint:
+   "disjnt (path_component_set S a) (path_component_set S b) \<longleftrightarrow>
+    (a \<notin> path_component_set S b)"
+apply (auto simp: disjnt_def)
+using path_component_eq apply fastforce
+using path_component_sym path_component_trans by blast
+
+lemma path_component_eq_eq:
+   "path_component S x = path_component S y \<longleftrightarrow>
+        (x \<notin> S) \<and> (y \<notin> S) \<or> x \<in> S \<and> y \<in> S \<and> path_component S x y"
+apply (rule iffI, metis (no_types) path_component_mem(1) path_component_refl)
+apply (erule disjE, metis Collect_empty_eq_bot path_component_eq_empty)
+apply (rule ext)
+apply (metis path_component_trans path_component_sym)
+done
+
+lemma path_component_unique:
+  assumes "x \<in> c" "c \<subseteq> S" "path_connected c"
+          "\<And>c'. \<lbrakk>x \<in> c'; c' \<subseteq> S; path_connected c'\<rbrakk> \<Longrightarrow> c' \<subseteq> c"
+   shows "path_component_set S x = c"
+apply (rule subset_antisym)
+using assms
+apply (metis mem_Collect_eq subsetCE path_component_eq_eq path_component_subset path_connected_path_component)
+by (simp add: assms path_component_maximal)
+
+lemma path_component_intermediate_subset:
+   "path_component_set u a \<subseteq> t \<and> t \<subseteq> u
+        \<Longrightarrow> path_component_set t a = path_component_set u a"
+by (metis (no_types) path_component_mono path_component_path_component subset_antisym)
+
+lemma complement_path_component_Union:
+  fixes x :: "'a :: topological_space"
+  shows "S - path_component_set S x =
+         \<Union>({path_component_set S y| y. y \<in> S} - {path_component_set S x})"
+proof -
+  have *: "(\<And>x. x \<in> S - {a} \<Longrightarrow> disjnt a x) \<Longrightarrow> \<Union>S - a = \<Union>(S - {a})"
+    for a::"'a set" and S
+    by (auto simp: disjnt_def)
+  have "\<And>y. y \<in> {path_component_set S x |x. x \<in> S} - {path_component_set S x}
+            \<Longrightarrow> disjnt (path_component_set S x) y"
+    using path_component_disjoint path_component_eq by fastforce
+  then have "\<Union>{path_component_set S x |x. x \<in> S} - path_component_set S x =
+             \<Union>({path_component_set S y |y. y \<in> S} - {path_component_set S x})"
+    by (meson *)
+  then show ?thesis by simp
+qed
 
 
 subsection \<open>Sphere is path-connected\<close>
@@ -3697,11 +3749,10 @@ lemma homotopic_paths_linear:
     shows "homotopic_paths s g h"
   using assms
   unfolding path_def
-  apply (simp add: pathstart_def pathfinish_def homotopic_paths_def homotopic_with_def)
+  apply (simp add: closed_segment_def pathstart_def pathfinish_def homotopic_paths_def homotopic_with_def)
   apply (rule_tac x="\<lambda>y. ((1 - (fst y)) *\<^sub>R g(snd y) + (fst y) *\<^sub>R h(snd y))" in exI)
-  apply (auto intro!: continuous_intros intro: continuous_on_compose2 [where g=g] continuous_on_compose2 [where g=h] )
-  apply (force simp: closed_segment_def)
-  apply (simp_all add: algebra_simps)
+  apply (intro conjI subsetI continuous_intros)
+  apply (fastforce intro: continuous_intros continuous_on_compose2 [where g=g] continuous_on_compose2 [where g=h])+
   done
 
 lemma homotopic_loops_linear:
@@ -4321,5 +4372,853 @@ proof -
     using homg apply (simp add: o_def)
     done
 qed
+
+subsection\<open>Local versions of topological properties in general\<close>
+
+definition locally :: "('a::topological_space set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
+where
+ "locally P S \<equiv>
+        \<forall>w x. openin (subtopology euclidean S) w \<and> x \<in> w
+              \<longrightarrow> (\<exists>u v. openin (subtopology euclidean S) u \<and> P v \<and>
+                        x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w)"
+
+lemma locallyI:
+  assumes "\<And>w x. \<lbrakk>openin (subtopology euclidean S) w; x \<in> w\<rbrakk>
+                  \<Longrightarrow> \<exists>u v. openin (subtopology euclidean S) u \<and> P v \<and>
+                        x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w"
+    shows "locally P S"
+using assms by (force simp: locally_def)
+
+lemma locallyE:
+  assumes "locally P S" "openin (subtopology euclidean S) w" "x \<in> w"
+  obtains u v where "openin (subtopology euclidean S) u"
+                    "P v" "x \<in> u" "u \<subseteq> v" "v \<subseteq> w"
+using assms by (force simp: locally_def)
+
+lemma locally_mono:
+  assumes "locally P S" "\<And>t. P t \<Longrightarrow> Q t"
+    shows "locally Q S"
+by (metis assms locally_def)
+
+lemma locally_open_subset:
+  assumes "locally P S" "openin (subtopology euclidean S) t"
+    shows "locally P t"
+using assms
+apply (simp add: locally_def)
+apply (erule all_forward)+
+apply (rule impI)
+apply (erule impCE)
+ using openin_trans apply blast
+apply (erule ex_forward)
+by (metis (no_types, hide_lams) Int_absorb1 Int_lower1 Int_subset_iff openin_open openin_subtopology_Int_subset)
+
+lemma locally_diff_closed:
+    "\<lbrakk>locally P S; closedin (subtopology euclidean S) t\<rbrakk> \<Longrightarrow> locally P (S - t)"
+  using locally_open_subset closedin_def by fastforce
+
+lemma locally_empty [iff]: "locally P {}"
+  by (simp add: locally_def openin_subtopology)
+
+lemma locally_singleton [iff]:
+  fixes a :: "'a::metric_space"
+  shows "locally P {a} \<longleftrightarrow> P {a}"
+apply (simp add: locally_def openin_euclidean_subtopology_iff subset_singleton_iff conj_disj_distribR cong: conj_cong)
+using zero_less_one by blast
+
+lemma locally_iff:
+    "locally P S \<longleftrightarrow>
+     (\<forall>T x. open T \<and> x \<in> S \<inter> T \<longrightarrow> (\<exists>U. open U \<and> (\<exists>v. P v \<and> x \<in> S \<inter> U \<and> S \<inter> U \<subseteq> v \<and> v \<subseteq> S \<inter> T)))"
+apply (simp add: le_inf_iff locally_def openin_open, safe)
+apply (metis IntE IntI le_inf_iff)
+apply (metis IntI Int_subset_iff)
+done
+
+lemma locally_Int:
+  assumes S: "locally P S" and t: "locally P t"
+      and P: "\<And>S t. P S \<and> P t \<Longrightarrow> P(S \<inter> t)"
+    shows "locally P (S \<inter> t)"
+using S t unfolding locally_iff
+apply clarify
+apply (drule_tac x=T in spec)+
+apply (drule_tac x=x in spec)+
+apply clarsimp
+apply (rename_tac U1 U2 V1 V2)
+apply (rule_tac x="U1 \<inter> U2" in exI)
+apply (simp add: open_Int)
+apply (rule_tac x="V1 \<inter> V2" in exI)
+apply (auto intro: P)
+done
+
+
+proposition homeomorphism_locally_imp:
+  fixes S :: "'a::metric_space set" and t :: "'b::t2_space set"
+  assumes S: "locally P S" and hom: "homeomorphism S t f g"
+      and Q: "\<And>S t. \<lbrakk>P S; homeomorphism S t f g\<rbrakk> \<Longrightarrow> Q t"
+    shows "locally Q t"
+proof (clarsimp simp: locally_def)
+  fix w y
+  assume "y \<in> w" and "openin (subtopology euclidean t) w"
+  then obtain T where T: "open T" "w = t \<inter> T"
+    by (force simp: openin_open)
+  then have "w \<subseteq> t" by auto
+  have f: "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x" "f ` S = t" "continuous_on S f"
+   and g: "\<And>y. y \<in> t \<Longrightarrow> f(g y) = y" "g ` t = S" "continuous_on t g"
+    using hom by (auto simp: homeomorphism_def)
+  have gw: "g ` w = S \<inter> {x. f x \<in> w}"
+    using \<open>w \<subseteq> t\<close>
+    apply auto
+    using \<open>g ` t = S\<close> \<open>w \<subseteq> t\<close> apply blast
+    using g \<open>w \<subseteq> t\<close> apply auto[1]
+    by (simp add: f rev_image_eqI)
+  have o: "openin (subtopology euclidean S) (g ` w)"
+  proof -
+    have "continuous_on S f"
+      using f(3) by blast
+    then show "openin (subtopology euclidean S) (g ` w)"
+      by (simp add: gw Collect_conj_eq \<open>openin (subtopology euclidean t) w\<close> continuous_on_open f(2))
+  qed
+  then obtain u v
+    where osu: "openin (subtopology euclidean S) u" and uv: "P v" "g y \<in> u" "u \<subseteq> v" "v \<subseteq> g ` w"
+    using S [unfolded locally_def, rule_format, of "g ` w" "g y"] \<open>y \<in> w\<close> by force
+  have "v \<subseteq> S" using uv by (simp add: gw)
+  have fv: "f ` v = t \<inter> {x. g x \<in> v}"
+    using \<open>f ` S = t\<close> f \<open>v \<subseteq> S\<close> by auto
+  have "f ` v \<subseteq> w"
+    using uv using Int_lower2 gw image_subsetI mem_Collect_eq subset_iff by auto
+  have contvf: "continuous_on v f"
+    using \<open>v \<subseteq> S\<close> continuous_on_subset f(3) by blast
+  have contvg: "continuous_on (f ` v) g"
+    using \<open>f ` v \<subseteq> w\<close> \<open>w \<subseteq> t\<close> continuous_on_subset g(3) by blast
+  have homv: "homeomorphism v (f ` v) f g"
+    using \<open>v \<subseteq> S\<close> \<open>w \<subseteq> t\<close> f
+    apply (simp add: homeomorphism_def contvf contvg, auto)
+    by (metis f(1) rev_image_eqI rev_subsetD)
+  have 1: "openin (subtopology euclidean t) {x \<in> t. g x \<in> u}"
+    apply (rule continuous_on_open [THEN iffD1, rule_format])
+    apply (rule \<open>continuous_on t g\<close>)
+    using \<open>g ` t = S\<close> apply (simp add: osu)
+    done
+  have 2: "\<exists>v. Q v \<and> y \<in> {x \<in> t. g x \<in> u} \<and> {x \<in> t. g x \<in> u} \<subseteq> v \<and> v \<subseteq> w"
+    apply (rule_tac x="f ` v" in exI)
+    apply (intro conjI Q [OF \<open>P v\<close> homv])
+    using \<open>w \<subseteq> t\<close> \<open>y \<in> w\<close>  \<open>f ` v \<subseteq> w\<close>  uv  apply (auto simp: fv)
+    done
+  show "\<exists>u. openin (subtopology euclidean t) u \<and>
+            (\<exists>v. Q v \<and> y \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w)"
+    by (meson 1 2)
+qed
+
+lemma homeomorphism_locally:
+  fixes f:: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  assumes hom: "homeomorphism S t f g"
+      and eq: "\<And>S t. homeomorphism S t f g \<Longrightarrow> (P S \<longleftrightarrow> Q t)"
+    shows "locally P S \<longleftrightarrow> locally Q t"
+apply (rule iffI)
+apply (erule homeomorphism_locally_imp [OF _ hom])
+apply (simp add: eq)
+apply (erule homeomorphism_locally_imp)
+using eq homeomorphism_sym homeomorphism_symD [OF hom] apply blast+
+done
+
+lemma locally_translation:
+  fixes P :: "'a :: real_normed_vector set \<Rightarrow> bool"
+  shows
+   "(\<And>S. P (image (\<lambda>x. a + x) S) \<longleftrightarrow> P S)
+        \<Longrightarrow> locally P (image (\<lambda>x. a + x) S) \<longleftrightarrow> locally P S"
+apply (rule homeomorphism_locally [OF homeomorphism_translation])
+apply (simp add: homeomorphism_def)
+by metis
+
+lemma locally_injective_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes f: "linear f" "inj f" and iff: "\<And>S. P (f ` S) \<longleftrightarrow> Q S"
+    shows "locally P (f ` S) \<longleftrightarrow> locally Q S"
+apply (rule linear_homeomorphism_image [OF f])
+apply (rule_tac f=g and g = f in homeomorphism_locally, assumption)
+by (metis iff homeomorphism_def)
+
+lemma locally_open_map_image:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes P: "locally P S"
+      and f: "continuous_on S f"
+      and oo: "\<And>t. openin (subtopology euclidean S) t
+                   \<Longrightarrow> openin (subtopology euclidean (f ` S)) (f ` t)"
+      and Q: "\<And>t. \<lbrakk>t \<subseteq> S; P t\<rbrakk> \<Longrightarrow> Q(f ` t)"
+    shows "locally Q (f ` S)"
+proof (clarsimp simp add: locally_def)
+  fix w y
+  assume oiw: "openin (subtopology euclidean (f ` S)) w" and "y \<in> w"
+  then have "w \<subseteq> f ` S" by (simp add: openin_euclidean_subtopology_iff)
+  have oivf: "openin (subtopology euclidean S) {x \<in> S. f x \<in> w}"
+    by (rule continuous_on_open [THEN iffD1, rule_format, OF f oiw])
+  then obtain x where "x \<in> S" "f x = y"
+    using \<open>w \<subseteq> f ` S\<close> \<open>y \<in> w\<close> by blast
+  then obtain u v
+    where "openin (subtopology euclidean S) u" "P v" "x \<in> u" "u \<subseteq> v" "v \<subseteq> {x \<in> S. f x \<in> w}"
+    using P [unfolded locally_def, rule_format, of "{x. x \<in> S \<and> f x \<in> w}" x] oivf \<open>y \<in> w\<close>
+    by auto
+  then show "\<exists>u. openin (subtopology euclidean (f ` S)) u \<and>
+            (\<exists>v. Q v \<and> y \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w)"
+    apply (rule_tac x="f ` u" in exI)
+    apply (rule conjI, blast intro!: oo)
+    apply (rule_tac x="f ` v" in exI)
+    apply (force simp: \<open>f x = y\<close> rev_image_eqI intro: Q)
+    done
+qed
+
+subsection\<open>Basic properties of local compactness\<close>
+
+lemma locally_compact:
+  fixes s :: "'a :: metric_space set"
+  shows
+    "locally compact s \<longleftrightarrow>
+     (\<forall>x \<in> s. \<exists>u v. x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and>
+                    openin (subtopology euclidean s) u \<and> compact v)"
+     (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply clarify
+    apply (erule_tac w = "s \<inter> ball x 1" in locallyE)
+    by auto
+next
+  assume r [rule_format]: ?rhs
+  have *: "\<exists>u v.
+              openin (subtopology euclidean s) u \<and>
+              compact v \<and> x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<inter> T"
+          if "open T" "x \<in> s" "x \<in> T" for x T
+  proof -
+    obtain u v where uv: "x \<in> u" "u \<subseteq> v" "v \<subseteq> s" "compact v" "openin (subtopology euclidean s) u"
+      using r [OF \<open>x \<in> s\<close>] by auto
+    obtain e where "e>0" and e: "cball x e \<subseteq> T"
+      using open_contains_cball \<open>open T\<close> \<open>x \<in> T\<close> by blast
+    show ?thesis
+      apply (rule_tac x="(s \<inter> ball x e) \<inter> u" in exI)
+      apply (rule_tac x="cball x e \<inter> v" in exI)
+      using that \<open>e > 0\<close> e uv
+      apply auto
+      done
+  qed
+  show ?lhs
+    apply (rule locallyI)
+    apply (subst (asm) openin_open)
+    apply (blast intro: *)
+    done
+qed
+
+lemma locally_compactE:
+  fixes s :: "'a :: metric_space set"
+  assumes "locally compact s"
+  obtains u v where "\<And>x. x \<in> s \<Longrightarrow> x \<in> u x \<and> u x \<subseteq> v x \<and> v x \<subseteq> s \<and>
+                             openin (subtopology euclidean s) (u x) \<and> compact (v x)"
+using assms
+unfolding locally_compact by metis
+
+lemma locally_compact_alt:
+  fixes s :: "'a :: heine_borel set"
+  shows "locally compact s \<longleftrightarrow>
+         (\<forall>x \<in> s. \<exists>u. x \<in> u \<and>
+                    openin (subtopology euclidean s) u \<and> compact(closure u) \<and> closure u \<subseteq> s)"
+apply (simp add: locally_compact)
+apply (intro ball_cong ex_cong refl iffI)
+apply (metis bounded_subset closure_eq closure_mono compact_eq_bounded_closed dual_order.trans)
+by (meson closure_subset compact_closure)
+
+lemma locally_compact_Int_cball:
+  fixes s :: "'a :: heine_borel set"
+  shows "locally compact s \<longleftrightarrow> (\<forall>x \<in> s. \<exists>e. 0 < e \<and> closed(cball x e \<inter> s))"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply (simp add: locally_compact openin_contains_cball)
+    apply (clarify | assumption | drule bspec)+
+    by (metis (no_types, lifting)  compact_cball compact_imp_closed compact_Int inf.absorb_iff2 inf.orderE inf_sup_aci(2))
+next
+  assume ?rhs
+  then show ?lhs
+    apply (simp add: locally_compact openin_contains_cball)
+    apply (clarify | assumption | drule bspec)+
+    apply (rule_tac x="ball x e \<inter> s" in exI, simp)
+    apply (rule_tac x="cball x e \<inter> s" in exI)
+    using compact_eq_bounded_closed
+    apply auto
+    apply (metis open_ball le_infI1 mem_ball open_contains_cball_eq)
+    done
+qed
+
+lemma locally_compact_compact:
+  fixes s :: "'a :: heine_borel set"
+  shows "locally compact s \<longleftrightarrow>
+         (\<forall>k. k \<subseteq> s \<and> compact k
+              \<longrightarrow> (\<exists>u v. k \<subseteq> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and>
+                         openin (subtopology euclidean s) u \<and> compact v))"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then obtain u v where
+    uv: "\<And>x. x \<in> s \<Longrightarrow> x \<in> u x \<and> u x \<subseteq> v x \<and> v x \<subseteq> s \<and>
+                             openin (subtopology euclidean s) (u x) \<and> compact (v x)"
+    by (metis locally_compactE)
+  have *: "\<exists>u v. k \<subseteq> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and> openin (subtopology euclidean s) u \<and> compact v"
+          if "k \<subseteq> s" "compact k" for k
+  proof -
+    have "\<And>C. (\<forall>c\<in>C. openin (subtopology euclidean k) c) \<and> k \<subseteq> \<Union>C \<Longrightarrow>
+                    \<exists>D\<subseteq>C. finite D \<and> k \<subseteq> \<Union>D"
+      using that by (simp add: compact_eq_openin_cover)
+    moreover have "\<forall>c \<in> (\<lambda>x. k \<inter> u x) ` k. openin (subtopology euclidean k) c"
+      using that by clarify (metis subsetD inf.absorb_iff2 openin_subset openin_subtopology_Int_subset topspace_euclidean_subtopology uv)
+    moreover have "k \<subseteq> \<Union>((\<lambda>x. k \<inter> u x) ` k)"
+      using that by clarsimp (meson subsetCE uv)
+    ultimately obtain D where "D \<subseteq> (\<lambda>x. k \<inter> u x) ` k" "finite D" "k \<subseteq> \<Union>D"
+      by metis
+    then obtain T where T: "T \<subseteq> k" "finite T" "k \<subseteq> \<Union>((\<lambda>x. k \<inter> u x) ` T)"
+      by (metis finite_subset_image)
+    have Tuv: "UNION T u \<subseteq> UNION T v"
+      using T that by (force simp: dest!: uv)
+    show ?thesis
+      apply (rule_tac x="\<Union>(u ` T)" in exI)
+      apply (rule_tac x="\<Union>(v ` T)" in exI)
+      apply (simp add: Tuv)
+      using T that
+      apply (auto simp: dest!: uv)
+      done
+  qed
+  show ?rhs
+    by (blast intro: *)
+next
+  assume ?rhs
+  then show ?lhs
+    apply (clarsimp simp add: locally_compact)
+    apply (drule_tac x="{x}" in spec, simp)
+    done
+qed
+
+lemma open_imp_locally_compact:
+  fixes s :: "'a :: heine_borel set"
+  assumes "open s"
+    shows "locally compact s"
+proof -
+  have *: "\<exists>u v. x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and> openin (subtopology euclidean s) u \<and> compact v"
+          if "x \<in> s" for x
+  proof -
+    obtain e where "e>0" and e: "cball x e \<subseteq> s"
+      using open_contains_cball assms \<open>x \<in> s\<close> by blast
+    have ope: "openin (subtopology euclidean s) (ball x e)"
+      by (meson e open_ball ball_subset_cball dual_order.trans open_subset)
+    show ?thesis
+      apply (rule_tac x="ball x e" in exI)
+      apply (rule_tac x="cball x e" in exI)
+      using \<open>e > 0\<close> e apply (auto simp: ope)
+      done
+  qed
+  show ?thesis
+    unfolding locally_compact
+    by (blast intro: *)
+qed
+
+lemma closed_imp_locally_compact:
+  fixes s :: "'a :: heine_borel set"
+  assumes "closed s"
+    shows "locally compact s"
+proof -
+  have *: "\<exists>u v. x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and>
+                 openin (subtopology euclidean s) u \<and> compact v"
+          if "x \<in> s" for x
+  proof -
+    show ?thesis
+      apply (rule_tac x = "s \<inter> ball x 1" in exI)
+      apply (rule_tac x = "s \<inter> cball x 1" in exI)
+      using \<open>x \<in> s\<close> assms apply auto
+      done
+  qed
+  show ?thesis
+    unfolding locally_compact
+    by (blast intro: *)
+qed
+
+lemma locally_compact_UNIV: "locally compact (UNIV :: 'a :: heine_borel set)"
+  by (simp add: closed_imp_locally_compact)
+
+lemma locally_compact_Int:
+  fixes s :: "'a :: t2_space set"
+  shows "\<lbrakk>locally compact s; locally compact t\<rbrakk> \<Longrightarrow> locally compact (s \<inter> t)"
+by (simp add: compact_Int locally_Int)
+
+lemma locally_compact_closedin:
+  fixes s :: "'a :: heine_borel set"
+  shows "\<lbrakk>closedin (subtopology euclidean s) t; locally compact s\<rbrakk>
+        \<Longrightarrow> locally compact t"
+unfolding closedin_closed
+using closed_imp_locally_compact locally_compact_Int by blast
+
+lemma locally_compact_delete:
+     fixes s :: "'a :: t1_space set"
+     shows "locally compact s \<Longrightarrow> locally compact (s - {a})"
+  by (auto simp: openin_delete locally_open_subset)
+
+lemma locally_closed:
+  fixes s :: "'a :: heine_borel set"
+  shows "locally closed s \<longleftrightarrow> locally compact s"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply (simp only: locally_def)
+    apply (erule all_forward imp_forward asm_rl exE)+
+    apply (rule_tac x = "u \<inter> ball x 1" in exI)
+    apply (rule_tac x = "v \<inter> cball x 1" in exI)
+    apply (force intro: openin_trans)
+    done
+next
+  assume ?rhs then show ?lhs
+    using compact_eq_bounded_closed locally_mono by blast
+qed
+
+subsection\<open>Important special cases of local connectedness and path connectedness\<close>
+
+lemma locally_connected_1:
+  assumes
+    "\<And>v x. \<lbrakk>openin (subtopology euclidean S) v; x \<in> v\<rbrakk>
+              \<Longrightarrow> \<exists>u. openin (subtopology euclidean S) u \<and>
+                      connected u \<and> x \<in> u \<and> u \<subseteq> v"
+   shows "locally connected S"
+apply (clarsimp simp add: locally_def)
+apply (drule assms; blast)
+done
+
+lemma locally_connected_2:
+  assumes "locally connected S"
+          "openin (subtopology euclidean S) t"
+          "x \<in> t"
+   shows "openin (subtopology euclidean S) (connected_component_set t x)"
+proof -
+  { fix y :: 'a
+    let ?SS = "subtopology euclidean S"
+    assume 1: "openin ?SS t"
+              "\<forall>w x. openin ?SS w \<and> x \<in> w \<longrightarrow> (\<exists>u. openin ?SS u \<and> (\<exists>v. connected v \<and> x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w))"
+    and "connected_component t x y"
+    then have "y \<in> t" and y: "y \<in> connected_component_set t x"
+      using connected_component_subset by blast+
+    obtain F where
+      "\<forall>x y. (\<exists>w. openin ?SS w \<and> (\<exists>u. connected u \<and> x \<in> w \<and> w \<subseteq> u \<and> u \<subseteq> y)) = (openin ?SS (F x y) \<and> (\<exists>u. connected u \<and> x \<in> F x y \<and> F x y \<subseteq> u \<and> u \<subseteq> y))"
+      by moura
+    then obtain G where
+       "\<forall>a A. (\<exists>U. openin ?SS U \<and> (\<exists>V. connected V \<and> a \<in> U \<and> U \<subseteq> V \<and> V \<subseteq> A)) = (openin ?SS (F a A) \<and> connected (G a A) \<and> a \<in> F a A \<and> F a A \<subseteq> G a A \<and> G a A \<subseteq> A)"
+      by moura
+    then have *: "openin ?SS (F y t) \<and> connected (G y t) \<and> y \<in> F y t \<and> F y t \<subseteq> G y t \<and> G y t \<subseteq> t"
+      using 1 \<open>y \<in> t\<close> by presburger
+    have "G y t \<subseteq> connected_component_set t y"
+      by (metis (no_types) * connected_component_eq_self connected_component_mono contra_subsetD)
+    then have "\<exists>A. openin ?SS A \<and> y \<in> A \<and> A \<subseteq> connected_component_set t x"
+      by (metis (no_types) * connected_component_eq dual_order.trans y)
+  }
+  then show ?thesis
+    using assms openin_subopen by (force simp: locally_def)
+qed
+
+lemma locally_connected_3:
+  assumes "\<And>t x. \<lbrakk>openin (subtopology euclidean S) t; x \<in> t\<rbrakk>
+              \<Longrightarrow> openin (subtopology euclidean S)
+                          (connected_component_set t x)"
+          "openin (subtopology euclidean S) v" "x \<in> v"
+   shows  "\<exists>u. openin (subtopology euclidean S) u \<and> connected u \<and> x \<in> u \<and> u \<subseteq> v"
+using assms connected_component_subset by fastforce
+
+lemma locally_connected:
+  "locally connected S \<longleftrightarrow>
+   (\<forall>v x. openin (subtopology euclidean S) v \<and> x \<in> v
+          \<longrightarrow> (\<exists>u. openin (subtopology euclidean S) u \<and> connected u \<and> x \<in> u \<and> u \<subseteq> v))"
+by (metis locally_connected_1 locally_connected_2 locally_connected_3)
+
+lemma locally_connected_open_connected_component:
+  "locally connected S \<longleftrightarrow>
+   (\<forall>t x. openin (subtopology euclidean S) t \<and> x \<in> t
+          \<longrightarrow> openin (subtopology euclidean S) (connected_component_set t x))"
+by (metis locally_connected_1 locally_connected_2 locally_connected_3)
+
+lemma locally_path_connected_1:
+  assumes
+    "\<And>v x. \<lbrakk>openin (subtopology euclidean S) v; x \<in> v\<rbrakk>
+              \<Longrightarrow> \<exists>u. openin (subtopology euclidean S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v"
+   shows "locally path_connected S"
+apply (clarsimp simp add: locally_def)
+apply (drule assms; blast)
+done
+
+lemma locally_path_connected_2:
+  assumes "locally path_connected S"
+          "openin (subtopology euclidean S) t"
+          "x \<in> t"
+   shows "openin (subtopology euclidean S) (path_component_set t x)"
+proof -
+  { fix y :: 'a
+    let ?SS = "subtopology euclidean S"
+    assume 1: "openin ?SS t"
+              "\<forall>w x. openin ?SS w \<and> x \<in> w \<longrightarrow> (\<exists>u. openin ?SS u \<and> (\<exists>v. path_connected v \<and> x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> w))"
+    and "path_component t x y"
+    then have "y \<in> t" and y: "y \<in> path_component_set t x"
+      using path_component_mem(2) by blast+
+    obtain F where
+      "\<forall>x y. (\<exists>w. openin ?SS w \<and> (\<exists>u. path_connected u \<and> x \<in> w \<and> w \<subseteq> u \<and> u \<subseteq> y)) = (openin ?SS (F x y) \<and> (\<exists>u. path_connected u \<and> x \<in> F x y \<and> F x y \<subseteq> u \<and> u \<subseteq> y))"
+      by moura
+    then obtain G where
+       "\<forall>a A. (\<exists>U. openin ?SS U \<and> (\<exists>V. path_connected V \<and> a \<in> U \<and> U \<subseteq> V \<and> V \<subseteq> A)) = (openin ?SS (F a A) \<and> path_connected (G a A) \<and> a \<in> F a A \<and> F a A \<subseteq> G a A \<and> G a A \<subseteq> A)"
+      by moura
+    then have *: "openin ?SS (F y t) \<and> path_connected (G y t) \<and> y \<in> F y t \<and> F y t \<subseteq> G y t \<and> G y t \<subseteq> t"
+      using 1 \<open>y \<in> t\<close> by presburger
+    have "G y t \<subseteq> path_component_set t y"
+      using * path_component_maximal set_rev_mp by blast
+    then have "\<exists>A. openin ?SS A \<and> y \<in> A \<and> A \<subseteq> path_component_set t x"
+      by (metis "*" \<open>G y t \<subseteq> path_component_set t y\<close> dual_order.trans path_component_eq y)
+  }
+  then show ?thesis
+    using assms openin_subopen by (force simp: locally_def)
+qed
+
+lemma locally_path_connected_3:
+  assumes "\<And>t x. \<lbrakk>openin (subtopology euclidean S) t; x \<in> t\<rbrakk>
+              \<Longrightarrow> openin (subtopology euclidean S) (path_component_set t x)"
+          "openin (subtopology euclidean S) v" "x \<in> v"
+   shows  "\<exists>u. openin (subtopology euclidean S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v"
+proof -
+  have "path_component v x x"
+    by (meson assms(3) path_component_refl)
+  then show ?thesis
+    by (metis assms(1) assms(2) assms(3) mem_Collect_eq path_component_subset path_connected_path_component)
+qed
+
+proposition locally_path_connected:
+  "locally path_connected S \<longleftrightarrow>
+   (\<forall>v x. openin (subtopology euclidean S) v \<and> x \<in> v
+          \<longrightarrow> (\<exists>u. openin (subtopology euclidean S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v))"
+by (metis locally_path_connected_1 locally_path_connected_2 locally_path_connected_3)
+
+proposition locally_path_connected_open_path_connected_component:
+  "locally path_connected S \<longleftrightarrow>
+   (\<forall>t x. openin (subtopology euclidean S) t \<and> x \<in> t
+          \<longrightarrow> openin (subtopology euclidean S) (path_component_set t x))"
+by (metis locally_path_connected_1 locally_path_connected_2 locally_path_connected_3)
+
+lemma locally_connected_open_component:
+  "locally connected S \<longleftrightarrow>
+   (\<forall>t c. openin (subtopology euclidean S) t \<and> c \<in> components t
+          \<longrightarrow> openin (subtopology euclidean S) c)"
+by (metis components_iff locally_connected_open_connected_component)
+
+proposition locally_connected_im_kleinen:
+  "locally connected S \<longleftrightarrow>
+   (\<forall>v x. openin (subtopology euclidean S) v \<and> x \<in> v
+       \<longrightarrow> (\<exists>u. openin (subtopology euclidean S) u \<and>
+                x \<in> u \<and> u \<subseteq> v \<and>
+                (\<forall>y. y \<in> u \<longrightarrow> (\<exists>c. connected c \<and> c \<subseteq> v \<and> x \<in> c \<and> y \<in> c))))"
+   (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    by (fastforce simp add: locally_connected)
+next
+  assume ?rhs
+  have *: "\<exists>T. openin (subtopology euclidean S) T \<and> x \<in> T \<and> T \<subseteq> c"
+       if "openin (subtopology euclidean S) t" and c: "c \<in> components t" and "x \<in> c" for t c x
+  proof -
+    from that \<open>?rhs\<close> [rule_format, of t x]
+    obtain u where u:
+      "openin (subtopology euclidean S) u \<and> x \<in> u \<and> u \<subseteq> t \<and>
+       (\<forall>y. y \<in> u \<longrightarrow> (\<exists>c. connected c \<and> c \<subseteq> t \<and> x \<in> c \<and> y \<in> c))"
+      by auto (meson subsetD in_components_subset)
+    obtain F :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a" where
+      "\<forall>x y. (\<exists>z. z \<in> x \<and> y = connected_component_set x z) = (F x y \<in> x \<and> y = connected_component_set x (F x y))"
+      by moura
+    then have F: "F t c \<in> t \<and> c = connected_component_set t (F t c)"
+      by (meson components_iff c)
+    obtain G :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a" where
+        G: "\<forall>x y. (\<exists>z. z \<in> y \<and> z \<notin> x) = (G x y \<in> y \<and> G x y \<notin> x)"
+      by moura
+     have "G c u \<notin> u \<or> G c u \<in> c"
+      using F by (metis (full_types) u connected_componentI connected_component_eq mem_Collect_eq that(3))
+    then show ?thesis
+      using G u by auto
+  qed
+  show ?lhs
+    apply (clarsimp simp add: locally_connected_open_component)
+    apply (subst openin_subopen)
+    apply (blast intro: *)
+    done
+qed
+
+proposition locally_path_connected_im_kleinen:
+  "locally path_connected S \<longleftrightarrow>
+   (\<forall>v x. openin (subtopology euclidean S) v \<and> x \<in> v
+       \<longrightarrow> (\<exists>u. openin (subtopology euclidean S) u \<and>
+                x \<in> u \<and> u \<subseteq> v \<and>
+                (\<forall>y. y \<in> u \<longrightarrow> (\<exists>p. path p \<and> path_image p \<subseteq> v \<and>
+                                pathstart p = x \<and> pathfinish p = y))))"
+   (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply (simp add: locally_path_connected path_connected_def)
+    apply (erule all_forward ex_forward imp_forward conjE | simp)+
+    by (meson dual_order.trans)
+next
+  assume ?rhs
+  have *: "\<exists>T. openin (subtopology euclidean S) T \<and>
+               x \<in> T \<and> T \<subseteq> path_component_set u z"
+       if "openin (subtopology euclidean S) u" and "z \<in> u" and c: "path_component u z x" for u z x
+  proof -
+    have "x \<in> u"
+      by (meson c path_component_mem(2))
+    with that \<open>?rhs\<close> [rule_format, of u x]
+    obtain U where U:
+      "openin (subtopology euclidean S) U \<and> x \<in> U \<and> U \<subseteq> u \<and>
+       (\<forall>y. y \<in> U \<longrightarrow> (\<exists>p. path p \<and> path_image p \<subseteq> u \<and> pathstart p = x \<and> pathfinish p = y))"
+       by blast
+    show ?thesis
+      apply (rule_tac x=U in exI)
+      apply (auto simp: U)
+      apply (metis U c path_component_trans path_component_def)
+      done
+  qed
+  show ?lhs
+    apply (clarsimp simp add: locally_path_connected_open_path_connected_component)
+    apply (subst openin_subopen)
+    apply (blast intro: *)
+    done
+qed
+
+lemma locally_path_connected_imp_locally_connected:
+  "locally path_connected S \<Longrightarrow> locally connected S"
+using locally_mono path_connected_imp_connected by blast
+
+lemma locally_connected_components:
+  "\<lbrakk>locally connected S; c \<in> components S\<rbrakk> \<Longrightarrow> locally connected c"
+by (meson locally_connected_open_component locally_open_subset openin_subtopology_self)
+
+lemma locally_path_connected_components:
+  "\<lbrakk>locally path_connected S; c \<in> components S\<rbrakk> \<Longrightarrow> locally path_connected c"
+by (meson locally_connected_open_component locally_open_subset locally_path_connected_imp_locally_connected openin_subtopology_self)
+
+lemma locally_path_connected_connected_component:
+  "locally path_connected S \<Longrightarrow> locally path_connected (connected_component_set S x)"
+by (metis components_iff connected_component_eq_empty locally_empty locally_path_connected_components)
+
+lemma open_imp_locally_path_connected:
+  fixes S :: "'a :: real_normed_vector set"
+  shows "open S \<Longrightarrow> locally path_connected S"
+apply (rule locally_mono [of convex])
+apply (simp_all add: locally_def openin_open_eq convex_imp_path_connected)
+apply (meson Topology_Euclidean_Space.open_ball centre_in_ball convex_ball openE order_trans)
+done
+
+lemma open_imp_locally_connected:
+  fixes S :: "'a :: real_normed_vector set"
+  shows "open S \<Longrightarrow> locally connected S"
+by (simp add: locally_path_connected_imp_locally_connected open_imp_locally_path_connected)
+
+lemma locally_path_connected_UNIV: "locally path_connected (UNIV::'a :: real_normed_vector set)"
+  by (simp add: open_imp_locally_path_connected)
+
+lemma locally_connected_UNIV: "locally connected (UNIV::'a :: real_normed_vector set)"
+  by (simp add: open_imp_locally_connected)
+
+lemma openin_connected_component_locally_connected:
+    "locally connected S
+     \<Longrightarrow> openin (subtopology euclidean S) (connected_component_set S x)"
+apply (simp add: locally_connected_open_connected_component)
+by (metis connected_component_eq_empty connected_component_subset open_empty open_subset openin_subtopology_self)
+
+lemma openin_components_locally_connected:
+    "\<lbrakk>locally connected S; c \<in> components S\<rbrakk> \<Longrightarrow> openin (subtopology euclidean S) c"
+  using locally_connected_open_component openin_subtopology_self by blast
+
+lemma openin_path_component_locally_path_connected:
+  "locally path_connected S
+        \<Longrightarrow> openin (subtopology euclidean S) (path_component_set S x)"
+by (metis (no_types) empty_iff locally_path_connected_2 openin_subopen openin_subtopology_self path_component_eq_empty)
+
+lemma closedin_path_component_locally_path_connected:
+    "locally path_connected S
+        \<Longrightarrow> closedin (subtopology euclidean S) (path_component_set S x)"
+apply  (simp add: closedin_def path_component_subset complement_path_component_Union)
+apply (rule openin_Union)
+using openin_path_component_locally_path_connected by auto
+
+lemma convex_imp_locally_path_connected:
+  fixes S :: "'a:: real_normed_vector set"
+  shows "convex S \<Longrightarrow> locally path_connected S"
+apply (clarsimp simp add: locally_path_connected)
+apply (subst (asm) openin_open)
+apply clarify
+apply (erule (1) Topology_Euclidean_Space.openE)
+apply (rule_tac x = "S \<inter> ball x e" in exI)
+apply (force simp: convex_Int convex_imp_path_connected)
+done
+
+subsection\<open>Retracts, in a general sense, preserve (co)homotopic triviality)\<close>
+
+locale Retracts =
+  fixes s h t k
+  assumes conth: "continuous_on s h"
+      and imh: "h ` s = t"
+      and contk: "continuous_on t k"
+      and imk: "k ` t \<subseteq> s"
+      and idhk: "\<And>y. y \<in> t \<Longrightarrow> h(k y) = y"
+
+begin
+
+lemma homotopically_trivial_retraction_gen:
+  assumes P: "\<And>f. \<lbrakk>continuous_on u f; f ` u \<subseteq> t; Q f\<rbrakk> \<Longrightarrow> P(k o f)"
+      and Q: "\<And>f. \<lbrakk>continuous_on u f; f ` u \<subseteq> s; P f\<rbrakk> \<Longrightarrow> Q(h o f)"
+      and Qeq: "\<And>h k. (\<And>x. x \<in> u \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
+      and hom: "\<And>f g. \<lbrakk>continuous_on u f; f ` u \<subseteq> s; P f;
+                       continuous_on u g; g ` u \<subseteq> s; P g\<rbrakk>
+                       \<Longrightarrow> homotopic_with P u s f g"
+      and contf: "continuous_on u f" and imf: "f ` u \<subseteq> t" and Qf: "Q f"
+      and contg: "continuous_on u g" and img: "g ` u \<subseteq> t" and Qg: "Q g"
+    shows "homotopic_with Q u t f g"
+proof -
+  have feq: "\<And>x. x \<in> u \<Longrightarrow> (h \<circ> (k \<circ> f)) x = f x" using idhk imf by auto
+  have geq: "\<And>x. x \<in> u \<Longrightarrow> (h \<circ> (k \<circ> g)) x = g x" using idhk img by auto
+  have "continuous_on u (k \<circ> f)"
+    using contf continuous_on_compose continuous_on_subset contk imf by blast
+  moreover have "(k \<circ> f) ` u \<subseteq> s"
+    using imf imk by fastforce
+  moreover have "P (k \<circ> f)"
+    by (simp add: P Qf contf imf)
+  moreover have "continuous_on u (k \<circ> g)"
+    using contg continuous_on_compose continuous_on_subset contk img by blast
+  moreover have "(k \<circ> g) ` u \<subseteq> s"
+    using img imk by fastforce
+  moreover have "P (k \<circ> g)"
+    by (simp add: P Qg contg img)
+  ultimately have "homotopic_with P u s (k \<circ> f) (k \<circ> g)"
+    by (rule hom)
+  then have "homotopic_with Q u t (h \<circ> (k \<circ> f)) (h \<circ> (k \<circ> g))"
+    apply (rule homotopic_with_compose_continuous_left [OF homotopic_with_mono])
+    using Q by (auto simp: conth imh)
+  then show ?thesis
+    apply (rule homotopic_with_eq)
+    apply (metis feq)
+    apply (metis geq)
+    apply (metis Qeq)
+    done
+qed
+
+lemma homotopically_trivial_retraction_null_gen:
+  assumes P: "\<And>f. \<lbrakk>continuous_on u f; f ` u \<subseteq> t; Q f\<rbrakk> \<Longrightarrow> P(k o f)"
+      and Q: "\<And>f. \<lbrakk>continuous_on u f; f ` u \<subseteq> s; P f\<rbrakk> \<Longrightarrow> Q(h o f)"
+      and Qeq: "\<And>h k. (\<And>x. x \<in> u \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
+      and hom: "\<And>f. \<lbrakk>continuous_on u f; f ` u \<subseteq> s; P f\<rbrakk>
+                     \<Longrightarrow> \<exists>c. homotopic_with P u s f (\<lambda>x. c)"
+      and contf: "continuous_on u f" and imf:"f ` u \<subseteq> t" and Qf: "Q f"
+  obtains c where "homotopic_with Q u t f (\<lambda>x. c)"
+proof -
+  have feq: "\<And>x. x \<in> u \<Longrightarrow> (h \<circ> (k \<circ> f)) x = f x" using idhk imf by auto
+  have "continuous_on u (k \<circ> f)"
+    using contf continuous_on_compose continuous_on_subset contk imf by blast
+  moreover have "(k \<circ> f) ` u \<subseteq> s"
+    using imf imk by fastforce
+  moreover have "P (k \<circ> f)"
+    by (simp add: P Qf contf imf)
+  ultimately obtain c where "homotopic_with P u s (k \<circ> f) (\<lambda>x. c)"
+    by (metis hom)
+  then have "homotopic_with Q u t (h \<circ> (k \<circ> f)) (h o (\<lambda>x. c))"
+    apply (rule homotopic_with_compose_continuous_left [OF homotopic_with_mono])
+    using Q by (auto simp: conth imh)
+  then show ?thesis
+    apply (rule_tac c = "h c" in that)
+    apply (erule homotopic_with_eq)
+    apply (metis feq, simp)
+    apply (metis Qeq)
+    done
+qed
+
+lemma cohomotopically_trivial_retraction_gen:
+  assumes P: "\<And>f. \<lbrakk>continuous_on t f; f ` t \<subseteq> u; Q f\<rbrakk> \<Longrightarrow> P(f o h)"
+      and Q: "\<And>f. \<lbrakk>continuous_on s f; f ` s \<subseteq> u; P f\<rbrakk> \<Longrightarrow> Q(f o k)"
+      and Qeq: "\<And>h k. (\<And>x. x \<in> t \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
+      and hom: "\<And>f g. \<lbrakk>continuous_on s f; f ` s \<subseteq> u; P f;
+                       continuous_on s g; g ` s \<subseteq> u; P g\<rbrakk>
+                       \<Longrightarrow> homotopic_with P s u f g"
+      and contf: "continuous_on t f" and imf: "f ` t \<subseteq> u" and Qf: "Q f"
+      and contg: "continuous_on t g" and img: "g ` t \<subseteq> u" and Qg: "Q g"
+    shows "homotopic_with Q t u f g"
+proof -
+  have feq: "\<And>x. x \<in> t \<Longrightarrow> (f \<circ> h \<circ> k) x = f x" using idhk imf by auto
+  have geq: "\<And>x. x \<in> t \<Longrightarrow> (g \<circ> h \<circ> k) x = g x" using idhk img by auto
+  have "continuous_on s (f \<circ> h)"
+    using contf conth continuous_on_compose imh by blast
+  moreover have "(f \<circ> h) ` s \<subseteq> u"
+    using imf imh by fastforce
+  moreover have "P (f \<circ> h)"
+    by (simp add: P Qf contf imf)
+  moreover have "continuous_on s (g o h)"
+    using contg continuous_on_compose continuous_on_subset conth imh by blast
+  moreover have "(g \<circ> h) ` s \<subseteq> u"
+    using img imh by fastforce
+  moreover have "P (g \<circ> h)"
+    by (simp add: P Qg contg img)
+  ultimately have "homotopic_with P s u (f o h) (g \<circ> h)"
+    by (rule hom)
+  then have "homotopic_with Q t u (f o h o k) (g \<circ> h o k)"
+    apply (rule homotopic_with_compose_continuous_right [OF homotopic_with_mono])
+    using Q by (auto simp: contk imk)
+  then show ?thesis
+    apply (rule homotopic_with_eq)
+    apply (metis feq)
+    apply (metis geq)
+    apply (metis Qeq)
+    done
+qed
+
+lemma cohomotopically_trivial_retraction_null_gen:
+  assumes P: "\<And>f. \<lbrakk>continuous_on t f; f ` t \<subseteq> u; Q f\<rbrakk> \<Longrightarrow> P(f o h)"
+      and Q: "\<And>f. \<lbrakk>continuous_on s f; f ` s \<subseteq> u; P f\<rbrakk> \<Longrightarrow> Q(f o k)"
+      and Qeq: "\<And>h k. (\<And>x. x \<in> t \<Longrightarrow> h x = k x) \<Longrightarrow> Q h = Q k"
+      and hom: "\<And>f g. \<lbrakk>continuous_on s f; f ` s \<subseteq> u; P f\<rbrakk>
+                       \<Longrightarrow> \<exists>c. homotopic_with P s u f (\<lambda>x. c)"
+      and contf: "continuous_on t f" and imf: "f ` t \<subseteq> u" and Qf: "Q f"
+  obtains c where "homotopic_with Q t u f (\<lambda>x. c)"
+proof -
+  have feq: "\<And>x. x \<in> t \<Longrightarrow> (f \<circ> h \<circ> k) x = f x" using idhk imf by auto
+  have "continuous_on s (f \<circ> h)"
+    using contf conth continuous_on_compose imh by blast
+  moreover have "(f \<circ> h) ` s \<subseteq> u"
+    using imf imh by fastforce
+  moreover have "P (f \<circ> h)"
+    by (simp add: P Qf contf imf)
+  ultimately obtain c where "homotopic_with P s u (f o h) (\<lambda>x. c)"
+    by (metis hom)
+  then have "homotopic_with Q t u (f o h o k) ((\<lambda>x. c) o k)"
+    apply (rule homotopic_with_compose_continuous_right [OF homotopic_with_mono])
+    using Q by (auto simp: contk imk)
+  then show ?thesis
+    apply (rule_tac c = c in that)
+    apply (erule homotopic_with_eq)
+    apply (metis feq, simp)
+    apply (metis Qeq)
+    done
+qed
+
+end
+
+lemma simply_connected_retraction_gen:
+  shows "\<lbrakk>simply_connected S; continuous_on S h; h ` S = T;
+          continuous_on T k; k ` T \<subseteq> S; \<And>y. y \<in> T \<Longrightarrow> h(k y) = y\<rbrakk>
+        \<Longrightarrow> simply_connected T"
+apply (simp add: simply_connected_def path_def path_image_def homotopic_loops_def, clarify)
+apply (rule Retracts.homotopically_trivial_retraction_gen
+        [of S h _ k _ "\<lambda>p. pathfinish p = pathstart p"  "\<lambda>p. pathfinish p = pathstart p"])
+apply (simp_all add: Retracts_def pathfinish_def pathstart_def)
+done
+
+lemma homeomorphic_simply_connected:
+    "\<lbrakk>S homeomorphic T; simply_connected S\<rbrakk> \<Longrightarrow> simply_connected T"
+  by (auto simp: homeomorphic_def homeomorphism_def intro: simply_connected_retraction_gen)
+
+lemma homeomorphic_simply_connected_eq:
+    "S homeomorphic T \<Longrightarrow> (simply_connected S \<longleftrightarrow> simply_connected T)"
+  by (metis homeomorphic_simply_connected homeomorphic_sym)
 
 end

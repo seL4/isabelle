@@ -259,6 +259,27 @@ lemma real_vector_eq_affinity:
   using real_vector_affinity_eq[where m=m and x=x and y=y and c=c]
   by metis
 
+lemma scaleR_eq_iff [simp]:
+  fixes a :: "'a :: real_vector"
+  shows "b + u *\<^sub>R a = a + u *\<^sub>R b \<longleftrightarrow> a=b \<or> u=1"
+proof (cases "u=1")
+  case True then show ?thesis by auto
+next
+  case False
+  { assume "b + u *\<^sub>R a = a + u *\<^sub>R b"
+    then have "(u - 1) *\<^sub>R a = (u - 1) *\<^sub>R b"
+      by (simp add: algebra_simps)
+    with False have "a=b"
+      by auto
+  }
+  then show ?thesis by auto
+qed
+
+lemma scaleR_collapse [simp]:
+  fixes a :: "'a :: real_vector"
+  shows "(1 - u) *\<^sub>R a + u *\<^sub>R a = a"
+by (simp add: algebra_simps)
+
 
 subsection \<open>Embedding of the Reals into any \<open>real_algebra_1\<close>:
 @{term of_real}\<close>
@@ -920,9 +941,20 @@ next
 qed
 
 lemma norm_power:
-  fixes x :: "'a::{real_normed_div_algebra}"
+  fixes x :: "'a::real_normed_div_algebra"
   shows "norm (x ^ n) = norm x ^ n"
 by (induct n) (simp_all add: norm_mult)
+
+lemma power_eq_imp_eq_norm:
+  fixes w :: "'a::real_normed_div_algebra"
+  assumes eq: "w ^ n = z ^ n" and "n > 0"
+    shows "norm w = norm z"
+proof -
+  have "norm w ^ n = norm z ^ n"
+    by (metis (no_types) eq norm_power)
+  then show ?thesis
+    using assms by (force intro: power_eq_imp_eq_base)
+qed
 
 lemma norm_mult_numeral1 [simp]:
   fixes a b :: "'a::{real_normed_field, field}"
@@ -1076,6 +1108,10 @@ by (rule order_trans [OF dist_triangle2])
 lemma dist_triangle_lt:
   shows "dist x z + dist y z < e ==> dist x y < e"
 by (rule le_less_trans [OF dist_triangle2])
+
+lemma dist_triangle_less_add:
+   "\<lbrakk>dist x1 y < e1; dist x2 y < e2\<rbrakk> \<Longrightarrow> dist x1 x2 < e1 + e2"
+by (rule dist_triangle_lt [where z=y], simp)
 
 lemma dist_triangle_half_l:
   shows "dist x1 y < e / 2 \<Longrightarrow> dist x2 y < e / 2 \<Longrightarrow> dist x1 x2 < e"

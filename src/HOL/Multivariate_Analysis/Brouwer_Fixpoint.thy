@@ -19,7 +19,7 @@
 section \<open>Results connected with topological dimension.\<close>
 
 theory Brouwer_Fixpoint
-imports Convex_Euclidean_Space
+imports Path_Connected
 begin
 
 lemma bij_betw_singleton_eq:
@@ -2009,5 +2009,187 @@ proof
   then show False
     using x assms by auto
 qed
+
+subsection\<open>Retractions\<close>
+
+lemma retraction:
+   "retraction s t r \<longleftrightarrow>
+    t \<subseteq> s \<and> continuous_on s r \<and> r ` s = t \<and> (\<forall>x \<in> t. r x = x)"
+by (force simp: retraction_def)
+
+lemma retract_of_imp_extensible:
+  assumes "s retract_of t" and "continuous_on s f" and "f ` s \<subseteq> u"
+  obtains g where "continuous_on t g" "g ` t \<subseteq> u" "\<And>x. x \<in> s \<Longrightarrow> g x = f x"
+using assms
+apply (clarsimp simp add: retract_of_def retraction)
+apply (rule_tac g = "f o r" in that)
+apply (auto simp: continuous_on_compose2)
+done
+
+lemma idempotent_imp_retraction:
+  assumes "continuous_on s f" and "f ` s \<subseteq> s" and "\<And>x. x \<in> s \<Longrightarrow> f(f x) = f x"
+    shows "retraction s (f ` s) f"
+by (simp add: assms retraction)
+
+lemma retraction_subset:
+  assumes "retraction s t r" and "t \<subseteq> s'" and "s' \<subseteq> s"
+    shows "retraction s' t r"
+apply (simp add: retraction_def)
+by (metis assms continuous_on_subset image_mono retraction)
+
+lemma retract_of_subset:
+  assumes "t retract_of s" and "t \<subseteq> s'" and "s' \<subseteq> s"
+    shows "t retract_of s'"
+by (meson assms retract_of_def retraction_subset)
+
+lemma retraction_refl [simp]: "retraction s s (\<lambda>x. x)"
+by (simp add: continuous_on_id retraction)
+
+lemma retract_of_refl [iff]: "s retract_of s"
+  using continuous_on_id retract_of_def retraction_def by fastforce
+
+lemma retract_of_imp_subset:
+   "s retract_of t \<Longrightarrow> s \<subseteq> t"
+by (simp add: retract_of_def retraction_def)
+
+lemma retract_of_empty [simp]:
+     "({} retract_of s) \<longleftrightarrow> s = {}"  "(s retract_of {}) \<longleftrightarrow> s = {}"
+by (auto simp: retract_of_def retraction_def)
+
+lemma retract_of_singleton [iff]: "({x} retract_of s) \<longleftrightarrow> x \<in> s"
+  using continuous_on_const
+  by (auto simp: retract_of_def retraction_def)
+
+lemma retraction_comp:
+   "\<lbrakk>retraction s t f; retraction t u g\<rbrakk>
+        \<Longrightarrow> retraction s u (g o f)"
+apply (auto simp: retraction_def intro: continuous_on_compose2)
+by blast
+
+lemma retract_of_trans:
+  assumes "s retract_of t" and "t retract_of u"
+    shows "s retract_of u"
+using assms by (auto simp: retract_of_def intro: retraction_comp)
+
+lemma closedin_retract:
+  fixes s :: "'a :: real_normed_vector set"
+  assumes "s retract_of t"
+    shows "closedin (subtopology euclidean t) s"
+proof -
+  obtain r where "s \<subseteq> t" "continuous_on t r" "r ` t \<subseteq> s" "\<And>x. x \<in> s \<Longrightarrow> r x = x"
+    using assms by (auto simp: retract_of_def retraction_def)
+  then have s: "s = {x \<in> t. (norm(r x - x)) = 0}" by auto
+  show ?thesis
+    apply (subst s)
+    apply (rule continuous_closedin_preimage_constant)
+    by (simp add: \<open>continuous_on t r\<close> continuous_on_diff continuous_on_id continuous_on_norm)
+qed
+
+lemma retract_of_contractible:
+  assumes "contractible t" "s retract_of t"
+    shows "contractible s"
+using assms
+apply (clarsimp simp add: retract_of_def contractible_def retraction_def homotopic_with)
+apply (rule_tac x="r a" in exI)
+apply (rule_tac x="r o h" in exI)
+apply (intro conjI continuous_intros continuous_on_compose)
+apply (erule continuous_on_subset | force)+
+done
+
+lemma retract_of_compact:
+     "\<lbrakk>compact t; s retract_of t\<rbrakk> \<Longrightarrow> compact s"
+  by (metis compact_continuous_image retract_of_def retraction)
+
+lemma retract_of_closed:
+    fixes s :: "'a :: real_normed_vector set"
+    shows "\<lbrakk>closed t; s retract_of t\<rbrakk> \<Longrightarrow> closed s"
+  by (metis closedin_retract closedin_closed_eq)
+
+lemma retract_of_connected:
+    "\<lbrakk>connected t; s retract_of t\<rbrakk> \<Longrightarrow> connected s"
+  by (metis Topological_Spaces.connected_continuous_image retract_of_def retraction)
+
+lemma retract_of_path_connected:
+    "\<lbrakk>path_connected t; s retract_of t\<rbrakk> \<Longrightarrow> path_connected s"
+  by (metis path_connected_continuous_image retract_of_def retraction)
+
+lemma retract_of_simply_connected:
+    "\<lbrakk>simply_connected t; s retract_of t\<rbrakk> \<Longrightarrow> simply_connected s"
+apply (simp add: retract_of_def retraction_def, clarify)
+apply (rule simply_connected_retraction_gen)
+apply (force simp: continuous_on_id elim!: continuous_on_subset)+
+done
+
+lemma retract_of_homotopically_trivial:
+  assumes ts: "t retract_of s"
+      and hom: "\<And>f g. \<lbrakk>continuous_on u f; f ` u \<subseteq> s;
+                       continuous_on u g; g ` u \<subseteq> s\<rbrakk>
+                       \<Longrightarrow> homotopic_with (\<lambda>x. True) u s f g"
+      and "continuous_on u f" "f ` u \<subseteq> t"
+      and "continuous_on u g" "g ` u \<subseteq> t"
+    shows "homotopic_with (\<lambda>x. True) u t f g"
+proof -
+  obtain r where "r ` s \<subseteq> s" "continuous_on s r" "\<forall>x\<in>s. r (r x) = r x" "t = r ` s"
+    using ts by (auto simp: retract_of_def retraction)
+  then obtain k where "Retracts s r t k"
+    unfolding Retracts_def
+    by (metis continuous_on_subset dual_order.trans image_iff image_mono)
+  then show ?thesis
+    apply (rule Retracts.homotopically_trivial_retraction_gen)
+    using assms
+    apply (force simp: hom)+
+    done
+qed
+
+lemma retract_of_homotopically_trivial_null:
+  assumes ts: "t retract_of s"
+      and hom: "\<And>f. \<lbrakk>continuous_on u f; f ` u \<subseteq> s\<rbrakk>
+                     \<Longrightarrow> \<exists>c. homotopic_with (\<lambda>x. True) u s f (\<lambda>x. c)"
+      and "continuous_on u f" "f ` u \<subseteq> t"
+  obtains c where "homotopic_with (\<lambda>x. True) u t f (\<lambda>x. c)"
+proof -
+  obtain r where "r ` s \<subseteq> s" "continuous_on s r" "\<forall>x\<in>s. r (r x) = r x" "t = r ` s"
+    using ts by (auto simp: retract_of_def retraction)
+  then obtain k where "Retracts s r t k"
+    unfolding Retracts_def
+    by (metis continuous_on_subset dual_order.trans image_iff image_mono)
+  then show ?thesis
+    apply (rule Retracts.homotopically_trivial_retraction_null_gen)
+    apply (rule TrueI refl assms that | assumption)+
+    done
+qed
+
+lemma retraction_imp_quotient_map:
+   "retraction s t r
+    \<Longrightarrow> u \<subseteq> t
+            \<Longrightarrow> (openin (subtopology euclidean s) {x. x \<in> s \<and> r x \<in> u} \<longleftrightarrow>
+                 openin (subtopology euclidean t) u)"
+apply (clarsimp simp add: retraction)
+apply (rule continuous_right_inverse_imp_quotient_map [where g=r])
+apply (auto simp: elim: continuous_on_subset)
+done
+
+lemma retract_of_locally_compact:
+    fixes s :: "'a :: {heine_borel,real_normed_vector} set"
+    shows  "\<lbrakk> locally compact s; t retract_of s\<rbrakk> \<Longrightarrow> locally compact t"
+  by (metis locally_compact_closedin closedin_retract)
+
+lemma retract_of_times:
+   "\<lbrakk>s retract_of s'; t retract_of t'\<rbrakk> \<Longrightarrow> (s \<times> t) retract_of (s' \<times> t')"
+apply (simp add: retract_of_def retraction_def Sigma_mono, clarify)
+apply (rename_tac f g)
+apply (rule_tac x="\<lambda>z. ((f o fst) z, (g o snd) z)" in exI)
+apply (rule conjI continuous_intros | erule continuous_on_subset | force)+
+done
+
+lemma homotopic_into_retract:
+   "\<lbrakk>f ` s \<subseteq> t; g ` s \<subseteq> t; t retract_of u;
+        homotopic_with (\<lambda>x. True) s u f g\<rbrakk>
+        \<Longrightarrow> homotopic_with (\<lambda>x. True) s t f g"
+apply (subst (asm) homotopic_with_def)
+apply (simp add: homotopic_with retract_of_def retraction_def, clarify)
+apply (rule_tac x="r o h" in exI)
+apply (rule conjI continuous_intros | erule continuous_on_subset | force simp: image_subset_iff)+
+done
 
 end

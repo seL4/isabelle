@@ -411,13 +411,13 @@ definition affine :: "'a::real_vector set \<Rightarrow> bool"
 lemma affine_alt: "affine s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u::real. (1 - u) *\<^sub>R x + u *\<^sub>R y \<in> s)"
   unfolding affine_def by (metis eq_diff_eq')
 
-lemma affine_empty[intro]: "affine {}"
+lemma affine_empty [iff]: "affine {}"
   unfolding affine_def by auto
 
-lemma affine_sing[intro]: "affine {x}"
+lemma affine_sing [iff]: "affine {x}"
   unfolding affine_alt by (auto simp add: scaleR_left_distrib [symmetric])
 
-lemma affine_UNIV[intro]: "affine UNIV"
+lemma affine_UNIV [iff]: "affine UNIV"
   unfolding affine_def by auto
 
 lemma affine_Inter[intro]: "(\<forall>s\<in>f. affine s) \<Longrightarrow> affine (\<Inter>f)"
@@ -432,6 +432,9 @@ lemma affine_affine_hull [simp]: "affine(affine hull s)"
 
 lemma affine_hull_eq[simp]: "(affine hull s = s) \<longleftrightarrow> affine s"
   by (metis affine_affine_hull hull_same)
+
+lemma affine_hyperplane: "affine {x. a \<bullet> x = b}"
+  by (simp add: affine_def algebra_simps) (metis distrib_right mult.left_neutral)
 
 
 subsubsection \<open>Some explicit formulations (from Lars Schewe)\<close>
@@ -1383,6 +1386,11 @@ corollary compact_open:
   fixes s :: "'a :: euclidean_space set"
   shows "compact s \<and> open s \<longleftrightarrow> s = {}"
   by (auto simp: compact_eq_bounded_closed clopen)
+
+corollary finite_imp_not_open:
+    fixes S :: "'a::{real_normed_vector, perfect_space} set"
+    shows "\<lbrakk>finite S; open S\<rbrakk> \<Longrightarrow> S={}"
+  using clopen [of S] finite_imp_closed not_bounded_UNIV by blast
 
 text \<open>Balls, being convex, are connected.\<close>
 
@@ -2745,7 +2753,7 @@ lemma affine_independent_iff_card:
   apply (simp add: aff_dim_affine_independent aff_independent_finite)
   by (metis affine_basis_exists [of s] aff_dim_unique card_subset_eq diff_add_cancel of_nat_eq_iff)
 
-lemma aff_dim_sing:
+lemma aff_dim_sing [simp]:
   fixes a :: "'n::euclidean_space"
   shows "aff_dim {a} = 0"
   using aff_dim_affine_independent[of "{a}"] affine_independent_sing by auto
@@ -3553,7 +3561,7 @@ lemma closure_affine_hull:
   shows "closure S \<subseteq> affine hull S"
   by (intro closure_minimal hull_subset affine_closed affine_affine_hull)
 
-lemma closure_same_affine_hull:
+lemma closure_same_affine_hull [simp]:
   fixes S :: "'n::euclidean_space set"
   shows "affine hull (closure S) = affine hull S"
 proof -
@@ -4741,7 +4749,7 @@ qed
 
 subsection \<open>More convexity generalities\<close>
 
-lemma convex_closure:
+lemma convex_closure [intro,simp]:
   fixes s :: "'a::real_normed_vector set"
   assumes "convex s"
   shows "convex (closure s)"
@@ -4753,7 +4761,7 @@ lemma convex_closure:
   apply (auto del: tendsto_const intro!: tendsto_intros)
   done
 
-lemma convex_interior:
+lemma convex_interior [intro,simp]:
   fixes s :: "'a::real_normed_vector set"
   assumes "convex s"
   shows "convex (interior s)"
@@ -6379,6 +6387,11 @@ definition open_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a se
 
 lemmas segment = open_segment_def closed_segment_def
 
+lemma in_segment:
+    "x \<in> closed_segment a b \<longleftrightarrow> (\<exists>u. 0 \<le> u \<and> u \<le> 1 \<and> x = (1 - u) *\<^sub>R a + u *\<^sub>R b)"
+    "x \<in> open_segment a b \<longleftrightarrow> a \<noteq> b \<and> (\<exists>u. 0 < u \<and> u < 1 \<and> x = (1 - u) *\<^sub>R a + u *\<^sub>R b)"
+  using less_eq_real_def by (auto simp: segment algebra_simps)
+
 definition "between = (\<lambda>(a,b) x. x \<in> closed_segment a b)"
 
 definition "starlike s \<longleftrightarrow> (\<exists>a\<in>s. \<forall>x\<in>s. closed_segment a x \<subseteq> s)"
@@ -7819,9 +7832,9 @@ next
       have yball: "y \<in> cball z e"
         using mem_cball y_def dist_norm[of z y] e by auto
       have "x \<in> affine hull closure S"
-        using x rel_interior_subset_closure hull_inc[of x "closure S"] by auto
+        using x rel_interior_subset_closure hull_inc[of x "closure S"] by blast
       moreover have "z \<in> affine hull closure S"
-        using z rel_interior_subset hull_subset[of "closure S"] by auto
+        using z rel_interior_subset hull_subset[of "closure S"] by blast
       ultimately have "y \<in> affine hull closure S"
         using y_def affine_affine_hull[of "closure S"]
           mem_affine_3_minus [of "affine hull closure S" z z x "e/norm(z-x)"] by auto
@@ -7969,8 +7982,7 @@ proof -
   have "S1 \<subseteq> closure S2"
     using assms unfolding rel_frontier_def by auto
   then have *: "affine hull S1 \<subseteq> affine hull S2"
-    using hull_mono[of "S1" "closure S2"] closure_same_affine_hull[of S2]
-    by auto
+    using hull_mono[of "S1" "closure S2"] closure_same_affine_hull[of S2] by blast
   then have "aff_dim S1 \<le> aff_dim S2"
     using * aff_dim_affine_hull[of S1] aff_dim_affine_hull[of S2]
       aff_dim_subset[of "affine hull S1" "affine hull S2"]
@@ -8072,7 +8084,7 @@ proof -
         using \<open>m > 1\<close> by auto
     }
     ultimately have "\<exists>m. m > 1 \<and> (\<forall>e. e > 1 \<and> e \<le> m \<longrightarrow> (1 - e) *\<^sub>R x + e *\<^sub>R z \<in> S )"
-      by auto
+      by blast
   }
   then show ?thesis by auto
 qed
