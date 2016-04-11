@@ -5,7 +5,7 @@
 section \<open>Quotient infrastructure for the list type\<close>
 
 theory Quotient_List
-imports Main Quotient_Set Quotient_Product Quotient_Option
+imports Quotient_Set Quotient_Product Quotient_Option
 begin
 
 subsection \<open>Rules for the Quotient package\<close>
