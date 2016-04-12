@@ -484,6 +484,12 @@ lemma blinfun_euclidean_eqI: "(\<And>i. i \<in> Basis \<Longrightarrow> blinfun_
   apply (simp add: blinfun.bilinear_simps)
   done
 
+lemma Blinfun_eq_matrix: "bounded_linear f \<Longrightarrow> Blinfun f = blinfun_of_matrix (\<lambda>i j. f j \<bullet> i)"
+  by (intro blinfun_euclidean_eqI)
+     (auto simp: blinfun_of_matrix_apply bounded_linear_Blinfun_apply inner_Basis if_distrib
+      cond_application_beta setsum.delta' euclidean_representation
+      cong: if_cong)
+
 text \<open>TODO: generalize (via @{thm compact_cball})?\<close>
 instance blinfun :: (euclidean_space, euclidean_space) heine_borel
 proof
@@ -626,6 +632,11 @@ lemma norm_blinfun_compose:
 lemma bounded_bilinear_blinfun_compose[bounded_bilinear]: "bounded_bilinear op o\<^sub>L"
   by unfold_locales
     (auto intro!: blinfun_eqI exI[where x=1] simp: blinfun.bilinear_simps norm_blinfun_compose)
+
+lemma blinfun_compose_zero[simp]:
+  "blinfun_compose 0 = (\<lambda>_. 0)"
+  "blinfun_compose x 0 = 0"
+  by (auto simp: blinfun.bilinear_simps intro!: blinfun_eqI)
 
 
 lift_definition blinfun_inner_right::"'a::real_inner \<Rightarrow> 'a \<Rightarrow>\<^sub>L real" is "op \<bullet>"
