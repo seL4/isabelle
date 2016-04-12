@@ -993,7 +993,7 @@ lemmas bthrs = bin_rsplit_simp_alt [THEN [2] trans]
 lemma bin_rsplit_size_sign' [rule_format] : 
   "\<lbrakk>n > 0; rev sw = bin_rsplit n (nw, w)\<rbrakk> \<Longrightarrow> 
     (ALL v: set sw. bintrunc n v = v)"
-  apply (induct sw arbitrary: nw w v)
+  apply (induct sw arbitrary: nw w)
    apply clarsimp
   apply clarsimp
   apply (drule bthrs)
