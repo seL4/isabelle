@@ -534,7 +534,7 @@ lemma tranclD2:
 lemma irrefl_tranclI: "r^-1 \<inter> r^* = {} ==> (x, x) \<notin> r^+"
   by (blast elim: tranclE dest: trancl_into_rtrancl)
 
-lemma irrefl_trancl_rD: "!!X. ALL x. (x, x) \<notin> r^+ ==> (x, y) \<in> r ==> x \<noteq> y"
+lemma irrefl_trancl_rD: "\<forall>x. (x, x) \<notin> r^+ \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> x \<noteq> y"
   by (blast dest: r_into_trancl)
 
 lemma trancl_subset_Sigma_aux:

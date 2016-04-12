@@ -1063,7 +1063,7 @@ in
 *)
 val simproc =
   Simplifier.make_simproc @{context} "record"
-   {lhss = [@{term "x"}],
+   {lhss = [@{term "x::'a::{}"}],
     proc = fn _ => fn ctxt => fn ct =>
       let
         val thy = Proof_Context.theory_of ctxt;
@@ -1147,7 +1147,7 @@ fun get_upd_acc_cong_thm upd acc thy ss =
   both a more update and an update to a field within it.*)
 val upd_simproc =
   Simplifier.make_simproc @{context} "record_upd"
-   {lhss = [@{term "x"}],
+   {lhss = [@{term "x::'a::{}"}],
     proc = fn _ => fn ctxt => fn ct =>
       let
         val thy = Proof_Context.theory_of ctxt;
@@ -1292,7 +1292,7 @@ val eq_simproc =
     P t > 0: split up to given bound of record extensions.*)
 fun split_simproc P =
   Simplifier.make_simproc @{context} "record_split"
-   {lhss = [@{term x}],
+   {lhss = [@{term "x::'a::{}"}],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
         Const (quantifier, Type (_, [Type (_, [T, _]), _])) $ _ =>

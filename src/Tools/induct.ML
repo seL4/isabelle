@@ -172,7 +172,7 @@ fun mk_swap_rrule ctxt ct =
 
 val rearrange_eqs_simproc =
   Simplifier.make_simproc @{context} "rearrange_eqs"
-   {lhss = [@{term "Pure.all(t)"}],
+   {lhss = [@{term "Pure.all (t :: 'a::{} \<Rightarrow> prop)"}],
     proc = fn _ => fn ctxt => fn ct => mk_swap_rrule ctxt ct};
 
 

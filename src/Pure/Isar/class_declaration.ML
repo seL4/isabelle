@@ -107,7 +107,6 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
 fun prep_class_elems prep_decl thy sups raw_elems =
   let
-
     (* user space type system: only permits 'a type variable, improves towards 'a *)
     val algebra = Sign.classes_of thy;
     val inter_sort = curry (Sorts.inter_sort algebra);
@@ -118,7 +117,7 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     val base_constraints = (map o apsnd)
       (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o fst o snd)
         (Class.these_operations thy sups);
-    fun singleton_fixateT Ts =
+    val singleton_fixate = burrow_types (fn Ts =>
       let
         val tfrees = fold Term.add_tfreesT Ts [];
         val inferred_sort =
@@ -140,9 +139,8 @@ fun prep_class_elems prep_decl thy sups raw_elems =
       in
         (map o map_atyps)
           (fn T as TVar (xi, _) => if Type_Infer.is_param xi then fixateT else T | T => T) Ts
-      end;
-    fun singleton_fixate _ ts = burrow_types singleton_fixateT ts;
-    fun unify_params ctxt ts =
+      end);
+    fun unify_params ts =
       let
         val param_Ts = (fold o fold_aterms)
           (fn Free (v, T) => if is_param v then fold_atyps (insert (op =)) T else I | _ => I) ts [];
@@ -162,10 +160,10 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     val init_class_body =
       fold (Proof_Context.add_const_constraint o apsnd SOME) base_constraints
       #> Class.redeclare_operations thy sups
-      #> Context.proof_map (Syntax_Phases.term_check 0 "singleton_fixate" singleton_fixate);
+      #> Context.proof_map (Syntax_Phases.term_check 0 "singleton_fixate" (K singleton_fixate));
     val ((raw_supparams, _, raw_inferred_elems, _), _) =
       Proof_Context.init_global thy
-      |> Context.proof_map (Syntax_Phases.term_check 0 "unify_params" unify_params)
+      |> Context.proof_map (Syntax_Phases.term_check 0 "unify_params" (K unify_params))
       |> prep_decl raw_supexpr init_class_body raw_elems;
     fun filter_element (Element.Fixes []) = NONE
       | filter_element (e as Element.Fixes _) = SOME e

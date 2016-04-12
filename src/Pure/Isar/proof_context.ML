@@ -130,9 +130,6 @@ sig
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
-  val set_object_logic_constraint: Proof.context -> Proof.context
-  val restore_object_logic_constraint: Proof.context -> Proof.context -> Proof.context
-  val default_constraint: Proof.context -> mixfix -> typ
   val read_var: binding * string option * mixfix -> Proof.context ->
     (binding * typ option * mixfix) * Proof.context
   val cert_var: binding * typ option * mixfix -> Proof.context ->
@@ -666,7 +663,7 @@ val allow_dummies = Config.put dummies true;
 
 fun prepare_patterns ctxt =
   let val Mode {pattern, ...} = get_mode ctxt in
-    Type_Infer.fixate ctxt #>
+    Type_Infer.fixate ctxt pattern #>
     pattern ? Variable.polymorphic ctxt #>
     (map o Term.map_types) (prepare_patternT ctxt) #>
     (if pattern then prepare_dummies else map (check_dummies ctxt))
@@ -1059,33 +1056,10 @@ end;
 
 (** basic logical entities **)
 
-(* default type constraint *)
-
-val object_logic_constraint =
-  Config.bool
-    (Config.declare ("Proof_Context.object_logic_constraint", @{here}) (K (Config.Bool false)));
-
-val set_object_logic_constraint = Config.put object_logic_constraint true;
-fun restore_object_logic_constraint ctxt =
-  Config.put object_logic_constraint (Config.get ctxt object_logic_constraint);
-
-fun default_constraint ctxt mx =
-  let
-    val A =
-      (case (Object_Logic.get_base_sort ctxt, Config.get ctxt object_logic_constraint) of
-        (SOME S, true) => Type_Infer.anyT S
-      | _ => dummyT);
-  in
-    (case mx of
-      Binder _ => (A --> A) --> A
-    | _ => replicate (Mixfix.mixfix_args mx) A ---> A)
-  end;
-
-
 (* variables *)
 
 fun declare_var (x, opt_T, mx) ctxt =
-  let val T = (case opt_T of SOME T => T | NONE => default_constraint ctxt mx)
+  let val T = (case opt_T of SOME T => T | NONE => Mixfix.default_constraint mx)
   in (T, ctxt |> Variable.declare_constraints (Free (x, T))) end;
 
 fun add_syntax vars ctxt =

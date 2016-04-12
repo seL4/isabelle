@@ -518,8 +518,7 @@ fun skeleton (is_atom : term -> bool) ctxt t =
         end
       | go _ ctxt = dummy ctxt
   in
-    go t ctxt |> fst |> Syntax.check_term ctxt |>
-      map_types (map_type_tfree (fn (a, _) => TFree (a, @{sort type})))
+    go t ctxt |> fst |> Syntax.check_term ctxt
   end
 
 (** Monotonicity analysis **)

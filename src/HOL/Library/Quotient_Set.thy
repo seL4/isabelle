@@ -5,7 +5,7 @@
 section \<open>Quotient infrastructure for the set type\<close>
 
 theory Quotient_Set
-imports Main Quotient_Syntax
+imports Quotient_Syntax
 begin
 
 subsection \<open>Contravariant set map (vimage) and set relator, rules for the Quotient package\<close>

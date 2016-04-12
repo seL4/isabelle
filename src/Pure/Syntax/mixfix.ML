@@ -27,6 +27,7 @@ sig
   val reset_pos: mixfix -> mixfix
   val pretty_mixfix: mixfix -> Pretty.T
   val mixfix_args: mixfix -> int
+  val default_constraint: mixfix -> typ
   val make_type: int -> typ
   val binder_name: string -> string
   val syn_ext_types: (string * typ * mixfix) list -> Syntax_Ext.syn_ext
@@ -116,6 +117,12 @@ fun mixfix_args NoSyn = 0
   | mixfix_args (Infixr (sy, _, _)) = 2 + Syntax_Ext.mixfix_args sy
   | mixfix_args (Binder _) = 1
   | mixfix_args (Structure _) = 0;
+
+
+(* default type constraint *)
+
+fun default_constraint (Binder _) = (dummyT --> dummyT) --> dummyT
+  | default_constraint mx = replicate (mixfix_args mx) dummyT ---> dummyT;
 
 
 (* syn_ext_types *)

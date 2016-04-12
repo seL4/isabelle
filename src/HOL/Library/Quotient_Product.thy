@@ -5,7 +5,7 @@
 section \<open>Quotient infrastructure for the product type\<close>
 
 theory Quotient_Product
-imports Main Quotient_Syntax
+imports Quotient_Syntax
 begin
 
 subsection \<open>Rules for the Quotient package\<close>

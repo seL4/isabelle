@@ -167,8 +167,9 @@ fun get_var_type t =
 fun read_term ctxt T s =
   let
     val ctxt' = ctxt
-      |> Config.put Type_Infer_Context.const_sorts false
-      |> Proof_Context.set_defsort [];
+      |> Proof_Context.set_defsort []
+      |> Config.put Type_Infer.object_logic false
+      |> Config.put Type_Infer_Context.const_sorts false;
     val parse = if T = propT then Syntax.parse_prop else Syntax.parse_term;
   in parse ctxt' s |> Type.constraint T |> Syntax.check_term ctxt' end;
 

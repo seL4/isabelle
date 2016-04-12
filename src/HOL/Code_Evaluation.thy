@@ -69,6 +69,7 @@ no_notation App (infixl "<\<cdot>>" 70)
 subsection \<open>Tools setup and evaluation\<close>
 
 lemma eq_eq_TrueD:
+  fixes x y :: "'a::{}"
   assumes "(x \<equiv> y) \<equiv> Trueprop True"
   shows "x \<equiv> y"
   using assms by simp

@@ -134,18 +134,14 @@ fun gen_quotient_def prep_var parse_term (raw_var, (attr, (raw_lhs, raw_rhs))) l
     val (opt_var, ctxt) =
       (case raw_var of
         NONE => (NONE, lthy)
-      | SOME var =>
-          Proof_Context.set_object_logic_constraint lthy
-          |> prep_var var
-          ||> Proof_Context.restore_object_logic_constraint lthy
-          |>> SOME)
-    val lhs_constraint = (case opt_var of SOME (_, SOME T, _) => T | _ => dummyT)
+      | SOME var => prep_var var lthy |>> SOME)
+    val lhs_constraints = (case opt_var of SOME (_, SOME T, _) => [T] | _ => [])
 
-    fun prep_term T = parse_term ctxt #> Type.constraint T #> Syntax.check_term ctxt;
-    val lhs = prep_term lhs_constraint raw_lhs
-    val rhs = prep_term dummyT raw_rhs
+    fun prep_term Ts = parse_term ctxt #> fold Type.constraint Ts #> Syntax.check_term ctxt;
+    val lhs = prep_term lhs_constraints raw_lhs
+    val rhs = prep_term [] raw_rhs
 
-    val (lhs_str, lhs_ty) = dest_Free lhs handle TERM _ => error "Constant already defined."
+    val (lhs_str, lhs_ty) = dest_Free lhs handle TERM _ => error "Constant already defined"
     val _ = if null (strip_abs_vars rhs) then () else error "The definiens cannot be an abstraction"
     val _ = if is_Const rhs then () else warning "The definiens is not a constant"
 

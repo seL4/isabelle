@@ -165,9 +165,9 @@ and subst_termify (Abs (v, T, t)) = (case subst_termify t
       | NONE => NONE)
   | subst_termify t = subst_termify_app (strip_comb t) 
 
-fun check_termify _ ts = the_default ts (map_default subst_termify ts);
+fun check_termify ts = the_default ts (map_default subst_termify ts);
 
-val _ = Context.>> (Syntax_Phases.term_check 0 "termify" check_termify);
+val _ = Context.>> (Syntax_Phases.term_check 0 "termify" (K check_termify));
 
 
 (** evaluation **)
