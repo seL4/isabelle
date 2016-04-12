@@ -215,7 +215,10 @@ fun read_term thy topsort =
       |> Proof_Context.init_global
       |> Proof_Context.allow_dummies
       |> Proof_Context.set_mode Proof_Context.mode_schematic
-      |> topsort ? (Config.put Type_Infer_Context.const_sorts false #> Proof_Context.set_defsort []);
+      |> topsort ?
+        (Proof_Context.set_defsort [] #>
+         Config.put Type_Infer.object_logic false #>
+         Config.put Type_Infer_Context.const_sorts false);
   in
     fn ty => fn s =>
       (if ty = propT then Syntax.parse_prop else Syntax.parse_term) ctxt s

@@ -120,7 +120,7 @@ fun mk_meta_equation th =
       th RS @{thm eq_reflection}
   | _ => th)
 
-val meta_fun_cong = @{lemma "f == g ==> f x == g x" by simp}
+val meta_fun_cong = @{lemma "\<And>f :: 'a::{} \<Rightarrow> 'b::{}.f == g ==> f x == g x" by simp}
 
 fun full_fun_cong_expand th =
   let

@@ -747,7 +747,7 @@ lemma imp_elim: "P \<longrightarrow> Q \<Longrightarrow> (\<not> R \<Longrightar
 lemma swap: "\<not> P \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> R"
   by (rule classical) iprover
 
-lemma thin_refl: "\<And>X. \<lbrakk>x = x; PROP W\<rbrakk> \<Longrightarrow> PROP W" .
+lemma thin_refl: "\<lbrakk>x = x; PROP W\<rbrakk> \<Longrightarrow> PROP W" .
 
 ML \<open>
 structure Hypsubst = Hypsubst
@@ -1506,7 +1506,7 @@ lemma [induct_simp]: "(PROP P \<Longrightarrow> induct_true) \<equiv> Trueprop i
   unfolding induct_true_def
   by (iprover intro: equal_intr_rule)
 
-lemma [induct_simp]: "(\<And>x. induct_true) \<equiv> Trueprop induct_true"
+lemma [induct_simp]: "(\<And>x::'a::{}. induct_true) \<equiv> Trueprop induct_true"
   unfolding induct_true_def
   by (iprover intro: equal_intr_rule)
 

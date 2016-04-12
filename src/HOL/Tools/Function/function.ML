@@ -80,11 +80,7 @@ fun add_simps fnames post sort extra_qualify label mod_binding moreatts
 
 fun prepare_function do_print prep fixspec eqns config lthy =
   let
-    val ((fixes0, spec0), ctxt') =
-      lthy
-      |> Proof_Context.set_object_logic_constraint
-      |> prep fixspec eqns
-      ||> Proof_Context.restore_object_logic_constraint lthy;
+    val ((fixes0, spec0), ctxt') = prep fixspec eqns lthy;
     val fixes = map (apfst (apfst Binding.name_of)) fixes0;
     val spec = map (fn (bnd, prop) => (bnd, [prop])) spec0;
     val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec

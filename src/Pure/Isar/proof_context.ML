@@ -666,7 +666,7 @@ val allow_dummies = Config.put dummies true;
 
 fun prepare_patterns ctxt =
   let val Mode {pattern, ...} = get_mode ctxt in
-    Type_Infer.fixate ctxt #>
+    Type_Infer.fixate ctxt pattern #>
     pattern ? Variable.polymorphic ctxt #>
     (map o Term.map_types) (prepare_patternT ctxt) #>
     (if pattern then prepare_dummies else map (check_dummies ctxt))

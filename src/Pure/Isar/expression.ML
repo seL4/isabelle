@@ -175,7 +175,7 @@ fun inst_morphism (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
     val parm_types' = map (Type_Infer.paramify_vars o Logic.varifyT_global) parm_types;
     val type_parms = fold Term.add_tvarsT parm_types' [] |> map (Logic.mk_type o TVar);
     val arg = type_parms @ map2 Type.constraint parm_types' insts';
-    val res = Syntax.check_terms ctxt arg;
+    val res = Syntax.check_terms (Config.put Type_Infer.object_logic false ctxt) arg;
     val ctxt' = ctxt |> fold Variable.auto_fixes res;
 
     (* instantiation *)

@@ -544,7 +544,10 @@ fun eval_term (nbe_program, idx_tab) raw_ctxt t_original ((vs, ty) : typscheme, 
     val ctxt = Syntax.init_pretty_global (Proof_Context.theory_of raw_ctxt);
     val string_of_term = Syntax.string_of_term (Config.put show_types true ctxt);
     fun type_infer t' =
-      Syntax.check_term (Config.put Type_Infer_Context.const_sorts false ctxt)
+      Syntax.check_term
+        (ctxt
+          |> Config.put Type_Infer.object_logic false
+          |> Config.put Type_Infer_Context.const_sorts false)
         (Type.constraint (fastype_of t_original) t');
     fun check_tvars t' =
       if null (Term.add_tvars t' []) then t'
