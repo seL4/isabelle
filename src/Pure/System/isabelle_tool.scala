@@ -50,34 +50,27 @@ object Isabelle_Tool
 
   /* internal tools */
 
-  private var internal_tools = Map.empty[String, (String, List[String] => Nothing)]
+  private val internal_tools: List[Isabelle_Tool] =
+    List(
+      Build.isabelle_tool,
+      Build_Doc.isabelle_tool,
+      Check_Sources.isabelle_tool,
+      Doc.isabelle_tool,
+      ML_Process.isabelle_tool,
+      Options.isabelle_tool,
+      Update_Cartouches.isabelle_tool,
+      Update_Header.isabelle_tool,
+      Update_Then.isabelle_tool,
+      Update_Theorems.isabelle_tool)
 
   private def list_internal(): List[(String, String)] =
-    synchronized {
-      for ((name, (description, _)) <- internal_tools.toList) yield (name, description)
-    }
+    for (tool <- internal_tools.toList) yield (tool.name, tool.description)
 
   private def find_internal(name: String): Option[List[String] => Unit] =
-    synchronized { internal_tools.get(name).map(_._2) }
-
-  private def register(isabelle_tool: Isabelle_Tool): Unit =
-    synchronized {
-      internal_tools +=
-        (isabelle_tool.name ->
-          (isabelle_tool.description,
-            args => Command_Line.tool0 { isabelle_tool.body(args) }))
-    }
-
-  register(Build.isabelle_tool)
-  register(Build_Doc.isabelle_tool)
-  register(Check_Sources.isabelle_tool)
-  register(Doc.isabelle_tool)
-  register(ML_Process.isabelle_tool)
-  register(Options.isabelle_tool)
-  register(Update_Cartouches.isabelle_tool)
-  register(Update_Header.isabelle_tool)
-  register(Update_Then.isabelle_tool)
-  register(Update_Theorems.isabelle_tool)
+    internal_tools.collectFirst({
+      case tool if tool.name == name =>
+        args => Command_Line.tool0 { tool.body(args) }
+      })
 
 
   /* command line entry point */
