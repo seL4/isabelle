@@ -6623,16 +6623,26 @@ proof -
     done
 qed
 
+lemma compact_segment [simp]:
+  fixes a :: "'a::real_normed_vector"
+  shows "compact (closed_segment a b)"
+  by (auto simp: segment_image_interval intro!: compact_continuous_image continuous_intros)
+
+lemma closed_segment [simp]:
+  fixes a :: "'a::real_normed_vector"
+  shows "closed (closed_segment a b)"
+  by (simp add: compact_imp_closed)
+
+lemma closure_closed_segment [simp]:
+  fixes a :: "'a::real_normed_vector"
+  shows "closure(closed_segment a b) = closed_segment a b"
+  by simp
+
 lemma open_segment_bound:
   assumes "x \<in> open_segment a b"
   shows "norm (x - a) < norm (b - a)" "norm (x - b) < norm (b - a)"
 apply (simp add: assms open_segment_bound1)
 by (metis assms norm_minus_commute open_segment_bound1 open_segment_commute)
-
-lemma closure_closed_segment [simp]:
-    fixes a :: "'a::euclidean_space"
-    shows "closure(closed_segment a b) = closed_segment a b"
-  by (simp add: closure_eq compact_imp_closed segment_convex_hull compact_convex_hull)
 
 lemma closure_open_segment [simp]:
     fixes a :: "'a::euclidean_space"
@@ -6647,17 +6657,9 @@ proof -
          closure_translation image_comp [symmetric] del: closure_greaterThanLessThan)
 qed
 
-lemma closed_segment [simp]:
-    fixes a :: "'a::euclidean_space"  shows "closed (closed_segment a b)"
-  using closure_subset_eq by fastforce
-
 lemma closed_open_segment_iff [simp]:
     fixes a :: "'a::euclidean_space"  shows "closed(open_segment a b) \<longleftrightarrow> a = b"
   by (metis open_segment_def DiffE closure_eq closure_open_segment ends_in_segment(1) insert_iff segment_image_interval(2))
-
-lemma compact_segment [simp]:
-    fixes a :: "'a::euclidean_space"  shows "compact (closed_segment a b)"
-  by (simp add: compact_convex_hull segment_convex_hull)
 
 lemma compact_open_segment_iff [simp]:
     fixes a :: "'a::euclidean_space"  shows "compact(open_segment a b) \<longleftrightarrow> a = b"
