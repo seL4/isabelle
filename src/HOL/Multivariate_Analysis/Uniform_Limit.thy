@@ -53,6 +53,17 @@ lemma uniform_limit_at_le_iff:
   unfolding uniform_limit_iff eventually_at
   by (fastforce dest: spec[where x = "e / 2" for e])
 
+lemma metric_uniform_limit_imp_uniform_limit:
+  assumes f: "uniform_limit S f a F"
+  assumes le: "eventually (\<lambda>x. \<forall>y\<in>S. dist (g x y) (b y) \<le> dist (f x y) (a y)) F"
+  shows "uniform_limit S g b F"
+proof (rule uniform_limitI)
+  fix e :: real assume "0 < e"
+  from uniform_limitD[OF f this] le
+  show "\<forall>\<^sub>F x in F. \<forall>y\<in>S. dist (g x y) (b y) < e"
+    by eventually_elim force
+qed
+
 lemma swap_uniform_limit:
   assumes f: "\<forall>\<^sub>F n in F. (f n \<longlongrightarrow> g n) (at x within S)"
   assumes g: "(g \<longlongrightarrow> l) F"
@@ -352,6 +363,9 @@ lemmas bounded_linear_uniform_limit_intros[uniform_limit_intros] =
 lemmas uniform_limit_uminus[uniform_limit_intros] =
   bounded_linear.uniform_limit[OF bounded_linear_minus[OF bounded_linear_ident]]
 
+lemma uniform_limit_const[uniform_limit_intros]: "uniform_limit S (\<lambda>x y. c) (\<lambda>x. c) f"
+  by (auto intro!: uniform_limitI)
+
 lemma uniform_limit_add[uniform_limit_intros]:
   fixes f g::"'a \<Rightarrow> 'b \<Rightarrow> 'c::real_normed_vector"
   assumes "uniform_limit X f l F"
@@ -375,6 +389,14 @@ lemma uniform_limit_minus[uniform_limit_intros]:
   shows "uniform_limit X (\<lambda>a b. f a b - g a b) (\<lambda>a. l a - m a) F"
   unfolding diff_conv_add_uminus
   by (rule uniform_limit_intros assms)+
+
+lemma uniform_limit_norm[uniform_limit_intros]:
+  assumes "uniform_limit S g l f"
+  shows "uniform_limit S (\<lambda>x y. norm (g x y)) (\<lambda>x. norm (l x)) f"
+  using assms
+  apply (rule metric_uniform_limit_imp_uniform_limit)
+  apply (rule eventuallyI)
+  by (metis dist_norm norm_triangle_ineq3 real_norm_def)
 
 lemma (in bounded_bilinear) bounded_uniform_limit[uniform_limit_intros]:
   assumes "uniform_limit X f l F"
@@ -449,17 +471,6 @@ lemmas bounded_bilinear_bounded_uniform_limit_intros[uniform_limit_intros] =
   bounded_bilinear.bounded_uniform_limit[OF Inner_Product.bounded_bilinear_inner]
   bounded_bilinear.bounded_uniform_limit[OF Real_Vector_Spaces.bounded_bilinear_mult]
   bounded_bilinear.bounded_uniform_limit[OF Real_Vector_Spaces.bounded_bilinear_scaleR]
-
-lemma metric_uniform_limit_imp_uniform_limit:
-  assumes f: "uniform_limit S f a F"
-  assumes le: "eventually (\<lambda>x. \<forall>y\<in>S. dist (g x y) (b y) \<le> dist (f x y) (a y)) F"
-  shows "uniform_limit S g b F"
-proof (rule uniform_limitI)
-  fix e :: real assume "0 < e"
-  from uniform_limitD[OF f this] le
-  show "\<forall>\<^sub>F x in F. \<forall>y\<in>S. dist (g x y) (b y) < e"
-    by eventually_elim force
-qed
 
 lemma uniform_limit_null_comparison:
   assumes "\<forall>\<^sub>F x in F. \<forall>a\<in>S. norm (f x a) \<le> g x a"

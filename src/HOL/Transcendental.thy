@@ -1291,6 +1291,9 @@ lemma exp_add_commuting: "x * y = y * x \<Longrightarrow> exp (x + y) = exp x * 
   unfolding exp_def
   by (simp only: Cauchy_product summable_norm_exp exp_series_add_commuting)
 
+lemma exp_times_arg_commute: "exp A * A = A * exp A"
+  by (simp add: exp_def suminf_mult[symmetric] summable_exp_generic power_commutes suminf_mult2)
+
 lemma exp_add:
   fixes x y::"'a::{real_normed_field,banach}"
   shows "exp (x + y) = exp x * exp y"
@@ -1710,20 +1713,28 @@ proof -
   thus ?thesis by auto
 qed
 
-lemma exp_first_two_terms:
-  fixes x :: "'a::{real_normed_field,banach}"
-  shows "exp x = 1 + x + (\<Sum> n. inverse(fact (n+2)) * (x ^ (n+2)))"
+lemma exp_first_terms:
+  fixes x :: "'a::{real_normed_algebra_1,banach}"
+  shows "exp x = (\<Sum>n<k. inverse(fact n) *\<^sub>R (x ^ n)) + (\<Sum>n. inverse(fact (n+k)) *\<^sub>R (x ^ (n+k)))"
 proof -
-  have "exp x = suminf (\<lambda>n. inverse(fact n) * (x^n))"
-    by (simp add: exp_def scaleR_conv_of_real nonzero_of_real_inverse)
-  also from summable_exp have "... = (\<Sum> n. inverse(fact(n+2)) * (x ^ (n+2))) +
-    (\<Sum> n::nat<2. inverse(fact n) * (x^n))" (is "_ = _ + ?a")
+  have "exp x = suminf (\<lambda>n. inverse(fact n) *\<^sub>R (x^n))"
+    by (simp add: exp_def)
+  also from summable_exp_generic have "... = (\<Sum> n. inverse(fact(n+k)) *\<^sub>R (x ^ (n+k))) +
+    (\<Sum> n::nat<k. inverse(fact n) *\<^sub>R (x^n))" (is "_ = _ + ?a")
     by (rule suminf_split_initial_segment)
-  also have "?a = 1 + x"
-    by (simp add: numeral_2_eq_2)
-  finally show ?thesis
-    by simp
+  finally show ?thesis by simp
 qed
+
+lemma exp_first_term:
+  fixes x :: "'a::{real_normed_algebra_1,banach}"
+  shows "exp x = 1 + (\<Sum> n. inverse(fact (Suc n)) *\<^sub>R (x ^ (Suc n)))"
+  using exp_first_terms[of x 1] by simp
+
+lemma exp_first_two_terms:
+  fixes x :: "'a::{real_normed_algebra_1,banach}"
+  shows "exp x = 1 + x + (\<Sum> n. inverse(fact (n+2)) *\<^sub>R (x ^ (n+2)))"
+  using exp_first_terms[of x 2]
+  by (simp add: eval_nat_numeral)
 
 lemma exp_bound: "0 <= (x::real) \<Longrightarrow> x <= 1 \<Longrightarrow> exp x <= 1 + x + x\<^sup>2"
 proof -

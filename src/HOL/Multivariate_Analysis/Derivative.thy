@@ -2525,6 +2525,85 @@ apply (rule vector_derivative_at [OF field_vector_diff_chain_at])
 using assms
 by (auto simp: vector_derivative_works DERIV_deriv_iff_has_field_derivative)
 
+lemma exp_scaleR_has_vector_derivative_right:
+  "((\<lambda>t. exp (t *\<^sub>R A)) has_vector_derivative exp (t *\<^sub>R A) * A) (at t within T)"
+  unfolding has_vector_derivative_def
+proof (rule has_derivativeI)
+  let ?F = "at t within (T \<inter> {t - 1 <..< t + 1})"
+  have *: "at t within T = ?F"
+    by (rule at_within_nhd[where S="{t - 1 <..< t + 1}"]) auto
+  let ?e = "\<lambda>i x. (inverse (1 + real i) * inverse (fact i) * (x - t) ^ i) *\<^sub>R (A * A ^ i)"
+  have "\<forall>\<^sub>F n in sequentially.
+      \<forall>x\<in>T \<inter> {t - 1<..<t + 1}. norm (?e n x) \<le> norm (A ^ (n + 1) /\<^sub>R fact (n + 1))"
+    by (auto simp: divide_simps power_abs intro!: mult_left_le_one_le power_le_one eventuallyI)
+  then have "uniform_limit (T \<inter> {t - 1<..<t + 1}) (\<lambda>n x. \<Sum>i<n. ?e i x) (\<lambda>x. \<Sum>i. ?e i x) sequentially"
+    by (rule weierstrass_m_test_ev) (intro summable_ignore_initial_segment summable_norm_exp)
+  moreover
+  have "\<forall>\<^sub>F x in sequentially. x > 0"
+    by (metis eventually_gt_at_top)
+  then have
+    "\<forall>\<^sub>F n in sequentially. ((\<lambda>x. \<Sum>i<n. ?e i x) \<longlongrightarrow> A) ?F"
+    by eventually_elim
+      (auto intro!: tendsto_eq_intros
+        simp: power_0_left if_distrib cond_application_beta setsum.delta
+        cong: if_cong)
+  ultimately
+  have [tendsto_intros]: "((\<lambda>x. \<Sum>i. ?e i x) \<longlongrightarrow> A) ?F"
+    by (auto intro!: swap_uniform_limit[where f="\<lambda>n x. \<Sum>i < n. ?e i x" and F = sequentially])
+  have [tendsto_intros]: "((\<lambda>x. if x = t then 0 else 1) \<longlongrightarrow> 1) ?F"
+    by (rule Lim_eventually) (simp add: eventually_at_filter)
+  have "((\<lambda>y. ((y - t) / abs (y - t)) *\<^sub>R ((\<Sum>n. ?e n y) - A)) \<longlongrightarrow> 0) (at t within T)"
+    unfolding *
+    by (rule tendsto_norm_zero_cancel) (auto intro!: tendsto_eq_intros)
+
+  moreover
+
+  have "\<forall>\<^sub>F x in at t within T. x \<noteq> t"
+    by (simp add: eventually_at_filter)
+  then have "\<forall>\<^sub>F x in at t within T. ((x - t) / \<bar>x - t\<bar>) *\<^sub>R ((\<Sum>n. ?e n x) - A) =
+    (exp ((x - t) *\<^sub>R A) - 1 - (x - t) *\<^sub>R A) /\<^sub>R norm (x - t)"
+  proof eventually_elim
+    case (elim x)
+    have "(exp ((x - t) *\<^sub>R A) - 1 - (x - t) *\<^sub>R A) /\<^sub>R norm (x - t) =
+      ((\<Sum>n. (x - t) *\<^sub>R ?e n x) - (x - t) *\<^sub>R A) /\<^sub>R norm (x - t)"
+      unfolding exp_first_term
+      by (simp add: ac_simps)
+    also
+    have "summable (\<lambda>n. ?e n x)"
+    proof -
+      from elim have "?e n x = (((x - t) *\<^sub>R A) ^ (n + 1)) /\<^sub>R fact (n + 1) /\<^sub>R (x - t)" for n
+        by simp
+      then show ?thesis
+        by (auto simp only:
+          intro!: summable_scaleR_right summable_ignore_initial_segment summable_exp_generic)
+    qed
+    then have "(\<Sum>n. (x - t) *\<^sub>R ?e n x) = (x - t) *\<^sub>R (\<Sum>n. ?e n x)"
+      by (rule suminf_scaleR_right[symmetric])
+    also have "(\<dots> - (x - t) *\<^sub>R A) /\<^sub>R norm (x - t) = (x - t) *\<^sub>R ((\<Sum>n. ?e n x) - A) /\<^sub>R norm (x - t)"
+      by (simp add: algebra_simps)
+    finally show ?case
+      by (simp add: divide_simps)
+  qed
+
+  ultimately
+
+  have "((\<lambda>y. (exp ((y - t) *\<^sub>R A) - 1 - (y - t) *\<^sub>R A) /\<^sub>R norm (y - t)) \<longlongrightarrow> 0) (at t within T)"
+    by (rule Lim_transform_eventually[rotated])
+  from tendsto_mult_right_zero[OF this, where c="exp (t *\<^sub>R A)"]
+  show "((\<lambda>y. (exp (y *\<^sub>R A) - exp (t *\<^sub>R A) - (y - t) *\<^sub>R (exp (t *\<^sub>R A) * A)) /\<^sub>R norm (y - t)) \<longlongrightarrow> 0)
+      (at t within T)"
+    by (rule Lim_transform_eventually[rotated])
+      (auto simp: algebra_simps divide_simps exp_add_commuting[symmetric])
+qed (rule bounded_linear_scaleR_left)
+
+lemma exp_times_scaleR_commute: "exp (t *\<^sub>R A) * A = A * exp (t *\<^sub>R A)"
+  using exp_times_arg_commute[symmetric, of "t *\<^sub>R A"]
+  by (auto simp: algebra_simps)
+
+lemma exp_scaleR_has_vector_derivative_left: "((\<lambda>t. exp (t *\<^sub>R A)) has_vector_derivative A * exp (t *\<^sub>R A)) (at t)"
+  using exp_scaleR_has_vector_derivative_right[of A t]
+  by (simp add: exp_times_scaleR_commute)
+
 
 subsection \<open>Relation between convexity and derivative\<close>
 
