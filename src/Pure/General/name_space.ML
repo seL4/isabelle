@@ -251,11 +251,14 @@ fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
 fun completion context space (xname, pos) =
   Completion.make (xname, pos) (fn completed =>
     let
-      fun result_ord ((xname1, (_, name1)), (xname2, (_, name2))) =
-        (case bool_ord (apply2 (is_some o Long_Name.dest_local) (name2, name1)) of
+      fun result_ord ((precise1, (xname1, (_, name1))), (precise2, (xname2, (_, name2)))) =
+        (case bool_ord (precise2, precise1) of
           EQUAL =>
-            (case int_ord (apply2 Long_Name.qualification (xname1, xname2)) of
-              EQUAL => string_ord (xname1, xname2)
+            (case bool_ord (apply2 (is_some o Long_Name.dest_local) (name2, name1)) of
+              EQUAL =>
+                (case int_ord (apply2 Long_Name.qualification (xname1, xname2)) of
+                  EQUAL => string_ord (xname1, xname2)
+                | ord => ord)
             | ord => ord)
         | ord => ord);
       val Name_Space {kind, internals, ...} = space;
@@ -264,11 +267,11 @@ fun completion context space (xname, pos) =
       Change_Table.fold
         (fn (a, (name :: _, _)) =>
             if completed a andalso not (is_concealed space name) then
-              let val a' = ext name
-              in if a = a' then cons (a', (kind, name)) else I end
+              cons (a = ext name, (a, (kind, name)))
             else I
           | _ => I) internals []
       |> sort_distinct result_ord
+      |> map #2
     end);
 
 
