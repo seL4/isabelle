@@ -463,6 +463,12 @@ lemma continuous_on_blinfun_matrix:
   using assms
   by (auto simp: continuous_on_eq_continuous_within continuous_blinfun_matrix)
 
+lemma continuous_on_blinfun_of_matrix[continuous_intros]:
+  assumes "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> continuous_on S (\<lambda>s. g s i j)"
+  shows "continuous_on S (\<lambda>s. blinfun_of_matrix (g s))"
+  using assms
+  by (auto simp: continuous_on intro!: tendsto_blinfun_of_matrix)
+
 lemma mult_if_delta:
   "(if P then (1::'a::comm_semiring_1) else 0) * q = (if P then q else 0)"
   by auto
