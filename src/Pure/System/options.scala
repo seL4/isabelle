@@ -80,15 +80,18 @@ object Options
 
   lazy val prefs_syntax = Outer_Syntax.init() + "="
 
-  object Parser extends Parse.Parser
+  trait Parser extends Parse.Parser
   {
-    val option_name = atom("option name", _.is_xname)
-    val option_type = atom("option type", _.is_ident)
+    val option_name = atom("option name", _.is_name)
+    val option_type = atom("option type", _.is_name)
     val option_value =
       opt(token("-", tok => tok.is_sym_ident && tok.content == "-")) ~ atom("nat", _.is_nat) ^^
         { case s ~ n => if (s.isDefined) "-" + n else n } |
       atom("option value", tok => tok.is_name || tok.is_float)
+  }
 
+  object Parser extends Parse.Parser with Parser
+  {
     def comment_marker: Parser[String] =
       $$$("--") | $$$(Symbol.comment) | $$$(Symbol.comment_decoded)
 
