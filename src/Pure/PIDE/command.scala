@@ -322,7 +322,7 @@ object Command
   private def find_file(tokens: List[(Token, Int)]): Option[(String, Int)] =
     if (tokens.exists({ case (t, _) => t.is_command })) {
       tokens.dropWhile({ case (t, _) => !t.is_command }).
-        collectFirst({ case (t, i) if t.is_name => (t.content, i) })
+        collectFirst({ case (t, i) if t.is_xname => (t.content, i) })
     }
     else None
 

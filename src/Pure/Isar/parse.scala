@@ -74,7 +74,7 @@ object Parse
     def document_source: Parser[String] = atom("document source", _.is_text)
 
     def path: Parser[String] =
-      atom("file name/path specification", tok => tok.is_name && Path.is_wellformed(tok.content))
+      atom("file name/path specification", tok => tok.is_xname && Path.is_wellformed(tok.content))
 
     def theory_name: Parser[String] =
       atom("theory name", tok => tok.is_name && Path.is_wellformed(tok.content))

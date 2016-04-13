@@ -195,8 +195,8 @@ text \<open>
       @@{antiquotation emph} options @{syntax text} |
       @@{antiquotation bold} options @{syntax text} |
       @@{antiquotation verbatim} options @{syntax text} |
-      @@{antiquotation "file"} options @{syntax name} |
-      @@{antiquotation file_unchecked} options @{syntax name} |
+      @@{antiquotation "file"} options @{syntax xname} |
+      @@{antiquotation file_unchecked} options @{syntax xname} |
       @@{antiquotation url} options @{syntax name} |
       @@{antiquotation cite} options @{syntax cartouche}? (@{syntax name} + @'and')
     ;
@@ -613,7 +613,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command display_drafts} (@{syntax name} +)
+    @@{command display_drafts} (@{syntax xname} +)
   \<close>}
 
   \<^descr> @{command "display_drafts"}~\<open>paths\<close> performs simple output of a given list

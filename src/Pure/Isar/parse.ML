@@ -271,7 +271,7 @@ val xname = group (fn () => "name reference")
 val text = group (fn () => "text")
   (short_ident || long_ident || sym_ident || string || number || verbatim || cartouche);
 
-val path = group (fn () => "file name/path specification") name;
+val path = group (fn () => "file name/path specification") xname;
 
 val theory_name = group (fn () => "theory name") name;
 val theory_xname = group (fn () => "theory name reference") xname;

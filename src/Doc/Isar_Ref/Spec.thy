@@ -1054,7 +1054,7 @@ text \<open>
       @@{command SML_file_no_debug} |
       @@{command ML_file} |
       @@{command ML_file_debug} |
-      @@{command ML_file_no_debug}) @{syntax name} ';'?
+      @@{command ML_file_no_debug}) @{syntax xname} ';'?
     ;
     (@@{command ML} | @@{command ML_prf} | @@{command ML_val} |
       @@{command ML_command} | @@{command setup} | @@{command local_setup}) @{syntax text}
