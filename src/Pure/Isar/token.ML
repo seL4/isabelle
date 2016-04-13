@@ -38,7 +38,6 @@ sig
   val kind_of: T -> kind
   val is_kind: kind -> T -> bool
   val is_command: T -> bool
-  val is_name: T -> bool
   val keyword_with: (string -> bool) -> T -> bool
   val is_command_modifier: T -> bool
   val ident_with: (string -> bool) -> T -> bool
@@ -209,8 +208,6 @@ fun kind_of (Token (_, (k, _), _)) = k;
 fun is_kind k (Token (_, (k', _), _)) = k = k';
 
 val is_command = is_kind Command;
-
-val is_name = is_kind Ident orf is_kind Sym_Ident orf is_kind String orf is_kind Nat;
 
 fun keyword_with pred (Token (_, (Keyword, x), _)) = pred x
   | keyword_with _ _ = false;

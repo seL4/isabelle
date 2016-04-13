@@ -179,19 +179,14 @@ subsection \<open>Names\<close>
 
 text \<open>
   Entity @{syntax name} usually refers to any name of types, constants,
-  theorems etc.\ that are to be \<^emph>\<open>declared\<close> or \<^emph>\<open>defined\<close> (so qualified
-  identifiers are excluded here). Quoted strings provide an escape for
-  non-identifier names or those ruled out by outer syntax keywords (e.g.\
-  quoted \<^verbatim>\<open>"let"\<close>). Already existing objects are usually referenced by
-  @{syntax nameref}.
+  theorems etc.\ Quoted strings provide an escape for non-identifier names or
+  those ruled out by outer syntax keywords (e.g.\ quoted \<^verbatim>\<open>"let"\<close>).
 
   @{rail \<open>
-    @{syntax_def name}: @{syntax ident} | @{syntax symident} |
-      @{syntax string} | @{syntax nat}
+    @{syntax_def name}: @{syntax ident} | @{syntax longident} |
+      @{syntax symident} | @{syntax string} | @{syntax nat}
     ;
     @{syntax_def par_name}: '(' @{syntax name} ')'
-    ;
-    @{syntax_def nameref}: @{syntax name} | @{syntax longident}
   \<close>}
 \<close>
 
@@ -219,13 +214,13 @@ subsection \<open>Comments \label{sec:comments}\<close>
 text \<open>
   Large chunks of plain @{syntax text} are usually given @{syntax verbatim},
   i.e.\ enclosed in \<^verbatim>\<open>{*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*}\<close>, or as @{syntax cartouche} \<open>\<open>\<dots>\<close>\<close>. For
-  convenience, any of the smaller text units conforming to @{syntax nameref}
-  are admitted as well. A marginal @{syntax comment} is of the form
-  \<^verbatim>\<open>--\<close>~@{syntax text} or \<^verbatim>\<open>\<comment>\<close>~@{syntax text}. Any number of these may occur
-  within Isabelle/Isar commands.
+  convenience, any of the smaller text units conforming to @{syntax name} are
+  admitted as well. A marginal @{syntax comment} is of the form \<^verbatim>\<open>--\<close>~@{syntax
+  text} or \<^verbatim>\<open>\<comment>\<close>~@{syntax text}. Any number of these may occur within
+  Isabelle/Isar commands.
 
   @{rail \<open>
-    @{syntax_def text}: @{syntax verbatim} | @{syntax cartouche} | @{syntax nameref}
+    @{syntax_def text}: @{syntax verbatim} | @{syntax cartouche} | @{syntax name}
     ;
     @{syntax_def comment}: ('--' | @'\<comment>') @{syntax text}
   \<close>}
@@ -241,9 +236,9 @@ text \<open>
   directly at the outer level.
 
   @{rail \<open>
-    @{syntax_def classdecl}: @{syntax name} (('<' | '\<subseteq>') (@{syntax nameref} + ','))?
+    @{syntax_def classdecl}: @{syntax name} (('<' | '\<subseteq>') (@{syntax name} + ','))?
     ;
-    @{syntax_def sort}: @{syntax nameref}
+    @{syntax_def sort}: @{syntax name}
     ;
     @{syntax_def arity}: ('(' (@{syntax sort} + ',') ')')? @{syntax sort}
   \<close>}
@@ -265,10 +260,10 @@ text \<open>
   as \<^verbatim>\<open>=\<close> or \<^verbatim>\<open>+\<close>).
 
   @{rail \<open>
-    @{syntax_def type}: @{syntax nameref} | @{syntax typefree} |
+    @{syntax_def type}: @{syntax name} | @{syntax typefree} |
       @{syntax typevar}
     ;
-    @{syntax_def term}: @{syntax nameref} | @{syntax var}
+    @{syntax_def term}: @{syntax name} | @{syntax var}
     ;
     @{syntax_def prop}: @{syntax term}
   \<close>}
@@ -377,7 +372,7 @@ text \<open>
   conforming to @{syntax symident}.
 
   @{rail \<open>
-    @{syntax_def atom}: @{syntax nameref} | @{syntax typefree} |
+    @{syntax_def atom}: @{syntax name} | @{syntax typefree} |
       @{syntax typevar} | @{syntax var} | @{syntax nat} | @{syntax float} |
       @{syntax keyword} | @{syntax cartouche}
     ;
@@ -385,13 +380,13 @@ text \<open>
     ;
     @{syntax_def args}: arg *
     ;
-    @{syntax_def attributes}: '[' (@{syntax nameref} @{syntax args} * ',') ']'
+    @{syntax_def attributes}: '[' (@{syntax name} @{syntax args} * ',') ']'
   \<close>}
 
   Theorem specifications come in several flavors: @{syntax axmdecl} and
   @{syntax thmdecl} usually refer to axioms, assumptions or results of goal
   statements, while @{syntax thmdef} collects lists of existing theorems.
-  Existing theorems are given by @{syntax thmref} and @{syntax thmrefs}, the
+  Existing theorems are given by @{syntax thm} and @{syntax thms}, the
   former requires an actual singleton result.
 
   There are three forms of theorem references:
@@ -426,12 +421,12 @@ text \<open>
     ;
     @{syntax_def thmdef}: thmbind '='
     ;
-    @{syntax_def thmref}:
-      (@{syntax nameref} selection? | @{syntax altstring} | @{syntax cartouche})
+    @{syntax_def thm}:
+      (@{syntax name} selection? | @{syntax altstring} | @{syntax cartouche})
         @{syntax attributes}? |
       '[' @{syntax attributes} ']'
     ;
-    @{syntax_def thmrefs}: @{syntax thmref} +
+    @{syntax_def thms}: @{syntax thm} +
     ;
     selection: '(' ((@{syntax nat} | @{syntax nat} '-' @{syntax nat}?) + ',') ')'
   \<close>}
@@ -465,13 +460,13 @@ text \<open>
     ;
     @@{command find_theorems} ('(' @{syntax nat}? 'with_dups'? ')')? \<newline> (thm_criterion*)
     ;
-    thm_criterion: ('-'?) ('name' ':' @{syntax nameref} | 'intro' | 'elim' | 'dest' |
+    thm_criterion: ('-'?) ('name' ':' @{syntax name} | 'intro' | 'elim' | 'dest' |
       'solves' | 'simp' ':' @{syntax term} | @{syntax term})
     ;
     @@{command find_consts} (const_criterion*)
     ;
     const_criterion: ('-'?)
-      ('name' ':' @{syntax nameref} | 'strict' ':' @{syntax type} | @{syntax type})
+      ('name' ':' @{syntax name} | 'strict' ':' @{syntax type} | @{syntax type})
     ;
     @@{command thm_deps} @{syntax thmrefs}
     ;

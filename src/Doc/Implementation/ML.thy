@@ -653,10 +653,10 @@ text \<open>
   special syntactic entities of the following form:
 
   @{rail \<open>
-  @{syntax_def antiquote}: '@{' nameref args '}'
+  @{syntax_def antiquote}: '@{' name args '}'
   \<close>}
 
-  Here @{syntax nameref} and @{syntax args} are outer syntax categories, as
+  Here @{syntax name} and @{syntax args} are outer syntax categories, as
   defined in @{cite "isabelle-isar-ref"}.
 
   \<^medskip>

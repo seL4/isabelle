@@ -2411,7 +2411,7 @@ val _ =
         Toplevel.theory (add_record_cmd {overloaded = overloaded} x y z)));
 
 val opt_modes =
-  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) []
+  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.name --| @{keyword ")"})) []
 
 val _ =
   Outer_Syntax.command @{command_keyword "print_record"} "print record definiton"

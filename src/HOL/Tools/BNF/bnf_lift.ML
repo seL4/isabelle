@@ -426,7 +426,7 @@ val parse_plugins =
   Scan.optional (@{keyword "("} |-- Plugin_Name.parse_filter --| @{keyword ")"})
     (K Plugin_Name.default_filter) >> Plugins_Option >> single;
 
-val parse_typedef_thm = Scan.option (Parse.reserved "via" |-- Parse.xthm);
+val parse_typedef_thm = Scan.option (Parse.reserved "via" |-- Parse.thm);
 
 in
 

@@ -201,7 +201,7 @@ object Sessions
 
       val theories =
         ($$$(GLOBAL_THEORIES) | $$$(THEORIES)) ~!
-          ((options | success(Nil)) ~ rep(theory_xname)) ^^
+          ((options | success(Nil)) ~ rep(theory_name)) ^^
           { case x ~ (y ~ z) => (x == GLOBAL_THEORIES, y, z) }
 
       val document_files =

@@ -53,9 +53,9 @@ text \<open>
     ;
     @@{command prop} @{syntax modes}? @{syntax prop}
     ;
-    @@{command thm} @{syntax modes}? @{syntax thmrefs}
+    @@{command thm} @{syntax modes}? @{syntax thms}
     ;
-    ( @@{command prf} | @@{command full_prf} ) @{syntax modes}? @{syntax thmrefs}?
+    ( @@{command prf} | @@{command full_prf} ) @{syntax modes}? @{syntax thms}?
     ;
     @@{command print_state} @{syntax modes}?
     ;
@@ -504,12 +504,12 @@ text \<open>
 
   @{rail \<open>
     (@@{command type_notation} | @@{command no_type_notation}) @{syntax mode}? \<newline>
-      (@{syntax nameref} @{syntax mixfix} + @'and')
+      (@{syntax name} @{syntax mixfix} + @'and')
     ;
     (@@{command notation} | @@{command no_notation}) @{syntax mode}? \<newline>
-      (@{syntax nameref} @{syntax mixfix} + @'and')
+      (@{syntax name} @{syntax mixfix} + @'and')
     ;
-    @@{command write} @{syntax mode}? (@{syntax nameref} @{syntax mixfix} + @'and')
+    @@{command write} @{syntax mode}? (@{syntax name} @{syntax mixfix} + @'and')
   \<close>}
 
   \<^descr> @{command "type_notation"}~\<open>c (mx)\<close> associates mixfix syntax with an
@@ -1103,7 +1103,7 @@ text \<open>
     ;
     mode: ('(' ( @{syntax name} | @'output' | @{syntax name} @'output' ) ')')
     ;
-    transpat: ('(' @{syntax nameref} ')')? @{syntax string}
+    transpat: ('(' @{syntax name} ')')? @{syntax string}
   \<close>}
 
   \<^descr> @{command "nonterminal"}~\<open>c\<close> declares a type constructor \<open>c\<close> (without

@@ -142,9 +142,9 @@ text %mlantiq \<open>
   \end{matharray}
 
   @{rail \<open>
-  @@{ML_antiquotation theory} nameref?
+  @@{ML_antiquotation theory} name?
   ;
-  @@{ML_antiquotation theory_context} nameref
+  @@{ML_antiquotation theory_context} name
   \<close>}
 
   \<^descr> \<open>@{theory}\<close> refers to the background theory of the current context --- as

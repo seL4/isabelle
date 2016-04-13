@@ -16,6 +16,10 @@ produce x::'a::type in HOL instead of x::'a::{} in Pure. Rare
 INCOMPATIBILITY, need to provide explicit type constraints for Pure
 types where this is really intended.
 
+* Simplified outer syntax: uniform category "name" includes long
+identifiers. Former "xname" / "nameref" / "name reference" has been
+discontinued.
+
 * Mixfix annotations support general block properties, with syntax
 "(\<open>x=a y=b z \<dots>\<close>". Notable property names are "indent", "consistent",
 "unbreakable", "markup". The existing notation "(DIGITS" is equivalent

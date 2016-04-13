@@ -1068,7 +1068,7 @@ text \<open>
   single criterium has the following syntax:
 
   @{rail \<open>
-    ('-'?) ('name' ':' @{syntax nameref} | 'intro' | 'elim' | 'dest' |
+    ('-'?) ('name' ':' @{syntax name} | 'intro' | 'elim' | 'dest' |
       'solves' | 'simp' ':' @{syntax term} | @{syntax term})
   \<close>}
 
@@ -1086,7 +1086,7 @@ text \<open>
 
   @{rail \<open>
     ('-'?)
-      ('name' ':' @{syntax nameref} | 'strict' ':' @{syntax type} | @{syntax type})
+      ('name' ':' @{syntax name} | 'strict' ':' @{syntax type} | @{syntax type})
   \<close>}
 
   See also the Isar command @{command_ref find_consts} in @{cite

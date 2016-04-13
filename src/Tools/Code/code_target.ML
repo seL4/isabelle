@@ -104,7 +104,7 @@ fun cert_inst ctxt (class, tyco) =
 fun read_inst ctxt (raw_tyco, raw_class) =
   (read_tyco ctxt raw_tyco, Proof_Context.read_class ctxt raw_class);
 
-val parse_inst_ident = Parse.xname --| @{keyword "::"} -- Parse.class;
+val parse_inst_ident = Parse.name --| @{keyword "::"} -- Parse.class;
 
 fun cert_syms ctxt =
   Code_Symbol.map_attr (apfst (cert_const ctxt)) (apfst (cert_tyco ctxt))

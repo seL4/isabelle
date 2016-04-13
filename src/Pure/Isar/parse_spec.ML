@@ -55,7 +55,7 @@ val alt_specs =
 
 val where_alt_specs = Parse.where_ |-- Parse.!!! alt_specs;
 
-val name_facts = Parse.and_list1 (opt_thm_name "=" -- Parse.xthms1);
+val name_facts = Parse.and_list1 (opt_thm_name "=" -- Parse.thms1);
 
 
 (* basic constant specifications *)
@@ -72,7 +72,7 @@ val constdef = Scan.option constdecl -- (opt_thm_name ":" -- Parse.prop);
 
 (* locale and context elements *)
 
-val includes = Parse.$$$ "includes" |-- Parse.!!! (Scan.repeat1 (Parse.position Parse.xname));
+val includes = Parse.$$$ "includes" |-- Parse.!!! (Scan.repeat1 (Parse.position Parse.name));
 
 val locale_fixes =
   Parse.and_list1 (Parse.binding -- Scan.option (Parse.$$$ "::" |-- Parse.typ) -- Parse.mixfix
@@ -95,7 +95,7 @@ val loc_element =
     >> Element.Assumes ||
   Parse.$$$ "defines" |-- Parse.!!! (Parse.and_list1 (opt_thm_name ":" -- Parse.propp))
     >> Element.Defines ||
-  Parse.$$$ "notes" |-- Parse.!!! (Parse.and_list1 (opt_thm_name "=" -- Parse.xthms1))
+  Parse.$$$ "notes" |-- Parse.!!! (Parse.and_list1 (opt_thm_name "=" -- Parse.thms1))
     >> (curry Element.Notes "");
 
 fun plus1_unless test scan =
@@ -120,7 +120,7 @@ val class_expression = plus1_unless locale_keyword Parse.class;
 
 val locale_expression =
   let
-    val expr2 = Parse.position Parse.xname;
+    val expr2 = Parse.position Parse.name;
     val expr1 =
       locale_prefix -- expr2 --
       Scan.optional instance (Expression.Named []) >> (fn ((p, l), i) => (l, (p, i)));

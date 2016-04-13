@@ -167,7 +167,7 @@ text \<open>
       (@@{antiquotation text} | @@{antiquotation cartouche} | @@{antiquotation theory_text})
         options @{syntax text} |
       @@{antiquotation theory} options @{syntax name} |
-      @@{antiquotation thm} options styles @{syntax thmrefs} |
+      @@{antiquotation thm} options styles @{syntax thms} |
       @@{antiquotation lemma} options @{syntax prop} @'by' @{syntax method} @{syntax method}? |
       @@{antiquotation prop} options styles @{syntax prop} |
       @@{antiquotation term} options styles @{syntax term} |
@@ -185,8 +185,8 @@ text \<open>
     @{syntax antiquotation}:
       @@{antiquotation goals} options |
       @@{antiquotation subgoals} options |
-      @@{antiquotation prf} options @{syntax thmrefs} |
-      @@{antiquotation full_prf} options @{syntax thmrefs} |
+      @@{antiquotation prf} options @{syntax thms} |
+      @@{antiquotation full_prf} options @{syntax thms} |
       @@{antiquotation ML} options @{syntax text} |
       @@{antiquotation ML_op} options @{syntax text} |
       @@{antiquotation ML_type} options @{syntax text} |
@@ -195,8 +195,8 @@ text \<open>
       @@{antiquotation emph} options @{syntax text} |
       @@{antiquotation bold} options @{syntax text} |
       @@{antiquotation verbatim} options @{syntax text} |
-      @@{antiquotation "file"} options @{syntax xname} |
-      @@{antiquotation file_unchecked} options @{syntax xname} |
+      @@{antiquotation "file"} options @{syntax name} |
+      @@{antiquotation file_unchecked} options @{syntax name} |
       @@{antiquotation url} options @{syntax name} |
       @@{antiquotation cite} options @{syntax cartouche}? (@{syntax name} + @'and')
     ;
@@ -613,7 +613,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command display_drafts} (@{syntax xname} +)
+    @@{command display_drafts} (@{syntax name} +)
   \<close>}
 
   \<^descr> @{command "display_drafts"}~\<open>paths\<close> performs simple output of a given list

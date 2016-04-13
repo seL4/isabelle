@@ -209,7 +209,7 @@ object Completion
           val description = List(xname1, "(" + descr_name + ")")
           val replacement =
             Token.explode(Keyword.Keywords.empty, xname1) match {
-              case List(tok) if tok.is_xname => xname1
+              case List(tok) if tok.is_name => xname1
               case _ => quote(xname1)
             }
           Item(range, original, full_name, description, replacement, 0, true)

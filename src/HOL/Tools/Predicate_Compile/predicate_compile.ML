@@ -222,12 +222,12 @@ and parse_mode_expr xs =
     parse_mode_tuple_expr) xs
 
 val mode_and_opt_proposal = parse_mode_expr --
-  Scan.optional (Args.$$$ "as" |-- Parse.xname >> SOME) NONE
+  Scan.optional (Args.$$$ "as" |-- Parse.name >> SOME) NONE
 
 
 val opt_modes =
   Scan.optional (@{keyword "("} |-- Args.$$$ "modes" |-- @{keyword ":"} |--
-    (((Parse.enum1 "and" (Parse.xname --| @{keyword ":"} --
+    (((Parse.enum1 "and" (Parse.name --| @{keyword ":"} --
         (Parse.enum "," mode_and_opt_proposal))) >> Multiple_Preds)
       || ((Parse.enum "," mode_and_opt_proposal) >> Single_Pred))
     --| @{keyword ")"}) (Multiple_Preds [])
@@ -250,7 +250,7 @@ val scan_options =
   end
 
 val opt_print_modes =
-  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) []
+  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.name --| @{keyword ")"})) []
 
 val opt_mode = (Args.$$$ "_" >> K NONE) || (parse_mode_expr >> SOME)
 

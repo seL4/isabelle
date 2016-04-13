@@ -171,13 +171,13 @@ text %mlantiq \<open>
   \end{matharray}
 
   @{rail \<open>
-  @@{ML_antiquotation class} nameref
+  @@{ML_antiquotation class} name
   ;
   @@{ML_antiquotation sort} sort
   ;
   (@@{ML_antiquotation type_name} |
    @@{ML_antiquotation type_abbrev} |
-   @@{ML_antiquotation nonterminal}) nameref
+   @@{ML_antiquotation nonterminal}) name
   ;
   @@{ML_antiquotation typ} type
   \<close>}
@@ -392,7 +392,7 @@ text %mlantiq \<open>
 
   @{rail \<open>
   (@@{ML_antiquotation const_name} |
-   @@{ML_antiquotation const_abbrev}) nameref
+   @@{ML_antiquotation const_abbrev}) name
   ;
   @@{ML_antiquotation const} ('(' (type + ',') ')')?
   ;
@@ -701,9 +701,9 @@ text %mlantiq \<open>
   ;
   @@{ML_antiquotation cprop} prop
   ;
-  @@{ML_antiquotation thm} thmref
+  @@{ML_antiquotation thm} thm
   ;
-  @@{ML_antiquotation thms} thmrefs
+  @@{ML_antiquotation thms} thms
   ;
   @@{ML_antiquotation lemma} ('(' @'open' ')')? ((prop +) + @'and') \<newline>
     @'by' method method?

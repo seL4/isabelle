@@ -236,11 +236,11 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
   def is_float: Boolean = kind == Token.Kind.FLOAT
   def is_name: Boolean =
     kind == Token.Kind.IDENT ||
+    kind == Token.Kind.LONG_IDENT ||
     kind == Token.Kind.SYM_IDENT ||
     kind == Token.Kind.STRING ||
     kind == Token.Kind.NAT
-  def is_xname: Boolean = is_name || kind == Token.Kind.LONG_IDENT
-  def is_text: Boolean = is_xname || kind == Token.Kind.VERBATIM || kind == Token.Kind.CARTOUCHE
+  def is_text: Boolean = is_name || kind == Token.Kind.VERBATIM || kind == Token.Kind.CARTOUCHE
   def is_space: Boolean = kind == Token.Kind.SPACE
   def is_comment: Boolean = kind == Token.Kind.COMMENT
   def is_improper: Boolean = is_space || is_comment

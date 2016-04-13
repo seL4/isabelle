@@ -509,7 +509,7 @@ end;
 local
 
 val criterion =
-  Parse.reserved "name" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.xname) >> Name ||
+  Parse.reserved "name" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.name) >> Name ||
   Parse.reserved "intro" >> K Intro ||
   Parse.reserved "elim" >> K Elim ||
   Parse.reserved "dest" >> K Dest ||

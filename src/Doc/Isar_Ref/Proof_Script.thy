@@ -37,7 +37,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command supply} (@{syntax thmdef}? @{syntax thmrefs} + @'and')
+    @@{command supply} (@{syntax thmdef}? @{syntax thms} + @'and')
     ;
     ( @@{command apply} | @@{command apply_end} ) @{syntax method}
     ;
@@ -222,7 +222,7 @@ text \<open>
   @{rail \<open>
     (@@{method rule_tac} | @@{method erule_tac} | @@{method drule_tac} |
       @@{method frule_tac} | @@{method cut_tac}) @{syntax goal_spec}? \<newline>
-    (@{syntax named_insts} @{syntax for_fixes} @'in' @{syntax thmref} | @{syntax thmrefs} )
+    (@{syntax named_insts} @{syntax for_fixes} @'in' @{syntax thm} | @{syntax thms} )
     ;
     @@{method thin_tac} @{syntax goal_spec}? @{syntax prop} @{syntax for_fixes}
     ;

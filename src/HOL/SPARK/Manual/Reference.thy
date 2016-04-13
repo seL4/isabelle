@@ -51,7 +51,7 @@ by \isa{\isacommand{spark\_open}} for record or enumeration types specified in t
 @{rail \<open>
   @'spark_types' ((name '=' type (mapping?))+)
   ;
-  mapping: '('((name '=' nameref)+',')')'
+  mapping: '('((name '=' name)+',')')'
 \<close>}
 Associates a \SPARK{} type with the given name with an Isabelle type. This command can
 only be used outside a verification environment. The given type must be either a record

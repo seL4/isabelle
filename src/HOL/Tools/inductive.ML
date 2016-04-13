@@ -1182,7 +1182,7 @@ fun infer_intro_vars thy elim arity intros =
 fun gen_ind_decl mk_def coind =
   Parse.fixes -- Parse.for_fixes --
   Scan.optional Parse_Spec.where_alt_specs [] --
-  Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.xthms1) []
+  Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.thms1) []
   >> (fn (((preds, params), specs), monos) =>
       (snd o gen_add_inductive mk_def true coind preds params specs monos));
 

@@ -244,7 +244,7 @@ fun approximate_cmd modes raw_t state =
   end |> Pretty.writeln;
 
 val opt_modes =
-  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
+  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.name --| @{keyword ")"})) [];
 
 val _ =
   Outer_Syntax.command @{command_keyword approximate} "print approximation of term"

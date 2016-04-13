@@ -3020,7 +3020,7 @@ text \<open>
 @{rail \<open>
   @@{command lift_bnf} target? lb_options? \<newline>
     @{syntax tyargs} name wit_terms?  \<newline>
-    ('via' thmref)? @{syntax map_rel}?
+    ('via' thm)? @{syntax map_rel}?
   ;
   @{syntax_def lb_options}: '(' ((@{syntax plugins} | 'no_warn_wits') + ',') ')'
   ;
@@ -3055,7 +3055,7 @@ text \<open>
 
 @{rail \<open>
   @@{command copy_bnf} target? ('(' @{syntax plugins} ')')? \<newline>
-    @{syntax tyargs} name ('via' thmref)? @{syntax map_rel}?
+    @{syntax tyargs} name ('via' thm)? @{syntax map_rel}?
 \<close>}
 \medskip
 
@@ -3203,7 +3203,7 @@ text \<open>
 
 @{rail \<open>
   @@{command simps_of_case} target? (name ':')? \<newline>
-    (thmref + ) (@'splits' ':' (thmref + ))?
+    (thm + ) (@'splits' ':' (thm + ))?
 \<close>}
 
 \medskip
@@ -3242,7 +3242,7 @@ text \<open>
 
 @{rail \<open>
   @@{command case_of_simps} target? (name ':')? \<newline>
-    (thmref + )
+    (thm + )
 \<close>}
 
 \medskip

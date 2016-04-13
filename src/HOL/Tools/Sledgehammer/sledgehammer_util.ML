@@ -129,7 +129,7 @@ fun thms_of_name ctxt name =
     |> Symbol.source
     |> Token.source keywords Position.start
     |> Token.source_proper
-    |> Source.source Token.stopper (Parse.xthms1 >> get)
+    |> Source.source Token.stopper (Parse.thms1 >> get)
     |> Source.exhaust
   end
 

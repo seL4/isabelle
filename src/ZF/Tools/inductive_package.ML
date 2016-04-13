@@ -587,10 +587,10 @@ val ind_decl =
       ((@{keyword "\<subseteq>"} || @{keyword "<="}) |-- Parse.term))) --
   (@{keyword "intros"} |--
     Parse.!!! (Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop))) --
-  Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.xthms1) [] --
-  Scan.optional (@{keyword "con_defs"} |-- Parse.!!! Parse.xthms1) [] --
-  Scan.optional (@{keyword "type_intros"} |-- Parse.!!! Parse.xthms1) [] --
-  Scan.optional (@{keyword "type_elims"} |-- Parse.!!! Parse.xthms1) []
+  Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.thms1) [] --
+  Scan.optional (@{keyword "con_defs"} |-- Parse.!!! Parse.thms1) [] --
+  Scan.optional (@{keyword "type_intros"} |-- Parse.!!! Parse.thms1) [] --
+  Scan.optional (@{keyword "type_elims"} |-- Parse.!!! Parse.thms1) []
   >> (Toplevel.theory o mk_ind);
 
 val _ =

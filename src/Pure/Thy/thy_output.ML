@@ -143,7 +143,7 @@ fun integer s =
 local
 
 val property =
-  Parse.position Parse.xname -- Scan.optional (Parse.$$$ "=" |-- Parse.!!! Parse.xname) "";
+  Parse.position Parse.name -- Scan.optional (Parse.$$$ "=" |-- Parse.!!! Parse.name) "";
 
 val properties =
   Scan.optional (Parse.$$$ "[" |-- Parse.!!! (Parse.enum "," property --| Parse.$$$ "]")) [];
@@ -404,7 +404,7 @@ val tag = (improper -- Parse.$$$ "%" -- improper) |-- Parse.!!! (Parse.tag_name 
 
 val locale =
   Scan.option ((Parse.$$$ "(" -- improper -- Parse.$$$ "in") |--
-    Parse.!!! (improper |-- Parse.xname --| (improper -- Parse.$$$ ")")));
+    Parse.!!! (improper |-- Parse.name --| (improper -- Parse.$$$ ")")));
 
 in
 
