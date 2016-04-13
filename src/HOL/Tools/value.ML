@@ -64,10 +64,10 @@ fun value_cmd some_name modes raw_t state =
   in Pretty.writeln p end;
 
 val opt_modes =
-  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
+  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.name --| @{keyword ")"})) [];
 
 val opt_evaluator =
-  Scan.option (@{keyword "["} |-- Parse.xname --| @{keyword "]"})
+  Scan.option (@{keyword "["} |-- Parse.name --| @{keyword "]"})
   
 val _ =
   Outer_Syntax.command @{command_keyword value} "evaluate and print term"

@@ -536,7 +536,7 @@ fun run_proof_method trivial full name meth named_thms id
       let
         val ref_of_str = (* FIXME proper wrapper for parser combinators *)
           suffix ";" #> Token.explode (Thy_Header.get_keywords' ctxt) Position.none
-          #> Parse.xthm #> fst
+          #> Parse.thm #> fst
         val thms = named_thms |> maps snd
         val facts = named_thms |> map (ref_of_str o fst o fst)
         val fact_override = {add = facts, del = [], only = true}

@@ -812,7 +812,7 @@ val _ =
       (((Parse.binding -- (@{keyword "::"} |-- (Parse.typ >> SOME) -- Parse.opt_mixfix')
           >> Scan.triple2) --
         (@{keyword "is"} |-- Parse.term) --
-        Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse.xthms1) []) >> Scan.triple1)
+        Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse.thms1) []) >> Scan.triple1)
      >> lift_def_cmd_with_err_handling);
 
 end

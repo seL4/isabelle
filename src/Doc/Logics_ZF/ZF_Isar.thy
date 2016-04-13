@@ -69,13 +69,13 @@ text {*
     hints: @{syntax (ZF) "monos"}? condefs? \<newline>
       @{syntax (ZF) typeintros}? @{syntax (ZF) typeelims}?
     ;
-    @{syntax_def (ZF) "monos"}: @'monos' @{syntax thmrefs}
+    @{syntax_def (ZF) "monos"}: @'monos' @{syntax thms}
     ;
-    condefs: @'con_defs' @{syntax thmrefs}
+    condefs: @'con_defs' @{syntax thms}
     ;
-    @{syntax_def (ZF) typeintros}: @'type_intros' @{syntax thmrefs}
+    @{syntax_def (ZF) typeintros}: @'type_intros' @{syntax thms}
     ;
-    @{syntax_def (ZF) typeelims}: @'type_elims' @{syntax thmrefs}
+    @{syntax_def (ZF) typeelims}: @'type_elims' @{syntax thms}
   \<close>}
 
   In the following syntax specification @{text "monos"}, @{text

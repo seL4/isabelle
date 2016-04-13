@@ -280,7 +280,7 @@ val _ =
 
 val trans_pat =
   Scan.optional
-    (@{keyword "("} |-- Parse.!!! (Parse.inner_syntax Parse.xname --| @{keyword ")"})) "logic"
+    (@{keyword "("} |-- Parse.!!! (Parse.inner_syntax Parse.name --| @{keyword ")"})) "logic"
     -- Parse.inner_syntax Parse.string;
 
 fun trans_arrow toks =
@@ -403,7 +403,7 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory' @{command_keyword declare} "declare theorems"
-    (Parse.and_list1 Parse.xthms1 -- Parse.for_fixes
+    (Parse.and_list1 Parse.thms1 -- Parse.for_fixes
       >> (fn (facts, fixes) =>
           #2 oo Specification.theorems_cmd "" [(Attrib.empty_binding, flat facts)] fixes));
 
@@ -442,7 +442,7 @@ val _ =
 
 val _ =
   hide_names @{command_keyword hide_fact} "facts" Global_Theory.hide_fact
-    (Parse.position Parse.xname) (Global_Theory.check_fact o Proof_Context.theory_of);
+    (Parse.position Parse.name) (Global_Theory.check_fact o Proof_Context.theory_of);
 
 in end\<close>
 
@@ -454,18 +454,18 @@ local
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword bundle} "define bundle of declarations"
-    ((Parse.binding --| @{keyword "="}) -- Parse.xthms1 -- Parse.for_fixes
+    ((Parse.binding --| @{keyword "="}) -- Parse.thms1 -- Parse.for_fixes
       >> (uncurry Bundle.bundle_cmd));
 
 val _ =
   Outer_Syntax.command @{command_keyword include}
     "include declarations from bundle in proof body"
-    (Scan.repeat1 (Parse.position Parse.xname) >> (Toplevel.proof o Bundle.include_cmd));
+    (Scan.repeat1 (Parse.position Parse.name) >> (Toplevel.proof o Bundle.include_cmd));
 
 val _ =
   Outer_Syntax.command @{command_keyword including}
     "include declarations from bundle in goal refinement"
-    (Scan.repeat1 (Parse.position Parse.xname) >> (Toplevel.proof o Bundle.including_cmd));
+    (Scan.repeat1 (Parse.position Parse.name) >> (Toplevel.proof o Bundle.including_cmd));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_bundles}
@@ -484,7 +484,7 @@ local
 
 val _ =
   Outer_Syntax.command @{command_keyword context} "begin local theory context"
-    ((Parse.position Parse.xname >> (fn name =>
+    ((Parse.position Parse.name >> (fn name =>
         Toplevel.begin_local_theory true (Named_Target.begin name)) ||
       Scan.optional Parse_Spec.includes [] -- Scan.repeat Parse_Spec.context_element
         >> (fn (incls, elems) => Toplevel.open_target (#2 o Bundle.context_cmd incls elems)))
@@ -550,7 +550,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword sublocale}
     "prove sublocale relation between a locale and a locale expression"
-    ((Parse.position Parse.xname --| (@{keyword "\<subseteq>"} || @{keyword "<"}) --
+    ((Parse.position Parse.name --| (@{keyword "\<subseteq>"} || @{keyword "<"}) --
       interpretation_args_with_defs >> (fn (loc, (expr, (defs, equations))) =>
         Toplevel.theory_to_proof (Interpretation.global_sublocale_cmd loc expr defs equations)))
     || interpretation_args_with_defs >> (fn (expr, (defs, equations)) =>
@@ -684,7 +684,7 @@ subsubsection \<open>Local facts\<close>
 ML \<open>
 local
 
-val facts = Parse.and_list1 Parse.xthms1;
+val facts = Parse.and_list1 Parse.thms1;
 
 val _ =
   Outer_Syntax.command @{command_keyword then} "forward chaining"
@@ -773,9 +773,9 @@ val _ =
   Outer_Syntax.command @{command_keyword case} "invoke local context"
     (Parse_Spec.opt_thm_name ":" --
       (@{keyword "("} |--
-        Parse.!!! (Parse.position Parse.xname -- Scan.repeat (Parse.maybe Parse.binding)
+        Parse.!!! (Parse.position Parse.name -- Scan.repeat (Parse.maybe Parse.binding)
           --| @{keyword ")"}) ||
-        Parse.position Parse.xname >> rpair []) >> (Toplevel.proof o Proof.case_cmd));
+        Parse.position Parse.name >> rpair []) >> (Toplevel.proof o Proof.case_cmd));
 
 in end\<close>
 
@@ -906,7 +906,7 @@ ML \<open>
 local
 
 val calculation_args =
-  Scan.option (@{keyword "("} |-- Parse.!!! ((Parse.xthms1 --| @{keyword ")"})));
+  Scan.option (@{keyword "("} |-- Parse.!!! ((Parse.thms1 --| @{keyword ")"})));
 
 val _ =
   Outer_Syntax.command @{command_keyword also} "combine calculation and current facts"
@@ -956,7 +956,7 @@ ML \<open>
 local
 
 val opt_modes =
-  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) [];
+  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.name --| @{keyword ")"})) [];
 
 val _ =
   Outer_Syntax.command @{command_keyword help}
@@ -1025,13 +1025,13 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword print_locale}
     "print locale of this theory"
-    (Parse.opt_bang -- Parse.position Parse.xname >> (fn (b, name) =>
+    (Parse.opt_bang -- Parse.position Parse.name >> (fn (b, name) =>
       Toplevel.keep (fn state => Locale.print_locale (Toplevel.theory_of state) b name)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_interps}
     "print interpretations of locale for this theory or proof context"
-    (Parse.position Parse.xname >> (fn name =>
+    (Parse.position Parse.name >> (fn name =>
       Toplevel.keep (fn state => Locale.print_registrations (Toplevel.context_of state) name)));
 
 val _ =
@@ -1100,19 +1100,19 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword print_statement}
     "print theorems as long statements"
-    (opt_modes -- Parse.xthms1 >> Isar_Cmd.print_stmts);
+    (opt_modes -- Parse.thms1 >> Isar_Cmd.print_stmts);
 
 val _ =
   Outer_Syntax.command @{command_keyword thm} "print theorems"
-    (opt_modes -- Parse.xthms1 >> Isar_Cmd.print_thms);
+    (opt_modes -- Parse.thms1 >> Isar_Cmd.print_thms);
 
 val _ =
   Outer_Syntax.command @{command_keyword prf} "print proof terms of theorems"
-    (opt_modes -- Scan.option Parse.xthms1 >> Isar_Cmd.print_prfs false);
+    (opt_modes -- Scan.option Parse.thms1 >> Isar_Cmd.print_prfs false);
 
 val _ =
   Outer_Syntax.command @{command_keyword full_prf} "print full proof terms of theorems"
-    (opt_modes -- Scan.option Parse.xthms1 >> Isar_Cmd.print_prfs true);
+    (opt_modes -- Scan.option Parse.thms1 >> Isar_Cmd.print_prfs true);
 
 val _ =
   Outer_Syntax.command @{command_keyword prop} "read and print proposition"
@@ -1156,8 +1156,8 @@ ML \<open>
 local
 
 val theory_bounds =
-  Parse.position Parse.theory_xname >> single ||
-  (@{keyword "("} |-- Parse.enum "|" (Parse.position Parse.theory_xname) --| @{keyword ")"});
+  Parse.position Parse.theory_name >> single ||
+  (@{keyword "("} |-- Parse.enum "|" (Parse.position Parse.theory_name) --| @{keyword ")"});
 
 val _ =
   Outer_Syntax.command @{command_keyword thy_deps} "visualize theory dependencies"
@@ -1177,14 +1177,14 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword thm_deps} "visualize theorem dependencies"
-    (Parse.xthms1 >> (fn args =>
+    (Parse.thms1 >> (fn args =>
       Toplevel.keep (fn st =>
         Thm_Deps.thm_deps (Toplevel.theory_of st)
           (Attrib.eval_thms (Toplevel.context_of st) args))));
 
 
 val thy_names =
-  Scan.repeat1 (Scan.unless Parse.minus (Parse.position Parse.theory_xname));
+  Scan.repeat1 (Scan.unless Parse.minus (Parse.position Parse.theory_name));
 
 val _ =
   Outer_Syntax.command @{command_keyword unused_thms} "find unused theorems"
@@ -1260,7 +1260,7 @@ val parse_vars = Scan.optional (Parse.$$$ "(" |-- Parse.list1 Parse.name --| Par
 val _ =
   Outer_Syntax.command @{command_keyword realizers}
     "specify realizers for primitive axioms / theorems, together with correctness proof"
-    (Scan.repeat1 (Parse.xname -- parse_vars --| Parse.$$$ ":" -- Parse.string -- Parse.string) >>
+    (Scan.repeat1 (Parse.name -- parse_vars --| Parse.$$$ ":" -- Parse.string -- Parse.string) >>
      (fn xs => Toplevel.theory (fn thy => Extraction.add_realizers
        (map (fn (((a, vs), s1), s2) => (Global_Theory.get_thm thy a, (vs, s1, s2))) xs) thy)));
 
@@ -1276,7 +1276,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword extract} "extract terms from proofs"
-    (Scan.repeat1 (Parse.xname -- parse_vars) >> (fn xs => Toplevel.theory (fn thy =>
+    (Scan.repeat1 (Parse.name -- parse_vars) >> (fn xs => Toplevel.theory (fn thy =>
       Extraction.extract (map (apfst (Global_Theory.get_thm thy)) xs) thy)));
 
 in end\<close>

@@ -137,11 +137,11 @@ text \<open>
   \<^theory_text>\<open>instantiation\<close>, \<^theory_text>\<open>overloading\<close>.
 
   @{rail \<open>
-    @@{command context} @{syntax nameref} @'begin'
+    @@{command context} @{syntax name} @'begin'
     ;
     @@{command context} @{syntax_ref "includes"}? (@{syntax context_elem} * ) @'begin'
     ;
-    @{syntax_def target}: '(' @'in' @{syntax nameref} ')'
+    @{syntax_def target}: '(' @'in' @{syntax name} ')'
   \<close>}
 
   \<^descr> \<^theory_text>\<open>context c begin\<close> opens a named context, by recommencing an existing
@@ -226,13 +226,13 @@ text \<open>
   (\secref{sec:locale}).
 
   @{rail \<open>
-    @@{command bundle} @{syntax name} '=' @{syntax thmrefs} @{syntax for_fixes}
+    @@{command bundle} @{syntax name} '=' @{syntax thms} @{syntax for_fixes}
     ;
     @@{command print_bundles} ('!'?)
     ;
-    (@@{command include} | @@{command including}) (@{syntax nameref}+)
+    (@@{command include} | @@{command including}) (@{syntax name}+)
     ;
-    @{syntax_def "includes"}: @'includes' (@{syntax nameref}+)
+    @{syntax_def "includes"}: @'includes' (@{syntax name}+)
   \<close>}
 
   \<^descr> \<^theory_text>\<open>bundle b = decls\<close> defines a bundle of declarations in the current
@@ -383,7 +383,7 @@ text \<open>
     (@@{command declaration} | @@{command syntax_declaration})
       ('(' @'pervasive' ')')? \<newline> @{syntax text}
     ;
-    @@{command declare} (@{syntax thmrefs} + @'and')
+    @@{command declare} (@{syntax thms} + @'and')
   \<close>}
 
   \<^descr> \<^theory_text>\<open>declaration d\<close> adds the declaration function \<open>d\<close> of ML type @{ML_type
@@ -440,7 +440,7 @@ text \<open>
   @{rail \<open>
     @{syntax_def locale_expr}: (instance + '+') @{syntax for_fixes}
     ;
-    instance: (qualifier ':')? @{syntax nameref} (pos_insts | named_insts)
+    instance: (qualifier ':')? @{syntax name} (pos_insts | named_insts)
     ;
     qualifier: @{syntax name} ('?')?
     ;
@@ -490,7 +490,7 @@ text \<open>
     ;
     @@{command experiment} (@{syntax context_elem}*) @'begin'
     ;
-    @@{command print_locale} '!'? @{syntax nameref}
+    @@{command print_locale} '!'? @{syntax name}
     ;
     @@{command print_locales} ('!'?)
     ;
@@ -502,7 +502,7 @@ text \<open>
       @'constrains' (@{syntax name} '::' @{syntax type} + @'and') |
       @'assumes' (@{syntax props} + @'and') |
       @'defines' (@{syntax thmdecl}? @{syntax prop} @{syntax prop_pat}? + @'and') |
-      @'notes' (@{syntax thmdef}? @{syntax thmrefs} + @'and')
+      @'notes' (@{syntax thmdef}? @{syntax thms} + @'and')
   \<close>}
 
   \<^descr> \<^theory_text>\<open>locale loc = import + body\<close> defines a new locale \<open>loc\<close> as a context
@@ -628,12 +628,12 @@ text \<open>
     @@{command global_interpretation} @{syntax locale_expr} \<newline>
       definitions? equations?
     ;
-    @@{command sublocale} (@{syntax nameref} ('<' | '\<subseteq>'))? @{syntax locale_expr} \<newline>
+    @@{command sublocale} (@{syntax name} ('<' | '\<subseteq>'))? @{syntax locale_expr} \<newline>
       definitions? equations?
     ;
     @@{command print_dependencies} '!'? @{syntax locale_expr}
     ;
-    @@{command print_interps} @{syntax nameref}
+    @@{command print_interps} @{syntax name}
     ;
 
     definitions: @'defines' (@{syntax thmdecl}? @{syntax name} \<newline>
@@ -798,15 +798,15 @@ text \<open>
     @@{command class} class_spec @'begin'?
     ;
     class_spec: @{syntax name} '='
-      ((@{syntax nameref} '+' (@{syntax context_elem}+)) |
-        @{syntax nameref} | (@{syntax context_elem}+))      
+      ((@{syntax name} '+' (@{syntax context_elem}+)) |
+        @{syntax name} | (@{syntax context_elem}+))
     ;
-    @@{command instantiation} (@{syntax nameref} + @'and') '::' @{syntax arity} @'begin'
+    @@{command instantiation} (@{syntax name} + @'and') '::' @{syntax arity} @'begin'
     ;
-    @@{command instance} (() | (@{syntax nameref} + @'and') '::' @{syntax arity} |
-      @{syntax nameref} ('<' | '\<subseteq>') @{syntax nameref} )
+    @@{command instance} (() | (@{syntax name} + @'and') '::' @{syntax arity} |
+      @{syntax name} ('<' | '\<subseteq>') @{syntax name} )
     ;
-    @@{command subclass} @{syntax nameref}
+    @@{command subclass} @{syntax name}
     ;
     @@{command class_deps} (class_bounds class_bounds?)?
     ;
@@ -1231,7 +1231,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command lemmas} (@{syntax thmdef}? @{syntax thmrefs} + @'and')
+    @@{command lemmas} (@{syntax thmdef}? @{syntax thms} + @'and')
       @{syntax for_fixes}
     ;
     @@{command named_theorems} (@{syntax name} @{syntax text}? + @'and')
@@ -1299,7 +1299,7 @@ text \<open>
 
   @{rail \<open>
     ( @{command hide_class} | @{command hide_type} |
-      @{command hide_const} | @{command hide_fact} ) ('(' @'open' ')')? (@{syntax nameref} + )
+      @{command hide_const} | @{command hide_fact} ) ('(' @'open' ')')? (@{syntax name} + )
   \<close>}
 
   Isabelle organizes any kind of name declarations (of types, constants,

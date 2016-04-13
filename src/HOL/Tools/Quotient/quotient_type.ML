@@ -348,7 +348,7 @@ val _ =
         Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) -- (@{keyword "/"} |--
           Scan.optional (Parse.reserved "partial" -- @{keyword ":"} >> K true) false -- Parse.term) --
         Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding)) --
-        Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.xthm))
+        Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.thm))
       >> (fn (overloaded, spec) => quotient_type_cmd {overloaded = overloaded} spec))
 
 end

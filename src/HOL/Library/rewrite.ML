@@ -442,7 +442,7 @@ val _ =
     val to_parser = Scan.option ((Args.$$$ "to") |-- Parse.term)
 
     val subst_parser =
-      let val scan = raw_pattern -- to_parser -- Parse.xthms1
+      let val scan = raw_pattern -- to_parser -- Parse.thms1
       in context_lift scan prep_args end
   in
     Method.setup @{binding rewrite} (subst_parser >>

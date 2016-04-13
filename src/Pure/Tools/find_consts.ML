@@ -136,7 +136,7 @@ fun find_consts ctxt args = Pretty.writeln (pretty_consts ctxt args);
 local
 
 val criterion =
-  Parse.reserved "name" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.xname) >> Name ||
+  Parse.reserved "name" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.name) >> Name ||
   Parse.reserved "strict" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.typ) >> Strict ||
   Parse.typ >> Loose;
 

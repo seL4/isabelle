@@ -363,7 +363,7 @@ text \<open>
 
   The @{ML Attrib.thms} parser produces a list of theorems from the usual Isar
   syntax involving attribute expressions etc.\ (syntax category @{syntax
-  thmrefs}) @{cite "isabelle-isar-ref"}. The resulting @{ML_text thms} are
+  thms}) @{cite "isabelle-isar-ref"}. The resulting @{ML_text thms} are
   added to @{ML HOL_basic_ss} which already contains the basic Simplifier
   setup for HOL.
 

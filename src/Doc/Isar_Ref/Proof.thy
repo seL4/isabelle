@@ -283,10 +283,10 @@ text \<open>
   claim.
 
   @{rail \<open>
-    @@{command note} (@{syntax thmdef}? @{syntax thmrefs} + @'and')
+    @@{command note} (@{syntax thmdef}? @{syntax thms} + @'and')
     ;
     (@@{command from} | @@{command with} | @@{command using} | @@{command unfolding})
-      (@{syntax thmrefs} + @'and')
+      (@{syntax thms} + @'and')
   \<close>}
 
   \<^descr> @{command "note"}~\<open>a = b\<^sub>1 \<dots> b\<^sub>n\<close> recalls existing facts \<open>b\<^sub>1, \<dots>, b\<^sub>n\<close>,
@@ -386,7 +386,7 @@ text \<open>
     (@@{command have} | @@{command show} | @@{command hence} | @@{command thus})
       stmt cond_stmt @{syntax for_fixes}
     ;
-    @@{command print_statement} @{syntax modes}? @{syntax thmrefs}
+    @@{command print_statement} @{syntax modes}? @{syntax thms}
     ;
 
     stmt: (@{syntax props} + @'and')
@@ -513,7 +513,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    (@@{command also} | @@{command finally}) ('(' @{syntax thmrefs} ')')?
+    (@@{command also} | @@{command finally}) ('(' @{syntax thms} ')')?
     ;
     @@{attribute trans} (() | 'add' | 'del')
   \<close>}
@@ -571,16 +571,16 @@ text \<open>
   ``\<^verbatim>\<open>|\<close>'' (alternative choices), ``\<^verbatim>\<open>?\<close>'' (try), ``\<^verbatim>\<open>+\<close>'' (repeat at least
   once), ``\<^verbatim>\<open>[\<close>\<open>n\<close>\<^verbatim>\<open>]\<close>'' (restriction to first \<open>n\<close> subgoals). In practice,
   proof methods are usually just a comma separated list of @{syntax
-  nameref}~@{syntax args} specifications. Note that parentheses may be dropped
+  name}~@{syntax args} specifications. Note that parentheses may be dropped
   for single method specifications (with no arguments). The syntactic
   precedence of method combinators is \<^verbatim>\<open>|\<close> \<^verbatim>\<open>;\<close> \<^verbatim>\<open>,\<close> \<^verbatim>\<open>[]\<close> \<^verbatim>\<open>+\<close> \<^verbatim>\<open>?\<close> (from low
   to high).
 
   @{rail \<open>
     @{syntax_def method}:
-      (@{syntax nameref} | '(' methods ')') (() | '?' | '+' | '[' @{syntax nat}? ']')
+      (@{syntax name} | '(' methods ')') (() | '?' | '+' | '[' @{syntax nat}? ']')
     ;
-    methods: (@{syntax nameref} @{syntax args} | @{syntax method}) + (',' | ';' | '|')
+    methods: (@{syntax name} @{syntax args} | @{syntax method}) + (',' | ';' | '|')
   \<close>}
 
   Regular Isar proof methods do \<^emph>\<open>not\<close> admit direct goal addressing, but refer
@@ -753,19 +753,19 @@ text \<open>
   @{rail \<open>
     @@{method goal_cases} (@{syntax name}*)
     ;
-    @@{method fact} @{syntax thmrefs}?
+    @@{method fact} @{syntax thms}?
     ;
-    @@{method (Pure) rule} @{syntax thmrefs}?
+    @@{method (Pure) rule} @{syntax thms}?
     ;
     rulemod: ('intro' | 'elim' | 'dest')
-      ((('!' | () | '?') @{syntax nat}?) | 'del') ':' @{syntax thmrefs}
+      ((('!' | () | '?') @{syntax nat}?) | 'del') ':' @{syntax thms}
     ;
     (@@{attribute intro} | @@{attribute elim} | @@{attribute dest})
       ('!' | () | '?') @{syntax nat}?
     ;
     @@{attribute (Pure) rule} 'del'
     ;
-    @@{attribute OF} @{syntax thmrefs}
+    @@{attribute OF} @{syntax thms}
     ;
     @@{attribute of} @{syntax insts} ('concl' ':' @{syntax insts})? @{syntax for_fixes}
     ;
@@ -968,7 +968,7 @@ text \<open>
   advanced case analysis later.
 
   @{rail \<open>
-    @@{command case} @{syntax thmdecl}? (nameref | '(' nameref (('_' | @{syntax name}) *) ')')
+    @@{command case} @{syntax thmdecl}? (name | '(' name (('_' | @{syntax name}) *) ')')
     ;
     @@{attribute case_names} ((@{syntax name} ( '[' (('_' | @{syntax name}) +) ']' ) ? ) +)
     ;
@@ -1076,7 +1076,7 @@ text \<open>
     @@{method coinduct} @{syntax insts} taking rule?
     ;
 
-    rule: ('type' | 'pred' | 'set') ':' (@{syntax nameref} +) | 'rule' ':' (@{syntax thmref} +)
+    rule: ('type' | 'pred' | 'set') ':' (@{syntax name} +) | 'rule' ':' (@{syntax thm} +)
     ;
     definst: @{syntax name} ('==' | '\<equiv>') @{syntax term} | '(' @{syntax term} ')' | @{syntax inst}
     ;
@@ -1253,7 +1253,7 @@ text \<open>
     @@{attribute coinduct} spec
     ;
 
-    spec: (('type' | 'pred' | 'set') ':' @{syntax nameref}) | 'del'
+    spec: (('type' | 'pred' | 'set') ':' @{syntax name}) | 'del'
   \<close>}
 
   \<^descr> @{command "print_induct_rules"} prints cases and induct rules for

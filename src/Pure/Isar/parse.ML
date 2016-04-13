@@ -64,12 +64,10 @@ sig
   val properties: Properties.T parser
   val name: bstring parser
   val binding: binding parser
-  val xname: xstring parser
   val text: string parser
   val path: string parser
-  val theory_name: bstring parser
-  val theory_xname: xstring parser
-  val liberal_name: xstring parser
+  val theory_name: string parser
+  val liberal_name: string parser
   val parname: string parser
   val parbinding: binding parser
   val class: string parser
@@ -104,15 +102,15 @@ sig
   val termp: (string * string list) parser
   val private: Position.T parser
   val qualified: Position.T parser
-  val target: (xstring * Position.T) parser
-  val opt_target: (xstring * Position.T) option parser
+  val target: (string * Position.T) parser
+  val opt_target: (string * Position.T) option parser
   val args: Token.T list parser
   val args1: (string -> bool) -> Token.T list parser
   val attribs: Token.src list parser
   val opt_attribs: Token.src list parser
   val thm_sel: Facts.interval list parser
-  val xthm: (Facts.ref * Token.src list) parser
-  val xthms1: (Facts.ref * Token.src list) list parser
+  val thm: (Facts.ref * Token.src list) parser
+  val thms1: (Facts.ref * Token.src list) list parser
 end;
 
 structure Parse: PARSE =
@@ -261,22 +259,20 @@ val properties = $$$ "(" |-- !!! (list (string -- ($$$ "=" |-- string)) --| $$$ 
 
 (* names and text *)
 
-val name = group (fn () => "name declaration") (short_ident || sym_ident || string || number);
+val name =
+  group (fn () => "name") (short_ident || long_ident || sym_ident || string || number);
 
 val binding = position name >> Binding.make;
 
-val xname = group (fn () => "name reference")
-  (short_ident || long_ident || sym_ident || string || number);
-
-val text = group (fn () => "text")
-  (short_ident || long_ident || sym_ident || string || number || verbatim || cartouche);
+val text =
+  group (fn () => "text")
+    (short_ident || long_ident || sym_ident || string || number || verbatim || cartouche);
 
 val path = group (fn () => "file name/path specification") name;
 
 val theory_name = group (fn () => "theory name") name;
-val theory_xname = group (fn () => "theory name reference") xname;
 
-val liberal_name = keyword_with Token.ident_or_symbolic || xname;
+val liberal_name = keyword_with Token.ident_or_symbolic || name;
 
 val parname = Scan.optional ($$$ "(" |-- name --| $$$ ")") "";
 val parbinding = Scan.optional ($$$ "(" |-- binding --| $$$ ")") Binding.empty;
@@ -284,11 +280,11 @@ val parbinding = Scan.optional ($$$ "(" |-- binding --| $$$ ")") Binding.empty;
 
 (* type classes *)
 
-val class = group (fn () => "type class") (inner_syntax xname);
+val class = group (fn () => "type class") (inner_syntax name);
 
-val sort = group (fn () => "sort") (inner_syntax xname);
+val sort = group (fn () => "sort") (inner_syntax name);
 
-val type_const = inner_syntax (group (fn () => "type constructor") xname);
+val type_const = inner_syntax (group (fn () => "type constructor") name);
 
 val arity = type_const -- ($$$ "::" |-- !!!
   (Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- sort)) >> Scan.triple2;
@@ -398,7 +394,7 @@ val prop_group = group (fn () => "proposition") tm;
 val term = inner_syntax term_group;
 val prop = inner_syntax prop_group;
 
-val const = inner_syntax (group (fn () => "constant") xname);
+val const = inner_syntax (group (fn () => "constant") name);
 
 val literal_fact = inner_syntax (group (fn () => "literal fact") (alt_string || cartouche));
 
@@ -417,7 +413,7 @@ val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 val private = position ($$$ "private") >> #2;
 val qualified = position ($$$ "qualified") >> #2;
 
-val target = ($$$ "(" -- $$$ "in") |-- !!! (position xname --| $$$ ")");
+val target = ($$$ "(" -- $$$ "in") |-- !!! (position name --| $$$ ")");
 val opt_target = Scan.option target;
 
 
@@ -468,11 +464,11 @@ val thm_sel = $$$ "(" |-- list1
   nat --| minus >> Facts.From ||
   nat >> Facts.Single) --| $$$ ")";
 
-val xthm =
+val thm =
   $$$ "[" |-- attribs --| $$$ "]" >> pair (Facts.named "") ||
   (literal_fact >> Facts.Fact ||
-    position xname -- Scan.option thm_sel >> Facts.Named) -- opt_attribs;
+    position name -- Scan.option thm_sel >> Facts.Named) -- opt_attribs;
 
-val xthms1 = Scan.repeat1 xthm;
+val thms1 = Scan.repeat1 thm;
 
 end;

@@ -109,7 +109,7 @@ text \<open>
     (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
       @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set})
       @{syntax "fixes"} @{syntax "for_fixes"} \<newline>
-      (@'where' clauses)? (@'monos' @{syntax thmrefs})?
+      (@'where' clauses)? (@'monos' @{syntax thms})?
     ;
     clauses: (@{syntax thmdecl}? @{syntax prop} + '|')
     ;
@@ -568,7 +568,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) partial_function} '(' @{syntax nameref} ')' @{syntax "fixes"} \<newline>
+    @@{command (HOL) partial_function} '(' @{syntax name} ')' @{syntax "fixes"} \<newline>
       @'where' @{syntax thmdecl}? @{syntax prop}
   \<close>}
 
@@ -638,7 +638,7 @@ text \<open>
     hints: '(' @'hints' ( recdefmod * ) ')'
     ;
     recdefmod: (('recdef_simp' | 'recdef_cong' | 'recdef_wf')
-      (() | 'add' | 'del') ':' @{syntax thmrefs}) | @{syntax clasimpmod}
+      (() | 'add' | 'del') ':' @{syntax thms}) | @{syntax clasimpmod}
   \<close>}
 
   \<^descr> @{command (HOL) "recdef"} defines general well-founded
@@ -689,7 +689,7 @@ text \<open>
 
   @{rail \<open>
     (@@{command adhoc_overloading} | @@{command no_adhoc_overloading})
-      (@{syntax nameref} (@{syntax term} + ) + @'and')
+      (@{syntax name} (@{syntax term} + ) + @'and')
   \<close>}
 
   \<^descr> @{command "adhoc_overloading"}~\<open>c v\<^sub>1 ... v\<^sub>n\<close>
@@ -1265,7 +1265,7 @@ text \<open>
     ;
     quot_morphisms: @'morphisms' @{syntax name} @{syntax name}
     ;
-    quot_parametric: @'parametric' @{syntax thmref}
+    quot_parametric: @'parametric' @{syntax thm}
   \<close>}
 
   \<^descr> @{command (HOL) "quotient_type"} defines a new quotient type \<open>\<tau>\<close>. The injection from a quotient type to a raw type is called \<open>rep_\<tau>\<close>, its inverse \<open>abs_\<tau>\<close> unless explicit @{keyword (HOL)
@@ -1321,19 +1321,19 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) setup_lifting} @{syntax thmref} @{syntax thmref}? \<newline>
-      (@'parametric' @{syntax thmref})?
+    @@{command (HOL) setup_lifting} @{syntax thm} @{syntax thm}? \<newline>
+      (@'parametric' @{syntax thm})?
     ;
     @@{command (HOL) lift_definition} ('(' 'code_dt' ')')? \<newline>
       @{syntax name} '::' @{syntax type} @{syntax mixfix}? 'is' @{syntax term} \<newline>
-      (@'parametric' (@{syntax thmref}+))?
+      (@'parametric' (@{syntax thm}+))?
     ;
-    @@{command (HOL) lifting_forget} @{syntax nameref}
+    @@{command (HOL) lifting_forget} @{syntax name}
     ;
-    @@{command (HOL) lifting_update} @{syntax nameref}
+    @@{command (HOL) lifting_update} @{syntax name}
     ;
     @@{attribute (HOL) lifting_restore}
-      @{syntax thmref} (@{syntax thmref} @{syntax thmref})?
+      @{syntax thm} (@{syntax thm} @{syntax thm})?
   \<close>}
 
   \<^descr> @{command (HOL) "setup_lifting"} Sets up the Lifting package to work
@@ -1661,9 +1661,9 @@ text \<open>
     ;
     constdecl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
     ;
-    @@{method (HOL) lifting} @{syntax thmrefs}?
+    @@{method (HOL) lifting} @{syntax thms}?
     ;
-    @@{method (HOL) lifting_setup} @{syntax thmrefs}?
+    @@{method (HOL) lifting_setup} @{syntax thms}?
   \<close>}
 
   \<^descr> @{command (HOL) "quotient_definition"} defines a constant on the
@@ -1750,7 +1750,7 @@ text \<open>
     @@{command (HOL) try}
     ;
 
-    @@{command (HOL) try0} ( ( ( 'simp' | 'intro' | 'elim' | 'dest' ) ':' @{syntax thmrefs} ) + ) ?
+    @@{command (HOL) try0} ( ( ( 'simp' | 'intro' | 'elim' | 'dest' ) ':' @{syntax thms} ) + ) ?
       @{syntax nat}?
     ;
 
@@ -1761,7 +1761,7 @@ text \<open>
     ;
     args: ( @{syntax name} '=' value + ',' )
     ;
-    facts: '(' ( ( ( ( 'add' | 'del' ) ':' ) ? @{syntax thmrefs} ) + ) ? ')'
+    facts: '(' ( ( ( ( 'add' | 'del' ) ':' ) ? @{syntax thms} ) + ) ? ')'
   \<close>} % FIXME check args "value"
 
   \<^descr> @{command (HOL) "solve_direct"} checks whether the current
@@ -1822,7 +1822,7 @@ text \<open>
       @@{command (HOL) nitpick_params}) ( '[' args ']' )?
     ;
 
-    @@{command (HOL) quickcheck_generator} @{syntax nameref} \<newline>
+    @@{command (HOL) quickcheck_generator} @{syntax name} \<newline>
       'operations:' ( @{syntax term} +)
     ;
 
@@ -2140,11 +2140,11 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{method (HOL) meson} @{syntax thmrefs}?
+    @@{method (HOL) meson} @{syntax thms}?
     ;
     @@{method (HOL) metis}
       ('(' ('partial_types' | 'full_types' | 'no_types' | @{syntax name}) ')')?
-      @{syntax thmrefs}?
+      @{syntax thms}?
   \<close>}
 
   \<^descr> @{method (HOL) meson} implements Loveland's model elimination
@@ -2170,8 +2170,8 @@ text \<open>
 
   @{rail \<open>
     @@{method (HOL) algebra}
-      ('add' ':' @{syntax thmrefs})?
-      ('del' ':' @{syntax thmrefs})?
+      ('add' ':' @{syntax thms})?
+      ('del' ':' @{syntax thms})?
     ;
     @@{attribute (HOL) algebra} (() | 'add' | 'del')
   \<close>}
@@ -2246,7 +2246,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{method (HOL) coherent} @{syntax thmrefs}?
+    @@{method (HOL) coherent} @{syntax thms}?
   \<close>}
 
   \<^descr> @{method (HOL) coherent} solves problems of \<^emph>\<open>Coherent
@@ -2279,7 +2279,7 @@ text \<open>
     ;
     @@{command (HOL) inductive_cases} (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
     ;
-    rule: 'rule' ':' @{syntax thmref}
+    rule: 'rule' ':' @{syntax thm}
   \<close>}
 
   \<^descr> @{method (HOL) case_tac} and @{method (HOL) induct_tac} admit
@@ -2379,9 +2379,9 @@ text \<open>For validation purposes, it is often useful to \<^emph>\<open>execut
     ;
     constexpr: ( const | 'name._' | '_' )
     ;
-    typeconstructor: @{syntax nameref}
+    typeconstructor: @{syntax name}
     ;
-    class: @{syntax nameref}
+    class: @{syntax name}
     ;
     target: 'SML' | 'OCaml' | 'Haskell' | 'Scala' | 'Eval'
     ;

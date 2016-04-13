@@ -433,9 +433,9 @@ val _ =
     ("define " ^ coind_prefix ^ "datatype")
     ((Scan.optional ((@{keyword "\<subseteq>"} || @{keyword "<="}) |-- Parse.!!! Parse.term) "") --
       Parse.and_list1 (Parse.term -- (@{keyword "="} |-- Parse.enum1 "|" con_decl)) --
-      Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.xthms1) [] --
-      Scan.optional (@{keyword "type_intros"} |-- Parse.!!! Parse.xthms1) [] --
-      Scan.optional (@{keyword "type_elims"} |-- Parse.!!! Parse.xthms1) []
+      Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.thms1) [] --
+      Scan.optional (@{keyword "type_intros"} |-- Parse.!!! Parse.thms1) [] --
+      Scan.optional (@{keyword "type_elims"} |-- Parse.!!! Parse.thms1) []
       >> (Toplevel.theory o mk_datatype));
 
 end;

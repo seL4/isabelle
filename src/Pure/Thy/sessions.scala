@@ -167,7 +167,7 @@ object Sessions
       (CHAPTER, Keyword.THY_DECL) + (SESSION, Keyword.THY_DECL) +
       IN + DESCRIPTION + OPTIONS + GLOBAL_THEORIES + THEORIES + FILES + DOCUMENT_FILES
 
-  private object Parser extends Parse.Parser
+  private object Parser extends Parse.Parser with Options.Parser
   {
     private abstract class Entry
     private sealed case class Chapter(name: String) extends Entry
@@ -195,12 +195,13 @@ object Sessions
       val session_name = atom("session name", _.is_name)
 
       val option =
-        name ~ opt($$$("=") ~! name ^^ { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
+        option_name ~ opt($$$("=") ~! option_value ^^
+          { case _ ~ x => x }) ^^ { case x ~ y => (x, y) }
       val options = $$$("[") ~> rep1sep(option, $$$(",")) <~ $$$("]")
 
       val theories =
         ($$$(GLOBAL_THEORIES) | $$$(THEORIES)) ~!
-          ((options | success(Nil)) ~ rep(theory_xname)) ^^
+          ((options | success(Nil)) ~ rep(theory_name)) ^^
           { case x ~ (y ~ z) => (x == GLOBAL_THEORIES, y, z) }
 
       val document_files =

@@ -117,7 +117,7 @@ val _ =
     "associate SPARK types with types"
     (Scan.repeat1 (Parse.name -- Parse.!!! (Args.$$$ "=" |-- Parse.typ --
        Scan.optional (Args.parens (Parse.list1
-         (Parse.name -- Parse.!!! (Args.$$$ "=" |-- Parse.xname)))) [])) >>
+         (Parse.name -- Parse.!!! (Args.$$$ "=" |-- Parse.name)))) [])) >>
        (Toplevel.theory o fold add_spark_type_cmd));
 
 val _ =

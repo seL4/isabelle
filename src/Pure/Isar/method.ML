@@ -599,7 +599,7 @@ end;
 local
 
 fun sect (modifier : modifier parser) = Scan.depend (fn context =>
-  Scan.ahead Parse.not_eof -- Scan.trace modifier -- Scan.repeat (Scan.unless modifier Parse.xthm)
+  Scan.ahead Parse.not_eof -- Scan.trace modifier -- Scan.repeat (Scan.unless modifier Parse.thm)
     >> (fn ((tok0, ({init, attribute, pos}, modifier_toks)), xthms) =>
       let
         val decl =
@@ -689,7 +689,7 @@ in
 
 fun parser pri =
   let
-    val meth_name = Parse.token Parse.xname;
+    val meth_name = Parse.token Parse.name;
 
     fun meth5 x =
      (meth_name >> (Source o single) ||

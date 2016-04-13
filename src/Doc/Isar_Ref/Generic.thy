@@ -71,12 +71,12 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    (@@{method fold} | @@{method unfold} | @@{method insert}) @{syntax thmrefs}
+    (@@{method fold} | @@{method unfold} | @@{method insert}) @{syntax thms}
     ;
     (@@{method erule} | @@{method drule} | @@{method frule})
-      ('(' @{syntax nat} ')')? @{syntax thmrefs}
+      ('(' @{syntax nat} ')')? @{syntax thms}
     ;
-    (@@{method intro} | @@{method elim}) @{syntax thmrefs}?
+    (@@{method intro} | @@{method elim}) @{syntax thms}?
     ;
     @@{method sleep} @{syntax real}
   \<close>}
@@ -140,9 +140,9 @@ text \<open>
     ;
     @@{attribute untagged} @{syntax name}
     ;
-    @@{attribute THEN} ('[' @{syntax nat} ']')? @{syntax thmref}
+    @@{attribute THEN} ('[' @{syntax nat} ']')? @{syntax thm}
     ;
-    (@@{attribute unfolded} | @@{attribute folded}) @{syntax thmrefs}
+    (@@{attribute unfolded} | @@{attribute folded}) @{syntax thms}
     ;
     @@{attribute rotated} @{syntax int}?
   \<close>}
@@ -192,9 +192,9 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{method subst} ('(' 'asm' ')')? \<newline> ('(' (@{syntax nat}+) ')')? @{syntax thmref}
+    @@{method subst} ('(' 'asm' ')')? \<newline> ('(' (@{syntax nat}+) ')')? @{syntax thm}
     ;
-    @@{method split} @{syntax thmrefs}
+    @@{method split} @{syntax thms}
   \<close>}
 
   These methods provide low-level facilities for equational reasoning
@@ -284,7 +284,7 @@ text \<open>
     opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use' | 'asm_lr' ) ')'
     ;
     @{syntax_def simpmod}: ('add' | 'del' | 'only' | 'split' (() | 'add' | 'del') |
-      'cong' (() | 'add' | 'del')) ':' @{syntax thmrefs}
+      'cong' (() | 'add' | 'del')) ':' @{syntax thms}
   \<close>}
 
   \<^descr> @{method simp} invokes the Simplifier on the first subgoal, after
@@ -1063,7 +1063,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{attribute simplified} opt? @{syntax thmrefs}?
+    @@{attribute simplified} opt? @{syntax thms}?
     ;
 
     opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use') ')'
@@ -1383,7 +1383,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{method rule} @{syntax thmrefs}?
+    @@{method rule} @{syntax thms}?
   \<close>}
 
   \<^descr> @{method rule} as offered by the Classical Reasoner is a
@@ -1434,12 +1434,12 @@ text \<open>
     @@{method deepen} (@{syntax nat} ?) (@{syntax clamod} * )
     ;
     @{syntax_def clamod}:
-      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' @{syntax thmrefs}
+      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' @{syntax thms}
     ;
     @{syntax_def clasimpmod}: ('simp' (() | 'add' | 'del' | 'only') |
       ('cong' | 'split') (() | 'add' | 'del') |
       'iff' (((() | 'add') '?'?) | 'del') |
-      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' @{syntax thmrefs}
+      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' @{syntax thms}
   \<close>}
 
   \<^descr> @{method blast} is a separate classical tableau prover that

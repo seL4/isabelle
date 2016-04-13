@@ -1030,7 +1030,7 @@ fun values_cmd print_modes soln raw_t state =
 (* values command for Prolog queries *)
 
 val opt_print_modes =
-  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) []
+  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.name --| @{keyword ")"})) []
 
 val _ =
   Outer_Syntax.command @{command_keyword values_prolog}

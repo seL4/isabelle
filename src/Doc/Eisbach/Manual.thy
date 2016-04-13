@@ -288,7 +288,7 @@ text \<open>
     ;
     kind:
       (@'conclusion' | @'premises' ('(' 'local' ')')? |
-       '(' term ')' | @{syntax thmrefs})
+       '(' term ')' | @{syntax thms})
     ;
     pattern: fact_name? term args? \<newline> (@'for' fixes)?
     ;
