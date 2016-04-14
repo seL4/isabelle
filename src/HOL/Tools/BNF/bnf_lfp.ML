@@ -1847,7 +1847,8 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         lthy) = lthy
       |> derive_xtor_co_recs Least_FP external_bs mk_Ts (Dss, resDs) bnfs
         (export ctors) (export folds)
-        ctor_fold_unique_thm ctor_fold_thms ctor_fold_transfer_thms ctor_Imap_thms ctor_Irel_thms;
+        ctor_fold_unique_thm ctor_fold_thms ctor_fold_transfer_thms ctor_Imap_thms ctor_Irel_thms
+        (replicate n NONE);
 
     val timer = time (timer "recursor");
 

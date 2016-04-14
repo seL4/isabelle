@@ -28,7 +28,8 @@ fun the_frozen_ctr_sugar_of ctxt fpT_name =
   |> morph_ctr_sugar (Morphism.typ_morphism "BNF" Logic.unvarifyT_global
     $> Morphism.term_morphism "BNF" (Term.map_types Logic.unvarifyT_global));
 
-fun trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map xtor_rel_induct =
+fun trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map
+    xtor_rel_induct ctor_rec_transfer =
   let
     val xtors = [Const (@{const_name xtor}, fpT --> fpT)];
     val co_recs = [Const (@{const_name ctor_rec}, (fpT --> C) --> (fpT --> C))];
@@ -44,7 +45,8 @@ fun trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map
      xtor_un_fold_thms = co_rec_thms, xtor_co_rec_thms = co_rec_thms,
      xtor_un_fold_unique = co_rec_unique_thm, xtor_co_rec_unique = co_rec_unique_thm,
      xtor_un_fold_o_maps = [ctor_rec_o_map], xtor_co_rec_o_maps = [ctor_rec_o_map],
-     xtor_un_fold_transfers = [], xtor_co_rec_transfers = [],
+     xtor_un_fold_transfers = [ctor_rec_transfer],
+     xtor_co_rec_transfers = [ctor_rec_transfer],
      xtor_rel_co_induct = xtor_rel_induct, dtor_set_inducts = []}
   end;
 
@@ -62,6 +64,7 @@ fun fp_sugar_of_sum ctxt =
     val xtor_rel = @{thm xtor_rel[of "rel_sum R1 R2" for R1 R2]};
     val ctor_rec_o_map = @{thm ctor_rec_o_map[of _ "map_sum g1 g2" for g1 g2]};
     val xtor_rel_induct = @{thm xtor_rel_induct[of "rel_sum R1 R2" for R1 R2]};
+    val ctor_rec_transfer = @{thm ctor_rec_transfer[of "rel_sum R1 R2" for R1 R2]};
   in
     {T = fpT,
      BT = fpBT,
@@ -69,7 +72,8 @@ fun fp_sugar_of_sum ctxt =
      fp = Least_FP,
      fp_res_index = 0,
      fp_res =
-       trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map xtor_rel_induct,
+       trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map xtor_rel_induct
+         ctor_rec_transfer,
      pre_bnf = ID_bnf (*wrong*),
      fp_bnf = fp_bnf,
      absT_info = trivial_absT_info_of fpT,
@@ -132,6 +136,7 @@ fun fp_sugar_of_prod ctxt =
     val xtor_rel = @{thm xtor_rel[of "rel_prod R1 R2" for R1 R2]};
     val ctor_rec_o_map = @{thm ctor_rec_o_map[of _ "map_prod g1 g2" for g1 g2]};
     val xtor_rel_induct = @{thm xtor_rel_induct[of "rel_prod R1 R2" for R1 R2]};
+    val ctor_rec_transfer = @{thm ctor_rec_transfer[of "rel_prod R1 R2" for R1 R2]};
   in
     {T = fpT,
      BT = fpBT,
@@ -139,7 +144,8 @@ fun fp_sugar_of_prod ctxt =
      fp = Least_FP,
      fp_res_index = 0,
      fp_res =
-       trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map xtor_rel_induct,
+       trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map xtor_rel_induct
+         ctor_rec_transfer,
      pre_bnf = ID_bnf (*wrong*),
      fp_bnf = fp_bnf,
      absT_info = trivial_absT_info_of fpT,

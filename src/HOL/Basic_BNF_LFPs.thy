@@ -62,6 +62,9 @@ lemma ctor_rec_def_alt: "f = ctor_rec (f \<circ> id_bnf)"
 lemma ctor_rec_o_map: "ctor_rec f \<circ> g = ctor_rec (f \<circ> (id_bnf \<circ> g \<circ> id_bnf))"
   unfolding ctor_rec_def id_bnf_def comp_def by (rule refl)
 
+lemma ctor_rec_transfer: "rel_fun (rel_fun (vimage2p id_bnf id_bnf R) S) (rel_fun R S) ctor_rec ctor_rec"
+  unfolding rel_fun_def vimage2p_def id_bnf_def ctor_rec_def by simp
+
 lemma eq_fst_iff: "a = fst p \<longleftrightarrow> (\<exists>b. p = (a, b))"
   by (cases p) auto
 

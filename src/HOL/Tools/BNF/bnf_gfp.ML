@@ -2585,7 +2585,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
       |> derive_xtor_co_recs Greatest_FP external_bs mk_Ts (Dss, resDs) bnfs
         (export dtors) (export unfolds)
         dtor_unfold_unique_thm dtor_unfold_thms dtor_unfold_transfer_thms
-        dtor_Jmap_thms dtor_Jrel_thms;
+        dtor_Jmap_thms dtor_Jrel_thms (replicate n NONE);
 
     val timer = time (timer "recursor");
 

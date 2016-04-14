@@ -24,24 +24,22 @@ open BNF_FP_Def_Sugar
 open BNF_Tactics
 open BNF_FP_N2M_Tactics
 
-fun mk_prod_map f g =
+fun mk_arg_cong ctxt n t =
   let
-    val ((fAT, fBT), fT) = `dest_funT (fastype_of f);
-    val ((gAT, gBT), gT) = `dest_funT (fastype_of g);
+    val Us = fastype_of t |> strip_typeN n |> fst;
+    val ((xs, ys), _) = ctxt
+      |> mk_Frees "x" Us
+      ||>> mk_Frees "y" Us;
+    val goal = Logic.list_implies (@{map 2} (curry mk_Trueprop_eq) xs ys,
+      mk_Trueprop_eq (list_comb (t, xs), list_comb (t, ys)));
+    val vars = Variable.add_free_names ctxt goal [];
   in
-    Const (@{const_name map_prod},
-      fT --> gT --> HOLogic.mk_prodT (fAT, gAT) --> HOLogic.mk_prodT (fBT, gBT)) $ f $ g
+    Goal.prove_sorry ctxt vars [] goal (fn {context = ctxt, prems = _} =>
+      HEADGOAL (hyp_subst_tac ctxt THEN' rtac ctxt refl))
+    |> Thm.close_derivation
   end;
 
-fun mk_map_sum f g =
-  let
-    val ((fAT, fBT), fT) = `dest_funT (fastype_of f);
-    val ((gAT, gBT), gT) = `dest_funT (fastype_of g);
-  in
-    Const (@{const_name map_sum}, fT --> gT --> mk_sumT (fAT, gAT) --> mk_sumT (fBT, gBT)) $ f $ g
-  end;
-
-fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs (resDs, Dss) bnfs
+fun construct_mutualized_fp fp mutual_cliques fpTs indexed_fp_ress bs resBs (resDs, Dss) bnfs
     (absT_infos : absT_info list) lthy =
   let
     val time = time lthy;
@@ -54,22 +52,16 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
     fun of_fp_res get = map (uncurry nth o swap o apsnd get) indexed_fp_ress;
     fun mk_co_algT T U = case_fp fp (T --> U) (U --> T);
     fun co_swap pair = case_fp fp I swap pair;
-    val mk_co_comp = HOLogic.mk_comp o co_swap;
-    val co_productC = case_fp fp @{type_name prod} @{type_name sum};
+    val mk_co_comp = curry (HOLogic.mk_comp o co_swap);
 
     val dest_co_algT = co_swap o dest_funT;
     val co_alg_argT = case_fp fp range_type domain_type;
     val co_alg_funT = case_fp fp domain_type range_type;
-    val mk_co_product = curry (case_fp fp mk_convol mk_case_sum);
-    val mk_map_co_product = case_fp fp mk_prod_map mk_map_sum;
-    val co_proj1_const = case_fp fp (fst_const o fst) (uncurry Inl_const o dest_sumT o snd);
-    val mk_co_productT = curry (case_fp fp HOLogic.mk_prodT mk_sumT);
-    val dest_co_productT = case_fp fp HOLogic.dest_prodT dest_sumT;
     val rewrite_comp_comp = case_fp fp @{thm rewriteL_comp_comp} @{thm rewriteR_comp_comp};
 
     val fp_absT_infos = of_fp_res #absT_infos;
     val fp_bnfs = of_fp_res #bnfs;
-    val pre_bnfs = of_fp_res #pre_bnfs;
+    val fp_pre_bnfs = of_fp_res #pre_bnfs;
 
     val fp_absTs = map #absT fp_absT_infos;
     val fp_repTs = map #repT fp_absT_infos;
@@ -93,8 +85,9 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
     val m = length As;
     val live = m + n;
 
-    val ((Xs, Bs), names_lthy) = names_lthy
+    val (((Xs, Ys), Bs), names_lthy) = names_lthy
       |> mk_TFrees n
+      ||>> mk_TFrees n
       ||>> mk_TFrees m;
 
     val allAs = As @ Xs;
@@ -104,7 +97,6 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
     val fpTs' = map (Term.typ_subst_atomic thetaBs) fpTs;
     val fold_thetaAs = Xs ~~ fpTs;
     val fold_thetaBs = Xs ~~ fpTs';
-    val rec_theta = Xs ~~ map2 mk_co_productT fpTs Xs;
     val pre_phiTs = map2 mk_pred2T fpTs fpTs';
 
     val ((ctors, dtors), (xtor's, xtors)) =
@@ -167,7 +159,7 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
 
     val pre_rels = map2 (fn Ds => mk_rel_of_bnf Ds (As @ fpTs) (Bs @ fpTs')) Dss bnfs;
 
-    val rel_unfolds = maps (no_refl o single o rel_def_of_bnf) pre_bnfs;
+    val rel_unfolds = maps (no_refl o single o rel_def_of_bnf) fp_pre_bnfs;
     val rel_xtor_co_inducts = of_fp_res (split_conj_thm o #xtor_rel_co_induct)
       |> map (zero_var_indexes o unfold_thms lthy (id_apply :: rel_unfolds));
 
@@ -189,23 +181,26 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
     val fp_or_nesting_rel_eqs = no_refl (map rel_eq_of_bnf fp_or_nesting_bnfs);
     val fp_or_nesting_rel_monos = map rel_mono_of_bnf fp_or_nesting_bnfs;
 
+    fun mutual_instantiate ctxt inst =
+      let
+        val thetas = AList.group (op =) (mutual_cliques ~~ inst);
+      in
+        map2 (infer_instantiate ctxt o the o AList.lookup (op =) thetas) mutual_cliques
+      end;
+
     val rel_xtor_co_inducts_inst =
       let
         val extract =
           case_fp fp (snd o Term.dest_comb) (snd o Term.dest_comb o fst o Term.dest_comb);
         val raw_phis = map (extract o HOLogic.dest_Trueprop o Thm.concl_of) rel_xtor_co_inducts;
-        val thetas =
-          AList.group (op =)
-            (flat_mutual_cliques ~~
-              map (fn (t, u) => (#1 (dest_Var t), Thm.cterm_of lthy u)) (raw_phis ~~ pre_phis));
+        val inst = map (fn (t, u) => (#1 (dest_Var t), Thm.cterm_of lthy u)) (raw_phis ~~ pre_phis);
       in
-        map2 (infer_instantiate lthy o the o AList.lookup (op =) thetas)
-        flat_mutual_cliques rel_xtor_co_inducts
+        mutual_instantiate lthy inst rel_xtor_co_inducts
       end
 
     val xtor_rel_co_induct =
       mk_xtor_rel_co_induct_thm fp (@{map 3} cast castAs castBs pre_rels) pre_phis rels phis xs ys
-        xtors xtor's (mk_rel_xtor_co_induct_tactic fp abs_inverses rel_xtor_co_inducts_inst rel_defs
+        xtors xtor's (mk_rel_xtor_co_induct_tac fp abs_inverses rel_xtor_co_inducts_inst rel_defs
           rel_monos fp_or_nesting_rel_eqs fp_or_nesting_rel_monos)
         lthy;
 
@@ -255,34 +250,21 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
     val timer = time (timer "Nested-to-mutual (co)induction");
 
     val fold_preTs = map2 (fn Ds => mk_T_of_bnf Ds allAs) Dss bnfs;
-    val rec_preTs = map (Term.typ_subst_atomic rec_theta) fold_preTs;
 
-    val rec_strTs = map2 mk_co_algT rec_preTs Xs;
+    val fold_strTs = map2 mk_co_algT fold_preTs Xs;
     val resTs = map2 mk_co_algT fpTs Xs;
 
-    val ((rec_strs, rec_strs'), names_lthy) = names_lthy
-      |> mk_Frees' "s" rec_strTs;
+    val ((fold_strs, fold_strs'), names_lthy) = names_lthy
+      |> mk_Frees' "s" fold_strTs;
 
-    val xtor_co_recs = of_fp_res #xtor_co_recs;
+    val fp_un_folds = of_fp_res #xtor_un_folds;
     val ns = map (length o #Ts o snd) indexed_fp_ress;
 
-    fun foldT_of_recT recT =
-      let
-        val ((FTXs, Ys), TX) = strip_fun_type recT |>> map_split dest_co_algT;
-        val Zs = union op = Xs Ys;
-        fun subst (Type (C, Ts as [_, X])) =
-            if C = co_productC andalso member op = Zs X then X else Type (C, map subst Ts)
-          | subst (Type (C, Ts)) = Type (C, map subst Ts)
-          | subst T = T;
-      in
-        map2 (mk_co_algT o subst) FTXs Ys ---> TX
-      end;
-
-    fun force_rec i TU raw_rec =
+    fun force_fold i TU raw_un_fold =
       let
         val thy = Proof_Context.theory_of lthy;
 
-        val approx_rec = raw_rec
+        val approx_un_fold = raw_un_fold
           |> force_typ names_lthy (replicate (nth ns i) dummyT ---> TU);
         val subst = Term.typ_subst_atomic fold_thetaAs;
 
@@ -295,35 +277,35 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
           map (typ_subst_nonatomic_sorted (map (rpair dummyT) (As @ sorted_fpTs))) fold_preTs';
 
         val (mutual_clique, TUs) =
-          map_split dest_co_algT (binder_fun_types (foldT_of_recT (fastype_of approx_rec)))
+          map_split dest_co_algT (binder_fun_types (fastype_of approx_un_fold))
           |>> map subst
-          |> `(fn (_, Ys) => nth flat_mutual_cliques
+          |> `(fn (_, Ys) => nth mutual_cliques
             (find_index (fn X => X = the (find_first (can dest_TFree) Ys)) Xs))
           ||> uncurry (map2 mk_co_algT);
-        val cands = flat_mutual_cliques ~~ map2 mk_co_algT fold_preTs' Xs;
+        val cands = mutual_cliques ~~ map2 mk_co_algT fold_preTs' Xs;
         val js = find_indices (fn ((cl, cand), TU) =>
           cl = mutual_clique andalso Type.could_unify (TU, cand)) TUs cands;
         val Tpats = map (fn j => mk_co_algT (nth fold_pre_deads_only_Ts j) (nth Xs j)) js;
       in
-        force_typ names_lthy (Tpats ---> TU) raw_rec
+        force_typ names_lthy (Tpats ---> TU) raw_un_fold
       end;
 
     fun mk_co_comp_abs_rep fp_absT absT fp_abs fp_rep abs rep t =
       case_fp fp (HOLogic.mk_comp (HOLogic.mk_comp (t, mk_abs absT abs), mk_rep fp_absT fp_rep))
         (HOLogic.mk_comp (mk_abs fp_absT fp_abs, HOLogic.mk_comp (mk_rep absT rep, t)));
 
-    fun mk_rec b_opt recs lthy TU =
+    fun mk_un_fold b_opt un_folds lthy TU =
       let
         val thy = Proof_Context.theory_of lthy;
 
         val x = co_alg_argT TU;
         val i = find_index (fn T => x = T) Xs;
-        val TUrec =
-          (case find_first (fn f => body_fun_type (fastype_of f) = TU) recs of
-            NONE => force_rec i TU (nth xtor_co_recs i)
+        val TUfold =
+          (case find_first (fn f => body_fun_type (fastype_of f) = TU) un_folds of
+            NONE => force_fold i TU (nth fp_un_folds i)
           | SOME f => f);
 
-        val TUs = binder_fun_types (fastype_of TUrec);
+        val TUs = binder_fun_types (fastype_of TUfold);
 
         fun mk_s TU' =
           let
@@ -338,8 +320,8 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
             val sF' =
               mk_absT_fp_repT (nth repTs' i) (nth absTs' i) (nth fp_absTs i) (nth fp_repTs i) sF
                 handle Term.TYPE _ => sF;
-            val F = nth rec_preTs i;
-            val s = nth rec_strs i;
+            val F = nth fold_preTs i;
+            val s = nth fold_strs i;
           in
             if sF = F then s
             else if sF' = F then mk_co_comp_abs_rep sF sF' fp_abs fp_rep abs rep s
@@ -356,130 +338,189 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
                   (if domain_type T_to_U = range_type T_to_U then
                     HOLogic.id_const (domain_type T_to_U)
                   else
-                    let
-                      val (TY, (U, X)) = T_to_U |> dest_co_algT ||> dest_co_productT;
-                      val T = mk_co_algT TY U;
-                      fun mk_co_proj TU =
-                        build_map lthy [] (fn TU =>
-                          let val ((T1, T2), U) = TU |> co_swap |>> dest_co_productT in
-                            if T1 = U then co_proj1_const TU
-                            else mk_co_comp (mk_co_proj (co_swap (T1, U)),
-                              co_proj1_const (co_swap (mk_co_productT T1 T2, T1)))
-                          end)
-                          TU;
-                      fun default () =
-                        mk_co_product (mk_co_proj (dest_funT T))
-                          (fst (fst (mk_rec NONE recs lthy (mk_co_algT TY X))));
-                    in
-                      if can dest_co_productT TY then
-                        mk_map_co_product (mk_co_proj (co_swap (dest_co_productT TY |> fst, U)))
-                          (HOLogic.id_const X)
-                        handle TYPE _ => default () (*N2M involving "prod" type*)
-                      else
-                        default ()
-                    end)
+                    fst (fst (mk_un_fold NONE un_folds lthy T_to_U)));
                 val smap_args = map mk_smap_arg smap_argTs;
               in
                 mk_co_comp_abs_rep sF sF' fp_abs fp_rep abs rep
-                  (mk_co_comp (s, Term.list_comb (smap, smap_args)))
+                  (mk_co_comp s (Term.list_comb (smap, smap_args)))
               end
           end;
-        val t = Term.list_comb (TUrec, map mk_s TUs);
+        val t = Term.list_comb (TUfold, map mk_s TUs);
       in
         (case b_opt of
           NONE => ((t, Drule.dummy_thm), lthy)
         | SOME b => Local_Theory.define ((b, NoSyn), ((Binding.concealed (Thm.def_binding b), []),
-            fold_rev Term.absfree rec_strs' t)) lthy |>> apsnd snd)
+            fold_rev Term.absfree fold_strs' t)) lthy |>> apsnd snd)
       end;
 
-    val recN = case_fp fp ctor_recN dtor_corecN;
-    fun mk_recs lthy =
-      fold2 (fn TU => fn b => fn ((recs, defs), lthy) =>
-        mk_rec (SOME b) recs lthy TU |>> (fn (f, d) => (f :: recs, d :: defs)))
-      resTs (map (Binding.suffix_name ("_" ^ recN)) bs) (([], []), lthy)
+    val foldN = case_fp fp ctor_foldN dtor_unfoldN;
+    fun mk_un_folds lthy =
+      fold2 (fn TU => fn b => fn ((un_folds, defs), lthy) =>
+        mk_un_fold (SOME b) un_folds lthy TU |>> (fn (f, d) => (f :: un_folds, d :: defs)))
+      resTs (map (Binding.suffix_name ("_" ^ foldN)) bs) (([], []), lthy)
       |>> map_prod rev rev;
-    val ((raw_xtor_co_recs, raw_xtor_co_rec_defs), (lthy, raw_lthy)) = lthy
+    val ((raw_xtor_un_folds, raw_xtor_un_fold_defs), (lthy, raw_lthy)) = lthy
       |> Local_Theory.open_target |> snd
-      |> mk_recs
+      |> mk_un_folds
       ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism raw_lthy lthy;
 
-    val xtor_co_recs = map (Morphism.term phi) raw_xtor_co_recs;
+    val xtor_un_folds = map (Morphism.term phi) raw_xtor_un_folds;
+    val xtor_un_fold_defs = map (Morphism.thm phi) raw_xtor_un_fold_defs;
+    val xtor_un_folds' = map2 (fn raw => fn t => Const (fst (dest_Const t), fastype_of raw)) raw_xtor_un_folds xtor_un_folds;
 
-    val fp_rec_o_maps = of_fp_res #xtor_co_rec_o_maps
+    val fp_un_fold_o_maps = of_fp_res #xtor_un_fold_o_maps
       |> maps (fn thm => [thm, thm RS rewrite_comp_comp]);
 
-    val xtor_co_rec_thms =
-      let
-        val recs = map (fn r => Term.list_comb (r, rec_strs)) raw_xtor_co_recs;
-        val rec_mapTs = co_swap (As @ fpTs, As @ map2 mk_co_productT fpTs Xs);
-        val pre_rec_maps =
-          map2 (fn Ds => fn bnf =>
-            Term.list_comb (uncurry (mk_map_of_bnf Ds) rec_mapTs bnf,
-              map HOLogic.id_const As @ map2 (mk_co_product o HOLogic.id_const) fpTs recs))
-          Dss bnfs;
+    val un_folds = map (fn fold => Term.list_comb (fold, fold_strs)) raw_xtor_un_folds;
+    val fold_mapTs = co_swap (As @ fpTs, As @ Xs);
+    val pre_fold_maps = @{map 2} (fn Ds => uncurry (mk_map_of_bnf Ds) fold_mapTs) Dss bnfs
+    fun mk_pre_fold_maps fs =
+      map (fn mapx => Term.list_comb (mapx, map HOLogic.id_const As @ fs)) pre_fold_maps;
 
+    val pre_map_defs = no_refl (map map_def_of_bnf bnfs);
+    val fp_map_defs = no_refl (map map_def_of_bnf fp_pre_bnfs);
+    val map_defs = pre_map_defs @ fp_map_defs;
+    val pre_rel_defs = no_refl (map rel_def_of_bnf bnfs);
+    val fp_rel_defs = no_refl (map rel_def_of_bnf fp_pre_bnfs);
+    val rel_defs = pre_rel_defs @ fp_rel_defs;
+    fun mk_Rep_o_Abs thm = (thm RS @{thm type_copy_Rep_o_Abs})
+      |> (fn thm => [thm, thm RS rewrite_comp_comp]);
+    val fp_Rep_o_Abss = maps mk_Rep_o_Abs fp_type_definitions;
+    val pre_Rep_o_Abss = maps mk_Rep_o_Abs type_definitions;
+    val Rep_o_Abss = fp_Rep_o_Abss @ pre_Rep_o_Abss;
+
+    val unfold_map = map (unfold_thms lthy (id_apply :: pre_map_defs));
+    val simp_thms = case_fp fp @{thm comp_assoc} @{thm comp_assoc[symmetric]} ::
+      @{thms id_apply comp_id id_comp};
+
+    val eq_thm_prop_untyped = Term.aconv_untyped o apply2 Thm.full_prop_of;
+
+    val map_thms = no_refl (maps (fn bnf =>
+       let val map_comp0 = map_comp0_of_bnf bnf RS sym
+       in [map_comp0, map_comp0 RS rewrite_comp_comp, map_id0_of_bnf bnf] end)
+      fp_or_nesting_bnfs) @
+      remove eq_thm_prop_untyped (case_fp fp @{thm comp_assoc[symmetric]} @{thm comp_assoc})
+      (map2 (fn thm => fn bnf =>
+        @{thm type_copy_map_comp0_undo} OF
+          (replicate 3 thm @ unfold_map [map_comp0_of_bnf bnf]) RS
+          rewrite_comp_comp)
+      type_definitions bnfs);
+
+    val xtor_un_fold_thms =
+      let
+        val pre_fold_maps = mk_pre_fold_maps un_folds;
         fun mk_goals f xtor s smap fp_abs fp_rep abs rep =
           let
-            val lhs = mk_co_comp (f, xtor);
-            val rhs = mk_co_comp (s, smap);
+            val lhs = mk_co_comp f xtor;
+            val rhs = mk_co_comp s smap;
           in
             HOLogic.mk_eq (lhs,
               mk_co_comp_abs_rep (co_alg_funT (fastype_of lhs)) (co_alg_funT (fastype_of rhs))
                 fp_abs fp_rep abs rep rhs)
           end;
 
-        val goals = @{map 8} mk_goals recs xtors rec_strs pre_rec_maps fp_abss fp_reps abss reps;
+        val goals = @{map 8} mk_goals un_folds xtors fold_strs pre_fold_maps fp_abss fp_reps abss reps;
 
-        val pre_map_defs = no_refl (map map_def_of_bnf bnfs);
-        val fp_pre_map_defs = no_refl (map map_def_of_bnf pre_bnfs);
+        val fp_un_folds = map (mk_pointfree lthy) (of_fp_res #xtor_un_fold_thms);
 
-        val unfold_map = map (unfold_thms lthy (id_apply :: pre_map_defs));
-
-        val fp_xtor_co_recs = map (mk_pointfree lthy) (of_fp_res #xtor_co_rec_thms);
-
-        val fold_thms = case_fp fp @{thm comp_assoc} @{thm comp_assoc[symmetric]} ::
-          map (fn thm => thm RS rewrite_comp_comp) @{thms map_prod.comp map_sum.comp} @
-          @{thms id_apply comp_id id_comp map_prod.comp map_prod.id map_sum.comp map_sum.id};
-        val rec_thms = fold_thms @ case_fp fp
-          @{thms fst_convol map_prod_o_convol convol_o fst_comp_map_prod}
-          @{thms case_sum_o_inj(1) case_sum_o_map_sum o_case_sum map_sum_o_inj(1)};
-
-        val eq_thm_prop_untyped = Term.aconv_untyped o apply2 Thm.full_prop_of;
-
-        val map_thms = no_refl (maps (fn bnf =>
-           let val map_comp0 = map_comp0_of_bnf bnf RS sym
-           in [map_comp0, map_comp0 RS rewrite_comp_comp, map_id0_of_bnf bnf] end)
-          fp_or_nesting_bnfs) @
-          remove eq_thm_prop_untyped (case_fp fp @{thm comp_assoc[symmetric]} @{thm comp_assoc})
-          (map2 (fn thm => fn bnf =>
-            @{thm type_copy_map_comp0_undo} OF
-              (replicate 3 thm @ unfold_map [map_comp0_of_bnf bnf]) RS
-              rewrite_comp_comp)
-          type_definitions bnfs);
-
-        fun mk_Rep_o_Abs thm = (thm RS @{thm type_copy_Rep_o_Abs})
-          |> (fn thm => [thm, thm RS rewrite_comp_comp]);
-
-        val fp_Rep_o_Abss = maps mk_Rep_o_Abs fp_type_definitions;
-        val Rep_o_Abss = maps mk_Rep_o_Abs type_definitions;
-
-        fun tac {context = ctxt, prems = _} =
-          unfold_thms_tac ctxt (flat [rec_thms, raw_xtor_co_rec_defs, pre_map_defs,
-            fp_pre_map_defs, fp_xtor_co_recs, fp_rec_o_maps, map_thms, fp_Rep_o_Abss,
-            Rep_o_Abss]) THEN
-          CONJ_WRAP (K (HEADGOAL (rtac ctxt refl))) bnfs;
+        val simps = flat [simp_thms, raw_xtor_un_fold_defs, map_defs, fp_un_folds,
+          fp_un_fold_o_maps, map_thms, Rep_o_Abss];
       in
         Library.foldr1 HOLogic.mk_conj goals
         |> HOLogic.mk_Trueprop
-        |> fold_rev Logic.all rec_strs
-        |> (fn goal => Goal.prove_sorry raw_lthy [] [] goal tac)
+        |> fold_rev Logic.all fold_strs
+        |> (fn goal => Goal.prove_sorry raw_lthy [] [] goal
+          (fn {context = ctxt, prems = _} => mk_xtor_un_fold_tac ctxt n simps))
         |> Thm.close_derivation
         |> Morphism.thm phi
         |> split_conj_thm
         |> map (fn thm => thm RS @{thm comp_eq_dest})
       end;
+
+    val xtor_un_fold_o_maps = of_fp_res #xtor_un_fold_o_maps
+      |> maps (fn thm => [thm, thm RS rewrite_comp_comp]);
+    val xtor_un_fold_unique_thm =
+      let
+        val (fs, _) = names_lthy |> mk_Frees "f" resTs;
+        val fold_maps = mk_pre_fold_maps fs;
+        fun mk_prem f s mapx xtor fp_abs fp_rep abs rep =
+          let
+            val lhs = mk_co_comp f xtor;
+            val rhs = mk_co_comp s mapx;
+          in
+            mk_Trueprop_eq (lhs,
+              mk_co_comp_abs_rep (co_alg_funT (fastype_of lhs)) (co_alg_funT (fastype_of rhs))
+                fp_abs fp_rep abs rep rhs)
+          end;
+        val prems = @{map 8} mk_prem fs fold_strs fold_maps xtors fp_abss fp_reps abss reps;
+        val concl = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
+          (map2 (curry HOLogic.mk_eq) fs un_folds));
+        val vars = Variable.add_free_names raw_lthy concl [];
+        val fp_un_fold_uniques0 = of_fp_res (split_conj_thm o #xtor_un_fold_unique)
+          |> map (Drule.zero_var_indexes o unfold_thms lthy fp_map_defs);
+        val names = fp_un_fold_uniques0
+          |> map (Thm.concl_of #> HOLogic.dest_Trueprop
+            #> HOLogic.dest_eq #> fst #> dest_Var #> fst);
+        val inst = names ~~ map (Thm.cterm_of lthy) fs;
+        val fp_un_fold_uniques = mutual_instantiate lthy inst fp_un_fold_uniques0;
+        val map_arg_congs =
+          map (fn bnf => mk_arg_cong lthy (live_of_bnf bnf) (map_of_bnf bnf)
+            |> unfold_thms lthy (pre_map_defs @ simp_thms)) nesting_bnfs;
+      in
+        Goal.prove_sorry raw_lthy vars prems concl
+          (mk_xtor_un_fold_unique_tac fp raw_xtor_un_fold_defs map_arg_congs xtor_un_fold_o_maps
+            Rep_o_Abss fp_un_fold_uniques simp_thms map_thms map_defs)
+          |> Thm.close_derivation
+          |> case_fp fp I (fn thm => thm OF replicate n sym)
+          |> Morphism.thm phi
+      end;
+
+    val ABs = As ~~ Bs;
+    val XYs = Xs ~~ Ys;
+    val ABphiTs = @{map 2} mk_pred2T As Bs;
+    val XYphiTs = @{map 2} mk_pred2T Xs Ys;
+
+    val ((ABphis, XYphis), _) = names_lthy
+      |> mk_Frees "R" ABphiTs
+      ||>> mk_Frees "S" XYphiTs;
+
+    val pre_rels = @{map 2} (fn Ds => mk_rel_of_bnf Ds (As @ Xs) (Bs @ Ys)) Dss bnfs;
+
+    val ns = map (fn i => length (filter (fn c => i = c) mutual_cliques)) mutual_cliques;
+
+    val map_transfers = map (funpow live (fn thm => thm RS @{thm rel_funD})
+        #> unfold_thms lthy pre_rel_defs)
+      (map map_transfer_of_bnf bnfs);
+    val fp_un_fold_transfers = map2 (fn n => funpow n (fn thm => thm RS @{thm rel_funD})
+        #> unfold_thms lthy fp_rel_defs)
+      ns (of_fp_res #xtor_un_fold_transfers);
+    val pre_Abs_transfers = map (fn thm => @{thm Abs_transfer} OF [thm, thm]) type_definitions;
+    val fp_Abs_transfers = map (fn thm => @{thm Abs_transfer} OF [thm, thm]) fp_type_definitions;
+    val Abs_transfers = pre_Abs_transfers @ fp_Abs_transfers;
+
+    fun tac {context = ctxt, prems = _} =
+      mk_xtor_un_fold_transfer_tac ctxt n xtor_un_fold_defs rel_defs fp_un_fold_transfers
+        map_transfers Abs_transfers fp_or_nesting_rel_eqs;
+
+    val xtor_un_fold_transfer_thms =
+      mk_xtor_co_iter_transfer_thms fp pre_rels XYphis XYphis rels ABphis
+        xtor_un_folds' (map (subst_atomic_types (ABs @ XYs)) xtor_un_folds') tac lthy;
+
+    val timer = time (timer "Nested-to-mutual (co)iteration");
+
+    val xtor_maps = of_fp_res #xtor_maps;
+    val xtor_rels = of_fp_res #xtor_rels;
+    fun mk_Ts Cs = map (typ_subst_atomic (As ~~ Cs)) fpTs;
+    val phi = Local_Theory.target_morphism lthy;
+    val export = map (Morphism.term phi);
+    val ((xtor_co_recs, (xtor_co_rec_thms, xtor_co_rec_unique_thm, xtor_co_rec_o_map_thms,
+        xtor_co_rec_transfer_thms)), lthy) = lthy
+      |> derive_xtor_co_recs fp bs mk_Ts (Dss, resDs) bnfs
+        (export xtors) (export xtor_un_folds)
+        xtor_un_fold_unique_thm xtor_un_fold_thms xtor_un_fold_transfer_thms xtor_maps xtor_rels
+        (@{map 2} (curry (SOME o @{apply 2} (morph_absT_info phi))) fp_absT_infos absT_infos);
 
     val timer = time (timer "Nested-to-mutual (co)recursion");
 
@@ -496,8 +537,8 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
 
     val notes =
       (case fp of
-        Least_FP => [(ctor_recN, xtor_co_rec_thms)]
-      | Greatest_FP => [(dtor_corecN, xtor_co_rec_thms)])
+        Least_FP => [(ctor_foldN, xtor_un_fold_thms)]
+      | Greatest_FP => [(dtor_unfoldN, xtor_un_fold_thms)])
       |> map (apsnd (map single))
       |> maps (fn (thmN, thmss) =>
         map2 (fn b => fn thms =>
@@ -512,23 +553,24 @@ fun construct_mutualized_fp fp flat_mutual_cliques fpTs indexed_fp_ress bs resBs
     val fp_res =
       ({Ts = fpTs, bnfs = of_fp_res #bnfs, pre_bnfs = bnfs, absT_infos = absT_infos,
         dtors = dtors, ctors = ctors,
-        xtor_un_folds = xtor_co_recs (*wrong*), xtor_co_recs = xtor_co_recs,
+        xtor_un_folds = xtor_un_folds, xtor_co_recs = xtor_co_recs,
         xtor_co_induct = xtor_co_induct_thm,
         dtor_ctors = of_fp_res #dtor_ctors (*too general types*),
         ctor_dtors = of_fp_res #ctor_dtors (*too general types*),
         ctor_injects = of_fp_res #ctor_injects (*too general types*),
         dtor_injects = of_fp_res #dtor_injects (*too general types*),
         xtor_maps = of_fp_res #xtor_maps (*too general types and terms*),
-        xtor_map_unique = TrueI (*wrong*),
+        xtor_map_unique = xtor_un_fold_unique_thm (*wrong*),
         xtor_setss = of_fp_res #xtor_setss (*too general types and terms*),
         xtor_rels = of_fp_res #xtor_rels (*too general types and terms*),
-        xtor_un_fold_thms = xtor_co_rec_thms (*wrong*),
-        xtor_co_rec_thms = xtor_co_rec_thms (*too general types and terms*),
-        xtor_un_fold_unique = TrueI (*too general types and terms*),
-        xtor_co_rec_unique = TrueI (*wrong*),
-        xtor_un_fold_o_maps = fp_rec_o_maps (*wrong*),
-        xtor_co_rec_o_maps = fp_rec_o_maps (*theorems about old constants*),
-        xtor_un_fold_transfers = [], xtor_co_rec_transfers = [],
+        xtor_un_fold_thms = xtor_un_fold_thms,
+        xtor_co_rec_thms = xtor_co_rec_thms,
+        xtor_un_fold_unique = xtor_un_fold_unique_thm,
+        xtor_co_rec_unique = xtor_co_rec_unique_thm,
+        xtor_un_fold_o_maps = fp_un_fold_o_maps (*wrong*),
+        xtor_co_rec_o_maps = xtor_co_rec_o_map_thms (*wrong*),
+        xtor_un_fold_transfers = xtor_un_fold_transfer_thms,
+        xtor_co_rec_transfers = xtor_co_rec_transfer_thms (*wrong*),
         xtor_rel_co_induct = xtor_rel_co_induct, dtor_set_inducts = []}
        |> morph_fp_result (Morphism.term_morphism "BNF" (singleton (Variable.polymorphic lthy))));
   in

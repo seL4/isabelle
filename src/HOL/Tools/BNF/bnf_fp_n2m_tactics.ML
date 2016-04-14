@@ -7,8 +7,14 @@ Tactics for mutualization of nested (co)datatypes.
 
 signature BNF_FP_N2M_TACTICS =
 sig
-  val mk_rel_xtor_co_induct_tactic: BNF_Util.fp_kind -> thm list -> thm list -> thm list ->
+  val mk_rel_xtor_co_induct_tac: BNF_Util.fp_kind -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> {prems: thm list, context: Proof.context} -> tactic
+  val mk_xtor_un_fold_unique_tac: BNF_Util.fp_kind -> thm list -> thm list -> thm list ->
+    thm list -> thm list -> thm list -> thm list -> thm list ->
+    {context: Proof.context, prems: thm list} -> tactic
+  val mk_xtor_un_fold_tac: Proof.context -> int -> thm list -> tactic
+  val mk_xtor_un_fold_transfer_tac: Proof.context -> int -> thm list -> thm list -> thm list ->
+    thm list -> thm list -> thm list -> tactic
 end;
 
 structure BNF_FP_N2M_Tactics : BNF_FP_N2M_TACTICS =
@@ -20,7 +26,7 @@ open BNF_FP_Util
 
 val vimage2p_unfolds = o_apply :: @{thms vimage2p_def};
 
-fun mk_rel_xtor_co_induct_tactic fp abs_inverses co_inducts0 rel_defs rel_monos nesting_rel_eqs0
+fun mk_rel_xtor_co_induct_tac fp abs_inverses co_inducts0 rel_defs rel_monos nesting_rel_eqs0
   nesting_rel_monos0 {context = ctxt, prems = raw_C_IHs} =
   let
     val nesting_rel_eqs = @{thms prod.rel_eq sum.rel_eq} @ nesting_rel_eqs0;
@@ -52,6 +58,38 @@ fun mk_rel_xtor_co_induct_tactic fp abs_inverses co_inducts0 rel_defs rel_monos 
               rtac ctxt @{thm order_refl},
               REPEAT_ALL_NEW (eresolve_tac ctxt nesting_rel_monos)])])))
     co_inducts)
+  end;
+
+fun mk_xtor_un_fold_unique_tac fp xtor_un_fold_defs map_arg_congs xtor_un_fold_o_maps
+   Rep_o_Abss fp_un_fold_uniques simp_thms map_thms map_defs {context = ctxt, prems} =
+  unfold_thms_tac ctxt xtor_un_fold_defs THEN
+  HEADGOAL (REPEAT_DETERM o FIRST' [hyp_subst_tac_thin true ctxt, rtac ctxt refl,
+    rtac ctxt conjI,
+    rtac ctxt @{thm arg_cong2[of _ _ _ _ "op o", OF refl]},
+    rtac ctxt @{thm arg_cong2[of _ _ _ _ "op o", OF _ refl]},
+    resolve_tac ctxt map_arg_congs,
+    resolve_tac ctxt fp_un_fold_uniques THEN_ALL_NEW case_fp fp (K all_tac) (rtac ctxt sym),
+    SELECT_GOAL (CHANGED (unfold_thms_tac ctxt (flat [simp_thms, map_thms, map_defs,
+      xtor_un_fold_defs, xtor_un_fold_o_maps, Rep_o_Abss, prems])))]);
+
+fun mk_xtor_un_fold_tac ctxt n simps =
+  unfold_thms_tac ctxt simps THEN
+  CONJ_WRAP (K (HEADGOAL (rtac ctxt refl))) (1 upto n);
+
+fun mk_xtor_un_fold_transfer_tac ctxt n xtor_un_fold_defs rel_defs fp_un_fold_transfers
+    map_transfers Abs_transfers fp_or_nesting_rel_eqs =
+  let
+    val unfold = SELECT_GOAL (unfold_thms_tac ctxt fp_or_nesting_rel_eqs);
+  in
+    unfold_thms_tac ctxt (xtor_un_fold_defs @ rel_defs) THEN
+    HEADGOAL (CONJ_WRAP'
+      (fn thm => EVERY' [REPEAT_DETERM_N n o rtac ctxt rel_funI, rtac ctxt thm THEN_ALL_NEW
+        REPEAT_DETERM o (FIRST' [assume_tac ctxt, rtac ctxt @{thm id_transfer},
+            rtac ctxt @{thm rel_funD[OF rel_funD[OF comp_transfer]]},
+            resolve_tac ctxt fp_un_fold_transfers, resolve_tac ctxt map_transfers,
+            resolve_tac ctxt Abs_transfers, rtac ctxt @{thm vimage2p_rel_fun},
+            unfold THEN' rtac ctxt @{thm vimage2p_rel_fun}])])
+      fp_un_fold_transfers)
   end;
 
 end;
