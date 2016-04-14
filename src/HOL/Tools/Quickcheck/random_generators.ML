@@ -7,17 +7,19 @@ Random generators for various types.
 signature RANDOM_GENERATORS =
 sig
   type seed = Random_Engine.seed
-  val random_fun: typ -> typ -> ('a -> 'a -> bool) -> ('a -> term)
-    -> (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed)
-    -> seed -> (('a -> 'b) * (unit -> term)) * seed
-  val compile_generator_expr:
-    Proof.context -> (term * term list) list -> bool -> int list -> (bool * term list) option * Quickcheck.report option
-  val put_counterexample: (unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed -> (bool * term list) option * seed)
-    -> Proof.context -> Proof.context
-  val put_counterexample_report: (unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed -> ((bool * term list) option * (bool list * bool)) * seed)
-    -> Proof.context -> Proof.context
+  val random_fun: typ -> typ -> ('a -> 'a -> bool) -> ('a -> term) ->
+    (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed) ->
+    seed -> (('a -> 'b) * (unit -> term)) * seed
+  val compile_generator_expr: Proof.context -> (term * term list) list -> bool -> int list ->
+    (bool * term list) option * Quickcheck.report option
+  val put_counterexample: (unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural ->
+    seed -> (bool * term list) option * seed) -> Proof.context -> Proof.context
+  val put_counterexample_report: (unit -> Code_Numeral.natural -> bool ->
+    Code_Numeral.natural -> seed -> ((bool * term list) option * (bool list * bool)) * seed) ->
+    Proof.context -> Proof.context
   val instantiate_random_datatype : Old_Datatype_Aux.config -> Old_Datatype_Aux.descr ->
-    (string * sort) list -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
+    (string * sort) list -> string list -> string -> string list * string list ->
+    typ list * typ list -> theory -> theory
 end;
 
 structure Random_Generators : RANDOM_GENERATORS =
@@ -25,22 +27,22 @@ struct
 
 (** abstract syntax **)
 
-fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"})
+fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit \<Rightarrow> term"})
 val size = @{term "i::natural"};
 val size_pred = @{term "(i::natural) - 1"};
 val size' = @{term "j::natural"};
 val seed = @{term "s::Random.seed"};
 
-val resultT =  @{typ "(bool * term list) option"};
+val resultT =  @{typ "(bool \<times> term list) option"};
 
-(** typ "'a => 'b" **)
+
+(** typ "'a \<Rightarrow> 'b" **)
 
 type seed = Random_Engine.seed;
 
 fun random_fun T1 T2 eq term_of random random_split seed =
   let
-    val fun_upd = Const (@{const_name fun_upd},
-      (T1 --> T2) --> T1 --> T2 --> T1 --> T2);
+    val fun_upd = Const (@{const_name fun_upd}, (T1 --> T2) --> T1 --> T2 --> T1 --> T2);
     val ((_, t2), seed') = random seed;
     val (seed'', seed''') = random_split seed';
 
@@ -474,6 +476,7 @@ fun size_matters_for _ Ts =
 
 val test_goals =
   Quickcheck_Common.generator_test_goal_terms ("random", (size_matters_for, compile_generator_expr));
+
   
 (** setup **)
 
