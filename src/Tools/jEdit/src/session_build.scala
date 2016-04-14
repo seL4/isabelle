@@ -26,8 +26,8 @@ object Session_Build
     GUI_Thread.require {}
 
     try {
-      if (Isabelle_Logic.session_build_mode() == "none" ||
-          Isabelle_Logic.session_build(no_build = true) == 0) Isabelle_Logic.session_start()
+      if (JEdit_Sessions.session_build_mode() == "none" ||
+          JEdit_Sessions.session_build(no_build = true) == 0) JEdit_Sessions.session_start()
       else new Dialog(view)
     }
     catch {
@@ -162,10 +162,10 @@ object Session_Build
     setVisible(true)
 
     Standard_Thread.fork("session_build") {
-      progress.echo("Build started for Isabelle/" + Isabelle_Logic.session_name() + " ...")
+      progress.echo("Build started for Isabelle/" + JEdit_Sessions.session_name() + " ...")
 
       val (out, rc) =
-        try { ("", Isabelle_Logic.session_build(progress = progress)) }
+        try { ("", JEdit_Sessions.session_build(progress = progress)) }
         catch {
           case exn: Throwable =>
             (Output.error_text(Exn.message(exn)) + "\n", Exn.return_code(exn, 2))
@@ -173,7 +173,7 @@ object Session_Build
 
       progress.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
 
-      if (rc == 0) Isabelle_Logic.session_start()
+      if (rc == 0) JEdit_Sessions.session_start()
       else progress.echo("Session build failed -- prover process remains inactive!")
 
       return_code(rc)

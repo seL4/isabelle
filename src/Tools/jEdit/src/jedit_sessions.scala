@@ -1,7 +1,7 @@
-/*  Title:      Tools/jEdit/src/isabelle_logic.scala
+/*  Title:      Tools/jEdit/src/jedit_sessions.scala
     Author:     Makarius
 
-Isabelle logic session.
+Isabelle/jEdit session information.
 */
 
 package isabelle.jedit
@@ -13,7 +13,7 @@ import scala.swing.ComboBox
 import scala.swing.event.SelectionChanged
 
 
-object Isabelle_Logic
+object JEdit_Sessions
 {
   /* session info */
 
@@ -78,7 +78,7 @@ object Isabelle_Logic
 
     val entries =
       new Logic_Entry("", "default (" + session_name() + ")") ::
-        Isabelle_Logic.session_list().map(name => new Logic_Entry(name, name))
+        JEdit_Sessions.session_list().map(name => new Logic_Entry(name, name))
 
     val component = new ComboBox(entries) with Option_Component {
       name = option_name

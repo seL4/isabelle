@@ -410,7 +410,7 @@ class Plugin extends EBPlugin
 
       JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
 
-      val content = Isabelle_Logic.session_content(false)
+      val content = JEdit_Sessions.session_content(false)
       val resources =
         new JEdit_Resources(content.loaded_theories, content.known_theories, content.syntax)
 
