@@ -15,12 +15,57 @@ import scala.swing.event.SelectionChanged
 
 object Isabelle_Logic
 {
+  /* session info */
+
   private val option_name = "jedit_logic"
 
   def session_name(): String =
     Isabelle_System.default_logic(
       Isabelle_System.getenv("JEDIT_LOGIC"),
       PIDE.options.string(option_name))
+
+  def session_dirs(): List[Path] = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
+
+  def session_build_mode(): String = Isabelle_System.getenv("JEDIT_BUILD_MODE")
+
+  def session_build(progress: Progress = Ignore_Progress, no_build: Boolean = false): Int =
+  {
+    val mode = session_build_mode()
+
+    Build.build(options = PIDE.options.value, progress = progress,
+      build_heap = true, no_build = no_build, system_mode = mode == "" || mode == "system",
+      dirs = session_dirs(), sessions = List(session_name())).rc
+  }
+
+  def session_start()
+  {
+    val modes =
+      (space_explode(',', PIDE.options.string("jedit_print_mode")) :::
+       space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse
+    PIDE.session.start(receiver =>
+      Isabelle_Process(PIDE.options.value, logic = session_name(), dirs = session_dirs(),
+        modes = modes, receiver = receiver,
+        store = Sessions.store(session_build_mode() == "system")))
+  }
+
+  def session_list(): List[String] =
+  {
+    val session_tree = Sessions.load(PIDE.options.value, dirs = session_dirs())
+    val (main_sessions, other_sessions) =
+      session_tree.topological_order.partition(p => p._2.groups.contains("main"))
+    main_sessions.map(_._1).sorted ::: other_sessions.map(_._1).sorted
+  }
+
+  def session_content(inlined_files: Boolean): Build.Session_Content =
+  {
+    val content =
+      Build.session_content(PIDE.options.value, inlined_files, session_dirs(), session_name())
+    content.copy(known_theories =
+      content.known_theories.mapValues(name => name.map(File.platform_path(_))))
+  }
+
+
+  /* logic selector */
 
   private class Logic_Entry(val name: String, val description: String)
   {
@@ -56,45 +101,5 @@ object Isabelle_Logic
     }
     component.tooltip = "Logic session name (change requires restart)"
     component
-  }
-
-  def session_build_mode(): String = Isabelle_System.getenv("JEDIT_BUILD_MODE")
-
-  def session_build(progress: Progress = Ignore_Progress, no_build: Boolean = false): Int =
-  {
-    val mode = session_build_mode()
-
-    Build.build(options = PIDE.options.value, progress = progress,
-      build_heap = true, no_build = no_build, system_mode = mode == "" || mode == "system",
-      dirs = session_dirs(), sessions = List(session_name())).rc
-  }
-
-  def session_start()
-  {
-    val modes =
-      (space_explode(',', PIDE.options.string("jedit_print_mode")) :::
-       space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse
-    PIDE.session.start(receiver =>
-      Isabelle_Process(PIDE.options.value, logic = session_name(), dirs = session_dirs(),
-        modes = modes, receiver = receiver,
-        store = Sessions.store(session_build_mode() == "system")))
-  }
-
-  def session_dirs(): List[Path] = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
-
-  def session_list(): List[String] =
-  {
-    val session_tree = Sessions.load(PIDE.options.value, dirs = session_dirs())
-    val (main_sessions, other_sessions) =
-      session_tree.topological_order.partition(p => p._2.groups.contains("main"))
-    main_sessions.map(_._1).sorted ::: other_sessions.map(_._1).sorted
-  }
-
-  def session_content(inlined_files: Boolean): Build.Session_Content =
-  {
-    val content =
-      Build.session_content(PIDE.options.value, inlined_files, session_dirs(), session_name())
-    content.copy(known_theories =
-      content.known_theories.mapValues(name => name.map(File.platform_path(_))))
   }
 }
