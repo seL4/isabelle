@@ -215,20 +215,18 @@ fun get_finite_types ctxt =
 
 exception WELLSORTED of string
 
-fun monomorphic_term thy insts default_T =
-  let
-    fun subst (T as TFree (v, S)) =
-          let val T' = AList.lookup (op =) insts v |> the_default default_T in
-            if Sign.of_sort thy (T', S) then T'
-            else raise (WELLSORTED ("For instantiation with default_type " ^
-              Syntax.string_of_typ_global thy default_T ^
-              ":\n" ^ Syntax.string_of_typ_global thy T' ^
-              " to be substituted for variable " ^
-              Syntax.string_of_typ_global thy T ^ " does not have sort " ^
-              Syntax.string_of_sort_global thy S))
-          end
-      | subst T = T
-  in (map_types o map_atyps) subst end
+fun monomorphic_term ctxt insts default_T =
+  (map_types o map_atyps)
+    (fn T as TFree (v, S) =>
+        let val T' = AList.lookup (op =) insts v |> the_default default_T in
+          if Sign.of_sort (Proof_Context.theory_of ctxt) (T', S) then T'
+          else
+            raise WELLSORTED ("For instantiation with default_type " ^
+              Syntax.string_of_typ ctxt default_T ^ ":\n" ^ Syntax.string_of_typ ctxt T' ^
+              " to be substituted for variable " ^ Syntax.string_of_typ ctxt T ^
+              " does not have sort " ^ Syntax.string_of_sort ctxt S)
+        end
+      | T => T)
 
 datatype wellsorted_error = Wellsorted_Error of string | Term of term * term list
 
@@ -285,21 +283,20 @@ fun subtype_preprocess ctxt (T, (t, ts)) =
 
 (* instantiation of type variables with concrete types *)
 
-fun instantiate_goals lthy insts goals =
+fun instantiate_goals ctxt insts goals =
   let
     fun map_goal_and_eval_terms f (check_goal, eval_terms) = (f check_goal, map f eval_terms)
-    val thy = Proof_Context.theory_of lthy
     val default_insts =
-      if Config.get lthy Quickcheck.finite_types
+      if Config.get ctxt Quickcheck.finite_types
       then get_finite_types else Quickcheck.default_type
     val inst_goals =
       map (fn (check_goal, eval_terms) =>
         if not (null (Term.add_tfree_names check_goal [])) then
           map (fn T =>
-            (pair (SOME T) o Term o apfst (preprocess lthy))
-              (map_goal_and_eval_terms (monomorphic_term thy insts T) (check_goal, eval_terms))
-              handle WELLSORTED s => (SOME T, Wellsorted_Error s)) (default_insts lthy)
-        else [(NONE, Term (preprocess lthy check_goal, eval_terms))]) goals
+            (pair (SOME T) o Term o apfst (preprocess ctxt))
+              (map_goal_and_eval_terms (monomorphic_term ctxt insts T) (check_goal, eval_terms))
+              handle WELLSORTED s => (SOME T, Wellsorted_Error s)) (default_insts ctxt)
+        else [(NONE, Term (preprocess ctxt check_goal, eval_terms))]) goals
     val error_msg =
       cat_lines
         (maps (map_filter (fn (_, Term _) => NONE | (_, Wellsorted_Error s) => SOME s)) inst_goals)
@@ -309,7 +306,7 @@ fun instantiate_goals lthy insts goals =
       (case map (map_filter is_wellsorted_term) inst_goals of
         [[]] => error error_msg
       | xs => xs)
-    val _ = if Config.get lthy Quickcheck.quiet then () else warning error_msg
+    val _ = if Config.get ctxt Quickcheck.quiet then () else warning error_msg
   in correct_inst_goals end
 
 
@@ -325,7 +322,7 @@ fun mk_safe_if genuine_only none (cond, then_t, else_t) genuine =
       (if_t $ genuine_only $ none $ else_t false)
   end
 
-fun collect_results f [] results = results
+fun collect_results _ [] results = results
   | collect_results f (t :: ts) results =
       let val result = f t in
         if Quickcheck.found_counterexample result then result :: results
