@@ -293,17 +293,19 @@ fun verbose_message ctxt s =
   if not (Config.get ctxt quiet) andalso Config.get ctxt verbose
   then writeln s else ();
 
-fun test_terms ctxt (limit_time, is_interactive) insts goals =
-  (case active_testers ctxt of
-    [] => error "No active testers for quickcheck"
-  | testers =>
-      limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive)
-        (fn () =>
-          Par_List.get_some (fn tester =>
-            tester ctxt (length testers > 1) insts goals |>
-            (fn result => if exists found_counterexample result then SOME result else NONE))
-          testers)
-        (fn () => (message ctxt "Quickcheck ran out of time"; NONE)) ());
+fun test_terms ctxt0 (limit_time, is_interactive) insts goals =
+  let val ctxt = Simplifier_Trace.disable ctxt0 in
+    (case active_testers ctxt of
+      [] => error "No active testers for quickcheck"
+    | testers =>
+        limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive)
+          (fn () =>
+            Par_List.get_some (fn tester =>
+              tester ctxt (length testers > 1) insts goals |>
+              (fn result => if exists found_counterexample result then SOME result else NONE))
+            testers)
+          (fn () => (message ctxt "Quickcheck ran out of time"; NONE)) ())
+  end
 
 fun all_axioms_of ctxt t =
   let
