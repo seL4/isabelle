@@ -338,27 +338,28 @@ fun locale_config_of s =
 
 fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let
-    val lthy = Proof.context_of state;
+    val ctxt = Proof.context_of state;
     val thy = Proof.theory_of state;
+
     fun strip (Const (@{const_name Pure.all}, _) $ Abs (_, _, t)) = strip t
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
     val (gi, frees) = Logic.goal_params (Thm.prop_of st) i;
-    val some_locale = Named_Target.bottom_locale_of lthy;
+    val opt_locale = Named_Target.bottom_locale_of ctxt;
     val assms =
-      if Config.get lthy no_assms then []
+      if Config.get ctxt no_assms then []
       else
-        (case some_locale of
-          NONE => Assumption.all_assms_of lthy
-        | SOME locale => Assumption.local_assms_of lthy (Locale.init locale thy));
+        (case opt_locale of
+          NONE => Assumption.all_assms_of ctxt
+        | SOME locale => Assumption.local_assms_of ctxt (Locale.init locale thy));
     val proto_goal = Logic.list_implies (map Thm.term_of assms, subst_bounds (frees, strip gi));
     fun axioms_of locale =
       (case fst (Locale.specification_of thy locale) of
         NONE => []
-      | SOME t => the_default [] (all_axioms_of lthy t));
-    val config = locale_config_of (Config.get lthy locale);
+      | SOME t => the_default [] (all_axioms_of ctxt t));
+    val config = locale_config_of (Config.get ctxt locale);
     val goals =
-      (case some_locale of
+      (case opt_locale of
         NONE => [(proto_goal, eval_terms)]
       | SOME locale =>
           fold (fn c =>
@@ -370,11 +371,11 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
                 (Locale.registrations_of (Context.Theory thy) (* FIXME !? *) locale))
             else I) config []);
     val _ =
-      verbose_message lthy
+      verbose_message ctxt
         (Pretty.string_of
-          (Pretty.big_list ("Checking goals: ") (map (Syntax.pretty_term lthy o fst) goals)));
+          (Pretty.big_list ("Checking goals: ") (map (Syntax.pretty_term ctxt o fst) goals)));
   in
-    test_terms lthy (time_limit, is_interactive) insts goals
+    test_terms ctxt (time_limit, is_interactive) insts goals
   end;
 
 
