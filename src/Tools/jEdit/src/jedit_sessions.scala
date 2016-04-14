@@ -78,7 +78,7 @@ object JEdit_Sessions
 
     val entries =
       new Logic_Entry("", "default (" + session_name() + ")") ::
-        JEdit_Sessions.session_list().map(name => new Logic_Entry(name, name))
+        session_list().map(name => new Logic_Entry(name, name))
 
     val component = new ComboBox(entries) with Option_Component {
       name = option_name
