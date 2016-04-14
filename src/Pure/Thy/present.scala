@@ -103,7 +103,11 @@ object Present
 
     if (info.options.bool("browser_info")) {
       Isabelle_System.mkdirs(session_prefix)
-      File.write(session_prefix + Path.basic("session_graph.pdf"), File.read(graph_file))
+
+      val session_graph = session_prefix + Path.basic("session_graph.pdf")
+      File.copy(graph_file, session_graph.file)
+      Isabelle_System.bash("chmod a+r " + File.bash_path(session_graph))
+
       File.copy(Path.explode("~~/etc/isabelle.css"), session_prefix)
 
       for (font <- Path.split(Isabelle_System.getenv_strict("ISABELLE_FONTS")))
