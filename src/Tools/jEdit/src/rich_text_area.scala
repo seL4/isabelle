@@ -280,6 +280,13 @@ class Rich_Text_Area(
       robust_rendering { rendering =>
         val fm = text_area.getPainter.getFontMetrics
 
+        val focus =
+          JEdit_Lib.visible_range(text_area) match {
+            case Some(visible_range) if caret_enabled =>
+              rendering.caret_focus(JEdit_Lib.caret_range(text_area), visible_range)
+            case _ => Set.empty[Long]
+          }
+
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
             val line_range = Text.Range(start(i), end(i) min buffer.getLength)
@@ -294,7 +301,7 @@ class Rich_Text_Area(
 
             // background color
             for {
-              Text.Info(range, color) <- rendering.background(line_range)
+              Text.Info(range, color) <- rendering.background(line_range, focus)
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(color)

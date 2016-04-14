@@ -234,6 +234,12 @@ object JEdit_Lib
     }
   }
 
+  def invalidate(text_area: TextArea)
+  {
+    val visible_lines = text_area.getVisibleLines
+    if (visible_lines > 0) text_area.invalidateScreenLineRange(0, visible_lines)
+  }
+
 
   /* graphics range */
 
