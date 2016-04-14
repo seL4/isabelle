@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML/ml_print_depth0.ML
+(*  Title:      Pure/ML/ml_print_depth.ML
     Author:     Makarius
 
 Print depth for ML toplevel pp: context option with global default.
