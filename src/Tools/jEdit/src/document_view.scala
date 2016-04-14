@@ -194,7 +194,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   /* text status overview left of scrollbar */
 
-  private val overview = new Text_Overview(this)
+  private val text_overview = new Text_Overview(this)
 
 
   /* main */
@@ -202,7 +202,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Raw_Edits =>
-        overview.invoke()
+        text_overview.invoke()
 
       case changed: Session.Commands_Changed =>
         val buffer = model.buffer
@@ -217,7 +217,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
               if (changed.assignment || load_changed ||
                   (changed.nodes.contains(model.node_name) &&
                    changed.commands.exists(snapshot.node.commands.contains)))
-                overview.invoke()
+                text_overview.invoke()
 
               val visible_lines = text_area.getVisibleLines
               if (visible_lines > 0) {
@@ -256,7 +256,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.getGutter.addExtension(gutter_painter)
     text_area.addKeyListener(key_listener)
     text_area.addCaretListener(caret_listener)
-    text_area.addLeftOfScrollBar(overview); text_area.revalidate(); text_area.repaint()
+    text_area.addLeftOfScrollBar(text_overview); text_area.revalidate(); text_area.repaint()
     Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
       foreach(text_area.addStructureMatcher(_))
     session.raw_edits += main
@@ -271,7 +271,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     session.commands_changed -= main
     Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
       foreach(text_area.removeStructureMatcher(_))
-    overview.revoke(); text_area.removeLeftOfScrollBar(overview)
+    text_overview.revoke(); text_area.removeLeftOfScrollBar(text_overview)
     text_area.removeCaretListener(caret_listener); delay_caret_update.revoke()
     text_area.removeKeyListener(key_listener)
     text_area.getGutter.removeExtension(gutter_painter)
