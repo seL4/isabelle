@@ -43,9 +43,12 @@ sig
   val is_newly_fixed: Proof.context -> Proof.context -> string -> bool
   val fixed_ord: Proof.context -> string * string -> order
   val intern_fixed: Proof.context -> string -> string
-  val markup_fixed: Proof.context -> string -> Markup.T
   val lookup_fixed: Proof.context -> string -> string option
   val revert_fixed: Proof.context -> string -> string
+  val markup_fixed: Proof.context -> string -> Markup.T
+  val markup: Proof.context -> string -> Markup.T
+  val markup_entity_def: Proof.context -> string -> Markup.T
+  val dest_fixes: Proof.context -> (string * string) list
   val add_fixed_names: Proof.context -> term -> string list -> string list
   val add_fixed: Proof.context -> term -> (string * typ) list -> (string * typ) list
   val add_newly_fixed: Proof.context -> Proof.context ->
@@ -58,7 +61,6 @@ sig
   val auto_fixes: term -> Proof.context -> Proof.context
   val fix_dummy_patterns: term -> Proof.context -> term * Proof.context
   val variant_fixes: string list -> Proof.context -> string list * Proof.context
-  val dest_fixes: Proof.context -> (string * string) list
   val gen_all: Proof.context -> thm -> thm
   val export_terms: Proof.context -> Proof.context -> term list -> term list
   val exportT_terms: Proof.context -> Proof.context -> term list -> term list
@@ -374,6 +376,13 @@ fun revert_fixed ctxt x =
 fun markup_fixed ctxt x =
   Name_Space.markup (fixes_space ctxt) x
   |> Markup.name (revert_fixed ctxt x);
+
+fun markup ctxt x =
+  if is_improper ctxt x then Markup.improper
+  else if Name.is_skolem x then Markup.skolem
+  else Markup.free;
+
+val markup_entity_def = Name_Space.markup_def o fixes_space;
 
 fun dest_fixes ctxt =
   Name_Space.fold_table (fn (x, (y, _)) => cons (y, x)) (fixes_of ctxt) []

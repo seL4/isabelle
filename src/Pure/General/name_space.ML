@@ -13,6 +13,7 @@ sig
   val empty: string -> T
   val kind_of: T -> string
   val markup: T -> string -> Markup.T
+  val markup_def: T -> string -> Markup.T
   val the_entry: T -> string ->
     {concealed: bool, group: serial option, theory_name: string, pos: Position.T, serial: serial}
   val entry_ord: T -> string * string -> order
@@ -156,10 +157,13 @@ fun empty kind = make_name_space (kind, Change_Table.empty, Change_Table.empty);
 
 fun kind_of (Name_Space {kind, ...}) = kind;
 
-fun markup (Name_Space {kind, entries, ...}) name =
+fun gen_markup def (Name_Space {kind, entries, ...}) name =
   (case Change_Table.lookup entries name of
     NONE => Markup.intensify
-  | SOME (_, entry) => entry_markup false kind (name, entry));
+  | SOME (_, entry) => entry_markup def kind (name, entry));
+
+val markup = gen_markup false;
+val markup_def = gen_markup true;
 
 fun undefined (space as Name_Space {kind, entries, ...}) bad =
   let

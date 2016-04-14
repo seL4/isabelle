@@ -41,6 +41,8 @@ ML_Bootstrap. This allows continuous checking of ML files as usual, but
 results are isolated from the actual Isabelle/Pure that runs the IDE
 itself.
 
+* Highlighting of entity def/ref positions wrt. cursor.
+
 
 *** Isar ***
 
