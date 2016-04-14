@@ -7,7 +7,7 @@ spaces.
 *)
 
 theory Giry_Monad
-  imports Probability_Measure Lebesgue_Integral_Substitution "~~/src/HOL/Library/Monad_Syntax" 
+  imports Probability_Measure Lebesgue_Integral_Substitution "~~/src/HOL/Library/Monad_Syntax"
 begin
 
 section \<open>Sub-probability spaces\<close>
@@ -23,7 +23,7 @@ lemma subprob_spaceI[Pure.intro!]:
 proof -
   interpret finite_measure M
   proof
-    show "emeasure M (space M) \<noteq> \<infinity>" using * by auto
+    show "emeasure M (space M) \<noteq> \<infinity>" using * by (auto simp: top_unique)
   qed
   show "subprob_space M" by standard fact+
 qed
@@ -66,8 +66,8 @@ proof -
   have "(\<integral>\<^sup>+ x. f x \<partial>M) \<le> (\<integral>\<^sup>+ x. c \<partial>M)"
     by(rule nn_integral_mono_AE) fact
   also have "\<dots> \<le> c * emeasure M (space M)"
-    using \<open>0 \<le> c\<close> by(simp add: nn_integral_const_If)
-  also have "\<dots> \<le> c * 1" using emeasure_space_le_1 \<open>0 \<le> c\<close> by(rule ereal_mult_left_mono)
+    using \<open>0 \<le> c\<close> by simp
+  also have "\<dots> \<le> c * 1" using emeasure_space_le_1 \<open>0 \<le> c\<close> by(rule mult_left_mono)
   finally show ?thesis by simp
 qed
 
@@ -84,7 +84,7 @@ lemma emeasure_density_distr_interval:
   assumes contg': "continuous_on {a..b} g'"
   assumes mono: "strict_mono_on g {a..b}" and inv: "\<And>x. h x \<in> {a..b} \<Longrightarrow> g (h x) = x"
   assumes range: "{a..b} \<subseteq> range h"
-  shows "emeasure (distr (density lborel f) lborel h) {a..b} = 
+  shows "emeasure (distr (density lborel f) lborel h) {a..b} =
              emeasure (density lborel (\<lambda>x. f (g x) * g' x)) {a..b}"
 proof (cases "a < b")
   assume "a < b"
@@ -109,18 +109,18 @@ proof (cases "a < b")
 
   have prob': "subprob_space (distr (density lborel f) lborel h)"
     by (rule subprob_space.subprob_space_distr[OF prob]) (simp_all add: Mh)
-  have B: "emeasure (distr (density lborel f) lborel h) {a..b} = 
+  have B: "emeasure (distr (density lborel f) lborel h) {a..b} =
             \<integral>\<^sup>+x. f x * indicator (h -` {a..b}) x \<partial>lborel"
     by (subst emeasure_distr) (simp_all add: emeasure_density Mf Mh measurable_sets_borel[OF Mh])
   also note A
   also have "emeasure (distr (density lborel f) lborel h) {a..b} \<le> 1"
     by (rule subprob_space.subprob_emeasure_le_1) (rule prob')
-  hence "emeasure (distr (density lborel f) lborel h) {a..b} \<noteq> \<infinity>" by auto
-  with assms have "(\<integral>\<^sup>+x. f x * indicator {g a..g b} x \<partial>lborel) = 
+  hence "emeasure (distr (density lborel f) lborel h) {a..b} \<noteq> \<infinity>" by (auto simp: top_unique)
+  with assms have "(\<integral>\<^sup>+x. f x * indicator {g a..g b} x \<partial>lborel) =
                       (\<integral>\<^sup>+x. f (g x) * g' x * indicator {a..b} x \<partial>lborel)"
     by (intro nn_integral_substitution_aux)
        (auto simp: derivg_nonneg A B emeasure_density mult.commute \<open>a < b\<close>)
-  also have "... = emeasure (density lborel (\<lambda>x. f (g x) * g' x)) {a..b}" 
+  also have "... = emeasure (density lborel (\<lambda>x. f (g x) * g' x)) {a..b}"
     by (simp add: emeasure_density)
   finally show ?thesis .
 next
@@ -130,16 +130,14 @@ next
   thus ?thesis by (simp_all add: emeasure_distr emeasure_density measurable_sets_borel[OF Mh])
 qed
 
-locale pair_subprob_space = 
+locale pair_subprob_space =
   pair_sigma_finite M1 M2 + M1: subprob_space M1 + M2: subprob_space M2 for M1 M2
 
 sublocale pair_subprob_space \<subseteq> P?: subprob_space "M1 \<Otimes>\<^sub>M M2"
 proof
-  have "\<And>a b. \<lbrakk>a \<ge> 0; b \<ge> 0; a \<le> 1; b \<le> 1\<rbrakk> \<Longrightarrow> a * b \<le> (1::ereal)"
-    by (metis monoid_mult_class.mult.left_neutral dual_order.trans ereal_mult_right_mono)
-  from this[OF _ _ M1.emeasure_space_le_1 M2.emeasure_space_le_1]
-    show "emeasure (M1 \<Otimes>\<^sub>M M2) (space (M1 \<Otimes>\<^sub>M M2)) \<le> 1"
-    by (simp add: M2.emeasure_pair_measure_Times space_pair_measure emeasure_nonneg)
+  from mult_le_one[OF M1.emeasure_space_le_1 _ M2.emeasure_space_le_1]
+  show "emeasure (M1 \<Otimes>\<^sub>M M2) (space (M1 \<Otimes>\<^sub>M M2)) \<le> 1"
+    by (simp add: M2.emeasure_pair_measure_Times space_pair_measure)
   from M1.subprob_not_empty and M2.subprob_not_empty show "space (M1 \<Otimes>\<^sub>M M2) \<noteq> {}"
     by (simp add: space_pair_measure)
 qed
@@ -172,9 +170,13 @@ lemma space_subprob_algebra: "space (subprob_algebra A) = {M. subprob_space M \<
 lemma subprob_algebra_cong: "sets M = sets N \<Longrightarrow> subprob_algebra M = subprob_algebra N"
   by (simp add: subprob_algebra_def)
 
-lemma measurable_emeasure_subprob_algebra[measurable]: 
+lemma measurable_emeasure_subprob_algebra[measurable]:
   "a \<in> sets A \<Longrightarrow> (\<lambda>M. emeasure M a) \<in> borel_measurable (subprob_algebra A)"
   by (auto intro!: measurable_Sup_sigma1 measurable_vimage_algebra1 simp: subprob_algebra_def)
+
+lemma measurable_measure_subprob_algebra[measurable]:
+  "a \<in> sets A \<Longrightarrow> (\<lambda>M. measure M a) \<in> borel_measurable (subprob_algebra A)"
+  unfolding measure_def by measurable
 
 lemma subprob_measurableD:
   assumes N: "N \<in> measurable M (subprob_algebra S)" and x: "x \<in> space M"
@@ -214,7 +216,7 @@ lemma subprob_space_kernel: "a \<in> space M \<Longrightarrow> subprob_space (K 
 lemma sets_kernel: "a \<in> space M \<Longrightarrow> sets (K a) = sets N"
   using measurable_space[OF K] by (simp add: space_subprob_algebra)
 
-lemma measurable_emeasure_kernel[measurable]: 
+lemma measurable_emeasure_kernel[measurable]:
     "A \<in> sets N \<Longrightarrow> (\<lambda>a. emeasure (K a) A) \<in> borel_measurable M"
   using measurable_compose[OF K measurable_emeasure_subprob_algebra] .
 
@@ -258,8 +260,8 @@ next
   ultimately show "space (subprob_algebra N) = {}" by (auto simp: space_subprob_algebra)
 qed
 
-lemma nn_integral_measurable_subprob_algebra':
-  assumes f: "f \<in> borel_measurable N" "\<And>x. 0 \<le> f x"
+lemma nn_integral_measurable_subprob_algebra[measurable]:
+  assumes f: "f \<in> borel_measurable N"
   shows "(\<lambda>M. integral\<^sup>N M f) \<in> borel_measurable (subprob_algebra N)" (is "_ \<in> ?B")
   using f
 proof induct
@@ -295,11 +297,6 @@ next
     by (simp add: ac_simps)
 qed
 
-lemma nn_integral_measurable_subprob_algebra:
-  "f \<in> borel_measurable N \<Longrightarrow> (\<lambda>M. integral\<^sup>N M f) \<in> borel_measurable (subprob_algebra N)"
-  by (subst nn_integral_max_0[symmetric])
-     (auto intro!: nn_integral_measurable_subprob_algebra')
-
 lemma measurable_distr:
   assumes [measurable]: "f \<in> measurable M N"
   shows "(\<lambda>M'. distr M' N f) \<in> measurable (subprob_algebra M) (subprob_algebra N)"
@@ -329,33 +326,56 @@ proof-
   finally show ?thesis .
 qed
 
-lemma integral_measurable_subprob_algebra:
-  fixes f :: "_ \<Rightarrow> real"
-  assumes f_measurable [measurable]: "f \<in> borel_measurable N"
-  and f_bounded: "\<And>x. x \<in> space N \<Longrightarrow> \<bar>f x\<bar> \<le> B"
-  shows "(\<lambda>M. integral\<^sup>L M f) \<in> borel_measurable (subprob_algebra N)"
+lemma integrable_measurable_subprob_algebra[measurable]:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes [measurable]: "f \<in> borel_measurable N"
+  shows "Measurable.pred (subprob_algebra N) (\<lambda>M. integrable M f)"
+proof (rule measurable_cong[THEN iffD2])
+  show "M \<in> space (subprob_algebra N) \<Longrightarrow> integrable M f \<longleftrightarrow> (\<integral>\<^sup>+x. norm (f x) \<partial>M) < \<infinity>" for M
+    by (auto simp: space_subprob_algebra integrable_iff_bounded)
+qed measurable
+
+lemma integral_measurable_subprob_algebra[measurable]:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes f [measurable]: "f \<in> borel_measurable N"
+  shows "(\<lambda>M. integral\<^sup>L M f) \<in> subprob_algebra N \<rightarrow>\<^sub>M borel"
 proof -
-  note [measurable] = nn_integral_measurable_subprob_algebra
-  have "?thesis \<longleftrightarrow> (\<lambda>M. real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M) - real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M)) \<in> borel_measurable (subprob_algebra N)"
-  proof(rule measurable_cong)
-    fix M
-    assume "M \<in> space (subprob_algebra N)"
-    hence "subprob_space M" and M [measurable_cong]: "sets M = sets N" 
-      by(simp_all add: space_subprob_algebra)
+  from borel_measurable_implies_sequence_metric[OF f, of 0]
+  obtain F where F: "\<And>i. simple_function N (F i)"
+    "\<And>x. x \<in> space N \<Longrightarrow> (\<lambda>i. F i x) \<longlonglongrightarrow> f x"
+    "\<And>i x. x \<in> space N \<Longrightarrow> norm (F i x) \<le> 2 * norm (f x)"
+    unfolding norm_conv_dist by blast
+
+  have [measurable]: "F i \<in> N \<rightarrow>\<^sub>M count_space UNIV" for i
+    using F(1) by (rule measurable_simple_function)
+
+  def F' \<equiv> "\<lambda>M i. if integrable M f then integral\<^sup>L M (F i) else 0"
+
+  have "(\<lambda>M. F' M i) \<in> subprob_algebra N \<rightarrow>\<^sub>M borel" for i
+  proof (rule measurable_cong[THEN iffD2])
+    fix M assume "M \<in> space (subprob_algebra N)"
+    then have [simp]: "sets M = sets N" "space M = space N" "subprob_space M"
+      by (auto simp: space_subprob_algebra intro!: sets_eq_imp_space_eq)
     interpret subprob_space M by fact
-    have "(\<integral>\<^sup>+ x. ereal \<bar>f x\<bar> \<partial>M) \<le> (\<integral>\<^sup>+ x. ereal B \<partial>M)"
-      by(rule nn_integral_mono)(simp add: sets_eq_imp_space_eq[OF M] f_bounded)
-    also have "\<dots> = max B 0 * emeasure M (space M)" by(simp add: nn_integral_const_If max_def)
-    also have "\<dots> \<le> ereal (max B 0) * 1"
-      by(rule ereal_mult_left_mono)(simp_all add: emeasure_space_le_1 zero_ereal_def)
-    finally have "(\<integral>\<^sup>+ x. ereal \<bar>f x\<bar> \<partial>M) \<noteq> \<infinity>" by(auto simp add: max_def)
-    then have "integrable M f" using f_measurable
-      by(auto intro: integrableI_bounded)
-    thus "(\<integral> x. f x \<partial>M) = real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M) - real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M)"
-      by(simp add: real_lebesgue_integral_def)
-  qed
-  also have "\<dots>" by measurable
-  finally show ?thesis .
+    have "F' M i = (if integrable M f then Bochner_Integration.simple_bochner_integral M (F i) else 0)"
+      using F(1)
+      by (subst simple_bochner_integrable_eq_integral)
+         (auto simp: simple_bochner_integrable.simps simple_function_def F'_def)
+    then show "F' M i = (if integrable M f then \<Sum>y\<in>F i ` space N. measure M {x\<in>space N. F i x = y} *\<^sub>R y else 0)"
+      unfolding simple_bochner_integral_def by simp
+  qed measurable
+  moreover
+  have "F' M \<longlonglongrightarrow> integral\<^sup>L M f" if M: "M \<in> space (subprob_algebra N)" for M
+  proof cases
+    from M have [simp]: "sets M = sets N" "space M = space N"
+      by (auto simp: space_subprob_algebra intro!: sets_eq_imp_space_eq)
+    assume "integrable M f" then show ?thesis
+      unfolding F'_def using F(1)[THEN borel_measurable_simple_function] F
+      by (auto intro!: integral_dominated_convergence[where w="\<lambda>x. 2 * norm (f x)"]
+               cong: measurable_cong_sets)
+  qed (auto simp: F'_def not_integrable_integral_eq)
+  ultimately show ?thesis
+    by (rule borel_measurable_LIMSEQ_metric)
 qed
 
 (* TODO: Rename. This name is too general -- Manuel *)
@@ -379,13 +399,13 @@ proof (rule measurable_subprob_algebra)
       using fx gx by (simp add: space_subprob_algebra)
 
     have 1: "\<And>A B. A \<in> sets N \<Longrightarrow> B \<in> sets L \<Longrightarrow> emeasure (f x \<Otimes>\<^sub>M g x) (A \<times> B) = emeasure (f x) A * emeasure (g x) B"
-      using fx gx by (intro G.emeasure_pair_measure_Times) (auto simp: space_subprob_algebra) 
-    have "emeasure (f x \<Otimes>\<^sub>M g x) (space (f x \<Otimes>\<^sub>M g x)) = 
+      using fx gx by (intro G.emeasure_pair_measure_Times) (auto simp: space_subprob_algebra)
+    have "emeasure (f x \<Otimes>\<^sub>M g x) (space (f x \<Otimes>\<^sub>M g x)) =
               emeasure (f x) (space (f x)) * emeasure (g x) (space (g x))"
       by (subst G.emeasure_pair_measure_Times[symmetric]) (simp_all add: space_pair_measure)
     hence 2: "\<And>A. A \<in> sets (N \<Otimes>\<^sub>M L) \<Longrightarrow> emeasure (f x \<Otimes>\<^sub>M g x) (space N \<times> space L - A) =
                                              ... - emeasure (f x \<Otimes>\<^sub>M g x) A"
-      using emeasure_compl[OF _ P.emeasure_finite]
+      using emeasure_compl[simplified, OF _ P.emeasure_finite]
       unfolding sets_eq
       unfolding sets_eq_imp_space_eq[OF sets_eq]
       by (simp add: space_pair_measure G.emeasure_pair_measure_Times)
@@ -398,13 +418,13 @@ proof (rule measurable_subprob_algebra)
     unfolding sets_pair_measure
   proof (induct A rule: sigma_sets_induct_disjoint)
     case (basic A) then show ?case
-      by (auto intro!: borel_measurable_ereal_times simp: Times cong: measurable_cong)
+      by (auto intro!: borel_measurable_times_ennreal simp: Times cong: measurable_cong)
          (auto intro!: measurable_emeasure_kernel f g)
   next
     case (compl A)
     then have A: "A \<in> sets (N \<Otimes>\<^sub>M L)"
       by (auto simp: sets_pair_measure)
-    have "(\<lambda>x. emeasure (f x) (space (f x)) * emeasure (g x) (space (g x)) - 
+    have "(\<lambda>x. emeasure (f x) (space (f x)) * emeasure (g x) (space (g x)) -
                    emeasure (f x \<Otimes>\<^sub>M g x) A) \<in> borel_measurable M" (is "?f \<in> ?M")
       using compl(2) f g by measurable
     thus ?case by (simp add: Compl A cong: measurable_cong)
@@ -472,10 +492,10 @@ lemma sets_return[simp]: "sets (return M x) = sets M"
   by (simp add: return_def)
 
 lemma measurable_return1[simp]: "measurable (return N x) L = measurable N L"
-  by (simp cong: measurable_cong_sets) 
+  by (simp cong: measurable_cong_sets)
 
 lemma measurable_return2[simp]: "measurable L (return N x) = measurable L N"
-  by (simp cong: measurable_cong_sets) 
+  by (simp cong: measurable_cong_sets)
 
 lemma return_sets_cong: "sets M = sets N \<Longrightarrow> return M = return N"
   by (auto dest: sets_eq_imp_space_eq simp: fun_eq_iff return_def)
@@ -491,7 +511,7 @@ proof (rule emeasure_measure_of[OF return_def])
   show "positive (sets (return M x)) (\<lambda>A. indicator A x)" by (simp add: positive_def)
   from assms show "A \<in> sets (return M x)" unfolding return_def by simp
   show "countably_additive (sets (return M x)) (\<lambda>A. indicator A x)"
-    by (auto intro: countably_additiveI simp: suminf_indicator)
+    by (auto intro!: countably_additiveI suminf_indicator)
 qed
 
 lemma prob_space_return: "x \<in> space M \<Longrightarrow> prob_space (return M x)"
@@ -500,7 +520,7 @@ lemma prob_space_return: "x \<in> space M \<Longrightarrow> prob_space (return M
 lemma subprob_space_return: "x \<in> space M \<Longrightarrow> subprob_space (return M x)"
   by (intro prob_space_return prob_space_imp_subprob_space)
 
-lemma subprob_space_return_ne: 
+lemma subprob_space_return_ne:
   assumes "space M \<noteq> {}" shows "subprob_space (return M x)"
 proof
   show "emeasure (return M x) (space (return M x)) \<le> 1"
@@ -520,16 +540,16 @@ proof -
     by (rule AE_cong) auto
   finally show ?thesis .
 qed
-  
+
 lemma nn_integral_return:
-  assumes "g x \<ge> 0" "x \<in> space M" "g \<in> borel_measurable M"
+  assumes "x \<in> space M" "g \<in> borel_measurable M"
   shows "(\<integral>\<^sup>+ a. g a \<partial>return M x) = g x"
 proof-
   interpret prob_space "return M x" by (rule prob_space_return[OF \<open>x \<in> space M\<close>])
   have "(\<integral>\<^sup>+ a. g a \<partial>return M x) = (\<integral>\<^sup>+ a. g x \<partial>return M x)" using assms
     by (intro nn_integral_cong_AE) (auto simp: AE_return)
   also have "... = g x"
-    using nn_integral_const[OF \<open>g x \<ge> 0\<close>, of "return M x"] emeasure_space_1 by simp
+    using nn_integral_const[of "return M x"] emeasure_space_1 by simp
   finally show ?thesis .
 qed
 
@@ -640,14 +660,14 @@ proof -
 
   have *: "\<And>x. fst x \<in> space M \<Longrightarrow> snd x \<in> A (fst x) \<longleftrightarrow> x \<in> (SIGMA x:space M. A x)"
     by (auto simp: fun_eq_iff)
-  have "(\<lambda>(x, y). indicator (A x) y::ereal) \<in> borel_measurable (M \<Otimes>\<^sub>M N)"
+  have "(\<lambda>(x, y). indicator (A x) y::ennreal) \<in> borel_measurable (M \<Otimes>\<^sub>M N)"
     apply measurable
     apply (subst measurable_cong)
     apply (rule *)
     apply (auto simp: space_pair_measure)
     done
   then have "(\<lambda>x. integral\<^sup>N (L x) (indicator (A x))) \<in> borel_measurable M"
-    by (intro nn_integral_measurable_subprob_algebra2[where N=N] ereal_indicator_nonneg L)
+    by (intro nn_integral_measurable_subprob_algebra2[where N=N] L)
   then show "(\<lambda>x. emeasure (L x) (A x)) \<in> borel_measurable M"
     apply (rule measurable_cong[THEN iffD1, rotated])
     apply (rule nn_integral_indicator)
@@ -660,7 +680,7 @@ lemma measure_measurable_subprob_algebra2:
   assumes L[measurable]: "L \<in> measurable M (subprob_algebra N)"
   shows "(\<lambda>x. measure (L x) (A x)) \<in> borel_measurable M"
   unfolding measure_def
-  by (intro borel_measurable_real_of_ereal emeasure_measurable_subprob_algebra2[OF assms])
+  by (intro borel_measurable_enn2real emeasure_measurable_subprob_algebra2[OF assms])
 
 definition "select_sets M = (SOME N. sets M = sets (subprob_algebra N))"
 
@@ -723,7 +743,7 @@ proof (rule emeasure_measure_of[OF join_def])
     qed
     finally show "(\<Sum>i. \<integral>\<^sup>+M'. emeasure M' (A i) \<partial>M) = (\<integral>\<^sup>+M'. emeasure M' (\<Union>i. A i) \<partial>M)" .
   qed
-qed (auto simp: A sets.space_closed positive_def nn_integral_nonneg)
+qed (auto simp: A sets.space_closed positive_def)
 
 lemma measurable_join:
   "join \<in> measurable (subprob_algebra (subprob_algebra N)) (subprob_algebra N)"
@@ -745,7 +765,7 @@ next
   fix M assume M: "M \<in> space (subprob_algebra (subprob_algebra N))"
   then have "(\<integral>\<^sup>+M'. emeasure M' (space N) \<partial>M) \<le> (\<integral>\<^sup>+M'. 1 \<partial>M)"
     apply (intro nn_integral_mono)
-    apply (auto simp: space_subprob_algebra 
+    apply (auto simp: space_subprob_algebra
                  dest!: sets_eq_imp_space_eq subprob_space.emeasure_space_le_1)
     done
   with M show "subprob_space (join M)"
@@ -756,8 +776,8 @@ next
   thus ?thesis by (simp add: measurable_empty_iff space_subprob_algebra_empty_iff)
 qed (auto simp: space_subprob_algebra)
 
-lemma nn_integral_join':
-  assumes f: "f \<in> borel_measurable N" "\<And>x. 0 \<le> f x"
+lemma nn_integral_join:
+  assumes f: "f \<in> borel_measurable N"
     and M[measurable_cong]: "sets M = sets (subprob_algebra N)"
   shows "(\<integral>\<^sup>+x. f x \<partial>join M) = (\<integral>\<^sup>+M'. \<integral>\<^sup>+x. f x \<partial>M' \<partial>M)"
   using f
@@ -772,7 +792,7 @@ proof induct
     by simp
 next
   case (set A)
-  moreover with M have "(\<integral>\<^sup>+ M'. integral\<^sup>N M' (indicator A) \<partial>M) = (\<integral>\<^sup>+ M'. emeasure M' A \<partial>M)" 
+  moreover with M have "(\<integral>\<^sup>+ M'. integral\<^sup>N M' (indicator A) \<partial>M) = (\<integral>\<^sup>+ M'. emeasure M' A \<partial>M)"
     by (intro nn_integral_cong nn_integral_indicator)
        (auto simp: space_subprob_algebra dest!: sets_eq_imp_space_eq)
   ultimately show ?case
@@ -783,7 +803,7 @@ next
     using mult M M[THEN sets_eq_imp_space_eq]
     by (intro nn_integral_cong nn_integral_cmult) (auto simp add: space_subprob_algebra)
   also have "\<dots> = c * (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M)"
-    using nn_integral_measurable_subprob_algebra[OF mult(3)]
+    using nn_integral_measurable_subprob_algebra[OF mult(2)]
     by (intro nn_integral_cmult mult) (simp add: M)
   also have "\<dots> = c * (integral\<^sup>N (join M) f)"
     by (simp add: mult)
@@ -797,8 +817,8 @@ next
     by (intro nn_integral_cong nn_integral_add) (auto simp add: space_subprob_algebra)
   also have "\<dots> = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M) + (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. g x \<partial>M' \<partial>M)"
     using nn_integral_measurable_subprob_algebra[OF add(1)]
-    using nn_integral_measurable_subprob_algebra[OF add(5)]
-    by (intro nn_integral_add add) (simp_all add: M nn_integral_nonneg)
+    using nn_integral_measurable_subprob_algebra[OF add(4)]
+    by (intro nn_integral_add add) (simp_all add: M)
   also have "\<dots> = (integral\<^sup>N (join M) f) + (integral\<^sup>N (join M) g)"
     by (simp add: add)
   also have "\<dots> = (\<integral>\<^sup>+ x. f x + g x \<partial>join M)"
@@ -813,7 +833,7 @@ next
   also have "\<dots> = (SUP i. \<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. F i x \<partial>M' \<partial>M)"
     using nn_integral_measurable_subprob_algebra[OF seq(1)] seq
     by (intro nn_integral_monotone_convergence_SUP)
-       (simp_all add: M nn_integral_nonneg incseq_nn_integral incseq_def le_fun_def nn_integral_mono )
+       (simp_all add: M incseq_nn_integral incseq_def le_fun_def nn_integral_mono )
   also have "\<dots> = (SUP i. integral\<^sup>N (join M) (F i))"
     by (simp add: seq)
   also have "\<dots> = (\<integral>\<^sup>+ x. (SUP i. F i x) \<partial>join M)"
@@ -822,31 +842,23 @@ next
   finally show ?case by (simp add: ac_simps)
 qed
 
-lemma nn_integral_join:
-  assumes f[measurable]: "f \<in> borel_measurable N" "sets M = sets (subprob_algebra N)"
-  shows "(\<integral>\<^sup>+x. f x \<partial>join M) = (\<integral>\<^sup>+M'. \<integral>\<^sup>+x. f x \<partial>M' \<partial>M)"
-  apply (subst (1 3) nn_integral_max_0[symmetric])
-  apply (rule nn_integral_join')
-  apply (auto simp: f)
-  done
-
 lemma measurable_join1:
   "\<lbrakk> f \<in> measurable N K; sets M = sets (subprob_algebra N) \<rbrakk>
   \<Longrightarrow> f \<in> measurable (join M) K"
 by(simp add: measurable_def)
 
-lemma 
+lemma
   fixes f :: "_ \<Rightarrow> real"
   assumes f_measurable [measurable]: "f \<in> borel_measurable N"
-  and f_bounded: "\<And>x. x \<in> space N \<Longrightarrow> \<bar>f x\<bar> \<le> B" 
+  and f_bounded: "\<And>x. x \<in> space N \<Longrightarrow> \<bar>f x\<bar> \<le> B"
   and M [measurable_cong]: "sets M = sets (subprob_algebra N)"
   and fin: "finite_measure M"
-  and M_bounded: "AE M' in M. emeasure M' (space M') \<le> ereal B'"
+  and M_bounded: "AE M' in M. emeasure M' (space M') \<le> ennreal B'"
   shows integrable_join: "integrable (join M) f" (is ?integrable)
   and integral_join: "integral\<^sup>L (join M) f = \<integral> M'. integral\<^sup>L M' f \<partial>M" (is ?integral)
 proof(case_tac [!] "space N = {}")
   assume *: "space N = {}"
-  show ?integrable 
+  show ?integrable
     using M * by(simp add: real_integrable_def measurable_def nn_integral_empty)
   have "(\<integral> M'. integral\<^sup>L M' f \<partial>M) = (\<integral> M'. 0 \<partial>M)"
   proof(rule integral_cong)
@@ -869,120 +881,106 @@ next
   { fix f M'
     assume [measurable]: "f \<in> borel_measurable N"
       and f_bounded: "\<And>x. x \<in> space N \<Longrightarrow> f x \<le> B"
-      and "M' \<in> space M" "emeasure M' (space M') \<le> ereal B'"
-    have "AE x in M'. ereal (f x) \<le> ereal B"
+      and "M' \<in> space M" "emeasure M' (space M') \<le> ennreal B'"
+    have "AE x in M'. ennreal (f x) \<le> ennreal B"
     proof(rule AE_I2)
       fix x
       assume "x \<in> space M'"
       with \<open>M' \<in> space M\<close> sets_eq_imp_space_eq[OF M]
       have "x \<in> space N" by(auto simp add: space_subprob_algebra dest: sets_eq_imp_space_eq)
-      from f_bounded[OF this] show "ereal (f x) \<le> ereal B" by simp
+      from f_bounded[OF this] show "ennreal (f x) \<le> ennreal B" by simp
     qed
-    then have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M') \<le> (\<integral>\<^sup>+ x. ereal B \<partial>M')"
+    then have "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>M') \<le> (\<integral>\<^sup>+ x. ennreal B \<partial>M')"
       by(rule nn_integral_mono_AE)
-    also have "\<dots> = ereal B * emeasure M' (space M')" by(simp)
-    also have "\<dots> \<le> ereal B * ereal B'" by(rule ereal_mult_left_mono)(fact, simp)
-    also have "\<dots> \<le> ereal B * ereal \<bar>B'\<bar>" by(rule ereal_mult_left_mono)(simp_all)
-    finally have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M') \<le> ereal (B * \<bar>B'\<bar>)" by simp }
+    also have "\<dots> = ennreal B * emeasure M' (space M')" by(simp)
+    also have "\<dots> \<le> ennreal B * ennreal B'" by(rule mult_left_mono)(fact, simp)
+    also have "\<dots> \<le> ennreal B * ennreal \<bar>B'\<bar>" by(rule mult_left_mono)(simp_all)
+    finally have "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>M') \<le> ennreal (B * \<bar>B'\<bar>)" by (simp add: ennreal_mult) }
   note bounded1 = this
 
   have bounded:
     "\<And>f. \<lbrakk> f \<in> borel_measurable N; \<And>x. x \<in> space N \<Longrightarrow> f x \<le> B \<rbrakk>
-    \<Longrightarrow> (\<integral>\<^sup>+ x. ereal (f x) \<partial>join M) \<noteq> \<infinity>"
+    \<Longrightarrow> (\<integral>\<^sup>+ x. ennreal (f x) \<partial>join M) \<noteq> top"
   proof -
     fix f
     assume [measurable]: "f \<in> borel_measurable N"
       and f_bounded: "\<And>x. x \<in> space N \<Longrightarrow> f x \<le> B"
-    have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>join M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. ereal (f x) \<partial>M' \<partial>M)"
+    have "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>join M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. ennreal (f x) \<partial>M' \<partial>M)"
       by(rule nn_integral_join[OF _ M]) simp
     also have "\<dots> \<le> \<integral>\<^sup>+ M'. B * \<bar>B'\<bar> \<partial>M"
       using bounded1[OF \<open>f \<in> borel_measurable N\<close> f_bounded]
       by(rule nn_integral_mono_AE[OF AE_mp[OF M_bounded AE_I2], rule_format])
     also have "\<dots> = B * \<bar>B'\<bar> * emeasure M (space M)" by simp
-    also have "\<dots> < \<infinity>" by(simp add: finite_measure.finite_emeasure_space[OF fin])
+    also have "\<dots> < \<infinity>"
+      using finite_measure.finite_emeasure_space[OF fin]
+      by(simp add: ennreal_mult_less_top less_top)
     finally show "?thesis f" by simp
   qed
-  have f_pos: "(\<integral>\<^sup>+ x. ereal (f x) \<partial>join M) \<noteq> \<infinity>"
-    and f_neg: "(\<integral>\<^sup>+ x. ereal (- f x) \<partial>join M) \<noteq> \<infinity>"
+  have f_pos: "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>join M) \<noteq> \<infinity>"
+    and f_neg: "(\<integral>\<^sup>+ x. ennreal (- f x) \<partial>join M) \<noteq> \<infinity>"
     using f_bounded by(auto del: notI intro!: bounded simp add: abs_le_iff)
-  
+
   show ?integrable using f_pos f_neg by(simp add: real_integrable_def)
 
   note [measurable] = nn_integral_measurable_subprob_algebra
 
-  have "(\<integral>\<^sup>+ x. f x \<partial>join M) = (\<integral>\<^sup>+ x. max 0 (f x) \<partial>join M)"
-    by(subst nn_integral_max_0[symmetric])(simp add: zero_ereal_def)
-  also have "\<dots> = \<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. max 0 (f x) \<partial>M' \<partial>M"
+  have int_f: "(\<integral>\<^sup>+ x. f x \<partial>join M) = \<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M"
     by(simp add: nn_integral_join[OF _ M])
-  also have "\<dots> = \<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M"
-    by(subst nn_integral_max_0[symmetric])(simp add: zero_ereal_def)
-  finally have int_f: "(\<integral>\<^sup>+ x. f x \<partial>join M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M)" .
-
-  have "(\<integral>\<^sup>+ x. - f x \<partial>join M) = (\<integral>\<^sup>+ x. max 0 (- f x) \<partial>join M)"
-    by(subst nn_integral_max_0[symmetric])(simp add: zero_ereal_def)
-  also have "\<dots> = \<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. max 0 (- f x) \<partial>M' \<partial>M"
+  have int_mf: "(\<integral>\<^sup>+ x. - f x \<partial>join M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M)"
     by(simp add: nn_integral_join[OF _ M])
-  also have "\<dots> = \<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M"
-    by(subst nn_integral_max_0[symmetric])(simp add: zero_ereal_def)
-  finally have int_mf: "(\<integral>\<^sup>+ x. - f x \<partial>join M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M)" .
 
-  have f_pos1:
-    "\<And>M'. \<lbrakk> M' \<in> space M; emeasure M' (space M') \<le> ereal B' \<rbrakk>
-    \<Longrightarrow> (\<integral>\<^sup>+ x. ereal (f x) \<partial>M') \<le> ereal (B * \<bar>B'\<bar>)"
-    using f_measurable by(auto intro!: bounded1 dest: f_bounded)
-  have "AE M' in M. (\<integral>\<^sup>+ x. f x \<partial>M') \<noteq> \<infinity>"
-    using M_bounded by(rule AE_mp[OF _ AE_I2])(auto dest: f_pos1)
-  hence [simp]: "(\<integral>\<^sup>+ M'. ereal (real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M')) \<partial>M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M)"
-    by(rule nn_integral_cong_AE[OF AE_mp])(simp add: ereal_real nn_integral_nonneg)
-  from f_pos have [simp]: "integrable M (\<lambda>M'. real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M'))"
-    by(simp add: int_f real_integrable_def nn_integral_nonneg real_of_ereal[symmetric] nn_integral_0_iff_AE[THEN iffD2] del: real_of_ereal)
+  have pos_finite: "AE M' in M. (\<integral>\<^sup>+ x. f x \<partial>M') \<noteq> \<infinity>"
+    using AE_space M_bounded
+  proof eventually_elim
+    fix M' assume "M' \<in> space M" "emeasure M' (space M') \<le> ennreal B'"
+    then have "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>M') \<le> ennreal (B * \<bar>B'\<bar>)"
+      using f_measurable by(auto intro!: bounded1 dest: f_bounded)
+    then show "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>M') \<noteq> \<infinity>"
+      by (auto simp: top_unique)
+  qed
+  hence [simp]: "(\<integral>\<^sup>+ M'. ennreal (enn2real (\<integral>\<^sup>+ x. f x \<partial>M')) \<partial>M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M)"
+    by (rule nn_integral_cong_AE[OF AE_mp]) (simp add: less_top)
+  from f_pos have [simp]: "integrable M (\<lambda>M'. enn2real (\<integral>\<^sup>+ x. f x \<partial>M'))"
+    by(simp add: int_f real_integrable_def nn_integral_0_iff_AE[THEN iffD2] ennreal_neg enn2real_nonneg)
 
-  have f_neg1:
-    "\<And>M'. \<lbrakk> M' \<in> space M; emeasure M' (space M') \<le> ereal B' \<rbrakk>
-    \<Longrightarrow> (\<integral>\<^sup>+ x. ereal (- f x) \<partial>M') \<le> ereal (B * \<bar>B'\<bar>)"
-    using f_measurable by(auto intro!: bounded1 dest: f_bounded)
-  have "AE M' in M. (\<integral>\<^sup>+ x. - f x \<partial>M') \<noteq> \<infinity>"
-    using M_bounded by(rule AE_mp[OF _ AE_I2])(auto dest: f_neg1)
-  hence [simp]: "(\<integral>\<^sup>+ M'. ereal (real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M')) \<partial>M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M)"
-    by(rule nn_integral_cong_AE[OF AE_mp])(simp add: ereal_real nn_integral_nonneg)
-  from f_neg have [simp]: "integrable M (\<lambda>M'. real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M'))"
-    by(simp add: int_mf real_integrable_def nn_integral_nonneg real_of_ereal[symmetric] nn_integral_0_iff_AE[THEN iffD2] del: real_of_ereal)
+  have neg_finite: "AE M' in M. (\<integral>\<^sup>+ x. - f x \<partial>M') \<noteq> \<infinity>"
+    using AE_space M_bounded
+  proof eventually_elim
+    fix M' assume "M' \<in> space M" "emeasure M' (space M') \<le> ennreal B'"
+    then have "(\<integral>\<^sup>+ x. ennreal (- f x) \<partial>M') \<le> ennreal (B * \<bar>B'\<bar>)"
+      using f_measurable by(auto intro!: bounded1 dest: f_bounded)
+    then show "(\<integral>\<^sup>+ x. ennreal (- f x) \<partial>M') \<noteq> \<infinity>"
+      by (auto simp: top_unique)
+  qed
+  hence [simp]: "(\<integral>\<^sup>+ M'. ennreal (enn2real (\<integral>\<^sup>+ x. - f x \<partial>M')) \<partial>M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M)"
+    by (rule nn_integral_cong_AE[OF AE_mp]) (simp add: less_top)
+  from f_neg have [simp]: "integrable M (\<lambda>M'. enn2real (\<integral>\<^sup>+ x. - f x \<partial>M'))"
+    by(simp add: int_mf real_integrable_def nn_integral_0_iff_AE[THEN iffD2] ennreal_neg enn2real_nonneg)
 
-  from \<open>?integrable\<close>
-  have "ereal (\<integral> x. f x \<partial>join M) = (\<integral>\<^sup>+ x. f x \<partial>join M) - (\<integral>\<^sup>+ x. - f x \<partial>join M)"
-    by(simp add: real_lebesgue_integral_def ereal_minus(1)[symmetric] ereal_real nn_integral_nonneg f_pos f_neg del: ereal_minus(1))
-  also note int_f
-  also note int_mf
-  also have "(\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M) - (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M) = 
-    ((\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M) - (\<integral>\<^sup>+ M'. - \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M)) - 
-    ((\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M) - (\<integral>\<^sup>+ M'. - \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M))"
-    by(subst (7 11) nn_integral_0_iff_AE[THEN iffD2])(simp_all add: nn_integral_nonneg)
-  also have "(\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M) - (\<integral>\<^sup>+ M'. - \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M) = \<integral> M'. real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M') \<partial>M"
-    using f_pos
-    by(simp add: real_lebesgue_integral_def)(simp add: ereal_minus(1)[symmetric] ereal_real int_f nn_integral_nonneg nn_integral_0_iff_AE[THEN iffD2] real_of_ereal_pos zero_ereal_def[symmetric])
-  also have "(\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M) - (\<integral>\<^sup>+ M'. - \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M) = \<integral> M'. real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M') \<partial>M"
-    using f_neg
-    by(simp add: real_lebesgue_integral_def)(simp add: ereal_minus(1)[symmetric] ereal_real int_mf nn_integral_nonneg nn_integral_0_iff_AE[THEN iffD2] real_of_ereal_pos zero_ereal_def[symmetric])
-  also note ereal_minus(1)
-  also have "(\<integral> M'. real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M') \<partial>M) - (\<integral> M'. real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M') \<partial>M) = 
-    \<integral>M'. real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M') - real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M') \<partial>M"
+  have "(\<integral> x. f x \<partial>join M) = enn2real (\<integral>\<^sup>+ N. \<integral>\<^sup>+x. f x \<partial>N \<partial>M) - enn2real (\<integral>\<^sup>+ N. \<integral>\<^sup>+x. - f x \<partial>N \<partial>M)"
+    unfolding real_lebesgue_integral_def[OF \<open>?integrable\<close>] by (simp add: nn_integral_join[OF _ M])
+  also have "\<dots> = (\<integral>N. enn2real (\<integral>\<^sup>+x. f x \<partial>N) \<partial>M) - (\<integral>N. enn2real (\<integral>\<^sup>+x. - f x \<partial>N) \<partial>M)"
+    using pos_finite neg_finite by (subst (1 2) integral_eq_nn_integral) (auto simp: enn2real_nonneg)
+  also have "\<dots> = (\<integral>N. enn2real (\<integral>\<^sup>+x. f x \<partial>N) - enn2real (\<integral>\<^sup>+x. - f x \<partial>N) \<partial>M)"
     by simp
-  also have "\<dots> = \<integral>M'. \<integral> x. f x \<partial>M' \<partial>M" using _ _ M_bounded
-  proof(rule integral_cong_AE[OF _ _ AE_mp[OF _ AE_I2], rule_format])
-    show "(\<lambda>M'. integral\<^sup>L M' f) \<in> borel_measurable M"
-      by measurable(simp add: integral_measurable_subprob_algebra[OF _ f_bounded])
-      
-    fix M'
-    assume "M' \<in> space M" "emeasure M' (space M') \<le> B'"
-    then interpret finite_measure M' by(auto intro: finite_measureI)
-    
-    from \<open>M' \<in> space M\<close> sets_eq_imp_space_eq[OF M]
-    have [measurable_cong]: "sets M' = sets N" by(simp add: space_subprob_algebra)
-    hence [simp]: "space M' = space N" by(rule sets_eq_imp_space_eq)
-    have "integrable M' f"
-      by(rule integrable_const_bound[where B=B])(auto simp add: f_bounded)
-    then show "real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M') - real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M') = \<integral> x. f x \<partial>M'"
-      by(simp add: real_lebesgue_integral_def)
+  also have "\<dots> = \<integral>M'. \<integral> x. f x \<partial>M' \<partial>M"
+  proof (rule integral_cong_AE)
+    show "AE x in M.
+        enn2real (\<integral>\<^sup>+ x. ennreal (f x) \<partial>x) - enn2real (\<integral>\<^sup>+ x. ennreal (- f x) \<partial>x) = integral\<^sup>L x f"
+      using AE_space M_bounded
+    proof eventually_elim
+      fix M' assume "M' \<in> space M" "emeasure M' (space M') \<le> B'"
+      then interpret subprob_space M'
+        by (auto simp: M[THEN sets_eq_imp_space_eq] space_subprob_algebra)
+
+      from \<open>M' \<in> space M\<close> sets_eq_imp_space_eq[OF M]
+      have [measurable_cong]: "sets M' = sets N" by(simp add: space_subprob_algebra)
+      hence [simp]: "space M' = space N" by(rule sets_eq_imp_space_eq)
+      have "integrable M' f"
+        by(rule integrable_const_bound[where B=B])(auto simp add: f_bounded)
+      then show "enn2real (\<integral>\<^sup>+ x. f x \<partial>M') - enn2real (\<integral>\<^sup>+ x. - f x \<partial>M') = \<integral> x. f x \<partial>M'"
+        by(simp add: real_lebesgue_integral_def)
+    qed
   qed simp_all
   finally show ?integral by simp
 qed
@@ -995,16 +993,16 @@ proof (rule measure_eqI)
   then have A: "A \<in> sets N" by simp
   show "emeasure (join (distr M (subprob_algebra N) join)) A = emeasure (join (join M)) A"
     using measurable_join[of N]
-    by (auto simp: M A nn_integral_distr emeasure_join measurable_emeasure_subprob_algebra emeasure_nonneg
+    by (auto simp: M A nn_integral_distr emeasure_join measurable_emeasure_subprob_algebra
                    sets_eq_imp_space_eq[OF M] space_subprob_algebra nn_integral_join[OF _ M]
              intro!: nn_integral_cong emeasure_join)
 qed (simp add: M)
 
-lemma join_return: 
+lemma join_return:
   assumes "sets M = sets N" and "subprob_space M"
   shows "join (return (subprob_algebra N) M) = M"
   by (rule measure_eqI)
-     (simp_all add: emeasure_join emeasure_nonneg space_subprob_algebra  
+     (simp_all add: emeasure_join space_subprob_algebra
                     measurable_emeasure_subprob_algebra nn_integral_return assms)
 
 lemma join_return':
@@ -1025,13 +1023,13 @@ proof (rule measure_eqI)
   fix A assume "A \<in> sets ?r"
   hence A_in_N: "A \<in> sets N" by simp
 
-  from assms have "f \<in> measurable (join M) N" 
+  from assms have "f \<in> measurable (join M) N"
       by (simp cong: measurable_cong_sets)
-  moreover from assms and A_in_N have "f-`A \<inter> space R \<in> sets R" 
+  moreover from assms and A_in_N have "f-`A \<inter> space R \<in> sets R"
       by (intro measurable_sets) simp_all
   ultimately have "emeasure (distr (join M) N f) A = \<integral>\<^sup>+M'. emeasure M' (f-`A \<inter> space R) \<partial>M"
       by (simp_all add: A_in_N emeasure_distr emeasure_join assms)
-  
+
   also have "... = \<integral>\<^sup>+ x. emeasure (distr x N f) A \<partial>M" using A_in_N
   proof (intro nn_integral_cong, subst emeasure_distr)
     fix M' assume "M' \<in> space M"
@@ -1045,7 +1043,7 @@ proof (rule measure_eqI)
 
   also have "(\<lambda>M. distr M N f) \<in> measurable M (subprob_algebra N)"
       by (simp cong: measurable_cong_sets add: assms measurable_distr)
-  hence "(\<integral>\<^sup>+ x. emeasure (distr x N f) A \<partial>M) = 
+  hence "(\<integral>\<^sup>+ x. emeasure (distr x N f) A \<partial>M) =
              emeasure (join (distr M (subprob_algebra N) (\<lambda>M. distr M N f))) A"
       by (simp_all add: emeasure_join assms A_in_N nn_integral_distr measurable_emeasure_subprob_algebra)
   finally show "emeasure ?r A = emeasure ?l A" ..
@@ -1057,7 +1055,7 @@ definition bind :: "'a measure \<Rightarrow> ('a \<Rightarrow> 'b measure) \<Rig
 
 adhoc_overloading Monad_Syntax.bind bind
 
-lemma bind_empty: 
+lemma bind_empty:
   "space M = {} \<Longrightarrow> bind M f = count_space {}"
   by (simp add: bind_def)
 
@@ -1076,12 +1074,12 @@ lemma sets_bind[simp, measurable_cong]:
   shows "sets (bind M f) = sets N"
   using f [of "SOME x. x \<in> space M"] by (simp add: bind_nonempty M some_in_eq)
 
-lemma space_bind[simp]: 
+lemma space_bind[simp]:
   assumes "\<And>x. x \<in> space M \<Longrightarrow> sets (f x) = sets N" and "space M \<noteq> {}"
   shows "space (bind M f) = space N"
   using assms by (intro sets_eq_imp_space_eq sets_bind)
 
-lemma bind_cong: 
+lemma bind_cong:
   assumes "\<forall>x \<in> space M. f x = g x"
   shows "bind M f = bind M g"
 proof (cases "space M = {}")
@@ -1117,7 +1115,8 @@ lemma nn_integral_bind:
 proof cases
   assume M: "space M \<noteq> {}" show ?thesis
     unfolding bind_nonempty''[OF N M] nn_integral_join[OF f sets_distr]
-    by (rule nn_integral_distr[OF N nn_integral_measurable_subprob_algebra[OF f]])
+    by (rule nn_integral_distr[OF N])
+       (simp add: f nn_integral_measurable_subprob_algebra)
 qed (simp add: bind_empty space_empty[of M] nn_integral_count_space)
 
 lemma AE_bind:
@@ -1141,7 +1140,7 @@ next
     apply (rule measurable_compose[OF N nn_integral_measurable_subprob_algebra])
     apply measurable
     apply (intro eventually_subst AE_I2)
-    apply (auto simp add: emeasure_le_0_iff subprob_measurableD(1)[OF N]
+    apply (auto simp add: subprob_measurableD(1)[OF N]
                 intro!: AE_iff_measurable[symmetric])
     done
   finally show ?thesis .
@@ -1153,12 +1152,12 @@ lemma measurable_bind':
   shows "(\<lambda>x. bind (f x) (g x)) \<in> measurable M (subprob_algebra R)"
 proof (subst measurable_cong)
   fix x assume x_in_M: "x \<in> space M"
-  with assms have "space (f x) \<noteq> {}" 
+  with assms have "space (f x) \<noteq> {}"
       by (blast dest: subprob_space_kernel subprob_space.subprob_not_empty)
   moreover from M2 x_in_M have "g x \<in> measurable (f x) (subprob_algebra R)"
       by (subst measurable_cong_sets[OF sets_kernel[OF M1 x_in_M] refl])
          (auto dest: measurable_Pair2)
-  ultimately show "bind (f x) (g x) = join (distr (f x) (subprob_algebra R) (g x))" 
+  ultimately show "bind (f x) (g x) = join (distr (f x) (subprob_algebra R) (g x))"
       by (simp_all add: bind_nonempty'')
 next
   show "(\<lambda>w. join (distr (f w) (subprob_algebra R) (g w))) \<in> measurable M (subprob_algebra R)"
@@ -1183,19 +1182,19 @@ lemma subprob_space_bind:
   shows "subprob_space (M \<bind> f)"
 proof (rule subprob_space_kernel[of "\<lambda>x. x \<bind> f"])
   show "(\<lambda>x. x \<bind> f) \<in> measurable (subprob_algebra M) (subprob_algebra N)"
-    by (rule measurable_bind, rule measurable_ident_sets, rule refl, 
+    by (rule measurable_bind, rule measurable_ident_sets, rule refl,
         rule measurable_compose[OF measurable_snd assms(2)])
   from assms(1) show "M \<in> space (subprob_algebra M)"
     by (simp add: space_subprob_algebra)
 qed
 
-lemma 
+lemma
   fixes f :: "_ \<Rightarrow> real"
   assumes f_measurable [measurable]: "f \<in> borel_measurable K"
-  and f_bounded: "\<And>x. x \<in> space K \<Longrightarrow> \<bar>f x\<bar> \<le> B" 
+  and f_bounded: "\<And>x. x \<in> space K \<Longrightarrow> \<bar>f x\<bar> \<le> B"
   and N [measurable]: "N \<in> measurable M (subprob_algebra K)"
   and fin: "finite_measure M"
-  and M_bounded: "AE x in M. emeasure (N x) (space (N x)) \<le> ereal B'"
+  and M_bounded: "AE x in M. emeasure (N x) (space (N x)) \<le> ennreal B'"
   shows integrable_bind: "integrable (bind M N) f" (is ?integrable)
   and integral_bind: "integral\<^sup>L (bind M N) f = \<integral> x. integral\<^sup>L (N x) f \<partial>M" (is ?integral)
 proof(case_tac [!] "space M = {}")
@@ -1211,11 +1210,11 @@ proof(case_tac [!] "space M = {}")
     using f_measurable f_bounded
     by(rule integral_join[where B'=B'])(simp_all add: finite_measure_distr AE_distr_iff M_bounded)
   also have "\<dots> = \<integral> x. integral\<^sup>L (N x) f \<partial>M"
-    by(rule integral_distr)(simp_all add: integral_measurable_subprob_algebra[OF _ f_bounded])
+    by(rule integral_distr)(simp_all add: integral_measurable_subprob_algebra[OF _])
   finally show ?integral by(simp add: bind_nonempty''[where N=K])
 qed(simp_all add: bind_def integrable_count_space lebesgue_integral_count_space_finite integral_empty)
 
-lemma (in prob_space) prob_space_bind: 
+lemma (in prob_space) prob_space_bind:
   assumes ae: "AE x in M. prob_space (N x)"
     and N[measurable]: "N \<in> measurable M (subprob_algebra S)"
   shows "prob_space (M \<bind> N)"
@@ -1244,27 +1243,27 @@ proof -
   { fix x assume "x \<in> space M"
     from f[THEN measurable_space, OF this] interpret subprob_space "f x"
       by (simp add: space_subprob_algebra)
-    have "emeasure (f x) X = ereal (measure (f x) X)" "measure (f x) X \<le> 1"
+    have "emeasure (f x) X = ennreal (measure (f x) X)" "measure (f x) X \<le> 1"
       by (auto simp: emeasure_eq_measure subprob_measure_le_1) }
   note this[simp]
 
   have "emeasure (M \<bind> f) X = \<integral>\<^sup>+x. emeasure (f x) X \<partial>M"
     using subprob_not_empty f X by (rule emeasure_bind)
-  also have "\<dots> = \<integral>\<^sup>+x. ereal (measure (f x) X) \<partial>M"
+  also have "\<dots> = \<integral>\<^sup>+x. ennreal (measure (f x) X) \<partial>M"
     by (intro nn_integral_cong) simp
   also have "\<dots> = \<integral>x. measure (f x) X \<partial>M"
     by (intro nn_integral_eq_integral integrable_const_bound[where B=1]
               measure_measurable_subprob_algebra2[OF _ f] pair_measureI X)
        (auto simp: measure_nonneg)
   finally show ?thesis
-    by (simp add: Mf.emeasure_eq_measure)
+    by (simp add: Mf.emeasure_eq_measure measure_nonneg integral_nonneg)
 qed
 
-lemma emeasure_bind_const: 
-    "space M \<noteq> {} \<Longrightarrow> X \<in> sets N \<Longrightarrow> subprob_space N \<Longrightarrow> 
+lemma emeasure_bind_const:
+    "space M \<noteq> {} \<Longrightarrow> X \<in> sets N \<Longrightarrow> subprob_space N \<Longrightarrow>
          emeasure (M \<bind> (\<lambda>x. N)) X = emeasure N X * emeasure M (space M)"
-  by (simp add: bind_nonempty emeasure_join nn_integral_distr 
-                space_subprob_algebra measurable_emeasure_subprob_algebra emeasure_nonneg)
+  by (simp add: bind_nonempty emeasure_join nn_integral_distr
+                space_subprob_algebra measurable_emeasure_subprob_algebra)
 
 lemma emeasure_bind_const':
   assumes "subprob_space M" "subprob_space N"
@@ -1273,7 +1272,7 @@ using assms
 proof (case_tac "X \<in> sets N")
   fix X assume "X \<in> sets N"
   thus "emeasure (M \<bind> (\<lambda>x. N)) X = emeasure N X * emeasure M (space M)" using assms
-      by (subst emeasure_bind_const) 
+      by (subst emeasure_bind_const)
          (simp_all add: subprob_space.subprob_not_empty subprob_space.emeasure_space_le_1)
 next
   fix X assume "X \<notin> sets N"
@@ -1285,10 +1284,10 @@ qed
 lemma emeasure_bind_const_prob_space:
   assumes "prob_space M" "subprob_space N"
   shows "emeasure (M \<bind> (\<lambda>x. N)) X = emeasure N X"
-  using assms by (simp add: emeasure_bind_const' prob_space_imp_subprob_space 
+  using assms by (simp add: emeasure_bind_const' prob_space_imp_subprob_space
                             prob_space.emeasure_space_1)
 
-lemma bind_return: 
+lemma bind_return:
   assumes "f \<in> measurable M (subprob_algebra N)" and "x \<in> space M"
   shows "bind (return M x) f = f x"
   using sets_kernel[OF assms] assms
@@ -1298,7 +1297,7 @@ lemma bind_return:
 lemma bind_return':
   shows "bind M (return M) = M"
   by (cases "space M = {}")
-     (simp_all add: bind_empty space_empty[symmetric] bind_nonempty join_return' 
+     (simp_all add: bind_empty space_empty[symmetric] bind_nonempty join_return'
                cong: subprob_algebra_cong)
 
 lemma distr_bind:
@@ -1372,7 +1371,7 @@ proof -
   hence "?x \<in> space (restrict_space M A)" by(simp add: space_restrict_space)
   with f have "f ?x \<in> space (subprob_algebra N)" by(rule measurable_space)
   hence sps: "subprob_space (f ?x)"
-    and sets: "sets (f ?x) = sets N" 
+    and sets: "sets (f ?x) = sets N"
     by(simp_all add: space_subprob_algebra)
   have "space (f ?x) \<noteq> {}" using sps by(rule subprob_space.subprob_not_empty)
   moreover have "sets ?c = sets N" by(simp add: null_measure_def)(simp add: sets)
@@ -1392,10 +1391,10 @@ proof -
 qed
 
 lemma bind_const': "\<lbrakk>prob_space M; subprob_space N\<rbrakk> \<Longrightarrow> M \<bind> (\<lambda>x. N) = N"
-  by (intro measure_eqI) 
+  by (intro measure_eqI)
      (simp_all add: space_subprob_algebra prob_space.not_empty emeasure_bind_const_prob_space)
 
-lemma bind_return_distr: 
+lemma bind_return_distr:
     "space M \<noteq> {} \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> bind M (return N \<circ> f) = distr M N f"
   apply (simp add: bind_nonempty)
   apply (subst subprob_algebra_cong)
@@ -1423,16 +1422,16 @@ proof (cases "space M = {}")
                          sets_kernel[OF M2 someI_ex[OF ex_in[OF \<open>space N \<noteq> {}\<close>]]]
   note space_some[simp] = sets_eq_imp_space_eq[OF this(1)] sets_eq_imp_space_eq[OF this(2)]
 
-  have "bind M (\<lambda>x. bind (f x) g) = 
+  have "bind M (\<lambda>x. bind (f x) g) =
         join (distr M (subprob_algebra R) (join \<circ> (\<lambda>x. (distr x (subprob_algebra R) g)) \<circ> f))"
     by (simp add: sets_eq_imp_space_eq[OF sets_fx] bind_nonempty o_def
              cong: subprob_algebra_cong distr_cong)
   also have "distr M (subprob_algebra R) (join \<circ> (\<lambda>x. (distr x (subprob_algebra R) g)) \<circ> f) =
              distr (distr (distr M (subprob_algebra N) f)
                           (subprob_algebra (subprob_algebra R))
-                          (\<lambda>x. distr x (subprob_algebra R) g)) 
+                          (\<lambda>x. distr x (subprob_algebra R) g))
                    (subprob_algebra R) join"
-      apply (subst distr_distr, 
+      apply (subst distr_distr,
              (blast intro: measurable_comp measurable_distr measurable_join M1 M2)+)+
       apply (simp add: o_assoc)
       done
@@ -1447,12 +1446,12 @@ lemma double_bind_assoc:
   assumes Mh: "case_prod h \<in> measurable (M \<Otimes>\<^sub>M M') N"
   shows "do {x \<leftarrow> M; y \<leftarrow> f x; g (h x y)} = do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y)} \<bind> g"
 proof-
-  have "do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y)} \<bind> g = 
+  have "do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y)} \<bind> g =
             do {x \<leftarrow> M; do {y \<leftarrow> f x; return N (h x y)} \<bind> g}"
     using Mh by (auto intro!: bind_assoc measurable_bind'[OF Mf] Mf Mg
                       measurable_compose[OF _ return_measurable] simp: measurable_split_conv)
   also from Mh have "\<And>x. x \<in> space M \<Longrightarrow> h x \<in> measurable M' N" by measurable
-  hence "do {x \<leftarrow> M; do {y \<leftarrow> f x; return N (h x y)} \<bind> g} = 
+  hence "do {x \<leftarrow> M; do {y \<leftarrow> f x; return N (h x y)} \<bind> g} =
             do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y) \<bind> g}"
     apply (intro ballI bind_cong bind_assoc)
     apply (subst measurable_cong_sets[OF sets_kernel[OF Mf] refl], simp)
@@ -1460,7 +1459,7 @@ proof-
     done
   also have "\<And>x. x \<in> space M \<Longrightarrow> space (f x) = space M'"
     by (intro sets_eq_imp_space_eq sets_kernel[OF Mf])
-  with measurable_space[OF Mh] 
+  with measurable_space[OF Mh]
     have "do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y) \<bind> g} = do {x \<leftarrow> M; y \<leftarrow> f x; g (h x y)}"
     by (intro ballI bind_cong bind_return[OF Mg]) (auto simp: space_pair_measure)
   finally show ?thesis ..
@@ -1485,13 +1484,13 @@ qed
 lemma (in pair_prob_space) bind_rotate:
   assumes C[measurable]: "(\<lambda>(x, y). C x y) \<in> measurable (M1 \<Otimes>\<^sub>M M2) (subprob_algebra N)"
   shows "(M1 \<bind> (\<lambda>x. M2 \<bind> (\<lambda>y. C x y))) = (M2 \<bind> (\<lambda>y. M1 \<bind> (\<lambda>x. C x y)))"
-proof - 
+proof -
   interpret swap: pair_prob_space M2 M1 by unfold_locales
   note measurable_bind[where N="M2", measurable]
   note measurable_bind[where N="M1", measurable]
   have [simp]: "M1 \<in> space (subprob_algebra M1)" "M2 \<in> space (subprob_algebra M2)"
     by (auto simp: space_subprob_algebra) unfold_locales
-  have "(M1 \<bind> (\<lambda>x. M2 \<bind> (\<lambda>y. C x y))) = 
+  have "(M1 \<bind> (\<lambda>x. M2 \<bind> (\<lambda>y. C x y))) =
     (M1 \<bind> (\<lambda>x. M2 \<bind> (\<lambda>y. return (M1 \<Otimes>\<^sub>M M2) (x, y)))) \<bind> (\<lambda>(x, y). C x y)"
     by (auto intro!: bind_cong simp: bind_return[where N=N] space_pair_measure bind_assoc[where N="M1 \<Otimes>\<^sub>M M2" and R=N])
   also have "\<dots> = (distr (M2 \<Otimes>\<^sub>M M1) (M1 \<Otimes>\<^sub>M M2) (\<lambda>(x, y). (y, x))) \<bind> (\<lambda>(x, y). C x y)"
@@ -1539,7 +1538,8 @@ proof cases
         using sets_SUP_measure[of M, OF const] by simp
       moreover assume "disjoint_family A"
       ultimately show "(\<Sum>i. SUP ia. emeasure (M ia) (A i)) = (SUP i. emeasure (M i) (\<Union>i. A i))"
-        using mono by (subst suminf_SUP_eq) (auto simp: mono_def le_fun_def intro!: SUP_cong suminf_emeasure)
+        using suminf_SUP_eq
+        using mono by (subst ennreal_suminf_SUP_eq) (auto simp: mono_def le_fun_def intro!: SUP_cong suminf_emeasure)
     qed
     show "positive (sets (SUP_measure M)) (\<lambda>A. SUP i. emeasure (M i) A)"
       by (auto simp: positive_def intro: SUP_upper2)
@@ -1563,8 +1563,8 @@ lemma (in prob_space) distr_const[simp]:
 
 lemma return_count_space_eq_density:
     "return (count_space M) x = density (count_space M) (indicator {x})"
-  by (rule measure_eqI) 
-     (auto simp: indicator_inter_arith_ereal emeasure_density split: split_indicator)
+  by (rule measure_eqI)
+     (auto simp: indicator_inter_arith[symmetric] emeasure_density split: split_indicator)
 
 lemma null_measure_in_space_subprob_algebra [simp]:
   "null_measure M \<in> space (subprob_algebra M) \<longleftrightarrow> space M \<noteq> {}"

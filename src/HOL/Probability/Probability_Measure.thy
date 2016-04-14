@@ -60,7 +60,7 @@ lemma prob_spaceI[Pure.intro!]:
 proof -
   interpret finite_measure M
   proof
-    show "emeasure M (space M) \<noteq> \<infinity>" using * by simp 
+    show "emeasure M (space M) \<noteq> \<infinity>" using * by simp
   qed
   show "prob_space M" by standard fact
 qed
@@ -96,13 +96,31 @@ proof
 qed
 
 lemma (in prob_space) prob_space: "prob (space M) = 1"
-  using emeasure_space_1 unfolding measure_def by (simp add: one_ereal_def)
+  using emeasure_space_1 unfolding measure_def by (simp add: one_ennreal.rep_eq)
 
 lemma (in prob_space) prob_le_1[simp, intro]: "prob A \<le> 1"
   using bounded_measure[of A] by (simp add: prob_space)
 
 lemma (in prob_space) not_empty: "space M \<noteq> {}"
   using prob_space by auto
+
+lemma (in prob_space) emeasure_eq_1_AE:
+  "S \<in> sets M \<Longrightarrow> AE x in M. x \<in> S \<Longrightarrow> emeasure M S = 1"
+  by (subst emeasure_eq_AE[where B="space M"]) (auto simp: emeasure_space_1)
+
+lemma (in prob_space) emeasure_le_1: "emeasure M S \<le> 1"
+  unfolding ennreal_1[symmetric] emeasure_eq_measure by (subst ennreal_le_iff) auto
+
+lemma (in prob_space) AE_iff_emeasure_eq_1:
+  assumes [measurable]: "Measurable.pred M P"
+  shows "(AE x in M. P x) \<longleftrightarrow> emeasure M {x\<in>space M. P x} = 1"
+proof -
+  have *: "{x \<in> space M. \<not> P x} = space M - {x\<in>space M. P x}"
+    by auto
+  show ?thesis
+    by (auto simp add: ennreal_minus_eq_0 * emeasure_compl emeasure_space_1 AE_iff_measurable[OF _ refl]
+             intro: antisym emeasure_le_1)
+qed
 
 lemma (in prob_space) measure_le_1: "emeasure M X \<le> 1"
   using emeasure_space[of M X] by (simp add: emeasure_space_1)
@@ -126,26 +144,12 @@ lemma (in prob_space) prob_compl:
   using finite_measure_compl[OF A] by (simp add: prob_space)
 
 lemma (in prob_space) AE_in_set_eq_1:
-  assumes "A \<in> events" shows "(AE x in M. x \<in> A) \<longleftrightarrow> prob A = 1"
-proof
-  assume ae: "AE x in M. x \<in> A"
-  have "{x \<in> space M. x \<in> A} = A" "{x \<in> space M. x \<notin> A} = space M - A"
-    using \<open>A \<in> events\<close>[THEN sets.sets_into_space] by auto
-  with AE_E2[OF ae] \<open>A \<in> events\<close> have "1 - emeasure M A = 0"
-    by (simp add: emeasure_compl emeasure_space_1)
-  then show "prob A = 1"
-    using \<open>A \<in> events\<close> by (simp add: emeasure_eq_measure one_ereal_def)
-next
-  assume prob: "prob A = 1"
-  show "AE x in M. x \<in> A"
-  proof (rule AE_I)
-    show "{x \<in> space M. x \<notin> A} \<subseteq> space M - A" by auto
-    show "emeasure M (space M - A) = 0"
-      using \<open>A \<in> events\<close> prob
-      by (simp add: prob_compl emeasure_space_1 emeasure_eq_measure one_ereal_def)
-    show "space M - A \<in> events"
-      using \<open>A \<in> events\<close> by auto
-  qed
+  assumes A[measurable]: "A \<in> events" shows "(AE x in M. x \<in> A) \<longleftrightarrow> prob A = 1"
+proof -
+  have *: "{x\<in>space M. x \<in> A} = A"
+    using A[THEN sets.sets_into_space] by auto
+  show ?thesis
+    by (subst AE_iff_emeasure_eq_1) (auto simp: emeasure_eq_measure *)
 qed
 
 lemma (in prob_space) AE_False: "(AE x in M. False) \<longleftrightarrow> False"
@@ -178,10 +182,6 @@ proof -
   then show False by auto
 qed
 
-lemma (in prob_space) emeasure_eq_1_AE:
-  "S \<in> sets M \<Longrightarrow> AE x in M. x \<in> S \<Longrightarrow> emeasure M S = 1"
-  by (subst emeasure_eq_AE[where B="space M"]) (auto simp: emeasure_space_1)
-
 lemma (in prob_space) integral_ge_const:
   fixes c :: real
   shows "integrable M f \<Longrightarrow> (AE x in M. c \<le> f x) \<Longrightarrow> c \<le> (\<integral>x. f x \<partial>M)"
@@ -195,7 +195,7 @@ lemma (in prob_space) integral_le_const:
 lemma (in prob_space) nn_integral_ge_const:
   "(AE x in M. c \<le> f x) \<Longrightarrow> c \<le> (\<integral>\<^sup>+x. f x \<partial>M)"
   using nn_integral_mono_AE[of "\<lambda>x. c" f M] emeasure_space_1
-  by (simp add: nn_integral_const_If split: if_split_asm)
+  by (simp split: if_split_asm)
 
 lemma (in prob_space) expectation_less:
   fixes X :: "_ \<Rightarrow> real"
@@ -297,24 +297,24 @@ print_translation \<open>
       end
 
     fun unnest_tuples
-      (Const (@{syntax_const "_pattern"}, _) $ 
+      (Const (@{syntax_const "_pattern"}, _) $
         t1 $
         (t as (Const (@{syntax_const "_pattern"}, _) $ _ $ _)))
       = let
         val (_ $ t2 $ t3) = unnest_tuples t
       in
-        Syntax.const @{syntax_const "_pattern"} $ 
+        Syntax.const @{syntax_const "_pattern"} $
           unnest_tuples t1 $
           (Syntax.const @{syntax_const "_patterns"} $ t2 $ t3)
       end
     | unnest_tuples pat = pat
 
-    fun tr' [sig_alg, Const (@{const_syntax Collect}, _) $ t] = 
+    fun tr' [sig_alg, Const (@{const_syntax Collect}, _) $ t] =
       let
         val bound_dummyT = Const (@{syntax_const "_bound"}, dummyT)
 
         fun go pattern elem
-          (Const (@{const_syntax "conj"}, _) $ 
+          (Const (@{const_syntax "conj"}, _) $
             (Const (@{const_syntax Set.member}, _) $ elem' $ (Const (@{const_syntax space}, _) $ sig_alg')) $
             u)
           = let
@@ -331,7 +331,7 @@ print_translation \<open>
               go ((x, 0) :: pattern) (bound_dummyT $ tx :: elem) t
             end
         | go pattern elem (Const (@{const_syntax case_prod}, _) $ t) =
-            go 
+            go
               ((Syntax.const @{syntax_const "_pattern"}, 2) :: pattern)
               (Syntax.const @{const_syntax Pair} :: elem)
               t
@@ -359,7 +359,7 @@ proof -
   from ae[THEN AE_E] guess N .
   then show thesis
     by (intro that[of "space M - N"])
-       (auto simp: prob_compl prob_space emeasure_eq_measure)
+       (auto simp: prob_compl prob_space emeasure_eq_measure measure_nonneg)
 qed
 
 lemma (in prob_space) prob_neg: "{x\<in>space M. P x} \<in> events \<Longrightarrow> \<P>(x in M. \<not> P x) = 1 - \<P>(x in M. P x)"
@@ -380,7 +380,7 @@ qed (simp add: measure_notin_sets)
 
 lemma (in prob_space) prob_Collect_eq_0:
   "{x \<in> space M. P x} \<in> sets M \<Longrightarrow> \<P>(x in M. P x) = 0 \<longleftrightarrow> (AE x in M. \<not> P x)"
-  using AE_iff_measurable[OF _ refl, of M "\<lambda>x. \<not> P x"] by (simp add: emeasure_eq_measure)
+  using AE_iff_measurable[OF _ refl, of M "\<lambda>x. \<not> P x"] by (simp add: emeasure_eq_measure measure_nonneg)
 
 lemma (in prob_space) prob_Collect_eq_1:
   "{x \<in> space M. P x} \<in> sets M \<Longrightarrow> \<P>(x in M. P x) = 1 \<longleftrightarrow> (AE x in M. P x)"
@@ -389,7 +389,7 @@ lemma (in prob_space) prob_Collect_eq_1:
 lemma (in prob_space) prob_eq_0:
   "A \<in> sets M \<Longrightarrow> prob A = 0 \<longleftrightarrow> (AE x in M. x \<notin> A)"
   using AE_iff_measurable[OF _ refl, of M "\<lambda>x. x \<notin> A"]
-  by (auto simp add: emeasure_eq_measure Int_def[symmetric])
+  by (auto simp add: emeasure_eq_measure Int_def[symmetric] measure_nonneg)
 
 lemma (in prob_space) prob_eq_1:
   "A \<in> sets M \<Longrightarrow> prob A = 1 \<longleftrightarrow> (AE x in M. x \<in> A)"
@@ -445,27 +445,27 @@ proof -
 qed
 
 lemma (in prob_space) prob_EX_countable:
-  assumes sets: "\<And>i. i \<in> I \<Longrightarrow> {x\<in>space M. P i x} \<in> sets M" and I: "countable I" 
+  assumes sets: "\<And>i. i \<in> I \<Longrightarrow> {x\<in>space M. P i x} \<in> sets M" and I: "countable I"
   assumes disj: "AE x in M. \<forall>i\<in>I. \<forall>j\<in>I. P i x \<longrightarrow> P j x \<longrightarrow> i = j"
   shows "\<P>(x in M. \<exists>i\<in>I. P i x) = (\<integral>\<^sup>+i. \<P>(x in M. P i x) \<partial>count_space I)"
 proof -
   let ?N= "\<lambda>x. \<exists>!i\<in>I. P i x"
-  have "ereal (\<P>(x in M. \<exists>i\<in>I. P i x)) = \<P>(x in M. (\<exists>i\<in>I. P i x \<and> ?N x))"
-    unfolding ereal.inject
+  have "ennreal (\<P>(x in M. \<exists>i\<in>I. P i x)) = \<P>(x in M. (\<exists>i\<in>I. P i x \<and> ?N x))"
+    unfolding ennreal_inj[OF measure_nonneg measure_nonneg]
   proof (rule prob_eq_AE)
     show "AE x in M. (\<exists>i\<in>I. P i x) = (\<exists>i\<in>I. P i x \<and> ?N x)"
       using disj by eventually_elim blast
   qed (auto intro!: sets.sets_Collect_countable_Ex' sets.sets_Collect_conj sets.sets_Collect_countable_Ex1' I sets)+
   also have "\<P>(x in M. (\<exists>i\<in>I. P i x \<and> ?N x)) = emeasure M (\<Union>i\<in>I. {x\<in>space M. P i x \<and> ?N x})"
-    unfolding emeasure_eq_measure by (auto intro!: arg_cong[where f=prob])
+    unfolding emeasure_eq_measure by (auto intro!: arg_cong[where f=prob] simp: measure_nonneg)
   also have "\<dots> = (\<integral>\<^sup>+i. emeasure M {x\<in>space M. P i x \<and> ?N x} \<partial>count_space I)"
     by (rule emeasure_UN_countable)
        (auto intro!: sets.sets_Collect_countable_Ex' sets.sets_Collect_conj sets.sets_Collect_countable_Ex1' I sets
              simp: disjoint_family_on_def)
   also have "\<dots> = (\<integral>\<^sup>+i. \<P>(x in M. P i x) \<partial>count_space I)"
     unfolding emeasure_eq_measure using disj
-    by (intro nn_integral_cong ereal.inject[THEN iffD2] prob_eq_AE)
-       (auto intro!: sets.sets_Collect_countable_Ex' sets.sets_Collect_conj sets.sets_Collect_countable_Ex1' I sets)+
+    by (intro nn_integral_cong ennreal_inj[THEN iffD2] prob_eq_AE)
+       (auto intro!: sets.sets_Collect_countable_Ex' sets.sets_Collect_conj sets.sets_Collect_countable_Ex1' I sets measure_nonneg)+
   finally show ?thesis .
 qed
 
@@ -528,26 +528,29 @@ lemma (in finite_product_prob_space) prob_times:
   assumes X: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> sets (M i)"
   shows "prob (\<Pi>\<^sub>E i\<in>I. X i) = (\<Prod>i\<in>I. M.prob i (X i))"
 proof -
-  have "ereal (measure (\<Pi>\<^sub>M i\<in>I. M i) (\<Pi>\<^sub>E i\<in>I. X i)) = emeasure (\<Pi>\<^sub>M i\<in>I. M i) (\<Pi>\<^sub>E i\<in>I. X i)"
+  have "ennreal (measure (\<Pi>\<^sub>M i\<in>I. M i) (\<Pi>\<^sub>E i\<in>I. X i)) = emeasure (\<Pi>\<^sub>M i\<in>I. M i) (\<Pi>\<^sub>E i\<in>I. X i)"
     using X by (simp add: emeasure_eq_measure)
   also have "\<dots> = (\<Prod>i\<in>I. emeasure (M i) (X i))"
     using measure_times X by simp
-  also have "\<dots> = ereal (\<Prod>i\<in>I. measure (M i) (X i))"
-    using X by (simp add: M.emeasure_eq_measure setprod_ereal)
-  finally show ?thesis by simp
+  also have "\<dots> = ennreal (\<Prod>i\<in>I. measure (M i) (X i))"
+    using X by (simp add: M.emeasure_eq_measure setprod_ennreal measure_nonneg)
+  finally show ?thesis by (simp add: measure_nonneg setprod_nonneg)
 qed
 
 subsection \<open>Distributions\<close>
 
-definition "distributed M N X f \<longleftrightarrow> distr M N X = density N f \<and> 
-  f \<in> borel_measurable N \<and> (AE x in N. 0 \<le> f x) \<and> X \<in> measurable M N"
+definition distributed :: "'a measure \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> ennreal) \<Rightarrow> bool"
+where
+  "distributed M N X f \<longleftrightarrow>
+  distr M N X = density N f \<and> f \<in> borel_measurable N \<and> X \<in> measurable M N"
+
+term distributed
 
 lemma
   assumes "distributed M N X f"
   shows distributed_distr_eq_density: "distr M N X = density N f"
     and distributed_measurable: "X \<in> measurable M N"
     and distributed_borel_measurable: "f \<in> borel_measurable N"
-    and distributed_AE: "(AE x in N. 0 \<le> f x)"
   using assms by (simp_all add: distributed_def)
 
 lemma
@@ -559,14 +562,14 @@ lemma
   using distributed_measurable[OF D] distributed_borel_measurable[OF D]
   by simp_all
 
-lemma
-  shows distributed_real_measurable: "distributed M N X (\<lambda>x. ereal (f x)) \<Longrightarrow> f \<in> borel_measurable N"
-    and distributed_real_AE: "distributed M N X (\<lambda>x. ereal (f x)) \<Longrightarrow> (AE x in N. 0 \<le> f x)"
-  by (simp_all add: distributed_def borel_measurable_ereal_iff)
+lemma distributed_real_measurable:
+  "(\<And>x. x \<in> space N \<Longrightarrow> 0 \<le> f x) \<Longrightarrow> distributed M N X (\<lambda>x. ennreal (f x)) \<Longrightarrow> f \<in> borel_measurable N"
+  by (simp_all add: distributed_def)
 
 lemma distributed_real_measurable':
-  "distributed M N X (\<lambda>x. ereal (f x)) \<Longrightarrow> h \<in> measurable L N \<Longrightarrow> (\<lambda>x. f (h x)) \<in> borel_measurable L"
-  by simp
+  "(\<And>x. x \<in> space N \<Longrightarrow> 0 \<le> f x) \<Longrightarrow> distributed M N X (\<lambda>x. ennreal (f x)) \<Longrightarrow>
+    h \<in> measurable L N \<Longrightarrow> (\<lambda>x. f (h x)) \<in> borel_measurable L"
+  using distributed_real_measurable[measurable] by simp
 
 lemma joint_distributed_measurable1:
   "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) f \<Longrightarrow> h1 \<in> measurable N M \<Longrightarrow> (\<lambda>x. X (h1 x)) \<in> measurable N S"
@@ -587,7 +590,7 @@ proof -
   also have "\<dots> = (\<integral>\<^sup>+x. P a * indicator {a} x \<partial>count_space A)"
     using X a by (auto simp add: emeasure_density distributed_def indicator_def intro!: nn_integral_cong)
   also have "\<dots> = P a"
-    using X a by (subst nn_integral_cmult_indicator) (auto simp: distributed_def one_ereal_def[symmetric] AE_count_space)
+    using X a by (subst nn_integral_cmult_indicator) (auto simp: distributed_def one_ennreal_def[symmetric] AE_count_space)
   finally show ?thesis ..
 qed
 
@@ -595,6 +598,26 @@ lemma distributed_cong_density:
   "(AE x in N. f x = g x) \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow> f \<in> borel_measurable N \<Longrightarrow>
     distributed M N X f \<longleftrightarrow> distributed M N X g"
   by (auto simp: distributed_def intro!: density_cong)
+
+lemma (in prob_space) distributed_imp_emeasure_nonzero:
+  assumes X: "distributed M MX X Px"
+  shows "emeasure MX {x \<in> space MX. Px x \<noteq> 0} \<noteq> 0"
+proof
+  note Px = distributed_borel_measurable[OF X]
+  interpret X: prob_space "distr M MX X"
+    using distributed_measurable[OF X] by (rule prob_space_distr)
+
+  assume "emeasure MX {x \<in> space MX. Px x \<noteq> 0} = 0"
+  with Px have "AE x in MX. Px x = 0"
+    by (intro AE_I[OF subset_refl]) (auto simp: borel_measurable_ennreal_iff)
+  moreover
+  from X.emeasure_space_1 have "(\<integral>\<^sup>+x. Px x \<partial>MX) = 1"
+    unfolding distributed_distr_eq_density[OF X] using Px
+    by (subst (asm) emeasure_density)
+       (auto simp: borel_measurable_ennreal_iff intro!: integral_cong cong: nn_integral_cong)
+  ultimately show False
+    by (simp add: nn_integral_cong_AE)
+qed
 
 lemma subdensity:
   assumes T: "T \<in> measurable P Q"
@@ -621,27 +644,27 @@ lemma subdensity_real:
   assumes f: "distributed M P X f"
   assumes g: "distributed M Q Y g"
   assumes Y: "Y = T \<circ> X"
-  shows "AE x in P. g (T x) = 0 \<longrightarrow> f x = 0"
-  using subdensity[OF T, of M X "\<lambda>x. ereal (f x)" Y "\<lambda>x. ereal (g x)"] assms by auto
+  shows "(AE x in P. 0 \<le> g (T x)) \<Longrightarrow> (AE x in P. 0 \<le> f x) \<Longrightarrow> AE x in P. g (T x) = 0 \<longrightarrow> f x = 0"
+  using subdensity[OF T, of M X "\<lambda>x. ennreal (f x)" Y "\<lambda>x. ennreal (g x)"] assms
+  by auto
 
 lemma distributed_emeasure:
   "distributed M N X f \<Longrightarrow> A \<in> sets N \<Longrightarrow> emeasure M (X -` A \<inter> space M) = (\<integral>\<^sup>+x. f x * indicator A x \<partial>N)"
-  by (auto simp: distributed_AE
-                 distributed_distr_eq_density[symmetric] emeasure_density[symmetric] emeasure_distr)
+  by (auto simp: distributed_distr_eq_density[symmetric] emeasure_density[symmetric] emeasure_distr)
 
 lemma distributed_nn_integral:
   "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow> (\<integral>\<^sup>+x. f x * g x \<partial>N) = (\<integral>\<^sup>+x. g (X x) \<partial>M)"
-  by (auto simp: distributed_AE
-                 distributed_distr_eq_density[symmetric] nn_integral_density[symmetric] nn_integral_distr)
+  by (auto simp: distributed_distr_eq_density[symmetric] nn_integral_density[symmetric] nn_integral_distr)
 
 lemma distributed_integral:
-  "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow> (\<integral>x. f x * g x \<partial>N) = (\<integral>x. g (X x) \<partial>M)"
-  by (auto simp: distributed_real_AE
-                 distributed_distr_eq_density[symmetric] integral_real_density[symmetric] integral_distr)
-  
+  "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow> (\<And>x. x \<in> space N \<Longrightarrow> 0 \<le> f x) \<Longrightarrow>
+    (\<integral>x. f x * g x \<partial>N) = (\<integral>x. g (X x) \<partial>M)"
+  supply distributed_real_measurable[measurable]
+  by (auto simp: distributed_distr_eq_density[symmetric] integral_real_density[symmetric] integral_distr)
+
 lemma distributed_transform_integral:
-  assumes Px: "distributed M N X Px"
-  assumes "distributed M P Y Py"
+  assumes Px: "distributed M N X Px" "\<And>x. x \<in> space N \<Longrightarrow> 0 \<le> Px x"
+  assumes "distributed M P Y Py" "\<And>x. x \<in> space P \<Longrightarrow> 0 \<le> Py x"
   assumes Y: "Y = T \<circ> X" and T: "T \<in> measurable N P" and f: "f \<in> borel_measurable P"
   shows "(\<integral>x. Py x * f x \<partial>P) = (\<integral>x. Px x * f (T x) \<partial>N)"
 proof -
@@ -671,7 +694,7 @@ lemma (in prob_space) distributed_jointI:
   assumes "sigma_finite_measure S" "sigma_finite_measure T"
   assumes X[measurable]: "X \<in> measurable M S" and Y[measurable]: "Y \<in> measurable M T"
   assumes [measurable]: "f \<in> borel_measurable (S \<Otimes>\<^sub>M T)" and f: "AE x in S \<Otimes>\<^sub>M T. 0 \<le> f x"
-  assumes eq: "\<And>A B. A \<in> sets S \<Longrightarrow> B \<in> sets T \<Longrightarrow> 
+  assumes eq: "\<And>A B. A \<in> sets S \<Longrightarrow> B \<in> sets T \<Longrightarrow>
     emeasure M {x \<in> space M. X x \<in> A \<and> Y x \<in> B} = (\<integral>\<^sup>+x. (\<integral>\<^sup>+y. f (x, y) * indicator B y \<partial>T) * indicator A x \<partial>S)"
   shows "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) f"
   unfolding distributed_def
@@ -722,19 +745,13 @@ proof -
   interpret TS: pair_sigma_finite T S ..
 
   note Pxy[measurable]
-  show ?thesis 
+  show ?thesis
     apply (subst TS.distr_pair_swap)
     unfolding distributed_def
   proof safe
     let ?D = "distr (S \<Otimes>\<^sub>M T) (T \<Otimes>\<^sub>M S) (\<lambda>(x, y). (y, x))"
     show 1: "(\<lambda>(x, y). Pxy (y, x)) \<in> borel_measurable ?D"
       by auto
-    with Pxy
-    show "AE x in distr (S \<Otimes>\<^sub>M T) (T \<Otimes>\<^sub>M S) (\<lambda>(x, y). (y, x)). 0 \<le> (case x of (x, y) \<Rightarrow> Pxy (y, x))"
-      by (subst AE_distr_iff)
-         (auto dest!: distributed_AE
-               simp: measurable_split_conv split_beta
-               intro!: measurable_Pair)
     show 2: "random_variable (distr (S \<Otimes>\<^sub>M T) (T \<Otimes>\<^sub>M S) (\<lambda>(x, y). (y, x))) (\<lambda>x. (Y x, X x))"
       using Pxy by auto
     { fix A assume A: "A \<in> sets (T \<Otimes>\<^sub>M S)"
@@ -777,9 +794,6 @@ proof safe
 
   interpret Pxy: prob_space "distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x))"
     by (intro prob_space_distr) simp
-  have "(\<integral>\<^sup>+ x. max 0 (- Pxy x) \<partial>(S \<Otimes>\<^sub>M T)) = (\<integral>\<^sup>+ x. 0 \<partial>(S \<Otimes>\<^sub>M T))"
-    using Pxy
-    by (intro nn_integral_cong_AE) (auto simp: max_def dest: distributed_AE)
 
   show "distr M S X = density S Px"
   proof (rule measure_eqI)
@@ -793,24 +807,19 @@ proof safe
       using A borel Pxy
       by (simp add: emeasure_density T.nn_integral_fst[symmetric])
     also have "\<dots> = \<integral>\<^sup>+ x. Px x * indicator A x \<partial>S"
-      apply (rule nn_integral_cong_AE)
-      using Pxy[THEN distributed_AE, THEN ST.AE_pair] AE_space
-    proof eventually_elim
-      fix x assume "x \<in> space S" "AE y in T. 0 \<le> Pxy (x, y)"
+    proof (rule nn_integral_cong)
+      fix x assume "x \<in> space S"
       moreover have eq: "\<And>y. y \<in> space T \<Longrightarrow> indicator (A \<times> space T) (x, y) = indicator A x"
         by (auto simp: indicator_def)
       ultimately have "(\<integral>\<^sup>+ y. Pxy (x, y) * indicator (A \<times> space T) (x, y) \<partial>T) = (\<integral>\<^sup>+ y. Pxy (x, y) \<partial>T) * indicator A x"
         by (simp add: eq nn_integral_multc cong: nn_integral_cong)
       also have "(\<integral>\<^sup>+ y. Pxy (x, y) \<partial>T) = Px x"
-        by (simp add: Px_def ereal_real nn_integral_nonneg)
+        by (simp add: Px_def)
       finally show "(\<integral>\<^sup>+ y. Pxy (x, y) * indicator (A \<times> space T) (x, y) \<partial>T) = Px x * indicator A x" .
     qed
     finally show "emeasure (distr M S X) A = emeasure (density S Px) A"
       using A borel Pxy by (simp add: emeasure_density)
   qed simp
-  
-  show "AE x in S. 0 \<le> Px x"
-    by (simp add: Px_def nn_integral_nonneg real_of_ereal_pos)
 qed
 
 lemma (in prob_space) distr_marginal2:
@@ -858,33 +867,24 @@ proof safe
 
   show "distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) = density (S \<Otimes>\<^sub>M T) (\<lambda>(x, y). Px x * Py y)"
     unfolding indep[symmetric] distributed_distr_eq_density[OF X] distributed_distr_eq_density[OF Y]
-    using distributed_borel_measurable[OF X] distributed_AE[OF X]
-    using distributed_borel_measurable[OF Y] distributed_AE[OF Y]
-    by (rule pair_measure_density[OF _ _ _ _ T sf_Y])
+    using distributed_borel_measurable[OF X]
+    using distributed_borel_measurable[OF Y]
+    by (rule pair_measure_density[OF _ _ T sf_Y])
 
   show "random_variable (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x))" by auto
 
   show Pxy: "(\<lambda>(x, y). Px x * Py y) \<in> borel_measurable (S \<Otimes>\<^sub>M T)" by auto
-
-  show "AE x in S \<Otimes>\<^sub>M T. 0 \<le> (case x of (x, y) \<Rightarrow> Px x * Py y)"
-    apply (intro ST.AE_pair_measure borel_measurable_le Pxy borel_measurable_const)
-    using distributed_AE[OF X]
-    apply eventually_elim
-    using distributed_AE[OF Y]
-    apply eventually_elim
-    apply auto
-    done
 qed
 
 lemma distributed_integrable:
-  "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow>
+  "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow> (\<And>x. x \<in> space N \<Longrightarrow> 0 \<le> f x) \<Longrightarrow>
     integrable N (\<lambda>x. f x * g x) \<longleftrightarrow> integrable M (\<lambda>x. g (X x))"
-  by (auto simp: distributed_real_AE
-                    distributed_distr_eq_density[symmetric] integrable_real_density[symmetric] integrable_distr_eq)
-  
+  supply distributed_real_measurable[measurable]
+  by (auto simp: distributed_distr_eq_density[symmetric] integrable_real_density[symmetric] integrable_distr_eq)
+
 lemma distributed_transform_integrable:
-  assumes Px: "distributed M N X Px"
-  assumes "distributed M P Y Py"
+  assumes Px: "distributed M N X Px" "\<And>x. x \<in> space N \<Longrightarrow> 0 \<le> Px x"
+  assumes "distributed M P Y Py" "\<And>x. x \<in> space P \<Longrightarrow> 0 \<le> Py x"
   assumes Y: "Y = (\<lambda>x. T (X x))" and T: "T \<in> measurable N P" and f: "f \<in> borel_measurable P"
   shows "integrable P (\<lambda>x. Py x * f x) \<longleftrightarrow> integrable N (\<lambda>x. Px x * f (T x))"
 proof -
@@ -899,17 +899,18 @@ qed
 
 lemma distributed_integrable_var:
   fixes X :: "'a \<Rightarrow> real"
-  shows "distributed M lborel X (\<lambda>x. ereal (f x)) \<Longrightarrow> integrable lborel (\<lambda>x. f x * x) \<Longrightarrow> integrable M X"
+  shows "distributed M lborel X (\<lambda>x. ennreal (f x)) \<Longrightarrow> (\<And>x. 0 \<le> f x) \<Longrightarrow>
+    integrable lborel (\<lambda>x. f x * x) \<Longrightarrow> integrable M X"
   using distributed_integrable[of M lborel X f "\<lambda>x. x"] by simp
 
 lemma (in prob_space) distributed_variance:
   fixes f::"real \<Rightarrow> real"
-  assumes D: "distributed M lborel X f"
+  assumes D: "distributed M lborel X f" and [simp]: "\<And>x. 0 \<le> f x"
   shows "variance X = (\<integral>x. x\<^sup>2 * f (x + expectation X) \<partial>lborel)"
 proof (subst distributed_integral[OF D, symmetric])
   show "(\<integral> x. f x * (x - expectation X)\<^sup>2 \<partial>lborel) = (\<integral> x. x\<^sup>2 * f (x + expectation X) \<partial>lborel)"
     by (subst lborel_integral_real_affine[where c=1 and t="expectation X"])  (auto simp: ac_simps)
-qed simp
+qed simp_all
 
 lemma (in prob_space) variance_affine:
   fixes f::"real \<Rightarrow> real"
@@ -917,14 +918,19 @@ lemma (in prob_space) variance_affine:
   assumes D[intro]: "distributed M lborel X f"
   assumes [simp]: "prob_space (density lborel f)"
   assumes I[simp]: "integrable M X"
-  assumes I2[simp]: "integrable M (\<lambda>x. (X x)\<^sup>2)" 
+  assumes I2[simp]: "integrable M (\<lambda>x. (X x)\<^sup>2)"
   shows "variance (\<lambda>x. a + b * X x) = b\<^sup>2 * variance X"
   by (subst variance_eq)
      (auto simp: power2_sum power_mult_distrib prob_space variance_eq right_diff_distrib)
 
 definition
-  "simple_distributed M X f \<longleftrightarrow> distributed M (count_space (X`space M)) X (\<lambda>x. ereal (f x)) \<and>
+  "simple_distributed M X f \<longleftrightarrow>
+    (\<forall>x. 0 \<le> f x) \<and>
+    distributed M (count_space (X`space M)) X (\<lambda>x. ennreal (f x)) \<and>
     finite (X`space M)"
+
+lemma simple_distributed_nonneg[dest]: "simple_distributed M X f \<Longrightarrow> 0 \<le> f x"
+  by (auto simp: simple_distributed_def)
 
 lemma simple_distributed:
   "simple_distributed M X Px \<Longrightarrow> distributed M (count_space (X`space M)) X Px"
@@ -940,9 +946,7 @@ lemma (in prob_space) distributed_simple_function_superset:
   shows "distributed M S X P'"
   unfolding distributed_def
 proof safe
-  show "(\<lambda>x. ereal (P' x)) \<in> borel_measurable S" unfolding S_def by simp
-  show "AE x in S. 0 \<le> ereal (P' x)"
-    using X by (auto simp: S_def P'_def simple_distributed_def intro!: measure_nonneg)
+  show "(\<lambda>x. ennreal (P' x)) \<in> borel_measurable S" unfolding S_def by simp
   show "distr M S X = density S P'"
   proof (rule measure_eqI_finite)
     show "sets (distr M S X) = Pow A" "sets (density S P') = Pow A"
@@ -954,11 +958,11 @@ proof safe
       by (subst emeasure_distr)
          (auto simp add: S_def P'_def simple_functionD emeasure_eq_measure measurable_count_space_eq2
                intro!: arg_cong[where f=prob])
-    also have "\<dots> = (\<integral>\<^sup>+x. ereal (P' a) * indicator {a} x \<partial>S)"
+    also have "\<dots> = (\<integral>\<^sup>+x. ennreal (P' a) * indicator {a} x \<partial>S)"
       using A X a
       by (subst nn_integral_cmult_indicator)
          (auto simp: S_def P'_def simple_distributed_def simple_functionD measure_nonneg)
-    also have "\<dots> = (\<integral>\<^sup>+x. ereal (P' x) * indicator {a} x \<partial>S)"
+    also have "\<dots> = (\<integral>\<^sup>+x. ennreal (P' x) * indicator {a} x \<partial>S)"
       by (auto simp: indicator_def intro!: nn_integral_cong)
     also have "\<dots> = emeasure (density S P') {a}"
       using a A by (intro emeasure_density[symmetric]) (auto simp: S_def)
@@ -969,14 +973,16 @@ proof safe
 qed
 
 lemma (in prob_space) simple_distributedI:
-  assumes X: "simple_function M X" "\<And>x. x \<in> X ` space M \<Longrightarrow> P x = measure M (X -` {x} \<inter> space M)"
+  assumes X: "simple_function M X"
+    "\<And>x. 0 \<le> P x"
+    "\<And>x. x \<in> X ` space M \<Longrightarrow> P x = measure M (X -` {x} \<inter> space M)"
   shows "simple_distributed M X P"
   unfolding simple_distributed_def
-proof
-  have "distributed M (count_space (X ` space M)) X (\<lambda>x. ereal (if x \<in> X`space M then P x else 0))"
+proof (safe intro!: X)
+  have "distributed M (count_space (X ` space M)) X (\<lambda>x. ennreal (if x \<in> X`space M then P x else 0))"
     (is "?A")
-    using simple_functionD[OF X(1)] by (intro distributed_simple_function_superset[OF X]) auto
-  also have "?A \<longleftrightarrow> distributed M (count_space (X ` space M)) X (\<lambda>x. ereal (P x))"
+    using simple_functionD[OF X(1)] by (intro distributed_simple_function_superset[OF X(1,3)]) auto
+  also have "?A \<longleftrightarrow> distributed M (count_space (X ` space M)) X (\<lambda>x. ennreal (P x))"
     by (rule distributed_cong_density) auto
   finally show "\<dots>" .
 qed (rule simple_functionD[OF X(1)])
@@ -1016,9 +1022,6 @@ lemma simple_distributed_measure:
   "simple_distributed M X P \<Longrightarrow> a \<in> X`space M \<Longrightarrow> P a = measure M (X -` {a} \<inter> space M)"
   using distributed_count_space[of M "X`space M" X P a, symmetric]
   by (auto simp: simple_distributed_def measure_def)
-
-lemma simple_distributed_nonneg: "simple_distributed M X f \<Longrightarrow> x \<in> space M \<Longrightarrow> 0 \<le> f (X x)"
-  by (auto simp: simple_distributed_measure measure_nonneg)
 
 lemma (in prob_space) simple_distributed_joint:
   assumes X: "simple_distributed M (\<lambda>x. (X x, Y x)) Px"
@@ -1071,7 +1074,7 @@ proof -
   also have "\<dots> = prob (space M)"
     by (auto intro!: arg_cong[where f=prob])
   finally show ?thesis
-    using emeasure_space_1 by (simp add: emeasure_eq_measure one_ereal_def)
+    using emeasure_space_1 by (simp add: emeasure_eq_measure)
 qed
 
 lemma (in prob_space) distributed_marginal_eq_joint_simple:
@@ -1081,22 +1084,22 @@ lemma (in prob_space) distributed_marginal_eq_joint_simple:
   assumes y: "y \<in> Y`space M"
   shows "Py y = (\<Sum>x\<in>X`space M. if (x, y) \<in> (\<lambda>x. (X x, Y x)) ` space M then Pxy (x, y) else 0)"
 proof -
-  note Px = simple_distributedI[OF Px refl]
-  have *: "\<And>f A. setsum (\<lambda>x. max 0 (ereal (f x))) A = ereal (setsum (\<lambda>x. max 0 (f x)) A)"
-    by (simp add: setsum_ereal[symmetric] zero_ereal_def)
-  from distributed_marginal_eq_joint2[OF
-    sigma_finite_measure_count_space_finite
-    sigma_finite_measure_count_space_finite
-    simple_distributed[OF Py] simple_distributed_joint[OF Pxy],
-    OF Py[THEN simple_distributed_finite] Px[THEN simple_distributed_finite]]
-    y
-    Px[THEN simple_distributed_finite]
-    Py[THEN simple_distributed_finite]
-    Pxy[THEN simple_distributed, THEN distributed_real_AE]
-  show ?thesis
-    unfolding AE_count_space
-    apply (auto simp add: nn_integral_count_space_finite * intro!: setsum.cong split: split_max)
-    done
+  note Px = simple_distributedI[OF Px measure_nonneg refl]
+  have "AE y in count_space (Y ` space M). ennreal (Py y) =
+       \<integral>\<^sup>+ x. ennreal (if (x, y) \<in> (\<lambda>x. (X x, Y x)) ` space M then Pxy (x, y) else 0) \<partial>count_space (X ` space M)"
+    using sigma_finite_measure_count_space_finite sigma_finite_measure_count_space_finite
+      simple_distributed[OF Py] simple_distributed_joint[OF Pxy]
+    by (rule distributed_marginal_eq_joint2)
+       (auto intro: Py Px simple_distributed_finite)
+  then have "ennreal (Py y) =
+    (\<Sum>x\<in>X`space M. ennreal (if (x, y) \<in> (\<lambda>x. (X x, Y x)) ` space M then Pxy (x, y) else 0))"
+    using y Px[THEN simple_distributed_finite]
+    by (auto simp: AE_count_space nn_integral_count_space_finite)
+  also have "\<dots> = (\<Sum>x\<in>X`space M. if (x, y) \<in> (\<lambda>x. (X x, Y x)) ` space M then Pxy (x, y) else 0)"
+    using Pxy by (intro setsum_ennreal) auto
+  finally show ?thesis
+    using simple_distributed_nonneg[OF Py] simple_distributed_nonneg[OF Pxy]
+    by (subst (asm) ennreal_inj) (auto intro!: setsum_nonneg)
 qed
 
 lemma distributedI_real:
@@ -1116,9 +1119,8 @@ proof (intro conjI)
       then have "A \<in> sets M1"
         using gen by simp
       with f A eq[of A] X show "emeasure (distr M M1 X) A = emeasure (density M1 f) A"
-        by (simp add: emeasure_distr emeasure_density borel_measurable_ereal
-                      times_ereal.simps[symmetric] ereal_indicator
-                 del: times_ereal.simps) }
+        by (auto simp add: emeasure_distr emeasure_density ennreal_indicator
+                 intro!: nn_integral_cong split: split_indicator) }
     note eq_E = this
     show "Int_stable E" by fact
     { fix e assume "e \<in> E"
@@ -1127,7 +1129,7 @@ proof (intro conjI)
       then have "e \<subseteq> space M1" by (rule sets.sets_into_space) }
     then show "E \<subseteq> Pow (space M1)" by auto
     show "sets (distr M M1 X) = sigma_sets (space M1) E"
-      "sets (density M1 (\<lambda>x. ereal (f x))) = sigma_sets (space M1) E"
+      "sets (density M1 (\<lambda>x. ennreal (f x))) = sigma_sets (space M1) E"
       unfolding gen[symmetric] by auto
   qed fact+
 qed (insert X f, auto)
@@ -1136,8 +1138,8 @@ lemma distributedI_borel_atMost:
   fixes f :: "real \<Rightarrow> real"
   assumes [measurable]: "X \<in> borel_measurable M"
     and [measurable]: "f \<in> borel_measurable borel" and f[simp]: "AE x in lborel. 0 \<le> f x"
-    and g_eq: "\<And>a. (\<integral>\<^sup>+x. f x * indicator {..a} x \<partial>lborel)  = ereal (g a)"
-    and M_eq: "\<And>a. emeasure M {x\<in>space M. X x \<le> a} = ereal (g a)"
+    and g_eq: "\<And>a. (\<integral>\<^sup>+x. f x * indicator {..a} x \<partial>lborel)  = ennreal (g a)"
+    and M_eq: "\<And>a. emeasure M {x\<in>space M. X x \<le> a} = ennreal (g a)"
   shows "distributed M lborel X f"
 proof (rule distributedI_real)
   show "sets (lborel::real measure) = sigma_sets (space lborel) (range atMost)"
@@ -1168,7 +1170,7 @@ proof -
     assume "measure MX A = 0"
     with X.emeasure_space_1 X.prob_space distributed_distr_eq_density[OF X]
     show False
-      by (simp add: emeasure_density zero_ereal_def[symmetric])
+      by (simp add: emeasure_density zero_ennreal_def[symmetric])
   qed
   with measure_notin_sets[of A MX] show "A \<in> sets MX"
     by blast
@@ -1181,24 +1183,30 @@ proof
   show "emeasure (uniform_measure M A) (space (uniform_measure M A)) = 1"
     using emeasure_uniform_measure[OF emeasure_neq_0_sets[OF A(1)], of "space M"]
     using sets.sets_into_space[OF emeasure_neq_0_sets[OF A(1)]] A
-    by (simp add: Int_absorb2 emeasure_nonneg)
+    by (simp add: Int_absorb2 less_top)
 qed
 
 lemma prob_space_uniform_count_measure: "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> prob_space (uniform_count_measure A)"
-  by standard (auto simp: emeasure_uniform_count_measure space_uniform_count_measure one_ereal_def)
+  by standard (auto simp: emeasure_uniform_count_measure space_uniform_count_measure one_ennreal_def)
 
 lemma (in prob_space) measure_uniform_measure_eq_cond_prob:
   assumes [measurable]: "Measurable.pred M P" "Measurable.pred M Q"
   shows "\<P>(x in uniform_measure M {x\<in>space M. Q x}. P x) = \<P>(x in M. P x \<bar> Q x)"
 proof cases
   assume Q: "measure M {x\<in>space M. Q x} = 0"
-  then have "AE x in M. \<not> Q x"
+  then have *: "AE x in M. \<not> Q x"
     by (simp add: prob_eq_0)
-  then have "AE x in M. indicator {x\<in>space M. Q x} x / ereal 0 = 0"
-    by (auto split: split_indicator)
-  from density_cong[OF _ _ this] show ?thesis
-    by (simp add: uniform_measure_def emeasure_eq_measure cond_prob_def Q measure_density_const)
-qed (auto simp add: emeasure_eq_measure cond_prob_def intro!: arg_cong[where f=prob])
+  then have "density M (\<lambda>x. indicator {x \<in> space M. Q x} x / emeasure M {x \<in> space M. Q x}) = density M (\<lambda>x. 0)"
+    by (intro density_cong) auto
+  with * show ?thesis
+    unfolding uniform_measure_def
+    by (simp add: emeasure_density measure_def cond_prob_def emeasure_eq_0_AE)
+next
+  assume Q: "measure M {x\<in>space M. Q x} \<noteq> 0"
+  then show "\<P>(x in uniform_measure M {x \<in> space M. Q x}. P x) = cond_prob M P Q"
+    by (subst measure_uniform_measure)
+       (auto simp: emeasure_eq_measure cond_prob_def measure_nonneg intro!: arg_cong[where f=prob])
+qed
 
 lemma prob_space_point_measure:
   "finite S \<Longrightarrow> (\<And>s. s \<in> S \<Longrightarrow> 0 \<le> p s) \<Longrightarrow> (\<Sum>s\<in>S. p s) = 1 \<Longrightarrow> prob_space (point_measure S p)"

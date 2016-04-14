@@ -104,7 +104,7 @@ proof (intro cdf_unique ext)
              intro!: arg_cong2[where f="measure"])
   also have "\<dots> = measure lborel {0 <..< C x}"
     using cdf_bounded_prob[of x] AE_lborel_singleton[of "C x"]
-    by (auto intro!: arg_cong[where f=real_of_ereal] emeasure_eq_AE simp: measure_def)
+    by (auto intro!: arg_cong[where f=enn2real] emeasure_eq_AE simp: measure_def)
   also have "\<dots> = C x"
     by (simp add: cdf_nonneg)
   finally show "cdf (distr ?\<Omega> borel I) x = C x" .
@@ -334,11 +334,13 @@ proof -
   have "cdf M x = integral\<^sup>L M (indicator {..x})"
     by (simp add: cdf_def)
   also have "\<dots> \<le> expectation (cts_step x y)"
-    by (intro integral_mono integrable_cts_step) (auto simp: cts_step_def split: split_indicator)
+    by (intro integral_mono integrable_cts_step)
+       (auto simp: cts_step_def less_top[symmetric] split: split_indicator)
   finally show "cdf M x \<le> expectation (cts_step x y)" .
 next
   have "expectation (cts_step x y) \<le> integral\<^sup>L M (indicator {..y})"
-    by (intro integral_mono integrable_cts_step) (auto simp: cts_step_def split: split_indicator)
+    by (intro integral_mono integrable_cts_step)
+       (auto simp: cts_step_def less_top[symmetric] split: split_indicator)
   also have "\<dots> = cdf M y"
     by (simp add: cdf_def)
   finally show "expectation (cts_step x y) \<le> cdf M y" .

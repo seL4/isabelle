@@ -72,7 +72,7 @@ simproc_setup measurable ("A \<in> sets M" | "f \<in> measurable M N") = \<open>
 setup \<open>
   Global_Theory.add_thms_dynamic (@{binding measurable}, Measurable.get_all)
 \<close>
-  
+
 declare
   pred_sets1[measurable_dest]
   pred_sets2[measurable_dest]
@@ -97,7 +97,7 @@ declare measurable_cong_sets[measurable_cong]
 declare sets_restrict_space_cong[measurable_cong]
 declare sets_restrict_UNIV[measurable_cong]
 
-lemma predE[measurable (raw)]: 
+lemma predE[measurable (raw)]:
   "pred M P \<Longrightarrow> {x\<in>space M. P x} \<in> sets M"
   unfolding pred_def .
 
@@ -140,14 +140,14 @@ lemma pred_intros_logic[measurable (raw)]:
 
 lemma pred_intros_countable[measurable (raw)]:
   fixes P :: "'a \<Rightarrow> 'i :: countable \<Rightarrow> bool"
-  shows 
+  shows
     "(\<And>i. pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<forall>i. P x i)"
     "(\<And>i. pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<exists>i. P x i)"
   by (auto intro!: sets.sets_Collect_countable_All sets.sets_Collect_countable_Ex simp: pred_def)
 
 lemma pred_intros_countable_bounded[measurable (raw)]:
   fixes X :: "'i :: countable set"
-  shows 
+  shows
     "(\<And>i. i \<in> X \<Longrightarrow> pred M (\<lambda>x. x \<in> N x i)) \<Longrightarrow> pred M (\<lambda>x. x \<in> (\<Inter>i\<in>X. N x i))"
     "(\<And>i. i \<in> X \<Longrightarrow> pred M (\<lambda>x. x \<in> N x i)) \<Longrightarrow> pred M (\<lambda>x. x \<in> (\<Union>i\<in>X. N x i))"
     "(\<And>i. i \<in> X \<Longrightarrow> pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<forall>i\<in>X. P x i)"
@@ -270,7 +270,7 @@ lemma measurable_Least[measurable]:
   shows "(\<lambda>x. LEAST i. P i x) \<in> measurable M (count_space UNIV)"
   unfolding measurable_def by (safe intro!: sets_Least) simp_all
 
-lemma measurable_Max_nat[measurable (raw)]: 
+lemma measurable_Max_nat[measurable (raw)]:
   fixes P :: "nat \<Rightarrow> 'a \<Rightarrow> bool"
   assumes [measurable]: "\<And>i. Measurable.pred M (P i)"
   shows "(\<lambda>x. Max {i. P i x}) \<in> measurable M (count_space UNIV)"
@@ -294,8 +294,8 @@ proof safe
 
   have "(\<lambda>x. Max {i. P i x}) -` {n} \<inter> space M = {x\<in>space M. Max {i. P i x} = n}"
     by auto
-  also have "\<dots> = 
-    {x\<in>space M. if (\<forall>i. \<exists>n\<ge>i. P n x) then the None = n else 
+  also have "\<dots> =
+    {x\<in>space M. if (\<forall>i. \<exists>n\<ge>i. P n x) then the None = n else
       if (\<exists>i. P i x) then P n x \<and> (\<forall>i>n. \<not> P i x)
       else Max {} = n}"
     by (intro arg_cong[where f=Collect] ext conj_cong)
@@ -305,7 +305,7 @@ proof safe
   finally show "(\<lambda>x. Max {i. P i x}) -` {n} \<inter> space M \<in> sets M" .
 qed simp
 
-lemma measurable_Min_nat[measurable (raw)]: 
+lemma measurable_Min_nat[measurable (raw)]:
   fixes P :: "nat \<Rightarrow> 'a \<Rightarrow> bool"
   assumes [measurable]: "\<And>i. Measurable.pred M (P i)"
   shows "(\<lambda>x. Min {i. P i x}) \<in> measurable M (count_space UNIV)"
@@ -329,8 +329,8 @@ proof safe
 
   have "(\<lambda>x. Min {i. P i x}) -` {n} \<inter> space M = {x\<in>space M. Min {i. P i x} = n}"
     by auto
-  also have "\<dots> = 
-    {x\<in>space M. if (\<forall>i. \<exists>n\<ge>i. P n x) then the None = n else 
+  also have "\<dots> =
+    {x\<in>space M. if (\<forall>i. \<exists>n\<ge>i. P n x) then the None = n else
       if (\<exists>i. P i x) then P n x \<and> (\<forall>i<n. \<not> P i x)
       else Min {} = n}"
     by (intro arg_cong[where f=Collect] ext conj_cong)
@@ -374,7 +374,7 @@ qed rule
 
 lemma measurable_pred_countable[measurable (raw)]:
   assumes "countable X"
-  shows 
+  shows
     "(\<And>i. i \<in> X \<Longrightarrow> Measurable.pred M (\<lambda>x. P x i)) \<Longrightarrow> Measurable.pred M (\<lambda>x. \<forall>i\<in>X. P x i)"
     "(\<And>i. i \<in> X \<Longrightarrow> Measurable.pred M (\<lambda>x. P x i)) \<Longrightarrow> Measurable.pred M (\<lambda>x. \<exists>i\<in>X. P x i)"
   unfolding pred_def
@@ -395,7 +395,7 @@ lemma measurable_SUP[measurable]:
   shows "(\<lambda>x. SUP i:I. F i x) \<in> measurable M (count_space UNIV)"
   unfolding measurable_count_space_eq2_countable
 proof (safe intro!: UNIV_I)
-  fix a 
+  fix a
   have "(\<lambda>x. SUP i:I. F i x) -` {a} \<inter> space M =
     {x\<in>space M. (\<forall>i\<in>I. F i x \<le> a) \<and> (\<forall>b. (\<forall>i\<in>I. F i x \<le> b) \<longrightarrow> a \<le> b)}"
     unfolding SUP_le_iff[symmetric] by auto
@@ -411,7 +411,7 @@ lemma measurable_INF[measurable]:
   shows "(\<lambda>x. INF i:I. F i x) \<in> measurable M (count_space UNIV)"
   unfolding measurable_count_space_eq2_countable
 proof (safe intro!: UNIV_I)
-  fix a 
+  fix a
   have "(\<lambda>x. INF i:I. F i x) -` {a} \<inter> space M =
     {x\<in>space M. (\<forall>i\<in>I. a \<le> F i x) \<and> (\<forall>b. (\<forall>i\<in>I. b \<le> F i x) \<longrightarrow> b \<le> a)}"
     unfolding le_INF_iff[symmetric] by auto
@@ -501,7 +501,7 @@ qed
 lemma measurable_enat_coinduct:
   fixes f :: "'a \<Rightarrow> enat"
   assumes "R f"
-  assumes *: "\<And>f. R f \<Longrightarrow> \<exists>g h i P. R g \<and> f = (\<lambda>x. if P x then h x else eSuc (g (i x))) \<and> 
+  assumes *: "\<And>f. R f \<Longrightarrow> \<exists>g h i P. R g \<and> f = (\<lambda>x. if P x then h x else eSuc (g (i x))) \<and>
     Measurable.pred M P \<and>
     i \<in> measurable M M \<and>
     h \<in> measurable M (count_space UNIV)"
@@ -580,6 +580,26 @@ lemma measurable_Ex1[measurable (raw)]:
   assumes [simp]: "countable I" and [measurable]: "\<And>i. i \<in> I \<Longrightarrow> Measurable.pred M (P i)"
   shows "Measurable.pred M (\<lambda>x. \<exists>!i\<in>I. P i x)"
   unfolding bex1_def by measurable
+
+lemma measurable_Sup_nat[measurable (raw)]:
+  fixes F :: "'a \<Rightarrow> nat set"
+  assumes [measurable]: "\<And>i. Measurable.pred M (\<lambda>x. i \<in> F x)"
+  shows "(\<lambda>x. Sup (F x)) \<in> M \<rightarrow>\<^sub>M count_space UNIV"
+proof (clarsimp simp add: measurable_count_space_eq2_countable)
+  fix a
+  have F_empty_iff: "F x = {} \<longleftrightarrow> (\<forall>i. i \<notin> F x)" for x
+    by auto
+  have "Measurable.pred M (\<lambda>x. if finite (F x) then if F x = {} then a = Max {}
+    else a \<in> F x \<and> (\<forall>j. j \<in> F x \<longrightarrow> j \<le> a) else a = the None)"
+    unfolding finite_nat_set_iff_bounded Ball_def F_empty_iff by measurable
+  moreover have "(\<lambda>x. Sup (F x)) -` {a} \<inter> space M =
+    {x\<in>space M. if finite (F x) then if F x = {} then a = Max {}
+      else a \<in> F x \<and> (\<forall>j. j \<in> F x \<longrightarrow> j \<le> a) else a = the None}"
+    by (intro set_eqI)
+       (auto simp: Sup_nat_def Max.infinite intro!: Max_in Max_eqI)
+  ultimately show "(\<lambda>x. Sup (F x)) -` {a} \<inter> space M \<in> sets M"
+    by auto
+qed
 
 lemma measurable_if_split[measurable (raw)]:
   "(c \<Longrightarrow> Measurable.pred M f) \<Longrightarrow> (\<not> c \<Longrightarrow> Measurable.pred M g) \<Longrightarrow>

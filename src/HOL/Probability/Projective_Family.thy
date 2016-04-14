@@ -88,7 +88,7 @@ proof (safe elim!: generator.cases)
     by (intro generator.intros J sets.Diff sets.top X)
   with J show "space (Pi\<^sub>M I M) - emb I J X \<in> generator"
     by (simp add: space_PiM prod_emb_PiE)
-  
+
   fix K Y assume K: "finite K" "K \<subseteq> I" and Y: "Y \<in> sets (PiM K M)"
   have "emb I (J \<union> K) (emb (J \<union> K) J X) \<inter> emb I (J \<union> K) (emb (J \<union> K) K Y) \<in> generator"
     unfolding prod_emb_Int[symmetric]
@@ -150,7 +150,7 @@ proof -
     then have "\<mu>G (emb I J {}) = 0"
       by (subst mu_G_spec) auto
     then show "\<mu>G {} = 0" by simp
-  qed (auto simp: mu_G_spec elim!: generator.cases)
+  qed
 qed
 
 lemma additive_mu_G: "additive generator \<mu>G"
@@ -182,7 +182,7 @@ proof -
     proof (clarsimp elim!: generator.cases simp: mu_G_spec del: notI)
       fix J assume "finite J" "J \<subseteq> I"
       then interpret prob_space "P J" by (rule prob_space_P)
-      show "\<And>X. X \<in> sets (Pi\<^sub>M J M) \<Longrightarrow> emeasure (P J) X \<noteq> \<infinity>"
+      show "\<And>X. X \<in> sets (Pi\<^sub>M J M) \<Longrightarrow> emeasure (P J) X \<noteq> top"
         by simp
     qed
   next
@@ -312,7 +312,7 @@ lemma emeasure_eP:
   apply (auto simp add: sets_P atLeastLessThanSuc space_P simp del: nn_integral_indicator
      intro!: nn_integral_cong split: split_indicator)
   done
-  
+
 
 primrec C :: "nat \<Rightarrow> nat \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a) measure" where
   "C n 0 \<omega> = return (PiM {0..<n} M) \<omega>"
@@ -446,7 +446,7 @@ proof (rule PF.emeasure_lim[OF J subset_UNIV X])
   have sets_X[measurable]: "X n \<in> sets (PiM {0..<n} M)" for n
     by (cases "{i. J i \<subseteq> {0..< n}} = {}")
        (simp_all add: X_def, auto intro!: sets.countable_INT' sets.Int)
-  
+
   have dec_X: "n \<le> m \<Longrightarrow> X m \<subseteq> PF.emb {0..<m} {0..<n} (X n)" for n m
     unfolding X_def using ivl_subset[of 0 n 0 m]
     by (cases "{i. J i \<subseteq> {0..< n}} = {}")
@@ -502,24 +502,32 @@ proof (rule PF.emeasure_lim[OF J subset_UNIV X])
       apply (simp add: bind_return[OF measurable_eP] nn_integral_eP)
       done
     also have "\<dots> = (\<integral>\<^sup>+x. (INF i. ?C' i x) \<partial>P n \<omega>)"
-    proof (rule nn_integral_monotone_convergence_INF[symmetric])
+    proof (rule nn_integral_monotone_convergence_INF_AE[symmetric])
       have "(\<integral>\<^sup>+x. ?C' 0 x \<partial>P n \<omega>) \<le> (\<integral>\<^sup>+x. 1 \<partial>P n \<omega>)"
         by (intro nn_integral_mono) (auto split: split_indicator)
       also have "\<dots> < \<infinity>"
         using prob_space_P[OF \<omega>, THEN prob_space.emeasure_space_1] by simp
       finally show "(\<integral>\<^sup>+x. ?C' 0 x \<partial>P n \<omega>) < \<infinity>" .
     next
-      fix i j :: nat and x assume "i \<le> j" "x \<in> space (P n \<omega>)"
-      with \<omega> have \<omega>': "\<omega>(n := x) \<in> space (PiM {0..<Suc n} M)"
-        by (auto simp: space_P[OF \<omega>] space_PiM PiE_iff extensional_def)
-      show "?C' j x \<le> ?C' i x"
-        using \<open>i \<le> j\<close> by (subst emeasure_C[symmetric, of i]) (auto intro!: emeasure_mono dec_X del: subsetI simp: sets_C space_P \<omega> \<omega>')
+      show "AE x in P n \<omega>. ?C' (Suc i) x \<le> ?C' i x" for i
+      proof (rule AE_I2)
+        fix x assume "x \<in> space (P n \<omega>)"
+        with \<omega> have \<omega>': "\<omega>(n := x) \<in> space (PiM {0..<Suc n} M)"
+          by (auto simp: space_P[OF \<omega>] space_PiM PiE_iff extensional_def)
+        with \<omega> show "?C' (Suc i) x \<le> ?C' i x"
+          apply (subst emeasure_C[symmetric, of i "Suc i"])
+          apply (auto intro!: emeasure_mono[OF dec_X] del: subsetI
+                      simp: sets_C space_P)
+          apply (subst sets_bind[OF sets_eP])
+          apply (simp_all add: space_C space_P)
+          done
+      qed
     qed fact
     finally have "(\<integral>\<^sup>+x. (INF i. ?C' i x) \<partial>P n \<omega>) \<noteq> 0"
       by simp
-    then have "\<exists>\<^sub>F x in ae_filter (P n \<omega>). 0 < (INF i. ?C' i x)"
-       using M by (subst (asm) nn_integral_0_iff_AE)
-         (auto intro!: borel_measurable_INF simp: Filter.not_eventually not_le)
+    with M have "\<exists>\<^sub>F x in ae_filter (P n \<omega>). 0 < (INF i. ?C' i x)"
+       by (subst (asm) nn_integral_0_iff_AE)
+          (auto intro!: borel_measurable_INF simp: Filter.not_eventually not_le zero_less_iff_neq_zero)
     then have "\<exists>\<^sub>F x in ae_filter (P n \<omega>). x \<in> space (M n) \<and> 0 < (INF i. ?C' i x)"
       by (rule frequently_mp[rotated]) (auto simp: space_P \<omega>)
     then obtain x where "x \<in> space (M n)" "0 < (INF i. ?C' i x)"
@@ -585,7 +593,7 @@ lemma (in product_prob_space) emeasure_lim_emb:
   shows "emeasure lim (emb I J X) = emeasure (Pi\<^sub>M J M) X"
 proof (rule emeasure_lim[OF *], goal_cases)
   case (1 J X)
-  
+
   have "\<exists>Q. (\<forall>i. sets Q = PiM (\<Union>i. J i) M \<and> distr Q (PiM (J i) M) (\<lambda>x. restrict x (J i)) = Pi\<^sub>M (J i) M)"
   proof cases
     assume "finite (\<Union>i. J i)"
@@ -626,7 +634,7 @@ proof (rule emeasure_lim[OF *], goal_cases)
 
     let ?Q = "distr IT.PF.lim (PiM (\<Union>i. J i) M) (\<lambda>\<omega>. \<lambda>x\<in>\<Union>i. J i. \<omega> (t x))"
     { fix i
-      have "distr ?Q (Pi\<^sub>M (J i) M) (\<lambda>x. restrict x (J i)) = 
+      have "distr ?Q (Pi\<^sub>M (J i) M) (\<lambda>x. restrict x (J i)) =
         distr IT.PF.lim (Pi\<^sub>M (J i) M) ((\<lambda>\<omega>. \<lambda>n\<in>J i. \<omega> (t n)) \<circ> (\<lambda>\<omega>. restrict \<omega> (t`J i)))"
       proof (subst distr_distr)
         have "(\<lambda>\<omega>. \<omega> (t x)) \<in> measurable (Pi\<^sub>M UNIV (\<lambda>x. M (f x))) (M x)" if x: "x \<in> J i" for x i

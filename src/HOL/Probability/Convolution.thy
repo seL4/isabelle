@@ -40,7 +40,7 @@ lemma convolution_emeasure:
   assumes [simp]: "sets N = sets borel" "sets M = sets borel"
   assumes [simp]: "space M = space N" "space N = space borel"
   shows "emeasure (M \<star> N) A = \<integral>\<^sup>+x. (emeasure N {a. a + x \<in> A}) \<partial>M "
-  using assms by (auto intro!: nn_integral_cong simp del: nn_integral_indicator simp: nn_integral_convolution 
+  using assms by (auto intro!: nn_integral_cong simp del: nn_integral_indicator simp: nn_integral_convolution
     nn_integral_indicator [symmetric] ac_simps split:split_indicator)
 
 lemma convolution_emeasure':
@@ -64,7 +64,7 @@ lemma convolution_emeasure_3:
   assumes [simp]: "sets N = sets borel" "sets M = sets borel" "sets L = sets borel"
   shows "emeasure (L \<star> (M \<star> N )) A = \<integral>\<^sup>+x. \<integral>\<^sup>+y. \<integral>\<^sup>+z. indicator A (x + y + z) \<partial>N \<partial>M \<partial>L"
   apply (subst nn_integral_indicator[symmetric], simp)
-  apply (subst nn_integral_convolution, 
+  apply (subst nn_integral_convolution,
         auto intro!: borel_measurable_indicator borel_measurable_indicator' convolution_finite)+
   by (rule nn_integral_cong)+ (auto simp: semigroup_add_class.add.assoc)
 
@@ -84,7 +84,7 @@ lemma convolution_commutative:
   assumes [simp]: "finite_measure M" "finite_measure N"
   assumes [measurable_cong, simp]: "sets N = sets borel" "sets M = sets borel"
   shows "(M \<star> N) = (N \<star> M)"
-proof (rule measure_eqI)  
+proof (rule measure_eqI)
   interpret M: finite_measure M by fact
   interpret N: finite_measure N by fact
   interpret pair_sigma_finite M N ..
@@ -117,16 +117,15 @@ lemma (in prob_space) sum_indep_random_variable:
 lemma (in prob_space) sum_indep_random_variable_lborel:
   assumes ind: "indep_var borel X borel Y"
   assumes [simp, measurable]: "random_variable lborel X"
-  assumes [simp, measurable]:"random_variable lborel Y" 
+  assumes [simp, measurable]:"random_variable lborel Y"
   shows "distr M lborel (\<lambda>x. X x + Y x) = convolution (distr M lborel X)  (distr M lborel Y)"
-  using ind unfolding indep_var_distribution_eq convolution_def 
+  using ind unfolding indep_var_distribution_eq convolution_def
   by (auto simp: distr_distr o_def intro!: arg_cong[where f = "distr M borel"] cong: distr_cong)
 
 lemma convolution_density:
-  fixes f g :: "real \<Rightarrow> ereal"
+  fixes f g :: "real \<Rightarrow> ennreal"
   assumes [measurable]: "f \<in> borel_measurable borel" "g \<in> borel_measurable borel"
   assumes [simp]:"finite_measure (density lborel f)" "finite_measure (density lborel g)"
-  assumes gt_0[simp]: "AE x in lborel. 0 \<le> f x" "AE x in lborel. 0 \<le> g x"
   shows "density lborel f \<star> density lborel g = density lborel (\<lambda>x. \<integral>\<^sup>+y. f (x - y) * g y \<partial>lborel)"
     (is "?l = ?r")
 proof (intro measure_eqI)
@@ -136,10 +135,9 @@ proof (intro measure_eqI)
 
   have "(\<integral>\<^sup>+x. f x * (\<integral>\<^sup>+y. g y * indicator A (x + y) \<partial>lborel) \<partial>lborel) =
     (\<integral>\<^sup>+x. (\<integral>\<^sup>+y. g y * (f x * indicator A (x + y)) \<partial>lborel) \<partial>lborel)"
-    using gt_0
   proof (intro nn_integral_cong_AE, eventually_elim)
-    fix x assume "0 \<le> f x"
-    then have "f x * (\<integral>\<^sup>+ y. g y * indicator A (x + y) \<partial>lborel) =
+    fix x
+    have "f x * (\<integral>\<^sup>+ y. g y * indicator A (x + y) \<partial>lborel) =
       (\<integral>\<^sup>+ y. f x * (g y * indicator A (x + y)) \<partial>lborel)"
       by (intro nn_integral_cmult[symmetric]) auto
     then show "f x * (\<integral>\<^sup>+ y. g y * indicator A (x + y) \<partial>lborel) =
@@ -149,18 +147,16 @@ proof (intro measure_eqI)
   also have "\<dots> = (\<integral>\<^sup>+y. (\<integral>\<^sup>+x. g y * (f x * indicator A (x + y)) \<partial>lborel) \<partial>lborel)"
     by (intro lborel_pair.Fubini') simp
   also have "\<dots> = (\<integral>\<^sup>+y. (\<integral>\<^sup>+x. f (x - y) * g y * indicator A x \<partial>lborel) \<partial>lborel)"
-    using gt_0
   proof (intro nn_integral_cong_AE, eventually_elim)
-    fix y assume "0 \<le> g y"
-    then have "(\<integral>\<^sup>+x. g y * (f x * indicator A (x + y)) \<partial>lborel) =
+    fix y
+    have "(\<integral>\<^sup>+x. g y * (f x * indicator A (x + y)) \<partial>lborel) =
       g y * (\<integral>\<^sup>+x. f x * indicator A (x + y) \<partial>lborel)"
       by (intro nn_integral_cmult) auto
     also have "\<dots> = g y * (\<integral>\<^sup>+x. f (x - y) * indicator A x \<partial>lborel)"
-      using gt_0
       by (subst nn_integral_real_affine[where c=1 and t="-y"])
-         (auto simp del: gt_0 simp add: one_ereal_def[symmetric])
+         (auto simp add: one_ennreal_def[symmetric])
     also have "\<dots> = (\<integral>\<^sup>+x. g y * (f (x - y) * indicator A x) \<partial>lborel)"
-      using \<open>0 \<le> g y\<close> by (intro nn_integral_cmult[symmetric]) auto
+      by (intro nn_integral_cmult[symmetric]) auto
     finally show "(\<integral>\<^sup>+ x. g y * (f x * indicator A (x + y)) \<partial>lborel) =
       (\<integral>\<^sup>+ x. f (x - y) * g y * indicator A x \<partial>lborel)"
       by (simp add: ac_simps)
@@ -175,7 +171,7 @@ qed simp
 lemma (in prob_space) distributed_finite_measure_density:
   "distributed M N X f \<Longrightarrow> finite_measure (density N f)"
   using finite_measure_distr[of X N] distributed_distr_eq_density[of M N X f] by simp
-  
+
 
 lemma (in prob_space) distributed_convolution:
   fixes f :: "real \<Rightarrow> _"
@@ -186,13 +182,10 @@ lemma (in prob_space) distributed_convolution:
   shows "distributed M lborel (\<lambda>x. X x + Y x) (\<lambda>x. \<integral>\<^sup>+y. f (x - y) * g y \<partial>lborel)"
   unfolding distributed_def
 proof safe
-  show "AE x in lborel. 0 \<le> \<integral>\<^sup>+ xa. f (x - xa) * g xa \<partial>lborel"
-    by (auto simp: nn_integral_nonneg)
-
   have fg[measurable]: "f \<in> borel_measurable borel" "g \<in> borel_measurable borel"
     using distributed_borel_measurable[OF X] distributed_borel_measurable[OF Y] by simp_all
-  
-  show "(\<lambda>x. \<integral>\<^sup>+ xa. f (x - xa) * g xa \<partial>lborel) \<in> borel_measurable lborel" 
+
+  show "(\<lambda>x. \<integral>\<^sup>+ xa. f (x - xa) * g xa \<partial>lborel) \<in> borel_measurable lborel"
     by measurable
 
   have "distr M borel (\<lambda>x. X x + Y x) = (distr M borel X \<star> distr M borel Y)"
@@ -207,10 +200,6 @@ proof safe
       using X by (rule distributed_finite_measure_density)
     show "finite_measure (density lborel g)"
       using Y by (rule distributed_finite_measure_density)
-    show "AE x in lborel. 0 \<le> f x"
-      using X by (rule distributed_AE)
-    show "AE x in lborel. 0 \<le> g x"
-      using Y by (rule distributed_AE)
   qed fact+
   finally show "distr M lborel (\<lambda>x. X x + Y x) = density lborel (\<lambda>x. \<integral>\<^sup>+ y. f (x - y) * g y \<partial>lborel)"
     by (simp cong: distr_cong)

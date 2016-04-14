@@ -1,6 +1,6 @@
 (*
   Theory: Sinc_Integral.thy
-  Authors: Jeremy Avigad, Luke Serafin, Johannes Hölzl 
+  Authors: Jeremy Avigad, Luke Serafin, Johannes Hölzl
 *)
 
 section \<open>Integral of sinc\<close>
@@ -14,7 +14,7 @@ subsection \<open>Various preparatory integrals\<close>
 text \<open> Naming convention
 The theorem name consists of the following parts:
   \<^item> Kind of integral: @{text has_bochner_integral} / @{text integrable} / @{text LBINT}
-  \<^item> Interval: Interval (0 / infinity / open / closed) (infinity / open / closed) 
+  \<^item> Interval: Interval (0 / infinity / open / closed) (infinity / open / closed)
   \<^item> Name of the occurring constants: power, exp, m (for minus), scale, sin, $\ldots$
 \<close>
 
@@ -22,7 +22,7 @@ lemma has_bochner_integral_I0i_power_exp_m':
   "has_bochner_integral lborel (\<lambda>x. x^k * exp (-x) * indicator {0 ..} x::real) (fact k)"
   using nn_intergal_power_times_exp_Ici[of k]
   by (intro has_bochner_integral_nn_integral)
-     (auto simp: ereal_indicator[symmetric] split: split_indicator)
+     (auto simp: nn_integral_set_ennreal split: split_indicator)
 
 lemma has_bochner_integral_I0i_power_exp_m:
   "has_bochner_integral lborel (\<lambda>x. x^k * exp (-x) * indicator {0 <..} x::real) (fact k)"
@@ -30,12 +30,12 @@ lemma has_bochner_integral_I0i_power_exp_m:
   by (intro has_bochner_integral_cong_AE[THEN iffD1, OF _ _ _ has_bochner_integral_I0i_power_exp_m'])
      (auto split: split_indicator)
 
-lemma integrable_I0i_exp_mscale: "0 < (u::real) \<Longrightarrow> set_integrable lborel {0 <..} (\<lambda>x. exp (-(x * u)))" 
+lemma integrable_I0i_exp_mscale: "0 < (u::real) \<Longrightarrow> set_integrable lborel {0 <..} (\<lambda>x. exp (-(x * u)))"
   using lborel_integrable_real_affine_iff[of u "\<lambda>x. indicator {0 <..} x *\<^sub>R exp (- x)" 0]
         has_bochner_integral_I0i_power_exp_m[of 0]
   by (simp add: indicator_def zero_less_mult_iff mult_ac integrable.intros)
 
-lemma LBINT_I0i_exp_mscale: "0 < (u::real) \<Longrightarrow> LBINT x=0..\<infinity>. exp (-(x * u)) = 1 / u" 
+lemma LBINT_I0i_exp_mscale: "0 < (u::real) \<Longrightarrow> LBINT x=0..\<infinity>. exp (-(x * u)) = 1 / u"
   using lborel_integral_real_affine[of u "\<lambda>x. indicator {0<..} x *\<^sub>R exp (- x)" 0]
         has_bochner_integral_I0i_power_exp_m[of 0]
   by (auto simp: indicator_def zero_less_mult_iff interval_lebesgue_integral_0_infty field_simps
@@ -54,7 +54,7 @@ qed (auto intro: continuous_at_imp_continuous_on)
 
 lemma LBINT_I0i_exp_mscale_sin:
   assumes "0 < x"
-  shows "LBINT u=0..\<infinity>. \<bar>exp (-u * x) * sin x\<bar> = \<bar>sin x\<bar> / x" 
+  shows "LBINT u=0..\<infinity>. \<bar>exp (-u * x) * sin x\<bar> = \<bar>sin x\<bar> / x"
 proof (subst interval_integral_FTC_nonneg)
   let ?F = "\<lambda>u. 1 / x * (1 - exp (- u * x)) * \<bar>sin x\<bar>"
   show "\<And>t. (?F has_real_derivative \<bar>exp (- t * x) * sin x\<bar>) (at t)"
@@ -90,7 +90,7 @@ proof -
              simp add: ereal_tendsto_simps filterlim_tan_at_left add_nonneg_eq_0_iff)
 qed
 
-lemma 
+lemma
   shows integrable_I0i_1_div_plus_square:
     "interval_lebesgue_integrable lborel 0 \<infinity> (\<lambda>x. 1 / (1 + x^2))"
   and LBINT_I0i_1_div_plus_square:
@@ -105,7 +105,7 @@ proof -
        (auto intro: derivative_eq_intros 1 2 tendsto_eq_intros
              simp add: ereal_tendsto_simps filterlim_tan_at_left zero_ereal_def add_nonneg_eq_0_iff)
   show "interval_lebesgue_integrable lborel 0 \<infinity> (\<lambda>x. 1 / (1 + x^2))"
-    unfolding interval_lebesgue_integrable_def 
+    unfolding interval_lebesgue_integrable_def
     by (subst interval_integral_substitution_nonneg[of "0" "pi/2" tan "\<lambda>x. 1 + (tan x)^2"])
        (auto intro: derivative_eq_intros 1 2 tendsto_eq_intros
              simp add: ereal_tendsto_simps filterlim_tan_at_left zero_ereal_def add_nonneg_eq_0_iff)
@@ -159,7 +159,7 @@ next
        (auto simp: Si_def intro!: interval_lebesgue_integral_cong_AE)
 qed
 
-lemma Si_neg: 
+lemma Si_neg:
   assumes "T \<ge> 0" shows "Si (- T) = - Si T"
 proof -
   have "LBINT x=ereal 0..T. -1 *\<^sub>R sinc (- x) = LBINT y= ereal (- 0)..ereal (- T). sinc y"
@@ -222,7 +222,7 @@ proof -
     then have **: "1 \<le> t \<Longrightarrow> 0 < x \<Longrightarrow> \<bar>?F x t\<bar> \<le> exp (- x) * (x + 1)" for x t :: real
         by (auto simp add: abs_mult times_divide_eq_right[symmetric] simp del: times_divide_eq_right
                  intro!:  mult_mono)
-  
+
     show "\<forall>\<^sub>F i in at_top. AE x in lborel. 0 < x \<longrightarrow> \<bar>?F x i\<bar> \<le> exp (- x) * (x + 1)"
       using eventually_ge_at_top[of "1::real"] ** by (auto elim: eventually_mono)
     show "AE x in lborel. 0 < x \<longrightarrow> (?F x \<longlongrightarrow> 0) at_top"
@@ -289,11 +289,11 @@ proof -
         using AE_lborel_singleton[of 0] AE_lborel_singleton[of t]
       proof eventually_elim
         fix x :: real assume x: "x \<noteq> 0" "x \<noteq> t"
-        have "LBINT y. \<bar>indicator ({0<..} \<times> {0<..<t}) (y, x) *\<^sub>R (sin x * exp (- (y * x)))\<bar> = 
+        have "LBINT y. \<bar>indicator ({0<..} \<times> {0<..<t}) (y, x) *\<^sub>R (sin x * exp (- (y * x)))\<bar> =
             LBINT y. \<bar>sin x\<bar> * exp (- (y * x)) * indicator {0<..} y * indicator {0<..<t} x"
           by (intro integral_cong) (auto split: split_indicator simp: abs_mult)
         also have "\<dots> = \<bar>sin x\<bar> * indicator {0<..<t} x * (LBINT y=0..\<infinity>.  exp (- (y * x)))"
-          by (cases "x > 0")                                       
+          by (cases "x > 0")
              (auto simp: field_simps interval_lebesgue_integral_0_infty split: split_indicator)
         also have "\<dots> = \<bar>sin x\<bar> * indicator {0<..<t} x * (1 / x)"
           by (cases "x > 0") (auto simp add: LBINT_I0i_exp_mscale)
@@ -306,7 +306,7 @@ proof -
         by (auto intro!: borel_integrable_compact continuous_intros simp del: real_scaleR_def)
       ultimately show "integrable lborel (\<lambda>x. LBINT y. norm (?f (x, y)))"
         by (rule integrable_cong_AE_imp[rotated 2]) simp
-  
+
       have "0 < x \<Longrightarrow> set_integrable lborel {0<..} (\<lambda>y. sin x * exp (- (y * x)))" for x :: real
           by (intro set_integrable_mult_right integrable_I0i_exp_mscale)
       then show "AE x in lborel. integrable lborel (\<lambda>y. ?f (x, y))"
@@ -350,7 +350,7 @@ proof -
     by auto
   ultimately show ?thesis
     by (intro exI[of _ "max M (pi/2 + 1)"]) (meson le_max_iff_disj linorder_not_le order_le_less)
-qed    
+qed
 
 lemma LBINT_I0c_sin_scale_divide:
   assumes "T \<ge> 0"
@@ -369,12 +369,12 @@ proof -
       by simp
     hence "LBINT x. indicator {0<..<T} x * sin (x * \<theta>) / x =
         LBINT x. indicator {0<..<T * \<theta>} x * sin x / x"
-      using assms `0 < \<theta>` unfolding interval_lebesgue_integral_def einterval_eq zero_ereal_def 
+      using assms `0 < \<theta>` unfolding interval_lebesgue_integral_def einterval_eq zero_ereal_def
         by (auto simp: ac_simps)
   } note aux1 = this
   { assume "0 > \<theta>"
     have [simp]: "integrable lborel (\<lambda>x. sin (x * \<theta>) * indicator {0<..<T} x / x)"
-      using integrable_sinc' [of T \<theta>] assms 
+      using integrable_sinc' [of T \<theta>] assms
       by (simp add: interval_lebesgue_integrable_def ac_simps)
     have "(LBINT t=ereal 0..T. sin (t * -\<theta>) / t) = (LBINT t=ereal 0..T. -\<theta> *\<^sub>R sinc (t * -\<theta>))"
       by (rule interval_integral_discrete_difference[of "{0}"]) auto

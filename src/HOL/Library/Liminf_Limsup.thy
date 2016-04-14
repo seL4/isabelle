@@ -555,4 +555,14 @@ proof -
     using \<open>subseq r\<close> by auto
 qed
 
+lemma tendsto_Limsup:
+  fixes f :: "_ \<Rightarrow> 'a :: {complete_linorder,linorder_topology}"
+  shows "F \<noteq> bot \<Longrightarrow> Limsup F f = Liminf F f \<Longrightarrow> (f \<longlongrightarrow> Limsup F f) F"
+  by (subst tendsto_iff_Liminf_eq_Limsup) auto
+
+lemma tendsto_Liminf:
+  fixes f :: "_ \<Rightarrow> 'a :: {complete_linorder,linorder_topology}"
+  shows "F \<noteq> bot \<Longrightarrow> Limsup F f = Liminf F f \<Longrightarrow> (f \<longlongrightarrow> Liminf F f) F"
+  by (subst tendsto_iff_Liminf_eq_Limsup) auto
+
 end

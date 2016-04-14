@@ -14,7 +14,7 @@ begin
 subsection \<open>Every right continuous and nondecreasing function gives rise to a measure\<close>
 
 definition interval_measure :: "(real \<Rightarrow> real) \<Rightarrow> real measure" where
-  "interval_measure F = extend_measure UNIV {(a, b). a \<le> b} (\<lambda>(a, b). {a <.. b}) (\<lambda>(a, b). ereal (F b - F a))"
+  "interval_measure F = extend_measure UNIV {(a, b). a \<le> b} (\<lambda>(a, b). {a <.. b}) (\<lambda>(a, b). ennreal (F b - F a))"
 
 lemma emeasure_interval_measure_Ioc:
   assumes "a \<le> b"
@@ -40,7 +40,6 @@ proof (rule extend_measure_caratheodory_pair[OF interval_measure_def \<open>a \<
       thus ?thesis ..
     qed
   qed (auto simp: Ioc_inj, metis linear)
-
 next
   fix l r :: "nat \<Rightarrow> real" and a b :: real
   assume l_r[simp]: "\<And>n. l n \<le> r n" and "a \<le> b" and disj: "disjoint_family (\<lambda>n. {l n<..r n})"
@@ -168,13 +167,14 @@ next
   note claim2 = this
 
   (* now prove the inequality going the other way *)
-
-  { fix epsilon :: real assume egt0: "epsilon > 0"
-    have "\<forall>i. \<exists>d. d > 0 &  F (r i + d) < F (r i) + epsilon / 2^(i+2)"
+  have "ennreal (F b - F a) \<le> (\<Sum>i. ennreal (F (r i) - F (l i)))"
+  proof (rule ennreal_le_epsilon)
+    fix epsilon :: real assume egt0: "epsilon > 0"
+    have "\<forall>i. \<exists>d>0. F (r i + d) < F (r i) + epsilon / 2^(i+2)"
     proof
       fix i
       note right_cont_F [of "r i"]
-      thus "\<exists>d. d > 0 \<and> F (r i + d) < F (r i) + epsilon / 2^(i+2)"
+      thus "\<exists>d>0. F (r i + d) < F (r i) + epsilon / 2^(i+2)"
         apply -
         apply (subst (asm) continuous_at_right_real_increasing)
         apply (rule mono_F, assumption)
@@ -264,22 +264,15 @@ next
       by auto
     also have "... \<le> (\<Sum>i\<le>n. F (r i) - F (l i)) + epsilon"
       using finS Sbound Sprop by (auto intro!: add_right_mono setsum_mono3)
-    finally have "ereal (F b - F a) \<le> (\<Sum>i\<le>n. ereal (F (r i) - F (l i))) + epsilon"
-      by simp
-    then have "ereal (F b - F a) \<le> (\<Sum>i. ereal (F (r i) - F (l i))) + (epsilon :: real)"
-      apply (rule_tac order_trans)
-      prefer 2
-      apply (rule add_mono[where c="ereal epsilon"])
-      apply (rule suminf_upper[of _ "Suc n"])
-      apply (auto simp add: lessThan_Suc_atMost)
-      done }
-  hence "ereal (F b - F a) \<le> (\<Sum>i. ereal (F (r i) - F (l i)))"
-    by (auto intro: ereal_le_epsilon2)
-  moreover
-  have "(\<Sum>i. ereal (F (r i) - F (l i))) \<le> ereal (F b - F a)"
-    by (auto simp add: claim1 intro!: suminf_bound)
-  ultimately show "(\<Sum>n. ereal (F (r n) - F (l n))) = ereal (F b - F a)"
-    by simp
+    finally have "ennreal (F b - F a) \<le> (\<Sum>i\<le>n. ennreal (F (r i) - F (l i))) + epsilon"
+      using egt0 by (simp add: ennreal_plus[symmetric] setsum_nonneg del: ennreal_plus)
+    then show "ennreal (F b - F a) \<le> (\<Sum>i. ennreal (F (r i) - F (l i))) + (epsilon :: real)"
+      by (rule order_trans) (auto intro!: add_mono setsum_le_suminf simp del: setsum_ennreal)
+  qed
+  moreover have "(\<Sum>i. ennreal (F (r i) - F (l i))) \<le> ennreal (F b - F a)"
+    using \<open>a \<le> b\<close> by (auto intro!: suminf_le_const ennreal_le_iff[THEN iffD2] claim1)
+  ultimately show "(\<Sum>n. ennreal (F (r n) - F (l n))) = ennreal (F b - F a)"
+    by (rule antisym[rotated])
 qed (auto simp: Ioc_inj mono_F)
 
 lemma measure_interval_measure_Ioc:
@@ -290,7 +283,7 @@ lemma measure_interval_measure_Ioc:
   unfolding measure_def
   apply (subst emeasure_interval_measure_Ioc)
   apply fact+
-  apply simp
+  apply (simp add: assms)
   done
 
 lemma emeasure_interval_measure_Ioc_eq:
@@ -344,10 +337,9 @@ proof (rule tendsto_unique)
       using \<open>\<And>n. X n < a\<close> \<open>a \<le> b\<close> by (subst *) (auto intro: less_imp_le less_le_trans)
     finally show "(\<lambda>n. F b - F (X n)) \<longlonglongrightarrow> emeasure ?F {a..b}" .
   qed
-  show "((\<lambda>a. ereal (F b - F a)) \<longlongrightarrow> F b - F a) (at_left a)"
-    using cont_F
-    by (intro lim_ereal[THEN iffD2] tendsto_intros )
-       (auto simp: continuous_on_def intro: tendsto_within_subset)
+  show "((\<lambda>a. ennreal (F b - F a)) \<longlongrightarrow> F b - F a) (at_left a)"
+    by (rule continuous_on_tendsto_compose[where g="\<lambda>x. x" and s=UNIV])
+       (auto simp: continuous_on_ennreal continuous_on_diff cont_F continuous_on_const)
 qed (rule trivial_limit_at_left_real)
 
 lemma sigma_finite_interval_measure:
@@ -406,29 +398,29 @@ proof -
     by (simp add: lborel_def emeasure_distr emeasure_PiM emeasure_interval_measure_Icc continuous_on_id)
 qed
 
-lemma emeasure_lborel_Icc_eq: "emeasure lborel {l .. u} = ereal (if l \<le> u then u - l else 0)"
+lemma emeasure_lborel_Icc_eq: "emeasure lborel {l .. u} = ennreal (if l \<le> u then u - l else 0)"
   by simp
 
 lemma emeasure_lborel_cbox[simp]:
   assumes [simp]: "\<And>b. b \<in> Basis \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b"
   shows "emeasure lborel (cbox l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
 proof -
-  have "(\<lambda>x. \<Prod>b\<in>Basis. indicator {l\<bullet>b .. u\<bullet>b} (x \<bullet> b) :: ereal) = indicator (cbox l u)"
-    by (auto simp: fun_eq_iff cbox_def setprod_ereal_0 split: split_indicator)
+  have "(\<lambda>x. \<Prod>b\<in>Basis. indicator {l\<bullet>b .. u\<bullet>b} (x \<bullet> b) :: ennreal) = indicator (cbox l u)"
+    by (auto simp: fun_eq_iff cbox_def split: split_indicator)
   then have "emeasure lborel (cbox l u) = (\<integral>\<^sup>+x. (\<Prod>b\<in>Basis. indicator {l\<bullet>b .. u\<bullet>b} (x \<bullet> b)) \<partial>lborel)"
     by simp
   also have "\<dots> = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
-    by (subst nn_integral_lborel_setprod) (simp_all add: setprod_ereal inner_diff_left)
+    by (subst nn_integral_lborel_setprod) (simp_all add: setprod_ennreal inner_diff_left)
   finally show ?thesis .
 qed
 
 lemma AE_lborel_singleton: "AE x in lborel::'a::euclidean_space measure. x \<noteq> c"
-  using SOME_Basis AE_discrete_difference [of "{c}" lborel]
-    emeasure_lborel_cbox [of c c] by (auto simp add: cbox_sing)
+  using SOME_Basis AE_discrete_difference [of "{c}" lborel] emeasure_lborel_cbox [of c c]
+  by (auto simp add: cbox_sing setprod_constant power_0_left)
 
 lemma emeasure_lborel_Ioo[simp]:
   assumes [simp]: "l \<le> u"
-  shows "emeasure lborel {l <..< u} = ereal (u - l)"
+  shows "emeasure lborel {l <..< u} = ennreal (u - l)"
 proof -
   have "emeasure lborel {l <..< u} = emeasure lborel {l .. u}"
     using AE_lborel_singleton[of u] AE_lborel_singleton[of l] by (intro emeasure_eq_AE) auto
@@ -438,7 +430,7 @@ qed
 
 lemma emeasure_lborel_Ioc[simp]:
   assumes [simp]: "l \<le> u"
-  shows "emeasure lborel {l <.. u} = ereal (u - l)"
+  shows "emeasure lborel {l <.. u} = ennreal (u - l)"
 proof -
   have "emeasure lborel {l <.. u} = emeasure lborel {l .. u}"
     using AE_lborel_singleton[of u] AE_lborel_singleton[of l] by (intro emeasure_eq_AE) auto
@@ -448,7 +440,7 @@ qed
 
 lemma emeasure_lborel_Ico[simp]:
   assumes [simp]: "l \<le> u"
-  shows "emeasure lborel {l ..< u} = ereal (u - l)"
+  shows "emeasure lborel {l ..< u} = ennreal (u - l)"
 proof -
   have "emeasure lborel {l ..< u} = emeasure lborel {l .. u}"
     using AE_lborel_singleton[of u] AE_lborel_singleton[of l] by (intro emeasure_eq_AE) auto
@@ -460,12 +452,12 @@ lemma emeasure_lborel_box[simp]:
   assumes [simp]: "\<And>b. b \<in> Basis \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b"
   shows "emeasure lborel (box l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
 proof -
-  have "(\<lambda>x. \<Prod>b\<in>Basis. indicator {l\<bullet>b <..< u\<bullet>b} (x \<bullet> b) :: ereal) = indicator (box l u)"
-    by (auto simp: fun_eq_iff box_def setprod_ereal_0 split: split_indicator)
+  have "(\<lambda>x. \<Prod>b\<in>Basis. indicator {l\<bullet>b <..< u\<bullet>b} (x \<bullet> b) :: ennreal) = indicator (box l u)"
+    by (auto simp: fun_eq_iff box_def split: split_indicator)
   then have "emeasure lborel (box l u) = (\<integral>\<^sup>+x. (\<Prod>b\<in>Basis. indicator {l\<bullet>b <..< u\<bullet>b} (x \<bullet> b)) \<partial>lborel)"
     by simp
   also have "\<dots> = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
-    by (subst nn_integral_lborel_setprod) (simp_all add: setprod_ereal inner_diff_left)
+    by (subst nn_integral_lborel_setprod) (simp_all add: setprod_ennreal inner_diff_left)
   finally show ?thesis .
 qed
 
@@ -490,7 +482,7 @@ lemma
   assumes [simp]: "\<And>b. b \<in> Basis \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b"
   shows measure_lborel_box[simp]: "measure lborel (box l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
     and measure_lborel_cbox[simp]: "measure lborel (cbox l u) = (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
-  by (simp_all add: measure_def)
+  by (simp_all add: measure_def inner_diff_left setprod_nonneg)
 
 lemma sigma_finite_lborel: "sigma_finite_measure lborel"
 proof
@@ -519,13 +511,14 @@ proof -
     unfolding UN_box_eq_UNIV[symmetric]
     apply (subst SUP_emeasure_incseq[symmetric])
     apply (auto simp: incseq_def subset_box inner_add_left setprod_constant
-               intro!: SUP_PInfty)
+      simp del: Sup_eq_top_iff SUP_eq_top_iff
+      intro!: ennreal_SUP_eq_top)
     done
 qed
 
 lemma emeasure_lborel_singleton[simp]: "emeasure lborel {x} = 0"
   using emeasure_lborel_cbox[of x x] nonempty_Basis
-  by (auto simp del: emeasure_lborel_cbox nonempty_Basis simp add: cbox_sing)
+  by (auto simp del: emeasure_lborel_cbox nonempty_Basis simp add: cbox_sing setprod_constant)
 
 lemma emeasure_lborel_countable:
   fixes A :: "'a::euclidean_space set"
@@ -537,7 +530,7 @@ proof -
     by (rule emeasure_UN_eq_0) auto
   ultimately have "emeasure lborel A \<le> 0" using emeasure_mono
     by (smt UN_E emeasure_empty equalityI from_nat_into order_refl singletonD subsetI)
-  thus ?thesis by (auto simp add: emeasure_le_0_iff)
+  thus ?thesis by (auto simp add: )
 qed
 
 lemma countable_imp_null_set_lborel: "countable A \<Longrightarrow> A \<in> null_sets lborel"
@@ -597,33 +590,29 @@ proof (rule lborel_eqI)
       by (auto simp: field_simps box_def inner_simps)
     with \<open>0 < c\<close> show ?thesis
       using le
-      by (auto simp: field_simps emeasure_density nn_integral_distr nn_integral_cmult
-                     emeasure_lborel_box_eq inner_simps setprod_dividef setprod_constant
-                     borel_measurable_indicator' emeasure_distr)
+      by (auto simp: field_simps inner_simps setprod_dividef setprod_constant setprod_nonneg
+                     ennreal_mult[symmetric] emeasure_density nn_integral_distr emeasure_distr
+                     nn_integral_cmult emeasure_lborel_box_eq borel_measurable_indicator')
   next
     assume "\<not> 0 < c" with \<open>c \<noteq> 0\<close> have "c < 0" by auto
     then have "box ((u - t) /\<^sub>R c) ((l - t) /\<^sub>R c) = (\<lambda>x. t + c *\<^sub>R x) -` box l u"
       by (auto simp: field_simps box_def inner_simps)
-    then have "\<And>x. indicator (box l u) (t + c *\<^sub>R x) = (indicator (box ((u - t) /\<^sub>R c) ((l - t) /\<^sub>R c)) x :: ereal)"
+    then have *: "\<And>x. indicator (box l u) (t + c *\<^sub>R x) = (indicator (box ((u - t) /\<^sub>R c) ((l - t) /\<^sub>R c)) x :: ennreal)"
       by (auto split: split_indicator)
-    moreover
-    { have "(- c) ^ card ?B * (\<Prod>x\<in>?B. l \<bullet> x - u \<bullet> x) =
-         (-1 * c) ^ card ?B * (\<Prod>x\<in>?B. -1 * (u \<bullet> x - l \<bullet> x))"
-         by simp
-      also have "\<dots> = (-1 * -1)^card ?B * c ^ card ?B * (\<Prod>x\<in>?B. u \<bullet> x - l \<bullet> x)"
-        unfolding setprod.distrib power_mult_distrib by (simp add: setprod_constant)
-      finally have "(- c) ^ card ?B * (\<Prod>x\<in>?B. l \<bullet> x - u \<bullet> x) = c ^ card ?B * (\<Prod>b\<in>?B. u \<bullet> b - l \<bullet> b)"
-        by simp }
-    ultimately show ?thesis
+    have **: "(\<Prod>x\<in>Basis. (l \<bullet> x - u \<bullet> x) / c) = (\<Prod>x\<in>Basis. u \<bullet> x - l \<bullet> x) / (-c) ^ card (Basis::'a set)"
+      using \<open>c < 0\<close>
+      by (auto simp add: field_simps setprod_dividef[symmetric] setprod_constant[symmetric]
+               intro!: setprod.cong)
+    show ?thesis
       using \<open>c < 0\<close> le
-      by (auto simp: field_simps emeasure_density nn_integral_distr nn_integral_cmult
-                     emeasure_lborel_box_eq inner_simps setprod_dividef setprod_constant
-                     borel_measurable_indicator' emeasure_distr)
+      by (auto simp: * ** field_simps emeasure_density nn_integral_distr nn_integral_cmult
+                     emeasure_lborel_box_eq inner_simps setprod_nonneg ennreal_mult[symmetric]
+                     borel_measurable_indicator')
   qed
 qed simp
 
 lemma lborel_real_affine:
-  "c \<noteq> 0 \<Longrightarrow> lborel = density (distr lborel borel (\<lambda>x. t + c * x)) (\<lambda>_. \<bar>c\<bar>)"
+  "c \<noteq> 0 \<Longrightarrow> lborel = density (distr lborel borel (\<lambda>x. t + c * x)) (\<lambda>_. ennreal (abs c))"
   using lborel_affine[of c t] by simp
 
 lemma AE_borel_affine:
@@ -643,7 +632,7 @@ lemma lborel_integrable_real_affine:
   assumes f: "integrable lborel f"
   shows "c \<noteq> 0 \<Longrightarrow> integrable lborel (\<lambda>x. f (t + c * x))"
   using f f[THEN borel_measurable_integrable] unfolding integrable_iff_bounded
-  by (subst (asm) nn_integral_real_affine[where c=c and t=t]) auto
+  by (subst (asm) nn_integral_real_affine[where c=c and t=t]) (auto simp: ennreal_mult_less_top)
 
 lemma lborel_integrable_real_affine_iff:
   fixes f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
@@ -681,7 +670,7 @@ lemma lborel_has_bochner_integral_real_affine_iff:
 
 lemma lborel_distr_uminus: "distr lborel borel uminus = (lborel :: real measure)"
   by (subst lborel_real_affine[of "-1" 0])
-     (auto simp: density_1 one_ereal_def[symmetric])
+     (auto simp: density_1 one_ennreal_def[symmetric])
 
 lemma lborel_distr_mult:
   assumes "(c::real) \<noteq> 0"
@@ -698,16 +687,16 @@ lemma lborel_distr_mult':
   shows "lborel = density (distr lborel borel (op * c)) (\<lambda>_. \<bar>c\<bar>)"
 proof-
   have "lborel = density lborel (\<lambda>_. 1)" by (rule density_1[symmetric])
-  also from assms have "(\<lambda>_. 1 :: ereal) = (\<lambda>_. inverse \<bar>c\<bar> * \<bar>c\<bar>)" by (intro ext) simp
+  also from assms have "(\<lambda>_. 1 :: ennreal) = (\<lambda>_. inverse \<bar>c\<bar> * \<bar>c\<bar>)" by (intro ext) simp
   also have "density lborel ... = density (density lborel (\<lambda>_. inverse \<bar>c\<bar>)) (\<lambda>_. \<bar>c\<bar>)"
-    by (subst density_density_eq) auto
+    by (subst density_density_eq) (auto simp: ennreal_mult)
   also from assms have "density lborel (\<lambda>_. inverse \<bar>c\<bar>) = distr lborel borel (op * c)"
     by (rule lborel_distr_mult[symmetric])
   finally show ?thesis .
 qed
 
 lemma lborel_distr_plus: "distr lborel borel (op + c) = (lborel :: real measure)"
-  by (subst lborel_real_affine[of 1 c]) (auto simp: density_1 one_ereal_def[symmetric])
+  by (subst lborel_real_affine[of 1 c]) (auto simp: density_1 one_ennreal_def[symmetric])
 
 interpretation lborel: sigma_finite_measure lborel
   by (rule sigma_finite_lborel)
@@ -727,9 +716,9 @@ proof (rule lborel_eqI[symmetric], clarify)
     "box (la, lb) (ua, ub) = box la ua \<times> box lb ub"
     using lu[of _ 0] lu[of 0] by (auto intro!: inj_onI simp add: Basis_prod_def ball_Un box_def)
   show "emeasure (lborel \<Otimes>\<^sub>M lborel) (box (la, lb) (ua, ub)) =
-      ereal (setprod (op \<bullet> ((ua, ub) - (la, lb))) Basis)"
+      ennreal (setprod (op \<bullet> ((ua, ub) - (la, lb))) Basis)"
     by (simp add: lborel.emeasure_pair_measure_Times Basis_prod_def setprod.union_disjoint
-                  setprod.reindex)
+                  setprod.reindex ennreal_mult inner_diff_left setprod_nonneg)
 qed (simp add: borel_prod[symmetric])
 
 (* FIXME: conversion in measurable prover *)
@@ -811,14 +800,14 @@ proof -
         show "\<And>x. (\<lambda>k. ?f k x) \<longlonglongrightarrow> (if x \<in> UNION UNIV F \<inter> box a b then 1 else 0)"
           apply (auto simp: * setsum.If_cases Iio_Int_singleton)
           apply (rule_tac k="Suc xa" in LIMSEQ_offset)
-          apply (simp add: tendsto_const)
+          apply simp
           done
         have *: "emeasure lborel ((\<Union>x. F x) \<inter> box a b) \<le> emeasure lborel (box a b)"
           by (intro emeasure_mono) auto
 
         with union(1) show "(\<lambda>k. \<Sum>i<k. ?M (F i)) \<longlonglongrightarrow> ?M (\<Union>i. F i)"
           unfolding sums_def[symmetric] UN_extend_simps
-          by (intro measure_UNION) (auto simp: disjoint_family_on_def emeasure_lborel_box_eq)
+          by (intro measure_UNION) (auto simp: disjoint_family_on_def emeasure_lborel_box_eq top_unique)
       qed
       then show ?case
         by (subst (asm) has_integral_restrict) auto
@@ -844,43 +833,46 @@ proof -
     have "(\<lambda>n. emeasure lborel (A \<inter> ?B n)) \<longlonglongrightarrow> emeasure lborel (\<Union>n::nat. A \<inter> ?B n)"
       by (intro Lim_emeasure_incseq) (auto simp: incseq_def box_def)
     also have "(\<lambda>n. emeasure lborel (A \<inter> ?B n)) = (\<lambda>n. measure lborel (A \<inter> ?B n))"
-    proof (intro ext emeasure_eq_ereal_measure)
+    proof (intro ext emeasure_eq_ennreal_measure)
       fix n have "emeasure lborel (A \<inter> ?B n) \<le> emeasure lborel (?B n)"
         by (intro emeasure_mono) auto
-      then show "emeasure lborel (A \<inter> ?B n) \<noteq> \<infinity>"
-        by auto
+      then show "emeasure lborel (A \<inter> ?B n) \<noteq> top"
+        by (auto simp: top_unique)
     qed
     finally show "(\<lambda>n. measure lborel (A \<inter> ?B n)) \<longlonglongrightarrow> measure lborel A"
-      using emeasure_eq_ereal_measure[of lborel A] finite
-      by (simp add: UN_box_eq_UNIV)
+      using emeasure_eq_ennreal_measure[of lborel A] finite
+      by (simp add: UN_box_eq_UNIV less_top)
   qed
 qed
 
 lemma nn_integral_has_integral:
   fixes f::"'a::euclidean_space \<Rightarrow> real"
-  assumes f: "f \<in> borel_measurable borel" "\<And>x. 0 \<le> f x" "(\<integral>\<^sup>+x. f x \<partial>lborel) = ereal r"
+  assumes f: "f \<in> borel_measurable borel" "\<And>x. 0 \<le> f x" "(\<integral>\<^sup>+x. f x \<partial>lborel) = ennreal r" "0 \<le> r"
   shows "(f has_integral r) UNIV"
-using f proof (induct arbitrary: r rule: borel_measurable_induct_real)
+using f proof (induct f arbitrary: r rule: borel_measurable_induct_real)
   case (set A)
   moreover then have "((\<lambda>x. 1) has_integral measure lborel A) A"
-    by (intro has_integral_measure_lborel) (auto simp: ereal_indicator)
+    by (intro has_integral_measure_lborel) (auto simp: ennreal_indicator)
   ultimately show ?case
-    by (simp add: ereal_indicator measure_def) (simp add: indicator_def)
+    by (simp add: ennreal_indicator measure_def) (simp add: indicator_def)
 next
   case (mult g c)
-  then have "ereal c * (\<integral>\<^sup>+ x. g x \<partial>lborel) = ereal r"
-    by (subst nn_integral_cmult[symmetric]) auto
-  then obtain r' where "(c = 0 \<and> r = 0) \<or> ((\<integral>\<^sup>+ x. ereal (g x) \<partial>lborel) = ereal r' \<and> r = c * r')"
-    by (cases "\<integral>\<^sup>+ x. ereal (g x) \<partial>lborel") (auto split: if_split_asm)
+  then have "ennreal c * (\<integral>\<^sup>+ x. g x \<partial>lborel) = ennreal r"
+    by (subst nn_integral_cmult[symmetric]) (auto simp: ennreal_mult)
+  with \<open>0 \<le> r\<close> \<open>0 \<le> c\<close>
+  obtain r' where "(c = 0 \<and> r = 0) \<or> (0 \<le> r' \<and> (\<integral>\<^sup>+ x. ennreal (g x) \<partial>lborel) = ennreal r' \<and> r = c * r')"
+    by (cases "\<integral>\<^sup>+ x. ennreal (g x) \<partial>lborel" rule: ennreal_cases)
+       (auto split: if_split_asm simp: ennreal_mult_top ennreal_mult[symmetric])
   with mult show ?case
     by (auto intro!: has_integral_cmult_real)
 next
   case (add g h)
   moreover
   then have "(\<integral>\<^sup>+ x. h x + g x \<partial>lborel) = (\<integral>\<^sup>+ x. h x \<partial>lborel) + (\<integral>\<^sup>+ x. g x \<partial>lborel)"
-    unfolding plus_ereal.simps[symmetric] by (subst nn_integral_add) auto
-  with add obtain a b where "(\<integral>\<^sup>+ x. h x \<partial>lborel) = ereal a" "(\<integral>\<^sup>+ x. g x \<partial>lborel) = ereal b" "r = a + b"
-    by (cases "\<integral>\<^sup>+ x. h x \<partial>lborel" "\<integral>\<^sup>+ x. g x \<partial>lborel" rule: ereal2_cases) auto
+    by (simp add: nn_integral_add)
+  with add obtain a b where "0 \<le> a" "0 \<le> b" "(\<integral>\<^sup>+ x. h x \<partial>lborel) = ennreal a" "(\<integral>\<^sup>+ x. g x \<partial>lborel) = ennreal b" "r = a + b"
+    by (cases "\<integral>\<^sup>+ x. h x \<partial>lborel" "\<integral>\<^sup>+ x. g x \<partial>lborel" rule: ennreal2_cases)
+       (auto simp: add_top nn_integral_add top_add ennreal_plus[symmetric] simp del: ennreal_plus)
   ultimately show ?case
     by (auto intro!: has_integral_add)
 next
@@ -897,16 +889,14 @@ next
   note U_le_f = this
 
   { fix i
-    have "(\<integral>\<^sup>+x. ereal (U i x) \<partial>lborel) \<le> (\<integral>\<^sup>+x. ereal (f x) \<partial>lborel)"
-      using U_le_f by (intro nn_integral_mono) simp
-    then obtain p where "(\<integral>\<^sup>+x. U i x \<partial>lborel) = ereal p" "p \<le> r"
-      using seq(6) by (cases "\<integral>\<^sup>+x. U i x \<partial>lborel") auto
-    moreover then have "0 \<le> p"
-      by (metis ereal_less_eq(5) nn_integral_nonneg)
+    have "(\<integral>\<^sup>+x. U i x \<partial>lborel) \<le> (\<integral>\<^sup>+x. f x \<partial>lborel)"
+      using seq(2) f(2) U_le_f by (intro nn_integral_mono) simp
+    then obtain p where "(\<integral>\<^sup>+x. U i x \<partial>lborel) = ennreal p" "p \<le> r" "0 \<le> p"
+      using seq(6) \<open>0\<le>r\<close> by (cases "\<integral>\<^sup>+x. U i x \<partial>lborel" rule: ennreal_cases) (auto simp: top_unique)
     moreover note seq
-    ultimately have "\<exists>p. (\<integral>\<^sup>+x. U i x \<partial>lborel) = ereal p \<and> 0 \<le> p \<and> p \<le> r \<and> (U i has_integral p) UNIV"
+    ultimately have "\<exists>p. (\<integral>\<^sup>+x. U i x \<partial>lborel) = ennreal p \<and> 0 \<le> p \<and> p \<le> r \<and> (U i has_integral p) UNIV"
       by auto }
-  then obtain p where p: "\<And>i. (\<integral>\<^sup>+x. ereal (U i x) \<partial>lborel) = ereal (p i)"
+  then obtain p where p: "\<And>i. (\<integral>\<^sup>+x. ennreal (U i x) \<partial>lborel) = ennreal (p i)"
     and bnd: "\<And>i. p i \<le> r" "\<And>i. 0 \<le> p i"
     and U_int: "\<And>i.(U i has_integral (p i)) UNIV" by metis
 
@@ -922,9 +912,9 @@ next
       using seq by auto
   qed
   moreover have "(\<lambda>i. (\<integral>\<^sup>+x. U i x \<partial>lborel)) \<longlonglongrightarrow> (\<integral>\<^sup>+x. f x \<partial>lborel)"
-    using seq U_le_f by (intro nn_integral_dominated_convergence[where w=f]) auto
+    using seq f(2) U_le_f by (intro nn_integral_dominated_convergence[where w=f]) auto
   ultimately have "integral UNIV f = r"
-    by (auto simp add: int_eq p seq intro: LIMSEQ_unique)
+    by (auto simp add: bnd int_eq p seq intro: LIMSEQ_unique)
   with * show ?case
     by (simp add: has_integral_integral)
 qed
@@ -934,8 +924,8 @@ lemma nn_integral_lborel_eq_integral:
   assumes f: "f \<in> borel_measurable borel" "\<And>x. 0 \<le> f x" "(\<integral>\<^sup>+x. f x \<partial>lborel) < \<infinity>"
   shows "(\<integral>\<^sup>+x. f x \<partial>lborel) = integral UNIV f"
 proof -
-  from f(3) obtain r where r: "(\<integral>\<^sup>+x. f x \<partial>lborel) = ereal r"
-    by (cases "\<integral>\<^sup>+x. f x \<partial>lborel") auto
+  from f(3) obtain r where r: "(\<integral>\<^sup>+x. f x \<partial>lborel) = ennreal r" "0 \<le> r"
+    by (cases "\<integral>\<^sup>+x. f x \<partial>lborel" rule: ennreal_cases) auto
   then show ?thesis
     using nn_integral_has_integral[OF f(1,2) r] by (simp add: integral_unique)
 qed
@@ -945,8 +935,8 @@ lemma nn_integral_integrable_on:
   assumes f: "f \<in> borel_measurable borel" "\<And>x. 0 \<le> f x" "(\<integral>\<^sup>+x. f x \<partial>lborel) < \<infinity>"
   shows "f integrable_on UNIV"
 proof -
-  from f(3) obtain r where r: "(\<integral>\<^sup>+x. f x \<partial>lborel) = ereal r"
-    by (cases "\<integral>\<^sup>+x. f x \<partial>lborel") auto
+  from f(3) obtain r where r: "(\<integral>\<^sup>+x. f x \<partial>lborel) = ennreal r" "0 \<le> r"
+    by (cases "\<integral>\<^sup>+x. f x \<partial>lborel" rule: ennreal_cases) auto
   then show ?thesis
     by (intro has_integral_integrable[where i=r] nn_integral_has_integral[where r=r] f)
 qed
@@ -957,25 +947,26 @@ lemma nn_integral_has_integral_lborel:
   assumes I: "(f has_integral I) UNIV"
   shows "integral\<^sup>N lborel f = I"
 proof -
-  from f_borel have "(\<lambda>x. ereal (f x)) \<in> borel_measurable lborel" by auto
+  from f_borel have "(\<lambda>x. ennreal (f x)) \<in> borel_measurable lborel" by auto
   from borel_measurable_implies_simple_function_sequence'[OF this] guess F . note F = this
   let ?B = "\<lambda>i::nat. box (- (real i *\<^sub>R One)) (real i *\<^sub>R One) :: 'a set"
 
   note F(1)[THEN borel_measurable_simple_function, measurable]
 
-  { fix i x have "real_of_ereal (F i x) \<le> f x"
-      using F(3,5) F(4)[of x, symmetric] nonneg
-      unfolding real_le_ereal_iff
-      by (auto simp: image_iff eq_commute[of \<infinity>] max_def intro: SUP_upper split: if_split_asm) }
-  note F_le_f = this
+  have "0 \<le> I"
+    using I by (rule has_integral_nonneg) (simp add: nonneg)
+
+  have F_le_f: "enn2real (F i x) \<le> f x" for i x
+    using F(3,4)[where x=x] nonneg SUP_upper[of i UNIV "\<lambda>i. F i x"]
+    by (cases "F i x" rule: ennreal_cases) auto
   let ?F = "\<lambda>i x. F i x * indicator (?B i) x"
-  have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>lborel) = (SUP i. integral\<^sup>N lborel (\<lambda>x. ?F i x))"
+  have "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>lborel) = (SUP i. integral\<^sup>N lborel (\<lambda>x. ?F i x))"
   proof (subst nn_integral_monotone_convergence_SUP[symmetric])
     { fix x
       obtain j where j: "x \<in> ?B j"
         using UN_box_eq_UNIV by auto
 
-      have "ereal (f x) = (SUP i. F i x)"
+      have "ennreal (f x) = (SUP i. F i x)"
         using F(4)[of x] nonneg[of x] by (simp add: max_def)
       also have "\<dots> = (SUP i. ?F i x)"
       proof (rule SUP_eq)
@@ -984,50 +975,50 @@ proof -
           by (intro bexI[of _ "max i j"])
              (auto split: split_max split_indicator simp: incseq_def le_fun_def box_def)
       qed (auto intro!: F split: split_indicator)
-      finally have "ereal (f x) =  (SUP i. ?F i x)" . }
-    then show "(\<integral>\<^sup>+ x. ereal (f x) \<partial>lborel) = (\<integral>\<^sup>+ x. (SUP i. ?F i x) \<partial>lborel)"
+      finally have "ennreal (f x) =  (SUP i. ?F i x)" . }
+    then show "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>lborel) = (\<integral>\<^sup>+ x. (SUP i. ?F i x) \<partial>lborel)"
       by simp
   qed (insert F, auto simp: incseq_def le_fun_def box_def split: split_indicator)
-  also have "\<dots> \<le> ereal I"
+  also have "\<dots> \<le> ennreal I"
   proof (rule SUP_least)
     fix i :: nat
-    have finite_F: "(\<integral>\<^sup>+ x. ereal (real_of_ereal (F i x) * indicator (?B i) x) \<partial>lborel) < \<infinity>"
+    have finite_F: "(\<integral>\<^sup>+ x. ennreal (enn2real (F i x) * indicator (?B i) x) \<partial>lborel) < \<infinity>"
     proof (rule nn_integral_bound_simple_function)
-      have "emeasure lborel {x \<in> space lborel. ereal (real_of_ereal (F i x) * indicator (?B i) x) \<noteq> 0} \<le>
+      have "emeasure lborel {x \<in> space lborel. ennreal (enn2real (F i x) * indicator (?B i) x) \<noteq> 0} \<le>
         emeasure lborel (?B i)"
         by (intro emeasure_mono)  (auto split: split_indicator)
-      then show "emeasure lborel {x \<in> space lborel. ereal (real_of_ereal (F i x) * indicator (?B i) x) \<noteq> 0} < \<infinity>"
-        by auto
+      then show "emeasure lborel {x \<in> space lborel. ennreal (enn2real (F i x) * indicator (?B i) x) \<noteq> 0} < \<infinity>"
+        by (auto simp: less_top[symmetric] top_unique)
     qed (auto split: split_indicator
-              intro!: real_of_ereal_pos F simple_function_compose1[where g="real_of_ereal"] simple_function_ereal)
+              intro!: F simple_function_compose1[where g="enn2real"] simple_function_ennreal)
 
-    have int_F: "(\<lambda>x. real_of_ereal (F i x) * indicator (?B i) x) integrable_on UNIV"
-      using F(5) finite_F
-      by (intro nn_integral_integrable_on) (auto split: split_indicator intro: real_of_ereal_pos)
+    have int_F: "(\<lambda>x. enn2real (F i x) * indicator (?B i) x) integrable_on UNIV"
+      using F(4) finite_F
+      by (intro nn_integral_integrable_on) (auto split: split_indicator simp: enn2real_nonneg)
 
     have "(\<integral>\<^sup>+ x. F i x * indicator (?B i) x \<partial>lborel) =
-      (\<integral>\<^sup>+ x. ereal (real_of_ereal (F i x) * indicator (?B i) x) \<partial>lborel)"
-      using F(3,5)
-      by (intro nn_integral_cong) (auto simp: image_iff ereal_real eq_commute split: split_indicator)
-    also have "\<dots> = ereal (integral UNIV (\<lambda>x. real_of_ereal (F i x) * indicator (?B i) x))"
+      (\<integral>\<^sup>+ x. ennreal (enn2real (F i x) * indicator (?B i) x) \<partial>lborel)"
+      using F(3,4)
+      by (intro nn_integral_cong) (auto simp: image_iff eq_commute split: split_indicator)
+    also have "\<dots> = ennreal (integral UNIV (\<lambda>x. enn2real (F i x) * indicator (?B i) x))"
       using F
       by (intro nn_integral_lborel_eq_integral[OF _ _ finite_F])
-         (auto split: split_indicator intro: real_of_ereal_pos)
-    also have "\<dots> \<le> ereal I"
+         (auto split: split_indicator intro: enn2real_nonneg)
+    also have "\<dots> \<le> ennreal I"
       by (auto intro!: has_integral_le[OF integrable_integral[OF int_F] I] nonneg F_le_f
-          split: split_indicator )
-    finally show "(\<integral>\<^sup>+ x. F i x * indicator (?B i) x \<partial>lborel) \<le> ereal I" .
+               simp: \<open>0 \<le> I\<close> split: split_indicator )
+    finally show "(\<integral>\<^sup>+ x. F i x * indicator (?B i) x \<partial>lborel) \<le> ennreal I" .
   qed
-  finally have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>lborel) < \<infinity>"
-    by auto
+  finally have "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>lborel) < \<infinity>"
+    by (auto simp: less_top[symmetric] top_unique)
   from nn_integral_lborel_eq_integral[OF assms(1,2) this] I show ?thesis
     by (simp add: integral_unique)
 qed
 
 lemma has_integral_iff_emeasure_lborel:
   fixes A :: "'a::euclidean_space set"
-  assumes A[measurable]: "A \<in> sets borel"
-  shows "((\<lambda>x. 1) has_integral r) A \<longleftrightarrow> emeasure lborel A = ereal r"
+  assumes A[measurable]: "A \<in> sets borel" and [simp]: "0 \<le> r"
+  shows "((\<lambda>x. 1) has_integral r) A \<longleftrightarrow> emeasure lborel A = ennreal r"
 proof cases
   assume emeasure_A: "emeasure lborel A = \<infinity>"
   have "\<not> (\<lambda>x. 1::real) integrable_on A"
@@ -1038,16 +1029,16 @@ proof cases
     then obtain r where "((indicator A::'a\<Rightarrow>real) has_integral r) UNIV"
       by auto
     from nn_integral_has_integral_lborel[OF _ _ this] emeasure_A show False
-      by (simp add: ereal_indicator)
+      by (simp add: ennreal_indicator)
   qed
   with emeasure_A show ?thesis
     by auto
 next
   assume "emeasure lborel A \<noteq> \<infinity>"
   moreover then have "((\<lambda>x. 1) has_integral measure lborel A) A"
-    by (simp add: has_integral_measure_lborel)
+    by (simp add: has_integral_measure_lborel less_top)
   ultimately show ?thesis
-    by (auto simp: emeasure_eq_ereal_measure has_integral_unique)
+    by (auto simp: emeasure_eq_ennreal_measure has_integral_unique)
 qed
 
 lemma has_integral_integral_real:
@@ -1057,7 +1048,7 @@ lemma has_integral_integral_real:
 using f proof induct
   case (base A c) then show ?case
     by (auto intro!: has_integral_mult_left simp: )
-       (simp add: emeasure_eq_ereal_measure indicator_def has_integral_measure_lborel)
+       (simp add: emeasure_eq_ennreal_measure indicator_def has_integral_measure_lborel)
 next
   case (add f g) then show ?case
     by (auto intro!: has_integral_add)
@@ -1069,8 +1060,7 @@ next
     show "(\<lambda>x. norm (2 * f x)) integrable_on UNIV"
       using \<open>integrable lborel f\<close>
       by (intro nn_integral_integrable_on)
-         (auto simp: integrable_iff_bounded abs_mult times_ereal.simps(1)[symmetric] nn_integral_cmult
-               simp del: times_ereal.simps)
+         (auto simp: integrable_iff_bounded abs_mult  nn_integral_cmult ennreal_mult ennreal_mult_less_top)
     show "\<And>k. \<forall>x\<in>UNIV. norm (s k x) \<le> norm (2 * f x)"
       using lim by (auto simp add: abs_mult)
     show "\<forall>x\<in>UNIV. (\<lambda>k. s k x) \<longlonglongrightarrow> f x"
@@ -1099,7 +1089,7 @@ proof -
 qed
 
 lemma integrable_on_lborel: "integrable lborel f \<Longrightarrow> f integrable_on UNIV"
-  using has_integral_integral_lborel by (auto intro: has_integral_integrable)
+  using has_integral_integral_lborel by auto
 
 lemma integral_lborel: "integrable lborel f \<Longrightarrow> integral UNIV f = (\<integral>x. f x \<partial>lborel)"
   using has_integral_integral_lborel by auto
@@ -1116,7 +1106,7 @@ proof -
   then have "emeasure lborel A \<le> emeasure lborel (cbox a b)"
     by (intro emeasure_mono) auto
   then show ?thesis
-    by (auto simp: emeasure_lborel_cbox_eq)
+    by (auto simp: emeasure_lborel_cbox_eq setprod_nonneg less_top[symmetric] top_unique split: if_split_asm)
 qed
 
 lemma emeasure_compact_finite: "compact A \<Longrightarrow> emeasure lborel A < \<infinity>"
@@ -1169,7 +1159,7 @@ lemma
   fixes f :: "real \<Rightarrow> real"
   assumes [measurable]: "f \<in> borel_measurable borel"
   assumes f: "\<And>x. x \<in> {a..b} \<Longrightarrow> DERIV F x :> f x" "\<And>x. x \<in> {a..b} \<Longrightarrow> 0 \<le> f x" and "a \<le> b"
-  shows nn_integral_FTC_Icc: "(\<integral>\<^sup>+x. ereal (f x) * indicator {a .. b} x \<partial>lborel) = F b - F a" (is ?nn)
+  shows nn_integral_FTC_Icc: "(\<integral>\<^sup>+x. ennreal (f x) * indicator {a .. b} x \<partial>lborel) = F b - F a" (is ?nn)
     and has_bochner_integral_FTC_Icc_nonneg:
       "has_bochner_integral lborel (\<lambda>x. f x * indicator {a .. b} x) (F b - F a)" (is ?has)
     and integral_FTC_Icc_nonneg: "(\<integral>x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a" (is ?eq)
@@ -1177,6 +1167,9 @@ lemma
 proof -
   have *: "(\<lambda>x. f x * indicator {a..b} x) \<in> borel_measurable borel" "\<And>x. 0 \<le> f x * indicator {a..b} x"
     using f(2) by (auto split: split_indicator)
+
+  have F_mono: "a \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<le> b\<Longrightarrow> F x \<le> F y" for x y
+    using f by (intro DERIV_nonneg_imp_nondecreasing[of x y F]) (auto intro: order_trans)
 
   have "(f has_integral F b - F a) {a..b}"
     by (intro fundamental_theorem_of_calculus)
@@ -1188,11 +1181,12 @@ proof -
   then have nn: "(\<integral>\<^sup>+x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a"
     by (rule nn_integral_has_integral_lborel[OF *])
   then show ?has
-    by (rule has_bochner_integral_nn_integral[rotated 2]) (simp_all add: *)
+    by (rule has_bochner_integral_nn_integral[rotated 3]) (simp_all add: * F_mono \<open>a \<le> b\<close>)
   then show ?eq ?int
     unfolding has_bochner_integral_iff by auto
-  from nn show ?nn
-    by (simp add: ereal_mult_indicator)
+  show ?nn
+    by (subst nn[symmetric])
+       (auto intro!: nn_integral_cong simp add: ennreal_mult f split: split_indicator)
 qed
 
 lemma
@@ -1245,22 +1239,25 @@ lemma nn_integral_FTC_atLeast:
   assumes f: "\<And>x. a \<le> x \<Longrightarrow> DERIV F x :> f x"
   assumes nonneg: "\<And>x. a \<le> x \<Longrightarrow> 0 \<le> f x"
   assumes lim: "(F \<longlongrightarrow> T) at_top"
-  shows "(\<integral>\<^sup>+x. ereal (f x) * indicator {a ..} x \<partial>lborel) = T - F a"
+  shows "(\<integral>\<^sup>+x. ennreal (f x) * indicator {a ..} x \<partial>lborel) = T - F a"
 proof -
-  let ?f = "\<lambda>(i::nat) (x::real). ereal (f x) * indicator {a..a + real i} x"
-  let ?fR = "\<lambda>x. ereal (f x) * indicator {a ..} x"
-  have "\<And>x. (SUP i::nat. ?f i x) = ?fR x"
-  proof (rule SUP_Lim_ereal)
-    show "\<And>x. incseq (\<lambda>i. ?f i x)"
-      using nonneg by (auto simp: incseq_def le_fun_def split: split_indicator)
+  let ?f = "\<lambda>(i::nat) (x::real). ennreal (f x) * indicator {a..a + real i} x"
+  let ?fR = "\<lambda>x. ennreal (f x) * indicator {a ..} x"
 
-    fix x
+  have F_mono: "a \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> F x \<le> F y" for x y
+    using f nonneg by (intro DERIV_nonneg_imp_nondecreasing[of x y F]) (auto intro: order_trans)
+  then have F_le_T: "a \<le> x \<Longrightarrow> F x \<le> T" for x
+    by (intro tendsto_le_const[OF _ lim])
+       (auto simp: trivial_limit_at_top_linorder eventually_at_top_linorder)
+
+  have "(SUP i::nat. ?f i x) = ?fR x" for x
+  proof (rule LIMSEQ_unique[OF LIMSEQ_SUP])
     from reals_Archimedean2[of "x - a"] guess n ..
     then have "eventually (\<lambda>n. ?f n x = ?fR x) sequentially"
       by (auto intro!: eventually_sequentiallyI[where c=n] split: split_indicator)
     then show "(\<lambda>n. ?f n x) \<longlonglongrightarrow> ?fR x"
       by (rule Lim_eventually)
-  qed
+  qed (auto simp: nonneg incseq_def le_fun_def split: split_indicator)
   then have "integral\<^sup>N lborel ?fR = (\<integral>\<^sup>+ x. (SUP i::nat. ?f i x) \<partial>lborel)"
     by simp
   also have "\<dots> = (SUP i::nat. (\<integral>\<^sup>+ x. ?f i x \<partial>lborel))"
@@ -1270,26 +1267,18 @@ proof -
     show "\<And>i. (?f i) \<in> borel_measurable lborel"
       using f_borel by auto
   qed
-  also have "\<dots> = (SUP i::nat. ereal (F (a + real i) - F a))"
+  also have "\<dots> = (SUP i::nat. ennreal (F (a + real i) - F a))"
     by (subst nn_integral_FTC_Icc[OF f_borel f nonneg]) auto
   also have "\<dots> = T - F a"
-  proof (rule SUP_Lim_ereal)
-    show "incseq (\<lambda>n. ereal (F (a + real n) - F a))"
-    proof (simp add: incseq_def, safe)
-      fix m n :: nat assume "m \<le> n"
-      with f nonneg show "F (a + real m) \<le> F (a + real n)"
-        by (intro DERIV_nonneg_imp_nondecreasing[where f=F])
-           (simp, metis add_increasing2 order_refl order_trans of_nat_0_le_iff)
-    qed
+  proof (rule LIMSEQ_unique[OF LIMSEQ_SUP])
     have "(\<lambda>x. F (a + real x)) \<longlonglongrightarrow> T"
       apply (rule filterlim_compose[OF lim filterlim_tendsto_add_at_top])
       apply (rule LIMSEQ_const_iff[THEN iffD2, OF refl])
       apply (rule filterlim_real_sequentially)
       done
-    then show "(\<lambda>n. ereal (F (a + real n) - F a)) \<longlonglongrightarrow> ereal (T - F a)"
-      unfolding lim_ereal
-      by (intro tendsto_diff) auto
-  qed
+    then show "(\<lambda>n. ennreal (F (a + real n) - F a)) \<longlonglongrightarrow> ennreal (T - F a)"
+      by (simp add: F_mono F_le_T tendsto_diff)
+  qed (auto simp: incseq_def intro!: ennreal_le_iff[THEN iffD2] F_mono)
   finally show ?thesis .
 qed
 

@@ -3547,7 +3547,7 @@ lemma Limsup_MInfty:
   using Liminf_le_Limsup[OF assms, of f]
   by auto
 
-lemma convergent_ereal:
+lemma convergent_ereal: -- \<open>RENAME\<close>
   fixes X :: "nat \<Rightarrow> 'a :: {complete_linorder,linorder_topology}"
   shows "convergent X \<longleftrightarrow> limsup X = liminf X"
   using tendsto_iff_Liminf_eq_Limsup[of sequentially]

@@ -24,7 +24,7 @@ lemma emeasure_diff_measure:
 proof (rule emeasure_measure_of_sigma)
   show "sigma_algebra (space M) (sets M)" ..
   show "positive (sets M) ?\<mu>"
-    using pos by (simp add: positive_def ereal_diff_positive)
+    using pos by (simp add: positive_def)
   show "countably_additive (sets M) ?\<mu>"
   proof (rule countably_additiveI)
     fix A :: "nat \<Rightarrow> _"  assume A: "range A \<subseteq> sets M" and "disjoint_family A"
@@ -34,9 +34,9 @@ proof (rule emeasure_measure_of_sigma)
       by (simp_all add: suminf_emeasure sets_eq)
     with A have "(\<Sum>i. emeasure M (A i) - emeasure N (A i)) =
       (\<Sum>i. emeasure M (A i)) - (\<Sum>i. emeasure N (A i))"
-      using fin
-      by (intro suminf_ereal_minus pos emeasure_nonneg)
-         (auto simp: sets_eq finite_measure.emeasure_eq_measure suminf_emeasure)
+      using fin pos[of "A _"]
+      by (intro ennreal_suminf_minus)
+         (auto simp: sets_eq finite_measure.emeasure_eq_measure suminf_emeasure measure_nonneg)
     then show "(\<Sum>i. emeasure M (A i) - emeasure N (A i)) =
       emeasure M (\<Union>i. A i) - emeasure N (\<Union>i. A i) "
       by (simp add: suminf)
@@ -44,7 +44,7 @@ proof (rule emeasure_measure_of_sigma)
 qed fact
 
 lemma (in sigma_finite_measure) Ex_finite_integrable_function:
-  shows "\<exists>h\<in>borel_measurable M. integral\<^sup>N M h \<noteq> \<infinity> \<and> (\<forall>x\<in>space M. 0 < h x \<and> h x < \<infinity>) \<and> (\<forall>x. 0 \<le> h x)"
+  "\<exists>h\<in>borel_measurable M. integral\<^sup>N M h \<noteq> \<infinity> \<and> (\<forall>x\<in>space M. 0 < h x \<and> h x < \<infinity>)"
 proof -
   obtain A :: "nat \<Rightarrow> 'a set" where
     range[measurable]: "range A \<subseteq> sets M" and
@@ -56,8 +56,8 @@ proof -
   have "\<forall>i. \<exists>x. 0 < x \<and> x < inverse (?B i)"
   proof
     fix i show "\<exists>x. 0 < x \<and> x < inverse (?B i)"
-      using measure[of i] emeasure_nonneg[of M "A i"]
-      by (auto intro!: dense simp: ereal_0_gt_inverse ereal_zero_le_0_iff)
+      using measure[of i]
+      by (auto intro!: dense simp: ennreal_inverse_positive ennreal_mult_eq_top_iff power_eq_top_ennreal)
   qed
   from choice[OF this] obtain n where n: "\<And>i. 0 < n i"
     "\<And>i. n i < inverse (2^Suc i * emeasure M (A i))" by auto
@@ -69,34 +69,43 @@ proof -
       using range by fastforce+
     then have "integral\<^sup>N M ?h = (\<Sum>i. n i * emeasure M (A i))" using pos
       by (simp add: nn_integral_suminf nn_integral_cmult_indicator)
-    also have "\<dots> \<le> (\<Sum>i. (1 / 2)^Suc i)"
-    proof (rule suminf_le_pos)
+    also have "\<dots> \<le> (\<Sum>i. ennreal ((1/2)^Suc i))"
+    proof (intro suminf_le allI)
       fix N
       have "n N * emeasure M (A N) \<le> inverse (2^Suc N * emeasure M (A N)) * emeasure M (A N)"
-        using n[of N]
-        by (intro ereal_mult_right_mono) auto
-      also have "\<dots> \<le> (1 / 2) ^ Suc N"
-        using measure[of N] n[of N]
-        by (cases rule: ereal2_cases[of "n N" "emeasure M (A N)"])
-           (simp_all add: inverse_eq_divide power_divide one_ereal_def ereal_power_divide)
-      finally show "n N * emeasure M (A N) \<le> (1 / 2) ^ Suc N" .
-      show "0 \<le> n N * emeasure M (A N)" using n[of N] \<open>A N \<in> sets M\<close> by (simp add: emeasure_nonneg)
-    qed
-    finally show "integral\<^sup>N M ?h \<noteq> \<infinity>" unfolding suminf_half_series_ereal by auto
+        using n[of N] by (intro mult_right_mono) auto
+      also have "\<dots> = (1/2)^Suc N * (inverse (emeasure M (A N)) * emeasure M (A N))"
+        using measure[of N]
+        by (simp add: ennreal_inverse_power divide_ennreal_def ennreal_inverse_mult
+                      power_eq_top_ennreal less_top[symmetric] mult_ac
+                 del: power_Suc)
+      also have "\<dots> \<le> inverse (ennreal 2) ^ Suc N"
+        using measure[of N]
+        apply (cases "emeasure M (A N)" rule: ennreal_cases)
+        apply (cases "emeasure M (A N) = 0")
+        apply (auto simp: inverse_ennreal ennreal_mult[symmetric] divide_ennreal_def simp del: power_Suc)
+        done
+      also have "\<dots> = ennreal (inverse 2 ^ Suc N)"
+        by (subst ennreal_power[symmetric], simp) (simp add: inverse_ennreal)
+      finally show "n N * emeasure M (A N) \<le> ennreal ((1/2)^Suc N)"
+        by simp
+    qed auto
+    also have "\<dots> < top"
+      unfolding less_top[symmetric]
+      apply (rule ennreal_suminf_neq_top)
+      apply (subst summable_Suc_iff)
+      apply (subst summable_geometric)
+      apply auto
+      done
+    finally show "integral\<^sup>N M ?h \<noteq> \<infinity>"
+      by (auto simp: top_unique)
   next
     { fix x assume "x \<in> space M"
       then obtain i where "x \<in> A i" using space[symmetric] by auto
       with disjoint n have "?h x = n i"
         by (auto intro!: suminf_cmult_indicator intro: less_imp_le)
-      then show "0 < ?h x" and "?h x < \<infinity>" using n[of i] by auto }
+      then show "0 < ?h x" and "?h x < \<infinity>" using n[of i] by (auto simp: less_top[symmetric]) }
     note pos = this
-    fix x show "0 \<le> ?h x"
-    proof cases
-      assume "x \<in> space M" then show "0 \<le> ?h x" using pos by (auto intro: less_imp_le)
-    next
-      assume "x \<notin> space M" then have "\<And>i. x \<notin> A i" using space by auto
-      then show "0 \<le> ?h x" by auto
-    qed
   qed measurable
 qed
 
@@ -207,7 +216,7 @@ proof -
       proof (induct n)
         case (Suc n) with dA_epsilon[of n, OF B] show ?case by (simp del: A_simps add: of_nat_Suc field_simps)
       next
-        case 0 with measure_empty show ?case by (simp add: zero_ereal_def)
+        case 0 with measure_empty show ?case by (simp add: zero_ennreal_def)
       qed } note dA_less = this
     have decseq: "decseq (\<lambda>n. ?d (A n))" unfolding decseq_eq_incseq
     proof (rule incseq_SucI)
@@ -347,7 +356,7 @@ proof -
     from this[THEN bspec, OF sets.top] show "integral\<^sup>N M g \<le> N (space M)"
       by (simp cong: nn_integral_cong)
   qed
-  from SUP_countable_SUP [OF \<open>G \<noteq> {}\<close>, of "integral\<^sup>N M"] guess ys .. note ys = this
+  from ennreal_SUP_countable_SUP [OF \<open>G \<noteq> {}\<close>, of "integral\<^sup>N M"] guess ys .. note ys = this
   then have "\<forall>n. \<exists>g. g\<in>G \<and> integral\<^sup>N M g = ys n"
   proof safe
     fix n assume "range ys \<subseteq> integral\<^sup>N M ` G"
@@ -394,14 +403,14 @@ proof -
   have emeasure_M: "\<And>A. A \<in> sets M \<Longrightarrow> emeasure ?M A = ?t A"
   proof (subst emeasure_diff_measure)
     from f_le_N[of "space M"] show "finite_measure N" "finite_measure (density M f)"
-      by (auto intro!: finite_measureI simp: emeasure_density cong: nn_integral_cong)
+      by (auto intro!: finite_measureI simp: emeasure_density top_unique cong: nn_integral_cong)
   next
     fix B assume "B \<in> sets N" with f_le_N[of B] show "emeasure (density M f) B \<le> emeasure N B"
       by (auto simp: sets_eq emeasure_density cong: nn_integral_cong)
   qed (auto simp: sets_eq emeasure_density)
-  from emeasure_M[of "space M"] N.finite_emeasure_space nn_integral_nonneg[of M "?F (space M)"]
+  from emeasure_M[of "space M"] N.finite_emeasure_space
   interpret M': finite_measure ?M
-    by (auto intro!: finite_measureI simp: sets_eq_imp_space_eq[OF sets_eq] N.emeasure_eq_measure ereal_minus_eq_PInfty_iff)
+    by (auto intro!: finite_measureI simp: sets_eq_imp_space_eq[OF sets_eq] N.emeasure_eq_measure )
 
   have ac: "absolutely_continuous M ?M" unfolding absolutely_continuous_def
   proof
@@ -410,7 +419,7 @@ proof -
       unfolding absolutely_continuous_def by auto
     moreover from A_M A_N have "(\<integral>\<^sup>+ x. ?F A x \<partial>M) \<le> N A" using \<open>f \<in> G\<close> by (auto simp: G_def)
     ultimately have "N A - (\<integral>\<^sup>+ x. ?F A x \<partial>M) = 0"
-      using nn_integral_nonneg[of M] by (auto intro!: antisym)
+      by (auto intro!: antisym)
     then show "A \<in> null_sets ?M"
       using A_M by (simp add: emeasure_M null_sets_def sets_eq)
   qed
@@ -418,7 +427,7 @@ proof -
   proof (rule ccontr)
     assume "\<not> ?thesis"
     then obtain A where A: "A \<in> sets M" and pos: "0 < ?M A"
-      by (auto simp: not_le)
+      by (auto simp: zero_less_iff_neq_zero)
     note pos
     also have "?M A \<le> ?M (space M)"
       using emeasure_space[of ?M A] by (simp add: sets_eq[THEN sets_eq_imp_space_eq])
@@ -427,28 +436,30 @@ proof -
     from pos_t have "emeasure M (space M) \<noteq> 0"
       using ac unfolding absolutely_continuous_def by (auto simp: null_sets_def)
     then have pos_M: "0 < emeasure M (space M)"
-      using emeasure_nonneg[of M "space M"] by (simp add: le_less)
+      by (simp add: zero_less_iff_neq_zero)
     moreover
     have "(\<integral>\<^sup>+x. f x * indicator (space M) x \<partial>M) \<le> N (space M)"
       using \<open>f \<in> G\<close> unfolding G_def by auto
     hence "(\<integral>\<^sup>+x. f x * indicator (space M) x \<partial>M) \<noteq> \<infinity>"
-      using M'.finite_emeasure_space by auto
+      using M'.finite_emeasure_space by (auto simp: top_unique)
     moreover
     def b \<equiv> "?M (space M) / emeasure M (space M) / 2"
     ultimately have b: "b \<noteq> 0 \<and> 0 \<le> b \<and> b \<noteq> \<infinity>"
-      by (auto simp: ereal_divide_eq)
-    then have b: "b \<noteq> 0" "0 \<le> b" "0 < b"  "b \<noteq> \<infinity>" by auto
+      by (auto simp: ennreal_divide_eq_top_iff)
+    then have b: "b \<noteq> 0" "0 \<le> b" "0 < b"  "b \<noteq> \<infinity>"
+      by (auto simp: less_le)
     let ?Mb = "density M (\<lambda>_. b)"
     have Mb: "finite_measure ?Mb" "sets ?Mb = sets ?M"
-        using b by (auto simp: emeasure_density_const sets_eq intro!: finite_measureI)
+        using b by (auto simp: emeasure_density_const sets_eq ennreal_mult_eq_top_iff intro!: finite_measureI)
     from M'.Radon_Nikodym_aux[OF this] guess A0 ..
     then have "A0 \<in> sets M"
-      and space_less_A0: "measure ?M (space M) - real_of_ereal b * measure M (space M) \<le> measure ?M A0 - real_of_ereal b * measure M A0"
-      and *: "\<And>B. B \<in> sets M \<Longrightarrow> B \<subseteq> A0 \<Longrightarrow> 0 \<le> measure ?M B - real_of_ereal b * measure M B"
+      and space_le_A0: "measure ?M (space M) - enn2real b * measure M (space M) \<le> measure ?M A0 - enn2real b * measure M A0"
+      and *: "\<And>B. B \<in> sets M \<Longrightarrow> B \<subseteq> A0 \<Longrightarrow> 0 \<le> measure ?M B - enn2real b * measure M B"
       using b by (simp_all add: measure_density_const sets_eq_imp_space_eq[OF sets_eq] sets_eq)
     { fix B assume B: "B \<in> sets M" "B \<subseteq> A0"
       with *[OF this] have "b * emeasure M B \<le> ?M B"
-        using b unfolding M'.emeasure_eq_measure emeasure_eq_measure by (cases b) auto }
+        using b unfolding M'.emeasure_eq_measure emeasure_eq_measure
+        by (cases b rule: ennreal_cases) (auto simp: ennreal_mult[symmetric] measure_nonneg) }
     note bM_le_t = this
     let ?f0 = "\<lambda>x. f x + b * indicator A0 x"
     { fix A assume A: "A \<in> sets M"
@@ -473,48 +484,49 @@ proof -
         by (auto intro!: add_left_mono simp: sets_eq)
       also have "\<dots> \<le> N A"
         unfolding emeasure_M[OF \<open>A \<in> sets M\<close>]
-        using f_le_v N.emeasure_eq_measure[of A] nn_integral_nonneg[of M "?F A"]
-        by (cases "\<integral>\<^sup>+x. ?F A x \<partial>M", cases "N A") auto
+        using f_le_v N.emeasure_eq_measure[of A]
+        by (cases "\<integral>\<^sup>+x. ?F A x \<partial>M" "N A" rule: ennreal2_cases)
+           (auto simp: top_unique measure_nonneg ennreal_minus ennreal_plus[symmetric] simp del: ennreal_plus)
       finally have "(\<integral>\<^sup>+x. ?f0 x * indicator A x \<partial>M) \<le> N A" . }
     hence "?f0 \<in> G" using \<open>A0 \<in> sets M\<close> b \<open>f \<in> G\<close> by (auto simp: G_def)
     have int_f_finite: "integral\<^sup>N M f \<noteq> \<infinity>"
-      by (metis N.emeasure_finite ereal_infty_less_eq2(1) int_f_eq_y y_le)
-    have  "0 < ?M (space M) - emeasure ?Mb (space M)"
-      using pos_t
-      by (simp add: b emeasure_density_const)
-         (simp add: M'.emeasure_eq_measure emeasure_eq_measure pos_M b_def)
-    also have "\<dots> \<le> ?M A0 - b * emeasure M A0"
-      using space_less_A0 \<open>A0 \<in> sets M\<close> b
-      by (cases b) (auto simp add: b emeasure_density_const sets_eq M'.emeasure_eq_measure emeasure_eq_measure)
-    finally have 1: "b * emeasure M A0 < ?M A0"
-      by (metis M'.emeasure_real \<open>A0 \<in> sets M\<close> bM_le_t diff_self ereal_less(1) ereal_minus(1)
-                less_eq_ereal_def mult_zero_left not_square_less_zero subset_refl zero_ereal_def)
-    with b have "0 < ?M A0"
-      by (metis M'.emeasure_real MInfty_neq_PInfty(1) emeasure_real ereal_less_eq(5) ereal_zero_times
-               ereal_mult_eq_MInfty ereal_mult_eq_PInfty ereal_zero_less_0_iff less_eq_ereal_def)
-    then have "emeasure M A0 \<noteq> 0" using ac \<open>A0 \<in> sets M\<close>
-      by (auto simp: absolutely_continuous_def null_sets_def)
-    then have "0 < emeasure M A0" using emeasure_nonneg[of M A0] by auto
-    hence "0 < b * emeasure M A0" using b by (auto simp: ereal_zero_less_0_iff)
-    with int_f_finite have "?y + 0 < integral\<^sup>N M f + b * emeasure M A0" unfolding int_f_eq_y
-      using \<open>f \<in> G\<close>
-      by (intro ereal_add_strict_mono) (auto intro!: SUP_upper2 nn_integral_nonneg)
-    also have "\<dots> = integral\<^sup>N M ?f0" using f0_eq[OF sets.top] \<open>A0 \<in> sets M\<close> sets.sets_into_space
-      by (simp cong: nn_integral_cong)
-    finally have "?y < integral\<^sup>N M ?f0" by simp
-    moreover from \<open>?f0 \<in> G\<close> have "integral\<^sup>N M ?f0 \<le> ?y" by (auto intro!: SUP_upper)
+      by (metis top_unique infinity_ennreal_def int_f_eq_y y_le N.emeasure_finite)
+    have pos: "0 < measure ?M (space M) - enn2real b * measure M (space M)"
+      using pos_t pos_M
+      by (simp add: M'.emeasure_eq_measure emeasure_eq_measure b_def divide_ennreal ennreal_divide_numeral)
+    also have "\<dots> \<le> measure ?M A0 - enn2real b * measure M A0"
+      by (rule space_le_A0)
+    finally have "enn2real b * measure M A0 < measure ?M A0"
+      by simp
+    with b have "?M A0 \<noteq> 0"
+      by (cases b rule: ennreal_cases)
+         (auto simp: M'.emeasure_eq_measure measure_nonneg mult_less_0_iff not_le[symmetric])
+    then have "emeasure M A0 \<noteq> 0"
+      using ac \<open>A0 \<in> sets M\<close> by (auto simp: absolutely_continuous_def null_sets_def)
+    then have "0 < emeasure M A0"
+      by (auto simp: zero_less_iff_neq_zero)
+    hence "0 < b * emeasure M A0"
+      using b by (auto simp: ennreal_zero_less_mult_iff)
+    with int_f_finite have "?y < integral\<^sup>N M f + b * emeasure M A0"
+      unfolding int_f_eq_y by auto
+    also have "\<dots> = integral\<^sup>N M ?f0"
+      using f0_eq[OF sets.top] \<open>A0 \<in> sets M\<close> sets.sets_into_space by (simp cong: nn_integral_cong)
+    finally have "?y < integral\<^sup>N M ?f0"
+      by simp
+    moreover have "integral\<^sup>N M ?f0 \<le> ?y"
+      using \<open>?f0 \<in> G\<close> by (auto intro!: SUP_upper)
     ultimately show False by auto
   qed
-  let ?f = "\<lambda>x. max 0 (f x)"
   show ?thesis
-  proof (intro bexI[of _ ?f] measure_eqI conjI)
-    show "sets (density M ?f) = sets N"
+  proof (intro bexI[of _ f] measure_eqI conjI)
+    show "sets (density M f) = sets N"
       by (simp add: sets_eq)
-    fix A assume A: "A\<in>sets (density M ?f)"
-    then show "emeasure (density M ?f) A = emeasure N A"
+    fix A assume A: "A\<in>sets (density M f)"
+    then show "emeasure (density M f) A = emeasure N A"
       using \<open>f \<in> G\<close> A upper_bound[THEN bspec, of A] N.emeasure_eq_measure[of A]
       by (cases "integral\<^sup>N M (?F A)")
-         (auto intro!: antisym simp add: emeasure_density G_def emeasure_M density_max_0[symmetric])
+         (auto intro!: antisym simp: emeasure_density G_def emeasure_M ennreal_minus_eq_0 top_unique
+                               simp del: measure_nonneg)
   qed auto
 qed
 
@@ -530,9 +542,10 @@ proof -
   then have Q_not_empty: "?Q \<noteq> {}" by blast
   have "?a \<le> emeasure M (space M)" using sets.sets_into_space
     by (auto intro!: SUP_least emeasure_mono)
-  then have "?a \<noteq> \<infinity>" using finite_emeasure_space
-    by auto
-  from SUP_countable_SUP [OF Q_not_empty, of "emeasure M"]
+  then have "?a \<noteq> \<infinity>"
+    using finite_emeasure_space
+    by (auto simp: less_top[symmetric] top_unique simp del: SUP_eq_top_iff Sup_eq_top_iff)
+  from ennreal_SUP_countable_SUP [OF Q_not_empty, of "emeasure M"]
   obtain Q'' where "range Q'' \<subseteq> emeasure M ` ?Q" and a: "?a = (SUP i::nat. Q'' i)"
     by auto
   then have "\<forall>i. \<exists>Q'. Q'' i = emeasure M Q' \<and> Q' \<in> ?Q" by auto
@@ -552,7 +565,7 @@ proof -
     fix i have "Q' ` {..i} \<subseteq> sets M" using Q' by auto
     then have "N (?O i) \<le> (\<Sum>i\<le>i. N (Q' i))"
       by (simp add: sets_eq emeasure_subadditive_finite)
-    also have "\<dots> < \<infinity>" using Q' by (simp add: setsum_Pinfty)
+    also have "\<dots> < \<infinity>" using Q' by (simp add: less_top)
     finally show "N (?O i) \<noteq> \<infinity>" by simp
   qed auto
   have O_mono: "\<And>n. ?O n \<subseteq> ?O (Suc n)" by fastforce
@@ -584,7 +597,7 @@ proof -
     { fix A assume A: "A \<in> sets M" "A \<subseteq> space M - ?O_0"
       show "emeasure M A = 0 \<and> N A = 0 \<or> 0 < emeasure M A \<and> N A = \<infinity>"
       proof (rule disjCI, simp)
-        assume *: "0 < emeasure M A \<longrightarrow> N A \<noteq> \<infinity>"
+        assume *: "emeasure M A = 0 \<or> N A \<noteq> top"
         show "emeasure M A = 0 \<and> N A = 0"
         proof (cases "emeasure M A = 0")
           case True
@@ -593,7 +606,7 @@ proof -
           with True show ?thesis by simp
         next
           case False
-          with * have "N A \<noteq> \<infinity>" using emeasure_nonneg[of M A] by auto
+          with * have "N A \<noteq> \<infinity>" by auto
           with A have "emeasure M ?O_0 + emeasure M A = emeasure M (?O_0 \<union> A)"
             using Q' by (auto intro!: plus_emeasure sets.countable_UN)
           also have "\<dots> = (SUP i. emeasure M (?O i \<union> A))"
@@ -609,7 +622,7 @@ proof -
               from O_in_G[of i] have "N (?O i \<union> A) \<le> N (?O i) + N A"
                 using emeasure_subadditive[of "?O i" N A] A O_sets by (auto simp: sets_eq)
               with O_in_G[of i] show "N (?O i \<union> A) \<noteq> \<infinity>"
-                using \<open>N A \<noteq> \<infinity>\<close> by auto
+                using \<open>N A \<noteq> \<infinity>\<close> by (auto simp: top_unique)
             qed
             then show "emeasure M (?O i \<union> A) \<le> ?a" by (rule SUP_upper)
           qed
@@ -624,10 +637,9 @@ proof -
           unfolding Q_def using Q'[of 0] by simp
       next
         case (Suc n)
-        with \<open>?O n \<in> ?Q\<close> \<open>?O (Suc n) \<in> ?Q\<close>
-            emeasure_Diff[OF _ _ _ O_mono, of N n] emeasure_nonneg[of N "(\<Union>x\<le>n. Q' x)"]
+        with \<open>?O n \<in> ?Q\<close> \<open>?O (Suc n) \<in> ?Q\<close> emeasure_Diff[OF _ _ _ O_mono, of N n]
         show ?thesis
-          by (auto simp: sets_eq ereal_minus_eq_PInfty_iff Q_def)
+          by (auto simp: sets_eq Q_def)
       qed }
     show "space M - ?O_0 \<in> sets M" using Q'_sets by auto
     { fix j have "(\<Union>i\<le>j. ?O i) = (\<Union>i\<le>j. Q i)"
@@ -700,13 +712,13 @@ proof -
       have Qi: "\<And>i. Q i \<in> sets M" using Q by auto
       have [intro,simp]: "\<And>i. (\<lambda>x. f i x * indicator (Q i \<inter> A) x) \<in> borel_measurable M"
         "\<And>i. AE x in M. 0 \<le> f i x * indicator (Q i \<inter> A) x"
-        using borel Qi Q0(1) \<open>A \<in> sets M\<close> by (auto intro!: borel_measurable_ereal_times)
+        using borel Qi Q0(1) \<open>A \<in> sets M\<close> by auto
       have "(\<integral>\<^sup>+x. ?f x * indicator A x \<partial>M) = (\<integral>\<^sup>+x. (\<Sum>i. f i x * indicator (Q i \<inter> A) x) + \<infinity> * indicator (Q0 \<inter> A) x \<partial>M)"
         using borel by (intro nn_integral_cong) (auto simp: indicator_def)
       also have "\<dots> = (\<integral>\<^sup>+x. (\<Sum>i. f i x * indicator (Q i \<inter> A) x) \<partial>M) + \<infinity> * emeasure M (Q0 \<inter> A)"
         using borel Qi Q0(1) \<open>A \<in> sets M\<close>
-        by (subst nn_integral_add) (auto simp del: ereal_infty_mult
-            simp add: nn_integral_cmult_indicator sets.Int intro!: suminf_0_le)
+        by (subst nn_integral_add)
+           (auto simp add: nn_integral_cmult_indicator sets.Int intro!: suminf_0_le)
       also have "\<dots> = (\<Sum>i. N (Q i \<inter> A)) + \<infinity> * emeasure M (Q0 \<inter> A)"
         by (subst integral_eq[OF \<open>A \<in> sets M\<close>], subst nn_integral_suminf) auto
       finally have "(\<integral>\<^sup>+x. ?f x * indicator A x \<partial>M) = (\<Sum>i. N (Q i \<inter> A)) + \<infinity> * emeasure M (Q0 \<inter> A)" .
@@ -716,7 +728,7 @@ proof -
       moreover have "\<infinity> * emeasure M (Q0 \<inter> A) = N (Q0 \<inter> A)"
       proof -
         have "Q0 \<inter> A \<in> sets M" using Q0(1) \<open>A \<in> sets M\<close> by blast
-        from in_Q0[OF this] show ?thesis by auto
+        from in_Q0[OF this] show ?thesis by (auto simp: ennreal_top_mult)
       qed
       moreover have "Q0 \<inter> A \<in> sets M" "((\<Union>i. Q i) \<inter> A) \<in> sets M"
         using Q_sets \<open>A \<in> sets M\<close> Q0(1) by auto
@@ -787,7 +799,7 @@ next
     have N: "?N \<in> sets M" using borel by simp
     have "?P g ?N \<le> integral\<^sup>N M g" using pos
       by (intro nn_integral_mono_AE) (auto split: split_indicator)
-    then have Pg_fin: "?P g ?N \<noteq> \<infinity>" using g_fin by auto
+    then have Pg_fin: "?P g ?N \<noteq> \<infinity>" using g_fin by (auto simp: top_unique)
     have "?P (\<lambda>x. (f x - g x)) ?N = (\<integral>\<^sup>+x. f x * indicator ?N x - g x * indicator ?N x \<partial>M)"
       by (auto intro!: nn_integral_cong simp: indicator_def)
     also have "\<dots> = ?P f ?N - ?P g ?N"
@@ -795,15 +807,14 @@ next
       show "(\<lambda>x. f x * indicator ?N x) \<in> borel_measurable M" "(\<lambda>x. g x * indicator ?N x) \<in> borel_measurable M"
         using borel N by auto
       show "AE x in M. g x * indicator ?N x \<le> f x * indicator ?N x"
-           "AE x in M. 0 \<le> g x * indicator ?N x"
         using pos by (auto split: split_indicator)
     qed fact
     also have "\<dots> = 0"
-      unfolding eq[THEN bspec, OF N] using nn_integral_nonneg[of M] Pg_fin by auto
+      unfolding eq[THEN bspec, OF N] using Pg_fin by auto
     finally have "AE x in M. f x \<le> g x"
       using pos borel nn_integral_PInf_AE[OF borel(2) g_fin]
       by (subst (asm) nn_integral_0_iff_AE)
-         (auto split: split_indicator simp: not_less ereal_minus_le_iff) }
+         (auto split: split_indicator simp: not_less ennreal_minus_eq_0) }
   from this[OF borel pos g_fin eq] this[OF borel(2,1) pos(2,1) fin] eq
   show "AE x in M. f x = g x" by auto
 qed
@@ -833,31 +844,31 @@ proof -
   from Q have Q_sets: "\<And>i. Q i \<in> sets M" by auto
   let ?D = "{x\<in>space M. f x \<noteq> f' x}"
   have "?D \<in> sets M" using borel by auto
-  have *: "\<And>i x A. \<And>y::ereal. y * indicator (Q i) x * indicator A x = y * indicator (Q i \<inter> A) x"
+  have *: "\<And>i x A. \<And>y::ennreal. y * indicator (Q i) x * indicator A x = y * indicator (Q i \<inter> A) x"
     unfolding indicator_def by auto
   have "\<forall>i. AE x in M. ?f (Q i) x = ?f' (Q i) x" using borel Q_fin Q pos
     by (intro finite_density_unique[THEN iffD1] allI)
        (auto intro!: f measure_eqI simp: emeasure_density * subset_eq)
   moreover have "AE x in M. ?f Q0 x = ?f' Q0 x"
   proof (rule AE_I')
-    { fix f :: "'a \<Rightarrow> ereal" assume borel: "f \<in> borel_measurable M"
+    { fix f :: "'a \<Rightarrow> ennreal" assume borel: "f \<in> borel_measurable M"
         and eq: "\<And>A. A \<in> sets M \<Longrightarrow> ?N A = (\<integral>\<^sup>+x. f x * indicator A x \<partial>M)"
       let ?A = "\<lambda>i. Q0 \<inter> {x \<in> space M. f x < (i::nat)}"
       have "(\<Union>i. ?A i) \<in> null_sets M"
       proof (rule null_sets_UN)
         fix i ::nat have "?A i \<in> sets M"
           using borel Q0(1) by auto
-        have "?N (?A i) \<le> (\<integral>\<^sup>+x. (i::ereal) * indicator (?A i) x \<partial>M)"
+        have "?N (?A i) \<le> (\<integral>\<^sup>+x. (i::ennreal) * indicator (?A i) x \<partial>M)"
           unfolding eq[OF \<open>?A i \<in> sets M\<close>]
           by (auto intro!: nn_integral_mono simp: indicator_def)
         also have "\<dots> = i * emeasure M (?A i)"
           using \<open>?A i \<in> sets M\<close> by (auto intro!: nn_integral_cmult_indicator)
-        also have "\<dots> < \<infinity>" using emeasure_real[of "?A i"] by simp
+        also have "\<dots> < \<infinity>" using emeasure_real[of "?A i"] by (auto simp: ennreal_mult_less_top of_nat_less_top)
         finally have "?N (?A i) \<noteq> \<infinity>" by simp
         then show "?A i \<in> null_sets M" using in_Q0[OF \<open>?A i \<in> sets M\<close>] \<open>?A i \<in> sets M\<close> by auto
       qed
       also have "(\<Union>i. ?A i) = Q0 \<inter> {x\<in>space M. f x \<noteq> \<infinity>}"
-        by (auto simp: less_PInf_Ex_of_nat)
+        by (auto simp: ennreal_Ex_less_of_nat less_top[symmetric])
       finally have "Q0 \<inter> {x\<in>space M. f x \<noteq> \<infinity>} \<in> null_sets M" by simp }
     from this[OF borel(1) refl] this[OF borel(2) f]
     have "Q0 \<inter> {x\<in>space M. f x \<noteq> \<infinity>} \<in> null_sets M" "Q0 \<inter> {x\<in>space M. f' x \<noteq> \<infinity>} \<in> null_sets M" by simp_all
@@ -875,8 +886,8 @@ proof -
 qed
 
 lemma (in sigma_finite_measure) density_unique:
-  assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
-  assumes f': "f' \<in> borel_measurable M" "AE x in M. 0 \<le> f' x"
+  assumes f: "f \<in> borel_measurable M"
+  assumes f': "f' \<in> borel_measurable M"
   assumes density_eq: "density M f = density M f'"
   shows "AE x in M. f x = f' x"
 proof -
@@ -911,23 +922,18 @@ proof -
       using \<open>A \<in> sets M\<close> h_borel h_nn f f'
       by (subst (asm) (1 2) nn_integral_density[symmetric]) auto }
   then have "AE x in ?H. f x = f' x" using h_borel h_nn f f'
-    by (intro h.density_unique_finite_measure absolutely_continuous_AE[of M])
-       (auto simp add: AE_density)
-  then show "AE x in M. f x = f' x"
-    unfolding eventually_ae_filter using h_borel pos
-    by (auto simp add: h_null_sets null_sets_density_iff not_less[symmetric]
-                          AE_iff_null_sets[symmetric]) blast
+    by (intro h.density_unique_finite_measure absolutely_continuous_AE[of M]) auto
+  with AE_space[of M] pos show "AE x in M. f x = f' x"
+    unfolding AE_density[OF h_borel] by auto
 qed
 
 lemma (in sigma_finite_measure) density_unique_iff:
-  assumes f: "f \<in> borel_measurable M" and "AE x in M. 0 \<le> f x"
-  assumes f': "f' \<in> borel_measurable M" and "AE x in M. 0 \<le> f' x"
+  assumes f: "f \<in> borel_measurable M" and f': "f' \<in> borel_measurable M"
   shows "density M f = density M f' \<longleftrightarrow> (AE x in M. f x = f' x)"
   using density_unique[OF assms] density_cong[OF f f'] by auto
 
 lemma sigma_finite_density_unique:
   assumes borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
-  assumes pos: "AE x in M. 0 \<le> f x" "AE x in M. 0 \<le> g x"
   and fin: "sigma_finite_measure (density M f)"
   shows "density M f = density M g \<longleftrightarrow> (AE x in M. f x = g x)"
 proof
@@ -947,9 +953,8 @@ next
     moreover have "(\<integral>\<^sup>+x. f x * indicator (A i) x \<partial>M) \<noteq> \<infinity>"
       using cover(1) cover(3)[of i] borel by (auto simp: emeasure_density subset_eq)
     ultimately have "AE x in M. f x * indicator (A i) x = g x * indicator (A i) x"
-      using borel pos cover(1) pos
-      by (intro finite_density_unique[THEN iffD1])
-         (auto simp: density_density_eq subset_eq)
+      using borel cover(1)
+      by (intro finite_density_unique[THEN iffD1]) (auto simp: density_density_eq subset_eq)
     then show "AE x in M. x \<in> A i \<longrightarrow> f x = g x"
       by auto
   qed
@@ -961,7 +966,7 @@ next
 qed
 
 lemma (in sigma_finite_measure) sigma_finite_iff_density_finite':
-  assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
+  assumes f: "f \<in> borel_measurable M"
   shows "sigma_finite_measure (density M f) \<longleftrightarrow> (AE x in M. f x \<noteq> \<infinity>)"
     (is "sigma_finite_measure ?N \<longleftrightarrow> _")
 proof
@@ -969,23 +974,23 @@ proof
   then interpret N: sigma_finite_measure ?N .
   from N.Ex_finite_integrable_function obtain h where
     h: "h \<in> borel_measurable M" "integral\<^sup>N ?N h \<noteq> \<infinity>" and
-    h_nn: "\<And>x. 0 \<le> h x" and
-    fin: "\<forall>x\<in>space M. 0 < h x \<and> h x < \<infinity>" by auto
+    fin: "\<forall>x\<in>space M. 0 < h x \<and> h x < \<infinity>"
+    by auto
   have "AE x in M. f x * h x \<noteq> \<infinity>"
   proof (rule AE_I')
-    have "integral\<^sup>N ?N h = (\<integral>\<^sup>+x. f x * h x \<partial>M)" using f h h_nn
-      by (auto intro!: nn_integral_density)
+    have "integral\<^sup>N ?N h = (\<integral>\<^sup>+x. f x * h x \<partial>M)"
+      using f h by (auto intro!: nn_integral_density)
     then have "(\<integral>\<^sup>+x. f x * h x \<partial>M) \<noteq> \<infinity>"
       using h(2) by simp
     then show "(\<lambda>x. f x * h x) -` {\<infinity>} \<inter> space M \<in> null_sets M"
-      using f h(1) by (auto intro!: nn_integral_PInf borel_measurable_vimage)
+      using f h(1) by (auto intro!: nn_integral_PInf[unfolded infinity_ennreal_def] borel_measurable_vimage)
   qed auto
   then show "AE x in M. f x \<noteq> \<infinity>"
-    using fin by (auto elim!: AE_Ball_mp)
+    using fin by (auto elim!: AE_Ball_mp simp: less_top ennreal_mult_less_top)
 next
   assume AE: "AE x in M. f x \<noteq> \<infinity>"
   from sigma_finite guess Q . note Q = this
-  def A \<equiv> "\<lambda>i. f -` (case i of 0 \<Rightarrow> {\<infinity>} | Suc n \<Rightarrow> {.. ereal(of_nat (Suc n))}) \<inter> space M"
+  def A \<equiv> "\<lambda>i. f -` (case i of 0 \<Rightarrow> {\<infinity>} | Suc n \<Rightarrow> {.. ennreal(of_nat (Suc n))}) \<inter> space M"
   { fix i j have "A i \<inter> Q j \<in> sets M"
     unfolding A_def using f Q
     apply (rule_tac sets.Int)
@@ -1006,15 +1011,16 @@ next
     proof safe
       fix x assume x: "x \<in> space M"
       show "x \<in> (\<Union>i. A i)"
-      proof (cases "f x")
-        case PInf with x show ?thesis unfolding A_def by (auto intro: exI[of _ 0])
+      proof (cases "f x" rule: ennreal_cases)
+        case top with x show ?thesis unfolding A_def by (auto intro: exI[of _ 0])
       next
         case (real r)
-        with less_PInf_Ex_of_nat[of "f x"] obtain n :: nat where "f x < n" by auto
-        then show ?thesis using x real unfolding A_def by (auto intro!: exI[of _ "Suc n"])
-      next
-        case MInf with x show ?thesis
-          unfolding A_def by (auto intro!: exI[of _ "Suc 0"])
+        with ennreal_Ex_less_of_nat[of "f x"] obtain n :: nat where "f x < n"
+          by auto
+        also have "n < (Suc n :: ennreal)"
+          by simp
+        finally show ?thesis
+          using x real by (auto simp: A_def ennreal_of_nat_eq_real_of_nat intro!: exI[of _ "Suc n"])
       qed
     qed (auto simp: A_def)
     finally show "\<Union>range (\<lambda>(i, j). A i \<inter> Q j) = space ?N" by simp
@@ -1030,12 +1036,12 @@ next
     next
       case (Suc n)
       then have "(\<integral>\<^sup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) \<le>
-        (\<integral>\<^sup>+x. (Suc n :: ereal) * indicator (Q j) x \<partial>M)"
-        by (auto intro!: nn_integral_mono simp: indicator_def A_def)
+        (\<integral>\<^sup>+x. (Suc n :: ennreal) * indicator (Q j) x \<partial>M)"
+        by (auto intro!: nn_integral_mono simp: indicator_def A_def ennreal_of_nat_eq_real_of_nat)
       also have "\<dots> = Suc n * emeasure M (Q j)"
         using Q by (auto intro!: nn_integral_cmult_indicator)
       also have "\<dots> < \<infinity>"
-        using Q by auto
+        using Q by (auto simp: ennreal_mult_less_top less_top of_nat_less_top)
       finally show ?thesis by simp
     qed
     then show "emeasure ?N X \<noteq> \<infinity>"
@@ -1045,55 +1051,42 @@ qed
 
 lemma (in sigma_finite_measure) sigma_finite_iff_density_finite:
   "f \<in> borel_measurable M \<Longrightarrow> sigma_finite_measure (density M f) \<longleftrightarrow> (AE x in M. f x \<noteq> \<infinity>)"
-  apply (subst density_max_0)
-  apply (subst sigma_finite_iff_density_finite')
-  apply (auto simp: max_def intro!: measurable_If)
-  done
+  by (subst sigma_finite_iff_density_finite')
+     (auto simp: max_def intro!: measurable_If)
 
 subsection \<open>Radon-Nikodym derivative\<close>
 
-definition RN_deriv :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a \<Rightarrow> ereal" where
+definition RN_deriv :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a \<Rightarrow> ennreal" where
   "RN_deriv M N =
-    (if \<exists>f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N
-       then SOME f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N
+    (if \<exists>f. f \<in> borel_measurable M \<and> density M f = N
+       then SOME f. f \<in> borel_measurable M \<and> density M f = N
        else (\<lambda>_. 0))"
 
 lemma RN_derivI:
-  assumes "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x" "density M f = N"
+  assumes "f \<in> borel_measurable M" "density M f = N"
   shows "density M (RN_deriv M N) = N"
 proof -
-  have "\<exists>f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N"
+  have "\<exists>f. f \<in> borel_measurable M \<and> density M f = N"
     using assms by auto
-  moreover then have "density M (SOME f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N) = N"
+  moreover then have "density M (SOME f. f \<in> borel_measurable M \<and> density M f = N) = N"
     by (rule someI2_ex) auto
   ultimately show ?thesis
     by (auto simp: RN_deriv_def)
 qed
 
-lemma
-  shows borel_measurable_RN_deriv[measurable]: "RN_deriv M N \<in> borel_measurable M" (is ?m)
-    and RN_deriv_nonneg: "0 \<le> RN_deriv M N x" (is ?nn)
+lemma borel_measurable_RN_deriv[measurable]: "RN_deriv M N \<in> borel_measurable M"
 proof -
-  { assume ex: "\<exists>f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N"
-    have 1: "(SOME f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N) \<in> borel_measurable M"
-      using ex by (rule someI2_ex) auto
-    moreover
-    have 2: "0 \<le> (SOME f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N) x"
-      using ex by (rule someI2_ex) auto
-    note 1 2 }
-  from this show ?m ?nn
+  { assume ex: "\<exists>f. f \<in> borel_measurable M \<and> density M f = N"
+    have 1: "(SOME f. f \<in> borel_measurable M \<and> density M f = N) \<in> borel_measurable M"
+      using ex by (rule someI2_ex) auto }
+  from this show ?thesis
     by (auto simp: RN_deriv_def)
 qed
 
 lemma density_RN_deriv_density:
-  assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
+  assumes f: "f \<in> borel_measurable M"
   shows "density M (RN_deriv M (density M f)) = density M f"
-proof (rule RN_derivI)
-  show "(\<lambda>x. max 0 (f x)) \<in> borel_measurable M" "\<And>x. 0 \<le> max 0 (f x)"
-    using f by auto
-  show "density M (\<lambda>x. max 0 (f x)) = density M f"
-    using f by (intro density_cong) (auto simp: max_def)
-qed
+  by (rule RN_derivI[OF f]) simp
 
 lemma (in sigma_finite_measure) density_RN_deriv:
   "absolutely_continuous M N \<Longrightarrow> sets N = sets M \<Longrightarrow> density M (RN_deriv M N) = N"
@@ -1107,7 +1100,7 @@ proof -
   have "integral\<^sup>N N f = integral\<^sup>N (density M (RN_deriv M N)) f"
     using N by (simp add: density_RN_deriv)
   also have "\<dots> = (\<integral>\<^sup>+x. RN_deriv M N x * f x \<partial>M)"
-    using f by (simp add: nn_integral_density RN_deriv_nonneg)
+    using f by (simp add: nn_integral_density)
   finally show ?thesis by simp
 qed
 
@@ -1115,20 +1108,20 @@ lemma null_setsD_AE: "N \<in> null_sets M \<Longrightarrow> AE x in M. x \<notin
   using AE_iff_null_sets[of N M] by auto
 
 lemma (in sigma_finite_measure) RN_deriv_unique:
-  assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
+  assumes f: "f \<in> borel_measurable M"
   and eq: "density M f = N"
   shows "AE x in M. f x = RN_deriv M N x"
   unfolding eq[symmetric]
   by (intro density_unique_iff[THEN iffD1] f borel_measurable_RN_deriv
-            RN_deriv_nonneg[THEN AE_I2] density_RN_deriv_density[symmetric])
+            density_RN_deriv_density[symmetric])
 
 lemma RN_deriv_unique_sigma_finite:
-  assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
+  assumes f: "f \<in> borel_measurable M"
   and eq: "density M f = N" and fin: "sigma_finite_measure N"
   shows "AE x in M. f x = RN_deriv M N x"
   using fin unfolding eq[symmetric]
   by (intro sigma_finite_density_unique[THEN iffD1] f borel_measurable_RN_deriv
-            RN_deriv_nonneg[THEN AE_I2] density_RN_deriv_density[symmetric])
+            density_RN_deriv_density[symmetric])
 
 lemma (in sigma_finite_measure) RN_deriv_distr:
   fixes T :: "'a \<Rightarrow> 'b"
@@ -1175,7 +1168,6 @@ proof (rule RN_deriv_unique)
     using T ac by measurable
   then show "(\<lambda>x. RN_deriv ?M' ?N' (T x)) \<in> borel_measurable M"
     by (simp add: comp_def)
-  show "AE x in M. 0 \<le> RN_deriv ?M' ?N' (T x)" by (auto intro: RN_deriv_nonneg)
 
   have "N = distr N M (T' \<circ> T)"
     by (subst measure_of_of_measure[of N, symmetric])
@@ -1196,39 +1188,38 @@ lemma (in sigma_finite_measure) RN_deriv_finite:
 proof -
   interpret N: sigma_finite_measure N by fact
   from N show ?thesis
-    using sigma_finite_iff_density_finite[OF borel_measurable_RN_deriv, of N]
-      density_RN_deriv[OF ac]
-    by (simp add: RN_deriv_nonneg)
+    using sigma_finite_iff_density_finite[OF borel_measurable_RN_deriv, of N] density_RN_deriv[OF ac]
+    by simp
 qed
 
 lemma (in sigma_finite_measure)
   assumes N: "sigma_finite_measure N" and ac: "absolutely_continuous M N" "sets N = sets M"
     and f: "f \<in> borel_measurable M"
   shows RN_deriv_integrable: "integrable N f \<longleftrightarrow>
-      integrable M (\<lambda>x. real_of_ereal (RN_deriv M N x) * f x)" (is ?integrable)
-    and RN_deriv_integral: "integral\<^sup>L N f = (\<integral>x. real_of_ereal (RN_deriv M N x) * f x \<partial>M)" (is ?integral)
+      integrable M (\<lambda>x. enn2real (RN_deriv M N x) * f x)" (is ?integrable)
+    and RN_deriv_integral: "integral\<^sup>L N f = (\<integral>x. enn2real (RN_deriv M N x) * f x \<partial>M)" (is ?integral)
 proof -
   note ac(2)[simp] and sets_eq_imp_space_eq[OF ac(2), simp]
   interpret N: sigma_finite_measure N by fact
 
-  have eq: "density M (RN_deriv M N) = density M (\<lambda>x. real_of_ereal (RN_deriv M N x))"
+  have eq: "density M (RN_deriv M N) = density M (\<lambda>x. enn2real (RN_deriv M N x))"
   proof (rule density_cong)
     from RN_deriv_finite[OF assms(1,2,3)]
-    show "AE x in M. RN_deriv M N x = ereal (real_of_ereal (RN_deriv M N x))"
-      by eventually_elim (insert RN_deriv_nonneg[of M N], auto simp: ereal_real)
+    show "AE x in M. RN_deriv M N x = ennreal (enn2real (RN_deriv M N x))"
+      by eventually_elim (auto simp: less_top)
   qed (insert ac, auto)
 
   show ?integrable
     apply (subst density_RN_deriv[OF ac, symmetric])
     unfolding eq
-    apply (intro integrable_real_density f AE_I2 real_of_ereal_pos RN_deriv_nonneg)
+    apply (intro integrable_real_density f AE_I2 enn2real_nonneg)
     apply (insert ac, auto)
     done
 
   show ?integral
     apply (subst density_RN_deriv[OF ac, symmetric])
     unfolding eq
-    apply (intro integral_real_density f AE_I2 real_of_ereal_pos RN_deriv_nonneg)
+    apply (intro integral_real_density f AE_I2 enn2real_nonneg)
     apply (insert ac, auto)
     done
 qed
@@ -1237,21 +1228,21 @@ lemma (in sigma_finite_measure) real_RN_deriv:
   assumes "finite_measure N"
   assumes ac: "absolutely_continuous M N" "sets N = sets M"
   obtains D where "D \<in> borel_measurable M"
-    and "AE x in M. RN_deriv M N x = ereal (D x)"
+    and "AE x in M. RN_deriv M N x = ennreal (D x)"
     and "AE x in N. 0 < D x"
     and "\<And>x. 0 \<le> D x"
 proof
   interpret N: finite_measure N by fact
 
-  note RN = borel_measurable_RN_deriv density_RN_deriv[OF ac] RN_deriv_nonneg[of M N]
+  note RN = borel_measurable_RN_deriv density_RN_deriv[OF ac]
 
   let ?RN = "\<lambda>t. {x \<in> space M. RN_deriv M N x = t}"
 
-  show "(\<lambda>x. real_of_ereal (RN_deriv M N x)) \<in> borel_measurable M"
+  show "(\<lambda>x. enn2real (RN_deriv M N x)) \<in> borel_measurable M"
     using RN by auto
 
   have "N (?RN \<infinity>) = (\<integral>\<^sup>+ x. RN_deriv M N x * indicator (?RN \<infinity>) x \<partial>M)"
-    using RN(1,3) by (subst RN(2)[symmetric]) (auto simp: emeasure_density)
+    using RN(1) by (subst RN(2)[symmetric]) (auto simp: emeasure_density)
   also have "\<dots> = (\<integral>\<^sup>+ x. \<infinity> * indicator (?RN \<infinity>) x \<partial>M)"
     by (intro nn_integral_cong) (auto simp: indicator_def)
   also have "\<dots> = \<infinity> * emeasure M (?RN \<infinity>)"
@@ -1261,30 +1252,28 @@ proof
   have "emeasure M (?RN \<infinity>) = 0"
   proof (rule ccontr)
     assume "emeasure M {x \<in> space M. RN_deriv M N x = \<infinity>} \<noteq> 0"
-    moreover from RN have "0 \<le> emeasure M {x \<in> space M. RN_deriv M N x = \<infinity>}" by auto
-    ultimately have "0 < emeasure M {x \<in> space M. RN_deriv M N x = \<infinity>}" by auto
-    with eq have "N (?RN \<infinity>) = \<infinity>" by simp
+    then have "0 < emeasure M {x \<in> space M. RN_deriv M N x = \<infinity>}"
+      by (auto simp: zero_less_iff_neq_zero)
+    with eq have "N (?RN \<infinity>) = \<infinity>" by (simp add: ennreal_mult_eq_top_iff)
     with N.emeasure_finite[of "?RN \<infinity>"] RN show False by auto
   qed
   ultimately have "AE x in M. RN_deriv M N x < \<infinity>"
-    using RN by (intro AE_iff_measurable[THEN iffD2]) auto
-  then show "AE x in M. RN_deriv M N x = ereal (real_of_ereal (RN_deriv M N x))"
-    using RN(3) by (auto simp: ereal_real)
-  then have eq: "AE x in N. RN_deriv M N x = ereal (real_of_ereal (RN_deriv M N x))"
+    using RN by (intro AE_iff_measurable[THEN iffD2]) (auto simp: less_top[symmetric])
+  then show "AE x in M. RN_deriv M N x = ennreal (enn2real (RN_deriv M N x))"
+    by auto
+  then have eq: "AE x in N. RN_deriv M N x = ennreal (enn2real (RN_deriv M N x))"
     using ac absolutely_continuous_AE by auto
 
-  show "\<And>x. 0 \<le> real_of_ereal (RN_deriv M N x)"
-    using RN by (auto intro: real_of_ereal_pos)
 
   have "N (?RN 0) = (\<integral>\<^sup>+ x. RN_deriv M N x * indicator (?RN 0) x \<partial>M)"
-    using RN(1,3) by (subst RN(2)[symmetric]) (auto simp: emeasure_density)
+    by (subst RN(2)[symmetric]) (auto simp: emeasure_density)
   also have "\<dots> = (\<integral>\<^sup>+ x. 0 \<partial>M)"
     by (intro nn_integral_cong) (auto simp: indicator_def)
   finally have "AE x in N. RN_deriv M N x \<noteq> 0"
     using RN by (subst AE_iff_measurable[OF _ refl]) (auto simp: ac cong: sets_eq_imp_space_eq)
-  with RN(3) eq show "AE x in N. 0 < real_of_ereal (RN_deriv M N x)"
-    by (auto simp: zero_less_real_of_ereal le_less)
-qed
+  with eq show "AE x in N. 0 < enn2real (RN_deriv M N x)"
+    by (auto simp: enn2real_positive_iff less_top[symmetric] zero_less_iff_neq_zero)
+qed (rule enn2real_nonneg)
 
 lemma (in sigma_finite_measure) RN_deriv_singleton:
   assumes ac: "absolutely_continuous M N" "sets N = sets M"
@@ -1294,7 +1283,7 @@ proof -
   from \<open>{x} \<in> sets M\<close>
   have "density M (RN_deriv M N) {x} = (\<integral>\<^sup>+w. RN_deriv M N x * indicator {x} w \<partial>M)"
     by (auto simp: indicator_def emeasure_density intro!: nn_integral_cong)
-  with x density_RN_deriv[OF ac] RN_deriv_nonneg[of M N] show ?thesis
+  with x density_RN_deriv[OF ac] show ?thesis
     by (auto simp: max_def)
 qed
 

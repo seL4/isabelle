@@ -115,8 +115,8 @@ proof (rule emeasure_lim)
     and "0 < (INF i. P (J i) (B i))" (is "0 < ?a")
   moreover have "?a \<le> 1"
     using J by (auto intro!: INF_lower2[of 0] prob_space_P[THEN prob_space.measure_le_1])
-  ultimately obtain r where r: "?a = ereal r" "0 < r" "r \<le> 1"
-    by (cases "?a") auto
+  ultimately obtain r where r: "?a = ennreal r" "0 < r" "r \<le> 1"
+    by (cases "?a") (auto simp: top_unique)
   def Z \<equiv> "\<lambda>n. emb I (J n) (B n)"
   have Z_mono: "n \<le> m \<Longrightarrow> Z m \<subseteq> Z n" for n m
     unfolding Z_def using B[THEN antimonoD, of n m] .
@@ -143,7 +143,7 @@ proof (rule emeasure_lim)
   interpret P': prob_space "P' n" for n
     unfolding P'_def mapmeasure_def using J
     by (auto intro!: prob_space_distr fm_measurable simp: measurable_cong_sets[OF sets_P])
-  
+
   let ?SUP = "\<lambda>n. SUP K : {K. K \<subseteq> fm n ` (B n) \<and> compact K}. emeasure (P' n) K"
   { fix n
     have "emeasure (P (J n)) (B n) = emeasure (P' n) (fm n ` (B n))"
@@ -156,40 +156,37 @@ proof (rule emeasure_lim)
       show "fm n ` B n \<in> sets borel"
         unfolding borel_eq_PiF_borel by (auto simp: P'_def fm_image_measurable_finite sets_P J(3))
     qed simp
-    finally have "emeasure (P (J n)) (B n) = ?SUP n" "?SUP n \<noteq> \<infinity>" "?SUP n \<noteq> - \<infinity>" by auto
+    finally have *: "emeasure (P (J n)) (B n) = ?SUP n" .
+    have "?SUP n \<noteq> \<infinity>"
+      unfolding *[symmetric] by simp
+    note * this
   } note R = this
   have "\<forall>n. \<exists>K. emeasure (P (J n)) (B n) - emeasure (P' n) K \<le> 2 powr (-n) * ?a \<and> compact K \<and> K \<subseteq> fm n ` B n"
   proof
-    fix n show "\<exists>K. emeasure (P (J n)) (B n) - emeasure (P' n) K \<le> ereal (2 powr - real n) * ?a \<and>
+    fix n show "\<exists>K. emeasure (P (J n)) (B n) - emeasure (P' n) K \<le> ennreal (2 powr - real n) * ?a \<and>
         compact K \<and> K \<subseteq> fm n ` B n"
       unfolding R[of n]
     proof (rule ccontr)
-      assume H: "\<not> (\<exists>K'. ?SUP n - emeasure (P' n) K' \<le> ereal (2 powr - real n)  * ?a \<and>
-        compact K' \<and> K' \<subseteq> fm n ` B n)"
-      have "?SUP n \<le> ?SUP n - 2 powr (-n) * ?a"
+      assume H: "\<nexists>K'. ?SUP n - emeasure (P' n) K' \<le> ennreal (2 powr - real n)  * ?a \<and>
+        compact K' \<and> K' \<subseteq> fm n ` B n"
+      have "?SUP n + 0 < ?SUP n + 2 powr (-n) * ?a"
+        using R[of n] unfolding ennreal_add_left_cancel_less ennreal_zero_less_mult_iff
+        by (auto intro: \<open>0 < ?a\<close>)
+      also have "\<dots> = (SUP K:{K. K \<subseteq> fm n ` B n \<and> compact K}. emeasure (P' n) K + 2 powr (-n) * ?a)"
+        by (rule ennreal_SUP_add_left[symmetric]) auto
+      also have "\<dots> \<le> ?SUP n"
       proof (intro SUP_least)
-        fix K
-        assume "K \<in> {K. K \<subseteq> fm n ` B n \<and> compact K}"
-        with H have "\<not> ?SUP n - emeasure (P' n) K \<le> 2 powr (-n) * ?a"
+        fix K assume "K \<in> {K. K \<subseteq> fm n ` B n \<and> compact K}"
+        with H have "2 powr (-n) * ?a < ?SUP n - emeasure (P' n) K"
           by auto
-        hence "?SUP n - emeasure (P' n) K > 2 powr (-n) * ?a"
-          unfolding not_less[symmetric] by simp
-        hence "?SUP n - 2 powr (-n) * ?a > emeasure (P' n) K"
-          using \<open>0 < ?a\<close> by (auto simp add: ereal_less_minus_iff ac_simps)
-        thus "?SUP n - 2 powr (-n) * ?a \<ge> emeasure (P' n) K" by simp
+        then show "emeasure (P' n) K + (2 powr (-n)) * ?a \<le> ?SUP n"
+          by (subst (asm) less_diff_eq_ennreal) (auto simp: less_top[symmetric] R(1)[symmetric] ac_simps)
       qed
-      hence "?SUP n + 0 \<le> ?SUP n - (2 powr (-n) * ?a)" using \<open>0 < ?a\<close> by simp
-      hence "?SUP n + 0 \<le> ?SUP n + - (2 powr (-n) * ?a)" unfolding minus_ereal_def .
-      hence "0 \<le> - (2 powr (-n) * ?a)"
-        using \<open>?SUP n \<noteq> \<infinity>\<close> \<open>?SUP n \<noteq> - \<infinity>\<close>
-        by (subst (asm) ereal_add_le_add_iff) (auto simp:)
-      moreover have "ereal (2 powr - real n) * ?a > 0" using \<open>0 < ?a\<close>
-        by (auto simp: ereal_zero_less_0_iff)
-      ultimately show False by simp
+      finally show False by simp
     qed
   qed
   then obtain K' where K':
-    "\<And>n. emeasure (P (J n)) (B n) - emeasure (P' n) (K' n) \<le> ereal (2 powr - real n) * ?a"
+    "\<And>n. emeasure (P (J n)) (B n) - emeasure (P' n) (K' n) \<le> ennreal (2 powr - real n) * ?a"
     "\<And>n. compact (K' n)" "\<And>n. K' n \<subseteq> fm n ` B n"
     unfolding choice_iff by blast
   def K \<equiv> "\<lambda>n. fm n -` K' n \<inter> space (Pi\<^sub>M (J n) (\<lambda>_. borel))"
@@ -252,11 +249,11 @@ proof (rule emeasure_lim)
       by (auto simp del: prod_emb_INT intro!: generator.intros)
     have *: "\<mu>G (Z n) = P (J n) (B n)"
       unfolding Z_def using J by (intro mu_G_spec) auto
-    then have "\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>" by auto
+    then have "\<mu>G (Z n) \<noteq> \<infinity>" by auto
     note *
     moreover have *: "\<mu>G (Y n) = P (J n) (\<Inter>i\<in>{Suc 0..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i))"
       unfolding Y_emb using J J_mono K_sets \<open>n \<ge> 1\<close> by (subst mu_G_spec) auto
-    then have "\<bar>\<mu>G (Y n)\<bar> \<noteq> \<infinity>" by auto
+    then have "\<mu>G (Y n) \<noteq> \<infinity>" by auto
     note *
     moreover have "\<mu>G (Z n - Y n) =
         P (J n) (B n - (\<Inter>i\<in>{Suc 0..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i)))"
@@ -266,8 +263,10 @@ proof (rule emeasure_lim)
     have "\<mu>G (Z n) - \<mu>G (Y n) = \<mu>G (Z n - Y n)"
       using J J_mono K_sets \<open>n \<ge> 1\<close>
       by (simp only: emeasure_eq_measure Z_def)
-        (auto dest!: bspec[where x=n] intro!: measure_Diff[symmetric] set_mp[OF K_B]
-          simp: extensional_restrict emeasure_eq_measure prod_emb_iff sets_P space_P)
+         (auto dest!: bspec[where x=n] intro!: measure_Diff[symmetric] set_mp[OF K_B]
+               intro!: arg_cong[where f=ennreal]
+               simp: extensional_restrict emeasure_eq_measure prod_emb_iff sets_P space_P
+                     ennreal_minus measure_nonneg)
     also have subs: "Z n - Y n \<subseteq> (\<Union>i\<in>{1..n}. (Z i - Z' i))"
       using \<open>n \<ge> 1\<close> unfolding Y_def UN_extend_simps(7) by (intro UN_mono Diff_mono Z_mono order_refl) auto
     have "Z n - Y n \<in> generator" "(\<Union>i\<in>{1..n}. (Z i - Z' i)) \<in> generator"
@@ -290,32 +289,29 @@ proof (rule emeasure_lim)
         unfolding K_def P'_def
         by (auto simp: mapmeasure_PiF borel_eq_PiF_borel[symmetric]
           compact_imp_closed[OF \<open>compact (K' _)\<close>] space_PiM PiE_def)
-      also have "\<dots> \<le> ereal (2 powr - real i) * ?a" using K'(1)[of i] .
+      also have "\<dots> \<le> ennreal (2 powr - real i) * ?a" using K'(1)[of i] .
       finally show "\<mu>G (Z i - Z' i) \<le> (2 powr - real i) * ?a" .
     qed
-    also have "\<dots> = ereal ((\<Sum> i\<in>{1..n}. (2 powr -real_of_ereal i)) * real_of_ereal ?a)"
-      by (simp add: setsum_left_distrib r)
-    also have "\<dots> < ereal (1 * real_of_ereal ?a)" unfolding less_ereal.simps
-    proof (rule mult_strict_right_mono)
+    also have "\<dots> = ennreal ((\<Sum> i\<in>{1..n}. (2 powr -enn2real i)) * enn2real ?a)"
+      using r by (simp add: setsum_left_distrib ennreal_mult[symmetric])
+    also have "\<dots> < ennreal (1 * enn2real ?a)"
+    proof (intro ennreal_lessI mult_strict_right_mono)
       have "(\<Sum>i = 1..n. 2 powr - real i) = (\<Sum>i = 1..<Suc n. (1/2) ^ i)"
-        by (rule setsum.cong) (auto simp: powr_realpow powr_divide power_divide powr_minus_divide)  
+        by (rule setsum.cong) (auto simp: powr_realpow powr_divide power_divide powr_minus_divide)
       also have "{1..<Suc n} = {..<Suc n} - {0}" by auto
       also have "setsum (op ^ (1 / 2::real)) ({..<Suc n} - {0}) =
         setsum (op ^ (1 / 2)) ({..<Suc n}) - 1" by (auto simp: setsum_diff1)
       also have "\<dots> < 1" by (subst geometric_sum) auto
-      finally show "(\<Sum>i = 1..n. 2 powr - real_of_ereal i) < 1" by simp
-    qed (auto simp: r ereal_less_real_iff zero_ereal_def[symmetric])
+      finally show "(\<Sum>i = 1..n. 2 powr - enn2real i) < 1" by simp
+    qed (auto simp: r enn2real_positive_iff)
     also have "\<dots> = ?a" by (auto simp: r)
     also have "\<dots> \<le> \<mu>G (Z n)"
       using J by (auto intro: INF_lower simp: Z_def mu_G_spec)
     finally have "\<mu>G (Z n) - \<mu>G (Y n) < \<mu>G (Z n)" .
     hence R: "\<mu>G (Z n) < \<mu>G (Z n) + \<mu>G (Y n)"
-      using \<open>\<bar>\<mu>G (Y n)\<bar> \<noteq> \<infinity>\<close> by (simp add: ereal_minus_less)
-    have "0 \<le> (- \<mu>G (Z n)) + \<mu>G (Z n)" using \<open>\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>\<close> by auto
-    also have "\<dots> < (- \<mu>G (Z n)) + (\<mu>G (Z n) + \<mu>G (Y n))"
-      apply (rule ereal_less_add[OF _ R]) using \<open>\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>\<close> by auto
-    finally have "\<mu>G (Y n) > 0"
-      using \<open>\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>\<close> by (auto simp: ac_simps zero_ereal_def[symmetric])
+      using \<open>\<mu>G (Y n) \<noteq> \<infinity>\<close> by (auto simp: zero_less_iff_neq_zero)
+    then have "\<mu>G (Y n) > 0"
+      by simp
     thus "Y n \<noteq> {}" using positive_mu_G by (auto simp add: positive_def)
   qed
   hence "\<forall>n\<in>{1..}. \<exists>y. y \<in> Y n" by auto
@@ -473,7 +469,7 @@ sublocale polish_projective \<subseteq> P: prob_space lim
 proof
   have *: "emb I {} {\<lambda>x. undefined} = space (\<Pi>\<^sub>M i\<in>I. borel)"
     by (auto simp: prod_emb_def space_PiM)
-  interpret prob_space "P {}" 
+  interpret prob_space "P {}"
     using prob_space_P by simp
   show "emeasure lim (space lim) = 1"
     using emeasure_lim_emb[of "{}" "{\<lambda>x. undefined}"] emeasure_space_1

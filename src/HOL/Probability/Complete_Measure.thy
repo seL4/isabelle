@@ -174,7 +174,7 @@ proof (subst emeasure_measure_of[OF completion_def completion_into_space])
   let ?\<mu> = "emeasure M \<circ> main_part M"
   show "S \<in> sets (completion M)" "?\<mu> S = emeasure M (main_part M S) " using S by simp_all
   show "positive (sets (completion M)) ?\<mu>"
-    by (simp add: positive_def emeasure_nonneg)
+    by (simp add: positive_def)
   show "countably_additive (sets (completion M)) ?\<mu>"
   proof (intro countably_additiveI)
     fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> sets (completion M)" "disjoint_family A"
@@ -266,9 +266,9 @@ proof -
   qed
 qed
 
-lemma completion_ex_borel_measurable_pos:
-  fixes g :: "'a \<Rightarrow> ereal"
-  assumes g: "g \<in> borel_measurable (completion M)" and "\<And>x. 0 \<le> g x"
+lemma completion_ex_borel_measurable:
+  fixes g :: "'a \<Rightarrow> ennreal"
+  assumes g: "g \<in> borel_measurable (completion M)"
   shows "\<exists>g'\<in>borel_measurable M. (AE x in M. g x = g' x)"
 proof -
   from g[THEN borel_measurable_implies_simple_function_sequence'] guess f . note f = this
@@ -284,34 +284,12 @@ proof -
     proof (elim AE_mp, safe intro!: AE_I2)
       fix x assume eq: "\<forall>i. f i x = f' i x"
       moreover have "g x = (SUP i. f i x)"
-        unfolding f using \<open>0 \<le> g x\<close> by (auto split: split_max)
+        unfolding f by (auto split: split_max)
       ultimately show "g x = ?f x" by auto
     qed
     show "?f \<in> borel_measurable M"
       using sf[THEN borel_measurable_simple_function] by auto
   qed
-qed
-
-lemma completion_ex_borel_measurable:
-  fixes g :: "'a \<Rightarrow> ereal"
-  assumes g: "g \<in> borel_measurable (completion M)"
-  shows "\<exists>g'\<in>borel_measurable M. (AE x in M. g x = g' x)"
-proof -
-  have "(\<lambda>x. max 0 (g x)) \<in> borel_measurable (completion M)" "\<And>x. 0 \<le> max 0 (g x)" using g by auto
-  from completion_ex_borel_measurable_pos[OF this] guess g_pos ..
-  moreover
-  have "(\<lambda>x. max 0 (- g x)) \<in> borel_measurable (completion M)" "\<And>x. 0 \<le> max 0 (- g x)" using g by auto
-  from completion_ex_borel_measurable_pos[OF this] guess g_neg ..
-  ultimately
-  show ?thesis
-  proof (safe intro!: bexI[of _ "\<lambda>x. g_pos x - g_neg x"])
-    show "AE x in M. max 0 (- g x) = g_neg x \<longrightarrow> max 0 (g x) = g_pos x \<longrightarrow> g x = g_pos x - g_neg x"
-    proof (intro AE_I2 impI)
-      fix x assume g: "max 0 (- g x) = g_neg x" "max 0 (g x) = g_pos x"
-      show "g x = g_pos x - g_neg x" unfolding g[symmetric]
-        by (cases "g x") (auto split: split_max)
-    qed
-  qed auto
 qed
 
 lemma (in prob_space) prob_space_completion: "prob_space (completion M)"

@@ -251,6 +251,10 @@ INCOMPATIBILITY.
 
 * Session HOL-NSA has been renamed to HOL-Nonstandard_Analysis.
 
+* In HOL-Probability the type of emeasure and nn_integral was changed
+from ereal to ennreal:
+  emeasure :: 'a measure => 'a set => ennreal
+  nn_integral :: 'a measure => ('a => ennreal) => ennreal
 
 *** ML ***
 

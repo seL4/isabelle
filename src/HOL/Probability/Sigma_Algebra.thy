@@ -13,7 +13,7 @@ imports
   "~~/src/HOL/Library/Countable_Set"
   "~~/src/HOL/Library/FuncSet"
   "~~/src/HOL/Library/Indicator_Function"
-  "~~/src/HOL/Library/Extended_Real"
+  "~~/src/HOL/Library/Extended_Nonnegative_Real"
   "~~/src/HOL/Library/Disjoint_Sets"
 begin
 
@@ -379,7 +379,7 @@ lemma (in sigma_algebra) sets_Collect_countable_Ex':
   shows "{x\<in>\<Omega>. \<exists>i\<in>I. P i x} \<in> M"
 proof -
   have "{x\<in>\<Omega>. \<exists>i\<in>I. P i x} = (\<Union>i\<in>I. {x\<in>\<Omega>. P i x})" by auto
-  with assms show ?thesis 
+  with assms show ?thesis
     by (auto intro!: countable_UN')
 qed
 
@@ -389,7 +389,7 @@ lemma (in sigma_algebra) sets_Collect_countable_All':
   shows "{x\<in>\<Omega>. \<forall>i\<in>I. P i x} \<in> M"
 proof -
   have "{x\<in>\<Omega>. \<forall>i\<in>I. P i x} = (\<Inter>i\<in>I. {x\<in>\<Omega>. P i x}) \<inter> \<Omega>" by auto
-  with assms show ?thesis 
+  with assms show ?thesis
     by (cases "I = {}") (auto intro!: countable_INT')
 qed
 
@@ -400,7 +400,7 @@ lemma (in sigma_algebra) sets_Collect_countable_Ex1':
 proof -
   have "{x\<in>\<Omega>. \<exists>!i\<in>I. P i x} = {x\<in>\<Omega>. \<exists>i\<in>I. P i x \<and> (\<forall>j\<in>I. P j x \<longrightarrow> i = j)}"
     by auto
-  with assms show ?thesis 
+  with assms show ?thesis
     by (auto intro!: sets_Collect_countable_All' sets_Collect_countable_Ex' sets_Collect_conj sets_Collect_imp sets_Collect_const)
 qed
 
@@ -888,7 +888,7 @@ proof (rule ring_of_setsI)
 
   { fix a assume a: "a \<in> ?R" then guess Ca .. note Ca = this
     fix b assume b: "b \<in> ?R" then guess Cb .. note Cb = this
-  
+
     show "a - b \<in> ?R"
     proof cases
       assume "Cb = {}" with Cb \<open>a \<in> ?R\<close> show ?thesis
@@ -929,7 +929,7 @@ qed (auto intro!: generated_ringI_Basic sigma_sets_mono)
 
 subsubsection \<open>A Two-Element Series\<close>
 
-definition binaryset :: "'a set \<Rightarrow> 'a set \<Rightarrow> nat \<Rightarrow> 'a set "
+definition binaryset :: "'a set \<Rightarrow> 'a set \<Rightarrow> nat \<Rightarrow> 'a set"
   where "binaryset A B = (\<lambda>x. {})(0 := A, Suc 0 := B)"
 
 lemma range_binaryset_eq: "range(binaryset A B) = {A,B,{}}"
@@ -1448,14 +1448,14 @@ qed
 
 subsection \<open>Measure type\<close>
 
-definition positive :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> bool" where
-  "positive M \<mu> \<longleftrightarrow> \<mu> {} = 0 \<and> (\<forall>A\<in>M. 0 \<le> \<mu> A)"
+definition positive :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> bool" where
+  "positive M \<mu> \<longleftrightarrow> \<mu> {} = 0"
 
-definition countably_additive :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> bool" where
+definition countably_additive :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> bool" where
   "countably_additive M f \<longleftrightarrow> (\<forall>A. range A \<subseteq> M \<longrightarrow> disjoint_family A \<longrightarrow> (\<Union>i. A i) \<in> M \<longrightarrow>
     (\<Sum>i. f (A i)) = f (\<Union>i. A i))"
 
-definition measure_space :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> bool" where
+definition measure_space :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> bool" where
   "measure_space \<Omega> A \<mu> \<longleftrightarrow> sigma_algebra \<Omega> A \<and> positive A \<mu> \<and> countably_additive A \<mu>"
 
 typedef 'a measure = "{(\<Omega>::'a set, A, \<mu>). (\<forall>a\<in>-A. \<mu> a = 0) \<and> measure_space \<Omega> A \<mu> }"
@@ -1472,11 +1472,11 @@ definition space :: "'a measure \<Rightarrow> 'a set" where
 definition sets :: "'a measure \<Rightarrow> 'a set set" where
   "sets M = fst (snd (Rep_measure M))"
 
-definition emeasure :: "'a measure \<Rightarrow> 'a set \<Rightarrow> ereal" where
+definition emeasure :: "'a measure \<Rightarrow> 'a set \<Rightarrow> ennreal" where
   "emeasure M = snd (snd (Rep_measure M))"
 
 definition measure :: "'a measure \<Rightarrow> 'a set \<Rightarrow> real" where
-  "measure M A = real_of_ereal (emeasure M A)"
+  "measure M A = enn2real (emeasure M A)"
 
 declare [[coercion sets]]
 
@@ -1490,7 +1490,7 @@ lemma measure_space: "measure_space (space M) (sets M) (emeasure M)"
 interpretation sets: sigma_algebra "space M" "sets M" for M :: "'a measure"
   using measure_space[of M] by (auto simp: measure_space_def)
 
-definition measure_of :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> 'a measure" where
+definition measure_of :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> 'a measure" where
   "measure_of \<Omega> A \<mu> = Abs_measure (\<Omega>, if A \<subseteq> Pow \<Omega> then sigma_sets \<Omega> A else {{}, \<Omega>},
     \<lambda>a. if a \<in> sigma_sets \<Omega> A \<and> measure_space \<Omega> (sigma_sets \<Omega> A) \<mu> then \<mu> a else 0)"
 
@@ -1546,8 +1546,8 @@ lemma
   shows space_measure_of_conv: "space (measure_of \<Omega> A \<mu>) = \<Omega>" (is ?space)
   and sets_measure_of_conv:
   "sets (measure_of \<Omega> A \<mu>) = (if A \<subseteq> Pow \<Omega> then sigma_sets \<Omega> A else {{}, \<Omega>})" (is ?sets)
-  and emeasure_measure_of_conv: 
-  "emeasure (measure_of \<Omega> A \<mu>) = 
+  and emeasure_measure_of_conv:
+  "emeasure (measure_of \<Omega> A \<mu>) =
   (\<lambda>B. if B \<in> sigma_sets \<Omega> A \<and> measure_space \<Omega> (sigma_sets \<Omega> A) \<mu> then \<mu> B else 0)" (is ?emeasure)
 proof -
   have "?space \<and> ?sets \<and> ?emeasure"
@@ -1663,7 +1663,7 @@ lemma emeasure_neq_0_sets: "emeasure M A \<noteq> 0 \<Longrightarrow> A \<in> se
   using emeasure_notin_sets[of A M] by blast
 
 lemma measure_notin_sets: "A \<notin> sets M \<Longrightarrow> measure M A = 0"
-  by (simp add: measure_def emeasure_notin_sets)
+  by (simp add: measure_def emeasure_notin_sets zero_ennreal.rep_eq)
 
 lemma measure_eqI:
   fixes M N :: "'a measure"
@@ -1737,7 +1737,7 @@ lemma measurable_sigma_sets:
 proof -
   interpret A: sigma_algebra \<Omega> "sigma_sets \<Omega> A" using B(2) by (rule sigma_algebra_sigma_sets)
   from B sets.top[of N] A.top sets.space_closed[of N] A.space_closed have \<Omega>: "\<Omega> = space N" by force
-  
+
   { fix X assume "X \<in> sigma_sets \<Omega> A"
     then have "f -` X \<inter> space M \<in> sets M \<and> X \<subseteq> \<Omega>"
       proof induct
@@ -1867,9 +1867,9 @@ lemma measurable_mono1:
 subsubsection \<open>Counting space\<close>
 
 definition count_space :: "'a set \<Rightarrow> 'a measure" where
-  "count_space \<Omega> = measure_of \<Omega> (Pow \<Omega>) (\<lambda>A. if finite A then ereal (card A) else \<infinity>)"
+  "count_space \<Omega> = measure_of \<Omega> (Pow \<Omega>) (\<lambda>A. if finite A then of_nat (card A) else \<infinity>)"
 
-lemma 
+lemma
   shows space_count_space[simp]: "space (count_space \<Omega>) = \<Omega>"
     and sets_count_space[simp]: "sets (count_space \<Omega>) = Pow \<Omega>"
   using sigma_sets_into_sp[of "Pow \<Omega>" \<Omega>]
@@ -1938,7 +1938,7 @@ lemma measurable_compose_rev:
   shows "(\<lambda>x. f (g x)) \<in> measurable M N"
   using measurable_compose[OF g f] .
 
-lemma measurable_empty_iff: 
+lemma measurable_empty_iff:
   "space N = {} \<Longrightarrow> f \<in> measurable M N \<longleftrightarrow> space M = {}"
   by (auto simp add: measurable_def Pi_iff)
 
@@ -2021,11 +2021,11 @@ lemma sets_Sup_sigma: "sets (Sup_sigma M) = sigma_sets (\<Union>x\<in>M. space x
 lemma in_Sup_sigma: "m \<in> M \<Longrightarrow> A \<in> sets m \<Longrightarrow> A \<in> sets (Sup_sigma M)"
   unfolding sets_Sup_sigma by auto
 
-lemma SUP_sigma_cong: 
+lemma SUP_sigma_cong:
   assumes *: "\<And>i. i \<in> I \<Longrightarrow> sets (M i) = sets (N i)" shows "sets (\<Squnion>\<^sub>\<sigma> i\<in>I. M i) = sets (\<Squnion>\<^sub>\<sigma> i\<in>I. N i)"
   using * sets_eq_imp_space_eq[OF *] by (simp add: Sup_sigma_def)
 
-lemma sets_Sup_in_sets: 
+lemma sets_Sup_in_sets:
   assumes "M \<noteq> {}"
   assumes "\<And>m. m \<in> M \<Longrightarrow> space m = space N"
   assumes "\<And>m. m \<in> M \<Longrightarrow> sets m \<subseteq> sets N"
@@ -2248,7 +2248,7 @@ lemma restrict_space_eq_vimage_algebra:
   apply (auto simp add: sets_vimage_algebra intro!: arg_cong2[where f=sigma_sets])
   done
 
-lemma sets_Collect_restrict_space_iff: 
+lemma sets_Collect_restrict_space_iff:
   assumes "S \<in> sets M"
   shows "{x\<in>space (restrict_space M S). P x} \<in> sets (restrict_space M S) \<longleftrightarrow> {x\<in>space M. x \<in> S \<and> P x} \<in> sets M"
 proof -
@@ -2365,4 +2365,3 @@ lemma measurable_discrete_difference:
      (auto simp: eq[symmetric] space_restrict_space cong: measurable_cong' intro: f measurable_restrict_space1)
 
 end
-

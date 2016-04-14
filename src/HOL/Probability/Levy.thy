@@ -25,17 +25,17 @@ proof -
   have 1: "cmod (?F t - (b - a)) \<le> a^2 / 2 * abs t + b^2 / 2 * abs t" if "t \<noteq> 0" for t
   proof -
     have "cmod (?F t - (b - a)) = cmod (
-        (iexp (-(t * a)) - (1 + ii * -(t * a))) / (ii * t) - 
-        (iexp (-(t * b)) - (1 + ii * -(t * b))) / (ii * t))"  
+        (iexp (-(t * a)) - (1 + ii * -(t * a))) / (ii * t) -
+        (iexp (-(t * b)) - (1 + ii * -(t * b))) / (ii * t))"
            (is "_ = cmod (?one / (ii * t) - ?two / (ii * t))")
       using `t \<noteq> 0` by (intro arg_cong[where f=norm]) (simp add: field_simps)
-    also have "\<dots> \<le> cmod (?one / (ii * t)) + cmod (?two / (ii * t))" 
+    also have "\<dots> \<le> cmod (?one / (ii * t)) + cmod (?two / (ii * t))"
       by (rule norm_triangle_ineq4)
     also have "cmod (?one / (ii * t)) = cmod ?one / abs t"
       by (simp add: norm_divide norm_mult)
     also have "cmod (?two / (ii * t)) = cmod ?two / abs t"
-      by (simp add: norm_divide norm_mult)      
-    also have "cmod ?one / abs t + cmod ?two / abs t \<le> 
+      by (simp add: norm_divide norm_mult)
+    also have "cmod ?one / abs t + cmod ?two / abs t \<le>
         ((- (a * t))^2 / 2) / abs t + ((- (b * t))^2 / 2) / abs t"
       apply (rule add_mono)
       apply (rule divide_right_mono)
@@ -71,7 +71,7 @@ proof -
     using iexp_approx1 [of "t * (b - a)" 0]
     by (intro divide_right_mono) (auto simp add: field_simps eval_nat_numeral)
   also have "\<dots> = b - a"
-    using assms by (auto simp add: abs_mult) 
+    using assms by (auto simp add: abs_mult)
   finally show ?thesis .
 qed
 
@@ -109,7 +109,7 @@ proof -
       also have "\<dots> + ?t = (CLBINT t=(0::real)..T. ?f (-t) x + ?f t x)"
         using 1
         by (intro interval_lebesgue_integral_add(2) [symmetric] interval_integrable_mirror[THEN iffD2]) simp_all
-      also have "\<dots> = (CLBINT t=(0::real)..T. ((iexp(t * (x - a)) - iexp (-(t * (x - a)))) -  
+      also have "\<dots> = (CLBINT t=(0::real)..T. ((iexp(t * (x - a)) - iexp (-(t * (x - a)))) -
           (iexp(t * (x - b)) - iexp (-(t * (x - b))))) / (ii * t))"
         using `T \<ge> 0` by (intro interval_integral_cong) (auto simp add: divide_simps)
       also have "\<dots> = (CLBINT t=(0::real)..T. complex_of_real(
@@ -120,7 +120,7 @@ proof -
         unfolding minus_diff_eq[symmetric, of "y * x" "y * a" for y a] sin_minus cos_minus
         apply (simp add: field_simps power2_eq_square)
         done
-      also have "\<dots> = complex_of_real (LBINT t=(0::real)..T. 
+      also have "\<dots> = complex_of_real (LBINT t=(0::real)..T.
           2 * (sin (t * (x - a)) / t) - 2 * (sin (t * (x - b)) / t))"
         by (rule interval_lebesgue_integral_of_real)
       also have "\<dots> = complex_of_real (2 * (sgn (x - a) * Si (T * abs (x - a)) -
@@ -133,7 +133,7 @@ proof -
       finally have "(CLBINT t. ?f' (t, x)) =
           2 * (sgn (x - a) * Si (T * abs (x - a)) - sgn (x - b) * Si (T * abs (x - b)))" .
     } note main_eq = this
-    have "(CLBINT t=-T..T. ?F t * \<phi> t) = 
+    have "(CLBINT t=-T..T. ?F t * \<phi> t) =
       (CLBINT t. (CLINT x | M. ?F t * iexp (t * x) * indicator {-T<..<T} t))"
       using `T \<ge> 0` unfolding \<phi>_def char_def interval_lebesgue_integral_def
       by (auto split: split_indicator intro!: integral_cong)
@@ -142,24 +142,26 @@ proof -
     also have "\<dots> = (CLINT x | M. (CLBINT t. ?f' (t, x)))"
     proof (intro P.Fubini_integral [symmetric] integrableI_bounded_set [where B="b - a"])
       show "emeasure (lborel \<Otimes>\<^sub>M M) ({- T<..<T} \<times> space M) < \<infinity>"
-        using \<open>T \<ge> 0\<close> by (subst emeasure_pair_measure_Times) auto
+        using \<open>T \<ge> 0\<close>
+        by (subst emeasure_pair_measure_Times)
+           (auto simp: ennreal_mult_less_top not_less top_unique)
       show "AE x\<in>{- T<..<T} \<times> space M in lborel \<Otimes>\<^sub>M M. cmod (case x of (t, x) \<Rightarrow> ?f' (t, x)) \<le> b - a"
         using Levy_Inversion_aux2[of "x - b" "x - a" for x] `a \<le> b`
         by (intro AE_I [of _ _ "{0} \<times> UNIV"]) (force simp: emeasure_pair_measure_Times)+
     qed (auto split: split_indicator split_indicator_asm)
-    also have "\<dots> = (CLINT x | M. (complex_of_real (2 * (sgn (x - a) * 
+    also have "\<dots> = (CLINT x | M. (complex_of_real (2 * (sgn (x - a) *
          Si (T * abs (x - a)) - sgn (x - b) * Si (T * abs (x - b))))))"
        using main_eq by (intro integral_cong, auto)
-    also have "\<dots> = complex_of_real (LINT x | M. (2 * (sgn (x - a) * 
+    also have "\<dots> = complex_of_real (LINT x | M. (2 * (sgn (x - a) *
          Si (T * abs (x - a)) - sgn (x - b) * Si (T * abs (x - b)))))"
        by (rule integral_complex_of_real)
-    finally have "(CLBINT t=-T..T. ?F t * \<phi> t) = 
-        complex_of_real (LINT x | M. (2 * (sgn (x - a) * 
+    finally have "(CLBINT t=-T..T. ?F t * \<phi> t) =
+        complex_of_real (LINT x | M. (2 * (sgn (x - a) *
          Si (T * abs (x - a)) - sgn (x - b) * Si (T * abs (x - b)))))" .
   } note main_eq2 = this
 
-  have "(\<lambda>T :: nat. LINT x | M. (2 * (sgn (x - a) * 
-         Si (T * abs (x - a)) - sgn (x - b) * Si (T * abs (x - b))))) \<longlonglongrightarrow> 
+  have "(\<lambda>T :: nat. LINT x | M. (2 * (sgn (x - a) *
+         Si (T * abs (x - a)) - sgn (x - b) * Si (T * abs (x - b))))) \<longlonglongrightarrow>
        (LINT x | M. 2 * pi * indicator {a<..b} x)"
   proof (rule integral_dominated_convergence [where w="\<lambda>x. 4 * B"])
     show "integrable M (\<lambda>x. 4 * B)"
@@ -191,11 +193,11 @@ proof -
         using x `a \<le> b` by (auto split: split_indicator)
       finally show "(\<lambda>n. 2 * ?S n x) \<longlonglongrightarrow> 2 * pi * indicator {a<..b} x" .
     qed
-  qed simp_all 
+  qed simp_all
   also have "(LINT x | M. 2 * pi * indicator {a<..b} x) = 2 * pi * \<mu> {a<..b}"
     by (simp add: \<mu>_def)
-  finally have "(\<lambda>T. LINT x | M. (2 * (sgn (x - a) * 
-         Si (T * abs (x - a)) - sgn (x - b) * Si (T * abs (x - b))))) \<longlonglongrightarrow> 
+  finally have "(\<lambda>T. LINT x | M. (2 * (sgn (x - a) *
+         Si (T * abs (x - a)) - sgn (x - b) * Si (T * abs (x - b))))) \<longlonglongrightarrow>
        2 * pi * \<mu> {a<..b}" .
   with main_eq2 show ?thesis
     by (auto intro!: tendsto_eq_intros)
@@ -233,7 +235,7 @@ proof -
         "measure M1 {a} = 0" "measure M2 {a} = 0" "a < M" "a \<le> x" "\<bar>cdf M1 a\<bar> < \<epsilon> / 4" "\<bar>cdf M2 a\<bar> < \<epsilon> / 4"
         by auto
 
-      from `\<epsilon> > 0` `(cdf M1 \<longlongrightarrow> cdf M1 x) (at_right x)` `(cdf M2 \<longlongrightarrow> cdf M2 x) (at_right x)` 
+      from `\<epsilon> > 0` `(cdf M1 \<longlongrightarrow> cdf M1 x) (at_right x)` `(cdf M2 \<longlongrightarrow> cdf M2 x) (at_right x)`
       have "eventually (\<lambda>y. \<bar>cdf M1 y - cdf M1 x\<bar> < \<epsilon> / 4 \<and> \<bar>cdf M2 y - cdf M2 x\<bar> < \<epsilon> / 4 \<and> x < y) (at_right x)"
         by (simp only: tendsto_iff dist_real_def eventually_conj eventually_at_right_less)
       then obtain N where "N > x" "\<And>y. x < y \<Longrightarrow> y < N \<Longrightarrow> \<bar>cdf M1 y - cdf M1 x\<bar> < \<epsilon> / 4"
@@ -269,9 +271,9 @@ proof -
         by (intro add_mono less_imp_le \<open>\<bar>cdf M2 x - cdf M2 b\<bar> < \<epsilon> / 4\<close> \<open>\<bar>cdf M2 a\<bar> < \<epsilon> / 4\<close>)
       finally have 2: "abs (cdf M2 x - (cdf M2 b - cdf M2 a)) \<le> \<epsilon> / 2" by simp
 
-      have "abs (cdf M1 x - cdf M2 x) = abs ((cdf M1 x - (cdf M1 b - cdf M1 a)) - 
+      have "abs (cdf M1 x - cdf M2 x) = abs ((cdf M1 x - (cdf M1 b - cdf M1 a)) -
           (cdf M2 x - (cdf M2 b - cdf M2 a)))" by (subst *, simp)
-      also have "\<dots> \<le> abs (cdf M1 x - (cdf M1 b - cdf M1 a)) + 
+      also have "\<dots> \<le> abs (cdf M1 x - (cdf M1 b - cdf M1 a)) +
           abs (cdf M2 x - (cdf M2 b - cdf M2 a))" by (rule abs_triangle_ineq4)
       also have "\<dots> \<le> \<epsilon> / 2 + \<epsilon> / 2" by (rule add_mono [OF 1 2])
       finally have "abs (cdf M1 x - cdf M2 x) \<le> \<epsilon>" by simp }
@@ -295,13 +297,13 @@ theorem levy_continuity:
   fixes M :: "nat \<Rightarrow> real measure" and M' :: "real measure"
   assumes real_distr_M : "\<And>n. real_distribution (M n)"
     and real_distr_M': "real_distribution M'"
-    and char_conv: "\<And>t. (\<lambda>n. char (M n) t) \<longlonglongrightarrow> char M' t" 
+    and char_conv: "\<And>t. (\<lambda>n. char (M n) t) \<longlonglongrightarrow> char M' t"
   shows "weak_conv_m M M'"
 proof -
   interpret Mn: real_distribution "M n" for n by fact
   interpret M': real_distribution M' by fact
 
-  have *: "\<And>u x. u > 0 \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> (CLBINT t:{-u..u}. 1 - iexp (t * x)) = 
+  have *: "\<And>u x. u > 0 \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> (CLBINT t:{-u..u}. 1 - iexp (t * x)) =
       2 * (u  - sin (u * x) / x)"
   proof -
     fix u :: real and x :: real
@@ -331,7 +333,7 @@ proof -
     finally show "(CLBINT t:{-u..u}. 1 - iexp (t * x)) = 2 * (u  - sin (u * x) / x)"
       by (simp add: field_simps)
   qed
-  have main_bound: "\<And>u n. u > 0 \<Longrightarrow> Re (CLBINT t:{-u..u}. 1 - char (M n) t) \<ge> 
+  have main_bound: "\<And>u n. u > 0 \<Longrightarrow> Re (CLBINT t:{-u..u}. 1 - char (M n) t) \<ge>
     u * measure (M n) {x. abs x \<ge> 2 / u}"
   proof -
     fix u :: real and n
@@ -345,9 +347,10 @@ proof -
     have Mn3: "set_integrable (M n \<Otimes>\<^sub>M lborel) (UNIV \<times> {- u..u}) (\<lambda>a. 1 - exp (\<i> * complex_of_real (snd a * fst a)))"
       using `0 < u`
       by (intro integrableI_bounded_set_indicator [where B="2"])
-         (auto simp: lborel.emeasure_pair_measure_Times split: split_indicator
+         (auto simp: lborel.emeasure_pair_measure_Times ennreal_mult_less_top not_less top_unique
+               split: split_indicator
                intro!: order_trans [OF norm_triangle_ineq4])
-    have "(CLBINT t:{-u..u}. 1 - char (M n) t) = 
+    have "(CLBINT t:{-u..u}. 1 - char (M n) t) =
         (CLBINT t:{-u..u}. (CLINT x | M n. 1 - iexp (t * x)))"
       unfolding char_def by (rule set_lebesgue_integral_cong, auto simp del: of_real_mult)
     also have "\<dots> = (CLBINT t. (CLINT x | M n. indicator {-u..u} t *\<^sub>R (1 - iexp (t * x))))"
@@ -358,7 +361,7 @@ proof -
       using `u > 0` by (intro integral_cong, auto simp add: * simp del: of_real_mult)
     also have "\<dots> = (LINT x | M n. (if x = 0 then 0 else 2 * (u  - sin (u * x) / x)))"
       by (rule integral_complex_of_real)
-    finally have "Re (CLBINT t:{-u..u}. 1 - char (M n) t) = 
+    finally have "Re (CLBINT t:{-u..u}. 1 - char (M n) t) =
        (LINT x | M n. (if x = 0 then 0 else 2 * (u  - sin (u * x) / x)))" by simp
     also have "\<dots> \<ge> (LINT x : {x. abs x \<ge> 2 / u} | M n. u)"
     proof -
@@ -377,9 +380,10 @@ proof -
       ultimately show ?thesis
         using `u > 0`
         by (intro integral_mono [OF _ **])
-           (auto simp: divide_simps sin_x_le_x mult.commute[of u] mult_neg_pos split: split_indicator)
+           (auto simp: divide_simps sin_x_le_x mult.commute[of u] mult_neg_pos top_unique less_top[symmetric]
+                 split: split_indicator)
     qed
-    also (xtrans) have "(LINT x : {x. abs x \<ge> 2 / u} | M n. u) = 
+    also (xtrans) have "(LINT x : {x. abs x \<ge> 2 / u} | M n. u) =
         u * measure (M n) {x. abs x \<ge> 2 / u}"
       by (simp add: Mn.emeasure_eq_measure)
     finally show "Re (CLBINT t:{-u..u}. 1 - char (M n) t) \<ge> u * measure (M n) {x. abs x \<ge> 2 / u}" .
@@ -423,7 +427,7 @@ proof -
     have "(\<lambda>n. CLBINT t:{-d/2..d/2}. 1 - char (M n) t) \<longlonglongrightarrow> (CLBINT t:{-d/2..d/2}. 1 - char M' t)"
       using bd1
       apply (intro integral_dominated_convergence[where w="\<lambda>x. indicator {-d/2..d/2} x *\<^sub>R 2"])
-      apply (auto intro!: char_conv tendsto_intros 
+      apply (auto intro!: char_conv tendsto_intros
                   simp: emeasure_lborel_Icc_eq
                   split: split_indicator)
       done
@@ -438,20 +442,20 @@ proof -
         (CLBINT t:{-d/2..d/2}. 1 - char M' t)) < d * \<epsilon> / 4" by auto
     { fix n
       assume "n \<ge> N"
-      have "cmod (CLBINT t:{-d/2..d/2}. 1 - char (M n) t) = 
+      have "cmod (CLBINT t:{-d/2..d/2}. 1 - char (M n) t) =
         cmod ((CLBINT t:{-d/2..d/2}. 1 - char (M n) t) - (CLBINT t:{-d/2..d/2}. 1 - char M' t)
           + (CLBINT t:{-d/2..d/2}. 1 - char M' t))" by simp
-      also have "\<dots> \<le> cmod ((CLBINT t:{-d/2..d/2}. 1 - char (M n) t) - 
+      also have "\<dots> \<le> cmod ((CLBINT t:{-d/2..d/2}. 1 - char (M n) t) -
           (CLBINT t:{-d/2..d/2}. 1 - char M' t)) + cmod(CLBINT t:{-d/2..d/2}. 1 - char M' t)"
         by (rule norm_triangle_ineq)
-      also have "\<dots> < d * \<epsilon> / 4 + d * \<epsilon> / 4" 
+      also have "\<dots> < d * \<epsilon> / 4 + d * \<epsilon> / 4"
         by (rule add_less_le_mono [OF N [OF `n \<ge> N`] bound])
       also have "\<dots> = d * \<epsilon> / 2" by auto
       finally have "cmod (CLBINT t:{-d/2..d/2}. 1 - char (M n) t) < d * \<epsilon> / 2" .
       hence "d * \<epsilon> / 2 > Re (CLBINT t:{-d/2..d/2}. 1 - char (M n) t)"
         by (rule order_le_less_trans [OF complex_Re_le_cmod])
       hence "d * \<epsilon> / 2 > Re (CLBINT t:{-(d/2)..d/2}. 1 - char (M n) t)" (is "_ > ?lhs") by simp
-      also have "?lhs \<ge> (d / 2) * measure (M n) {x. abs x \<ge> 2 / (d / 2)}" 
+      also have "?lhs \<ge> (d / 2) * measure (M n) {x. abs x \<ge> 2 / (d / 2)}"
         using d0 by (intro main_bound, simp)
       finally (xtrans) have "d * \<epsilon> / 2 > (d / 2) * measure (M n) {x. abs x \<ge> 2 / (d / 2)}" .
       with d0 `\<epsilon> > 0` have "\<epsilon> > measure (M n) {x. abs x \<ge> 2 / (d / 2)}" by (simp add: field_simps)
@@ -473,7 +477,7 @@ proof -
     { fix n :: nat
       have *: "(UN (k :: nat). {- real k<..real k}) = UNIV"
         by (auto, metis leI le_less_trans less_imp_le minus_less_iff reals_Archimedean2)
-      have "(\<lambda>k. measure (M n) {- real k<..real k}) \<longlonglongrightarrow> 
+      have "(\<lambda>k. measure (M n) {- real k<..real k}) \<longlonglongrightarrow>
           measure (M n) (UN (k :: nat). {- real k<..real k})"
         by (rule Mn.finite_Lim_measure_incseq, auto simp add: incseq_def)
       hence "(\<lambda>k. measure (M n) {- real k<..real k}) \<longlonglongrightarrow> 1"
@@ -490,11 +494,11 @@ proof -
           by eventually_elim (auto simp add: less_Suc_eq)
       qed simp
     } note 8 = this
-    from 8 [of N] have "\<exists>K :: nat. \<forall>k \<ge> K. \<forall>m<N. 1 - \<epsilon> < 
+    from 8 [of N] have "\<exists>K :: nat. \<forall>k \<ge> K. \<forall>m<N. 1 - \<epsilon> <
         Sigma_Algebra.measure (M m) {- real k<..real k}"
       by (auto simp add: eventually_sequentially)
     hence "\<exists>K :: nat. \<forall>m<N. 1 - \<epsilon> < Sigma_Algebra.measure (M m) {- real K<..real K}" by auto
-    then obtain K :: nat where 
+    then obtain K :: nat where
       "\<forall>m<N. 1 - \<epsilon> < Sigma_Algebra.measure (M m) {- real K<..real K}" ..
     hence K: "\<And>m. m < N \<Longrightarrow> 1 - \<epsilon> < Sigma_Algebra.measure (M m) {- real K<..real K}"
       by auto
@@ -504,7 +508,7 @@ proof -
       apply (rule max.strict_coboundedI2, auto)
     proof -
       fix n
-      show " 1 - \<epsilon> < measure (M n) {- max (real K) (4 / d)<..max (real K) (4 / d)}"      
+      show " 1 - \<epsilon> < measure (M n) {- max (real K) (4 / d)<..max (real K) (4 / d)}"
         apply (case_tac "n < N")
         apply (rule order_less_le_trans)
         apply (erule K)
@@ -512,7 +516,7 @@ proof -
         apply (rule order_less_le_trans)
         apply (rule 6, erule leI)
         by (rule Mn.finite_measure_mono, auto)
-    qed 
+    qed
     thus "\<exists>a b. a < b \<and> (\<forall>n. 1 - \<epsilon> < measure (M n) {a<..b})" by (intro exI)
   qed
   have tight: "tight M"
@@ -530,8 +534,8 @@ proof -
       by (subst 4, rule LIMSEQ_subseq_LIMSEQ [OF _ s], rule assms)
     hence "char \<nu> = char M'" by (intro ext, intro LIMSEQ_unique [OF 3 5])
     hence "\<nu> = M'" by (rule Levy_uniqueness [OF * `real_distribution M'`])
-    thus "weak_conv_m (M \<circ> s) M'" 
-      by (elim subst) (rule nu)  
+    thus "weak_conv_m (M \<circ> s) M'"
+      by (elim subst) (rule nu)
   qed
 qed
 

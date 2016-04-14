@@ -36,9 +36,9 @@ proof -
 
   def A \<equiv> "\<lambda>m n. {x\<in>space M. dist (f x) (e n) < 1 / (Suc m) \<and> 1 / (Suc m) \<le> dist (f x) z}"
   def B \<equiv> "\<lambda>m. disjointed (A m)"
-  
+
   def m \<equiv> "\<lambda>N x. Max {m::nat. m \<le> N \<and> x \<in> (\<Union>n\<le>N. B m n)}"
-  def F \<equiv> "\<lambda>N::nat. \<lambda>x. if (\<exists>m\<le>N. x \<in> (\<Union>n\<le>N. B m n)) \<and> (\<exists>n\<le>N. x \<in> B (m N x) n) 
+  def F \<equiv> "\<lambda>N::nat. \<lambda>x. if (\<exists>m\<le>N. x \<in> (\<Union>n\<le>N. B m n)) \<and> (\<exists>n\<le>N. x \<in> B (m N x) n)
     then e (LEAST n. x \<in> B (m N x) n) else z"
 
   have B_imp_A[intro, simp]: "\<And>x m n. x \<in> B m n \<Longrightarrow> x \<in> A m n"
@@ -75,13 +75,13 @@ proof -
       { fix n x assume "x \<in> B (m i x) n"
         then have "(LEAST n. x \<in> B (m i x) n) \<le> n"
           by (intro Least_le)
-        also assume "n \<le> i" 
+        also assume "n \<le> i"
         finally have "(LEAST n. x \<in> B (m i x) n) \<le> i" . }
       then have "F i ` space M \<subseteq> {z} \<union> e ` {.. i}"
         by (auto simp: F_def)
       then show "finite (F i ` space M)"
         by (rule finite_subset) auto }
-    
+
     { fix N i n x assume "i \<le> N" "n \<le> N" "x \<in> B i n"
       then have 1: "\<exists>m\<le>N. x \<in> (\<Union>n\<le>N. B m n)" by auto
       from m[OF this] obtain n where n: "m N x \<le> N" "n \<le> N" "x \<in> B (m N x) n" by auto
@@ -137,7 +137,7 @@ proof -
         qed
       qed
     qed
-    fix i 
+    fix i
     { fix n m assume "x \<in> A n m"
       then have "dist (e m) (f x) + dist (f x) z \<le> 2 * dist (f x) z"
         unfolding A_def by (auto simp: dist_commute)
@@ -152,13 +152,6 @@ proof -
       done
   qed
 qed
-
-lemma real_indicator: "real_of_ereal (indicator A x :: ereal) = indicator A x"
-  unfolding indicator_def by auto
-
-lemma split_indicator_asm:
-  "P (indicator S x) \<longleftrightarrow> \<not> ((x \<in> S \<and> \<not> P 1) \<or> (x \<notin> S \<and> \<not> P 0))"
-  unfolding indicator_def by auto
 
 lemma
   fixes f :: "'a \<Rightarrow> 'b::semiring_1" assumes "finite A"
@@ -176,40 +169,39 @@ lemma borel_measurable_induct_real[consumes 2, case_names set mult add seq]:
   assumes seq: "\<And>U. (\<And>i. U i \<in> borel_measurable M) \<Longrightarrow> (\<And>i x. 0 \<le> U i x) \<Longrightarrow> (\<And>i. P (U i)) \<Longrightarrow> incseq U \<Longrightarrow> (\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. U i x) \<longlonglongrightarrow> u x) \<Longrightarrow> P u"
   shows "P u"
 proof -
-  have "(\<lambda>x. ereal (u x)) \<in> borel_measurable M" using u by auto
+  have "(\<lambda>x. ennreal (u x)) \<in> borel_measurable M" using u by auto
   from borel_measurable_implies_simple_function_sequence'[OF this]
-  obtain U where U: "\<And>i. simple_function M (U i)" "incseq U" "\<And>i. \<infinity> \<notin> range (U i)" and
-    sup: "\<And>x. (SUP i. U i x) = max 0 (ereal (u x))" and nn: "\<And>i x. 0 \<le> U i x"
+  obtain U where U: "\<And>i. simple_function M (U i)" "incseq U" "\<And>i x. U i x < top" and
+    sup: "\<And>x. (SUP i. U i x) = ennreal (u x)"
     by blast
 
-  def U' \<equiv> "\<lambda>i x. indicator (space M) x * real_of_ereal (U i x)"
+  def U' \<equiv> "\<lambda>i x. indicator (space M) x * enn2real (U i x)"
   then have U'_sf[measurable]: "\<And>i. simple_function M (U' i)"
-    using U by (auto intro!: simple_function_compose1[where g=real_of_ereal])
+    using U by (auto intro!: simple_function_compose1[where g=enn2real])
 
   show "P u"
   proof (rule seq)
-    fix i show "U' i \<in> borel_measurable M" "\<And>x. 0 \<le> U' i x"
-      using U nn by (auto
-          intro: borel_measurable_simple_function 
-          intro!: borel_measurable_real_of_ereal real_of_ereal_pos borel_measurable_times
-          simp: U'_def zero_le_mult_iff)
+    show U': "U' i \<in> borel_measurable M" "\<And>x. 0 \<le> U' i x" for i
+      using U by (auto
+          intro: borel_measurable_simple_function
+          intro!: borel_measurable_enn2real borel_measurable_times
+          simp: U'_def zero_le_mult_iff enn2real_nonneg)
     show "incseq U'"
-      using U(2,3) nn
-      by (auto simp: incseq_def le_fun_def image_iff eq_commute U'_def indicator_def
-               intro!: real_of_ereal_positive_mono)
-  next
+      using U(2,3)
+      by (auto simp: incseq_def le_fun_def image_iff eq_commute U'_def indicator_def enn2real_mono)
+
     fix x assume x: "x \<in> space M"
     have "(\<lambda>i. U i x) \<longlonglongrightarrow> (SUP i. U i x)"
       using U(2) by (intro LIMSEQ_SUP) (auto simp: incseq_def le_fun_def)
-    moreover have "(\<lambda>i. U i x) = (\<lambda>i. ereal (U' i x))"
-      using x nn U(3) by (auto simp: fun_eq_iff U'_def ereal_real image_iff eq_commute)
-    moreover have "(SUP i. U i x) = ereal (u x)"
+    moreover have "(\<lambda>i. U i x) = (\<lambda>i. ennreal (U' i x))"
+      using x U(3) by (auto simp: fun_eq_iff U'_def image_iff eq_commute)
+    moreover have "(SUP i. U i x) = ennreal (u x)"
       using sup u(2) by (simp add: max_def)
-    ultimately show "(\<lambda>i. U' i x) \<longlonglongrightarrow> u x" 
-      by simp
+    ultimately show "(\<lambda>i. U' i x) \<longlonglongrightarrow> u x"
+      using u U' by simp
   next
     fix i
-    have "U' i ` space M \<subseteq> real_of_ereal ` (U i ` space M)" "finite (U i ` space M)"
+    have "U' i ` space M \<subseteq> enn2real ` (U i ` space M)" "finite (U i ` space M)"
       unfolding U'_def using U(1) by (auto dest: simple_functionD)
     then have fin: "finite (U' i ` space M)"
       by (metis finite_subset finite_imageI)
@@ -218,7 +210,7 @@ proof -
     ultimately have U': "(\<lambda>z. \<Sum>y\<in>U' i`space M. y * indicator {x\<in>space M. U' i x = y} z) = U' i"
       by (simp add: U'_def fun_eq_iff)
     have "\<And>x. x \<in> U' i ` space M \<Longrightarrow> 0 \<le> x"
-      using nn by (auto simp: U'_def real_of_ereal_pos)
+      by (auto simp: U'_def enn2real_nonneg)
     with fin have "P (\<lambda>z. \<Sum>y\<in>U' i`space M. y * indicator {x\<in>space M. U' i x = y} z)"
     proof induct
       case empty from set[of "{}"] show ?case
@@ -227,7 +219,7 @@ proof -
       case (insert x F)
       then show ?case
         by (auto intro!: add mult set setsum_nonneg split: split_indicator split_indicator_asm
-                 simp del: setsum_mult_indicator simp: setsum_nonneg_eq_0_iff )
+                 simp del: setsum_mult_indicator simp: setsum_nonneg_eq_0_iff)
     qed
     with U' show "P (U' i)" by simp
   qed
@@ -257,14 +249,14 @@ proof (safe intro!: simple_bochner_integrable.intros elim!: simple_bochner_integ
     by (auto intro: measurable_simple_function)
 
   assume fin: "emeasure M {y \<in> space M. f y \<noteq> 0} \<noteq> \<infinity>" "emeasure M {y \<in> space M. g y \<noteq> 0} \<noteq> \<infinity>"
-   
+
   have "emeasure M {x\<in>space M. p (f x) (g x) \<noteq> 0} \<le>
       emeasure M ({x\<in>space M. f x \<noteq> 0} \<union> {x\<in>space M. g x \<noteq> 0})"
     by (intro emeasure_mono) (auto simp: p_0)
   also have "\<dots> \<le> emeasure M {x\<in>space M. f x \<noteq> 0} + emeasure M {x\<in>space M. g x \<noteq> 0}"
     by (intro emeasure_subadditive) auto
   finally show "emeasure M {y \<in> space M. p (f y) (g y) \<noteq> 0} \<noteq> \<infinity>"
-    using fin by auto
+    using fin by (auto simp: top_unique)
 qed
 
 lemma simple_function_finite_support:
@@ -282,7 +274,7 @@ proof cases
   then have m: "0 < m"
     using nn by (auto simp: less_le)
 
-  from m have "m * emeasure M {x\<in>space M. 0 \<noteq> f x} = 
+  from m have "m * emeasure M {x\<in>space M. 0 \<noteq> f x} =
     (\<integral>\<^sup>+x. m * indicator {x\<in>space M. 0 \<noteq> f x} x \<partial>M)"
     using f by (intro nn_integral_cmult_indicator[symmetric]) auto
   also have "\<dots> \<le> (\<integral>\<^sup>+x. f x \<partial>M)"
@@ -294,7 +286,7 @@ proof cases
   qed
   also note \<open>\<dots> < \<infinity>\<close>
   finally show ?thesis
-    using m by auto 
+    using m by (auto simp: ennreal_mult_less_top)
 next
   assume "\<not> (\<exists>x\<in>space M. f x \<noteq> 0)"
   with nn have *: "{x\<in>space M. f x \<noteq> 0} = {}"
@@ -306,11 +298,11 @@ lemma simple_bochner_integrableI_bounded:
   assumes f: "simple_function M f" and fin: "(\<integral>\<^sup>+x. norm (f x) \<partial>M) < \<infinity>"
   shows "simple_bochner_integrable M f"
 proof
-  have "emeasure M {y \<in> space M. ereal (norm (f y)) \<noteq> 0} \<noteq> \<infinity>"
+  have "emeasure M {y \<in> space M. ennreal (norm (f y)) \<noteq> 0} \<noteq> \<infinity>"
   proof (rule simple_function_finite_support)
-    show "simple_function M (\<lambda>x. ereal (norm (f x)))"
+    show "simple_function M (\<lambda>x. ennreal (norm (f x)))"
       using f by (rule simple_function_compose1)
-    show "(\<integral>\<^sup>+ y. ereal (norm (f y)) \<partial>M) < \<infinity>" by fact
+    show "(\<integral>\<^sup>+ y. ennreal (norm (f y)) \<partial>M) < \<infinity>" by fact
   qed simp
   then show "emeasure M {y \<in> space M. f y \<noteq> 0} \<noteq> \<infinity>" by simp
 qed fact
@@ -340,12 +332,12 @@ proof -
   note eq = this
 
   have "simple_bochner_integral M f =
-    (\<Sum>y\<in>f`space M. (\<Sum>z\<in>g`space M. 
+    (\<Sum>y\<in>f`space M. (\<Sum>z\<in>g`space M.
       if \<exists>x\<in>space M. y = f x \<and> z = g x then measure M {x\<in>space M. g x = z} else 0) *\<^sub>R y)"
     unfolding simple_bochner_integral_def
   proof (safe intro!: setsum.cong scaleR_cong_right)
     fix y assume y: "y \<in> space M" "f y \<noteq> 0"
-    have [simp]: "g ` space M \<inter> {z. \<exists>x\<in>space M. f y = f x \<and> z = g x} = 
+    have [simp]: "g ` space M \<inter> {z. \<exists>x\<in>space M. f y = f x \<and> z = g x} =
         {z. \<exists>x\<in>space M. f y = f x \<and> z = g x}"
       by auto
     have eq:"{x \<in> space M. f x = f y} =
@@ -361,16 +353,16 @@ proof -
       then have "emeasure M {y \<in> space M. g y = g x} \<le> emeasure M {y \<in> space M. f y \<noteq> 0}"
         by (auto intro!: emeasure_mono cong: sub)
       then have "emeasure M {xa \<in> space M. g xa = g x} < \<infinity>"
-        using f by (auto simp: simple_bochner_integrable.simps) }
+        using f by (auto simp: simple_bochner_integrable.simps less_top) }
     ultimately
     show "measure M {x \<in> space M. f x = f y} =
       (\<Sum>z\<in>g ` space M. if \<exists>x\<in>space M. f y = f x \<and> z = g x then measure M {x \<in> space M. g x = z} else 0)"
       apply (simp add: setsum.If_cases eq)
       apply (subst measure_finite_Union[symmetric])
-      apply (auto simp: disjoint_family_on_def)
+      apply (auto simp: disjoint_family_on_def less_top)
       done
   qed
-  also have "\<dots> = (\<Sum>y\<in>f`space M. (\<Sum>z\<in>g`space M. 
+  also have "\<dots> = (\<Sum>y\<in>f`space M. (\<Sum>z\<in>g`space M.
       if \<exists>x\<in>space M. y = f x \<and> z = g x then measure M {x\<in>space M. g x = z} *\<^sub>R y else 0))"
     by (auto intro!: setsum.cong simp: scaleR_setsum_left)
   also have "\<dots> = ?r"
@@ -435,11 +427,11 @@ lemma simple_bochner_integral_norm_bound:
   assumes f: "simple_bochner_integrable M f"
   shows "norm (simple_bochner_integral M f) \<le> simple_bochner_integral M (\<lambda>x. norm (f x))"
 proof -
-  have "norm (simple_bochner_integral M f) \<le> 
+  have "norm (simple_bochner_integral M f) \<le>
     (\<Sum>y\<in>f ` space M. norm (measure M {x \<in> space M. f x = y} *\<^sub>R y))"
     unfolding simple_bochner_integral_def by (rule norm_setsum)
   also have "\<dots> = (\<Sum>y\<in>f ` space M. measure M {x \<in> space M. f x = y} *\<^sub>R norm y)"
-    by (simp add: measure_nonneg)
+    by simp
   also have "\<dots> = simple_bochner_integral M (\<lambda>x. norm (f x))"
     using f
     by (intro simple_bochner_integral_partition[symmetric])
@@ -447,36 +439,41 @@ proof -
   finally show ?thesis .
 qed
 
+lemma simple_bochner_integral_nonneg[simp]:
+  fixes f :: "'a \<Rightarrow> real"
+  shows "(\<And>x. 0 \<le> f x) \<Longrightarrow> 0 \<le> simple_bochner_integral M f"
+  by (simp add: setsum_nonneg simple_bochner_integral_def)
+
 lemma simple_bochner_integral_eq_nn_integral:
   assumes f: "simple_bochner_integrable M f" "\<And>x. 0 \<le> f x"
   shows "simple_bochner_integral M f = (\<integral>\<^sup>+x. f x \<partial>M)"
 proof -
-  { fix x y z have "(x \<noteq> 0 \<Longrightarrow> y = z) \<Longrightarrow> ereal x * y = ereal x * z"
-      by (cases "x = 0") (auto simp: zero_ereal_def[symmetric]) }
-  note ereal_cong_mult = this
+  { fix x y z have "(x \<noteq> 0 \<Longrightarrow> y = z) \<Longrightarrow> ennreal x * y = ennreal x * z"
+      by (cases "x = 0") (auto simp: zero_ennreal_def[symmetric]) }
+  note ennreal_cong_mult = this
 
   have [measurable]: "f \<in> borel_measurable M"
     using f(1) by (auto intro: borel_measurable_simple_function elim: simple_bochner_integrable.cases)
 
   { fix y assume y: "y \<in> space M" "f y \<noteq> 0"
-    have "ereal (measure M {x \<in> space M. f x = f y}) = emeasure M {x \<in> space M. f x = f y}"
-    proof (rule emeasure_eq_ereal_measure[symmetric])
+    have "ennreal (measure M {x \<in> space M. f x = f y}) = emeasure M {x \<in> space M. f x = f y}"
+    proof (rule emeasure_eq_ennreal_measure[symmetric])
       have "emeasure M {x \<in> space M. f x = f y} \<le> emeasure M {x \<in> space M. f x \<noteq> 0}"
         using y by (intro emeasure_mono) auto
-      with f show "emeasure M {x \<in> space M. f x = f y} \<noteq> \<infinity>"
-        by (auto simp: simple_bochner_integrable.simps)
+      with f show "emeasure M {x \<in> space M. f x = f y} \<noteq> top"
+        by (auto simp: simple_bochner_integrable.simps top_unique)
     qed
-    moreover have "{x \<in> space M. f x = f y} = (\<lambda>x. ereal (f x)) -` {ereal (f y)} \<inter> space M"
-      by auto
-    ultimately have "ereal (measure M {x \<in> space M. f x = f y}) =
-          emeasure M ((\<lambda>x. ereal (f x)) -` {ereal (f y)} \<inter> space M)" by simp }
+    moreover have "{x \<in> space M. f x = f y} = (\<lambda>x. ennreal (f x)) -` {ennreal (f y)} \<inter> space M"
+      using f by auto
+    ultimately have "ennreal (measure M {x \<in> space M. f x = f y}) =
+          emeasure M ((\<lambda>x. ennreal (f x)) -` {ennreal (f y)} \<inter> space M)" by simp }
   with f have "simple_bochner_integral M f = (\<integral>\<^sup>Sx. f x \<partial>M)"
     unfolding simple_integral_def
-    by (subst simple_bochner_integral_partition[OF f(1), where g="\<lambda>x. ereal (f x)" and v=real_of_ereal])
+    by (subst simple_bochner_integral_partition[OF f(1), where g="\<lambda>x. ennreal (f x)" and v=enn2real])
        (auto intro: f simple_function_compose1 elim: simple_bochner_integrable.cases
-             intro!: setsum.cong ereal_cong_mult
-             simp: setsum_ereal[symmetric] times_ereal.simps(1)[symmetric] ac_simps
-             simp del: setsum_ereal times_ereal.simps(1))
+             intro!: setsum.cong ennreal_cong_mult
+             simp: setsum_ennreal[symmetric] ac_simps ennreal_mult
+             simp del: setsum_ennreal)
   also have "\<dots> = (\<integral>\<^sup>+x. f x \<partial>M)"
     using f
     by (intro nn_integral_eq_simple_integral[symmetric])
@@ -488,14 +485,14 @@ lemma simple_bochner_integral_bounded:
   fixes f :: "'a \<Rightarrow> 'b::{real_normed_vector, second_countable_topology}"
   assumes f[measurable]: "f \<in> borel_measurable M"
   assumes s: "simple_bochner_integrable M s" and t: "simple_bochner_integrable M t"
-  shows "ereal (norm (simple_bochner_integral M s - simple_bochner_integral M t)) \<le>
+  shows "ennreal (norm (simple_bochner_integral M s - simple_bochner_integral M t)) \<le>
     (\<integral>\<^sup>+ x. norm (f x - s x) \<partial>M) + (\<integral>\<^sup>+ x. norm (f x - t x) \<partial>M)"
-    (is "ereal (norm (?s - ?t)) \<le> ?S + ?T")
+    (is "ennreal (norm (?s - ?t)) \<le> ?S + ?T")
 proof -
   have [measurable]: "s \<in> borel_measurable M" "t \<in> borel_measurable M"
     using s t by (auto intro: borel_measurable_simple_function elim: simple_bochner_integrable.cases)
 
-  have "ereal (norm (?s - ?t)) = norm (simple_bochner_integral M (\<lambda>x. s x - t x))"
+  have "ennreal (norm (?s - ?t)) = norm (simple_bochner_integral M (\<lambda>x. s x - t x))"
     using s t by (subst simple_bochner_integral_diff) auto
   also have "\<dots> \<le> simple_bochner_integral M (\<lambda>x. norm (s x - t x))"
     using simple_bochner_integrable_compose2[of "op -" M "s" "t"] s t
@@ -503,8 +500,8 @@ proof -
   also have "\<dots> = (\<integral>\<^sup>+x. norm (s x - t x) \<partial>M)"
     using simple_bochner_integrable_compose2[of "\<lambda>x y. norm (x - y)" M "s" "t"] s t
     by (auto intro!: simple_bochner_integral_eq_nn_integral)
-  also have "\<dots> \<le> (\<integral>\<^sup>+x. ereal (norm (f x - s x)) + ereal (norm (f x - t x)) \<partial>M)"
-    by (auto intro!: nn_integral_mono)
+  also have "\<dots> \<le> (\<integral>\<^sup>+x. ennreal (norm (f x - s x)) + ennreal (norm (f x - t x)) \<partial>M)"
+    by (auto intro!: nn_integral_mono simp: ennreal_plus[symmetric] simp del: ennreal_plus)
        (metis (erased, hide_lams) add_diff_cancel_left add_diff_eq diff_add_eq order_trans
               norm_minus_commute norm_triangle_ineq4 order_refl)
   also have "\<dots> = ?S + ?T"
@@ -545,9 +542,9 @@ lemma borel_measurable_has_bochner_integral'[measurable_dest]:
 lemma has_bochner_integral_simple_bochner_integrable:
   "simple_bochner_integrable M f \<Longrightarrow> has_bochner_integral M f (simple_bochner_integral M f)"
   by (rule has_bochner_integral.intros[where s="\<lambda>_. f"])
-     (auto intro: borel_measurable_simple_function 
+     (auto intro: borel_measurable_simple_function
            elim: simple_bochner_integrable.cases
-           simp: zero_ereal_def[symmetric])
+           simp: zero_ennreal_def[symmetric])
 
 lemma has_bochner_integral_real_indicator:
   assumes [measurable]: "A \<in> sets M" and A: "emeasure M A < \<infinity>"
@@ -562,7 +559,7 @@ proof -
   qed (rule simple_function_indicator assms)+
   moreover have "simple_bochner_integral M (indicator A) = measure M A"
     using simple_bochner_integral_eq_nn_integral[OF sbi] A
-    by (simp add: ereal_indicator emeasure_eq_ereal_measure)
+    by (simp add: ennreal_indicator emeasure_eq_ennreal_measure)
   ultimately show ?thesis
     by (metis has_bochner_integral_simple_bochner_integrable)
 qed
@@ -588,18 +585,19 @@ proof (safe intro!: has_bochner_integral.intros elim!: has_bochner_integral.case
     (is "?f \<longlonglongrightarrow> 0")
   proof (rule tendsto_sandwich)
     show "eventually (\<lambda>n. 0 \<le> ?f n) sequentially" "(\<lambda>_. 0) \<longlonglongrightarrow> 0"
-      by (auto simp: nn_integral_nonneg)
+      by auto
     show "eventually (\<lambda>i. ?f i \<le> (\<integral>\<^sup>+ x. (norm (f x - sf i x)) \<partial>M) + \<integral>\<^sup>+ x. (norm (g x - sg i x)) \<partial>M) sequentially"
       (is "eventually (\<lambda>i. ?f i \<le> ?g i) sequentially")
     proof (intro always_eventually allI)
-      fix i have "?f i \<le> (\<integral>\<^sup>+ x. (norm (f x - sf i x)) + ereal (norm (g x - sg i x)) \<partial>M)"
-        by (auto intro!: nn_integral_mono norm_diff_triangle_ineq)
+      fix i have "?f i \<le> (\<integral>\<^sup>+ x. (norm (f x - sf i x)) + ennreal (norm (g x - sg i x)) \<partial>M)"
+        by (auto intro!: nn_integral_mono norm_diff_triangle_ineq
+                 simp del: ennreal_plus simp add: ennreal_plus[symmetric])
       also have "\<dots> = ?g i"
         by (intro nn_integral_add) auto
       finally show "?f i \<le> ?g i" .
     qed
     show "?g \<longlonglongrightarrow> 0"
-      using tendsto_add_ereal[OF _ _ f_sf g_sg] by simp
+      using tendsto_add[OF f_sf g_sg] by simp
   qed
 qed (auto simp: simple_bochner_integral_add tendsto_add)
 
@@ -629,19 +627,19 @@ proof (safe intro!: has_bochner_integral.intros elim!: has_bochner_integral.case
     (is "?f \<longlonglongrightarrow> 0")
   proof (rule tendsto_sandwich)
     show "eventually (\<lambda>n. 0 \<le> ?f n) sequentially" "(\<lambda>_. 0) \<longlonglongrightarrow> 0"
-      by (auto simp: nn_integral_nonneg)
+      by auto
 
     show "eventually (\<lambda>i. ?f i \<le> K * (\<integral>\<^sup>+ x. norm (f x - s i x) \<partial>M)) sequentially"
       (is "eventually (\<lambda>i. ?f i \<le> ?g i) sequentially")
     proof (intro always_eventually allI)
-      fix i have "?f i \<le> (\<integral>\<^sup>+ x. ereal K * norm (f x - s i x) \<partial>M)"
-        using K by (intro nn_integral_mono) (auto simp: ac_simps)
+      fix i have "?f i \<le> (\<integral>\<^sup>+ x. ennreal K * norm (f x - s i x) \<partial>M)"
+        using K by (intro nn_integral_mono) (auto simp: ac_simps ennreal_mult[symmetric])
       also have "\<dots> = ?g i"
         using K by (intro nn_integral_cmult) auto
       finally show "?f i \<le> ?g i" .
     qed
     show "?g \<longlonglongrightarrow> 0"
-      using tendsto_cmult_ereal[OF _ f_s, of "ereal K"] by simp
+      using ennreal_tendsto_cmult[OF _ f_s] by simp
   qed
 
   assume "(\<lambda>i. simple_bochner_integral M (s i)) \<longlonglongrightarrow> x"
@@ -651,7 +649,7 @@ qed
 
 lemma has_bochner_integral_zero[intro]: "has_bochner_integral M (\<lambda>x. 0) 0"
   by (auto intro!: has_bochner_integral.intros[where s="\<lambda>_ _. 0"]
-           simp: zero_ereal_def[symmetric] simple_bochner_integrable.simps
+           simp: zero_ennreal_def[symmetric] simple_bochner_integrable.simps
                  simple_bochner_integral_def image_constant_conv)
 
 lemma has_bochner_integral_scaleR_left[intro]:
@@ -672,7 +670,7 @@ lemma has_bochner_integral_mult_right[intro]:
   shows "(c \<noteq> 0 \<Longrightarrow> has_bochner_integral M f x) \<Longrightarrow> has_bochner_integral M (\<lambda>x. c * f x) (c * x)"
   by (cases "c = 0") (auto simp add: has_bochner_integral_bounded_linear[OF bounded_linear_mult_right])
 
-lemmas has_bochner_integral_divide = 
+lemmas has_bochner_integral_divide =
   has_bochner_integral_bounded_linear[OF bounded_linear_divide]
 
 lemma has_bochner_integral_divide_zero[intro]:
@@ -724,11 +722,10 @@ lemma has_bochner_integral_implies_finite_norm:
 proof (elim has_bochner_integral.cases)
   fix s v
   assume [measurable]: "f \<in> borel_measurable M" and s: "\<And>i. simple_bochner_integrable M (s i)" and
-    lim_0: "(\<lambda>i. \<integral>\<^sup>+ x. ereal (norm (f x - s i x)) \<partial>M) \<longlonglongrightarrow> 0"
+    lim_0: "(\<lambda>i. \<integral>\<^sup>+ x. ennreal (norm (f x - s i x)) \<partial>M) \<longlonglongrightarrow> 0"
   from order_tendstoD[OF lim_0, of "\<infinity>"]
-  obtain i where f_s_fin: "(\<integral>\<^sup>+ x. ereal (norm (f x - s i x)) \<partial>M) < \<infinity>"
-    by (metis (mono_tags, lifting) eventually_False_sequentially eventually_mono
-              less_ereal.simps(4) zero_ereal_def)
+  obtain i where f_s_fin: "(\<integral>\<^sup>+ x. ennreal (norm (f x - s i x)) \<partial>M) < \<infinity>"
+    by (auto simp: eventually_sequentially)
 
   have [measurable]: "\<And>i. s i \<in> borel_measurable M"
     using s by (auto intro: borel_measurable_simple_function elim: simple_bochner_integrable.cases)
@@ -740,19 +737,20 @@ proof (elim has_bochner_integral.cases)
     by (rule finite_imageI)
   then have "\<And>x. x \<in> space M \<Longrightarrow> norm (s i x) \<le> m" "0 \<le> m"
     by (auto simp: m_def image_comp comp_def Max_ge_iff)
-  then have "(\<integral>\<^sup>+x. norm (s i x) \<partial>M) \<le> (\<integral>\<^sup>+x. ereal m * indicator {x\<in>space M. s i x \<noteq> 0} x \<partial>M)"
+  then have "(\<integral>\<^sup>+x. norm (s i x) \<partial>M) \<le> (\<integral>\<^sup>+x. ennreal m * indicator {x\<in>space M. s i x \<noteq> 0} x \<partial>M)"
     by (auto split: split_indicator intro!: Max_ge nn_integral_mono simp:)
   also have "\<dots> < \<infinity>"
-    using s by (subst nn_integral_cmult_indicator) (auto simp: \<open>0 \<le> m\<close> simple_bochner_integrable.simps)
+    using s by (subst nn_integral_cmult_indicator) (auto simp: \<open>0 \<le> m\<close> simple_bochner_integrable.simps ennreal_mult_less_top less_top)
   finally have s_fin: "(\<integral>\<^sup>+x. norm (s i x) \<partial>M) < \<infinity>" .
 
-  have "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) \<le> (\<integral>\<^sup>+ x. ereal (norm (f x - s i x)) + ereal (norm (s i x)) \<partial>M)"
-    by (auto intro!: nn_integral_mono) (metis add.commute norm_triangle_sub)
+  have "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) \<le> (\<integral>\<^sup>+ x. ennreal (norm (f x - s i x)) + ennreal (norm (s i x)) \<partial>M)"
+    by (auto intro!: nn_integral_mono simp del: ennreal_plus simp add: ennreal_plus[symmetric])
+       (metis add.commute norm_triangle_sub)
   also have "\<dots> = (\<integral>\<^sup>+x. norm (f x - s i x) \<partial>M) + (\<integral>\<^sup>+x. norm (s i x) \<partial>M)"
     by (rule nn_integral_add) auto
   also have "\<dots> < \<infinity>"
     using s_fin f_s_fin by auto
-  finally show "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) < \<infinity>" .
+  finally show "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M) < \<infinity>" .
 qed
 
 lemma has_bochner_integral_norm_bound:
@@ -762,7 +760,7 @@ using assms proof
   fix s assume
     x: "(\<lambda>i. simple_bochner_integral M (s i)) \<longlonglongrightarrow> x" (is "?s \<longlonglongrightarrow> x") and
     s[simp]: "\<And>i. simple_bochner_integrable M (s i)" and
-    lim: "(\<lambda>i. \<integral>\<^sup>+ x. ereal (norm (f x - s i x)) \<partial>M) \<longlonglongrightarrow> 0" and
+    lim: "(\<lambda>i. \<integral>\<^sup>+ x. ennreal (norm (f x - s i x)) \<partial>M) \<longlonglongrightarrow> 0" and
     f[measurable]: "f \<in> borel_measurable M"
 
   have [measurable]: "\<And>i. s i \<in> borel_measurable M"
@@ -770,28 +768,28 @@ using assms proof
 
   show "norm x \<le> (\<integral>\<^sup>+x. norm (f x) \<partial>M)"
   proof (rule LIMSEQ_le)
-    show "(\<lambda>i. ereal (norm (?s i))) \<longlonglongrightarrow> norm x"
-      using x by (intro tendsto_intros lim_ereal[THEN iffD2])
+    show "(\<lambda>i. ennreal (norm (?s i))) \<longlonglongrightarrow> norm x"
+      using x by (auto simp: tendsto_ennreal_iff intro: tendsto_intros)
     show "\<exists>N. \<forall>n\<ge>N. norm (?s n) \<le> (\<integral>\<^sup>+x. norm (f x - s n x) \<partial>M) + (\<integral>\<^sup>+x. norm (f x) \<partial>M)"
       (is "\<exists>N. \<forall>n\<ge>N. _ \<le> ?t n")
     proof (intro exI allI impI)
       fix n
-      have "ereal (norm (?s n)) \<le> simple_bochner_integral M (\<lambda>x. norm (s n x))"
+      have "ennreal (norm (?s n)) \<le> simple_bochner_integral M (\<lambda>x. norm (s n x))"
         by (auto intro!: simple_bochner_integral_norm_bound)
       also have "\<dots> = (\<integral>\<^sup>+x. norm (s n x) \<partial>M)"
         by (intro simple_bochner_integral_eq_nn_integral)
            (auto intro: s simple_bochner_integrable_compose2)
-      also have "\<dots> \<le> (\<integral>\<^sup>+x. ereal (norm (f x - s n x)) + norm (f x) \<partial>M)"
-        by (auto intro!: nn_integral_mono)
+      also have "\<dots> \<le> (\<integral>\<^sup>+x. ennreal (norm (f x - s n x)) + norm (f x) \<partial>M)"
+        by (auto intro!: nn_integral_mono simp del: ennreal_plus simp add: ennreal_plus[symmetric])
            (metis add.commute norm_minus_commute norm_triangle_sub)
-      also have "\<dots> = ?t n" 
+      also have "\<dots> = ?t n"
         by (rule nn_integral_add) auto
       finally show "norm (?s n) \<le> ?t n" .
     qed
-    have "?t \<longlonglongrightarrow> 0 + (\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M)"
+    have "?t \<longlonglongrightarrow> 0 + (\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M)"
       using has_bochner_integral_implies_finite_norm[OF i]
-      by (intro tendsto_add_ereal tendsto_const lim) auto
-    then show "?t \<longlonglongrightarrow> \<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M"
+      by (intro tendsto_add tendsto_const lim)
+    then show "?t \<longlonglongrightarrow> \<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M"
       by simp
   qed
 qed
@@ -816,19 +814,18 @@ proof (elim has_bochner_integral.cases)
   then have "(\<lambda>i. norm (?s i - ?t i)) \<longlonglongrightarrow> norm (x - y)"
     by (intro tendsto_intros)
   moreover
-  have "(\<lambda>i. ereal (norm (?s i - ?t i))) \<longlonglongrightarrow> ereal 0"
+  have "(\<lambda>i. ennreal (norm (?s i - ?t i))) \<longlonglongrightarrow> ennreal 0"
   proof (rule tendsto_sandwich)
-    show "eventually (\<lambda>i. 0 \<le> ereal (norm (?s i - ?t i))) sequentially" "(\<lambda>_. 0) \<longlonglongrightarrow> ereal 0"
-      by (auto simp: nn_integral_nonneg zero_ereal_def[symmetric])
+    show "eventually (\<lambda>i. 0 \<le> ennreal (norm (?s i - ?t i))) sequentially" "(\<lambda>_. 0) \<longlonglongrightarrow> ennreal 0"
+      by auto
 
     show "eventually (\<lambda>i. norm (?s i - ?t i) \<le> ?S i + ?T i) sequentially"
       by (intro always_eventually allI simple_bochner_integral_bounded s t f)
-    show "(\<lambda>i. ?S i + ?T i) \<longlonglongrightarrow> ereal 0"
-      using tendsto_add_ereal[OF _ _ \<open>?S \<longlonglongrightarrow> 0\<close> \<open>?T \<longlonglongrightarrow> 0\<close>]
-      by (simp add: zero_ereal_def[symmetric])
+    show "(\<lambda>i. ?S i + ?T i) \<longlonglongrightarrow> ennreal 0"
+      using tendsto_add[OF \<open>?S \<longlonglongrightarrow> 0\<close> \<open>?T \<longlonglongrightarrow> 0\<close>] by simp
   qed
   then have "(\<lambda>i. norm (?s i - ?t i)) \<longlonglongrightarrow> 0"
-    by simp
+    by (simp add: ennreal_0[symmetric] del: ennreal_0)
   ultimately have "norm (x - y) = 0"
     by (rule LIMSEQ_unique)
   then show "x = y" by simp
@@ -841,11 +838,11 @@ lemma has_bochner_integralI_AE:
   shows "has_bochner_integral M g x"
   using f
 proof (safe intro!: has_bochner_integral.intros elim!: has_bochner_integral.cases)
-  fix s assume "(\<lambda>i. \<integral>\<^sup>+ x. ereal (norm (f x - s i x)) \<partial>M) \<longlonglongrightarrow> 0"
-  also have "(\<lambda>i. \<integral>\<^sup>+ x. ereal (norm (f x - s i x)) \<partial>M) = (\<lambda>i. \<integral>\<^sup>+ x. ereal (norm (g x - s i x)) \<partial>M)"
+  fix s assume "(\<lambda>i. \<integral>\<^sup>+ x. ennreal (norm (f x - s i x)) \<partial>M) \<longlonglongrightarrow> 0"
+  also have "(\<lambda>i. \<integral>\<^sup>+ x. ennreal (norm (f x - s i x)) \<partial>M) = (\<lambda>i. \<integral>\<^sup>+ x. ennreal (norm (g x - s i x)) \<partial>M)"
     using ae
     by (intro ext nn_integral_cong_AE, eventually_elim) simp
-  finally show "(\<lambda>i. \<integral>\<^sup>+ x. ereal (norm (g x - s i x)) \<partial>M) \<longlonglongrightarrow> 0" .
+  finally show "(\<lambda>i. \<integral>\<^sup>+ x. ennreal (norm (g x - s i x)) \<partial>M) \<longlonglongrightarrow> 0" .
 qed (auto intro: g)
 
 lemma has_bochner_integral_eq_AE:
@@ -966,14 +963,14 @@ lemma integrable_add[simp, intro]: "integrable M f \<Longrightarrow> integrable 
   by (auto simp: integrable.simps)
 
 lemma integrable_zero[simp, intro]: "integrable M (\<lambda>x. 0)"
-  by (metis has_bochner_integral_zero integrable.simps) 
+  by (metis has_bochner_integral_zero integrable.simps)
 
 lemma integrable_setsum[simp, intro]: "(\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)) \<Longrightarrow> integrable M (\<lambda>x. \<Sum>i\<in>I. f i x)"
-  by (metis has_bochner_integral_setsum integrable.simps) 
+  by (metis has_bochner_integral_setsum integrable.simps)
 
 lemma integrable_indicator[simp, intro]: "A \<in> sets M \<Longrightarrow> emeasure M A < \<infinity> \<Longrightarrow>
   integrable M (\<lambda>x. indicator A x *\<^sub>R c)"
-  by (metis has_bochner_integral_indicator integrable.simps) 
+  by (metis has_bochner_integral_indicator integrable.simps)
 
 lemma integrable_real_indicator[simp, intro]: "A \<in> sets M \<Longrightarrow> emeasure M A < \<infinity> \<Longrightarrow>
   integrable M (indicator A :: 'a \<Rightarrow> real)"
@@ -981,7 +978,7 @@ lemma integrable_real_indicator[simp, intro]: "A \<in> sets M \<Longrightarrow> 
 
 lemma integrable_diff[simp, intro]: "integrable M f \<Longrightarrow> integrable M g \<Longrightarrow> integrable M (\<lambda>x. f x - g x)"
   by (auto simp: integrable.simps intro: has_bochner_integral_diff)
-  
+
 lemma integrable_bounded_linear: "bounded_linear T \<Longrightarrow> integrable M f \<Longrightarrow> integrable M (\<lambda>x. T (f x))"
   by (auto simp: integrable.simps intro: has_bochner_integral_bounded_linear)
 
@@ -1140,7 +1137,7 @@ lemmas integral_fst[simp] =
 lemmas integral_snd[simp] =
   integral_bounded_linear[OF bounded_linear_snd]
 
-lemma integral_norm_bound_ereal:
+lemma integral_norm_bound_ennreal:
   "integrable M f \<Longrightarrow> norm (integral\<^sup>L M f) \<le> (\<integral>\<^sup>+x. norm (f x) \<partial>M)"
   by (metis has_bochner_integral_integrable has_bochner_integral_norm_bound)
 
@@ -1157,7 +1154,7 @@ proof -
     unfolding convergent_eq_cauchy
   proof (rule metric_CauchyI)
     fix e :: real assume "0 < e"
-    then have "0 < ereal (e / 2)" by auto
+    then have "0 < ennreal (e / 2)" by auto
     from order_tendstoD(2)[OF lim this]
     obtain M where M: "\<And>n. M \<le> n \<Longrightarrow> ?S n < e / 2"
       by (auto simp: eventually_sequentially)
@@ -1168,12 +1165,11 @@ proof -
         using M[OF n] by auto
       have "norm (?s n - ?s m) \<le> ?S n + ?S m"
         by (intro simple_bochner_integral_bounded s f)
-      also have "\<dots> < ereal (e / 2) + e / 2"
-        using ereal_add_strict_mono[OF less_imp_le[OF M[OF n]] _ \<open>?S n \<noteq> \<infinity>\<close> M[OF m]]
-        by (auto simp: nn_integral_nonneg)
-      also have "\<dots> = e" by simp
+      also have "\<dots> < ennreal (e / 2) + e / 2"
+        by (intro add_strict_mono M n m)
+      also have "\<dots> = e" using \<open>0<e\<close> by (simp del: ennreal_plus add: ennreal_plus[symmetric])
       finally show "dist (?s n) (?s m) < e"
-        by (simp add: dist_norm)
+        using \<open>0<e\<close> by (simp add: dist_norm ennreal_less_iff)
     qed
   qed
   then obtain x where "?s \<longlonglongrightarrow> x" ..
@@ -1203,20 +1199,22 @@ proof -
       by (rule norm_triangle_ineq4)
     finally (xtrans) show "norm (u' x - u i x) \<le> 2 * w x" .
   qed
-  
+  have w_nonneg: "AE x in M. 0 \<le> w x"
+    using bound[of 0] by (auto intro: order_trans[OF norm_ge_zero])
+
   have "(\<lambda>i. (\<integral>\<^sup>+x. norm (u' x - u i x) \<partial>M)) \<longlonglongrightarrow> (\<integral>\<^sup>+x. 0 \<partial>M)"
-  proof (rule nn_integral_dominated_convergence)  
+  proof (rule nn_integral_dominated_convergence)
     show "(\<integral>\<^sup>+x. 2 * w x \<partial>M) < \<infinity>"
-      by (rule nn_integral_mult_bounded_inf[OF _ w, of 2]) auto
-    show "AE x in M. (\<lambda>i. ereal (norm (u' x - u i x))) \<longlonglongrightarrow> 0"
-      using u' 
+      by (rule nn_integral_mult_bounded_inf[OF _ w, of 2]) (insert w_nonneg, auto simp: ennreal_mult )
+    show "AE x in M. (\<lambda>i. ennreal (norm (u' x - u i x))) \<longlonglongrightarrow> 0"
+      using u'
     proof eventually_elim
       fix x assume "(\<lambda>i. u i x) \<longlonglongrightarrow> u' x"
       from tendsto_diff[OF tendsto_const[of "u' x"] this]
-      show "(\<lambda>i. ereal (norm (u' x - u i x))) \<longlonglongrightarrow> 0"
-        by (simp add: zero_ereal_def tendsto_norm_zero_iff)
+      show "(\<lambda>i. ennreal (norm (u' x - u i x))) \<longlonglongrightarrow> 0"
+        by (simp add: tendsto_norm_zero_iff ennreal_0[symmetric] del: ennreal_0)
     qed
-  qed (insert bnd, auto)
+  qed (insert bnd w_nonneg, auto)
   then show ?thesis by simp
 qed
 
@@ -1230,29 +1228,31 @@ proof -
     pointwise: "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. s i x) \<longlonglongrightarrow> f x" and
     bound: "\<And>i x. x \<in> space M \<Longrightarrow> norm (s i x) \<le> 2 * norm (f x)"
     by simp metis
-  
+
   show ?thesis
   proof (rule integrableI_sequence)
     { fix i
-      have "(\<integral>\<^sup>+x. norm (s i x) \<partial>M) \<le> (\<integral>\<^sup>+x. 2 * ereal (norm (f x)) \<partial>M)"
+      have "(\<integral>\<^sup>+x. norm (s i x) \<partial>M) \<le> (\<integral>\<^sup>+x. ennreal (2 * norm (f x)) \<partial>M)"
         by (intro nn_integral_mono) (simp add: bound)
-      also have "\<dots> = 2 * (\<integral>\<^sup>+x. ereal (norm (f x)) \<partial>M)"
-        by (rule nn_integral_cmult) auto
+      also have "\<dots> = 2 * (\<integral>\<^sup>+x. ennreal (norm (f x)) \<partial>M)"
+        by (simp add: ennreal_mult nn_integral_cmult)
+      also have "\<dots> < top"
+        using fin by (simp add: ennreal_mult_less_top)
       finally have "(\<integral>\<^sup>+x. norm (s i x) \<partial>M) < \<infinity>"
-        using fin by auto }
+        by simp }
     note fin_s = this
 
     show "\<And>i. simple_bochner_integrable M (s i)"
       by (rule simple_bochner_integrableI_bounded) fact+
 
-    show "(\<lambda>i. \<integral>\<^sup>+ x. ereal (norm (f x - s i x)) \<partial>M) \<longlonglongrightarrow> 0"
+    show "(\<lambda>i. \<integral>\<^sup>+ x. ennreal (norm (f x - s i x)) \<partial>M) \<longlonglongrightarrow> 0"
     proof (rule nn_integral_dominated_convergence_norm)
       show "\<And>j. AE x in M. norm (s j x) \<le> 2 * norm (f x)"
         using bound by auto
       show "\<And>i. s i \<in> borel_measurable M" "(\<lambda>x. 2 * norm (f x)) \<in> borel_measurable M"
         using s by (auto intro: borel_measurable_simple_function)
-      show "(\<integral>\<^sup>+ x. ereal (2 * norm (f x)) \<partial>M) < \<infinity>"
-        using fin unfolding times_ereal.simps(1)[symmetric] by (subst nn_integral_cmult) auto
+      show "(\<integral>\<^sup>+ x. ennreal (2 * norm (f x)) \<partial>M) < \<infinity>"
+        using fin by (simp add: nn_integral_cmult ennreal_mult ennreal_mult_less_top)
       show "AE x in M. (\<lambda>i. s i x) \<longlonglongrightarrow> f x"
         using pointwise by auto
     qed fact
@@ -1269,11 +1269,11 @@ lemma integrableI_bounded_set:
 proof (rule integrableI_bounded)
   { fix x :: 'b have "norm x \<le> B \<Longrightarrow> 0 \<le> B"
       using norm_ge_zero[of x] by arith }
-  with bnd null have "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) \<le> (\<integral>\<^sup>+ x. ereal (max 0 B) * indicator A x \<partial>M)"
+  with bnd null have "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M) \<le> (\<integral>\<^sup>+ x. ennreal (max 0 B) * indicator A x \<partial>M)"
     by (intro nn_integral_mono_AE) (auto split: split_indicator split_max)
   also have "\<dots> < \<infinity>"
-    using finite by (subst nn_integral_cmult_indicator) (auto simp: max_def)
-  finally show "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) < \<infinity>" .
+    using finite by (subst nn_integral_cmult_indicator) (auto simp: ennreal_mult_less_top)
+  finally show "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M) < \<infinity>" .
 qed simp
 
 lemma integrableI_bounded_set_indicator:
@@ -1309,11 +1309,11 @@ lemma integrable_bound:
 proof safe
   assume "f \<in> borel_measurable M" "g \<in> borel_measurable M"
   assume "AE x in M. norm (g x) \<le> norm (f x)"
-  then have "(\<integral>\<^sup>+ x. ereal (norm (g x)) \<partial>M) \<le> (\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M)"
+  then have "(\<integral>\<^sup>+ x. ennreal (norm (g x)) \<partial>M) \<le> (\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M)"
     by  (intro nn_integral_mono_AE) auto
-  also assume "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) < \<infinity>"
-  finally show "(\<integral>\<^sup>+ x. ereal (norm (g x)) \<partial>M) < \<infinity>" .
-qed 
+  also assume "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M) < \<infinity>"
+  finally show "(\<integral>\<^sup>+ x. ennreal (norm (g x)) \<partial>M) < \<infinity>" .
+qed
 
 lemma integrable_mult_indicator:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -1334,7 +1334,7 @@ lemma integrable_norm[simp, intro]:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes [measurable]: "integrable M f" shows "integrable M (\<lambda>x. norm (f x))"
   using assms by (rule integrable_bound) auto
-  
+
 lemma integrable_norm_cancel:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes [measurable]: "integrable M (\<lambda>x. norm (f x))" "f \<in> borel_measurable M" shows "integrable M f"
@@ -1376,7 +1376,7 @@ lemma integral_minus_iff[simp]:
 
 lemma integrable_indicator_iff:
   "integrable M (indicator A::_ \<Rightarrow> real) \<longleftrightarrow> A \<inter> space M \<in> sets M \<and> emeasure M (A \<inter> space M) < \<infinity>"
-  by (simp add: integrable_iff_bounded borel_measurable_indicator_iff ereal_indicator nn_integral_indicator'
+  by (simp add: integrable_iff_bounded borel_measurable_indicator_iff ennreal_indicator nn_integral_indicator'
            cong: conj_cong)
 
 lemma integral_indicator[simp]: "integral\<^sup>L M (indicator A) = measure M (A \<inter> space M)"
@@ -1394,14 +1394,14 @@ next
   also have "\<dots> = 0"
     using * by (subst not_integrable_integral_eq) (auto simp: integrable_indicator_iff)
   also have "\<dots> = measure M (A \<inter> space M)"
-    using * by (auto simp: measure_def emeasure_notin_sets)
+    using * by (auto simp: measure_def emeasure_notin_sets not_less top_unique)
   finally show ?thesis .
 qed
 
 lemma integrable_discrete_difference:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes X: "countable X"
-  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
+  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0"
   assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
   assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
   shows "integrable M f \<longleftrightarrow> integrable M g"
@@ -1425,7 +1425,7 @@ qed
 lemma integral_discrete_difference:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes X: "countable X"
-  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
+  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0"
   assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
   assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
   shows "integral\<^sup>L M f = integral\<^sup>L M g"
@@ -1449,7 +1449,7 @@ qed
 lemma has_bochner_integral_discrete_difference:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes X: "countable X"
-  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
+  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0"
   assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
   assumes eq: "\<And>x. x \<in> space M \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
   shows "has_bochner_integral M f x \<longleftrightarrow> has_bochner_integral M g x"
@@ -1466,7 +1466,7 @@ lemma
     and integrable_dominated_convergence2: "\<And>i. integrable M (s i)"
     and integral_dominated_convergence: "(\<lambda>i. integral\<^sup>L M (s i)) \<longlonglongrightarrow> integral\<^sup>L M f"
 proof -
-  have "AE x in M. 0 \<le> w x"
+  have w_nonneg: "AE x in M. 0 \<le> w x"
     using bound[of 0] by eventually_elim (auto intro: norm_ge_zero order_trans)
   then have "(\<integral>\<^sup>+x. w x \<partial>M) = (\<integral>\<^sup>+x. norm (w x) \<partial>M)"
     by (intro nn_integral_cong_AE) auto
@@ -1476,10 +1476,10 @@ proof -
   show int_s: "\<And>i. integrable M (s i)"
     unfolding integrable_iff_bounded
   proof
-    fix i 
-    have "(\<integral>\<^sup>+ x. ereal (norm (s i x)) \<partial>M) \<le> (\<integral>\<^sup>+x. w x \<partial>M)"
-      using bound by (intro nn_integral_mono_AE) auto
-    with w show "(\<integral>\<^sup>+ x. ereal (norm (s i x)) \<partial>M) < \<infinity>" by auto
+    fix i
+    have "(\<integral>\<^sup>+ x. ennreal (norm (s i x)) \<partial>M) \<le> (\<integral>\<^sup>+x. w x \<partial>M)"
+      using bound[of i] w_nonneg by (intro nn_integral_mono_AE) auto
+    with w show "(\<integral>\<^sup>+ x. ennreal (norm (s i x)) \<partial>M) < \<infinity>" by auto
   qed fact
 
   have all_bound: "AE x in M. \<forall>i. norm (s i x) \<le> w x"
@@ -1488,30 +1488,30 @@ proof -
   show int_f: "integrable M f"
     unfolding integrable_iff_bounded
   proof
-    have "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) \<le> (\<integral>\<^sup>+x. w x \<partial>M)"
-      using all_bound lim
+    have "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M) \<le> (\<integral>\<^sup>+x. w x \<partial>M)"
+      using all_bound lim w_nonneg
     proof (intro nn_integral_mono_AE, eventually_elim)
-      fix x assume "\<forall>i. norm (s i x) \<le> w x" "(\<lambda>i. s i x) \<longlonglongrightarrow> f x"
-      then show "ereal (norm (f x)) \<le> ereal (w x)"
-        by (intro LIMSEQ_le_const2[where X="\<lambda>i. ereal (norm (s i x))"] tendsto_intros lim_ereal[THEN iffD2]) auto
+      fix x assume "\<forall>i. norm (s i x) \<le> w x" "(\<lambda>i. s i x) \<longlonglongrightarrow> f x" "0 \<le> w x"
+      then show "ennreal (norm (f x)) \<le> ennreal (w x)"
+        by (intro LIMSEQ_le_const2[where X="\<lambda>i. ennreal (norm (s i x))"]) (auto intro: tendsto_intros)
     qed
-    with w show "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) < \<infinity>" by auto
+    with w show "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M) < \<infinity>" by auto
   qed fact
 
-  have "(\<lambda>n. ereal (norm (integral\<^sup>L M (s n) - integral\<^sup>L M f))) \<longlonglongrightarrow> ereal 0" (is "?d \<longlonglongrightarrow> ereal 0")
+  have "(\<lambda>n. ennreal (norm (integral\<^sup>L M (s n) - integral\<^sup>L M f))) \<longlonglongrightarrow> ennreal 0" (is "?d \<longlonglongrightarrow> ennreal 0")
   proof (rule tendsto_sandwich)
-    show "eventually (\<lambda>n. ereal 0 \<le> ?d n) sequentially" "(\<lambda>_. ereal 0) \<longlonglongrightarrow> ereal 0" by auto
+    show "eventually (\<lambda>n. ennreal 0 \<le> ?d n) sequentially" "(\<lambda>_. ennreal 0) \<longlonglongrightarrow> ennreal 0" by auto
     show "eventually (\<lambda>n. ?d n \<le> (\<integral>\<^sup>+x. norm (s n x - f x) \<partial>M)) sequentially"
     proof (intro always_eventually allI)
       fix n
       have "?d n = norm (integral\<^sup>L M (\<lambda>x. s n x - f x))"
         using int_f int_s by simp
       also have "\<dots> \<le> (\<integral>\<^sup>+x. norm (s n x - f x) \<partial>M)"
-        by (intro int_f int_s integrable_diff integral_norm_bound_ereal)
+        by (intro int_f int_s integrable_diff integral_norm_bound_ennreal)
       finally show "?d n \<le> (\<integral>\<^sup>+x. norm (s n x - f x) \<partial>M)" .
     qed
-    show "(\<lambda>n. \<integral>\<^sup>+x. norm (s n x - f x) \<partial>M) \<longlonglongrightarrow> ereal 0"
-      unfolding zero_ereal_def[symmetric]
+    show "(\<lambda>n. \<integral>\<^sup>+x. norm (s n x - f x) \<partial>M) \<longlonglongrightarrow> ennreal 0"
+      unfolding ennreal_0
       apply (subst norm_minus_commute)
     proof (rule nn_integral_dominated_convergence_norm[where w=w])
       show "\<And>n. s n \<in> borel_measurable M"
@@ -1519,7 +1519,7 @@ proof -
     qed fact+
   qed
   then have "(\<lambda>n. integral\<^sup>L M (s n) - integral\<^sup>L M f) \<longlonglongrightarrow> 0"
-    unfolding lim_ereal tendsto_norm_zero_iff .
+    by (simp add: tendsto_norm_zero_iff del: ennreal_0)
   from tendsto_add[OF this tendsto_const[of "integral\<^sup>L M f"]]
   show "(\<lambda>i. integral\<^sup>L M (s i)) \<longlonglongrightarrow> integral\<^sup>L M f"  by simp
 qed
@@ -1580,59 +1580,101 @@ lemma integrable_mult_left_iff:
   using integrable_mult_left[of c M f] integrable_mult_left[of "1 / c" M "\<lambda>x. c * f x"]
   by (cases "c = 0") auto
 
+lemma integrableI_nn_integral_finite:
+  assumes [measurable]: "f \<in> borel_measurable M"
+    and nonneg: "AE x in M. 0 \<le> f x"
+    and finite: "(\<integral>\<^sup>+x. f x \<partial>M) = ennreal x"
+  shows "integrable M f"
+proof (rule integrableI_bounded)
+  have "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M) = (\<integral>\<^sup>+ x. ennreal (f x) \<partial>M)"
+    using nonneg by (intro nn_integral_cong_AE) auto
+  with finite show "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M) < \<infinity>"
+    by auto
+qed simp
+
+lemma integral_nonneg_AE:
+  fixes f :: "'a \<Rightarrow> real"
+  assumes nonneg: "AE x in M. 0 \<le> f x"
+  shows "0 \<le> integral\<^sup>L M f"
+proof cases
+  assume f: "integrable M f"
+  then have [measurable]: "f \<in> M \<rightarrow>\<^sub>M borel"
+    by auto
+  have "(\<lambda>x. max 0 (f x)) \<in> M \<rightarrow>\<^sub>M borel" "\<And>x. 0 \<le> max 0 (f x)" "integrable M (\<lambda>x. max 0 (f x))"
+    using f by auto
+  from this have "0 \<le> integral\<^sup>L M (\<lambda>x. max 0 (f x))"
+  proof (induction rule: borel_measurable_induct_real)
+    case (add f g)
+    then have "integrable M f" "integrable M g"
+      by (auto intro!: integrable_bound[OF add.prems])
+    with add show ?case
+      by (simp add: nn_integral_add)
+  next
+    case (seq U)
+    show ?case
+    proof (rule LIMSEQ_le_const)
+      have U_le: "x \<in> space M \<Longrightarrow> U i x \<le> max 0 (f x)" for x i
+        using seq by (intro incseq_le) (auto simp: incseq_def le_fun_def)
+      with seq nonneg show "(\<lambda>i. integral\<^sup>L M (U i)) \<longlonglongrightarrow> LINT x|M. max 0 (f x)"
+        by (intro integral_dominated_convergence) auto
+      have "integrable M (U i)" for i
+        using seq.prems by (rule integrable_bound) (insert U_le seq, auto)
+      with seq show "\<exists>N. \<forall>n\<ge>N. 0 \<le> integral\<^sup>L M (U n)"
+        by auto
+    qed
+  qed (auto simp: measure_nonneg integrable_mult_left_iff)
+  also have "\<dots> = integral\<^sup>L M f"
+    using nonneg by (auto intro!: integral_cong_AE)
+  finally show ?thesis .
+qed (simp add: not_integrable_integral_eq)
+
+lemma integral_nonneg[simp]:
+  fixes f :: "'a \<Rightarrow> real"
+  shows "(\<And>x. x \<in> space M \<Longrightarrow> 0 \<le> f x) \<Longrightarrow> 0 \<le> integral\<^sup>L M f"
+  by (intro integral_nonneg_AE) auto
+
 lemma nn_integral_eq_integral:
   assumes f: "integrable M f"
-  assumes nonneg: "AE x in M. 0 \<le> f x" 
+  assumes nonneg: "AE x in M. 0 \<le> f x"
   shows "(\<integral>\<^sup>+ x. f x \<partial>M) = integral\<^sup>L M f"
 proof -
   { fix f :: "'a \<Rightarrow> real" assume f: "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x" "integrable M f"
     then have "(\<integral>\<^sup>+ x. f x \<partial>M) = integral\<^sup>L M f"
     proof (induct rule: borel_measurable_induct_real)
       case (set A) then show ?case
-        by (simp add: integrable_indicator_iff ereal_indicator emeasure_eq_ereal_measure)
+        by (simp add: integrable_indicator_iff ennreal_indicator emeasure_eq_ennreal_measure)
     next
       case (mult f c) then show ?case
-        unfolding times_ereal.simps(1)[symmetric]
-        by (subst nn_integral_cmult)
-           (auto simp add: integrable_mult_left_iff zero_ereal_def[symmetric])
+        by (auto simp add: integrable_mult_left_iff nn_integral_cmult ennreal_mult integral_nonneg_AE)
     next
       case (add g f)
       then have "integrable M f" "integrable M g"
-        by (auto intro!: integrable_bound[OF add(8)])
+        by (auto intro!: integrable_bound[OF add.prems])
       with add show ?case
-        unfolding plus_ereal.simps(1)[symmetric]
-        by (subst nn_integral_add) auto
+        by (simp add: nn_integral_add integral_nonneg_AE)
     next
-      case (seq s)
-      { fix i x assume "x \<in> space M" with seq(4) have "s i x \<le> f x"
-          by (intro LIMSEQ_le_const[OF seq(5)] exI[of _ i]) (auto simp: incseq_def le_fun_def) }
-      note s_le_f = this
-
+      case (seq U)
       show ?case
       proof (rule LIMSEQ_unique)
-        show "(\<lambda>i. ereal (integral\<^sup>L M (s i))) \<longlonglongrightarrow> ereal (integral\<^sup>L M f)"
-          unfolding lim_ereal
-        proof (rule integral_dominated_convergence[where w=f])
-          show "integrable M f" by fact
-          from s_le_f seq show "\<And>i. AE x in M. norm (s i x) \<le> f x"
-            by auto
-        qed (insert seq, auto)
-        have int_s: "\<And>i. integrable M (s i)"
-          using seq f s_le_f by (intro integrable_bound[OF f(3)]) auto
-        have "(\<lambda>i. \<integral>\<^sup>+ x. s i x \<partial>M) \<longlonglongrightarrow> \<integral>\<^sup>+ x. f x \<partial>M"
-          using seq s_le_f f
-          by (intro nn_integral_dominated_convergence[where w=f])
-             (auto simp: integrable_iff_bounded)
-        also have "(\<lambda>i. \<integral>\<^sup>+x. s i x \<partial>M) = (\<lambda>i. \<integral>x. s i x \<partial>M)"
-          using seq int_s by simp
-        finally show "(\<lambda>i. \<integral>x. s i x \<partial>M) \<longlonglongrightarrow> \<integral>\<^sup>+x. f x \<partial>M"
-          by simp
+        have U_le_f: "x \<in> space M \<Longrightarrow> U i x \<le> f x" for x i
+          using seq by (intro incseq_le) (auto simp: incseq_def le_fun_def)
+        have int_U: "\<And>i. integrable M (U i)"
+          using seq f U_le_f by (intro integrable_bound[OF f(3)]) auto
+        from U_le_f seq have "(\<lambda>i. integral\<^sup>L M (U i)) \<longlonglongrightarrow> integral\<^sup>L M f"
+          by (intro integral_dominated_convergence) auto
+        then show "(\<lambda>i. ennreal (integral\<^sup>L M (U i))) \<longlonglongrightarrow> ennreal (integral\<^sup>L M f)"
+          using seq f int_U by (simp add: f integral_nonneg_AE)
+        have "(\<lambda>i. \<integral>\<^sup>+ x. U i x \<partial>M) \<longlonglongrightarrow> \<integral>\<^sup>+ x. f x \<partial>M"
+          using seq U_le_f f
+          by (intro nn_integral_dominated_convergence[where w=f]) (auto simp: integrable_iff_bounded)
+        then show "(\<lambda>i. \<integral>x. U i x \<partial>M) \<longlonglongrightarrow> \<integral>\<^sup>+x. f x \<partial>M"
+          using seq int_U by simp
       qed
     qed }
   from this[of "\<lambda>x. max 0 (f x)"] assms have "(\<integral>\<^sup>+ x. max 0 (f x) \<partial>M) = integral\<^sup>L M (\<lambda>x. max 0 (f x))"
     by simp
   also have "\<dots> = integral\<^sup>L M f"
-    using assms by (auto intro!: integral_cong_AE)
+    using assms by (auto intro!: integral_cong_AE simp: integral_nonneg_AE)
   also have "(\<integral>\<^sup>+ x. max 0 (f x) \<partial>M) = (\<integral>\<^sup>+ x. f x \<partial>M)"
     using assms by (auto intro!: nn_integral_cong_AE simp: max_def)
   finally show ?thesis .
@@ -1650,18 +1692,18 @@ lemma
 proof -
   have 1: "integrable M (\<lambda>x. \<Sum>i. norm (f i x))"
   proof (rule integrableI_bounded)
-    have "(\<integral>\<^sup>+ x. ereal (norm (\<Sum>i. norm (f i x))) \<partial>M) = (\<integral>\<^sup>+ x. (\<Sum>i. ereal (norm (f i x))) \<partial>M)"
-      apply (intro nn_integral_cong_AE) 
+    have "(\<integral>\<^sup>+ x. ennreal (norm (\<Sum>i. norm (f i x))) \<partial>M) = (\<integral>\<^sup>+ x. (\<Sum>i. ennreal (norm (f i x))) \<partial>M)"
+      apply (intro nn_integral_cong_AE)
       using summable
       apply eventually_elim
-      apply (simp add: suminf_ereal' suminf_nonneg)
+      apply (simp add: suminf_nonneg ennreal_suminf_neq_top)
       done
     also have "\<dots> = (\<Sum>i. \<integral>\<^sup>+ x. norm (f i x) \<partial>M)"
       by (intro nn_integral_suminf) auto
-    also have "\<dots> = (\<Sum>i. ereal (\<integral>x. norm (f i x) \<partial>M))"
+    also have "\<dots> = (\<Sum>i. ennreal (\<integral>x. norm (f i x) \<partial>M))"
       by (intro arg_cong[where f=suminf] ext nn_integral_eq_integral integrable_norm integrable) auto
-    finally show "(\<integral>\<^sup>+ x. ereal (norm (\<Sum>i. norm (f i x))) \<partial>M) < \<infinity>"
-      by (simp add: suminf_ereal' sums)
+    finally show "(\<integral>\<^sup>+ x. ennreal (norm (\<Sum>i. norm (f i x))) \<partial>M) < \<infinity>"
+      by (simp add: sums ennreal_suminf_neq_top less_top[symmetric] integral_nonneg_AE)
   qed simp
 
   have 2: "AE x in M. (\<lambda>n. \<Sum>i<n. f i x) \<longlonglongrightarrow> (\<Sum>i. f i x)"
@@ -1693,43 +1735,57 @@ lemma integral_norm_bound:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"
   shows "integrable M f \<Longrightarrow> norm (integral\<^sup>L M f) \<le> (\<integral>x. norm (f x) \<partial>M)"
   using nn_integral_eq_integral[of M "\<lambda>x. norm (f x)"]
-  using integral_norm_bound_ereal[of M f] by simp
-  
-lemma integrableI_nn_integral_finite:
-  assumes [measurable]: "f \<in> borel_measurable M"
-    and nonneg: "AE x in M. 0 \<le> f x"
-    and finite: "(\<integral>\<^sup>+x. f x \<partial>M) = ereal x"
-  shows "integrable M f"
-proof (rule integrableI_bounded)
-  have "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) = (\<integral>\<^sup>+ x. ereal (f x) \<partial>M)"
-    using nonneg by (intro nn_integral_cong_AE) auto
-  with finite show "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) < \<infinity>"
-    by auto
-qed simp
+  using integral_norm_bound_ennreal[of M f] by (simp add: integral_nonneg_AE)
 
 lemma integral_eq_nn_integral:
   assumes [measurable]: "f \<in> borel_measurable M"
   assumes nonneg: "AE x in M. 0 \<le> f x"
-  shows "integral\<^sup>L M f = real_of_ereal (\<integral>\<^sup>+ x. ereal (f x) \<partial>M)"
+  shows "integral\<^sup>L M f = enn2real (\<integral>\<^sup>+ x. ennreal (f x) \<partial>M)"
 proof cases
-  assume *: "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) = \<infinity>"
-  also have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) = (\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M)"
+  assume *: "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>M) = \<infinity>"
+  also have "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>M) = (\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M)"
     using nonneg by (intro nn_integral_cong_AE) auto
   finally have "\<not> integrable M f"
     by (auto simp: integrable_iff_bounded)
   then show ?thesis
     by (simp add: * not_integrable_integral_eq)
 next
-  assume "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) \<noteq> \<infinity>"
+  assume "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>M) \<noteq> \<infinity>"
   then have "integrable M f"
-    by (cases "\<integral>\<^sup>+ x. ereal (f x) \<partial>M") (auto intro!: integrableI_nn_integral_finite assms)
-  from nn_integral_eq_integral[OF this nonneg] show ?thesis
-    by simp
+    by (cases "\<integral>\<^sup>+ x. ennreal (f x) \<partial>M" rule: ennreal_cases)
+       (auto intro!: integrableI_nn_integral_finite assms)
+  from nn_integral_eq_integral[OF this] nonneg show ?thesis
+    by (simp add: integral_nonneg_AE)
 qed
-  
+
+lemma enn2real_nn_integral_eq_integral:
+  assumes eq: "AE x in M. f x = ennreal (g x)" and nn: "AE x in M. 0 \<le> g x"
+    and fin: "(\<integral>\<^sup>+x. f x \<partial>M) < top"
+    and [measurable]: "g \<in> M \<rightarrow>\<^sub>M borel"
+  shows "enn2real (\<integral>\<^sup>+x. f x \<partial>M) = (\<integral>x. g x \<partial>M)"
+proof -
+  have "ennreal (enn2real (\<integral>\<^sup>+x. f x \<partial>M)) = (\<integral>\<^sup>+x. f x \<partial>M)"
+    using fin by (intro ennreal_enn2real) auto
+  also have "\<dots> = (\<integral>\<^sup>+x. g x \<partial>M)"
+    using eq by (rule nn_integral_cong_AE)
+  also have "\<dots> = (\<integral>x. g x \<partial>M)"
+  proof (rule nn_integral_eq_integral)
+    show "integrable M g"
+    proof (rule integrableI_bounded)
+      have "(\<integral>\<^sup>+ x. ennreal (norm (g x)) \<partial>M) = (\<integral>\<^sup>+ x. f x \<partial>M)"
+        using eq nn by (auto intro!: nn_integral_cong_AE elim!: eventually_elim2)
+      also note fin
+      finally show "(\<integral>\<^sup>+ x. ennreal (norm (g x)) \<partial>M) < \<infinity>"
+        by simp
+    qed simp
+  qed fact
+  finally show ?thesis
+    using nn by (simp add: integral_nonneg_AE)
+qed
+
 lemma has_bochner_integral_nn_integral:
-  assumes "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
-  assumes "(\<integral>\<^sup>+x. f x \<partial>M) = ereal x"
+  assumes "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x" "0 \<le> x"
+  assumes "(\<integral>\<^sup>+x. f x \<partial>M) = ennreal x"
   shows "has_bochner_integral M f x"
   unfolding has_bochner_integral_iff
   using assms by (auto simp: assms integral_eq_nn_integral intro: integrableI_nn_integral_finite)
@@ -1738,7 +1794,7 @@ lemma integrableI_simple_bochner_integrable:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   shows "simple_bochner_integrable M f \<Longrightarrow> integrable M f"
   by (intro integrableI_sequence[where s="\<lambda>_. f"] borel_measurable_simple_function)
-     (auto simp: zero_ereal_def[symmetric] simple_bochner_integrable.simps)
+     (auto simp: zero_ennreal_def[symmetric] simple_bochner_integrable.simps)
 
 lemma integrable_induct[consumes 1, case_names base add lim, induct pred: integrable]:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -1757,7 +1813,7 @@ proof -
     "\<And>i x. x \<in> space M \<Longrightarrow> norm (s i x) \<le> 2 * norm (f x)"
     unfolding norm_conv_dist by metis
 
-  { fix f A 
+  { fix f A
     have [simp]: "P (\<lambda>x. 0)"
       using base[of "{}" undefined] by simp
     have "(\<And>i::'b. i \<in> A \<Longrightarrow> integrable M (f i::'a \<Rightarrow> 'b)) \<Longrightarrow>
@@ -1773,7 +1829,7 @@ proof -
     unfolding s'_def using s(1)
     by (intro simple_function_compose2[where h="op *\<^sub>R"] simple_function_indicator) auto
 
-  { fix i 
+  { fix i
     have "\<And>z. {y. s' i z = y \<and> y \<in> s' i ` space M \<and> y \<noteq> 0 \<and> z \<in> space M} =
         (if z \<in> space M \<and> s' i z \<noteq> 0 then {s' i z} else {})"
       by (auto simp add: s'_def split: split_indicator)
@@ -1785,10 +1841,10 @@ proof -
   proof (rule lim)
     fix i
 
-    have "(\<integral>\<^sup>+x. norm (s' i x) \<partial>M) \<le> (\<integral>\<^sup>+x. 2 * ereal (norm (f x)) \<partial>M)"
+    have "(\<integral>\<^sup>+x. norm (s' i x) \<partial>M) \<le> (\<integral>\<^sup>+x. ennreal (2 * norm (f x)) \<partial>M)"
       using s by (intro nn_integral_mono) (auto simp: s'_eq_s)
     also have "\<dots> < \<infinity>"
-      using f by (subst nn_integral_cmult) auto
+      using f by (simp add: nn_integral_cmult ennreal_mult_less_top ennreal_mult)
     finally have sbi: "simple_bochner_integrable M (s' i)"
       using sf by (intro simple_bochner_integrableI_bounded) auto
     then show "integrable M (s' i)"
@@ -1798,10 +1854,10 @@ proof -
       then have "emeasure M {y \<in> space M. s' i y = s' i x} \<le> emeasure M {y \<in> space M. s' i y \<noteq> 0}"
         by (intro emeasure_mono) auto
       also have "\<dots> < \<infinity>"
-        using sbi by (auto elim: simple_bochner_integrable.cases)
+        using sbi by (auto elim: simple_bochner_integrable.cases simp: less_top)
       finally have "emeasure M {y \<in> space M. s' i y = s' i x} \<noteq> \<infinity>" by simp }
     then show "P (s' i)"
-      by (subst s'_eq) (auto intro!: setsum base)
+      by (subst s'_eq) (auto intro!: setsum base simp: less_top)
 
     fix x assume "x \<in> space M" with s show "(\<lambda>i. s' i x) \<longlonglongrightarrow> f x"
       by (simp add: s'_eq_s)
@@ -1809,20 +1865,6 @@ proof -
       using \<open>x \<in> space M\<close> s by (simp add: s'_eq_s)
   qed fact
 qed
-
-lemma integral_nonneg_AE:
-  fixes f :: "'a \<Rightarrow> real"
-  assumes [measurable]: "AE x in M. 0 \<le> f x"
-  shows "0 \<le> integral\<^sup>L M f"
-proof cases
-  assume [measurable]: "integrable M f"
-  then have "0 \<le> ereal (integral\<^sup>L M (\<lambda>x. max 0 (f x)))"
-    by (subst integral_eq_nn_integral) (auto intro: real_of_ereal_pos nn_integral_nonneg assms)
-  also have "integral\<^sup>L M (\<lambda>x. max 0 (f x)) = integral\<^sup>L M f"
-    using assms by (intro integral_cong_AE assms integrable_max) auto
-  finally show ?thesis
-    by simp
-qed (simp add: not_integrable_integral_eq)
 
 lemma integral_eq_zero_AE:
   "(AE x in M. f x = 0) \<Longrightarrow> integral\<^sup>L M f = 0"
@@ -1837,7 +1879,7 @@ proof
   assume "integral\<^sup>L M f = 0"
   then have "integral\<^sup>N M f = 0"
     using nn_integral_eq_integral[OF f nonneg] by simp
-  then have "AE x in M. ereal (f x) \<le> 0"
+  then have "AE x in M. ennreal (f x) \<le> 0"
     by (simp add: nn_integral_0_iff_AE)
   with nonneg show "AE x in M. f x = 0"
     by auto
@@ -1857,11 +1899,11 @@ qed
 
 lemma integral_mono:
   fixes f :: "'a \<Rightarrow> real"
-  shows "integrable M f \<Longrightarrow> integrable M g \<Longrightarrow> (\<And>x. x \<in> space M \<Longrightarrow> f x \<le> g x) \<Longrightarrow> 
+  shows "integrable M f \<Longrightarrow> integrable M g \<Longrightarrow> (\<And>x. x \<in> space M \<Longrightarrow> f x \<le> g x) \<Longrightarrow>
     integral\<^sup>L M f \<le> integral\<^sup>L M g"
   by (intro integral_mono_AE) auto
 
-lemma (in finite_measure) integrable_measure: 
+lemma (in finite_measure) integrable_measure:
   assumes I: "disjoint_family_on X I" "countable I"
   shows "integrable (count_space I) (\<lambda>i. measure M (X i))"
 proof -
@@ -1871,31 +1913,41 @@ proof -
     using I unfolding emeasure_eq_measure[symmetric]
     by (subst emeasure_UN_countable) (auto simp: disjoint_family_on_def)
   finally show ?thesis
-    by (auto intro!: integrableI_bounded simp: measure_nonneg)
+    by (auto intro!: integrableI_bounded)
 qed
 
 lemma integrableI_real_bounded:
   assumes f: "f \<in> borel_measurable M" and ae: "AE x in M. 0 \<le> f x" and fin: "integral\<^sup>N M f < \<infinity>"
   shows "integrable M f"
 proof (rule integrableI_bounded)
-  have "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) = \<integral>\<^sup>+ x. ereal (f x) \<partial>M"
+  have "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M) = \<integral>\<^sup>+ x. ennreal (f x) \<partial>M"
     using ae by (auto intro: nn_integral_cong_AE)
   also note fin
-  finally show "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) < \<infinity>" .
+  finally show "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M) < \<infinity>" .
 qed fact
 
 lemma integral_real_bounded:
-  assumes "AE x in M. 0 \<le> f x" "integral\<^sup>N M f \<le> ereal r"
+  assumes "0 \<le> r" "integral\<^sup>N M f \<le> ennreal r"
   shows "integral\<^sup>L M f \<le> r"
 proof cases
-  assume "integrable M f" from nn_integral_eq_integral[OF this] assms show ?thesis
+  assume [simp]: "integrable M f"
+
+  have "integral\<^sup>L M (\<lambda>x. max 0 (f x)) = integral\<^sup>N M (\<lambda>x. max 0 (f x))"
+    by (intro nn_integral_eq_integral[symmetric]) auto
+  also have "\<dots> = integral\<^sup>N M f"
+    by (intro nn_integral_cong) (simp add: max_def ennreal_neg)
+  also have "\<dots> \<le> r"
+    by fact
+  finally have "integral\<^sup>L M (\<lambda>x. max 0 (f x)) \<le> r"
+    using \<open>0 \<le> r\<close> by simp
+
+  moreover have "integral\<^sup>L M f \<le> integral\<^sup>L M (\<lambda>x. max 0 (f x))"
+    by (rule integral_mono_AE) auto
+  ultimately show ?thesis
     by simp
 next
-  assume "\<not> integrable M f"
-  moreover have "0 \<le> ereal r"
-    using nn_integral_nonneg assms(2) by (rule order_trans)
-  ultimately show ?thesis
-    by (simp add: not_integrable_integral_eq)
+  assume "\<not> integrable M f" then show ?thesis
+    using \<open>0 \<le> r\<close> by (simp add: not_integrable_integral_eq)
 qed
 
 subsection \<open>Restricted measure spaces\<close>
@@ -1907,7 +1959,7 @@ lemma integrable_restrict_space:
   unfolding integrable_iff_bounded
     borel_measurable_restrict_space_iff[OF \<Omega>]
     nn_integral_restrict_space[OF \<Omega>]
-  by (simp add: ac_simps ereal_indicator times_ereal.simps(1)[symmetric] del: times_ereal.simps)
+  by (simp add: ac_simps ennreal_indicator ennreal_mult)
 
 lemma integral_restrict_space:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -1929,13 +1981,12 @@ proof (rule integral_eq_cases)
     proof (rule LIMSEQ_unique)
       show "(\<lambda>i. integral\<^sup>L (restrict_space M \<Omega>) (s i)) \<longlonglongrightarrow> integral\<^sup>L (restrict_space M \<Omega>) f"
         using lim by (intro integral_dominated_convergence[where w="\<lambda>x. 2 * norm (f x)"]) simp_all
-      
+
       show "(\<lambda>i. integral\<^sup>L (restrict_space M \<Omega>) (s i)) \<longlonglongrightarrow> (\<integral> x. indicator \<Omega> x *\<^sub>R f x \<partial>M)"
         unfolding lim
         using lim
         by (intro integral_dominated_convergence[where w="\<lambda>x. 2 * norm (indicator \<Omega> x *\<^sub>R f x)"])
-           (auto simp add: space_restrict_space integrable_restrict_space
-                 simp del: norm_scaleR
+           (auto simp add: space_restrict_space integrable_restrict_space simp del: norm_scaleR
                  split: split_indicator)
     qed
   qed
@@ -1958,9 +2009,9 @@ lemma integrable_density:
     and nn: "AE x in M. 0 \<le> g x"
   shows "integrable (density M g) f \<longleftrightarrow> integrable M (\<lambda>x. g x *\<^sub>R f x)"
   unfolding integrable_iff_bounded using nn
-  apply (simp add: nn_integral_density )
+  apply (simp add: nn_integral_density less_top[symmetric])
   apply (intro arg_cong2[where f="op ="] refl nn_integral_cong_AE)
-  apply auto
+  apply (auto simp: ennreal_mult)
   done
 
 lemma integral_density:
@@ -1974,21 +2025,25 @@ proof (rule integral_eq_cases)
   proof induct
     case (base A c)
     then have [measurable]: "A \<in> sets M" by auto
-  
+
     have int: "integrable M (\<lambda>x. g x * indicator A x)"
       using g base integrable_density[of "indicator A :: 'a \<Rightarrow> real" M g] by simp
-    then have "integral\<^sup>L M (\<lambda>x. g x * indicator A x) = (\<integral>\<^sup>+ x. ereal (g x * indicator A x) \<partial>M)"
+    then have "integral\<^sup>L M (\<lambda>x. g x * indicator A x) = (\<integral>\<^sup>+ x. ennreal (g x * indicator A x) \<partial>M)"
       using g by (subst nn_integral_eq_integral) auto
-    also have "\<dots> = (\<integral>\<^sup>+ x. ereal (g x) * indicator A x \<partial>M)"
+    also have "\<dots> = (\<integral>\<^sup>+ x. ennreal (g x) * indicator A x \<partial>M)"
       by (intro nn_integral_cong) (auto split: split_indicator)
     also have "\<dots> = emeasure (density M g) A"
       by (rule emeasure_density[symmetric]) auto
-    also have "\<dots> = ereal (measure (density M g) A)"
-      using base by (auto intro: emeasure_eq_ereal_measure)
+    also have "\<dots> = ennreal (measure (density M g) A)"
+      using base by (auto intro: emeasure_eq_ennreal_measure)
     also have "\<dots> = integral\<^sup>L (density M g) (indicator A)"
       using base by simp
     finally show ?case
-      using base by (simp add: int)
+      using base g
+      apply (simp add: int integral_nonneg_AE)
+      apply (subst (asm) ennreal_inj)
+      apply (auto intro!: integral_nonneg_AE)
+      done
   next
     case (add f h)
     then have [measurable]: "f \<in> borel_measurable M" "h \<in> borel_measurable M"
@@ -1999,7 +2054,7 @@ proof (rule integral_eq_cases)
     case (lim f s)
     have [measurable]: "f \<in> borel_measurable M" "\<And>i. s i \<in> borel_measurable M"
       using lim(1,5)[THEN borel_measurable_integrable] by auto
-  
+
     show ?case
     proof (rule LIMSEQ_unique)
       show "(\<lambda>i. integral\<^sup>L M (\<lambda>x. g x *\<^sub>R s i x)) \<longlonglongrightarrow> integral\<^sup>L M (\<lambda>x. g x *\<^sub>R f x)"
@@ -2058,7 +2113,7 @@ proof (rule integral_eq_cases)
     then have [measurable]: "A \<in> sets N" by auto
     from base have int: "integrable (distr M N g) (\<lambda>a. indicator A a *\<^sub>R c)"
       by (intro integrable_indicator)
-  
+
     have "integral\<^sup>L (distr M N g) (\<lambda>a. indicator A a *\<^sub>R c) = measure (distr M N g) A *\<^sub>R c"
       using base by auto
     also have "\<dots> = measure M (g -` A \<inter> space M) *\<^sub>R c"
@@ -2078,13 +2133,13 @@ proof (rule integral_eq_cases)
     case (lim f s)
     have [measurable]: "f \<in> borel_measurable N" "\<And>i. s i \<in> borel_measurable N"
       using lim(1,5)[THEN borel_measurable_integrable] by auto
-  
+
     show ?case
     proof (rule LIMSEQ_unique)
       show "(\<lambda>i. integral\<^sup>L M (\<lambda>x. s i (g x))) \<longlonglongrightarrow> integral\<^sup>L M (\<lambda>x. f (g x))"
       proof (rule integral_dominated_convergence)
         show "integrable M (\<lambda>x. 2 * norm (f (g x)))"
-          using lim by (auto simp: integrable_distr_eq) 
+          using lim by (auto simp: integrable_distr_eq)
         show "AE x in M. (\<lambda>i. s i (g x)) \<longlonglongrightarrow> f (g x)"
           using lim(3) g[THEN measurable_space] by auto
         show "\<And>i. AE x in M. norm (s i (g x)) \<le> 2 * norm (f (g x))"
@@ -2121,7 +2176,7 @@ lemma lebesgue_integral_count_space_finite_support:
 proof -
   have eq: "\<And>x. x \<in> A \<Longrightarrow> (\<Sum>a | x = a \<and> a \<in> A \<and> f a \<noteq> 0. f a) = (\<Sum>x\<in>{x}. f x)"
     by (intro setsum.mono_neutral_cong_left) auto
-    
+
   have "(\<integral>x. f x \<partial>count_space A) = (\<integral>x. (\<Sum>a | a \<in> A \<and> f a \<noteq> 0. indicator {a} x *\<^sub>R f a) \<partial>count_space A)"
     by (intro integral_cong refl) (simp add: f eq)
   also have "\<dots> = (\<Sum>a | a \<in> A \<and> f a \<noteq> 0. measure (count_space A) {a} *\<^sub>R f a)"
@@ -2137,7 +2192,8 @@ lemma lebesgue_integral_count_space_finite: "finite A \<Longrightarrow> (\<integ
 lemma integrable_count_space_nat_iff:
   fixes f :: "nat \<Rightarrow> _::{banach,second_countable_topology}"
   shows "integrable (count_space UNIV) f \<longleftrightarrow> summable (\<lambda>x. norm (f x))"
-  by (auto simp add: integrable_iff_bounded nn_integral_count_space_nat summable_ereal suminf_ereal_finite)
+  by (auto simp add: integrable_iff_bounded nn_integral_count_space_nat ennreal_suminf_neq_top
+           intro:  summable_suminf_not_top)
 
 lemma sums_integral_count_space_nat:
   fixes f :: "nat \<Rightarrow> _::{banach,second_countable_topology}"
@@ -2181,7 +2237,8 @@ lemma integrable_point_measure_finite:
   fixes g :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}" and f :: "'a \<Rightarrow> real"
   shows "finite A \<Longrightarrow> integrable (point_measure A f) g"
   unfolding point_measure_def
-  apply (subst density_ereal_max_0)
+  apply (subst density_cong[where f'="\<lambda>x. ennreal (max 0 (f x))"])
+  apply (auto split: split_max simp: ennreal_neg)
   apply (subst integrable_density)
   apply (auto simp: AE_count_space integrable_count_space)
   done
@@ -2204,67 +2261,60 @@ subsection \<open>Legacy lemmas for the real-valued Lebesgue integral\<close>
 
 lemma real_lebesgue_integral_def:
   assumes f[measurable]: "integrable M f"
-  shows "integral\<^sup>L M f = real_of_ereal (\<integral>\<^sup>+x. f x \<partial>M) - real_of_ereal (\<integral>\<^sup>+x. - f x \<partial>M)"
+  shows "integral\<^sup>L M f = enn2real (\<integral>\<^sup>+x. f x \<partial>M) - enn2real (\<integral>\<^sup>+x. ennreal (- f x) \<partial>M)"
 proof -
   have "integral\<^sup>L M f = integral\<^sup>L M (\<lambda>x. max 0 (f x) - max 0 (- f x))"
     by (auto intro!: arg_cong[where f="integral\<^sup>L M"])
   also have "\<dots> = integral\<^sup>L M (\<lambda>x. max 0 (f x)) - integral\<^sup>L M (\<lambda>x. max 0 (- f x))"
     by (intro integral_diff integrable_max integrable_minus integrable_zero f)
-  also have "integral\<^sup>L M (\<lambda>x. max 0 (f x)) = real_of_ereal (\<integral>\<^sup>+x. max 0 (f x) \<partial>M)"
-    by (subst integral_eq_nn_integral[symmetric]) auto
-  also have "integral\<^sup>L M (\<lambda>x. max 0 (- f x)) = real_of_ereal (\<integral>\<^sup>+x. max 0 (- f x) \<partial>M)"
-    by (subst integral_eq_nn_integral[symmetric]) auto
-  also have "(\<lambda>x. ereal (max 0 (f x))) = (\<lambda>x. max 0 (ereal (f x)))"
-    by (auto simp: max_def)
-  also have "(\<lambda>x. ereal (max 0 (- f x))) = (\<lambda>x. max 0 (- ereal (f x)))"
-    by (auto simp: max_def)
-  finally show ?thesis
-    unfolding nn_integral_max_0 .
+  also have "integral\<^sup>L M (\<lambda>x. max 0 (f x)) = enn2real (\<integral>\<^sup>+x. ennreal (f x) \<partial>M)"
+    by (subst integral_eq_nn_integral) (auto intro!: arg_cong[where f=enn2real] nn_integral_cong simp: max_def ennreal_neg)
+  also have "integral\<^sup>L M (\<lambda>x. max 0 (- f x)) = enn2real (\<integral>\<^sup>+x. ennreal (- f x) \<partial>M)"
+    by (subst integral_eq_nn_integral) (auto intro!: arg_cong[where f=enn2real] nn_integral_cong simp: max_def ennreal_neg)
+  finally show ?thesis .
 qed
 
 lemma real_integrable_def:
   "integrable M f \<longleftrightarrow> f \<in> borel_measurable M \<and>
-    (\<integral>\<^sup>+ x. ereal (f x) \<partial>M) \<noteq> \<infinity> \<and> (\<integral>\<^sup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>"
+    (\<integral>\<^sup>+ x. ennreal (f x) \<partial>M) \<noteq> \<infinity> \<and> (\<integral>\<^sup>+ x. ennreal (- f x) \<partial>M) \<noteq> \<infinity>"
   unfolding integrable_iff_bounded
 proof (safe del: notI)
-  assume *: "(\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M) < \<infinity>"
-  have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) \<le> (\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M)"
+  assume *: "(\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M) < \<infinity>"
+  have "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>M) \<le> (\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M)"
     by (intro nn_integral_mono) auto
   also note *
-  finally show "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) \<noteq> \<infinity>"
+  finally show "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>M) \<noteq> \<infinity>"
     by simp
-  have "(\<integral>\<^sup>+ x. ereal (- f x) \<partial>M) \<le> (\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M)"
+  have "(\<integral>\<^sup>+ x. ennreal (- f x) \<partial>M) \<le> (\<integral>\<^sup>+ x. ennreal (norm (f x)) \<partial>M)"
     by (intro nn_integral_mono) auto
   also note *
-  finally show "(\<integral>\<^sup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>"
+  finally show "(\<integral>\<^sup>+ x. ennreal (- f x) \<partial>M) \<noteq> \<infinity>"
     by simp
 next
   assume [measurable]: "f \<in> borel_measurable M"
-  assume fin: "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) \<noteq> \<infinity>" "(\<integral>\<^sup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>"
-  have "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) = (\<integral>\<^sup>+ x. max 0 (ereal (f x)) + max 0 (ereal (- f x)) \<partial>M)"
-    by (intro nn_integral_cong) (auto simp: max_def)
-  also have"\<dots> = (\<integral>\<^sup>+ x. max 0 (ereal (f x)) \<partial>M) + (\<integral>\<^sup>+ x. max 0 (ereal (- f x)) \<partial>M)"
+  assume fin: "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>M) \<noteq> \<infinity>" "(\<integral>\<^sup>+ x. ennreal (- f x) \<partial>M) \<noteq> \<infinity>"
+  have "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) = (\<integral>\<^sup>+ x. ennreal (f x) + ennreal (- f x) \<partial>M)"
+    by (intro nn_integral_cong) (auto simp: abs_real_def ennreal_neg)
+  also have"\<dots> = (\<integral>\<^sup>+ x. ennreal (f x) \<partial>M) + (\<integral>\<^sup>+ x. ennreal (- f x) \<partial>M)"
     by (intro nn_integral_add) auto
   also have "\<dots> < \<infinity>"
-    using fin by (auto simp: nn_integral_max_0)
+    using fin by (auto simp: less_top)
   finally show "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) < \<infinity>" .
 qed
 
 lemma integrableD[dest]:
   assumes "integrable M f"
-  shows "f \<in> borel_measurable M" "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) \<noteq> \<infinity>" "(\<integral>\<^sup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>"
+  shows "f \<in> borel_measurable M" "(\<integral>\<^sup>+ x. ennreal (f x) \<partial>M) \<noteq> \<infinity>" "(\<integral>\<^sup>+ x. ennreal (- f x) \<partial>M) \<noteq> \<infinity>"
   using assms unfolding real_integrable_def by auto
 
 lemma integrableE:
   assumes "integrable M f"
   obtains r q where
-    "(\<integral>\<^sup>+x. ereal (f x)\<partial>M) = ereal r"
-    "(\<integral>\<^sup>+x. ereal (-f x)\<partial>M) = ereal q"
+    "(\<integral>\<^sup>+x. ennreal (f x)\<partial>M) = ennreal r"
+    "(\<integral>\<^sup>+x. ennreal (-f x)\<partial>M) = ennreal q"
     "f \<in> borel_measurable M" "integral\<^sup>L M f = r - q"
   using assms unfolding real_integrable_def real_lebesgue_integral_def[OF assms]
-  using nn_integral_nonneg[of M "\<lambda>x. ereal (f x)"]
-  using nn_integral_nonneg[of M "\<lambda>x. ereal (-f x)"]
-  by (cases rule: ereal2_cases[of "(\<integral>\<^sup>+x. ereal (-f x)\<partial>M)" "(\<integral>\<^sup>+x. ereal (f x)\<partial>M)"]) auto
+  by (cases rule: ennreal2_cases[of "(\<integral>\<^sup>+x. ennreal (-f x)\<partial>M)" "(\<integral>\<^sup>+x. ennreal (f x)\<partial>M)"]) auto
 
 lemma integral_monotone_convergence_nonneg:
   fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> real"
@@ -2276,34 +2326,33 @@ lemma integral_monotone_convergence_nonneg:
   shows "integrable M u"
   and "integral\<^sup>L M u = x"
 proof -
-  have "(\<integral>\<^sup>+ x. ereal (u x) \<partial>M) = (SUP n. (\<integral>\<^sup>+ x. ereal (f n x) \<partial>M))"
+  have nn: "AE x in M. \<forall>i. 0 \<le> f i x"
+    using pos unfolding AE_all_countable by auto
+  with lim have u_nn: "AE x in M. 0 \<le> u x"
+    by eventually_elim (auto intro: LIMSEQ_le_const)
+  have [simp]: "0 \<le> x"
+    by (intro LIMSEQ_le_const[OF ilim] allI exI impI integral_nonneg_AE pos)
+  have "(\<integral>\<^sup>+ x. ennreal (u x) \<partial>M) = (SUP n. (\<integral>\<^sup>+ x. ennreal (f n x) \<partial>M))"
   proof (subst nn_integral_monotone_convergence_SUP_AE[symmetric])
     fix i
-    from mono pos show "AE x in M. ereal (f i x) \<le> ereal (f (Suc i) x) \<and> 0 \<le> ereal (f i x)"
+    from mono nn show "AE x in M. ennreal (f i x) \<le> ennreal (f (Suc i) x)"
       by eventually_elim (auto simp: mono_def)
-    show "(\<lambda>x. ereal (f i x)) \<in> borel_measurable M"
+    show "(\<lambda>x. ennreal (f i x)) \<in> borel_measurable M"
       using i by auto
   next
-    show "(\<integral>\<^sup>+ x. ereal (u x) \<partial>M) = \<integral>\<^sup>+ x. (SUP i. ereal (f i x)) \<partial>M"
+    show "(\<integral>\<^sup>+ x. ennreal (u x) \<partial>M) = \<integral>\<^sup>+ x. (SUP i. ennreal (f i x)) \<partial>M"
       apply (rule nn_integral_cong_AE)
-      using lim mono
-      by eventually_elim (simp add: SUP_eq_LIMSEQ[THEN iffD2])
+      using lim mono nn u_nn
+      apply eventually_elim
+      apply (simp add: LIMSEQ_unique[OF _ LIMSEQ_SUP] incseq_def)
+      done
   qed
-  also have "\<dots> = ereal x"
-    using mono i unfolding nn_integral_eq_integral[OF i pos]
-    by (subst SUP_eq_LIMSEQ) (auto simp: mono_def intro!: integral_mono_AE ilim)
-  finally have "(\<integral>\<^sup>+ x. ereal (u x) \<partial>M) = ereal x" .
-  moreover have "(\<integral>\<^sup>+ x. ereal (- u x) \<partial>M) = 0"
-  proof (subst nn_integral_0_iff_AE)
-    show "(\<lambda>x. ereal (- u x)) \<in> borel_measurable M"
-      using u by auto
-    from mono pos[of 0] lim show "AE x in M. ereal (- u x) \<le> 0"
-    proof eventually_elim
-      fix x assume "mono (\<lambda>n. f n x)" "0 \<le> f 0 x" "(\<lambda>i. f i x) \<longlonglongrightarrow> u x"
-      then show "ereal (- u x) \<le> 0"
-        using incseq_le[of "\<lambda>n. f n x" "u x" 0] by (simp add: mono_def incseq_def)
-    qed
-  qed
+  also have "\<dots> = ennreal x"
+    using mono i nn unfolding nn_integral_eq_integral[OF i pos]
+    by (subst LIMSEQ_unique[OF LIMSEQ_SUP]) (auto simp: mono_def integral_nonneg_AE pos intro!: integral_mono_AE ilim)
+  finally have "(\<integral>\<^sup>+ x. ennreal (u x) \<partial>M) = ennreal x" .
+  moreover have "(\<integral>\<^sup>+ x. ennreal (- u x) \<partial>M) = 0"
+    using u u_nn by (subst nn_integral_0_iff_AE) (auto simp add: ennreal_neg)
   ultimately show "integrable M u" "integral\<^sup>L M u = x"
     by (auto simp: real_integrable_def real_lebesgue_integral_def u)
 qed
@@ -2348,7 +2397,7 @@ proof -
     using f by (intro nn_integral_eq_integral integrable_norm) auto
   then have "(\<integral>x. norm (f x) \<partial>M) = 0 \<longleftrightarrow> (\<integral>\<^sup>+x. norm (f x) \<partial>M) = 0"
     by simp
-  also have "\<dots> \<longleftrightarrow> emeasure M {x\<in>space M. ereal (norm (f x)) \<noteq> 0} = 0"
+  also have "\<dots> \<longleftrightarrow> emeasure M {x\<in>space M. ennreal (norm (f x)) \<noteq> 0} = 0"
     by (intro nn_integral_0_iff) auto
   finally show ?thesis
     by simp
@@ -2360,15 +2409,15 @@ lemma integral_0_iff:
   using integral_norm_eq_0_iff[of M f] by simp
 
 lemma (in finite_measure) integrable_const[intro!, simp]: "integrable M (\<lambda>x. a)"
-  using integrable_indicator[of "space M" M a] by (simp cong: integrable_cong)
+  using integrable_indicator[of "space M" M a] by (simp cong: integrable_cong add: less_top[symmetric])
 
-lemma lebesgue_integral_const[simp]: 
+lemma lebesgue_integral_const[simp]:
   fixes a :: "'a :: {banach, second_countable_topology}"
   shows "(\<integral>x. a \<partial>M) = measure M (space M) *\<^sub>R a"
 proof -
   { assume "emeasure M (space M) = \<infinity>" "a \<noteq> 0"
     then have ?thesis
-      by (simp add: not_integrable_integral_eq measure_def integrable_iff_bounded) }
+      by (auto simp add: not_integrable_integral_eq ennreal_mult_less_top measure_def integrable_iff_bounded) }
   moreover
   { assume "a = 0" then have ?thesis by simp }
   moreover
@@ -2378,7 +2427,7 @@ proof -
     have "(\<integral>x. a \<partial>M) = (\<integral>x. indicator (space M) x *\<^sub>R a \<partial>M)"
       by (intro integral_cong) auto
     also have "\<dots> = measure M (space M) *\<^sub>R a"
-      by simp
+      by (simp add: less_top[symmetric])
     finally have ?thesis . }
   ultimately show ?thesis by blast
 qed
@@ -2409,18 +2458,16 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in finite_measure) ereal_integral_real:
-  assumes [measurable]: "f \<in> borel_measurable M" 
-  assumes ae: "AE x in M. 0 \<le> f x" "AE x in M. f x \<le> ereal B"
-  shows "ereal (\<integral>x. real_of_ereal (f x) \<partial>M) = (\<integral>\<^sup>+x. f x \<partial>M)"
+lemma (in finite_measure) ennreal_integral_real:
+  assumes [measurable]: "f \<in> borel_measurable M"
+  assumes ae: "AE x in M. f x \<le> ennreal B" "0 \<le> B"
+  shows "ennreal (\<integral>x. enn2real (f x) \<partial>M) = (\<integral>\<^sup>+x. f x \<partial>M)"
 proof (subst nn_integral_eq_integral[symmetric])
-  show "integrable M (\<lambda>x. real_of_ereal (f x))"
-    using ae by (intro integrable_const_bound[where B=B]) (auto simp: real_le_ereal_iff)
-  show "AE x in M. 0 \<le> real_of_ereal (f x)"
-    using ae by (auto simp: real_of_ereal_pos)
-  show "(\<integral>\<^sup>+ x. ereal (real_of_ereal (f x)) \<partial>M) = integral\<^sup>N M f"
-    using ae by (intro nn_integral_cong_AE) (auto simp: ereal_real)
-qed
+  show "integrable M (\<lambda>x. enn2real (f x))"
+    using ae by (intro integrable_const_bound[where B=B]) (auto simp: enn2real_leI enn2real_nonneg)
+  show "(\<integral>\<^sup>+ x. ennreal (enn2real (f x)) \<partial>M) = integral\<^sup>N M f"
+    using ae by (intro nn_integral_cong_AE) (auto simp: le_less_trans[OF _ ennreal_less_top])
+qed (auto simp: enn2real_nonneg)
 
 lemma (in finite_measure) integral_less_AE:
   fixes X Y :: "'a \<Rightarrow> real"
@@ -2447,7 +2494,7 @@ proof -
     then have "(emeasure M) A \<le> (emeasure M) {x \<in> space M. Y x - X x \<noteq> 0}"
       using int A by (simp add: integrable_def)
     ultimately have "emeasure M A = 0"
-      using emeasure_nonneg[of M A] by simp
+      by simp
     with \<open>(emeasure M) A \<noteq> 0\<close> show False by auto
   qed
   ultimately show ?thesis by auto
@@ -2473,7 +2520,7 @@ proof (rule tendsto_at_topI_sequentially)
     show "AE x in M. (\<lambda>n. indicator {..X n} x *\<^sub>R f x) \<longlonglongrightarrow> f x"
     proof
       fix x
-      from \<open>filterlim X at_top sequentially\<close> 
+      from \<open>filterlim X at_top sequentially\<close>
       have "eventually (\<lambda>n. x \<le> X n) sequentially"
         unfolding filterlim_at_top_ge[where c=x] by auto
       then show "(\<lambda>n. indicator {..X n} x *\<^sub>R f x) \<longlonglongrightarrow> f x"
@@ -2528,13 +2575,13 @@ proof -
     by (simp cong: measurable_cong)
 qed
 
+lemma Collect_subset [simp]: "{x\<in>A. P x} \<subseteq> A" by auto
+
 lemma (in sigma_finite_measure) measurable_measure[measurable (raw)]:
   "(\<And>x. x \<in> space N \<Longrightarrow> A x \<subseteq> space M) \<Longrightarrow>
     {x \<in> space (N \<Otimes>\<^sub>M M). snd x \<in> A (fst x)} \<in> sets (N \<Otimes>\<^sub>M M) \<Longrightarrow>
     (\<lambda>x. measure M (A x)) \<in> borel_measurable N"
-  unfolding measure_def by (intro measurable_emeasure borel_measurable_real_of_ereal)
-
-lemma Collect_subset [simp]: "{x\<in>A. P x} \<subseteq> A" by auto
+  unfolding measure_def by (intro measurable_emeasure borel_measurable_enn2real) auto
 
 lemma (in sigma_finite_measure) borel_measurable_lebesgue_integral[measurable (raw)]:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _::{banach, second_countable_topology}"
@@ -2593,17 +2640,17 @@ proof -
             using simple_functionD(1)[OF s(1), of i] x
             by (intro simple_function_borel_measurable)
                (auto simp: space_pair_measure dest: finite_subset)
-          have "(\<integral>\<^sup>+ y. ereal (norm (s i (x, y))) \<partial>M) \<le> (\<integral>\<^sup>+ y. 2 * norm (f x y) \<partial>M)"
+          have "(\<integral>\<^sup>+ y. ennreal (norm (s i (x, y))) \<partial>M) \<le> (\<integral>\<^sup>+ y. 2 * norm (f x y) \<partial>M)"
             using x s by (intro nn_integral_mono) auto
           also have "(\<integral>\<^sup>+ y. 2 * norm (f x y) \<partial>M) < \<infinity>"
             using int_2f by (simp add: integrable_iff_bounded)
-          finally show "(\<integral>\<^sup>+ xa. ereal (norm (s i (x, xa))) \<partial>M) < \<infinity>" .
+          finally show "(\<integral>\<^sup>+ xa. ennreal (norm (s i (x, xa))) \<partial>M) < \<infinity>" .
         qed
         then have "integral\<^sup>L M (\<lambda>y. s i (x, y)) = simple_bochner_integral M (\<lambda>y. s i (x, y))"
           by (rule simple_bochner_integrable_eq_integral[symmetric]) }
       ultimately have "(\<lambda>i. simple_bochner_integral M (\<lambda>y. s i (x, y))) \<longlonglongrightarrow> integral\<^sup>L M (f x)"
         by simp }
-    then 
+    then
     show "(\<lambda>i. f' i x) \<longlonglongrightarrow> integral\<^sup>L M (f x)"
       unfolding f'_def
       by (cases "integrable M (f x)") (simp_all add: not_integrable_integral_eq)
@@ -2657,11 +2704,11 @@ proof (rule integrableI_bounded)
     fix x assume "integrable M2 (\<lambda>y. f (x, y))"
     then have f: "integrable M2 (\<lambda>y. norm (f (x, y)))"
       by simp
-    then have "(\<integral>\<^sup>+y. ereal (norm (f (x, y))) \<partial>M2) = ereal (LINT y|M2. norm (f (x, y)))"
+    then have "(\<integral>\<^sup>+y. ennreal (norm (f (x, y))) \<partial>M2) = ennreal (LINT y|M2. norm (f (x, y)))"
       by (rule nn_integral_eq_integral) simp
-    also have "\<dots> = ereal \<bar>LINT y|M2. norm (f (x, y))\<bar>"
-      using f by (auto intro!: abs_of_nonneg[symmetric] integral_nonneg_AE)
-    finally show "(\<integral>\<^sup>+y. ereal (norm (f (x, y))) \<partial>M2) = ereal \<bar>LINT y|M2. norm (f (x, y))\<bar>" .
+    also have "\<dots> = ennreal \<bar>LINT y|M2. norm (f (x, y))\<bar>"
+      using f by simp
+    finally show "(\<integral>\<^sup>+y. ennreal (norm (f (x, y))) \<partial>M2) = ennreal \<bar>LINT y|M2. norm (f (x, y))\<bar>" .
   qed
   also have "\<dots> < \<infinity>"
     using integ1 by (simp add: integrable_iff_bounded integral_nonneg_AE)
@@ -2679,7 +2726,7 @@ proof -
     by (rule nn_integral_PInf_AE[rotated]) (intro M2.measurable_emeasure_Pair A)
   moreover have "\<And>x. x \<in> space M1 \<Longrightarrow> Pair x -` A = {y\<in>space M2. (x, y) \<in> A}"
     using sets.sets_into_space[OF A] by (auto simp: space_pair_measure)
-  ultimately show ?thesis by auto
+  ultimately show ?thesis by (auto simp: less_top)
 qed
 
 lemma (in pair_sigma_finite) AE_integrable_fst':
@@ -2696,7 +2743,7 @@ proof -
        (auto simp: measurable_split_conv)
   with AE_space show ?thesis
     by eventually_elim
-       (auto simp: integrable_iff_bounded measurable_compose[OF _ borel_measurable_integrable[OF f]])
+       (auto simp: integrable_iff_bounded measurable_compose[OF _ borel_measurable_integrable[OF f]] less_top)
 qed
 
 lemma (in pair_sigma_finite) integrable_fst':
@@ -2707,13 +2754,13 @@ lemma (in pair_sigma_finite) integrable_fst':
 proof
   show "(\<lambda>x. \<integral> y. f (x, y) \<partial>M2) \<in> borel_measurable M1"
     by (rule M2.borel_measurable_lebesgue_integral) simp
-  have "(\<integral>\<^sup>+ x. ereal (norm (\<integral> y. f (x, y) \<partial>M2)) \<partial>M1) \<le> (\<integral>\<^sup>+x. (\<integral>\<^sup>+y. norm (f (x, y)) \<partial>M2) \<partial>M1)"
-    using AE_integrable_fst'[OF f] by (auto intro!: nn_integral_mono_AE integral_norm_bound_ereal)
+  have "(\<integral>\<^sup>+ x. ennreal (norm (\<integral> y. f (x, y) \<partial>M2)) \<partial>M1) \<le> (\<integral>\<^sup>+x. (\<integral>\<^sup>+y. norm (f (x, y)) \<partial>M2) \<partial>M1)"
+    using AE_integrable_fst'[OF f] by (auto intro!: nn_integral_mono_AE integral_norm_bound_ennreal)
   also have "(\<integral>\<^sup>+x. (\<integral>\<^sup>+y. norm (f (x, y)) \<partial>M2) \<partial>M1) = (\<integral>\<^sup>+x. norm (f x) \<partial>(M1 \<Otimes>\<^sub>M M2))"
     by (rule M2.nn_integral_fst) simp
   also have "(\<integral>\<^sup>+x. norm (f x) \<partial>(M1 \<Otimes>\<^sub>M M2)) < \<infinity>"
     using f unfolding integrable_iff_bounded by simp
-  finally show "(\<integral>\<^sup>+ x. ereal (norm (\<integral> y. f (x, y) \<partial>M2)) \<partial>M1) < \<infinity>" .
+  finally show "(\<integral>\<^sup>+ x. ennreal (norm (\<integral> y. f (x, y) \<partial>M2)) \<partial>M1) < \<infinity>" .
 qed
 
 lemma (in pair_sigma_finite) integral_fst':
@@ -2738,24 +2785,24 @@ using f proof induct
   qed
   also have "\<dots> = measure (M1 \<Otimes>\<^sub>M M2) A *\<^sub>R c"
   proof (subst integral_scaleR_left)
-    have "(\<integral>\<^sup>+x. ereal (measure M2 {y \<in> space M2. (x, y) \<in> A}) \<partial>M1) =
+    have "(\<integral>\<^sup>+x. ennreal (measure M2 {y \<in> space M2. (x, y) \<in> A}) \<partial>M1) =
       (\<integral>\<^sup>+x. emeasure M2 {y \<in> space M2. (x, y) \<in> A} \<partial>M1)"
       using emeasure_pair_measure_finite[OF base]
-      by (intro nn_integral_cong_AE, eventually_elim) (simp add: emeasure_eq_ereal_measure)
+      by (intro nn_integral_cong_AE, eventually_elim) (simp add: emeasure_eq_ennreal_measure)
     also have "\<dots> = emeasure (M1 \<Otimes>\<^sub>M M2) A"
       using sets.sets_into_space[OF A]
       by (subst M2.emeasure_pair_measure_alt)
          (auto intro!: nn_integral_cong arg_cong[where f="emeasure M2"] simp: space_pair_measure)
-    finally have *: "(\<integral>\<^sup>+x. ereal (measure M2 {y \<in> space M2. (x, y) \<in> A}) \<partial>M1) = emeasure (M1 \<Otimes>\<^sub>M M2) A" .
+    finally have *: "(\<integral>\<^sup>+x. ennreal (measure M2 {y \<in> space M2. (x, y) \<in> A}) \<partial>M1) = emeasure (M1 \<Otimes>\<^sub>M M2) A" .
 
     from base * show "integrable M1 (\<lambda>x. measure M2 {y \<in> space M2. (x, y) \<in> A})"
-      by (simp add: measure_nonneg integrable_iff_bounded)
-    then have "(\<integral>x. measure M2 {y \<in> space M2. (x, y) \<in> A} \<partial>M1) = 
-      (\<integral>\<^sup>+x. ereal (measure M2 {y \<in> space M2. (x, y) \<in> A}) \<partial>M1)"
-      by (rule nn_integral_eq_integral[symmetric]) (simp add: measure_nonneg)
+      by (simp add: integrable_iff_bounded)
+    then have "(\<integral>x. measure M2 {y \<in> space M2. (x, y) \<in> A} \<partial>M1) =
+      (\<integral>\<^sup>+x. ennreal (measure M2 {y \<in> space M2. (x, y) \<in> A}) \<partial>M1)"
+      by (rule nn_integral_eq_integral[symmetric]) simp
     also note *
     finally show "(\<integral>x. measure M2 {y \<in> space M2. (x, y) \<in> A} \<partial>M1) *\<^sub>R c = measure (M1 \<Otimes>\<^sub>M M2) A *\<^sub>R c"
-      using base by (simp add: emeasure_eq_ereal_measure)
+      using base by (simp add: emeasure_eq_ennreal_measure)
   qed
   also have "\<dots> = (\<integral> a. indicator A a *\<^sub>R c \<partial>(M1 \<Otimes>\<^sub>M M2))"
     using base by simp
@@ -2764,14 +2811,14 @@ next
   case (add f g)
   then have [measurable]: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)" "g \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
     by auto
-  have "(\<integral> x. \<integral> y. f (x, y) + g (x, y) \<partial>M2 \<partial>M1) = 
+  have "(\<integral> x. \<integral> y. f (x, y) + g (x, y) \<partial>M2 \<partial>M1) =
     (\<integral> x. (\<integral> y. f (x, y) \<partial>M2) + (\<integral> y. g (x, y) \<partial>M2) \<partial>M1)"
     apply (rule integral_cong_AE)
     apply simp_all
     using AE_integrable_fst'[OF add(1)] AE_integrable_fst'[OF add(3)]
     apply eventually_elim
     apply simp
-    done 
+    done
   also have "\<dots> = (\<integral> x. f x \<partial>(M1 \<Otimes>\<^sub>M M2)) + (\<integral> x. g x \<partial>(M1 \<Otimes>\<^sub>M M2))"
     using integrable_fst'[OF add(1)] integrable_fst'[OF add(3)] add(2,4) by simp
   finally show ?case
@@ -2780,7 +2827,7 @@ next
   case (lim f s)
   then have [measurable]: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)" "\<And>i. s i \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
     by auto
-  
+
   show ?case
   proof (rule LIMSEQ_unique)
     show "(\<lambda>i. integral\<^sup>L (M1 \<Otimes>\<^sub>M M2) (s i)) \<longlonglongrightarrow> integral\<^sup>L (M1 \<Otimes>\<^sub>M M2) f"
@@ -2811,11 +2858,11 @@ next
         by (intro integrable_mult_right integrable_norm integrable_fst' lim)
       fix i show "AE x in M1. norm (\<integral> y. s i (x, y) \<partial>M2) \<le> (\<integral> y. 2 * norm (f (x, y)) \<partial>M2)"
         using AE_space AE_integrable_fst'[OF lim(1), of i] AE_integrable_fst'[OF lim(5)]
-      proof eventually_elim 
+      proof eventually_elim
         fix x assume x: "x \<in> space M1"
           and s: "integrable M2 (\<lambda>y. s i (x, y))" and f: "integrable M2 (\<lambda>y. f (x, y))"
         from s have "norm (\<integral> y. s i (x, y) \<partial>M2) \<le> (\<integral>\<^sup>+y. norm (s i (x, y)) \<partial>M2)"
-          by (rule integral_norm_bound_ereal)
+          by (rule integral_norm_bound_ennreal)
         also have "\<dots> \<le> (\<integral>\<^sup>+y. 2 * norm (f (x, y)) \<partial>M2)"
           using x lim by (auto intro!: nn_integral_mono simp: space_pair_measure)
         also have "\<dots> = (\<integral>y. 2 * norm (f (x, y)) \<partial>M2)"
@@ -2927,14 +2974,14 @@ proof (unfold integrable_iff_bounded, intro conjI)
 
   show "?f \<in> borel_measurable (Pi\<^sub>M I M)"
     using assms by simp
-  have "(\<integral>\<^sup>+ x. ereal (norm (\<Prod>i\<in>I. f i (x i))) \<partial>Pi\<^sub>M I M) = 
-      (\<integral>\<^sup>+ x. (\<Prod>i\<in>I. ereal (norm (f i (x i)))) \<partial>Pi\<^sub>M I M)"
-    by (simp add: setprod_norm setprod_ereal)
-  also have "\<dots> = (\<Prod>i\<in>I. \<integral>\<^sup>+ x. ereal (norm (f i x)) \<partial>M i)"
+  have "(\<integral>\<^sup>+ x. ennreal (norm (\<Prod>i\<in>I. f i (x i))) \<partial>Pi\<^sub>M I M) =
+      (\<integral>\<^sup>+ x. (\<Prod>i\<in>I. ennreal (norm (f i (x i)))) \<partial>Pi\<^sub>M I M)"
+    by (simp add: setprod_norm setprod_ennreal)
+  also have "\<dots> = (\<Prod>i\<in>I. \<integral>\<^sup>+ x. ennreal (norm (f i x)) \<partial>M i)"
     using assms by (intro product_nn_integral_setprod) auto
   also have "\<dots> < \<infinity>"
-    using integrable by (simp add: setprod_PInf nn_integral_nonneg integrable_iff_bounded)
-  finally show "(\<integral>\<^sup>+ x. ereal (norm (\<Prod>i\<in>I. f i (x i))) \<partial>Pi\<^sub>M I M) < \<infinity>" .
+    using integrable by (simp add: less_top[symmetric] ennreal_setprod_eq_top integrable_iff_bounded)
+  finally show "(\<integral>\<^sup>+ x. ennreal (norm (\<Prod>i\<in>I. f i (x i))) \<partial>Pi\<^sub>M I M) < \<infinity>" .
 qed
 
 lemma (in product_sigma_finite) product_integral_setprod:
@@ -3010,8 +3057,7 @@ proof cases
   qed
 qed (simp add: not_integrable_integral_eq integrable_subalgebra[OF assms])
 
-hide_const simple_bochner_integral
-hide_const simple_bochner_integrable
+hide_const (open) simple_bochner_integral
+hide_const (open) simple_bochner_integrable
 
 end
-

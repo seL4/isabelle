@@ -435,6 +435,14 @@ lemma borel_measurable_restrict_space_iff_ereal:
   by (subst measurable_restrict_space_iff)
      (auto simp: indicator_def if_distrib[where f="\<lambda>x. a * x" for a] cong del: if_cong)
 
+lemma borel_measurable_restrict_space_iff_ennreal:
+  fixes f :: "'a \<Rightarrow> ennreal"
+  assumes \<Omega>[measurable, simp]: "\<Omega> \<inter> space M \<in> sets M"
+  shows "f \<in> borel_measurable (restrict_space M \<Omega>) \<longleftrightarrow>
+    (\<lambda>x. f x * indicator \<Omega> x) \<in> borel_measurable M"
+  by (subst measurable_restrict_space_iff)
+     (auto simp: indicator_def if_distrib[where f="\<lambda>x. a * x" for a] cong del: if_cong)
+
 lemma borel_measurable_restrict_space_iff:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes \<Omega>[measurable, simp]: "\<Omega> \<inter> space M \<in> sets M"
@@ -1639,12 +1647,6 @@ proof -
   from assms show ?thesis unfolding * by simp
 qed
 
-lemma
-  fixes f :: "'a \<Rightarrow> ereal" assumes f: "f \<in> borel_measurable M"
-  shows borel_measurable_ereal_eq_const: "{x\<in>space M. f x = c} \<in> sets M"
-    and borel_measurable_ereal_neq_const: "{x\<in>space M. f x \<noteq> c} \<in> sets M"
-  using f by auto
-
 lemma [measurable(raw)]:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes [measurable]: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
@@ -1689,6 +1691,10 @@ lemma measurable_enn2ereal[measurable]: "enn2ereal \<in> borel \<rightarrow>\<^s
 lemma measurable_e2ennreal[measurable]: "e2ennreal \<in> borel \<rightarrow>\<^sub>M borel"
   by (intro borel_measurable_continuous_on1 continuous_on_e2ennreal)
 
+lemma borel_measurable_enn2real[measurable (raw)]:
+  "f \<in> M \<rightarrow>\<^sub>M borel \<Longrightarrow> (\<lambda>x. enn2real (f x)) \<in> M \<rightarrow>\<^sub>M borel"
+  unfolding enn2real_def[abs_def] by measurable
+
 definition [simp]: "is_borel f M \<longleftrightarrow> f \<in> borel_measurable M"
 
 lemma is_borel_transfer[transfer_rule]: "rel_fun (rel_fun op = pcr_ennreal) op = is_borel is_borel"
@@ -1699,8 +1705,24 @@ proof (safe intro!: rel_funI ext dest!: rel_fun_eq_pcr_ennreal[THEN iffD1])
     using measurable_compose[OF f measurable_e2ennreal] by simp
 qed simp
 
+context
+  includes ennreal.lifting
+begin
+
 lemma measurable_ennreal[measurable]: "ennreal \<in> borel \<rightarrow>\<^sub>M borel"
-  unfolding is_borel_def[symmetric] by transfer simp
+  unfolding is_borel_def[symmetric]
+  by transfer simp
+
+lemma borel_measurable_ennreal_iff[simp]:
+  assumes [simp]: "\<And>x. x \<in> space M \<Longrightarrow> 0 \<le> f x"
+  shows "(\<lambda>x. ennreal (f x)) \<in> M \<rightarrow>\<^sub>M borel \<longleftrightarrow> f \<in> M \<rightarrow>\<^sub>M borel"
+proof safe
+  assume "(\<lambda>x. ennreal (f x)) \<in> M \<rightarrow>\<^sub>M borel"
+  then have "(\<lambda>x. enn2real (ennreal (f x))) \<in> M \<rightarrow>\<^sub>M borel"
+    by measurable
+  then show "f \<in> M \<rightarrow>\<^sub>M borel"
+    by (rule measurable_cong[THEN iffD1, rotated]) auto
+qed measurable
 
 lemma borel_measurable_times_ennreal[measurable (raw)]:
   fixes f g :: "'a \<Rightarrow> ennreal"
@@ -1727,6 +1749,8 @@ lemma borel_measurable_setprod_ennreal[measurable (raw)]:
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Prod>i\<in>S. f i x) \<in> borel_measurable M"
   using assms by (induction S rule: infinite_finite_induct) auto
+
+end
 
 hide_const (open) is_borel
 

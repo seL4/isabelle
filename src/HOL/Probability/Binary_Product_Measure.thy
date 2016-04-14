@@ -110,8 +110,8 @@ lemma measurable_pair:
   shows "f \<in> measurable M (M1 \<Otimes>\<^sub>M M2)"
   using measurable_Pair[OF assms] by simp
 
-lemma 
-  assumes f[measurable]: "f \<in> measurable M (N \<Otimes>\<^sub>M P)" 
+lemma
+  assumes f[measurable]: "f \<in> measurable M (N \<Otimes>\<^sub>M P)"
   shows measurable_fst': "(\<lambda>x. fst (f x)) \<in> measurable M N"
     and measurable_snd': "(\<lambda>x. snd (f x)) \<in> measurable M P"
   by simp_all
@@ -134,7 +134,7 @@ proof -
     finally have "a \<times> b \<in> sets (Sup_sigma {?fst, ?snd})" . }
   moreover have "sets ?fst \<subseteq> sets (A \<Otimes>\<^sub>M B)"
     by (rule sets_image_in_sets) (auto simp: space_pair_measure[symmetric])
-  moreover have "sets ?snd \<subseteq> sets (A \<Otimes>\<^sub>M B)"  
+  moreover have "sets ?snd \<subseteq> sets (A \<Otimes>\<^sub>M B)"
     by (rule sets_image_in_sets) (auto simp: space_pair_measure)
   ultimately show ?thesis
     by (intro antisym[of "sets A" for A] sets_Sup_in_sets sets_pair_in_sets )
@@ -143,7 +143,7 @@ qed
 
 lemma measurable_pair_iff:
   "f \<in> measurable M (M1 \<Otimes>\<^sub>M M2) \<longleftrightarrow> (fst \<circ> f) \<in> measurable M M1 \<and> (snd \<circ> f) \<in> measurable M M2"
-  by (auto intro: measurable_pair[of f M M1 M2]) 
+  by (auto intro: measurable_pair[of f M M1 M2])
 
 lemma measurable_split_conv:
   "(\<lambda>(x, y). f x y) \<in> measurable A B \<longleftrightarrow> (\<lambda>x. f (fst x) (snd x)) \<in> measurable A B"
@@ -190,7 +190,7 @@ lemma measurable_Pair2:
   shows "(\<lambda>y. f (x, y)) \<in> measurable M2 M"
   using measurable_comp[OF measurable_Pair1' f, OF x]
   by (simp add: comp_def)
-  
+
 lemma measurable_Pair1:
   assumes f: "f \<in> measurable (M1 \<Otimes>\<^sub>M M2) M" and y: "y \<in> space M2"
   shows "(\<lambda>x. f (x, y)) \<in> measurable M1 M"
@@ -279,7 +279,7 @@ lemma (in sigma_finite_measure) emeasure_pair_measure:
   shows "emeasure (N \<Otimes>\<^sub>M M) X = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. indicator X (x, y) \<partial>M \<partial>N)" (is "_ = ?\<mu> X")
 proof (rule emeasure_measure_of[OF pair_measure_def])
   show "positive (sets (N \<Otimes>\<^sub>M M)) ?\<mu>"
-    by (auto simp: positive_def nn_integral_nonneg)
+    by (auto simp: positive_def)
   have eq[simp]: "\<And>A x y. indicator A (x, y) = indicator (Pair x -` A) y"
     by (auto simp: indicator_def)
   show "countably_additive (sets (N \<Otimes>\<^sub>M M)) ?\<mu>"
@@ -291,7 +291,7 @@ proof (rule emeasure_measure_of[OF pair_measure_def])
     moreover have "\<And>x. range (\<lambda>i. Pair x -` F i) \<subseteq> sets M"
       using F by (auto simp: sets_Pair1)
     ultimately show "(\<Sum>n. ?\<mu> (F n)) = ?\<mu> (\<Union>i. F i)"
-      by (auto simp add: nn_integral_suminf[symmetric] vimage_UN suminf_emeasure emeasure_nonneg
+      by (auto simp add: nn_integral_suminf[symmetric] vimage_UN suminf_emeasure
                intro!: nn_integral_cong nn_integral_indicator[symmetric])
   qed
   show "{a \<times> b |a b. a \<in> sets N \<and> b \<in> sets M} \<subseteq> Pow (space N \<times> space M)"
@@ -315,7 +315,7 @@ proof -
   have "emeasure (N \<Otimes>\<^sub>M M) (A \<times> B) = (\<integral>\<^sup>+x. emeasure M B * indicator A x \<partial>N)"
     using A B by (auto intro!: nn_integral_cong simp: emeasure_pair_measure_alt)
   also have "\<dots> = emeasure M B * emeasure N A"
-    using A by (simp add: emeasure_nonneg nn_integral_cmult_indicator)
+    using A by (simp add: nn_integral_cmult_indicator)
   finally show ?thesis
     by (simp add: ac_simps)
 qed
@@ -373,9 +373,8 @@ proof -
   next
     fix i
     from F1 F2 have "F1 i \<in> sets M1" "F2 i \<in> sets M2" by auto
-    with F1 F2 emeasure_nonneg[of M1 "F1 i"] emeasure_nonneg[of M2 "F2 i"]
-    show "emeasure (M1 \<Otimes>\<^sub>M M2) (F1 i \<times> F2 i) \<noteq> \<infinity>"
-      by (auto simp add: emeasure_pair_measure_Times)
+    with F1 F2 show "emeasure (M1 \<Otimes>\<^sub>M M2) (F1 i \<times> F2 i) \<noteq> \<infinity>"
+      by (auto simp add: emeasure_pair_measure_Times ennreal_mult_eq_top_iff)
   qed
 qed
 
@@ -386,8 +385,7 @@ proof
   ultimately show
     "\<exists>A. countable A \<and> A \<subseteq> sets (M1 \<Otimes>\<^sub>M M2) \<and> \<Union>A = space (M1 \<Otimes>\<^sub>M M2) \<and> (\<forall>a\<in>A. emeasure (M1 \<Otimes>\<^sub>M M2) a \<noteq> \<infinity>)"
     by (intro exI[of _ "(\<lambda>(a, b). a \<times> b) ` (F1 \<times> F2)"] conjI)
-       (auto simp: M2.emeasure_pair_measure_Times space_pair_measure set_eq_iff subset_eq
-             dest: sets.sets_into_space)
+       (auto simp: M2.emeasure_pair_measure_Times space_pair_measure set_eq_iff subset_eq ennreal_mult_eq_top_iff)
 qed
 
 lemma sigma_finite_pair_measure:
@@ -455,9 +453,9 @@ proof -
   proof (rule AE_I)
     from N measurable_emeasure_Pair1[OF \<open>N \<in> sets (M1 \<Otimes>\<^sub>M M2)\<close>]
     show "emeasure M1 {x\<in>space M1. emeasure M2 (Pair x -` N) \<noteq> 0} = 0"
-      by (auto simp: M2.emeasure_pair_measure_alt nn_integral_0_iff emeasure_nonneg)
+      by (auto simp: M2.emeasure_pair_measure_alt nn_integral_0_iff)
     show "{x \<in> space M1. emeasure M2 (Pair x -` N) \<noteq> 0} \<in> sets M1"
-      by (intro borel_measurable_ereal_neq_const measurable_emeasure_Pair1 N)
+      by (intro borel_measurable_eq measurable_emeasure_Pair1 N sets.sets_Collect_neg N) simp
     { fix x assume "x \<in> space M1" "emeasure M2 (Pair x -` N) = 0"
       have "AE y in M2. Q (x, y)"
       proof (rule AE_I)
@@ -523,8 +521,8 @@ lemma measurable_compose_Pair1:
   "x \<in> space M1 \<Longrightarrow> g \<in> measurable (M1 \<Otimes>\<^sub>M M2) L \<Longrightarrow> (\<lambda>y. g (x, y)) \<in> measurable M2 L"
   by simp
 
-lemma (in sigma_finite_measure) borel_measurable_nn_integral_fst':
-  assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M)" "\<And>x. 0 \<le> f x"
+lemma (in sigma_finite_measure) borel_measurable_nn_integral_fst:
+  assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M)"
   shows "(\<lambda>x. \<integral>\<^sup>+ y. f (x, y) \<partial>M) \<in> borel_measurable M1"
 using f proof induct
   case (cong u v)
@@ -547,8 +545,8 @@ qed (simp_all add: nn_integral_add nn_integral_cmult measurable_compose_Pair1
                    nn_integral_monotone_convergence_SUP incseq_def le_fun_def
               cong: measurable_cong)
 
-lemma (in sigma_finite_measure) nn_integral_fst':
-  assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M)" "\<And>x. 0 \<le> f x"
+lemma (in sigma_finite_measure) nn_integral_fst:
+  assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M)"
   shows "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>M \<partial>M1) = integral\<^sup>N (M1 \<Otimes>\<^sub>M M) f" (is "?I f = _")
 using f proof induct
   case (cong u v)
@@ -557,26 +555,16 @@ using f proof induct
   with cong show ?case
     by (simp cong: nn_integral_cong)
 qed (simp_all add: emeasure_pair_measure nn_integral_cmult nn_integral_add
-                   nn_integral_monotone_convergence_SUP
-                   measurable_compose_Pair1 nn_integral_nonneg
-                   borel_measurable_nn_integral_fst' nn_integral_mono incseq_def le_fun_def
+                   nn_integral_monotone_convergence_SUP measurable_compose_Pair1
+                   borel_measurable_nn_integral_fst nn_integral_mono incseq_def le_fun_def
               cong: nn_integral_cong)
-
-lemma (in sigma_finite_measure) nn_integral_fst:
-  assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M)"
-  shows "(\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x, y) \<partial>M) \<partial>M1) = integral\<^sup>N (M1 \<Otimes>\<^sub>M M) f"
-  using f
-    borel_measurable_nn_integral_fst'[of "\<lambda>x. max 0 (f x)"]
-    nn_integral_fst'[of "\<lambda>x. max 0 (f x)"]
-  unfolding nn_integral_max_0 by auto
 
 lemma (in sigma_finite_measure) borel_measurable_nn_integral[measurable (raw)]:
   "case_prod f \<in> borel_measurable (N \<Otimes>\<^sub>M M) \<Longrightarrow> (\<lambda>x. \<integral>\<^sup>+ y. f x y \<partial>M) \<in> borel_measurable N"
-  using borel_measurable_nn_integral_fst'[of "\<lambda>x. max 0 (case_prod f x)" N]
-  by (simp add: nn_integral_max_0)
+  using borel_measurable_nn_integral_fst[of "case_prod f" N] by simp
 
 lemma (in pair_sigma_finite) nn_integral_snd:
-  assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
+  assumes f[measurable]: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
   shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = integral\<^sup>N (M1 \<Otimes>\<^sub>M M2) f"
 proof -
   note measurable_pair_swap[OF f]
@@ -584,8 +572,7 @@ proof -
   have "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f (x, y) \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ (x, y). f (y, x) \<partial>(M2 \<Otimes>\<^sub>M M1))"
     by simp
   also have "(\<integral>\<^sup>+ (x, y). f (y, x) \<partial>(M2 \<Otimes>\<^sub>M M1)) = integral\<^sup>N (M1 \<Otimes>\<^sub>M M2) f"
-    by (subst distr_pair_swap)
-       (auto simp: nn_integral_distr[OF measurable_pair_swap' f] intro!: nn_integral_cong)
+    by (subst distr_pair_swap) (auto simp add: nn_integral_distr intro!: nn_integral_cong)
   finally show ?thesis .
 qed
 
@@ -610,13 +597,13 @@ proof (rule measure_eqI)
   have [simp]: "snd \<in> X \<times> Y \<rightarrow> Y" "fst \<in> X \<times> Y \<rightarrow> X"
     by auto
   let ?XY = "{{fst -` a \<inter> X \<times> Y | a. a \<in> A}, {snd -` b \<inter> X \<times> Y | b. b \<in> B}}"
-  have "sets ?P = 
+  have "sets ?P =
     sets (\<Squnion>\<^sub>\<sigma> xy\<in>?XY. sigma (X \<times> Y) xy)"
     by (simp add: vimage_algebra_sigma sets_pair_eq_sets_fst_snd A B)
   also have "\<dots> = sets (sigma (X \<times> Y) (\<Union>?XY))"
     by (intro Sup_sigma_sigma arg_cong[where f=sets]) auto
   also have "\<dots> = sets ?S"
-  proof (intro arg_cong[where f=sets] sigma_eqI sigma_sets_eqI) 
+  proof (intro arg_cong[where f=sets] sigma_eqI sigma_sets_eqI)
     show "\<Union>?XY \<subseteq> Pow (X \<times> Y)" "{a \<times> b |a b. a \<in> A \<and> b \<in> B} \<subseteq> Pow (X \<times> Y)"
       using A B by auto
   next
@@ -710,20 +697,17 @@ proof (rule measure_eqI)
   with A B have fin_Pair: "\<And>x. finite (Pair x -` X)"
     by (intro finite_subset[OF _ B]) auto
   have fin_X: "finite X" using X_subset by (rule finite_subset) (auto simp: A B)
+  have pos_card: "(0::ennreal) < of_nat (card (Pair x -` X)) \<longleftrightarrow> Pair x -` X \<noteq> {}" for x
+    by (auto simp: card_eq_0_iff fin_Pair) blast
+
   show "emeasure ?P X = emeasure ?C X"
+    using X_subset A fin_Pair fin_X
     apply (subst B.emeasure_pair_measure_alt[OF X])
     apply (subst emeasure_count_space)
-    using X_subset apply auto []
-    apply (simp add: fin_Pair emeasure_count_space X_subset fin_X)
-    apply (subst nn_integral_count_space)
-    using A apply simp
-    apply (simp del: of_nat_setsum add: of_nat_setsum[symmetric])
-    apply (subst card_gt_0_iff)
-    apply (simp add: fin_Pair)
-    apply (subst card_SigmaI[symmetric])
-    using A apply simp
-    using fin_Pair apply simp
-    using X_subset apply (auto intro!: arg_cong[where f=card])
+    apply (auto simp add: emeasure_count_space nn_integral_count_space
+                          pos_card of_nat_setsum[symmetric] card_SigmaI[symmetric]
+                simp del: of_nat_setsum card_SigmaI
+                intro!: arg_cong[where f=card])
     done
 qed
 
@@ -732,16 +716,15 @@ lemma emeasure_prod_count_space:
   assumes A: "A \<in> sets (count_space UNIV \<Otimes>\<^sub>M M)" (is "A \<in> sets (?A \<Otimes>\<^sub>M ?B)")
   shows "emeasure (?A \<Otimes>\<^sub>M ?B) A = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. indicator A (x, y) \<partial>?B \<partial>?A)"
   by (rule emeasure_measure_of[OF pair_measure_def])
-     (auto simp: countably_additive_def positive_def suminf_indicator nn_integral_nonneg A
+     (auto simp: countably_additive_def positive_def suminf_indicator A
                  nn_integral_suminf[symmetric] dest: sets.sets_into_space)
 
 lemma emeasure_prod_count_space_single[simp]: "emeasure (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) {x} = 1"
 proof -
-  have [simp]: "\<And>a b x y. indicator {(a, b)} (x, y) = (indicator {a} x * indicator {b} y::ereal)"
+  have [simp]: "\<And>a b x y. indicator {(a, b)} (x, y) = (indicator {a} x * indicator {b} y::ennreal)"
     by (auto split: split_indicator)
   show ?thesis
-    by (cases x)
-       (auto simp: emeasure_prod_count_space nn_integral_cmult sets_Pair nn_integral_max_0 one_ereal_def[symmetric])
+    by (cases x) (auto simp: emeasure_prod_count_space nn_integral_cmult sets_Pair)
 qed
 
 lemma emeasure_count_space_prod_eq:
@@ -771,17 +754,16 @@ proof -
     also have "emeasure (?A \<Otimes>\<^sub>M ?B) C = emeasure (count_space UNIV) C"
       using \<open>countable C\<close> by (rule *)
     finally show ?thesis
-      using \<open>infinite C\<close> \<open>infinite A\<close> by simp
+      using \<open>infinite C\<close> \<open>infinite A\<close> by (simp add: top_unique)
   qed
 qed
 
-lemma nn_intergal_count_space_prod_eq':
-  assumes [simp]: "\<And>x. 0 \<le> f x"
-  shows "nn_integral (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) f = nn_integral (count_space UNIV) f"
+lemma nn_integral_count_space_prod_eq:
+  "nn_integral (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) f = nn_integral (count_space UNIV) f"
     (is "nn_integral ?P f = _")
 proof cases
   assume cntbl: "countable {x. f x \<noteq> 0}"
-  have [simp]: "\<And>x. ereal (real (card ({x} \<inter> {x. f x \<noteq> 0}))) = indicator {x. f x \<noteq> 0} x"
+  have [simp]: "\<And>x. card ({x} \<inter> {x. f x \<noteq> 0}) = (indicator {x. f x \<noteq> 0} x::ennreal)"
     by (auto split: split_indicator)
   have [measurable]: "\<And>y. (\<lambda>x. indicator {y} x) \<in> borel_measurable ?P"
     by (rule measurable_discrete_difference[of "\<lambda>x. 0" _ borel "{y}" "\<lambda>x. indicator {y} x" for y])
@@ -799,9 +781,9 @@ proof cases
     by (auto simp add: nn_integral_count_space_indicator intro!: nn_integral_cong split: split_indicator)
 next
   { fix x assume "f x \<noteq> 0"
-    with \<open>0 \<le> f x\<close> have "(\<exists>r. 0 < r \<and> f x = ereal r) \<or> f x = \<infinity>"
-      by (cases "f x") (auto simp: less_le)
-    then have "\<exists>n. ereal (1 / real (Suc n)) \<le> f x"
+    then have "(\<exists>r\<ge>0. 0 < r \<and> f x = ennreal r) \<or> f x = \<infinity>"
+      by (cases "f x" rule: ennreal_cases) (auto simp: less_le)
+    then have "\<exists>n. ennreal (1 / real (Suc n)) \<le> f x"
       by (auto elim!: nat_approx_posE intro!: less_imp_le) }
   note * = this
 
@@ -816,25 +798,21 @@ next
   have [measurable]: "C \<in> sets ?P"
     using sets.countable[OF _ \<open>countable C\<close>, of ?P] by (auto simp: sets_Pair)
 
-  have "(\<integral>\<^sup>+x. ereal (1/Suc n) * indicator C x \<partial>?P) \<le> nn_integral ?P f"
+  have "(\<integral>\<^sup>+x. ennreal (1/Suc n) * indicator C x \<partial>?P) \<le> nn_integral ?P f"
     using C by (intro nn_integral_mono) (auto split: split_indicator simp: zero_ereal_def[symmetric])
-  moreover have "(\<integral>\<^sup>+x. ereal (1/Suc n) * indicator C x \<partial>?P) = \<infinity>"
-    using \<open>infinite C\<close> by (simp add: nn_integral_cmult emeasure_count_space_prod_eq)
-  moreover have "(\<integral>\<^sup>+x. ereal (1/Suc n) * indicator C x \<partial>count_space UNIV) \<le> nn_integral (count_space UNIV) f"
+  moreover have "(\<integral>\<^sup>+x. ennreal (1/Suc n) * indicator C x \<partial>?P) = \<infinity>"
+    using \<open>infinite C\<close> by (simp add: nn_integral_cmult emeasure_count_space_prod_eq ennreal_mult_top)
+  moreover have "(\<integral>\<^sup>+x. ennreal (1/Suc n) * indicator C x \<partial>count_space UNIV) \<le> nn_integral (count_space UNIV) f"
     using C by (intro nn_integral_mono) (auto split: split_indicator simp: zero_ereal_def[symmetric])
-  moreover have "(\<integral>\<^sup>+x. ereal (1/Suc n) * indicator C x \<partial>count_space UNIV) = \<infinity>"
-    using \<open>infinite C\<close> by (simp add: nn_integral_cmult)
+  moreover have "(\<integral>\<^sup>+x. ennreal (1/Suc n) * indicator C x \<partial>count_space UNIV) = \<infinity>"
+    using \<open>infinite C\<close> by (simp add: nn_integral_cmult ennreal_mult_top)
   ultimately show ?thesis
-    by simp
+    by (simp add: top_unique)
 qed
 
-lemma nn_intergal_count_space_prod_eq:
-  "nn_integral (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) f = nn_integral (count_space UNIV) f"
-  by (subst (1 2) nn_integral_max_0[symmetric]) (auto intro!: nn_intergal_count_space_prod_eq')
-
 lemma pair_measure_density:
-  assumes f: "f \<in> borel_measurable M1" "AE x in M1. 0 \<le> f x"
-  assumes g: "g \<in> borel_measurable M2" "AE x in M2. 0 \<le> g x"
+  assumes f: "f \<in> borel_measurable M1"
+  assumes g: "g \<in> borel_measurable M2"
   assumes "sigma_finite_measure M2" "sigma_finite_measure (density M2 g)"
   shows "density M1 f \<Otimes>\<^sub>M density M2 g = density (M1 \<Otimes>\<^sub>M M2) (\<lambda>(x,y). f x * g y)" (is "?L = ?R")
 proof (rule measure_eqI)
@@ -916,7 +894,7 @@ proof -
       by simp
   qed
 qed
-  
+
 lemma sets_pair_countable:
   assumes "countable S1" "countable S2"
   assumes M: "sets M = Pow S1" and N: "sets N = Pow S2"
@@ -948,25 +926,22 @@ proof (rule pair_measure_eqI)
     by (subst sets_pair_countable[OF assms]) auto
 next
   fix A B assume "A \<in> sets (count_space S1)" "B \<in> sets (count_space S2)"
-  then show "emeasure (count_space S1) A * emeasure (count_space S2) B = 
+  then show "emeasure (count_space S1) A * emeasure (count_space S2) B =
     emeasure (count_space (S1 \<times> S2)) (A \<times> B)"
-    by (subst (1 2 3) emeasure_count_space) (auto simp: finite_cartesian_product_iff)
+    by (subst (1 2 3) emeasure_count_space) (auto simp: finite_cartesian_product_iff ennreal_mult_top ennreal_top_mult)
 qed
 
-lemma nn_integral_fst_count_space':
-  assumes nonneg: "\<And>xy. 0 \<le> f xy"
-  shows "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space UNIV \<partial>count_space UNIV) = integral\<^sup>N (count_space UNIV) f"
+lemma nn_integral_fst_count_space:
+  "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space UNIV \<partial>count_space UNIV) = integral\<^sup>N (count_space UNIV) f"
   (is "?lhs = ?rhs")
 proof(cases)
   assume *: "countable {xy. f xy \<noteq> 0}"
   let ?A = "fst ` {xy. f xy \<noteq> 0}"
   let ?B = "snd ` {xy. f xy \<noteq> 0}"
   from * have [simp]: "countable ?A" "countable ?B" by(rule countable_image)+
-  from nonneg have f_neq_0: "\<And>xy. f xy \<noteq> 0 \<longleftrightarrow> f xy > 0"
-    by(auto simp add: order.order_iff_strict)
   have "?lhs = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space UNIV \<partial>count_space ?A)"
     by(rule nn_integral_count_space_eq)
-      (auto simp add: f_neq_0 nn_integral_0_iff_AE AE_count_space not_le intro: rev_image_eqI)
+      (auto simp add: nn_integral_0_iff_AE AE_count_space not_le intro: rev_image_eqI)
   also have "\<dots> = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space ?B \<partial>count_space ?A)"
     by(intro nn_integral_count_space_eq nn_integral_cong)(auto intro: rev_image_eqI)
   also have "\<dots> = (\<integral>\<^sup>+ xy. f xy \<partial>count_space (?A \<times> ?B))"
@@ -977,9 +952,9 @@ proof(cases)
   finally show ?thesis .
 next
   { fix xy assume "f xy \<noteq> 0"
-    with \<open>0 \<le> f xy\<close> have "(\<exists>r. 0 < r \<and> f xy = ereal r) \<or> f xy = \<infinity>"
-      by (cases "f xy") (auto simp: less_le)
-    then have "\<exists>n. ereal (1 / real (Suc n)) \<le> f xy"
+    then have "(\<exists>r\<ge>0. 0 < r \<and> f xy = ennreal r) \<or> f xy = \<infinity>"
+      by (cases "f xy" rule: ennreal_cases) (auto simp: less_le)
+    then have "\<exists>n. ennreal (1 / real (Suc n)) \<le> f xy"
       by (auto elim!: nat_approx_posE intro!: less_imp_le) }
   note * = this
 
@@ -991,15 +966,15 @@ next
   then obtain C where C: "C \<subseteq> {xy. 1/Suc n \<le> f xy}" and "countable C" "infinite C"
     by (metis infinite_countable_subset')
 
-  have "\<infinity> = (\<integral>\<^sup>+ xy. ereal (1 / Suc n) * indicator C xy \<partial>count_space UNIV)"
-    using \<open>infinite C\<close> by(simp add: nn_integral_cmult)
+  have "\<infinity> = (\<integral>\<^sup>+ xy. ennreal (1 / Suc n) * indicator C xy \<partial>count_space UNIV)"
+    using \<open>infinite C\<close> by(simp add: nn_integral_cmult ennreal_mult_top)
   also have "\<dots> \<le> ?rhs" using C
-    by(intro nn_integral_mono)(auto split: split_indicator simp add: nonneg)
-  finally have "?rhs = \<infinity>" by simp
+    by(intro nn_integral_mono)(auto split: split_indicator)
+  finally have "?rhs = \<infinity>" by (simp add: top_unique)
   moreover have "?lhs = \<infinity>"
   proof(cases "finite (fst ` C)")
     case True
-    then obtain x C' where x: "x \<in> fst ` C" 
+    then obtain x C' where x: "x \<in> fst ` C"
       and C': "C' = fst -` {x} \<inter> C"
       and "infinite C'"
       using \<open>infinite C\<close> by(auto elim!: inf_img_fin_domE')
@@ -1007,36 +982,32 @@ next
 
     from C' \<open>infinite C'\<close> have "infinite (snd ` C')"
       by(auto dest!: finite_imageD simp add: inj_on_def)
-    then have "\<infinity> = (\<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator (snd ` C') y \<partial>count_space UNIV)"
-      by(simp add: nn_integral_cmult)
-    also have "\<dots> = (\<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C' (x, y) \<partial>count_space UNIV)"
+    then have "\<infinity> = (\<integral>\<^sup>+ y. ennreal (1 / Suc n) * indicator (snd ` C') y \<partial>count_space UNIV)"
+      by(simp add: nn_integral_cmult ennreal_mult_top)
+    also have "\<dots> = (\<integral>\<^sup>+ y. ennreal (1 / Suc n) * indicator C' (x, y) \<partial>count_space UNIV)"
       by(rule nn_integral_cong)(force split: split_indicator intro: rev_image_eqI simp add: C')
-    also have "\<dots> = (\<integral>\<^sup>+ x'. (\<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C' (x, y) \<partial>count_space UNIV) * indicator {x} x' \<partial>count_space UNIV)"
-      by(simp add: one_ereal_def[symmetric] nn_integral_nonneg max_def)
-    also have "\<dots> \<le> (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C' (x, y) \<partial>count_space UNIV \<partial>count_space UNIV)"
-      by(rule nn_integral_mono)(simp split: split_indicator add: nn_integral_nonneg)
+    also have "\<dots> = (\<integral>\<^sup>+ x'. (\<integral>\<^sup>+ y. ennreal (1 / Suc n) * indicator C' (x, y) \<partial>count_space UNIV) * indicator {x} x' \<partial>count_space UNIV)"
+      by(simp add: one_ereal_def[symmetric])
+    also have "\<dots> \<le> (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ennreal (1 / Suc n) * indicator C' (x, y) \<partial>count_space UNIV \<partial>count_space UNIV)"
+      by(rule nn_integral_mono)(simp split: split_indicator)
     also have "\<dots> \<le> ?lhs" using **
-      by(intro nn_integral_mono)(auto split: split_indicator simp add: nonneg)
-    finally show ?thesis by simp
+      by(intro nn_integral_mono)(auto split: split_indicator)
+    finally show ?thesis by (simp add: top_unique)
   next
     case False
     def C' \<equiv> "fst ` C"
-    have "\<infinity> = \<integral>\<^sup>+ x. ereal (1 / Suc n) * indicator C' x \<partial>count_space UNIV"
-      using C'_def False by(simp add: nn_integral_cmult)
-    also have "\<dots> = \<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C' x * indicator {SOME y. (x, y) \<in> C} y \<partial>count_space UNIV \<partial>count_space UNIV"
+    have "\<infinity> = \<integral>\<^sup>+ x. ennreal (1 / Suc n) * indicator C' x \<partial>count_space UNIV"
+      using C'_def False by(simp add: nn_integral_cmult ennreal_mult_top)
+    also have "\<dots> = \<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ennreal (1 / Suc n) * indicator C' x * indicator {SOME y. (x, y) \<in> C} y \<partial>count_space UNIV \<partial>count_space UNIV"
       by(auto simp add: one_ereal_def[symmetric] max_def intro: nn_integral_cong)
-    also have "\<dots> \<le> \<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ereal (1 / Suc n) * indicator C (x, y) \<partial>count_space UNIV \<partial>count_space UNIV"
+    also have "\<dots> \<le> \<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ennreal (1 / Suc n) * indicator C (x, y) \<partial>count_space UNIV \<partial>count_space UNIV"
       by(intro nn_integral_mono)(auto simp add: C'_def split: split_indicator intro: someI)
     also have "\<dots> \<le> ?lhs" using C
-      by(intro nn_integral_mono)(auto split: split_indicator simp add: nonneg)
-    finally show ?thesis by simp
+      by(intro nn_integral_mono)(auto split: split_indicator)
+    finally show ?thesis by (simp add: top_unique)
   qed
   ultimately show ?thesis by simp
 qed
-
-lemma nn_integral_fst_count_space:
-  "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space UNIV \<partial>count_space UNIV) = integral\<^sup>N (count_space UNIV) f"
-by(subst (2 3) nn_integral_max_0[symmetric])(rule nn_integral_fst_count_space', simp)
 
 lemma nn_integral_snd_count_space:
   "(\<integral>\<^sup>+ y. \<integral>\<^sup>+ x. f (x, y) \<partial>count_space UNIV \<partial>count_space UNIV) = integral\<^sup>N (count_space UNIV) f"
@@ -1118,7 +1089,7 @@ proof (rule finite_measureI)
   interpret M: finite_measure M by fact
   interpret N: finite_measure N by fact
   show "emeasure (N  \<Otimes>\<^sub>M M) (space (N  \<Otimes>\<^sub>M M)) \<noteq> \<infinity>"
-    by (auto simp: space_pair_measure M.emeasure_pair_measure_Times)
+    by (auto simp: space_pair_measure M.emeasure_pair_measure_Times ennreal_mult_eq_top_iff)
 qed
 
 end

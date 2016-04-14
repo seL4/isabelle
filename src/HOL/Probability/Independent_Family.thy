@@ -401,7 +401,7 @@ proof -
       using P[OF \<open>i \<in> I\<close>] by blast
     finally show "{{x \<in> space M. P i (X i x)}} \<subseteq> {X i -` A \<inter> space M |A. A \<in> sets (N i)}" .
   qed
-qed                              
+qed
 
 lemma (in prob_space) indep_sets_collect_sigma:
   fixes I :: "'j \<Rightarrow> 'i set" and J :: "'j set" and E :: "'i \<Rightarrow> 'a set set"
@@ -524,7 +524,7 @@ next
   show "indep_sets (\<lambda>i. sigma_sets (space M) (?proj i (sets (Pi\<^sub>M (K i) M')))) L"
   proof (rule indep_sets_mono_sets)
     fix j assume j: "j \<in> L"
-    have "sigma_sets (space M) (?proj j (sets (Pi\<^sub>M (K j) M'))) = 
+    have "sigma_sets (space M) (?proj j (sets (Pi\<^sub>M (K j) M'))) =
       sigma_sets (space M) (sigma_sets (space M) (?proj j (prod_algebra (K j) M')))"
       using j K X[THEN measurable_space] unfolding sets_PiM
       by (subst sigma_sets_vimage_commute) (auto simp add: Pi_iff)
@@ -541,7 +541,7 @@ next
         assume "K j \<noteq> {}" with J have "J \<noteq> {}"
           by auto
         { interpret sigma_algebra "space M" "?UN j"
-            by (rule sigma_algebra_sigma_sets) auto 
+            by (rule sigma_algebra_sigma_sets) auto
           have "\<And>A. (\<And>i. i \<in> J \<Longrightarrow> A i \<in> ?UN j) \<Longrightarrow> INTER J A \<in> ?UN j"
             using \<open>finite J\<close> \<open>J \<noteq> {}\<close> by (rule finite_INT) blast }
         note INT = this
@@ -996,7 +996,7 @@ lemma (in prob_space) indep_vars_setsum:
   assumes I: "finite I" "i \<notin> I" and indep: "indep_vars (\<lambda>_. borel) X (insert i I)"
   shows "indep_var borel (X i) borel (\<lambda>\<omega>. \<Sum>i\<in>I. X i \<omega>)"
 proof -
-  have "indep_var 
+  have "indep_var
     borel ((\<lambda>f. f i) \<circ> (\<lambda>\<omega>. restrict (\<lambda>i. X i \<omega>) {i}))
     borel ((\<lambda>f. \<Sum>i\<in>I. f i) \<circ> (\<lambda>\<omega>. restrict (\<lambda>i. X i \<omega>) I))"
     using I by (intro indep_var_compose[OF indep_var_restrict[OF indep]] ) auto
@@ -1012,7 +1012,7 @@ lemma (in prob_space) indep_vars_setprod:
   assumes I: "finite I" "i \<notin> I" and indep: "indep_vars (\<lambda>_. borel) X (insert i I)"
   shows "indep_var borel (X i) borel (\<lambda>\<omega>. \<Prod>i\<in>I. X i \<omega>)"
 proof -
-  have "indep_var 
+  have "indep_var
     borel ((\<lambda>f. f i) \<circ> (\<lambda>\<omega>. restrict (\<lambda>i. X i \<omega>) {i}))
     borel ((\<lambda>f. \<Prod>i\<in>I. f i) \<circ> (\<lambda>\<omega>. restrict (\<lambda>i. X i \<omega>) I))"
     using I by (intro indep_var_compose[OF indep_var_restrict[OF indep]] ) auto
@@ -1063,7 +1063,7 @@ proof -
   let ?P' = "\<Pi>\<^sub>M i\<in>I. distr M (M' i) (X i)"
   interpret D': prob_space "?D' i" for i by (intro prob_space_distr rv)
   interpret P: product_prob_space ?D' I ..
-    
+
   show ?thesis
   proof
     assume "indep_vars M' X I"
@@ -1092,7 +1092,7 @@ proof -
         using J \<open>I \<noteq> {}\<close> measurable_space[OF rv] by (auto simp: prod_emb_def PiE_iff split: if_split_asm)
       also have "emeasure M (\<Inter>i\<in>J. X i -` Y i \<inter> space M) = (\<Prod> i\<in>J. emeasure M (X i -` Y i \<inter> space M))"
         using \<open>indep_vars M' X I\<close> J \<open>I \<noteq> {}\<close> using indep_varsD[of M' X I J]
-        by (auto simp: emeasure_eq_measure setprod_ereal)
+        by (auto simp: emeasure_eq_measure setprod_ennreal measure_nonneg setprod_nonneg)
       also have "\<dots> = (\<Prod> i\<in>J. emeasure (?D' i) (Y i))"
         using rv J by (simp add: emeasure_distr)
       also have "\<dots> = emeasure ?P' E"
@@ -1133,7 +1133,7 @@ proof -
         using rv J Y by (simp add: emeasure_distr)
       finally have "emeasure M (\<Inter>j\<in>J. Y' j) = (\<Prod> i\<in>J. emeasure M (Y' i))" .
       then show "prob (\<Inter>j\<in>J. Y' j) = (\<Prod> i\<in>J. prob (Y' i))"
-        by (auto simp: emeasure_eq_measure setprod_ereal)
+        by (auto simp: emeasure_eq_measure setprod_ennreal measure_nonneg setprod_nonneg)
     qed
   qed
 qed
@@ -1160,10 +1160,10 @@ lemma (in prob_space) prob_indep_random_variable:
   assumes [simp]: "A \<in> sets N" "B \<in> sets N"
   shows "\<P>(x in M. X x \<in> A \<and> Y x \<in> B) = \<P>(x in M. X x \<in> A) * \<P>(x in M. Y x \<in> B)"
 proof-
-  have  " \<P>(x in M. (X x)\<in>A \<and>  (Y x)\<in> B ) = prob ((\<lambda>x. (X x, Y x)) -` (A \<times> B) \<inter> space M)" 
+  have  " \<P>(x in M. (X x)\<in>A \<and>  (Y x)\<in> B ) = prob ((\<lambda>x. (X x, Y x)) -` (A \<times> B) \<inter> space M)"
     by (auto intro!: arg_cong[where f= prob])
-  also have "...=  prob (X -` A \<inter> space M) * prob (Y -` B \<inter> space M)"  
-    by (auto intro!: indep_varD[where Ma=N and Mb=N])     
+  also have "...=  prob (X -` A \<inter> space M) * prob (Y -` B \<inter> space M)"
+    by (auto intro!: indep_varD[where Ma=N and Mb=N])
   also have "... = \<P>(x in M. X x \<in> A) * \<P>(x in M. Y x \<in> B)"
     by (auto intro!: arg_cong2[where f= "op *"] arg_cong[where f= prob])
   finally show ?thesis .
@@ -1202,7 +1202,8 @@ proof safe
     have "emeasure ?J (A \<times> B) = emeasure M ((\<lambda>x. (X x, Y x)) -` (A \<times> B) \<inter> space M)"
       using A B by (intro emeasure_distr[OF XY]) auto
     also have "\<dots> = emeasure M (X -` A \<inter> space M) * emeasure M (Y -` B \<inter> space M)"
-      using indep_varD[OF \<open>indep_var S X T Y\<close>, of A B] A B by (simp add: emeasure_eq_measure)
+      using indep_varD[OF \<open>indep_var S X T Y\<close>, of A B] A B
+      by (simp add: emeasure_eq_measure measure_nonneg ennreal_mult)
     also have "\<dots> = emeasure ?S A * emeasure ?T B"
       using rvs A B by (simp add: emeasure_distr)
     finally show "emeasure ?S A * emeasure ?T B = emeasure ?J (A \<times> B)" by simp
@@ -1238,15 +1239,15 @@ next
         using \<open>Y \<in> measurable M T\<close> by (auto intro: measurable_sets) }
     next
       fix A B assume ab: "A \<in> sets S" "B \<in> sets T"
-      then have "ereal (prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M))) = emeasure ?J (A \<times> B)"
-        using XY by (auto simp add: emeasure_distr emeasure_eq_measure intro!: arg_cong[where f="prob"])
+      then have "prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M)) = emeasure ?J (A \<times> B)"
+        using XY by (auto simp add: emeasure_distr emeasure_eq_measure measure_nonneg intro!: arg_cong[where f="prob"])
       also have "\<dots> = emeasure (?S \<Otimes>\<^sub>M ?T) (A \<times> B)"
         unfolding \<open>?S \<Otimes>\<^sub>M ?T = ?J\<close> ..
       also have "\<dots> = emeasure ?S A * emeasure ?T B"
         using ab by (simp add: Y.emeasure_pair_measure_Times)
       finally show "prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M)) =
         prob (X -` A \<inter> space M) * prob (Y -` B \<inter> space M)"
-        using rvs ab by (simp add: emeasure_eq_measure emeasure_distr)
+        using rvs ab by (simp add: emeasure_eq_measure emeasure_distr measure_nonneg ennreal_mult[symmetric])
     qed
   qed
 qed
@@ -1272,26 +1273,25 @@ proof cases
   { fix i have "random_variable borel (Y i)"
     using I(2) by (cases "i\<in>I") (auto simp: Y_def rv_X) }
   note rv_Y = this[measurable]
-    
+
   interpret Y: prob_space "distr M borel (Y i)" for i
     using I(2) by (cases "i \<in> I") (auto intro!: prob_space_distr simp: indep_vars_def prob_space_return)
   interpret product_sigma_finite "\<lambda>i. distr M borel (Y i)"
     ..
-  
+
   have indep_Y: "indep_vars (\<lambda>i. borel) Y I"
     by (rule indep_vars_cong[THEN iffD1, OF _ _ _ I(2)]) (auto simp: Y_def)
 
-  have "(\<integral>\<^sup>+\<omega>. (\<Prod>i\<in>I. X i \<omega>) \<partial>M) = (\<integral>\<^sup>+\<omega>. (\<Prod>i\<in>I. max 0 (Y i \<omega>)) \<partial>M)"
+  have "(\<integral>\<^sup>+\<omega>. (\<Prod>i\<in>I. X i \<omega>) \<partial>M) = (\<integral>\<^sup>+\<omega>. (\<Prod>i\<in>I. Y i \<omega>) \<partial>M)"
     using I(3) by (auto intro!: nn_integral_cong setprod.cong simp add: Y_def max_def)
-  also have "\<dots> = (\<integral>\<^sup>+\<omega>. (\<Prod>i\<in>I. max 0 (\<omega> i)) \<partial>distr M (Pi\<^sub>M I (\<lambda>i. borel)) (\<lambda>x. \<lambda>i\<in>I. Y i x))"
+  also have "\<dots> = (\<integral>\<^sup>+\<omega>. (\<Prod>i\<in>I. \<omega> i) \<partial>distr M (Pi\<^sub>M I (\<lambda>i. borel)) (\<lambda>x. \<lambda>i\<in>I. Y i x))"
     by (subst nn_integral_distr) auto
-  also have "\<dots> = (\<integral>\<^sup>+\<omega>. (\<Prod>i\<in>I. max 0 (\<omega> i)) \<partial>Pi\<^sub>M I (\<lambda>i. distr M borel (Y i)))"
+  also have "\<dots> = (\<integral>\<^sup>+\<omega>. (\<Prod>i\<in>I. \<omega> i) \<partial>Pi\<^sub>M I (\<lambda>i. distr M borel (Y i)))"
     unfolding indep_vars_iff_distr_eq_PiM[THEN iffD1, OF \<open>I \<noteq> {}\<close> rv_Y indep_Y] ..
-  also have "\<dots> = (\<Prod>i\<in>I. (\<integral>\<^sup>+\<omega>. max 0 \<omega> \<partial>distr M borel (Y i)))"
+  also have "\<dots> = (\<Prod>i\<in>I. (\<integral>\<^sup>+\<omega>. \<omega> \<partial>distr M borel (Y i)))"
     by (rule product_nn_integral_setprod) (auto intro: \<open>finite I\<close>)
   also have "\<dots> = (\<Prod>i\<in>I. \<integral>\<^sup>+\<omega>. X i \<omega> \<partial>M)"
-    by (intro setprod.cong nn_integral_cong)
-       (auto simp: nn_integral_distr nn_integral_max_0 Y_def rv_X)
+    by (intro setprod.cong nn_integral_cong) (auto simp: nn_integral_distr Y_def rv_X)
   finally show ?thesis .
 qed (simp add: emeasure_space_1)
 
@@ -1314,12 +1314,12 @@ proof (induct rule: case_split)
   { fix i have "integrable M (Y i)"
     using I(3) by (cases "i\<in>I") (auto simp: Y_def) }
   note int_Y = this
-    
+
   interpret Y: prob_space "distr M borel (Y i)" for i
     using I(2) by (cases "i \<in> I") (auto intro!: prob_space_distr simp: indep_vars_def prob_space_return)
   interpret product_sigma_finite "\<lambda>i. distr M borel (Y i)"
     ..
-  
+
   have indep_Y: "indep_vars (\<lambda>i. borel) Y I"
     by (rule indep_vars_cong[THEN iffD1, OF _ _ _ I(2)]) (auto simp: Y_def)
 

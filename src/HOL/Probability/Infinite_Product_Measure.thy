@@ -47,7 +47,7 @@ lemma (in product_prob_space) emeasure_PiM_emb':
      (auto intro!: emeasure_distr_restrict[symmetric])
 
 lemma (in product_prob_space) emeasure_PiM_emb:
-  "J \<subseteq> I \<Longrightarrow> finite J \<Longrightarrow> (\<And>i. i \<in> J \<Longrightarrow> X i \<in> sets (M i)) \<Longrightarrow> 
+  "J \<subseteq> I \<Longrightarrow> finite J \<Longrightarrow> (\<And>i. i \<in> J \<Longrightarrow> X i \<in> sets (M i)) \<Longrightarrow>
     emeasure (Pi\<^sub>M I M) (emb I J (Pi\<^sub>E J X)) = (\<Prod> i\<in>J. emeasure (M i) (X i))"
   by (subst emeasure_PiM_emb') (auto intro!: emeasure_PiM)
 
@@ -78,7 +78,8 @@ lemma (in product_prob_space) measure_PiM_emb:
   assumes "J \<subseteq> I" "finite J" "\<And>i. i \<in> J \<Longrightarrow> X i \<in> sets (M i)"
   shows "measure (PiM I M) (emb I J (Pi\<^sub>E J X)) = (\<Prod> i\<in>J. measure (M i) (X i))"
   using emeasure_PiM_emb[OF assms]
-  unfolding emeasure_eq_measure M.emeasure_eq_measure by (simp add: setprod_ereal)
+  unfolding emeasure_eq_measure M.emeasure_eq_measure
+  by (simp add: setprod_ennreal measure_nonneg setprod_nonneg)
 
 lemma sets_Collect_single':
   "i \<in> I \<Longrightarrow> {x\<in>space (M i). P x} \<in> sets (M i) \<Longrightarrow> {x\<in>space (PiM I M). P (x i)} \<in> sets (PiM I M)"
@@ -203,7 +204,7 @@ proof -
     by (simp add: finite_Lim_measure_decseq)
 qed
 
-lemma nat_eq_diff_eq: 
+lemma nat_eq_diff_eq:
   fixes a b c :: nat
   shows "c \<le> b \<Longrightarrow> a = b - c \<longleftrightarrow> a + c = b"
   by auto
