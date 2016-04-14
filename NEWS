@@ -255,6 +255,7 @@ INCOMPATIBILITY.
 from ereal to ennreal:
   emeasure :: 'a measure => 'a set => ennreal
   nn_integral :: 'a measure => ('a => ennreal) => ennreal
+INCOMPATIBILITY.
 
 *** ML ***
 
