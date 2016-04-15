@@ -288,10 +288,31 @@ lemma Poly_replicate_0 [simp]:
 lemma Poly_eq_0:
   "Poly as = 0 \<longleftrightarrow> (\<exists>n. as = replicate n 0)"
   by (induct as) (auto simp add: Cons_replicate_eq)
-  
+
+lemma Poly_append_replicate_zero [simp]:
+  "Poly (as @ replicate n 0) = Poly as"
+  by (induct as) simp_all
+
+lemma Poly_snoc_zero [simp]:
+  "Poly (as @ [0]) = Poly as"
+  using Poly_append_replicate_zero [of as 1] by simp
+
+lemma Poly_cCons_eq_pCons_Poly [simp]:
+  "Poly (a ## p) = pCons a (Poly p)"
+  by (simp add: cCons_def)
+
+lemma Poly_on_rev_starting_with_0 [simp]:
+  assumes "hd as = 0"
+  shows "Poly (rev (tl as)) = Poly (rev as)"
+  using assms by (cases as) simp_all
+
 lemma degree_Poly: "degree (Poly xs) \<le> length xs"
   by (induction xs) simp_all
-  
+
+lemma coeff_Poly_eq [simp]:
+  "coeff (Poly xs) = nth_default 0 xs"
+  by (induct xs) (simp_all add: fun_eq_iff coeff_pCons split: nat.splits)
+
 definition coeffs :: "'a poly \<Rightarrow> 'a::zero list"
 where
   "coeffs p = (if p = 0 then [] else map (\<lambda>i. coeff p i) [0 ..< Suc (degree p)])"
@@ -366,11 +387,6 @@ next
   then show ?P by simp
 qed
 
-lemma coeff_Poly_eq:
-  "coeff (Poly xs) n = nth_default 0 xs n"
-  apply (induct xs arbitrary: n) apply simp_all
-  by (metis nat.case not0_implies_Suc nth_default_Cons_0 nth_default_Cons_Suc pCons.rep_eq)
-
 lemma nth_default_coeffs_eq:
   "nth_default 0 (coeffs p) = coeff p"
   by (simp add: fun_eq_iff coeff_Poly_eq [symmetric])
@@ -384,7 +400,7 @@ lemma coeffs_eqI:
   assumes zero: "xs \<noteq> [] \<Longrightarrow> last xs \<noteq> 0"
   shows "coeffs p = xs"
 proof -
-  from coeff have "p = Poly xs" by (simp add: poly_eq_iff coeff_Poly_eq)
+  from coeff have "p = Poly xs" by (simp add: poly_eq_iff)
   with zero show ?thesis by simp (cases xs, simp_all)
 qed
 
@@ -426,6 +442,17 @@ lemma is_zero_null [code_abbrev]:
   "is_zero p \<longleftrightarrow> p = 0"
   by (simp add: is_zero_def null_def)
 
+subsubsection \<open>Reconstructing the polynomial from the list\<close>
+  -- \<open>contributed by Sebastiaan J.C. Joosten and René Thiemann\<close>
+
+definition poly_of_list :: "'a::comm_monoid_add list \<Rightarrow> 'a poly"
+where
+  [simp]: "poly_of_list = Poly"
+
+lemma poly_of_list_impl [code abstract]:
+  "coeffs (poly_of_list as) = strip_while (HOL.eq 0) as"
+  by simp
+
 
 subsection \<open>Fold combinator for polynomials\<close>
 
@@ -452,7 +479,6 @@ lemma fold_coeffs_pCons_coeff_not_0_eq [simp]:
 lemma fold_coeffs_pCons_not_0_0_eq [simp]:
   "p \<noteq> 0 \<Longrightarrow> fold_coeffs f (pCons a p) = f a \<circ> fold_coeffs f p"
   by (simp add: fold_coeffs_def)
-
 
 subsection \<open>Canonical morphism on polynomials -- evaluation\<close>
 
@@ -1471,52 +1497,390 @@ lemmas pdivmod_rel_unique_div = pdivmod_rel_unique [THEN conjunct1]
 
 lemmas pdivmod_rel_unique_mod = pdivmod_rel_unique [THEN conjunct2]
 
+
+
+subsection\<open>Pseudo-Division and Division of Polynomials\<close>
+
+text\<open>This part is by René Thiemann and Akihisa Yamada.\<close>
+
+fun pseudo_divmod_main :: "'a :: comm_ring_1  \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly 
+  \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a poly \<times> 'a poly" where
+  "pseudo_divmod_main lc q r d dr (Suc n) = (let
+     rr = smult lc r;
+     qq = coeff r dr;
+     rrr = rr - monom qq n * d;
+     qqq = smult lc q + monom qq n
+     in pseudo_divmod_main lc qqq rrr d (dr - 1) n)"
+| "pseudo_divmod_main lc q r d dr 0 = (q,r)"
+
+definition pseudo_divmod :: "'a :: comm_ring_1 poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<times> 'a poly" where
+  "pseudo_divmod p q \<equiv> if q = 0 then (0,p) else
+     pseudo_divmod_main (coeff q (degree q)) 0 p q (degree p) (1 + length (coeffs p) - length (coeffs q))"
+
+lemma coeff_0_degree_minus_1: "coeff rrr dr = 0 \<Longrightarrow> degree rrr \<le> dr \<Longrightarrow> degree rrr \<le> dr - 1"
+  using eq_zero_or_degree_less by fastforce
+  
+lemma pseudo_divmod_main: assumes d: "d \<noteq> 0" "lc = coeff d (degree d)"
+  and *: "degree r \<le> dr" "pseudo_divmod_main lc q r d dr n = (q',r')" 
+    "n = 1 + dr - degree d \<or> dr = 0 \<and> n = 0 \<and> r = 0" 
+  shows "(r' = 0 \<or> degree r' < degree d) \<and> smult (lc^n) (d * q + r) = d * q' + r'"
+  using *
+proof (induct n arbitrary: q r dr)
+  case (Suc n q r dr)
+  let ?rr = "smult lc r"
+  let ?qq = "coeff r dr"
+  def [simp]: b \<equiv> "monom ?qq n"
+  let ?rrr = "?rr - b * d"
+  let ?qqq = "smult lc q + b"
+  note res = Suc(3)
+  from res[unfolded pseudo_divmod_main.simps[of lc q] Let_def] 
+  have res: "pseudo_divmod_main lc ?qqq ?rrr d (dr - 1) n = (q',r')" 
+    by (simp del: pseudo_divmod_main.simps)
+  have dr: "dr = n + degree d" using Suc(4) by auto
+  have "coeff (b * d) dr = coeff b n * coeff d (degree d)"
+  proof (cases "?qq = 0")
+    case False
+    hence n: "n = degree b" by (simp add: degree_monom_eq)
+    show ?thesis unfolding n dr by (simp add: coeff_mult_degree_sum)
+  qed auto
+  also have "\<dots> = lc * coeff b n" unfolding d by simp
+  finally have "coeff (b * d) dr = lc * coeff b n" .
+  moreover have "coeff ?rr dr = lc * coeff r dr" by simp
+  ultimately have c0: "coeff ?rrr dr = 0" by auto
+  have dr: "dr = n + degree d" using Suc(4) by auto
+  have deg_rr: "degree ?rr \<le> dr" using Suc(2) 
+    using degree_smult_le dual_order.trans by blast 
+  have deg_bd: "degree (b * d) \<le> dr"
+    unfolding dr
+    by(rule order.trans[OF degree_mult_le], auto simp: degree_monom_le)
+  have "degree ?rrr \<le> dr"
+    using degree_diff_le[OF deg_rr deg_bd] by auto
+  with c0 have deg_rrr: "degree ?rrr \<le> (dr - 1)" by (rule coeff_0_degree_minus_1)
+  have "n = 1 + (dr - 1) - degree d \<or> dr - 1 = 0 \<and> n = 0 \<and> ?rrr = 0"
+  proof (cases dr)
+    case 0
+    with Suc(4) have 0: "dr = 0" "n = 0" "degree d = 0" by auto
+    with deg_rrr have "degree ?rrr = 0" by simp
+    hence "\<exists> a. ?rrr = [: a :]" by (metis degree_pCons_eq_if old.nat.distinct(2) pCons_cases)
+    from this obtain a where rrr: "?rrr = [:a:]" by auto
+    show ?thesis unfolding 0 using c0 unfolding rrr 0 by simp
+  qed (insert Suc(4), auto)
+  note IH = Suc(1)[OF deg_rrr res this]
+  show ?case
+  proof (intro conjI)
+    show "r' = 0 \<or> degree r' < degree d" using IH by blast
+    show "smult (lc ^ Suc n) (d * q + r) = d * q' + r'"
+      unfolding IH[THEN conjunct2,symmetric]
+      by (simp add: field_simps smult_add_right)
+  qed
+qed auto
+
+lemma pseudo_divmod:
+  assumes g: "g \<noteq> 0" and *: "pseudo_divmod f g = (q,r)" 
+  shows "smult (coeff g (degree g) ^ (Suc (degree f) - degree g)) f = g * q + r" (is ?A)
+    and "r = 0 \<or> degree r < degree g" (is ?B)
+proof -
+  from *[unfolded pseudo_divmod_def Let_def]
+  have "pseudo_divmod_main (coeff g (degree g)) 0 f g (degree f) (1 + length (coeffs f) - length (coeffs g)) = (q, r)" by (auto simp: g)
+  note main = pseudo_divmod_main[OF _ _ _ this, OF g refl le_refl]
+  have "1 + length (coeffs f) - length (coeffs g) = 1 + degree f - degree g \<or>
+    degree f = 0 \<and> 1 + length (coeffs f) - length (coeffs g) = 0 \<and> f = 0" using g 
+    by (cases "f = 0"; cases "coeffs g", auto simp: degree_eq_length_coeffs)
+  note main = main[OF this]
+  from main show "r = 0 \<or> degree r < degree g" by auto
+  show "smult (coeff g (degree g) ^ (Suc (degree f) - degree g)) f = g * q + r" 
+    by (subst main[THEN conjunct2, symmetric], simp add: degree_eq_length_coeffs,
+    insert g, cases "f = 0"; cases "coeffs g", auto)
+qed
+  
+definition "pseudo_mod_main lc r d dr n = snd (pseudo_divmod_main lc 0 r d dr n)"
+
+lemma snd_pseudo_divmod_main:
+  "snd (pseudo_divmod_main lc q r d dr n) = snd (pseudo_divmod_main lc q' r d dr n)"
+by (induct n arbitrary: q q' lc r d dr; simp add: Let_def)
+
+definition pseudo_mod :: "'a :: idom_divide poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where
+  "pseudo_mod f g = snd (pseudo_divmod f g)"
+  
+lemma pseudo_mod:
+  fixes f g
+  defines "r \<equiv> pseudo_mod f g"
+  assumes g: "g \<noteq> 0"
+  shows "\<exists> a q. a \<noteq> 0 \<and> smult a f = g * q + r" "r = 0 \<or> degree r < degree g"
+proof - 
+  let ?cg = "coeff g (degree g)"
+  let ?cge = "?cg ^ (Suc (degree f) - degree g)"
+  def a \<equiv> ?cge
+  obtain q where pdm: "pseudo_divmod f g = (q,r)" using r_def[unfolded pseudo_mod_def]
+    by (cases "pseudo_divmod f g", auto)
+  from pseudo_divmod[OF g pdm] have id: "smult a f = g * q + r" and "r = 0 \<or> degree r < degree g" 
+    unfolding a_def by auto
+  show "r = 0 \<or> degree r < degree g" by fact
+  from g have "a \<noteq> 0" unfolding a_def by auto
+  thus "\<exists> a q. a \<noteq> 0 \<and> smult a f = g * q + r" using id by auto
+qed
+
+instantiation poly :: (idom_divide) idom_divide
+begin
+
+fun divide_poly_main :: "'a \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly 
+  \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a poly" where
+  "divide_poly_main lc q r d dr (Suc n) = (let cr = coeff r dr; a = cr div lc; mon = monom a n in 
+     if False \<or> a * lc = cr then (* False \<or> is only because of problem in function-package *)
+     divide_poly_main 
+       lc 
+       (q + mon) 
+       (r - mon * d) 
+       d (dr - 1) n else 0)"
+| "divide_poly_main lc q r d dr 0 = q"
+
+definition divide_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where
+  "divide_poly f g = (if g = 0 then 0 else
+     divide_poly_main (coeff g (degree g)) 0 f g (degree f) (1 + length (coeffs f) - length (coeffs g)))" 
+
+lemma divide_poly_main:
+  assumes d: "d \<noteq> 0" "lc = coeff d (degree d)"
+    and *: "degree (d * r) \<le> dr" "divide_poly_main lc q (d * r) d dr n = q'" 
+    "n = 1 + dr - degree d \<or> dr = 0 \<and> n = 0 \<and> d * r = 0" 
+  shows "q' = q + r"
+  using *
+proof (induct n arbitrary: q r dr)
+  case (Suc n q r dr)
+  let ?rr = "d * r"
+  let ?a = "coeff ?rr dr"
+  let ?qq = "?a div lc"
+  def [simp]: b \<equiv> "monom ?qq n"
+  let ?rrr =  "d * (r - b)"
+  let ?qqq = "q + b"
+  note res = Suc(3)
+  have dr: "dr = n + degree d" using Suc(4) by auto
+  have lc: "lc \<noteq> 0" using d by auto
+  have "coeff (b * d) dr = coeff b n * coeff d (degree d)"
+  proof (cases "?qq = 0")
+    case False
+    hence n: "n = degree b" by (simp add: degree_monom_eq)
+    show ?thesis unfolding n dr by (simp add: coeff_mult_degree_sum)
+  qed simp
+  also have "\<dots> = lc * coeff b n" unfolding d by simp
+  finally have c2: "coeff (b * d) dr = lc * coeff b n" .
+  have rrr: "?rrr = ?rr - b * d" by (simp add: field_simps)
+  have c1: "coeff (d * r) dr = lc * coeff r n"
+  proof (cases "degree r = n")
+    case True
+    thus ?thesis using Suc(2) unfolding dr using coeff_mult_degree_sum[of d r] d by (auto simp: ac_simps)
+  next
+    case False
+    have "degree r \<le> n" using dr Suc(2) by auto
+      (metis add.commute add_le_cancel_left d(1) degree_0 degree_mult_eq diff_is_0_eq diff_zero le_cases)
+    with False have r_n: "degree r < n" by auto
+    hence right: "lc * coeff r n = 0" by (simp add: coeff_eq_0)
+    have "coeff (d * r) dr = coeff (d * r) (degree d + n)" unfolding dr by (simp add: ac_simps)
+    also have "\<dots> = 0" using r_n
+      by (metis False Suc.prems(1) add.commute add_left_imp_eq coeff_degree_mult coeff_eq_0 
+        coeff_mult_degree_sum degree_mult_le dr le_eq_less_or_eq)
+    finally show ?thesis unfolding right .
+  qed
+  have c0: "coeff ?rrr dr = 0" 
+    and id: "lc * (coeff (d * r) dr div lc) = coeff (d * r) dr" unfolding rrr coeff_diff c2
+    unfolding b_def coeff_monom coeff_smult c1 using lc by auto
+  from res[unfolded divide_poly_main.simps[of lc q] Let_def] id
+  have res: "divide_poly_main lc ?qqq ?rrr d (dr - 1) n = q'" 
+    by (simp del: divide_poly_main.simps add: field_simps)
+  note IH = Suc(1)[OF _ res] 
+  have dr: "dr = n + degree d" using Suc(4) by auto
+  have deg_rr: "degree ?rr \<le> dr" using Suc(2) by auto
+  have deg_bd: "degree (b * d) \<le> dr"
+    unfolding dr b_def by (rule order.trans[OF degree_mult_le], auto simp: degree_monom_le)
+  have "degree ?rrr \<le> dr" unfolding rrr by (rule degree_diff_le[OF deg_rr deg_bd])
+  with c0 have deg_rrr: "degree ?rrr \<le> (dr - 1)" by (rule coeff_0_degree_minus_1)
+  have "n = 1 + (dr - 1) - degree d \<or> dr - 1 = 0 \<and> n = 0 \<and> ?rrr = 0"  
+  proof (cases dr)
+    case 0
+    with Suc(4) have 0: "dr = 0" "n = 0" "degree d = 0" by auto
+    with deg_rrr have "degree ?rrr = 0" by simp
+    from degree_eq_zeroE[OF this] obtain a where rrr: "?rrr = [:a:]" by metis
+    show ?thesis unfolding 0 using c0 unfolding rrr 0 by simp
+  qed (insert Suc(4), auto)
+  note IH = IH[OF deg_rrr this]
+  show ?case using IH by simp
+next
+  case (0 q r dr)
+  show ?case 
+  proof (cases "r = 0")
+    case True
+    thus ?thesis using 0 by auto
+  next
+    case False
+    have "degree (d * r) = degree d + degree r" using d False 
+      by (subst degree_mult_eq, auto)
+    thus ?thesis using 0 d by auto
+  qed
+qed 
+
+lemma fst_pseudo_divmod_main_as_divide_poly_main:
+  assumes d: "d \<noteq> 0"
+  defines lc: "lc \<equiv> coeff d (degree d)"
+  shows "fst (pseudo_divmod_main lc q r d dr n) = divide_poly_main lc (smult (lc^n) q) (smult (lc^n) r) d dr n"
+proof(induct n arbitrary: q r dr)
+  case 0 then show ?case by simp
+next
+  case (Suc n)
+    note lc0 = leading_coeff_neq_0[OF d, folded lc]
+    then have "pseudo_divmod_main lc q r d dr (Suc n) =
+    pseudo_divmod_main lc (smult lc q + monom (coeff r dr) n)
+      (smult lc r - monom (coeff r dr) n * d) d (dr - 1) n"
+    by (simp add: Let_def ac_simps)
+    also have "fst ... = divide_poly_main lc
+     (smult (lc^n) (smult lc q + monom (coeff r dr) n))
+     (smult (lc^n) (smult lc r - monom (coeff r dr) n * d))
+     d (dr - 1) n"
+      unfolding Suc[unfolded divide_poly_main.simps Let_def]..
+    also have "... = divide_poly_main lc (smult (lc ^ Suc n) q)
+        (smult (lc ^ Suc n) r) d dr (Suc n)"
+      unfolding smult_monom smult_distribs mult_smult_left[symmetric]
+      using lc0 by (simp add: Let_def ac_simps)
+    finally show ?case.
+qed
+
+
+lemma divide_poly_main_0: "divide_poly_main 0 0 r d dr n = 0"
+proof (induct n arbitrary: r d dr)
+  case (Suc n r d dr)
+  show ?case unfolding divide_poly_main.simps[of _ _ r] Let_def
+    by (simp add: Suc del: divide_poly_main.simps)
+qed simp
+
+lemma divide_poly:
+  assumes g: "g \<noteq> 0"
+  shows "(f * g) div g = (f :: 'a poly)" 
+proof - 
+  have "divide_poly_main (coeff g (degree g)) 0 (g * f) g (degree (g * f)) (1 + length (coeffs (g * f)) - length (coeffs  g)) 
+    = (f * g) div g" unfolding divide_poly_def Let_def by (simp add: ac_simps)
+  note main = divide_poly_main[OF g refl le_refl this]
+  {
+    fix f :: "'a poly"
+    assume "f \<noteq> 0"
+    hence "length (coeffs f) = Suc (degree f)" unfolding degree_eq_length_coeffs by auto
+  } note len = this
+  have "(f * g) div g = 0 + f"
+  proof (rule main, goal_cases)
+    case 1
+    show ?case
+    proof (cases "f = 0")
+      case True
+      with g show ?thesis by (auto simp: degree_eq_length_coeffs)
+    next
+      case False
+      with g have fg: "g * f \<noteq> 0" by auto
+      show ?thesis unfolding len[OF fg] len[OF g] by auto
+    qed
+  qed
+  thus ?thesis by simp
+qed
+
+lemma divide_poly_0: "f div 0 = (0 :: 'a poly)"
+  by (simp add: divide_poly_def Let_def divide_poly_main_0)
+
+instance by (standard, auto simp: divide_poly divide_poly_0)
+end
+
+
+subsubsection\<open>Division in Field Polynomials\<close>
+
+text\<open>
+ This part connects the above result to the division of field polynomials.
+ Mainly imported from Isabelle 2016.
+\<close>
+
+lemma pseudo_divmod_field:
+  assumes g: "(g::'a::field poly) \<noteq> 0" and *: "pseudo_divmod f g = (q,r)"
+  defines "c \<equiv> coeff g (degree g) ^ (Suc (degree f) - degree g)"
+  shows "f = g * smult (1/c) q + smult (1/c) r"
+proof -
+  from leading_coeff_neq_0[OF g] have c0: "c \<noteq> 0" unfolding c_def by auto
+  from pseudo_divmod(1)[OF g *, folded c_def]
+  have "smult c f = g * q + r" by auto
+  also have "smult (1/c) ... = g * smult (1/c) q + smult (1/c) r" by (simp add: smult_add_right)
+  finally show ?thesis using c0 by auto
+qed
+
+lemma divide_poly_main_field:
+  assumes d: "(d::'a::field poly) \<noteq> 0"
+  defines lc: "lc \<equiv> coeff d (degree d)"
+  shows "divide_poly_main lc q r d dr n = fst (pseudo_divmod_main lc (smult ((1/lc)^n) q) (smult ((1/lc)^n) r) d dr n)"
+  unfolding lc
+  by(subst fst_pseudo_divmod_main_as_divide_poly_main, auto simp: d power_one_over)
+
+lemma divide_poly_field:
+  fixes f g :: "'a :: field poly"
+  defines "f' \<equiv> smult ((1 / coeff g (degree g)) ^ (Suc (degree f) - degree g)) f"
+  shows "(f::'a::field poly) div g = fst (pseudo_divmod f' g)"
+proof (cases "g = 0")
+  case True show ?thesis 
+    unfolding divide_poly_def pseudo_divmod_def Let_def f'_def True by (simp add: divide_poly_main_0)
+next
+  case False
+    from leading_coeff_neq_0[OF False] have "degree f' = degree f" unfolding f'_def by auto
+    then show ?thesis
+      using length_coeffs_degree[of f'] length_coeffs_degree[of f]
+      unfolding divide_poly_def pseudo_divmod_def Let_def
+                divide_poly_main_field[OF False]
+                length_coeffs_degree[OF False] 
+                f'_def
+      by force
+qed
+
 instantiation poly :: (field) ring_div
 begin
 
-definition divide_poly where
-  div_poly_def: "x div y = (THE q. \<exists>r. pdivmod_rel x y q r)"
-
 definition mod_poly where
-  "x mod y = (THE r. \<exists>q. pdivmod_rel x y q r)"
+  "f mod g \<equiv>
+    if g = 0 then f
+    else pseudo_mod (smult ((1/coeff g (degree g)) ^ (Suc (degree f) - degree g)) f) g"
+
+lemma pdivmod_rel: "pdivmod_rel (x::'a::field poly) y (x div y) (x mod y)"
+  unfolding pdivmod_rel_def
+proof (intro conjI)
+  show "x = x div y * y + x mod y"
+  proof(cases "y = 0")
+    case True show ?thesis by(simp add: True divide_poly_def divide_poly_0 mod_poly_def)
+  next
+    case False
+    then have "pseudo_divmod (smult ((1 / coeff y (degree y)) ^ (Suc (degree x) - degree y)) x) y =
+          (x div y, x mod y)"
+      unfolding divide_poly_field mod_poly_def pseudo_mod_def by simp
+    from pseudo_divmod[OF False this]
+    show ?thesis using False
+      by (simp add: power_mult_distrib[symmetric] mult.commute)
+  qed
+  show "if y = 0 then x div y = 0 else x mod y = 0 \<or> degree (x mod y) < degree y"
+  proof (cases "y = 0")
+    case True then show ?thesis by auto
+  next
+    case False
+      with pseudo_mod[OF this] show ?thesis unfolding mod_poly_def by simp
+  qed
+qed
 
 lemma div_poly_eq:
-  "pdivmod_rel x y q r \<Longrightarrow> x div y = q"
-unfolding div_poly_def
-by (fast elim: pdivmod_rel_unique_div)
+  "pdivmod_rel (x::'a::field poly) y q r \<Longrightarrow> x div y = q"
+  by(rule pdivmod_rel_unique_div[OF pdivmod_rel])
 
 lemma mod_poly_eq:
-  "pdivmod_rel x y q r \<Longrightarrow> x mod y = r"
-unfolding mod_poly_def
-by (fast elim: pdivmod_rel_unique_mod)
-
-lemma pdivmod_rel:
-  "pdivmod_rel x y (x div y) (x mod y)"
-proof -
-  from pdivmod_rel_exists
-    obtain q r where "pdivmod_rel x y q r" by fast
-  thus ?thesis
-    by (simp add: div_poly_eq mod_poly_eq)
-qed
+  "pdivmod_rel (x::'a::field poly) y q r \<Longrightarrow> x mod y = r"
+  by (rule pdivmod_rel_unique_mod[OF pdivmod_rel])
 
 instance
 proof
   fix x y :: "'a poly"
-  show "x div y * y + x mod y = x"
-    using pdivmod_rel [of x y]
-    by (simp add: pdivmod_rel_def)
+  from pdivmod_rel[of x y,unfolded pdivmod_rel_def]
+  show "x div y * y + x mod y = x" by auto
 next
   fix x :: "'a poly"
-  have "pdivmod_rel x 0 0 x"
-    by (rule pdivmod_rel_by_0)
-  thus "x div 0 = 0"
-    by (rule div_poly_eq)
+  show "x div 0 = 0" by simp
 next
   fix y :: "'a poly"
-  have "pdivmod_rel 0 y 0 0"
-    by (rule pdivmod_rel_0)
-  thus "0 div y = 0"
-    by (rule div_poly_eq)
+  show "0 div y = 0" by simp
 next
   fix x y z :: "'a poly"
   assume "y \<noteq> 0"
@@ -1673,7 +2037,7 @@ lemma degree_mod_less:
   using pdivmod_rel [of x y]
   unfolding pdivmod_rel_def by simp
 
-lemma div_poly_less: "degree x < degree y \<Longrightarrow> x div y = 0"
+lemma div_poly_less: "degree (x::'a::field poly) < degree y \<Longrightarrow> x div y = 0"
 proof -
   assume "degree x < degree y"
   hence "pdivmod_rel x y 0 x"
@@ -1694,7 +2058,7 @@ lemma pdivmod_rel_smult_left:
     \<Longrightarrow> pdivmod_rel (smult a x) y (smult a q) (smult a r)"
   unfolding pdivmod_rel_def by (simp add: smult_add_right)
 
-lemma div_smult_left: "(smult a x) div y = smult a (x div y)"
+lemma div_smult_left: "(smult (a::'a::field) x) div y = smult a (x div y)"
   by (rule div_poly_eq, rule pdivmod_rel_smult_left, rule pdivmod_rel)
 
 lemma mod_smult_left: "(smult a x) mod y = smult a (x mod y)"
@@ -1745,7 +2109,7 @@ lemma pdivmod_rel_smult_right:
   unfolding pdivmod_rel_def by simp
 
 lemma div_smult_right:
-  "a \<noteq> 0 \<Longrightarrow> x div (smult a y) = smult (inverse a) (x div y)"
+  "(a::'a::field) \<noteq> 0 \<Longrightarrow> x div (smult a y) = smult (inverse a) (x div y)"
   by (rule div_poly_eq, erule pdivmod_rel_smult_right, rule pdivmod_rel)
 
 lemma mod_smult_right: "a \<noteq> 0 \<Longrightarrow> x mod (smult a y) = x mod y"
@@ -1800,14 +2164,6 @@ definition pdivmod :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a pol
 where
   "pdivmod p q = (p div q, p mod q)"
 
-lemma div_poly_code [code]: 
-  "p div q = fst (pdivmod p q)"
-  by (simp add: pdivmod_def)
-
-lemma mod_poly_code [code]:
-  "p mod q = snd (pdivmod p q)"
-  by (simp add: pdivmod_def)
-
 lemma pdivmod_0:
   "pdivmod 0 q = (0, 0)"
   by (simp add: pdivmod_def)
@@ -1825,7 +2181,7 @@ lemma pdivmod_pCons:
   apply (erule pdivmod_rel_pCons [OF pdivmod_rel _ refl])
   done
 
-lemma pdivmod_fold_coeffs [code]:
+lemma pdivmod_fold_coeffs:
   "pdivmod p q = (if q = 0 then (0, p)
     else fold_coeffs (\<lambda>a (s, r).
       let b = coeff (pCons a r) (degree q) / coeff q (degree q)
@@ -1840,6 +2196,411 @@ lemma pdivmod_fold_coeffs [code]:
   apply (auto simp add: pdivmod_def)
   done
 
+subsection \<open>List-based versions for fast implementation\<close>
+(* Subsection by:
+      Sebastiaan Joosten
+      René Thiemann
+      Akihisa Yamada
+    *)
+fun minus_poly_rev_list :: "'a :: group_add list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "minus_poly_rev_list (x # xs) (y # ys) = (x - y) # (minus_poly_rev_list xs ys)"
+| "minus_poly_rev_list xs [] = xs"
+| "minus_poly_rev_list [] (y # ys) = []"
+fun pseudo_divmod_main_list :: "'a::comm_ring_1 \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list 
+  \<Rightarrow> nat \<Rightarrow> 'a list \<times> 'a list" where
+  "pseudo_divmod_main_list lc q r d (Suc n) = (let
+     rr = map (op * lc) r;
+     a = hd r;
+     qqq = cCons a (map (op * lc) q);
+     rrr = tl (if a = 0 then rr else minus_poly_rev_list rr (map (op * a) d))
+     in pseudo_divmod_main_list lc qqq rrr d n)"
+| "pseudo_divmod_main_list lc q r d 0 = (q,r)"
+
+fun divmod_poly_one_main_list :: "'a::comm_ring_1 list \<Rightarrow> 'a list \<Rightarrow> 'a list 
+  \<Rightarrow> nat \<Rightarrow> 'a list \<times> 'a list" where
+  "divmod_poly_one_main_list q r d (Suc n) = (let
+     a = hd r;
+     qqq = cCons a q;
+     rr = tl (if a = 0 then r else minus_poly_rev_list r (map (op * a) d))
+     in divmod_poly_one_main_list qqq rr d n)"
+| "divmod_poly_one_main_list q r d 0 = (q,r)"
+
+fun mod_poly_one_main_list :: "'a::comm_ring_1 list \<Rightarrow> 'a list 
+  \<Rightarrow> nat \<Rightarrow> 'a list" where
+  "mod_poly_one_main_list r d (Suc n) = (let
+     a = hd r;
+     rr = tl (if a = 0 then r else minus_poly_rev_list r (map (op * a) d))
+     in mod_poly_one_main_list rr d n)"
+| "mod_poly_one_main_list r d 0 = r"
+
+definition pseudo_divmod_list :: "'a::comm_ring_1 list \<Rightarrow> 'a list \<Rightarrow> 'a list \<times> 'a list" where
+  "pseudo_divmod_list p q =
+  (if q = [] then ([],p) else
+ (let rq = rev q;
+     (qu,re) = pseudo_divmod_main_list (hd rq) [] (rev p) rq (1 + length p - length q) in 
+   (qu,rev re)))"
+
+lemma minus_zero_does_nothing:
+"(minus_poly_rev_list x (map (op * 0) y)) = (x :: 'a :: ring list)"
+  by(induct x y rule: minus_poly_rev_list.induct, auto)
+
+lemma length_minus_poly_rev_list[simp]:
+ "length (minus_poly_rev_list xs ys) = length xs"
+  by(induct xs ys rule: minus_poly_rev_list.induct, auto)
+
+lemma if_0_minus_poly_rev_list:
+  "(if a = 0 then x else minus_poly_rev_list x (map (op * a) y))
+      = minus_poly_rev_list x (map (op * (a :: 'a :: ring)) y)"
+  by(cases "a=0",simp_all add:minus_zero_does_nothing)
+
+lemma Poly_append:
+  "Poly ((a::'a::comm_semiring_1 list) @ b) = Poly a + monom 1 (length a) * Poly b"
+  by (induct a,auto simp: monom_0 monom_Suc)
+
+lemma minus_poly_rev_list: "length p \<ge> length (q :: 'a :: comm_ring_1 list) \<Longrightarrow>
+  Poly (rev (minus_poly_rev_list (rev p) (rev q)))
+  = Poly p - monom 1 (length p - length q) * Poly q"
+proof (induct "rev p" "rev q" arbitrary: p q rule: minus_poly_rev_list.induct)
+  case (1 x xs y ys) 
+  have "length (rev q) \<le> length (rev p)" using 1 by simp
+  from this[folded 1(2,3)] have ys_xs:"length ys \<le> length xs" by simp
+  hence a:"Poly (rev (minus_poly_rev_list xs ys)) =
+           Poly (rev xs) - monom 1 (length xs - length ys) * Poly (rev ys)"
+    by(subst "1.hyps"(1)[of "rev xs" "rev ys", unfolded rev_rev_ident length_rev],auto)
+  have "Poly p - monom 1 (length p - length q) * Poly q
+      = Poly (rev (rev p)) - monom 1 (length (rev (rev p)) - length (rev (rev q))) * Poly (rev (rev q))"
+    by simp
+  also have "\<dots> = Poly (rev (x # xs)) - monom 1 (length (x # xs) - length (y # ys)) * Poly (rev (y # ys))"
+    unfolding 1(2,3) by simp
+  also have "\<dots> = Poly (rev xs) + monom x (length xs) -
+  (monom 1 (length xs - length ys) * Poly (rev ys) + monom y (length xs))" using ys_xs
+    by (simp add:Poly_append distrib_left mult_monom smult_monom)
+  also have "\<dots> = Poly (rev (minus_poly_rev_list xs ys)) + monom (x - y) (length xs)"
+    unfolding a diff_monom[symmetric] by(simp)
+  finally show ?case
+    unfolding 1(2,3)[symmetric] by (simp add: smult_monom Poly_append)
+qed auto
+
+lemma smult_monom_mult: "smult a (monom b n * f) = monom (a * b) n * f"
+  using smult_monom [of a _ n] by (metis mult_smult_left)
+
+lemma head_minus_poly_rev_list:
+  "length d \<le> length r \<Longrightarrow> d\<noteq>[] \<Longrightarrow>
+  hd (minus_poly_rev_list (map (op * (last d :: 'a :: comm_ring)) r) (map (op * (hd r)) (rev d))) = 0"
+proof(induct r)
+  case (Cons a rs)
+  thus ?case by(cases "rev d", simp_all add:ac_simps)
+qed simp
+
+lemma Poly_map: "Poly (map (op * a) p) = smult a (Poly p)"
+proof (induct p)
+  case(Cons x xs) thus ?case by (cases "Poly xs = 0",auto)
+qed simp
+
+lemma last_coeff_is_hd: "xs \<noteq> [] \<Longrightarrow> coeff (Poly xs) (length xs - 1) = hd (rev xs)"
+  by (simp_all add: hd_conv_nth rev_nth nth_default_nth nth_append)
+
+lemma pseudo_divmod_main_list_invar :
+  assumes leading_nonzero:"last d \<noteq> 0"
+  and lc:"last d = lc"
+  and dNonempty:"d \<noteq> []"
+  and "pseudo_divmod_main_list lc q (rev r) (rev d) n = (q',rev r')"
+  and "n = (1 + length r - length d)"
+  shows 
+  "pseudo_divmod_main lc (monom 1 n * Poly q) (Poly r) (Poly d) (length r - 1) n = 
+  (Poly q', Poly r')"
+using assms(4-)
+proof(induct "n" arbitrary: r q)
+case (Suc n r q)
+  have ifCond: "\<not> Suc (length r) \<le> length d" using Suc.prems by simp
+  have rNonempty:"r \<noteq> []"
+    using ifCond dNonempty using Suc_leI length_greater_0_conv list.size(3) by fastforce
+  let ?a = "(hd (rev r))"
+  let ?rr = "map (op * lc) (rev r)"
+  let ?rrr = "rev (tl (minus_poly_rev_list ?rr (map (op * ?a) (rev d))))"
+  let ?qq = "cCons ?a (map (op * lc) q)"
+  have n: "n = (1 + length r - length d - 1)"
+    using ifCond Suc(3) by simp
+  have rr_val:"(length ?rrr) = (length r - 1)" using ifCond by auto
+  hence rr_smaller: "(1 + length r - length d - 1) = (1 + length ?rrr - length d)"
+    using rNonempty ifCond unfolding One_nat_def by auto
+  from ifCond have id: "Suc (length r) - length d = Suc (length r - length d)" by auto
+  have "pseudo_divmod_main_list lc ?qq (rev ?rrr) (rev d) (1 + length r - length d - 1) = (q', rev r')"
+    using Suc.prems ifCond by (simp add:Let_def if_0_minus_poly_rev_list id)
+  hence v:"pseudo_divmod_main_list lc ?qq (rev ?rrr) (rev d) n = (q', rev r')"
+    using n by auto
+  have sucrr:"Suc (length r) - length d = Suc (length r - length d)"
+    using Suc_diff_le ifCond not_less_eq_eq by blast
+  have n_ok : "n = 1 + (length ?rrr) - length d" using Suc(3) rNonempty by simp
+  have cong: "\<And> x1 x2 x3 x4 y1 y2 y3 y4. x1 = y1 \<Longrightarrow> x2 = y2 \<Longrightarrow> x3 = y3 \<Longrightarrow> x4 = y4 \<Longrightarrow>
+    pseudo_divmod_main lc x1 x2 x3 x4 n = pseudo_divmod_main lc y1 y2 y3 y4 n" by simp
+  have hd_rev:"coeff (Poly r) (length r - Suc 0) = hd (rev r)"
+    using last_coeff_is_hd[OF rNonempty] by simp
+  show ?case unfolding Suc.hyps(1)[OF v n_ok, symmetric] pseudo_divmod_main.simps Let_def
+  proof (rule cong[OF _ _ refl], goal_cases)
+    case 1 
+    show ?case unfolding monom_Suc hd_rev[symmetric]
+      by (simp add: smult_monom Poly_map)
+  next
+    case 2 
+    show ?case 
+    proof (subst Poly_on_rev_starting_with_0, goal_cases)
+      show "hd (minus_poly_rev_list (map (op * lc) (rev r)) (map (op * (hd (rev r))) (rev d))) = 0"
+        by (fold lc, subst head_minus_poly_rev_list, insert ifCond dNonempty,auto)
+      from ifCond have "length d \<le> length r" by simp
+      then show "smult lc (Poly r) - monom (coeff (Poly r) (length r - 1)) n * Poly d =
+        Poly (rev (minus_poly_rev_list (map (op * lc) (rev r)) (map (op * (hd (rev r))) (rev d))))"
+        by (fold rev_map) (auto simp add: n smult_monom_mult Poly_map hd_rev [symmetric]
+          minus_poly_rev_list)
+    qed
+  qed simp
+qed simp
+
+lemma pseudo_divmod_impl[code]: "pseudo_divmod (f::'a::comm_ring_1 poly) g =
+  map_prod poly_of_list poly_of_list (pseudo_divmod_list (coeffs f) (coeffs g))"
+proof (cases "g=0")
+case False
+  hence coeffs_g_nonempty:"(coeffs g) \<noteq> []" by simp
+  hence lastcoeffs:"last (coeffs g) = coeff g (degree g)"
+    by (simp add: hd_rev last_coeffs_eq_coeff_degree not_0_coeffs_not_Nil)
+  obtain q r where qr: "pseudo_divmod_main_list
+            (last (coeffs g)) (rev [])
+            (rev (coeffs f)) (rev (coeffs g))
+            (1 + length (coeffs f) -
+             length (coeffs g)) = (q,rev (rev r))"  by force
+  then have qr': "pseudo_divmod_main_list
+            (hd (rev (coeffs g))) []
+            (rev (coeffs f)) (rev (coeffs g))
+            (1 + length (coeffs f) -
+             length (coeffs g)) = (q,r)" using hd_rev[OF coeffs_g_nonempty] by(auto)
+  from False have cg: "(coeffs g = []) = False" by auto
+  have last_non0:"last (coeffs g) \<noteq> 0" using False by (simp add:last_coeffs_not_0)
+  show ?thesis
+    unfolding pseudo_divmod_def pseudo_divmod_list_def Let_def qr' map_prod_def split cg if_False
+    pseudo_divmod_main_list_invar[OF last_non0 _ _ qr,unfolded lastcoeffs,simplified,symmetric,OF False]
+    poly_of_list_def
+    using False by (auto simp: degree_eq_length_coeffs)
+next
+  case True
+  show ?thesis unfolding True unfolding pseudo_divmod_def pseudo_divmod_list_def
+  by auto
+qed
+
+(* *************** *)
+subsubsection \<open>Improved Code-Equations for Polynomial (Pseudo) Division\<close>
+
+lemma pdivmod_pdivmodrel: "pdivmod_rel p q r s = (pdivmod p q = (r, s))"
+  by (metis pdivmod_def pdivmod_rel pdivmod_rel_unique prod.sel)
+
+lemma pdivmod_via_pseudo_divmod: "pdivmod f g = (if g = 0 then (0,f) 
+     else let 
+       ilc = inverse (coeff g (degree g));       
+       h = smult ilc g;
+       (q,r) = pseudo_divmod f h
+     in (smult ilc q, r))" (is "?l = ?r")
+proof (cases "g = 0")
+  case False
+  def lc \<equiv> "inverse (coeff g (degree g))"
+  def h \<equiv> "smult lc g"
+  from False have h1: "coeff h (degree h) = 1" and lc: "lc \<noteq> 0" unfolding h_def lc_def by auto
+  hence h0: "h \<noteq> 0" by auto
+  obtain q r where p: "pseudo_divmod f h = (q,r)" by force
+  from False have id: "?r = (smult lc q, r)" 
+    unfolding Let_def h_def[symmetric] lc_def[symmetric] p by auto
+  from pseudo_divmod[OF h0 p, unfolded h1] 
+  have f: "f = h * q + r" and r: "r = 0 \<or> degree r < degree h" by auto
+  have "pdivmod_rel f h q r" unfolding pdivmod_rel_def using f r h0 by auto
+  hence "pdivmod f h = (q,r)" by (simp add: pdivmod_pdivmodrel)
+  hence "pdivmod f g = (smult lc q, r)" 
+    unfolding pdivmod_def h_def div_smult_right[OF lc] mod_smult_right[OF lc]
+    using lc by auto
+  with id show ?thesis by auto
+qed (auto simp: pdivmod_def)
+
+lemma pdivmod_via_pseudo_divmod_list: "pdivmod f g = (let 
+  cg = coeffs g
+  in if cg = [] then (0,f)
+     else let 
+       cf = coeffs f;
+       ilc = inverse (last cg);       
+       ch = map (op * ilc) cg;
+       (q,r) = pseudo_divmod_main_list 1 [] (rev cf) (rev ch) (1 + length cf - length cg)
+     in (Poly (map (op * ilc) q), Poly (rev r)))"
+proof -
+  note d = pdivmod_via_pseudo_divmod
+      pseudo_divmod_impl pseudo_divmod_list_def
+  show ?thesis
+  proof (cases "g = 0")
+    case True thus ?thesis unfolding d by auto
+  next
+    case False
+    def ilc \<equiv> "inverse (coeff g (degree g))"
+    from False have ilc: "ilc \<noteq> 0" unfolding ilc_def by auto
+    with False have id: "(g = 0) = False" "(coeffs g = []) = False" 
+      "last (coeffs g) = coeff g (degree g)" 
+      "(coeffs (smult ilc g) = []) = False"
+      by (auto simp: last_coeffs_eq_coeff_degree) 
+    have id2: "hd (rev (coeffs (smult ilc g))) = 1"      
+      by (subst hd_rev, insert id ilc, auto simp: coeffs_smult, subst last_map, auto simp: id ilc_def)
+    have id3: "length (coeffs (smult ilc g)) = length (coeffs g)" 
+      "rev (coeffs (smult ilc g)) = rev (map (op * ilc) (coeffs g))" unfolding coeffs_smult using ilc by auto
+    obtain q r where pair: "pseudo_divmod_main_list 1 [] (rev (coeffs f)) (rev (map (op * ilc) (coeffs g)))
+           (1 + length (coeffs f) - length (coeffs g)) = (q,r)" by force
+    show ?thesis unfolding d Let_def id if_False ilc_def[symmetric] map_prod_def[symmetric] id2 
+      unfolding id3 pair map_prod_def split by (auto simp: Poly_map)
+  qed
+qed
+
+lemma pseudo_divmod_main_list_1: "pseudo_divmod_main_list 1 = divmod_poly_one_main_list"
+proof (intro ext, goal_cases)
+  case (1 q r d n)
+  {
+    fix xs :: "'a list"
+    have "map (op * 1) xs = xs" by (induct xs, auto)
+  } note [simp] = this
+  show ?case by (induct n arbitrary: q r d, auto simp: Let_def)
+qed
+
+fun divide_poly_main_list :: "'a::idom_divide \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list 
+  \<Rightarrow> nat \<Rightarrow> 'a list" where
+  "divide_poly_main_list lc q r d (Suc n) = (let
+     cr = hd r
+     in if cr = 0 then divide_poly_main_list lc (cCons cr q) (tl r) d n else let 
+     a = cr div lc;
+     qq = cCons a q;
+     rr = minus_poly_rev_list r (map (op * a) d)
+     in if hd rr = 0 then divide_poly_main_list lc qq (tl rr) d n else [])"
+| "divide_poly_main_list lc q r d 0 = q"
+
+
+lemma divide_poly_main_list_simp[simp]: "divide_poly_main_list lc q r d (Suc n) = (let
+     cr = hd r;
+     a = cr div lc;
+     qq = cCons a q;
+     rr = minus_poly_rev_list r (map (op * a) d)
+     in if hd rr = 0 then divide_poly_main_list lc qq (tl rr) d n else [])"
+  by (simp add: Let_def minus_zero_does_nothing)
+
+declare divide_poly_main_list.simps(1)[simp del]
+
+definition divide_poly_list :: "'a::idom_divide poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where
+  "divide_poly_list f g =
+    (let cg = coeffs g
+     in if cg = [] then g
+        else let cf = coeffs f; cgr = rev cg
+          in poly_of_list (divide_poly_main_list (hd cgr) [] (rev cf) cgr (1 + length cf - length cg)))"
+
+lemmas pdivmod_via_divmod_list[code] = pdivmod_via_pseudo_divmod_list[unfolded pseudo_divmod_main_list_1]
+
+lemma mod_poly_one_main_list: "snd (divmod_poly_one_main_list q r d n) = mod_poly_one_main_list r d n"
+  by  (induct n arbitrary: q r d, auto simp: Let_def)
+
+lemma mod_poly_code[code]: "f mod g =
+    (let cg = coeffs g
+     in if cg = [] then f
+        else let cf = coeffs f; ilc = inverse (last cg); ch = map (op * ilc) cg;
+                 r = mod_poly_one_main_list (rev cf) (rev ch) (1 + length cf - length cg)
+             in poly_of_list (rev r))" (is "?l = ?r")
+proof -
+  have "?l = snd (pdivmod f g)" unfolding pdivmod_def by simp
+  also have "\<dots> = ?r" unfolding pdivmod_via_divmod_list Let_def
+     mod_poly_one_main_list[symmetric, of _ _ _ Nil] by (auto split: prod.splits)
+  finally show ?thesis .
+qed
+
+definition div_field_poly_impl :: "'a :: field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where 
+  "div_field_poly_impl f g = (
+    let cg = coeffs g
+      in if cg = [] then 0
+        else let cf = coeffs f; ilc = inverse (last cg); ch = map (op * ilc) cg;
+                 q = fst (divmod_poly_one_main_list [] (rev cf) (rev ch) (1 + length cf - length cg))
+             in poly_of_list ((map (op * ilc) q)))"
+
+text \<open>We do not declare the following lemma as code equation, since then polynomial division 
+  on non-fields will no longer be executable. However, a code-unfold is possible, since 
+  div_field_poly_impl is a bit more efficient than the generic polynomial division.\<close>
+lemma div_field_poly_impl[code_unfold]: "op div = div_field_poly_impl"
+proof (intro ext)
+  fix f g :: "'a poly"
+  have "f div g = fst (pdivmod f g)" unfolding pdivmod_def by simp
+  also have "\<dots> = div_field_poly_impl f g" unfolding 
+    div_field_poly_impl_def pdivmod_via_divmod_list Let_def by (auto split: prod.splits)
+  finally show "f div g =  div_field_poly_impl f g" .
+qed
+
+
+lemma divide_poly_main_list:
+  assumes lc0: "lc \<noteq> 0"
+  and lc:"last d = lc"
+  and d:"d \<noteq> []"
+  and "n = (1 + length r - length d)"
+  shows 
+  "Poly (divide_poly_main_list lc q (rev r) (rev d) n) =
+  divide_poly_main lc (monom 1 n * Poly q) (Poly r) (Poly d) (length r - 1) n"
+using assms(4-)
+proof(induct "n" arbitrary: r q)
+case (Suc n r q)
+  have ifCond: "\<not> Suc (length r) \<le> length d" using Suc.prems by simp
+  have r: "r \<noteq> []"
+    using ifCond d using Suc_leI length_greater_0_conv list.size(3) by fastforce
+  then obtain rr lcr where r: "r = rr @ [lcr]" by (cases r rule: rev_cases, auto)
+  from d lc obtain dd where d: "d = dd @ [lc]" 
+    by (cases d rule: rev_cases, auto)
+  from Suc(2) ifCond have n: "n = 1 + length rr - length d" by (auto simp: r)
+  from ifCond have len: "length dd \<le> length rr" by (simp add: r d)
+  show ?case
+  proof (cases "lcr div lc * lc = lcr")
+    case False
+    thus ?thesis unfolding Suc(2)[symmetric] using r d
+      by (auto simp add: Let_def nth_default_append)
+  next
+    case True
+    hence id:
+    "?thesis = (Poly (divide_poly_main_list lc (cCons (lcr div lc) q)
+         (rev (rev (minus_poly_rev_list (rev rr) (rev (map (op * (lcr div lc)) dd))))) (rev d) n) = 
+      divide_poly_main lc
+           (monom 1 (Suc n) * Poly q + monom (lcr div lc) n)
+           (Poly r - monom (lcr div lc) n * Poly d)
+           (Poly d) (length rr - 1) n)"
+           using r d 
+      by (cases r rule: rev_cases; cases "d" rule: rev_cases; 
+        auto simp add: Let_def rev_map nth_default_append)      
+    have cong: "\<And> x1 x2 x3 x4 y1 y2 y3 y4. x1 = y1 \<Longrightarrow> x2 = y2 \<Longrightarrow> x3 = y3 \<Longrightarrow> x4 = y4 \<Longrightarrow>
+      divide_poly_main lc x1 x2 x3 x4 n = divide_poly_main lc y1 y2 y3 y4 n" by simp
+    show ?thesis unfolding id 
+    proof (subst Suc(1), simp add: n,
+      subst minus_poly_rev_list, force simp: len, rule cong[OF _ _ refl], goal_cases)
+      case 2 
+      have "monom lcr (length rr) = monom (lcr div lc) (length rr - length dd) * monom lc (length dd)"
+        by (simp add: mult_monom len True)
+      thus ?case unfolding r d Poly_append n ring_distribs
+        by (auto simp: Poly_map smult_monom smult_monom_mult)
+    qed (auto simp: len monom_Suc smult_monom)
+  qed
+qed simp
+
+
+lemma divide_poly_list[code]: "f div g = divide_poly_list f g" 
+proof -
+  note d = divide_poly_def divide_poly_list_def
+  show ?thesis
+  proof (cases "g = 0")
+    case True
+    show ?thesis unfolding d True by auto
+  next
+    case False
+    then obtain cg lcg where cg: "coeffs g = cg @ [lcg]" by (cases "coeffs g" rule: rev_cases, auto)    
+    with False have id: "(g = 0) = False" "(cg @ [lcg] = []) = False" by auto
+    from cg False have lcg: "coeff g (degree g) = lcg" 
+      using last_coeffs_eq_coeff_degree last_snoc by force
+    with False have lcg0: "lcg \<noteq> 0" by auto
+    from cg have ltp: "Poly (cg @ [lcg]) = g"
+     using Poly_coeffs [of g] by auto
+    show ?thesis unfolding d cg Let_def id if_False poly_of_list_def
+      by (subst divide_poly_main_list, insert False cg lcg0, auto simp: lcg ltp,
+      simp add: degree_eq_length_coeffs)
+  qed
+qed
 
 subsection \<open>Order of polynomial roots\<close>
 
@@ -2224,11 +2985,13 @@ subsection \<open>Derivatives of univariate polynomials\<close>
 
 function pderiv :: "('a :: semidom) poly \<Rightarrow> 'a poly"
 where
-  [simp del]: "pderiv (pCons a p) = (if p = 0 then 0 else p + pCons 0 (pderiv p))"
+  "pderiv (pCons a p) = (if p = 0 then 0 else p + pCons 0 (pderiv p))"
   by (auto intro: pCons_cases)
 
 termination pderiv
   by (relation "measure degree") simp_all
+
+declare pderiv.simps[simp del]
 
 lemma pderiv_0 [simp]:
   "pderiv 0 = 0"
