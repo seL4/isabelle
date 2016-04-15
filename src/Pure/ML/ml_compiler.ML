@@ -82,6 +82,17 @@ fun report_parse_tree redirect depth name_space parse_tree =
           in cons (pos, markup, fn () => "") end
       end;
 
+    fun reported_entity_id def id loc =
+      let
+        val pos = Exn_Properties.position_of_polyml_location loc;
+      in
+        is_reported pos ?
+          let
+            fun markup () =
+              (Markup.entityN, [(if def then Markup.defN else Markup.refN, Markup.print_int id)]);
+          in cons (pos, markup, fn () => "") end
+      end;
+
     fun reported_completions loc names =
       let val pos = Exn_Properties.position_of_polyml_location loc in
         if is_reported pos andalso not (null names) then
@@ -94,6 +105,8 @@ fun report_parse_tree redirect depth name_space parse_tree =
 
     fun reported _ (PolyML.PTnextSibling tree) = reported_tree (tree ())
       | reported _ (PolyML.PTfirstChild tree) = reported_tree (tree ())
+      | reported loc (PolyML.PTdefId id) = reported_entity_id true (FixedInt.toLarge id) loc
+      | reported loc (PolyML.PTrefId id) = reported_entity_id false (FixedInt.toLarge id) loc
       | reported loc (PolyML.PTtype types) = reported_types loc types
       | reported loc (PolyML.PTdeclaredAt decl) = reported_entity Markup.ML_defN loc decl
       | reported loc (PolyML.PTopenedAt decl) = reported_entity Markup.ML_openN loc decl
@@ -268,7 +281,8 @@ fun eval (flags: flags) pos toks =
       PolyML.Compiler.CPPrintDepth ML_Print_Depth.get_print_depth,
       PolyML.Compiler.CPCompilerResultFun result_fun,
       PolyML.Compiler.CPPrintInAlphabeticalOrder false,
-      PolyML.Compiler.CPDebug debug];
+      PolyML.Compiler.CPDebug debug,
+      PolyML.Compiler.CPBindingSeq serial];
 
     val _ =
       (while not (List.null (! input_buffer)) do
