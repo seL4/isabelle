@@ -90,7 +90,7 @@ fun add_defs defs ctxt =
   let
     val ((xs, mxs), specs) = defs |> split_list |>> split_list;
     val (bs, rhss) = specs |> split_list;
-    val eqs = mk_def ctxt (xs ~~ rhss);
+    val eqs = mk_def (Context_Position.set_visible false ctxt) (xs ~~ rhss);
     val lhss = map (fst o Logic.dest_equals) eqs;
   in
     ctxt
