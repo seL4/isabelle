@@ -1,4 +1,6 @@
-(* Author: Florian Haftmann & Lukas Bulwahn, TU Muenchen *)
+(*  Title:      HOL/Quickcheck_Random.thy
+    Author:     Florian Haftmann & Lukas Bulwahn, TU Muenchen
+*)
 
 section \<open>A simple counterexample generator performing random testing\<close>
 

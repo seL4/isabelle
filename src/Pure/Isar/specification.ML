@@ -130,7 +130,14 @@ fun get_positions ctxt x =
 fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
   let
     val (vars, vars_ctxt) = ctxt |> fold_map prep_var raw_vars;
-    val (xs, params_ctxt) = vars_ctxt |> Proof_Context.add_fixes vars;
+    val (xs, params_ctxt) = vars_ctxt
+      |> Context_Position.set_visible false
+      |> Proof_Context.add_fixes vars
+      ||> Context_Position.restore_visible vars_ctxt;
+    val _ =
+      Context_Position.reports params_ctxt
+        (map (Binding.pos_of o #1) vars ~~
+          map (Variable.markup_entity_def params_ctxt ##> Properties.remove Markup.kindN) xs);
 
     val Asss =
       (map o map) snd raw_specss

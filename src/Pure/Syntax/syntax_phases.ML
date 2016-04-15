@@ -51,9 +51,7 @@ fun markup_const ctxt c =
   [Name_Space.markup (Consts.space_of (Proof_Context.consts_of ctxt)) c];
 
 fun markup_free ctxt x =
-  (if Variable.is_improper ctxt x then Markup.improper
-   else if Name.is_skolem x then Markup.skolem
-   else Markup.free) ::
+  Variable.markup ctxt x ::
   (if Variable.is_body ctxt orelse Variable.is_fixed ctxt x
    then [Variable.markup_fixed ctxt x]
    else []);

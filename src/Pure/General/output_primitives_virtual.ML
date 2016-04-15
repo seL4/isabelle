@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/output_primitives.ML
+(*  Title:      Pure/General/output_primitives_virtual.ML
     Author:     Makarius
 
 Primitives for Isabelle output channels -- virtual version within Pure environment.

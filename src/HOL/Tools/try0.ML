@@ -108,6 +108,7 @@ fun silence_methods debug =
   Config.put Metis_Tactic.verbose debug
   #> not debug ? (fn ctxt =>
       ctxt
+      |> Simplifier_Trace.disable
       |> Context_Position.set_visible false
       |> Config.put Unify.trace_bound (Config.get ctxt Unify.search_bound)
       |> Proof_Context.background_theory (fn thy =>

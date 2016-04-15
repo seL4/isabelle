@@ -151,6 +151,8 @@ object Rendering
 
   private val breakpoint_elements = Markup.Elements(Markup.ML_BREAKPOINT)
 
+  private val caret_focus_elements = Markup.Elements(Markup.ENTITY)
+
   private val highlight_elements =
     Markup.Elements(Markup.EXPRESSION, Markup.CITATION, Markup.LANGUAGE, Markup.ML_TYPING,
       Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.URL, Markup.SORTING,
@@ -206,7 +208,8 @@ object Rendering
       Markup.STATE_MESSAGE + Markup.INFORMATION_MESSAGE +
       Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
       Markup.LEGACY_MESSAGE + Markup.ERROR_MESSAGE +
-      Markup.BAD + Markup.INTENSIFY + Markup.Markdown_Item.name ++ active_elements
+      Markup.BAD + Markup.INTENSIFY + Markup.ENTITY +
+      Markup.Markdown_Item.name ++ active_elements
 
   private val foreground_elements =
     Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
@@ -250,6 +253,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val spell_checker_color = color_value("spell_checker_color")
   val bad_color = color_value("bad_color")
   val intensify_color = color_value("intensify_color")
+  val entity_color = color_value("entity_color")
+  val entity_ref_color = color_value("entity_ref_color")
   val breakpoint_disabled_color = color_value("breakpoint_disabled_color")
   val breakpoint_enabled_color = color_value("breakpoint_enabled_color")
   val caret_debugger_color = color_value("caret_debugger_color")
@@ -390,6 +395,46 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       }
     }
   }
+
+
+  /* caret focus */
+
+  def caret_focus(caret_range: Text.Range, visible_range: Text.Range): Set[Long] =
+  {
+    val focus_results =
+      snapshot.cumulate[Set[Long]](caret_range, Set.empty, Rendering.caret_focus_elements, _ =>
+          {
+            case (serials, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+              props match {
+                case Markup.Entity.Def(i) => Some(serials + i)
+                case Markup.Entity.Ref(i) => Some(serials + i)
+                case _ => None
+              }
+            case _ => None
+          })
+    val focus = (Set.empty[Long] /: focus_results){ case (s1, Text.Info(_, s2)) => s1 ++ s2 }
+
+    def visible_focus(range: Text.Range): Boolean =
+      snapshot.cumulate[Boolean](range, false, Rendering.caret_focus_elements, _ =>
+        {
+          case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+            props match {
+              case Markup.Entity.Def(i) if focus(i) => Some(true)
+              case _ => None
+            }
+        }).exists({ case Text.Info(_, visible) => visible })
+
+    if (focus.nonEmpty && (visible_focus(caret_range) || visible_focus(visible_range))) focus
+    else Set.empty[Long]
+  }
+
+  def entity_ref(range: Text.Range, focus: Set[Long]): List[Text.Info[Color]] =
+    snapshot.select(range, Rendering.caret_focus_elements, _ =>
+      {
+        case Text.Info(_, XML.Elem(Markup(Markup.ENTITY, Markup.Entity.Ref(i)), _)) if focus(i) =>
+          Some(entity_ref_color)
+        case _ => None
+      })
 
 
   /* highlighted area */
@@ -697,7 +742,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* text background */
 
-  def background(range: Text.Range): List[Text.Info[Color]] =
+  def background(range: Text.Range, focus: Set[Long]): List[Text.Info[Color]] =
   {
     for {
       Text.Info(r, result) <-
@@ -712,6 +757,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 Some((Nil, Some(bad_color)))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                 Some((Nil, Some(intensify_color)))
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+                props match {
+                  case Markup.Entity.Def(i) if focus(i) => Some((Nil, Some(entity_color)))
+                  case Markup.Entity.Ref(i) if focus(i) => Some((Nil, Some(entity_color)))
+                  case _ => None
+                }
               case (_, Text.Info(_, XML.Elem(Markup.Markdown_Item(depth), _))) =>
                 val color =
                   depth match {

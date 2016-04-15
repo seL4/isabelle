@@ -185,6 +185,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private val delay_caret_update =
     GUI_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
       session.caret_focus.post(Session.Caret_Focus)
+      JEdit_Lib.invalidate(text_area)
     }
 
   private val caret_listener = new CaretListener {
@@ -194,7 +195,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   /* text status overview left of scrollbar */
 
-  private val overview = new Text_Overview(this)
+  private val text_overview = new Text_Overview(this)
 
 
   /* main */
@@ -202,7 +203,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Raw_Edits =>
-        overview.invoke()
+        text_overview.invoke()
 
       case changed: Session.Commands_Changed =>
         val buffer = model.buffer
@@ -217,28 +218,9 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
               if (changed.assignment || load_changed ||
                   (changed.nodes.contains(model.node_name) &&
                    changed.commands.exists(snapshot.node.commands.contains)))
-                overview.invoke()
+                text_overview.invoke()
 
-              val visible_lines = text_area.getVisibleLines
-              if (visible_lines > 0) {
-                if (changed.assignment || load_changed)
-                  text_area.invalidateScreenLineRange(0, visible_lines)
-                else {
-                  val visible_range = JEdit_Lib.visible_range(text_area).get
-                  val visible_iterator =
-                    snapshot.node.command_iterator(snapshot.revert(visible_range)).map(_._1)
-                  if (visible_iterator.exists(changed.commands)) {
-                    for {
-                      line <- (0 until visible_lines).iterator
-                      start = text_area.getScreenLineStartOffset(line) if start >= 0
-                      end = text_area.getScreenLineEndOffset(line) if end >= 0
-                      range = Text.Range(start, end)
-                      line_cmds = snapshot.node.command_iterator(snapshot.revert(range)).map(_._1)
-                      if line_cmds.exists(changed.commands)
-                    } text_area.invalidateScreenLineRange(line, line)
-                  }
-                }
-              }
+              JEdit_Lib.invalidate(text_area)
             }
           }
         }
@@ -256,7 +238,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.getGutter.addExtension(gutter_painter)
     text_area.addKeyListener(key_listener)
     text_area.addCaretListener(caret_listener)
-    text_area.addLeftOfScrollBar(overview); text_area.revalidate(); text_area.repaint()
+    text_area.addLeftOfScrollBar(text_overview); text_area.revalidate(); text_area.repaint()
     Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
       foreach(text_area.addStructureMatcher(_))
     session.raw_edits += main
@@ -271,7 +253,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     session.commands_changed -= main
     Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
       foreach(text_area.removeStructureMatcher(_))
-    overview.revoke(); text_area.removeLeftOfScrollBar(overview)
+    text_overview.revoke(); text_area.removeLeftOfScrollBar(text_overview)
     text_area.removeCaretListener(caret_listener); delay_caret_update.revoke()
     text_area.removeKeyListener(key_listener)
     text_area.getGutter.removeExtension(gutter_painter)

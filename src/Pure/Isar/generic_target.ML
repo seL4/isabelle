@@ -327,7 +327,9 @@ fun abbrev target_abbrev prmode ((b, mx), rhs) lthy =
     lthy
     |> target_abbrev prmode (b, mx') global_rhs (type_params, term_params)
     |> Proof_Context.add_abbrev Print_Mode.internal (b, rhs) |> snd
+    |> Context_Position.set_visible false
     |> Local_Defs.fixed_abbrev ((b, NoSyn), rhs)
+    ||> Context_Position.restore_visible lthy
   end;
 
 

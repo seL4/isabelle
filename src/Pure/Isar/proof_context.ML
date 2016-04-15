@@ -1193,6 +1193,11 @@ fun gen_fixes prep_var raw_vars ctxt =
   let
     val (vars, _) = fold_map prep_var raw_vars ctxt;
     val (xs, ctxt') = Variable.add_fixes_binding (map #1 vars) ctxt;
+    val _ =
+      Context_Position.reports ctxt'
+        (flat (map2 (fn x => fn pos =>
+          [(pos, Variable.markup ctxt' x), (pos, Variable.markup_entity_def ctxt' x)])
+            xs (map (Binding.pos_of o #1) vars)));
     val vars' = map2 (fn x => fn (_, opt_T, mx) => (x, opt_T, mx)) xs vars;
     val (Ts, ctxt'') = fold_map declare_var vars' ctxt';
     val vars'' = map2 (fn T => fn (x, _, mx) => (x, T, mx)) Ts vars';
