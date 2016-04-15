@@ -109,8 +109,9 @@ declare sets_point_measure[simp]
 
 lemma measure_point_measure:
   "finite \<Omega> \<Longrightarrow> A \<subseteq> \<Omega> \<Longrightarrow> (\<And>x. x \<in> \<Omega> \<Longrightarrow> 0 \<le> p x) \<Longrightarrow>
-    measure (point_measure \<Omega> (\<lambda>x. ereal (p x))) A = (\<Sum>i\<in>A. p i)"
-  unfolding measure_def by (subst emeasure_point_measure_finite) auto
+    measure (point_measure \<Omega> (\<lambda>x. ennreal (p x))) A = (\<Sum>i\<in>A. p i)"
+  unfolding measure_def
+  by (subst emeasure_point_measure_finite) (auto simp: subset_eq setsum_nonneg)
 
 locale finite_information =
   fixes \<Omega> :: "'a set"
@@ -289,7 +290,7 @@ lemma simple_function_finite: "simple_function \<mu> f"
   by (simp add: simple_function_def)
 
 lemma entropy_commute: "\<H>(\<lambda>x. (X x, Y x)) = \<H>(\<lambda>x. (Y x, X x))"
-  apply (subst (1 2) entropy_simple_distributed[OF simple_distributedI[OF simple_function_finite refl]])
+  apply (subst (1 2) entropy_simple_distributed[OF simple_distributedI[OF simple_function_finite _ refl]])
   unfolding space_point_measure
 proof -
   have eq: "(\<lambda>x. (X x, Y x)) ` msgs = (\<lambda>(x, y). (y, x)) ` (\<lambda>x. (Y x, X x)) ` msgs"
@@ -300,7 +301,7 @@ proof -
     apply (subst setsum.reindex)
     apply (auto simp: vimage_def inj_on_def intro!: setsum.cong arg_cong[where f="\<lambda>x. prob x * log b (prob x)"])
     done
-qed
+qed simp_all
 
 lemma (in -) measure_eq_0I: "A = {} \<Longrightarrow> measure M A = 0" by simp
 
@@ -308,8 +309,8 @@ lemma conditional_entropy_eq_ce_with_hypothesis:
   "\<H>(X | Y) = -(\<Sum>y\<in>Y`msgs. (\<P>(Y) {y}) * (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}) *
      log b ((\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}))))"
   apply (subst conditional_entropy_eq[OF
-    simple_distributedI[OF simple_function_finite refl]
-    simple_distributedI[OF simple_function_finite refl]])
+    simple_distributedI[OF simple_function_finite _ refl]
+    simple_distributedI[OF simple_function_finite _ refl]])
   unfolding space_point_measure
 proof -
   have "- (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` msgs. (\<P>(X ; Y) {(x, y)}) * log b ((\<P>(X ; Y) {(x, y)}) / (\<P>(Y) {y}))) =
@@ -325,7 +326,7 @@ proof -
     by (auto simp add: setsum_right_distrib vimage_def intro!: setsum.cong prob_conj_imp1)
   finally show "- (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` msgs. (\<P>(X ; Y) {(x, y)}) * log b ((\<P>(X ; Y) {(x, y)}) / (\<P>(Y) {y}))) =
     -(\<Sum>y\<in>Y`msgs. (\<P>(Y) {y}) * (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}) * log b ((\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}))))" .
-qed
+qed simp_all
 
 lemma ce_OB_eq_ce_t: "\<I>(fst ; OB) = \<I>(fst ; t\<circ>OB)"
 proof -
@@ -371,7 +372,7 @@ proof -
       unfolding disjoint_family_on_def by auto
     have "\<P>(t\<circ>OB ; fst) {(t obs, k)} = (\<Sum>obs'\<in>?S obs. \<P>(OB ; fst) {(obs', k)})"
       unfolding comp_def
-      using finite_measure_finite_Union[OF _ df]
+      using finite_measure_finite_Union[OF _ _ df]
       by (auto simp add: * intro!: setsum_nonneg)
     also have "(\<Sum>obs'\<in>?S obs. \<P>(OB ; fst) {(obs', k)}) = real (card (?S obs)) * \<P>(OB ; fst) {(obs, k)}"
       by (simp add: t_eq_imp[OF \<open>k \<in> keys\<close> \<open>K k \<noteq> 0\<close> obs])
@@ -391,7 +392,7 @@ proof -
     have "\<P>(fst | t\<circ>OB) {(k, t obs)} = \<P>(t\<circ>OB | fst) {(t obs, k)} * \<P>(fst) {k} / \<P>(t\<circ>OB) {t obs}"
       using finite_measure_mono[of "{x. fst x = k \<and> t (OB x) = t obs} \<inter> msgs" "{x. fst x = k} \<inter> msgs"]
       using measure_nonneg[of \<mu> "{x. fst x = k \<and> t (OB x) = t obs} \<inter> msgs"]
-      by (auto simp add: vimage_def conj_commute subset_eq)
+      by (auto simp add: vimage_def conj_commute subset_eq simp del: measure_nonneg)
     also have "(\<P>(t\<circ>OB) {t obs}) = (\<Sum>k'\<in>keys. (\<P>(t\<circ>OB|fst) {(t obs, k')}) * (\<P>(fst) {k'}))"
       using finite_measure_mono[of "{x. t (OB x) = t obs \<and> fst x = k} \<inter> msgs" "{x. fst x = k} \<inter> msgs"]
       using measure_nonneg[of \<mu> "{x. fst x = k \<and> t (OB x) = t obs} \<inter> msgs"]
@@ -431,7 +432,7 @@ proof -
       unfolding disjoint_family_on_def by auto
     have "\<P>(t\<circ>OB) {t (OB x)} = (\<Sum>obs\<in>?S (OB x). \<P>(OB) {obs})"
       unfolding comp_def
-      using finite_measure_finite_Union[OF _ df]
+      using finite_measure_finite_Union[OF _ _ df]
       by (force simp add: * intro!: setsum_nonneg) }
   note P_t_sum_P_O = this
 
@@ -468,7 +469,7 @@ proof -
   also have "\<dots> \<le> \<H>(t\<circ>OB)"
     using conditional_entropy_nonneg[of "t\<circ>OB" fst] by simp
   also have "\<dots> \<le> log b (real (card ((t\<circ>OB)`msgs)))"
-    using entropy_le_card[of "t\<circ>OB", OF simple_distributedI[OF simple_function_finite refl]] by simp
+    using entropy_le_card[of "t\<circ>OB", OF simple_distributedI[OF simple_function_finite _ refl]] by simp
   also have "\<dots> \<le> log b (real (n + 1)^card observations)"
     using card_T_bound not_empty
     by (auto intro!: log_le simp: card_gt_0_iff of_nat_power [symmetric] simp del: of_nat_power of_nat_Suc)

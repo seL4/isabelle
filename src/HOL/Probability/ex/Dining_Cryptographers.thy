@@ -429,7 +429,7 @@ proof (rule mutual_information_eq_0_simple)
       using \<open>0 < n\<close>
       by (simp add: card_inversion card_dc_crypto finite_dc_crypto
                     subset_eq space_uniform_count_measure measure_uniform_count_measure)
-  qed
+  qed simp
 
   show "simple_distributed (uniform_count_measure dc_crypto) payer (\<lambda>x. 1 / real n)"
   proof (rule simple_distributedI)
@@ -445,7 +445,7 @@ proof (rule mutual_information_eq_0_simple)
     then show "1 / real n = prob (payer -` {z} \<inter> space (uniform_count_measure dc_crypto))"
       using finite_dc_crypto
       by (subst measure_uniform_count_measure) (auto simp add: card_dc_crypto space_uniform_count_measure)
-  qed
+  qed simp
 
   show "simple_distributed (uniform_count_measure dc_crypto) (\<lambda>x. (inversion x, payer x)) (\<lambda>x. 2 / (real n *2^n))"
   proof (rule simple_distributedI)
@@ -467,7 +467,7 @@ proof (rule mutual_information_eq_0_simple)
     then show "2 / (real n * 2 ^ n) = prob ((\<lambda>x. (inversion x, payer x)) -` {x} \<inter> space (uniform_count_measure dc_crypto))"
       using \<open>i < n\<close> ys
       by (simp add: measure_uniform_count_measure card_payer_and_inversion finite_dc_crypto subset_eq card_dc_crypto)
-  qed
+  qed simp
 
   show "\<forall>x\<in>space (uniform_count_measure dc_crypto). 2 / (real n * 2 ^ n) = 2 / 2 ^ n * (1 / real n) "
     by simp
