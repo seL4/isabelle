@@ -254,7 +254,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val bad_color = color_value("bad_color")
   val intensify_color = color_value("intensify_color")
   val entity_color = color_value("entity_color")
-  val entity_def_color = color_value("entity_def_color")
+  val entity_ref_color = color_value("entity_ref_color")
   val breakpoint_disabled_color = color_value("breakpoint_disabled_color")
   val breakpoint_enabled_color = color_value("breakpoint_enabled_color")
   val caret_debugger_color = color_value("caret_debugger_color")
@@ -428,11 +428,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     else Set.empty[Long]
   }
 
-  def entity_def(range: Text.Range, focus: Set[Long]): List[Text.Info[Color]] =
+  def entity_ref(range: Text.Range, focus: Set[Long]): List[Text.Info[Color]] =
     snapshot.select(range, Rendering.caret_focus_elements, _ =>
       {
-        case Text.Info(_, XML.Elem(Markup(Markup.ENTITY, Markup.Entity.Def(i)), _)) if focus(i) =>
-          Some(entity_def_color)
+        case Text.Info(_, XML.Elem(Markup(Markup.ENTITY, Markup.Entity.Ref(i)), _)) if focus(i) =>
+          Some(entity_ref_color)
         case _ => None
       })
 

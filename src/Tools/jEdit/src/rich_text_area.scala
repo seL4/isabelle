@@ -571,7 +571,7 @@ class Rich_Text_Area(
             // entity def range
             if (!area_active() && caret_visible) {
               for {
-                Text.Info(range, color) <- rendering.entity_def(line_range, caret_focus)
+                Text.Info(range, color) <- rendering.entity_ref(line_range, caret_focus)
                 r <- JEdit_Lib.gfx_range(text_area, range)
               } {
                 gfx.setColor(color)
