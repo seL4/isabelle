@@ -414,17 +414,18 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           })
     val focus = (Set.empty[Long] /: focus_results){ case (s1, Text.Info(_, s2)) => s1 ++ s2 }
 
-    val visible =
-      focus.nonEmpty &&
-        snapshot.cumulate[Boolean](visible_range, false, Rendering.caret_focus_elements, _ =>
-            {
-              case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-                props match {
-                  case Markup.Entity.Def(i) if focus(i) => Some(true)
-                  case _ => None
-                }
-            }).exists({ case Text.Info(_, visible) => visible })
-    if (visible) focus else Set.empty[Long]
+    def visible_focus(range: Text.Range): Boolean =
+      snapshot.cumulate[Boolean](range, false, Rendering.caret_focus_elements, _ =>
+        {
+          case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+            props match {
+              case Markup.Entity.Def(i) if focus(i) => Some(true)
+              case _ => None
+            }
+        }).exists({ case Text.Info(_, visible) => visible })
+
+    if (focus.nonEmpty && (visible_focus(caret_range) || visible_focus(visible_range))) focus
+    else Set.empty[Long]
   }
 
   def entity_def(range: Text.Range, focus: Set[Long]): List[Text.Info[Color]] =
