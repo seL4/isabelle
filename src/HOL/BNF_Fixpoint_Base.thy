@@ -284,6 +284,9 @@ lemma convol_transfer:
   "rel_fun (rel_fun R S) (rel_fun (rel_fun R T) (rel_fun R (rel_prod S T))) BNF_Def.convol BNF_Def.convol"
   unfolding rel_fun_def convol_def by auto
 
+lemma Let_const: "Let x (\<lambda>_. c) = c"
+  unfolding Let_def ..
+
 ML_file "Tools/BNF/bnf_fp_util_tactics.ML"
 ML_file "Tools/BNF/bnf_fp_util.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar_tactics.ML"
