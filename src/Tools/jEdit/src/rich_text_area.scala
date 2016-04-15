@@ -73,6 +73,7 @@ class Rich_Text_Area(
 
   @volatile private var painter_rendering: Rendering = null
   @volatile private var painter_clip: Shape = null
+  @volatile private var caret_focus: Set[Long] = Set.empty
 
   private val set_state = new TextAreaExtension
   {
@@ -82,6 +83,12 @@ class Rich_Text_Area(
     {
       painter_rendering = get_rendering()
       painter_clip = gfx.getClip
+      caret_focus =
+        JEdit_Lib.visible_range(text_area) match {
+          case Some(visible_range) if caret_enabled =>
+            painter_rendering.caret_focus(JEdit_Lib.caret_range(text_area), visible_range)
+          case _ => Set.empty[Long]
+        }
     }
   }
 
@@ -93,6 +100,7 @@ class Rich_Text_Area(
     {
       painter_rendering = null
       painter_clip = null
+      caret_focus = Set.empty
     }
   }
 
@@ -160,6 +168,9 @@ class Rich_Text_Area(
   private val active_areas =
     List((highlight_area, true), (hyperlink_area, true), (active_area, false))
   def active_reset(): Unit = active_areas.foreach(_._1.reset)
+
+  private def area_active(): Boolean =
+    active_areas.exists({ case (area, _) => area.is_active })
 
   private val focus_listener = new FocusAdapter {
     override def focusLost(e: FocusEvent) { robust_body(()) { active_reset() } }
@@ -280,13 +291,6 @@ class Rich_Text_Area(
       robust_rendering { rendering =>
         val fm = text_area.getPainter.getFontMetrics
 
-        val focus =
-          JEdit_Lib.visible_range(text_area) match {
-            case Some(visible_range) if caret_enabled =>
-              rendering.caret_focus(JEdit_Lib.caret_range(text_area), visible_range)
-            case _ => Set.empty[Long]
-          }
-
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
             val line_range = Text.Range(start(i), end(i) min buffer.getLength)
@@ -301,7 +305,7 @@ class Rich_Text_Area(
 
             // background color
             for {
-              Text.Info(range, color) <- rendering.background(line_range, focus)
+              Text.Info(range, color) <- rendering.background(line_range, caret_focus)
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
@@ -564,8 +568,19 @@ class Rich_Text_Area(
               gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
             }
 
+            // entity def range
+            if (!area_active() && caret_visible) {
+              for {
+                Text.Info(range, color) <- rendering.entity_def(line_range, caret_focus)
+                r <- JEdit_Lib.gfx_range(text_area, range)
+              } {
+                gfx.setColor(color)
+                gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
+              }
+            }
+
             // completion range
-            if (!hyperlink_area.is_active && caret_visible) {
+            if (!area_active() && caret_visible) {
               for {
                 completion <- Completion_Popup.Text_Area(text_area)
                 Text.Info(range, color) <- completion.rendering(rendering, line_range)

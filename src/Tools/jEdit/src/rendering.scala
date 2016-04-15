@@ -253,8 +253,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val spell_checker_color = color_value("spell_checker_color")
   val bad_color = color_value("bad_color")
   val intensify_color = color_value("intensify_color")
+  val entity_color = color_value("entity_color")
   val entity_def_color = color_value("entity_def_color")
-  val entity_ref_color = color_value("entity_ref_color")
   val breakpoint_disabled_color = color_value("breakpoint_disabled_color")
   val breakpoint_enabled_color = color_value("breakpoint_enabled_color")
   val caret_debugger_color = color_value("caret_debugger_color")
@@ -426,6 +426,14 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             }).exists({ case Text.Info(_, visible) => visible })
     if (visible) focus else Set.empty[Long]
   }
+
+  def entity_def(range: Text.Range, focus: Set[Long]): List[Text.Info[Color]] =
+    snapshot.select(range, Rendering.caret_focus_elements, _ =>
+      {
+        case Text.Info(_, XML.Elem(Markup(Markup.ENTITY, Markup.Entity.Def(i)), _)) if focus(i) =>
+          Some(entity_def_color)
+        case _ => None
+      })
 
 
   /* highlighted area */
@@ -750,10 +758,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 Some((Nil, Some(intensify_color)))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
                 props match {
-                  case Markup.Entity.Def(i) if focus(i) =>
-                    Some((Nil, Some(entity_def_color)))
-                  case Markup.Entity.Ref(i) if focus(i) =>
-                    Some((Nil, Some(entity_ref_color)))
+                  case Markup.Entity.Def(i) if focus(i) => Some((Nil, Some(entity_color)))
+                  case Markup.Entity.Ref(i) if focus(i) => Some((Nil, Some(entity_color)))
                   case _ => None
                 }
               case (_, Text.Info(_, XML.Elem(Markup.Markdown_Item(depth), _))) =>
