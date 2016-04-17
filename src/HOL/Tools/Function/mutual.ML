@@ -7,7 +7,7 @@ Mutual recursive function definitions.
 signature FUNCTION_MUTUAL =
 sig
   val prepare_function_mutual : Function_Common.function_config
-    -> string (* defname *)
+    -> binding (* defname *)
     -> ((string * typ) * mixfix) list
     -> term list
     -> local_theory
@@ -90,7 +90,8 @@ fun analyze_eqs ctxt defname fs eqs =
 
     val fsum_type = ST --> RST
 
-    val ([fsum_var_name], _) = Variable.add_fixes [ defname ^ "_sum" ] ctxt
+    val ([fsum_var_name], _) =
+      Variable.add_fixes_binding [Binding.map_name (suffix "_sum") defname] ctxt
     val fsum_var = (fsum_var_name, fsum_type)
 
     fun define (fvar as (n, _)) caTs resultT i =

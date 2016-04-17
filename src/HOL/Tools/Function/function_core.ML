@@ -8,7 +8,7 @@ signature FUNCTION_CORE =
 sig
   val trace: bool Unsynchronized.ref
   val prepare_function : Function_Common.function_config
-    -> string (* defname *)
+    -> binding (* defname *)
     -> ((bstring * typ) * mixfix) list (* defined symbol *)
     -> ((bstring * typ) list * term list * term * term) list (* specification *)
     -> local_theory
@@ -469,9 +469,9 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
     ((Rdef, map2 requantify intrs intrs_gen, forall_intr_vars elim_gen, induct), lthy)
   end
 
-fun define_graph (G_name, G_type) fvar clauses RCss lthy =
+fun define_graph (G_binding, G_type) fvar clauses RCss lthy =
   let
-    val G = Free (G_name, G_type)
+    val G = Free (Binding.name_of G_binding, G_type)
     fun mk_GIntro (ClauseContext {qs, gs, lhs, rhs, ...}) RCs =
       let
         fun mk_h_assm (rcfix, rcassm, rcarg) =
@@ -486,28 +486,27 @@ fun define_graph (G_name, G_type) fvar clauses RCss lthy =
       end
 
     val G_intros = map2 mk_GIntro clauses RCss
-  in
-    inductive_def ((Binding.name G_name, G_type), NoSyn) G_intros lthy
-  end
+  in inductive_def ((G_binding, G_type), NoSyn) G_intros lthy end
 
-fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
+fun define_function defname (fname, mixfix) domT ranT G default lthy =
   let
+    val f_def_binding =
+      Thm.make_def_binding (Config.get lthy function_internals)
+        (Binding.map_name (suffix "_sumC") defname)
     val f_def =
       Abs ("x", domT, Const (@{const_name Fun_Def.THE_default}, ranT --> (ranT --> boolT) --> ranT)
         $ (default $ Bound 0) $ Abs ("y", ranT, G $ Bound 1 $ Bound 0))
       |> Syntax.check_term lthy
-    val def_binding =
-      if Config.get lthy function_internals then (Binding.name fdefname, [])
-      else Attrib.empty_binding
   in
     Local_Theory.define
-      ((Binding.name (function_name fname), mixfix), (def_binding, f_def)) lthy
+      ((Binding.name (function_name fname), mixfix), ((f_def_binding, []), f_def)) lthy
   end
 
-fun define_recursion_relation (R_name, R_type) qglrs clauses RCss lthy =
+fun define_recursion_relation (R_binding, R_type) qglrs clauses RCss lthy =
   let
+    val R = Free (Binding.name_of R_binding, R_type)
     fun mk_RIntro (ClauseContext {qs, gs, lhs, ...}, (oqs, _, _, _)) (rcfix, rcassm, rcarg) =
-      HOLogic.mk_Trueprop (Free (R_name, R_type) $ rcarg $ lhs)
+      HOLogic.mk_Trueprop (R $ rcarg $ lhs)
       |> fold_rev (curry Logic.mk_implies o Thm.prop_of) rcassm
       |> fold_rev (curry Logic.mk_implies) gs
       |> fold_rev (Logic.all o Free) rcfix
@@ -517,7 +516,7 @@ fun define_recursion_relation (R_name, R_type) qglrs clauses RCss lthy =
     val R_intross = map2 (map o mk_RIntro) (clauses ~~ qglrs) RCss
 
     val ((R, RIntro_thms, R_elim, _), lthy) =
-      inductive_def ((Binding.name R_name, R_type), NoSyn) (flat R_intross) lthy
+      inductive_def ((R_binding, R_type), NoSyn) (flat R_intross) lthy
   in
     ((R, Library.unflat R_intross RIntro_thms, R_elim), lthy)
   end
@@ -851,22 +850,24 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
 
     val ((G, GIntro_thms, G_elim, G_induct), lthy) =
       PROFILE "def_graph"
-        (define_graph (graph_name defname, domT --> ranT --> boolT) fvar clauses RCss) lthy
+        (define_graph
+          (Binding.map_name graph_name defname, domT --> ranT --> boolT) fvar clauses RCss) lthy
 
     val ((f, (_, f_defthm)), lthy) =
-      PROFILE "def_fun" (define_function (defname ^ "_sumC_def") (fname, mixfix) domT ranT G default) lthy
+      PROFILE "def_fun" (define_function defname (fname, mixfix) domT ranT G default) lthy
 
     val RCss = map (map (inst_RC lthy fvar f)) RCss
     val trees = map (Function_Context_Tree.inst_tree lthy fvar f) trees
 
     val ((R, RIntro_thmss, R_elim), lthy) =
       PROFILE "def_rel"
-        (define_recursion_relation (rel_name defname, domT --> domT --> boolT)
+        (define_recursion_relation (Binding.map_name rel_name defname, domT --> domT --> boolT)
           abstract_qglrs clauses RCss) lthy
 
     val dom = mk_acc domT R
     val (_, lthy) =
-      Local_Theory.abbrev Syntax.mode_default ((Binding.name (dom_name defname), NoSyn), dom) lthy
+      Local_Theory.abbrev Syntax.mode_default
+        (((Binding.map_name dom_name defname), NoSyn), dom) lthy
 
     val newthy = Proof_Context.theory_of lthy
     val clauses = map (transfer_clause_ctx newthy) clauses

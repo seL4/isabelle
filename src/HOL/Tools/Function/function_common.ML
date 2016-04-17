@@ -8,11 +8,11 @@ signature FUNCTION_DATA =
 sig
   type info =
    {is_partial : bool,
-    defname : string,
+    defname : binding,
       (*contains no logical entities: invariant under morphisms:*)
     add_simps : (binding -> binding) -> string -> (binding -> binding) ->
       Token.src list -> thm list -> local_theory -> thm list * local_theory,
-    fnames : string list,
+    fnames : binding list,
     case_names : string list,
     fs : term list,
     R : term,
@@ -32,11 +32,11 @@ struct
 
 type info =
  {is_partial : bool,
-  defname : string,
+  defname : binding,
     (*contains no logical entities: invariant under morphisms:*)
   add_simps : (binding -> binding) -> string -> (binding -> binding) ->
     Token.src list -> thm list -> local_theory -> thm list * local_theory,
-  fnames : string list,
+  fnames : binding list,
   case_names : string list,
   fs : term list,
   R : term,
@@ -98,7 +98,7 @@ sig
     pelims : thm list list,
     termination : thm,
     domintros : thm list option}
-  val transform_function_data : info -> morphism -> info
+  val transform_function_data : morphism -> info -> info
   val import_function_data : term -> Proof.context -> info option
   val import_last_function : Proof.context -> info option
   val default_config : function_config
@@ -300,19 +300,18 @@ datatype function_result = FunctionResult of
   termination : thm,
   domintros : thm list option}
 
-fun transform_function_data ({add_simps, case_names, fnames, fs, R, dom, psimps, pinducts,
-  simps, inducts, termination, defname, is_partial, cases, pelims, elims} : info) phi =
+fun transform_function_data phi ({add_simps, case_names, fnames, fs, R, dom, psimps, pinducts,
+  simps, inducts, termination, defname, is_partial, cases, pelims, elims} : info) =
     let
       val term = Morphism.term phi
       val thm = Morphism.thm phi
       val fact = Morphism.fact phi
-      val name = Binding.name_of o Morphism.binding phi o Binding.name
     in
       { add_simps = add_simps, case_names = case_names, fnames = fnames,
         fs = map term fs, R = term R, dom = term dom, psimps = fact psimps,
         pinducts = fact pinducts, simps = Option.map fact simps,
         inducts = Option.map fact inducts, termination = thm termination,
-        defname = name defname, is_partial=is_partial, cases = fact cases,
+        defname = Morphism.binding phi defname, is_partial=is_partial, cases = fact cases,
         elims = Option.map (map fact) elims, pelims = map fact pelims }
     end
 
@@ -333,7 +332,7 @@ fun import_function_data t ctxt =
     val inst_morph = lift_morphism ctxt o Thm.instantiate
 
     fun match (trm, data) =
-      SOME (transform_function_data data (inst_morph (Thm.match (Thm.cterm_of ctxt trm, ct))))
+      SOME (transform_function_data (inst_morph (Thm.match (Thm.cterm_of ctxt trm, ct))) data)
         handle Pattern.MATCH => NONE
   in
     get_first match (Item_Net.retrieve (get_functions ctxt) t)

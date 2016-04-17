@@ -51,7 +51,7 @@ val psimp_attribs =
   @{attributes [nitpick_psimp]}
 
 fun note_qualified suffix attrs (fname, thms) =
-  Local_Theory.note ((Binding.qualify true fname (Binding.name suffix),
+  Local_Theory.note ((Binding.qualify_name true fname suffix,
     map (Attrib.internal o K) attrs), thms)
   #> apfst snd
 
@@ -68,13 +68,9 @@ fun add_simps fnames post sort extra_qualify label mod_binding moreatts
     val saved_simps = maps snd saved_spec_simps
     val simps_by_f = sort saved_simps
 
-    fun add_for_f fname simps =
-      Local_Theory.note
-        ((mod_binding (Binding.qualify true fname (Binding.name label)), []), simps)
-      #> snd
-  in
-    (saved_simps, fold2 add_for_f fnames simps_by_f lthy)
-  end
+    fun note fname simps =
+      Local_Theory.note ((mod_binding (Binding.qualify_name true fname label), []), simps) #> snd
+  in (saved_simps, fold2 note fnames simps_by_f lthy) end
 
 fun prepare_function do_print prep fixspec eqns config lthy =
   let
@@ -83,8 +79,12 @@ fun prepare_function do_print prep fixspec eqns config lthy =
     val spec = map (fn (bnd, prop) => (bnd, [prop])) spec0
     val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec
 
-    val fnames = map (fst o fst) fixes
-    val defname = space_implode "_" fnames
+    val fnames = map (fst o fst) fixes0
+    val f_base_names = map (fst o fst) fixes
+    val defname =
+      (case fixes0 of
+        [((b, _), _)] => b
+      | _ => Binding.name (space_implode "_" f_base_names))
 
     val FunctionConfig {partials, default, ...} = config
     val _ =
@@ -103,8 +103,7 @@ fun prepare_function do_print prep fixspec eqns config lthy =
 
         val pelims = Function_Elims.mk_partial_elim_rules lthy result
 
-        fun qualify n = Binding.name n
-          |> Binding.qualify true defname
+        val qualify = Binding.qualify_name true defname
         val concealed_partial = if partials then I else Binding.concealed
 
         val addsmps = add_simps fnames post sort_cont
@@ -118,13 +117,17 @@ fun prepare_function do_print prep fixspec eqns config lthy =
                  [Attrib.internal (K (Rule_Cases.case_names cnames)),
                   Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th))),
                   Attrib.internal (K (Induct.induct_pred ""))])))]
-          ||>> (apfst snd o Local_Theory.note ((Binding.concealed (qualify "termination"), []), [termination]))
-          ||>> fold_map (note_qualified "cases" [Rule_Cases.case_names cnames]) (fnames ~~ map single cases) (* TODO: case names *)
-          ||>> fold_map (note_qualified "pelims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1]) (fnames ~~ pelims)
+          ||>> (apfst snd o
+            Local_Theory.note ((Binding.concealed (qualify "termination"), []), [termination]))
+          ||>> fold_map (note_qualified "cases" [Rule_Cases.case_names cnames])
+            (fnames ~~ map single cases) (* TODO: case names *)
+          ||>> fold_map (note_qualified "pelims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1])
+            (fnames ~~ pelims)
           ||> (case domintros of NONE => I | SOME thms =>
-                   Local_Theory.note ((qualify "domintros", []), thms) #> snd)
+                Local_Theory.note ((qualify "domintros", []), thms) #> snd)
 
-        val info = { add_simps=addsmps, fnames=fnames, case_names=cnames, psimps=psimps',
+        val info =
+          { add_simps=addsmps, fnames=fnames, case_names=cnames, psimps=psimps',
           pinducts=snd pinducts', simps=NONE, inducts=NONE, termination=termination',
           fs=fs, R=R, dom=dom, defname=defname, is_partial=true, cases=flat cases',
           pelims=pelims',elims=NONE}
@@ -135,7 +138,7 @@ fun prepare_function do_print prep fixspec eqns config lthy =
       in
         (info,
          lthy |> Local_Theory.declaration {syntax = false, pervasive = false}
-          (add_function_data o transform_function_data info))
+          (fn phi => add_function_data (transform_function_data phi info)))
       end
   in
     ((goal_state, afterqed), lthy')
@@ -197,18 +200,15 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
         val tsimps = map remove_domain_condition psimps
         val tinduct = map remove_domain_condition pinducts
         val telims = map (map remove_domain_condition) pelims
-
-        fun qualify n = Binding.name n
-          |> Binding.qualify true defname
-
       in
         lthy
         |> add_simps I "simps" I simp_attribs tsimps
         ||>> Local_Theory.note
-           ((qualify "induct",
+           ((Binding.qualify_name true defname "induct",
              [Attrib.internal (K (Rule_Cases.case_names case_names))]),
             tinduct)
-        ||>> fold_map (note_qualified "elims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1]) (fnames ~~ telims)
+        ||>> fold_map (note_qualified "elims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1])
+          (fnames ~~ telims)
         |-> (fn ((simps,(_,inducts)), elims) => fn lthy =>
           let val info' = { is_partial=false, defname=defname, fnames=fnames, add_simps=add_simps,
             case_names=case_names, fs=fs, R=R, dom=dom, psimps=psimps, pinducts=pinducts,
@@ -217,7 +217,7 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
             (info',
              lthy
              |> Local_Theory.declaration {syntax = false, pervasive = false}
-               (add_function_data o transform_function_data info')
+               (fn phi => add_function_data (transform_function_data phi info'))
              |> Spec_Rules.add Spec_Rules.Equational (fs, tsimps))
           end)
       end
@@ -290,6 +290,5 @@ val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword termination}
     "prove termination of a recursive function"
     (Scan.option Parse.term >> termination_cmd)
-
 
 end

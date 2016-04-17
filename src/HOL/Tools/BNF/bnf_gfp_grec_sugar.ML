@@ -1822,13 +1822,13 @@ fun get_options ctxt opts =
     (plugins, friend, transfer)
   end;
 
-fun add_function name parsed_eq lthy =
+fun add_function binding parsed_eq lthy =
   let
     fun pat_completeness_auto ctxt =
       Pat_Completeness.pat_completeness_tac ctxt 1 THEN auto_tac ctxt;
 
     val ({defname, pelims = [[pelim]], pinducts = [pinduct], psimps = [psimp], ...}, lthy) =
-      Function.add_function [(Binding.concealed (Binding.name name), NONE, NoSyn)]
+      Function.add_function [(Binding.concealed binding, NONE, NoSyn)]
         [(apfst Binding.concealed Attrib.empty_binding, parsed_eq)]
         Function_Common.default_config pat_completeness_auto lthy;
   in
@@ -1847,7 +1847,7 @@ fun build_corecUU_arg_and_goals prove_termin (Free (fun_base_name, _)) (arg_ts, 
           mk_Trueprop_eq (betapply (inner_fp_free, arg), betapply (explored_rhs, arg));
 
         val ((inner_fp_name, (pelim, pinduct, psimp)), lthy') =
-          add_function inner_fp_name0 inner_fp_eq lthy;
+          add_function (Binding.name inner_fp_name0) inner_fp_eq lthy;
 
         fun mk_triple elim induct simp = ([elim], [induct], [simp]);
 
@@ -1870,7 +1870,7 @@ fun build_corecUU_arg_and_goals prove_termin (Free (fun_base_name, _)) (arg_ts, 
           else
             prepare_termin ();
 
-        val inner_fp_const = (inner_fp_name, fastype_of explored_rhs)
+        val inner_fp_const = (Binding.name_of inner_fp_name, fastype_of explored_rhs)
           |>> Proof_Context.read_const {proper = true, strict = false} lthy'
           |> (fn (Const (s, _), T) => Const (s, T));
       in
