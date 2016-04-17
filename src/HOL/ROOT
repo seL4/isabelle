@@ -554,7 +554,7 @@ session "HOL-ex" in ex = HOL +
     Coercion_Examples
     Abstract_NAT
     Guess
-    Fundefs
+    Functions
     Induction_Schema
     LocaleTest2
     Records
