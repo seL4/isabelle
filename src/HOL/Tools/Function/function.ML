@@ -50,8 +50,6 @@ val simp_attribs =
 val psimp_attribs =
   @{attributes [nitpick_psimp]}
 
-fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
-
 fun note_qualified suffix attrs (fname, thms) =
   Local_Theory.note ((Binding.qualify true fname (Binding.name suffix),
     map (Attrib.internal o K) attrs), thms)
@@ -80,12 +78,14 @@ fun add_simps fnames post sort extra_qualify label mod_binding moreatts
 
 fun prepare_function do_print prep fixspec eqns config lthy =
   let
-    val ((fixes0, spec0), ctxt') = prep fixspec eqns lthy;
-    val fixes = map (apfst (apfst Binding.name_of)) fixes0;
-    val spec = map (fn (bnd, prop) => (bnd, [prop])) spec0;
+    val ((fixes0, spec0), ctxt') = prep fixspec eqns lthy
+    val fixes = map (apfst (apfst Binding.name_of)) fixes0
+    val spec = map (fn (bnd, prop) => (bnd, [prop])) spec0
     val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec
 
-    val defname = mk_defname fixes
+    val fnames = map (fst o fst) fixes
+    val defname = space_implode "_" fnames
+
     val FunctionConfig {partials, default, ...} = config
     val _ =
       if is_some default
@@ -103,7 +103,6 @@ fun prepare_function do_print prep fixspec eqns config lthy =
 
         val pelims = Function_Elims.mk_partial_elim_rules lthy result
 
-        val fnames = map (fst o fst) fixes
         fun qualify n = Binding.name n
           |> Binding.qualify true defname
         val concealed_partial = if partials then I else Binding.concealed
