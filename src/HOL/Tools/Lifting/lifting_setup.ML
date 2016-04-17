@@ -155,7 +155,7 @@ in
             |> mk_HOL_eq
             |> singleton (Variable.export lthy orig_lthy)
           val lthy = (#notes config ? (Local_Theory.note 
-              ((Binding.qualified true "pcr_cr_eq" qty_name, []), [thm]) #> snd)) lthy
+              ((Binding.qualify_name true qty_name "pcr_cr_eq", []), [thm]) #> snd)) lthy
         in
           (thm, lthy)
         end
@@ -238,8 +238,8 @@ end
 
 fun lifting_bundle qty_full_name qinfo lthy = 
   let
-    fun qualify suffix defname = Binding.qualified true suffix defname
-    val binding =  qty_full_name |> Long_Name.base_name |> Binding.name |> qualify "lifting"
+    val binding =
+      Binding.qualify_name true (qty_full_name |> Long_Name.base_name |> Binding.name) "lifting"
     val morphed_binding = Morphism.binding (Local_Theory.target_morphism lthy) binding
     val bundle_name = Name_Space.full_name (Name_Space.naming_of 
       (Context.Theory (Proof_Context.theory_of lthy))) morphed_binding
@@ -526,23 +526,17 @@ fun setup_by_quotient (config: config) quot_thm opt_reflp_thm opt_par_thm lthy =
     val induct_attr = Attrib.internal (K (Induct.induct_type (fst (dest_Type qty))))
     val qty_full_name = (fst o dest_Type) qty
     val qty_name = (Binding.name o Long_Name.base_name) qty_full_name
-    fun qualify suffix = Binding.qualified true suffix qty_name
+    val qualify = Binding.qualify_name true qty_name
     val notes1 = case opt_reflp_thm of
       SOME reflp_thm =>
         let 
           val thms =
-            [("abs_induct",     @{thms Quotient_total_abs_induct}, [induct_attr]),
-             ("abs_eq_iff",     @{thms Quotient_total_abs_eq_iff}, []           )]
-        in
-          map_thms qualify (fn thm => [quot_thm, reflp_thm] MRSL thm) thms
-        end
+            [("abs_induct", @{thms Quotient_total_abs_induct}, [induct_attr]),
+             ("abs_eq_iff", @{thms Quotient_total_abs_eq_iff}, [])]
+        in map_thms qualify (fn thm => [quot_thm, reflp_thm] MRSL thm) thms end
       | NONE =>
-        let
-          val thms = 
-            [("abs_induct",     @{thms Quotient_abs_induct},       [induct_attr])]
-        in
-          map_thms qualify (fn thm => quot_thm RS thm) thms
-        end
+        let val thms = [("abs_induct", @{thms Quotient_abs_induct}, [induct_attr])]
+        in map_thms qualify (fn thm => quot_thm RS thm) thms end
     val dom_thm = get_Domainp_thm quot_thm
 
     fun setup_transfer_rules_nonpar notes =
@@ -663,7 +657,7 @@ fun setup_by_typedef_thm config typedef_thm lthy =
     val (rty, qty) = quot_thm_rty_qty quot_thm
     val qty_full_name = (fst o dest_Type) qty
     val qty_name = (Binding.name o Long_Name.base_name) qty_full_name
-    fun qualify suffix = Binding.qualified true suffix qty_name
+    val qualify = Binding.qualify_name true qty_name
     val opt_reflp_thm = 
       case typedef_set of
         Const (@{const_name top}, _) => 

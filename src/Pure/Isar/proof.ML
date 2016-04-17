@@ -867,7 +867,7 @@ fun gen_case internal prep_att ((raw_binding, raw_atts), ((name, pos), xs)) stat
     val (asms, state') = state |> map_context_result (fn ctxt =>
       ctxt |> Proof_Context.apply_case (Proof_Context.check_case ctxt internal (name, pos) xs));
     val assumptions =
-      asms |> map (fn (a, ts) => ((Binding.qualified true a binding, []), map (rpair []) ts));
+      asms |> map (fn (a, ts) => ((Binding.qualify_name true binding a, []), map (rpair []) ts));
   in
     state'
     |> assume [] [] assumptions

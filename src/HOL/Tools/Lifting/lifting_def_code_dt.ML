@@ -325,10 +325,12 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     fun lift_isom_tac ctxt = HEADGOAL (eq_onp_to_top_tac ctxt
       THEN' (rtac ctxt @{thm id_transfer}));
 
-    val (rep_isom_lift_def, lthy) = lift_def ld_no_notes (Binding.qualified true "Rep_isom" uTname, NoSyn)
+    val (rep_isom_lift_def, lthy) =
+      lift_def ld_no_notes (Binding.qualify_name true uTname "Rep_isom", NoSyn)
       (qty_isom --> qty) (HOLogic.id_const rty) lift_isom_tac [] lthy
       |> apfst (inst_of_lift_def lthy (qty_isom --> qty));
-    val (abs_isom, lthy) = lift_def ld_no_notes (Binding.qualified true "Abs_isom" uTname, NoSyn)
+    val (abs_isom, lthy) =
+      lift_def ld_no_notes (Binding.qualify_name true uTname "Abs_isom", NoSyn)
       (qty --> qty_isom) (HOLogic.id_const rty) lift_isom_tac [] lthy
       |> apfst (mk_lift_const_of_lift_def (qty --> qty_isom));
     val rep_isom = lift_const_of_lift_def rep_isom_lift_def
@@ -397,7 +399,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     val sel_rhs = map (map mk_sel_rhs) sel_argss
     val dis_rhs = map (fn k => list_comb (dis_casex, mk_dis_case_args (ks ~~ xss) k)) ks
     val dis_qty = qty_isom --> HOLogic.boolT;
-    val dis_names = map (fn k => Binding.qualified true ("dis" ^ string_of_int k) uTname) ks;
+    val dis_names = map (fn k => Binding.qualify_name true uTname ("dis" ^ string_of_int k)) ks;
 
     val (diss, lthy) = @{fold_map 2} (fn b => fn rhs => fn lthy =>
       lift_def ld_no_notes (b, NoSyn) dis_qty rhs (K all_tac) [] lthy
@@ -416,8 +418,10 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
         REPEAT_DETERM o etac ctxt conjE, assume_tac ctxt])) i
     val pred_simps = Transfer.lookup_pred_data lthy (Tname rty) |> the |> Transfer.pred_simps
     val sel_tac = lift_sel_tac (#exhaust ctr_sugar) (#case_thms ctr_sugar @ pred_simps)
-    val sel_names = map (fn (k, xs) => map (fn k' => Binding.qualified true
-      ("sel" ^ string_of_int k ^ string_of_int k') uTname) (1 upto length xs)) (ks ~~ ctr_Tss);
+    val sel_names =
+      map (fn (k, xs) =>
+        map (fn k' => Binding.qualify_name true uTname ("sel" ^ string_of_int k ^ string_of_int k'))
+          (1 upto length xs)) (ks ~~ ctr_Tss);
     val (selss, lthy) = @{fold_map 2} (@{fold_map 2} (fn b => fn (qty_ret, wits, rhs) => fn lthy =>
         lift_def_code_dt { code_dt = true, lift_config = ld_no_notes }
         (b, NoSyn) (qty_isom --> qty_ret) rhs (HEADGOAL o sel_tac wits) [] lthy

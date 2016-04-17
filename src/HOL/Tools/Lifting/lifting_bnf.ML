@@ -76,12 +76,8 @@ fun prove_Quotient_map bnf ctxt =
 fun Quotient_map bnf ctxt =
   let
     val Quotient = prove_Quotient_map bnf ctxt
-    fun qualify defname suffix = Binding.qualified true suffix defname
-    val Quotient_thm_name = qualify (base_name_of_bnf bnf) "Quotient"
-    val notes = [((Quotient_thm_name, []), [([Quotient], @{attributes [quot_map]})])]
-  in
-    notes
-  end
+    val Quotient_thm_name = Binding.qualify_name true (base_name_of_bnf bnf) "Quotient"
+  in [((Quotient_thm_name, []), [([Quotient], @{attributes [quot_map]})])] end
 
 (* relator_eq_onp  *)
 

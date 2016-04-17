@@ -381,7 +381,7 @@ val parent_path = map_path (perhaps (try (#1 o split_last)));
 fun mandatory_path elems = map_path (fn path => path @ [(elems, true)]);
 
 fun qualified_path mandatory binding = map_path (fn path =>
-  path @ Binding.path_of (Binding.qualified mandatory "" binding));
+  path @ Binding.path_of (Binding.qualify_name mandatory binding ""));
 
 val global_naming = make_naming ([], NONE, false, NONE, "", []);
 val local_naming = global_naming |> add_path Long_Name.localN;

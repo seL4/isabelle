@@ -119,7 +119,6 @@ fun prove_relation_constraints bnf lthy =
   let
     val transfer_attr = @{attributes [transfer_rule]}
     val Tname = base_name_of_bnf bnf
-    fun qualify suffix = Binding.qualified true suffix Tname
 
     val defs = map (apsnd (prove_relation_side_constraint lthy bnf)) defs
     val bi_total = prove_relation_bi_constraint lthy bnf @{thm bi_total_alt_def}
@@ -127,9 +126,8 @@ fun prove_relation_constraints bnf lthy =
     val bi_unique = prove_relation_bi_constraint lthy bnf @{thm bi_unique_alt_def}
       [snd (nth defs 2), snd (nth defs 3)]
     val defs = ("bi_total_rel", bi_total) :: ("bi_unique_rel", bi_unique) :: defs
-    val notes = maps (fn (name, thm) => [((qualify name, []), [([thm], transfer_attr)])]) defs
   in
-    notes
+    maps (fn (a, thm) => [((Binding.qualify_name true Tname a, []), [([thm], transfer_attr)])]) defs
   end
 
 (* relator_eq *)
@@ -203,8 +201,7 @@ fun predicator bnf lthy =
     val pred_def = pred_set_of_bnf bnf
     val Domainp_rel = prove_Domainp_rel lthy bnf pred_def
     val rel_eq_onp = rel_eq_onp_of_bnf bnf
-    fun qualify defname suffix = Binding.qualified true suffix defname
-    val Domainp_rel_thm_name = qualify (base_name_of_bnf bnf) "Domainp_rel"
+    val Domainp_rel_thm_name = Binding.qualify_name true (base_name_of_bnf bnf) "Domainp_rel"
     val pred_data = Transfer.mk_pred_data pred_def rel_eq_onp []
     val type_name = type_name_of_bnf bnf
     val relator_domain_attr = @{attributes [relator_domain]}

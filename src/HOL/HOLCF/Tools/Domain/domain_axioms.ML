@@ -51,8 +51,8 @@ fun axiomatize_isomorphism
     val rep_iso_eqn =
         Logic.all x (mk_trp (mk_eq (abs_const ` (rep_const ` x), x)))
 
-    val abs_iso_bind = Binding.qualified true "abs_iso" dbind
-    val rep_iso_bind = Binding.qualified true "rep_iso" dbind
+    val abs_iso_bind = Binding.qualify_name true dbind "abs_iso"
+    val rep_iso_bind = Binding.qualify_name true dbind "rep_iso"
 
     val (abs_iso_thm, thy) = Specification.axiom ((abs_iso_bind, []), abs_iso_eqn) thy
     val (rep_iso_thm, thy) = Specification.axiom ((rep_iso_bind, []), rep_iso_eqn) thy
@@ -81,7 +81,7 @@ fun axiomatize_lub_take
     val lub_take_eqn =
         mk_trp (mk_eq (mk_lub (lambda i (take_const $ i)), mk_ID T))
 
-    val lub_take_bind = Binding.qualified true "lub_take" dbind
+    val lub_take_bind = Binding.qualify_name true dbind "lub_take"
 
     val (lub_take_thm, thy) = Specification.axiom ((lub_take_bind, []), lub_take_eqn) thy
   in

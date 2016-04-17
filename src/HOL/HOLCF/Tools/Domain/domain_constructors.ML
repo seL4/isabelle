@@ -929,7 +929,7 @@ fun add_domain_constructors
     (* bind theorem names in global theory *)
     val (_, thy) =
       let
-        fun qualified name = Binding.qualified true name dbind
+        fun qualified name = Binding.qualify_name true dbind name
         val names = "bottom" :: map (fn (b,_,_) => Binding.name_of b) spec
         val dname = fst (dest_Type lhsT)
         val simp = Simplifier.simp_add

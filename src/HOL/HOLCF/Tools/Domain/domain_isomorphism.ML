@@ -223,7 +223,7 @@ fun define_const
 
 fun add_qualified_thm name (dbind, thm) =
     yield_singleton Global_Theory.add_thms
-      ((Binding.qualified true name dbind, thm), [])
+      ((Binding.qualify_name true dbind name, thm), [])
 
 (******************************************************************************)
 (*************************** defining map functions ***************************)

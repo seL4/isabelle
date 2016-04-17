@@ -230,7 +230,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val f_bname = Binding.name_of f_binding;
 
     fun note_qualified (name, thms) =
-      Local_Theory.note ((Binding.qualified true name (Binding.reset_pos f_binding), []), thms)
+      Local_Theory.note ((Binding.qualify_name true (Binding.reset_pos f_binding) name, []), thms)
         #> snd
 
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop plain_eqn);

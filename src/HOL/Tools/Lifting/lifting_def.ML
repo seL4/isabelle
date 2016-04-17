@@ -584,15 +584,13 @@ fun add_lift_def (config: config) var qty rhs rsp_thm par_thms lthy =
     val abs_eq_thm = generate_abs_eq lthy def_thm rsp_thm quot_thm
     val opt_rep_eq_thm = generate_rep_eq lthy def_thm rsp_thm (rty_forced, qty)
 
-    fun qualify defname suffix = Binding.qualified true suffix defname
-
     fun notes names =
       let
         val lhs_name = (#1 var)
-        val rsp_thmN = qualify lhs_name "rsp"
-        val abs_eq_thmN = qualify lhs_name "abs_eq"
-        val rep_eq_thmN = qualify lhs_name "rep_eq"
-        val transfer_ruleN = qualify lhs_name "transfer"
+        val rsp_thmN = Binding.qualify_name true lhs_name "rsp"
+        val abs_eq_thmN = Binding.qualify_name true lhs_name "abs_eq"
+        val rep_eq_thmN = Binding.qualify_name true lhs_name "rep_eq"
+        val transfer_ruleN = Binding.qualify_name true lhs_name "transfer"
         val notes = 
           [(rsp_thmN, [], [rsp_thm]), 
           (transfer_ruleN, @{attributes [transfer_rule]}, transfer_rules),

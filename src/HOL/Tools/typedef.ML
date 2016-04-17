@@ -177,7 +177,7 @@ fun primitive_typedef {overloaded} type_definition_name newT oldT Rep_name Abs_n
 type bindings = {Rep_name: binding, Abs_name: binding, type_definition_name: binding};
 
 fun prefix_binding prfx name =
-  Binding.reset_pos (Binding.qualified false (prfx ^ Binding.name_of name) name);
+  Binding.reset_pos (Binding.qualify_name false name (prfx ^ Binding.name_of name));
 
 fun qualify_binding name = Binding.qualify false (Binding.name_of name);
 

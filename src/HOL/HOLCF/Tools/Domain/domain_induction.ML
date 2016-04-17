@@ -78,7 +78,7 @@ let
       val take_apps = map prove_take_app con_specs
     in
       yield_singleton Global_Theory.add_thmss
-        ((Binding.qualified true "take_rews" dbind, take_apps),
+        ((Binding.qualify_name true dbind "take_rews", take_apps),
         [Simplifier.simp_add]) thy
     end
 in
@@ -235,8 +235,8 @@ let
 in
   thy
   |> snd o Global_Theory.add_thms [
-     ((Binding.qualified true "finite_induct" comp_dbind, finite_ind), []),
-     ((Binding.qualified true "induct"        comp_dbind, ind       ), [])]
+     ((Binding.qualify_name true comp_dbind "finite_induct", finite_ind), []),
+     ((Binding.qualify_name true comp_dbind "induct", ind), [])]
   |> (snd o Global_Theory.add_thms (map ind_rule (dnames ~~ inducts)))
 end (* prove_induction *)
 
@@ -301,7 +301,7 @@ let
   in
     val (bisim_def_thm, thy) = thy |>
         yield_singleton (Global_Theory.add_defs false)
-         ((Binding.qualified true "bisim_def" comp_dbind, bisim_eqn), [])
+         ((Binding.qualify_name true comp_dbind "bisim_def", bisim_eqn), [])
   end (* local *)
 
   (* prove coinduction lemma *)
@@ -357,7 +357,7 @@ let
       Goal.prove_global thy [] [assm1, assm2] goal tacf
     end
   val coinds = map prove_coind (newTs ~~ Rs ~~ take_lemma_thms)
-  val coind_binds = map (Binding.qualified true "coinduct") dbinds
+  val coind_binds = map (fn b => Binding.qualify_name true b "coinduct") dbinds
 
 in
   thy |> snd o Global_Theory.add_thms
