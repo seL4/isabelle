@@ -842,11 +842,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
     val is_auxiliary = length cs > 1;
 
     val rec_binding =
-      if Binding.is_empty alt_name then
-        (case cnames_syn of
-          [(b, _)] => b
-        | _ => Binding.name (space_implode "_" (map (Binding.name_of o fst) cnames_syn)))
-      else alt_name;
+      if Binding.is_empty alt_name then Binding.conglomerate (map #1 cnames_syn) else alt_name;
     val rec_name = Binding.name_of rec_binding;
 
     val internals = Config.get lthy inductive_internals;

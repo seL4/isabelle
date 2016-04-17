@@ -78,11 +78,7 @@ fun prepare_function do_print prep fixspec eqns config lthy =
     val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec
 
     val fnames = map (fst o fst) fixes0
-    val f_base_names = map (fst o fst) fixes
-    val defname =
-      (case fixes0 of
-        [((b, _), _)] => b
-      | _ => Binding.name (space_implode "_" f_base_names))
+    val defname = Binding.conglomerate fnames;
 
     val FunctionConfig {partials, default, ...} = config
     val _ =

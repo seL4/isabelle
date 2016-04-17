@@ -495,9 +495,7 @@ fun add_ind_set_def
 
     (* convert theorems to set notation *)
     val rec_name =
-      if Binding.is_empty alt_name then
-        Binding.name (space_implode "_" (map (Binding.name_of o fst) cnames_syn))
-      else alt_name;
+      if Binding.is_empty alt_name then Binding.conglomerate (map #1 cnames_syn) else alt_name;
     val cnames = map (Local_Theory.full_name lthy3 o #1) cnames_syn;  (* FIXME *)
     val (intr_names, intr_atts) = split_list (map fst intros);
     val raw_induct' = to_set [] (Context.Proof lthy3) raw_induct;

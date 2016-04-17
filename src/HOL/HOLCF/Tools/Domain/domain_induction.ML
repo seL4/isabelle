@@ -375,8 +375,8 @@ fun comp_theorems
     (thy : theory) =
 let
 
-val comp_dname = space_implode "_" (map Binding.name_of dbinds)
-val comp_dbind = Binding.name comp_dname
+val comp_dbind = Binding.conglomerate dbinds
+val comp_dname = Binding.name_of comp_dbind
 
 (* Test for emptiness *)
 (* FIXME: reimplement emptiness test
