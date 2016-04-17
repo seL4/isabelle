@@ -229,6 +229,10 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val ((f_binding, fT), mixfix) = the_single fixes;
     val f_bname = Binding.name_of f_binding;
 
+    fun note_qualified (name, thms) =
+      Local_Theory.note ((Binding.qualified true name (Binding.reset_pos f_binding), []), thms)
+        #> snd
+
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop plain_eqn);
     val (head, args) = strip_comb lhs;
     val argnames = map (fst o dest_Free) args;
@@ -294,14 +298,10 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     lthy'
     |> Local_Theory.note (eq_abinding, [rec_rule])
     |-> (fn (_, rec') =>
-      Spec_Rules.add Spec_Rules.Equational ([f], rec')
-      #> Local_Theory.note ((Binding.qualified true "simps" f_binding, []), rec') #> snd)
-    |> Local_Theory.note ((Binding.qualified true "mono" f_binding, []), [mono_thm]) |> snd
-    |> (case raw_induct of NONE => I | SOME thm =>
-         Local_Theory.note ((Binding.qualified true "raw_induct" f_binding, []), [thm]) #> snd)
-    |> Local_Theory.note
-      ((Binding.qualified true "fixp_induct" f_binding, []), [specialized_fixp_induct])
-    |> snd
+      Spec_Rules.add Spec_Rules.Equational ([f], rec') #> note_qualified ("simps", rec'))
+    |> note_qualified ("mono", [mono_thm])
+    |> (case raw_induct of NONE => I | SOME thm => note_qualified ("raw_induct", [thm]))
+    |> note_qualified ("fixp_induct", [specialized_fixp_induct])
   end;
 
 val add_partial_function = gen_add_partial_function Specification.check_spec;
