@@ -227,7 +227,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val ((_, plain_eqn), args_ctxt) = Variable.focus NONE eqn lthy;
 
     val ((f_binding, fT), mixfix) = the_single fixes;
-    val fname = Binding.name_of f_binding;
+    val f_bname = Binding.name_of f_binding;
 
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop plain_eqn);
     val (head, args) = strip_comb lhs;
@@ -239,7 +239,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
 
     val tupleT = foldl1 HOLogic.mk_prodT aTs;
     val fT_uc = tupleT :: bTs ---> body_type fT;
-    val f_uc = Var ((fname, 0), fT_uc);
+    val f_uc = Var ((f_bname, 0), fT_uc);
     val x_uc = Var (("x", 0), tupleT);
     val uncurry = lambda head (uncurry_n arity head);
     val curry = lambda f_uc (curry_n arity f_uc);
@@ -257,11 +257,9 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
 
     val f_def_rhs = curry_n arity (apply_inst lthy fixp F_uc);
     val f_def_binding =
-      if Config.get lthy Function_Lib.function_internals
-      then (Binding.name (Thm.def_name fname), [])
-      else Attrib.empty_binding;
-    val ((f, (_, f_def)), lthy') = Local_Theory.define
-      ((f_binding, mixfix), (f_def_binding, f_def_rhs)) lthy;
+      Thm.make_def_binding (Config.get lthy Function_Lib.function_internals) f_binding
+    val ((f, (_, f_def)), lthy') =
+      Local_Theory.define ((f_binding, mixfix), ((f_def_binding, []), f_def_rhs)) lthy;
 
     val eqn = HOLogic.mk_eq (list_comb (f, args),
         Term.betapplys (F, f :: args))
@@ -274,7 +272,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
 
     val specialized_fixp_induct =
       specialize_fixp_induct lthy' args fT fT_uc F curry uncurry inst_mono_thm f_def fixp_induct
-      |> Drule.rename_bvars' (map SOME (fname :: fname :: argnames));
+      |> Drule.rename_bvars' (map SOME (f_bname :: f_bname :: argnames));
 
     val mk_raw_induct =
       infer_instantiate' args_ctxt
@@ -283,23 +281,27 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
       #> singleton (Variable.export args_ctxt lthy')
       #> (fn thm => infer_instantiate' lthy'
           [SOME (Thm.cterm_of lthy' F)] thm OF [inst_mono_thm, f_def])
-      #> Drule.rename_bvars' (map SOME (fname :: argnames @ argnames))
+      #> Drule.rename_bvars' (map SOME (f_bname :: argnames @ argnames))
 
     val raw_induct = Option.map mk_raw_induct fixp_induct_user
-    val rec_rule = let open Conv in
-      Goal.prove lthy' (map (fst o dest_Free) args) [] eqn (fn _ =>
-        CONVERSION ((arg_conv o arg1_conv o head_conv o rewr_conv) (mk_meta_eq unfold)) 1
-        THEN resolve_tac lthy' @{thms refl} 1) end;
+    val rec_rule =
+      let open Conv in
+        Goal.prove lthy' (map (fst o dest_Free) args) [] eqn (fn _ =>
+          CONVERSION ((arg_conv o arg1_conv o head_conv o rewr_conv) (mk_meta_eq unfold)) 1
+          THEN resolve_tac lthy' @{thms refl} 1)
+      end;
   in
     lthy'
     |> Local_Theory.note (eq_abinding, [rec_rule])
     |-> (fn (_, rec') =>
       Spec_Rules.add Spec_Rules.Equational ([f], rec')
-      #> Local_Theory.note ((Binding.qualify true fname (Binding.name "simps"), []), rec') #> snd)
-    |> (Local_Theory.note ((Binding.qualify true fname (Binding.name "mono"), []), [mono_thm]) #> snd)
+      #> Local_Theory.note ((Binding.qualified true "simps" f_binding, []), rec') #> snd)
+    |> Local_Theory.note ((Binding.qualified true "mono" f_binding, []), [mono_thm]) |> snd
     |> (case raw_induct of NONE => I | SOME thm =>
-         Local_Theory.note ((Binding.qualify true fname (Binding.name "raw_induct"), []), [thm]) #> snd)
-    |> (Local_Theory.note ((Binding.qualify true fname (Binding.name "fixp_induct"), []), [specialized_fixp_induct]) #> snd)
+         Local_Theory.note ((Binding.qualified true "raw_induct" f_binding, []), [thm]) #> snd)
+    |> Local_Theory.note
+      ((Binding.qualified true "fixp_induct" f_binding, []), [specialized_fixp_induct])
+    |> snd
   end;
 
 val add_partial_function = gen_add_partial_function Specification.check_spec;
