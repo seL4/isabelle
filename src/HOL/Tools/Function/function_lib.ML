@@ -9,6 +9,10 @@ signature FUNCTION_LIB =
 sig
   val function_internals: bool Config.T
 
+  val derived_name: binding -> string -> binding
+  val name_suffix: binding -> string -> binding
+  val derived_name_suffix: binding -> string -> binding
+
   val plural: string -> string -> 'a list -> string
 
   val dest_all_all: term -> term list * term
@@ -33,6 +37,12 @@ structure Function_Lib: FUNCTION_LIB =
 struct
 
 val function_internals = Attrib.setup_config_bool @{binding function_internals} (K false)
+
+fun derived_name binding name =
+  Binding.reset_pos (Binding.qualify_name true binding name)
+
+fun name_suffix binding sffx = Binding.map_name (suffix sffx) binding
+fun derived_name_suffix binding sffx = Binding.reset_pos (name_suffix binding sffx)
 
 
 (* "The variable" ^ plural " is" "s are" vs *)

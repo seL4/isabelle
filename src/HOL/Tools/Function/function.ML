@@ -51,12 +51,10 @@ val psimp_attribs =
   @{attributes [nitpick_psimp]}
 
 fun note_qualified suffix attrs (fname, thms) =
-  Local_Theory.note ((Binding.qualify_name true fname suffix,
-    map (Attrib.internal o K) attrs), thms)
+  Local_Theory.note ((derived_name fname suffix, map (Attrib.internal o K) attrs), thms)
   #> apfst snd
 
-fun add_simps fnames post sort extra_qualify label mod_binding moreatts
-  simps lthy =
+fun add_simps fnames post sort extra_qualify label mod_binding moreatts simps lthy =
   let
     val spec = post simps
       |> map (apfst (apsnd (fn ats => moreatts @ ats)))
@@ -69,7 +67,7 @@ fun add_simps fnames post sort extra_qualify label mod_binding moreatts
     val simps_by_f = sort saved_simps
 
     fun note fname simps =
-      Local_Theory.note ((mod_binding (Binding.qualify_name true fname label), []), simps) #> snd
+      Local_Theory.note ((mod_binding (derived_name fname label), []), simps) #> snd
   in (saved_simps, fold2 note fnames simps_by_f lthy) end
 
 fun prepare_function do_print prep fixspec eqns config lthy =
@@ -103,7 +101,6 @@ fun prepare_function do_print prep fixspec eqns config lthy =
 
         val pelims = Function_Elims.mk_partial_elim_rules lthy result
 
-        val qualify = Binding.qualify_name true defname
         val concealed_partial = if partials then I else Binding.concealed
 
         val addsmps = add_simps fnames post sort_cont
@@ -112,19 +109,20 @@ fun prepare_function do_print prep fixspec eqns config lthy =
           lthy
           |> addsmps (concealed_partial o Binding.qualify false "partial")
                "psimps" concealed_partial psimp_attribs psimps
-          ||>> Local_Theory.notes [((concealed_partial (qualify "pinduct"), []),
+          ||>> Local_Theory.notes [((concealed_partial (derived_name defname "pinduct"), []),
                 simple_pinducts |> map (fn th => ([th],
                  [Attrib.internal (K (Rule_Cases.case_names cnames)),
                   Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th))),
                   Attrib.internal (K (Induct.induct_pred ""))])))]
           ||>> (apfst snd o
-            Local_Theory.note ((Binding.concealed (qualify "termination"), []), [termination]))
+            Local_Theory.note
+              ((Binding.concealed (derived_name defname "termination"), []), [termination]))
           ||>> fold_map (note_qualified "cases" [Rule_Cases.case_names cnames])
             (fnames ~~ map single cases) (* TODO: case names *)
           ||>> fold_map (note_qualified "pelims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1])
             (fnames ~~ pelims)
           ||> (case domintros of NONE => I | SOME thms =>
-                Local_Theory.note ((qualify "domintros", []), thms) #> snd)
+                Local_Theory.note ((derived_name defname "domintros", []), thms) #> snd)
 
         val info =
           { add_simps=addsmps, fnames=fnames, case_names=cnames, psimps=psimps',
@@ -204,8 +202,7 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
         lthy
         |> add_simps I "simps" I simp_attribs tsimps
         ||>> Local_Theory.note
-           ((Binding.qualify_name true defname "induct",
-             [Attrib.internal (K (Rule_Cases.case_names case_names))]),
+           ((derived_name defname "induct", [Attrib.internal (K (Rule_Cases.case_names case_names))]),
             tinduct)
         ||>> fold_map (note_qualified "elims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1])
           (fnames ~~ telims)

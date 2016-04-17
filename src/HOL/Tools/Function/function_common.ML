@@ -58,10 +58,6 @@ sig
   val profile : bool Unsynchronized.ref
   val PROFILE : string -> ('a -> 'b) -> 'a -> 'b
   val mk_acc : typ -> term -> term
-  val function_name : string -> string
-  val graph_name : string -> string
-  val rel_name : string -> string
-  val dom_name : string -> string
   val split_def : Proof.context -> (string -> 'a) -> term ->
     string * (string * typ) list * term list * term list * term
   val check_defs : Proof.context -> ((string * typ) * 'a) list -> term list -> unit
@@ -124,11 +120,6 @@ fun PROFILE msg = if !profile then timeap_msg msg else I
 val acc_const_name = @{const_name Wellfounded.accp}
 fun mk_acc domT R =
   Const (acc_const_name, (domT --> domT --> HOLogic.boolT) --> domT --> HOLogic.boolT) $ R
-
-val function_name = suffix "C"
-val graph_name = suffix "_graph"
-val rel_name = suffix "_rel"
-val dom_name = suffix "_dom"
 
 
 (* analyzing function equations *)

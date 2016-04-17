@@ -492,14 +492,14 @@ fun define_function defname (fname, mixfix) domT ranT G default lthy =
   let
     val f_def_binding =
       Thm.make_def_binding (Config.get lthy function_internals)
-        (Binding.map_name (suffix "_sumC") defname)
+        (derived_name_suffix defname "_sumC")
     val f_def =
       Abs ("x", domT, Const (@{const_name Fun_Def.THE_default}, ranT --> (ranT --> boolT) --> ranT)
         $ (default $ Bound 0) $ Abs ("y", ranT, G $ Bound 1 $ Bound 0))
       |> Syntax.check_term lthy
   in
-    Local_Theory.define
-      ((Binding.name (function_name fname), mixfix), ((f_def_binding, []), f_def)) lthy
+    lthy |> Local_Theory.define
+      ((Binding.name (fname ^ "C") (* FIXME proper binding *), mixfix), ((f_def_binding, []), f_def))
   end
 
 fun define_recursion_relation (R_binding, R_type) qglrs clauses RCss lthy =
@@ -851,7 +851,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
     val ((G, GIntro_thms, G_elim, G_induct), lthy) =
       PROFILE "def_graph"
         (define_graph
-          (Binding.map_name graph_name defname, domT --> ranT --> boolT) fvar clauses RCss) lthy
+          (derived_name_suffix defname "_graph", domT --> ranT --> boolT) fvar clauses RCss) lthy
 
     val ((f, (_, f_defthm)), lthy) =
       PROFILE "def_fun" (define_function defname (fname, mixfix) domT ranT G default) lthy
@@ -861,13 +861,13 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
 
     val ((R, RIntro_thmss, R_elim), lthy) =
       PROFILE "def_rel"
-        (define_recursion_relation (Binding.map_name rel_name defname, domT --> domT --> boolT)
+        (define_recursion_relation (derived_name_suffix defname "_rel", domT --> domT --> boolT)
           abstract_qglrs clauses RCss) lthy
 
     val dom = mk_acc domT R
     val (_, lthy) =
       Local_Theory.abbrev Syntax.mode_default
-        (((Binding.map_name dom_name defname), NoSyn), dom) lthy
+        ((name_suffix defname "_dom", NoSyn), dom) lthy
 
     val newthy = Proof_Context.theory_of lthy
     val clauses = map (transfer_clause_ctx newthy) clauses

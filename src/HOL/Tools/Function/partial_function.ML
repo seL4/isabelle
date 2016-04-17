@@ -17,6 +17,9 @@ end;
 structure Partial_Function: PARTIAL_FUNCTION =
 struct
 
+open Function_Lib
+
+
 (*** Context Data ***)
 
 datatype setup_data = Setup_Data of
@@ -230,8 +233,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val f_bname = Binding.name_of f_binding;
 
     fun note_qualified (name, thms) =
-      Local_Theory.note ((Binding.qualify_name true (Binding.reset_pos f_binding) name, []), thms)
-        #> snd
+      Local_Theory.note ((derived_name f_binding name, []), thms) #> snd
 
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop plain_eqn);
     val (head, args) = strip_comb lhs;
