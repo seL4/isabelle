@@ -151,7 +151,7 @@ fun split_def ctxt check_head geq =
     (fname, qs, gs, args, rhs)
   end
 
-(*check for all sorts of errors in the input*)
+(*check for various errors in the input*)
 fun check_defs ctxt fixes eqs =
   let
     val fnames = map (fst o fst) fixes
@@ -203,17 +203,7 @@ fun check_defs ctxt fixes eqs =
     val _ = null not_defined
       orelse error ("No defining equations for function" ^
         plural " " "s " not_defined ^ commas_quote not_defined)
-
-    fun check_sorts ((fname, fT), _) =
-      Sorts.of_sort (Sign.classes_of (Proof_Context.theory_of ctxt)) (fT, @{sort type})
-      orelse error (cat_lines
-      ["Type of " ^ quote fname ^ " is not of sort " ^ quote "type" ^ ":",
-       Syntax.string_of_typ (Config.put show_sorts true ctxt) fT])
-
-    val _ = map check_sorts fixes
-  in
-    ()
-  end
+  in () end
 
 
 (* preprocessors *)
