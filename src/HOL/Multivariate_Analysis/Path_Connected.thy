@@ -1239,10 +1239,6 @@ proof -
     by (simp add: midpoint_def algebra_simps)
 qed
 
-lemma convex_hull_subset:
-    "s \<subseteq> convex hull t \<Longrightarrow> convex hull s \<subseteq> convex hull t"
-  by (simp add: convex_convex_hull subset_hull)
-
 lemma not_in_interior_convex_hull_3:
   fixes a :: "complex"
   shows "a \<notin> interior(convex hull {a,b,c})"

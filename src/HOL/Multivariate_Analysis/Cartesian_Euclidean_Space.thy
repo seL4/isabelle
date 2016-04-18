@@ -4,6 +4,9 @@ theory Cartesian_Euclidean_Space
 imports Finite_Cartesian_Product Integration
 begin
 
+lemma subspace_special_hyperplane: "subspace {x. x $ k = 0}"
+  by (simp add: subspace_def)
+
 lemma delta_mult_idempotent:
   "(if k=a then 1 else (0::'a::semiring_1)) * (if k=a then 1 else 0) = (if k=a then 1 else 0)"
   by (cases "k=a") auto
