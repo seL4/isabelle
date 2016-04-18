@@ -38,7 +38,8 @@ datatype mutual_part = MutualPart of
 datatype mutual_info = Mutual of
  {n : int,
   n' : int,
-  fsum_var : string * typ,
+  fsum_name : binding,
+  fsum_type: typ,
 
   ST: typ,
   RST: typ,
@@ -87,10 +88,9 @@ fun analyze_eqs ctxt defname fs eqs =
     val RST = Balanced_Tree.make (uncurry Sum_Tree.mk_sumT) dresultTs
     val ST = Balanced_Tree.make (uncurry Sum_Tree.mk_sumT) argTs
 
+    val fsum_name = derived_name_suffix defname "_sum"
+    val ([fsum_var_name], _) = Variable.add_fixes_binding [fsum_name] ctxt
     val fsum_type = ST --> RST
-
-    val ([fsum_var_name], _) =
-      Variable.add_fixes_binding [Binding.map_name (suffix "_sum") defname] ctxt
     val fsum_var = (fsum_var_name, fsum_type)
 
     fun define (fname, fT) caTs resultT i =
@@ -122,8 +122,8 @@ fun analyze_eqs ctxt defname fs eqs =
 
     val qglrs = map convert_eqs fqgars
   in
-    Mutual {n=num, n'=n', fsum_var=fsum_var, ST=ST, RST=RST,
-      parts=parts, fqgars=fqgars, qglrs=qglrs, fsum=NONE}
+    Mutual {n = num, n' = n', fsum_name = fsum_name, fsum_type = fsum_type,
+      ST = ST, RST = RST, parts = parts, fqgars = fqgars, qglrs = qglrs, fsum = NONE}
   end
 
 fun define_projections fixes mutual fsum lthy =
@@ -139,12 +139,11 @@ fun define_projections fixes mutual fsum lthy =
             f_def = f_def, f = SOME f, f_defthm = SOME f_defthm}, lthy')
       end
 
-    val Mutual { n, n', fsum_var, ST, RST, parts, fqgars, qglrs, ... } = mutual
+    val Mutual {n, n', fsum_name, fsum_type, ST, RST, parts, fqgars, qglrs, ...} = mutual
     val (parts', lthy') = fold_map def (parts ~~ fixes) lthy
   in
-    (Mutual { n=n, n'=n', fsum_var=fsum_var, ST=ST, RST=RST, parts=parts',
-       fqgars=fqgars, qglrs=qglrs, fsum=SOME fsum },
-     lthy')
+    (Mutual {n = n, n' = n', fsum_name = fsum_name, fsum_type = fsum_type, ST = ST,
+      RST = RST, parts = parts', fqgars = fqgars, qglrs = qglrs, fsum = SOME fsum}, lthy')
   end
 
 fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
@@ -302,11 +301,11 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, n, ST, 
 
 fun prepare_function_mutual config defname fixes eqss lthy =
   let
-    val mutual as Mutual {fsum_var=(n, T), qglrs, ...} =
+    val mutual as Mutual {fsum_name, fsum_type, qglrs, ...} =
       analyze_eqs lthy defname (map fst fixes) (map Envir.beta_eta_contract eqss)
 
     val ((fsum, goalstate, cont), lthy') =
-      Function_Core.prepare_function config defname [((Binding.name n, T), NoSyn)] qglrs lthy
+      Function_Core.prepare_function config defname [((fsum_name, fsum_type), NoSyn)] qglrs lthy
 
     val (mutual', lthy'') = define_projections fixes mutual fsum lthy'
 
