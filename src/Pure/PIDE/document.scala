@@ -81,9 +81,9 @@ object Document
     /* header and name */
 
     sealed case class Header(
-      imports: List[(Name, Position.T)],
-      keywords: Thy_Header.Keywords,
-      errors: List[String])
+      imports: List[(Name, Position.T)] = Nil,
+      keywords: Thy_Header.Keywords = Nil,
+      errors: List[String] = Nil)
     {
       def error(msg: String): Header = copy(errors = errors ::: List(msg))
 
@@ -91,8 +91,8 @@ object Document
         copy(errors = errors.map(msg1 => Exn.cat_message(msg1, msg2)))
     }
 
-    val no_header = Header(Nil, Nil, Nil)
-    def bad_header(msg: String): Header = Header(Nil, Nil, List(msg))
+    val no_header = Header()
+    def bad_header(msg: String): Header = Header(errors = List(msg))
 
     object Name
     {
