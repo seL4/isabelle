@@ -9,8 +9,8 @@ sig
   val trace: bool Unsynchronized.ref
   val prepare_function : Function_Common.function_config
     -> binding (* defname *)
-    -> ((bstring * typ) * mixfix) list (* defined symbol *)
-    -> ((bstring * typ) list * term list * term * term) list (* specification *)
+    -> ((binding * typ) * mixfix) list (* defined symbol *)
+    -> ((string * typ) list * term list * term * term) list (* specification *)
     -> local_theory
     -> (term   (* f *)
         * thm  (* goalstate *)
@@ -499,7 +499,7 @@ fun define_function defname (fname, mixfix) domT ranT G default lthy =
       |> Syntax.check_term lthy
   in
     lthy |> Local_Theory.define
-      ((Binding.name (fname ^ "C") (* FIXME proper binding *), mixfix), ((f_def_binding, []), f_def))
+      ((Binding.map_name (suffix "C") fname, mixfix), ((f_def_binding, []), f_def))
   end
 
 fun define_recursion_relation (R_binding, R_type) qglrs clauses RCss lthy =
@@ -826,15 +826,15 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
   let
     val FunctionConfig {domintros, default=default_opt, ...} = config
 
-    val default_str = the_default "%x. HOL.undefined" default_opt
-    val fvar = Free (fname, fT)
+    val default_str = the_default "%x. HOL.undefined" (* FIXME proper term!? *) default_opt
+    val fvar = (Binding.name_of fname, fT)
     val domT = domain_type fT
     val ranT = range_type fT
 
     val default = Syntax.parse_term lthy default_str
       |> Type.constraint fT |> Syntax.check_term lthy
 
-    val (globals, ctxt') = fix_globals domT ranT fvar lthy
+    val (globals, ctxt') = fix_globals domT ranT (Free fvar) lthy
 
     val Globals { x, h, ... } = globals
 
@@ -843,7 +843,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
     val n = length abstract_qglrs
 
     fun build_tree (ClauseContext { ctxt, rhs, ...}) =
-       Function_Context_Tree.mk_tree (fname, fT) h ctxt rhs
+       Function_Context_Tree.mk_tree fvar h ctxt rhs
 
     val trees = map build_tree clauses
     val RCss = map find_calls trees
@@ -851,13 +851,14 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
     val ((G, GIntro_thms, G_elim, G_induct), lthy) =
       PROFILE "def_graph"
         (define_graph
-          (derived_name_suffix defname "_graph", domT --> ranT --> boolT) fvar clauses RCss) lthy
+          (derived_name_suffix defname "_graph", domT --> ranT --> boolT) (Free fvar) clauses RCss)
+        lthy
 
     val ((f, (_, f_defthm)), lthy) =
       PROFILE "def_fun" (define_function defname (fname, mixfix) domT ranT G default) lthy
 
-    val RCss = map (map (inst_RC lthy fvar f)) RCss
-    val trees = map (Function_Context_Tree.inst_tree lthy fvar f) trees
+    val RCss = map (map (inst_RC lthy (Free fvar) f)) RCss
+    val trees = map (Function_Context_Tree.inst_tree lthy (Free fvar) f) trees
 
     val ((R, RIntro_thmss, R_elim), lthy) =
       PROFILE "def_rel"
@@ -867,7 +868,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
     val dom = mk_acc domT R
     val (_, lthy) =
       Local_Theory.abbrev Syntax.mode_default
-        ((name_suffix defname "_dom", NoSyn), dom) lthy
+        ((derived_name_suffix defname "_dom", NoSyn), dom) lthy
 
     val newthy = Proof_Context.theory_of lthy
     val clauses = map (transfer_clause_ctx newthy) clauses
@@ -880,7 +881,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
       mk_completeness globals clauses abstract_qglrs |> Thm.cterm_of lthy |> Thm.assume
 
     val compat =
-      mk_compat_proof_obligations domT ranT fvar f abstract_qglrs
+      mk_compat_proof_obligations domT ranT (Free fvar) f abstract_qglrs
       |> map (Thm.cterm_of lthy #> Thm.assume)
 
     val compat_store = store_compat_thms n compat
@@ -920,6 +921,5 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
   in
     ((f, goalstate, mk_partial_rules), lthy)
   end
-
 
 end
