@@ -10808,7 +10808,7 @@ corollary affine_hull_affine_Int_nonempty_interior:
     shows "affine hull (S \<inter> T) = affine hull S"
 by (simp add: affine_hull_convex_Int_nonempty_interior affine_imp_convex assms)
 
-corollary affine_hull_affine_inter_open:
+corollary affine_hull_affine_Int_open:
   fixes S :: "'a::real_normed_vector set"
   assumes "affine S" "open T" "S \<inter> T \<noteq> {}"
     shows "affine hull (S \<inter> T) = affine hull S"
@@ -10826,7 +10826,7 @@ corollary affine_hull_open_in:
   assumes "openin (subtopology euclidean (affine hull T)) S" "S \<noteq> {}"
     shows "affine hull S = affine hull T"
 using assms unfolding openin_open
-by (metis affine_affine_hull affine_hull_affine_inter_open hull_hull)
+by (metis affine_affine_hull affine_hull_affine_Int_open hull_hull)
 
 corollary affine_hull_open:
   fixes S :: "'a::real_normed_vector set"

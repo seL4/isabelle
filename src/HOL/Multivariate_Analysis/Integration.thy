@@ -3969,11 +3969,6 @@ proof -
   qed
 qed
 
-lemma nonempty_witness:
-  assumes "s \<noteq> {}"
-  obtains x where "x \<in> s"
-  using assms by auto
-
 lemma operative_division:
   fixes f :: "'a::euclidean_space set \<Rightarrow> 'b"
   assumes "monoidal opp"
@@ -4266,7 +4261,7 @@ proof (cases "cbox a b = {}")
 next
   case False
   then have e: "e \<ge> 0"
-    by (metis assms(2) norm_ge_zero order_trans nonempty_witness)
+    by (meson ex_in_conv assms(2) norm_ge_zero order_trans)
   have setsum_le: "setsum (content \<circ> snd) p \<le> content (cbox a b)"
     unfolding additive_content_tagged_division[OF p, symmetric] split_def
     by (auto intro: eq_refl)
@@ -6662,20 +6657,16 @@ proof -
         fix x' k'
         assume xk': "(x', k') \<in> p"
         fix z
-        assume "z \<in> interior (g ` k)" and "z \<in> interior (g ` k')"
-        then have *: "interior (g ` k) \<inter> interior (g ` k') \<noteq> {}"
-          by auto
+        assume z: "z \<in> interior (g ` k)" "z \<in> interior (g ` k')"
         have same: "(x, k) = (x', k')"
           apply -
           apply (rule ccontr)
           apply (drule p(5)[OF xk xk'])
         proof -
           assume as: "interior k \<inter> interior k' = {}"
-          from nonempty_witness[OF *] guess z .
-          then have "z \<in> g ` (interior k \<inter> interior k')"
-            using interior_image_subset[OF assms(4) inj(1)]
-            unfolding image_Int[OF inj(1)]
-            by auto
+          have "z \<in> g ` (interior k \<inter> interior k')"
+            using interior_image_subset[OF assms(4) inj(1)] z
+            unfolding image_Int[OF inj(1)] by blast
           then show False
             using as by blast
         qed
