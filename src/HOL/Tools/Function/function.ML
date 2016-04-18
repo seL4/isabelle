@@ -50,9 +50,8 @@ val simp_attribs =
 val psimp_attribs =
   @{attributes [nitpick_psimp]}
 
-fun note_qualified suffix attrs (fname, thms) =
-  Local_Theory.note ((derived_name fname suffix, map (Attrib.internal o K) attrs), thms)
-  #> apfst snd
+fun note_derived (a, atts) (fname, thms) =
+  Local_Theory.note ((derived_name fname a, atts), thms) #> apfst snd
 
 fun add_simps fnames post sort extra_qualify label mod_binding moreatts simps lthy =
   let
@@ -107,15 +106,14 @@ fun prepare_function do_print prep fixspec eqns config lthy =
                "psimps" concealed_partial psimp_attribs psimps
           ||>> Local_Theory.notes [((concealed_partial (derived_name defname "pinduct"), []),
                 simple_pinducts |> map (fn th => ([th],
-                 [Attrib.internal (K (Rule_Cases.case_names cnames)),
-                  Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th))),
-                  Attrib.internal (K (Induct.induct_pred ""))])))]
+                 [Attrib.case_names cnames, Attrib.consumes (1 - Thm.nprems_of th)] @
+                 @{attributes [induct pred]})))]
           ||>> (apfst snd o
             Local_Theory.note
               ((Binding.concealed (derived_name defname "termination"), []), [termination]))
-          ||>> fold_map (note_qualified "cases" [Rule_Cases.case_names cnames])
-            (fnames ~~ map single cases) (* TODO: case names *)
-          ||>> fold_map (note_qualified "pelims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1])
+          ||>> fold_map (note_derived ("cases", [Attrib.case_names cnames]))
+            (fnames ~~ map single cases)
+          ||>> fold_map (note_derived ("pelims", [Attrib.consumes 1, Attrib.constraints 1]))
             (fnames ~~ pelims)
           ||> (case domintros of NONE => I | SOME thms =>
                 Local_Theory.note ((derived_name defname "domintros", []), thms) #> snd)
@@ -198,9 +196,8 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
         lthy
         |> add_simps I "simps" I simp_attribs tsimps
         ||>> Local_Theory.note
-           ((derived_name defname "induct", [Attrib.internal (K (Rule_Cases.case_names case_names))]),
-            tinduct)
-        ||>> fold_map (note_qualified "elims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1])
+          ((derived_name defname "induct", [Attrib.case_names case_names]), tinduct)
+        ||>> fold_map (note_derived ("elims", [Attrib.consumes 1, Attrib.constraints 1]))
           (fnames ~~ telims)
         |-> (fn ((simps,(_,inducts)), elims) => fn lthy =>
           let val info' = { is_partial=false, defname=defname, fnames=fnames, add_simps=add_simps,

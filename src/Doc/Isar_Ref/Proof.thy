@@ -970,7 +970,7 @@ text \<open>
   @{rail \<open>
     @@{command case} @{syntax thmdecl}? (name | '(' name (('_' | @{syntax name}) *) ')')
     ;
-    @@{attribute case_names} ((@{syntax name} ( '[' (('_' | @{syntax name}) +) ']' ) ? ) +)
+    @@{attribute case_names} ((@{syntax name} ( '[' (('_' | @{syntax name}) *) ']' ) ? ) +)
     ;
     @@{attribute case_conclusion} @{syntax name} (@{syntax name} * )
     ;

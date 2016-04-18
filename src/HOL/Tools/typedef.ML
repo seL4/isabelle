@@ -240,8 +240,7 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
     (* result *)
 
     fun note ((b, atts), th) =
-      Local_Theory.note ((b, map (Attrib.internal o K) atts), [th])
-      #>> (fn (_, [th']) => th');
+      Local_Theory.note ((b, atts), [th]) #>> (fn (_, [th']) => th');
 
     fun typedef_result inhabited lthy1 =
       let
@@ -260,16 +259,20 @@ fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindin
           ||>> note ((Binding.suffix_name "_inject" Abs_name, []),
               make @{thm type_definition.Abs_inject})
           ||>> note ((Binding.suffix_name "_cases" Rep_name,
-                [Rule_Cases.case_names [Binding.name_of Rep_name], Induct.cases_pred full_name]),
+                [Attrib.case_names [Binding.name_of Rep_name],
+                 Attrib.internal (K (Induct.cases_pred full_name))]),
               make @{thm type_definition.Rep_cases})
           ||>> note ((Binding.suffix_name "_cases" Abs_name,
-                [Rule_Cases.case_names [Binding.name_of Abs_name], Induct.cases_type full_name]),
+                [Attrib.case_names [Binding.name_of Abs_name],
+                 Attrib.internal (K (Induct.cases_type full_name))]),
               make @{thm type_definition.Abs_cases})
           ||>> note ((Binding.suffix_name "_induct" Rep_name,
-                [Rule_Cases.case_names [Binding.name_of Rep_name], Induct.induct_pred full_name]),
+                [Attrib.case_names [Binding.name_of Rep_name],
+                 Attrib.internal (K (Induct.induct_pred full_name))]),
               make @{thm type_definition.Rep_induct})
           ||>> note ((Binding.suffix_name "_induct" Abs_name,
-                [Rule_Cases.case_names [Binding.name_of Abs_name], Induct.induct_type full_name]),
+                [Attrib.case_names [Binding.name_of Abs_name],
+                 Attrib.internal (K (Induct.induct_type full_name))]),
               make @{thm type_definition.Abs_induct});
 
         val info =

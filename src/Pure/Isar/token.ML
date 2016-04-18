@@ -93,6 +93,7 @@ sig
   val explode: Keyword.keywords -> Position.T -> string -> T list
   val make: (int * int) * string -> Position.T -> T * Position.T
   val make_string: string * Position.T -> T
+  val make_int: int -> T list
   val make_src: string * Position.T -> T list -> src
   type 'a parser = T list -> 'a * T list
   type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list)
@@ -674,6 +675,8 @@ fun make_string (s, pos) =
     val Token ((x, _), y, z) = #1 (make ((~1, 0), Symbol_Pos.quote_string_qq s) Position.none);
     val pos' = Position.no_range_position pos;
   in Token ((x, (pos', pos')), y, z) end;
+
+val make_int = explode Keyword.empty_keywords Position.none o signed_string_of_int;
 
 fun make_src a args = make_string a :: args;
 
