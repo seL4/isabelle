@@ -1187,7 +1187,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
         " as unnamed BNF");
 
     val (bnf_b, key) =
-      if Binding.eq_name (bnf_b, Binding.empty) then
+      if Binding.is_empty bnf_b then
         (case T_rhs of
           Type (C, Ts) => if forall (can dest_TFree) Ts
             then (Binding.qualified_name C, C) else err T_rhs
