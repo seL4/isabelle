@@ -44,39 +44,39 @@ abbreviation coprime :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 end
 
 class Gcd = gcd +
-  fixes Gcd :: "'a set \<Rightarrow> 'a" ("Gcd")
-    and Lcm :: "'a set \<Rightarrow> 'a" ("Lcm")
+  fixes Gcd :: "'a set \<Rightarrow> 'a"
+    and Lcm :: "'a set \<Rightarrow> 'a"
 begin
 
-abbreviation GCD :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
+abbreviation GREATEST_COMMON_DIVISOR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
 where
-  "GCD A f \<equiv> Gcd (f ` A)"
+  "GREATEST_COMMON_DIVISOR A f \<equiv> Gcd (f ` A)"
 
-abbreviation LCM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
+abbreviation LEAST_COMMON_MULTIPLE :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
 where
-  "LCM A f \<equiv> Lcm (f ` A)"
+  "LEAST_COMMON_MULTIPLE A f \<equiv> Lcm (f ` A)"
 
 end
 
 syntax
-  "_GCD1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3Gcd _./ _)" [0, 10] 10)
-  "_GCD"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3Gcd _\<in>_./ _)" [0, 0, 10] 10)
-  "_LCM1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3Lcm _./ _)" [0, 10] 10)
-  "_LCM"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3Lcm _\<in>_./ _)" [0, 0, 10] 10)
+  "_GCD1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3GCD _./ _)" [0, 10] 10)
+  "_GCD"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3GCD _\<in>_./ _)" [0, 0, 10] 10)
+  "_LCM1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3LCM _./ _)" [0, 10] 10)
+  "_LCM"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3LCM _\<in>_./ _)" [0, 0, 10] 10)
 
 translations
-  "Gcd x y. B"   \<rightleftharpoons> "Gcd x. Gcd y. B"
-  "Gcd x. B"     \<rightleftharpoons> "CONST GCD CONST UNIV (\<lambda>x. B)"
-  "Gcd x. B"     \<rightleftharpoons> "Gcd x \<in> CONST UNIV. B"
-  "Gcd x\<in>A. B"   \<rightleftharpoons> "CONST GCD A (\<lambda>x. B)"
-  "Lcm x y. B"   \<rightleftharpoons> "Lcm x. Lcm y. B"
-  "Lcm x. B"     \<rightleftharpoons> "CONST LCM CONST UNIV (\<lambda>x. B)"
-  "Lcm x. B"     \<rightleftharpoons> "Lcm x \<in> CONST UNIV. B"
-  "Lcm x\<in>A. B"   \<rightleftharpoons> "CONST LCM A (\<lambda>x. B)"
+  "GCD x y. B"   \<rightleftharpoons> "GCD x. GCD y. B"
+  "GCD x. B"     \<rightleftharpoons> "CONST GREATEST_COMMON_DIVISOR CONST UNIV (\<lambda>x. B)"
+  "GCD x. B"     \<rightleftharpoons> "GCD x \<in> CONST UNIV. B"
+  "GCD x\<in>A. B"   \<rightleftharpoons> "CONST GREATEST_COMMON_DIVISOR A (\<lambda>x. B)"
+  "LCM x y. B"   \<rightleftharpoons> "LCM x. LCM y. B"
+  "LCM x. B"     \<rightleftharpoons> "CONST LEAST_COMMON_MULTIPLE CONST UNIV (\<lambda>x. B)"
+  "LCM x. B"     \<rightleftharpoons> "LCM x \<in> CONST UNIV. B"
+  "LCM x\<in>A. B"   \<rightleftharpoons> "CONST LEAST_COMMON_MULTIPLE A (\<lambda>x. B)"
 
 print_translation \<open>
-  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax GCD} @{syntax_const "_GCD"},
-    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax LCM} @{syntax_const "_LCM"}]
+  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax GREATEST_COMMON_DIVISOR} @{syntax_const "_GCD"},
+    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax LEAST_COMMON_MULTIPLE} @{syntax_const "_LCM"}]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 class semiring_gcd = normalization_semidom + gcd +
@@ -2166,10 +2166,10 @@ instantiation int :: semiring_Gcd
 begin
 
 definition
-  "Lcm M = int (Lcm m\<in>M. (nat \<circ> abs) m)"
+  "Lcm M = int (LCM m\<in>M. (nat \<circ> abs) m)"
 
 definition
-  "Gcd M = int (Gcd m\<in>M. (nat \<circ> abs) m)"
+  "Gcd M = int (GCD m\<in>M. (nat \<circ> abs) m)"
 
 instance by standard
   (auto intro!: Gcd_dvd Gcd_greatest simp add: Gcd_int_def
