@@ -389,7 +389,7 @@ fun check_code_for ctxt target_name strict args program all_public syms =
         else ()
       end;
   in
-    if getenv env_var = ""
+    if not (env_var = "") andalso getenv env_var = ""
     then if strict
       then error (env_var ^ " not set; cannot check code for " ^ target_name)
       else warning (env_var ^ " not set; skipped checking code for " ^ target_name)
