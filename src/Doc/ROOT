@@ -483,3 +483,23 @@ session Tutorial (doc) in "Tutorial" = HOL +
     "tutorial.sty"
     "typedef.pdf"
     "types0.tex"
+
+session Typeclass_Hierarchy (doc) in "Typeclass_Hierarchy" = "Typeclass_Hierarchy_Basics" +
+  options [document_variants = "typeclass_hierarchy"]
+  theories Typeclass_Hierarchy
+  document_files (in "..")
+    "prepare_document"
+    "pdfsetup.sty"
+    "iman.sty"
+    "extra.sty"
+    "isar.sty"
+    "manual.bib"
+  document_files
+    "build"
+    "root.tex"
+    "style.sty"
+
+session Typeclass_Hierarchy_Basics in "Typeclass_Hierarchy" = "HOL" +
+  options [document = false]
+  theories
+    Setup

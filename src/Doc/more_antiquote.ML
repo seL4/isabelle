@@ -1,11 +1,29 @@
 (*  Title:      Doc/more_antiquote.ML
     Author:     Florian Haftmann, TU Muenchen
 
-More antiquotations (depending on Isabelle/HOL).
+More antiquotations (partly depending on Isabelle/HOL).
 *)
 
 structure More_Antiquote : sig end =
 struct
+
+(* class specifications *)
+
+local
+
+fun class_spec ctxt s =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val class = Sign.intern_class thy s;
+  in Thy_Output.output ctxt (Class.pretty_specification thy class) end;
+
+in
+
+val _ =
+  Theory.setup (Thy_Output.antiquotation @{binding class_spec} (Scan.lift Args.name)
+    (fn {context, ...} => class_spec context));
+
+end;
 
 (* code theorem antiquotation *)
 
@@ -21,7 +39,7 @@ fun no_vars ctxt thm =
     val ((_, [thm]), _) = Variable.import true [thm] ctxt';
   in thm end;
 
-fun pretty_code_thm src ctxt raw_const =
+fun pretty_code_thm ctxt source raw_const =
   let
     val thy = Proof_Context.theory_of ctxt;
     val const = Code.check_const thy raw_const;
@@ -33,13 +51,13 @@ fun pretty_code_thm src ctxt raw_const =
       |> these
       |> map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
       |> map (holize o no_vars ctxt o Axclass.overload thy);
-  in Thy_Output.output ctxt (Thy_Output.maybe_pretty_source pretty_thm ctxt src thms) end;
+  in Thy_Output.output ctxt (Thy_Output.maybe_pretty_source pretty_thm ctxt source thms) end;
 
 in
 
 val _ =
   Theory.setup (Thy_Output.antiquotation @{binding code_thms} Args.term
-    (fn {source, context, ...} => pretty_code_thm source context));
+    (fn {source, context, ...} => pretty_code_thm context source));
 
 end;
 
