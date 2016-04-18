@@ -216,6 +216,9 @@ qed
 lemma linear_compose_cmul: "linear f \<Longrightarrow> linear (\<lambda>x. c *\<^sub>R f x)"
   by (simp add: linear_iff algebra_simps)
 
+lemma linear_compose_scaleR: "linear f \<Longrightarrow> linear (\<lambda>x. f x *\<^sub>R c)"
+  by (simp add: linear_iff scaleR_add_left)
+
 lemma linear_compose_neg: "linear f \<Longrightarrow> linear (\<lambda>x. - f x)"
   by (simp add: linear_iff)
 
@@ -526,7 +529,7 @@ lemma hull_in: "(\<And>T. Ball T S \<Longrightarrow> S (\<Inter>T)) \<Longrighta
 lemma hull_eq: "(\<And>T. Ball T S \<Longrightarrow> S (\<Inter>T)) \<Longrightarrow> (S hull s) = s \<longleftrightarrow> S s"
   using hull_same[of S s] hull_in[of S s] by metis
 
-lemma hull_hull: "S hull (S hull s) = S hull s"
+lemma hull_hull [simp]: "S hull (S hull s) = S hull s"
   unfolding hull_def by blast
 
 lemma hull_subset[intro]: "s \<subseteq> (S hull s)"
@@ -544,7 +547,7 @@ lemma hull_minimal: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (S 
 lemma subset_hull: "S t \<Longrightarrow> S hull s \<subseteq> t \<longleftrightarrow> s \<subseteq> t"
   unfolding hull_def by blast
 
-lemma hull_UNIV: "S hull UNIV = UNIV"
+lemma hull_UNIV [simp]: "S hull UNIV = UNIV"
   unfolding hull_def by auto
 
 lemma hull_unique: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (\<And>t'. s \<subseteq> t' \<Longrightarrow> S t' \<Longrightarrow> t \<subseteq> t') \<Longrightarrow> (S hull s = t)"

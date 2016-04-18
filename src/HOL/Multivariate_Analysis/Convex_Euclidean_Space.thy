@@ -420,7 +420,7 @@ lemma affine_sing [iff]: "affine {x}"
 lemma affine_UNIV [iff]: "affine UNIV"
   unfolding affine_def by auto
 
-lemma affine_Inter[intro]: "(\<forall>s\<in>f. affine s) \<Longrightarrow> affine (\<Inter>f)"
+lemma affine_Inter [intro]: "(\<And>s. s\<in>f \<Longrightarrow> affine s) \<Longrightarrow> affine (\<Inter>f)"
   unfolding affine_def by auto
 
 lemma affine_Int[intro]: "affine s \<Longrightarrow> affine t \<Longrightarrow> affine (s \<inter> t)"
@@ -1274,6 +1274,20 @@ subsection \<open>Affine dependence and consequential theorems (from Lars Schewe
 definition affine_dependent :: "'a::real_vector set \<Rightarrow> bool"
   where "affine_dependent s \<longleftrightarrow> (\<exists>x\<in>s. x \<in> affine hull (s - {x}))"
 
+lemma affine_dependent_subset:
+   "\<lbrakk>affine_dependent s; s \<subseteq> t\<rbrakk> \<Longrightarrow> affine_dependent t"
+apply (simp add: affine_dependent_def Bex_def)
+apply (blast dest: hull_mono [OF Diff_mono [OF _ subset_refl]])
+done
+
+lemma affine_independent_subset:
+  shows "\<lbrakk>~ affine_dependent t; s \<subseteq> t\<rbrakk> \<Longrightarrow> ~ affine_dependent s"
+by (metis affine_dependent_subset)
+
+lemma affine_independent_Diff:
+   "~ affine_dependent s \<Longrightarrow> ~ affine_dependent(s - t)"
+by (meson Diff_subset affine_dependent_subset)
+
 lemma affine_dependent_explicit:
   "affine_dependent p \<longleftrightarrow>
     (\<exists>s u. finite s \<and> s \<subseteq> p \<and> setsum u s = 0 \<and>
@@ -1391,6 +1405,11 @@ corollary finite_imp_not_open:
     fixes S :: "'a::{real_normed_vector, perfect_space} set"
     shows "\<lbrakk>finite S; open S\<rbrakk> \<Longrightarrow> S={}"
   using clopen [of S] finite_imp_closed not_bounded_UNIV by blast
+
+corollary empty_interior_finite:
+    fixes S :: "'a::{real_normed_vector, perfect_space} set"
+    shows "finite S \<Longrightarrow> interior S = {}"
+  by (metis interior_subset finite_subset open_interior [of S] finite_imp_not_open)
 
 text \<open>Balls, being convex, are connected.\<close>
 
@@ -2261,11 +2280,14 @@ qed
 
 subsection \<open>Some Properties of Affine Dependent Sets\<close>
 
-lemma affine_independent_empty: "\<not> affine_dependent {}"
+lemma affine_independent_0: "\<not> affine_dependent {}"
   by (simp add: affine_dependent_def)
 
-lemma affine_independent_sing: "\<not> affine_dependent {a}"
+lemma affine_independent_1: "\<not> affine_dependent {a}"
   by (simp add: affine_dependent_def)
+
+lemma affine_independent_2: "\<not> affine_dependent {a,b}"
+  by (simp add: affine_dependent_def insert_Diff_if hull_same)
 
 lemma affine_hull_translation: "affine hull ((\<lambda>x. a + x) `  S) = (\<lambda>x. a + x) ` (affine hull S)"
 proof -
@@ -2473,7 +2495,7 @@ lemma affine_basis_exists:
 proof (cases "V = {}")
   case True
   then show ?thesis
-    using affine_independent_empty by auto
+    using affine_independent_0 by auto
 next
   case False
   then obtain x where "x \<in> V" by auto
@@ -2756,7 +2778,7 @@ lemma affine_independent_iff_card:
 lemma aff_dim_sing [simp]:
   fixes a :: "'n::euclidean_space"
   shows "aff_dim {a} = 0"
-  using aff_dim_affine_independent[of "{a}"] affine_independent_sing by auto
+  using aff_dim_affine_independent[of "{a}"] affine_independent_1 by auto
 
 lemma aff_dim_inner_basis_exists:
   fixes V :: "('n::euclidean_space) set"
@@ -2937,7 +2959,7 @@ proof -
   with B show ?thesis by auto
 qed
 
-lemma aff_dim_subset_univ:
+lemma aff_dim_le_DIM:
   fixes S :: "'n::euclidean_space set"
   shows "aff_dim S \<le> int (DIM('n))"
 proof -
@@ -2978,7 +3000,7 @@ proof -
   ultimately show ?thesis by auto
 qed
 
-lemma affine_hull_univ:
+lemma affine_hull_UNIV:
   fixes S :: "'n::euclidean_space set"
   assumes "aff_dim S = int(DIM('n))"
   shows "affine hull S = (UNIV :: ('n::euclidean_space) set)"
@@ -2990,7 +3012,7 @@ proof -
   have h1: "aff_dim (UNIV :: ('n::euclidean_space) set) = aff_dim S"
     using aff_dim_univ assms by auto
   then have h2: "aff_dim (affine hull S) \<le> aff_dim (UNIV :: ('n::euclidean_space) set)"
-    using aff_dim_subset_univ[of "affine hull S"] assms h0 by auto
+    using aff_dim_le_DIM[of "affine hull S"] assms h0 by auto
   have h3: "aff_dim S \<le> aff_dim (affine hull S)"
     using h0 aff_dim_subset[of S "affine hull S"] assms by auto
   then have h4: "aff_dim (affine hull S) = aff_dim (UNIV :: ('n::euclidean_space) set)"
@@ -2999,6 +3021,34 @@ proof -
     using affine_dim_equal[of "affine hull S" "(UNIV :: ('n::euclidean_space) set)"]
       affine_affine_hull[of S] affine_UNIV assms h4 h0 \<open>S \<noteq> {}\<close>
     by auto
+qed
+
+lemma disjoint_affine_hull:
+  fixes s :: "'n::euclidean_space set"
+  assumes "~ affine_dependent s" "t \<subseteq> s" "u \<subseteq> s" "t \<inter> u = {}"
+    shows "(affine hull t) \<inter> (affine hull u) = {}"
+proof -
+  have "finite s" using assms by (simp add: aff_independent_finite)
+  then have "finite t" "finite u" using assms finite_subset by blast+
+  { fix y
+    assume yt: "y \<in> affine hull t" and yu: "y \<in> affine hull u"
+    then obtain a b
+           where a1 [simp]: "setsum a t = 1" and [simp]: "setsum (\<lambda>v. a v *\<^sub>R v) t = y"
+             and [simp]: "setsum b u = 1" "setsum (\<lambda>v. b v *\<^sub>R v) u = y"
+      by (auto simp: affine_hull_finite \<open>finite t\<close> \<open>finite u\<close>)
+    def c \<equiv> "\<lambda>x. if x \<in> t then a x else if x \<in> u then -(b x) else 0"
+    have [simp]: "s \<inter> t = t" "s \<inter> - t \<inter> u = u" using assms by auto
+    have "setsum c s = 0"
+      by (simp add: c_def comm_monoid_add_class.setsum.If_cases \<open>finite s\<close> setsum_negf)
+    moreover have "~ (\<forall>v\<in>s. c v = 0)"
+      by (metis (no_types) IntD1 \<open>s \<inter> t = t\<close> a1 c_def setsum_not_0 zero_neq_one)
+    moreover have "(\<Sum>v\<in>s. c v *\<^sub>R v) = 0"
+      by (simp add: c_def if_smult setsum_negf
+             comm_monoid_add_class.setsum.If_cases \<open>finite s\<close>)
+    ultimately have False
+      using assms \<open>finite s\<close> by (auto simp: affine_dependent_explicit)
+  }
+  then show ?thesis by blast
 qed
 
 lemma aff_dim_convex_hull:
@@ -3025,7 +3075,7 @@ proof -
       centre_in_cball[of "(0 :: 'n::euclidean_space)"] assms
     by (simp add: dim_cball[of e] aff_dim_zero[of "cball 0 e"])
   ultimately show ?thesis
-    using aff_dim_subset_univ[of "cball a e"] by auto
+    using aff_dim_le_DIM[of "cball a e"] by auto
 qed
 
 lemma aff_dim_open:
@@ -3041,7 +3091,7 @@ proof -
   then have "aff_dim (cball x e) \<le> aff_dim S"
     using aff_dim_subset by auto
   with e show ?thesis
-    using aff_dim_cball[of e x] aff_dim_subset_univ[of S] by auto
+    using aff_dim_cball[of e x] aff_dim_le_DIM[of S] by auto
 qed
 
 lemma low_dim_interior:
@@ -3052,13 +3102,13 @@ proof -
   have "aff_dim(interior S) \<le> aff_dim S"
     using interior_subset aff_dim_subset[of "interior S" S] by auto
   then show ?thesis
-    using aff_dim_open[of "interior S"] aff_dim_subset_univ[of S] assms by auto
+    using aff_dim_open[of "interior S"] aff_dim_le_DIM[of S] assms by auto
 qed
 
 corollary empty_interior_lowdim:
   fixes S :: "'n::euclidean_space set"
   shows "dim S < DIM ('n) \<Longrightarrow> interior S = {}"
-by (metis low_dim_interior affine_hull_univ dim_affine_hull less_not_refl dim_UNIV)
+by (metis low_dim_interior affine_hull_UNIV dim_affine_hull less_not_refl dim_UNIV)
 
 subsection \<open>Caratheodory's theorem.\<close>
 
@@ -3185,7 +3235,7 @@ proof (intro set_eqI iffI)
   assume "x \<in> ?lhs" then show "x \<in> ?rhs"
     apply (simp only: convex_hull_caratheodory_aff_dim Set.mem_Collect_eq)
     apply (erule ex_forward)+
-    using aff_dim_subset_univ [of p]
+    using aff_dim_le_DIM [of p]
     apply simp
     done
 next
@@ -3303,7 +3353,7 @@ lemma interior_rel_interior:
   shows "rel_interior S = interior S"
 proof -
   have "affine hull S = UNIV"
-    using assms affine_hull_univ[of S] by auto
+    using assms affine_hull_UNIV[of S] by auto
   then show ?thesis
     unfolding rel_interior interior_def by auto
 qed
@@ -3328,7 +3378,17 @@ lemma interior_rel_interior_gen:
   shows "interior S = (if aff_dim S = int(DIM('n)) then rel_interior S else {})"
   by (metis interior_rel_interior low_dim_interior)
 
-lemma rel_interior_univ:
+lemma rel_interior_nonempty_interior:
+  fixes S :: "'n::euclidean_space set"
+  shows "interior S \<noteq> {} \<Longrightarrow> rel_interior S = interior S"
+by (metis interior_rel_interior_gen)
+
+lemma affine_hull_nonempty_interior:
+  fixes S :: "'n::euclidean_space set"
+  shows "interior S \<noteq> {} \<Longrightarrow> affine hull S = UNIV"
+by (metis affine_hull_UNIV interior_rel_interior_gen)
+
+lemma rel_interior_affine_hull [simp]:
   fixes S :: "'n::euclidean_space set"
   shows "rel_interior (affine hull S) = affine hull S"
 proof -
@@ -3346,7 +3406,7 @@ proof -
   then show ?thesis using * by auto
 qed
 
-lemma rel_interior_univ2: "rel_interior (UNIV :: ('n::euclidean_space) set) = UNIV"
+lemma rel_interior_UNIV [simp]: "rel_interior (UNIV :: ('n::euclidean_space) set) = UNIV"
   by (metis open_UNIV rel_interior_open)
 
 lemma rel_interior_convex_shrink:
@@ -3535,7 +3595,7 @@ lemma affine_rel_open:
   assumes "affine S"
   shows "rel_open S"
   unfolding rel_open_def
-  using assms rel_interior_univ[of S] affine_hull_eq[of S]
+  using assms rel_interior_affine_hull[of S] affine_hull_eq[of S]
   by metis
 
 lemma affine_closed:
@@ -6111,6 +6171,82 @@ proof -
     done
 qed
 
+subsubsection\<open>Representation of any interval as a finite convex hull\<close>
+
+lemma image_stretch_interval:
+  "(\<lambda>x. \<Sum>k\<in>Basis. (m k * (x\<bullet>k)) *\<^sub>R k) ` cbox a (b::'a::euclidean_space) =
+  (if (cbox a b) = {} then {} else
+    cbox (\<Sum>k\<in>Basis. (min (m k * (a\<bullet>k)) (m k * (b\<bullet>k))) *\<^sub>R k::'a)
+     (\<Sum>k\<in>Basis. (max (m k * (a\<bullet>k)) (m k * (b\<bullet>k))) *\<^sub>R k))"
+proof cases
+  assume *: "cbox a b \<noteq> {}"
+  show ?thesis
+    unfolding box_ne_empty if_not_P[OF *]
+    apply (simp add: cbox_def image_Collect set_eq_iff euclidean_eq_iff[where 'a='a] ball_conj_distrib[symmetric])
+    apply (subst choice_Basis_iff[symmetric])
+  proof (intro allI ball_cong refl)
+    fix x i :: 'a assume "i \<in> Basis"
+    with * have a_le_b: "a \<bullet> i \<le> b \<bullet> i"
+      unfolding box_ne_empty by auto
+    show "(\<exists>xa. x \<bullet> i = m i * xa \<and> a \<bullet> i \<le> xa \<and> xa \<le> b \<bullet> i) \<longleftrightarrow>
+        min (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) \<le> x \<bullet> i \<and> x \<bullet> i \<le> max (m i * (a \<bullet> i)) (m i * (b \<bullet> i))"
+    proof (cases "m i = 0")
+      case True
+      with a_le_b show ?thesis by auto
+    next
+      case False
+      then have *: "\<And>a b. a = m i * b \<longleftrightarrow> b = a / m i"
+        by (auto simp add: field_simps)
+      from False have
+          "min (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) = (if 0 < m i then m i * (a \<bullet> i) else m i * (b \<bullet> i))"
+          "max (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) = (if 0 < m i then m i * (b \<bullet> i) else m i * (a \<bullet> i))"
+        using a_le_b by (auto simp: min_def max_def mult_le_cancel_left)
+      with False show ?thesis using a_le_b
+        unfolding * by (auto simp add: le_divide_eq divide_le_eq ac_simps)
+    qed
+  qed
+qed simp
+
+lemma interval_image_stretch_interval:
+  "\<exists>u v. (\<lambda>x. \<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k) ` cbox a (b::'a::euclidean_space) = cbox u (v::'a::euclidean_space)"
+  unfolding image_stretch_interval by auto
+
+lemma cbox_translation: "cbox (c + a) (c + b) = image (\<lambda>x. c + x) (cbox a b)"
+  using image_affinity_cbox [of 1 c a b]
+  using box_ne_empty [of "a+c" "b+c"]  box_ne_empty [of a b]
+  by (auto simp add: inner_left_distrib add.commute)
+
+lemma cbox_image_unit_interval:
+  fixes a :: "'a::euclidean_space"
+  assumes "cbox a b \<noteq> {}"
+    shows "cbox a b =
+           op + a ` (\<lambda>x. \<Sum>k\<in>Basis. ((b \<bullet> k - a \<bullet> k) * (x \<bullet> k)) *\<^sub>R k) ` cbox 0 One"
+using assms
+apply (simp add: box_ne_empty image_stretch_interval cbox_translation [symmetric])
+apply (simp add: min_def max_def algebra_simps setsum_subtractf euclidean_representation)
+done
+
+lemma closed_interval_as_convex_hull:
+  fixes a :: "'a::euclidean_space"
+  obtains s where "finite s" "cbox a b = convex hull s"
+proof (cases "cbox a b = {}")
+  case True with convex_hull_empty that show ?thesis
+    by blast
+next
+  case False
+  obtain s::"'a set" where "finite s" and eq: "cbox 0 One = convex hull s"
+    by (blast intro: unit_cube_convex_hull)
+  have lin: "linear (\<lambda>x. \<Sum>k\<in>Basis. ((b \<bullet> k - a \<bullet> k) * (x \<bullet> k)) *\<^sub>R k)"
+    by (rule linear_compose_setsum) (auto simp: algebra_simps linearI)
+  have "finite (op + a ` (\<lambda>x. \<Sum>k\<in>Basis. ((b \<bullet> k - a \<bullet> k) * (x \<bullet> k)) *\<^sub>R k) ` s)"
+    by (rule finite_imageI \<open>finite s\<close>)+
+  then show ?thesis
+    apply (rule that)
+    apply (simp add: convex_hull_translation convex_hull_linear_image [OF lin, symmetric])
+    apply (simp add: eq [symmetric] cbox_image_unit_interval [OF False])
+    done
+qed
+
 
 subsection \<open>Bounded convex function on open set is continuous\<close>
 
@@ -6391,6 +6527,32 @@ lemma in_segment:
     "x \<in> closed_segment a b \<longleftrightarrow> (\<exists>u. 0 \<le> u \<and> u \<le> 1 \<and> x = (1 - u) *\<^sub>R a + u *\<^sub>R b)"
     "x \<in> open_segment a b \<longleftrightarrow> a \<noteq> b \<and> (\<exists>u. 0 < u \<and> u < 1 \<and> x = (1 - u) *\<^sub>R a + u *\<^sub>R b)"
   using less_eq_real_def by (auto simp: segment algebra_simps)
+
+lemma open_segment_PairD:
+  "(x, x') \<in> open_segment (a, a') (b, b')
+  \<Longrightarrow> (x \<in> open_segment a b \<or> a = b) \<and> (x' \<in> open_segment a' b' \<or> a' = b')"
+  by (auto simp: in_segment)
+
+lemma closed_segment_PairD:
+  "(x, x') \<in> closed_segment (a, a') (b, b') \<Longrightarrow> x \<in> closed_segment a b \<and> x' \<in> closed_segment a' b'"
+  by (auto simp: closed_segment_def)
+
+lemma closed_segment_translation_eq [simp]:
+    "d + x \<in> closed_segment (d + a) (d + b) \<longleftrightarrow> x \<in> closed_segment a b"
+proof -
+  have *: "\<And>d x a b. x \<in> closed_segment a b \<Longrightarrow> d + x \<in> closed_segment (d + a) (d + b)"
+    apply (simp add: closed_segment_def)
+    apply (erule ex_forward)
+    apply (simp add: algebra_simps)
+    done
+  show ?thesis
+  using * [where d = "-d"] *
+  by (fastforce simp add:)
+qed
+
+lemma open_segment_translation_eq [simp]:
+    "d + x \<in> open_segment (d + a) (d + b) \<longleftrightarrow> x \<in> open_segment a b"
+  by (simp add: open_segment_def)
 
 definition "between = (\<lambda>(a,b) x. x \<in> closed_segment a b)"
 
@@ -7954,6 +8116,16 @@ lemma closed_affine_hull:
   shows "closed (affine hull S)"
   by (metis affine_affine_hull affine_closed)
 
+lemma rel_frontier_nonempty_interior:
+  fixes S :: "'n::euclidean_space set"
+  shows "interior S \<noteq> {} \<Longrightarrow> rel_frontier S = frontier S"
+by (metis frontier_def interior_rel_interior_gen rel_frontier_def)
+
+lemma rel_frontier_frontier:
+  fixes S :: "'n::euclidean_space set"
+  shows "affine hull S = UNIV \<Longrightarrow> rel_frontier S = frontier S"
+by (simp add: frontier_def rel_frontier_def rel_interior_interior)
+
 lemma closed_rel_frontier:
   fixes S :: "'n::euclidean_space set"
   shows "closed (rel_frontier S)"
@@ -8199,7 +8371,7 @@ next
   then have "S \<noteq> {}"
     using aff_dim_empty[of S] by auto
   have *: "affine hull S = UNIV"
-    using True affine_hull_univ by auto
+    using True affine_hull_UNIV by auto
   {
     assume "z \<in> interior S"
     then have "z \<in> rel_interior S"
@@ -8402,7 +8574,7 @@ proof -
   proof (cases "I = {}")
     case True
     then show ?thesis
-      using Inter_empty rel_interior_univ2 by auto
+      using Inter_empty rel_interior_UNIV by auto
   next
     case False
     {
@@ -8463,7 +8635,7 @@ proof -
   have "affine hull T = T"
     using assms by auto
   then have "rel_interior T = T"
-    using rel_interior_univ[of T] by metis
+    using rel_interior_affine_hull[of T] by metis
   moreover have "closure T = T"
     using assms affine_closed[of T] by auto
   ultimately show ?thesis
@@ -8493,7 +8665,7 @@ proof -
   have "affine hull T = T"
     using assms by auto
   then have "rel_interior T = T"
-    using rel_interior_univ[of T] by metis
+    using rel_interior_affine_hull[of T] by metis
   moreover have "closure T = T"
     using assms affine_closed[of T] by auto
   ultimately show ?thesis
@@ -8649,7 +8821,7 @@ proof -
   ultimately show ?thesis by auto
 qed
 
-lemma rel_interior_direct_sum:
+lemma rel_interior_Times:
   fixes S :: "'n::euclidean_space set"
     and T :: "'m::euclidean_space set"
   assumes "convex S"
@@ -8863,6 +9035,14 @@ proof -
   }
   then show ?thesis using h2 by blast
 qed
+
+lemma rel_frontier_Times:
+  fixes S :: "'n::euclidean_space set"
+    and T :: "'m::euclidean_space set"
+  assumes "convex S"
+    and "convex T"
+  shows "rel_frontier S \<times> rel_frontier T \<subseteq> rel_frontier (S \<times> T)"
+    by (force simp: rel_frontier_def rel_interior_Times assms closure_Times)
 
 
 subsubsection \<open>Relative interior of convex cone\<close>
@@ -9155,7 +9335,7 @@ proof -
   have "rel_interior S + rel_interior T = (\<lambda>(x,y). x + y) ` (rel_interior S \<times> rel_interior T)"
     by (simp add: set_plus_image)
   also have "\<dots> = (\<lambda>(x,y). x + y) ` rel_interior (S \<times> T)"
-    using rel_interior_direct_sum assms by auto
+    using rel_interior_Times assms by auto
   also have "\<dots> = rel_interior (S + T)"
     using fst_snd_linear convex_Times assms
       rel_interior_convex_linear_image[of "(\<lambda>(x,y). x + y)" "S \<times> T"]
@@ -9179,7 +9359,7 @@ lemma convex_rel_open_direct_sum:
     and "convex T"
     and "rel_open T"
   shows "convex (S \<times> T) \<and> rel_open (S \<times> T)"
-  by (metis assms convex_Times rel_interior_direct_sum rel_open_def)
+  by (metis assms convex_Times rel_interior_Times rel_open_def)
 
 lemma convex_rel_open_sum:
   fixes S T :: "'n::euclidean_space set"

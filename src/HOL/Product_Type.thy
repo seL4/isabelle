@@ -1233,6 +1233,9 @@ proof (safe intro!: imageI)
     using * eq[symmetric] by auto
 qed simp_all
 
+lemma subset_fst_snd: "A \<subseteq> (fst ` A \<times> snd ` A)"
+  by force
+
 lemma inj_on_apfst [simp]: "inj_on (apfst f) (A \<times> UNIV) \<longleftrightarrow> inj_on f A"
 by(auto simp add: inj_on_def)
 

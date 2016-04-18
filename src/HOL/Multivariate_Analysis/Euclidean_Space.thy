@@ -107,6 +107,9 @@ lemma euclidean_isCont:
 lemma DIM_positive: "0 < DIM('a::euclidean_space)"
   by (simp add: card_gt_0_iff)
 
+lemma DIM_ge_Suc0 [iff]: "Suc 0 \<le> card Basis"
+  by (meson DIM_positive Suc_leI)
+
 subsection \<open>Subclass relationships\<close>
 
 instance euclidean_space \<subseteq> perfect_space

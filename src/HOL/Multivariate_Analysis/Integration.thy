@@ -6805,44 +6805,6 @@ lemmas has_integral_affinity01 = has_integral_affinity [of _ _ 0 "1::real", simp
 
 subsection \<open>Special case of stretching coordinate axes separately.\<close>
 
-lemma image_stretch_interval:
-  "(\<lambda>x. \<Sum>k\<in>Basis. (m k * (x\<bullet>k)) *\<^sub>R k) ` cbox a (b::'a::euclidean_space) =
-  (if (cbox a b) = {} then {} else
-    cbox (\<Sum>k\<in>Basis. (min (m k * (a\<bullet>k)) (m k * (b\<bullet>k))) *\<^sub>R k::'a)
-     (\<Sum>k\<in>Basis. (max (m k * (a\<bullet>k)) (m k * (b\<bullet>k))) *\<^sub>R k))"
-proof cases
-  assume *: "cbox a b \<noteq> {}"
-  show ?thesis
-    unfolding box_ne_empty if_not_P[OF *]
-    apply (simp add: cbox_def image_Collect set_eq_iff euclidean_eq_iff[where 'a='a] ball_conj_distrib[symmetric])
-    apply (subst choice_Basis_iff[symmetric])
-  proof (intro allI ball_cong refl)
-    fix x i :: 'a assume "i \<in> Basis"
-    with * have a_le_b: "a \<bullet> i \<le> b \<bullet> i"
-      unfolding box_ne_empty by auto
-    show "(\<exists>xa. x \<bullet> i = m i * xa \<and> a \<bullet> i \<le> xa \<and> xa \<le> b \<bullet> i) \<longleftrightarrow>
-        min (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) \<le> x \<bullet> i \<and> x \<bullet> i \<le> max (m i * (a \<bullet> i)) (m i * (b \<bullet> i))"
-    proof (cases "m i = 0")
-      case True
-      with a_le_b show ?thesis by auto
-    next
-      case False
-      then have *: "\<And>a b. a = m i * b \<longleftrightarrow> b = a / m i"
-        by (auto simp add: field_simps)
-      from False have
-          "min (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) = (if 0 < m i then m i * (a \<bullet> i) else m i * (b \<bullet> i))"
-          "max (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) = (if 0 < m i then m i * (b \<bullet> i) else m i * (a \<bullet> i))"
-        using a_le_b by (auto simp: min_def max_def mult_le_cancel_left)
-      with False show ?thesis using a_le_b
-        unfolding * by (auto simp add: le_divide_eq divide_le_eq ac_simps)
-    qed
-  qed
-qed simp
-
-lemma interval_image_stretch_interval:
-  "\<exists>u v. (\<lambda>x. \<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k) ` cbox a (b::'a::euclidean_space) = cbox u (v::'a::euclidean_space)"
-  unfolding image_stretch_interval by auto
-
 lemma content_image_stretch_interval:
   "content ((\<lambda>x::'a::euclidean_space. (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)::'a) ` cbox a b) =
     \<bar>setprod m Basis\<bar> * content (cbox a b)"

@@ -1001,6 +1001,9 @@ lemma bex_imageD:
   shows "\<exists>x\<in>A. P (f x)"
   using assms by auto
 
+lemma image_add_0 [simp]: "op+ (0::'a::comm_monoid_add) ` S = S"
+  by auto
+
 
 text \<open>
   \medskip Range of a function -- just a translation for image!

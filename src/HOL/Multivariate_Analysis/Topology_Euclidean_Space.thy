@@ -1403,6 +1403,12 @@ proof -
   finally show ?thesis .
 qed
 
+lemma cbox01_nonempty [simp]: "cbox 0 One \<noteq> {}"
+  by (simp add: box_ne_empty inner_Basis inner_setsum_left setsum_nonneg)
+
+lemma box01_nonempty [simp]: "box 0 One \<noteq> {}"
+  by (simp add: box_ne_empty inner_Basis inner_setsum_left) (simp add: setsum.remove)
+  
 
 subsection\<open>Connectedness\<close>
 
@@ -8421,6 +8427,11 @@ lemma complete_subspace:
   fixes s :: "('a::euclidean_space) set"
   shows "subspace s \<Longrightarrow> complete s"
   using complete_eq_closed closed_subspace by auto
+
+lemma closed_span [iff]:
+  fixes s :: "'a::euclidean_space set"
+  shows "closed (span s)"
+by (simp add: closed_subspace subspace_span)
 
 lemma dim_closure:
   fixes s :: "('a::euclidean_space) set"

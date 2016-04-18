@@ -65,13 +65,13 @@ lemma convex_singleton[intro,simp]: "convex {a}"
 lemma convex_UNIV[intro,simp]: "convex UNIV"
   unfolding convex_def by auto
 
-lemma convex_Inter: "(\<forall>s\<in>f. convex s) \<Longrightarrow> convex(\<Inter>f)"
+lemma convex_Inter: "(\<And>s. s\<in>f \<Longrightarrow> convex s) \<Longrightarrow> convex(\<Inter>f)"
   unfolding convex_def by auto
 
 lemma convex_Int: "convex s \<Longrightarrow> convex t \<Longrightarrow> convex (s \<inter> t)"
   unfolding convex_def by auto
 
-lemma convex_INT: "\<forall>i\<in>A. convex (B i) \<Longrightarrow> convex (\<Inter>i\<in>A. B i)"
+lemma convex_INT: "(\<And>i. i \<in> A \<Longrightarrow> convex (B i)) \<Longrightarrow> convex (\<Inter>i\<in>A. B i)"
   unfolding convex_def by auto
 
 lemma convex_Times: "convex s \<Longrightarrow> convex t \<Longrightarrow> convex (s \<times> t)"

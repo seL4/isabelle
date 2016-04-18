@@ -1825,8 +1825,10 @@ next
 qed
 
 lemma compact_imp_fip:
-  "compact s \<Longrightarrow> \<forall>t \<in> f. closed t \<Longrightarrow> \<forall>f'. finite f' \<and> f' \<subseteq> f \<longrightarrow> (s \<inter> (\<Inter>f') \<noteq> {}) \<Longrightarrow>
-    s \<inter> (\<Inter>f) \<noteq> {}"
+    "\<lbrakk>compact S;
+      \<And>T. T \<in> F \<Longrightarrow> closed T;
+      \<And>F'. \<lbrakk>finite F'; F' \<subseteq> F\<rbrakk> \<Longrightarrow> S \<inter> (\<Inter>F') \<noteq> {}\<rbrakk>
+     \<Longrightarrow> S \<inter> (\<Inter>F) \<noteq> {}"
   unfolding compact_fip by auto
 
 lemma compact_imp_fip_image:
@@ -1846,7 +1848,7 @@ proof -
       using finite_subset_image [of A f I] by blast
     with Q [of B] show "s \<inter> \<Inter>A \<noteq> {}" by simp
   qed
-  ultimately have "s \<inter> (\<Inter>(f ` I)) \<noteq> {}" by (rule compact_imp_fip)
+  ultimately have "s \<inter> (\<Inter>(f ` I)) \<noteq> {}" by (metis compact_imp_fip)
   then show ?thesis by simp
 qed
 
