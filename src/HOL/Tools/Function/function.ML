@@ -87,7 +87,7 @@ fun prepare_function do_print prep fixspec eqns config lthy =
       else ()
 
     val ((goal_state, cont), lthy') =
-      Function_Mutual.prepare_function_mutual config defname fixes eqs lthy
+      Function_Mutual.prepare_function_mutual config defname fixes0 eqs lthy
 
     fun afterqed [[proof]] lthy =
       let

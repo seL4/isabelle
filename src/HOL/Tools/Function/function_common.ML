@@ -69,7 +69,7 @@ sig
     domintros: bool,
     partials: bool}
   type preproc = function_config -> Proof.context -> fixes -> term spec ->
-    (term list * (thm list -> thm spec) * (thm list -> thm list list) * string list)
+    term list * (thm list -> thm spec) * (thm list -> thm list list) * string list
   val fname_of : term -> string
   val mk_case_names : int -> string -> int -> string list
   val empty_preproc : (Proof.context -> ((string * typ) * mixfix) list -> term list -> 'c) ->
@@ -209,7 +209,7 @@ datatype function_config = FunctionConfig of
   partials: bool}
 
 type preproc = function_config -> Proof.context -> fixes -> term spec ->
-  (term list * (thm list -> thm spec) * (thm list -> thm list list) * string list)
+  term list * (thm list -> thm spec) * (thm list -> thm list list) * string list
 
 val fname_of = fst o dest_Free o fst o strip_comb o fst o HOLogic.dest_eq o
   HOLogic.dest_Trueprop o Logic.strip_imp_concl o snd o dest_all_all

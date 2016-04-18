@@ -246,7 +246,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val tupleT = foldl1 HOLogic.mk_prodT aTs;
     val fT_uc = tupleT :: bTs ---> body_type fT;
     val f_uc = Var ((f_bname, 0), fT_uc);
-    val x_uc = Var (("x", 0), tupleT);
+    val x_uc = Var (("x", 1), tupleT);
     val uncurry = lambda head (uncurry_n arity head);
     val curry = lambda f_uc (curry_n arity f_uc);
 
