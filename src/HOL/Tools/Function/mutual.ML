@@ -8,7 +8,7 @@ signature FUNCTION_MUTUAL =
 sig
   val prepare_function_mutual : Function_Common.function_config
     -> binding (* defname *)
-    -> ((string * typ) * mixfix) list
+    -> ((binding * typ) * mixfix) list
     -> term list
     -> local_theory
     -> ((thm (* goalstate *)
@@ -27,7 +27,8 @@ type qgar = string * (string * typ) list * term list * term list * term
 datatype mutual_part = MutualPart of
  {i : int,
   i' : int,
-  fvar : string * typ,
+  fname : binding,
+  fT : typ,
   cargTs: typ list,
   f_def: term,
 
@@ -37,7 +38,8 @@ datatype mutual_part = MutualPart of
 datatype mutual_info = Mutual of
  {n : int,
   n' : int,
-  fsum_var : string * typ,
+  fsum_name : binding,
+  fsum_type: typ,
 
   ST: typ,
   RST: typ,
@@ -52,8 +54,8 @@ fun mutual_induct_Pnames n =
   if n < 5 then fst (chop n ["P","Q","R","S"])
   else map (fn i => "P" ^ string_of_int i) (1 upto n)
 
-fun get_part fname =
-  the o find_first (fn (MutualPart {fvar=(n,_), ...}) => n = fname)
+fun get_part f =
+  the o find_first (fn (MutualPart {fname, ...}) => Binding.name_of fname = f)
 
 (* FIXME *)
 fun mk_prod_abs e (t1, t2) =
@@ -69,15 +71,13 @@ fun analyze_eqs ctxt defname fs eqs =
   let
     val num = length fs
     val fqgars = map (split_def ctxt (K true)) eqs
-    val arity_of = map (fn (fname,_,_,args,_) => (fname, length args)) fqgars
-      |> AList.lookup (op =) #> the
+    fun arity_of fname =
+      the (get_first (fn (f, _, _, args, _) =>
+        if f = Binding.name_of fname then SOME (length args) else NONE) fqgars)
 
     fun curried_types (fname, fT) =
-      let
-        val (caTs, uaTs) = chop (arity_of fname) (binder_types fT)
-      in
-        (caTs, uaTs ---> body_type fT)
-      end
+      let val (caTs, uaTs) = chop (arity_of fname) (binder_types fT)
+      in (caTs, uaTs ---> body_type fT) end
 
     val (caTss, resultTs) = split_list (map curried_types fs)
     val argTs = map (foldr1 HOLogic.mk_prodT) caTss
@@ -88,13 +88,12 @@ fun analyze_eqs ctxt defname fs eqs =
     val RST = Balanced_Tree.make (uncurry Sum_Tree.mk_sumT) dresultTs
     val ST = Balanced_Tree.make (uncurry Sum_Tree.mk_sumT) argTs
 
+    val fsum_name = derived_name_suffix defname "_sum"
+    val ([fsum_var_name], _) = Variable.add_fixes_binding [fsum_name] ctxt
     val fsum_type = ST --> RST
-
-    val ([fsum_var_name], _) =
-      Variable.add_fixes_binding [Binding.map_name (suffix "_sum") defname] ctxt
     val fsum_var = (fsum_var_name, fsum_type)
 
-    fun define (fvar as (n, _)) caTs resultT i =
+    fun define (fname, fT) caTs resultT i =
       let
         val vars = map_index (fn (j,T) => Free ("x" ^ string_of_int j, T)) caTs (* FIXME: Bind xs properly *)
         val i' = find_index (fn Ta => Ta = resultT) dresultTs + 1
@@ -102,9 +101,11 @@ fun analyze_eqs ctxt defname fs eqs =
         val f_exp = Sum_Tree.mk_proj RST n' i' (Free fsum_var $ Sum_Tree.mk_inj ST num i (foldr1 HOLogic.mk_prod vars))
         val def = Term.abstract_over (Free fsum_var, fold_rev lambda vars f_exp)
 
-        val rew = (n, fold_rev lambda vars f_exp)
+        val rew = (Binding.name_of fname, fold_rev lambda vars f_exp)
       in
-        (MutualPart {i=i, i'=i', fvar=fvar,cargTs=caTs,f_def=def,f=NONE,f_defthm=NONE}, rew)
+        (MutualPart
+          {i = i, i' = i', fname = fname, fT = fT, cargTs = caTs,
+            f_def = def, f = NONE, f_defthm = NONE}, rew)
       end
 
     val (parts, rews) = split_list (@{map 4} define fs caTss resultTs (1 upto num))
@@ -121,33 +122,28 @@ fun analyze_eqs ctxt defname fs eqs =
 
     val qglrs = map convert_eqs fqgars
   in
-    Mutual {n=num, n'=n', fsum_var=fsum_var, ST=ST, RST=RST,
-      parts=parts, fqgars=fqgars, qglrs=qglrs, fsum=NONE}
+    Mutual {n = num, n' = n', fsum_name = fsum_name, fsum_type = fsum_type,
+      ST = ST, RST = RST, parts = parts, fqgars = fqgars, qglrs = qglrs, fsum = NONE}
   end
 
 fun define_projections fixes mutual fsum lthy =
   let
-    fun def ((MutualPart {i=i, i'=i', fvar=(fname, fT), cargTs, f_def, ...}), (_, mixfix)) lthy =
+    fun def ((MutualPart {i=i, i'=i', fname, fT, cargTs, f_def, ...}), (_, mixfix)) lthy =
       let
-        val def_binding =
-          if Config.get lthy function_internals then (Binding.name (Thm.def_name fname), [])
-          else Attrib.empty_binding
+        val def_binding = Thm.make_def_binding (Config.get lthy function_internals) fname
         val ((f, (_, f_defthm)), lthy') =
           Local_Theory.define
-            ((Binding.name fname, mixfix),
-              (def_binding, Term.subst_bound (fsum, f_def))) lthy
+            ((fname, mixfix), ((def_binding, []), Term.subst_bound (fsum, f_def))) lthy
       in
-        (MutualPart {i=i, i'=i', fvar=(fname, fT), cargTs=cargTs, f_def=f_def,
-           f=SOME f, f_defthm=SOME f_defthm },
-         lthy')
+        (MutualPart {i = i, i' = i', fname = fname, fT = fT, cargTs = cargTs,
+            f_def = f_def, f = SOME f, f_defthm = SOME f_defthm}, lthy')
       end
 
-    val Mutual { n, n', fsum_var, ST, RST, parts, fqgars, qglrs, ... } = mutual
+    val Mutual {n, n', fsum_name, fsum_type, ST, RST, parts, fqgars, qglrs, ...} = mutual
     val (parts', lthy') = fold_map def (parts ~~ fixes) lthy
   in
-    (Mutual { n=n, n'=n', fsum_var=fsum_var, ST=ST, RST=RST, parts=parts',
-       fqgars=fqgars, qglrs=qglrs, fsum=SOME fsum },
-     lthy')
+    (Mutual {n = n, n' = n', fsum_name = fsum_name, fsum_type = fsum_type, ST = ST,
+      RST = RST, parts = parts', fqgars = fqgars, qglrs = qglrs, fsum = SOME fsum}, lthy')
   end
 
 fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
@@ -305,11 +301,11 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, n, ST, 
 
 fun prepare_function_mutual config defname fixes eqss lthy =
   let
-    val mutual as Mutual {fsum_var=(n, T), qglrs, ...} =
+    val mutual as Mutual {fsum_name, fsum_type, qglrs, ...} =
       analyze_eqs lthy defname (map fst fixes) (map Envir.beta_eta_contract eqss)
 
     val ((fsum, goalstate, cont), lthy') =
-      Function_Core.prepare_function config defname [((n, T), NoSyn)] qglrs lthy
+      Function_Core.prepare_function config defname [((fsum_name, fsum_type), NoSyn)] qglrs lthy
 
     val (mutual', lthy'') = define_projections fixes mutual fsum lthy'
 

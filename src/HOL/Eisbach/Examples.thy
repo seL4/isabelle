@@ -183,7 +183,7 @@ lemma "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> P y \<Longright
   apply prop_solver
   done
 
-lemma "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow>  P z \<Longrightarrow> P y \<Longrightarrow> Q y"
+lemma "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> P z \<Longrightarrow> P y \<Longrightarrow> Q y"
   apply (solves \<open>guess_all, prop_solver\<close>)  \<comment> \<open>Try it without solve\<close>
   done
 

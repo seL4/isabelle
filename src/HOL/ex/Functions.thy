@@ -489,7 +489,7 @@ where
 | "f4 _ _ = False"
 
 
-subsubsection \<open>Polymorphic partial_function\<close>
+subsubsection \<open>Polymorphic partial-function\<close>
 
 partial_function (option) f5 :: "'a list \<Rightarrow> 'a option"
 where
