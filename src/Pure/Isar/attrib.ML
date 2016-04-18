@@ -78,6 +78,11 @@ sig
   val setup_option_int: string * Position.T -> int Config.T
   val setup_option_real: string * Position.T -> real Config.T
   val setup_option_string: string * Position.T -> string Config.T
+  val consumes: int -> Token.src
+  val constraints: int -> Token.src
+  val cases_open: Token.src
+  val case_names: string list -> Token.src
+  val case_conclusion: string * string list -> Token.src
 end;
 
 structure Attrib: ATTRIB =
@@ -235,14 +240,20 @@ fun attribute_setup name source comment =
 
 (* internal attribute *)
 
-fun internal att =
-  Token.make_src ("Pure.attribute", Position.none)
-    [Token.make_string ("<attribute>", Position.none) |> Token.assign (SOME (Token.Attribute att))];
-
 val _ = Theory.setup
   (setup (Binding.make ("attribute", @{here}))
     (Scan.lift Args.internal_attribute >> Morphism.form)
     "internal attribute");
+
+fun internal_name ctxt name =
+  Token.make_src (name, Position.none) [] |> check_src ctxt |> hd;
+
+val internal_attribute_name =
+  internal_name (Context.the_local_context ()) "attribute";
+
+fun internal att =
+  internal_attribute_name ::
+    [Token.make_string ("<attribute>", Position.none) |> Token.assign (SOME (Token.Attribute att))];
 
 
 (* add/del syntax *)
@@ -528,8 +539,11 @@ val _ = Theory.setup
   setup @{binding constraints}
     (Scan.lift Parse.nat >> Rule_Cases.constraints)
     "number of equality constraints" #>
+  setup @{binding cases_open}
+    (Scan.succeed Rule_Cases.cases_open)
+    "rule with open parameters" #>
   setup @{binding case_names}
-    (Scan.lift (Scan.repeat1 (Args.name --
+    (Scan.lift (Scan.repeat (Args.name --
       Scan.optional (Parse.$$$ "[" |-- Scan.repeat1 (Args.maybe Args.name) --| Parse.$$$ "]") []))
       >> (fn cs =>
         Rule_Cases.cases_hyp_names
@@ -606,5 +620,30 @@ val _ = Theory.setup
   register_config Raw_Simplifier.simp_trace_depth_limit_raw #>
   register_config Raw_Simplifier.simp_debug_raw #>
   register_config Raw_Simplifier.simp_trace_raw);
+
+
+(* internal source *)
+
+local
+
+val internal = internal_name (Context.the_local_context ());
+
+val consumes_name = internal "consumes";
+val constraints_name = internal "constraints";
+val cases_open_name = internal "cases_open";
+val case_names_name = internal "case_names";
+val case_conclusion_name = internal "case_conclusion";
+
+fun make_string s = Token.make_string (s, Position.none);
+
+in
+
+fun consumes i = consumes_name :: Token.make_int i;
+fun constraints i = constraints_name :: Token.make_int i;
+val cases_open = [cases_open_name];
+fun case_names names = case_names_name :: map make_string names;
+fun case_conclusion (name, names) = case_conclusion_name :: map make_string (name :: names);
+
+end;
 
 end;

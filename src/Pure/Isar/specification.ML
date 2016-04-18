@@ -376,9 +376,8 @@ fun prep_statement prep_att prep_stmt raw_elems raw_stmt ctxt =
           val ([(_, that')], that_ctxt) = asms_ctxt
             |> Proof_Context.note_thmss "" [((Binding.name Auto_Bind.thatN, []), [(that, [])])];
 
-          val more_atts = map (Attrib.internal o K) (Obtain.obtains_attributes raw_obtains);
           val stmt' = [((Binding.empty, []), [(#2 (#1 (Obtain.obtain_thesis ctxt)), [])])];
-        in ((more_atts, prems, stmt', SOME that'), that_ctxt) end)
+        in ((Obtain.obtains_attribs raw_obtains, prems, stmt', SOME that'), that_ctxt) end)
   end;
 
 fun gen_theorem schematic bundle_includes prep_att prep_stmt

@@ -8,6 +8,7 @@ signature OBTAIN =
 sig
   val obtain_thesis: Proof.context -> ((string * typ) * term) * Proof.context
   val obtains_attributes: ('typ, 'term) Element.obtain list -> attribute list
+  val obtains_attribs: ('typ, 'term) Element.obtain list -> Token.src list
   val read_obtains: Proof.context -> term -> Element.obtains -> (binding * term) list
   val cert_obtains: Proof.context -> term -> Element.obtains_i -> (binding * term) list
   val parse_obtains: Proof.context -> term -> Element.obtains -> (binding * term) list
@@ -70,11 +71,15 @@ fun obtain_export ctxt rule xs _ As =
 
 (* result declaration *)
 
-fun obtains_attributes (obtains: ('typ, 'term) Element.obtain list) =
-  let
-    val case_names = obtains |> map_index (fn (i, (b, _)) =>
-      if Binding.is_empty b then string_of_int (i + 1) else Name_Space.base_name b);
-  in [Rule_Cases.consumes (~ (length obtains)), Rule_Cases.case_names case_names] end;
+fun case_names (obtains: ('typ, 'term) Element.obtain list) =
+  obtains |> map_index (fn (i, (b, _)) =>
+    if Binding.is_empty b then string_of_int (i + 1) else Name_Space.base_name b);
+
+fun obtains_attributes obtains =
+  [Rule_Cases.consumes (~ (length obtains)), Rule_Cases.case_names (case_names obtains)];
+
+fun obtains_attribs obtains =
+  [Attrib.consumes (~ (length obtains)), Attrib.case_names (case_names obtains)];
 
 
 (* obtain thesis *)

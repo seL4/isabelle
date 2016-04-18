@@ -834,16 +834,14 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                   |> Thm.close_derivation
                   |> rotate_prems ~1;
 
-                val consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
                 val cases_set_attr =
                   Attrib.internal (K (Induct.cases_pred (name_of_set set)));
 
                 val ctr_names = quasi_unambiguous_case_names (flat
                   (map (uncurry mk_names o map_prod length name_of_ctr) (premss ~~ ctrAs)));
-                val case_names_attr = Attrib.internal (K (Rule_Cases.case_names ctr_names));
               in
                 (* TODO: @{attributes [elim?]} *)
-                (thm, [consumes_attr, cases_set_attr, case_names_attr])
+                (thm, [Attrib.consumes 1, cases_set_attr, Attrib.case_names ctr_names])
               end) setAs)
           end;
 
@@ -925,11 +923,8 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
           let
             val thm = derive_rel_case relAsBs rel_inject_thms rel_distinct_thms;
             val ctr_names = quasi_unambiguous_case_names (map name_of_ctr ctrAs);
-            val case_names_attr = Attrib.internal (K (Rule_Cases.case_names ctr_names));
-            val consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
-            val cases_pred_attr = Attrib.internal o K o Induct.cases_pred;
           in
-            (thm, [consumes_attr, case_names_attr, cases_pred_attr ""])
+            (thm, [Attrib.case_names ctr_names, Attrib.consumes 1] @ @{attributes [cases pred]})
           end;
 
         val case_transfer_thm = derive_case_transfer rel_case_thm;
@@ -1395,12 +1390,8 @@ fun postproc_co_induct ctxt nn prop prop_conj =
      else funpow nn (fn thm => unfold_thms ctxt @{thms conj_assoc} (thm RS prop_conj)) thm));
 
 fun mk_induct_attrs ctrss =
-  let
-    val induct_cases = quasi_unambiguous_case_names (maps (map name_of_ctr) ctrss);
-    val induct_case_names_attr = Attrib.internal (K (Rule_Cases.case_names induct_cases));
-  in
-    [induct_case_names_attr]
-  end;
+  let val induct_cases = quasi_unambiguous_case_names (maps (map name_of_ctr) ctrss);
+  in [Attrib.case_names induct_cases] end;
 
 fun derive_rel_induct_thms_for_types lthy nn fpA_Ts As Bs ctrAss ctrAs_Tsss exhausts ctor_rel_induct
     ctor_defss ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs =
@@ -1611,17 +1602,13 @@ fun mk_coinduct_attrs fpTs ctrss discss mss =
     val coinduct_conclss =
       @{map 3} (quasi_unambiguous_case_names ooo mk_coinduct_concls) mss discss ctrss;
 
-    val coinduct_consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
-
-    val coinduct_case_names_attr = Attrib.internal (K (Rule_Cases.case_names coinduct_cases));
+    val coinduct_case_names_attr = Attrib.case_names coinduct_cases;
     val coinduct_case_concl_attrs =
-      map2 (fn casex => fn concls =>
-          Attrib.internal (K (Rule_Cases.case_conclusion (casex, concls))))
+      map2 (fn casex => fn concls => Attrib.case_conclusion (casex, concls))
         coinduct_cases coinduct_conclss;
 
     val common_coinduct_attrs = coinduct_case_names_attr :: coinduct_case_concl_attrs;
-    val coinduct_attrs =
-      coinduct_consumes_attr :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
+    val coinduct_attrs = Attrib.consumes 1 :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
   in
     (coinduct_attrs, common_coinduct_attrs)
   end;
@@ -1776,13 +1763,12 @@ fun derive_set_induct_thms_for_types lthy nn fpTs ctrss setss dtor_set_inducts e
                  exhausts set_pre_defs ctor_defs dtor_ctors Abs_pre_inverses)
           |> Thm.close_derivation;
 
-        val case_names_attr =
-          Attrib.internal (K (Rule_Cases.case_names (quasi_unambiguous_case_names case_names)));
+        val case_names_attr = Attrib.case_names (quasi_unambiguous_case_names case_names);
         val induct_set_attrs = map (Attrib.internal o K o Induct.induct_pred o name_of_set) sets;
       in
         (thm, case_names_attr :: induct_set_attrs)
       end
-    val consumes_attr = Attrib.internal (K (Rule_Cases.consumes 1));
+    val consumes_attr = Attrib.consumes 1;
   in
     map (mk_thm lthy fpTs ctrss
         #> nn = 1 ? map_prod (fn thm => rotate_prems ~1 (thm RS bspec)) (cons consumes_attr))

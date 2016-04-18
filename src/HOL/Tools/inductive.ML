@@ -898,23 +898,19 @@ fun declare_rules rec_binding coind no_ind cnames
     val intr_names = map Binding.name_of intr_bindings;
     val ind_case_names =
       if forall (equal "") intr_names then []
-      else [Attrib.internal (K (Rule_Cases.case_names intr_names))];
+      else [Attrib.case_names intr_names];
     val induct =
       if coind then
         (raw_induct,
-          map (Attrib.internal o K)
-            [Rule_Cases.case_names [rec_name],
-             Rule_Cases.case_conclusion (rec_name, intr_names),
-             Rule_Cases.consumes (1 - Thm.nprems_of raw_induct),
-             Induct.coinduct_pred (hd cnames)])
+          [Attrib.case_names [rec_name],
+           Attrib.case_conclusion (rec_name, intr_names),
+           Attrib.consumes (1 - Thm.nprems_of raw_induct),
+           Attrib.internal (K (Induct.coinduct_pred (hd cnames)))])
       else if no_ind orelse length cnames > 1 then
-        (raw_induct,
-          ind_case_names @
-            [Attrib.internal (K (Rule_Cases.consumes (~ (Thm.nprems_of raw_induct))))])
+        (raw_induct, ind_case_names @ [Attrib.consumes (~ (Thm.nprems_of raw_induct))])
       else
         (raw_induct RSN (2, rev_mp),
-          ind_case_names @
-            [Attrib.internal (K (Rule_Cases.consumes (~ (Thm.nprems_of raw_induct))))]);
+          ind_case_names @ [Attrib.consumes (~ (Thm.nprems_of raw_induct))]);
 
     val (intrs', lthy1) =
       lthy |>
@@ -922,8 +918,7 @@ fun declare_rules rec_binding coind no_ind cnames
         (if coind then Spec_Rules.Co_Inductive else Spec_Rules.Inductive) (preds, intrs) |>
       Local_Theory.notes
         (map (rec_qualified false) intr_bindings ~~ intr_atts ~~
-          map (fn th => [([th],
-           [Attrib.internal (K (Context_Rules.intro_query NONE))])]) intrs) |>>
+          map (fn th => [([th], @{attributes [Pure.intro?]})]) intrs) |>>
       map (hd o snd);
     val (((_, elims'), (_, [induct'])), lthy2) =
       lthy1 |>
@@ -931,12 +926,10 @@ fun declare_rules rec_binding coind no_ind cnames
       fold_map (fn (name, (elim, cases, k)) =>
         Local_Theory.note
           ((Binding.qualify true (Long_Name.base_name name) (Binding.name "cases"),
-            map (Attrib.internal o K)
-              ((if forall (equal "") cases then [] else [Rule_Cases.case_names cases]) @
-               [Rule_Cases.consumes (1 - Thm.nprems_of elim),
-                Rule_Cases.constraints k,
-                Induct.cases_pred name,
-                Context_Rules.elim_query NONE])), [elim]) #>
+            ((if forall (equal "") cases then [] else [Attrib.case_names cases]) @
+              [Attrib.consumes (1 - Thm.nprems_of elim), Attrib.constraints k,
+               Attrib.internal (K (Induct.cases_pred name))] @ @{attributes [Pure.elim?]})),
+            [elim]) #>
         apfst (hd o snd)) (if null elims then [] else cnames ~~ elims) ||>>
       Local_Theory.note
         ((rec_qualified true (Binding.name (coind_prefix coind ^ "induct")), #2 induct),
@@ -956,7 +949,7 @@ fun declare_rules rec_binding coind no_ind cnames
           Local_Theory.notes [((rec_qualified true (Binding.name "inducts"), []),
             inducts |> map (fn (name, th) => ([th],
               ind_case_names @
-                [Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th))),
+                [Attrib.consumes (1 - Thm.nprems_of th),
                  Attrib.internal (K (Induct.induct_pred name))])))] |>> snd o hd
         end;
   in (intrs', elims', eqs', induct', inducts, lthy4) end;
