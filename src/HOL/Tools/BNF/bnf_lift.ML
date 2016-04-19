@@ -375,9 +375,12 @@ fun prepare_lift_bnf prepare_name prepare_sort prepare_term prepare_thm =
   prepare_common prepare_name prepare_sort prepare_term prepare_thm o apfst (apfst (apsnd SOME));
 
 fun prepare_solve prepare_name prepare_typ prepare_sort prepare_thm tacs =
-  (fn (goals, after_qed, _, lthy) =>
+  (fn (goals, after_qed, definitions, lthy) =>
     lthy
-    |> after_qed (map2 (single oo Goal.prove lthy [] []) goals (tacs (length goals)))) oo
+    |> after_qed (map2 (fn goal => fn tac => [Goal.prove lthy [] [] goal
+        (fn (ctxtprems as {context = ctxt, prems = _}) =>
+          unfold_thms_tac ctxt definitions THEN tac ctxtprems)])
+      goals (tacs (length goals)))) oo
   prepare_common prepare_name prepare_typ prepare_sort prepare_thm;
 
 in
