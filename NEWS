@@ -34,12 +34,21 @@ Isabelle2015).
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* IDE support for the Isabelle/Pure bootstrap process. The initial files
-src/Pure/ROOT0.ML or src/Pure/ROOT.ML may be opened with Isabelle/jEdit:
-they act like independent quasi-theories in the context of theory
-ML_Bootstrap. This allows continuous checking of ML files as usual, but
-results are isolated from the actual Isabelle/Pure that runs the IDE
-itself.
+* IDE support for the Isabelle/Pure bootstrap process, with the
+following independent stages:
+
+  src/Pure/ROOT0.ML
+  src/Pure/ROOT.ML
+  src/Pure/Pure.thy
+  src/Pure/ML_Bootstrap.thy
+
+The ML ROOT files act like quasi-theories in the context of theory
+ML_Bootstrap: this allows continuous checking of all loaded ML files.
+The theory files are presented with a modified header to import Pure
+from the running Isabelle instance. Results from changed versions of
+each stage are *not* propagated to the next stage, and isolated from the
+actual Isabelle/Pure that runs the IDE itself. The sequential
+dependencies of the above files are only relevant for batch build.
 
 * Highlighting of entity def/ref positions wrt. cursor.
 

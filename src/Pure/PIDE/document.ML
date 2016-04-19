@@ -128,7 +128,8 @@ fun read_header node span =
         |> error;
     val {name = (name, _), imports, ...} = header;
     val {name = (_, pos), imports = imports', keywords} = Thy_Header.read_tokens span;
-  in Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords end;
+    val imports'' = (map #1 imports ~~ map #2 imports') handle ListPair.UnequalLengths => imports;
+  in Thy_Header.make (name, pos) imports'' keywords end;
 
 fun get_perspective (Node {perspective, ...}) = perspective;
 

@@ -73,29 +73,40 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   def is_theory: Boolean = node_name.is_theory
 
+  def is_ml_root: Boolean =
+    Thy_Header.ml_roots.exists({ case (_, name) => name == node_name.theory })
+
+  def is_bootstrap_thy: Boolean =
+    Thy_Header.bootstrap_thys.exists({ case (_, name) => name == node_name.theory })
+
   def node_header(): Document.Node.Header =
   {
     GUI_Thread.require {}
 
-    if (Thy_Header.ml_roots.exists({ case (_, name) => name == node_name.theory }))
+    if (is_ml_root)
       Document.Node.Header(
-        List((PIDE.resources.import_name("", node_name, Thy_Header.ML_BOOTSTRAP), Position.none)),
-          Nil, Nil)
+        List((PIDE.resources.import_name("", node_name, Thy_Header.ML_BOOTSTRAP), Position.none)))
     else if (is_theory) {
-      JEdit_Lib.buffer_lock(buffer) {
-        Token_Markup.line_token_iterator(
-          Thy_Header.bootstrap_syntax, buffer, 0, buffer.getLineCount).collectFirst(
-            {
-              case Text.Info(range, tok)
-              if tok.is_command && tok.source == Thy_Header.THEORY => range.start
-            })
-          match {
-            case Some(offset) =>
-              val length = buffer.getLength - offset
-              PIDE.resources.check_thy_reader("", node_name,
-                new CharSequenceReader(buffer.getSegment(offset, length)), Token.Pos.command)
-            case None => Document.Node.no_header
-          }
+      if (is_bootstrap_thy) {
+        Document.Node.Header(
+          List((PIDE.resources.import_name("", node_name, Thy_Header.PURE), Position.none)))
+      }
+      else {
+        JEdit_Lib.buffer_lock(buffer) {
+          Token_Markup.line_token_iterator(
+            Thy_Header.bootstrap_syntax, buffer, 0, buffer.getLineCount).collectFirst(
+              {
+                case Text.Info(range, tok)
+                if tok.is_command && tok.source == Thy_Header.THEORY => range.start
+              })
+            match {
+              case Some(offset) =>
+                val length = buffer.getLength - offset
+                PIDE.resources.check_thy_reader("", node_name,
+                  new CharSequenceReader(buffer.getSegment(offset, length)), Token.Pos.command)
+              case None => Document.Node.no_header
+            }
+        }
       }
     }
     else Document.Node.no_header

@@ -111,18 +111,20 @@ fun print_commands thy =
 (* maintain commands *)
 
 fun add_command name cmd thy =
-  let
-    val _ =
-      Keyword.is_command (Thy_Header.get_keywords thy) name orelse
-        err_command "Undeclared outer syntax command " name [command_pos cmd];
-    val _ =
-      (case lookup_commands thy name of
-        NONE => ()
-      | SOME cmd' => err_dup_command name [command_pos cmd, command_pos cmd']);
-    val _ =
-      Context_Position.report_generic (Context.the_generic_context ())
-        (command_pos cmd) (command_markup true (name, cmd));
-  in Data.map (Symtab.update (name, cmd)) thy end;
+  if member (op =) Thy_Header.bootstrap_thys (Context.theory_name thy) then thy
+  else
+    let
+      val _ =
+        Keyword.is_command (Thy_Header.get_keywords thy) name orelse
+          err_command "Undeclared outer syntax command " name [command_pos cmd];
+      val _ =
+        (case lookup_commands thy name of
+          NONE => ()
+        | SOME cmd' => err_dup_command name [command_pos cmd, command_pos cmd']);
+      val _ =
+        Context_Position.report_generic (Context.the_generic_context ())
+          (command_pos cmd) (command_markup true (name, cmd));
+    in Data.map (Symtab.update (name, cmd)) thy end;
 
 val _ = Theory.setup (Theory.at_end (fn thy =>
   let

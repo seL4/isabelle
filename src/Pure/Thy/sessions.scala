@@ -18,7 +18,7 @@ object Sessions
 {
   /* Pure */
 
-  def pure_name(name: String): Boolean = name == "Pure"
+  def pure_name(name: String): Boolean = name == Thy_Header.PURE
 
   def pure_files(resources: Resources, syntax: Outer_Syntax, dir: Path): List[Path] =
   {

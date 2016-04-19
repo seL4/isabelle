@@ -38,7 +38,7 @@ class JEdit_Resources(
   def node_name(buffer: Buffer): Document.Node.Name =
   {
     val node = JEdit_Lib.buffer_name(buffer)
-    val theory = Thy_Header.thy_name(node).getOrElse("")
+    val theory = Thy_Header.thy_name_bootstrap(node).getOrElse("")
     val master_dir = if (theory == "") "" else buffer.getDirectory
     Document.Node.Name(node, master_dir, theory)
   }
