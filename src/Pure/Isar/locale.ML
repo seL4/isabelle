@@ -119,24 +119,27 @@ fun compose_mixins mixins =
   fold_rev Morphism.compose (map (fst o fst) mixins) Morphism.identity;
 
 datatype locale = Loc of {
-  (** static part **)
+  (* static part *)
+
+  (*type and term parameters*)
   parameters: (string * sort) list * ((string * typ) * mixfix) list,
-    (* type and term parameters *)
+  (*assumptions (as a single predicate expression) and defines*)
   spec: term option * term list,
-    (* assumptions (as a single predicate expression) and defines *)
   intros: thm option * thm option,
   axioms: thm list,
+  (*diagnostic device: theorem part of hypothetical body as specified by the user*)
   hyp_spec: Element.context_i list,
-    (* diagnostic device: theorem part of hypothetical body as specified by the user *)
-  (** dynamic part **)
+
+  (* dynamic part *)
+
+  (*syntax declarations*)
   syntax_decls: (declaration * serial) list,
-    (* syntax declarations *)
+  (*theorem declarations*)
   notes: ((string * (Attrib.binding * (thm list * Token.src list) list) list) * serial) list,
-    (* theorem declarations *)
-  dependencies: ((string * (morphism * morphism)) * serial) list
-    (* locale dependencies (sublocale relation) in reverse order *),
+  (*locale dependencies (sublocale relation) in reverse order*)
+  dependencies: ((string * (morphism * morphism)) * serial) list,
+  (*mixin part of dependencies*)
   mixins: mixins
-    (* mixin part of dependencies *)
 };
 
 fun mk_locale ((parameters, spec, intros, axioms, hyp_spec),
