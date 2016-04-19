@@ -81,7 +81,7 @@ class Pretty_Text_Area(
 
   private val rich_text_area =
     new Rich_Text_Area(view, text_area, () => current_rendering, close_action,
-      get_search_pattern _, caret_visible = false, enable_hovering = true)
+      get_search_pattern _, () => (), caret_visible = false, enable_hovering = true)
 
   private var current_search_pattern: Option[Regex] = None
   def get_search_pattern(): Option[Regex] = GUI_Thread.require { current_search_pattern }
