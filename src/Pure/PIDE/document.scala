@@ -564,11 +564,9 @@ object Document
       (execs.get(id) match { case Some(st1) => st1.command.id == st.command.id case None => false })
 
     private def other_id(id: Document_ID.Generic)
-      : Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)] = None
-    /* FIXME
+      : Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)] =
       (execs.get(id) orElse commands.get(id)).map(st =>
         ((Symbol.Text_Chunk.Id(st.command.id), st.command.chunk)))
-    */
 
     private def redirection(st: Command.State): Graph[Document_ID.Command, Unit] =
       (commands_redirection /: st.markups.redirection_iterator)({ case (graph, id) =>
