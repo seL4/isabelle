@@ -86,8 +86,12 @@ end;
 local
 
 fun gen_includes get args ctxt =
-  let val decls = maps (get ctxt) args
-  in #2 (Attrib.local_notes "" [((Binding.empty, []), decls)] ctxt) end;
+  let val decls = maps (get ctxt) args in
+    ctxt
+    |> Context_Position.set_visible false
+    |> Attrib.local_notes "" [((Binding.empty, []), decls)] |> #2
+    |> Context_Position.restore_visible ctxt
+  end;
 
 fun gen_context get prep_decl raw_incls raw_elems gthy =
   let

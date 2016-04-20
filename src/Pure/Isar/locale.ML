@@ -119,24 +119,27 @@ fun compose_mixins mixins =
   fold_rev Morphism.compose (map (fst o fst) mixins) Morphism.identity;
 
 datatype locale = Loc of {
-  (** static part **)
+  (* static part *)
+
+  (*type and term parameters*)
   parameters: (string * sort) list * ((string * typ) * mixfix) list,
-    (* type and term parameters *)
+  (*assumptions (as a single predicate expression) and defines*)
   spec: term option * term list,
-    (* assumptions (as a single predicate expression) and defines *)
   intros: thm option * thm option,
   axioms: thm list,
+  (*diagnostic device: theorem part of hypothetical body as specified by the user*)
   hyp_spec: Element.context_i list,
-    (* diagnostic device: theorem part of hypothetical body as specified by the user *)
-  (** dynamic part **)
+
+  (* dynamic part *)
+
+  (*syntax declarations*)
   syntax_decls: (declaration * serial) list,
-    (* syntax declarations *)
+  (*theorem declarations*)
   notes: ((string * (Attrib.binding * (thm list * Token.src list) list) list) * serial) list,
-    (* theorem declarations *)
-  dependencies: ((string * (morphism * morphism)) * serial) list
-    (* locale dependencies (sublocale relation) in reverse order *),
+  (*locale dependencies (sublocale relation) in reverse order*)
+  dependencies: ((string * (morphism * morphism)) * serial) list,
+  (*mixin part of dependencies*)
   mixins: mixins
-    (* mixin part of dependencies *)
 };
 
 fun mk_locale ((parameters, spec, intros, axioms, hyp_spec),
@@ -446,33 +449,34 @@ fun activate_all name thy activ_elem transfer (marked, input) =
 (** Public activation functions **)
 
 fun activate_declarations dep = Context.proof_map (fn context =>
-  let
-    val thy = Context.theory_of context;
-  in
-    roundup thy activate_syntax_decls Morphism.identity dep (Idents.get context, context)
-    |-> Idents.put
-  end);
+  context
+  |> Context_Position.set_visible_generic false
+  |> pair (Idents.get context)
+  |> roundup (Context.theory_of context) activate_syntax_decls Morphism.identity dep
+  |-> Idents.put
+  |> Context_Position.restore_visible_generic context);
 
 fun activate_facts export dep context =
-  let
-    val thy = Context.theory_of context;
-    val activate =
-      activate_notes Element.init'
-        (Morphism.transfer_morphism o Context.theory_of) context export;
-  in
-    roundup thy activate (the_default Morphism.identity export) dep (Idents.get context, context)
-    |-> Idents.put
-  end;
+  context
+  |> Context_Position.set_visible_generic false
+  |> pair (Idents.get context)
+  |> roundup (Context.theory_of context)
+      (activate_notes Element.init' (Morphism.transfer_morphism o Context.theory_of) context export)
+      (the_default Morphism.identity export) dep
+  |-> Idents.put
+  |> Context_Position.restore_visible_generic context;
 
 fun init name thy =
   let
     val context = Context.Proof (Proof_Context.init_global thy);
     val marked = Idents.get context;
-    val (marked', context') = (empty_idents, context)
-      |> activate_all name thy Element.init' (Morphism.transfer_morphism o Context.theory_of);
   in
-    context'
-    |> Idents.put (merge_idents (marked, marked'))
+    context
+    |> Context_Position.set_visible_generic false
+    |> pair empty_idents
+    |> activate_all name thy Element.init' (Morphism.transfer_morphism o Context.theory_of)
+    |-> (fn marked' => Idents.put (merge_idents (marked, marked')))
+    |> Context_Position.restore_visible_generic context
     |> Context.proof_of
   end;
 

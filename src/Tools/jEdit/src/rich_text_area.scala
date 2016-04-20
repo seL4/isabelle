@@ -32,6 +32,7 @@ class Rich_Text_Area(
   get_rendering: () => Rendering,
   close_action: () => Unit,
   get_search_pattern: () => Option[Regex],
+  caret_update: () => Unit,
   caret_visible: Boolean,
   enable_hovering: Boolean)
 {
@@ -129,6 +130,7 @@ class Rich_Text_Area(
         new_info.map(info => (text_area.getText(info.range.start, info.range.length), info))
 
       if (new_text_info != old_text_info) {
+        caret_update()
         if (cursor.isDefined) {
           if (new_text_info.isDefined)
             text_area.getPainter.setCursor(Cursor.getPredefinedCursor(cursor.get))

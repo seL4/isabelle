@@ -52,6 +52,10 @@ dependencies of the above files are only relevant for batch build.
 
 * Highlighting of entity def/ref positions wrt. cursor.
 
+* Document markup works across multiple Isar commands, e.g. the results
+established at the end of a proof are properly identified in the theorem
+statement.
+
 
 *** Isar ***
 
