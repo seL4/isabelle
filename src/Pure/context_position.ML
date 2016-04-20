@@ -14,6 +14,7 @@ sig
   val set_visible_global: bool -> theory -> theory
   val is_really_visible: Proof.context -> bool
   val not_really: Proof.context -> Proof.context
+  val restore_visible_generic: Context.generic -> Context.generic -> Context.generic
   val restore_visible: Proof.context -> Proof.context -> Proof.context
   val restore_visible_global: theory -> theory -> theory
   val is_reported_generic: Context.generic -> Position.T -> bool
@@ -49,6 +50,7 @@ val is_really = the_default true o fst o Data.get o Context.Proof;
 fun is_really_visible ctxt = is_really ctxt andalso is_visible ctxt;
 val not_really = Context.proof_map (Data.map (apfst (K (SOME false))));
 
+val restore_visible_generic = Data.put o Data.get;
 val restore_visible = Context.proof_map o Data.put o Data.get o Context.Proof;
 val restore_visible_global = Context.theory_map o Data.put o Data.get o Context.Theory;
 

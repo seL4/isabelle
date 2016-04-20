@@ -449,33 +449,34 @@ fun activate_all name thy activ_elem transfer (marked, input) =
 (** Public activation functions **)
 
 fun activate_declarations dep = Context.proof_map (fn context =>
-  let
-    val thy = Context.theory_of context;
-  in
-    roundup thy activate_syntax_decls Morphism.identity dep (Idents.get context, context)
-    |-> Idents.put
-  end);
+  context
+  |> Context_Position.set_visible_generic false
+  |> pair (Idents.get context)
+  |> roundup (Context.theory_of context) activate_syntax_decls Morphism.identity dep
+  |-> Idents.put
+  |> Context_Position.restore_visible_generic context);
 
 fun activate_facts export dep context =
-  let
-    val thy = Context.theory_of context;
-    val activate =
-      activate_notes Element.init'
-        (Morphism.transfer_morphism o Context.theory_of) context export;
-  in
-    roundup thy activate (the_default Morphism.identity export) dep (Idents.get context, context)
-    |-> Idents.put
-  end;
+  context
+  |> Context_Position.set_visible_generic false
+  |> pair (Idents.get context)
+  |> roundup (Context.theory_of context)
+      (activate_notes Element.init' (Morphism.transfer_morphism o Context.theory_of) context export)
+      (the_default Morphism.identity export) dep
+  |-> Idents.put
+  |> Context_Position.restore_visible_generic context;
 
 fun init name thy =
   let
     val context = Context.Proof (Proof_Context.init_global thy);
     val marked = Idents.get context;
-    val (marked', context') = (empty_idents, context)
-      |> activate_all name thy Element.init' (Morphism.transfer_morphism o Context.theory_of);
   in
-    context'
-    |> Idents.put (merge_idents (marked, marked'))
+    context
+    |> Context_Position.set_visible_generic false
+    |> pair empty_idents
+    |> activate_all name thy Element.init' (Morphism.transfer_morphism o Context.theory_of)
+    |-> (fn marked' => Idents.put (merge_idents (marked, marked')))
+    |> Context_Position.restore_visible_generic context
     |> Context.proof_of
   end;
 
