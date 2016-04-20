@@ -2518,7 +2518,7 @@ definition div_field_poly_impl :: "'a :: field poly \<Rightarrow> 'a poly \<Righ
 
 text \<open>We do not declare the following lemma as code equation, since then polynomial division 
   on non-fields will no longer be executable. However, a code-unfold is possible, since 
-  div_field_poly_impl is a bit more efficient than the generic polynomial division.\<close>
+  \<open>div_field_poly_impl\<close> is a bit more efficient than the generic polynomial division.\<close>
 lemma div_field_poly_impl[code_unfold]: "op div = div_field_poly_impl"
 proof (intro ext)
   fix f g :: "'a poly"
