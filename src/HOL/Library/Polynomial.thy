@@ -1599,7 +1599,7 @@ lemma snd_pseudo_divmod_main:
   "snd (pseudo_divmod_main lc q r d dr n) = snd (pseudo_divmod_main lc q' r d dr n)"
 by (induct n arbitrary: q q' lc r d dr; simp add: Let_def)
 
-definition pseudo_mod :: "'a :: idom_divide poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where
+definition pseudo_mod :: "'a :: idom poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where
   "pseudo_mod f g = snd (pseudo_divmod f g)"
   
 lemma pseudo_mod:
@@ -2206,6 +2206,7 @@ fun minus_poly_rev_list :: "'a :: group_add list \<Rightarrow> 'a list \<Rightar
   "minus_poly_rev_list (x # xs) (y # ys) = (x - y) # (minus_poly_rev_list xs ys)"
 | "minus_poly_rev_list xs [] = xs"
 | "minus_poly_rev_list [] (y # ys) = []"
+
 fun pseudo_divmod_main_list :: "'a::comm_ring_1 \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list 
   \<Rightarrow> nat \<Rightarrow> 'a list \<times> 'a list" where
   "pseudo_divmod_main_list lc q r d (Suc n) = (let
@@ -2215,6 +2216,16 @@ fun pseudo_divmod_main_list :: "'a::comm_ring_1 \<Rightarrow> 'a list \<Rightarr
      rrr = tl (if a = 0 then rr else minus_poly_rev_list rr (map (op * a) d))
      in pseudo_divmod_main_list lc qqq rrr d n)"
 | "pseudo_divmod_main_list lc q r d 0 = (q,r)"
+
+fun pseudo_mod_main_list :: "'a::comm_ring_1 \<Rightarrow> 'a list \<Rightarrow> 'a list 
+  \<Rightarrow> nat \<Rightarrow> 'a list" where
+  "pseudo_mod_main_list lc r d (Suc n) = (let
+     rr = map (op * lc) r;
+     a = hd r;
+     rrr = tl (if a = 0 then rr else minus_poly_rev_list rr (map (op * a) d))
+     in pseudo_mod_main_list lc rrr d n)"
+| "pseudo_mod_main_list lc r d 0 = r"
+
 
 fun divmod_poly_one_main_list :: "'a::comm_ring_1 list \<Rightarrow> 'a list \<Rightarrow> 'a list 
   \<Rightarrow> nat \<Rightarrow> 'a list \<times> 'a list" where
@@ -2239,6 +2250,13 @@ definition pseudo_divmod_list :: "'a::comm_ring_1 list \<Rightarrow> 'a list \<R
  (let rq = rev q;
      (qu,re) = pseudo_divmod_main_list (hd rq) [] (rev p) rq (1 + length p - length q) in 
    (qu,rev re)))"
+
+definition pseudo_mod_list :: "'a::comm_ring_1 list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "pseudo_mod_list p q =
+  (if q = [] then p else
+ (let rq = rev q;
+     re = pseudo_mod_main_list (hd rq) (rev p) rq (1 + length p - length q) in 
+   (rev re)))"
 
 lemma minus_zero_does_nothing:
 "(minus_poly_rev_list x (map (op * 0) y)) = (x :: 'a :: ring list)"
@@ -2386,6 +2404,22 @@ next
   by auto
 qed
 
+lemma pseudo_mod_main_list: "snd (pseudo_divmod_main_list l q 
+  xs ys n) = pseudo_mod_main_list l xs ys n"
+  by (induct n arbitrary: l q xs ys, auto simp: Let_def)
+
+lemma pseudo_mod_impl[code]: "pseudo_mod f g =
+  poly_of_list (pseudo_mod_list (coeffs f) (coeffs g))"
+proof -
+  have snd_case: "\<And> f g p. snd ((\<lambda> (x,y). (f x, g y)) p) = g (snd p)" 
+    by auto
+  show ?thesis
+  unfolding pseudo_mod_def pseudo_divmod_impl pseudo_divmod_list_def
+    pseudo_mod_list_def Let_def
+  by (simp add: snd_case pseudo_mod_main_list)
+qed
+
+
 (* *************** *)
 subsubsection \<open>Improved Code-Equations for Polynomial (Pseudo) Division\<close>
 
@@ -2425,7 +2459,7 @@ lemma pdivmod_via_pseudo_divmod_list: "pdivmod f g = (let
        ilc = inverse (last cg);       
        ch = map (op * ilc) cg;
        (q,r) = pseudo_divmod_main_list 1 [] (rev cf) (rev ch) (1 + length cf - length cg)
-     in (Poly (map (op * ilc) q), Poly (rev r)))"
+     in (poly_of_list (map (op * ilc) q), poly_of_list (rev r)))"
 proof -
   note d = pdivmod_via_pseudo_divmod
       pseudo_divmod_impl pseudo_divmod_list_def
