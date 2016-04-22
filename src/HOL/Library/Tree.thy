@@ -83,6 +83,19 @@ proof(induction t)
 qed simp
 
 
+subsection "Balanced"
+
+fun balanced :: "'a tree \<Rightarrow> bool" where
+"balanced Leaf = True" |
+"balanced (Node l x r) = (balanced l \<and> balanced r \<and> height l = height r)"
+
+lemma balanced_size1: "balanced t \<Longrightarrow> size1 t = 2 ^ height t"
+by (induction t) auto
+
+lemma balanced_size: "balanced t \<Longrightarrow> size t = 2 ^ height t - 1"
+using balanced_size1[simplified size1_def] by fastforce
+
+
 subsection "The set of subtrees"
 
 fun subtrees :: "'a tree \<Rightarrow> 'a tree set" where
