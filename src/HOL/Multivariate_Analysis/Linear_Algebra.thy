@@ -886,6 +886,100 @@ proof -
   ultimately show ?thesis by blast
 qed
 
+lemma linear_independent_extend_subspace:
+  assumes "independent B"
+  shows "\<exists>g. linear g \<and> (\<forall>x\<in>B. g x = f x) \<and> range g = span (f`B)"
+proof -
+  from maximal_independent_subset_extend[OF _ \<open>independent B\<close>, of UNIV]
+  obtain B' where "B \<subseteq> B'" "independent B'" "span B' = UNIV"
+    by (auto simp: top_unique)
+  have "\<forall>y. \<exists>X. {x. X x \<noteq> 0} \<subseteq> B' \<and> finite {x. X x \<noteq> 0} \<and> y = (\<Sum>x|X x \<noteq> 0. X x *\<^sub>R x)"
+    using \<open>span B' = UNIV\<close> unfolding span_alt by auto
+  then obtain X where X: "\<And>y. {x. X y x \<noteq> 0} \<subseteq> B'" "\<And>y. finite {x. X y x \<noteq> 0}"
+    "\<And>y. y = (\<Sum>x|X y x \<noteq> 0. X y x *\<^sub>R x)"
+    unfolding choice_iff by auto
+
+  have X_add: "X (x + y) = (\<lambda>z. X x z + X y z)" for x y
+    using \<open>independent B'\<close>
+  proof (rule independentD_unique)
+    have "(\<Sum>z | X x z + X y z \<noteq> 0. (X x z + X y z) *\<^sub>R z)
+      = (\<Sum>z\<in>{z. X x z \<noteq> 0} \<union> {z. X y z \<noteq> 0}. (X x z + X y z) *\<^sub>R z)"
+      by (intro setsum.mono_neutral_cong_left) (auto intro: X)
+    also have "\<dots> = (\<Sum>z\<in>{z. X x z \<noteq> 0}. X x z *\<^sub>R z) + (\<Sum>z\<in>{z. X y z \<noteq> 0}. X y z *\<^sub>R z)"
+      by (auto simp add: scaleR_add_left setsum.distrib
+               intro!: arg_cong2[where f="op +"]  setsum.mono_neutral_cong_right X)
+    also have "\<dots> = x + y"
+      by (simp add: X(3)[symmetric])
+    also have "\<dots> = (\<Sum>z | X (x + y) z \<noteq> 0. X (x + y) z *\<^sub>R z)"
+      by (rule X(3))
+    finally show "(\<Sum>z | X (x + y) z \<noteq> 0. X (x + y) z *\<^sub>R z) = (\<Sum>z | X x z + X y z \<noteq> 0. (X x z + X y z) *\<^sub>R z)"
+      ..
+    have "{z. X x z + X y z \<noteq> 0} \<subseteq> {z. X x z \<noteq> 0} \<union> {z. X y z \<noteq> 0}"
+      by auto
+    then show "finite {z. X x z + X y z \<noteq> 0}" "{xa. X x xa + X y xa \<noteq> 0} \<subseteq> B'"
+        "finite {xa. X (x + y) xa \<noteq> 0}" "{xa. X (x + y) xa \<noteq> 0} \<subseteq> B'"
+      using X(1) by (auto dest: finite_subset intro: X)
+  qed
+
+  have X_cmult: "X (c *\<^sub>R x) = (\<lambda>z. c * X x z)" for x c
+    using \<open>independent B'\<close>
+  proof (rule independentD_unique)
+    show "finite {z. X (c *\<^sub>R x) z \<noteq> 0}" "{z. X (c *\<^sub>R x) z \<noteq> 0} \<subseteq> B'"
+      "finite {z. c * X x z \<noteq> 0}" "{z. c * X x z \<noteq> 0} \<subseteq> B' "
+      using X(1,2) by auto
+    show "(\<Sum>z | X (c *\<^sub>R x) z \<noteq> 0. X (c *\<^sub>R x) z *\<^sub>R z) = (\<Sum>z | c * X x z \<noteq> 0. (c * X x z) *\<^sub>R z)"
+      unfolding scaleR_scaleR[symmetric] scaleR_setsum_right[symmetric]
+      by (cases "c = 0") (auto simp: X(3)[symmetric])
+  qed
+
+  have X_B': "x \<in> B' \<Longrightarrow> X x = (\<lambda>z. if z = x then 1 else 0)" for x
+    using \<open>independent B'\<close>
+    by (rule independentD_unique[OF _ X(2) X(1)]) (auto intro: X simp: X(3)[symmetric])
+
+  def f' \<equiv> "\<lambda>y. if y \<in> B then f y else 0"
+  def g \<equiv> "\<lambda>y. \<Sum>x|X y x \<noteq> 0. X y x *\<^sub>R f' x"
+
+  have g_f': "x \<in> B' \<Longrightarrow> g x = f' x" for x
+    by (auto simp: g_def X_B')
+
+  have "linear g"
+  proof
+    fix x y
+    have *: "(\<Sum>z | X x z + X y z \<noteq> 0. (X x z + X y z) *\<^sub>R f' z)
+      = (\<Sum>z\<in>{z. X x z \<noteq> 0} \<union> {z. X y z \<noteq> 0}. (X x z + X y z) *\<^sub>R f' z)"
+      by (intro setsum.mono_neutral_cong_left) (auto intro: X)
+    show "g (x + y) = g x + g y"
+      unfolding g_def X_add *
+      by (auto simp add: scaleR_add_left setsum.distrib
+               intro!: arg_cong2[where f="op +"]  setsum.mono_neutral_cong_right X)
+  next
+    show "g (r *\<^sub>R x) = r *\<^sub>R g x" for r x
+      by (auto simp add: g_def X_cmult scaleR_setsum_right intro!: setsum.mono_neutral_cong_left X)
+  qed
+  moreover have "\<forall>x\<in>B. g x = f x"
+    using \<open>B \<subseteq> B'\<close> by (auto simp: g_f' f'_def)
+  moreover have "range g = span (f`B)"
+    unfolding \<open>span B' = UNIV\<close>[symmetric] span_linear_image[OF \<open>linear g\<close>, symmetric]
+  proof (rule span_subspace)
+    have "g ` B' \<subseteq> f`B \<union> {0}"
+      by (auto simp: g_f' f'_def)
+    also have "\<dots> \<subseteq> span (f`B)"
+      by (auto intro: span_superset span_0)
+    finally show "g ` B' \<subseteq> span (f`B)"
+      by auto
+    have "x \<in> B \<Longrightarrow> f x = g x" for x
+      using \<open>B \<subseteq> B'\<close> by (auto simp add: g_f' f'_def)
+    then show "span (f ` B) \<subseteq> span (g ` B')"
+      using \<open>B \<subseteq> B'\<close> by (intro span_mono) auto
+  qed (rule subspace_span)
+  ultimately show ?thesis
+    by auto
+qed
+
+lemma linear_independent_extend:
+  "independent B \<Longrightarrow> \<exists>g. linear g \<and> (\<forall>x\<in>B. g x = f x)"
+  using linear_independent_extend_subspace[of B f] by auto
+
 text \<open>The degenerate case of the Exchange Lemma.\<close>
 
 lemma spanning_subset_independent:
@@ -932,6 +1026,7 @@ lemma exchange_lemma:
     and i: "independent s"
     and sp: "s \<subseteq> span t"
   shows "\<exists>t'. card t' = card t \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
+  thm maximal_independent_subset_extend[OF _ i, of "s \<union> t"]
   using f i sp
 proof (induct "card (t - s)" arbitrary: s t rule: less_induct)
   case less
@@ -2261,152 +2356,6 @@ next
   from "2.hyps"(3)[OF fb ifb fib xsb "2.prems"(5)] show "x = 0" .
 qed
 
-text \<open>We can extend a linear mapping from basis.\<close>
-
-lemma linear_independent_extend_lemma:
-  fixes f :: "'a::real_vector \<Rightarrow> 'b::real_vector"
-  assumes fi: "finite B"
-    and ib: "independent B"
-  shows "\<exists>g.
-    (\<forall>x\<in> span B. \<forall>y\<in> span B. g (x + y) = g x + g y) \<and>
-    (\<forall>x\<in> span B. \<forall>c. g (c*\<^sub>R x) = c *\<^sub>R g x) \<and>
-    (\<forall>x\<in> B. g x = f x)"
-  using ib fi
-proof (induct rule: finite_induct[OF fi])
-  case 1
-  then show ?case by auto
-next
-  case (2 a b)
-  from "2.prems" "2.hyps" have ibf: "independent b" "finite b"
-    by (simp_all add: independent_insert)
-  from "2.hyps"(3)[OF ibf] obtain g where
-    g: "\<forall>x\<in>span b. \<forall>y\<in>span b. g (x + y) = g x + g y"
-    "\<forall>x\<in>span b. \<forall>c. g (c *\<^sub>R x) = c *\<^sub>R g x" "\<forall>x\<in>b. g x = f x" by blast
-  let ?h = "\<lambda>z. SOME k. (z - k *\<^sub>R a) \<in> span b"
-  {
-    fix z
-    assume z: "z \<in> span (insert a b)"
-    have th0: "z - ?h z *\<^sub>R a \<in> span b"
-      apply (rule someI_ex)
-      unfolding span_breakdown_eq[symmetric]
-      apply (rule z)
-      done
-    {
-      fix k
-      assume k: "z - k *\<^sub>R a \<in> span b"
-      have eq: "z - ?h z *\<^sub>R a - (z - k*\<^sub>R a) = (k - ?h z) *\<^sub>R a"
-        by (simp add: field_simps scaleR_left_distrib [symmetric])
-      from span_sub[OF th0 k] have khz: "(k - ?h z) *\<^sub>R a \<in> span b"
-        by (simp add: eq)
-      {
-        assume "k \<noteq> ?h z"
-        then have k0: "k - ?h z \<noteq> 0" by simp
-        from k0 span_mul[OF khz, of "1 /(k - ?h z)"]
-        have "a \<in> span b" by simp
-        with "2.prems"(1) "2.hyps"(2) have False
-          by (auto simp add: dependent_def)
-      }
-      then have "k = ?h z" by blast
-    }
-    with th0 have "z - ?h z *\<^sub>R a \<in> span b \<and> (\<forall>k. z - k *\<^sub>R a \<in> span b \<longrightarrow> k = ?h z)"
-      by blast
-  }
-  note h = this
-  let ?g = "\<lambda>z. ?h z *\<^sub>R f a + g (z - ?h z *\<^sub>R a)"
-  {
-    fix x y
-    assume x: "x \<in> span (insert a b)"
-      and y: "y \<in> span (insert a b)"
-    have tha: "\<And>(x::'a) y a k l. (x + y) - (k + l) *\<^sub>R a = (x - k *\<^sub>R a) + (y - l *\<^sub>R a)"
-      by (simp add: algebra_simps)
-    have addh: "?h (x + y) = ?h x + ?h y"
-      apply (rule conjunct2[OF h, rule_format, symmetric])
-      apply (rule span_add[OF x y])
-      unfolding tha
-      apply (metis span_add x y conjunct1[OF h, rule_format])
-      done
-    have "?g (x + y) = ?g x + ?g y"
-      unfolding addh tha
-      g(1)[rule_format,OF conjunct1[OF h, OF x] conjunct1[OF h, OF y]]
-      by (simp add: scaleR_left_distrib)}
-  moreover
-  {
-    fix x :: "'a"
-    fix c :: real
-    assume x: "x \<in> span (insert a b)"
-    have tha: "\<And>(x::'a) c k a. c *\<^sub>R x - (c * k) *\<^sub>R a = c *\<^sub>R (x - k *\<^sub>R a)"
-      by (simp add: algebra_simps)
-    have hc: "?h (c *\<^sub>R x) = c * ?h x"
-      apply (rule conjunct2[OF h, rule_format, symmetric])
-      apply (metis span_mul x)
-      apply (metis tha span_mul x conjunct1[OF h])
-      done
-    have "?g (c *\<^sub>R x) = c*\<^sub>R ?g x"
-      unfolding hc tha g(2)[rule_format, OF conjunct1[OF h, OF x]]
-      by (simp add: algebra_simps)
-  }
-  moreover
-  {
-    fix x
-    assume x: "x \<in> insert a b"
-    {
-      assume xa: "x = a"
-      have ha1: "1 = ?h a"
-        apply (rule conjunct2[OF h, rule_format])
-        apply (metis span_superset insertI1)
-        using conjunct1[OF h, OF span_superset, OF insertI1]
-        apply (auto simp add: span_0)
-        done
-      from xa ha1[symmetric] have "?g x = f x"
-        apply simp
-        using g(2)[rule_format, OF span_0, of 0]
-        apply simp
-        done
-    }
-    moreover
-    {
-      assume xb: "x \<in> b"
-      have h0: "0 = ?h x"
-        apply (rule conjunct2[OF h, rule_format])
-        apply (metis  span_superset x)
-        apply simp
-        apply (metis span_superset xb)
-        done
-      have "?g x = f x"
-        by (simp add: h0[symmetric] g(3)[rule_format, OF xb])
-    }
-    ultimately have "?g x = f x"
-      using x by blast
-  }
-  ultimately show ?case
-    apply -
-    apply (rule exI[where x="?g"])
-    apply blast
-    done
-qed
-
-lemma linear_independent_extend:
-  fixes B :: "'a::euclidean_space set"
-  assumes iB: "independent B"
-  shows "\<exists>g. linear g \<and> (\<forall>x\<in>B. g x = f x)"
-proof -
-  from maximal_independent_subset_extend[of B UNIV] iB
-  obtain C where C: "B \<subseteq> C" "independent C" "\<And>x. x \<in> span C"
-    by auto
-
-  from C(2) independent_bound[of C] linear_independent_extend_lemma[of C f]
-  obtain g where g:
-    "(\<forall>x\<in> span C. \<forall>y\<in> span C. g (x + y) = g x + g y) \<and>
-     (\<forall>x\<in> span C. \<forall>c. g (c*\<^sub>R x) = c *\<^sub>R g x) \<and>
-     (\<forall>x\<in> C. g x = f x)" by blast
-  from g show ?thesis
-    unfolding linear_iff
-    using C
-    apply clarsimp
-    apply blast
-    done
-qed
-
 text \<open>Can construct an isomorphism between spaces of same dimension.\<close>
 
 lemma subspace_isomorphism:
@@ -2482,15 +2431,15 @@ lemma linear_eq_0:
   assumes lf: "linear f"
     and SB: "S \<subseteq> span B"
     and f0: "\<forall>x\<in>B. f x = 0"
-  shows "\<forall>x \<in> S. f x = 0"
+  shows "\<forall>x\<in>S. f x = 0"
   by (metis linear_eq_0_span[OF lf] subset_eq SB f0)
 
 lemma linear_eq:
   assumes lf: "linear f"
     and lg: "linear g"
     and S: "S \<subseteq> span B"
-    and fg: "\<forall> x\<in> B. f x = g x"
-  shows "\<forall>x\<in> S. f x = g x"
+    and fg: "\<forall>x\<in>B. f x = g x"
+  shows "\<forall>x\<in>S. f x = g x"
 proof -
   let ?h = "\<lambda>x. f x - g x"
   from fg have fg': "\<forall>x\<in> B. ?h x = 0" by simp
