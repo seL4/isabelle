@@ -268,6 +268,9 @@ lemma span_unique:
 lemma span_minimal: "S \<subseteq> T \<Longrightarrow> subspace T \<Longrightarrow> span S \<subseteq> T"
   unfolding span_def by (rule hull_minimal)
 
+lemma span_UNIV: "span UNIV = UNIV"
+  by (intro span_unique) auto
+
 lemma (in real_vector) span_induct:
   assumes x: "x \<in> span S"
     and P: "subspace P"
@@ -399,6 +402,10 @@ lemma (in real_vector) span_0: "0 \<in> span S"
 lemma span_inc: "S \<subseteq> span S"
   by (metis subset_eq span_superset)
 
+lemma span_eq: "span S = span T \<longleftrightarrow> S \<subseteq> span T \<and> T \<subseteq> span S"
+  using span_inc[unfolded subset_eq] using span_mono[of T "span S"] span_mono[of S "span T"]
+  by (auto simp add: span_span)
+
 lemma (in real_vector) dependent_0:
   assumes "0 \<in> A"
   shows "dependent A"
@@ -476,6 +483,12 @@ next
     unfolding image_subset_iff_subset_vimage
     by (intro span_minimal subspace_linear_vimage lf)
 qed
+
+lemma spans_image:
+  assumes lf: "linear f"
+    and VB: "V \<subseteq> span B"
+  shows "f ` V \<subseteq> span (f ` B)"
+  unfolding span_linear_image[OF lf] by (metis VB image_mono)
 
 lemma span_union: "span (A \<union> B) = (\<lambda>(a, b). a + b) ` (span A \<times> span B)"
 proof (rule span_unique)
@@ -980,6 +993,30 @@ lemma linear_independent_extend:
   "independent B \<Longrightarrow> \<exists>g. linear g \<and> (\<forall>x\<in>B. g x = f x)"
   using linear_independent_extend_subspace[of B f] by auto
 
+text \<open>Linear functions are equal on a subspace if they are on a spanning set.\<close>
+
+lemma subspace_kernel:
+  assumes lf: "linear f"
+  shows "subspace {x. f x = 0}"
+  apply (simp add: subspace_def)
+  apply (simp add: linear_add[OF lf] linear_cmul[OF lf] linear_0[OF lf])
+  done
+
+lemma linear_eq_0_span:
+  assumes lf: "linear f" and f0: "\<forall>x\<in>B. f x = 0"
+  shows "\<forall>x \<in> span B. f x = 0"
+  using f0 subspace_kernel[OF lf]
+  by (rule span_induct')
+
+lemma linear_eq_0: "linear f \<Longrightarrow> S \<subseteq> span B \<Longrightarrow> \<forall>x\<in>B. f x = 0 \<Longrightarrow> \<forall>x\<in>S. f x = 0"
+  using linear_eq_0_span[of f B] by auto
+
+lemma linear_eq_span:  "linear f \<Longrightarrow> linear g \<Longrightarrow> \<forall>x\<in>B. f x = g x \<Longrightarrow> \<forall>x \<in> span B. f x = g x"
+  using linear_eq_0_span[of "\<lambda>x. f x - g x" B] by (auto simp: linear_compose_sub)
+
+lemma linear_eq: "linear f \<Longrightarrow> linear g \<Longrightarrow> S \<subseteq> span B \<Longrightarrow> \<forall>x\<in>B. f x = g x \<Longrightarrow> \<forall>x\<in>S. f x = g x"
+  using linear_eq_span[of f g B] by auto
+
 text \<open>The degenerate case of the Exchange Lemma.\<close>
 
 lemma spanning_subset_independent:
@@ -1019,6 +1056,114 @@ proof
   then show "A \<subseteq> B" by blast
 qed
 
+text \<open>Relation between bases and injectivity/surjectivity of map.\<close>
+
+lemma spanning_surjective_image:
+  assumes us: "UNIV \<subseteq> span S"
+    and lf: "linear f"
+    and sf: "surj f"
+  shows "UNIV \<subseteq> span (f ` S)"
+proof -
+  have "UNIV \<subseteq> f ` UNIV"
+    using sf by (auto simp add: surj_def)
+  also have " \<dots> \<subseteq> span (f ` S)"
+    using spans_image[OF lf us] .
+  finally show ?thesis .
+qed
+
+lemma independent_inj_on_image:
+  assumes iS: "independent S"
+    and lf: "linear f"
+    and fi: "inj_on f (span S)"
+  shows "independent (f ` S)"
+proof -
+  {
+    fix a
+    assume a: "a \<in> S" "f a \<in> span (f ` S - {f a})"
+    have eq: "f ` S - {f a} = f ` (S - {a})"
+      using fi \<open>a\<in>S\<close> by (auto simp add: inj_on_def span_superset)
+    from a have "f a \<in> f ` span (S - {a})"
+      unfolding eq span_linear_image[OF lf, of "S - {a}"] by blast
+    then have "a \<in> span (S - {a})"
+      by (rule inj_on_image_mem_iff_alt[OF fi, rotated])
+         (insert span_mono[of "S - {a}" S], auto intro: span_superset \<open>a\<in>S\<close>)
+    with a(1) iS have False
+      by (simp add: dependent_def)
+  }
+  then show ?thesis
+    unfolding dependent_def by blast
+qed
+
+lemma independent_injective_image:
+  "independent S \<Longrightarrow> linear f \<Longrightarrow> inj f \<Longrightarrow> independent (f ` S)"
+  using independent_inj_on_image[of S f] by (auto simp: subset_inj_on)
+
+text \<open>Detailed theorems about left and right invertibility in general case.\<close>
+
+lemma linear_inj_on_left_inverse:
+  assumes lf: "linear f" and fi: "inj_on f (span S)"
+  shows "\<exists>g. range g \<subseteq> span S \<and> linear g \<and> (\<forall>x\<in>span S. g (f x) = x)"
+proof -
+  obtain B where "independent B" "B \<subseteq> S" "S \<subseteq> span B"
+    using maximal_independent_subset[of S] by auto
+  then have "span S = span B"
+    unfolding span_eq by (auto simp: span_superset)
+  with linear_independent_extend_subspace[OF independent_inj_on_image, OF \<open>independent B\<close> lf] fi
+  obtain g where g: "linear g" "\<forall>x\<in>f ` B. g x = inv_into B f x" "range g = span (inv_into B f ` f ` B)"
+    by fastforce
+  have fB: "inj_on f B"
+    using fi by (auto simp: \<open>span S = span B\<close> intro: subset_inj_on span_superset)
+
+  have "\<forall>x\<in>span B. g (f x) = x"
+  proof (intro linear_eq_span)
+    show "linear (\<lambda>x. x)" "linear (\<lambda>x. g (f x))"
+      using linear_id linear_compose[OF \<open>linear f\<close> \<open>linear g\<close>] by (auto simp: id_def comp_def)
+    show "\<forall>x \<in> B. g (f x) = x"
+      using g fi \<open>span S = span B\<close> by (auto simp: fB)
+  qed
+  moreover
+  have "inv_into B f ` f ` B \<subseteq> B"
+    by (auto simp: fB)
+  then have "range g \<subseteq> span S"
+    unfolding g \<open>span S = span B\<close> by (intro span_mono)
+  ultimately show ?thesis
+    using \<open>span S = span B\<close> \<open>linear g\<close> by auto
+qed
+
+lemma linear_injective_left_inverse: "linear f \<Longrightarrow> inj f \<Longrightarrow> \<exists>g. linear g \<and> g \<circ> f = id"
+  using linear_inj_on_left_inverse[of f UNIV] by (auto simp: fun_eq_iff span_UNIV)
+
+lemma linear_surj_right_inverse:
+  assumes lf: "linear f" and sf: "span T \<subseteq> f`span S"
+  shows "\<exists>g. range g \<subseteq> span S \<and> linear g \<and> (\<forall>x\<in>span T. f (g x) = x)"
+proof -
+  obtain B where "independent B" "B \<subseteq> T" "T \<subseteq> span B"
+    using maximal_independent_subset[of T] by auto
+  then have "span T = span B"
+    unfolding span_eq by (auto simp: span_superset)
+
+  from linear_independent_extend_subspace[OF \<open>independent B\<close>, of "inv_into (span S) f"]
+  obtain g where g: "linear g" "\<forall>x\<in>B. g x = inv_into (span S) f x" "range g = span (inv_into (span S) f`B)"
+    by auto
+  moreover have "x \<in> B \<Longrightarrow> f (inv_into (span S) f x) = x" for x
+    using \<open>B \<subseteq> T\<close> \<open>span T \<subseteq> f`span S\<close> by (intro f_inv_into_f) (auto intro: span_superset)
+  ultimately have "\<forall>x\<in>B. f (g x) = x"
+    by auto
+  then have "\<forall>x\<in>span B. f (g x) = x"
+    using linear_id linear_compose[OF \<open>linear g\<close> \<open>linear f\<close>]
+    by (intro linear_eq_span) (auto simp: id_def comp_def)
+  moreover have "inv_into (span S) f ` B \<subseteq> span S"
+    using \<open>B \<subseteq> T\<close> \<open>span T \<subseteq> f`span S\<close> by (auto intro: inv_into_into span_superset)
+  then have "range g \<subseteq> span S"
+    unfolding g by (intro span_minimal subspace_span) auto
+  ultimately show ?thesis
+    using \<open>linear g\<close> \<open>span T = span B\<close> by auto
+qed
+
+lemma linear_surjective_right_inverse: "linear f \<Longrightarrow> surj f \<Longrightarrow> \<exists>g. linear g \<and> f \<circ> g = id"
+  using linear_surj_right_inverse[of f UNIV UNIV]
+  by (auto simp: span_UNIV fun_eq_iff)
+
 text \<open>The general case of the Exchange Lemma, the key to what follows.\<close>
 
 lemma exchange_lemma:
@@ -1026,7 +1171,6 @@ lemma exchange_lemma:
     and i: "independent s"
     and sp: "s \<subseteq> span t"
   shows "\<exists>t'. card t' = card t \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
-  thm maximal_independent_subset_extend[OF _ i, of "s \<union> t"]
   using f i sp
 proof (induct "card (t - s)" arbitrary: s t rule: less_induct)
   case less
@@ -2035,12 +2179,6 @@ lemma span_eq_dim:
   shows "span S = span T \<Longrightarrow> dim S = dim T"
   by (metis dim_span)
 
-lemma spans_image:
-  assumes lf: "linear f"
-    and VB: "V \<subseteq> span B"
-  shows "f ` V \<subseteq> span (f ` B)"
-  unfolding span_linear_image[OF lf] by (metis VB image_mono)
-
 lemma dim_image_le:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes lf: "linear f"
@@ -2058,43 +2196,6 @@ proof -
   also have "\<dots> \<le> dim S"
     using card_image_le[OF fB(1)] fB by simp
   finally show ?thesis .
-qed
-
-text \<open>Relation between bases and injectivity/surjectivity of map.\<close>
-
-lemma spanning_surjective_image:
-  assumes us: "UNIV \<subseteq> span S"
-    and lf: "linear f"
-    and sf: "surj f"
-  shows "UNIV \<subseteq> span (f ` S)"
-proof -
-  have "UNIV \<subseteq> f ` UNIV"
-    using sf by (auto simp add: surj_def)
-  also have " \<dots> \<subseteq> span (f ` S)"
-    using spans_image[OF lf us] .
-  finally show ?thesis .
-qed
-
-lemma independent_injective_image:
-  assumes iS: "independent S"
-    and lf: "linear f"
-    and fi: "inj f"
-  shows "independent (f ` S)"
-proof -
-  {
-    fix a
-    assume a: "a \<in> S" "f a \<in> span (f ` S - {f a})"
-    have eq: "f ` S - {f a} = f ` (S - {a})"
-      using fi by (auto simp add: inj_on_def)
-    from a have "f a \<in> f ` span (S - {a})"
-      unfolding eq span_linear_image[OF lf, of "S - {a}"] by blast
-    then have "a \<in> span (S - {a})"
-      using fi by (auto simp add: inj_on_def)
-    with a(1) iS have False
-      by (simp add: dependent_def)
-  }
-  then show ?thesis
-    unfolding dependent_def by blast
 qed
 
 text \<open>Picking an orthogonal replacement for a spanning set.\<close>
@@ -2205,10 +2306,6 @@ proof -
   from C B CSV CdV iC show ?thesis
     by auto
 qed
-
-lemma span_eq: "span S = span T \<longleftrightarrow> S \<subseteq> span T \<and> T \<subseteq> span S"
-  using span_inc[unfolded subset_eq] using span_mono[of T "span S"] span_mono[of S "span T"]
-  by (auto simp add: span_span)
 
 text \<open>Low-dimensional subset is in a hyperplane (weak orthogonal complement).\<close>
 
@@ -2412,41 +2509,6 @@ proof -
     by blast
 qed
 
-text \<open>Linear functions are equal on a subspace if they are on a spanning set.\<close>
-
-lemma subspace_kernel:
-  assumes lf: "linear f"
-  shows "subspace {x. f x = 0}"
-  apply (simp add: subspace_def)
-  apply (simp add: linear_add[OF lf] linear_cmul[OF lf] linear_0[OF lf])
-  done
-
-lemma linear_eq_0_span:
-  assumes lf: "linear f" and f0: "\<forall>x\<in>B. f x = 0"
-  shows "\<forall>x \<in> span B. f x = 0"
-  using f0 subspace_kernel[OF lf]
-  by (rule span_induct')
-
-lemma linear_eq_0:
-  assumes lf: "linear f"
-    and SB: "S \<subseteq> span B"
-    and f0: "\<forall>x\<in>B. f x = 0"
-  shows "\<forall>x\<in>S. f x = 0"
-  by (metis linear_eq_0_span[OF lf] subset_eq SB f0)
-
-lemma linear_eq:
-  assumes lf: "linear f"
-    and lg: "linear g"
-    and S: "S \<subseteq> span B"
-    and fg: "\<forall>x\<in>B. f x = g x"
-  shows "\<forall>x\<in>S. f x = g x"
-proof -
-  let ?h = "\<lambda>x. f x - g x"
-  from fg have fg': "\<forall>x\<in> B. ?h x = 0" by simp
-  from linear_eq_0[OF linear_compose_sub[OF lf lg] S fg']
-  show ?thesis by simp
-qed
-
 lemma linear_eq_stdbasis:
   fixes f :: "'a::euclidean_space \<Rightarrow> _"
   assumes lf: "linear f"
@@ -2492,43 +2554,6 @@ lemma bilinear_eq_stdbasis:
     and fg: "\<forall>i\<in>Basis. \<forall>j\<in>Basis. f i j = g i j"
   shows "f = g"
   using bilinear_eq[OF bf bg equalityD2[OF span_Basis] equalityD2[OF span_Basis] fg] by blast
-
-text \<open>Detailed theorems about left and right invertibility in general case.\<close>
-
-lemma linear_injective_left_inverse:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes lf: "linear f"
-    and fi: "inj f"
-  shows "\<exists>g. linear g \<and> g \<circ> f = id"
-proof -
-  from linear_independent_extend[OF independent_injective_image, OF independent_Basis, OF lf fi]
-  obtain h :: "'b \<Rightarrow> 'a" where h: "linear h" "\<forall>x \<in> f ` Basis. h x = inv f x"
-    by blast
-  from h(2) have th: "\<forall>i\<in>Basis. (h \<circ> f) i = id i"
-    using inv_o_cancel[OF fi, unfolded fun_eq_iff id_def o_def]
-    by auto
-  from linear_eq_stdbasis[OF linear_compose[OF lf h(1)] linear_id th]
-  have "h \<circ> f = id" .
-  then show ?thesis
-    using h(1) by blast
-qed
-
-lemma linear_surjective_right_inverse:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes lf: "linear f"
-    and sf: "surj f"
-  shows "\<exists>g. linear g \<and> f \<circ> g = id"
-proof -
-  from linear_independent_extend[OF independent_Basis[where 'a='b],of "inv f"]
-  obtain h :: "'b \<Rightarrow> 'a" where h: "linear h" "\<forall>x\<in>Basis. h x = inv f x"
-    by blast
-  from h(2) have th: "\<forall>i\<in>Basis. (f \<circ> h) i = id i"
-    using sf by (auto simp add: surj_iff_all)
-  from linear_eq_stdbasis[OF linear_compose[OF h(1) lf] linear_id th]
-  have "f \<circ> h = id" .
-  then show ?thesis
-    using h(1) by blast
-qed
 
 text \<open>An injective map @{typ "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"} is also surjective.\<close>
 
