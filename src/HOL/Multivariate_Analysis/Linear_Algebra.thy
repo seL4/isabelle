@@ -10,194 +10,71 @@ imports
   "~~/src/HOL/Library/Infinite_Set"
 begin
 
-lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
-  by auto
+subsection \<open>A generic notion of "hull" (convex, affine, conic hull and closure).\<close>
 
-notation inner (infix "\<bullet>" 70)
+definition hull :: "('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "hull" 75)
+  where "S hull s = \<Inter>{t. S t \<and> s \<subseteq> t}"
 
-lemma square_bound_lemma:
-  fixes x :: real
-  shows "x < (1 + x) * (1 + x)"
-proof -
-  have "(x + 1/2)\<^sup>2 + 3/4 > 0"
-    using zero_le_power2[of "x+1/2"] by arith
-  then show ?thesis
-    by (simp add: field_simps power2_eq_square)
-qed
+lemma hull_same: "S s \<Longrightarrow> S hull s = s"
+  unfolding hull_def by auto
 
-lemma square_continuous:
-  fixes e :: real
-  shows "e > 0 \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>y. \<bar>y - x\<bar> < d \<longrightarrow> \<bar>y * y - x * x\<bar> < e)"
-  using isCont_power[OF continuous_ident, of x, unfolded isCont_def LIM_eq, rule_format, of e 2]
-  by (force simp add: power2_eq_square)
+lemma hull_in: "(\<And>T. Ball T S \<Longrightarrow> S (\<Inter>T)) \<Longrightarrow> S (S hull s)"
+  unfolding hull_def Ball_def by auto
 
-text\<open>Hence derive more interesting properties of the norm.\<close>
+lemma hull_eq: "(\<And>T. Ball T S \<Longrightarrow> S (\<Inter>T)) \<Longrightarrow> (S hull s) = s \<longleftrightarrow> S s"
+  using hull_same[of S s] hull_in[of S s] by metis
 
-lemma norm_eq_0_dot: "norm x = 0 \<longleftrightarrow> x \<bullet> x = (0::real)"
-  by simp (* TODO: delete *)
+lemma hull_hull [simp]: "S hull (S hull s) = S hull s"
+  unfolding hull_def by blast
 
-lemma norm_triangle_sub:
-  fixes x y :: "'a::real_normed_vector"
-  shows "norm x \<le> norm y + norm (x - y)"
-  using norm_triangle_ineq[of "y" "x - y"] by (simp add: field_simps)
+lemma hull_subset[intro]: "s \<subseteq> (S hull s)"
+  unfolding hull_def by blast
 
-lemma norm_le: "norm x \<le> norm y \<longleftrightarrow> x \<bullet> x \<le> y \<bullet> y"
-  by (simp add: norm_eq_sqrt_inner)
+lemma hull_mono: "s \<subseteq> t \<Longrightarrow> (S hull s) \<subseteq> (S hull t)"
+  unfolding hull_def by blast
 
-lemma norm_lt: "norm x < norm y \<longleftrightarrow> x \<bullet> x < y \<bullet> y"
-  by (simp add: norm_eq_sqrt_inner)
+lemma hull_antimono: "\<forall>x. S x \<longrightarrow> T x \<Longrightarrow> (T hull s) \<subseteq> (S hull s)"
+  unfolding hull_def by blast
 
-lemma norm_eq: "norm x = norm y \<longleftrightarrow> x \<bullet> x = y \<bullet> y"
-  apply (subst order_eq_iff)
-  apply (auto simp: norm_le)
+lemma hull_minimal: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (S hull s) \<subseteq> t"
+  unfolding hull_def by blast
+
+lemma subset_hull: "S t \<Longrightarrow> S hull s \<subseteq> t \<longleftrightarrow> s \<subseteq> t"
+  unfolding hull_def by blast
+
+lemma hull_UNIV [simp]: "S hull UNIV = UNIV"
+  unfolding hull_def by auto
+
+lemma hull_unique: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (\<And>t'. s \<subseteq> t' \<Longrightarrow> S t' \<Longrightarrow> t \<subseteq> t') \<Longrightarrow> (S hull s = t)"
+  unfolding hull_def by auto
+
+lemma hull_induct: "(\<And>x. x\<in> S \<Longrightarrow> P x) \<Longrightarrow> Q {x. P x} \<Longrightarrow> \<forall>x\<in> Q hull S. P x"
+  using hull_minimal[of S "{x. P x}" Q]
+  by (auto simp add: subset_eq)
+
+lemma hull_inc: "x \<in> S \<Longrightarrow> x \<in> P hull S"
+  by (metis hull_subset subset_eq)
+
+lemma hull_union_subset: "(S hull s) \<union> (S hull t) \<subseteq> (S hull (s \<union> t))"
+  unfolding Un_subset_iff by (metis hull_mono Un_upper1 Un_upper2)
+
+lemma hull_union:
+  assumes T: "\<And>T. Ball T S \<Longrightarrow> S (\<Inter>T)"
+  shows "S hull (s \<union> t) = S hull (S hull s \<union> S hull t)"
+  apply rule
+  apply (rule hull_mono)
+  unfolding Un_subset_iff
+  apply (metis hull_subset Un_upper1 Un_upper2 subset_trans)
+  apply (rule hull_minimal)
+  apply (metis hull_union_subset)
+  apply (metis hull_in T)
   done
 
-lemma norm_eq_1: "norm x = 1 \<longleftrightarrow> x \<bullet> x = 1"
-  by (simp add: norm_eq_sqrt_inner)
+lemma hull_redundant_eq: "a \<in> (S hull s) \<longleftrightarrow> S hull (insert a s) = S hull s"
+  unfolding hull_def by blast
 
-text\<open>Squaring equations and inequalities involving norms.\<close>
-
-lemma dot_square_norm: "x \<bullet> x = (norm x)\<^sup>2"
-  by (simp only: power2_norm_eq_inner) (* TODO: move? *)
-
-lemma norm_eq_square: "norm x = a \<longleftrightarrow> 0 \<le> a \<and> x \<bullet> x = a\<^sup>2"
-  by (auto simp add: norm_eq_sqrt_inner)
-
-lemma norm_le_square: "norm x \<le> a \<longleftrightarrow> 0 \<le> a \<and> x \<bullet> x \<le> a\<^sup>2"
-  apply (simp add: dot_square_norm abs_le_square_iff[symmetric])
-  using norm_ge_zero[of x]
-  apply arith
-  done
-
-lemma norm_ge_square: "norm x \<ge> a \<longleftrightarrow> a \<le> 0 \<or> x \<bullet> x \<ge> a\<^sup>2"
-  apply (simp add: dot_square_norm abs_le_square_iff[symmetric])
-  using norm_ge_zero[of x]
-  apply arith
-  done
-
-lemma norm_lt_square: "norm x < a \<longleftrightarrow> 0 < a \<and> x \<bullet> x < a\<^sup>2"
-  by (metis not_le norm_ge_square)
-
-lemma norm_gt_square: "norm x > a \<longleftrightarrow> a < 0 \<or> x \<bullet> x > a\<^sup>2"
-  by (metis norm_le_square not_less)
-
-text\<open>Dot product in terms of the norm rather than conversely.\<close>
-
-lemmas inner_simps = inner_add_left inner_add_right inner_diff_right inner_diff_left
-  inner_scaleR_left inner_scaleR_right
-
-lemma dot_norm: "x \<bullet> y = ((norm (x + y))\<^sup>2 - (norm x)\<^sup>2 - (norm y)\<^sup>2) / 2"
-  unfolding power2_norm_eq_inner inner_simps inner_commute by auto
-
-lemma dot_norm_neg: "x \<bullet> y = (((norm x)\<^sup>2 + (norm y)\<^sup>2) - (norm (x - y))\<^sup>2) / 2"
-  unfolding power2_norm_eq_inner inner_simps inner_commute
-  by (auto simp add: algebra_simps)
-
-text\<open>Equality of vectors in terms of @{term "op \<bullet>"} products.\<close>
-
-lemma vector_eq: "x = y \<longleftrightarrow> x \<bullet> x = x \<bullet> y \<and> y \<bullet> y = x \<bullet> x"
-  (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?lhs
-  then show ?rhs by simp
-next
-  assume ?rhs
-  then have "x \<bullet> x - x \<bullet> y = 0 \<and> x \<bullet> y - y \<bullet> y = 0"
-    by simp
-  then have "x \<bullet> (x - y) = 0 \<and> y \<bullet> (x - y) = 0"
-    by (simp add: inner_diff inner_commute)
-  then have "(x - y) \<bullet> (x - y) = 0"
-    by (simp add: field_simps inner_diff inner_commute)
-  then show "x = y" by simp
-qed
-
-lemma norm_triangle_half_r:
-  "norm (y - x1) < e / 2 \<Longrightarrow> norm (y - x2) < e / 2 \<Longrightarrow> norm (x1 - x2) < e"
-  using dist_triangle_half_r unfolding dist_norm[symmetric] by auto
-
-lemma norm_triangle_half_l:
-  assumes "norm (x - y) < e / 2"
-    and "norm (x' - y) < e / 2"
-  shows "norm (x - x') < e"
-  using dist_triangle_half_l[OF assms[unfolded dist_norm[symmetric]]]
-  unfolding dist_norm[symmetric] .
-
-lemma norm_triangle_le: "norm x + norm y \<le> e \<Longrightarrow> norm (x + y) \<le> e"
-  by (rule norm_triangle_ineq [THEN order_trans])
-
-lemma norm_triangle_lt: "norm x + norm y < e \<Longrightarrow> norm (x + y) < e"
-  by (rule norm_triangle_ineq [THEN le_less_trans])
-
-lemma setsum_clauses:
-  shows "setsum f {} = 0"
-    and "finite S \<Longrightarrow> setsum f (insert x S) = (if x \<in> S then setsum f S else f x + setsum f S)"
-  by (auto simp add: insert_absorb)
-
-lemma setsum_norm_le:
-  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes fg: "\<forall>x \<in> S. norm (f x) \<le> g x"
-  shows "norm (setsum f S) \<le> setsum g S"
-  by (rule order_trans [OF norm_setsum setsum_mono]) (simp add: fg)
-
-lemma setsum_norm_bound:
-  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes K: "\<forall>x \<in> S. norm (f x) \<le> K"
-  shows "norm (setsum f S) \<le> of_nat (card S) * K"
-  using setsum_norm_le[OF K] setsum_constant[symmetric]
-  by simp
-
-lemma setsum_group:
-  assumes fS: "finite S" and fT: "finite T" and fST: "f ` S \<subseteq> T"
-  shows "setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) T = setsum g S"
-  apply (subst setsum_image_gen[OF fS, of g f])
-  apply (rule setsum.mono_neutral_right[OF fT fST])
-  apply (auto intro: setsum.neutral)
-  done
-
-lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = z"
-proof
-  assume "\<forall>x. x \<bullet> y = x \<bullet> z"
-  then have "\<forall>x. x \<bullet> (y - z) = 0"
-    by (simp add: inner_diff)
-  then have "(y - z) \<bullet> (y - z) = 0" ..
-  then show "y = z" by simp
-qed simp
-
-lemma vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = y"
-proof
-  assume "\<forall>z. x \<bullet> z = y \<bullet> z"
-  then have "\<forall>z. (x - y) \<bullet> z = 0"
-    by (simp add: inner_diff)
-  then have "(x - y) \<bullet> (x - y) = 0" ..
-  then show "x = y" by simp
-qed simp
-
-
-subsection \<open>Orthogonality.\<close>
-
-context real_inner
-begin
-
-definition "orthogonal x y \<longleftrightarrow> x \<bullet> y = 0"
-
-lemma orthogonal_clauses:
-  "orthogonal a 0"
-  "orthogonal a x \<Longrightarrow> orthogonal a (c *\<^sub>R x)"
-  "orthogonal a x \<Longrightarrow> orthogonal a (- x)"
-  "orthogonal a x \<Longrightarrow> orthogonal a y \<Longrightarrow> orthogonal a (x + y)"
-  "orthogonal a x \<Longrightarrow> orthogonal a y \<Longrightarrow> orthogonal a (x - y)"
-  "orthogonal 0 a"
-  "orthogonal x a \<Longrightarrow> orthogonal (c *\<^sub>R x) a"
-  "orthogonal x a \<Longrightarrow> orthogonal (- x) a"
-  "orthogonal x a \<Longrightarrow> orthogonal y a \<Longrightarrow> orthogonal (x + y) a"
-  "orthogonal x a \<Longrightarrow> orthogonal y a \<Longrightarrow> orthogonal (x - y) a"
-  unfolding orthogonal_def inner_add inner_diff by auto
-
-end
-
-lemma orthogonal_commute: "orthogonal x y \<longleftrightarrow> orthogonal y x"
-  by (simp add: orthogonal_def inner_commute)
-
+lemma hull_redundant: "a \<in> (S hull s) \<Longrightarrow> S hull (insert a s) = S hull s"
+  by (metis hull_redundant_eq)
 
 subsection \<open>Linear functions.\<close>
 
@@ -317,365 +194,7 @@ lemma linear_add_cmul:
   shows "f (a *\<^sub>R x + b *\<^sub>R y) = a *\<^sub>R f x +  b *\<^sub>R f y"
   using linear_add[of f] linear_cmul[of f] assms by simp
 
-lemma linear_componentwise:
-  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_inner"
-  assumes lf: "linear f"
-  shows "(f x) \<bullet> j = (\<Sum>i\<in>Basis. (x\<bullet>i) * (f i\<bullet>j))" (is "?lhs = ?rhs")
-proof -
-  have "?rhs = (\<Sum>i\<in>Basis. (x\<bullet>i) *\<^sub>R (f i))\<bullet>j"
-    by (simp add: inner_setsum_left)
-  then show ?thesis
-    unfolding linear_setsum_mul[OF lf, symmetric]
-    unfolding euclidean_representation ..
-qed
-
-
-subsection \<open>Bilinear functions.\<close>
-
-definition "bilinear f \<longleftrightarrow> (\<forall>x. linear (\<lambda>y. f x y)) \<and> (\<forall>y. linear (\<lambda>x. f x y))"
-
-lemma bilinear_ladd: "bilinear h \<Longrightarrow> h (x + y) z = h x z + h y z"
-  by (simp add: bilinear_def linear_iff)
-
-lemma bilinear_radd: "bilinear h \<Longrightarrow> h x (y + z) = h x y + h x z"
-  by (simp add: bilinear_def linear_iff)
-
-lemma bilinear_lmul: "bilinear h \<Longrightarrow> h (c *\<^sub>R x) y = c *\<^sub>R h x y"
-  by (simp add: bilinear_def linear_iff)
-
-lemma bilinear_rmul: "bilinear h \<Longrightarrow> h x (c *\<^sub>R y) = c *\<^sub>R h x y"
-  by (simp add: bilinear_def linear_iff)
-
-lemma bilinear_lneg: "bilinear h \<Longrightarrow> h (- x) y = - h x y"
-  by (drule bilinear_lmul [of _ "- 1"]) simp
-
-lemma bilinear_rneg: "bilinear h \<Longrightarrow> h x (- y) = - h x y"
-  by (drule bilinear_rmul [of _ _ "- 1"]) simp
-
-lemma (in ab_group_add) eq_add_iff: "x = x + y \<longleftrightarrow> y = 0"
-  using add_left_imp_eq[of x y 0] by auto
-
-lemma bilinear_lzero:
-  assumes "bilinear h"
-  shows "h 0 x = 0"
-  using bilinear_ladd [OF assms, of 0 0 x] by (simp add: eq_add_iff field_simps)
-
-lemma bilinear_rzero:
-  assumes "bilinear h"
-  shows "h x 0 = 0"
-  using bilinear_radd [OF assms, of x 0 0 ] by (simp add: eq_add_iff field_simps)
-
-lemma bilinear_lsub: "bilinear h \<Longrightarrow> h (x - y) z = h x z - h y z"
-  using bilinear_ladd [of h x "- y"] by (simp add: bilinear_lneg)
-
-lemma bilinear_rsub: "bilinear h \<Longrightarrow> h z (x - y) = h z x - h z y"
-  using bilinear_radd [of h _ x "- y"] by (simp add: bilinear_rneg)
-
-lemma bilinear_setsum:
-  assumes bh: "bilinear h"
-    and fS: "finite S"
-    and fT: "finite T"
-  shows "h (setsum f S) (setsum g T) = setsum (\<lambda>(i,j). h (f i) (g j)) (S \<times> T) "
-proof -
-  have "h (setsum f S) (setsum g T) = setsum (\<lambda>x. h (f x) (setsum g T)) S"
-    apply (rule linear_setsum[unfolded o_def])
-    using bh fS
-    apply (auto simp add: bilinear_def)
-    done
-  also have "\<dots> = setsum (\<lambda>x. setsum (\<lambda>y. h (f x) (g y)) T) S"
-    apply (rule setsum.cong, simp)
-    apply (rule linear_setsum[unfolded o_def])
-    using bh fT
-    apply (auto simp add: bilinear_def)
-    done
-  finally show ?thesis
-    unfolding setsum.cartesian_product .
-qed
-
-
-subsection \<open>Adjoints.\<close>
-
-definition "adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f' y)"
-
-lemma adjoint_unique:
-  assumes "\<forall>x y. inner (f x) y = inner x (g y)"
-  shows "adjoint f = g"
-  unfolding adjoint_def
-proof (rule some_equality)
-  show "\<forall>x y. inner (f x) y = inner x (g y)"
-    by (rule assms)
-next
-  fix h
-  assume "\<forall>x y. inner (f x) y = inner x (h y)"
-  then have "\<forall>x y. inner x (g y) = inner x (h y)"
-    using assms by simp
-  then have "\<forall>x y. inner x (g y - h y) = 0"
-    by (simp add: inner_diff_right)
-  then have "\<forall>y. inner (g y - h y) (g y - h y) = 0"
-    by simp
-  then have "\<forall>y. h y = g y"
-    by simp
-  then show "h = g" by (simp add: ext)
-qed
-
-text \<open>TODO: The following lemmas about adjoints should hold for any
-Hilbert space (i.e. complete inner product space).
-(see @{url "http://en.wikipedia.org/wiki/Hermitian_adjoint"})
-\<close>
-
-lemma adjoint_works:
-  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
-  assumes lf: "linear f"
-  shows "x \<bullet> adjoint f y = f x \<bullet> y"
-proof -
-  have "\<forall>y. \<exists>w. \<forall>x. f x \<bullet> y = x \<bullet> w"
-  proof (intro allI exI)
-    fix y :: "'m" and x
-    let ?w = "(\<Sum>i\<in>Basis. (f i \<bullet> y) *\<^sub>R i) :: 'n"
-    have "f x \<bullet> y = f (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i) \<bullet> y"
-      by (simp add: euclidean_representation)
-    also have "\<dots> = (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R f i) \<bullet> y"
-      unfolding linear_setsum[OF lf]
-      by (simp add: linear_cmul[OF lf])
-    finally show "f x \<bullet> y = x \<bullet> ?w"
-      by (simp add: inner_setsum_left inner_setsum_right mult.commute)
-  qed
-  then show ?thesis
-    unfolding adjoint_def choice_iff
-    by (intro someI2_ex[where Q="\<lambda>f'. x \<bullet> f' y = f x \<bullet> y"]) auto
-qed
-
-lemma adjoint_clauses:
-  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
-  assumes lf: "linear f"
-  shows "x \<bullet> adjoint f y = f x \<bullet> y"
-    and "adjoint f y \<bullet> x = y \<bullet> f x"
-  by (simp_all add: adjoint_works[OF lf] inner_commute)
-
-lemma adjoint_linear:
-  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
-  assumes lf: "linear f"
-  shows "linear (adjoint f)"
-  by (simp add: lf linear_iff euclidean_eq_iff[where 'a='n] euclidean_eq_iff[where 'a='m]
-    adjoint_clauses[OF lf] inner_distrib)
-
-lemma adjoint_adjoint:
-  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
-  assumes lf: "linear f"
-  shows "adjoint (adjoint f) = f"
-  by (rule adjoint_unique, simp add: adjoint_clauses [OF lf])
-
-
-subsection \<open>Interlude: Some properties of real sets\<close>
-
-lemma seq_mono_lemma:
-  assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n"
-    and "\<forall>n \<ge> m. e n \<le> e m"
-  shows "\<forall>n \<ge> m. d n < e m"
-  using assms
-  apply auto
-  apply (erule_tac x="n" in allE)
-  apply (erule_tac x="n" in allE)
-  apply auto
-  done
-
-lemma infinite_enumerate:
-  assumes fS: "infinite S"
-  shows "\<exists>r. subseq r \<and> (\<forall>n. r n \<in> S)"
-  unfolding subseq_def
-  using enumerate_in_set[OF fS] enumerate_mono[of _ _ S] fS by auto
-
-lemma approachable_lt_le: "(\<exists>(d::real) > 0. \<forall>x. f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> P x)"
-  apply auto
-  apply (rule_tac x="d/2" in exI)
-  apply auto
-  done
-
-lemma approachable_lt_le2:  \<comment>\<open>like the above, but pushes aside an extra formula\<close>
-    "(\<exists>(d::real) > 0. \<forall>x. Q x \<longrightarrow> f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> Q x \<longrightarrow> P x)"
-  apply auto
-  apply (rule_tac x="d/2" in exI, auto)
-  done
-
-lemma triangle_lemma:
-  fixes x y z :: real
-  assumes x: "0 \<le> x"
-    and y: "0 \<le> y"
-    and z: "0 \<le> z"
-    and xy: "x\<^sup>2 \<le> y\<^sup>2 + z\<^sup>2"
-  shows "x \<le> y + z"
-proof -
-  have "y\<^sup>2 + z\<^sup>2 \<le> y\<^sup>2 + 2 * y * z + z\<^sup>2"
-    using z y by simp
-  with xy have th: "x\<^sup>2 \<le> (y + z)\<^sup>2"
-    by (simp add: power2_eq_square field_simps)
-  from y z have yz: "y + z \<ge> 0"
-    by arith
-  from power2_le_imp_le[OF th yz] show ?thesis .
-qed
-
-
-subsection \<open>A generic notion of "hull" (convex, affine, conic hull and closure).\<close>
-
-definition hull :: "('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "hull" 75)
-  where "S hull s = \<Inter>{t. S t \<and> s \<subseteq> t}"
-
-lemma hull_same: "S s \<Longrightarrow> S hull s = s"
-  unfolding hull_def by auto
-
-lemma hull_in: "(\<And>T. Ball T S \<Longrightarrow> S (\<Inter>T)) \<Longrightarrow> S (S hull s)"
-  unfolding hull_def Ball_def by auto
-
-lemma hull_eq: "(\<And>T. Ball T S \<Longrightarrow> S (\<Inter>T)) \<Longrightarrow> (S hull s) = s \<longleftrightarrow> S s"
-  using hull_same[of S s] hull_in[of S s] by metis
-
-lemma hull_hull [simp]: "S hull (S hull s) = S hull s"
-  unfolding hull_def by blast
-
-lemma hull_subset[intro]: "s \<subseteq> (S hull s)"
-  unfolding hull_def by blast
-
-lemma hull_mono: "s \<subseteq> t \<Longrightarrow> (S hull s) \<subseteq> (S hull t)"
-  unfolding hull_def by blast
-
-lemma hull_antimono: "\<forall>x. S x \<longrightarrow> T x \<Longrightarrow> (T hull s) \<subseteq> (S hull s)"
-  unfolding hull_def by blast
-
-lemma hull_minimal: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (S hull s) \<subseteq> t"
-  unfolding hull_def by blast
-
-lemma subset_hull: "S t \<Longrightarrow> S hull s \<subseteq> t \<longleftrightarrow> s \<subseteq> t"
-  unfolding hull_def by blast
-
-lemma hull_UNIV [simp]: "S hull UNIV = UNIV"
-  unfolding hull_def by auto
-
-lemma hull_unique: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (\<And>t'. s \<subseteq> t' \<Longrightarrow> S t' \<Longrightarrow> t \<subseteq> t') \<Longrightarrow> (S hull s = t)"
-  unfolding hull_def by auto
-
-lemma hull_induct: "(\<And>x. x\<in> S \<Longrightarrow> P x) \<Longrightarrow> Q {x. P x} \<Longrightarrow> \<forall>x\<in> Q hull S. P x"
-  using hull_minimal[of S "{x. P x}" Q]
-  by (auto simp add: subset_eq)
-
-lemma hull_inc: "x \<in> S \<Longrightarrow> x \<in> P hull S"
-  by (metis hull_subset subset_eq)
-
-lemma hull_union_subset: "(S hull s) \<union> (S hull t) \<subseteq> (S hull (s \<union> t))"
-  unfolding Un_subset_iff by (metis hull_mono Un_upper1 Un_upper2)
-
-lemma hull_union:
-  assumes T: "\<And>T. Ball T S \<Longrightarrow> S (\<Inter>T)"
-  shows "S hull (s \<union> t) = S hull (S hull s \<union> S hull t)"
-  apply rule
-  apply (rule hull_mono)
-  unfolding Un_subset_iff
-  apply (metis hull_subset Un_upper1 Un_upper2 subset_trans)
-  apply (rule hull_minimal)
-  apply (metis hull_union_subset)
-  apply (metis hull_in T)
-  done
-
-lemma hull_redundant_eq: "a \<in> (S hull s) \<longleftrightarrow> S hull (insert a s) = S hull s"
-  unfolding hull_def by blast
-
-lemma hull_redundant: "a \<in> (S hull s) \<Longrightarrow> S hull (insert a s) = S hull s"
-  by (metis hull_redundant_eq)
-
-
-subsection \<open>Archimedean properties and useful consequences\<close>
-
-text\<open>Bernoulli's inequality\<close>
-proposition Bernoulli_inequality:
-  fixes x :: real
-  assumes "-1 \<le> x"
-    shows "1 + n * x \<le> (1 + x) ^ n"
-proof (induct n)
-  case 0
-  then show ?case by simp
-next
-  case (Suc n)
-  have "1 + Suc n * x \<le> 1 + (Suc n)*x + n * x^2"
-    by (simp add: algebra_simps)
-  also have "... = (1 + x) * (1 + n*x)"
-    by (auto simp: power2_eq_square algebra_simps  of_nat_Suc)
-  also have "... \<le> (1 + x) ^ Suc n"
-    using Suc.hyps assms mult_left_mono by fastforce
-  finally show ?case .
-qed
-
-corollary Bernoulli_inequality_even:
-  fixes x :: real
-  assumes "even n"
-    shows "1 + n * x \<le> (1 + x) ^ n"
-proof (cases "-1 \<le> x \<or> n=0")
-  case True
-  then show ?thesis
-    by (auto simp: Bernoulli_inequality)
-next
-  case False
-  then have "real n \<ge> 1"
-    by simp
-  with False have "n * x \<le> -1"
-    by (metis linear minus_zero mult.commute mult.left_neutral mult_left_mono_neg neg_le_iff_le order_trans zero_le_one)
-  then have "1 + n * x \<le> 0"
-    by auto
-  also have "... \<le> (1 + x) ^ n"
-    using assms
-    using zero_le_even_power by blast
-  finally show ?thesis .
-qed
-
-corollary real_arch_pow:
-  fixes x :: real
-  assumes x: "1 < x"
-  shows "\<exists>n. y < x^n"
-proof -
-  from x have x0: "x - 1 > 0"
-    by arith
-  from reals_Archimedean3[OF x0, rule_format, of y]
-  obtain n :: nat where n: "y < real n * (x - 1)" by metis
-  from x0 have x00: "x- 1 \<ge> -1" by arith
-  from Bernoulli_inequality[OF x00, of n] n
-  have "y < x^n" by auto
-  then show ?thesis by metis
-qed
-
-corollary real_arch_pow_inv:
-  fixes x y :: real
-  assumes y: "y > 0"
-    and x1: "x < 1"
-  shows "\<exists>n. x^n < y"
-proof (cases "x > 0")
-  case True
-  with x1 have ix: "1 < 1/x" by (simp add: field_simps)
-  from real_arch_pow[OF ix, of "1/y"]
-  obtain n where n: "1/y < (1/x)^n" by blast
-  then show ?thesis using y \<open>x > 0\<close>
-    by (auto simp add: field_simps)
-next
-  case False
-  with y x1 show ?thesis
-    apply auto
-    apply (rule exI[where x=1])
-    apply auto
-    done
-qed
-
-lemma forall_pos_mono:
-  "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
-    (\<And>n::nat. n \<noteq> 0 \<Longrightarrow> P (inverse (real n))) \<Longrightarrow> (\<And>e. 0 < e \<Longrightarrow> P e)"
-  by (metis real_arch_inverse)
-
-lemma forall_pos_mono_1:
-  "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
-    (\<And>n. P (inverse (real (Suc n)))) \<Longrightarrow> 0 < e \<Longrightarrow> P e"
-  apply (rule forall_pos_mono)
-  apply auto
-  apply (metis Suc_pred of_nat_Suc)
-  done
-
-
-subsection\<open>A bit of linear algebra.\<close>
+subsection \<open>Subspaces of vector spaces\<close>
 
 definition (in real_vector) subspace :: "'a set \<Rightarrow> bool"
   where "subspace S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>x \<in> S. \<forall>y \<in> S. x + y \<in> S) \<and> (\<forall>c. \<forall>x \<in> S. c *\<^sub>R x \<in> S)"
@@ -713,25 +232,6 @@ proof (cases "finite B")
   then show ?thesis
     using f by induct (simp_all add: subspace_0 [OF sA] subspace_add [OF sA])
 qed (simp add: subspace_0 [OF sA])
-
-lemma subspace_linear_image:
-  assumes lf: "linear f"
-    and sS: "subspace S"
-  shows "subspace (f ` S)"
-  using lf sS linear_0[OF lf]
-  unfolding linear_iff subspace_def
-  apply (auto simp add: image_iff)
-  apply (rule_tac x="x + y" in bexI)
-  apply auto
-  apply (rule_tac x="c *\<^sub>R x" in bexI)
-  apply auto
-  done
-
-lemma subspace_linear_vimage: "linear f \<Longrightarrow> subspace S \<Longrightarrow> subspace (f -` S)"
-  by (auto simp add: subspace_def linear_iff linear_0[of f])
-
-lemma subspace_linear_preimage: "linear f \<Longrightarrow> subspace S \<Longrightarrow> subspace {x. f x \<in> S}"
-  by (auto simp add: subspace_def linear_iff linear_0[of f])
 
 lemma subspace_trivial: "subspace {0}"
   by (simp add: subspace_def)
@@ -805,10 +305,8 @@ lemma (in real_vector) span_subspace: "A \<subseteq> B \<Longrightarrow> B \<le>
   by (metis order_antisym span_def hull_minimal)
 
 lemma (in real_vector) span_induct':
-  assumes SP: "\<forall>x \<in> S. P x"
-    and P: "subspace {x. P x}"
-  shows "\<forall>x \<in> span S. P x"
-  using span_induct SP P by blast
+  "\<forall>x \<in> S. P x \<Longrightarrow> subspace {x. P x} \<Longrightarrow> \<forall>x \<in> span S. P x"
+  unfolding span_def by (rule hull_induct) auto
 
 inductive_set (in real_vector) span_induct_alt_help for S :: "'a set"
 where
@@ -926,7 +424,42 @@ lemma (in real_vector) span_setsum: "\<forall>x\<in>A. f x \<in> span S \<Longri
 lemma span_add_eq: "x \<in> span S \<Longrightarrow> x + y \<in> span S \<longleftrightarrow> y \<in> span S"
   by (metis add_minus_cancel scaleR_minus1_left subspace_def subspace_span)
 
+text \<open>The key breakdown property.\<close>
+
+lemma span_singleton: "span {x} = range (\<lambda>k. k *\<^sub>R x)"
+proof (rule span_unique)
+  show "{x} \<subseteq> range (\<lambda>k. k *\<^sub>R x)"
+    by (fast intro: scaleR_one [symmetric])
+  show "subspace (range (\<lambda>k. k *\<^sub>R x))"
+    unfolding subspace_def
+    by (auto intro: scaleR_add_left [symmetric])
+next
+  fix T
+  assume "{x} \<subseteq> T" and "subspace T"
+  then show "range (\<lambda>k. k *\<^sub>R x) \<subseteq> T"
+    unfolding subspace_def by auto
+qed
+
 text \<open>Mapping under linear image.\<close>
+
+lemma subspace_linear_image:
+  assumes lf: "linear f"
+    and sS: "subspace S"
+  shows "subspace (f ` S)"
+  using lf sS linear_0[OF lf]
+  unfolding linear_iff subspace_def
+  apply (auto simp add: image_iff)
+  apply (rule_tac x="x + y" in bexI)
+  apply auto
+  apply (rule_tac x="c *\<^sub>R x" in bexI)
+  apply auto
+  done
+
+lemma subspace_linear_vimage: "linear f \<Longrightarrow> subspace S \<Longrightarrow> subspace (f -` S)"
+  by (auto simp add: subspace_def linear_iff linear_0[of f])
+
+lemma subspace_linear_preimage: "linear f \<Longrightarrow> subspace S \<Longrightarrow> subspace {x. f x \<in> S}"
+  by (auto simp add: subspace_def linear_iff linear_0[of f])
 
 lemma span_linear_image:
   assumes lf: "linear f"
@@ -960,22 +493,6 @@ next
   assume "A \<union> B \<subseteq> T" and "subspace T"
   then show "(\<lambda>(a, b). a + b) ` (span A \<times> span B) \<subseteq> T"
     by (auto intro!: subspace_add elim: span_induct)
-qed
-
-text \<open>The key breakdown property.\<close>
-
-lemma span_singleton: "span {x} = range (\<lambda>k. k *\<^sub>R x)"
-proof (rule span_unique)
-  show "{x} \<subseteq> range (\<lambda>k. k *\<^sub>R x)"
-    by (fast intro: scaleR_one [symmetric])
-  show "subspace (range (\<lambda>k. k *\<^sub>R x))"
-    unfolding subspace_def
-    by (auto intro: scaleR_add_left [symmetric])
-next
-  fix T
-  assume "{x} \<subseteq> T" and "subspace T"
-  then show "range (\<lambda>k. k *\<^sub>R x) \<subseteq> T"
-    unfolding subspace_def by auto
 qed
 
 lemma span_insert: "span (insert a S) = {x. \<exists>k. (x - k *\<^sub>R a) \<in> span S}"
@@ -1163,7 +680,6 @@ proof -
   }
   ultimately show ?thesis by blast
 qed
-
 
 lemma span_finite:
   assumes fS: "finite S"
@@ -1389,6 +905,487 @@ proof -
     apply (rule finite)
     done
 qed
+
+
+subsection \<open>More interesting properties of the norm.\<close>
+
+lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
+  by auto
+
+notation inner (infix "\<bullet>" 70)
+
+lemma square_bound_lemma:
+  fixes x :: real
+  shows "x < (1 + x) * (1 + x)"
+proof -
+  have "(x + 1/2)\<^sup>2 + 3/4 > 0"
+    using zero_le_power2[of "x+1/2"] by arith
+  then show ?thesis
+    by (simp add: field_simps power2_eq_square)
+qed
+
+lemma square_continuous:
+  fixes e :: real
+  shows "e > 0 \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>y. \<bar>y - x\<bar> < d \<longrightarrow> \<bar>y * y - x * x\<bar> < e)"
+  using isCont_power[OF continuous_ident, of x, unfolded isCont_def LIM_eq, rule_format, of e 2]
+  by (force simp add: power2_eq_square)
+
+
+lemma norm_eq_0_dot: "norm x = 0 \<longleftrightarrow> x \<bullet> x = (0::real)"
+  by simp (* TODO: delete *)
+
+lemma norm_triangle_sub:
+  fixes x y :: "'a::real_normed_vector"
+  shows "norm x \<le> norm y + norm (x - y)"
+  using norm_triangle_ineq[of "y" "x - y"] by (simp add: field_simps)
+
+lemma norm_le: "norm x \<le> norm y \<longleftrightarrow> x \<bullet> x \<le> y \<bullet> y"
+  by (simp add: norm_eq_sqrt_inner)
+
+lemma norm_lt: "norm x < norm y \<longleftrightarrow> x \<bullet> x < y \<bullet> y"
+  by (simp add: norm_eq_sqrt_inner)
+
+lemma norm_eq: "norm x = norm y \<longleftrightarrow> x \<bullet> x = y \<bullet> y"
+  apply (subst order_eq_iff)
+  apply (auto simp: norm_le)
+  done
+
+lemma norm_eq_1: "norm x = 1 \<longleftrightarrow> x \<bullet> x = 1"
+  by (simp add: norm_eq_sqrt_inner)
+
+text\<open>Squaring equations and inequalities involving norms.\<close>
+
+lemma dot_square_norm: "x \<bullet> x = (norm x)\<^sup>2"
+  by (simp only: power2_norm_eq_inner) (* TODO: move? *)
+
+lemma norm_eq_square: "norm x = a \<longleftrightarrow> 0 \<le> a \<and> x \<bullet> x = a\<^sup>2"
+  by (auto simp add: norm_eq_sqrt_inner)
+
+lemma norm_le_square: "norm x \<le> a \<longleftrightarrow> 0 \<le> a \<and> x \<bullet> x \<le> a\<^sup>2"
+  apply (simp add: dot_square_norm abs_le_square_iff[symmetric])
+  using norm_ge_zero[of x]
+  apply arith
+  done
+
+lemma norm_ge_square: "norm x \<ge> a \<longleftrightarrow> a \<le> 0 \<or> x \<bullet> x \<ge> a\<^sup>2"
+  apply (simp add: dot_square_norm abs_le_square_iff[symmetric])
+  using norm_ge_zero[of x]
+  apply arith
+  done
+
+lemma norm_lt_square: "norm x < a \<longleftrightarrow> 0 < a \<and> x \<bullet> x < a\<^sup>2"
+  by (metis not_le norm_ge_square)
+
+lemma norm_gt_square: "norm x > a \<longleftrightarrow> a < 0 \<or> x \<bullet> x > a\<^sup>2"
+  by (metis norm_le_square not_less)
+
+text\<open>Dot product in terms of the norm rather than conversely.\<close>
+
+lemmas inner_simps = inner_add_left inner_add_right inner_diff_right inner_diff_left
+  inner_scaleR_left inner_scaleR_right
+
+lemma dot_norm: "x \<bullet> y = ((norm (x + y))\<^sup>2 - (norm x)\<^sup>2 - (norm y)\<^sup>2) / 2"
+  unfolding power2_norm_eq_inner inner_simps inner_commute by auto
+
+lemma dot_norm_neg: "x \<bullet> y = (((norm x)\<^sup>2 + (norm y)\<^sup>2) - (norm (x - y))\<^sup>2) / 2"
+  unfolding power2_norm_eq_inner inner_simps inner_commute
+  by (auto simp add: algebra_simps)
+
+text\<open>Equality of vectors in terms of @{term "op \<bullet>"} products.\<close>
+
+lemma linear_componentwise:
+  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_inner"
+  assumes lf: "linear f"
+  shows "(f x) \<bullet> j = (\<Sum>i\<in>Basis. (x\<bullet>i) * (f i\<bullet>j))" (is "?lhs = ?rhs")
+proof -
+  have "?rhs = (\<Sum>i\<in>Basis. (x\<bullet>i) *\<^sub>R (f i))\<bullet>j"
+    by (simp add: inner_setsum_left)
+  then show ?thesis
+    unfolding linear_setsum_mul[OF lf, symmetric]
+    unfolding euclidean_representation ..
+qed
+
+lemma vector_eq: "x = y \<longleftrightarrow> x \<bullet> x = x \<bullet> y \<and> y \<bullet> y = x \<bullet> x"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs by simp
+next
+  assume ?rhs
+  then have "x \<bullet> x - x \<bullet> y = 0 \<and> x \<bullet> y - y \<bullet> y = 0"
+    by simp
+  then have "x \<bullet> (x - y) = 0 \<and> y \<bullet> (x - y) = 0"
+    by (simp add: inner_diff inner_commute)
+  then have "(x - y) \<bullet> (x - y) = 0"
+    by (simp add: field_simps inner_diff inner_commute)
+  then show "x = y" by simp
+qed
+
+lemma norm_triangle_half_r:
+  "norm (y - x1) < e / 2 \<Longrightarrow> norm (y - x2) < e / 2 \<Longrightarrow> norm (x1 - x2) < e"
+  using dist_triangle_half_r unfolding dist_norm[symmetric] by auto
+
+lemma norm_triangle_half_l:
+  assumes "norm (x - y) < e / 2"
+    and "norm (x' - y) < e / 2"
+  shows "norm (x - x') < e"
+  using dist_triangle_half_l[OF assms[unfolded dist_norm[symmetric]]]
+  unfolding dist_norm[symmetric] .
+
+lemma norm_triangle_le: "norm x + norm y \<le> e \<Longrightarrow> norm (x + y) \<le> e"
+  by (rule norm_triangle_ineq [THEN order_trans])
+
+lemma norm_triangle_lt: "norm x + norm y < e \<Longrightarrow> norm (x + y) < e"
+  by (rule norm_triangle_ineq [THEN le_less_trans])
+
+lemma setsum_clauses:
+  shows "setsum f {} = 0"
+    and "finite S \<Longrightarrow> setsum f (insert x S) = (if x \<in> S then setsum f S else f x + setsum f S)"
+  by (auto simp add: insert_absorb)
+
+lemma setsum_norm_le:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  assumes fg: "\<forall>x \<in> S. norm (f x) \<le> g x"
+  shows "norm (setsum f S) \<le> setsum g S"
+  by (rule order_trans [OF norm_setsum setsum_mono]) (simp add: fg)
+
+lemma setsum_norm_bound:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  assumes K: "\<forall>x \<in> S. norm (f x) \<le> K"
+  shows "norm (setsum f S) \<le> of_nat (card S) * K"
+  using setsum_norm_le[OF K] setsum_constant[symmetric]
+  by simp
+
+lemma setsum_group:
+  assumes fS: "finite S" and fT: "finite T" and fST: "f ` S \<subseteq> T"
+  shows "setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) T = setsum g S"
+  apply (subst setsum_image_gen[OF fS, of g f])
+  apply (rule setsum.mono_neutral_right[OF fT fST])
+  apply (auto intro: setsum.neutral)
+  done
+
+lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = z"
+proof
+  assume "\<forall>x. x \<bullet> y = x \<bullet> z"
+  then have "\<forall>x. x \<bullet> (y - z) = 0"
+    by (simp add: inner_diff)
+  then have "(y - z) \<bullet> (y - z) = 0" ..
+  then show "y = z" by simp
+qed simp
+
+lemma vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = y"
+proof
+  assume "\<forall>z. x \<bullet> z = y \<bullet> z"
+  then have "\<forall>z. (x - y) \<bullet> z = 0"
+    by (simp add: inner_diff)
+  then have "(x - y) \<bullet> (x - y) = 0" ..
+  then show "x = y" by simp
+qed simp
+
+
+subsection \<open>Orthogonality.\<close>
+
+context real_inner
+begin
+
+definition "orthogonal x y \<longleftrightarrow> x \<bullet> y = 0"
+
+lemma orthogonal_clauses:
+  "orthogonal a 0"
+  "orthogonal a x \<Longrightarrow> orthogonal a (c *\<^sub>R x)"
+  "orthogonal a x \<Longrightarrow> orthogonal a (- x)"
+  "orthogonal a x \<Longrightarrow> orthogonal a y \<Longrightarrow> orthogonal a (x + y)"
+  "orthogonal a x \<Longrightarrow> orthogonal a y \<Longrightarrow> orthogonal a (x - y)"
+  "orthogonal 0 a"
+  "orthogonal x a \<Longrightarrow> orthogonal (c *\<^sub>R x) a"
+  "orthogonal x a \<Longrightarrow> orthogonal (- x) a"
+  "orthogonal x a \<Longrightarrow> orthogonal y a \<Longrightarrow> orthogonal (x + y) a"
+  "orthogonal x a \<Longrightarrow> orthogonal y a \<Longrightarrow> orthogonal (x - y) a"
+  unfolding orthogonal_def inner_add inner_diff by auto
+
+end
+
+lemma orthogonal_commute: "orthogonal x y \<longleftrightarrow> orthogonal y x"
+  by (simp add: orthogonal_def inner_commute)
+
+
+subsection \<open>Bilinear functions.\<close>
+
+definition "bilinear f \<longleftrightarrow> (\<forall>x. linear (\<lambda>y. f x y)) \<and> (\<forall>y. linear (\<lambda>x. f x y))"
+
+lemma bilinear_ladd: "bilinear h \<Longrightarrow> h (x + y) z = h x z + h y z"
+  by (simp add: bilinear_def linear_iff)
+
+lemma bilinear_radd: "bilinear h \<Longrightarrow> h x (y + z) = h x y + h x z"
+  by (simp add: bilinear_def linear_iff)
+
+lemma bilinear_lmul: "bilinear h \<Longrightarrow> h (c *\<^sub>R x) y = c *\<^sub>R h x y"
+  by (simp add: bilinear_def linear_iff)
+
+lemma bilinear_rmul: "bilinear h \<Longrightarrow> h x (c *\<^sub>R y) = c *\<^sub>R h x y"
+  by (simp add: bilinear_def linear_iff)
+
+lemma bilinear_lneg: "bilinear h \<Longrightarrow> h (- x) y = - h x y"
+  by (drule bilinear_lmul [of _ "- 1"]) simp
+
+lemma bilinear_rneg: "bilinear h \<Longrightarrow> h x (- y) = - h x y"
+  by (drule bilinear_rmul [of _ _ "- 1"]) simp
+
+lemma (in ab_group_add) eq_add_iff: "x = x + y \<longleftrightarrow> y = 0"
+  using add_left_imp_eq[of x y 0] by auto
+
+lemma bilinear_lzero:
+  assumes "bilinear h"
+  shows "h 0 x = 0"
+  using bilinear_ladd [OF assms, of 0 0 x] by (simp add: eq_add_iff field_simps)
+
+lemma bilinear_rzero:
+  assumes "bilinear h"
+  shows "h x 0 = 0"
+  using bilinear_radd [OF assms, of x 0 0 ] by (simp add: eq_add_iff field_simps)
+
+lemma bilinear_lsub: "bilinear h \<Longrightarrow> h (x - y) z = h x z - h y z"
+  using bilinear_ladd [of h x "- y"] by (simp add: bilinear_lneg)
+
+lemma bilinear_rsub: "bilinear h \<Longrightarrow> h z (x - y) = h z x - h z y"
+  using bilinear_radd [of h _ x "- y"] by (simp add: bilinear_rneg)
+
+lemma bilinear_setsum:
+  assumes bh: "bilinear h"
+    and fS: "finite S"
+    and fT: "finite T"
+  shows "h (setsum f S) (setsum g T) = setsum (\<lambda>(i,j). h (f i) (g j)) (S \<times> T) "
+proof -
+  have "h (setsum f S) (setsum g T) = setsum (\<lambda>x. h (f x) (setsum g T)) S"
+    apply (rule linear_setsum[unfolded o_def])
+    using bh fS
+    apply (auto simp add: bilinear_def)
+    done
+  also have "\<dots> = setsum (\<lambda>x. setsum (\<lambda>y. h (f x) (g y)) T) S"
+    apply (rule setsum.cong, simp)
+    apply (rule linear_setsum[unfolded o_def])
+    using bh fT
+    apply (auto simp add: bilinear_def)
+    done
+  finally show ?thesis
+    unfolding setsum.cartesian_product .
+qed
+
+
+subsection \<open>Adjoints.\<close>
+
+definition "adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f' y)"
+
+lemma adjoint_unique:
+  assumes "\<forall>x y. inner (f x) y = inner x (g y)"
+  shows "adjoint f = g"
+  unfolding adjoint_def
+proof (rule some_equality)
+  show "\<forall>x y. inner (f x) y = inner x (g y)"
+    by (rule assms)
+next
+  fix h
+  assume "\<forall>x y. inner (f x) y = inner x (h y)"
+  then have "\<forall>x y. inner x (g y) = inner x (h y)"
+    using assms by simp
+  then have "\<forall>x y. inner x (g y - h y) = 0"
+    by (simp add: inner_diff_right)
+  then have "\<forall>y. inner (g y - h y) (g y - h y) = 0"
+    by simp
+  then have "\<forall>y. h y = g y"
+    by simp
+  then show "h = g" by (simp add: ext)
+qed
+
+text \<open>TODO: The following lemmas about adjoints should hold for any
+Hilbert space (i.e. complete inner product space).
+(see @{url "http://en.wikipedia.org/wiki/Hermitian_adjoint"})
+\<close>
+
+lemma adjoint_works:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes lf: "linear f"
+  shows "x \<bullet> adjoint f y = f x \<bullet> y"
+proof -
+  have "\<forall>y. \<exists>w. \<forall>x. f x \<bullet> y = x \<bullet> w"
+  proof (intro allI exI)
+    fix y :: "'m" and x
+    let ?w = "(\<Sum>i\<in>Basis. (f i \<bullet> y) *\<^sub>R i) :: 'n"
+    have "f x \<bullet> y = f (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i) \<bullet> y"
+      by (simp add: euclidean_representation)
+    also have "\<dots> = (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R f i) \<bullet> y"
+      unfolding linear_setsum[OF lf]
+      by (simp add: linear_cmul[OF lf])
+    finally show "f x \<bullet> y = x \<bullet> ?w"
+      by (simp add: inner_setsum_left inner_setsum_right mult.commute)
+  qed
+  then show ?thesis
+    unfolding adjoint_def choice_iff
+    by (intro someI2_ex[where Q="\<lambda>f'. x \<bullet> f' y = f x \<bullet> y"]) auto
+qed
+
+lemma adjoint_clauses:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes lf: "linear f"
+  shows "x \<bullet> adjoint f y = f x \<bullet> y"
+    and "adjoint f y \<bullet> x = y \<bullet> f x"
+  by (simp_all add: adjoint_works[OF lf] inner_commute)
+
+lemma adjoint_linear:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes lf: "linear f"
+  shows "linear (adjoint f)"
+  by (simp add: lf linear_iff euclidean_eq_iff[where 'a='n] euclidean_eq_iff[where 'a='m]
+    adjoint_clauses[OF lf] inner_distrib)
+
+lemma adjoint_adjoint:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes lf: "linear f"
+  shows "adjoint (adjoint f) = f"
+  by (rule adjoint_unique, simp add: adjoint_clauses [OF lf])
+
+
+subsection \<open>Interlude: Some properties of real sets\<close>
+
+lemma seq_mono_lemma:
+  assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n"
+    and "\<forall>n \<ge> m. e n \<le> e m"
+  shows "\<forall>n \<ge> m. d n < e m"
+  using assms
+  apply auto
+  apply (erule_tac x="n" in allE)
+  apply (erule_tac x="n" in allE)
+  apply auto
+  done
+
+lemma infinite_enumerate:
+  assumes fS: "infinite S"
+  shows "\<exists>r. subseq r \<and> (\<forall>n. r n \<in> S)"
+  unfolding subseq_def
+  using enumerate_in_set[OF fS] enumerate_mono[of _ _ S] fS by auto
+
+lemma approachable_lt_le: "(\<exists>(d::real) > 0. \<forall>x. f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> P x)"
+  apply auto
+  apply (rule_tac x="d/2" in exI)
+  apply auto
+  done
+
+lemma approachable_lt_le2:  \<comment>\<open>like the above, but pushes aside an extra formula\<close>
+    "(\<exists>(d::real) > 0. \<forall>x. Q x \<longrightarrow> f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> Q x \<longrightarrow> P x)"
+  apply auto
+  apply (rule_tac x="d/2" in exI, auto)
+  done
+
+lemma triangle_lemma:
+  fixes x y z :: real
+  assumes x: "0 \<le> x"
+    and y: "0 \<le> y"
+    and z: "0 \<le> z"
+    and xy: "x\<^sup>2 \<le> y\<^sup>2 + z\<^sup>2"
+  shows "x \<le> y + z"
+proof -
+  have "y\<^sup>2 + z\<^sup>2 \<le> y\<^sup>2 + 2 * y * z + z\<^sup>2"
+    using z y by simp
+  with xy have th: "x\<^sup>2 \<le> (y + z)\<^sup>2"
+    by (simp add: power2_eq_square field_simps)
+  from y z have yz: "y + z \<ge> 0"
+    by arith
+  from power2_le_imp_le[OF th yz] show ?thesis .
+qed
+
+
+
+subsection \<open>Archimedean properties and useful consequences\<close>
+
+text\<open>Bernoulli's inequality\<close>
+proposition Bernoulli_inequality:
+  fixes x :: real
+  assumes "-1 \<le> x"
+    shows "1 + n * x \<le> (1 + x) ^ n"
+proof (induct n)
+  case 0
+  then show ?case by simp
+next
+  case (Suc n)
+  have "1 + Suc n * x \<le> 1 + (Suc n)*x + n * x^2"
+    by (simp add: algebra_simps)
+  also have "... = (1 + x) * (1 + n*x)"
+    by (auto simp: power2_eq_square algebra_simps  of_nat_Suc)
+  also have "... \<le> (1 + x) ^ Suc n"
+    using Suc.hyps assms mult_left_mono by fastforce
+  finally show ?case .
+qed
+
+corollary Bernoulli_inequality_even:
+  fixes x :: real
+  assumes "even n"
+    shows "1 + n * x \<le> (1 + x) ^ n"
+proof (cases "-1 \<le> x \<or> n=0")
+  case True
+  then show ?thesis
+    by (auto simp: Bernoulli_inequality)
+next
+  case False
+  then have "real n \<ge> 1"
+    by simp
+  with False have "n * x \<le> -1"
+    by (metis linear minus_zero mult.commute mult.left_neutral mult_left_mono_neg neg_le_iff_le order_trans zero_le_one)
+  then have "1 + n * x \<le> 0"
+    by auto
+  also have "... \<le> (1 + x) ^ n"
+    using assms
+    using zero_le_even_power by blast
+  finally show ?thesis .
+qed
+
+corollary real_arch_pow:
+  fixes x :: real
+  assumes x: "1 < x"
+  shows "\<exists>n. y < x^n"
+proof -
+  from x have x0: "x - 1 > 0"
+    by arith
+  from reals_Archimedean3[OF x0, rule_format, of y]
+  obtain n :: nat where n: "y < real n * (x - 1)" by metis
+  from x0 have x00: "x- 1 \<ge> -1" by arith
+  from Bernoulli_inequality[OF x00, of n] n
+  have "y < x^n" by auto
+  then show ?thesis by metis
+qed
+
+corollary real_arch_pow_inv:
+  fixes x y :: real
+  assumes y: "y > 0"
+    and x1: "x < 1"
+  shows "\<exists>n. x^n < y"
+proof (cases "x > 0")
+  case True
+  with x1 have ix: "1 < 1/x" by (simp add: field_simps)
+  from real_arch_pow[OF ix, of "1/y"]
+  obtain n where n: "1/y < (1/x)^n" by blast
+  then show ?thesis using y \<open>x > 0\<close>
+    by (auto simp add: field_simps)
+next
+  case False
+  with y x1 show ?thesis
+    apply auto
+    apply (rule exI[where x=1])
+    apply auto
+    done
+qed
+
+lemma forall_pos_mono:
+  "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
+    (\<And>n::nat. n \<noteq> 0 \<Longrightarrow> P (inverse (real n))) \<Longrightarrow> (\<And>e. 0 < e \<Longrightarrow> P e)"
+  by (metis real_arch_inverse)
+
+lemma forall_pos_mono_1:
+  "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
+    (\<And>n. P (inverse (real (Suc n)))) \<Longrightarrow> 0 < e \<Longrightarrow> P e"
+  apply (rule forall_pos_mono)
+  apply auto
+  apply (metis Suc_pred of_nat_Suc)
+  done
 
 
 subsection \<open>Euclidean Spaces as Typeclass\<close>
