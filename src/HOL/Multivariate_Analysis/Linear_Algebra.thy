@@ -681,31 +681,65 @@ proof -
   ultimately show ?thesis by blast
 qed
 
-lemma span_finite:
-  assumes fS: "finite S"
-  shows "span S = {y. \<exists>u. setsum (\<lambda>v. u v *\<^sub>R v) S = y}"
-  (is "_ = ?rhs")
+lemma span_alt:
+  "span B = {(\<Sum>x | f x \<noteq> 0. f x *\<^sub>R x) | f. {x. f x \<noteq> 0} \<subseteq> B \<and> finite {x. f x \<noteq> 0}}"
+  unfolding span_explicit
+  apply safe
+  subgoal for x S u
+    by (intro exI[of _ "\<lambda>x. if x \<in> S then u x else 0"])
+        (auto intro!: setsum.mono_neutral_cong_right)
+  apply auto
+  done
+
+lemma dependent_alt:
+  "dependent B \<longleftrightarrow>
+    (\<exists>X. finite {x. X x \<noteq> 0} \<and> {x. X x \<noteq> 0} \<subseteq> B \<and> (\<Sum>x|X x \<noteq> 0. X x *\<^sub>R x) = 0 \<and> (\<exists>x. X x \<noteq> 0))"
+  unfolding dependent_explicit
+  apply safe
+  subgoal for S u v
+    apply (intro exI[of _ "\<lambda>x. if x \<in> S then u x else 0"])
+    apply (subst setsum.mono_neutral_cong_left[where T=S])
+    apply (auto intro!: setsum.mono_neutral_cong_right cong: rev_conj_cong)
+    done
+  apply auto
+  done
+
+lemma independent_alt:
+  "independent B \<longleftrightarrow>
+    (\<forall>X. finite {x. X x \<noteq> 0} \<longrightarrow> {x. X x \<noteq> 0} \<subseteq> B \<longrightarrow> (\<Sum>x|X x \<noteq> 0. X x *\<^sub>R x) = 0 \<longrightarrow> (\<forall>x. X x = 0))"
+  unfolding dependent_alt by auto
+
+lemma independentD_alt:
+  "independent B \<Longrightarrow> finite {x. X x \<noteq> 0} \<Longrightarrow> {x. X x \<noteq> 0} \<subseteq> B \<Longrightarrow> (\<Sum>x|X x \<noteq> 0. X x *\<^sub>R x) = 0 \<Longrightarrow> X x = 0"
+  unfolding independent_alt by blast
+
+lemma independentD_unique:
+  assumes B: "independent B"
+    and X: "finite {x. X x \<noteq> 0}" "{x. X x \<noteq> 0} \<subseteq> B"
+    and Y: "finite {x. Y x \<noteq> 0}" "{x. Y x \<noteq> 0} \<subseteq> B"
+    and "(\<Sum>x | X x \<noteq> 0. X x *\<^sub>R x) = (\<Sum>x| Y x \<noteq> 0. Y x *\<^sub>R x)"
+  shows "X = Y"
 proof -
-  {
-    fix y
-    assume y: "y \<in> span S"
-    from y obtain S' u where fS': "finite S'"
-      and SS': "S' \<subseteq> S"
-      and u: "setsum (\<lambda>v. u v *\<^sub>R v) S' = y"
-      unfolding span_explicit by blast
-    let ?u = "\<lambda>x. if x \<in> S' then u x else 0"
-    have "setsum (\<lambda>v. ?u v *\<^sub>R v) S = setsum (\<lambda>v. u v *\<^sub>R v) S'"
-      using SS' fS by (auto intro!: setsum.mono_neutral_cong_right)
-    then have "setsum (\<lambda>v. ?u v *\<^sub>R v) S = y" by (metis u)
-    then have "y \<in> ?rhs" by auto
-  }
-  moreover
-  {
-    fix y u
-    assume u: "setsum (\<lambda>v. u v *\<^sub>R v) S = y"
-    then have "y \<in> span S" using fS unfolding span_explicit by auto
-  }
-  ultimately show ?thesis by blast
+  have "X x - Y x = 0" for x
+    using B
+  proof (rule independentD_alt)
+    have "{x. X x - Y x \<noteq> 0} \<subseteq> {x. X x \<noteq> 0} \<union> {x. Y x \<noteq> 0}"
+      by auto
+    then show "finite {x. X x - Y x \<noteq> 0}" "{x. X x - Y x \<noteq> 0} \<subseteq> B"
+      using X Y by (auto dest: finite_subset)
+    then have "(\<Sum>x | X x - Y x \<noteq> 0. (X x - Y x) *\<^sub>R x) = (\<Sum>v\<in>{S. X S \<noteq> 0} \<union> {S. Y S \<noteq> 0}. (X v - Y v) *\<^sub>R v)"
+      using X Y by (intro setsum.mono_neutral_cong_left) auto
+    also have "\<dots> = (\<Sum>v\<in>{S. X S \<noteq> 0} \<union> {S. Y S \<noteq> 0}. X v *\<^sub>R v) - (\<Sum>v\<in>{S. X S \<noteq> 0} \<union> {S. Y S \<noteq> 0}. Y v *\<^sub>R v)"
+      by (simp add: scaleR_diff_left setsum_subtractf assms)
+    also have "(\<Sum>v\<in>{S. X S \<noteq> 0} \<union> {S. Y S \<noteq> 0}. X v *\<^sub>R v) = (\<Sum>v\<in>{S. X S \<noteq> 0}. X v *\<^sub>R v)"
+      using X Y by (intro setsum.mono_neutral_cong_right) auto
+    also have "(\<Sum>v\<in>{S. X S \<noteq> 0} \<union> {S. Y S \<noteq> 0}. Y v *\<^sub>R v) = (\<Sum>v\<in>{S. Y S \<noteq> 0}. Y v *\<^sub>R v)"
+      using X Y by (intro setsum.mono_neutral_cong_right) auto
+    finally show "(\<Sum>x | X x - Y x \<noteq> 0. (X x - Y x) *\<^sub>R x) = 0"
+      using assms by simp
+  qed
+  then show ?thesis
+    by auto
 qed
 
 text \<open>This is useful for building a basis step-by-step.\<close>
@@ -739,6 +773,117 @@ next
       apply (auto simp add: dependent_def)
       by (metis in_span_insert insert_Diff_if insert_Diff_single insert_absorb)
   qed
+qed
+
+lemma independent_Union_directed:
+  assumes directed: "\<And>c d. c \<in> C \<Longrightarrow> d \<in> C \<Longrightarrow> c \<subseteq> d \<or> d \<subseteq> c"
+  assumes indep: "\<And>c. c \<in> C \<Longrightarrow> independent c"
+  shows "independent (\<Union>C)"
+proof
+  assume "dependent (\<Union>C)"
+  then obtain u v S where S: "finite S" "S \<subseteq> \<Union>C" "v \<in> S" "u v \<noteq> 0" "(\<Sum>v\<in>S. u v *\<^sub>R v) = 0"
+    by (auto simp: dependent_explicit)
+
+  have "S \<noteq> {}"
+    using \<open>v \<in> S\<close> by auto
+  have "\<exists>c\<in>C. S \<subseteq> c"
+    using \<open>finite S\<close> \<open>S \<noteq> {}\<close> \<open>S \<subseteq> \<Union>C\<close>
+  proof (induction rule: finite_ne_induct)
+    case (insert i I)
+    then obtain c d where cd: "c \<in> C" "d \<in> C" and iI: "I \<subseteq> c" "i \<in> d"
+      by blast
+    from directed[OF cd] cd have "c \<union> d \<in> C"
+      by (auto simp: sup.absorb1 sup.absorb2)
+    with iI show ?case
+      by (intro bexI[of _ "c \<union> d"]) auto
+  qed auto
+  then obtain c where "c \<in> C" "S \<subseteq> c"
+    by auto
+  have "dependent c"
+    unfolding dependent_explicit
+    by (intro exI[of _ S] exI[of _ u] bexI[of _ v] conjI) fact+
+  with indep[OF \<open>c \<in> C\<close>] show False
+    by auto
+qed
+
+text \<open>Hence we can create a maximal independent subset.\<close>
+
+lemma maximal_independent_subset_extend:
+  assumes "S \<subseteq> V" "independent S"
+  shows "\<exists>B. S \<subseteq> B \<and> B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
+proof -
+  let ?C = "{B. S \<subseteq> B \<and> independent B \<and> B \<subseteq> V}"
+  have "\<exists>M\<in>?C. \<forall>X\<in>?C. M \<subseteq> X \<longrightarrow> X = M"
+  proof (rule subset_Zorn)
+    fix C :: "'a set set" assume "subset.chain ?C C"
+    then have C: "\<And>c. c \<in> C \<Longrightarrow> c \<subseteq> V" "\<And>c. c \<in> C \<Longrightarrow> S \<subseteq> c" "\<And>c. c \<in> C \<Longrightarrow> independent c"
+      "\<And>c d. c \<in> C \<Longrightarrow> d \<in> C \<Longrightarrow> c \<subseteq> d \<or> d \<subseteq> c"
+      unfolding subset.chain_def by blast+
+
+    show "\<exists>U\<in>?C. \<forall>X\<in>C. X \<subseteq> U"
+    proof cases
+      assume "C = {}" with assms show ?thesis
+        by (auto intro!: exI[of _ S])
+    next
+      assume "C \<noteq> {}"
+      with C(2) have "S \<subseteq> \<Union>C"
+        by auto
+      moreover have "independent (\<Union>C)"
+        by (intro independent_Union_directed C)
+      moreover have "\<Union>C \<subseteq> V"
+        using C by auto
+      ultimately show ?thesis
+        by auto
+    qed
+  qed
+  then obtain B where B: "independent B" "B \<subseteq> V" "S \<subseteq> B"
+    and max: "\<And>S. independent S \<Longrightarrow> S \<subseteq> V \<Longrightarrow> B \<subseteq> S \<Longrightarrow> S = B"
+    by auto
+  moreover
+  { assume "\<not> V \<subseteq> span B"
+    then obtain v where "v \<in> V" "v \<notin> span B"
+      by auto
+    with B have "independent (insert v B)"
+      unfolding independent_insert by auto
+    from max[OF this] \<open>v \<in> V\<close> \<open>B \<subseteq> V\<close>
+    have "v \<in> B"
+      by auto
+    with \<open>v \<notin> span B\<close> have False
+      by (auto intro: span_superset) }
+  ultimately show ?thesis
+    by (auto intro!: exI[of _ B])
+qed
+
+
+lemma maximal_independent_subset:
+  "\<exists>B. B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
+  by (metis maximal_independent_subset_extend[of "{}"] empty_subsetI independent_empty)
+
+lemma span_finite:
+  assumes fS: "finite S"
+  shows "span S = {y. \<exists>u. setsum (\<lambda>v. u v *\<^sub>R v) S = y}"
+  (is "_ = ?rhs")
+proof -
+  {
+    fix y
+    assume y: "y \<in> span S"
+    from y obtain S' u where fS': "finite S'"
+      and SS': "S' \<subseteq> S"
+      and u: "setsum (\<lambda>v. u v *\<^sub>R v) S' = y"
+      unfolding span_explicit by blast
+    let ?u = "\<lambda>x. if x \<in> S' then u x else 0"
+    have "setsum (\<lambda>v. ?u v *\<^sub>R v) S = setsum (\<lambda>v. u v *\<^sub>R v) S'"
+      using SS' fS by (auto intro!: setsum.mono_neutral_cong_right)
+    then have "setsum (\<lambda>v. ?u v *\<^sub>R v) S = y" by (metis u)
+    then have "y \<in> ?rhs" by auto
+  }
+  moreover
+  {
+    fix y u
+    assume u: "setsum (\<lambda>v. u v *\<^sub>R v) S = y"
+    then have "y \<in> span S" using fS unfolding span_explicit by auto
+  }
+  ultimately show ?thesis by blast
 qed
 
 text \<open>The degenerate case of the Exchange Lemma.\<close>
@@ -1621,53 +1766,6 @@ lemma dependent_biggerset:
   fixes S :: "'a::euclidean_space set"
   shows "(finite S \<Longrightarrow> card S > DIM('a)) \<Longrightarrow> dependent S"
   by (metis independent_bound not_less)
-
-text \<open>Hence we can create a maximal independent subset.\<close>
-
-lemma maximal_independent_subset_extend:
-  fixes S :: "'a::euclidean_space set"
-  assumes sv: "S \<subseteq> V"
-    and iS: "independent S"
-  shows "\<exists>B. S \<subseteq> B \<and> B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
-  using sv iS
-proof (induct "DIM('a) - card S" arbitrary: S rule: less_induct)
-  case less
-  note sv = \<open>S \<subseteq> V\<close> and i = \<open>independent S\<close>
-  let ?P = "\<lambda>B. S \<subseteq> B \<and> B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
-  let ?ths = "\<exists>x. ?P x"
-  let ?d = "DIM('a)"
-  show ?ths
-  proof (cases "V \<subseteq> span S")
-    case True
-    then show ?thesis
-      using sv i by blast
-  next
-    case False
-    then obtain a where a: "a \<in> V" "a \<notin> span S"
-      by blast
-    from a have aS: "a \<notin> S"
-      by (auto simp add: span_superset)
-    have th0: "insert a S \<subseteq> V"
-      using a sv by blast
-    from independent_insert[of a S]  i a
-    have th1: "independent (insert a S)"
-      by auto
-    have mlt: "?d - card (insert a S) < ?d - card S"
-      using aS a independent_bound[OF th1] by auto
-
-    from less(1)[OF mlt th0 th1]
-    obtain B where B: "insert a S \<subseteq> B" "B \<subseteq> V" "independent B" " V \<subseteq> span B"
-      by blast
-    from B have "?P B" by auto
-    then show ?thesis by blast
-  qed
-qed
-
-lemma maximal_independent_subset:
-  "\<exists>(B:: ('a::euclidean_space) set). B\<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
-  by (metis maximal_independent_subset_extend[of "{}:: ('a::euclidean_space) set"]
-    empty_subsetI independent_empty)
-
 
 text \<open>Notion of dimension.\<close>
 
