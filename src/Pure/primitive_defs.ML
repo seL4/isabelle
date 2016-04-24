@@ -6,7 +6,7 @@ Primitive definition forms.
 
 signature PRIMITIVE_DEFS =
 sig
-  val dest_def: Proof.context -> (term -> bool) -> (string -> bool) -> (string -> bool) ->
+  val dest_def: Proof.context -> (term -> bool) -> (string -> bool) option -> (string -> bool) ->
     term -> (term * term) * term
   val abs_def: term -> term * term
 end;
@@ -36,7 +36,7 @@ fun dest_def ctxt check_head is_fixed is_fixedT eq =
     val head_tfrees = Term.add_tfrees head [];
 
     fun check_arg (Bound _) = true
-      | check_arg (Free (x, _)) = not (is_fixed x)
+      | check_arg (Free (x, _)) = is_none is_fixed orelse not (the is_fixed x)
       | check_arg (Const ("Pure.type", Type ("itself", [TFree _]))) = true
       | check_arg _ = false;
     fun close_arg (Bound _) t = t
@@ -45,7 +45,7 @@ fun dest_def ctxt check_head is_fixed is_fixedT eq =
     val lhs_bads = filter_out check_arg args;
     val lhs_dups = duplicates (op aconv) args;
     val rhs_extras = Term.fold_aterms (fn v as Free (x, _) =>
-      if is_fixed x orelse member (op aconv) args v then I
+      if is_none is_fixed orelse the is_fixed x orelse member (op aconv) args v then I
       else insert (op aconv) v | _ => I) rhs [];
     val rhs_extrasT = Term.fold_aterms (Term.fold_types (fn v as TFree (a, S) =>
       if is_fixedT a orelse member (op =) head_tfrees (a, S) then I

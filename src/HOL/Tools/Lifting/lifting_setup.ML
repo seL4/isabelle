@@ -93,7 +93,7 @@ fun define_pcrel (config: config) crel lthy =
         ((Binding.empty, []), definition_term)) lthy |>> (snd #> snd);
     fun raw_def lthy =
       let
-        val ((_, rhs), prove) = Local_Defs.derived_def lthy true definition_term;
+        val ((_, rhs), prove) = Local_Defs.derived_def lthy {conditional = true} definition_term;
         val ((_, (_, raw_th)), lthy) = lthy
           |> Local_Theory.define ((Binding.concealed pcrel_name, NoSyn), ((Binding.empty, []), rhs));
         val th = prove lthy raw_th;

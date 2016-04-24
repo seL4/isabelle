@@ -237,7 +237,7 @@ fun gen_def prep (raw_var, raw_spec) int lthy =
   let
     val ((vars, [((raw_name, atts), prop)]), get_pos) =
       fst (prep (the_list raw_var) [raw_spec] lthy);
-    val (((x, T), rhs), prove) = Local_Defs.derived_def lthy true prop;
+    val (((x, T), rhs), prove) = Local_Defs.derived_def lthy {conditional = true} prop;
     val _ = Name.reject_internal (x, []);
     val (b, mx) =
       (case vars of
