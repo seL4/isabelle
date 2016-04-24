@@ -538,11 +538,12 @@ text \<open>
     to \<^theory_text>\<open>assume\<close> within a proof (cf.\ \secref{sec:proof-context}).
 
     \<^descr> @{element "defines"}~\<open>a: x \<equiv> t\<close> defines a previously declared parameter.
-    This is similar to \<^theory_text>\<open>def\<close> within a proof (cf.\
-    \secref{sec:proof-context}), but @{element "defines"} takes an equational
-    proposition instead of variable-term pair. The left-hand side of the
-    equation may have additional arguments, e.g.\ ``@{element "defines"}~\<open>f
-    x\<^sub>1 \<dots> x\<^sub>n \<equiv> t\<close>''.
+    This is similar to \<^theory_text>\<open>define\<close> within a proof (cf.\
+    \secref{sec:proof-context}), but @{element "defines"} is restricted to
+    Pure equalities and the defined variable needs to be declared beforehand
+    via @{element "fixes"}. The left-hand side of the equation may have
+    additional arguments, e.g.\ ``@{element "defines"}~\<open>f x\<^sub>1 \<dots> x\<^sub>n \<equiv> t\<close>'',
+    which need to be free in the context.
 
     \<^descr> @{element "notes"}~\<open>a = b\<^sub>1 \<dots> b\<^sub>n\<close> reconsiders facts within a local
     context. Most notably, this may include arbitrary declarations in any

@@ -88,7 +88,7 @@ text \<open>
     \<^theory_text>\<open>moreover\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>note calculation = calculation this\<close> \\
     \<^theory_text>\<open>ultimately\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>moreover from calculation\<close> \\[0.5ex]
     \<^theory_text>\<open>presume a: A\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>assume a: A\<close> \\
-    \<^theory_text>\<open>def "x \<equiv> t"\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>fix x assume x_def: "x \<equiv> t"\<close> \\
+    \<^theory_text>\<open>define x where "x = t"\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>fix x assume x_def: "x = t"\<close> \\
     \<^theory_text>\<open>consider x where A | \<dots>\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>have thesis\<close> \\
     & & \quad \<^theory_text>\<open>if "\<And>x. A \<Longrightarrow> thesis" and \<dots> for thesis\<close> \\
     \<^theory_text>\<open>obtain x where a: A \<proof>\<close> & \<open>\<approx>\<close> & \<^theory_text>\<open>consider x where A \<proof>\<close> \\
