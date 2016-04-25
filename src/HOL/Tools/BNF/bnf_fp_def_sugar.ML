@@ -2057,7 +2057,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     fun add_fake_type spec =
       Typedecl.basic_typedecl {final = true}
-        (type_binding_of_spec spec, num_As, mixfix_of_spec spec);
+        (type_binding_of_spec spec, num_As, Mixfix.reset_pos (mixfix_of_spec spec));
 
     val (fake_T_names, fake_lthy) = fold_map add_fake_type specs no_defs_lthy;
 
