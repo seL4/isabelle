@@ -127,8 +127,8 @@ fun mk_split_rec_thmss ctxt Xs ctrXs_Tsss ctrss rec0_thmss (recs as rec1 :: _) r
     val Xs_frecs = Xs ~~ frecs;
     val fss = unflat ctrss fs;
 
-    fun mk_rec_call g n (Type (@{type_name fun}, [dom_T, ran_T])) =
-        Abs (Name.uu, dom_T, mk_rec_call g (n + 1) ran_T)
+    fun mk_rec_call g n (Type (@{type_name fun}, [_, ran_T])) =
+        Abs (Name.uu, Term.dummyT, mk_rec_call g (n + 1) ran_T)
       | mk_rec_call g n X =
         let
           val frec = the (AList.lookup (op =) Xs_frecs X);
@@ -147,6 +147,7 @@ fun mk_split_rec_thmss ctxt Xs ctrXs_Tsss ctrss rec0_thmss (recs as rec1 :: _) r
       in
         fold_rev (fold_rev Logic.all) [fs, gs]
           (mk_Trueprop_eq (frec $ gctr, Term.list_comb (f, fgs)))
+        |> Syntax.check_term ctxt
       end;
 
     val goalss = @{map 4} (@{map 3} o mk_goal) frecs ctrXs_Tsss ctrss fss;
