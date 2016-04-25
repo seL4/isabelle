@@ -746,7 +746,7 @@ fun gen_def prep_att prep_var prep_binds args state =
       #-> (fn rhss =>
         let
           val defs = (vars ~~ (name_atts ~~ rhss)) |> map (fn ((x, mx), ((a, atts), rhs)) =>
-            ((x, mx), ((Binding.reset_pos (Thm.def_binding_optional x a), atts), rhs)));
+            ((x, mx), ((Thm.def_binding_optional x a, atts), rhs)));
         in map_context_result (Local_Defs.add_defs defs) end))
     |-> (set_facts o map (#2 o #2))
   end;
@@ -936,7 +936,7 @@ fun gen_define prep_spec prep_att raw_vars raw_fixes raw_defs state =
       |> unflat (map snd raw_defs);
     val notes =
       map2 (fn ((a, raw_atts), _) => fn def_thms =>
-        ((Binding.reset_pos (Thm.def_binding_optional (Binding.conglomerate (map #1 def_thms)) a),
+        ((Thm.def_binding_optional (Binding.conglomerate (map #1 def_thms)) a,
           map (prep_att defs_ctxt) raw_atts), map (fn (_, th) => ([th], [])) def_thms))
         raw_defs def_thmss;
   in

@@ -566,13 +566,9 @@ fun def_name c = c ^ "_def";
 fun def_name_optional c "" = def_name c
   | def_name_optional _ name = name;
 
-val def_binding = Binding.map_name def_name;
-
-fun def_binding_optional b name =
-  if Binding.is_empty name then def_binding b else name;
-
-fun make_def_binding cond b =
-  if cond then Binding.reset_pos (def_binding b) else Binding.empty;
+val def_binding = Binding.map_name def_name #> Binding.reset_pos;
+fun def_binding_optional b name = if Binding.is_empty name then def_binding b else name;
+fun make_def_binding cond b = if cond then def_binding b else Binding.empty;
 
 
 (* unofficial theorem names *)
