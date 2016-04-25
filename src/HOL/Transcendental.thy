@@ -893,7 +893,7 @@ proof (rule LIM_I)
   from \<open>0 < r\<close> have "0 < ?r" by simp
 
   let ?s = "\<lambda>n. SOME s. 0 < s \<and> (\<forall> x. x \<noteq> 0 \<and> \<bar> x \<bar> < s \<longrightarrow> \<bar> ?diff n x - f' x0 n \<bar> < ?r)"
-  def S' \<equiv> "Min (?s ` {..< ?N })"
+  define S' where "S' = Min (?s ` {..< ?N })"
 
   have "0 < S'" unfolding S'_def
   proof (rule iffD2[OF Min_gr_iff])
@@ -911,7 +911,7 @@ proof (rule LIM_I)
     qed
   qed auto
 
-  def S \<equiv> "min (min (x0 - a) (b - x0)) S'"
+  define S where "S = min (min (x0 - a) (b - x0)) S'"
   hence "0 < S" and S_a: "S \<le> x0 - a" and S_b: "S \<le> b - x0"
     and "S \<le> S'" using x0_in_I and \<open>0 < S'\<close>
     by auto
@@ -2248,7 +2248,7 @@ lemma DERIV_log:
   assumes "x > 0"
   shows "DERIV (\<lambda>y. log b y) x :> 1 / (ln b * x)"
 proof -
-  def lb \<equiv> "1 / ln b"
+  define lb where "lb = 1 / ln b"
   moreover have "DERIV (\<lambda>y. lb * ln y) x :> lb / x"
     using \<open>x > 0\<close> by (auto intro!: derivative_eq_intros)
   ultimately show ?thesis
@@ -4769,7 +4769,7 @@ lemma tendsto_arctan_at_top: "(arctan \<longlongrightarrow> (pi/2)) at_top"
 proof (rule tendstoI)
   fix e :: real
   assume "0 < e"
-  def y \<equiv> "pi/2 - min (pi/2) e"
+  define y where "y = pi/2 - min (pi/2) e"
   then have y: "0 \<le> y" "y < pi/2" "pi/2 \<le> e + y"
     using \<open>0 < e\<close> by auto
 

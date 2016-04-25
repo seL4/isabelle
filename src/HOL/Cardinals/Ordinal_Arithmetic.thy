@@ -751,12 +751,12 @@ next
             with F have maxF: "\<forall>f \<in> F. s.isMaxim (SUPP f) (s.maxim (SUPP f))"
               and SUPPF: "\<forall>f \<in> F. finite (SUPP f) \<and> SUPP f \<noteq> {} \<and> SUPP f \<subseteq> Field s"
               using maxim_isMaxim_support support_not_const by auto
-            def z \<equiv> "s.minim {s.maxim (SUPP f) | f. f \<in> F}"
+            define z where "z = s.minim {s.maxim (SUPP f) | f. f \<in> F}"
             from F SUPPF maxF have zmin: "s.isMinim {s.maxim (SUPP f) | f. f \<in> F} z"
               unfolding z_def by (intro s.minim_isMinim) (auto simp: s.isMaxim_def)
             with F have zy: "(z, y) \<in> s" unfolding s.isMinim_def by auto
             hence zField: "z \<in> Field s" unfolding Field_def by auto
-            def x0 \<equiv> "r.minim {f z | f. f \<in> F \<and> z = s.maxim (SUPP f)}"
+            define x0 where "x0 = r.minim {f z | f. f \<in> F \<and> z = s.maxim (SUPP f)}"
             from F(1,2) maxF(1) SUPPF zmin
               have x0min: "r.isMinim {f z | f. f \<in> F \<and> z = s.maxim (SUPP f)} x0"
               unfolding x0_def s.isMaxim_def s.isMinim_def
@@ -766,7 +766,7 @@ next
             from x0min maxF(1) SUPPF F(1) have x0notzero: "x0 \<noteq> r.zero"
               unfolding r.isMinim_def s.isMaxim_def FinFunc_def Func_def support_def
               by fastforce
-            def G \<equiv> "{f(z := r.zero) | f. f \<in> F \<and> z = s.maxim (SUPP f) \<and> f z = x0}"
+            define G where "G = {f(z := r.zero) | f. f \<in> F \<and> z = s.maxim (SUPP f) \<and> f z = x0}"
             from zmin x0min have "G \<noteq> {}" unfolding G_def z_def s.isMinim_def r.isMinim_def by blast
             have GF: "G \<subseteq> (\<lambda>f. f(z := r.zero)) ` F" unfolding G_def by auto
             have "G \<subseteq> fin_support r.zero (Field s)"
@@ -786,7 +786,7 @@ next
               with G have maxG: "\<forall>g \<in> G. s.isMaxim (SUPP g) (s.maxim (SUPP g))"
                 and SUPPG: "\<forall>g \<in> G. finite (SUPP g) \<and> SUPP g \<noteq> {} \<and> SUPP g \<subseteq> Field s"
                 using maxim_isMaxim_support support_not_const by auto
-              def y' \<equiv> "s.minim {s.maxim (SUPP f) | f. f \<in> G}"
+              define y' where "y' = s.minim {s.maxim (SUPP f) | f. f \<in> G}"
               from G SUPPG maxG `G \<noteq> {}` have y'min: "s.isMinim {s.maxim (SUPP f) | f. f \<in> G} y'"
                 unfolding y'_def by (intro s.minim_isMinim) (auto simp: s.isMaxim_def)
               moreover
@@ -810,7 +810,7 @@ next
             qed simp
             then obtain g0 where g0: "g0 \<in> G" "\<forall>g \<in> G. (g0, g) \<in> oexp" by blast
             hence g0z: "g0 z = r.zero" unfolding G_def by auto
-            def f0 \<equiv> "g0(z := x0)"
+            define f0 where "f0 = g0(z := x0)"
             with x0notzero zField have SUPP: "SUPP f0 = SUPP g0 \<union> {z}" unfolding support_def by auto
             from g0z have f0z: "f0(z := r.zero) = g0" unfolding f0_def fun_upd_upd by auto
             have f0: "f0 \<in> F" using x0min g0(1)
@@ -1297,8 +1297,9 @@ proof -
     using embed_iff_compat_inj_on_ofilter[OF s t, of f] embedS_iff[OF s, of t f]
     unfolding embedS_def by auto
   note invff = the_inv_into_f_f[OF *(1)] and injfD = inj_onD[OF *(1)]
-  def F \<equiv> "\<lambda>g z. if z \<in> f ` Field s then g (the_inv_into (Field s) f z) else
-    if z \<in> Field t then r.zero else undefined"
+  define F where [abs_def]: "F g z =
+    (if z \<in> f ` Field s then g (the_inv_into (Field s) f z)
+     else if z \<in> Field t then r.zero else undefined)" for g z
   from *(4) x(2) the_inv_into_f_eq[OF *(1)] have FLR: "F ` Field ?L \<subseteq> Field ?R"
     unfolding rt.Field_oexp rs.Field_oexp FinFunc_def Func_def fin_support_def support_def F_def
     by (fastforce split: option.splits if_split_asm elim!: finite_surj[of _ _ f])
@@ -1368,7 +1369,8 @@ proof -
   from FLR have "F ` Field ?L \<subset> Field ?R"
   proof (intro psubsetI)
     from *(4) obtain z where z: "z \<in> Field t" "z \<notin> f ` Field s" by auto
-    def h \<equiv> "\<lambda>z'. if z' \<in> Field t then if z' = z then x else r.zero else undefined"
+    define h where [abs_def]: "h z' =
+      (if z' \<in> Field t then if z' = z then x else r.zero else undefined)" for z'
     from z x(3) have "rt.SUPP h = {z}" unfolding support_def h_def by simp
     with x have "h \<in> Field ?R" unfolding h_def rt.Field_oexp FinFunc_def Func_def fin_support_def
       by auto

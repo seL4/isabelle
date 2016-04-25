@@ -96,7 +96,7 @@ proof -
     with A B C show ?thesis by simp
   next
     case False
-    def m \<equiv> "Suc n"
+    define m where "m = Suc n"
     then have "m > 0" by simp
     from False have "n > 0" by simp
     from A obtain q where q: "Suc (Suc a) = Suc n * q" by (rule dvdE)
@@ -133,7 +133,8 @@ next
       enumerate_Suc_eq in_set_enumerate_eq less_eq_dvd_minus)
 next
   case 3
-  { def v \<equiv> "Suc m" and w \<equiv> "Suc n"
+  { define v where "v = Suc m"
+    define w where "w = Suc n"
     fix q
     assume "m + n \<le> q"
     then obtain r where q: "q = m + n + r" by (auto simp add: le_iff_add)
@@ -359,7 +360,7 @@ proof -
   have "List.find (\<lambda>p. p \<ge> m) (primes_upto n) = Some (smallest_prime_beyond m)"
     if assms: "m \<le> p" "prime p" "p \<le> n" for p
   proof -
-    def A \<equiv> "{p. p \<le> n \<and> prime p \<and> m \<le> p}"
+    define A where "A = {p. p \<le> n \<and> prime p \<and> m \<le> p}"
     from assms have "smallest_prime_beyond m \<le> p"
       by (auto intro: smallest_prime_beyond_smallest)
     from this \<open>p \<le> n\<close> have *: "smallest_prime_beyond m \<le> n"

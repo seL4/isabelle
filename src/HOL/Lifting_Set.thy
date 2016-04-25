@@ -80,7 +80,7 @@ lemma bi_unique_rel_set_lemma:
   assumes "bi_unique R" and "rel_set R X Y"
   obtains f where "Y = image f X" and "inj_on f X" and "\<forall>x\<in>X. R x (f x)"
 proof
-  def f \<equiv> "\<lambda>x. THE y. R x y"
+  define f where "f x = (THE y. R x y)" for x
   { fix x assume "x \<in> X"
     with \<open>rel_set R X Y\<close> \<open>bi_unique R\<close> have "R x (f x)"
       by (simp add: bi_unique_def rel_set_def f_def) (metis theI)

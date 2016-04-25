@@ -643,7 +643,7 @@ lemma pochhammer_times_pochhammer_half:
   shows "pochhammer z (Suc n) * pochhammer (z + 1/2) (Suc n) = (\<Prod>k=0..2*n+1. z + of_nat k / 2)"
 proof (induction n)
   case (Suc n)
-  def n' \<equiv> "Suc n"
+  define n' where "n' = Suc n"
   have "pochhammer z (Suc n') * pochhammer (z + 1 / 2) (Suc n') =
           (pochhammer z n' * pochhammer (z + 1 / 2) n') *
           ((z + of_nat n') * (z + 1/2 + of_nat n'))" (is "_ = _ * ?A")
@@ -1161,7 +1161,8 @@ lemma gbinomial_partial_sum_poly:
        (\<Sum>k\<le>m. (-r gchoose k) * (-x)^k * (x + y)^(m-k))" (is "?lhs m = ?rhs m")
 proof (induction m)
   case (Suc mm)
-  def G \<equiv> "\<lambda>i k. (of_nat i + r gchoose k) * x^k * y^(i-k)" and S \<equiv> ?lhs
+  define G where "G i k = (of_nat i + r gchoose k) * x^k * y^(i-k)" for i k
+  define S where "S = ?lhs"
   have SG_def: "S = (\<lambda>i. (\<Sum>k\<le>i. (G i k)))" unfolding S_def G_def ..
 
   have "S (Suc mm) = G (Suc mm) 0 + (\<Sum>k=Suc 0..Suc mm. G (Suc mm) k)"
@@ -1388,7 +1389,7 @@ proof -
   proof(rule setsum.cong[OF refl])
     fix x
     assume x: "x \<in> \<Union>A"
-    def K \<equiv> "{X \<in> A. x \<in> X}"
+    define K where "K = {X \<in> A. x \<in> X}"
     with \<open>finite A\<close> have K: "finite K" by auto
     let ?I = "\<lambda>i. {I. I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I}"
     have "inj_on snd (SIGMA i:{1..card A}. ?I i)"

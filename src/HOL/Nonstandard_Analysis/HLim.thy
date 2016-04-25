@@ -209,7 +209,7 @@ apply (case_tac "y = star_of a", auto)
 done
 
 text\<open>NS continuity can be defined using NS Limit in
-    similar fashion to standard def of continuity\<close>
+    similar fashion to standard definition of continuity\<close>
 lemma isNSCont_NSLIM_iff: "(isNSCont f a) = (f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S (f a))"
 by (blast intro: isNSCont_NSLIM NSLIM_isNSCont)
 
@@ -236,7 +236,7 @@ by (erule isNSCont_isCont_iff [THEN iffD1])
 text\<open>Alternative definition of continuity\<close>
 
 (* Prove equivalence between NS limits - *)
-(* seems easier than using standard def  *)
+(* seems easier than using standard definition  *)
 lemma NSLIM_h_iff: "(f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L) = ((%h. f(a + h)) \<midarrow>0\<rightarrow>\<^sub>N\<^sub>S L)"
 apply (simp add: NSLIM_def, auto)
 apply (drule_tac x = "star_of a + x" in spec)

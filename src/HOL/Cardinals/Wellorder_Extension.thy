@@ -66,7 +66,7 @@ theorem well_order_extension:
   shows "\<exists>w. p \<subseteq> w \<and> Well_order w"
 proof -
   let ?K = "{r. Well_order r \<and> downset_on (Field r) p \<and> extension_on (Field r) r p}"
-  def I \<equiv> "init_seg_of \<inter> ?K \<times> ?K"
+  define I where "I = init_seg_of \<inter> ?K \<times> ?K"
   have I_init: "I \<subseteq> init_seg_of" by (simp add: I_def)
   then have subch: "\<And>R. R \<in> Chains I \<Longrightarrow> chain\<^sub>\<subseteq> R"
     by (auto simp: init_seg_of_def chain_subset_def Chains_def)

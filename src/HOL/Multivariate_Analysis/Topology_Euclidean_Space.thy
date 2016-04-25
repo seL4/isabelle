@@ -228,7 +228,8 @@ proof atomize_elim
     "\<And>a. a \<in> A' \<Longrightarrow> open a"
     "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>a\<in>A'. a \<subseteq> S"
     by (rule first_countable_basisE) blast
-  def A \<equiv> "(\<lambda>N. \<Inter>((\<lambda>n. from_nat_into A' n) ` N)) ` (Collect finite::nat set set)"
+  define A where [abs_def]:
+    "A = (\<lambda>N. \<Inter>((\<lambda>n. from_nat_into A' n) ` N)) ` (Collect finite::nat set set)"
   then show "\<exists>A. countable A \<and> (\<forall>a. a \<in> A \<longrightarrow> x \<in> a) \<and> (\<forall>a. a \<in> A \<longrightarrow> open a) \<and>
         (\<forall>S. open S \<longrightarrow> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)) \<and> (\<forall>a b. a \<in> A \<longrightarrow> b \<in> A \<longrightarrow> a \<inter> b \<in> A)"
   proof (safe intro!: exI[where x=A])
@@ -385,7 +386,7 @@ qed
 instance second_countable_topology \<subseteq> first_countable_topology
 proof
   fix x :: 'a
-  def B \<equiv> "SOME B::'a set set. countable B \<and> topological_basis B"
+  define B :: "'a set set" where "B = (SOME B. countable B \<and> topological_basis B)"
   then have B: "countable B" "topological_basis B"
     using countable_basis is_basis
     by (auto simp: countable_basis is_basis)
@@ -723,7 +724,7 @@ proof
   then show ?rhs
     unfolding openin_open open_dist by blast
 next
-  def T \<equiv> "{x. \<exists>a\<in>S. \<exists>d>0. (\<forall>y\<in>U. dist y a < d \<longrightarrow> y \<in> S) \<and> dist x a < d}"
+  define T where "T = {x. \<exists>a\<in>S. \<exists>d>0. (\<forall>y\<in>U. dist y a < d \<longrightarrow> y \<in> S) \<and> dist x a < d}"
   have 1: "\<forall>x\<in>T. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> T"
     unfolding T_def
     apply clarsimp
@@ -1030,7 +1031,7 @@ lemma rational_boxes:
   assumes "e > 0"
   shows "\<exists>a b. (\<forall>i\<in>Basis. a \<bullet> i \<in> \<rat> \<and> b \<bullet> i \<in> \<rat> ) \<and> x \<in> box a b \<and> box a b \<subseteq> ball x e"
 proof -
-  def e' \<equiv> "e / (2 * sqrt (real (DIM ('a))))"
+  define e' where "e' = e / (2 * sqrt (real (DIM ('a))))"
   then have e: "e' > 0"
     using assms by (auto simp: DIM_positive)
   have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> y < x \<bullet> i \<and> x \<bullet> i - y < e'" (is "\<forall>i. ?th i")
@@ -1385,9 +1386,8 @@ proof -
     bs: "set bs = Basis" "distinct bs"
     by (metis finite_distinct_list)
   from nonempty_Basis s obtain j where j: "j \<in> Basis" "s j \<in> S" by blast
-  def y \<equiv> "rec_list
-    (s j)
-    (\<lambda>j _ Y. (\<Sum>i\<in>Basis. (if i = j then s i \<bullet> i else Y \<bullet> i) *\<^sub>R i))"
+  define y where
+    "y = rec_list (s j) (\<lambda>j _ Y. (\<Sum>i\<in>Basis. (if i = j then s i \<bullet> i else Y \<bullet> i) *\<^sub>R i))"
   have "x = (\<Sum>i\<in>Basis. (if i \<in> set bs then s i \<bullet> i else s j \<bullet> i) *\<^sub>R i)"
     using bs by (auto simp add: s(1)[symmetric] euclidean_representation)
   also have [symmetric]: "y bs = \<dots>"
@@ -2534,7 +2534,7 @@ proof
       "\<And>i. x \<in> A i"
       "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
     by blast
-  def f \<equiv> "\<lambda>n. SOME y. y \<in> S \<and> y \<in> A n \<and> x \<noteq> y"
+  define f where "f n = (SOME y. y \<in> S \<and> y \<in> A n \<and> x \<noteq> y)" for n
   {
     fix n
     from \<open>?lhs\<close> have "\<exists>y. y \<in> S \<and> y \<in> A n \<and> x \<noteq> y"
@@ -3137,8 +3137,8 @@ proof (rule islimptI)
   then obtain r where "0 < r" "\<forall>z. dist z y < r \<longrightarrow> z \<in> T"
     unfolding open_dist by fast
   (* choose point between x and y, within distance r of y. *)
-  def k \<equiv> "min 1 (r / (2 * dist x y))"
-  def z \<equiv> "y + scaleR k (x - y)"
+  define k where "k = min 1 (r / (2 * dist x y))"
+  define z where "z = y + scaleR k (x - y)"
   have z_def2: "z = x + scaleR (1 - k) (y - x)"
     unfolding z_def by (simp add: algebra_simps)
   have "dist z y < r"
@@ -3676,7 +3676,7 @@ proof -
       "\<And>i. l \<in> A i"
       "\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
     by blast
-  def s \<equiv> "\<lambda>n i. SOME j. i < j \<and> f j \<in> A (Suc n)"
+  define s where "s n i = (SOME j. i < j \<and> f j \<in> A (Suc n))" for n i
   {
     fix n i
     have "infinite (A (Suc n) \<inter> range f - f`{.. i})"
@@ -3691,7 +3691,7 @@ proof -
       unfolding s_def by (auto intro: someI2_ex)
   }
   note s = this
-  def r \<equiv> "rec_nat (s 0 0) s"
+  define r where "r = rec_nat (s 0 0) s"
   have "subseq r"
     by (auto simp: r_def s subseq_Suc_iff)
   moreover
@@ -3984,7 +3984,7 @@ proof (intro allI iffI impI compact_fip[THEN iffD2] notI)
   then have "U \<noteq> {}"
     by (auto simp: eventually_False)
 
-  def Z \<equiv> "closure ` {A. eventually (\<lambda>x. x \<in> A) F}"
+  define Z where "Z = closure ` {A. eventually (\<lambda>x. x \<in> A) F}"
   then have "\<forall>z\<in>Z. closed z"
     by auto
   moreover
@@ -4018,7 +4018,7 @@ proof (intro allI iffI impI compact_fip[THEN iffD2] notI)
 next
   fix A
   assume A: "\<forall>a\<in>A. closed a" "\<forall>B\<subseteq>A. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {}" "U \<inter> \<Inter>A = {}"
-  def F \<equiv> "INF a:insert U A. principal a"
+  define F where "F = (INF a:insert U A. principal a)"
   have "F \<noteq> bot"
     unfolding F_def
   proof (rule INF_filter_not_bot)
@@ -4089,8 +4089,7 @@ proof safe
   fix A
   assume A: "\<forall>a\<in>A. open a" "U \<subseteq> \<Union>A"
   assume *: "\<forall>A. countable A \<longrightarrow> (\<forall>a\<in>A. open a) \<longrightarrow> U \<subseteq> \<Union>A \<longrightarrow> (\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T)"
-
-  moreover def C \<equiv> "{b\<in>B. \<exists>a\<in>A. b \<inter> U \<subseteq> a}"
+  moreover define C where "C = {b\<in>B. \<exists>a\<in>A. b \<inter> U \<subseteq> a}"
   ultimately have "countable C" "\<forall>a\<in>C. open a"
     unfolding C_def using ccover by auto
   moreover
@@ -4202,7 +4201,7 @@ proof (safe intro!: countably_compactI)
         by auto
       then obtain X' where T: "\<And>T. T \<subseteq> A \<Longrightarrow> finite T \<Longrightarrow> X' T \<in> U - \<Union>T"
         by metis
-      def X \<equiv> "\<lambda>n. X' (from_nat_into A ` {.. n})"
+      define X where "X n = X' (from_nat_into A ` {.. n})" for n
       have X: "\<And>n. X n \<in> U - (\<Union>i\<le>n. from_nat_into A i)"
         using \<open>A \<noteq> {}\<close> unfolding X_def by (intro T) (auto intro: from_nat_into)
       then have "range X \<subseteq> U"
@@ -4249,7 +4248,7 @@ proof safe
       "\<And>i. x \<in> A i"
       "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
     by blast
-  def s \<equiv> "\<lambda>n i. SOME j. i < j \<and> X j \<in> A (Suc n)"
+  define s where "s n i = (SOME j. i < j \<and> X j \<in> A (Suc n))" for n i
   {
     fix n i
     have "\<exists>a. i < a \<and> X a \<in> A (Suc n)"
@@ -4270,7 +4269,7 @@ proof safe
       unfolding s_def by (auto intro: someI2_ex)
   }
   note s = this
-  def r \<equiv> "rec_nat (s 0 0) s"
+  define r where "r = rec_nat (s 0 0) s"
   have "subseq r"
     by (auto simp: r_def s subseq_Suc_iff)
   moreover
@@ -4303,7 +4302,7 @@ lemma countably_compact_imp_acc_point:
     and "t \<subseteq> s"
   shows "\<exists>x\<in>s. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> t)"
 proof (rule ccontr)
-  def C \<equiv> "(\<lambda>F. interior (F \<union> (- t))) ` {F. finite F \<and> F \<subseteq> t }"
+  define C where "C = (\<lambda>F. interior (F \<union> (- t))) ` {F. finite F \<and> F \<subseteq> t }"
   note \<open>countably_compact s\<close>
   moreover have "\<forall>t\<in>C. open t"
     by (auto simp: C_def)
@@ -4442,7 +4441,7 @@ proof -
   from seq_compact_imp_totally_bounded[OF \<open>seq_compact s\<close>]
   obtain f where f: "\<forall>e>0. finite (f e) \<and> f e \<subseteq> s \<and> s \<subseteq> (\<Union>x\<in>f e. ball x e)"
     unfolding choice_iff' ..
-  def K \<equiv> "(\<lambda>(x, r). ball x r) ` ((\<Union>e \<in> \<rat> \<inter> {0 <..}. f e) \<times> \<rat>)"
+  define K where "K = (\<lambda>(x, r). ball x r) ` ((\<Union>e \<in> \<rat> \<inter> {0 <..}. f e) \<times> \<rat>)"
   have "countably_compact s"
     using \<open>seq_compact s\<close> by (rule seq_compact_imp_countably_compact)
   then show "compact s"
@@ -4628,11 +4627,11 @@ proof safe
     then obtain l2 r2 where r2:"subseq r2" and lr2:"((\<lambda>i. f (r1 (r2 i)) proj k) \<longlongrightarrow> l2) sequentially"
       using bounded_imp_convergent_subsequence[of "\<lambda>i. f (r1 i) proj k"]
       by (auto simp: o_def)
-    def r \<equiv> "r1 \<circ> r2"
+    define r where "r = r1 \<circ> r2"
     have r:"subseq r"
       using r1 and r2 unfolding r_def o_def subseq_def by auto
     moreover
-    def l \<equiv> "unproj (\<lambda>i. if i = k then l2 else l1 proj i)::'a"
+    define l where "l = unproj (\<lambda>i. if i = k then l2 else l1 proj i)"
     {
       fix e::real
       assume "e > 0"
@@ -4822,9 +4821,9 @@ proof
       fix f :: "nat \<Rightarrow> 'a"
       assume f: "\<forall>n. f n \<in> s"
 
-      def e \<equiv> "\<lambda>n. 1 / (2 * Suc n)"
+      define e where "e n = 1 / (2 * Suc n)" for n
       then have [simp]: "\<And>n. 0 < e n" by auto
-      def B \<equiv> "\<lambda>n U. SOME b. infinite {n. f n \<in> b} \<and> (\<exists>x. b \<subseteq> ball x (e n) \<inter> U)"
+      define B where "B n U = (SOME b. infinite {n. f n \<in> b} \<and> (\<exists>x. b \<subseteq> ball x (e n) \<inter> U))" for n U
       {
         fix n U
         assume "infinite {n. f n \<in> U}"
@@ -4841,7 +4840,7 @@ proof
       }
       note B = this
 
-      def F \<equiv> "rec_nat (B 0 UNIV) B"
+      define F where "F = rec_nat (B 0 UNIV) B"
       {
         fix n
         have "infinite {i. f i \<in> F n}"
@@ -4862,7 +4861,7 @@ proof
           by (simp add: set_eq_iff not_le conj_commute)
       qed
 
-      def t \<equiv> "rec_nat (sel 0 0) (\<lambda>n i. sel (Suc n) i)"
+      define t where "t = rec_nat (sel 0 0) (\<lambda>n i. sel (Suc n) i)"
       have "subseq t"
         unfolding subseq_Suc_iff by (simp add: t_def sel)
       moreover have "\<forall>i. (f \<circ> t) i \<in> s"
@@ -5587,8 +5586,8 @@ next
       using choice[of "\<lambda>d x. d>0 \<longrightarrow> fst x \<in> s \<and> snd x \<in> s \<and> dist (snd x) (fst x) < d \<and> \<not> dist (f (snd x)) (f (fst x)) < e"]
       unfolding Bex_def
       by (auto simp add: dist_commute)
-    def x \<equiv> "\<lambda>n::nat. fst (fa (inverse (real n + 1)))"
-    def y \<equiv> "\<lambda>n::nat. snd (fa (inverse (real n + 1)))"
+    define x where "x n = fst (fa (inverse (real n + 1)))" for n
+    define y where "y n = snd (fa (inverse (real n + 1)))" for n
     have xyn: "\<forall>n. x n \<in> s \<and> y n \<in> s"
       and xy0: "\<forall>n. dist (x n) (y n) < inverse (real n + 1)"
       and fxy:"\<forall>n. \<not> dist (f (x n)) (f (y n)) < e"
@@ -6552,7 +6551,8 @@ lemma compact_uniformly_continuous:
 proof (cases, safe)
   fix e :: real
   assume "0 < e" "s \<noteq> {}"
-  def [simp]: R \<equiv> "{(y, d). y \<in> s \<and> 0 < d \<and> ball y d \<inter> s \<subseteq> {x \<in> s. f x \<in> ball (f y) (e/2) } }"
+  define R where [simp]:
+    "R = {(y, d). y \<in> s \<and> 0 < d \<and> ball y d \<inter> s \<subseteq> {x \<in> s. f x \<in> ball (f y) (e/2)}}"
   let ?b = "(\<lambda>(y, d). ball y (d/2))"
   have "(\<forall>r\<in>R. open (?b r))" "s \<subseteq> (\<Union>r\<in>R. ?b r)"
   proof safe
@@ -7451,13 +7451,13 @@ qed
 
 instance euclidean_space \<subseteq> second_countable_topology
 proof
-  def a \<equiv> "\<lambda>f :: 'a \<Rightarrow> (real \<times> real). \<Sum>i\<in>Basis. fst (f i) *\<^sub>R i"
+  define a where "a f = (\<Sum>i\<in>Basis. fst (f i) *\<^sub>R i)" for f :: "'a \<Rightarrow> real \<times> real"
   then have a: "\<And>f. (\<Sum>i\<in>Basis. fst (f i) *\<^sub>R i) = a f"
     by simp
-  def b \<equiv> "\<lambda>f :: 'a \<Rightarrow> (real \<times> real). \<Sum>i\<in>Basis. snd (f i) *\<^sub>R i"
+  define b where "b f = (\<Sum>i\<in>Basis. snd (f i) *\<^sub>R i)" for f :: "'a \<Rightarrow> real \<times> real"
   then have b: "\<And>f. (\<Sum>i\<in>Basis. snd (f i) *\<^sub>R i) = b f"
     by simp
-  def B \<equiv> "(\<lambda>f. box (a f) (b f)) ` (Basis \<rightarrow>\<^sub>E (\<rat> \<times> \<rat>))"
+  define B where "B = (\<lambda>f. box (a f) (b f)) ` (Basis \<rightarrow>\<^sub>E (\<rat> \<times> \<rat>))"
 
   have "Ball B open" by (simp add: B_def open_box)
   moreover have "(\<forall>A. open A \<longrightarrow> (\<exists>B'\<subseteq>B. \<Union>B' = A))"
@@ -7655,7 +7655,7 @@ proof -
   {
     fix x
     assume as:"x \<in> cbox a b"
-    def f \<equiv> "\<lambda>n::nat. x + (inverse (real n + 1)) *\<^sub>R (?c - x)"
+    define f where [abs_def]: "f n = x + (inverse (real n + 1)) *\<^sub>R (?c - x)" for n
     {
       fix n
       assume fn: "f n <e b \<longrightarrow> a <e f n \<longrightarrow> f n = x" and xc: "x \<noteq> ?c"
@@ -7712,7 +7712,7 @@ lemma bounded_subset_box_symmetric:
 proof -
   obtain b where "b>0" and b: "\<forall>x\<in>s. norm x \<le> b"
     using assms[unfolded bounded_pos] by auto
-  def a \<equiv> "(\<Sum>i\<in>Basis. (b + 1) *\<^sub>R i)::'a"
+  define a :: 'a where "a = (\<Sum>i\<in>Basis. (b + 1) *\<^sub>R i)"
   {
     fix x
     assume "x \<in> s"
@@ -8062,7 +8062,7 @@ lemma homeomorphism_compact:
   assumes "compact s" "continuous_on s f"  "f ` s = t"  "inj_on f s"
   shows "\<exists>g. homeomorphism s t f g"
 proof -
-  def g \<equiv> "\<lambda>x. SOME y. y\<in>s \<and> f y = x"
+  define g where "g x = (SOME y. y\<in>s \<and> f y = x)" for x
   have g: "\<forall>x\<in>s. g (f x) = x"
     using assms(3) assms(4)[unfolded inj_on_def] unfolding g_def by auto
   {
@@ -8486,7 +8486,7 @@ proof -
   have "1 - c > 0" using c by auto
 
   from s(2) obtain z0 where "z0 \<in> s" by auto
-  def z \<equiv> "\<lambda>n. (f ^^ n) z0"
+  define z where "z n = (f ^^ n) z0" for n
   {
     fix n :: nat
     have "z n \<in> s" unfolding z_def
@@ -8498,7 +8498,7 @@ proof -
       then show ?case using f by auto qed
   } note z_in_s = this
 
-  def d \<equiv> "dist (z 0) (z 1)"
+  define d where "d = dist (z 0) (z 1)"
 
   have fzn:"\<And>n. f (z n) = z (Suc n)" unfolding z_def by auto
   {
@@ -8608,7 +8608,7 @@ proof -
   then obtain x where "x\<in>s" and x:"(z \<longlongrightarrow> x) sequentially"
     using s(1)[unfolded compact_def complete_def, THEN spec[where x=z]] and z_in_s by auto
 
-  def e \<equiv> "dist (f x) x"
+  define e where "e = dist (f x) x"
   have "e = 0"
   proof (rule ccontr)
     assume "e \<noteq> 0"

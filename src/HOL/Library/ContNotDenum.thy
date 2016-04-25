@@ -46,8 +46,9 @@ proof
     "\<And>a b c. a < b \<Longrightarrow> c \<notin> {i a b c .. j a b c}"
     by metis
 
-  def ivl \<equiv> "rec_nat (f 0 + 1, f 0 + 2) (\<lambda>n x. (i (fst x) (snd x) (f n), j (fst x) (snd x) (f n)))"
-  def I \<equiv> "\<lambda>n. {fst (ivl n) .. snd (ivl n)}"
+  define ivl where "ivl =
+    rec_nat (f 0 + 1, f 0 + 2) (\<lambda>n x. (i (fst x) (snd x) (f n), j (fst x) (snd x) (f n)))"
+  define I where "I n = {fst (ivl n) .. snd (ivl n)}" for n
 
   have ivl[simp]:
     "ivl 0 = (f 0 + 1, f 0 + 2)"
@@ -95,7 +96,7 @@ lemma bij_betw_open_intervals:
   assumes "a < b" "c < d"
   shows "\<exists>f. bij_betw f {a<..<b} {c<..<d}"
 proof -
-  def f \<equiv> "\<lambda>a b c d x::real. (d - c)/(b - a) * (x - a) + c"
+  define f where "f a b c d x = (d - c)/(b - a) * (x - a) + c" for a b c d x :: real
   { fix a b c d x :: real assume *: "a < b" "c < d" "a < x" "x < b"
     moreover from * have "(d - c) * (x - a) < (d - c) * (b - a)"
       by (intro mult_strict_left_mono) simp_all

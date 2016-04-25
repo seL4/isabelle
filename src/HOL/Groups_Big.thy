@@ -1137,7 +1137,7 @@ next
       case True with insert show ?thesis by simp
     next
       case False with insert have "a \<in> B" by simp
-      def C \<equiv> "B - {a}"
+      define C where "C = B - {a}"
       with \<open>finite B\<close> \<open>a \<in> B\<close>
         have *: "B = insert a C" "finite C" "a \<notin> C" by auto
       with insert show ?thesis by (auto simp add: insert_commute ac_simps)

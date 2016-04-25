@@ -279,7 +279,7 @@ proof \<comment> "by contradiction"
   assume sf: "summable ?f"
   then obtain n::nat where ndef: "n = nat \<lceil>2 * ?s\<rceil>" by simp
   then have ngt: "1 + real n/2 > ?s" by linarith
-  def j \<equiv> "(2::nat)^n" 
+  define j where "j = (2::nat)^n"
   have "\<forall>m\<ge>j. 0 < ?f m" by simp
   with sf have "(\<Sum>i<j. ?f i) < ?s" by (rule setsum_less_suminf)
   then have "(\<Sum>i\<in>{Suc 0..<Suc j}. 1/(real i)) < ?s"

@@ -1671,9 +1671,14 @@ lemma (in information_space) conditional_mutual_information_eq_conditional_entro
   assumes X: "simple_function M X" and Y: "simple_function M Y"
   shows "\<I>(X ; X | Y) = \<H>(X | Y)"
 proof -
-  def Py \<equiv> "\<lambda>x. if x \<in> Y`space M then measure M (Y -` {x} \<inter> space M) else 0"
-  def Pxy \<equiv> "\<lambda>x. if x \<in> (\<lambda>x. (X x, Y x))`space M then measure M ((\<lambda>x. (X x, Y x)) -` {x} \<inter> space M) else 0"
-  def Pxxy \<equiv> "\<lambda>x. if x \<in> (\<lambda>x. (X x, X x, Y x))`space M then measure M ((\<lambda>x. (X x, X x, Y x)) -` {x} \<inter> space M) else 0"
+  define Py where "Py x = (if x \<in> Y`space M then measure M (Y -` {x} \<inter> space M) else 0)" for x
+  define Pxy where "Pxy x =
+      (if x \<in> (\<lambda>x. (X x, Y x))`space M then measure M ((\<lambda>x. (X x, Y x)) -` {x} \<inter> space M) else 0)"
+    for x
+  define Pxxy where "Pxxy x =
+      (if x \<in> (\<lambda>x. (X x, X x, Y x))`space M then measure M ((\<lambda>x. (X x, X x, Y x)) -` {x} \<inter> space M)
+       else 0)"
+    for x
   let ?M = "X`space M \<times> X`space M \<times> Y`space M"
 
   note XY = simple_function_Pair[OF X Y]

@@ -470,10 +470,15 @@ lemma card_of_Plus_assoc:
 fixes A :: "'a set" and B :: "'b set" and C :: "'c set"
 shows "|(A <+> B) <+> C| =o |A <+> B <+> C|"
 proof -
-  def f \<equiv> "\<lambda>(k::('a + 'b) + 'c).
-  case k of Inl ab \<Rightarrow> (case ab of Inl a \<Rightarrow> Inl a
-                                 |Inr b \<Rightarrow> Inr (Inl b))
-           |Inr c \<Rightarrow> Inr (Inr c)"
+  define f :: "('a + 'b) + 'c \<Rightarrow> 'a + 'b + 'c"
+    where [abs_def]: "f k =
+      (case k of
+        Inl ab \<Rightarrow>
+          (case ab of
+            Inl a \<Rightarrow> Inl a
+          | Inr b \<Rightarrow> Inr (Inl b))
+      | Inr c \<Rightarrow> Inr (Inr c))"
+    for k
   have "A <+> B <+> C \<subseteq> f ` ((A <+> B) <+> C)"
   proof
     fix x assume x: "x \<in> A <+> B <+> C"
@@ -499,7 +504,7 @@ proof -
     qed
   qed
   hence "bij_betw f ((A <+> B) <+> C) (A <+> B <+> C)"
-  unfolding bij_betw_def inj_on_def f_def by fastforce
+    unfolding bij_betw_def inj_on_def f_def by fastforce
   thus ?thesis using card_of_ordIso by blast
 qed
 
@@ -1626,8 +1631,8 @@ using bij_betw_curr by blast
 lemma card_of_Pow_Func:
 "|Pow A| =o |Func A (UNIV::bool set)|"
 proof-
-  def F \<equiv> "\<lambda> A' a. if a \<in> A then (if a \<in> A' then True else False)
-                            else undefined"
+  define F where [abs_def]: "F A' a =
+    (if a \<in> A then (if a \<in> A' then True else False) else undefined)" for A' a
   have "bij_betw F (Pow A) (Func A (UNIV::bool set))"
   unfolding bij_betw_def inj_on_def proof (intro ballI impI conjI)
     fix A1 A2 assume "A1 \<in> Pow A" "A2 \<in> Pow A" "F A1 = F A2"
@@ -1638,8 +1643,9 @@ proof-
       fix f assume f: "f \<in> Func A (UNIV::bool set)"
       show "f \<in> F ` Pow A" unfolding image_def mem_Collect_eq proof(intro bexI)
         let ?A1 = "{a \<in> A. f a = True}"
-        show "f = F ?A1" unfolding F_def apply(rule ext)
-        using f unfolding Func_def mem_Collect_eq by auto
+        show "f = F ?A1"
+          unfolding F_def apply(rule ext)
+          using f unfolding Func_def mem_Collect_eq by auto
       qed auto
     qed(unfold Func_def mem_Collect_eq F_def, auto)
   qed

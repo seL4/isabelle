@@ -349,7 +349,8 @@ proof -
   have [measurable]: "F i \<in> N \<rightarrow>\<^sub>M count_space UNIV" for i
     using F(1) by (rule measurable_simple_function)
 
-  def F' \<equiv> "\<lambda>M i. if integrable M f then integral\<^sup>L M (F i) else 0"
+  define F' where [abs_def]:
+    "F' M i = (if integrable M f then integral\<^sup>L M (F i) else 0)" for M i
 
   have "(\<lambda>M. F' M i) \<in> subprob_algebra N \<rightarrow>\<^sub>M borel" for i
   proof (rule measurable_cong[THEN iffD2])

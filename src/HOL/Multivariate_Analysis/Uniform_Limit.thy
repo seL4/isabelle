@@ -72,7 +72,7 @@ lemma swap_uniform_limit:
   shows "(h \<longlongrightarrow> l) (at x within S)"
 proof (rule tendstoI)
   fix e :: real
-  def e' \<equiv> "e/3"
+  define e' where "e' = e/3"
   assume "0 < e"
   then have "0 < e'" by (simp add: e'_def)
   from uniform_limitD[OF uc \<open>0 < e'\<close>]

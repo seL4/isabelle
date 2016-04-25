@@ -590,7 +590,7 @@ lemma interval_cases:
     S = {a..<b} \<or>
     S = {a..b}"
 proof -
-  def lower \<equiv> "{x. \<exists>s\<in>S. s \<le> x}" and upper \<equiv> "{x. \<exists>s\<in>S. x \<le> s}"
+  define lower upper where "lower = {x. \<exists>s\<in>S. s \<le> x}" and "upper = {x. \<exists>s\<in>S. x \<le> s}"
   with ivl have "S = lower \<inter> upper"
     by auto
   moreover 

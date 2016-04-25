@@ -235,8 +235,8 @@ proof -
   let ?D = "\<lambda>f f' x y. (f y - f x) - f' (y - x)"
   let ?N = "\<lambda>f f' x y. norm (?D f f' x y) / norm (y - x)"
   let ?gf = "\<lambda>x. g (f x)" and ?gf' = "\<lambda>x. g' (f' x)"
-  def Nf \<equiv> "?N f f' x"
-  def Ng \<equiv> "\<lambda>y. ?N g g' (f x) (f y)"
+  define Nf where "Nf = ?N f f' x"
+  define Ng where [abs_def]: "Ng y = ?N g g' (f x) (f y)" for y
 
   show ?thesis
   proof (rule has_derivativeI_sandwich[of 1])
@@ -297,7 +297,8 @@ proof -
     "\<And>a b. norm (a ** b) \<le> norm a * norm b * K" by fast
   let ?D = "\<lambda>f f' y. f y - f x - f' (y - x)"
   let ?N = "\<lambda>f f' y. norm (?D f f' y) / norm (y - x)"
-  def Ng =="?N g g'" and Nf =="?N f f'"
+  define Ng where "Ng = ?N g g'"
+  define Nf where "Nf = ?N f f'"
 
   let ?fun1 = "\<lambda>y. norm (f y ** g y - f x ** g x - (f x ** g' (y - x) + f' (y - x) ** g x)) / norm (y - x)"
   let ?fun2 = "\<lambda>y. norm (f x) * Ng y * K + Nf y * norm (g y) * K + KF * norm (g y - g x) * K"
@@ -1612,10 +1613,10 @@ lemma lhopital_right_0:
   assumes lim: "((\<lambda> x. (f' x / g' x)) \<longlongrightarrow> x) (at_right 0)"
   shows "((\<lambda> x. f0 x / g0 x) \<longlongrightarrow> x) (at_right 0)"
 proof -
-  def f \<equiv> "\<lambda>x. if x \<le> 0 then 0 else f0 x"
+  define f where [abs_def]: "f x = (if x \<le> 0 then 0 else f0 x)" for x
   then have "f 0 = 0" by simp
 
-  def g \<equiv> "\<lambda>x. if x \<le> 0 then 0 else g0 x"
+  define g where [abs_def]: "g x = (if x \<le> 0 then 0 else g0 x)" for x
   then have "g 0 = 0" by simp
 
   have "eventually (\<lambda>x. g0 x \<noteq> 0 \<and> g' x \<noteq> 0 \<and>

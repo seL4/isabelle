@@ -108,7 +108,7 @@ proof -
         that \<open>y \<le> b\<close> for all \<open>y \<in> B\<close>. Due to the definition of \<open>B\<close> there are
         two cases.\<close>
 
-      def b \<equiv> "max c 0"
+      define b where "b = max c 0"
       have "\<forall>y \<in> B V f. y \<le> b"
       proof
         fix y assume y: "y \<in> B V f"

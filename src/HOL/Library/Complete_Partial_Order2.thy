@@ -133,7 +133,7 @@ proof(rule antisym)
       fix x
       assume "x \<in> f y' ` Y"
       then obtain y where "y \<in> Y" and x: "x = f y' y" by blast
-      def y'' \<equiv> "if y \<sqsubseteq> y' then y' else y"
+      define y'' where "y'' = (if y \<sqsubseteq> y' then y' else y)"
       from chain \<open>y \<in> Y\<close> \<open>y' \<in> Y\<close> have "y \<sqsubseteq> y' \<or> y' \<sqsubseteq> y" by(rule chainD)
       hence "f y' y \<le> f y'' y''" using \<open>y \<in> Y\<close> \<open>y' \<in> Y\<close>
         by(auto simp add: y''_def intro: mono2 monotoneD[OF mono1])

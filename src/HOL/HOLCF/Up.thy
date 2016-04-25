@@ -73,7 +73,7 @@ lemma up_chain_lemma:
 proof (cases "\<exists>k. Y k \<noteq> Ibottom")
   case True
   then obtain k where k: "Y k \<noteq> Ibottom" ..
-  def A \<equiv> "\<lambda>i. THE a. Iup a = Y (i + k)"
+  define A where "A i = (THE a. Iup a = Y (i + k))" for i
   have Iup_A: "\<forall>i. Iup (A i) = Y (i + k)"
   proof
     fix i :: nat

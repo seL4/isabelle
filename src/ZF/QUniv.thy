@@ -58,7 +58,7 @@ apply (simp add: quniv_def Transset_iff_Pow [symmetric])
 apply (rule Transset_eclose [THEN Transset_univ])
 done
 
-(*Key property for proving A_subset_quniv; requires eclose in def of quniv*)
+(*Key property for proving A_subset_quniv; requires eclose in definition of quniv*)
 lemma univ_subset_quniv: "univ(A) \<subseteq> quniv(A)"
 apply (rule arg_subset_eclose [THEN univ_mono, THEN subset_trans])
 apply (rule univ_eclose_subset_quniv)

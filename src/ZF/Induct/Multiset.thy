@@ -895,7 +895,7 @@ apply (rule trancl_mono)
 apply (rule multirel1_mono, auto)
 done
 
-(* Equivalence of multirel with the usual (closure-free) def *)
+(* Equivalence of multirel with the usual (closure-free) definition *)
 
 lemma add_diff_eq: "k \<in> nat ==> 0 < k \<longrightarrow> n #+ k #- 1 = n #+ (k #- 1)"
 by (erule nat_induct, auto)

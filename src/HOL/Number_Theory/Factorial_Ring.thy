@@ -258,7 +258,7 @@ next
       by (rule dvd_mult_left)
     with Suc \<open>is_prime p\<close> \<open>\<not> p dvd a\<close> have "p dvd b"
       by (simp add: prime_dvd_mult_iff)
-    moreover def c \<equiv> "b div p"
+    moreover define c where "c = b div p"
     ultimately have b: "b = p * c" by simp
     with * have "p * p ^ n dvd p * (a * c)"
       by (simp add: ac_simps)
@@ -371,10 +371,10 @@ next
       by simp
     then have "p dvd a" and "is_prime p" and "normalize p = p" and "p \<noteq> 0"
       by (auto intro!: is_prime_not_zeroI)
-    def n \<equiv> "Max {n. p ^ n dvd a}"
+    define n where "n = Max {n. p ^ n dvd a}"
     then have "n > 0" and "p ^ n dvd a" and "\<not> p ^ Suc n dvd a" 
     proof -
-      def N \<equiv> "{n. p ^ n dvd a}"
+      define N where "N = {n. p ^ n dvd a}"
       then have n_M: "n = Max N" by (simp add: n_def)
       from is_prime_inj_power \<open>is_prime p\<close> have "inj (op ^ p)" .
       then have "inj_on (op ^ p) U" for U
@@ -402,7 +402,7 @@ next
       then show "\<not> p ^ Suc n dvd a"
         by (simp add: n_M)
     qed
-    def b \<equiv> "a div p ^ n"
+    define b where "b = a div p ^ n"
     with \<open>p ^ n dvd a\<close> have a: "a = p ^ n * b"
       by simp
     with \<open>\<not> p ^ Suc n dvd a\<close> have "\<not> p dvd b" and "b \<noteq> 0"
@@ -466,7 +466,7 @@ next
         "replicate_mset (Max {n. q ^ n dvd a}) q = replicate_mset (Max {n. q ^ n dvd b}) q"
         by simp
     qed
-    def Q \<equiv> "the (factorization b)"
+    define Q where "Q = the (factorization b)"
     with \<open>b \<noteq> 0\<close> have [simp]: "factorization b = Some Q"
       by simp
     from \<open>a \<noteq> 0\<close> have "factorization a =

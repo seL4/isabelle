@@ -461,7 +461,7 @@ apply (rule ballI)
 (*never proved, 2007-01-22*)
 apply (rule transE)
 -- {* instantiates @{text "(x, ?z) \<in> order cl to (x, f x)"}, *}
--- {* because of the def of @{text H} *}
+-- {* because of the definition of @{text H} *}
 apply fast
 -- {* so it remains to show @{text "(f x, f (lub H cl)) \<in> r"} *}
 apply (rule_tac f = "f" in monotoneE)

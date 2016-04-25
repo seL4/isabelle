@@ -1529,7 +1529,7 @@ proof (induct n arbitrary: q r dr)
   case (Suc n q r dr)
   let ?rr = "smult lc r"
   let ?qq = "coeff r dr"
-  def [simp]: b \<equiv> "monom ?qq n"
+  define b where [simp]: "b = monom ?qq n"
   let ?rrr = "?rr - b * d"
   let ?qqq = "smult lc q + b"
   note res = Suc(3)
@@ -1610,7 +1610,7 @@ lemma pseudo_mod:
 proof - 
   let ?cg = "coeff g (degree g)"
   let ?cge = "?cg ^ (Suc (degree f) - degree g)"
-  def a \<equiv> ?cge
+  define a where "a = ?cge"
   obtain q where pdm: "pseudo_divmod f g = (q,r)" using r_def[unfolded pseudo_mod_def]
     by (cases "pseudo_divmod f g", auto)
   from pseudo_divmod[OF g pdm] have id: "smult a f = g * q + r" and "r = 0 \<or> degree r < degree g" 
@@ -1649,7 +1649,7 @@ proof (induct n arbitrary: q r dr)
   let ?rr = "d * r"
   let ?a = "coeff ?rr dr"
   let ?qq = "?a div lc"
-  def [simp]: b \<equiv> "monom ?qq n"
+  define b where [simp]: "b = monom ?qq n"
   let ?rrr =  "d * (r - b)"
   let ?qqq = "q + b"
   note res = Suc(3)
@@ -2434,8 +2434,8 @@ lemma pdivmod_via_pseudo_divmod: "pdivmod f g = (if g = 0 then (0,f)
      in (smult ilc q, r))" (is "?l = ?r")
 proof (cases "g = 0")
   case False
-  def lc \<equiv> "inverse (coeff g (degree g))"
-  def h \<equiv> "smult lc g"
+  define lc where "lc = inverse (coeff g (degree g))"
+  define h where "h = smult lc g"
   from False have h1: "coeff h (degree h) = 1" and lc: "lc \<noteq> 0" unfolding h_def lc_def by auto
   hence h0: "h \<noteq> 0" by auto
   obtain q r where p: "pseudo_divmod f h = (q,r)" by force
@@ -2468,7 +2468,7 @@ proof -
     case True thus ?thesis unfolding d by auto
   next
     case False
-    def ilc \<equiv> "inverse (coeff g (degree g))"
+    define ilc where "ilc = inverse (coeff g (degree g))"
     from False have ilc: "ilc \<noteq> 0" unfolding ilc_def by auto
     with False have id: "(g = 0) = False" "(coeffs g = []) = False" 
       "last (coeffs g) = coeff g (degree g)" 
@@ -2756,9 +2756,9 @@ lemma poly_induct2 [case_names 0 pCons]:
   assumes "P 0 0" "\<And>a p b q. P p q \<Longrightarrow> P (pCons a p) (pCons b q)"
   shows   "P p q"
 proof -
-  def n \<equiv> "max (length (coeffs p)) (length (coeffs q))"
-  def xs \<equiv> "coeffs p @ (replicate (n - length (coeffs p)) 0)"
-  def ys \<equiv> "coeffs q @ (replicate (n - length (coeffs q)) 0)"
+  define n where "n = max (length (coeffs p)) (length (coeffs q))"
+  define xs where "xs = coeffs p @ (replicate (n - length (coeffs p)) 0)"
+  define ys where "ys = coeffs q @ (replicate (n - length (coeffs q)) 0)"
   have "length xs = length ys" 
     by (simp add: xs_def ys_def n_def)
   hence "P (Poly xs) (Poly ys)" 
@@ -3284,7 +3284,7 @@ next
       assume "p\<noteq>0"
       then obtain n1 where gte_lcoeff:"\<forall>x\<ge>n1. lead_coeff p \<le> poly p x" using that pCons by auto
       have gt_0:"lead_coeff p >0" using pCons(3) \<open>p\<noteq>0\<close> by auto
-      def n\<equiv>"max n1 (1+ \<bar>a\<bar>/(lead_coeff p))"
+      define n where "n = max n1 (1+ \<bar>a\<bar>/(lead_coeff p))"
       show ?thesis 
         proof (rule_tac x=n in exI,rule,rule) 
           fix x assume "n \<le> x"
@@ -3351,13 +3351,13 @@ lemma algebraic_altdef:
   shows "algebraic x \<longleftrightarrow> (\<exists>p. (\<forall>i. coeff p i \<in> \<rat>) \<and> p \<noteq> 0 \<and> poly p x = 0)"
 proof safe
   fix p assume rat: "\<forall>i. coeff p i \<in> \<rat>" and root: "poly p x = 0" and nz: "p \<noteq> 0"
-  def cs \<equiv> "coeffs p"
+  define cs where "cs = coeffs p"
   from rat have "\<forall>c\<in>range (coeff p). \<exists>c'. c = of_rat c'" unfolding Rats_def by blast
   then obtain f where f: "\<And>i. coeff p i = of_rat (f (coeff p i))" 
     by (subst (asm) bchoice_iff) blast
-  def cs' \<equiv> "map (quotient_of \<circ> f) (coeffs p)"
-  def d \<equiv> "Lcm (set (map snd cs'))"
-  def p' \<equiv> "smult (of_int d) p"
+  define cs' where "cs' = map (quotient_of \<circ> f) (coeffs p)"
+  define d where "d = Lcm (set (map snd cs'))"
+  define p' where "p' = smult (of_int d) p"
   
   have "\<forall>n. coeff p' n \<in> \<int>"
   proof
@@ -3365,8 +3365,9 @@ proof safe
     show "coeff p' n \<in> \<int>"
     proof (cases "n \<le> degree p")
       case True
-      def c \<equiv> "coeff p n"
-      def a \<equiv> "fst (quotient_of (f (coeff p n)))" and b \<equiv> "snd (quotient_of (f (coeff p n)))"
+      define c where "c = coeff p n"
+      define a where "a = fst (quotient_of (f (coeff p n)))"
+      define b where "b = snd (quotient_of (f (coeff p n)))"
       have b_pos: "b > 0" unfolding b_def using quotient_of_denom_pos' by simp
       have "coeff p' n = of_int d * coeff p n" by (simp add: p'_def)
       also have "coeff p n = of_rat (of_int a / of_int b)" unfolding a_def b_def
@@ -3483,9 +3484,9 @@ done
 
 lemma order_mult: "p * q \<noteq> 0 \<Longrightarrow> order a (p * q) = order a p + order a q"
 proof -
-  def i \<equiv> "order a p"
-  def j \<equiv> "order a q"
-  def t \<equiv> "[:-a, 1:]"
+  define i where "i = order a p"
+  define j where "j = order a q"
+  define t where "t = [:-a, 1:]"
   have t_dvd_iff: "\<And>u. t dvd u \<longleftrightarrow> poly u a = 0"
     unfolding t_def by (simp add: dvd_iff_poly_eq_0)
   assume "p * q \<noteq> 0"

@@ -939,7 +939,8 @@ lemma rel_fset_aux:
   BNF_Def.Grp {a. fset a \<subseteq> {(a, b). R a b}} (fimage snd)) a b" (is "?L = ?R")
 proof
   assume ?L
-  def R' \<equiv> "the_inv fset (Collect (case_prod R) \<inter> (fset a \<times> fset b))" (is "the_inv fset ?L'")
+  define R' where "R' =
+    the_inv fset (Collect (case_prod R) \<inter> (fset a \<times> fset b))" (is "_ = the_inv fset ?L'")
   have "finite ?L'" by (intro finite_Int[OF disjI2] finite_cartesian_product) (transfer, simp)+
   hence *: "fset R' = ?L'" unfolding R'_def by (intro fset_to_fset)
   show ?R unfolding Grp_def relcompp.simps conversep.simps

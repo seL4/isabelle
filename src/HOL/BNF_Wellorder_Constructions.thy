@@ -1616,7 +1616,7 @@ next
   show ?thesis
   proof safe
     fix h assume h: "h \<in> Func B2 B1"
-    def j1 \<equiv> "inv_into A1 f1"
+    define j1 where "j1 = inv_into A1 f1"
     have "\<forall> a2 \<in> f2 ` B2. \<exists> b2. b2 \<in> B2 \<and> f2 b2 = a2" by blast
     then obtain k where k: "\<forall> a2 \<in> f2 ` B2. k a2 \<in> B2 \<and> f2 (k a2) = a2"
       by atomize_elim (rule bchoice)
@@ -1626,11 +1626,11 @@ next
      ultimately have "k (f2 b2) = b2" using b2 A2(1) unfolding inj_on_def by blast
     } note kk = this
     obtain b22 where b22: "b22 \<in> B2" using B2 by auto
-    def j2 \<equiv> "\<lambda> a2. if a2 \<in> f2 ` B2 then k a2 else b22"
+    define j2 where [abs_def]: "j2 a2 = (if a2 \<in> f2 ` B2 then k a2 else b22)" for a2
     have j2A2: "j2 ` A2 \<subseteq> B2" unfolding j2_def using k b22 by auto
     have j2: "\<And> b2. b2 \<in> B2 \<Longrightarrow> j2 (f2 b2) = b2"
     using kk unfolding j2_def by auto
-    def g \<equiv> "Func_map A2 j1 j2 h"
+    define g where "g = Func_map A2 j1 j2 h"
     have "Func_map B2 f1 f2 g = h"
     proof (rule ext)
       fix b2 show "Func_map B2 f1 f2 g b2 = h b2"

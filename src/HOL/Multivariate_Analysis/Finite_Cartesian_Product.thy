@@ -328,12 +328,12 @@ next
       fix x assume "x \<in> S"
       then obtain e where "0 < e" and S: "\<forall>y. dist y x < e \<longrightarrow> y \<in> S"
         using * by fast
-      def r \<equiv> "\<lambda>i::'b. e / sqrt (of_nat CARD('b))"
+      define r where [abs_def]: "r i = e / sqrt (of_nat CARD('b))" for i :: 'b
       from \<open>0 < e\<close> have r: "\<forall>i. 0 < r i"
         unfolding r_def by simp_all
       from \<open>0 < e\<close> have e: "e = setL2 r UNIV"
         unfolding r_def by (simp add: setL2_constant)
-      def A \<equiv> "\<lambda>i. {y. dist (x $ i) y < r i}"
+      define A where "A i = {y. dist (x $ i) y < r i}" for i
       have "\<forall>i. open (A i) \<and> x $ i \<in> A i"
         unfolding A_def by (simp add: open_ball r)
       moreover have "\<forall>y. (\<forall>i. y $ i \<in> A i) \<longrightarrow> y \<in> S"
@@ -360,8 +360,8 @@ lemma vec_CauchyI:
 proof (rule metric_CauchyI)
   fix r :: real assume "0 < r"
   hence "0 < r / of_nat CARD('n)" (is "0 < ?s") by simp
-  def N \<equiv> "\<lambda>i. LEAST N. \<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m $ i) (X n $ i) < ?s"
-  def M \<equiv> "Max (range N)"
+  define N where "N i = (LEAST N. \<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m $ i) (X n $ i) < ?s)" for i
+  define M where "M = Max (range N)"
   have "\<And>i. \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m $ i) (X n $ i) < ?s"
     using X \<open>0 < ?s\<close> by (rule metric_CauchyD)
   hence "\<And>i. \<forall>m\<ge>N i. \<forall>n\<ge>N i. dist (X m $ i) (X n $ i) < ?s"

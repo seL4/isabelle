@@ -97,7 +97,7 @@ proof -
   obtain Y where Y: "\<forall>i. Y i \<sqsubseteq> Y (Suc i)"
   and t: "t = (\<Squnion>i. defl_principal (Y i))"
     by (rule defl.obtain_principal_chain)
-  def approx \<equiv> "\<lambda>i. (p oo cast\<cdot>(defl_principal (Y i)) oo e) :: 'a \<rightarrow> 'a"
+  define approx where "approx i = (p oo cast\<cdot>(defl_principal (Y i)) oo e)" for i
   have "approx_chain approx"
   proof (rule approx_chain.intro)
     show "chain (\<lambda>i. approx i)"

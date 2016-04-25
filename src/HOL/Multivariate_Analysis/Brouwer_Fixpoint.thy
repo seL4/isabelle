@@ -602,7 +602,8 @@ proof safe
       have n_in_upd: "\<And>i. n \<in> upd ` {..< Suc i}"
         using \<open>upd 0 = n\<close> by auto
 
-      def f' \<equiv> "\<lambda>i j. if j \<in> (upd\<circ>Suc)`{..< i} then Suc ((base(n := p)) j) else (base(n := p)) j"
+      define f' where "f' i j =
+        (if j \<in> (upd\<circ>Suc)`{..< i} then Suc ((base(n := p)) j) else (base(n := p)) j)" for i j
       { fix x i assume i[arith]: "i \<le> n" then have "enum (Suc i) x = f' i x"
           unfolding f'_def enum_def using \<open>a n < p\<close> \<open>a = enum 0\<close> \<open>upd 0 = n\<close> \<open>a n = p - 1\<close>
           by (simp add: upd_Suc enum_0 n_in_upd) }
@@ -616,8 +617,8 @@ next
   proof cases
     case (ksimplex base upd)
     then interpret kuhn_simplex p n base upd s' .
-    def b \<equiv> "base (n := p - 1)"
-    def u \<equiv> "\<lambda>i. case i of 0 \<Rightarrow> n | Suc i \<Rightarrow> upd i"
+    define b where "b = base (n := p - 1)"
+    define u where "u i = (case i of 0 \<Rightarrow> n | Suc i \<Rightarrow> upd i)" for i
 
     have "ksimplex p (Suc n) (s' \<union> {b})"
     proof (rule ksimplex.intros, standard)
@@ -632,7 +633,7 @@ next
       then show "bij_betw u {..<Suc n} {..<Suc n}"
         by (simp add: u_def lessThan_Suc[symmetric] lessThan_Suc_eq_insert_0)
 
-      def f' \<equiv> "\<lambda>i j. if j \<in> u`{..< i} then Suc (b j) else b j"
+      define f' where "f' i j = (if j \<in> u`{..< i} then Suc (b j) else b j)" for i j
 
       have u_eq: "\<And>i. i \<le> n \<Longrightarrow> u ` {..< Suc i} = upd ` {..< i} \<union> { n }"
         by (auto simp: u_def image_iff upd_inj Ball_def split: nat.split) arith
@@ -724,7 +725,7 @@ proof cases
   then have "\<exists>!s'. s' \<noteq> s \<and> ksimplex p n s' \<and> (\<exists>b\<in>s'. s - {a} = s'- {b})"
   proof (elim disjE conjE)
     assume "i = 0"
-    def rot \<equiv> "\<lambda>i. if i + 1 = n then 0 else i + 1"
+    define rot where [abs_def]: "rot i = (if i + 1 = n then 0 else i + 1)" for i
     let ?upd = "upd \<circ> rot"
 
     have rot: "bij_betw rot {..< n} {..< n}"
@@ -733,7 +734,8 @@ proof cases
     from rot upd have "bij_betw ?upd {..<n} {..<n}"
       by (rule bij_betw_trans)
 
-    def f' \<equiv> "\<lambda>i j. if j \<in> ?upd`{..< i} then Suc (enum (Suc 0) j) else enum (Suc 0) j"
+    define f' where [abs_def]: "f' i j =
+      (if j \<in> ?upd`{..< i} then Suc (enum (Suc 0) j) else enum (Suc 0) j)" for i j
 
     interpret b: kuhn_simplex p n "enum (Suc 0)" "upd \<circ> rot" "f' ` {.. n}"
     proof
@@ -832,7 +834,7 @@ proof cases
     from \<open>n \<noteq> 0\<close> obtain n' where n': "n = Suc n'"
       by (cases n) auto
 
-    def rot \<equiv> "\<lambda>i. case i of 0 \<Rightarrow> n' | Suc i \<Rightarrow> i"
+    define rot where "rot i = (case i of 0 \<Rightarrow> n' | Suc i \<Rightarrow> i)" for i
     let ?upd = "upd \<circ> rot"
 
     have rot: "bij_betw rot {..< n} {..< n}"
@@ -841,8 +843,8 @@ proof cases
     from rot upd have "bij_betw ?upd {..<n} {..<n}"
       by (rule bij_betw_trans)
 
-    def b \<equiv> "base (upd n' := base (upd n') - 1)"
-    def f' \<equiv> "\<lambda>i j. if j \<in> ?upd`{..< i} then Suc (b j) else b j"
+    define b where "b = base (upd n' := base (upd n') - 1)"
+    define f' where [abs_def]: "f' i j = (if j \<in> ?upd`{..< i} then Suc (b j) else b j)" for i j
 
     interpret b: kuhn_simplex p n b "upd \<circ> rot" "f' ` {.. n}"
     proof
@@ -945,7 +947,7 @@ proof cases
       done
   next
     assume i: "0 < i" "i < n"
-    def i' \<equiv> "i - 1"
+    define i' where "i' = i - 1"
     with i have "Suc i' < n"
       by simp
     with i have Suc_i': "Suc i' = i"
@@ -955,7 +957,8 @@ proof cases
     from i upd have "bij_betw ?upd {..< n} {..< n}"
       by (subst bij_betw_swap_iff) (auto simp: i'_def)
 
-    def f' \<equiv> "\<lambda>i j. if j \<in> ?upd`{..< i} then Suc (base j) else base j"
+    define f' where [abs_def]: "f' i j = (if j \<in> ?upd`{..< i} then Suc (base j) else base j)"
+      for i j
     interpret b: kuhn_simplex p n base ?upd "f' ` {.. n}"
     proof
       show "base \<in> {..<n} \<rightarrow> {..<p}" by fact
@@ -1056,7 +1059,7 @@ proof cases
           using eq_sma \<open>a \<in> s\<close> \<open>c \<in> t\<close> by auto
       next
         assume u: "u l = upd (Suc i')"
-        def B \<equiv> "b.enum ` {..n}"
+        define B where "B = b.enum ` {..n}"
         have "b.enum i' = enum i'"
           using enum_eq_benum[of i'] i by (auto simp add: i'_def gr0_conv_Suc)
         have "c = t.enum (Suc l)" unfolding c_eq ..
@@ -1447,7 +1450,7 @@ lemma brouwer_cube:
     and "f ` unit_cube \<subseteq> unit_cube"
   shows "\<exists>x\<in>unit_cube. f x = x"
 proof (rule ccontr)
-  def n \<equiv> "DIM('a)"
+  define n where "n = DIM('a)"
   have n: "1 \<le> n" "0 < n" "n \<noteq> 0"
     unfolding n_def by (auto simp add: Suc_le_eq DIM_positive)
   assume "\<not> ?thesis"
@@ -1625,7 +1628,7 @@ proof (rule ccontr)
 
   obtain b :: "nat \<Rightarrow> 'a" where b: "bij_betw b {..< n} Basis"
     by atomize_elim (auto simp: n_def intro!: finite_same_card_bij)
-  def b' \<equiv> "inv_into {..< n} b"
+  define b' where "b' = inv_into {..< n} b"
   then have b': "bij_betw b' Basis {..< n}"
     using bij_betw_inv_into[OF b] by auto
   then have b'_Basis: "\<And>i. i \<in> Basis \<Longrightarrow> b' i \<in> {..< n}"
@@ -1668,7 +1671,7 @@ proof (rule ccontr)
                (label (\<Sum>i\<in>Basis. (real (r (b' i)) / real p) *\<^sub>R i) \<circ> b) i \<noteq>
                (label (\<Sum>i\<in>Basis. (real (s (b' i)) / real p) *\<^sub>R i) \<circ> b) i"
     by (rule kuhn_lemma[OF q1 q2 q3])
-  def z \<equiv> "(\<Sum>i\<in>Basis. (real (q (b' i)) / real p) *\<^sub>R i)::'a"
+  define z :: 'a where "z = (\<Sum>i\<in>Basis. (real (q (b' i)) / real p) *\<^sub>R i)"
   have "\<exists>i\<in>Basis. d / real n \<le> \<bar>(f z - z)\<bullet>i\<bar>"
   proof (rule ccontr)
     have "\<forall>i\<in>Basis. q (b' i) \<in> {0..p}"
@@ -1710,7 +1713,7 @@ proof (rule ccontr)
     using q(2)[rule_format,OF *] by blast
   have b'_im: "\<And>i. i \<in> Basis \<Longrightarrow>  b' i < n"
     using b' unfolding bij_betw_def by auto
-  def r' \<equiv> "(\<Sum>i\<in>Basis. (real (r (b' i)) / real p) *\<^sub>R i)::'a"
+  define r' ::'a where "r' = (\<Sum>i\<in>Basis. (real (r (b' i)) / real p) *\<^sub>R i)"
   have "\<And>i. i \<in> Basis \<Longrightarrow> r (b' i) \<le> p"
     apply (rule order_trans)
     apply (rule rs(1)[OF b'_im,THEN conjunct2])
@@ -1721,7 +1724,7 @@ proof (rule ccontr)
     unfolding r'_def mem_unit_cube
     using b'_Basis
     by (auto simp add: bij_betw_def zero_le_divide_iff divide_le_eq_1)
-  def s' \<equiv> "(\<Sum>i\<in>Basis. (real (s (b' i)) / real p) *\<^sub>R i)::'a"
+  define s' :: 'a where "s' = (\<Sum>i\<in>Basis. (real (s (b' i)) / real p) *\<^sub>R i)"
   have "\<And>i. i \<in> Basis \<Longrightarrow> s (b' i) \<le> p"
     apply (rule order_trans)
     apply (rule rs(2)[OF b'_im, THEN conjunct2])

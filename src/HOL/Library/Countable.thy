@@ -142,7 +142,7 @@ theorem countable_datatype:
   assumes finite_item: "\<And>x. rep_set x \<Longrightarrow> finite_item x"
   shows "OFCLASS('b, countable_class)"
 proof
-  def f \<equiv> "\<lambda>y. LEAST n. nth_item n = Rep y"
+  define f where "f y = (LEAST n. nth_item n = Rep y)" for y
   {
     fix y :: 'b
     have "rep_set (Rep y)"

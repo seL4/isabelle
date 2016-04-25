@@ -919,7 +919,7 @@ proof
         case 0 then show ?case by simp
       next
         case (Suc n g)
-        def h \<equiv> "\<lambda>z. g z - 1"
+        define h where "h z = g z - 1" for z
         with Suc have "n = h y" by simp
         with Suc have hyp: "f y ^^ h y \<circ> f x = f x \<circ> f y ^^ h y"
           by auto
@@ -927,7 +927,7 @@ proof
         then show ?case by (simp add: comp_assoc hyp)
           (simp add: o_assoc comp_fun_commute)
       qed
-      def h \<equiv> "\<lambda>z. if z = x then g x - 1 else g z"
+      define h where "h z = (if z = x then g x - 1 else g z)" for z
       with Suc have "n = h x" by simp
       with Suc have "f y ^^ h y \<circ> f x ^^ h x = f x ^^ h x \<circ> f y ^^ h y"
         by auto

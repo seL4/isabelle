@@ -1183,7 +1183,7 @@ proof atomize_elim
   from first_countable_basis[of x] obtain A :: "nat \<Rightarrow> 'a set" where
     nhds: "\<And>i. open (A i)" "\<And>i. x \<in> A i"
     and incl: "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>i. A i \<subseteq> S"  by auto
-  def F \<equiv> "\<lambda>n. \<Inter>i\<le>n. A i"
+  define F where "F n = (\<Inter>i\<le>n. A i)" for n
   show "\<exists>A. (\<forall>i. open (A i)) \<and> (\<forall>i. x \<in> A i) \<and>
       (\<forall>S. open S \<longrightarrow> x \<in> S \<longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially)"
   proof (safe intro!: exI[of _ F])

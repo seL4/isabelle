@@ -1832,7 +1832,7 @@ lemma Suc_diff_Suc:
 proof -
   from assms obtain q where "m = n + Suc q"
     by (auto dest: less_imp_Suc_add)
-  moreover def r \<equiv> "Suc q"
+  moreover define r where "r = Suc q"
   ultimately have "Suc (m - Suc n) = r" and "m = n + r"
     by simp_all
   then show ?thesis by simp

@@ -84,7 +84,7 @@ lemma summable_cong:
   shows   "summable f = summable g"
 proof -
   from assms obtain N where N: "\<forall>n\<ge>N. f n = g n" by (auto simp: eventually_at_top_linorder)
-  def C \<equiv> "(\<Sum>k<N. f k - g k)"
+  define C where "C = (\<Sum>k<N. f k - g k)"
   from eventually_ge_at_top[of N]
     have "eventually (\<lambda>n. setsum f {..<n} = C + setsum g {..<n}) sequentially"
   proof eventually_elim
@@ -1048,7 +1048,7 @@ proof
   finally show "(\<lambda>n. \<Sum>k<n. f (g k)) \<longlonglongrightarrow> c" .
 next
   assume lim: "(\<lambda>n. \<Sum>k<n. f (g k)) \<longlonglongrightarrow> c"
-  def g_inv \<equiv> "\<lambda>n. LEAST m. g m \<ge> n"
+  define g_inv where "g_inv n = (LEAST m. g m \<ge> n)" for n
   from filterlim_subseq[OF subseq] have g_inv_ex: "\<exists>m. g m \<ge> n" for n
     by (auto simp: filterlim_at_top eventually_at_top_linorder)
   hence g_inv: "g (g_inv n) \<ge> n" for n unfolding g_inv_def by (rule LeastI_ex)

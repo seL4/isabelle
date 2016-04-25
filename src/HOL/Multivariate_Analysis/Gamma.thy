@@ -344,8 +344,8 @@ lemma ln_Gamma_series_complex_converges:
   shows "uniformly_convergent_on (ball z d) (\<lambda>n z. ln_Gamma_series z n :: complex)"
 proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
   fix e :: real assume e: "e > 0"
-  def e'' \<equiv> "SUP t:ball z d. norm t + norm t^2"
-  def e' \<equiv> "e / (2*e'')"
+  define e'' where "e'' = (SUP t:ball z d. norm t + norm t^2)"
+  define e' where "e' = e / (2*e'')"
   have "bounded ((\<lambda>t. norm t + norm t^2) ` cball z d)"
     by (intro compact_imp_bounded compact_continuous_image) (auto intro!: continuous_intros)
   hence "bounded ((\<lambda>t. norm t + norm t^2) ` ball z d)" by (rule bounded_subset) auto
@@ -362,7 +362,7 @@ proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
     by (rule inverse_power_summable) simp
   from summable_partial_sum_bound[OF this e'] guess M . note M = this
 
-  def N \<equiv> "max 2 (max (nat \<lceil>2 * (norm z + d)\<rceil>) M)"
+  define N where "N = max 2 (max (nat \<lceil>2 * (norm z + d)\<rceil>) M)"
   {
     from d have "\<lceil>2 * (cmod z + d)\<rceil> \<ge> \<lceil>0::real\<rceil>"
       by (intro ceiling_mono mult_nonneg_nonneg add_nonneg_nonneg) simp_all
@@ -434,8 +434,8 @@ lemma ln_Gamma_series_complex_converges':
   assumes z: "(z :: complex) \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows "\<exists>d>0. uniformly_convergent_on (ball z d) (\<lambda>n z. ln_Gamma_series z n)"
 proof -
-  def d' \<equiv> "Re z"
-  def d \<equiv> "if d' > 0 then d' / 2 else norm (z - of_int (round d')) / 2"
+  define d' where "d' = Re z"
+  define d where "d = (if d' > 0 then d' / 2 else norm (z - of_int (round d')) / 2)"
   have "of_int (round d') \<in> \<int>\<^sub>\<le>\<^sub>0" if "d' \<le> 0" using that
     by (intro nonpos_Ints_of_int) (simp_all add: round_def)
   with assms have d_pos: "d > 0" unfolding d_def by (force simp: not_less)
@@ -633,8 +633,8 @@ lemma Polygamma_converges:
   assumes z: "z \<noteq> 0" and n: "n \<ge> 2"
   shows "uniformly_convergent_on (ball z d) (\<lambda>k z. \<Sum>i<k. inverse ((z + of_nat i)^n))"
 proof (rule weierstrass_m_test'_ev)
-  def e \<equiv> "(1 + d / norm z)"
-  def m \<equiv> "nat \<lceil>norm z * e\<rceil>"
+  define e where "e = (1 + d / norm z)"
+  define m where "m = nat \<lceil>norm z * e\<rceil>"
   {
     fix t assume t: "t \<in> ball z d"
     have "norm t = norm (z + (t - z))" by simp
@@ -683,7 +683,7 @@ proof -
      by blast+
   let ?f' = "\<lambda>z k. inverse (of_nat (Suc k)) - inverse (z + of_nat (Suc k))"
   let ?f = "\<lambda>z k. z / of_nat (Suc k) - ln (1 + z / of_nat (Suc k))" and ?F' = "\<lambda>z. \<Sum>n. ?f' z n"
-  def d \<equiv> "min (norm z/2) (if Im z = 0 then Re z / 2 else abs (Im z) / 2)"
+  define d where "d = min (norm z/2) (if Im z = 0 then Re z / 2 else abs (Im z) / 2)"
   from z have d: "d > 0" "norm z/2 \<ge> d" by (auto simp add: complex_nonpos_Reals_iff d_def)
   have ball: "Im t = 0 \<longrightarrow> Re t > 0" if "dist z t < d" for t
     using no_nonpos_Real_in_ball[OF z, of t] that unfolding d_def by (force simp add: complex_nonpos_Reals_iff)
@@ -860,7 +860,7 @@ next
   assume n: "n \<noteq> 0"
   from z have z': "z \<noteq> 0" by auto
   from no_nonpos_Int_in_ball'[OF z] guess d . note d = this
-  def n' \<equiv> "Suc n"
+  define n' where "n' = Suc n"
   from n have n': "n' \<ge> 2" by (simp add: n'_def)
   have "((\<lambda>z. \<Sum>k. inverse ((z + of_nat k) ^ n')) has_field_derivative
                 (\<Sum>k. - of_nat n' * inverse ((z + of_nat k) ^ (n'+1)))) (at z)"
@@ -1763,10 +1763,10 @@ private lemma Gamma_reflection_aux:
   defines "a \<equiv> complex_of_real pi"
   obtains h' where "continuous_on UNIV h'" "\<And>z. (h has_field_derivative (h' z)) (at z)"
 proof -
-  def f \<equiv> "\<lambda>n. a * of_real (cos_coeff (n+1) - sin_coeff (n+2))"
-  def F \<equiv> "\<lambda>z. if z = 0 then 0 else (cos (a*z) - sin (a*z)/(a*z)) / z"
-  def g \<equiv> "\<lambda>n. complex_of_real (sin_coeff (n+1))"
-  def G \<equiv> "\<lambda>z. if z = 0 then 1 else sin (a*z)/(a*z)"
+  define f where "f n = a * of_real (cos_coeff (n+1) - sin_coeff (n+2))" for n
+  define F where "F z = (if z = 0 then 0 else (cos (a*z) - sin (a*z)/(a*z)) / z)" for z
+  define g where "g n = complex_of_real (sin_coeff (n+1))" for n
+  define G where "G z = (if z = 0 then 1 else sin (a*z)/(a*z))" for z
   have a_nz: "a \<noteq> 0" unfolding a_def by simp
 
   have "(\<lambda>n. f n * (a*z)^n) sums (F z) \<and> (\<lambda>n. g n * (a*z)^n) sums (G z)"
@@ -1803,13 +1803,13 @@ proof -
   qed
   note sums = conjunct1[OF this] conjunct2[OF this]
 
-  def h2 \<equiv> "\<lambda>z. (\<Sum>n. f n * (a*z)^n) / (\<Sum>n. g n * (a*z)^n) +
-            Digamma (1 + z) - Digamma (1 - z)"
-  def POWSER \<equiv> "\<lambda>f z. (\<Sum>n. f n * (z^n :: complex))"
-  def POWSER' \<equiv> "\<lambda>f z. (\<Sum>n. diffs f n * (z^n :: complex))"
-
-  def h2' \<equiv> "\<lambda>z. a * (POWSER g (a*z) * POWSER' f (a*z) - POWSER f (a*z) * POWSER' g (a*z)) /
-                     (POWSER g (a*z))^2 + Polygamma 1 (1 + z) + Polygamma 1 (1 - z)"
+  define h2 where [abs_def]:
+    "h2 z = (\<Sum>n. f n * (a*z)^n) / (\<Sum>n. g n * (a*z)^n) + Digamma (1 + z) - Digamma (1 - z)" for z
+  define POWSER where [abs_def]: "POWSER f z = (\<Sum>n. f n * (z^n :: complex))" for f z
+  define POWSER' where [abs_def]: "POWSER' f z = (\<Sum>n. diffs f n * (z^n))" for f and z :: complex
+  define h2' where [abs_def]:
+    "h2' z = a * (POWSER g (a*z) * POWSER' f (a*z) - POWSER f (a*z) * POWSER' g (a*z)) /
+      (POWSER g (a*z))^2 + Polygamma 1 (1 + z) + Polygamma 1 (1 - z)" for z
 
   have h_eq: "h t = h2 t" if "abs (Re t) < 1" for t
   proof -
@@ -1850,7 +1850,7 @@ proof -
 
   {
     fix z :: complex assume z: "abs (Re z) < 1"
-    def d \<equiv> "\<i> * of_real (norm z + 1)"
+    define d where "d = \<i> * of_real (norm z + 1)"
     have d: "abs (Re d) < 1" "norm z < norm d" by (simp_all add: d_def norm_mult del: of_real_add)
     have "eventually (\<lambda>z. h z = h2 z) (nhds z)"
       using eventually_nhds_in_nhd[of z ?A] using h_eq z
@@ -1902,7 +1902,7 @@ proof -
     ultimately show "h2' (z - 1) = h2' z" by (rule DERIV_unique)
   qed
 
-  def h2'' \<equiv> "\<lambda>z. h2' (z - of_int \<lfloor>Re z\<rfloor>)"
+  define h2'' where "h2'' z = h2' (z - of_int \<lfloor>Re z\<rfloor>)" for z
   have deriv: "(h has_field_derivative h2'' z) (at z)" for z
   proof -
     fix z :: complex
@@ -1916,8 +1916,8 @@ proof -
   have cont: "continuous_on UNIV h2''"
   proof (intro continuous_at_imp_continuous_on ballI)
     fix z :: complex
-    def r \<equiv> "\<lfloor>Re z\<rfloor>"
-    def A \<equiv> "{t. of_int r - 1 < Re t \<and> Re t < of_int r + 1}"
+    define r where "r = \<lfloor>Re z\<rfloor>"
+    define A where "A = {t. of_int r - 1 < Re t \<and> Re t < of_int r + 1}"
     have "continuous_on A (\<lambda>t. h2' (t - of_int r))" unfolding A_def
       by (intro continuous_at_imp_continuous_on isCont_o2[OF _ A(2)] ballI continuous_intros)
          (simp_all add: abs_real_def)
@@ -1957,9 +1957,9 @@ lemma Gamma_reflection_complex:
   shows "Gamma z * Gamma (1 - z) = of_real pi / sin (of_real pi * z)"
 proof -
   let ?g = "\<lambda>z::complex. Gamma z * Gamma (1 - z) * sin (of_real pi * z)"
-  def g \<equiv> "\<lambda>z::complex. if z \<in> \<int> then of_real pi else ?g z"
+  define g where [abs_def]: "g z = (if z \<in> \<int> then of_real pi else ?g z)" for z :: complex
   let ?h = "\<lambda>z::complex. (of_real pi * cot (of_real pi*z) + Digamma z - Digamma (1 - z))"
-  def h \<equiv> "\<lambda>z::complex. if z \<in> \<int> then 0 else ?h z"
+  define h where [abs_def]: "h z = (if z \<in> \<int> then 0 else ?h z)" for z :: complex
 
   \<comment> \<open>@{term g} is periodic with period 1.\<close>
   interpret g: periodic_fun_simple' g
@@ -2073,7 +2073,7 @@ proof -
   qed
   have g_eq: "g (z/2) * g ((z+1)/2) = Gamma (1/2)^2 * g z" for z
   proof -
-    def r \<equiv> "\<lfloor>Re z / 2\<rfloor>"
+    define r where "r = \<lfloor>Re z / 2\<rfloor>"
     have "Gamma (1/2)^2 * g z = Gamma (1/2)^2 * g (z - of_int (2*r))" by (simp only: g.minus_of_int)
     also have "of_int (2*r) = 2 * of_int r" by simp
     also have "Re z - 2 * of_int r > -1" "Re z - 2 * of_int r < 2" unfolding r_def by linarith+
@@ -2126,8 +2126,8 @@ proof -
 
   have h'_zero: "h' z = 0" for z
   proof -
-    def m \<equiv> "max 1 \<bar>Re z\<bar>"
-    def B \<equiv> "{t. abs (Re t) \<le> m \<and> abs (Im t) \<le> abs (Im z)}"
+    define m where "m = max 1 \<bar>Re z\<bar>"
+    define B where "B = {t. abs (Re t) \<le> m \<and> abs (Im t) \<le> abs (Im z)}"
     have "closed ({t. Re t \<ge> -m} \<inter> {t. Re t \<le> m} \<inter>
                   {t. Im t \<ge> -\<bar>Im z\<bar>} \<inter> {t. Im t \<le> \<bar>Im z\<bar>})"
       (is "closed ?B") by (intro closed_Int closed_halfspace_Re_ge closed_halfspace_Re_le
@@ -2144,7 +2144,7 @@ proof -
     qed
     ultimately have compact: "compact B" by (subst compact_eq_bounded_closed) blast
 
-    def M \<equiv> "SUP z:B. norm (h' z)"
+    define M where "M = (SUP z:B. norm (h' z))"
     have "compact (h' ` B)"
       by (intro compact_continuous_image continuous_on_subset[OF h'_cont] compact) blast+
     hence bdd: "bdd_above ((\<lambda>z. norm (h' z)) ` B)"
@@ -2560,10 +2560,10 @@ subsection \<open>The Solution to the Basel problem\<close>
 
 theorem inverse_squares_sums: "(\<lambda>n. 1 / (n + 1)\<^sup>2) sums (pi\<^sup>2 / 6)"
 proof -
-  def P \<equiv> "\<lambda>x n. (\<Prod>k=1..n. 1 - x^2 / of_nat k^2 :: real)"
-  def K \<equiv> "\<Sum>n. inverse (real_of_nat (Suc n))^2"
-  def f \<equiv> "\<lambda>x. \<Sum>n. P x n / of_nat (Suc n)^2"
-  def g \<equiv> "\<lambda>x. (1 - sin (pi * x) / (pi * x))"
+  define P where "P x n = (\<Prod>k=1..n. 1 - x^2 / of_nat k^2)" for x :: real and n
+  define K where "K = (\<Sum>n. inverse (real_of_nat (Suc n))^2)"
+  define f where [abs_def]: "f x = (\<Sum>n. P x n / of_nat (Suc n)^2)" for x
+  define g where [abs_def]: "g x = (1 - sin (pi * x) / (pi * x))" for x
 
   have sums: "(\<lambda>n. P x n / of_nat (Suc n)^2) sums (if x = 0 then K else g x / x^2)" for x
   proof (cases "x = 0")
@@ -2606,7 +2606,7 @@ proof -
 
   moreover have "f \<midarrow> 0 \<rightarrow> pi^2 / 6"
   proof (rule Lim_transform_eventually)
-    def f' \<equiv> "\<lambda>x. \<Sum>n. - sin_coeff (n+3) * pi ^ (n+2) * x^n"
+    define f' where [abs_def]: "f' x = (\<Sum>n. - sin_coeff (n+3) * pi ^ (n+2) * x^n)" for x
     have "eventually (\<lambda>x. x \<noteq> (0::real)) (at 0)"
       by (auto simp add: eventually_at intro!: exI[of _ 1])
     thus "eventually (\<lambda>x. f' x = f x) (at 0)"

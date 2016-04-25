@@ -775,7 +775,7 @@ proof -
   obtain x where x: "x \<in> S" using assms(1) ..
   obtain z where z: "\<forall>x\<in>S. x \<le> z" using assms(2) ..
 
-  def P \<equiv> "\<lambda>x. \<forall>y\<in>S. y \<le> of_rat x"
+  define P where "P x \<longleftrightarrow> (\<forall>y\<in>S. y \<le> of_rat x)" for x
   obtain a where a: "\<not> P a"
   proof
     have "of_int \<lfloor>x - 1\<rfloor> \<le> x - 1" by (rule of_int_floor_le)
@@ -797,11 +797,11 @@ proof -
     qed
   qed
 
-  def avg \<equiv> "\<lambda>x y :: rat. x/2 + y/2"
-  def bisect \<equiv> "\<lambda>(x, y). if P (avg x y) then (x, avg x y) else (avg x y, y)"
-  def A \<equiv> "\<lambda>n. fst ((bisect ^^ n) (a, b))"
-  def B \<equiv> "\<lambda>n. snd ((bisect ^^ n) (a, b))"
-  def C \<equiv> "\<lambda>n. avg (A n) (B n)"
+  define avg where "avg x y = x/2 + y/2" for x y :: rat
+  define bisect where "bisect = (\<lambda>(x, y). if P (avg x y) then (x, avg x y) else (avg x y, y))"
+  define A where "A n = fst ((bisect ^^ n) (a, b))" for n
+  define B where "B n = snd ((bisect ^^ n) (a, b))" for n
+  define C where "C n = avg (A n) (B n)" for n
   have A_0 [simp]: "A 0 = a" unfolding A_def by simp
   have B_0 [simp]: "B 0 = b" unfolding B_def by simp
   have A_Suc [simp]: "\<And>n. A (Suc n) = (if P (C n) then A n else C n)"
@@ -1251,8 +1251,8 @@ proof -
   from \<open>x<y\<close> have "0 < y-x" by simp
   with reals_Archimedean obtain q::nat
     where q: "inverse (real q) < y-x" and "0 < q" by blast
-  def p \<equiv> "\<lceil>y * real q\<rceil> - 1"
-  def r \<equiv> "of_int p / real q"
+  define p where "p = \<lceil>y * real q\<rceil> - 1"
+  define r where "r = of_int p / real q"
   from q have "x < y - inverse (real q)" by simp
   also have "y - inverse (real q) \<le> r"
     unfolding r_def p_def

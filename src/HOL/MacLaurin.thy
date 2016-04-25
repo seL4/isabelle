@@ -85,22 +85,22 @@ proof -
         (\<Sum>m<n. diff m (0::real) / (fact m) * h ^ m) + B * (h ^ n / (fact n))"
     using Maclaurin_lemma [OF h] ..
 
-  def g \<equiv> "(\<lambda>t. f t -
-    (setsum (\<lambda>m. (diff m 0 / (fact m)) * t^m) {..<n} + (B * (t^n / (fact n)))))"
+  define g where [abs_def]: "g t =
+    f t - (setsum (\<lambda>m. (diff m 0 / (fact m)) * t^m) {..<n} + (B * (t^n / (fact n))))" for t
 
   have g2: "g 0 = 0 & g h = 0"
     by (simp add: m f_h g_def lessThan_Suc_eq_insert_0 image_iff diff_0 setsum.reindex)
 
-  def difg \<equiv> "(%m t. diff m t -
-    (setsum (%p. (diff (m + p) 0 / (fact p)) * (t ^ p)) {..<n-m}
-      + (B * ((t ^ (n - m)) / (fact (n - m))))))"
+  define difg where [abs_def]: "difg m t =
+    diff m t - (setsum (%p. (diff (m + p) 0 / (fact p)) * (t ^ p)) {..<n-m}
+      + (B * ((t ^ (n - m)) / (fact (n - m)))))" for m t
 
   have difg_0: "difg 0 = g"
     unfolding difg_def g_def by (simp add: diff_0)
 
   have difg_Suc: "\<forall>(m::nat) t::real.
         m < n \<and> (0::real) \<le> t \<and> t \<le> h \<longrightarrow> DERIV (difg m) t :> difg (Suc m) t"
-    using diff_Suc m unfolding difg_def by (rule Maclaurin_lemma2)
+    using diff_Suc m unfolding difg_def [abs_def] by (rule Maclaurin_lemma2)
 
   have difg_eq_0: "\<forall>m<n. difg m 0 = 0"
     by (auto simp: difg_def m Suc_diff_le lessThan_Suc_eq_insert_0 image_iff setsum.reindex)

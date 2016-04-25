@@ -1147,7 +1147,7 @@ proof (rule distributedI_real)
   show "Int_stable (range atMost :: real set set)"
     by (auto simp: Int_stable_def)
   have vimage_eq: "\<And>a. (X -` {..a} \<inter> space M) = {x\<in>space M. X x \<le> a}" by auto
-  def A \<equiv> "\<lambda>i::nat. {.. real i}"
+  define A where "A i = {.. real i}" for i :: nat
   then show "range A \<subseteq> range atMost" "(\<Union>i. A i) = space lborel"
     "\<And>i. emeasure (distr M lborel X) (A i) \<noteq> \<infinity>"
     by (auto simp: real_arch_simple emeasure_distr vimage_eq M_eq)

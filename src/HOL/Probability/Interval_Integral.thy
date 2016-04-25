@@ -81,7 +81,7 @@ proof (cases b)
        (auto simp: incseq_def PInf)
 next
   case (real b')
-  def d \<equiv> "b' - (if a = -\<infinity> then b' - 1 else real_of_ereal a)"
+  define d where "d = b' - (if a = -\<infinity> then b' - 1 else real_of_ereal a)"
   with \<open>a < b\<close> have a': "0 < d"
     by (cases a) (auto simp: real)
   moreover

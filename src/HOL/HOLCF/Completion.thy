@@ -191,14 +191,14 @@ lemma obtain_principal_chain:
 proof -
   obtain count :: "'a \<Rightarrow> nat" where inj: "inj count"
     using countable ..
-  def enum \<equiv> "\<lambda>i. THE a. count a = i"
+  define enum where "enum i = (THE a. count a = i)" for i
   have enum_count [simp]: "\<And>x. enum (count x) = x"
     unfolding enum_def by (simp add: inj_eq [OF inj])
-  def a \<equiv> "LEAST i. enum i \<in> rep x"
-  def b \<equiv> "\<lambda>i. LEAST j. enum j \<in> rep x \<and> \<not> enum j \<preceq> enum i"
-  def c \<equiv> "\<lambda>i j. LEAST k. enum k \<in> rep x \<and> enum i \<preceq> enum k \<and> enum j \<preceq> enum k"
-  def P \<equiv> "\<lambda>i. \<exists>j. enum j \<in> rep x \<and> \<not> enum j \<preceq> enum i"
-  def X \<equiv> "rec_nat a (\<lambda>n i. if P i then c i (b i) else i)"
+  define a where "a = (LEAST i. enum i \<in> rep x)"
+  define b where "b i = (LEAST j. enum j \<in> rep x \<and> \<not> enum j \<preceq> enum i)" for i
+  define c where "c i j = (LEAST k. enum k \<in> rep x \<and> enum i \<preceq> enum k \<and> enum j \<preceq> enum k)" for i j
+  define P where "P i \<longleftrightarrow> (\<exists>j. enum j \<in> rep x \<and> \<not> enum j \<preceq> enum i)" for i
+  define X where "X = rec_nat a (\<lambda>n i. if P i then c i (b i) else i)"
   have X_0: "X 0 = a" unfolding X_def by simp
   have X_Suc: "\<And>n. X (Suc n) = (if P (X n) then c (X n) (b (X n)) else X n)"
     unfolding X_def by simp

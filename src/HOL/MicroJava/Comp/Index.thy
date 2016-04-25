@@ -98,7 +98,7 @@ lemma index_of_var: "\<lbrakk> xvar \<notin> set pns; xvar \<notin> set (map fst
 
 
 
-(* The following def should replace the conditions in WellType.thy / wf_java_mdecl
+(* The following definition should replace the conditions in WellType.thy / wf_java_mdecl
 *)
 definition disjoint_varnames :: "[vname list, (vname \<times> ty) list] \<Rightarrow> bool" where
   "disjoint_varnames pns lvars \<equiv> 

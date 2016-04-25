@@ -847,7 +847,7 @@ lemma is_unitE [elim?]:
     and "is_unit b" and "1 div a = b" and "1 div b = a"
     and "a * b = 1" and "c div a = c * b"
 proof (rule that)
-  def b \<equiv> "1 div a"
+  define b where "b = 1 div a"
   then show "1 div a = b" by simp
   from b_def \<open>is_unit a\<close> show "is_unit b" by simp
   from \<open>is_unit a\<close> and \<open>is_unit b\<close> show "a \<noteq> 0" and "b \<noteq> 0" by auto

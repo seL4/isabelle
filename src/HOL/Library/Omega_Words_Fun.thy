@@ -355,7 +355,7 @@ lemma word_first_split_set:
   assumes "A \<inter> range w \<noteq> {}"
   obtains u a v where "w = u \<frown> [a] \<frown> v" "A \<inter> set u = {}" "a \<in> A"
 proof -
-  def i \<equiv> "LEAST i. w i \<in> A"
+  define i where "i = (LEAST i. w i \<in> A)"
   show ?thesis
   proof
     show "w = prefix i w \<frown> [w i] \<frown> suffix (Suc i) w"

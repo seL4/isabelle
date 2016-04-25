@@ -119,7 +119,7 @@ proof
     assume "open {x}"
     then obtain e where "0 < e" and e: "\<forall>y. dist y x < e \<longrightarrow> y = x"
       unfolding open_dist by fast
-    def y \<equiv> "x + scaleR (e/2) (SOME b. b \<in> Basis)"
+    define y where "y = x + scaleR (e/2) (SOME b. b \<in> Basis)"
     have [simp]: "(SOME b. b \<in> Basis) \<in> Basis"
       by (rule someI_ex) (auto simp: ex_in_conv)
     from \<open>0 < e\<close> have "y \<noteq> x"

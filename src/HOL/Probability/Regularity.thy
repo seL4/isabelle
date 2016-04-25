@@ -76,7 +76,8 @@ proof -
     "\<exists>K \<in> {K. K \<subseteq> space M \<and> compact K}. emeasure M (space M) \<le> emeasure M K + ennreal e"
     (is "?thesis e") if "0 < e" for e :: real
   proof -
-    def B \<equiv> "\<lambda>n. \<Union>i\<in>{0..k e (Suc n)}. cball (from_nat_into X i) (1 / Suc n)"
+    define B where [abs_def]:
+      "B n = (\<Union>i\<in>{0..k e (Suc n)}. cball (from_nat_into X i) (1 / Suc n))" for n
     have "\<And>n. closed (B n)" by (auto simp: B_def)
     hence [simp]: "\<And>n. B n \<in> sets M" by (simp add: sb)
     from k[OF \<open>e > 0\<close> zero_less_Suc]
@@ -84,7 +85,7 @@ proof -
       by (simp add: algebra_simps B_def finite_measure_compl)
     hence B_compl_le: "\<And>n::nat. measure M (space M - B n) \<le> e * 2 powr - real (Suc n)"
       by (simp add: finite_measure_compl)
-    def K \<equiv> "\<Inter>n. B n"
+    define K where "K = (\<Inter>n. B n)"
     from \<open>closed (B _)\<close> have "closed K" by (auto simp: K_def)
     hence [simp]: "K \<in> sets M" by (simp add: sb)
     have "measure M (space M) - measure M K = measure M (space M - K)"

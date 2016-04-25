@@ -238,7 +238,7 @@ proof -
     assume IanI: "I +> a \<noteq> I" and acarr: "a \<in> carrier R"
 
     --\<open>Helper ideal @{text "J"}\<close>
-    def J \<equiv> "(carrier R #> a) <+> I :: 'a set"
+    define J :: "'a set" where "J = (carrier R #> a) <+> I"
     have idealJ: "ideal J R"
       apply (unfold J_def, rule add_ideals)
        apply (simp only: cgenideal_eq_rcos[symmetric], rule cgenideal_ideal, rule acarr)

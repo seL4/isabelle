@@ -106,7 +106,7 @@ next
     unfolding fun_eq_iff using Union.IH by metis
   show ?case
   proof (intro exI conjI)
-    def G \<equiv> "\<lambda>j. (\<Union>i. if j \<in> J i then F i j else X i)"
+    define G where "G j = (\<Union>i. if j \<in> J i then F i j else X i)" for j
     show "(\<Union>i. X i) \<in> sets M" "countable (\<Union>i. J i)" "G \<in> (\<Union>i. J i) \<rightarrow> sets M"
       using XFJ by (auto simp: G_def Pi_iff)
     show "UNION UNIV A = (UNIV - (\<Union>i. J i)) \<times> (\<Union>i. X i) \<union> (SIGMA j:\<Union>i. J i. \<Union>i. if j \<in> J i then F i j else X i)"

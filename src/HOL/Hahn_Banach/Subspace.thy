@@ -467,9 +467,9 @@ text \<open>
 lemma h'_definite:
   fixes H
   assumes h'_def:
-    "h' \<equiv> \<lambda>x.
-      let (y, a) = SOME (y, a). (x = y + a \<cdot> x' \<and> y \<in> H)
-      in (h y) + a * xi"
+    "\<And>x. h' x =
+      (let (y, a) = SOME (y, a). (x = y + a \<cdot> x' \<and> y \<in> H)
+       in (h y) + a * xi)"
     and x: "x = y + a \<cdot> x'"
   assumes "vectorspace E" "subspace H E"
   assumes y: "y \<in> H"

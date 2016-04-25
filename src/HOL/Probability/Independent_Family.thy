@@ -132,7 +132,7 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
     then have "indep_sets (?G J) K"
     proof induct
       case (insert j J)
-      moreover def G \<equiv> "?G J"
+      moreover define G where "G = ?G J"
       ultimately have G: "indep_sets G K" "\<And>i. i \<in> K \<Longrightarrow> G i \<subseteq> events" and "j \<in> K"
         by (auto simp: indep_sets_def)
       let ?D = "{E\<in>events. indep_sets (G(j := {E})) K }"
@@ -464,7 +464,7 @@ proof -
         qed }
       note L_inj = this
 
-      def k \<equiv> "\<lambda>l. (SOME k. k \<in> K \<and> l \<in> L k)"
+      define k where "k l = (SOME k. k \<in> K \<and> l \<in> L k)" for l
       { fix x j l assume *: "j \<in> K" "l \<in> L j"
         have "k l = j" unfolding k_def
         proof (rule some_equality)
@@ -1265,7 +1265,7 @@ lemma (in prob_space) indep_vars_nn_integral:
   shows "(\<integral>\<^sup>+\<omega>. (\<Prod>i\<in>I. X i \<omega>) \<partial>M) = (\<Prod>i\<in>I. \<integral>\<^sup>+\<omega>. X i \<omega> \<partial>M)"
 proof cases
   assume "I \<noteq> {}"
-  def Y \<equiv> "\<lambda>i \<omega>. if i \<in> I then X i \<omega> else 0"
+  define Y where [abs_def]: "Y i \<omega> = (if i \<in> I then X i \<omega> else 0)" for i \<omega>
   { fix i have "i \<in> I \<Longrightarrow> random_variable borel (X i)"
     using I(2) by (cases "i\<in>I") (auto simp: indep_vars_def) }
   note rv_X = this
@@ -1302,7 +1302,7 @@ lemma (in prob_space)
     and indep_vars_integrable: "integrable M (\<lambda>\<omega>. (\<Prod>i\<in>I. X i \<omega>))" (is ?int)
 proof (induct rule: case_split)
   assume "I \<noteq> {}"
-  def Y \<equiv> "\<lambda>i \<omega>. if i \<in> I then X i \<omega> else 0"
+  define Y where [abs_def]: "Y i \<omega> = (if i \<in> I then X i \<omega> else 0)" for i \<omega>
   { fix i have "i \<in> I \<Longrightarrow> random_variable borel (X i)"
     using I(2) by (cases "i\<in>I") (auto simp: indep_vars_def) }
   note rv_X = this[measurable]

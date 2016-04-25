@@ -441,7 +441,8 @@ lemma lim:
 proof (rule PF.emeasure_lim[OF J subset_UNIV X])
   fix J X' assume J[simp]: "\<And>i. finite (J i)" and X'[measurable]: "\<And>i. X' i \<in> sets (Pi\<^sub>M (J i) M)"
     and dec: "decseq (\<lambda>i. PF.emb UNIV (J i) (X' i))"
-  def X \<equiv> "\<lambda>n. (\<Inter>i\<in>{i. J i \<subseteq> {0..< n}}. PF.emb {0..<n} (J i) (X' i)) \<inter> space (PiM {0..<n} M)"
+  define X where "X n =
+    (\<Inter>i\<in>{i. J i \<subseteq> {0..< n}}. PF.emb {0..<n} (J i) (X' i)) \<inter> space (PiM {0..<n} M)" for n
 
   have sets_X[measurable]: "X n \<in> sets (PiM {0..<n} M)" for n
     by (cases "{i. J i \<subseteq> {0..< n}} = {}")
@@ -605,7 +606,8 @@ proof (rule emeasure_lim[OF *], goal_cases)
     assume inf: "infinite (\<Union>i. J i)"
     moreover have count: "countable (\<Union>i. J i)"
       using 1(3) by (auto intro: countable_finite)
-    def f \<equiv> "from_nat_into (\<Union>i. J i)" and t \<equiv> "to_nat_on (\<Union>i. J i)"
+    define f where "f = from_nat_into (\<Union>i. J i)"
+    define t where "t = to_nat_on (\<Union>i. J i)"
     have ft[simp]: "x \<in> J i \<Longrightarrow> f (t x) = x" for x i
       unfolding f_def t_def using inf count by (intro from_nat_into_to_nat_on) auto
     have tf[simp]: "t (f i) = i" for i

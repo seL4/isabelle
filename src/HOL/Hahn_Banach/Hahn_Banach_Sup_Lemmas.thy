@@ -158,7 +158,7 @@ text \<open>
 \<close>
 
 lemma sup_definite:
-  assumes M_def: "M \<equiv> norm_pres_extensions E p F f"
+  assumes M_def: "M = norm_pres_extensions E p F f"
     and cM: "c \<in> chains M"
     and xy: "(x, y) \<in> \<Union>c"
     and xz: "(x, z) \<in> \<Union>c"

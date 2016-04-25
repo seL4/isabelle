@@ -43,7 +43,7 @@ proof -
     thus "\<exists>s'. subseq s' \<and> (\<exists>l. (\<lambda>k. f (s (s' k)) (r n)) \<longlonglongrightarrow> l)"
       by (auto simp: comp_def)
   qed
-  def d \<equiv> "nat.diagseq"
+  define d where "d = nat.diagseq"
   have subseq: "subseq d"
     unfolding d_def using nat.subseq_diagseq by auto
   have rat_cnv: "?P n d" for n
@@ -86,7 +86,7 @@ proof -
   then have nonempty: "{lim (?f n) |n. x < r n} \<noteq> {}" for x
     by auto
 
-  def F \<equiv> "\<lambda>x. Inf {lim (?f n) |n. x < r n}"
+  define F where "F x = Inf {lim (?f n) |n. x < r n}" for x
   have F_eq: "ereal (F x) = (INF n:{n. x < r n}. ereal (lim (?f n)))" for x
     unfolding F_def by (subst ereal_Inf'[OF bdd_below nonempty]) (simp add: setcompr_eq_image)
   have mono_F: "mono F"
@@ -160,7 +160,7 @@ theorem tight_imp_convergent_subsubsequence:
   assumes \<mu>: "tight \<mu>" "subseq s"
   shows "\<exists>r M. subseq r \<and> real_distribution M \<and> weak_conv_m (\<mu> \<circ> s \<circ> r) M"
 proof -
-  def f \<equiv> "\<lambda>k. cdf (\<mu> (s k))"
+  define f where "f k = cdf (\<mu> (s k))" for k
   interpret \<mu>: real_distribution "\<mu> k" for k
     using \<mu> unfolding tight_def by auto
 
@@ -275,7 +275,8 @@ corollary tight_subseq_weak_converge:
     subseq: "\<And>s \<nu>. subseq s \<Longrightarrow> real_distribution \<nu> \<Longrightarrow> weak_conv_m (\<mu> \<circ> s) \<nu> \<Longrightarrow> weak_conv_m (\<mu> \<circ> s) M"
   shows "weak_conv_m \<mu> M"
 proof (rule ccontr)
-  def f \<equiv> "\<lambda>n. cdf (\<mu> n)" and F \<equiv> "cdf M"
+  define f where "f n = cdf (\<mu> n)" for n
+  define F where "F = cdf M"
 
   assume "\<not> weak_conv_m \<mu> M"
   then obtain x where x: "isCont F x" "\<not> (\<lambda>n. f n x) \<longlonglongrightarrow> F x"

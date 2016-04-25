@@ -658,7 +658,7 @@ lemmas succ_pred[simp] = pred_Field_succ[THEN conjunct2, THEN conjunct2]
 lemma isSucc_pred_in:
 assumes "isSucc i"  shows "(pred i, i) \<in> r"
 proof-
-  def j \<equiv> "pred i"
+  define j where "j = pred i"
   have i: "i = succ j" using assms unfolding j_def by simp
   have a: "aboveS j \<noteq> {}" unfolding j_def using assms by auto
   show ?thesis unfolding j_def[symmetric] unfolding i using succ_in[OF a] .
@@ -766,7 +766,7 @@ lemma worecSL_succ:
 assumes a: "adm_woL L" and i: "aboveS j \<noteq> {}"
 shows "worecSL S L (succ j) = S j (worecSL S L j)"
 proof-
-  def i \<equiv> "succ j"
+  define i where "i = succ j"
   have i: "isSucc i" by (metis i i_def isSucc_succ)
   have ij: "j = pred i" unfolding i_def using assms by simp
   have 0: "succ (pred i) = i" using i by simp
@@ -935,7 +935,7 @@ proof-
   interpret r: wo_rel r by unfold_locales (rule r)
   interpret s: wo_rel s by unfold_locales (rule s)
   let ?G = "\<lambda> g a. suc s (g ` underS r a)"
-  def g \<equiv> "worec r ?G"
+  define g where "g = worec r ?G"
   have adm: "adm_wo r ?G" unfolding r.adm_wo_def image_def by auto
   (*  *)
   {fix a assume "a \<in> Field r"

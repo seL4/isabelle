@@ -210,7 +210,8 @@ lemma borel_measurable_implies_simple_function_sequence:
   assumes u[measurable]: "u \<in> borel_measurable M"
   shows "\<exists>f. incseq f \<and> (\<forall>i. (\<forall>x. f i x < top) \<and> simple_function M (f i)) \<and> u = (SUP i. f i)"
 proof -
-  def f \<equiv> "\<lambda>i x. real_of_int (floor (enn2real (min i (u x)) * 2^i)) / 2^i"
+  define f where [abs_def]:
+    "f i x = real_of_int (floor (enn2real (min i (u x)) * 2^i)) / 2^i" for i x
 
   have [simp]: "0 \<le> f i x" for i x
     by (auto simp: f_def intro!: divide_nonneg_nonneg mult_nonneg_nonneg enn2real_nonneg)
@@ -424,7 +425,8 @@ lemma simple_function_If_set:
   assumes sf: "simple_function M f" "simple_function M g" and A: "A \<inter> space M \<in> sets M"
   shows "simple_function M (\<lambda>x. if x \<in> A then f x else g x)" (is "simple_function M ?IF")
 proof -
-  def F \<equiv> "\<lambda>x. f -` {x} \<inter> space M" and G \<equiv> "\<lambda>x. g -` {x} \<inter> space M"
+  define F where "F x = f -` {x} \<inter> space M" for x
+  define G where "G x = g -` {x} \<inter> space M" for x
   show ?thesis unfolding simple_function_def
   proof safe
     have "?IF ` space M \<subseteq> f ` space M \<union> g ` space M" by auto
@@ -1452,7 +1454,7 @@ lemma nn_integral_nat_function:
   assumes "f \<in> measurable M (count_space UNIV)"
   shows "(\<integral>\<^sup>+x. of_nat (f x) \<partial>M) = (\<Sum>t. emeasure M {x\<in>space M. t < f x})"
 proof -
-  def F \<equiv> "\<lambda>i. {x\<in>space M. i < f x}"
+  define F where "F i = {x\<in>space M. i < f x}" for i
   with assms have [measurable]: "\<And>i. F i \<in> sets M"
     by auto
 
@@ -1637,7 +1639,7 @@ lemma nn_integral_enat_function:
   assumes f: "f \<in> measurable M (count_space UNIV)"
   shows "(\<integral>\<^sup>+ x. ennreal_of_enat (f x) \<partial>M) = (\<Sum>t. emeasure M {x \<in> space M. t < f x})"
 proof -
-  def F \<equiv> "\<lambda>i::nat. {x\<in>space M. i < f x}"
+  define F where "F i = {x\<in>space M. i < f x}" for i :: nat
   with assms have [measurable]: "\<And>i. F i \<in> sets M"
     by auto
 

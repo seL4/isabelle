@@ -218,7 +218,7 @@ proof -
     have "t \<noteq> t0" using t t0 by auto
     then obtain g where g: "g \<in> R" "g t \<noteq> g t0"
       using separable t0  by (metis Diff_subset subset_eq t)
-    def h \<equiv> "\<lambda>x. g x - g t0"
+    define h where [abs_def]: "h x = g x - g t0" for x
     have "h \<in> R"
       unfolding h_def by (fast intro: g const diff)
     then have hsq: "(\<lambda>w. (h w)\<^sup>2) \<in> R"
@@ -232,7 +232,7 @@ proof -
     also have "... \<le> normf (\<lambda>w. (h w)\<^sup>2)"
       using t normf_upper [where x=t] continuous [OF hsq] by force
     finally have nfp: "0 < normf (\<lambda>w. (h w)\<^sup>2)" .
-    def p \<equiv> "\<lambda>x. (1 / normf (\<lambda>w. (h w)\<^sup>2)) * (h x)^2"
+    define p where [abs_def]: "p x = (1 / normf (\<lambda>w. (h w)\<^sup>2)) * (h x)^2" for x
     have "p \<in> R"
       unfolding p_def by (fast intro: hsq const mult)
     moreover have "p t0 = 0"
@@ -266,7 +266,7 @@ proof -
     using t1 by auto
   then have cardp: "card subU > 0" using subU
     by (simp add: card_gt_0_iff)
-  def p \<equiv> "\<lambda>x. (1 / card subU) * (\<Sum>t \<in> subU. pf t x)"
+  define p where [abs_def]: "p x = (1 / card subU) * (\<Sum>t \<in> subU. pf t x)" for x
   have pR: "p \<in> R"
     unfolding p_def using subU pf by (fast intro: pf const mult setsum)
   have pt0 [simp]: "p t0 = 0"
@@ -307,7 +307,7 @@ proof -
     by (auto simp: elim!: openE)
   then have pt_delta: "\<And>x. x \<in> s-U \<Longrightarrow> p x \<ge> delta0"
     by (force simp: ball_def dist_norm dest: p01)
-  def \<delta> \<equiv> "delta0/2"
+  define \<delta> where "\<delta> = delta0/2"
   have "delta0 \<le> 1" using delta0 p01 [of t1] t1
       by (force simp: ball_def dist_norm dest: p01)
   with delta0 have \<delta>01: "0 < \<delta>" "\<delta> < 1"
@@ -318,7 +318,7 @@ proof -
     by (rule open_Collect_less_Int [OF continuous [OF pR] continuous_on_const])
   then obtain V where V: "open V" "V \<inter> s = {x\<in>s. p x < \<delta>/2}"
     by blast
-  def k \<equiv> "nat\<lfloor>1/\<delta>\<rfloor> + 1"
+  define k where "k = nat\<lfloor>1/\<delta>\<rfloor> + 1"
   have "k>0"  by (simp add: k_def)
   have "k-1 \<le> 1/\<delta>"
     using \<delta>01 by (simp add: k_def)
@@ -331,7 +331,7 @@ proof -
     using \<delta>01 unfolding k_def by linarith
   with \<delta>01 k2\<delta> have k\<delta>: "1 < k*\<delta>" "k*\<delta> < 2"
     by (auto simp: divide_simps)
-  def q \<equiv> "\<lambda>n t. (1 - p t ^ n) ^ (k^n)"
+  define q where [abs_def]: "q n t = (1 - p t ^ n) ^ (k^n)" for n t
   have qR: "q n \<in> R" for n
     by (simp add: q_def const diff power pR)
   have q01: "\<And>n t. t \<in> s \<Longrightarrow> q n t \<in> {0..1}"
@@ -387,7 +387,8 @@ proof -
       by (fastforce simp: field_simps)
     finally have "q n t \<le> (1 / (real k * \<delta>)) ^ n " .
   } note limitNonU = this
-  def NN \<equiv> "\<lambda>e. 1 + nat \<lceil>max (ln e / ln (real k * \<delta> / 2)) (- ln e / ln (real k * \<delta>))\<rceil>"
+  define NN
+    where "NN e = 1 + nat \<lceil>max (ln e / ln (real k * \<delta> / 2)) (- ln e / ln (real k * \<delta>))\<rceil>" for e
   have NN: "of_nat (NN e) > ln e / ln (real k * \<delta> / 2)"  "of_nat (NN e) > - ln e / ln (real k * \<delta>)"
               if "0<e" for e
       unfolding NN_def  by linarith+
@@ -464,7 +465,7 @@ proof -
          "\<And>w. w \<in> A \<Longrightarrow> ff w \<in> R \<and> ff w ` s \<subseteq> {0..1} \<and>
                          (\<forall>x \<in> s \<inter> Vf w. ff w x < e / card subA) \<and> (\<forall>x \<in> s \<inter> B. ff w x > 1 - e / card subA)"
     by metis
-  def pff \<equiv> "\<lambda>x. (\<Prod>w \<in> subA. ff w x)"
+  define pff where [abs_def]: "pff x = (\<Prod>w \<in> subA. ff w x)" for x
   have pffR: "pff \<in> R"
     unfolding pff_def using subA ff by (auto simp: intro: setprod)
   moreover
@@ -559,9 +560,9 @@ lemma (in function_ring_on) Stone_Weierstrass_special:
       and e: "0 < e" "e < 1/3"
   shows "\<exists>g \<in> R. \<forall>x\<in>s. \<bar>f x - g x\<bar> < 2*e"
 proof -
-  def n \<equiv> "1 + nat \<lceil>normf f / e\<rceil>"
-  def A \<equiv> "\<lambda>j::nat. {x \<in> s. f x \<le> (j - 1/3)*e}"
-  def B \<equiv> "\<lambda>j::nat. {x \<in> s. f x \<ge> (j + 1/3)*e}"
+  define n where "n = 1 + nat \<lceil>normf f / e\<rceil>"
+  define A where "A j = {x \<in> s. f x \<le> (j - 1/3)*e}" for j :: nat
+  define B where "B j = {x \<in> s. f x \<ge> (j + 1/3)*e}" for j :: nat
   have ngt: "(n-1) * e \<ge> normf f" "n\<ge>1"
     using e
     apply (simp_all add: n_def field_simps of_nat_Suc)
@@ -591,7 +592,7 @@ proof -
                    and xfA: "\<And>x j. x \<in> A j \<Longrightarrow> xf j x < e/n"
                    and xfB: "\<And>x j. x \<in> B j \<Longrightarrow> xf j x > 1 - e/n"
     by metis
-  def g \<equiv> "\<lambda>x. e * (\<Sum>i\<le>n. xf i x)"
+  define g where [abs_def]: "g x = e * (\<Sum>i\<le>n. xf i x)" for x
   have gR: "g \<in> R"
     unfolding g_def by (fast intro: mult const setsum xfR)
   have gge0: "\<And>x. x \<in> s \<Longrightarrow> g x \<ge> 0"
@@ -606,7 +607,7 @@ proof -
     done
   { fix t
     assume t: "t \<in> s"
-    def j \<equiv> "LEAST j. t \<in> A j"
+    define j where "j = (LEAST j. t \<in> A j)"
     have jn: "j \<le> n"
       using t An by (simp add: Least_le j_def)
     have Aj: "t \<in> A j"

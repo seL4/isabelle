@@ -646,7 +646,7 @@ lemma lemma_sqrt_hcomplex_capprox:
 
 lemma LIMSEQ_root: "(\<lambda>n. root n n) \<longlonglongrightarrow> 1"
 proof -
-  def x \<equiv> "\<lambda>n. root n n - 1"
+  define x where "x n = root n n - 1" for n
   have "x \<longlonglongrightarrow> sqrt 0"
   proof (rule tendsto_sandwich[OF _ _ tendsto_const])
     show "(\<lambda>x. sqrt (2 / x)) \<longlonglongrightarrow> sqrt 0"
@@ -684,7 +684,7 @@ lemma LIMSEQ_root_const:
   shows "(\<lambda>n. root n c) \<longlonglongrightarrow> 1"
 proof -
   { fix c :: real assume "1 \<le> c"
-    def x \<equiv> "\<lambda>n. root n c - 1"
+    define x where "x n = root n c - 1" for n
     have "x \<longlonglongrightarrow> 0"
     proof (rule tendsto_sandwich[OF _ _ tendsto_const])
       show "(\<lambda>n. c / n) \<longlonglongrightarrow> 0"

@@ -102,8 +102,10 @@ lemma fashoda_unit:
 proof (rule ccontr)
   assume "\<not> ?thesis"
   note as = this[unfolded bex_simps,rule_format]
-  def sqprojection \<equiv> "\<lambda>z::real^2. (inverse (infnorm z)) *\<^sub>R z" 
-  def negatex \<equiv> "\<lambda>x::real^2. (vector [-(x$1), x$2])::real^2"
+  define sqprojection
+    where [abs_def]: "sqprojection z = (inverse (infnorm z)) *\<^sub>R z" for z :: "real^2"
+  define negatex :: "real^2 \<Rightarrow> real^2"
+    where "negatex x = (vector [-(x$1), x$2])" for x
   have lem1: "\<forall>z::real^2. infnorm (negatex z) = infnorm z"
     unfolding negatex_def infnorm_2 vector_2 by auto
   have lem2: "\<forall>z. z \<noteq> 0 \<longrightarrow> infnorm (sqprojection z) = 1"
@@ -349,7 +351,7 @@ lemma fashoda_unit_path:
   obtains z where "z \<in> path_image f" and "z \<in> path_image g"
 proof -
   note assms=assms[unfolded path_def pathstart_def pathfinish_def path_image_def]
-  def iscale \<equiv> "\<lambda>z::real. inverse 2 *\<^sub>R (z + 1)"
+  define iscale where [abs_def]: "iscale z = inverse 2 *\<^sub>R (z + 1)" for z :: real
   have isc: "iscale ` {- 1..1} \<subseteq> {0..1}"
     unfolding iscale_def by auto
   have "\<exists>s\<in>{- 1..1}. \<exists>t\<in>{- 1..1}. (f \<circ> iscale) s = (g \<circ> iscale) t"

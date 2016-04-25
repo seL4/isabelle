@@ -21,8 +21,8 @@ theorem Schroeder_Bernstein:
   assumes "inj f" and "inj g"
   shows "\<exists>h :: 'a \<Rightarrow> 'b. inj h \<and> surj h"
 proof
-  def A \<equiv> "lfp (\<lambda>X. - (g ` (- (f ` X))))"
-  def g' \<equiv> "inv g"
+  define A where "A = lfp (\<lambda>X. - (g ` (- (f ` X))))"
+  define g' where "g' = inv g"
   let ?h = "\<lambda>z. if z \<in> A then f z else g' z"
 
   have "A = - (g ` (- (f ` A)))"

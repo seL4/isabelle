@@ -1216,7 +1216,7 @@ lemma conv_normal_density_zero_mean:
   shows "(\<lambda>x. \<integral>\<^sup>+y. ennreal (normal_density 0 \<sigma> (x - y) * normal_density 0 \<tau> y) \<partial>lborel) =
     normal_density 0 (sqrt (\<sigma>\<^sup>2 + \<tau>\<^sup>2))"  (is "?LHS = ?RHS")
 proof -
-  def \<sigma>' \<equiv> "\<sigma>\<^sup>2" and \<tau>' \<equiv> "\<tau>\<^sup>2"
+  define \<sigma>' \<tau>' where "\<sigma>' = \<sigma>\<^sup>2" and "\<tau>' = \<tau>\<^sup>2"
   then have [simp, arith]: "0 < \<sigma>'" "0 < \<tau>'"
     by simp_all
   let ?\<sigma> = "sqrt ((\<sigma>' * \<tau>') / (\<sigma>' + \<tau>'))"

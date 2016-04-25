@@ -953,7 +953,7 @@ proof -
       then show ?thesis by simp
     next
       case False
-      def n \<equiv> "\<lfloor>log 2 (real_of_int x)\<rfloor>"
+      define n where "n = \<lfloor>log 2 (real_of_int x)\<rfloor>"
       then have "0 \<le> n"
         using \<open>2 \<le> x\<close> by simp
       from \<open>2 \<le> x\<close> False have "x mod 2 = 1" "\<not> 2 dvd x"
@@ -1306,7 +1306,7 @@ next
   show ?thesis
   proof (cases "0 \<le> l")
     case True
-    def x' \<equiv> "x * 2 ^ nat l"
+    define x' where "x' = x * 2 ^ nat l"
     have "int x * 2 ^ nat l = x'"
       by (simp add: x'_def of_nat_mult of_nat_power)
     moreover have "real x * 2 powr l = real x'"
@@ -1319,7 +1319,7 @@ next
       by (metis floor_divide_of_int_eq of_int_of_nat_eq)
    next
     case False
-    def y' \<equiv> "y * 2 ^ nat (- l)"
+    define y' where "y' = y * 2 ^ nat (- l)"
     from \<open>y \<noteq> 0\<close> have "y' \<noteq> 0" by (simp add: y'_def)
     have "int y * 2 ^ nat (- l) = y'" by (simp add: y'_def of_nat_mult of_nat_power)
     moreover have "real x * real_of_int (2::int) powr real_of_int l / real y = x / real y'"
@@ -1683,14 +1683,14 @@ proof (cases "b = 0")
   then show ?thesis by simp
 next
   case False
-  def k \<equiv> "\<lfloor>log 2 \<bar>ai\<bar>\<rfloor>"
+  define k where "k = \<lfloor>log 2 \<bar>ai\<bar>\<rfloor>"
   then have "\<lfloor>log 2 \<bar>ai\<bar>\<rfloor> = k"
     by simp
   then have k: "2 powr k \<le> \<bar>ai\<bar>" "\<bar>ai\<bar> < 2 powr (k + 1)"
     by (simp_all add: floor_log_eq_powr_iff \<open>ai \<noteq> 0\<close>)
   have "k \<ge> 0"
     using assms by (auto simp: k_def)
-  def r \<equiv> "\<bar>ai\<bar> - 2 ^ nat k"
+  define r where "r = \<bar>ai\<bar> - 2 ^ nat k"
   have r: "0 \<le> r" "r < 2 powr k"
     using \<open>k \<ge> 0\<close> k
     by (auto simp: r_def k_def algebra_simps powr_add abs_if powr_int)

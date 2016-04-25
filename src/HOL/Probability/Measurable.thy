@@ -559,7 +559,8 @@ lemma measurable_THE:
   unfolding measurable_def
 proof safe
   fix X
-  def f \<equiv> "\<lambda>x. THE i. P i x" def undef \<equiv> "THE i::'a. False"
+  define f where "f x = (THE i. P i x)" for x
+  define undef where "undef = (THE i::'a. False)"
   { fix i x assume "x \<in> space M" "P i x" then have "f x = i"
       unfolding f_def using unique by auto }
   note f_eq = this

@@ -80,7 +80,7 @@ lemma Erdoes_Szekeres:
          (\<exists>S. S \<subseteq> {0..m * n} \<and> card S = n + 1 \<and> mono_on f (op \<ge>) S)"
 proof (rule ccontr)
   let ?max_subseq = "\<lambda>R k. Max (card ` {S. S \<subseteq> {0..k} \<and> mono_on f R S \<and> k \<in> S})"
-  def phi == "\<lambda>k. (?max_subseq (op \<le>) k, ?max_subseq (op \<ge>) k)"
+  define phi where "phi k = (?max_subseq (op \<le>) k, ?max_subseq (op \<ge>) k)" for k
 
   have one_member: "\<And>R k. reflp R \<Longrightarrow> {k} \<in> {S. S \<subseteq> {0..k} \<and> mono_on f R S \<and> k \<in> S}" by auto
 

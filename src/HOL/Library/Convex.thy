@@ -664,7 +664,7 @@ lemma convex_on_diff:
   shows "(f x - f t) / (x - t) \<le> (f x - f y) / (x - y)"
     and "(f x - f y) / (x - y) \<le> (f t - f y) / (t - y)"
 proof -
-  def a \<equiv> "(t - y) / (x - y)"
+  define a where "a \<equiv> (t - y) / (x - y)"
   with t have "0 \<le> a" "0 \<le> 1 - a"
     by (auto simp: field_simps)
   with f \<open>x \<in> I\<close> \<open>y \<in> I\<close> have cvx: "f (a * x + (1 - a) * y) \<le> a * f x + (1 - a) * f y"
@@ -882,7 +882,7 @@ lemma convex_on_realI:
 proof (rule convex_on_linorderI)
   fix t x y :: real
   assume t: "t > 0" "t < 1" and xy: "x \<in> A" "y \<in> A" "x < y"
-  def z \<equiv> "(1 - t) * x + t * y"
+  define z where "z = (1 - t) * x + t * y"
   with \<open>connected A\<close> and xy have ivl: "{x..y} \<subseteq> A" using connected_contains_Icc by blast
 
   from xy t have xz: "z > x" by (simp add: z_def algebra_simps)

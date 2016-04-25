@@ -1941,9 +1941,9 @@ lemma Cauchy_theorem_quadrisection:
            e * (K/2)^2 \<le> norm(contour_integral(linepath a' b') f + contour_integral(linepath b' c') f + contour_integral(linepath c' a') f)"
 proof -
   note divide_le_eq_numeral1 [simp del]
-  def a' \<equiv> "midpoint b c"
-  def b' \<equiv> "midpoint c a"
-  def c' \<equiv> "midpoint a b"
+  define a' where "a' = midpoint b c"
+  define b' where "b' = midpoint c a"
+  define c' where "c' = midpoint a b"
   have fabc: "continuous_on (closed_segment a b) f" "continuous_on (closed_segment b c) f" "continuous_on (closed_segment c a) f"
     using f continuous_on_subset segments_subset_convex_hull by metis+
   have fcont': "continuous_on (closed_segment c' b') f"
@@ -2145,17 +2145,19 @@ proof -
   { fix y::complex
     assume fy: "(f has_contour_integral y) (linepath a b +++ linepath b c +++ linepath c a)"
        and ynz: "y \<noteq> 0"
-    def K \<equiv> "1 + max (dist a b) (max (dist b c) (dist c a))"
-    def e \<equiv> "norm y / K^2"
+    define K where "K = 1 + max (dist a b) (max (dist b c) (dist c a))"
+    define e where "e = norm y / K^2"
     have K1: "K \<ge> 1"  by (simp add: K_def max.coboundedI1)
     then have K: "K > 0" by linarith
     have [iff]: "dist a b \<le> K" "dist b c \<le> K" "dist c a \<le> K"
       by (simp_all add: K_def)
     have e: "e > 0"
       unfolding e_def using ynz K1 by simp
-    def At \<equiv> "\<lambda>x y z n. convex hull {x,y,z} \<subseteq> convex hull {a,b,c} \<and>
-                         dist x y \<le> K/2^n \<and> dist y z \<le> K/2^n \<and> dist z x \<le> K/2^n \<and>
-                         norm(?pathint x y + ?pathint y z + ?pathint z x) \<ge> e*(K/2^n)^2"
+    define At where "At x y z n \<longleftrightarrow>
+        convex hull {x,y,z} \<subseteq> convex hull {a,b,c} \<and>
+        dist x y \<le> K/2^n \<and> dist y z \<le> K/2^n \<and> dist z x \<le> K/2^n \<and>
+        norm(?pathint x y + ?pathint y z + ?pathint z x) \<ge> e*(K/2^n)^2"
+      for x y z n
     have At0: "At a b c 0"
       using fy
       by (simp add: At_def e_def has_chain_integral_chain_integral3)
@@ -2358,8 +2360,8 @@ proof -
         assume d1_pos: "0 < d1"
            and d1: "\<And>x x'. \<lbrakk>x\<in>convex hull {a, b, c}; x'\<in>convex hull {a, b, c}; cmod (x' - x) < d1\<rbrakk>
                            \<Longrightarrow> cmod (f x' - f x) < cmod y / (24 * C)"
-        def e      \<equiv> "min 1 (min (d1/(4*C)) ((norm y / 24 / C) / B))"
-        def shrink \<equiv> "\<lambda>x. x - e *\<^sub>R (x - d)"
+        define e where "e = min 1 (min (d1/(4*C)) ((norm y / 24 / C) / B))"
+        define shrink where "shrink x = x - e *\<^sub>R (x - d)" for x
         let ?pathint = "\<lambda>x y. contour_integral(linepath x y) f"
         have e: "0 < e" "e \<le> 1" "e \<le> d1 / (4 * C)" "e \<le> cmod y / 24 / C / B"
           using d1_pos \<open>C>0\<close> \<open>B>0\<close> ynz by (simp_all add: e_def)
@@ -2982,7 +2984,7 @@ proof -
     using open_contains_ball os p(2) by blast
   then obtain ee where ee: "\<And>z. z \<in> path_image p \<Longrightarrow> 0 < ee z \<and> ball z (ee z) \<subseteq> s"
     by metis
-  def cover \<equiv> "(\<lambda>z. ball z (ee z/3)) ` (path_image p)"
+  define cover where "cover = (\<lambda>z. ball z (ee z/3)) ` (path_image p)"
   have "compact (path_image p)"
     by (metis p(1) compact_path_image)
   moreover have "path_image p \<subseteq> (\<Union>c\<in>path_image p. ball c (ee c / 3))"
@@ -3001,7 +3003,7 @@ proof -
     using k  by (auto simp: path_image_def)
   then have eepi: "\<And>i. i \<in> k \<Longrightarrow> 0 < ee((p i))"
     by (metis ee)
-  def e \<equiv> "Min((ee o p) ` k)"
+  define e where "e = Min((ee o p) ` k)"
   have fin_eep: "finite ((ee o p) ` k)"
     using k  by blast
   have enz: "0 < e"
@@ -3475,7 +3477,7 @@ proof -
   then obtain h where h: "polynomial_function h \<and> pathstart h = pathstart \<gamma> \<and> pathfinish h = pathfinish \<gamma> \<and>
                           (\<forall>t \<in> {0..1}. norm(h t - \<gamma> t) < d/2)"
     using path_approx_polynomial_function [OF \<open>path \<gamma>\<close>, of "d/2"] d by auto
-  def nn \<equiv> "1/(2* pi*ii) * contour_integral h (\<lambda>w. 1/(w - z))"
+  define nn where "nn = 1/(2* pi*ii) * contour_integral h (\<lambda>w. 1/(w - z))"
   have "\<exists>n. \<forall>e > 0. \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
                         pathstart p = pathstart \<gamma> \<and>  pathfinish p = pathfinish \<gamma> \<and>
                         (\<forall>t \<in> {0..1}. norm(\<gamma> t - p t) < e) \<and>
@@ -3924,7 +3926,7 @@ proof -
     using path_image_def z by auto
   have gpd: "\<gamma> piecewise_C1_differentiable_on {0..1}"
     using \<gamma> valid_path_def by blast
-  def r \<equiv> "(w - z) / (\<gamma> 0 - z)"
+  define r where "r = (w - z) / (\<gamma> 0 - z)"
   have [simp]: "r \<noteq> 0"
     using w z by (auto simp: r_def)
   have "Arg r \<le> 2*pi"
@@ -3944,7 +3946,7 @@ proof -
   then obtain t where t:     "t \<in> {0..1}"
                   and eqArg: "Im (integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x)/(\<gamma> x - z))) = Arg r"
     by blast
-  def i \<equiv> "integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z))"
+  define i where "i = integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z))"
   have iArg: "Arg r = Im i"
     using eqArg by (simp add: i_def)
   have gpdt: "\<gamma> piecewise_C1_differentiable_on {0..t}"
@@ -4433,7 +4435,7 @@ proof -
       by (metis continuous_at_winding_number valid_path_imp_path \<gamma> z)
     then obtain d where "d>0" and d: "\<And>x'. dist x' z < d \<Longrightarrow> dist (winding_number \<gamma> x') (winding_number \<gamma> z) < \<bar>Re(winding_number \<gamma> z)\<bar> - 1/2"
       using continuous_at_eps_delta wnz_12 diff_gt_0_iff_gt by blast
-    def z' \<equiv> "z - (d / (2 * cmod a)) *\<^sub>R a"
+    define z' where "z' = z - (d / (2 * cmod a)) *\<^sub>R a"
     have *: "a \<bullet> z' \<le> b - d / 3 * cmod a"
       unfolding z'_def inner_mult_right' divide_inverse
       apply (simp add: divide_simps algebra_simps dot_square_norm power2_eq_square anz)
@@ -4612,15 +4614,15 @@ proof -
                       \<longrightarrow> contour_integral g2 f = contour_integral g1 f)))"
     by metis
   note ee_rule = ee [THEN conjunct2, rule_format]
-  def C \<equiv> "(\<lambda>t. ball t (ee t / 3)) ` {0..1}"
+  define C where "C = (\<lambda>t. ball t (ee t / 3)) ` {0..1}"
   have "\<forall>t \<in> C. open t" by (simp add: C_def)
   moreover have "{0..1} \<subseteq> \<Union>C"
     using ee [THEN conjunct1] by (auto simp: C_def dist_norm)
   ultimately obtain C' where C': "C' \<subseteq> C" "finite C'" and C'01: "{0..1} \<subseteq> \<Union>C'"
     by (rule compactE [OF compact_interval])
-  def kk \<equiv> "{t \<in> {0..1}. ball t (ee t / 3) \<in> C'}"
+  define kk where "kk = {t \<in> {0..1}. ball t (ee t / 3) \<in> C'}"
   have kk01: "kk \<subseteq> {0..1}" by (auto simp: kk_def)
-  def e \<equiv> "Min (ee ` kk)"
+  define e where "e = Min (ee ` kk)"
   have C'_eq: "C' = (\<lambda>t. ball t (ee t / 3)) ` kk"
     using C' by (auto simp: kk_def C_def)
   have ee_pos[simp]: "\<And>t. t \<in> {0..1} \<Longrightarrow> ee t > 0"
@@ -4985,7 +4987,7 @@ proof -
       by (metis "2" abs_of_pos diff_gt_0_iff_gt norm_of_real of_real_diff)
     have "finite (part_circlepath z r s t -` {y} \<inter> {0..1})" if "y \<in> k" for y
     proof -
-      def w \<equiv> "(y - z)/of_real r / exp(ii * of_real s)"
+      define w where "w = (y - z)/of_real r / exp(ii * of_real s)"
       have fin: "finite (of_real -` {z. cmod z \<le> 1 \<and> exp (\<i> * complex_of_real (t - s) * z) = w})"
         apply (rule finite_vimageI [OF finite_bounded_log2])
         using \<open>s < t\<close> apply (auto simp: inj_of_real)
@@ -5205,7 +5207,7 @@ proof -
     case True then show ?thesis by force
   next
     case False
-    def w \<equiv> "x - z"
+    define w where "w = x - z"
     then have "w \<noteq> 0" by (simp add: False)
     have **: "\<And>t. \<lbrakk>Re w = cos t * cmod w; Im w = sin t * cmod w\<rbrakk> \<Longrightarrow> w = of_real (cmod w) * exp (\<i> * t)"
       using cis_conv_exp complex_eq_iff by auto
@@ -5279,7 +5281,7 @@ next
   case False
   have [simp]: "r > 0"
     using assms le_less_trans norm_ge_zero by blast
-  def r' \<equiv> "norm(w - z)"
+  define r' where "r' = norm(w - z)"
   have "r' < r"
     by (simp add: assms r'_def)
   have disjo: "cball z r' \<inter> sphere z r = {}"
@@ -5379,7 +5381,7 @@ proof -
     apply (blast intro: integrable_uniform_limit_real)
     done
   { fix e::real
-    def B' \<equiv> "B+1"
+    define B' where "B' = B + 1"
     have B': "B' > 0" "B' > B" using  \<open>0 \<le> B\<close> by (auto simp: B'_def)
     assume "0 < e"
     then have ev_no': "\<forall>\<^sub>F n in F. \<forall>x\<in>path_image \<gamma>. 2 * cmod (f n x - l x) < e / B'"
@@ -5463,9 +5465,11 @@ proof -
                 and uw_less: "cmod (u - w) < e * (d / 2) ^ (k+2) / (1 + real k)"
             for u x
     proof -
-      def ff \<equiv> "\<lambda>n::nat. \<lambda>w. if n = 0 then inverse(x - w)^k
-                              else if n = 1 then k / (x - w)^(Suc k)
-                              else (k * of_real(Suc k)) / (x - w)^(k + 2)"
+      define ff where [abs_def]:
+        "ff n w =
+          (if n = 0 then inverse(x - w)^k
+           else if n = 1 then k / (x - w)^(Suc k)
+           else (k * of_real(Suc k)) / (x - w)^(k + 2))" for n :: nat and w
       have km1: "\<And>z::complex. z \<noteq> 0 \<Longrightarrow> z ^ (k - Suc 0) = z ^ k / z"
         by (simp add: field_simps) (metis Suc_pred \<open>k \<noteq> 0\<close> neq0_conv power_Suc)
       have ff1: "(ff i has_field_derivative ff (Suc i) z) (at z within ball w (d / 2))"
@@ -6285,7 +6289,7 @@ proof (rule ccontr)
   with inf [unfolded Lim_at_infinity, rule_format, of "norm(f z)/2"]
   obtain B where B: "\<And>x. B \<le> cmod x \<Longrightarrow> norm (f x) * 2 < cmod (f z)"
     by (auto simp: dist_norm)
-  def R \<equiv> "1 + \<bar>B\<bar> + norm z"
+  define R where "R = 1 + \<bar>B\<bar> + norm z"
   have "R > 0" unfolding R_def 
   proof -
     have "0 \<le> cmod z + \<bar>B\<bar>"
@@ -6384,7 +6388,7 @@ next
   have 2: "((\<lambda>u. 1 / (2 * of_real pi * \<i>) * g u / (u - w) ^ 1) has_contour_integral g w) (circlepath z r)"
        if w: "w \<in> ball z r" for w
   proof -
-    def d \<equiv> "(r - norm(w - z))"
+    define d where "d = (r - norm(w - z))"
     have "0 < d"  "d \<le> r" using w by (auto simp: norm_minus_commute d_def dist_norm)
     have dle: "\<And>u. cmod (z - u) = r \<Longrightarrow> d \<le> cmod (u - w)"
       unfolding d_def by (metis add_diff_eq diff_add_cancel norm_diff_ineq norm_minus_commute)
@@ -6468,7 +6472,7 @@ proof -
       show ?thesis
         by (simp add: f' Cauchy_contour_integral_circlepath_2 [OF g w] derg [OF w] divide_simps)
     qed
-    def d \<equiv> "(r - norm(w - z))^2"
+    define d where "d = (r - norm(w - z))^2"
     have "d > 0"
       using w by (simp add: dist_commute dist_norm d_def)
     have dle: "\<And>y. r = cmod (z - y) \<Longrightarrow> d \<le> cmod ((y - w)\<^sup>2)"
@@ -7082,8 +7086,8 @@ proof -
     by (simp add: path_image_def compact_imp_bounded compact_continuous_image continuous_on_polymonial_function)
   then obtain B where "B>0" and B: "\<And>x. x \<in> path_image \<gamma>' \<Longrightarrow> norm x \<le> B"
     using bounded_pos by force
-  def d \<equiv> "\<lambda>z w. if w = z then deriv f z else (f w - f z)/(w - z)"
-  def v \<equiv> "{w. w \<notin> path_image \<gamma> \<and> winding_number \<gamma> w = 0}"
+  define d where [abs_def]: "d z w = (if w = z then deriv f z else (f w - f z)/(w - z))" for z w
+  define v where "v = {w. w \<notin> path_image \<gamma> \<and> winding_number \<gamma> w = 0}"
   have "path \<gamma>" "valid_path \<gamma>" using \<gamma>
     by (auto simp: path_polynomial_function valid_path_polynomial_function)
   then have ov: "open v"
@@ -7120,7 +7124,8 @@ proof -
     apply (rule continuous_intros holomorphic_intros continuous_on_subset [OF conf] holomorphic_on_subset [OF holf] |
                 force simp add: that)+
     done
-  def h \<equiv> "\<lambda>z. if z \<in> u then contour_integral \<gamma> (d z) else contour_integral \<gamma> (\<lambda>w. f w/(w - z))"
+  define h where
+    "h z = (if z \<in> u then contour_integral \<gamma> (d z) else contour_integral \<gamma> (\<lambda>w. f w/(w - z)))" for z
   have U: "\<And>z. z \<in> u \<Longrightarrow> ((d z) has_contour_integral h z) \<gamma>"
     apply (simp add: h_def)
     apply (rule has_contour_integral_integral [OF contour_integrable_holomorphic_simple [where s=u]])

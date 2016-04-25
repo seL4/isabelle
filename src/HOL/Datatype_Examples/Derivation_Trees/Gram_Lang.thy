@@ -665,7 +665,7 @@ next
   assume ?C then obtain tr where
   tr_tr0: "Inr tr \<in> cont tr0" and t_tr: "inFr (ns - {root tr0}) tr t"
   unfolding inFrr_def by auto
-  def tr1 \<equiv> "hsubst tr"
+  define tr1 where "tr1 = hsubst tr"
   have 1: "inFr ns tr1 t" using t_tr unfolding tr1_def using inFr_hsubst_minus by auto
   have "Inr tr1 \<in> cont (hsubst tr0)" unfolding tr1_def using tr_tr0 by auto
   thus ?A using 1 inFr.Ind assms by (metis root_hsubst)
@@ -689,8 +689,9 @@ unfolding reg_def using subtr_mono by (metis subset_UNIV)
 
 lemma regular_def2: "regular tr \<longleftrightarrow> (\<exists> f. reg f tr \<and> (\<forall> n. root (f n) = n))"
 unfolding regular_def proof safe
-  fix f assume f: "reg f tr"
-  def g \<equiv> "\<lambda> n. if inItr UNIV tr n then f n else deftr n"
+  fix f
+  assume f: "reg f tr"
+  define g where "g n = (if inItr UNIV tr n then f n else deftr n)" for n
   show "\<exists>g. reg g tr \<and> (\<forall>n. root (g n) = n)"
   apply(rule exI[of _ g])
   using f deftr_simps(1) unfolding g_def reg_def apply safe
@@ -1169,8 +1170,8 @@ proof safe
   fix ts assume "ts \<in> Lr ns n"
   then obtain tr where dtr: "wf tr" and r: "root tr = n" and tr: "regular tr"
   and ts: "ts = Fr ns tr" unfolding Lr_def by auto
-  def tns \<equiv> "(id \<oplus> root) ` (cont tr)"
-  def K \<equiv> "\<lambda> n'. Fr (ns - {n}) (subtrOf tr n')"
+  define tns where "tns = (id \<oplus> root) ` (cont tr)"
+  define K where "K n' = Fr (ns - {n}) (subtrOf tr n')" for n'
   show "\<exists>tns K. ts = ?F tns K \<and> (n, tns) \<in> P \<and> ?\<phi> tns K"
   apply(rule exI[of _ tns], rule exI[of _ K]) proof(intro conjI allI impI)
     show "ts = Inl -` tns \<union> \<Union>{K n' |n'. Inr n' \<in> tns}"
@@ -1222,7 +1223,8 @@ proof safe
   then obtain ftr where 0: "\<And> n'. Inr n' \<in> tns \<Longrightarrow>
   K n' = Fr (ns - {n}) (ftr n') \<and> wf (ftr n') \<and> root (ftr n') = n'"
   by metis
-  def tr \<equiv> "Node n ((id \<oplus> ftr) ` tns)"  def tr' \<equiv> "hsubst tr tr"
+  define tr where "tr = Node n ((id \<oplus> ftr) ` tns)"
+  define tr' where "tr' = hsubst tr tr"
   have rtr: "root tr = n" and ctr: "cont tr = (id \<oplus> ftr) ` tns"
   unfolding tr_def by (simp, metis P cont_Node finite_imageI finite_in_P)
   have prtr: "prodOf tr = tns" apply(rule Inl_Inr_image_cong)

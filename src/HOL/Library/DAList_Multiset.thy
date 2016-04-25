@@ -313,7 +313,7 @@ proof (induct al)
     have inv: "ys \<in> ?inv"
       using Cons(2) by auto
     note IH = Cons(1)[OF inv]
-    def Ys \<equiv> "Abs_multiset (count_of ys)"
+    define Ys where "Ys = Abs_multiset (count_of ys)"
     have id: "Abs_multiset (count_of ((a, n) # ys)) = ((op + {# a #}) ^^ n) Ys"
       unfolding Ys_def
     proof (rule multiset_eqI, unfold count)
