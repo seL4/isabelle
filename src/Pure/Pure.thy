@@ -749,7 +749,8 @@ val _ =
       (Parse_Spec.opt_thm_name ":" --
         ((Parse.binding -- Parse.opt_mixfix) --
           ((@{keyword "\<equiv>"} || @{keyword "=="}) |-- Parse.!!! Parse.termp)))
-    >> (Toplevel.proof o Proof.def_cmd));
+    >> (fn args => Toplevel.proof (fn state =>
+        (legacy_feature "Old 'def' command -- use 'define' instead"; Proof.def_cmd args state))));
 
 val _ =
   Outer_Syntax.command @{command_keyword consider} "state cases rule"

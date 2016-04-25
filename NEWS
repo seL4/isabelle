@@ -61,7 +61,8 @@ statement.
 
 * Command 'define' introduces a local (non-polymorphic) definition, with
 optional abstraction over local parameters. The syntax resembles
-'obtain' and fits better into the Isar language than old 'def'.
+'definition' and 'obtain'. It fits better into the Isar language than
+old 'def', which is now a legacy feature.
 
 * Command '\<proof>' is an alias for 'sorry', with different
 typesetting. E.g. to produce proof holes in examples and documentation.
