@@ -86,6 +86,12 @@ sig
   val unfolding_cmd: ((Facts.ref * Token.src list) list) list -> state -> state
   val case_: Thm.binding * ((string * Position.T) * binding option list) -> state -> state
   val case_cmd: Attrib.binding * ((string * Position.T) * binding option list) -> state -> state
+  val define: (binding * typ option * mixfix) list ->
+    (binding * typ option * mixfix) list ->
+    (Thm.binding * (term * term list) list) list -> state -> state
+  val define_cmd: (binding * string option * mixfix) list ->
+    (binding * string option * mixfix) list ->
+    (Attrib.binding * (string * string list) list) list -> state -> state
   val begin_block: state -> state
   val next_block: state -> state
   val end_block: state -> state
@@ -740,7 +746,7 @@ fun gen_def prep_att prep_var prep_binds args state =
       #-> (fn rhss =>
         let
           val defs = (vars ~~ (name_atts ~~ rhss)) |> map (fn ((x, mx), ((a, atts), rhs)) =>
-            ((x, mx), ((Binding.reset_pos (Thm.def_binding_optional x a), atts), rhs)));
+            ((x, mx), ((Thm.def_binding_optional x a, atts), rhs)));
         in map_context_result (Local_Defs.add_defs defs) end))
     |-> (set_facts o map (#2 o #2))
   end;
@@ -879,6 +885,70 @@ in
 
 val case_ = gen_case true (K I);
 val case_cmd = gen_case false Attrib.attribute_cmd;
+
+end;
+
+
+(* define *)
+
+local
+
+fun match_defs (((b, _, mx), x) :: more_decls) ((((a, _), t), _) :: more_defs) =
+      if x = a then ((b, mx), (Thm.empty_binding, t)) :: match_defs more_decls more_defs
+      else error ("Mismatch of declaration " ^ quote x ^ " wrt. definition " ^ quote a)
+  | match_defs [] [] = []
+  | match_defs more_decls more_defs =
+      error ("Mismatch of declarations " ^ commas_quote (map #2 more_decls) ^
+        (if null more_decls then "" else " ") ^
+        "wrt. definitions " ^ commas_quote (map (#1 o #1 o #1) more_defs));
+
+fun invisible_fixes vars ctxt = ctxt
+  |> Context_Position.set_visible false
+  |> Proof_Context.add_fixes vars |> #2
+  |> Context_Position.restore_visible ctxt;
+
+fun gen_define prep_spec prep_att raw_vars raw_fixes raw_defs state =
+  let
+    val _ = assert_forward state;
+    val ctxt = context_of state;
+
+    (*vars*)
+    val n_vars = length raw_vars;
+    val (((all_vars, _, all_params), defss, _, binds'), _) =
+      prep_spec (raw_vars @ raw_fixes) (map snd raw_defs) ctxt;
+    val (vars, fixes) = chop n_vars all_vars;
+    val (params, _) = chop n_vars all_params;
+
+    (*defs*)
+    val derived_def = Local_Defs.derived_def (invisible_fixes vars ctxt) {conditional = false};
+    val defs1 = map derived_def (flat defss);
+    val defs2 = match_defs (vars ~~ map (#1 o dest_Free) params) defs1;
+    val (defs3, defs_ctxt) = Local_Defs.add_defs defs2 ctxt;
+
+    (*fixes*)
+    val fixes_ctxt = invisible_fixes fixes defs_ctxt;
+    val export = singleton (Variable.export fixes_ctxt defs_ctxt);
+
+    (*notes*)
+    val def_thmss =
+      map (fn (((_, prove), ((b, _), _)), (_, (_, th))) => (b, export (prove fixes_ctxt th)))
+        (defs1 ~~ defs2 ~~ defs3)
+      |> unflat (map snd raw_defs);
+    val notes =
+      map2 (fn ((a, raw_atts), _) => fn def_thms =>
+        ((Thm.def_binding_optional (Binding.conglomerate (map #1 def_thms)) a,
+          map (prep_att defs_ctxt) raw_atts), map (fn (_, th) => ([th], [])) def_thms))
+        raw_defs def_thmss;
+  in
+    state
+    |> map_context (K defs_ctxt #> fold Variable.bind_term binds')
+    |> note_thmss notes
+  end;
+
+in
+
+val define = gen_define Proof_Context.cert_spec (K I);
+val define_cmd = gen_define Proof_Context.read_spec Attrib.attribute_cmd;
 
 end;
 

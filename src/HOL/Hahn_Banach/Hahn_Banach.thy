@@ -55,7 +55,7 @@ proof -
   interpret subspace F E by fact
   interpret seminorm E p by fact
   interpret linearform F f by fact
-  def M \<equiv> "norm_pres_extensions E p F f"
+  define M where "M = norm_pres_extensions E p F f"
   then have M: "M = \<dots>" by (simp only:)
   from E have F: "vectorspace F" ..
   note FE = \<open>F \<unlhd> E\<close>
@@ -140,7 +140,7 @@ proof -
         qed
       qed
 
-      def H' \<equiv> "H + lin x'"
+      define H' where "H' = H + lin x'"
         \<comment> \<open>Define \<open>H'\<close> as the direct sum of \<open>H\<close> and the linear closure of \<open>x'\<close>. \<^smallskip>\<close>
       have HH': "H \<unlhd> H'"
       proof (unfold H'_def)
@@ -178,8 +178,8 @@ proof -
         then show thesis by (blast intro: that)
       qed
 
-      def h' \<equiv> "\<lambda>x. let (y, a) =
-          SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H in h y + a * xi"
+      define h' where "h' x = (let (y, a) =
+          SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H in h y + a * xi)" for x
         \<comment> \<open>Define the extension \<open>h'\<close> of \<open>h\<close> to \<open>H'\<close> using \<open>\<xi>\<close>. \<^smallskip>\<close>
 
       have "g \<subseteq> graph H' h' \<and> g \<noteq> graph H' h'"
@@ -365,7 +365,7 @@ proof -
        OF F_norm \<open>continuous F f norm\<close> , folded B_def fn_norm_def])
   txt \<open>We define a function \<open>p\<close> on \<open>E\<close> as follows:
     \<open>p x = \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>\<close>\<close>
-  def p \<equiv> "\<lambda>x. \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>"
+  define p where "p x = \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>" for x
 
   txt \<open>\<open>p\<close> is a seminorm on \<open>E\<close>:\<close>
   have q: "seminorm E p"

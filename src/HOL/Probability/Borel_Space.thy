@@ -282,34 +282,35 @@ lemma continuous_interval_vimage_Int:
   assumes "a \<le> b" "(c::real) \<le> d" "{c..d} \<subseteq> {g a..g b}"
   obtains c' d' where "{a..b} \<inter> g -` {c..d} = {c'..d'}" "c' \<le> d'" "g c' = c" "g d' = d"
 proof-
-    let ?A = "{a..b} \<inter> g -` {c..d}"
-    from IVT'[of g a c b, OF _ _ \<open>a \<le> b\<close> assms(1)] assms(4,5)
-         obtain c'' where c'': "c'' \<in> ?A" "g c'' = c" by auto
-    from IVT'[of g a d b, OF _ _ \<open>a \<le> b\<close> assms(1)] assms(4,5)
-         obtain d'' where d'': "d'' \<in> ?A" "g d'' = d" by auto
-    hence [simp]: "?A \<noteq> {}" by blast
+  let ?A = "{a..b} \<inter> g -` {c..d}"
+  from IVT'[of g a c b, OF _ _ \<open>a \<le> b\<close> assms(1)] assms(4,5)
+  obtain c'' where c'': "c'' \<in> ?A" "g c'' = c" by auto
+  from IVT'[of g a d b, OF _ _ \<open>a \<le> b\<close> assms(1)] assms(4,5)
+  obtain d'' where d'': "d'' \<in> ?A" "g d'' = d" by auto
+  hence [simp]: "?A \<noteq> {}" by blast
 
-    def c' \<equiv> "Inf ?A" and d' \<equiv> "Sup ?A"
-    have "?A \<subseteq> {c'..d'}" unfolding c'_def d'_def
-        by (intro subsetI) (auto intro: cInf_lower cSup_upper)
-    moreover from assms have "closed ?A"
-        using continuous_on_closed_vimage[of "{a..b}" g] by (subst Int_commute) simp
-    hence c'd'_in_set: "c' \<in> ?A" "d' \<in> ?A" unfolding c'_def d'_def
-        by ((intro closed_contains_Inf closed_contains_Sup, simp_all)[])+
-    hence "{c'..d'} \<subseteq> ?A" using assms
-        by (intro subsetI)
-           (auto intro!: order_trans[of c "g c'" "g x" for x] order_trans[of "g x" "g d'" d for x]
-                 intro!: mono)
-    moreover have "c' \<le> d'" using c'd'_in_set(2) unfolding c'_def by (intro cInf_lower) auto
-    moreover have "g c' \<le> c" "g d' \<ge> d"
-      apply (insert c'' d'' c'd'_in_set)
-      apply (subst c''(2)[symmetric])
-      apply (auto simp: c'_def intro!: mono cInf_lower c'') []
-      apply (subst d''(2)[symmetric])
-      apply (auto simp: d'_def intro!: mono cSup_upper d'') []
-      done
-    with c'd'_in_set have "g c' = c" "g d' = d" by auto
-    ultimately show ?thesis using that by blast
+  define c' where "c' = Inf ?A"
+  define d' where "d' = Sup ?A"
+  have "?A \<subseteq> {c'..d'}" unfolding c'_def d'_def
+    by (intro subsetI) (auto intro: cInf_lower cSup_upper)
+  moreover from assms have "closed ?A"
+    using continuous_on_closed_vimage[of "{a..b}" g] by (subst Int_commute) simp
+  hence c'd'_in_set: "c' \<in> ?A" "d' \<in> ?A" unfolding c'_def d'_def
+    by ((intro closed_contains_Inf closed_contains_Sup, simp_all)[])+
+  hence "{c'..d'} \<subseteq> ?A" using assms
+    by (intro subsetI)
+       (auto intro!: order_trans[of c "g c'" "g x" for x] order_trans[of "g x" "g d'" d for x]
+             intro!: mono)
+  moreover have "c' \<le> d'" using c'd'_in_set(2) unfolding c'_def by (intro cInf_lower) auto
+  moreover have "g c' \<le> c" "g d' \<ge> d"
+    apply (insert c'' d'' c'd'_in_set)
+    apply (subst c''(2)[symmetric])
+    apply (auto simp: c'_def intro!: mono cInf_lower c'') []
+    apply (subst d''(2)[symmetric])
+    apply (auto simp: d'_def intro!: mono cSup_upper d'') []
+    done
+  with c'd'_in_set have "g c' = c" "g d' = d" by auto
+  ultimately show ?thesis using that by blast
 qed
 
 subsection \<open>Generic Borel spaces\<close>
@@ -540,7 +541,7 @@ proof (intro sigma_eqI sigma_sets_eqI)
       by (auto simp: topological_basis_def)
     from B(2)[OF K] obtain m where m: "\<And>k. k \<in> K \<Longrightarrow> m k \<subseteq> B" "\<And>k. k \<in> K \<Longrightarrow> (\<Union>m k) = k"
       by metis
-    def U \<equiv> "(\<Union>k\<in>K. m k)"
+    define U where "U = (\<Union>k\<in>K. m k)"
     with m have "countable U"
       by (intro countable_subset[OF _ \<open>countable B\<close>]) auto
     have "\<Union>U = (\<Union>A\<in>U. A)" by simp
@@ -1811,7 +1812,7 @@ lemma borel_measurable_lim_metric[measurable (raw)]:
   assumes f[measurable]: "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. lim (\<lambda>i. f i x)) \<in> borel_measurable M"
 proof -
-  def u' \<equiv> "\<lambda>x. lim (\<lambda>i. if Cauchy (\<lambda>i. f i x) then f i x else 0)"
+  define u' where "u' x = lim (\<lambda>i. if Cauchy (\<lambda>i. f i x) then f i x else 0)" for x
   then have *: "\<And>x. lim (\<lambda>i. f i x) = (if Cauchy (\<lambda>i. f i x) then u' x else (THE x. False))"
     by (auto simp: lim_def convergent_eq_cauchy[symmetric])
   have "u' \<in> borel_measurable M"

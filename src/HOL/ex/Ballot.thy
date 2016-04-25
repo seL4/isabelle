@@ -77,13 +77,14 @@ lemma
       card {V\<in>Pow {0..<a+b}. card V = a \<and> (\<forall>m\<in>{1..a+b}. card ({0..<m} \<inter> V) > m - card ({0..<m} \<inter> V))}"
       (is "_ = card ?V")
 proof -
-  def P \<equiv> "\<lambda>j i. i < a + b \<and> j = Suc i"
+  define P where "P j i \<longleftrightarrow> i < a + b \<and> j = Suc i" for j i
   have unique_P: "bi_unique P" and total_P: "\<And>m. m \<le> a + b \<Longrightarrow> rel_set P {1..m} {0..<m}"
     by (auto simp add: bi_unique_def rel_set_def P_def Suc_le_eq gr0_conv_Suc)
   have rel_fun_P: "\<And>R f g. (\<And>i. i < a+b \<Longrightarrow> R (f  (Suc i)) (g i)) \<Longrightarrow> rel_fun P R f g"
     by (simp add: rel_fun_def P_def)
     
-  def R \<equiv> "\<lambda>f V. V \<subseteq> {0..<a+b} \<and> f \<in> extensional {1..a+b} \<and> (\<forall>i<a+b. i \<in> V \<longleftrightarrow> f (Suc i) = A)"
+  define R where "R f V \<longleftrightarrow>
+    V \<subseteq> {0..<a+b} \<and> f \<in> extensional {1..a+b} \<and> (\<forall>i<a+b. i \<in> V \<longleftrightarrow> f (Suc i) = A)" for f V
   { fix f g :: "nat \<Rightarrow> vote" assume "f \<in> extensional {1..a + b}" "g \<in> extensional {1..a + b}" 
     moreover assume "\<forall>i<a + b. (f (Suc i) = A) = (g (Suc i) = A)"
     then have "\<forall>i<a + b. f (Suc i) = g (Suc i)"

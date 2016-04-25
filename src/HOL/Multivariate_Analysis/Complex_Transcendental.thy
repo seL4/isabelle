@@ -1367,7 +1367,7 @@ proof -
   proof (rule has_field_derivative_zero_constant)
     fix z :: complex assume z': "z \<in> ball 0 1"
     hence z: "norm z < 1" by (simp add: dist_0_norm)
-    def t \<equiv> "of_real (1 + norm z) / 2 :: complex"
+    define t :: complex where "t = of_real (1 + norm z) / 2"
     from z have t: "norm z < norm t" "norm t < 1" unfolding t_def
       by (simp_all add: field_simps norm_divide del: of_real_add)
 
@@ -2049,7 +2049,7 @@ lemma Arctan_series:
   shows   "(\<lambda>n. g n * z^n) sums Arctan z"
   and     "h z sums Arctan z"
 proof -
-  def G \<equiv> "\<lambda>z. (\<Sum>n. g n * z^n)"
+  define G where [abs_def]: "G z = (\<Sum>n. g n * z^n)" for z
   have summable: "summable (\<lambda>n. g n * u^n)" if "norm u < 1" for u
   proof (cases "u = 0")
     assume u: "u \<noteq> 0"
@@ -2089,7 +2089,7 @@ proof -
   proof (rule has_field_derivative_zero_constant)
     fix u :: complex assume "u \<in> ball 0 1"
     hence u: "norm u < 1" by (simp add: dist_0_norm)
-    def K \<equiv> "(norm u + 1) / 2"
+    define K where "K = (norm u + 1) / 2"
     from u and abs_Im_le_cmod[of u] have Im_u: "\<bar>Im u\<bar> < 1" by linarith
     from u have K: "0 \<le> K" "norm u < K" "K < 1" by (simp_all add: K_def)
     hence "(G has_field_derivative (\<Sum>n. diffs g n * u ^ n)) (at u)" unfolding G_def
@@ -2120,7 +2120,7 @@ lemma ln_series_quadratic:
   assumes x: "x > (0::real)"
   shows "(\<lambda>n. (2*((x - 1) / (x + 1)) ^ (2*n+1) / of_nat (2*n+1))) sums ln x"
 proof -
-  def y \<equiv> "of_real ((x-1)/(x+1)) :: complex"
+  define y :: complex where "y = of_real ((x-1)/(x+1))"
   from x have x': "complex_of_real x \<noteq> of_real (-1)"  by (subst of_real_eq_iff) auto
   from x have "\<bar>x - 1\<bar> < \<bar>x + 1\<bar>" by linarith
   hence "norm (complex_of_real (x - 1) / complex_of_real (x + 1)) < 1"

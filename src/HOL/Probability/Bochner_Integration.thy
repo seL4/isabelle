@@ -24,7 +24,7 @@ proof -
   obtain D :: "'b set" where "countable D" and D: "\<And>X. open X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> \<exists>d\<in>D. d \<in> X"
     by (erule countable_dense_setE)
 
-  def e \<equiv> "from_nat_into D"
+  define e where "e = from_nat_into D"
   { fix n x
     obtain d where "d \<in> D" and d: "d \<in> ball x (1 / Suc n)"
       using D[of "ball x (1 / Suc n)"] by auto
@@ -34,12 +34,14 @@ proof -
       by auto }
   note e = this
 
-  def A \<equiv> "\<lambda>m n. {x\<in>space M. dist (f x) (e n) < 1 / (Suc m) \<and> 1 / (Suc m) \<le> dist (f x) z}"
-  def B \<equiv> "\<lambda>m. disjointed (A m)"
+  define A where [abs_def]: "A m n =
+    {x\<in>space M. dist (f x) (e n) < 1 / (Suc m) \<and> 1 / (Suc m) \<le> dist (f x) z}" for m n
+  define B where [abs_def]: "B m = disjointed (A m)" for m
 
-  def m \<equiv> "\<lambda>N x. Max {m::nat. m \<le> N \<and> x \<in> (\<Union>n\<le>N. B m n)}"
-  def F \<equiv> "\<lambda>N::nat. \<lambda>x. if (\<exists>m\<le>N. x \<in> (\<Union>n\<le>N. B m n)) \<and> (\<exists>n\<le>N. x \<in> B (m N x) n)
-    then e (LEAST n. x \<in> B (m N x) n) else z"
+  define m where [abs_def]: "m N x = Max {m. m \<le> N \<and> x \<in> (\<Union>n\<le>N. B m n)}" for N x
+  define F where [abs_def]: "F N x =
+    (if (\<exists>m\<le>N. x \<in> (\<Union>n\<le>N. B m n)) \<and> (\<exists>n\<le>N. x \<in> B (m N x) n)
+     then e (LEAST n. x \<in> B (m N x) n) else z)" for N x
 
   have B_imp_A[intro, simp]: "\<And>x m n. x \<in> B m n \<Longrightarrow> x \<in> A m n"
     using disjointed_subset[of "A m" for m] unfolding B_def by auto
@@ -86,7 +88,7 @@ proof -
       then have 1: "\<exists>m\<le>N. x \<in> (\<Union>n\<le>N. B m n)" by auto
       from m[OF this] obtain n where n: "m N x \<le> N" "n \<le> N" "x \<in> B (m N x) n" by auto
       moreover
-      def L \<equiv> "LEAST n. x \<in> B (m N x) n"
+      define L where "L = (LEAST n. x \<in> B (m N x) n)"
       have "dist (f x) (e L) < 1 / Suc (m N x)"
       proof -
         have "x \<in> B (m N x) L"
@@ -175,7 +177,7 @@ proof -
     sup: "\<And>x. (SUP i. U i x) = ennreal (u x)"
     by blast
 
-  def U' \<equiv> "\<lambda>i x. indicator (space M) x * enn2real (U i x)"
+  define U' where [abs_def]: "U' i x = indicator (space M) x * enn2real (U i x)" for i x
   then have U'_sf[measurable]: "\<And>i. simple_function M (U' i)"
     using U by (auto intro!: simple_function_compose1[where g=enn2real])
 
@@ -268,7 +270,7 @@ proof cases
 
   assume non_empty: "\<exists>x\<in>space M. f x \<noteq> 0"
 
-  def m \<equiv> "Min (f`space M - {0})"
+  define m where "m = Min (f`space M - {0})"
   have "m \<in> f`space M - {0}"
     unfolding m_def using f non_empty by (intro Min_in) (auto simp: simple_function_def)
   then have m: "0 < m"
@@ -730,7 +732,7 @@ proof (elim has_bochner_integral.cases)
   have [measurable]: "\<And>i. s i \<in> borel_measurable M"
     using s by (auto intro: borel_measurable_simple_function elim: simple_bochner_integrable.cases)
 
-  def m \<equiv> "if space M = {} then 0 else Max ((\<lambda>x. norm (s i x))`space M)"
+  define m where "m = (if space M = {} then 0 else Max ((\<lambda>x. norm (s i x))`space M))"
   have "finite (s i ` space M)"
     using s by (auto simp: simple_function_def simple_bochner_integrable.simps)
   then have "finite (norm ` s i ` space M)"
@@ -1821,7 +1823,7 @@ proof -
     by (induct A rule: infinite_finite_induct) (auto intro!: add) }
   note setsum = this
 
-  def s' \<equiv> "\<lambda>i z. indicator (space M) z *\<^sub>R s i z"
+  define s' where [abs_def]: "s' i z = indicator (space M) z *\<^sub>R s i z" for i z
   then have s'_eq_s: "\<And>i x. x \<in> space M \<Longrightarrow> s' i x = s i x"
     by simp
 
@@ -2600,7 +2602,8 @@ proof -
   have "\<And>i. s i \<in> measurable (N \<Otimes>\<^sub>M M) (count_space UNIV)"
     by (rule measurable_simple_function) fact
 
-  def f' \<equiv> "\<lambda>i x. if integrable M (f x) then simple_bochner_integral M (\<lambda>y. s i (x, y)) else 0"
+  define f' where [abs_def]: "f' i x =
+    (if integrable M (f x) then simple_bochner_integral M (\<lambda>y. s i (x, y)) else 0)" for i x
 
   { fix i x assume "x \<in> space N"
     then have "simple_bochner_integral M (\<lambda>y. s i (x, y)) =

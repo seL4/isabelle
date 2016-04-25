@@ -105,7 +105,7 @@ lemma dim_cball:
 proof -
   {
     fix x :: "'n::euclidean_space"
-    def y \<equiv> "(e / norm x) *\<^sub>R x"
+    define y where "y = (e / norm x) *\<^sub>R x"
     then have "y \<in> cball 0 e"
       using assms by auto
     moreover have *: "x = (norm x / e) *\<^sub>R y"
@@ -463,7 +463,7 @@ next
   fix s u
   assume as: "\<forall>x\<in>V. \<forall>y\<in>V. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> V"
     "finite s" "s \<noteq> {}" "s \<subseteq> V" "setsum u s = (1::real)"
-  def n \<equiv> "card s"
+  define n where "n = card s"
   have "card s = 0 \<or> card s = 1 \<or> card s = 2 \<or> card s > 2" by auto
   then show "(\<Sum>x\<in>s. u x *\<^sub>R x) \<in> V"
   proof (auto simp only: disjE)
@@ -838,7 +838,7 @@ proof (rule, rule, erule exE, erule conjE)
   assume "y = a + v" "v \<in> span {x - a |x. x \<in> s}"
   then obtain t u where obt: "finite t" "t \<subseteq> {x - a |x. x \<in> s}" "a + (\<Sum>v\<in>t. u v *\<^sub>R v) = y"
     unfolding span_explicit by auto
-  def f \<equiv> "(\<lambda>x. x + a) ` t"
+  define f where "f = (\<lambda>x. x + a) ` t"
   have f: "finite f" "f \<subseteq> s" "(\<Sum>v\<in>f. u (v - a) *\<^sub>R (v - a)) = y - a"
     unfolding f_def using obt by (auto simp add: setsum.reindex[unfolded inj_on_def])
   have *: "f \<inter> {a} = {}" "f \<inter> - {a} = f"
@@ -989,7 +989,7 @@ proof -
     {
       fix x y
       assume xy: "x \<in> S" "y \<in> S"
-      def u == "(1 :: real)/2"
+      define u where "u = (1 :: real)/2"
       have "(1/2) *\<^sub>R (x+y) = (1/2) *\<^sub>R (x+y)"
         by auto
       moreover
@@ -1370,7 +1370,7 @@ proof (rule connectedI)
   moreover
   assume "A \<inter> s \<noteq> {}" "B \<inter> s \<noteq> {}"
   then obtain a b where a: "a \<in> A" "a \<in> s" and b: "b \<in> B" "b \<in> s" by auto
-  def f \<equiv> "\<lambda>u. u *\<^sub>R a + (1 - u) *\<^sub>R b"
+  define f where [abs_def]: "f u = u *\<^sub>R a + (1 - u) *\<^sub>R b" for u
   then have "continuous_on {0 .. 1} f"
     by (auto intro!: continuous_intros)
   then have "connected (f ` {0 .. 1})"
@@ -1802,7 +1802,7 @@ next
         using uv(1) x(1)[THEN bspec[where x=i]] by auto
     next
       case False
-      def j \<equiv> "i - k1"
+      define j where "j = i - k1"
       from i False have "j \<in> {1..k2}"
         unfolding j_def by auto
       then show ?thesis
@@ -2149,7 +2149,7 @@ proof -
   from assms(1)[unfolded dependent_explicit] obtain S u v
     where obt: "finite S" "S \<subseteq> {x - a |x. x \<in> s}" "v\<in>S" "u v  \<noteq> 0" "(\<Sum>v\<in>S. u v *\<^sub>R v) = 0"
     by auto
-  def t \<equiv> "(\<lambda>x. x + a) ` S"
+  define t where "t = (\<lambda>x. x + a) ` S"
 
   have inj: "inj_on (\<lambda>x. x + a) S"
     unfolding inj_on_def by auto
@@ -2469,7 +2469,7 @@ proof -
     "(\<lambda>x. -a+x) ` (S - {a}) \<subseteq> B \<and> B \<subseteq> (\<lambda>x. -a+x) ` V \<and> independent B \<and> (\<lambda>x. -a+x) ` V \<subseteq> span B"
      using maximal_independent_subset_extend[of "(\<lambda>x. -a+x) ` (S-{a})" "(\<lambda>x. -a + x) ` V"] assms
      by blast
-  def T \<equiv> "(\<lambda>x. a+x) ` insert 0 B"
+  define T where "T = (\<lambda>x. a+x) ` insert 0 B"
   then have "T = insert a ((\<lambda>x. a+x) ` B)"
     by auto
   then have "affine hull T = (\<lambda>x. a+x) ` span B"
@@ -2601,7 +2601,7 @@ proof -
     using assms B affine_hull_nonempty[of V] affine_hull_nonempty[of B]
     by auto
   then obtain a where a: "a \<in> B" by auto
-  def Lb \<equiv> "span ((\<lambda>x. -a+x) ` (B-{a}))"
+  define Lb where "Lb = span ((\<lambda>x. -a+x) ` (B-{a}))"
   moreover have "affine_parallel (affine hull B) Lb"
     using Lb_def B assms affine_hull_span2[of a B] a
       affine_parallel_commut[of "Lb" "(affine hull B)"]
@@ -2765,7 +2765,7 @@ proof (cases "B = {}")
 next
   case False
   then obtain a where a: "a \<in> B" by auto
-  def Lb \<equiv> "span ((\<lambda>x. -a+x) ` (B-{a}))"
+  define Lb where "Lb = span ((\<lambda>x. -a+x) ` (B-{a}))"
   have "affine_parallel (affine hull B) Lb"
     using Lb_def affine_hull_span2[of a B] a
       affine_parallel_commut[of "Lb" "(affine hull B)"]
@@ -3002,13 +3002,13 @@ lemma affine_dim_equal:
 proof -
   obtain a where "a \<in> S" using assms by auto
   then have "a \<in> T" using assms by auto
-  def LS \<equiv> "{y. \<exists>x \<in> S. (-a) + x = y}"
+  define LS where "LS = {y. \<exists>x \<in> S. (-a) + x = y}"
   then have ls: "subspace LS" "affine_parallel S LS"
     using assms parallel_subspace_explicit[of S a LS] \<open>a \<in> S\<close> by auto
   then have h1: "int(dim LS) = aff_dim S"
     using assms aff_dim_affine[of S LS] by auto
   have "T \<noteq> {}" using assms by auto
-  def LT \<equiv> "{y. \<exists>x \<in> T. (-a) + x = y}"
+  define LT where "LT = {y. \<exists>x \<in> T. (-a) + x = y}"
   then have lt: "subspace LT \<and> affine_parallel T LT"
     using assms parallel_subspace_explicit[of T a LT] \<open>a \<in> T\<close> by auto
   then have "int(dim LT) = aff_dim T"
@@ -3062,7 +3062,7 @@ proof -
            where a1 [simp]: "setsum a t = 1" and [simp]: "setsum (\<lambda>v. a v *\<^sub>R v) t = y"
              and [simp]: "setsum b u = 1" "setsum (\<lambda>v. b v *\<^sub>R v) u = y"
       by (auto simp: affine_hull_finite \<open>finite t\<close> \<open>finite u\<close>)
-    def c \<equiv> "\<lambda>x. if x \<in> t then a x else if x \<in> u then -(b x) else 0"
+    define c where "c x = (if x \<in> t then a x else if x \<in> u then -(b x) else 0)" for x
     have [simp]: "s \<inter> t = t" "s \<inter> - t \<inter> u = u" using assms by auto
     have "setsum c s = 0"
       by (simp add: c_def comm_monoid_add_class.setsum.If_cases \<open>finite s\<close> setsum_negf)
@@ -3172,8 +3172,8 @@ proof (intro allI iffI)
       by blast
     then obtain w v where wv: "setsum w s = 0" "v\<in>s" "w v \<noteq> 0" "(\<Sum>v\<in>s. w v *\<^sub>R v) = 0"
       using affine_dependent_explicit_finite[OF obt(1)] by auto
-    def i \<equiv> "(\<lambda>v. (u v) / (- w v)) ` {v\<in>s. w v < 0}"
-    def t \<equiv> "Min i"
+    define i where "i = (\<lambda>v. (u v) / (- w v)) ` {v\<in>s. w v < 0}"
+    define t where "t = Min i"
     have "\<exists>x\<in>s. w x < 0"
     proof (rule ccontr, simp add: not_less)
       assume as:"\<forall>x\<in>s. 0 \<le> w x"
@@ -3428,7 +3428,7 @@ proof -
   {
     fix x
     assume x: "x \<in> affine hull S"
-    def e \<equiv> "1::real"
+    define e :: real where "e = 1"
     then have "e > 0" "ball x e \<inter> affine hull (affine hull S) \<subseteq> affine hull S"
       using hull_hull[of _ S] by auto
     then have "x \<in> rel_interior (affine hull S)"
@@ -3727,7 +3727,7 @@ proof -
   qed
   then obtain y where "y \<in> S" and y: "norm (y - x) * (1 - e) < e * d"
     by auto
-  def z \<equiv> "c + ((1 - e) / e) *\<^sub>R (x - y)"
+  define z where "z = c + ((1 - e) / e) *\<^sub>R (x - y)"
   have *: "x - e *\<^sub>R (x - c) = y - e *\<^sub>R (y - z)"
     unfolding z_def using \<open>e > 0\<close>
     by (auto simp add: scaleR_right_diff_distrib scaleR_right_distrib scaleR_left_diff_distrib)
@@ -3846,10 +3846,10 @@ proof -
       using z rel_interior_cball[of "f ` S"] by auto
     obtain K where K: "K > 0" "\<And>x. norm (f x) \<le> norm x * K"
      using assms Real_Vector_Spaces.bounded_linear.pos_bounded[of f] by auto
-    def e1 \<equiv> "1 / K"
+    define e1 where "e1 = 1 / K"
     then have e1: "e1 > 0" "\<And>x. e1 * norm (f x) \<le> norm x"
       using K pos_le_divide_eq[of e1] by auto
-    def e \<equiv> "e1 * e2"
+    define e where "e = e1 * e2"
     then have "e > 0" using e1 e2 by auto
     {
       fix y
@@ -3892,7 +3892,7 @@ proof -
       using assms injective_imp_isometric[of "span S" f]
         subspace_span[of S] closed_subspace[of "span S"]
       by auto
-    def e \<equiv> "e1 * e2"
+    define e where "e = e1 * e2"
     hence "e > 0" using e1 e2 by auto
     {
       fix y
@@ -3969,7 +3969,7 @@ proof (rule, rule)
     using bchoice[of s "\<lambda>x e. e > 0 \<and> cball x e \<subseteq> s"] by auto
   have "b ` t \<noteq> {}"
     using obt by auto
-  def i \<equiv> "b ` t"
+  define i where "i = b ` t"
 
   show "\<exists>e > 0.
     cball a e \<subseteq> {y. \<exists>sa u. finite sa \<and> sa \<subseteq> s \<and> (\<forall>x\<in>sa. 0 \<le> u x) \<and> setsum u sa = 1 \<and> (\<Sum>v\<in>sa. u v *\<^sub>R v) = y}"
@@ -4726,7 +4726,7 @@ next
     apply (erule_tac x="x - y" in ballE)
     apply (auto simp add: inner_diff)
     done
-  def k \<equiv> "SUP x:t. a \<bullet> x"
+  define k where "k = (SUP x:t. a \<bullet> x)"
   show ?thesis
     apply (rule_tac x="-a" in exI)
     apply (rule_tac x="-(k + b / 2)" in exI)
@@ -5064,7 +5064,7 @@ proof -
     using radon_ex_lemma[OF assms] by auto
   have fin: "finite {x \<in> c. 0 < u x}" "finite {x \<in> c. 0 > u x}"
     using assms(1) by auto
-  def z \<equiv> "inverse (setsum u {x\<in>c. u x > 0}) *\<^sub>R setsum (\<lambda>x. u x *\<^sub>R x) {x\<in>c. u x > 0}"
+  define z  where "z = inverse (setsum u {x\<in>c. u x > 0}) *\<^sub>R setsum (\<lambda>x. u x *\<^sub>R x) {x\<in>c. u x > 0}"
   have "setsum u {x \<in> c. 0 < u x} \<noteq> 0"
   proof (cases "u v \<ge> 0")
     case False
@@ -5356,7 +5356,7 @@ proof -
     using compact_imp_closed[OF assms(1)]
     apply simp
     done
-  def pi \<equiv> "\<lambda>x::'a. inverse (norm x) *\<^sub>R x"
+  define pi where [abs_def]: "pi x = inverse (norm x) *\<^sub>R x" for x :: 'a
   have "0 \<notin> frontier s"
     unfolding frontier_straddle
     apply (rule notI)
@@ -5373,7 +5373,7 @@ proof -
     apply (intro continuous_intros)
     apply simp
     done
-  def sphere \<equiv> "{x::'a. norm x = 1}"
+  define sphere :: "'a set" where "sphere = {x. norm x = 1}"
   have pi: "\<And>x. x \<noteq> 0 \<Longrightarrow> pi x \<in> sphere" "\<And>x u. u>0 \<Longrightarrow> pi (u *\<^sub>R x) = pi x"
     unfolding pi_def sphere_def by auto
 
@@ -6292,7 +6292,7 @@ lemma convex_on_bounded_continuous:
 proof (rule,rule,rule)
   fix x and e :: real
   assume "x \<in> s" "e > 0"
-  def B \<equiv> "\<bar>b\<bar> + 1"
+  define B where "B = \<bar>b\<bar> + 1"
   have B: "0 < B" "\<And>x. x\<in>s \<Longrightarrow> \<bar>f x\<bar> \<le> B"
     unfolding B_def
     defer
@@ -6312,7 +6312,7 @@ proof (rule,rule,rule)
     show "\<bar>f y - f x\<bar> < e"
     proof (cases "y = x")
       case False
-      def t \<equiv> "k / norm (y - x)"
+      define t where "t = k / norm (y - x)"
       have "2 < t" "0<t"
         unfolding t_def using as False and \<open>k>0\<close>
         by (auto simp add:field_simps)
@@ -6323,7 +6323,7 @@ proof (rule,rule,rule)
         using as
         by (auto simp add: field_simps norm_minus_commute)
       {
-        def w \<equiv> "x + t *\<^sub>R (y - x)"
+        define w where "w = x + t *\<^sub>R (y - x)"
         have "w \<in> s"
           unfolding w_def
           apply (rule k[unfolded subset_eq,rule_format])
@@ -6356,7 +6356,7 @@ proof (rule,rule,rule)
       }
       moreover
       {
-        def w \<equiv> "x - t *\<^sub>R (y - x)"
+        define w where "w = x - t *\<^sub>R (y - x)"
         have "w \<in> s"
           unfolding w_def
           apply (rule k[unfolded subset_eq,rule_format])
@@ -6408,7 +6408,7 @@ proof (cases "0 \<le> e")
   case True
   fix y
   assume y: "y \<in> cball x e"
-  def z \<equiv> "2 *\<^sub>R x - y"
+  define z where "z = 2 *\<^sub>R x - y"
   have *: "x - (2 *\<^sub>R x - y) = y - x"
     by (simp add: scaleR_2)
   have z: "z \<in> cball x e"
@@ -6445,7 +6445,7 @@ proof
   assume "x \<in> s"
   then obtain e where e: "cball x e \<subseteq> s" "e > 0"
     using assms(1) unfolding open_contains_cball by auto
-  def d \<equiv> "e / real DIM('a)"
+  define d where "d = e / real DIM('a)"
   have "0 < d"
     unfolding d_def using \<open>e > 0\<close> dimge1 by auto
   let ?d = "(\<Sum>i\<in>Basis. d *\<^sub>R i)::'a"
@@ -6454,7 +6454,7 @@ proof
     and c1: "convex hull c \<subseteq> cball x e"
     and c2: "cball x d \<subseteq> convex hull c"
   proof
-    def c \<equiv> "\<Sum>i\<in>Basis. (\<lambda>a. a *\<^sub>R i) ` {x\<bullet>i - d, x\<bullet>i + d}"
+    define c where "c = (\<Sum>i\<in>Basis. (\<lambda>a. a *\<^sub>R i) ` {x\<bullet>i - d, x\<bullet>i + d})"
     show "finite c"
       unfolding c_def by (simp add: finite_set_setsum)
     have 1: "convex hull c = {a. \<forall>i\<in>Basis. a \<bullet> i \<in> cbox (x \<bullet> i - d) (x \<bullet> i + d)}"
@@ -6490,7 +6490,7 @@ proof
       apply simp
       done
   qed
-  def k \<equiv> "Max (f ` c)"
+  define k where "k = Max (f ` c)"
   have "convex_on (convex hull c) f"
     apply(rule convex_on_subset[OF assms(2)])
     apply(rule subset_trans[OF _ e(1)])
@@ -7302,7 +7302,7 @@ proof -
   qed
   then obtain y where "y \<in> s" and y: "norm (y - x) * (1 - e) < e * d"
     by auto
-  def z \<equiv> "c + ((1 - e) / e) *\<^sub>R (x - y)"
+  define z where "z = c + ((1 - e) / e) *\<^sub>R (x - y)"
   have *: "x - e *\<^sub>R (x - c) = y - e *\<^sub>R (y - z)"
     unfolding z_def using \<open>e > 0\<close>
     by (auto simp add: scaleR_right_diff_distrib scaleR_right_distrib scaleR_left_diff_distrib)
@@ -7908,7 +7908,7 @@ proof -
          {
            fix e :: real
            assume "e > 0"
-           def e1 \<equiv> "min 1 (e/norm (x - a))"
+           define e1 where "e1 = min 1 (e/norm (x - a))"
            then have e1: "e1 > 0" "e1 \<le> 1" "e1 * norm (x - a) \<le> e"
              using \<open>x \<noteq> a\<close> \<open>e > 0\<close> le_divide_eq[of e1 e "norm (x - a)"]
              by simp_all
@@ -7973,7 +7973,7 @@ lemma convex_rel_interior_closure_aux:
   assumes "0 < a" "0 < b" "(a + b) *\<^sub>R z = a *\<^sub>R x + b *\<^sub>R y"
   obtains e where "0 < e" "e \<le> 1" "z = y - e *\<^sub>R (y - x)"
 proof -
-  def e \<equiv> "a / (a + b)"
+  define e where "e = a / (a + b)"
   have "z = (1 / (a + b)) *\<^sub>R ((a + b) *\<^sub>R z)"
     apply auto
     using assms
@@ -8023,7 +8023,7 @@ next
       obtain e where e: "e > 0" "cball z e \<inter> affine hull closure S \<le> closure S"
         using z rel_interior_cball[of "closure S"] by auto
       hence *: "0 < e/norm(z-x)" using e False by auto
-      def y \<equiv> "z + (e/norm(z-x)) *\<^sub>R (z-x)"
+      define y where "y = z + (e/norm(z-x)) *\<^sub>R (z-x)"
       have yball: "y \<in> cball z e"
         using mem_cball y_def dist_norm[of z y] e by auto
       have "x \<in> affine hull closure S"
@@ -8239,7 +8239,7 @@ proof -
     assume x: "x \<in> affine hull S"
     {
       assume "x \<noteq> z"
-      def m \<equiv> "1 + e1/norm(x-z)"
+      define m where "m = 1 + e1/norm(x-z)"
       hence "m > 1" using e1 \<open>x \<noteq> z\<close> by auto
       {
         fix e
@@ -8274,7 +8274,7 @@ proof -
     moreover
     {
       assume "x = z"
-      def m \<equiv> "1 + e1"
+      define m where "m = 1 + e1"
       then have "m > 1"
         using e1 by auto
       {
@@ -8314,9 +8314,9 @@ proof -
     using rel_interior_subset by auto
   then obtain e where e: "e > 1 \<and> (1 - e) *\<^sub>R x + e *\<^sub>R z \<in> S"
     using assms by auto
-  def y \<equiv> "(1 - e) *\<^sub>R x + e *\<^sub>R z"
+  define y where [abs_def]: "y = (1 - e) *\<^sub>R x + e *\<^sub>R z"
   then have "y \<in> S" using e by auto
-  def e1 \<equiv> "1/e"
+  define e1 where "e1 = 1/e"
   then have "0 < e1 \<and> e1 < 1" using e by auto
   then have "z  =y - (1 - e1) *\<^sub>R (y - x)"
     using e1_def y_def by (auto simp add: algebra_simps)
@@ -8362,10 +8362,10 @@ proof (cases "aff_dim S = int DIM('n)")
         using r by auto
       obtain e2 where e2: "e2 > 0 \<and> z + e2 *\<^sub>R (z - x) \<in> S"
         using r by auto
-      def x1 \<equiv> "z + e1 *\<^sub>R (x - z)"
+      define x1 where [abs_def]: "x1 = z + e1 *\<^sub>R (x - z)"
       then have x1: "x1 \<in> affine hull S"
         using e1 hull_subset[of S] by auto
-      def x2 \<equiv> "z + e2 *\<^sub>R (z - x)"
+      define x2 where [abs_def]: "x2 = z + e2 *\<^sub>R (z - x)"
       then have x2: "x2 \<in> affine hull S"
         using e2 hull_subset[of S] by auto
       have *: "e1/(e1+e2) + e2/(e1+e2) = 1"
@@ -8412,7 +8412,7 @@ next
     fix x
     obtain e1 where e1: "e1 > 1" "(1 - e1) *\<^sub>R (z - x) + e1 *\<^sub>R z \<in> S"
       using **[rule_format, of "z-x"] by auto
-    def e \<equiv> "e1 - 1"
+    define e where [abs_def]: "e = e1 - 1"
     then have "(1 - e1) *\<^sub>R (z - x) + e1 *\<^sub>R z = z + e *\<^sub>R x"
       by (simp add: algebra_simps)
     then have "e > 0" "z + e *\<^sub>R x \<in> S"
@@ -8427,7 +8427,7 @@ next
       fix x
       obtain e1 where e1: "e1 > 0" "z + e1 *\<^sub>R (z - x) \<in> S"
         using r[rule_format, of "z-x"] by auto
-      def e \<equiv> "e1 + 1"
+      define e where "e = e1 + 1"
       then have "z + e1 *\<^sub>R (z - x) = (1 - e) *\<^sub>R x + e *\<^sub>R z"
         by (simp add: algebra_simps)
       then have "e > 1" "(1 - e)*\<^sub>R x + e *\<^sub>R z \<in> S"
@@ -8508,11 +8508,11 @@ proof -
       assume "y \<noteq> x"
       { fix e :: real
         assume e: "e > 0"
-        def e1 \<equiv> "min 1 (e/norm (y - x))"
+        define e1 where "e1 = min 1 (e/norm (y - x))"
         then have e1: "e1 > 0" "e1 \<le> 1" "e1 * norm (y - x) \<le> e"
           using \<open>y \<noteq> x\<close> \<open>e > 0\<close> le_divide_eq[of e1 e "norm (y - x)"]
           by simp_all
-        def z \<equiv> "y - e1 *\<^sub>R (y - x)"
+        define z where "z = y - e1 *\<^sub>R (y - x)"
         {
           fix S
           assume "S \<in> I"
@@ -8624,7 +8624,7 @@ proof -
         }
         then obtain mS where
           mS: "\<forall>S\<in>I. mS S > 1 \<and> (\<forall>e. e > 1 \<and> e \<le> mS S \<longrightarrow> (1 - e) *\<^sub>R x + e *\<^sub>R z \<in> S)" by metis
-        def e \<equiv> "Min (mS ` I)"
+        define e where "e = Min (mS ` I)"
         then have "e \<in> mS ` I" using assms \<open>I \<noteq> {}\<close> by simp
         then have "e > 1" using mS by auto
         moreover have "\<forall>S\<in>I. e \<le> mS S"
@@ -9112,7 +9112,7 @@ next
   have conv: "convex ({(1 :: real)} \<times> S)"
     using convex_Times[of "{(1 :: real)}" S] assms convex_singleton[of "1 :: real"]
     by auto
-  def f \<equiv> "\<lambda>y. {z. (y, z) \<in> cone hull ({1 :: real} \<times> S)}"
+  define f where "f y = {z. (y, z) \<in> cone hull ({1 :: real} \<times> S)}" for y
   then have *: "(c, x) \<in> rel_interior (cone hull ({(1 :: real)} \<times> S)) =
     (c \<in> rel_interior {y. f y \<noteq> {}} \<and> x \<in> rel_interior (f c))"
     apply (subst rel_interior_projection[of "cone hull ({(1 :: real)} \<times> S)" f c x])
@@ -9210,11 +9210,11 @@ proof -
     {
       fix x
       assume "x \<in> S i"
-      def c \<equiv> "\<lambda>j. if j = i then 1::real else 0"
+      define c where "c j = (if j = i then 1::real else 0)" for j
       then have *: "setsum c I = 1"
         using \<open>finite I\<close> \<open>i \<in> I\<close> setsum.delta[of I i "\<lambda>j::'a. 1::real"]
         by auto
-      def s \<equiv> "\<lambda>j. if j = i then x else p j"
+      define s where "s j = (if j = i then x else p j)" for j
       then have "\<forall>j. c j *\<^sub>R s j = (if j = i then x else 0)"
         using c_def by (auto simp add: algebra_simps)
       then have "x = setsum (\<lambda>i. c i *\<^sub>R s i) I"
@@ -9243,7 +9243,7 @@ proof -
     from xy obtain d t where
       yc: "y = setsum (\<lambda>i. d i *\<^sub>R t i) I \<and> (\<forall>i\<in>I. d i \<ge> 0) \<and> setsum d I = 1 \<and> (\<forall>i\<in>I. t i \<in> S i)"
       by auto
-    def e \<equiv> "\<lambda>i. u * c i + v * d i"
+    define e where "e i = u * c i + v * d i" for i
     have ge0: "\<forall>i\<in>I. e i \<ge> 0"
       using e_def xc yc uv by simp
     have "setsum (\<lambda>i. u * c i) I = u * setsum c I"
@@ -9252,7 +9252,8 @@ proof -
       by (simp add: setsum_right_distrib)
     ultimately have sum1: "setsum e I = 1"
       using e_def xc yc uv by (simp add: setsum.distrib)
-    def q \<equiv> "\<lambda>i. if e i = 0 then p i else (u * c i / e i) *\<^sub>R s i + (v * d i / e i) *\<^sub>R t i"
+    define q where "q i = (if e i = 0 then p i else (u * c i / e i) *\<^sub>R s i + (v * d i / e i) *\<^sub>R t i)"
+      for i
     {
       fix i
       assume i: "i \<in> I"
@@ -9318,8 +9319,8 @@ lemma convex_hull_union_two:
     {u *\<^sub>R s + v *\<^sub>R t | u v s t. u \<ge> 0 \<and> v \<ge> 0 \<and> u + v = 1 \<and> s \<in> S \<and> t \<in> T}"
   (is "?lhs = ?rhs")
 proof
-  def I \<equiv> "{1::nat, 2}"
-  def s \<equiv> "\<lambda>i. if i = (1::nat) then S else T"
+  define I :: "nat set" where "I = {1, 2}"
+  define s where "s i = (if i = (1::nat) then S else T)" for i
   have "\<Union>(s ` I) = S \<union> T"
     using s_def I_def by auto
   then have "convex hull (\<Union>(s ` I)) = convex hull (S \<union> T)"
@@ -9414,7 +9415,7 @@ proof -
     then obtain c xs where
       x: "x = setsum (\<lambda>i. c i *\<^sub>R xs i) I \<and> (\<forall>i\<in>I. c i \<ge> 0) \<and> setsum c I = 1 \<and> (\<forall>i\<in>I. xs i \<in> S i)"
       using convex_hull_finite_union[of I S] assms by auto
-    def s \<equiv> "\<lambda>i. c i *\<^sub>R xs i"
+    define s where "s i = c i *\<^sub>R xs i" for i
     {
       fix i
       assume "i \<in> I"
@@ -9432,7 +9433,7 @@ proof -
     assume "x \<in> ?rhs"
     then obtain s where x: "x = setsum s I \<and> (\<forall>i\<in>I. s i \<in> S i)"
       using set_setsum_alt[of I S] assms by auto
-    def xs \<equiv> "\<lambda>i. of_nat(card I) *\<^sub>R s i"
+    define xs where "xs i = of_nat(card I) *\<^sub>R s i" for i
     then have "x = setsum (\<lambda>i. ((1 :: real) / of_nat(card I)) *\<^sub>R xs i) I"
       using x assms by auto
     moreover have "\<forall>i\<in>I. xs i \<in> S i"
@@ -9465,8 +9466,8 @@ lemma convex_hull_union_cones_two:
     and "T \<noteq> {}"
   shows "convex hull (S \<union> T) = S + T"
 proof -
-  def I \<equiv> "{1::nat, 2}"
-  def A \<equiv> "(\<lambda>i. if i = (1::nat) then S else T)"
+  define I :: "nat set" where "I = {1, 2}"
+  define A where "A i = (if i = (1::nat) then S else T)" for i
   have "\<Union>(A ` I) = S \<union> T"
     using A_def I_def by auto
   then have "convex hull (\<Union>(A ` I)) = convex hull (S \<union> T)"
@@ -9500,11 +9501,11 @@ proof (cases "I = {}")
     using convex_hull_empty rel_interior_empty by auto
 next
   case False
-  def C0 \<equiv> "convex hull (\<Union>(S ` I))"
+  define C0 where "C0 = convex hull (\<Union>(S ` I))"
   have "\<forall>i\<in>I. C0 \<ge> S i"
     unfolding C0_def using hull_subset[of "\<Union>(S ` I)"] by auto
-  def K0 \<equiv> "cone hull ({1 :: real} \<times> C0)"
-  def K \<equiv> "\<lambda>i. cone hull ({1 :: real} \<times> S i)"
+  define K0 where "K0 = cone hull ({1 :: real} \<times> C0)"
+  define K where "K i = cone hull ({1 :: real} \<times> S i)" for i
   have "\<forall>i\<in>I. K i \<noteq> {}"
     unfolding K_def using assms
     by (simp add: cone_hull_empty_iff[symmetric])
@@ -9619,7 +9620,7 @@ next
     then obtain c s where cs: "x = setsum (\<lambda>i. c i *\<^sub>R s i) I \<and>
         (\<forall>i\<in>I. c i > 0) \<and> setsum c I = 1 \<and> (\<forall>i\<in>I. s i \<in> rel_interior (S i))"
       by auto
-    def k \<equiv> "\<lambda>i. (c i, c i *\<^sub>R s i)"
+    define k where "k i = (c i, c i *\<^sub>R s i)" for i
     {
       fix i assume "i:I"
       then have "k i \<in> rel_interior (K i)"
@@ -9653,7 +9654,7 @@ proof (cases rule: linorder_cases)
   have "open (interior I)" by auto
   from openE[OF this \<open>x \<in> interior I\<close>]
   obtain e where e: "0 < e" "ball x e \<subseteq> interior I" .
-  moreover def t \<equiv> "min (x + e / 2) ((x + y) / 2)"
+  moreover define t where "t = min (x + e / 2) ((x + y) / 2)"
   ultimately have "x < t" "t < y" "t \<in> ball x e"
     by (auto simp: dist_real_def field_simps split: split_min)
   with \<open>x \<in> interior I\<close> e interior_subset[of I] have "t \<in> I" "x \<in> I" by auto
@@ -9661,7 +9662,7 @@ proof (cases rule: linorder_cases)
   have "open (interior I)" by auto
   from openE[OF this \<open>x \<in> interior I\<close>]
   obtain e where "0 < e" "ball x e \<subseteq> interior I" .
-  moreover def K \<equiv> "x - e / 2"
+  moreover define K where "K = x - e / 2"
   with \<open>0 < e\<close> have "K \<in> ball x e" "K < x"
     by (auto simp: dist_real_def)
   ultimately have "K \<in> I" "K < x" "x \<in> I"
@@ -9688,7 +9689,7 @@ next
   have "open (interior I)" by auto
   from openE[OF this \<open>x \<in> interior I\<close>]
   obtain e where e: "0 < e" "ball x e \<subseteq> interior I" .
-  moreover def t \<equiv> "x + e / 2"
+  moreover define t where "t = x + e / 2"
   ultimately have "x < t" "t \<in> ball x e"
     by (auto simp: dist_real_def field_simps)
   with \<open>x \<in> interior I\<close> e interior_subset[of I] have "t \<in> I" "x \<in> I" by auto
@@ -10767,7 +10768,7 @@ next
       by blast
   next
     case False
-    def k \<equiv> "min (1/2) (e / norm (x-a))"
+    define k where "k = min (1/2) (e / norm (x-a))"
     have k: "0 < k" "k < 1"
       using \<open>e > 0\<close> False by (auto simp: k_def)
     then have xa: "(x-a) = inverse k *\<^sub>R k *\<^sub>R (x-a)"
@@ -11233,7 +11234,7 @@ proposition separating_hyperplane_set_0_inspan:
   assumes "convex S" "S \<noteq> {}" "0 \<notin> S"
   obtains a where "a \<in> span S" "a \<noteq> 0" "\<And>x. x \<in> S \<Longrightarrow> 0 \<le> a \<bullet> x"
 proof -
-  def k \<equiv> "\<lambda>c::'a. {x. 0 \<le> c \<bullet> x}"
+  define k where [abs_def]: "k c = {x. 0 \<le> c \<bullet> x}" for c :: 'a
   have *: "span S \<inter> frontier (cball 0 1) \<inter> \<Inter>f' \<noteq> {}"
           if f': "finite f'" "f' \<subseteq> k ` S" for f'
   proof -
@@ -11346,7 +11347,7 @@ proof -
   proof -
     obtain e where "0 < e" "y \<in> S" and e: "cball y e \<inter> affine hull S \<subseteq> S"
       using \<open>y \<in> rel_interior S\<close> by (force simp: rel_interior_cball)
-    def y' \<equiv> "y - (e / norm a) *\<^sub>R ((x + a) - x)"
+    define y' where "y' = y - (e / norm a) *\<^sub>R ((x + a) - x)"
     have "y' \<in> cball y e"
       unfolding y'_def using \<open>0 < e\<close> by force
     moreover have "y' \<in> affine hull S"
@@ -11392,7 +11393,7 @@ proof -
                  "setsum v t = 1"
          and eq: "(\<Sum>x\<in>t. v x *\<^sub>R x) = (\<Sum>x\<in>s. u x *\<^sub>R x)" for u v
     proof -
-    def f \<equiv> "\<lambda>x. (if x \<in> s then u x else 0) - (if x \<in> t then v x else 0)"
+    define f where "f x = (if x \<in> s then u x else 0) - (if x \<in> t then v x else 0)" for x
     have "setsum f (s \<union> t) = 0"
       apply (simp add: f_def setsum_Un setsum_subtractf)
       apply (simp add: setsum.inter_restrict [symmetric] Int_commute)

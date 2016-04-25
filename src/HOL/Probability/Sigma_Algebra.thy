@@ -846,7 +846,7 @@ lemma (in semiring_of_sets) generated_ring_Int:
 proof -
   from a guess Ca .. note Ca = this
   from b guess Cb .. note Cb = this
-  def C \<equiv> "(\<lambda>(a,b). a \<inter> b)` (Ca\<times>Cb)"
+  define C where "C = (\<lambda>(a,b). a \<inter> b)` (Ca\<times>Cb)"
   show ?thesis
   proof
     show "disjoint C"
@@ -1971,7 +1971,7 @@ proof cases
   with \<open>i\<in>I\<close> * show ?thesis
     by simp
 next
-  def P \<equiv> "\<lambda>\<mu>'. (\<forall>i\<in>I. \<mu>' (G i) = \<mu> i) \<and> measure_space \<Omega> (sigma_sets \<Omega> (G`I)) \<mu>'"
+  define P where "P \<mu>' \<longleftrightarrow> (\<forall>i\<in>I. \<mu>' (G i) = \<mu> i) \<and> measure_space \<Omega> (sigma_sets \<Omega> (G`I)) \<mu>'" for \<mu>'
   assume "\<not> (\<forall>i\<in>I. \<mu> i = 0)"
   moreover
   have "measure_space (space M) (sets M) \<mu>'"

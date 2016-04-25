@@ -125,12 +125,14 @@ next
       fix x assume "x \<in> S"
       then obtain e where "0 < e" and S: "\<forall>y. dist y x < e \<longrightarrow> y \<in> S"
         using * by fast
-      def r \<equiv> "e / sqrt 2" and s \<equiv> "e / sqrt 2"
+      define r where "r = e / sqrt 2"
+      define s where "s = e / sqrt 2"
       from \<open>0 < e\<close> have "0 < r" and "0 < s"
         unfolding r_def s_def by simp_all
       from \<open>0 < e\<close> have "e = sqrt (r\<^sup>2 + s\<^sup>2)"
         unfolding r_def s_def by (simp add: power_divide)
-      def A \<equiv> "{y. dist (fst x) y < r}" and B \<equiv> "{y. dist (snd x) y < s}"
+      define A where "A = {y. dist (fst x) y < r}"
+      define B where "B = {y. dist (snd x) y < s}"
       have "open A" and "open B"
         unfolding A_def B_def by (simp_all add: open_ball)
       moreover have "x \<in> A \<times> B"

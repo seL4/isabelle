@@ -89,7 +89,7 @@ lemma exp_approx:
   assumes "n > 0" "0 \<le> x" "x < 2"
   shows   "exp (x::real) - (\<Sum>k<n. x^k / fact k) \<in> {0..(2 * x^n / (2 - x)) / fact n}"
 proof (unfold atLeastAtMost_iff, safe)
-  def approx \<equiv> "(\<Sum>k<n. x^k / fact k)"
+  define approx where "approx = (\<Sum>k<n. x^k / fact k)"
   have "(\<lambda>k. x^k / fact k) sums exp x"
     using exp_converges[of x] by (simp add: field_simps)
   from sums_split_initial_segment[OF this, of n]
@@ -323,10 +323,12 @@ lemma euler_mascheroni_approx:
   shows   "abs (euler_mascheroni - approx :: real) < e"
   (is "abs (_ - ?approx) < ?e")
 proof -
-  def l \<equiv> "47388813395531028639296492901910937/82101866951584879688289000000000000 :: real"
-  def u \<equiv> "142196984054132045946501548559032969 / 246305600854754639064867000000000000 :: real"
+  define l :: real
+    where "l = 47388813395531028639296492901910937/82101866951584879688289000000000000"
+  define u :: real
+    where "u = 142196984054132045946501548559032969 / 246305600854754639064867000000000000"
   have impI: "P \<longrightarrow> Q" if Q for P Q using that by blast
-  have hsum_63: "harm 63 = (310559566510213034489743057 / 65681493561267903750631200 ::real)"
+  have hsum_63: "harm 63 = (310559566510213034489743057 / 65681493561267903750631200 :: real)"
     by (simp add: harm_expand)
   from harm_Suc[of 63] have hsum_64: "harm 64 =
           623171679694215690971693339 / (131362987122535807501262400::real)"
@@ -368,7 +370,7 @@ lemma arctan_approx:
   assumes x: "0 \<le> x" "x < 1" and n: "even n"
   shows   "arctan x - arctan_approx n x \<in> {0..x^(2*n+1) / (1-x^4)}"
 proof -
-  def c \<equiv> "\<lambda>k. 1 / (1+(4*real k + 2*real n)) - x\<^sup>2 / (3+(4*real k + 2*real n))"
+  define c where "c k = 1 / (1+(4*real k + 2*real n)) - x\<^sup>2 / (3+(4*real k + 2*real n))" for k
   from assms have "(\<lambda>k. (-1) ^ k * (1 / real (k * 2 + 1) * x^(k*2+1))) sums arctan x"
     using arctan_series' by simp
   also have "(\<lambda>k. (-1) ^ k * (1 / real (k * 2 + 1) * x^(k*2+1))) =
@@ -559,11 +561,13 @@ lemma pi_approx':
 text \<open>We can now approximate pi to 22 decimals within a fraction of a second.\<close>
 lemma pi_approx_75: "abs (pi - 3.1415926535897932384626 :: real) \<le> inverse (10^22)"
 proof -
-  def a \<equiv> "8295936325956147794769600190539918304 / 2626685325478320010006427764892578125 :: real"
-  def b \<equiv> "8428294561696506782041394632 / 503593538783547230635598424135 :: real"
+  define a :: real
+    where "a = 8295936325956147794769600190539918304 / 2626685325478320010006427764892578125"
+  define b :: real
+    where "b = 8428294561696506782041394632 / 503593538783547230635598424135"
   \<comment> \<open>The introduction of this constant prevents the simplifier from applying solvers that
       we don't want. We want it to simply evaluate the terms to rational constants.}\<close>
-  def eq \<equiv> "op = :: real \<Rightarrow> real \<Rightarrow> bool"
+  define eq :: "real \<Rightarrow> real \<Rightarrow> bool" where "eq = op ="
 
   \<comment> \<open>Splitting the computation into several steps has the advantage that simplification can
       be done in parallel\<close>
@@ -664,15 +668,18 @@ lemma pi_approx_54_decimals:
   "abs (pi - 3.141592653589793238462643383279502884197169399375105821 :: real) \<le> inverse (10^54)"
   (is "abs (pi - ?pi') \<le> _")
 proof -
-  def a \<equiv> "2829469759662002867886529831139137601191652261996513014734415222704732791803 /
-           1062141879292765061960538947347721564047051545995266466660439319087625011200 :: real"
-  def b \<equiv> "13355545553549848714922837267299490903143206628621657811747118592 /
-           23792006023392488526789546722992491355941103837356113731091180925 :: real"
-  def c \<equiv> "28274063397213534906669125255762067746830085389618481175335056 /
-           337877029279505250241149903214554249587517250716358486542628059 :: real"
+  define a :: real
+    where "a = 2829469759662002867886529831139137601191652261996513014734415222704732791803 /
+           1062141879292765061960538947347721564047051545995266466660439319087625011200"
+  define b :: real
+    where "b = 13355545553549848714922837267299490903143206628621657811747118592 /
+           23792006023392488526789546722992491355941103837356113731091180925"
+  define c :: real
+    where "c = 28274063397213534906669125255762067746830085389618481175335056 /
+           337877029279505250241149903214554249587517250716358486542628059"
   let ?pi'' = "3882327391761098513316067116522233897127356523627918964967729040413954225768920394233198626889767468122598417405434625348404038165437924058179155035564590497837027530349 /
                1235783190199688165469648572769847552336447197542738425378629633275352407743112409829873464564018488572820294102599160968781449606552922108667790799771278860366957772800"
-  def eq \<equiv> "op = :: real \<Rightarrow> real \<Rightarrow> bool"
+  define eq :: "real \<Rightarrow> real \<Rightarrow> bool" where "eq = op ="
 
   have "abs (pi - pi_approx2 4) \<le> inverse (2^183)" by (rule pi_approx2') simp_all
   also have "pi_approx2 4 = 48 * arctan_approx 24 (1 / 18) +

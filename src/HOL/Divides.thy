@@ -623,7 +623,8 @@ proof -
   with \<open>0 < b\<close> have "0 < a div b" by (auto intro: div_positive)
   then have [simp]: "1 \<le> a div b" by (simp add: discrete)
   with \<open>0 < b\<close> have mod_less: "a mod b < b" by (simp add: pos_mod_bound)
-  def w \<equiv> "a div b mod 2" with parity have w_exhaust: "w = 0 \<or> w = 1" by auto
+  define w where "w = a div b mod 2"
+  with parity have w_exhaust: "w = 0 \<or> w = 1" by auto
   have mod_w: "a mod (2 * b) = a mod b + b * w"
     by (simp add: w_def mod_mult2_eq ac_simps)
   from assms w_exhaust have "w = 1"
@@ -641,7 +642,8 @@ lemma divmod_digit_0:
   shows "2 * (a div (2 * b)) = a div b" (is "?P")
     and "a mod (2 * b) = a mod b" (is "?Q")
 proof -
-  def w \<equiv> "a div b mod 2" with parity have w_exhaust: "w = 0 \<or> w = 1" by auto
+  define w where "w = a div b mod 2"
+  with parity have w_exhaust: "w = 0 \<or> w = 1" by auto
   have mod_w: "a mod (2 * b) = a mod b + b * w"
     by (simp add: w_def mod_mult2_eq ac_simps)
   moreover have "b \<le> a mod b + b"

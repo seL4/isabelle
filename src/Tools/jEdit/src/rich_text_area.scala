@@ -86,7 +86,7 @@ class Rich_Text_Area(
       painter_clip = gfx.getClip
       caret_focus =
         JEdit_Lib.visible_range(text_area) match {
-          case Some(visible_range) if caret_enabled =>
+          case Some(visible_range) if caret_enabled && !painter_rendering.snapshot.is_outdated =>
             painter_rendering.caret_focus(JEdit_Lib.caret_range(text_area), visible_range)
           case _ => Set.empty[Long]
         }

@@ -995,7 +995,7 @@ next
     finally show ?thesis by (simp add: top_unique)
   next
     case False
-    def C' \<equiv> "fst ` C"
+    define C' where "C' = fst ` C"
     have "\<infinity> = \<integral>\<^sup>+ x. ennreal (1 / Suc n) * indicator C' x \<partial>count_space UNIV"
       using C'_def False by(simp add: nn_integral_cmult ennreal_mult_top)
     also have "\<dots> = \<integral>\<^sup>+ x. \<integral>\<^sup>+ y. ennreal (1 / Suc n) * indicator C' x * indicator {SOME y. (x, y) \<in> C} y \<partial>count_space UNIV \<partial>count_space UNIV"

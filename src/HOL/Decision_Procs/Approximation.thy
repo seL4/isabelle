@@ -2399,7 +2399,7 @@ lemma ln_shifted_float:
   shows "ln (Float m e) = ln 2 * (e + (bitlen m - 1)) + ln (Float m (- (bitlen m - 1)))"
 proof -
   let ?B = "2^nat (bitlen m - 1)"
-  def bl \<equiv> "bitlen m - 1"
+  define bl where "bl = bitlen m - 1"
   have "0 < real_of_int m" and "\<And>X. (0 :: real) < 2^X" and "0 < (2 :: real)" and "m \<noteq> 0"
     using assms by auto
   hence "0 \<le> bl" by (simp add: bitlen_def bl_def)
@@ -2528,8 +2528,8 @@ next
     using \<open>1 \<le> x\<close> by auto
   show ?thesis
   proof -
-    def m \<equiv> "mantissa x"
-    def e \<equiv> "exponent x"
+    define m where "m = mantissa x"
+    define e where "e = exponent x"
     from Float_mantissa_exponent[of x] have Float: "x = Float m e"
       by (simp add: m_def e_def)
     let ?s = "Float (e + (bitlen m - 1)) 0"
@@ -2539,7 +2539,7 @@ next
       apply (auto simp add: zero_less_mult_iff)
       using not_le powr_ge_pzero apply blast
       done
-    def bl \<equiv> "bitlen m - 1"
+    define bl where "bl = bitlen m - 1"
     hence "bl \<ge> 0"
       using \<open>m > 0\<close> by (simp add: bitlen_def)
     have "1 \<le> Float m e"
@@ -2746,7 +2746,7 @@ proof -
     with x lu show ?thesis by (auto simp: bnds_powr_def)
   next
     assume A: "l1 = 0" "u1 \<noteq> 0" "l2 \<ge> 1"
-    def uln \<equiv> "the (ub_ln prec u1)"
+    define uln where "uln = the (ub_ln prec u1)"
     show ?thesis
     proof (cases "x = 0")
       case False
@@ -3969,7 +3969,7 @@ next
     have setsum_move0: "\<And>k F. setsum F {0..<Suc k} = F 0 + setsum (\<lambda> k. F (Suc k)) {0..<k}"
       unfolding setsum_shift_bounds_Suc_ivl[symmetric]
       unfolding setsum_head_upt_Suc[OF zero_less_Suc] ..
-    def C \<equiv> "xs!x - c"
+    define C where "C = xs!x - c"
 
     {
       fix t::real assume t: "t \<in> {lx .. ux}"
@@ -4006,7 +4006,8 @@ lemma approx_tse:
     and ate: "Some (l, u) = approx_tse prec x s c 1 f vs"
   shows "interpret_floatarith f xs \<in> {l .. u}"
 proof -
-  def F \<equiv> "\<lambda>n z. interpret_floatarith ((DERIV_floatarith x ^^ n) f) (xs[x := z])"
+  define F where [abs_def]: "F n z =
+    interpret_floatarith ((DERIV_floatarith x ^^ n) f) (xs[x := z])" for n z
   hence F0: "F 0 = (\<lambda> z. interpret_floatarith f (xs[x := z]))" by auto
 
   hence "bounded_by (xs[x := c]) vs" and "x < length vs" "x < length xs"

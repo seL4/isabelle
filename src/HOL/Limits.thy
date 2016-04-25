@@ -1070,8 +1070,9 @@ qed
 lemma tendsto_of_nat [tendsto_intros]:
   "filterlim (of_nat :: nat \<Rightarrow> 'a :: real_normed_algebra_1) at_infinity sequentially"
 proof (subst filterlim_at_infinity[OF order.refl], intro allI impI)
-  fix r :: real assume r: "r > 0"
-  def n \<equiv> "nat \<lceil>r\<rceil>"
+  fix r :: real
+  assume r: "r > 0"
+  define n where "n = nat \<lceil>r\<rceil>"
   from r have n: "\<forall>m\<ge>n. of_nat m \<ge> r" unfolding n_def by linarith
   from eventually_ge_at_top[of n] show "eventually (\<lambda>m. norm (of_nat m :: 'a) \<ge> r) sequentially"
     by eventually_elim (insert n, simp_all)
@@ -2199,8 +2200,9 @@ lemma Bolzano[consumes 1, case_names trans local]:
   assumes local: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> \<exists>d>0. \<forall>a b. a \<le> x \<and> x \<le> b \<and> b - a < d \<longrightarrow> P a b"
   shows "P a b"
 proof -
-  def bisect \<equiv> "rec_nat (a, b) (\<lambda>n (x, y). if P x ((x+y) / 2) then ((x+y)/2, y) else (x, (x+y)/2))"
-  def l \<equiv> "\<lambda>n. fst (bisect n)" and u \<equiv> "\<lambda>n. snd (bisect n)"
+  define bisect where "bisect =
+    rec_nat (a, b) (\<lambda>n (x, y). if P x ((x+y) / 2) then ((x+y)/2, y) else (x, (x+y)/2))"
+  define l u where "l n = fst (bisect n)" and "u n = snd (bisect n)" for n
   have l[simp]: "l 0 = a" "\<And>n. l (Suc n) = (if P (l n) ((l n + u n) / 2) then (l n + u n) / 2 else l n)"
     and u[simp]: "u 0 = b" "\<And>n. u (Suc n) = (if P (l n) ((l n + u n) / 2) then u n else (l n + u n) / 2)"
     by (simp_all add: l_def u_def bisect_def split: prod.split)
@@ -2243,7 +2245,7 @@ qed
 lemma compact_Icc[simp, intro]: "compact {a .. b::real}"
 proof (cases "a \<le> b", rule compactI)
   fix C assume C: "a \<le> b" "\<forall>t\<in>C. open t" "{a..b} \<subseteq> \<Union>C"
-  def T == "{a .. b}"
+  define T where "T = {a .. b}"
   from C(1,3) show "\<exists>C'\<subseteq>C. finite C' \<and> {a..b} \<subseteq> \<Union>C'"
   proof (induct rule: Bolzano)
     case (trans a b c)

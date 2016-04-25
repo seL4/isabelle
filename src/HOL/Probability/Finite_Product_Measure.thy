@@ -440,7 +440,7 @@ next
     obtain S where S: "\<And>i. i \<in> j \<Longrightarrow> S i \<subseteq> E i" "\<And>i. i \<in> j \<Longrightarrow> countable (S i)"
       "\<And>i. i \<in> j \<Longrightarrow> \<Omega> i = \<Union>(S i)"
       by (metis subset_eq \<Omega>_cover \<open>j \<subseteq> I\<close>)
-    def A' \<equiv> "\<lambda>n. n(i := A)"
+    define A' where "A' n = n(i := A)" for n
     then have A'_i: "\<And>n. A' n i = A"
       by simp
     { fix n assume "n \<in> Pi\<^sub>E (j - {i}) S"
@@ -804,10 +804,12 @@ lemma measure_eqI_PiM_infinite:
   shows "P = Q"
 proof (rule measure_eqI_generator_eq[OF Int_stable_prod_algebra prod_algebra_sets_into_space])
   interpret finite_measure P by fact
-  def i \<equiv> "SOME i. i \<in> I"
+  define i where "i = (SOME i. i \<in> I)"
   have i: "I \<noteq> {} \<Longrightarrow> i \<in> I"
     unfolding i_def by (rule someI_ex) auto
-  def A \<equiv> "\<lambda>n::nat. if I = {} then prod_emb I M {} (\<Pi>\<^sub>E i\<in>{}. {}) else prod_emb I M {i} (\<Pi>\<^sub>E i\<in>{i}. space (M i))"
+  define A where "A n =
+    (if I = {} then prod_emb I M {} (\<Pi>\<^sub>E i\<in>{}. {}) else prod_emb I M {i} (\<Pi>\<^sub>E i\<in>{i}. space (M i)))"
+    for n :: nat
   then show "range A \<subseteq> prod_algebra I M"
     using prod_algebraI[of "{}" I "\<lambda>i. space (M i)" M] by (auto intro!: prod_algebraI i)
   have "\<And>i. A i = space (PiM I M)"
@@ -954,7 +956,7 @@ proof -
   proof (rule measure_eqI_PiM_finite[OF I refl P, symmetric])
     show "(\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M i)) \<Longrightarrow> (Pi\<^sub>M I M) (Pi\<^sub>E I A) = P (Pi\<^sub>E I A)" for A
       by (simp add: eq emeasure_PiM)
-    def A \<equiv> "\<lambda>n. \<Pi>\<^sub>E i\<in>I. C i n"
+    define A where "A n = (\<Pi>\<^sub>E i\<in>I. C i n)" for n
     with C show "range A \<subseteq> prod_algebra I M" "\<And>i. emeasure (Pi\<^sub>M I M) (A i) \<noteq> \<infinity>" "(\<Union>i. A i) = space (PiM I M)"
       by (auto intro!: prod_algebraI_finite simp: emeasure_PiM subset_eq ennreal_setprod_eq_top)
   qed

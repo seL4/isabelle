@@ -47,10 +47,10 @@ lemma Times_cprod: "|A \<times> B| =o |A| *c |B|"
 by (simp only: cprod_def Field_card_of card_of_refl)
 
 lemma card_of_Times_singleton:
-fixes A :: "'a set"
-shows "|A \<times> {x}| =o |A|"
+  fixes A :: "'a set"
+  shows "|A \<times> {x}| =o |A|"
 proof -
-  def f \<equiv> "\<lambda>(a::'a,b::'b). (a)"
+  define f :: "'a \<times> 'b \<Rightarrow> 'a" where "f = (\<lambda>(a, b). a)"
   have "A \<subseteq> f ` (A \<times> {x})" unfolding f_def by (auto simp: image_iff)
   hence "bij_betw f (A \<times> {x}) A"  unfolding bij_betw_def inj_on_def f_def by fastforce
   thus ?thesis using card_of_ordIso by blast
@@ -223,7 +223,7 @@ lemma Func_singleton:
 fixes x :: 'b and A :: "'a set"
 shows "|Func A {x}| =o |{x}|"
 proof (rule ordIso_symmetric)
-  def f \<equiv> "\<lambda>y a. if y = x \<and> a \<in> A then x else undefined"
+  define f where [abs_def]: "f y a = (if y = x \<and> a \<in> A then x else undefined)" for y a
   have "Func A {x} \<subseteq> f ` {x}" unfolding f_def Func_def by (force simp: fun_eq_iff)
   hence "bij_betw f {x} (Func A {x})" unfolding bij_betw_def inj_on_def f_def Func_def
     by (auto split: if_split_asm)
@@ -237,7 +237,7 @@ lemma card_of_Func_squared:
   fixes A :: "'a set"
   shows "|Func (UNIV :: bool set) A| =o |A \<times> A|"
 proof (rule ordIso_symmetric)
-  def f \<equiv> "\<lambda>(x::'a,y) b. if A = {} then undefined else if b then x else y"
+  define f where "f = (\<lambda>(x::'a,y) b. if A = {} then undefined else if b then x else y)"
   have "Func (UNIV :: bool set) A \<subseteq> f ` (A \<times> A)" unfolding f_def Func_def
     by (auto simp: image_iff fun_eq_iff split: option.splits if_split_asm) blast
   hence "bij_betw f (A \<times> A) (Func (UNIV :: bool set) A)"
@@ -252,8 +252,8 @@ lemma card_of_Func_Plus:
   fixes A :: "'a set" and B :: "'b set" and C :: "'c set"
   shows "|Func (A <+> B) C| =o |Func A C \<times> Func B C|"
 proof (rule ordIso_symmetric)
-  def f \<equiv> "\<lambda>(g :: 'a => 'c, h::'b \<Rightarrow> 'c) ab. case ab of Inl a \<Rightarrow> g a | Inr b \<Rightarrow> h b"
-  def f' \<equiv> "\<lambda>(f :: ('a + 'b) \<Rightarrow> 'c). (\<lambda>a. f (Inl a), \<lambda>b. f (Inr b))"
+  define f where "f = (\<lambda>(g :: 'a => 'c, h::'b \<Rightarrow> 'c) ab. case ab of Inl a \<Rightarrow> g a | Inr b \<Rightarrow> h b)"
+  define f' where "f' = (\<lambda>(f :: ('a + 'b) \<Rightarrow> 'c). (\<lambda>a. f (Inl a), \<lambda>b. f (Inr b)))"
   have "f ` (Func A C \<times> Func B C) \<subseteq> Func (A <+> B) C"
     unfolding Func_def f_def by (force split: sum.splits)
   moreover have "f' ` Func (A <+> B) C \<subseteq> Func A C \<times> Func B C" unfolding Func_def f'_def by force

@@ -90,7 +90,7 @@ proof (induct "f x" arbitrary: f)
   case 0 then show ?case by (simp add: fun_eq_iff)
 next
   case (Suc n)
-  def g \<equiv> "\<lambda>x. f x - 1"
+  define g where "g x = f x - 1" for x
   with Suc have "n = g x" by simp
   with Suc have "times x ^^ g x = times (x ^ g x)" by simp
   moreover from Suc g_def have "f x = g x + 1" by simp

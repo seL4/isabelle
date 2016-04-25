@@ -817,7 +817,8 @@ proof -
   from assms have "z \<noteq> 0" by auto
   have "(SOME a. sgn z = cis a \<and> -pi < a \<and> a \<le> pi) = x"
   proof
-    fix a def d \<equiv> "a - x"
+    fix a
+    define d where "d = a - x"
     assume a: "sgn z = cis a \<and> - pi < a \<and> a \<le> pi"
     from a assms have "- (2*pi) < d \<and> d < 2*pi"
       unfolding d_def by simp
@@ -839,7 +840,7 @@ lemma arg_correct:
 proof (simp add: arg_def assms, rule someI_ex)
   obtain r a where z: "z = rcis r a" using rcis_Ex by fast
   with assms have "r \<noteq> 0" by auto
-  def b \<equiv> "if 0 < r then a else a + pi"
+  define b where "b = (if 0 < r then a else a + pi)"
   have b: "sgn z = cis b"
     unfolding z b_def rcis_def using \<open>r \<noteq> 0\<close>
     by (simp add: of_real_def sgn_scaleR sgn_if complex_eq_iff)
@@ -848,7 +849,7 @@ proof (simp add: arg_def assms, rule someI_ex)
   have cis_2pi_int: "\<And>x. cis (2 * pi * real_of_int x) = 1"
     by (case_tac x rule: int_diff_cases)
        (simp add: right_diff_distrib cis_divide [symmetric] cis_2pi_nat)
-  def c \<equiv> "b - 2*pi * of_int \<lceil>(b - pi) / (2*pi)\<rceil>"
+  define c where "c = b - 2 * pi * of_int \<lceil>(b - pi) / (2 * pi)\<rceil>"
   have "sgn z = cis c"
     unfolding b c_def
     by (simp add: cis_divide [symmetric] cis_2pi_int)

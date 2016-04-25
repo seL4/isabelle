@@ -127,6 +127,7 @@ text \<open>
     @{command_def "fix"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
     @{command_def "assume"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
     @{command_def "presume"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
+    @{command_def "define"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
     @{command_def "def"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
   \end{matharray}
 
@@ -151,7 +152,7 @@ text \<open>
   "presume"} leaves the subgoal unchanged in order to be proved later by the
   user.
 
-  Local definitions, introduced by ``@{command "def"}~\<open>x \<equiv> t\<close>'', are achieved
+  Local definitions, introduced by ``\<^theory_text>\<open>define x where x = t\<close>'', are achieved
   by combining ``@{command "fix"}~\<open>x\<close>'' with another version of assumption
   that causes any hypothetical equation \<open>x \<equiv> t\<close> to be eliminated by the
   reflexivity rule. Thus, exporting some result \<open>x \<equiv> t \<turnstile> \<phi>[x]\<close> yields \<open>\<turnstile>
@@ -165,6 +166,9 @@ text \<open>
     concl: (@{syntax props} + @'and')
     ;
     prems: (@'if' (@{syntax props'} + @'and'))?
+    ;
+    @@{command define} (@{syntax "fixes"} + @'and')
+      @'where' (@{syntax props} + @'and') @{syntax for_fixes}
     ;
     @@{command def} (def + @'and')
     ;
@@ -189,14 +193,23 @@ text \<open>
   to \<^theory_text>\<open>assume "\<And>x. A x \<Longrightarrow> B x"\<close>, but vacuous quantification is avoided: a
   for-context only effects propositions according to actual use of variables.
 
-  \<^descr> @{command "def"}~\<open>x \<equiv> t\<close> introduces a local (non-polymorphic) definition.
-  In results exported from the context, \<open>x\<close> is replaced by \<open>t\<close>. Basically,
-  ``@{command "def"}~\<open>x \<equiv> t\<close>'' abbreviates ``@{command "fix"}~\<open>x\<close>~@{command
-  "assume"}~\<open>x \<equiv> t\<close>'', with the resulting hypothetical equation solved by
-  reflexivity.
+  \<^descr> \<^theory_text>\<open>define x where "x = t"\<close> introduces a local (non-polymorphic) definition.
+  In results that are exported from the context, \<open>x\<close> is replaced by \<open>t\<close>.
 
-  The default name for the definitional equation is \<open>x_def\<close>. Several
-  simultaneous definitions may be given at the same time.
+  Internally, equational assumptions are added to the context in Pure form,
+  using \<open>x \<equiv> t\<close> instead of \<open>x = t\<close> or \<open>x \<longleftrightarrow> t\<close> from the object-logic. When
+  exporting results from the context, \<open>x\<close> is generalized and the assumption
+  discharged by reflexivity, causing the replacement by \<open>t\<close>.
+
+  The default name for the definitional fact is \<open>x_def\<close>. Several simultaneous
+  definitions may be given as well, with a collective default name.
+
+  \<^medskip>
+  It is also possible to abstract over local parameters as follows: \<^theory_text>\<open>define f
+  :: "'a \<Rightarrow> 'b" where "f x = t" for x :: 'a\<close>.
+
+  \<^descr> \<^theory_text>\<open>def x \<equiv> t\<close> introduces a local (non-polymorphic) definition. This is an
+  old form of \<^theory_text>\<open>define x where "x = t"\<close>.
 \<close>
 
 
@@ -227,10 +240,10 @@ text \<open>
 
   \<^medskip>
   Term abbreviations are quite different from local definitions as introduced
-  via @{command "def"} (see \secref{sec:proof-context}). The latter are
+  via @{command "define"} (see \secref{sec:proof-context}). The latter are
   visible within the logic as actual equations, while abbreviations disappear
   during the input process just after type checking. Also note that @{command
-  "def"} does not support polymorphism.
+  "define"} does not support polymorphism.
 
   @{rail \<open>
     @@{command let} ((@{syntax term} + @'and') '=' @{syntax term} + @'and')

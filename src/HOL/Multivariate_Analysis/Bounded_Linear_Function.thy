@@ -244,7 +244,7 @@ proof
       hence "convergent (\<lambda>n. X n x)"
         by (metis Cauchy_convergent_iff)
     } note convergent_norm1 = this
-    def y \<equiv> "x /\<^sub>R norm x"
+    define y where "y = x /\<^sub>R norm x"
     have y: "norm y \<le> 1" and xy: "x = norm x *\<^sub>R y"
       by (simp_all add: y_def inverse_eq_divide)
     have "convergent (\<lambda>n. norm x *\<^sub>R X n y)"
@@ -301,7 +301,7 @@ proof
   have "X \<longlonglongrightarrow> Blinfun v"
   proof (rule LIMSEQ_I)
     fix r::real assume "r > 0"
-    def r' \<equiv> "r / 2"
+    define r' where "r' = r / 2"
     have "0 < r'" "r' < r" using \<open>r > 0\<close> by (simp_all add: r'_def)
     from CauchyD[OF \<open>Cauchy X\<close> \<open>r' > 0\<close>]
     obtain M where M: "\<And>m n. m \<ge> M \<Longrightarrow> n \<ge> M \<Longrightarrow> norm (X m - X n) < r'"

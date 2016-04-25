@@ -787,7 +787,7 @@ proof -
       abI: "a \<otimes> b \<in> I" and
       anI: "a \<notin> I" and
       bnI: "b \<notin> I" by fast
-    def J \<equiv> "{x\<in>carrier R. a \<otimes> x \<in> I}"
+    define J where "J = {x\<in>carrier R. a \<otimes> x \<in> I}"
     
     from is_cring and acarr have idealJ: "ideal J R"
       unfolding J_def by (rule helper_max_prime)

@@ -906,7 +906,7 @@ proof (induct x lt kt y rt and x lt kt y rt and x t rule: rbt_del_from_left_rbt_
   qed simp+
 next    
   case (3 xx lta zz vv rta yy ss bb)
-  def mt[simp]: mt == "Branch B lta zz vv rta"
+  define mt where [simp]: "mt = Branch B lta zz vv rta"
   from 3 have "inv2 mt \<and> inv1 mt" by simp
   hence "inv2 (rbt_del xx mt) \<and> (color_of mt = R \<and> bheight (rbt_del xx mt) = bheight mt \<and> inv1 (rbt_del xx mt) \<or> color_of mt = B \<and> bheight (rbt_del xx mt) = bheight mt - 1 \<and> inv1l (rbt_del xx mt))" by (blast dest: rbt_del_inv1_inv2)
   with 3 have 4: "entry_in_tree k v (rbt_del_from_left xx mt yy ss bb) = (False \<or> xx \<noteq> k \<and> entry_in_tree k v mt \<or> (k = yy \<and> v = ss) \<or> entry_in_tree k v bb)" by (simp add: balance_left_in_tree)
@@ -936,7 +936,7 @@ next
   qed auto
 next
   case (5 xx aa yy ss lta zz vv rta)
-  def mt[simp]: mt == "Branch B lta zz vv rta"
+  define mt where [simp]: "mt = Branch B lta zz vv rta"
   from 5 have "inv2 mt \<and> inv1 mt" by simp
   hence "inv2 (rbt_del xx mt) \<and> (color_of mt = R \<and> bheight (rbt_del xx mt) = bheight mt \<and> inv1 (rbt_del xx mt) \<or> color_of mt = B \<and> bheight (rbt_del xx mt) = bheight mt - 1 \<and> inv1l (rbt_del xx mt))" by (blast dest: rbt_del_inv1_inv2)
   with 5 have 3: "entry_in_tree k v (rbt_del_from_right xx aa yy ss mt) = (entry_in_tree k v aa \<or> (k = yy \<and> v = ss) \<or> False \<or> xx \<noteq> k \<and> entry_in_tree k v mt)" by (simp add: balance_right_in_tree)
@@ -1924,7 +1924,7 @@ lemma is_rbt_fold_rbt_insertwk:
   assumes "is_rbt t1"
   shows "is_rbt (fold (rbt_insert_with_key f) t2 t1)"
 proof -
-  def xs \<equiv> "entries t2"
+  define xs where "xs = entries t2"
   from assms show ?thesis unfolding fold_def xs_def[symmetric]
     by(induct xs rule: rev_induct)(auto simp add: rbt_insertwk_is_rbt)
 qed
@@ -1936,7 +1936,7 @@ lemma rbt_lookup_fold_rbt_insertwk:
    | Some v \<Rightarrow> case rbt_lookup t2 k of None \<Rightarrow> Some v
                | Some w \<Rightarrow> Some (f k w v))"
 proof -
-  def xs \<equiv> "entries t1"
+  define xs where "xs = entries t1"
   hence dt1: "distinct (map fst xs)" using t1 by(simp add: distinct_entries)
   with t2 show ?thesis
     unfolding fold_def map_of_entries[OF t1, symmetric]

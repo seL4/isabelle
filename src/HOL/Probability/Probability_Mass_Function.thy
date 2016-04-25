@@ -1138,7 +1138,9 @@ proof -
       from qr obtain qr where qr: "\<And>y z. (y, z) \<in> set_pmf qr \<Longrightarrow> S y z"
         and q': "q = map_pmf fst qr" and r: "r = map_pmf snd qr" by cases auto
 
-      def pr \<equiv> "bind_pmf pq (\<lambda>xy. bind_pmf (cond_pmf qr {yz. fst yz = snd xy}) (\<lambda>yz. return_pmf (fst xy, snd yz)))"
+      define pr where "pr =
+        bind_pmf pq (\<lambda>xy. bind_pmf (cond_pmf qr {yz. fst yz = snd xy})
+          (\<lambda>yz. return_pmf (fst xy, snd yz)))"
       have pr_welldefined: "\<And>y. y \<in> q \<Longrightarrow> qr \<inter> {yz. fst yz = y} \<noteq> {}"
         by (force simp: q')
 

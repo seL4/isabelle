@@ -64,7 +64,7 @@ proof -
   have foldl_coin:
     "\<not> ?XOR (\<lambda>c. coin dc c \<noteq> coin dc (c + 1)) n"
   proof -
-    def n' \<equiv> n \<comment> "Need to hide n, as it is hidden in coin"
+    define n' where "n' = n" \<comment> "Need to hide n, as it is hidden in coin"
     have "?XOR (\<lambda>c. coin dc c \<noteq> coin dc (c + 1)) n'
         = (coin dc 0 \<noteq> coin dc n')"
       by (induct n') auto
@@ -81,7 +81,7 @@ proof -
   next
     assume "\<exists>k<n. payer dc = Some k"
     then obtain k where "k < n" and "payer dc = Some k" by auto
-    def l \<equiv> n \<comment> "Need to hide n, as it is hidden in coin, payer etc."
+    define l where "l = n" \<comment> "Need to hide n, as it is hidden in coin, payer etc."
     have "?XOR (\<lambda>c. (payer dc = Some c) \<noteq> (coin dc c \<noteq> coin dc (c + 1))) l =
         ((k < l) \<noteq> ?XOR (\<lambda>c. (coin dc c \<noteq> coin dc (c + 1))) l)"
       using \<open>payer dc = Some k\<close> by (induct l) auto
@@ -156,7 +156,7 @@ proof -
     @{term i}.
 \<close>
 
-  def zs \<equiv> "map (\<lambda>p. if p \<in> {min i j<..max i j} then \<not> ys ! p else ys ! p) [0..<n]"
+  define zs where "zs = map (\<lambda>p. if p \<in> {min i j<..max i j} then \<not> ys ! p else ys ! p) [0..<n]"
   hence [simp]: "length zs = n" by simp
   hence [simp]: "0 < length zs" using n_gt_3 by simp
 
@@ -458,7 +458,7 @@ proof (rule mutual_information_eq_0_simple)
       by (simp add: image_iff space_uniform_count_measure dc_crypto Bex_def) blast
     then have xs: "inversion (Some i, xs) \<in> inversion`dc_crypto" and i: "Some i \<in> Some ` {0..<n}"
       and x: "x = (inversion (Some i, xs), Some i)" by (simp_all add: payer_def dc_crypto)
-    moreover def ys \<equiv> "inversion (Some i, xs)"
+    moreover define ys where "ys = inversion (Some i, xs)"
     ultimately have ys: "ys \<in> inversion`dc_crypto"
       and "Some i \<in> Some ` {0..<n}" "x = (ys, Some i)" by simp_all
     then have "(\<lambda>x. (inversion x, payer x)) -` {x} \<inter> space (uniform_count_measure dc_crypto) =

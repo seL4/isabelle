@@ -250,7 +250,7 @@ lemma ln_inverse_approx_le:
   assumes "(x::real) > 0" "a > 0"
   shows   "ln (x + a) - ln x \<le> a * (inverse x + inverse (x + a))/2" (is "_ \<le> ?A")
 proof -
-  def f' \<equiv> "(inverse (x + a) - inverse x)/a"
+  define f' where "f' = (inverse (x + a) - inverse x)/a"
   have f'_nonpos: "f' \<le> 0" using assms by (simp add: f'_def divide_simps)
   let ?f = "\<lambda>t. (t - x) * f' + inverse x"
   let ?F = "\<lambda>t. (t - x)^2 * f' / 2 + t * inverse x"
@@ -297,8 +297,8 @@ lemma ln_inverse_approx_ge:
   assumes "(x::real) > 0" "x < y"
   shows   "ln y - ln x \<ge> 2 * (y - x) / (x + y)" (is "_ \<ge> ?A")
 proof -
-  def m \<equiv> "(x+y)/2"
-  def f' \<equiv> "-inverse (m^2)"
+  define m where "m = (x+y)/2"
+  define f' where "f' = -inverse (m^2)"
   from assms have m: "m > 0" by (simp add: m_def)
   let ?F = "\<lambda>t. (t - m)^2 * f' / 2 + t / m"
   from assms have "((\<lambda>t. (t - m) * f' + inverse m) has_integral (?F y - ?F x)) {x..y}"
@@ -337,9 +337,10 @@ lemma euler_mascheroni_lower:
   and euler_mascheroni_upper:
         "euler_mascheroni \<le> harm (Suc n) - ln (real_of_nat (n + 2)) + 1/real_of_nat (2 * (n + 1))"
 proof -
-  def D \<equiv> "\<lambda>n. inverse (of_nat (n+1)) + ln (of_nat (n+1)) - ln (of_nat (n+2)) :: real"
+  define D :: "_ \<Rightarrow> real"
+    where "D n = inverse (of_nat (n+1)) + ln (of_nat (n+1)) - ln (of_nat (n+2))" for n
   let ?g = "\<lambda>n. ln (of_nat (n+2)) - ln (of_nat (n+1)) - inverse (of_nat (n+1)) :: real"
-  def inv \<equiv> "\<lambda>n. inverse (real_of_nat n)"
+  define inv where [abs_def]: "inv n = inverse (real_of_nat n)" for n
   fix n :: nat
   note summable = sums_summable[OF euler_mascheroni_sum, folded D_def]
   have sums: "(\<lambda>k. (inv (Suc (k + (n+1))) - inv (Suc (Suc k + (n+1))))/2) sums ((inv (Suc (0 + (n+1))) - 0)/2)"
@@ -358,7 +359,7 @@ proof -
   also have "\<dots> \<le> -(\<Sum>k. (inv (k + Suc n + 1) - inv (k + Suc n + 2)) / 2)"
   proof (intro le_imp_neg_le suminf_le allI summable_ignore_initial_segment[OF summable])
     fix k' :: nat
-    def k \<equiv> "k' + Suc n"
+    define k where "k = k' + Suc n"
     hence k: "k > 0" by (simp add: k_def)
     have "real_of_nat (k+1) > 0" by (simp add: k_def)
     with ln_inverse_approx_le[OF this zero_less_one]
@@ -386,7 +387,7 @@ proof -
   also have "-(\<Sum>k. D (k + Suc n)) \<ge> -(\<Sum>k. (inv (Suc (k + n)) - inv (Suc (Suc k + n)))/2)"
   proof (intro le_imp_neg_le suminf_le allI summable_ignore_initial_segment[OF summable])
     fix k' :: nat
-    def k \<equiv> "k' + Suc n"
+    define k where "k = k' + Suc n"
     hence k: "k > 0" by (simp add: k_def)
     have "real_of_nat (k+1) > 0" by (simp add: k_def)
     from ln_inverse_approx_ge[of "of_nat k + 1" "of_nat k + 2"]
@@ -435,7 +436,7 @@ proof -
 
   let ?f = "\<lambda>k. 2 * y ^ (2*k+1) / of_nat (2*k+1)"
   note sums = ln_series_quadratic[OF x(1)]
-  def c \<equiv> "inverse (2*y^(2*n+1))"
+  define c where "c = inverse (2*y^(2*n+1))"
   let ?d = "c * (ln x - (\<Sum>k<n. ?f k))"
   have "\<forall>k. y\<^sup>2^k / of_nat (2*(k+n)+1) \<le> y\<^sup>2 ^ k / of_nat (2*n+1)"
     by (intro allI divide_left_mono mult_right_mono mult_pos_pos zero_le_power[of "y^2"]) simp_all
@@ -466,7 +467,7 @@ lemma
   shows   ln_approx_bounds: "ln x \<in> {approx..approx + 2*d}"
   and     ln_approx_abs:    "abs (ln x - (approx + d)) \<le> d"
 proof -
-  def c \<equiv> "2*y^(2*n+1)"
+  define c where "c = 2*y^(2*n+1)"
   from x have c_pos: "c > 0" unfolding c_def y_def 
     by (intro mult_pos_pos zero_less_power) simp_all
   have A: "inverse c * (ln x - (\<Sum>k<n. 2*y^(2*k+1) / of_nat (2*k+1))) \<in>

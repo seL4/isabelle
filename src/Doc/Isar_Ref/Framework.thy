@@ -577,8 +577,8 @@ text \<open>
   i.e.\ it may only occur internally when derived commands are defined in ML.
 
   The default inference for \<^theory_text>\<open>assume\<close> is @{inference export} as given below.
-  The derived element \<^theory_text>\<open>def x \<equiv> a\<close> is defined as \<^theory_text>\<open>fix x assume \<guillemotleft>expand\<guillemotright> x \<equiv>
-  a\<close>, with the subsequent inference @{inference expand}.
+  The derived element \<^theory_text>\<open>define x where "x \<equiv> a"\<close> is defined as \<^theory_text>\<open>fix x assume
+  \<guillemotleft>expand\<guillemotright> x \<equiv> a\<close>, with the subsequent inference @{inference expand}.
 
   \[
   \infer[(@{inference_def export})]{\<open>\<strut>\<Gamma> - A \<turnstile> A \<Longrightarrow> B\<close>}{\<open>\<strut>\<Gamma> \<turnstile> B\<close>}
@@ -649,7 +649,7 @@ proof
   note \<open>A \<Longrightarrow> B\<close>
   text_raw \<open>\end{minipage}\\[3ex]\begin{minipage}[t]{0.45\textwidth}\<close>(*<*)next(*>*)
   {
-    def x \<equiv> a
+    define x where "x \<equiv> a"
     have "B x" \<proof>
   }
   note \<open>B a\<close>

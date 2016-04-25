@@ -73,7 +73,7 @@ lemma gen_binomial_complex:
   assumes "norm z < 1"
   shows   "(\<lambda>n. (a gchoose n) * z^n) sums (1 + z) powr a"
 proof -
-  def K \<equiv> "1 - (1 - norm z) / 2"
+  define K where "K = 1 - (1 - norm z) / 2"
   from assms have K: "K > 0" "K < 1" "norm z < K"
      unfolding K_def by (auto simp: field_simps intro!: add_pos_nonneg)
   let ?f = "\<lambda>n. a gchoose n" and ?f' = "diffs (\<lambda>n. a gchoose n)"
@@ -83,7 +83,7 @@ proof -
   hence summable': "summable (\<lambda>n. ?f' n * z ^ n)" if "norm z < K" for z using that
     by (intro termdiff_converges[of _ K]) simp_all
   
-  def f \<equiv> "\<lambda>z. \<Sum>n. ?f n * z ^ n" and f' \<equiv> "\<lambda>z. \<Sum>n. ?f' n * z ^ n"
+  define f f' where [abs_def]: "f z = (\<Sum>n. ?f n * z ^ n)" "f' z = (\<Sum>n. ?f' n * z ^ n)" for z
   {
     fix z :: complex assume z: "norm z < K"
     from summable_mult2[OF summable'[OF z], of z]
@@ -92,7 +92,7 @@ proof -
       unfolding diffs_def by (subst (asm) summable_Suc_iff)
 
     have "(1 + z) * f' z = (\<Sum>n. ?f' n * z^n) + (\<Sum>n. ?f' n * z^Suc n)"
-      unfolding f'_def using summable' z by (simp add: algebra_simps suminf_mult)
+      unfolding f_f'_def using summable' z by (simp add: algebra_simps suminf_mult)
     also have "(\<Sum>n. ?f' n * z^n) = (\<Sum>n. of_nat (Suc n) * ?f (Suc n) * z^n)"
       by (intro suminf_cong) (simp add: diffs_def)
     also have "(\<Sum>n. ?f' n * z^Suc n) = (\<Sum>n. of_nat n * ?f n * z ^ n)" 
@@ -103,15 +103,15 @@ proof -
       by (subst gbinomial_mult_1, subst suminf_add)
          (insert summable'[OF z] summable2, 
           simp_all add: summable_powser_split_head algebra_simps diffs_def)
-    also have "\<dots> = a * f z" unfolding f_def
+    also have "\<dots> = a * f z" unfolding f_f'_def
       by (subst suminf_mult[symmetric]) (simp_all add: summable[OF z] mult_ac)
     finally have "a * f z = (1 + z) * f' z" by simp
   } note deriv = this
 
   have [derivative_intros]: "(f has_field_derivative f' z) (at z)" if "norm z < of_real K" for z
-    unfolding f_def f'_def using K that
+    unfolding f_f'_def using K that
     by (intro termdiffs_strong[of "?f" K z] summable_strong) simp_all
-  have "f 0 = (\<Sum>n. if n = 0 then 1 else 0)" unfolding f_def by (intro suminf_cong) simp
+  have "f 0 = (\<Sum>n. if n = 0 then 1 else 0)" unfolding f_f'_def by (intro suminf_cong) simp
   also have "\<dots> = 1" using sums_single[of 0 "\<lambda>_. 1::complex"] unfolding sums_iff by simp
   finally have [simp]: "f 0 = 1" .
 
@@ -133,7 +133,7 @@ proof -
   from c[of 0] and K have "c = 1" by simp
   with c[of z] have "f z = (1 + z) powr a" using K 
     by (simp add: powr_minus_complex field_simps dist_complex_def)
-  with summable K show ?thesis unfolding f_def by (simp add: sums_iff)
+  with summable K show ?thesis unfolding f_f'_def by (simp add: sums_iff)
 qed
 
 lemma gen_binomial_complex':

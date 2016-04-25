@@ -26,7 +26,7 @@ begin
   assume "a = b"  \<comment> \<open>type assignment at first occurrence in concrete term\<close>
 
   txt \<open>Definitions (non-polymorphic):\<close>
-  def x \<equiv> "t::'a"
+  define x :: 'a where "x = t"
 
   txt \<open>Abbreviations (polymorphic):\<close>
   let ?f = "\<lambda>x. x"
@@ -635,7 +635,7 @@ next
 next
 
   {
-    def x \<equiv> t
+    define x where "x = t"
     have "B x" \<proof>
   }
   have "B t" by fact

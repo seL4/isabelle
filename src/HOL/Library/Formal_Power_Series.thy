@@ -1157,8 +1157,8 @@ lemma fps_times_divide_eq:
   shows   "f div g * g = f"
 proof (cases "f = 0")
   assume nz: "f \<noteq> 0"
-  def n \<equiv> "subdegree g"
-  def h \<equiv> "fps_shift n g"
+  define n where "n = subdegree g"
+  define h where "h = fps_shift n g"
   from assms have [simp]: "h $ 0 \<noteq> 0" unfolding h_def by (simp add: n_def)
 
   from assms nz have "f div g * g = fps_shift n (f * inverse h) * g"
@@ -1217,8 +1217,8 @@ qed (simp_all add: fps_divide_def)
 
 instance proof
   fix f g :: "'a fps"
-  def n \<equiv> "subdegree g"
-  def h \<equiv> "fps_shift n g"
+  define n where "n = subdegree g"
+  define h where "h = fps_shift n g"
 
   show "f div g * g + f mod g = f"
   proof (cases "g = 0 \<or> f = 0")
@@ -1248,8 +1248,8 @@ next
   assume "h \<noteq> 0"
   show "(h * f) div (h * g) = f div g"
   proof -
-    def m \<equiv> "subdegree h"
-    def h' \<equiv> "fps_shift m h"
+    define m where "m = subdegree h"
+    define h' where "h' = fps_shift m h"
     have h_decomp: "h = h' * X ^ m" unfolding h'_def m_def by (rule subdegree_decompose)
     from \<open>h \<noteq> 0\<close> have [simp]: "h'$0 \<noteq> 0" by (simp add: h'_def m_def)
     have "(h * f) div (h * g) = (h' * f * X^m) div (h' * g * X^m)"
@@ -1261,9 +1261,7 @@ next
 next
   fix f g h :: "'a fps"
   assume [simp]: "h \<noteq> 0"
-  def n \<equiv> "subdegree h"
-  def h' \<equiv> "fps_shift n h"
-  note dfs = n_def h'_def
+  define n h' where dfs: "n = subdegree h" "h' = fps_shift n h"
   have "(f + g * h) div h = fps_shift n (f * inverse h') + fps_shift n (g * (h * inverse h'))"
     by (simp add: fps_divide_def Let_def dfs[symmetric] algebra_simps fps_shift_add)
   also have "h * inverse h' = (inverse h' * h') * X^n"

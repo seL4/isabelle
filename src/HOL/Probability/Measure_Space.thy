@@ -567,7 +567,7 @@ proof cases
     by simp
 next
   assume "infinite I"
-  def L \<equiv> "\<lambda>n. LEAST i. i \<in> I \<and> i \<ge> n"
+  define L where "L n = (LEAST i. i \<in> I \<and> i \<ge> n)" for n
   have L: "L n \<in> I \<and> n \<le> L n" for n
     unfolding L_def
   proof (rule LeastI_ex)

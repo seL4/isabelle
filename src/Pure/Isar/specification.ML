@@ -237,7 +237,7 @@ fun gen_def prep (raw_var, raw_spec) int lthy =
   let
     val ((vars, [((raw_name, atts), prop)]), get_pos) =
       fst (prep (the_list raw_var) [raw_spec] lthy);
-    val (((x, T), rhs), prove) = Local_Defs.derived_def lthy true prop;
+    val (((x, T), rhs), prove) = Local_Defs.derived_def lthy {conditional = true} prop;
     val _ = Name.reject_internal (x, []);
     val (b, mx) =
       (case vars of
@@ -249,7 +249,7 @@ fun gen_def prep (raw_var, raw_spec) int lthy =
               error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote y ^
                 Position.here (Binding.pos_of b));
           in (b, mx) end);
-    val name = Binding.reset_pos (Thm.def_binding_optional b raw_name);
+    val name = Thm.def_binding_optional b raw_name;
     val ((lhs, (_, raw_th)), lthy2) = lthy
       |> Local_Theory.define_internal ((b, mx), ((Binding.suffix_name "_raw" name, []), rhs));
 

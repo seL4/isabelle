@@ -24,8 +24,8 @@ theorem (in prob_space) central_limit_theorem:
   shows "weak_conv_m (\<lambda>n. distr M borel (\<lambda>x. S n x / sqrt (n * \<sigma>\<^sup>2))) std_normal_distribution"
 proof -
   let ?S' = "\<lambda>n x. S n x / sqrt (real n * \<sigma>\<^sup>2)"
-  def \<phi> \<equiv> "\<lambda>n. char (distr M borel (?S' n))"
-  def \<psi> \<equiv> "\<lambda>n t. char \<mu> (t / sqrt (\<sigma>\<^sup>2 * n))"
+  define \<phi> where "\<phi> n = char (distr M borel (?S' n))" for n
+  define \<psi> where "\<psi> n t = char \<mu> (t / sqrt (\<sigma>\<^sup>2 * n))" for n t
 
   have X_rv [simp, measurable]: "\<And>n. random_variable borel (X n)"
     using X_indep unfolding indep_vars_def2 by simp
@@ -48,7 +48,7 @@ proof -
     hence n: "n \<ge> t^2 / 4" by (subst nat_ceiling_le_eq [symmetric])
     let ?t = "t / sqrt (\<sigma>\<^sup>2 * n)"
 
-    def \<psi>' \<equiv> "\<lambda>n i. char (distr M borel (\<lambda>x. X i x / sqrt (\<sigma>\<^sup>2 * n)))"
+    define \<psi>' where "\<psi>' n i = char (distr M borel (\<lambda>x. X i x / sqrt (\<sigma>\<^sup>2 * n)))" for n i
     have *: "\<And>n i t. \<psi>' n i t = \<psi> n t"
       unfolding \<psi>_def \<psi>'_def char_def
       by (subst X_distrib [symmetric]) (auto simp: integral_distr)

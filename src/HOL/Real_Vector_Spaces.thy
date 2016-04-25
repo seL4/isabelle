@@ -2070,7 +2070,7 @@ lemma real_Cauchy_convergent:
   assumes X: "Cauchy X"
   shows "convergent X"
 proof -
-  def S \<equiv> "{x::real. \<exists>N. \<forall>n\<ge>N. x < X n}"
+  define S :: "real set" where "S = {x. \<exists>N. \<forall>n\<ge>N. x < X n}"
   then have mem_S: "\<And>N x. \<forall>n\<ge>N. x < X n \<Longrightarrow> x \<in> S" by auto
 
   { fix N x assume N: "\<forall>n\<ge>N. X n < x"

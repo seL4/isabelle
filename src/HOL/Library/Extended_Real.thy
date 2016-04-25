@@ -3900,7 +3900,7 @@ lemma
   shows   Liminf_inverse_ereal: "Liminf F (\<lambda>x. inverse (f x)) = inverse (Limsup F f)"
   and     Limsup_inverse_ereal: "Limsup F (\<lambda>x. inverse (f x)) = inverse (Liminf F f)"
 proof -
-  def inv \<equiv> "\<lambda>x. if x \<le> 0 then \<infinity> else inverse x :: ereal"
+  define inv where [abs_def]: "inv x = (if x \<le> 0 then \<infinity> else inverse x)" for x :: ereal
   have "continuous_on ({..0} \<union> {0..}) inv" unfolding inv_def
     by (intro continuous_on_If) (auto intro!: continuous_intros)
   also have "{..0} \<union> {0..} = (UNIV :: ereal set)" by auto

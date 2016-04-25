@@ -165,7 +165,7 @@ qed
 lemma strip_while_idem_iff:
   "strip_while P xs = xs \<longleftrightarrow> no_trailing P xs"
 proof -
-  def ys \<equiv> "rev xs"
+  define ys where "ys = rev xs"
   moreover have "strip_while P (rev ys) = rev ys \<longleftrightarrow> no_trailing P (rev ys)"
     by (simp add: dropWhile_idem_iff)
   ultimately show ?thesis by simp

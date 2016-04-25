@@ -28,7 +28,7 @@ sig
   val unfold_tac: Proof.context -> thm list -> tactic
   val fold: Proof.context -> thm list -> thm -> thm
   val fold_tac: Proof.context -> thm list -> tactic
-  val derived_def: Proof.context -> bool -> term ->
+  val derived_def: Proof.context -> {conditional: bool} -> term ->
     ((string * typ) * term) * (Proof.context -> thm -> thm)
 end;
 
@@ -46,7 +46,11 @@ fun cert_def ctxt eq =
         quote (Syntax.string_of_term ctxt eq));
     val ((lhs, _), eq') = eq
       |> Sign.no_vars ctxt
-      |> Primitive_Defs.dest_def ctxt Term.is_Free (Variable.is_fixed ctxt) (K true)
+      |> Primitive_Defs.dest_def ctxt
+        {check_head = Term.is_Free,
+         check_free_lhs = not o Variable.is_fixed ctxt,
+         check_free_rhs = if Variable.is_body ctxt then K true else Variable.is_fixed ctxt,
+         check_tfree = K true}
       handle TERM (msg, _) => err msg | ERROR msg => err msg;
   in (Term.dest_Free (Term.head_of lhs), eq') end;
 
@@ -206,7 +210,7 @@ val fold_tac     = meta Raw_Simplifier.fold_goals_tac;
 
 (* derived defs -- potentially within the object-logic *)
 
-fun derived_def ctxt conditional prop =
+fun derived_def ctxt {conditional} prop =
   let
     val ((c, T), rhs) = prop
       |> Thm.cterm_of ctxt
@@ -215,7 +219,8 @@ fun derived_def ctxt conditional prop =
       |> conditional ? Logic.strip_imp_concl
       |> (abs_def o #2 o cert_def ctxt);
     fun prove ctxt' def =
-      Goal.prove ctxt' (Variable.add_free_names ctxt' prop []) [] prop
+      Goal.prove ctxt'
+        ((not (Variable.is_body ctxt') ? Variable.add_free_names ctxt' prop) []) [] prop
         (fn {context = ctxt'', ...} =>
           ALLGOALS
             (CONVERSION (meta_rewrite_conv ctxt'') THEN'

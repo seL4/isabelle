@@ -467,12 +467,12 @@ proof
   assume "Cauchy P"
   then obtain Nd where Nd: "\<And>n. n \<ge> Nd \<Longrightarrow> dist (P n) (P Nd) < 1"
     by (force simp: cauchy)
-  def d \<equiv> "domain (P Nd)"
+  define d where "d = domain (P Nd)"
   with Nd have dim: "\<And>n. n \<ge> Nd \<Longrightarrow> domain (P n) = d" using dist_le_1_imp_domain_eq by auto
   have [simp]: "finite d" unfolding d_def by simp
-  def p \<equiv> "\<lambda>i n. (P n) i"
-  def q \<equiv> "\<lambda>i. lim (p i)"
-  def Q \<equiv> "finmap_of d q"
+  define p where "p i n = P n i" for i n
+  define q where "q i = lim (p i)" for i
+  define Q where "Q = finmap_of d q"
   have q: "\<And>i. i \<in> d \<Longrightarrow> q i = Q i" by (auto simp add: Q_def Abs_finmap_inverse)
   {
     fix i assume "i \<in> d"
@@ -505,7 +505,7 @@ proof
       from p[OF \<open>i \<in> d\<close>, THEN metric_LIMSEQ_D, OF \<open>0 < e\<close>]
       show "\<exists>no. \<forall>n\<ge>no. dist (p i n) (q i) < e" .
     qed then guess ni .. note ni = this
-    def N \<equiv> "max Nd (Max (ni ` d))"
+    define N where "N = max Nd (Max (ni ` d))"
     show "\<exists>N. \<forall>n\<ge>N. dist (P n) Q < e"
     proof (safe intro!: exI[where x="N"])
       fix n assume "N \<le> n"
@@ -602,7 +602,7 @@ next
     thus "\<exists>y. x i \<in> y \<and> y \<subseteq> a i \<and> y \<in> basis_proj" by auto
   qed
   then guess B .. note B = this
-  def B' \<equiv> "Pi' (domain x) (\<lambda>i. (B i)::'b set)"
+  define B' where "B' = Pi' (domain x) (\<lambda>i. (B i)::'b set)"
   have "B' \<subseteq> Pi' (domain x) a" using B by (auto intro!: Pi'_mono simp: B'_def)
   also note \<open>\<dots> \<subseteq> O'\<close>
   finally show "\<exists>B'\<in>basis_finmap. x \<in> B' \<and> B' \<subseteq> O'" using B
@@ -1097,7 +1097,7 @@ proof -
   proof (rule sigma_fprod_algebra_sigma_eq)
     show "finite I" by simp
     show "I \<noteq> {}" by fact
-    def S'\<equiv>"from_nat_into S"
+    define S' where "S' = from_nat_into S"
     show "(\<Union>j. S' j) = space borel"
       using S
       apply (auto simp add: from_nat_into countable_basis_proj S'_def basis_proj_def)

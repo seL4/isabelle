@@ -76,12 +76,12 @@ lemma less_fun_trichotomy:
   assumes "finite {k. f k \<noteq> g k}"
   shows "less_fun f g \<or> f = g \<or> less_fun g f"
 proof -
-  { def K \<equiv> "{k. f k \<noteq> g k}"
+  { define K where "K = {k. f k \<noteq> g k}"
     assume "f \<noteq> g"
     then obtain k' where "f k' \<noteq> g k'" by auto
     then have [simp]: "K \<noteq> {}" by (auto simp add: K_def)
     with assms have [simp]: "finite K" by (simp add: K_def)
-    def q \<equiv> "Min K"
+    define q where "q = Min K"
     then have "q \<in> K" and "\<And>k. k \<in> K \<Longrightarrow> k \<ge> q" by auto
     then have "\<And>k. \<not> k \<ge> q \<Longrightarrow> k \<notin> K" by blast
     then have *: "\<And>k. k < q \<Longrightarrow> f k = g k" by (simp add: K_def)

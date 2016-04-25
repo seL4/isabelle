@@ -142,7 +142,7 @@ proof -
   finally have "l \<ge> 0" by simp
   with l obtain l' where l': "l = ereal l'" by (cases l) simp_all
 
-  def c \<equiv> "(1 - l') / 2"
+  define c where "c = (1 - l') / 2"
   from l and \<open>l \<ge> 0\<close> have c: "l + c > l" "l' + c \<ge> 0" "l' + c < 1" unfolding c_def 
     by (simp_all add: field_simps l')
   have "\<forall>C>l. eventually (\<lambda>n. ereal (root n (norm (f n))) < C) sequentially"
@@ -176,7 +176,7 @@ proof
   also have "... \<le> l" unfolding l_def by (intro Limsup_mono) (simp_all add: real_root_ge_zero)
   finally have l_nonneg: "l \<ge> 0" by simp
 
-  def c \<equiv> "if l = \<infinity> then 2 else 1 + (real_of_ereal l - 1) / 2"
+  define c where "c = (if l = \<infinity> then 2 else 1 + (real_of_ereal l - 1) / 2)"
   from l l_nonneg consider "l = \<infinity>" | "\<exists>l'. l = ereal l'" by (cases l) simp_all
   hence c: "c > 1 \<and> ereal c < l" by cases (insert l, auto simp: c_def field_simps)
 
@@ -193,7 +193,7 @@ proof
   qed
   
   from bounded obtain K where K: "K > 0" "\<And>n. norm (f n) \<le> K" using BseqE by blast
-  def n \<equiv> "nat \<lceil>log c K\<rceil>"
+  define n where "n = nat \<lceil>log c K\<rceil>"
   from unbounded have "\<exists>m>n. c < root m (norm (f m))" unfolding bdd_above_def
     by (auto simp: not_le)
   then guess m by (elim exE conjE) note m = this
@@ -253,7 +253,7 @@ lemma condensation_test:
   assumes nonneg: "\<And>n. f n \<ge> 0"
   shows "summable f \<longleftrightarrow> summable (\<lambda>n. 2^n * f (2^n))"
 proof -
-  def f' \<equiv> "\<lambda>n. if n = 0 then 0 else f n"
+  define f' where "f' n = (if n = 0 then 0 else f n)" for n
   from mono have mono': "decseq (\<lambda>n. f (Suc n))" by (intro decseq_SucI) simp
   hence mono': "f n \<le> f m" if "m \<le> n" "m > 0" for m n 
     using that decseqD[OF mono', of "m - 1" "n - 1"] by simp
@@ -402,7 +402,7 @@ lemma kummers_test_convergence:
   shows   "summable f"
   unfolding summable_iff_convergent'
 proof -
-  def r \<equiv> "(if l = \<infinity> then 1 else real_of_ereal l / 2)"
+  define r where "r = (if l = \<infinity> then 1 else real_of_ereal l / 2)"
   from l have "r > 0 \<and> of_real r < l" by (cases l) (simp_all add: r_def)
   hence r: "r > 0" "of_real r < l" by simp_all
   hence "eventually (\<lambda>n. p n * f n / f (Suc n) - p (Suc n) > r) sequentially"
@@ -420,7 +420,7 @@ proof -
   have "Bseq (\<lambda>n. (\<Sum>k\<le>n + Suc m. f k))"
   proof (rule BseqI')
     fix k :: nat
-    def n \<equiv> "k + Suc m"
+    define n where "n = k + Suc m"
     have n: "n > m" by (simp add: n_def)
 
     from r have "r * norm (\<Sum>k\<le>n. f k) = norm (\<Sum>k\<le>n. r * f k)"
@@ -588,7 +588,7 @@ lemma abs_summable_in_conv_radius:
   assumes "ereal (norm z) < conv_radius f"
   shows   "summable (\<lambda>n. norm (f n * z ^ n))"
 proof (rule root_test_convergence')
-  def l \<equiv> "limsup (\<lambda>n. ereal (root n (norm (f n))))"
+  define l where "l = limsup (\<lambda>n. ereal (root n (norm (f n))))"
   have "0 = limsup (\<lambda>n. 0)" by (simp add: Limsup_const)
   also have "... \<le> l" unfolding l_def by (intro Limsup_mono) (simp_all add: real_root_ge_zero)
   finally have l_nonneg: "l \<ge> 0" .
@@ -626,7 +626,7 @@ lemma not_summable_outside_conv_radius:
   assumes "ereal (norm z) > conv_radius f"
   shows   "\<not>summable (\<lambda>n. f n * z ^ n)"
 proof (rule root_test_divergence)
-  def l \<equiv> "limsup (\<lambda>n. ereal (root n (norm (f n))))"
+  define l where "l = limsup (\<lambda>n. ereal (root n (norm (f n))))"
   have "0 = limsup (\<lambda>n. 0)" by (simp add: Limsup_const)
   also have "... \<le> l" unfolding l_def by (intro Limsup_mono) (simp_all add: real_root_ge_zero)
   finally have l_nonneg: "l \<ge> 0" .
@@ -676,7 +676,7 @@ proof (rule linorder_cases[of "conv_radius f" R])
   with conv_radius_nonneg[of f] obtain conv_radius' 
     where [simp]: "conv_radius f = ereal conv_radius'"
     by (cases "conv_radius f") simp_all
-  def r \<equiv> "if R = \<infinity> then conv_radius' + 1 else (real_of_ereal R + conv_radius') / 2"
+  define r where "r = (if R = \<infinity> then conv_radius' + 1 else (real_of_ereal R + conv_radius') / 2)"
   from R conv_radius_nonneg[of f] have "0 < r \<and> ereal r < R \<and> ereal r > conv_radius f" 
     unfolding r_def by (cases R) (auto simp: r_def field_simps)
   with assms(1)[of r] obtain z where "norm z > conv_radius f" "summable (\<lambda>n. f n * z^n)" by auto
@@ -701,7 +701,8 @@ lemma conv_radius_leI_ex:
 proof (rule linorder_cases[of "conv_radius f" R])
   assume R: "conv_radius f > R"
   from R assms(1) obtain R' where R': "R = ereal R'" by (cases R) simp_all
-  def r \<equiv> "if conv_radius f = \<infinity> then R' + 1 else (R' + real_of_ereal (conv_radius f)) / 2"
+  define r where
+    "r = (if conv_radius f = \<infinity> then R' + 1 else (R' + real_of_ereal (conv_radius f)) / 2)"
   from R conv_radius_nonneg[of f] have "r > R \<and> r < conv_radius f" unfolding r_def
     by (cases "conv_radius f") (auto simp: r_def field_simps R')
   with assms(1) assms(2)[of r] R' 
@@ -749,7 +750,7 @@ lemma conv_radius_zeroI:
 proof (rule ccontr)
   assume "conv_radius f \<noteq> 0"
   with conv_radius_nonneg[of f] have pos: "conv_radius f > 0" by simp
-  def r \<equiv> "if conv_radius f = \<infinity> then 1 else real_of_ereal (conv_radius f) / 2"
+  define r where "r = (if conv_radius f = \<infinity> then 1 else real_of_ereal (conv_radius f) / 2)"
   from pos have r: "ereal r > 0 \<and> ereal r < conv_radius f" 
     by (cases "conv_radius f") (simp_all add: r_def)
   hence "summable (\<lambda>n. f n * of_real r ^ n)" by (intro summable_in_conv_radius) simp

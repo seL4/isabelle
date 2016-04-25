@@ -54,7 +54,7 @@ keywords
   and "note" :: prf_decl % "proof"
   and "supply" :: prf_script % "proof"
   and "using" "unfolding" :: prf_decl % "proof"
-  and "fix" "assume" "presume" "def" :: prf_asm % "proof"
+  and "fix" "assume" "presume" "define" "def" :: prf_asm % "proof"
   and "consider" :: prf_goal % "proof"
   and "obtain" :: prf_asm_goal % "proof"
   and "guess" :: prf_script_asm_goal % "proof"
@@ -739,12 +739,18 @@ val _ =
     (structured_statement >> (fn (a, b, c) => Toplevel.proof (Proof.presume_cmd a b c)));
 
 val _ =
+  Outer_Syntax.command @{command_keyword define} "local definition (non-polymorphic)"
+    ((Parse.fixes --| Parse.where_) -- Parse_Spec.statement -- Parse.for_fixes
+      >> (fn ((a, b), c) => Toplevel.proof (Proof.define_cmd a c b)));
+
+val _ =
   Outer_Syntax.command @{command_keyword def} "local definition (non-polymorphic)"
     (Parse.and_list1
       (Parse_Spec.opt_thm_name ":" --
         ((Parse.binding -- Parse.opt_mixfix) --
           ((@{keyword "\<equiv>"} || @{keyword "=="}) |-- Parse.!!! Parse.termp)))
-    >> (Toplevel.proof o Proof.def_cmd));
+    >> (fn args => Toplevel.proof (fn state =>
+        (legacy_feature "Old 'def' command -- use 'define' instead"; Proof.def_cmd args state))));
 
 val _ =
   Outer_Syntax.command @{command_keyword consider} "state cases rule"

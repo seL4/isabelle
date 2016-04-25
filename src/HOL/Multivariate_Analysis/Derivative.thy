@@ -379,7 +379,7 @@ proof -
   proof (rule, rule ccontr)
     fix i :: 'a
     assume i: "i \<in> Basis"
-    def e \<equiv> "norm (f' i - f'' i)"
+    define e where "e = norm (f' i - f'' i)"
     assume "f' i \<noteq> f'' i"
     then have "e > 0"
       unfolding e_def by auto
@@ -613,7 +613,7 @@ proof -
       then show ?thesis
         by (metis c(2) d(2) box_subset_cbox subset_iff)
     next
-      def e \<equiv> "(a + b) /2"
+      define e where "e = (a + b) /2"
       case False
       then have "f d = f c"
         using d c assms(2) by auto
@@ -781,9 +781,10 @@ proof -
   note phi_tendsto = assms(3)[simplified continuous_on_def, rule_format]
   {
     fix e::real assume "e > 0"
-    def e2 \<equiv> "e / 2" with \<open>e > 0\<close> have "e2 > 0" by simp
+    define e2 where "e2 = e / 2"
+    with \<open>e > 0\<close> have "e2 > 0" by simp
     let ?le = "\<lambda>x1. norm (f x1 - f a) \<le> \<phi> x1 - \<phi> a + e * (x1 - a) + e"
-    def A \<equiv> "{x2. a \<le> x2 \<and> x2 \<le> b \<and> (\<forall>x1\<in>{a ..< x2}. ?le x1)}"
+    define A where "A = {x2. a \<le> x2 \<and> x2 \<le> b \<and> (\<forall>x1\<in>{a ..< x2}. ?le x1)}"
     have A_subset: "A \<subseteq> {a .. b}" by (auto simp: A_def)
     {
       fix x2
@@ -817,7 +818,7 @@ proof -
     have A_ivl: "\<And>x1 x2. x2 \<in> A \<Longrightarrow> x1 \<in> {a ..x2} \<Longrightarrow> x1 \<in> A"
       by (simp add: A_def)
     have [simp]: "bdd_above A" by (auto simp: A_def)
-    def y \<equiv> "Sup A"
+    define y where "y = Sup A"
     have "y \<le> b"
       unfolding y_def
       by (simp add: cSup_le_iff) (simp add: A_def)
@@ -878,7 +879,7 @@ proof -
           by metis
         from \<open>open S\<close> obtain d where d: "\<And>x. dist x y < d \<Longrightarrow> x \<in> S" "d > 0"
           by (force simp: dist_commute open_dist ball_def dest!: bspec[OF _ \<open>y \<in> S\<close>])
-        def d' \<equiv> "min ((y + b)/2) (y + (d/2))"
+        define d' where "d' = min ((y + b)/2) (y + (d/2))"
         have "d' \<in> A"
           unfolding A_def
         proof safe
@@ -942,7 +943,7 @@ proof -
         by metis
       from \<open>open S\<close> obtain d where d: "\<And>x. dist x y < d \<Longrightarrow> x \<in> S" "d > 0"
         by (force simp: dist_commute open_dist ball_def dest!: bspec[OF _ \<open>y \<in> S\<close>])
-      def d' \<equiv> "min b (y + (d/2))"
+      define d' where "d' = min b (y + (d/2))"
       have "d' \<in> A"
         unfolding A_def
       proof safe
@@ -1077,7 +1078,7 @@ lemma differentiable_bound_linearization:
   assumes "x0 \<in> S"
   shows "norm (f b - f a - f' x0 (b - a)) \<le> norm (b - a) * B"
 proof -
-  def g \<equiv> "\<lambda>x. f x - f' x0 x"
+  define g where [abs_def]: "g x = f x - f' x0 x" for x
   have g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative (\<lambda>i. f' x i - f' x0 i)) (at x within S)"
     unfolding g_def using assms
     by (auto intro!: derivative_eq_intros
@@ -1232,7 +1233,7 @@ proof -
       "0 < d"
       "\<forall>z. norm (z - y) < d \<longrightarrow> norm (g z - g y - g' (z - y)) \<le> 1 / 2 * norm (g z - g y)"
     using lem1 * by blast
-  def B \<equiv> "C * 2"
+  define B where "B = C * 2"
   have "B > 0"
     unfolding B_def using C by auto
   have lem2: "norm (g z - g y) \<le> B * norm (z - y)" if z: "norm(z - y) < d" for z
@@ -1722,7 +1723,7 @@ proof -
   then have *: "0 < onorm g'"
     unfolding onorm_pos_lt[OF assms(3)]
     by fastforce
-  def k \<equiv> "1 / onorm g' / 2"
+  define k where "k = 1 / onorm g' / 2"
   have *: "k > 0"
     unfolding k_def using * by auto
   obtain d1 where d1:
@@ -1749,7 +1750,7 @@ proof -
     proof (intro strip)
       fix x y
       assume as: "x \<in> ball a d" "y \<in> ball a d" "f x = f y"
-      def ph \<equiv> "\<lambda>w. w - g' (f w - f x)"
+      define ph where [abs_def]: "ph w = w - g' (f w - f x)" for w
       have ph':"ph = g' \<circ> (\<lambda>w. f' a w - (f w - f x))"
         unfolding ph_def o_def
         unfolding diff
@@ -2207,7 +2208,7 @@ lemma has_field_derivative_series':
   shows   "summable (\<lambda>n. f n x)" "((\<lambda>x. \<Sum>n. f n x) has_field_derivative (\<Sum>n. f' n x)) (at x)"
 proof -
   from \<open>x \<in> interior s\<close> have "x \<in> s" using interior_subset by blast
-  def g' \<equiv> "\<lambda>x. \<Sum>i. f' i x"
+  define g' where [abs_def]: "g' x = (\<Sum>i. f' i x)" for x
   from assms(3) have "uniform_limit s (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
     by (simp add: uniformly_convergent_uniform_limit_iff suminf_eq_lim g'_def)
   from has_field_derivative_series[OF assms(1,2) this assms(4,5)] obtain g where g:
@@ -2702,7 +2703,7 @@ lemma has_derivative_partialsI:
   shows "((\<lambda>(x, y). f x y) has_derivative (\<lambda>(tx, ty). fx x y tx + fy x y ty)) (at (x, y) within X \<times> Y)"
 proof (safe intro!: has_derivativeI tendstoI, goal_cases)
   case (2 e')
-  def e\<equiv>"e' / 9"
+  define e where "e = e' / 9"
   have "e > 0" using \<open>e' > 0\<close> by (simp add: e_def)
 
   have "(x, y) \<in> X \<times> Y" using assms by auto
@@ -2720,7 +2721,7 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
     for x' y'
     using \<open>0 < e\<close>
     by (cases "(x', y') = (x, y)") auto
-  def d \<equiv> "d' / sqrt 2"
+  define d where "d = d' / sqrt 2"
   have "d > 0" using \<open>0 < d'\<close> by (simp add: d_def)
   have d: "x' \<in> X \<Longrightarrow> y' \<in> Y \<Longrightarrow> dist x' x < d \<Longrightarrow> dist y' y < d \<Longrightarrow> dist (fy x' y') (fy x y) < e"
     for x' y'

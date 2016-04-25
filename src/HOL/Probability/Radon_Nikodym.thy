@@ -153,7 +153,7 @@ proof -
   let ?A = "\<lambda>A. if (\<forall>B\<in>sets M. B \<subseteq> space M - A \<longrightarrow> -e < ?d B)
     then {}
     else (SOME B. B \<in> sets M \<and> B \<subseteq> space M - A \<and> ?d B \<le> -e)"
-  def A \<equiv> "\<lambda>n. ((\<lambda>B. B \<union> ?A B) ^^ n) {}"
+  define A where "A n = ((\<lambda>B. B \<union> ?A B) ^^ n) {}" for n
   have A_simps[simp]:
     "A 0 = {}"
     "\<And>n. A (Suc n) = (A n \<union> ?A (A n))" unfolding A_def by simp_all
@@ -296,7 +296,8 @@ lemma (in finite_measure) Radon_Nikodym_finite_measure:
   shows "\<exists>f \<in> borel_measurable M. (\<forall>x. 0 \<le> f x) \<and> density M f = N"
 proof -
   interpret N: finite_measure N by fact
-  def G \<equiv> "{g \<in> borel_measurable M. (\<forall>x. 0 \<le> g x) \<and> (\<forall>A\<in>sets M. (\<integral>\<^sup>+x. g x * indicator A x \<partial>M) \<le> N A)}"
+  define G where "G =
+    {g \<in> borel_measurable M. (\<forall>x. 0 \<le> g x) \<and> (\<forall>A\<in>sets M. (\<integral>\<^sup>+x. g x * indicator A x \<partial>M) \<le> N A)}"
   { fix f have "f \<in> G \<Longrightarrow> f \<in> borel_measurable M" by (auto simp: G_def) }
   note this[measurable_dest]
   have "(\<lambda>x. 0) \<in> G" unfolding G_def by auto
@@ -366,7 +367,7 @@ proof -
   from choice[OF this] obtain gs where "\<And>i. gs i \<in> G" "\<And>n. integral\<^sup>N M (gs n) = ys n" by auto
   hence y_eq: "?y = (SUP i. integral\<^sup>N M (gs i))" using ys by auto
   let ?g = "\<lambda>i x. Max ((\<lambda>n. gs n x) ` {..i})"
-  def f \<equiv> "\<lambda>x. SUP i. ?g i x"
+  define f where [abs_def]: "f x = (SUP i. ?g i x)" for x
   let ?F = "\<lambda>A x. f x * indicator A x"
   have gs_not_empty: "\<And>i x. (\<lambda>n. gs n x) ` {..i} \<noteq> {}" by auto
   { fix i have "?g i \<in> G"
@@ -443,7 +444,7 @@ proof -
     hence "(\<integral>\<^sup>+x. f x * indicator (space M) x \<partial>M) \<noteq> \<infinity>"
       using M'.finite_emeasure_space by (auto simp: top_unique)
     moreover
-    def b \<equiv> "?M (space M) / emeasure M (space M) / 2"
+    define b where "b = ?M (space M) / emeasure M (space M) / 2"
     ultimately have b: "b \<noteq> 0 \<and> 0 \<le> b \<and> b \<noteq> \<infinity>"
       by (auto simp: ennreal_divide_eq_top_iff)
     then have b: "b \<noteq> 0" "0 \<le> b" "0 < b"  "b \<noteq> \<infinity>"
@@ -584,7 +585,7 @@ proof -
   qed
   let ?O_0 = "(\<Union>i. ?O i)"
   have "?O_0 \<in> sets M" using Q' by auto
-  def Q \<equiv> "\<lambda>i. case i of 0 \<Rightarrow> Q' 0 | Suc n \<Rightarrow> ?O (Suc n) - ?O n"
+  define Q where "Q i = (case i of 0 \<Rightarrow> Q' 0 | Suc n \<Rightarrow> ?O (Suc n) - ?O n)" for i
   { fix i have "Q i \<in> sets M" unfolding Q_def using Q'[of 0] by (cases i) (auto intro: O_sets) }
   note Q_sets = this
   show ?thesis
@@ -990,7 +991,8 @@ proof
 next
   assume AE: "AE x in M. f x \<noteq> \<infinity>"
   from sigma_finite guess Q . note Q = this
-  def A \<equiv> "\<lambda>i. f -` (case i of 0 \<Rightarrow> {\<infinity>} | Suc n \<Rightarrow> {.. ennreal(of_nat (Suc n))}) \<inter> space M"
+  define A where "A i =
+    f -` (case i of 0 \<Rightarrow> {\<infinity>} | Suc n \<Rightarrow> {.. ennreal(of_nat (Suc n))}) \<inter> space M" for i
   { fix i j have "A i \<inter> Q j \<in> sets M"
     unfolding A_def using f Q
     apply (rule_tac sets.Int)

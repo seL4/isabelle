@@ -117,7 +117,7 @@ proof (rule emeasure_lim)
     using J by (auto intro!: INF_lower2[of 0] prob_space_P[THEN prob_space.measure_le_1])
   ultimately obtain r where r: "?a = ennreal r" "0 < r" "r \<le> 1"
     by (cases "?a") (auto simp: top_unique)
-  def Z \<equiv> "\<lambda>n. emb I (J n) (B n)"
+  define Z where "Z n = emb I (J n) (B n)" for n
   have Z_mono: "n \<le> m \<Longrightarrow> Z m \<subseteq> Z n" for n m
     unfolding Z_def using B[THEN antimonoD, of n m] .
   have J_mono: "\<And>n m. n \<le> m \<Longrightarrow> J n \<subseteq> J m"
@@ -133,13 +133,13 @@ proof (rule emeasure_lim)
     unfolding Z_def by (auto intro!: generator.intros J)
 
   have countable_UN_J: "countable (\<Union>n. J n)" by (simp add: countable_finite)
-  def Utn \<equiv> "to_nat_on (\<Union>n. J n)"
+  define Utn where "Utn = to_nat_on (\<Union>n. J n)"
   interpret function_to_finmap "J n" Utn "from_nat_into (\<Union>n. J n)" for n
     by unfold_locales (auto simp: Utn_def intro: from_nat_into_to_nat_on[OF countable_UN_J])
   have inj_on_Utn: "inj_on Utn (\<Union>n. J n)"
     unfolding Utn_def using countable_UN_J by (rule inj_on_to_nat_on)
   hence inj_on_Utn_J: "\<And>n. inj_on Utn (J n)" by (rule subset_inj_on) auto
-  def P' \<equiv> "\<lambda>n. mapmeasure n (P (J n)) (\<lambda>_. borel)"
+  define P' where "P' n = mapmeasure n (P (J n)) (\<lambda>_. borel)" for n
   interpret P': prob_space "P' n" for n
     unfolding P'_def mapmeasure_def using J
     by (auto intro!: prob_space_distr fm_measurable simp: measurable_cong_sets[OF sets_P])
@@ -189,7 +189,7 @@ proof (rule emeasure_lim)
     "\<And>n. emeasure (P (J n)) (B n) - emeasure (P' n) (K' n) \<le> ennreal (2 powr - real n) * ?a"
     "\<And>n. compact (K' n)" "\<And>n. K' n \<subseteq> fm n ` B n"
     unfolding choice_iff by blast
-  def K \<equiv> "\<lambda>n. fm n -` K' n \<inter> space (Pi\<^sub>M (J n) (\<lambda>_. borel))"
+  define K where "K n = fm n -` K' n \<inter> space (Pi\<^sub>M (J n) (\<lambda>_. borel))" for n
   have K_sets: "\<And>n. K n \<in> sets (Pi\<^sub>M (J n) (\<lambda>_. borel))"
     unfolding K_def
     using compact_imp_closed[OF \<open>compact (K' _)\<close>]
@@ -204,7 +204,7 @@ proof (rule emeasure_lim)
       using \<open>x \<in> K n\<close> K_sets sets.sets_into_space J(1,2,3)[of n] inj_on_image_mem_iff[OF inj_on_fm]
     by (metis (no_types) Int_iff K_def fm_in space_borel)
   qed
-  def Z' \<equiv> "\<lambda>n. emb I (J n) (K n)"
+  define Z' where "Z' n = emb I (J n) (K n)" for n
   have Z': "\<And>n. Z' n \<subseteq> Z n"
     unfolding Z'_def Z_def
   proof (rule prod_emb_mono, safe)
@@ -228,7 +228,7 @@ proof (rule emeasure_lim)
   have "\<And>n. Z' n \<in> generator" using J K'(2) unfolding Z'_def
     by (auto intro!: generator.intros measurable_sets[OF fm_measurable[of _ "Collect finite"]]
              simp: K_def borel_eq_PiF_borel[symmetric] compact_imp_closed)
-  def Y \<equiv> "\<lambda>n. \<Inter>i\<in>{1..n}. Z' i"
+  define Y where "Y n = (\<Inter>i\<in>{1..n}. Z' i)" for n
   hence "\<And>n k. Y (n + k) \<subseteq> Y n" by (induct_tac k) (auto simp: Y_def)
   hence Y_mono: "\<And>n m. n \<le> m \<Longrightarrow> Y m \<subseteq> Y n" by (auto simp: le_iff_add)
   have Y_Z': "\<And>n. n \<ge> 1 \<Longrightarrow> Y n \<subseteq> Z' n" by (auto simp: Y_def)

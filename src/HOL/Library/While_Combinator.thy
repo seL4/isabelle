@@ -60,12 +60,12 @@ lemma while_option_stop: "while_option b c s = Some t \<Longrightarrow> ~ b t"
 by(metis while_option_stop2)
 
 theorem while_option_rule:
-assumes step: "!!s. P s ==> b s ==> P (c s)"
-and result: "while_option b c s = Some t"
-and init: "P s"
-shows "P t"
+  assumes step: "!!s. P s ==> b s ==> P (c s)"
+    and result: "while_option b c s = Some t"
+    and init: "P s"
+  shows "P t"
 proof -
-  def k == "LEAST k. ~ b ((c ^^ k) s)"
+  define k where "k = (LEAST k. ~ b ((c ^^ k) s))"
   from assms have t: "t = (c ^^ k) s"
     by (simp add: while_option_def k_def split: if_splits)    
   have 1: "ALL i<k. b ((c ^^ i) s)"

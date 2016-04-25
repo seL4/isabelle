@@ -157,8 +157,8 @@ proof (intro iffI exI conjI)
   assume "less_multiset\<^sub>H\<^sub>O M N"
   then obtain z where z: "count M z < count N z"
     unfolding less_multiset\<^sub>H\<^sub>O_def by (auto simp: multiset_eq_iff nat_neq_iff)
-  def X \<equiv> "N - M"
-  def Y \<equiv> "M - N"
+  define X where "X = N - M"
+  define Y where "Y = M - N"
   from z show "X \<noteq> {#}" unfolding X_def by (auto simp: multiset_eq_iff not_less_eq_eq Suc_le_eq)
   from z show "X \<le># N" unfolding X_def by auto
   show "M = (N - X) + Y" unfolding X_def Y_def multiset_eq_iff count_union count_diff by force

@@ -379,9 +379,10 @@ proof (cases "a < b \<and> b < c", rule IntegralI)
     and I2: "\<And> D. fine \<delta>2 (b,c) D \<Longrightarrow> \<bar> rsum D f - x2 \<bar> < (\<epsilon> / 2)"
     using IntegralE [OF \<open>Integral (b, c) f x2\<close> \<open>0 < \<epsilon>/2\<close>] by auto
 
-  def \<delta> \<equiv> "\<lambda> x. if x < b then min (\<delta>1 x) (b - x)
-           else if x = b then min (\<delta>1 b) (\<delta>2 b)
-                         else min (\<delta>2 x) (x - b)"
+  define \<delta> where "\<delta> x =
+    (if x < b then min (\<delta>1 x) (b - x)
+     else if x = b then min (\<delta>1 b) (\<delta>2 b)
+     else min (\<delta>2 x) (x - b))" for x
 
   have "gauge {a..c} \<delta>"
     using \<delta>1_gauge \<delta>2_gauge unfolding \<delta>_def gauge_def by auto
@@ -410,8 +411,8 @@ proof (cases "a < b \<and> b < c", rule IntegralI)
 
     let ?D1 = "take N D"
     let ?D2 = "drop N D"
-    def D1 \<equiv> "take N D @ [(d, t, b)]"
-    def D2 \<equiv> "(if b = e then [] else [(b, t, e)]) @ drop (Suc N) D"
+    define D1 where "D1 = take N D @ [(d, t, b)]"
+    define D2 where "D2 = (if b = e then [] else [(b, t, e)]) @ drop (Suc N) D"
 
     from hd_drop_conv_nth[OF \<open>N < length D\<close>]
     have "fst (hd ?D2) = d" using \<open>D ! N = (d, t, e)\<close> by auto

@@ -61,7 +61,7 @@ lemma adm_disj_lemma1:
   assumes P: "\<forall>i. \<exists>j\<ge>i. P (Y j)"
   shows "P (\<Squnion>i. Y i)"
 proof -
-  def f \<equiv> "\<lambda>i. LEAST j. i \<le> j \<and> P (Y j)"
+  define f where "f i = (LEAST j. i \<le> j \<and> P (Y j))" for i
   have chain': "chain (\<lambda>i. Y (f i))"
     unfolding f_def
     apply (rule chainI)

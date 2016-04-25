@@ -35,7 +35,7 @@ lemma (in semidom_divide) power_diff:
   assumes "m \<ge> n"
   shows "a ^ (m - n) = (a ^ m) div (a ^ n)"
 proof -
-  def q == "m - n"
+  define q where "q = m - n"
   moreover with assms have "m = q + n" by (simp add: q_def)
   ultimately show ?thesis using \<open>a \<noteq> 0\<close> by (simp add: power_add)
 qed

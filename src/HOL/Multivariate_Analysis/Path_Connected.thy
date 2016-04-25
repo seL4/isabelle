@@ -563,7 +563,7 @@ lemma path_join_path_ends:
   assumes "path(g1 +++ g2)" "path g2" 
     shows "pathfinish g1 = pathstart g2"
 proof (rule ccontr)
-  def e \<equiv> "dist (g1 1) (g2 0)"
+  define e where "e = dist (g1 1) (g2 0)"
   assume Neg: "pathfinish g1 \<noteq> pathstart g2"
   then have "0 < dist (pathfinish g1) (pathstart g2)"
     by auto
@@ -1934,7 +1934,7 @@ next
     then obtain B::real where B: "0 < B" and Bx: "norm (a - x) < B" and By: "norm (a - y) < B"
                           and "s \<subseteq> ball a B"
       using bounded_subset_ballD [OF bxy, of a] by (auto simp: dist_norm)
-    def C == "B / norm(x - a)"
+    define C where "C = B / norm(x - a)"
     { fix u
       assume u: "(1 - u) *\<^sub>R x + u *\<^sub>R (a + C *\<^sub>R (x - a)) \<in> s" and "0 \<le> u" "u \<le> 1"
       have CC: "1 \<le> 1 + (C - 1) * u"
@@ -1969,7 +1969,7 @@ next
     }
     then have pcx: "path_component (- s) x (a + C *\<^sub>R (x - a))"
       by (force simp: closed_segment_def intro!: path_connected_linepath)
-    def D == "B / norm(y - a)"  \<comment>\<open>massive duplication with the proof above\<close>
+    define D where "D = B / norm(y - a)"  \<comment>\<open>massive duplication with the proof above\<close>
     { fix u
       assume u: "(1 - u) *\<^sub>R y + u *\<^sub>R (a + D *\<^sub>R (y - a)) \<in> s" and "0 \<le> u" "u \<le> 1"
       have DD: "1 \<le> 1 + (D - 1) * u"
@@ -2531,7 +2531,7 @@ next
   { assume "bounded (connected_component_set (- s) z)"
     with bounded_pos_less obtain B where "B>0" and B: "\<And>x. connected_component (- s) z x \<Longrightarrow> norm x < B"
       by (metis mem_Collect_eq)
-    def C \<equiv> "((B + 1 + norm z) / norm (z-a))"
+    define C where "C = (B + 1 + norm z) / norm (z-a)"
     have "C > 0"
       using \<open>0 < B\<close> zna by (simp add: C_def divide_simps add_strict_increasing)
     have "\<bar>norm (z + C *\<^sub>R (z-a)) - norm (C *\<^sub>R (z-a))\<bar> \<le> norm z"
@@ -2751,7 +2751,7 @@ proof -
       { fix \<gamma>
         assume "path \<gamma>" and pimg_sbs: "path_image \<gamma> - {pathfinish \<gamma>} \<subseteq> interior (- t)"
            and pf: "pathfinish \<gamma> \<in> frontier t" and ps: "pathstart \<gamma> = a"
-        def c \<equiv> "pathfinish \<gamma>"
+        define c where "c = pathfinish \<gamma>"
         have "c \<in> -s" unfolding c_def using front pf by blast
         moreover have "open (-s)" using s compact_imp_closed by blast
         ultimately obtain \<epsilon>::real where "\<epsilon> > 0" and \<epsilon>: "cball c \<epsilon> \<subseteq> -s"
@@ -3260,8 +3260,10 @@ proof -
        and geq: "\<forall>x. k1 (1, x) = g x" "\<forall>x. k2 (0, x) = g x"
        and k12: "\<forall>x. k1 (0, x) = f x" "\<forall>x. k2 (1, x) = h x"
        and P:   "\<forall>t\<in>{0..1}. P (\<lambda>x. k1 (t, x))" "\<forall>t\<in>{0..1}. P (\<lambda>x. k2 (t, x))"
-    def k \<equiv> "\<lambda>y. if fst y \<le> 1 / 2 then (k1 o (\<lambda>x. (2 *\<^sub>R fst x, snd x))) y
-                                   else (k2 o (\<lambda>x. (2 *\<^sub>R fst x -1, snd x))) y"
+    define k where "k y =
+      (if fst y \<le> 1 / 2
+       then (k1 o (\<lambda>x. (2 *\<^sub>R fst x, snd x))) y
+       else (k2 o (\<lambda>x. (2 *\<^sub>R fst x -1, snd x))) y)" for y
     have keq: "k1 (2 * u, v) = k2 (2 * u - 1, v)" if "u = 1/2"  for u v
       by (simp add: geq that)
     have "continuous_on ({0..1} \<times> X) k"

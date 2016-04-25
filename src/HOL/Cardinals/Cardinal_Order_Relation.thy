@@ -1431,7 +1431,7 @@ proof (rule ordIso_symmetric, unfold card_of_ordIso[symmetric], intro exI)
     show "?F ` Func A B = Func_option A B"
     proof safe
       fix f assume f: "f \<in> Func_option A B"
-      def g \<equiv> "\<lambda> a. case f a of Some b \<Rightarrow> b | None \<Rightarrow> undefined"
+      define g where [abs_def]: "g a = (case f a of Some b \<Rightarrow> b | None \<Rightarrow> undefined)" for a
       have "g \<in> Func A B"
       using f unfolding g_def Func_def Func_option_def by force+
       moreover have "f = ?F g"
@@ -1475,8 +1475,8 @@ assumes A12: "A1 \<subseteq> A2" and B: "B \<noteq> {}"
 shows "|Func A1 B| \<le>o |Func A2 B|"
 proof-
   obtain bb where bb: "bb \<in> B" using B by auto
-  def F \<equiv> "\<lambda> (f1::'a \<Rightarrow> 'b) a. if a \<in> A2 then (if a \<in> A1 then f1 a else bb)
-                                                else undefined"
+  define F where [abs_def]: "F f1 a =
+    (if a \<in> A2 then (if a \<in> A1 then f1 a else bb) else undefined)" for f1 :: "'a \<Rightarrow> 'b" and a
   show ?thesis unfolding card_of_ordLeq[symmetric] proof(intro exI[of _ F] conjI)
     show "inj_on F (Func A1 B)" unfolding inj_on_def proof safe
       fix f g assume f: "f \<in> Func A1 B" and g: "g \<in> Func A1 B" and eq: "F f = F g"
@@ -1523,7 +1523,7 @@ proof-
    hence "|X| \<le>o |Field r|" by (metis Field_card_of card_of_mono2)
    then obtain F where 1: "X = F ` (Field r)"
    using card_of_ordLeq2[OF X] by metis
-   def f \<equiv> "\<lambda> i. if i \<in> Field r then F i else undefined"
+   define f where [abs_def]: "f i = (if i \<in> Field r then F i else undefined)" for i
    have "\<exists> f \<in> Func (Field r) A. X = ?F f"
    apply (intro bexI[of _ f]) using 1 XA unfolding Func_def f_def by auto
   }
@@ -1586,7 +1586,7 @@ proof-
   hence rr: "Refl r" by (metis wo_rel.REFL)
   show ?thesis unfolding wo_rel.isLimOrd_def[OF 0] wo_rel.isSuccOrd_def[OF 0] proof safe
     fix j assume j: "j \<in> Field r" and jm: "\<forall>i\<in>Field r. (i, j) \<in> r"
-    def p \<equiv> "Restr r (Field r - {j})"
+    define p where "p = Restr r (Field r - {j})"
     have fp: "Field p = Field r - {j}"
     unfolding p_def apply(rule Refl_Field_Restr2[OF rr]) by auto
     have of: "ofilter r (Field p)" unfolding wo_rel.ofilter_def[OF 0] proof safe
@@ -1703,7 +1703,7 @@ unfolding stable_def proof safe
    ultimately obtain f where f: "f ` Sigma A F = Field r" using card_of_ordLeq2 by metis
    have r: "wo_rel r" using cr unfolding card_order_on_def wo_rel_def by auto
    {fix a assume a: "a \<in> A"
-    def L \<equiv> "{(a,u) | u. u \<in> F a}"
+    define L where "L = {(a,u) | u. u \<in> F a}"
     have fL: "f ` L \<subseteq> Field r" using f a unfolding L_def by auto
     have "|L| =o |F a|" unfolding L_def card_of_ordIso[symmetric]
     apply(rule exI[of _ snd]) unfolding bij_betw_def inj_on_def by (auto simp: image_def)
@@ -1717,7 +1717,7 @@ unfolding stable_def proof safe
    }
    then obtain gg where gg: "\<forall> a \<in> A. \<forall> u \<in> F a. (f (a,u), gg a) \<in> r" by metis
    obtain j0 where j0: "j0 \<in> Field r" using Fi by auto
-   def g \<equiv> "\<lambda> a. if F a \<noteq> {} then gg a else j0"
+   define g where [abs_def]: "g a = (if F a \<noteq> {} then gg a else j0)" for a
    have g: "\<forall> a \<in> A. \<forall> u \<in> F a. (f (a,u),g a) \<in> r" using gg unfolding g_def by auto
    hence 1: "Field r \<subseteq> (\<Union>a \<in> A. under r (g a))"
    using f[symmetric] unfolding under_def image_def by auto

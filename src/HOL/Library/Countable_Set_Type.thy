@@ -567,8 +567,8 @@ lemma rel_cset_aux:
    BNF_Def.Grp {x. rcset x \<subseteq> {(a, b). R a b}} (cimage snd)) a b" (is "?L = ?R")
 proof
   assume ?L
-  def R' \<equiv> "the_inv rcset (Collect (case_prod R) \<inter> (rcset a \<times> rcset b))"
-  (is "the_inv rcset ?L'")
+  define R' where "R' = the_inv rcset (Collect (case_prod R) \<inter> (rcset a \<times> rcset b))"
+    (is "_ = the_inv rcset ?L'")
   have L: "countable ?L'" by auto
   hence *: "rcset R' = ?L'" unfolding R'_def by (intro rcset_to_rcset)
   thus ?R unfolding Grp_def relcompp.simps conversep.simps including cset.lifting

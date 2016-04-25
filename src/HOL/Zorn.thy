@@ -609,7 +609,7 @@ theorem well_ordering: "\<exists>r::'a rel. Well_order r \<and> Field r = UNIV"
 proof -
 \<comment> \<open>The initial segment relation on well-orders:\<close>
   let ?WO = "{r::'a rel. Well_order r}"
-  def I \<equiv> "init_seg_of \<inter> ?WO \<times> ?WO"
+  define I where "I = init_seg_of \<inter> ?WO \<times> ?WO"
   have I_init: "I \<subseteq> init_seg_of" by (auto simp: I_def)
   hence subch: "\<And>R. R \<in> Chains I \<Longrightarrow> chain\<^sub>\<subseteq> R"
     unfolding init_seg_of_def chain_subset_def Chains_def by blast
@@ -732,7 +732,7 @@ lemma dependent_wf_choice:
   shows "\<exists>f. \<forall>x. P f x (f x)"
 proof (intro exI allI)
   fix x 
-  def f \<equiv> "wfrec R (\<lambda>f x. SOME r. P f x r)"
+  define f where "f \<equiv> wfrec R (\<lambda>f x. SOME r. P f x r)"
   from \<open>wf R\<close> show "P f x (f x)"
   proof (induct x)
     fix x assume "\<And>y. (y, x) \<in> R \<Longrightarrow> P f y (f y)"

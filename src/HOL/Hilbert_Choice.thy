@@ -110,7 +110,8 @@ lemma dependent_nat_choice:
            2: "\<And>x n. P n x \<Longrightarrow> \<exists>y. P (Suc n) y \<and> Q n x y"
   shows "\<exists>f. \<forall>n. P n (f n) \<and> Q n (f n) (f (Suc n))"
 proof (intro exI allI conjI)
-  fix n def f \<equiv> "rec_nat (SOME x. P 0 x) (\<lambda>n x. SOME y. P (Suc n) y \<and> Q n x y)"
+  fix n
+  define f where "f = rec_nat (SOME x. P 0 x) (\<lambda>n x. SOME y. P (Suc n) y \<and> Q n x y)"
   have "P 0 (f 0)" "\<And>n. P n (f n) \<Longrightarrow> P (Suc n) (f (Suc n)) \<and> Q n (f n) (f (Suc n))"
     using someI_ex[OF 1] someI_ex[OF 2] by (simp_all add: f_def)
   then show "P n (f n)" "Q n (f n) (f (Suc n))"
@@ -309,8 +310,8 @@ lemma infinite_countable_subset:
   shows "\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S"
   \<comment> \<open>Courtesy of Stephan Merz\<close>
 proof -
-  def Sseq \<equiv> "rec_nat S (\<lambda>n T. T - {SOME e. e \<in> T})"
-  def pick \<equiv> "\<lambda>n. (SOME e. e \<in> Sseq n)"
+  define Sseq where "Sseq = rec_nat S (\<lambda>n T. T - {SOME e. e \<in> T})"
+  define pick where "pick n = (SOME e. e \<in> Sseq n)" for n
   { fix n have "Sseq n \<subseteq> S" "\<not> finite (Sseq n)" by (induct n) (auto simp add: Sseq_def inf) }
   moreover then have *: "\<And>n. pick n \<in> Sseq n"
     unfolding pick_def by (subst (asm) finite.simps) (auto simp add: ex_in_conv intro: someI_ex)
@@ -746,7 +747,7 @@ proof -
     then show False by simp
   qed
   then obtain n where n: "f n = f (Suc n)" ..
-  def N \<equiv> "LEAST n. f n = f (Suc n)"
+  define N where "N = (LEAST n. f n = f (Suc n))"
   have N: "f N = f (Suc N)"
     unfolding N_def using n by (rule LeastI)
   show ?thesis

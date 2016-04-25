@@ -1071,7 +1071,7 @@ proof -
       by (simp add: fold_mset_def del: count_union)
   next
     case True
-    def N \<equiv> "set_mset M - {x}"
+    define N where "N = set_mset M - {x}"
     from N_def True have *: "set_mset M = insert x N" "x \<notin> N" "finite N" by auto
     then have "Finite_Set.fold (\<lambda>y. f y ^^ count (M + {#x#}) y) s N =
       Finite_Set.fold (\<lambda>y. f y ^^ count M y) s N"
@@ -2617,7 +2617,7 @@ next
   obtain j where j_len: "j < length xs'" and nth_j: "xs' ! j = x"
     by (metis Cons.prems in_set_conv_nth list.set_intros(1) mset_eq_setD)
 
-  def xsa \<equiv> "take j xs' @ drop (Suc j) xs'"
+  define xsa where "xsa = take j xs' @ drop (Suc j) xs'"
   have "mset xs' = {#x#} + mset xsa"
     unfolding xsa_def using j_len nth_j
     by (metis (no_types) ab_semigroup_add_class.add_ac(1) append_take_drop_id Cons_nth_drop_Suc
@@ -2628,7 +2628,7 @@ next
     len_a: "length ysa = length xsa" and ms_a: "mset (zip xsa ysa) = mset (zip xs ys)"
     using Cons.hyps(2) by blast
 
-  def ys' \<equiv> "take j ysa @ y # drop j ysa"
+  define ys' where "ys' = take j ysa @ y # drop j ysa"
   have xs': "xs' = take j xsa @ x # drop j xsa"
     using ms_x j_len nth_j Cons.prems xsa_def
     by (metis append_eq_append_conv append_take_drop_id diff_Suc_Suc Cons_nth_drop_Suc length_Cons

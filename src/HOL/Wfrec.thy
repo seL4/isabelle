@@ -37,7 +37,7 @@ lemma theI_unique: "\<exists>!x. P x \<Longrightarrow> P x \<longleftrightarrow>
 lemma wfrec_unique: assumes "adm_wf R F" "wf R" shows "\<exists>!y. wfrec_rel R F x y"
   using \<open>wf R\<close>
 proof induct
-  def f \<equiv> "\<lambda>y. THE z. wfrec_rel R F y z"
+  define f where "f y = (THE z. wfrec_rel R F y z)" for y
   case (less x)
   then have "\<And>y z. (y, x) \<in> R \<Longrightarrow> wfrec_rel R F y z \<longleftrightarrow> z = f y"
     unfolding f_def by (rule theI_unique)

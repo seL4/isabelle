@@ -928,7 +928,7 @@ lemma partial_division_extend_1:
 proof
   let ?B = "\<lambda>f::'a\<Rightarrow>'a \<times> 'a.
     cbox (\<Sum>i\<in>Basis. (fst (f i) \<bullet> i) *\<^sub>R i) (\<Sum>i\<in>Basis. (snd (f i) \<bullet> i) *\<^sub>R i)"
-  def p \<equiv> "?B ` (Basis \<rightarrow>\<^sub>E {(a, c), (c, d), (d, b)})"
+  define p where "p = ?B ` (Basis \<rightarrow>\<^sub>E {(a, c), (c, d), (d, b)})"
 
   show "cbox c d \<in> p"
     unfolding p_def
@@ -2004,10 +2004,7 @@ proof -
     apply (drule choice)
     apply blast
     done
-  def AB \<equiv> "\<lambda>n. (f ^^ n) (a,b)"
-  def A \<equiv> "\<lambda>n. fst(AB n)"
-  def B \<equiv> "\<lambda>n. snd(AB n)"
-  note ab_def = A_def B_def AB_def
+  define AB A B where ab_def: "AB n = (f ^^ n) (a,b)" "A n = fst(AB n)" "B n = snd(AB n)" for n
   have "A 0 = a" "B 0 = b" "\<And>n. \<not> P (cbox (A(Suc n)) (B(Suc n))) \<and>
     (\<forall>i\<in>Basis. A(n)\<bullet>i \<le> A(Suc n)\<bullet>i \<and> A(Suc n)\<bullet>i \<le> B(Suc n)\<bullet>i \<and> B(Suc n)\<bullet>i \<le> B(n)\<bullet>i \<and>
     2 * (B(Suc n)\<bullet>i - A(Suc n)\<bullet>i) \<le> B(n)\<bullet>i - A(n)\<bullet>i)" (is "\<And>n. ?P n")
@@ -3453,8 +3450,8 @@ lemma integrable_split[intro]:
     and "f integrable_on (cbox a b \<inter> {x. x\<bullet>k \<ge> c})" (is ?t2)
 proof -
   guess y using assms(1) unfolding integrable_on_def .. note y=this
-  def b' \<equiv> "\<Sum>i\<in>Basis. (if i = k then min (b\<bullet>k) c else b\<bullet>i)*\<^sub>R i::'a"
-  def a' \<equiv> "\<Sum>i\<in>Basis. (if i = k then max (a\<bullet>k) c else a\<bullet>i)*\<^sub>R i::'a"
+  define b' where "b' = (\<Sum>i\<in>Basis. (if i = k then min (b\<bullet>k) c else b\<bullet>i)*\<^sub>R i)"
+  define a' where "a' = (\<Sum>i\<in>Basis. (if i = k then max (a\<bullet>k) c else a\<bullet>i)*\<^sub>R i)"
   show ?t1 ?t2
     unfolding interval_split[OF k] integrable_cauchy
     unfolding interval_split[symmetric,OF k]
@@ -3954,7 +3951,7 @@ proof -
       by (simp add: "*" iterate_expand_cases)
   next
     case True
-    def su \<equiv> "support opp f s"
+    define su where "su = support opp f s"
     have fsu: "finite su"
       using True by (simp add: su_def)
     moreover
@@ -3976,7 +3973,7 @@ lemma operative_division:
       and "d division_of (cbox a b)"
     shows "iterate opp d f = f (cbox a b)"
 proof -
-  def C \<equiv> "card (division_points (cbox a b) d)"
+  define C where [abs_def]: "C = card (division_points (cbox a b) d)"
   then show ?thesis
     using assms
   proof (induct C arbitrary: a b d rule: full_nat_induct)
@@ -4079,10 +4076,10 @@ proof -
           done
         note this(2-4,1) note kc=this[unfolded interval_bounds[OF ab']]
         from this(3) guess j .. note j=this
-        def d1 \<equiv> "{l \<inter> {x. x\<bullet>k \<le> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
-        def d2 \<equiv> "{l \<inter> {x. x\<bullet>k \<ge> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}}"
-        def cb \<equiv> "(\<Sum>i\<in>Basis. (if i = k then c else b\<bullet>i) *\<^sub>R i)::'a"
-        def ca \<equiv> "(\<Sum>i\<in>Basis. (if i = k then c else a\<bullet>i) *\<^sub>R i)::'a"
+        define d1 where "d1 = {l \<inter> {x. x\<bullet>k \<le> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
+        define d2 where "d2 = {l \<inter> {x. x\<bullet>k \<ge> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}}"
+        define cb where "cb = (\<Sum>i\<in>Basis. (if i = k then c else b\<bullet>i) *\<^sub>R i)"
+        define ca where "ca = (\<Sum>i\<in>Basis. (if i = k then c else a\<bullet>i) *\<^sub>R i)"
         note division_points_psubset[OF \<open>d division_of cbox a b\<close> ab kc(1-2) j]
         note psubset_card_mono[OF _ this(1)] psubset_card_mono[OF _ this(2)]
         then have *: "(iterate opp d1 f) = f (cbox a b \<inter> {x. x\<bullet>k \<le> c})"
@@ -4734,7 +4731,7 @@ proof (cases "content (cbox a b) = 0")
     done
 next
   case False
-  def d \<equiv> "e / 3 / setprod (\<lambda>i. b\<bullet>i - a\<bullet>i) (Basis - {k})"
+  define d where "d = e / 3 / setprod (\<lambda>i. b\<bullet>i - a\<bullet>i) (Basis - {k})"
   note False[unfolded content_eq_0 not_ex not_le, rule_format]
   then have "\<And>x. x \<in> Basis \<Longrightarrow> b\<bullet>x > a\<bullet>x"
     by (auto simp add:not_le)
@@ -5227,7 +5224,7 @@ next
       next
         fix x k
         assume xk: "(x, k) \<in> p"
-        def n \<equiv> "nat \<lfloor>norm (f x)\<rfloor>"
+        define n where "n = nat \<lfloor>norm (f x)\<rfloor>"
         have *: "norm (f x) \<in> (\<lambda>(x, k). norm (f x)) ` p"
           using xk by auto
         have nfx: "real n \<le> norm (f x)" "norm (f x) \<le> real n + 1"
@@ -6085,7 +6082,7 @@ lemma (in bounded_bilinear) setsum_prod_derivatives_has_vector_derivative:
   using assms
 proof cases
   assume p: "p \<noteq> 1"
-  def p' \<equiv> "p - 2"
+  define p' where "p' = p - 2"
   from assms p have p': "{..<p} = {..Suc p'}" "p = Suc (Suc p')"
     by (auto simp: p'_def)
   have *: "\<And>i. i \<le> p' \<Longrightarrow> Suc (Suc p' - i) = (Suc (Suc p') - i)"
@@ -6125,8 +6122,9 @@ proof goal_cases
   case 1
   interpret bounded_bilinear "scaleR::real\<Rightarrow>'a\<Rightarrow>'a"
     by (rule bounded_bilinear_scaleR)
-  def g \<equiv> "\<lambda>s. (b - s)^(p - 1)/fact (p - 1)"
-  def Dg \<equiv> "\<lambda>n s. if n < p then (-1)^n * (b - s)^(p - 1 - n) / fact (p - 1 - n) else 0"
+  define g where "g s = (b - s)^(p - 1)/fact (p - 1)" for s
+  define Dg where [abs_def]:
+    "Dg n s = (if n < p then (-1)^n * (b - s)^(p - 1 - n) / fact (p - 1 - n) else 0)" for n s
   have g0: "Dg 0 = g"
     using \<open>p > 0\<close>
     by (auto simp add: Dg_def divide_simps g_def split: if_split_asm)
@@ -6253,8 +6251,8 @@ proof (induct "card s" arbitrary: s rule: nat_less_induct)
       using s(3)[OF k(1),unfolded k] unfolding box_ne_empty by auto
     then have xi: "x\<bullet>i = d\<bullet>i"
       using as unfolding k mem_box by (metis antisym)
-    def y \<equiv> "\<Sum>j\<in>Basis. (if j = i then if c\<bullet>i \<le> (a\<bullet>i + b\<bullet>i) / 2 then c\<bullet>i +
-      min e (b\<bullet>i - c\<bullet>i) / 2 else c\<bullet>i - min e (c\<bullet>i - a\<bullet>i) / 2 else x\<bullet>j) *\<^sub>R j"
+    define y where "y = (\<Sum>j\<in>Basis. (if j = i then if c\<bullet>i \<le> (a\<bullet>i + b\<bullet>i) / 2 then c\<bullet>i +
+      min e (b\<bullet>i - c\<bullet>i) / 2 else c\<bullet>i - min e (c\<bullet>i - a\<bullet>i) / 2 else x\<bullet>j) *\<^sub>R j)"
     show "\<exists>x'\<in>\<Union>(s - {k}). x' \<noteq> x \<and> dist x' x < e"
       apply (rule_tac x=y in bexI)
     proof
@@ -6619,7 +6617,7 @@ proof -
     assume e: "e > 0"
     with assms(1) have "e * r > 0" by simp
     from assms(8)[unfolded has_integral,rule_format,OF this] guess d by (elim exE conjE) note d=this[rule_format]
-    def d' \<equiv> "\<lambda>x. {y. g y \<in> d (g x)}"
+    define d' where "d' x = {y. g y \<in> d (g x)}" for x
     have d': "\<And>x. d' x = {y. g y \<in> (d (g x))}"
       unfolding d'_def ..
     show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of h ` cbox a b \<and> d fine p \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i) < e)"
@@ -7590,7 +7588,7 @@ proof -
     done
   from integrable_integral[OF this,unfolded has_integral_real,rule_format,OF *] guess d1 ..
   note d1 = conjunctD2[OF this,rule_format]
-  def d \<equiv> "\<lambda>x. ball x w \<inter> d1 x"
+  define d where [abs_def]: "d x = ball x w \<inter> d1 x" for x
   have "gauge d"
     unfolding d_def using w(1) d1 by auto
   note this[unfolded gauge_def,rule_format,of c]
@@ -7628,7 +7626,7 @@ proof -
       done
     from integrable_integral[OF this,unfolded has_integral_real,rule_format,OF *] guess d2 ..
     note d2 = conjunctD2[OF this,rule_format]
-    def d3 \<equiv> "\<lambda>x. if x \<le> t then d1 x \<inter> d2 x else d1 x"
+    define d3 where "d3 x = (if x \<le> t then d1 x \<inter> d2 x else d1 x)" for x
     have "gauge d3"
       using d2(1) d1(1) unfolding d3_def gauge_def by auto
     from fine_division_exists_real[OF this, of a t] guess p . note p=this
@@ -8072,7 +8070,7 @@ lemma has_integral_restrict_open_subinterval:
     and "cbox c d \<subseteq> cbox a b"
   shows "((\<lambda>x. if x \<in> box c d then f x else 0) has_integral i) (cbox a b)"
 proof -
-  def g \<equiv> "\<lambda>x. if x \<in>box c d then f x else 0"
+  define g where [abs_def]: "g x = (if x \<in>box c d then f x else 0)" for x
   {
     presume *: "cbox c d \<noteq> {} \<Longrightarrow> ?thesis"
     show ?thesis
@@ -8264,8 +8262,8 @@ proof -
   next
     assume as: "\<forall>e>0. ?r e"
     from this[rule_format,OF zero_less_one] guess C .. note C=conjunctD2[OF this,rule_format]
-    def c \<equiv> "(\<Sum>i\<in>Basis. (- max B C) *\<^sub>R i)::'n"
-    def d \<equiv> "(\<Sum>i\<in>Basis. max B C *\<^sub>R i)::'n"
+    define c :: 'n where "c = (\<Sum>i\<in>Basis. (- max B C) *\<^sub>R i)"
+    define d :: 'n where "d = (\<Sum>i\<in>Basis. max B C *\<^sub>R i)"
     have c_d: "cbox a b \<subseteq> cbox c d"
       apply safe
       apply (drule B(2))
@@ -8300,8 +8298,8 @@ proof -
       then have "0 < norm (y - i)"
         by auto
       from as[rule_format,OF this] guess C ..  note C=conjunctD2[OF this,rule_format]
-      def c \<equiv> "(\<Sum>i\<in>Basis. (- max B C) *\<^sub>R i)::'n"
-      def d \<equiv> "(\<Sum>i\<in>Basis. max B C *\<^sub>R i)::'n"
+      define c :: 'n where "c = (\<Sum>i\<in>Basis. (- max B C) *\<^sub>R i)"
+      define d :: 'n where "d = (\<Sum>i\<in>Basis. max B C *\<^sub>R i)"
       have c_d: "cbox a b \<subseteq> cbox c d"
         apply safe
         apply (drule B(2))
@@ -8895,8 +8893,8 @@ proof -
     note conjunctD2[OF this, rule_format]
     note h = this(1) and this(2)[OF *]
     from this(2) guess B2 .. note B2 = conjunctD2[OF this,rule_format]
-    def c \<equiv> "\<Sum>i\<in>Basis. min (a\<bullet>i) (- (max B1 B2)) *\<^sub>R i::'n"
-    def d \<equiv> "\<Sum>i\<in>Basis. max (b\<bullet>i) (max B1 B2) *\<^sub>R i::'n"
+    define c :: 'n where "c = (\<Sum>i\<in>Basis. min (a\<bullet>i) (- (max B1 B2)) *\<^sub>R i)"
+    define d :: 'n where "d = (\<Sum>i\<in>Basis. max (b\<bullet>i) (max B1 B2) *\<^sub>R i)"
     have *: "ball 0 B1 \<subseteq> cbox c d" "ball 0 B2 \<subseteq> cbox c d"
       apply safe
       unfolding mem_ball mem_box dist_norm
@@ -9283,7 +9281,7 @@ proof -
     using p'(3) by fastforce
   note partial_division_of_tagged_division[OF p(1)] this
   from partial_division_extend_interval[OF this] guess q . note q=this and q' = division_ofD[OF this(2)]
-  def r \<equiv> "q - snd ` p"
+  define r where "r = q - snd ` p"
   have "snd ` p \<inter> r = {}"
     unfolding r_def by auto
   have r: "finite r"
@@ -9567,7 +9565,7 @@ lemma sum_gp_basic:
   fixes x :: "'a::ring_1"
   shows "(1 - x) * setsum (\<lambda>i. x^i) {0 .. n} = (1 - x^(Suc n))"
 proof -
-  def y \<equiv> "1 - x"
+  define y where "y = 1 - x"
   have "y * (\<Sum>i=0..n. (1 - y) ^ i) = 1 - (1 - y) ^ Suc n"
     by (induct n) (simp_all add: algebra_simps)
   then show ?thesis
@@ -9745,8 +9743,7 @@ next
         done
     qed
     from bchoice[OF this] guess m .. note m=conjunctD2[OF this[rule_format],rule_format]
-    def d \<equiv> "\<lambda>x. c (m x) x"
-
+    define d where "d x = c (m x) x" for x
     show ?case
       apply (rule_tac x=d in exI)
     proof safe
@@ -10548,7 +10545,7 @@ proof -
       assume "p tagged_division_of (cbox a b)" and "?g fine p"
       note p = this(1) conjunctD2[OF this(2)[unfolded fine_inter]]
       note p' = tagged_division_ofD[OF p(1)]
-      def p' \<equiv> "{(x,k) | x k. \<exists>i l. x \<in> i \<and> i \<in> d \<and> (x,l) \<in> p \<and> k = i \<inter> l}"
+      define p' where "p' = {(x,k) | x k. \<exists>i l. x \<in> i \<and> i \<in> d \<and> (x,l) \<in> p \<and> k = i \<inter> l}"
       have gp': "g fine p'"
         using p(2)
         unfolding p'_def fine_def
@@ -10705,7 +10702,7 @@ proof -
         proof (rule setsum_mono, goal_cases)
           case k: (1 k)
           from d'(4)[OF this] guess u v by (elim exE) note uv=this
-          def d' \<equiv> "{cbox u v \<inter> l |l. l \<in> snd ` p \<and>  cbox u v \<inter> l \<noteq> {}}"
+          define d' where "d' = {cbox u v \<inter> l |l. l \<in> snd ` p \<and>  cbox u v \<inter> l \<noteq> {}}"
           note uvab = d'(2)[OF k[unfolded uv]]
           have "d' division_of cbox u v"
             apply (subst d'_def)
@@ -11609,8 +11606,8 @@ lemma continuous_on_prod_compactE:
   obtains X0 where "x0 \<in> X0" "open X0"
     "\<forall>x\<in>X0 \<inter> U. \<forall>t \<in> C. dist (fx (x, t)) (fx (x0, t)) \<le> e"
 proof -
-  def psi \<equiv> "\<lambda>(x, t). dist (fx (x, t)) (fx (x0, t))"
-  def W0 \<equiv> "{(x, t) \<in> U \<times> C. psi (x, t) < e}"
+  define psi where "psi = (\<lambda>(x, t). dist (fx (x, t)) (fx (x0, t)))"
+  define W0 where "W0 = {(x, t) \<in> U \<times> C. psi (x, t) < e}"
   have W0_eq: "W0 = psi -` {..<e} \<inter> U \<times> C"
     by (auto simp: vimage_def W0_def)
   have "open {..<e}" by simp
@@ -11668,7 +11665,7 @@ proof cases
   proof (safe intro!: tendstoI)
     fix e'::real and x
     assume "e' > 0"
-    def e \<equiv> "e' / (content (cbox a b) + 1)"
+    define e where "e = e' / (content (cbox a b) + 1)"
     have "e > 0" using \<open>e' > 0\<close> by (auto simp: e_def intro!: divide_pos_pos add_nonneg_pos)
     assume "x \<in> U"
     from continuous_on_prod_compactE[OF cont_fx compact_cbox \<open>x \<in> U\<close> \<open>0 < e\<close>]
@@ -11744,7 +11741,7 @@ proof cases
     note [continuous_intros] = continuous_on_compose2[OF cont_f1]
     fix e'::real
     assume "e' > 0"
-    def e \<equiv> "e' / (content (cbox a b) + 1)"
+    define e where "e = e' / (content (cbox a b) + 1)"
     have "e > 0" using \<open>e' > 0\<close> by (auto simp: e_def intro!: divide_pos_pos add_nonneg_pos)
     from continuous_on_prod_compactE[OF cont_fx compact_cbox \<open>x0 \<in> U\<close> \<open>e > 0\<close>]
     obtain X0 where X0: "x0 \<in> X0" "open X0"
@@ -11916,7 +11913,7 @@ proof -
     proof (rule tendstoI)
       fix e::real
       assume "e > 0"
-      def e' \<equiv> "e / 2"
+      define e' where "e' = e / 2"
       with \<open>e > 0\<close> have "e' > 0" by simp
       then have "\<forall>\<^sub>F n in F. \<forall>x\<in>cbox a b. norm (f n x - g x) < e' / content (cbox a b)"
         using u content_nonzero content_pos_le[of a b]

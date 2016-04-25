@@ -195,7 +195,7 @@ next
     then obtain a' where a'lea [arith]: "a' > a" and
       a_prop: "F a' - F a < epsilon / 2"
       by auto
-    def S' \<equiv> "{i. l i < r i}"
+    define S' where "S' = {i. l i < r i}"
     obtain S :: "nat set" where
       "S \<subseteq> S'" and finS: "finite S" and
       Sprop: "{a'..b} \<subseteq> (\<Union>i \<in> S. {l i<..<r i + delta i})"

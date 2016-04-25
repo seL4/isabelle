@@ -372,7 +372,7 @@ proof (simp add: countably_subadditive_def, safe)
       and Ble: "\<And>n. (\<Sum>i. f (B n i)) \<le> ?O (A n) + e * (1/2)^(Suc n)"
       by (metis less_imp_le outer_measure_close[OF *])
 
-    def C \<equiv> "case_prod B o prod_decode"
+    define C where "C = case_prod B o prod_decode"
     from B have B_in_M: "\<And>i j. B i j \<in> M"
       by (rule range_subsetD)
     then have C: "range C \<subseteq> M"
@@ -469,7 +469,7 @@ proof -
   have inc: "increasing M f"
     by (metis additive_increasing ca countably_additive_additive posf)
   let ?O = "outer_measure M f"
-  def ls \<equiv> "lambda_system \<Omega> (Pow \<Omega>) ?O"
+  define ls where "ls = lambda_system \<Omega> (Pow \<Omega>) ?O"
   have mls: "measure_space \<Omega> ls ?O"
     using sigma_algebra.caratheodory_lemma
             [OF sigma_algebra_Pow outer_measure_space_outer_measure [OF posf inc]]
@@ -660,7 +660,7 @@ proof -
       have "F' i \<inter> F' j = {}"
         by auto }
     note F'_disj = this
-    def F \<equiv> "\<lambda>i. if i < card C then F' i else {}"
+    define F where "F i = (if i < card C then F' i else {})" for i
     then have "disjoint_family F"
       using F'_disj by (auto simp: disjoint_family_on_def)
     moreover from F' have "(\<Union>i. F i) = \<Union>C"
@@ -704,7 +704,7 @@ proof -
     from generated_ringE[OF Un_A] guess C' . note C' = this
 
     { fix c assume "c \<in> C'"
-      moreover def A \<equiv> "\<lambda>i. A' i \<inter> c"
+      moreover define A where [abs_def]: "A i = A' i \<inter> c" for i
       ultimately have A: "range A \<subseteq> generated_ring" "disjoint_family A"
         and Un_A: "(\<Union>i. A i) \<in> generated_ring"
         using A' C'
@@ -722,7 +722,7 @@ proof -
         have "\<exists>F'. bij_betw F' {..<card C} C"
           by (rule finite_same_card_bij[OF _ \<open>finite C\<close>]) auto
         then guess F .. note F = this
-        def f \<equiv> "\<lambda>i. if i < card C then F i else {}"
+        define f where [abs_def]: "f i = (if i < card C then F i else {})" for i
         then have f: "bij_betw f {..< card C} C"
           by (intro bij_betw_cong[THEN iffD1, OF _ F]) auto
         with C have "\<forall>j. f j \<in> M"

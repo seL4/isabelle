@@ -212,11 +212,11 @@ proof -
     using emeasure_lborel_countable[OF D_countable]
     by (subst emeasure_restrict_space) auto
 
-  def Y' \<equiv> "\<lambda>\<omega>. if \<omega> \<in> ?D then 0 else M.I \<omega>"
+  define Y' where "Y' \<omega> = (if \<omega> \<in> ?D then 0 else M.I \<omega>)" for \<omega>
   have Y'_AE: "AE \<omega> in ?\<Omega>. Y' \<omega> = M.I \<omega>"
     by (rule AE_I [OF _ D]) (auto simp: space_restrict_space sets_restrict_space_iff Y'_def)
 
-  def Y_seq' \<equiv> "\<lambda>n \<omega>. if \<omega> \<in> ?D then 0 else \<mu>.I n \<omega>"
+  define Y_seq' where "Y_seq' n \<omega> = (if \<omega> \<in> ?D then 0 else \<mu>.I n \<omega>)" for n \<omega>
   have Y_seq'_AE: "\<And>n. AE \<omega> in ?\<Omega>. Y_seq' n \<omega> = \<mu>.I n \<omega>"
     by (rule AE_I [OF _ D]) (auto simp: space_restrict_space sets_restrict_space_iff Y_seq'_def)
 

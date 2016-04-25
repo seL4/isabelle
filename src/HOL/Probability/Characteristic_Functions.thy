@@ -308,7 +308,7 @@ proof -
   have integ_iexp: "integrable M (\<lambda>x. iexp (t * x))"
     by (intro integrable_const_bound) auto
   
-  def c \<equiv> "\<lambda>k x. (ii * t)^k / fact k * complex_of_real (x^k)"
+  define c where [abs_def]: "c k x = (ii * t)^k / fact k * complex_of_real (x^k)" for k x
   have integ_c: "\<And>k. k \<le> n \<Longrightarrow> integrable M (\<lambda>x. c k x)"
     unfolding c_def by (intro integrable_mult_right integrable_of_real integrable_moments)
   
@@ -343,7 +343,7 @@ proof -
   have integ_iexp: "integrable M (\<lambda>x. iexp (t * x))"
     by (intro integrable_const_bound) auto
   
-  def c \<equiv> "\<lambda>k x. (ii * t)^k / fact k * complex_of_real (x^k)"
+  define c where [abs_def]: "c k x = (ii * t)^k / fact k * complex_of_real (x^k)" for k x
   have integ_c: "\<And>k. k \<le> n \<Longrightarrow> integrable M (\<lambda>x. c k x)"
     unfolding c_def by (intro integrable_mult_right integrable_of_real integrable_moments)
 

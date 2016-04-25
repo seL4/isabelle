@@ -3468,7 +3468,7 @@ proof
     case (3 x1 x2 xs ys)
     let ?xs = "x1 # x2 # xs"
     let ?cond = "x1 = x2"
-    def zs \<equiv> "remdups_adj (x2 # xs)"
+    define zs where "zs = remdups_adj (x2 # xs)"
     from 3(1-2)[of zs]
     obtain f where p: "?p f (x2 # xs) zs" unfolding zs_def by (cases ?cond) auto
     then have f0: "f 0 = 0"
@@ -3585,7 +3585,7 @@ next
         apply (rename_tac [2] ys', case_tac [2] ys')
         by (auto simp: \<open>f 0 = 0\<close> \<open>f (Suc 0) = Suc 0\<close>)
 
-      def f' \<equiv> "\<lambda>x. f (Suc x) - 1"
+      define f' where "f' x = f (Suc x) - 1" for x
 
       { fix i
         have "Suc 0 \<le> f (Suc 0)" using f_nth[of 0] \<open>x1 \<noteq> x2\<close> \<open>f 0 = 0\<close>  by auto
@@ -4046,8 +4046,8 @@ lemma comm_append_are_replicate:
 proof (induct "length (xs @ ys)" arbitrary: xs ys rule: less_induct)
   case less
 
-  def xs' \<equiv> "if (length xs \<le> length ys) then xs else ys"
-    and ys' \<equiv> "if (length xs \<le> length ys) then ys else xs"
+  define xs' ys' where "xs' = (if (length xs \<le> length ys) then xs else ys)"
+    and "ys' = (if (length xs \<le> length ys) then ys else xs)"
   then have
     prems': "length xs' \<le> length ys'"
             "xs' @ ys' = ys' @ xs'"
@@ -4499,7 +4499,7 @@ lemma nth_transpose:
   shows "transpose xs ! i = map (\<lambda>xs. xs ! i) [ys \<leftarrow> xs. i < length ys]"
 using assms proof (induct arbitrary: i rule: transpose.induct)
   case (3 x xs xss)
-  def XS == "(x # xs) # xss"
+  define XS where "XS = (x # xs) # xss"
   hence [simp]: "XS \<noteq> []" by auto
   thus ?case
   proof (cases i)
