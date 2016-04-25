@@ -44,10 +44,13 @@ fun cert_def ctxt eq =
     fun err msg =
       cat_error msg ("The error(s) above occurred in definition:\n" ^
         quote (Syntax.string_of_term ctxt eq));
-    val is_fixed = if Variable.is_body ctxt then NONE else SOME (Variable.is_fixed ctxt);
     val ((lhs, _), eq') = eq
       |> Sign.no_vars ctxt
-      |> Primitive_Defs.dest_def ctxt Term.is_Free is_fixed (K true)
+      |> Primitive_Defs.dest_def ctxt
+        {check_head = Term.is_Free,
+         check_free_lhs = not o Variable.is_fixed ctxt,
+         check_free_rhs = if Variable.is_body ctxt then K true else Variable.is_fixed ctxt,
+         check_tfree = K true}
       handle TERM (msg, _) => err msg | ERROR msg => err msg;
   in (Term.dest_Free (Term.head_of lhs), eq') end;
 
