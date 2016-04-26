@@ -694,13 +694,9 @@ fun gen_assume prep_var prep_propp prep_att export raw_fixes raw_prems raw_concl
     val ctxt = context_of state;
 
     val bindings = map (apsnd (map (prep_att ctxt)) o fst) raw_concls;
-    val (params, prems_propss, concl_propss, result_binds) =
-      #1 (prep_clause prep_var prep_propp raw_fixes raw_prems (map snd raw_concls) ctxt);
-
-    fun close prop =
-      fold_rev Logic.dependent_all_name params
-        (Logic.list_implies (flat prems_propss, prop));
-    val propss = (map o map) close concl_propss;
+    val ((params, prems_propss, concl_propss, result_binds), _) =
+      prep_clause prep_var prep_propp raw_fixes raw_prems (map snd raw_concls) ctxt;
+    val propss = (map o map) (Logic.close_prop params (flat prems_propss)) concl_propss;
   in
     state
     |> assert_forward
@@ -893,45 +889,37 @@ end;
 
 local
 
-fun match_defs (((b, _, mx), x) :: more_decls) ((((a, _), t), _) :: more_defs) =
-      if x = a then ((b, mx), (Thm.empty_binding, t)) :: match_defs more_decls more_defs
-      else error ("Mismatch of declaration " ^ quote x ^ " wrt. definition " ^ quote a)
-  | match_defs [] [] = []
-  | match_defs more_decls more_defs =
-      error ("Mismatch of declarations " ^ commas_quote (map #2 more_decls) ^
-        (if null more_decls then "" else " ") ^
-        "wrt. definitions " ^ commas_quote (map (#1 o #1 o #1) more_defs));
-
-fun invisible_fixes vars ctxt = ctxt
-  |> Context_Position.set_visible false
-  |> Proof_Context.add_fixes vars |> #2
-  |> Context_Position.restore_visible ctxt;
-
-fun gen_define prep_spec prep_att raw_vars raw_fixes raw_defs state =
+fun gen_define prep_statement prep_att raw_decls raw_fixes raw_defs state =
   let
     val _ = assert_forward state;
     val ctxt = context_of state;
 
     (*vars*)
-    val n_vars = length raw_vars;
-    val (((all_vars, _, all_params), defss, _, binds'), _) =
-      prep_spec (raw_vars @ raw_fixes) (map snd raw_defs) ctxt;
-    val (vars, fixes) = chop n_vars all_vars;
-    val (params, _) = chop n_vars all_params;
+    val ((vars, propss, _, binds'), vars_ctxt) =
+      prep_statement (raw_decls @ raw_fixes) (map snd raw_defs) ctxt;
+    val (decls, fixes) = chop (length raw_decls) vars;
+    val show_term = Syntax.string_of_term vars_ctxt;
 
     (*defs*)
-    val derived_def = Local_Defs.derived_def (invisible_fixes vars ctxt) {conditional = false};
-    val defs1 = map derived_def (flat defss);
-    val defs2 = match_defs (vars ~~ map (#1 o dest_Free) params) defs1;
-    val (defs3, defs_ctxt) = Local_Defs.add_defs defs2 ctxt;
+    fun match_defs (((b, _, mx), (_, Free (x, T))) :: more_decls) ((((y, U), t), _) :: more_defs) =
+          if x = y then ((b, mx), (Thm.empty_binding, t)) :: match_defs more_decls more_defs
+          else
+            error ("Mismatch of declaration " ^ show_term (Free (x, T)) ^ " wrt. definition " ^
+              show_term (Free (y, U)))
+      | match_defs [] [] = []
+      | match_defs more_decls more_defs =
+          error ("Mismatch of declarations " ^ commas (map (show_term o #2 o #2) more_decls) ^
+            (if null more_decls then "" else " ") ^
+            "wrt. definitions " ^ commas (map (show_term o Free o #1 o #1) more_defs));
 
-    (*fixes*)
-    val fixes_ctxt = invisible_fixes fixes defs_ctxt;
-    val export = singleton (Variable.export fixes_ctxt defs_ctxt);
+    val derived_def = Local_Defs.derived_def ctxt {conditional = false};
+    val defs1 = map (derived_def o Logic.close_prop (map #2 fixes) []) (flat propss);
+    val defs2 = match_defs decls defs1;
+    val (defs3, defs_ctxt) = Local_Defs.add_defs defs2 ctxt;
 
     (*notes*)
     val def_thmss =
-      map (fn (((_, prove), ((b, _), _)), (_, (_, th))) => (b, export (prove fixes_ctxt th)))
+      map (fn (((_, prove), ((b, _), _)), (_, (_, th))) => (b, prove defs_ctxt th))
         (defs1 ~~ defs2 ~~ defs3)
       |> unflat (map snd raw_defs);
     val notes =
@@ -947,8 +935,8 @@ fun gen_define prep_spec prep_att raw_vars raw_fixes raw_defs state =
 
 in
 
-val define = gen_define Proof_Context.cert_spec (K I);
-val define_cmd = gen_define Proof_Context.read_spec Attrib.attribute_cmd;
+val define = gen_define Proof_Context.cert_statement (K I);
+val define_cmd = gen_define Proof_Context.read_statement Attrib.attribute_cmd;
 
 end;
 

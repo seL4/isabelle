@@ -193,27 +193,27 @@ end;
 
 local
 
-fun gen_obtain prep_spec prep_att that_binding raw_vars raw_asms int state =
+fun gen_obtain prep_statement prep_att that_binding raw_vars raw_asms int state =
   let
     val _ = Proof.assert_forward_or_chain state;
 
     val ((_, thesis), thesis_ctxt) = obtain_thesis (Proof.context_of state);
+    val ((vars, propss, binds, binds'), params_ctxt) =
+      prep_statement raw_vars (map #2 raw_asms) thesis_ctxt;
+    val params = map #2 vars;
+    val that_prop =
+      Logic.list_rename_params (map #1 params)
+        (fold_rev Logic.all (map #2 params) (Logic.list_implies (flat propss, thesis)));
 
-    val (((vars, xs, params), propss, binds, binds'), params_ctxt) =
-      prep_spec raw_vars (map #2 raw_asms) thesis_ctxt;
-    val cparams = map (Thm.cterm_of params_ctxt) params;
+    val cparams = map (Thm.cterm_of params_ctxt o #2 o #2) vars;
     val asms =
       map (fn ((b, raw_atts), _) => (b, map (prep_att params_ctxt) raw_atts)) raw_asms ~~
       map (map (rpair [])) propss;
 
-    val that_prop =
-      Logic.list_rename_params xs
-        (fold_rev Logic.all params (Logic.list_implies (flat propss, thesis)));
-
     fun after_qed (result_ctxt, results) state' =
       let val [rule] = Proof_Context.export result_ctxt (Proof.context_of state') (flat results) in
         state'
-        |> Proof.fix vars
+        |> Proof.fix (map #1 vars)
         |> Proof.map_context (fold Variable.bind_term binds)
         |> Proof.assm (obtain_export params_ctxt rule cparams) [] [] asms
       end;
@@ -229,8 +229,8 @@ fun gen_obtain prep_spec prep_att that_binding raw_vars raw_asms int state =
 
 in
 
-val obtain = gen_obtain Proof_Context.cert_spec (K I);
-val obtain_cmd = gen_obtain Proof_Context.read_spec Attrib.attribute_cmd;
+val obtain = gen_obtain Proof_Context.cert_statement (K I);
+val obtain_cmd = gen_obtain Proof_Context.read_statement Attrib.attribute_cmd;
 
 end;
 
