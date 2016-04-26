@@ -320,8 +320,13 @@ case "$PLATFORM_FAM" in
           "contrib/cygwin/isabelle/."
       done
 
-      find . -type f -not -name '*.exe' -not -name '*.dll' -perm +100 \
-        -print0 > "contrib/cygwin/isabelle/executables"
+      if [ "$ISABELLE_PLATFORM_FAMILY" = macos ]; then
+        find . -type f -not -name '*.exe' -not -name '*.dll' -perm +100 \
+          -print0 > "contrib/cygwin/isabelle/executables"
+      else
+        find . -type f -not -name '*.exe' -not -name '*.dll' -executable \
+          -print0 > "contrib/cygwin/isabelle/executables"
+      fi
 
       find . -type l -exec echo "{}" ";" -exec readlink "{}" ";" \
         > "contrib/cygwin/isabelle/symlinks"

@@ -180,7 +180,7 @@ EOF
 
 echo "### Preparing distribution $DISTNAME"
 
-find . "(" -name \*.thy -o -name \*.ML -o -name \*.scala ")" -perm +111 -print | xargs chmod -f -x
+find . "(" -name \*.thy -o -name \*.ML -o -name \*.scala ")" -print | xargs chmod -f -x
 find . -print | xargs chmod -f u+rw
 
 export CLASSPATH="$ISABELLE_CLASSPATH"
