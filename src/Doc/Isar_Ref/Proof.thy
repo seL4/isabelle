@@ -1322,8 +1322,12 @@ text \<open>
   @{rail \<open>
     @@{command consider} @{syntax obtain_clauses}
     ;
-    @@{command obtain} @{syntax par_name}? (@{syntax "fixes"} + @'and')
-      @'where' (@{syntax props} + @'and')
+    @@{command obtain} @{syntax par_name}? (@{syntax "fixes"} + @'and') \<newline>
+      @'where' concl prems @{syntax for_fixes}
+    ;
+    concl: (@{syntax props} + @'and')
+    ;
+    prems: (@'if' (@{syntax props'} + @'and'))?
     ;
     @@{command guess} (@{syntax "fixes"} + @'and')
   \<close>}

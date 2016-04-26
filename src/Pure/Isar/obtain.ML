@@ -15,8 +15,10 @@ sig
   val consider: Element.obtains_i -> bool -> Proof.state -> Proof.state
   val consider_cmd: Element.obtains -> bool -> Proof.state -> Proof.state
   val obtain: binding -> (binding * typ option * mixfix) list ->
+    (binding * typ option * mixfix) list -> (term * term list) list list ->
     (Thm.binding * (term * term list) list) list -> bool -> Proof.state -> Proof.state
   val obtain_cmd: binding -> (binding * string option * mixfix) list ->
+    (binding * string option * mixfix) list -> (string * string list) list list ->
     (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val result: (Proof.context -> tactic) -> thm list -> Proof.context ->
     ((string * cterm) list * thm list) * Proof.context
@@ -193,28 +195,32 @@ end;
 
 local
 
-fun gen_obtain prep_stmt prep_att that_binding raw_vars raw_asms int state =
+fun gen_obtain prep_stmt prep_att that_binding raw_decls raw_fixes raw_prems raw_concls int state =
   let
     val _ = Proof.assert_forward_or_chain state;
 
     val ((_, thesis), thesis_ctxt) = obtain_thesis (Proof.context_of state);
-    val ((vars, propss, binds, binds'), params_ctxt) =
-      prep_stmt raw_vars (map #2 raw_asms) thesis_ctxt;
-    val params = map #2 vars;
-    val that_prop =
-      Logic.list_rename_params (map #1 params)
-        (fold_rev Logic.all (map #2 params) (Logic.list_implies (flat propss, thesis)));
 
-    val cparams = map (Thm.cterm_of params_ctxt o #2 o #2) vars;
+    val ((vars, propss, binds, binds'), params_ctxt) =
+      prep_stmt (raw_decls @ raw_fixes) (raw_prems @ map #2 raw_concls) thesis_ctxt;
+    val (decls, fixes) = chop (length raw_decls) vars ||> map #2;
+    val (premss, conclss) = chop (length raw_prems) propss;
+    val propss' = (map o map) (Logic.close_prop fixes (flat premss)) conclss;
+
+    val that_prop =
+      Logic.list_rename_params (map (#1 o #2) decls)
+        (fold_rev (Logic.all o #2 o #2) decls (Logic.list_implies (flat propss', thesis)));
+
+    val cparams = map (Thm.cterm_of params_ctxt o #2 o #2) decls;
     val asms =
-      map (fn ((b, raw_atts), _) => (b, map (prep_att params_ctxt) raw_atts)) raw_asms ~~
-      map (map (rpair [])) propss;
+      map (fn ((b, raw_atts), _) => (b, map (prep_att params_ctxt) raw_atts)) raw_concls ~~
+      map (map (rpair [])) propss';
 
     fun after_qed (result_ctxt, results) state' =
       let val [rule] = Proof_Context.export result_ctxt (Proof.context_of state') (flat results) in
         state'
-        |> Proof.fix (map #1 vars)
-        |> Proof.map_context (fold Variable.bind_term binds)
+        |> Proof.fix (map #1 decls)
+        |> Proof.map_context (fold (Variable.bind_term o apsnd (Logic.close_term fixes)) binds)
         |> Proof.assm (obtain_export params_ctxt rule cparams) [] [] asms
       end;
   in
