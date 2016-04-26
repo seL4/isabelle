@@ -641,66 +641,18 @@ val fix_cmd = gen_fix Proof_Context.add_fixes_cmd;
 end;
 
 
-(* structured clause *)
-
-fun export_binds ctxt' ctxt binds =
-  let
-    val rhss =
-      map (the_list o snd) binds
-      |> burrow (Variable.export_terms ctxt' ctxt)
-      |> map (try the_single);
-  in map fst binds ~~ rhss end;
-
-fun prep_clause prep_var prep_propp raw_fixes raw_assumes raw_shows ctxt =
-  let
-    (*fixed variables*)
-    val ((xs', vars), fix_ctxt) = ctxt
-      |> fold_map prep_var raw_fixes
-      |-> (fn vars => Proof_Context.add_fixes vars ##>> pair vars);
-
-    (*propositions with term bindings*)
-    val (all_propss, binds) = prep_propp fix_ctxt (raw_assumes @ raw_shows);
-    val (assumes_propss, shows_propss) = chop (length raw_assumes) all_propss;
-
-    (*params*)
-    val (ps, params_ctxt) = fix_ctxt
-      |> (fold o fold) Variable.declare_term all_propss
-      |> fold Variable.bind_term binds
-      |> fold_map Proof_Context.inferred_param xs';
-    val xs = map (Variable.check_name o #1) vars;
-    val params = xs ~~ map Free ps;
-
-    val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
-
-    (*result term bindings*)
-    val shows_props = flat shows_propss;
-    val binds' =
-      (case try List.last shows_props of
-        NONE => []
-      | SOME prop => map (apsnd (SOME o Auto_Bind.abs_params prop)) binds);
-    val result_binds =
-      (Auto_Bind.facts params_ctxt shows_props @ binds')
-      |> (map o apsnd o Option.map) (fold_rev Term.dependent_lambda_name params)
-      |> export_binds params_ctxt ctxt;
-  in ((params, assumes_propss, shows_propss, result_binds), params_ctxt) end;
-
-
 (* assume *)
 
 local
 
-fun gen_assume prep_var prep_propp prep_att export raw_fixes raw_prems raw_concls state =
+fun gen_assume prep_statement prep_att export raw_fixes raw_prems raw_concls state =
   let
     val ctxt = context_of state;
 
     val bindings = map (apsnd (map (prep_att ctxt)) o fst) raw_concls;
-    val (params, prems_propss, concl_propss, result_binds) =
-      #1 (prep_clause prep_var prep_propp raw_fixes raw_prems (map snd raw_concls) ctxt);
-
-    fun close prop =
-      fold_rev Logic.dependent_all_name params
-        (Logic.list_implies (flat prems_propss, prop));
-    val propss = (map o map) close concl_propss;
+    val ((params, prems_propss, concl_propss, result_binds), _) =
+      prep_statement raw_fixes raw_prems (map snd raw_concls) ctxt;
+    val propss = (map o map) (Logic.close_prop params (flat prems_propss)) concl_propss;
   in
     state
     |> assert_forward
@@ -716,8 +668,8 @@ fun gen_assume prep_var prep_propp prep_att export raw_fixes raw_prems raw_concl
 
 in
 
-val assm = gen_assume Proof_Context.cert_var Proof_Context.cert_propp (K I);
-val assm_cmd = gen_assume Proof_Context.read_var Proof_Context.read_propp Attrib.attribute_cmd;
+val assm = gen_assume Proof_Context.cert_statement (K I);
+val assm_cmd = gen_assume Proof_Context.read_statement Attrib.attribute_cmd;
 
 val assume = assm Assumption.assume_export;
 val assume_cmd = assm_cmd Assumption.assume_export;
@@ -893,45 +845,37 @@ end;
 
 local
 
-fun match_defs (((b, _, mx), x) :: more_decls) ((((a, _), t), _) :: more_defs) =
-      if x = a then ((b, mx), (Thm.empty_binding, t)) :: match_defs more_decls more_defs
-      else error ("Mismatch of declaration " ^ quote x ^ " wrt. definition " ^ quote a)
-  | match_defs [] [] = []
-  | match_defs more_decls more_defs =
-      error ("Mismatch of declarations " ^ commas_quote (map #2 more_decls) ^
-        (if null more_decls then "" else " ") ^
-        "wrt. definitions " ^ commas_quote (map (#1 o #1 o #1) more_defs));
-
-fun invisible_fixes vars ctxt = ctxt
-  |> Context_Position.set_visible false
-  |> Proof_Context.add_fixes vars |> #2
-  |> Context_Position.restore_visible ctxt;
-
-fun gen_define prep_spec prep_att raw_vars raw_fixes raw_defs state =
+fun gen_define prep_stmt prep_att raw_decls raw_fixes raw_defs state =
   let
     val _ = assert_forward state;
     val ctxt = context_of state;
 
     (*vars*)
-    val n_vars = length raw_vars;
-    val (((all_vars, _, all_params), defss, _, binds'), _) =
-      prep_spec (raw_vars @ raw_fixes) (map snd raw_defs) ctxt;
-    val (vars, fixes) = chop n_vars all_vars;
-    val (params, _) = chop n_vars all_params;
+    val ((vars, propss, _, binds'), vars_ctxt) =
+      prep_stmt (raw_decls @ raw_fixes) (map snd raw_defs) ctxt;
+    val (decls, fixes) = chop (length raw_decls) vars;
+    val show_term = Syntax.string_of_term vars_ctxt;
 
     (*defs*)
-    val derived_def = Local_Defs.derived_def (invisible_fixes vars ctxt) {conditional = false};
-    val defs1 = map derived_def (flat defss);
-    val defs2 = match_defs (vars ~~ map (#1 o dest_Free) params) defs1;
-    val (defs3, defs_ctxt) = Local_Defs.add_defs defs2 ctxt;
+    fun match_defs (((b, _, mx), (_, Free (x, T))) :: more_decls) ((((y, U), t), _) :: more_defs) =
+          if x = y then ((b, mx), (Thm.empty_binding, t)) :: match_defs more_decls more_defs
+          else
+            error ("Mismatch of declaration " ^ show_term (Free (x, T)) ^ " wrt. definition " ^
+              show_term (Free (y, U)))
+      | match_defs [] [] = []
+      | match_defs more_decls more_defs =
+          error ("Mismatch of declarations " ^ commas (map (show_term o #2 o #2) more_decls) ^
+            (if null more_decls then "" else " ") ^
+            "wrt. definitions " ^ commas (map (show_term o Free o #1 o #1) more_defs));
 
-    (*fixes*)
-    val fixes_ctxt = invisible_fixes fixes defs_ctxt;
-    val export = singleton (Variable.export fixes_ctxt defs_ctxt);
+    val derived_def = Local_Defs.derived_def ctxt {conditional = false};
+    val defs1 = map (derived_def o Logic.close_prop (map #2 fixes) []) (flat propss);
+    val defs2 = match_defs decls defs1;
+    val (defs3, defs_ctxt) = Local_Defs.add_defs defs2 ctxt;
 
     (*notes*)
     val def_thmss =
-      map (fn (((_, prove), ((b, _), _)), (_, (_, th))) => (b, export (prove fixes_ctxt th)))
+      map (fn (((_, prove), ((b, _), _)), (_, (_, th))) => (b, prove defs_ctxt th))
         (defs1 ~~ defs2 ~~ defs3)
       |> unflat (map snd raw_defs);
     val notes =
@@ -947,8 +891,8 @@ fun gen_define prep_spec prep_att raw_vars raw_fixes raw_defs state =
 
 in
 
-val define = gen_define Proof_Context.cert_spec (K I);
-val define_cmd = gen_define Proof_Context.read_spec Attrib.attribute_cmd;
+val define = gen_define Proof_Context.cert_stmt (K I);
+val define_cmd = gen_define Proof_Context.read_stmt Attrib.attribute_cmd;
 
 end;
 
@@ -1128,7 +1072,7 @@ end;
 
 (* local goals *)
 
-fun local_goal print_results prep_att prep_propp prep_var strict_asm
+fun local_goal print_results prep_statement prep_att strict_asm
     kind before_qed after_qed raw_fixes raw_assumes raw_shows state =
   let
     val ctxt = context_of state;
@@ -1139,7 +1083,7 @@ fun local_goal print_results prep_att prep_propp prep_var strict_asm
 
     (*params*)
     val ((params, assumes_propss, shows_propss, result_binds), params_ctxt) = ctxt
-      |> prep_clause prep_var prep_propp raw_fixes (map snd raw_assumes) (map snd raw_shows);
+      |> prep_statement raw_fixes (map snd raw_assumes) (map snd raw_shows);
 
     (*prems*)
     val (assumes_bindings, shows_bindings) =
@@ -1254,18 +1198,16 @@ fun global_skip_proof int state =
 (* common goal statements *)
 
 fun internal_goal print_results mode =
-  local_goal print_results (K I) (Proof_Context.cert_propp o Proof_Context.set_mode mode)
-    Proof_Context.cert_var;
+  local_goal print_results
+    (fn a => fn b => fn c => Proof_Context.cert_statement a b c o Proof_Context.set_mode mode) (K I);
 
 local
 
-fun gen_have prep_att prep_propp prep_var
-    strict_asm before_qed after_qed fixes assumes shows int =
+fun gen_have prep_statement prep_att strict_asm before_qed after_qed fixes assumes shows int =
   local_goal (Proof_Display.print_results int (Position.thread_data ()))
-    prep_att prep_propp prep_var strict_asm "have" before_qed after_qed fixes assumes shows;
+    prep_statement prep_att strict_asm "have" before_qed after_qed fixes assumes shows;
 
-fun gen_show prep_att prep_propp prep_var
-    strict_asm before_qed after_qed fixes assumes shows int state =
+fun gen_show prep_statement prep_att strict_asm before_qed after_qed fixes assumes shows int state =
   let
     val testing = Unsynchronized.ref false;
     val rule = Unsynchronized.ref (NONE: thm option);
@@ -1296,7 +1238,7 @@ fun gen_show prep_att prep_propp prep_var
       |> after_qed (result_ctxt, results);
   in
     state
-    |> local_goal print_results prep_att prep_propp prep_var strict_asm
+    |> local_goal print_results prep_statement prep_att strict_asm
       "show" before_qed after_qed' fixes assumes shows
     ||> int ? (fn goal_state =>
       (case test_proof (map_context (Context_Position.set_visible false) goal_state) of
@@ -1306,10 +1248,10 @@ fun gen_show prep_att prep_propp prep_var
 
 in
 
-val have = gen_have (K I) Proof_Context.cert_propp Proof_Context.cert_var;
-val have_cmd = gen_have Attrib.attribute_cmd Proof_Context.read_propp Proof_Context.read_var;
-val show = gen_show (K I) Proof_Context.cert_propp Proof_Context.cert_var;
-val show_cmd = gen_show Attrib.attribute_cmd Proof_Context.read_propp Proof_Context.read_var;
+val have = gen_have Proof_Context.cert_statement (K I);
+val have_cmd = gen_have Proof_Context.read_statement Attrib.attribute_cmd;
+val show = gen_show Proof_Context.cert_statement (K I);
+val show_cmd = gen_show Proof_Context.read_statement Attrib.attribute_cmd;
 
 end;
 

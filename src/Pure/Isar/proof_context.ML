@@ -166,12 +166,22 @@ sig
   val generic_add_abbrev: string -> binding * term -> Context.generic ->
     (term * term) * Context.generic
   val generic_revert_abbrev: string -> string -> Context.generic -> Context.generic
-  val cert_spec: (binding * typ option * mixfix) list -> (term * term list) list list ->
-    Proof.context -> (((binding * typ option * mixfix) list * string list * term list) *
-      term list list * (indexname * term) list * (indexname * term) list) * Proof.context
-  val read_spec: (binding * string option * mixfix) list -> (string * string list) list list ->
-    Proof.context -> (((binding * typ option * mixfix) list * string list * term list) *
-      term list list * (indexname * term) list * (indexname * term) list) * Proof.context
+  val cert_stmt:
+    (binding * typ option * mixfix) list -> (term * term list) list list -> Proof.context ->
+    (((binding * typ option * mixfix) * (string * term)) list * term list list *
+      (indexname * term) list * (indexname * term) list) * Proof.context
+  val read_stmt:
+    (binding * string option * mixfix) list -> (string * string list) list list -> Proof.context ->
+    (((binding * typ option * mixfix) * (string * term)) list * term list list *
+      (indexname * term) list * (indexname * term) list) * Proof.context
+  val cert_statement: (binding * typ option * mixfix) list ->
+    (term * term list) list list -> (term * term list) list list -> Proof.context ->
+    ((string * term) list * term list list * term list list * (indexname * term option) list) *
+      Proof.context
+  val read_statement: (binding * string option * mixfix) list ->
+    (string * string list) list list -> (string * string list) list list -> Proof.context ->
+    ((string * term) list * term list list * term list list * (indexname * term option) list) *
+      Proof.context
   val print_syntax: Proof.context -> unit
   val print_abbrevs: bool -> Proof.context -> unit
   val pretty_term_bindings: Proof.context -> Pretty.T list
@@ -1326,38 +1336,60 @@ fun check_case ctxt internal (name, pos) param_specs =
 end;
 
 
-(* specification with parameters *)
+(* structured statements *)
 
 local
 
-fun prep_spec prep_var prep_propp raw_vars raw_propps ctxt =
+fun export_binds ctxt' ctxt params binds =
   let
-    (*vars*)
-    val ((xs', vars), vars_ctxt) = ctxt
-      |> fold_map prep_var raw_vars
-      |-> (fn vars => add_fixes vars ##>> pair vars);
+    val rhss =
+      map (the_list o Option.map (Logic.close_term params) o snd) binds
+      |> burrow (Variable.export_terms ctxt' ctxt)
+      |> map (try the_single);
+  in map fst binds ~~ rhss end;
+
+fun prep_stmt prep_var prep_propp raw_vars raw_propps ctxt =
+  let
+    val (vars, vars_ctxt) = fold_map prep_var raw_vars ctxt;
     val xs = map (Variable.check_name o #1) vars;
+    val (xs', fixes_ctxt) = add_fixes vars vars_ctxt;
 
-    (*propps*)
-    val (propss, binds) = prep_propp vars_ctxt raw_propps;
-    val props = flat propss;
-
-    (*params*)
-    val (ps, params_ctxt) = vars_ctxt
-      |> fold Variable.declare_term props
-      |> fold Variable.bind_term binds
+    val (propss, binds) = prep_propp fixes_ctxt raw_propps;
+    val (ps, params_ctxt) = fixes_ctxt
+      |> (fold o fold) Variable.declare_term propss
       |> fold_map inferred_param xs';
-    val params = map Free ps;
-    val binds' = (map o apsnd) (fold_rev Term.dependent_lambda_name (xs ~~ params)) binds;
-    val vars' = map2 (fn (b, _, mx) => fn (_, T) => (b, SOME T, mx)) vars ps;
+    val params = xs ~~ map Free ps;
 
-    val _ = Variable.warn_extra_tfrees vars_ctxt params_ctxt;
-  in (((vars', xs, params), propss, binds, binds'), params_ctxt) end;
+    val vars' = map2 (fn (b, _, mx) => fn (_, T) => (b, SOME T, mx)) vars ps;
+    val binds' = binds
+      |> map (apsnd SOME)
+      |> export_binds params_ctxt ctxt params
+      |> map (apsnd the);
+
+    val _ = Variable.warn_extra_tfrees fixes_ctxt params_ctxt;
+  in ((vars' ~~ params, propss, binds, binds'), params_ctxt) end;
+
+fun prep_statement prep_var prep_propp raw_fixes raw_assumes raw_shows ctxt =
+  let
+    val ((fixes, (assumes, shows), binds), ctxt') = ctxt
+      |> prep_stmt prep_var prep_propp raw_fixes (raw_assumes @ raw_shows)
+      |-> (fn (vars, propss, binds, _) =>
+        fold Variable.bind_term binds #>
+        pair (map #2 vars, chop (length raw_assumes) propss, binds));
+    val binds' =
+      (Auto_Bind.facts ctxt' (flat shows) @
+        (case try List.last (flat shows) of
+          NONE => []
+        | SOME prop => map (apsnd (SOME o Auto_Bind.abs_params prop)) binds))
+      |> export_binds ctxt' ctxt fixes;
+  in ((fixes, assumes, shows, binds'), ctxt') end;
 
 in
 
-val cert_spec = prep_spec cert_var cert_propp;
-val read_spec = prep_spec read_var read_propp;
+val cert_stmt = prep_stmt cert_var cert_propp;
+val read_stmt = prep_stmt read_var read_propp;
+val cert_statement = prep_statement cert_var cert_propp;
+val read_statement = prep_statement read_var read_propp;
 
 end;
 

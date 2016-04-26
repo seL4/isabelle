@@ -609,12 +609,13 @@ proof
   next
     case False then have "a \<noteq> 0" and "b \<noteq> 0" and "c \<noteq> 0"
       by simp_all
-    then obtain A B C where fact:
-      "factorization a = Some A" "factorization b = Some B" "factorization c = Some C"
+    then obtain A B C
+    where fact: "factorization a = Some A" "factorization b = Some B" "factorization c = Some C"
       and norm: "normalize a = msetprod A" "normalize b = msetprod B" "normalize c = msetprod C"
-      and A: "0 \<notin># A" "\<And>p. p \<in># A \<Longrightarrow> normalize p = p" "\<And>p. p \<in># A \<Longrightarrow> is_prime p"
-      and B: "0 \<notin># B" "\<And>p. p \<in># B \<Longrightarrow> normalize p = p" "\<And>p. p \<in># B \<Longrightarrow> is_prime p"
-      and C: "0 \<notin># C" "\<And>p. p \<in># C \<Longrightarrow> normalize p = p" "\<And>p. p \<in># C \<Longrightarrow> is_prime p"
+      and A: "0 \<notin># A" "p \<in># A \<Longrightarrow> normalize p = p" "p \<in># A \<Longrightarrow> is_prime p"
+      and B: "0 \<notin># B" "p \<in># B \<Longrightarrow> normalize p = p" "p \<in># B \<Longrightarrow> is_prime p"
+      and C: "0 \<notin># C" "p \<in># C \<Longrightarrow> normalize p = p" "p \<in># C \<Longrightarrow> is_prime p"
+      for p
       by (blast elim!: factorizationE)
     moreover from that have "normalize c dvd normalize a" and "normalize c dvd normalize b"
       by simp_all

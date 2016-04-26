@@ -1483,7 +1483,7 @@ next
   case (real r)
   then have "\<forall>x. \<exists>q\<ge>0. g x \<le> c \<longrightarrow> (g x = ennreal q \<and> q \<le> r)"
     by (auto simp: le_ennreal_iff)
-  then obtain f where *: "\<And>x. g x \<le> c \<Longrightarrow> 0 \<le> f x" "\<And>x. g x \<le> c \<Longrightarrow> g x = ennreal (f x)" "\<And>x. g x \<le> c \<Longrightarrow> f x \<le> r"
+  then obtain f where *: "0 \<le> f x" "g x = ennreal (f x)" "f x \<le> r" if "g x \<le> c" for x
     by metis
   from ae have ae2: "\<forall>\<^sub>F x in F. c - g x = ennreal (r - f x) \<and> f x \<le> r \<and> g x = ennreal (f x) \<and> 0 \<le> f x"
   proof eventually_elim

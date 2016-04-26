@@ -13,14 +13,14 @@ begin
 
 subsection \<open>Regular outer syntax\<close>
 
-text \<open>Text cartouches may be used in the outer syntax category "text",
-  as alternative to the traditional "verbatim" tokens.  An example is
+text \<open>Text cartouches may be used in the outer syntax category \<open>text\<close>,
+  as alternative to the traditional \<open>verbatim\<close> tokens.  An example is
   this text block.\<close>  \<comment> \<open>The same works for small side-comments.\<close>
 
 notepad
 begin
   txt \<open>Moreover, cartouches work as additional syntax in the
-    "altstring" category, for literal fact references.  For example:\<close>
+    \<open>altstring\<close> category, for literal fact references.  For example:\<close>
 
   fix x y :: 'a
   assume "x = y"

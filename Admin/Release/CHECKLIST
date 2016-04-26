@@ -69,9 +69,12 @@ Repository fork
 Packaging
 =========
 
-- fully-automated packaging (requires Mac OS X with gnutar, avoid Mavericks):
+- fully-automated packaging:
 
   hg up -r DISTNAME && Admin/Release/build -O -l -r DISTNAME /home/isabelle/dist
+
+  Mac OS X: requires gnutar, avoid Mavericks (problems with hdiutil?)
+  Linux: avoid Debian (bitmap fonts for prog-prove)
 
 
 Final release stage

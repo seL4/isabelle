@@ -26,6 +26,8 @@ sig
   val strip_prems: int * term list * term -> term list * term
   val count_prems: term -> int
   val nth_prem: int * term -> term
+  val close_term: (string * term) list -> term -> term
+  val close_prop: (string * term) list -> term list -> term -> term
   val true_prop: term
   val conjunction: term
   val mk_conjunction: term * term -> term
@@ -147,7 +149,6 @@ fun dependent_all_constraint default_type (y, z) t =
 end;
 
 
-
 (** equality **)
 
 fun mk_equals (t, u) =
@@ -203,6 +204,11 @@ fun nth_prem (1, Const ("Pure.imp", _) $ A $ _) = A
   B1 ==> ... Bn ==> C   goes to   ([B1, ..., Bn], C)    *)
 fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 
+
+(* close *)
+
+val close_term = fold_rev Term.dependent_lambda_name;
+fun close_prop xs As B = fold_rev dependent_all_name xs (list_implies (As, B));
 
 
 (** conjunction **)

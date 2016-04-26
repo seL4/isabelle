@@ -133,7 +133,7 @@ proof (induct set: fine)
   proof (cases "b < x")
     case True
     with 2 obtain N where *: "N < length D"
-      and **: "\<And> d t e. D ! N = (d,t,e) \<Longrightarrow> d < x \<and> x \<le> e" by auto
+      and **: "D ! N = (d,t,e) \<Longrightarrow> d < x \<and> x \<le> e" for d t e by auto
     hence "Suc N < length ((a,t,b)#D) \<and>
            (\<forall> d t' e. ((a,t,b)#D) ! Suc N = (d,t',e) \<longrightarrow> d < x \<and> x \<le> e)" by auto
     thus ?thesis by auto
@@ -372,11 +372,11 @@ proof (cases "a < b \<and> b < c", rule IntegralI)
   hence "a < b" and "b < c" by auto
 
   obtain \<delta>1 where \<delta>1_gauge: "gauge {a..b} \<delta>1"
-    and I1: "\<And> D. fine \<delta>1 (a,b) D \<Longrightarrow> \<bar> rsum D f - x1 \<bar> < (\<epsilon> / 2)"
+    and I1: "fine \<delta>1 (a,b) D \<Longrightarrow> \<bar> rsum D f - x1 \<bar> < (\<epsilon> / 2)" for D
     using IntegralE [OF \<open>Integral (a, b) f x1\<close> \<open>0 < \<epsilon>/2\<close>] by auto
 
   obtain \<delta>2 where \<delta>2_gauge: "gauge {b..c} \<delta>2"
-    and I2: "\<And> D. fine \<delta>2 (b,c) D \<Longrightarrow> \<bar> rsum D f - x2 \<bar> < (\<epsilon> / 2)"
+    and I2: "fine \<delta>2 (b,c) D \<Longrightarrow> \<bar> rsum D f - x2 \<bar> < (\<epsilon> / 2)" for D
     using IntegralE [OF \<open>Integral (b, c) f x2\<close> \<open>0 < \<epsilon>/2\<close>] by auto
 
   define \<delta> where "\<delta> x =
@@ -541,7 +541,7 @@ proof -
     then have "\<forall>r>0. \<exists>s>0. \<forall>z. z \<noteq> x \<and> \<bar>z - x\<bar> < s \<longrightarrow> \<bar>(f z - f x) / (z - x) - f' x\<bar> < r"
       by (simp add: DERIV_iff2 LIM_eq)
     with \<open>0 < e\<close> obtain s
-    where "\<And>z. z \<noteq> x \<Longrightarrow> \<bar>z - x\<bar> < s \<Longrightarrow> \<bar>(f z - f x) / (z - x) - f' x\<bar> < e/2" and "0 < s"
+    where "z \<noteq> x \<Longrightarrow> \<bar>z - x\<bar> < s \<Longrightarrow> \<bar>(f z - f x) / (z - x) - f' x\<bar> < e/2" and "0 < s" for z
       by (drule_tac x="e/2" in spec, auto)
     with strad1 [of x s f f' e] have strad:
         "\<And>z. \<bar>z - x\<bar> < s \<Longrightarrow> \<bar>f z - f x - f' x * (z - x)\<bar> \<le> e/2 * \<bar>z - x\<bar>"
@@ -586,8 +586,8 @@ next
 
     from lemma_straddle [OF f' this]
     obtain \<delta> where "gauge {a..b} \<delta>"
-      and \<delta>: "\<And>x u v. \<lbrakk>a \<le> u; u \<le> x; x \<le> v; v \<le> b; v - u < \<delta> x\<rbrakk> \<Longrightarrow>
-           \<bar>f v - f u - f' x * (v - u)\<bar> \<le> e * (v - u) / (b - a)" by auto
+      and \<delta>: "\<lbrakk>a \<le> u; u \<le> x; x \<le> v; v \<le> b; v - u < \<delta> x\<rbrakk> \<Longrightarrow>
+           \<bar>f v - f u - f' x * (v - u)\<bar> \<le> e * (v - u) / (b - a)" for x u v by auto
 
     have "\<forall>D. fine \<delta> (a, b) D \<longrightarrow> \<bar>rsum D f' - (f b - f a)\<bar> \<le> e"
     proof (clarify)

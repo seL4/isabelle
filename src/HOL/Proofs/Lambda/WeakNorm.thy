@@ -40,9 +40,9 @@ next
     by (rule types_snocE)
   from snoc have "listall ?R bs" by simp
   with bs have "\<exists>bs'. ?ex Vs bs bs'" by (rule snoc)
-  then obtain bs' where
-    bsred: "\<And>j. Var j \<degree>\<degree> map (\<lambda>t. f (t[u/i])) bs \<rightarrow>\<^sub>\<beta>\<^sup>* Var j \<degree>\<degree> map f bs'"
-    and bsNF: "\<And>j. NF (Var j \<degree>\<degree> map f bs')" by iprover
+  then obtain bs' where bsred: "Var j \<degree>\<degree> map (\<lambda>t. f (t[u/i])) bs \<rightarrow>\<^sub>\<beta>\<^sup>* Var j \<degree>\<degree> map f bs'"
+    and bsNF: "NF (Var j \<degree>\<degree> map f bs')" for j
+    by iprover
   from snoc have "?R b" by simp
   with bT and uNF and uT have "\<exists>b'. b[u/i] \<rightarrow>\<^sub>\<beta>\<^sup>* b' \<and> NF b'"
     by iprover

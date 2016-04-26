@@ -312,7 +312,7 @@ lemma poly_cont:
   assumes ep: "e > 0"
   shows "\<exists>d >0. \<forall>w. 0 < norm (w - z) \<and> norm (w - z) < d \<longrightarrow> norm (poly p w - poly p z) < e"
 proof -
-  obtain q where q: "degree q = degree p" "\<And>x. poly q x = poly p (z + x)"
+  obtain q where q: "degree q = degree p" "poly q x = poly p (z + x)" for x
   proof
     show "degree (offset_poly p z) = degree p"
       by (rule degree_offset_poly)
@@ -329,7 +329,7 @@ proof -
   next
     case (pCons c cs)
     from poly_bound_exists[of 1 "cs"]
-    obtain m where m: "m > 0" "\<And>z. norm z \<le> 1 \<Longrightarrow> norm (poly cs z) \<le> m"
+    obtain m where m: "m > 0" "norm z \<le> 1 \<Longrightarrow> norm (poly cs z) \<le> m" for z
       by blast
     from ep m(1) have em0: "e/m > 0"
       by (simp add: field_simps)
@@ -535,12 +535,14 @@ next
   proof (cases "cs = 0")
     case False
     from poly_infinity[OF False, of "cmod (poly (pCons c cs) 0)" c]
-    obtain r where r: "\<And>z. r \<le> cmod z \<Longrightarrow> cmod (poly (pCons c cs) 0) \<le> cmod (poly (pCons c cs) z)"
+    obtain r where r: "cmod (poly (pCons c cs) 0) \<le> cmod (poly (pCons c cs) z)"
+      if "r \<le> cmod z" for z
       by blast
     have ath: "\<And>z r. r \<le> cmod z \<or> cmod z \<le> \<bar>r\<bar>"
       by arith
     from poly_minimum_modulus_disc[of "\<bar>r\<bar>" "pCons c cs"]
-    obtain v where v: "\<And>w. cmod w \<le> \<bar>r\<bar> \<Longrightarrow> cmod (poly (pCons c cs) v) \<le> cmod (poly (pCons c cs) w)"
+    obtain v where v: "cmod (poly (pCons c cs) v) \<le> cmod (poly (pCons c cs) w)"
+      if "cmod w \<le> \<bar>r\<bar>" for w
       by blast
     have "cmod (poly (pCons c cs) v) \<le> cmod (poly (pCons c cs) z)" if z: "r \<le> cmod z" for z
       using v[of 0] r[OF z] by simp

@@ -23,13 +23,13 @@ lemma zero_neq_succ [simp]: "zero \<noteq> succ m"
   by (rule succ_neq_zero [symmetric])
 
 
-text \<open>\medskip Primitive recursion as a (functional) relation -- polymorphic!\<close>
+text \<open>\<^medskip> Primitive recursion as a (functional) relation -- polymorphic!\<close>
 
 inductive Rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a \<Rightarrow> bool"
   for e :: 'a and r :: "'n \<Rightarrow> 'a \<Rightarrow> 'a"
 where
-    Rec_zero: "Rec e r zero e"
-  | Rec_succ: "Rec e r m n \<Longrightarrow> Rec e r (succ m) (r m n)"
+  Rec_zero: "Rec e r zero e"
+| Rec_succ: "Rec e r m n \<Longrightarrow> Rec e r (succ m) (r m n)"
 
 lemma Rec_functional:
   fixes x :: 'n
@@ -42,26 +42,30 @@ proof -
     show "\<exists>!y. ?R zero y"
     proof
       show "?R zero e" ..
-      fix y assume "?R zero y"
-      then show "y = e" by cases simp_all
+      show "y = e" if "?R zero y" for y
+        using that by cases simp_all
     qed
   next
     case (succ m)
     from \<open>\<exists>!y. ?R m y\<close>
-    obtain y where y: "?R m y"
-      and yy': "\<And>y'. ?R m y' \<Longrightarrow> y = y'" by blast
+    obtain y where y: "?R m y" and yy': "\<And>y'. ?R m y' \<Longrightarrow> y = y'"
+      by blast
     show "\<exists>!z. ?R (succ m) z"
     proof
       from y show "?R (succ m) (r m y)" ..
-      fix z assume "?R (succ m) z"
-      then obtain u where "z = r m u" and "?R m u" by cases simp_all
-      with yy' show "z = r m y" by (simp only:)
+    next
+      fix z
+      assume "?R (succ m) z"
+      then obtain u where "z = r m u" and "?R m u"
+        by cases simp_all
+      with yy' show "z = r m y"
+        by (simp only:)
     qed
   qed
 qed
 
 
-text \<open>\medskip The recursion operator -- polymorphic!\<close>
+text \<open>\<^medskip> The recursion operator -- polymorphic!\<close>
 
 definition rec :: "'a \<Rightarrow> ('n \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> 'a"
   where "rec e r x = (THE y. Rec e r x y)"
@@ -86,7 +90,7 @@ proof (rule rec_eval)
 qed
 
 
-text \<open>\medskip Example: addition (monomorphic)\<close>
+text \<open>\<^medskip> Example: addition (monomorphic)\<close>
 
 definition add :: "'n \<Rightarrow> 'n \<Rightarrow> 'n"
   where "add m n = rec n (\<lambda>_ k. succ k) m"
@@ -109,7 +113,7 @@ lemma "add (succ (succ (succ zero))) (succ (succ zero)) =
   by simp
 
 
-text \<open>\medskip Example: replication (polymorphic)\<close>
+text \<open>\<^medskip> Example: replication (polymorphic)\<close>
 
 definition repl :: "'n \<Rightarrow> 'a \<Rightarrow> 'a list"
   where "repl n x = rec [] (\<lambda>_ xs. x # xs) n"
@@ -124,17 +128,17 @@ lemma "repl (succ (succ (succ zero))) True = [True, True, True]"
 end
 
 
-text \<open>\medskip Just see that our abstract specification makes sense \dots\<close>
+text \<open>\<^medskip> Just see that our abstract specification makes sense \dots\<close>
 
 interpretation NAT 0 Suc
 proof (rule NAT.intro)
   fix m n
   show "Suc m = Suc n \<longleftrightarrow> m = n" by simp
   show "Suc m \<noteq> 0" by simp
-  fix P
-  assume zero: "P 0"
-    and succ: "\<And>n. P n \<Longrightarrow> P (Suc n)"
   show "P n"
+    if zero: "P 0"
+    and succ: "\<And>n. P n \<Longrightarrow> P (Suc n)"
+    for P
   proof (induct n)
     case 0
     show ?case by (rule zero)
