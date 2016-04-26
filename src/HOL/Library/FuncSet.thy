@@ -96,9 +96,9 @@ proof (intro set_eqI iffI)
   assume "f \<in> (\<Pi> i\<in>I. \<Union>n. A n i)"
   then have "\<forall>i\<in>I. \<exists>n. f i \<in> A n i"
     by auto
-  from bchoice[OF this] obtain n where n: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> (A (n i) i)"
+  from bchoice[OF this] obtain n where n: "f i \<in> A (n i) i" if "i \<in> I" for i
     by auto
-  obtain k where k: "\<And>i. i \<in> I \<Longrightarrow> n i \<le> k"
+  obtain k where k: "n i \<le> k" if "i \<in> I" for i
     using \<open>finite I\<close> finite_nat_set_iff_bounded_le[of "n`I"] by auto
   have "f \<in> Pi I (A k)"
   proof (intro Pi_I)

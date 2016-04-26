@@ -163,7 +163,7 @@ lemma less_funE [elim?]:
     and "\<And>c n. c > 0 \<Longrightarrow> \<exists>m>n. c * f m < g m"
 proof -
   from assms have "f \<lesssim> g" and "\<not> g \<lesssim> f" by (simp_all add: less_fun_def)
-  from \<open>f \<lesssim> g\<close> obtain n c where *:"c > 0" "\<And>m. m > n \<Longrightarrow> f m \<le> c * g m"
+  from \<open>f \<lesssim> g\<close> obtain n c where *:"c > 0" "m > n \<Longrightarrow> f m \<le> c * g m" for m
     by (rule less_eq_funE) blast
   { fix c n :: nat
     assume "c > 0"
@@ -202,8 +202,8 @@ lemma less_fun_strongI:
   shows "f \<prec> g"
 proof (rule less_funI)
   have "1 > (0::nat)" by simp
-  from assms \<open>1 > 0\<close> have "\<exists>n. \<forall>m>n. 1 * f m < g m" .
-  then obtain n where *: "\<And>m. m > n \<Longrightarrow> 1 * f m < g m" by blast
+  with assms [OF this] obtain n where *: "m > n \<Longrightarrow> 1 * f m < g m" for m
+    by blast
   have "\<forall>m>n. f m \<le> 1 * g m"
   proof (rule allI, rule impI)
     fix m
@@ -214,7 +214,7 @@ proof (rule less_funI)
   with \<open>1 > 0\<close> show "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * g m" by blast
   fix c n :: nat
   assume "c > 0"
-  with assms obtain q where "\<And>m. m > q \<Longrightarrow> c * f m < g m" by blast
+  with assms obtain q where "m > q \<Longrightarrow> c * f m < g m" for m by blast
   then have "c * f (Suc (q + n)) < g (Suc (q + n))" by simp
   moreover have "Suc (q + n) > n" by simp
   ultimately show "\<exists>m>n. c * f m < g m" by blast

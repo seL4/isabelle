@@ -3353,7 +3353,7 @@ proof safe
   fix p assume rat: "\<forall>i. coeff p i \<in> \<rat>" and root: "poly p x = 0" and nz: "p \<noteq> 0"
   define cs where "cs = coeffs p"
   from rat have "\<forall>c\<in>range (coeff p). \<exists>c'. c = of_rat c'" unfolding Rats_def by blast
-  then obtain f where f: "\<And>i. coeff p i = of_rat (f (coeff p i))" 
+  then obtain f where f: "coeff p i = of_rat (f (coeff p i))" for i
     by (subst (asm) bchoice_iff) blast
   define cs' where "cs' = map (quotient_of \<circ> f) (coeffs p)"
   define d where "d = Lcm (set (map snd cs'))"
@@ -3392,9 +3392,8 @@ proof safe
   moreover from root have "poly p' x = 0" by (simp add: p'_def)
   ultimately show "algebraic x" unfolding algebraic_def by blast
 next
-
   assume "algebraic x"
-  then obtain p where p: "\<And>i. coeff p i \<in> \<int>" "poly p x = 0" "p \<noteq> 0" 
+  then obtain p where p: "coeff p i \<in> \<int>" "poly p x = 0" "p \<noteq> 0" for i
     by (force simp: algebraic_def)
   moreover have "coeff p i \<in> \<int> \<Longrightarrow> coeff p i \<in> \<rat>" for i by (elim Ints_cases) simp
   ultimately show  "(\<exists>p. (\<forall>i. coeff p i \<in> \<rat>) \<and> p \<noteq> 0 \<and> poly p x = 0)" by auto

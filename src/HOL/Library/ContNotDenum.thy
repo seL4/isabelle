@@ -41,9 +41,10 @@ proof
     by (auto simp add: not_le cong: conj_cong)
        (metis dense le_less_linear less_linear less_trans order_refl)
   then obtain i j where ij:
-    "\<And>a b c::real. a < b \<Longrightarrow> i a b c < j a b c"
-    "\<And>a b c. a < b \<Longrightarrow> {i a b c .. j a b c} \<subseteq> {a .. b}"
-    "\<And>a b c. a < b \<Longrightarrow> c \<notin> {i a b c .. j a b c}"
+      "a < b \<Longrightarrow> i a b c < j a b c"
+      "a < b \<Longrightarrow> {i a b c .. j a b c} \<subseteq> {a .. b}"
+      "a < b \<Longrightarrow> c \<notin> {i a b c .. j a b c}"
+    for a b c :: real
     by metis
 
   define ivl where "ivl =
@@ -78,7 +79,7 @@ proof
     finally show "I 0 \<inter> (\<Inter>i\<in>S. I i) \<noteq> {}"
       by auto
   qed (auto simp: I_def)
-  then obtain x where "\<And>n. x \<in> I n"
+  then obtain x where "x \<in> I n" for n
     by blast
   moreover from \<open>surj f\<close> obtain j where "x = f j"
     by blast

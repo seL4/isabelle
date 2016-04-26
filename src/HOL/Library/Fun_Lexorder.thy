@@ -24,9 +24,9 @@ lemma less_fun_asym:
   assumes "less_fun f g"
   shows "\<not> less_fun g f"
 proof
-  from assms obtain k1 where k1: "f k1 < g k1" "\<And>k'. k' < k1 \<Longrightarrow> f k' = g k'"
+  from assms obtain k1 where k1: "f k1 < g k1" "k' < k1 \<Longrightarrow> f k' = g k'" for k'
     by (blast elim!: less_funE) 
-  assume "less_fun g f" then obtain k2 where k2: "g k2 < f k2" "\<And>k'. k' < k2 \<Longrightarrow> g k' = f k'"
+  assume "less_fun g f" then obtain k2 where k2: "g k2 < f k2" "k' < k2 \<Longrightarrow> g k' = f k'" for k'
     by (blast elim!: less_funE) 
   show False proof (cases k1 k2 rule: linorder_cases)
     case equal with k1 k2 show False by simp
@@ -52,9 +52,9 @@ lemma less_fun_trans:
   assumes "less_fun f g" and "less_fun g h"
   shows "less_fun f h"
 proof (rule less_funI)
-  from \<open>less_fun f g\<close> obtain k1 where k1: "f k1 < g k1" "\<And>k'. k' < k1 \<Longrightarrow> f k' = g k'"
-    by (blast elim!: less_funE) 
-  from \<open>less_fun g h\<close> obtain k2 where k2: "g k2 < h k2" "\<And>k'. k' < k2 \<Longrightarrow> g k' = h k'"
+  from \<open>less_fun f g\<close> obtain k1 where k1: "f k1 < g k1" "k' < k1 \<Longrightarrow> f k' = g k'" for k'
+    by (blast elim!: less_funE)                          
+  from \<open>less_fun g h\<close> obtain k2 where k2: "g k2 < h k2" "k' < k2 \<Longrightarrow> g k' = h k'" for k'
     by (blast elim!: less_funE) 
   show "\<exists>k. f k < h k \<and> (\<forall>k'<k. f k' = h k')"
   proof (cases k1 k2 rule: linorder_cases)

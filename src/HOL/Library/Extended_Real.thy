@@ -1696,7 +1696,7 @@ lemma ereal_complete_Sup:
   shows "\<exists>x. (\<forall>y\<in>S. y \<le> x) \<and> (\<forall>z. (\<forall>y\<in>S. y \<le> z) \<longrightarrow> x \<le> z)"
 proof (cases "\<exists>x. \<forall>a\<in>S. a \<le> ereal x")
   case True
-  then obtain y where y: "\<And>a. a\<in>S \<Longrightarrow> a \<le> ereal y"
+  then obtain y where y: "a \<le> ereal y" if "a\<in>S" for a
     by auto
   then have "\<infinity> \<notin> S"
     by force
@@ -1705,7 +1705,7 @@ proof (cases "\<exists>x. \<forall>a\<in>S. a \<le> ereal x")
     case True
     with \<open>\<infinity> \<notin> S\<close> obtain x where x: "x \<in> S" "\<bar>x\<bar> \<noteq> \<infinity>"
       by auto
-    obtain s where s: "\<forall>x\<in>ereal -` S. x \<le> s" "\<And>z. (\<forall>x\<in>ereal -` S. x \<le> z) \<Longrightarrow> s \<le> z"
+    obtain s where s: "\<forall>x\<in>ereal -` S. x \<le> s" "(\<forall>x\<in>ereal -` S. x \<le> z) \<Longrightarrow> s \<le> z" for z
     proof (atomize_elim, rule complete_real)
       show "\<exists>x. x \<in> ereal -` S"
         using x by auto
@@ -1919,7 +1919,7 @@ lemma ereal_Inf':
   assumes *: "bdd_below A" "A \<noteq> {}"
   shows "ereal (Inf A) = (INF a:A. ereal a)"
 proof (rule ereal_Inf)
-  from * obtain l u where "\<And>x. x \<in> A \<Longrightarrow> l \<le> x" "u \<in> A"
+  from * obtain l u where "x \<in> A \<Longrightarrow> l \<le> x" "u \<in> A" for x
     by (auto simp: bdd_below_def)
   then have "l \<le> (INF x:A. ereal x)" "(INF x:A. ereal x) \<le> u"
     by (auto intro!: INF_greatest INF_lower)
@@ -2193,7 +2193,7 @@ proof cases
     by (auto intro!: exI[of _ "\<lambda>_. -\<infinity>"] simp: bot_ereal_def)
 next
   assume "Sup A \<noteq> -\<infinity>"
-  then obtain l where "incseq l" and l: "\<And>i::nat. l i < Sup A" and l_Sup: "l \<longlonglongrightarrow> Sup A"
+  then obtain l where "incseq l" and l: "l i < Sup A" and l_Sup: "l \<longlonglongrightarrow> Sup A" for i :: nat
     by (auto dest: countable_approach)
 
   have "\<exists>f. \<forall>n. (f n \<in> A \<and> l n \<le> f n) \<and> (f n \<le> f (Suc n))"
@@ -2456,7 +2456,7 @@ proof -
   from \<open>open S\<close>
   have "open (ereal -` S)"
     by (rule ereal_openE)
-  then obtain e where "e > 0" and e: "\<And>y. dist y (real_of_ereal x) < e \<Longrightarrow> ereal y \<in> S"
+  then obtain e where "e > 0" and e: "dist y (real_of_ereal x) < e \<Longrightarrow> ereal y \<in> S" for y
     using assms unfolding open_dist by force
   show thesis
   proof (intro that subsetI)
@@ -2830,11 +2830,12 @@ proof (rule topological_tendstoI, unfold eventually_sequentially)
   assume "open S" and "x \<in> S"
   then have "open (ereal -` S)"
     unfolding open_ereal_def by auto
-  with \<open>x \<in> S\<close> obtain r where "0 < r" and dist: "\<And>y. dist y rx < r \<Longrightarrow> ereal y \<in> S"
+  with \<open>x \<in> S\<close> obtain r where "0 < r" and dist: "dist y rx < r \<Longrightarrow> ereal y \<in> S" for y
     unfolding open_dist rx by auto
-  then obtain n where
-    upper: "\<And>N. n \<le> N \<Longrightarrow> u N < x + ereal r" and
-    lower: "\<And>N. n \<le> N \<Longrightarrow> x < u N + ereal r"
+  then obtain n
+    where upper: "u N < x + ereal r"
+      and lower: "x < u N + ereal r"
+      if "n \<le> N" for N
     using assms(2)[of "ereal r"] by auto
   show "\<exists>N. \<forall>n\<ge>N. u n \<in> S"
   proof (safe intro!: exI[of _ n])
