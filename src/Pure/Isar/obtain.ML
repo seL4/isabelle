@@ -193,13 +193,13 @@ end;
 
 local
 
-fun gen_obtain prep_statement prep_att that_binding raw_vars raw_asms int state =
+fun gen_obtain prep_stmt prep_att that_binding raw_vars raw_asms int state =
   let
     val _ = Proof.assert_forward_or_chain state;
 
     val ((_, thesis), thesis_ctxt) = obtain_thesis (Proof.context_of state);
     val ((vars, propss, binds, binds'), params_ctxt) =
-      prep_statement raw_vars (map #2 raw_asms) thesis_ctxt;
+      prep_stmt raw_vars (map #2 raw_asms) thesis_ctxt;
     val params = map #2 vars;
     val that_prop =
       Logic.list_rename_params (map #1 params)
@@ -229,8 +229,8 @@ fun gen_obtain prep_statement prep_att that_binding raw_vars raw_asms int state 
 
 in
 
-val obtain = gen_obtain Proof_Context.cert_statement (K I);
-val obtain_cmd = gen_obtain Proof_Context.read_statement Attrib.attribute_cmd;
+val obtain = gen_obtain Proof_Context.cert_stmt (K I);
+val obtain_cmd = gen_obtain Proof_Context.read_stmt Attrib.attribute_cmd;
 
 end;
 
