@@ -25,9 +25,8 @@ lemmas [intro!] = Int_greatest Un_upper2 Un_upper1 Int_lower1 Int_lower2
 
 type_synonym 'a ctl = "'a set"
 
-definition
-  imp :: "'a ctl \<Rightarrow> 'a ctl \<Rightarrow> 'a ctl"    (infixr "\<rightarrow>" 75) where
-  "p \<rightarrow> q = - p \<union> q"
+definition imp :: "'a ctl \<Rightarrow> 'a ctl \<Rightarrow> 'a ctl"  (infixr "\<rightarrow>" 75)
+  where "p \<rightarrow> q = - p \<union> q"
 
 lemma [intro!]: "p \<inter> p \<rightarrow> q \<subseteq> q" unfolding imp_def by auto
 lemma [intro!]: "p \<subseteq> (q \<rightarrow> p)" unfolding imp_def by rule
@@ -86,8 +85,7 @@ lemma lfp_gfp: "lfp f = - gfp (\<lambda>s::'a set. - (f (- s)))"
 proof
   show "lfp f \<subseteq> - gfp (\<lambda>s. - f (- s))"
   proof
-    fix x assume l: "x \<in> lfp f"
-    show "x \<in> - gfp (\<lambda>s. - f (- s))"
+    show "x \<in> - gfp (\<lambda>s. - f (- s))" if l: "x \<in> lfp f" for x
     proof
       assume "x \<in> gfp (\<lambda>s. - f (- s))"
       then obtain u where "x \<in> u" and "u \<subseteq> - f (- u)"
@@ -100,7 +98,8 @@ proof
   qed
   show "- gfp (\<lambda>s. - f (- s)) \<subseteq> lfp f"
   proof (rule lfp_greatest)
-    fix u assume "f u \<subseteq> u"
+    fix u
+    assume "f u \<subseteq> u"
     then have "- u \<subseteq> - f u" by auto
     then have "- u \<subseteq> - f (- (- u))" by simp
     then have "- u \<subseteq> gfp (\<lambda>s. - f (- s))" by (rule gfp_upperbound)
