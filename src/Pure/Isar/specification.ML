@@ -105,14 +105,15 @@ fun read_prop raw_prop raw_fixes ctxt =
 
 local
 
-fun close_forms ctxt i As =
+fun close_forms ctxt auto_close i prems concls =
   let
-    val xs = rev (fold (Variable.add_free_names ctxt) As []);
+    val xs =
+      if auto_close then rev (fold (Variable.add_free_names ctxt) (concls @ prems) [])
+      else [];
     val types =
       map (Type_Infer.param i o rpair []) (Name.invent Name.context Name.aT (length xs));
     val uniform_typing = AList.lookup (op =) (xs ~~ types);
-    val close = fold_rev (Logic.dependent_all_constraint uniform_typing) (xs ~~ xs);
-  in map close As end;
+  in map (Logic.close_prop_constraint uniform_typing (xs ~~ xs) prems) concls end;
 
 fun get_positions ctxt x =
   let
@@ -127,7 +128,7 @@ fun get_positions ctxt x =
       | get _ _ = [];
   in get [] end;
 
-fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
+fun prepare prep_var parse_prop prep_att auto_close raw_vars raw_specss ctxt =
   let
     val (vars, vars_ctxt) = ctxt |> fold_map prep_var raw_vars;
     val (xs, params_ctxt) = vars_ctxt
@@ -139,20 +140,21 @@ fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
         (map (Binding.pos_of o #1) vars ~~
           map (Variable.markup_entity_def params_ctxt ##> Properties.remove Markup.kindN) xs);
 
-    val Asss =
+    val Asss0 =
       (map o map) snd raw_specss
       |> (burrow o burrow) (grouped 10 Par_List.map_independent (parse_prop params_ctxt));
-    val names = Variable.names_of (params_ctxt |> (fold o fold o fold) Variable.declare_term Asss)
+    val names =
+      Variable.names_of (params_ctxt |> (fold o fold o fold) Variable.declare_term Asss0)
       |> fold Name.declare xs;
-    val Asss' = #1 ((fold_map o fold_map o fold_map) Term.free_dummy_patterns Asss names);
-    val idx = (fold o fold o fold) Term.maxidx_term Asss' ~1 + 1;
 
-    val specs =
-      (if do_close then
-        #1 (fold_map
-            (fn Ass => fn i => (burrow (close_forms params_ctxt i) Ass, i + 1)) Asss' idx)
-      else Asss')
-      |> flat |> burrow (Syntax.check_props params_ctxt);
+    val (Asss1, _) = (fold_map o fold_map o fold_map) Term.free_dummy_patterns Asss0 names;
+    val idx = (fold o fold o fold) Term.maxidx_term Asss1 ~1 + 1;
+
+    val (Asss2, _) =
+      fold_map (fn Ass => fn i => (burrow (close_forms params_ctxt auto_close i []) Ass, i + 1))
+        Asss1 idx;
+
+    val specs = burrow (Syntax.check_props params_ctxt) (flat Asss2);
     val specs_ctxt = params_ctxt |> (fold o fold) Variable.declare_term specs;
 
     val ps = specs_ctxt |> fold_map Proof_Context.inferred_param xs |> fst;
@@ -161,19 +163,17 @@ fun prepare prep_var parse_prop prep_att do_close raw_vars raw_specss ctxt =
       map (fn ((name, atts), _) => (name, map (prep_att ctxt) atts)) (flat raw_specss);
 
     fun get_pos x =
-      if do_close then Position.none
-      else
-        (case (maps o maps o maps) (get_positions specs_ctxt x) Asss' of
-          [] => Position.none
-        | pos :: _ => pos);
+      (case (maps o maps o maps) (get_positions specs_ctxt x) Asss2 of
+        [] => Position.none
+      | pos :: _ => pos);
   in (((params, name_atts ~~ specs), get_pos), specs_ctxt) end;
 
 
 fun single_spec (a, prop) = [(a, [prop])];
 fun the_spec (a, [prop]) = (a, prop);
 
-fun prep_spec prep_var parse_prop prep_att do_close vars specs =
-  prepare prep_var parse_prop prep_att do_close
+fun prep_spec prep_var parse_prop prep_att auto_close vars specs =
+  prepare prep_var parse_prop prep_att auto_close
     vars (map single_spec specs) #>> (apfst o apsnd) (map the_spec);
 
 in

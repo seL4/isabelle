@@ -28,6 +28,8 @@ sig
   val nth_prem: int * term -> term
   val close_term: (string * term) list -> term -> term
   val close_prop: (string * term) list -> term list -> term -> term
+  val close_prop_constraint: (string -> typ option) ->
+    (string * string) list -> term list -> term -> term
   val true_prop: term
   val conjunction: term
   val mk_conjunction: term * term -> term
@@ -205,10 +207,15 @@ fun nth_prem (1, Const ("Pure.imp", _) $ A $ _) = A
 fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 
 
-(* close *)
+(* close -- omit vacuous quantifiers *)
 
 val close_term = fold_rev Term.dependent_lambda_name;
-fun close_prop xs As B = fold_rev dependent_all_name xs (list_implies (As, B));
+
+fun close_prop xs As B =
+  fold_rev dependent_all_name xs (list_implies (As, B));
+
+fun close_prop_constraint default_type xs As B =
+  fold_rev (dependent_all_constraint default_type) xs (list_implies (As, B));
 
 
 (** conjunction **)
