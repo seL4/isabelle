@@ -251,11 +251,11 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
               else Const (@{const_name Nominal.perm}, permT --> T --> T) $ pi $ x
             end;
         in
-          (Attrib.empty_binding, HOLogic.mk_Trueprop (HOLogic.mk_eq
+          ((Attrib.empty_binding, HOLogic.mk_Trueprop (HOLogic.mk_eq
             (Free (nth perm_names_types' i) $
                Free ("pi", mk_permT (TFree ("'x", @{sort type}))) $
                list_comb (c, args),
-             list_comb (c, map perm_arg (dts ~~ args)))))
+             list_comb (c, map perm_arg (dts ~~ args))))), [])
         end) constrs
       end) descr;
 

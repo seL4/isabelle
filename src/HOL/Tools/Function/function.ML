@@ -9,19 +9,19 @@ sig
   include FUNCTION_DATA
 
   val add_function: (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> Function_Common.function_config ->
+    Specification.multi_specs -> Function_Common.function_config ->
     (Proof.context -> tactic) -> local_theory -> info * local_theory
 
   val add_function_cmd: (binding * string option * mixfix) list ->
-    (Attrib.binding * string) list -> Function_Common.function_config ->
+    Specification.multi_specs_cmd -> Function_Common.function_config ->
     (Proof.context -> tactic) -> bool -> local_theory -> info * local_theory
 
   val function: (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> Function_Common.function_config ->
+    Specification.multi_specs -> Function_Common.function_config ->
     local_theory -> Proof.state
 
   val function_cmd: (binding * string option * mixfix) list ->
-    (Attrib.binding * string) list -> Function_Common.function_config ->
+    Specification.multi_specs_cmd -> Function_Common.function_config ->
     bool -> local_theory -> Proof.state
 
   val prove_termination: term option -> tactic -> local_theory ->
@@ -149,8 +149,8 @@ fun gen_add_function do_print prep fixspec eqns config tac lthy =
     |> afterqed [[pattern_thm]]
   end
 
-val add_function = gen_add_function false Specification.check_spec
-fun add_function_cmd a b c d int = gen_add_function int Specification.read_spec a b c d
+val add_function = gen_add_function false Specification.check_multi_specs
+fun add_function_cmd a b c d int = gen_add_function int Specification.read_multi_specs a b c d
 
 fun gen_function do_print prep fixspec eqns config lthy =
   let
@@ -162,8 +162,8 @@ fun gen_function do_print prep fixspec eqns config lthy =
     |> Proof.refine_singleton (Method.primitive_text (K (K goal_state)))
   end
 
-val function = gen_function false Specification.check_spec
-fun function_cmd a b c int = gen_function int Specification.read_spec a b c
+val function = gen_function false Specification.check_multi_specs
+fun function_cmd a b c int = gen_function int Specification.read_multi_specs a b c
 
 fun prepare_termination_proof prep_term raw_term_opt lthy =
   let

@@ -334,7 +334,7 @@ fun gen_fixrec
     val (skips, raw_spec) = ListPair.unzip raw_spec'
     val (fixes : ((binding * typ) * mixfix) list,
          spec : (Attrib.binding * term) list) =
-          fst (prep_spec raw_fixes raw_spec lthy)
+          fst (prep_spec raw_fixes (map (rpair []) raw_spec) lthy)
     val names = map (Binding.name_of o fst o fst) fixes
     fun check_head name =
         member (op =) names name orelse
@@ -377,8 +377,8 @@ fun gen_fixrec
 
 in
 
-val add_fixrec = gen_fixrec Specification.check_spec
-val add_fixrec_cmd = gen_fixrec Specification.read_spec
+val add_fixrec = gen_fixrec Specification.check_multi_specs
+val add_fixrec_cmd = gen_fixrec Specification.read_multi_specs
 
 end (* local *)
 
@@ -394,13 +394,13 @@ val opt_thm_name' : (bool * Attrib.binding) parser =
 val spec' : (bool * (Attrib.binding * string)) parser =
   opt_thm_name' -- Parse.prop >> (fn ((a, b), c) => (a, (b, c)))
 
-val alt_specs' : (bool * (Attrib.binding * string)) list parser =
+val multi_specs' : (bool * (Attrib.binding * string)) list parser =
   let val unexpected = Scan.ahead (Parse.name || @{keyword "["} || @{keyword "("})
   in Parse.enum1 "|" (spec' --| Scan.option (unexpected -- Parse.!!! @{keyword "|"})) end
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword fixrec} "define recursive functions (HOLCF)"
-    (Parse.fixes -- (Parse.where_ |-- Parse.!!! alt_specs')
+    (Parse.fixes -- (Parse.where_ |-- Parse.!!! multi_specs')
       >> (fn (fixes, specs) => add_fixrec_cmd fixes specs))
 
 end

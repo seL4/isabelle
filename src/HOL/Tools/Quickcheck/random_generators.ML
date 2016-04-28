@@ -266,8 +266,8 @@ fun instantiate_random_datatype config descr vs tycos prfx (names, auxnames) (Ts
     |> random_aux_specification prfx random_auxN auxs_eqs
     |> `(fn lthy => map (Syntax.check_term lthy) random_defs)
     |-> (fn random_defs' => fold_map (fn random_def =>
-          Specification.definition (NONE, (apfst Binding.concealed
-            Attrib.empty_binding, random_def))) random_defs')
+          Specification.definition NONE []
+            ((Binding.concealed Binding.empty, []), random_def)) random_defs')
     |> snd
     |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
   end;

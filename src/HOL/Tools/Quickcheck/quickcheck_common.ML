@@ -365,7 +365,7 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
       Function.add_function
         (map (fn (name, T) => (Binding.concealed (Binding.name name), SOME T, NoSyn))
           (names ~~ Ts))
-        (map (pair (apfst Binding.concealed Attrib.empty_binding)) eqs_t)
+        (map (fn t => (((Binding.concealed Binding.empty, []), t), [])) eqs_t)
         Function_Common.default_config pat_completeness_auto
       #> snd
       #> (fn lthy => Function.prove_termination NONE (the termination_tac lthy) lthy)

@@ -138,17 +138,17 @@ fun gen_add_domaindef
     val lthy = thy
       |> Class.instantiation ([full_tname], lhs_tfrees, @{sort domain})
     val ((_, (_, emb_ldef)), lthy) =
-        Specification.definition (NONE, (emb_bind, emb_eqn)) lthy
+        Specification.definition NONE [] (emb_bind, emb_eqn) lthy
     val ((_, (_, prj_ldef)), lthy) =
-        Specification.definition (NONE, (prj_bind, prj_eqn)) lthy
+        Specification.definition NONE [] (prj_bind, prj_eqn) lthy
     val ((_, (_, defl_ldef)), lthy) =
-        Specification.definition (NONE, (defl_bind, defl_eqn)) lthy
+        Specification.definition NONE [] (defl_bind, defl_eqn) lthy
     val ((_, (_, liftemb_ldef)), lthy) =
-        Specification.definition (NONE, (liftemb_bind, liftemb_eqn)) lthy
+        Specification.definition NONE [] (liftemb_bind, liftemb_eqn) lthy
     val ((_, (_, liftprj_ldef)), lthy) =
-        Specification.definition (NONE, (liftprj_bind, liftprj_eqn)) lthy
+        Specification.definition NONE [] (liftprj_bind, liftprj_eqn) lthy
     val ((_, (_, liftdefl_ldef)), lthy) =
-        Specification.definition (NONE, (liftdefl_bind, liftdefl_eqn)) lthy
+        Specification.definition NONE [] (liftdefl_bind, liftdefl_eqn) lthy
     val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy)
     val emb_def = singleton (Proof_Context.export lthy ctxt_thy) emb_ldef
     val prj_def = singleton (Proof_Context.export lthy ctxt_thy) prj_ldef

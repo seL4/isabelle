@@ -89,8 +89,8 @@ fun define_pcrel (config: config) crel lthy =
     val rhs = relcomp_op $ param_rel_fixed $ fixed_crel
     val definition_term = Logic.mk_equals (lhs, rhs)
     fun note_def lthy =
-      Specification.definition ((SOME (pcrel_name, SOME relator_type, NoSyn)), 
-        ((Binding.empty, []), definition_term)) lthy |>> (snd #> snd);
+      Specification.definition (SOME (pcrel_name, SOME relator_type, NoSyn)) []
+        ((Binding.empty, []), definition_term) lthy |>> (snd #> snd);
     fun raw_def lthy =
       let
         val ((_, rhs), prove) = Local_Defs.derived_def lthy {conditional = true} definition_term;

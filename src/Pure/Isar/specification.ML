@@ -11,45 +11,40 @@ sig
     term list * Proof.context
   val read_prop: string -> (binding * string option * mixfix) list -> Proof.context ->
     term * Proof.context
-  val check_free_spec:
-    (binding * typ option * mixfix) list -> (Attrib.binding * term) list -> Proof.context ->
-    ((((binding * typ) * mixfix) list * (Attrib.binding * term) list) * (string -> Position.T))
+  val check_spec: (binding * typ option * mixfix) list ->
+    term list -> Attrib.binding * term -> Proof.context ->
+    ((((binding * typ) * mixfix) list * (Attrib.binding * term)) * (string -> Position.T))
       * Proof.context
-  val read_free_spec:
-    (binding * string option * mixfix) list -> (Attrib.binding * string) list -> Proof.context ->
-    ((((binding * typ) * mixfix) list * (Attrib.binding * term) list) * (string -> Position.T))
+  val read_spec: (binding * string option * mixfix) list ->
+    string list -> Attrib.binding * string -> Proof.context ->
+    ((((binding * typ) * mixfix) list * (Attrib.binding * term)) * (string -> Position.T))
       * Proof.context
-  val check_spec:
-    (binding * typ option * mixfix) list -> (Attrib.binding * term) list -> Proof.context ->
+  type multi_specs = ((Attrib.binding * term) * term list) list
+  type multi_specs_cmd = ((Attrib.binding * string) * string list) list
+  val check_multi_specs: (binding * typ option * mixfix) list -> multi_specs -> Proof.context ->
     (((binding * typ) * mixfix) list * (Attrib.binding * term) list) * Proof.context
-  val read_spec:
-    (binding * string option * mixfix) list -> (Attrib.binding * string) list -> Proof.context ->
+  val read_multi_specs: (binding * string option * mixfix) list -> multi_specs_cmd -> Proof.context ->
     (((binding * typ) * mixfix) list * (Attrib.binding * term) list) * Proof.context
-  val check_specification: (binding * typ option * mixfix) list ->
+  val check_specification: (binding * typ option * mixfix) list -> term list ->
     (Attrib.binding * term list) list -> Proof.context ->
     (((binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
-  val read_specification: (binding * string option * mixfix) list ->
+  val read_specification: (binding * string option * mixfix) list -> string list ->
     (Attrib.binding * string list) list -> Proof.context ->
     (((binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
-  val axiomatization: (binding * typ option * mixfix) list ->
-    (Attrib.binding * term list) list -> theory ->
-    (term list * thm list list) * theory
-  val axiomatization_cmd: (binding * string option * mixfix) list ->
-    (Attrib.binding * string list) list -> theory ->
-    (term list * thm list list) * theory
+  val axiomatization: (binding * typ option * mixfix) list -> term list ->
+    (Attrib.binding * term list) list -> theory -> (term list * thm list list) * theory
+  val axiomatization_cmd: (binding * string option * mixfix) list -> string list ->
+    (Attrib.binding * string list) list -> theory -> (term list * thm list list) * theory
   val axiom: Attrib.binding * term -> theory -> thm * theory
-  val definition:
-    (binding * typ option * mixfix) option * (Attrib.binding * term) ->
-    local_theory -> (term * (string * thm)) * local_theory
-  val definition':
-    (binding * typ option * mixfix) option * (Attrib.binding * term) ->
-    bool -> local_theory -> (term * (string * thm)) * local_theory
-  val definition_cmd:
-    (binding * string option * mixfix) option * (Attrib.binding * string) ->
-    bool -> local_theory -> (term * (string * thm)) * local_theory
-  val abbreviation: Syntax.mode -> (binding * typ option * mixfix) option * term ->
+  val definition: (binding * typ option * mixfix) option -> term list ->
+    Attrib.binding * term -> local_theory -> (term * (string * thm)) * local_theory
+  val definition': (binding * typ option * mixfix) option -> term list ->
+    Attrib.binding * term -> bool -> local_theory -> (term * (string * thm)) * local_theory
+  val definition_cmd: (binding * string option * mixfix) option -> string list ->
+    Attrib.binding * string -> bool -> local_theory -> (term * (string * thm)) * local_theory
+  val abbreviation: Syntax.mode -> (binding * typ option * mixfix) option -> term ->
     bool -> local_theory -> local_theory
-  val abbreviation_cmd: Syntax.mode -> (binding * string option * mixfix) option * string ->
+  val abbreviation_cmd: Syntax.mode -> (binding * string option * mixfix) option -> string ->
     bool -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val type_notation_cmd: bool -> Syntax.mode -> (string * mixfix) list ->
@@ -141,7 +136,7 @@ fun prepare prep_var parse_prop prep_att auto_close raw_vars raw_specss ctxt =
           map (Variable.markup_entity_def params_ctxt ##> Properties.remove Markup.kindN) xs);
 
     val Asss0 =
-      (map o map) snd raw_specss
+      map (fn (raw_concls, raw_prems) => raw_prems :: map snd raw_concls) raw_specss
       |> (burrow o burrow) (grouped 10 Par_List.map_independent (parse_prop params_ctxt));
     val names =
       Variable.names_of (params_ctxt |> (fold o fold o fold) Variable.declare_term Asss0)
@@ -151,8 +146,8 @@ fun prepare prep_var parse_prop prep_att auto_close raw_vars raw_specss ctxt =
     val idx = (fold o fold o fold) Term.maxidx_term Asss1 ~1 + 1;
 
     val (Asss2, _) =
-      fold_map (fn Ass => fn i => (burrow (close_forms params_ctxt auto_close i []) Ass, i + 1))
-        Asss1 idx;
+      fold_map (fn prems :: conclss => fn i =>
+        (burrow (close_forms params_ctxt auto_close i prems) conclss, i + 1)) Asss1 idx;
 
     val specs = burrow (Syntax.check_props params_ctxt) (flat Asss2);
     val specs_ctxt = params_ctxt |> (fold o fold) Variable.declare_term specs;
@@ -160,7 +155,7 @@ fun prepare prep_var parse_prop prep_att auto_close raw_vars raw_specss ctxt =
     val ps = specs_ctxt |> fold_map Proof_Context.inferred_param xs |> fst;
     val params = map2 (fn (b, _, mx) => fn (_, T) => ((b, T), mx)) vars ps;
     val name_atts: Attrib.binding list =
-      map (fn ((name, atts), _) => (name, map (prep_att ctxt) atts)) (flat raw_specss);
+      map (fn ((name, atts), _) => (name, map (prep_att ctxt) atts)) (maps #1 raw_specss);
 
     fun get_pos x =
       (case (maps o maps o maps) (get_positions specs_ctxt x) Asss2 of
@@ -169,45 +164,50 @@ fun prepare prep_var parse_prop prep_att auto_close raw_vars raw_specss ctxt =
   in (((params, name_atts ~~ specs), get_pos), specs_ctxt) end;
 
 
-fun single_spec (a, prop) = [(a, [prop])];
+fun single_spec ((a, B), As) = ([(a, [B])], As);
 fun the_spec (a, [prop]) = (a, prop);
 
-fun prep_spec prep_var parse_prop prep_att auto_close vars specs =
+fun prep_specs prep_var parse_prop prep_att auto_close vars specs =
   prepare prep_var parse_prop prep_att auto_close
     vars (map single_spec specs) #>> (apfst o apsnd) (map the_spec);
 
 in
 
-fun check_free_spec vars specs =
-  prep_spec Proof_Context.cert_var (K I) (K I) false vars specs;
+fun check_spec xs As B =
+  prep_specs Proof_Context.cert_var (K I) (K I) false xs [(B, As)] #>
+  (apfst o apfst o apsnd) the_single;
 
-fun read_free_spec vars specs =
-  prep_spec Proof_Context.read_var Syntax.parse_prop Attrib.check_src false vars specs;
+fun read_spec xs As B =
+  prep_specs Proof_Context.read_var Syntax.parse_prop Attrib.check_src false xs [(B, As)] #>
+  (apfst o apfst o apsnd) the_single;
 
-fun check_spec vars specs =
-  prep_spec Proof_Context.cert_var (K I) (K I) true vars specs #> apfst fst;
+type multi_specs = ((Attrib.binding * term) * term list) list;
+type multi_specs_cmd = ((Attrib.binding * string) * string list) list;
 
-fun read_spec vars specs =
-  prep_spec Proof_Context.read_var Syntax.parse_prop Attrib.check_src true vars specs #> apfst fst;
+fun check_multi_specs xs specs =
+  prep_specs Proof_Context.cert_var (K I) (K I) true xs specs #>> #1;
 
-fun check_specification vars specs =
-  prepare Proof_Context.cert_var (K I) (K I) true vars [specs] #> apfst fst
+fun read_multi_specs xs specs =
+  prep_specs Proof_Context.read_var Syntax.parse_prop Attrib.check_src true xs specs #>> #1;
 
-fun read_specification vars specs =
-  prepare Proof_Context.read_var Syntax.parse_prop Attrib.check_src true vars [specs] #> apfst fst;
+fun check_specification xs As Bs =
+  prepare Proof_Context.cert_var (K I) (K I) true xs [(Bs, As)] #>> #1;
+
+fun read_specification xs As Bs =
+  prepare Proof_Context.read_var Syntax.parse_prop Attrib.check_src true xs [(Bs, As)] #>> #1;
 
 end;
 
 
 (* axiomatization -- within global theory *)
 
-fun gen_axioms prep raw_vars raw_specs thy =
+fun gen_axioms prep raw_decls raw_prems raw_concls thy =
   let
-    val ((vars, specs), _) = prep raw_vars raw_specs (Proof_Context.init_global thy);
-    val xs = map (fn ((b, T), _) => (Variable.check_name b, T)) vars;
+    val ((decls, specs), _) = prep raw_decls raw_prems raw_concls (Proof_Context.init_global thy);
+    val xs = map (fn ((b, T), _) => (Variable.check_name b, T)) decls;
 
     (*consts*)
-    val (consts, consts_thy) = thy |> fold_map Theory.specify_const vars;
+    val (consts, consts_thy) = thy |> fold_map Theory.specify_const decls;
     val subst = Term.subst_atomic (map Free xs ~~ consts);
 
     (*axioms*)
@@ -228,15 +228,15 @@ fun gen_axioms prep raw_vars raw_specs thy =
 val axiomatization = gen_axioms check_specification;
 val axiomatization_cmd = gen_axioms read_specification;
 
-fun axiom (b, ax) = axiomatization [] [(b, [ax])] #>> (hd o hd o snd);
+fun axiom (b, ax) = axiomatization [] [] [(b, [ax])] #>> (hd o hd o snd);
 
 
 (* definition *)
 
-fun gen_def prep (raw_var, raw_spec) int lthy =
+fun gen_def prep raw_var raw_prems raw_spec int lthy =
   let
-    val ((vars, [((raw_name, atts), prop)]), get_pos) =
-      fst (prep (the_list raw_var) [raw_spec] lthy);
+    val ((vars, ((raw_name, atts), prop)), get_pos) =
+      fst (prep (the_list raw_var) raw_prems raw_spec lthy);
     val (((x, T), rhs), prove) = Local_Defs.derived_def lthy {conditional = true} prop;
     val _ = Name.reject_internal (x, []);
     val (b, mx) =
@@ -266,19 +266,19 @@ fun gen_def prep (raw_var, raw_spec) int lthy =
         (member (op =) (Term.add_frees lhs' [])) [(x, T)];
   in ((lhs, (def_name, th')), lthy4) end;
 
-val definition' = gen_def check_free_spec;
-fun definition spec = definition' spec false;
-val definition_cmd = gen_def read_free_spec;
+val definition' = gen_def check_spec;
+fun definition xs As B = definition' xs As B false;
+val definition_cmd = gen_def read_spec;
 
 
 (* abbreviation *)
 
-fun gen_abbrev prep mode (raw_var, raw_prop) int lthy =
+fun gen_abbrev prep mode raw_var raw_prop int lthy =
   let
     val lthy1 = lthy
       |> Proof_Context.set_syntax_mode mode;
-    val (((vars, [(_, prop)]), get_pos), _) =
-      prep (the_list raw_var) [(Attrib.empty_binding, raw_prop)]
+    val (((vars, (_, prop)), get_pos), _) =
+      prep (the_list raw_var) [] (Attrib.empty_binding, raw_prop)
         (lthy1 |> Proof_Context.set_mode Proof_Context.mode_abbrev);
     val ((x, T), rhs) = Local_Defs.abs_def (#2 (Local_Defs.cert_def lthy1 prop));
     val _ = Name.reject_internal (x, []);
@@ -299,8 +299,8 @@ fun gen_abbrev prep mode (raw_var, raw_prop) int lthy =
     val _ = Proof_Display.print_consts int (Position.thread_data ()) lthy2 (K false) [(x, T)];
   in lthy2 end;
 
-val abbreviation = gen_abbrev check_free_spec;
-val abbreviation_cmd = gen_abbrev read_free_spec;
+val abbreviation = gen_abbrev check_spec;
+val abbreviation_cmd = gen_abbrev read_spec;
 
 
 (* notation *)

@@ -9,14 +9,14 @@ Primitive recursive functions on datatypes.
 signature OLD_PRIMREC =
 sig
   val primrec: (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> local_theory -> (term list * thm list) * local_theory
+    Specification.multi_specs -> local_theory -> (term list * thm list) * local_theory
   val primrec_cmd: (binding * string option * mixfix) list ->
-    (Attrib.binding * string) list -> local_theory -> (term list * thm list) * local_theory
+    Specification.multi_specs_cmd -> local_theory -> (term list * thm list) * local_theory
   val primrec_global: (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> theory -> (term list * thm list) * theory
+    Specification.multi_specs -> theory -> (term list * thm list) * theory
   val primrec_overloaded: (string * (string * typ) * bool) list ->
     (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> theory -> (term list * thm list) * theory
+    Specification.multi_specs -> theory -> (term list * thm list) * theory
   val primrec_simple: ((binding * typ) * mixfix) list -> term list ->
     local_theory -> (string * (term list * thm list)) * local_theory
 end;
@@ -290,8 +290,8 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
 
 in
 
-val primrec = gen_primrec Specification.check_spec;
-val primrec_cmd = gen_primrec Specification.read_spec;
+val primrec = gen_primrec Specification.check_multi_specs;
+val primrec_cmd = gen_primrec Specification.read_multi_specs;
 
 end;
 

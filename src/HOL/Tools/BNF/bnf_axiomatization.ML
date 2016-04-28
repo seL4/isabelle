@@ -82,7 +82,7 @@ fun prepare_decl prepare_plugins prepare_constraint prepare_typ
     val all_goalss = map single goals @ (if nwits > 0 then wit_goalss else []);
 
     val (((_, [raw_thms])), lthy) = Local_Theory.background_theory_result
-      (Specification.axiomatization [] [((mk_b "axioms" Binding.empty, []), flat all_goalss)]) lthy;
+      (Specification.axiomatization [] [] [((mk_b "axioms" Binding.empty, []), flat all_goalss)]) lthy;
 
     fun mk_wit_thms set_maps =
       Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals)

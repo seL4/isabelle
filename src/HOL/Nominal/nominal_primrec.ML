@@ -11,11 +11,11 @@ sig
   val primrec: term list option -> term option ->
     (binding * typ option * mixfix) list ->
     (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> local_theory -> Proof.state
+    Specification.multi_specs -> local_theory -> Proof.state
   val primrec_cmd: string list option -> string option ->
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
-    (Attrib.binding * string) list -> local_theory -> Proof.state
+    Specification.multi_specs_cmd -> local_theory -> Proof.state
 end;
 
 structure NominalPrimrec : NOMINAL_PRIMREC =
@@ -380,8 +380,8 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
 
 in
 
-val primrec = gen_primrec Specification.check_spec (K I);
-val primrec_cmd = gen_primrec Specification.read_spec Syntax.read_term;
+val primrec = gen_primrec Specification.check_multi_specs (K I);
+val primrec_cmd = gen_primrec Specification.read_multi_specs Syntax.read_term;
 
 end;
 
@@ -403,7 +403,7 @@ val options =
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword nominal_primrec}
     "define primitive recursive functions on nominal datatypes"
-    (options -- Parse.fixes -- Parse.for_fixes -- Parse_Spec.where_alt_specs
+    (options -- Parse.fixes -- Parse.for_fixes -- Parse_Spec.where_multi_specs
       >> (fn ((((invs, fctxt), fixes), params), specs) =>
         primrec_cmd invs fctxt fixes params specs));
 

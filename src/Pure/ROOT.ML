@@ -251,9 +251,9 @@ ML_file "Tools/plugin.ML";
 ML_file "Isar/code.ML";
 
 (*specifications*)
-ML_file "Isar/parse_spec.ML";
 ML_file "Isar/spec_rules.ML";
 ML_file "Isar/specification.ML";
+ML_file "Isar/parse_spec.ML";
 ML_file "Isar/typedecl.ML";
 
 (*toplevel transactions*)

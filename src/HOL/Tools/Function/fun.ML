@@ -9,10 +9,10 @@ signature FUNCTION_FUN =
 sig
   val fun_config : Function_Common.function_config
   val add_fun : (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> Function_Common.function_config ->
+    Specification.multi_specs -> Function_Common.function_config ->
     local_theory -> Proof.context
   val add_fun_cmd : (binding * string option * mixfix) list ->
-    (Attrib.binding * string) list -> Function_Common.function_config ->
+    Specification.multi_specs_cmd -> Function_Common.function_config ->
     bool -> local_theory -> Proof.context
 end
 

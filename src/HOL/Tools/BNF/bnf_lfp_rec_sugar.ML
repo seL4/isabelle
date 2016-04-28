@@ -62,16 +62,16 @@ sig
   val lfp_rec_sugar_interpretation: string ->
     (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) -> theory -> theory
 
-  val primrec: (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
+  val primrec: (binding * typ option * mixfix) list -> Specification.multi_specs ->
     local_theory -> (term list * thm list * thm list list) * local_theory
   val primrec_cmd: rec_option list -> (binding * string option * mixfix) list ->
-    (Attrib.binding * string) list -> local_theory ->
+    Specification.multi_specs_cmd -> local_theory ->
     (term list * thm list * thm list list) * local_theory
   val primrec_global: (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> theory -> (term list * thm list * thm list list) * theory
+    Specification.multi_specs -> theory -> (term list * thm list * thm list list) * theory
   val primrec_overloaded: (string * (string * typ) * bool) list ->
     (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> theory -> (term list * thm list * thm list list) * theory
+    Specification.multi_specs -> theory -> (term list * thm list * thm list list) * theory
   val primrec_simple: ((binding * typ) * mixfix) list -> term list -> local_theory ->
     ((string list * (binding -> binding) list) *
     (term list * thm list * (int list list * thm list list))) * local_theory
@@ -666,8 +666,8 @@ fun gen_primrec old_primrec prep_spec opts raw_fixes raw_specs lthy =
     old_primrec raw_fixes raw_specs lthy
     |>> (fn (ts, thms) => (ts, [], [thms]));
 
-val primrec = gen_primrec Old_Primrec.primrec Specification.check_spec [];
-val primrec_cmd = gen_primrec Old_Primrec.primrec_cmd Specification.read_spec;
+val primrec = gen_primrec Old_Primrec.primrec Specification.check_multi_specs [];
+val primrec_cmd = gen_primrec Old_Primrec.primrec_cmd Specification.read_multi_specs;
 
 fun primrec_global fixes specs =
   Named_Target.theory_init
@@ -688,7 +688,7 @@ val _ = Outer_Syntax.local_theory @{command_keyword primrec}
   "define primitive recursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 rec_option_parser)
       --| @{keyword ")"}) []) --
-    (Parse.fixes -- Parse_Spec.where_alt_specs)
+    (Parse.fixes -- Parse_Spec.where_multi_specs)
     >> (fn (opts, (fixes, specs)) => snd o primrec_cmd opts fixes specs));
 
 end;

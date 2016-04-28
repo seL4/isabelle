@@ -192,7 +192,7 @@ fun create_nom_typedecls ak_names thy =
         thy' |>
         BNF_LFP_Compat.primrec_global
           [(Binding.name swap_name, SOME swapT, NoSyn)]
-          [(Attrib.empty_binding, def1)] ||>
+          [((Attrib.empty_binding, def1), [])] ||>
         Sign.parent_path ||>>
         Global_Theory.add_defs_unchecked true
           [((Binding.name name, def2), [])] |>> (snd o fst)
@@ -226,7 +226,7 @@ fun create_nom_typedecls ak_names thy =
         thy' |>
         BNF_LFP_Compat.primrec_global
           [(Binding.name prm_name, SOME prmT, NoSyn)]
-          [(Attrib.empty_binding, def1), (Attrib.empty_binding, def2)] ||>
+          (map (fn def => ((Attrib.empty_binding, def), [])) [def1, def2]) ||>
         Sign.parent_path
       end) ak_names_types thy3;
     

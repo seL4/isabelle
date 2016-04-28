@@ -226,7 +226,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
         "Known modes are " ^ commas_quote (known_modes lthy) ^ "."]);
     val Setup_Data {fixp, mono, fixp_eq, fixp_induct, fixp_induct_user} = setup_data;
 
-    val ((fixes, [(eq_abinding, eqn)]), _) = prep fixes_raw [eqn_raw] lthy;
+    val ((fixes, [(eq_abinding, eqn)]), _) = prep fixes_raw [(eqn_raw, [])] lthy;
     val ((_, plain_eqn), args_ctxt) = Variable.focus NONE eqn lthy;
 
     val ((f_binding, fT), mixfix) = the_single fixes;
@@ -306,14 +306,14 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     |> note_qualified ("fixp_induct", [specialized_fixp_induct])
   end;
 
-val add_partial_function = gen_add_partial_function Specification.check_spec;
-val add_partial_function_cmd = gen_add_partial_function Specification.read_spec;
+val add_partial_function = gen_add_partial_function Specification.check_multi_specs;
+val add_partial_function_cmd = gen_add_partial_function Specification.read_multi_specs;
 
 val mode = @{keyword "("} |-- Parse.name --| @{keyword ")"};
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword partial_function} "define partial function"
-    ((mode -- (Parse.fixes -- (Parse.where_ |-- Parse_Spec.spec)))
+    ((mode -- (Parse.fixes -- (Parse.where_ |-- Parse_Spec.simple_spec)))
       >> (fn (mode, (fixes, spec)) => add_partial_function_cmd mode fixes spec));
 
 end;

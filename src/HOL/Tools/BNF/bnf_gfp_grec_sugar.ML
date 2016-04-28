@@ -1829,7 +1829,7 @@ fun add_function binding parsed_eq lthy =
 
     val ({defname, pelims = [[pelim]], pinducts = [pinduct], psimps = [psimp], ...}, lthy) =
       Function.add_function [(Binding.concealed binding, NONE, NoSyn)]
-        [(apfst Binding.concealed Attrib.empty_binding, parsed_eq)]
+        [(((Binding.concealed Binding.empty, []), parsed_eq), [])]
         Function_Common.default_config pat_completeness_auto lthy;
   in
     ((defname, (pelim, pinduct, psimp)), lthy)
@@ -1982,7 +1982,7 @@ fun prepare_corec_ursive_cmd long_cmd opts (raw_fixes, raw_eq) lthy =
 
     val (plugins, friend, transfer) = get_options lthy opts;
     val ([((b, fun_T), mx)], [(_, eq)]) =
-      fst (Specification.read_spec raw_fixes [(Attrib.empty_binding, raw_eq)] lthy);
+      fst (Specification.read_multi_specs raw_fixes [((Attrib.empty_binding, raw_eq), [])] lthy);
 
     val _ = Sign.of_sort (Proof_Context.theory_of lthy) (fun_T, @{sort type}) orelse
       error ("Type of " ^ Binding.print b ^ " contains top sort");

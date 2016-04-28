@@ -54,7 +54,7 @@ sig
   val add_inductive: bool -> bool ->
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
-    (Attrib.binding * string) list ->
+    Specification.multi_specs_cmd ->
     (Facts.ref * Token.src list) list ->
     local_theory -> inductive_result * local_theory
   val add_inductive_global: inductive_flags ->
@@ -88,7 +88,7 @@ sig
   val gen_add_inductive: add_ind_def -> bool -> bool ->
     (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list ->
-    (Attrib.binding * string) list -> (Facts.ref * Token.src list) list ->
+    Specification.multi_specs_cmd -> (Facts.ref * Token.src list) list ->
     local_theory -> inductive_result * local_theory
   val gen_ind_decl: add_ind_def -> bool -> (local_theory -> local_theory) parser
 end;
@@ -1084,7 +1084,7 @@ fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_
   let
     val ((vars, intrs), _) = lthy
       |> Proof_Context.set_mode Proof_Context.mode_abbrev
-      |> Specification.read_spec (cnames_syn @ pnames_syn) intro_srcs;
+      |> Specification.read_multi_specs (cnames_syn @ pnames_syn) intro_srcs;
     val (cs, ps) = chop (length cnames_syn) vars;
     val monos = Attrib.eval_thms lthy raw_monos;
     val flags =
@@ -1170,7 +1170,7 @@ fun infer_intro_vars thy elim arity intros =
 
 fun gen_ind_decl mk_def coind =
   Parse.fixes -- Parse.for_fixes --
-  Scan.optional Parse_Spec.where_alt_specs [] --
+  Scan.optional Parse_Spec.where_multi_specs [] --
   Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.thms1) []
   >> (fn (((preds, params), specs), monos) =>
       (snd o gen_add_inductive mk_def true coind preds params specs monos));
@@ -1188,12 +1188,12 @@ val _ =
 val _ =
   Outer_Syntax.local_theory @{command_keyword inductive_cases}
     "create simplified instances of elimination rules"
-    (Parse.and_list1 Parse_Spec.specs >> (snd oo inductive_cases));
+    (Parse.and_list1 Parse_Spec.simple_specs >> (snd oo inductive_cases));
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword inductive_simps}
     "create simplification rules for inductive predicates"
-    (Parse.and_list1 Parse_Spec.specs >> (snd oo inductive_simps));
+    (Parse.and_list1 Parse_Spec.simple_specs >> (snd oo inductive_simps));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_inductives}

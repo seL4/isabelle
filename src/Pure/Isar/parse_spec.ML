@@ -8,13 +8,15 @@ signature PARSE_SPEC =
 sig
   val thm_name: string -> Attrib.binding parser
   val opt_thm_name: string -> Attrib.binding parser
-  val spec: (Attrib.binding * string) parser
-  val specs: (Attrib.binding * string list) parser
-  val alt_specs: (Attrib.binding * string) list parser
-  val where_alt_specs: (Attrib.binding * string) list parser
   val name_facts: (Attrib.binding * (Facts.ref * Token.src list) list) list parser
+  val simple_spec: (Attrib.binding * string) parser
+  val simple_specs: (Attrib.binding * string list) parser
+  val if_assumes: string list parser
+  val spec: (string list * (Attrib.binding * string)) parser
+  val multi_specs: Specification.multi_specs_cmd parser
+  val where_multi_specs: Specification.multi_specs_cmd parser
+  val specification: (string list * (Attrib.binding * string list) list) parser
   val constdecl: (binding * string option * mixfix) parser
-  val constdef: ((binding * string option * mixfix) option * (Attrib.binding * string)) parser
   val includes: (xstring * Position.T) list parser
   val locale_fixes: (binding * string option * mixfix) list parser
   val locale_insts: (string option list * (Attrib.binding * string) list) parser
@@ -37,7 +39,7 @@ end;
 structure Parse_Spec: PARSE_SPEC =
 struct
 
-(* theorem specifications *)
+(* simple specifications *)
 
 fun thm_name s = Parse.binding -- Parse.opt_attribs --| Parse.$$$ s;
 
@@ -46,16 +48,29 @@ fun opt_thm_name s =
     ((Parse.binding -- Parse.opt_attribs || Parse.attribs >> pair Binding.empty) --| Parse.$$$ s)
     Attrib.empty_binding;
 
-val spec = opt_thm_name ":" -- Parse.prop;
-val specs = opt_thm_name ":" -- Scan.repeat1 Parse.prop;
-
-val alt_specs =
-  Parse.enum1 "|"
-    (spec --| Scan.option (Scan.ahead (Parse.name || Parse.$$$ "[") -- Parse.!!! (Parse.$$$ "|")));
-
-val where_alt_specs = Parse.where_ |-- Parse.!!! alt_specs;
+val simple_spec = opt_thm_name ":" -- Parse.prop;
+val simple_specs = opt_thm_name ":" -- Scan.repeat1 Parse.prop;
 
 val name_facts = Parse.and_list1 (opt_thm_name "=" -- Parse.thms1);
+
+
+(* structured specifications *)
+
+val if_assumes =
+  Scan.optional (Parse.$$$ "if" |-- Parse.!!! (Parse.and_list1 (Scan.repeat1 Parse.prop) >> flat))
+    [];
+
+val spec = (opt_thm_name ":" -- Parse.prop) -- if_assumes >> swap;
+
+val multi_specs =
+  Parse.enum1 "|"
+    (opt_thm_name ":" -- Parse.prop -- if_assumes --|
+      Scan.option (Scan.ahead (Parse.name || Parse.$$$ "[") -- Parse.!!! (Parse.$$$ "|")));
+
+val where_multi_specs = Parse.where_ |-- Parse.!!! multi_specs;
+
+val specification =
+  Parse.and_list1 (opt_thm_name ":" -- Scan.repeat1 Parse.prop) -- if_assumes >> swap;
 
 
 (* basic constant specifications *)
@@ -66,8 +81,6 @@ val constdecl =
       Parse.$$$ "::" |-- Parse.!!! ((Parse.typ >> SOME) -- Parse.opt_mixfix' --| Parse.where_) ||
       Scan.ahead (Parse.$$$ "(") |-- Parse.!!! (Parse.mixfix' --| Parse.where_ >> pair NONE))
   >> Scan.triple2;
-
-val constdef = Scan.option constdecl -- (opt_thm_name ":" -- Parse.prop);
 
 
 (* locale and context elements *)
