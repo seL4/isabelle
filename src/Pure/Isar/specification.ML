@@ -101,14 +101,16 @@ fun read_prop raw_prop raw_fixes ctxt =
 local
 
 fun close_forms ctxt auto_close i prems concls =
-  let
-    val xs =
-      if auto_close then rev (fold (Variable.add_free_names ctxt) (prems @ concls) [])
-      else [];
-    val types =
-      map (Type_Infer.param i o rpair []) (Name.invent Name.context Name.aT (length xs));
-    val uniform_typing = AList.lookup (op =) (xs ~~ types);
-  in map (Logic.close_prop_constraint uniform_typing (xs ~~ xs) prems) concls end;
+  if not auto_close andalso null prems then concls
+  else
+    let
+      val xs =
+        if auto_close then rev (fold (Variable.add_free_names ctxt) (prems @ concls) [])
+        else [];
+      val types =
+        map (Type_Infer.param i o rpair []) (Name.invent Name.context Name.aT (length xs));
+      val uniform_typing = AList.lookup (op =) (xs ~~ types);
+    in map (Logic.close_prop_constraint uniform_typing (xs ~~ xs) prems) concls end;
 
 fun get_positions ctxt x =
   let
