@@ -23,6 +23,9 @@ sig
   val defn_del: attribute
   val meta_rewrite_conv: Proof.context -> conv
   val meta_rewrite_rule: Proof.context -> thm -> thm
+  val abs_def_rule: Proof.context -> thm -> thm
+  val unfold_abs_def_raw: Config.raw
+  val unfold_abs_def: bool Config.T
   val unfold: Proof.context -> thm list -> thm -> thm
   val unfold_goals: Proof.context -> thm list -> thm -> thm
   val unfold_tac: Proof.context -> thm list -> tactic
@@ -196,16 +199,30 @@ fun meta_rewrite_conv ctxt =
 
 val meta_rewrite_rule = Conv.fconv_rule o meta_rewrite_conv;
 
+fun abs_def_rule ctxt = meta_rewrite_rule ctxt #> Drule.abs_def;
+
 
 (* rewriting with object-level rules *)
 
+val unfold_abs_def_raw = Config.declare ("unfold_abs_def", @{here}) (K (Config.Bool false));
+val unfold_abs_def = Config.bool unfold_abs_def_raw;
+
+local
+
+fun meta_abs f ctxt =
+  f ctxt o map (meta_rewrite_rule ctxt #> Config.get ctxt unfold_abs_def ? Drule.abs_def);
+
 fun meta f ctxt = f ctxt o map (meta_rewrite_rule ctxt);
 
-val unfold       = meta Raw_Simplifier.rewrite_rule;
-val unfold_goals = meta Raw_Simplifier.rewrite_goals_rule;
-val unfold_tac   = meta Raw_Simplifier.rewrite_goals_tac;
+in
+
+val unfold       = meta_abs Raw_Simplifier.rewrite_rule;
+val unfold_goals = meta_abs Raw_Simplifier.rewrite_goals_rule;
+val unfold_tac   = meta_abs Raw_Simplifier.rewrite_goals_tac;
 val fold         = meta Raw_Simplifier.fold_rule;
 val fold_tac     = meta Raw_Simplifier.fold_goals_tac;
+
+end;
 
 
 (* derived defs -- potentially within the object-logic *)

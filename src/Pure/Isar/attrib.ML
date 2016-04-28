@@ -581,8 +581,7 @@ val _ = Theory.setup
     (add_del Local_Defs.defn_add Local_Defs.defn_del)
     "declaration of definitional transformations" #>
   setup @{binding abs_def}
-    (Scan.succeed (Thm.rule_attribute [] (fn context =>
-      Local_Defs.meta_rewrite_rule (Context.proof_of context) #> Drule.abs_def)))
+    (Scan.succeed (Thm.rule_attribute [] (Local_Defs.abs_def_rule o Context.proof_of)))
     "abstract over free variables of definitional theorem" #>
 
   register_config Goal.quick_and_dirty_raw #>
@@ -619,7 +618,8 @@ val _ = Theory.setup
   register_config Raw_Simplifier.simp_depth_limit_raw #>
   register_config Raw_Simplifier.simp_trace_depth_limit_raw #>
   register_config Raw_Simplifier.simp_debug_raw #>
-  register_config Raw_Simplifier.simp_trace_raw);
+  register_config Raw_Simplifier.simp_trace_raw #>
+  register_config Local_Defs.unfold_abs_def_raw);
 
 
 (* internal source *)

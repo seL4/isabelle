@@ -116,8 +116,7 @@ end;
 
 local
 
-fun meta_rewrite eqns ctxt =
-  (map (Local_Defs.meta_rewrite_rule ctxt #> Drule.abs_def) (maps snd eqns), ctxt);
+fun meta_rewrite eqns ctxt = (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns), ctxt);
 
 fun note_eqns_register note activate deps witss def_eqns eqns attrss export export' ctxt =
   let

@@ -471,7 +471,7 @@ fun mk_rel_sel_tac ctxt ct1 ct2 exhaust discs sels rel_injects distincts rel_dis
 
 fun mk_sel_transfer_tac ctxt n sel_defs case_transfer =
   TRYALL Goal.conjunction_tac THEN
-  unfold_thms_tac ctxt (map (Drule.abs_def o Local_Defs.meta_rewrite_rule ctxt) sel_defs) THEN
+  unfold_thms_tac ctxt (map (Local_Defs.abs_def_rule ctxt) sel_defs) THEN
   ALLGOALS (rtac ctxt (mk_rel_funDN n case_transfer) THEN_ALL_NEW
     REPEAT_DETERM o (assume_tac ctxt ORELSE' rtac ctxt rel_funI));
 

@@ -447,8 +447,7 @@ fun eta_contraction_rule th =
 local
 
 fun contract_lhs th =
-  Thm.transitive (Thm.symmetric (beta_eta_conversion
-    (fst (Thm.dest_equals (Thm.cprop_of th))))) th;
+  Thm.transitive (Thm.symmetric (beta_eta_conversion (#1 (Thm.dest_equals (Thm.cprop_of th))))) th;
 
 fun var_args ct =
   (case try Thm.dest_comb ct of
