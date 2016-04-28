@@ -342,46 +342,43 @@ inductive transition :: "file \<Rightarrow> operation \<Rightarrow> file \<Right
   ("_ \<midarrow>_\<rightarrow> _" [90, 1000, 90] 100)
 where
   read:
-    "access root path uid {Readable} = Some (Val (att, text)) \<Longrightarrow>
-      root \<midarrow>(Read uid text path)\<rightarrow> root" |
-  "write":
-    "access root path uid {Writable} = Some (Val (att, text')) \<Longrightarrow>
-      root \<midarrow>(Write uid text path)\<rightarrow> update path (Some (Val (att, text))) root" |
-
-  chmod:
-    "access root path uid {} = Some file \<Longrightarrow>
-      uid = 0 \<or> uid = owner (attributes file) \<Longrightarrow>
-      root \<midarrow>(Chmod uid perms path)\<rightarrow> update path
-        (Some (map_attributes (others_update (\<lambda>_. perms)) file)) root" |
-
-  creat:
-    "path = parent_path @ [name] \<Longrightarrow>
-      access root parent_path uid {Writable} = Some (Env att parent) \<Longrightarrow>
-      access root path uid {} = None \<Longrightarrow>
-      root \<midarrow>(Creat uid perms path)\<rightarrow> update path
-        (Some (Val (\<lparr>owner = uid, others = perms\<rparr>, []))) root" |
-  unlink:
-    "path = parent_path @ [name] \<Longrightarrow>
-      access root parent_path uid {Writable} = Some (Env att parent) \<Longrightarrow>
-      access root path uid {} = Some (Val plain) \<Longrightarrow>
-      root \<midarrow>(Unlink uid path)\<rightarrow> update path None root" |
-
-  mkdir:
-    "path = parent_path @ [name] \<Longrightarrow>
-      access root parent_path uid {Writable} = Some (Env att parent) \<Longrightarrow>
-      access root path uid {} = None \<Longrightarrow>
-      root \<midarrow>(Mkdir uid perms path)\<rightarrow> update path
-        (Some (Env \<lparr>owner = uid, others = perms\<rparr> empty)) root" |
+    "root \<midarrow>(Read uid text path)\<rightarrow> root"
+    if "access root path uid {Readable} = Some (Val (att, text))"
+| "write":
+    "root \<midarrow>(Write uid text path)\<rightarrow> update path (Some (Val (att, text))) root"
+    if "access root path uid {Writable} = Some (Val (att, text'))"
+| chmod:
+    "root \<midarrow>(Chmod uid perms path)\<rightarrow>
+      update path (Some (map_attributes (others_update (\<lambda>_. perms)) file)) root"
+    if "access root path uid {} = Some file" and "uid = 0 \<or> uid = owner (attributes file)"
+| creat:
+    "root \<midarrow>(Creat uid perms path)\<rightarrow>
+      update path (Some (Val (\<lparr>owner = uid, others = perms\<rparr>, []))) root"
+    if "path = parent_path @ [name]"
+    and "access root parent_path uid {Writable} = Some (Env att parent)"
+    and "access root path uid {} = None"
+| unlink:
+    "root \<midarrow>(Unlink uid path)\<rightarrow> update path None root"
+    if "path = parent_path @ [name]"
+    and "access root parent_path uid {Writable} = Some (Env att parent)"
+    and "access root path uid {} = Some (Val plain)"
+| mkdir:
+    "root \<midarrow>(Mkdir uid perms path)\<rightarrow>
+      update path (Some (Env \<lparr>owner = uid, others = perms\<rparr> empty)) root"
+    if "path = parent_path @ [name]"
+    and "access root parent_path uid {Writable} = Some (Env att parent)"
+    and "access root path uid {} = None"
+|
   rmdir:
-    "path = parent_path @ [name] \<Longrightarrow>
-      access root parent_path uid {Writable} = Some (Env att parent) \<Longrightarrow>
-      access root path uid {} = Some (Env att' empty) \<Longrightarrow>
-      root \<midarrow>(Rmdir uid path)\<rightarrow> update path None root" |
-
+    "root \<midarrow>(Rmdir uid path)\<rightarrow> update path None root"
+    if "path = parent_path @ [name]"
+    and "access root parent_path uid {Writable} = Some (Env att parent)"
+    and "access root path uid {} = Some (Env att' empty)"
+|
   readdir:
-    "access root path uid {Readable} = Some (Env att dir) \<Longrightarrow>
-      names = dom dir \<Longrightarrow>
-      root \<midarrow>(Readdir uid names path)\<rightarrow> root"
+    "root \<midarrow>(Readdir uid names path)\<rightarrow> root"
+    if "access root path uid {Readable} = Some (Env att dir)"
+    and "names = dom dir"
 
 text \<open>
   \<^medskip>
@@ -487,7 +484,7 @@ inductive transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \
   ("_ \<Midarrow>_\<Rightarrow> _" [90, 1000, 90] 100)
 where
   nil: "root \<Midarrow>[]\<Rightarrow> root"
-| cons: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> root' \<Midarrow>xs\<Rightarrow> root'' \<Longrightarrow> root \<Midarrow>(x # xs)\<Rightarrow> root''"
+| cons: "root \<Midarrow>(x # xs)\<Rightarrow> root''" if "root \<midarrow>x\<rightarrow> root'" and "root' \<Midarrow>xs\<Rightarrow> root''"
 
 text \<open>
   \<^medskip>

@@ -14,12 +14,13 @@ text \<open>
   \<sigma>}-algebra over a given set of sets.
 \<close>
 
-inductive_set \<sigma>_algebra :: "'a set set \<Rightarrow> 'a set set" for A :: "'a set set"
+inductive_set \<sigma>_algebra :: "'a set set \<Rightarrow> 'a set set"
+  for A :: "'a set set"
 where
-  basic: "a \<in> A \<Longrightarrow> a \<in> \<sigma>_algebra A"
+  basic: "a \<in> \<sigma>_algebra A" if "a \<in> A"
 | UNIV: "UNIV \<in> \<sigma>_algebra A"
-| complement: "a \<in> \<sigma>_algebra A \<Longrightarrow> -a \<in> \<sigma>_algebra A"
-| Union: "(\<And>i::nat. a i \<in> \<sigma>_algebra A) \<Longrightarrow> (\<Union>i. a i) \<in> \<sigma>_algebra A"
+| complement: "- a \<in> \<sigma>_algebra A" if "a \<in> \<sigma>_algebra A"
+| Union: "(\<Union>i. a i) \<in> \<sigma>_algebra A" if "\<And>i::nat. a i \<in> \<sigma>_algebra A"
 
 text \<open>
   The following basic facts are consequences of the closure properties

@@ -20,7 +20,7 @@ inductive_set tiling :: "'a set set \<Rightarrow> 'a set set"
   for A :: "'a set set"
 where
   empty: "{} \<in> tiling A"
-| Un: "a \<in> A \<Longrightarrow> t \<in> tiling A \<Longrightarrow> a \<subseteq> - t \<Longrightarrow> a \<union> t \<in> tiling A"
+| Un: "a \<union> t \<in> tiling A" if "a \<in> A" and "t \<in> tiling A" and "a \<subseteq> - t"
 
 
 text \<open>The union of two disjoint tilings is a tiling.\<close>

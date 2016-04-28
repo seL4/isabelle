@@ -125,8 +125,8 @@ function gcd3 :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
   "gcd3 x 0 = x"
 | "gcd3 0 y = y"
-| "x < y \<Longrightarrow> gcd3 (Suc x) (Suc y) = gcd3 (Suc x) (y - x)"
-| "\<not> x < y \<Longrightarrow> gcd3 (Suc x) (Suc y) = gcd3 (x - y) (Suc y)"
+| "gcd3 (Suc x) (Suc y) = gcd3 (Suc x) (y - x)" if "x < y"
+| "gcd3 (Suc x) (Suc y) = gcd3 (x - y) (Suc y)" if "\<not> x < y"
   apply (case_tac x, case_tac a, auto)
   apply (case_tac ba, auto)
   done
