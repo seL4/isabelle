@@ -103,7 +103,7 @@ local
 fun close_forms ctxt auto_close i prems concls =
   let
     val xs =
-      if auto_close then rev (fold (Variable.add_free_names ctxt) (concls @ prems) [])
+      if auto_close then rev (fold (Variable.add_free_names ctxt) (prems @ concls) [])
       else [];
     val types =
       map (Type_Infer.param i o rpair []) (Name.invent Name.context Name.aT (length xs));
