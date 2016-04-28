@@ -59,6 +59,10 @@ statement.
 
 *** Isar ***
 
+* Many specification elements support structured statements with 'if'
+eigen-context, e.g. 'axiomatization', 'definition', 'inductive',
+'function'.
+
 * Command 'define' introduces a local (non-polymorphic) definition, with
 optional abstraction over local parameters. The syntax resembles
 'definition' and 'obtain'. It fits better into the Isar language than
