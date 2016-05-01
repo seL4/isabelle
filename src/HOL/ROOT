@@ -139,6 +139,7 @@ session "HOL-IMP" in IMP = HOL +
     Hoare_Examples
     VCG
     Hoare_Total
+    Hoare_Total_EX
     Collecting1
     Collecting_Examples
     Abs_Int_Tests
