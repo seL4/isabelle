@@ -73,6 +73,7 @@ imports
   Saturated
   Set_Algebras
   State_Monad
+  Stirling
   Stream
   Sublist
   Sum_of_Squares
