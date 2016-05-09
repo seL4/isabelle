@@ -213,6 +213,12 @@ by simp
 lemma bij_id[simp]: "bij id"
 by (simp add: bij_betw_def)
 
+lemma bij_uminus:
+  fixes x :: "'a :: ab_group_add"
+  shows "bij (uminus :: 'a\<Rightarrow>'a)"
+unfolding bij_betw_def inj_on_def
+by (force intro: minus_minus [symmetric])
+
 lemma inj_onI [intro?]:
     "(!! x y. [|  x:A;  y:A;  f(x) = f(y) |] ==> x=y) ==> inj_on f A"
 by (simp add: inj_on_def)
@@ -228,25 +234,23 @@ lemma comp_inj_on:
 by (simp add: comp_def inj_on_def)
 
 lemma inj_on_imageI: "inj_on (g o f) A \<Longrightarrow> inj_on g (f ` A)"
-  by (simp add: inj_on_def) blast
+  by (auto simp add: inj_on_def)
 
 lemma inj_on_image_iff: "\<lbrakk> ALL x:A. ALL y:A. (g(f x) = g(f y)) = (g x = g y);
   inj_on f A \<rbrakk> \<Longrightarrow> inj_on g (f ` A) = inj_on g A"
-apply(unfold inj_on_def)
-apply blast
-done
+unfolding inj_on_def by blast
 
 lemma inj_on_contraD: "[| inj_on f A;  ~x=y;  x:A;  y:A |] ==> ~ f(x)=f(y)"
-by (unfold inj_on_def, blast)
+unfolding inj_on_def by blast
 
-lemma inj_singleton: "inj (%s. {s})"
-by (simp add: inj_on_def)
+lemma inj_singleton [simp]: "inj_on (\<lambda>x. {x}) A"
+  by (simp add: inj_on_def)
 
 lemma inj_on_empty[iff]: "inj_on f {}"
 by(simp add: inj_on_def)
 
 lemma subset_inj_on: "[| inj_on f B; A <= B |] ==> inj_on f A"
-by (unfold inj_on_def, blast)
+unfolding inj_on_def by blast
 
 lemma inj_on_Un:
  "inj_on f (A Un B) =

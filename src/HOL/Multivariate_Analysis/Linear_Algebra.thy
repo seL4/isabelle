@@ -114,6 +114,9 @@ lemma linear_id: "linear id"
 lemma linear_zero: "linear (\<lambda>x. 0)"
   by (simp add: linear_iff)
 
+lemma linear_uminus: "linear uminus"
+by (simp add: linear_iff)
+
 lemma linear_compose_setsum:
   assumes lS: "\<forall>a \<in> S. linear (f a)"
   shows "linear (\<lambda>x. setsum (\<lambda>a. f a x) S)"
@@ -1473,6 +1476,9 @@ context real_inner
 begin
 
 definition "orthogonal x y \<longleftrightarrow> x \<bullet> y = 0"
+
+lemma orthogonal_self: "orthogonal x x \<longleftrightarrow> x = 0"
+  by (simp add: orthogonal_def)
 
 lemma orthogonal_clauses:
   "orthogonal a 0"

@@ -2942,7 +2942,7 @@ proof -
     by (metis aff_dim_translation_eq)
 qed
 
-lemma aff_dim_univ: "aff_dim (UNIV :: 'n::euclidean_space set) = int(DIM('n))"
+lemma aff_dim_UNIV [simp]: "aff_dim (UNIV :: 'n::euclidean_space set) = int(DIM('n))"
   using aff_dim_subspace[of "(UNIV :: 'n::euclidean_space set)"]
     dim_UNIV[where 'a="'n::euclidean_space"]
   by auto
@@ -2990,7 +2990,7 @@ lemma aff_dim_le_DIM:
   shows "aff_dim S \<le> int (DIM('n))"
 proof -
   have "aff_dim (UNIV :: 'n::euclidean_space set) = int(DIM('n))"
-    using aff_dim_univ by auto
+    using aff_dim_UNIV by auto
   then show "aff_dim (S:: 'n::euclidean_space set) \<le> int(DIM('n))"
     using assms aff_dim_subset[of S "(UNIV :: ('n::euclidean_space) set)"] subset_UNIV by auto
 qed
@@ -3036,7 +3036,7 @@ proof -
   have h0: "S \<subseteq> affine hull S"
     using hull_subset[of S _] by auto
   have h1: "aff_dim (UNIV :: ('n::euclidean_space) set) = aff_dim S"
-    using aff_dim_univ assms by auto
+    using aff_dim_UNIV assms by auto
   then have h2: "aff_dim (affine hull S) \<le> aff_dim (UNIV :: ('n::euclidean_space) set)"
     using aff_dim_le_DIM[of "affine hull S"] assms h0 by auto
   have h3: "aff_dim S \<le> aff_dim (affine hull S)"
@@ -3615,7 +3615,7 @@ lemma rel_open: "rel_open S \<longleftrightarrow> openin (subtopology euclidean 
   apply auto
   done
 
-lemma opein_rel_interior: "openin (subtopology euclidean (affine hull S)) (rel_interior S)"
+lemma openin_rel_interior: "openin (subtopology euclidean (affine hull S)) (rel_interior S)"
   apply (simp add: rel_interior_def)
   apply (subst openin_subopen)
   apply blast
@@ -7957,7 +7957,7 @@ lemma rel_interior_rel_interior:
   shows "rel_interior (rel_interior S) = rel_interior S"
 proof -
   have "openin (subtopology euclidean (affine hull (rel_interior S))) (rel_interior S)"
-    using opein_rel_interior[of S] rel_interior_same_affine_hull[of S] assms by auto
+    using openin_rel_interior[of S] rel_interior_same_affine_hull[of S] assms by auto
   then show ?thesis
     using rel_interior_def by auto
 qed
@@ -8164,7 +8164,7 @@ proof -
   have *: "closedin (subtopology euclidean (affine hull S)) (closure S - rel_interior S)"
     apply (rule closedin_diff[of "subtopology euclidean (affine hull S)""closure S" "rel_interior S"])
     using closed_closedin_trans[of "affine hull S" "closure S"] closed_affine_hull[of S]
-      closure_affine_hull[of S] opein_rel_interior[of S]
+      closure_affine_hull[of S] openin_rel_interior[of S]
     apply auto
     done
   show ?thesis
@@ -8392,7 +8392,7 @@ proof (cases "aff_dim S = int DIM('n)")
     then have "affine hull S = UNIV"
       by auto
     then have "aff_dim S = int DIM('n)"
-      using aff_dim_affine_hull[of S] by (simp add: aff_dim_univ)
+      using aff_dim_affine_hull[of S] by (simp add: aff_dim_UNIV)
     then have False
       using False by auto
   }
@@ -10889,7 +10889,7 @@ lemma aff_dim_halfspace_le:
         (if a = 0 \<and> r < 0 then -1 else DIM('a))"
 proof -
   have "int (DIM('a)) = aff_dim (UNIV::'a set)"
-    by (simp add: aff_dim_univ)
+    by (simp add: aff_dim_UNIV)
   then have "aff_dim (affine hull {x. a \<bullet> x \<le> r}) = DIM('a)" if "(a = 0 \<longrightarrow> r \<ge> 0)"
     using that by (simp add: affine_hull_halfspace_le not_less)
   then show ?thesis
@@ -11320,7 +11320,7 @@ from separating_hyperplane_set_0_inspan [of "image (\<lambda>x. -z + x) S"]
     done
 qed
 
-proposition supporting_hyperplane_relative_boundary:
+proposition supporting_hyperplane_rel_boundary:
   fixes S :: "'a::euclidean_space set"
   assumes "convex S" "x \<in> S" and xno: "x \<notin> rel_interior S"
   obtains a where "a \<noteq> 0"
@@ -11374,7 +11374,7 @@ lemma supporting_hyperplane_relative_frontier:
   obtains a where "a \<noteq> 0"
               and "\<And>y. y \<in> closure S \<Longrightarrow> a \<bullet> x \<le> a \<bullet> y"
               and "\<And>y. y \<in> rel_interior S \<Longrightarrow> a \<bullet> x < a \<bullet> y"
-using supporting_hyperplane_relative_boundary [of "closure S" x]
+using supporting_hyperplane_rel_boundary [of "closure S" x]
 by (metis assms convex_closure convex_rel_interior_closure)
 
 subsection\<open> Some results on decomposing convex hulls, e.g. simplicial subdivision\<close>
@@ -11501,7 +11501,7 @@ proof -
       by (simp add: aff_dim_affine_independent indb)
     then show ?thesis
       using fbc aff
-      by (simp add: \<open>\<not> affine_dependent c\<close> \<open>b \<subseteq> c\<close> aff_dim_affine_independent aff_dim_univ card_Diff_subset of_nat_diff)
+      by (simp add: \<open>\<not> affine_dependent c\<close> \<open>b \<subseteq> c\<close> aff_dim_affine_independent aff_dim_UNIV card_Diff_subset of_nat_diff)
   qed
   show ?thesis
   proof (cases "c = b")
@@ -11509,7 +11509,7 @@ proof -
       apply (rule_tac f="{}" in that)
       using True affc
       apply (simp_all add: eq [symmetric])
-      by (metis aff_dim_univ aff_dim_affine_hull)
+      by (metis aff_dim_UNIV aff_dim_affine_hull)
   next
     case False
     have ind: "\<not> affine_dependent (\<Union>a\<in>c - b. c - {a})"
@@ -11525,7 +11525,7 @@ proof -
       have "insert t c = c"
         using t by blast
       then show ?thesis
-        by (metis (full_types) add.commute aff_dim_affine_hull aff_dim_insert aff_dim_univ affc affine_dependent_def indc insert_Diff_single t)
+        by (metis (full_types) add.commute aff_dim_affine_hull aff_dim_insert aff_dim_UNIV affc affine_dependent_def indc insert_Diff_single t)
     qed
     show ?thesis
       apply (rule_tac f = "(\<lambda>x. affine hull x) ` ((\<lambda>a. c - {a}) ` (c - b))" in that)

@@ -1905,13 +1905,16 @@ text \<open>Misc\<close>
 
 definition "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<in> S. x\<noteq>y \<longrightarrow> R x y)"
 
+lemma pairwise_subset: "\<lbrakk>pairwise P S; T \<subseteq> S\<rbrakk> \<Longrightarrow> pairwise P T"
+  by (force simp: pairwise_def)
+
 definition disjnt where "disjnt A B \<equiv> A \<inter> B = {}"
 
-lemma pairwise_disjoint_empty [simp]: "pairwise disjnt {}"
-  by (simp add: pairwise_def disjnt_def)
+lemma pairwise_empty [simp]: "pairwise P {}"
+  by (simp add: pairwise_def)
 
-lemma pairwise_disjoint_singleton [simp]: "pairwise disjnt {A}"
-  by (simp add: pairwise_def disjnt_def)
+lemma pairwise_singleton [simp]: "pairwise P {A}"
+  by (simp add: pairwise_def)
 
 hide_const (open) member not_member
 
