@@ -2136,7 +2136,6 @@ lemma convex_hull_subset_span: "(convex hull s) \<subseteq> (span s)"
 lemma convex_hull_subset_affine_hull: "(convex hull s) \<subseteq> (affine hull s)"
   by (metis affine_affine_hull affine_imp_convex hull_minimal hull_subset)
 
-
 lemma affine_dependent_imp_dependent: "affine_dependent s \<Longrightarrow> dependent s"
   unfolding affine_dependent_def dependent_def
   using affine_hull_subset_span by auto
@@ -2669,6 +2668,13 @@ corollary dim_eq_span:
   shows "\<lbrakk>S \<subseteq> T; dim T \<le> dim S\<rbrakk> \<Longrightarrow> span S = span T"
 by (simp add: span_mono subspace_dim_equal subspace_span)
 
+lemma dim_eq_full:
+    fixes S :: "'a :: euclidean_space set"
+    shows "dim S = DIM('a) \<longleftrightarrow> span S = UNIV"
+apply (rule iffI)
+ apply (metis dim_eq_span dim_subset_UNIV span_Basis span_span subset_UNIV)
+by (metis dim_UNIV dim_span)
+
 lemma span_substd_basis:
   assumes d: "d \<subseteq> Basis"
   shows "span d = {x. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0}"
@@ -2741,7 +2747,7 @@ qed
 lemma aff_dim_empty_eq [simp]: "aff_dim ({}::'a::euclidean_space set) = -1"
   by (simp add: aff_dim_empty [symmetric])
 
-lemma aff_dim_affine_hull: "aff_dim (affine hull S) = aff_dim S"
+lemma aff_dim_affine_hull [simp]: "aff_dim (affine hull S) = aff_dim S"
   unfolding aff_dim_def using hull_hull[of _ S] by auto
 
 lemma aff_dim_affine_hull2:
@@ -3672,7 +3678,7 @@ proof -
   have "aff_dim S \<le> aff_dim (closure S)"
     using aff_dim_subset closure_subset by auto
   moreover have "aff_dim (closure S) \<le> aff_dim (affine hull S)"
-    using aff_dim_subset closure_affine_hull by auto
+    using aff_dim_subset closure_affine_hull by blast
   moreover have "aff_dim (affine hull S) = aff_dim S"
     using aff_dim_affine_hull by auto
   ultimately show ?thesis by auto
@@ -4578,7 +4584,7 @@ lemma supporting_hyperplane_closed_point:
   shows "\<exists>a b. \<exists>y\<in>s. inner a z < b \<and> inner a y = b \<and> (\<forall>x\<in>s. inner a x \<ge> b)"
 proof -
   obtain y where "y \<in> s" and y: "\<forall>x\<in>s. dist z y \<le> dist z x"
-    by (metis distance_attains_inf[OF assms(2-3)]) 
+    by (metis distance_attains_inf[OF assms(2-3)])
   show ?thesis
     apply (rule_tac x="y - z" in exI)
     apply (rule_tac x="inner (y - z) y" in exI)
@@ -6751,7 +6757,11 @@ lemma open_segment_idem [simp]: "open_segment a a = {}"
 
 lemma closed_segment_eq_open: "closed_segment a b = open_segment a b \<union> {a,b}"
   using open_segment_def by auto
-  
+
+lemma convex_contains_open_segment:
+  "convex s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. open_segment a b \<subseteq> s)"
+  by (simp add: convex_contains_segment closed_segment_eq_open)
+
 lemma closed_segment_eq_real_ivl:
   fixes a b::real
   shows "closed_segment a b = (if a \<le> b then {a .. b} else {b .. a})"
@@ -7759,7 +7769,7 @@ proof -
         then have "x /\<^sub>R (2 * real (card d)) \<in> span d"
           using span_mul[of x "d" "(inverse (real (card d)) / 2)"] by auto
       }
-      then show "\<forall>x\<in>d. x /\<^sub>R (2 * real (card d)) \<in> span d"
+      then show "\<And>x. x\<in>d \<Longrightarrow> x /\<^sub>R (2 * real (card d)) \<in> span d"
         by auto
     qed
     then show "?a \<bullet> i = 0 "
@@ -8124,8 +8134,8 @@ lemma starlike_convex_tweak_boundary_points:
 proof -
   have "rel_interior S \<noteq> {}"
     by (simp add: assms rel_interior_eq_empty)
-  then obtain a where a: "a \<in> rel_interior S"  by blast 
-  with ST have "a \<in> T"  by blast 
+  then obtain a where a: "a \<in> rel_interior S"  by blast
+  with ST have "a \<in> T"  by blast
   have *: "\<And>x. x \<in> T \<Longrightarrow> open_segment a x \<subseteq> rel_interior S"
     apply (rule rel_interior_closure_convex_segment [OF \<open>convex S\<close> a])
     using assms by blast
@@ -11013,8 +11023,7 @@ next
     apply (simp add: aff_dim_eq_dim [of c] affine_hull_span_gen [of c] \<open>c \<in> S\<close> hull_inc dim_eq_hyperplane
                 del: One_nat_def)
     apply (rule ex_cong)
-    using span_0
-    apply (force simp: \<open>c = 0\<close>)
+    apply (metis (mono_tags) span_0 \<open>c = 0\<close> image_add_0 inner_zero_right mem_Collect_eq)
     done
   next
     case False
@@ -11048,7 +11057,7 @@ next
   qed
 qed
 
-corollary aff_dim_hyperplane:
+corollary aff_dim_hyperplane [simp]:
   fixes a :: "'a::euclidean_space"
   shows "a \<noteq> 0 \<Longrightarrow> aff_dim {x. a \<bullet> x = r} = DIM('a) - 1"
 by (metis aff_dim_eq_hyperplane affine_hull_eq affine_hyperplane)
@@ -11379,17 +11388,17 @@ by (metis assms convex_closure convex_rel_interior_closure)
 
 subsection\<open> Some results on decomposing convex hulls, e.g. simplicial subdivision\<close>
 
-lemma 
+lemma
   fixes s :: "'a::euclidean_space set"
-  assumes "~ (affine_dependent(s \<union> t))" 
+  assumes "~ (affine_dependent(s \<union> t))"
     shows convex_hull_Int_subset: "convex hull s \<inter> convex hull t \<subseteq> convex hull (s \<inter> t)" (is ?C)
       and affine_hull_Int_subset: "affine hull s \<inter> affine hull t \<subseteq> affine hull (s \<inter> t)" (is ?A)
 proof -
   have [simp]: "finite s" "finite t"
     using aff_independent_finite assms by blast+
-    have "setsum u (s \<inter> t) = 1 \<and> 
-          (\<Sum>v\<in>s \<inter> t. u v *\<^sub>R v) = (\<Sum>v\<in>s. u v *\<^sub>R v)" 
-      if [simp]:  "setsum u s = 1" 
+    have "setsum u (s \<inter> t) = 1 \<and>
+          (\<Sum>v\<in>s \<inter> t. u v *\<^sub>R v) = (\<Sum>v\<in>s. u v *\<^sub>R v)"
+      if [simp]:  "setsum u s = 1"
                  "setsum v t = 1"
          and eq: "(\<Sum>x\<in>t. v x *\<^sub>R x) = (\<Sum>x\<in>s. u x *\<^sub>R x)" for u v
     proof -
@@ -11408,7 +11417,7 @@ proof -
     then have u [simp]: "\<And>x. x \<in> s \<Longrightarrow> u x = (if x \<in> t then v x else 0)"
       by (simp add: f_def) presburger
     have "setsum u (s \<inter> t) = setsum u s"
-      by (simp add: setsum.inter_restrict) 
+      by (simp add: setsum.inter_restrict)
     then have "setsum u (s \<inter> t) = 1"
       using that by linarith
     moreover have "(\<Sum>v\<in>s \<inter> t. u v *\<^sub>R v) = (\<Sum>v\<in>s. u v *\<^sub>R v)"
@@ -11423,7 +11432,7 @@ qed
 
 proposition affine_hull_Int:
   fixes s :: "'a::euclidean_space set"
-  assumes "~ (affine_dependent(s \<union> t))" 
+  assumes "~ (affine_dependent(s \<union> t))"
     shows "affine hull (s \<inter> t) = affine hull s \<inter> affine hull t"
 apply (rule subset_antisym)
 apply (simp add: hull_mono)
@@ -11431,20 +11440,20 @@ by (simp add: affine_hull_Int_subset assms)
 
 proposition convex_hull_Int:
   fixes s :: "'a::euclidean_space set"
-  assumes "~ (affine_dependent(s \<union> t))" 
+  assumes "~ (affine_dependent(s \<union> t))"
     shows "convex hull (s \<inter> t) = convex hull s \<inter> convex hull t"
 apply (rule subset_antisym)
 apply (simp add: hull_mono)
 by (simp add: convex_hull_Int_subset assms)
 
-proposition 
+proposition
   fixes s :: "'a::euclidean_space set set"
-  assumes "~ (affine_dependent (\<Union>s))" 
+  assumes "~ (affine_dependent (\<Union>s))"
     shows affine_hull_Inter: "affine hull (\<Inter>s) = (\<Inter>t\<in>s. affine hull t)" (is "?A")
       and convex_hull_Inter: "convex hull (\<Inter>s) = (\<Inter>t\<in>s. convex hull t)" (is "?C")
 proof -
   have "finite s"
-    using aff_independent_finite assms finite_UnionD by blast  
+    using aff_independent_finite assms finite_UnionD by blast
   then have "?A \<and> ?C" using assms
   proof (induction s rule: finite_induct)
     case empty then show ?case by auto
@@ -11515,11 +11524,11 @@ proof -
     have ind: "\<not> affine_dependent (\<Union>a\<in>c - b. c - {a})"
       by (rule affine_independent_subset [OF indc]) auto
     have affeq: "affine hull s = (\<Inter>x\<in>(\<lambda>a. c - {a}) ` (c - b). affine hull x)"
-      using \<open>b \<subseteq> c\<close> False 
+      using \<open>b \<subseteq> c\<close> False
       apply (subst affine_hull_Inter [OF ind, symmetric])
       apply (simp add: eq double_diff)
       done
-    have *: "1 + aff_dim (c - {t}) = int (DIM('a))" 
+    have *: "1 + aff_dim (c - {t}) = int (DIM('a))"
             if t: "t \<in> c" for t
     proof -
       have "insert t c = c"
@@ -11533,6 +11542,594 @@ proof -
         apply (simp add: imeq card1 card2)
       apply (simp add: affeq, clarify)
       apply (metis DIM_positive One_nat_def Suc_leI add_diff_cancel_left' of_nat_1 aff_dim_eq_hyperplane of_nat_diff *)
+      done
+  qed
+qed
+
+subsection\<open>Misc results about span\<close>
+
+lemma eq_span_insert_eq:
+  assumes "(x - y) \<in> span S"
+    shows "span(insert x S) = span(insert y S)"
+proof -
+  have *: "span(insert x S) \<subseteq> span(insert y S)" if "(x - y) \<in> span S" for x y
+  proof -
+    have 1: "(r *\<^sub>R x - r *\<^sub>R y) \<in> span S" for r
+      by (metis real_vector.scale_right_diff_distrib span_mul that)
+    have 2: "(z - k *\<^sub>R y) - k *\<^sub>R (x - y) = z - k *\<^sub>R x" for  z k
+      by (simp add: real_vector.scale_right_diff_distrib)
+  show ?thesis
+    apply (clarsimp simp add: span_breakdown_eq)
+    by (metis 1 2 diff_add_cancel real_vector.scale_right_diff_distrib span_add_eq)
+  qed
+  show ?thesis
+    apply (intro subset_antisym * assms)
+    using assms subspace_neg subspace_span minus_diff_eq by force
+qed
+
+lemma dim_psubset:
+    fixes S :: "'a :: euclidean_space set"
+    shows "span S \<subset> span T \<Longrightarrow> dim S < dim T"
+by (metis (no_types, hide_lams) dim_span less_le not_le subspace_dim_equal subspace_span)
+
+
+lemma basis_subspace_exists:
+  fixes S :: "'a::euclidean_space set"
+  shows
+   "subspace S
+        \<Longrightarrow> \<exists>b. finite b \<and> b \<subseteq> S \<and>
+                independent b \<and> span b = S \<and> card b = dim S"
+by (metis span_subspace basis_exists independent_imp_finite)
+
+lemma affine_hyperplane_sums_eq_UNIV_0:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "affine S"
+     and "0 \<in> S" and "w \<in> S"
+     and "a \<bullet> w \<noteq> 0"
+   shows "{x + y| x y. x \<in> S \<and> a \<bullet> y = 0} = UNIV"
+proof -
+  have "subspace S"
+    by (simp add: assms subspace_affine)
+  have span1: "span {y. a \<bullet> y = 0} \<subseteq> span {x + y |x y. x \<in> S \<and> a \<bullet> y = 0}"
+    apply (rule span_mono)
+    using \<open>0 \<in> S\<close> add.left_neutral by force
+  have "w \<notin> span {y. a \<bullet> y = 0}"
+    using \<open>a \<bullet> w \<noteq> 0\<close> span_induct subspace_hyperplane by auto
+  moreover have "w \<in> span {x + y |x y. x \<in> S \<and> a \<bullet> y = 0}"
+    using \<open>w \<in> S\<close>
+    by (metis (mono_tags, lifting) inner_zero_right mem_Collect_eq pth_d span_superset)
+  ultimately have span2: "span {y. a \<bullet> y = 0} \<noteq> span {x + y |x y. x \<in> S \<and> a \<bullet> y = 0}"
+    by blast
+  have "a \<noteq> 0" using assms inner_zero_left by blast
+  then have "DIM('a) - 1 = dim {y. a \<bullet> y = 0}"
+    by (simp add: dim_hyperplane)
+  also have "... < dim {x + y |x y. x \<in> S \<and> a \<bullet> y = 0}"
+    using span1 span2 by (blast intro: dim_psubset)
+  finally have DIM_lt: "DIM('a) - 1 < dim {x + y |x y. x \<in> S \<and> a \<bullet> y = 0}" .
+  have subs: "subspace {x + y| x y. x \<in> S \<and> a \<bullet> y = 0}"
+    using subspace_sums [OF \<open>subspace S\<close> subspace_hyperplane] by simp
+  moreover have "span {x + y| x y. x \<in> S \<and> a \<bullet> y = 0} = UNIV"
+    apply (rule dim_eq_full [THEN iffD1])
+    apply (rule antisym [OF dim_subset_UNIV])
+    using DIM_lt apply simp
+    done
+  ultimately show ?thesis
+    by (simp add: subs) (metis (lifting) span_eq subs)
+qed
+
+proposition affine_hyperplane_sums_eq_UNIV:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "affine S"
+      and "S \<inter> {v. a \<bullet> v = b} \<noteq> {}"
+      and "S - {v. a \<bullet> v = b} \<noteq> {}"
+    shows "{x + y| x y. x \<in> S \<and> a \<bullet> y = b} = UNIV"
+proof (cases "a = 0")
+  case True with assms show ?thesis
+    by (auto simp: if_splits)
+next
+  case False
+  obtain c where "c \<in> S" and c: "a \<bullet> c = b"
+    using assms by force
+  with affine_diffs_subspace [OF \<open>affine S\<close>]
+  have "subspace (op + (- c) ` S)" by blast
+  then have aff: "affine (op + (- c) ` S)"
+    by (simp add: subspace_imp_affine)
+  have 0: "0 \<in> op + (- c) ` S"
+    by (simp add: \<open>c \<in> S\<close>)
+  obtain d where "d \<in> S" and "a \<bullet> d \<noteq> b" and dc: "d-c \<in> op + (- c) ` S"
+    using assms by auto
+  then have adc: "a \<bullet> (d - c) \<noteq> 0"
+    by (simp add: c inner_diff_right)
+  let ?U = "op + (c+c) ` {x + y |x y. x \<in> op + (- c) ` S \<and> a \<bullet> y = 0}"
+  have "u + v \<in> op + (c + c) ` {x + v |x v. x \<in> op + (- c) ` S \<and> a \<bullet> v = 0}"
+              if "u \<in> S" "b = a \<bullet> v" for u v
+    apply (rule_tac x="u+v-c-c" in image_eqI)
+    apply (simp_all add: algebra_simps)
+    apply (rule_tac x="u-c" in exI)
+    apply (rule_tac x="v-c" in exI)
+    apply (simp add: algebra_simps that c)
+    done
+  moreover have "\<lbrakk>a \<bullet> v = 0; u \<in> S\<rbrakk>
+       \<Longrightarrow> \<exists>x ya. v + (u + c) = x + ya \<and> x \<in> S \<and> a \<bullet> ya = b" for v u
+    by (metis add.left_commute c inner_right_distrib pth_d)
+  ultimately have "{x + y |x y. x \<in> S \<and> a \<bullet> y = b} = ?U"
+    by (fastforce simp: algebra_simps)
+  also have "... = op + (c+c) ` UNIV"
+    by (simp add: affine_hyperplane_sums_eq_UNIV_0 [OF aff 0 dc adc])
+  also have "... = UNIV"
+    by (simp add: translation_UNIV)
+  finally show ?thesis .
+qed
+
+proposition dim_sums_Int:
+    fixes S :: "'a :: euclidean_space set"
+  assumes "subspace S" "subspace T"
+  shows "dim {x + y |x y. x \<in> S \<and> y \<in> T} + dim(S \<inter> T) = dim S + dim T"
+proof -
+  obtain B where B: "B \<subseteq> S \<inter> T" "S \<inter> T \<subseteq> span B"
+             and indB: "independent B"
+             and cardB: "card B = dim (S \<inter> T)"
+    using basis_exists by blast
+  then obtain C D where "B \<subseteq> C" "C \<subseteq> S" "independent C" "S \<subseteq> span C"
+                    and "B \<subseteq> D" "D \<subseteq> T" "independent D" "T \<subseteq> span D"
+    using maximal_independent_subset_extend
+    by (metis Int_subset_iff \<open>B \<subseteq> S \<inter> T\<close> indB)
+  then have "finite B" "finite C" "finite D"
+    by (simp_all add: independent_imp_finite indB independent_bound)
+  have Beq: "B = C \<inter> D"
+    apply (rule sym)
+    apply (rule spanning_subset_independent)
+    using \<open>B \<subseteq> C\<close> \<open>B \<subseteq> D\<close> apply blast
+    apply (meson \<open>independent C\<close> independent_mono inf.cobounded1)
+    using B \<open>C \<subseteq> S\<close> \<open>D \<subseteq> T\<close> apply auto
+    done
+  then have Deq: "D = B \<union> (D - C)"
+    by blast
+  have CUD: "C \<union> D \<subseteq> {x + y |x y. x \<in> S \<and> y \<in> T}"
+    apply safe
+    apply (metis add.right_neutral subsetCE \<open>C \<subseteq> S\<close> \<open>subspace T\<close> set_eq_subset span_0 span_minimal)
+    apply (metis add.left_neutral subsetCE \<open>D \<subseteq> T\<close> \<open>subspace S\<close> set_eq_subset span_0 span_minimal)
+    done
+  have "a v = 0" if 0: "(\<Sum>v\<in>C. a v *\<^sub>R v) + (\<Sum>v\<in>D - C. a v *\<^sub>R v) = 0"
+                 and v: "v \<in> C \<union> (D-C)" for a v
+  proof -
+    have eq: "(\<Sum>v\<in>D - C. a v *\<^sub>R v) = - (\<Sum>v\<in>C. a v *\<^sub>R v)"
+      using that add_eq_0_iff by blast
+    have "(\<Sum>v\<in>D - C. a v *\<^sub>R v) \<in> S"
+      apply (subst eq)
+      apply (rule subspace_neg [OF \<open>subspace S\<close>])
+      apply (rule subspace_setsum [OF \<open>subspace S\<close>])
+      by (meson subsetCE subspace_mul \<open>C \<subseteq> S\<close> \<open>subspace S\<close>)
+    moreover have "(\<Sum>v\<in>D - C. a v *\<^sub>R v) \<in> T"
+      apply (rule subspace_setsum [OF \<open>subspace T\<close>])
+      by (meson DiffD1 \<open>D \<subseteq> T\<close> \<open>subspace T\<close> subset_eq subspace_def)
+    ultimately have "(\<Sum>v \<in> D-C. a v *\<^sub>R v) \<in> span B"
+      using B by blast
+    then obtain e where e: "(\<Sum>v\<in>B. e v *\<^sub>R v) = (\<Sum>v \<in> D-C. a v *\<^sub>R v)"
+      using span_finite [OF \<open>finite B\<close>] by blast
+    have "\<And>c v. \<lbrakk>(\<Sum>v\<in>C. c v *\<^sub>R v) = 0; v \<in> C\<rbrakk> \<Longrightarrow> c v = 0"
+      using independent_explicit \<open>independent C\<close> by blast
+    def cc \<equiv> "(\<lambda>x. if x \<in> B then a x + e x else a x)"
+    have [simp]: "C \<inter> B = B" "D \<inter> B = B" "C \<inter> - B = C-D" "B \<inter> (D - C) = {}"
+      using \<open>B \<subseteq> C\<close> \<open>B \<subseteq> D\<close> Beq by blast+
+    have f2: "(\<Sum>v\<in>C \<inter> D. e v *\<^sub>R v) = (\<Sum>v\<in>D - C. a v *\<^sub>R v)"
+      using Beq e by presburger
+    have f3: "(\<Sum>v\<in>C \<union> D. a v *\<^sub>R v) = (\<Sum>v\<in>C - D. a v *\<^sub>R v) + (\<Sum>v\<in>D - C. a v *\<^sub>R v) + (\<Sum>v\<in>C \<inter> D. a v *\<^sub>R v)"
+      using \<open>finite C\<close> \<open>finite D\<close> setsum.union_diff2 by blast
+    have f4: "(\<Sum>v\<in>C \<union> (D - C). a v *\<^sub>R v) = (\<Sum>v\<in>C. a v *\<^sub>R v) + (\<Sum>v\<in>D - C. a v *\<^sub>R v)"
+      by (meson Diff_disjoint \<open>finite C\<close> \<open>finite D\<close> finite_Diff setsum.union_disjoint)
+    have "(\<Sum>v\<in>C. cc v *\<^sub>R v) = 0"
+      using 0 f2 f3 f4
+      apply (simp add: cc_def Beq if_smult \<open>finite C\<close> setsum.If_cases algebra_simps setsum.distrib)
+      apply (simp add: add.commute add.left_commute diff_eq)
+      done
+    then have "\<And>v. v \<in> C \<Longrightarrow> cc v = 0"
+      using independent_explicit \<open>independent C\<close> by blast
+    then have C0: "\<And>v. v \<in> C - B \<Longrightarrow> a v = 0"
+      by (simp add: cc_def Beq) meson
+    then have [simp]: "(\<Sum>x\<in>C - B. a x *\<^sub>R x) = 0"
+      by simp
+    have "(\<Sum>x\<in>C. a x *\<^sub>R x) = (\<Sum>x\<in>B. a x *\<^sub>R x)"
+    proof -
+      have "C - D = C - B"
+        using Beq by blast
+      then show ?thesis
+        using Beq \<open>(\<Sum>x\<in>C - B. a x *\<^sub>R x) = 0\<close> f3 f4 by auto
+    qed
+    with 0 have Dcc0: "(\<Sum>v\<in>D. a v *\<^sub>R v) = 0"
+      apply (subst Deq)
+      by (simp add: \<open>finite B\<close> \<open>finite D\<close> setsum_Un)
+    then have D0: "\<And>v. v \<in> D \<Longrightarrow> a v = 0"
+      using independent_explicit \<open>independent D\<close> by blast
+    show ?thesis
+      using v C0 D0 Beq by blast
+  qed
+  then have "independent (C \<union> (D - C))"
+    by (simp add: independent_explicit \<open>finite C\<close> \<open>finite D\<close> setsum_Un del: Un_Diff_cancel)
+  then have indCUD: "independent (C \<union> D)" by simp
+  have "dim (S \<inter> T) = card B"
+    by (rule dim_unique [OF B indB refl])
+  moreover have "dim S = card C"
+    by (metis \<open>C \<subseteq> S\<close> \<open>independent C\<close> \<open>S \<subseteq> span C\<close> basis_card_eq_dim)
+  moreover have "dim T = card D"
+    by (metis \<open>D \<subseteq> T\<close> \<open>independent D\<close> \<open>T \<subseteq> span D\<close> basis_card_eq_dim)
+  moreover have "dim {x + y |x y. x \<in> S \<and> y \<in> T} = card(C \<union> D)"
+    apply (rule dim_unique [OF CUD _ indCUD refl], clarify)
+    apply (meson \<open>S \<subseteq> span C\<close> \<open>T \<subseteq> span D\<close> span_add span_inc span_minimal subsetCE subspace_span sup.bounded_iff)
+    done
+  ultimately show ?thesis
+    using \<open>B = C \<inter> D\<close> [symmetric]
+    by (simp add:  \<open>independent C\<close> \<open>independent D\<close> card_Un_Int independent_finite)
+qed
+
+
+lemma aff_dim_sums_Int_0:
+  assumes "affine S"
+      and "affine T"
+      and "0 \<in> S" "0 \<in> T"
+    shows "aff_dim {x + y| x y. x \<in> S \<and> y \<in> T} = (aff_dim S + aff_dim T) - aff_dim(S \<inter> T)"
+proof -
+  have "0 \<in> {x + y |x y. x \<in> S \<and> y \<in> T}"
+    using assms by force
+  then have 0: "0 \<in> affine hull {x + y |x y. x \<in> S \<and> y \<in> T}"
+    by (metis (lifting) hull_inc)
+  have sub: "subspace S"  "subspace T"
+    using assms by (auto simp: subspace_affine)
+  show ?thesis
+    using dim_sums_Int [OF sub] by (simp add: aff_dim_zero assms 0 hull_inc)
+qed
+
+proposition aff_dim_sums_Int:
+  assumes "affine S"
+      and "affine T"
+      and "S \<inter> T \<noteq> {}"
+    shows "aff_dim {x + y| x y. x \<in> S \<and> y \<in> T} = (aff_dim S + aff_dim T) - aff_dim(S \<inter> T)"
+proof -
+  obtain a where a: "a \<in> S" "a \<in> T" using assms by force
+  have aff: "affine (op+ (-a) ` S)"  "affine (op+ (-a) ` T)"
+    using assms by (auto simp: affine_translation [symmetric])
+  have zero: "0 \<in> (op+ (-a) ` S)"  "0 \<in> (op+ (-a) ` T)"
+    using a assms by auto
+  have [simp]: "{x + y |x y. x \<in> op + (- a) ` S \<and> y \<in> op + (- a) ` T} =
+        op + (- 2 *\<^sub>R a) ` {x + y| x y. x \<in> S \<and> y \<in> T}"
+    by (force simp: algebra_simps scaleR_2)
+  have [simp]: "op + (- a) ` S \<inter> op + (- a) ` T = op + (- a) ` (S \<inter> T)"
+    by auto
+  show ?thesis
+    using aff_dim_sums_Int_0 [OF aff zero]
+    by (auto simp: aff_dim_translation_eq)
+qed
+
+lemma aff_dim_affine_Int_hyperplane:
+  fixes a :: "'a::euclidean_space"
+  assumes "affine S"
+    shows "aff_dim(S \<inter> {x. a \<bullet> x = b}) =
+             (if S \<inter> {v. a \<bullet> v = b} = {} then - 1
+              else if S \<subseteq> {v. a \<bullet> v = b} then aff_dim S
+              else aff_dim S - 1)"
+proof (cases "a = 0")
+  case True with assms show ?thesis
+    by auto
+next
+  case False
+  then have "aff_dim (S \<inter> {x. a \<bullet> x = b}) = aff_dim S - 1"
+            if "x \<in> S" "a \<bullet> x \<noteq> b" and non: "S \<inter> {v. a \<bullet> v = b} \<noteq> {}" for x
+  proof -
+    have [simp]: "{x + y| x y. x \<in> S \<and> a \<bullet> y = b} = UNIV"
+      using affine_hyperplane_sums_eq_UNIV [OF assms non] that  by blast
+    show ?thesis
+      using aff_dim_sums_Int [OF assms affine_hyperplane non]
+      by (simp add: of_nat_diff False)
+  qed
+  then show ?thesis
+    by (metis (mono_tags, lifting) inf.orderE aff_dim_empty_eq mem_Collect_eq subsetI)
+qed
+
+lemma aff_dim_lt_full:
+  fixes S :: "'a::euclidean_space set"
+  shows "aff_dim S < DIM('a) \<longleftrightarrow> (affine hull S \<noteq> UNIV)"
+by (metis (no_types) aff_dim_affine_hull aff_dim_le_DIM aff_dim_UNIV affine_hull_UNIV less_le)
+
+subsection\<open> Orthogonal bases, Gram-Schmidt process, and related theorems\<close>
+
+lemma span_delete_0 [simp]: "span(S - {0}) = span S"
+proof
+  show "span (S - {0}) \<subseteq> span S"
+    by (blast intro!: span_mono)
+next
+  have "span S \<subseteq> span(insert 0 (S - {0}))"
+    by (blast intro!: span_mono)
+  also have "... \<subseteq> span(S - {0})"
+    using span_insert_0 by blast
+  finally show "span S \<subseteq> span (S - {0})" .
+qed
+
+lemma span_image_scale:
+  assumes "finite S" and nz: "\<And>x. x \<in> S \<Longrightarrow> c x \<noteq> 0"
+    shows "span ((\<lambda>x. c x *\<^sub>R x) ` S) = span S"
+using assms
+proof (induction S arbitrary: c)
+  case (empty c) show ?case by simp
+next
+  case (insert x F c)
+  show ?case
+  proof (intro set_eqI iffI)
+    fix y
+      assume "y \<in> span ((\<lambda>x. c x *\<^sub>R x) ` insert x F)"
+      then show "y \<in> span (insert x F)"
+        using insert by (force simp: span_breakdown_eq)
+  next
+    fix y
+      assume "y \<in> span (insert x F)"
+      then show "y \<in> span ((\<lambda>x. c x *\<^sub>R x) ` insert x F)"
+        using insert
+        apply (clarsimp simp: span_breakdown_eq)
+        apply (rule_tac x="k / c x" in exI)
+        by simp
+  qed
+qed
+
+lemma pairwise_orthogonal_independent:
+  assumes "pairwise orthogonal S" and "0 \<notin> S"
+    shows "independent S"
+proof -
+  have 0: "\<And>x y. \<lbrakk>x \<noteq> y; x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
+    using assms by (simp add: pairwise_def orthogonal_def)
+  have "False" if "a \<in> S" and a: "a \<in> span (S - {a})" for a
+  proof -
+    obtain T U where "T \<subseteq> S - {a}" "a = (\<Sum>v\<in>T. U v *\<^sub>R v)"
+      using a by (force simp: span_explicit)
+    then have "a \<bullet> a = a \<bullet> (\<Sum>v\<in>T. U v *\<^sub>R v)"
+      by simp
+    also have "... = 0"
+      apply (simp add: inner_setsum_right)
+      apply (rule comm_monoid_add_class.setsum.neutral)
+      by (metis "0" DiffE \<open>T \<subseteq> S - {a}\<close> mult_not_zero singletonI subsetCE \<open>a \<in> S\<close>)
+    finally show ?thesis
+      using \<open>0 \<notin> S\<close> \<open>a \<in> S\<close> by auto
+  qed
+  then show ?thesis
+    by (force simp: dependent_def)
+qed
+
+lemma pairwise_orthogonal_imp_finite:
+  fixes S :: "'a::euclidean_space set"
+  assumes "pairwise orthogonal S"
+    shows "finite S"
+proof -
+  have "independent (S - {0})"
+    apply (rule pairwise_orthogonal_independent)
+     apply (metis Diff_iff assms pairwise_def)
+    by blast
+  then show ?thesis
+    by (meson independent_imp_finite infinite_remove)
+qed
+
+lemma subspace_orthogonal_to_vector: "subspace {y. orthogonal x y}"
+  by (simp add: subspace_def orthogonal_clauses)
+
+lemma subspace_orthogonal_to_vectors: "subspace {y. \<forall>x \<in> S. orthogonal x y}"
+  by (simp add: subspace_def orthogonal_clauses)
+
+lemma orthogonal_to_span:
+  assumes a: "a \<in> span S" and x: "\<And>y. y \<in> S \<Longrightarrow> orthogonal x y"
+    shows "orthogonal x a"
+apply (rule CollectD, rule span_induct [OF a subspace_orthogonal_to_vector])
+apply (simp add: x)
+done
+
+proposition Gram_Schmidt_step:
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "pairwise orthogonal S" and x: "x \<in> span S"
+    shows "orthogonal x (a - (\<Sum>b\<in>S. (b \<bullet> a / (b \<bullet> b)) *\<^sub>R b))"
+proof -
+  have "finite S"
+    by (simp add: S pairwise_orthogonal_imp_finite)
+  have "orthogonal (a - (\<Sum>b\<in>S. (b \<bullet> a / (b \<bullet> b)) *\<^sub>R b)) x"
+       if "x \<in> S" for x
+  proof -
+    have "a \<bullet> x = (\<Sum>y\<in>S. if y = x then y \<bullet> a else 0)"
+      by (simp add: \<open>finite S\<close> inner_commute setsum.delta that)
+    also have "... =  (\<Sum>b\<in>S. b \<bullet> a * (b \<bullet> x) / (b \<bullet> b))"
+      apply (rule setsum.cong [OF refl], simp)
+      by (meson S orthogonal_def pairwise_def that)
+   finally show ?thesis
+     by (simp add: orthogonal_def algebra_simps inner_setsum_left)
+  qed
+  then show ?thesis
+    using orthogonal_to_span orthogonal_commute x by blast
+qed
+
+
+lemma orthogonal_extension_aux:
+  fixes S :: "'a::euclidean_space set"
+  assumes "finite T" "finite S" "pairwise orthogonal S"
+    shows "\<exists>U. pairwise orthogonal (S \<union> U) \<and> span (S \<union> U) = span (S \<union> T)"
+using assms
+proof (induction arbitrary: S)
+  case empty then show ?case
+    by simp (metis sup_bot_right)
+next
+  case (insert a T)
+  have 0: "\<And>x y. \<lbrakk>x \<noteq> y; x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
+    using insert by (simp add: pairwise_def orthogonal_def)
+  def a' \<equiv> "a - (\<Sum>b\<in>S. (b \<bullet> a / (b \<bullet> b)) *\<^sub>R b)"
+  obtain U where orthU: "pairwise orthogonal (S \<union> insert a' U)"
+             and spanU: "span (insert a' S \<union> U) = span (insert a' S \<union> T)"
+    apply (rule exE [OF insert.IH [of "insert a' S"]])
+    apply (auto simp: Gram_Schmidt_step a'_def insert.prems orthogonal_commute pairwise_orthogonal_insert span_clauses)
+    done
+  have orthS: "\<And>x. x \<in> S \<Longrightarrow> a' \<bullet> x = 0"
+    apply (simp add: a'_def)
+    using Gram_Schmidt_step [OF \<open>pairwise orthogonal S\<close>]
+    apply (force simp: orthogonal_def inner_commute span_inc [THEN subsetD])
+    done
+  have "span (S \<union> insert a' U) = span (insert a' (S \<union> T))"
+    using spanU by simp
+  also have "... = span (insert a (S \<union> T))"
+    apply (rule eq_span_insert_eq)
+    apply (simp add: a'_def span_neg span_setsum span_clauses(1) span_mul)
+    done
+  also have "... = span (S \<union> insert a T)"
+    by simp
+  finally show ?case
+    apply (rule_tac x="insert a' U" in exI)
+    using orthU apply auto
+    done
+qed
+
+
+proposition orthogonal_extension:
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "pairwise orthogonal S"
+  obtains U where "pairwise orthogonal (S \<union> U)" "span (S \<union> U) = span (S \<union> T)"
+proof -
+  obtain B where "finite B" "span B = span T"
+    using basis_subspace_exists [of "span T"] subspace_span by auto
+  with orthogonal_extension_aux [of B S]
+  obtain U where "pairwise orthogonal (S \<union> U)" "span (S \<union> U) = span (S \<union> B)"
+    using assms pairwise_orthogonal_imp_finite by auto
+  show ?thesis
+    apply (rule_tac U=U in that)
+     apply (simp add: \<open>pairwise orthogonal (S \<union> U)\<close>)
+    by (metis \<open>span (S \<union> U) = span (S \<union> B)\<close> \<open>span B = span T\<close> span_union)
+qed
+
+corollary orthogonal_extension_strong:
+  fixes S :: "'a::euclidean_space set"
+  assumes S: "pairwise orthogonal S"
+  obtains U where "U \<inter> (insert 0 S) = {}" "pairwise orthogonal (S \<union> U)"
+                   "span (S \<union> U) = span (S \<union> T)"
+proof -
+  obtain U where "pairwise orthogonal (S \<union> U)" "span (S \<union> U) = span (S \<union> T)"
+    using orthogonal_extension assms by blast
+  then show ?thesis
+    apply (rule_tac U = "U - (insert 0 S)" in that)
+      apply blast
+     apply (force simp: pairwise_def)
+    apply (metis (no_types, lifting) Un_Diff_cancel span_insert_0 span_union)
+  done
+qed
+
+subsection\<open>Decomposing a vector into parts in orthogonal subspaces.\<close>
+
+text\<open>existence of orthonormal basis for a subspace.\<close>
+
+lemma orthogonal_spanningset_subspace:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "subspace S"
+  obtains B where "B \<subseteq> S" "pairwise orthogonal B" "span B = S"
+proof -
+  obtain B where "B \<subseteq> S" "independent B" "S \<subseteq> span B" "card B = dim S"
+    using basis_exists by blast
+  with orthogonal_extension [of "{}" B]
+  show ?thesis
+    by (metis Un_empty_left assms pairwise_empty span_inc span_subspace that)
+qed
+
+lemma orthogonal_basis_subspace:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "subspace S"
+  obtains B where "0 \<notin> B" "B \<subseteq> S" "pairwise orthogonal B" "independent B"
+                  "card B = dim S" "span B = S"
+proof -
+  obtain B where "B \<subseteq> S" "pairwise orthogonal B" "span B = S"
+    using assms orthogonal_spanningset_subspace by blast
+  then show ?thesis
+    apply (rule_tac B = "B - {0}" in that)
+    apply (auto simp: indep_card_eq_dim_span pairwise_subset Diff_subset pairwise_orthogonal_independent elim: pairwise_subset)
+    done
+qed
+
+proposition orthogonal_subspace_decomp_exists:
+  fixes S :: "'a :: euclidean_space set"
+  obtains y z where "y \<in> span S" "\<And>w. w \<in> span S \<Longrightarrow> orthogonal z w" "x = y + z"
+proof -
+  obtain T where "0 \<notin> T" "T \<subseteq> span S" "pairwise orthogonal T" "independent T" "card T = dim (span S)" "span T = span S"
+    using orthogonal_basis_subspace subspace_span by blast
+  let ?a = "\<Sum>b\<in>T. (b \<bullet> x / (b \<bullet> b)) *\<^sub>R b"
+  have orth: "orthogonal (x - ?a) w" if "w \<in> span S" for w
+    by (simp add: Gram_Schmidt_step \<open>pairwise orthogonal T\<close> \<open>span T = span S\<close> orthogonal_commute that)
+  show ?thesis
+    apply (rule_tac y = "?a" and z = "x - ?a" in that)
+      apply (meson \<open>T \<subseteq> span S\<close> span_mul span_setsum subsetCE)
+     apply (fact orth, simp)
+    done
+qed
+
+lemma orthogonal_subspace_decomp_unique:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "x + y = x' + y'"
+      and ST: "x \<in> span S" "x' \<in> span S" "y \<in> span T" "y' \<in> span T"
+      and orth: "\<And>a b. \<lbrakk>a \<in> S; b \<in> T\<rbrakk> \<Longrightarrow> orthogonal a b"
+  shows "x = x' \<and> y = y'"
+proof -
+  have "x + y - y' = x'"
+    by (simp add: assms)
+  moreover have "\<And>a b. \<lbrakk>a \<in> span S; b \<in> span T\<rbrakk> \<Longrightarrow> orthogonal a b"
+    by (meson orth orthogonal_commute orthogonal_to_span)
+  ultimately have "0 = x' - x"
+    by (metis (full_types) add_diff_cancel_left' ST diff_right_commute orthogonal_clauses(10) orthogonal_clauses(5) orthogonal_self)
+  with assms show ?thesis by auto
+qed
+
+
+text\<open> If we take a slice out of a set, we can do it perpendicularly,
+  with the normal vector to the slice parallel to the affine hull.\<close>
+
+proposition affine_parallel_slice:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "affine S"
+      and "S \<inter> {x. a \<bullet> x \<le> b} \<noteq> {}"
+      and "~ (S \<subseteq> {x. a \<bullet> x \<le> b})"
+  obtains a' b' where "a' \<noteq> 0"
+                   "S \<inter> {x. a' \<bullet> x \<le> b'} = S \<inter> {x. a \<bullet> x \<le> b}"
+                   "S \<inter> {x. a' \<bullet> x = b'} = S \<inter> {x. a \<bullet> x = b}"
+                   "\<And>w. w \<in> S \<Longrightarrow> (w + a') \<in> S"
+proof (cases "S \<inter> {x. a \<bullet> x = b} = {}")
+  case True
+  then obtain u v where "u \<in> S" "v \<in> S" "a \<bullet> u \<le> b" "a \<bullet> v > b"
+    using assms by (auto simp: not_le)
+  def \<eta> \<equiv> "u + ((b - a \<bullet> u) / (a \<bullet> v - a \<bullet> u)) *\<^sub>R (v - u)"
+  have "\<eta> \<in> S"
+    by (simp add: \<eta>_def \<open>u \<in> S\<close> \<open>v \<in> S\<close> \<open>affine S\<close> mem_affine_3_minus)
+  moreover have "a \<bullet> \<eta> = b"
+    using \<open>a \<bullet> u \<le> b\<close> \<open>b < a \<bullet> v\<close>
+    by (simp add: \<eta>_def algebra_simps) (simp add: field_simps)
+  ultimately have False
+    using True by force
+  then show ?thesis ..
+next
+  case False
+  then obtain z where "z \<in> S" and z: "a \<bullet> z = b"
+    using assms by auto
+  with affine_diffs_subspace [OF \<open>affine S\<close>]
+  have sub: "subspace (op + (- z) ` S)" by blast
+  then have aff: "affine (op + (- z) ` S)" and span: "span (op + (- z) ` S) = (op + (- z) ` S)"
+    by (auto simp: subspace_imp_affine)
+  obtain a' a'' where a': "a' \<in> span (op + (- z) ` S)" and a: "a = a' + a''"
+                  and "\<And>w. w \<in> span (op + (- z) ` S) \<Longrightarrow> orthogonal a'' w"
+      using orthogonal_subspace_decomp_exists [of "op + (- z) ` S" "a"] by metis
+  then have "\<And>w. w \<in> S \<Longrightarrow> a'' \<bullet> (w-z) = 0"
+    by (simp add: imageI orthogonal_def span)
+  then have a'': "\<And>w. w \<in> S \<Longrightarrow> a'' \<bullet> w = (a - a') \<bullet> z"
+    by (simp add: a inner_diff_right)
+  then have ba'': "\<And>w. w \<in> S \<Longrightarrow> a'' \<bullet> w = b - a' \<bullet> z"
+    by (simp add: inner_diff_left z)
+  have "\<And>w. w \<in> op + (- z) ` S \<Longrightarrow> (w + a') \<in> op + (- z) ` S"
+    by (metis subspace_add a' span_eq sub)
+  then have Sclo: "\<And>w. w \<in> S \<Longrightarrow> (w + a') \<in> S"
+    by fastforce
+  show ?thesis
+  proof (cases "a' = 0")
+    case True
+    with a assms True a'' diff_zero less_irrefl show ?thesis
+      by auto
+  next
+    case False
+    show ?thesis
+      apply (rule_tac a' = "a'" and b' = "a' \<bullet> z" in that)
+      apply (auto simp: a ba'' inner_left_distrib False Sclo)
       done
   qed
 qed

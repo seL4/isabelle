@@ -457,7 +457,7 @@ lemma openin_Int[intro]: "openin U S \<Longrightarrow> openin U T \<Longrightarr
   by (rule openin_clauses)
 
 lemma openin_Union[intro]: "(\<And>S. S \<in> K \<Longrightarrow> openin U S) \<Longrightarrow> openin U (\<Union>K)"
-  using openin_clauses by blast 
+  using openin_clauses by blast
 
 lemma openin_Un[intro]: "openin U S \<Longrightarrow> openin U T \<Longrightarrow> openin U (S \<union> T)"
   using openin_Union[of "{S,T}" U] by auto
@@ -956,7 +956,7 @@ apply (auto dest!: bspec)
 apply (rule_tac x="e/2" in exI)
 apply force+
 done
-    
+
 lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
   unfolding mem_ball set_eq_iff
   apply (simp add: not_less)
@@ -1408,7 +1408,7 @@ lemma cbox01_nonempty [simp]: "cbox 0 One \<noteq> {}"
 
 lemma box01_nonempty [simp]: "box 0 One \<noteq> {}"
   by (simp add: box_ne_empty inner_Basis inner_setsum_left) (simp add: setsum.remove)
-  
+
 
 subsection\<open>Connectedness\<close>
 
@@ -2283,7 +2283,7 @@ lemma frontier_straddle:
   shows "a \<in> frontier S \<longleftrightarrow> (\<forall>e>0. (\<exists>x\<in>S. dist a x < e) \<and> (\<exists>x. x \<notin> S \<and> dist a x < e))"
   unfolding frontier_def closure_interior
   by (auto simp add: mem_interior subset_eq ball_def)
-                                               
+
 lemma frontier_subset_closed: "closed S \<Longrightarrow> frontier S \<subseteq> S"
   by (metis frontier_def closure_closed Diff_subset)
 
@@ -3259,7 +3259,7 @@ qed
 
 lemma interior_ball [simp]: "interior (ball x e) = ball x e"
   by (simp add: interior_open)
-  
+
 lemma frontier_ball [simp]:
   fixes a :: "'a::real_normed_vector"
   shows "0 < e \<Longrightarrow> frontier (ball a e) = sphere a e"
@@ -5051,17 +5051,27 @@ lemma compact_frontier[intro]:
   using compact_eq_bounded_closed compact_frontier_bounded
   by blast
 
-corollary compact_sphere:
+corollary compact_sphere [simp]:
   fixes a :: "'a::{real_normed_vector,perfect_space,heine_borel}"
   shows "compact (sphere a r)"
 using compact_frontier [of "cball a r"] by simp
+
+corollary bounded_sphere [simp]:
+  fixes a :: "'a::{real_normed_vector,perfect_space,heine_borel}"
+  shows "bounded (sphere a r)"
+by (simp add: compact_imp_bounded)
+
+corollary closed_sphere  [simp]:
+  fixes a :: "'a::{real_normed_vector,perfect_space,heine_borel}"
+  shows "closed (sphere a r)"
+by (simp add: compact_imp_closed)
 
 lemma frontier_subset_compact:
   fixes s :: "'a::heine_borel set"
   shows "compact s \<Longrightarrow> frontier s \<subseteq> s"
   using frontier_subset_closed compact_eq_bounded_closed
   by blast
-                 
+
 subsection\<open>Relations among convergence and absolute convergence for power series.\<close>
 
 lemma summable_imp_bounded:
@@ -5997,23 +6007,23 @@ next
   proof
     fix x and e::real
     assume "0 < e" and x: "x \<in> closure S"
-    obtain \<delta>::real where "\<delta> > 0" 
+    obtain \<delta>::real where "\<delta> > 0"
                    and \<delta>: "\<And>y. \<lbrakk>y \<in> S; dist y x < \<delta>\<rbrakk> \<Longrightarrow> dist (f y) (f x) < e/2"
-      using R [of x "e/2"] \<open>0 < e\<close> x by auto 
+      using R [of x "e/2"] \<open>0 < e\<close> x by auto
     have "dist (f y) (f x) \<le> e" if y: "y \<in> closure S" and dyx: "dist y x < \<delta>/2" for y
     proof -
-      obtain \<delta>'::real where "\<delta>' > 0" 
+      obtain \<delta>'::real where "\<delta>' > 0"
                       and \<delta>': "\<And>z. \<lbrakk>z \<in> S; dist z y < \<delta>'\<rbrakk> \<Longrightarrow> dist (f z) (f y) < e/2"
-        using R [of y "e/2"] \<open>0 < e\<close> y by auto 
+        using R [of y "e/2"] \<open>0 < e\<close> y by auto
       obtain z where "z \<in> S" and z: "dist z y < min \<delta>' \<delta> / 2"
         using closure_approachable y
         by (metis \<open>0 < \<delta>'\<close> \<open>0 < \<delta>\<close> divide_pos_pos min_less_iff_conj zero_less_numeral)
       have "dist (f z) (f y) < e/2"
         apply (rule \<delta>' [OF \<open>z \<in> S\<close>])
-        using z \<open>0 < \<delta>'\<close> by linarith 
+        using z \<open>0 < \<delta>'\<close> by linarith
       moreover have "dist (f z) (f x) < e/2"
         apply (rule \<delta> [OF \<open>z \<in> S\<close>])
-        using z \<open>0 < \<delta>\<close>  dist_commute[of y z] dist_triangle_half_r [of y] dyx by auto 
+        using z \<open>0 < \<delta>\<close>  dist_commute[of y z] dist_triangle_half_r [of y] dyx by auto
       ultimately show ?thesis
         by (metis dist_commute dist_triangle_half_l less_imp_le)
     qed
@@ -6029,7 +6039,7 @@ lemma continuous_on_closure_sequentially:
     (\<forall>x a. a \<in> closure S \<and> (\<forall>n. x n \<in> S) \<and> x \<longlonglongrightarrow> a \<longrightarrow> (f \<circ> x) \<longlonglongrightarrow> f a)"
    (is "?lhs = ?rhs")
 proof -
-  have "continuous_on (closure S) f \<longleftrightarrow> 
+  have "continuous_on (closure S) f \<longleftrightarrow>
            (\<forall>x \<in> closure S. continuous (at x within S) f)"
     by (force simp: continuous_on_closure Topology_Euclidean_Space.continuous_within_eps_delta)
   also have "... = ?rhs"
@@ -6046,35 +6056,35 @@ unfolding uniformly_continuous_on_def
 proof (intro allI impI)
   fix e::real
   assume "0 < e"
-  then obtain d::real 
-    where "d>0" 
+  then obtain d::real
+    where "d>0"
       and d: "\<And>x x'. \<lbrakk>x\<in>S; x'\<in>S; dist x' x < d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e/3"
     using ucont [unfolded uniformly_continuous_on_def, rule_format, of "e/3"] by auto
   show "\<exists>d>0. \<forall>x\<in>closure S. \<forall>x'\<in>closure S. dist x' x < d \<longrightarrow> dist (f x') (f x) < e"
   proof (rule exI [where x="d/3"], clarsimp simp: \<open>d > 0\<close>)
     fix x y
     assume x: "x \<in> closure S" and y: "y \<in> closure S" and dyx: "dist y x * 3 < d"
-    obtain d1::real where "d1 > 0" 
+    obtain d1::real where "d1 > 0"
            and d1: "\<And>w. \<lbrakk>w \<in> closure S; dist w x < d1\<rbrakk> \<Longrightarrow> dist (f w) (f x) < e/3"
       using cont [unfolded continuous_on_iff, rule_format, of "x" "e/3"] \<open>0 < e\<close> x by auto
      obtain x' where "x' \<in> S" and x': "dist x' x < min d1 (d / 3)"
-        using closure_approachable [of x S] 
-        by (metis \<open>0 < d1\<close> \<open>0 < d\<close> divide_pos_pos min_less_iff_conj x zero_less_numeral) 
-    obtain d2::real where "d2 > 0" 
+        using closure_approachable [of x S]
+        by (metis \<open>0 < d1\<close> \<open>0 < d\<close> divide_pos_pos min_less_iff_conj x zero_less_numeral)
+    obtain d2::real where "d2 > 0"
            and d2: "\<forall>w \<in> closure S. dist w y < d2 \<longrightarrow> dist (f w) (f y) < e/3"
       using cont [unfolded continuous_on_iff, rule_format, of "y" "e/3"] \<open>0 < e\<close> y by auto
      obtain y' where "y' \<in> S" and y': "dist y' y < min d2 (d / 3)"
-        using closure_approachable [of y S] 
+        using closure_approachable [of y S]
         by (metis \<open>0 < d2\<close> \<open>0 < d\<close> divide_pos_pos min_less_iff_conj y zero_less_numeral)
      have "dist x' x < d/3" using x' by auto
      moreover have "dist x y < d/3"
-       by (metis dist_commute dyx less_divide_eq_numeral1(1)) 
+       by (metis dist_commute dyx less_divide_eq_numeral1(1))
      moreover have "dist y y' < d/3"
-       by (metis (no_types) dist_commute min_less_iff_conj y') 
+       by (metis (no_types) dist_commute min_less_iff_conj y')
      ultimately have "dist x' y' < d/3 + d/3 + d/3"
        by (meson dist_commute_lessI dist_triangle_lt add_strict_mono)
-     then have "dist x' y' < d" by simp 
-     then have "dist (f x') (f y') < e/3" 
+     then have "dist x' y' < d" by simp
+     then have "dist (f x') (f y') < e/3"
        by (rule d [OF \<open>y' \<in> S\<close> \<open>x' \<in> S\<close>])
      moreover have "dist (f x') (f x) < e/3" using \<open>x' \<in> S\<close> closure_subset x' d1
        by (simp add: closure_def)
@@ -7973,6 +7983,10 @@ lemma homeomorphism_sym: "homeomorphism S t f g = homeomorphism t S g f"
 definition homeomorphic :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
     (infixr "homeomorphic" 60)
   where "s homeomorphic t \<equiv> (\<exists>f g. homeomorphism s t f g)"
+
+lemma homeomorphic_empty [iff]:
+     "S homeomorphic {} \<longleftrightarrow> S = {}" "{} homeomorphic S \<longleftrightarrow> S = {}"
+  by (auto simp add: homeomorphic_def homeomorphism_def)
 
 lemma homeomorphic_refl: "s homeomorphic s"
   unfolding homeomorphic_def homeomorphism_def

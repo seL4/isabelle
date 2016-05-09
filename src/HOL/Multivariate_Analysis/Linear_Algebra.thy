@@ -228,7 +228,7 @@ lemma subspace_sub: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> y 
 
 lemma (in real_vector) subspace_setsum:
   assumes sA: "subspace A"
-    and f: "\<forall>x\<in>B. f x \<in> A"
+    and f: "\<And>x. x \<in> B \<Longrightarrow> f x \<in> A"
   shows "setsum f B \<in> A"
 proof (cases "finite B")
   case True
@@ -236,7 +236,7 @@ proof (cases "finite B")
     using f by induct (simp_all add: subspace_0 [OF sA] subspace_add [OF sA])
 qed (simp add: subspace_0 [OF sA])
 
-lemma subspace_trivial: "subspace {0}"
+lemma subspace_trivial [iff]: "subspace {0}"
   by (simp add: subspace_def)
 
 lemma (in real_vector) subspace_inter: "subspace A \<Longrightarrow> subspace B \<Longrightarrow> subspace (A \<inter> B)"
@@ -245,7 +245,15 @@ lemma (in real_vector) subspace_inter: "subspace A \<Longrightarrow> subspace B 
 lemma subspace_Times: "subspace A \<Longrightarrow> subspace B \<Longrightarrow> subspace (A \<times> B)"
   unfolding subspace_def zero_prod_def by simp
 
-text \<open>Properties of span.\<close>
+lemma subspace_sums: "\<lbrakk>subspace S; subspace T\<rbrakk> \<Longrightarrow> subspace {x + y|x y. x \<in> S \<and> y \<in> T}"
+apply (simp add: subspace_def)
+apply (intro conjI impI allI)
+  using add.right_neutral apply blast
+ apply clarify
+ apply (metis add.assoc add.left_commute)
+using scaleR_add_right by blast
+
+subsection \<open>Properties of span\<close>
 
 lemma (in real_vector) span_mono: "A \<subseteq> B \<Longrightarrow> span A \<subseteq> span B"
   by (metis span_def hull_mono)
@@ -399,7 +407,7 @@ lemma span_span: "span (span A) = span A"
 lemma (in real_vector) span_superset: "x \<in> S \<Longrightarrow> x \<in> span S"
   by (metis span_clauses(1))
 
-lemma (in real_vector) span_0: "0 \<in> span S"
+lemma (in real_vector) span_0 [simp]: "0 \<in> span S"
   by (metis subspace_span subspace_0)
 
 lemma span_inc: "S \<subseteq> span S"
@@ -414,7 +422,7 @@ lemma (in real_vector) dependent_0:
   shows "dependent A"
   unfolding dependent_def
   using assms span_0
-  by auto
+  by blast
 
 lemma (in real_vector) span_add: "x \<in> span S \<Longrightarrow> y \<in> span S \<Longrightarrow> x + y \<in> span S"
   by (metis subspace_add subspace_span)
@@ -428,7 +436,7 @@ lemma span_neg: "x \<in> span S \<Longrightarrow> - x \<in> span S"
 lemma span_sub: "x \<in> span S \<Longrightarrow> y \<in> span S \<Longrightarrow> x - y \<in> span S"
   by (metis subspace_span subspace_sub)
 
-lemma (in real_vector) span_setsum: "\<forall>x\<in>A. f x \<in> span S \<Longrightarrow> setsum f A \<in> span S"
+lemma (in real_vector) span_setsum: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> span S) \<Longrightarrow> setsum f A \<in> span S"
   by (rule subspace_setsum [OF subspace_span])
 
 lemma span_add_eq: "x \<in> span S \<Longrightarrow> x + y \<in> span S \<longleftrightarrow> y \<in> span S"
@@ -695,6 +703,24 @@ proof -
       done
   }
   ultimately show ?thesis by blast
+qed
+
+lemma dependent_finite:
+  assumes "finite S"
+    shows "dependent S \<longleftrightarrow> (\<exists>u. (\<exists>v \<in> S. u v \<noteq> 0) \<and> (\<Sum>v\<in>S. u v *\<^sub>R v) = 0)"
+           (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then obtain T u v
+         where "finite T" "T \<subseteq> S" "v\<in>T" "u v \<noteq> 0" "(\<Sum>v\<in>T. u v *\<^sub>R v) = 0"
+    by (force simp: dependent_explicit)
+  with assms show ?rhs
+    apply (rule_tac x="\<lambda>v. if v \<in> T then u v else 0" in exI)
+    apply (auto simp: setsum.mono_neutral_right)
+    done
+next
+  assume ?rhs  with assms show ?lhs
+    by (fastforce simp add: dependent_explicit)
 qed
 
 lemma span_alt:
@@ -2007,6 +2033,16 @@ corollary
   shows independent_imp_finite: "finite S" and independent_card_le:"card S \<le> DIM('a)"
 using assms independent_bound by auto
 
+lemma independent_explicit:
+  fixes B :: "'a::euclidean_space set"
+  shows "independent B \<longleftrightarrow>
+         finite B \<and> (\<forall>c. (\<Sum>v\<in>B. c v *\<^sub>R v) = 0 \<longrightarrow> (\<forall>v \<in> B. c v = 0))"
+apply (cases "finite B")
+ apply (force simp: dependent_finite)
+using independent_bound
+apply auto
+done
+
 lemma dependent_biggerset:
   fixes S :: "'a::euclidean_space set"
   shows "(finite S \<Longrightarrow> card S > DIM('a)) \<Longrightarrow> dependent S"
@@ -2251,7 +2287,6 @@ next
       apply (rule span_add_eq)
       apply (rule span_mul)
       apply (rule span_setsum)
-      apply clarify
       apply (rule span_mul)
       apply (rule span_superset)
       apply assumption
@@ -2334,7 +2369,6 @@ proof -
   have "setsum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *\<^sub>R b) B \<in> span S"
     unfolding sSB
     apply (rule span_setsum)
-    apply clarsimp
     apply (rule span_mul)
     apply (rule span_superset)
     apply assumption
@@ -3095,8 +3129,8 @@ qed
 
 lemma norm_cauchy_schwarz_equal: "\<bar>x \<bullet> y\<bar> = norm x * norm y \<longleftrightarrow> collinear {0, x, y}"
   unfolding norm_cauchy_schwarz_abs_eq
-  apply (cases "x=0", simp_all add: collinear_2)
-  apply (cases "y=0", simp_all add: collinear_2 insert_commute)
+  apply (cases "x=0", simp_all)
+  apply (cases "y=0", simp_all add: insert_commute)
   unfolding collinear_lemma
   apply simp
   apply (subgoal_tac "norm x \<noteq> 0")

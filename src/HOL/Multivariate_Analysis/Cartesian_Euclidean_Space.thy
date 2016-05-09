@@ -9,7 +9,7 @@ lemma subspace_special_hyperplane: "subspace {x. x $ k = 0}"
 
 lemma delta_mult_idempotent:
   "(if k=a then 1 else (0::'a::semiring_1)) * (if k=a then 1 else 0) = (if k=a then 1 else 0)"
-  by (cases "k=a") auto
+  by simp
 
 lemma setsum_UNIV_sum:
   fixes g :: "'a::finite + 'b::finite \<Rightarrow> _"
@@ -812,7 +812,6 @@ proof -
       have "x \<in> span (columns A)"
         unfolding y[symmetric]
         apply (rule span_setsum)
-        apply clarify
         unfolding scalar_mult_eq_scaleR
         apply (rule span_mul)
         apply (rule span_superset)
