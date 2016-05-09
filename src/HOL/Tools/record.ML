@@ -1764,14 +1764,14 @@ fun add_code ext_tyco vs extT ext simps inject thy =
         Class.intro_classes_tac ctxt []
         THEN rewrite_goals_tac ctxt [Simpdata.mk_eq eq_def]
         THEN ALLGOALS (resolve_tac ctxt @{thms refl});
-      fun mk_eq thy eq_def =
-        rewrite_rule (Proof_Context.init_global thy)
-          [Axclass.unoverload thy (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
-      fun mk_eq_refl thy =
+      fun mk_eq ctxt eq_def =
+        rewrite_rule ctxt
+          [Axclass.unoverload ctxt (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
+      fun mk_eq_refl ctxt =
         @{thm equal_refl}
         |> Thm.instantiate
-          ([((("'a", 0), @{sort equal}), Thm.global_ctyp_of thy (Logic.varifyT_global extT))], [])
-        |> Axclass.unoverload thy;
+          ([((("'a", 0), @{sort equal}), Thm.ctyp_of ctxt (Logic.varifyT_global extT))], [])
+        |> Axclass.unoverload ctxt;
       val ensure_random_record = ensure_sort_record (@{sort random}, mk_random_eq);
       val ensure_exhaustive_record =
         ensure_sort_record (@{sort full_exhaustive}, mk_full_exhaustive_eq);
@@ -1785,8 +1785,10 @@ fun add_code ext_tyco vs extT ext simps inject thy =
       |-> (fn (_, (_, eq_def)) =>
          Class.prove_instantiation_exit_result Morphism.thm tac eq_def)
       |-> (fn eq_def => fn thy =>
-            thy |> Code.del_eqn eq_def |> Code.add_default_eqn (mk_eq thy eq_def))
-      |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl thy) thy)
+            thy
+            |> Code.del_eqn eq_def
+            |> Code.add_default_eqn (mk_eq (Proof_Context.init_global thy) eq_def))
+      |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl (Proof_Context.init_global thy)) thy)
       |> ensure_random_record ext_tyco vs (fst ext) (binder_types (snd ext))
       |> ensure_exhaustive_record ext_tyco vs (fst ext) (binder_types (snd ext))
     end
