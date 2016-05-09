@@ -205,9 +205,9 @@ fun simplifier_conv_sandwich ctxt =
     val post = (#post o the_thmproc) thy;
     fun pre_conv ctxt' =
       Simplifier.rewrite (put_simpset pre ctxt')
-      #> trans_conv_rule (Axclass.unoverload_conv (Proof_Context.theory_of ctxt'))
+      #> trans_conv_rule (Axclass.unoverload_conv ctxt')
     fun post_conv ctxt' =
-      Axclass.overload_conv (Proof_Context.theory_of ctxt')
+      Axclass.overload_conv ctxt'
       #> trans_conv_rule (Simplifier.rewrite (put_simpset post ctxt'))
   in fn ctxt' => pre_conv ctxt' #> pair (post_conv ctxt') end;
 

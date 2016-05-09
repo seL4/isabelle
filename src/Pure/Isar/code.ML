@@ -655,7 +655,7 @@ fun canonize_thms thy = desymbolize_tvars thy #> same_arity thy #> map (desymbol
 
 fun check_abstype_cert thy proto_thm =
   let
-    val thm = (Axclass.unoverload thy o meta_rewrite thy) proto_thm;
+    val thm = (Axclass.unoverload (Proof_Context.init_global thy) o meta_rewrite thy) proto_thm;
     val (lhs, rhs) = Logic.dest_equals (Thm.plain_prop_of thm)
       handle TERM _ => bad_thm "Not an equation"
            | THM _ => bad_thm "Not a proper equation";
@@ -888,12 +888,15 @@ fun equations_of_cert thy (cert as Nothing _) =
 fun pretty_cert thy (cert as Nothing _) =
       [Pretty.str "(not implemented)"]
   | pretty_cert thy (cert as Equations _) =
-      (map_filter (Option.map (Thm.pretty_thm_global thy o Axclass.overload thy) o fst o snd)
+      (map_filter
+        (Option.map (Thm.pretty_thm_global thy o
+            Axclass.overload (Proof_Context.init_global thy)) o fst o snd)
          o these o snd o equations_of_cert thy) cert
   | pretty_cert thy (Projection (t, _)) =
       [Syntax.pretty_term_global thy (Logic.varify_types_global t)]
   | pretty_cert thy (Abstract (abs_thm, _)) =
-      [(Thm.pretty_thm_global thy o Axclass.overload thy o Thm.varifyT_global) abs_thm];
+      [(Thm.pretty_thm_global thy o
+         Axclass.overload (Proof_Context.init_global thy) o Thm.varifyT_global) abs_thm];
 
 end;
 
@@ -916,13 +919,9 @@ fun rewrite_eqn conv ctxt =
   singleton (Variable.trade (K (map (Conv.fconv_rule (conv (Simplifier.rewrite ctxt))))) ctxt)
 
 fun preprocess conv ctxt =
-  let
-    val thy = Proof_Context.theory_of ctxt;
-  in
-    Thm.transfer thy
-    #> rewrite_eqn conv ctxt
-    #> Axclass.unoverload thy
-  end;
+  Thm.transfer (Proof_Context.theory_of ctxt)
+  #> rewrite_eqn conv ctxt
+  #> Axclass.unoverload ctxt;
 
 fun cert_of_eqns_preprocess ctxt functrans c =
   let
