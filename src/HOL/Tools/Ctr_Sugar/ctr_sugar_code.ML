@@ -23,11 +23,11 @@ val eqN = "eq"
 val reflN = "refl"
 val simpsN = "simps"
 
-fun mk_case_certificate thy raw_thms =
+fun mk_case_certificate ctxt raw_thms =
   let
     val thms as thm1 :: _ = raw_thms
       |> Conjunction.intr_balanced
-      |> Thm.unvarify_global thy
+      |> Thm.unvarify_global (Proof_Context.theory_of ctxt)
       |> Conjunction.elim_balanced (length raw_thms)
       |> map Simpdata.mk_meta_eq
       |> map Drule.zero_var_indexes;
@@ -36,14 +36,14 @@ fun mk_case_certificate thy raw_thms =
       |> Thm.prop_of |> Logic.dest_equals |> fst |> Term.strip_comb
       ||> fst o split_last |> list_comb;
     val lhs = Free (singleton (Name.variant_list params) "case", Term.fastype_of rhs);
-    val assum = Thm.global_cterm_of thy (Logic.mk_equals (lhs, rhs));
+    val assum = Thm.cterm_of ctxt (Logic.mk_equals (lhs, rhs));
   in
     thms
     |> Conjunction.intr_balanced
-    |> rewrite_rule (Proof_Context.init_global thy) [Thm.symmetric (Thm.assume assum)]
+    |> rewrite_rule ctxt [Thm.symmetric (Thm.assume assum)]
     |> Thm.implies_intr assum
     |> Thm.generalize ([], params) 0
-    |> Axclass.unoverload thy
+    |> Axclass.unoverload ctxt
     |> Thm.varifyT_global
   end;
 
@@ -128,7 +128,7 @@ fun add_ctr_code fcT_name raw_As raw_ctrs inject_thms distinct_thms case_thms th
       thy
       |> Code.add_datatype ctrs
       |> fold_rev Code.add_default_eqn case_thms
-      |> Code.add_case (mk_case_certificate thy case_thms)
+      |> Code.add_case (mk_case_certificate (Proof_Context.init_global thy) case_thms)
       |> not (Sorts.has_instance (Sign.classes_of thy) fcT_name [HOLogic.class_equal])
         ? add_equality fcT fcT_name As ctrs inject_thms distinct_thms
     else

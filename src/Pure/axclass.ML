@@ -14,10 +14,10 @@ sig
   val thynames_of_arity: theory -> string * class -> string list
   val param_of_inst: theory -> string * string -> string
   val inst_of_param: theory -> string -> (string * string) option
-  val unoverload: theory -> thm -> thm
-  val overload: theory -> thm -> thm
-  val unoverload_conv: theory -> conv
-  val overload_conv: theory -> conv
+  val unoverload: Proof.context -> thm -> thm
+  val overload: Proof.context -> thm -> thm
+  val unoverload_conv: Proof.context -> conv
+  val overload_conv: Proof.context -> conv
   val lookup_inst_param: Consts.T -> ((string * string) * 'a) list -> string * typ -> 'a option
   val unoverload_const: theory -> string * typ -> string
   val cert_classrel: theory -> class * class -> class * class
@@ -284,22 +284,17 @@ fun add_inst_param (c, tyco) inst =
 val inst_of_param = Symtab.lookup o #2 o inst_params_of;
 val param_of_inst = #1 oo get_inst_param;
 
-fun inst_thms thy =
-  Symtab.fold (Symtab.fold (cons o #2 o #2) o #2) (#1 (inst_params_of thy)) [];
+fun inst_thms ctxt =
+  Symtab.fold
+    (Symtab.fold (cons o #2 o #2) o #2) (#1 (inst_params_of (Proof_Context.theory_of ctxt))) [];
 
 fun get_inst_tyco consts = try (#1 o dest_Type o the_single o Consts.typargs consts);
 
-fun unoverload thy =
-  rewrite_rule (Proof_Context.init_global thy) (inst_thms thy);
+fun unoverload ctxt = rewrite_rule ctxt (inst_thms ctxt);
+fun overload ctxt = rewrite_rule ctxt (map Thm.symmetric (inst_thms ctxt));
 
-fun overload thy =
-  rewrite_rule (Proof_Context.init_global thy) (map Thm.symmetric (inst_thms thy));
-
-fun unoverload_conv thy =
-  Raw_Simplifier.rewrite (Proof_Context.init_global thy) true (inst_thms thy);
-
-fun overload_conv thy =
-  Raw_Simplifier.rewrite (Proof_Context.init_global thy) true (map Thm.symmetric (inst_thms thy));
+fun unoverload_conv ctxt = Raw_Simplifier.rewrite ctxt true (inst_thms ctxt);
+fun overload_conv ctxt = Raw_Simplifier.rewrite ctxt true (map Thm.symmetric (inst_thms ctxt));
 
 fun lookup_inst_param consts params (c, T) =
   (case get_inst_tyco consts (c, T) of

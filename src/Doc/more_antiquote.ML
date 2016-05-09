@@ -50,7 +50,7 @@ fun pretty_code_thm ctxt source raw_const =
       |> snd
       |> these
       |> map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
-      |> map (holize o no_vars ctxt o Axclass.overload thy);
+      |> map (holize o no_vars ctxt o Axclass.overload ctxt);
   in Thy_Output.output ctxt (Thy_Output.maybe_pretty_source pretty_thm ctxt source thms) end;
 
 in
