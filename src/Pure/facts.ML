@@ -28,12 +28,14 @@ sig
   val intern: T -> xstring -> string
   val extern: Proof.context -> T -> string -> xstring
   val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
+  val defined: T -> string -> bool
+  val is_dynamic: T -> string -> bool
   val lookup: Context.generic -> T -> string -> (bool * thm list) option
   val retrieve: Context.generic -> T -> xstring * Position.T ->
     {name: string, static: bool, thms: thm list}
-  val defined: T -> string -> bool
   val fold_static: (string * thm list -> 'a -> 'a) -> T -> 'a -> 'a
   val dest_static: bool -> T list -> T -> (string * thm list) list
+  val dest_all: Context.generic -> bool -> T list -> T -> (string * thm list) list
   val props: T -> thm list
   val could_unify: T -> term -> thm list
   val merge: T * T -> T
@@ -168,6 +170,11 @@ fun markup_extern ctxt = Name_Space.markup_extern ctxt o space_of;
 
 val defined = Name_Space.defined o facts_of;
 
+fun is_dynamic facts name =
+  (case Name_Space.lookup (facts_of facts) name of
+    SOME (Dynamic _) => true
+  | _ => false);
+
 fun lookup context facts name =
   (case Name_Space.lookup (facts_of facts) name of
     NONE => NONE
@@ -191,17 +198,30 @@ fun retrieve context facts (xname, pos) =
   end;
 
 
-(* static content *)
+(* content *)
+
+local
+
+fun included verbose prev_facts facts name =
+  not (exists (fn prev => defined prev name) prev_facts orelse
+    not verbose andalso is_concealed facts name);
+
+in
 
 fun fold_static f =
-  Name_Space.fold_table (fn (name, Static ths) => f (name, ths) | _ => I) o facts_of;
+  Name_Space.fold_table (fn (a, Static ths) => f (a, ths) | _ => I) o facts_of;
 
 fun dest_static verbose prev_facts facts =
-  fold_static (fn (name, ths) =>
-    if exists (fn prev => defined prev name) prev_facts orelse
-      not verbose andalso is_concealed facts name then I
-    else cons (name, ths)) facts []
+  fold_static (fn (a, ths) => included verbose prev_facts facts a ? cons (a, ths)) facts []
   |> sort_by #1;
+
+fun dest_all context verbose prev_facts facts =
+  Name_Space.fold_table (fn (a, fact) =>
+    let val ths = (case fact of Static ths => ths | Dynamic f => f context)
+    in included verbose prev_facts facts a ? cons (a, ths) end) (facts_of facts) []
+  |> sort_by #1;
+
+end;
 
 
 (* indexed props *)

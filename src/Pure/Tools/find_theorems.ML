@@ -335,10 +335,12 @@ val hidden_ord = bool_ord o apply2 Long_Name.is_hidden;
 val qual_ord = int_ord o apply2 Long_Name.qualification;
 val txt_ord = int_ord o apply2 size;
 
-fun nicer_name (x, i) (y, j) =
-  (case hidden_ord (x, y) of EQUAL =>
-    (case index_ord (i, j) of EQUAL =>
-      (case qual_ord (x, y) of EQUAL => txt_ord (x, y) | ord => ord)
+fun nicer_name ((a, x), i) ((b, y), j) =
+  (case bool_ord (a, b) of EQUAL =>
+    (case hidden_ord (x, y) of EQUAL =>
+      (case index_ord (i, j) of EQUAL =>
+        (case qual_ord (x, y) of EQUAL => txt_ord (x, y) | ord => ord)
+      | ord => ord)
     | ord => ord)
   | ord => ord) <> GREATER;
 
@@ -357,8 +359,10 @@ in
 fun nicer_shortest ctxt =
   let
     fun extern_shortest name =
-      Name_Space.extern_shortest ctxt
-        (Facts.space_of (Proof_Context.facts_of_fact ctxt name)) name;
+      let
+        val facts = Proof_Context.facts_of_fact ctxt name;
+        val space = Facts.space_of facts;
+      in (Facts.is_dynamic facts name, Name_Space.extern_shortest ctxt space name) end;
 
     fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
           nicer_name (extern_shortest x, i) (extern_shortest y, j)
@@ -389,8 +393,8 @@ fun all_facts_of ctxt =
     val local_facts = Proof_Context.facts_of ctxt;
     val global_facts = Global_Theory.facts_of thy;
   in
-   (Facts.dest_static false [global_facts] local_facts @
-     Facts.dest_static false [] global_facts)
+   (Facts.dest_all (Context.Proof ctxt) false [global_facts] local_facts @
+     Facts.dest_all (Context.Proof ctxt) false [] global_facts)
    |> maps Facts.selections
    |> map (apsnd transfer)
   end;
@@ -459,7 +463,7 @@ fun pretty_ref ctxt thmref =
         Facts.Named ((name, _), sel) => (name, sel)
       | Facts.Fact _ => raise Fail "Illegal literal fact");
   in
-    [Pretty.mark (#1 (Proof_Context.markup_extern_fact ctxt name)) (Pretty.str name),
+    [Pretty.marks_str (#1 (Proof_Context.markup_extern_fact ctxt name), name),
       Pretty.str (Facts.string_of_selection sel), Pretty.str ":", Pretty.brk 1]
   end;
 

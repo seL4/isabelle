@@ -63,7 +63,7 @@ sig
   val background_theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val facts_of: Proof.context -> Facts.T
   val facts_of_fact: Proof.context -> string -> Facts.T
-  val markup_extern_fact: Proof.context -> string -> Markup.T * xstring
+  val markup_extern_fact: Proof.context -> string -> Markup.T list * xstring
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
   val check_class: Proof.context -> xstring * Position.T -> class * Position.report list
@@ -410,7 +410,13 @@ fun facts_of_fact ctxt name =
   end;
 
 fun markup_extern_fact ctxt name =
-  Facts.markup_extern ctxt (facts_of_fact ctxt name) name;
+  let
+    val facts = facts_of_fact ctxt name;
+    val (markup, xname) = Facts.markup_extern ctxt facts name;
+    val markups =
+      if Facts.is_dynamic facts name then [markup, Markup.dynamic_fact name]
+      else [markup];
+  in (markups, xname) end;
 
 
 
@@ -419,7 +425,7 @@ fun markup_extern_fact ctxt name =
 fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
 fun pretty_fact_name ctxt a =
-  Pretty.block [Pretty.mark_str (markup_extern_fact ctxt a), Pretty.str ":"];
+  Pretty.block [Pretty.marks_str (markup_extern_fact ctxt a), Pretty.str ":"];
 
 fun pretty_fact ctxt =
   let
