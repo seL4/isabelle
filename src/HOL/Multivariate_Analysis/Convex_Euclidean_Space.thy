@@ -6546,9 +6546,6 @@ qed
 
 subsection \<open>Line segments, Starlike Sets, etc.\<close>
 
-(* Use the same overloading tricks as for intervals, so that
-   segment[a,b] is closed and segment(a,b) is open relative to affine hull. *)
-
 definition midpoint :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a"
   where "midpoint a b = (inverse (2::real)) *\<^sub>R (a + b)"
 
@@ -6565,9 +6562,17 @@ lemma in_segment:
     "x \<in> open_segment a b \<longleftrightarrow> a \<noteq> b \<and> (\<exists>u. 0 < u \<and> u < 1 \<and> x = (1 - u) *\<^sub>R a + u *\<^sub>R b)"
   using less_eq_real_def by (auto simp: segment algebra_simps)
 
+lemma closed_segment_linear_image:
+    "linear f \<Longrightarrow> closed_segment (f a) (f b) = f ` (closed_segment a b)"
+  by (force simp add: in_segment linear_add_cmul)
+
+lemma open_segment_linear_image:
+    "\<lbrakk>linear f; inj f\<rbrakk> \<Longrightarrow> open_segment (f a) (f b) = f ` (open_segment a b)"
+  by (force simp: open_segment_def closed_segment_linear_image inj_on_def)
+
 lemma open_segment_PairD:
-  "(x, x') \<in> open_segment (a, a') (b, b')
-  \<Longrightarrow> (x \<in> open_segment a b \<or> a = b) \<and> (x' \<in> open_segment a' b' \<or> a' = b')"
+    "(x, x') \<in> open_segment (a, a') (b, b')
+     \<Longrightarrow> (x \<in> open_segment a b \<or> a = b) \<and> (x' \<in> open_segment a' b' \<or> a' = b')"
   by (auto simp: in_segment)
 
 lemma closed_segment_PairD:
