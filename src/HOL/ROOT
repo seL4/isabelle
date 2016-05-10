@@ -720,6 +720,7 @@ session "HOL-Multivariate_Analysis" (main) in Multivariate_Analysis = HOL +
     Multivariate_Analysis
     Determinants
     PolyRoots
+    Polytope
     Complex_Analysis_Basics
     Complex_Transcendental
     Cauchy_Integral_Thm

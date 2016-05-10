@@ -6,6 +6,7 @@ imports
   Ordered_Euclidean_Space
   Bounded_Continuous_Function
   Weierstrass
+  Polytope
   Conformal_Mappings
   Generalised_Binomial_Theorem
   Gamma
