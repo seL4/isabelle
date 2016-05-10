@@ -599,12 +599,18 @@ lemma differentiableD: "f differentiable (at x within s) \<Longrightarrow> \<exi
 lemma differentiableI: "(f has_real_derivative D) (at x within s) \<Longrightarrow> f differentiable (at x within s)"
   by (force simp add: real_differentiable_def)
 
-lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
-  apply (simp add: has_field_derivative_def has_derivative_at bounded_linear_mult_right LIM_zero_iff[symmetric, of _ D])
+lemma has_field_derivative_iff:
+  "(f has_field_derivative D) (at x within S) \<longleftrightarrow>
+    ((\<lambda>y. (f y - f x) / (y - x)) \<longlongrightarrow> D) (at x within S)"
+  apply (simp add: has_field_derivative_def has_derivative_iff_norm bounded_linear_mult_right
+    LIM_zero_iff[symmetric, of _ D])
   apply (subst (2) tendsto_norm_zero_iff[symmetric])
   apply (rule filterlim_cong)
   apply (simp_all add: eventually_at_filter field_simps nonzero_norm_divide)
   done
+
+lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
+  unfolding field_has_derivative_at has_field_derivative_def has_field_derivative_iff ..
 
 lemma mult_commute_abs: "(\<lambda>x. x * c) = op * (c::'a::ab_semigroup_mult)"
   by (simp add: fun_eq_iff mult.commute)
@@ -645,14 +651,14 @@ lemma has_vector_derivative_diff[derivative_intros]:
   by (auto simp: has_vector_derivative_def scaleR_diff_right)
 
 lemma has_vector_derivative_add_const:
-     "((\<lambda>t. g t + z) has_vector_derivative f') (at x) = ((\<lambda>t. g t) has_vector_derivative f') (at x)"
+     "((\<lambda>t. g t + z) has_vector_derivative f') net = ((\<lambda>t. g t) has_vector_derivative f') net"
 apply (intro iffI)
 apply (drule has_vector_derivative_diff [where g = "\<lambda>t. z", OF _ has_vector_derivative_const], simp)
 apply (drule has_vector_derivative_add [OF _ has_vector_derivative_const], simp)
 done
 
 lemma has_vector_derivative_diff_const:
-     "((\<lambda>t. g t - z) has_vector_derivative f') (at x) = ((\<lambda>t. g t) has_vector_derivative f') (at x)"
+     "((\<lambda>t. g t - z) has_vector_derivative f') net = ((\<lambda>t. g t) has_vector_derivative f') net"
 using has_vector_derivative_add_const [where z = "-z"]
 by simp
 
@@ -703,6 +709,11 @@ subsection \<open>Derivatives\<close>
 
 lemma DERIV_D: "DERIV f x :> D \<Longrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
   by (simp add: DERIV_def)
+
+lemma has_field_derivativeD:
+  "(f has_field_derivative D) (at x within S) \<Longrightarrow>
+    ((\<lambda>y. (f y - f x) / (y - x)) \<longlongrightarrow> D) (at x within S)"
+  by (simp add: has_field_derivative_iff)
 
 lemma DERIV_const [simp, derivative_intros]: "((\<lambda>x. k) has_field_derivative 0) F"
   by (rule has_derivative_imp_has_field_derivative[OF has_derivative_const]) auto
@@ -892,22 +903,27 @@ apply (drule_tac k="a" in LIM_offset)
 apply (simp add: add.commute)
 done
 
-lemma DERIV_iff2: "(DERIV f x :> D) \<longleftrightarrow> (\<lambda>z. (f z - f x) / (z - x)) \<midarrow>x\<rightarrow> D"
-  by (simp add: DERIV_def DERIV_LIM_iff)
+lemmas DERIV_iff2 = has_field_derivative_iff
+
+lemma has_field_derivative_cong_ev:
+  assumes "x = y"
+    and *: "eventually (\<lambda>x. x \<in> s \<longrightarrow> f x = g x) (nhds x)"
+    and "u = v" "s = t" "x \<in> s"
+    shows "(f has_field_derivative u) (at x within s) = (g has_field_derivative v) (at y within t)"
+  unfolding DERIV_iff2
+proof (rule filterlim_cong)
+  from assms have "f y = g y" by (auto simp: eventually_nhds)
+  with * show "\<forall>\<^sub>F xa in at x within s. (f xa - f x) / (xa - x) = (g xa - g y) / (xa - y)"
+    unfolding eventually_at_filter
+    by eventually_elim (auto simp: assms \<open>f y = g y\<close>)
+qed (simp_all add: assms)
 
 lemma DERIV_cong_ev: "x = y \<Longrightarrow> eventually (\<lambda>x. f x = g x) (nhds x) \<Longrightarrow> u = v \<Longrightarrow>
     DERIV f x :> u \<longleftrightarrow> DERIV g y :> v"
-  unfolding DERIV_iff2
-proof (rule filterlim_cong)
-  assume *: "eventually (\<lambda>x. f x = g x) (nhds x)"
-  moreover from * have "f x = g x" by (auto simp: eventually_nhds)
-  moreover assume "x = y" "u = v"
-  ultimately show "eventually (\<lambda>xa. (f xa - f x) / (xa - x) = (g xa - g y) / (xa - y)) (at x)"
-    by (auto simp: eventually_at_filter elim: eventually_mono)
-qed simp_all
+  by (rule has_field_derivative_cong_ev) simp_all
 
 lemma DERIV_shift:
-  "(DERIV f (x + z) :> y) \<longleftrightarrow> (DERIV (\<lambda>x. f (x + z)) x :> y)"
+  "(f has_field_derivative y) (at (x + z)) = ((\<lambda>x. f (x + z)) has_field_derivative y) (at x)"
   by (simp add: DERIV_def field_simps)
 
 lemma DERIV_mirror:
@@ -943,31 +959,64 @@ subsection \<open>Local extrema\<close>
 
 text\<open>If @{term "0 < f'(x)"} then @{term x} is Locally Strictly Increasing At The Right\<close>
 
+lemma has_real_derivative_pos_inc_right:
+  fixes f :: "real => real"
+  assumes der: "(f has_real_derivative l) (at x within S)"
+      and l:   "0 < l"
+  shows "\<exists>d > 0. \<forall>h > 0. x + h \<in> S \<longrightarrow> h < d \<longrightarrow> f x < f (x + h)"
+  using assms
+proof -
+  from der [THEN has_field_derivativeD, THEN tendstoD, OF l, unfolded eventually_at]
+  obtain s where s:   "0 < s"
+    and all: "\<And>xa. xa\<in>S \<Longrightarrow> xa \<noteq> x \<and> dist xa x < s \<longrightarrow> abs ((f xa - f x) / (xa - x) - l) < l"
+    by (auto simp: dist_real_def)
+  then show ?thesis
+  proof (intro exI conjI strip)
+    show "0<s" using s .
+    fix h::real
+    assume "0 < h" "h < s" "x + h \<in> S"
+    with all [of "x + h"] show "f x < f (x+h)"
+    proof (simp add: abs_if dist_real_def pos_less_divide_eq split: if_split_asm)
+      assume "\<not> (f (x+h) - f x) / h < l" and h: "0 < h"
+      with l
+      have "0 < (f (x+h) - f x) / h" by arith
+      thus "f x < f (x+h)"
+        by (simp add: pos_less_divide_eq h)
+    qed
+  qed
+qed
+
 lemma DERIV_pos_inc_right:
   fixes f :: "real => real"
   assumes der: "DERIV f x :> l"
       and l:   "0 < l"
   shows "\<exists>d > 0. \<forall>h > 0. h < d --> f(x) < f(x + h)"
+  using has_real_derivative_pos_inc_right[OF assms]
+  by auto
+
+lemma has_real_derivative_neg_dec_left:
+  fixes f :: "real => real"
+  assumes der: "(f has_real_derivative l) (at x within S)"
+      and "l < 0"
+  shows "\<exists>d > 0. \<forall>h > 0. x - h \<in> S \<longrightarrow> h < d \<longrightarrow> f x < f (x - h)"
 proof -
-  from l der [THEN DERIV_D, THEN LIM_D [where r = "l"]]
-  have "\<exists>s > 0. (\<forall>z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < l)"
-    by simp
-  then obtain s
-        where s:   "0 < s"
-          and all: "!!z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < l"
-    by auto
+  from \<open>l < 0\<close> have l: "- l > 0" by simp
+  from der [THEN has_field_derivativeD, THEN tendstoD, OF l, unfolded eventually_at]
+  obtain s where s:   "0 < s"
+    and all: "\<And>xa. xa\<in>S \<Longrightarrow> xa \<noteq> x \<and> dist xa x < s \<longrightarrow> abs ((f xa - f x) / (xa - x) - l) < - l"
+    by (auto simp: dist_real_def)
   thus ?thesis
   proof (intro exI conjI strip)
     show "0<s" using s .
     fix h::real
-    assume "0 < h" "h < s"
-    with all [of h] show "f x < f (x+h)"
-    proof (simp add: abs_if pos_less_divide_eq split add: if_split_asm)
-      assume "~ (f (x+h) - f x) / h < l" and h: "0 < h"
+    assume "0 < h" "h < s" "x - h \<in> S"
+    with all [of "x - h"] show "f x < f (x-h)"
+    proof (simp add: abs_if pos_less_divide_eq dist_real_def split add: if_split_asm)
+      assume " - ((f (x-h) - f x) / h) < l" and h: "0 < h"
       with l
-      have "0 < (f (x+h) - f x) / h" by arith
-      thus "f x < f (x+h)"
-  by (simp add: pos_less_divide_eq h)
+      have "0 < (f (x-h) - f x) / h" by arith
+      thus "f x < f (x-h)"
+        by (simp add: pos_less_divide_eq h)
     qed
   qed
 qed
@@ -977,43 +1026,31 @@ lemma DERIV_neg_dec_left:
   assumes der: "DERIV f x :> l"
       and l:   "l < 0"
   shows "\<exists>d > 0. \<forall>h > 0. h < d --> f(x) < f(x-h)"
-proof -
-  from l der [THEN DERIV_D, THEN LIM_D [where r = "-l"]]
-  have "\<exists>s > 0. (\<forall>z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < -l)"
-    by simp
-  then obtain s
-        where s:   "0 < s"
-          and all: "!!z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < -l"
-    by auto
-  thus ?thesis
-  proof (intro exI conjI strip)
-    show "0<s" using s .
-    fix h::real
-    assume "0 < h" "h < s"
-    with all [of "-h"] show "f x < f (x-h)"
-    proof (simp add: abs_if pos_less_divide_eq split add: if_split_asm)
-      assume " - ((f (x-h) - f x) / h) < l" and h: "0 < h"
-      with l
-      have "0 < (f (x-h) - f x) / h" by arith
-      thus "f x < f (x-h)"
-  by (simp add: pos_less_divide_eq h)
-    qed
-  qed
-qed
+  using has_real_derivative_neg_dec_left[OF assms]
+  by auto
+
+lemma has_real_derivative_pos_inc_left:
+  fixes f :: "real => real"
+  shows "(f has_real_derivative l) (at x within S) \<Longrightarrow> 0 < l \<Longrightarrow> \<exists>d>0. \<forall>h>0. x - h \<in> S \<longrightarrow> h < d \<longrightarrow> f (x - h) < f x"
+  by (rule has_real_derivative_neg_dec_left [of "%x. - f x" "-l" x S, simplified])
+      (auto simp add: DERIV_minus)
 
 lemma DERIV_pos_inc_left:
   fixes f :: "real => real"
   shows "DERIV f x :> l \<Longrightarrow> 0 < l \<Longrightarrow> \<exists>d > 0. \<forall>h > 0. h < d --> f(x - h) < f(x)"
-  apply (rule DERIV_neg_dec_left [of "%x. - f x" "-l" x, simplified])
-  apply (auto simp add: DERIV_minus)
-  done
+  using has_real_derivative_pos_inc_left
+  by blast
+
+lemma has_real_derivative_neg_dec_right:
+  fixes f :: "real => real"
+  shows "(f has_real_derivative l) (at x within S) \<Longrightarrow> l < 0 \<Longrightarrow> \<exists>d > 0. \<forall>h > 0. x + h \<in> S \<longrightarrow> h < d \<longrightarrow> f(x) > f(x + h)"
+  by (rule has_real_derivative_pos_inc_right [of "%x. - f x" "-l" x S, simplified])
+      (auto simp add: DERIV_minus)
 
 lemma DERIV_neg_dec_right:
   fixes f :: "real => real"
   shows "DERIV f x :> l \<Longrightarrow> l < 0 \<Longrightarrow> \<exists>d > 0. \<forall>h > 0. h < d --> f(x) > f(x + h)"
-  apply (rule DERIV_pos_inc_right [of "%x. - f x" "-l" x, simplified])
-  apply (auto simp add: DERIV_minus)
-  done
+  using has_real_derivative_neg_dec_right by blast
 
 lemma DERIV_local_max:
   fixes f :: "real => real"

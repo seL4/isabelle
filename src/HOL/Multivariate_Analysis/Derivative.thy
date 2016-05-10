@@ -126,19 +126,7 @@ qed
 
 subsubsection \<open>Caratheodory characterization\<close>
 
-lemma DERIV_within_iff:
-  "(f has_field_derivative D) (at a within s) \<longleftrightarrow> ((\<lambda>z. (f z - f a) / (z - a)) \<longlongrightarrow> D) (at a within s)"
-proof -
-  have 1: "\<And>w y. ~(w = a) ==> y / (w - a) - D = (y - (w - a)*D)/(w - a)"
-    by (metis divide_diff_eq_iff eq_iff_diff_eq_0 mult.commute)
-  show ?thesis
-    apply (simp add: has_field_derivative_def has_derivative_within bounded_linear_mult_right)
-    apply (simp add: LIM_zero_iff [where l = D, symmetric])
-    apply (simp add: Lim_within dist_norm)
-    apply (simp add: nonzero_norm_divide [symmetric])
-    apply (simp add: 1 diff_diff_eq ac_simps)
-    done
-qed
+lemmas DERIV_within_iff = has_field_derivative_iff
 
 lemma DERIV_caratheodory_within:
   "(f has_field_derivative l) (at x within s) \<longleftrightarrow>
