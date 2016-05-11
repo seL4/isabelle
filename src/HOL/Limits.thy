@@ -634,59 +634,71 @@ instance nat :: topological_comm_monoid_add
 instance int :: topological_comm_monoid_add
   proof qed (simp add: nhds_discrete principal_prod_principal filterlim_principal eventually_principal)
 
-subsubsection \<open>Addition and subtraction\<close>
+subsubsection \<open>Topological group\<close>
 
-instance real_normed_vector < topological_comm_monoid_add
+class topological_group_add = topological_monoid_add + group_add +
+  assumes tendsto_uminus_nhds: "(uminus \<longlongrightarrow> - a) (nhds a)"
+begin
+
+lemma tendsto_minus [tendsto_intros]: "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. - f x) \<longlongrightarrow> -a) F"
+  by (rule filterlim_compose[OF tendsto_uminus_nhds])
+
+end
+
+class topological_ab_group_add = topological_group_add + ab_group_add
+
+instance topological_ab_group_add < topological_comm_monoid_add ..
+
+lemma continuous_minus [continuous_intros]:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::topological_group_add"
+  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. - f x)"
+  unfolding continuous_def by (rule tendsto_minus)
+
+lemma continuous_on_minus [continuous_intros]:
+  fixes f :: "_ \<Rightarrow> 'b::topological_group_add"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. - f x)"
+  unfolding continuous_on_def by (auto intro: tendsto_minus)
+
+lemma tendsto_minus_cancel:
+  fixes a :: "'a::topological_group_add"
+  shows "((\<lambda>x. - f x) \<longlongrightarrow> - a) F \<Longrightarrow> (f \<longlongrightarrow> a) F"
+  by (drule tendsto_minus, simp)
+
+lemma tendsto_minus_cancel_left:
+    "(f \<longlongrightarrow> - (y::_::topological_group_add)) F \<longleftrightarrow> ((\<lambda>x. - f x) \<longlongrightarrow> y) F"
+  using tendsto_minus_cancel[of f "- y" F]  tendsto_minus[of f "- y" F]
+  by auto
+
+lemma tendsto_diff [tendsto_intros]:
+  fixes a b :: "'a::topological_group_add"
+  shows "\<lbrakk>(f \<longlongrightarrow> a) F; (g \<longlongrightarrow> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x - g x) \<longlongrightarrow> a - b) F"
+  using tendsto_add [of f a F "\<lambda>x. - g x" "- b"] by (simp add: tendsto_minus)
+
+lemma continuous_diff [continuous_intros]:
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::topological_group_add"
+  shows "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. f x - g x)"
+  unfolding continuous_def by (rule tendsto_diff)
+
+lemma continuous_on_diff [continuous_intros]:
+  fixes f g :: "_ \<Rightarrow> 'b::topological_group_add"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f x - g x)"
+  unfolding continuous_on_def by (auto intro: tendsto_diff)
+
+lemma continuous_on_op_minus: "continuous_on (s::'a::topological_group_add set) (op - x)"
+  by (rule continuous_intros | simp)+
+
+instance real_normed_vector < topological_ab_group_add
 proof
   fix a b :: 'a show "((\<lambda>x. fst x + snd x) \<longlongrightarrow> a + b) (nhds a \<times>\<^sub>F nhds b)"
     unfolding tendsto_Zfun_iff add_diff_add
     using tendsto_fst[OF filterlim_ident, of "(a,b)"] tendsto_snd[OF filterlim_ident, of "(a,b)"]
     by (intro Zfun_add)
        (auto simp add: tendsto_Zfun_iff[symmetric] nhds_prod[symmetric] intro!: tendsto_fst)
+  show "(uminus \<longlongrightarrow> - a) (nhds a)"
+    unfolding tendsto_Zfun_iff minus_diff_minus
+    using filterlim_ident[of "nhds a"]
+    by (intro Zfun_minus) (simp add: tendsto_Zfun_iff)
 qed
-
-lemma tendsto_minus [tendsto_intros]:
-  fixes a :: "'a::real_normed_vector"
-  shows "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. - f x) \<longlongrightarrow> - a) F"
-  by (simp only: tendsto_Zfun_iff minus_diff_minus Zfun_minus)
-
-lemma continuous_minus [continuous_intros]:
-  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. - f x)"
-  unfolding continuous_def by (rule tendsto_minus)
-
-lemma continuous_on_minus [continuous_intros]:
-  fixes f :: "_ \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. - f x)"
-  unfolding continuous_on_def by (auto intro: tendsto_minus)
-
-lemma tendsto_minus_cancel:
-  fixes a :: "'a::real_normed_vector"
-  shows "((\<lambda>x. - f x) \<longlongrightarrow> - a) F \<Longrightarrow> (f \<longlongrightarrow> a) F"
-  by (drule tendsto_minus, simp)
-
-lemma tendsto_minus_cancel_left:
-    "(f \<longlongrightarrow> - (y::_::real_normed_vector)) F \<longleftrightarrow> ((\<lambda>x. - f x) \<longlongrightarrow> y) F"
-  using tendsto_minus_cancel[of f "- y" F]  tendsto_minus[of f "- y" F]
-  by auto
-
-lemma tendsto_diff [tendsto_intros]:
-  fixes a b :: "'a::real_normed_vector"
-  shows "\<lbrakk>(f \<longlongrightarrow> a) F; (g \<longlongrightarrow> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x - g x) \<longlongrightarrow> a - b) F"
-  using tendsto_add [of f a F "\<lambda>x. - g x" "- b"] by (simp add: tendsto_minus)
-
-lemma continuous_diff [continuous_intros]:
-  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. f x - g x)"
-  unfolding continuous_def by (rule tendsto_diff)
-
-lemma continuous_on_diff [continuous_intros]:
-  fixes f g :: "_ \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f x - g x)"
-  unfolding continuous_on_def by (auto intro: tendsto_diff)
-
-lemma continuous_on_op_minus: "continuous_on (s::'a::real_normed_vector set) (op - x)"
-  by (rule continuous_intros | simp)+
 
 lemmas real_tendsto_sandwich = tendsto_sandwich[where 'b=real]
 
