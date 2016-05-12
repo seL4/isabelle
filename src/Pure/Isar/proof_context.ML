@@ -13,7 +13,6 @@ sig
   val get_global: theory -> string -> Proof.context
   type mode
   val mode_default: mode
-  val mode_stmt: mode
   val mode_pattern: mode
   val mode_schematic: mode
   val mode_abbrev: mode
@@ -21,7 +20,6 @@ sig
   val get_mode: Proof.context -> mode
   val restore_mode: Proof.context -> Proof.context -> Proof.context
   val abbrev_mode: Proof.context -> bool
-  val set_stmt: bool -> Proof.context -> Proof.context
   val syn_of: Proof.context -> Syntax.syntax
   val tsig_of: Proof.context -> Type.tsig
   val set_defsort: sort -> Proof.context -> Proof.context
@@ -125,6 +123,8 @@ sig
   val get_fact_single: Proof.context -> Facts.ref -> thm
   val get_thms: Proof.context -> xstring -> thm list
   val get_thm: Proof.context -> xstring -> thm
+  val set_stmt: bool -> Proof.context -> Proof.context
+  val restore_stmt: Proof.context -> Proof.context -> Proof.context
   val add_thms_dynamic: binding * (Context.generic -> thm list) ->
     Proof.context -> string * Proof.context
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list ->
@@ -207,20 +207,17 @@ val get_global = Proof_Context.get_global;
 
 datatype mode =
   Mode of
-   {stmt: bool,                (*inner statement mode*)
-    pattern: bool,             (*pattern binding schematic variables*)
+   {pattern: bool,             (*pattern binding schematic variables*)
     schematic: bool,           (*term referencing loose schematic variables*)
     abbrev: bool};             (*abbrev mode -- no normalization*)
 
-fun make_mode (stmt, pattern, schematic, abbrev) =
-  Mode {stmt = stmt, pattern = pattern, schematic = schematic, abbrev = abbrev};
+fun make_mode (pattern, schematic, abbrev) =
+  Mode {pattern = pattern, schematic = schematic, abbrev = abbrev};
 
-val mode_default   = make_mode (false, false, false, false);
-val mode_stmt      = make_mode (true, false, false, false);
-val mode_pattern   = make_mode (false, true, false, false);
-val mode_schematic = make_mode (false, false, true, false);
-val mode_abbrev    = make_mode (false, false, false, true);
-
+val mode_default   = make_mode (false, false, false);
+val mode_pattern   = make_mode (true, false, false);
+val mode_schematic = make_mode (false, true, false);
+val mode_abbrev    = make_mode (false, false, true);
 
 
 (** Isar proof context information **)
@@ -266,8 +263,8 @@ fun set_mode mode = map_data (fn (_, syntax, tsig, consts, facts, cases) =>
   (mode, syntax, tsig, consts, facts, cases));
 
 fun map_mode f =
-  map_data (fn (Mode {stmt, pattern, schematic, abbrev}, syntax, tsig, consts, facts, cases) =>
-    (make_mode (f (stmt, pattern, schematic, abbrev)), syntax, tsig, consts, facts, cases));
+  map_data (fn (Mode {pattern, schematic, abbrev}, syntax, tsig, consts, facts, cases) =>
+    (make_mode (f (pattern, schematic, abbrev)), syntax, tsig, consts, facts, cases));
 
 fun map_syntax f =
   map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
@@ -302,9 +299,6 @@ fun map_cases f =
 val get_mode = #mode o rep_data;
 val restore_mode = set_mode o get_mode;
 val abbrev_mode = get_mode #> (fn Mode {abbrev, ...} => abbrev);
-
-fun set_stmt stmt =
-  map_mode (fn (_, pattern, schematic, abbrev) => (stmt, pattern, schematic, abbrev));
 
 val syntax_of = #syntax o rep_data;
 val syn_of = Local_Syntax.syn_of o syntax_of;
@@ -1041,6 +1035,16 @@ fun get_thm ctxt = get_fact_single ctxt o Facts.named;
 end;
 
 
+(* inner statement mode *)
+
+val inner_stmt =
+  Config.bool (Config.declare ("inner_stmt", @{here}) (K (Config.Bool false)));
+
+fun is_stmt ctxt = Config.get ctxt inner_stmt;
+val set_stmt = Config.put inner_stmt;
+val restore_stmt = set_stmt o is_stmt;
+
+
 (* facts *)
 
 fun add_thms_dynamic arg ctxt =
@@ -1062,8 +1066,8 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), raw_facts) => fn ctxt =>
       fold_map (Thm.proof_attributes (surround (Thm.kind kind) (atts @ more_atts))) ths;
     val (res, ctxt') = fold_map app facts ctxt;
     val thms = Global_Theory.name_thms false false name (flat res);
-    val Mode {stmt, ...} = get_mode ctxt;
-  in ((name, thms), ctxt' |> update_thms {strict = false, index = stmt} (b, SOME thms)) end);
+    val index = is_stmt ctxt;
+  in ((name, thms), ctxt' |> update_thms {strict = false, index = index} (b, SOME thms)) end);
 
 fun put_thms index thms ctxt = ctxt
   |> map_naming (K Name_Space.local_naming)

@@ -250,18 +250,19 @@ fun restore_elem (Fixes fixes, css) =
       (defs ~~ css) |> map (fn ((b, _), [c]) => (b, dest_propp c)) |> Defines
   | restore_elem (Notes notes, _) = Notes notes;
 
-fun check cs context =
+fun prep (_, pats) (ctxt, t :: ts) =
+  let val ctxt' = Variable.auto_fixes t ctxt
+  in
+    ((t, Syntax.check_props (Proof_Context.set_mode Proof_Context.mode_pattern ctxt') pats),
+      (ctxt', ts))
+  end;
+
+fun check cs ctxt =
   let
-    fun prep (_, pats) (ctxt, t :: ts) =
-      let val ctxt' = Variable.auto_fixes t ctxt
-      in
-        ((t, Syntax.check_props (Proof_Context.set_mode Proof_Context.mode_pattern ctxt') pats),
-          (ctxt', ts))
-      end;
-    val (cs', (context', _)) = fold_map prep cs
-      (context, Syntax.check_terms
-        (Proof_Context.set_mode Proof_Context.mode_schematic context) (map fst cs));
-  in (cs', context') end;
+    val (cs', (ctxt', _)) = fold_map prep cs
+      (ctxt, Syntax.check_terms
+        (Proof_Context.set_mode Proof_Context.mode_schematic ctxt) (map fst cs));
+  in (cs', ctxt') end;
 
 in
 
@@ -438,15 +439,16 @@ end;
 
 local
 
-fun prep_statement prep activate raw_elems raw_stmt context =
+fun prep_statement prep activate raw_elems raw_stmt ctxt =
   let
     val ((_, _, elems, concl), _) =
       prep {strict = true, do_close = false, fixed_frees = true}
-        ([], []) I raw_elems raw_stmt context;
-    val (_, context') = context
+        ([], []) I raw_elems raw_stmt ctxt;
+    val ctxt' = ctxt
       |> Proof_Context.set_stmt true
-      |> fold_map activate elems;
-  in (concl, context') end;
+      |> fold_map activate elems |> #2
+      |> Proof_Context.restore_stmt ctxt;
+  in (concl, ctxt') end;
 
 in
 
@@ -463,19 +465,20 @@ fun fix_params params =
 
 local
 
-fun prep_declaration prep activate raw_import init_body raw_elems context =
+fun prep_declaration prep activate raw_import init_body raw_elems ctxt =
   let
-    val ((fixed, deps, elems, _), (parms, ctxt')) =
+    val ((fixed, deps, elems, _), (parms, ctxt0)) =
       prep {strict = false, do_close = true, fixed_frees = false}
-        raw_import init_body raw_elems (Element.Shows []) context;
+        raw_import init_body raw_elems (Element.Shows []) ctxt;
     (* Declare parameters and imported facts *)
-    val context' = context |>
-      fix_params fixed |>
-      fold (Context.proof_map o Locale.activate_facts NONE) deps;
-    val (elems', context'') = context' |>
-      Proof_Context.set_stmt true |>
-      fold_map activate elems;
-  in ((fixed, deps, elems', context''), (parms, ctxt')) end;
+    val ctxt' = ctxt
+      |> fix_params fixed
+      |> fold (Context.proof_map o Locale.activate_facts NONE) deps;
+    val (elems', ctxt'') = ctxt'
+      |> Proof_Context.set_stmt true
+      |> fold_map activate elems
+      ||> Proof_Context.restore_stmt ctxt';
+  in ((fixed, deps, elems', ctxt''), (parms, ctxt0)) end;
 
 in
 
@@ -498,21 +501,21 @@ fun props_of thy (name, morph) =
     |> map (Morphism.term morph)
   end;
 
-fun prep_goal_expression prep expression context =
+fun prep_goal_expression prep expression ctxt =
   let
-    val thy = Proof_Context.theory_of context;
+    val thy = Proof_Context.theory_of ctxt;
 
     val ((fixed, deps, _, _), _) =
       prep {strict = true, do_close = true, fixed_frees = true} expression I []
-        (Element.Shows []) context;
+        (Element.Shows []) ctxt;
     (* proof obligations *)
     val propss = map (props_of thy) deps;
 
-    val goal_ctxt = context |>
-      fix_params fixed |>
-      (fold o fold) Variable.auto_fixes propss;
+    val goal_ctxt = ctxt
+      |> fix_params fixed
+      |> (fold o fold) Variable.auto_fixes propss;
 
-    val export = Variable.export_morphism goal_ctxt context;
+    val export = Variable.export_morphism goal_ctxt ctxt;
     val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;
     val exp_term = Term_Subst.zero_var_indexes o Morphism.term export;
     val exp_typ = Logic.type_map exp_term;
