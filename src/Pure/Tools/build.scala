@@ -419,12 +419,13 @@ object Build
 
   /** build with results **/
 
-  class Results private [Build](results: Map[String, Option[Process_Result]])
+  class Results private [Build](results: Map[String, (Option[Process_Result], Sessions.Info)])
   {
     def sessions: Set[String] = results.keySet
-    def cancelled(name: String): Boolean = results(name).isEmpty
-    def apply(name: String): Process_Result = results(name).getOrElse(Process_Result(1))
-    val rc = (0 /: results.iterator.map({ case (_, Some(r)) => r.rc case (_, None) => 1 }))(_ max _)
+    def cancelled(name: String): Boolean = results(name)._1.isEmpty
+    def apply(name: String): Process_Result = results(name)._1.getOrElse(Process_Result(1))
+    def info(name: String): Sessions.Info = results(name)._2
+    val rc = (0 /: results.iterator.map({ case (_, (Some(r), _)) => r.rc case (_, (None, _)) => 1 }))(_ max _)
     def ok: Boolean = rc == 0
 
     override def toString: String = rc.toString
@@ -517,7 +518,9 @@ object Build
     }
 
     // scheduler loop
-    case class Result(current: Boolean, heap_stamp: Option[String], process: Option[Process_Result])
+    case class Result(
+      current: Boolean, heap_stamp: Option[String],
+      process: Option[Process_Result], info: Sessions.Info)
     {
       def ok: Boolean =
         process match {
@@ -590,7 +593,7 @@ object Build
                 None
               }
             loop(pending - name, running - name,
-              results + (name -> Result(false, heap_stamp, Some(process_result_tail))))
+              results + (name -> Result(false, heap_stamp, Some(process_result_tail), job.info)))
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
@@ -622,11 +625,11 @@ object Build
 
                 if (all_current)
                   loop(pending - name, running,
-                    results + (name -> Result(true, heap_stamp, Some(Process_Result(0)))))
+                    results + (name -> Result(true, heap_stamp, Some(Process_Result(0)), info)))
                 else if (no_build) {
                   if (verbose) progress.echo("Skipping " + name + " ...")
                   loop(pending - name, running,
-                    results + (name -> Result(false, heap_stamp, Some(Process_Result(1)))))
+                    results + (name -> Result(false, heap_stamp, Some(Process_Result(1)), info)))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
@@ -637,7 +640,7 @@ object Build
                 }
                 else {
                   progress.echo(name + " CANCELLED")
-                  loop(pending - name, running, results + (name -> Result(false, heap_stamp, None)))
+                  loop(pending - name, running, results + (name -> Result(false, heap_stamp, None, info)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
@@ -658,7 +661,7 @@ object Build
       else loop(queue, Map.empty, Map.empty)
 
     val results =
-      new Results((for ((name, result) <- results0.iterator) yield (name, result.process)).toMap)
+      new Results((for ((name, result) <- results0.iterator) yield (name, (result.process, result.info))).toMap)
 
     if (results.rc != 0 && (verbose || !no_build)) {
       val unfinished =
