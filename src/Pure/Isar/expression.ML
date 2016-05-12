@@ -444,9 +444,10 @@ fun prep_statement prep activate raw_elems raw_stmt ctxt =
     val ((_, _, elems, concl), _) =
       prep {strict = true, do_close = false, fixed_frees = true}
         ([], []) I raw_elems raw_stmt ctxt;
-    val (_, ctxt') = ctxt
+    val ctxt' = ctxt
       |> Proof_Context.set_stmt true
-      |> fold_map activate elems;
+      |> fold_map activate elems |> #2
+      |> Proof_Context.restore_stmt ctxt;
   in (concl, ctxt') end;
 
 in
@@ -475,7 +476,8 @@ fun prep_declaration prep activate raw_import init_body raw_elems ctxt =
       |> fold (Context.proof_map o Locale.activate_facts NONE) deps;
     val (elems', ctxt'') = ctxt'
       |> Proof_Context.set_stmt true
-      |> fold_map activate elems;
+      |> fold_map activate elems
+      ||> Proof_Context.restore_stmt ctxt';
   in ((fixed, deps, elems', ctxt''), (parms, ctxt0)) end;
 
 in
