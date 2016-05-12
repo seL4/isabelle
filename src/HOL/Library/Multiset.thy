@@ -2066,7 +2066,7 @@ lemma one_step_implies_mult:
     \<Longrightarrow> (I + K, I + J) \<in> mult r"
 using one_step_implies_mult_aux by blast
 
-subsection \<open>A quasi-recursive characterization\<close>
+subsection \<open>A quasi-executable characterization\<close>
 
 text \<open>
   The decreasing parts \<open>A\<close> and \<open>B\<close> of multisets in a multiset-comparison
