@@ -464,19 +464,19 @@ fun fix_params params =
 
 local
 
-fun prep_declaration prep activate raw_import init_body raw_elems context =
+fun prep_declaration prep activate raw_import init_body raw_elems ctxt =
   let
-    val ((fixed, deps, elems, _), (parms, ctxt')) =
+    val ((fixed, deps, elems, _), (parms, ctxt0)) =
       prep {strict = false, do_close = true, fixed_frees = false}
-        raw_import init_body raw_elems (Element.Shows []) context;
+        raw_import init_body raw_elems (Element.Shows []) ctxt;
     (* Declare parameters and imported facts *)
-    val context' = context |>
-      fix_params fixed |>
-      fold (Context.proof_map o Locale.activate_facts NONE) deps;
-    val (elems', context'') = context' |>
-      Proof_Context.set_stmt true |>
-      fold_map activate elems;
-  in ((fixed, deps, elems', context''), (parms, ctxt')) end;
+    val ctxt' = ctxt
+      |> fix_params fixed
+      |> fold (Context.proof_map o Locale.activate_facts NONE) deps;
+    val (elems', ctxt'') = ctxt'
+      |> Proof_Context.set_stmt true
+      |> fold_map activate elems;
+  in ((fixed, deps, elems', ctxt''), (parms, ctxt0)) end;
 
 in
 
