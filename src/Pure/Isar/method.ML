@@ -333,6 +333,8 @@ structure Data = Generic_Data
 val get_methods = fst o Data.get;
 val map_methods = Data.map o apfst;
 
+val ops_methods = {get_data = get_methods, put_data = map_methods o K};
+
 
 (* ML tactic *)
 
@@ -390,12 +392,6 @@ fun finish_text (NONE, immed) = Basic (finish immed)
 
 (* method definitions *)
 
-fun transfer_methods ctxt =
-  let
-    val meths0 = get_methods (Context.Theory (Proof_Context.theory_of ctxt));
-    val meths' = Name_Space.merge_tables (meths0, get_methods (Context.Proof ctxt));
-  in Context.proof_map (map_methods (K meths')) ctxt end;
-
 fun print_methods verbose ctxt =
   let
     val meths = get_methods (Context.Proof ctxt);
@@ -411,19 +407,11 @@ fun print_methods verbose ctxt =
 
 (* define *)
 
-fun define_global binding meth comment thy =
-  let
-    val context = Context.Theory thy;
-    val (name, meths') =
-      Name_Space.define context true (binding, (meth, comment)) (get_methods context);
-  in (name, Context.the_theory (map_methods (K meths') context)) end;
+fun define_global binding meth comment =
+  Entity.define_global ops_methods binding (meth, comment);
 
 fun define binding meth comment =
-  Local_Theory.background_theory_result (define_global binding meth comment)
-  #-> (fn name =>
-    Local_Theory.map_contexts (K transfer_methods)
-    #> Local_Theory.generic_alias map_methods binding name
-    #> pair name);
+  Entity.define ops_methods binding (meth, comment);
 
 
 (* check *)

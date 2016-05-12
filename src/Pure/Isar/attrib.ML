@@ -109,13 +109,9 @@ structure Attributes = Generic_Data
   fun merge data : T = Name_Space.merge_tables data;
 );
 
-val get_attributes = Attributes.get o Context.Proof;
+val ops_attributes = {get_data = Attributes.get, put_data = Attributes.put};
 
-fun transfer_attributes ctxt =
-  let
-    val attribs0 = Attributes.get (Context.Theory (Proof_Context.theory_of ctxt));
-    val attribs' = Name_Space.merge_tables (attribs0, get_attributes ctxt);
-  in Context.proof_map (Attributes.put attribs') ctxt end;
+val get_attributes = Attributes.get o Context.Proof;
 
 fun print_attributes verbose ctxt =
   let
@@ -134,19 +130,11 @@ val attribute_space = Name_Space.space_of_table o get_attributes;
 
 (* define *)
 
-fun define_global binding att comment thy =
-  let
-    val context = Context.Theory thy;
-    val (name, attribs') =
-      Name_Space.define context true (binding, (att, comment)) (Attributes.get context);
-  in (name, Context.the_theory (Attributes.put attribs' context)) end;
+fun define_global binding att comment =
+  Entity.define_global ops_attributes binding (att, comment);
 
 fun define binding att comment =
-  Local_Theory.background_theory_result (define_global binding att comment)
-  #-> (fn name =>
-    Local_Theory.map_contexts (K transfer_attributes)
-    #> Local_Theory.generic_alias Attributes.map binding name
-    #> pair name);
+  Entity.define ops_attributes binding (att, comment);
 
 
 (* check *)

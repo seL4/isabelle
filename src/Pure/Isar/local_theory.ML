@@ -61,9 +61,6 @@ sig
   val set_defsort: sort -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
-  val generic_alias:
-    (('a Name_Space.table -> 'a Name_Space.table) -> Context.generic -> Context.generic) ->
-    binding -> string -> local_theory -> local_theory
   val class_alias: binding -> class -> local_theory -> local_theory
   val type_alias: binding -> string -> local_theory -> local_theory
   val const_alias: binding -> string -> local_theory -> local_theory
@@ -328,13 +325,6 @@ fun notation add mode raw_args lthy =
 
 
 (* name space aliases *)
-
-fun generic_alias app b name =
-  declaration {syntax = false, pervasive = false} (fn phi => fn context =>
-    let
-      val naming = Name_Space.naming_of context;
-      val b' = Morphism.binding phi b;
-    in app (Name_Space.alias_table naming b' name) context end);
 
 fun syntax_alias global_alias local_alias b name =
   declaration {syntax = true, pervasive = false} (fn phi =>

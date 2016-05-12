@@ -204,6 +204,7 @@ ML_file "Isar/args.ML";
 
 (*theory specifications*)
 ML_file "Isar/local_theory.ML";
+ML_file "Isar/entity.ML";
 ML_file "Thy/thy_header.ML";
 ML_file "PIDE/command_span.ML";
 ML_file "Thy/thy_syntax.ML";
