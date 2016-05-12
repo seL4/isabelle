@@ -459,6 +459,20 @@ apply (erule finite_converse [THEN iffD2, THEN finite_acyclic_wf])
 apply (erule acyclic_converse [THEN iffD2])
 done
 
+text \<open>
+  Observe that the converse of an irreflexive, transitive,
+  and finite relation is again well-founded. Thus, we may
+  employ it for well-founded induction.
+\<close>
+lemma wf_converse:
+  assumes "irrefl r" and "trans r" and "finite r"
+  shows "wf (r\<inverse>)"
+proof -
+  have "acyclic r"
+    using \<open>irrefl r\<close> and \<open>trans r\<close> by (simp add: irrefl_def acyclic_irrefl)
+  with \<open>finite r\<close> show ?thesis by (rule finite_acyclic_wf_converse)
+qed
+
 lemma wf_iff_acyclic_if_finite: "finite r ==> wf r = acyclic r"
 by (blast intro: finite_acyclic_wf wf_acyclic)
 
