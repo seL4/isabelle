@@ -261,7 +261,6 @@ lemma refs_of'_distinct: "refs_of' h p rs \<Longrightarrow> distinct rs"
 subsection {* Interaction of these predicates with our heap transitions *}
 
 lemma list_of_set_ref: "refs_of h q rs \<Longrightarrow> p \<notin> set rs \<Longrightarrow> list_of (Ref.set p v h) q as = list_of h q as"
-using assms
 proof (induct as arbitrary: q rs)
   case Nil thus ?case by simp
 next

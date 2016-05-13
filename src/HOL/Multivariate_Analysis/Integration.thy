@@ -4189,7 +4189,7 @@ lemma additive_content_division:
 
 lemma additive_content_tagged_division:
     "d tagged_division_of (cbox a b) \<Longrightarrow> setsum (\<lambda>(x,l). content l) d = content (cbox a b)"
-  unfolding operative_tagged_division[OF monoidal_monoid operative_content assms,symmetric]
+  unfolding operative_tagged_division[OF monoidal_monoid operative_content,symmetric]
   using setsum_iterate by blast
 
 

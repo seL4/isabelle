@@ -64,7 +64,7 @@ lemma cdf_nonneg: "cdf M x \<ge> 0"
   unfolding cdf_def by (rule measure_nonneg)
 
 lemma cdf_bounded: "cdf M x \<le> measure M (space M)"
-  unfolding cdf_def using assms by (intro bounded_measure)
+  unfolding cdf_def by (intro bounded_measure)
 
 lemma cdf_lim_infty:
   "((\<lambda>i. cdf M (real i)) \<longlonglongrightarrow> measure M (space M))"

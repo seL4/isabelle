@@ -281,7 +281,7 @@ lemma ereal_cases[cases type: ereal]:
   obtains (real) r where "x = ereal r"
     | (PInf) "x = \<infinity>"
     | (MInf) "x = -\<infinity>"
-  using assms by (cases x) auto
+  by (cases x) auto
 
 lemmas ereal2_cases = ereal_cases[case_product ereal_cases]
 lemmas ereal3_cases = ereal2_cases[case_product ereal_cases]
@@ -1009,7 +1009,6 @@ lemma ereal_mult_strict_left_mono:
 lemma ereal_mult_right_mono:
   fixes a b c :: ereal
   shows "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a * c \<le> b * c"
-  using assms
   apply (cases "c = 0")
   apply simp
   apply (cases rule: ereal3_cases[of a b c])

@@ -653,7 +653,7 @@ proof transfer
 qed
 
 lemma set_embed_pmf: "set_pmf embed_pmf = {x. f x \<noteq> 0}"
-by(auto simp add: set_pmf_eq assms pmf_embed_pmf)
+by(auto simp add: set_pmf_eq pmf_embed_pmf)
 
 end
 
@@ -1563,7 +1563,7 @@ lemma emeasure_pmf_of_set: "emeasure (measure_pmf pmf_of_set) A = card (S \<inte
                 ennreal_of_nat_eq_real_of_nat nn_integral_pmf_of_set)
 
 lemma measure_pmf_of_set: "measure (measure_pmf pmf_of_set) A = card (S \<inter> A) / card S"
-  using emeasure_pmf_of_set[OF assms, of A]
+  using emeasure_pmf_of_set[of A]
   by (simp add: measure_nonneg measure_pmf.emeasure_eq_measure)
 
 end

@@ -855,7 +855,7 @@ lemma rel_fset_transfer [transfer_rule]:
 
 lemma bind_transfer [transfer_rule]:
   "(rel_fset A ===> (A ===> rel_fset B) ===> rel_fset B) fbind fbind"
-  using assms unfolding rel_fun_def
+  unfolding rel_fun_def
   using bind_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
 text \<open>Rules requiring bi-unique, bi-total or right-total relations\<close>
@@ -885,7 +885,7 @@ lemma fsubset_transfer [transfer_rule]:
 
 lemma fSup_transfer [transfer_rule]:
   "bi_unique A \<Longrightarrow> (rel_set (rel_fset A) ===> rel_fset A) Sup Sup"
-  using assms unfolding rel_fun_def
+  unfolding rel_fun_def
   apply clarify
   apply transfer'
   using Sup_fset_transfer[unfolded rel_fun_def] by blast
@@ -908,7 +908,7 @@ lemma ffilter_transfer [transfer_rule]:
 
 lemma card_transfer [transfer_rule]:
   "bi_unique A \<Longrightarrow> (rel_fset A ===> op =) fcard fcard"
-  using assms unfolding rel_fun_def
+  unfolding rel_fun_def
   using card_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
 end

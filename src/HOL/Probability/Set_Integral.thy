@@ -183,7 +183,6 @@ lemma set_integral_diff [simp, intro]:
 lemma set_integral_reflect:
   fixes S and f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
   shows "(LBINT x : S. f x) = (LBINT x : {x. - x \<in> S}. f (- x))"
-  using assms
   by (subst lborel_integral_real_affine[where c="-1" and t=0])
      (auto intro!: integral_cong split: split_indicator)
 

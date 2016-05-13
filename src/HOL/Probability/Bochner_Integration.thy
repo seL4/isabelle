@@ -943,7 +943,7 @@ lemma borel_measurable_integrable'[measurable_dest]:
 
 lemma integrable_cong:
   "M = N \<Longrightarrow> (\<And>x. x \<in> space N \<Longrightarrow> f x = g x) \<Longrightarrow> integrable M f \<longleftrightarrow> integrable N g"
-  using assms by (simp cong: has_bochner_integral_cong add: integrable.simps)
+  by (simp cong: has_bochner_integral_cong add: integrable.simps)
 
 lemma integrable_cong_AE:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> AE x in M. f x = g x \<Longrightarrow>
@@ -953,7 +953,7 @@ lemma integrable_cong_AE:
 
 lemma integral_cong:
   "M = N \<Longrightarrow> (\<And>x. x \<in> space N \<Longrightarrow> f x = g x) \<Longrightarrow> integral\<^sup>L M f = integral\<^sup>L N g"
-  using assms by (simp cong: has_bochner_integral_cong cong del: if_cong add: lebesgue_integral_def)
+  by (simp cong: has_bochner_integral_cong cong del: if_cong add: lebesgue_integral_def)
 
 lemma integral_cong_AE:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> AE x in M. f x = g x \<Longrightarrow>

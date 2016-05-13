@@ -228,7 +228,7 @@ lemma countable_insert_eq [simp]: "countable (insert x A) = countable A"
     by auto (metis Diff_insert_absorb countable_Diff insert_absorb)
 
 lemma countable_vimage: "B \<subseteq> range f \<Longrightarrow> countable (f -` B) \<Longrightarrow> countable B"
-  by (metis Int_absorb2 assms countable_image image_vimage_eq)
+  by (metis Int_absorb2 countable_image image_vimage_eq)
 
 lemma surj_countable_vimage: "surj f \<Longrightarrow> countable (f -` B) \<Longrightarrow> countable B"
   by (metis countable_vimage top_greatest)
@@ -342,7 +342,7 @@ lemma uncountable_infinite: "uncountable A \<Longrightarrow> infinite A"
 
 lemma uncountable_minus_countable:
   "uncountable A \<Longrightarrow> countable B \<Longrightarrow> uncountable (A - B)"
-  using countable_Un[of B "A - B"] assms by auto
+  using countable_Un[of B "A - B"] by auto
 
 lemma countable_Diff_eq [simp]: "countable (A - {x}) = countable A"
   by (meson countable_Diff countable_empty countable_insert uncountable_minus_countable)

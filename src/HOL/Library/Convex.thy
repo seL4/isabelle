@@ -533,7 +533,7 @@ proof safe
       by (auto simp: add_pos_pos)
   }
   ultimately show "(1 - \<mu>) *\<^sub>R y + \<mu> *\<^sub>R x > 0"
-    using assms by fastforce
+    by fastforce
 qed
 
 lemma convex_on_setsum:

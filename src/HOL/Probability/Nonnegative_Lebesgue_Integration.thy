@@ -923,7 +923,7 @@ qed
 
 lemma nn_integral_monotone_convergence_simple:
   "incseq f \<Longrightarrow> (\<And>i. simple_function M (f i)) \<Longrightarrow> (SUP i. \<integral>\<^sup>S x. f i x \<partial>M) = (\<integral>\<^sup>+x. (SUP i. f i x) \<partial>M)"
-  using assms nn_integral_monotone_convergence_SUP[of f M]
+  using nn_integral_monotone_convergence_SUP[of f M]
   by (simp add: nn_integral_eq_simple_integral[symmetric] borel_measurable_simple_function)
 
 lemma SUP_simple_integral_sequences:
@@ -986,7 +986,7 @@ lemma nn_integral_cmult: "f \<in> borel_measurable M \<Longrightarrow> (\<integr
   using nn_integral_linear[of f M "\<lambda>x. 0" c] by simp
 
 lemma nn_integral_multc: "f \<in> borel_measurable M \<Longrightarrow> (\<integral>\<^sup>+ x. f x * c \<partial>M) = integral\<^sup>N M f * c"
-  unfolding mult.commute[of _ c] nn_integral_cmult[OF assms] by simp
+  unfolding mult.commute[of _ c] nn_integral_cmult by simp
 
 lemma nn_integral_divide: "f \<in> borel_measurable M \<Longrightarrow> (\<integral>\<^sup>+ x. f x / c \<partial>M) = (\<integral>\<^sup>+ x. f x \<partial>M) / c"
    unfolding divide_ennreal_def by (rule nn_integral_multc)

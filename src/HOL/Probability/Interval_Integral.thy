@@ -335,13 +335,13 @@ lemma interval_integrable_to_infinity_eq: "(interval_lebesgue_integrable M a \<i
 lemma interval_integral_zero [simp]:
   fixes a b :: ereal
   shows"LBINT x=a..b. 0 = 0" 
-using assms unfolding interval_lebesgue_integral_def einterval_eq 
+unfolding interval_lebesgue_integral_def einterval_eq 
 by simp
 
 lemma interval_integral_const [intro, simp]:
   fixes a b c :: real
   shows "interval_lebesgue_integrable lborel a b (\<lambda>x. c)" and "LBINT x=a..b. c = c * (b - a)" 
-using assms unfolding interval_lebesgue_integral_def interval_lebesgue_integrable_def einterval_eq 
+unfolding interval_lebesgue_integral_def interval_lebesgue_integrable_def einterval_eq 
 by (auto simp add:  less_imp_le field_simps measure_def)
 
 lemma interval_integral_cong_AE:

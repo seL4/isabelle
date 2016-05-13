@@ -2203,7 +2203,7 @@ lemma powr_add:
 
 lemma powr_mult_base:
   fixes x::real shows "0 < x \<Longrightarrow>x * x powr y = x powr (1 + y)"
-  using assms by (auto simp: powr_add)
+  by (auto simp: powr_add)
 
 lemma powr_powr:
   fixes x::real shows "(x powr a) powr b = x powr (a * b)"

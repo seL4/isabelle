@@ -179,7 +179,7 @@ lemma DERIV_transform_at:
 lemma DERIV_zero_UNIV_unique:
   fixes f :: "'a::{real_normed_field, real_inner} \<Rightarrow> 'a"
   shows "(\<And>x. DERIV f x :> 0) \<Longrightarrow> f x = f a"
-by (metis DERIV_zero_unique UNIV_I assms convex_UNIV)
+by (metis DERIV_zero_unique UNIV_I convex_UNIV)
 
 subsection \<open>Some limit theorems about real part of real series etc.\<close>
 
@@ -322,7 +322,7 @@ lemma field_differentiable_id [simp,derivative_intros]: "id field_differentiable
 
 lemma field_differentiable_minus [derivative_intros]:
   "f field_differentiable F \<Longrightarrow> (\<lambda>z. - (f z)) field_differentiable F"
-  using assms unfolding field_differentiable_def
+  unfolding field_differentiable_def
   by (metis field_differentiable_minus)
 
 lemma field_differentiable_add [derivative_intros]:
@@ -1047,7 +1047,6 @@ lemma has_complex_derivative_inverse_strong:
          \<Longrightarrow> DERIV g (f x) :> inverse (f')"
   unfolding has_field_derivative_def
   apply (rule has_derivative_inverse_strong [of s x f g ])
-  using assms
   by auto
 
 lemma has_complex_derivative_inverse_strong_x:
@@ -1061,7 +1060,6 @@ lemma has_complex_derivative_inverse_strong_x:
           \<Longrightarrow> DERIV g y :> inverse (f')"
   unfolding has_field_derivative_def
   apply (rule has_derivative_inverse_strong_x [of s g y f])
-  using assms
   by auto
 
 subsection \<open>Taylor on Complex Numbers\<close>

@@ -1105,7 +1105,7 @@ lemma natLeq_on_injective_ordIso:
 proof(auto simp add: natLeq_on_Well_order ordIso_reflexive)
   assume "natLeq_on m =o natLeq_on n"
   then obtain f where "bij_betw f {x. x<m} {x. x<n}"
-  using Field_natLeq_on assms unfolding ordIso_def iso_def[abs_def] by auto
+  using Field_natLeq_on unfolding ordIso_def iso_def[abs_def] by auto
   thus "m = n" using atLeastLessThan_injective2[of f m n]
     unfolding atLeast_0 atLeastLessThan_def lessThan_def Int_UNIV_left by blast
 qed

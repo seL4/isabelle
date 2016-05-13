@@ -986,7 +986,7 @@ qed
 
 lemma iso_Field:
 "iso r r' f \<Longrightarrow> f ` (Field r) = Field r'"
-using assms by (auto simp add: iso_def bij_betw_def)
+by (auto simp add: iso_def bij_betw_def)
 
 lemma iso_iff:
 assumes "Well_order r"

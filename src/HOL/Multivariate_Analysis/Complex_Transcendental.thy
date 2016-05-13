@@ -984,7 +984,7 @@ lemma Ln_unique: "exp(z) = w \<Longrightarrow> -pi < Im(z) \<Longrightarrow> Im(
   using Ln_exp by blast
 
 lemma Re_Ln [simp]: "z \<noteq> 0 \<Longrightarrow> Re(Ln z) = ln(norm z)"
-  by (metis exp_Ln assms ln_exp norm_exp_eq_Re)
+  by (metis exp_Ln ln_exp norm_exp_eq_Re)
 
 corollary ln_cmod_le:
   assumes z: "z \<noteq> 0"
@@ -1608,7 +1608,7 @@ proof (cases "x = 0")
   hence "(-x) powr a = exp (a * ln (-of_real x))" by (simp add: powr_def)
   also from x have "ln (-of_real x) = Ln (of_real x) + of_real (sgn x) * pi * \<i>"
     by (simp add: Ln_minus Ln_of_real)
-  also from x assms have "exp (a * ...) = cis pi powr (of_real (sgn x) * a) * of_real x powr a"
+  also from x have "exp (a * ...) = cis pi powr (of_real (sgn x) * a) * of_real x powr a"
     by (simp add: powr_def exp_add algebra_simps Ln_of_real cis_conv_exp)
   also note cis_pi
   finally show ?thesis by simp
@@ -1621,7 +1621,7 @@ lemma has_field_derivative_powr:
   apply (simp add: powr_def)
   apply (rule DERIV_transform_at [where d = "norm z" and f = "\<lambda>z. exp (s * Ln z)"])
   apply (auto simp: dist_complex_def)
-  apply (intro derivative_eq_intros | simp add: assms)+
+  apply (intro derivative_eq_intros | simp)+
   apply (simp add: field_simps exp_diff)
   done
 
@@ -1631,7 +1631,7 @@ declare has_field_derivative_powr[THEN DERIV_chain2, derivative_intros]
 lemma has_field_derivative_powr_right:
     "w \<noteq> 0 \<Longrightarrow> ((\<lambda>z. w powr z) has_field_derivative Ln w * w powr z) (at z)"
   apply (simp add: powr_def)
-  apply (intro derivative_eq_intros | simp add: assms)+
+  apply (intro derivative_eq_intros | simp)+
   done
 
 lemma field_differentiable_powr_right:
@@ -1772,7 +1772,7 @@ proof (clarsimp simp add: lim_sequentially dist_norm norm_divide divide_simps)
 qed
 
 lemma lim_1_over_ln: "((\<lambda>n. 1 / ln(real_of_nat n)) \<longlongrightarrow> 0) sequentially"
-  using lim_1_over_Ln [THEN filterlim_sequentially_Suc [THEN iffD2]] assms
+  using lim_1_over_Ln [THEN filterlim_sequentially_Suc [THEN iffD2]]
   apply (subst filterlim_sequentially_Suc [symmetric])
   apply (simp add: lim_sequentially dist_norm)
   apply (simp add: Ln_Reals_eq norm_powr_real_powr norm_divide)

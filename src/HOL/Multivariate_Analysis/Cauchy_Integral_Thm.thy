@@ -1798,7 +1798,6 @@ lemma contour_integral_midpoint:
     \<Longrightarrow> contour_integral (linepath a b) f =
         contour_integral (linepath a (midpoint a b)) f + contour_integral (linepath (midpoint a b) b) f"
   apply (rule contour_integral_split [where c = "midpoint a b" and k = "1/2"])
-  using assms
   apply (auto simp: midpoint_def algebra_simps scaleR_conv_of_real)
   done
 

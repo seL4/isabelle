@@ -37,7 +37,6 @@ proof
   txt \<open>First we construct a sequence of nested intervals, ignoring @{term "range f"}.\<close>
 
   have "\<forall>a b c::real. a < b \<longrightarrow> (\<exists>ka kb. ka < kb \<and> {ka..kb} \<subseteq> {a..b} \<and> c \<notin> {ka..kb})"
-    using assms
     by (auto simp add: not_le cong: conj_cong)
        (metis dense le_less_linear less_linear less_trans order_refl)
   then obtain i j where ij:

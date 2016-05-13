@@ -1367,7 +1367,7 @@ lemma (in first_countable_topology) sequentially_imp_eventually_within:
 
 lemma (in first_countable_topology) sequentially_imp_eventually_at:
   "(\<forall>f. (\<forall>n. f n \<noteq> a) \<and> f \<longlonglongrightarrow> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially) \<Longrightarrow> eventually P (at a)"
-  using assms sequentially_imp_eventually_within [where s=UNIV] by simp
+  using sequentially_imp_eventually_within [where s=UNIV] by simp
 
 lemma LIMSEQ_SEQ_conv1:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"

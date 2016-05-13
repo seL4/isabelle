@@ -2427,9 +2427,9 @@ proof -
     moreover have "{x - a |x. x \<in> (s - {a})} = ((\<lambda>x. -a+x) ` (s - {a}))"
       by auto
     moreover have "insert a (s - {a}) = insert a s"
-      using assms by auto
+      by auto
     ultimately have ?thesis
-      using assms affine_hull_insert_span[of "a" "s-{a}"] by auto
+      using affine_hull_insert_span[of "a" "s-{a}"] by auto
   }
   ultimately show ?thesis by auto
 qed
@@ -2998,7 +2998,7 @@ proof -
   have "aff_dim (UNIV :: 'n::euclidean_space set) = int(DIM('n))"
     using aff_dim_UNIV by auto
   then show "aff_dim (S:: 'n::euclidean_space set) \<le> int(DIM('n))"
-    using assms aff_dim_subset[of S "(UNIV :: ('n::euclidean_space) set)"] subset_UNIV by auto
+    using aff_dim_subset[of S "(UNIV :: ('n::euclidean_space) set)"] subset_UNIV by auto
 qed
 
 lemma affine_dim_equal:

@@ -510,7 +510,7 @@ lemma reflp_transfer[transfer_rule]:
   "right_total A \<Longrightarrow> ((A ===> A ===> op=) ===> implies) reflp reflp"
   "bi_total A \<Longrightarrow> ((A ===> A ===> rev_implies) ===> rev_implies) reflp reflp"
   "bi_total A \<Longrightarrow> ((A ===> A ===> op=) ===> rev_implies) reflp reflp"
-using assms unfolding reflp_def[abs_def] rev_implies_def bi_total_def right_total_def rel_fun_def
+unfolding reflp_def[abs_def] rev_implies_def bi_total_def right_total_def rel_fun_def
 by fast+
 
 lemma right_unique_transfer [transfer_rule]:

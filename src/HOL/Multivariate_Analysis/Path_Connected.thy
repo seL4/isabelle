@@ -1318,7 +1318,6 @@ lemma path_component_refl_eq: "path_component s x x \<longleftrightarrow> x \<in
   by (auto intro!: path_component_mem path_component_refl)
 
 lemma path_component_sym: "path_component s x y \<Longrightarrow> path_component s y x"
-  using assms
   unfolding path_component_def
   apply (erule exE)
   apply (rule_tac x="reversepath g" in exI)

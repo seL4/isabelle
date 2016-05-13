@@ -2297,7 +2297,7 @@ lemma dropWhile_eq_drop: "dropWhile P xs = drop (length (takeWhile P xs)) xs"
 by (induct xs) auto
 
 lemma hd_dropWhile: "dropWhile P xs \<noteq> [] \<Longrightarrow> \<not> P (hd (dropWhile P xs))"
-using assms by (induct xs) auto
+by (induct xs) auto
 
 lemma takeWhile_eq_filter:
   assumes "\<And> x. x \<in> set (dropWhile P xs) \<Longrightarrow> \<not> P x"
@@ -4956,8 +4956,7 @@ lemma filter_insort_triv:
 
 lemma filter_insort:
   "sorted (map f xs) \<Longrightarrow> P x \<Longrightarrow> filter P (insort_key f x xs) = insort_key f x (filter P xs)"
-  using assms by (induct xs)
-    (auto simp add: sorted_Cons, subst insort_is_Cons, auto)
+  by (induct xs) (auto simp add: sorted_Cons, subst insort_is_Cons, auto)
 
 lemma filter_sort:
   "filter P (sort_key f xs) = sort_key f (filter P xs)"

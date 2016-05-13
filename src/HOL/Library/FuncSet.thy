@@ -402,17 +402,17 @@ lemma PiE_insert_eq: "PiE (insert x S) T = (\<lambda>(y, g). g(x := y)) ` (T x \
 proof -
   {
     fix f assume "f \<in> PiE (insert x S) T" "x \<notin> S"
-    with assms have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
+    then have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
       by (auto intro!: image_eqI[where x="(f x, f(x := undefined))"] intro: fun_upd_in_PiE PiE_mem)
   }
   moreover
   {
     fix f assume "f \<in> PiE (insert x S) T" "x \<in> S"
-    with assms have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
+    then have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
       by (auto intro!: image_eqI[where x="(f x, f)"] intro: fun_upd_in_PiE PiE_mem simp: insert_absorb)
   }
   ultimately show ?thesis
-    using assms by (auto intro: PiE_fun_upd)
+    by (auto intro: PiE_fun_upd)
 qed
 
 lemma PiE_Int: "Pi\<^sub>E I A \<inter> Pi\<^sub>E I B = Pi\<^sub>E I (\<lambda>x. A x \<inter> B x)"

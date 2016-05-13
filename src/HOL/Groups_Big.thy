@@ -181,7 +181,7 @@ qed (auto dest: finite_UnionD intro: infinite)
 
 lemma distrib:
   "F (\<lambda>x. g x * h x) A = F g A * F h A"
-  using assms by (induct A rule: infinite_finite_induct) (simp_all add: assoc commute left_commute)
+  by (induct A rule: infinite_finite_induct) (simp_all add: assoc commute left_commute)
 
 lemma Sigma:
   "finite A \<Longrightarrow> \<forall>x\<in>A. finite (B x) \<Longrightarrow> F (\<lambda>x. F (g x) (B x)) A = F (case_prod g) (SIGMA x:A. B x)"

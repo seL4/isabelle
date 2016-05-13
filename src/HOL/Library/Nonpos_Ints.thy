@@ -54,7 +54,7 @@ lemma nonpos_Ints_of_int: "n \<le> 0 \<Longrightarrow> of_int n \<in> \<int>\<^s
 
 lemma nonpos_IntsI: 
   "x \<in> \<int> \<Longrightarrow> x \<le> 0 \<Longrightarrow> (x :: 'a :: linordered_idom) \<in> \<int>\<^sub>\<le>\<^sub>0"
-  using assms unfolding nonpos_Ints_def Ints_def by auto
+  unfolding nonpos_Ints_def Ints_def by auto
 
 lemma nonpos_Ints_subset_Ints: "\<int>\<^sub>\<le>\<^sub>0 \<subseteq> \<int>"
   unfolding nonpos_Ints_def Ints_def by blast

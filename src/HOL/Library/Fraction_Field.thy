@@ -278,7 +278,7 @@ lemma le_fract [simp]:
 
 lemma less_fract [simp]:
   "\<lbrakk> b \<noteq> 0; d \<noteq> 0 \<rbrakk> \<Longrightarrow> Fract a b < Fract c d \<longleftrightarrow> (a * d) * (b * d) < (c * b) * (b * d)"
-  by (simp add: less_fract_def less_le_not_le ac_simps assms)
+  by (simp add: less_fract_def less_le_not_le ac_simps)
 
 instance
 proof

@@ -266,7 +266,7 @@ lemma congruent2I':
 
 lemma congruent2D:
   "congruent2 r1 r2 f \<Longrightarrow> (y1, z1) \<in> r1 \<Longrightarrow> (y2, z2) \<in> r2 \<Longrightarrow> f y1 y2 = f z1 z2"
-  using assms by (auto simp add: congruent2_def)
+  by (auto simp add: congruent2_def)
 
 text\<open>Abbreviation for the common case where the relations are identical\<close>
 abbreviation
@@ -426,7 +426,7 @@ unfolding quotient_def equiv_def trans_def by blast
 
 lemma in_quotient_imp_subset:
 "\<lbrakk>equiv A r; X \<in> A//r\<rbrakk> \<Longrightarrow> X \<subseteq> A"
-using assms in_quotient_imp_in_rel equiv_type by fastforce
+using in_quotient_imp_in_rel equiv_type by fastforce
 
 
 subsection \<open>Equivalence relations -- predicate version\<close>

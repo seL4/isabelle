@@ -2791,7 +2791,7 @@ qed
 lemma closed_contains_Inf:
   fixes S :: "real set"
   shows "S \<noteq> {} \<Longrightarrow> bdd_below S \<Longrightarrow> closed S \<Longrightarrow> Inf S \<in> S"
-  by (metis closure_contains_Inf closure_closed assms)
+  by (metis closure_contains_Inf closure_closed)
 
 lemma closed_subset_contains_Inf:
   fixes A C :: "real set"

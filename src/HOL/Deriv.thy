@@ -89,7 +89,7 @@ lemma (in bounded_linear) bounded_linear: "bounded_linear f" ..
 
 lemma (in bounded_linear) has_derivative:
   "(g has_derivative g') F \<Longrightarrow> ((\<lambda>x. f (g x)) has_derivative (\<lambda>x. f (g' x))) F"
-  using assms unfolding has_derivative_def
+  unfolding has_derivative_def
   apply safe
   apply (erule bounded_linear_compose [OF bounded_linear])
   apply (drule tendsto)
@@ -537,7 +537,7 @@ lemma differentiable_inverse [simp, derivative_intros]:
 lemma differentiable_divide [simp, derivative_intros]:
   fixes f g :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_field"
   shows "f differentiable (at x within s) \<Longrightarrow> g differentiable (at x within s) \<Longrightarrow> g x \<noteq> 0 \<Longrightarrow> (\<lambda>x. f x / g x) differentiable (at x within s)"
-  unfolding divide_inverse using assms by simp
+  unfolding divide_inverse by simp
 
 lemma differentiable_power [simp, derivative_intros]:
   fixes f g :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_field"
@@ -742,7 +742,7 @@ corollary DERIV_minus: "(f has_field_derivative D) (at x within s) \<Longrightar
 
 lemma field_differentiable_diff[derivative_intros]:
   "(f has_field_derivative f') F \<Longrightarrow> (g has_field_derivative g') F \<Longrightarrow> ((\<lambda>z. f z - g z) has_field_derivative f' - g') F"
-  by (simp only: assms diff_conv_add_uminus field_differentiable_add field_differentiable_minus)
+  by (simp only: diff_conv_add_uminus field_differentiable_add field_differentiable_minus)
 
 corollary DERIV_diff:
   "(f has_field_derivative D) (at x within s) \<Longrightarrow> (g has_field_derivative E) (at x within s) \<Longrightarrow>

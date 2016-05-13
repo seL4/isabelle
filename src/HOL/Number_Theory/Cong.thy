@@ -341,7 +341,7 @@ lemma cong_gcd_eq_int: "[(a::int) = b] (mod m) \<Longrightarrow> gcd a m = gcd b
 
 lemma cong_gcd_eq_nat:
     "[(a::nat) = b] (mod m) \<Longrightarrow>gcd a m = gcd b m"
-  by (metis assms cong_gcd_eq_int [transferred])
+  by (metis cong_gcd_eq_int [transferred])
 
 lemma cong_imp_coprime_nat: "[(a::nat) = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> coprime b m"
   by (auto simp add: cong_gcd_eq_nat)

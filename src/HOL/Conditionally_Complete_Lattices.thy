@@ -297,10 +297,10 @@ lemma cSUP_least: "A \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> A \<Longrig
   using cSup_least [of "f ` A"] by auto
 
 lemma cINF_lower2: "bdd_below (f ` A) \<Longrightarrow> x \<in> A \<Longrightarrow> f x \<le> u \<Longrightarrow> INFIMUM A f \<le> u"
-  by (auto intro: cINF_lower assms order_trans)
+  by (auto intro: cINF_lower order_trans)
 
 lemma cSUP_upper2: "bdd_above (f ` A) \<Longrightarrow> x \<in> A \<Longrightarrow> u \<le> f x \<Longrightarrow> u \<le> SUPREMUM A f"
-  by (auto intro: cSUP_upper assms order_trans)
+  by (auto intro: cSUP_upper order_trans)
 
 lemma cSUP_const [simp]: "A \<noteq> {} \<Longrightarrow> (SUP x:A. c) = c"
   by (intro antisym cSUP_least) (auto intro: cSUP_upper)
@@ -309,10 +309,10 @@ lemma cINF_const [simp]: "A \<noteq> {} \<Longrightarrow> (INF x:A. c) = c"
   by (intro antisym cINF_greatest) (auto intro: cINF_lower)
 
 lemma le_cINF_iff: "A \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> u \<le> INFIMUM A f \<longleftrightarrow> (\<forall>x\<in>A. u \<le> f x)"
-  by (metis cINF_greatest cINF_lower assms order_trans)
+  by (metis cINF_greatest cINF_lower order_trans)
 
 lemma cSUP_le_iff: "A \<noteq> {} \<Longrightarrow> bdd_above (f ` A) \<Longrightarrow> SUPREMUM A f \<le> u \<longleftrightarrow> (\<forall>x\<in>A. f x \<le> u)"
-  by (metis cSUP_least cSUP_upper assms order_trans)
+  by (metis cSUP_least cSUP_upper order_trans)
 
 lemma less_cINF_D: "bdd_below (f`A) \<Longrightarrow> y < (INF i:A. f i) \<Longrightarrow> i \<in> A \<Longrightarrow> y < f i"
   by (metis cINF_lower less_le_trans)

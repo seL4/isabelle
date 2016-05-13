@@ -625,7 +625,7 @@ lemma Int_atMost[simp]: "{..a} \<inter> {..b} = {.. min a b}"
   by (auto simp: min_def)
 
 lemma Ioc_disjoint: "{a<..b} \<inter> {c<..d} = {} \<longleftrightarrow> b \<le> a \<or> d \<le> c \<or> b \<le> c \<or> d \<le> a"
-  using assms by auto
+  by auto
 
 end
 

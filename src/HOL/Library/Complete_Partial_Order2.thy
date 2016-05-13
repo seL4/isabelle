@@ -1552,7 +1552,7 @@ qed
 lemma mcont_SUP [cont_intro, simp]:
   "\<lbrakk> mcont lub ord Union op \<subseteq> f; \<And>y. mcont lub ord Sup op \<le> (\<lambda>x. g x y) \<rbrakk>
   \<Longrightarrow> mcont lub ord Sup op \<le> (\<lambda>x. \<Squnion>y\<in>f x. g x y)"
-by(blast intro: mcontI cont_SUP[OF assms] monotone_SUP mcont_mono)
+by(blast intro: mcontI cont_SUP monotone_SUP mcont_mono)
 
 end
 

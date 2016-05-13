@@ -967,7 +967,7 @@ by (induct M) auto
 lemma multiset_cases [cases type]:
   obtains (empty) "M = {#}"
     | (add) N x where "M = N + {#x#}"
-  using assms by (induct M) simp_all
+  by (induct M) simp_all
 
 lemma multi_drop_mem_not_eq: "c \<in># B \<Longrightarrow> B - {#c#} \<noteq> B"
 by (cases "B = {#}") (auto dest: multi_member_split)
@@ -1455,7 +1455,7 @@ lemma size_replicate_mset[simp]: "size (replicate_mset n M) = n"
   by (induct n, simp_all)
 
 lemma count_le_replicate_mset_le: "n \<le> count M x \<longleftrightarrow> replicate_mset n x \<subseteq># M"
-  by (auto simp add: assms mset_less_eqI) (metis count_replicate_mset subseteq_mset_def)
+  by (auto simp add: mset_less_eqI) (metis count_replicate_mset subseteq_mset_def)
 
 lemma filter_eq_replicate_mset: "{#y \<in># D. y = x#} = replicate_mset (count D x) x"
   by (induct D) simp_all

@@ -570,7 +570,7 @@ qed
 
 lemma not_ordLess_ordIso:
 "r <o r' \<Longrightarrow> \<not> r =o r'"
-using assms ordLess_ordIso_trans ordIso_symmetric ordLess_irreflexive by blast
+using ordLess_ordIso_trans ordIso_symmetric ordLess_irreflexive by blast
 
 lemma not_ordLeq_iff_ordLess:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
@@ -584,7 +584,7 @@ using assms not_ordLess_ordLeq ordLess_or_ordLeq by blast
 
 lemma ordLess_transitive[trans]:
 "\<lbrakk>r <o r'; r' <o r''\<rbrakk> \<Longrightarrow> r <o r''"
-using assms ordLess_ordLeq_trans ordLeq_iff_ordLess_or_ordIso by blast
+using ordLess_ordLeq_trans ordLeq_iff_ordLess_or_ordIso by blast
 
 corollary ordLess_trans: "trans ordLess"
 unfolding trans_def using ordLess_transitive by blast
@@ -1003,7 +1003,7 @@ qed
 
 lemma Well_order_dir_image:
 "\<lbrakk>Well_order r; inj_on f (Field r)\<rbrakk> \<Longrightarrow> Well_order (dir_image r f)"
-using assms unfolding well_order_on_def
+unfolding well_order_on_def
 using Linear_order_dir_image[of r f] wf_dir_image[of "r - Id" f]
   dir_image_minus_Id[of f r]
   subset_inj_on[of f "Field r" "Field(r - Id)"]

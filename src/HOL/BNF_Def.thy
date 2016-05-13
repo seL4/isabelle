@@ -248,7 +248,7 @@ lemma eq_onp_top_eq_eq: "eq_onp top = op ="
   by (simp add: eq_onp_def)
 
 lemma eq_onp_same_args: "eq_onp P x x = P x"
-  using assms by (auto simp add: eq_onp_def)
+  by (auto simp add: eq_onp_def)
 
 lemma eq_onp_eqD: "eq_onp P = Q \<Longrightarrow> P x = Q x x"
   unfolding eq_onp_def by blast

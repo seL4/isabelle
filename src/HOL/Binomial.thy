@@ -1324,7 +1324,7 @@ lemma choose_mult_lemma:
 proof -
   have "((m+r+k) choose (m+k)) * ((m+k) choose k) =
         fact (m+r + k) div (fact (m + k) * fact (m+r - m)) * (fact (m + k) div (fact k * fact m))"
-    by (simp add: assms binomial_altdef_nat)
+    by (simp add: binomial_altdef_nat)
   also have "... = fact (m+r+k) div (fact r * (fact k * fact m))"
     apply (subst div_mult_div_if_dvd)
     apply (auto simp: algebra_simps fact_fact_dvd_fact)

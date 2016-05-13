@@ -771,7 +771,7 @@ next
     done
   with M show "subprob_space (join M)"
     by (intro subprob_spaceI)
-       (auto simp: emeasure_join space_subprob_algebra M assms dest: subprob_space.emeasure_space_le_1)
+       (auto simp: emeasure_join space_subprob_algebra M dest: subprob_space.emeasure_space_le_1)
 next
   assume "\<not>(space N \<noteq> {})"
   thus ?thesis by (simp add: measurable_empty_iff space_subprob_algebra_empty_iff)
