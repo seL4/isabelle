@@ -376,7 +376,9 @@ fun prep_statement prep_att prep_stmt raw_elems raw_stmt ctxt =
                   [((name, [Context_Rules.intro_query NONE]), asm)]) stmt;
           val that = Assumption.local_prems_of asms_ctxt stmt_ctxt;
           val ([(_, that')], that_ctxt) = asms_ctxt
-            |> Proof_Context.note_thmss "" [((Binding.name Auto_Bind.thatN, []), [(that, [])])];
+            |> Proof_Context.set_stmt true
+            |> Proof_Context.note_thmss "" [((Binding.name Auto_Bind.thatN, []), [(that, [])])]
+            ||> Proof_Context.restore_stmt asms_ctxt;
 
           val stmt' = [((Binding.empty, []), [(#2 (#1 (Obtain.obtain_thesis ctxt)), [])])];
         in ((Obtain.obtains_attribs raw_obtains, prems, stmt', SOME that'), that_ctxt) end)
