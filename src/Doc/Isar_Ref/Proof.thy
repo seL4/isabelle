@@ -394,7 +394,8 @@ text \<open>
 
   @{rail \<open>
     (@@{command lemma} | @@{command theorem} | @@{command corollary} |
-     @@{command proposition} | @@{command schematic_goal}) (stmt | statement)
+     @@{command proposition} | @@{command schematic_goal})
+      (long_statement | short_statement)
     ;
     (@@{command have} | @@{command show} | @@{command hence} | @@{command thus})
       stmt cond_stmt @{syntax for_fixes}
@@ -406,8 +407,11 @@ text \<open>
     ;
     cond_stmt: ((@'if' | @'when') stmt)?
     ;
-    statement: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} *) \<newline>
-      conclusion
+    short_statement: stmt (@'if' stmt)? @{syntax for_fixes}
+    ;
+    long_statement: @{syntax thmdecl}? context conclusion
+    ;
+    context: (@{syntax_ref "includes"}?) (@{syntax context_elem} *)
     ;
     conclusion: @'shows' stmt | @'obtains' @{syntax obtain_clauses}
     ;
@@ -419,10 +423,19 @@ text \<open>
 
   \<^descr> @{command "lemma"}~\<open>a: \<phi>\<close> enters proof mode with \<open>\<phi>\<close> as main goal,
   eventually resulting in some fact \<open>\<turnstile> \<phi>\<close> to be put back into the target
-  context. An additional @{syntax context} specification may build up an
-  initial proof context for the subsequent claim; this includes local
-  definitions and syntax as well, see also @{syntax "includes"} in
-  \secref{sec:bundle} and @{syntax context_elem} in \secref{sec:locale}.
+  context.
+
+  A @{syntax long_statement} may build up an initial proof context for the
+  subsequent claim, potentially including local definitions and syntax; see
+  also @{syntax "includes"} in \secref{sec:bundle} and @{syntax context_elem}
+  in \secref{sec:locale}.
+
+  A @{syntax short_statement} consists of propositions as conclusion, with an
+  option context of premises and parameters, via \<^verbatim>\<open>if\<close>/\<^verbatim>\<open>for\<close> in postfix
+  notation, corresponding to \<^verbatim>\<open>assumes\<close>/\<^verbatim>\<open>fixes\<close> in the long prefix notation.
+
+  Local premises (if present) are called ``\<open>assms\<close>'' for @{syntax
+  long_statement}, and ``\<open>that\<close>'' for @{syntax short_statement}.
 
   \<^descr> @{command "theorem"}, @{command "corollary"}, and @{command "proposition"}
   are the same as @{command "lemma"}. The different command names merely serve

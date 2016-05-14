@@ -63,6 +63,12 @@ statement.
 eigen-context, e.g. 'axiomatization', 'definition', 'inductive',
 'function'.
 
+* Toplevel theorem statements support eigen-context notation with 'if' /
+'for' (in postix), which corresponds to 'assumes' / 'fixes' in the
+traditional long statement form (in prefix). Local premises are called
+"that" or "assms", respectively. Empty premises are *not* bound in the
+context: INCOMPATIBILITY.
+
 * Command 'define' introduces a local (non-polymorphic) definition, with
 optional abstraction over local parameters. The syntax resembles
 'definition' and 'obtain'. It fits better into the Isar language than

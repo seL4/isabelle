@@ -59,19 +59,19 @@ sig
     (Attrib.binding * (Facts.ref * Token.src list) list) list ->
     (binding * string option * mixfix) list ->
     bool -> local_theory -> (string * thm list) list * local_theory
-  val theorem: string -> Method.text option ->
+  val theorem: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     string list -> Element.context_i list -> Element.statement_i ->
     bool -> local_theory -> Proof.state
-  val theorem_cmd: string -> Method.text option ->
+  val theorem_cmd: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     (xstring * Position.T) list -> Element.context list -> Element.statement ->
     bool -> local_theory -> Proof.state
-  val schematic_theorem: string -> Method.text option ->
+  val schematic_theorem: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     string list -> Element.context_i list -> Element.statement_i ->
     bool -> local_theory -> Proof.state
-  val schematic_theorem_cmd: string -> Method.text option ->
+  val schematic_theorem_cmd: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     (xstring * Position.T) list -> Element.context list -> Element.statement ->
     bool -> local_theory -> Proof.state
@@ -383,7 +383,7 @@ fun prep_statement prep_att prep_stmt raw_elems raw_stmt ctxt =
   end;
 
 fun gen_theorem schematic bundle_includes prep_att prep_stmt
-    kind before_qed after_qed (name, raw_atts) raw_includes raw_elems raw_concl int lthy =
+    long kind before_qed after_qed (name, raw_atts) raw_includes raw_elems raw_concl int lthy =
   let
     val _ = Local_Theory.assert lthy;
 
@@ -413,10 +413,12 @@ fun gen_theorem schematic bundle_includes prep_att prep_stmt
               val _ = Proof_Display.print_results int pos lthy' ((kind, res_name), res);
             in lthy'' end;
       in after_qed results' lthy'' end;
+
+    val prems_name = if long then Auto_Bind.assmsN else Auto_Bind.thatN;
   in
     goal_ctxt
-    |> Proof_Context.note_thmss "" [((Binding.name Auto_Bind.assmsN, []), [(prems, [])])]
-    |> snd
+    |> not (null prems) ?
+      (Proof_Context.note_thmss "" [((Binding.name prems_name, []), [(prems, [])])] #> snd)
     |> Proof.theorem before_qed after_qed' (map snd stmt)
     |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)
     |> tap (fn state => not schematic andalso Proof.schematic_goal state andalso

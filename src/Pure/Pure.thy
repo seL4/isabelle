@@ -397,6 +397,38 @@ subsubsection \<open>Theorems\<close>
 ML \<open>
 local
 
+val long_keyword =
+  Parse_Spec.includes >> K "" ||
+  Parse_Spec.long_statement_keyword;
+
+val long_statement =
+  Scan.optional (Parse_Spec.opt_thm_name ":" --| Scan.ahead long_keyword) Attrib.empty_binding --
+  Scan.optional Parse_Spec.includes [] -- Parse_Spec.long_statement
+    >> (fn ((binding, includes), (elems, concl)) => (true, binding, includes, elems, concl));
+
+val short_statement =
+  Parse_Spec.statement -- Parse_Spec.if_statement -- Parse.for_fixes
+    >> (fn ((shows, assumes), fixes) =>
+      (false, Attrib.empty_binding, [], [Element.Fixes fixes, Element.Assumes assumes],
+        Element.Shows shows));
+
+fun theorem spec schematic descr =
+  Outer_Syntax.local_theory_to_proof' spec ("state " ^ descr)
+    ((long_statement || short_statement) >> (fn (long, binding, includes, elems, concl) =>
+      ((if schematic then Specification.schematic_theorem_cmd else Specification.theorem_cmd)
+        long Thm.theoremK NONE (K I) binding includes elems concl)));
+
+val _ = theorem @{command_keyword theorem} false "theorem";
+val _ = theorem @{command_keyword lemma} false "lemma";
+val _ = theorem @{command_keyword corollary} false "corollary";
+val _ = theorem @{command_keyword proposition} false "proposition";
+val _ = theorem @{command_keyword schematic_goal} true "schematic goal";
+
+in end\<close>
+
+ML \<open>
+local
+
 val _ =
   Outer_Syntax.local_theory' @{command_keyword lemmas} "define theorems"
     (Parse_Spec.name_facts -- Parse.for_fixes >>
@@ -638,24 +670,6 @@ local
 val structured_statement =
   Parse_Spec.statement -- Parse_Spec.cond_statement -- Parse.for_fixes
     >> (fn ((shows, (strict, assumes)), fixes) => (strict, fixes, assumes, shows));
-
-fun theorem spec schematic descr =
-  Outer_Syntax.local_theory_to_proof' spec
-    ("state " ^ descr)
-    (Scan.optional (Parse_Spec.opt_thm_name ":" --|
-      Scan.ahead (Parse_Spec.includes >> K "" ||
-        Parse_Spec.locale_keyword || Parse_Spec.statement_keyword)) Attrib.empty_binding --
-      Scan.optional Parse_Spec.includes [] --
-      Parse_Spec.general_statement >> (fn ((a, includes), (elems, concl)) =>
-        ((if schematic then Specification.schematic_theorem_cmd else Specification.theorem_cmd)
-          Thm.theoremK NONE (K I) a includes elems concl)));
-
-val _ = theorem @{command_keyword theorem} false "theorem";
-val _ = theorem @{command_keyword lemma} false "lemma";
-val _ = theorem @{command_keyword corollary} false "corollary";
-val _ = theorem @{command_keyword proposition} false "proposition";
-val _ = theorem @{command_keyword schematic_goal} true "schematic goal";
-
 
 val _ =
   Outer_Syntax.command @{command_keyword have} "state local goal"

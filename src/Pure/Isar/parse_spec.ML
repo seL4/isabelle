@@ -31,8 +31,8 @@ sig
   val if_statement: (Attrib.binding * (string * string list) list) list parser
   val cond_statement: (bool * (Attrib.binding * (string * string list) list) list) parser
   val obtains: Element.obtains parser
-  val general_statement: (Element.context list * Element.statement) parser
-  val statement_keyword: string parser
+  val long_statement: (Element.context list * Element.statement) parser
+  val long_statement_keyword: string parser
   val overloaded: bool parser
 end;
 
@@ -165,13 +165,13 @@ val obtain_case =
 
 val obtains = Parse.enum1 "|" obtain_case;
 
-val general_statement =
-  statement >> (fn x => ([], Element.Shows x)) ||
+val long_statement =
   Scan.repeat context_element --
    (Parse.$$$ "obtains" |-- Parse.!!! obtains >> Element.Obtains ||
     Parse.$$$ "shows" |-- Parse.!!! statement >> Element.Shows);
 
-val statement_keyword = Parse.$$$ "obtains" || Parse.$$$ "shows";
+val long_statement_keyword =
+  locale_keyword || Parse.$$$ "obtains" || Parse.$$$ "shows";
 
 
 (* options *)
