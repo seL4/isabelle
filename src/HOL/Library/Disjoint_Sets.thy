@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section \<open>Handling Disjoint Sets\<close>
+section \<open>Partitions and Disjoint Sets\<close>
 
 theory Disjoint_Sets
   imports Main
@@ -19,6 +19,9 @@ lemma Int_Diff_Un: "A \<inter> B \<union> (A - B) = A"
 
 lemma mono_Un: "mono A \<Longrightarrow> (\<Union>i\<le>n. A i) = A n"
   unfolding mono_def by auto
+
+lemma disjnt_equiv_class: "equiv A r \<Longrightarrow> disjnt (r``{a}) (r``{b}) \<longleftrightarrow> (a, b) \<notin> r"
+  by (auto dest: equiv_class_self simp: equiv_class_eq_iff disjnt_def)
 
 subsection \<open>Set of Disjoint Sets\<close>
 
@@ -39,7 +42,7 @@ lemma disjoint_INT:
   assumes *: "\<And>i. i \<in> I \<Longrightarrow> disjoint (F i)"
   shows "disjoint {\<Inter>i\<in>I. X i | X. \<forall>i\<in>I. X i \<in> F i}"
 proof (safe intro!: disjointI del: equalityI)
-  fix A B :: "'a \<Rightarrow> 'b set" assume "(\<Inter>i\<in>I. A i) \<noteq> (\<Inter>i\<in>I. B i)" 
+  fix A B :: "'a \<Rightarrow> 'b set" assume "(\<Inter>i\<in>I. A i) \<noteq> (\<Inter>i\<in>I. B i)"
   then obtain i where "A i \<noteq> B i" "i \<in> I"
     by auto
   moreover assume "\<forall>i\<in>I. A i \<in> F i" "\<forall>i\<in>I. B i \<in> F i"
@@ -149,5 +152,138 @@ lemma disjointed_0[simp]: "disjointed A 0 = A 0"
 
 lemma disjointed_mono: "mono A \<Longrightarrow> disjointed A (Suc n) = A (Suc n) - A n"
   using mono_Un[of A] by (simp add: disjointed_def atLeastLessThanSuc_atLeastAtMost atLeast0AtMost)
+
+subsection \<open>Partitions\<close>
+
+text \<open>
+  Partitions @{term P} of a set @{term A}. We explicitly disallow empty sets.
+\<close>
+
+definition partition_on :: "'a set \<Rightarrow> 'a set set \<Rightarrow> bool"
+where
+  "partition_on A P \<longleftrightarrow> \<Union>P = A \<and> disjoint P \<and> {} \<notin> P"
+
+lemma partition_onI:
+  "\<Union>P = A \<Longrightarrow> (\<And>p q. p \<in> P \<Longrightarrow> q \<in> P \<Longrightarrow> p \<noteq> q \<Longrightarrow> disjnt p q) \<Longrightarrow> {} \<notin> P \<Longrightarrow> partition_on A P"
+  by (auto simp: partition_on_def pairwise_def)
+
+lemma partition_onD1: "partition_on A P \<Longrightarrow> A = \<Union>P"
+  by (auto simp: partition_on_def)
+
+lemma partition_onD2: "partition_on A P \<Longrightarrow> disjoint P"
+  by (auto simp: partition_on_def)
+
+lemma partition_onD3: "partition_on A P \<Longrightarrow> {} \<notin> P"
+  by (auto simp: partition_on_def)
+
+subsection \<open>Constructions of partitions\<close>
+
+lemma partition_on_empty: "partition_on {} P \<longleftrightarrow> P = {}"
+  unfolding partition_on_def by fastforce
+
+lemma partition_on_space: "A \<noteq> {} \<Longrightarrow> partition_on A {A}"
+  by (auto simp: partition_on_def disjoint_def)
+
+lemma partition_on_singletons: "partition_on A ((\<lambda>x. {x}) ` A)"
+  by (auto simp: partition_on_def disjoint_def)
+
+lemma partition_on_transform:
+  assumes P: "partition_on A P"
+  assumes F_UN: "\<Union>(F ` P) = F (\<Union>P)" and F_disjnt: "\<And>p q. p \<in> P \<Longrightarrow> q \<in> P \<Longrightarrow> disjnt p q \<Longrightarrow> disjnt (F p) (F q)"
+  shows "partition_on (F A) (F ` P - {{}})"
+proof -
+  have "\<Union>(F ` P - {{}}) = F A"
+    unfolding P[THEN partition_onD1] F_UN[symmetric] by auto
+  with P show ?thesis
+    by (auto simp add: partition_on_def pairwise_def intro!: F_disjnt)
+qed
+
+lemma partition_on_restrict: "partition_on A P \<Longrightarrow> partition_on (B \<inter> A) (op \<inter> B ` P - {{}})"
+  by (intro partition_on_transform) (auto simp: disjnt_def)
+
+lemma partition_on_vimage: "partition_on A P \<Longrightarrow> partition_on (f -` A) (op -` f ` P - {{}})"
+  by (intro partition_on_transform) (auto simp: disjnt_def)
+
+lemma partition_on_inj_image:
+  assumes P: "partition_on A P" and f: "inj_on f A"
+  shows "partition_on (f ` A) (op ` f ` P - {{}})"
+proof (rule partition_on_transform[OF P])
+  show "p \<in> P \<Longrightarrow> q \<in> P \<Longrightarrow> disjnt p q \<Longrightarrow> disjnt (f ` p) (f ` q)" for p q
+    using f[THEN inj_onD] P[THEN partition_onD1] by (auto simp: disjnt_def)
+qed auto
+
+subsection \<open>Finiteness of partitions\<close>
+
+lemma finitely_many_partition_on:
+  assumes "finite A"
+  shows "finite {P. partition_on A P}"
+proof (rule finite_subset)
+  show "{P. partition_on A P} \<subseteq> Pow (Pow A)"
+    unfolding partition_on_def by auto
+  show "finite (Pow (Pow A))"
+    using assms by simp
+qed
+
+lemma finite_elements: "finite A \<Longrightarrow> partition_on A P \<Longrightarrow> finite P"
+  using partition_onD1[of A P] by (simp add: finite_UnionD)
+
+subsection \<open>Equivalence of partitions and equivalence classes\<close>
+
+lemma partition_on_quotient:
+  assumes r: "equiv A r"
+  shows "partition_on A (A // r)"
+proof (rule partition_onI)
+  from r have "refl_on A r"
+    by (auto elim: equivE)
+  then show "\<Union>(A // r) = A" "{} \<notin> A // r"
+    by (auto simp: refl_on_def quotient_def)
+
+  fix p q assume "p \<in> A // r" "q \<in> A // r" "p \<noteq> q"
+  then obtain x y where "x \<in> A" "y \<in> A" "p = r `` {x}" "q = r `` {y}"
+    by (auto simp: quotient_def)
+  with r equiv_class_eq_iff[OF r, of x y] \<open>p \<noteq> q\<close> show "disjnt p q"
+    by (auto simp: disjnt_equiv_class)
+qed
+
+lemma equiv_partition_on:
+  assumes P: "partition_on A P"
+  shows "equiv A {(x, y). \<exists>p \<in> P. x \<in> p \<and> y \<in> p}"
+proof (rule equivI)
+  have "A = \<Union>P" "disjoint P" "{} \<notin> P"
+    using P by (auto simp: partition_on_def)
+  then show "refl_on A {(x, y). \<exists>p\<in>P. x \<in> p \<and> y \<in> p}"
+    unfolding refl_on_def by auto
+  show "trans {(x, y). \<exists>p\<in>P. x \<in> p \<and> y \<in> p}"
+    using \<open>disjoint P\<close> by (auto simp: trans_def disjoint_def)
+qed (auto simp: sym_def)
+
+lemma partition_on_eq_quotient:
+  assumes P: "partition_on A P"
+  shows "A // {(x, y). \<exists>p \<in> P. x \<in> p \<and> y \<in> p} = P"
+  unfolding quotient_def
+proof safe
+  fix x assume "x \<in> A"
+  then obtain p where "p \<in> P" "x \<in> p" "\<And>q. q \<in> P \<Longrightarrow> x \<in> q \<Longrightarrow> p = q"
+    using P by (auto simp: partition_on_def disjoint_def)
+  then have "{y. \<exists>p\<in>P. x \<in> p \<and> y \<in> p} = p"
+    by (safe intro!: bexI[of _ p]) simp
+  then show "{(x, y). \<exists>p\<in>P. x \<in> p \<and> y \<in> p} `` {x} \<in> P"
+    by (simp add: \<open>p \<in> P\<close>)
+next
+  fix p assume "p \<in> P"
+  then have "p \<noteq> {}"
+    using P by (auto simp: partition_on_def)
+  then obtain x where "x \<in> p"
+    by auto
+  then have "x \<in> A" "\<And>q. q \<in> P \<Longrightarrow> x \<in> q \<Longrightarrow> p = q"
+    using P \<open>p \<in> P\<close> by (auto simp: partition_on_def disjoint_def)
+  with \<open>p\<in>P\<close> \<open>x \<in> p\<close> have "{y. \<exists>p\<in>P. x \<in> p \<and> y \<in> p} = p"
+    by (safe intro!: bexI[of _ p]) simp
+  then show "p \<in> (\<Union>x\<in>A. {{(x, y). \<exists>p\<in>P. x \<in> p \<and> y \<in> p} `` {x}})"
+    by (auto intro: \<open>x \<in> A\<close>)
+qed
+
+lemma partition_on_alt: "partition_on A P \<longleftrightarrow> (\<exists>r. equiv A r \<and> P = A // r)"
+  by (auto simp: partition_on_eq_quotient intro!: partition_on_quotient intro: equiv_partition_on)
 
 end
