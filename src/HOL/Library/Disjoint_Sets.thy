@@ -35,6 +35,13 @@ lemma disjointD:
   "disjoint A \<Longrightarrow> a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<noteq> b \<Longrightarrow> a \<inter> b = {}"
   unfolding disjoint_def by auto
 
+lemma disjoint_image: "inj_on f (\<Union>A) \<Longrightarrow> disjoint A \<Longrightarrow> disjoint (op ` f ` A)"
+  unfolding inj_on_def disjoint_def by blast
+
+lemma assumes "disjoint (A \<union> B)"
+      shows   disjoint_unionD1: "disjoint A" and disjoint_unionD2: "disjoint B"
+  using assms by (simp_all add: disjoint_def)
+  
 lemma disjoint_INT:
   assumes *: "\<And>i. i \<in> I \<Longrightarrow> disjoint (F i)"
   shows "disjoint {\<Inter>i\<in>I. X i | X. \<forall>i\<in>I. X i \<in> F i}"
@@ -81,7 +88,7 @@ lemma disjoint_family_Suc:
 lemma disjoint_family_on_disjoint_image:
   "disjoint_family_on A I \<Longrightarrow> disjoint (A ` I)"
   unfolding disjoint_family_on_def disjoint_def by force
-
+ 
 lemma disjoint_family_on_vimageI: "disjoint_family_on F I \<Longrightarrow> disjoint_family_on (\<lambda>i. f -` F i) I"
   by (auto simp: disjoint_family_on_def)
 
@@ -114,8 +121,59 @@ proof (safe intro!: disjointI del: equalityI)
   qed
 qed
 
+lemma distinct_list_bind: 
+  assumes "distinct xs" "\<And>x. x \<in> set xs \<Longrightarrow> distinct (f x)" 
+          "disjoint_family_on (set \<circ> f) (set xs)"
+  shows   "distinct (List.bind xs f)"
+  using assms
+  by (induction xs)
+     (auto simp: disjoint_family_on_def distinct_map inj_on_def set_list_bind)
+
+lemma bij_betw_UNION_disjoint:
+  assumes disj: "disjoint_family_on A' I"
+  assumes bij: "\<And>i. i \<in> I \<Longrightarrow> bij_betw f (A i) (A' i)"
+  shows   "bij_betw f (\<Union>i\<in>I. A i) (\<Union>i\<in>I. A' i)"
+unfolding bij_betw_def
+proof
+  from bij show eq: "f ` UNION I A = UNION I A'"
+    by (auto simp: bij_betw_def image_UN)
+  show "inj_on f (UNION I A)"
+  proof (rule inj_onI, clarify)
+    fix i j x y assume A: "i \<in> I" "j \<in> I" "x \<in> A i" "y \<in> A j" and B: "f x = f y"
+    from A bij[of i] bij[of j] have "f x \<in> A' i" "f y \<in> A' j"
+      by (auto simp: bij_betw_def)
+    with B have "A' i \<inter> A' j \<noteq> {}" by auto
+    with disj A have "i = j" unfolding disjoint_family_on_def by blast
+    with A B bij[of i] show "x = y" by (auto simp: bij_betw_def dest: inj_onD)
+  qed
+qed
+
 lemma disjoint_union: "disjoint C \<Longrightarrow> disjoint B \<Longrightarrow> \<Union>C \<inter> \<Union>B = {} \<Longrightarrow> disjoint (C \<union> B)"
   using disjoint_UN[of "{C, B}" "\<lambda>x. x"] by (auto simp add: disjoint_family_on_def)
+
+text \<open>
+  The union of an infinite disjoint family of non-empty sets is infinite.
+\<close>
+lemma infinite_disjoint_family_imp_infinite_UNION:
+  assumes "\<not>finite A" "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> {}" "disjoint_family_on f A"
+  shows   "\<not>finite (UNION A f)"
+proof -
+  def g \<equiv> "\<lambda>x. SOME y. y \<in> f x"
+  have g: "g x \<in> f x" if "x \<in> A" for x
+    unfolding g_def by (rule someI_ex, insert assms(2) that) blast
+  have inj_on_g: "inj_on g A"
+  proof (rule inj_onI, rule ccontr)
+    fix x y assume A: "x \<in> A" "y \<in> A" "g x = g y" "x \<noteq> y"
+    with g[of x] g[of y] have "g x \<in> f x" "g x \<in> f y" by auto
+    with A `x \<noteq> y` assms show False
+      by (auto simp: disjoint_family_on_def inj_on_def)
+  qed
+  from g have "g ` A \<subseteq> UNION A f" by blast
+  moreover from inj_on_g \<open>\<not>finite A\<close> have "\<not>finite (g ` A)"
+    using finite_imageD by blast
+  ultimately show ?thesis using finite_subset by blast
+qed  
+  
 
 subsection \<open>Construct Disjoint Sequences\<close>
 
@@ -149,5 +207,5 @@ lemma disjointed_0[simp]: "disjointed A 0 = A 0"
 
 lemma disjointed_mono: "mono A \<Longrightarrow> disjointed A (Suc n) = A (Suc n) - A n"
   using mono_Un[of A] by (simp add: disjointed_def atLeastLessThanSuc_atLeastAtMost atLeast0AtMost)
-
+  
 end

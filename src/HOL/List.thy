@@ -3298,8 +3298,18 @@ lemma nth_eq_iff_index_eq:
   "\<lbrakk> distinct xs; i < length xs; j < length xs \<rbrakk> \<Longrightarrow> (xs!i = xs!j) = (i = j)"
 by(auto simp: distinct_conv_nth)
 
+lemma distinct_Ex1: 
+  "distinct xs \<Longrightarrow> x \<in> set xs \<Longrightarrow> (\<exists>!i. i < length xs \<and> xs ! i = x)"
+  by (auto simp: in_set_conv_nth nth_eq_iff_index_eq)
+
 lemma inj_on_nth: "distinct xs \<Longrightarrow> \<forall>i \<in> I. i < length xs \<Longrightarrow> inj_on (nth xs) I"
 by (rule inj_onI) (simp add: nth_eq_iff_index_eq)
+
+lemma bij_betw_nth:
+  assumes "distinct xs" "A = {..<length xs}" "B = set xs" 
+  shows   "bij_betw (op ! xs) A B"
+  using assms unfolding bij_betw_def
+  by (auto intro!: inj_on_nth simp: set_conv_nth)
 
 lemma set_update_distinct: "\<lbrakk> distinct xs;  n < length xs \<rbrakk> \<Longrightarrow>
   set(xs[n := x]) = insert x (set xs - {xs!n})"
@@ -6174,6 +6184,18 @@ lemma bind_simps [simp]:
   "List.bind [] f = []"
   "List.bind (x # xs) f = f x @ List.bind xs f"
   by (simp_all add: bind_def)
+
+lemma list_bind_cong [fundef_cong]:
+  assumes "xs = ys" "(\<And>x. x \<in> set xs \<Longrightarrow> f x = g x)"
+  shows   "List.bind xs f = List.bind ys g"
+proof -
+  from assms(2) have "List.bind xs f = List.bind xs g"
+    by (induction xs) simp_all
+  with assms(1) show ?thesis by simp
+qed
+
+lemma set_list_bind: "set (List.bind xs f) = (\<Union>x\<in>set xs. set (f x))"
+  by (induction xs) simp_all  
 
 
 subsection \<open>Transfer\<close>

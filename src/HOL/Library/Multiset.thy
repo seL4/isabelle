@@ -417,6 +417,8 @@ proof -
 qed
 
 
+
+
 subsubsection \<open>Pointwise ordering induced by count\<close>
 
 definition subseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<subseteq>#" 50)
@@ -1159,6 +1161,28 @@ lemma size_image_mset [simp]: "size (image_mset f M) = size M"
 lemma image_mset_is_empty_iff [simp]: "image_mset f M = {#} \<longleftrightarrow> M = {#}"
   by (cases M) auto
 
+lemma image_mset_If:
+  "image_mset (\<lambda>x. if P x then f x else g x) A = 
+     image_mset f (filter_mset P A) + image_mset g (filter_mset (\<lambda>x. \<not>P x) A)"
+  by (induction A) (auto simp: add_ac)
+
+lemma image_mset_Diff: 
+  assumes "B \<subseteq># A"
+  shows   "image_mset f (A - B) = image_mset f A - image_mset f B"
+proof -
+  have "image_mset f (A - B + B) = image_mset f (A - B) + image_mset f B"
+    by simp
+  also from assms have "A - B + B = A"
+    by (simp add: subset_mset.diff_add) 
+  finally show ?thesis by simp
+qed
+
+lemma count_image_mset: 
+  "count (image_mset f A) x = (\<Sum>y\<in>f -` {x} \<inter> set_mset A. count A y)"
+  by (induction A)
+     (auto simp: setsum.distrib setsum.delta' intro!: setsum.mono_neutral_left)
+
+
 syntax (ASCII)
   "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  ("({#_/. _ :# _#})")
 syntax
@@ -1379,6 +1403,40 @@ qed \<comment> \<open>TODO: maybe define @{const mset_set} also in terms of @{co
 lemma elem_mset_set[simp, intro]: "finite A \<Longrightarrow> x \<in># mset_set A \<longleftrightarrow> x \<in> A"
   by (induct A rule: finite_induct) simp_all
 
+lemma mset_set_Union: 
+  "finite A \<Longrightarrow> finite B \<Longrightarrow> A \<inter> B = {} \<Longrightarrow> mset_set (A \<union> B) = mset_set A + mset_set B"
+  by (induction A rule: finite_induct) (auto simp: add_ac)
+
+lemma filter_mset_mset_set [simp]:
+  "finite A \<Longrightarrow> filter_mset P (mset_set A) = mset_set {x\<in>A. P x}"
+proof (induction A rule: finite_induct)
+  case (insert x A)
+  from insert.hyps have "filter_mset P (mset_set (insert x A)) = 
+      filter_mset P (mset_set A) + mset_set (if P x then {x} else {})"
+    by (simp add: add_ac)
+  also have "filter_mset P (mset_set A) = mset_set {x\<in>A. P x}"
+    by (rule insert.IH)
+  also from insert.hyps 
+    have "\<dots> + mset_set (if P x then {x} else {}) =
+            mset_set ({x \<in> A. P x} \<union> (if P x then {x} else {}))" (is "_ = mset_set ?A")
+     by (intro mset_set_Union [symmetric]) simp_all
+  also from insert.hyps have "?A = {y\<in>insert x A. P y}" by auto
+  finally show ?case .
+qed simp_all
+
+lemma mset_set_Diff:
+  assumes "finite A" "B \<subseteq> A"
+  shows  "mset_set (A - B) = mset_set A - mset_set B"
+proof -
+  from assms have "mset_set ((A - B) \<union> B) = mset_set (A - B) + mset_set B"
+    by (intro mset_set_Union) (auto dest: finite_subset)
+  also from assms have "A - B \<union> B = A" by blast
+  finally show ?thesis by simp
+qed
+
+lemma mset_set_set: "distinct xs \<Longrightarrow> mset_set (set xs) = mset xs"
+  by (induction xs) (simp_all add: add_ac)
+
 context linorder
 begin
 
@@ -1418,6 +1476,9 @@ lemma finite_set_mset_mset_set[simp]:
   "finite A \<Longrightarrow> set_mset (mset_set A) = A"
 by (induct A rule: finite_induct) simp_all
 
+lemma mset_set_empty_iff: "mset_set A = {#} \<longleftrightarrow> A = {} \<or> infinite A"
+  using finite_set_mset_mset_set by fastforce
+
 lemma infinite_set_mset_mset_set:
   "\<not> finite A \<Longrightarrow> set_mset (mset_set A) = {}"
 by simp
@@ -1429,6 +1490,22 @@ by (induct M) (simp_all add: set_insort)
 lemma sorted_list_of_mset_set [simp]:
   "sorted_list_of_multiset (mset_set A) = sorted_list_of_set A"
 by (cases "finite A") (induct A rule: finite_induct, simp_all add: ac_simps)
+
+lemma mset_upt [simp]: "mset [m..<n] = mset_set {m..<n}"
+  by (induction n) (simp_all add: atLeastLessThanSuc add_ac)
+
+lemma image_mset_map_of: 
+  "distinct (map fst xs) \<Longrightarrow> {#the (map_of xs i). i \<in># mset (map fst xs)#} = mset (map snd xs)"
+proof (induction xs)
+  case (Cons x xs)
+  have "{#the (map_of (x # xs) i). i \<in># mset (map fst (x # xs))#} = 
+          {#the (if i = fst x then Some (snd x) else map_of xs i). 
+             i \<in># mset (map fst xs)#} + {#snd x#}" (is "_ = ?A + _") by simp
+  also from Cons.prems have "?A = {#the (map_of xs i). i :# mset (map fst xs)#}"
+    by (cases x, intro image_mset_cong) (auto simp: in_multiset_in_set)
+  also from Cons.prems have "\<dots> = mset (map snd xs)" by (intro Cons.IH) simp_all
+  finally show ?case by simp
+qed simp_all  
 
 
 subsection \<open>Replicate operation\<close>
@@ -1545,6 +1622,9 @@ next
     by (cases "x \<in> set_mset M")
       (simp_all add: size_multiset_overloaded_eq setsum.distrib setsum.delta' insert_absorb not_in_iff)
 qed
+
+lemma size_mset_set [simp]: "size (mset_set A) = card A"
+  by (simp only: size_eq_msetsum card_eq_setsum setsum_unfold_msetsum)
 
 syntax (ASCII)
   "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)

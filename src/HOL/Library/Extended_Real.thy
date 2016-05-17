@@ -228,6 +228,8 @@ subsection \<open>Definition and basic properties\<close>
 
 datatype ereal = ereal real | PInfty | MInfty
 
+lemma ereal_cong: "x = y \<Longrightarrow> ereal x = ereal y" by simp
+
 instantiation ereal :: uminus
 begin
 
@@ -770,6 +772,9 @@ next
   case False
   then show ?thesis by simp
 qed
+
+lemma listsum_ereal [simp]: "listsum (map (\<lambda>x. ereal (f x)) xs) = ereal (listsum (map f xs))"
+  by (induction xs) simp_all
 
 lemma setsum_Pinfty:
   fixes f :: "'a \<Rightarrow> ereal"

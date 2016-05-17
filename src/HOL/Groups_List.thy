@@ -255,6 +255,24 @@ proof-
   finally show ?thesis by(simp add:listsum_map_eq_setsum_count)
 qed
 
+lemma listsum_nonneg: 
+    "(\<And>x. x \<in> set xs \<Longrightarrow> (x :: 'a :: ordered_comm_monoid_add) \<ge> 0) \<Longrightarrow> listsum xs \<ge> 0"
+  by (induction xs) simp_all
+
+lemma listsum_map_filter:
+  "listsum (map f (filter P xs)) = listsum (map (\<lambda>x. if P x then f x else 0) xs)"
+  by (induction xs) simp_all
+
+lemma listsum_cong [fundef_cong]:
+  assumes "xs = ys"
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x = g x"
+  shows    "listsum (map f xs) = listsum (map g ys)"
+proof -
+  from assms(2) have "listsum (map f xs) = listsum (map g xs)"
+    by (induction xs) simp_all
+  with assms(1) show ?thesis by simp
+qed
+
 
 subsection \<open>Further facts about @{const List.n_lists}\<close>
 
@@ -346,6 +364,16 @@ proof -
 qed
 
 end
+
+lemma listprod_cong [fundef_cong]:
+  assumes "xs = ys"
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x = g x"
+  shows    "listprod (map f xs) = listprod (map g ys)"
+proof -
+  from assms(2) have "listprod (map f xs) = listprod (map g xs)"
+    by (induction xs) simp_all
+  with assms(1) show ?thesis by simp
+qed
 
 text \<open>Some syntactic sugar:\<close>
 

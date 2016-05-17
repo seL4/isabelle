@@ -112,6 +112,10 @@ lemma wfE_min:
   obtains z where "z \<in> Q" "\<And>y. (y, z) \<in> R \<Longrightarrow> y \<notin> Q"
   using Q wfE_pf[OF wf, of Q] by blast
 
+lemma wfE_min':
+  "wf R \<Longrightarrow> Q \<noteq> {} \<Longrightarrow> (\<And>z. z \<in> Q \<Longrightarrow> (\<And>y. (y, z) \<in> R \<Longrightarrow> y \<notin> Q) \<Longrightarrow> thesis) \<Longrightarrow> thesis"
+  using wfE_min[of R _ Q] by blast
+
 lemma wfI_min:
   assumes a: "\<And>x Q. x \<in> Q \<Longrightarrow> \<exists>z\<in>Q. \<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> Q"
   shows "wf R"
@@ -918,6 +922,19 @@ apply(drule assms)
 apply (blast intro: card_mono finite_subset psubset_card_mono dest: psubset_eq[THEN iffD2])
 done
 
+lemma finite_subset_wf:
+  assumes "finite A"
+  shows   "wf {(X,Y). X \<subset> Y \<and> Y \<subseteq> A}"
+proof (intro finite_acyclic_wf)
+  have "{(X,Y). X \<subset> Y \<and> Y \<subseteq> A} \<subseteq> Pow A \<times> Pow A" by blast
+  thus "finite {(X,Y). X \<subset> Y \<and> Y \<subseteq> A}" 
+    by (rule finite_subset) (auto simp: assms finite_cartesian_product)
+next
+  have "{(X, Y). X \<subset> Y \<and> Y \<subseteq> A}\<^sup>+ = {(X, Y). X \<subset> Y \<and> Y \<subseteq> A}"
+    by (intro trancl_id transI) blast
+  also have " \<forall>x. (x, x) \<notin> \<dots>" by blast
+  finally show "acyclic {(X,Y). X \<subset> Y \<and> Y \<subseteq> A}" by (rule acyclicI)
+qed
 
 hide_const (open) acc accp
 

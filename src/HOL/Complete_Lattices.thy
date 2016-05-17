@@ -1276,6 +1276,8 @@ lemma image_UN: "f ` UNION A B = (\<Union>x\<in>A. f ` B x)"
 lemma UN_singleton [simp]: "(\<Union>x\<in>A. {x}) = A"
   by blast
 
+lemma inj_on_image: "inj_on f (\<Union>A) \<Longrightarrow> inj_on (op ` f) A"
+  unfolding inj_on_def by blast
 
 subsubsection \<open>Distributive laws\<close>
 

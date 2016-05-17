@@ -1501,6 +1501,41 @@ proof -
     by (auto dest: card_subset_eq)
 qed
 
+lemma remove_induct [case_names empty infinite remove]:
+  assumes empty: "P ({} :: 'a set)" and infinite: "\<not>finite B \<Longrightarrow> P B"
+      and remove: "\<And>A. finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> P (A - {x})) \<Longrightarrow> P A"
+  shows "P B"
+proof (cases "finite B")
+  assume "\<not>finite B"
+  thus ?thesis by (rule infinite)
+next
+  define A where "A = B"
+  assume "finite B"
+  hence "finite A" "A \<subseteq> B" by (simp_all add: A_def)
+  thus "P A"
+  proof (induction "card A" arbitrary: A)
+    case 0
+    hence "A = {}" by auto
+    with empty show ?case by simp
+  next
+    case (Suc n A)
+    from \<open>A \<subseteq> B\<close> and \<open>finite B\<close> have "finite A" by (rule finite_subset)
+    moreover from Suc.hyps have "A \<noteq> {}" by auto
+    moreover note \<open>A \<subseteq> B\<close>
+    moreover have "P (A - {x})" if x: "x \<in> A" for x
+      using x Suc.prems \<open>Suc n = card A\<close> by (intro Suc) auto
+    ultimately show ?case by (rule remove)
+  qed
+qed
+
+lemma finite_remove_induct [consumes 1, case_names empty remove]:
+  assumes finite: "finite B" and empty: "P ({} :: 'a set)" 
+      and rm: "\<And>A. finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> P (A - {x})) \<Longrightarrow> P A"
+  defines "B' \<equiv> B"
+  shows   "P B'"
+  by (induction B' rule: remove_induct) (simp_all add: assms)
+
+
 text\<open>main cardinality theorem\<close>
 lemma card_partition [rule_format]:
   "finite C ==>
@@ -1561,6 +1596,10 @@ lemma card_Suc_eq:
 lemma card_1_singletonE:
     assumes "card A = 1" obtains x where "A = {x}"
   using assms by (auto simp: card_Suc_eq)
+
+lemma is_singleton_altdef: "is_singleton A \<longleftrightarrow> card A = 1"
+  unfolding is_singleton_def
+  by (auto elim!: card_1_singletonE is_singletonE simp del: One_nat_def)
 
 lemma card_le_Suc_iff: "finite A \<Longrightarrow>
   Suc n \<le> card A = (\<exists>a B. A = insert a B \<and> a \<notin> B \<and> n \<le> card B \<and> finite B)"

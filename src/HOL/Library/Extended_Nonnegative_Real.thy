@@ -864,6 +864,8 @@ lift_definition ennreal :: "real \<Rightarrow> ennreal" is "sup 0 \<circ> ereal"
 
 declare [[coercion ennreal]]
 
+lemma ennreal_cong: "x = y \<Longrightarrow> ennreal x = ennreal y" by simp
+
 lemma ennreal_cases[cases type: ennreal]:
   fixes x :: ennreal
   obtains (real) r :: real where "0 \<le> r" "x = ennreal r" | (top) "x = top"
@@ -948,6 +950,19 @@ lemma ennreal_plus[simp]:
 
 lemma setsum_ennreal[simp]: "(\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> (\<Sum>i\<in>I. ennreal (f i)) = ennreal (setsum f I)"
   by (induction I rule: infinite_finite_induct) (auto simp: setsum_nonneg)
+
+lemma listsum_ennreal[simp]: 
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x \<ge> 0" 
+  shows   "listsum (map (\<lambda>x. ennreal (f x)) xs) = ennreal (listsum (map f xs))"
+using assms
+proof (induction xs)
+  case (Cons x xs)
+  from Cons have "(\<Sum>x\<leftarrow>x # xs. ennreal (f x)) = ennreal (f x) + ennreal (listsum (map f xs))" 
+    by simp
+  also from Cons.prems have "\<dots> = ennreal (f x + listsum (map f xs))" 
+    by (intro ennreal_plus [symmetric] listsum_nonneg) auto
+  finally show ?case by simp
+qed simp_all
 
 lemma ennreal_of_nat_eq_real_of_nat: "of_nat i = ennreal (of_nat i)"
   by (induction i) simp_all

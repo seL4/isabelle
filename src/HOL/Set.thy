@@ -1803,6 +1803,21 @@ lemma vimage_inter_cong:
 lemma vimage_ident [simp]: "(%x. x) -` Y = Y"
   by blast
 
+  
+subsubsection \<open>Singleton sets\<close>
+
+definition is_singleton :: "'a set \<Rightarrow> bool" where
+  "is_singleton A \<longleftrightarrow> (\<exists>x. A = {x})"
+
+lemma is_singletonI [simp, intro!]: "is_singleton {x}"
+  unfolding is_singleton_def by simp
+
+lemma is_singletonI': "A \<noteq> {} \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x = y) \<Longrightarrow> is_singleton A"
+  unfolding is_singleton_def by blast
+
+lemma is_singletonE: "is_singleton A \<Longrightarrow> (\<And>x. A = {x} \<Longrightarrow> P) \<Longrightarrow> P"
+  unfolding is_singleton_def by blast
+
 
 subsubsection \<open>Getting the Contents of a Singleton Set\<close>
 
@@ -1811,6 +1826,9 @@ definition the_elem :: "'a set \<Rightarrow> 'a" where
 
 lemma the_elem_eq [simp]: "the_elem {x} = x"
   by (simp add: the_elem_def)
+
+lemma is_singleton_the_elem: "is_singleton A \<longleftrightarrow> A = {the_elem A}"
+  by (auto simp: is_singleton_def)
 
 lemma the_elem_image_unique:
   assumes "A \<noteq> {}"
@@ -1915,6 +1933,9 @@ lemma pairwise_empty [simp]: "pairwise P {}"
 
 lemma pairwise_singleton [simp]: "pairwise P {A}"
   by (simp add: pairwise_def)
+
+lemma Int_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> x \<in> B \<Longrightarrow> False) \<Longrightarrow> A \<inter> B = {}"
+  by blast
 
 hide_const (open) member not_member
 

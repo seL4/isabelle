@@ -111,6 +111,9 @@ lemma (in prob_space) emeasure_eq_1_AE:
 lemma (in prob_space) emeasure_le_1: "emeasure M S \<le> 1"
   unfolding ennreal_1[symmetric] emeasure_eq_measure by (subst ennreal_le_iff) auto
 
+lemma (in prob_space) emeasure_ge_1_iff: "emeasure M A \<ge> 1 \<longleftrightarrow> emeasure M A = 1"
+  by (rule iffI, intro antisym emeasure_le_1) simp_all
+
 lemma (in prob_space) AE_iff_emeasure_eq_1:
   assumes [measurable]: "Measurable.pred M P"
   shows "(AE x in M. P x) \<longleftrightarrow> emeasure M {x\<in>space M. P x} = 1"
@@ -124,6 +127,9 @@ qed
 
 lemma (in prob_space) measure_le_1: "emeasure M X \<le> 1"
   using emeasure_space[of M X] by (simp add: emeasure_space_1)
+
+lemma (in prob_space) measure_ge_1_iff: "measure M A \<ge> 1 \<longleftrightarrow> measure M A = 1"
+  by (auto intro!: antisym)  
 
 lemma (in prob_space) AE_I_eq_1:
   assumes "emeasure M {x\<in>space M. P x} = 1" "{x\<in>space M. P x} \<in> sets M"

@@ -1758,6 +1758,10 @@ lemma le_diff_iff:
   shows "k \<le> m \<Longrightarrow> k \<le> n \<Longrightarrow> m - k \<le> n - k \<longleftrightarrow> m \<le> n"
   by (auto dest!: le_Suc_ex)
 
+lemma le_diff_iff': "a \<le> c \<Longrightarrow> b \<le> c \<Longrightarrow> c - a \<le> c - b \<longleftrightarrow> b \<le> (a::nat)"
+  by (force dest: le_Suc_ex)
+  
+
 text\<open>(Anti)Monotonicity of subtraction -- by Stephan Merz\<close>
 
 lemma diff_le_mono:

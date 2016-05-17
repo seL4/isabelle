@@ -5,7 +5,7 @@
 section \<open>Indicator Function\<close>
 
 theory Indicator_Function
-imports Complex_Main
+imports Complex_Main Disjoint_Sets
 begin
 
 definition "indicator S x = (if x \<in> S then 1 else 0)"
@@ -26,6 +26,10 @@ lemma indicator_eq_0_iff: "indicator A x = (0::_::zero_neq_one) \<longleftrighta
   by (auto simp: indicator_def)
 
 lemma indicator_eq_1_iff: "indicator A x = (1::_::zero_neq_one) \<longleftrightarrow> x \<in> A"
+  by (auto simp: indicator_def)
+
+lemma indicator_leI:
+  "(x \<in> A \<Longrightarrow> y \<in> B) \<Longrightarrow> (indicator A x :: 'a :: linordered_nonzero_semiring) \<le> indicator B y"
   by (auto simp: indicator_def)
 
 lemma split_indicator: "P (indicator S x) \<longleftrightarrow> ((x \<in> S \<longrightarrow> P 1) \<and> (x \<notin> S \<longrightarrow> P 0))"
@@ -160,5 +164,15 @@ proof cases
     using i by (auto split: split_indicator)
   finally show ?thesis .
 qed simp
+
+text \<open>
+  The indicator function of the union of a disjoint family of sets is the 
+  sum over all the individual indicators.
+\<close>
+lemma indicator_UN_disjoint:
+  assumes "finite A" "disjoint_family_on f A"
+  shows   "indicator (UNION A f) x = (\<Sum>y\<in>A. indicator (f y) x)"
+  using assms by (induction A rule: finite_induct)
+                 (auto simp: disjoint_family_on_def indicator_def split: if_splits)
 
 end
