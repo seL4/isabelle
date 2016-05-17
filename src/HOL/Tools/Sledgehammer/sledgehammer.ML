@@ -94,7 +94,7 @@ fun play_one_line_proof minimize timeout used_facts0 state i (preferred_meth, me
                 else
                   let
                     val (time', used_names') =
-                      minimized_isar_step ctxt time (mk_step fact_names [meth])
+                      minimized_isar_step ctxt chained time (mk_step fact_names [meth])
                       ||> (facts_of_isar_step #> snd)
                     val used_facts' = filter (member (op =) used_names' o fst) used_facts
                   in

@@ -12,7 +12,8 @@ sig
   type isar_preplay_data = Sledgehammer_Isar_Preplay.isar_preplay_data
 
   val keep_fastest_method_of_isar_step : isar_preplay_data -> isar_step -> isar_step
-  val minimized_isar_step : Proof.context -> Time.time -> isar_step -> Time.time * isar_step
+  val minimized_isar_step : Proof.context -> thm list -> Time.time -> isar_step ->
+    Time.time * isar_step
   val minimize_isar_step_dependencies : Proof.context -> isar_preplay_data Unsynchronized.ref ->
     isar_step -> isar_step
   val postprocess_isar_proof_remove_show_stuttering : isar_proof -> isar_proof
@@ -37,7 +38,7 @@ fun keep_fastest_method_of_isar_step preplay_data
 
 val slack = seconds 0.025
 
-fun minimized_isar_step ctxt time
+fun minimized_isar_step ctxt chained time
     (Prove (qs, xs, l, t, subproofs, (lfs0, gfs0), meths as meth :: _, comment)) =
   let
     fun mk_step_lfs_gfs lfs gfs =
@@ -45,7 +46,7 @@ fun minimized_isar_step ctxt time
 
     fun minimize_half _ min_facts [] time = (min_facts, time)
       | minimize_half mk_step min_facts (fact :: facts) time =
-        (case preplay_isar_step_for_method ctxt [] (time + slack) meth
+        (case preplay_isar_step_for_method ctxt chained (time + slack) meth
             (mk_step (min_facts @ facts)) of
           Played time' => minimize_half mk_step min_facts facts time'
         | _ => minimize_half mk_step (fact :: min_facts) facts time)
@@ -64,7 +65,7 @@ fun minimize_isar_step_dependencies ctxt preplay_data
         fun old_data_for_method meth' =
           (meth', peek_at_outcome (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth'))
 
-        val (time', step') = minimized_isar_step ctxt time step
+        val (time', step') = minimized_isar_step ctxt [] time step
       in
         set_preplay_outcomes_of_isar_step ctxt time' preplay_data step'
           ((meth, Played time') :: (if step' = step then map old_data_for_method meths else []));
