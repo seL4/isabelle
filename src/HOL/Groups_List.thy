@@ -259,7 +259,7 @@ lemma listsum_nonneg:
     "(\<And>x. x \<in> set xs \<Longrightarrow> (x :: 'a :: ordered_comm_monoid_add) \<ge> 0) \<Longrightarrow> listsum xs \<ge> 0"
   by (induction xs) simp_all
 
-lemma listsum_map_filter:
+lemma (in monoid_add) listsum_map_filter':
   "listsum (map f (filter P xs)) = listsum (map (\<lambda>x. if P x then f x else 0) xs)"
   by (induction xs) simp_all
 

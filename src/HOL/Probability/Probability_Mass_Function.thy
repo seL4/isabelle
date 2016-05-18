@@ -1809,7 +1809,7 @@ private lemma pmf_of_list_aux:
 proof -
   have "(\<integral>\<^sup>+ x. ennreal (listsum (map snd (filter (\<lambda>z. fst z = x) xs))) \<partial>count_space UNIV) =
             (\<integral>\<^sup>+ x. ennreal (listsum (map (\<lambda>(x',p). indicator {x'} x * p) xs)) \<partial>count_space UNIV)"
-    by (intro nn_integral_cong ennreal_cong, subst listsum_map_filter) (auto intro: listsum_cong)
+    by (intro nn_integral_cong ennreal_cong, subst listsum_map_filter') (auto intro: listsum_cong)
   also have "\<dots> = (\<Sum>(x',p)\<leftarrow>xs. (\<integral>\<^sup>+ x. ennreal (indicator {x'} x * p) \<partial>count_space UNIV))"
     using assms(1)
   proof (induction xs)
@@ -1901,7 +1901,7 @@ proof -
     by (intro setsum.cong) (auto simp: indicator_def)
   also have "\<dots> = (\<Sum>x\<in>set (map fst xs). (\<Sum>xa = 0..<length xs.
                      if fst (xs ! xa) = x \<and> x \<in> A then snd (xs ! xa) else 0))"
-    by (intro setsum.cong refl, subst listsum_map_filter, subst listsum_setsum_nth) simp
+    by (intro setsum.cong refl, subst listsum_map_filter', subst listsum_setsum_nth) simp
   also have "\<dots> = (\<Sum>xa = 0..<length xs. (\<Sum>x\<in>set (map fst xs). 
                      if fst (xs ! xa) = x \<and> x \<in> A then snd (xs ! xa) else 0))"
     by (rule setsum.commute)
@@ -1911,7 +1911,7 @@ proof -
   also have "\<dots> = (\<Sum>xa = 0..<length xs. if fst (xs ! xa) \<in> A then snd (xs ! xa) else 0)"
     by (intro setsum.cong refl) (simp_all add: setsum.delta)
   also have "\<dots> = listsum (map snd (filter (\<lambda>x. fst x \<in> A) xs))"
-    by (subst listsum_map_filter, subst listsum_setsum_nth) simp_all
+    by (subst listsum_map_filter', subst listsum_setsum_nth) simp_all
   finally show ?thesis . 
 qed
 
