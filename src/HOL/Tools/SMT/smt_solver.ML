@@ -81,8 +81,8 @@ fun run ctxt name mk_cmd input =
           with_trace ctxt ("Using cached certificate from " ^
             Path.print (Cache_IO.cache_path_of certs) ^ " ...") I output))
 
-(* Z3 returns 1 if "get-model" or "get-model" fails *)
-val normal_return_codes = [0, 1]
+(* Z3 returns 1 if "get-proof" or "get-model" fails. veriT returns 255. *)
+val normal_return_codes = [0, 1, 255]
 
 fun run_solver ctxt name mk_cmd input =
   let

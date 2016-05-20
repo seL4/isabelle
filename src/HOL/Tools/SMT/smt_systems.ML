@@ -108,8 +108,7 @@ val veriT: SMT_Solver.solver_config = {
     "--max-time=" ^ string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout))]),
   smt_options = [(":produce-proofs", "true")],
   default_max_relevant = 200 (* FUDGE *),
-  outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat"
-    "(error \"status is not unsat.\")"),
+  outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown"),
   parse_proof = SOME (K VeriT_Proof_Parse.parse_proof),
   replay = NONE }
 
