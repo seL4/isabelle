@@ -2131,21 +2131,39 @@ lemma isCont_setsum [simp]:
 
 subsection \<open>Uniform Continuity\<close>
 
-definition
-  isUCont :: "['a::metric_space \<Rightarrow> 'b::metric_space] \<Rightarrow> bool" where
-  "isUCont f = (\<forall>r>0. \<exists>s>0. \<forall>x y. dist x y < s \<longrightarrow> dist (f x) (f y) < r)"
+lemma uniformly_continuous_on_def:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  shows "uniformly_continuous_on s f \<longleftrightarrow>
+    (\<forall>e>0. \<exists>d>0. \<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
+  unfolding uniformly_continuous_on_uniformity
+    uniformity_dist filterlim_INF filterlim_principal eventually_inf_principal
+  by (force simp: Ball_def uniformity_dist[symmetric] eventually_uniformity_metric)
+
+abbreviation isUCont :: "['a::metric_space \<Rightarrow> 'b::metric_space] \<Rightarrow> bool" where
+  "isUCont f \<equiv> uniformly_continuous_on UNIV f"
+
+lemma isUCont_def: "isUCont f = (\<forall>r>0. \<exists>s>0. \<forall>x y. dist x y < s \<longrightarrow> dist (f x) (f y) < r)"
+  by (auto simp: uniformly_continuous_on_def dist_commute)
 
 lemma isUCont_isCont: "isUCont f ==> isCont f x"
-by (simp add: isUCont_def isCont_def LIM_def, force)
+  by (drule uniformly_continuous_imp_continuous) (simp add: continuous_on_eq_continuous_at)
+
+lemma uniformly_continuous_on_Cauchy:
+  fixes f::"'a::metric_space \<Rightarrow> 'b::metric_space"
+  assumes "uniformly_continuous_on S f" "Cauchy X" "\<And>n. X n \<in> S"
+  shows "Cauchy (\<lambda>n. f (X n))"
+  using assms
+  unfolding uniformly_continuous_on_def
+  apply -
+  apply (rule metric_CauchyI)
+  apply (drule_tac x=e in spec, safe)
+  apply (drule_tac e=d in metric_CauchyD, safe)
+  apply (rule_tac x=M in exI, simp)
+  done
 
 lemma isUCont_Cauchy:
   "\<lbrakk>isUCont f; Cauchy X\<rbrakk> \<Longrightarrow> Cauchy (\<lambda>n. f (X n))"
-unfolding isUCont_def
-apply (rule metric_CauchyI)
-apply (drule_tac x=e in spec, safe)
-apply (drule_tac e=s in metric_CauchyD, safe)
-apply (rule_tac x=M in exI, simp)
-done
+  by (rule uniformly_continuous_on_Cauchy[where S=UNIV and f=f]) simp_all
 
 lemma (in bounded_linear) isUCont: "isUCont f"
 unfolding isUCont_def dist_norm

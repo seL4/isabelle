@@ -5443,14 +5443,6 @@ apply (simp add: continuous_on_iff, clarify)
 apply (rule ex_forward [OF assms [OF half_gt_zero]], auto)
 done
 
-lemma uniformly_continuous_on_def:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
-  shows "uniformly_continuous_on s f \<longleftrightarrow>
-    (\<forall>e>0. \<exists>d>0. \<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
-  unfolding uniformly_continuous_on_uniformity
-    uniformity_dist filterlim_INF filterlim_principal eventually_inf_principal
-  by (force simp: Ball_def uniformity_dist[symmetric] eventually_uniformity_metric)
-
 text\<open>Some simple consequential lemmas.\<close>
 
 lemma continuous_onE:
