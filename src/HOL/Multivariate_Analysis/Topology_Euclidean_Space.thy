@@ -5976,17 +5976,15 @@ next
   thus "isCont ((indicator A)::'a \<Rightarrow> real) x"
   proof
     assume int: "x \<in> interior A"
-    hence "\<exists>U. open U \<and> x \<in> U \<and> U \<subseteq> A" unfolding interior_def by auto
-    then guess U .. note U = this
+    then obtain U where U: "open U" "x \<in> U" "U \<subseteq> A" unfolding interior_def by auto
     hence "\<forall>y\<in>U. indicator A y = (1::real)" unfolding indicator_def by auto
     hence "continuous_on U (indicator A)" by (simp add: continuous_on_const indicator_eq_1_iff)
     thus ?thesis using U continuous_on_eq_continuous_at by auto
   next
     assume ext: "x \<in> interior (-A)"
-    hence "\<exists>U. open U \<and> x \<in> U \<and> U \<subseteq> -A" unfolding interior_def by auto
-    then guess U .. note U = this
-    hence "\<forall>y\<in>U. indicator A y = (0::real)" unfolding indicator_def by auto
-    hence "continuous_on U (indicator A)" by (smt U continuous_on_topological indicator_def)
+    then obtain U where U: "open U" "x \<in> U" "U \<subseteq> -A" unfolding interior_def by auto
+    then have "continuous_on U (indicator A)"
+      using continuous_on_topological by (auto simp: subset_iff)
     thus ?thesis using U continuous_on_eq_continuous_at by auto
   qed
 qed
