@@ -6086,6 +6086,158 @@ proof (intro allI impI)
   qed
 qed
 
+lemma uniformly_continuous_on_extension_at_closure:
+  fixes f::"'a::metric_space \<Rightarrow> 'b::complete_space"
+  assumes uc: "uniformly_continuous_on X f"
+  assumes "x \<in> closure X"
+  obtains l where "(f \<longlongrightarrow> l) (at x within X)"
+proof -
+  from assms obtain xs where xs: "xs \<longlonglongrightarrow> x" "\<And>n. xs n \<in> X"
+    by (auto simp: closure_sequential)
+
+  from uniformly_continuous_on_Cauchy[OF uc LIMSEQ_imp_Cauchy, OF xs]
+  obtain l where l: "(\<lambda>n. f (xs n)) \<longlonglongrightarrow> l"
+    by atomize_elim (simp only: convergent_eq_cauchy)
+
+  have "(f \<longlongrightarrow> l) (at x within X)"
+  proof (safe intro!: Lim_within_LIMSEQ)
+    fix xs'
+    assume "\<forall>n. xs' n \<noteq> x \<and> xs' n \<in> X"
+      and xs': "xs' \<longlonglongrightarrow> x"
+    then have "xs' n \<noteq> x" "xs' n \<in> X" for n by auto
+
+    from uniformly_continuous_on_Cauchy[OF uc LIMSEQ_imp_Cauchy, OF \<open>xs' \<longlonglongrightarrow> x\<close> \<open>xs' _ \<in> X\<close>]
+    obtain l' where l': "(\<lambda>n. f (xs' n)) \<longlonglongrightarrow> l'"
+      by atomize_elim (simp only: convergent_eq_cauchy)
+
+    show "(\<lambda>n. f (xs' n)) \<longlonglongrightarrow> l"
+    proof (rule tendstoI)
+      fix e::real assume "e > 0"
+      define e' where "e' \<equiv> e / 2"
+      have "e' > 0" using \<open>e > 0\<close> by (simp add: e'_def)
+
+      have "\<forall>\<^sub>F n in sequentially. dist (f (xs n)) l < e'"
+        by (simp add: \<open>0 < e'\<close> l tendstoD)
+      moreover
+      from uc[unfolded uniformly_continuous_on_def, rule_format, OF \<open>e' > 0\<close>]
+      obtain d where d: "d > 0" "\<And>x x'. x \<in> X \<Longrightarrow> x' \<in> X \<Longrightarrow> dist x x' < d \<Longrightarrow> dist (f x) (f x') < e'"
+        by auto
+      have "\<forall>\<^sub>F n in sequentially. dist (xs n) (xs' n) < d"
+        by (auto intro!: \<open>0 < d\<close> order_tendstoD tendsto_eq_intros xs xs')
+      ultimately
+      show "\<forall>\<^sub>F n in sequentially. dist (f (xs' n)) l < e"
+      proof eventually_elim
+        case (elim n)
+        have "dist (f (xs' n)) l \<le> dist (f (xs n)) (f (xs' n)) + dist (f (xs n)) l"
+          by (metis dist_triangle dist_commute)
+        also have "dist (f (xs n)) (f (xs' n)) < e'"
+          by (auto intro!: d xs \<open>xs' _ \<in> _\<close> elim)
+        also note \<open>dist (f (xs n)) l < e'\<close>
+        also have "e' + e' = e" by (simp add: e'_def)
+        finally show ?case by simp
+      qed
+    qed
+  qed
+  thus ?thesis ..
+qed
+
+lemma uniformly_continuous_on_extension_on_closure:
+  fixes f::"'a::metric_space \<Rightarrow> 'b::complete_space"
+  assumes uc: "uniformly_continuous_on X f"
+  obtains g where "uniformly_continuous_on (closure X) g" "\<And>x. x \<in> X \<Longrightarrow> f x = g x"
+    "\<And>Y h x. X \<subseteq> Y \<Longrightarrow> Y \<subseteq> closure X \<Longrightarrow> continuous_on Y h \<Longrightarrow> (\<And>x. x \<in> X \<Longrightarrow> f x = h x) \<Longrightarrow> x \<in> Y \<Longrightarrow> h x = g x"
+proof -
+  from uc have cont_f: "continuous_on X f"
+    by (simp add: uniformly_continuous_imp_continuous)
+  obtain y where y: "(f \<longlongrightarrow> y x) (at x within X)" if "x \<in> closure X" for x
+    apply atomize_elim
+    apply (rule choice)
+    using uniformly_continuous_on_extension_at_closure[OF assms]
+    by metis
+  let ?g = "\<lambda>x. if x \<in> X then f x else y x"
+
+  have "uniformly_continuous_on (closure X) ?g"
+    unfolding uniformly_continuous_on_def
+  proof safe
+    fix e::real assume "e > 0"
+    define e' where "e' \<equiv> e / 3"
+    have "e' > 0" using \<open>e > 0\<close> by (simp add: e'_def)
+    from uc[unfolded uniformly_continuous_on_def, rule_format, OF \<open>0 < e'\<close>]
+    obtain d where "d > 0" and d: "\<And>x x'. x \<in> X \<Longrightarrow> x' \<in> X \<Longrightarrow> dist x' x < d \<Longrightarrow> dist (f x') (f x) < e'"
+      by auto
+    define d' where "d' = d / 3"
+    have "d' > 0" using \<open>d > 0\<close> by (simp add: d'_def)
+    show "\<exists>d>0. \<forall>x\<in>closure X. \<forall>x'\<in>closure X. dist x' x < d \<longrightarrow> dist (?g x') (?g x) < e"
+    proof (safe intro!: exI[where x=d'] \<open>d' > 0\<close>)
+      fix x x' assume x: "x \<in> closure X" and x': "x' \<in> closure X" and dist: "dist x' x < d'"
+      then obtain xs xs' where xs: "xs \<longlonglongrightarrow> x" "\<And>n. xs n \<in> X"
+        and xs': "xs' \<longlonglongrightarrow> x'" "\<And>n. xs' n \<in> X"
+        by (auto simp: closure_sequential)
+      have "\<forall>\<^sub>F n in sequentially. dist (xs' n) x' < d'"
+        and "\<forall>\<^sub>F n in sequentially. dist (xs n) x < d'"
+        by (auto intro!: \<open>0 < d'\<close> order_tendstoD tendsto_eq_intros xs xs')
+      moreover
+      have "(\<lambda>x. f (xs x)) \<longlonglongrightarrow> y x" if "x \<in> closure X" "x \<notin> X" "xs \<longlonglongrightarrow> x" "\<And>n. xs n \<in> X" for xs x
+        using that not_eventuallyD
+        by (force intro!: filterlim_compose[OF y[OF \<open>x \<in> closure X\<close>]] simp: filterlim_at)
+      then have "(\<lambda>x. f (xs' x)) \<longlonglongrightarrow> ?g x'" "(\<lambda>x. f (xs x)) \<longlonglongrightarrow> ?g x"
+        using x x'
+        by (auto intro!: continuous_on_tendsto_compose[OF cont_f] simp: xs' xs)
+      then have "\<forall>\<^sub>F n in sequentially. dist (f (xs' n)) (?g x') < e'"
+        "\<forall>\<^sub>F n in sequentially. dist (f (xs n)) (?g x) < e'"
+        by (auto intro!: \<open>0 < e'\<close> order_tendstoD tendsto_eq_intros)
+      ultimately
+      have "\<forall>\<^sub>F n in sequentially. dist (?g x') (?g x) < e"
+      proof eventually_elim
+        case (elim n)
+        have "dist (?g x') (?g x) \<le>
+          dist (f (xs' n)) (?g x') + dist (f (xs' n)) (f (xs n)) + dist (f (xs n)) (?g x)"
+          by (metis add.commute add_le_cancel_left dist_commute dist_triangle dist_triangle_le)
+        also
+        {
+          have "dist (xs' n) (xs n) \<le> dist (xs' n) x' + dist x' x + dist (xs n) x"
+            by (metis add.commute add_le_cancel_left  dist_triangle dist_triangle_le)
+          also note \<open>dist (xs' n) x' < d'\<close>
+          also note \<open>dist x' x < d'\<close>
+          also note \<open>dist (xs n) x < d'\<close>
+          finally have "dist (xs' n) (xs n) < d" by (simp add: d'_def)
+        }
+        with \<open>xs _ \<in> X\<close> \<open>xs' _ \<in> X\<close> have "dist (f (xs' n)) (f (xs n)) < e'"
+          by (rule d)
+        also note \<open>dist (f (xs' n)) (?g x') < e'\<close>
+        also note \<open>dist (f (xs n)) (?g x) < e'\<close>
+        finally show ?case by (simp add: e'_def)
+      qed
+      then show "dist (?g x') (?g x) < e" by simp
+    qed
+  qed
+  moreover have "f x = ?g x" if "x \<in> X" for x using that by simp
+  moreover
+  {
+    fix Y h x
+    assume Y: "x \<in> Y" "X \<subseteq> Y" "Y \<subseteq> closure X" and cont_h: "continuous_on Y h"
+      and extension: "(\<And>x. x \<in> X \<Longrightarrow> f x = h x)"
+    {
+      assume "x \<notin> X"
+      have "x \<in> closure X" using Y by auto
+      then obtain xs where xs: "xs \<longlonglongrightarrow> x" "\<And>n. xs n \<in> X"
+        by (auto simp: closure_sequential)
+      from continuous_on_tendsto_compose[OF cont_h xs(1)] xs(2) Y
+      have "(\<lambda>x. f (xs x)) \<longlonglongrightarrow> h x"
+        by (auto simp: set_mp extension)
+      moreover
+      then have "(\<lambda>x. f (xs x)) \<longlonglongrightarrow> y x"
+        using \<open>x \<notin> X\<close> not_eventuallyD xs(2)
+        by (force intro!: filterlim_compose[OF y[OF \<open>x \<in> closure X\<close>]] simp: filterlim_at xs)
+      ultimately have "h x = y x" by (rule LIMSEQ_unique)
+    } then
+    have "h x = ?g x"
+      using extension by auto
+  }
+  ultimately show ?thesis ..
+qed
+
+
 subsection\<open>Quotient maps\<close>
 
 lemma quotient_map_imp_continuous_open:
