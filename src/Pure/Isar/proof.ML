@@ -144,10 +144,31 @@ sig
   val future_proof: (state -> ('a * context) future) -> state -> 'a future * state
   val local_future_terminal_proof: Method.text_range * Method.text_range option -> state -> state
   val global_future_terminal_proof: Method.text_range * Method.text_range option -> state -> context
+
+  (* apply_trace hooks *)
+
+  val set_pre_apply_hook: (Proof.context -> Method.text -> thm -> thm) -> unit
+  val set_post_apply_hook: (Proof.context -> Method.text -> thm -> thm -> thm) -> unit
+
+  (* end apply_trace hooks *)
+
 end;
 
 structure Proof: PROOF =
 struct
+
+(* apply_trace hooks *)
+
+val pre_apply_hook = Unsynchronized.ref
+  (fn (_ : Proof.context) => fn (_ : Method.text) => fn (thm : thm) => thm)
+val post_apply_hook = Unsynchronized.ref
+ (fn (_ : Proof.context) => fn (_ : Method.text) => fn (_ : thm) => fn (thm : thm) => thm)
+
+fun set_pre_apply_hook f = pre_apply_hook := f;
+fun set_post_apply_hook f = post_apply_hook := f;
+
+(* end apply_trace hooks *)
+
 
 type context = Proof.context;
 type method = Method.method;
@@ -417,9 +438,11 @@ local
 
 fun apply_method text ctxt state =
   find_goal state |> (fn (goal_ctxt, {statement, using, goal, before_qed, after_qed}) =>
-    Method.evaluate text ctxt using (goal_ctxt, goal)
+    Method.evaluate text ctxt using (goal_ctxt, !pre_apply_hook ctxt text goal)
     |> Seq.map_result (fn (goal_ctxt', goal') =>
-        state |> map_goal (K (goal_ctxt', statement, using, goal', before_qed, after_qed))));
+        state |>
+        map_goal (K (goal_ctxt', statement, using, !post_apply_hook ctxt text goal goal',
+                     before_qed, after_qed))));
 
 in
 
