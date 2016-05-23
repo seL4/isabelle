@@ -95,6 +95,9 @@ Isabelle2016). INCOMPATIBILITY, use "standard" instead.
 has been removed for output. It is retained for input only, until it is
 eliminated altogether.
 
+* Sledgehammer:
+  - Produce syntactically correct Vampire 4.0 problem files.
+
 * (Co)datatype package:
   - New commands for defining corecursive functions and reasoning about
     them in "~~/src/HOL/Library/BNF_Corec.thy": 'corec', 'corecursive',
