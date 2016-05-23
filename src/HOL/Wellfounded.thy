@@ -317,17 +317,17 @@ lemma wf_Union:
   shows "wf (\<Union>R)"
   using assms wf_UN[of R "\<lambda>i. i"] by simp
 
-(*Intuition: we find an (R u S)-min element of a nonempty subset A
-             by case distinction.
-  1. There is a step a -R-> b with a,b : A.
-     Pick an R-min element z of the (nonempty) set {a:A | EX b:A. a -R-> b}.
-     By definition, there is z':A s.t. z -R-> z'. Because z is R-min in the
-     subset, z' must be R-min in A. Because z' has an R-predecessor, it cannot
-     have an S-successor and is thus S-min in A as well.
-  2. There is no such step.
-     Pick an S-min element of A. In this case it must be an R-min
-     element of A as well.
-*)
+text \<open>
+  Intuition: We find an \<open>R \<union> S\<close>-min element of a nonempty subset \<open>A\<close> by case distinction.
+  \<^enum> There is a step \<open>a \<midarrow>R\<rightarrow> b\<close> with \<open>a, b \<in> A\<close>.
+    Pick an \<open>R\<close>-min element \<open>z\<close> of the (nonempty) set \<open>{a\<in>A | \<exists>b\<in>A. a \<midarrow>R\<rightarrow> b}\<close>.
+    By definition, there is \<open>z' \<in> A\<close> s.t. \<open>z \<midarrow>R\<rightarrow> z'\<close>. Because \<open>z\<close> is \<open>R\<close>-min in the
+    subset, \<open>z'\<close> must be \<open>R\<close>-min in \<open>A\<close>. Because \<open>z'\<close> has an \<open>R\<close>-predecessor, it cannot
+    have an \<open>S\<close>-successor and is thus \<open>S\<close>-min in \<open>A\<close> as well.
+  \<^enum> There is no such step.
+    Pick an \<open>S\<close>-min element of \<open>A\<close>. In this case it must be an \<open>R\<close>-min
+    element of \<open>A\<close> as well.
+\<close>
 lemma wf_Un: "wf r \<Longrightarrow> wf s \<Longrightarrow> Domain r \<inter> Range s = {} \<Longrightarrow> wf (r \<union> s)"
   using wf_union_compatible[of s r]
   by (auto simp: Un_ac)
@@ -342,24 +342,20 @@ proof
   ultimately show "wf ?B" by (rule wf_subset)
 next
   assume "wf ?B"
-
   show "wf ?A"
   proof (rule wfI_min)
     fix Q :: "'a set" and x
     assume "x \<in> Q"
-
-    with \<open>wf ?B\<close>
-    obtain z where "z \<in> Q" and "\<And>y. (y, z) \<in> ?B \<Longrightarrow> y \<notin> Q"
+    with \<open>wf ?B\<close> obtain z where "z \<in> Q" and "\<And>y. (y, z) \<in> ?B \<Longrightarrow> y \<notin> Q"
       by (erule wfE_min)
-    then have A1: "\<And>y. (y, z) \<in> R O R \<Longrightarrow> y \<notin> Q"
-      and A2: "\<And>y. (y, z) \<in> S O R \<Longrightarrow> y \<notin> Q"
-      and A3: "\<And>y. (y, z) \<in> S \<Longrightarrow> y \<notin> Q"
+    then have 1: "\<And>y. (y, z) \<in> R O R \<Longrightarrow> y \<notin> Q"
+      and 2: "\<And>y. (y, z) \<in> S O R \<Longrightarrow> y \<notin> Q"
+      and 3: "\<And>y. (y, z) \<in> S \<Longrightarrow> y \<notin> Q"
       by auto
-
     show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> ?A \<longrightarrow> y \<notin> Q"
     proof (cases "\<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> Q")
       case True
-      with \<open>z \<in> Q\<close> A3 show ?thesis by blast
+      with \<open>z \<in> Q\<close> 3 show ?thesis by blast
     next
       case False
       then obtain z' where "z'\<in>Q" "(z', z) \<in> R" by blast
@@ -370,11 +366,11 @@ next
         proof
           assume "(y, z') \<in> R"
           then have "(y, z) \<in> R O R" using \<open>(z', z) \<in> R\<close> ..
-          with A1 show "y \<notin> Q" .
+          with 1 show "y \<notin> Q" .
         next
           assume "(y, z') \<in> S"
           then have "(y, z) \<in> S O R" using  \<open>(z', z) \<in> R\<close> ..
-          with A2 show "y \<notin> Q" .
+          with 2 show "y \<notin> Q" .
         qed
       qed
       with \<open>z' \<in> Q\<close> show ?thesis ..
@@ -392,40 +388,55 @@ text \<open>Bachmair and Dershowitz 1986, Lemma 2. [Provided by Tjark Weber]\<cl
 
 lemma qc_wf_relto_iff:
   assumes "R O S \<subseteq> (R \<union> S)\<^sup>* O R" \<comment> \<open>R quasi-commutes over S\<close>
-  shows "wf (S\<^sup>* O R O S\<^sup>*) \<longleftrightarrow> wf R" (is "wf ?S \<longleftrightarrow> _")
+  shows "wf (S\<^sup>* O R O S\<^sup>*) \<longleftrightarrow> wf R"
+  (is "wf ?S \<longleftrightarrow> _")
 proof
-  assume "wf ?S"
-  moreover have "R \<subseteq> ?S" by auto
-  ultimately show "wf R" using wf_subset by auto
+  show "wf R" if "wf ?S"
+  proof -
+    have "R \<subseteq> ?S" by auto
+    with that show "wf R" using wf_subset by auto
+  qed
 next
-  assume "wf R"
-  show "wf ?S"
+  show "wf ?S" if "wf R"
   proof (rule wfI_pf)
-    fix A assume A: "A \<subseteq> ?S `` A"
+    fix A
+    assume A: "A \<subseteq> ?S `` A"
     let ?X = "(R \<union> S)\<^sup>* `` A"
     have *: "R O (R \<union> S)\<^sup>* \<subseteq> (R \<union> S)\<^sup>* O R"
-      proof -
-        { fix x y z assume "(y, z) \<in> (R \<union> S)\<^sup>*" and "(x, y) \<in> R"
-          then have "(x, z) \<in> (R \<union> S)\<^sup>* O R"
-          proof (induct y z)
-            case rtrancl_refl then show ?case by auto
-          next
-            case (rtrancl_into_rtrancl a b c)
-            then have "(x, c) \<in> ((R \<union> S)\<^sup>* O (R \<union> S)\<^sup>*) O R" using assms by blast
-            then show ?case by simp
-          qed }
-        then show ?thesis by auto
+    proof -
+      have "(x, z) \<in> (R \<union> S)\<^sup>* O R" if "(y, z) \<in> (R \<union> S)\<^sup>*" and "(x, y) \<in> R" for x y z
+        using that
+      proof (induct y z)
+        case rtrancl_refl
+        then show ?case by auto
+      next
+        case (rtrancl_into_rtrancl a b c)
+        then have "(x, c) \<in> ((R \<union> S)\<^sup>* O (R \<union> S)\<^sup>*) O R"
+          using assms by blast
+        then show ?case by simp
       qed
-    then have "R O S\<^sup>* \<subseteq> (R \<union> S)\<^sup>* O R" using rtrancl_Un_subset by blast
-    then have "?S \<subseteq> (R \<union> S)\<^sup>* O (R \<union> S)\<^sup>* O R" by (simp add: relcomp_mono rtrancl_mono)
-    also have "\<dots> = (R \<union> S)\<^sup>* O R" by (simp add: O_assoc[symmetric])
-    finally have "?S O (R \<union> S)\<^sup>* \<subseteq> (R \<union> S)\<^sup>* O R O (R \<union> S)\<^sup>*" by (simp add: O_assoc[symmetric] relcomp_mono)
-    also have "\<dots> \<subseteq> (R \<union> S)\<^sup>* O (R \<union> S)\<^sup>* O R" using * by (simp add: relcomp_mono)
-    finally have "?S O (R \<union> S)\<^sup>* \<subseteq> (R \<union> S)\<^sup>* O R" by (simp add: O_assoc[symmetric])
-    then have "(?S O (R \<union> S)\<^sup>*) `` A \<subseteq> ((R \<union> S)\<^sup>* O R) `` A" by (simp add: Image_mono)
-    moreover have "?X \<subseteq> (?S O (R \<union> S)\<^sup>*) `` A" using A by (auto simp: relcomp_Image)
-    ultimately have "?X \<subseteq> R `` ?X" by (auto simp: relcomp_Image)
-    then have "?X = {}" using \<open>wf R\<close> by (simp add: wfE_pf)
+      then show ?thesis by auto
+    qed
+    then have "R O S\<^sup>* \<subseteq> (R \<union> S)\<^sup>* O R"
+      using rtrancl_Un_subset by blast
+    then have "?S \<subseteq> (R \<union> S)\<^sup>* O (R \<union> S)\<^sup>* O R"
+      by (simp add: relcomp_mono rtrancl_mono)
+    also have "\<dots> = (R \<union> S)\<^sup>* O R"
+      by (simp add: O_assoc[symmetric])
+    finally have "?S O (R \<union> S)\<^sup>* \<subseteq> (R \<union> S)\<^sup>* O R O (R \<union> S)\<^sup>*"
+      by (simp add: O_assoc[symmetric] relcomp_mono)
+    also have "\<dots> \<subseteq> (R \<union> S)\<^sup>* O (R \<union> S)\<^sup>* O R"
+      using * by (simp add: relcomp_mono)
+    finally have "?S O (R \<union> S)\<^sup>* \<subseteq> (R \<union> S)\<^sup>* O R"
+      by (simp add: O_assoc[symmetric])
+    then have "(?S O (R \<union> S)\<^sup>*) `` A \<subseteq> ((R \<union> S)\<^sup>* O R) `` A"
+      by (simp add: Image_mono)
+    moreover have "?X \<subseteq> (?S O (R \<union> S)\<^sup>*) `` A"
+      using A by (auto simp: relcomp_Image)
+    ultimately have "?X \<subseteq> R `` ?X"
+      by (auto simp: relcomp_Image)
+    then have "?X = {}"
+      using \<open>wf R\<close> by (simp add: wfE_pf)
     moreover have "A \<subseteq> ?X" by auto
     ultimately show "A = {}" by simp
   qed
@@ -664,25 +675,15 @@ qed
 text \<open>Set versions of the above theorems\<close>
 
 lemmas acc_induct = accp_induct [to_set]
-
 lemmas acc_induct_rule = acc_induct [rule_format, induct set: acc]
-
 lemmas acc_downward = accp_downward [to_set]
-
 lemmas not_acc_down = not_accp_down [to_set]
-
 lemmas acc_downwards_aux = accp_downwards_aux [to_set]
-
 lemmas acc_downwards = accp_downwards [to_set]
-
 lemmas acc_wfI = accp_wfPI [to_set]
-
 lemmas acc_wfD = accp_wfPD [to_set]
-
 lemmas wf_acc_iff = wfP_accp_iff [to_set]
-
 lemmas acc_subset = accp_subset [to_set]
-
 lemmas acc_subset_induct = accp_subset_induct [to_set]
 
 
@@ -691,7 +692,7 @@ subsection \<open>Tools for building wellfounded relations\<close>
 text \<open>Inverse Image\<close>
 
 lemma wf_inv_image [simp,intro!]: "wf r \<Longrightarrow> wf (inv_image r f)" for f :: "'a \<Rightarrow> 'b"
-apply (simp (no_asm_use) add: inv_image_def wf_eq_minimal)
+apply (simp add: inv_image_def wf_eq_minimal)
 apply clarify
 apply (subgoal_tac "\<exists>w::'b. w \<in> {w. \<exists>x::'a. x \<in> Q \<and> f x = w}")
 prefer 2 apply (blast del: allE)
@@ -731,7 +732,7 @@ definition lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \
 lemma wf_lex_prod [intro!]: "wf ra \<Longrightarrow> wf rb \<Longrightarrow> wf (ra <*lex*> rb)"
 apply (unfold wf_def lex_prod_def)
 apply (rule allI, rule impI)
-apply (simp (no_asm_use) only: split_paired_All)
+apply (simp only: split_paired_All)
 apply (drule spec, erule mp)
 apply (rule allI, rule impI)
 apply (drule spec, erule mp, blast)
