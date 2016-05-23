@@ -800,8 +800,8 @@ lemma idx_sequence_inj:
   assumes iseq: "idx_sequence idx"
     and eq: "idx m = idx n"
   shows "m = n"
-proof (rule nat_less_cases)
-  assume "n<m"
+proof (cases m n rule: linorder_cases)
+  case greater
   then obtain k where "m = Suc(n+k)"
     by (auto simp add: less_iff_Suc_add)
   with iseq have "idx n < idx m"
@@ -809,14 +809,14 @@ proof (rule nat_less_cases)
   with eq show ?thesis
     by simp
 next
-  assume "m<n"
+  case less
   then obtain k where "n = Suc(m+k)"
     by (auto simp add: less_iff_Suc_add)
   with iseq have "idx m < idx n"
     by (simp add: idx_sequence_less)
   with eq show ?thesis
     by simp
-qed (simp)
+qed
 
 lemma idx_sequence_mono:
   assumes iseq: "idx_sequence idx"
@@ -883,8 +883,8 @@ lemma idx_sequence_interval_unique:
     and k: "n \<in> {idx k ..< idx (Suc k)}"
     and m: "n \<in> {idx m ..< idx (Suc m)}"
   shows "k = m"
-proof (rule nat_less_cases)
-  assume "k < m"
+proof (cases k m rule: linorder_cases)
+  case less
   hence "Suc k \<le> m" by simp
   with iseq have "idx (Suc k) \<le> idx m"
     by (rule idx_sequence_mono)
@@ -894,7 +894,7 @@ proof (rule nat_less_cases)
     by simp
   thus ?thesis ..
 next
-  assume "m < k"
+  case greater
   hence "Suc m \<le> k" by simp
   with iseq have "idx (Suc m) \<le> idx k"
     by (rule idx_sequence_mono)
@@ -903,7 +903,7 @@ next
   with m have "False"
     by simp
   thus ?thesis ..
-qed (simp)
+qed
 
 lemma idx_sequence_unique_interval:
   assumes iseq: "idx_sequence idx"
