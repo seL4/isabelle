@@ -177,8 +177,8 @@ text \<open>
       @@{antiquotation const} options @{syntax term} |
       @@{antiquotation abbrev} options @{syntax term} |
       @@{antiquotation typ} options @{syntax type} |
-      @@{antiquotation type} options @{syntax name} |
-      @@{antiquotation class} options @{syntax name} |
+      @@{antiquotation type} options @{syntax embedded} |
+      @@{antiquotation class} options @{syntax embedded} |
       (@@{antiquotation command} | @@{antiquotation method} | @@{antiquotation attribute})
         options @{syntax name}
     ;
@@ -197,7 +197,7 @@ text \<open>
       @@{antiquotation verbatim} options @{syntax text} |
       @@{antiquotation "file"} options @{syntax name} |
       @@{antiquotation file_unchecked} options @{syntax name} |
-      @@{antiquotation url} options @{syntax name} |
+      @@{antiquotation url} options @{syntax embedded} |
       @@{antiquotation cite} options @{syntax cartouche}? (@{syntax name} + @'and')
     ;
     styles: '(' (style + ',') ')'

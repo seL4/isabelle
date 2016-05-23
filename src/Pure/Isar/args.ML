@@ -23,12 +23,14 @@ sig
   val mode: string -> bool parser
   val maybe: 'a parser -> 'a option parser
   val name_token: Token.T parser
-  val name_inner_syntax: string parser
-  val name_input: Input.source parser
   val name: string parser
   val cartouche_inner_syntax: string parser
   val cartouche_input: Input.source parser
   val text_token: Token.T parser
+  val embedded_token: Token.T parser
+  val embedded_inner_syntax: string parser
+  val embedded_input: Input.source parser
+  val embedded: string parser
   val text_input: Input.source parser
   val text: string parser
   val binding: binding parser
@@ -104,15 +106,18 @@ fun mode s = Scan.optional (parens ($$$ s) >> K true) false;
 fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
 
 val name_token = ident || string;
-val name_inner_syntax = name_token >> Token.inner_syntax_of;
-val name_input = name_token >> Token.input_of;
 val name = name_token >> Token.content_of;
 
 val cartouche = Parse.token Parse.cartouche;
 val cartouche_inner_syntax = cartouche >> Token.inner_syntax_of;
 val cartouche_input = cartouche >> Token.input_of;
 
-val text_token = name_token || Parse.token (Parse.verbatim || Parse.cartouche);
+val embedded_token = ident || string || cartouche;
+val embedded_inner_syntax = embedded_token >> Token.inner_syntax_of;
+val embedded_input = embedded_token >> Token.input_of;
+val embedded = embedded_token >> Token.content_of;
+
+val text_token = embedded_token || Parse.token Parse.verbatim;
 val text_input = text_token >> Token.input_of;
 val text = text_token >> Token.content_of;
 
@@ -120,8 +125,9 @@ val binding = Parse.position name >> Binding.make;
 val alt_name = alt_string >> Token.content_of;
 val liberal_name = (symbolic >> Token.content_of) || name;
 
-val var = (ident >> Token.content_of) :|-- (fn x =>
-  (case Lexicon.read_variable x of SOME v => Scan.succeed v | NONE => Scan.fail));
+val var =
+  (ident >> Token.content_of) :|-- (fn x =>
+    (case Lexicon.read_variable x of SOME v => Scan.succeed v | NONE => Scan.fail));
 
 
 (* values *)
@@ -141,10 +147,10 @@ fun named_source read =
   internal_source || name_token >> Token.evaluate Token.Source read;
 
 fun named_typ read =
-  internal_typ || name_token >> Token.evaluate Token.Typ (read o Token.inner_syntax_of);
+  internal_typ || embedded_token >> Token.evaluate Token.Typ (read o Token.inner_syntax_of);
 
 fun named_term read =
-  internal_term || name_token >> Token.evaluate Token.Term (read o Token.inner_syntax_of);
+  internal_term || embedded_token >> Token.evaluate Token.Term (read o Token.inner_syntax_of);
 
 fun named_fact get =
   internal_fact ||

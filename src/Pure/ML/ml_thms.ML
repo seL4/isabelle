@@ -77,7 +77,7 @@ val _ = Theory.setup
 
 val and_ = Args.$$$ "and";
 val by = Parse.reserved "by";
-val goal = Scan.unless (by || and_) Args.name_inner_syntax;
+val goal = Scan.unless (by || and_) Args.embedded_inner_syntax;
 
 val _ = Theory.setup
   (ML_Antiquotation.declaration @{binding lemma}

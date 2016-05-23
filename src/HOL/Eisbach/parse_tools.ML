@@ -34,7 +34,7 @@ fun parse_term_val scan =
     (fn ((_, SOME t), _) => Real_Val t
       | ((tok, NONE), v) => Parse_Val (v, fn t => ignore (Token.assign (SOME (Token.Term t)) tok)));
 
-val name_term = parse_term_val Args.name_inner_syntax;
+val name_term = parse_term_val Args.embedded_inner_syntax;
 
 fun is_real_val (Real_Val _) = true
   | is_real_val _ = false;
