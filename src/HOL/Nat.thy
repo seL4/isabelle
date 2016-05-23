@@ -526,19 +526,6 @@ lemma less_antisym: "\<lbrakk> \<not> n < m; n < Suc m \<rbrakk> \<Longrightarro
 lemma nat_neq_iff: "m \<noteq> n \<longleftrightarrow> m < n \<or> n < m" for m n :: nat
   by (rule linorder_neq_iff)
 
-lemma nat_less_cases:
-  fixes m n :: nat
-  assumes major: "m < n \<Longrightarrow> P n m"
-    and eq: "m = n \<Longrightarrow> P n m"
-    and less: "n < m \<Longrightarrow> P n m"
-  shows "P n m"
-  apply (rule less_linear [THEN disjE])
-  apply (erule_tac [2] disjE)
-  apply (erule less)
-  apply (erule sym [THEN eq])
-  apply (erule major)
-  done
-
 
 subsubsection \<open>Inductive (?) properties\<close>
 
@@ -1240,7 +1227,7 @@ text \<open>Lemma for \<open>gcd\<close>\<close>
 lemma mult_eq_self_implies_10: "m = m * n \<Longrightarrow> n = 1 \<or> m = 0" for m n :: nat
   apply (drule sym)
   apply (rule disjCI)
-  apply (rule nat_less_cases, erule_tac [2] _)
+  apply (rule linorder_cases, erule_tac [2] _)
    apply (drule_tac [2] mult_less_mono2)
     apply (auto)
   done

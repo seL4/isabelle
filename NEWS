@@ -117,6 +117,9 @@ eliminated altogether.
     INCOMPATIBILITY.
   - The "size" plugin has been made compatible again with locales.
 
+* Removed obsolete theorem nat_less_cases. INCOMPATIBILITY, use
+linorder_cases instead.
+
 * Renamed split_if -> if_split and split_if_asm -> if_split_asm to
 resemble the f.split naming convention, INCOMPATIBILITY.
 
