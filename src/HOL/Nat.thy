@@ -951,22 +951,23 @@ proof -
   then show "P i j" by (simp add: j)
 qed
 
-text \<open>The method of infinite descent, frequently used in number theory.
-Provided by Roelof Oosterhuis.
-$P(n)$ is true for all $n\in\mathbb{N}$ if
-\begin{itemize}
-  \item case ``0'': given $n=0$ prove $P(n)$,
-  \item case ``smaller'': given $n>0$ and $\neg P(n)$ prove there exists
-        a smaller integer $m$ such that $\neg P(m)$.
-\end{itemize}\<close>
+text \<open>
+  The method of infinite descent, frequently used in number theory.
+  Provided by Roelof Oosterhuis.
+  \<open>P n\<close> is true for all natural numbers if
+  \<^item> case ``0'': given \<open>n = 0\<close> prove \<open>P n\<close>
+  \<^item> case ``smaller'': given \<open>n > 0\<close> and \<open>\<not> P n\<close> prove there exists
+    a smaller natural number \<open>m\<close> such that \<open>\<not> P m\<close>.
+\<close>
 
-text\<open>A compact version without explicit base case:\<close>
 lemma infinite_descent: "(\<And>n. \<not> P n \<Longrightarrow> \<exists>m<n. \<not> P m) \<Longrightarrow> P n" for P :: "nat \<Rightarrow> bool"
+  \<comment> \<open>compact version without explicit base case\<close>
   by (induct n rule: less_induct) auto
 
-lemma infinite_descent0[case_names 0 smaller]:
+lemma infinite_descent0 [case_names 0 smaller]:
   fixes P :: "nat \<Rightarrow> bool"
-  assumes "P 0" and "\<And>n. n > 0 \<Longrightarrow> \<not> P n \<Longrightarrow> (\<exists>m. m < n \<and> \<not> P m)"
+  assumes "P 0"
+    and "\<And>n. n > 0 \<Longrightarrow> \<not> P n \<Longrightarrow> \<exists>m. m < n \<and> \<not> P m"
   shows "P n"
   apply (rule infinite_descent)
   using assms
@@ -975,14 +976,12 @@ lemma infinite_descent0[case_names 0 smaller]:
   done
 
 text \<open>
-Infinite descent using a mapping to $\mathbb{N}$:
-$P(x)$ is true for all $x\in D$ if there exists a $V: D \to \mathbb{N}$ and
-\begin{itemize}
-\item case ``0'': given $V(x)=0$ prove $P(x)$,
-\item case ``smaller'': given $V(x)>0$ and $\neg P(x)$ prove there exists a $y \in D$ such that $V(y)<V(x)$ and $~\neg P(y)$.
-\end{itemize}
-NB: the proof also shows how to use the previous lemma.\<close>
-
+  Infinite descent using a mapping to \<open>nat\<close>:
+  \<open>P x\<close> is true for all \<open>x \<in> D\<close> if there exists a \<open>V \<in> D \<Rightarrow> nat\<close> and
+  \<^item> case ``0'': given \<open>V x = 0\<close> prove \<open>P x\<close>
+  \<^item> ``smaller'': given \<open>V x > 0\<close> and \<open>\<not> P x\<close> prove
+  there exists a \<open>y \<in> D\<close> such that \<open>V y < V x\<close> and \<open>\<not> P y\<close>.
+\<close>
 corollary infinite_descent0_measure [case_names 0 smaller]:
   fixes V :: "'a \<Rightarrow> nat"
   assumes 1: "\<And>x. V x = 0 \<Longrightarrow> P x"
@@ -998,7 +997,7 @@ proof -
     case (smaller n)
     then obtain x where *: "V x = n " and "V x > 0 \<and> \<not> P x" by auto
     with 2 obtain y where "V y < V x \<and> \<not> P y" by auto
-    with * obtain m where "m = V y \<and> m<n \<and> \<not> P y" by auto
+    with * obtain m where "m = V y \<and> m < n \<and> \<not> P y" by auto
     then show ?case by auto
   qed
   ultimately show "P x" by auto
@@ -1013,14 +1012,13 @@ proof -
   from assms obtain n where "n = V x" by auto
   moreover have "\<And>x. V x = n \<Longrightarrow> P x"
   proof (induct n rule: infinite_descent, auto)
-    fix x
-    assume "\<not> P x"
-    with assms show "\<exists>m < V x. \<exists>y. V y = m \<and> \<not> P y" by auto
+    show "\<exists>m < V x. \<exists>y. V y = m \<and> \<not> P y" if "\<not> P x" for x
+      using assms and that by auto
   qed
   ultimately show "P x" by auto
 qed
 
-text \<open>A [clumsy] way of lifting \<open><\<close> monotonicity to \<open>\<le>\<close> monotonicity\<close>
+text \<open>A (clumsy) way of lifting \<open><\<close> monotonicity to \<open>\<le>\<close> monotonicity\<close>
 lemma less_mono_imp_le_mono:
   fixes f :: "nat \<Rightarrow> nat"
     and i j :: nat
