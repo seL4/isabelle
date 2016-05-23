@@ -14,34 +14,33 @@ begin
 
 subsection \<open>Basic Definitions\<close>
 
-definition wf :: "('a * 'a) set => bool" where
-  "wf r \<longleftrightarrow> (!P. (!x. (!y. (y,x):r --> P(y)) --> P(x)) --> (!x. P(x)))"
+definition wf :: "('a \<times> 'a) set \<Rightarrow> bool"
+  where "wf r \<longleftrightarrow> (\<forall>P. (\<forall>x. (\<forall>y. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x) \<longrightarrow> (\<forall>x. P x))"
 
-definition wfP :: "('a => 'a => bool) => bool" where
-  "wfP r \<longleftrightarrow> wf {(x, y). r x y}"
+definition wfP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+  where "wfP r \<longleftrightarrow> wf {(x, y). r x y}"
 
 lemma wfP_wf_eq [pred_set_conv]: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
   by (simp add: wfP_def)
 
-lemma wfUNIVI: 
-   "(!!P x. (ALL x. (ALL y. (y,x) : r --> P(y)) --> P(x)) ==> P(x)) ==> wf(r)"
+lemma wfUNIVI: "(\<And>P x. (\<forall>x. (\<forall>y. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x) \<Longrightarrow> P x) \<Longrightarrow> wf r"
   unfolding wf_def by blast
 
 lemmas wfPUNIVI = wfUNIVI [to_pred]
 
-text\<open>Restriction to domain @{term A} and range @{term B}.  If @{term r} is
-    well-founded over their intersection, then @{term "wf r"}\<close>
-lemma wfI: 
- "[| r \<subseteq> A \<times> B; 
-     !!x P. [|\<forall>x. (\<forall>y. (y,x) : r --> P y) --> P x;  x : A; x : B |] ==> P x |]
-  ==>  wf r"
-  unfolding wf_def by blast
+text \<open>Restriction to domain \<open>A\<close> and range \<open>B\<close>.
+  If \<open>r\<close> is well-founded over their intersection, then \<open>wf r\<close>.\<close>
+lemma wfI:
+  assumes "r \<subseteq> A \<times> B"
+    and "\<And>x P. \<lbrakk>\<forall>x. (\<forall>y. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x;  x \<in> A; x \<in> B\<rbrakk> \<Longrightarrow> P x"
+  shows "wf r"
+  using assms unfolding wf_def by blast
 
-lemma wf_induct: 
-    "[| wf(r);           
-        !!x.[| ALL y. (y,x): r --> P(y) |] ==> P(x)  
-     |]  ==>  P(a)"
-  unfolding wf_def by blast
+lemma wf_induct:
+  assumes "wf r"
+    and "\<And>x. \<forall>y. (y, x) \<in> r \<longrightarrow> P y \<Longrightarrow> P x"
+  shows "P a"
+  using assms unfolding wf_def by blast
 
 lemmas wfP_induct = wf_induct [to_pred]
 
@@ -49,7 +48,7 @@ lemmas wf_induct_rule = wf_induct [rule_format, consumes 1, case_names less, ind
 
 lemmas wfP_induct_rule = wf_induct_rule [to_pred, induct set: wfP]
 
-lemma wf_not_sym: "wf r ==> (a, x) : r ==> (x, a) ~: r"
+lemma wf_not_sym: "wf r \<Longrightarrow> (a, x) \<in> r \<Longrightarrow> (x, a) \<notin> r"
   by (induct a arbitrary: x set: wf) blast
 
 lemma wf_asym:
@@ -57,22 +56,25 @@ lemma wf_asym:
   obtains "(x, a) \<notin> r"
   by (drule wf_not_sym[OF assms])
 
-lemma wf_not_refl [simp]: "wf r ==> (a, a) ~: r"
+lemma wf_not_refl [simp]: "wf r \<Longrightarrow> (a, a) \<notin> r"
   by (blast elim: wf_asym)
 
 lemma wf_irrefl: assumes "wf r" obtains "(a, a) \<notin> r"
-by (drule wf_not_refl[OF assms])
+  by (drule wf_not_refl[OF assms])
 
 lemma wf_wellorderI:
   assumes wf: "wf {(x::'a::ord, y). x < y}"
   assumes lin: "OFCLASS('a::ord, linorder_class)"
   shows "OFCLASS('a::ord, wellorder_class)"
-using lin by (rule wellorder_class.intro)
-  (rule class.wellorder_axioms.intro, rule wf_induct_rule [OF wf], simp)
+  using lin
+  apply (rule wellorder_class.intro)
+  apply (rule class.wellorder_axioms.intro)
+  apply (rule wf_induct_rule [OF wf])
+  apply simp
+  done
 
-lemma (in wellorder) wf:
-  "wf {(x, y). x < y}"
-unfolding wf_def by (blast intro: less_induct)
+lemma (in wellorder) wf: "wf {(x, y). x < y}"
+  unfolding wf_def by (blast intro: less_induct)
 
 
 subsection \<open>Basic Results\<close>
@@ -84,14 +86,13 @@ lemma wfE_pf:
   assumes a: "A \<subseteq> R `` A"
   shows "A = {}"
 proof -
-  { fix x
-    from wf have "x \<notin> A"
-    proof induct
-      fix x assume "\<And>y. (y, x) \<in> R \<Longrightarrow> y \<notin> A"
-      then have "x \<notin> R `` A" by blast
-      with a show "x \<notin> A" by blast
-    qed
-  } thus ?thesis by auto
+  from wf have "x \<notin> A" for x
+  proof induct
+    fix x assume "\<And>y. (y, x) \<in> R \<Longrightarrow> y \<notin> A"
+    then have "x \<notin> R `` A" by blast
+    with a show "x \<notin> A" by blast
+  qed
+  then show ?thesis by auto
 qed
 
 lemma wfI_pf:
@@ -105,7 +106,8 @@ proof (rule wfUNIVI)
   with a show "P x" by blast
 qed
 
-text\<open>Minimal-element characterization of well-foundedness\<close>
+
+subsubsection \<open>Minimal-element characterization of well-foundedness\<close>
 
 lemma wfE_min:
   assumes wf: "wf R" and Q: "x \<in> Q"
@@ -120,14 +122,14 @@ lemma wfI_min:
   assumes a: "\<And>x Q. x \<in> Q \<Longrightarrow> \<exists>z\<in>Q. \<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> Q"
   shows "wf R"
 proof (rule wfI_pf)
-  fix A assume b: "A \<subseteq> R `` A"
-  { fix x assume "x \<in> A"
-    from a[OF this] b have "False" by blast
-  }
-  thus "A = {}" by blast
+  fix A
+  assume b: "A \<subseteq> R `` A"
+  have False if "x \<in> A" for x
+    using a[OF that] b by blast
+  then show "A = {}" by blast
 qed
 
-lemma wf_eq_minimal: "wf r = (\<forall>Q x. x\<in>Q --> (\<exists>z\<in>Q. \<forall>y. (y,z)\<in>r --> y\<notin>Q))"
+lemma wf_eq_minimal: "wf r \<longleftrightarrow> (\<forall>Q x. x \<in> Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q))"
 apply auto
 apply (erule wfE_min, assumption, blast)
 apply (rule wfI_min, auto)
@@ -135,51 +137,52 @@ done
 
 lemmas wfP_eq_minimal = wf_eq_minimal [to_pred]
 
-text\<open>Well-foundedness of transitive closure\<close>
+
+subsubsection \<open>Well-foundedness of transitive closure\<close>
 
 lemma wf_trancl:
   assumes "wf r"
-  shows "wf (r^+)"
+  shows "wf (r\<^sup>+)"
 proof -
-  {
-    fix P and x
-    assume induct_step: "!!x. (!!y. (y, x) : r^+ ==> P y) ==> P x"
-    have "P x"
-    proof (rule induct_step)
-      fix y assume "(y, x) : r^+"
-      with \<open>wf r\<close> show "P y"
-      proof (induct x arbitrary: y)
-        case (less x)
-        note hyp = \<open>\<And>x' y'. (x', x) : r ==> (y', x') : r^+ ==> P y'\<close>
-        from \<open>(y, x) : r^+\<close> show "P y"
-        proof cases
-          case base
-          show "P y"
-          proof (rule induct_step)
-            fix y' assume "(y', y) : r^+"
-            with \<open>(y, x) : r\<close> show "P y'" by (rule hyp [of y y'])
-          qed
-        next
-          case step
-          then obtain x' where "(x', x) : r" and "(y, x') : r^+" by simp
-          then show "P y" by (rule hyp [of x' y])
+  have "P x" if induct_step: "\<And>x. (\<And>y. (y, x) \<in> r\<^sup>+ \<Longrightarrow> P y) \<Longrightarrow> P x" for P x
+  proof (rule induct_step)
+    show "P y" if "(y, x) \<in> r\<^sup>+" for y
+      using \<open>wf r\<close> and that
+    proof (induct x arbitrary: y)
+      case (less x)
+      note hyp = \<open>\<And>x' y'. (x', x) \<in> r \<Longrightarrow> (y', x') \<in> r\<^sup>+ \<Longrightarrow> P y'\<close>
+      from \<open>(y, x) \<in> r\<^sup>+\<close> show "P y"
+      proof cases
+        case base
+        show "P y"
+        proof (rule induct_step)
+          fix y'
+          assume "(y', y) \<in> r\<^sup>+"
+          with \<open>(y, x) \<in> r\<close> show "P y'"
+            by (rule hyp [of y y'])
         qed
+      next
+        case step
+        then obtain x' where "(x', x) \<in> r" and "(y, x') \<in> r\<^sup>+"
+          by simp
+        then show "P y" by (rule hyp [of x' y])
       qed
     qed
-  } then show ?thesis unfolding wf_def by blast
+  qed
+  then show ?thesis unfolding wf_def by blast
 qed
 
 lemmas wfP_trancl = wf_trancl [to_pred]
 
-lemma wf_converse_trancl: "wf (r^-1) ==> wf ((r^+)^-1)"
+lemma wf_converse_trancl: "wf (r\<inverse>) \<Longrightarrow> wf ((r\<^sup>+)\<inverse>)"
   apply (subst trancl_converse [symmetric])
   apply (erule wf_trancl)
   done
 
 text \<open>Well-foundedness of subsets\<close>
 
-lemma wf_subset: "[| wf(r);  p<=r |] ==> wf(p)"
-  apply (simp (no_asm_use) add: wf_eq_minimal)
+lemma wf_subset: "wf r \<Longrightarrow> p \<subseteq> r \<Longrightarrow> wf p"
+  apply (simp add: wf_eq_minimal)
   apply fast
   done
 
@@ -197,15 +200,15 @@ proof -
   then show ?thesis by (simp add: bot_fun_def)
 qed
 
-lemma wf_Int1: "wf r ==> wf (r Int r')"
+lemma wf_Int1: "wf r \<Longrightarrow> wf (r Int r')"
   apply (erule wf_subset)
   apply (rule Int_lower1)
   done
 
-lemma wf_Int2: "wf r ==> wf (r' Int r)"
+lemma wf_Int2: "wf r \<Longrightarrow> wf (r' Int r)"
   apply (erule wf_subset)
   apply (rule Int_lower2)
-  done  
+  done
 
 text \<open>Exponentiation\<close>
 
@@ -221,33 +224,34 @@ qed
 
 text \<open>Well-foundedness of insert\<close>
 
-lemma wf_insert [iff]: "wf(insert (y,x) r) = (wf(r) & (x,y) ~: r^*)"
+lemma wf_insert [iff]: "wf (insert (y, x) r) \<longleftrightarrow> wf r \<and> (x, y) \<notin> r\<^sup>*"
 apply (rule iffI)
  apply (blast elim: wf_trancl [THEN wf_irrefl]
-              intro: rtrancl_into_trancl1 wf_subset 
+              intro: rtrancl_into_trancl1 wf_subset
                      rtrancl_mono [THEN [2] rev_subsetD])
 apply (simp add: wf_eq_minimal, safe)
-apply (rule allE, assumption, erule impE, blast) 
+apply (rule allE, assumption, erule impE, blast)
 apply (erule bexE)
 apply (rename_tac "a", case_tac "a = x")
  prefer 2
-apply blast 
-apply (case_tac "y:Q")
+apply blast
+apply (case_tac "y \<in> Q")
  prefer 2 apply blast
-apply (rule_tac x = "{z. z:Q & (z,y) : r^*}" in allE)
+apply (rule_tac x = "{z. z \<in> Q \<and> (z,y) \<in> r\<^sup>*}" in allE)
  apply assumption
-apply (erule_tac V = "ALL Q. (EX x. x : Q) --> P Q" for P in thin_rl) 
-  \<comment>\<open>essential for speed\<close>
-txt\<open>Blast with new substOccur fails\<close>
+apply (erule_tac V = "\<forall>Q. (\<exists>x. x \<in> Q) \<longrightarrow> P Q" for P in thin_rl)
+  (*essential for speed*)
+(*blast with new substOccur fails*)
 apply (fast intro: converse_rtrancl_into_rtrancl)
 done
 
-text\<open>Well-foundedness of image\<close>
 
-lemma wf_map_prod_image: "[| wf r; inj f |] ==> wf (map_prod f f ` r)"
+subsubsection \<open>Well-foundedness of image\<close>
+
+lemma wf_map_prod_image: "wf r \<Longrightarrow> inj f \<Longrightarrow> wf (map_prod f f ` r)"
 apply (simp only: wf_eq_minimal, clarify)
-apply (case_tac "EX p. f p : Q")
-apply (erule_tac x = "{p. f p : Q}" in allE)
+apply (case_tac "\<exists>p. f p \<in> Q")
+apply (erule_tac x = "{p. f p \<in> Q}" in allE)
 apply (fast dest: inj_onD, blast)
 done
 
@@ -259,25 +263,23 @@ lemma wf_union_compatible:
   assumes "R O S \<subseteq> R"
   shows "wf (R \<union> S)"
 proof (rule wfI_min)
-  fix x :: 'a and Q 
+  fix x :: 'a and Q
   let ?Q' = "{x \<in> Q. \<forall>y. (y, x) \<in> R \<longrightarrow> y \<notin> Q}"
   assume "x \<in> Q"
   obtain a where "a \<in> ?Q'"
     by (rule wfE_min [OF \<open>wf R\<close> \<open>x \<in> Q\<close>]) blast
-  with \<open>wf S\<close>
-  obtain z where "z \<in> ?Q'" and zmin: "\<And>y. (y, z) \<in> S \<Longrightarrow> y \<notin> ?Q'" by (erule wfE_min)
-  { 
+  with \<open>wf S\<close> obtain z where "z \<in> ?Q'" and zmin: "\<And>y. (y, z) \<in> S \<Longrightarrow> y \<notin> ?Q'"
+    by (erule wfE_min)
+  {
     fix y assume "(y, z) \<in> S"
     then have "y \<notin> ?Q'" by (rule zmin)
-
     have "y \<notin> Q"
-    proof 
+    proof
       assume "y \<in> Q"
-      with \<open>y \<notin> ?Q'\<close> 
-      obtain w where "(w, y) \<in> R" and "w \<in> Q" by auto
+      with \<open>y \<notin> ?Q'\<close> obtain w where "(w, y) \<in> R" and "w \<in> Q" by auto
       from \<open>(w, y) \<in> R\<close> \<open>(y, z) \<in> S\<close> have "(w, z) \<in> R O S" by (rule relcompI)
       with \<open>R O S \<subseteq> R\<close> have "(w, z) \<in> R" ..
-      with \<open>z \<in> ?Q'\<close> have "w \<notin> Q" by blast 
+      with \<open>z \<in> ?Q'\<close> have "w \<notin> Q" by blast
       with \<open>w \<in> Q\<close> show False by contradiction
     qed
   }
@@ -287,18 +289,21 @@ qed
 
 text \<open>Well-foundedness of indexed union with disjoint domains and ranges\<close>
 
-lemma wf_UN: "[| ALL i:I. wf(r i);  
-         ALL i:I. ALL j:I. r i ~= r j --> Domain(r i) Int Range(r j) = {}  
-      |] ==> wf(UN i:I. r i)"
-apply (simp only: wf_eq_minimal, clarify)
-apply (rename_tac A a, case_tac "EX i:I. EX a:A. EX b:A. (b,a) : r i")
- prefer 2
- apply force 
-apply clarify
-apply (drule bspec, assumption)  
-apply (erule_tac x="{a. a:A & (EX b:A. (b,a) : r i) }" in allE)
-apply (blast elim!: allE)  
-done
+lemma wf_UN:
+  assumes "\<forall>i\<in>I. wf (r i)"
+    and "\<forall>i\<in>I. \<forall>j\<in>I. r i \<noteq> r j \<longrightarrow> Domain (r i) \<inter> Range (r j) = {}"
+  shows "wf (\<Union>i\<in>I. r i)"
+  using assms
+  apply (simp only: wf_eq_minimal)
+  apply clarify
+  apply (rename_tac A a, case_tac "\<exists>i\<in>I. \<exists>a\<in>A. \<exists>b\<in>A. (b, a) \<in> r i")
+   prefer 2
+   apply force
+  apply clarify
+  apply (drule bspec, assumption)
+  apply (erule_tac x="{a. a \<in> A \<and> (\<exists>b\<in>A. (b, a) \<in> r i) }" in allE)
+  apply (blast elim!: allE)
+  done
 
 lemma wfP_SUP:
   "\<forall>i. wfP (r i) \<Longrightarrow> \<forall>i j. r i \<noteq> r j \<longrightarrow> inf (DomainP (r i)) (RangeP (r j)) = bot \<Longrightarrow> wfP (SUPREMUM UNIV r)"
@@ -306,11 +311,11 @@ lemma wfP_SUP:
   apply simp_all
   done
 
-lemma wf_Union: 
- "[| ALL r:R. wf r;  
-     ALL r:R. ALL s:R. r ~= s --> Domain r Int Range s = {}  
-  |] ==> wf (\<Union> R)"
-  using wf_UN[of R "\<lambda>i. i"] by simp
+lemma wf_Union:
+  assumes "\<forall>r\<in>R. wf r"
+    and "\<forall>r\<in>R. \<forall>s\<in>R. r \<noteq> s \<longrightarrow> Domain r \<inter> Range s = {}"
+  shows "wf (\<Union>R)"
+  using assms wf_UN[of R "\<lambda>i. i"] by simp
 
 (*Intuition: we find an (R u S)-min element of a nonempty subset A
              by case distinction.
@@ -323,17 +328,16 @@ lemma wf_Union:
      Pick an S-min element of A. In this case it must be an R-min
      element of A as well.
 *)
-lemma wf_Un:
-     "[| wf r; wf s; Domain r Int Range s = {} |] ==> wf(r Un s)"
-  using wf_union_compatible[of s r] 
+lemma wf_Un: "wf r \<Longrightarrow> wf s \<Longrightarrow> Domain r \<inter> Range s = {} \<Longrightarrow> wf (r \<union> s)"
+  using wf_union_compatible[of s r]
   by (auto simp: Un_ac)
 
-lemma wf_union_merge: 
-  "wf (R \<union> S) = wf (R O R \<union> S O R \<union> S)" (is "wf ?A = wf ?B")
+lemma wf_union_merge: "wf (R \<union> S) = wf (R O R \<union> S O R \<union> S)"
+  (is "wf ?A = wf ?B")
 proof
   assume "wf ?A"
-  with wf_trancl have wfT: "wf (?A^+)" .
-  moreover have "?B \<subseteq> ?A^+"
+  with wf_trancl have wfT: "wf (?A\<^sup>+)" .
+  moreover have "?B \<subseteq> ?A\<^sup>+"
     by (subst trancl_unfold, subst trancl_unfold) blast
   ultimately show "wf ?B" by (rule wf_subset)
 next
@@ -341,35 +345,34 @@ next
 
   show "wf ?A"
   proof (rule wfI_min)
-    fix Q :: "'a set" and x 
+    fix Q :: "'a set" and x
     assume "x \<in> Q"
 
     with \<open>wf ?B\<close>
-    obtain z where "z \<in> Q" and "\<And>y. (y, z) \<in> ?B \<Longrightarrow> y \<notin> Q" 
+    obtain z where "z \<in> Q" and "\<And>y. (y, z) \<in> ?B \<Longrightarrow> y \<notin> Q"
       by (erule wfE_min)
     then have A1: "\<And>y. (y, z) \<in> R O R \<Longrightarrow> y \<notin> Q"
       and A2: "\<And>y. (y, z) \<in> S O R \<Longrightarrow> y \<notin> Q"
       and A3: "\<And>y. (y, z) \<in> S \<Longrightarrow> y \<notin> Q"
       by auto
-    
+
     show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> ?A \<longrightarrow> y \<notin> Q"
     proof (cases "\<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> Q")
       case True
       with \<open>z \<in> Q\<close> A3 show ?thesis by blast
     next
-      case False 
+      case False
       then obtain z' where "z'\<in>Q" "(z', z) \<in> R" by blast
-
       have "\<forall>y. (y, z') \<in> ?A \<longrightarrow> y \<notin> Q"
       proof (intro allI impI)
         fix y assume "(y, z') \<in> ?A"
         then show "y \<notin> Q"
         proof
-          assume "(y, z') \<in> R" 
+          assume "(y, z') \<in> R"
           then have "(y, z) \<in> R O R" using \<open>(z', z) \<in> R\<close> ..
           with A1 show "y \<notin> Q" .
         next
-          assume "(y, z') \<in> S" 
+          assume "(y, z') \<in> S"
           then have "(y, z) \<in> S O R" using  \<open>(z', z) \<in> R\<close> ..
           with A2 show "y \<notin> Q" .
         qed
@@ -443,22 +446,23 @@ qed
 
 subsection \<open>Acyclic relations\<close>
 
-lemma wf_acyclic: "wf r ==> acyclic r"
+lemma wf_acyclic: "wf r \<Longrightarrow> acyclic r"
 apply (simp add: acyclic_def)
 apply (blast elim: wf_trancl [THEN wf_irrefl])
 done
 
 lemmas wfP_acyclicP = wf_acyclic [to_pred]
 
-text\<open>Wellfoundedness of finite acyclic relations\<close>
 
-lemma finite_acyclic_wf [rule_format]: "finite r ==> acyclic r --> wf r"
+subsubsection \<open>Wellfoundedness of finite acyclic relations\<close>
+
+lemma finite_acyclic_wf [rule_format]: "finite r \<Longrightarrow> acyclic r \<longrightarrow> wf r"
 apply (erule finite_induct, blast)
-apply (simp (no_asm_simp) only: split_tupled_all)
+apply (simp only: split_tupled_all)
 apply simp
 done
 
-lemma finite_acyclic_wf_converse: "[|finite r; acyclic r|] ==> wf (r^-1)"
+lemma finite_acyclic_wf_converse: "finite r \<Longrightarrow> acyclic r \<Longrightarrow> wf (r\<inverse>)"
 apply (erule finite_converse [THEN iffD2, THEN finite_acyclic_wf])
 apply (erule acyclic_converse [THEN iffD2])
 done
@@ -477,44 +481,39 @@ proof -
   with \<open>finite r\<close> show ?thesis by (rule finite_acyclic_wf_converse)
 qed
 
-lemma wf_iff_acyclic_if_finite: "finite r ==> wf r = acyclic r"
+lemma wf_iff_acyclic_if_finite: "finite r \<Longrightarrow> wf r = acyclic r"
 by (blast intro: finite_acyclic_wf wf_acyclic)
 
 
 subsection \<open>@{typ nat} is well-founded\<close>
 
-lemma less_nat_rel: "op < = (\<lambda>m n. n = Suc m)^++"
+lemma less_nat_rel: "op < = (\<lambda>m n. n = Suc m)\<^sup>+\<^sup>+"
 proof (rule ext, rule ext, rule iffI)
   fix n m :: nat
-  assume "m < n"
-  then show "(\<lambda>m n. n = Suc m)^++ m n"
+  show "(\<lambda>m n. n = Suc m)\<^sup>+\<^sup>+ m n" if "m < n"
+    using that
   proof (induct n)
-    case 0 then show ?case by auto
+    case 0
+    then show ?case by auto
   next
-    case (Suc n) then show ?case
+    case (Suc n)
+    then show ?case
       by (auto simp add: less_Suc_eq_le le_less intro: tranclp.trancl_into_trancl)
   qed
-next
-  fix n m :: nat
-  assume "(\<lambda>m n. n = Suc m)^++ m n"
-  then show "m < n"
-    by (induct n)
-      (simp_all add: less_Suc_eq_le reflexive le_less)
+  show "m < n" if "(\<lambda>m n. n = Suc m)\<^sup>+\<^sup>+ m n"
+    using that by (induct n) (simp_all add: less_Suc_eq_le reflexive le_less)
 qed
 
-definition
-  pred_nat :: "(nat * nat) set" where
-  "pred_nat = {(m, n). n = Suc m}"
+definition pred_nat :: "(nat \<times> nat) set"
+  where "pred_nat = {(m, n). n = Suc m}"
 
-definition
-  less_than :: "(nat * nat) set" where
-  "less_than = pred_nat^+"
+definition less_than :: "(nat \<times> nat) set"
+  where "less_than = pred_nat\<^sup>+"
 
-lemma less_eq: "(m, n) \<in> pred_nat^+ \<longleftrightarrow> m < n"
+lemma less_eq: "(m, n) \<in> pred_nat\<^sup>+ \<longleftrightarrow> m < n"
   unfolding less_nat_rel pred_nat_def trancl_def by simp
 
-lemma pred_nat_trancl_eq_le:
-  "(m, n) \<in> pred_nat^* \<longleftrightarrow> m \<le> n"
+lemma pred_nat_trancl_eq_le: "(m, n) \<in> pred_nat\<^sup>* \<longleftrightarrow> m \<le> n"
   unfolding less_eq rtrancl_eq_or_trancl by auto
 
 lemma wf_pred_nat: "wf pred_nat"
@@ -528,7 +527,7 @@ lemma wf_less_than [iff]: "wf less_than"
 lemma trans_less_than [iff]: "trans less_than"
   by (simp add: less_than_def)
 
-lemma less_than_iff [iff]: "((x,y): less_than) = (x<y)"
+lemma less_than_iff [iff]: "((x,y) \<in> less_than) = (x<y)"
   by (simp add: less_than_def less_eq)
 
 lemma wf_less: "wf {(x, y::nat). x < y}"
@@ -538,28 +537,22 @@ lemma wf_less: "wf {(x, y::nat). x < y}"
 subsection \<open>Accessible Part\<close>
 
 text \<open>
- Inductive definition of the accessible part @{term "acc r"} of a
- relation; see also @{cite "paulin-tlca"}.
+  Inductive definition of the accessible part \<open>acc r\<close> of a
+  relation; see also @{cite "paulin-tlca"}.
 \<close>
 
-inductive_set
-  acc :: "('a * 'a) set => 'a set"
-  for r :: "('a * 'a) set"
-  where
-    accI: "(!!y. (y, x) : r ==> y : acc r) ==> x : acc r"
+inductive_set acc :: "('a \<times> 'a) set \<Rightarrow> 'a set" for r :: "('a \<times> 'a) set"
+  where accI: "(\<And>y. (y, x) \<in> r \<Longrightarrow> y \<in> acc r) \<Longrightarrow> x \<in> acc r"
 
-abbreviation
-  termip :: "('a => 'a => bool) => 'a => bool" where
-  "termip r \<equiv> accp (r\<inverse>\<inverse>)"
+abbreviation termip :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
+  where "termip r \<equiv> accp (r\<inverse>\<inverse>)"
 
-abbreviation
-  termi :: "('a * 'a) set => 'a set" where
-  "termi r \<equiv> acc (r\<inverse>)"
+abbreviation termi :: "('a \<times> 'a) set \<Rightarrow> 'a set"
+  where "termi r \<equiv> acc (r\<inverse>)"
 
 lemmas accpI = accp.accI
 
-lemma accp_eq_acc [code]:
-  "accp r = (\<lambda>x. x \<in> Wellfounded.acc {(x, y). r x y})"
+lemma accp_eq_acc [code]: "accp r = (\<lambda>x. x \<in> Wellfounded.acc {(x, y). r x y})"
   by (simp add: acc_def)
 
 
@@ -567,7 +560,7 @@ text \<open>Induction rules\<close>
 
 theorem accp_induct:
   assumes major: "accp r a"
-  assumes hyp: "!!x. accp r x ==> \<forall>y. r y x --> P y ==> P x"
+  assumes hyp: "\<And>x. accp r x \<Longrightarrow> \<forall>y. r y x \<longrightarrow> P y \<Longrightarrow> P x"
   shows "P a"
   apply (rule major [THEN accp.induct])
   apply (rule hyp)
@@ -578,7 +571,7 @@ theorem accp_induct:
 
 lemmas accp_induct_rule = accp_induct [rule_format, induct set: accp]
 
-theorem accp_downward: "accp r b ==> r a b ==> accp r a"
+theorem accp_downward: "accp r b \<Longrightarrow> r a b \<Longrightarrow> accp r a"
   apply (erule accp.cases)
   apply fast
   done
@@ -588,13 +581,11 @@ lemma not_accp_down:
   obtains z where "R z x" and "\<not> accp R z"
 proof -
   assume a: "\<And>z. \<lbrakk>R z x; \<not> accp R z\<rbrakk> \<Longrightarrow> thesis"
-
   show thesis
   proof (cases "\<forall>z. R z x \<longrightarrow> accp R z")
     case True
-    hence "\<And>z. R z x \<Longrightarrow> accp R z" by auto
-    hence "accp R x"
-      by (rule accp.accI)
+    then have "\<And>z. R z x \<Longrightarrow> accp R z" by auto
+    then have "accp R x" by (rule accp.accI)
     with na show thesis ..
   next
     case False then obtain z where "R z x" and "\<not> accp R z"
@@ -603,24 +594,24 @@ proof -
   qed
 qed
 
-lemma accp_downwards_aux: "r\<^sup>*\<^sup>* b a ==> accp r a --> accp r b"
+lemma accp_downwards_aux: "r\<^sup>*\<^sup>* b a \<Longrightarrow> accp r a \<longrightarrow> accp r b"
   apply (erule rtranclp_induct)
    apply blast
   apply (blast dest: accp_downward)
   done
 
-theorem accp_downwards: "accp r a ==> r\<^sup>*\<^sup>* b a ==> accp r b"
+theorem accp_downwards: "accp r a \<Longrightarrow> r\<^sup>*\<^sup>* b a \<Longrightarrow> accp r b"
   apply (blast dest: accp_downwards_aux)
   done
 
-theorem accp_wfPI: "\<forall>x. accp r x ==> wfP r"
+theorem accp_wfPI: "\<forall>x. accp r x \<Longrightarrow> wfP r"
   apply (rule wfPUNIVI)
   apply (rule_tac P=P in accp_induct)
    apply blast
   apply blast
   done
 
-theorem accp_wfPD: "wfP r ==> accp r x"
+theorem accp_wfPD: "wfP r \<Longrightarrow> accp r x"
   apply (erule wfP_induct_rule)
   apply (rule accp.accI)
   apply blast
@@ -699,10 +690,10 @@ subsection \<open>Tools for building wellfounded relations\<close>
 
 text \<open>Inverse Image\<close>
 
-lemma wf_inv_image [simp,intro!]: "wf(r) ==> wf(inv_image r (f::'a=>'b))"
+lemma wf_inv_image [simp,intro!]: "wf r \<Longrightarrow> wf (inv_image r f)" for f :: "'a \<Rightarrow> 'b"
 apply (simp (no_asm_use) add: inv_image_def wf_eq_minimal)
 apply clarify
-apply (subgoal_tac "EX (w::'b) . w : {w. EX (x::'a) . x: Q & (f x = w) }")
+apply (subgoal_tac "\<exists>w::'b. w \<in> {w. \<exists>x::'a. x \<in> Q \<and> f x = w}")
 prefer 2 apply (blast del: allE)
 apply (erule allE)
 apply (erule (1) notE impE)
@@ -711,10 +702,10 @@ done
 
 text \<open>Measure functions into @{typ nat}\<close>
 
-definition measure :: "('a => nat) => ('a * 'a)set"
-where "measure = inv_image less_than"
+definition measure :: "('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set"
+  where "measure = inv_image less_than"
 
-lemma in_measure[simp, code_unfold]: "((x,y) : measure f) = (f x < f y)"
+lemma in_measure[simp, code_unfold]: "(x, y) \<in> measure f \<longleftrightarrow> f x < f y"
   by (simp add:measure_def)
 
 lemma wf_measure [iff]: "wf (measure f)"
@@ -722,8 +713,8 @@ apply (unfold measure_def)
 apply (rule wf_less_than [THEN wf_inv_image])
 done
 
-lemma wf_if_measure: fixes f :: "'a \<Rightarrow> nat"
-shows "(!!x. P x \<Longrightarrow> f(g x) < f x) \<Longrightarrow> wf {(y,x). P x \<and> y = g x}"
+lemma wf_if_measure: "(\<And>x. P x \<Longrightarrow> f(g x) < f x) \<Longrightarrow> wf {(y,x). P x \<and> y = g x}"
+  for f :: "'a \<Rightarrow> nat"
 apply(insert wf_measure[of f])
 apply(simp only: measure_def inv_image_def less_than_def less_eq)
 apply(erule wf_subset)
@@ -731,69 +722,66 @@ apply auto
 done
 
 
-text\<open>Lexicographic combinations\<close>
+subsubsection \<open>Lexicographic combinations\<close>
 
-definition lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \<Rightarrow> (('a \<times> 'b) \<times> ('a \<times> 'b)) set" (infixr "<*lex*>" 80) where
-  "ra <*lex*> rb = {((a, b), (a', b')). (a, a') \<in> ra \<or> a = a' \<and> (b, b') \<in> rb}"
+definition lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \<Rightarrow> (('a \<times> 'b) \<times> ('a \<times> 'b)) set"
+    (infixr "<*lex*>" 80)
+  where "ra <*lex*> rb = {((a, b), (a', b')). (a, a') \<in> ra \<or> a = a' \<and> (b, b') \<in> rb}"
 
-lemma wf_lex_prod [intro!]: "[| wf(ra); wf(rb) |] ==> wf(ra <*lex*> rb)"
-apply (unfold wf_def lex_prod_def) 
+lemma wf_lex_prod [intro!]: "wf ra \<Longrightarrow> wf rb \<Longrightarrow> wf (ra <*lex*> rb)"
+apply (unfold wf_def lex_prod_def)
 apply (rule allI, rule impI)
 apply (simp (no_asm_use) only: split_paired_All)
-apply (drule spec, erule mp) 
+apply (drule spec, erule mp)
 apply (rule allI, rule impI)
-apply (drule spec, erule mp, blast) 
+apply (drule spec, erule mp, blast)
 done
 
-lemma in_lex_prod[simp]: 
-  "(((a,b),(a',b')): r <*lex*> s) = ((a,a'): r \<or> (a = a' \<and> (b, b') : s))"
+lemma in_lex_prod[simp]: "((a, b), (a', b')) \<in> r <*lex*> s \<longleftrightarrow> (a, a') \<in> r \<or> a = a' \<and> (b, b') \<in> s"
   by (auto simp:lex_prod_def)
 
-text\<open>@{term "op <*lex*>"} preserves transitivity\<close>
+text \<open>\<open><*lex*>\<close> preserves transitivity\<close>
+lemma trans_lex_prod [intro!]: "trans R1 \<Longrightarrow> trans R2 \<Longrightarrow> trans (R1 <*lex*> R2)"
+  unfolding trans_def lex_prod_def by blast
 
-lemma trans_lex_prod [intro!]: 
-    "[| trans R1; trans R2 |] ==> trans (R1 <*lex*> R2)"
-by (unfold trans_def lex_prod_def, blast) 
 
 text \<open>lexicographic combinations with measure functions\<close>
 
-definition 
-  mlex_prod :: "('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" (infixr "<*mlex*>" 80)
-where
-  "f <*mlex*> R = inv_image (less_than <*lex*> R) (%x. (f x, x))"
+definition mlex_prod :: "('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" (infixr "<*mlex*>" 80)
+  where "f <*mlex*> R = inv_image (less_than <*lex*> R) (\<lambda>x. (f x, x))"
 
 lemma wf_mlex: "wf R \<Longrightarrow> wf (f <*mlex*> R)"
-unfolding mlex_prod_def
-by auto
+  unfolding mlex_prod_def
+  by auto
 
 lemma mlex_less: "f x < f y \<Longrightarrow> (x, y) \<in> f <*mlex*> R"
-unfolding mlex_prod_def by simp
+  unfolding mlex_prod_def by simp
 
 lemma mlex_leq: "f x \<le> f y \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> (x, y) \<in> f <*mlex*> R"
-unfolding mlex_prod_def by auto
+  unfolding mlex_prod_def by auto
 
 text \<open>proper subset relation on finite sets\<close>
 
-definition finite_psubset  :: "('a set * 'a set) set"
-where "finite_psubset = {(A,B). A < B & finite B}"
+definition finite_psubset :: "('a set \<times> 'a set) set"
+  where "finite_psubset = {(A,B). A < B \<and> finite B}"
 
-lemma wf_finite_psubset[simp]: "wf(finite_psubset)"
-apply (unfold finite_psubset_def)
-apply (rule wf_measure [THEN wf_subset])
-apply (simp add: measure_def inv_image_def less_than_def less_eq)
-apply (fast elim!: psubset_card_mono)
-done
+lemma wf_finite_psubset[simp]: "wf finite_psubset"
+  apply (unfold finite_psubset_def)
+  apply (rule wf_measure [THEN wf_subset])
+  apply (simp add: measure_def inv_image_def less_than_def less_eq)
+  apply (fast elim!: psubset_card_mono)
+  done
 
 lemma trans_finite_psubset: "trans finite_psubset"
-by (simp add: finite_psubset_def less_le trans_def, blast)
+  by (auto simp add: finite_psubset_def less_le trans_def)
 
-lemma in_finite_psubset[simp]: "(A, B) \<in> finite_psubset = (A < B & finite B)"
-unfolding finite_psubset_def by auto
+lemma in_finite_psubset[simp]: "(A, B) \<in> finite_psubset \<longleftrightarrow> A < B \<and> finite B"
+  unfolding finite_psubset_def by auto
 
 text \<open>max- and min-extension of order to finite sets\<close>
 
-inductive_set max_ext :: "('a \<times> 'a) set \<Rightarrow> ('a set \<times> 'a set) set" 
-for R :: "('a \<times> 'a) set"
+inductive_set max_ext :: "('a \<times> 'a) set \<Rightarrow> ('a set \<times> 'a set) set"
+  for R :: "('a \<times> 'a) set"
 where
   max_extI[intro]: "finite X \<Longrightarrow> finite Y \<Longrightarrow> Y \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> X \<Longrightarrow> \<exists>y\<in>Y. (x, y) \<in> R) \<Longrightarrow> (X, Y) \<in> max_ext R"
 
@@ -801,10 +789,11 @@ lemma max_ext_wf:
   assumes wf: "wf r"
   shows "wf (max_ext r)"
 proof (rule acc_wfI, intro allI)
-  fix M show "M \<in> acc (max_ext r)" (is "_ \<in> ?W")
+  fix M
+  show "M \<in> acc (max_ext r)" (is "_ \<in> ?W")
   proof cases
     assume "finite M"
-    thus ?thesis
+    then show ?thesis
     proof (induct M)
       show "{} \<in> ?W"
         by (rule accI) (auto elim: max_ext.cases)
@@ -815,42 +804,37 @@ proof (rule acc_wfI, intro allI)
         fix M a
         assume "M \<in> ?W"  and  [intro]: "finite M"
         assume hyp: "\<And>b M. (b, a) \<in> r \<Longrightarrow> M \<in> ?W \<Longrightarrow> finite M \<Longrightarrow> insert b M \<in> ?W"
-        {
-          fix N M :: "'a set"
-          assume "finite N" "finite M"
-          then
-          have "\<lbrakk>M \<in> ?W ; (\<And>y. y \<in> N \<Longrightarrow> (y, a) \<in> r)\<rbrakk> \<Longrightarrow>  N \<union> M \<in> ?W"
-            by (induct N arbitrary: M) (auto simp: hyp)
-        }
-        note add_less = this
-        
+        have add_less: "\<lbrakk>M \<in> ?W ; (\<And>y. y \<in> N \<Longrightarrow> (y, a) \<in> r)\<rbrakk> \<Longrightarrow> N \<union> M \<in> ?W"
+          if "finite N" "finite M" for N M :: "'a set"
+          using that by (induct N arbitrary: M) (auto simp: hyp)
+
         show "insert a M \<in> ?W"
         proof (rule accI)
-          fix N assume Nless: "(N, insert a M) \<in> max_ext r"
-          hence asm1: "\<And>x. x \<in> N \<Longrightarrow> (x, a) \<in> r \<or> (\<exists>y \<in> M. (x, y) \<in> r)"
+          fix N
+          assume Nless: "(N, insert a M) \<in> max_ext r"
+          then have *: "\<And>x. x \<in> N \<Longrightarrow> (x, a) \<in> r \<or> (\<exists>y \<in> M. (x, y) \<in> r)"
             by (auto elim!: max_ext.cases)
 
-          let ?N1 = "{ n \<in> N. (n, a) \<in> r }"
-          let ?N2 = "{ n \<in> N. (n, a) \<notin> r }"
+          let ?N1 = "{n \<in> N. (n, a) \<in> r}"
+          let ?N2 = "{n \<in> N. (n, a) \<notin> r}"
           have N: "?N1 \<union> ?N2 = N" by (rule set_eqI) auto
           from Nless have "finite N" by (auto elim: max_ext.cases)
           then have finites: "finite ?N1" "finite ?N2" by auto
-          
+
           have "?N2 \<in> ?W"
           proof cases
             assume [simp]: "M = {}"
             have Mw: "{} \<in> ?W" by (rule accI) (auto elim: max_ext.cases)
 
-            from asm1 have "?N2 = {}" by auto
+            from * have "?N2 = {}" by auto
             with Mw show "?N2 \<in> ?W" by (simp only:)
           next
             assume "M \<noteq> {}"
-            from asm1 finites have N2: "(?N2, M) \<in> max_ext r" 
+            from * finites have N2: "(?N2, M) \<in> max_ext r"
               by (rule_tac max_extI[OF _ _ \<open>M \<noteq> {}\<close>]) auto
-
             with \<open>M \<in> ?W\<close> show "?N2 \<in> ?W" by (rule acc_downward)
           qed
-          with finites have "?N1 \<union> ?N2 \<in> ?W" 
+          with finites have "?N1 \<union> ?N2 \<in> ?W"
             by (rule add_less) simp
           then show "N \<in> ?W" by (simp only: N)
         qed
@@ -863,32 +847,30 @@ proof (rule acc_wfI, intro allI)
   qed
 qed
 
-lemma max_ext_additive: 
- "(A, B) \<in> max_ext R \<Longrightarrow> (C, D) \<in> max_ext R \<Longrightarrow>
-  (A \<union> C, B \<union> D) \<in> max_ext R"
-by (force elim!: max_ext.cases)
+lemma max_ext_additive:
+  "(A, B) \<in> max_ext R \<Longrightarrow> (C, D) \<in> max_ext R \<Longrightarrow>
+    (A \<union> C, B \<union> D) \<in> max_ext R"
+  by (force elim!: max_ext.cases)
 
 
-definition min_ext :: "('a \<times> 'a) set \<Rightarrow> ('a set \<times> 'a set) set"  where
-  "min_ext r = {(X, Y) | X Y. X \<noteq> {} \<and> (\<forall>y \<in> Y. (\<exists>x \<in> X. (x, y) \<in> r))}"
+definition min_ext :: "('a \<times> 'a) set \<Rightarrow> ('a set \<times> 'a set) set"
+  where "min_ext r = {(X, Y) | X Y. X \<noteq> {} \<and> (\<forall>y \<in> Y. (\<exists>x \<in> X. (x, y) \<in> r))}"
 
 lemma min_ext_wf:
   assumes "wf r"
   shows "wf (min_ext r)"
 proof (rule wfI_min)
-  fix Q :: "'a set set"
-  fix x
-  assume nonempty: "x \<in> Q"
-  show "\<exists>m \<in> Q. (\<forall> n. (n, m) \<in> min_ext r \<longrightarrow> n \<notin> Q)"
-  proof cases
-    assume "Q = {{}}" thus ?thesis by (simp add: min_ext_def)
+  show "\<exists>m \<in> Q. (\<forall> n. (n, m) \<in> min_ext r \<longrightarrow> n \<notin> Q)" if nonempty: "x \<in> Q"
+    for Q :: "'a set set" and x
+  proof (cases "Q = {{}}")
+    case True
+    then show ?thesis by (simp add: min_ext_def)
   next
-    assume "Q \<noteq> {{}}"
-    with nonempty
-    obtain e x where "x \<in> Q" "e \<in> x" by force
+    case False
+    with nonempty obtain e x where "x \<in> Q" "e \<in> x" by force
     then have eU: "e \<in> \<Union>Q" by auto
-    with \<open>wf r\<close> 
-    obtain z where z: "z \<in> \<Union>Q" "\<And>y. (y, z) \<in> r \<Longrightarrow> y \<notin> \<Union>Q" 
+    with \<open>wf r\<close>
+    obtain z where z: "z \<in> \<Union>Q" "\<And>y. (y, z) \<in> r \<Longrightarrow> y \<notin> \<Union>Q"
       by (erule wfE_min)
     from z obtain m where "m \<in> Q" "z \<in> m" by auto
     from \<open>m \<in> Q\<close>
@@ -898,36 +880,38 @@ proof (rule wfI_min)
       assume smaller: "(n, m) \<in> min_ext r"
       with \<open>z \<in> m\<close> obtain y where y: "y \<in> n" "(y, z) \<in> r" by (auto simp: min_ext_def)
       then show "n \<notin> Q" using z(2) by auto
-    qed      
+    qed
   qed
 qed
 
-text\<open>Bounded increase must terminate:\<close>
+
+subsubsection \<open>Bounded increase must terminate\<close>
 
 lemma wf_bounded_measure:
-fixes ub :: "'a \<Rightarrow> nat" and f :: "'a \<Rightarrow> nat"
-assumes "!!a b. (b,a) : r \<Longrightarrow> ub b \<le> ub a & ub a \<ge> f b & f b > f a"
-shows "wf r"
-apply(rule wf_subset[OF wf_measure[of "%a. ub a - f a"]])
-apply (auto dest: assms)
-done
+  fixes ub :: "'a \<Rightarrow> nat"
+    and f :: "'a \<Rightarrow> nat"
+  assumes "\<And>a b. (b, a) \<in> r \<Longrightarrow> ub b \<le> ub a \<and> ub a \<ge> f b \<and> f b > f a"
+  shows "wf r"
+  apply (rule wf_subset[OF wf_measure[of "\<lambda>a. ub a - f a"]])
+  apply (auto dest: assms)
+  done
 
 lemma wf_bounded_set:
-fixes ub :: "'a \<Rightarrow> 'b set" and f :: "'a \<Rightarrow> 'b set"
-assumes "!!a b. (b,a) : r \<Longrightarrow>
-  finite(ub a) & ub b \<subseteq> ub a & ub a \<supseteq> f b & f b \<supset> f a"
-shows "wf r"
-apply(rule wf_bounded_measure[of r "%a. card(ub a)" "%a. card(f a)"])
-apply(drule assms)
-apply (blast intro: card_mono finite_subset psubset_card_mono dest: psubset_eq[THEN iffD2])
-done
+  fixes ub :: "'a \<Rightarrow> 'b set"
+    and f :: "'a \<Rightarrow> 'b set"
+  assumes "\<And>a b. (b,a) \<in> r \<Longrightarrow> finite (ub a) \<and> ub b \<subseteq> ub a \<and> ub a \<supseteq> f b \<and> f b \<supset> f a"
+  shows "wf r"
+  apply(rule wf_bounded_measure[of r "\<lambda>a. card(ub a)" "\<lambda>a. card(f a)"])
+  apply(drule assms)
+  apply (blast intro: card_mono finite_subset psubset_card_mono dest: psubset_eq[THEN iffD2])
+  done
 
 lemma finite_subset_wf:
   assumes "finite A"
   shows   "wf {(X,Y). X \<subset> Y \<and> Y \<subseteq> A}"
 proof (intro finite_acyclic_wf)
   have "{(X,Y). X \<subset> Y \<and> Y \<subseteq> A} \<subseteq> Pow A \<times> Pow A" by blast
-  thus "finite {(X,Y). X \<subset> Y \<and> Y \<subseteq> A}" 
+  then show "finite {(X,Y). X \<subset> Y \<and> Y \<subseteq> A}"
     by (rule finite_subset) (auto simp: assms finite_cartesian_product)
 next
   have "{(X, Y). X \<subset> Y \<and> Y \<subseteq> A}\<^sup>+ = {(X, Y). X \<subset> Y \<and> Y \<subseteq> A}"
