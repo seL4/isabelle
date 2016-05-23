@@ -223,7 +223,7 @@ lemma (in real_vector) subspace_mul: "subspace S \<Longrightarrow> x \<in> S \<L
 lemma subspace_neg: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> - x \<in> S"
   by (metis scaleR_minus1_left subspace_mul)
 
-lemma subspace_sub: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x - y \<in> S"
+lemma subspace_diff: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x - y \<in> S"
   using subspace_add [of S x "- y"] by (simp add: subspace_neg)
 
 lemma (in real_vector) subspace_setsum:
@@ -434,7 +434,7 @@ lemma span_neg: "x \<in> span S \<Longrightarrow> - x \<in> span S"
   by (metis subspace_neg subspace_span)
 
 lemma span_sub: "x \<in> span S \<Longrightarrow> y \<in> span S \<Longrightarrow> x - y \<in> span S"
-  by (metis subspace_span subspace_sub)
+  by (metis subspace_span subspace_diff)
 
 lemma (in real_vector) span_setsum: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> span S) \<Longrightarrow> setsum f A \<in> span S"
   by (rule subspace_setsum [OF subspace_span])
@@ -1523,6 +1523,46 @@ end
 
 lemma orthogonal_commute: "orthogonal x y \<longleftrightarrow> orthogonal y x"
   by (simp add: orthogonal_def inner_commute)
+
+lemma orthogonal_scaleR [simp]: "c \<noteq> 0 \<Longrightarrow> orthogonal (c *\<^sub>R x) = orthogonal x"
+  by (rule ext) (simp add: orthogonal_def)
+
+lemma pairwise_ortho_scaleR:
+    "pairwise (\<lambda>i j. orthogonal (f i) (g j)) B
+    \<Longrightarrow> pairwise (\<lambda>i j. orthogonal (a i *\<^sub>R f i) (a j *\<^sub>R g j)) B"
+  by (auto simp: pairwise_def orthogonal_clauses)
+
+lemma orthogonal_rvsum:
+    "\<lbrakk>finite s; \<And>y. y \<in> s \<Longrightarrow> orthogonal x (f y)\<rbrakk> \<Longrightarrow> orthogonal x (setsum f s)"
+  by (induction s rule: finite_induct) (auto simp: orthogonal_clauses)
+
+lemma orthogonal_lvsum:
+    "\<lbrakk>finite s; \<And>x. x \<in> s \<Longrightarrow> orthogonal (f x) y\<rbrakk> \<Longrightarrow> orthogonal (setsum f s) y"
+  by (induction s rule: finite_induct) (auto simp: orthogonal_clauses)
+
+lemma norm_add_Pythagorean:
+  assumes "orthogonal a b"
+    shows "norm(a + b) ^ 2 = norm a ^ 2 + norm b ^ 2"
+proof -
+  from assms have "(a - (0 - b)) \<bullet> (a - (0 - b)) = a \<bullet> a - (0 - b \<bullet> b)"
+    by (simp add: algebra_simps orthogonal_def inner_commute)
+  then show ?thesis
+    by (simp add: power2_norm_eq_inner)
+qed
+
+lemma norm_setsum_Pythagorean:
+  assumes "finite I" "pairwise (\<lambda>i j. orthogonal (f i) (f j)) I"
+    shows "(norm (setsum f I))\<^sup>2 = (\<Sum>i\<in>I. (norm (f i))\<^sup>2)"
+using assms
+proof (induction I rule: finite_induct)
+  case empty then show ?case by simp
+next
+  case (insert x I)
+  then have "orthogonal (f x) (setsum f I)"
+    by (metis pairwise_insert orthogonal_rvsum)
+  with insert show ?case
+    by (simp add: pairwise_insert norm_add_Pythagorean)
+qed
 
 
 subsection \<open>Bilinear functions.\<close>

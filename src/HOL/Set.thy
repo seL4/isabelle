@@ -1934,6 +1934,14 @@ lemma pairwise_empty [simp]: "pairwise P {}"
 lemma pairwise_singleton [simp]: "pairwise P {A}"
   by (simp add: pairwise_def)
 
+lemma pairwise_insert:
+   "pairwise r (insert x s) \<longleftrightarrow> (\<forall>y. y \<in> s \<and> y \<noteq> x \<longrightarrow> r x y \<and> r y x) \<and> pairwise r s"
+by (force simp: pairwise_def)
+
+lemma pairwise_image:
+   "pairwise r (f ` s) \<longleftrightarrow> pairwise (\<lambda>x y. (f x \<noteq> f y) \<longrightarrow> r (f x) (f y)) s"
+by (force simp: pairwise_def)
+
 lemma Int_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> x \<in> B \<Longrightarrow> False) \<Longrightarrow> A \<inter> B = {}"
   by blast
 

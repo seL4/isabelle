@@ -2109,6 +2109,79 @@ proof -
     by (auto simp: closure_def)
 qed
 
+lemma connected_disjoint_Union_open_pick:
+  assumes "pairwise disjnt B"
+          "\<And>S. S \<in> A \<Longrightarrow> connected S \<and> S \<noteq> {}"
+          "\<And>S. S \<in> B \<Longrightarrow> open S"
+          "\<Union>A \<subseteq> \<Union>B"
+          "S \<in> A"
+  obtains T where "T \<in> B" "S \<subseteq> T" "S \<inter> \<Union>(B - {T}) = {}"
+proof -
+  have "S \<subseteq> \<Union>B" "connected S" "S \<noteq> {}"
+    using assms \<open>S \<in> A\<close> by blast+
+  then obtain T where "T \<in> B" "S \<inter> T \<noteq> {}"
+    by (metis Sup_inf_eq_bot_iff inf.absorb_iff2 inf_commute)
+  have 1: "open T" by (simp add: \<open>T \<in> B\<close> assms)
+  have 2: "open (\<Union>(B-{T}))" using assms by blast
+  have 3: "S \<subseteq> T \<union> \<Union>(B - {T})" using \<open>S \<subseteq> \<Union>B\<close> by blast
+  have "T \<inter> \<Union>(B - {T}) = {}" using \<open>T \<in> B\<close> \<open>pairwise disjnt B\<close>
+    by (auto simp: pairwise_def disjnt_def)
+  then have 4: "T \<inter> \<Union>(B - {T}) \<inter> S = {}" by auto
+  from connectedD [OF \<open>connected S\<close> 1 2 3 4]
+  have "S \<inter> \<Union>(B-{T}) = {}"
+    by (auto simp: Int_commute \<open>S \<inter> T \<noteq> {}\<close>)
+  with \<open>T \<in> B\<close> have "S \<subseteq> T"
+    using "3" by auto
+  show ?thesis
+    using \<open>S \<inter> \<Union>(B - {T}) = {}\<close> \<open>S \<subseteq> T\<close> \<open>T \<in> B\<close> that by auto
+qed
+
+lemma connected_disjoint_Union_open_subset:
+  assumes A: "pairwise disjnt A" and B: "pairwise disjnt B"
+      and SA: "\<And>S. S \<in> A \<Longrightarrow> open S \<and> connected S \<and> S \<noteq> {}"
+      and SB: "\<And>S. S \<in> B \<Longrightarrow> open S \<and> connected S \<and> S \<noteq> {}"
+      and eq [simp]: "\<Union>A = \<Union>B"
+    shows "A \<subseteq> B"
+proof
+  fix S
+  assume "S \<in> A"
+  obtain T where "T \<in> B" "S \<subseteq> T" "S \<inter> \<Union>(B - {T}) = {}"
+      apply (rule connected_disjoint_Union_open_pick [OF B, of A])
+      using SA SB \<open>S \<in> A\<close> by auto
+  moreover obtain S' where "S' \<in> A" "T \<subseteq> S'" "T \<inter> \<Union>(A - {S'}) = {}"
+      apply (rule connected_disjoint_Union_open_pick [OF A, of B])
+      using SA SB \<open>T \<in> B\<close> by auto
+  ultimately have "S' = S"
+    by (metis A Int_subset_iff SA \<open>S \<in> A\<close> disjnt_def inf.orderE pairwise_def)
+  with \<open>T \<subseteq> S'\<close> have "T \<subseteq> S" by simp
+  with \<open>S \<subseteq> T\<close> have "S = T" by blast
+  with \<open>T \<in> B\<close> show "S \<in> B" by simp
+qed
+
+lemma connected_disjoint_Union_open_unique:
+  assumes A: "pairwise disjnt A" and B: "pairwise disjnt B"
+      and SA: "\<And>S. S \<in> A \<Longrightarrow> open S \<and> connected S \<and> S \<noteq> {}"
+      and SB: "\<And>S. S \<in> B \<Longrightarrow> open S \<and> connected S \<and> S \<noteq> {}"
+      and eq [simp]: "\<Union>A = \<Union>B"
+    shows "A = B"
+by (rule subset_antisym; metis connected_disjoint_Union_open_subset assms)
+
+proposition components_open_unique:
+ fixes S :: "'a::real_normed_vector set"
+  assumes "pairwise disjnt A" "\<Union>A = S"
+          "\<And>X. X \<in> A \<Longrightarrow> open X \<and> connected X \<and> X \<noteq> {}"
+    shows "components S = A"
+proof -
+  have "open S" using assms by blast
+  show ?thesis
+    apply (rule connected_disjoint_Union_open_unique)
+    apply (simp add: components_eq disjnt_def pairwise_def)
+    using \<open>open S\<close>
+    apply (simp_all add: assms open_components in_components_connected in_components_nonempty)
+    done
+qed
+
+
 subsection\<open>Existence of unbounded components\<close>
 
 lemma cobounded_unbounded_component:
@@ -3742,14 +3815,13 @@ lemma homotopic_with_linear:
 lemma homotopic_paths_linear:
   fixes g h :: "real \<Rightarrow> 'a::real_normed_vector"
   assumes "path g" "path h" "pathstart h = pathstart g" "pathfinish h = pathfinish g"
-          "\<And>t x. t \<in> {0..1} \<Longrightarrow> closed_segment (g t) (h t) \<subseteq> s"
+          "\<And>t. t \<in> {0..1} \<Longrightarrow> closed_segment (g t) (h t) \<subseteq> s"
     shows "homotopic_paths s g h"
   using assms
   unfolding path_def
   apply (simp add: closed_segment_def pathstart_def pathfinish_def homotopic_paths_def homotopic_with_def)
-  apply (rule_tac x="\<lambda>y. ((1 - (fst y)) *\<^sub>R g(snd y) + (fst y) *\<^sub>R h(snd y))" in exI)
-  apply (intro conjI subsetI continuous_intros)
-  apply (fastforce intro: continuous_intros continuous_on_compose2 [where g=g] continuous_on_compose2 [where g=h])+
+  apply (rule_tac x="\<lambda>y. ((1 - (fst y)) *\<^sub>R (g o snd) y + (fst y) *\<^sub>R (h o snd) y)" in exI)
+  apply (intro conjI subsetI continuous_intros; force)
   done
 
 lemma homotopic_loops_linear:
@@ -5051,6 +5123,346 @@ apply (erule (1) Topology_Euclidean_Space.openE)
 apply (rule_tac x = "S \<inter> ball x e" in exI)
 apply (force simp: convex_Int convex_imp_path_connected)
 done
+
+subsection\<open>Components, continuity, openin, closedin\<close>
+
+lemma continuous_openin_preimage_eq:
+   "continuous_on S f \<longleftrightarrow>
+    (\<forall>t. open t \<longrightarrow> openin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> t})"
+apply (auto simp: continuous_openin_preimage)
+apply (fastforce simp add: continuous_on_open openin_open)
+done
+
+lemma continuous_closedin_preimage_eq:
+   "continuous_on S f \<longleftrightarrow>
+    (\<forall>t. closed t \<longrightarrow> closedin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> t})"
+apply safe
+apply (simp add: continuous_closedin_preimage)
+apply (fastforce simp add: continuous_on_closed closedin_closed)
+done
+
+lemma continuous_on_components_gen:
+ fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
+  assumes "\<And>c. c \<in> components S \<Longrightarrow>
+              openin (subtopology euclidean S) c \<and> continuous_on c f"
+    shows "continuous_on S f"
+proof (clarsimp simp: continuous_openin_preimage_eq)
+  fix t :: "'b set"
+  assume "open t"
+  have "{x. x \<in> S \<and> f x \<in> t} = \<Union>{{x. x \<in> c \<and> f x \<in> t} |c. c \<in> components S}"
+    apply auto
+    apply (metis (lifting) components_iff connected_component_refl_eq mem_Collect_eq)
+    using Union_components by blast
+  then show "openin (subtopology euclidean S) {x \<in> S. f x \<in> t}"
+    using \<open>open t\<close> assms
+    by (fastforce intro: openin_trans continuous_openin_preimage)
+qed
+
+lemma continuous_on_components:
+ fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
+  assumes "locally connected S "
+          "\<And>c. c \<in> components S \<Longrightarrow> continuous_on c f"
+    shows "continuous_on S f"
+apply (rule continuous_on_components_gen)
+apply (auto simp: assms intro: openin_components_locally_connected)
+done
+
+lemma continuous_on_components_eq:
+    "locally connected S
+     \<Longrightarrow> (continuous_on S f \<longleftrightarrow> (\<forall>c \<in> components S. continuous_on c f))"
+by (meson continuous_on_components continuous_on_subset in_components_subset)
+
+lemma continuous_on_components_open:
+ fixes S :: "'a::real_normed_vector set"
+  assumes "open S "
+          "\<And>c. c \<in> components S \<Longrightarrow> continuous_on c f"
+    shows "continuous_on S f"
+using continuous_on_components open_imp_locally_connected assms by blast
+
+lemma continuous_on_components_open_eq:
+  fixes S :: "'a::real_normed_vector set"
+  shows "open S \<Longrightarrow> (continuous_on S f \<longleftrightarrow> (\<forall>c \<in> components S. continuous_on c f))"
+using continuous_on_subset in_components_subset
+by (blast intro: continuous_on_components_open)
+
+lemma closedin_union_complement_components:
+  assumes u: "locally connected u"
+      and S: "closedin (subtopology euclidean u) S"
+      and cuS: "c \<subseteq> components(u - S)"
+    shows "closedin (subtopology euclidean u) (S \<union> \<Union>c)"
+proof -
+  have di: "(\<And>S t. S \<in> c \<and> t \<in> c' \<Longrightarrow> disjnt S t) \<Longrightarrow> disjnt (\<Union> c) (\<Union> c')" for c'
+    by (simp add: disjnt_def) blast
+  have "S \<subseteq> u"
+    using S closedin_imp_subset by blast
+  moreover have "u - S = \<Union>c \<union> \<Union>(components (u - S) - c)"
+    by (metis Diff_partition Topology_Euclidean_Space.Union_components Union_Un_distrib assms(3))
+  moreover have "disjnt (\<Union>c) (\<Union>(components (u - S) - c))"
+    apply (rule di)
+    by (metis DiffD1 DiffD2 assms(3) components_nonoverlap disjnt_def subsetCE)
+  ultimately have eq: "S \<union> \<Union>c = u - (\<Union>(components(u - S) - c))"
+    by (auto simp: disjnt_def)
+  have *: "openin (subtopology euclidean u) (\<Union>(components (u - S) - c))"
+    apply (rule openin_Union)
+    apply (rule openin_trans [of "u - S"])
+    apply (simp add: u S locally_diff_closed openin_components_locally_connected)
+    apply (simp add: openin_diff S)
+    done
+  have "openin (subtopology euclidean u) (u - (u - \<Union>(components (u - S) - c)))"
+    apply (rule openin_diff, simp)
+    apply (metis closedin_diff closedin_topspace topspace_euclidean_subtopology *)
+    done
+  then show ?thesis
+    by (force simp: eq closedin_def)
+qed
+
+lemma closed_union_complement_components:
+  fixes S :: "'a::real_normed_vector set"
+  assumes S: "closed S" and c: "c \<subseteq> components(- S)"
+    shows "closed(S \<union> \<Union> c)"
+proof -
+  have "closedin (subtopology euclidean UNIV) (S \<union> \<Union>c)"
+    apply (rule closedin_union_complement_components [OF locally_connected_UNIV])
+    using S apply (simp add: closed_closedin)
+    using c apply (simp add: Compl_eq_Diff_UNIV)
+    done
+  then show ?thesis
+    by (simp add: closed_closedin)
+qed
+
+lemma closedin_Un_complement_component:
+  fixes S :: "'a::real_normed_vector set"
+  assumes u: "locally connected u"
+      and S: "closedin (subtopology euclidean u) S"
+      and c: " c \<in> components(u - S)"
+    shows "closedin (subtopology euclidean u) (S \<union> c)"
+proof -
+  have "closedin (subtopology euclidean u) (S \<union> \<Union>{c})"
+    using c by (blast intro: closedin_union_complement_components [OF u S])
+  then show ?thesis
+    by simp
+qed
+
+lemma closed_Un_complement_component:
+  fixes S :: "'a::real_normed_vector set"
+  assumes S: "closed S" and c: " c \<in> components(-S)"
+    shows "closed (S \<union> c)"
+by (metis Compl_eq_Diff_UNIV S c closed_closedin closedin_Un_complement_component locally_connected_UNIV subtopology_UNIV)
+
+
+subsection\<open>Existence of isometry between subspaces of same dimension\<close>
+
+thm subspace_isomorphism
+lemma isometry_subset_subspace:
+  fixes S :: "'a::euclidean_space set"
+    and T :: "'b::euclidean_space set"
+  assumes S: "subspace S"
+      and T: "subspace T"
+      and d: "dim S \<le> dim T"
+  obtains f where "linear f" "f ` S \<subseteq> T" "\<And>x. x \<in> S \<Longrightarrow> norm(f x) = norm x"
+proof -
+  obtain B where "B \<subseteq> S" and Borth: "pairwise orthogonal B"
+             and B1: "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
+             and "independent B" "finite B" "card B = dim S" "span B = S"
+    by (metis orthonormal_basis_subspace [OF S] independent_finite)
+  obtain C where "C \<subseteq> T" and Corth: "pairwise orthogonal C"
+             and C1:"\<And>x. x \<in> C \<Longrightarrow> norm x = 1"
+             and "independent C" "finite C" "card C = dim T" "span C = T"
+    by (metis orthonormal_basis_subspace [OF T] independent_finite)
+  obtain fb where "fb ` B \<subseteq> C" "inj_on fb B"
+    by (metis \<open>card B = dim S\<close> \<open>card C = dim T\<close> \<open>finite B\<close> \<open>finite C\<close> card_le_inj d)
+  then have pairwise_orth_fb: "pairwise (\<lambda>v j. orthogonal (fb v) (fb j)) B"
+    using Corth
+    apply (auto simp: pairwise_def orthogonal_clauses)
+    by (meson subsetD image_eqI inj_on_def)
+  obtain f where "linear f" and ffb: "\<And>x. x \<in> B \<Longrightarrow> f x = fb x"
+    using linear_independent_extend \<open>independent B\<close> by fastforce
+  have "f ` S \<subseteq> T"
+    by (metis ffb \<open>fb ` B \<subseteq> C\<close> \<open>linear f\<close> \<open>span B = S\<close> \<open>span C = T\<close> image_cong span_linear_image span_mono)
+  have [simp]: "\<And>x. x \<in> B \<Longrightarrow> norm (fb x) = norm x"
+    using B1 C1 \<open>fb ` B \<subseteq> C\<close> by auto
+  have "norm (f x) = norm x" if "x \<in> S" for x
+  proof -
+    obtain a where x: "x = (\<Sum>v \<in> B. a v *\<^sub>R v)"
+      using \<open>finite B\<close> \<open>span B = S\<close> \<open>x \<in> S\<close> span_finite by fastforce
+    have "f x = (\<Sum>v \<in> B. f (a v *\<^sub>R v))"
+      using linear_setsum [OF \<open>linear f\<close>] x by auto
+    also have "... = (\<Sum>v \<in> B. a v *\<^sub>R f v)"
+      using \<open>linear f\<close> by (simp add: linear_setsum linear.scaleR)
+    also have "... = (\<Sum>v \<in> B. a v *\<^sub>R fb v)"
+      by (simp add: ffb cong: setsum.cong)
+    finally have "norm (f x)^2 = norm (\<Sum>v\<in>B. a v *\<^sub>R fb v)^2" by simp
+    also have "... = (\<Sum>v\<in>B. norm ((a v *\<^sub>R fb v))^2)"
+      apply (rule norm_setsum_Pythagorean [OF \<open>finite B\<close>])
+      apply (rule pairwise_ortho_scaleR [OF pairwise_orth_fb])
+      done
+    also have "... = norm x ^2"
+      by (simp add: x pairwise_ortho_scaleR Borth norm_setsum_Pythagorean [OF \<open>finite B\<close>])
+    finally show ?thesis
+      by (simp add: norm_eq_sqrt_inner)
+  qed
+  then show ?thesis
+    by (rule that [OF \<open>linear f\<close> \<open>f ` S \<subseteq> T\<close>])
+qed
+
+proposition isometries_subspaces:
+  fixes S :: "'a::euclidean_space set"
+    and T :: "'b::euclidean_space set"
+  assumes S: "subspace S"
+      and T: "subspace T"
+      and d: "dim S = dim T"
+  obtains f g where "linear f" "linear g" "f ` S = T" "g ` T = S"
+                    "\<And>x. x \<in> S \<Longrightarrow> norm(f x) = norm x"
+                    "\<And>x. x \<in> T \<Longrightarrow> norm(g x) = norm x"
+                    "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x"
+                    "\<And>x. x \<in> T \<Longrightarrow> f(g x) = x"
+proof -
+  obtain B where "B \<subseteq> S" and Borth: "pairwise orthogonal B"
+             and B1: "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
+             and "independent B" "finite B" "card B = dim S" "span B = S"
+    by (metis orthonormal_basis_subspace [OF S] independent_finite)
+  obtain C where "C \<subseteq> T" and Corth: "pairwise orthogonal C"
+             and C1:"\<And>x. x \<in> C \<Longrightarrow> norm x = 1"
+             and "independent C" "finite C" "card C = dim T" "span C = T"
+    by (metis orthonormal_basis_subspace [OF T] independent_finite)
+  obtain fb where "bij_betw fb B C"
+    by (metis \<open>finite B\<close> \<open>finite C\<close> bij_betw_iff_card \<open>card B = dim S\<close> \<open>card C = dim T\<close> d)
+  then have pairwise_orth_fb: "pairwise (\<lambda>v j. orthogonal (fb v) (fb j)) B"
+    using Corth
+    apply (auto simp: pairwise_def orthogonal_clauses bij_betw_def)
+    by (meson subsetD image_eqI inj_on_def)
+  obtain f where "linear f" and ffb: "\<And>x. x \<in> B \<Longrightarrow> f x = fb x"
+    using linear_independent_extend \<open>independent B\<close> by fastforce
+  define gb where "gb \<equiv> inv_into B fb"
+  then have pairwise_orth_gb: "pairwise (\<lambda>v j. orthogonal (gb v) (gb j)) C"
+    using Borth
+    apply (auto simp: pairwise_def orthogonal_clauses bij_betw_def)
+    by (metis \<open>bij_betw fb B C\<close> bij_betw_imp_surj_on bij_betw_inv_into_right inv_into_into)
+  obtain g where "linear g" and ggb: "\<And>x. x \<in> C \<Longrightarrow> g x = gb x"
+    using linear_independent_extend \<open>independent C\<close> by fastforce
+  have "f ` S \<subseteq> T"
+    by (metis \<open>bij_betw fb B C\<close> bij_betw_imp_surj_on eq_iff ffb  \<open>linear f\<close> \<open>span B = S\<close> \<open>span C = T\<close> image_cong span_linear_image)
+  have [simp]: "\<And>x. x \<in> B \<Longrightarrow> norm (fb x) = norm x"
+    using B1 C1 \<open>bij_betw fb B C\<close> bij_betw_imp_surj_on by fastforce
+  have f [simp]: "norm (f x) = norm x" "g (f x) = x" if "x \<in> S" for x
+  proof -
+    obtain a where x: "x = (\<Sum>v \<in> B. a v *\<^sub>R v)"
+      using \<open>finite B\<close> \<open>span B = S\<close> \<open>x \<in> S\<close> span_finite by fastforce
+    have "f x = (\<Sum>v \<in> B. f (a v *\<^sub>R v))"
+      using linear_setsum [OF \<open>linear f\<close>] x by auto
+    also have "... = (\<Sum>v \<in> B. a v *\<^sub>R f v)"
+      using \<open>linear f\<close> by (simp add: linear_setsum linear.scaleR)
+    also have "... = (\<Sum>v \<in> B. a v *\<^sub>R fb v)"
+      by (simp add: ffb cong: setsum.cong)
+    finally have *: "f x = (\<Sum>v\<in>B. a v *\<^sub>R fb v)" .
+    then have "(norm (f x))\<^sup>2 = (norm (\<Sum>v\<in>B. a v *\<^sub>R fb v))\<^sup>2" by simp
+    also have "... = (\<Sum>v\<in>B. norm ((a v *\<^sub>R fb v))^2)"
+      apply (rule norm_setsum_Pythagorean [OF \<open>finite B\<close>])
+      apply (rule pairwise_ortho_scaleR [OF pairwise_orth_fb])
+      done
+    also have "... = (norm x)\<^sup>2"
+      by (simp add: x pairwise_ortho_scaleR Borth norm_setsum_Pythagorean [OF \<open>finite B\<close>])
+    finally show "norm (f x) = norm x"
+      by (simp add: norm_eq_sqrt_inner)
+    have "g (f x) = g (\<Sum>v\<in>B. a v *\<^sub>R fb v)" by (simp add: *)
+    also have "... = (\<Sum>v\<in>B. g (a v *\<^sub>R fb v))"
+      using \<open>linear g\<close> by (simp add: linear_setsum linear.scaleR)
+    also have "... = (\<Sum>v\<in>B. a v *\<^sub>R g (fb v))"
+      by (simp add: \<open>linear g\<close> linear.scaleR)
+    also have "... = (\<Sum>v\<in>B. a v *\<^sub>R v)"
+      apply (rule setsum.cong [OF refl])
+      using \<open>bij_betw fb B C\<close> gb_def bij_betwE bij_betw_inv_into_left gb_def ggb by fastforce
+    also have "... = x"
+      using x by blast
+    finally show "g (f x) = x" .
+  qed
+  have [simp]: "\<And>x. x \<in> C \<Longrightarrow> norm (gb x) = norm x"
+    by (metis B1 C1 \<open>bij_betw fb B C\<close> bij_betw_imp_surj_on gb_def inv_into_into)
+  have g [simp]: "f (g x) = x" if "x \<in> T" for x
+  proof -
+    obtain a where x: "x = (\<Sum>v \<in> C. a v *\<^sub>R v)"
+      using \<open>finite C\<close> \<open>span C = T\<close> \<open>x \<in> T\<close> span_finite by fastforce
+    have "g x = (\<Sum>v \<in> C. g (a v *\<^sub>R v))"
+      using linear_setsum [OF \<open>linear g\<close>] x by auto
+    also have "... = (\<Sum>v \<in> C. a v *\<^sub>R g v)"
+      using \<open>linear g\<close> by (simp add: linear_setsum linear.scaleR)
+    also have "... = (\<Sum>v \<in> C. a v *\<^sub>R gb v)"
+      by (simp add: ggb cong: setsum.cong)
+    finally have "f (g x) = f (\<Sum>v\<in>C. a v *\<^sub>R gb v)" by simp
+    also have "... = (\<Sum>v\<in>C. f (a v *\<^sub>R gb v))"
+      using \<open>linear f\<close> by (simp add: linear_setsum linear.scaleR)
+    also have "... = (\<Sum>v\<in>C. a v *\<^sub>R f (gb v))"
+      by (simp add: \<open>linear f\<close> linear.scaleR)
+    also have "... = (\<Sum>v\<in>C. a v *\<^sub>R v)"
+      using \<open>bij_betw fb B C\<close>
+      by (simp add: bij_betw_def gb_def bij_betw_inv_into_right ffb inv_into_into)
+    also have "... = x"
+      using x by blast
+    finally show "f (g x) = x" .
+  qed
+  have gim: "g ` T = S"
+    by (metis (no_types, lifting) \<open>f ` S \<subseteq> T\<close> \<open>linear g\<close> \<open>span B = S\<close> \<open>span C = T\<close> d dim_eq_span dim_image_le f(2) image_subset_iff span_linear_image span_span subsetI)
+  have fim: "f ` S = T"
+    using \<open>g ` T = S\<close> image_iff by fastforce
+  have [simp]: "norm (g x) = norm x" if "x \<in> T" for x
+    using fim that by auto
+  show ?thesis
+    apply (rule that [OF \<open>linear f\<close> \<open>linear g\<close>])
+    apply (simp_all add: fim gim)
+    done
+qed
+
+(*REPLACE*)
+lemma isometry_subspaces:
+  fixes S :: "'a::euclidean_space set"
+    and T :: "'b::euclidean_space set"
+  assumes S: "subspace S"
+      and T: "subspace T"
+      and d: "dim S = dim T"
+  obtains f where "linear f" "f ` S = T" "\<And>x. x \<in> S \<Longrightarrow> norm(f x) = norm x"
+using isometries_subspaces [OF assms]
+by metis
+
+lemma homeomorphic_subspaces:
+  fixes S :: "'a::euclidean_space set"
+    and T :: "'b::euclidean_space set"
+  assumes S: "subspace S"
+      and T: "subspace T"
+      and d: "dim S = dim T"
+    shows "S homeomorphic T"
+proof -
+  obtain f g where "linear f" "linear g" "f ` S = T" "g ` T = S"
+                   "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x" "\<And>x. x \<in> T \<Longrightarrow> f(g x) = x"
+    by (blast intro: isometries_subspaces [OF assms])
+  then show ?thesis
+    apply (simp add: homeomorphic_def homeomorphism_def)
+    apply (rule_tac x=f in exI)
+    apply (rule_tac x=g in exI)
+    apply (auto simp: linear_continuous_on linear_conv_bounded_linear)
+    done
+qed
+
+lemma homeomorphic_affine_sets:
+  assumes "affine S" "affine T" "aff_dim S = aff_dim T"
+    shows "S homeomorphic T"
+proof (cases "S = {} \<or> T = {}")
+  case True  with assms aff_dim_empty homeomorphic_empty show ?thesis
+    by metis
+next
+  case False
+  then obtain a b where ab: "a \<in> S" "b \<in> T" by auto
+  then have ss: "subspace (op + (- a) ` S)" "subspace (op + (- b) ` T)"
+    using affine_diffs_subspace assms by blast+
+  have dd: "dim (op + (- a) ` S) = dim (op + (- b) ` T)"
+    using assms ab  by (simp add: aff_dim_eq_dim  [OF hull_inc] image_def)
+  have "S homeomorphic (op + (- a) ` S)"
+    by (simp add: homeomorphic_translation)
+  also have "... homeomorphic (op + (- b) ` T)"
+    by (rule homeomorphic_subspaces [OF ss dd])
+  also have "... homeomorphic T"
+    using homeomorphic_sym homeomorphic_translation by auto
+  finally show ?thesis .
+qed
 
 subsection\<open>Retracts, in a general sense, preserve (co)homotopic triviality)\<close>
 

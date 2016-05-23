@@ -1,9 +1,8 @@
 (*  Title:      HOL/Multivariate_Analysis/Convex_Euclidean_Space.thy
-    Author:     Robert Himmelmann, TU Muenchen
-    Author:     Bogdan Grechuk, University of Edinburgh
+    Authors: Robert Himmelmann, TU Muenchen; Bogdan Grechuk, University of Edinburgh; LCP
 *)
 
-section \<open>Convex sets, functions and related things.\<close>
+section \<open>Convex sets, functions and related things\<close>
 
 theory Convex_Euclidean_Space
 imports
@@ -70,7 +69,7 @@ proof -
   also have "\<dots> \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y \<in> S. f (x - y) = 0 \<longrightarrow> x - y = 0)"
     by (simp add: linear_sub[OF lf])
   also have "\<dots> \<longleftrightarrow> (\<forall>x \<in> S. f x = 0 \<longrightarrow> x = 0)"
-    using \<open>subspace S\<close> subspace_def[of S] subspace_sub[of S] by auto
+    using \<open>subspace S\<close> subspace_def[of S] subspace_diff[of S] by auto
   finally show ?thesis .
 qed
 
@@ -425,6 +424,12 @@ lemma affine_Inter [intro]: "(\<And>s. s\<in>f \<Longrightarrow> affine s) \<Lon
 
 lemma affine_Int[intro]: "affine s \<Longrightarrow> affine t \<Longrightarrow> affine (s \<inter> t)"
   unfolding affine_def by auto
+
+lemma affine_scaling: "affine s \<Longrightarrow> affine (image (\<lambda>x. c *\<^sub>R x) s)"
+  apply (clarsimp simp add: affine_def)
+  apply (rule_tac x="u *\<^sub>R x + v *\<^sub>R y" in image_eqI)
+  apply (auto simp: algebra_simps)
+  done
 
 lemma affine_affine_hull [simp]: "affine(affine hull s)"
   unfolding hull_def
@@ -2915,11 +2920,16 @@ qed
 
 lemma aff_dim_subspace:
   fixes S :: "'n::euclidean_space set"
-  assumes "S \<noteq> {}"
-    and "subspace S"
+  assumes "subspace S"
   shows "aff_dim S = int (dim S)"
-  using aff_dim_affine[of S S] assms subspace_imp_affine[of S] affine_parallel_reflex[of S]
-  by auto
+proof (cases "S={}")
+  case True with assms show ?thesis
+    by (simp add: subspace_affine)
+next
+  case False
+  with aff_dim_affine[of S S] assms subspace_imp_affine[of S] affine_parallel_reflex[of S] subspace_affine
+  show ?thesis by auto
+qed
 
 lemma aff_dim_zero:
   fixes S :: "'n::euclidean_space set"
@@ -2962,6 +2972,41 @@ proof -
     and "int (card B) = aff_dim V + 1"
     using aff_dim_basis_exists by auto
   then show ?thesis by auto
+qed
+
+lemma affine_independent_card_dim_diffs:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "~ affine_dependent S" "a \<in> S"
+    shows "card S = dim {x - a|x. x \<in> S} + 1"
+proof -
+  have 1: "{b - a|b. b \<in> (S - {a})} \<subseteq> {x - a|x. x \<in> S}" by auto
+  have 2: "x - a \<in> span {b - a |b. b \<in> S - {a}}" if "x \<in> S" for x
+  proof (cases "x = a")
+    case True then show ?thesis by simp
+  next
+    case False then show ?thesis
+      using assms by (blast intro: span_superset that)
+  qed
+  have "\<not> affine_dependent (insert a S)"
+    by (simp add: assms insert_absorb)
+  then have 3: "independent {b - a |b. b \<in> S - {a}}"
+      using dependent_imp_affine_dependent by fastforce
+  have "{b - a |b. b \<in> S - {a}} = (\<lambda>b. b-a) ` (S - {a})"
+    by blast
+  then have "card {b - a |b. b \<in> S - {a}} = card ((\<lambda>b. b-a) ` (S - {a}))"
+    by simp
+  also have "... = card (S - {a})"
+    by (metis (no_types, lifting) card_image diff_add_cancel inj_onI)
+  also have "... = card S - 1"
+    by (simp add: aff_independent_finite assms)
+  finally have 4: "card {b - a |b. b \<in> S - {a}} = card S - 1" .
+  have "finite S"
+    by (meson assms aff_independent_finite)
+  with \<open>a \<in> S\<close> have "card S \<noteq> 0" by auto
+  moreover have "dim {x - a |x. x \<in> S} = card S - 1"
+    using 2 by (blast intro: dim_unique [OF 1 _ 3 4])
+  ultimately show ?thesis
+    by auto
 qed
 
 lemma independent_card_le_aff_dim:
@@ -3361,11 +3406,11 @@ lemma rel_interior_empty [simp]: "rel_interior {} = {}"
 lemma affine_hull_sing [simp]: "affine hull {a :: 'n::euclidean_space} = {a}"
   by (metis affine_hull_eq affine_sing)
 
-lemma rel_interior_sing [simp]: "rel_interior {a :: 'n::euclidean_space} = {a}"
-  unfolding rel_interior_ball affine_hull_sing
-  apply auto
-  apply (rule_tac x = "1 :: real" in exI)
-  apply simp
+lemma rel_interior_sing [simp]:
+    fixes a :: "'n::euclidean_space"  shows "rel_interior {a} = {a}"
+  apply (auto simp: rel_interior_ball)
+  apply (rule_tac x=1 in exI)
+  apply force
   done
 
 lemma subset_rel_interior:
@@ -3671,7 +3716,7 @@ proof -
   ultimately show ?thesis by auto
 qed
 
-lemma closure_aff_dim:
+lemma closure_aff_dim [simp]:
   fixes S :: "'n::euclidean_space set"
   shows "aff_dim (closure S) = aff_dim S"
 proof -
@@ -3911,7 +3956,7 @@ proof -
       moreover have "f x - f xy = f (x - xy)"
         using assms linear_sub[of f x xy] linear_conv_bounded_linear[of f] by auto
       moreover have *: "x - xy \<in> span S"
-        using subspace_sub[of "span S" x xy] subspace_span \<open>x \<in> S\<close> xy
+        using subspace_diff[of "span S" x xy] subspace_span \<open>x \<in> S\<close> xy
           affine_hull_subset_span[of S] span_inc
         by auto
       moreover from * have "e1 * norm (x - xy) \<le> norm (f (x - xy))"
@@ -6570,6 +6615,17 @@ lemma open_segment_linear_image:
     "\<lbrakk>linear f; inj f\<rbrakk> \<Longrightarrow> open_segment (f a) (f b) = f ` (open_segment a b)"
   by (force simp: open_segment_def closed_segment_linear_image inj_on_def)
 
+lemma closed_segment_translation:
+    "closed_segment (c + a) (c + b) = image (\<lambda>x. c + x) (closed_segment a b)"
+apply safe
+apply (rule_tac x="x-c" in image_eqI)
+apply (auto simp: in_segment algebra_simps)
+done
+
+lemma open_segment_translation:
+    "open_segment (c + a) (c + b) = image (\<lambda>x. c + x) (open_segment a b)"
+by (simp add: open_segment_def closed_segment_translation translation_diff)
+
 lemma open_segment_PairD:
     "(x, x') \<in> open_segment (a, a') (b, b')
      \<Longrightarrow> (x \<in> open_segment a b \<or> a = b) \<and> (x' \<in> open_segment a' b' \<or> a' = b')"
@@ -6781,6 +6837,118 @@ qed
 lemma closed_segment_real_eq:
   fixes u::real shows "closed_segment u v = (\<lambda>x. (v - u) * x + u) ` {0..1}"
   by (simp add: add.commute [of u] image_affinity_atLeastAtMost [where c=u] closed_segment_eq_real_ivl)
+
+lemma dist_in_closed_segment:
+  fixes a :: "'a :: euclidean_space"
+  assumes "x \<in> closed_segment a b"
+    shows "dist x a \<le> dist a b \<and> dist x b \<le> dist a b"
+proof (intro conjI)
+  obtain u where u: "0 \<le> u" "u \<le> 1" and x: "x = (1 - u) *\<^sub>R a + u *\<^sub>R b"
+    using assms by (force simp: in_segment algebra_simps)
+  have "dist x a = u * dist a b"
+    apply (simp add: dist_norm algebra_simps x)
+    by (metis \<open>0 \<le> u\<close> abs_of_nonneg norm_minus_commute norm_scaleR real_vector.scale_right_diff_distrib)
+  also have "...  \<le> dist a b"
+    by (simp add: mult_left_le_one_le u)
+  finally show "dist x a \<le> dist a b" .
+  have "dist x b = norm ((1-u) *\<^sub>R a - (1-u) *\<^sub>R b)"
+    by (simp add: dist_norm algebra_simps x)
+  also have "... = (1-u) * dist a b"
+  proof -
+    have "norm ((1 - 1 * u) *\<^sub>R (a - b)) = (1 - 1 * u) * norm (a - b)"
+      using \<open>u \<le> 1\<close> by force
+    then show ?thesis
+      by (simp add: dist_norm real_vector.scale_right_diff_distrib)
+  qed
+  also have "... \<le> dist a b"
+    by (simp add: mult_left_le_one_le u)
+  finally show "dist x b \<le> dist a b" .
+qed
+
+lemma dist_in_open_segment:
+  fixes a :: "'a :: euclidean_space"
+  assumes "x \<in> open_segment a b"
+    shows "dist x a < dist a b \<and> dist x b < dist a b"
+proof (intro conjI)
+  obtain u where u: "0 < u" "u < 1" and x: "x = (1 - u) *\<^sub>R a + u *\<^sub>R b"
+    using assms by (force simp: in_segment algebra_simps)
+  have "dist x a = u * dist a b"
+    apply (simp add: dist_norm algebra_simps x)
+    by (metis abs_of_nonneg less_eq_real_def norm_minus_commute norm_scaleR real_vector.scale_right_diff_distrib \<open>0 < u\<close>)
+  also have *: "...  < dist a b"
+    by (metis (no_types) assms dist_eq_0_iff dist_not_less_zero in_segment(2) linorder_neqE_linordered_idom mult.left_neutral real_mult_less_iff1 \<open>u < 1\<close>)
+  finally show "dist x a < dist a b" .
+  have ab_ne0: "dist a b \<noteq> 0"
+    using * by fastforce
+  have "dist x b = norm ((1-u) *\<^sub>R a - (1-u) *\<^sub>R b)"
+    by (simp add: dist_norm algebra_simps x)
+  also have "... = (1-u) * dist a b"
+  proof -
+    have "norm ((1 - 1 * u) *\<^sub>R (a - b)) = (1 - 1 * u) * norm (a - b)"
+      using \<open>u < 1\<close> by force
+    then show ?thesis
+      by (simp add: dist_norm real_vector.scale_right_diff_distrib)
+  qed
+  also have "... < dist a b"
+    using ab_ne0 \<open>0 < u\<close> by simp
+  finally show "dist x b < dist a b" .
+qed
+
+lemma dist_decreases_open_segment_0:
+  fixes x :: "'a :: euclidean_space"
+  assumes "x \<in> open_segment 0 b"
+    shows "dist c x < dist c 0 \<or> dist c x < dist c b"
+proof (rule ccontr, clarsimp simp: not_less)
+  obtain u where u: "0 \<noteq> b" "0 < u" "u < 1" and x: "x = u *\<^sub>R b"
+    using assms by (auto simp: in_segment)
+  have xb: "x \<bullet> b < b \<bullet> b"
+    using u x by auto
+  assume "norm c \<le> dist c x"
+  then have "c \<bullet> c \<le> (c - x) \<bullet> (c - x)"
+    by (simp add: dist_norm norm_le)
+  moreover have "0 < x \<bullet> b"
+    using u x by auto
+  ultimately have less: "c \<bullet> b < x \<bullet> b"
+    by (simp add: x algebra_simps inner_commute u)
+  assume "dist c b \<le> dist c x"
+  then have "(c - b) \<bullet> (c - b) \<le> (c - x) \<bullet> (c - x)"
+    by (simp add: dist_norm norm_le)
+  then have "(b \<bullet> b) * (1 - u*u) \<le> 2 * (b \<bullet> c) * (1-u)"
+    by (simp add: x algebra_simps inner_commute)
+  then have "(1+u) * (b \<bullet> b) * (1-u) \<le> 2 * (b \<bullet> c) * (1-u)"
+    by (simp add: algebra_simps)
+  then have "(1+u) * (b \<bullet> b) \<le> 2 * (b \<bullet> c)"
+    using \<open>u < 1\<close> by auto
+  with xb have "c \<bullet> b \<ge> x \<bullet> b"
+    by (auto simp: x algebra_simps inner_commute)
+  with less show False by auto
+qed
+
+proposition dist_decreases_open_segment:
+  fixes a :: "'a :: euclidean_space"
+  assumes "x \<in> open_segment a b"
+    shows "dist c x < dist c a \<or> dist c x < dist c b"
+proof -
+  have *: "x - a \<in> open_segment 0 (b - a)" using assms
+    by (metis diff_self open_segment_translation_eq uminus_add_conv_diff)
+  show ?thesis
+    using dist_decreases_open_segment_0 [OF *, of "c-a"] assms
+    by (simp add: dist_norm)
+qed
+
+lemma dist_decreases_closed_segment:
+  fixes a :: "'a :: euclidean_space"
+  assumes "x \<in> closed_segment a b"
+    shows "dist c x \<le> dist c a \<or> dist c x \<le> dist c b"
+apply (cases "x \<in> open_segment a b")
+ using dist_decreases_open_segment less_eq_real_def apply blast
+by (metis DiffI assms empty_iff insertE open_segment_def order_refl)
+
+lemma convex_intermediate_ball:
+  fixes a :: "'a :: euclidean_space"
+  shows "\<lbrakk>ball a r \<subseteq> T; T \<subseteq> cball a r\<rbrakk> \<Longrightarrow> convex T"
+apply (simp add: convex_contains_open_segment, clarify)
+by (metis (no_types, hide_lams) less_le_trans mem_ball mem_cball subsetCE dist_decreases_open_segment)
 
 subsubsection\<open>More lemmas, especially for working with the underlying formula\<close>
 
@@ -8157,6 +8325,28 @@ subsection\<open>The relative frontier of a set\<close>
 
 definition "rel_frontier S = closure S - rel_interior S"
 
+lemma rel_frontier_empty [simp]: "rel_frontier {} = {}"
+  by (simp add: rel_frontier_def)
+
+lemma rel_frontier_sing [simp]:
+    fixes a :: "'n::euclidean_space"
+    shows "rel_frontier {a} = {}"
+  by (simp add: rel_frontier_def)
+
+lemma rel_frontier_cball [simp]:
+    fixes a :: "'n::euclidean_space"
+    shows "rel_frontier(cball a r) = (if r = 0 then {} else sphere a r)"
+proof (cases rule: linorder_cases [of r 0])
+  case less then show ?thesis
+    by (force simp: sphere_def)
+next
+  case equal then show ?thesis by simp
+next
+  case greater then show ?thesis
+    apply simp
+    by (metis centre_in_ball empty_iff frontier_cball frontier_def interior_cball interior_rel_interior_gen rel_frontier_def)
+qed
+
 lemma closed_affine_hull:
   fixes S :: "'n::euclidean_space set"
   shows "closed (affine hull S)"
@@ -8190,6 +8380,43 @@ proof -
     done
 qed
 
+lemma closed_rel_boundary:
+  fixes S :: "'n::euclidean_space set"
+  shows "closed S \<Longrightarrow> closed(S - rel_interior S)"
+by (metis closed_rel_frontier closure_closed rel_frontier_def)
+
+lemma compact_rel_boundary:
+  fixes S :: "'n::euclidean_space set"
+  shows "compact S \<Longrightarrow> compact(S - rel_interior S)"
+by (metis bounded_diff closed_rel_boundary closure_eq compact_closure compact_imp_closed)
+
+lemma bounded_rel_frontier:
+  fixes S :: "'n::euclidean_space set"
+  shows "bounded S \<Longrightarrow> bounded(rel_frontier S)"
+by (simp add: bounded_closure bounded_diff rel_frontier_def)
+
+lemma compact_rel_frontier_bounded:
+  fixes S :: "'n::euclidean_space set"
+  shows "bounded S \<Longrightarrow> compact(rel_frontier S)"
+using bounded_rel_frontier closed_rel_frontier compact_eq_bounded_closed by blast
+
+lemma compact_rel_frontier:
+  fixes S :: "'n::euclidean_space set"
+  shows "compact S \<Longrightarrow> compact(rel_frontier S)"
+by (meson compact_eq_bounded_closed compact_rel_frontier_bounded)
+
+lemma convex_same_rel_interior_closure:
+  fixes S :: "'n::euclidean_space set"
+  shows "\<lbrakk>convex S; convex T\<rbrakk>
+         \<Longrightarrow> rel_interior S = rel_interior T \<longleftrightarrow> closure S = closure T"
+by (simp add: closure_eq_rel_interior_eq)
+
+lemma convex_same_rel_interior_closure_straddle:
+  fixes S :: "'n::euclidean_space set"
+  shows "\<lbrakk>convex S; convex T\<rbrakk>
+         \<Longrightarrow> rel_interior S = rel_interior T \<longleftrightarrow>
+             rel_interior S \<subseteq> T \<and> T \<subseteq> closure S"
+by (simp add: closure_eq_between convex_same_rel_interior_closure)
 
 lemma convex_rel_frontier_aff_dim:
   fixes S1 S2 :: "'n::euclidean_space set"
@@ -10701,6 +10928,16 @@ lemma setdist_eq_0_sing_2 [simp]:
   shows "setdist s {x} = 0 \<longleftrightarrow> s = {} \<or> x \<in> closure s"
 by (auto simp: setdist_eq_0_bounded)
 
+lemma setdist_neq_0_sing_1:
+    fixes s :: "'a::euclidean_space set"
+    shows "\<lbrakk>setdist {x} s = a; a \<noteq> 0\<rbrakk> \<Longrightarrow> s \<noteq> {} \<and> x \<notin> closure s"
+by auto
+
+lemma setdist_neq_0_sing_2:
+  fixes s :: "'a::euclidean_space set"
+    shows "\<lbrakk>setdist s {x} = a; a \<noteq> 0\<rbrakk> \<Longrightarrow> s \<noteq> {} \<and> x \<notin> closure s"
+by auto
+
 lemma setdist_sing_in_set:
   fixes s :: "'a::euclidean_space set"
   shows "x \<in> s \<Longrightarrow> setdist {x} s = 0"
@@ -12046,6 +12283,42 @@ proof -
     done
 qed
 
+proposition orthonormal_basis_subspace:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "subspace S"
+  obtains B where "B \<subseteq> S" "pairwise orthogonal B"
+              and "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
+              and "independent B" "card B = dim S" "span B = S"
+proof -
+  obtain B where "0 \<notin> B" "B \<subseteq> S"
+             and orth: "pairwise orthogonal B"
+             and "independent B" "card B = dim S" "span B = S"
+    by (blast intro: orthogonal_basis_subspace [OF assms])
+  have 1: "(\<lambda>x. x /\<^sub>R norm x) ` B \<subseteq> S"
+    using \<open>span B = S\<close> span_clauses(1) span_mul by fastforce
+  have 2: "pairwise orthogonal ((\<lambda>x. x /\<^sub>R norm x) ` B)"
+    using orth by (force simp: pairwise_def orthogonal_clauses)
+  have 3: "\<And>x. x \<in> (\<lambda>x. x /\<^sub>R norm x) ` B \<Longrightarrow> norm x = 1"
+    by (metis (no_types, lifting) \<open>0 \<notin> B\<close> image_iff norm_sgn sgn_div_norm)
+  have 4: "independent ((\<lambda>x. x /\<^sub>R norm x) ` B)"
+    by (metis "2" "3" norm_zero pairwise_orthogonal_independent zero_neq_one)
+  have "inj_on (\<lambda>x. x /\<^sub>R norm x) B"
+  proof
+    fix x y
+    assume "x \<in> B" "y \<in> B" "x /\<^sub>R norm x = y /\<^sub>R norm y"
+    moreover have "\<And>i. i \<in> B \<Longrightarrow> norm (i /\<^sub>R norm i) = 1"
+      using 3 by blast
+    ultimately show "x = y"
+      by (metis norm_eq_1 orth orthogonal_clauses(7) orthogonal_commute orthogonal_def pairwise_def zero_neq_one)
+  qed
+  then have 5: "card ((\<lambda>x. x /\<^sub>R norm x) ` B) = dim S"
+    by (metis \<open>card B = dim S\<close> card_image)
+  have 6: "span ((\<lambda>x. x /\<^sub>R norm x) ` B) = S"
+    by (metis "1" "4" "5" assms card_eq_dim independent_finite span_subspace)
+  show ?thesis
+    by (rule that [OF 1 2 3 4 5 6])
+qed
+
 proposition orthogonal_subspace_decomp_exists:
   fixes S :: "'a :: euclidean_space set"
   obtains y z where "y \<in> span S" "\<And>w. w \<in> span S \<Longrightarrow> orthogonal z w" "x = y + z"
@@ -12078,6 +12351,7 @@ proof -
   with assms show ?thesis by auto
 qed
 
+subsection\<open>Parallel slices, etc.\<close>
 
 text\<open> If we take a slice out of a set, we can do it perpendicularly,
   with the normal vector to the slice parallel to the affine hull.\<close>
@@ -12137,6 +12411,169 @@ next
       apply (auto simp: a ba'' inner_left_distrib False Sclo)
       done
   qed
+qed
+
+lemma diffs_affine_hull_span:
+  assumes "a \<in> S"
+    shows "{x - a |x. x \<in> affine hull S} = span {x - a |x. x \<in> S}"
+proof -
+  have *: "((\<lambda>x. x - a) ` (S - {a})) = {x. x + a \<in> S} - {0}"
+    by (auto simp: algebra_simps)
+  show ?thesis
+    apply (simp add: affine_hull_span2 [OF assms] *)
+    apply (auto simp: algebra_simps)
+    done
+qed
+
+lemma aff_dim_dim_affine_diffs:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "affine S" "a \<in> S"
+    shows "aff_dim S = dim {x - a |x. x \<in> S}"
+proof -
+  obtain B where aff: "affine hull B = affine hull S"
+             and ind: "\<not> affine_dependent B"
+             and card: "of_nat (card B) = aff_dim S + 1"
+    using aff_dim_basis_exists by blast
+  then have "B \<noteq> {}" using assms
+    by (metis affine_hull_eq_empty ex_in_conv)
+  then obtain c where "c \<in> B" by auto
+  then have "c \<in> S"
+    by (metis aff affine_hull_eq \<open>affine S\<close> hull_inc)
+  have xy: "x - c = y - a \<longleftrightarrow> y = x + 1 *\<^sub>R (a - c)" for x y c and a::'a
+    by (auto simp: algebra_simps)
+  have *: "{x - c |x. x \<in> S} = {x - a |x. x \<in> S}"
+    apply safe
+    apply (simp_all only: xy)
+    using mem_affine_3_minus [OF \<open>affine S\<close>] \<open>a \<in> S\<close> \<open>c \<in> S\<close> apply blast+
+    done
+  have affS: "affine hull S = S"
+    by (simp add: \<open>affine S\<close>)
+  have "aff_dim S = of_nat (card B) - 1"
+    using card by simp
+  also have "... = dim {x - c |x. x \<in> B}"
+    by (simp add: affine_independent_card_dim_diffs [OF ind \<open>c \<in> B\<close>])
+  also have "... = dim {x - c | x. x \<in> affine hull B}"
+     by (simp add: diffs_affine_hull_span \<open>c \<in> B\<close>)
+  also have "... = dim {x - a |x. x \<in> S}"
+     by (simp add: affS aff *)
+   finally show ?thesis .
+qed
+
+lemma aff_dim_linear_image_le:
+  assumes "linear f"
+    shows "aff_dim(f ` S) \<le> aff_dim S"
+proof -
+  have "aff_dim (f ` T) \<le> aff_dim T" if "affine T" for T
+  proof (cases "T = {}")
+    case True then show ?thesis by (simp add: aff_dim_geq)
+  next
+    case False
+    then obtain a where "a \<in> T" by auto
+    have 1: "((\<lambda>x. x - f a) ` f ` T) = {x - f a |x. x \<in> f ` T}"
+      by auto
+    have 2: "{x - f a| x. x \<in> f ` T} = f ` {x - a| x. x \<in> T}"
+      by (force simp: linear_sub [OF assms])
+    have "aff_dim (f ` T) = int (dim {x - f a |x. x \<in> f ` T})"
+      by (simp add: \<open>a \<in> T\<close> hull_inc aff_dim_eq_dim [of "f a"] 1)
+    also have "... = int (dim (f ` {x - a| x. x \<in> T}))"
+      by (force simp: linear_sub [OF assms] 2)
+    also have "... \<le> int (dim {x - a| x. x \<in> T})"
+      by (simp add: dim_image_le [OF assms])
+    also have "... \<le> aff_dim T"
+      by (simp add: aff_dim_dim_affine_diffs [symmetric] \<open>a \<in> T\<close> \<open>affine T\<close>)
+    finally show ?thesis .
+  qed
+  then
+  have "aff_dim (f ` (affine hull S)) \<le> aff_dim (affine hull S)"
+    using affine_affine_hull [of S] by blast
+  then show ?thesis
+    using affine_hull_linear_image assms linear_conv_bounded_linear by fastforce
+qed
+
+lemma aff_dim_injective_linear_image [simp]:
+  assumes "linear f" "inj f"
+    shows "aff_dim (f ` S) = aff_dim S"
+proof (rule antisym)
+  show "aff_dim (f ` S) \<le> aff_dim S"
+    by (simp add: aff_dim_linear_image_le assms(1))
+next
+  obtain g where "linear g" "g \<circ> f = id"
+    using linear_injective_left_inverse assms by blast
+  then have "aff_dim S \<le> aff_dim(g ` f ` S)"
+    by (simp add: image_comp)
+  also have "... \<le> aff_dim (f ` S)"
+    by (simp add: \<open>linear g\<close> aff_dim_linear_image_le)
+  finally show "aff_dim S \<le> aff_dim (f ` S)" .
+qed
+
+text\<open>Choosing a subspace of a given dimension\<close>
+proposition choose_subspace_of_subspace:
+  fixes S :: "'n::euclidean_space set"
+  assumes "n \<le> dim S"
+  obtains T where "subspace T" "T \<subseteq> span S" "dim T = n"
+proof -
+  have "\<exists>T. subspace T \<and> T \<subseteq> span S \<and> dim T = n"
+  using assms
+  proof (induction n)
+    case 0 then show ?case by force
+  next
+    case (Suc n)
+    then obtain T where "subspace T" "T \<subseteq> span S" "dim T = n"
+      by force
+    then show ?case
+    proof (cases "span S \<subseteq> span T")
+      case True
+      have "dim S = dim T"
+        apply (rule span_eq_dim [OF subset_antisym [OF True]])
+        by (simp add: \<open>T \<subseteq> span S\<close> span_minimal subspace_span)
+      then show ?thesis
+        using Suc.prems \<open>dim T = n\<close> by linarith
+    next
+      case False
+      then obtain y where y: "y \<in> S" "y \<notin> T"
+        by (meson span_mono subsetI)
+      then have "span (insert y T) \<subseteq> span S"
+        by (metis (no_types) \<open>T \<subseteq> span S\<close> subsetD insert_subset span_inc span_mono span_span)
+      with \<open>dim T = n\<close>  \<open>subspace T\<close> span_induct y show ?thesis
+        apply (rule_tac x="span(insert y T)" in exI)
+        apply (auto simp: subspace_span dim_insert)
+        done
+    qed
+  qed
+  with that show ?thesis by blast
+qed
+
+lemma choose_affine_subset:
+  assumes "affine S" "-1 \<le> d" and dle: "d \<le> aff_dim S"
+  obtains T where "affine T" "T \<subseteq> S" "aff_dim T = d"
+proof (cases "d = -1 \<or> S={}")
+  case True with assms show ?thesis
+    by (metis aff_dim_empty affine_empty bot.extremum that eq_iff)
+next
+  case False
+  with assms obtain a where "a \<in> S" "0 \<le> d" by auto
+  with assms have ss: "subspace (op + (- a) ` S)"
+    by (simp add: affine_diffs_subspace)
+  have "nat d \<le> dim (op + (- a) ` S)"
+    by (metis aff_dim_subspace aff_dim_translation_eq dle nat_int nat_mono ss)
+  then obtain T where "subspace T" and Tsb: "T \<subseteq> span (op + (- a) ` S)"
+                  and Tdim: "dim T = nat d"
+    using choose_subspace_of_subspace [of "nat d" "op + (- a) ` S"] by blast
+  then have "affine T"
+    using subspace_affine by blast
+  then have "affine (op + a ` T)"
+    by (metis affine_hull_eq affine_hull_translation)
+  moreover have "op + a ` T \<subseteq> S"
+  proof -
+    have "T \<subseteq> op + (- a) ` S"
+      by (metis (no_types) span_eq Tsb ss)
+    then show "op + a ` T \<subseteq> S"
+      using add_ac by auto
+  qed
+  moreover have "aff_dim (op + a ` T) = d"
+    by (simp add: aff_dim_subspace Tdim \<open>0 \<le> d\<close> \<open>subspace T\<close> aff_dim_translation_eq)
+  ultimately show ?thesis
+    by (rule that)
 qed
 
 end

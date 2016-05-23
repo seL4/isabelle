@@ -799,8 +799,14 @@ lemma complex_exp_exists: "\<exists>a r. z = complex_of_real r * exp a"
 lemma exp_pi_i [simp]: "exp(of_real pi * ii) = -1"
   by (metis cis_conv_exp cis_pi mult.commute)
 
+lemma exp_pi_i' [simp]: "exp(ii * of_real pi) = -1"
+  using cis_conv_exp cis_pi by auto
+
 lemma exp_two_pi_i [simp]: "exp(2 * of_real pi * ii) = 1"
   by (simp add: exp_eq_polar complex_eq_iff)
+
+lemma exp_two_pi_i' [simp]: "exp (\<i> * (of_real pi * 2)) = 1"
+  by (metis exp_two_pi_i mult.commute)
 
 subsubsection \<open>Complex argument\<close>
 

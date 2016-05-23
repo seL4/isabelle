@@ -236,6 +236,18 @@ lemma setsum_constant_scaleR:
   apply (simp_all add: algebra_simps)
   done
 
+lemma vector_add_divide_simps :
+  fixes v :: "'a :: real_vector"
+  shows "v + (b / z) *\<^sub>R w = (if z = 0 then v else (z *\<^sub>R v + b *\<^sub>R w) /\<^sub>R z)"
+        "a *\<^sub>R v + (b / z) *\<^sub>R w = (if z = 0 then a *\<^sub>R v else ((a * z) *\<^sub>R v + b *\<^sub>R w) /\<^sub>R z)"
+        "(a / z) *\<^sub>R v + w = (if z = 0 then w else (a *\<^sub>R v + z *\<^sub>R w) /\<^sub>R z)"
+        "(a / z) *\<^sub>R v + b *\<^sub>R w = (if z = 0 then b *\<^sub>R w else (a *\<^sub>R v + (b * z) *\<^sub>R w) /\<^sub>R z)"
+        "v - (b / z) *\<^sub>R w = (if z = 0 then v else (z *\<^sub>R v - b *\<^sub>R w) /\<^sub>R z)"
+        "a *\<^sub>R v - (b / z) *\<^sub>R w = (if z = 0 then a *\<^sub>R v else ((a * z) *\<^sub>R v - b *\<^sub>R w) /\<^sub>R z)"
+        "(a / z) *\<^sub>R v - w = (if z = 0 then -w else (a *\<^sub>R v - z *\<^sub>R w) /\<^sub>R z)"
+        "(a / z) *\<^sub>R v - b *\<^sub>R w = (if z = 0 then -b *\<^sub>R w else (a *\<^sub>R v - (b * z) *\<^sub>R w) /\<^sub>R z)"
+by (simp_all add: divide_inverse_commute scaleR_add_right real_vector.scale_right_diff_distrib)
+
 lemma real_vector_affinity_eq:
   fixes x :: "'a :: real_vector"
   assumes m0: "m \<noteq> 0"
@@ -769,6 +781,21 @@ proof -
     by (rule norm_minus_cancel)
   thus ?thesis by simp
 qed
+  
+lemma dist_add_cancel [simp]:
+  fixes a :: "'a::real_normed_vector"
+  shows "dist (a + b) (a + c) = dist b c"
+by (simp add: dist_norm)
+
+lemma dist_add_cancel2 [simp]:
+  fixes a :: "'a::real_normed_vector"
+  shows "dist (b + a) (c + a) = dist b c"
+by (simp add: dist_norm)
+
+lemma dist_scaleR [simp]:
+  fixes a :: "'a::real_normed_vector"
+  shows "dist (x *\<^sub>R a) (y *\<^sub>R a) = abs (x-y) * norm a"
+by (metis dist_norm norm_scaleR scaleR_left.diff)
 
 lemma norm_uminus_minus: "norm (-x - y :: 'a :: real_normed_vector) = norm (x + y)"
   by (subst (2) norm_minus_cancel[symmetric], subst minus_add_distrib) simp

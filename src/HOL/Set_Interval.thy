@@ -1168,19 +1168,18 @@ lemma ex_bij_betw_nat_finite_1:
 by (rule finite_same_card_bij) auto
 
 lemma bij_betw_iff_card:
-  assumes FIN: "finite A" and FIN': "finite B"
-  shows BIJ: "(\<exists>f. bij_betw f A B) \<longleftrightarrow> (card A = card B)"
-using assms
-proof(auto simp add: bij_betw_same_card)
-  assume *: "card A = card B"
-  obtain f where "bij_betw f A {0 ..< card A}"
-  using FIN ex_bij_betw_finite_nat by blast
+  assumes "finite A" "finite B"
+  shows "(\<exists>f. bij_betw f A B) \<longleftrightarrow> (card A = card B)"
+proof
+  assume "card A = card B"
+  moreover obtain f where "bij_betw f A {0 ..< card A}"
+    using assms ex_bij_betw_finite_nat by blast
   moreover obtain g where "bij_betw g {0 ..< card B} B"
-  using FIN' ex_bij_betw_nat_finite by blast
+    using assms ex_bij_betw_nat_finite by blast
   ultimately have "bij_betw (g o f) A B"
-  using * by (auto simp add: bij_betw_trans)
+    by (auto simp: bij_betw_trans)
   thus "(\<exists>f. bij_betw f A B)" by blast
-qed
+qed (auto simp: bij_betw_same_card)
 
 lemma inj_on_iff_card_le:
   assumes FIN: "finite A" and FIN': "finite B"

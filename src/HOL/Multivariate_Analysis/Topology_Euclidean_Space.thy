@@ -861,6 +861,11 @@ lemma mem_cball_0 [simp]:
   shows "x \<in> cball 0 e \<longleftrightarrow> norm x \<le> e"
   by (simp add: dist_norm)
 
+lemma mem_sphere_0 [simp]:
+  fixes x :: "'a::real_normed_vector"
+  shows "x \<in> sphere 0 e \<longleftrightarrow> norm x = e"
+  by (simp add: dist_norm)
+
 lemma centre_in_ball [simp]: "x \<in> ball x e \<longleftrightarrow> 0 < e"
   by simp
 
@@ -985,6 +990,22 @@ subsection \<open>Boxes\<close>
 
 abbreviation One :: "'a::euclidean_space"
   where "One \<equiv> \<Sum>Basis"
+
+lemma One_non_0: assumes "One = (0::'a::euclidean_space)" shows False
+proof -
+  have "dependent (Basis :: 'a set)"
+    apply (simp add: dependent_finite)
+    apply (rule_tac x="\<lambda>i. 1" in exI)
+    using SOME_Basis apply (auto simp: assms)
+    done
+  with independent_Basis show False by force
+qed
+
+corollary One_neq_0[iff]: "One \<noteq> 0"
+  by (metis One_non_0)
+
+corollary Zero_neq_One[iff]: "0 \<noteq> One"
+  by (metis One_non_0)
 
 definition (in euclidean_space) eucl_less (infix "<e" 50)
   where "eucl_less a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i)"
@@ -5788,7 +5809,7 @@ lemma continuous_on_closed:
   unfolding continuous_on_closed_invariant closedin_closed Int_def vimage_def Int_commute
   by (simp add: imp_ex imageI conj_commute eq_commute cong: conj_cong)
 
-text \<open>Half-global and completely global cases.\<close>
+subsection \<open>Half-global and completely global cases.\<close>
 
 lemma continuous_openin_preimage:
   assumes "continuous_on s f"  "open t"
@@ -5874,7 +5895,7 @@ proof
   with \<open>x = f y\<close> show "x \<in> f ` interior s" ..
 qed
 
-text \<open>Equality of continuous functions on closure and related results.\<close>
+subsection \<open>Equality of continuous functions on closure and related results.\<close>
 
 lemma continuous_closedin_preimage_constant:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
@@ -7238,6 +7259,11 @@ lemma translation_diff:
   shows "(\<lambda>x. a + x) ` (s - t) = ((\<lambda>x. a + x) ` s) - ((\<lambda>x. a + x) ` t)"
   by auto
 
+lemma translation_Int:
+  fixes a :: "'a::ab_group_add"
+  shows "(\<lambda>x. a + x) ` (s \<inter> t) = ((\<lambda>x. a + x) ` s) \<inter> ((\<lambda>x. a + x) ` t)"
+  by auto
+
 lemma closure_translation:
   fixes a :: "'a::real_normed_vector"
   shows "closure ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (closure s)"
@@ -7260,6 +7286,30 @@ lemma frontier_translation:
   shows "frontier((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (frontier s)"
   unfolding frontier_def translation_diff interior_translation closure_translation
   by auto
+
+lemma sphere_translation:
+  fixes a :: "'n::euclidean_space"
+  shows "sphere (a+c) r = op+a ` sphere c r"
+apply safe
+apply (rule_tac x="x-a" in image_eqI)
+apply (auto simp: dist_norm algebra_simps)
+done
+
+lemma cball_translation:
+  fixes a :: "'n::euclidean_space"
+  shows "cball (a+c) r = op+a ` cball c r"
+apply safe
+apply (rule_tac x="x-a" in image_eqI)
+apply (auto simp: dist_norm algebra_simps)
+done
+
+lemma ball_translation:
+  fixes a :: "'n::euclidean_space"
+  shows "ball (a+c) r = op+a ` ball c r"
+apply safe
+apply (rule_tac x="x-a" in image_eqI)
+apply (auto simp: dist_norm algebra_simps)
+done
 
 
 subsection \<open>Separation between points and sets\<close>
@@ -8211,6 +8261,37 @@ lemma homeomorphic_minimal:
   apply auto
   done
 
+lemma homeomorphicI [intro?]:
+   "\<lbrakk>f ` S = T; g ` T = S;
+     continuous_on S f; continuous_on T g;
+     \<And>x. x \<in> S \<Longrightarrow> g(f(x)) = x;
+     \<And>y. y \<in> T \<Longrightarrow> f(g(y)) = y\<rbrakk> \<Longrightarrow> S homeomorphic T"
+unfolding homeomorphic_def homeomorphism_def by metis
+
+lemma homeomorphism_of_subsets:
+   "\<lbrakk>homeomorphism S T f g; S' \<subseteq> S; T'' \<subseteq> T; f ` S' = T'\<rbrakk>
+    \<Longrightarrow> homeomorphism S' T' f g"
+apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
+by (metis contra_subsetD imageI)
+
+lemma homeomorphism_apply1: "\<lbrakk>homeomorphism S T f g; x \<in> S\<rbrakk> \<Longrightarrow> g(f x) = x"
+  by (simp add: homeomorphism_def)
+
+lemma homeomorphism_apply2: "\<lbrakk>homeomorphism S T f g; x \<in> T\<rbrakk> \<Longrightarrow> f(g x) = x"
+  by (simp add: homeomorphism_def)
+
+lemma homeomorphism_image1: "homeomorphism S T f g \<Longrightarrow> f ` S = T"
+  by (simp add: homeomorphism_def)
+
+lemma homeomorphism_image2: "homeomorphism S T f g \<Longrightarrow> g ` T = S"
+  by (simp add: homeomorphism_def)
+
+lemma homeomorphism_cont1: "homeomorphism S T f g \<Longrightarrow> continuous_on S f"
+  by (simp add: homeomorphism_def)
+
+lemma homeomorphism_cont2: "homeomorphism S T f g \<Longrightarrow> continuous_on T g"
+  by (simp add: homeomorphism_def)
+
 text \<open>Relatively weak hypotheses if a set is compact.\<close>
 
 lemma homeomorphism_compact:
@@ -8332,7 +8413,109 @@ proof -
     done
 qed
 
-text\<open>"Isometry" (up to constant bounds) of injective linear map etc.\<close>
+subsection\<open>Inverse function property for open/closed maps\<close>
+
+lemma continuous_on_inverse_open_map:
+  assumes contf: "continuous_on S f"
+      and imf: "f ` S = T"
+      and injf: "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x"
+      and oo: "\<And>U. openin (subtopology euclidean S) U
+                    \<Longrightarrow> openin (subtopology euclidean T) (f ` U)"
+    shows "continuous_on T g"
+proof -
+  have gTS: "g ` T = S"
+    using imf injf by force
+  have fU: "U \<subseteq> S \<Longrightarrow> (f ` U) = {x \<in> T. g x \<in> U}" for U
+    using imf injf by force
+  show ?thesis
+    apply (simp add: continuous_on_open [of T g] gTS)
+    apply (metis openin_imp_subset fU oo)
+    done
+qed
+
+lemma continuous_on_inverse_closed_map:
+  assumes contf: "continuous_on S f"
+      and imf: "f ` S = T"
+      and injf: "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x"
+      and oo: "\<And>U. closedin (subtopology euclidean S) U
+                    \<Longrightarrow> closedin (subtopology euclidean T) (f ` U)"
+    shows "continuous_on T g"
+proof -
+  have gTS: "g ` T = S"
+    using imf injf by force
+  have fU: "U \<subseteq> S \<Longrightarrow> (f ` U) = {x \<in> T. g x \<in> U}" for U
+    using imf injf by force
+  show ?thesis
+    apply (simp add: continuous_on_closed [of T g] gTS)
+    apply (metis closedin_imp_subset fU oo)
+    done
+qed
+
+lemma homeomorphism_injective_open_map:
+  assumes contf: "continuous_on S f"
+      and imf: "f ` S = T"
+      and injf: "inj_on f S"
+      and oo: "\<And>U. openin (subtopology euclidean S) U
+                    \<Longrightarrow> openin (subtopology euclidean T) (f ` U)"
+  obtains g where "homeomorphism S T f g"
+proof -
+  have "continuous_on T (inv_into S f)"
+    by (metis contf continuous_on_inverse_open_map imf injf inv_into_f_f oo)
+  then show ?thesis
+    apply (rule_tac g = "inv_into S f" in that)
+    using imf injf contf apply (auto simp: homeomorphism_def)
+    done
+qed
+
+lemma homeomorphism_injective_closed_map:
+  assumes contf: "continuous_on S f"
+      and imf: "f ` S = T"
+      and injf: "inj_on f S"
+      and oo: "\<And>U. closedin (subtopology euclidean S) U
+                    \<Longrightarrow> closedin (subtopology euclidean T) (f ` U)"
+  obtains g where "homeomorphism S T f g"
+proof -
+  have "continuous_on T (inv_into S f)"
+    by (metis contf continuous_on_inverse_closed_map imf injf inv_into_f_f oo)
+  then show ?thesis
+    apply (rule_tac g = "inv_into S f" in that)
+    using imf injf contf apply (auto simp: homeomorphism_def)
+    done
+qed
+
+lemma homeomorphism_imp_open_map:
+  assumes hom: "homeomorphism S T f g"
+      and oo: "openin (subtopology euclidean S) U"
+    shows "openin (subtopology euclidean T) (f ` U)"
+proof -
+  have [simp]: "f ` U = {y. y \<in> T \<and> g y \<in> U}"
+    using assms openin_subset
+    by (fastforce simp: homeomorphism_def rev_image_eqI)
+  have "continuous_on T g"
+    using hom homeomorphism_def by blast
+  moreover have "g ` T = S"
+    by (metis hom homeomorphism_def)
+  ultimately show ?thesis
+    by (simp add: continuous_on_open oo)
+qed
+
+lemma homeomorphism_imp_closed_map:
+  assumes hom: "homeomorphism S T f g"
+      and oo: "closedin (subtopology euclidean S) U"
+    shows "closedin (subtopology euclidean T) (f ` U)"
+proof -
+  have [simp]: "f ` U = {y. y \<in> T \<and> g y \<in> U}"
+    using assms closedin_subset
+    by (fastforce simp: homeomorphism_def rev_image_eqI)
+  have "continuous_on T g"
+    using hom homeomorphism_def by blast
+  moreover have "g ` T = S"
+    by (metis hom homeomorphism_def)
+  ultimately show ?thesis
+    by (simp add: continuous_on_closed oo)
+qed
+
+subsection\<open>"Isometry" (up to constant bounds) of injective linear map etc.\<close>
 
 lemma cauchy_isometric:
   assumes e: "e > 0"
@@ -8354,7 +8537,7 @@ proof -
       fix n
       assume "n\<ge>N"
       have "e * norm (x n - x N) \<le> norm (f (x n - x N))"
-        using subspace_sub[OF s, of "x n" "x N"]
+        using subspace_diff[OF s, of "x n" "x N"]
         using xs[THEN spec[where x=N]] and xs[THEN spec[where x=n]]
         using normf[THEN bspec[where x="x n - x N"]]
         by auto

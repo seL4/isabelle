@@ -110,6 +110,18 @@ lemma DIM_positive: "0 < DIM('a::euclidean_space)"
 lemma DIM_ge_Suc0 [iff]: "Suc 0 \<le> card Basis"
   by (meson DIM_positive Suc_leI)
 
+
+lemma setsum_inner_Basis_scaleR [simp]:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_vector"
+  assumes "b \<in> Basis" shows "(\<Sum>i\<in>Basis. (inner i b) *\<^sub>R f i) = f b"
+  by (simp add: comm_monoid_add_class.setsum.remove [OF finite_Basis assms]
+         assms inner_not_same_Basis comm_monoid_add_class.setsum.neutral)
+
+lemma setsum_inner_Basis_eq [simp]:
+  assumes "b \<in> Basis" shows "(\<Sum>i\<in>Basis. (inner i b) * f i) = f b"
+  by (simp add: comm_monoid_add_class.setsum.remove [OF finite_Basis assms]
+         assms inner_not_same_Basis comm_monoid_add_class.setsum.neutral)
+
 subsection \<open>Subclass relationships\<close>
 
 instance euclidean_space \<subseteq> perfect_space
