@@ -5252,7 +5252,6 @@ by (metis Compl_eq_Diff_UNIV S c closed_closedin closedin_Un_complement_componen
 
 subsection\<open>Existence of isometry between subspaces of same dimension\<close>
 
-thm subspace_isomorphism
 lemma isometry_subset_subspace:
   fixes S :: "'a::euclidean_space set"
     and T :: "'b::euclidean_space set"
