@@ -5412,7 +5412,6 @@ proof -
     done
 qed
 
-(*REPLACE*)
 lemma isometry_subspaces:
   fixes S :: "'a::euclidean_space set"
     and T :: "'b::euclidean_space set"
