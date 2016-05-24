@@ -78,7 +78,6 @@ sig
   val multi_arity: (string list * string list * string) parser
   val type_args: string list parser
   val type_args_constrained: (string * string option) list parser
-  val typ_group: string parser
   val typ: string parser
   val mixfix: mixfix parser
   val mixfix': mixfix parser
@@ -93,11 +92,9 @@ sig
   val for_fixes: (binding * string option * mixfix) list parser
   val ML_source: Input.source parser
   val document_source: Input.source parser
-  val term_group: string parser
-  val prop_group: string parser
+  val const: string parser
   val term: string parser
   val prop: string parser
-  val const: string parser
   val literal_fact: string parser
   val propp: (string * string list) parser
   val termp: (string * string list) parser
@@ -268,11 +265,10 @@ val binding = position name >> Binding.make;
 
 val embedded =
   group (fn () => "embedded content")
-    (short_ident || long_ident || sym_ident || number || string || cartouche);
+    (cartouche || string || short_ident || long_ident || sym_ident ||
+      term_var || type_ident || type_var || number);
 
-val text =
-  group (fn () => "text")
-    (short_ident || long_ident || sym_ident || number || string || verbatim || cartouche);
+val text = group (fn () => "text") (embedded || verbatim);
 
 val path = group (fn () => "file name/path specification") name;
 
@@ -301,12 +297,7 @@ val multi_arity = and_list1 type_const -- ($$$ "::" |-- !!!
 
 (* types *)
 
-val typ_group =
-  group (fn () => "type")
-    (short_ident || long_ident || sym_ident || type_ident || type_var || number ||
-      string || cartouche);
-
-val typ = inner_syntax typ_group;
+val typ = group (fn () => "type") (inner_syntax embedded);
 
 fun type_arguments arg =
   arg >> single ||
@@ -393,13 +384,9 @@ val document_source = input (group (fn () => "document source") text);
 
 (* terms *)
 
-val term_group = group (fn () => "term") (term_var || embedded);
-val prop_group = group (fn () => "proposition") (term_var || embedded);
-
-val term = inner_syntax term_group;
-val prop = inner_syntax prop_group;
-
 val const = group (fn () => "constant") (inner_syntax embedded);
+val term = group (fn () => "term") (inner_syntax embedded);
+val prop = group (fn () => "proposition") (inner_syntax embedded);
 
 val literal_fact = inner_syntax (group (fn () => "literal fact") (alt_string || cartouche));
 

@@ -387,7 +387,7 @@ text \<open>
     ;
     entry: atom ('=' atom)?
     ;
-    atom: @{syntax ident} | @{syntax int} | @{syntax float} | @{syntax cartouche}
+    atom: @{syntax short_ident} | @{syntax int} | @{syntax float} | @{syntax cartouche}
   \<close>}
 
   Each @{syntax entry} is a name-value pair: if the value is omitted, if
@@ -556,11 +556,11 @@ text \<open>
 
   \begin{center}
   \begin{supertabular}{rcl}
-    @{syntax_def (inner) id} & = & @{syntax_ref ident} \\
-    @{syntax_def (inner) longid} & = & @{syntax_ref longident} \\
+    @{syntax_def (inner) id} & = & @{syntax_ref short_ident} \\
+    @{syntax_def (inner) longid} & = & @{syntax_ref long_ident} \\
     @{syntax_def (inner) var} & = & @{syntax_ref var} \\
-    @{syntax_def (inner) tid} & = & @{syntax_ref typefree} \\
-    @{syntax_def (inner) tvar} & = & @{syntax_ref typevar} \\
+    @{syntax_def (inner) tid} & = & @{syntax_ref type_ident} \\
+    @{syntax_def (inner) tvar} & = & @{syntax_ref type_var} \\
     @{syntax_def (inner) num_token} & = & @{syntax_ref nat} \\
     @{syntax_def (inner) float_token} & = & @{syntax_ref nat}\<^verbatim>\<open>.\<close>@{syntax_ref nat} \\
     @{syntax_def (inner) str_token} & = & \<^verbatim>\<open>''\<close> \<open>\<dots>\<close> \<^verbatim>\<open>''\<close> \\

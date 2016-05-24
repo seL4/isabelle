@@ -38,6 +38,9 @@ Isabelle2015).
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* Cartouche abbreviations work both for " and ` to accomodate typical
+situations where old ASCII notation may be updated.
+
 * IDE support for the Isabelle/Pure bootstrap process, with the
 following independent stages:
 

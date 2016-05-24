@@ -97,14 +97,14 @@ text \<open>
 
   \begin{center}
   \begin{supertabular}{rcl}
-    @{syntax_def ident} & = & \<open>letter (subscript\<^sup>? quasiletter)\<^sup>*\<close> \\
-    @{syntax_def longident} & = & \<open>ident(\<close>\<^verbatim>\<open>.\<close>\<open>ident)\<^sup>+\<close> \\
-    @{syntax_def symident} & = & \<open>sym\<^sup>+  |\<close>~~\<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>ident\<close>\<^verbatim>\<open>>\<close> \\
+    @{syntax_def short_ident} & = & \<open>letter (subscript\<^sup>? quasiletter)\<^sup>*\<close> \\
+    @{syntax_def long_ident} & = & \<open>short_ident(\<close>\<^verbatim>\<open>.\<close>\<open>short_ident)\<^sup>+\<close> \\
+    @{syntax_def sym_ident} & = & \<open>sym\<^sup>+  |\<close>~~\<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>short_ident\<close>\<^verbatim>\<open>>\<close> \\
     @{syntax_def nat} & = & \<open>digit\<^sup>+\<close> \\
     @{syntax_def float} & = & @{syntax_ref nat}\<^verbatim>\<open>.\<close>@{syntax_ref nat}~~\<open>|\<close>~~\<^verbatim>\<open>-\<close>@{syntax_ref nat}\<^verbatim>\<open>.\<close>@{syntax_ref nat} \\
-    @{syntax_def var} & = & \<^verbatim>\<open>?\<close>\<open>ident  |\<close>~~\<^verbatim>\<open>?\<close>\<open>ident\<close>\<^verbatim>\<open>.\<close>\<open>nat\<close> \\
-    @{syntax_def typefree} & = & \<^verbatim>\<open>'\<close>\<open>ident\<close> \\
-    @{syntax_def typevar} & = & \<^verbatim>\<open>?\<close>\<open>typefree  |\<close>~~\<^verbatim>\<open>?\<close>\<open>typefree\<close>\<^verbatim>\<open>.\<close>\<open>nat\<close> \\
+    @{syntax_def term_var} & = & \<^verbatim>\<open>?\<close>\<open>short_ident  |\<close>~~\<^verbatim>\<open>?\<close>\<open>short_ident\<close>\<^verbatim>\<open>.\<close>\<open>nat\<close> \\
+    @{syntax_def type_ident} & = & \<^verbatim>\<open>'\<close>\<open>short_ident\<close> \\
+    @{syntax_def type_var} & = & \<^verbatim>\<open>?\<close>\<open>type_ident  |\<close>~~\<^verbatim>\<open>?\<close>\<open>type_ident\<close>\<^verbatim>\<open>.\<close>\<open>nat\<close> \\
     @{syntax_def string} & = & \<^verbatim>\<open>"\<close> \<open>\<dots>\<close> \<^verbatim>\<open>"\<close> \\
     @{syntax_def altstring} & = & \<^verbatim>\<open>`\<close> \<open>\<dots>\<close> \<^verbatim>\<open>`\<close> \\
     @{syntax_def cartouche} & = & @{verbatim "\<open>"} \<open>\<dots>\<close> @{verbatim "\<close>"} \\
@@ -128,13 +128,13 @@ text \<open>
   \end{supertabular}
   \end{center}
 
-  A @{syntax_ref var} or @{syntax_ref typevar} describes an unknown, which is
-  internally a pair of base name and index (ML type @{ML_type indexname}).
-  These components are either separated by a dot as in \<open>?x.1\<close> or \<open>?x7.3\<close> or
-  run together as in \<open>?x1\<close>. The latter form is possible if the base name does
-  not end with digits. If the index is 0, it may be dropped altogether: \<open>?x\<close>
-  and \<open>?x0\<close> and \<open>?x.0\<close> all refer to the same unknown, with basename \<open>x\<close> and
-  index 0.
+  A @{syntax_ref term_var} or @{syntax_ref type_var} describes an unknown,
+  which is internally a pair of base name and index (ML type @{ML_type
+  indexname}). These components are either separated by a dot as in \<open>?x.1\<close> or
+  \<open>?x7.3\<close> or run together as in \<open>?x1\<close>. The latter form is possible if the base
+  name does not end with digits. If the index is 0, it may be dropped
+  altogether: \<open>?x\<close> and \<open>?x0\<close> and \<open>?x.0\<close> all refer to the same unknown, with
+  basename \<open>x\<close> and index 0.
 
   The syntax of @{syntax_ref string} admits any characters, including
   newlines; ``\<^verbatim>\<open>"\<close>'' (double-quote) and ``\<^verbatim>\<open>\\<close>'' (backslash) need to be
@@ -183,8 +183,8 @@ text \<open>
   those ruled out by outer syntax keywords (e.g.\ quoted \<^verbatim>\<open>"let"\<close>).
 
   @{rail \<open>
-    @{syntax_def name}: @{syntax ident} | @{syntax longident} |
-      @{syntax symident} | @{syntax nat} | @{syntax string}
+    @{syntax_def name}: @{syntax short_ident} | @{syntax long_ident} |
+      @{syntax sym_ident} | @{syntax nat} | @{syntax string}
     ;
     @{syntax_def par_name}: '(' @{syntax name} ')'
   \<close>}
@@ -221,8 +221,8 @@ text \<open>
 
   @{rail \<open>
     @{syntax_def embedded}: @{syntax cartouche} | @{syntax string} |
-      @{syntax ident} | @{syntax longident} | @{syntax symident} |
-      @{syntax nat}
+      @{syntax short_ident} | @{syntax long_ident} | @{syntax sym_ident} |
+      @{syntax term_var} | @{syntax type_ident} | @{syntax type_var} | @{syntax nat}
   \<close>}
 \<close>
 
@@ -238,7 +238,7 @@ text \<open>
   Isabelle/Isar commands.
 
   @{rail \<open>
-    @{syntax_def text}: @{syntax verbatim} | @{syntax cartouche} | @{syntax name}
+    @{syntax_def text}: @{syntax embedded} | @{syntax verbatim}
     ;
     @{syntax_def comment}: ('--' | @'\<comment>') @{syntax text}
   \<close>}
@@ -256,7 +256,7 @@ text \<open>
   @{rail \<open>
     @{syntax_def classdecl}: @{syntax name} (('<' | '\<subseteq>') (@{syntax name} + ','))?
     ;
-    @{syntax_def sort}: @{syntax name}
+    @{syntax_def sort}: @{syntax embedded}
     ;
     @{syntax_def arity}: ('(' (@{syntax sort} + ',') ')')? @{syntax sort}
   \<close>}
@@ -278,12 +278,11 @@ text \<open>
   as \<^verbatim>\<open>=\<close> or \<^verbatim>\<open>+\<close>).
 
   @{rail \<open>
-    @{syntax_def type}: @{syntax embedded} | @{syntax typefree} |
-      @{syntax typevar}
+    @{syntax_def type}: @{syntax embedded}
     ;
-    @{syntax_def term}: @{syntax embedded} | @{syntax var}
+    @{syntax_def term}: @{syntax embedded}
     ;
-    @{syntax_def prop}: @{syntax term}
+    @{syntax_def prop}: @{syntax embedded}
   \<close>}
 
   Positional instantiations are specified as a sequence of terms, or the
@@ -305,7 +304,7 @@ text \<open>
     ;
     @{syntax_def named_insts}: (named_inst @'and' +)
     ;
-    variable: @{syntax name} | @{syntax var} | @{syntax typefree} | @{syntax typevar}
+    variable: @{syntax name} | @{syntax term_var} | @{syntax type_ident} | @{syntax type_var}
   \<close>}
 
   Type declarations and definitions usually refer to @{syntax typespec} on the
@@ -315,11 +314,11 @@ text \<open>
 
   @{rail \<open>
     @{syntax_def typespec}:
-      (() | @{syntax typefree} | '(' ( @{syntax typefree} + ',' ) ')') @{syntax name}
+      (() | @{syntax type_ident} | '(' ( @{syntax type_ident} + ',' ) ')') @{syntax name}
     ;
     @{syntax_def typespec_sorts}:
-      (() | (@{syntax typefree} ('::' @{syntax sort})?) |
-        '(' ( (@{syntax typefree} ('::' @{syntax sort})?) + ',' ) ')') @{syntax name}
+      (() | (@{syntax type_ident} ('::' @{syntax sort})?) |
+        '(' ( (@{syntax type_ident} ('::' @{syntax sort})?) + ',' ) ')') @{syntax name}
   \<close>}
 \<close>
 
@@ -387,11 +386,11 @@ text \<open>
   The attribute argument specifications may be any sequence of atomic entities
   (identifiers, strings etc.), or properly bracketed argument lists. Below
   @{syntax atom} refers to any atomic entity, including any @{syntax keyword}
-  conforming to @{syntax symident}.
+  conforming to @{syntax sym_ident}.
 
   @{rail \<open>
-    @{syntax_def atom}: @{syntax name} | @{syntax typefree} |
-      @{syntax typevar} | @{syntax var} | @{syntax nat} | @{syntax float} |
+    @{syntax_def atom}: @{syntax name} | @{syntax type_ident} |
+      @{syntax type_var} | @{syntax term_var} | @{syntax nat} | @{syntax float} |
       @{syntax keyword} | @{syntax cartouche}
     ;
     arg: @{syntax atom} | '(' @{syntax args} ')' | '[' @{syntax args} ']'

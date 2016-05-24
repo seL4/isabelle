@@ -23,12 +23,13 @@ class euclidean_space = real_inner +
   assumes euclidean_all_zero_iff:
     "(\<forall>u\<in>Basis. inner x u = 0) \<longleftrightarrow> (x = 0)"
 
-abbreviation dimension :: "('a::euclidean_space) itself \<Rightarrow> nat" where
-  "dimension TYPE('a) \<equiv> card (Basis :: 'a set)"
-
-syntax "_type_dimension" :: "type => nat" ("(1DIM/(1'(_')))")
-
-translations "DIM('t)" == "CONST dimension (TYPE('t))"
+syntax "_type_dimension" :: "type \<Rightarrow> nat"  ("(1DIM/(1'(_')))")
+translations "DIM('a)" \<rightharpoonup> "CONST card (CONST Basis :: 'a set)"
+typed_print_translation \<open>
+  [(@{const_syntax card},
+    fn ctxt => fn _ => fn [Const (@{const_syntax Basis}, Type (@{type_name set}, [T]))] =>
+      Syntax.const @{syntax_const "_type_dimension"} $ Syntax_Phases.term_of_typ ctxt T)]
+\<close>
 
 lemma (in euclidean_space) norm_Basis[simp]: "u \<in> Basis \<Longrightarrow> norm u = 1"
   unfolding norm_eq_sqrt_inner by (simp add: inner_Basis)

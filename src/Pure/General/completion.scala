@@ -334,7 +334,10 @@ object Completion
     List("@{" -> "@{\u0007}",
       "`" -> "\\<close>",
       "`" -> "\\<open>",
-      "`" -> "\\<open>\u0007\\<close>")
+      "`" -> "\\<open>\u0007\\<close>",
+      "\"" -> "\\<close>",
+      "\"" -> "\\<open>",
+      "\"" -> "\\<open>\u0007\\<close>")
 
   private def default_frequency(name: String): Option[Int] =
     default_abbrs.iterator.map(_._2).zipWithIndex.find(_._1 == name).map(_._2)

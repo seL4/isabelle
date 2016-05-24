@@ -462,7 +462,7 @@ text \<open>
   @{rail \<open>
     @{syntax_def tags}: ( tag * )
     ;
-    tag: '%' (@{syntax ident} | @{syntax string})
+    tag: '%' (@{syntax short_ident} | @{syntax string})
   \<close>}
 
   Some tags are pre-declared for certain classes of commands, serving as
@@ -538,9 +538,9 @@ text \<open>
   \<close>}
   \endgroup
 
-  The lexical syntax of \<open>identifier\<close> coincides with that of @{syntax ident} in
-  regular Isabelle syntax, but \<open>string\<close> uses single quotes instead of double
-  quotes of the standard @{syntax string} category.
+  The lexical syntax of \<open>identifier\<close> coincides with that of @{syntax
+  short_ident} in regular Isabelle syntax, but \<open>string\<close> uses single quotes
+  instead of double quotes of the standard @{syntax string} category.
 
   Each \<open>rule\<close> defines a formal language (with optional name), using a notation
   that is similar to EBNF or regular expressions with recursion. The meaning
