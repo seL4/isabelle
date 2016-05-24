@@ -645,10 +645,10 @@ val _ = Theory.setup
   basic_entity @{binding term_type} (Term_Style.parse -- Args.term) pretty_term_typ #>
   basic_entity @{binding typeof} (Term_Style.parse -- Args.term) pretty_term_typeof #>
   basic_entity @{binding const} (Args.const {proper = true, strict = false}) pretty_const #>
-  basic_entity @{binding abbrev} (Scan.lift Args.name_inner_syntax) pretty_abbrev #>
+  basic_entity @{binding abbrev} (Scan.lift Args.embedded_inner_syntax) pretty_abbrev #>
   basic_entity @{binding typ} Args.typ_abbrev Syntax.pretty_typ #>
-  basic_entity @{binding class} (Scan.lift Args.name_inner_syntax) pretty_class #>
-  basic_entity @{binding type} (Scan.lift Args.name) pretty_type #>
+  basic_entity @{binding class} (Scan.lift Args.embedded_inner_syntax) pretty_class #>
+  basic_entity @{binding type} (Scan.lift Args.embedded) pretty_type #>
   basic_entities @{binding prf} Attrib.thms (pretty_prf false) #>
   basic_entities @{binding full_prf} Attrib.thms (pretty_prf true) #>
   basic_entity @{binding theory} (Scan.lift (Parse.position Args.name)) pretty_theory);

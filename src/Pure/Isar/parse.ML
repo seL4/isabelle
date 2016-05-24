@@ -62,8 +62,9 @@ sig
   val list: 'a parser -> 'a list parser
   val list1: 'a parser -> 'a list parser
   val properties: Properties.T parser
-  val name: bstring parser
+  val name: string parser
   val binding: binding parser
+  val embedded: string parser
   val text: string parser
   val path: string parser
   val theory_name: string parser
@@ -257,16 +258,21 @@ fun list scan = enum "," scan;
 val properties = $$$ "(" |-- !!! (list (string -- ($$$ "=" |-- string)) --| $$$ ")");
 
 
-(* names and text *)
+(* names and embedded content *)
 
 val name =
-  group (fn () => "name") (short_ident || long_ident || sym_ident || string || number);
+  group (fn () => "name")
+    (short_ident || long_ident || sym_ident || number || string);
 
 val binding = position name >> Binding.make;
 
+val embedded =
+  group (fn () => "embedded content")
+    (short_ident || long_ident || sym_ident || number || string || cartouche);
+
 val text =
   group (fn () => "text")
-    (short_ident || long_ident || sym_ident || string || number || verbatim || cartouche);
+    (short_ident || long_ident || sym_ident || number || string || verbatim || cartouche);
 
 val path = group (fn () => "file name/path specification") name;
 
@@ -280,11 +286,11 @@ val parbinding = Scan.optional ($$$ "(" |-- binding --| $$$ ")") Binding.empty;
 
 (* type classes *)
 
-val class = group (fn () => "type class") (inner_syntax name);
+val class = group (fn () => "type class") (inner_syntax embedded);
 
-val sort = group (fn () => "sort") (inner_syntax name);
+val sort = group (fn () => "sort") (inner_syntax embedded);
 
-val type_const = inner_syntax (group (fn () => "type constructor") name);
+val type_const = group (fn () => "type constructor") (inner_syntax embedded);
 
 val arity = type_const -- ($$$ "::" |-- !!!
   (Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- sort)) >> Scan.triple2;
@@ -297,7 +303,8 @@ val multi_arity = and_list1 type_const -- ($$$ "::" |-- !!!
 
 val typ_group =
   group (fn () => "type")
-    (short_ident || long_ident || sym_ident || type_ident || type_var || string || number);
+    (short_ident || long_ident || sym_ident || type_ident || type_var || number ||
+      string || cartouche);
 
 val typ = inner_syntax typ_group;
 
@@ -386,15 +393,13 @@ val document_source = input (group (fn () => "document source") text);
 
 (* terms *)
 
-val tm = short_ident || long_ident || sym_ident || term_var || number || string;
-
-val term_group = group (fn () => "term") tm;
-val prop_group = group (fn () => "proposition") tm;
+val term_group = group (fn () => "term") (term_var || embedded);
+val prop_group = group (fn () => "proposition") (term_var || embedded);
 
 val term = inner_syntax term_group;
 val prop = inner_syntax prop_group;
 
-val const = inner_syntax (group (fn () => "constant") name);
+val const = group (fn () => "constant") (inner_syntax embedded);
 
 val literal_fact = inner_syntax (group (fn () => "literal fact") (alt_string || cartouche));
 

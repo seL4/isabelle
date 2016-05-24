@@ -9,6 +9,10 @@ New in this Isabelle version
 
 *** General ***
 
+* Embedded content (e.g. the inner syntax of types, terms, props) may be
+delimited uniformly via cartouches. This works better than old-fashioned
+quotes when sub-languages are nested.
+
 * Type-inference improves sorts of newly introduced type variables for
 the object-logic, using its base sort (i.e. HOL.type for Isabelle/HOL).
 Thus terms like "f x" or "\<And>x. P x" without any further syntactic context

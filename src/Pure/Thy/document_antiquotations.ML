@@ -195,7 +195,7 @@ end;
 (* URLs *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation @{binding url} (Scan.lift (Parse.position Parse.name))
+  (Thy_Output.antiquotation @{binding url} (Scan.lift (Parse.position Parse.embedded))
     (fn {context = ctxt, ...} => fn (name, pos) =>
       (Context_Position.reports ctxt [(pos, Markup.language_path), (pos, Markup.url name)];
        enclose "\\url{" "}" name)));
