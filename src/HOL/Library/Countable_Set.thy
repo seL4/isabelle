@@ -105,6 +105,11 @@ lemma bij_betw_from_nat_into: "countable S \<Longrightarrow> infinite S \<Longri
   using to_nat_on_infinite[of S, unfolded bij_betw_def]
   by (auto cong: bij_betw_cong intro: bij_betw_inv_into to_nat_on_infinite)
 
+lemma countable_as_injective_image:
+  assumes "countable A" "infinite A"
+  obtains f :: "nat \<Rightarrow> 'a" where "A = range f" "inj f"
+by (metis bij_betw_def bij_betw_from_nat_into [OF assms])
+
 lemma inj_on_to_nat_on[intro]: "countable A \<Longrightarrow> inj_on (to_nat_on A) A"
   using to_nat_on_infinite[of A] to_nat_on_finite[of A]
   by (cases "finite A") (auto simp: bij_betw_def)
