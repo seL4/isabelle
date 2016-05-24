@@ -222,7 +222,7 @@ text \<open>
   @{rail \<open>
     @{syntax_def embedded}: @{syntax cartouche} | @{syntax string} |
       @{syntax ident} | @{syntax longident} | @{syntax symident} |
-      @{syntax nat}
+      @{syntax var} | @{syntax typefree} | @{syntax typevar} | @{syntax nat}
   \<close>}
 \<close>
 
@@ -278,12 +278,11 @@ text \<open>
   as \<^verbatim>\<open>=\<close> or \<^verbatim>\<open>+\<close>).
 
   @{rail \<open>
-    @{syntax_def type}: @{syntax embedded} | @{syntax typefree} |
-      @{syntax typevar}
+    @{syntax_def type}: @{syntax embedded}
     ;
-    @{syntax_def term}: @{syntax embedded} | @{syntax var}
+    @{syntax_def term}: @{syntax embedded}
     ;
-    @{syntax_def prop}: @{syntax term}
+    @{syntax_def prop}: @{syntax embedded}
   \<close>}
 
   Positional instantiations are specified as a sequence of terms, or the
