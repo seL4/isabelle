@@ -72,6 +72,7 @@ imports
   Reflection
   Saturated
   Set_Algebras
+  Set_Permutations
   State_Monad
   Stirling
   Stream

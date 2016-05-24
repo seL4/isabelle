@@ -9,6 +9,7 @@ imports
   Projective_Limit
   Probability_Mass_Function
   Stream_Space
+  Random_Permutations
   Embed_Measure
   Central_Limit_Theorem
 begin
