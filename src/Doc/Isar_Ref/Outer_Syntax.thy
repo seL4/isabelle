@@ -256,7 +256,7 @@ text \<open>
   @{rail \<open>
     @{syntax_def classdecl}: @{syntax name} (('<' | '\<subseteq>') (@{syntax name} + ','))?
     ;
-    @{syntax_def sort}: @{syntax name}
+    @{syntax_def sort}: @{syntax embedded}
     ;
     @{syntax_def arity}: ('(' (@{syntax sort} + ',') ')')? @{syntax sort}
   \<close>}
