@@ -268,9 +268,7 @@ val embedded =
     (cartouche || string || short_ident || long_ident || sym_ident ||
       term_var || type_ident || type_var || number);
 
-val text =
-  group (fn () => "text")
-    (short_ident || long_ident || sym_ident || number || string || verbatim || cartouche);
+val text = group (fn () => "text") (embedded || verbatim);
 
 val path = group (fn () => "file name/path specification") name;
 

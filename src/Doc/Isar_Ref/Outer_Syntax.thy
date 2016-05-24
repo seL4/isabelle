@@ -238,7 +238,7 @@ text \<open>
   Isabelle/Isar commands.
 
   @{rail \<open>
-    @{syntax_def text}: @{syntax verbatim} | @{syntax cartouche} | @{syntax name}
+    @{syntax_def text}: @{syntax embedded} | @{syntax verbatim}
     ;
     @{syntax_def comment}: ('--' | @'\<comment>') @{syntax text}
   \<close>}
