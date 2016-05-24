@@ -1853,7 +1853,7 @@ lemma open_Int_closure_eq_empty:
   unfolding closure_interior
   by auto
 
-lemma open_inter_closure_subset:
+lemma open_Int_closure_subset:
   "open S \<Longrightarrow> (S \<inter> (closure T)) \<subseteq> closure(S \<inter> T)"
 proof
   fix x
@@ -2641,6 +2641,29 @@ proof -
     done
   then show ?thesis
     by (subst tendsto_norm_zero_iff [symmetric]) (simp add: norm_mult)
+qed
+
+lemma lim_null_scaleR_bounded:
+  assumes f: "(f \<longlongrightarrow> 0) net" and gB: "eventually (\<lambda>a. f a = 0 \<or> norm(g a) \<le> B) net"
+    shows "((\<lambda>n. f n *\<^sub>R g n) \<longlongrightarrow> 0) net"
+proof
+  fix \<epsilon>::real
+  assume "0 < \<epsilon>"
+  then have B: "0 < \<epsilon> / (abs B + 1)" by simp
+  have *: "\<bar>f x\<bar> * norm (g x) < \<epsilon>" if f: "\<bar>f x\<bar> * (\<bar>B\<bar> + 1) < \<epsilon>" and g: "norm (g x) \<le> B" for x
+  proof -
+    have "\<bar>f x\<bar> * norm (g x) \<le> \<bar>f x\<bar> * B"
+      by (simp add: mult_left_mono g)
+    also have "... \<le> \<bar>f x\<bar> * (\<bar>B\<bar> + 1)"
+      by (simp add: mult_left_mono)
+    also have "... < \<epsilon>"
+      by (rule f)
+    finally show ?thesis .
+  qed
+  show "\<forall>\<^sub>F x in net. dist (f x *\<^sub>R g x) 0 < \<epsilon>"
+    apply (rule eventually_mono [OF eventually_conj [OF tendstoD [OF f B] gB] ])
+    apply (auto simp: \<open>0 < \<epsilon>\<close> divide_simps * split: if_split_asm)
+    done
 qed
 
 text\<open>Deducing things about the limit from the elements.\<close>
@@ -3986,7 +4009,7 @@ proof safe
   with x have "x \<in> closure X - closure (-S)"
     by auto
   also have "\<dots> \<subseteq> closure (X \<inter> S)"
-    using \<open>open S\<close> open_inter_closure_subset[of S X] by (simp add: closed_Compl ac_simps)
+    using \<open>open S\<close> open_Int_closure_subset[of S X] by (simp add: closed_Compl ac_simps)
   finally have "X \<inter> S \<noteq> {}" by auto
   then show False using \<open>X \<inter> A = {}\<close> \<open>S \<subseteq> A\<close> by auto
 next

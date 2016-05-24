@@ -11,30 +11,6 @@ imports
   "~~/src/HOL/Library/Set_Algebras"
 begin
 
-lemma independent_injective_on_span_image:
-  assumes iS: "independent S"
-    and lf: "linear f"
-    and fi: "inj_on f (span S)"
-  shows "independent (f ` S)"
-proof -
-  {
-    fix a
-    assume a: "a \<in> S" "f a \<in> span (f ` S - {f a})"
-    have eq: "f ` S - {f a} = f ` (S - {a})"
-      using fi a span_inc by (auto simp add: inj_on_def)
-    from a have "f a \<in> f ` span (S -{a})"
-      unfolding eq span_linear_image [OF lf, of "S - {a}"] by blast
-    moreover have "span (S - {a}) \<subseteq> span S"
-      using span_mono[of "S - {a}" S] by auto
-    ultimately have "a \<in> span (S - {a})"
-      using fi a span_inc by (auto simp add: inj_on_def)
-    with a(1) iS have False
-      by (simp add: dependent_def)
-  }
-  then show ?thesis
-    unfolding dependent_def by blast
-qed
-
 lemma dim_image_eq:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes lf: "linear f"
@@ -46,7 +22,7 @@ proof -
   then have "span S = span B"
     using span_mono[of B S] span_mono[of S "span B"] span_span[of B] by auto
   then have "independent (f ` B)"
-    using independent_injective_on_span_image[of B f] B assms by auto
+    using independent_inj_on_image[of B f] B assms by auto
   moreover have "card (f ` B) = card B"
     using assms card_image[of f B] subset_inj_on[of f "span S" B] B span_inc by auto
   moreover have "(f ` B) \<subseteq> (f ` S)"
@@ -7503,6 +7479,20 @@ proof -
     done
 qed
 
+lemma in_interior_closure_convex_segment:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" and a: "a \<in> interior S" and b: "b \<in> closure S"
+    shows "open_segment a b \<subseteq> interior S"
+proof (clarsimp simp: in_segment)
+  fix u::real
+  assume u: "0 < u" "u < 1"
+  have "(1 - u) *\<^sub>R a + u *\<^sub>R b = b - (1 - u) *\<^sub>R (b - a)"
+    by (simp add: algebra_simps)
+  also have "... \<in> interior S" using mem_interior_closure_convex_shrink [OF assms] u
+    by simp
+  finally show "(1 - u) *\<^sub>R a + u *\<^sub>R b \<in> interior S" .
+qed
+
 
 subsection \<open>Some obvious but surprisingly hard simplex lemmas\<close>
 
@@ -7516,7 +7506,7 @@ lemma simplex:
   unfolding mem_Collect_eq
   apply (erule_tac[!] exE)
   apply (erule_tac[!] conjE)+
-  unfolding setsum_clauses(2)[OF assms(1)]
+  unfolding setsum_clauses(2)[OF \<open>finite s\<close>]
   apply (rule_tac x=u in exI)
   defer
   apply (rule_tac x="\<lambda>x. if x = 0 then 1 - setsum u s else u x" in exI)
@@ -8705,7 +8695,7 @@ proof -
   then show ?thesis by auto
 qed
 
-lemma closure_inter: "closure (\<Inter>I) \<le> \<Inter>{closure S |S. S \<in> I}"
+lemma closure_Int: "closure (\<Inter>I) \<le> \<Inter>{closure S |S. S \<in> I}"
 proof -
   {
     fix y
@@ -8793,7 +8783,7 @@ proof -
     using rel_interior_inter_aux closure_mono[of "\<Inter>{rel_interior S |S. S \<in> I}" "\<Inter>I"]
     by auto
   ultimately show ?thesis
-    using closure_inter[of I] by auto
+    using closure_Int[of I] by auto
 qed
 
 lemma convex_inter_rel_interior_same_closure:
@@ -8808,7 +8798,7 @@ proof -
     using rel_interior_inter_aux closure_mono[of "\<Inter>{rel_interior S |S. S \<in> I}" "\<Inter>I"]
     by auto
   ultimately show ?thesis
-    using closure_inter[of I] by auto
+    using closure_Int[of I] by auto
 qed
 
 lemma convex_rel_interior_inter:
@@ -8898,7 +8888,7 @@ lemma convex_rel_interior_inter_two:
   shows "rel_interior (S \<inter> T) = rel_interior S \<inter> rel_interior T"
   using convex_rel_interior_finite_inter[of "{S,T}"] assms by auto
 
-lemma convex_affine_closure_inter:
+lemma convex_affine_closure_Int:
   fixes S T :: "'n::euclidean_space set"
   assumes "convex S"
     and "affine T"
@@ -8928,7 +8918,7 @@ lemma connected_component_1:
   shows "connected_component S a b \<longleftrightarrow> closed_segment a b \<subseteq> S"
 by (simp add: connected_component_1_gen)
 
-lemma convex_affine_rel_interior_inter:
+lemma convex_affine_rel_interior_Int:
   fixes S T :: "'n::euclidean_space set"
   assumes "convex S"
     and "affine T"
@@ -8944,6 +8934,16 @@ proof -
   ultimately show ?thesis
     using convex_rel_interior_inter_two[of S T] assms affine_imp_convex by auto
 qed
+
+lemma convex_affine_rel_frontier_Int:
+   fixes S T :: "'n::euclidean_space set"
+  assumes "convex S"
+    and "affine T"
+    and "interior S \<inter> T \<noteq> {}"
+  shows "rel_frontier(S \<inter> T) = frontier S \<inter> T"
+using assms
+apply (simp add: rel_frontier_def convex_affine_closure_Int frontier_def)
+by (metis Diff_Int_distrib2 Int_emptyI convex_affine_closure_Int convex_affine_rel_interior_Int empty_iff interior_rel_interior_gen)
 
 lemma subset_rel_interior_convex:
   fixes S T :: "'n::euclidean_space set"
@@ -9087,7 +9087,7 @@ proof -
     moreover have "affine (range f)"
       by (metis assms(1) subspace_UNIV subspace_imp_affine subspace_linear_image)
     ultimately have "f z \<in> rel_interior S"
-      using convex_affine_rel_interior_inter[of S "range f"] assms by auto
+      using convex_affine_rel_interior_Int[of S "range f"] assms by auto
     then have "z \<in> f -` (rel_interior S)"
       by auto
   }
@@ -9250,7 +9250,7 @@ proof -
     moreover have aff: "affine (fst -` {y})"
       unfolding affine_alt by (simp add: algebra_simps)
     ultimately have **: "rel_interior (S \<inter> fst -` {y}) = rel_interior S \<inter> fst -` {y}"
-      using convex_affine_rel_interior_inter[of S "fst -` {y}"] assms by auto
+      using convex_affine_rel_interior_Int[of S "fst -` {y}"] assms by auto
     have conv: "convex (S \<inter> fst -` {y})"
       using convex_Int assms aff affine_imp_convex by auto
     {

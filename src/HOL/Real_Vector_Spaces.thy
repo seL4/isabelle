@@ -1754,7 +1754,7 @@ lemma (in metric_space) tendsto_iff:
   "(f \<longlongrightarrow> l) F \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) F)"
   unfolding nhds_metric filterlim_INF filterlim_principal by auto
 
-lemma (in metric_space) tendstoI: "(\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F) \<Longrightarrow> (f \<longlongrightarrow> l) F"
+lemma (in metric_space) tendstoI [intro?]: "(\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F) \<Longrightarrow> (f \<longlongrightarrow> l) F"
   by (auto simp: tendsto_iff)
 
 lemma (in metric_space) tendstoD: "(f \<longlongrightarrow> l) F \<Longrightarrow> 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) F"

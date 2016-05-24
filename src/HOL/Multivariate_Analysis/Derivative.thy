@@ -2606,7 +2606,7 @@ proof (cases x c rule: linorder_cases)
   assume xc: "x > c"
   let ?A' = "interior A \<inter> {c<..}"
   from c have "c \<in> interior A \<inter> closure {c<..}" by auto
-  also have "\<dots> \<subseteq> closure (interior A \<inter> {c<..})" by (intro open_inter_closure_subset) auto
+  also have "\<dots> \<subseteq> closure (interior A \<inter> {c<..})" by (intro open_Int_closure_subset) auto
   finally have "at c within ?A' \<noteq> bot" by (subst at_within_eq_bot_iff) auto
   moreover from deriv have "((\<lambda>y. (f y - f c) / (y - c)) \<longlongrightarrow> f') (at c within ?A')"
     unfolding DERIV_within_iff using interior_subset[of A] by (blast intro: tendsto_mono at_le)
@@ -2628,7 +2628,7 @@ next
   assume xc: "x < c"
   let ?A' = "interior A \<inter> {..<c}"
   from c have "c \<in> interior A \<inter> closure {..<c}" by auto
-  also have "\<dots> \<subseteq> closure (interior A \<inter> {..<c})" by (intro open_inter_closure_subset) auto
+  also have "\<dots> \<subseteq> closure (interior A \<inter> {..<c})" by (intro open_Int_closure_subset) auto
   finally have "at c within ?A' \<noteq> bot" by (subst at_within_eq_bot_iff) auto
   moreover from deriv have "((\<lambda>y. (f y - f c) / (y - c)) \<longlongrightarrow> f') (at c within ?A')"
     unfolding DERIV_within_iff using interior_subset[of A] by (blast intro: tendsto_mono at_le)
