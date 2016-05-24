@@ -184,7 +184,7 @@ text \<open>
 
   @{rail \<open>
     @{syntax_def name}: @{syntax ident} | @{syntax longident} |
-      @{syntax symident} | @{syntax string} | @{syntax nat}
+      @{syntax symident} | @{syntax nat} | @{syntax string}
     ;
     @{syntax_def par_name}: '(' @{syntax name} ')'
   \<close>}
@@ -206,6 +206,24 @@ text \<open>
 
   Note that there is an overlap with the category @{syntax name}, which also
   includes @{syntax nat}.
+\<close>
+
+
+subsection \<open>Embedded content\<close>
+
+text \<open>
+  Entity @{syntax embedded} refers to content of other languages: cartouches
+  allow arbitrary nesting of sub-languages that respect the recursive
+  balancing of cartouche delimiters. Quoted strings are possible as well, but
+  require escaped quotes when nested. As a shortcut, tokens that appear as
+  plain identifiers in the outer language may be used as inner language
+  content without delimiters.
+
+  @{rail \<open>
+    @{syntax_def embedded}: @{syntax cartouche} | @{syntax string} |
+      @{syntax ident} | @{syntax longident} | @{syntax symident} |
+      @{syntax nat}
+  \<close>}
 \<close>
 
 
@@ -260,10 +278,10 @@ text \<open>
   as \<^verbatim>\<open>=\<close> or \<^verbatim>\<open>+\<close>).
 
   @{rail \<open>
-    @{syntax_def type}: @{syntax name} | @{syntax typefree} |
+    @{syntax_def type}: @{syntax embedded} | @{syntax typefree} |
       @{syntax typevar}
     ;
-    @{syntax_def term}: @{syntax name} | @{syntax var}
+    @{syntax_def term}: @{syntax embedded} | @{syntax var}
     ;
     @{syntax_def prop}: @{syntax term}
   \<close>}
