@@ -17,7 +17,7 @@ val _ = Theory.setup
     (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")") #>
 
   ML_Antiquotation.declaration @{binding print}
-    (Scan.lift (Scan.optional Args.name "Output.writeln"))
+    (Scan.lift (Scan.optional Args.embedded "Output.writeln"))
       (fn src => fn output => fn ctxt =>
         let
           val struct_name = ML_Context.struct_name ctxt;
@@ -86,7 +86,7 @@ val _ = Theory.setup
 
 (* type classes *)
 
-fun class syn = Args.context -- Scan.lift Args.name_inner_syntax >> (fn (ctxt, s) =>
+fun class syn = Args.context -- Scan.lift Args.embedded_inner_syntax >> (fn (ctxt, s) =>
   Proof_Context.read_class ctxt s
   |> syn ? Lexicon.mark_class
   |> ML_Syntax.print_string);
@@ -96,13 +96,13 @@ val _ = Theory.setup
   ML_Antiquotation.inline @{binding class_syntax} (class true) #>
 
   ML_Antiquotation.inline @{binding sort}
-    (Args.context -- Scan.lift Args.name_inner_syntax >> (fn (ctxt, s) =>
+    (Args.context -- Scan.lift Args.embedded_inner_syntax >> (fn (ctxt, s) =>
       ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s)))));
 
 
 (* type constructors *)
 
-fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.name_inner_syntax)
+fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.embedded_inner_syntax)
   >> (fn (ctxt, (s, pos)) =>
     let
       val Type (c, _) = Proof_Context.read_type_name {proper = true, strict = false} ctxt s;
@@ -126,7 +126,7 @@ val _ = Theory.setup
 
 (* constants *)
 
-fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_inner_syntax)
+fun const_name check = Args.context -- Scan.lift (Parse.position Args.embedded_inner_syntax)
   >> (fn (ctxt, (s, pos)) =>
     let
       val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} ctxt s;
@@ -143,13 +143,13 @@ val _ = Theory.setup
     (const_name (fn (_, c) => Lexicon.mark_const c)) #>
 
   ML_Antiquotation.inline @{binding syntax_const}
-    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (c, pos)) =>
+    (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (c, pos)) =>
       if is_some (Syntax.lookup_const (Proof_Context.syn_of ctxt) c)
       then ML_Syntax.print_string c
       else error ("Unknown syntax const: " ^ quote c ^ Position.here pos))) #>
 
   ML_Antiquotation.inline @{binding const}
-    (Args.context -- Scan.lift (Parse.position Args.name_inner_syntax) -- Scan.optional
+    (Args.context -- Scan.lift (Parse.position Args.embedded_inner_syntax) -- Scan.optional
         (Scan.lift (Args.$$$ "(") |-- Parse.enum1' "," Args.typ --| Scan.lift (Args.$$$ ")")) []
       >> (fn ((ctxt, (raw_c, pos)), Ts) =>
         let

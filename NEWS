@@ -9,6 +9,10 @@ New in this Isabelle version
 
 *** General ***
 
+* Embedded content (e.g. the inner syntax of types, terms, props) may be
+delimited uniformly via cartouches. This works better than old-fashioned
+quotes when sub-languages are nested.
+
 * Type-inference improves sorts of newly introduced type variables for
 the object-logic, using its base sort (i.e. HOL.type for Isabelle/HOL).
 Thus terms like "f x" or "\<And>x. P x" without any further syntactic context
@@ -94,6 +98,9 @@ Isabelle2016). INCOMPATIBILITY, use "standard" instead.
 * The print mode "HOL" for ASCII syntax of binders "!", "?", "?!", "@"
 has been removed for output. It is retained for input only, until it is
 eliminated altogether.
+
+* Sledgehammer:
+  - Produce syntactically correct Vampire 4.0 problem files.
 
 * (Co)datatype package:
   - New commands for defining corecursive functions and reasoning about
@@ -195,6 +202,8 @@ but not gcd/lcm on polynomials over fields.  This has been moved
 to a separate theory Library/Polynomial_GCD_euclidean.thy, to
 pave way for a possible future different type class instantiation
 for polynomials over factorial rings.  INCOMPATIBILITY.
+
+* Library/Sublist.thy: renamed prefixeq -> prefix and prefix -> strict_prefix
 
 * Dropped various legacy fact bindings, whose replacements are often
 of a more general type also:

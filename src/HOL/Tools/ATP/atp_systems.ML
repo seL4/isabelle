@@ -532,7 +532,7 @@ val vampire_config : atp_config =
       (Unprovable, "Termination reason: Satisfiable"),
       (Interrupted, "Aborted by signal SIGINT")] @
      known_szs_status_failures,
-   prem_role = Conjecture,
+   prem_role = Hypothesis,
    best_slices = fn ctxt =>
      (* FUDGE *)
      (if is_vampire_beyond_1_8 () then
@@ -724,7 +724,7 @@ val remote_satallax =
   remotify_atp satallax "Satallax" ["2.7", "2.3", "2"]
     (K (((60, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_vampire =
-  remotify_atp vampire "Vampire" ["3.0", "2.6", "2.5"]
+  remotify_atp vampire "Vampire" ["4.0", "3.0", "2.6"]
     (K (((400, ""), vampire_tff0, "mono_native", combs_or_liftingN, false), remote_vampire_full_proof_command) (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Conjecture

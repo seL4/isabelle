@@ -19,7 +19,7 @@
 section \<open>Results connected with topological dimension.\<close>
 
 theory Brouwer_Fixpoint
-imports Path_Connected
+imports Path_Connected Homeomorphism
 begin
 
 lemma bij_betw_singleton_eq:

@@ -122,14 +122,14 @@ val opt_rules = Scan.option (rule_spec |-- Attrib.thms);
 
 val varss =
   Parse.and_list'
-    (Scan.repeat (Scan.unless rule_spec (Scan.lift (Args.maybe Args.name_inner_syntax))));
+    (Scan.repeat (Scan.unless rule_spec (Scan.lift (Args.maybe Args.embedded_inner_syntax))));
 
 in
 
 val _ =
   Theory.setup
    (Method.setup @{binding case_tac}
-      (Args.goal_spec -- Scan.lift (Args.name_inner_syntax -- Parse.for_fixes) -- opt_rule >>
+      (Args.goal_spec -- Scan.lift (Args.embedded_inner_syntax -- Parse.for_fixes) -- opt_rule >>
         (fn ((quant, (s, xs)), r) => fn ctxt => SIMPLE_METHOD'' quant (case_tac ctxt s xs r)))
       "unstructured case analysis on types" #>
     Method.setup @{binding induct_tac}

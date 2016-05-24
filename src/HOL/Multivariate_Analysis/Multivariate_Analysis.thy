@@ -3,6 +3,7 @@ imports
   Fashoda
   Extended_Real_Limits
   Determinants
+  Homeomorphism
   Ordered_Euclidean_Space
   Bounded_Continuous_Function
   Weierstrass

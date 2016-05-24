@@ -7,7 +7,7 @@ section \<open>Some examples with text cartouches\<close>
 theory Cartouche_Examples
 imports Main
 keywords
-  "cartouche" "term_cartouche" :: diag and
+  "cartouche" :: diag and
   "text_cartouche" :: thy_decl
 begin
 
@@ -19,21 +19,23 @@ text \<open>Text cartouches may be used in the outer syntax category \<open>text
 
 notepad
 begin
-  txt \<open>Moreover, cartouches work as additional syntax in the
-    \<open>altstring\<close> category, for literal fact references.  For example:\<close>
+  txt \<open>Cartouches work as additional syntax for embedded language tokens
+    (types, terms, props) and as a replacement for the \<open>altstring\<close> category
+    (for literal fact references). For example:\<close>
 
   fix x y :: 'a
-  assume "x = y"
+  assume \<open>x = y\<close>
   note \<open>x = y\<close>
-  have "x = y" by (rule \<open>x = y\<close>)
-  from \<open>x = y\<close> have "x = y" .
+  have \<open>x = y\<close> by (rule \<open>x = y\<close>)
+  from \<open>x = y\<close> have \<open>x = y\<close> .
 
   txt \<open>Of course, this can be nested inside formal comments and
     antiquotations, e.g. like this @{thm \<open>x = y\<close>} or this @{thm sym
     [OF \<open>x = y\<close>]}.\<close>
 
-  have "x = y"
-    by (tactic \<open>resolve_tac @{context} @{thms \<open>x = y\<close>} 1\<close>)  \<comment> \<open>more cartouches involving ML\<close>
+  have \<open>x = y\<close>
+    by (tactic \<open>resolve_tac @{context} @{thms \<open>x = y\<close>} 1\<close>)
+      \<comment> \<open>more cartouches involving ML\<close>
 end
 
 
@@ -78,92 +80,55 @@ ML \<open>
   end;
 \<close>
 
-syntax "_cartouche_string" :: "cartouche_position \<Rightarrow> string"  ("_")
+syntax "_cartouche_string" :: \<open>cartouche_position \<Rightarrow> string\<close>  ("_")
 
 parse_translation \<open>
   [(@{syntax_const "_cartouche_string"},
     K (string_tr (Symbol_Pos.cartouche_content o Symbol_Pos.explode)))]
 \<close>
 
-term "\<open>\<close>"
-term "\<open>abc\<close>"
-term "\<open>abc\<close> @ \<open>xyz\<close>"
-term "\<open>\<newline>\<close>"
-term "\<open>\001\010\100\<close>"
+term \<open>\<open>\<close>\<close>
+term \<open>\<open>abc\<close>\<close>
+term \<open>\<open>abc\<close> @ \<open>xyz\<close>\<close>
+term \<open>\<open>\<newline>\<close>\<close>
 
 
 subsection \<open>Alternate outer and inner syntax: string literals\<close>
 
 subsubsection \<open>Nested quotes\<close>
 
-syntax "_string_string" :: "string_position \<Rightarrow> string"  ("_")
+syntax "_string_string" :: \<open>string_position \<Rightarrow> string\<close>  ("_")
 
 parse_translation \<open>
   [(@{syntax_const "_string_string"}, K (string_tr Lexicon.explode_string))]
 \<close>
 
-term "\"\""
-term "\"abc\""
-term "\"abc\" @ \"xyz\""
-term "\"\<newline>\""
-term "\"\001\010\100\""
-
-
-subsubsection \<open>Term cartouche and regular quotes\<close>
-
-ML \<open>
-  Outer_Syntax.command @{command_keyword term_cartouche} ""
-    (Parse.inner_syntax Parse.cartouche >> (fn s =>
-      Toplevel.keep (fn state =>
-        let
-          val ctxt = Toplevel.context_of state;
-          val t = Syntax.read_term ctxt s;
-        in writeln (Syntax.string_of_term ctxt t) end)))
-\<close>
-
-term_cartouche \<open>""\<close>
-term_cartouche \<open>"abc"\<close>
-term_cartouche \<open>"abc" @ "xyz"\<close>
-term_cartouche \<open>"\<newline>"\<close>
-term_cartouche \<open>"\001\010\100"\<close>
+term \<open>""\<close>
+term \<open>"abc"\<close>
+term \<open>"abc" @ "xyz"\<close>
+term \<open>"\<newline>"\<close>
+term \<open>"\001\010\100"\<close>
 
 
 subsubsection \<open>Further nesting: antiquotations\<close>
 
-setup \<comment> "ML antiquotation"
-\<open>
-  ML_Antiquotation.inline @{binding term_cartouche}
-    (Args.context -- Scan.lift (Parse.inner_syntax Parse.cartouche) >>
-      (fn (ctxt, s) => ML_Syntax.atomic (ML_Syntax.print_term (Syntax.read_term ctxt s))))
-\<close>
-
-setup \<comment> "document antiquotation"
-\<open>
-  Thy_Output.antiquotation @{binding ML_cartouche}
-    (Scan.lift Args.cartouche_input) (fn {context, ...} => fn source =>
-      let
-        val toks = ML_Lex.read "fn _ => (" @ ML_Lex.read_source false source @ ML_Lex.read ");";
-        val _ = ML_Context.eval_in (SOME context) ML_Compiler.flags (Input.pos_of source) toks;
-      in "" end);
-\<close>
-
 ML \<open>
-  @{term_cartouche \<open>""\<close>};
-  @{term_cartouche \<open>"abc"\<close>};
-  @{term_cartouche \<open>"abc" @ "xyz"\<close>};
-  @{term_cartouche \<open>"\<newline>"\<close>};
-  @{term_cartouche \<open>"\001\010\100"\<close>};
+  @{term \<open>""\<close>};
+  @{term \<open>"abc"\<close>};
+  @{term \<open>"abc" @ "xyz"\<close>};
+  @{term \<open>"\<newline>"\<close>};
+  @{term \<open>"\001\010\100"\<close>};
 \<close>
 
 text \<open>
-  @{ML_cartouche
+  @{ML
     \<open>
       (
-        @{term_cartouche \<open>""\<close>};
-        @{term_cartouche \<open>"abc"\<close>};
-        @{term_cartouche \<open>"abc" @ "xyz"\<close>};
-        @{term_cartouche \<open>"\<newline>"\<close>};
-        @{term_cartouche \<open>"\001\010\100"\<close>}
+        @{term \<open>""\<close>};
+        @{term \<open>"abc"\<close>};
+        @{term \<open>"abc" @ "xyz"\<close>};
+        @{term \<open>"\<newline>"\<close>};
+        @{term \<open>"\001\010\100"\<close>}
       )
     \<close>
   }
@@ -181,14 +146,14 @@ ML \<open>
 
 text_cartouche
 \<open>
-  @{ML_cartouche
+  @{ML
     \<open>
       (
-        @{term_cartouche \<open>""\<close>};
-        @{term_cartouche \<open>"abc"\<close>};
-        @{term_cartouche \<open>"abc" @ "xyz"\<close>};
-        @{term_cartouche \<open>"\<newline>"\<close>};
-        @{term_cartouche \<open>"\001\010\100"\<close>}
+        @{term \<open>""\<close>};
+        @{term \<open>"abc"\<close>};
+        @{term \<open>"abc" @ "xyz"\<close>};
+        @{term \<open>"\<newline>"\<close>};
+        @{term \<open>"\001\010\100"\<close>}
       )
     \<close>
   }
@@ -226,18 +191,18 @@ method_setup ml_tactic = \<open>
     >> (fn arg => fn ctxt => SIMPLE_METHOD (ML_Tactic.ml_tactic arg ctxt))
 \<close>
 
-lemma "A \<and> B \<longrightarrow> B \<and> A"
+lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close>
   apply (ml_tactic \<open>resolve_tac @{context} @{thms impI} 1\<close>)
   apply (ml_tactic \<open>eresolve_tac @{context} @{thms conjE} 1\<close>)
   apply (ml_tactic \<open>resolve_tac @{context} @{thms conjI} 1\<close>)
   apply (ml_tactic \<open>ALLGOALS (assume_tac @{context})\<close>)
   done
 
-lemma "A \<and> B \<longrightarrow> B \<and> A" by (ml_tactic \<open>blast_tac ctxt 1\<close>)
+lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close> by (ml_tactic \<open>blast_tac ctxt 1\<close>)
 
-ML \<open>@{lemma "A \<and> B \<longrightarrow> B \<and> A" by (ml_tactic \<open>blast_tac ctxt 1\<close>)}\<close>
+ML \<open>@{lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close> by (ml_tactic \<open>blast_tac ctxt 1\<close>)}\<close>
 
-text \<open>@{ML "@{lemma \"A \<and> B \<longrightarrow> B \<and> A\" by (ml_tactic \<open>blast_tac ctxt 1\<close>)}"}\<close>
+text \<open>@{ML \<open>@{lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close> by (ml_tactic \<open>blast_tac ctxt 1\<close>)}\<close>}\<close>
 
 
 subsubsection \<open>Implicit version: method with special name "cartouche" (dynamic!)\<close>
@@ -247,14 +212,14 @@ method_setup "cartouche" = \<open>
     >> (fn arg => fn ctxt => SIMPLE_METHOD (ML_Tactic.ml_tactic arg ctxt))
 \<close>
 
-lemma "A \<and> B \<longrightarrow> B \<and> A"
+lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close>
   apply \<open>resolve_tac @{context} @{thms impI} 1\<close>
   apply \<open>eresolve_tac @{context} @{thms conjE} 1\<close>
   apply \<open>resolve_tac @{context} @{thms conjI} 1\<close>
   apply \<open>ALLGOALS (assume_tac @{context})\<close>
   done
 
-lemma "A \<and> B \<longrightarrow> B \<and> A"
+lemma \<open>A \<and> B \<longrightarrow> B \<and> A\<close>
   by (\<open>resolve_tac @{context} @{thms impI} 1\<close>,
     \<open>eresolve_tac @{context} @{thms conjE} 1\<close>,
     \<open>resolve_tac @{context} @{thms conjI} 1\<close>,

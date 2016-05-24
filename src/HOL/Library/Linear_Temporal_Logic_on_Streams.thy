@@ -13,7 +13,7 @@ section\<open>Preliminaries\<close>
 
 lemma shift_prefix:
 assumes "xl @- xs = yl @- ys" and "length xl \<le> length yl"
-shows "prefixeq xl yl"
+shows "prefix xl yl"
 using assms proof(induct xl arbitrary: yl xs ys)
   case (Cons x xl yl xs ys)
   thus ?case by (cases yl) auto
@@ -21,7 +21,7 @@ qed auto
 
 lemma shift_prefix_cases:
 assumes "xl @- xs = yl @- ys"
-shows "prefixeq xl yl \<or> prefixeq yl xl"
+shows "prefix xl yl \<or> prefix yl xl"
 using shift_prefix[OF assms]
 by (cases "length xl \<le> length yl") (metis, metis assms nat_le_linear shift_prefix)
 
@@ -297,17 +297,17 @@ proof-
   moreover obtain yl ys1 where xs2: "xs = yl @- ys1" and \<psi>\<psi>: "alw \<psi> ys1"
   using \<psi> by (metis ev_imp_shift)
   ultimately have 0: "xl @- xs1 = yl @- ys1" by auto
-  hence "prefixeq xl yl \<or> prefixeq yl xl" using shift_prefix_cases by auto
+  hence "prefix xl yl \<or> prefix yl xl" using shift_prefix_cases by auto
   thus ?thesis proof
-    assume "prefixeq xl yl"
-    then obtain yl1 where yl: "yl = xl @ yl1" by (elim prefixeqE)
+    assume "prefix xl yl"
+    then obtain yl1 where yl: "yl = xl @ yl1" by (elim prefixE)
     have xs1': "xs1 = yl1 @- ys1" using 0 unfolding yl by simp
     have "alw \<phi> ys1" using \<phi>\<phi> unfolding xs1' by (metis alw_shift)
     hence "alw (\<phi> aand \<psi>) ys1" using \<psi>\<psi> unfolding alw_aand by auto
     thus ?thesis unfolding xs2 by (auto intro: alw_ev_shift)
   next
-    assume "prefixeq yl xl"
-    then obtain xl1 where xl: "xl = yl @ xl1" by (elim prefixeqE)
+    assume "prefix yl xl"
+    then obtain xl1 where xl: "xl = yl @ xl1" by (elim prefixE)
     have ys1': "ys1 = xl1 @- xs1" using 0 unfolding xl by simp
     have "alw \<psi> xs1" using \<psi>\<psi> unfolding ys1' by (metis alw_shift)
     hence "alw (\<phi> aand \<psi>) xs1" using \<phi>\<phi> unfolding alw_aand by auto
