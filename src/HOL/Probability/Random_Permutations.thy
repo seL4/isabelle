@@ -40,7 +40,7 @@ qed
 text \<open>
   A generic fold function that takes a function, an initial state, and a set 
   and chooses a random order in which it then traverses the set in the same 
-  fashion as a left fold over a list.
+  fashion as a left-fold over a list.
     We first give a recursive definition.
 \<close>
 function fold_random_permutation :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b pmf" where

@@ -24,103 +24,15 @@ qed
 
 end
 
-context comm_semiring_1
-begin
-
-definition irreducible :: "'a \<Rightarrow> bool" where
-  "irreducible p \<longleftrightarrow> p \<noteq> 0 \<and> \<not>p dvd 1 \<and> (\<forall>a b. p = a * b \<longrightarrow> a dvd 1 \<or> b dvd 1)"
-  
-lemma not_irreducible_zero [simp]: "\<not>irreducible 0"
-  by (simp add: irreducible_def)
-
-lemma irreducible_not_unit: "irreducible p \<Longrightarrow> \<not>p dvd 1"
-  by (simp add: irreducible_def)
-  
-lemma irreducibleI: 
-  "p \<noteq> 0 \<Longrightarrow> \<not>p dvd 1 \<Longrightarrow> (\<And>a b. p = a * b \<Longrightarrow> a dvd 1 \<or> b dvd 1) \<Longrightarrow> irreducible p"
-  by (simp add: irreducible_def)
-  
-lemma irreducibleD: "irreducible p \<Longrightarrow> p = a * b \<Longrightarrow> a dvd 1 \<or> b dvd 1"
-  by (simp add: irreducible_def)
-
-definition is_prime :: "'a \<Rightarrow> bool" where
-  "is_prime p \<longleftrightarrow> p \<noteq> 0 \<and> \<not>p dvd 1 \<and> (\<forall>a b. p dvd (a * b) \<longrightarrow> p dvd a \<or> p dvd b)"
-
-lemma not_is_prime_zero [simp]: "\<not>is_prime 0"
-  by (simp add: is_prime_def)
-
-lemma is_prime_not_unit: "is_prime p \<Longrightarrow> \<not>p dvd 1"
-  by (simp add: is_prime_def)
-
-lemma is_primeI: 
-    "p \<noteq> 0 \<Longrightarrow> \<not>p dvd 1 \<Longrightarrow> (\<And>a b. p dvd (a * b) \<Longrightarrow> p dvd a \<or> p dvd b) \<Longrightarrow> is_prime p"
-  by (simp add: is_prime_def)
-
-lemma prime_divides_productD:
-    "is_prime p \<Longrightarrow> p dvd (a * b) \<Longrightarrow> p dvd a \<or> p dvd b"
-  by (simp add: is_prime_def)
-
-lemma prime_divides_product_iff:
-  "is_prime p \<Longrightarrow> p dvd (a * b) \<longleftrightarrow> p dvd a \<or> p dvd b"
-  by (auto simp: is_prime_def)
-
-end
-
-
-context algebraic_semidom
-begin
-
-lemma prime_imp_irreducible:
-  assumes "prime p"
-  shows   "irreducible p"
-proof -
-  
-lemma is_prime_mono: 
-  assumes "is_prime p" "\<not>q dvd 1" "q dvd p"
-  shows   "is_prime q"
-proof -
-  from \<open>q dvd p\<close> obtain r where r: "p = q * r" by (elim dvdE)
-  hence "p dvd q * r" by simp
-  with \<open>is_prime p\<close> have "p dvd q \<or> p dvd r" by (rule prime_divides_productD)
-  hence "p dvd q"
-  proof
-    assume "p dvd r"
-    then obtain s where s: "r = p * s" by (elim dvdE)
-    from r have "p * 1 = p * (q * s)" by (subst (asm) s) (simp add: mult_ac)
-    with \<open>is_prime p\<close> have "q dvd 1"
-      by (subst (asm) mult_cancel_left) auto
-    with \<open>\<not>q dvd 1\<close> show ?thesis by contradiction
-  qed
-  
-  show ?thesis
-  proof (rule is_primeI)
-    fix a b assume "q dvd (a * b)"
-    with \<open>p dvd q\<close> have "p dvd (a * b)" by (rule dvd_trans)
-    with \<open>is_prime p\<close> have "p dvd a \<or> p dvd b" by (rule prime_divides_productD)
-    with \<open>q dvd p\<close> show "q dvd a \<or> q dvd b" by (blast intro: dvd_trans)
-  qed (insert assms, auto)
-qed
-
-end
-
-
 class factorial_semiring = normalization_semidom +
   assumes finite_divisors: "a \<noteq> 0 \<Longrightarrow> finite {b. b dvd a \<and> normalize b = b}"
-  assumes irreducible_is_prime: "(\<And>b. b dvd a \<Longrightarrow>
-  assumes no_prime_divisorsI2: "(\<And>b. b dvd a \<Longrightarrow> \<not> is_prime b) \<Longrightarrow> is_unit a"
+  fixes is_prime :: "'a \<Rightarrow> bool"
+  assumes not_is_prime_zero [simp]: "\<not> is_prime 0"
+    and is_prime_not_unit: "is_prime p \<Longrightarrow> \<not> is_unit p"
+    and no_prime_divisorsI2: "(\<And>b. b dvd a \<Longrightarrow> \<not> is_prime b) \<Longrightarrow> is_unit a"
+  assumes is_primeI: "p \<noteq> 0 \<Longrightarrow> \<not> is_unit p \<Longrightarrow> (\<And>a. a dvd p \<Longrightarrow> \<not> is_unit a \<Longrightarrow> p dvd a) \<Longrightarrow> is_prime p"
+    and is_primeD: "is_prime p \<Longrightarrow> p dvd a * b \<Longrightarrow> p dvd a \<or> p dvd b"
 begin
-
-lemma is_primeI': 
-  assumes "p \<noteq> 0" "\<not> is_unit p" "\<And>a. a dvd p \<Longrightarrow> \<not> is_unit a \<Longrightarrow> p dvd a"
-  shows   "is_prime p"
-proof (rule ccontr)
-  assume "\<not>is_prime p"
-  with assms obtain a b where "p dvd (a * b)" "\<not>p dvd a" "\<not>p dvd b"
-    by (auto simp: is_prime_def)
-  
-  
-qed fact+
-
 
 lemma not_is_prime_one [simp]:
   "\<not> is_prime 1"
