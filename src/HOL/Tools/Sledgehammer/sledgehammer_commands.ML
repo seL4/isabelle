@@ -348,7 +348,7 @@ fun string_of_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 
 val parse_query_bang = @{keyword "?"} || @{keyword "!"} || @{keyword "!!"}
-val parse_key = Scan.repeat1 (Parse.typ_group || parse_query_bang) >> implode_param
+val parse_key = Scan.repeat1 (Parse.embedded || parse_query_bang) >> implode_param
 val parse_value = Scan.repeat1 (Parse.name || Parse.float_number || parse_query_bang)
 val parse_param = parse_key -- Scan.optional (@{keyword "="} |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
