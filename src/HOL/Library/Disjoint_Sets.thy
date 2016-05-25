@@ -161,7 +161,7 @@ lemma infinite_disjoint_family_imp_infinite_UNION:
   assumes "\<not>finite A" "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> {}" "disjoint_family_on f A"
   shows   "\<not>finite (UNION A f)"
 proof -
-  def g \<equiv> "\<lambda>x. SOME y. y \<in> f x"
+  define g where "g x = (SOME y. y \<in> f x)" for x
   have g: "g x \<in> f x" if "x \<in> A" for x
     unfolding g_def by (rule someI_ex, insert assms(2) that) blast
   have inj_on_g: "inj_on g A"

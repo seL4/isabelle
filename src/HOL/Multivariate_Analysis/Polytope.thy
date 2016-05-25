@@ -186,7 +186,7 @@ proof
     case True with \<open>b \<in> T\<close> show ?thesis by blast
   next
     case False
-    def d \<equiv> "b + (e / norm(b - c)) *\<^sub>R (b - c)"
+    define d where "d = b + (e / norm(b - c)) *\<^sub>R (b - c)"
     have "d \<in> cball b e \<inter> affine hull u"
       using \<open>e > 0\<close> \<open>b \<in> u\<close> \<open>c \<in> u\<close>
       by (simp add: d_def dist_norm hull_inc mem_affine_3_minus False)
@@ -299,7 +299,7 @@ proof -
     obtain u where "(1 - u) *\<^sub>R x + u *\<^sub>R y \<in> convex hull T" "x \<noteq> y" and weq: "w = (1 - u) *\<^sub>R x + u *\<^sub>R y"
                and u01: "0 < u" "u < 1"
       using w by (auto simp: open_segment_image_interval split: if_split_asm)
-    def c \<equiv> "\<lambda>i. (1 - u) * a i + u * b i"
+    define c where "c i = (1 - u) * a i + u * b i" for i
     have cge0: "\<And>i. i \<in> S \<Longrightarrow> 0 \<le> c i"
       using a b u01 by (simp add: c_def)
     have sumc1: "setsum c S = 1"
@@ -325,7 +325,7 @@ proof -
         done
     next
       case False
-      def k \<equiv> "setsum c (S - T)"
+      define k where "k = setsum c (S - T)"
       have "k > 0" using False
         unfolding k_def by (metis DiffD1 antisym_conv cge0 setsum_nonneg not_less)
       have weq_sumsum: "w = setsum (\<lambda>x. c x *\<^sub>R x) T + setsum (\<lambda>x. c x *\<^sub>R x) (S - T)"
@@ -431,7 +431,7 @@ proof (cases "\<forall>F'. finite F' \<and> F' \<subseteq> T \<and> card F' \<le
   then obtain c where c:
        "\<And>F'. \<lbrakk>finite F'; F' \<subseteq> T; card F' \<le> DIM('a) + 2\<rbrakk> \<Longrightarrow> c F' \<in> T \<and> c F' \<inter> (\<Inter>F') \<subset> (\<Inter>F')"
     by metis
-  def d \<equiv> "rec_nat {c{}} (\<lambda>n r. insert (c r) r)"
+  define d where "d = rec_nat {c{}} (\<lambda>n r. insert (c r) r)"
   have [simp]: "d 0 = {c {}}"
     by (simp add: d_def)
   have dSuc [simp]: "\<And>n. d (Suc n) = insert (c (d n)) (d n)"
@@ -1047,7 +1047,7 @@ next
     then obtain m where "m \<in> S" and m: "\<And>y. y \<in> S \<Longrightarrow> a \<bullet> m \<le> a \<bullet> y"
       using continuous_attains_inf [of S "\<lambda>x. a \<bullet> x"] \<open>compact S\<close> \<open>u \<in> S\<close>
       by auto
-    def T \<equiv> "S \<inter> {x. a \<bullet> x = a \<bullet> m}"
+    define T where "T = S \<inter> {x. a \<bullet> x = a \<bullet> m}"
     have "m \<in> T"
       by (simp add: T_def \<open>m \<in> S\<close>)
     moreover have "compact T"
@@ -1560,7 +1560,7 @@ proof -
       using x by (auto simp: mem_rel_interior_ball)
     then have ins: "\<And>y. \<lbrakk>norm (x - y) < e; y \<in> affine hull S\<rbrakk> \<Longrightarrow> y \<in> S"
       by (metis IntI subsetD dist_norm mem_ball)
-    def \<xi> \<equiv> "min (1/2) (e / 2 / norm(z - x))"
+    define \<xi> where "\<xi> = min (1/2) (e / 2 / norm(z - x))"
     have "norm (\<xi> *\<^sub>R x - \<xi> *\<^sub>R z) = norm (\<xi> *\<^sub>R (x - z))"
       by (simp add: \<xi>_def algebra_simps norm_mult)
     also have "... = \<xi> * norm (x - z)"
@@ -1679,7 +1679,7 @@ proof
                              (\<forall>x \<in> affine hull S. (x + a) \<in> affine hull S)"
                    (is "?Q f0")
     by (force simp: polyhedron_Int_affine_parallel)
-  def n \<equiv> "LEAST n. \<exists>F. card F = n \<and> finite F \<and> ?P F \<and> ?Q F"
+  define n where "n = (LEAST n. \<exists>F. card F = n \<and> finite F \<and> ?P F \<and> ?Q F)"
   have nf: "\<exists>F. card F = n \<and> finite F \<and> ?P F \<and> ?Q F"
     apply (simp add: n_def)
     apply (rule LeastI [where k = "card f0"])
@@ -1755,8 +1755,8 @@ next
       using faceq that by blast
     also have "... < a h \<bullet> z" using \<open>z \<notin> h\<close> faceq [OF that] xint by auto
     finally have xltz: "a h \<bullet> x < a h \<bullet> z" .
-    def l \<equiv> "(b h - a h \<bullet> x) / (a h \<bullet> z - a h \<bullet> x)"
-    def w \<equiv> "(1 - l) *\<^sub>R x + l *\<^sub>R z"
+    define l where "l = (b h - a h \<bullet> x) / (a h \<bullet> z - a h \<bullet> x)"
+    define w where "w = (1 - l) *\<^sub>R x + l *\<^sub>R z"
     have "0 < l" "l < 1"
       using able xltz \<open>b h < a h \<bullet> z\<close> \<open>h \<in> F\<close>
       by (auto simp: l_def divide_simps)
@@ -1808,9 +1808,11 @@ next
         next
           case False
           then obtain h' where h': "h' \<in> F - {h}" by auto
-          def inff \<equiv> "INF j:F - {h}. if 0 < a j \<bullet> y - a j \<bullet> w
-                                      then (b j - a j \<bullet> w) / (a j \<bullet> y - a j \<bullet> w)
-                                      else 1"
+          define inff where "inff =
+            (INF j:F - {h}.
+              if 0 < a j \<bullet> y - a j \<bullet> w
+              then (b j - a j \<bullet> w) / (a j \<bullet> y - a j \<bullet> w)
+              else 1)"
           have "0 < inff"
             apply (simp add: inff_def)
             apply (rule finite_imp_less_Inf)
@@ -1843,7 +1845,7 @@ next
           ultimately show ?thesis
             by (blast intro: that)
         qed
-        def c \<equiv> "(1 - T) *\<^sub>R w + T *\<^sub>R y"
+        define c where "c = (1 - T) *\<^sub>R w + T *\<^sub>R y"
         have "(1 - T) *\<^sub>R w + T *\<^sub>R y \<in> j" if "j \<in> F" for j
         proof (cases "j = h")
           case True
@@ -2313,18 +2315,18 @@ next
     case True then show ?thesis by auto
   next
     case False
-    def F \<equiv> "{h. h exposed_face_of S \<and> h \<noteq> {} \<and> h \<noteq> S}"
+    define F where "F = {h. h exposed_face_of S \<and> h \<noteq> {} \<and> h \<noteq> S}"
     have "finite F" by (simp add: fin F_def)
     have hface: "h face_of S"
-                and "\<exists>a b. a \<noteq> 0 \<and> S \<subseteq> {x. a \<bullet> x \<le> b} \<and> h = S \<inter> {x. a \<bullet> x = b}"
-         if "h \<in> F" for h
+      and "\<exists>a b. a \<noteq> 0 \<and> S \<subseteq> {x. a \<bullet> x \<le> b} \<and> h = S \<inter> {x. a \<bullet> x = b}"
+      if "h \<in> F" for h
       using exposed_face_of F_def that by simp_all auto
     then obtain a b where ab:
       "\<And>h. h \<in> F \<Longrightarrow> a h \<noteq> 0 \<and> S \<subseteq> {x. a h \<bullet> x \<le> b h} \<and> h = S \<inter> {x. a h \<bullet> x = b h}"
       by metis
     have *: "False"
-      if paff: "p \<in> affine hull S" and "p \<notin> S" and
-         pint: "p \<in> \<Inter>{{x. a h \<bullet> x \<le> b h} |h. h \<in> F}" for p
+      if paff: "p \<in> affine hull S" and "p \<notin> S"
+      and pint: "p \<in> \<Inter>{{x. a h \<bullet> x \<le> b h} |h. h \<in> F}" for p
     proof -
       have "rel_interior S \<noteq> {}"
         by (simp add: \<open>S \<noteq> {}\<close> \<open>convex S\<close> rel_interior_eq_empty)

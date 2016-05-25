@@ -11457,7 +11457,7 @@ proof -
       using span_finite [OF \<open>finite B\<close>] by blast
     have "\<And>c v. \<lbrakk>(\<Sum>v\<in>C. c v *\<^sub>R v) = 0; v \<in> C\<rbrakk> \<Longrightarrow> c v = 0"
       using independent_explicit \<open>independent C\<close> by blast
-    def cc \<equiv> "(\<lambda>x. if x \<in> B then a x + e x else a x)"
+    define cc where "cc x = (if x \<in> B then a x + e x else a x)" for x
     have [simp]: "C \<inter> B = B" "D \<inter> B = B" "C \<inter> - B = C-D" "B \<inter> (D - C) = {}"
       using \<open>B \<subseteq> C\<close> \<open>B \<subseteq> D\<close> Beq by blast+
     have f2: "(\<Sum>v\<in>C \<inter> D. e v *\<^sub>R v) = (\<Sum>v\<in>D - C. a v *\<^sub>R v)"
@@ -11701,7 +11701,7 @@ next
   case (insert a T)
   have 0: "\<And>x y. \<lbrakk>x \<noteq> y; x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
     using insert by (simp add: pairwise_def orthogonal_def)
-  def a' \<equiv> "a - (\<Sum>b\<in>S. (b \<bullet> a / (b \<bullet> b)) *\<^sub>R b)"
+  define a' where "a' = a - (\<Sum>b\<in>S. (b \<bullet> a / (b \<bullet> b)) *\<^sub>R b)"
   obtain U where orthU: "pairwise orthogonal (S \<union> insert a' U)"
              and spanU: "span (insert a' S \<union> U) = span (insert a' S \<union> T)"
     apply (rule exE [OF insert.IH [of "insert a' S"]])
@@ -11875,7 +11875,7 @@ proof (cases "S \<inter> {x. a \<bullet> x = b} = {}")
   case True
   then obtain u v where "u \<in> S" "v \<in> S" "a \<bullet> u \<le> b" "a \<bullet> v > b"
     using assms by (auto simp: not_le)
-  def \<eta> \<equiv> "u + ((b - a \<bullet> u) / (a \<bullet> v - a \<bullet> u)) *\<^sub>R (v - u)"
+  define \<eta> where "\<eta> = u + ((b - a \<bullet> u) / (a \<bullet> v - a \<bullet> u)) *\<^sub>R (v - u)"
   have "\<eta> \<in> S"
     by (simp add: \<eta>_def \<open>u \<in> S\<close> \<open>v \<in> S\<close> \<open>affine S\<close> mem_affine_3_minus)
   moreover have "a \<bullet> \<eta> = b"
