@@ -2073,9 +2073,25 @@ corollary path_connected_punctured_ball:
    "2 \<le> DIM('N::euclidean_space) \<Longrightarrow> path_connected(ball a r - {a::'N})"
 by (simp add: path_connected_open_delete)
 
-lemma connected_punctured_ball:
+corollary connected_punctured_ball:
    "2 \<le> DIM('N::euclidean_space) \<Longrightarrow> connected(ball a r - {a::'N})"
 by (simp add: connected_open_delete)
+
+corollary connected_open_delete_finite:
+  fixes S T::"'a::euclidean_space set"
+  assumes S: "open S" "connected S" and 2: "2 \<le> DIM('a)" and "finite T"
+  shows "connected(S - T)" 
+  using \<open>finite T\<close> S 
+proof (induct T)
+  case empty
+  show ?case using \<open>connected S\<close> by simp
+next
+  case (insert x F)
+  then have "connected (S-F)" by auto
+  moreover have "open (S - F)" using finite_imp_closed[OF \<open>finite F\<close>] \<open>open S\<close> by auto
+  ultimately have "connected (S - F - {x})" using connected_open_delete[OF _ _ 2] by auto
+  thus ?case by (metis Diff_insert)
+qed
 
 subsection\<open>Relations between components and path components\<close>
 

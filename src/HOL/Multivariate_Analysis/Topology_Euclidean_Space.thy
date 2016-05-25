@@ -9253,6 +9253,34 @@ lemma cball_eq_ball_iff:
   shows "cball x d = ball y e \<longleftrightarrow> d < 0 \<and> e \<le> 0"
   using ball_eq_cball_iff by blast
 
+lemma finite_ball_avoid:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "open S" "finite X" "p \<in> S"
+  shows "\<exists>e>0. \<forall>w\<in>ball p e. w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)"
+proof -
+  obtain e1 where "0 < e1" and e1_b:"ball p e1 \<subseteq> S" 
+    using open_contains_ball_eq[OF \<open>open S\<close>] assms by auto
+  obtain e2 where "0 < e2" and "\<forall>x\<in>X. x \<noteq> p \<longrightarrow> e2 \<le> dist p x" 
+    using finite_set_avoid[OF \<open>finite X\<close>,of p] by auto
+  hence "\<forall>w\<in>ball p (min e1 e2). w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)" using e1_b by auto
+  thus "\<exists>e>0. \<forall>w\<in>ball p e. w \<in> S \<and> (w \<noteq> p \<longrightarrow> w \<notin> X)" using \<open>e2>0\<close> \<open>e1>0\<close> 
+    apply (rule_tac x="min e1 e2" in exI)
+    by auto
+qed
+
+lemma finite_cball_avoid:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "open S" "finite X" "p \<in> S"
+  shows "\<exists>e>0. \<forall>w\<in>cball p e. w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)"
+proof -
+  obtain e1 where "e1>0" and e1: "\<forall>w\<in>ball p e1. w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)" 
+    using finite_ball_avoid[OF assms] by auto
+  define e2 where "e2 \<equiv> e1/2"
+  have "e2>0" and "e2 < e1" unfolding e2_def using \<open>e1>0\<close> by auto
+  then have "cball p e2 \<subseteq> ball p e1" by (subst cball_subset_ball_iff,auto)
+  then show "\<exists>e>0. \<forall>w\<in>cball p e. w \<in> S \<and> (w \<noteq> p \<longrightarrow> w \<notin> X)" using \<open>e2>0\<close> e1 by auto
+qed
+
 no_notation
   eucl_less (infix "<e" 50)
 
