@@ -978,8 +978,8 @@ proof -
     using \<open>independent B'\<close>
     by (rule independentD_unique[OF _ X(2) X(1)]) (auto intro: X simp: X(3)[symmetric])
 
-  def f' \<equiv> "\<lambda>y. if y \<in> B then f y else 0"
-  def g \<equiv> "\<lambda>y. \<Sum>x|X y x \<noteq> 0. X y x *\<^sub>R f' x"
+  define f' where "f' y = (if y \<in> B then f y else 0)" for y
+  define g where "g y = (\<Sum>x|X y x \<noteq> 0. X y x *\<^sub>R f' x)" for y
 
   have g_f': "x \<in> B' \<Longrightarrow> g x = f' x" for x
     by (auto simp: g_def X_B')

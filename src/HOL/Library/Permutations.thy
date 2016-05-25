@@ -943,7 +943,8 @@ lemma mset_eq_permutation:
 proof -
   from mset_eq have [simp]: "length xs = length ys"
     by (rule mset_eq_length)
-  def indices_of \<equiv> "\<lambda>(x::'a) xs. {i. i < length xs \<and> x = xs ! i}"
+  define indices_of :: "'a \<Rightarrow> 'a list \<Rightarrow> nat set"
+    where "indices_of x xs = {i. i < length xs \<and> x = xs ! i}" for x xs
   have indices_of_subset: "indices_of x xs \<subseteq> {..<length xs}" for x xs
     unfolding indices_of_def by blast
   have [simp]: "finite (indices_of x xs)" for x xs
@@ -961,7 +962,7 @@ proof -
   hence "\<exists>f. \<forall>x\<in>set xs. bij_betw (f x) (indices_of x xs) (indices_of x ys)"
     by (rule bchoice)
   then guess f .. note f = this
-  def g \<equiv> "\<lambda>i. if i < n then f (xs ! i) i else i"
+  define g where "g i = (if i < n then f (xs ! i) i else i)" for i
 
   have bij_f: "bij_betw (\<lambda>i. f (xs ! i) i) (indices_of x xs) (indices_of x ys)"
     if x: "x \<in> set xs" for x
