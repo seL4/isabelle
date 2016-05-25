@@ -13,19 +13,19 @@ Progress Sets.  From
     Swiss Federal Institute of Technology Zurich (1997)
 *)
 
-section{*Progress Sets*}
+section\<open>Progress Sets\<close>
 
 theory ProgressSets imports Transformers begin
 
-subsection {*Complete Lattices and the Operator @{term cl}*}
+subsection \<open>Complete Lattices and the Operator @{term cl}\<close>
 
 definition lattice :: "'a set set => bool" where
-   --{*Meier calls them closure sets, but they are just complete lattices*}
+   \<comment>\<open>Meier calls them closure sets, but they are just complete lattices\<close>
    "lattice L ==
          (\<forall>M. M \<subseteq> L --> \<Inter>M \<in> L) & (\<forall>M. M \<subseteq> L --> \<Union>M \<in> L)"
 
 definition cl :: "['a set set, 'a set] => 'a set" where
-   --{*short for ``closure''*}
+   \<comment>\<open>short for ``closure''\<close>
    "cl L r == \<Inter>{x. x\<in>L & r \<subseteq> x}"
 
 lemma UNIV_in_lattice: "lattice L ==> UNIV \<in> L"
@@ -59,8 +59,8 @@ lemma Int_in_lattice: "[|x\<in>L; y\<in>L; lattice L|] ==> x\<inter>y \<in> L"
 lemma lattice_stable: "lattice {X. F \<in> stable X}"
 by (simp add: lattice_def stable_def constrains_def, blast)
 
-text{*The next three results state that @{term "cl L r"} is the minimal
- element of @{term L} that includes @{term r}.*}
+text\<open>The next three results state that @{term "cl L r"} is the minimal
+ element of @{term L} that includes @{term r}.\<close>
 lemma cl_in_lattice: "lattice L ==> cl L r \<in> L"
 apply (simp add: lattice_def cl_def)
 apply (erule conjE)  
@@ -70,18 +70,18 @@ done
 lemma cl_least: "[|c\<in>L; r\<subseteq>c|] ==> cl L r \<subseteq> c" 
 by (force simp add: cl_def)
 
-text{*The next three lemmas constitute assertion (4.61)*}
+text\<open>The next three lemmas constitute assertion (4.61)\<close>
 lemma cl_mono: "r \<subseteq> r' ==> cl L r \<subseteq> cl L r'"
 by (simp add: cl_def, blast)
 
 lemma subset_cl: "r \<subseteq> cl L r"
 by (simp add: cl_def le_Inf_iff)
 
-text{*A reformulation of @{thm subset_cl}*}
+text\<open>A reformulation of @{thm subset_cl}\<close>
 lemma clI: "x \<in> r ==> x \<in> cl L r"
 by (simp add: cl_def, blast)
 
-text{*A reformulation of @{thm cl_least}*}
+text\<open>A reformulation of @{thm cl_least}\<close>
 lemma clD: "[|c \<in> cl L r; B \<in> L; r \<subseteq> B|] ==> c \<in> B"
 by (force simp add: cl_def)
 
@@ -120,7 +120,7 @@ by (simp add: cl_ident empty_in_lattice)
 lemma cl_UNIV [simp]: "lattice L ==> cl L UNIV = UNIV"
 by (simp add: cl_ident UNIV_in_lattice)
 
-text{*Assertion (4.62)*}
+text\<open>Assertion (4.62)\<close>
 lemma cl_ident_iff: "lattice L ==> (cl L r = r) = (r\<in>L)" 
 apply (rule iffI) 
  apply (erule subst)
@@ -132,9 +132,9 @@ lemma cl_subset_in_lattice: "[|cl L r \<subseteq> r; lattice L|] ==> r\<in>L"
 by (simp add: cl_ident_iff [symmetric] equalityI subset_cl)
 
 
-subsection {*Progress Sets and the Main Lemma*}
-text{*A progress set satisfies certain closure conditions and is a 
-simple way of including the set @{term "wens_set F B"}.*}
+subsection \<open>Progress Sets and the Main Lemma\<close>
+text\<open>A progress set satisfies certain closure conditions and is a 
+simple way of including the set @{term "wens_set F B"}.\<close>
 
 definition closed :: "['a program, 'a set, 'a set,  'a set set] => bool" where
    "closed F T B L == \<forall>M. \<forall>act \<in> Acts F. B\<subseteq>M & T\<inter>M \<in> L -->
@@ -149,15 +149,15 @@ lemma closedD:
     ==> T \<inter> (B \<union> wp act M) \<in> L" 
 by (simp add: closed_def) 
 
-text{*Note: the formalization below replaces Meier's @{term q} by @{term B}
-and @{term m} by @{term X}. *}
+text\<open>Note: the formalization below replaces Meier's @{term q} by @{term B}
+and @{term m} by @{term X}.\<close>
 
-text{*Part of the proof of the claim at the bottom of page 97.  It's
+text\<open>Part of the proof of the claim at the bottom of page 97.  It's
 proved separately because the argument requires a generalization over
-all @{term "act \<in> Acts F"}.*}
+all @{term "act \<in> Acts F"}.\<close>
 lemma lattice_awp_lemma:
-  assumes TXC:  "T\<inter>X \<in> C" --{*induction hypothesis in theorem below*}
-      and BsubX:  "B \<subseteq> X"   --{*holds in inductive step*}
+  assumes TXC:  "T\<inter>X \<in> C" \<comment>\<open>induction hypothesis in theorem below\<close>
+      and BsubX:  "B \<subseteq> X"   \<comment>\<open>holds in inductive step\<close>
       and latt: "lattice C"
       and TC:   "T \<in> C"
       and BC:   "B \<in> C"
@@ -173,10 +173,10 @@ apply (erule ssubst)
 apply (blast intro: Un_in_lattice latt cl_in_lattice TXC) 
 done
 
-text{*Remainder of the proof of the claim at the bottom of page 97.*}
+text\<open>Remainder of the proof of the claim at the bottom of page 97.\<close>
 lemma lattice_lemma:
-  assumes TXC:  "T\<inter>X \<in> C" --{*induction hypothesis in theorem below*}
-      and BsubX:  "B \<subseteq> X"   --{*holds in inductive step*}
+  assumes TXC:  "T\<inter>X \<in> C" \<comment>\<open>induction hypothesis in theorem below\<close>
+      and BsubX:  "B \<subseteq> X"   \<comment>\<open>holds in inductive step\<close>
       and act:  "act \<in> Acts F"
       and latt: "lattice C"
       and TC:   "T \<in> C"
@@ -202,9 +202,9 @@ apply (blast intro: BsubX [THEN subsetD])
 done
 
 
-text{*Induction step for the main lemma*}
+text\<open>Induction step for the main lemma\<close>
 lemma progress_induction_step:
-  assumes TXC:  "T\<inter>X \<in> C" --{*induction hypothesis in theorem below*}
+  assumes TXC:  "T\<inter>X \<in> C" \<comment>\<open>induction hypothesis in theorem below\<close>
       and act:  "act \<in> Acts F"
       and Xwens: "X \<in> wens_set F B"
       and latt: "lattice C"
@@ -242,25 +242,25 @@ proof -
     by (rule cl_subset_in_lattice [OF cl_subset latt]) 
 qed
 
-text{*Proved on page 96 of Meier's thesis.  The special case when
+text\<open>Proved on page 96 of Meier's thesis.  The special case when
    @{term "T=UNIV"} states that every progress set for the program @{term F}
-   and set @{term B} includes the set @{term "wens_set F B"}.*}
+   and set @{term B} includes the set @{term "wens_set F B"}.\<close>
 lemma progress_set_lemma:
      "[|C \<in> progress_set F T B; r \<in> wens_set F B; F \<in> stable T|] ==> T\<inter>r \<in> C"
 apply (simp add: progress_set_def, clarify) 
 apply (erule wens_set.induct) 
-  txt{*Base*}
+  txt\<open>Base\<close>
   apply (simp add: Int_in_lattice) 
- txt{*The difficult @{term wens} case*}
+ txt\<open>The difficult @{term wens} case\<close>
  apply (simp add: progress_induction_step) 
-txt{*Disjunctive case*}
+txt\<open>Disjunctive case\<close>
 apply (subgoal_tac "(\<Union>U\<in>W. T \<inter> U) \<in> C") 
  apply simp 
 apply (blast intro: UN_in_lattice) 
 done
 
 
-subsection {*The Progress Set Union Theorem*}
+subsection \<open>The Progress Set Union Theorem\<close>
 
 lemma closed_mono:
   assumes BB':  "B \<subseteq> B'"
@@ -306,22 +306,22 @@ apply (blast intro: progress_set_lemma Gco constrains_weaken_L
 done
 
 
-subsection {*Some Progress Sets*}
+subsection \<open>Some Progress Sets\<close>
 
 lemma UNIV_in_progress_set: "UNIV \<in> progress_set F T B"
 by (simp add: progress_set_def lattice_def closed_def)
 
 
 
-subsubsection {*Lattices and Relations*}
-text{*From Meier's thesis, section 4.5.3*}
+subsubsection \<open>Lattices and Relations\<close>
+text\<open>From Meier's thesis, section 4.5.3\<close>
 
 definition relcl :: "'a set set => ('a * 'a) set" where
-    -- {*Derived relation from a lattice*}
+    \<comment> \<open>Derived relation from a lattice\<close>
     "relcl L == {(x,y). y \<in> cl L {x}}"
   
 definition latticeof :: "('a * 'a) set => 'a set set" where
-    -- {*Derived lattice from a relation: the set of upwards-closed sets*}
+    \<comment> \<open>Derived lattice from a relation: the set of upwards-closed sets\<close>
     "latticeof r == {X. \<forall>s t. s \<in> X & (s,t) \<in> r --> t \<in> X}"
 
 
@@ -350,7 +350,7 @@ apply (erule subst)
 apply (simp only: UN_in_lattice) 
 done
 
-text{*Equation (4.71) of Meier's thesis.  He gives no proof.*}
+text\<open>Equation (4.71) of Meier's thesis.  He gives no proof.\<close>
 lemma cl_latticeof:
      "[|refl r; trans r|] 
       ==> cl (latticeof r) X = {t. \<exists>s. s\<in>X & (s,t) \<in> r}" 
@@ -362,7 +362,7 @@ apply (simp add: latticeof_def, clarify)
 apply (unfold cl_def, blast) 
 done
 
-text{*Related to (4.71).*}
+text\<open>Related to (4.71).\<close>
 lemma cl_eq_Collect_relcl:
      "lattice L ==> cl L X = {t. \<exists>s. s\<in>X & (s,t) \<in> relcl L}" 
 apply (cut_tac UN_singleton [of X]) 
@@ -370,7 +370,7 @@ apply (erule subst)
 apply (force simp only: relcl_def cl_UN)
 done
 
-text{*Meier's theorem of section 4.5.3*}
+text\<open>Meier's theorem of section 4.5.3\<close>
 theorem latticeof_relcl_eq: "lattice L ==> latticeof (relcl L) = L"
 apply (rule equalityI) 
  prefer 2 apply (force simp add: latticeof_def relcl_def cl_def, clarify) 
@@ -394,14 +394,14 @@ theorem relcl_latticeof_eq:
 by (simp add: relcl_def cl_latticeof)
 
 
-subsubsection {*Decoupling Theorems*}
+subsubsection \<open>Decoupling Theorems\<close>
 
 definition decoupled :: "['a program, 'a program] => bool" where
    "decoupled F G ==
         \<forall>act \<in> Acts F. \<forall>B. G \<in> stable B --> G \<in> stable (wp act B)"
 
 
-text{*Rao's Decoupling Theorem*}
+text\<open>Rao's Decoupling Theorem\<close>
 lemma stableco: "F \<in> stable A ==> F \<in> A-B co A"
 by (simp add: stable_def constrains_def, blast) 
 
@@ -421,7 +421,7 @@ proof -
 qed
 
 
-text{*Rao's Weak Decoupling Theorem*}
+text\<open>Rao's Weak Decoupling Theorem\<close>
 theorem weak_decoupling:
   assumes leadsTo: "F \<in> A leadsTo B"
       and stable: "F\<squnion>G \<in> stable B"
@@ -439,12 +439,12 @@ proof -
   thus ?thesis by simp
 qed
 
-text{*The ``Decoupling via @{term G'} Union Theorem''*}
+text\<open>The ``Decoupling via @{term G'} Union Theorem''\<close>
 theorem decoupling_via_aux:
   assumes leadsTo: "F \<in> A leadsTo B"
       and prog: "{X. G' \<in> stable X} \<in> progress_set F UNIV B"
       and GG':  "G \<le> G'"  
-               --{*Beware!  This is the converse of the refinement relation!*}
+               \<comment>\<open>Beware!  This is the converse of the refinement relation!\<close>
   shows "F\<squnion>G \<in> A leadsTo B"
 proof -
   from prog have stable: "G' \<in> stable B"
@@ -456,16 +456,16 @@ proof -
 qed
 
 
-subsection{*Composition Theorems Based on Monotonicity and Commutativity*}
+subsection\<open>Composition Theorems Based on Monotonicity and Commutativity\<close>
 
-subsubsection{*Commutativity of @{term "cl L"} and assignment.*}
+subsubsection\<open>Commutativity of @{term "cl L"} and assignment.\<close>
 definition commutes :: "['a program, 'a set, 'a set,  'a set set] => bool" where
    "commutes F T B L ==
        \<forall>M. \<forall>act \<in> Acts F. B \<subseteq> M --> 
            cl L (T \<inter> wp act M) \<subseteq> T \<inter> (B \<union> wp act (cl L (T\<inter>M)))"
 
 
-text{*From Meier's thesis, section 4.5.6*}
+text\<open>From Meier's thesis, section 4.5.6\<close>
 lemma commutativity1_lemma:
   assumes commutes: "commutes F T B L" 
       and lattice:  "lattice L"
@@ -484,7 +484,7 @@ apply (simp add: cl_ident)
 apply (blast intro: rev_subsetD [OF _ wp_mono]) 
 done
 
-text{*Version packaged with @{thm progress_set_Union}*}
+text\<open>Version packaged with @{thm progress_set_Union}\<close>
 lemma commutativity1:
   assumes leadsTo: "F \<in> A leadsTo B"
       and lattice:  "lattice L"
@@ -499,7 +499,7 @@ by (rule progress_set_Union [OF leadsTo _ Fstable subset_refl BL Gco],
 
 
 
-text{*Possibly move to Relation.thy, after @{term single_valued}*}
+text\<open>Possibly move to Relation.thy, after @{term single_valued}\<close>
 definition funof :: "[('a*'b)set, 'a] => 'b" where
    "funof r == (\<lambda>x. THE y. (x,y) \<in> r)"
 
@@ -518,11 +518,11 @@ lemma funof_imp_wp: "[|funof act t \<in> A; single_valued act|] ==> t \<in> wp a
 by (force simp add: in_wp_iff funof_eq)
 
 
-subsubsection{*Commutativity of Functions and Relation*}
-text{*Thesis, page 109*}
+subsubsection\<open>Commutativity of Functions and Relation\<close>
+text\<open>Thesis, page 109\<close>
 
 (*FIXME: this proof is still an ungodly mess*)
-text{*From Meier's thesis, section 4.5.6*}
+text\<open>From Meier's thesis, section 4.5.6\<close>
 lemma commutativity2_lemma:
   assumes dcommutes: 
       "\<And>act s t. act \<in> Acts F \<Longrightarrow> s \<in> T \<Longrightarrow> (s, t) \<in> relcl L \<Longrightarrow>
@@ -564,7 +564,7 @@ proof -
   then show "commutes F T B L" unfolding commutes_def by clarify
 qed
   
-text{*Version packaged with @{thm progress_set_Union}*}
+text\<open>Version packaged with @{thm progress_set_Union}\<close>
 lemma commutativity2:
   assumes leadsTo: "F \<in> A leadsTo B"
       and dcommutes: 
@@ -585,8 +585,8 @@ apply (simp_all add: Gco commutativity2_lemma dcommutes determ total
 done
 
 
-subsection {*Monotonicity*}
-text{*From Meier's thesis, section 4.5.7, page 110*}
+subsection \<open>Monotonicity\<close>
+text\<open>From Meier's thesis, section 4.5.7, page 110\<close>
 (*to be continued?*)
 
 end

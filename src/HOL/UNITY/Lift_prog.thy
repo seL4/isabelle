@@ -5,7 +5,7 @@
 lift_prog, etc: replication of components and arrays of processes. 
 *)
 
-section{*Replication of Components*}
+section\<open>Replication of Components\<close>
 
 theory Lift_prog imports Rename begin
 
@@ -44,7 +44,7 @@ apply (rule ext)
 apply (auto split add: nat_diff_split)
 done
 
-subsection{*Injectiveness proof*}
+subsection\<open>Injectiveness proof\<close>
 
 lemma insert_map_inject1: "(insert_map i x f) = (insert_map i y g) ==> x=y"
 by (drule_tac x = i in fun_cong, simp)
@@ -77,7 +77,7 @@ apply (unfold lift_map_def)
 apply (rule inj_onI, auto)
 done
 
-subsection{*Surjectiveness proof*}
+subsection\<open>Surjectiveness proof\<close>
 
 lemma lift_map_drop_map_eq [simp]: "!!s. lift_map i (drop_map i s) = s"
 apply (unfold lift_map_def drop_map_def)
@@ -121,7 +121,7 @@ lemma insert_map_upd:
        else insert_map j t (f(i - Suc 0 := s)))"
 apply (rule ext) 
 apply (simp split add: nat_diff_split)
- txt{*This simplification is VERY slow*}
+ txt\<open>This simplification is VERY slow\<close>
 done
 
 lemma insert_map_eq_diff:
@@ -140,7 +140,7 @@ apply (blast dest: insert_map_eq_diff)
 done
 
 
-subsection{*The Operator @{term lift_set}*}
+subsection\<open>The Operator @{term lift_set}\<close>
 
 lemma lift_set_empty [simp]: "lift_set i {} = {}"
 by (unfold lift_set_def, auto)
@@ -170,7 +170,7 @@ apply (rule inj_lift_map [THEN image_set_diff])
 done
 
 
-subsection{*The Lattice Operations*}
+subsection\<open>The Lattice Operations\<close>
 
 lemma bij_lift [iff]: "bij (lift i)"
 by (simp add: lift_def)
@@ -184,7 +184,7 @@ by (simp add: lift_def)
 lemma lift_JN [simp]: "lift j (JOIN I F) = (\<Squnion>i \<in> I. lift j (F i))"
 by (simp add: lift_def)
 
-subsection{*Safety: constrains, stable, invariant*}
+subsection\<open>Safety: constrains, stable, invariant\<close>
 
 lemma lift_constrains: 
      "(lift i F \<in> (lift_set i A) co (lift_set i B)) = (F \<in> A co B)"
@@ -210,7 +210,7 @@ lemma lift_Always:
      "(lift i F \<in> Always (lift_set i A)) = (F \<in> Always A)"
 by (simp add: lift_def lift_set_def rename_Always)
 
-subsection{*Progress: transient, ensures*}
+subsection\<open>Progress: transient, ensures\<close>
 
 lemma lift_transient: 
      "(lift i F \<in> transient (lift_set i A)) = (F \<in> transient A)"
@@ -333,7 +333,7 @@ apply (auto cong del: if_weak_cong
 done
 
 
-subsection{*Lemmas to Handle Function Composition (o) More Consistently*}
+subsection\<open>Lemmas to Handle Function Composition (o) More Consistently\<close>
 
 (*Lets us prove one version of a theorem and store others*)
 lemma o_equiv_assoc: "f o g = h ==> f' o f o g = f' o h"
@@ -353,9 +353,9 @@ apply (auto simp add: o_def lift_map_def)
 done
 
 
-subsection{*More lemmas about extend and project*}
+subsection\<open>More lemmas about extend and project\<close>
 
-text{*They could be moved to theory Extend or Project*}
+text\<open>They could be moved to theory Extend or Project\<close>
 
 lemma extend_act_extend_act:
      "extend_act h' (extend_act h act) =  
@@ -375,7 +375,7 @@ lemma project_act_extend_act:
 by (simp add: extend_act_def project_act_def, blast)
 
 
-subsection{*OK and "lift"*}
+subsection\<open>OK and "lift"\<close>
 
 lemma act_in_UNION_preserves_fst:
      "act \<subseteq> {(x,x'). fst x = fst x'} ==> act \<in> UNION (preserves fst) Acts"

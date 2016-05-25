@@ -11,7 +11,7 @@ Examples of Program Composition Illustrating the Use of Universal Properties
    Spriner LNCS 1586 (1999), pages 1215-1227.
 *)
 
-section{*A Family of Similar Counters: Version with Compatibility*}
+section\<open>A Family of Similar Counters: Version with Compatibility\<close>
 
 theory Counterc imports "../UNITY_Main" begin
 

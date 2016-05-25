@@ -3,22 +3,22 @@
     Copyright   1998  University of Cambridge
 *)
 
-section{*Distributed Resource Management System: the Client*}
+section\<open>Distributed Resource Management System: the Client\<close>
 
 theory Client imports "../Rename" AllocBase begin
 
 type_synonym
-  tokbag = nat     --{*tokbags could be multisets...or any ordered type?*}
+  tokbag = nat     \<comment>\<open>tokbags could be multisets...or any ordered type?\<close>
 
 record state =
-  giv :: "tokbag list" --{*input history: tokens granted*}
-  ask :: "tokbag list" --{*output history: tokens requested*}
-  rel :: "tokbag list" --{*output history: tokens released*}
-  tok :: tokbag        --{*current token request*}
+  giv :: "tokbag list" \<comment>\<open>input history: tokens granted\<close>
+  ask :: "tokbag list" \<comment>\<open>output history: tokens requested\<close>
+  rel :: "tokbag list" \<comment>\<open>output history: tokens released\<close>
+  tok :: tokbag        \<comment>\<open>current token request\<close>
 
 record 'a state_d =
   state +  
-  dummy :: 'a          --{*new variables*}
+  dummy :: 'a          \<comment>\<open>new variables\<close>
 
 
 (*Array indexing is translated to list indexing as A[n] == A!(n-1). *)
@@ -82,7 +82,7 @@ lemma Client_ok_iff [iff]:
 by (auto simp add: ok_iff_Allowed Client_def [THEN def_total_prg_Allowed])
 
 
-text{*Safety property 1: ask, rel are increasing*}
+text\<open>Safety property 1: ask, rel are increasing\<close>
 lemma increasing_ask_rel:
      "Client \<in> UNIV guarantees Increasing ask Int Increasing rel"
 apply (auto intro!: increasing_imp_Increasing simp add: guar_def preserves_subset_increasing [THEN subsetD])
@@ -93,9 +93,9 @@ done
 declare nth_append [simp] append_one_prefix [simp]
 
 
-text{*Safety property 2: the client never requests too many tokens.
+text\<open>Safety property 2: the client never requests too many tokens.
       With no Substitution Axiom, we must prove the two invariants 
-      simultaneously. *}
+      simultaneously.\<close>
 lemma ask_bounded_lemma:
      "Client ok G   
       ==> Client \<squnion> G \<in>   
@@ -109,8 +109,8 @@ apply (simp add: Client_def, safety)
 apply (cut_tac m = "tok s" in NbT_pos [THEN mod_less_divisor], auto)
 done
 
-text{*export version, with no mention of tok in the postcondition, but
-  unfortunately tok must be declared local.*}
+text\<open>export version, with no mention of tok in the postcondition, but
+  unfortunately tok must be declared local.\<close>
 lemma ask_bounded:
      "Client \<in> UNIV guarantees Always {s. \<forall>elt \<in> set (ask s). elt \<le> NbT}"
 apply (rule guaranteesI)
@@ -119,7 +119,7 @@ apply (rule Int_lower2)
 done
 
 
-text{*** Towards proving the liveness property ***}
+text\<open>** Towards proving the liveness property **\<close>
 
 lemma stable_rel_le_giv: "Client \<in> stable {s. rel s \<le> giv s}"
 by (simp add: Client_def, safety, auto)
@@ -189,7 +189,7 @@ apply (rule LeadsTo_Un [THEN LeadsTo_weaken_L])
 apply (blast intro: order_less_le [THEN iffD2] dest: common_prefix_linear)
 done
 
-text{*Progress property: all tokens that are given will be released*}
+text\<open>Progress property: all tokens that are given will be released\<close>
 lemma client_progress:
      "Client \<in>  
        Increasing giv  guarantees   
@@ -198,19 +198,19 @@ apply (rule guaranteesI, clarify)
 apply (blast intro: client_progress_lemma)
 done
 
-text{*This shows that the Client won't alter other variables in any state
-  that it is combined with*}
+text\<open>This shows that the Client won't alter other variables in any state
+  that it is combined with\<close>
 lemma client_preserves_dummy: "Client \<in> preserves dummy"
 by (simp add: Client_def preserves_def, clarify, safety, auto)
 
 
-text{** Obsolete lemmas from first version of the Client **}
+text\<open>* Obsolete lemmas from first version of the Client *\<close>
 
 lemma stable_size_rel_le_giv:
      "Client \<in> stable {s. size (rel s) \<le> size (giv s)}"
 by (simp add: Client_def, safety, auto)
 
-text{*clients return the right number of tokens*}
+text\<open>clients return the right number of tokens\<close>
 lemma ok_guar_rel_prefix_giv:
      "Client \<in> Increasing giv  guarantees  Always {s. rel s \<le> giv s}"
 apply (rule guaranteesI)

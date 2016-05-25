@@ -99,7 +99,7 @@ proof -
       apply (rule zne [OF in01])
       apply (rule e [THEN subsetD])
       apply (rule IntI)
-        using `y \<noteq> x` \<open>e > 0\<close>
+        using \<open>y \<noteq> x\<close> \<open>e > 0\<close>
         apply (simp add: cball_def dist_norm algebra_simps)
         apply (simp add: Real_Vector_Spaces.scaleR_diff_right [symmetric] norm_minus_commute min_mult_distrib_right)
       apply (rule mem_affine [OF affine_affine_hull _ x])
@@ -208,7 +208,7 @@ proof
       done
     then have "d \<in> T \<and> c \<in> T"
       apply (rule face_ofD [OF \<open>T face_of S\<close>])
-      using `d \<in> u`  `c \<in> u` \<open>u \<subseteq> S\<close>  \<open>b \<in> T\<close>  apply auto
+      using \<open>d \<in> u\<close>  \<open>c \<in> u\<close> \<open>u \<subseteq> S\<close>  \<open>b \<in> T\<close>  apply auto
       done
     then show ?thesis ..
   qed
@@ -338,7 +338,7 @@ proof -
         then have [simp]: "setsum c (S - T) = 1"
           by (simp add: S setsum_diff sumc1)
         have ci0: "\<And>i. i \<in> T \<Longrightarrow> c i = 0"
-          by (meson `finite T` `setsum c T = 0` \<open>T \<subseteq> S\<close> cge0 setsum_nonneg_eq_0_iff subsetCE)
+          by (meson \<open>finite T\<close> \<open>setsum c T = 0\<close> \<open>T \<subseteq> S\<close> cge0 setsum_nonneg_eq_0_iff subsetCE)
         then have [simp]: "(\<Sum>i\<in>S-T. c i *\<^sub>R i) = w"
           by (simp add: weq_sumsum)
         have "w \<in> convex hull (S - T)"
@@ -359,7 +359,7 @@ proof -
           apply (metis sumcf cge0 inverse_nonnegative_iff_nonnegative mult_nonneg_nonneg S(2) setsum_nonneg subsetCE)
           apply (metis False mult.commute right_inverse right_minus_eq setsum_right_distrib sumcf)
           by (metis (mono_tags, lifting) scaleR_right.setsum scaleR_scaleR setsum.cong)
-        with `0 < k`  have "inverse(k) *\<^sub>R (w - setsum (\<lambda>i. c i *\<^sub>R i) T) \<in> affine hull T"
+        with \<open>0 < k\<close>  have "inverse(k) *\<^sub>R (w - setsum (\<lambda>i. c i *\<^sub>R i) T) \<in> affine hull T"
           by (simp add: affine_diff_divide [OF affine_affine_hull] False waff convex_hull_subset_affine_hull [THEN subsetD])
         moreover have "inverse(k) *\<^sub>R (w - setsum (\<lambda>x. c x *\<^sub>R x) T) \<in> convex hull (S - T)"
           apply (simp add: weq_sumsum convex_hull_finite fin)
@@ -413,7 +413,7 @@ proof (rule ccontr, clarsimp)
     qed
   qed
   then show False
-    using `T \<noteq> S` \<open>T face_of S\<close> face_of_imp_subset by blast
+    using \<open>T \<noteq> S\<close> \<open>T face_of S\<close> face_of_imp_subset by blast
 qed
 
 
@@ -2504,11 +2504,11 @@ proof -
   then consider "card S = 0" | "card S = 1" | "2 \<le> card S" by arith
   then show ?thesis
   proof cases
-    case 1 then have "S = {}" by (simp add: `finite S`)
+    case 1 then have "S = {}" by (simp add: \<open>finite S\<close>)
     then show ?thesis by simp
   next
     case 2 show ?thesis
-      by (auto intro: card_1_singletonE [OF `card S = 1`])
+      by (auto intro: card_1_singletonE [OF \<open>card S = 1\<close>])
   next
     case 3
     with assms show ?thesis
@@ -2535,7 +2535,7 @@ proof (cases "affine_dependent S")
       then have "x \<in> (\<Union>a\<in>S. convex hull (S - {a}))"
         using True affine_independent_iff_card [of S]
         apply simp
-        apply (metis (no_types, hide_lams) Diff_eq_empty_iff Diff_insert0 `a \<notin> T` `T \<subseteq> S` `x \<in> convex hull T`  hull_mono insert_Diff_single   subsetCE)
+        apply (metis (no_types, hide_lams) Diff_eq_empty_iff Diff_insert0 \<open>a \<notin> T\<close> \<open>T \<subseteq> S\<close> \<open>x \<in> convex hull T\<close>  hull_mono insert_Diff_single   subsetCE)
         done
     } note * = this
     have 1: "convex hull S \<subseteq> (\<Union> a\<in>S. convex hull (S - {a}))"

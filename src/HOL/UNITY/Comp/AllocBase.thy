@@ -3,7 +3,7 @@
     Copyright   1998  University of Cambridge
 *)
 
-section{*Common Declarations for Chandy and Charpentier's Allocator*}
+section\<open>Common Declarations for Chandy and Charpentier's Allocator\<close>
 
 theory AllocBase imports "../UNITY_Main" "~~/src/HOL/Library/Multiset_Order" begin
 

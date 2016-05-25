@@ -1,13 +1,13 @@
 (* Authors: Amine Chaieb & Florian Haftmann, TU Muenchen
             with contributions by Lukas Bulwahn and Manuel Eberl*)
 
-section {* Stirling numbers of first and second kind *}
+section \<open>Stirling numbers of first and second kind\<close>
 
 theory Stirling
 imports Binomial
 begin
 
-subsection {* Stirling numbers of the second kind *}
+subsection \<open>Stirling numbers of the second kind\<close>
 
 fun Stirling :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
@@ -54,7 +54,7 @@ lemma Stirling_2:
   "Stirling (Suc n) (Suc (Suc 0)) = 2 ^ n - 1"
   using Stirling_2_2 by (cases n) simp_all
 
-subsection {* Stirling numbers of the first kind *}
+subsection \<open>Stirling numbers of the first kind\<close>
 
 fun stirling :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where

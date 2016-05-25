@@ -1637,7 +1637,7 @@ lemma Suc_0_mod_numeral [simp]:
   shows "Suc 0 mod numeral k = snd (divmod Num.One k)"
   by (simp_all add: snd_divmod)
 
-lemma cut_eq_simps: -- \<open>rewriting equivalence on @{text "n mod 2 ^ q"}\<close>
+lemma cut_eq_simps: \<comment> \<open>rewriting equivalence on \<open>n mod 2 ^ q\<close>\<close>
   fixes m n q :: num
   shows
     "numeral n mod numeral Num.One = (0::nat)

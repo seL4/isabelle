@@ -1378,7 +1378,7 @@ lemma gr_implies_not_zero: "m < n \<Longrightarrow> n \<noteq> 0"
   using add_eq_0_iff_both_eq_0[of m] by (auto simp: le_iff_add less_le)
 
 lemmas zero_order = zero_le le_zero_eq not_less_zero zero_less_iff_neq_zero not_gr_zero
-  -- \<open>This should be attributed with \<open>[iff]\<close>, but then \<open>blast\<close> fails in \<open>Set\<close>.\<close>
+  \<comment> \<open>This should be attributed with \<open>[iff]\<close>, but then \<open>blast\<close> fails in \<open>Set\<close>.\<close>
 
 end
 

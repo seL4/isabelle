@@ -362,7 +362,7 @@ lemma sums_Suc_imp: "f 0 = 0 \<Longrightarrow> (\<lambda>n. f (Suc n)) sums s \<
 
 end
 
-context --\<open>Separate contexts are necessary to allow general use of the results above, here.\<close>
+context \<comment>\<open>Separate contexts are necessary to allow general use of the results above, here.\<close>
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
 begin
 

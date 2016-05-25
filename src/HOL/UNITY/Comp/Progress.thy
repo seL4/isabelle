@@ -5,12 +5,12 @@
 David Meier's thesis
 *)
 
-section{*Progress Set Examples*}
+section\<open>Progress Set Examples\<close>
 
 theory Progress imports "../UNITY_Main" begin
 
-subsection {*The Composition of Two Single-Assignment Programs*}
-text{*Thesis Section 4.4.2*}
+subsection \<open>The Composition of Two Single-Assignment Programs\<close>
+text\<open>Thesis Section 4.4.2\<close>
 
 definition FF :: "int program" where
     "FF = mk_total_program (UNIV, {range (\<lambda>x. (x, x+1))}, UNIV)"
@@ -18,7 +18,7 @@ definition FF :: "int program" where
 definition GG :: "int program" where
     "GG = mk_total_program (UNIV, {range (\<lambda>x. (x, 2*x))}, UNIV)"
 
-subsubsection {*Calculating @{term "wens_set FF (atLeast k)"}*}
+subsubsection \<open>Calculating @{term "wens_set FF (atLeast k)"}\<close>
 
 lemma Domain_actFF: "Domain (range (\<lambda>x::int. (x, x + 1))) = UNIV"
 by force
@@ -62,7 +62,7 @@ apply (rule_tac x="nat (k-xa)" in range_eqI)
 apply (simp add: wens_single_finite_FF)
 done
 
-subsubsection {*Proving @{term "FF \<in> UNIV leadsTo atLeast (k::int)"}*}
+subsubsection \<open>Proving @{term "FF \<in> UNIV leadsTo atLeast (k::int)"}\<close>
 
 lemma atLeast_ensures: "FF \<in> atLeast (k - 1) ensures atLeast (k::int)"
 apply (simp add: Progress.wens_FF [symmetric] wens_ensures)
@@ -86,7 +86,7 @@ apply (subst UN_atLeast_UNIV [symmetric])
 apply (rule leadsTo_UN [OF atLeast_leadsTo]) 
 done
 
-text{*Result (4.39): Applying the leadsTo-Join Theorem*}
+text\<open>Result (4.39): Applying the leadsTo-Join Theorem\<close>
 theorem "FF\<squnion>GG \<in> atLeast 0 leadsTo atLeast (k::int)"
 apply (subgoal_tac "FF\<squnion>GG \<in> (atLeast 0 \<inter> atLeast 0) leadsTo atLeast k")
  apply simp

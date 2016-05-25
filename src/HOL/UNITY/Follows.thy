@@ -3,7 +3,7 @@
     Copyright   1998  University of Cambridge
 *)
 
-section{*The Follows Relation of Charpentier and Sivilotte*}
+section\<open>The Follows Relation of Charpentier and Sivilotte\<close>
 
 theory Follows
 imports SubstAx ListOrder "~~/src/HOL/Library/Multiset"
@@ -62,7 +62,7 @@ apply (blast intro: order_trans LeadsTo_Trans)
 done
 
 
-subsection{*Destruction rules*}
+subsection\<open>Destruction rules\<close>
 
 lemma Follows_Increasing1: "F \<in> f Fols g ==> F \<in> Increasing f"
 by (simp add: Follows_def)
@@ -118,7 +118,7 @@ apply (force intro: Always_weaken)
 done
 
 
-subsection{*Union properties (with the subset ordering)*}
+subsection\<open>Union properties (with the subset ordering)\<close>
 
 (*Can replace "Un" by any sup.  But existing max only works for linorders.*)
 
@@ -174,7 +174,7 @@ apply (blast intro: Follows_Un_lemma [THEN LeadsTo_weaken])
 done
 
 
-subsection{*Multiset union properties (with the multiset ordering)*}
+subsection\<open>Multiset union properties (with the multiset ordering)\<close>
 (*TODO: remove when multiset is of sort ord again*)
 instantiation multiset :: (order) ordered_ab_semigroup_add
 begin

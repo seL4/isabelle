@@ -1590,7 +1590,7 @@ done
 
 (* to do: add the three variations of these, and for ints? *)
 
-lemma finite_divisors_nat [simp]: -- \<open>FIXME move\<close>
+lemma finite_divisors_nat [simp]: \<comment> \<open>FIXME move\<close>
   fixes m :: nat
   assumes "m > 0" 
   shows "finite {d. d dvd m}"
@@ -1962,7 +1962,7 @@ lemma lcm_pos_int:
   apply auto
   done
 
-lemma dvd_pos_nat: -- \<open>FIXME move\<close>
+lemma dvd_pos_nat: \<comment> \<open>FIXME move\<close>
   fixes n m :: nat
   assumes "n > 0" and "m dvd n"
   shows "m > 0"

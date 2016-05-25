@@ -324,7 +324,7 @@ instance ..
 
 end
 
-lemma ennreal_zero_less_one: "0 < (1::ennreal)" -- \<open>TODO: remove \<close>
+lemma ennreal_zero_less_one: "0 < (1::ennreal)" \<comment> \<open>TODO: remove \<close>
   by transfer auto
 
 instance ennreal :: dioid
@@ -1748,7 +1748,7 @@ lemma tendsto_zero_ennreal:
 proof (rule order_tendstoI)
   fix e::ennreal assume "e > 0"
   obtain e'::real where "e' > 0" "ennreal e' < e"
-    using `0 < e` dense[of 0 "if e = top then 1 else (enn2real e)"]
+    using \<open>0 < e\<close> dense[of 0 "if e = top then 1 else (enn2real e)"]
     by (cases e) (auto simp: ennreal_less_iff)
   from ev[OF \<open>e' > 0\<close>] show "\<forall>\<^sub>F x in F. f x < e"
     by eventually_elim (insert \<open>ennreal e' < e\<close>, auto)

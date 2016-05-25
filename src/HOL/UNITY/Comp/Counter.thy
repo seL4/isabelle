@@ -8,7 +8,7 @@ Examples of Program Composition Illustrating the Use of Universal Properties
    Springer LNCS 1586 (1999), pages 1215-1227.
 *)
 
-section{*A Family of Similar Counters: Original Version*}
+section\<open>A Family of Similar Counters: Original Version\<close>
 
 theory Counter imports "../UNITY_Main" begin
 

@@ -168,7 +168,7 @@ proof -
   proof (rule inj_onI, rule ccontr)
     fix x y assume A: "x \<in> A" "y \<in> A" "g x = g y" "x \<noteq> y"
     with g[of x] g[of y] have "g x \<in> f x" "g x \<in> f y" by auto
-    with A `x \<noteq> y` assms show False
+    with A \<open>x \<noteq> y\<close> assms show False
       by (auto simp: disjoint_family_on_def inj_on_def)
   qed
   from g have "g ` A \<subseteq> UNION A f" by blast

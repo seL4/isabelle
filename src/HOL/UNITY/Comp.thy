@@ -8,7 +8,7 @@ From Chandy and Sanders, "Reasoning About Program Composition",
 Technical Report 2000-003, University of Florida, 2000.
 *)
 
-section{*Composition: Basic Primitives*}
+section\<open>Composition: Basic Primitives\<close>
 
 theory Comp
 imports Union
@@ -42,7 +42,7 @@ definition funPair :: "['a => 'b, 'a => 'c, 'a] => 'b * 'c"
   where "funPair f g == %x. (f x, g x)"
 
 
-subsection{*The component relation*}
+subsection\<open>The component relation\<close>
 lemma componentI: "H \<le> F | H \<le> G ==> H \<le> (F\<squnion>G)"
 apply (unfold component_def, auto)
 apply (rule_tac x = "G\<squnion>Ga" in exI)
@@ -115,7 +115,7 @@ by (auto simp add: stable_def component_constrains)
 lemmas program_less_le = strict_component_def
 
 
-subsection{*The preserves property*}
+subsection\<open>The preserves property\<close>
 
 lemma preservesI: "(!!z. F \<in> stable {s. v s = z}) ==> F \<in> preserves v"
 by (unfold preserves_def, blast)

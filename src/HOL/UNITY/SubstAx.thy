@@ -5,7 +5,7 @@
 Weak LeadsTo relation (restricted to the set of reachable states)
 *)
 
-section{*Weak Progress*}
+section\<open>Weak Progress\<close>
 
 theory SubstAx imports WFair Constrains begin
 
@@ -18,7 +18,7 @@ definition LeadsTo :: "['a set, 'a set] => 'a program set" (infixl "LeadsTo" 60)
 notation LeadsTo  (infixl "\<longmapsto>w" 60)
 
 
-text{*Resembles the previous definition of LeadsTo*}
+text\<open>Resembles the previous definition of LeadsTo\<close>
 lemma LeadsTo_eq_leadsTo: 
      "A LeadsTo B = {F. F \<in> (reachable F \<inter> A) leadsTo (reachable F \<inter> B)}"
 apply (unfold LeadsTo_def)
@@ -26,7 +26,7 @@ apply (blast dest: psp_stable2 intro: leadsTo_weaken)
 done
 
 
-subsection{*Specialized laws for handling invariants*}
+subsection\<open>Specialized laws for handling invariants\<close>
 
 (** Conjoining an Always property **)
 
@@ -47,7 +47,7 @@ lemmas Always_LeadsToI = Always_LeadsTo_pre [THEN iffD1]
 lemmas Always_LeadsToD = Always_LeadsTo_post [THEN iffD2]
 
 
-subsection{*Introduction rules: Basis, Trans, Union*}
+subsection\<open>Introduction rules: Basis, Trans, Union\<close>
 
 lemma leadsTo_imp_LeadsTo: "F \<in> A leadsTo B ==> F \<in> A LeadsTo B"
 apply (simp add: LeadsTo_def)
@@ -68,12 +68,12 @@ apply (blast intro: leadsTo_UN)
 done
 
 
-subsection{*Derived rules*}
+subsection\<open>Derived rules\<close>
 
 lemma LeadsTo_UNIV [simp]: "F \<in> A LeadsTo UNIV"
 by (simp add: LeadsTo_def)
 
-text{*Useful with cancellation, disjunction*}
+text\<open>Useful with cancellation, disjunction\<close>
 lemma LeadsTo_Un_duplicate:
      "F \<in> A LeadsTo (A' \<union> A') ==> F \<in> A LeadsTo A'"
 by (simp add: Un_ac)
@@ -87,12 +87,12 @@ lemma LeadsTo_UN:
 apply (blast intro: LeadsTo_Union)
 done
 
-text{*Binary union introduction rule*}
+text\<open>Binary union introduction rule\<close>
 lemma LeadsTo_Un:
      "[| F \<in> A LeadsTo C; F \<in> B LeadsTo C |] ==> F \<in> (A \<union> B) LeadsTo C"
   using LeadsTo_UN [of "{A, B}" F id C] by auto
 
-text{*Lets us look at the starting state*}
+text\<open>Lets us look at the starting state\<close>
 lemma single_LeadsTo_I:
      "(!!s. s \<in> A ==> F \<in> {s} LeadsTo B) ==> F \<in> A LeadsTo B"
 by (subst UN_singleton [symmetric], rule LeadsTo_UN, blast)
@@ -176,8 +176,8 @@ apply (rule Always_LeadsToI, assumption)
 apply (blast intro: EnsuresI LeadsTo_Basis Always_ConstrainsD [THEN Constrains_weaken] transient_strengthen)
 done
 
-text{*Set difference: maybe combine with @{text leadsTo_weaken_L}??
-  This is the most useful form of the "disjunction" rule*}
+text\<open>Set difference: maybe combine with \<open>leadsTo_weaken_L\<close>??
+  This is the most useful form of the "disjunction" rule\<close>
 lemma LeadsTo_Diff:
      "[| F \<in> (A-B) LeadsTo C;  F \<in> (A \<inter> B) LeadsTo C |]  
       ==> F \<in> A LeadsTo C"
@@ -191,18 +191,18 @@ apply (blast intro: LeadsTo_Union LeadsTo_weaken_R)
 done
 
 
-text{*Version with no index set*}
+text\<open>Version with no index set\<close>
 lemma LeadsTo_UN_UN_noindex: 
      "(!!i. F \<in> (A i) LeadsTo (A' i)) ==> F \<in> (\<Union>i. A i) LeadsTo (\<Union>i. A' i)"
 by (blast intro: LeadsTo_UN_UN)
 
-text{*Version with no index set*}
+text\<open>Version with no index set\<close>
 lemma all_LeadsTo_UN_UN:
      "\<forall>i. F \<in> (A i) LeadsTo (A' i)  
       ==> F \<in> (\<Union>i. A i) LeadsTo (\<Union>i. A' i)"
 by (blast intro: LeadsTo_UN_UN)
 
-text{*Binary union version*}
+text\<open>Binary union version\<close>
 lemma LeadsTo_Un_Un:
      "[| F \<in> A LeadsTo A'; F \<in> B LeadsTo B' |]  
             ==> F \<in> (A \<union> B) LeadsTo (A' \<union> B')"
@@ -240,18 +240,18 @@ apply (simp_all (no_asm_simp))
 done
 
 
-text{*The impossibility law*}
+text\<open>The impossibility law\<close>
 
-text{*The set "A" may be non-empty, but it contains no reachable states*}
+text\<open>The set "A" may be non-empty, but it contains no reachable states\<close>
 lemma LeadsTo_empty: "[|F \<in> A LeadsTo {}; all_total F|] ==> F \<in> Always (-A)"
 apply (simp add: LeadsTo_def Always_eq_includes_reachable)
 apply (drule leadsTo_empty, auto)
 done
 
 
-subsection{*PSP: Progress-Safety-Progress*}
+subsection\<open>PSP: Progress-Safety-Progress\<close>
 
-text{*Special case of PSP: Misra's "stable conjunction"*}
+text\<open>Special case of PSP: Misra's "stable conjunction"\<close>
 lemma PSP_Stable:
      "[| F \<in> A LeadsTo A';  F \<in> Stable B |]  
       ==> F \<in> (A \<inter> B) LeadsTo (A' \<inter> B)"
@@ -298,7 +298,7 @@ apply (rule LeadsTo_Diff)
 done
 
 
-subsection{*Induction rules*}
+subsection\<open>Induction rules\<close>
 
 (** Meta or object quantifier ????? **)
 lemma LeadsTo_wf_induct:
@@ -329,7 +329,7 @@ lemma LessThan_induct:
       ==> F \<in> A LeadsTo B"
 by (rule wf_less_than [THEN LeadsTo_wf_induct], auto)
 
-text{*Integer version.  Could generalize from 0 to any lower bound*}
+text\<open>Integer version.  Could generalize from 0 to any lower bound\<close>
 lemma integ_0_le_induct:
      "[| F \<in> Always {s. (0::int) \<le> f s};   
          !! z. F \<in> (A \<inter> {s. f s = z}) LeadsTo                      
@@ -363,7 +363,7 @@ apply (blast intro: not_le_imp_less subset_imp_LeadsTo)
 done
 
 
-subsection{*Completion: Binary and General Finite versions*}
+subsection\<open>Completion: Binary and General Finite versions\<close>
 
 lemma Completion:
      "[| F \<in> A LeadsTo (A' \<union> C);  F \<in> A' Co (A' \<union> C);  

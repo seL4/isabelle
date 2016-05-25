@@ -5,7 +5,7 @@
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-section{*Fixed Point of a Program*}
+section\<open>Fixed Point of a Program\<close>
 
 theory FP imports UNITY begin
 

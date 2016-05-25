@@ -3006,7 +3006,7 @@ by simp
 lemma upt_conv_Cons: "i < j ==> [i..<j] = i # [Suc i..<j]"
 by (simp add: upt_rec)
 
-lemma upt_conv_Cons_Cons: -- \<open>no precondition\<close>
+lemma upt_conv_Cons_Cons: \<comment> \<open>no precondition\<close>
   "m # n # ns = [m..<q] \<longleftrightarrow> n # ns = [Suc m..<q]"
 proof (cases "m < q")
   case False then show ?thesis by simp

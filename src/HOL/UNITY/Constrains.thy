@@ -5,7 +5,7 @@
 Weak safety relations: restricted to the set of reachable states.
 *)
 
-section{*Weak Safety*}
+section\<open>Weak Safety\<close>
 
 theory Constrains imports UNITY begin
 
@@ -50,7 +50,7 @@ definition Increasing :: "['a => 'b::{order}] => 'a program set" where
     "Increasing f == \<Inter>z. Stable {s. z \<le> f s}"
 
 
-subsection{*traces and reachable*}
+subsection\<open>traces and reachable\<close>
 
 lemma reachable_equiv_traces:
      "reachable F = {s. \<exists>evs. (s,evs) \<in> traces (Init F) (Acts F)}"
@@ -82,7 +82,7 @@ apply (blast intro: reachable.intros)+
 done
 
 
-subsection{*Co*}
+subsection\<open>Co\<close>
 
 (*F \<in> B co B' ==> F \<in> (reachable F \<inter> B) co (reachable F \<inter> B')*)
 lemmas constrains_reachable_Int =  
@@ -185,7 +185,7 @@ apply best
 done
 
 
-subsection{*Stable*}
+subsection\<open>Stable\<close>
 
 (*Useful because there's no Stable_weaken.  [Tanja Vos]*)
 lemma Stable_eq: "[| F \<in> Stable A; A = B |] ==> F \<in> Stable B"
@@ -239,7 +239,7 @@ by (simp add: Stable_eq_stable)
 
 
 
-subsection{*Increasing*}
+subsection\<open>Increasing\<close>
 
 lemma IncreasingD: 
      "F \<in> Increasing f ==> F \<in> Stable {s. x \<le> f s}"
@@ -265,7 +265,7 @@ done
 lemmas Increasing_constant = increasing_constant [THEN increasing_imp_Increasing, iff]
 
 
-subsection{*The Elimination Theorem*}
+subsection\<open>The Elimination Theorem\<close>
 
 (*The "free" m has become universally quantified! Should the premise be !!m
 instead of \<forall>m ?  Would make it harder to use in forward proof.*)
@@ -282,7 +282,7 @@ lemma Elimination_sing:
 by (unfold Constrains_def constrains_def, blast)
 
 
-subsection{*Specialized laws for handling Always*}
+subsection\<open>Specialized laws for handling Always\<close>
 
 (** Natural deduction rules for "Always A" **)
 
@@ -339,7 +339,7 @@ lemma Always_weaken: "[| F \<in> Always A; A \<subseteq> B |] ==> F \<in> Always
 by (auto simp add: Always_eq_includes_reachable)
 
 
-subsection{*"Co" rules involving Always*}
+subsection\<open>"Co" rules involving Always\<close>
 
 lemma Always_Constrains_pre:
      "F \<in> Always INV ==> (F \<in> (INV \<inter> A) Co A') = (F \<in> A Co A')"
@@ -390,7 +390,7 @@ by (auto simp add: Always_eq_includes_reachable)
 lemmas Always_thin = thin_rl [of "F \<in> Always A"]
 
 
-subsection{*Totalize*}
+subsection\<open>Totalize\<close>
 
 lemma reachable_imp_reachable_tot:
       "s \<in> reachable F ==> s \<in> reachable (totalize F)"

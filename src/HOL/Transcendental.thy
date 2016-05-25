@@ -2471,7 +2471,7 @@ proof -
    from assms have "0 < m"
      by (metis less_trans zero_less_power less_le_trans zero_less_one)
    have "n = log b (b ^ n)" using assms(1) by (simp add: log_nat_power)
-   also have "\<dots> \<le> log b m" using assms `0 < m` by simp
+   also have "\<dots> \<le> log b m" using assms \<open>0 < m\<close> by simp
    finally show ?thesis .
 qed
 

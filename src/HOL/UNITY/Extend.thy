@@ -7,7 +7,7 @@ Extending of state setsExtending of state sets
   function g (forgotten) maps the extended state to the "extending part"
 *)
 
-section{*Extending State Sets*}
+section\<open>Extending State Sets\<close>
 
 theory Extend imports Guar begin
 
@@ -67,7 +67,7 @@ locale Extend =
 (** These we prove OUTSIDE the locale. **)
 
 
-subsection{*Restrict*}
+subsection\<open>Restrict\<close>
 (*MOVE to Relation.thy?*)
 
 lemma Restrict_iff [iff]: "((x,y): Restrict A r) = ((x,y): r & x \<in> A)"
@@ -130,7 +130,7 @@ lemma fst_inv_equalityI:
 by (metis UNIV_I f_inv_into_f prod.collapse prem surj_h)
 
 
-subsection{*Trivial properties of f, g, h*}
+subsection\<open>Trivial properties of f, g, h\<close>
 
 context Extend
 begin
@@ -167,7 +167,7 @@ qed
 end
 
 
-subsection{*@{term extend_set}: basic properties*}
+subsection\<open>@{term extend_set}: basic properties\<close>
 
 lemma project_set_iff [iff]:
      "(x \<in> project_set h C) = (\<exists>y. h(x,y) \<in> C)"
@@ -215,7 +215,7 @@ apply (unfold extend_set_def)
 apply (auto simp add: split_extended_all)
 done
 
-subsection{*@{term project_set}: basic properties*}
+subsection\<open>@{term project_set}: basic properties\<close>
 
 (*project_set is simply image!*)
 lemma project_set_eq: "project_set h C = f ` C"
@@ -226,7 +226,7 @@ lemma project_set_I: "!!z. z \<in> C ==> f z \<in> project_set h C"
 by (auto simp add: split_extended_all)
 
 
-subsection{*More laws*}
+subsection\<open>More laws\<close>
 
 (*Because A and B could differ on the "other" part of the state, 
    cannot generalize to 
@@ -262,7 +262,7 @@ lemma extend_set_subset_Compl_eq: "(extend_set h A \<subseteq> - extend_set h B)
   by (auto simp: extend_set_def)
 
 
-subsection{*@{term extend_act}*}
+subsection\<open>@{term extend_act}\<close>
 
 (*Can't strengthen it to
   ((h(s,y), h(s',y')) \<in> extend_act h act) = ((s, s') \<in> act & y=y')
@@ -318,9 +318,9 @@ lemma Domain_project_act: "Domain (project_act h act) = project_set h (Domain ac
   unfolding project_act_def by (force simp add: split_extended_all)
 
 
-subsection{*extend*}
+subsection\<open>extend\<close>
 
-text{*Basic properties*}
+text\<open>Basic properties\<close>
 
 lemma (in -) Init_extend [simp]:
      "Init (extend h F) = extend_set h (Init F)"
@@ -431,7 +431,7 @@ lemma project_mono: "F \<le> G ==> project h C F \<le> project h C G"
 lemma all_total_extend: "all_total F ==> all_total (extend h F)"
   by (simp add: all_total_def Domain_extend_act)
 
-subsection{*Safety: co, stable*}
+subsection\<open>Safety: co, stable\<close>
 
 lemma extend_constrains:
      "(extend h F \<in> (extend_set h A) co (extend_set h B)) =  
@@ -457,7 +457,7 @@ lemma extend_stable_project_set:
   by (simp add: stable_def extend_constrains_project_set)
 
 
-subsection{*Weak safety primitives: Co, Stable*}
+subsection\<open>Weak safety primitives: Co, Stable\<close>
 
 lemma reachable_extend_f: "p \<in> reachable (extend h F) ==> f p \<in> reachable F"
   by (induct set: reachable) (auto intro: reachable.intros simp add: extend_act_def image_iff)
@@ -539,7 +539,7 @@ lemma project_stable_project_set:
   by (simp add: stable_def project_constrains_project_set)
 
 
-subsection{*Progress: transient, ensures*}
+subsection\<open>Progress: transient, ensures\<close>
 
 lemma extend_transient:
      "(extend h F \<in> transient (extend_set h A)) = (F \<in> transient A)"
@@ -560,7 +560,7 @@ apply (erule leadsTo_induct)
 apply (simp add: leadsTo_UN extend_set_Union)
 done
 
-subsection{*Proving the converse takes some doing!*}
+subsection\<open>Proving the converse takes some doing!\<close>
 
 lemma slice_iff [iff]: "(x \<in> slice C y) = (h(x,y) \<in> C)"
   by (simp add: slice_def)
@@ -621,7 +621,7 @@ lemma extend_LeadsTo:
               extend_set_Int_distrib [symmetric])
 
 
-subsection{*preserves*}
+subsection\<open>preserves\<close>
 
 lemma project_preserves_I:
      "G \<in> preserves (v o f) ==> project h C G \<in> preserves v"
@@ -642,7 +642,7 @@ lemma inj_extend_preserves: "inj h ==> (extend h G \<in> preserves g)"
                    constrains_def g_def)
 
 
-subsection{*Guarantees*}
+subsection\<open>Guarantees\<close>
 
 lemma project_extend_Join: "project h UNIV ((extend h F)\<squnion>G) = F\<squnion>(project h UNIV G)"
   apply (rule program_equalityI)

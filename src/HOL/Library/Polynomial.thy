@@ -443,7 +443,7 @@ lemma is_zero_null [code_abbrev]:
   by (simp add: is_zero_def null_def)
 
 subsubsection \<open>Reconstructing the polynomial from the list\<close>
-  -- \<open>contributed by Sebastiaan J.C. Joosten and René Thiemann\<close>
+  \<comment> \<open>contributed by Sebastiaan J.C. Joosten and René Thiemann\<close>
 
 definition poly_of_list :: "'a::comm_monoid_add list \<Rightarrow> 'a poly"
 where

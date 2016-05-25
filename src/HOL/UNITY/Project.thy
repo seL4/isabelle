@@ -7,7 +7,7 @@ Projections of state sets (also of actions and programs).
 Inheritance of GUARANTEES properties under extension.
 *)
 
-section{*Projections of State Sets*}
+section\<open>Projections of State Sets\<close>
 
 theory Project imports Extend begin
 
@@ -35,7 +35,7 @@ apply (auto simp add: extend_act_def project_act_def constrains_def)
 done
 
 
-subsection{*Safety*}
+subsection\<open>Safety\<close>
 
 (*used below to prove Join_project_ensures*)
 lemma project_unless:
@@ -103,7 +103,7 @@ by (simp add: project_constrains extend_constrains)
 end
 
 
-subsection{*"projecting" and union/intersection (no converses)*}
+subsection\<open>"projecting" and union/intersection (no converses)\<close>
 
 lemma projecting_Int: 
      "[| projecting C h F XA' XA;  projecting C h F XB' XB |]  
@@ -206,7 +206,7 @@ lemma extending_increasing:
 by (force simp only: extending_def Join_project_increasing)
 
 
-subsection{*Reachability and project*}
+subsection\<open>Reachability and project\<close>
 
 (*In practice, C = reachable(...): the inclusion is equality*)
 lemma reachable_imp_reachable_project:
@@ -255,7 +255,7 @@ apply (simp (no_asm_simp) add: project_Stable_D)
 done
 
 
-subsection{*Converse results for weak safety: benefits of the argument C *}
+subsection\<open>Converse results for weak safety: benefits of the argument C\<close>
 
 (*In practice, C = reachable(...): the inclusion is equality*)
 lemma reachable_project_imp_reachable:
@@ -337,8 +337,8 @@ lemma project_Increasing:
 apply (simp (no_asm_simp) add: Increasing_def project_Stable extend_set_eq_Collect)
 done
 
-subsection{*A lot of redundant theorems: all are proved to facilitate reasoning
-    about guarantees.*}
+subsection\<open>A lot of redundant theorems: all are proved to facilitate reasoning
+    about guarantees.\<close>
 
 lemma projecting_Constrains: 
      "projecting (%G. reachable (extend h F\<squnion>G)) h F  
@@ -398,9 +398,9 @@ apply (blast intro: project_Increasing_D)
 done
 
 
-subsection{*leadsETo in the precondition (??)*}
+subsection\<open>leadsETo in the precondition (??)\<close>
 
-subsubsection{*transient*}
+subsubsection\<open>transient\<close>
 
 lemma transient_extend_set_imp_project_transient: 
      "[| G \<in> transient (C \<inter> extend_set h A);  G \<in> stable C |]   
@@ -424,7 +424,7 @@ apply blast+
 done
 
 
-subsubsection{*ensures -- a primitive combining progress with safety*}
+subsubsection\<open>ensures -- a primitive combining progress with safety\<close>
 
 (*Used to prove project_leadsETo_I*)
 lemma ensures_extend_set_imp_project_ensures:
@@ -458,7 +458,7 @@ apply (force dest!: equalityD1
                [THEN project_extend_transient_D, THEN transient_strengthen])
 done
 
-text{*Transferring a transient property upwards*}
+text\<open>Transferring a transient property upwards\<close>
 lemma project_transient_extend_set:
      "project h C G \<in> transient (project_set h C \<inter> A - B)
       ==> G \<in> transient (C \<inter> extend_set h A - extend_set h B)"
@@ -496,8 +496,8 @@ apply (blast intro:  extend_transient [THEN iffD2] transient_strengthen)
 apply (blast intro: project_transient_extend_set transient_strengthen)  
 done
 
-text{*Lemma useful for both STRONG and WEAK progress, but the transient
-    condition's very strong*}
+text\<open>Lemma useful for both STRONG and WEAK progress, but the transient
+    condition's very strong\<close>
 
 (*The strange induction formula allows induction over the leadsTo
   assumption's non-atomic precondition*)
@@ -528,7 +528,7 @@ by (simp del: Join_stable    add: LeadsTo_def project_leadsTo_D_lemma
                                   project_set_reachable_extend_eq)
 
 
-subsection{*Towards the theorem @{text project_Ensures_D}*}
+subsection\<open>Towards the theorem \<open>project_Ensures_D\<close>\<close>
 
 lemma project_ensures_D_lemma:
      "[| G \<in> stable ((C \<inter> extend_set h A) - (extend_set h B));   
@@ -566,7 +566,7 @@ apply (auto simp add: project_set_reachable_extend_eq [symmetric])
 done
 
 
-subsection{*Guarantees*}
+subsection\<open>Guarantees\<close>
 
 lemma project_act_Restrict_subset_project_act:
      "project_act h (Restrict C act) \<subseteq> project_act h act"
@@ -618,9 +618,9 @@ done
 (*It seems that neither "guarantees" law can be proved from the other.*)
 
 
-subsection{*guarantees corollaries*}
+subsection\<open>guarantees corollaries\<close>
 
-subsubsection{*Some could be deleted: the required versions are easy to prove*}
+subsubsection\<open>Some could be deleted: the required versions are easy to prove\<close>
 
 lemma extend_guar_increasing:
      "[| F \<in> UNIV guarantees increasing func;   
@@ -651,7 +651,7 @@ apply (rule_tac [2] projecting_Always, auto)
 done
 
 
-subsubsection{*Guarantees with a leadsTo postcondition*}
+subsubsection\<open>Guarantees with a leadsTo postcondition\<close>
 
 lemma project_leadsTo_D:
      "F\<squnion>project h UNIV G \<in> A leadsTo B

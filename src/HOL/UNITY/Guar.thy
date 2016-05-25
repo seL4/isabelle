@@ -10,7 +10,7 @@ property, from Charpentier and Chandy "Theorems about Composition",
 Fifth International Conference on Mathematics of Program, 2000.
 *)
 
-section{*Guarantees Specifications*}
+section\<open>Guarantees Specifications\<close>
 
 theory Guar
 imports Comp
@@ -19,8 +19,8 @@ begin
 instance program :: (type) order
   by standard (auto simp add: program_less_le dest: component_antisym intro: component_trans)
 
-text{*Existential and Universal properties.  I formalize the two-program
-      case, proving equivalence with Chandy and Sanders's n-ary definitions*}
+text\<open>Existential and Universal properties.  I formalize the two-program
+      case, proving equivalence with Chandy and Sanders's n-ary definitions\<close>
 
 definition ex_prop :: "'a program set => bool" where
    "ex_prop X == \<forall>F G. F ok G -->F \<in> X | G \<in> X --> (F\<squnion>G) \<in> X"
@@ -36,7 +36,7 @@ definition strict_uv_prop  :: "'a program set => bool" where
       SKIP \<in> X & (\<forall>F G. F ok G --> (F \<in> X & G \<in> X) = (F\<squnion>G \<in> X))"
 
 
-text{*Guarantees properties*}
+text\<open>Guarantees properties\<close>
 
 definition guar :: "['a program set, 'a program set] => 'a program set" (infixl "guarantees" 55) where
           (*higher than membership, lower than Co*)
@@ -73,7 +73,7 @@ lemma OK_insert_iff:
 by (auto intro: ok_sym simp add: OK_iff_ok)
 
 
-subsection{*Existential Properties*}
+subsection\<open>Existential Properties\<close>
 
 lemma ex1:
   assumes "ex_prop X" and "finite GG"
@@ -110,7 +110,7 @@ apply (drule ok_sym, blast)
 done
 
 
-subsection{*Universal Properties*}
+subsection\<open>Universal Properties\<close>
 
 lemma uv1:
   assumes "uv_prop X"
@@ -143,7 +143,7 @@ lemma uv_prop_finite:
       (\<forall>GG. finite GG & GG \<subseteq> X & OK GG (%G. G) --> (\<Squnion>G \<in> GG. G): X)"
 by (blast intro: uv1 uv2)
 
-subsection{*Guarantees*}
+subsection\<open>Guarantees\<close>
 
 lemma guaranteesI:
      "(!!G. [| F ok G; F\<squnion>G \<in> X |] ==> F\<squnion>G \<in> Y) ==> F \<in> X guarantees Y"
@@ -191,7 +191,7 @@ apply (auto simp add: guarantees_imp)
 done
 
 
-subsection{*Distributive Laws.  Re-Orient to Perform Miniscoping*}
+subsection\<open>Distributive Laws.  Re-Orient to Perform Miniscoping\<close>
 
 lemma guarantees_UN_left: 
      "(\<Union>i \<in> I. X i) guarantees Y = (\<Inter>i \<in> I. X i guarantees Y)"
@@ -252,7 +252,7 @@ lemma ex_guarantees:
 by (unfold guar_def, blast)
 
 
-subsection{*Guarantees: Additional Laws (by lcp)*}
+subsection\<open>Guarantees: Additional Laws (by lcp)\<close>
 
 lemma guarantees_Join_Int: 
     "[| F \<in> U guarantees V;  G \<in> X guarantees Y; F ok G |]  
@@ -297,7 +297,7 @@ apply (auto intro: OK_imp_ok
 done
 
 
-subsection{*Guarantees Laws for Breaking Down the Program (by lcp)*}
+subsection\<open>Guarantees Laws for Breaking Down the Program (by lcp)\<close>
 
 lemma guarantees_Join_I1: 
      "[| F \<in> X guarantees Y;  F ok G |] ==> F\<squnion>G \<in> X guarantees Y"
@@ -440,7 +440,7 @@ apply (drule_tac x = "F\<squnion>Ga" in spec)
 apply (simp add: ok_commute  Join_ac) 
 done
 
-text{* Equivalence with the other definition of wx *}
+text\<open>Equivalence with the other definition of wx\<close>
 
 lemma wx_equiv: "wx X = {F. \<forall>G. F ok G --> (F\<squnion>G) \<in> X}"
 apply (unfold wx_def, safe)
@@ -453,9 +453,9 @@ apply auto
 done
 
 
-text{* Propositions 7 to 11 are about this second definition of wx. 
+text\<open>Propositions 7 to 11 are about this second definition of wx. 
    They are the same as the ones proved for the first definition of wx,
- by equivalence *}
+ by equivalence\<close>
    
 (* Proposition 12 *)
 (* Main result of the paper *)

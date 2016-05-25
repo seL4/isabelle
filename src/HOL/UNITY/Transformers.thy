@@ -13,30 +13,30 @@ Predicate Transformers.  From
     Swiss Federal Institute of Technology Zurich (1997)
 *)
 
-section{*Predicate Transformers*}
+section\<open>Predicate Transformers\<close>
 
 theory Transformers imports Comp begin
 
-subsection{*Defining the Predicate Transformers @{term wp},
-   @{term awp} and  @{term wens}*}
+subsection\<open>Defining the Predicate Transformers @{term wp},
+   @{term awp} and  @{term wens}\<close>
 
 definition wp :: "[('a*'a) set, 'a set] => 'a set" where  
-    --{*Dijkstra's weakest-precondition operator (for an individual command)*}
+    \<comment>\<open>Dijkstra's weakest-precondition operator (for an individual command)\<close>
     "wp act B == - (act^-1 `` (-B))"
 
 definition awp :: "['a program, 'a set] => 'a set" where
-    --{*Dijkstra's weakest-precondition operator (for a program)*}
+    \<comment>\<open>Dijkstra's weakest-precondition operator (for a program)\<close>
     "awp F B == (\<Inter>act \<in> Acts F. wp act B)"
 
 definition wens :: "['a program, ('a*'a) set, 'a set] => 'a set" where
-    --{*The weakest-ensures transformer*}
+    \<comment>\<open>The weakest-ensures transformer\<close>
     "wens F act B == gfp(\<lambda>X. (wp act B \<inter> awp F (B \<union> X)) \<union> B)"
 
-text{*The fundamental theorem for wp*}
+text\<open>The fundamental theorem for wp\<close>
 theorem wp_iff: "(A <= wp act B) = (act `` A <= B)"
 by (force simp add: wp_def) 
 
-text{*This lemma is a good deal more intuitive than the definition!*}
+text\<open>This lemma is a good deal more intuitive than the definition!\<close>
 lemma in_wp_iff: "(a \<in> wp act B) = (\<forall>x. (a,x) \<in> act --> x \<in> B)"
 by (simp add: wp_def, blast)
 
@@ -46,7 +46,7 @@ by (force simp add: wp_def)
 lemma wp_empty [simp]: "wp act {} = - (Domain act)"
 by (force simp add: wp_def)
 
-text{*The identity relation is the skip action*}
+text\<open>The identity relation is the skip action\<close>
 lemma wp_Id [simp]: "wp Id B = B"
 by (simp add: wp_def) 
 
@@ -60,7 +60,7 @@ by (force simp add: awp_def wp_def)
 lemma awp_Int_eq: "awp F (A\<inter>B) = awp F A \<inter> awp F B"
 by (simp add: awp_def wp_def, blast) 
 
-text{*The fundamental theorem for awp*}
+text\<open>The fundamental theorem for awp\<close>
 theorem awp_iff_constrains: "(A <= awp F B) = (F \<in> A co B)"
 by (simp add: awp_def constrains_def wp_iff INT_subset_iff) 
 
@@ -88,8 +88,8 @@ done
 lemma wens_Id [simp]: "wens F Id B = B"
 by (simp add: wens_def gfp_def wp_def awp_def, blast)
 
-text{*These two theorems justify the claim that @{term wens} returns the
-weakest assertion satisfying the ensures property*}
+text\<open>These two theorems justify the claim that @{term wens} returns the
+weakest assertion satisfying the ensures property\<close>
 lemma ensures_imp_wens: "F \<in> A ensures B ==> \<exists>act \<in> Acts F. A \<subseteq> wens F act B"
 apply (simp add: wens_def ensures_def transient_def, clarify) 
 apply (rule rev_bexI, assumption) 
@@ -101,7 +101,7 @@ lemma wens_ensures: "act \<in> Acts F ==> F \<in> (wens F act B) ensures B"
 by (simp add: wens_def gfp_def constrains_def awp_def wp_def
               ensures_def transient_def, blast)
 
-text{*These two results constitute assertion (4.13) of the thesis*}
+text\<open>These two results constitute assertion (4.13) of the thesis\<close>
 lemma wens_mono: "(A \<subseteq> B) ==> wens F act A \<subseteq> wens F act B"
 apply (simp add: wens_def wp_def awp_def) 
 apply (rule gfp_mono, blast) 
@@ -110,22 +110,22 @@ done
 lemma wens_weakening: "B \<subseteq> wens F act B"
 by (simp add: wens_def gfp_def, blast)
 
-text{*Assertion (6), or 4.16 in the thesis*}
+text\<open>Assertion (6), or 4.16 in the thesis\<close>
 lemma subset_wens: "A-B \<subseteq> wp act B \<inter> awp F (B \<union> A) ==> A \<subseteq> wens F act B" 
 apply (simp add: wens_def wp_def awp_def) 
 apply (rule gfp_upperbound, blast) 
 done
 
-text{*Assertion 4.17 in the thesis*}
+text\<open>Assertion 4.17 in the thesis\<close>
 lemma Diff_wens_constrains: "F \<in> (wens F act A - A) co wens F act A"
 by (simp add: wens_def gfp_def wp_def awp_def constrains_def, blast)
-  --{*Proved instantly, yet remarkably fragile. If @{text Un_subset_iff}
+  \<comment>\<open>Proved instantly, yet remarkably fragile. If \<open>Un_subset_iff\<close>
       is declared as an iff-rule, then it's almost impossible to prove. 
-      One proof is via @{text meson} after expanding all definitions, but it's
-      slow!*}
+      One proof is via \<open>meson\<close> after expanding all definitions, but it's
+      slow!\<close>
 
-text{*Assertion (7): 4.18 in the thesis.  NOTE that many of these results
-hold for an arbitrary action.  We often do not require @{term "act \<in> Acts F"}*}
+text\<open>Assertion (7): 4.18 in the thesis.  NOTE that many of these results
+hold for an arbitrary action.  We often do not require @{term "act \<in> Acts F"}\<close>
 lemma stable_wens: "F \<in> stable A ==> F \<in> stable (wens F act A)"
 apply (simp add: stable_def)
 apply (drule constrains_Un [OF Diff_wens_constrains [of F act A]]) 
@@ -134,7 +134,7 @@ apply (erule constrains_weaken, blast)
 apply (simp add: wens_weakening)
 done
 
-text{*Assertion 4.20 in the thesis.*}
+text\<open>Assertion 4.20 in the thesis.\<close>
 lemma wens_Int_eq_lemma:
       "[|T-B \<subseteq> awp F T; act \<in> Acts F|]
        ==> T \<inter> wens F act B \<subseteq> wens F act (T\<inter>B)"
@@ -143,8 +143,8 @@ apply (rule_tac P="\<lambda>x. f x \<subseteq> b" for f b in ssubst [OF wens_unf
 apply (simp add: wp_def awp_def, blast)
 done
 
-text{*Assertion (8): 4.21 in the thesis. Here we indeed require
-      @{term "act \<in> Acts F"}*}
+text\<open>Assertion (8): 4.21 in the thesis. Here we indeed require
+      @{term "act \<in> Acts F"}\<close>
 lemma wens_Int_eq:
       "[|T-B \<subseteq> awp F T; act \<in> Acts F|]
        ==> T \<inter> wens F act B = T \<inter> wens F act (T\<inter>B)"
@@ -155,7 +155,7 @@ apply (rule subset_trans [OF _ wens_mono [of "T\<inter>B" B]], auto)
 done
 
 
-subsection{*Defining the Weakest Ensures Set*}
+subsection\<open>Defining the Weakest Ensures Set\<close>
 
 inductive_set
   wens_set :: "['a program, 'a set] => 'a set set"
@@ -198,29 +198,29 @@ apply (rule_tac x = "\<Union>{Z. \<exists>U\<in>S. Z = f U}" in exI)
 apply (blast intro: wens_set.Union) 
 done
 
-text{*Assertion (9): 4.27 in the thesis.*}
+text\<open>Assertion (9): 4.27 in the thesis.\<close>
 lemma leadsTo_iff_wens_set: "(F \<in> A leadsTo B) = (\<exists>C \<in> wens_set F B. A \<subseteq> C)"
 by (blast intro: leadsTo_imp_wens_set leadsTo_weaken_L wens_set_imp_leadsTo) 
 
-text{*This is the result that requires the definition of @{term wens_set} to
+text\<open>This is the result that requires the definition of @{term wens_set} to
   require @{term W} to be non-empty in the Unio case, for otherwise we should
-  always have @{term "{} \<in> wens_set F B"}.*}
+  always have @{term "{} \<in> wens_set F B"}.\<close>
 lemma wens_set_imp_subset: "A \<in> wens_set F B ==> B \<subseteq> A"
 apply (erule wens_set.induct) 
   apply (blast intro: wens_weakening [THEN subsetD])+
 done
 
 
-subsection{*Properties Involving Program Union*}
+subsection\<open>Properties Involving Program Union\<close>
 
-text{*Assertion (4.30) of thesis, reoriented*}
+text\<open>Assertion (4.30) of thesis, reoriented\<close>
 lemma awp_Join_eq: "awp (F\<squnion>G) B = awp F B \<inter> awp G B"
 by (simp add: awp_def wp_def, blast)
 
 lemma wens_subset: "wens F act B - B \<subseteq> wp act B \<inter> awp F (B \<union> wens F act B)"
 by (subst wens_unfold, fast) 
 
-text{*Assertion (4.31)*}
+text\<open>Assertion (4.31)\<close>
 lemma subset_wens_Join:
       "[|A = T \<inter> wens F act B;  T-B \<subseteq> awp F T; A-B \<subseteq> awp G (A \<union> B)|] 
        ==> A \<subseteq> wens (F\<squnion>G) act B"
@@ -232,14 +232,14 @@ apply (subgoal_tac "(T \<inter> wens F act B) - B \<subseteq>
 apply (insert wens_subset [of F act B], blast) 
 done
 
-text{*Assertion (4.32)*}
+text\<open>Assertion (4.32)\<close>
 lemma wens_Join_subset: "wens (F\<squnion>G) act B \<subseteq> wens F act B"
 apply (simp add: wens_def) 
 apply (rule gfp_mono)
 apply (auto simp add: awp_Join_eq)  
 done
 
-text{*Lemma, because the inductive step is just too messy.*}
+text\<open>Lemma, because the inductive step is just too messy.\<close>
 lemma wens_Union_inductive_step:
   assumes awpF: "T-B \<subseteq> awp F T"
       and awpG: "!!X. X \<in> wens_set F B ==> (T\<inter>X) - B \<subseteq> awp G (T\<inter>X)"
@@ -272,14 +272,14 @@ theorem wens_Union:
       and major: "X \<in> wens_set F B"
   shows "\<exists>Y \<in> wens_set (F\<squnion>G) B. Y \<subseteq> X & T\<inter>X = T\<inter>Y"
 apply (rule wens_set.induct [OF major])
-  txt{*Basis: trivial*}
+  txt\<open>Basis: trivial\<close>
   apply (blast intro: wens_set.Basis)
- txt{*Inductive step*}
+ txt\<open>Inductive step\<close>
  apply clarify 
  apply (rule_tac x = "wens (F\<squnion>G) act Y" in rev_bexI)
   apply (force intro: wens_set.Wens)
  apply (simp add: wens_Union_inductive_step [OF awpF awpG]) 
-txt{*Union: by Axiom of Choice*}
+txt\<open>Union: by Axiom of Choice\<close>
 apply (simp add: ball_conj_distrib Bex_def) 
 apply (clarify dest!: bchoice) 
 apply (rule_tac x = "\<Union>{Z. \<exists>U\<in>W. Z = f U}" in exI)
@@ -299,10 +299,10 @@ apply (blast intro: wens_set_imp_leadsTo [THEN leadsTo_weaken_L])
 done
 
 
-subsection {*The Set @{term "wens_set F B"} for a Single-Assignment Program*}
-text{*Thesis Section 4.3.3*}
+subsection \<open>The Set @{term "wens_set F B"} for a Single-Assignment Program\<close>
+text\<open>Thesis Section 4.3.3\<close>
 
-text{*We start by proving laws about single-assignment programs*}
+text\<open>We start by proving laws about single-assignment programs\<close>
 lemma awp_single_eq [simp]:
      "awp (mk_program (init, {act}, allowed)) B = B \<inter> wp act B"
 by (force simp add: awp_def wp_def) 
@@ -332,7 +332,7 @@ lemma wens_single_eq:
 by (simp add: wens_def gfp_def wp_def, blast)
 
 
-text{*Next, we express the @{term "wens_set"} for single-assignment programs*}
+text\<open>Next, we express the @{term "wens_set"} for single-assignment programs\<close>
 
 definition wens_single_finite :: "[('a*'a) set, 'a set, nat] => 'a set" where  
     "wens_single_finite act B k == \<Union>i \<in> atMost k. (wp act ^^ i) B"
@@ -416,7 +416,7 @@ apply (subst wens_single_finite_eq_Union)
 apply (simp add: atMost_Suc, blast)
 done
 
-text{*lemma for Union case*}
+text\<open>lemma for Union case\<close>
 lemma Union_eq_wens_single:
       "\<lbrakk>\<forall>k. \<not> W \<subseteq> wens_single_finite act B ` {..k};
         W \<subseteq> insert (wens_single act B)
@@ -439,15 +439,15 @@ lemma wens_set_subset_single:
            insert (wens_single act B) (range (wens_single_finite act B))"
 apply (rule subsetI)  
 apply (erule wens_set.induct)
-  txt{*Basis*} 
+  txt\<open>Basis\<close> 
   apply (fastforce simp add: wens_single_finite_def)
- txt{*Wens inductive step*}
+ txt\<open>Wens inductive step\<close>
  apply (case_tac "acta = Id", simp)
  apply (simp add: wens_single_eq)
  apply (elim disjE)
  apply (simp add: wens_single_Un_eq)
  apply (force simp add: wens_single_finite_Un_eq)
-txt{*Union inductive step*}
+txt\<open>Union inductive step\<close>
 apply (case_tac "\<exists>k. W \<subseteq> wens_single_finite act B ` (atMost k)")
  apply (blast dest!: subset_wens_single_finite, simp) 
 apply (rule disjI1 [OF Union_eq_wens_single], blast+)
@@ -471,7 +471,7 @@ apply (simp add: image_def wens_single_eq_Union)
 apply (blast intro: wens_set.Union wens_single_finite_in_wens_set)
 done
 
-text{*Theorem (4.29)*}
+text\<open>Theorem (4.29)\<close>
 theorem wens_set_single_eq:
      "[|F = mk_program (init, {act}, allowed); single_valued act|]
       ==> wens_set F B =
@@ -481,7 +481,7 @@ apply (rule equalityI)
 apply (erule ssubst, erule single_subset_wens_set) 
 done
 
-text{*Generalizing Misra's Fixed Point Union Theorem (4.41)*}
+text\<open>Generalizing Misra's Fixed Point Union Theorem (4.41)\<close>
 
 lemma fp_leadsTo_Join:
     "[|T-B \<subseteq> awp F T; T-B \<subseteq> FP G; F \<in> A leadsTo B|] ==> F\<squnion>G \<in> T\<inter>A leadsTo B"
