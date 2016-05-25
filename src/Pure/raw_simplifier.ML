@@ -65,6 +65,10 @@ sig
   val fold_goals_tac: Proof.context -> thm list -> tactic
   val norm_hhf: Proof.context -> thm -> thm
   val norm_hhf_protect: Proof.context -> thm -> thm
+
+  (* apply_trace interface *)
+  val is_simp: Proof.context -> thm -> bool
+  (* end apply_trace interface *)
 end;
 
 signature RAW_SIMPLIFIER =
@@ -628,6 +632,18 @@ with check for presence of symmetric version:
 *)
 fun del_simp thm ctxt = ctxt delsimps [thm];
 fun flip_simp thm ctxt = addsymsimps (delsimps_quiet ctxt [thm]) [thm];
+
+(* apply_trace interface *)
+
+fun is_simp_rrule ctxt (rrule as {elhs, ...})  = 
+let
+  val (Simpset ({rules, ...}, _)) = simpset_of ctxt;
+  val results = Net.lookup rules (Net.key_of_term (Thm.term_of elhs));
+in member eq_rrule results rrule end;
+
+fun is_simp ctxt thm = exists (is_simp_rrule ctxt) (mk_rrules ctxt [thm]);
+
+(* end apply_trace interface *)
 
 end;
 
