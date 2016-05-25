@@ -10,7 +10,7 @@ Lists are partially ordered by Charpentier's Generalized Prefix Relation
 Also overloads <= and < for lists!
 *)
 
-section {*The Prefix Ordering on Lists*}
+section \<open>The Prefix Ordering on Lists\<close>
 
 theory ListOrder
 imports Main
@@ -57,7 +57,7 @@ abbreviation
   "xs pfixGe ys == (xs,ys) : genPrefix Ge"
 
 
-subsection{*preliminary lemmas*}
+subsection\<open>preliminary lemmas\<close>
 
 lemma Nil_genPrefix [iff]: "([], xs) : genPrefix r"
 by (cut_tac genPrefix.Nil [THEN genPrefix.append], auto)
@@ -84,7 +84,7 @@ lemma Cons_genPrefix_Cons [iff]:
 by (blast intro: genPrefix.prepend)
 
 
-subsection{*genPrefix is a partial order*}
+subsection\<open>genPrefix is a partial order\<close>
 
 lemma refl_genPrefix: "refl r ==> refl (genPrefix r)"
 apply (unfold refl_on_def, auto)
@@ -176,7 +176,7 @@ lemma antisym_genPrefix: "antisym r ==> antisym (genPrefix r)"
   by (blast intro: antisymI genPrefix_antisym)
 
 
-subsection{*recursion equations*}
+subsection\<open>recursion equations\<close>
 
 lemma genPrefix_Nil [simp]: "((xs, []) : genPrefix r) = (xs = [])"
   by (induct xs) auto
@@ -216,7 +216,7 @@ lemma aolemma:
 apply (erule genPrefix.induct)
   apply blast
  apply simp
-txt{*Append case is hardest*}
+txt\<open>Append case is hardest\<close>
 apply simp
 apply (frule genPrefix_length_le [THEN le_imp_less_or_eq])
 apply (erule disjE)
@@ -258,7 +258,7 @@ apply (blast intro: genPrefix_length_le genPrefix_imp_nth nth_imp_genPrefix)
 done
 
 
-subsection{*The type of lists is partially ordered*}
+subsection\<open>The type of lists is partially ordered\<close>
 
 declare refl_Id [iff] 
         antisym_Id [iff] 
@@ -376,7 +376,7 @@ lemma common_prefix_linear:
   shows "xs <= zs \<Longrightarrow> ys <= zs \<Longrightarrow> xs <= ys | ys <= xs"
   by (induct zs rule: rev_induct) auto
 
-subsection{*pfixLe, pfixGe: properties inherited from the translations*}
+subsection\<open>pfixLe, pfixGe: properties inherited from the translations\<close>
 
 (** pfixLe **)
 

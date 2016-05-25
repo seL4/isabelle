@@ -13,11 +13,11 @@ typedecl vertex
   
 definition symcl :: "(vertex*vertex)set=>(vertex*vertex)set" where
   "symcl r == r \<union> (r^-1)"
-    --{* symmetric closure: removes the orientation of a relation*}
+    \<comment>\<open>symmetric closure: removes the orientation of a relation\<close>
 
 definition neighbors :: "[vertex, (vertex*vertex)set]=>vertex set" where
   "neighbors i r == ((r \<union> r^-1)``{i}) - {i}"
-    --{* Neighbors of a vertex i *}
+    \<comment>\<open>Neighbors of a vertex i\<close>
 
 definition R :: "[vertex, (vertex*vertex)set]=>vertex set" where
   "R i r == r``{i}"
@@ -27,7 +27,7 @@ definition A :: "[vertex, (vertex*vertex)set]=>vertex set" where
 
 definition reach :: "[vertex, (vertex*vertex)set]=> vertex set" where
   "reach i r == (r^+)``{i}"
-    --{* reachable and above vertices: the original notation was R* and A* *}
+    \<comment>\<open>reachable and above vertices: the original notation was R* and A*\<close>
 
 definition above :: "[vertex, (vertex*vertex)set]=> vertex set" where
   "above i r == ((r^-1)^+)``{i}"  
@@ -36,28 +36,28 @@ definition reverse :: "[vertex, (vertex*vertex) set]=>(vertex*vertex)set" where
   "reverse i r == (r - {(x,y). x=i | y=i} \<inter> r) \<union> ({(x,y). x=i|y=i} \<inter> r)^-1"
 
 definition derive1 :: "[vertex, (vertex*vertex)set, (vertex*vertex)set]=>bool" where
-    --{* The original definition *}
+    \<comment>\<open>The original definition\<close>
   "derive1 i r q == symcl r = symcl q &
                     (\<forall>k k'. k\<noteq>i & k'\<noteq>i -->((k,k'):r) = ((k,k'):q)) &
                     A i r = {} & R i q = {}"
 
 definition derive :: "[vertex, (vertex*vertex)set, (vertex*vertex)set]=>bool" where
-    --{* Our alternative definition *}
+    \<comment>\<open>Our alternative definition\<close>
   "derive i r q == A i r = {} & (q = reverse i r)"
 
 axiomatization where
   finite_vertex_univ:  "finite (UNIV :: vertex set)"
-    --{* we assume that the universe of vertices is finite  *}
+    \<comment>\<open>we assume that the universe of vertices is finite\<close>
 
 declare derive_def [simp] derive1_def [simp] symcl_def [simp] 
         A_def [simp] R_def [simp] 
         above_def [simp] reach_def [simp] 
         reverse_def [simp] neighbors_def [simp]
 
-text{*All vertex sets are finite*}
+text\<open>All vertex sets are finite\<close>
 declare finite_subset [OF subset_UNIV finite_vertex_univ, iff]
 
-text{* and relatons over vertex are finite too *}
+text\<open>and relatons over vertex are finite too\<close>
 
 lemmas finite_UNIV_Prod =
        finite_Prod_UNIV [OF finite_vertex_univ finite_vertex_univ] 

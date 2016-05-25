@@ -3,7 +3,7 @@
     Copyright   1998  University of Cambridge
 *)
 
-section{*Implementation of a multiple-client allocator from a single-client allocator*}
+section\<open>Implementation of a multiple-client allocator from a single-client allocator\<close>
 
 theory AllocImpl imports AllocBase "../Follows" "../PPROD" begin
 
@@ -238,7 +238,7 @@ declare Always_INT_distrib [simp]
 declare o_apply [simp del]
 
 
-subsection{*Theorems for Merge*}
+subsection\<open>Theorems for Merge\<close>
 
 context Merge
 begin
@@ -307,7 +307,7 @@ done
 end
 
 
-subsection{*Theorems for Distributor*}
+subsection\<open>Theorems for Distributor\<close>
 
 context Distrib
 begin
@@ -371,7 +371,7 @@ done
 end
 
 
-subsection{*Theorems for Allocator*}
+subsection\<open>Theorems for Allocator\<close>
 
 lemma alloc_refinement_lemma:
      "!!f::nat=>nat. (\<Inter>i \<in> lessThan n. {s. f i \<le> g i s})

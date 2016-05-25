@@ -8,7 +8,7 @@ operator).
 From Misra, "A Logic for Concurrent Programming", 1994.
 *)
 
-section {*The Basic UNITY Theory*}
+section \<open>The Basic UNITY Theory\<close>
 
 theory UNITY imports Main begin
 
@@ -54,11 +54,11 @@ definition invariant :: "'a set => 'a program set" where
     "invariant A == {F. Init F \<subseteq> A} \<inter> stable A"
 
 definition increasing :: "['a => 'b::{order}] => 'a program set" where
-    --{*Polymorphic in both states and the meaning of @{text "\<le>"}*}
+    \<comment>\<open>Polymorphic in both states and the meaning of \<open>\<le>\<close>\<close>
     "increasing f == \<Inter>z. stable {s. z \<le> f s}"
 
 
-subsubsection{*The abstract type of programs*}
+subsubsection\<open>The abstract type of programs\<close>
 
 lemmas program_typedef =
      Rep_Program Rep_Program_inverse Abs_Program_inverse 
@@ -83,7 +83,7 @@ done
 lemma insert_Id_AllowedActs [iff]: "insert Id (AllowedActs F) = AllowedActs F"
 by (simp add: insert_absorb)
 
-subsubsection{*Inspectors for type "program"*}
+subsubsection\<open>Inspectors for type "program"\<close>
 
 lemma Init_eq [simp]: "Init (mk_program (init,acts,allowed)) = init"
 by (simp add: program_typedef)
@@ -95,7 +95,7 @@ lemma AllowedActs_eq [simp]:
      "AllowedActs (mk_program (init,acts,allowed)) = insert Id allowed"
 by (simp add: program_typedef)
 
-subsubsection{*Equality for UNITY programs*}
+subsubsection\<open>Equality for UNITY programs\<close>
 
 lemma surjective_mk_program [simp]:
      "mk_program (Init F, Acts F, AllowedActs F) = F"
@@ -124,7 +124,7 @@ lemma program_equality_iff:
 by (blast intro: program_equalityI program_equalityE)
 
 
-subsubsection{*co*}
+subsubsection\<open>co\<close>
 
 lemma constrainsI: 
     "(!!act s s'. [| act: Acts F;  (s,s') \<in> act;  s \<in> A |] ==> s': A')  
@@ -147,12 +147,12 @@ by (unfold constrains_def, blast)
 lemma constrains_UNIV2 [iff]: "F \<in> A co UNIV"
 by (unfold constrains_def, blast)
 
-text{*monotonic in 2nd argument*}
+text\<open>monotonic in 2nd argument\<close>
 lemma constrains_weaken_R: 
     "[| F \<in> A co A'; A'<=B' |] ==> F \<in> A co B'"
 by (unfold constrains_def, blast)
 
-text{*anti-monotonic in 1st argument*}
+text\<open>anti-monotonic in 1st argument\<close>
 lemma constrains_weaken_L: 
     "[| F \<in> A co A'; B \<subseteq> A |] ==> F \<in> B co A'"
 by (unfold constrains_def, blast)
@@ -161,7 +161,7 @@ lemma constrains_weaken:
    "[| F \<in> A co A'; B \<subseteq> A; A'<=B' |] ==> F \<in> B co B'"
 by (unfold constrains_def, blast)
 
-subsubsection{*Union*}
+subsubsection\<open>Union\<close>
 
 lemma constrains_Un: 
     "[| F \<in> A co A'; F \<in> B co B' |] ==> F \<in> (A \<union> B) co (A' \<union> B')"
@@ -184,7 +184,7 @@ by (unfold constrains_def, blast)
 lemma constrains_INT_distrib: "A co (\<Inter>i \<in> I. B i) = (\<Inter>i \<in> I. A co B i)"
 by (unfold constrains_def, blast)
 
-subsubsection{*Intersection*}
+subsubsection\<open>Intersection\<close>
 
 lemma constrains_Int: 
     "[| F \<in> A co A'; F \<in> B co B' |] ==> F \<in> (A \<inter> B) co (A' \<inter> B')"
@@ -198,8 +198,8 @@ by (unfold constrains_def, blast)
 lemma constrains_imp_subset: "F \<in> A co A' ==> A \<subseteq> A'"
 by (unfold constrains_def, auto)
 
-text{*The reasoning is by subsets since "co" refers to single actions
-  only.  So this rule isn't that useful.*}
+text\<open>The reasoning is by subsets since "co" refers to single actions
+  only.  So this rule isn't that useful.\<close>
 lemma constrains_trans: 
     "[| F \<in> A co B; F \<in> B co C |] ==> F \<in> A co C"
 by (unfold constrains_def, blast)
@@ -209,7 +209,7 @@ lemma constrains_cancel:
 by (unfold constrains_def, clarify, blast)
 
 
-subsubsection{*unless*}
+subsubsection\<open>unless\<close>
 
 lemma unlessI: "F \<in> (A-B) co (A \<union> B) ==> F \<in> A unless B"
 by (unfold unless_def, assumption)
@@ -218,7 +218,7 @@ lemma unlessD: "F \<in> A unless B ==> F \<in> (A-B) co (A \<union> B)"
 by (unfold unless_def, assumption)
 
 
-subsubsection{*stable*}
+subsubsection\<open>stable\<close>
 
 lemma stableI: "F \<in> A co A ==> F \<in> stable A"
 by (unfold stable_def, assumption)
@@ -229,7 +229,7 @@ by (unfold stable_def, assumption)
 lemma stable_UNIV [simp]: "stable UNIV = UNIV"
 by (unfold stable_def constrains_def, auto)
 
-subsubsection{*Union*}
+subsubsection\<open>Union\<close>
 
 lemma stable_Un: 
     "[| F \<in> stable A; F \<in> stable A' |] ==> F \<in> stable (A \<union> A')"
@@ -248,7 +248,7 @@ lemma stable_Union:
     "(!!A. A \<in> X ==> F \<in> stable A) ==> F \<in> stable (\<Union>X)"
 by (unfold stable_def constrains_def, blast)
 
-subsubsection{*Intersection*}
+subsubsection\<open>Intersection\<close>
 
 lemma stable_Int: 
     "[| F \<in> stable A;  F \<in> stable A' |] ==> F \<in> stable (A \<inter> A')"
@@ -278,18 +278,18 @@ by (unfold stable_def constrains_def, blast)
 lemmas stable_constrains_stable = stable_constrains_Int[THEN stableI]
 
 
-subsubsection{*invariant*}
+subsubsection\<open>invariant\<close>
 
 lemma invariantI: "[| Init F \<subseteq> A;  F \<in> stable A |] ==> F \<in> invariant A"
 by (simp add: invariant_def)
 
-text{*Could also say @{term "invariant A \<inter> invariant B \<subseteq> invariant(A \<inter> B)"}*}
+text\<open>Could also say @{term "invariant A \<inter> invariant B \<subseteq> invariant(A \<inter> B)"}\<close>
 lemma invariant_Int:
      "[| F \<in> invariant A;  F \<in> invariant B |] ==> F \<in> invariant (A \<inter> B)"
 by (auto simp add: invariant_def stable_Int)
 
 
-subsubsection{*increasing*}
+subsubsection\<open>increasing\<close>
 
 lemma increasingD: 
      "F \<in> increasing f ==> F \<in> stable {s. z \<subseteq> f s}"
@@ -319,15 +319,15 @@ lemma elimination:
      ==> F \<in> {s. s x \<in> M} co (\<Union>m \<in> M. B m)"
 by (unfold constrains_def, blast)
 
-text{*As above, but for the trivial case of a one-variable state, in which the
-  state is identified with its one variable.*}
+text\<open>As above, but for the trivial case of a one-variable state, in which the
+  state is identified with its one variable.\<close>
 lemma elimination_sing: 
     "(\<forall>m \<in> M. F \<in> {m} co (B m)) ==> F \<in> M co (\<Union>m \<in> M. B m)"
 by (unfold constrains_def, blast)
 
 
 
-subsubsection{*Theoretical Results from Section 6*}
+subsubsection\<open>Theoretical Results from Section 6\<close>
 
 lemma constrains_strongest_rhs: 
     "F \<in> A co (strongest_rhs F A )"
@@ -338,7 +338,7 @@ lemma strongest_rhs_is_strongest:
 by (unfold constrains_def strongest_rhs_def, blast)
 
 
-subsubsection{*Ad-hoc set-theory rules*}
+subsubsection\<open>Ad-hoc set-theory rules\<close>
 
 lemma Un_Diff_Diff [simp]: "A \<union> B - (A - B) = B"
 by blast
@@ -346,7 +346,7 @@ by blast
 lemma Int_Union_Union: "\<Union>B \<inter> A = \<Union>((%C. C \<inter> A)`B)"
 by blast
 
-text{*Needed for WF reasoning in WFair.thy*}
+text\<open>Needed for WF reasoning in WFair.thy\<close>
 
 lemma Image_less_than [simp]: "less_than `` {k} = greaterThan k"
 by blast
@@ -355,7 +355,7 @@ lemma Image_inverse_less_than [simp]: "less_than^-1 `` {k} = lessThan k"
 by blast
 
 
-subsection{*Partial versus Total Transitions*}
+subsection\<open>Partial versus Total Transitions\<close>
 
 definition totalize_act :: "('a * 'a)set => ('a * 'a)set" where
     "totalize_act act == act \<union> Id_on (-(Domain act))"
@@ -376,7 +376,7 @@ lemma insert_Id_image_Acts: "f Id = Id ==> insert Id (f`Acts F) = f ` Acts F"
 by (blast intro: sym [THEN image_eqI])
 
 
-subsubsection{*Basic properties*}
+subsubsection\<open>Basic properties\<close>
 
 lemma totalize_act_Id [simp]: "totalize_act Id = Id"
 by (simp add: totalize_act_def) 
@@ -427,9 +427,9 @@ lemma mk_total_program_constrains_iff [simp]:
 by (simp add: mk_total_program_def)
 
 
-subsection{*Rules for Lazy Definition Expansion*}
+subsection\<open>Rules for Lazy Definition Expansion\<close>
 
-text{*They avoid expanding the full program, which is a large expression*}
+text\<open>They avoid expanding the full program, which is a large expression\<close>
 
 lemma def_prg_Init:
      "F = mk_total_program (init,acts,allowed) ==> Init F = init"
@@ -445,16 +445,16 @@ lemma def_prg_AllowedActs:
       ==> AllowedActs F = insert Id allowed"
 by (simp add: mk_total_program_def)
 
-text{*An action is expanded if a pair of states is being tested against it*}
+text\<open>An action is expanded if a pair of states is being tested against it\<close>
 lemma def_act_simp:
      "act = {(s,s'). P s s'} ==> ((s,s') \<in> act) = P s s'"
 by (simp add: mk_total_program_def)
 
-text{*A set is expanded only if an element is being tested against it*}
+text\<open>A set is expanded only if an element is being tested against it\<close>
 lemma def_set_simp: "A = B ==> (x \<in> A) = (x \<in> B)"
 by (simp add: mk_total_program_def)
 
-subsubsection{*Inspectors for type "program"*}
+subsubsection\<open>Inspectors for type "program"\<close>
 
 lemma Init_total_eq [simp]:
      "Init (mk_total_program (init,acts,allowed)) = init"

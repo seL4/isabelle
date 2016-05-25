@@ -97,7 +97,7 @@ proof (rule LeadsTo_weaken_R)
     then show ?case by simp
   qed
 next
-  from `n \<in> common`
+  from \<open>n \<in> common\<close>
   show "{..n} \<inter> id -` {n..} \<union> common \<subseteq> common"
     by (simp add: atMost_Int_atLeast)
 qed

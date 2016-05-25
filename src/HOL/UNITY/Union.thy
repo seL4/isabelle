@@ -5,7 +5,7 @@
 Partly from Misra's Chapter 5: Asynchronous Compositions of Programs.
 *)
 
-section{*Unions of Programs*}
+section\<open>Unions of Programs\<close>
 
 theory Union imports SubstAx FP begin
 
@@ -47,7 +47,7 @@ translations
   "\<Squnion>x. B" == "CONST JOIN (CONST UNIV) (\<lambda>x. B)"
 
 
-subsection{*SKIP*}
+subsection\<open>SKIP\<close>
 
 lemma Init_SKIP [simp]: "Init SKIP = UNIV"
 by (simp add: SKIP_def)
@@ -61,7 +61,7 @@ by (auto simp add: SKIP_def)
 lemma reachable_SKIP [simp]: "reachable SKIP = UNIV"
 by (force elim: reachable.induct intro: reachable.intros)
 
-subsection{*SKIP and safety properties*}
+subsection\<open>SKIP and safety properties\<close>
 
 lemma SKIP_in_constrains_iff [iff]: "(SKIP \<in> A co B) = (A \<subseteq> B)"
 by (unfold constrains_def, auto)
@@ -75,7 +75,7 @@ by (unfold stable_def, auto)
 declare SKIP_in_stable [THEN stable_imp_Stable, iff]
 
 
-subsection{*Join*}
+subsection\<open>Join\<close>
 
 lemma Init_Join [simp]: "Init (F\<squnion>G) = Init F \<inter> Init G"
 by (simp add: Join_def)
@@ -88,7 +88,7 @@ lemma AllowedActs_Join [simp]:
 by (auto simp add: Join_def)
 
 
-subsection{*JN*}
+subsection\<open>JN\<close>
 
 lemma JN_empty [simp]: "(\<Squnion>i\<in>{}. F i) = SKIP"
 by (unfold JOIN_def SKIP_def, auto)
@@ -114,7 +114,7 @@ lemma JN_cong [cong]:
 by (simp add: JOIN_def)
 
 
-subsection{*Algebraic laws*}
+subsection\<open>Algebraic laws\<close>
 
 lemma Join_commute: "F\<squnion>G = G\<squnion>F"
 by (simp add: Join_def Un_commute Int_commute)
@@ -151,7 +151,7 @@ done
 lemmas Join_ac = Join_assoc Join_left_absorb Join_commute Join_left_commute
 
 
-subsection{*Laws Governing @{text "\<Squnion>"}*}
+subsection\<open>Laws Governing \<open>\<Squnion>\<close>\<close>
 
 (*Also follows by JN_insert and insert_absorb, but the proof is longer*)
 lemma JN_absorb: "k \<in> I ==> F k\<squnion>(\<Squnion>i \<in> I. F i) = (\<Squnion>i \<in> I. F i)"
@@ -178,7 +178,7 @@ apply (rule program_equalityI, auto)
 done
 
 
-subsection{*Safety: co, stable, FP*}
+subsection\<open>Safety: co, stable, FP\<close>
 
 (*Fails if I={} because it collapses to SKIP \<in> A co B, i.e. to A \<subseteq> B.  So an
   alternative precondition is A \<subseteq> B, but most proofs using this rule require
@@ -240,7 +240,7 @@ lemma FP_JN: "FP (\<Squnion>i \<in> I. F i) = (\<Inter>i \<in> I. FP (F i))"
 by (simp add: FP_def JN_stable INTER_eq)
 
 
-subsection{*Progress: transient, ensures*}
+subsection\<open>Progress: transient, ensures\<close>
 
 lemma JN_transient:
      "i \<in> I ==>  
@@ -308,7 +308,7 @@ apply (blast intro: stable_Join_ensures1)
 done
 
 
-subsection{*the ok and OK relations*}
+subsection\<open>the ok and OK relations\<close>
 
 lemma ok_SKIP1 [iff]: "SKIP ok F"
 by (simp add: ok_def)
@@ -355,7 +355,7 @@ lemma OK_imp_ok: "[| OK I F; i \<in> I; j \<in> I; i \<noteq> j|] ==> (F i) ok (
 by (auto simp add: OK_iff_ok)
 
 
-subsection{*Allowed*}
+subsection\<open>Allowed\<close>
 
 lemma Allowed_SKIP [simp]: "Allowed SKIP = UNIV"
 by (auto simp add: Allowed_def)
@@ -372,8 +372,8 @@ by (simp add: ok_def Allowed_def)
 lemma OK_iff_Allowed: "OK I F = (\<forall>i \<in> I. \<forall>j \<in> I-{i}. F i \<in> Allowed(F j))"
 by (auto simp add: OK_iff_ok ok_iff_Allowed)
 
-subsection{*@{term safety_prop}, for reasoning about
- given instances of "ok"*}
+subsection\<open>@{term safety_prop}, for reasoning about
+ given instances of "ok"\<close>
 
 lemma safety_prop_Acts_iff:
      "safety_prop X ==> (Acts G \<subseteq> insert Id (UNION X Acts)) = (G \<in> X)"
@@ -418,7 +418,7 @@ proof (clarsimp simp add: safety_prop_def)
   moreover assume "Acts G \<subseteq> (\<Union>j\<in>\<Inter>i\<in>I. X i. Acts j)"
   ultimately have "Acts G \<subseteq> (\<Union>i\<in>X i. Acts i)"
     by auto
-  with * `i \<in> I` show "G \<in> X i" by blast
+  with * \<open>i \<in> I\<close> show "G \<in> X i" by blast
 qed
 
 lemma safety_prop_INTER1 [simp]:
@@ -443,7 +443,7 @@ lemma def_UNION_ok_iff:
       ==> F ok G = (G \<in> X & acts \<subseteq> AllowedActs G)"
 by (auto simp add: ok_def safety_prop_Acts_iff)
 
-text{*The union of two total programs is total.*}
+text\<open>The union of two total programs is total.\<close>
 lemma totalize_Join: "totalize F\<squnion>totalize G = totalize (F\<squnion>G)"
 by (simp add: program_equalityI totalize_def Join_def image_Un)
 

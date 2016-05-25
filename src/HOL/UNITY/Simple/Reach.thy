@@ -33,7 +33,7 @@ definition metric :: "state => nat"
   where "metric s = card {v. ~ s v}"
 
 
-text{**We assume that the set of vertices is finite*}
+text\<open>*We assume that the set of vertices is finite\<close>
 axiomatization where
   finite_graph:  "finite (UNIV :: vertex set)"
   
@@ -52,7 +52,7 @@ declare Rprg_def [THEN def_prg_Init, simp]
 
 declare asgt_def [THEN def_act_simp,simp]
 
-text{*All vertex sets are finite*}
+text\<open>All vertex sets are finite\<close>
 declare finite_subset [OF subset_UNIV finite_graph, iff]
 
 declare reach_invariant_def [THEN def_set_simp, simp]

@@ -10,21 +10,21 @@ imports "../UNITY_Main"
 begin
 
 record state =
-  floor :: "int"            --{*current position of the lift*}
-  "open" :: "bool"          --{*whether the door is opened at floor*}
-  stop  :: "bool"           --{*whether the lift is stopped at floor*}
-  req   :: "int set"        --{*for each floor, whether the lift is requested*}
-  up    :: "bool"           --{*current direction of movement*}
-  move  :: "bool"           --{*whether moving takes precedence over opening*}
+  floor :: "int"            \<comment>\<open>current position of the lift\<close>
+  "open" :: "bool"          \<comment>\<open>whether the door is opened at floor\<close>
+  stop  :: "bool"           \<comment>\<open>whether the lift is stopped at floor\<close>
+  req   :: "int set"        \<comment>\<open>for each floor, whether the lift is requested\<close>
+  up    :: "bool"           \<comment>\<open>current direction of movement\<close>
+  move  :: "bool"           \<comment>\<open>whether moving takes precedence over opening\<close>
 
 axiomatization
-  Min :: "int" and   --{*least and greatest floors*}
-  Max :: "int"       --{*least and greatest floors*}
+  Min :: "int" and   \<comment>\<open>least and greatest floors\<close>
+  Max :: "int"       \<comment>\<open>least and greatest floors\<close>
 where
   Min_le_Max [iff]: "Min \<le> Max"
   
   
-  --{*Abbreviations: the "always" part*}
+  \<comment>\<open>Abbreviations: the "always" part\<close>
   
 definition
   above :: "state set"
@@ -50,7 +50,7 @@ definition
   ready :: "state set"
   where "ready = {s. stop s & ~ open s & move s}"
  
-  --{*Further abbreviations*}
+  \<comment>\<open>Further abbreviations\<close>
 
 definition
   moving :: "state set"
@@ -65,7 +65,7 @@ definition
   where "opened = {s. stop s  &  open s  &  move s}"
 
 definition
-  closed :: "state set"  --{*but this is the same as ready!!*}
+  closed :: "state set"  \<comment>\<open>but this is the same as ready!!\<close>
   where "closed = {s. stop s  & ~ open s &  move s}"
 
 definition
@@ -78,7 +78,7 @@ definition
 
 
   
-  --{*The program*}
+  \<comment>\<open>The program\<close>
   
 definition
   request_act :: "(state*state) set"
@@ -128,12 +128,12 @@ definition
 
 definition
   button_press  :: "(state*state) set"
-      --{*This action is omitted from prior treatments, which therefore are
+      \<comment>\<open>This action is omitted from prior treatments, which therefore are
         unrealistic: nobody asks the lift to do anything!  But adding this
         action invalidates many of the existing progress arguments: various
         "ensures" properties fail. Maybe it should be constrained to only
         allow button presses in the current direction of travel, like in a
-        real lift.*}
+        real lift.\<close>
   where "button_press =
          {(s,s'). \<exists>n. s' = s (|req := insert n (req s)|)
                         & Min \<le> n & n \<le> Max}"
@@ -141,7 +141,7 @@ definition
 
 definition
   Lift :: "state program"
-    --{*for the moment, we OMIT @{text button_press}*}
+    \<comment>\<open>for the moment, we OMIT \<open>button_press\<close>\<close>
   where "Lift = mk_total_program
                 ({s. floor s = Min & ~ up s & move s & stop s &
                           ~ open s & req s = {}},
@@ -150,7 +150,7 @@ definition
                  UNIV)"
 
 
-  --{*Invariants*}
+  \<comment>\<open>Invariants\<close>
 
 definition
   bounded :: "state set"
@@ -261,7 +261,7 @@ apply (drule not_mem_distinct, assumption, arith)+
 done
 
 
-subsection{*Progress*}
+subsection\<open>Progress\<close>
 
 declare moving_def [THEN def_set_simp, simp]
 declare stopped_def [THEN def_set_simp, simp]
@@ -271,7 +271,7 @@ declare atFloor_def [THEN def_set_simp, simp]
 declare Req_def [THEN def_set_simp, simp]
 
 
-text{*The HUG'93 paper mistakenly omits the Req n from these!*}
+text\<open>The HUG'93 paper mistakenly omits the Req n from these!\<close>
 
 (** Lift_1 **)
 lemma E_thm01: "Lift \<in> (stopped \<inter> atFloor n) LeadsTo (opened \<inter> atFloor n)"

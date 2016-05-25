@@ -3,41 +3,41 @@
     Copyright   2001  University of Cambridge
 *)
 
-section{*The priority system*}
+section\<open>The priority system\<close>
 
 theory Priority imports PriorityAux begin
 
-text{*From Charpentier and Chandy,
+text\<open>From Charpentier and Chandy,
 Examples of Program Composition Illustrating the Use of Universal Properties
    In J. Rolim (editor), Parallel and Distributed Processing,
-   Spriner LNCS 1586 (1999), pages 1215-1227.*}
+   Spriner LNCS 1586 (1999), pages 1215-1227.\<close>
 
 type_synonym state = "(vertex*vertex)set"
 type_synonym command = "vertex=>(state*state)set"
   
 consts
   init :: "(vertex*vertex)set"  
-  --{* the initial state *}
+  \<comment>\<open>the initial state\<close>
 
-text{*Following the definitions given in section 4.4 *}
+text\<open>Following the definitions given in section 4.4\<close>
 
 definition highest :: "[vertex, (vertex*vertex)set]=>bool"
   where "highest i r \<longleftrightarrow> A i r = {}"
-    --{* i has highest priority in r *}
+    \<comment>\<open>i has highest priority in r\<close>
   
 definition lowest :: "[vertex, (vertex*vertex)set]=>bool"
   where "lowest i r \<longleftrightarrow> R i r = {}"
-    --{* i has lowest priority in r *}
+    \<comment>\<open>i has lowest priority in r\<close>
 
 definition act :: command
   where "act i = {(s, s'). s'=reverse i s & highest i s}"
 
 definition Component :: "vertex=>state program"
   where "Component i = mk_total_program({init}, {act i}, UNIV)"
-    --{* All components start with the same initial state *}
+    \<comment>\<open>All components start with the same initial state\<close>
 
 
-text{*Some Abbreviations *}
+text\<open>Some Abbreviations\<close>
 definition Highest :: "vertex=>state set"
   where "Highest i = {s. highest i s}"
 
@@ -49,11 +49,11 @@ definition Acyclic :: "state set"
 
 
 definition Maximal :: "state set"
-    --{* Every ``above'' set has a maximal vertex*}
+    \<comment>\<open>Every ``above'' set has a maximal vertex\<close>
   where "Maximal = (\<Inter>i. {s. ~highest i s-->(\<exists>j \<in> above i  s. highest j s)})"
 
 definition Maximal' :: "state set"
-    --{* Maximal vertex: equivalent definition*}
+    \<comment>\<open>Maximal vertex: equivalent definition\<close>
   where "Maximal' = (\<Inter>i. Highest i Un (\<Union>j. {s. j \<in> above i s} Int Highest j))"
 
   
@@ -77,18 +77,18 @@ declare act_def [THEN def_act_simp, simp]
 
 
 
-subsection{*Component correctness proofs*}
+subsection\<open>Component correctness proofs\<close>
 
-text{* neighbors is stable  *}
+text\<open>neighbors is stable\<close>
 lemma Component_neighbors_stable: "Component i \<in> stable {s. neighbors k s = n}"
 by (simp add: Component_def, safety, auto)
 
-text{* property 4 *}
+text\<open>property 4\<close>
 lemma Component_waits_priority: "Component i: {s. ((i,j):s) = b} Int (- Highest i) co {s. ((i,j):s)=b}"
 by (simp add: Component_def, safety)
 
-text{* property 5: charpentier and Chandy mistakenly express it as
- 'transient Highest i'. Consider the case where i has neighbors *}
+text\<open>property 5: charpentier and Chandy mistakenly express it as
+ 'transient Highest i'. Consider the case where i has neighbors\<close>
 lemma Component_yields_priority: 
  "Component i: {s. neighbors i s \<noteq> {}} Int Highest i  
                ensures - Highest i"
@@ -96,23 +96,23 @@ apply (simp add: Component_def)
 apply (ensures_tac "act i", blast+) 
 done
 
-text{* or better *}
+text\<open>or better\<close>
 lemma Component_yields_priority': "Component i \<in> Highest i ensures Lowest i"
 apply (simp add: Component_def)
 apply (ensures_tac "act i", blast+) 
 done
 
-text{* property 6: Component doesn't introduce cycle *}
+text\<open>property 6: Component doesn't introduce cycle\<close>
 lemma Component_well_behaves: "Component i \<in> Highest i co Highest i Un Lowest i"
 by (simp add: Component_def, safety, fast)
 
-text{* property 7: local axiom *}
+text\<open>property 7: local axiom\<close>
 lemma locality: "Component i \<in> stable {s. \<forall>j k. j\<noteq>i & k\<noteq>i--> ((j,k):s) = b j k}"
 by (simp add: Component_def, safety)
 
 
-subsection{*System  properties*}
-text{* property 8: strictly universal *}
+subsection\<open>System  properties\<close>
+text\<open>property 8: strictly universal\<close>
 
 lemma Safety: "system \<in> stable Safety"
 apply (unfold Safety_def)
@@ -120,12 +120,12 @@ apply (rule stable_INT)
 apply (simp add: system_def, safety, fast)
 done
 
-text{* property 13: universal *}
+text\<open>property 13: universal\<close>
 lemma p13: "system \<in> {s. s = q} co {s. s=q} Un {s. \<exists>i. derive i q s}"
 by (simp add: system_def Component_def mk_total_program_def totalize_JN, safety, blast)
 
-text{* property 14: the 'above set' of a Component that hasn't got 
-      priority doesn't increase *}
+text\<open>property 14: the 'above set' of a Component that hasn't got 
+      priority doesn't increase\<close>
 lemma above_not_increase: 
      "system \<in> -Highest i Int {s. j\<notin>above i s} co {s. j\<notin>above i s}"
 apply (insert reach_lemma [of concl: j])
@@ -142,7 +142,7 @@ done
 
 
 
-text{* p15: universal property: all Components well behave  *}
+text\<open>p15: universal property: all Components well behave\<close>
 lemma system_well_behaves: "system \<in> Highest i co Highest i Un Lowest i"
   by (simp add: system_def Component_def mk_total_program_def totalize_JN, safety, auto)
 
@@ -166,23 +166,23 @@ apply (unfold Acyclic_def Maximal_def, clarify)
 apply (drule above_lemma_b, auto)
 done
 
-text{* property 17: original one is an invariant *}
+text\<open>property 17: original one is an invariant\<close>
 lemma Acyclic_Maximal_stable: "system \<in> stable (Acyclic Int Maximal)"
 by (simp add: Acyclic_subset_Maximal [THEN Int_absorb2] Acyclic_stable)
 
 
-text{* property 5: existential property *}
+text\<open>property 5: existential property\<close>
 
 lemma Highest_leadsTo_Lowest: "system \<in> Highest i leadsTo Lowest i"
 apply (simp add: system_def Component_def mk_total_program_def totalize_JN)
 apply (ensures_tac "act i", auto)
 done
 
-text{* a lowest i can never be in any abover set *} 
+text\<open>a lowest i can never be in any abover set\<close> 
 lemma Lowest_above_subset: "Lowest i <= (\<Inter>k. {s. i\<notin>above k s})"
 by (auto simp add: image0_r_iff_image0_trancl trancl_converse)
 
-text{* property 18: a simpler proof than the original, one which uses psp *}
+text\<open>property 18: a simpler proof than the original, one which uses psp\<close>
 lemma Highest_escapes_above: "system \<in> Highest i leadsTo (\<Inter>k. {s. i\<notin>above k s})"
 apply (rule leadsTo_weaken_R)
 apply (rule_tac [2] Lowest_above_subset)
@@ -193,9 +193,9 @@ lemma Highest_escapes_above':
      "system \<in> Highest j Int {s. j \<in> above i s} leadsTo {s. j\<notin>above i s}"
 by (blast intro: leadsTo_weaken [OF Highest_escapes_above Int_lower1 INT_lower])
 
-subsection{*The main result: above set decreases*}
+subsection\<open>The main result: above set decreases\<close>
 
-text{* The original proof of the following formula was wrong *}
+text\<open>The original proof of the following formula was wrong\<close>
 
 lemma Highest_iff_above0: "Highest i = {s. above i s ={}}"
 by (auto simp add: image0_trancl_iff_image0_r)
@@ -253,10 +253,10 @@ apply (blast intro: above_decreases_psp')+
 done
 
 
-text{*We have proved all (relevant) theorems given in the paper.  We didn't
+text\<open>We have proved all (relevant) theorems given in the paper.  We didn't
 assume any thing about the relation @{term r}.  It is not necessary that
 @{term r} be a priority relation as assumed in the original proof.  It
-suffices that we start from a state which is finite and acyclic.*}
+suffices that we start from a state which is finite and acyclic.\<close>
 
 
 end

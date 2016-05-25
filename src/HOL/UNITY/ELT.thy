@@ -21,7 +21,7 @@ inductive "elt CC F B"
   monos Pow_mono
 *)
 
-section{*Progress Under Allowable Sets*}
+section\<open>Progress Under Allowable Sets\<close>
 
 theory ELT imports Project begin
 

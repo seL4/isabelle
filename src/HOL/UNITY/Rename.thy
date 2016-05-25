@@ -3,7 +3,7 @@
     Copyright   2000  University of Cambridge
 *)
 
-section{*Renaming of State Sets*}
+section\<open>Renaming of State Sets\<close>
 
 theory Rename imports Extend begin
 
@@ -39,7 +39,7 @@ lemma Init_rename [simp]: "Init (rename h F) = h`(Init F)"
 by (simp add: rename_def)
 
 
-subsection{*inverse properties*}
+subsection\<open>inverse properties\<close>
 
 lemma extend_set_inv: 
      "bij h  
@@ -164,7 +164,7 @@ lemma bij_rename_iff [simp]: "bij (rename h) = bij h"
 by (blast intro: bij_rename bij_rename_imp_bij)
 
 
-subsection{*the lattice operations*}
+subsection\<open>the lattice operations\<close>
 
 lemma rename_SKIP [simp]: "bij h ==> rename h SKIP = SKIP"
 by (simp add: rename_def Extend.extend_SKIP)
@@ -178,7 +178,7 @@ lemma rename_JN [simp]:
 by (simp add: rename_def Extend.extend_JN)
 
 
-subsection{*Strong Safety: co, stable*}
+subsection\<open>Strong Safety: co, stable\<close>
 
 lemma rename_constrains: 
      "bij h ==> (rename h F \<in> (h`A) co (h`B)) = (F \<in> A co B)"
@@ -203,7 +203,7 @@ apply (simp add: increasing_def rename_stable [symmetric] bij_image_Collect_eq b
 done
 
 
-subsection{*Weak Safety: Co, Stable*}
+subsection\<open>Weak Safety: Co, Stable\<close>
 
 lemma reachable_rename_eq: 
      "bij h ==> reachable (rename h F) = h ` (reachable F)"
@@ -228,7 +228,7 @@ by (simp add: Increasing_def rename_Stable [symmetric] bij_image_Collect_eq
               bij_is_surj [THEN surj_f_inv_f])
 
 
-subsection{*Progress: transient, ensures*}
+subsection\<open>Progress: transient, ensures\<close>
 
 lemma rename_transient: 
      "bij h ==> (rename h F \<in> transient (h`A)) = (F \<in> transient A)"
@@ -288,7 +288,7 @@ lemma OK_rename_iff [simp]: "bij h ==> OK I (%i. rename h (F i)) = (OK I F)"
 by (simp add: Extend.OK_extend_iff rename_def)
 
 
-subsection{*"image" versions of the rules, for lifting "guarantees" properties*}
+subsection\<open>"image" versions of the rules, for lifting "guarantees" properties\<close>
 
 (*All the proofs are similar.  Better would have been to prove one 
   meta-theorem, but how can we handle the polymorphism?  E.g. in 

@@ -5,15 +5,15 @@
 Original file is ../Auth/NS_Public_Bad
 *)
 
-section{*Analyzing the Needham-Schroeder Public-Key Protocol in UNITY*}
+section\<open>Analyzing the Needham-Schroeder Public-Key Protocol in UNITY\<close>
 
 theory NSP_Bad imports "../../Auth/Public" "../UNITY_Main" begin
 
-text{*This is the flawed version, vulnerable to Lowe's attack.
+text\<open>This is the flawed version, vulnerable to Lowe's attack.
 From page 260 of
   Burrows, Abadi and Needham.  A Logic of Authentication.
   Proc. Royal Soc. 426 (1989).
-*}
+\<close>
 
 type_synonym state = "event list"
 
@@ -63,8 +63,8 @@ declare spies_partsEs [elim]
 declare analz_into_parts [dest]
 declare Fake_parts_insert_in_Un  [dest]
 
-text{*For other theories, e.g. Mutex and Lift, using [iff] slows proofs down.
-  Here, it facilitates re-use of the Auth proofs.*}
+text\<open>For other theories, e.g. Mutex and Lift, using [iff] slows proofs down.
+  Here, it facilitates re-use of the Auth proofs.\<close>
 
 declare Fake_def [THEN def_act_simp, iff]
 declare NS1_def [THEN def_act_simp, iff]
@@ -74,8 +74,8 @@ declare NS3_def [THEN def_act_simp, iff]
 declare Nprg_def [THEN def_prg_Init, simp]
 
 
-text{*A "possibility property": there are traces that reach the end.
-  Replace by LEADSTO proof!*}
+text\<open>A "possibility property": there are traces that reach the end.
+  Replace by LEADSTO proof!\<close>
 lemma "A \<noteq> B ==>
        \<exists>NB. \<exists>s \<in> reachable Nprg. Says A B (Crypt (pubK B) (Nonce NB)) \<in> set s"
 apply (intro exI bexI)
@@ -88,7 +88,7 @@ apply auto
 done
 
 
-subsection{*Inductive Proofs about @{term ns_public}*}
+subsection\<open>Inductive Proofs about @{term ns_public}\<close>
 
 lemma ns_constrainsI:
      "(!!act s s'. [| act \<in> {Id, Fake, NS1, NS2, NS3};
@@ -99,8 +99,8 @@ apply (rule constrainsI, auto)
 done
 
 
-text{*This ML code does the inductions directly.*}
-ML{*
+text\<open>This ML code does the inductions directly.\<close>
+ML\<open>
 fun ns_constrains_tac ctxt i =
   SELECT_GOAL
     (EVERY
@@ -121,17 +121,17 @@ fun ns_induct_tac ctxt =
       (*"reachable" gets in here*)
       resolve_tac ctxt [@{thm Always_reachable} RS @{thm Always_ConstrainsI} RS @{thm StableI}] 1,
       ns_constrains_tac ctxt 1];
-*}
+\<close>
 
-method_setup ns_induct = {*
-    Scan.succeed (SIMPLE_METHOD' o ns_induct_tac) *}
+method_setup ns_induct = \<open>
+    Scan.succeed (SIMPLE_METHOD' o ns_induct_tac)\<close>
     "for inductive reasoning about the Needham-Schroeder protocol"
 
-text{*Converts invariants into statements about reachable states*}
+text\<open>Converts invariants into statements about reachable states\<close>
 lemmas Always_Collect_reachableD =
      Always_includes_reachable [THEN subsetD, THEN CollectD]
 
-text{*Spy never sees another agent's private key! (unless it's bad at start)*}
+text\<open>Spy never sees another agent's private key! (unless it's bad at start)\<close>
 lemma Spy_see_priK:
      "Nprg \<in> Always {s. (Key (priK A) \<in> parts (spies s)) = (A \<in> bad)}"
 apply ns_induct
@@ -145,10 +145,10 @@ by (rule Always_reachable [THEN Always_weaken], auto)
 declare Spy_analz_priK [THEN Always_Collect_reachableD, simp]
 
 
-subsection{*Authenticity properties obtained from NS2*}
+subsection\<open>Authenticity properties obtained from NS2\<close>
 
-text{*It is impossible to re-use a nonce in both NS1 and NS2 provided the
-     nonce is secret.  (Honest users generate fresh nonces.)*}
+text\<open>It is impossible to re-use a nonce in both NS1 and NS2 provided the
+     nonce is secret.  (Honest users generate fresh nonces.)\<close>
 lemma no_nonce_NS1_NS2:
  "Nprg
   \<in> Always {s. Crypt (pubK C) \<lbrace>NA', Nonce NA\<rbrace> \<in> parts (spies s) -->
@@ -158,12 +158,12 @@ apply ns_induct
 apply (blast intro: analz_insertI)+
 done
 
-text{*Adding it to the claset slows down proofs...*}
+text\<open>Adding it to the claset slows down proofs...\<close>
 lemmas no_nonce_NS1_NS2_reachable =
        no_nonce_NS1_NS2 [THEN Always_Collect_reachableD, rule_format]
 
 
-text{*Unicity for NS1: nonce NA identifies agents A and B*}
+text\<open>Unicity for NS1: nonce NA identifies agents A and B\<close>
 lemma unique_NA_lemma:
      "Nprg
   \<in> Always {s. Nonce NA \<notin> analz (spies s) -->
@@ -172,10 +172,10 @@ lemma unique_NA_lemma:
                 A=A' & B=B'}"
 apply ns_induct
 apply auto
-txt{*Fake, NS1 are non-trivial*}
+txt\<open>Fake, NS1 are non-trivial\<close>
 done
 
-text{*Unicity for NS1: nonce NA identifies agents A and B*}
+text\<open>Unicity for NS1: nonce NA identifies agents A and B\<close>
 lemma unique_NA:
      "[| Crypt(pubK B)  \<lbrace>Nonce NA, Agent A\<rbrace> \<in> parts(spies s);
          Crypt(pubK B') \<lbrace>Nonce NA, Agent A'\<rbrace> \<in> parts(spies s);
@@ -185,26 +185,26 @@ lemma unique_NA:
 by (blast dest: unique_NA_lemma [THEN Always_Collect_reachableD])
 
 
-text{*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure*}
+text\<open>Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure\<close>
 lemma Spy_not_see_NA:
      "[| A \<notin> bad;  B \<notin> bad |]
   ==> Nprg \<in> Always
               {s. Says A B (Crypt(pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>) \<in> set s
                   --> Nonce NA \<notin> analz (spies s)}"
 apply ns_induct
-txt{*NS3*}
+txt\<open>NS3\<close>
 prefer 4 apply (blast intro: no_nonce_NS1_NS2_reachable)
-txt{*NS2*}
+txt\<open>NS2\<close>
 prefer 3 apply (blast dest: unique_NA)
-txt{*NS1*}
+txt\<open>NS1\<close>
 prefer 2 apply blast
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply spy_analz
 done
 
 
-text{*Authentication for A: if she receives message 2 and has used NA
-  to start a run, then B has sent message 2.*}
+text\<open>Authentication for A: if she receives message 2 and has used NA
+  to start a run, then B has sent message 2.\<close>
 lemma A_trusts_NS2:
  "[| A \<notin> bad;  B \<notin> bad |]
   ==> Nprg \<in> Always
@@ -217,7 +217,7 @@ apply (auto dest: unique_NA)
 done
 
 
-text{*If the encrypted message appears then it originated with Alice in NS1*}
+text\<open>If the encrypted message appears then it originated with Alice in NS1\<close>
 lemma B_trusts_NS1:
      "Nprg \<in> Always
               {s. Nonce NA \<notin> analz (spies s) -->
@@ -228,10 +228,10 @@ apply blast
 done
 
 
-subsection{*Authenticity properties obtained from NS2*}
+subsection\<open>Authenticity properties obtained from NS2\<close>
 
-text{*Unicity for NS2: nonce NB identifies nonce NA and agent A.
-   Proof closely follows that of @{text unique_NA}.*}
+text\<open>Unicity for NS2: nonce NB identifies nonce NA and agent A.
+   Proof closely follows that of \<open>unique_NA\<close>.\<close>
 lemma unique_NB_lemma:
  "Nprg
   \<in> Always {s. Nonce NB \<notin> analz (spies s)  -->
@@ -240,7 +240,7 @@ lemma unique_NB_lemma:
                 A=A' & NA=NA'}"
 apply ns_induct
 apply auto
-txt{*Fake, NS2 are non-trivial*}
+txt\<open>Fake, NS2 are non-trivial\<close>
 done
 
 lemma unique_NB:
@@ -253,7 +253,7 @@ apply (blast dest: unique_NB_lemma [THEN Always_Collect_reachableD])
 done
 
 
-text{*NB remains secret PROVIDED Alice never responds with round 3*}
+text\<open>NB remains secret PROVIDED Alice never responds with round 3\<close>
 lemma Spy_not_see_NB:
      "[| A \<notin> bad;  B \<notin> bad |]
   ==> Nprg \<in> Always
@@ -262,20 +262,20 @@ lemma Spy_not_see_NB:
                   --> Nonce NB \<notin> analz (spies s)}"
 apply ns_induct
 apply (simp_all (no_asm_simp) add: all_conj_distrib)
-txt{*NS3: because NB determines A*}
+txt\<open>NS3: because NB determines A\<close>
 prefer 4 apply (blast dest: unique_NB)
-txt{*NS2: by freshness and unicity of NB*}
+txt\<open>NS2: by freshness and unicity of NB\<close>
 prefer 3 apply (blast intro: no_nonce_NS1_NS2_reachable)
-txt{*NS1: by freshness*}
+txt\<open>NS1: by freshness\<close>
 prefer 2 apply blast
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply spy_analz
 done
 
 
 
-text{*Authentication for B: if he receives message 3 and has used NB
-  in message 2, then A has sent message 3--to somebody....*}
+text\<open>Authentication for B: if he receives message 3 and has used NB
+  in message 2, then A has sent message 3--to somebody....\<close>
 lemma B_trusts_NS3:
      "[| A \<notin> bad;  B \<notin> bad |]
   ==> Nprg \<in> Always
@@ -286,29 +286,29 @@ lemma B_trusts_NS3:
 apply (insert Spy_not_see_NB [of A B NA NB], simp, ns_induct)
 apply (simp_all (no_asm_simp) add: ex_disj_distrib)
 apply auto
-txt{*NS3: because NB determines A. This use of @{text unique_NB} is robust.*}
+txt\<open>NS3: because NB determines A. This use of \<open>unique_NB\<close> is robust.\<close>
 apply (blast intro: unique_NB [THEN conjunct1])
 done
 
 
-text{*Can we strengthen the secrecy theorem?  NO*}
+text\<open>Can we strengthen the secrecy theorem?  NO\<close>
 lemma "[| A \<notin> bad;  B \<notin> bad |]
   ==> Nprg \<in> Always
               {s. Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>) \<in> set s
                   --> Nonce NB \<notin> analz (spies s)}"
 apply ns_induct
 apply auto
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply spy_analz
-txt{*NS2: by freshness and unicity of NB*}
+txt\<open>NS2: by freshness and unicity of NB\<close>
  apply (blast intro: no_nonce_NS1_NS2_reachable)
-txt{*NS3: unicity of NB identifies A and NA, but not B*}
+txt\<open>NS3: unicity of NB identifies A and NA, but not B\<close>
 apply (frule_tac A'=A in Says_imp_spies [THEN parts.Inj, THEN unique_NB])
 apply (erule Says_imp_spies [THEN parts.Inj], auto)
 apply (rename_tac s B' C)
-txt{*This is the attack!
+txt\<open>This is the attack!
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 oops
 
 
