@@ -82,9 +82,11 @@ val (_, triv_of_class) = Context.>>> (Context.map_theory_result
 
 in
 
-fun lift_triv_classes_conv ctxt conv ct =
+fun lift_triv_classes_conv orig_ctxt conv ct =
   let
-    val thy = Proof_Context.theory_of ctxt;
+    val thy = Proof_Context.theory_of orig_ctxt;
+    val ctxt = Proof_Context.init_global thy;
+      (*FIXME quasi-global context*)
     val algebra = Sign.classes_of thy;
     val triv_classes = get_triv_classes thy;
     fun additional_classes sort = filter_out (fn class => Sorts.sort_le algebra (sort, [class])) triv_classes;
@@ -120,7 +122,7 @@ fun lift_triv_classes_conv ctxt conv ct =
     |> (map_types o map_type_tfree)
         (fn (v, _) => TFree (v, (fst o the o AList.lookup (op =) vs_tab) v))
     |> Thm.cterm_of ctxt
-    |> conv
+    |> conv ctxt
     |> Thm.strip_shyps
     |> Thm.varifyT_global
     |> Thm.unconstrainT
@@ -597,8 +599,8 @@ fun oracle nbe_program_idx_tab ctxt vs_ty_t deps ct =
   raw_oracle (nbe_program_idx_tab, ctxt, vs_ty_t, deps, ct);
 
 fun dynamic_conv ctxt = lift_triv_classes_conv ctxt
-  (Code_Thingol.dynamic_conv ctxt (fn program =>
-    oracle (compile false ctxt program) ctxt));
+  (fn ctxt' => Code_Thingol.dynamic_conv ctxt' (fn program =>
+    oracle (compile false ctxt program) ctxt'));
 
 fun dynamic_value ctxt = lift_triv_classes_rew ctxt
   (Code_Thingol.dynamic_value ctxt I (fn program =>
@@ -608,7 +610,7 @@ fun static_conv (ctxt_consts as { ctxt, ... }) =
   let
     val conv = Code_Thingol.static_conv_thingol ctxt_consts
       (fn { program, ... } => oracle (compile true ctxt program));
-  in fn ctxt' => lift_triv_classes_conv ctxt' (conv ctxt') end;
+  in fn ctxt' => lift_triv_classes_conv ctxt' conv end;
 
 fun static_value { ctxt, consts } =
   let
