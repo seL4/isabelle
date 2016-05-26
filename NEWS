@@ -214,7 +214,7 @@ to a separate theory Library/Polynomial_GCD_euclidean.thy, to
 pave way for a possible future different type class instantiation
 for polynomials over factorial rings.  INCOMPATIBILITY.
 
-* Library/Sublist.thy: renamed
+* Library/Sublist.thy: added function "prefixes" and renamed
  prefixeq -> prefix
  prefix -> strict_prefix
  suffixeq -> suffix

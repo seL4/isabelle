@@ -43,8 +43,9 @@ proof -
   with that show ?thesis by (auto simp add: neq_Nil_conv)
 qed
 
+(* FIXME rm *)
 lemma strict_prefixI [intro?]: "prefix xs ys \<Longrightarrow> xs \<noteq> ys \<Longrightarrow> strict_prefix xs ys"
-  unfolding strict_prefix_def by blast
+by(fact prefix_order.le_neq_trans)
 
 lemma strict_prefixE [elim?]:
   fixes xs ys :: "'a list"
@@ -55,11 +56,13 @@ lemma strict_prefixE [elim?]:
 
 subsection \<open>Basic properties of prefixes\<close>
 
+(* FIXME rm *)
 theorem Nil_prefix [iff]: "prefix [] xs"
-  by (simp add: prefix_def)
+by(fact prefix_bot.bot_least)
 
+(* FIXME rm *)
 theorem prefix_Nil [simp]: "(prefix xs []) = (xs = [])"
-  by (induct xs) (simp_all add: prefix_def)
+by(fact prefix_bot.bot_unique)
 
 lemma prefix_snoc [simp]: "prefix xs (ys @ [y]) \<longleftrightarrow> xs = ys @ [y] \<or> prefix xs ys"
 proof
@@ -130,11 +133,17 @@ lemma set_mono_prefix: "prefix xs ys \<Longrightarrow> set xs \<subseteq> set ys
 lemma take_is_prefix: "prefix (take n xs) xs"
   unfolding prefix_def by (metis append_take_drop_id)
 
+lemma prefixeq_butlast: "prefix (butlast xs) xs"
+by (simp add: butlast_conv_take take_is_prefix)
+
 lemma map_prefixI: "prefix xs ys \<Longrightarrow> prefix (map f xs) (map f ys)"
   by (auto simp: prefix_def)
 
 lemma prefix_length_less: "strict_prefix xs ys \<Longrightarrow> length xs < length ys"
   by (auto simp: strict_prefix_def prefix_def)
+
+lemma prefix_snocD: "prefix (xs@[x]) ys \<Longrightarrow> strict_prefix xs ys"
+  by (simp add: strict_prefixI' prefix_order.dual_order.strict_trans1)
 
 lemma strict_prefix_simps [simp, code]:
   "strict_prefix xs [] \<longleftrightarrow> False"
@@ -193,6 +202,28 @@ next
     by (rule not_prefix_cases) auto
   show ?case by (metis Cons.hyps Cons_prefix_Cons npfx pv r1 r2)
 qed
+
+
+subsection \<open>Prefixes\<close>
+
+fun prefixes where
+"prefixes [] = [[]]" |
+"prefixes (x#xs) = [] # map (op # x) (prefixes xs)"
+
+lemma in_set_prefixes[simp]: "xs \<in> set (prefixes ys) \<longleftrightarrow> prefix xs ys"
+by (induction "xs" arbitrary: "ys"; rename_tac "ys", case_tac "ys"; auto)
+
+lemma length_prefixes[simp]: "length (prefixes xs) = length xs+1"
+by (induction xs) auto
+
+lemma prefixes_snoc[simp]:
+  "prefixes (xs@[x]) = prefixes xs @ [xs@[x]]"
+by (induction xs) auto
+
+lemma prefixes_eq_Snoc:
+  "prefixes ys = xs @ [x] \<longleftrightarrow>
+  (ys = [] \<and> xs = [] \<or> (\<exists>z zs. ys = zs@[z] \<and> xs = prefixes zs)) \<and> x = ys"
+by (cases ys rule: rev_cases) auto
 
 
 subsection \<open>Parallel lists\<close>
