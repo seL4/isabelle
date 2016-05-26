@@ -200,7 +200,7 @@ fun dynamic_holds_conv ctxt = Code_Thingol.dynamic_conv ctxt
       o reject_vars ctxt;
 
 fun static_holds_conv (ctxt_consts as { ctxt, ... }) =
-  Code_Thingol.static_conv ctxt_consts (fn { program, deps } => fn ctxt' => fn vs_t =>
+  Code_Thingol.static_conv_thingol ctxt_consts (fn { program, deps } => fn ctxt' => fn vs_t =>
     K (check_holds_oracle ctxt' (obtain_evaluator ctxt NONE program (map Constant deps)) vs_t o reject_vars ctxt'));
 
 end; (*local*)

@@ -94,7 +94,7 @@ val _ = Theory.setup
 (* evaluation with static code context *)
 
 fun static_conv { ctxt, simpset, consts } =
-  Code_Thingol.static_conv_simple { ctxt = ctxt, consts = consts }
+  Code_Thingol.static_conv_isa { ctxt = ctxt, consts = consts }
     (K oo rewrite_modulo ctxt simpset);
 
 fun static_tac { ctxt, simpset, consts } =

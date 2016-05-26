@@ -604,7 +604,7 @@ fun dynamic_value ctxt = lift_triv_classes_rew ctxt
 
 fun static_conv (ctxt_consts as { ctxt, ... }) =
   let
-    val evaluator = Code_Thingol.static_conv ctxt_consts
+    val evaluator = Code_Thingol.static_conv_thingol ctxt_consts
       (fn { program, ... } => oracle (compile true ctxt program));
   in fn ctxt' => lift_triv_classes_conv ctxt' (evaluator ctxt') end;
 
