@@ -78,11 +78,11 @@ val _ = Theory.setup
 
 val trace = Attrib.setup_config_bool @{binding "code_runtime_trace"} (K false);
 
-fun exec ctxt verbose code =
- (if Config.get ctxt trace then tracing code else ();
-  ML_Context.exec (fn () =>
-    ML_Compiler0.ML ML_Env.context
-      {line = 0, file = "generated code", verbose = verbose, debug = false} code));
+fun compile_ML verbose code context =
+ (if Config.get_generic context trace then tracing code else ();
+  ML_Context.exec (fn () => ML_Compiler0.ML ML_Env.context
+    {line = 0, file = "generated code", verbose = verbose,
+       debug = false} code) context);
 
 fun value ctxt (get, put, put_ml) (prelude, value) =
   let
@@ -91,7 +91,7 @@ fun value ctxt (get, put, put_ml) (prelude, value) =
       put_ml ^ " (fn () => " ^ value ^ ")) (Context.the_generic_context ())))";
     val ctxt' = ctxt
       |> put (fn () => error ("Bad computation for " ^ quote put_ml))
-      |> Context.proof_map (exec ctxt false code);
+      |> Context.proof_map (compile_ML false code);
   in get ctxt' () end;
 
 
@@ -416,7 +416,7 @@ fun add_eval_const (const, const') = Code_Target.set_printings (Constant
 fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name NONE thy =
       thy
       |> Code_Target.add_reserved target module_name
-      |> Context.theory_map (exec (Proof_Context.init_global thy (*FIXME*)) true code)
+      |> Context.theory_map (compile_ML true code)
       |> fold (add_eval_tyco o apsnd Code_Printer.str) tyco_map
       |> fold (add_eval_constr o apsnd Code_Printer.str) constr_map
       |> fold (add_eval_const o apsnd Code_Printer.str) const_map
