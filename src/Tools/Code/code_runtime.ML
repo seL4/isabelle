@@ -28,15 +28,15 @@ sig
     -> Proof.context -> term -> 'a Exn.result
   val dynamic_holds_conv: Proof.context -> conv
   val static_holds_conv: { ctxt: Proof.context, consts: string list } -> Proof.context -> conv
-  val static_value': (Proof.context -> term -> 'a) cookie
+  val fully_static_value: (Proof.context -> term -> 'a) cookie
     -> { ctxt: Proof.context, lift_postproc: (term -> term) -> 'a -> 'a,
            consts: (string * typ) list, T: typ }
     -> Proof.context -> term -> 'a option (*EXPERIMENTAL!*)
-  val static_value_strict': (Proof.context -> term -> 'a) cookie
+  val fully_static_value_strict: (Proof.context -> term -> 'a) cookie
     -> { ctxt: Proof.context, lift_postproc: (term -> term) -> 'a -> 'a,
            consts: (string * typ) list, T: typ }
     -> Proof.context -> term -> 'a (*EXPERIMENTAL!*)
-  val static_value_exn': (Proof.context -> term -> 'a) cookie
+  val fully_static_value_exn: (Proof.context -> term -> 'a) cookie
     -> { ctxt: Proof.context, lift_postproc: (term -> term) -> 'a -> 'a,
            consts: (string * typ) list, T: typ }
     -> Proof.context -> term -> 'a Exn.result (*EXPERIMENTAL!*)
@@ -201,7 +201,7 @@ fun static_holds_conv (ctxt_consts as { ctxt, ... }) =
 end; (*local*)
 
 
-(** full static evaluation -- still with limited coverage! **)
+(** fully static evaluation -- still with limited coverage! **)
 
 fun evaluation_code ctxt module_name program tycos consts =
   let
@@ -293,7 +293,7 @@ fun print_of_term ctxt ml_name_for_const T cTs =
       ml_name_for_typ = ml_name_for_typ } Ts
   end;
 
-fun compile_evaluator cookie ctxt cs_code cTs T { program, deps } =
+fun compile_computation cookie ctxt cs_code cTs T { program, deps } =
   let
     val (context_code, (_, const_map)) =
       evaluation_code ctxt structure_generated program [] cs_code;
@@ -302,21 +302,21 @@ fun compile_evaluator cookie ctxt cs_code cTs T { program, deps } =
     val of_term = value ctxt cookie (context_code ^ "\n" ^ of_term_code, List.last ml_names);
   in fn ctxt' => fn t => fn _ => fn _ => Exn.interruptible_capture (of_term ctxt') t end;
 
-fun static_value_exn' cookie { ctxt, lift_postproc, consts, T } =
+fun fully_static_value_exn cookie { ctxt, lift_postproc, consts, T } =
   let
     val thy = Proof_Context.theory_of ctxt;
     val cs_code = map (Axclass.unoverload_const thy) consts;
     val cTs = map2 (fn (_, T) => fn c => (c, T)) consts cs_code;
-    val evaluator = Code_Thingol.static_value { ctxt = ctxt,
+    val computation = Code_Thingol.static_value { ctxt = ctxt,
       lift_postproc = Exn.map_res o lift_postproc, consts = cs_code }
-      (compile_evaluator cookie ctxt cs_code cTs T);
+      (compile_computation cookie ctxt cs_code cTs T);
   in fn ctxt' =>
-    evaluator ctxt' o reject_vars ctxt' o Syntax.check_term ctxt' o Type.constraint T
+    computation ctxt' o reject_vars ctxt' o Syntax.check_term ctxt' o Type.constraint T
   end;
 
-fun static_value_strict' cookie = Exn.release ooo static_value_exn' cookie;
+fun fully_static_value_strict cookie = Exn.release ooo fully_static_value_exn cookie;
 
-fun static_value' cookie = partiality_as_none ooo static_value_exn' cookie;
+fun fully_static_value cookie = partiality_as_none ooo fully_static_value_exn cookie;
 
 
 (** code antiquotation **)

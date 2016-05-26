@@ -104,7 +104,7 @@ sig
     -> Proof.context -> term -> 'a
 end;
 
-structure Code_Thingol: CODE_THINGOL =
+structure Code_Thingol : CODE_THINGOL =
 struct
 
 open Basic_Code_Symbol;
@@ -776,36 +776,43 @@ structure Program = Code_Data
   val empty = Code_Symbol.Graph.empty;
 );
 
-fun invoke_generation ignore_cache ctxt (algebra, eqngr) generate thing =
+fun invoke_generation ignore_cache ctxt generate thing =
   Program.change_yield
     (if ignore_cache then NONE else SOME (Proof_Context.theory_of ctxt))
     (fn program => ([], program)
-      |> generate ctxt algebra eqngr thing
+      |> generate thing
       |-> (fn thing => fn (_, program) => (thing, program)));
 
 
 (* program generation *)
 
-fun consts_program_internal ctxt permissive consts =
-  let
-    fun generate_consts ctxt algebra eqngr =
-      fold_map (ensure_const ctxt algebra eqngr permissive);
-  in
-    invoke_generation permissive ctxt
-      (Code_Preproc.obtain false ctxt consts [])
-      generate_consts consts
-    |> snd
-  end;
+fun invoke_generation_for_consts ctxt { ignore_cache, permissive }
+  { algebra, eqngr } consts =
+  invoke_generation ignore_cache ctxt
+    (fold_map (ensure_const ctxt algebra eqngr permissive)) consts;
 
-fun consts_program_permissive thy = consts_program_internal thy true;
+fun invoke_generation_for_consts' ctxt ignore_cache_and_permissive consts =
+  invoke_generation_for_consts ctxt
+    { ignore_cache = ignore_cache_and_permissive, permissive = ignore_cache_and_permissive }
+    (Code_Preproc.obtain ignore_cache_and_permissive ctxt consts []) consts
+  |> snd;
 
-fun consts_program thy consts =
+fun invoke_generation_for_consts'' ctxt algebra_eqngr =
+  invoke_generation_for_consts ctxt
+    { ignore_cache = true, permissive = false }
+    algebra_eqngr
+  #> (fn (deps, program) => { deps = deps, program = program });
+
+fun consts_program_permissive ctxt =
+  invoke_generation_for_consts' ctxt true;
+
+fun consts_program ctxt consts =
   let
     fun project program = Code_Symbol.Graph.restrict
       (member (op =) (Code_Symbol.Graph.all_succs program
         (map Constant consts))) program;
   in
-    consts_program_internal thy false consts
+    invoke_generation_for_consts' ctxt false consts
     |> project
   end;
 
@@ -843,8 +850,7 @@ fun ensure_value ctxt algbr eqngr t =
 fun dynamic_evaluation eval ctxt algebra eqngr t =
   let
     val ((program, (vs_ty_t', deps)), _) =
-      invoke_generation false ctxt
-        (algebra, eqngr) ensure_value t;
+      invoke_generation false ctxt (ensure_value ctxt algebra eqngr) t;
   in eval program t vs_ty_t' deps end;
 
 fun dynamic_conv ctxt conv =
@@ -855,44 +861,42 @@ fun dynamic_value ctxt postproc comp =
   Code_Preproc.dynamic_value ctxt postproc
     (dynamic_evaluation comp ctxt);
 
-fun static_evaluation ctxt consts algebra eqngr static_eval =
-  let
-    fun generate_consts ctxt algebra eqngr =
-      fold_map (ensure_const ctxt algebra eqngr false);
-    val (deps, program) =
-      invoke_generation true ctxt
-        (algebra, eqngr) generate_consts consts;
-  in static_eval { program = program, deps = deps } end;
+fun static_evaluation ctxt consts algebra_eqngr static_eval =
+  static_eval (invoke_generation_for_consts'' ctxt algebra_eqngr consts);
 
-fun static_evaluation_thingol ctxt consts algebra eqngr static_eval =
+fun static_evaluation_thingol ctxt consts (algebra_eqngr as { algebra, eqngr }) static_eval =
   let
-    fun evaluation' program dynamic_eval ctxt t =
+    fun evaluation program dynamic_eval ctxt t =
       let
         val ((_, ((vs_ty', t'), deps)), _) =
           ensure_value ctxt algebra eqngr t ([], program);
       in dynamic_eval ctxt t (vs_ty', t') deps end;
-    fun evaluation static_eval { program, deps } =
-      evaluation' program (static_eval { program = program, deps = deps });
   in
-    static_evaluation ctxt consts algebra eqngr
-      (evaluation static_eval)
+    static_evaluation ctxt consts algebra_eqngr (fn program_deps =>
+      evaluation (#program program_deps) (static_eval program_deps))
   end;
 
-fun static_evaluation_isa ctxt consts algebra eqngr static_eval =
-  static_evaluation ctxt consts algebra eqngr
-    (fn { program, ... } => static_eval (program: program));
+fun static_evaluation_isa ctxt consts algebra_eqngr static_eval =
+  static_evaluation ctxt consts algebra_eqngr (fn program_deps =>
+    (static_eval (#program program_deps)));
 
 fun static_conv_thingol (ctxt_consts as { ctxt, consts }) conv =
-  Code_Preproc.static_conv ctxt_consts (fn { algebra, eqngr } =>
-    static_evaluation_thingol ctxt consts algebra eqngr (K oo conv));
+  Code_Preproc.static_conv ctxt_consts (fn algebra_eqngr =>
+    static_evaluation_thingol ctxt consts algebra_eqngr
+      (fn program_deps =>
+        let
+          val static_conv = conv program_deps;
+        in 
+          fn ctxt => fn _ => fn vs_ty => fn deps => static_conv ctxt vs_ty deps
+        end));
 
 fun static_conv_isa (ctxt_consts as { ctxt, consts }) conv =
-  Code_Preproc.static_conv ctxt_consts (fn { algebra, eqngr } =>
-    static_evaluation_isa ctxt consts algebra eqngr conv);
+  Code_Preproc.static_conv ctxt_consts (fn algebra_eqngr =>
+    static_evaluation_isa ctxt consts algebra_eqngr conv);
 
 fun static_value (ctxt_postproc_consts as { ctxt, consts, ... }) comp =
-  Code_Preproc.static_value ctxt_postproc_consts (fn { algebra, eqngr } =>
-    static_evaluation_thingol ctxt consts algebra eqngr comp);
+  Code_Preproc.static_value ctxt_postproc_consts (fn algebra_eqngr =>
+    static_evaluation_thingol ctxt consts algebra_eqngr comp);
 
 
 (** constant expressions **)
@@ -931,7 +935,7 @@ fun read_const_exprs ctxt const_exprs =
 
 fun code_depgr ctxt consts =
   let
-    val (_, eqngr) = Code_Preproc.obtain true ctxt consts [];
+    val { eqngr, ... } = Code_Preproc.obtain true ctxt consts [];
     val all_consts = Graph.all_succs eqngr consts;
   in Graph.restrict (member (op =) all_consts) eqngr end;
 

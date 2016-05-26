@@ -21,7 +21,8 @@ sig
   val sortargs: code_graph -> string -> sort list
   val all: code_graph -> string list
   val pretty: Proof.context -> code_graph -> Pretty.T
-  val obtain: bool -> Proof.context -> string list -> term list -> code_algebra * code_graph
+  val obtain: bool -> Proof.context -> string list -> term list ->
+    { algebra: code_algebra, eqngr: code_graph }
   val dynamic_conv: Proof.context
     -> (code_algebra -> code_graph -> term -> conv) -> conv
   val dynamic_value: Proof.context -> ((term -> term) -> 'a -> 'b)
@@ -123,20 +124,20 @@ fun trans_comb eq1 eq2 =
 fun trans_conv_rule conv eq = trans_comb eq (conv (Thm.rhs_of eq));
 
 structure Sandwich : sig
-  type T = Proof.context -> cterm -> (thm -> thm) * cterm;
+  type T = Proof.context -> cterm -> (Proof.context -> thm -> thm) * cterm;
   val chain: T -> T -> T
-  val lift: (Proof.context -> cterm -> (cterm -> thm) * thm) -> T
+  val lift: (Proof.context -> cterm -> (Proof.context -> cterm -> thm) * thm) -> T
   val conversion: T -> (Proof.context -> term -> conv) -> Proof.context -> conv;
   val computation: T -> ((term -> term) -> 'a -> 'b) ->
     (Proof.context -> term -> 'a) -> Proof.context -> term -> 'b;
 end = struct
 
-type T = Proof.context -> cterm -> (thm -> thm) * cterm;
+type T = Proof.context -> cterm -> (Proof.context -> thm -> thm) * cterm;
 
 fun chain sandwich2 sandwich1 ctxt =
   sandwich1 ctxt
   ##>> sandwich2 ctxt
-  #>> (op o);
+  #>> (fn (f, g) => fn ctxt => f ctxt o g ctxt);
 
 fun lift conv_sandwhich ctxt ct =
   let
@@ -144,21 +145,23 @@ fun lift conv_sandwhich ctxt ct =
     fun potentail_trans_comb eq1 eq2 =
       if matches_transitive eq1 eq2 then trans_comb eq1 eq2 else eq2;
         (*weakened protocol for plain term evaluation*)
-  in (trans_conv_rule postproc_conv o potentail_trans_comb eq, Thm.rhs_of eq) end;
+  in (fn ctxt => trans_conv_rule (postproc_conv ctxt) o potentail_trans_comb eq, Thm.rhs_of eq) end;
 
 fun conversion sandwich conv ctxt ct =
   let
     val (postproc, ct') = sandwich ctxt ct;
-  in postproc (conv ctxt (Thm.term_of ct') ct') end;
+    val thm = conv ctxt (Thm.term_of ct') ct';
+    val thm' = postproc ctxt thm;
+  in thm' end;
 
 fun computation sandwich lift_postproc eval ctxt t =
   let
     val (postproc, ct') = sandwich ctxt (Thm.cterm_of ctxt t);
-  in
-    Thm.term_of ct'
-    |> eval ctxt
-    |> lift_postproc (Thm.term_of o Thm.rhs_of o postproc o Thm.reflexive o Thm.cterm_of ctxt)
-  end;
+    val result = eval ctxt (Thm.term_of ct');
+    val result' = lift_postproc
+      (Thm.term_of o Thm.rhs_of o postproc ctxt o Thm.reflexive o Thm.cterm_of ctxt)
+      result
+  in result' end;
 
 end;
 
@@ -178,9 +181,9 @@ fun normalized_tfrees_sandwich ctxt ct =
         vs_original vs_normalized;
   in
     if eq_list (eq_fst (op =)) (vs_normalized, vs_original)
-    then (I, ct)
+    then (K I, ct)
     else
-     (Thm.instantiate (normalization, []) o Thm.varifyT_global,
+     (K (Thm.instantiate (normalization, []) o Thm.varifyT_global),
       Thm.cterm_of ctxt (map_types normalize t))
   end;
 
@@ -194,8 +197,8 @@ fun no_variables_sandwich ctxt ct =
       |> Conv.fconv_rule (Conv.arg1_conv (Thm.beta_conversion false));
   in
     if null all_vars
-    then (I, ct)
-    else (fold apply_beta all_vars, fold_rev Thm.lambda all_vars ct)
+    then (K I, ct)
+    else (K (fold apply_beta all_vars), fold_rev Thm.lambda all_vars ct)
   end;
 
 fun simplifier_conv_sandwich ctxt =
@@ -206,12 +209,13 @@ fun simplifier_conv_sandwich ctxt =
     fun pre_conv ctxt' =
       Simplifier.rewrite (put_simpset pre ctxt')
       #> trans_conv_rule (Axclass.unoverload_conv ctxt')
-    fun post_conv ctxt' =
-      Axclass.overload_conv ctxt'
-      #> trans_conv_rule (Simplifier.rewrite (put_simpset post ctxt'))
-  in fn ctxt' => pre_conv ctxt' #> pair (post_conv ctxt') end;
+    fun post_conv ctxt'' =
+      Axclass.overload_conv ctxt''
+      #> trans_conv_rule (Simplifier.rewrite (put_simpset post ctxt''))
+  in fn ctxt' => pre_conv ctxt' #> pair post_conv end;
 
-fun simplifier_sandwich ctxt = Sandwich.lift (simplifier_conv_sandwich ctxt);
+fun simplifier_sandwich ctxt =
+  Sandwich.lift (simplifier_conv_sandwich ctxt);
 
 fun value_sandwich ctxt =
   normalized_tfrees_sandwich
@@ -548,19 +552,18 @@ structure Wellsorted = Code_Data
 
 fun obtain ignore_cache ctxt consts ts = apsnd snd
   (Wellsorted.change_yield (if ignore_cache then NONE else SOME (Proof_Context.theory_of ctxt))
-    (extend_arities_eqngr ctxt consts ts));
+    (extend_arities_eqngr ctxt consts ts))
+  |> (fn (algebra, eqngr) => { algebra = algebra, eqngr = eqngr });
 
 fun dynamic_evaluation eval ctxt t =
   let
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t [];
-    val (algebra, eqngr) = obtain false ctxt consts [t];
+    val { algebra, eqngr } = obtain false ctxt consts [t];
   in eval algebra eqngr t end;
 
 fun static_evaluation ctxt consts eval =
-  let
-    val (algebra, eqngr) = obtain true ctxt consts [];
-  in eval { algebra = algebra, eqngr = eqngr } end;
+  eval (obtain true ctxt consts []);
 
 fun dynamic_conv ctxt conv =
   Sandwich.conversion (value_sandwich ctxt)
