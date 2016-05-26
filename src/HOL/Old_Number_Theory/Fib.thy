@@ -30,7 +30,7 @@ text \<open>
   to the Simplifier and are applied very selectively at first.
 \<close>
 
-text\<open>We disable @{text fib.fib_2fib_2} for simplification ...\<close>
+text\<open>We disable \<open>fib.fib_2fib_2\<close> for simplification ...\<close>
 declare fib_2 [simp del]
 
 text\<open>...then prove a version that has a more restrictive pattern.\<close>
@@ -133,7 +133,7 @@ proof (induct n rule: less_induct)
   qed
 qed
 
-lemma fib_gcd: "fib (gcd m n) = gcd (fib m) (fib n)"  -- \<open>Law 6.111\<close>
+lemma fib_gcd: "fib (gcd m n) = gcd (fib m) (fib n)"  \<comment> \<open>Law 6.111\<close>
   apply (induct m n rule: gcd_induct)
   apply (simp_all add: gcd_non_0 gcd_commute gcd_fib_mod)
   done

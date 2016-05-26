@@ -16,13 +16,13 @@ ML_file "TPTP_Parser/tptp_parser.ML"
 ML_file "TPTP_Parser/tptp_problem_name.ML"
 ML_file "TPTP_Parser/tptp_proof.ML"
 
-text {*The TPTP parser was generated using ML-Yacc, and needs the
+text \<open>The TPTP parser was generated using ML-Yacc, and needs the
 ML-Yacc library to operate.  This library is included with the parser,
 and we include the next section in accordance with ML-Yacc's terms of
-use.*}
+use.\<close>
 
 section "ML-YACC COPYRIGHT NOTICE, LICENSE AND DISCLAIMER."
-text {*
+text \<open>
 Copyright 1989, 1990 by David R. Tarditi Jr. and Andrew W. Appel
 
 Permission to use, copy, modify, and distribute this software and its
@@ -42,6 +42,6 @@ consequential damages or any damages whatsoever resulting from loss of
 use, data or profits, whether in an action of contract, negligence or
 other tortious action, arising out of or in connection with the use or
 performance of this software.
-*}
+\<close>
 
 end

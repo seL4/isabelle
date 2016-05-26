@@ -4,9 +4,9 @@
 Example that exercises Metis's (and hence Sledgehammer's) type encodings.
 *)
 
-section {*
+section \<open>
 Example that Exercises Metis's (and Hence Sledgehammer's) Type Encodings
-*}
+\<close>
 
 theory Type_Encodings
 imports Main
@@ -14,11 +14,11 @@ begin
 
 declare [[metis_new_skolem]]
 
-text {* Setup for testing Metis exhaustively *}
+text \<open>Setup for testing Metis exhaustively\<close>
 
 lemma fork: "P \<Longrightarrow> P \<Longrightarrow> P" by assumption
 
-ML {*
+ML \<open>
 val type_encs =
   ["erased",
    "poly_guards",
@@ -60,14 +60,14 @@ fun metis_exhaust_tac ctxt ths =
                THEN COND (has_fewer_prems 2) all_tac no_tac
                THEN tac type_encs)
   in tac type_encs end
-*}
+\<close>
 
-method_setup metis_exhaust = {*
+method_setup metis_exhaust = \<open>
   Attrib.thms >>
     (fn ths => fn ctxt => SIMPLE_METHOD (metis_exhaust_tac ctxt ths))
-*} "exhaustively run Metis with all type encodings"
+\<close> "exhaustively run Metis with all type encodings"
 
-text {* Miscellaneous tests *}
+text \<open>Miscellaneous tests\<close>
 
 lemma "x = y \<Longrightarrow> y = x"
 by metis_exhaust

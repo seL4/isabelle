@@ -2,7 +2,7 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
-section {* Setup for State Space Locales \label{sec:StateSpaceLocale}*}
+section \<open>Setup for State Space Locales \label{sec:StateSpaceLocale}\<close>
 
 theory StateSpaceLocale imports StateFun 
 keywords "statespace" :: thy_decl
@@ -11,9 +11,9 @@ begin
 ML_file "state_space.ML"
 ML_file "state_fun.ML"
 
-text {* For every type that is to be stored in a state space, an
+text \<open>For every type that is to be stored in a state space, an
 instance of this locale is imported in order convert the abstract and
-concrete values.*}
+concrete values.\<close>
 
 
 locale project_inject =

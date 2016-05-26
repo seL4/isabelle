@@ -6,7 +6,7 @@
 Theory of ordinals and cardinals.
 *)
 
-section {* Theory of Ordinals and Cardinals *}
+section \<open>Theory of Ordinals and Cardinals\<close>
 
 theory Cardinals
 imports Ordinal_Arithmetic Cardinal_Arithmetic Wellorder_Extension

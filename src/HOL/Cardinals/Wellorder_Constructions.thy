@@ -5,7 +5,7 @@
 Constructions on wellorders.
 *)
 
-section {* Constructions on Wellorders *}
+section \<open>Constructions on Wellorders\<close>
 
 theory Wellorder_Constructions
 imports
@@ -23,7 +23,7 @@ declare
 lemma Func_emp2[simp]: "A \<noteq> {} \<Longrightarrow> Func A {} = {}" by auto
 
 
-subsection {* Restriction to a set *}
+subsection \<open>Restriction to a set\<close>
 
 lemma Restr_incr2:
 "r <= r' \<Longrightarrow> Restr r A <= Restr r' A"
@@ -55,7 +55,7 @@ lemma Restr_incr1:
 by blast
 
 
-subsection {* Order filters versus restrictions and embeddings *}
+subsection \<open>Order filters versus restrictions and embeddings\<close>
 
 lemma ofilter_Restr:
 assumes WELL: "Well_order r" and
@@ -92,7 +92,7 @@ using assms
 by (auto simp add: ofilter_subset_embedS_iso)
 
 
-subsection {* Ordering the well-orders by existence of embeddings *}
+subsection \<open>Ordering the well-orders by existence of embeddings\<close>
 
 corollary ordLeq_refl_on: "refl_on {r. Well_order r} ordLeq"
 using ordLeq_reflexive unfolding ordLeq_def refl_on_def
@@ -169,7 +169,7 @@ corollary under_Restr_ordLeq:
 by (auto simp add: ofilter_ordLeq wo_rel.under_ofilter wo_rel_def)
 
 
-subsection {* Copy via direct images *}
+subsection \<open>Copy via direct images\<close>
 
 lemma Id_dir_image: "dir_image Id f \<le> Id"
 unfolding dir_image_def by auto
@@ -275,9 +275,9 @@ proof-
 qed
 
 
-subsection {* The maxim among a finite set of ordinals *}
+subsection \<open>The maxim among a finite set of ordinals\<close>
 
-text {* The correct phrasing would be ``a maxim of ...", as @{text "\<le>o"} is only a preorder. *}
+text \<open>The correct phrasing would be ``a maxim of ...", as \<open>\<le>o\<close> is only a preorder.\<close>
 
 definition isOmax :: "'a rel set \<Rightarrow> 'a rel \<Rightarrow> bool"
 where
@@ -437,7 +437,7 @@ proof-
 qed
 
 
-subsection {* Limit and succesor ordinals *}
+subsection \<open>Limit and succesor ordinals\<close>
 
 lemma embed_underS2:
 assumes r: "Well_order r" and s: "Well_order s"  and g: "embed r s g" and a: "a \<in> Field r"
@@ -548,7 +548,7 @@ unfolding Chains_def proof safe
   by (elim cases_Total3 disjE) (auto elim: cases_Total3 intro!: assms simp: Field_def)
 qed
 
-subsubsection {* Successor and limit elements of an ordinal *}
+subsubsection \<open>Successor and limit elements of an ordinal\<close>
 
 definition "succ i \<equiv> suc {i}"
 
@@ -724,7 +724,7 @@ where
  else L f i"
 
 
-subsubsection {* Well-order recursion with (zero), succesor, and limit *}
+subsubsection \<open>Well-order recursion with (zero), succesor, and limit\<close>
 
 definition worecSL :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
 where "worecSL S L \<equiv> worec (mergeSL S L)"
@@ -819,7 +819,7 @@ proof-
 qed
 
 
-subsubsection {* Well-order succ-lim induction *}
+subsubsection \<open>Well-order succ-lim induction\<close>
 
 lemma ord_cases:
 obtains j where "i = succ j" and "aboveS j \<noteq> {}"  | "isLim i"
@@ -901,7 +901,7 @@ abbreviation "worecSL \<equiv> wo_rel.worecSL"
 abbreviation "worecZSL \<equiv> wo_rel.worecZSL"
 
 
-subsection {* Projections of wellorders *}
+subsection \<open>Projections of wellorders\<close>
 
 definition "oproj r s f \<equiv> Field s \<subseteq> f ` (Field r) \<and> compat r s f"
 
@@ -1018,7 +1018,7 @@ proof-
          fix b1 assume "b1 \<in> g ` underS r a"
          then obtain a1 where a1: "b1 = g a1" and a1: "a1 \<in> underS r a" by auto
          hence "b1 \<in> underS s (f a)"
-         using a by (metis `\<And>a1. a1 \<in> underS r a \<Longrightarrow> g a1 \<in> underS s (f a)`)
+         using a by (metis \<open>\<And>a1. a1 \<in> underS r a \<Longrightarrow> g a1 \<in> underS s (f a)\<close>)
          thus "f a \<noteq> b1 \<and> (b1, f a) \<in> s" unfolding underS_def by auto
        qed(insert fa, auto)
        thus "g a \<in> under s (f a)" unfolding under_def by auto
@@ -1061,7 +1061,7 @@ next
       by (auto dest!: oproj_Field2[OF f] inv_into_injective intro!: inv_into_into)
     ultimately have "(inv_into (Field r) f b, inv_into (Field r) f a) \<in> r"
       using r by (auto simp: well_order_on_def linear_order_on_def total_on_def)
-    with f[unfolded oproj_def compat_def] *(1) `a \<in> Field s`
+    with f[unfolded oproj_def compat_def] *(1) \<open>a \<in> Field s\<close>
       f_inv_into_f[of b f "Field r"] f_inv_into_f[of a f "Field r"]
       have "(b, a) \<in> s" by (metis in_mono)
     with *(2,3) s have False

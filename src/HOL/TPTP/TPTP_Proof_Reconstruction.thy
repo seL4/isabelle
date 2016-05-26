@@ -52,7 +52,7 @@ begin
 
 section "Setup"
 
-ML {*
+ML \<open>
   val tptp_unexceptional_reconstruction = Attrib.setup_config_bool @{binding tptp_unexceptional_reconstruction} (K false)
   fun unexceptional_reconstruction ctxt = Config.get ctxt tptp_unexceptional_reconstruction
   val tptp_informative_failure = Attrib.setup_config_bool @{binding tptp_informative_failure} (K false)
@@ -67,7 +67,7 @@ ML {*
       if max = 0 then false
       else size > max
     end
-*}
+\<close>
 
 (*FIXME move to TPTP_Proof_Reconstruction_Test_Units*)
 declare [[
@@ -87,7 +87,7 @@ declare [[
 
 
 section "Proof reconstruction"
-text {*There are two parts to proof reconstruction:
+text \<open>There are two parts to proof reconstruction:
 \begin{itemize}
   \item interpreting the inferences
   \item building the skeleton, which indicates how to compose
@@ -144,7 +144,7 @@ It is hoped that this setup can target other provers by modifying the
 clause representation to fit them, and adapting the inference
 interpretation to handle the rules used by the prover. It should also
 facilitate composing together proofs found by different provers.
-*}
+\<close>
 
 
 subsection "Instantiation"
@@ -159,7 +159,7 @@ lemma polar_exE [rule_format]:
   "\<lbrakk>(\<forall>x. P x) = False; \<And>x. (P x) = False \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
 by auto
 
-ML {*
+ML \<open>
 (*This carries out an allE-like rule but on (polarised) literals.
  Instead of yielding a free variable (which is a hell for the
  matcher) it seeks to use one of the subgoals' parameters.
@@ -195,9 +195,9 @@ fun inst_parametermatch_tac ctxt thms i = fn st =>
 
 (*Attempts to use the polar_allE theorems on a specific subgoal.*)
 fun forall_pos_tac ctxt = inst_parametermatch_tac ctxt @{thms polar_allE}
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*This is similar to inst_parametermatch_tac, but prefers to
   match variables having identical names. Logically, this is
   a hack. But it reduces the complexity of the problem.*)
@@ -233,12 +233,12 @@ fun nominal_inst_parametermatch_tac ctxt thm i = fn st =>
             K no_tac i st
       end
   end
-*}
+\<close>
 
 
 subsection "Prefix massaging"
 
-ML {*
+ML \<open>
 exception NO_GOALS
 
 (*Get quantifier prefix of the hypothesis and conclusion, reorder
@@ -291,7 +291,7 @@ fun canonicalise_qtfr_order ctxt i = fn st =>
         dresolve_tac ctxt [thm] i st
       end
     end
-*}
+\<close>
 
 
 subsection "Some general rules and congruences"
@@ -300,14 +300,14 @@ subsection "Some general rules and congruences"
   applied implicitly during some Leo2 inferences.*)
 lemma polarise: "P ==> P = True" by auto
 
-ML {*
+ML \<open>
 fun is_polarised t =
   (TPTP_Reconstruct.remove_polarity true t; true)
   handle TPTP_Reconstruct.UNPOLARISED _ => false
 
 fun polarise_subgoal_hyps ctxt =
   COND' (SOME #> TERMPRED is_polarised (fn _ => true)) (K no_tac) (dresolve_tac ctxt @{thms polarise})
-*}
+\<close>
 
 lemma simp_meta [rule_format]:
   "(A --> B) == (~A | B)"
@@ -335,12 +335,12 @@ lemma polarity_switch [rule_format]:
 by auto
 
 lemma solved_all_splits: "False = True \<Longrightarrow> False" by simp
-ML {*
+ML \<open>
 fun solved_all_splits_tac ctxt =
   TRY (eresolve_tac ctxt @{thms conjE} 1)
   THEN resolve_tac ctxt @{thms solved_all_splits} 1
   THEN assume_tac ctxt 1
-*}
+\<close>
 
 lemma lots_of_logic_expansions_meta [rule_format]:
   "(((A :: bool) = B) = True) == (((A \<longrightarrow> B) = True) & ((B \<longrightarrow> A) = True))"
@@ -408,7 +408,7 @@ lemma extuni_func [rule_format]: "(F = G) = False \<Longrightarrow> (! X. (F X =
 
 subsection "Emulation: tactics"
 
-ML {*
+ML \<open>
 (*Instantiate a variable according to the info given in the
   proof annotation. Through this we avoid having to come up
   with instantiations during reconstruction.*)
@@ -441,9 +441,9 @@ fun bind_tac ctxt prob_name ordered_binds =
     (*now only the variable to instantiate should be left*)
     THEN FIRST (map instantiate_tac ordered_instances)
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*Simplification tactics*)
 local
   fun rew_goal_tac thms ctxt i =
@@ -456,7 +456,7 @@ in
   val simper_animal =
     rew_goal_tac @{thms simp_meta}
 end
-*}
+\<close>
 
 lemma prop_normalise [rule_format]:
   "(A | B) | C == A | B | C"
@@ -464,7 +464,7 @@ lemma prop_normalise [rule_format]:
   "A | B == ~(~A & ~B)"
   "~~ A == A"
 by auto
-ML {*
+ML \<open>
 (*i.e., break_conclusion*)
 fun flip_conclusion_tac ctxt =
   let
@@ -476,7 +476,7 @@ fun flip_conclusion_tac ctxt =
   in
     default_tac ORELSE' resolve_tac ctxt @{thms flip}
   end
-*}
+\<close>
 
 
 subsection "Skolemisation"
@@ -541,7 +541,7 @@ apply (drule polar_skolemise, simp)
 apply (simp, drule someI_ex, simp)
 done
 
-ML {*
+ML \<open>
 (*FIXME LHS should be constant. Currently allow variables for testing. Probably should still allow Vars (but not Frees) since they'll act as intermediate values*)
 fun conc_is_skolem_def t =
   case t of
@@ -574,9 +574,9 @@ fun conc_is_skolem_def t =
         h_property andalso args_property
       end
     | _ => false
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*Hack used to detect if a Skolem definition, with an LHS Var, has had the LHS instantiated into an unacceptable term.*)
 fun conc_is_bad_skolem_def t =
   case t of
@@ -610,9 +610,9 @@ fun conc_is_bad_skolem_def t =
         h_property andalso args_property
       end
     | _ => false
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun get_skolem_conc t =
   let
     val t' =
@@ -633,7 +633,7 @@ fun get_skolem_conc_const t =
      |> head_of
      |> dest_Const)
    (get_skolem_conc t)
-*}
+\<close>
 
 (*
 Technique for handling quantifiers:
@@ -643,7 +643,7 @@ Technique for handling quantifiers:
      or bind a fresh !! -- currently not doing the latter since it never seems to arised in normal Leo2 proofs.
 *)
 
-ML {*
+ML \<open>
 fun forall_neg_tac candidate_consts ctxt i = fn st =>
   let
     val gls =
@@ -678,9 +678,9 @@ fun forall_neg_tac candidate_consts ctxt i = fn st =>
         (fold (curry (op APPEND')) attempts (K no_tac)) i st
       end
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 exception SKOLEM_DEF of term (*The tactic wasn't pointed at a skolem definition*)
 exception NO_SKOLEM_DEF of (*skolem const name*)string * Binding.binding * term (*The tactic could not find a skolem definition in the theory*)
 fun absorb_skolem_def ctxt prob_name_opt i = fn st =>
@@ -750,9 +750,9 @@ fun absorb_skolem_def ctxt prob_name_opt i = fn st =>
     resolve_tac ctxt [Drule.export_without_context thm] i st
   end
   handle SKOLEM_DEF _ => no_tac st
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*
 In current system, there should only be 2 subgoals: the one where
 the skolem definition is being built (with a Var in the LHS), and the other subgoal using Var.
@@ -801,9 +801,9 @@ fun find_skolem_term ctxt consts_candidate arity = fn st =>
     |> maps (get_skolem_terms [] [])
     |> distinct (op =)
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun instantiate_skols ctxt consts_candidates i = fn st =>
   let
     val gls =
@@ -953,9 +953,9 @@ NOTE: remember to APPEND' instead of ORELSE' the two tactics relating to skolemi
   in
     tactic st
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun new_skolem_tac ctxt consts_candidates =
   let
     fun tac thm =
@@ -965,12 +965,12 @@ fun new_skolem_tac ctxt consts_candidates =
     if null consts_candidates then K no_tac
     else FIRST' (map tac @{thms lift_exists})
   end
-*}
+\<close>
 
 (*
 need a tactic to expand "? x . P" to "~ ! x. ~ P"
 *)
-ML {*
+ML \<open>
 fun ex_expander_tac ctxt i =
    let
      val simpset =
@@ -979,12 +979,12 @@ fun ex_expander_tac ctxt i =
    in
      CHANGED (asm_full_simp_tac simpset i)
    end
-*}
+\<close>
 
 
 subsubsection "extuni_dec"
 
-ML {*
+ML \<open>
 (*n-ary decomposition. Code is based on the n-ary arg_cong generator*)
 fun extuni_dec_n ctxt arity =
   let
@@ -1035,9 +1035,9 @@ fun extuni_dec_n ctxt arity =
     Goal.prove ctxt [] [] t (fn _ => auto_tac ctxt)
     |> Drule.export_without_context
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*Determine the arity of a function which the "dec"
   unification rule is about to be applied.
   NOTE:
@@ -1157,7 +1157,7 @@ fun extuni_dec_tac ctxt i = fn st =>
   in
     (CHANGED o search_tac) i st
   end
-*}
+\<close>
 
 
 subsubsection "standard_cnf"
@@ -1178,7 +1178,7 @@ since "standard_cnf" seems to be applied at the preprocessing
 stage, together with splitting.
 *)
 
-ML {*
+ML \<open>
 (*Conjunctive counterparts to Term.disjuncts_aux and Term.disjuncts*)
 fun conjuncts_aux (Const (@{const_name HOL.conj}, _) $ t $ t') conjs =
      conjuncts_aux t (conjuncts_aux t' conjs)
@@ -1196,9 +1196,9 @@ in
     imp_strip_horn' [] t
     |> apfst rev
 end
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*Returns whether the antecedents are separated by conjunctions
   or implications; the number of antecedents; and the polarity
   of the original clause -- I think this will always be "false".*)
@@ -1254,9 +1254,9 @@ fun standard_cnf_type ctxt i : thm -> (TPTP_Reconstruct.formula_kind * int * boo
     if null antes then NONE
     else SOME (ante_type, length antes', pol)
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*Given a certain standard_cnf type, build a metatheorem that would
   validate it*)
 fun mk_standard_cnf ctxt kind arity =
@@ -1294,9 +1294,9 @@ fun mk_standard_cnf ctxt kind arity =
     Goal.prove ctxt [] [] t (fn _ => HEADGOAL (blast_tac ctxt))
     |> Drule.export_without_context
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*Applies a d-tactic, then breaks it up conjunctively.
   This can be used to transform subgoals as follows:
      (A \<longrightarrow> B) = False  \<Longrightarrow> R
@@ -1307,15 +1307,15 @@ ML {*
 fun weak_conj_tac ctxt drule =
   dresolve_tac ctxt [drule] THEN'
   (REPEAT_DETERM o eresolve_tac ctxt @{thms conjE})
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun uncurry_lit_neg_tac ctxt =
   REPEAT_DETERM o
     dresolve_tac ctxt [@{lemma "(A \<longrightarrow> B \<longrightarrow> C) = False \<Longrightarrow> (A & B \<longrightarrow> C) = False" by auto}]
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun standard_cnf_tac ctxt i = fn st =>
   let
     fun core_tactic i = fn st =>
@@ -1332,12 +1332,12 @@ fun standard_cnf_tac ctxt i = fn st =>
      THEN' TPTP_Reconstruct_Library.reassociate_conjs_tac ctxt
      THEN' core_tactic) i st
   end
-*}
+\<close>
 
 
 subsubsection "Emulator prep"
 
-ML {*
+ML \<open>
 datatype cleanup_feature =
     RemoveHypothesesFromSkolemDefs
   | RemoveDuplicates
@@ -1380,9 +1380,9 @@ datatype feature =
   | InnerLoopOnce of loop_feature list
   | CleanUp of cleanup_feature list
   | AbsorbSkolemDefs
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun can_feature x l =
   let
     fun sublist_of_clean_up el =
@@ -1442,9 +1442,9 @@ fun loop_can_feature loop_feats l =
 
 @{assert}
   (not (can_feature (Loop []) [InnerLoopOnce [Existential_Var]]));
-*}
+\<close>
 
-ML {*
+ML \<open>
 exception NO_LOOP_FEATS
 fun get_loop_feats (feats : feature list) =
   let
@@ -1467,11 +1467,11 @@ fun get_loop_feats (feats : feature list) =
 @{assert}
   (get_loop_feats [Loop [King_Cong, Break_Hypotheses, Existential_Free, Existential_Var, Universal]] =
    [King_Cong, Break_Hypotheses, Existential_Free, Existential_Var, Universal])
-*}
+\<close>
 
 (*use as elim rule to remove premises*)
 lemma insa_prems: "\<lbrakk>Q; P\<rbrakk> \<Longrightarrow> P" by auto
-ML {*
+ML \<open>
 fun cleanup_skolem_defs ctxt feats =
   let
     (*remove hypotheses from skolem defs,
@@ -1485,16 +1485,16 @@ fun cleanup_skolem_defs ctxt feats =
       ALLGOALS (TRY o dehypothesise_skolem_defs)
     else all_tac
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun remove_duplicates_tac feats =
   (if can_feature (CleanUp [RemoveDuplicates]) feats then
      ALLGOALS distinct_subgoal_tac
    else all_tac)
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*given a goal state, indicates the skolem constants committed-to in it (i.e. appearing in LHS of a skolem definition)*)
 fun which_skolem_concs_used ctxt = fn st =>
   let
@@ -1512,9 +1512,9 @@ fun which_skolem_concs_used ctxt = fn st =>
     |> switch (fold (fn x => fn l => if is_some x then the x :: l else l)) []
     |> map Const
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun exists_tac ctxt feats consts_diff =
   let
     val ex_var =
@@ -1535,7 +1535,7 @@ fun forall_tac ctxt feats =
   if loop_can_feature [Universal] feats then
     forall_pos_tac ctxt
   else K no_tac
-*}
+\<close>
 
 
 subsubsection "Finite types"
@@ -1545,7 +1545,7 @@ lemma forall_pos_lift:
 
 (*predicate over the type of the leading quantified variable*)
 
-ML {*
+ML \<open>
 fun extcnf_forall_special_pos_tac ctxt =
   let
     val bool =
@@ -1565,19 +1565,19 @@ fun extcnf_forall_special_pos_tac ctxt =
             (*FIXME could check the type of the leading quantified variable, instead of trying everything*)
             (tacs (bool @ bool_to_bool)))
   end
-*}
+\<close>
 
 
 subsubsection "Emulator"
 
 lemma efq: "[|A = True; A = False|] ==> R" by auto
-ML {*
+ML \<open>
 fun efq_tac ctxt =
   (eresolve_tac ctxt @{thms efq} THEN' assume_tac ctxt)
   ORELSE' assume_tac ctxt
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*This is applied to all subgoals, repeatedly*)
 fun extcnf_combined_main ctxt feats consts_diff =
   let
@@ -1697,9 +1697,9 @@ fun clause_consts_diff thm =
     if head_of t = Logic.implies then do_diff t
     else []
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*remove quantification in hypothesis clause (! X. t), if
   X not free in t*)
 fun remove_redundant_quantification ctxt i = fn st =>
@@ -1740,14 +1740,14 @@ fun remove_redundant_quantification ctxt i = fn st =>
           end
      end
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun remove_redundant_quantification_ignore_skolems ctxt i =
   COND (TERMPRED (fn _ => true) conc_is_skolem_def (SOME i))
     no_tac
     (remove_redundant_quantification ctxt i)
-*}
+\<close>
 
 lemma drop_redundant_literal_qtfr:
   "(! X. P) = True \<Longrightarrow> P = True"
@@ -1756,7 +1756,7 @@ lemma drop_redundant_literal_qtfr:
   "(? X. P) = False \<Longrightarrow> P = False"
 by auto
 
-ML {*
+ML \<open>
 (*remove quantification in the literal "(! X. t) = True/False"
   in the singleton hypothesis clause, if X not free in t*)
 fun remove_redundant_quantification_in_lit ctxt i = fn st =>
@@ -1808,16 +1808,16 @@ fun remove_redundant_quantification_in_lit ctxt i = fn st =>
           end
      end
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun remove_redundant_quantification_in_lit_ignore_skolems ctxt i =
   COND (TERMPRED (fn _ => true) conc_is_skolem_def (SOME i))
     no_tac
     (remove_redundant_quantification_in_lit ctxt i)
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun extcnf_combined_tac ctxt prob_name_opt feats skolem_consts = fn st =>
   let
     val thy = Proof_Context.theory_of ctxt
@@ -1889,7 +1889,7 @@ fun extcnf_combined_tac ctxt prob_name_opt feats skolem_consts = fn st =>
   in
     DEPTH_SOLVE (CHANGED tec) st
   end
-*}
+\<close>
 
 
 subsubsection "unfold_def"
@@ -1904,7 +1904,7 @@ lemma drop_first_hypothesis [rule_format]: "\<lbrakk>A; B\<rbrakk> \<Longrightar
 lemma un_meta_polarise: "(X \<equiv> True) \<Longrightarrow> X" by auto
 lemma meta_polarise: "X \<Longrightarrow> X \<equiv> True" by auto
 
-ML {*
+ML \<open>
 fun unfold_def_tac ctxt depends_on_defs = fn st =>
   let
     (*This is used when we end up with something like
@@ -1946,7 +1946,7 @@ fun unfold_def_tac ctxt depends_on_defs = fn st =>
   in
     tactic st
   end
-*}
+\<close>
 
 
 subsection "Handling split 'preprocessing'"
@@ -1960,7 +1960,7 @@ lemma split_tranfs:
 by (rule eq_reflection, auto)+
 
 (*Same idiom as ex_expander_tac*)
-ML {*
+ML \<open>
 fun split_simp_tac (ctxt : Proof.context) i =
    let
      val simpset =
@@ -1968,11 +1968,11 @@ fun split_simp_tac (ctxt : Proof.context) i =
    in
      CHANGED (asm_full_simp_tac simpset i)
    end
-*}
+\<close>
 
 
 subsection "Alternative reconstruction tactics"
-ML {*
+ML \<open>
 (*An "auto"-based proof reconstruction, where we attempt to reconstruct each inference
   using auto_tac. A realistic tactic would inspect the inference name and act
   accordingly.*)
@@ -1989,11 +1989,11 @@ fun auto_based_reconstruction_tac ctxt prob_name n =
           Goal.prove ctxt [] [] inference_fmla
            (fn pdata => auto_tac (#context pdata)))
   end
-*}
+\<close>
 
 (*An oracle-based reconstruction, which is only used to test the shunting part of the system*)
 oracle oracle_iinterp = "fn t => t"
-ML {*
+ML \<open>
 fun oracle_based_reconstruction_tac ctxt prob_name n =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -2006,12 +2006,12 @@ fun oracle_based_reconstruction_tac ctxt prob_name n =
       |> (fn {inference_fmla, ...} => Thm.cterm_of ctxt inference_fmla)
       |> oracle_iinterp
   end
-*}
+\<close>
 
 
 subsection "Leo2 reconstruction tactic"
 
-ML {*
+ML \<open>
 exception UNSUPPORTED_ROLE
 exception INTERPRET_INFERENCE
 
@@ -2171,9 +2171,9 @@ fun interpret_leo2_inference_tac ctxt prob_name node =
     | "flexflex" => default_tac
     | other => fail ctxt ("Unknown inference rule: " ^ other)
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun interpret_leo2_inference ctxt prob_name node =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -2204,9 +2204,9 @@ fun interpret_leo2_inference ctxt prob_name node =
            Syntax.pretty_term ctxt inference_fmla]))
     | SOME thm => thm
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*filter a set of nodes based on which inference rule was used to
   derive a node*)
 fun nodes_by_inference (fms : TPTP_Reconstruct.formula_meaning list) inference_rule =
@@ -2221,12 +2221,12 @@ fun nodes_by_inference (fms : TPTP_Reconstruct.formula_meaning list) inference_r
   in
     fold fold_fun (map fst fms) []
   end
-*}
+\<close>
 
 
 section "Importing proofs and reconstructing theorems"
 
-ML {*
+ML \<open>
 (*Preprocessing carried out on a LEO-II proof.*)
 fun leo2_on_load (pannot : TPTP_Reconstruct.proof_annotation) thy =
   let
@@ -2256,9 +2256,9 @@ fun leo2_on_load (pannot : TPTP_Reconstruct.proof_annotation) thy =
       meta = #meta pannot},
      thy')
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*Imports and reconstructs a LEO-II proof.*)
 fun reconstruct_leo2 path thy =
   let
@@ -2280,6 +2280,6 @@ fun reconstruct_leo2 path thy =
        users could get the thy value from the thm value.*)
     (thy', theorem)
   end
-*}
+\<close>
 
 end

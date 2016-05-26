@@ -3,7 +3,7 @@
     Copyright   2011 TU Muenchen
 *)
 
-section {* Examples for narrowing-based testing  *}
+section \<open>Examples for narrowing-based testing\<close>
 
 theory Quickcheck_Narrowing_Examples
 imports Main
@@ -11,7 +11,7 @@ begin
 
 declare [[quickcheck_timeout = 3600]]
 
-subsection {* Minimalistic examples *}
+subsection \<open>Minimalistic examples\<close>
 
 lemma
   "x = y"
@@ -23,7 +23,7 @@ lemma
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
 oops
 
-subsection {* Simple examples with existentials *}
+subsection \<open>Simple examples with existentials\<close>
 
 lemma
   "\<exists> y :: nat. \<forall> x. x = y"
@@ -50,19 +50,19 @@ lemma
 quickcheck[tester = narrowing, finite_types = false, size = 7]
 oops
 
-text {* A false conjecture derived from an partial copy-n-paste of @{thm not_distinct_decomp} *}
+text \<open>A false conjecture derived from an partial copy-n-paste of @{thm not_distinct_decomp}\<close>
 lemma
   "~ distinct ws ==> EX xs ys zs y. ws = xs @ [y] @ ys @ [y]"
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
 oops
 
-text {* A false conjecture derived from theorems @{thm split_list_first} and @{thm split_list_last} *}  
+text \<open>A false conjecture derived from theorems @{thm split_list_first} and @{thm split_list_last}\<close>  
 lemma
   "x : set xs ==> EX ys zs. xs = ys @ x # zs & x ~: set zs & x ~: set ys"
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
 oops
 
-text {* A false conjecture derived from @{thm map_eq_Cons_conv} with a typo *}
+text \<open>A false conjecture derived from @{thm map_eq_Cons_conv} with a typo\<close>
 lemma
   "(map f xs = y # ys) = (EX z zs. xs = z' # zs & f z = y & map f zs = ys)"
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
@@ -73,7 +73,7 @@ quickcheck[narrowing, expect = counterexample]
 quickcheck[exhaustive, random, expect = no_counterexample]
 oops
 
-subsection {* Simple list examples *}
+subsection \<open>Simple list examples\<close>
 
 lemma "rev xs = xs"
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
@@ -87,7 +87,7 @@ lemma "rev xs = xs"
   quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
 oops
 
-subsection {* Simple examples with functions *}
+subsection \<open>Simple examples with functions\<close>
 
 lemma "map f xs = map g xs"
   quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
@@ -117,7 +117,7 @@ lemma "R O S = S O R"
 oops
 *)
 
-subsection {* Simple examples with inductive predicates *}
+subsection \<open>Simple examples with inductive predicates\<close>
 
 inductive even where
   "even 0" |
@@ -130,7 +130,7 @@ quickcheck[narrowing, expect = counterexample]
 oops
 
 
-subsection {* AVL Trees *}
+subsection \<open>AVL Trees\<close>
 
 datatype 'a tree = ET |  MKT 'a "'a tree" "'a tree" nat
 
@@ -204,7 +204,7 @@ where
                  else MKT n l r' (1 + max hl hr'))"
 
 
-subsubsection {* Necessary setup for code generation *}
+subsubsection \<open>Necessary setup for code generation\<close>
 
 primrec set_of'
 where 
@@ -221,14 +221,14 @@ by (simp add: set_of')
 
 declare is_ord.simps(1)[code] is_ord_mkt[code]
 
-subsubsection {* Invalid Lemma due to typo in @{const l_bal} *}
+subsubsection \<open>Invalid Lemma due to typo in @{const l_bal}\<close>
 
 lemma is_ord_l_bal:
  "\<lbrakk> is_ord(MKT (x :: nat) l r h); height l = height r + 2 \<rbrakk> \<Longrightarrow> is_ord(l_bal(x,l,r))"
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, size = 6, expect = counterexample]
 oops
 
-subsection {* Examples with hd and last *}
+subsection \<open>Examples with hd and last\<close>
 
 lemma
   "hd (xs @ ys) = hd ys"
@@ -240,7 +240,7 @@ lemma
 quickcheck[narrowing, expect = counterexample]
 oops
 
-subsection {* Examples with underspecified/partial functions *}
+subsection \<open>Examples with underspecified/partial functions\<close>
 
 lemma
   "xs = [] ==> hd xs \<noteq> x"

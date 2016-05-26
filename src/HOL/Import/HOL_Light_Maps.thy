@@ -5,7 +5,7 @@
 Based on earlier code by Steven Obua and Sebastian Skalberg
 *)
 
-section {* Type and constant mappings of HOL Light importer *}
+section \<open>Type and constant mappings of HOL Light importer\<close>
 
 theory HOL_Light_Maps
 imports Import_Setup

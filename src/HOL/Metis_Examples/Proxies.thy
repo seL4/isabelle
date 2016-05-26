@@ -5,10 +5,10 @@ Example that exercises Metis's and Sledgehammer's logical symbol proxies for
 rudimentary higher-order reasoning.
 *)
 
-section {*
+section \<open>
 Example that Exercises Metis's and Sledgehammer's Logical Symbol Proxies for
 Rudimentary Higher-Order Reasoning.
-*}
+\<close>
 
 theory Proxies
 imports Type_Encodings
@@ -17,7 +17,7 @@ begin
 sledgehammer_params [prover = spass, fact_filter = mepo, timeout = 30, preplay_timeout = 0,
   dont_minimize]
 
-text {* Extensionality and set constants *}
+text \<open>Extensionality and set constants\<close>
 
 lemma plus_1_not_0: "n + (1::nat) \<noteq> 0"
 by simp
@@ -57,7 +57,7 @@ lemma "B \<le> C"
 sledgehammer [expect = some]
 by (metis_exhaust B_def C_def int_le_0_imp_le_1 predicate1I)
 
-text {* Proxies for logical constants *}
+text \<open>Proxies for logical constants\<close>
 
 lemma "id (op =) x x"
 sledgehammer [type_enc = erased, expect = none] (id_apply)

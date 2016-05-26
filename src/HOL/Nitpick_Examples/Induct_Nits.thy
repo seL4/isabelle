@@ -5,7 +5,7 @@
 Examples featuring Nitpick applied to (co)inductive definitions.
 *)
 
-section {* Examples Featuring Nitpick Applied to (Co)inductive Definitions *}
+section \<open>Examples Featuring Nitpick Applied to (Co)inductive Definitions\<close>
 
 theory Induct_Nits
 imports Main

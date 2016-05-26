@@ -26,7 +26,7 @@ lemma UN_Ioc_eq_UNIV: "(\<Union>n. { -real n <.. real n}) = UNIV"
      (metis le_less_trans minus_minus neg_less_iff_less not_le real_arch_simple
             of_nat_0_le_iff reals_Archimedean2)
 
-subsection {* Properties of cdf's *}
+subsection \<open>Properties of cdf's\<close>
 
 definition
   cdf :: "real measure \<Rightarrow> real \<Rightarrow> real"
@@ -105,7 +105,7 @@ lemma cdf_is_right_cont: "continuous (at_right a) (cdf M)"
 proof (rule tendsto_at_right_sequentially[where b="a + 1"])
   fix f :: "nat \<Rightarrow> real" and x assume f: "decseq f" "f \<longlonglongrightarrow> a"
   then have "(\<lambda>n. cdf M (f n)) \<longlonglongrightarrow> measure M (\<Inter>i. {.. f i})"
-    using `decseq f` unfolding cdf_def
+    using \<open>decseq f\<close> unfolding cdf_def
     by (intro finite_Lim_measure_decseq) (auto simp: decseq_def)
   also have "(\<Inter>i. {.. f i}) = {.. a}"
     using decseq_le[OF f] by (auto intro: order_trans LIMSEQ_le_const[OF f(2)])
@@ -117,7 +117,7 @@ lemma cdf_at_left: "(cdf M \<longlongrightarrow> measure M {..<a}) (at_left a)"
 proof (rule tendsto_at_left_sequentially[of "a - 1"])
   fix f :: "nat \<Rightarrow> real" and x assume f: "incseq f" "f \<longlonglongrightarrow> a" "\<And>x. f x < a" "\<And>x. a - 1 < f x"
   then have "(\<lambda>n. cdf M (f n)) \<longlonglongrightarrow> measure M (\<Union>i. {.. f i})"
-    using `incseq f` unfolding cdf_def
+    using \<open>incseq f\<close> unfolding cdf_def
     by (intro finite_Lim_measure_incseq) (auto simp: incseq_def)
   also have "(\<Union>i. {.. f i}) = {..<a}"
     by (auto dest!: order_tendstoD(1)[OF f(2)] eventually_happens'[OF sequentially_bot]
@@ -168,14 +168,14 @@ lemma (in prob_space) real_distribution_distr [intro, simp]:
   "random_variable borel X \<Longrightarrow> real_distribution (distr M borel X)"
   unfolding real_distribution_def real_distribution_axioms_def by (auto intro!: prob_space_distr)
 
-subsection {* uniqueness *}
+subsection \<open>uniqueness\<close>
 
 lemma (in real_distribution) emeasure_Ioc:
   assumes "a \<le> b" shows "emeasure M {a <.. b} = cdf M b - cdf M a"
 proof -
   have "{a <.. b} = {..b} - {..a}"
     by auto
-  with `a \<le> b` show ?thesis
+  with \<open>a \<le> b\<close> show ?thesis
     by (simp add: emeasure_eq_measure finite_measure_Diff cdf_def)
 qed
 

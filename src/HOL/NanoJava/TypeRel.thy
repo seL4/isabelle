@@ -8,7 +8,7 @@ theory TypeRel
 imports Decl
 begin
 
-text{* Direct subclass relation *}
+text\<open>Direct subclass relation\<close>
 
 definition subcls1 :: "(cname \<times> cname) set"
 where
@@ -24,7 +24,7 @@ abbreviation
 
 subsection "Declarations and properties not used in the meta theory"
 
-text{* Widening, viz. method invocation conversion *}
+text\<open>Widening, viz. method invocation conversion\<close>
 inductive
   widen :: "ty => ty => bool"  ("_ \<preceq> _" [71,71] 70)
 where
@@ -103,7 +103,7 @@ apply (subst def_wfrec[OF class_rec_def], auto)
 apply (subst cut_apply, auto intro: subcls1I)
 done
 
---{* Methods of a class, with inheritance and hiding *}
+\<comment>\<open>Methods of a class, with inheritance and hiding\<close>
 definition "method" :: "cname => (mname \<rightharpoonup> methd)" where
   "method C \<equiv> class_rec C methods"
 
@@ -115,7 +115,7 @@ apply simp
 done
 
 
---{* Fields of a class, with inheritance and hiding *}
+\<comment>\<open>Fields of a class, with inheritance and hiding\<close>
 definition field  :: "cname => (fname \<rightharpoonup> ty)" where
   "field C \<equiv> class_rec C flds"
 

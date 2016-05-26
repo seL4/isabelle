@@ -3,18 +3,18 @@
     Copyright   1999 TUM
 *)
 
-section {* Inductive definition of Hoare logic for partial correctness *}
+section \<open>Inductive definition of Hoare logic for partial correctness\<close>
 
 theory Hoare
 imports Natural
 begin
 
-text {*
+text \<open>
   Completeness is taken relative to completeness of the underlying logic.
 
   Two versions of completeness proof: nested single recursion
   vs. simultaneous recursion in call rule
-*}
+\<close>
 
 type_synonym 'a assn = "'a => state => bool"
 translations
@@ -105,7 +105,7 @@ where
              X:=CALL pn(a) .{Q}"
 
 
-section {* Soundness and relative completeness of Hoare rules wrt operational semantics *}
+section \<open>Soundness and relative completeness of Hoare rules wrt operational semantics\<close>
 
 lemma single_stateE:
   "state_not_singleton ==> !t. (!s::state. s = t) --> False"
@@ -209,7 +209,7 @@ qed "thin";
 *)
 lemma thin [rule_format]: "G'||-ts ==> !G. G' <= G --> G||-ts"
 apply (erule hoare_derivs.induct)
-apply                (tactic {* ALLGOALS (EVERY'[clarify_tac @{context}, REPEAT o smp_tac @{context} 1]) *})
+apply                (tactic \<open>ALLGOALS (EVERY'[clarify_tac @{context}, REPEAT o smp_tac @{context} 1])\<close>)
 apply (rule hoare_derivs.empty)
 apply               (erule (1) hoare_derivs.insert)
 apply              (fast intro: hoare_derivs.asm)
@@ -218,7 +218,7 @@ apply            (fast intro: hoare_derivs.weaken)
 apply           (rule hoare_derivs.conseq, intro strip, tactic "smp_tac @{context} 2 1", clarify, tactic "smp_tac @{context} 1 1",rule exI, rule exI, erule (1) conjI)
 prefer 7
 apply          (rule_tac hoare_derivs.Body, drule_tac spec, erule_tac mp, fast)
-apply         (tactic {* ALLGOALS (resolve_tac @{context} ((funpow 5 tl) @{thms hoare_derivs.intros}) THEN_ALL_NEW (fast_tac @{context})) *})
+apply         (tactic \<open>ALLGOALS (resolve_tac @{context} ((funpow 5 tl) @{thms hoare_derivs.intros}) THEN_ALL_NEW (fast_tac @{context}))\<close>)
 done
 
 lemma weak_Body: "G|-{P}. the (body pn) .{Q} ==> G|-{P}. BODY pn .{Q}"
@@ -278,19 +278,19 @@ done
 
 lemma hoare_sound: "G||-ts ==> G||=ts"
 apply (erule hoare_derivs.induct)
-apply              (tactic {* TRYALL (eresolve_tac @{context} [@{thm Loop_sound_lemma}, @{thm Body_sound_lemma}] THEN_ALL_NEW assume_tac @{context}) *})
+apply              (tactic \<open>TRYALL (eresolve_tac @{context} [@{thm Loop_sound_lemma}, @{thm Body_sound_lemma}] THEN_ALL_NEW assume_tac @{context})\<close>)
 apply            (unfold hoare_valids_def)
 apply            blast
 apply           blast
 apply          (blast) (* asm *)
 apply         (blast) (* cut *)
 apply        (blast) (* weaken *)
-apply       (tactic {* ALLGOALS (EVERY'
+apply       (tactic \<open>ALLGOALS (EVERY'
   [REPEAT o Rule_Insts.thin_tac @{context} "hoare_derivs _ _" [],
-   simp_tac @{context}, clarify_tac @{context}, REPEAT o smp_tac @{context} 1]) *})
+   simp_tac @{context}, clarify_tac @{context}, REPEAT o smp_tac @{context} 1])\<close>)
 apply       (simp_all (no_asm_use) add: triple_valid_def2)
 apply       (intro strip, tactic "smp_tac @{context} 2 1", blast) (* conseq *)
-apply      (tactic {* ALLGOALS (clarsimp_tac @{context}) *}) (* Skip, Ass, Local *)
+apply      (tactic \<open>ALLGOALS (clarsimp_tac @{context})\<close>) (* Skip, Ass, Local *)
 prefer 3 apply   (force) (* Call *)
 apply  (erule_tac [2] evaln_elim_cases) (* If *)
 apply   blast+
@@ -335,24 +335,24 @@ declare not_None_eq [iff]
 lemma MGF_lemma1 [rule_format (no_asm)]: "state_not_singleton ==>
   !pn:dom body. G|-{=}.BODY pn.{->} ==> WT c --> G|-{=}.c.{->}"
 apply (induct_tac c)
-apply        (tactic {* ALLGOALS (clarsimp_tac @{context}) *})
+apply        (tactic \<open>ALLGOALS (clarsimp_tac @{context})\<close>)
 prefer 7 apply        (fast intro: domI)
 apply (erule_tac [6] MGT_alternD)
 apply       (unfold MGT_def)
 apply       (drule_tac [7] bspec, erule_tac [7] domI)
-apply       (rule_tac [7] escape, tactic {* clarsimp_tac @{context} 7 *},
+apply       (rule_tac [7] escape, tactic \<open>clarsimp_tac @{context} 7\<close>,
   rename_tac [7] "fun" y Z,
   rule_tac [7] P1 = "%Z' s. s= (setlocs Z newlocs) [Loc Arg ::= fun Z]" in hoare_derivs.Call [THEN conseq1], erule_tac [7] conseq12)
 apply        (erule_tac [!] thin_rl)
 apply (rule hoare_derivs.Skip [THEN conseq2])
 apply (rule_tac [2] hoare_derivs.Ass [THEN conseq1])
-apply        (rule_tac [3] escape, tactic {* clarsimp_tac @{context} 3 *},
+apply        (rule_tac [3] escape, tactic \<open>clarsimp_tac @{context} 3\<close>,
   rename_tac [3] loc "fun" y Z,
   rule_tac [3] P1 = "%Z' s. s= (Z[Loc loc::=fun Z])" in hoare_derivs.Local [THEN conseq1],
   erule_tac [3] conseq12)
 apply         (erule_tac [5] hoare_derivs.Comp, erule_tac [5] conseq12)
-apply         (tactic {* (resolve_tac @{context} @{thms hoare_derivs.If} THEN_ALL_NEW
-                eresolve_tac @{context} @{thms conseq12}) 6 *})
+apply         (tactic \<open>(resolve_tac @{context} @{thms hoare_derivs.If} THEN_ALL_NEW
+                eresolve_tac @{context} @{thms conseq12}) 6\<close>)
 apply          (rule_tac [8] hoare_derivs.Loop [THEN conseq2], erule_tac [8] conseq12)
 apply           auto
 done
@@ -367,7 +367,7 @@ lemma nesting_lemma [rule_format]:
   shows "finite U ==> uG = mgt_call`U ==>
   !G. G <= uG --> n <= card uG --> card G = card uG - n --> (!c. wt c --> P G {mgt c})"
 apply (induct_tac n)
-apply  (tactic {* ALLGOALS (clarsimp_tac @{context}) *})
+apply  (tactic \<open>ALLGOALS (clarsimp_tac @{context})\<close>)
 apply  (subgoal_tac "G = mgt_call ` U")
 prefer 2
 apply   (simp add: card_seteq)

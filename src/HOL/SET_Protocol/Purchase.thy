@@ -4,17 +4,17 @@
     Author:     Lawrence C Paulson
 *)
 
-section{*Purchase Phase of SET*}
+section\<open>Purchase Phase of SET\<close>
 
 theory Purchase
 imports Public_SET
 begin
 
-text{*
+text\<open>
 Note: nonces seem to consist of 20 bytes.  That includes both freshness
 challenges (Chall-EE, etc.) and important secrets (CardSecret, PANsecret)
 
-This version omits @{text LID_C} but retains @{text LID_M}. At first glance
+This version omits \<open>LID_C\<close> but retains \<open>LID_M\<close>. At first glance
 (Programmer's Guide page 267) it seems that both numbers are just introduced
 for the respective convenience of the Cardholder's and Merchant's
 system. However, omitting both of them would create a problem of
@@ -25,12 +25,12 @@ Further reading (Programmer's guide page 309) suggest that there is an outside
 bootstrapping message (SET initiation message) which is used by the Merchant
 and the Cardholder to agree on the actual transaction. This bootstrapping
 message is described in the SET External Interface Guide and ought to generate
-@{text LID_M}. According SET Extern Interface Guide, this number might be a
+\<open>LID_M\<close>. According SET Extern Interface Guide, this number might be a
 cookie, an invoice number etc. The Programmer's Guide on page 310, states that
-in absence of @{text LID_M} the protocol must somehow ("outside SET") identify
+in absence of \<open>LID_M\<close> the protocol must somehow ("outside SET") identify
 the transaction from OrderDesc, which is assumed to be a searchable text only
 field. Thus, it is assumed that the Merchant or the Cardholder somehow agreed
-out-of-bad on the value of @{text LID_M} (for instance a cookie in a web
+out-of-bad on the value of \<open>LID_M\<close> (for instance a cookie in a web
 transaction etc.). This out-of-band agreement is expressed with a preliminary
 start action in which the merchant and the Cardholder agree on the appropriate
 values. Agreed values are stored with a suitable notes action.
@@ -49,40 +49,40 @@ initiate a payment card transaction through the traditional payment card
 financial network. The data is encrypted by the Cardholder and sent via the
 Merchant, such that the data is hidden from the Merchant unless the Acquirer
 passes the data back to the Merchant.
---Programmer's Guide, page 271.*}
+--Programmer's Guide, page 271.\<close>
 
 consts
 
     CardSecret :: "nat => nat"
-     --{*Maps Cardholders to CardSecrets.
-         A CardSecret of 0 means no cerificate, must use unsigned format.*}
+     \<comment>\<open>Maps Cardholders to CardSecrets.
+         A CardSecret of 0 means no cerificate, must use unsigned format.\<close>
 
     PANSecret :: "nat => nat"
-     --{*Maps Cardholders to PANSecrets.*}
+     \<comment>\<open>Maps Cardholders to PANSecrets.\<close>
 
 inductive_set
   set_pur :: "event list set"
 where
 
-  Nil:   --{*Initial trace is empty*}
+  Nil:   \<comment>\<open>Initial trace is empty\<close>
          "[] \<in> set_pur"
 
-| Fake:  --{*The spy MAY say anything he CAN say.*}
+| Fake:  \<comment>\<open>The spy MAY say anything he CAN say.\<close>
          "[| evsf \<in> set_pur;  X \<in> synth(analz(knows Spy evsf)) |]
           ==> Says Spy B X  # evsf \<in> set_pur"
 
 
-| Reception: --{*If A sends a message X to B, then B might receive it*}
+| Reception: \<comment>\<open>If A sends a message X to B, then B might receive it\<close>
              "[| evsr \<in> set_pur;  Says A B X \<in> set evsr |]
               ==> Gets B X  # evsr \<in> set_pur"
 
 | Start: 
-      --{*Added start event which is out-of-band for SET: the Cardholder and
-          the merchant agree on the amounts and uses @{text LID_M} as an
+      \<comment>\<open>Added start event which is out-of-band for SET: the Cardholder and
+          the merchant agree on the amounts and uses \<open>LID_M\<close> as an
           identifier.
           This is suggested by the External Interface Guide. The Programmer's
-          Guide, in absence of @{text LID_M}, states that the merchant uniquely
-          identifies the order out of some data contained in OrderDesc.*}
+          Guide, in absence of \<open>LID_M\<close>, states that the merchant uniquely
+          identifies the order out of some data contained in OrderDesc.\<close>
    "[|evsStart \<in> set_pur;
       Number LID_M \<notin> used evsStart;
       C = Cardholder k; M = Merchant i; P = PG j;
@@ -94,7 +94,7 @@ where
        # evsStart \<in> set_pur"
 
 | PInitReq:
-     --{*Purchase initialization, page 72 of Formal Protocol Desc.*}
+     \<comment>\<open>Purchase initialization, page 72 of Formal Protocol Desc.\<close>
    "[|evsPIReq \<in> set_pur;
       Transaction = \<lbrace>Agent M, Agent C, Number OrderDesc, Number PurchAmt\<rbrace>;
       Nonce Chall_C \<notin> used evsPIReq;
@@ -103,9 +103,9 @@ where
     ==> Says C M \<lbrace>Number LID_M, Nonce Chall_C\<rbrace> # evsPIReq \<in> set_pur"
 
 | PInitRes:
-     --{*Merchant replies with his own label XID and the encryption
+     \<comment>\<open>Merchant replies with his own label XID and the encryption
          key certificate of his chosen Payment Gateway. Page 74 of Formal
-         Protocol Desc. We use @{text LID_M} to identify Cardholder*}
+         Protocol Desc. We use \<open>LID_M\<close> to identify Cardholder\<close>
    "[|evsPIRes \<in> set_pur;
       Gets M \<lbrace>Number LID_M, Nonce Chall_C\<rbrace> \<in> set evsPIRes;
       Transaction = \<lbrace>Agent M, Agent C, Number OrderDesc, Number PurchAmt\<rbrace>;
@@ -121,13 +121,13 @@ where
           # evsPIRes \<in> set_pur"
 
 | PReqUns:
-      --{*UNSIGNED Purchase request (CardSecret = 0).
+      \<comment>\<open>UNSIGNED Purchase request (CardSecret = 0).
         Page 79 of Formal Protocol Desc.
         Merchant never sees the amount in clear. This holds of the real
         protocol, where XID identifies the transaction. We omit
         \<open>Hash\<lbrace>Number XID, Nonce (CardSecret k)\<rbrace>\<close> from PIHead because
         the CardSecret is 0 and because AuthReq treated the unsigned case
-        very differently from the signed one anyway.*}
+        very differently from the signed one anyway.\<close>
    "!!Chall_C Chall_M OrderDesc P PurchAmt XID evsPReqU.
     [|evsPReqU \<in> set_pur;
       C = Cardholder k; CardSecret k = 0;
@@ -150,12 +150,12 @@ where
           # evsPReqU \<in> set_pur"
 
 | PReqS:
-      --{*SIGNED Purchase request.  Page 77 of Formal Protocol Desc.
+      \<comment>\<open>SIGNED Purchase request.  Page 77 of Formal Protocol Desc.
           We could specify the equation
           @{term "PIReqSigned = \<lbrace> PIDualSigned, OIDualSigned \<rbrace>"}, since the
           Formal Desc. gives PIHead the same format in the unsigned case.
           However, there's little point, as P treats the signed and 
-          unsigned cases differently.*}
+          unsigned cases differently.\<close>
    "!!C Chall_C Chall_M EKj HOD KC2 LID_M M OIData
       OIDualSigned OrderDesc P PANData PIData PIDualSigned
       PIHead PurchAmt Transaction XID evsPReqS k.
@@ -183,8 +183,8 @@ where
           # Notes C \<lbrace>Key KC2, Agent M\<rbrace>
           # evsPReqS \<in> set_pur"
 
-  --{*Authorization Request.  Page 92 of Formal Protocol Desc.
-    Sent in response to Purchase Request.*}
+  \<comment>\<open>Authorization Request.  Page 92 of Formal Protocol Desc.
+    Sent in response to Purchase Request.\<close>
 | AuthReq:
    "[| evsAReq \<in> set_pur;
        Key KM \<notin> used evsAReq;  KM \<in> symKeys;
@@ -206,16 +206,16 @@ where
                \<lbrace>Number LID_M, Number XID, Hash OIData, HOD\<rbrace>   P_I)
           # evsAReq \<in> set_pur"
 
-  --{*Authorization Response has two forms: for UNSIGNED and SIGNED PIs.
+  \<comment>\<open>Authorization Response has two forms: for UNSIGNED and SIGNED PIs.
     Page 99 of Formal Protocol Desc.
-    PI is a keyword (product!), so we call it @{text P_I}. The hashes HOD and
-    HOIData occur independently in @{text P_I} and in M's message.
+    PI is a keyword (product!), so we call it \<open>P_I\<close>. The hashes HOD and
+    HOIData occur independently in \<open>P_I\<close> and in M's message.
     The authCode in AuthRes represents the baggage of EncB, which in the
     full protocol is [CapToken], [AcqCardMsg], [AuthToken]:
-    optional items for split shipments, recurring payments, etc.*}
+    optional items for split shipments, recurring payments, etc.\<close>
 
 | AuthResUns:
-    --{*Authorization Response, UNSIGNED*}
+    \<comment>\<open>Authorization Response, UNSIGNED\<close>
    "[| evsAResU \<in> set_pur;
        C = Cardholder k; M = Merchant i;
        Key KP \<notin> used evsAResU;  KP \<in> symKeys;
@@ -232,7 +232,7 @@ where
        # evsAResU \<in> set_pur"
 
 | AuthResS:
-    --{*Authorization Response, SIGNED*}
+    \<comment>\<open>Authorization Response, SIGNED\<close>
    "[| evsAResS \<in> set_pur;
        C = Cardholder k;
        Key KP \<notin> used evsAResS;  KP \<in> symKeys;
@@ -254,7 +254,7 @@ where
        # evsAResS \<in> set_pur"
 
 | PRes:
-    --{*Purchase response.*}
+    \<comment>\<open>Purchase response.\<close>
    "[| evsPRes \<in> set_pur;  KP \<in> symKeys;  M = Merchant i;
        Transaction = \<lbrace>Agent M, Agent C, Number OrderDesc, Number PurchAmt\<rbrace>;
        Gets M (EncB (priSK P) KP (pubEK M)
@@ -279,7 +279,7 @@ specification (CardSecret PANSecret)
   inj_CardSecret:  "inj CardSecret"
   inj_PANSecret:   "inj PANSecret"
   CardSecret_neq_PANSecret: "CardSecret k \<noteq> PANSecret k'"
-    --{*No CardSecret equals any PANSecret*}
+    \<comment>\<open>No CardSecret equals any PANSecret\<close>
   apply (rule_tac x="curry prod_encode 0" in exI)
   apply (rule_tac x="curry prod_encode 1" in exI)
   apply (simp add: prod_encode_eq inj_on_def)
@@ -296,15 +296,15 @@ declare inj_CardSecret [THEN inj_eq, iff]
         inj_PANSecret [THEN inj_eq, iff]
 
 
-subsection{*Possibility Properties*}
+subsection\<open>Possibility Properties\<close>
 
 lemma Says_to_Gets:
      "Says A B X # evs \<in> set_pur ==> Gets B X # Says A B X # evs \<in> set_pur"
 by (rule set_pur.Reception, auto)
 
-text{*Possibility for UNSIGNED purchases. Note that we need to ensure
+text\<open>Possibility for UNSIGNED purchases. Note that we need to ensure
 that XID differs from OrderDesc and PurchAmt, since it is supposed to be
-a unique number!*}
+a unique number!\<close>
 lemma possibility_Uns:
     "[| CardSecret k = 0;
         C = Cardholder k;  M = Merchant i;
@@ -378,7 +378,7 @@ apply basic_possibility
 apply (auto simp add: used_Cons symKeys_neq_imp_neq) 
 done
 
-text{*General facts about message reception*}
+text\<open>General facts about message reception\<close>
 lemma Gets_imp_Says:
      "[| Gets B X \<in> set evs; evs \<in> set_pur |]
    ==> \<exists>A. Says A B X \<in> set evs"
@@ -392,7 +392,7 @@ by (blast dest!: Gets_imp_Says Says_imp_knows_Spy)
 
 declare Gets_imp_knows_Spy [THEN parts.Inj, dest]
 
-text{*Forwarding lemmas, to aid simplification*}
+text\<open>Forwarding lemmas, to aid simplification\<close>
 
 lemma AuthReq_msg_in_parts_spies:
      "[|Gets M \<lbrace>P_I, OIData, HPIData\<rbrace> \<in> set evs;
@@ -405,16 +405,16 @@ lemma AuthReq_msg_in_analz_spies:
 by (blast dest: Gets_imp_knows_Spy [THEN analz.Inj])
 
 
-subsection{*Proofs on Asymmetric Keys*}
+subsection\<open>Proofs on Asymmetric Keys\<close>
 
-text{*Private Keys are Secret*}
+text\<open>Private Keys are Secret\<close>
 
-text{*Spy never sees an agent's private keys! (unless it's bad at start)*}
+text\<open>Spy never sees an agent's private keys! (unless it's bad at start)\<close>
 lemma Spy_see_private_Key [simp]:
      "evs \<in> set_pur
       ==> (Key(invKey (publicKey b A)) \<in> parts(knows Spy evs)) = (A \<in> bad)"
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) --{*AuthReq*}
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
 apply auto
 done
 declare Spy_see_private_Key [THEN [2] rev_iffD1, dest!]
@@ -425,14 +425,14 @@ lemma Spy_analz_private_Key [simp]:
 by auto
 declare Spy_analz_private_Key [THEN [2] rev_iffD1, dest!]
 
-text{*rewriting rule for priEK's*}
+text\<open>rewriting rule for priEK's\<close>
 lemma parts_image_priEK:
      "[|Key (priEK C) \<in> parts (Key`KK Un (knows Spy evs));
         evs \<in> set_pur|] ==> priEK C \<in> KK | C \<in> bad"
 by auto
 
-text{*trivial proof because @{term"priEK C"} never appears even in
-  @{term "parts evs"}. *}
+text\<open>trivial proof because @{term"priEK C"} never appears even in
+  @{term "parts evs"}.\<close>
 lemma analz_image_priEK:
      "evs \<in> set_pur ==>
           (Key (priEK C) \<in> analz (Key`KK Un (knows Spy evs))) =
@@ -440,7 +440,7 @@ lemma analz_image_priEK:
 by (blast dest!: parts_image_priEK intro: analz_mono [THEN [2] rev_subsetD])
 
 
-subsection{*Public Keys in Certificates are Correct*}
+subsection\<open>Public Keys in Certificates are Correct\<close>
 
 lemma Crypt_valid_pubEK [dest!]:
      "[| Crypt (priSK RCA) \<lbrace>Agent C, Key EKi, onlyEnc\<rbrace>
@@ -479,26 +479,26 @@ lemma Gets_certificate_valid [simp]:
       ==> EK = pubEK C"
 by (frule Gets_imp_Says, auto)
 
-method_setup valid_certificate_tac = {*
+method_setup valid_certificate_tac = \<open>
   Args.goal_spec >> (fn quant =>
     fn ctxt => SIMPLE_METHOD'' quant (fn i =>
       EVERY [forward_tac ctxt @{thms Gets_certificate_valid} i,
              assume_tac ctxt i, REPEAT (hyp_subst_tac ctxt i)]))
-*}
+\<close>
 
 
-subsection{*Proofs on Symmetric Keys*}
+subsection\<open>Proofs on Symmetric Keys\<close>
 
-text{*Nobody can have used non-existent keys!*}
+text\<open>Nobody can have used non-existent keys!\<close>
 lemma new_keys_not_used [rule_format,simp]:
      "evs \<in> set_pur
       ==> Key K \<notin> used evs --> K \<in> symKeys -->
           K \<notin> keysFor (parts (knows Spy evs))"
 apply (erule set_pur.induct)
-apply (valid_certificate_tac [8]) --{*PReqS*}
-apply (valid_certificate_tac [7]) --{*PReqUns*}
+apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
+apply (valid_certificate_tac [7]) \<comment>\<open>PReqUns\<close>
 apply auto
-apply (force dest!: usedI keysFor_parts_insert) --{*Fake*}
+apply (force dest!: usedI keysFor_parts_insert) \<comment>\<open>Fake\<close>
 done
 
 lemma new_keys_not_analzd:
@@ -518,7 +518,7 @@ lemma Crypt_analz_imp_used:
         K \<in> symKeys; evs \<in> set_pur |] ==> Key K \<in> used evs"
 by (blast intro: Crypt_parts_imp_used)
 
-text{*New versions: as above, but generalized to have the KK argument*}
+text\<open>New versions: as above, but generalized to have the KK argument\<close>
 
 lemma gen_new_keys_not_used:
      "[|Key K \<notin> used evs; K \<in> symKeys; evs \<in> set_pur |]
@@ -538,7 +538,7 @@ lemma analz_Key_image_insert_eq:
 by (simp add: gen_new_keys_not_analzd)
 
 
-subsection{*Secrecy of Symmetric Keys*}
+subsection\<open>Secrecy of Symmetric Keys\<close>
 
 lemma Key_analz_image_Key_lemma:
      "P --> (Key K \<in> analz (Key`KK Un H)) --> (K\<in>KK | Key K \<in> analz H)
@@ -556,31 +556,31 @@ lemma symKey_compromise:
 apply (erule set_pur.induct)
 apply (rule_tac [!] allI)+
 apply (rule_tac [!] impI [THEN Key_analz_image_Key_lemma, THEN impI])+
-apply (frule_tac [9] AuthReq_msg_in_analz_spies) --{*AReq*}
-apply (valid_certificate_tac [8]) --{*PReqS*}
-apply (valid_certificate_tac [7]) --{*PReqUns*}
+apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment>\<open>AReq\<close>
+apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
+apply (valid_certificate_tac [7]) \<comment>\<open>PReqUns\<close>
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps disj_simps
               analz_Key_image_insert_eq notin_image_iff
               analz_insert_simps analz_image_priEK)
-  --{*8 seconds on a 1.6GHz machine*}
-apply spy_analz --{*Fake*}
-apply (blast elim!: ballE)+ --{*PReq: unsigned and signed*}
+  \<comment>\<open>8 seconds on a 1.6GHz machine\<close>
+apply spy_analz \<comment>\<open>Fake\<close>
+apply (blast elim!: ballE)+ \<comment>\<open>PReq: unsigned and signed\<close>
 done
 
 
 
-subsection{*Secrecy of Nonces*}
+subsection\<open>Secrecy of Nonces\<close>
 
-text{*As usual: we express the property as a logical equivalence*}
+text\<open>As usual: we express the property as a logical equivalence\<close>
 lemma Nonce_analz_image_Key_lemma:
      "P --> (Nonce N \<in> analz (Key`KK Un H)) --> (Nonce N \<in> analz H)
       ==> P --> (Nonce N \<in> analz (Key`KK Un H)) = (Nonce N \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
-text{*The @{text "(no_asm)"} attribute is essential, since it retains
-  the quantifier and allows the simprule's condition to itself be simplified.*}
+text\<open>The \<open>(no_asm)\<close> attribute is essential, since it retains
+  the quantifier and allows the simprule's condition to itself be simplified.\<close>
 lemma Nonce_compromise [rule_format (no_asm)]:
      "evs \<in> set_pur ==>
       (\<forall>N KK. (\<forall>K \<in> KK. K \<notin> range(\<lambda>C. priEK C))   -->
@@ -589,17 +589,17 @@ lemma Nonce_compromise [rule_format (no_asm)]:
 apply (erule set_pur.induct)
 apply (rule_tac [!] allI)+
 apply (rule_tac [!] impI [THEN Nonce_analz_image_Key_lemma])+
-apply (frule_tac [9] AuthReq_msg_in_analz_spies) --{*AReq*}
-apply (valid_certificate_tac [8]) --{*PReqS*}
-apply (valid_certificate_tac [7]) --{*PReqUns*}
+apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment>\<open>AReq\<close>
+apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
+apply (valid_certificate_tac [7]) \<comment>\<open>PReqUns\<close>
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps disj_simps symKey_compromise
               analz_Key_image_insert_eq notin_image_iff
               analz_insert_simps analz_image_priEK)
-  --{*8 seconds on a 1.6GHz machine*}
-apply spy_analz --{*Fake*}
-apply (blast elim!: ballE) --{*PReqS*}
+  \<comment>\<open>8 seconds on a 1.6GHz machine\<close>
+apply spy_analz \<comment>\<open>Fake\<close>
+apply (blast elim!: ballE) \<comment>\<open>PReqS\<close>
 done
 
 lemma PANSecret_notin_spies:
@@ -612,39 +612,39 @@ lemma PANSecret_notin_spies:
 apply (erule rev_mp)
 apply (erule set_pur.induct)
 apply (frule_tac [9] AuthReq_msg_in_analz_spies)
-apply (valid_certificate_tac [8]) --{*PReqS*}
+apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps disj_simps
               symKey_compromise pushes sign_def Nonce_compromise
               analz_Key_image_insert_eq notin_image_iff
               analz_insert_simps analz_image_priEK)
-  --{*2.5 seconds on a 1.6GHz machine*}
+  \<comment>\<open>2.5 seconds on a 1.6GHz machine\<close>
 apply spy_analz
 apply (blast dest!: Gets_imp_knows_Spy [THEN analz.Inj])
 apply (blast dest: Says_imp_knows_Spy [THEN analz.Inj] 
                    Gets_imp_knows_Spy [THEN analz.Inj])
-apply (blast dest: Gets_imp_knows_Spy [THEN analz.Inj]) --{*PReqS*}
+apply (blast dest: Gets_imp_knows_Spy [THEN analz.Inj]) \<comment>\<open>PReqS\<close>
 apply (blast dest: Says_imp_knows_Spy [THEN analz.Inj] 
-                   Gets_imp_knows_Spy [THEN analz.Inj]) --{*PRes*}
+                   Gets_imp_knows_Spy [THEN analz.Inj]) \<comment>\<open>PRes\<close>
 done
 
-text{*This theorem is a bit silly, in that many CardSecrets are 0!
-  But then we don't care.  NOT USED*}
+text\<open>This theorem is a bit silly, in that many CardSecrets are 0!
+  But then we don't care.  NOT USED\<close>
 lemma CardSecret_notin_spies:
      "evs \<in> set_pur ==> Nonce (CardSecret i) \<notin> parts (knows Spy evs)"
 by (erule set_pur.induct, auto)
 
 
-subsection{*Confidentiality of PAN*}
+subsection\<open>Confidentiality of PAN\<close>
 
 lemma analz_image_pan_lemma:
      "(Pan P \<in> analz (Key`nE Un H)) --> (Pan P \<in> analz H)  ==>
       (Pan P \<in> analz (Key`nE Un H)) =   (Pan P \<in> analz H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
-text{*The @{text "(no_asm)"} attribute is essential, since it retains
-  the quantifier and allows the simprule's condition to itself be simplified.*}
+text\<open>The \<open>(no_asm)\<close> attribute is essential, since it retains
+  the quantifier and allows the simprule's condition to itself be simplified.\<close>
 lemma analz_image_pan [rule_format (no_asm)]:
      "evs \<in> set_pur ==>
        \<forall>KK. (\<forall>K \<in> KK. K \<notin> range(\<lambda>C. priEK C)) -->
@@ -653,17 +653,17 @@ lemma analz_image_pan [rule_format (no_asm)]:
 apply (erule set_pur.induct)
 apply (rule_tac [!] allI impI)+
 apply (rule_tac [!] analz_image_pan_lemma)+
-apply (frule_tac [9] AuthReq_msg_in_analz_spies) --{*AReq*}
-apply (valid_certificate_tac [8]) --{*PReqS*}
-apply (valid_certificate_tac [7]) --{*PReqUns*}
+apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment>\<open>AReq\<close>
+apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
+apply (valid_certificate_tac [7]) \<comment>\<open>PReqUns\<close>
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps
               symKey_compromise pushes sign_def
               analz_Key_image_insert_eq notin_image_iff
               analz_insert_simps analz_image_priEK)
-  --{*7 seconds on a 1.6GHz machine*}
-apply spy_analz --{*Fake*}
+  \<comment>\<open>7 seconds on a 1.6GHz machine\<close>
+apply spy_analz \<comment>\<open>Fake\<close>
 apply auto
 done
 
@@ -674,7 +674,7 @@ lemma analz_insert_pan:
 by (simp del: image_insert image_Un
          add: analz_image_keys_simps analz_image_pan)
 
-text{*Confidentiality of the PAN, unsigned case.*}
+text\<open>Confidentiality of the PAN, unsigned case.\<close>
 theorem pan_confidentiality_unsigned:
      "[| Pan (pan C) \<in> analz(knows Spy evs);  C = Cardholder k;
          CardSecret k = 0;  evs \<in> set_pur|]
@@ -684,21 +684,21 @@ theorem pan_confidentiality_unsigned:
      P \<in> bad"
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_analz_spies) --{*AReq*}
-apply (valid_certificate_tac [8]) --{*PReqS*}
-apply (valid_certificate_tac [7]) --{*PReqUns*}
+apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment>\<open>AReq\<close>
+apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
+apply (valid_certificate_tac [7]) \<comment>\<open>PReqUns\<close>
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps analz_insert_pan analz_image_pan
               notin_image_iff
               analz_insert_simps analz_image_priEK)
-  --{*3 seconds on a 1.6GHz machine*}
-apply spy_analz --{*Fake*}
-apply blast --{*PReqUns: unsigned*}
-apply force --{*PReqS: signed*}
+  \<comment>\<open>3 seconds on a 1.6GHz machine\<close>
+apply spy_analz \<comment>\<open>Fake\<close>
+apply blast \<comment>\<open>PReqUns: unsigned\<close>
+apply force \<comment>\<open>PReqS: signed\<close>
 done
 
-text{*Confidentiality of the PAN, signed case.*}
+text\<open>Confidentiality of the PAN, signed case.\<close>
 theorem pan_confidentiality_signed:
  "[|Pan (pan C) \<in> analz(knows Spy evs);  C = Cardholder k;
     CardSecret k \<noteq> 0;  evs \<in> set_pur|]
@@ -708,34 +708,34 @@ theorem pan_confidentiality_signed:
        OIDualSign\<rbrace> \<in> set evs  &  P \<in> bad"
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_analz_spies) --{*AReq*}
-apply (valid_certificate_tac [8]) --{*PReqS*}
-apply (valid_certificate_tac [7]) --{*PReqUns*}
+apply (frule_tac [9] AuthReq_msg_in_analz_spies) \<comment>\<open>AReq\<close>
+apply (valid_certificate_tac [8]) \<comment>\<open>PReqS\<close>
+apply (valid_certificate_tac [7]) \<comment>\<open>PReqUns\<close>
 apply (simp_all
          del: image_insert image_Un imp_disjL
          add: analz_image_keys_simps analz_insert_pan analz_image_pan
               notin_image_iff
               analz_insert_simps analz_image_priEK)
-  --{*3 seconds on a 1.6GHz machine*}
-apply spy_analz --{*Fake*}
-apply force --{*PReqUns: unsigned*}
-apply blast --{*PReqS: signed*}
+  \<comment>\<open>3 seconds on a 1.6GHz machine\<close>
+apply spy_analz \<comment>\<open>Fake\<close>
+apply force \<comment>\<open>PReqUns: unsigned\<close>
+apply blast \<comment>\<open>PReqS: signed\<close>
 done
 
-text{*General goal: that C, M and PG agree on those details of the transaction
+text\<open>General goal: that C, M and PG agree on those details of the transaction
      that they are allowed to know about.  PG knows about price and account
-     details.  M knows about the order description and price.  C knows both.*}
+     details.  M knows about the order description and price.  C knows both.\<close>
 
 
-subsection{*Proofs Common to Signed and Unsigned Versions*}
+subsection\<open>Proofs Common to Signed and Unsigned Versions\<close>
 
 lemma M_Notes_PG:
      "[|Notes M \<lbrace>Number LID_M, Agent P, Agent M, Agent C, etc\<rbrace> \<in> set evs;
         evs \<in> set_pur|] ==> \<exists>j. P = PG j"
 by (erule rev_mp, erule set_pur.induct, simp_all)
 
-text{*If we trust M, then @{term LID_M} determines his choice of P
-      (Payment Gateway)*}
+text\<open>If we trust M, then @{term LID_M} determines his choice of P
+      (Payment Gateway)\<close>
 lemma goodM_gives_correct_PG:
      "[| MsgPInitRes = 
             \<lbrace>Number LID_M, xid, cc, cm, cert P EKj onlyEnc (priSK RCA)\<rbrace>;
@@ -747,7 +747,7 @@ lemma goodM_gives_correct_PG:
 apply clarify
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) --{*AuthReq*}
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
 apply simp_all
 apply (blast intro: M_Notes_PG)+
 done
@@ -762,7 +762,7 @@ lemma C_gets_correct_PG:
             EKj = pubEK P"
 by (rule refl [THEN goodM_gives_correct_PG, THEN exE], auto)
 
-text{*When C receives PInitRes, he learns M's choice of P*}
+text\<open>When C receives PInitRes, he learns M's choice of P\<close>
 lemma C_verifies_PInitRes:
  "[| MsgPInitRes = \<lbrace>Number LID_M, Number XID, Nonce Chall_C, Nonce Chall_M,
            cert P EKj onlyEnc (priSK RCA)\<rbrace>;
@@ -775,12 +775,12 @@ lemma C_verifies_PInitRes:
 apply clarify
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) --{*AuthReq*}
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
 apply simp_all
 apply (blast intro: M_Notes_PG)+
 done
 
-text{*Corollary of previous one*}
+text\<open>Corollary of previous one\<close>
 lemma Says_C_PInitRes:
      "[|Says A C (sign (priSK M)
                       \<lbrace>Number LID_M, Number XID,
@@ -797,8 +797,8 @@ apply (blast dest: refl [THEN goodM_gives_correct_PG])
 apply (blast dest: refl [THEN C_verifies_PInitRes])
 done
 
-text{*When P receives an AuthReq, he knows that the signed part originated 
-      with M. PIRes also has a signed message from M....*}
+text\<open>When P receives an AuthReq, he knows that the signed part originated 
+      with M. PIRes also has a signed message from M....\<close>
 lemma P_verifies_AuthReq:
      "[| AuthReqData = \<lbrace>Number LID_M, Number XID, HOIData, HOD\<rbrace>;
          Crypt (priSK M) (Hash \<lbrace>AuthReqData, Hash P_I\<rbrace>)
@@ -815,7 +815,7 @@ apply (erule set_pur.induct, simp_all)
 apply (frule_tac [4] M_Notes_PG, auto)
 done
 
-text{*When M receives AuthRes, he knows that P signed it, including
+text\<open>When M receives AuthRes, he knows that P signed it, including
   the identifying tags and the purchase amount, which he can verify.
   (Although the spec has SIGNED and UNSIGNED forms of AuthRes, they
    send the same message to M.)  The conclusion is weak: M is existentially
@@ -823,7 +823,7 @@ text{*When M receives AuthRes, he knows that P signed it, including
   the digital envelope weakens the link between @{term MsgAuthRes} and
   @{term"priSK M"}.  Changing the precondition to refer to 
   @{term "Crypt K (sign SK M)"} requires assuming @{term K} to be secure, since
-  otherwise the Spy could create that message.*}
+  otherwise the Spy could create that message.\<close>
 theorem M_verifies_AuthRes:
   "[| MsgAuthRes = \<lbrace>\<lbrace>Number LID_M, Number XID, Number PurchAmt\<rbrace>, 
                      Hash authCode\<rbrace>;
@@ -841,16 +841,16 @@ theorem M_verifies_AuthRes:
 apply clarify
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) --{*AuthReq*}
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
 apply simp_all
 apply blast+
 done
 
 
-subsection{*Proofs for Unsigned Purchases*}
+subsection\<open>Proofs for Unsigned Purchases\<close>
 
-text{*What we can derive from the ASSUMPTION that C issued a purchase request.
-   In the unsigned case, we must trust "C": there's no authentication.*}
+text\<open>What we can derive from the ASSUMPTION that C issued a purchase request.
+   In the unsigned case, we must trust "C": there's no authentication.\<close>
 lemma C_determines_EKj:
      "[| Says C M \<lbrace>EXHcrypt KC1 EKj \<lbrace>PIHead, Hash OIData\<rbrace> (Pan (pan C)),
                     OIData, Hash\<lbrace>PIHead, Pan (pan C)\<rbrace> \<rbrace> \<in> set evs;
@@ -862,13 +862,13 @@ lemma C_determines_EKj:
 apply clarify
 apply (erule rev_mp)
 apply (erule set_pur.induct, simp_all)
-apply (valid_certificate_tac [2]) --{*PReqUns*}
+apply (valid_certificate_tac [2]) \<comment>\<open>PReqUns\<close>
 apply auto
 apply (blast dest: Gets_imp_Says Says_C_PInitRes)
 done
 
 
-text{*Unicity of @{term LID_M} between Merchant and Cardholder notes*}
+text\<open>Unicity of @{term LID_M} between Merchant and Cardholder notes\<close>
 lemma unique_LID_M:
      "[|Notes (Merchant i) \<lbrace>Number LID_M, Agent P, Trans\<rbrace> \<in> set evs;
         Notes C \<lbrace>Number LID_M, Agent M, Agent C, Number OD,
@@ -881,7 +881,7 @@ apply (erule set_pur.induct, simp_all)
 apply (force dest!: Notes_imp_parts_subset_used)
 done
 
-text{*Unicity of @{term LID_M}, for two Merchant Notes events*}
+text\<open>Unicity of @{term LID_M}, for two Merchant Notes events\<close>
 lemma unique_LID_M2:
      "[|Notes M \<lbrace>Number LID_M, Trans\<rbrace> \<in> set evs;
         Notes M \<lbrace>Number LID_M, Trans'\<rbrace> \<in> set evs;
@@ -892,40 +892,40 @@ apply (erule set_pur.induct, simp_all)
 apply (force dest!: Notes_imp_parts_subset_used)
 done
 
-text{*Lemma needed below: for the case that
-  if PRes is present, then @{term LID_M} has been used.*}
+text\<open>Lemma needed below: for the case that
+  if PRes is present, then @{term LID_M} has been used.\<close>
 lemma signed_imp_used:
      "[| Crypt (priSK M) (Hash X) \<in> parts (knows Spy evs);
          M \<notin> bad;  evs \<in> set_pur|] ==> parts {X} \<subseteq> used evs"
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) --{*AuthReq*}
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
 apply simp_all
 apply safe
 apply blast+
 done
 
-text{*Similar, with nested Hash*}
+text\<open>Similar, with nested Hash\<close>
 lemma signed_Hash_imp_used:
      "[| Crypt (priSK C) (Hash \<lbrace>H, Hash X\<rbrace>) \<in> parts (knows Spy evs);
          C \<notin> bad;  evs \<in> set_pur|] ==> parts {X} \<subseteq> used evs"
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) --{*AuthReq*}
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
 apply simp_all
 apply safe
 apply blast+
 done
 
-text{*Lemma needed below: for the case that
-  if PRes is present, then @{text LID_M} has been used.*}
+text\<open>Lemma needed below: for the case that
+  if PRes is present, then \<open>LID_M\<close> has been used.\<close>
 lemma PRes_imp_LID_used:
      "[| Crypt (priSK M) (Hash \<lbrace>N, X\<rbrace>) \<in> parts (knows Spy evs);
          M \<notin> bad;  evs \<in> set_pur|] ==> N \<in> used evs"
 by (drule signed_imp_used, auto)
 
-text{*When C receives PRes, he knows that M and P agreed to the purchase details.
-  He also knows that P is the same PG as before*}
+text\<open>When C receives PRes, he knows that M and P agreed to the purchase details.
+  He also knows that P is the same PG as before\<close>
 lemma C_verifies_PRes_lemma:
      "[| Crypt (priSK M) (Hash MsgPRes) \<in> parts (knows Spy evs);
          Notes C \<lbrace>Number LID_M, Trans \<rbrace> \<in> set evs;
@@ -945,7 +945,7 @@ apply clarify
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) --{*AuthReq*}
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
 apply simp_all
 apply blast
 apply blast
@@ -954,9 +954,9 @@ apply (frule M_Notes_PG, auto)
 apply (blast dest: unique_LID_M)
 done
 
-text{*When the Cardholder receives Purchase Response from an uncompromised
+text\<open>When the Cardholder receives Purchase Response from an uncompromised
 Merchant, he knows that M sent it. He also knows that M received a message signed
-by a Payment Gateway chosen by M to authorize the purchase.*}
+by a Payment Gateway chosen by M to authorize the purchase.\<close>
 theorem C_verifies_PRes:
      "[| MsgPRes = \<lbrace>Number LID_M, Number XID, Nonce Chall_C,
                      Hash (Number PurchAmt)\<rbrace>;
@@ -974,9 +974,9 @@ apply (rule C_verifies_PRes_lemma [THEN exE])
 apply (auto simp add: sign_def)
 done
 
-subsection{*Proofs for Signed Purchases*}
+subsection\<open>Proofs for Signed Purchases\<close>
 
-text{*Some Useful Lemmas: the cardholder knows what he is doing*}
+text\<open>Some Useful Lemmas: the cardholder knows what he is doing\<close>
 
 lemma Crypt_imp_Says_Cardholder:
      "[| Crypt K \<lbrace>\<lbrace>\<lbrace>Number LID_M, others\<rbrace>, Hash OIData\<rbrace>, Hash PANData\<rbrace>
@@ -994,7 +994,7 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_pur.induct, analz_mono_contra)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) --{*AuthReq*}
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
 apply simp_all
 apply auto
 done
@@ -1017,16 +1017,16 @@ apply (simp_all (no_asm_simp))
 apply auto
 done
 
-text{*Can't happen: only Merchants create this type of Note*}
+text\<open>Can't happen: only Merchants create this type of Note\<close>
 lemma Notes_Cardholder_self_False:
      "[|Notes (Cardholder k)
           \<lbrace>Number n, Agent P, Agent (Cardholder k), Agent C, etc\<rbrace> \<in> set evs;
         evs \<in> set_pur|] ==> False"
 by (erule rev_mp, erule set_pur.induct, auto)
 
-text{*When M sees a dual signature, he knows that it originated with C.
+text\<open>When M sees a dual signature, he knows that it originated with C.
   Using XID he knows it was intended for him.
-  This guarantee isn't useful to P, who never gets OIData.*}
+  This guarantee isn't useful to P, who never gets OIData.\<close>
 theorem M_verifies_Signed_PReq:
  "[| MsgDualSign = \<lbrace>HPIData, Hash OIData\<rbrace>;
      OIData = \<lbrace>Number LID_M, etc\<rbrace>;
@@ -1041,7 +1041,7 @@ apply clarify
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_pur.induct)
-apply (frule_tac [9] AuthReq_msg_in_parts_spies) --{*AuthReq*}
+apply (frule_tac [9] AuthReq_msg_in_parts_spies) \<comment>\<open>AuthReq\<close>
 apply simp_all
 apply blast
 apply (metis subsetD insert_subset parts.Fst parts_increasing signed_Hash_imp_used)
@@ -1049,10 +1049,10 @@ apply (metis unique_LID_M)
 apply (blast dest!: Notes_Cardholder_self_False)
 done
 
-text{*When P sees a dual signature, he knows that it originated with C.
+text\<open>When P sees a dual signature, he knows that it originated with C.
   and was intended for M. This guarantee isn't useful to M, who never gets
-  PIData. I don't see how to link @{term "PG j"} and @{text LID_M} without
-  assuming @{term "M \<notin> bad"}.*}
+  PIData. I don't see how to link @{term "PG j"} and \<open>LID_M\<close> without
+  assuming @{term "M \<notin> bad"}.\<close>
 theorem P_verifies_Signed_PReq:
      "[| MsgDualSign = \<lbrace>Hash PIData, HOIData\<rbrace>;
          PIData = \<lbrace>PIHead, PANData\<rbrace>;
@@ -1102,9 +1102,9 @@ apply (rule refl [THEN P_verifies_AuthReq, THEN exE])
 apply (auto simp add: sign_def)
 done
 
-text{*A variant of @{text M_verifies_Signed_PReq} with explicit PI information.
+text\<open>A variant of \<open>M_verifies_Signed_PReq\<close> with explicit PI information.
   Even here we cannot be certain about what C sent to M, since a bad
-  PG could have replaced the two key fields.  (NOT USED)*}
+  PG could have replaced the two key fields.  (NOT USED)\<close>
 lemma Signed_PReq_imp_Says_Cardholder:
      "[| MsgDualSign = \<lbrace>Hash PIData, Hash OIData\<rbrace>;
          OIData = \<lbrace>Number LID_M, Number XID, Nonce Chall_C, HOD, etc\<rbrace>;
@@ -1125,7 +1125,7 @@ apply (erule rev_mp)
 apply (erule set_pur.induct, simp_all, auto)
 done
 
-text{*When P receives an AuthReq and a dual signature, he knows that C and M
+text\<open>When P receives an AuthReq and a dual signature, he knows that C and M
   agree on the essential details.  PurchAmt however is never sent by M to
   P; instead C and M both send 
      @{term "HOD = Hash\<lbrace>Number OrderDesc, Number PurchAmt\<rbrace>"}
@@ -1135,7 +1135,7 @@ text{*When P receives an AuthReq and a dual signature, he knows that C and M
   used in the digital envelopes.  On the other hand, M knows the true identity
   of PG (namely j'), and sends AReq there; he can't, however, check that
   the EXcrypt involves the correct PG's key.
-*}
+\<close>
 theorem P_sees_CM_agreement:
      "[| AuthReqData = \<lbrace>Number LID_M, Number XID, HOIData, HOD\<rbrace>;
          KC \<in> symKeys;

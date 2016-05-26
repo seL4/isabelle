@@ -2,7 +2,7 @@
     Author:     John Matthews, Galois Connections; Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 
-section {* A monad with a polymorphic heap and primitive reasoning infrastructure *}
+section \<open>A monad with a polymorphic heap and primitive reasoning infrastructure\<close>
 
 theory Heap_Monad
 imports
@@ -10,12 +10,12 @@ imports
   "~~/src/HOL/Library/Monad_Syntax"
 begin
 
-subsection {* The monad *}
+subsection \<open>The monad\<close>
 
-subsubsection {* Monad construction *}
+subsubsection \<open>Monad construction\<close>
 
-text {* Monadic heap actions either produce values
-  and transform the heap, or fail *}
+text \<open>Monadic heap actions either produce values
+  and transform the heap, or fail\<close>
 datatype 'a Heap = Heap "heap \<Rightarrow> ('a \<times> heap) option"
 
 lemma [code, code del]:
@@ -46,7 +46,7 @@ lemma execute_Let [execute_simps]:
   by (simp add: Let_def)
 
 
-subsubsection {* Specialised lifters *}
+subsubsection \<open>Specialised lifters\<close>
 
 definition tap :: "(heap \<Rightarrow> 'a) \<Rightarrow> 'a Heap" where
   [code del]: "tap f = Heap (\<lambda>h. Some (f h, h))"
@@ -71,7 +71,7 @@ lemma execute_guard [execute_simps]:
   by (simp_all add: guard_def)
 
 
-subsubsection {* Predicate classifying successful computations *}
+subsubsection \<open>Predicate classifying successful computations\<close>
 
 definition success :: "'a Heap \<Rightarrow> heap \<Rightarrow> bool" where
   "success f h \<longleftrightarrow> execute f h \<noteq> None"
@@ -109,13 +109,13 @@ lemma success_ifI:
   by (simp add: success_def)
 
 
-subsubsection {* Predicate for a simple relational calculus *}
+subsubsection \<open>Predicate for a simple relational calculus\<close>
 
-text {*
-  The @{text effect} predicate states that when a computation @{text c}
-  runs with the heap @{text h} will result in return value @{text r}
-  and a heap @{text "h'"}, i.e.~no exception occurs.
-*}  
+text \<open>
+  The \<open>effect\<close> predicate states that when a computation \<open>c\<close>
+  runs with the heap \<open>h\<close> will result in return value \<open>r\<close>
+  and a heap \<open>h'\<close>, i.e.~no exception occurs.
+\<close>  
 
 definition effect :: "'a Heap \<Rightarrow> heap \<Rightarrow> heap \<Rightarrow> 'a \<Rightarrow> bool" where
   effect_def: "effect c h h' r \<longleftrightarrow> execute c h = Some (r, h')"
@@ -210,7 +210,7 @@ lemma effect_guardE [effect_elims]:
     (auto simp add: execute_simps elim!: successE, cases "P h", auto simp add: execute_simps)
 
 
-subsubsection {* Monad combinators *}
+subsubsection \<open>Monad combinators\<close>
 
 definition return :: "'a \<Rightarrow> 'a Heap" where
   [code del]: "return x = heap (Pair x)"
@@ -232,7 +232,7 @@ lemma effect_returnE [effect_elims]:
   obtains "r = x" "h' = h"
   using assms by (rule effectE) (simp add: execute_simps)
 
-definition raise :: "string \<Rightarrow> 'a Heap" where -- {* the string is just decoration *}
+definition raise :: "string \<Rightarrow> 'a Heap" where \<comment> \<open>the string is just decoration\<close>
   [code del]: "raise s = Heap (\<lambda>_. None)"
 
 lemma execute_raise [execute_simps]:
@@ -306,9 +306,9 @@ lemma raise_bind [simp]: "raise e \<bind> f = raise e"
   by (rule Heap_eqI) (simp add: execute_simps)
 
 
-subsection {* Generic combinators *}
+subsection \<open>Generic combinators\<close>
 
-subsubsection {* Assertions *}
+subsubsection \<open>Assertions\<close>
 
 definition assert :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a Heap" where
   "assert P x = (if P x then return x else raise ''assert'')"
@@ -338,7 +338,7 @@ lemma assert_cong [fundef_cong]:
   by (rule Heap_eqI) (insert assms, simp add: assert_def)
 
 
-subsubsection {* Plain lifting *}
+subsubsection \<open>Plain lifting\<close>
 
 definition lift :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b Heap" where
   "lift f = return o f"
@@ -352,7 +352,7 @@ lemma bind_lift:
   by (simp add: lift_def comp_def)
 
 
-subsubsection {* Iteration -- warning: this is rarely useful! *}
+subsubsection \<open>Iteration -- warning: this is rarely useful!\<close>
 
 primrec fold_map :: "('a \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarrow> 'b list Heap" where
   "fold_map f [] = return []"
@@ -382,7 +382,7 @@ next
 qed
 
 
-subsection {* Partial function definition setup *}
+subsection \<open>Partial function definition setup\<close>
 
 definition Heap_ord :: "'a Heap \<Rightarrow> 'a Heap \<Rightarrow> bool" where
   "Heap_ord = img_ord execute (fun_ord option_ord)"
@@ -455,9 +455,9 @@ lemma fixp_induct_heap:
   unfolding effect_def execute.simps
   by blast
 
-declaration {* Partial_Function.init "heap" @{term heap.fixp_fun}
+declaration \<open>Partial_Function.init "heap" @{term heap.fixp_fun}
   @{term heap.mono_body} @{thm heap.fixp_rule_uc} @{thm heap.fixp_induct_uc}
-  (SOME @{thm fixp_induct_heap}) *}
+  (SOME @{thm fixp_induct_heap})\<close>
 
 
 abbreviation "mono_Heap \<equiv> monotone (fun_ord Heap_ord) Heap_ord"
@@ -516,9 +516,9 @@ proof (rule monotoneI)
 qed
 
 
-subsection {* Code generator setup *}
+subsection \<open>Code generator setup\<close>
 
-subsubsection {* Logical intermediate layer *}
+subsubsection \<open>Logical intermediate layer\<close>
 
 definition raise' :: "String.literal \<Rightarrow> 'a Heap" where
   [code del]: "raise' s = raise (String.explode s)"
@@ -530,10 +530,10 @@ lemma raise_raise': (* FIXME delete candidate *)
   "raise s = raise' (STR s)"
   unfolding raise'_def by (simp add: STR_inverse)
 
-code_datatype raise' -- {* avoid @{const "Heap"} formally *}
+code_datatype raise' \<comment> \<open>avoid @{const "Heap"} formally\<close>
 
 
-subsubsection {* SML and OCaml *}
+subsubsection \<open>SML and OCaml\<close>
 
 code_printing type_constructor Heap \<rightharpoonup> (SML) "(unit/ ->/ _)"
 code_printing constant bind \<rightharpoonup> (SML) "!(fn/ f'_/ =>/ fn/ ()/ =>/ f'_/ (_/ ())/ ())"
@@ -546,12 +546,12 @@ code_printing constant return \<rightharpoonup> (OCaml) "!(fun/ ()/ ->/ _)"
 code_printing constant Heap_Monad.raise' \<rightharpoonup> (OCaml) "failwith"
 
 
-subsubsection {* Haskell *}
+subsubsection \<open>Haskell\<close>
 
-text {* Adaption layer *}
+text \<open>Adaption layer\<close>
 
 code_printing code_module "Heap" \<rightharpoonup> (Haskell)
-{*import qualified Control.Monad;
+\<open>import qualified Control.Monad;
 import qualified Control.Monad.ST;
 import qualified Data.STRef;
 import qualified Data.Array.ST;
@@ -581,11 +581,11 @@ readArray :: STArray s a -> Integer -> ST s a;
 readArray = Data.Array.ST.readArray;
 
 writeArray :: STArray s a -> Integer -> a -> ST s ();
-writeArray = Data.Array.ST.writeArray;*}
+writeArray = Data.Array.ST.writeArray;\<close>
 
 code_reserved Haskell Heap
 
-text {* Monad *}
+text \<open>Monad\<close>
 
 code_printing type_constructor Heap \<rightharpoonup> (Haskell) "Heap.ST/ Heap.RealWorld/ _"
 code_monad bind Haskell
@@ -593,10 +593,10 @@ code_printing constant return \<rightharpoonup> (Haskell) "return"
 code_printing constant Heap_Monad.raise' \<rightharpoonup> (Haskell) "error"
 
 
-subsubsection {* Scala *}
+subsubsection \<open>Scala\<close>
 
 code_printing code_module "Heap" \<rightharpoonup> (Scala)
-{*object Heap {
+\<open>object Heap {
   def bind[A, B](f: Unit => A, g: A => Unit => B): Unit => B = (_: Unit) => g (f ()) ()
 }
 
@@ -628,7 +628,7 @@ object Array {
   def freeze[A](a: ArraySeq[A]): List[A] =
     a.toList
 }
-*}
+\<close>
 
 code_reserved Scala Heap Ref Array
 
@@ -638,9 +638,9 @@ code_printing constant return \<rightharpoonup> (Scala) "('_: Unit)/ =>/ _"
 code_printing constant Heap_Monad.raise' \<rightharpoonup> (Scala) "!sys.error((_))"
 
 
-subsubsection {* Target variants with less units *}
+subsubsection \<open>Target variants with less units\<close>
 
-setup {*
+setup \<open>
 
 let
 
@@ -703,7 +703,7 @@ Code_Target.add_derived_target ("SML_imp", [("SML", imp_program)])
 
 end
 
-*}
+\<close>
 
 hide_const (open) Heap heap guard raise' fold_map
 

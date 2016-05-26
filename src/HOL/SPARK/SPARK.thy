@@ -9,7 +9,7 @@ theory SPARK
 imports SPARK_Setup
 begin
 
-text {* Bitwise logical operators *}
+text \<open>Bitwise logical operators\<close>
 
 spark_proof_functions
   bit__and (integer, integer) : integer = "op AND"
@@ -54,7 +54,7 @@ lemmas [simp] =
   bit_not_spark_eq [where 'a=64, simplified]
 
 
-text {* Minimum and maximum *}
+text \<open>Minimum and maximum\<close>
 
 spark_proof_functions
   integer__min = "min :: int \<Rightarrow> int \<Rightarrow> int"

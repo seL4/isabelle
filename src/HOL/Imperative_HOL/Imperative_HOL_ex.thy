@@ -3,7 +3,7 @@
                 Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 
-section {* Monadic imperative HOL with examples *}
+section \<open>Monadic imperative HOL with examples\<close>
 
 theory Imperative_HOL_ex
 imports Imperative_HOL Overview

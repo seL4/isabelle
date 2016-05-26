@@ -241,7 +241,7 @@ of an @{typ "exp list"}. Is it just Nil or Cons? What seems to work best is to
 regard an @{typ "exp list"} as a @{term "listrel exprel"} equivalence class\<close>
 
 text\<open>This theorem is easily proved but never used. There's no obvious way
-even to state the analogous result, @{text FnCall_Cons}.\<close>
+even to state the analogous result, \<open>FnCall_Cons\<close>.\<close>
 lemma FnCall_Nil: "FnCall F [] = Abs_Exp (exprel``{FNCALL F []})"
   by (simp add: FnCall_def)
 
@@ -390,7 +390,7 @@ qed
 
 
 subsection\<open>The Abstract Discriminator\<close>
-text\<open>However, as @{text FnCall_Var_neq_Var} illustrates, we don't need this
+text\<open>However, as \<open>FnCall_Var_neq_Var\<close> illustrates, we don't need this
 function in order to prove discrimination theorems.\<close>
 
 definition

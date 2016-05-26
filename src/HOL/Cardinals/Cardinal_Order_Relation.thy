@@ -5,7 +5,7 @@
 Cardinal-order relations.
 *)
 
-section {* Cardinal-Order Relations *}
+section \<open>Cardinal-Order Relations\<close>
 
 theory Cardinal_Order_Relation
 imports BNF_Cardinal_Order_Relation Wellorder_Constructions
@@ -69,7 +69,7 @@ declare
   curr_in[intro, simp]
 
 
-subsection {* Cardinal of a set *}
+subsection \<open>Cardinal of a set\<close>
 
 lemma card_of_inj_rel: assumes INJ: "!! x y y'. \<lbrakk>(x,y) : R; (x,y') : R\<rbrakk> \<Longrightarrow> y = y'"
 shows "|{y. EX x. (x,y) : R}| <=o |{x. EX y. (x,y) : R}|"
@@ -132,7 +132,7 @@ proof-
 qed
 
 
-subsection {* Cardinals versus set operations on arbitrary sets *}
+subsection \<open>Cardinals versus set operations on arbitrary sets\<close>
 
 lemma card_of_set_type[simp]: "|UNIV::'a set| <o |UNIV::'a set set|"
 using card_of_Pow[of "UNIV::'a set"] by simp
@@ -659,7 +659,7 @@ shows "finite (Field r) \<longleftrightarrow> finite (Field s)"
 by (metis assms ordIso_iff_ordLeq ordLeq_finite_Field)
 
 
-subsection {* Cardinals versus set operations involving infinite sets *}
+subsection \<open>Cardinals versus set operations involving infinite sets\<close>
 
 lemma finite_iff_cardOf_nat:
 "finite A = ( |A| <o |UNIV :: nat set| )"
@@ -704,10 +704,10 @@ proof(auto)
 qed
 
 
-subsection {* Cardinals versus lists *}
+subsection \<open>Cardinals versus lists\<close>
 
-text{* The next is an auxiliary operator, which shall be used for inductive
-proofs of facts concerning the cardinality of @{text "List"} : *}
+text\<open>The next is an auxiliary operator, which shall be used for inductive
+proofs of facts concerning the cardinality of \<open>List\<close> :\<close>
 
 definition nlists :: "'a set \<Rightarrow> nat \<Rightarrow> 'a list set"
 where "nlists A n \<equiv> {l. set l \<le> A \<and> length l = n}"
@@ -886,7 +886,7 @@ using assms assms lists_infinite_bij_betw[of "UNIV::'a set"]
 using lists_UNIV by auto
 
 
-subsection {* Cardinals versus the set-of-finite-sets operator *}
+subsection \<open>Cardinals versus the set-of-finite-sets operator\<close>
 
 definition Fpow :: "'a set \<Rightarrow> 'a set set"
 where "Fpow A \<equiv> {X. X \<le> A \<and> finite X}"
@@ -999,9 +999,9 @@ shows "\<exists>f. bij_betw f (Fpow A) A"
 using assms card_of_Fpow_infinite card_of_ordIso by blast
 
 
-subsection {* The cardinal $\omega$ and the finite cardinals *}
+subsection \<open>The cardinal $\omega$ and the finite cardinals\<close>
 
-subsubsection {* First as well-orders *}
+subsubsection \<open>First as well-orders\<close>
 
 lemma Field_natLess: "Field natLess = (UNIV::nat set)"
 by(unfold Field_def natLess_def, auto)
@@ -1111,7 +1111,7 @@ proof(auto simp add: natLeq_on_Well_order ordIso_reflexive)
 qed
 
 
-subsubsection {* Then as cardinals *}
+subsubsection \<open>Then as cardinals\<close>
 
 lemma ordIso_natLeq_infinite1:
 "|A| =o natLeq \<Longrightarrow> \<not>finite A"
@@ -1179,7 +1179,7 @@ proof-
 qed
 
 
-subsubsection {* "Backward compatibility" with the numeric cardinal operator for finite sets *}
+subsubsection \<open>"Backward compatibility" with the numeric cardinal operator for finite sets\<close>
 
 lemma finite_card_of_iff_card2:
 assumes FIN: "finite A" and FIN': "finite B"
@@ -1221,7 +1221,7 @@ lemma card_Field_natLeq_on:
 using Field_natLeq_on card_atLeastLessThan by auto
 
 
-subsection {* The successor of a cardinal *}
+subsection \<open>The successor of a cardinal\<close>
 
 lemma embed_implies_ordIso_Restr:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and EMB: "embed r' r f"
@@ -1321,7 +1321,7 @@ using assms card_of_Plus_ordLeq_infinite card_of_Un_Plus_ordLeq
 ordLeq_transitive by metis
 
 
-subsection {* Others *}
+subsection \<open>Others\<close>
 
 lemma under_mono[simp]:
 assumes "Well_order r" and "(i,j) \<in> r"
@@ -1575,7 +1575,7 @@ shows "\<not>finite (Func A B)"
 using ordLeq_Func[OF B] by (metis A card_of_ordLeq_finite)
 
 
-subsection {* Infinite cardinals are limit ordinals *}
+subsection \<open>Infinite cardinals are limit ordinals\<close>
 
 lemma card_order_infinite_isLimOrd:
 assumes c: "Card_order r" and i: "\<not>finite (Field r)"
@@ -1683,7 +1683,7 @@ proof(rule ccontr, auto)
 qed
 
 
-subsection {* Regular vs. stable cardinals *}
+subsection \<open>Regular vs. stable cardinals\<close>
 
 definition stable :: "'a rel \<Rightarrow> bool"
 where
@@ -1851,9 +1851,9 @@ using assms stable_ordIso1 stable_ordIso2 by blast
 lemma stable_nat: "stable |UNIV::nat set|"
 using stable_natLeq card_of_nat stable_ordIso by auto
 
-text{* Below, the type of "A" is not important -- we just had to choose an appropriate
+text\<open>Below, the type of "A" is not important -- we just had to choose an appropriate
    type to make "A" possible. What is important is that arbitrarily large
-   infinite sets of stable cardinality exist. *}
+   infinite sets of stable cardinality exist.\<close>
 
 lemma infinite_stable_exists:
 assumes CARD: "\<forall>r \<in> R. Card_order (r::'a rel)"

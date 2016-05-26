@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-section {* Theorems about sub arrays *}
+section \<open>Theorems about sub arrays\<close>
 
 theory Subarray
 imports "~~/src/HOL/Imperative_HOL/Array" List_Sublist

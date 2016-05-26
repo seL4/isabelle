@@ -6,13 +6,13 @@
 Lambda-terms.
 *)
 
-section {* Lambda-Terms *}
+section \<open>Lambda-Terms\<close>
 
 theory Lambda_Term
 imports "~~/src/HOL/Library/FSet"
 begin
 
-section {* Datatype definition *}
+section \<open>Datatype definition\<close>
 
 datatype 'a trm =
   Var 'a |
@@ -21,7 +21,7 @@ datatype 'a trm =
   Lt "('a \<times> 'a trm) fset" "'a trm"
 
 
-subsection {* Example: The set of all variables varsOf and free variables fvarsOf of a term *}
+subsection \<open>Example: The set of all variables varsOf and free variables fvarsOf of a term\<close>
 
 primrec varsOf :: "'a trm \<Rightarrow> 'a set" where
   "varsOf (Var a) = {a}"

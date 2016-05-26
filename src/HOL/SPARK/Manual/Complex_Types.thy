@@ -39,9 +39,9 @@ spark_vc procedure_initialize_1
 spark_vc procedure_initialize_2
 proof -
   from
-    `initialized a loop__1__i`
-    `initialized2 (Field1 (a loop__1__i)) 9`
-    `initialized3 (Field1 (a loop__1__i)) 9 (pos Sun)`
+    \<open>initialized a loop__1__i\<close>
+    \<open>initialized2 (Field1 (a loop__1__i)) 9\<close>
+    \<open>initialized3 (Field1 (a loop__1__i)) 9 (pos Sun)\<close>
   show ?C1
     apply (auto simp add: initialized_def initialized2_def initialized3_def)
     apply (case_tac "j = 9")
@@ -58,11 +58,11 @@ spark_vc procedure_initialize_3
 
 spark_vc procedure_initialize_4
 proof -
-  from `initialized a loop__1__i`
+  from \<open>initialized a loop__1__i\<close>
   show ?C1 by (simp add: initialized_def)
   from
-    `initialized2 (Field1 (a loop__1__i)) loop__2__j`
-    `initialized3 (Field1 (a loop__1__i)) loop__2__j (pos Sun)`
+    \<open>initialized2 (Field1 (a loop__1__i)) loop__2__j\<close>
+    \<open>initialized3 (Field1 (a loop__1__i)) loop__2__j (pos Sun)\<close>
   show ?C2
     apply (auto simp add: initialized2_def initialized3_def)
     apply (case_tac "j = loop__2__j")
@@ -79,13 +79,13 @@ spark_vc procedure_initialize_5
 
 spark_vc procedure_initialize_6
 proof -
-  from `initialized a loop__1__i`
+  from \<open>initialized a loop__1__i\<close>
   show ?C1 by (simp add: initialized_def)
-  from `initialized2 (Field1 (a loop__1__i)) loop__2__j`
+  from \<open>initialized2 (Field1 (a loop__1__i)) loop__2__j\<close>
   show ?C2 by (simp add: initialized2_def initialized3_def)
   from
-    `initialized3 (Field1 (a loop__1__i)) loop__2__j (pos loop__3__k)`
-    `loop__3__k < Sun`
+    \<open>initialized3 (Field1 (a loop__1__i)) loop__2__j (pos loop__3__k)\<close>
+    \<open>loop__3__k < Sun\<close>
     rangeI [of pos loop__3__k]
   show ?C3
     apply (auto simp add: initialized3_def succ_def less_pos pos_val range_pos)
@@ -98,9 +98,9 @@ qed
 
 spark_vc procedure_initialize_9
   using
-    `initialized a 9`
-    `initialized2 (Field1 (a 9)) 9`
-    `initialized3 (Field1 (a 9)) 9 (pos Sun)`
+    \<open>initialized a 9\<close>
+    \<open>initialized2 (Field1 (a 9)) 9\<close>
+    \<open>initialized3 (Field1 (a 9)) 9 (pos Sun)\<close>
   apply (auto simp add: initialized_def initialized2_def initialized3_def)
   apply (case_tac "j = 9")
   apply auto

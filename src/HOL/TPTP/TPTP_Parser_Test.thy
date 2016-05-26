@@ -10,7 +10,7 @@ imports TPTP_Test TPTP_Parser_Example
 begin
 
 section "Problem-name parsing tests"
-ML {*
+ML \<open>
 local
   open TPTP_Syntax;
   open TPTP_Problem_Name;
@@ -52,27 +52,27 @@ fun problem_names () =
          TPTP_Problem_Name.parse_problem_name #>
          TPTP_Problem_Name.mangle_problem_name)
      (TPTP_Syntax.get_file_list tptp_probs_dir)
-*}
+\<close>
 
 
 section "Parser tests"
 
-ML {*
+ML \<open>
   TPTP_Parser.parse_expression "" "fof(dt_k4_waybel34, axiom, ~ v3).";
   TPTP_Parser.parse_expression "" "thf(dt_k4_waybel34, axiom, ~ ($true | $false)).";
   TPTP_Parser.parse_expression ""
    "thf(dt_k4_waybel34, axiom, ~ (! [X : $o, Y : ($o > $o)] : ( (X | (Y = Y))))).";
   TPTP_Parser.parse_expression "" "tff(dt_k4_waybel34, axiom, ~ ($true)).";
   payloads_of it;
-*}
-ML {*
+\<close>
+ML \<open>
   TPTP_Parser.parse_expression "" "thf(bla, type, x : $o).";
   TPTP_Parser.parse_expression ""
    "fof(dt_k4_waybel34, axiom, ~ v3_struct_0(k4_waybel34(A))).";
   TPTP_Parser.parse_expression ""
    "fof(dt_k4_waybel34, axiom, (! [A] : (v1_xboole_0(A) => ( ~ v3_struct_0(k4_waybel34(A)))))).";
-*}
-ML {*
+\<close>
+ML \<open>
   TPTP_Parser.parse_expression ""
   ("fof(dt_k4_waybel34,axiom,(" ^
     "! [A] :" ^
@@ -84,9 +84,9 @@ ML {*
         "& v12_altcat_1(k4_waybel34(A))" ^
         "& v2_yellow21(k4_waybel34(A))" ^
         "& l2_altcat_1(k4_waybel34(A)) ) ) )).")
-*}
+\<close>
 
-ML {*
+ML \<open>
 open TPTP_Syntax;
 @{assert}
   ((TPTP_Parser.parse_expression ""
@@ -99,30 +99,30 @@ open TPTP_Syntax;
        Atom (THF_Atom_term (Term_Func (Uninterpreted "f", []))))),
     Atom (THF_Atom_term (Term_Func (Uninterpreted "g", [])))])
 )
-*}
+\<close>
 
 
 text "Parse a specific problem."
-ML {*
+ML \<open>
   map TPTP_Parser.parse_file
    ["$TPTP/Problems/FLD/FLD051-1.p",
     "$TPTP/Problems/FLD/FLD005-3.p",
     "$TPTP/Problems/SWV/SWV567-1.015.p",
     "$TPTP/Problems/SWV/SWV546-1.010.p"]
-*}
-ML {*
+\<close>
+ML \<open>
   parser_test @{context} (situate "DAT/DAT001=1.p");
   parser_test @{context} (situate "ALG/ALG001^5.p");
   parser_test @{context} (situate "NUM/NUM021^1.p");
   parser_test @{context} (situate "SYN/SYN000^1.p")
-*}
+\<close>
 
 text "Run the parser over all problems."
-ML {*
+ML \<open>
   if test_all @{context} then
     (report @{context} "Testing parser";
      S timed_test parser_test @{context} (TPTP_Syntax.get_file_list tptp_probs_dir))
   else ()
-*}
+\<close>
 
 end

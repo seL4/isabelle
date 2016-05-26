@@ -5,7 +5,7 @@
 Examples featuring Nitpick's monotonicity check.
 *)
 
-section {* Examples Featuring Nitpick's Monotonicity Check *}
+section \<open>Examples Featuring Nitpick's Monotonicity Check\<close>
 
 theory Mono_Nits
 imports Main
@@ -13,7 +13,7 @@ imports Main
         (* "~/afp/thys/AVL-Trees/AVL2" "~/afp/thys/Huffman/Huffman" *)
 begin
 
-ML {*
+ML \<open>
 open Nitpick_Util
 open Nitpick_HOL
 open Nitpick_Preproc
@@ -62,84 +62,84 @@ fun mono t = is_mono t orelse raise BUG
 fun nonmono t = not (is_mono t) orelse raise BUG
 fun const t = is_const t orelse raise BUG
 fun nonconst t = not (is_const t) orelse raise BUG
-*}
+\<close>
 
-ML {* Nitpick_Mono.trace := false *}
+ML \<open>Nitpick_Mono.trace := false\<close>
 
-ML_val {* const @{term "A::('a\<Rightarrow>'b)"} *}
-ML_val {* const @{term "(A::'a set) = A"} *}
-ML_val {* const @{term "(A::'a set set) = A"} *}
-ML_val {* const @{term "(\<lambda>x::'a set. a \<in> x)"} *}
-ML_val {* const @{term "{{a::'a}} = C"} *}
-ML_val {* const @{term "{f::'a\<Rightarrow>nat} = {g::'a\<Rightarrow>nat}"} *}
-ML_val {* const @{term "A \<union> (B::'a set)"} *}
-ML_val {* const @{term "\<lambda>A B x::'a. A x \<or> B x"} *}
-ML_val {* const @{term "P (a::'a)"} *}
-ML_val {* const @{term "\<lambda>a::'a. b (c (d::'a)) (e::'a) (f::'a)"} *}
-ML_val {* const @{term "\<forall>A::'a set. a \<in> A"} *}
-ML_val {* const @{term "\<forall>A::'a set. P A"} *}
-ML_val {* const @{term "P \<or> Q"} *}
-ML_val {* const @{term "A \<union> B = (C::'a set)"} *}
-ML_val {* const @{term "(\<lambda>A B x::'a. A x \<or> B x) A B = C"} *}
-ML_val {* const @{term "(if P then (A::'a set) else B) = C"} *}
-ML_val {* const @{term "let A = (C::'a set) in A \<union> B"} *}
-ML_val {* const @{term "THE x::'b. P x"} *}
-ML_val {* const @{term "(\<lambda>x::'a. False)"} *}
-ML_val {* const @{term "(\<lambda>x::'a. True)"} *}
-ML_val {* const @{term "(\<lambda>x::'a. False) = (\<lambda>x::'a. False)"} *}
-ML_val {* const @{term "(\<lambda>x::'a. True) = (\<lambda>x::'a. True)"} *}
-ML_val {* const @{term "Let (a::'a) A"} *}
-ML_val {* const @{term "A (a::'a)"} *}
-ML_val {* const @{term "insert (a::'a) A = B"} *}
-ML_val {* const @{term "- (A::'a set)"} *}
-ML_val {* const @{term "finite (A::'a set)"} *}
-ML_val {* const @{term "\<not> finite (A::'a set)"} *}
-ML_val {* const @{term "finite (A::'a set set)"} *}
-ML_val {* const @{term "\<lambda>a::'a. A a \<and> \<not> B a"} *}
-ML_val {* const @{term "A < (B::'a set)"} *}
-ML_val {* const @{term "A \<le> (B::'a set)"} *}
-ML_val {* const @{term "[a::'a]"} *}
-ML_val {* const @{term "[a::'a set]"} *}
-ML_val {* const @{term "[A \<union> (B::'a set)]"} *}
-ML_val {* const @{term "[A \<union> (B::'a set)] = [C]"} *}
-ML_val {* const @{term "{(\<lambda>x::'a. x = a)} = C"} *}
-ML_val {* const @{term "(\<lambda>a::'a. \<not> A a) = B"} *}
-ML_val {* const @{prop "\<forall>F f g (h::'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> \<not> f a"} *}
-ML_val {* const @{term "\<lambda>A B x::'a. A x \<and> B x \<and> A = B"} *}
-ML_val {* const @{term "p = (\<lambda>(x::'a) (y::'a). P x \<or> \<not> Q y)"} *}
-ML_val {* const @{term "p = (\<lambda>(x::'a) (y::'a). p x y :: bool)"} *}
-ML_val {* const @{term "p = (\<lambda>A B x. A x \<and> \<not> B x) (\<lambda>x. True) (\<lambda>y. x \<noteq> y)"} *}
-ML_val {* const @{term "p = (\<lambda>y. x \<noteq> y)"} *}
-ML_val {* const @{term "(\<lambda>x. (p::'a\<Rightarrow>bool\<Rightarrow>bool) x False)"} *}
-ML_val {* const @{term "(\<lambda>x y. (p::'a\<Rightarrow>'a\<Rightarrow>bool\<Rightarrow>bool) x y False)"} *}
-ML_val {* const @{term "f = (\<lambda>x::'a. P x \<longrightarrow> Q x)"} *}
-ML_val {* const @{term "\<forall>a::'a. P a"} *}
+ML_val \<open>const @{term "A::('a\<Rightarrow>'b)"}\<close>
+ML_val \<open>const @{term "(A::'a set) = A"}\<close>
+ML_val \<open>const @{term "(A::'a set set) = A"}\<close>
+ML_val \<open>const @{term "(\<lambda>x::'a set. a \<in> x)"}\<close>
+ML_val \<open>const @{term "{{a::'a}} = C"}\<close>
+ML_val \<open>const @{term "{f::'a\<Rightarrow>nat} = {g::'a\<Rightarrow>nat}"}\<close>
+ML_val \<open>const @{term "A \<union> (B::'a set)"}\<close>
+ML_val \<open>const @{term "\<lambda>A B x::'a. A x \<or> B x"}\<close>
+ML_val \<open>const @{term "P (a::'a)"}\<close>
+ML_val \<open>const @{term "\<lambda>a::'a. b (c (d::'a)) (e::'a) (f::'a)"}\<close>
+ML_val \<open>const @{term "\<forall>A::'a set. a \<in> A"}\<close>
+ML_val \<open>const @{term "\<forall>A::'a set. P A"}\<close>
+ML_val \<open>const @{term "P \<or> Q"}\<close>
+ML_val \<open>const @{term "A \<union> B = (C::'a set)"}\<close>
+ML_val \<open>const @{term "(\<lambda>A B x::'a. A x \<or> B x) A B = C"}\<close>
+ML_val \<open>const @{term "(if P then (A::'a set) else B) = C"}\<close>
+ML_val \<open>const @{term "let A = (C::'a set) in A \<union> B"}\<close>
+ML_val \<open>const @{term "THE x::'b. P x"}\<close>
+ML_val \<open>const @{term "(\<lambda>x::'a. False)"}\<close>
+ML_val \<open>const @{term "(\<lambda>x::'a. True)"}\<close>
+ML_val \<open>const @{term "(\<lambda>x::'a. False) = (\<lambda>x::'a. False)"}\<close>
+ML_val \<open>const @{term "(\<lambda>x::'a. True) = (\<lambda>x::'a. True)"}\<close>
+ML_val \<open>const @{term "Let (a::'a) A"}\<close>
+ML_val \<open>const @{term "A (a::'a)"}\<close>
+ML_val \<open>const @{term "insert (a::'a) A = B"}\<close>
+ML_val \<open>const @{term "- (A::'a set)"}\<close>
+ML_val \<open>const @{term "finite (A::'a set)"}\<close>
+ML_val \<open>const @{term "\<not> finite (A::'a set)"}\<close>
+ML_val \<open>const @{term "finite (A::'a set set)"}\<close>
+ML_val \<open>const @{term "\<lambda>a::'a. A a \<and> \<not> B a"}\<close>
+ML_val \<open>const @{term "A < (B::'a set)"}\<close>
+ML_val \<open>const @{term "A \<le> (B::'a set)"}\<close>
+ML_val \<open>const @{term "[a::'a]"}\<close>
+ML_val \<open>const @{term "[a::'a set]"}\<close>
+ML_val \<open>const @{term "[A \<union> (B::'a set)]"}\<close>
+ML_val \<open>const @{term "[A \<union> (B::'a set)] = [C]"}\<close>
+ML_val \<open>const @{term "{(\<lambda>x::'a. x = a)} = C"}\<close>
+ML_val \<open>const @{term "(\<lambda>a::'a. \<not> A a) = B"}\<close>
+ML_val \<open>const @{prop "\<forall>F f g (h::'a set). F f \<and> F g \<and> \<not> f a \<and> g a \<longrightarrow> \<not> f a"}\<close>
+ML_val \<open>const @{term "\<lambda>A B x::'a. A x \<and> B x \<and> A = B"}\<close>
+ML_val \<open>const @{term "p = (\<lambda>(x::'a) (y::'a). P x \<or> \<not> Q y)"}\<close>
+ML_val \<open>const @{term "p = (\<lambda>(x::'a) (y::'a). p x y :: bool)"}\<close>
+ML_val \<open>const @{term "p = (\<lambda>A B x. A x \<and> \<not> B x) (\<lambda>x. True) (\<lambda>y. x \<noteq> y)"}\<close>
+ML_val \<open>const @{term "p = (\<lambda>y. x \<noteq> y)"}\<close>
+ML_val \<open>const @{term "(\<lambda>x. (p::'a\<Rightarrow>bool\<Rightarrow>bool) x False)"}\<close>
+ML_val \<open>const @{term "(\<lambda>x y. (p::'a\<Rightarrow>'a\<Rightarrow>bool\<Rightarrow>bool) x y False)"}\<close>
+ML_val \<open>const @{term "f = (\<lambda>x::'a. P x \<longrightarrow> Q x)"}\<close>
+ML_val \<open>const @{term "\<forall>a::'a. P a"}\<close>
 
-ML_val {* nonconst @{term "\<forall>P (a::'a). P a"} *}
-ML_val {* nonconst @{term "THE x::'a. P x"} *}
-ML_val {* nonconst @{term "SOME x::'a. P x"} *}
-ML_val {* nonconst @{term "(\<lambda>A B x::'a. A x \<or> B x) = myunion"} *}
-ML_val {* nonconst @{term "(\<lambda>x::'a. False) = (\<lambda>x::'a. True)"} *}
-ML_val {* nonconst @{prop "\<forall>F f g (h::'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h"} *}
+ML_val \<open>nonconst @{term "\<forall>P (a::'a). P a"}\<close>
+ML_val \<open>nonconst @{term "THE x::'a. P x"}\<close>
+ML_val \<open>nonconst @{term "SOME x::'a. P x"}\<close>
+ML_val \<open>nonconst @{term "(\<lambda>A B x::'a. A x \<or> B x) = myunion"}\<close>
+ML_val \<open>nonconst @{term "(\<lambda>x::'a. False) = (\<lambda>x::'a. True)"}\<close>
+ML_val \<open>nonconst @{prop "\<forall>F f g (h::'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h"}\<close>
 
-ML_val {* mono @{prop "Q (\<forall>x::'a set. P x)"} *}
-ML_val {* mono @{prop "P (a::'a)"} *}
-ML_val {* mono @{prop "{a} = {b::'a}"} *}
-ML_val {* mono @{prop "(\<lambda>x. x = a) = (\<lambda>y. y = (b::'a))"} *}
-ML_val {* mono @{prop "(a::'a) \<in> P \<and> P \<union> P = P"} *}
-ML_val {* mono @{prop "\<forall>F::'a set set. P"} *}
-ML_val {* mono @{prop "\<not> (\<forall>F f g (h::'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h)"} *}
-ML_val {* mono @{prop "\<not> Q (\<forall>x::'a set. P x)"} *}
-ML_val {* mono @{prop "\<not> (\<forall>x::'a. P x)"} *}
-ML_val {* mono @{prop "myall P = (P = (\<lambda>x::'a. True))"} *}
-ML_val {* mono @{prop "myall P = (P = (\<lambda>x::'a. False))"} *}
-ML_val {* mono @{prop "\<forall>x::'a. P x"} *}
-ML_val {* mono @{term "(\<lambda>A B x::'a. A x \<or> B x) \<noteq> myunion"} *}
+ML_val \<open>mono @{prop "Q (\<forall>x::'a set. P x)"}\<close>
+ML_val \<open>mono @{prop "P (a::'a)"}\<close>
+ML_val \<open>mono @{prop "{a} = {b::'a}"}\<close>
+ML_val \<open>mono @{prop "(\<lambda>x. x = a) = (\<lambda>y. y = (b::'a))"}\<close>
+ML_val \<open>mono @{prop "(a::'a) \<in> P \<and> P \<union> P = P"}\<close>
+ML_val \<open>mono @{prop "\<forall>F::'a set set. P"}\<close>
+ML_val \<open>mono @{prop "\<not> (\<forall>F f g (h::'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h)"}\<close>
+ML_val \<open>mono @{prop "\<not> Q (\<forall>x::'a set. P x)"}\<close>
+ML_val \<open>mono @{prop "\<not> (\<forall>x::'a. P x)"}\<close>
+ML_val \<open>mono @{prop "myall P = (P = (\<lambda>x::'a. True))"}\<close>
+ML_val \<open>mono @{prop "myall P = (P = (\<lambda>x::'a. False))"}\<close>
+ML_val \<open>mono @{prop "\<forall>x::'a. P x"}\<close>
+ML_val \<open>mono @{term "(\<lambda>A B x::'a. A x \<or> B x) \<noteq> myunion"}\<close>
 
-ML_val {* nonmono @{prop "A = (\<lambda>x::'a. True) \<and> A = (\<lambda>x. False)"} *}
-ML_val {* nonmono @{prop "\<forall>F f g (h::'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h"} *}
+ML_val \<open>nonmono @{prop "A = (\<lambda>x::'a. True) \<and> A = (\<lambda>x. False)"}\<close>
+ML_val \<open>nonmono @{prop "\<forall>F f g (h::'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h"}\<close>
 
-ML {*
+ML \<open>
 val preproc_timeout = seconds 5.0
 val mono_timeout = seconds 1.0
 
@@ -188,7 +188,7 @@ fun check_theory thy =
       in File.append path (res ^ "\n"); writeln res end
       handle Timeout.TIMEOUT _ => ()
   in thy |> theorems_of |> List.app check_theorem end
-*}
+\<close>
 
 (*
 ML_val {* check_theory @{theory AVL2} *}
@@ -199,6 +199,6 @@ ML_val {* check_theory @{theory Map} *}
 ML_val {* check_theory @{theory Relation} *}
 *)
 
-ML {* getenv "ISABELLE_TMP" *}
+ML \<open>getenv "ISABELLE_TMP"\<close>
 
 end

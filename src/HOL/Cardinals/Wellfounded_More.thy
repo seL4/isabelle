@@ -5,13 +5,13 @@
 More on well-founded relations.
 *)
 
-section {* More on Well-Founded Relations *}
+section \<open>More on Well-Founded Relations\<close>
 
 theory Wellfounded_More
 imports Wellfounded Order_Relation_More
 begin
 
-subsection {* Well-founded recursion via genuine fixpoints *}
+subsection \<open>Well-founded recursion via genuine fixpoints\<close>
 
 (*2*)lemma adm_wf_unique_fixpoint:
 fixes r :: "('a * 'a) set" and

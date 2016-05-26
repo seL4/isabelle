@@ -4,7 +4,7 @@
 The ordinal-like sum of two orders with disjoint fields
 *)
 
-section {* Order Union *}
+section \<open>Order Union\<close>
 
 theory Order_Union
 imports Order_Relation

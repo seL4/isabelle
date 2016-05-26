@@ -10,7 +10,7 @@ begin
 
 text \<open>
   The subsequent Isar proof schemes illustrate common proof patterns
-  supported by the generic @{text "induct"} method.
+  supported by the generic \<open>induct\<close> method.
 
   To demonstrate variations on statement (goal) structure we refer to
   the induction rule of Peano natural numbers: @{thm nat.induct
@@ -29,8 +29,8 @@ subsubsection \<open>Local facts and parameters\<close>
 text \<open>
   Augmenting a problem by additional facts and locally fixed variables
   is a bread-and-butter method in many applications.  This is where
-  unwieldy object-level @{text "\<forall>"} and @{text "\<longrightarrow>"} used to occur in
-  the past.  The @{text "induct"} method works with primary means of
+  unwieldy object-level \<open>\<forall>\<close> and \<open>\<longrightarrow>\<close> used to occur in
+  the past.  The \<open>induct\<close> method works with primary means of
   the proof language instead.
 \<close>
 
@@ -80,8 +80,8 @@ next
 qed
 
 text \<open>
-  Observe how the local definition @{text "n = a x"} recurs in the
-  inductive cases as @{text "0 = a x"} and @{text "Suc n = a x"},
+  Observe how the local definition \<open>n = a x\<close> recurs in the
+  inductive cases as \<open>0 = a x\<close> and \<open>Suc n = a x\<close>,
   according to underlying induction rule.
 \<close>
 
@@ -155,9 +155,9 @@ text \<open>
   The following pattern illustrates the slightly more complex
   situation of simultaneous goals with individual local assumptions.
   In compound simultaneous statements like this, local assumptions
-  need to be included into each goal, using @{text "\<Longrightarrow>"} of the Pure
+  need to be included into each goal, using \<open>\<Longrightarrow>\<close> of the Pure
   framework.  In contrast, local parameters do not require separate
-  @{text "\<And>"} prefixes here, but may be moved into the common context
+  \<open>\<And>\<close> prefixes here, but may be moved into the common context
   of the whole statement.
 \<close>
 
@@ -196,7 +196,7 @@ next
 qed
 
 text \<open>
-  Here @{text "induct"} provides again nested cases with numbered
+  Here \<open>induct\<close> provides again nested cases with numbered
   sub-cases, which allows to share common parts of the body context.
   In typical applications, there could be a long intermediate proof of
   general consequences of the induction hypotheses, before finishing
@@ -208,8 +208,7 @@ subsection \<open>Multiple rules\<close>
 
 text \<open>
   Multiple induction rules emerge from mutual definitions of
-  datatypes, inductive predicates, functions etc.  The @{text
-  "induct"} method accepts replicated arguments (with @{text "and"}
+  datatypes, inductive predicates, functions etc.  The \<open>induct\<close> method accepts replicated arguments (with \<open>and\<close>
   separator), corresponding to each projection of the induction
   principle.
 
@@ -344,7 +343,7 @@ qed
 text \<open>
   Working with mutual rules requires special care in composing the
   statement as a two-level conjunction, using lists of propositions
-  separated by @{text "and"}.  For example:
+  separated by \<open>and\<close>.  For example:
 \<close>
 
 inductive Evn :: "nat \<Rightarrow> bool" and Odd :: "nat \<Rightarrow> bool"

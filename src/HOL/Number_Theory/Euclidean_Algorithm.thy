@@ -85,7 +85,7 @@ definition lcm_eucl :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 where
   "lcm_eucl a b = normalize (a * b) div gcd_eucl a b"
 
-definition Lcm_eucl :: "'a set \<Rightarrow> 'a" -- \<open>
+definition Lcm_eucl :: "'a set \<Rightarrow> 'a" \<comment> \<open>
   Somewhat complicated definition of Lcm that has the advantage of working
   for infinite sets as well\<close>
 where

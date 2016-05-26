@@ -592,14 +592,14 @@ qed
 
 subsection \<open>Properties of Principal Ideals\<close>
 
-text \<open>@{text "\<zero>"} generates the zero ideal\<close>
+text \<open>\<open>\<zero>\<close> generates the zero ideal\<close>
 lemma (in ring) zero_genideal: "Idl {\<zero>} = {\<zero>}"
   apply rule
   apply (simp add: genideal_minimal zeroideal)
   apply (fast intro!: genideal_self)
   done
 
-text \<open>@{text "\<one>"} generates the unit ideal\<close>
+text \<open>\<open>\<one>\<close> generates the unit ideal\<close>
 lemma (in ring) one_genideal: "Idl {\<one>} = carrier R"
 proof -
   have "\<one> \<in> Idl {\<one>}"
@@ -684,7 +684,7 @@ proof -
   then show thesis using primeidealCD [OF R.is_cring notprime] by blast
 qed
 
-text \<open>If @{text "{\<zero>}"} is a prime ideal of a commutative ring, the ring is a domain\<close>
+text \<open>If \<open>{\<zero>}\<close> is a prime ideal of a commutative ring, the ring is a domain\<close>
 lemma (in cring) zeroprimeideal_domainI:
   assumes pi: "primeideal {\<zero>} R"
   shows "domain R"
@@ -828,7 +828,7 @@ qed
 
 subsection \<open>Derived Theorems\<close>
 
---"A non-zero cring that has only the two trivial ideals is a field"
+\<comment>"A non-zero cring that has only the two trivial ideals is a field"
 lemma (in cring) trivialideals_fieldI:
   assumes carrnzero: "carrier R \<noteq> {\<zero>}"
     and haveideals: "{I. ideal I R} = {{\<zero>}, carrier R}"
@@ -921,7 +921,7 @@ proof -
   qed
 qed (simp add: zeroideal oneideal)
 
---"Jacobson Theorem 2.2"
+\<comment>"Jacobson Theorem 2.2"
 lemma (in cring) trivialideals_eq_field:
   assumes carrnzero: "carrier R \<noteq> {\<zero>}"
   shows "({I. ideal I R} = {{\<zero>}, carrier R}) = field R"

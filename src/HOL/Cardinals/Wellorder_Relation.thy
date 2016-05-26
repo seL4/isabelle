@@ -5,7 +5,7 @@
 Well-order relations.
 *)
 
-section {* Well-Order Relations *}
+section \<open>Well-Order Relations\<close>
 
 theory Wellorder_Relation
 imports BNF_Wellorder_Relation Wellfounded_More
@@ -14,7 +14,7 @@ begin
 context wo_rel
 begin
 
-subsection {* Auxiliaries *}
+subsection \<open>Auxiliaries\<close>
 
 lemma PREORD: "Preorder r"
 using WELL order_on_defs[of _ r] by auto
@@ -29,7 +29,7 @@ lemma cases_Total2:
 using TOTALS by auto
 
 
-subsection {* Well-founded induction and recursion adapted to non-strict well-order relations *}
+subsection \<open>Well-founded induction and recursion adapted to non-strict well-order relations\<close>
 
 lemma worec_unique_fixpoint:
 assumes ADM: "adm_wo H" and fp: "f = H f"
@@ -44,7 +44,7 @@ proof-
 qed
 
 
-subsubsection {* Properties of max2 *}
+subsubsection \<open>Properties of max2\<close>
 
 lemma max2_iff:
 assumes "a \<in> Field r" and "b \<in> Field r"
@@ -60,7 +60,7 @@ next
 qed
 
 
-subsubsection {* Properties of minim *}
+subsubsection \<open>Properties of minim\<close>
 
 lemma minim_Under:
 "\<lbrakk>B \<le> Field r; B \<noteq> {}\<rbrakk> \<Longrightarrow> minim B \<in> Under B"
@@ -166,7 +166,7 @@ proof-
 qed
 
 
-subsubsection {* Properties of supr *}
+subsubsection \<open>Properties of supr\<close>
 
 lemma supr_Above:
 assumes SUB: "B \<le> Field r" and ABOVE: "Above B \<noteq> {}"
@@ -287,7 +287,7 @@ proof-
 qed
 
 
-subsubsection {* Properties of successor *}
+subsubsection \<open>Properties of successor\<close>
 
 lemma suc_least:
 "\<lbrakk>B \<le> Field r; a \<in> Field r; (\<And> b. b \<in> B \<Longrightarrow> a \<noteq> b \<and> (b,a) \<in> r)\<rbrakk>
@@ -400,7 +400,7 @@ proof-
 qed
 
 
-subsubsection {* Properties of order filters *}
+subsubsection \<open>Properties of order filters\<close>
 
 lemma ofilter_Under[simp]:
 assumes "A \<le> Field r"
@@ -453,7 +453,7 @@ lemma ofilter_under_Union:
 using ofilter_under_UNION [of A] by auto
 
 
-subsubsection {* Other properties *}
+subsubsection \<open>Other properties\<close>
 
 lemma Trans_Under_regressive:
 assumes NE: "A \<noteq> {}" and SUB: "A \<le> Field r"

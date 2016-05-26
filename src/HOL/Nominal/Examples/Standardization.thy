@@ -3,18 +3,18 @@
     Copyright   2005, 2008 TU Muenchen
 *)
 
-section {* Standardization *}
+section \<open>Standardization\<close>
 
 theory Standardization
 imports "../Nominal"
 begin
 
-text {*
+text \<open>
 The proof of the standardization theorem, as well as most of the theorems about
-lambda calculus in the following sections, are taken from @{text "HOL/Lambda"}.
-*}
+lambda calculus in the following sections, are taken from \<open>HOL/Lambda\<close>.
+\<close>
 
-subsection {* Lambda terms *}
+subsection \<open>Lambda terms\<close>
 
 atom_decl name
 
@@ -118,7 +118,7 @@ abbreviation
   "s \<rightarrow>\<^sub>\<beta>\<^sup>* t \<equiv> beta\<^sup>*\<^sup>* s t"
 
 
-subsection {* Application of a term to a list of terms *}
+subsection \<open>Application of a term to a list of terms\<close>
 
 abbreviation
   list_application :: "lam \<Rightarrow> lam list \<Rightarrow> lam"  (infixl "\<degree>\<degree>" 150) where
@@ -196,7 +196,7 @@ lemma fresh_apps [simp]: "(x::name) \<sharp> (t \<degree>\<degree> ts) = (x \<sh
   by (induct ts rule: rev_induct)
     (auto simp add: fresh_list_append fresh_list_nil fresh_list_cons)
 
-text {* A customized induction schema for @{text "\<degree>\<degree>"}. *}
+text \<open>A customized induction schema for \<open>\<degree>\<degree>\<close>.\<close>
 
 lemma lem:
   assumes "\<And>n ts (z::'a::fs_name). (\<And>z. \<forall>t \<in> set ts. P z t) \<Longrightarrow> P z (Var n \<degree>\<degree> ts)"
@@ -250,7 +250,7 @@ theorem Apps_lam_induct:
   done
 
 
-subsection {* Congruence rules *}
+subsection \<open>Congruence rules\<close>
 
 lemma apps_preserves_beta [simp]:
     "r \<rightarrow>\<^sub>\<beta> s \<Longrightarrow> r \<degree>\<degree> ss \<rightarrow>\<^sub>\<beta> s \<degree>\<degree> ss"
@@ -273,7 +273,7 @@ lemma rtrancl_beta_App [intro]:
   by (blast intro!: rtrancl_beta_AppL rtrancl_beta_AppR intro: rtranclp_trans)
 
 
-subsection {* Lifting an order to lists of elements *}
+subsection \<open>Lifting an order to lists of elements\<close>
 
 definition
   step1 :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
@@ -339,7 +339,7 @@ lemma Snoc_step1_SnocD:
   done
 
 
-subsection {* Lifting beta-reduction to lists *}
+subsection \<open>Lifting beta-reduction to lists\<close>
 
 abbreviation
   list_beta :: "lam list \<Rightarrow> lam list \<Rightarrow> bool"  (infixl "[\<rightarrow>\<^sub>\<beta>]\<^sub>1" 50) where
@@ -417,12 +417,12 @@ lemma apps_preserves_betas [simp]:
   done
 
 
-subsection {* Standard reduction relation *}
+subsection \<open>Standard reduction relation\<close>
 
-text {*
+text \<open>
 Based on lecture notes by Ralph Matthes,
 original proof idea due to Ralph Loader.
-*}
+\<close>
 
 declare listrel_mono [mono_set]
 
@@ -514,7 +514,7 @@ next
   from Abs(4) have "ss [\<rightarrow>\<^sub>s] ss'" by (rule listrelp_conj1)
   moreover have "[s] [\<rightarrow>\<^sub>s] [s']" by (iprover intro: s listrelp.intros)
   ultimately have "ss @ [s] [\<rightarrow>\<^sub>s] ss' @ [s']" by (rule listrelp_app)
-  with `r \<rightarrow>\<^sub>s r'` have "(Lam [x].r) \<degree>\<degree> (ss @ [s]) \<rightarrow>\<^sub>s (Lam [x].r') \<degree>\<degree> (ss' @ [s'])"
+  with \<open>r \<rightarrow>\<^sub>s r'\<close> have "(Lam [x].r) \<degree>\<degree> (ss @ [s]) \<rightarrow>\<^sub>s (Lam [x].r') \<degree>\<degree> (ss' @ [s'])"
     by (rule better_sred_Abs)
   thus ?case by (simp only: app_last)
 next
@@ -553,9 +553,9 @@ proof (nominal_induct avoiding: x s s' rule: sred.strong_induct)
 next
   case (Abs y ss ss' r r')
   then have "r[x::=s] \<rightarrow>\<^sub>s r'[x::=s']" by fast
-  moreover from Abs(8) `s \<rightarrow>\<^sub>s s'` have "map (\<lambda>t. t[x::=s]) ss [\<rightarrow>\<^sub>s] map (\<lambda>t. t[x::=s']) ss'"
+  moreover from Abs(8) \<open>s \<rightarrow>\<^sub>s s'\<close> have "map (\<lambda>t. t[x::=s]) ss [\<rightarrow>\<^sub>s] map (\<lambda>t. t[x::=s']) ss'"
     by induct (auto intro: listrelp.intros Abs)
-  ultimately show ?case using Abs(6) `y \<sharp> x` `y \<sharp> s` `y \<sharp> s'`
+  ultimately show ?case using Abs(6) \<open>y \<sharp> x\<close> \<open>y \<sharp> s\<close> \<open>y \<sharp> s'\<close>
     by simp (rule better_sred_Abs)
 next
   case (Beta y u ss t r)
@@ -607,10 +607,10 @@ proof (nominal_induct avoiding: r'' rule: sred.strong_induct)
   with r'' show ?case by simp
 next
   case (Abs x ss ss' r r')
-  from `(Lam [x].r') \<degree>\<degree> ss' \<rightarrow>\<^sub>\<beta> r''` show ?case
+  from \<open>(Lam [x].r') \<degree>\<degree> ss' \<rightarrow>\<^sub>\<beta> r''\<close> show ?case
   proof (cases rule: apps_betasE [where x=x])
     case (appL s)
-    then obtain r''' where s: "s = (Lam [x].r''')" and r''': "r' \<rightarrow>\<^sub>\<beta> r'''" using `x \<sharp> r''`
+    then obtain r''' where s: "s = (Lam [x].r''')" and r''': "r' \<rightarrow>\<^sub>\<beta> r'''" using \<open>x \<sharp> r''\<close>
       by (cases rule: beta.strong_cases) (auto simp add: abs_fresh lam.inject alpha)
     from r''' have "r \<rightarrow>\<^sub>s r'''" by (blast intro: Abs)
     moreover from Abs have "ss [\<rightarrow>\<^sub>s] ss'" by (iprover dest: listrelp_conj1)
@@ -618,9 +618,9 @@ next
     with appL s show "(Lam [x].r) \<degree>\<degree> ss \<rightarrow>\<^sub>s r''" by simp
   next
     case (appR rs')
-    from Abs(6) [simplified] `ss' [\<rightarrow>\<^sub>\<beta>]\<^sub>1 rs'`
+    from Abs(6) [simplified] \<open>ss' [\<rightarrow>\<^sub>\<beta>]\<^sub>1 rs'\<close>
     have "ss [\<rightarrow>\<^sub>s] rs'" by (rule lemma4_aux)
-    with `r \<rightarrow>\<^sub>s r'` have "(Lam [x].r) \<degree>\<degree> ss \<rightarrow>\<^sub>s (Lam [x].r') \<degree>\<degree> rs'" by (rule better_sred_Abs)
+    with \<open>r \<rightarrow>\<^sub>s r'\<close> have "(Lam [x].r) \<degree>\<degree> ss \<rightarrow>\<^sub>s (Lam [x].r') \<degree>\<degree> rs'" by (rule better_sred_Abs)
     with appR show "(Lam [x].r) \<degree>\<degree> ss \<rightarrow>\<^sub>s r''" by simp
   next
     case (beta t u' us')
@@ -630,7 +630,7 @@ next
     from Abs(6) ss' obtain u us where
       ss: "ss = u # us" and u: "u \<rightarrow>\<^sub>s u'" and us: "us [\<rightarrow>\<^sub>s] us'"
       by cases (auto dest!: listrelp_conj1)
-    have "r[x::=u] \<rightarrow>\<^sub>s r'[x::=u']" using `r \<rightarrow>\<^sub>s r'` and u by (rule lemma3)
+    have "r[x::=u] \<rightarrow>\<^sub>s r'[x::=u']" using \<open>r \<rightarrow>\<^sub>s r'\<close> and u by (rule lemma3)
     with us have "r[x::=u] \<degree>\<degree> us \<rightarrow>\<^sub>s r'[x::=u'] \<degree>\<degree> us'" by (rule lemma1')
     hence "(Lam [x].r) \<degree> u \<degree>\<degree> us \<rightarrow>\<^sub>s r'[x::=u'] \<degree>\<degree> us'" by (rule better_sred_Beta)
     with ss r'' Lam_eq show "(Lam [x].r) \<degree>\<degree> ss \<rightarrow>\<^sub>s r''" by (simp add: lam.inject alpha)
@@ -647,7 +647,7 @@ lemma rtrancl_beta_sred:
   by induct (iprover intro: refl_sred lemma4)+
 
 
-subsection {* Terms in normal form *}
+subsection \<open>Terms in normal form\<close>
 
 lemma listsp_eqvt [eqvt]:
   assumes xs: "listsp p (xs::'a::pt_name list)"
@@ -681,9 +681,9 @@ next
   thus ?thesis by simp
 qed
 
-text {*
+text \<open>
 @{term NF} characterizes exactly the terms that are in normal form.
-*}
+\<close>
   
 lemma NF_eq: "NF t = (\<forall>t'. \<not> t \<rightarrow>\<^sub>\<beta> t')"
 proof
@@ -740,7 +740,7 @@ next
 qed
 
 
-subsection {* Leftmost reduction and weakly normalizing terms *}
+subsection \<open>Leftmost reduction and weakly normalizing terms\<close>
 
 inductive
   lred :: "lam \<Rightarrow> lam \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>l" 50)
@@ -761,13 +761,13 @@ proof induct
   then show ?case by (rule sred.Var)
 next
   case (Abs r r' x)
-  from `r \<rightarrow>\<^sub>s r'`
+  from \<open>r \<rightarrow>\<^sub>s r'\<close>
   have "(Lam [x].r) \<degree>\<degree> [] \<rightarrow>\<^sub>s (Lam [x].r') \<degree>\<degree> []" using listrelp.Nil
     by (rule better_sred_Abs)
   then show ?case by simp
 next
   case (Beta r x s ss t)
-  from `r[x::=s] \<degree>\<degree> ss \<rightarrow>\<^sub>s t`
+  from \<open>r[x::=s] \<degree>\<degree> ss \<rightarrow>\<^sub>s t\<close>
   show ?case by (rule better_sred_Beta)
 qed
 
@@ -810,7 +810,7 @@ lemma lemma7:
   shows "NF r' \<Longrightarrow> r \<rightarrow>\<^sub>l r'" using r
 proof induct
   case (Var rs rs' x)
-  from `NF (Var x \<degree>\<degree> rs')` have "listsp NF rs'"
+  from \<open>NF (Var x \<degree>\<degree> rs')\<close> have "listsp NF rs'"
     by cases simp_all
   with Var(1) have "rs [\<rightarrow>\<^sub>l] rs'"
   proof induct
@@ -824,7 +824,7 @@ proof induct
   thus ?case by (rule lred.Var)
 next
   case (Abs x ss ss' r r')
-  from `NF ((Lam [x].r') \<degree>\<degree> ss')`
+  from \<open>NF ((Lam [x].r') \<degree>\<degree> ss')\<close>
   have ss': "ss' = []" by (rule Abs_NF)
   from Abs(4) have ss: "ss = []" using ss'
     by cases simp_all

@@ -7,7 +7,7 @@
 Miscellaneous codatatype definitions.
 *)
 
-section {* Miscellaneous Codatatype Definitions *}
+section \<open>Miscellaneous Codatatype Definitions\<close>
 
 theory Misc_Codatatype
 imports "~~/src/HOL/Library/FSet"

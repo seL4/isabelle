@@ -104,7 +104,7 @@ qed
 
 end
 
-subsection\<open>Discharging the Assumptions of @{text sylow_central}\<close>
+subsection\<open>Discharging the Assumptions of \<open>sylow_central\<close>\<close>
 
 context sylow
 begin
@@ -265,7 +265,7 @@ apply (fast intro: someI2
             intro!: M1_in_M in_quotient_imp_closed [OF RelM_equiv M_in_quot _  M1_RelM_rcosetGM1g])
 done
 
-text\<open>close to a duplicate of @{text inj_M_GmodH}\<close>
+text\<open>close to a duplicate of \<open>inj_M_GmodH\<close>\<close>
 lemma (in sylow_central) inj_GmodH_M:
      "\<exists>g \<in> rcosets H\<rightarrow>M. inj_on g (rcosets H)"
 apply (rule bexI)

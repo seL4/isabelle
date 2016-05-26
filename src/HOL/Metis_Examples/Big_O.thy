@@ -5,7 +5,7 @@
 Metis example featuring the Big O notation.
 *)
 
-section {* Metis Example Featuring the Big O Notation *}
+section \<open>Metis Example Featuring the Big O Notation\<close>
 
 theory Big_O
 imports
@@ -14,7 +14,7 @@ imports
   "~~/src/HOL/Library/Set_Algebras"
 begin
 
-subsection {* Definitions *}
+subsection \<open>Definitions\<close>
 
 definition bigo :: "('a => 'b::linordered_idom) => ('a => 'b) set" ("(1O'(_'))") where
   "O(f::('a => 'b)) == {h. \<exists>c. \<forall>x. \<bar>h x\<bar> <= c * \<bar>f x\<bar>}"
@@ -457,7 +457,7 @@ proof -
   hence "\<exists>(v::'a) (u::'a) SKF\<^sub>7::'a \<Rightarrow> 'b. \<bar>inverse c\<bar> * \<bar>g (SKF\<^sub>7 (u * v))\<bar> \<le> u * (v * \<bar>f (SKF\<^sub>7 (u * v))\<bar>)"
     by (metis mult_left_mono)
   then show "\<exists>ca::'a. \<forall>x::'b. inverse \<bar>c\<bar> * \<bar>g x\<bar> \<le> ca * \<bar>f x\<bar>"
-    using A2 F4 by (metis F1 `0 < \<bar>inverse c\<bar>` linordered_field_class.sign_simps(23) mult_le_cancel_left_pos)
+    using A2 F4 by (metis F1 \<open>0 < \<bar>inverse c\<bar>\<close> linordered_field_class.sign_simps(23) mult_le_cancel_left_pos)
 qed
 
 lemma bigo_const_mult6 [intro]: "(\<lambda>x. c) *o O(f) <= O(f)"
@@ -489,7 +489,7 @@ apply (drule bigo_compose1 [of "f - g" h k])
 apply (simp add: fun_diff_def)
 done
 
-subsection {* Setsum *}
+subsection \<open>Setsum\<close>
 
 lemma bigo_setsum_main: "\<forall>x. \<forall>y \<in> A x. 0 <= h x y \<Longrightarrow>
     \<exists>c. \<forall>x. \<forall>y \<in> A x. \<bar>f x y\<bar> <= c * (h x y) \<Longrightarrow>
@@ -566,7 +566,7 @@ lemma bigo_setsum6: "f =o g +o O(h) \<Longrightarrow> \<forall>x y. 0 <= l x y \
   apply auto
 done
 
-subsection {* Misc useful stuff *}
+subsection \<open>Misc useful stuff\<close>
 
 lemma bigo_useful_intro: "A <= O(f) \<Longrightarrow> B <= O(f) \<Longrightarrow>
   A + B <= O(f)"
@@ -610,7 +610,7 @@ lemma bigo_fix2:
   apply (simp add: fun_diff_def)
 done
 
-subsection {* Less than or equal to *}
+subsection \<open>Less than or equal to\<close>
 
 definition lesso :: "('a => 'b::linordered_idom) => ('a => 'b) => ('a => 'b)" (infixl "<o" 70) where
   "f <o g == (\<lambda>x. max (f x - g x) 0)"

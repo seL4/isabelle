@@ -65,7 +65,7 @@ lemma ty_size_greater_zero[simp]:
   shows "size T > 0"
 by (nominal_induct rule: ty.strong_induct) (simp_all)
 
-section {* Substitutions *}
+section \<open>Substitutions\<close>
 
 fun
   lookup :: "Subst \<Rightarrow> name \<Rightarrow> trm"   
@@ -259,7 +259,7 @@ next
   then show "\<theta><(Lam [n].t)[x::=u]> = \<theta><Lam [n].t>[x::=\<theta><u>]" using fs by auto
 qed (auto)
 
-section {* Typing *}
+section \<open>Typing\<close>
 
 inductive
   valid :: "Ctxt \<Rightarrow> bool"
@@ -336,7 +336,7 @@ declare trm.inject [simp del]
 declare ty.inject [simp del]
 
 
-section {* Definitional Equivalence *}
+section \<open>Definitional Equivalence\<close>
 
 inductive
   def_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ \<equiv> _ : _" [60,60] 60) 
@@ -362,7 +362,7 @@ lemma def_equiv_implies_valid:
   shows "valid \<Gamma>"
 using a by (induct) (auto elim: typing_implies_valid)
 
-section {* Weak Head Reduction *}
+section \<open>Weak Head Reduction\<close>
 
 inductive
   whr_def :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<leadsto> _" [80,80] 80) 
@@ -389,7 +389,7 @@ declare ty.inject  [simp del]
 
 equivariance whr_def
 
-section {* Weak Head Normalisation *}
+section \<open>Weak Head Normalisation\<close>
 
 abbreviation 
  nf :: "trm \<Rightarrow> bool" ("_ \<leadsto>|" [100] 100)
@@ -440,7 +440,7 @@ proof (induct arbitrary: b)
 qed (auto)
 
 
-section {* Algorithmic Term Equivalence and Algorithmic Path Equivalence *}
+section \<open>Algorithmic Term Equivalence and Algorithmic Path Equivalence\<close>
 
 inductive
   alg_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ \<Leftrightarrow> _ : _" [60,60,60,60] 60) 
@@ -605,7 +605,7 @@ lemma path_equiv_implies_nf:
 using assms
 by (induct rule: alg_equiv_alg_path_equiv.inducts(2)) (simp, auto)
 
-section {* Logical Equivalence *}
+section \<open>Logical Equivalence\<close>
 
 function log_equiv :: "(Ctxt \<Rightarrow> trm \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow> bool)" ("_ \<turnstile> _ is _ : _" [60,60,60,60] 60) 
 where    
@@ -955,10 +955,10 @@ proof -
   then show  "\<Gamma> \<turnstile> s \<Leftrightarrow> t : T" using main_lemma(1) val by simp
 qed
 
-text {* We leave soundness as an exercise - just like Crary in the ATS book :-) \\ 
+text \<open>We leave soundness as an exercise - just like Crary in the ATS book :-) \\ 
  @{prop[mode=IfThen] "\<lbrakk>\<Gamma> \<turnstile> s \<Leftrightarrow> t : T; \<Gamma> \<turnstile> t : T; \<Gamma> \<turnstile> s : T\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : T"} \\
  @{prop "\<lbrakk>\<Gamma> \<turnstile> s \<leftrightarrow> t : T; \<Gamma> \<turnstile> t : T; \<Gamma> \<turnstile> s : T\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : T"} 
-*}
+\<close>
 
 end
 

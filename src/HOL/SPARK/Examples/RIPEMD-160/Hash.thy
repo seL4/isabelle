@@ -83,10 +83,10 @@ qed
 spark_vc function_hash_13
 proof -
   have loop_suc: "loop__1__i + 2 = (loop__1__i + 1) + 1" by simp
-  have "0 <= loop__1__i + 1" using `0 <= loop__1__i` by simp
+  have "0 <= loop__1__i + 1" using \<open>0 <= loop__1__i\<close> by simp
   show ?thesis
     unfolding loop_suc
-    unfolding rounds'_step[OF `0 <= loop__1__i + 1`]
+    unfolding rounds'_step[OF \<open>0 <= loop__1__i + 1\<close>]
     unfolding H1[symmetric]
     unfolding H18 ..
 qed

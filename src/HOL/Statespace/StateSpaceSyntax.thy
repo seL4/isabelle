@@ -2,13 +2,13 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
-section {* Syntax for State Space Lookup and Update \label{sec:StateSpaceSyntax}*}
+section \<open>Syntax for State Space Lookup and Update \label{sec:StateSpaceSyntax}\<close>
 theory StateSpaceSyntax
 imports StateSpaceLocale
 begin
 
-text {* The state space syntax is kept in an extra theory so that you
-can choose if you want to use it or not.  *}
+text \<open>The state space syntax is kept in an extra theory so that you
+can choose if you want to use it or not.\<close>
 
 syntax 
   "_statespace_lookup" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c"  ("_\<cdot>_" [60, 60] 60)
@@ -22,16 +22,16 @@ translations
 
 
 parse_translation
-{*
+\<open>
  [(@{syntax_const "_statespace_lookup"}, StateSpace.lookup_tr),
   (@{syntax_const "_statespace_update"}, StateSpace.update_tr)]
-*}
+\<close>
 
 
 print_translation
-{*
+\<open>
  [(@{const_syntax lookup}, StateSpace.lookup_tr'),
   (@{const_syntax update}, StateSpace.update_tr')]
-*}
+\<close>
 
 end

@@ -10,7 +10,7 @@ subsection \<open>More Lifting from Groups to Abelian Groups\<close>
 
 subsubsection \<open>Definitions\<close>
 
-text \<open>Hiding @{text "<+>"} from @{theory Sum_Type} until I come
+text \<open>Hiding \<open><+>\<close> from @{theory Sum_Type} until I come
   up with better syntax here\<close>
 
 no_notation Sum_Type.Plus (infixr "<+>" 65)
@@ -41,12 +41,12 @@ definition
 
 definition
   A_FactGroup :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "A'_Mod" 65)
-    --\<open>Actually defined for groups rather than monoids\<close>
+    \<comment>\<open>Actually defined for groups rather than monoids\<close>
   where "A_FactGroup G H = FactGroup \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> H"
 
 definition
   a_kernel :: "('a, 'm) ring_scheme \<Rightarrow> ('b, 'n) ring_scheme \<Rightarrow>  ('a \<Rightarrow> 'b) \<Rightarrow> 'a set"
-    --\<open>the kernel of a homomorphism (additive)\<close>
+    \<comment>\<open>the kernel of a homomorphism (additive)\<close>
   where "a_kernel G H h =
     kernel \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>
       \<lparr>carrier = carrier H, mult = add H, one = zero H\<rparr> h"
@@ -218,7 +218,7 @@ by (rule subgroup.m_inv_closed[OF a_subgroup,
 
 subsubsection \<open>Additive subgroups are normal\<close>
 
-text \<open>Every subgroup of an @{text "abelian_group"} is normal\<close>
+text \<open>Every subgroup of an \<open>abelian_group\<close> is normal\<close>
 
 locale abelian_subgroup = additive_subgroup + abelian_group G +
   assumes a_normal: "normal H \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
@@ -378,7 +378,7 @@ by (rule normal.rcos_sum [OF a_normal,
 
 lemma (in abelian_subgroup) rcosets_add_eq:
   "M \<in> a_rcosets H \<Longrightarrow> H <+> M = M"
-  -- \<open>generalizes @{text subgroup_mult_id}\<close>
+  \<comment> \<open>generalizes \<open>subgroup_mult_id\<close>\<close>
 by (rule normal.rcosets_mult_eq [OF a_normal,
     folded set_add_def A_RCOSETS_def, simplified monoid_record_simps])
 
@@ -687,7 +687,7 @@ using assms
 by (rule subgroup.rcos_module [OF a_subgroup a_group,
     folded a_r_coset_def a_inv_def, simplified monoid_record_simps])
 
---"variant"
+\<comment>"variant"
 lemma (in abelian_subgroup) a_rcos_module_minus:
   assumes "ring G"
   assumes carr: "x \<in> carrier G" "x' \<in> carrier G"

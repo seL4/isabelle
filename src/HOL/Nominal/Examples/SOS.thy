@@ -16,7 +16,7 @@ begin
 
 atom_decl name
 
-text {* types and terms *}
+text \<open>types and terms\<close>
 nominal_datatype ty = 
     TVar "nat"
   | Arrow "ty" "ty" ("_\<rightarrow>_" [100,100] 100)
@@ -33,7 +33,7 @@ lemma fresh_ty:
 by (induct T rule: ty.induct)
    (auto simp add: fresh_nat)
 
-text {* Parallel and single substitution. *}
+text \<open>Parallel and single substitution.\<close>
 fun
   lookup :: "(name\<times>trm) list \<Rightarrow> name \<Rightarrow> trm"   
 where
@@ -94,7 +94,7 @@ lemma psubst_empty[simp]:
   by (nominal_induct t rule: trm.strong_induct) 
      (auto simp add: fresh_list_nil)
 
-text {* Single substitution *}
+text \<open>Single substitution\<close>
 abbreviation 
   subst :: "trm \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> trm" ("_[_::=_]" [100,100,100] 100)
 where 
@@ -126,7 +126,7 @@ lemma psubst_subst_psubst:
 by (nominal_induct e avoiding: \<theta> x e' rule: trm.strong_induct)
    (auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh')
 
-text {* Typing Judgements *}
+text \<open>Typing Judgements\<close>
 
 inductive
   valid :: "(name\<times>ty) list \<Rightarrow> bool"
@@ -158,7 +158,7 @@ lemma context_unique:
 using a1 a2 a3
 by (induct) (auto simp add: fresh_set fresh_prod fresh_atm)
 
-text {* Typing Relation *}
+text \<open>Typing Relation\<close>
 
 inductive
   typing :: "(name\<times>ty) list\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ : _" [60,60,60] 60) 
@@ -244,7 +244,7 @@ corollary type_substitutivity:
 using a b type_substitutivity_aux[where \<Delta>="[]"]
 by (auto)
 
-text {* Values *}
+text \<open>Values\<close>
 inductive
   val :: "trm\<Rightarrow>bool" 
 where
@@ -258,7 +258,7 @@ lemma not_val_App[simp]:
   "\<not> val (Var x)"
   by (auto elim: val.cases)
 
-text {* Big-Step Evaluation *}
+text \<open>Big-Step Evaluation\<close>
 
 inductive
   big :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<Down> _" [80,80] 80) 
@@ -428,7 +428,7 @@ lemma Vs_reduce_to_themselves:
   shows "v \<Down> v"
 using a by (simp add: values_reduce_to_themselves Vs_are_values)
 
-text {* '\<theta> maps x to e' asserts that \<theta> substitutes x with e *}
+text \<open>'\<theta> maps x to e' asserts that \<theta> substitutes x with e\<close>
 abbreviation 
   mapsto :: "(name\<times>trm) list \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> bool" ("_ maps _ to _" [55,55,55] 55) 
 where

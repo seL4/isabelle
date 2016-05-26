@@ -9,7 +9,7 @@ theory Example
 imports Equivalence
 begin
 
-text {*
+text \<open>
 
 \begin{verbatim}
 class Nat {
@@ -39,7 +39,7 @@ class Nat {
 }
 \end{verbatim}
 
-*}
+\<close>
 
 axiomatization where
   This_neq_Par [simp]: "This \<noteq> Par" and
@@ -62,8 +62,8 @@ abbreviation
   one :: expr
   where "one == {Nat}new Nat..suc(<>)"
 
-text {* The following properties could be derived from a more complete
-        program model, which we leave out for laziness. *}
+text \<open>The following properties could be derived from a more complete
+        program model, which we leave out for laziness.\<close>
 
 axiomatization where Nat_no_subclasses [simp]: "D \<preceq>C Nat = (D=Nat)"
 

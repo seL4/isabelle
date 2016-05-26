@@ -5,7 +5,7 @@
 Miscellaneous primitive corecursive function definitions.
 *)
 
-section {* Miscellaneous Primitive Corecursive Function Definitions *}
+section \<open>Miscellaneous Primitive Corecursive Function Definitions\<close>
 
 theory Misc_Primcorec
 imports Misc_Codatatype

@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, QAware GmbH
 *)
 
-section {* Main HOL Light importer *}
+section \<open>Main HOL Light importer\<close>
 
 theory HOL_Light_Import
 imports HOL_Light_Maps

@@ -13,11 +13,11 @@ spark_proof_functions
 spark_open "simple_greatest_common_divisor/g_c_d"
 
 spark_vc procedure_g_c_d_4
-  using `0 < d` `gcd c d = gcd m n`
+  using \<open>0 < d\<close> \<open>gcd c d = gcd m n\<close>
   by (simp add: gcd_non_0_int)
 
 spark_vc procedure_g_c_d_9
-  using `0 \<le> c` `gcd c 0 = gcd m n`
+  using \<open>0 \<le> c\<close> \<open>gcd c 0 = gcd m n\<close>
   by simp
 
 spark_end

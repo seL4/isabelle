@@ -2,14 +2,14 @@
     Author:     Sascha Boehme, TU Muenchen
 *)
 
-section {* Proving Boogie-generated verification conditions *}
+section \<open>Proving Boogie-generated verification conditions\<close>
 
 theory Boogie
 imports Main
 keywords "boogie_file" :: thy_load ("b2i")
 begin
 
-text {*
+text \<open>
 HOL-Boogie and its applications are described in:
 \begin{itemize}
 
@@ -22,20 +22,20 @@ HOL-Boogie --- An Interactive Prover-Backend for the Verifying C Compiler.
 Journal of Automated Reasoning, 2009.
 
 \end{itemize}
-*}
+\<close>
 
 
 
-section {* Built-in types and functions of Boogie *}
+section \<open>Built-in types and functions of Boogie\<close>
 
-subsection {* Integer arithmetics *}
+subsection \<open>Integer arithmetics\<close>
 
-text {*
-The operations @{text div} and @{text mod} are built-in in Boogie, but
+text \<open>
+The operations \<open>div\<close> and \<open>mod\<close> are built-in in Boogie, but
 without a particular semantics due to different interpretations in
 programming languages. We assume that each application comes with a
 proper axiomatization.
-*}
+\<close>
 
 axiomatization
   boogie_div :: "int \<Rightarrow> int \<Rightarrow> int" (infixl "div'_b" 70) and
@@ -43,13 +43,13 @@ axiomatization
 
 
 
-section {* Setup *}
+section \<open>Setup\<close>
 
 ML_file "boogie.ML"
 
 
 
-section {* Verification condition proofs *}
+section \<open>Verification condition proofs\<close>
 
 declare [[smt_oracle = false]]
 declare [[smt_read_only_certificates = true]]

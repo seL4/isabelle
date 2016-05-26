@@ -16,10 +16,10 @@ theory FSet
 imports "~~/src/HOL/Library/Multiset" "~~/src/HOL/Library/Quotient_List"
 begin
 
-text {* 
+text \<open>
   The type of finite sets is created by a quotient construction
   over lists. The definition of the equivalence:
-*}
+\<close>
 
 definition
   list_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "\<approx>" 50)
@@ -42,17 +42,17 @@ lemma list_eq_equivp:
   "equivp list_eq"
   by (auto intro: equivpI list_eq_reflp list_eq_symp list_eq_transp)
 
-text {* The @{text fset} type *}
+text \<open>The \<open>fset\<close> type\<close>
 
 quotient_type
   'a fset = "'a list" / "list_eq"
   by (rule list_eq_equivp)
 
-text {* 
+text \<open>
   Definitions for sublist, cardinality, 
   intersection, difference and respectful fold over 
   lists.
-*}
+\<close>
 
 declare List.member_def [simp]
 
@@ -104,7 +104,7 @@ lemma fold_once_fold_remdups:
   by (simp add: fold_once_def)
 
 
-section {* Quotient composition lemmas *}
+section \<open>Quotient composition lemmas\<close>
 
 lemma list_all2_refl':
   assumes q: "equivp R"
@@ -186,10 +186,10 @@ lemma quotient_compose_list[quot_thm]:
   by (rule quotient_compose_list_g, rule Quotient3_fset, rule list_eq_equivp)
 
 
-section {* Quotient definitions for fsets *}
+section \<open>Quotient definitions for fsets\<close>
 
 
-subsection {* Finite sets are a bounded, distributive lattice with minus *}
+subsection \<open>Finite sets are a bounded, distributive lattice with minus\<close>
 
 instantiation fset :: (type) "{bounded_lattice_bot, distrib_lattice, minus}"
 begin
@@ -282,7 +282,7 @@ qed
 end
 
 
-subsection {* Other constants for fsets *}
+subsection \<open>Other constants for fsets\<close>
 
 quotient_definition
   "insert_fset :: 'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
@@ -311,7 +311,7 @@ where
   "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
 
 
-subsection {* Other constants on the Quotient Type *}
+subsection \<open>Other constants on the Quotient Type\<close>
 
 quotient_definition
   "card_fset :: 'a fset \<Rightarrow> nat"
@@ -395,7 +395,7 @@ quotient_definition
   is filter by force
 
 
-subsection {* Compositional respectfulness and preservation lemmas *}
+subsection \<open>Compositional respectfulness and preservation lemmas\<close>
 
 lemma Nil_rsp2 [quot_respect]: 
   shows "(list_all2 op \<approx> OOO op \<approx>) Nil Nil"
@@ -494,9 +494,9 @@ lemma map_prs2 [quot_preserve]:
   by (auto simp add: fun_eq_iff)
      (simp only: map_map[symmetric] map_prs_aux[OF Quotient3_fset Quotient3_fset])
 
-section {* Lifted theorems *}
+section \<open>Lifted theorems\<close>
 
-subsection {* fset *}
+subsection \<open>fset\<close>
 
 lemma fset_simps [simp]:
   shows "fset {||} = {}"
@@ -532,7 +532,7 @@ lemma minus_fset [simp]:
   by (descending) (auto)
 
 
-subsection {* in_fset *}
+subsection \<open>in_fset\<close>
 
 lemma in_fset: 
   shows "x |\<in>| S \<longleftrightarrow> x \<in> fset S"
@@ -555,7 +555,7 @@ lemma none_in_empty_fset:
   by descending simp
 
 
-subsection {* insert_fset *}
+subsection \<open>insert_fset\<close>
 
 lemma in_insert_fset_iff [simp]:
   shows "x |\<in>| insert_fset y S \<longleftrightarrow> x = y \<or> x |\<in>| S"
@@ -592,7 +592,7 @@ lemma in_fset_mdef:
   by (descending) (auto)
 
 
-subsection {* union_fset *}
+subsection \<open>union_fset\<close>
 
 lemmas [simp] =
   sup_bot_left[where 'a="'a fset"]
@@ -615,7 +615,7 @@ lemma in_union_fset:
   by (descending) (simp)
 
 
-subsection {* minus_fset *}
+subsection \<open>minus_fset\<close>
 
 lemma minus_in_fset: 
   shows "x |\<in>| (xs - ys) \<longleftrightarrow> x |\<in>| xs \<and> x |\<notin>| ys"
@@ -644,7 +644,7 @@ lemma notin_minus_fset:
   by blast
 
 
-subsection {* remove_fset *}
+subsection \<open>remove_fset\<close>
 
 lemma in_remove_fset:
   shows "x |\<in>| remove_fset y S \<longleftrightarrow> x |\<in>| S \<and> x \<noteq> y"
@@ -663,7 +663,7 @@ lemma remove_fset_cases:
   by (descending) (auto simp add: insert_absorb)
   
 
-subsection {* inter_fset *}
+subsection \<open>inter_fset\<close>
 
 lemma inter_empty_fset_l:
   shows "{||} |\<inter>| S = {||}"
@@ -682,7 +682,7 @@ lemma in_inter_fset:
   by (descending) (simp)
 
 
-subsection {* subset_fset and psubset_fset *}
+subsection \<open>subset_fset and psubset_fset\<close>
 
 lemma subset_fset: 
   shows "xs |\<subseteq>| ys \<longleftrightarrow> fset xs \<subseteq> fset ys"
@@ -710,7 +710,7 @@ lemma not_psubset_empty_fset:
   by (metis fset_simps(1) psubset_fset not_psubset_empty)
 
 
-subsection {* map_fset *}
+subsection \<open>map_fset\<close>
 
 lemma map_fset_simps [simp]:
    shows "map_fset f {||} = {||}"
@@ -733,7 +733,7 @@ lemma in_fset_map_fset[simp]: "a |\<in>| map_fset f X = (\<exists>b. b |\<in>| X
   by descending auto
 
 
-subsection {* card_fset *}
+subsection \<open>card_fset\<close>
 
 lemma card_fset: 
   shows "card_fset xs = card (fset xs)"
@@ -852,7 +852,7 @@ lemma card_minus_fset:
   by (rule card_Diff_subset_Int) (simp)
 
 
-subsection {* concat_fset *}
+subsection \<open>concat_fset\<close>
 
 lemma concat_empty_fset [simp]:
   shows "concat_fset {||} = {||}"
@@ -870,7 +870,7 @@ lemma map_concat_fset:
   shows "map_fset f (concat_fset xs) = concat_fset (map_fset (map_fset f) xs)"
   by (lifting map_concat)
 
-subsection {* filter_fset *}
+subsection \<open>filter_fset\<close>
 
 lemma subset_filter_fset: 
   "filter_fset P xs |\<subseteq>| filter_fset Q xs = (\<forall> x. x |\<in>| xs \<longrightarrow> P x \<longrightarrow> Q x)"
@@ -886,7 +886,7 @@ lemma psubset_filter_fset:
   unfolding less_fset_def by (auto simp add: subset_filter_fset eq_filter_fset)
 
 
-subsection {* fold_fset *}
+subsection \<open>fold_fset\<close>
 
 lemma fold_empty_fset: 
   "fold_fset f {||} = id"
@@ -907,7 +907,7 @@ lemma member_commute_fold_once:
 proof -
   from assms have "fold f (remdups xs) = fold f (remove1 x (remdups xs)) \<circ> f x"
     by (auto intro!: fold_remove1_split elim: rsp_foldE)
-  then show ?thesis using `rsp_fold f` by (simp add: fold_once_fold_remdups remdups_removeAll)
+  then show ?thesis using \<open>rsp_fold f\<close> by (simp add: fold_once_fold_remdups remdups_removeAll)
 qed
 
 lemma in_commute_fold_fset:
@@ -915,7 +915,7 @@ lemma in_commute_fold_fset:
   by descending (simp add: member_commute_fold_once)
 
 
-subsection {* Choice in fsets *}
+subsection \<open>Choice in fsets\<close>
 
 lemma fset_choice: 
   assumes a: "\<forall>x. x |\<in>| A \<longrightarrow> (\<exists>y. P x y)"
@@ -926,7 +926,7 @@ lemma fset_choice:
   by (auto simp add: Ball_def)
 
 
-section {* Induction and Cases rules for fsets *}
+section \<open>Induction and Cases rules for fsets\<close>
 
 lemma fset_exhaust [case_names empty insert, cases type: fset]:
   assumes empty_fset_case: "S = {||} \<Longrightarrow> P" 
@@ -1028,7 +1028,7 @@ lemma fset_induct2:
   apply simp_all
   done
 
-text {* Extensionality *}
+text \<open>Extensionality\<close>
 
 lemma fset_eqI:
   assumes "\<And>x. x \<in> fset A \<longleftrightarrow> x \<in> fset B"
@@ -1045,8 +1045,8 @@ next
   with A show ?case by (metis in_fset_mdef)
 qed
 
-subsection {* alternate formulation with a different decomposition principle
-  and a proof of equivalence *}
+subsection \<open>alternate formulation with a different decomposition principle
+  and a proof of equivalence\<close>
 
 inductive
   list_eq2 :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" ("_ \<approx>2 _")
@@ -1098,7 +1098,7 @@ next
       have "card_list l = 0" by fact
       then have "\<forall>x. \<not> List.member l x" by auto
       then have z: "l = []" by auto
-      then have "r = []" using `l \<approx> r` by simp
+      then have "r = []" using \<open>l \<approx> r\<close> by simp
       then show ?case using z list_eq2_refl by simp
     next
       case (Suc m)
@@ -1151,10 +1151,10 @@ lemma fset_eq_induct:
   using assms
   by (lifting list_eq2.induct[simplified list_eq2_equiv[symmetric]])
 
-ML {*
+ML \<open>
 fun dest_fsetT (Type (@{type_name fset}, [T])) = T
   | dest_fsetT T = raise TYPE ("dest_fsetT: fset type expected", [T], []);
-*}
+\<close>
 
 no_notation
   list_eq (infix "\<approx>" 50) and 

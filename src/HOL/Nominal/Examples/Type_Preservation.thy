@@ -2,13 +2,13 @@ theory Type_Preservation
   imports "../Nominal"
 begin
 
-text {*
+text \<open>
 
   This theory shows how to prove the type preservation
   property for the simply-typed lambda-calculus and 
   beta-reduction.
  
-*}
+\<close>
 
 atom_decl name
 
@@ -17,7 +17,7 @@ nominal_datatype lam =
 | App "lam" "lam" 
 | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._")
 
-text {* Capture-Avoiding Substitution *}
+text \<open>Capture-Avoiding Substitution\<close>
 
 nominal_primrec
   subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]")
@@ -43,7 +43,7 @@ lemma fresh_fact:
 by (nominal_induct t avoiding: z y s rule: lam.strong_induct)
    (auto simp add: abs_fresh fresh_prod fresh_atm)
 
-text {* Types *}
+text \<open>Types\<close>
 
 nominal_datatype ty =
     TVar "string"
@@ -56,7 +56,7 @@ lemma ty_fresh:
 by (induct T rule: ty.induct)
    (auto simp add: fresh_string)
 
-text {* Typing Contexts *}
+text \<open>Typing Contexts\<close>
 
 type_synonym ctx = "(name\<times>ty) list"
 
@@ -65,7 +65,7 @@ abbreviation
 where
   "\<Gamma>\<^sub>1 \<subseteq> \<Gamma>\<^sub>2 \<equiv> \<forall>x. x \<in> set \<Gamma>\<^sub>1 \<longrightarrow> x \<in> set \<Gamma>\<^sub>2"
 
-text {* Validity of Typing Contexts *}
+text \<open>Validity of Typing Contexts\<close>
 
 inductive
   valid :: "(name\<times>ty) list \<Rightarrow> bool"
@@ -99,7 +99,7 @@ lemma context_unique:
 using a1 a2 a3
 by (induct) (auto simp add: fresh_set fresh_prod fresh_atm)
 
-text {* Typing Relation *}
+text \<open>Typing Relation\<close>
 
 inductive
   typing :: "ctx \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow> bool" ("_ \<turnstile> _ : _") 
@@ -166,7 +166,7 @@ corollary type_substitution:
 using a b
 by (auto intro: type_substitution_aux[where \<Delta>="[]",simplified])
 
-text {* Beta Reduction *}
+text \<open>Beta Reduction\<close>
 
 inductive 
   "beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>\<beta> _")

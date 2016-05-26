@@ -2,7 +2,7 @@ theory CK_Machine
   imports "../Nominal" 
 begin
 
-text {* 
+text \<open>
   
   This theory establishes soundness and completeness for a CK-machine
   with respect to a cbv-big-step semantics. The language includes 
@@ -19,7 +19,7 @@ text {*
      @{url "http://www.cs.indiana.edu/~rpjames/lm.pdf"}
      @{url "http://www.cl.cam.ac.uk/teaching/2001/Semantics/"}
 
-*}
+\<close>
 
 atom_decl name
 
@@ -37,7 +37,7 @@ nominal_datatype lam =
 | ZET "lam"                      (* zero test *)
 | EQI "lam" "lam"                (* equality test on numbers *)
 
-section {* Capture-Avoiding Substitution *}
+section \<open>Capture-Avoiding Substitution\<close>
 
 nominal_primrec
   subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
@@ -79,7 +79,7 @@ using a
 by (nominal_induct t avoiding: x y s rule: lam.strong_induct)
    (auto simp add: calc_atm fresh_atm abs_fresh perm_nat_def)
 
-section {* Evaluation Contexts *}
+section \<open>Evaluation Contexts\<close>
 
 datatype ctx = 
     Hole ("\<box>")  
@@ -94,7 +94,7 @@ datatype ctx =
   | CEQIL "ctx" "lam"
   | CEQIR "lam" "ctx"
 
-text {* The operation of filling a term into a context: *} 
+text \<open>The operation of filling a term into a context:\<close> 
 
 fun
   filling :: "ctx \<Rightarrow> lam \<Rightarrow> lam" ("_\<lbrakk>_\<rbrakk>")
@@ -111,7 +111,7 @@ where
 | "(CEQIL E t')\<lbrakk>t\<rbrakk> = EQI (E\<lbrakk>t\<rbrakk>) t'"
 | "(CEQIR t' E)\<lbrakk>t\<rbrakk> = EQI t' (E\<lbrakk>t\<rbrakk>)"
 
-text {* The operation of composing two contexts: *}
+text \<open>The operation of composing two contexts:\<close>
 
 fun 
  ctx_compose :: "ctx \<Rightarrow> ctx \<Rightarrow> ctx" ("_ \<circ> _")
@@ -132,7 +132,7 @@ lemma ctx_compose:
   shows "(E1 \<circ> E2)\<lbrakk>t\<rbrakk> = E1\<lbrakk>E2\<lbrakk>t\<rbrakk>\<rbrakk>"
 by (induct E1 rule: ctx.induct) (auto)
 
-text {* Composing a list (stack) of contexts. *}
+text \<open>Composing a list (stack) of contexts.\<close>
 
 fun
   ctx_composes :: "ctx list \<Rightarrow> ctx" ("_\<down>")
@@ -140,7 +140,7 @@ where
     "[]\<down> = \<box>"
   | "(E#Es)\<down> = (Es\<down>) \<circ> E"
 
-section {* The CK-Machine *}
+section \<open>The CK-Machine\<close>
 
 inductive
   val :: "lam\<Rightarrow>bool" 
@@ -192,7 +192,7 @@ lemma ms4[intro]:
   shows "<e1,Es1> \<mapsto>* <e2,Es2>"
 using a by (rule ms2) (rule ms1)
 
-section {* The Evaluation Relation (Big-Step Semantics) *}
+section \<open>The Evaluation Relation (Big-Step Semantics)\<close>
 
 inductive
   eval :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<Down> _") 
@@ -235,7 +235,7 @@ lemma eval_val:
   shows "t \<Down> t"
 using a by (induct) (auto)
 
-text {* The Completeness Property: *}
+text \<open>The Completeness Property:\<close>
 
 theorem eval_implies_machine_star_ctx:
   assumes a: "t \<Down> t'"
@@ -249,7 +249,7 @@ corollary eval_implies_machine_star:
   shows "<t,[]> \<mapsto>* <t',[]>"
 using a by (auto dest: eval_implies_machine_star_ctx)
 
-section {* The CBV Reduction Relation (Small-Step Semantics) *}
+section \<open>The CBV Reduction Relation (Small-Step Semantics)\<close>
 
 lemma less_eqvt[eqvt]:
   fixes pi::"name prm"
@@ -348,7 +348,7 @@ using a
 by (induct)
    (auto simp add: eval_val cbv_star_eval dest: cbvs2)
 
-text {* The Soundness Property *}
+text \<open>The Soundness Property\<close>
 
 theorem machine_star_implies_eval:
   assumes a: "<t1,[]> \<mapsto>* <t2,[]>" 
@@ -359,9 +359,9 @@ proof -
   then show "t1 \<Down> t2" using b by (simp add: cbv_star_implies_eval)
 qed
 
-section {* Typing *}
+section \<open>Typing\<close>
 
-text {* Types *}
+text \<open>Types\<close>
 
 nominal_datatype ty =
   tVAR "string"
@@ -378,18 +378,18 @@ lemma ty_fresh:
 by (induct T rule: ty.induct)
    (auto simp add: fresh_string)
 
-text {* Typing Contexts *}
+text \<open>Typing Contexts\<close>
 
 type_synonym tctx = "(name\<times>ty) list"
 
-text {* Sub-Typing Contexts *}
+text \<open>Sub-Typing Contexts\<close>
 
 abbreviation
   "sub_tctx" :: "tctx \<Rightarrow> tctx \<Rightarrow> bool" ("_ \<subseteq> _") 
 where
   "\<Gamma>\<^sub>1 \<subseteq> \<Gamma>\<^sub>2 \<equiv> \<forall>x. x \<in> set \<Gamma>\<^sub>1 \<longrightarrow> x \<in> set \<Gamma>\<^sub>2"
 
-text {* Valid Typing Contexts *}
+text \<open>Valid Typing Contexts\<close>
 
 inductive
   valid :: "tctx \<Rightarrow> bool"
@@ -423,7 +423,7 @@ lemma context_unique:
 using a1 a2 a3
 by (induct) (auto simp add: fresh_set fresh_prod fresh_atm)
 
-section {* The Typing Relation *}
+section \<open>The Typing Relation\<close>
 
 inductive
   typing :: "tctx \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow> bool" ("_ \<turnstile> _ : _") 
@@ -474,7 +474,7 @@ using ty fc
 by (cases rule: typing.strong_cases) 
    (auto simp add: alpha lam.inject abs_fresh ty_fresh)
 
-section {* The Type-Preservation Property for the CBV Reduction Relation *}
+section \<open>The Type-Preservation Property for the CBV Reduction Relation\<close>
 
 lemma weakening: 
   fixes \<Gamma>1 \<Gamma>2::"tctx"
@@ -534,7 +534,7 @@ corollary cbv_star_type_preservation:
 using a b
 by (induct) (auto intro: cbv_type_preservation)
 
-section {* The Type-Preservation Property for the Machine and Evaluation Relation *}
+section \<open>The Type-Preservation Property for the Machine and Evaluation Relation\<close>
 
 theorem machine_type_preservation:
   assumes a: "<t,[]> \<mapsto>* <t',[]>"
@@ -554,7 +554,7 @@ proof -
   then show "\<Gamma> \<turnstile> t' : T" using b by (simp add: machine_type_preservation)
 qed
 
-text {* The Progress Property *}
+text \<open>The Progress Property\<close>
 
 lemma canonical_tARR[dest]:
   assumes a: "[] \<turnstile> t : T1 \<rightarrow> T2"

@@ -5,7 +5,7 @@
 Metis example featuring the full theorem of Tarski.
 *)
 
-section {* Metis Example Featuring the Full Theorem of Tarski *}
+section \<open>Metis Example Featuring the Full Theorem of Tarski\<close>
 
 theory Tarski
 imports Main "~~/src/HOL/Library/FuncSet"
@@ -117,7 +117,7 @@ locale Tarski = CLF +
                              x: intY1}
                       (| pset=intY1, order=induced intY1 r|)"
 
-subsection {* Partial Order *}
+subsection \<open>Partial Order\<close>
 
 lemma (in PO) PO_imp_refl_on: "refl_on A r"
 apply (insert cl_po)
@@ -158,13 +158,13 @@ lemma (in PO) po_subset_po:
      "S \<subseteq> A ==> (| pset = S, order = induced S r |) \<in> PartialOrder"
 apply (simp (no_asm) add: PartialOrder_def)
 apply auto
--- {* refl *}
+\<comment> \<open>refl\<close>
 apply (simp add: refl_on_def induced_def)
 apply (blast intro: reflE)
--- {* antisym *}
+\<comment> \<open>antisym\<close>
 apply (simp add: antisym_def induced_def)
 apply (blast intro: antisymE)
--- {* trans *}
+\<comment> \<open>trans\<close>
 apply (simp add: trans_def induced_def)
 apply (blast intro: transE)
 done
@@ -290,7 +290,7 @@ apply (simp add: PO_imp_trans interval_not_empty)
 apply (simp add: reflE)
 done
 
-subsection {* sublattice *}
+subsection \<open>sublattice\<close>
 
 lemma (in PO) sublattice_imp_CL:
      "S <<= cl  ==> (| pset = S, order = induced S r |) \<in> CompleteLattice"
@@ -301,7 +301,7 @@ lemma (in CL) sublatticeI:
       ==> S <<= cl"
 by (simp add: sublattice_def A_def r_def)
 
-subsection {* lub *}
+subsection \<open>lub\<close>
 
 lemma (in CL) lub_unique: "[| S \<subseteq> A; isLub S cl x; isLub S cl L|] ==> x = L"
 apply (rule antisymE)
@@ -366,7 +366,7 @@ lemma (in CL) isLubI:
          (\<forall>z \<in> A. (\<forall>y \<in> S. (y, z):r) --> (L, z) \<in> r)|] ==> isLub S cl L"
 by (simp add: isLub_def A_def r_def)
 
-subsection {* glb *}
+subsection \<open>glb\<close>
 
 lemma (in CL) glb_in_lattice: "S \<subseteq> A ==> glb S cl \<in> A"
 apply (subst glb_dual_lub)
@@ -394,10 +394,10 @@ apply (rule CL_dualCL)
 apply (simp add: dualA_iff A_def, assumption)
 done
 
-text {*
+text \<open>
   Reduce the sublattice property by using substructural properties;
-  abandoned see @{text "Tarski_4.ML"}.
-*}
+  abandoned see \<open>Tarski_4.ML\<close>.
+\<close>
 
 declare (in CLF) f_cl [simp]
 
@@ -433,7 +433,7 @@ done
 declare (in CLF) CLF_set_def[simp del] CL_dualCL[simp del] monotone_dual[simp del]
           dualA_iff[simp del]
 
-subsection {* fixed points *}
+subsection \<open>fixed points\<close>
 
 lemma fix_subset: "fix f A \<subseteq> A"
 by (simp add: fix_def, fast)
@@ -445,7 +445,7 @@ lemma fixf_subset:
      "[| A \<subseteq> B; x \<in> fix (%y: A. f y) A |] ==> x \<in> fix f B"
 by (simp add: fix_def, auto)
 
-subsection {* lemmas for Tarski, lub *}
+subsection \<open>lemmas for Tarski, lub\<close>
 
 (*never proved, 2007-01-22*)
 
@@ -456,14 +456,14 @@ lemma (in CLF) lubH_le_flubH:
 apply (rule lub_least, fast)
 apply (rule f_in_funcset [THEN funcset_mem])
 apply (rule lub_in_lattice, fast)
--- {* @{text "\<forall>x:H. (x, f (lub H r)) \<in> r"} *}
+\<comment> \<open>\<open>\<forall>x:H. (x, f (lub H r)) \<in> r\<close>\<close>
 apply (rule ballI)
 (*never proved, 2007-01-22*)
 apply (rule transE)
--- {* instantiates @{text "(x, ?z) \<in> order cl to (x, f x)"}, *}
--- {* because of the definition of @{text H} *}
+\<comment> \<open>instantiates \<open>(x, ?z) \<in> order cl to (x, f x)\<close>,\<close>
+\<comment> \<open>because of the definition of \<open>H\<close>\<close>
 apply fast
--- {* so it remains to show @{text "(f x, f (lub H cl)) \<in> r"} *}
+\<comment> \<open>so it remains to show \<open>(f x, f (lub H cl)) \<in> r\<close>\<close>
 apply (rule_tac f = "f" in monotoneE)
 apply (rule monotone_f, fast)
 apply (rule lub_in_lattice, fast)
@@ -557,7 +557,7 @@ lemma (in CLF) lubH_least_fixf:
 apply (metis P_def lubH_is_fixp)
 done
 
-subsection {* Tarski fixpoint theorem 1, first part *}
+subsection \<open>Tarski fixpoint theorem 1, first part\<close>
 
 declare CL.lubI[intro] fix_subset[intro] CL.lub_in_lattice[intro]
         CLF.fixf_le_lubH[simp] CLF.lubH_least_fixf[simp]
@@ -582,7 +582,7 @@ declare glb_dual_lub[simp] PO.dualA_iff[intro] CLF.lubH_is_fixp[intro]
         PO.dualPO[intro] CL.CL_dualCL[intro] PO.dualr_iff[simp]
 
 lemma (in CLF) glbH_is_fixp: "H = {x. (f x, x) \<in> r & x \<in> A} ==> glb H cl \<in> P"
-  -- {* Tarski for glb *}
+  \<comment> \<open>Tarski for glb\<close>
 (*sledgehammer;*)
 apply (simp add: glb_dual_lub P_def A_def r_def)
 apply (rule dualA_iff [THEN subst])
@@ -613,7 +613,7 @@ apply (simp add: CLF.T_thm_1_lub [of _ f, OF CLF.intro, OF CL.intro CLF_axioms.i
   OF dualPO CL_dualCL] dualPO CL_dualCL CLF_dual dualr_iff)
 done
 
-subsection {* interval *}
+subsection \<open>interval\<close>
 
 declare (in CLF) CO_refl_on[simp] refl_on_def [simp]
 
@@ -671,7 +671,7 @@ apply (simp add: S_intv_cl)
 apply (rule ballI)
 apply (simp add: interval_lemma1)
 apply (simp add: isLub_upper)
--- {* @{text "(L, b) \<in> r"} *}
+\<comment> \<open>\<open>(L, b) \<in> r\<close>\<close>
 apply (simp add: isLub_least interval_lemma2)
 done
 
@@ -709,31 +709,31 @@ apply (frule S_intv_cl [THEN CL_imp_ex_isLub])
 prefer 2 apply assumption
 apply assumption
 apply (erule exE)
--- {* define the lub for the interval as *}
+\<comment> \<open>define the lub for the interval as\<close>
 apply (rule_tac x = "if S = {} then a else L" in exI)
 apply (simp (no_asm_simp) add: isLub_def split del: if_split)
 apply (intro impI conjI)
--- {* @{text "(if S = {} then a else L) \<in> interval r a b"} *}
+\<comment> \<open>\<open>(if S = {} then a else L) \<in> interval r a b\<close>\<close>
 apply (simp add: CL_imp_PO L_in_interval)
 apply (simp add: left_in_interval)
--- {* lub prop 1 *}
+\<comment> \<open>lub prop 1\<close>
 apply (case_tac "S = {}")
--- {* @{text "S = {}, y \<in> S = False => everything"} *}
+\<comment> \<open>\<open>S = {}, y \<in> S = False => everything\<close>\<close>
 apply fast
--- {* @{text "S \<noteq> {}"} *}
+\<comment> \<open>\<open>S \<noteq> {}\<close>\<close>
 apply simp
--- {* @{text "\<forall>y:S. (y, L) \<in> induced (interval r a b) r"} *}
+\<comment> \<open>\<open>\<forall>y:S. (y, L) \<in> induced (interval r a b) r\<close>\<close>
 apply (rule ballI)
 apply (simp add: induced_def  L_in_interval)
 apply (rule conjI)
 apply (rule subsetD)
 apply (simp add: S_intv_cl, assumption)
 apply (simp add: isLub_upper)
--- {* @{text "\<forall>z:interval r a b. (\<forall>y:S. (y, z) \<in> induced (interval r a b) r \<longrightarrow> (if S = {} then a else L, z) \<in> induced (interval r a b) r"} *}
+\<comment> \<open>\<open>\<forall>z:interval r a b. (\<forall>y:S. (y, z) \<in> induced (interval r a b) r \<longrightarrow> (if S = {} then a else L, z) \<in> induced (interval r a b) r\<close>\<close>
 apply (rule ballI)
 apply (rule impI)
 apply (case_tac "S = {}")
--- {* @{text "S = {}"} *}
+\<comment> \<open>\<open>S = {}\<close>\<close>
 apply simp
 apply (simp add: induced_def  interval_def)
 apply (rule conjI)
@@ -741,7 +741,7 @@ apply (rule reflE, assumption)
 apply (rule interval_not_empty)
 apply (rule CO_trans)
 apply (simp add: interval_def)
--- {* @{text "S \<noteq> {}"} *}
+\<comment> \<open>\<open>S \<noteq> {}\<close>\<close>
 apply simp
 apply (simp add: induced_def  L_in_interval)
 apply (rule isLub_least, assumption)
@@ -771,7 +771,7 @@ done
 lemmas (in CLF) interv_is_compl_latt =
     interval_is_sublattice [THEN sublattice_imp_CL]
 
-subsection {* Top and Bottom *}
+subsection \<open>Top and Bottom\<close>
 lemma (in CLF) Top_dual_Bot: "Top cl = Bot (dual cl)"
 by (simp add: Top_def Bot_def least_def greatest_def dualA_iff dualr_iff)
 
@@ -826,7 +826,7 @@ lemma (in CLF) Bot_intv_not_empty: "x \<in> A ==> interval r (Bot cl) x \<noteq>
 apply (metis Bot_prop ex_in_conv intervalI reflE rel_imp_elem)
 done
 
-subsection {* fixed points form a partial order *}
+subsection \<open>fixed points form a partial order\<close>
 
 lemma (in CLF) fixf_po: "(| pset = P, order = induced P r|) \<in> PartialOrder"
 by (simp add: P_def fix_subset po_subset_po)
@@ -856,12 +856,12 @@ apply (rule lub_least)
 apply (rule Y_subset_A)
 apply (rule f_in_funcset [THEN funcset_mem])
 apply (rule lubY_in_A)
--- {* @{text "Y \<subseteq> P ==> f x = x"} *}
+\<comment> \<open>\<open>Y \<subseteq> P ==> f x = x\<close>\<close>
 apply (rule ballI)
 (*sledgehammer *)
 apply (rule_tac t = "x" in fix_imp_eq [THEN subst])
 apply (erule Y_ss [simplified P_def, THEN subsetD])
--- {* @{text "reduce (f x, f (lub Y cl)) \<in> r to (x, lub Y cl) \<in> r"} by monotonicity *}
+\<comment> \<open>\<open>reduce (f x, f (lub Y cl)) \<in> r to (x, lub Y cl) \<in> r\<close> by monotonicity\<close>
 (*sledgehammer*)
 apply (rule_tac f = "f" in monotoneE)
 apply (rule monotone_f)
@@ -890,14 +890,14 @@ apply (simp add: intY1_def  interval_def)
 apply (rule conjI)
 apply (rule transE)
 apply (rule lubY_le_flubY)
--- {* @{text "(f (lub Y cl), f x) \<in> r"} *}
+\<comment> \<open>\<open>(f (lub Y cl), f x) \<in> r\<close>\<close>
 (*sledgehammer [has been proved before now...]*)
 apply (rule_tac f=f in monotoneE)
 apply (rule monotone_f)
 apply (rule lubY_in_A)
 apply (simp add: intY1_def interval_def  intY1_elem)
 apply (simp add: intY1_def  interval_def)
--- {* @{text "(f x, Top cl) \<in> r"} *}
+\<comment> \<open>\<open>(f x, Top cl) \<in> r\<close>\<close>
 apply (rule Top_prop)
 apply (rule f_in_funcset [THEN funcset_mem])
 apply (simp add: intY1_def interval_def  intY1_elem)
@@ -966,12 +966,12 @@ lemma (in Tarski) tarski_full_lemma:
      "\<exists>L. isLub Y (| pset = P, order = induced P r |) L"
 apply (rule_tac x = "v" in exI)
 apply (simp add: isLub_def)
--- {* @{text "v \<in> P"} *}
+\<comment> \<open>\<open>v \<in> P\<close>\<close>
 apply (simp add: v_in_P)
 apply (rule conjI)
 (*sledgehammer*)
--- {* @{text v} is lub *}
--- {* @{text "1. \<forall>y:Y. (y, v) \<in> induced P r"} *}
+\<comment> \<open>\<open>v\<close> is lub\<close>
+\<comment> \<open>\<open>1. \<forall>y:Y. (y, v) \<in> induced P r\<close>\<close>
 apply (rule ballI)
 apply (simp add: induced_def subsetD v_in_P)
 apply (rule conjI)
@@ -984,7 +984,7 @@ apply (simp add: v_def)
 apply (fold intY1_def)
 apply (rule CL.glb_in_lattice [OF CL.intro, OF PO.intro CL_axioms.intro, OF _ intY1_is_cl, simplified])
  apply (simp add: CL_imp_PO intY1_is_cl, force)
--- {* @{text v} is LEAST ub *}
+\<comment> \<open>\<open>v\<close> is LEAST ub\<close>
 apply clarify
 apply (rule indI)
   prefer 3 apply assumption

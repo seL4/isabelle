@@ -2,10 +2,10 @@ theory Lam_Funs
   imports "../Nominal"
 begin
 
-text {* 
+text \<open>
   Provides useful definitions for reasoning
   with lambda-terms. 
-*}
+\<close>
 
 atom_decl name
 
@@ -14,7 +14,7 @@ nominal_datatype lam =
   | App "lam" "lam"
   | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-text {* The depth of a lambda-term. *}
+text \<open>The depth of a lambda-term.\<close>
 
 nominal_primrec
   depth :: "lam \<Rightarrow> nat"
@@ -28,12 +28,12 @@ where
   apply(fresh_guess)+
   done
 
-text {* 
+text \<open>
   The free variables of a lambda-term. A complication in this
   function arises from the fact that it returns a name set, which 
   is not a finitely supported type. Therefore we have to prove 
   the invariant that frees always returns a finite set of names. 
-*}
+\<close>
 
 nominal_primrec (invariant: "\<lambda>s::name set. finite s")
   frees :: "lam \<Rightarrow> name set"
@@ -50,17 +50,17 @@ apply(blast)
 apply(fresh_guess)+
 done
 
-text {* 
+text \<open>
   We can avoid the definition of frees by
   using the build in notion of support.
-*}
+\<close>
 
 lemma frees_equals_support:
   shows "frees t = supp t"
 by (nominal_induct t rule: lam.strong_induct)
    (simp_all add: lam.supp supp_atm abs_supp)
 
-text {* Parallel and single capture-avoiding substitution. *}
+text \<open>Parallel and single capture-avoiding substitution.\<close>
 
 fun
   lookup :: "(name\<times>lam) list \<Rightarrow> name \<Rightarrow> lam"   
@@ -112,18 +112,18 @@ apply(auto simp add: lam.supp supp_atm fresh_prod abs_supp)
 apply(blast)+
 done
 
-text {* 
+text \<open>
   Contexts - lambda-terms with a single hole.
   Note that the lambda case in contexts does not bind a 
   name, even if we introduce the notation [_]._ for CLam.
-*}
+\<close>
 nominal_datatype clam = 
     Hole ("\<box>" 1000)  
   | CAppL "clam" "lam"
   | CAppR "lam" "clam" 
   | CLam "name" "clam"  ("CLam [_]._" [100,100] 100) 
 
-text {* Filling a lambda-term into a context. *}
+text \<open>Filling a lambda-term into a context.\<close>
 
 nominal_primrec
   filling :: "clam \<Rightarrow> lam \<Rightarrow> lam" ("_\<lbrakk>_\<rbrakk>" [100,100] 100)
@@ -134,7 +134,7 @@ where
 | "(CLam [x].E)\<lbrakk>t\<rbrakk> = Lam [x].(E\<lbrakk>t\<rbrakk>)" 
 by (rule TrueI)+
 
-text {* Composition od two contexts *}
+text \<open>Composition od two contexts\<close>
 
 nominal_primrec
  clam_compose :: "clam \<Rightarrow> clam \<Rightarrow> clam" ("_ \<circ> _" [100,100] 100)

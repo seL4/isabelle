@@ -2,7 +2,7 @@
     Author:     David von Oheimb (based on a theory by Tobias Nipkow et al), TUM
 *)
 
-section {* Natural semantics of commands *}
+section \<open>Natural semantics of commands\<close>
 
 theory Natural
 imports Com
@@ -111,9 +111,9 @@ done
 
 lemma evaln_evalc: "<c,s> -n-> t ==> <c,s> -c-> t"
 apply (erule evaln.induct)
-apply (tactic {*
+apply (tactic \<open>
   ALLGOALS (resolve_tac @{context} @{thms evalc.intros} THEN_ALL_NEW assume_tac @{context})
-*})
+\<close>)
 done
 
 lemma Suc_le_D_lemma: "[| Suc n <= m'; (!!m. n <= m ==> P (Suc m)) |] ==> P m'"
@@ -139,12 +139,12 @@ done
 
 lemma evalc_evaln: "<c,s> -c-> t ==> ? n. <c,s> -n-> t"
 apply (erule evalc.induct)
-apply (tactic {* ALLGOALS (REPEAT o eresolve_tac @{context} [exE]) *})
-apply (tactic {* TRYALL (EVERY' [dresolve_tac @{context} @{thms evaln_max2}, assume_tac @{context},
-  REPEAT o eresolve_tac @{context} [exE, conjE]]) *})
+apply (tactic \<open>ALLGOALS (REPEAT o eresolve_tac @{context} [exE])\<close>)
+apply (tactic \<open>TRYALL (EVERY' [dresolve_tac @{context} @{thms evaln_max2}, assume_tac @{context},
+  REPEAT o eresolve_tac @{context} [exE, conjE]])\<close>)
 apply (tactic
-  {* ALLGOALS (resolve_tac @{context} [exI] THEN'
-    resolve_tac @{context} @{thms evaln.intros} THEN_ALL_NEW assume_tac @{context}) *})
+  \<open>ALLGOALS (resolve_tac @{context} [exI] THEN'
+    resolve_tac @{context} @{thms evaln.intros} THEN_ALL_NEW assume_tac @{context})\<close>)
 done
 
 lemma eval_eq: "<c,s> -c-> t = (? n. <c,s> -n-> t)"

@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-section {* An imperative implementation of Quicksort on arrays *}
+section \<open>An imperative implementation of Quicksort on arrays\<close>
 
 theory Imperative_Quicksort
 imports
@@ -12,7 +12,7 @@ imports
   "~~/src/HOL/Library/Code_Target_Numeral"
 begin
 
-text {* We prove QuickSort correct in the Relational Calculus. *}
+text \<open>We prove QuickSort correct in the Relational Calculus.\<close>
 
 definition swap :: "'a::heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap"
 where
@@ -76,11 +76,11 @@ lemma part_returns_index_in_bounds:
 using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
-  note cr = `effect (part1 a l r p) h h' rs`
+  note cr = \<open>effect (part1 a l r p) h h' rs\<close>
   show ?case
   proof (cases "r \<le> l")
     case True (* Terminating case *)
-    with cr `l \<le> r` show ?thesis
+    with cr \<open>l \<le> r\<close> show ?thesis
       unfolding part1.simps[of a l r p]
       by (elim effect_bindE effect_ifE effect_returnE effect_nthE) auto
   next
@@ -95,7 +95,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
         unfolding part1.simps[of a l r p]
         by (elim effect_bindE effect_nthE effect_ifE effect_returnE) auto
       from rec_condition have "l + 1 \<le> r" by arith
-      from 1(1)[OF rec_condition True rec1 `l + 1 \<le> r`]
+      from 1(1)[OF rec_condition True rec1 \<open>l + 1 \<le> r\<close>]
       show ?thesis by simp
     next
       case False
@@ -105,7 +105,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
         unfolding part1.simps[of a l r p]
         by (elim effect_bindE effect_nthE effect_ifE effect_returnE) auto
       from rec_condition have "l \<le> r - 1" by arith
-      from 1(2) [OF rec_condition False rec2 `l \<le> r - 1`] show ?thesis by fastforce
+      from 1(2) [OF rec_condition False rec2 \<open>l \<le> r - 1\<close>] show ?thesis by fastforce
     qed
   qed
 qed
@@ -116,7 +116,7 @@ lemma part_length_remains:
 using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
-  note cr = `effect (part1 a l r p) h h' rs`
+  note cr = \<open>effect (part1 a l r p) h h' rs\<close>
   
   show ?case
   proof (cases "r \<le> l")
@@ -138,7 +138,7 @@ lemma part_outer_remains:
   using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
-  note cr = `effect (part1 a l r p) h h' rs`
+  note cr = \<open>effect (part1 a l r p) h h' rs\<close>
   
   show ?case
   proof (cases "r \<le> l")
@@ -183,7 +183,7 @@ lemma part_partitions:
   using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
-  note cr = `effect (part1 a l r p) h h' rs`
+  note cr = \<open>effect (part1 a l r p) h h' rs\<close>
   
   show ?case
   proof (cases "r \<le> l")
@@ -281,8 +281,8 @@ proof -
          else middle)"
     unfolding partition.simps
     by (elim effect_bindE effect_returnE effect_nthE effect_ifE effect_updE) simp 
-  from `l < r` have "l \<le> r - 1" by arith
-  from part_returns_index_in_bounds[OF part this] rs_equals `l < r` show ?thesis by auto
+  from \<open>l < r\<close> have "l \<le> r - 1" by arith
+  from part_returns_index_in_bounds[OF part this] rs_equals \<open>l < r\<close> show ?thesis by auto
 qed
 
 lemma partition_partitions:
@@ -307,9 +307,9 @@ proof -
     by (elim effect_bindE effect_returnE effect_nthE effect_updE) simp
   from swap have swap_length_remains: "Array.length h1 a = Array.length h' a"
     unfolding swap_def by (elim effect_bindE effect_returnE effect_nthE effect_updE) auto
-  from `l < r` have "l \<le> r - 1" by simp
+  from \<open>l < r\<close> have "l \<le> r - 1" by simp
   note middle_in_bounds = part_returns_index_in_bounds[OF part this]
-  from part_outer_remains[OF part] `l < r`
+  from part_outer_remains[OF part] \<open>l < r\<close>
   have "Array.get h a ! r = Array.get h1 a ! r"
     by fastforce
   with swap
@@ -324,7 +324,7 @@ proof -
     { 
       fix i
       assume i_is_left: "l \<le> i \<and> i < rs"
-      with swap_length_remains in_bounds middle_in_bounds rs_equals `l < r`
+      with swap_length_remains in_bounds middle_in_bounds rs_equals \<open>l < r\<close>
       have i_props: "i < Array.length h' a" "i \<noteq> r" "i \<noteq> rs" by auto
       from i_is_left rs_equals have "l \<le> i \<and> i < middle \<or> i = middle" by arith
       with part_partitions[OF part] right_remains True
@@ -350,7 +350,7 @@ proof -
       next
         assume i_is: "rs < i \<and> i = r"
         with rs_equals have "Suc middle \<noteq> r" by arith
-        with middle_in_bounds `l < r` have "Suc middle \<le> r - 1" by arith
+        with middle_in_bounds \<open>l < r\<close> have "Suc middle \<le> r - 1" by arith
         with part_partitions[OF part] right_remains 
         have "Array.get h' a ! rs \<le> Array.get h1 a ! (Suc middle)"
           by fastforce
@@ -451,7 +451,7 @@ lemma quicksort_outer_remains:
   using assms
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
-  note cr = `effect (quicksort a l r) h h' rs`
+  note cr = \<open>effect (quicksort a l r) h h' rs\<close>
   thus ?case
   proof (cases "r > l")
     case False
@@ -498,7 +498,7 @@ lemma quicksort_sorts:
   using assms
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
-  note cr = `effect (quicksort a l r) h h' rs`
+  note cr = \<open>effect (quicksort a l r) h h' rs\<close>
   thus ?case
   proof (cases "r > l")
     case False
@@ -582,9 +582,9 @@ next
   with quicksort_permutes [OF effect] properties_for_sort show ?thesis by fastforce
 qed
 
-subsection {* No Errors in quicksort *}
-text {* We have proved that quicksort sorts (if no exceptions occur).
-We will now show that exceptions do not occur. *}
+subsection \<open>No Errors in quicksort\<close>
+text \<open>We have proved that quicksort sorts (if no exceptions occur).
+We will now show that exceptions do not occur.\<close>
 
 lemma success_part1I: 
   assumes "l < Array.length h a" "r < Array.length h a"
@@ -647,7 +647,7 @@ proof (induct a l r arbitrary: h rule: quicksort.induct)
 qed
 
 
-subsection {* Example *}
+subsection \<open>Example\<close>
 
 definition "qsort a = do {
     k \<leftarrow> Array.len a;
@@ -662,7 +662,7 @@ definition "example = do {
     qsort a
   }"
 
-ML_val {* @{code example} () *}
+ML_val \<open>@{code example} ()\<close>
 
 export_code qsort checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala Scala_imp
 

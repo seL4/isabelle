@@ -3,13 +3,13 @@
     Copyright   2012 TU Muenchen
 *)
 
-section {* Proving completeness of exhaustive generators *}
+section \<open>Proving completeness of exhaustive generators\<close>
 
 theory Completeness
 imports Main
 begin
 
-subsection {* Preliminaries *}
+subsection \<open>Preliminaries\<close>
 
 primrec is_some
 where
@@ -22,7 +22,7 @@ lemma is_some_is_not_None:
 
 setup Exhaustive_Generators.setup_exhaustive_datatype_interpretation
 
-subsection {* Defining the size of values *}
+subsection \<open>Defining the size of values\<close>
 
 hide_const size
 
@@ -74,7 +74,7 @@ instance ..
 
 end
 
-subsection {* Completeness *}
+subsection \<open>Completeness\<close>
 
 class complete = exhaustive + size +
 assumes
@@ -89,7 +89,7 @@ lemma complete_imp2:
   obtains v where "size (v :: 'a :: complete) \<le> n" "is_some (f v)"
 using assms by (metis complete)
 
-subsubsection {* Instance Proofs *}
+subsubsection \<open>Instance Proofs\<close>
 
 declare exhaustive_int'.simps [simp del]
 

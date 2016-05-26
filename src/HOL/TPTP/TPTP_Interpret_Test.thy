@@ -12,7 +12,7 @@ begin
 section "Interpreter tests"
 
 text "Interpret a problem."
-ML {*
+ML \<open>
   val (time, ((type_map, const_map, fmlas), thy)) =
     Timing.timing
       (TPTP_Interpret.interpret_file
@@ -22,17 +22,17 @@ ML {*
        []
        [])
       @{theory}
-*}
+\<close>
 
 
 text "... and display nicely."
-ML {*
+ML \<open>
   List.app (Pretty.writeln o (Syntax.pretty_term @{context}) o #3) fmlas;
-*}
+\<close>
 
 subsection "Multiple tests"
 
-ML {*
+ML \<open>
   (*default timeout is 1 min*)
   fun interpret timeout file thy =
     Timeout.apply (Time.fromSeconds (if timeout = 0 then 60 else timeout))
@@ -56,9 +56,9 @@ ML {*
     List.app
      (interpretation_test timeout ctxt)
      (map situate probs)
-*}
+\<close>
 
-ML {*
+ML \<open>
   val some_probs =
     ["LCL/LCL825-1.p",
      "ALG/ALG001^5.p",
@@ -111,19 +111,19 @@ ML {*
      "SYO/SYO561_2.p",
      "SYO/SYO562_1.p",
      "SYN/SYN000_2.p"]
-*}
+\<close>
 
-ML {*
+ML \<open>
  interpretation_tests (get_timeout @{context}) @{context}
    (some_probs @ take_too_long @ timeouts @ more_probs)
-*}
+\<close>
 
-ML {*
+ML \<open>
   parse_timed (situate "NUM/NUM923^4.p");
   interpret_timed 0 (situate "NUM/NUM923^4.p") @{theory}
-*}
+\<close>
 
-ML {*
+ML \<open>
   fun interp_gain timeout thy file =
     let
       val t1 = (parse_timed file |> fst)
@@ -144,18 +144,18 @@ ML {*
        diff_elapsed / elapsed,
        elapsed)
     end
-*}
+\<close>
 
 
 subsection "Test against whole TPTP"
 
 text "Run interpretation over all problems. This works only for logics
  for which interpretation is defined (in TPTP_Parser/tptp_interpret.ML)."
-ML {*
+ML \<open>
   if test_all @{context} then
     (report @{context} "Interpreting all problems";
      S timed_test (interpretation_test (get_timeout @{context})) @{context} (TPTP_Syntax.get_file_list tptp_probs_dir))
   else ()
-*}
+\<close>
 
 end

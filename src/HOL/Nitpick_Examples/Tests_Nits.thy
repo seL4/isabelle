@@ -5,12 +5,12 @@
 Nitpick tests.
 *)
 
-section {* Nitpick Tests *}
+section \<open>Nitpick Tests\<close>
 
 theory Tests_Nits
 imports Main
 begin
 
-ML {* () |> getenv "KODKODI" <> "" ? Nitpick_Tests.run_all_tests *}
+ML \<open>() |> getenv "KODKODI" <> "" ? Nitpick_Tests.run_all_tests\<close>
 
 end

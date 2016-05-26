@@ -20,7 +20,7 @@ apply (simp add: dvd_if_abs_eq)
 done
 
 
-subsection \<open>@{text "\<Z>"}: The Set of Integers as Algebraic Structure\<close>
+subsection \<open>\<open>\<Z>\<close>: The Set of Integers as Algebraic Structure\<close>
 
 abbreviation int_ring :: "int ring" ("\<Z>")
   where "int_ring \<equiv> \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
@@ -59,14 +59,14 @@ interpretation int: monoid \<Z>
     and "one \<Z> = 1"
     and "pow \<Z> x n = x^n"
 proof -
-  -- "Specification"
+  \<comment> "Specification"
   show "monoid \<Z>" by standard auto
   then interpret int: monoid \<Z> .
 
-  -- "Carrier"
+  \<comment> "Carrier"
   show "carrier \<Z> = UNIV" by simp
 
-  -- "Operations"
+  \<comment> "Operations"
   { fix x y show "mult \<Z> x y = x * y" by simp }
   show "one \<Z> = 1" by simp
   show "pow \<Z> x n = x^n" by (induct n) simp_all
@@ -75,11 +75,11 @@ qed
 interpretation int: comm_monoid \<Z>
   rewrites "finprod \<Z> f A = setprod f A"
 proof -
-  -- "Specification"
+  \<comment> "Specification"
   show "comm_monoid \<Z>" by standard auto
   then interpret int: comm_monoid \<Z> .
 
-  -- "Operations"
+  \<comment> "Operations"
   { fix x y have "mult \<Z> x y = x * y" by simp }
   note mult = this
   have one: "one \<Z> = 1" by simp
@@ -93,14 +93,14 @@ interpretation int: abelian_monoid \<Z>
     and int_add_eq: "add \<Z> x y = x + y"
     and int_finsum_eq: "finsum \<Z> f A = setsum f A"
 proof -
-  -- "Specification"
+  \<comment> "Specification"
   show "abelian_monoid \<Z>" by standard auto
   then interpret int: abelian_monoid \<Z> .
 
-  -- "Carrier"
+  \<comment> "Carrier"
   show "carrier \<Z> = UNIV" by simp
 
-  -- "Operations"
+  \<comment> "Operations"
   { fix x y show "add \<Z> x y = x + y" by simp }
   note add = this
   show zero: "zero \<Z> = 0"
@@ -121,7 +121,7 @@ interpretation int: abelian_group \<Z>
     and int_a_inv_eq: "a_inv \<Z> x = - x"
     and int_a_minus_eq: "a_minus \<Z> x y = x - y"
 proof -
-  -- "Specification"
+  \<comment> "Specification"
   show "abelian_group \<Z>"
   proof (rule abelian_groupI)
     fix x
@@ -130,7 +130,7 @@ proof -
       by simp arith
   qed auto
   then interpret int: abelian_group \<Z> .
-  -- "Operations"
+  \<comment> "Operations"
   { fix x y have "add \<Z> x y = x + y" by simp }
   note add = this
   have zero: "zero \<Z> = 0" by simp
@@ -218,7 +218,7 @@ interpretation int (* [unfolded UNIV] *) :
   by standard clarsimp
 
 
-subsection \<open>Generated Ideals of @{text "\<Z>"}\<close>
+subsection \<open>Generated Ideals of \<open>\<Z>\<close>\<close>
 
 lemma int_Idl: "Idl\<^bsub>\<Z>\<^esub> {a} = {x * a | x. True}"
   apply (subst int.cgenideal_eq_genideal[symmetric]) apply simp

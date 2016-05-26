@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Muenchen
 *)
 
-section {* Examples for the SMT binding *}
+section \<open>Examples for the SMT binding\<close>
 
 theory SMT_Examples
 imports Complex_Main
@@ -12,7 +12,7 @@ declare [[smt_certificates = "SMT_Examples.certs"]]
 declare [[smt_read_only_certificates = true]]
 
 
-section {* Propositional and first-order logic *}
+section \<open>Propositional and first-order logic\<close>
 
 lemma "True" by smt
 lemma "p \<or> \<not>p" by smt
@@ -249,9 +249,9 @@ lemma
   using assms by smt
 
 
-section {* Arithmetic *}
+section \<open>Arithmetic\<close>
 
-subsection {* Linear arithmetic over integers and reals *}
+subsection \<open>Linear arithmetic over integers and reals\<close>
 
 lemma "(3::int) = 3" by smt
 lemma "(3::real) = 3" by smt
@@ -287,7 +287,7 @@ lemma "
   (n' = m \<and> m = (n::int))"
   by smt
 
-text{*
+text\<open>
 The following example was taken from HOL/ex/PresburgerEx.thy, where it says:
 
   This following theorem proves that all solutions to the
@@ -301,7 +301,7 @@ The following example was taken from HOL/ex/PresburgerEx.thy, where it says:
 There, it is proved by "arith". SMT is able to prove this within a fraction
 of one second. With proof reconstruction, it takes about 13 seconds on a Core2
 processor.
-*}
+\<close>
 
 lemma "\<lbrakk> x3 = \<bar>x2\<bar> - x1; x4 = \<bar>x3\<bar> - x2; x5 = \<bar>x4\<bar> - x3;
          x6 = \<bar>x5\<bar> - x4; x7 = \<bar>x6\<bar> - x5; x8 = \<bar>x7\<bar> - x6;
@@ -324,7 +324,7 @@ lemma
   using assms [[z3_extensions]] by smt
 
 
-subsection {* Linear arithmetic with quantifiers *}
+subsection \<open>Linear arithmetic with quantifiers\<close>
 
 lemma "~ (\<exists>x::int. False)" by smt
 lemma "~ (\<exists>x::real. False)" by smt
@@ -352,7 +352,7 @@ lemma "\<exists>x::int. (\<forall>y. y \<ge> x \<longrightarrow> y > 0) \<longri
 lemma "\<forall>(a::int) b::int. 0 < b \<or> b < 1" by smt
 
 
-subsection {* Non-linear arithmetic over integers and reals *}
+subsection \<open>Non-linear arithmetic over integers and reals\<close>
 
 lemma "a > (0::int) \<Longrightarrow> a*b > 0 \<Longrightarrow> b > 0"
   using [[smt_oracle, z3_extensions]]
@@ -378,7 +378,7 @@ lemma [z3_rule]:
   using assms by (metis mult_le_0_iff)
 
 
-section {* Pairs *}
+section \<open>Pairs\<close>
 
 lemma "fst (x, y) = a \<Longrightarrow> x = a"
   using fst_conv by smt
@@ -387,7 +387,7 @@ lemma "p1 = (x, y) \<and> p2 = (y, x) \<Longrightarrow> fst p1 = snd p2"
   using fst_conv snd_conv by smt
 
 
-section {* Higher-order problems and recursion *}
+section \<open>Higher-order problems and recursion\<close>
 
 lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> (f (i1 := v1, i2 := v2)) i = f i"
   using fun_upd_same fun_upd_apply by smt
@@ -446,7 +446,7 @@ lemma
 end
 
 
-section {* Monomorphization examples *}
+section \<open>Monomorphization examples\<close>
 
 definition Pred :: "'a \<Rightarrow> bool" where "Pred x = True"
 

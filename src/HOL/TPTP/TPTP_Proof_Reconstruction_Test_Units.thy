@@ -13,13 +13,13 @@ declare [[ML_exception_trace, ML_print_depth = 200]]
 declare [[tptp_trace_reconstruction = true]]
 
 lemma "! (X1 :: bool) (X2 :: bool) (X3 :: bool) (X4 :: bool) (X5 :: bool). P \<Longrightarrow> ! (X1 :: bool) (X3 :: bool) (X5 :: bool). P"
-apply (tactic {*canonicalise_qtfr_order @{context} 1*})
+apply (tactic \<open>canonicalise_qtfr_order @{context} 1\<close>)
 oops
 
 lemma "! (X1 :: bool) (X2 :: bool) (X3 :: bool) (X4 :: bool) (X5 :: bool). P \<Longrightarrow> ! (X1 :: bool) (X3 :: bool) (X5 :: bool). P"
-apply (tactic {*canonicalise_qtfr_order @{context} 1*})
+apply (tactic \<open>canonicalise_qtfr_order @{context} 1\<close>)
 apply (rule allI)+
-apply (tactic {*nominal_inst_parametermatch_tac @{context} @{thm allE} 1*})+
+apply (tactic \<open>nominal_inst_parametermatch_tac @{context} @{thm allE} 1\<close>)+
 oops
 
 (*Could test bind_tac further with NUM667^1 inode43*)
@@ -187,35 +187,35 @@ done
 lemma "(A = B) = True ==> (B = A) = True"
 *)
 lemma "!!x. ((A x :: bool) = B x) = False ==> (B x = A x) = False"
-apply (tactic {*expander_animal @{context} 1*})
+apply (tactic \<open>expander_animal @{context} 1\<close>)
 oops
 
 lemma "(A & B) ==> ~(~A | ~B)"
-by (tactic {*expander_animal @{context} 1*})
+by (tactic \<open>expander_animal @{context} 1\<close>)
 
 lemma "(A | B) ==> ~(~A & ~B)"
-by (tactic {*expander_animal @{context} 1*})
+by (tactic \<open>expander_animal @{context} 1\<close>)
 
 lemma "(A | B) | C ==> A | (B | C)"
-by (tactic {*expander_animal @{context} 1*})
+by (tactic \<open>expander_animal @{context} 1\<close>)
 
 lemma "(~~A) = B ==> A = B"
-by (tactic {*expander_animal @{context} 1*})
+by (tactic \<open>expander_animal @{context} 1\<close>)
 
 lemma "~ ~ (A = True) ==> A = True"
-by (tactic {*expander_animal @{context} 1*})
+by (tactic \<open>expander_animal @{context} 1\<close>)
 
 (*This might not be a goal which might realistically arise:
 lemma "((~~A) = B) & (B = (~~A)) ==> ~(~(A = B) | ~(B = A))" *)
 lemma "((~~A) = True) ==> ~(~(A = True) | ~(True = A))"
-apply (tactic {*expander_animal @{context} 1*})+
+apply (tactic \<open>expander_animal @{context} 1\<close>)+
 apply (rule conjI)
 apply assumption
 apply (rule sym, assumption)
 done
 
 lemma "A = B ==> ((~~A) = B) & (B = (~~A)) ==> ~(~(A = B) | ~(B = A))"
-by (tactic {*expander_animal @{context} 1*})+
+by (tactic \<open>expander_animal @{context} 1\<close>)+
 
 (*some lemmas assume constants in the signature of PUZ114^5*)
 consts
@@ -242,7 +242,7 @@ lemma "!! SY30. (SY30 PUZ114_5_bnd_c1 PUZ114_5_bnd_c1 \<and>
            SY30 (PUZ114_5_bnd_s Xj) (PUZ114_5_bnd_s Xk)))
      | SY30 PUZ114_5_bnd_sK1 PUZ114_5_bnd_sK2
 )"
-by (tactic {*expander_animal @{context} 1*})+
+by (tactic \<open>expander_animal @{context} 1\<close>)+
 
 (*
 extcnf_forall_pos:
@@ -262,8 +262,8 @@ to
 (where X' is fresh, or renamings are done suitably).*)
 
 lemma "A | B \<Longrightarrow> A | B | C"
-apply (tactic {*flip_conclusion_tac @{context} 1*})+
-apply (tactic {*break_hypotheses 1*})+
+apply (tactic \<open>flip_conclusion_tac @{context} 1\<close>)+
+apply (tactic \<open>break_hypotheses 1\<close>)+
 oops
 
 consts
@@ -297,7 +297,7 @@ lemma "\<forall>SV2. (CSR122_1_bnd_holdsDuring_THFTYPE_IiooI
                 True) =
                False"
 apply (rule allI, erule_tac x = "SV2" in allE)
-apply (tactic {*extuni_dec_tac @{context} 1*})
+apply (tactic \<open>extuni_dec_tac @{context} 1\<close>)
 done
 
 (*SEU882^5*)
@@ -330,12 +330,12 @@ done
 
 lemma "A | B \<Longrightarrow> C1 | A | C2 | B | C3"
 apply (erule disjE)
-apply (tactic {*clause_breaker 1*})
-apply (tactic {*clause_breaker 1*})
+apply (tactic \<open>clause_breaker 1\<close>)
+apply (tactic \<open>clause_breaker 1\<close>)
 done
 
 lemma "A \<Longrightarrow> A"
-apply (tactic {*clause_breaker 1*})
+apply (tactic \<open>clause_breaker 1\<close>)
 done
 
 typedecl NUM667_1_bnd_nat
@@ -359,15 +359,15 @@ lemma "\<forall>SV12 SV13 SV14 SV9 SV10 SV11.
         NUM667_1_bnd_less SV9 SV10 = True) \<or>
        (SV9 = SV11) =
        False"
-apply (tactic {*strip_qtfrs_tac @{context}*})
-apply (tactic {*break_hypotheses 1*})
-apply (tactic {*ALLGOALS (TRY o clause_breaker)*})
-apply (tactic {*extuni_dec_tac @{context} 1*})
+apply (tactic \<open>strip_qtfrs_tac @{context}\<close>)
+apply (tactic \<open>break_hypotheses 1\<close>)
+apply (tactic \<open>ALLGOALS (TRY o clause_breaker)\<close>)
+apply (tactic \<open>extuni_dec_tac @{context} 1\<close>)
 done
 
-ML {*
+ML \<open>
 extuni_dec_n @{context} 2;
-*}
+\<close>
 
 (*NUM667^1, node 202*)
 lemma "\<forall>SV9 SV10 SV11.
@@ -382,10 +382,10 @@ lemma "\<forall>SV9 SV10 SV11.
         NUM667_1_bnd_less SV9 SV10 = True) \<or>
        NUM667_1_bnd_less NUM667_1_bnd_x NUM667_1_bnd_y =
        True"
-apply (tactic {*strip_qtfrs_tac @{context}*})
-apply (tactic {*break_hypotheses 1*})
-apply (tactic {*ALLGOALS (TRY o clause_breaker)*})
-apply (tactic {*extuni_dec_tac @{context} 1*})
+apply (tactic \<open>strip_qtfrs_tac @{context}\<close>)
+apply (tactic \<open>break_hypotheses 1\<close>)
+apply (tactic \<open>ALLGOALS (TRY o clause_breaker)\<close>)
+apply (tactic \<open>extuni_dec_tac @{context} 1\<close>)
 done
 
 (*NUM667^1 node 141*)
@@ -400,7 +400,7 @@ apply (erule extuni_triv)
 done
 *)
 
-ML {*
+ML \<open>
 fun full_extcnf_combined_tac ctxt =
   extcnf_combined_tac ctxt NONE
    [ConstsDiff,
@@ -418,9 +418,9 @@ fun full_extcnf_combined_tac ctxt =
     CleanUp [RemoveHypothesesFromSkolemDefs, RemoveDuplicates],
     AbsorbSkolemDefs]
    []
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun nonfull_extcnf_combined_tac ctxt feats =
   extcnf_combined_tac ctxt NONE
    [ConstsDiff,
@@ -428,7 +428,7 @@ fun nonfull_extcnf_combined_tac ctxt feats =
     InnerLoopOnce (Break_Hypotheses :: feats),
     AbsorbSkolemDefs]
    []
-*}
+\<close>
 
 consts SEU882_5_bnd_sK1_Xy :: TPTP_Interpret.ind
 lemma
@@ -437,7 +437,7 @@ lemma
 (* apply (erule_tac x = "(@X. False)" in allE) *)
 (* apply (tactic {*remove_redundant_quantification 1*}) *)
 (* apply assumption *)
-by (tactic {*nonfull_extcnf_combined_tac @{context} [RemoveRedundantQuantifications, Extuni_FlexRigid]*})
+by (tactic \<open>nonfull_extcnf_combined_tac @{context} [RemoveRedundantQuantifications, Extuni_FlexRigid]\<close>)
 
 (*NUM667^1*)
 (*
@@ -472,7 +472,7 @@ lemma "\<forall>SV49::TPTP_Interpret.ind \<Rightarrow> bool.
              (\<not> SEU602_2_bnd_in (SEU602_2_bnd_sK7_E SV49) SEU602_2_bnd_sK2_SY17)) =
             False"
 (*FIXME this (and similar) tests are getting the "Bad background theory of goal state" error since upgrading to Isabelle2013-2.*)
-by (tactic {*nonfull_extcnf_combined_tac @{context} [Extuni_Func, Existential_Var]*})
+by (tactic \<open>nonfull_extcnf_combined_tac @{context} [Extuni_Func, Existential_Var]\<close>)
 
 consts
   SEV405_5_bnd_sK1_SY2 :: "(TPTP_Interpret.ind \<Rightarrow> bool) \<Rightarrow> TPTP_Interpret.ind"
@@ -487,7 +487,7 @@ lemma "\<forall>SV1::TPTP_Interpret.ind \<Rightarrow> bool.
             (\<not> (\<not> (\<not> SV1 (SEV405_5_bnd_sK1_SY2 SV1) \<or> SEV405_5_bnd_cA) \<or>
                 \<not> (\<not> SEV405_5_bnd_cA \<or> SV1 (SEV405_5_bnd_sK1_SY2 SV1)))) =
             False"
-by (tactic {*nonfull_extcnf_combined_tac @{context} [Existential_Var]*})
+by (tactic \<open>nonfull_extcnf_combined_tac @{context} [Existential_Var]\<close>)
 (*
 strip quantifiers -- creating a space of permutations; from shallowest to deepest (iterative deepening)
 flip the conclusion -- giving us branch
@@ -503,38 +503,38 @@ consts
 (*testing parameters*)
 lemma "! X :: TPTP_Interpret.ind . (\<forall>A B. SEU581_2_bnd_in B (SEU581_2_bnd_powerset A) \<longrightarrow> SEU581_2_bnd_subset B A) = True
 \<Longrightarrow> ! X :: TPTP_Interpret.ind . (\<forall>A B. \<not> SEU581_2_bnd_in B (SEU581_2_bnd_powerset A) \<or> SEU581_2_bnd_subset B A) = True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 lemma "(A & B) = True ==> (A | B) = True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 lemma "(\<not> bnd_subset (bnd_dsetconstr bnd_sK1 bnd_sK2) bnd_sK1) = True \<Longrightarrow> (bnd_subset (bnd_dsetconstr bnd_sK1 bnd_sK2) bnd_sK1) = False"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 (*testing goals with parameters*)
 lemma "(\<not> bnd_subset (bnd_dsetconstr bnd_sK1 bnd_sK2) bnd_sK1) = True \<Longrightarrow> ! X. (bnd_subset (bnd_dsetconstr bnd_sK1 bnd_sK2) bnd_sK1) = False"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 lemma "(A & B) = True ==> (B & A) = True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 (*appreciating differences between THEN, REPEAT, and APPEND*)
 lemma "A & B ==> B & A"
-apply (tactic {*
+apply (tactic \<open>
   TRY (etac @{thm conjE} 1)
-  THEN TRY (rtac @{thm conjI} 1)*})
+  THEN TRY (rtac @{thm conjI} 1)\<close>)
 by assumption+
 
 lemma "A & B ==> B & A"
-by (tactic {*
+by (tactic \<open>
   etac @{thm conjE} 1
   THEN rtac @{thm conjI} 1
-  THEN REPEAT (atac 1)*})
+  THEN REPEAT (atac 1)\<close>)
 
 lemma "A & B ==> B & A"
-apply (tactic {*
+apply (tactic \<open>
   rtac @{thm conjI} 1
-  APPEND etac @{thm conjE} 1*})+
+  APPEND etac @{thm conjE} 1\<close>)+
 back
 by assumption+
 
@@ -564,16 +564,16 @@ lemma "(\<forall>SX0. (\<not> (\<not> SX0 (PUZ114_5_bnd_sK4 SX0) (PUZ114_5_bnd_s
            \<not> SV1 bnd_c1 bnd_c1) \<or>
           SV1 PUZ114_5_bnd_sK1 PUZ114_5_bnd_sK2) =
          True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 lemma "(\<not> SEU581_2_bnd_subset (SEU581_2_bnd_dsetconstr SEU581_2_bnd_sK1 SEU581_2_bnd_sK2) SEU581_2_bnd_sK1) = True \<Longrightarrow> (SEU581_2_bnd_subset (SEU581_2_bnd_dsetconstr SEU581_2_bnd_sK1 SEU581_2_bnd_sK2) SEU581_2_bnd_sK1) = False"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 (*testing repeated application of simulator*)
 lemma "(\<not> \<not> False) = True \<Longrightarrow>
     SEU581_2_bnd_subset (SEU581_2_bnd_dsetconstr SEU581_2_bnd_sK1 SEU581_2_bnd_sK2) SEU581_2_bnd_sK1 = True \<or>
     False = True \<or> False = True \<or> False = True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 (*Testing non-normal conclusion. Ideally we should be able to apply
   the tactic to arbitrary chains of extcnf steps -- where it's not
@@ -581,48 +581,48 @@ by (tactic {*full_extcnf_combined_tac @{context}*})
 lemma "(\<not> \<not> False) = True \<Longrightarrow>
     SEU581_2_bnd_subset (SEU581_2_bnd_dsetconstr SEU581_2_bnd_sK1 SEU581_2_bnd_sK2) SEU581_2_bnd_sK1 = True \<or>
     (\<not> False) = False"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 (*testing repeated application of simulator, involving different extcnf rules*)
 lemma "(\<not> \<not> (False | False)) = True \<Longrightarrow>
     SEU581_2_bnd_subset (SEU581_2_bnd_dsetconstr SEU581_2_bnd_sK1 SEU581_2_bnd_sK2) SEU581_2_bnd_sK1 = True \<or>
     False = True \<or> False = True \<or> False = True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 (*testing logical expansion*)
 lemma "(\<forall>A B. SEU581_2_bnd_in B (SEU581_2_bnd_powerset A) \<longrightarrow> SEU581_2_bnd_subset B A) = True
 \<Longrightarrow> (\<forall>A B. \<not> SEU581_2_bnd_in B (SEU581_2_bnd_powerset A) \<or> SEU581_2_bnd_subset B A) = True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 (*testing extcnf_forall_pos*)
 lemma "(\<forall>A Xphi. SEU581_2_bnd_in (SEU581_2_bnd_dsetconstr A Xphi) (SEU581_2_bnd_powerset A)) = True \<Longrightarrow> \<forall>SV1. (\<forall>SY14.
              SEU581_2_bnd_in (SEU581_2_bnd_dsetconstr SV1 SY14)
               (SEU581_2_bnd_powerset SV1)) = True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 lemma "((\<forall>A Xphi. SEU581_2_bnd_in (SEU581_2_bnd_dsetconstr A Xphi) (SEU581_2_bnd_powerset A)) = True) | ((~ False) = False) \<Longrightarrow>
 \<forall>SV1. ((\<forall>SY14. SEU581_2_bnd_in (SEU581_2_bnd_dsetconstr SV1 SY14) (SEU581_2_bnd_powerset SV1)) = True) | ((~ False) = False)"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 (*testing parameters*)
 lemma "(\<forall>A B. SEU581_2_bnd_in B (SEU581_2_bnd_powerset A) \<longrightarrow> SEU581_2_bnd_subset B A) = True
 \<Longrightarrow> ! X. (\<forall>A B. \<not> SEU581_2_bnd_in B (SEU581_2_bnd_powerset A) \<or> SEU581_2_bnd_subset B A) = True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 lemma "((? A .P1 A) = False) | P2 = True \<Longrightarrow> !X. ((P1 X) = False | P2 = True)"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 lemma "((!A . (P1a A | P1b A)) = True) | (P2 = True) \<Longrightarrow> !X. (P1a X = True | P1b X = True | P2 = True)"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 lemma "! Y. (((!A .(P1a A | P1b A)) = True) | P2 = True) \<Longrightarrow> ! Y. (!X. (P1a X = True | P1b X = True | P2 = True))"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 lemma "! Y. (((!A .(P1a A | P1b A)) = True) | P2 = True) \<Longrightarrow> ! Y. (!X. (P1a X = True | P1b X = True | P2 = True))"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 lemma "! Y. (((!A .(P1a A | P1b A)) = True) | P2 = True) \<Longrightarrow> ! Y. (!X. (P1a X = True | P1b X = True | P2 = True))"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 consts dud_bnd_s :: "TPTP_Interpret.ind \<Rightarrow> TPTP_Interpret.ind"
 
@@ -636,12 +636,12 @@ lemma "(\<not> (\<forall>SX0 SX1.
           \<not> PUZ114_5_bnd_sK3 SX0 SX1 \<or>
           PUZ114_5_bnd_sK3 (dud_bnd_s SX0) (dud_bnd_s SX1))) =
    False"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 (*testing logical expansion -- this should be done by blast*)
 lemma "(\<forall>A B. bnd_in B (bnd_powerset A) \<longrightarrow> SEU581_2_bnd_subset B A) = True
 \<Longrightarrow> (\<forall>A B. \<not> bnd_in B (bnd_powerset A) \<or> SEU581_2_bnd_subset B A) = True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 (*testing related to PUZ114^5.p.out*)
 lemma "\<forall>SV1. ((\<not> (\<not> SV1 (PUZ114_5_bnd_sK4 SV1) (PUZ114_5_bnd_sK5 SV1) \<or>
@@ -660,7 +660,7 @@ lemma "\<forall>SV1. ((\<not> (\<not> SV1 (PUZ114_5_bnd_sK4 SV1) (PUZ114_5_bnd_s
                           (bnd_s (PUZ114_5_bnd_sK5 SV1))))) =
                 True) \<or>
                SV1 PUZ114_5_bnd_sK1 PUZ114_5_bnd_sK2 = True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 lemma "\<forall>SV2. (\<forall>SY41.
                    \<not> PUZ114_5_bnd_sK3 SV2 SY41 \<or>
@@ -670,7 +670,7 @@ lemma "\<forall>SV2. (\<forall>SY41.
             (\<not> PUZ114_5_bnd_sK3 SV2 SV4 \<or>
              PUZ114_5_bnd_sK3 (dud_bnd_s (dud_bnd_s SV2)) SV4) =
             True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 lemma "\<forall>SV3. (\<forall>SY42.
                    \<not> PUZ114_5_bnd_sK3 SV3 SY42 \<or>
@@ -680,7 +680,7 @@ lemma "\<forall>SV3. (\<forall>SY42.
             (\<not> PUZ114_5_bnd_sK3 SV3 SV5 \<or>
              PUZ114_5_bnd_sK3 (dud_bnd_s SV3) (dud_bnd_s SV5)) =
             True"
-by (tactic {*full_extcnf_combined_tac @{context}*})
+by (tactic \<open>full_extcnf_combined_tac @{context}\<close>)
 
 
 subsection "unfold_def"
@@ -749,7 +749,7 @@ lemma "bnd_kpairiskpair =
        (bnd_setadjoin (bnd_setadjoin SX2 (bnd_setadjoin SX3 bnd_emptyset))
          bnd_emptyset))))))) =
                  True"
-by (tactic {*unfold_def_tac @{context} []*})
+by (tactic \<open>unfold_def_tac @{context} []\<close>)
 
      (* (Annotated_step ("10", "unfold_def"), *)
 lemma "bnd_kpairiskpair =
@@ -817,7 +817,7 @@ lemma "bnd_kpairiskpair =
     (bnd_setadjoin (bnd_setadjoin SX2 (bnd_setadjoin SX3 bnd_emptyset))
       bnd_emptyset)))))) =
                  True"
-by (tactic {*unfold_def_tac @{context} []*})
+by (tactic \<open>unfold_def_tac @{context} []\<close>)
 
      (* (Annotated_step ("12", "unfold_def"), *)
 lemma "bnd_cCKB6_BLACK =
@@ -854,7 +854,7 @@ apply (erule subst)+
 apply (tactic {*log_expander 1*})+
 apply (rule refl)
 *)
-by (tactic {*unfold_def_tac @{context} []*})
+by (tactic \<open>unfold_def_tac @{context} []\<close>)
 
      (* (Annotated_step ("13", "unfold_def"), *)
 lemma "bnd_cCKB6_BLACK =
@@ -887,10 +887,10 @@ apply (erule conjE)+
 apply (tactic {*expander_animal 1*})+
 apply assumption
 *)
-by (tactic {*unfold_def_tac @{context} []*})
+by (tactic \<open>unfold_def_tac @{context} []\<close>)
 
 (*FIXME move this heuristic elsewhere*)
-ML {*
+ML \<open>
 (*Other than the list (which must not be empty) this function
   expects a parameter indicating the smallest integer.
   (Using Int.minInt isn't always viable).*)
@@ -905,13 +905,13 @@ fun max_index_floored min l =
   let
     val max = max_int_floored min l
   in find_index (pair max #> op =) l end
-*}
+\<close>
 
-ML {*
+ML \<open>
 max_index_floored 0 [1, 3, 5]
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*
 Given argument ([h_1, ..., h_n], conc),
 obtained from term of form
@@ -925,9 +925,9 @@ fun biggest_hypothesis (hypos, _) =
     map size_of_term hypos
     |> max_index_floored 0
     |> SOME
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun biggest_hyp_first_tac i = fn st =>
   let
     val results = TERMFUN biggest_hypothesis (SOME i) st
@@ -944,7 +944,7 @@ val _ = tracing ("result=" ^ @{make_string} results)
               if n > 0 then rotate_tac n i st else no_tac st
       end
   end
-*}
+\<close>
 
      (* (Annotated_step ("6", "unfold_def"), *)
 lemma  "(\<not> (\<exists>U :: TPTP_Interpret.ind \<Rightarrow> bool. \<forall>V. U V = SEV405_5_bnd_cA)) = True \<Longrightarrow>
@@ -1006,7 +1006,7 @@ lemma "\<forall>SV13 SV6.
              GEG007_1_bnd_c (GEG007_1_bnd_sK7_SX2 SV13 SV6) GEG007_1_bnd_catalunya) =
             False \<or>
             GEG007_1_bnd_a SV6 SV13 = False"
-by (tactic {*nonfull_extcnf_combined_tac @{context} [Existential_Var]*})
+by (tactic \<open>nonfull_extcnf_combined_tac @{context} [Existential_Var]\<close>)
 
      (* (Annotated_step ("116", "extcnf_forall_neg"), *)
 lemma "\<forall>SV13 SV6.
@@ -1039,7 +1039,7 @@ lemma "\<forall>SV13 SV6.
       \<not> (\<forall>SX4. \<not> GEG007_1_bnd_c SX4 SY71 \<or> GEG007_1_bnd_c SX4 GEG007_1_bnd_spain)))))) =
             False \<or>
             GEG007_1_bnd_a SV6 SV13 = False"
-by (tactic {*nonfull_extcnf_combined_tac @{context} [Existential_Var]*})
+by (tactic \<open>nonfull_extcnf_combined_tac @{context} [Existential_Var]\<close>)
 
 consts PUZ107_5_bnd_sK1_SX0 ::
   "TPTP_Interpret.ind
@@ -1056,7 +1056,7 @@ lemma "\<forall>(SV4::TPTP_Interpret.ind) (SV8::TPTP_Interpret.ind)
    (SV3::TPTP_Interpret.ind) SV1::TPTP_Interpret.ind.
    ((SV1 = SV3) = True \<or> PUZ107_5_bnd_sK1_SX0 SV1 SV2 SV6 SV8 = False) \<or>
    PUZ107_5_bnd_sK1_SX0 SV3 SV4 SV6 SV8 = False"
-by (tactic {*nonfull_extcnf_combined_tac @{context} [Not_neg]*})
+by (tactic \<open>nonfull_extcnf_combined_tac @{context} [Not_neg]\<close>)
 
 lemma "
 \<forall>(SV8::TPTP_Interpret.ind) (SV6::TPTP_Interpret.ind)
@@ -1070,7 +1070,7 @@ lemma "
    (SV3::TPTP_Interpret.ind) SV1::TPTP_Interpret.ind.
    ((SV1 \<noteq> SV3) = False \<or> PUZ107_5_bnd_sK1_SX0 SV1 SV2 SV6 SV8 = False) \<or>
    PUZ107_5_bnd_sK1_SX0 SV3 SV4 SV6 SV8 = False"
-by (tactic {*nonfull_extcnf_combined_tac @{context} [Or_neg]*})
+by (tactic \<open>nonfull_extcnf_combined_tac @{context} [Or_neg]\<close>)
 
 consts
   NUM016_5_bnd_a :: TPTP_Interpret.ind
@@ -1149,7 +1149,7 @@ NUM016_5_bnd_divides SX0 SX0)) \<or>
                    NUM016_5_bnd_less (NUM016_5_bnd_factorial_plus_one NUM016_5_bnd_a)
                     SX0))) =
          True"
-by (tactic {*unfold_def_tac @{context} []*})
+by (tactic \<open>unfold_def_tac @{context} []\<close>)
 
      (* (Annotated_step ("3", "unfold_def"), *)
 lemma "(~ ((((((((((((ALL X. ~ bnd_less X X) &
@@ -1189,13 +1189,13 @@ lemma "(~ ((((((((((((ALL X. ~ bnd_less X X) &
                      (ALL X. (~ bnd_prime X | ~ bnd_less bnd_a X) |
                              bnd_less (bnd_factorial_plus_one bnd_a) X))) =
                  False"
-by (tactic {*unfold_def_tac @{context} []*})
+by (tactic \<open>unfold_def_tac @{context} []\<close>)
 
 (* SET062^6.p.out
       [[(Annotated_step ("3", "unfold_def"), *)
 lemma "(\<forall>Z3. False \<longrightarrow> bnd_cA Z3) = False \<Longrightarrow>
          (\<forall>Z3. False \<longrightarrow> bnd_cA Z3) = False"
-by (tactic {*unfold_def_tac @{context} []*})
+by (tactic \<open>unfold_def_tac @{context} []\<close>)
 
 (*
 (* SEU559^2.p.out *)
@@ -1253,7 +1253,7 @@ lemma "(\<forall>SX0::TPTP_Interpret.ind.
          False \<Longrightarrow>
          AGT037_2_bnd_possibly_likes AGT037_2_bnd_jan AGT037_2_bnd_cola AGT037_2_bnd_sK1_SX0 =
          False"
-by (tactic {*nonfull_extcnf_combined_tac @{context} [Existential_Var]*})
+by (tactic \<open>nonfull_extcnf_combined_tac @{context} [Existential_Var]\<close>)
 
      (* (Annotated_step ("202", "extcnf_forall_neg"), *)
 lemma "\<forall>(SV13::TPTP_Interpret.ind) (SV39::AGT037_2_bnd_mu) (SV29::AGT037_2_bnd_mu)
@@ -1297,7 +1297,7 @@ defer
 apply (tactic {*clause_breaker 1*})
 apply (tactic {*nonfull_extcnf_combined_tac []*})
 *)
-by (tactic {*nonfull_extcnf_combined_tac @{context} [Existential_Var]*})
+by (tactic \<open>nonfull_extcnf_combined_tac @{context} [Existential_Var]\<close>)
 
 (*(*NUM667^1*)
 lemma "\<forall>SV12 SV13 SV14 SV9 SV10 SV11.
@@ -2157,7 +2157,7 @@ lemma "\<forall>SV1::TPTP_Interpret.ind \<Rightarrow> bool.
                 \<not> (\<not> SEV405_5_bnd_cA \<or> SV1 (SEV405_5_bnd_sK1_SY2 SV1)))) =
             False"
 (* apply (tactic {*full_extcnf_combined_tac*}) *)
-by (tactic {*nonfull_extcnf_combined_tac @{context} [Existential_Var]*})
+by (tactic \<open>nonfull_extcnf_combined_tac @{context} [Existential_Var]\<close>)
 
      (* (Annotated_step ("13", "extcnf_forall_pos"), *)
 lemma "(\<forall>SY31 SY32.
@@ -2168,7 +2168,7 @@ lemma "(\<forall>SY31 SY32.
                    bnd_sK2 (bnd_sK4 SV1 SY42) =
                    bnd_sK5 (bnd_sK2 SV1) (bnd_sK2 SY42)) =
                True"
-by (tactic {*nonfull_extcnf_combined_tac @{context} [Universal]*})
+by (tactic \<open>nonfull_extcnf_combined_tac @{context} [Universal]\<close>)
 
      (* (Annotated_step ("14", "extcnf_forall_pos"), *)
 lemma "(\<forall>SY35 SY36.
@@ -2179,7 +2179,7 @@ lemma "(\<forall>SY35 SY36.
                    bnd_sK1 (bnd_sK3 SV2 SY43) =
                    bnd_sK4 (bnd_sK1 SV2) (bnd_sK1 SY43)) =
                True"
-by (tactic {*nonfull_extcnf_combined_tac @{context} [Universal]*})
+by (tactic \<open>nonfull_extcnf_combined_tac @{context} [Universal]\<close>)
 
 
 (*from SYO198^5.p.out*)
@@ -2188,7 +2188,7 @@ lemma "(\<forall>SX0::bool \<Rightarrow> bool.
              \<not> \<not> (\<not> SX0 bnd_sK1_Xx \<or> \<not> SX0 bnd_sK2_Xy)) =
          True \<Longrightarrow>
          (\<not> \<not> (\<not> True \<or> \<not> True)) = True"
-apply (tactic {*extcnf_forall_special_pos_tac 1*})
+apply (tactic \<open>extcnf_forall_special_pos_tac 1\<close>)
 done
 
      (* (Annotated_step ("13", "extcnf_forall_special_pos"), *)
@@ -2196,7 +2196,7 @@ lemma "(\<forall>SX0::bool \<Rightarrow> bool.
              \<not> \<not> (\<not> SX0 bnd_sK1_Xx \<or> \<not> SX0 bnd_sK2_Xy)) =
          True \<Longrightarrow>
          (\<not> \<not> (\<not> bnd_sK1_Xx \<or> \<not> bnd_sK2_Xy)) = True"
-apply (tactic {*extcnf_forall_special_pos_tac 1*})
+apply (tactic \<open>extcnf_forall_special_pos_tac 1\<close>)
 done
 
    (* [[(Annotated_step ("8", "polarity_switch"), *)
@@ -2205,7 +2205,7 @@ lemma "(\<forall>(Xx::bool) (Xy::bool) Xz::bool. True \<and> True \<longrightarr
          (\<not> (\<forall>(Xx::bool) (Xy::bool) Xz::bool.
                 True \<and> True \<longrightarrow> True)) =
          True"
-apply (tactic {*nonfull_extcnf_combined_tac @{context} [Polarity_switch]*})
+apply (tactic \<open>nonfull_extcnf_combined_tac @{context} [Polarity_switch]\<close>)
 done
 
 lemma "((\<forall>SY22 SY23 SY24.
@@ -2224,7 +2224,7 @@ lemma "((\<forall>SY22 SY23 SY24.
           (\<forall>SY28. SY25 SY28 \<longrightarrow> bnd_sK1_RRR SY28 SY27) \<longrightarrow>
           bnd_sK1_RRR (bnd_sK2_U SY25) SY27)) =
   True"
-apply (tactic {*standard_cnf_tac @{context} 1*})
+apply (tactic \<open>standard_cnf_tac @{context} 1\<close>)
 done
 
 lemma "((\<forall>Xx. bnd_in Xx bnd_emptyset \<longrightarrow> (\<forall>Xphi. Xphi)) \<longrightarrow>
@@ -2236,7 +2236,7 @@ lemma "((\<forall>Xx. bnd_in Xx bnd_emptyset \<longrightarrow> (\<forall>Xphi. X
   False \<Longrightarrow>
  (\<forall>Xx. bnd_in Xx bnd_emptyset \<longrightarrow> (\<forall>Xphi. Xphi)) =
   True"
-apply (tactic {*standard_cnf_tac @{context} 1*})
+apply (tactic \<open>standard_cnf_tac @{context} 1\<close>)
 done
 
 lemma "((\<forall>Xx. bnd_in Xx bnd_emptyset \<longrightarrow> (\<forall>Xphi. Xphi)) \<longrightarrow>
@@ -2248,7 +2248,7 @@ lemma "((\<forall>Xx. bnd_in Xx bnd_emptyset \<longrightarrow> (\<forall>Xphi. X
   False \<Longrightarrow>
   (\<forall>Xx Xy. bnd_in Xx (bnd_setadjoin Xx Xy)) =
   True"
-apply (tactic {*standard_cnf_tac @{context} 1*})
+apply (tactic \<open>standard_cnf_tac @{context} 1\<close>)
 done
 
 lemma "((\<forall>Xx. bnd_in Xx bnd_emptyset \<longrightarrow> (\<forall>Xphi. Xphi)) \<longrightarrow>
@@ -2261,7 +2261,7 @@ lemma "((\<forall>Xx. bnd_in Xx bnd_emptyset \<longrightarrow> (\<forall>Xphi. X
   (\<forall>A B. A = B \<longrightarrow>
          (\<forall>Xx Xy. Xx = Xy \<longrightarrow> bnd_in Xx A = bnd_in Xy B)) =
   True"
-apply (tactic {*standard_cnf_tac @{context} 1*})
+apply (tactic \<open>standard_cnf_tac @{context} 1\<close>)
 done
 
 lemma "((\<forall>Xx. bnd_in Xx bnd_emptyset \<longrightarrow> (\<forall>Xphi. Xphi)) \<longrightarrow>
@@ -2274,7 +2274,7 @@ lemma "((\<forall>Xx. bnd_in Xx bnd_emptyset \<longrightarrow> (\<forall>Xphi. X
   (\<forall>SY0. bnd_in SY0 bnd_omega \<longrightarrow>
          bnd_setadjoin SY0 SY0 \<noteq> bnd_emptyset) =
   False"
-apply (tactic {*standard_cnf_tac @{context} 1*})
+apply (tactic \<open>standard_cnf_tac @{context} 1\<close>)
 done
 
 (*nested conjunctions*)
@@ -2287,7 +2287,7 @@ lemma "((((\<forall>Xx. bnd_cP bnd_e Xx = Xx) \<and>
   False \<Longrightarrow>
   (\<forall>Xx. bnd_cP bnd_e Xx = Xx) =
   True"
-apply (tactic {*standard_cnf_tac @{context} 1*})
+apply (tactic \<open>standard_cnf_tac @{context} 1\<close>)
 done
 
 end

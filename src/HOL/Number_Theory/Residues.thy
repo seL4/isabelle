@@ -124,7 +124,7 @@ lemma finite_Units [iff]: "finite (Units R)"
   by (subst res_units_eq) auto
 
 text \<open>
-  The function @{text "a \<mapsto> a mod m"} maps the integers to the
+  The function \<open>a \<mapsto> a mod m\<close> maps the integers to the
   residue classes. The following lemmas show that this mapping
   respects addition and multiplication on the integers.
 \<close>
@@ -327,7 +327,7 @@ qed
 
 *)
 
-text \<open>Outside the locale, we can relax the restriction @{text "m > 1"}.\<close>
+text \<open>Outside the locale, we can relax the restriction \<open>m > 1\<close>.\<close>
 lemma euler_theorem:
   assumes "m \<ge> 0"
     and "gcd a m = 1"

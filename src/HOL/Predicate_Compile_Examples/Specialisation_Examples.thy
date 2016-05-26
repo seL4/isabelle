@@ -4,7 +4,7 @@ begin
 
 declare [[values_timeout = 960.0]]
 
-section {* Specialisation Examples *}
+section \<open>Specialisation Examples\<close>
 
 primrec nth_el'
 where
@@ -15,18 +15,18 @@ definition
   "greater_than_index xs = (\<forall>i x. nth_el' xs i = Some x --> x > i)"
 
 code_pred (expected_modes: i => bool) [inductify, skip_proof, specialise] greater_than_index .
-ML_val {* Core_Data.intros_of @{context} @{const_name specialised_nth_el'P} *}
+ML_val \<open>Core_Data.intros_of @{context} @{const_name specialised_nth_el'P}\<close>
 
 thm greater_than_index.equation
 
 values [expected "{()}"] "{x. greater_than_index [1,2,4,6]}"
 values [expected "{}"] "{x. greater_than_index [0,2,3,2]}"
 
-subsection {* Common subterms *}
+subsection \<open>Common subterms\<close>
 
-text {* If a predicate is called with common subterms as arguments,
+text \<open>If a predicate is called with common subterms as arguments,
   this predicate should be specialised. 
-*}
+\<close>
 
 definition max_nat :: "nat => nat => nat"
   where "max_nat a b = (if a <= b then b else a)"
@@ -38,17 +38,17 @@ by (simp add: fun_eq_iff max_def max_nat_def)
 definition
   "max_of_my_Suc x = max x (Suc x)"
 
-text {* In this example, max is specialised, hence the mode o => i => bool is possible *}
+text \<open>In this example, max is specialised, hence the mode o => i => bool is possible\<close>
 
 code_pred (modes: o => i => bool) [inductify, specialise, skip_proof] max_of_my_Suc .
 
 thm max_of_my_SucP.equation
 
-ML_val {* Core_Data.intros_of @{context} @{const_name specialised_max_natP} *}
+ML_val \<open>Core_Data.intros_of @{context} @{const_name specialised_max_natP}\<close>
 
 values "{x. max_of_my_SucP x 6}"
 
-subsection {* Sorts *}
+subsection \<open>Sorts\<close>
 
 declare sorted.Nil [code_pred_intro]
   sorted_single [code_pred_intro]
@@ -69,15 +69,15 @@ proof -
       case (Cons y zs)
       show ?thesis
       proof (rule 3)
-        from Cons `xa = x # xs` show "xa = x # y # zs" by simp
-        with `sorted xa` show "x \<le> y" and "sorted (y # zs)" by simp_all
+        from Cons \<open>xa = x # xs\<close> show "xa = x # y # zs" by simp
+        with \<open>sorted xa\<close> show "x \<le> y" and "sorted (y # zs)" by simp_all
       qed
     qed
   qed
 qed
 thm sorted.equation
 
-section {* Specialisation in POPLmark theory *}
+section \<open>Specialisation in POPLmark theory\<close>
 
 notation
   Some ("\<lfloor>_\<rfloor>")
@@ -250,11 +250,11 @@ thm typing.equation
 
 values 6 "{(E, t, T). typing E t T}"
 
-subsection {* Higher-order predicate *}
+subsection \<open>Higher-order predicate\<close>
 
 code_pred [inductify] mapB .
 
-subsection {* Multiple instances *}
+subsection \<open>Multiple instances\<close>
 
 inductive subtype_refl' where
   "\<Gamma> \<turnstile> t : T ==> \<not> (\<Gamma> \<turnstile> T <: T) ==> subtype_refl' t T"

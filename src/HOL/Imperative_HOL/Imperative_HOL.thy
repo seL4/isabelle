@@ -2,7 +2,7 @@
     Author:     John Matthews, Galois Connections; Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 
-section {* Entry point into monadic imperative HOL *}
+section \<open>Entry point into monadic imperative HOL\<close>
 
 theory Imperative_HOL
 imports Array Ref

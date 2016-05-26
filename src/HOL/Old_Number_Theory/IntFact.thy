@@ -11,7 +11,7 @@ begin
 
 text \<open>
   Factorial on integers and recursively defined set including all
-  Integers from @{text 2} up to @{text a}.  Plus definition of product
+  Integers from \<open>2\<close> up to \<open>a\<close>.  Plus definition of product
   of finite set.
 
   \bigskip
@@ -26,7 +26,7 @@ fun d22set :: "int => int set"
 
 text \<open>
   \medskip @{term d22set} --- recursively defined set including all
-  integers from @{text 2} up to @{text a}
+  integers from \<open>2\<close> up to \<open>a\<close>
 \<close>
 
 declare d22set.simps [simp del]

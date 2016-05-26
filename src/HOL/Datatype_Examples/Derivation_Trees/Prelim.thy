@@ -5,7 +5,7 @@
 Preliminaries.
 *)
 
-section {* Preliminaries *}
+section \<open>Preliminaries\<close>
 
 theory Prelim
 imports "~~/src/HOL/Library/FSet"

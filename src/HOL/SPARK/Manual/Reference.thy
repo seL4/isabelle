@@ -7,19 +7,19 @@ syntax (my_constrain output)
   "_constrain" :: "logic => type => logic" ("_ :: _" [4, 0] 3)
 (*>*)
 
-chapter {* HOL-\SPARK{} Reference *}
+chapter \<open>HOL-\SPARK{} Reference\<close>
 
-text {*
+text \<open>
 \label{sec:spark-reference}
 This section is intended as a quick reference for the HOL-\SPARK{} verification
 environment. In \secref{sec:spark-commands}, we give a summary of the commands
 provided by the HOL-\SPARK{}, while \secref{sec:spark-types} contains a description
 of how particular types of \SPARK{} and FDL are modelled in Isabelle.
-*}
+\<close>
 
-section {* Commands *}
+section \<open>Commands\<close>
 
-text {*
+text \<open>
 \label{sec:spark-commands}
 This section describes the syntax and effect of each of the commands provided
 by HOL-\SPARK{}.
@@ -87,43 +87,43 @@ option is given, all VCs must have been proved,
 otherwise the command issues an error message. As a side effect, the command
 generates a proof review (\texttt{*.prv}) file to inform POGS of the proved
 VCs.
-*}
+\<close>
 
-section {* Types *}
+section \<open>Types\<close>
 
-text {*
+text \<open>
 \label{sec:spark-types}
 The main types of FDL are integers, enumeration types, records, and arrays.
 In the following sections, we describe how these types are modelled in
 Isabelle.
-*}
+\<close>
 
-subsection {* Integers *}
+subsection \<open>Integers\<close>
 
-text {*
+text \<open>
 The FDL type \texttt{integer} is modelled by the Isabelle type @{typ int}.
 While the FDL \texttt{mod} operator behaves in the same way as its Isabelle
 counterpart, this is not the case for the \texttt{div} operator. As has already
 been mentioned in \secref{sec:proving-vcs}, the \texttt{div} operator of \SPARK{}
-always truncates towards zero, whereas the @{text div} operator of Isabelle
+always truncates towards zero, whereas the \<open>div\<close> operator of Isabelle
 truncates towards minus infinity. Therefore, the FDL \texttt{div} operator is
-mapped to the @{text sdiv} operator in Isabelle. The characteristic theorems
-of @{text sdiv}, in particular those describing the relationship with the standard
-@{text div} operator, are shown in \figref{fig:sdiv-properties}
+mapped to the \<open>sdiv\<close> operator in Isabelle. The characteristic theorems
+of \<open>sdiv\<close>, in particular those describing the relationship with the standard
+\<open>div\<close> operator, are shown in \figref{fig:sdiv-properties}
 \begin{figure}
 \begin{center}
 \small
 \begin{tabular}{ll}
-@{text sdiv_def}: & @{thm sdiv_def} \\
-@{text sdiv_minus_dividend}: & @{thm sdiv_minus_dividend} \\
-@{text sdiv_minus_divisor}: & @{thm sdiv_minus_divisor} \\
-@{text sdiv_pos_pos}: & @{thm [mode=no_brackets] sdiv_pos_pos} \\
-@{text sdiv_pos_neg}: & @{thm [mode=no_brackets] sdiv_pos_neg} \\
-@{text sdiv_neg_pos}: & @{thm [mode=no_brackets] sdiv_neg_pos} \\
-@{text sdiv_neg_neg}: & @{thm [mode=no_brackets] sdiv_neg_neg} \\
+\<open>sdiv_def\<close>: & @{thm sdiv_def} \\
+\<open>sdiv_minus_dividend\<close>: & @{thm sdiv_minus_dividend} \\
+\<open>sdiv_minus_divisor\<close>: & @{thm sdiv_minus_divisor} \\
+\<open>sdiv_pos_pos\<close>: & @{thm [mode=no_brackets] sdiv_pos_pos} \\
+\<open>sdiv_pos_neg\<close>: & @{thm [mode=no_brackets] sdiv_pos_neg} \\
+\<open>sdiv_neg_pos\<close>: & @{thm [mode=no_brackets] sdiv_neg_pos} \\
+\<open>sdiv_neg_neg\<close>: & @{thm [mode=no_brackets] sdiv_neg_neg} \\
 \end{tabular}
 \end{center}
-\caption{Characteristic properties of @{text sdiv}}
+\caption{Characteristic properties of \<open>sdiv\<close>}
 \label{fig:sdiv-properties}
 \end{figure}
 
@@ -131,29 +131,29 @@ of @{text sdiv}, in particular those describing the relationship with the standa
 \begin{center}
 \small
 \begin{tabular}{ll}
-@{text AND_lower}: & @{thm [mode=no_brackets] AND_lower} \\
-@{text OR_lower}: & @{thm [mode=no_brackets] OR_lower} \\
-@{text XOR_lower}: & @{thm [mode=no_brackets] XOR_lower} \\
-@{text AND_upper1}: & @{thm [mode=no_brackets] AND_upper1} \\
-@{text AND_upper2}: & @{thm [mode=no_brackets] AND_upper2} \\
-@{text OR_upper}: & @{thm [mode=no_brackets] OR_upper} \\
-@{text XOR_upper}: & @{thm [mode=no_brackets] XOR_upper} \\
-@{text AND_mod}: & @{thm [mode=no_brackets] AND_mod}
+\<open>AND_lower\<close>: & @{thm [mode=no_brackets] AND_lower} \\
+\<open>OR_lower\<close>: & @{thm [mode=no_brackets] OR_lower} \\
+\<open>XOR_lower\<close>: & @{thm [mode=no_brackets] XOR_lower} \\
+\<open>AND_upper1\<close>: & @{thm [mode=no_brackets] AND_upper1} \\
+\<open>AND_upper2\<close>: & @{thm [mode=no_brackets] AND_upper2} \\
+\<open>OR_upper\<close>: & @{thm [mode=no_brackets] OR_upper} \\
+\<open>XOR_upper\<close>: & @{thm [mode=no_brackets] XOR_upper} \\
+\<open>AND_mod\<close>: & @{thm [mode=no_brackets] AND_mod}
 \end{tabular}
 \end{center}
 \caption{Characteristic properties of bitwise operators}
 \label{fig:bitwise}
 \end{figure}
 The bitwise logical operators of \SPARK{} and FDL are modelled by the operators
-@{text AND}, @{text OR} and @{text XOR} from Isabelle's @{text Word} library,
+\<open>AND\<close>, \<open>OR\<close> and \<open>XOR\<close> from Isabelle's \<open>Word\<close> library,
 all of which have type @{typ "int \<Rightarrow> int \<Rightarrow> int"}. A list of properties of these
 operators that are useful in proofs about \SPARK{} programs are shown in
 \figref{fig:bitwise}
-*}
+\<close>
 
-subsection {* Enumeration types *}
+subsection \<open>Enumeration types\<close>
 
-text {*
+text \<open>
 The FDL enumeration type
 \begin{alltt}
 type \(t\) = (\(e\sb{1}\), \(e\sb{2}\), \dots, \(e\sb{n}\));
@@ -165,7 +165,7 @@ is modelled by the Isabelle datatype
 \end{isabelle}
 The HOL-\SPARK{} environment defines a type class @{class spark_enum} that captures
 the characteristic properties of all enumeration types. It provides the following
-polymorphic functions and constants for all types @{text "'a"} of this type class:
+polymorphic functions and constants for all types \<open>'a\<close> of this type class:
 \begin{flushleft}
 @{term_type [mode=my_constrain] pos} \\
 @{term_type [mode=my_constrain] val} \\
@@ -175,7 +175,7 @@ polymorphic functions and constants for all types @{text "'a"} of this type clas
 @{term_type [mode=my_constrain] last_el}
 \end{flushleft}
 In addition, @{class spark_enum} is a subclass of the @{class linorder} type class,
-which allows the comparison operators @{text "<"} and @{text "\<le>"} to be used on
+which allows the comparison operators \<open><\<close> and \<open>\<le>\<close> to be used on
 enumeration types. The polymorphic operations shown above enjoy a number of
 generic properties that hold for all enumeration types. These properties are
 listed in \figref{fig:enum-generic-properties}.
@@ -186,23 +186,23 @@ equations for @{term val} and @{term pos}.
 \begin{center}
 \small
 \begin{tabular}{ll}
-@{text range_pos}: & @{thm range_pos} \\
-@{text less_pos}: & @{thm less_pos} \\
-@{text less_eq_pos}: & @{thm less_eq_pos} \\
-@{text val_def}: & @{thm val_def} \\
-@{text succ_def}: & @{thm succ_def} \\
-@{text pred_def}: & @{thm pred_def} \\
-@{text first_el_def}: & @{thm first_el_def} \\
-@{text last_el_def}: & @{thm last_el_def} \\
-@{text inj_pos}: & @{thm inj_pos} \\
-@{text val_pos}: & @{thm val_pos} \\
-@{text pos_val}: & @{thm pos_val} \\
-@{text first_el_smallest}: & @{thm first_el_smallest} \\
-@{text last_el_greatest}: & @{thm last_el_greatest} \\
-@{text pos_succ}: & @{thm pos_succ} \\
-@{text pos_pred}: & @{thm pos_pred} \\
-@{text succ_val}: & @{thm succ_val} \\
-@{text pred_val}: & @{thm pred_val}
+\<open>range_pos\<close>: & @{thm range_pos} \\
+\<open>less_pos\<close>: & @{thm less_pos} \\
+\<open>less_eq_pos\<close>: & @{thm less_eq_pos} \\
+\<open>val_def\<close>: & @{thm val_def} \\
+\<open>succ_def\<close>: & @{thm succ_def} \\
+\<open>pred_def\<close>: & @{thm pred_def} \\
+\<open>first_el_def\<close>: & @{thm first_el_def} \\
+\<open>last_el_def\<close>: & @{thm last_el_def} \\
+\<open>inj_pos\<close>: & @{thm inj_pos} \\
+\<open>val_pos\<close>: & @{thm val_pos} \\
+\<open>pos_val\<close>: & @{thm pos_val} \\
+\<open>first_el_smallest\<close>: & @{thm first_el_smallest} \\
+\<open>last_el_greatest\<close>: & @{thm last_el_greatest} \\
+\<open>pos_succ\<close>: & @{thm pos_succ} \\
+\<open>pos_pred\<close>: & @{thm pos_pred} \\
+\<open>succ_val\<close>: & @{thm succ_val} \\
+\<open>pred_val\<close>: & @{thm pred_val}
 \end{tabular}
 \end{center}
 \caption{Generic properties of functions on enumeration types}
@@ -226,11 +226,11 @@ equations for @{term val} and @{term pos}.
 \caption{Type-specific properties of functions on enumeration types}
 \label{fig:enum-specific-properties}
 \end{figure}
-*}
+\<close>
 
-subsection {* Records *}
+subsection \<open>Records\<close>
 
-text {*
+text \<open>
 The FDL record type
 \begin{alltt}
 type \(t\) = record
@@ -252,11 +252,11 @@ Records are constructed using the notation
 a field $f_i$ of a record $r$ is selected using the notation $f_i~r$, and the
 fields $f$ and $f'$ of a record $r$ can be updated using the notation
 \mbox{\isa{$r$\ \isasymlparr$f$\ :=\ $v$,\ $f'$\ :=\ $v'$\isasymrparr}}.
-*}
+\<close>
 
-subsection {* Arrays *}
+subsection \<open>Arrays\<close>
 
-text {*
+text \<open>
 The FDL array type
 \begin{alltt}
 type \(t\) = array [\(t\sb{1}\), \(\ldots\), \(t\sb{n}\)] of \(u\);
@@ -270,11 +270,11 @@ the properties
 Thus, we can write expressions like
 @{term [display] "(A::int\<Rightarrow>int) ({0..9} [:=] 42, 15 := 99, {20..29} [:=] 0)"}
 that would be cumbersome to write using single updates.
-*}
+\<close>
 
-section {* User-defined proof functions and types *}
+section \<open>User-defined proof functions and types\<close>
 
-text {*
+text \<open>
 To illustrate the interplay between the commands for introducing user-defined proof
 functions and types mentioned in \secref{sec:spark-commands}, we now discuss a larger
 example involving the definition of proof functions on complex types. Assume we would
@@ -301,8 +301,8 @@ including the package prefix. Using the logic of Isabelle, we can then define
 functions involving the enumeration and record types introduced above, and link
 them to the corresponding \SPARK{} proof functions. It is important that the
 \isa{\isacommand{definition}} commands are preceeded by the \isa{\isacommand{spark\_types}}
-command, since the definition of @{text initialized3} uses the @{text val}
-function for enumeration types that is only available once that @{text day}
+command, since the definition of \<open>initialized3\<close> uses the \<open>val\<close>
+function for enumeration types that is only available once that \<open>day\<close>
 has been declared as a \SPARK{} type.
 \begin{figure}
 \lstinputlisting{complex_types.ads}
@@ -320,7 +320,7 @@ has been declared as a \SPARK{} type.
 \caption{Theory defining proof functions for complex types}
 \label{fig:complex-types-thy}
 \end{figure}
-*}
+\<close>
 
 (*<*)
 end

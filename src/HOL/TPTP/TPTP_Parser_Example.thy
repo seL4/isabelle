@@ -12,24 +12,24 @@ ML_file "sledgehammer_tactics.ML"
 
 import_tptp "$TPTP/Problems/LCL/LCL414+1.p"
 
-ML {*
+ML \<open>
 val an_fmlas =
   TPTP_Interpret.get_manifests @{theory}
   |> hd (*FIXME use named lookup*)
   |> #2 (*get problem contents*)
   |> #3 (*get formulas*)
-*}
+\<close>
 
 (*Display nicely.*)
-ML {*
+ML \<open>
 List.app (fn (n, role, fmla, _) =>
   Pretty.writeln
     (Pretty.block [Pretty.str ("\"" ^ n ^ "\"" ^ "(" ^
       TPTP_Syntax.role_to_string role  ^ "): "), Syntax.pretty_term @{context} fmla])
   ) (rev an_fmlas)
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*Extract the (name, term) pairs of formulas having roles belonging to a
  user-supplied set*)
 fun extract_terms roles : TPTP_Interpret.tptp_formula_meaning list ->
@@ -38,9 +38,9 @@ fun extract_terms roles : TPTP_Interpret.tptp_formula_meaning list ->
      fun role_predicate (_, role, _, _) =
        fold (fn r1 => fn b => role = r1 orelse b) roles false
    in filter role_predicate #> map (fn (n, _, t, _) => (n, t)) end
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*Use a given tactic on a goal*)
 fun prove_conjectures tactic ctxt an_fmlas =
   let
@@ -59,15 +59,15 @@ val sh_prove = prove_conjectures (fn ctxt =>
   Sledgehammer_Tactics.sledgehammer_with_metis_tac ctxt []
   (*FIXME use relevance_override*)
   {add = [], del = [], only = false} 1)
-*}
+\<close>
 
-ML {*
+ML \<open>
 @{assert} (is_some (try (auto_prove @{context}) an_fmlas) = false)
-*}
+\<close>
 
 sledgehammer_params [provers = z3, debug]
-ML {*
+ML \<open>
 @{assert} (is_some (try (sh_prove @{context}) an_fmlas) = true)
-*}
+\<close>
 
 end

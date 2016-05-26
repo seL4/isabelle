@@ -3,7 +3,7 @@
     Copyright   1994  TU Muenchen
 *)
 
-section {* The I/O automata of Lynch and Tuttle *}
+section \<open>The I/O automata of Lynch and Tuttle\<close>
 
 theory IOA
 imports Asig

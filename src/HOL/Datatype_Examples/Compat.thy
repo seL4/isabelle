@@ -5,15 +5,15 @@
 Tests for compatibility with the old datatype package.
 *)
 
-section {* Tests for Compatibility with the Old Datatype Package *}
+section \<open>Tests for Compatibility with the Old Datatype Package\<close>
 
 theory Compat
 imports "~~/src/HOL/Library/Old_Datatype"
 begin
 
-subsection {* Viewing and Registering New-Style Datatypes as Old-Style Ones *}
+subsection \<open>Viewing and Registering New-Style Datatypes as Old-Style Ones\<close>
 
-ML {*
+ML \<open>
 fun check_len n xs label =
   length xs = n orelse error ("Expected length " ^ string_of_int (length xs) ^ " for " ^ label);
 
@@ -25,13 +25,13 @@ fun get_descrs thy lens T_name =
    these (Option.map #descr (BNF_LFP_Compat.get_info thy [] T_name)),
    these (Option.map #descr (BNF_LFP_Compat.get_info thy [BNF_LFP_Compat.Keep_Nesting] T_name)))
   |> tap (check_lens lens);
-*}
+\<close>
 
 old_datatype 'a old_lst = Old_Nl | Old_Cns 'a "'a old_lst"
 
-text {*
-A few tests to make sure that @{text old_datatype} works as expected:
-*}
+text \<open>
+A few tests to make sure that \<open>old_datatype\<close> works as expected:
+\<close>
 
 primrec old_len :: "'a old_lst \<Rightarrow> nat" where
   "old_len Old_Nl = 0"
@@ -49,208 +49,208 @@ lemma "Old_Nl = Old_Cns x xs"
 lemma "old_len xs = size xs"
   by (induct xs) auto
 
-ML {* get_descrs @{theory} (1, 1, 1) @{type_name old_lst} *}
+ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name old_lst}\<close>
 
 datatype 'a lst = Nl | Cns 'a "'a lst"
 
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name lst} *}
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name lst}\<close>
 
 datatype_compat lst
 
-ML {* get_descrs @{theory} (1, 1, 1) @{type_name lst} *}
+ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name lst}\<close>
 
 datatype 'b w = W | W' "'b w \<times> 'b list"
 
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name w} *}
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name w}\<close>
 
 datatype_compat w
 
-ML {* get_descrs @{theory} (2, 2, 1) @{type_name w} *}
+ML \<open>get_descrs @{theory} (2, 2, 1) @{type_name w}\<close>
 
 datatype ('c, 'b) s = L 'c | R 'b
 
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name s} *}
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name s}\<close>
 
 datatype 'd x = X | X' "('d x lst, 'd list) s"
 
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name x} *}
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name x}\<close>
 
 datatype_compat s
 
-ML {* get_descrs @{theory} (1, 1, 1) @{type_name s} *}
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name x} *}
+ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name s}\<close>
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name x}\<close>
 
 datatype_compat x
 
-ML {* get_descrs @{theory} (3, 3, 1) @{type_name x} *}
+ML \<open>get_descrs @{theory} (3, 3, 1) @{type_name x}\<close>
 
 thm x.induct x.rec
 thm compat_x.induct compat_x.rec
 
 datatype 'a tttre = TTTre 'a "'a tttre lst lst lst"
 
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name tttre} *}
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name tttre}\<close>
 
 datatype_compat tttre
 
-ML {* get_descrs @{theory} (4, 4, 1) @{type_name tttre} *}
+ML \<open>get_descrs @{theory} (4, 4, 1) @{type_name tttre}\<close>
 
 thm tttre.induct tttre.rec
 thm compat_tttre.induct compat_tttre.rec
 
 datatype 'a ftre = FEmp | FTre "'a \<Rightarrow> 'a ftre lst"
 
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name ftre} *}
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name ftre}\<close>
 
 datatype_compat ftre
 
-ML {* get_descrs @{theory} (2, 2, 1) @{type_name ftre} *}
+ML \<open>get_descrs @{theory} (2, 2, 1) @{type_name ftre}\<close>
 
 thm ftre.induct ftre.rec
 thm compat_ftre.induct compat_ftre.rec
 
 datatype 'a btre = BTre 'a "'a btre lst" "'a btre lst"
 
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name btre} *}
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name btre}\<close>
 
 datatype_compat btre
 
-ML {* get_descrs @{theory} (3, 3, 1) @{type_name btre} *}
+ML \<open>get_descrs @{theory} (3, 3, 1) @{type_name btre}\<close>
 
 thm btre.induct btre.rec
 thm compat_btre.induct compat_btre.rec
 
 datatype 'a foo = Foo | Foo' 'a "'a bar" and 'a bar = Bar | Bar' 'a "'a foo"
 
-ML {* get_descrs @{theory} (0, 2, 2) @{type_name foo} *}
-ML {* get_descrs @{theory} (0, 2, 2) @{type_name bar} *}
+ML \<open>get_descrs @{theory} (0, 2, 2) @{type_name foo}\<close>
+ML \<open>get_descrs @{theory} (0, 2, 2) @{type_name bar}\<close>
 
 datatype_compat foo bar
 
-ML {* get_descrs @{theory} (2, 2, 2) @{type_name foo} *}
-ML {* get_descrs @{theory} (2, 2, 2) @{type_name bar} *}
+ML \<open>get_descrs @{theory} (2, 2, 2) @{type_name foo}\<close>
+ML \<open>get_descrs @{theory} (2, 2, 2) @{type_name bar}\<close>
 
 datatype 'a tre = Tre 'a "'a tre lst"
 
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name tre} *}
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name tre}\<close>
 
 datatype_compat tre
 
-ML {* get_descrs @{theory} (2, 2, 1) @{type_name tre} *}
+ML \<open>get_descrs @{theory} (2, 2, 1) @{type_name tre}\<close>
 
 thm tre.induct tre.rec
 thm compat_tre.induct compat_tre.rec
 
 datatype 'a f = F 'a and 'a g = G 'a
 
-ML {* get_descrs @{theory} (0, 2, 2) @{type_name f} *}
-ML {* get_descrs @{theory} (0, 2, 2) @{type_name g} *}
+ML \<open>get_descrs @{theory} (0, 2, 2) @{type_name f}\<close>
+ML \<open>get_descrs @{theory} (0, 2, 2) @{type_name g}\<close>
 
 datatype h = H "h f" | H'
 
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name h} *}
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name h}\<close>
 
 datatype_compat f g
 
-ML {* get_descrs @{theory} (2, 2, 2) @{type_name f} *}
-ML {* get_descrs @{theory} (2, 2, 2) @{type_name g} *}
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name h} *}
+ML \<open>get_descrs @{theory} (2, 2, 2) @{type_name f}\<close>
+ML \<open>get_descrs @{theory} (2, 2, 2) @{type_name g}\<close>
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name h}\<close>
 
 datatype_compat h
 
-ML {* get_descrs @{theory} (3, 3, 1) @{type_name h} *}
+ML \<open>get_descrs @{theory} (3, 3, 1) @{type_name h}\<close>
 
 thm h.induct h.rec
 thm compat_h.induct compat_h.rec
 
 datatype myunit = MyUnity
 
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name myunit} *}
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name myunit}\<close>
 
 datatype_compat myunit
 
-ML {* get_descrs @{theory} (1, 1, 1) @{type_name myunit} *}
+ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name myunit}\<close>
 
 datatype mylist = MyNil | MyCons nat mylist
 
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name mylist} *}
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name mylist}\<close>
 
 datatype_compat mylist
 
-ML {* get_descrs @{theory} (1, 1, 1) @{type_name mylist} *}
+ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name mylist}\<close>
 
 datatype foo' = FooNil | FooCons bar' foo' and bar' = Bar
 
-ML {* get_descrs @{theory} (0, 2, 2) @{type_name foo'} *}
-ML {* get_descrs @{theory} (0, 2, 2) @{type_name bar'} *}
+ML \<open>get_descrs @{theory} (0, 2, 2) @{type_name foo'}\<close>
+ML \<open>get_descrs @{theory} (0, 2, 2) @{type_name bar'}\<close>
 
 datatype_compat bar' foo'
 
-ML {* get_descrs @{theory} (2, 2, 2) @{type_name foo'} *}
-ML {* get_descrs @{theory} (2, 2, 2) @{type_name bar'} *}
+ML \<open>get_descrs @{theory} (2, 2, 2) @{type_name foo'}\<close>
+ML \<open>get_descrs @{theory} (2, 2, 2) @{type_name bar'}\<close>
 
 old_datatype funky = Funky "funky tre" | Funky'
 
-ML {* get_descrs @{theory} (3, 3, 3) @{type_name funky} *}
+ML \<open>get_descrs @{theory} (3, 3, 3) @{type_name funky}\<close>
 
 old_datatype fnky = Fnky "nat tre"
 
-ML {* get_descrs @{theory} (1, 1, 1) @{type_name fnky} *}
+ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name fnky}\<close>
 
 datatype tree = Tree "tree foo"
 
-ML {* get_descrs @{theory} (0, 1, 1) @{type_name tree} *}
+ML \<open>get_descrs @{theory} (0, 1, 1) @{type_name tree}\<close>
 
 datatype_compat tree
 
-ML {* get_descrs @{theory} (3, 3, 1) @{type_name tree} *}
+ML \<open>get_descrs @{theory} (3, 3, 1) @{type_name tree}\<close>
 
 thm tree.induct tree.rec
 thm compat_tree.induct compat_tree.rec
 
 
-subsection {* Creating New-Style Datatypes Using Old-Style Interfaces *}
+subsection \<open>Creating New-Style Datatypes Using Old-Style Interfaces\<close>
 
-ML {*
+ML \<open>
 val l_specs =
   [((@{binding l}, [("'a", @{sort type})], NoSyn),
    [(@{binding N}, [], NoSyn),
     (@{binding C}, [@{typ 'a}, Type (Sign.full_name @{theory} @{binding l}, [@{typ 'a}])],
      NoSyn)])];
-*}
+\<close>
 
-setup {* snd o BNF_LFP_Compat.add_datatype [] l_specs *}
+setup \<open>snd o BNF_LFP_Compat.add_datatype [] l_specs\<close>
 
-ML {* get_descrs @{theory} (1, 1, 1) @{type_name l} *}
+ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name l}\<close>
 
 thm l.exhaust l.map l.induct l.rec l.size
 
-ML {*
+ML \<open>
 val t_specs =
   [((@{binding t}, [("'b", @{sort type})], NoSyn),
    [(@{binding T}, [@{typ 'b},
        Type (@{type_name l}, [Type (Sign.full_name @{theory} @{binding t}, [@{typ 'b}])])],
      NoSyn)])];
-*}
+\<close>
 
-setup {* snd o BNF_LFP_Compat.add_datatype [] t_specs *}
+setup \<open>snd o BNF_LFP_Compat.add_datatype [] t_specs\<close>
 
-ML {* get_descrs @{theory} (2, 2, 1) @{type_name t} *}
+ML \<open>get_descrs @{theory} (2, 2, 1) @{type_name t}\<close>
 
 thm t.exhaust t.map t.induct t.rec t.size
 thm compat_t.induct compat_t.rec
 
-ML {*
+ML \<open>
 val ft_specs =
   [((@{binding ft}, [("'a", @{sort type})], NoSyn),
    [(@{binding FT0}, [], NoSyn),
     (@{binding FT}, [@{typ 'a} --> Type (Sign.full_name @{theory} @{binding ft}, [@{typ 'a}])],
      NoSyn)])];
-*}
+\<close>
 
-setup {* snd o BNF_LFP_Compat.add_datatype [] ft_specs *}
+setup \<open>snd o BNF_LFP_Compat.add_datatype [] ft_specs\<close>
 
-ML {* get_descrs @{theory} (1, 1, 1) @{type_name ft} *}
+ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name ft}\<close>
 
 thm ft.exhaust ft.induct ft.rec ft.size
 thm compat_ft.induct compat_ft.rec

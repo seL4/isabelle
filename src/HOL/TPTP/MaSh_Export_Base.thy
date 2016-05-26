@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-section {* MaSh Exporter Base *}
+section \<open>MaSh Exporter Base\<close>
 
 theory MaSh_Export_Base
 imports Main
@@ -19,15 +19,15 @@ declare [[sledgehammer_instantiate_inducts = false]]
 
 hide_fact (open) HOL.ext
 
-ML {*
+ML \<open>
 Multithreading.max_threads ()
-*}
+\<close>
 
-ML {*
+ML \<open>
 open MaSh_Export
-*}
+\<close>
 
-ML {*
+ML \<open>
 val do_it = false (* switch to "true" to generate the files *)
 val thys = [@{theory List}]
 val params as {provers, ...} = Sledgehammer_Commands.default_params @{theory} []
@@ -37,6 +37,6 @@ val step = 1
 val max_suggestions = 1024
 val dir = "List"
 val prefix = "/tmp/" ^ dir ^ "/"
-*}
+\<close>
 
 end

@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn and Ondrej Kuncar
 *)
 
-section {* Example of lifting definitions with the lifting infrastructure *}
+section \<open>Example of lifting definitions with the lifting infrastructure\<close>
 
 theory Lift_Set
 imports Main
@@ -16,7 +16,7 @@ typedef 'a set = "set :: ('a \<Rightarrow> bool) set"
 
 setup_lifting type_definition_set[unfolded set_def]
 
-text {* Now, we can employ lift_definition to lift definitions. *}
+text \<open>Now, we can employ lift_definition to lift definitions.\<close>
 
 lift_definition empty :: "'a set" is "bot :: 'a \<Rightarrow> bool" .
 

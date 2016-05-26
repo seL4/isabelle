@@ -2,15 +2,15 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-section {* Linked Lists by ML references *}
+section \<open>Linked Lists by ML references\<close>
 
 theory Linked_Lists
 imports "../Imperative_HOL" "~~/src/HOL/Library/Code_Target_Int"
 begin
 
-section {* Definition of Linked Lists *}
+section \<open>Definition of Linked Lists\<close>
 
-setup {* Sign.add_const_constraint (@{const_name Ref}, SOME @{typ "nat \<Rightarrow> 'a::type ref"}) *}
+setup \<open>Sign.add_const_constraint (@{const_name Ref}, SOME @{typ "nat \<Rightarrow> 'a::type ref"})\<close>
 datatype 'a node = Empty | Node 'a "'a node ref"
 
 primrec
@@ -55,9 +55,9 @@ lemma traverse_simps[code, simp]:
 by (simp_all add: traverse.simps[of "Empty"] traverse.simps[of "Node x r"])
 
 
-section {* Proving correctness with relational abstraction *}
+section \<open>Proving correctness with relational abstraction\<close>
 
-subsection {* Definition of list_of, list_of', refs_of and refs_of' *}
+subsection \<open>Definition of list_of, list_of', refs_of and refs_of'\<close>
 
 primrec list_of :: "heap \<Rightarrow> ('a::heap) node \<Rightarrow> 'a list \<Rightarrow> bool"
 where
@@ -79,7 +79,7 @@ where
 | "refs_of' h r (x#xs) = ((x = r) \<and> refs_of h (Ref.get h x) xs)"
 
 
-subsection {* Properties of these definitions *}
+subsection \<open>Properties of these definitions\<close>
 
 lemma list_of_Empty[simp]: "list_of h Empty xs = (xs = [])"
 by (cases xs, auto)
@@ -216,7 +216,7 @@ proof -
   thus ?thesis by (auto simp add: refs_of'_def')
 qed
 
-subsection {* More complicated properties of these predicates *}
+subsection \<open>More complicated properties of these predicates\<close>
 
 lemma list_of_append:
   "list_of h n (as @ bs) \<Longrightarrow> \<exists>m. list_of h m bs"
@@ -258,7 +258,7 @@ lemma refs_of'_distinct: "refs_of' h p rs \<Longrightarrow> distinct rs"
   by (fastforce simp add: refs_of_distinct refs_of_next)
 
 
-subsection {* Interaction of these predicates with our heap transitions *}
+subsection \<open>Interaction of these predicates with our heap transitions\<close>
 
 lemma list_of_set_ref: "refs_of h q rs \<Longrightarrow> p \<notin> set rs \<Longrightarrow> list_of (Ref.set p v h) q as = list_of h q as"
 proof (induct as arbitrary: q rs)
@@ -378,7 +378,7 @@ proof -
   with assms that show thesis by auto
 qed
 
-section {* Proving make_llist and traverse correct *}
+section \<open>Proving make_llist and traverse correct\<close>
 
 lemma refs_of_invariant:
   assumes "refs_of h (r::('a::heap) node) xs"
@@ -518,9 +518,9 @@ proof -
     using effect_deterministic by fastforce
 qed
 
-section {* Proving correctness of in-place reversal *}
+section \<open>Proving correctness of in-place reversal\<close>
 
-subsection {* Definition of in-place reversal *}
+subsection \<open>Definition of in-place reversal\<close>
 
 partial_function (heap) rev' :: "('a::heap) node ref \<Rightarrow> 'a node ref \<Rightarrow> 'a node ref Heap"
 where
@@ -541,7 +541,7 @@ where
   "rev Empty = return Empty"
 | "rev (Node x n) = do { q \<leftarrow> ref Empty; p \<leftarrow> ref (Node x n); v \<leftarrow> rev' q p; !v }"
 
-subsection {* Correctness Proof *}
+subsection \<open>Correctness Proof\<close>
 
 lemma rev'_invariant:
   assumes "effect (rev' q p) h h' v"
@@ -649,10 +649,10 @@ next
 qed
 
 
-section {* The merge function on Linked Lists *}
-text {* We also prove merge correct *}
+section \<open>The merge function on Linked Lists\<close>
+text \<open>We also prove merge correct\<close>
 
-text{* First, we define merge on lists in a natural way. *}
+text\<open>First, we define merge on lists in a natural way.\<close>
 
 fun Lmerge :: "('a::ord) list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
@@ -661,7 +661,7 @@ where
 | "Lmerge [] ys = ys"
 | "Lmerge xs [] = xs"
 
-subsection {* Definition of merge function *}
+subsection \<open>Definition of merge function\<close>
 
 partial_function (heap) merge :: "('a::{heap, ord}) node ref \<Rightarrow> 'a node ref \<Rightarrow> 'a node ref Heap"
 where
@@ -694,9 +694,9 @@ by auto
 lemma sum_distrib: "case_sum fl fr (case x of Empty \<Rightarrow> y | Node v n \<Rightarrow> (z v n)) = (case x of Empty \<Rightarrow> case_sum fl fr y | Node v n \<Rightarrow> case_sum fl fr (z v n))"
 by (cases x) auto
 
-subsection {* Induction refinement by applying the abstraction function to our induct rule *}
+subsection \<open>Induction refinement by applying the abstraction function to our induct rule\<close>
 
-text {* From our original induction rule Lmerge.induct, we derive a new rule with our list_of' predicate *}
+text \<open>From our original induction rule Lmerge.induct, we derive a new rule with our list_of' predicate\<close>
 
 lemma merge_induct2:
   assumes "list_of' h (p::'a::{heap, ord} node ref) xs"
@@ -741,7 +741,7 @@ next
 qed
 
 
-text {* secondly, we add the effect statement in the premise, and derive the effect statements for the single cases which we then eliminate with our effect elim rules. *}
+text \<open>secondly, we add the effect statement in the premise, and derive the effect statements for the single cases which we then eliminate with our effect elim rules.\<close>
   
 lemma merge_induct3: 
 assumes  "list_of' h p xs"
@@ -790,10 +790,10 @@ next
 qed
 
 
-subsection {* Proving merge correct *}
+subsection \<open>Proving merge correct\<close>
 
-text {* As many parts of the following three proofs are identical, we could actually move the
-same reasoning into an extended induction rule *}
+text \<open>As many parts of the following three proofs are identical, we could actually move the
+same reasoning into an extended induction rule\<close>
  
 lemma merge_unchanged:
   assumes "refs_of' h p xs"
@@ -822,7 +822,7 @@ proof -
     from 3(11) pnrs_def have no_inter: "set pnrs \<inter> set ys = {}" by auto
     from 3(7)[OF refs_of'_pn 3(10) this p_in] 3(3) have p_is_Node: "Ref.get h1 p = Node x pn"
       by simp
-    from 3(7)[OF refs_of'_pn 3(10) no_inter r_in] 3(8) `r \<noteq> p` show ?case
+    from 3(7)[OF refs_of'_pn 3(10) no_inter r_in] 3(8) \<open>r \<noteq> p\<close> show ?case
       by simp
   next
     case (4 x xs' y ys' p q pn qn h1 r1 h' xs ys r)
@@ -835,7 +835,7 @@ proof -
     with 4(11) 4(12) qnrs_def refs_of'_distinct[OF 4(10)] have q_in: "q \<notin> set xs \<union> set qnrs" by auto
     from 4(11) qnrs_def have no_inter: "set xs \<inter> set qnrs = {}" by auto
     from 4(7)[OF 4(9) refs_of'_qn this q_in] 4(4) have q_is_Node: "Ref.get h1 q = Node y qn" by simp
-    from 4(7)[OF 4(9) refs_of'_qn no_inter r_in] 4(8) `r \<noteq> q` show ?case
+    from 4(7)[OF 4(9) refs_of'_qn no_inter r_in] 4(8) \<open>r \<noteq> q\<close> show ?case
       by simp
   qed
 qed
@@ -937,9 +937,9 @@ next
   show ?case by (auto simp: list_of'_set_ref)
 qed
 
-section {* Code generation *}
+section \<open>Code generation\<close>
 
-text {* A simple example program *}
+text \<open>A simple example program\<close>
 
 definition test_1 where "test_1 = (do { ll_xs \<leftarrow> make_llist [1..(15::int)]; xs \<leftarrow> traverse ll_xs; return xs })" 
 definition test_2 where "test_2 = (do { ll_xs \<leftarrow> make_llist [1..(15::int)]; ll_ys \<leftarrow> rev ll_xs; ys \<leftarrow> traverse ll_ys; return ys })"
@@ -958,9 +958,9 @@ definition test_3 where "test_3 =
 
 code_reserved SML upto
 
-ML_val {* @{code test_1} () *}
-ML_val {* @{code test_2} () *}
-ML_val {* @{code test_3} () *}
+ML_val \<open>@{code test_1} ()\<close>
+ML_val \<open>@{code test_2} ()\<close>
+ML_val \<open>@{code test_3} ()\<close>
 
 export_code test_1 test_2 test_3 checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala Scala_imp
 

@@ -5,7 +5,7 @@
 Refute examples adapted to Nitpick.
 *)
 
-section {* Refute Examples Adapted to Nitpick *}
+section \<open>Refute Examples Adapted to Nitpick\<close>
 
 theory Refute_Nits
 imports Main
@@ -23,9 +23,9 @@ nitpick [card = 5, expect = genuine]
 nitpick [sat_solver = SAT4J, expect = genuine] 2
 oops
 
-subsection {* Examples and Test Cases *}
+subsection \<open>Examples and Test Cases\<close>
 
-subsubsection {* Propositional logic *}
+subsubsection \<open>Propositional logic\<close>
 
 lemma "True"
 nitpick [expect = none]
@@ -64,7 +64,7 @@ lemma "(P \<or> Q) \<longrightarrow> (P \<and> Q)"
 nitpick [expect = genuine]
 oops
 
-subsubsection {* Predicate logic *}
+subsubsection \<open>Predicate logic\<close>
 
 lemma "P x y z"
 nitpick [expect = genuine]
@@ -78,7 +78,7 @@ lemma "P (f (f x)) \<longrightarrow> P x \<longrightarrow> P (f x)"
 nitpick [expect = genuine]
 oops
 
-subsubsection {* Equality *}
+subsubsection \<open>Equality\<close>
 
 lemma "P = True"
 nitpick [expect = genuine]
@@ -110,7 +110,7 @@ apply simp
 nitpick [expect = genuine]
 oops
 
-subsubsection {* First-Order Logic *}
+subsubsection \<open>First-Order Logic\<close>
 
 lemma "\<exists>x. P x"
 nitpick [expect = genuine]
@@ -148,14 +148,14 @@ lemma "(\<exists>x. P x) \<longrightarrow> (\<exists>!x. P x)"
 nitpick [expect = genuine]
 oops
 
-text {* A true statement (also testing names of free and bound variables being identical) *}
+text \<open>A true statement (also testing names of free and bound variables being identical)\<close>
 
 lemma "(\<forall>x y. P x y \<longrightarrow> P y x) \<longrightarrow> (\<forall>x. P x y) \<longrightarrow> P y x"
 nitpick [expect = none]
 apply fast
 done
 
-text {* "A type has at most 4 elements." *}
+text \<open>"A type has at most 4 elements."\<close>
 
 lemma "\<not> distinct [a, b, c, d, e]"
 nitpick [expect = genuine]
@@ -169,44 +169,44 @@ apply simp
 nitpick [expect = genuine]
 oops
 
-text {* "Every reflexive and symmetric relation is transitive." *}
+text \<open>"Every reflexive and symmetric relation is transitive."\<close>
 
 lemma "\<lbrakk>\<forall>x. P x x; \<forall>x y. P x y \<longrightarrow> P y x\<rbrakk> \<Longrightarrow> P x y \<longrightarrow> P y z \<longrightarrow> P x z"
 nitpick [expect = genuine]
 oops
 
-text {* The ``Drinker's theorem'' *}
+text \<open>The ``Drinker's theorem''\<close>
 
 lemma "\<exists>x. f x = g x \<longrightarrow> f = g"
 nitpick [expect = none]
 apply (auto simp add: ext)
 done
 
-text {* And an incorrect version of it *}
+text \<open>And an incorrect version of it\<close>
 
 lemma "(\<exists>x. f x = g x) \<longrightarrow> f = g"
 nitpick [expect = genuine]
 oops
 
-text {* "Every function has a fixed point." *}
+text \<open>"Every function has a fixed point."\<close>
 
 lemma "\<exists>x. f x = x"
 nitpick [expect = genuine]
 oops
 
-text {* "Function composition is commutative." *}
+text \<open>"Function composition is commutative."\<close>
 
 lemma "f (g x) = g (f x)"
 nitpick [expect = genuine]
 oops
 
-text {* "Two functions that are equivalent wrt.\ the same predicate 'P' are equal." *}
+text \<open>"Two functions that are equivalent wrt.\ the same predicate 'P' are equal."\<close>
 
 lemma "((P::('a\<Rightarrow>'b)\<Rightarrow>bool) f = P g) \<longrightarrow> (f x = g x)"
 nitpick [expect = genuine]
 oops
 
-subsubsection {* Higher-Order Logic *}
+subsubsection \<open>Higher-Order Logic\<close>
 
 lemma "\<exists>P. P"
 nitpick [expect = none]
@@ -242,7 +242,7 @@ lemma "x \<noteq> Ex1"
 nitpick [expect = genuine]
 oops
 
-text {* ``The transitive closure of an arbitrary relation is non-empty.'' *}
+text \<open>``The transitive closure of an arbitrary relation is non-empty.''\<close>
 
 definition "trans" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
 "trans P \<equiv> (ALL x y z. P x y \<longrightarrow> P y z \<longrightarrow> P x z)"
@@ -259,7 +259,7 @@ lemma "trans_closure T P \<longrightarrow> (\<exists>x y. T x y)"
 nitpick [expect = genuine]
 oops
 
-text {* ``The union of transitive closures is equal to the transitive closure of unions.'' *}
+text \<open>``The union of transitive closures is equal to the transitive closure of unions.''\<close>
 
 lemma "(\<forall>x y. (P x y \<or> R x y) \<longrightarrow> T x y) \<longrightarrow> trans T \<longrightarrow> (\<forall>Q. (\<forall>x y. (P x y \<or> R x y) \<longrightarrow> Q x y) \<longrightarrow> trans Q \<longrightarrow> subset T Q)
  \<longrightarrow> trans_closure TP P
@@ -268,19 +268,19 @@ lemma "(\<forall>x y. (P x y \<or> R x y) \<longrightarrow> T x y) \<longrightar
 nitpick [expect = genuine]
 oops
 
-text {* ``Every surjective function is invertible.'' *}
+text \<open>``Every surjective function is invertible.''\<close>
 
 lemma "(\<forall>y. \<exists>x. y = f x) \<longrightarrow> (\<exists>g. \<forall>x. g (f x) = x)"
 nitpick [expect = genuine]
 oops
 
-text {* ``Every invertible function is surjective.'' *}
+text \<open>``Every invertible function is surjective.''\<close>
 
 lemma "(\<exists>g. \<forall>x. g (f x) = x) \<longrightarrow> (\<forall>y. \<exists>x. y = f x)"
 nitpick [expect = genuine]
 oops
 
-text {* ``Every point is a fixed point of some function.'' *}
+text \<open>``Every point is a fixed point of some function.''\<close>
 
 lemma "\<exists>f. f x = x"
 nitpick [card = 1-7, expect = none]
@@ -288,13 +288,13 @@ apply (rule_tac x = "\<lambda>x. x" in exI)
 apply simp
 done
 
-text {* Axiom of Choice: first an incorrect version *}
+text \<open>Axiom of Choice: first an incorrect version\<close>
 
 lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>!f. \<forall>x. P x (f x))"
 nitpick [expect = genuine]
 oops
 
-text {* And now two correct ones *}
+text \<open>And now two correct ones\<close>
 
 lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>f. \<forall>x. P x (f x))"
 nitpick [card = 1-4, expect = none]
@@ -308,7 +308,7 @@ apply auto
 apply (fast intro: ext)
 done
 
-subsubsection {* Metalogic *}
+subsubsection \<open>Metalogic\<close>
 
 lemma "\<And>x. P x"
 nitpick [expect = genuine]
@@ -338,7 +338,7 @@ lemma "(x \<equiv> (op \<Longrightarrow>)) \<Longrightarrow> False"
 nitpick [expect = genuine]
 oops
 
-subsubsection {* Schematic Variables *}
+subsubsection \<open>Schematic Variables\<close>
 
 schematic_goal "?P"
 nitpick [expect = none]
@@ -350,7 +350,7 @@ nitpick [expect = none]
 apply auto
 done
 
-subsubsection {* Abstractions *}
+subsubsection \<open>Abstractions\<close>
 
 lemma "(\<lambda>x. x) = (\<lambda>x. y)"
 nitpick [expect = genuine]
@@ -365,7 +365,7 @@ nitpick [expect = none]
 apply simp
 done
 
-subsubsection {* Sets *}
+subsubsection \<open>Sets\<close>
 
 lemma "P (A::'a set)"
 nitpick [expect = genuine]
@@ -408,7 +408,7 @@ lemma "Ball A P \<longrightarrow> Bex A P"
 nitpick [expect = genuine]
 oops
 
-subsubsection {* @{const undefined} *}
+subsubsection \<open>@{const undefined}\<close>
 
 lemma "undefined"
 nitpick [expect = genuine]
@@ -426,7 +426,7 @@ lemma "undefined undefined"
 nitpick [expect = genuine]
 oops
 
-subsubsection {* @{const The} *}
+subsubsection \<open>@{const The}\<close>
 
 lemma "The P"
 nitpick [expect = genuine]
@@ -448,7 +448,7 @@ lemma "Ex P \<longrightarrow> P (The P)"
 nitpick [expect = genuine]
 oops
 
-subsubsection {* @{const Eps} *}
+subsubsection \<open>@{const Eps}\<close>
 
 lemma "Eps P"
 nitpick [expect = genuine]
@@ -471,7 +471,7 @@ nitpick [expect = none]
 apply (auto simp add: someI)
 done
 
-subsubsection {* Operations on Natural Numbers *}
+subsubsection \<open>Operations on Natural Numbers\<close>
 
 lemma "(x::nat) + y = 0"
 nitpick [expect = genuine]
@@ -493,7 +493,7 @@ lemma "(x::nat) < x + y"
 nitpick [card = 1, expect = genuine]
 oops
 
-text {* \<times> *}
+text \<open>\<times>\<close>
 
 lemma "P (x::'a\<times>'b)"
 nitpick [expect = genuine]
@@ -523,9 +523,9 @@ lemma "P (case x of Pair a b \<Rightarrow> f a b)"
 nitpick [expect = genuine]
 oops
 
-subsubsection {* Subtypes (typedef), typedecl *}
+subsubsection \<open>Subtypes (typedef), typedecl\<close>
 
-text {* A completely unspecified non-empty subset of @{typ "'a"}: *}
+text \<open>A completely unspecified non-empty subset of @{typ "'a"}:\<close>
 
 definition "myTdef = insert (undefined::'a) (undefined::'a set)"
 
@@ -547,9 +547,9 @@ lemma "P (f::(myTdecl myTdef) T_bij)"
 nitpick [expect = genuine]
 oops
 
-subsubsection {* Inductive Datatypes *}
+subsubsection \<open>Inductive Datatypes\<close>
 
-text {* unit *}
+text \<open>unit\<close>
 
 lemma "P (x::unit)"
 nitpick [expect = genuine]
@@ -567,7 +567,7 @@ lemma "P (case x of () \<Rightarrow> u)"
 nitpick [expect = genuine]
 oops
 
-text {* option *}
+text \<open>option\<close>
 
 lemma "P (x::'a option)"
 nitpick [expect = genuine]
@@ -589,7 +589,7 @@ lemma "P (case x of None \<Rightarrow> n | Some u \<Rightarrow> s u)"
 nitpick [expect = genuine]
 oops
 
-text {* + *}
+text \<open>+\<close>
 
 lemma "P (x::'a+'b)"
 nitpick [expect = genuine]
@@ -615,7 +615,7 @@ lemma "P (case x of Inl a \<Rightarrow> l a | Inr b \<Rightarrow> r b)"
 nitpick [expect = genuine]
 oops
 
-text {* Non-recursive datatypes *}
+text \<open>Non-recursive datatypes\<close>
 
 datatype T1 = A | B
 
@@ -712,9 +712,9 @@ lemma "P (case x of E f \<Rightarrow> e f)"
 nitpick [expect = genuine]
 oops
 
-text {* Recursive datatypes *}
+text \<open>Recursive datatypes\<close>
 
-text {* nat *}
+text \<open>nat\<close>
 
 lemma "P (x::nat)"
 nitpick [expect = genuine]
@@ -750,7 +750,7 @@ lemma "P (case x of 0 \<Rightarrow> zero | Suc n \<Rightarrow> suc n)"
 nitpick [expect = genuine]
 oops
 
-text {* 'a list *}
+text \<open>'a list\<close>
 
 lemma "P (xs::'a list)"
 nitpick [expect = genuine]
@@ -855,7 +855,7 @@ lemma "P (case x of Leaf a \<Rightarrow> l a | Node a b \<Rightarrow> n a b)"
 nitpick [expect = genuine]
 oops
 
-text {* Mutually recursive datatypes *}
+text \<open>Mutually recursive datatypes\<close>
 
 datatype 'a aexp = Number 'a | ITE "'a bexp" "'a aexp" "'a aexp"
  and 'a bexp = Equal "'a aexp" "'a aexp"
@@ -995,9 +995,9 @@ lemma "P (rec_Y a b c d e f y)"
 nitpick [expect = genuine]
 oops
 
-text {* Other datatype examples *}
+text \<open>Other datatype examples\<close>
 
-text {* Indirect recursion is implemented via mutual recursion. *}
+text \<open>Indirect recursion is implemented via mutual recursion.\<close>
 
 datatype XOpt = CX "XOpt option" | DX "bool \<Rightarrow> XOpt option"
 
@@ -1107,7 +1107,7 @@ lemma "P (rec_lambda v a l x)"
 nitpick [expect = genuine]
 oops
 
-text {* Taken from "Inductive datatypes in HOL", p. 8: *}
+text \<open>Taken from "Inductive datatypes in HOL", p. 8:\<close>
 
 datatype (dead 'a, 'b) T = C "'a \<Rightarrow> bool" | D "'b list"
 datatype 'c U = E "('c, 'c U) T"
@@ -1124,7 +1124,7 @@ lemma "P (E (C (\<lambda>a. True)))"
 nitpick [expect = genuine]
 oops
 
-subsubsection {* Records *}
+subsubsection \<open>Records\<close>
 
 record ('a, 'b) point =
   xpos :: 'a
@@ -1141,7 +1141,7 @@ lemma "(x::('a, 'b, 'c) extpoint) = y"
 nitpick [expect = genuine]
 oops
 
-subsubsection {* Inductively Defined Sets *}
+subsubsection \<open>Inductively Defined Sets\<close>
 
 inductive_set undefinedSet :: "'a set" where
 "undefined \<in> undefinedSet"
@@ -1182,7 +1182,7 @@ lemma "x \<in> a_odd"
 nitpick [expect = genuine]
 oops
 
-subsubsection {* Examples Involving Special Functions *}
+subsubsection \<open>Examples Involving Special Functions\<close>
 
 lemma "card x = 0"
 nitpick [expect = genuine]
@@ -1212,9 +1212,9 @@ lemma "lfp f = gfp f"
 nitpick [card = 2, expect = genuine]
 oops
 
-subsubsection {* Axiomatic Type Classes and Overloading *}
+subsubsection \<open>Axiomatic Type Classes and Overloading\<close>
 
-text {* A type class without axioms: *}
+text \<open>A type class without axioms:\<close>
 
 class classA
 
@@ -1222,7 +1222,7 @@ lemma "P (x::'a::classA)"
 nitpick [expect = genuine]
 oops
 
-text {* An axiom with a type variable (denoting types which have at least two elements): *}
+text \<open>An axiom with a type variable (denoting types which have at least two elements):\<close>
 
 class classC =
   assumes classC_ax: "\<exists>x y. x \<noteq> y"
@@ -1235,7 +1235,7 @@ lemma "\<exists>x y. (x::'a::classC) \<noteq> y"
 nitpick [expect = none]
 sorry
 
-text {* A type class for which a constant is defined: *}
+text \<open>A type class for which a constant is defined:\<close>
 
 class classD =
   fixes classD_const :: "'a \<Rightarrow> 'a"
@@ -1245,7 +1245,7 @@ lemma "P (x::'a::classD)"
 nitpick [expect = genuine]
 oops
 
-text {* A type class with multiple superclasses: *}
+text \<open>A type class with multiple superclasses:\<close>
 
 class classE = classC + classD
 
@@ -1253,7 +1253,7 @@ lemma "P (x::'a::classE)"
 nitpick [expect = genuine]
 oops
 
-text {* OFCLASS: *}
+text \<open>OFCLASS:\<close>
 
 lemma "OFCLASS('a::type, type_class)"
 nitpick [expect = none]
@@ -1269,7 +1269,7 @@ lemma "OFCLASS('a::type, classC_class)"
 nitpick [expect = genuine]
 oops
 
-text {* Overloading: *}
+text \<open>Overloading:\<close>
 
 consts inverse :: "'a \<Rightarrow> 'a"
 

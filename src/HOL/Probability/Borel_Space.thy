@@ -156,7 +156,7 @@ lemma mono_on_ctble_discont:
   shows "countable {a\<in>A. \<not> continuous (at a within A) f}"
 proof -
   have mono: "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
-    using `mono_on f A` by (simp add: mono_on_def)
+    using \<open>mono_on f A\<close> by (simp add: mono_on_def)
   have "\<forall>a \<in> {a\<in>A. \<not> continuous (at a within A) f}. \<exists>q :: nat \<times> rat.
       (fst q = 0 \<and> of_rat (snd q) < f a \<and> (\<forall>x \<in> A. x < a \<longrightarrow> f x < of_rat (snd q))) \<or>
       (fst q = 1 \<and> of_rat (snd q) > f a \<and> (\<forall>x \<in> A. x > a \<longrightarrow> f x > of_rat (snd q)))"
@@ -224,7 +224,7 @@ lemma mono_on_ctble_discont_open:
   shows "countable {a\<in>A. \<not>isCont f a}"
 proof -
   have "{a\<in>A. \<not>isCont f a} = {a\<in>A. \<not>(continuous (at a within A) f)}"
-    by (auto simp add: continuous_within_open [OF _ `open A`])
+    by (auto simp add: continuous_within_open [OF _ \<open>open A\<close>])
   thus ?thesis
     apply (elim ssubst)
     by (rule mono_on_ctble_discont, rule assms)

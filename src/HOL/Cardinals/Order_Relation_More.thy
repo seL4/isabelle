@@ -5,13 +5,13 @@
 Basics on order-like relations.
 *)
 
-section {* Basics on Order-Like Relations *}
+section \<open>Basics on Order-Like Relations\<close>
 
 theory Order_Relation_More
 imports Main
 begin
 
-subsection {* The upper and lower bounds operators *}
+subsection \<open>The upper and lower bounds operators\<close>
 
 lemma aboveS_subset_above: "aboveS r a \<le> above r a"
 by(auto simp add: aboveS_def above_def)
@@ -572,7 +572,7 @@ proof-
 qed
 
 
-subsection {* Properties depending on more than one relation *}
+subsection \<open>Properties depending on more than one relation\<close>
 
 lemma under_incr2:
 "r \<le> r' \<Longrightarrow> under r a \<le> under r' a"

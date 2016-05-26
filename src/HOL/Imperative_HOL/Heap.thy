@@ -2,15 +2,15 @@
     Author:     John Matthews, Galois Connections; Alexander Krauss, TU Muenchen
 *)
 
-section {* A polymorphic heap based on cantor encodings *}
+section \<open>A polymorphic heap based on cantor encodings\<close>
 
 theory Heap
 imports Main "~~/src/HOL/Library/Countable"
 begin
 
-subsection {* Representable types *}
+subsection \<open>Representable types\<close>
 
-text {* The type class of representable types *}
+text \<open>The type class of representable types\<close>
 
 class heap = typerep + countable
 
@@ -35,15 +35,15 @@ instance String.literal :: heap ..
 instance typerep :: heap ..
 
 
-subsection {* A polymorphic heap with dynamic arrays and references *}
+subsection \<open>A polymorphic heap with dynamic arrays and references\<close>
 
-text {*
+text \<open>
   References and arrays are developed in parallel,
   but keeping them separate makes some later proofs simpler.
-*}
+\<close>
 
-type_synonym addr = nat -- "untyped heap references"
-type_synonym heap_rep = nat -- "representable values"
+type_synonym addr = nat \<comment> "untyped heap references"
+type_synonym heap_rep = nat \<comment> "representable values"
 
 record heap =
   arrays :: "typerep \<Rightarrow> addr \<Rightarrow> heap_rep list"
@@ -53,8 +53,8 @@ record heap =
 definition empty :: heap where
   "empty = \<lparr>arrays = (\<lambda>_ _. []), refs = (\<lambda>_ _. 0), lim = 0\<rparr>"
 
-datatype 'a array = Array addr -- "note the phantom type 'a"
-datatype 'a ref = Ref addr -- "note the phantom type 'a"
+datatype 'a array = Array addr \<comment> "note the phantom type 'a"
+datatype 'a ref = Ref addr \<comment> "note the phantom type 'a"
 
 primrec addr_of_array :: "'a array \<Rightarrow> addr" where
   "addr_of_array (Array x) = x"
@@ -76,14 +76,14 @@ instance array :: (type) countable
 instance ref :: (type) countable
   by (rule countable_classI [of addr_of_ref]) simp
 
-text {* Syntactic convenience *}
+text \<open>Syntactic convenience\<close>
 
-setup {*
+setup \<open>
   Sign.add_const_constraint (@{const_name Array}, SOME @{typ "nat \<Rightarrow> 'a::heap array"})
   #> Sign.add_const_constraint (@{const_name Ref}, SOME @{typ "nat \<Rightarrow> 'a::heap ref"})
   #> Sign.add_const_constraint (@{const_name addr_of_array}, SOME @{typ "'a::heap array \<Rightarrow> nat"})
   #> Sign.add_const_constraint (@{const_name addr_of_ref}, SOME @{typ "'a::heap ref \<Rightarrow> nat"})
-*}
+\<close>
 
 hide_const (open) empty
 

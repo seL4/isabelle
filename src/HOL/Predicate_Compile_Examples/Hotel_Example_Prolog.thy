@@ -71,58 +71,58 @@ lemma [code_pred_def]: "feels_safe s r =
     (\<not> (\<exists> g'. isinp (s\<^sub>2 @ [Check_in g r c] @ s\<^sub>1) r g')))"
 unfolding feels_safe_def isinp_def by auto
 
-setup {* Code_Prolog.map_code_options (K
+setup \<open>Code_Prolog.map_code_options (K
   {ensure_groundness = true,
   limit_globally = NONE,
   limited_types = [],
   limited_predicates = [],
   replacing = [],
-  manual_reorder = []}) *}
+  manual_reorder = []})\<close>
 
 values_prolog 40 "{s. hotel s}"
 
-setup {*
+setup \<open>
   Context.theory_map
     (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals)))
-*}
+\<close>
 
 lemma "\<lbrakk> hotel s; isinp s r g \<rbrakk> \<Longrightarrow> owns s r = Some g"
 quickcheck[tester = prolog, iterations = 1, expect = counterexample]
 oops
 
-section {* Manual setup to find the counterexample *}
+section \<open>Manual setup to find the counterexample\<close>
 
-setup {* Code_Prolog.map_code_options (K 
+setup \<open>Code_Prolog.map_code_options (K 
   {ensure_groundness = true,
    limit_globally = NONE,
    limited_types = [],
    limited_predicates = [(["hotel"], 4)],
    replacing = [(("hotel", "limited_hotel"), "quickcheck")],
-   manual_reorder = []}) *}
+   manual_reorder = []})\<close>
 
 lemma
   "hotel s ==> feels_safe s r ==> isinp s r g ==> owns s r = Some g"
 quickcheck[tester = prolog, iterations = 1, expect = no_counterexample]
 oops
 
-setup {* Code_Prolog.map_code_options (K 
+setup \<open>Code_Prolog.map_code_options (K 
   {ensure_groundness = true,
    limit_globally = NONE,
    limited_types = [],
    limited_predicates = [(["hotel"], 5)],
    replacing = [(("hotel", "limited_hotel"), "quickcheck")],
-   manual_reorder = []}) *}
+   manual_reorder = []})\<close>
 
 lemma
   "hotel s ==> feels_safe s r ==> isinp s r g ==> owns s r = Some g"
 quickcheck[tester = prolog, iterations = 1, expect = counterexample]
 oops
 
-section {* Using a global limit for limiting the execution *} 
+section \<open>Using a global limit for limiting the execution\<close> 
 
-text {* A global depth limit of 10 does not suffice to find the counterexample. *}
+text \<open>A global depth limit of 10 does not suffice to find the counterexample.\<close>
 
-setup {*
+setup \<open>
   Code_Prolog.map_code_options (K
   {ensure_groundness = true,
   limit_globally = SOME 10,
@@ -130,16 +130,16 @@ setup {*
   limited_predicates = [],
   replacing = [],
   manual_reorder = []})
-*}
+\<close>
 
 lemma
   "hotel s ==> feels_safe s r ==> isinp s r g ==> owns s r = Some g"
 quickcheck[tester = prolog, iterations = 1, expect = no_counterexample]
 oops
 
-text {* But a global depth limit of 11 does. *}
+text \<open>But a global depth limit of 11 does.\<close>
 
-setup {*
+setup \<open>
   Code_Prolog.map_code_options (K
   {ensure_groundness = true,
   limit_globally = SOME 11,
@@ -147,7 +147,7 @@ setup {*
   limited_predicates = [],
   replacing = [],
   manual_reorder = []})
-*}
+\<close>
 
 lemma
   "hotel s ==> feels_safe s r ==> isinp s r g ==> owns s r = Some g"

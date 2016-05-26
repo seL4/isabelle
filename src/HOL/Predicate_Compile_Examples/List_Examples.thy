@@ -5,12 +5,12 @@ imports
   "~~/src/HOL/Library/Code_Prolog"
 begin
 
-setup {*
+setup \<open>
   Context.theory_map
     (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals)))
-*}
+\<close>
 
-setup {* Code_Prolog.map_code_options (K 
+setup \<open>Code_Prolog.map_code_options (K 
   {ensure_groundness = true,
    limit_globally = NONE,
    limited_types = [(@{typ nat}, 2), (@{typ "nat list"}, 4)],
@@ -19,7 +19,7 @@ setup {* Code_Prolog.map_code_options (K
      [(("appendP", "limited_appendP"), "quickcheck"),
       (("revP", "limited_revP"), "quickcheck"),
       (("appendP", "limited_appendP"), "lim_revP")],
-   manual_reorder = []}) *}
+   manual_reorder = []})\<close>
 
 lemma "(xs :: nat list) = ys @ ys --> rev xs = xs"
 quickcheck[tester = random, iterations = 10000]

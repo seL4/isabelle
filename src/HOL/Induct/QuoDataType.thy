@@ -420,7 +420,7 @@ qed
 
 subsection\<open>The Abstract Discriminator\<close>
 
-text\<open>However, as @{text Crypt_Nonce_neq_Nonce} above illustrates, we don't
+text\<open>However, as \<open>Crypt_Nonce_neq_Nonce\<close> above illustrates, we don't
 need this function in order to prove discrimination theorems.\<close>
 
 definition

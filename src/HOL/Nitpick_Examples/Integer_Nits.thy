@@ -5,7 +5,7 @@
 Examples featuring Nitpick applied to natural numbers and integers.
 *)
 
-section {* Examples Featuring Nitpick Applied to Natural Numbers and Integers *}
+section \<open>Examples Featuring Nitpick Applied to Natural Numbers and Integers\<close>
 
 theory Integer_Nits
 imports Main

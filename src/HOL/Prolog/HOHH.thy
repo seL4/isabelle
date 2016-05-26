@@ -2,7 +2,7 @@
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
-section {* Higher-order hereditary Harrop formulas *}
+section \<open>Higher-order hereditary Harrop formulas\<close>
 
 theory HOHH
 imports HOL
@@ -11,11 +11,11 @@ begin
 ML_file "prolog.ML"
 
 method_setup ptac =
-  {* Attrib.thms >> (fn thms => fn ctxt => SIMPLE_METHOD' (Prolog.ptac ctxt thms)) *}
+  \<open>Attrib.thms >> (fn thms => fn ctxt => SIMPLE_METHOD' (Prolog.ptac ctxt thms))\<close>
   "basic Lambda Prolog interpreter"
 
 method_setup prolog =
-  {* Attrib.thms >> (fn thms => fn ctxt => SIMPLE_METHOD (Prolog.prolog_tac ctxt thms)) *}
+  \<open>Attrib.thms >> (fn thms => fn ctxt => SIMPLE_METHOD (Prolog.prolog_tac ctxt thms))\<close>
   "Lambda Prolog interpreter"
 
 consts

@@ -2,7 +2,7 @@ theory Class2
 imports Class1
 begin
 
-text {* Reduction *}
+text \<open>Reduction\<close>
 
 lemma fin_not_Cut:
   assumes a: "fin M x"
@@ -1821,9 +1821,9 @@ apply(drule_tac y="y" and c="c" and P="P" in a_redu_subst2)
 apply(auto)
 done
 
-text {* Candidates and SN *}
+text \<open>Candidates and SN\<close>
 
-text {* SNa *}
+text \<open>SNa\<close>
 
 inductive 
   SNa :: "trm \<Rightarrow> bool"
@@ -2091,7 +2091,7 @@ apply(drule_tac x="(rev pi2)\<bullet>M'" in meta_spec)
 apply(perm_simp)
 done
 
-text {* set operators *}
+text \<open>set operators\<close>
 
 definition AXIOMSn :: "ty \<Rightarrow> ntrm set" where
   "AXIOMSn B \<equiv> { (x):(Ax y b) | x y b. True }"
@@ -2873,7 +2873,7 @@ apply(relation "measure (case_sum (size\<circ>fst) (size\<circ>fst))")
 apply(simp_all)
 done
 
-text {* Candidates *}
+text \<open>Candidates\<close>
 
 lemma test1:
   shows "x\<in>(X\<union>Y) = (x\<in>X \<or> x\<in>Y)"
@@ -3447,7 +3447,7 @@ next
   }
 qed
 
-text {* Elimination rules for the set-operators *}
+text \<open>Elimination rules for the set-operators\<close>
 
 lemma BINDINGc_elim:
   assumes a: "<a>:M \<in> BINDINGc B (\<parallel>(B)\<parallel>)"
@@ -5178,7 +5178,7 @@ apply(drule_tac pi="[(x,ca)]" and X="\<parallel><ty2>\<parallel>" in pt_set_bij2
 apply(perm_simp add: CAND_eqvt_name CAND_eqvt_coname csubst_eqvt nsubst_eqvt)
 done
 
-text {* Main lemma 1 *}
+text \<open>Main lemma 1\<close>
 
 lemma AXIOMS_imply_SNa:
   shows "<a>:M \<in> AXIOMSc B \<Longrightarrow> SNa M"
@@ -5484,7 +5484,7 @@ next
   }
 qed 
 
-text {* Main lemma 2 *}
+text \<open>Main lemma 2\<close>
 
 lemma AXIOMS_preserved:
   shows "<a>:M \<in> AXIOMSc B \<Longrightarrow> M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> <a>:M' \<in> AXIOMSc B"

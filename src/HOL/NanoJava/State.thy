@@ -10,12 +10,12 @@ theory State imports TypeRel begin
 definition body :: "cname \<times> mname => stmt" where
  "body \<equiv> \<lambda>(C,m). bdy (the (method C m))"
 
-text {* Locations, i.e.\ abstract references to objects *}
+text \<open>Locations, i.e.\ abstract references to objects\<close>
 typedecl loc 
 
 datatype val
-  = Null        --{* null reference *}
-  | Addr loc    --{* address, i.e. location of object *}
+  = Null        \<comment>\<open>null reference\<close>
+  | Addr loc    \<comment>\<open>address, i.e. location of object\<close>
 
 type_synonym fields
         = "(fname \<rightharpoonup> val)"
@@ -30,11 +30,11 @@ translations
 definition init_vars :: "('a \<rightharpoonup> 'b) => ('a \<rightharpoonup> val)" where
  "init_vars m == map_option (\<lambda>T. Null) o m"
   
-text {* private: *}
+text \<open>private:\<close>
 type_synonym heap = "loc   \<rightharpoonup> obj"
 type_synonym locals = "vname \<rightharpoonup> val"  
 
-text {* private: *}
+text \<open>private:\<close>
 record  state
         = heap   :: heap
           locals :: locals
@@ -51,15 +51,15 @@ definition init_locs     :: "cname => mname => state => state" where
  "init_locs C m s \<equiv> s (| locals := locals s ++ 
                          init_vars (map_of (lcl (the (method C m)))) |)"
 
-text {* The first parameter of @{term set_locs} is of type @{typ state} 
-        rather than @{typ locals} in order to keep @{typ locals} private.*}
+text \<open>The first parameter of @{term set_locs} is of type @{typ state} 
+        rather than @{typ locals} in order to keep @{typ locals} private.\<close>
 definition set_locs :: "state => state => state" where
  "set_locs s s' \<equiv> s' (| locals := locals s |)"
 
 definition get_local     :: "state => vname => val" ("_<_>" [99,0] 99) where
  "get_local s x  \<equiv> the (locals s x)"
 
---{* local function: *}
+\<comment>\<open>local function:\<close>
 definition get_obj       :: "state => loc => obj" where
  "get_obj s a \<equiv> the (heap s a)"
 
@@ -69,7 +69,7 @@ definition obj_class     :: "state => loc => cname" where
 definition get_field     :: "state => loc => fname => val" where
  "get_field s a f \<equiv> the (snd (get_obj s a) f)"
 
---{* local function: *}
+\<comment>\<open>local function:\<close>
 definition hupd       :: "loc => obj => state => state"   ("hupd'(_\<mapsto>_')" [10,10] 1000) where
  "hupd a obj s \<equiv> s (| heap   := ((heap   s)(a\<mapsto>obj))|)"
 

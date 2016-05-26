@@ -2,7 +2,7 @@ theory CR
 imports Lam_Funs
 begin
 
-text {* The Church-Rosser proof from Barendregt's book *}
+text \<open>The Church-Rosser proof from Barendregt's book\<close>
 
 lemma forget: 
   assumes asm: "x\<sharp>L"
@@ -95,23 +95,23 @@ proof (nominal_induct M avoiding: x y N L rule: lam.strong_induct)
   proof -
     { (*Case 1.1*)
       assume  "z=x"
-      have "(1)": "?LHS = N[y::=L]" using `z=x` by simp
-      have "(2)": "?RHS = N[y::=L]" using `z=x` `x\<noteq>y` by simp
+      have "(1)": "?LHS = N[y::=L]" using \<open>z=x\<close> by simp
+      have "(2)": "?RHS = N[y::=L]" using \<open>z=x\<close> \<open>x\<noteq>y\<close> by simp
       from "(1)" "(2)" have "?LHS = ?RHS"  by simp
     }
     moreover 
     { (*Case 1.2*)
       assume "z=y" and "z\<noteq>x" 
-      have "(1)": "?LHS = L"               using `z\<noteq>x` `z=y` by simp
-      have "(2)": "?RHS = L[x::=N[y::=L]]" using `z=y` by simp
-      have "(3)": "L[x::=N[y::=L]] = L"    using `x\<sharp>L` by (simp add: forget)
+      have "(1)": "?LHS = L"               using \<open>z\<noteq>x\<close> \<open>z=y\<close> by simp
+      have "(2)": "?RHS = L[x::=N[y::=L]]" using \<open>z=y\<close> by simp
+      have "(3)": "L[x::=N[y::=L]] = L"    using \<open>x\<sharp>L\<close> by (simp add: forget)
       from "(1)" "(2)" "(3)" have "?LHS = ?RHS" by simp
     }
     moreover 
     { (*Case 1.3*)
       assume "z\<noteq>x" and "z\<noteq>y"
-      have "(1)": "?LHS = Var z" using `z\<noteq>x` `z\<noteq>y` by simp
-      have "(2)": "?RHS = Var z" using `z\<noteq>x` `z\<noteq>y` by simp
+      have "(1)": "?LHS = Var z" using \<open>z\<noteq>x\<close> \<open>z\<noteq>y\<close> by simp
+      have "(2)": "?RHS = Var z" using \<open>z\<noteq>x\<close> \<open>z\<noteq>y\<close> by simp
       from "(1)" "(2)" have "?LHS = ?RHS" by simp
     }
     ultimately show "?LHS = ?RHS" by blast
@@ -125,10 +125,10 @@ next
   hence "z\<sharp>N[y::=L]" by (simp add: fresh_fact)
   show "(Lam [z].M1)[x::=N][y::=L] = (Lam [z].M1)[y::=L][x::=N[y::=L]]" (is "?LHS=?RHS") 
   proof - 
-    have "?LHS = Lam [z].(M1[x::=N][y::=L])" using `z\<sharp>x` `z\<sharp>y` `z\<sharp>N` `z\<sharp>L` by simp
-    also from ih have "\<dots> = Lam [z].(M1[y::=L][x::=N[y::=L]])" using `x\<noteq>y` `x\<sharp>L` by simp
-    also have "\<dots> = (Lam [z].(M1[y::=L]))[x::=N[y::=L]]" using `z\<sharp>x` `z\<sharp>N[y::=L]` by simp
-    also have "\<dots> = ?RHS" using  `z\<sharp>y` `z\<sharp>L` by simp
+    have "?LHS = Lam [z].(M1[x::=N][y::=L])" using \<open>z\<sharp>x\<close> \<open>z\<sharp>y\<close> \<open>z\<sharp>N\<close> \<open>z\<sharp>L\<close> by simp
+    also from ih have "\<dots> = Lam [z].(M1[y::=L][x::=N[y::=L]])" using \<open>x\<noteq>y\<close> \<open>x\<sharp>L\<close> by simp
+    also have "\<dots> = (Lam [z].(M1[y::=L]))[x::=N[y::=L]]" using \<open>z\<sharp>x\<close> \<open>z\<sharp>N[y::=L]\<close> by simp
+    also have "\<dots> = ?RHS" using  \<open>z\<sharp>y\<close> \<open>z\<sharp>L\<close> by simp
     finally show "?LHS = ?RHS" .
   qed
 next
@@ -143,7 +143,7 @@ lemma substitution_lemma_automatic:
 by (nominal_induct M avoiding: x y N L rule: lam.strong_induct)
    (auto simp add: fresh_fact forget)
 
-section {* Beta Reduction *}
+section \<open>Beta Reduction\<close>
 
 inductive
   "Beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>\<beta> _" [80,80] 80)
@@ -173,7 +173,7 @@ lemma beta_star_trans:
 using a2 a1
 by (induct) (auto)
 
-section {* One-Reduction *}
+section \<open>One-Reduction\<close>
 
 inductive
   One :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>1 _" [80,80] 80)
@@ -287,7 +287,7 @@ using a
 by (cases rule: One.strong_cases [where a="a" and aa="a"])
    (auto dest: one_abs simp add: lam.inject abs_fresh alpha fresh_prod)
 
-text {* first case in Lemma 3.2.4*}
+text \<open>first case in Lemma 3.2.4\<close>
 
 lemma one_subst_aux:
   assumes a: "N\<longrightarrow>\<^sub>1N'"

@@ -7,7 +7,7 @@
 Miscellaneous datatype definitions.
 *)
 
-section {* Miscellaneous Datatype Definitions *}
+section \<open>Miscellaneous Datatype Definitions\<close>
 
 theory Misc_Datatype
 imports "~~/src/HOL/Library/Countable" "~~/src/HOL/Library/FSet"

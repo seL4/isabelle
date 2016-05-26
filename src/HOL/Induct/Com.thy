@@ -136,7 +136,7 @@ lemma var_assign_eval [intro!]: "(X x, s(x:=n)) -|-> (n, s(x:=n))"
   by (rule fun_upd_same [THEN subst]) fast
 
 
-text\<open>Make the induction rule look nicer -- though @{text eta_contract} makes the new
+text\<open>Make the induction rule look nicer -- though \<open>eta_contract\<close> makes the new
     version look worse than it is...\<close>
 
 lemma split_lemma: "{((e,s),(n,s')). P e s n s'} = Collect (case_prod (%v. case_prod (case_prod P v)))"
@@ -167,11 +167,11 @@ apply (auto simp add: split_lemma)
 done
 
 
-text\<open>Lemma for @{text Function_eval}.  The major premise is that @{text "(c,s)"} executes to @{text "s1"}
+text\<open>Lemma for \<open>Function_eval\<close>.  The major premise is that \<open>(c,s)\<close> executes to \<open>s1\<close>
   using eval restricted to its functional part.  Note that the execution
-  @{text "(c,s) -[eval]-> s2"} can use unrestricted @{text eval}!  The reason is that
-  the execution @{text "(c,s) -[eval Int {...}]-> s1"} assures us that execution is
-  functional on the argument @{text "(c,s)"}.
+  \<open>(c,s) -[eval]-> s2\<close> can use unrestricted \<open>eval\<close>!  The reason is that
+  the execution \<open>(c,s) -[eval Int {...}]-> s1\<close> assures us that execution is
+  functional on the argument \<open>(c,s)\<close>.
 \<close>
 lemma com_Unique:
  "(c,s) -[eval Int {((e,s),(n,t)). \<forall>nt'. (e,s) -|-> nt' --> (n,t)=nt'}]-> s1

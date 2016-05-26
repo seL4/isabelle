@@ -8,7 +8,7 @@ begin
 
 section \<open>Homomorphisms of Non-Commutative Rings\<close>
 
-text \<open>Lifting existing lemmas in a @{text ring_hom_ring} locale\<close>
+text \<open>Lifting existing lemmas in a \<open>ring_hom_ring\<close> locale\<close>
 locale ring_hom_ring = R?: ring R + S?: ring S
     for R (structure) and S (structure) +
   fixes h
@@ -102,7 +102,7 @@ qed
 
 subsection \<open>The Kernel of a Ring Homomorphism\<close>
 
---"the kernel of a ring homomorphism is an ideal"
+\<comment>"the kernel of a ring homomorphism is an ideal"
 lemma (in ring_hom_ring) kernel_is_ideal:
   shows "ideal (a_kernel R S h) R"
 apply (rule idealI)

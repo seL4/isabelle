@@ -542,7 +542,7 @@ lemma sigma_sets_UNION:
   using from_nat_into [of B] range_from_nat_into [of B] sigma_sets.Union [of "from_nat_into B" X A]
   apply simp
   apply auto
-  apply (metis Sup_bot_conv(1) Union_empty `\<lbrakk>B \<noteq> {}; countable B\<rbrakk> \<Longrightarrow> range (from_nat_into B) = B`)
+  apply (metis Sup_bot_conv(1) Union_empty \<open>\<lbrakk>B \<noteq> {}; countable B\<rbrakk> \<Longrightarrow> range (from_nat_into B) = B\<close>)
   done
 
 lemma (in sigma_algebra) sigma_sets_eq:

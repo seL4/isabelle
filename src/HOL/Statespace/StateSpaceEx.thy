@@ -2,7 +2,7 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
-section {* Examples \label{sec:Examples} *}
+section \<open>Examples \label{sec:Examples}\<close>
 theory StateSpaceEx
 imports StateSpaceLocale StateSpaceSyntax
 begin
@@ -12,14 +12,14 @@ syntax
  "_statespace_updates" :: "('a \<Rightarrow> 'b) \<Rightarrow> updbinds \<Rightarrow> ('a \<Rightarrow> 'b)" ("_\<langle>_\<rangle>" [900,0] 900)
 (*>*)
 
-text {* Did you ever dream about records with multiple inheritance?
+text \<open>Did you ever dream about records with multiple inheritance?
 Then you should definitely have a look at statespaces. They may be
-what you are dreaming of. Or at least almost \dots  *}
+what you are dreaming of. Or at least almost \dots\<close>
 
 
-text {* Isabelle allows to add new top-level commands to the
+text \<open>Isabelle allows to add new top-level commands to the
 system. Building on the locale infrastructure, we provide a command
-\<^theory_text>\<open>statespace\<close> like this:*}
+\<^theory_text>\<open>statespace\<close> like this:\<close>
 
 statespace vars =
   n::nat
@@ -29,12 +29,12 @@ print_locale vars_namespace
 print_locale vars_valuetypes
 print_locale vars
 
-text {* \noindent This resembles a \<^theory_text>\<open>record\<close> definition, 
+text \<open>\noindent This resembles a \<^theory_text>\<open>record\<close> definition, 
 but introduces sophisticated locale
 infrastructure instead of HOL type schemes.  The resulting context
 postulates two distinct names @{term "n"} and @{term "b"} and
 projection~/ injection functions that convert from abstract values to
-@{typ "nat"} and @{text "bool"}. The logical content of the locale is: *}
+@{typ "nat"} and \<open>bool\<close>. The logical content of the locale is:\<close>
 
 locale vars' =
   fixes n::'name and b::'name
@@ -46,8 +46,8 @@ locale vars' =
   fixes project_bool::"'value \<Rightarrow> bool" and inject_bool::"bool \<Rightarrow> 'value"
   assumes "\<And>b. project_bool (inject_bool b) = b"
  
-text {* \noindent The HOL predicate @{const "distinct"} describes
-distinctness of all names in the context.  Locale @{text "vars'"}
+text \<open>\noindent The HOL predicate @{const "distinct"} describes
+distinctness of all names in the context.  Locale \<open>vars'\<close>
 defines the raw logical content that is defined in the state space
 locale. We also maintain non-logical context information to support
 the user:
@@ -71,44 +71,43 @@ corresponding distinctness theorem. As state spaces are merged or
 extended there are multiple distinctness theorems in the context. Our
 declarations take care that the link always points to the strongest
 distinctness assumption.  With these declarations in place, a lookup
-can be written as @{text "s\<cdot>n"}, which is translated to @{text
-"project_nat (s n)"}, and an update as @{text "s\<langle>n := 2\<rangle>"}, which is
-translated to @{text "s(n := inject_nat 2)"}. We can now establish the
-following lemma: *}
+can be written as \<open>s\<cdot>n\<close>, which is translated to \<open>project_nat (s n)\<close>, and an update as \<open>s\<langle>n := 2\<rangle>\<close>, which is
+translated to \<open>s(n := inject_nat 2)\<close>. We can now establish the
+following lemma:\<close>
 
 lemma (in vars) foo: "s<n := 2>\<cdot>b = s\<cdot>b" by simp
 
-text {* \noindent Here the simplifier was able to refer to
+text \<open>\noindent Here the simplifier was able to refer to
 distinctness of @{term "b"} and @{term "n"} to solve the equation.
-The resulting lemma is also recorded in locale @{text "vars"} for
+The resulting lemma is also recorded in locale \<open>vars\<close> for
 later use and is automatically propagated to all its interpretations.
-Here is another example: *}
+Here is another example:\<close>
 
 statespace 'a varsX = NB: vars [n=N, b=B] + vars + x::'a
 
-text {* \noindent The state space @{text "varsX"} imports two copies
-of the state space @{text "vars"}, where one has the variables renamed
+text \<open>\noindent The state space \<open>varsX\<close> imports two copies
+of the state space \<open>vars\<close>, where one has the variables renamed
 to upper-case letters, and adds another variable @{term "x"} of type
 @{typ "'a"}. This type is fixed inside the state space but may get
 instantiated later on, analogous to type parameters of an ML-functor.
-The distinctness assumption is now @{text "distinct [N, B, n, b, x]"},
+The distinctness assumption is now \<open>distinct [N, B, n, b, x]\<close>,
 from this we can derive both @{term "distinct [N,B]"} and @{term
 "distinct [n,b]"}, the distinction assumptions for the two versions of
-locale @{text "vars"} above.  Moreover we have all necessary
+locale \<open>vars\<close> above.  Moreover we have all necessary
 projection and injection assumptions available. These assumptions
 together allow us to establish state space @{term "varsX"} as an
 interpretation of both instances of locale @{term "vars"}. Hence we
-inherit both variants of theorem @{text "foo"}: @{text "s\<langle>N := 2\<rangle>\<cdot>B =
-s\<cdot>B"} as well as @{text "s\<langle>n := 2\<rangle>\<cdot>b = s\<cdot>b"}. These are immediate
+inherit both variants of theorem \<open>foo\<close>: \<open>s\<langle>N := 2\<rangle>\<cdot>B =
+s\<cdot>B\<close> as well as \<open>s\<langle>n := 2\<rangle>\<cdot>b = s\<cdot>b\<close>. These are immediate
 consequences of the locale interpretation action.
 
 The declarations for syntax and the distinctness theorems also observe
 the morphisms generated by the locale package due to the renaming
-@{term "n = N"}: *}
+@{term "n = N"}:\<close>
 
 lemma (in varsX) foo: "s\<langle>N := 2\<rangle>\<cdot>x = s\<cdot>x" by simp
 
-text {* To assure scalability towards many distinct names, the
+text \<open>To assure scalability towards many distinct names, the
 distinctness predicate is refined to operate on balanced trees. Thus
 we get logarithmic certificates for the distinctness of two names by
 the distinctness of the paths in the tree. Asked for the distinctness
@@ -118,9 +117,9 @@ certificate corresponding to the different paths.  Merging state
 spaces requires to prove that the combined distinctness assumption
 implies the distinctness assumptions of the components.  Such a proof
 is of the order $m \cdot \log n$, where $n$ and $m$ are the number of
-nodes in the larger and smaller tree, respectively.*}
+nodes in the larger and smaller tree, respectively.\<close>
 
-text {* We continue with more examples. *}
+text \<open>We continue with more examples.\<close>
 
 statespace 'a foo = 
   f::"nat\<Rightarrow>nat"
@@ -154,9 +153,9 @@ lemma (in bar) bar1:
   shows "(s\<langle>b:=True\<rangle>)\<cdot>c = s\<cdot>c"
   by simp
 
-text {* You can define a derived state space by inheriting existing state spaces, renaming
+text \<open>You can define a derived state space by inheriting existing state spaces, renaming
 of components if you like, and by declaring new components.
-*}
+\<close>
 
 statespace ('a,'b) loo = 'a foo + bar [b=B,c=C] +
   X::'b
@@ -165,13 +164,13 @@ lemma (in loo) loo1:
   shows "s\<langle>a:=i\<rangle>\<cdot>B = s\<cdot>B"
 proof -
   thm foo1
-  txt {* The Lemma @{thm [source] foo1} from the parent state space 
-         is also available here: \begin{center}@{thm foo1}\end{center} *}
+  txt \<open>The Lemma @{thm [source] foo1} from the parent state space 
+         is also available here: \begin{center}@{thm foo1}\end{center}\<close>
   have "s<a:=i>\<cdot>a = i"
     by (rule foo1)
   thm bar1
-  txt {* Note the renaming of the parameters in Lemma @{thm [source] bar1}: 
-         \begin{center}@{thm bar1}\end{center} *}
+  txt \<open>Note the renaming of the parameters in Lemma @{thm [source] bar1}: 
+         \begin{center}@{thm bar1}\end{center}\<close>
   have "s<B:=True>\<cdot>C = s\<cdot>C"
     by (rule bar1)
   show ?thesis
@@ -203,9 +202,9 @@ locale fooX = foo +
 *)
 
 (* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ *)
-text {* There are known problems with syntax-declarations. They currently
+text \<open>There are known problems with syntax-declarations. They currently
 only work, when the context is already built. Hopefully this will be 
-implemented correctly in future Isabelle versions. *}
+implemented correctly in future Isabelle versions.\<close>
 
 (*
 lemma 
@@ -222,23 +221,23 @@ lemma
   shows "s<a := i>\<cdot>a = i"
 *)
 
-text {* It would be nice to have nested state spaces. This is
+text \<open>It would be nice to have nested state spaces. This is
 logically no problem. From the locale-implementation side this may be
 something like an 'includes' into a locale. When there is a more
 elaborate locale infrastructure in place this may be an easy exercise.
-*} 
+\<close> 
 
 
-subsection {* Benchmarks *}
+subsection \<open>Benchmarks\<close>
 
-text {* Here are some bigger examples for benchmarking. *}
+text \<open>Here are some bigger examples for benchmarking.\<close>
 
-ML {*
+ML \<open>
   fun make_benchmark n =
     writeln (Active.sendback_markup []
       ("statespace benchmark" ^ string_of_int n ^ " =\n" ^
         (cat_lines (map (fn i => "A" ^ string_of_int i ^ "::nat") (1 upto n)))));
-*}
+\<close>
 
 text "0.2s"
 statespace benchmark100 = A1::nat A2::nat A3::nat A4::nat A5::nat

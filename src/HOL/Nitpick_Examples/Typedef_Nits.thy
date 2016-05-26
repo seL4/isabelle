@@ -5,7 +5,7 @@
 Examples featuring Nitpick applied to typedefs.
 *)
 
-section {* Examples Featuring Nitpick Applied to Typedefs *}
+section \<open>Examples Featuring Nitpick Applied to Typedefs\<close>
 
 theory Typedef_Nits
 imports Complex_Main

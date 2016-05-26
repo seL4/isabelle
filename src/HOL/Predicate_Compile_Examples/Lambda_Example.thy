@@ -2,7 +2,7 @@ theory Lambda_Example
 imports "~~/src/HOL/Library/Code_Prolog"
 begin
 
-subsection {* Lambda *}
+subsection \<open>Lambda\<close>
 
 datatype type =
     Atom nat
@@ -56,7 +56,7 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
   | appR [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> u \<degree> s \<rightarrow>\<^sub>\<beta> u \<degree> t"
   | abs [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> Abs T s \<rightarrow>\<^sub>\<beta> Abs T t"
 
-subsection {* Inductive definitions for ordering on naturals *}
+subsection \<open>Inductive definitions for ordering on naturals\<close>
 
 inductive less_nat
 where
@@ -77,28 +77,28 @@ done
 lemma [code_pred_inline]: "(x::nat) + 1 = Suc x"
 by simp
 
-section {* Manual setup to find counterexample *}
+section \<open>Manual setup to find counterexample\<close>
 
-setup {*
+setup \<open>
   Context.theory_map
     (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals)))
-*}
+\<close>
 
-setup {* Code_Prolog.map_code_options (K 
+setup \<open>Code_Prolog.map_code_options (K 
   { ensure_groundness = true,
     limit_globally = NONE,
     limited_types = [(@{typ nat}, 1), (@{typ "type"}, 1), (@{typ dB}, 1), (@{typ "type list"}, 1)],
     limited_predicates = [(["typing"], 2), (["nthel1"], 2)],
     replacing = [(("typing", "limited_typing"), "quickcheck"),
                  (("nthel1", "limited_nthel1"), "lim_typing")],
-    manual_reorder = []}) *}
+    manual_reorder = []})\<close>
 
 lemma
   "\<Gamma> \<turnstile> t : U \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> \<Gamma> \<turnstile> t' : U"
 quickcheck[tester = prolog, iterations = 1, expect = counterexample]
 oops
 
-text {* Verifying that the found counterexample really is one by means of a proof *}
+text \<open>Verifying that the found counterexample really is one by means of a proof\<close>
 
 lemma
 assumes

@@ -5,7 +5,7 @@
 Ordinal arithmetic.
 *)
 
-section {* Ordinal Arithmetic *}
+section \<open>Ordinal Arithmetic\<close>
 
 theory Ordinal_Arithmetic
 imports Wellorder_Constructions
@@ -252,7 +252,7 @@ proof (unfold wf_eq_minimal2, intro allI impI, elim conjE)
   fix B
   assume *: "B \<subseteq> Field {((x,y1), (x,y2)) . x \<in> A \<and> (y1, y2) \<in> r}" and "B \<noteq> {}"
   from image_mono[OF *, of snd] have "snd ` B \<subseteq> Field r" unfolding Field_def by force
-  with `B \<noteq> {}` obtain x where x: "x \<in> snd ` B" "\<forall>x'\<in>snd ` B. (x', x) \<notin> r"
+  with \<open>B \<noteq> {}\<close> obtain x where x: "x \<in> snd ` B" "\<forall>x'\<in>snd ` B. (x', x) \<notin> r"
     using spec[OF assms[unfolded wf_eq_minimal2], of "snd ` B"] by auto
   then obtain a where "(a, x) \<in> B" by auto
   moreover
@@ -271,7 +271,7 @@ proof (unfold wf_eq_minimal2, intro allI impI, elim conjE)
   fix B
   assume *: "B \<subseteq> Field {((x1, y), (x2, y)). (x1, x2) \<in> r \<and> y \<in> A}" and "B \<noteq> {}"
   from image_mono[OF *, of fst] have "fst ` B \<subseteq> Field r" unfolding Field_def by force
-  with `B \<noteq> {}` obtain x where x: "x \<in> fst ` B" "\<forall>x'\<in>fst ` B. (x', x) \<notin> r"
+  with \<open>B \<noteq> {}\<close> obtain x where x: "x \<in> fst ` B" "\<forall>x'\<in>fst ` B. (x', x) \<notin> r"
     using spec[OF assms[unfolded wf_eq_minimal2], of "fst ` B"] by auto
   then obtain a where "(x, a) \<in> B" by auto
   moreover
@@ -364,9 +364,9 @@ lemma fin_support_Field_osum:
   (f o Inl) \<in> fin_support z A \<and> (f o Inr) \<in> fin_support z B" (is "?L \<longleftrightarrow> ?R1 \<and> ?R2")
 proof safe
   assume ?L
-  from `?L` show ?R1 unfolding fin_support_def support_def
+  from \<open>?L\<close> show ?R1 unfolding fin_support_def support_def
     by (fastforce simp: image_iff elim: finite_surj[of _ _ "case_sum id undefined"])
-  from `?L` show ?R2 unfolding fin_support_def support_def
+  from \<open>?L\<close> show ?R2 unfolding fin_support_def support_def
     by (fastforce simp: image_iff elim: finite_surj[of _ _ "case_sum undefined id"])
 next
   assume ?R1 ?R2
@@ -618,7 +618,7 @@ proof (unfold trans_def, safe)
       show ?thesis
       proof (cases "?fg = ?gh \<longrightarrow> f ?fg \<noteq> h ?gh")
         case True
-        show ?thesis using max_fun_diff_max2[of f g h, OF True] * `f \<noteq> h` max_fun_diff_in
+        show ?thesis using max_fun_diff_max2[of f g h, OF True] * \<open>f \<noteq> h\<close> max_fun_diff_in
           r.max2_iff[OF FINFUNCD FINFUNCD] r.max2_equals1[OF FINFUNCD FINFUNCD] max_fun_diff_le_eq
           s.in_notinI[OF disjI1] unfolding oexp_def Let_def s.max2_def mem_Collect_eq by safe metis
       next
@@ -685,10 +685,10 @@ proof (intro ballI conjI)
   show "SUPP f \<noteq> {}"
   proof (rule ccontr, unfold not_not)
     assume "SUPP f = {}"
-    moreover from `f \<in> F` assms(1) have "f \<in> FINFUNC" by blast
+    moreover from \<open>f \<in> F\<close> assms(1) have "f \<in> FINFUNC" by blast
     ultimately have "f = const"
       by (auto simp: fun_eq_iff support_def FinFunc_def Func_def const_def)
-    with assms(2) `f \<in> F` show False by blast
+    with assms(2) \<open>f \<in> F\<close> show False by blast
   qed
 qed
 
@@ -787,7 +787,7 @@ next
                 and SUPPG: "\<forall>g \<in> G. finite (SUPP g) \<and> SUPP g \<noteq> {} \<and> SUPP g \<subseteq> Field s"
                 using maxim_isMaxim_support support_not_const by auto
               define y' where "y' = s.minim {s.maxim (SUPP f) | f. f \<in> G}"
-              from G SUPPG maxG `G \<noteq> {}` have y'min: "s.isMinim {s.maxim (SUPP f) | f. f \<in> G} y'"
+              from G SUPPG maxG \<open>G \<noteq> {}\<close> have y'min: "s.isMinim {s.maxim (SUPP f) | f. f \<in> G} y'"
                 unfolding y'_def by (intro s.minim_isMinim) (auto simp: s.isMaxim_def)
               moreover
               have "\<forall>g \<in> G. z \<notin> SUPP g" unfolding support_def G_def by auto
@@ -804,7 +804,7 @@ next
                 unfolding s.isMinim_def s.isMaxim_def by auto
               with zy have "y' \<noteq> y" "(y', y) \<in> s" using antisymD[OF s.ANTISYM] transD[OF s.TRANS]
                 by blast+
-              moreover from `G \<noteq> {}` have "\<exists>g \<in> G. y' = wo_rel.maxim s (SUPP g)" using y'min
+              moreover from \<open>G \<noteq> {}\<close> have "\<exists>g \<in> G. y' = wo_rel.maxim s (SUPP g)" using y'min
                 by (auto simp: G_def s.isMinim_def)
               ultimately show ?thesis using mp[OF spec[OF mp[OF spec[OF 1]]], of y' G] G by auto
             qed simp
@@ -1315,8 +1315,8 @@ proof -
     fix g h assume gh: "g \<in> FinFunc r s" "h \<in> FinFunc r s" "F g \<noteq> F h"
       "let m = s.max_fun_diff g h in (g m, h m) \<in> r"
     hence "g \<noteq> h" by auto
-    note max_fun_diff_in = rs.max_fun_diff_in[OF `g \<noteq> h` gh(1,2)]
-    and max_fun_diff_max = rs.max_fun_diff_max[OF `g \<noteq> h` gh(1,2)]
+    note max_fun_diff_in = rs.max_fun_diff_in[OF \<open>g \<noteq> h\<close> gh(1,2)]
+    and max_fun_diff_max = rs.max_fun_diff_max[OF \<open>g \<noteq> h\<close> gh(1,2)]
     with *(4) invff *(2) have "t.max_fun_diff (F g) (F h) = f (s.max_fun_diff g h)"
       unfolding t.max_fun_diff_def compat_def
       by (intro t.maxim_equality) (auto simp: t.isMaxim_def F_def dest: injfD)
@@ -1401,14 +1401,14 @@ proof -
   next
     case False thus ?thesis
     proof (cases "r = {}")
-      case True thus ?thesis using t `t \<noteq> {}` st.oexp_Well_order ozero_ordLeq[unfolded ozero_def]
+      case True thus ?thesis using t \<open>t \<noteq> {}\<close> st.oexp_Well_order ozero_ordLeq[unfolded ozero_def]
         by auto
     next
       case False
       from assms obtain f where f: "embed r s f" unfolding ordLeq_def by blast
       hence f_underS: "\<forall>a\<in>Field r. f a \<in> Field s \<and> f ` underS r a \<subseteq> underS s (f a)"
         using embed_in_Field[OF rt.rWELL f] embed_underS2[OF rt.rWELL st.rWELL f] by auto
-      from f `t \<noteq> {}` False have *: "Field r \<noteq> {}" "Field s \<noteq> {}" "Field t \<noteq> {}"
+      from f \<open>t \<noteq> {}\<close> False have *: "Field r \<noteq> {}" "Field s \<noteq> {}" "Field t \<noteq> {}"
         unfolding Field_def embed_def under_def bij_betw_def by auto
       with f obtain x where "s.zero = f x" "x \<in> Field r" unfolding embed_def bij_betw_def
         using embed_in_Field[OF r.WELL f] s.zero_under set_mp[OF under_Field[of r]] by blast
@@ -1435,11 +1435,11 @@ proof -
             by simp metis
           moreover
           with hg have "t.max_fun_diff (?f h) (?f g) = t.max_fun_diff h g" unfolding rt.oexp_def
-            using rt.max_fun_diff[OF `h \<noteq> g`] rt.max_fun_diff_in[OF `h \<noteq> g`]
+            using rt.max_fun_diff[OF \<open>h \<noteq> g\<close>] rt.max_fun_diff_in[OF \<open>h \<noteq> g\<close>]
             by (subst t.max_fun_diff_def, intro t.maxim_equality)
               (auto simp: t.isMaxim_def intro: inj_onD[OF inj] intro!: rt.max_fun_diff_max)
           with Field_fg Field_fh hg fz f_underS compat neq have "(?f h, ?f g) \<in> st.oexp"
-             using rt.max_fun_diff[OF `h \<noteq> g`] rt.max_fun_diff_in[OF `h \<noteq> g`] unfolding st.Field_oexp
+             using rt.max_fun_diff[OF \<open>h \<noteq> g\<close>] rt.max_fun_diff_in[OF \<open>h \<noteq> g\<close>] unfolding st.Field_oexp
              unfolding rt.oexp_def st.oexp_def Let_def compat_def by auto
           ultimately show "?f h \<in> underS (s ^o t) (?f g)" unfolding underS_def by auto
         qed
@@ -1497,9 +1497,9 @@ lemma FinFunc_osum:
   (is "?L = (?R1 \<and> ?R2)")
 proof safe
   assume ?L
-  from `?L` show ?R1 unfolding FinFunc_def Field_osum Func_def Int_iff fin_support_Field_osum o_def
+  from \<open>?L\<close> show ?R1 unfolding FinFunc_def Field_osum Func_def Int_iff fin_support_Field_osum o_def
     by (auto split: sum.splits)
-  from `?L` show ?R2 unfolding FinFunc_def Field_osum Func_def Int_iff fin_support_Field_osum o_def
+  from \<open>?L\<close> show ?R2 unfolding FinFunc_def Field_osum Func_def Int_iff fin_support_Field_osum o_def
     by (auto split: sum.splits)
 next
   assume ?R1 ?R2
@@ -1674,14 +1674,14 @@ proof (cases "r = {}")
   interpret rst: wo_rel2 "r ^o s" t by unfold_locales (rule oexp_Well_order[OF r s], rule t)
   show ?thesis
   proof (cases "s = {} \<or> t = {}")
-    case True with `r = {}` show ?thesis
+    case True with \<open>r = {}\<close> show ?thesis
       by (auto simp: oexp_empty[OF oexp_Well_order[OF Well_order_empty s]]
         intro!: ordIso_transitive[OF ordIso_symmetric[OF oone_ordIso] oone_ordIso]
           ordIso_transitive[OF oone_ordIso_oexp[OF ordIso_symmetric[OF oone_ordIso] t] oone_ordIso])
   next
      case False
      moreover hence "s *o t \<noteq> {}" unfolding oprod_def Field_def by fastforce
-     ultimately show ?thesis using `r = {}` ozero_ordIso
+     ultimately show ?thesis using \<open>r = {}\<close> ozero_ordIso
        by (auto simp add: s t oprod_Well_order ozero_def)
   qed
 next

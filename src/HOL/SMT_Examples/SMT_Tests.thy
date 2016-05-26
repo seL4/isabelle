@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Muenchen
 *)
 
-section {* Tests for the SMT binding *}
+section \<open>Tests for the SMT binding\<close>
 
 theory SMT_Tests
 imports Complex_Main
@@ -10,10 +10,10 @@ begin
 
 smt_status
 
-text {* Most examples are taken from various Isabelle theories and from HOL4. *}
+text \<open>Most examples are taken from various Isabelle theories and from HOL4.\<close>
 
 
-section {* Propositional logic *}
+section \<open>Propositional logic\<close>
 
 lemma
   "True"
@@ -81,7 +81,7 @@ lemma
   by smt+
 
 
-section {* First-order logic with equality *}
+section \<open>First-order logic with equality\<close>
 
 lemma
   "x = x"
@@ -181,7 +181,7 @@ lemma
   by smt+
 
 
-section {* Guidance for quantifier heuristics: patterns *}
+section \<open>Guidance for quantifier heuristics: patterns\<close>
 
 lemma
   assumes "\<forall>x.
@@ -198,7 +198,7 @@ lemma
   using assms by smt
 
 
-section {* Meta-logical connectives *}
+section \<open>Meta-logical connectives\<close>
 
 lemma
   "True \<Longrightarrow> True"
@@ -222,7 +222,7 @@ lemma
   by smt+
 
 
-section {* Integers *}
+section \<open>Integers\<close>
 
 lemma
   "(0::int) = 0"
@@ -377,7 +377,7 @@ lemma
   by smt+
 
 
-section {* Reals *}
+section \<open>Reals\<close>
 
 lemma
   "(0::real) = 0"
@@ -487,11 +487,11 @@ lemma
   by smt+
 
 
-section {* Datatypes, Records, and Typedefs *}
+section \<open>Datatypes, Records, and Typedefs\<close>
 
-subsection {* Without support by the SMT solver *}
+subsection \<open>Without support by the SMT solver\<close>
 
-subsubsection {* Algebraic datatypes *}
+subsubsection \<open>Algebraic datatypes\<close>
 
 lemma
   "x = fst (x, y)"
@@ -529,7 +529,7 @@ lemma
   by smt+
 
 
-subsubsection {* Records *}
+subsubsection \<open>Records\<close>
 
 record point =
   cx :: int
@@ -594,7 +594,7 @@ lemma
   done
 
 
-subsubsection {* Type definitions *}
+subsubsection \<open>Type definitions\<close>
 
 typedef int' = "UNIV::int set" by (rule UNIV_witness)
 
@@ -610,9 +610,9 @@ lemma
   by (smt n0_def n1_def n2_def plus'_def Abs_int'_inverse Rep_int'_inverse UNIV_I)+
 
 
-subsection {* With support by the SMT solver (but without proofs) *}
+subsection \<open>With support by the SMT solver (but without proofs)\<close>
 
-subsubsection {* Algebraic datatypes *}
+subsubsection \<open>Algebraic datatypes\<close>
 
 lemma
   "x = fst (x, y)"
@@ -653,7 +653,7 @@ lemma
   by smt+
 
 
-subsubsection {* Records *}
+subsubsection \<open>Records\<close>
 
 lemma
   "\<lparr>cx = x, cy = y\<rparr> = \<lparr>cx = x', cy = y'\<rparr> \<Longrightarrow> x = x' \<and> y = y'"
@@ -716,7 +716,7 @@ lemma
   by smt
 
 
-subsubsection {* Type definitions *}
+subsubsection \<open>Type definitions\<close>
 
 lemma
   "n0 \<noteq> n1"
@@ -726,7 +726,7 @@ lemma
   by (smt n0_def n1_def n2_def plus'_def)+
 
 
-section {* Function updates *}
+section \<open>Function updates\<close>
 
 lemma
   "(f (i := v)) i = v"
@@ -740,7 +740,7 @@ lemma
   by smt+
 
 
-section {* Sets *}
+section \<open>Sets\<close>
 
 lemma Empty: "x \<notin> {}" by simp
 

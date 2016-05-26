@@ -5,7 +5,7 @@
 Examples from the Nitpick manual.
 *)
 
-section {* Examples from the Nitpick Manual *}
+section \<open>Examples from the Nitpick Manual\<close>
 
 (* The "expect" arguments to Nitpick in this theory and the other example
    theories are there so that the example can also serve as a regression test
@@ -15,12 +15,12 @@ theory Manual_Nits
 imports Real "~~/src/HOL/Library/Quotient_Product"
 begin
 
-section {* 2. First Steps *}
+section \<open>2. First Steps\<close>
 
 nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 240]
 
 
-subsection {* 2.1. Propositional Logic *}
+subsection \<open>2.1. Propositional Logic\<close>
 
 lemma "P \<longleftrightarrow> Q"
 nitpick [expect = genuine]
@@ -30,14 +30,14 @@ nitpick [expect = genuine] 2
 oops
 
 
-subsection {* 2.2. Type Variables *}
+subsection \<open>2.2. Type Variables\<close>
 
 lemma "x \<in> A \<Longrightarrow> (THE y. y \<in> A) \<in> A"
 nitpick [verbose, expect = genuine]
 oops
 
 
-subsection {* 2.3. Constants *}
+subsection \<open>2.3. Constants\<close>
 
 lemma "x \<in> A \<Longrightarrow> (THE y. y \<in> A) \<in> A"
 nitpick [show_consts, expect = genuine]
@@ -51,7 +51,7 @@ nitpick [card 'a = 1-50, expect = none]
 by (metis the_equality)
 
 
-subsection {* 2.4. Skolemization *}
+subsection \<open>2.4. Skolemization\<close>
 
 lemma "\<exists>g. \<forall>x. g (f x) = x \<Longrightarrow> \<forall>y. \<exists>x. y = f x"
 nitpick [expect = genuine]
@@ -66,7 +66,7 @@ nitpick [expect = genuine]
 oops
 
 
-subsection {* 2.5. Natural Numbers and Integers *}
+subsection \<open>2.5. Natural Numbers and Integers\<close>
 
 lemma "\<lbrakk>i \<le> j; n \<le> (m::int)\<rbrakk> \<Longrightarrow> i * n + j * m \<le> i * m + j * n"
 nitpick [expect = genuine]
@@ -87,7 +87,7 @@ nitpick [card nat = 2, expect = none]
 oops
 
 
-subsection {* 2.6. Inductive Datatypes *}
+subsection \<open>2.6. Inductive Datatypes\<close>
 
 lemma "hd (xs @ [y, y]) = hd xs"
 nitpick [expect = genuine]
@@ -99,7 +99,7 @@ nitpick [show_types, expect = genuine]
 oops
 
 
-subsection {* 2.7. Typedefs, Records, Rationals, and Reals *}
+subsection \<open>2.7. Typedefs, Records, Rationals, and Reals\<close>
 
 definition "three = {0::nat, 1, 2}"
 typedef three = three
@@ -129,16 +129,16 @@ lemma "add x y = add x x"
 nitpick [show_types, expect = genuine]
 oops
 
-ML {*
+ML \<open>
 fun my_int_postproc _ _ _ T (Const _ $ (Const _ $ t1 $ t2)) =
     HOLogic.mk_number T (snd (HOLogic.dest_number t1)
                          - snd (HOLogic.dest_number t2))
   | my_int_postproc _ _ _ _ t = t
-*}
+\<close>
 
-declaration {*
+declaration \<open>
 Nitpick_Model.register_term_postprocessor @{typ my_int} my_int_postproc
-*}
+\<close>
 
 lemma "add x y = add x x"
 nitpick [show_types]
@@ -157,7 +157,7 @@ nitpick [show_types, expect = genuine]
 oops
 
 
-subsection {* 2.8. Inductive and Coinductive Predicates *}
+subsection \<open>2.8. Inductive and Coinductive Predicates\<close>
 
 inductive even where
 "even 0" |
@@ -200,7 +200,7 @@ nitpick [card nat = 4, show_consts, expect = genuine]
 oops
 
 
-subsection {* 2.9. Coinductive Datatypes *}
+subsection \<open>2.9. Coinductive Datatypes\<close>
 
 codatatype 'a llist = LNil | LCons 'a "'a llist"
 
@@ -221,7 +221,7 @@ nitpick [card = 1-5, expect = none]
 sorry
 
 
-subsection {* 2.10. Boxing *}
+subsection \<open>2.10. Boxing\<close>
 
 datatype tm = Var nat | Lam tm | App tm tm
 
@@ -258,7 +258,7 @@ nitpick [card = 1-5, expect = none]
 sorry
 
 
-subsection {* 2.11. Scope Monotonicity *}
+subsection \<open>2.11. Scope Monotonicity\<close>
 
 lemma "length xs = length ys \<Longrightarrow> rev (zip xs ys) = zip xs (rev ys)"
 nitpick [verbose, expect = genuine]
@@ -270,7 +270,7 @@ nitpick [expect = genuine]
 oops
 
 
-subsection {* 2.12. Inductive Properties *}
+subsection \<open>2.12. Inductive Properties\<close>
 
 inductive_set reach where
 "(4::nat) \<in> reach" |
@@ -299,12 +299,12 @@ lemma "n \<in> reach \<Longrightarrow> 2 dvd n \<and> n \<ge> 4"
 by (induct set: reach) arith+
 
 
-section {* 3. Case Studies *}
+section \<open>3. Case Studies\<close>
 
 nitpick_params [max_potential = 0]
 
 
-subsection {* 3.1. A Context-Free Grammar *}
+subsection \<open>3.1. A Context-Free Grammar\<close>
 
 datatype alphabet = a | b
 
@@ -379,7 +379,7 @@ nitpick [card = 1-5, expect = none]
 sorry
 
 
-subsection {* 3.2. AA Trees *}
+subsection \<open>3.2. AA Trees\<close>
 
 datatype 'a aa_tree = \<Lambda> | N "'a::linorder" nat "'a aa_tree" "'a aa_tree"
 

@@ -10,11 +10,10 @@ imports Primes
 begin
 
 text \<open>
-  The @{text dvd} relation, GCD, Euclid's extended algorithm, primes,
-  congruences (all on the Integers).  Comparable to theory @{text
-  Primes}, but @{text dvd} is included here as it is not present in
+  The \<open>dvd\<close> relation, GCD, Euclid's extended algorithm, primes,
+  congruences (all on the Integers).  Comparable to theory \<open>Primes\<close>, but \<open>dvd\<close> is included here as it is not present in
   main HOL.  Also includes extended GCD and congruences not present in
-  @{text Primes}.
+  \<open>Primes\<close>.
 \<close>
 
 

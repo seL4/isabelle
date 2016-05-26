@@ -2,19 +2,19 @@
     Author:     John Matthews, Galois Connections; Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 
-section {* Monadic references *}
+section \<open>Monadic references\<close>
 
 theory Ref
 imports Array
 begin
 
-text {*
+text \<open>
   Imperative reference operations; modeled after their ML counterparts.
   See @{url "http://caml.inria.fr/pub/docs/manual-caml-light/node14.15.html"}
   and @{url "http://www.smlnj.org/doc/Conversion/top-level-comparison.html"}
-*}
+\<close>
 
-subsection {* Primitives *}
+subsection \<open>Primitives\<close>
 
 definition present :: "heap \<Rightarrow> 'a::heap ref \<Rightarrow> bool" where
   "present h r \<longleftrightarrow> addr_of_ref r < lim h"
@@ -36,7 +36,7 @@ definition noteq :: "'a::heap ref \<Rightarrow> 'b::heap ref \<Rightarrow> bool"
   "r =!= s \<longleftrightarrow> TYPEREP('a) \<noteq> TYPEREP('b) \<or> addr_of_ref r \<noteq> addr_of_ref s"
 
 
-subsection {* Monad operations *}
+subsection \<open>Monad operations\<close>
 
 definition ref :: "'a::heap \<Rightarrow> 'a ref Heap" where
   [code del]: "ref v = Heap_Monad.heap (alloc v)"
@@ -56,12 +56,12 @@ definition change :: "('a::heap \<Rightarrow> 'a) \<Rightarrow> 'a ref \<Rightar
    }"
 
 
-subsection {* Properties *}
+subsection \<open>Properties\<close>
 
-text {* Primitives *}
+text \<open>Primitives\<close>
 
 lemma noteq_sym: "r =!= s \<Longrightarrow> s =!= r"
-  and unequal [simp]: "r \<noteq> r' \<longleftrightarrow> r =!= r'" -- "same types!"
+  and unequal [simp]: "r \<noteq> r' \<longleftrightarrow> r =!= r'" \<comment> "same types!"
   by (auto simp add: noteq_def)
 
 lemma noteq_irrefl: "r =!= r \<Longrightarrow> False"
@@ -133,7 +133,7 @@ lemma noteq_I:
   by (auto simp add: noteq_def present_def)
 
 
-text {* Monad operations *}
+text \<open>Monad operations\<close>
 
 lemma execute_ref [execute_simps]:
   "execute (ref v) h = Some (alloc v h)"
@@ -216,7 +216,7 @@ lemma update_change [code]:
   by (rule Heap_eqI) (simp add: change_def lookup_chain)
 
 
-text {* Non-interaction between imperative arrays and imperative references *}
+text \<open>Non-interaction between imperative arrays and imperative references\<close>
 
 lemma array_get_set [simp]:
   "Array.get (set r v h) = Array.get h"
@@ -261,9 +261,9 @@ lemma set_array_set_swap:
 hide_const (open) present get set alloc noteq lookup update change
 
 
-subsection {* Code generator setup *}
+subsection \<open>Code generator setup\<close>
 
-text {* Intermediate operation avoids invariance problem in @{text Scala} (similar to value restriction) *}
+text \<open>Intermediate operation avoids invariance problem in \<open>Scala\<close> (similar to value restriction)\<close>
 
 definition ref' where
   [code del]: "ref' = ref"
@@ -273,7 +273,7 @@ lemma [code]:
   by (simp add: ref'_def)
 
 
-text {* SML / Eval *}
+text \<open>SML / Eval\<close>
 
 code_printing type_constructor ref \<rightharpoonup> (SML) "_/ ref"
 code_printing type_constructor ref \<rightharpoonup> (Eval) "_/ Unsynchronized.ref"
@@ -287,7 +287,7 @@ code_printing constant "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> b
 code_reserved Eval Unsynchronized
 
 
-text {* OCaml *}
+text \<open>OCaml\<close>
 
 code_printing type_constructor ref \<rightharpoonup> (OCaml) "_/ ref"
 code_printing constant Ref \<rightharpoonup> (OCaml) "failwith/ \"bare Ref\""
@@ -299,7 +299,7 @@ code_printing constant "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> b
 code_reserved OCaml ref
 
 
-text {* Haskell *}
+text \<open>Haskell\<close>
 
 code_printing type_constructor ref \<rightharpoonup> (Haskell) "Heap.STRef/ Heap.RealWorld/ _"
 code_printing constant Ref \<rightharpoonup> (Haskell) "error/ \"bare Ref\""
@@ -310,7 +310,7 @@ code_printing constant "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> b
 code_printing class_instance ref :: HOL.equal \<rightharpoonup> (Haskell) -
 
 
-text {* Scala *}
+text \<open>Scala\<close>
 
 code_printing type_constructor ref \<rightharpoonup> (Scala) "!Ref[_]"
 code_printing constant Ref \<rightharpoonup> (Scala) "!sys.error(\"bare Ref\")"

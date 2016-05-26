@@ -4,14 +4,14 @@
 Example that exercises Metis's Clausifier.
 *)
 
-section {* Example that Exercises Metis's Clausifier *}
+section \<open>Example that Exercises Metis's Clausifier\<close>
 
 theory Clausification
 imports Complex_Main
 begin
 
 
-text {* Definitional CNF for facts *}
+text \<open>Definitional CNF for facts\<close>
 
 declare [[meson_max_clauses = 10]]
 
@@ -83,7 +83,7 @@ lemma "(r 0 0 \<and> r 0 1 \<and> r 0 2 \<and> r 0 3) \<or>
 by (metis (full_types) rax)
 
 
-text {* Definitional CNF for goal *}
+text \<open>Definitional CNF for goal\<close>
 
 axiomatization p :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
 pax: "\<exists>b. \<forall>a. (p b a \<and> p 0 0 \<and> p 1 a) \<or> (p 0 1 \<and> p 1 0 \<and> p a b)"
@@ -109,7 +109,7 @@ lemma "\<exists>b. \<forall>a. \<exists>x. (p b a \<or> x) \<and> (p 0 0 \<or> x
 by (metis (full_types) pax)
 
 
-text {* New Skolemizer *}
+text \<open>New Skolemizer\<close>
 
 declare [[metis_new_skolem]]
 

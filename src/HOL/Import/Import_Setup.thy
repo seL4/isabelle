@@ -3,7 +3,7 @@
     Author:     Alexander Krauss, QAware GmbH
 *)
 
-section {* Importer machinery and required theorems *}
+section \<open>Importer machinery and required theorems\<close>
 
 theory Import_Setup
 imports Main "~~/src/HOL/Binomial"

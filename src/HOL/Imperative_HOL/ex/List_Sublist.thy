@@ -2,7 +2,7 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-section {* Slices of lists *}
+section \<open>Slices of lists\<close>
 
 theory List_Sublist
 imports "~~/src/HOL/Library/Multiset"
@@ -188,7 +188,7 @@ apply (case_tac i)
 apply auto
 done
 
-section {* Another sublist function *}
+section \<open>Another sublist function\<close>
 
 function sublist' :: "nat \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
@@ -199,7 +199,7 @@ where
 by pat_completeness auto
 termination by lexicographic_order
 
-subsection {* Proving equivalence to the other sublist command *}
+subsection \<open>Proving equivalence to the other sublist command\<close>
 
 lemma sublist'_sublist: "sublist' n m xs = sublist xs {j. n \<le> j \<and> j < m}"
 apply (induct xs arbitrary: n m)
@@ -227,7 +227,7 @@ apply (simp add: sublist_Cons sublist'_sublist)
 done
 
 
-subsection {* Showing equivalence to use of drop and take for definition *}
+subsection \<open>Showing equivalence to use of drop and take for definition\<close>
 
 lemma "sublist' n m xs = take (m - n) (drop n xs)"
 apply (induct xs arbitrary: n m)
@@ -239,7 +239,7 @@ apply simp
 apply simp
 done
 
-subsection {* General lemma about sublist *}
+subsection \<open>General lemma about sublist\<close>
 
 lemma sublist'_Nil[simp]: "sublist' i j [] = []"
 by simp

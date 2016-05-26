@@ -5,7 +5,7 @@
 Metis example featuring binary trees.
 *)
 
-section {* Metis Example Featuring Binary Trees *}
+section \<open>Metis Example Featuring Binary Trees\<close>
 
 theory Binary_Tree
 imports Main
@@ -53,7 +53,7 @@ primrec append :: "'a bt => 'a bt => 'a bt" where
   "append Lf t = t"
 | "append (Br a t1 t2) t = Br a (append t1 t) (append t2 t)"
 
-text {* \medskip BT simplification *}
+text \<open>\medskip BT simplification\<close>
 
 lemma n_leaves_reflect: "n_leaves (reflect t) = n_leaves t"
 proof (induct t)
@@ -82,9 +82,9 @@ apply (induct t)
  apply (metis depth.simps(1) reflect.simps(1))
 by (metis depth.simps(2) max.commute reflect.simps(2))
 
-text {*
+text \<open>
 The famous relationship between the numbers of leaves and nodes.
-*}
+\<close>
 
 lemma n_leaves_nodes: "n_leaves t = Suc (n_nodes t)"
 apply (induct t)
@@ -197,9 +197,9 @@ apply (induct t)
               reflect.simps(1))
 by (metis preorder_reflect reflect_reflect_ident rev_swap)
 
-text {*
+text \<open>
 Analogues of the standard properties of the append function for lists.
-*}
+\<close>
 
 lemma append_assoc [simp]: "append (append t1 t2) t3 = append t1 (append t2 t3)"
 apply (induct t1)

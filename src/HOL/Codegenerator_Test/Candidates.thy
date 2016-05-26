@@ -1,7 +1,7 @@
 
 (* Author: Florian Haftmann, TU Muenchen *)
 
-section {* A huge collection of equations to generate code from *}
+section \<open>A huge collection of equations to generate code from\<close>
 
 theory Candidates
 imports
@@ -40,7 +40,7 @@ text \<open>Avoid popular infix.\<close>
 
 code_reserved SML upto
 
-text \<open>Explicit check in @{text OCaml} for correct precedence of let expressions in list expressions\<close>
+text \<open>Explicit check in \<open>OCaml\<close> for correct precedence of let expressions in list expressions\<close>
 
 definition funny_list :: "bool list"
 where
@@ -58,7 +58,7 @@ definition check_list :: unit
 where
   "check_list = (if funny_list = funny_list' then () else undefined)"
 
-text \<open>Explicit check in @{text Scala} for correct bracketing of abstractions\<close>
+text \<open>Explicit check in \<open>Scala\<close> for correct bracketing of abstractions\<close>
 
 definition funny_funs :: "(bool \<Rightarrow> bool) list \<Rightarrow> (bool \<Rightarrow> bool) list"
 where

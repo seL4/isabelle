@@ -4,11 +4,11 @@ begin
 
 declare [[values_timeout = 480.0]]
 
-section {* Formal Languages *}
+section \<open>Formal Languages\<close>
 
-subsection {* General Context Free Grammars *}
+subsection \<open>General Context Free Grammars\<close>
 
-text {* a contribution by Aditi Barthwal *}
+text \<open>a contribution by Aditi Barthwal\<close>
 
 datatype ('nts,'ts) symbol = NTS 'nts
                             | TS 'ts
@@ -73,7 +73,7 @@ code_pred [inductify, skip_proof] test2 .
 
 values "{rhs. test2 rhs}"
 
-subsection {* Some concrete Context Free Grammars *}
+subsection \<open>Some concrete Context Free Grammars\<close>
 
 datatype alphabet = a | b
 
@@ -133,9 +133,9 @@ code_pred (expected_modes: o => bool, i => bool) S\<^sub>4p .
 
 hide_const a b
 
-section {* Semantics of programming languages *}
+section \<open>Semantics of programming languages\<close>
 
-subsection {* IMP *}
+subsection \<open>IMP\<close>
 
 type_synonym var = nat
 type_synonym state = "int list"
@@ -162,7 +162,7 @@ values "{t. exec
  (While (%s. s!0 > 0) (Seq (Ass 0 (%s. s!0 - 1)) (Ass 1 (%s. s!1 + 1))))
  [3,5] t}"
 
-subsection {* Lambda *}
+subsection \<open>Lambda\<close>
 
 datatype type =
     Atom nat
@@ -229,13 +229,13 @@ code_pred [random_dseq] typing .
 
 values [random_dseq 1,1,5] 10 "{(\<Gamma>, t, T). \<Gamma> \<turnstile> t : T}"
 
-subsection {* A minimal example of yet another semantics *}
+subsection \<open>A minimal example of yet another semantics\<close>
 
-text {* thanks to Elke Salecker *}
+text \<open>thanks to Elke Salecker\<close>
 
 type_synonym vname = nat
 type_synonym vvalue = int
-type_synonym var_assign = "vname \<Rightarrow> vvalue"  --"variable assignment"
+type_synonym var_assign = "vname \<Rightarrow> vvalue"  \<comment>"variable assignment"
 
 datatype ir_expr = 
   IrConst vvalue
@@ -262,9 +262,9 @@ thm eval_var.equation
 
 values "{val. eval_var (Add (IrConst 1) (IrConst 2)) (| Env = (\<lambda>x. 0)|) val}"
 
-subsection {* Another semantics *}
+subsection \<open>Another semantics\<close>
 
-type_synonym name = nat --"For simplicity in examples"
+type_synonym name = nat \<comment>"For simplicity in examples"
 type_synonym state' = "name \<Rightarrow> nat"
 
 datatype aexp = N nat | V name | Plus aexp aexp
@@ -321,10 +321,10 @@ values [expected "{[Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (
      )))))))))))))))))))))))))))))))))))))))))]}"] "{list s 2|s. (SKIP, nth [42, 43]) \<Rightarrow> s}"
 
 
-subsection {* CCS *}
+subsection \<open>CCS\<close>
 
-text{* This example formalizes finite CCS processes without communication or
-recursion. For simplicity, labels are natural numbers. *}
+text\<open>This example formalizes finite CCS processes without communication or
+recursion. For simplicity, labels are natural numbers.\<close>
 
 datatype proc = nil | pre nat proc | or proc proc | par proc proc
 

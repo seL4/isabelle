@@ -2,9 +2,9 @@ theory SN
 imports Lam_Funs
 begin
 
-text {* Strong Normalisation proof from the Proofs and Types book *}
+text \<open>Strong Normalisation proof from the Proofs and Types book\<close>
 
-section {* Beta Reduction *}
+section \<open>Beta Reduction\<close>
 
 lemma subst_rename: 
   assumes a: "c\<sharp>t1"
@@ -110,7 +110,7 @@ using a
 by (nominal_induct M M' avoiding: x N rule: Beta.strong_induct)
    (auto simp add: fresh_atm subst_lemma fresh_fact)
 
-section {* types *}
+section \<open>types\<close>
 
 nominal_datatype ty =
     TVar "nat"
@@ -156,7 +156,7 @@ equivariance typing
 nominal_inductive typing
   by (simp_all add: abs_fresh fresh_ty)
 
-subsection {* a fact about beta *}
+subsection \<open>a fact about beta\<close>
 
 definition "NORMAL" :: "lam \<Rightarrow> bool" where
   "NORMAL t \<equiv> \<not>(\<exists>t'. t\<longrightarrow>\<^sub>\<beta> t')"
@@ -171,7 +171,7 @@ proof -
   thus "NORMAL (Var a)" by (auto simp add: NORMAL_def)
 qed
 
-text {* Inductive version of Strong Normalisation *}
+text \<open>Inductive version of Strong Normalisation\<close>
 inductive 
   SN :: "lam \<Rightarrow> bool"
 where
@@ -223,7 +223,7 @@ apply(assumption)+
 apply(blast)
 done
 
-section {* Candidates *}
+section \<open>Candidates\<close>
 
 nominal_primrec
   RED :: "ty \<Rightarrow> lam set"
@@ -232,7 +232,7 @@ where
 | "RED (\<tau>\<rightarrow>\<sigma>) =   {t. \<forall>u. (u\<in>RED \<tau> \<longrightarrow> (App t u)\<in>RED \<sigma>)}"
 by (rule TrueI)+
 
-text {* neutral terms *}
+text \<open>neutral terms\<close>
 definition NEUT :: "lam \<Rightarrow> bool" where
   "NEUT t \<equiv> (\<exists>a. t = Var a) \<or> (\<exists>t1 t2. t = App t1 t2)" 
 
@@ -270,7 +270,7 @@ proof -
   then show "SN (fst_app (App t s))" by simp
 qed
 
-section {* Candidates *}
+section \<open>Candidates\<close>
 
 definition "CR1" :: "ty \<Rightarrow> bool" where
   "CR1 \<tau> \<equiv> \<forall>t. (t\<in>RED \<tau> \<longrightarrow> SN t)"
@@ -338,7 +338,7 @@ proof (induct)
   ultimately show "App t u \<in> RED \<sigma>" using c3 by (simp add: CR3_def)
 qed 
 
-text {* properties of the candiadates *}
+text \<open>properties of the candiadates\<close>
 lemma RED_props: 
   shows "CR1 \<tau>" and "CR2 \<tau>" and "CR3 \<tau>"
 proof (nominal_induct \<tau> rule: ty.strong_induct)
@@ -390,10 +390,10 @@ next
   }
 qed
    
-text {* 
+text \<open>
   the next lemma not as simple as on paper, probably because of 
   the stronger double_SN induction 
-*} 
+\<close> 
 lemma abs_RED: 
   assumes asm: "\<forall>s\<in>RED \<tau>. t[x::=s]\<in>RED \<sigma>"
   shows "Lam [x].t\<in>RED (\<tau>\<rightarrow>\<sigma>)"
@@ -509,7 +509,7 @@ lemma all_RED:
   shows "\<theta><t> \<in> RED \<tau>"
 using a b
 proof(nominal_induct  avoiding: \<theta> rule: typing.strong_induct)
-  case (t3 a \<Gamma> \<sigma> t \<tau> \<theta>) --"lambda case"
+  case (t3 a \<Gamma> \<sigma> t \<tau> \<theta>) \<comment>"lambda case"
   have ih: "\<And>\<theta>. \<theta> closes ((a,\<sigma>)#\<Gamma>) \<Longrightarrow> \<theta><t> \<in> RED \<tau>" by fact
   have \<theta>_cond: "\<theta> closes \<Gamma>" by fact
   have fresh: "a\<sharp>\<Gamma>" "a\<sharp>\<theta>" by fact+
@@ -519,7 +519,7 @@ proof(nominal_induct  avoiding: \<theta> rule: typing.strong_induct)
   then show "\<theta><(Lam [a].t)> \<in> RED (\<sigma> \<rightarrow> \<tau>)" using fresh by simp
 qed auto
 
-section {* identity substitution generated from a context \<Gamma> *}
+section \<open>identity substitution generated from a context \<Gamma>\<close>
 fun
   "id" :: "(name\<times>ty) list \<Rightarrow> (name\<times>lam) list"
 where
@@ -547,12 +547,12 @@ lemma id_closes:
   shows "(id \<Gamma>) closes \<Gamma>"
 apply(auto)
 apply(simp add: id_maps)
-apply(subgoal_tac "CR3 T") --"A"
+apply(subgoal_tac "CR3 T") \<comment>"A"
 apply(drule CR3_implies_CR4)
 apply(simp add: CR4_def)
 apply(drule_tac x="Var x" in spec)
 apply(force simp add: NEUT_def NORMAL_Var)
---"A"
+\<comment>"A"
 apply(rule RED_props)
 done
 

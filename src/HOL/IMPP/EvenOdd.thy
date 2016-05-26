@@ -2,7 +2,7 @@
     Author:     David von Oheimb, TUM
 *)
 
-section {* Example of mutually recursive procedures verified with Hoare logic *}
+section \<open>Example of mutually recursive procedures verified with Hoare logic\<close>
 
 theory EvenOdd
 imports Main Misc

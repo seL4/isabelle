@@ -16,7 +16,7 @@ text \<open>
 subsection \<open>Specification of GCD on nats\<close>
 
 definition
-  is_gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where -- \<open>@{term gcd} as a relation\<close>
+  is_gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where \<comment> \<open>@{term gcd} as a relation\<close>
   "is_gcd m n p \<longleftrightarrow> p dvd m \<and> p dvd n \<and>
     (\<forall>d. d dvd m \<longrightarrow> d dvd n \<longrightarrow> d dvd p)"
 
@@ -69,7 +69,7 @@ lemma nat_gcd_1_right [simp, algebra]: "gcd m 1 = 1"
 declare gcd.simps [simp del]
 
 text \<open>
-  \medskip @{term "gcd m n"} divides @{text m} and @{text n}.  The
+  \medskip @{term "gcd m n"} divides \<open>m\<close> and \<open>n\<close>.  The
   conjunctions don't seem provable separately.
 \<close>
 
@@ -130,7 +130,7 @@ text \<open>
 \<close>
 
 lemma gcd_mult_distrib2: "k * gcd m n = gcd (k * m) (k * n)"
-    -- \<open>@{cite \<open>page 27\<close> davenport92}\<close>
+    \<comment> \<open>@{cite \<open>page 27\<close> davenport92}\<close>
   apply (induct m n rule: gcd_induct)
    apply simp
   apply (case_tac "k = 0")
@@ -697,7 +697,7 @@ lemma zgcd_left_commute: "zgcd k (zgcd m n) = zgcd m (zgcd k n)"
   done
 
 lemmas zgcd_ac = zgcd_assoc zgcd_commute zgcd_left_commute
-  -- \<open>addition is an AC-operator\<close>
+  \<comment> \<open>addition is an AC-operator\<close>
 
 lemma zgcd_zmult_distrib2: "0 \<le> k ==> k * zgcd m n = zgcd (k * m) (k * n)"
   by (simp del: minus_mult_right [symmetric]

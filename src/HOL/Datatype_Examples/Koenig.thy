@@ -6,7 +6,7 @@
 Koenig's lemma.
 *)
 
-section {* Koenig's Lemma *}
+section \<open>Koenig's Lemma\<close>
 
 theory Koenig
 imports TreeFI "~~/src/HOL/Library/Stream"

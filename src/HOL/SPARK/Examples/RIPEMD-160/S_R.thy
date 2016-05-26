@@ -12,7 +12,7 @@ spark_open "rmd/s_r"
 
 spark_vc function_s_r_2
 proof -
-  from `0 \<le> j` `j \<le> 79`
+  from \<open>0 \<le> j\<close> \<open>j \<le> 79\<close>
   show C: ?C1
     by (simp add: s'_def s'_list_def nth_map [symmetric, of _ _ int] del: fun_upd_apply)
       (simp add: nth_fun_of_list_eq [of _ _ undefined] del: fun_upd_apply)
@@ -21,7 +21,7 @@ proof -
     by (simp add: s'_list_def)
   moreover have "length s'_list = 80"
     by (simp add: s'_list_def)
-  ultimately show ?C3 unfolding C using `j \<le> 79`
+  ultimately show ?C3 unfolding C using \<open>j \<le> 79\<close>
     by (simp add: s'_def list_all_length)
 qed
 

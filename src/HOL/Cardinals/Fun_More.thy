@@ -5,13 +5,13 @@
 More on injections, bijections and inverses.
 *)
 
-section {* More on Injections, Bijections and Inverses *}
+section \<open>More on Injections, Bijections and Inverses\<close>
 
 theory Fun_More
 imports Main
 begin
 
-subsection {* Purely functional properties *}
+subsection \<open>Purely functional properties\<close>
 
 (* unused *)
 (*1*)lemma notIn_Un_bij_betw2:
@@ -56,7 +56,7 @@ proof-
 qed
 
 
-subsection {* Properties involving finite and infinite sets *}
+subsection \<open>Properties involving finite and infinite sets\<close>
 
 (*3*)lemma inj_on_image_Pow:
 assumes "inj_on f A"
@@ -128,7 +128,7 @@ proof
 qed
 
 
-subsection {* Properties involving Hilbert choice *}
+subsection \<open>Properties involving Hilbert choice\<close>
 
 (*1*)lemma bij_betw_inv_into_LEFT:
 assumes BIJ: "bij_betw f A A'" and SUB: "B \<le> A"
@@ -142,7 +142,7 @@ shows "(inv_into A f) ` B' = B"
 using assms bij_betw_inv_into_LEFT[of f A A' B] by fast
 
 
-subsection {* Other facts *}
+subsection \<open>Other facts\<close>
 
 (*3*)lemma atLeastLessThan_injective:
 assumes "{0 ..< m::nat} = {0 ..< n}"

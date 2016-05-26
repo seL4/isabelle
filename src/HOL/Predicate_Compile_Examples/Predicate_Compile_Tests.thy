@@ -4,7 +4,7 @@ begin
 
 declare [[values_timeout = 480.0]]
 
-subsection {* Basic predicates *}
+subsection \<open>Basic predicates\<close>
 
 inductive False' :: "bool"
 
@@ -89,16 +89,16 @@ where
 
 code_pred (expected_modes: o => o => bool, i => o => bool, o => i => bool, i => i => bool) Fact .
 
-text {*
+text \<open>
   The following example was derived from an predicate in the CakeML formalisation provided by Lars Hupel.
-*}
+\<close>
 inductive predicate_where_argument_is_condition :: "bool \<Rightarrow> bool"
 where
   "ck \<Longrightarrow> predicate_where_argument_is_condition ck"
 
 code_pred predicate_where_argument_is_condition .
 
-text {* Other similar examples of this kind: *}
+text \<open>Other similar examples of this kind:\<close>
 
 inductive predicate_where_argument_is_in_equation :: "bool \<Rightarrow> bool"
 where
@@ -138,10 +138,10 @@ thm zerozero.equation
 thm zerozero.dseq_equation
 thm zerozero.random_dseq_equation
 
-text {* We expect the user to expand the tuples in the values command.
-The following values command is not supported. *}
+text \<open>We expect the user to expand the tuples in the values command.
+The following values command is not supported.\<close>
 (*values "{x. zerozero x}" *)
-text {* Instead, the user must type *}
+text \<open>Instead, the user must type\<close>
 values "{(x, y). zerozero (x, y)}"
 
 values [expected "{}" dseq 0] "{(x, y). zerozero (x, y)}"
@@ -174,7 +174,7 @@ values [expected "{(7::natural, 0::nat)}"] "{(c, a). JamesBond a 0 c}"
 values [expected "{(0::nat, 7::natural)}"] "{(a, c). JamesBond a 0 c}"
 
 
-subsection {* Alternative Rules *}
+subsection \<open>Alternative Rules\<close>
 
 datatype char = C | D | E | F | G | H
 
@@ -233,7 +233,7 @@ where
   "is_F_or_G x ==> is_FGH x"
 | "is_FGH H"
 
-text {* Compilation of is_FGH requires elimination rule for is_F_or_G *}
+text \<open>Compilation of is_FGH requires elimination rule for is_F_or_G\<close>
 
 code_pred (expected_modes: o => bool, i => bool) is_FGH
 proof -
@@ -254,7 +254,7 @@ proof -
   qed
 qed
 
-subsection {* Named alternative rules *}
+subsection \<open>Named alternative rules\<close>
 
 inductive appending
 where
@@ -267,8 +267,8 @@ by (auto intro: appending.intros)
 lemma appending_alt_cons: "xs' = x # xs \<Longrightarrow> appending xs ys zs \<Longrightarrow> zs' = x # zs \<Longrightarrow> appending xs' ys zs'"
 by (auto intro: appending.intros)
 
-text {* With code_pred_intro, we can give fact names to the alternative rules,
-  which are used for the code_pred command. *}
+text \<open>With code_pred_intro, we can give fact names to the alternative rules,
+  which are used for the code_pred command.\<close>
 
 declare appending_alt_nil[code_pred_intro alt_nil] appending_alt_cons[code_pred_intro alt_cons]
  
@@ -321,7 +321,7 @@ next
   qed
 qed
 
-subsection {* Preprocessor Inlining  *}
+subsection \<open>Preprocessor Inlining\<close>
 
 definition "equals == (op =)"
  
@@ -346,11 +346,11 @@ declare zerozero'_eq [code_pred_inline]
 
 definition "zerozero'' x == zerozero' x"
 
-text {* if preprocessing fails, zerozero'' will not have all modes. *}
+text \<open>if preprocessing fails, zerozero'' will not have all modes.\<close>
 
 code_pred (expected_modes: i * i => bool, i * o => bool, o * i => bool, o => bool) [inductify] zerozero'' .
 
-subsection {* Sets *}
+subsection \<open>Sets\<close>
 (*
 inductive_set EmptySet :: "'a set"
 
@@ -361,7 +361,7 @@ where "EmptySet' = {}"
 
 code_pred (expected_modes: o => bool, i => bool) [inductify] EmptySet' .
 *)
-subsection {* Numerals *}
+subsection \<open>Numerals\<close>
 
 definition
   "one_or_two = (%x. x = Suc 0 \<or> ( x = Suc (Suc 0)))"
@@ -392,7 +392,7 @@ thm one_or_two''.equation
 
 values "{x. one_or_two'' x}"
 
-subsection {* even predicate *}
+subsection \<open>even predicate\<close>
 
 inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" where
     "even 0"
@@ -456,7 +456,7 @@ where
 
 code_pred (expected_modes: i => bool) is_even .
 
-subsection {* append predicate *}
+subsection \<open>append predicate\<close>
 
 inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
     "append [] xs xs"
@@ -493,7 +493,7 @@ value "Predicate.the (concat [0::int, 1, 2] [3, 4, 5])"
 value "Predicate.the (slice ([]::int list))"
 
 
-text {* tricky case with alternative rules *}
+text \<open>tricky case with alternative rules\<close>
 
 inductive append2
 where
@@ -565,7 +565,7 @@ code_pred (expected_modes: i * i * o => bool, o * o * i => bool, o * i * i => bo
   i * o * i => bool, i * i * i => bool) tupled_append''' .
 thm tupled_append'''.equation
 
-subsection {* map_ofP predicate *}
+subsection \<open>map_ofP predicate\<close>
 
 inductive map_ofP :: "('a \<times> 'b) list \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
 where
@@ -575,7 +575,7 @@ where
 code_pred (expected_modes: i => o => o => bool, i => i => o => bool, i => o => i => bool, i => i => i => bool) map_ofP .
 thm map_ofP.equation
 
-subsection {* filter predicate *}
+subsection \<open>filter predicate\<close>
 
 inductive filter1
 for P
@@ -626,7 +626,7 @@ code_pred (expected_modes: i => i => o => bool, i => i => i => bool) filter4 .
 (*code_pred [depth_limited] filter4 .*)
 (*code_pred [random] filter4 .*)
 *)
-subsection {* reverse predicate *}
+subsection \<open>reverse predicate\<close>
 
 inductive rev where
     "rev [] []"
@@ -645,7 +645,7 @@ inductive tupled_rev where
 code_pred (expected_modes: i * o => bool, o * i => bool, i * i => bool) tupled_rev .
 thm tupled_rev.equation
 
-subsection {* partition predicate *}
+subsection \<open>partition predicate\<close>
 
 inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   for f where
@@ -680,9 +680,9 @@ lemma [code_pred_intro]:
   "r a b \<Longrightarrow> tranclp r b c \<Longrightarrow> tranclp r a c"
   by auto
 
-subsection {* transitive predicate *}
+subsection \<open>transitive predicate\<close>
 
-text {* Also look at the tabled transitive closure in the Library *}
+text \<open>Also look at the tabled transitive closure in the Library\<close>
 
 code_pred (modes: (i => o => bool) => i => i => bool, (i => o => bool) => i => o => bool as forwards_trancl,
   (o => i => bool) => i => i => bool, (o => i => bool) => o => i => bool as backwards_trancl, (o => o => bool) => i => i => bool, (o => o => bool) => i => o => bool,
@@ -735,8 +735,8 @@ values 10 "{(m, n). succ n m}"
 values "{m. succ 0 m}"
 values "{m. succ m 0}"
 
-text {* values command needs mode annotation of the parameter succ
-to disambiguate which mode is to be chosen. *} 
+text \<open>values command needs mode annotation of the parameter succ
+to disambiguate which mode is to be chosen.\<close> 
 
 values [mode: i => o => bool] 20 "{n. tranclp succ 10 n}"
 values [mode: o => i => bool] 10 "{n. tranclp succ n 10}"
@@ -763,7 +763,7 @@ thm tranclp.equation
 value "not_reachable_in_example_graph 0 3"
 value "not_reachable_in_example_graph 4 8"
 value "not_reachable_in_example_graph 5 6"
-text {* rtrancl compilation is strange! *}
+text \<open>rtrancl compilation is strange!\<close>
 (*
 value "not_reachable_in_example_graph 0 4"
 value "not_reachable_in_example_graph 1 6"
@@ -808,7 +808,7 @@ values [depth_limited 1] "{x. not_reachable_in_example_graph' 0 4}"*)
 (*values [depth_limit = 4] "{x. not_reachable_in_example_graph' 0 4}"*) (* fails with undefined *)
 (*values [depth_limit = 20] "{x. not_reachable_in_example_graph' 0 4}"*) (* fails with undefined *)
 
-subsection {* Free function variable *}
+subsection \<open>Free function variable\<close>
 
 inductive FF :: "nat => nat => bool"
 where
@@ -816,7 +816,7 @@ where
 
 code_pred FF .
 
-subsection {* IMP *}
+subsection \<open>IMP\<close>
 
 type_synonym var = nat
 type_synonym state = "int list"
@@ -841,10 +841,10 @@ code_pred tupled_exec .
 
 values "{s. tupled_exec (While (%s. s!0 > 0) (Seq (Ass 0 (%s. s!0 - 1)) (Ass 1 (%s. s!1 + 1))), [3, 5], s)}"
 
-subsection {* CCS *}
+subsection \<open>CCS\<close>
 
-text{* This example formalizes finite CCS processes without communication or
-recursion. For simplicity, labels are natural numbers. *}
+text\<open>This example formalizes finite CCS processes without communication or
+recursion. For simplicity, labels are natural numbers.\<close>
 
 datatype proc = nil | pre nat proc | or proc proc | par proc proc
 
@@ -859,7 +859,7 @@ where
 code_pred tupled_step .
 thm tupled_step.equation
 
-subsection {* divmod *}
+subsection \<open>divmod\<close>
 
 inductive divmod_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
     "k < l \<Longrightarrow> divmod_rel k l 0 k"
@@ -869,9 +869,9 @@ code_pred divmod_rel .
 thm divmod_rel.equation
 value "Predicate.the (divmod_rel_i_i_o_o 1705 42)"
 
-subsection {* Transforming predicate logic into logic programs *}
+subsection \<open>Transforming predicate logic into logic programs\<close>
 
-subsection {* Transforming functions into logic programs *}
+subsection \<open>Transforming functions into logic programs\<close>
 definition
   "case_f xs ys = (case (xs @ ys) of [] => [] | (x # xs) => xs)"
 
@@ -886,7 +886,7 @@ fun fold_map_idx where
 
 code_pred [inductify] fold_map_idx .
 
-subsection {* Minimum *}
+subsection \<open>Minimum\<close>
 
 definition Min
 where "Min s r x \<equiv> s x \<and> (\<forall>y. r x y \<longrightarrow> x = y)"
@@ -894,9 +894,9 @@ where "Min s r x \<equiv> s x \<and> (\<forall>y. r x y \<longrightarrow> x = y)
 code_pred [inductify] Min .
 thm Min.equation
 
-subsection {* Lexicographic order *}
-text {* This example requires to handle the differences of sets and predicates in the predicate compiler,
-or to have a copy of all definitions on predicates due to the set-predicate distinction. *}
+subsection \<open>Lexicographic order\<close>
+text \<open>This example requires to handle the differences of sets and predicates in the predicate compiler,
+or to have a copy of all definitions on predicates due to the set-predicate distinction.\<close>
 
 (*
 declare lexord_def[code_pred_def]
@@ -1009,7 +1009,7 @@ thm lists.intros
 code_pred [inductify] lists .
 thm lists.equation
 *)
-subsection {* AVL Tree *}
+subsection \<open>AVL Tree\<close>
 
 datatype 'a tree = ET | MKT 'a "'a tree" "'a tree" nat
 fun height :: "'a tree => nat" where
@@ -1050,7 +1050,7 @@ code_pred (expected_modes: i => bool) [inductify] is_ord .
 thm is_ord_aux.equation
 thm is_ord.equation
 *)
-subsection {* Definitions about Relations *}
+subsection \<open>Definitions about Relations\<close>
 (*
 code_pred (modes:
   (i * i => bool) => i * i => bool,
@@ -1112,7 +1112,7 @@ thm inv_image_def
 code_pred [inductify] inv_image .
 thm inv_image.equation
 *)
-subsection {* Inverting list functions *}
+subsection \<open>Inverting list functions\<close>
 
 code_pred [inductify, skip_proof] size_list' .
 code_pred [new_random_dseq inductify] size_list' .
@@ -1203,12 +1203,12 @@ code_pred [inductify] foldl .
 code_pred [inductify] filter .
 code_pred [random_dseq inductify] filter .
 
-section {* Function predicate replacement *}
+section \<open>Function predicate replacement\<close>
 
-text {*
+text \<open>
 If the mode analysis uses the functional mode, we
 replace predicates that resulted from functions again by their functions.
-*}
+\<close>
 
 inductive test_append
 where
@@ -1217,13 +1217,13 @@ where
 code_pred [inductify, skip_proof] test_append .
 thm test_append.equation
 
-text {* If append is not turned into a predicate, then the mode
-  o => o => i => bool could not be inferred. *}
+text \<open>If append is not turned into a predicate, then the mode
+  o => o => i => bool could not be inferred.\<close>
 
 values 4 "{(xs::int list, ys). test_append xs ys [1, 2, 3, 4]}"
 
-text {* If appendP is not reverted back to a function, then mode i => i => o => bool
-  fails after deleting the predicate equation. *}
+text \<open>If appendP is not reverted back to a function, then mode i => i => o => bool
+  fails after deleting the predicate equation.\<close>
 
 declare appendP.equation[code del]
 
@@ -1231,11 +1231,11 @@ values "{xs::int list. test_append [1,2] [3,4] xs}"
 values "{xs::int list. test_append (replicate 1000 1) (replicate 1000 2) xs}"
 values "{xs::int list. test_append (replicate 2000 1) (replicate 2000 2) xs}"
 
-text {* Redeclaring append.equation as code equation *}
+text \<open>Redeclaring append.equation as code equation\<close>
 
 declare appendP.equation[code]
 
-subsection {* Function with tuples *}
+subsection \<open>Function with tuples\<close>
 
 fun append'
 where
@@ -1256,9 +1256,9 @@ declare append'P.equation[code del]
 
 values "{zs :: int list. test_append' [1,2,3] [4,5] zs}"
 
-section {* Arithmetic examples *}
+section \<open>Arithmetic examples\<close>
 
-subsection {* Examples on nat *}
+subsection \<open>Examples on nat\<close>
 
 inductive plus_nat_test :: "nat => nat => nat => bool"
 where
@@ -1304,7 +1304,7 @@ values [expected "{Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (S
 values [expected "{0, Suc 0, Suc (Suc 0), Suc (Suc (Suc 0))}"] "{x. minus_nat_test x 3 0}"
 values [expected "{0::nat}"] "{x. minus_nat_test x 0 0}"
 
-subsection {* Examples on int *}
+subsection \<open>Examples on int\<close>
 
 inductive plus_int_test :: "int => int => int => bool"
 where
@@ -1334,7 +1334,7 @@ values [expected "{4::int}"] "{c. minus_int_test 9 5 c}"
 values [expected "{9::int}"] "{a. minus_int_test a 4 5}"
 values [expected "{-1::int}"] "{b. minus_int_test 4 b 5}"
 
-subsection {* minus on bool *}
+subsection \<open>minus on bool\<close>
 
 inductive All :: "nat => bool"
 where
@@ -1349,7 +1349,7 @@ thm test_minus_bool.equation
 
 values "{x. test_minus_bool x}"
 
-subsection {* Functions *}
+subsection \<open>Functions\<close>
 
 fun partial_hd :: "'a list => 'a option"
 where
@@ -1364,7 +1364,7 @@ code_pred (expected_modes: i => i => bool, i => o => bool) hd_predicate .
 
 thm hd_predicate.equation
 
-subsection {* Locales *}
+subsection \<open>Locales\<close>
 
 inductive hd_predicate2 :: "('a list => 'a option) => 'a list => 'a => bool"
 where
@@ -1384,8 +1384,8 @@ where
 
 end
 
-text {* The global introduction rules must be redeclared as introduction rules and then 
-  one could invoke code_pred. *}
+text \<open>The global introduction rules must be redeclared as introduction rules and then 
+  one could invoke code_pred.\<close>
 
 declare A.hd_predicate_in_locale.intros [code_pred_intro]
 
@@ -1394,12 +1394,12 @@ by (auto elim: A.hd_predicate_in_locale.cases)
     
 interpretation A partial_hd .
 thm hd_predicate_in_locale.intros
-text {* A locally compliant solution with a trivial interpretation fails, because
-the predicate compiler has very strict assumptions about the terms and their structure. *}
+text \<open>A locally compliant solution with a trivial interpretation fails, because
+the predicate compiler has very strict assumptions about the terms and their structure.\<close>
  
 (*code_pred hd_predicate_in_locale .*)
 
-section {* Integer example *}
+section \<open>Integer example\<close>
 
 definition three :: int
 where "three = 3"
@@ -1412,7 +1412,7 @@ code_pred is_three .
 
 thm is_three.equation
 
-section {* String.literal example *}
+section \<open>String.literal example\<close>
 
 definition Error_1
 where
@@ -1451,7 +1451,7 @@ code_pred is_error'' .
 
 thm is_error''.equation
 
-section {* Another function example *}
+section \<open>Another function example\<close>
 
 consts f :: "'a \<Rightarrow> 'a"
 
@@ -1463,7 +1463,7 @@ code_pred fun_upd .
 
 thm fun_upd.equation
 
-section {* Examples for detecting switches *}
+section \<open>Examples for detecting switches\<close>
 
 inductive detect_switches1 where
   "detect_switches1 [] []"
@@ -1543,7 +1543,7 @@ code_pred [detect_switches, skip_proof] detect_switches9 .
 
 thm detect_switches9.equation
 
-text {* The higher-order predicate r is in an output term *}
+text \<open>The higher-order predicate r is in an output term\<close>
 
 datatype result = Result bool
 
@@ -1559,9 +1559,9 @@ code_pred test_relation_in_output_terms .
 thm test_relation_in_output_terms.equation
 
 
-text {*
+text \<open>
   We want that the argument r is not treated as a higher-order relation, but simply as input.
-*}
+\<close>
 
 inductive test_uninterpreted_relation :: "('a => bool) => 'a list => bool"
 where
@@ -1583,14 +1583,14 @@ where
   "list_ex r xs ==> test_uninterpreted_relation2 r xs"
 | "list_ex' r xs ==> test_uninterpreted_relation2 r xs"
 
-text {* Proof procedure cannot handle this situation yet. *}
+text \<open>Proof procedure cannot handle this situation yet.\<close>
 
 code_pred (modes: i => i => bool) [skip_proof] test_uninterpreted_relation2 .
 
 thm test_uninterpreted_relation2.equation
 
 
-text {* Trivial predicate *}
+text \<open>Trivial predicate\<close>
 
 inductive implies_itself :: "'a => bool"
 where
@@ -1598,7 +1598,7 @@ where
 
 code_pred implies_itself .
 
-text {* Case expressions *}
+text \<open>Case expressions\<close>
 
 definition
   "map_prods xs ys = (map (%((a, b), c). (a, b, c)) xs = ys)"

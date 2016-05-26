@@ -14,7 +14,7 @@ section \<open>Univariate Polynomials\<close>
 text \<open>
   Polynomials are formalised as modules with additional operations for
   extracting coefficients from polynomials and for obtaining monomials
-  from coefficients and exponents (record @{text "up_ring"}).  The
+  from coefficients and exponents (record \<open>up_ring\<close>).  The
   carrier set is a set of bounded functions from Nat to the
   coefficient domain.  Bounded means that these functions return zero
   above a certain bound (the degree).  There is a chapter on the
@@ -754,7 +754,7 @@ lemma deg_belowI:
   assumes non_zero: "n ~= 0 ==> coeff P p n ~= \<zero>"
     and R: "p \<in> carrier P"
   shows "n <= deg R p"
--- \<open>Logically, this is a slightly stronger version of
+\<comment> \<open>Logically, this is a slightly stronger version of
    @{thm [source] deg_aboveD}\<close>
 proof (cases "n=0")
   case True then show ?thesis by simp
@@ -864,7 +864,7 @@ next
 qed
 
 text\<open>The following lemma is later \emph{overwritten} by the most
-  specific one for domains, @{text deg_smult}.\<close>
+  specific one for domains, \<open>deg_smult\<close>.\<close>
 
 lemma deg_smult_ring [simp]:
   "[| a \<in> carrier R; p \<in> carrier P |] ==>
@@ -1202,7 +1202,7 @@ locale UP_univ_prop = UP_pre_univ_prop +
   defines Eval_def: "Eval == eval R S h s"
 
 text\<open>JE: I have moved the following lemma from Ring.thy and lifted then to the locale @{term ring_hom_ring} from @{term ring_hom_cring}.\<close>
-text\<open>JE: I was considering using it in @{text eval_ring_hom}, but that property does not hold for non commutative rings, so 
+text\<open>JE: I was considering using it in \<open>eval_ring_hom\<close>, but that property does not hold for non commutative rings, so 
   maybe it is not that necessary.\<close>
 
 lemma (in ring_hom_ring) hom_finsum [simp]:
@@ -1295,8 +1295,8 @@ next
 qed
 
 text \<open>
-  The following lemma could be proved in @{text UP_cring} with the additional
-  assumption that @{text h} is closed.\<close>
+  The following lemma could be proved in \<open>UP_cring\<close> with the additional
+  assumption that \<open>h\<close> is closed.\<close>
 
 lemma (in UP_pre_univ_prop) eval_const:
   "[| s \<in> carrier S; r \<in> carrier R |] ==> eval R S h s (monom P r 0) = h r"

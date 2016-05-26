@@ -17,9 +17,9 @@ begin
 ML_file "Tools/fdl_lexer.ML"
 ML_file "Tools/fdl_parser.ML"
 
-text {*
+text \<open>
 SPARK version of div, see section 4.4.1.1 of SPARK Proof Manual
-*}
+\<close>
 
 definition sdiv :: "int \<Rightarrow> int \<Rightarrow> int" (infixl "sdiv" 70) where
   "a sdiv b = sgn a * sgn b * (\<bar>a\<bar> div \<bar>b\<bar>)"
@@ -30,9 +30,9 @@ lemma sdiv_minus_dividend: "- a sdiv b = - (a sdiv b)"
 lemma sdiv_minus_divisor: "a sdiv - b = - (a sdiv b)"
   by (simp add: sdiv_def sgn_if)
 
-text {*
+text \<open>
 Correspondence between HOL's and SPARK's version of div
-*}
+\<close>
 
 lemma sdiv_pos_pos: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> a sdiv b = a div b"
   by (simp add: sdiv_def sgn_if)
@@ -47,9 +47,9 @@ lemma sdiv_neg_neg: "a < 0 \<Longrightarrow> b < 0 \<Longrightarrow> a sdiv b = 
   by (simp add: sdiv_def sgn_if)
 
 
-text {*
+text \<open>
 Updating a function at a set of points. Useful for building arrays.
-*}
+\<close>
 
 definition fun_upds :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b" where
   "fun_upds f xs y z = (if z \<in> xs then y else f z)"
@@ -70,7 +70,7 @@ lemma upds_singleton [simp]: "f({x} [:=] y) = f(x := y)"
   by (simp add: fun_eq_iff)
 
 
-text {* Enumeration types *}
+text \<open>Enumeration types\<close>
 
 class spark_enum = ord + finite +
   fixes pos :: "'a \<Rightarrow> int"
@@ -178,7 +178,7 @@ lemma interval_expand:
   by auto
 
 
-text {* Load the package *}
+text \<open>Load the package\<close>
 
 ML_file "Tools/spark_vcs.ML"
 ML_file "Tools/spark_commands.ML"

@@ -108,7 +108,7 @@ instance ..
 end
 
 
-text{* The integers form a @{text comm_ring_1}*}
+text\<open>The integers form a \<open>comm_ring_1\<close>\<close>
 
 instance int :: comm_ring_1
 proof
@@ -235,7 +235,7 @@ lemma zmult_zless_mono2:
   using a
   by (drule_tac zero_le_imp_eq_int) (auto simp add: zmult_zless_mono2_lemma)
 
-text{*The integers form an ordered integral domain*}
+text\<open>The integers form an ordered integral domain\<close>
 
 instance int :: linordered_idom
 proof
@@ -276,7 +276,7 @@ unfolding minus_int_def
 by (descending) (auto intro: int_induct2)
   
 
-text {* Magnitide of an Integer, as a Natural Number: @{term nat} *}
+text \<open>Magnitide of an Integer, as a Natural Number: @{term nat}\<close>
 
 definition
   "int_to_nat_raw \<equiv> \<lambda>(x, y).x - (y::nat)"

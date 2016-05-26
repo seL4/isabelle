@@ -2,13 +2,13 @@
     Author:     Brian Huffman, TU Munich
 *)
 
-section {* Lifting and transfer with a finite set type *}
+section \<open>Lifting and transfer with a finite set type\<close>
 
 theory Lift_FSet
 imports Main
 begin
 
-subsection {* Equivalence relation and quotient type definition *}
+subsection \<open>Equivalence relation and quotient type definition\<close>
 
 definition list_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   where [simp]: "list_eq xs ys \<longleftrightarrow> set xs = set ys"
@@ -37,7 +37,7 @@ lemma list_eq_transfer [transfer_rule]:
 quotient_type 'a fset = "'a list" / "list_eq" parametric list_eq_transfer
   by (rule equivp_list_eq)
 
-subsection {* Lifted constant definitions *}
+subsection \<open>Lifted constant definitions\<close>
 
 lift_definition fnil :: "'a fset" ("{||}") is "[]" parametric list.ctr_transfer(1) .
 
@@ -56,8 +56,8 @@ lift_definition ffilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Righ
 lift_definition fset :: "'a fset \<Rightarrow> 'a set" is set parametric list.set_transfer
   by simp
 
-text {* Constants with nested types (like concat) yield a more
-  complicated proof obligation. *}
+text \<open>Constants with nested types (like concat) yield a more
+  complicated proof obligation.\<close>
 
 lemma list_all2_cr_fset:
   "list_all2 cr_fset xs ys \<longleftrightarrow> map abs_fset xs = ys"
@@ -112,34 +112,32 @@ abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix 
 lemma fmember_fmap[simp]: "a |\<in>| fmap f X = (\<exists>b. b |\<in>| X \<and> a = f b)"
   by transfer auto
 
-text {* We can export code: *}
+text \<open>We can export code:\<close>
 
 export_code fnil fcons fappend fmap ffilter fset fmember in SML
 
-subsection {* Using transfer with type @{text "fset"} *}
+subsection \<open>Using transfer with type \<open>fset\<close>\<close>
 
-text {* The correspondence relation @{text "cr_fset"} can only relate
-  @{text "list"} and @{text "fset"} types with the same element type.
-  To relate nested types like @{text "'a list list"} and
-  @{text "'a fset fset"}, we define a parameterized version of the
-  correspondence relation, @{text "pcr_fset"}. *}
+text \<open>The correspondence relation \<open>cr_fset\<close> can only relate
+  \<open>list\<close> and \<open>fset\<close> types with the same element type.
+  To relate nested types like \<open>'a list list\<close> and
+  \<open>'a fset fset\<close>, we define a parameterized version of the
+  correspondence relation, \<open>pcr_fset\<close>.\<close>
 
 thm pcr_fset_def
 
-subsection {* Transfer examples *}
+subsection \<open>Transfer examples\<close>
 
-text {* The @{text "transfer"} method replaces equality on @{text
-  "fset"} with the @{text "list_eq"} relation on lists, which is
-  logically equivalent. *}
+text \<open>The \<open>transfer\<close> method replaces equality on \<open>fset\<close> with the \<open>list_eq\<close> relation on lists, which is
+  logically equivalent.\<close>
 
 lemma "fmap f (fmap g xs) = fmap (f \<circ> g) xs"
   apply transfer
   apply simp
   done
 
-text {* The @{text "transfer'"} variant can replace equality on @{text
-  "fset"} with equality on @{text "list"}, which is logically stronger
-  but sometimes more convenient. *}
+text \<open>The \<open>transfer'\<close> variant can replace equality on \<open>fset\<close> with equality on \<open>list\<close>, which is logically stronger
+  but sometimes more convenient.\<close>
 
 lemma "fmap f (fmap g xs) = fmap (f \<circ> g) xs"
   using map_map [Transfer.transferred] .

@@ -2,11 +2,11 @@ theory IMP_3
 imports "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
 begin
 
-subsection {* IMP *}
+subsection \<open>IMP\<close>
 
-text {*
+text \<open>
   In this example, the state is one integer variable and the commands are Skip, Ass, Seq, IF, and While.
-*}
+\<close>
 
 type_synonym var = unit
 type_synonym state = int

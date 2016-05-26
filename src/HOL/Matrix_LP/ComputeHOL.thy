@@ -134,7 +134,7 @@ lemmas compute_let = Let_def
 
 lemmas compute_hol = compute_if compute_bool compute_pair compute_option compute_list compute_let
 
-ML {*
+ML \<open>
 signature ComputeHOL =
 sig
   val prep_thms : thm list -> thm list
@@ -182,6 +182,6 @@ in
 end
 
 end
-*}
+\<close>
 
 end

@@ -97,7 +97,7 @@ proof (induct n rule: less_induct)
 qed
 
 lemma fib_gcd: "fib (gcd m n) = gcd (fib m) (fib n)"
-    -- \<open>Law 6.111\<close>
+    \<comment> \<open>Law 6.111\<close>
   by (induct m n rule: gcd_nat_induct) (simp_all add: gcd_non_0_nat gcd.commute gcd_fib_mod)
 
 theorem fib_mult_eq_setsum_nat: "fib (Suc n) * fib n = (\<Sum>k \<in> {..n}. fib k * fib k)"

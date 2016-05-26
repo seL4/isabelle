@@ -4,10 +4,10 @@ imports
   "~~/src/HOL/Library/Code_Prolog"
 begin
 
-text {* An example from the experiments from SmallCheck (@{url "http://www.cs.york.ac.uk/fp/smallcheck/"}) *}
-text {* The example (original in Haskell) was imported with Haskabelle and
+text \<open>An example from the experiments from SmallCheck (@{url "http://www.cs.york.ac.uk/fp/smallcheck/"})\<close>
+text \<open>The example (original in Haskell) was imported with Haskabelle and
   manually slightly adapted.
-*}
+\<close>
  
 datatype Nat = Zer
              | Suc Nat
@@ -98,12 +98,12 @@ quickcheck[tester = predicate_compile_ff_fs]*)
 oops
 
 
-setup {*
+setup \<open>
   Context.theory_map
     (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals)))
-*}
+\<close>
 
-setup {* Code_Prolog.map_code_options (K 
+setup \<open>Code_Prolog.map_code_options (K 
   {ensure_groundness = true,
    limit_globally = NONE,
    limited_types = [(@{typ Sym}, 0), (@{typ "Sym list"}, 2), (@{typ RE}, 6)],
@@ -114,10 +114,10 @@ setup {* Code_Prolog.map_code_options (K
       (("subP", "limited_subP"), "repIntP"),
       (("repIntPa", "limited_repIntPa"), "repIntP"),
       (("accepts", "limited_accepts"), "quickcheck")],  
-   manual_reorder = []}) *}
+   manual_reorder = []})\<close>
 
-text {* Finding the counterexample still seems out of reach for the
- prolog-style generation. *}
+text \<open>Finding the counterexample still seems out of reach for the
+ prolog-style generation.\<close>
 
 lemma "accepts (And (repInt n k p) (repInt n k q)) s --> accepts (repInt n k (And p q)) s"
 quickcheck[exhaustive]
@@ -127,7 +127,7 @@ quickcheck[tester = random, iterations = 1000]
 (*quickcheck[tester = prolog, iterations = 1, size = 1]*)
 oops
 
-section {* Given a partial solution *}
+section \<open>Given a partial solution\<close>
 
 lemma
 (*  assumes "n = Zer"
@@ -140,7 +140,7 @@ lemma
 quickcheck[tester = prolog, iterations = 1, size = 1]
 oops
 
-section {* Checking the counterexample *}
+section \<open>Checking the counterexample\<close>
 
 definition a_sol
 where

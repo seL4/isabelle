@@ -4,7 +4,7 @@ imports "../Nominal"
 begin
 (*>*)
 
-text{* Authors: Christian Urban,
+text\<open>Authors: Christian Urban,
                 Benjamin Pierce,
                 Dimitrios Vytiniotis
                 Stephanie Weirich
@@ -12,26 +12,26 @@ text{* Authors: Christian Urban,
                 Julien Narboux
                 Stefan Berghofer
 
-       with great help from Markus Wenzel. *}
+       with great help from Markus Wenzel.\<close>
 
-section {* Types for Names, Nominal Datatype Declaration for Types and Terms *}
+section \<open>Types for Names, Nominal Datatype Declaration for Types and Terms\<close>
 
 no_syntax
   "_Map" :: "maplets => 'a \<rightharpoonup> 'b"  ("(1[_])")
 
-text {* The main point of this solution is to use names everywhere (be they bound, 
+text \<open>The main point of this solution is to use names everywhere (be they bound, 
   binding or free). In System \FSUB{} there are two kinds of names corresponding to 
   type-variables and to term-variables. These two kinds of names are represented in 
-  the nominal datatype package as atom-types @{text "tyvrs"} and @{text "vrs"}: *}
+  the nominal datatype package as atom-types \<open>tyvrs\<close> and \<open>vrs\<close>:\<close>
 
 atom_decl tyvrs vrs
 
-text{* There are numerous facts that come with this declaration: for example that 
-  there are infinitely many elements in @{text "tyvrs"} and @{text "vrs"}. *}
+text\<open>There are numerous facts that come with this declaration: for example that 
+  there are infinitely many elements in \<open>tyvrs\<close> and \<open>vrs\<close>.\<close>
 
-text{* The constructors for types and terms in System \FSUB{} contain abstractions 
+text\<open>The constructors for types and terms in System \FSUB{} contain abstractions 
   over type-variables and term-variables. The nominal datatype package uses 
-  @{text "\<guillemotleft>\<dots>\<guillemotright>\<dots>"} to indicate where abstractions occur. *}
+  \<open>\<guillemotleft>\<dots>\<guillemotright>\<dots>\<close> to indicate where abstractions occur.\<close>
 
 nominal_datatype ty = 
     Tvar   "tyvrs"
@@ -46,10 +46,10 @@ nominal_datatype trm =
   | App   "trm" "trm" (infixl "\<cdot>" 200)
   | TApp  "trm" "ty"  (infixl "\<cdot>\<^sub>\<tau>" 200)
 
-text {* To be polite to the eye, some more familiar notation is introduced. 
+text \<open>To be polite to the eye, some more familiar notation is introduced. 
   Because of the change in the order of arguments, one needs to use 
   translation rules, instead of syntax annotations at the term-constructors
-  as given above for @{term "Arrow"}. *}
+  as given above for @{term "Arrow"}.\<close>
 
 abbreviation
   Forall_syn :: "tyvrs \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty"  ("(3\<forall>_<:_./ _)" [0, 0, 10] 10) 
@@ -66,19 +66,19 @@ abbreviation
 where
   "\<lambda>X<:T. t \<equiv> trm.TAbs X t T"
 
-text {* Again there are numerous facts that are proved automatically for @{typ "ty"} 
-  and @{typ "trm"}: for example that the set of free variables, i.e.~the @{text "support"}, 
+text \<open>Again there are numerous facts that are proved automatically for @{typ "ty"} 
+  and @{typ "trm"}: for example that the set of free variables, i.e.~the \<open>support\<close>, 
   is finite. However note that nominal-datatype declarations do \emph{not} define 
   ``classical" constructor-based datatypes, but rather define $\alpha$-equivalence 
   classes---we can for example show that $\alpha$-equivalent @{typ "ty"}s 
-  and @{typ "trm"}s are equal: *}
+  and @{typ "trm"}s are equal:\<close>
 
 lemma alpha_illustration:
   shows "(\<forall>X<:T. Tvar X) = (\<forall>Y<:T. Tvar Y)"
   and   "(\<lambda>x:T. Var x) = (\<lambda>y:T. Var y)"
   by (simp_all add: ty.inject trm.inject alpha calc_atm fresh_atm)
 
-section {* SubTyping Contexts *}
+section \<open>SubTyping Contexts\<close>
 
 nominal_datatype binding = 
     VarB vrs ty 
@@ -86,12 +86,12 @@ nominal_datatype binding =
 
 type_synonym env = "binding list"
 
-text {* Typing contexts are represented as lists that ``grow" on the left; we
+text \<open>Typing contexts are represented as lists that ``grow" on the left; we
   thereby deviating from the convention in the POPLmark-paper. The lists contain
-  pairs of type-variables and types (this is sufficient for Part 1A). *}
+  pairs of type-variables and types (this is sufficient for Part 1A).\<close>
 
-text {* In order to state validity-conditions for typing-contexts, the notion of
-  a @{text "dom"} of a typing-context is handy. *}
+text \<open>In order to state validity-conditions for typing-contexts, the notion of
+  a \<open>dom\<close> of a typing-context is handy.\<close>
 
 nominal_primrec
   "tyvrs_of" :: "binding \<Rightarrow> tyvrs set"
@@ -218,11 +218,11 @@ apply(simp only: fresh_ty_dom_cons)
 apply(auto simp add: fresh_prod fresh_list_cons tyvrs_fresh) 
 done
 
-text {* Not all lists of type @{typ "env"} are well-formed. One condition
+text \<open>Not all lists of type @{typ "env"} are well-formed. One condition
   requires that in @{term "TVarB X S#\<Gamma>"} all free variables of @{term "S"} must be 
-  in the @{term "ty_dom"} of @{term "\<Gamma>"}, that is @{term "S"} must be @{text "closed"} 
+  in the @{term "ty_dom"} of @{term "\<Gamma>"}, that is @{term "S"} must be \<open>closed\<close> 
   in @{term "\<Gamma>"}. The set of free variables of @{term "S"} is the 
-  @{text "support"} of @{term "S"}. *}
+  \<open>support\<close> of @{term "S"}.\<close>
 
 definition "closed_in" :: "ty \<Rightarrow> env \<Rightarrow> bool" ("_ closed'_in _" [100,100] 100) where
   "S closed_in \<Gamma> \<equiv> (supp S)\<subseteq>(ty_dom \<Gamma>)"
@@ -284,7 +284,7 @@ lemma fresh_trm_dom:
 lemma closed_in_fresh: "(X::tyvrs) \<sharp> ty_dom \<Gamma> \<Longrightarrow> T closed_in \<Gamma> \<Longrightarrow> X \<sharp> T"
   by (auto simp add: closed_in_def fresh_def ty_dom_supp)
 
-text {* Now validity of a context is a straightforward inductive definition. *}
+text \<open>Now validity of a context is a straightforward inductive definition.\<close>
   
 inductive
   valid_rel :: "env \<Rightarrow> bool" ("\<turnstile> _ ok" [100] 100)
@@ -332,7 +332,7 @@ next
        (auto elim: validE intro!: valid_cons simp add: doms_append closed_in_def)
 qed
 
-text {* Well-formed contexts have a unique type-binding for a type-variable. *} 
+text \<open>Well-formed contexts have a unique type-binding for a type-variable.\<close> 
 
 lemma uniqueness_of_ctxt:
   fixes \<Gamma>::"env"
@@ -383,7 +383,7 @@ proof (induct)
   ultimately show "T=S" by (auto simp add: binding.inject)
 qed (auto)
 
-section {* Size and Capture-Avoiding Substitution for Types *}
+section \<open>Size and Capture-Avoiding Substitution for Types\<close>
 
 nominal_primrec
   size_ty :: "ty \<Rightarrow> nat"
@@ -590,14 +590,14 @@ lemma subst_trm_ty_rename:
   by (nominal_induct t avoiding: X Y U rule: trm.strong_induct)
     (simp_all add: fresh_atm calc_atm abs_fresh fresh_aux type_subst_rename)
 
-section {* Subtyping-Relation *}
+section \<open>Subtyping-Relation\<close>
 
-text {* The definition for the subtyping-relation follows quite closely what is written 
+text \<open>The definition for the subtyping-relation follows quite closely what is written 
   in the POPLmark-paper, except for the premises dealing with well-formed contexts and 
-  the freshness constraint @{term "X\<sharp>\<Gamma>"} in the @{text "S_Forall"}-rule. (The freshness
+  the freshness constraint @{term "X\<sharp>\<Gamma>"} in the \<open>S_Forall\<close>-rule. (The freshness
   constraint is specific to the \emph{nominal approach}. Note, however, that the constraint
   does \emph{not} make the subtyping-relation ``partial"\ldots because we work over
-  $\alpha$-equivalence classes.) *}
+  $\alpha$-equivalence classes.)\<close>
 
 inductive 
   subtype_of :: "env \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool"   ("_\<turnstile>_<:_" [100,100,100] 100)
@@ -670,7 +670,7 @@ nominal_inductive subtype_of
   apply (force simp add: closed_in_fresh dest: subtype_implies_closed subtype_implies_ok)+
   done
 
-section {* Reflexivity of Subtyping *}
+section \<open>Reflexivity of Subtyping\<close>
 
 lemma subtype_reflexivity:
   assumes a: "\<turnstile> \<Gamma> ok"
@@ -702,18 +702,18 @@ lemma subtype_reflexivity_semiautomated:
 using a b
 apply(nominal_induct T avoiding: \<Gamma> rule: ty.strong_induct)
 apply(auto simp add: ty.supp abs_supp supp_atm closed_in_def)
-  --{* Too bad that this instantiation cannot be found automatically by
+  \<comment>\<open>Too bad that this instantiation cannot be found automatically by
   \isakeyword{auto}; \isakeyword{blast} would find it if we had not used 
-  an explicit definition for @{text "closed_in_def"}. *}
+  an explicit definition for \<open>closed_in_def\<close>.\<close>
 apply(drule_tac x="(TVarB tyvrs ty2)#\<Gamma>" in meta_spec)
 apply(force dest: fresh_dom simp add: closed_in_def)
 done
 
-section {* Weakening *}
+section \<open>Weakening\<close>
 
-text {* In order to prove weakening we introduce the notion of a type-context extending 
+text \<open>In order to prove weakening we introduce the notion of a type-context extending 
   another. This generalization seems to make the proof for weakening to be
-  smoother than if we had strictly adhered to the version in the POPLmark-paper. *}
+  smoother than if we had strictly adhered to the version in the POPLmark-paper.\<close>
 
 definition extends :: "env \<Rightarrow> env \<Rightarrow> bool" ("_ extends _" [100,100] 100) where
   "\<Delta> extends \<Gamma> \<equiv> \<forall>X Q. (TVarB X Q)\<in>set \<Gamma> \<longrightarrow> (TVarB X Q)\<in>set \<Delta>"
@@ -794,7 +794,7 @@ next
   ultimately show "\<Delta> \<turnstile> (\<forall>X<:S\<^sub>1. S\<^sub>2) <: (\<forall>X<:T\<^sub>1. T\<^sub>2)" using ok by (force intro: SA_all)
 qed
 
-text {* In fact all ``non-binding" cases can be solved automatically: *}
+text \<open>In fact all ``non-binding" cases can be solved automatically:\<close>
 
 lemma weakening_more_automated:
   assumes a: "\<Gamma> \<turnstile> S <: T"
@@ -822,9 +822,9 @@ proof (nominal_induct \<Gamma> S T avoiding: \<Delta> rule: subtype_of.strong_in
   ultimately show "\<Delta> \<turnstile> (\<forall>X<:S\<^sub>1. S\<^sub>2) <: (\<forall>X<:T\<^sub>1. T\<^sub>2)" using ok by (force intro: SA_all)
 qed (blast intro: extends_closed extends_memb dest: extends_ty_dom)+
 
-section {* Transitivity and Narrowing *}
+section \<open>Transitivity and Narrowing\<close>
 
-text {* Some inversion lemmas that are needed in the transitivity and narrowing proof.*}
+text \<open>Some inversion lemmas that are needed in the transitivity and narrowing proof.\<close>
 
 declare ty.inject [simp add]
 
@@ -840,14 +840,14 @@ apply(erule subtype_of.strong_cases[where X="X"])
 apply(auto simp add: abs_fresh ty.inject alpha)
 done
 
-text {* Next we prove the transitivity and narrowing for the subtyping-relation. 
+text \<open>Next we prove the transitivity and narrowing for the subtyping-relation. 
 The POPLmark-paper says the following:
 
 \begin{quote}
 \begin{lemma}[Transitivity and Narrowing] \
 \begin{enumerate}
 \item If @{term "\<Gamma> \<turnstile> S<:Q"} and @{term "\<Gamma> \<turnstile> Q<:T"}, then @{term "\<Gamma> \<turnstile> S<:T"}.
-\item If @{text "\<Gamma>,X<:Q,\<Delta> \<turnstile> M<:N"} and @{term "\<Gamma> \<turnstile> P<:Q"} then @{text "\<Gamma>,X<:P,\<Delta> \<turnstile> M<:N"}.
+\item If \<open>\<Gamma>,X<:Q,\<Delta> \<turnstile> M<:N\<close> and @{term "\<Gamma> \<turnstile> P<:Q"} then \<open>\<Gamma>,X<:P,\<Delta> \<turnstile> M<:N\<close>.
 \end{enumerate}
 \end{lemma}
 
@@ -858,7 +858,7 @@ part (2) only for strictly smaller @{term "Q"}.
 \end{quote}
 
 For the induction on the size of @{term "Q"}, we use the induction-rule 
-@{text "measure_induct_rule"}:
+\<open>measure_induct_rule\<close>:
 
 \begin{center}
 @{thm measure_induct_rule[of "size_ty",no_vars]}
@@ -867,7 +867,7 @@ For the induction on the size of @{term "Q"}, we use the induction-rule
 That means in order to show a property @{term "P a"} for all @{term "a"}, 
 the induct-rule requires to prove that for all @{term x} @{term "P x"} holds using the 
 assumption that for all @{term y} whose size is strictly smaller than 
-that of @{term x} the property @{term "P y"} holds. *}
+that of @{term x} the property @{term "P y"} holds.\<close>
 
 lemma 
   shows subtype_transitivity: "\<Gamma>\<turnstile>S<:Q \<Longrightarrow> \<Gamma>\<turnstile>Q<:T \<Longrightarrow> \<Gamma>\<turnstile>S<:T" 
@@ -886,7 +886,7 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
       case (SA_Top \<Gamma> S) 
       then have rh_drv: "\<Gamma> \<turnstile> Top <: T" by simp
       then have T_inst: "T = Top" by (auto elim: S_TopE)
-      from `\<turnstile> \<Gamma> ok` and `S closed_in \<Gamma>`
+      from \<open>\<turnstile> \<Gamma> ok\<close> and \<open>S closed_in \<Gamma>\<close>
       have "\<Gamma> \<turnstile> S <: Top" by auto
       then show "\<Gamma> \<turnstile> S <: T" using T_inst by simp 
     next
@@ -900,7 +900,7 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
     next
       case (SA_arrow \<Gamma> Q\<^sub>1 S\<^sub>1 S\<^sub>2 Q\<^sub>2) 
       then have rh_drv: "\<Gamma> \<turnstile> Q\<^sub>1 \<rightarrow> Q\<^sub>2 <: T" by simp
-      from `Q\<^sub>1 \<rightarrow> Q\<^sub>2 = Q` 
+      from \<open>Q\<^sub>1 \<rightarrow> Q\<^sub>2 = Q\<close> 
       have Q\<^sub>12_less: "size_ty Q\<^sub>1 < size_ty Q" "size_ty Q\<^sub>2 < size_ty Q" by auto
       have lh_drv_prm\<^sub>1: "\<Gamma> \<turnstile> Q\<^sub>1 <: S\<^sub>1" by fact
       have lh_drv_prm\<^sub>2: "\<Gamma> \<turnstile> S\<^sub>2 <: Q\<^sub>2" by fact      
@@ -969,23 +969,23 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
     qed
   } note transitivity_lemma = this  
 
-  { --{* The transitivity proof is now by the auxiliary lemma. *}
+  { \<comment>\<open>The transitivity proof is now by the auxiliary lemma.\<close>
     case 1 
-    from `\<Gamma> \<turnstile> S <: Q` and `\<Gamma> \<turnstile> Q <: T`
+    from \<open>\<Gamma> \<turnstile> S <: Q\<close> and \<open>\<Gamma> \<turnstile> Q <: T\<close>
     show "\<Gamma> \<turnstile> S <: T" by (rule transitivity_lemma) 
   next 
     case 2
-    from `(\<Delta>@[(TVarB X Q)]@\<Gamma>) \<turnstile> M <: N` 
-      and `\<Gamma> \<turnstile> P<:Q` 
+    from \<open>(\<Delta>@[(TVarB X Q)]@\<Gamma>) \<turnstile> M <: N\<close> 
+      and \<open>\<Gamma> \<turnstile> P<:Q\<close> 
     show "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> M <: N" 
     proof (induct "\<Delta>@[(TVarB X Q)]@\<Gamma>" M N arbitrary: \<Gamma> X \<Delta> rule: subtype_of.induct) 
       case (SA_Top S \<Gamma> X \<Delta>)
-      from `\<Gamma> \<turnstile> P <: Q`
+      from \<open>\<Gamma> \<turnstile> P <: Q\<close>
       have "P closed_in \<Gamma>" by (simp add: subtype_implies_closed)
-      with `\<turnstile> (\<Delta>@[(TVarB X Q)]@\<Gamma>) ok` have "\<turnstile> (\<Delta>@[(TVarB X P)]@\<Gamma>) ok"
+      with \<open>\<turnstile> (\<Delta>@[(TVarB X Q)]@\<Gamma>) ok\<close> have "\<turnstile> (\<Delta>@[(TVarB X P)]@\<Gamma>) ok"
         by (simp add: replace_type)
       moreover
-      from `S closed_in (\<Delta>@[(TVarB X Q)]@\<Gamma>)` have "S closed_in (\<Delta>@[(TVarB X P)]@\<Gamma>)" 
+      from \<open>S closed_in (\<Delta>@[(TVarB X Q)]@\<Gamma>)\<close> have "S closed_in (\<Delta>@[(TVarB X P)]@\<Gamma>)" 
         by (simp add: closed_in_def doms_append)
       ultimately show "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> S <: Top" by (simp add: subtype_of.SA_Top)
     next
@@ -1016,12 +1016,12 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
       qed
     next
       case (SA_refl_TVar Y \<Gamma> X \<Delta>)
-      from `\<Gamma> \<turnstile> P <: Q`
+      from \<open>\<Gamma> \<turnstile> P <: Q\<close>
       have "P closed_in \<Gamma>" by (simp add: subtype_implies_closed)
-      with `\<turnstile> (\<Delta>@[(TVarB X Q)]@\<Gamma>) ok` have "\<turnstile> (\<Delta>@[(TVarB X P)]@\<Gamma>) ok"
+      with \<open>\<turnstile> (\<Delta>@[(TVarB X Q)]@\<Gamma>) ok\<close> have "\<turnstile> (\<Delta>@[(TVarB X P)]@\<Gamma>) ok"
         by (simp add: replace_type)
       moreover
-      from `Y \<in> ty_dom (\<Delta>@[(TVarB X Q)]@\<Gamma>)` have "Y \<in> ty_dom (\<Delta>@[(TVarB X P)]@\<Gamma>)"
+      from \<open>Y \<in> ty_dom (\<Delta>@[(TVarB X Q)]@\<Gamma>)\<close> have "Y \<in> ty_dom (\<Delta>@[(TVarB X P)]@\<Gamma>)"
         by (simp add: doms_append)
       ultimately show "(\<Delta>@[(TVarB X P)]@\<Gamma>) \<turnstile> Tvar Y <: Tvar Y" by (simp add: subtype_of.SA_refl_TVar)
     next
@@ -1037,7 +1037,7 @@ proof (induct Q arbitrary: \<Gamma> S T \<Delta> X P M N taking: "size_ty" rule:
   } 
 qed
 
-section {* Typing *}
+section \<open>Typing\<close>
 
 inductive
   typing :: "env \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow> bool" ("_ \<turnstile> _ : _" [60,60,60] 60) 
@@ -1116,22 +1116,22 @@ lemma typing_closed_in:
 using assms
 proof induct
   case (T_Var x T \<Gamma>)
-  from `\<turnstile> \<Gamma> ok` and `VarB x T \<in> set \<Gamma>`
+  from \<open>\<turnstile> \<Gamma> ok\<close> and \<open>VarB x T \<in> set \<Gamma>\<close>
   show ?case by (rule ok_imp_VarB_closed_in)
 next
   case (T_App \<Gamma> t\<^sub>1 T\<^sub>1 T\<^sub>2 t\<^sub>2)
   then show ?case by (auto simp add: ty.supp closed_in_def)
 next
   case (T_Abs x T\<^sub>1 \<Gamma> t\<^sub>2 T\<^sub>2)
-  from `VarB x T\<^sub>1 # \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>2`
+  from \<open>VarB x T\<^sub>1 # \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>2\<close>
   have "T\<^sub>1 closed_in \<Gamma>" by (auto dest: typing_ok)
   with T_Abs show ?case by (auto simp add: ty.supp closed_in_def)
 next
   case (T_Sub \<Gamma> t S T)
-  from `\<Gamma> \<turnstile> S <: T` show ?case by (simp add: subtype_implies_closed)
+  from \<open>\<Gamma> \<turnstile> S <: T\<close> show ?case by (simp add: subtype_implies_closed)
 next
   case (T_TAbs X T\<^sub>1 \<Gamma> t\<^sub>2 T\<^sub>2)
-  from `TVarB X T\<^sub>1 # \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>2`
+  from \<open>TVarB X T\<^sub>1 # \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>2\<close>
   have "T\<^sub>1 closed_in \<Gamma>" by (auto dest: typing_ok)
   with T_TAbs show ?case by (auto simp add: ty.supp closed_in_def abs_supp)
 next
@@ -1144,7 +1144,7 @@ next
 qed
 
 
-subsection {* Evaluation *}
+subsection \<open>Evaluation\<close>
 
 inductive
   val :: "trm \<Rightarrow> bool"
@@ -1302,7 +1302,7 @@ next
   qed
 qed
   
-text {* A.5(6) *}
+text \<open>A.5(6)\<close>
 
 lemma type_weaken:
   assumes "(\<Delta>@\<Gamma>) \<turnstile> t : T"
@@ -1337,15 +1337,15 @@ next
   then show ?case by (rule typing.T_Abs)
 next
   case (T_Sub t S T \<Delta> \<Gamma>)
-  from refl and `\<turnstile> (\<Delta> @ B # \<Gamma>) ok`
+  from refl and \<open>\<turnstile> (\<Delta> @ B # \<Gamma>) ok\<close>
   have "\<Delta> @ B # \<Gamma> \<turnstile> t : S" by (rule T_Sub)
-  moreover from  `(\<Delta> @ \<Gamma>)\<turnstile>S<:T` and `\<turnstile> (\<Delta> @ B # \<Gamma>) ok`
+  moreover from  \<open>(\<Delta> @ \<Gamma>)\<turnstile>S<:T\<close> and \<open>\<turnstile> (\<Delta> @ B # \<Gamma>) ok\<close>
   have "(\<Delta> @ B # \<Gamma>)\<turnstile>S<:T"
     by (rule weakening) (simp add: extends_def T_Sub)
   ultimately show ?case by (rule typing.T_Sub)
 next
   case (T_TAbs X T\<^sub>1 t\<^sub>2 T\<^sub>2 \<Delta> \<Gamma>)
-  from `TVarB X T\<^sub>1 # \<Delta> @ \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>2`
+  from \<open>TVarB X T\<^sub>1 # \<Delta> @ \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>2\<close>
   have closed: "T\<^sub>1 closed_in (\<Delta> @ \<Gamma>)"
     by (auto dest: typing_ok)
   have "\<turnstile> (TVarB X T\<^sub>1 # \<Delta> @ B # \<Gamma>) ok"
@@ -1367,7 +1367,7 @@ next
   case (T_TApp X t\<^sub>1 T2 T11 T12 \<Delta> \<Gamma>)
   have "\<Delta> @ B # \<Gamma> \<turnstile> t\<^sub>1 : (\<forall>X<:T11. T12)"
     by (rule T_TApp refl)+
-  moreover from `(\<Delta> @ \<Gamma>)\<turnstile>T2<:T11` and `\<turnstile> (\<Delta> @ B # \<Gamma>) ok`
+  moreover from \<open>(\<Delta> @ \<Gamma>)\<turnstile>T2<:T11\<close> and \<open>\<turnstile> (\<Delta> @ B # \<Gamma>) ok\<close>
   have "(\<Delta> @ B # \<Gamma>)\<turnstile>T2<:T11"
     by (rule weakening) (simp add: extends_def T_TApp)
   ultimately show ?case by (rule better_T_TApp)
@@ -1382,7 +1382,7 @@ lemma type_weaken':
   apply simp_all
   done
 
-text {* A.6 *}
+text \<open>A.6\<close>
 
 lemma strengthening:
   assumes "(\<Gamma> @ VarB x Q # \<Delta>) \<turnstile> S <: T"
@@ -1395,7 +1395,7 @@ proof (induct "\<Gamma> @ VarB x Q # \<Delta>" S T arbitrary: \<Gamma>)
   ultimately show ?case using subtype_of.SA_Top by auto
 next
   case (SA_refl_TVar X)
-  from `\<turnstile> (\<Gamma> @ VarB x Q # \<Delta>) ok`
+  from \<open>\<turnstile> (\<Gamma> @ VarB x Q # \<Delta>) ok\<close>
   have h1:"\<turnstile> (\<Gamma> @ \<Delta>) ok" by (auto dest: valid_cons')
   have "X \<in> ty_dom (\<Gamma> @ VarB x Q # \<Delta>)" using SA_refl_TVar by auto
   then have h2:"X \<in> ty_dom (\<Gamma> @ \<Delta>)" using ty_dom_vrs by auto
@@ -1407,7 +1407,7 @@ next
   then show ?case using h1 h2 by auto
 qed (auto)
 
-lemma narrow_type: -- {* A.7 *}
+lemma narrow_type: \<comment> \<open>A.7\<close>
   assumes H: "\<Delta> @ (TVarB X Q) # \<Gamma> \<turnstile> t : T"
   shows "\<Gamma> \<turnstile> P <: Q \<Longrightarrow> \<Delta> @ (TVarB X P) # \<Gamma> \<turnstile> t : T"
   using H
@@ -1433,18 +1433,18 @@ lemma narrow_type: -- {* A.7 *}
     case (T_TApp X' t1 T2 T11 T12 P D)
     then have "D @ TVarB X P # \<Gamma> \<turnstile> t1 : Forall X' T12 T11" by fastforce
     moreover have "(D @ [TVarB X Q] @ \<Gamma>) \<turnstile> T2<:T11" using T_TApp by auto
-    then have "(D @ [TVarB X P] @ \<Gamma>) \<turnstile> T2<:T11" using `\<Gamma>\<turnstile>P<:Q`
+    then have "(D @ [TVarB X P] @ \<Gamma>) \<turnstile> T2<:T11" using \<open>\<Gamma>\<turnstile>P<:Q\<close>
       by (rule subtype_narrow)
     moreover from T_TApp have "X' \<sharp> (D @ TVarB X P # \<Gamma>, t1, T2)"
       by (simp add: fresh_list_append fresh_list_cons fresh_prod)
     ultimately show ?case by auto
 qed
 
-subsection {* Substitution lemmas *}
+subsection \<open>Substitution lemmas\<close>
 
-subsubsection {* Substition Preserves Typing *}
+subsubsection \<open>Substition Preserves Typing\<close>
 
-theorem subst_type: -- {* A.8 *}
+theorem subst_type: \<comment> \<open>A.8\<close>
   assumes H: "(\<Delta> @ (VarB x U) # \<Gamma>) \<turnstile> t : T"
   shows "\<Gamma> \<turnstile> u : U \<Longrightarrow> \<Delta> @ \<Gamma> \<turnstile> t[x \<mapsto> u] : T" using H
  proof (nominal_induct "\<Delta> @ (VarB x U) # \<Gamma>" t T avoiding: x u arbitrary: \<Delta> rule: typing.strong_induct)
@@ -1473,9 +1473,9 @@ theorem subst_type: -- {* A.8 *}
    ultimately show ?case by auto 
  next
    case (T_TAbs X T1 t2 T2 x u D)
-   from `TVarB X T1 # D @ VarB x U # \<Gamma> \<turnstile> t2 : T2` have "X \<sharp> T1"
+   from \<open>TVarB X T1 # D @ VarB x U # \<Gamma> \<turnstile> t2 : T2\<close> have "X \<sharp> T1"
      by (auto simp add: valid_ty_dom_fresh dest: typing_ok intro!: closed_in_fresh)
-   with `X \<sharp> u` and T_TAbs show ?case by fastforce
+   with \<open>X \<sharp> u\<close> and T_TAbs show ?case by fastforce
  next
    case (T_TApp X t1 T2 T11 T12 x u D)
    then have "(D@\<Gamma>) \<turnstile>T2<:T11" using T_TApp by (auto dest: strengthening)
@@ -1483,9 +1483,9 @@ theorem subst_type: -- {* A.8 *}
      by (force simp add: fresh_prod fresh_list_append fresh_list_cons subst_trm_fresh_tyvar)
 qed
 
-subsubsection {* Type Substitution Preserves Subtyping *}
+subsubsection \<open>Type Substitution Preserves Subtyping\<close>
 
-lemma substT_subtype: -- {* A.10 *}
+lemma substT_subtype: \<comment> \<open>A.10\<close>
   assumes H: "(\<Delta> @ ((TVarB X Q) # \<Gamma>)) \<turnstile> S <: T"
   shows "\<Gamma> \<turnstile> P <: Q \<Longrightarrow> (\<Delta>[X \<mapsto> P]\<^sub>e @ \<Gamma>) \<turnstile> S[X \<mapsto> P]\<^sub>\<tau> <: T[X \<mapsto> P]\<^sub>\<tau>" 
   using H
@@ -1508,11 +1508,11 @@ next
   proof (cases "X = Y")
     assume eq: "X = Y"
     from eq and SA_trans_TVar have "TVarB Y Q \<in> set (D @ TVarB X Q # \<Gamma>)" by simp
-    with G_ok have QS: "Q = S" using `TVarB Y S \<in> set (D @ TVarB X Q # \<Gamma>)`
+    with G_ok have QS: "Q = S" using \<open>TVarB Y S \<in> set (D @ TVarB X Q # \<Gamma>)\<close>
       by (rule uniqueness_of_ctxt)
     from X_\<Gamma>_ok have "X \<sharp> ty_dom \<Gamma>" and "Q closed_in \<Gamma>" by auto
     then have XQ: "X \<sharp> Q" by (rule closed_in_fresh)
-    note `\<Gamma>\<turnstile>P<:Q`
+    note \<open>\<Gamma>\<turnstile>P<:Q\<close>
     moreover from ST have "\<turnstile> (D[X \<mapsto> P]\<^sub>e @ \<Gamma>) ok" by (rule subtype_implies_ok)
     moreover have "(D[X \<mapsto> P]\<^sub>e @ \<Gamma>) extends \<Gamma>" by (simp add: extends_def)
     ultimately have "(D[X \<mapsto> P]\<^sub>e @ \<Gamma>) \<turnstile> P<:Q" by (rule weakening)
@@ -1547,7 +1547,7 @@ next
   qed
 next
   case (SA_refl_TVar Y X P D)
-  note `\<turnstile> (D @ TVarB X Q # \<Gamma>) ok`
+  note \<open>\<turnstile> (D @ TVarB X Q # \<Gamma>) ok\<close>
   moreover from SA_refl_TVar have closed: "P closed_in \<Gamma>"
     by (auto dest: subtype_implies_closed)
   ultimately have ok: "\<turnstile> (D[X \<mapsto> P]\<^sub>e @ \<Gamma>) ok" using valid_subst by auto
@@ -1582,9 +1582,9 @@ next
   with SA_all and S1 show ?case by force
 qed
 
-subsubsection {* Type Substitution Preserves Typing *}
+subsubsection \<open>Type Substitution Preserves Typing\<close>
 
-theorem substT_type: -- {* A.11 *}
+theorem substT_type: \<comment> \<open>A.11\<close>
   assumes H: "(D @ TVarB X Q # G) \<turnstile> t : T"
   shows "G \<turnstile> P <: Q \<Longrightarrow>
     (D[X \<mapsto> P]\<^sub>e @ G) \<turnstile> t[X \<mapsto>\<^sub>\<tau> P] : T[X \<mapsto> P]\<^sub>\<tau>" using H
@@ -1592,9 +1592,9 @@ proof (nominal_induct "D @ TVarB X Q # G" t T avoiding: X P arbitrary: D rule: t
   case (T_Var x T X P D')
   have "G\<turnstile>P<:Q" by fact
   then have "P closed_in G" using subtype_implies_closed by auto
-  moreover note `\<turnstile> (D' @ TVarB X Q # G) ok`
+  moreover note \<open>\<turnstile> (D' @ TVarB X Q # G) ok\<close>
   ultimately have "\<turnstile> (D'[X \<mapsto> P]\<^sub>e @ G) ok" using valid_subst by auto
-  moreover note `VarB x T \<in> set (D' @ TVarB X Q # G)`
+  moreover note \<open>VarB x T \<in> set (D' @ TVarB X Q # G)\<close>
   then have "VarB x T \<in> set D' \<or> VarB x T \<in> set G" by simp
   then have "(VarB x (T[X \<mapsto> P]\<^sub>\<tau>)) \<in> set (D'[X \<mapsto> P]\<^sub>e @ G)"
   proof
@@ -1648,7 +1648,7 @@ next
       intro: substT_subtype)
 qed
 
-lemma Abs_type: -- {* A.13(1) *}
+lemma Abs_type: \<comment> \<open>A.13(1)\<close>
   assumes H: "\<Gamma> \<turnstile> (\<lambda>x:S. s) : T"
   and H': "\<Gamma> \<turnstile> T <: U \<rightarrow> U'"
   and H'': "x \<sharp> \<Gamma>"
@@ -1658,7 +1658,7 @@ lemma Abs_type: -- {* A.13(1) *}
   using H H' H''
 proof (nominal_induct \<Gamma> t \<equiv> "\<lambda>x:S. s" T avoiding: x arbitrary: U U' S s rule: typing.strong_induct)
   case (T_Abs y T\<^sub>1 \<Gamma> t\<^sub>2 T\<^sub>2)
-  from `\<Gamma> \<turnstile> T\<^sub>1 \<rightarrow> T\<^sub>2 <: U \<rightarrow> U'`
+  from \<open>\<Gamma> \<turnstile> T\<^sub>1 \<rightarrow> T\<^sub>2 <: U \<rightarrow> U'\<close>
   obtain ty1: "\<Gamma> \<turnstile> U <: S" and ty2: "\<Gamma> \<turnstile> T\<^sub>2 <: U'" using T_Abs
     by cases (simp_all add: ty.inject trm.inject alpha fresh_atm)
   from T_Abs have "VarB y S # \<Gamma> \<turnstile> [(y, x)] \<bullet> s : T\<^sub>2"
@@ -1690,7 +1690,7 @@ lemma Abs_type':
   using H subtype_reflexivity_from_typing [OF H] H'
   by (rule Abs_type)
 
-lemma TAbs_type: -- {* A.13(2) *}
+lemma TAbs_type: \<comment> \<open>A.13(2)\<close>
   assumes H: "\<Gamma> \<turnstile> (\<lambda>X<:S. s) : T"
   and H': "\<Gamma> \<turnstile> T <: (\<forall>X<:U. U')"
   and fresh: "X \<sharp> \<Gamma>" "X \<sharp> S" "X \<sharp> U"
@@ -1701,9 +1701,9 @@ lemma TAbs_type: -- {* A.13(2) *}
   using H H' fresh
 proof (nominal_induct \<Gamma> t \<equiv> "\<lambda>X<:S. s" T avoiding: X U U' S arbitrary: s rule: typing.strong_induct)
   case (T_TAbs Y T\<^sub>1 \<Gamma> t\<^sub>2 T\<^sub>2)
-  from `TVarB Y T\<^sub>1 # \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>2` have Y: "Y \<sharp> \<Gamma>"
+  from \<open>TVarB Y T\<^sub>1 # \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>2\<close> have Y: "Y \<sharp> \<Gamma>"
     by (auto dest!: typing_ok simp add: valid_ty_dom_fresh)
-  from `Y \<sharp> U'` and `Y \<sharp> X`
+  from \<open>Y \<sharp> U'\<close> and \<open>Y \<sharp> X\<close>
   have "(\<forall>X<:U. U') = (\<forall>Y<:U. [(Y, X)] \<bullet> U')"
     by (simp add: ty.inject alpha' fresh_atm)
   with T_TAbs have "\<Gamma> \<turnstile> (\<forall>Y<:S. T\<^sub>2) <: (\<forall>Y<:U. [(Y, X)] \<bullet> U')" by (simp add: trm.inject)
@@ -1714,13 +1714,13 @@ proof (nominal_induct \<Gamma> t \<equiv> "\<lambda>X<:S. s" T avoiding: X U U' 
     by (simp add: trm.inject alpha fresh_atm)
   then have "[(Y, X)] \<bullet> (TVarB Y S # \<Gamma>) \<turnstile> [(Y, X)] \<bullet> [(Y, X)] \<bullet> s : [(Y, X)] \<bullet> T\<^sub>2"
     by (rule typing.eqvt)
-  with `X \<sharp> \<Gamma>` `X \<sharp> S` Y `Y \<sharp> S` have "TVarB X S # \<Gamma> \<turnstile> s : [(Y, X)] \<bullet> T\<^sub>2"
+  with \<open>X \<sharp> \<Gamma>\<close> \<open>X \<sharp> S\<close> Y \<open>Y \<sharp> S\<close> have "TVarB X S # \<Gamma> \<turnstile> s : [(Y, X)] \<bullet> T\<^sub>2"
     by perm_simp
   then have "TVarB X U # \<Gamma> \<turnstile> s : [(Y, X)] \<bullet> T\<^sub>2" using ty1
     by (rule narrow_type [of "[]", simplified])
   moreover from ty2 have "([(Y, X)] \<bullet> (TVarB Y U # \<Gamma>)) \<turnstile> ([(Y, X)] \<bullet> T\<^sub>2) <: ([(Y, X)] \<bullet> [(Y, X)] \<bullet> U')"
     by (rule subtype_of.eqvt)
-  with `X \<sharp> \<Gamma>` `X \<sharp> U` Y `Y \<sharp> U` have "(TVarB X U # \<Gamma>) \<turnstile> ([(Y, X)] \<bullet> T\<^sub>2) <: U'"
+  with \<open>X \<sharp> \<Gamma>\<close> \<open>X \<sharp> U\<close> Y \<open>Y \<sharp> U\<close> have "(TVarB X U # \<Gamma>) \<turnstile> ([(Y, X)] \<bullet> T\<^sub>2) <: U'"
     by perm_simp
   ultimately show ?case by (rule T_TAbs)
 next
@@ -1738,7 +1738,7 @@ lemma TAbs_type':
   using H subtype_reflexivity_from_typing [OF H] fresh
   by (rule TAbs_type)
 
-theorem preservation: -- {* A.20 *}
+theorem preservation: \<comment> \<open>A.20\<close>
   assumes H: "\<Gamma> \<turnstile> t : T"
   shows "t \<longmapsto> t' \<Longrightarrow> \<Gamma> \<turnstile> t' : T" using H
 proof (nominal_induct avoiding: t' rule: typing.strong_induct)
@@ -1747,7 +1747,7 @@ proof (nominal_induct avoiding: t' rule: typing.strong_induct)
     by (rule exists_fresh) (rule fin_supp)
   obtain X::tyvrs where "X \<sharp> (t\<^sub>1 \<cdot> t\<^sub>2, t')"
     by (rule exists_fresh) (rule fin_supp)
-  with `t\<^sub>1 \<cdot> t\<^sub>2 \<longmapsto> t'` show ?case
+  with \<open>t\<^sub>1 \<cdot> t\<^sub>2 \<longmapsto> t'\<close> show ?case
   proof (cases rule: eval.strong_cases [where x=x and X=X])
     case (E_Abs v\<^sub>2 T\<^sub>11' t\<^sub>12)
     with T_App and x_fresh have h: "\<Gamma> \<turnstile> (\<lambda>x:T\<^sub>11'. t\<^sub>12) : T\<^sub>11 \<rightarrow> T\<^sub>12"
@@ -1758,7 +1758,7 @@ proof (nominal_induct avoiding: t' rule: typing.strong_induct)
       and t\<^sub>12: "(VarB x T\<^sub>11') # \<Gamma> \<turnstile> t\<^sub>12 : S'"
       and S': "\<Gamma> \<turnstile> S' <: T\<^sub>12"
       by (rule Abs_type') blast
-    from `\<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>11`
+    from \<open>\<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>11\<close>
     have "\<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>11'" using T\<^sub>11 by (rule T_Sub)
     with t\<^sub>12 have "\<Gamma> \<turnstile> t\<^sub>12[x \<mapsto> t\<^sub>2] : S'" 
       by (rule subst_type [where \<Delta>="[]", simplified])
@@ -1768,7 +1768,7 @@ proof (nominal_induct avoiding: t' rule: typing.strong_induct)
     case (E_App1 t''' t'' u)
     hence "t\<^sub>1 \<longmapsto> t''" by (simp add:trm.inject) 
     hence "\<Gamma> \<turnstile> t'' : T\<^sub>11 \<rightarrow> T\<^sub>12" by (rule T_App)
-    hence "\<Gamma> \<turnstile> t'' \<cdot> t\<^sub>2 : T\<^sub>12" using `\<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>11`
+    hence "\<Gamma> \<turnstile> t'' \<cdot> t\<^sub>2 : T\<^sub>12" using \<open>\<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>11\<close>
       by (rule typing.T_App)
     with E_App1 show ?thesis by (simp add:trm.inject)
   next
@@ -1783,27 +1783,27 @@ next
   case (T_TApp X \<Gamma> t\<^sub>1 T\<^sub>2  T\<^sub>11  T\<^sub>12 t')
   obtain x::vrs where "x \<sharp> (t\<^sub>1 \<cdot>\<^sub>\<tau> T\<^sub>2, t')"
     by (rule exists_fresh) (rule fin_supp)
-  with `t\<^sub>1 \<cdot>\<^sub>\<tau> T\<^sub>2 \<longmapsto> t'`
+  with \<open>t\<^sub>1 \<cdot>\<^sub>\<tau> T\<^sub>2 \<longmapsto> t'\<close>
   show ?case
   proof (cases rule: eval.strong_cases [where X=X and x=x])
     case (E_TAbs T\<^sub>11' T\<^sub>2' t\<^sub>12)
     with T_TApp have "\<Gamma> \<turnstile> (\<lambda>X<:T\<^sub>11'. t\<^sub>12) : (\<forall>X<:T\<^sub>11. T\<^sub>12)" and "X \<sharp> \<Gamma>" and "X \<sharp> T\<^sub>11'"
       by (simp_all add: trm.inject)
-    moreover from `\<Gamma>\<turnstile>T\<^sub>2<:T\<^sub>11` and `X \<sharp> \<Gamma>` have "X \<sharp> T\<^sub>11"
+    moreover from \<open>\<Gamma>\<turnstile>T\<^sub>2<:T\<^sub>11\<close> and \<open>X \<sharp> \<Gamma>\<close> have "X \<sharp> T\<^sub>11"
       by (blast intro: closed_in_fresh fresh_dom dest: subtype_implies_closed)
     ultimately obtain S'
       where "TVarB X T\<^sub>11 # \<Gamma> \<turnstile> t\<^sub>12 : S'"
       and "(TVarB X T\<^sub>11 # \<Gamma>) \<turnstile> S' <: T\<^sub>12"
       by (rule TAbs_type') blast
     hence "TVarB X T\<^sub>11 # \<Gamma> \<turnstile> t\<^sub>12 : T\<^sub>12" by (rule T_Sub)
-    hence "\<Gamma> \<turnstile> t\<^sub>12[X \<mapsto>\<^sub>\<tau> T\<^sub>2] : T\<^sub>12[X \<mapsto> T\<^sub>2]\<^sub>\<tau>" using `\<Gamma> \<turnstile> T\<^sub>2 <: T\<^sub>11`
+    hence "\<Gamma> \<turnstile> t\<^sub>12[X \<mapsto>\<^sub>\<tau> T\<^sub>2] : T\<^sub>12[X \<mapsto> T\<^sub>2]\<^sub>\<tau>" using \<open>\<Gamma> \<turnstile> T\<^sub>2 <: T\<^sub>11\<close>
       by (rule substT_type [where D="[]", simplified])
     with T_TApp and E_TAbs show ?thesis by (simp add: trm.inject)
   next
     case (E_TApp t''' t'' T)
     from E_TApp have "t\<^sub>1 \<longmapsto> t''" by (simp add: trm.inject)
     then have "\<Gamma> \<turnstile> t'' : (\<forall>X<:T\<^sub>11. T\<^sub>12)" by (rule T_TApp)
-    then have "\<Gamma> \<turnstile> t'' \<cdot>\<^sub>\<tau> T\<^sub>2 : T\<^sub>12[X \<mapsto> T\<^sub>2]\<^sub>\<tau>" using `\<Gamma> \<turnstile> T\<^sub>2 <: T\<^sub>11`
+    then have "\<Gamma> \<turnstile> t'' \<cdot>\<^sub>\<tau> T\<^sub>2 : T\<^sub>12[X \<mapsto> T\<^sub>2]\<^sub>\<tau>" using \<open>\<Gamma> \<turnstile> T\<^sub>2 <: T\<^sub>11\<close>
       by (rule better_T_TApp)
     with E_TApp show ?thesis by (simp add: trm.inject)
   qed (simp_all add: fresh_prod)
@@ -1815,24 +1815,24 @@ next
   ultimately show ?case by (rule typing.T_Sub)
 qed (auto)
 
-lemma Fun_canonical: -- {* A.14(1) *}
+lemma Fun_canonical: \<comment> \<open>A.14(1)\<close>
   assumes ty: "[] \<turnstile> v : T\<^sub>1 \<rightarrow> T\<^sub>2"
   shows "val v \<Longrightarrow> \<exists>x t S. v = (\<lambda>x:S. t)" using ty
 proof (induct "[]::env" v "T\<^sub>1 \<rightarrow> T\<^sub>2" arbitrary: T\<^sub>1 T\<^sub>2)
   case (T_Sub t S)
-  from `[] \<turnstile> S <: T\<^sub>1 \<rightarrow> T\<^sub>2`
+  from \<open>[] \<turnstile> S <: T\<^sub>1 \<rightarrow> T\<^sub>2\<close>
   obtain S\<^sub>1 S\<^sub>2 where S: "S = S\<^sub>1 \<rightarrow> S\<^sub>2" 
     by cases (auto simp add: T_Sub)
-  then show ?case using `val t` by (rule T_Sub)
+  then show ?case using \<open>val t\<close> by (rule T_Sub)
 qed (auto)
 
-lemma TyAll_canonical: -- {* A.14(3) *}
+lemma TyAll_canonical: \<comment> \<open>A.14(3)\<close>
   fixes X::tyvrs
   assumes ty: "[] \<turnstile> v : (\<forall>X<:T\<^sub>1. T\<^sub>2)"
   shows "val v \<Longrightarrow> \<exists>X t S. v = (\<lambda>X<:S. t)" using ty
 proof (induct "[]::env" v "\<forall>X<:T\<^sub>1. T\<^sub>2" arbitrary: X T\<^sub>1 T\<^sub>2)
   case (T_Sub t S)
-  from `[] \<turnstile> S <: (\<forall>X<:T\<^sub>1. T\<^sub>2)`
+  from \<open>[] \<turnstile> S <: (\<forall>X<:T\<^sub>1. T\<^sub>2)\<close>
   obtain X S\<^sub>1 S\<^sub>2 where S: "S = (\<forall>X<:S\<^sub>1. S\<^sub>2)"
     by cases (auto simp add: T_Sub)
   then show ?case using T_Sub by auto 

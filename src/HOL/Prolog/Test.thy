@@ -2,7 +2,7 @@
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
-section {* Basic examples *}
+section \<open>Basic examples\<close>
 
 theory Test
 imports HOHH

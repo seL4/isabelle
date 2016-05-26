@@ -14,20 +14,20 @@ spark_open "greatest_common_divisor/g_c_d"
 
 spark_vc procedure_g_c_d_4
 proof -
-  from `0 < d` have "0 \<le> c mod d" by (rule pos_mod_sign)
-  with `0 \<le> c` `0 < d` `c - c sdiv d * d \<noteq> 0` show ?C1
+  from \<open>0 < d\<close> have "0 \<le> c mod d" by (rule pos_mod_sign)
+  with \<open>0 \<le> c\<close> \<open>0 < d\<close> \<open>c - c sdiv d * d \<noteq> 0\<close> show ?C1
     by (simp add: sdiv_pos_pos zmod_zdiv_equality')
 next
-  from `0 \<le> c` `0 < d` `gcd c d = gcd m n` show ?C2
+  from \<open>0 \<le> c\<close> \<open>0 < d\<close> \<open>gcd c d = gcd m n\<close> show ?C2
     by (simp add: sdiv_pos_pos zmod_zdiv_equality' gcd_non_0_int)
 qed
 
 spark_vc procedure_g_c_d_11
 proof -
-  from `0 \<le> c` `0 < d` `c - c sdiv d * d = 0`
+  from \<open>0 \<le> c\<close> \<open>0 < d\<close> \<open>c - c sdiv d * d = 0\<close>
   have "d dvd c"
     by (auto simp add: sdiv_pos_pos dvd_def ac_simps)
-  with `0 < d` `gcd c d = gcd m n` show ?C1
+  with \<open>0 < d\<close> \<open>gcd c d = gcd m n\<close> show ?C1
     by simp
 qed
 

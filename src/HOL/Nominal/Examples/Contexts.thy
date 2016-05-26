@@ -2,7 +2,7 @@ theory Contexts
 imports "../Nominal"
 begin
 
-text {* 
+text \<open>
   
   We show here that the Plotkin-style of defining
   beta-reduction (based on congruence rules) is
@@ -14,23 +14,23 @@ text {*
   of filling a term into a context produces an alpha-equivalent 
   term. 
 
-*}
+\<close>
 
 atom_decl name
 
-text {* 
+text \<open>
   Lambda-Terms - the Lam-term constructor binds a name
-*}
+\<close>
 
 nominal_datatype lam = 
     Var "name"
   | App "lam" "lam"
   | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-text {* 
+text \<open>
   Contexts - the lambda case in contexts does not bind 
   a name, even if we introduce the notation [_]._ for CLam.
-*}
+\<close>
 
 nominal_datatype ctx = 
     Hole ("\<box>" 1000)  
@@ -38,7 +38,7 @@ nominal_datatype ctx =
   | CAppR "lam" "ctx" 
   | CLam "name" "ctx"  ("CLam [_]._" [100,100] 100) 
 
-text {* Capture-Avoiding Substitution *}
+text \<open>Capture-Avoiding Substitution\<close>
 
 nominal_primrec
   subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
@@ -52,10 +52,10 @@ apply(simp add: abs_fresh)
 apply(fresh_guess)+
 done
 
-text {*
+text \<open>
   Filling is the operation that fills a term into a hole. 
   This operation is possibly capturing.
-*}
+\<close>
 
 nominal_primrec
   filling :: "ctx \<Rightarrow> lam \<Rightarrow> lam" ("_\<lbrakk>_\<rbrakk>" [100,100] 100)
@@ -66,17 +66,17 @@ where
 | "(CLam [x].E)\<lbrakk>t\<rbrakk> = Lam [x].(E\<lbrakk>t\<rbrakk>)" 
 by (rule TrueI)+
 
-text {* 
+text \<open>
   While contexts themselves are not alpha-equivalence classes, the 
   filling operation produces an alpha-equivalent lambda-term. 
-*}
+\<close>
 
 lemma alpha_test: 
   shows "x\<noteq>y \<Longrightarrow> (CLam [x].\<box>) \<noteq> (CLam [y].\<box>)"
   and   "(CLam [x].\<box>)\<lbrakk>Var x\<rbrakk> = (CLam [y].\<box>)\<lbrakk>Var y\<rbrakk>"
 by (auto simp add: alpha ctx.inject lam.inject calc_atm fresh_atm) 
 
-text {* The composition of two contexts. *}
+text \<open>The composition of two contexts.\<close>
 
 nominal_primrec
  ctx_compose :: "ctx \<Rightarrow> ctx \<Rightarrow> ctx" ("_ \<circ> _" [100,100] 100)
@@ -91,14 +91,14 @@ lemma ctx_compose:
   shows "(E1 \<circ> E2)\<lbrakk>t\<rbrakk> = E1\<lbrakk>E2\<lbrakk>t\<rbrakk>\<rbrakk>"
 by (induct E1 rule: ctx.induct) (auto)
 
-text {* Beta-reduction via contexts in the Felleisen-Hieb style. *}
+text \<open>Beta-reduction via contexts in the Felleisen-Hieb style.\<close>
 
 inductive
   ctx_red :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<longrightarrow>x _" [80,80] 80) 
 where
   xbeta[intro]: "E\<lbrakk>App (Lam [x].t) t'\<rbrakk> \<longrightarrow>x E\<lbrakk>t[x::=t']\<rbrakk>" 
 
-text {* Beta-reduction via congruence rules in the Plotkin style. *}
+text \<open>Beta-reduction via congruence rules in the Plotkin style.\<close>
 
 inductive
   cong_red :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<longrightarrow>o _" [80,80] 80) 
@@ -108,7 +108,7 @@ where
 | oapp2[intro]: "t \<longrightarrow>o t' \<Longrightarrow> App t2 t \<longrightarrow>o App t2 t'"
 | olam[intro]:  "t \<longrightarrow>o t' \<Longrightarrow> Lam [x].t \<longrightarrow>o Lam [x].t'"
 
-text {* The proof that shows both relations are equal. *}
+text \<open>The proof that shows both relations are equal.\<close>
 
 lemma cong_red_in_ctx:
   assumes a: "t \<longrightarrow>o t'"

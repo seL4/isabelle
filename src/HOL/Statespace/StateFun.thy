@@ -2,13 +2,13 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
-section {* State Space Representation as Function \label{sec:StateFun}*}
+section \<open>State Space Representation as Function \label{sec:StateFun}\<close>
 
 theory StateFun imports DistinctTreeProver 
 begin
 
 
-text {* The state space is represented as a function from names to
+text \<open>The state space is represented as a function from names to
 values. We neither fix the type of names nor the type of values. We
 define lookup and update functions and provide simprocs that simplify
 expressions containing these, similar to HOL-records.
@@ -20,7 +20,7 @@ all types that we attempt to store in the state space.
 
 The update is actually generalized to a map function. The map supplies
 better compositionality, especially if you think of nested state
-spaces.  *} 
+spaces.\<close> 
 
 definition K_statefun :: "'a \<Rightarrow> 'b \<Rightarrow> 'a" where "K_statefun c x \<equiv> c"
 

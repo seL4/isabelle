@@ -2,14 +2,14 @@ theory Weakening
   imports "../Nominal" 
 begin
 
-text {* 
+text \<open>
   A simple proof of the Weakening Property in the simply-typed 
   lambda-calculus. The proof is simple, because we can make use
-  of the variable convention. *}
+  of the variable convention.\<close>
 
 atom_decl name 
 
-text {* Terms and Types *}
+text \<open>Terms and Types\<close>
 
 nominal_datatype lam = 
     Var "name"
@@ -27,9 +27,9 @@ lemma ty_fresh:
 by (nominal_induct T rule: ty.strong_induct)
    (auto simp add: fresh_string)
 
-text {* 
+text \<open>
   Valid contexts (at the moment we have no type for finite 
-  sets yet, therefore typing-contexts are lists). *}
+  sets yet, therefore typing-contexts are lists).\<close>
 
 inductive
   valid :: "(name\<times>ty) list \<Rightarrow> bool"
@@ -39,7 +39,7 @@ where
 
 equivariance valid
 
-text{* Typing judgements *}
+text\<open>Typing judgements\<close>
 
 inductive
   typing :: "(name\<times>ty) list\<Rightarrow>lam\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ : _" [60,60,60] 60) 
@@ -48,27 +48,27 @@ where
   | t_App[intro]: "\<lbrakk>\<Gamma> \<turnstile> t1 : T1\<rightarrow>T2; \<Gamma> \<turnstile> t2 : T1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App t1 t2 : T2"
   | t_Lam[intro]: "\<lbrakk>x\<sharp>\<Gamma>;(x,T1)#\<Gamma> \<turnstile> t : T2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : T1\<rightarrow>T2"
 
-text {* 
+text \<open>
   We derive the strong induction principle for the typing 
   relation (this induction principle has the variable convention 
-  already built-in). *}
+  already built-in).\<close>
 
 equivariance typing
 nominal_inductive typing
   by (simp_all add: abs_fresh ty_fresh)
 
-text {* Abbreviation for the notion of subcontexts. *}
+text \<open>Abbreviation for the notion of subcontexts.\<close>
 
 abbreviation
   "sub_context" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" ("_ \<subseteq> _" [60,60] 60) 
 where
   "\<Gamma>1 \<subseteq> \<Gamma>2 \<equiv> \<forall>x T. (x,T)\<in>set \<Gamma>1 \<longrightarrow> (x,T)\<in>set \<Gamma>2"
 
-text {* Now it comes: The Weakening Lemma *}
+text \<open>Now it comes: The Weakening Lemma\<close>
 
-text {*
+text \<open>
   The first version is, after setting up the induction, 
-  completely automatic except for use of atomize. *}
+  completely automatic except for use of atomize.\<close>
 
 lemma weakening_version1: 
   fixes \<Gamma>1 \<Gamma>2::"(name\<times>ty) list"
@@ -80,9 +80,9 @@ using a b c
 by (nominal_induct \<Gamma>1 t T avoiding: \<Gamma>2 rule: typing.strong_induct)
    (auto | atomize)+
 
-text {* 
+text \<open>
   The second version gives the details for the variable
-  and lambda case. *}
+  and lambda case.\<close>
 
 lemma weakening_version2: 
   fixes \<Gamma>1 \<Gamma>2::"(name\<times>ty) list"
@@ -114,10 +114,10 @@ next
   with vc show "\<Gamma>2 \<turnstile> Lam [x].t : T1\<rightarrow>T2" by auto
 qed (auto) (* app case *)
 
-text{* 
+text\<open>
   The original induction principle for the typing relation
   is not strong enough - even this simple lemma fails to be 
-  simple ;o) *}
+  simple ;o)\<close>
 
 lemma weakening_not_straigh_forward: 
   fixes \<Gamma>1 \<Gamma>2::"(name\<times>ty) list"
@@ -147,13 +147,13 @@ next
   have "valid ((x,T1)#\<Gamma>2)" using v2 (* fails *) 
     oops
   
-text{* 
+text\<open>
   To show that the proof with explicit renaming is not simple, 
   here is the proof without using the variable convention. It
   crucially depends on the equivariance property of the typing
   relation.
 
-*}
+\<close>
 
 lemma weakening_with_explicit_renaming: 
   fixes \<Gamma>1 \<Gamma>2::"(name\<times>ty) list"
@@ -199,9 +199,9 @@ proof (induct arbitrary: \<Gamma>2)
   ultimately show "\<Gamma>2 \<turnstile> Lam [x].t : T1 \<rightarrow> T2" by simp
 qed (auto) (* var and app cases *)
 
-text {*
+text \<open>
   Moral: compare the proof with explicit renamings to weakening_version1 
   and weakening_version2, and imagine you are proving something more substantial 
-  than the weakening lemma. *}
+  than the weakening lemma.\<close>
 
 end

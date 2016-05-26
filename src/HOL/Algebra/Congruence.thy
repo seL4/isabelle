@@ -15,7 +15,7 @@ record 'a partial_object =
   carrier :: "'a set"
 
 
-subsection \<open>Structure with Carrier and Equivalence Relation @{text eq}\<close>
+subsection \<open>Structure with Carrier and Equivalence Relation \<open>eq\<close>\<close>
 
 record 'a eq_object = "'a partial_object" +
   eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".=\<index>" 50)

@@ -7,24 +7,24 @@ theory Longest_Increasing_Subsequence
 imports "../../SPARK"
 begin
 
-text {*
+text \<open>
 Set of all increasing subsequences in a prefix of an array
-*}
+\<close>
 
 definition iseq :: "(nat \<Rightarrow> 'a::linorder) \<Rightarrow> nat \<Rightarrow> nat set set" where
   "iseq xs l = {is. (\<forall>i\<in>is. i < l) \<and>
      (\<forall>i\<in>is. \<forall>j\<in>is. i \<le> j \<longrightarrow> xs i \<le> xs j)}"
 
-text {*
+text \<open>
 Length of longest increasing subsequence in a prefix of an array
-*}
+\<close>
 
 definition liseq :: "(nat \<Rightarrow> 'a::linorder) \<Rightarrow> nat \<Rightarrow> nat" where
   "liseq xs i = Max (card ` iseq xs i)"
 
-text {*
+text \<open>
 Length of longest increasing subsequence ending at a particular position
-*}
+\<close>
 
 definition liseq' :: "(nat \<Rightarrow> 'a::linorder) \<Rightarrow> nat \<Rightarrow> nat" where
   "liseq' xs i = Max (card ` (iseq xs (Suc i) \<inter> {is. Max is = i}))"
@@ -238,8 +238,8 @@ proof -
           by (simp add: card_insert max_notin)
         moreover {
           from H j have "xs (Max is) \<le> xs i" by simp
-          moreover from `j < i` have "Suc j \<le> i" by simp
-          with `is \<in> iseq xs (Suc j)` have "is \<in> iseq xs i"
+          moreover from \<open>j < i\<close> have "Suc j \<le> i" by simp
+          with \<open>is \<in> iseq xs (Suc j)\<close> have "is \<in> iseq xs i"
             by (rule iseq_mono)
           ultimately have "is \<union> {i} \<in> iseq xs (Suc i)"
           by (rule iseq_insert)
@@ -269,52 +269,52 @@ proof -
         then have "1 < card is" by simp
         then have "Max (is - {Max is}) < Max is"
           by (rule Max_diff)
-        from `is \<in> iseq xs (Suc i)` `1 < card is`
+        from \<open>is \<in> iseq xs (Suc i)\<close> \<open>1 < card is\<close>
         have "xs (Max (is - {Max is})) \<le> xs (Max is)"
           by (rule iseq_nth)
         have "card is - 1 = liseq' xs (Max (is - {i}))"
         proof (rule liseq'_eq)
-          from `Max is = i` [symmetric] `finite is` `is \<noteq> {}`
+          from \<open>Max is = i\<close> [symmetric] \<open>finite is\<close> \<open>is \<noteq> {}\<close>
           show "card is - 1 = card (is - {i})" by simp
         next
-          from `is \<in> iseq xs (Suc i)` `Max is = i` [symmetric]
+          from \<open>is \<in> iseq xs (Suc i)\<close> \<open>Max is = i\<close> [symmetric]
           show "is - {i} \<in> iseq xs (Suc (Max (is - {i})))"
             by simp (rule iseq_diff)
         next
-          from `1 < card is`
+          from \<open>1 < card is\<close>
           show "is - {i} \<noteq> {}" by (rule diff_nonempty)
         next
           fix js
           assume "js \<in> iseq xs (Suc (Max (is - {i})))"
             "Max js = Max (is - {i})" "finite js" "js \<noteq> {}"
-          from `xs (Max (is - {Max is})) \<le> xs (Max is)`
-            `Max js = Max (is - {i})` `Max is = i`
+          from \<open>xs (Max (is - {Max is})) \<le> xs (Max is)\<close>
+            \<open>Max js = Max (is - {i})\<close> \<open>Max is = i\<close>
           have "xs (Max js) \<le> xs i" by simp
-          moreover from `Max is = i` `Max (is - {Max is}) < Max is`
+          moreover from \<open>Max is = i\<close> \<open>Max (is - {Max is}) < Max is\<close>
           have "Suc (Max (is - {i})) \<le> i"
             by simp
-          with `js \<in> iseq xs (Suc (Max (is - {i})))`
+          with \<open>js \<in> iseq xs (Suc (Max (is - {i})))\<close>
           have "js \<in> iseq xs i"
             by (rule iseq_mono)
           ultimately have "js \<union> {i} \<in> iseq xs (Suc i)"
             by (rule iseq_insert)
-          moreover from `js \<noteq> {}` `finite js` `Max js = Max (is - {i})`
-            `Max is = i` [symmetric] `Max (is - {Max is}) < Max is`
+          moreover from \<open>js \<noteq> {}\<close> \<open>finite js\<close> \<open>Max js = Max (is - {i})\<close>
+            \<open>Max is = i\<close> [symmetric] \<open>Max (is - {Max is}) < Max is\<close>
           have "Max (js \<union> {i}) = i"
             by simp
           ultimately have "card (js \<union> {i}) \<le> card is" by (rule R)
-          moreover from `Max is = i` [symmetric] `finite js`
-            `Max (is - {Max is}) < Max is` `Max js = Max (is - {i})`
+          moreover from \<open>Max is = i\<close> [symmetric] \<open>finite js\<close>
+            \<open>Max (is - {Max is}) < Max is\<close> \<open>Max js = Max (is - {i})\<close>
           have "i \<notin> js" by (simp add: max_notin)
-          with `finite js`
+          with \<open>finite js\<close>
           have "card (js \<union> {i}) = card ((js \<union> {i}) - {i}) + 1"
             by simp
           ultimately show "card js \<le> card (is - {i})"
-            using `i \<notin> js` `Max is = i` [symmetric] `is \<noteq> {}` `finite is`
+            using \<open>i \<notin> js\<close> \<open>Max is = i\<close> [symmetric] \<open>is \<noteq> {}\<close> \<open>finite is\<close>
             by simp
         qed simp
-        with H `Max (is - {Max is}) < Max is`
-          `xs (Max (is - {Max is})) \<le> xs (Max is)`
+        with H \<open>Max (is - {Max is}) < Max is\<close>
+          \<open>xs (Max (is - {Max is})) \<le> xs (Max is)\<close>
         show ?thesis by auto
       qed
     qed
@@ -515,7 +515,7 @@ lemma max_ext_limit: "max_ext A i j \<le> j"
   done
 
 
-text {* Proof functions *}
+text \<open>Proof functions\<close>
 
 abbreviation (input)
   "arr_conv a \<equiv> (\<lambda>n. a (int n))"
@@ -539,7 +539,7 @@ spark_proof_functions
   max_ext = "max_ext' :: (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int"
 
 
-text {* The verification conditions *}
+text \<open>The verification conditions\<close>
 
 spark_open "liseq/liseq_length"
 

@@ -81,7 +81,7 @@ where
    no_Check_in (s\<^sub>3 @ s\<^sub>2) r \<and> isin (s\<^sub>2 @ [Check_in g r c] @ s\<^sub>1) r = {})"
 
 
-section {* Some setup *}
+section \<open>Some setup\<close>
 
 lemma issued_nil: "issued [] = {Key0}"
 by (auto simp add: initk_def)

@@ -86,7 +86,7 @@ lemma steps'_step:
 proof -
   have "nat (i + 1) = Suc (nat i)" using assms by simp
   show ?thesis
-    unfolding `nat (i + 1) = Suc (nat i)` steps_step steps_to_steps'
+    unfolding \<open>nat (i + 1) = Suc (nat i)\<close> steps_step steps_to_steps'
     ..
 qed
 
@@ -153,19 +153,19 @@ lemma step_from_hyp:
 proof -
   let ?MM = 4294967296
   have AL: "uint(word_of_int e::word32) = e"
-    by (rule uint_word_of_int_id[OF `0 <= e` `e <= ?M`])
+    by (rule uint_word_of_int_id[OF \<open>0 <= e\<close> \<open>e <= ?M\<close>])
   have CL: "uint(word_of_int b::word32) = b"
-    by (rule uint_word_of_int_id[OF `0 <= b` `b <= ?M`])
+    by (rule uint_word_of_int_id[OF \<open>0 <= b\<close> \<open>b <= ?M\<close>])
   have DL: "True" ..
   have EL: "uint(word_of_int d::word32) = d"
-    by (rule uint_word_of_int_id[OF `0 <= d` `d <= ?M`])
+    by (rule uint_word_of_int_id[OF \<open>0 <= d\<close> \<open>d <= ?M\<close>])
   have AR: "uint(word_of_int e'::word32) = e'"
-    by (rule uint_word_of_int_id[OF `0 <= e'` `e' <= ?M`])
+    by (rule uint_word_of_int_id[OF \<open>0 <= e'\<close> \<open>e' <= ?M\<close>])
   have CR: "uint(word_of_int b'::word32) = b'"
-    by (rule uint_word_of_int_id[OF `0 <= b'` `b' <= ?M`])
+    by (rule uint_word_of_int_id[OF \<open>0 <= b'\<close> \<open>b' <= ?M\<close>])
   have DR: "True" ..
   have ER: "uint(word_of_int d'::word32) = d'"
-    by (rule uint_word_of_int_id[OF `0 <= d'` `d' <= ?M`])
+    by (rule uint_word_of_int_id[OF \<open>0 <= d'\<close> \<open>d' <= ?M\<close>])
   have BL:
     "(uint
       (word_rotl (s (nat j))
@@ -185,25 +185,25 @@ proof -
                word_of_int e)"
     (is "(uint (word_rotl _ (_ ((((_ + ?F) mod _ + ?X) mod _ + _) mod _))) + _) mod _ = _")
   proof -
-    have "a mod ?MM = a" using `0 <= a` `a <= ?M`
+    have "a mod ?MM = a" using \<open>0 <= a\<close> \<open>a <= ?M\<close>
       by (simp add: int_mod_eq')
-    have "?X mod ?MM = ?X" using `0 <= ?X` `?X <= ?M`
+    have "?X mod ?MM = ?X" using \<open>0 <= ?X\<close> \<open>?X <= ?M\<close>
       by (simp add: int_mod_eq')
-    have "e mod ?MM = e" using `0 <= e` `e <= ?M`
+    have "e mod ?MM = e" using \<open>0 <= e\<close> \<open>e <= ?M\<close>
       by (simp add: int_mod_eq')
     have "(?MM::int) = 2 ^ len_of TYPE(32)" by simp
     show ?thesis
       unfolding
         word_add_def
-        uint_word_of_int_id[OF `0 <= a` `a <= ?M`]
-        uint_word_of_int_id[OF `0 <= ?X` `?X <= ?M`]
+        uint_word_of_int_id[OF \<open>0 <= a\<close> \<open>a <= ?M\<close>]
+        uint_word_of_int_id[OF \<open>0 <= ?X\<close> \<open>?X <= ?M\<close>]
         int_word_uint
-      unfolding `?MM = 2 ^ len_of TYPE(32)`
+      unfolding \<open>?MM = 2 ^ len_of TYPE(32)\<close>
       unfolding word_uint.Abs_norm
       by (simp add:
-        `a mod ?MM = a`
-        `e mod ?MM = e`
-        `?X mod ?MM = ?X`)
+        \<open>a mod ?MM = a\<close>
+        \<open>e mod ?MM = e\<close>
+        \<open>?X mod ?MM = ?X\<close>)
   qed
 
   have BR:
@@ -225,33 +225,33 @@ proof -
                word_of_int e')"
     (is "(uint (word_rotl _ (_ ((((_ + ?F) mod _ + ?X) mod _ + _) mod _))) + _) mod _ = _")
   proof -
-    have "a' mod ?MM = a'" using `0 <= a'` `a' <= ?M`
+    have "a' mod ?MM = a'" using \<open>0 <= a'\<close> \<open>a' <= ?M\<close>
       by (simp add: int_mod_eq')
-    have "?X mod ?MM = ?X" using `0 <= ?X` `?X <= ?M`
+    have "?X mod ?MM = ?X" using \<open>0 <= ?X\<close> \<open>?X <= ?M\<close>
       by (simp add: int_mod_eq')
-    have "e' mod ?MM = e'" using `0 <= e'` `e' <= ?M`
+    have "e' mod ?MM = e'" using \<open>0 <= e'\<close> \<open>e' <= ?M\<close>
       by (simp add: int_mod_eq')
     have "(?MM::int) = 2 ^ len_of TYPE(32)" by simp
     have nat_transfer: "79 - nat j = nat (79 - j)"
-      using nat_diff_distrib `0 <= j`  `j <= 79`
+      using nat_diff_distrib \<open>0 <= j\<close>  \<open>j <= 79\<close>
       by simp
     show ?thesis
       unfolding
         word_add_def
-        uint_word_of_int_id[OF `0 <= a'` `a' <= ?M`]
-        uint_word_of_int_id[OF `0 <= ?X` `?X <= ?M`]
+        uint_word_of_int_id[OF \<open>0 <= a'\<close> \<open>a' <= ?M\<close>]
+        uint_word_of_int_id[OF \<open>0 <= ?X\<close> \<open>?X <= ?M\<close>]
         int_word_uint
         nat_transfer
-      unfolding `?MM = 2 ^ len_of TYPE(32)`
+      unfolding \<open>?MM = 2 ^ len_of TYPE(32)\<close>
       unfolding word_uint.Abs_norm
       by (simp add:
-        `a' mod ?MM = a'`
-        `e' mod ?MM = e'`
-        `?X mod ?MM = ?X`)
+        \<open>a' mod ?MM = a'\<close>
+        \<open>e' mod ?MM = e'\<close>
+        \<open>?X mod ?MM = ?X\<close>)
   qed
 
   show ?thesis
-    unfolding steps'_step[OF `0 <= j`] step_hyp[symmetric]
+    unfolding steps'_step[OF \<open>0 <= j\<close>] step_hyp[symmetric]
       step_both_def step_r_def step_l_def
     by (simp add: AL BL CL DL EL AR BR CR DR ER)
 qed
@@ -276,11 +276,11 @@ proof -
     0 x"
     unfolding steps_def
     by (simp add:
-      uint_word_of_int_id[OF `0 <= ca` `ca <= ?M`]
-      uint_word_of_int_id[OF `0 <= cb` `cb <= ?M`]
-      uint_word_of_int_id[OF `0 <= cc` `cc <= ?M`]
-      uint_word_of_int_id[OF `0 <= cd` `cd <= ?M`]
-      uint_word_of_int_id[OF `0 <= ce` `ce <= ?M`])
+      uint_word_of_int_id[OF \<open>0 <= ca\<close> \<open>ca <= ?M\<close>]
+      uint_word_of_int_id[OF \<open>0 <= cb\<close> \<open>cb <= ?M\<close>]
+      uint_word_of_int_id[OF \<open>0 <= cc\<close> \<open>cc <= ?M\<close>]
+      uint_word_of_int_id[OF \<open>0 <= cd\<close> \<open>cd <= ?M\<close>]
+      uint_word_of_int_id[OF \<open>0 <= ce\<close> \<open>ce <= ?M\<close>])
   let ?rotate_arg_l =
     "((((ca + f 0 cb cc cd) mod 4294967296 +
         x (r_l 0)) mod 4294967296 + k_l 0) mod 4294967296)"
@@ -288,35 +288,35 @@ proof -
     "((((ca + f 79 cb cc cd) mod 4294967296 +
         x (r_r 0)) mod 4294967296 + k_r 0) mod 4294967296)"
   note returns =
-    `wordops__rotate (s_l 0) ?rotate_arg_l =
-     rotate_left (s_l 0) ?rotate_arg_l`
-    `wordops__rotate (s_r 0) ?rotate_arg_r =
-     rotate_left (s_r 0) ?rotate_arg_r`
-    `wordops__rotate 10 cc = rotate_left 10 cc`
-    `f 0 cb cc cd = f_spec 0 cb cc cd`
-    `f 79 cb cc cd = f_spec 79 cb cc cd`
-    `k_l 0 = k_l_spec 0`
-    `k_r 0 = k_r_spec 0`
-    `r_l 0 = r_l_spec 0`
-    `r_r 0 = r_r_spec 0`
-    `s_l 0 = s_l_spec 0`
-    `s_r 0 = s_r_spec 0`
+    \<open>wordops__rotate (s_l 0) ?rotate_arg_l =
+     rotate_left (s_l 0) ?rotate_arg_l\<close>
+    \<open>wordops__rotate (s_r 0) ?rotate_arg_r =
+     rotate_left (s_r 0) ?rotate_arg_r\<close>
+    \<open>wordops__rotate 10 cc = rotate_left 10 cc\<close>
+    \<open>f 0 cb cc cd = f_spec 0 cb cc cd\<close>
+    \<open>f 79 cb cc cd = f_spec 79 cb cc cd\<close>
+    \<open>k_l 0 = k_l_spec 0\<close>
+    \<open>k_r 0 = k_r_spec 0\<close>
+    \<open>r_l 0 = r_l_spec 0\<close>
+    \<open>r_r 0 = r_r_spec 0\<close>
+    \<open>s_l 0 = s_l_spec 0\<close>
+    \<open>s_r 0 = s_r_spec 0\<close>
 
-  note x_borders = `\<forall>i. 0 \<le> i \<and> i \<le> 15 \<longrightarrow> 0 \<le> x i \<and> x i \<le> ?M`
+  note x_borders = \<open>\<forall>i. 0 \<le> i \<and> i \<le> 15 \<longrightarrow> 0 \<le> x i \<and> x i \<le> ?M\<close>
 
-  from `0 <= r_l 0` `r_l 0 <= 15` x_borders
+  from \<open>0 <= r_l 0\<close> \<open>r_l 0 <= 15\<close> x_borders
   have "0 \<le> x (r_l 0)" by blast
   hence x_lower: "0 <= x (r_l_spec 0)" unfolding returns .
 
-  from `0 <= r_l 0` `r_l 0 <= 15` x_borders
+  from \<open>0 <= r_l 0\<close> \<open>r_l 0 <= 15\<close> x_borders
   have "x (r_l 0) <= ?M" by blast
   hence x_upper: "x (r_l_spec 0) <= ?M" unfolding returns .
 
-  from `0 <= r_r 0` `r_r 0 <= 15` x_borders
+  from \<open>0 <= r_r 0\<close> \<open>r_r 0 <= 15\<close> x_borders
   have "0 \<le> x (r_r 0)" by blast
   hence x_lower': "0 <= x (r_r_spec 0)" unfolding returns .
 
-  from `0 <= r_r 0` `r_r 0 <= 15` x_borders
+  from \<open>0 <= r_r 0\<close> \<open>r_r 0 <= 15\<close> x_borders
   have "x (r_r 0) <= ?M" by blast
   hence x_upper': "x (r_r_spec 0) <= ?M" unfolding returns .
 
@@ -327,8 +327,8 @@ proof -
     H2 H4 H6 H8 H10 H2 H4 H6 H8 H10 (* upper bounds *)
     H1 H3 H5 H7 H9  H1 H3 H5 H7 H9  (* lower bounds *)
   ]
-  from this[OF x_lower x_upper x_lower' x_upper' `0 <= 0` `0 <= 79`]
-    `0 \<le> ca` `0 \<le> ce` x_lower x_lower'
+  from this[OF x_lower x_upper x_lower' x_upper' \<open>0 <= 0\<close> \<open>0 <= 79\<close>]
+    \<open>0 \<le> ca\<close> \<open>0 \<le> ce\<close> x_lower x_lower'
   show ?thesis unfolding returns(1) returns(2) unfolding returns
     by simp
 qed
@@ -347,73 +347,73 @@ proof -
 
   have s: "78 - loop__1__j = (79 - (loop__1__j + 1))" by simp
   note returns =
-    `wordops__rotate (s_l (loop__1__j + 1)) ?rotate_arg_l =
-     rotate_left (s_l (loop__1__j + 1)) ?rotate_arg_l`
-    `wordops__rotate (s_r (loop__1__j + 1)) ?rotate_arg_r =
-     rotate_left (s_r (loop__1__j + 1)) ?rotate_arg_r`
-    `f (loop__1__j + 1) clb clc cld =
-     f_spec (loop__1__j + 1) clb clc cld`
-    `f (78 - loop__1__j) crb crc crd =
-     f_spec (78 - loop__1__j) crb crc crd`[simplified s]
-    `wordops__rotate 10 clc = rotate_left 10 clc`
-    `wordops__rotate 10 crc = rotate_left 10 crc`
-    `k_l (loop__1__j + 1) = k_l_spec (loop__1__j + 1)`
-    `k_r (loop__1__j + 1) = k_r_spec (loop__1__j + 1)`
-    `r_l (loop__1__j + 1) = r_l_spec (loop__1__j + 1)`
-    `r_r (loop__1__j + 1) = r_r_spec (loop__1__j + 1)`
-    `s_l (loop__1__j + 1) = s_l_spec (loop__1__j + 1)`
-    `s_r (loop__1__j + 1) = s_r_spec (loop__1__j + 1)`
+    \<open>wordops__rotate (s_l (loop__1__j + 1)) ?rotate_arg_l =
+     rotate_left (s_l (loop__1__j + 1)) ?rotate_arg_l\<close>
+    \<open>wordops__rotate (s_r (loop__1__j + 1)) ?rotate_arg_r =
+     rotate_left (s_r (loop__1__j + 1)) ?rotate_arg_r\<close>
+    \<open>f (loop__1__j + 1) clb clc cld =
+     f_spec (loop__1__j + 1) clb clc cld\<close>
+    \<open>f (78 - loop__1__j) crb crc crd =
+     f_spec (78 - loop__1__j) crb crc crd\<close>[simplified s]
+    \<open>wordops__rotate 10 clc = rotate_left 10 clc\<close>
+    \<open>wordops__rotate 10 crc = rotate_left 10 crc\<close>
+    \<open>k_l (loop__1__j + 1) = k_l_spec (loop__1__j + 1)\<close>
+    \<open>k_r (loop__1__j + 1) = k_r_spec (loop__1__j + 1)\<close>
+    \<open>r_l (loop__1__j + 1) = r_l_spec (loop__1__j + 1)\<close>
+    \<open>r_r (loop__1__j + 1) = r_r_spec (loop__1__j + 1)\<close>
+    \<open>s_l (loop__1__j + 1) = s_l_spec (loop__1__j + 1)\<close>
+    \<open>s_r (loop__1__j + 1) = s_r_spec (loop__1__j + 1)\<close>
 
-  note x_borders = `\<forall>i. 0 \<le> i \<and> i \<le> 15 \<longrightarrow> 0 \<le> x i \<and> x i \<le> ?M`
+  note x_borders = \<open>\<forall>i. 0 \<le> i \<and> i \<le> 15 \<longrightarrow> 0 \<le> x i \<and> x i \<le> ?M\<close>
 
-  from `0 <= r_l (loop__1__j + 1)` `r_l (loop__1__j + 1) <= 15` x_borders
+  from \<open>0 <= r_l (loop__1__j + 1)\<close> \<open>r_l (loop__1__j + 1) <= 15\<close> x_borders
   have "0 \<le> x (r_l (loop__1__j + 1))" by blast
   hence x_lower: "0 <= x (r_l_spec (loop__1__j + 1))" unfolding returns .
 
-  from `0 <= r_l (loop__1__j + 1)` `r_l (loop__1__j + 1) <= 15` x_borders
+  from \<open>0 <= r_l (loop__1__j + 1)\<close> \<open>r_l (loop__1__j + 1) <= 15\<close> x_borders
   have "x (r_l (loop__1__j + 1)) <= ?M" by blast
   hence x_upper: "x (r_l_spec (loop__1__j + 1)) <= ?M" unfolding returns .
 
-  from `0 <= r_r (loop__1__j + 1)` `r_r (loop__1__j + 1) <= 15` x_borders
+  from \<open>0 <= r_r (loop__1__j + 1)\<close> \<open>r_r (loop__1__j + 1) <= 15\<close> x_borders
   have "0 \<le> x (r_r (loop__1__j + 1))" by blast
   hence x_lower': "0 <= x (r_r_spec (loop__1__j + 1))" unfolding returns .
 
-  from `0 <= r_r (loop__1__j + 1)` `r_r (loop__1__j + 1) <= 15` x_borders
+  from \<open>0 <= r_r (loop__1__j + 1)\<close> \<open>r_r (loop__1__j + 1) <= 15\<close> x_borders
   have "x (r_r (loop__1__j + 1)) <= ?M" by blast
   hence x_upper': "x (r_r_spec (loop__1__j + 1)) <= ?M" unfolding returns .
 
-  from `0 <= loop__1__j` have "0 <= loop__1__j + 1" by simp
-  from `loop__1__j <= 78` have "loop__1__j + 1 <= 79" by simp
+  from \<open>0 <= loop__1__j\<close> have "0 <= loop__1__j + 1" by simp
+  from \<open>loop__1__j <= 78\<close> have "loop__1__j + 1 <= 79" by simp
 
   have "loop__1__j + 1 + 1 = loop__1__j + 2" by simp
 
   note step_from_hyp[OF H1
-    `cla <= ?M`
-    `clb <= ?M`
-    `clc <= ?M`
-    `cld <= ?M`
-    `cle <= ?M`
-    `cra <= ?M`
-    `crb <= ?M`
-    `crc <= ?M`
-    `crd <= ?M`
-    `cre <= ?M`
+    \<open>cla <= ?M\<close>
+    \<open>clb <= ?M\<close>
+    \<open>clc <= ?M\<close>
+    \<open>cld <= ?M\<close>
+    \<open>cle <= ?M\<close>
+    \<open>cra <= ?M\<close>
+    \<open>crb <= ?M\<close>
+    \<open>crc <= ?M\<close>
+    \<open>crd <= ?M\<close>
+    \<open>cre <= ?M\<close>
 
-    `0 <= cla`
-    `0 <= clb`
-    `0 <= clc`
-    `0 <= cld`
-    `0 <= cle`
-    `0 <= cra`
-    `0 <= crb`
-    `0 <= crc`
-    `0 <= crd`
-    `0 <= cre`]
+    \<open>0 <= cla\<close>
+    \<open>0 <= clb\<close>
+    \<open>0 <= clc\<close>
+    \<open>0 <= cld\<close>
+    \<open>0 <= cle\<close>
+    \<open>0 <= cra\<close>
+    \<open>0 <= crb\<close>
+    \<open>0 <= crc\<close>
+    \<open>0 <= crd\<close>
+    \<open>0 <= cre\<close>]
   from this[OF
     x_lower x_upper x_lower' x_upper'
-    `0 <= loop__1__j + 1` `loop__1__j + 1 <= 79`]
-    `0 \<le> cla` `0 \<le> cle` `0 \<le> cra` `0 \<le> cre` x_lower x_lower'
-  show ?thesis unfolding `loop__1__j + 1 + 1 = loop__1__j + 2`
+    \<open>0 <= loop__1__j + 1\<close> \<open>loop__1__j + 1 <= 79\<close>]
+    \<open>0 \<le> cla\<close> \<open>0 \<le> cle\<close> \<open>0 \<le> cra\<close> \<open>0 \<le> cre\<close> x_lower x_lower'
+  show ?thesis unfolding \<open>loop__1__j + 1 + 1 = loop__1__j + 2\<close>
     unfolding returns(1) returns(2) unfolding returns
     by simp
 qed
@@ -437,21 +437,21 @@ proof -
       x)"
     unfolding from_to_id by simp
   from
-    `0 \<le> ca_init` `ca_init \<le> ?M`
-    `0 \<le> cb_init` `cb_init \<le> ?M`
-    `0 \<le> cc_init` `cc_init \<le> ?M`
-    `0 \<le> cd_init` `cd_init \<le> ?M`
-    `0 \<le> ce_init` `ce_init \<le> ?M`
-    `0 \<le> cla` `cla \<le> ?M`
-    `0 \<le> clb` `clb \<le> ?M`
-    `0 \<le> clc` `clc \<le> ?M`
-    `0 \<le> cld` `cld \<le> ?M`
-    `0 \<le> cle` `cle \<le> ?M`
-    `0 \<le> cra` `cra \<le> ?M`
-    `0 \<le> crb` `crb \<le> ?M`
-    `0 \<le> crc` `crc \<le> ?M`
-    `0 \<le> crd` `crd \<le> ?M`
-    `0 \<le> cre` `cre \<le> ?M`
+    \<open>0 \<le> ca_init\<close> \<open>ca_init \<le> ?M\<close>
+    \<open>0 \<le> cb_init\<close> \<open>cb_init \<le> ?M\<close>
+    \<open>0 \<le> cc_init\<close> \<open>cc_init \<le> ?M\<close>
+    \<open>0 \<le> cd_init\<close> \<open>cd_init \<le> ?M\<close>
+    \<open>0 \<le> ce_init\<close> \<open>ce_init \<le> ?M\<close>
+    \<open>0 \<le> cla\<close> \<open>cla \<le> ?M\<close>
+    \<open>0 \<le> clb\<close> \<open>clb \<le> ?M\<close>
+    \<open>0 \<le> clc\<close> \<open>clc \<le> ?M\<close>
+    \<open>0 \<le> cld\<close> \<open>cld \<le> ?M\<close>
+    \<open>0 \<le> cle\<close> \<open>cle \<le> ?M\<close>
+    \<open>0 \<le> cra\<close> \<open>cra \<le> ?M\<close>
+    \<open>0 \<le> crb\<close> \<open>crb \<le> ?M\<close>
+    \<open>0 \<le> crc\<close> \<open>crc \<le> ?M\<close>
+    \<open>0 \<le> crd\<close> \<open>crd \<le> ?M\<close>
+    \<open>0 \<le> cre\<close> \<open>cre \<le> ?M\<close>
   show ?thesis
     unfolding round_def
     unfolding steps_to_steps'

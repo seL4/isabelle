@@ -83,7 +83,7 @@ where
    no_Check_in (s\<^sub>3 @ s\<^sub>2) r \<and> isin (s\<^sub>2 @ [Check_in g r c] @ s\<^sub>1) r = {})"
 
 
-section {* Some setup *}
+section \<open>Some setup\<close>
 
 lemma issued_nil: "issued [] = {Key0}"
 by (auto simp add: initk_def)
@@ -91,10 +91,10 @@ by (auto simp add: initk_def)
 lemmas issued_simps[code] = issued_nil issued.simps(2)
 
 
-setup {*  Predicate_Compile_Data.ignore_consts [@{const_name Set.member},
+setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name Set.member},
   @{const_name "issued"}, @{const_name "cards"}, @{const_name "isin"},
-  @{const_name Collect}, @{const_name insert}] *}
-ML_val {* Core_Data.force_modes_and_compilations *}
+  @{const_name Collect}, @{const_name insert}]\<close>
+ML_val \<open>Core_Data.force_modes_and_compilations\<close>
 
 fun find_first :: "('a => 'b option) => 'a list => 'b option"
 where
@@ -116,7 +116,7 @@ where find_first'_code [code]:
 axiomatization neg_cps_of_set :: "'a set => ('a Quickcheck_Exhaustive.unknown => term list Quickcheck_Exhaustive.three_valued) => natural => term list Quickcheck_Exhaustive.three_valued"
 where neg_cps_of_set_code [code]: "neg_cps_of_set (set xs) f i = find_first' f xs"
 
-setup {*
+setup \<open>
 let
   val Fun = Predicate_Compile_Aux.Fun
   val Input = Predicate_Compile_Aux.Input
@@ -137,8 +137,8 @@ in
   Core_Data.force_modes_and_compilations @{const_name Set.member}
     [(oi, (of_set, false)), (ii, (member, false))]
 end
-*}
-section {* Property *}
+\<close>
+section \<open>Property\<close>
 
 lemma "\<lbrakk> hotel s; g \<in> isin s r \<rbrakk> \<Longrightarrow> owns s r = Some g"
 quickcheck[tester = exhaustive, size = 6, expect = counterexample]
@@ -150,7 +150,7 @@ lemma
 quickcheck[smart_exhaustive, depth = 10, allow_function_inversion, expect = counterexample]
 oops
 
-section {* Refinement *}
+section \<open>Refinement\<close>
 
 fun split_list
 where

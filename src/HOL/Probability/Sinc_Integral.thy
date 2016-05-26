@@ -13,7 +13,7 @@ subsection \<open>Various preparatory integrals\<close>
 
 text \<open> Naming convention
 The theorem name consists of the following parts:
-  \<^item> Kind of integral: @{text has_bochner_integral} / @{text integrable} / @{text LBINT}
+  \<^item> Kind of integral: \<open>has_bochner_integral\<close> / \<open>integrable\<close> / \<open>LBINT\<close>
   \<^item> Interval: Interval (0 / infinity / open / closed) (infinity / open / closed)
   \<^item> Name of the occurring constants: power, exp, m (for minus), scale, sin, $\ldots$
 \<close>
@@ -273,7 +273,7 @@ proof -
   proof eventually_elim
     fix t :: real assume "t \<ge> 0"
     have "Si t = LBINT x=0..t. sin x * (LBINT u=0..\<infinity>. exp (-(u * x)))"
-      unfolding Si_def using `0 \<le> t`
+      unfolding Si_def using \<open>0 \<le> t\<close>
       by (intro interval_integral_discrete_difference[where X="{0}"]) (auto simp: LBINT_I0i_exp_mscale)
     also have "\<dots> = LBINT x. (LBINT u=ereal 0..\<infinity>. indicator {0 <..< t} x *\<^sub>R sin x * exp (-(u * x)))"
       using \<open>0\<le>t\<close> by (simp add: zero_ereal_def interval_lebesgue_integral_le_eq mult_ac)
@@ -369,7 +369,7 @@ proof -
       by simp
     hence "LBINT x. indicator {0<..<T} x * sin (x * \<theta>) / x =
         LBINT x. indicator {0<..<T * \<theta>} x * sin x / x"
-      using assms `0 < \<theta>` unfolding interval_lebesgue_integral_def einterval_eq zero_ereal_def
+      using assms \<open>0 < \<theta>\<close> unfolding interval_lebesgue_integral_def einterval_eq zero_ereal_def
         by (auto simp: ac_simps)
   } note aux1 = this
   { assume "0 > \<theta>"
@@ -388,7 +388,7 @@ proof -
       by simp
     hence "LBINT x. indicator {0<..<T} x * sin (x * \<theta>) / x =
        - (LBINT x. indicator {0<..<- (T * \<theta>)} x * sin x / x)"
-      using assms `0 > \<theta>` unfolding interval_lebesgue_integral_def einterval_eq zero_ereal_def
+      using assms \<open>0 > \<theta>\<close> unfolding interval_lebesgue_integral_def einterval_eq zero_ereal_def
         by (auto simp add: field_simps mult_le_0_iff split: if_split_asm)
   } note aux2 = this
   show ?thesis

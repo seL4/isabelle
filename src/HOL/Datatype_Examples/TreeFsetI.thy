@@ -6,7 +6,7 @@
 Finitely branching possibly infinite trees, with sets of children.
 *)
 
-section {* Finitely Branching Possibly Infinite Trees, with Sets of Children *}
+section \<open>Finitely Branching Possibly Infinite Trees, with Sets of Children\<close>
 
 theory TreeFsetI
 imports "~~/src/HOL/Library/FSet"

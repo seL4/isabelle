@@ -11,8 +11,7 @@ begin
 
 text \<open>
   The Chinese Remainder Theorem for an arbitrary finite number of
-  equations.  (The one-equation case is included in theory @{text
-  IntPrimes}.  Uses functions for indexing.\footnote{Maybe @{term
+  equations.  (The one-equation case is included in theory \<open>IntPrimes\<close>.  Uses functions for indexing.\footnote{Maybe @{term
   funprod} and @{term funsum} should be based on general @{term fold}
   on indices?}
 \<close>

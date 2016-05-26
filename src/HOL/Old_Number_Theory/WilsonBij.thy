@@ -47,7 +47,7 @@ lemmas inv_is_inv = inv_correct [THEN conjunct2, THEN conjunct2]
 
 lemma inv_not_0:
   "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> 0"
-  -- \<open>same as @{text WilsonRuss}\<close>
+  \<comment> \<open>same as \<open>WilsonRuss\<close>\<close>
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      apply (unfold zcong_def)
@@ -56,7 +56,7 @@ lemma inv_not_0:
 
 lemma inv_not_1:
   "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> 1"
-  -- \<open>same as @{text WilsonRuss}\<close>
+  \<comment> \<open>same as \<open>WilsonRuss\<close>\<close>
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      prefer 4
@@ -67,7 +67,7 @@ lemma inv_not_1:
   done
 
 lemma aux: "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
-  -- \<open>same as @{text WilsonRuss}\<close>
+  \<comment> \<open>same as \<open>WilsonRuss\<close>\<close>
   apply (unfold zcong_def)
   apply (simp add: diff_diff_eq diff_diff_eq2 right_diff_distrib)
   apply (rule_tac s = "p dvd -((a + 1) + (p * -a))" in trans)
@@ -81,7 +81,7 @@ lemma aux: "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
 
 lemma inv_not_p_minus_1:
   "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> p - 1"
-  -- \<open>same as @{text WilsonRuss}\<close>
+  \<comment> \<open>same as \<open>WilsonRuss\<close>\<close>
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      apply auto
@@ -93,7 +93,7 @@ lemma inv_not_p_minus_1:
 
 text \<open>
   Below is slightly different as we don't expand @{term [source] inv}
-  but use ``@{text correct}'' theorems.
+  but use ``\<open>correct\<close>'' theorems.
 \<close>
 
 lemma inv_g_1: "zprime p ==> 1 < a ==> a < p - 1 ==> 1 < inv p a"
@@ -111,7 +111,7 @@ lemma inv_g_1: "zprime p ==> 1 < a ==> a < p - 1 ==> 1 < inv p a"
 
 lemma inv_less_p_minus_1:
   "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a < p - 1"
-  -- \<open>ditto\<close>
+  \<comment> \<open>ditto\<close>
   apply (subst order_less_le)
   apply (simp add: inv_not_p_minus_1 inv_less)
   done

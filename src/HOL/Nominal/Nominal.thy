@@ -9,7 +9,7 @@ begin
 declare [[typedef_overloaded]]
 
 
-section {* Permutations *}
+section \<open>Permutations\<close>
 (*======================*)
 
 type_synonym 
@@ -184,13 +184,13 @@ lemma perm_string:
   by (induct s)(auto simp add: perm_char_def)
 
 
-section {* permutation equality *}
+section \<open>permutation equality\<close>
 (*==============================*)
 
 definition prm_eq :: "'x prm \<Rightarrow> 'x prm \<Rightarrow> bool" (" _ \<triangleq> _ " [80,80] 80) where
   "pi1 \<triangleq> pi2 \<longleftrightarrow> (\<forall>a::'x. pi1\<bullet>a = pi2\<bullet>a)"
 
-section {* Support, Freshness and Supports*}
+section \<open>Support, Freshness and Supports\<close>
 (*========================================*)
 definition supp :: "'a \<Rightarrow> ('x set)" where  
    "supp x = {a . (infinite {b . [(a,b)]\<bullet>x \<noteq> x})}"
@@ -365,7 +365,7 @@ lemma fresh_bool:
   shows "a\<sharp>b"
   by (simp add: fresh_def supp_bool)
 
-text {* Normalization of freshness results; cf.\ @{text nominal_induct} *}
+text \<open>Normalization of freshness results; cf.\ \<open>nominal_induct\<close>\<close>
 lemma fresh_unit_elim: 
   shows "(a\<sharp>() \<Longrightarrow> PROP C) \<equiv> PROP C"
   by (simp add: fresh_def supp_unit)
@@ -385,14 +385,14 @@ lemma fresh_prodD:
   and   "a\<sharp>(x,y) \<Longrightarrow> a\<sharp>y"
   by (simp_all add: fresh_prod)
 
-ML {*
+ML \<open>
   val mksimps_pairs = (@{const_name Nominal.fresh}, @{thms fresh_prodD}) :: mksimps_pairs;
-*}
-declaration {* fn _ =>
+\<close>
+declaration \<open>fn _ =>
   Simplifier.map_ss (Simplifier.set_mksimps (mksimps mksimps_pairs))
-*}
+\<close>
 
-section {* Abstract Properties for Permutations and  Atoms *}
+section \<open>Abstract Properties for Permutations and  Atoms\<close>
 (*=========================================================*)
 
 (* properties for being a permutation type *)
@@ -425,7 +425,7 @@ definition
 definition
   "fs TYPE('a) TYPE('x) \<equiv> \<forall>(x::'a). finite ((supp x)::'x set)"
 
-section {* Lemmas about the atom-type properties*}
+section \<open>Lemmas about the atom-type properties\<close>
 (*==============================================*)
 
 lemma at1: 
@@ -770,7 +770,7 @@ apply(simp add: at_prm_fresh[OF at] at_rev_pi[OF at])
 apply(rule at_prm_eq_refl)
 done
 
---"there always exists an atom that is not being in a finite set"
+\<comment>"there always exists an atom that is not being in a finite set"
 lemma ex_in_inf:
   fixes   A::"'x set"
   assumes at: "at TYPE('x)"
@@ -785,7 +785,7 @@ proof -
   then show ?thesis ..
 qed
 
-text {* there always exists a fresh name for an object with finite support *}
+text \<open>there always exists a fresh name for an object with finite support\<close>
 lemma at_exists_fresh': 
   fixes  x :: "'a"
   assumes at: "at TYPE('x)"
@@ -833,7 +833,7 @@ proof -
   then show "\<exists>(b::'x). a\<noteq>b" by blast
 qed
 
---"the at-props imply the pt-props"
+\<comment>"the at-props imply the pt-props"
 lemma at_pt_inst:
   assumes at: "at TYPE('x)"
   shows "pt TYPE('x) TYPE('x)"
@@ -843,7 +843,7 @@ apply(simp only: at_append[OF at])
 apply(simp only: prm_eq_def)
 done
 
-section {* finite support properties *}
+section \<open>finite support properties\<close>
 (*===================================*)
 
 lemma fs1:
@@ -907,7 +907,7 @@ apply(simp add: supp_some)
 apply(rule fs1[OF fs])
 done
 
-section {* Lemmas about the permutation properties *}
+section \<open>Lemmas about the permutation properties\<close>
 (*=================================================*)
 
 lemma pt1:
@@ -941,7 +941,7 @@ lemma pt3_rev:
   shows "pi1 \<triangleq> pi2 \<Longrightarrow> (rev pi1)\<bullet>x = (rev pi2)\<bullet>x"
   by (rule pt3[OF pt], simp add: at_prm_rev_eq[OF at])
 
-section {* composition properties *}
+section \<open>composition properties\<close>
 (* ============================== *)
 lemma cp1:
   fixes pi1::"'x prm"
@@ -960,7 +960,7 @@ apply(rule pt3[OF pt])
 apply(rule at_ds8[OF at])
 done
 
-section {* disjointness properties *}
+section \<open>disjointness properties\<close>
 (*=================================*)
 lemma dj_perm_forget:
   fixes pi::"'y prm"
@@ -1006,7 +1006,7 @@ lemma at_fresh_ineq:
   shows "a\<sharp>b" 
   by (simp add: fresh_def dj_supp[OF dj])
 
-section {* permutation type instances *}
+section \<open>permutation type instances\<close>
 (* ===================================*)
 
 lemma pt_fun_inst:
@@ -1128,7 +1128,7 @@ lemma pt_nprod_inst:
   apply(simp add: pt3[OF pta] pt3[OF ptb])
   done
 
-section {* further lemmas for permutation types *}
+section \<open>further lemmas for permutation types\<close>
 (*==============================================*)
 
 lemma pt_rev_pi:
@@ -1354,7 +1354,7 @@ apply(rule_tac x="(rev pi)\<bullet>x" in exI)
 apply(simp add: pt_pi_rev[OF pt, OF at])
 done
 
--- "some helper lemmas for the pt_perm_supp_ineq lemma"
+\<comment> "some helper lemmas for the pt_perm_supp_ineq lemma"
 lemma Collect_permI: 
   fixes pi :: "'x prm"
   and   x  :: "'a"
@@ -1672,7 +1672,7 @@ lemma pt_fresh_eqvt_ineq:
   shows "pi\<bullet>(c\<sharp>x) = (pi\<bullet>c)\<sharp>(pi\<bullet>x)"
 by (simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp] dj_perm_forget[OF dj] perm_bool)
 
---"the co-set of a finite set is infinte"
+\<comment>"the co-set of a finite set is infinte"
 lemma finite_infinite:
   assumes a: "finite {b::'x. P b}"
   and     b: "infinite (UNIV::'x set)"        
@@ -1787,7 +1787,7 @@ proof -
   thus ?thesis by (simp add: pt2[OF pt])
 qed
 
-section {* equivariance for some connectives *}
+section \<open>equivariance for some connectives\<close>
 lemma pt_all_eqvt:
   fixes  pi :: "'x prm"
   and     x :: "'a"
@@ -1833,7 +1833,7 @@ lemma pt_the_eqvt:
   apply(rule theI'[OF unique])
   done
 
-section {* facts about supports *}
+section \<open>facts about supports\<close>
 (*==============================*)
 
 lemma supports_subset:
@@ -2002,7 +2002,7 @@ lemma at_fin_set_fresh:
   by (simp add: at_fin_set_supp fresh_def at fs)
 
 
-section {* Permutations acting on Functions *}
+section \<open>Permutations acting on Functions\<close>
 (*==========================================*)
 
 lemma pt_fun_app_eq:
@@ -2015,7 +2015,7 @@ lemma pt_fun_app_eq:
   by (simp add: perm_fun_def pt_rev_pi[OF pt, OF at])
 
 
---"sometimes pt_fun_app_eq does too much; this lemma 'corrects it'"
+\<comment>"sometimes pt_fun_app_eq does too much; this lemma 'corrects it'"
 lemma pt_perm:
   fixes x  :: "'a"
   and   pi1 :: "'x prm"
@@ -2056,7 +2056,7 @@ next
   qed
 qed
 
--- "two helper lemmas for the equivariance of functions"
+\<comment> "two helper lemmas for the equivariance of functions"
 lemma pt_swap_eq_aux:
   fixes   y :: "'a"
   and    pi :: "'x prm"
@@ -2188,7 +2188,7 @@ proof (unfold supp_def, auto)
   from a1 a2 a3 show False by (force dest: finite_subset)
 qed
 
-section {* Facts about the support of finite sets of finitely supported things *}
+section \<open>Facts about the support of finite sets of finitely supported things\<close>
 (*=============================================================================*)
 
 definition X_to_Un_supp :: "('a set) \<Rightarrow> 'x set" where
@@ -2410,7 +2410,7 @@ lemma pt_list_set_fresh:
 by (simp add: fresh_def pt_list_set_supp[OF pt, OF at, OF fs])
 
 
-section {* generalisation of freshness to lists and sets of atoms *}
+section \<open>generalisation of freshness to lists and sets of atoms\<close>
 (*================================================================*)
  
 consts
@@ -2459,7 +2459,7 @@ lemma fresh_star_empty_elim:
   "({} \<sharp>* c \<Longrightarrow> PROP C) \<equiv> PROP C"
   by (simp add: fresh_star_def)
 
-text {* Normalization of freshness results; see \ @{text nominal_induct} *}
+text \<open>Normalization of freshness results; see \ \<open>nominal_induct\<close>\<close>
 
 lemma fresh_star_unit_elim: 
   shows "((a::'a set)\<sharp>*() \<Longrightarrow> PROP C) \<equiv> PROP C"
@@ -2591,14 +2591,14 @@ apply(blast)
 apply(simp add: pt2[OF pt])
 done
 
-section {* Infrastructure lemmas for strong rule inductions *}
+section \<open>Infrastructure lemmas for strong rule inductions\<close>
 (*==========================================================*)
 
-text {* 
+text \<open>
   For every set of atoms, there is another set of atoms
   avoiding a finitely supported c and there is a permutation
   which 'translates' between both sets.
-*}
+\<close>
 
 lemma at_set_avoiding_aux:
   fixes Xs::"'a set"
@@ -2676,7 +2676,7 @@ lemma at_set_avoiding:
 using a b at_set_avoiding_aux[OF at, where Xs="Xs" and As="Xs" and c="c"]
 by (blast)
 
-section {* composition instances *}
+section \<open>composition instances\<close>
 (* ============================= *)
 
 lemma cp_list_inst:
@@ -2754,7 +2754,7 @@ apply(simp add: pt_rev_pi[OF pt_list_inst[OF pt_prod_inst[OF pt, OF pt]], OF at]
 done
 
 
-section {* Andy's freshness lemma *}
+section \<open>Andy's freshness lemma\<close>
 (*================================*)
 
 lemma freshness_lemma:
@@ -2819,7 +2819,7 @@ next
   thus "fr1 = fr2" by force
 qed
 
--- "packaging the freshness lemma into a function"
+\<comment> "packaging the freshness lemma into a function"
 definition fresh_fun :: "('x\<Rightarrow>'a)\<Rightarrow>'a" where
   "fresh_fun (h) \<equiv> THE fr. (\<forall>(a::'x). a\<sharp>h \<longrightarrow> (h a) = fr)"
 
@@ -2942,7 +2942,7 @@ lemma fresh_fun_supports:
   apply(simp add: pt_fresh_fresh[OF pt_fun_inst[OF at_pt_inst[OF at], OF pt], OF at, OF at])
   done
   
-section {* Abstraction function *}
+section \<open>Abstraction function\<close>
 (*==============================*)
 
 lemma pt_abs_fun_inst:
@@ -3068,7 +3068,7 @@ proof -
     show "?LHS=?RHS"
     proof -
       have "(c=a) \<or> (c=b) \<or> (c\<noteq>a \<and> c\<noteq>b)" by blast
-      moreover  --"case c=a"
+      moreover  \<comment>"case c=a"
       { have "nSome(x) = nSome([(a,b)]\<bullet>y)" using a2 by simp
         also have "\<dots> = nSome([(b,a)]\<bullet>y)" by (simp, rule pt3[OF pt], rule at_ds5[OF at])
         finally have "nSome(x) = nSome([(b,a)]\<bullet>y)" by simp
@@ -3076,7 +3076,7 @@ proof -
         assume "c=a"
         ultimately have "?LHS=?RHS" using a1 a3 by simp
       }
-      moreover  -- "case c=b"
+      moreover  \<comment> "case c=b"
       { have a4: "y=[(a,b)]\<bullet>x" using a2 by (simp only: pt_swap_bij[OF pt, OF at])
         hence "a\<sharp>([(a,b)]\<bullet>x)" using a3 by simp
         hence "b\<sharp>x" by (simp add: at_calc[OF at] pt_fresh_left[OF pt, OF at])
@@ -3084,7 +3084,7 @@ proof -
         assume "c=b"
         ultimately have "?LHS=?RHS" using a1 a4 by simp
       }
-      moreover  -- "case c\<noteq>a \<and> c\<noteq>b"
+      moreover  \<comment> "case c\<noteq>a \<and> c\<noteq>b"
       { assume a5: "c\<noteq>a \<and> c\<noteq>b"
         moreover 
         have "c\<sharp>x = c\<sharp>y" using a2 a5 by (force simp add: at_calc[OF at] pt_fresh_left[OF pt, OF at])
@@ -3376,7 +3376,7 @@ lemma fresh_abs_fun_iff_ineq:
   shows "b\<sharp>([a].x) = b\<sharp>x" 
   by (simp add: fresh_def abs_fun_supp_ineq[OF pta, OF ptb, OF at, OF cp, OF dj])
 
-section {* abstraction type for the parsing in nominal datatype *}
+section \<open>abstraction type for the parsing in nominal datatype\<close>
 (*==============================================================*)
 
 inductive_set ABS_set :: "('x\<Rightarrow>('a noption)) set"
@@ -3395,7 +3395,7 @@ proof
 qed
 
 
-section {* lemmas for deciding permutation equations *}
+section \<open>lemmas for deciding permutation equations\<close>
 (*===================================================*)
 
 lemma perm_aux_fold:
@@ -3438,7 +3438,7 @@ lemma perm_eq_lam:
   shows "((pi\<bullet>(\<lambda>x. f x))=y) = ((\<lambda>x. (pi\<bullet>(f ((rev pi)\<bullet>x))))=y)"
   by (simp add: perm_fun_def)
 
-section {* test *}
+section \<open>test\<close>
 lemma at_prm_eq_compose:
   fixes pi1 :: "'x prm"
   and   pi2 :: "'x prm"
@@ -3604,58 +3604,58 @@ ML_file "nominal_atoms.ML"
 ML_file "nominal_permeq.ML"
 
 method_setup perm_simp =
-  {* NominalPermeq.perm_simp_meth *}
-  {* simp rules and simprocs for analysing permutations *}
+  \<open>NominalPermeq.perm_simp_meth\<close>
+  \<open>simp rules and simprocs for analysing permutations\<close>
 
 method_setup perm_simp_debug =
-  {* NominalPermeq.perm_simp_meth_debug *}
-  {* simp rules and simprocs for analysing permutations including debugging facilities *}
+  \<open>NominalPermeq.perm_simp_meth_debug\<close>
+  \<open>simp rules and simprocs for analysing permutations including debugging facilities\<close>
 
 method_setup perm_extend_simp =
-  {* NominalPermeq.perm_extend_simp_meth *}
-  {* tactic for deciding equalities involving permutations *}
+  \<open>NominalPermeq.perm_extend_simp_meth\<close>
+  \<open>tactic for deciding equalities involving permutations\<close>
 
 method_setup perm_extend_simp_debug =
-  {* NominalPermeq.perm_extend_simp_meth_debug *}
-  {* tactic for deciding equalities involving permutations including debugging facilities *}
+  \<open>NominalPermeq.perm_extend_simp_meth_debug\<close>
+  \<open>tactic for deciding equalities involving permutations including debugging facilities\<close>
 
 method_setup supports_simp =
-  {* NominalPermeq.supports_meth *}
-  {* tactic for deciding whether something supports something else *}
+  \<open>NominalPermeq.supports_meth\<close>
+  \<open>tactic for deciding whether something supports something else\<close>
 
 method_setup supports_simp_debug =
-  {* NominalPermeq.supports_meth_debug *}
-  {* tactic for deciding whether something supports something else including debugging facilities *}
+  \<open>NominalPermeq.supports_meth_debug\<close>
+  \<open>tactic for deciding whether something supports something else including debugging facilities\<close>
 
 method_setup finite_guess =
-  {* NominalPermeq.finite_guess_meth *}
-  {* tactic for deciding whether something has finite support *}
+  \<open>NominalPermeq.finite_guess_meth\<close>
+  \<open>tactic for deciding whether something has finite support\<close>
 
 method_setup finite_guess_debug =
-  {* NominalPermeq.finite_guess_meth_debug *}
-  {* tactic for deciding whether something has finite support including debugging facilities *}
+  \<open>NominalPermeq.finite_guess_meth_debug\<close>
+  \<open>tactic for deciding whether something has finite support including debugging facilities\<close>
 
 method_setup fresh_guess =
-  {* NominalPermeq.fresh_guess_meth *}
-  {* tactic for deciding whether an atom is fresh for something*}
+  \<open>NominalPermeq.fresh_guess_meth\<close>
+  \<open>tactic for deciding whether an atom is fresh for something\<close>
 
 method_setup fresh_guess_debug =
-  {* NominalPermeq.fresh_guess_meth_debug *}
-  {* tactic for deciding whether an atom is fresh for something including debugging facilities *}
+  \<open>NominalPermeq.fresh_guess_meth_debug\<close>
+  \<open>tactic for deciding whether an atom is fresh for something including debugging facilities\<close>
 
 (*****************************************************************)
 (* tactics for generating fresh names and simplifying fresh_funs *)
 ML_file "nominal_fresh_fun.ML"
 
-method_setup generate_fresh = {*
+method_setup generate_fresh = \<open>
   Args.type_name {proper = true, strict = true} >>
     (fn s => fn ctxt => SIMPLE_METHOD (generate_fresh_tac ctxt s))
-*} "generate a name fresh for all the variables in the goal"
+\<close> "generate a name fresh for all the variables in the goal"
 
-method_setup fresh_fun_simp = {*
+method_setup fresh_fun_simp = \<open>
   Scan.lift (Args.parens (Args.$$$ "no_asm") >> K true || Scan.succeed false) >>
     (fn b => fn ctxt => SIMPLE_METHOD' (fresh_fun_tac ctxt b))
-*} "delete one inner occurrence of fresh_fun"
+\<close> "delete one inner occurrence of fresh_fun"
 
 
 (************************************************)
@@ -3678,7 +3678,7 @@ ML_file "nominal_inductive2.ML"
 (* setup for induction principles method *)
 ML_file "nominal_induct.ML"
 method_setup nominal_induct =
-  {* NominalInduct.nominal_induct_method *}
-  {* nominal induction *}
+  \<open>NominalInduct.nominal_induct_method\<close>
+  \<open>nominal induction\<close>
 
 end

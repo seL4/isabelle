@@ -5,13 +5,13 @@
 Cardinal arithmetic.
 *)
 
-section {* Cardinal Arithmetic *}
+section \<open>Cardinal Arithmetic\<close>
 
 theory Cardinal_Arithmetic
 imports BNF_Cardinal_Arithmetic Cardinal_Order_Relation
 begin
 
-subsection {* Binary sum *}
+subsection \<open>Binary sum\<close>
 
 lemma csum_Cnotzero2:
   "Cnotzero r2 \<Longrightarrow> Cnotzero (r1 +c r2)"
@@ -41,7 +41,7 @@ lemma csum_czero2: "Card_order r \<Longrightarrow> czero +c r =o r"
   by (rule ordIso_transitive[OF ordIso_symmetric[OF card_of_Plus_empty2] card_of_Field_ordIso])
 
 
-subsection {* Product *}
+subsection \<open>Product\<close>
 
 lemma Times_cprod: "|A \<times> B| =o |A| *c |B|"
 by (simp only: cprod_def Field_card_of card_of_refl)
@@ -71,7 +71,7 @@ lemma ordLeq_cprod1: "\<lbrakk>Card_order p1; Cnotzero p2\<rbrakk> \<Longrightar
 unfolding cprod_def by (metis Card_order_Times1 czeroI)
 
 
-subsection {* Exponentiation *}
+subsection \<open>Exponentiation\<close>
 
 lemma cexp_czero: "r ^c czero =o cone"
 unfolding cexp_def czero_def Field_card_of Func_empty by (rule single_cone)
@@ -269,7 +269,7 @@ lemma cexp_csum: "r ^c (s +c t) =o r ^c s *c r ^c t"
   unfolding cexp_def cprod_def csum_def Field_card_of by (rule card_of_Func_Plus)
 
 
-subsection {* Powerset *}
+subsection \<open>Powerset\<close>
 
 definition cpow where "cpow r = |Pow (Field r)|"
 
@@ -291,7 +291,7 @@ unfolding cpow_def by (metis Card_order_Pow cardSuc_ordLess_ordLeq card_of_Card_
 lemma cpow_cexp_ctwo: "cpow r =o ctwo ^c r"
 unfolding cpow_def ctwo_def cexp_def Field_card_of by (rule card_of_Pow_Func)
 
-subsection {* Inverse image *}
+subsection \<open>Inverse image\<close>
 
 lemma vimage_ordLeq:
 assumes "|A| \<le>o k" and "\<forall> a \<in> A. |vimage f {a}| \<le>o k" and "Cinfinite k"
@@ -303,7 +303,7 @@ proof-
   finally show ?thesis .
 qed
 
-subsection {* Maximum *}
+subsection \<open>Maximum\<close>
 
 definition cmax where
   "cmax r s =
@@ -372,7 +372,7 @@ next
   case False
   hence "s \<le>o r" by (metis ordLeq_total r s card_order_on_def)
   hence "cmax r s =o r" by (metis cmax1 r s)
-  also have "r =o r +c s" by (metis `s \<le>o r` csum_absorb1 ordIso_symmetric r)
+  also have "r =o r +c s" by (metis \<open>s \<le>o r\<close> csum_absorb1 ordIso_symmetric r)
   finally show ?thesis .
 qed
 
@@ -386,7 +386,7 @@ next
   case False
   hence "s \<le>o r" by (metis ordLeq_total r s card_order_on_def)
   hence "cmax r s =o r" by (metis cmax1 r s)
-  also have "r =o r *c s" by (metis Cinfinite_Cnotzero `s \<le>o r` cprod_infinite1' ordIso_symmetric r s)
+  also have "r =o r *c s" by (metis Cinfinite_Cnotzero \<open>s \<le>o r\<close> cprod_infinite1' ordIso_symmetric r s)
   finally show ?thesis .
 qed
 

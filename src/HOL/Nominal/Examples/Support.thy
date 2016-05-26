@@ -2,7 +2,7 @@ theory Support
   imports "../Nominal" 
 begin
 
-text {* 
+text \<open>
   An example showing that in general
 
   x\<sharp>(A \<union> B) does not imply  x\<sharp>A and  x\<sharp>B
@@ -11,31 +11,31 @@ text {*
   the set of odd atoms. Then A \<union> B, that is the set of 
   all atoms, has empty support. The sets A, respectively B, 
   however have the set of all atoms as their support. 
-*}
+\<close>
 
 atom_decl atom
 
-text {* The set of even atoms. *}
+text \<open>The set of even atoms.\<close>
 abbreviation
   EVEN :: "atom set"
 where
   "EVEN \<equiv> {atom n | n. \<exists>i. n=2*i}"
 
-text {* The set of odd atoms: *}
+text \<open>The set of odd atoms:\<close>
 abbreviation  
   ODD :: "atom set"
 where
   "ODD \<equiv> {atom n | n. \<exists>i. n=2*i+1}"
 
-text {* An atom is either even or odd. *}
+text \<open>An atom is either even or odd.\<close>
 lemma even_or_odd:
   fixes n :: nat
   shows "\<exists>i. (n = 2*i) \<or> (n=2*i+1)"
   by (induct n) (presburger)+
 
-text {* 
+text \<open>
   The union of even and odd atoms is the set of all atoms. 
-  (Unfortunately I do not know a simpler proof of this fact.) *}
+  (Unfortunately I do not know a simpler proof of this fact.)\<close>
 lemma EVEN_union_ODD:
   shows "EVEN \<union> ODD = UNIV"
   using even_or_odd
@@ -49,15 +49,15 @@ proof -
   finally show "EVEN \<union> ODD = UNIV" by simp
 qed
 
-text {* The sets of even and odd atoms are disjunct. *}
+text \<open>The sets of even and odd atoms are disjunct.\<close>
 lemma EVEN_intersect_ODD:
   shows "EVEN \<inter> ODD = {}"
   using even_or_odd
   by (auto) (presburger)
 
-text {* 
+text \<open>
   The preceeding two lemmas help us to prove 
-  the following two useful equalities: *}
+  the following two useful equalities:\<close>
 
 lemma UNIV_subtract:
   shows "UNIV - EVEN = ODD"
@@ -65,7 +65,7 @@ lemma UNIV_subtract:
   using EVEN_union_ODD EVEN_intersect_ODD
   by (blast)+
 
-text {* The sets EVEN and ODD are infinite. *}
+text \<open>The sets EVEN and ODD are infinite.\<close>
 lemma EVEN_ODD_infinite:
   shows "infinite EVEN"
   and   "infinite ODD"
@@ -80,10 +80,10 @@ next
   then show "\<exists>f::nat\<Rightarrow>atom. inj f \<and> range f \<subseteq> ODD" by (rule_tac exI)
 qed
 
-text {* 
+text \<open>
   A general fact about a set S of atoms that is both infinite and 
   coinfinite. Then S has all atoms as its support. Steve Zdancewic 
-  helped with proving this fact. *}
+  helped with proving this fact.\<close>
 
 lemma supp_infinite_coinfinite:
   fixes S::"atom set"
@@ -114,16 +114,16 @@ proof -
   then show "(supp S) = (UNIV::atom set)" by auto
 qed
 
-text {* As a corollary we get that EVEN and ODD have infinite support. *}
+text \<open>As a corollary we get that EVEN and ODD have infinite support.\<close>
 lemma EVEN_ODD_supp:
   shows "supp EVEN = (UNIV::atom set)"
   and   "supp ODD  = (UNIV::atom set)"
   using supp_infinite_coinfinite UNIV_subtract EVEN_ODD_infinite
   by simp_all
 
-text {* 
+text \<open>
   The set of all atoms has empty support, since any swappings leaves 
-  this set unchanged. *}
+  this set unchanged.\<close>
 
 lemma UNIV_supp:
   shows "supp (UNIV::atom set) = ({}::atom set)"
@@ -133,7 +133,7 @@ proof -
   then show "supp (UNIV::atom set) = ({}::atom set)" by (simp add: supp_def)
 qed
 
-text {* Putting everything together. *}
+text \<open>Putting everything together.\<close>
 theorem EVEN_ODD_freshness:
   fixes x::"atom"
   shows "x\<sharp>(EVEN \<union> ODD)"
@@ -141,6 +141,6 @@ theorem EVEN_ODD_freshness:
   and   "\<not>x\<sharp>ODD"
   by (auto simp only: fresh_def EVEN_union_ODD EVEN_ODD_supp UNIV_supp)
 
-text {* Moral: support is a sublte notion. *}
+text \<open>Moral: support is a sublte notion.\<close>
 
 end

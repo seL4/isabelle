@@ -2,33 +2,33 @@
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
-section {* Distinctness of Names in a Binary Tree \label{sec:DistinctTreeProver}*}
+section \<open>Distinctness of Names in a Binary Tree \label{sec:DistinctTreeProver}\<close>
 
 theory DistinctTreeProver 
 imports Main
 begin
 
-text {* A state space manages a set of (abstract) names and assumes
+text \<open>A state space manages a set of (abstract) names and assumes
 that the names are distinct. The names are stored as parameters of a
 locale and distinctness as an assumption. The most common request is
 to proof distinctness of two given names. We maintain the names in a
 balanced binary tree and formulate a predicate that all nodes in the
 tree have distinct names. This setup leads to logarithmic certificates.
-*}
+\<close>
 
-subsection {* The Binary Tree *}
+subsection \<open>The Binary Tree\<close>
 
 datatype 'a tree = Node "'a tree" 'a bool "'a tree" | Tip
 
 
-text {* The boolean flag in the node marks the content of the node as
+text \<open>The boolean flag in the node marks the content of the node as
 deleted, without having to build a new tree. We prefer the boolean
 flag to an option type, so that the ML-layer can still use the node
 content to facilitate binary search in the tree. The ML code keeps the
 nodes sorted using the term order. We do not have to push ordering to
-the HOL level. *}
+the HOL level.\<close>
 
-subsection {* Distinctness of Nodes *}
+subsection \<open>Distinctness of Nodes\<close>
 
 
 primrec set_of :: "'a tree \<Rightarrow> 'a set"
@@ -44,11 +44,11 @@ where
       set_of l \<inter> set_of r = {} \<and>
       all_distinct l \<and> all_distinct r)"
 
-text {* Given a binary tree @{term "t"} for which 
+text \<open>Given a binary tree @{term "t"} for which 
 @{const all_distinct} holds, given two different nodes contained in the tree,
 we want to write a ML function that generates a logarithmic
 certificate that the content of the nodes is distinct. We use the
-following lemmas to achieve this.  *} 
+following lemmas to achieve this.\<close> 
 
 lemma all_distinct_left: "all_distinct (Node l x b r) \<Longrightarrow> all_distinct l"
   by simp
@@ -81,9 +81,9 @@ lemma swap_neq: "x \<noteq> y \<Longrightarrow> y \<noteq> x"
 lemma neq_to_eq_False: "x\<noteq>y \<Longrightarrow> (x=y)\<equiv>False"
   by simp
 
-subsection {* Containment of Trees *}
+subsection \<open>Containment of Trees\<close>
 
-text {* When deriving a state space from other ones, we create a new
+text \<open>When deriving a state space from other ones, we create a new
 name tree which contains all the names of the parent state spaces and
 assume the predicate @{const all_distinct}. We then prove that the new
 locale interprets all parent locales. Hence we have to show that the
@@ -95,7 +95,7 @@ this succeeds we know that @{const all_distinct} of the new tree
 implies @{const all_distinct} of the parent tree.  The resulting
 certificate is of the order @{term "n * log(m)"} where @{term "n"} is
 the size of the (smaller) parent tree and @{term "m"} the size of the
-(bigger) new tree.  *}
+(bigger) new tree.\<close>
 
 
 primrec delete :: "'a \<Rightarrow> 'a tree \<Rightarrow> 'a tree option"
@@ -627,8 +627,8 @@ by simp
 lemma subtract_Tip: "subtract Tip t = Some t"
   by simp
  
-text {* Now we have all the theorems in place that are needed for the
-certificate generating ML functions. *}
+text \<open>Now we have all the theorems in place that are needed for the
+certificate generating ML functions.\<close>
 
 ML_file "distinct_tree_prover.ML"
 

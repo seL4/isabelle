@@ -5,13 +5,13 @@ Based on typedef version "Library/Dlist" by Florian Haftmann
 and theory morphism version by Maksym Bortin
 *)
 
-section {* Lists with distinct elements *}
+section \<open>Lists with distinct elements\<close>
 
 theory DList
 imports "~~/src/HOL/Library/Quotient_List"
 begin
 
-text {* Some facts about lists *}
+text \<open>Some facts about lists\<close>
 
 lemma remdups_removeAll_commute[simp]:
   "remdups (removeAll x l) = removeAll x (remdups l)"
@@ -66,7 +66,7 @@ lemma remdups_eq_member_eq:
   by (induct xa ya rule: list_induct2')
      (metis remdups_nil_noteq_cons set_remdups)+
 
-text {* Setting up the quotient type *}
+text \<open>Setting up the quotient type\<close>
 
 definition
   dlist_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
@@ -93,7 +93,7 @@ quotient_type
   'a dlist = "'a list" / "dlist_eq"
   by (rule dlist_eq_equivp)
 
-text {* respectfulness and constant definitions *}
+text \<open>respectfulness and constant definitions\<close>
 
 definition [simp]: "card_remdups = length \<circ> remdups"
 definition [simp]: "foldr_remdups f xs e = foldr f (remdups xs) e"
@@ -125,7 +125,7 @@ quotient_definition filter where "filter :: ('a \<Rightarrow> bool) \<Rightarrow
 quotient_definition "list_of_dlist :: 'a dlist \<Rightarrow> 'a list"
   is "remdups" by simp
 
-text {* lifted theorems *}
+text \<open>lifted theorems\<close>
 
 lemma dlist_member_insert:
   "member dl x \<Longrightarrow> insert x dl = dl"

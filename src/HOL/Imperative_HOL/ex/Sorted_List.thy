@@ -2,13 +2,13 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-section {* Sorted lists as representation of finite sets *}
+section \<open>Sorted lists as representation of finite sets\<close>
 
 theory Sorted_List
 imports Main
 begin
 
-text {* Merge function for two distinct sorted lists to get compound distinct sorted list *}
+text \<open>Merge function for two distinct sorted lists to get compound distinct sorted list\<close>
    
 fun merge :: "('a::linorder) list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
@@ -17,7 +17,7 @@ where
 | "merge xs [] = xs"
 | "merge [] ys = ys"
 
-text {* The function package does not derive automatically the more general rewrite rule as follows: *}
+text \<open>The function package does not derive automatically the more general rewrite rule as follows:\<close>
 lemma merge_Nil[simp]: "merge [] ys = ys"
 by (cases ys) auto
 
@@ -31,7 +31,7 @@ by (induct xs ys rule: merge.induct, auto simp add: sorted_Cons)
 lemma distinct_merge[simp]: "\<lbrakk> distinct xs; distinct ys; List.sorted xs; List.sorted ys \<rbrakk> \<Longrightarrow> distinct (merge xs ys)"
 by (induct xs ys rule: merge.induct, auto simp add: sorted_Cons)
 
-text {* The remove function removes an element from a sorted list *}
+text \<open>The remove function removes an element from a sorted list\<close>
 
 primrec remove :: "('a :: linorder) \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
@@ -86,7 +86,7 @@ apply (induct xs)
 apply (auto simp add: sorted_Cons)
 done
 
-subsection {* Efficient member function for sorted lists *}
+subsection \<open>Efficient member function for sorted lists\<close>
 
 primrec smember :: "'a list \<Rightarrow> 'a::linorder \<Rightarrow> bool" where
   "smember [] x \<longleftrightarrow> False"

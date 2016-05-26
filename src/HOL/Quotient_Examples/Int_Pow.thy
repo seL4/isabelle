@@ -51,7 +51,7 @@ lemma mult_same_comm:
   assumes [simp, intro]: "a \<in> Units G"
   shows "a (^) (m::nat) \<otimes> inv (a (^) (n::nat)) = inv (a (^) n) \<otimes> a (^) m"
 proof (cases "m\<ge>n")
-  have [simp]: "a \<in> carrier G" using `a \<in> _` by (rule Units_closed)
+  have [simp]: "a \<in> carrier G" using \<open>a \<in> _\<close> by (rule Units_closed)
   case True
     then obtain k where *:"m = k + n" and **:"m = n + k" by (metis le_iff_add add.commute)
     have "a (^) (m::nat) \<otimes> inv (a (^) (n::nat)) = a (^) k"
@@ -60,7 +60,7 @@ proof (cases "m\<ge>n")
       using ** by (auto simp add: nat_pow_mult[symmetric] m_assoc[symmetric])
     finally show ?thesis .
 next
-  have [simp]: "a \<in> carrier G" using `a \<in> _` by (rule Units_closed)
+  have [simp]: "a \<in> carrier G" using \<open>a \<in> _\<close> by (rule Units_closed)
   case False
     then obtain k where *:"n = k + m" and **:"n = m + k"
       by (metis le_iff_add add.commute nat_le_linear)
@@ -84,23 +84,23 @@ lemma int_pow_rsp:
   assumes a_in_G [simp, intro]: "a \<in> Units G"
   shows "a (^) b \<otimes> inv (a (^) c) = a (^) d \<otimes> inv (a (^) e)"
 proof(cases "b\<ge>c")
-  have [simp]: "a \<in> carrier G" using `a \<in> _` by (rule Units_closed)
+  have [simp]: "a \<in> carrier G" using \<open>a \<in> _\<close> by (rule Units_closed)
   case True
     then obtain n where "b = n + c" by (metis le_iff_add add.commute)
     then have "d = n + e" using eq by arith
-    from `b = _` have "a (^) b \<otimes> inv (a (^) c) = a (^) n"
+    from \<open>b = _\<close> have "a (^) b \<otimes> inv (a (^) c) = a (^) n"
       by (auto simp add: nat_pow_mult[symmetric] m_assoc)
-    also from `d = _`  have "\<dots> = a (^) d \<otimes> inv (a (^) e)"
+    also from \<open>d = _\<close>  have "\<dots> = a (^) d \<otimes> inv (a (^) e)"
       by (auto simp add: nat_pow_mult[symmetric] m_assoc)
     finally show ?thesis .
 next
-  have [simp]: "a \<in> carrier G" using `a \<in> _` by (rule Units_closed)
+  have [simp]: "a \<in> carrier G" using \<open>a \<in> _\<close> by (rule Units_closed)
   case False
     then obtain n where "c = n + b" by (metis le_iff_add add.commute nat_le_linear)
     then have "e = n + d" using eq by arith
-    from `c = _` have "a (^) b \<otimes> inv (a (^) c) = inv (a (^) n)"
+    from \<open>c = _\<close> have "a (^) b \<otimes> inv (a (^) c) = inv (a (^) n)"
       by (auto simp add: nat_pow_mult[symmetric] m_assoc[symmetric] inv_mult_units)
-    also from `e = _` have "\<dots> = a (^) d \<otimes> inv (a (^) e)"
+    also from \<open>e = _\<close> have "\<dots> = a (^) d \<otimes> inv (a (^) e)"
       by (auto simp add: nat_pow_mult[symmetric] m_assoc[symmetric] inv_mult_units)
     finally show ?thesis .
 qed

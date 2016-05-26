@@ -5,7 +5,7 @@ begin
 declare mem_def[code_pred_inline]
 *)
 
-subsection {* Alternative rules for length *}
+subsection \<open>Alternative rules for length\<close>
 
 definition size_list :: "'a list => nat"
 where "size_list = size"
@@ -19,10 +19,10 @@ declare size_list_simps[code_pred_def]
 declare size_list_def[symmetric, code_pred_inline]
 
 
-setup {*
+setup \<open>
   Context.theory_map
     (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals)))
-*}
+\<close>
 
 datatype alphabet = a | b
 
@@ -59,13 +59,13 @@ unfolding filter_b_def by simp
 
 declare filter_b_def[symmetric, code_pred_inline]
 
-setup {* Code_Prolog.map_code_options (K
+setup \<open>Code_Prolog.map_code_options (K
   {ensure_groundness = true,
   limit_globally = NONE,
   limited_types = [],
   limited_predicates = [(["s1p", "a1p", "b1p"], 2)],
   replacing = [(("s1p", "limited_s1p"), "quickcheck")],
-  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]}) *}
+  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]})\<close>
 
 
 theorem S\<^sub>1_sound:
@@ -83,13 +83,13 @@ inductive_set S\<^sub>2 and A\<^sub>2 and B\<^sub>2 where
 | "\<lbrakk>v \<in> B\<^sub>2; v \<in> B\<^sub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>2"
 
 
-setup {* Code_Prolog.map_code_options (K
+setup \<open>Code_Prolog.map_code_options (K
   {ensure_groundness = true,
   limit_globally = NONE,
   limited_types = [],
   limited_predicates = [(["s2p", "a2p", "b2p"], 3)],
   replacing = [(("s2p", "limited_s2p"), "quickcheck")],
-  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]}) *}
+  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]})\<close>
 
 
 theorem S\<^sub>2_sound:
@@ -106,13 +106,13 @@ inductive_set S\<^sub>3 and A\<^sub>3 and B\<^sub>3 where
 | "\<lbrakk>v \<in> B\<^sub>3; w \<in> B\<^sub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>3"
 
 
-setup {* Code_Prolog.map_code_options (K
+setup \<open>Code_Prolog.map_code_options (K
   {ensure_groundness = true,
   limit_globally = NONE,
   limited_types = [],
   limited_predicates = [(["s3p", "a3p", "b3p"], 6)],
   replacing = [(("s3p", "limited_s3p"), "quickcheck")],
-  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]}) *}
+  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]})\<close>
 
 lemma S\<^sub>3_sound:
   "S\<^sub>3p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
@@ -148,13 +148,13 @@ inductive_set S\<^sub>4 and A\<^sub>4 and B\<^sub>4 where
 | "\<lbrakk>v \<in> B\<^sub>4; w \<in> B\<^sub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>4"
 
 
-setup {* Code_Prolog.map_code_options (K
+setup \<open>Code_Prolog.map_code_options (K
   {ensure_groundness = true,
   limit_globally = NONE,
   limited_types = [],
   limited_predicates = [(["s4p", "a4p", "b4p"], 6)],
   replacing = [(("s4p", "limited_s4p"), "quickcheck")],
-  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]}) *}
+  manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]})\<close>
 
 
 theorem S\<^sub>4_sound:

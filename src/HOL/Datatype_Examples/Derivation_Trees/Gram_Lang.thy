@@ -5,7 +5,7 @@
 Language of a grammar.
 *)
 
-section {* Language of a Grammar *}
+section \<open>Language of a Grammar\<close>
 
 theory Gram_Lang
 imports DTree "~~/src/HOL/Library/Infinite_Set"
@@ -21,7 +21,7 @@ and finite_in_P: "\<And> n tns. (n,tns) \<in> P \<longrightarrow> finite tns"
 and used: "\<And> n. \<exists> tns. (n,tns) \<in> P"
 
 
-subsection{* Tree Basics: frontier, interior, etc. *}
+subsection\<open>Tree Basics: frontier, interior, etc.\<close>
 
 
 (* Frontier *)
@@ -309,7 +309,7 @@ unfolding Itr_def apply safe
   by (metis inItr.Base subtr_inItr subtr_rootL_in)
 
 
-subsection{* The Immediate Subtree Function *}
+subsection\<open>The Immediate Subtree Function\<close>
 
 (* production of: *)
 abbreviation "prodOf tr \<equiv> (id \<oplus> root) ` (cont tr)"
@@ -343,7 +343,7 @@ shows "Inr (root tr') \<in> prodOf tr"
 by (metis (lifting) assms image_iff map_sum.simps(2))
 
 
-subsection{* Well-Formed Derivation Trees *}
+subsection\<open>Well-Formed Derivation Trees\<close>
 
 hide_const wf
 
@@ -448,7 +448,7 @@ proof-
 qed
 
 
-subsection{* Default Trees *}
+subsection\<open>Default Trees\<close>
 
 (* Pick a left-hand side of a production for each nonterminal *)
 definition S where "S n \<equiv> SOME tns. (n,tns) \<in> P"
@@ -488,7 +488,7 @@ proof-
 qed
 
 
-subsection{* Hereditary Substitution *}
+subsection\<open>Hereditary Substitution\<close>
 
 (* Auxiliary concept: The root-ommiting frontier: *)
 definition "inFrr ns tr t \<equiv> \<exists> tr'. Inr tr' \<in> cont tr \<and> inFr ns tr' t"
@@ -679,7 +679,7 @@ using inFr_self_hsubst[OF assms] unfolding Frr Fr_def by auto
 end (* context *)
 
 
-subsection{* Regular Trees *}
+subsection\<open>Regular Trees\<close>
 
 definition "reg f tr \<equiv> \<forall> tr'. subtr UNIV tr' tr \<longrightarrow> tr' = f (root tr')"
 definition "regular tr \<equiv> \<exists> f. reg f tr"
@@ -770,7 +770,7 @@ qed
 
 
 
-subsection {* Paths in a Regular Tree *}
+subsection \<open>Paths in a Regular Tree\<close>
 
 inductive path :: "(N \<Rightarrow> dtree) \<Rightarrow> N list \<Rightarrow> bool" for f where
 Base: "path f [n]"
@@ -914,7 +914,7 @@ by (metis f inFr.Base path_subtr subtr_inFr subtr_mono subtr_rootL_in)
 
 
 
-subsection{* The Regular Cut of a Tree *}
+subsection\<open>The Regular Cut of a Tree\<close>
 
 context fixes tr0 :: dtree
 begin
@@ -1081,7 +1081,7 @@ by (metis (lifting) root_H inItr.Base reg_def reg_root subtr_rootR_in)
 end (* context *)
 
 
-subsection{* Recursive Description of the Regular Tree Frontiers *}
+subsection\<open>Recursive Description of the Regular Tree Frontiers\<close>
 
 lemma regular_inFr:
 assumes r: "regular tr" and In: "root tr \<in> ns"
@@ -1130,7 +1130,7 @@ apply simp
 by (simp, metis (lifting) inFr_Ind_minus insert_Diff)
 
 
-subsection{* The Generated Languages *}
+subsection\<open>The Generated Languages\<close>
 
 (* The (possibly inifinite tree) generated language *)
 definition "L ns n \<equiv> {Fr ns tr | tr. wf tr \<and> root tr = n}"

@@ -5,7 +5,7 @@
 Examples featuring Nitpick applied to records.
 *)
 
-section {* Examples Featuring Nitpick Applied to Records *}
+section \<open>Examples Featuring Nitpick Applied to Records\<close>
 
 theory Record_Nits
 imports Main

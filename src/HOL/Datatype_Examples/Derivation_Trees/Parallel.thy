@@ -5,7 +5,7 @@
 Parallel composition.
 *)
 
-section {* Parallel Composition *}
+section \<open>Parallel Composition\<close>
 
 theory Parallel
 imports DTree
@@ -19,7 +19,7 @@ axiomatization where
     Nplus_comm: "(a::N) + b = b + (a::N)"
 and Nplus_assoc: "((a::N) + b) + c = a + (b + c)"
 
-subsection{* Corecursive Definition of Parallel Composition *}
+subsection\<open>Corecursive Definition of Parallel Composition\<close>
 
 fun par_r where "par_r (tr1,tr2) = root tr1 + root tr2"
 fun par_c where
@@ -65,7 +65,7 @@ lemma Inr_in_cont_par:
 using Inr_cont_par[of tr1 tr2] unfolding vimage_def by auto
 
 
-subsection{* Structural Coinduction Proofs *}
+subsection\<open>Structural Coinduction Proofs\<close>
 
 lemma rel_set_rel_sum_eq[simp]:
 "rel_set (rel_sum (op =) \<phi>) A1 A2 \<longleftrightarrow>

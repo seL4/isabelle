@@ -82,7 +82,7 @@ lemma lfilter_unique:
     else if P (lhd xs) then LCons (lhd xs) (f (ltl xs))
     else f (ltl xs))"
   shows "f = lfilter P"
--- \<open>It seems as if we cannot use @{thm lfilter_unique_weak} for showing this as the induction and the coinduction must be nested\<close>
+\<comment> \<open>It seems as if we cannot use @{thm lfilter_unique_weak} for showing this as the induction and the coinduction must be nested\<close>
 proof(rule ext)
   show "f xs = lfilter P xs" for xs
   proof(coinduction arbitrary: xs)

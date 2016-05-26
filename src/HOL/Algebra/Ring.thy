@@ -39,7 +39,7 @@ syntax
       ("(3\<Oplus>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
   "\<Oplus>\<^bsub>G\<^esub>i\<in>A. b" \<rightleftharpoons> "CONST finsum G (%i. b) A"
-  -- \<open>Beware of argument permutation!\<close>
+  \<comment> \<open>Beware of argument permutation!\<close>
 
 
 locale abelian_group = abelian_monoid +
@@ -141,7 +141,7 @@ lemmas finsum_infinite = add.finprod_infinite
 
 lemmas finsum_cong = add.finprod_cong
 text \<open>Usually, if this rule causes a failed congruence proof error,
-   the reason is that the premise @{text "g \<in> B \<rightarrow> carrier G"} cannot be shown.
+   the reason is that the premise \<open>g \<in> B \<rightarrow> carrier G\<close> cannot be shown.
    Adding @{thm [source] Pi_def} to the simpset is often useful.\<close>
 
 lemmas finsum_reindex = add.finprod_reindex
@@ -206,7 +206,7 @@ sublocale abelian_group <
 
 lemmas (in abelian_group) minus_add = add.inv_mult
  
-text \<open>Derive an @{text "abelian_group"} from a @{text "comm_group"}\<close>
+text \<open>Derive an \<open>abelian_group\<close> from a \<open>comm_group\<close>\<close>
 
 lemma comm_group_abelian_groupI:
   fixes G (structure)
@@ -283,7 +283,7 @@ lemma cringI:
   shows "cring R"
 proof (intro cring.intro ring.intro)
   show "ring_axioms R"
-    -- \<open>Right-distributivity follows from left-distributivity and
+    \<comment> \<open>Right-distributivity follows from left-distributivity and
           commutativity.\<close>
   proof (rule ring_axioms.intro)
     fix x y z

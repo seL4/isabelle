@@ -270,7 +270,7 @@ proof -
 qed
 
 lemma iexp_approx2: "cmod (iexp x - (\<Sum>k \<le> n. (ii * x)^k / fact k)) \<le> 2 * \<bar>x\<bar>^n / fact n"
-proof (induction n) -- \<open>really cases\<close>
+proof (induction n) \<comment> \<open>really cases\<close>
   case (Suc n)
   have *: "\<And>a b. interval_lebesgue_integrable lborel a b f \<Longrightarrow> interval_lebesgue_integrable lborel a b g \<Longrightarrow>
       \<bar>LBINT s=a..b. f s\<bar> \<le> \<bar>LBINT s=a..b. g s\<bar>"

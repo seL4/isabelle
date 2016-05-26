@@ -1,4 +1,4 @@
-section {* Simply-typed lambda-calculus with let and tuple patterns *}
+section \<open>Simply-typed lambda-calculus with let and tuple patterns\<close>
 
 theory Pattern
 imports "../Nominal"
@@ -411,7 +411,7 @@ lemma subst_type_aux:
   shows "\<Delta> @ \<Gamma> \<turnstile> t[x\<mapsto>u] : T" using a b
 proof (nominal_induct \<Gamma>'\<equiv>"\<Delta> @ [(x, U)] @ \<Gamma>" t T avoiding: x u \<Delta> rule: typing.strong_induct)
   case (Var y T x u \<Delta>)
-  from `valid (\<Delta> @ [(x, U)] @ \<Gamma>)`
+  from \<open>valid (\<Delta> @ [(x, U)] @ \<Gamma>)\<close>
   have valid: "valid (\<Delta> @ \<Gamma>)" by (rule valid_insert)
   show "\<Delta> @ \<Gamma> \<turnstile> Var y[x\<mapsto>u] : T"
   proof cases
@@ -425,19 +425,19 @@ proof (nominal_induct \<Gamma>'\<equiv>"\<Delta> @ [(x, U)] @ \<Gamma>" t T avoi
   qed
 next
   case (Tuple t\<^sub>1 T\<^sub>1 t\<^sub>2 T\<^sub>2)
-  from refl `\<Gamma> \<turnstile> u : U`
+  from refl \<open>\<Gamma> \<turnstile> u : U\<close>
   have "\<Delta> @ \<Gamma> \<turnstile> t\<^sub>1[x\<mapsto>u] : T\<^sub>1" by (rule Tuple)
-  moreover from refl `\<Gamma> \<turnstile> u : U`
+  moreover from refl \<open>\<Gamma> \<turnstile> u : U\<close>
   have "\<Delta> @ \<Gamma> \<turnstile> t\<^sub>2[x\<mapsto>u] : T\<^sub>2" by (rule Tuple)
   ultimately have "\<Delta> @ \<Gamma> \<turnstile> \<langle>t\<^sub>1[x\<mapsto>u], t\<^sub>2[x\<mapsto>u]\<rangle> : T\<^sub>1 \<otimes> T\<^sub>2" ..
   then show ?case by simp
 next
   case (Let p t T \<Delta>' s S)
-  from refl `\<Gamma> \<turnstile> u : U`
+  from refl \<open>\<Gamma> \<turnstile> u : U\<close>
   have "\<Delta> @ \<Gamma> \<turnstile> t[x\<mapsto>u] : T" by (rule Let)
-  moreover note `\<turnstile> p : T \<Rightarrow> \<Delta>'`
+  moreover note \<open>\<turnstile> p : T \<Rightarrow> \<Delta>'\<close>
   moreover have "\<Delta>' @ (\<Delta> @ [(x, U)] @ \<Gamma>) = (\<Delta>' @ \<Delta>) @ [(x, U)] @ \<Gamma>" by simp
-  then have "(\<Delta>' @ \<Delta>) @ \<Gamma> \<turnstile> s[x\<mapsto>u] : S" using `\<Gamma> \<turnstile> u : U` by (rule Let)
+  then have "(\<Delta>' @ \<Delta>) @ \<Gamma> \<turnstile> s[x\<mapsto>u] : S" using \<open>\<Gamma> \<turnstile> u : U\<close> by (rule Let)
   then have "\<Delta>' @ \<Delta> @ \<Gamma> \<turnstile> s[x\<mapsto>u] : S" by simp
   ultimately have "\<Delta> @ \<Gamma> \<turnstile> (LET p = t[x\<mapsto>u] IN s[x\<mapsto>u]) : S"
     by (rule better_T_Let)
@@ -448,7 +448,7 @@ next
   case (Abs y T t S)
   have "(y, T) # \<Delta> @ [(x, U)] @ \<Gamma> = ((y, T) # \<Delta>) @ [(x, U)] @ \<Gamma>"
     by simp
-  then have "((y, T) # \<Delta>) @ \<Gamma> \<turnstile> t[x\<mapsto>u] : S" using `\<Gamma> \<turnstile> u : U` by (rule Abs)
+  then have "((y, T) # \<Delta>) @ \<Gamma> \<turnstile> t[x\<mapsto>u] : S" using \<open>\<Gamma> \<turnstile> u : U\<close> by (rule Abs)
   then have "(y, T) # \<Delta> @ \<Gamma> \<turnstile> t[x\<mapsto>u] : S" by simp
   then have "\<Delta> @ \<Gamma> \<turnstile> (\<lambda>y:T. t[x\<mapsto>u]) : T \<rightarrow> S"
     by (rule typing.Abs)
@@ -457,9 +457,9 @@ next
   ultimately show ?case by simp
 next
   case (App t\<^sub>1 T S t\<^sub>2)
-  from refl `\<Gamma> \<turnstile> u : U`
+  from refl \<open>\<Gamma> \<turnstile> u : U\<close>
   have "\<Delta> @ \<Gamma> \<turnstile> t\<^sub>1[x\<mapsto>u] : T \<rightarrow> S" by (rule App)
-  moreover from refl `\<Gamma> \<turnstile> u : U`
+  moreover from refl \<open>\<Gamma> \<turnstile> u : U\<close>
   have "\<Delta> @ \<Gamma> \<turnstile> t\<^sub>2[x\<mapsto>u] : T" by (rule App)
   ultimately have "\<Delta> @ \<Gamma> \<turnstile> (t\<^sub>1[x\<mapsto>u]) \<cdot> (t\<^sub>2[x\<mapsto>u]) : S"
     by (rule typing.App)
@@ -489,14 +489,14 @@ lemma match_type_aux:
   shows "\<Gamma>\<^sub>1 @ \<Gamma>\<^sub>2 \<turnstile> \<theta>\<lparr>t\<rparr> : T" using assms
 proof (induct arbitrary: \<Gamma>\<^sub>1 \<Gamma>\<^sub>2 t u T \<theta>)
   case (PVar x U)
-  from `\<Gamma>\<^sub>1 @ [(x, U)] @ \<Gamma>\<^sub>2 \<turnstile> t : T` `\<Gamma>\<^sub>2 \<turnstile> u : U`
+  from \<open>\<Gamma>\<^sub>1 @ [(x, U)] @ \<Gamma>\<^sub>2 \<turnstile> t : T\<close> \<open>\<Gamma>\<^sub>2 \<turnstile> u : U\<close>
   have "\<Gamma>\<^sub>1 @ \<Gamma>\<^sub>2 \<turnstile> t[x\<mapsto>u] : T" by (rule subst_type_aux)
-  moreover from `\<turnstile> PVar x U \<rhd> u \<Rightarrow> \<theta>` have "\<theta> = [(x, u)]"
+  moreover from \<open>\<turnstile> PVar x U \<rhd> u \<Rightarrow> \<theta>\<close> have "\<theta> = [(x, u)]"
     by cases simp_all
   ultimately show ?case by simp
 next
   case (PTuple p S \<Delta>\<^sub>1 q U \<Delta>\<^sub>2)
-  from `\<turnstile> \<langle>\<langle>p, q\<rangle>\<rangle> \<rhd> u \<Rightarrow> \<theta>` obtain u\<^sub>1 u\<^sub>2 \<theta>\<^sub>1 \<theta>\<^sub>2
+  from \<open>\<turnstile> \<langle>\<langle>p, q\<rangle>\<rangle> \<rhd> u \<Rightarrow> \<theta>\<close> obtain u\<^sub>1 u\<^sub>2 \<theta>\<^sub>1 \<theta>\<^sub>2
     where u: "u = \<langle>u\<^sub>1, u\<^sub>2\<rangle>" and \<theta>: "\<theta> = \<theta>\<^sub>1 @ \<theta>\<^sub>2"
     and p: "\<turnstile> p \<rhd> u\<^sub>1 \<Rightarrow> \<theta>\<^sub>1" and q: "\<turnstile> q \<rhd> u\<^sub>2 \<Rightarrow> \<theta>\<^sub>2"
     by cases simp_all
@@ -504,10 +504,10 @@ next
   then obtain u\<^sub>1: "\<Gamma>\<^sub>2 \<turnstile> u\<^sub>1 : S" and u\<^sub>2: "\<Gamma>\<^sub>2 \<turnstile> u\<^sub>2 : U"
     by cases (simp_all add: ty.inject trm.inject)
   note u\<^sub>1
-  moreover from `\<Gamma>\<^sub>1 @ (\<Delta>\<^sub>2 @ \<Delta>\<^sub>1) @ \<Gamma>\<^sub>2 \<turnstile> t : T`
+  moreover from \<open>\<Gamma>\<^sub>1 @ (\<Delta>\<^sub>2 @ \<Delta>\<^sub>1) @ \<Gamma>\<^sub>2 \<turnstile> t : T\<close>
   have "(\<Gamma>\<^sub>1 @ \<Delta>\<^sub>2) @ \<Delta>\<^sub>1 @ \<Gamma>\<^sub>2 \<turnstile> t : T" by simp
   moreover note p
-  moreover from `supp \<langle>\<langle>p, q\<rangle>\<rangle> \<sharp>* u` and u
+  moreover from \<open>supp \<langle>\<langle>p, q\<rangle>\<rangle> \<sharp>* u\<close> and u
   have "(supp p::name set) \<sharp>* u\<^sub>1" by (simp add: fresh_star_def)
   ultimately have \<theta>\<^sub>1: "(\<Gamma>\<^sub>1 @ \<Delta>\<^sub>2) @ \<Gamma>\<^sub>2 \<turnstile> \<theta>\<^sub>1\<lparr>t\<rparr> : T"
     by (rule PTuple)
@@ -515,11 +515,11 @@ next
   moreover from \<theta>\<^sub>1
   have "\<Gamma>\<^sub>1 @ \<Delta>\<^sub>2 @ \<Gamma>\<^sub>2 \<turnstile> \<theta>\<^sub>1\<lparr>t\<rparr> : T" by simp
   moreover note q
-  moreover from `supp \<langle>\<langle>p, q\<rangle>\<rangle> \<sharp>* u` and u
+  moreover from \<open>supp \<langle>\<langle>p, q\<rangle>\<rangle> \<sharp>* u\<close> and u
   have "(supp q::name set) \<sharp>* u\<^sub>2" by (simp add: fresh_star_def)
   ultimately have "\<Gamma>\<^sub>1 @ \<Gamma>\<^sub>2 \<turnstile> \<theta>\<^sub>2\<lparr>\<theta>\<^sub>1\<lparr>t\<rparr>\<rparr> : T"
     by (rule PTuple)
-  moreover from `\<turnstile> \<langle>\<langle>p, q\<rangle>\<rangle> \<rhd> u \<Rightarrow> \<theta>` `supp \<langle>\<langle>p, q\<rangle>\<rangle> \<sharp>* u`
+  moreover from \<open>\<turnstile> \<langle>\<langle>p, q\<rangle>\<rangle> \<rhd> u \<Rightarrow> \<theta>\<close> \<open>supp \<langle>\<langle>p, q\<rangle>\<rangle> \<sharp>* u\<close>
   have "(supp (map fst \<theta>)::name set) \<sharp>* map snd \<theta>"
     by (rule match_fresh)
   ultimately show ?case using \<theta> by (simp add: psubst_append)
@@ -578,10 +578,10 @@ proof cases
   case (Abs x' T' t' U)
   obtain y::name where y: "y \<sharp> (x, \<Gamma>, \<lambda>x':T'. t')"
     by (rule exists_fresh) (auto intro: fin_supp)
-  from `(\<lambda>x:T. t) = (\<lambda>x':T'. t')` [symmetric]
+  from \<open>(\<lambda>x:T. t) = (\<lambda>x':T'. t')\<close> [symmetric]
   have x: "x \<sharp> (\<lambda>x':T'. t')" by (simp add: abs_fresh)
   have x': "x' \<sharp> (\<lambda>x':T'. t')" by (simp add: abs_fresh)
-  from `(x', T') # \<Gamma> \<turnstile> t' : U` have x'': "x' \<sharp> \<Gamma>"
+  from \<open>(x', T') # \<Gamma> \<turnstile> t' : U\<close> have x'': "x' \<sharp> \<Gamma>"
     by (auto dest: valid_typing)
   have "(\<lambda>x:T. t) = (\<lambda>x':T'. t')" by fact
   also from x x' y have "\<dots> = [(x, y)] \<bullet> [(x', y)] \<bullet> (\<lambda>x':T'. t')"
@@ -592,7 +592,7 @@ proof cases
   then have T: "T = T'" and t: "[(x, y)] \<bullet> [(x', y)] \<bullet> t' = t"
     by (simp_all add: trm.inject alpha)
   from Abs T have "S = T \<rightarrow> U" by simp
-  moreover from `(x', T') # \<Gamma> \<turnstile> t' : U`
+  moreover from \<open>(x', T') # \<Gamma> \<turnstile> t' : U\<close>
   have "[(x, y)] \<bullet> [(x', y)] \<bullet> ((x', T') # \<Gamma> \<turnstile> t' : U)"
     by (simp add: perm_bool)
   with T t y x'' fresh have "(x, T) # \<Gamma> \<turnstile> t : U"
@@ -659,7 +659,7 @@ proof (induct p arbitrary: q t u)
   show ?case
   proof (cases q)
     case (PVar x' T')
-    with `(\<lambda>[PVar x T]. t) = (\<lambda>[q]. u)`
+    with \<open>(\<lambda>[PVar x T]. t) = (\<lambda>[q]. u)\<close>
     have "x = x' \<and> t = u \<or> x \<noteq> x' \<and> t = [(x, x')] \<bullet> u \<and> x \<sharp> u"
       by (simp add: btrm.inject alpha)
     then show ?thesis
@@ -714,7 +714,7 @@ next
     then obtain pi::"name prm" where
       "p\<^sub>1 = pi \<bullet> p\<^sub>1'" "(\<lambda>[p\<^sub>2]. t) = pi \<bullet> (\<lambda>[p\<^sub>2']. u)" and
       pi: "set pi \<subseteq> (supp p\<^sub>1 \<union> supp p\<^sub>1') \<times> (supp p\<^sub>1 \<union> supp p\<^sub>1')" by auto
-    from `(\<lambda>[p\<^sub>2]. t) = pi \<bullet> (\<lambda>[p\<^sub>2']. u)`
+    from \<open>(\<lambda>[p\<^sub>2]. t) = pi \<bullet> (\<lambda>[p\<^sub>2']. u)\<close>
     have "(\<lambda>[p\<^sub>2]. t) = (\<lambda>[pi \<bullet> p\<^sub>2']. pi \<bullet> u)"
       by (simp add: eqvts)
     moreover from PTuple PTuple' have "pat_type p\<^sub>2 = pat_type (pi \<bullet> p\<^sub>2')"
@@ -732,13 +732,13 @@ next
         (supp p\<^sub>2 \<union> supp (pi \<bullet> p\<^sub>2'))" by auto
     from PTuple PTuple' have "pi \<bullet> distinct (pat_vars \<langle>\<langle>p\<^sub>1', p\<^sub>2'\<rangle>\<rangle>)" by simp
     then have "distinct (pat_vars \<langle>\<langle>pi \<bullet> p\<^sub>1', pi \<bullet> p\<^sub>2'\<rangle>\<rangle>)" by (simp only: eqvts)
-    with `p\<^sub>1 = pi \<bullet> p\<^sub>1'` PTuple'
+    with \<open>p\<^sub>1 = pi \<bullet> p\<^sub>1'\<close> PTuple'
     have fresh: "(supp p\<^sub>2 \<union> supp (pi \<bullet> p\<^sub>2') :: name set) \<sharp>* p\<^sub>1"
       by (auto simp add: set_pat_vars_supp fresh_star_def fresh_def eqvts)
-    from `p\<^sub>1 = pi \<bullet> p\<^sub>1'` have "pi' \<bullet> (p\<^sub>1 = pi \<bullet> p\<^sub>1')" by (rule perm_boolI)
+    from \<open>p\<^sub>1 = pi \<bullet> p\<^sub>1'\<close> have "pi' \<bullet> (p\<^sub>1 = pi \<bullet> p\<^sub>1')" by (rule perm_boolI)
     with pt_freshs_freshs [OF pt_name_inst at_name_inst pi' fresh fresh]
     have "p\<^sub>1 = pi' \<bullet> pi \<bullet> p\<^sub>1'" by (simp add: eqvts)
-    with `p\<^sub>2 = pi' \<bullet> pi \<bullet> p\<^sub>2'` have "\<langle>\<langle>p\<^sub>1, p\<^sub>2\<rangle>\<rangle> = (pi' @ pi) \<bullet> \<langle>\<langle>p\<^sub>1', p\<^sub>2'\<rangle>\<rangle>"
+    with \<open>p\<^sub>2 = pi' \<bullet> pi \<bullet> p\<^sub>2'\<close> have "\<langle>\<langle>p\<^sub>1, p\<^sub>2\<rangle>\<rangle> = (pi' @ pi) \<bullet> \<langle>\<langle>p\<^sub>1', p\<^sub>2'\<rangle>\<rangle>"
       by (simp add: pt_name2)
     moreover
     have "((supp p\<^sub>2 \<union> (pi \<bullet> supp p\<^sub>2')) \<times> (supp p\<^sub>2 \<union> (pi \<bullet> supp p\<^sub>2'))::(name \<times> name) set) \<subseteq>
@@ -748,7 +748,7 @@ next
     with pi have "set (pi' @ pi) \<subseteq> (supp \<langle>\<langle>p\<^sub>1, p\<^sub>2\<rangle>\<rangle> \<union> supp \<langle>\<langle>p\<^sub>1', p\<^sub>2'\<rangle>\<rangle>) \<times>
       (supp \<langle>\<langle>p\<^sub>1, p\<^sub>2\<rangle>\<rangle> \<union> supp \<langle>\<langle>p\<^sub>1', p\<^sub>2'\<rangle>\<rangle>)"
       by (simp add: Sigma_Un_distrib1 Sigma_Un_distrib2 Un_ac) blast
-    moreover note `t = pi' \<bullet> pi \<bullet> u`
+    moreover note \<open>t = pi' \<bullet> pi \<bullet> u\<close>
     ultimately have "\<langle>\<langle>p\<^sub>1, p\<^sub>2\<rangle>\<rangle> = (pi' @ pi) \<bullet> q \<and> t = (pi' @ pi) \<bullet> u \<and>
       set (pi' @ pi) \<subseteq> (supp \<langle>\<langle>p\<^sub>1, p\<^sub>2\<rangle>\<rangle> \<union> supp q) \<times>
         (supp \<langle>\<langle>p\<^sub>1, p\<^sub>2\<rangle>\<rangle> \<union> supp q)" using PTuple
@@ -776,10 +776,10 @@ proof cases
   moreover from Let have "pat_type p = pat_type p'"
     by (simp add: trm.inject)
   moreover note distinct
-  moreover from `\<Delta> @ \<Gamma> \<turnstile> u' : U` have "valid (\<Delta> @ \<Gamma>)"
+  moreover from \<open>\<Delta> @ \<Gamma> \<turnstile> u' : U\<close> have "valid (\<Delta> @ \<Gamma>)"
     by (rule valid_typing)
   then have "valid \<Delta>" by (rule valid_appD)
-  with `\<turnstile> p' : T \<Rightarrow> \<Delta>` have "distinct (pat_vars p')"
+  with \<open>\<turnstile> p' : T \<Rightarrow> \<Delta>\<close> have "distinct (pat_vars p')"
     by (simp add: valid_distinct pat_vars_ptyping)
   ultimately have "\<exists>pi::name prm. p = pi \<bullet> p' \<and> Base u = pi \<bullet> Base u' \<and>
     set pi \<subseteq> (supp p \<union> supp p') \<times> (supp p \<union> supp p')"
@@ -788,7 +788,7 @@ proof cases
     and pi': "set pi \<subseteq> (supp p \<union> supp p') \<times> (supp p \<union> supp p')"
     by (auto simp add: btrm.inject)
   from Let have "\<Gamma> \<turnstile> t : T" by (simp add: trm.inject)
-  moreover from `\<turnstile> p' : T \<Rightarrow> \<Delta>` have "\<turnstile> (pi \<bullet> p') : (pi \<bullet> T) \<Rightarrow> (pi \<bullet> \<Delta>)"
+  moreover from \<open>\<turnstile> p' : T \<Rightarrow> \<Delta>\<close> have "\<turnstile> (pi \<bullet> p') : (pi \<bullet> T) \<Rightarrow> (pi \<bullet> \<Delta>)"
     by (simp add: ptyping.eqvt)
   with pi have "\<turnstile> p : T \<Rightarrow> (pi \<bullet> \<Delta>)" by (simp add: perm_type)
   moreover from Let
@@ -805,25 +805,25 @@ lemma preservation:
   shows "\<Gamma> \<turnstile> t' : T" using assms
 proof (nominal_induct avoiding: \<Gamma> T rule: eval.strong_induct)
   case (TupleL t t' u)
-  from `\<Gamma> \<turnstile> \<langle>t, u\<rangle> : T` obtain T\<^sub>1 T\<^sub>2
+  from \<open>\<Gamma> \<turnstile> \<langle>t, u\<rangle> : T\<close> obtain T\<^sub>1 T\<^sub>2
     where "T = T\<^sub>1 \<otimes> T\<^sub>2" "\<Gamma> \<turnstile> t : T\<^sub>1" "\<Gamma> \<turnstile> u : T\<^sub>2"
     by cases (simp_all add: trm.inject)
-  from `\<Gamma> \<turnstile> t : T\<^sub>1` have "\<Gamma> \<turnstile> t' : T\<^sub>1" by (rule TupleL)
-  then have "\<Gamma> \<turnstile> \<langle>t', u\<rangle> : T\<^sub>1 \<otimes> T\<^sub>2" using `\<Gamma> \<turnstile> u : T\<^sub>2`
+  from \<open>\<Gamma> \<turnstile> t : T\<^sub>1\<close> have "\<Gamma> \<turnstile> t' : T\<^sub>1" by (rule TupleL)
+  then have "\<Gamma> \<turnstile> \<langle>t', u\<rangle> : T\<^sub>1 \<otimes> T\<^sub>2" using \<open>\<Gamma> \<turnstile> u : T\<^sub>2\<close>
     by (rule Tuple)
-  with `T = T\<^sub>1 \<otimes> T\<^sub>2` show ?case by simp
+  with \<open>T = T\<^sub>1 \<otimes> T\<^sub>2\<close> show ?case by simp
 next
   case (TupleR u u' t)
-  from `\<Gamma> \<turnstile> \<langle>t, u\<rangle> : T` obtain T\<^sub>1 T\<^sub>2
+  from \<open>\<Gamma> \<turnstile> \<langle>t, u\<rangle> : T\<close> obtain T\<^sub>1 T\<^sub>2
     where "T = T\<^sub>1 \<otimes> T\<^sub>2" "\<Gamma> \<turnstile> t : T\<^sub>1" "\<Gamma> \<turnstile> u : T\<^sub>2"
     by cases (simp_all add: trm.inject)
-  from `\<Gamma> \<turnstile> u : T\<^sub>2` have "\<Gamma> \<turnstile> u' : T\<^sub>2" by (rule TupleR)
-  with `\<Gamma> \<turnstile> t : T\<^sub>1` have "\<Gamma> \<turnstile> \<langle>t, u'\<rangle> : T\<^sub>1 \<otimes> T\<^sub>2"
+  from \<open>\<Gamma> \<turnstile> u : T\<^sub>2\<close> have "\<Gamma> \<turnstile> u' : T\<^sub>2" by (rule TupleR)
+  with \<open>\<Gamma> \<turnstile> t : T\<^sub>1\<close> have "\<Gamma> \<turnstile> \<langle>t, u'\<rangle> : T\<^sub>1 \<otimes> T\<^sub>2"
     by (rule Tuple)
-  with `T = T\<^sub>1 \<otimes> T\<^sub>2` show ?case by simp
+  with \<open>T = T\<^sub>1 \<otimes> T\<^sub>2\<close> show ?case by simp
 next
   case (Abs t t' x S)
-  from `\<Gamma> \<turnstile> (\<lambda>x:S. t) : T` `x \<sharp> \<Gamma>` obtain U where
+  from \<open>\<Gamma> \<turnstile> (\<lambda>x:S. t) : T\<close> \<open>x \<sharp> \<Gamma>\<close> obtain U where
     T: "T = S \<rightarrow> U" and U: "(x, S) # \<Gamma> \<turnstile> t : U"
     by (rule typing_case_Abs)
   from U have "(x, S) # \<Gamma> \<turnstile> t' : U" by (rule Abs)
@@ -832,27 +832,27 @@ next
   with T show ?case by simp
 next
   case (Beta x u S t)
-  from `\<Gamma> \<turnstile> (\<lambda>x:S. t) \<cdot> u : T` `x \<sharp> \<Gamma>`
+  from \<open>\<Gamma> \<turnstile> (\<lambda>x:S. t) \<cdot> u : T\<close> \<open>x \<sharp> \<Gamma>\<close>
   obtain "(x, S) # \<Gamma> \<turnstile> t : T" and "\<Gamma> \<turnstile> u : S"
     by cases (auto simp add: trm.inject ty.inject elim: typing_case_Abs)
   then show ?case by (rule subst_type)
 next
   case (Let p t \<theta> u)
-  from `\<Gamma> \<turnstile> (LET p = t IN u) : T` `supp p \<sharp>* \<Gamma>` `distinct (pat_vars p)`
+  from \<open>\<Gamma> \<turnstile> (LET p = t IN u) : T\<close> \<open>supp p \<sharp>* \<Gamma>\<close> \<open>distinct (pat_vars p)\<close>
   obtain U \<Delta> where "\<turnstile> p : U \<Rightarrow> \<Delta>" "\<Gamma> \<turnstile> t : U" "\<Delta> @ \<Gamma> \<turnstile> u : T"
     by (rule typing_case_Let)
-  then show ?case using `\<turnstile> p \<rhd> t \<Rightarrow> \<theta>` `supp p \<sharp>* t`
+  then show ?case using \<open>\<turnstile> p \<rhd> t \<Rightarrow> \<theta>\<close> \<open>supp p \<sharp>* t\<close>
     by (rule match_type)
 next
   case (AppL t t' u)
-  from `\<Gamma> \<turnstile> t \<cdot> u : T` obtain U where
+  from \<open>\<Gamma> \<turnstile> t \<cdot> u : T\<close> obtain U where
     t: "\<Gamma> \<turnstile> t : U \<rightarrow> T" and u: "\<Gamma> \<turnstile> u : U"
     by cases (auto simp add: trm.inject)
   from t have "\<Gamma> \<turnstile> t' : U \<rightarrow> T" by (rule AppL)
   then show ?case using u by (rule typing.App)
 next
   case (AppR u u' t)
-  from `\<Gamma> \<turnstile> t \<cdot> u : T` obtain U where
+  from \<open>\<Gamma> \<turnstile> t \<cdot> u : T\<close> obtain U where
     t: "\<Gamma> \<turnstile> t : U \<rightarrow> T" and u: "\<Gamma> \<turnstile> u : U"
     by cases (auto simp add: trm.inject)
   from u have "\<Gamma> \<turnstile> u' : U" by (rule AppR)

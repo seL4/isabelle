@@ -1,7 +1,7 @@
 
 (* Author: Ondrej Kuncar, TU Muenchen *)
 
-section {* Pervasive test of code generator *}
+section \<open>Pervasive test of code generator\<close>
 
 theory Generate_Efficient_Datastructures
 imports
@@ -18,7 +18,7 @@ let
   val consts = map_filter (try (curry (Axclass.param_of_inst thy)
     @{const_name "Quickcheck_Narrowing.partial_term_of"})) tycos;
 in fold Code.del_eqns consts thy end
-\<close> -- \<open>drop technical stuff from @{text Quickcheck_Narrowing} which is tailored towards Haskell\<close>
+\<close> \<comment> \<open>drop technical stuff from \<open>Quickcheck_Narrowing\<close> which is tailored towards Haskell\<close>
 
 (* 
    The following code equations have to be deleted because they use 

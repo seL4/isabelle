@@ -4,29 +4,29 @@
     Author:     Lawrence C Paulson
 *)
 
-section{*The Message Theory, Modified for SET*}
+section\<open>The Message Theory, Modified for SET\<close>
 
 theory Message_SET
 imports Main "~~/src/HOL/Library/Nat_Bijection"
 begin
 
-subsection{*General Lemmas*}
+subsection\<open>General Lemmas\<close>
 
-text{*Needed occasionally with @{text spy_analz_tac}, e.g. in
-     @{text analz_insert_Key_newK}*}
+text\<open>Needed occasionally with \<open>spy_analz_tac\<close>, e.g. in
+     \<open>analz_insert_Key_newK\<close>\<close>
 
 lemma Un_absorb3 [simp] : "A \<union> (B \<union> A) = B \<union> A"
 by blast
 
-text{*Collapses redundant cases in the huge protocol proofs*}
+text\<open>Collapses redundant cases in the huge protocol proofs\<close>
 lemmas disj_simps = disj_comms disj_left_absorb disj_assoc 
 
-text{*Effective with assumptions like @{term "K \<notin> range pubK"} and 
-   @{term "K \<notin> invKey`range pubK"}*}
+text\<open>Effective with assumptions like @{term "K \<notin> range pubK"} and 
+   @{term "K \<notin> invKey`range pubK"}\<close>
 lemma notin_image_iff: "(y \<notin> f`I) = (\<forall>i\<in>I. f i \<noteq> y)"
 by blast
 
-text{*Effective with the assumption @{term "KK \<subseteq> - (range(invKey o pubK))"} *}
+text\<open>Effective with the assumption @{term "KK \<subseteq> - (range(invKey o pubK))"}\<close>
 lemma disjoint_image_iff: "(A <= - (f`I)) = (\<forall>i\<in>I. f i \<notin> A)"
 by blast
 
@@ -35,8 +35,8 @@ by blast
 type_synonym key = nat
 
 consts
-  all_symmetric :: bool        --{*true if all keys are symmetric*}
-  invKey        :: "key=>key"  --{*inverse of a symmetric key*}
+  all_symmetric :: bool        \<comment>\<open>true if all keys are symmetric\<close>
+  invKey        :: "key=>key"  \<comment>\<open>inverse of a symmetric key\<close>
 
 specification (invKey)
   invKey [simp]: "invKey (invKey K) = K"
@@ -44,27 +44,27 @@ specification (invKey)
     by (rule exI [of _ id], auto)
 
 
-text{*The inverse of a symmetric key is itself; that of a public key
-      is the private key and vice versa*}
+text\<open>The inverse of a symmetric key is itself; that of a public key
+      is the private key and vice versa\<close>
 
 definition symKeys :: "key set" where
   "symKeys == {K. invKey K = K}"
 
-text{*Agents. We allow any number of certification authorities, cardholders
-            merchants, and payment gateways.*}
+text\<open>Agents. We allow any number of certification authorities, cardholders
+            merchants, and payment gateways.\<close>
 datatype
   agent = CA nat | Cardholder nat | Merchant nat | PG nat | Spy
 
-text{*Messages*}
+text\<open>Messages\<close>
 datatype
-     msg = Agent  agent     --{*Agent names*}
-         | Number nat       --{*Ordinary integers, timestamps, ...*}
-         | Nonce  nat       --{*Unguessable nonces*}
-         | Pan    nat       --{*Unguessable Primary Account Numbers (??)*}
-         | Key    key       --{*Crypto keys*}
-         | Hash   msg       --{*Hashing*}
-         | MPair  msg msg   --{*Compound messages*}
-         | Crypt  key msg   --{*Encryption, public- or shared-key*}
+     msg = Agent  agent     \<comment>\<open>Agent names\<close>
+         | Number nat       \<comment>\<open>Ordinary integers, timestamps, ...\<close>
+         | Nonce  nat       \<comment>\<open>Unguessable nonces\<close>
+         | Pan    nat       \<comment>\<open>Unguessable Primary Account Numbers (??)\<close>
+         | Key    key       \<comment>\<open>Crypto keys\<close>
+         | Hash   msg       \<comment>\<open>Hashing\<close>
+         | MPair  msg msg   \<comment>\<open>Compound messages\<close>
+         | Crypt  key msg   \<comment>\<open>Encryption, public- or shared-key\<close>
 
 
 (*Concrete syntax: messages appear as \<open>\<lbrace>A,B,NA\<rbrace>\<close>, etc...*)
@@ -81,9 +81,9 @@ definition nat_of_agent :: "agent => nat" where
                                (curry prod_encode 2)
                                (curry prod_encode 3)
                                (prod_encode (4,0))"
-    --{*maps each agent to a unique natural number, for specifications*}
+    \<comment>\<open>maps each agent to a unique natural number, for specifications\<close>
 
-text{*The function is indeed injective*}
+text\<open>The function is indeed injective\<close>
 lemma inj_nat_of_agent: "inj nat_of_agent"
 by (simp add: nat_of_agent_def inj_on_def curry_def prod_encode_eq split: agent.split) 
 
@@ -93,7 +93,7 @@ definition
   keysFor :: "msg set => key set"
   where "keysFor H = invKey ` {K. \<exists>X. Crypt K X \<in> H}"
 
-subsubsection{*Inductive definition of all "parts" of a message.*}
+subsubsection\<open>Inductive definition of all "parts" of a message.\<close>
 
 inductive_set
   parts :: "msg set => msg set"
@@ -113,7 +113,7 @@ apply (auto dest: Fst Snd Body)
 done
 
 
-subsubsection{*Inverse of keys*}
+subsubsection\<open>Inverse of keys\<close>
 
 (*Equations hold because constructors are injective; cannot prove for all f*)
 lemma Key_image_eq [simp]: "(Key x \<in> Key`A) = (x\<in>A)"
@@ -143,7 +143,7 @@ apply (drule_tac f = invKey in arg_cong, simp)
 done
 
 
-subsection{*keysFor operator*}
+subsection\<open>keysFor operator\<close>
 
 lemma keysFor_empty [simp]: "keysFor {} = {}"
 by (unfold keysFor_def, blast)
@@ -190,7 +190,7 @@ lemma Crypt_imp_invKey_keysFor: "Crypt K X \<in> H ==> invKey K \<in> keysFor H"
 by (unfold keysFor_def, blast)
 
 
-subsection{*Inductive relation "parts"*}
+subsection\<open>Inductive relation "parts"\<close>
 
 lemma MPair_parts:
      "[| \<lbrace>X,Y\<rbrace> \<in> parts H;
@@ -198,10 +198,10 @@ lemma MPair_parts:
 by (blast dest: parts.Fst parts.Snd)
 
 declare MPair_parts [elim!]  parts.Body [dest!]
-text{*NB These two rules are UNSAFE in the formal sense, as they discard the
+text\<open>NB These two rules are UNSAFE in the formal sense, as they discard the
      compound message.  They work well on THIS FILE.
-  @{text MPair_parts} is left as SAFE because it speeds up proofs.
-  The Crypt rule is normally kept UNSAFE to avoid breaking up certificates.*}
+  \<open>MPair_parts\<close> is left as SAFE because it speeds up proofs.
+  The Crypt rule is normally kept UNSAFE to avoid breaking up certificates.\<close>
 
 lemma parts_increasing: "H \<subseteq> parts(H)"
 by blast
@@ -221,7 +221,7 @@ lemma parts_singleton: "X\<in> parts H ==> \<exists>Y\<in>H. X\<in> parts {Y}"
 by (erule parts.induct, fast+)
 
 
-subsubsection{*Unions*}
+subsubsection\<open>Unions\<close>
 
 lemma parts_Un_subset1: "parts(G) \<union> parts(H) \<subseteq> parts(G \<union> H)"
 by (intro Un_least parts_mono Un_upper1 Un_upper2)
@@ -262,15 +262,15 @@ by (intro equalityI parts_UN_subset1 parts_UN_subset2)
   NOTE: the UN versions are no longer used!*)
 
 
-text{*This allows @{text blast} to simplify occurrences of
-  @{term "parts(G\<union>H)"} in the assumption.*}
+text\<open>This allows \<open>blast\<close> to simplify occurrences of
+  @{term "parts(G\<union>H)"} in the assumption.\<close>
 declare parts_Un [THEN equalityD1, THEN subsetD, THEN UnE, elim!]
 
 
 lemma parts_insert_subset: "insert X (parts H) \<subseteq> parts(insert X H)"
 by (blast intro: parts_mono [THEN [2] rev_subsetD])
 
-subsubsection{*Idempotence and transitivity*}
+subsubsection\<open>Idempotence and transitivity\<close>
 
 lemma parts_partsD [dest!]: "X\<in> parts (parts H) ==> X\<in> parts H"
 by (erule parts.induct, blast+)
@@ -290,7 +290,7 @@ lemma parts_cut_eq [simp]: "X\<in> parts H ==> parts (insert X H) = parts H"
 by (force dest!: parts_cut intro: parts_insertI)
 
 
-subsubsection{*Rewrite rules for pulling out atomic messages*}
+subsubsection\<open>Rewrite rules for pulling out atomic messages\<close>
 
 lemmas parts_insert_eq_I = equalityI [OF subsetI parts_insert_subset]
 
@@ -383,11 +383,11 @@ apply (rename_tac nat)
 apply (rule_tac x = "N + Suc nat" in exI, auto)
 done
 
-subsection{*Inductive relation "analz"*}
+subsection\<open>Inductive relation "analz"\<close>
 
-text{*Inductive definition of "analz" -- what can be broken down from a set of
+text\<open>Inductive definition of "analz" -- what can be broken down from a set of
     messages, including keys.  A form of downward closure.  Pairs can
-    be taken apart; messages decrypted with known keys.*}
+    be taken apart; messages decrypted with known keys.\<close>
 
 inductive_set
   analz :: "msg set => msg set"
@@ -407,7 +407,7 @@ apply (erule analz.induct)
 apply (auto dest: Fst Snd)
 done
 
-text{*Making it safe speeds up proofs*}
+text\<open>Making it safe speeds up proofs\<close>
 lemma MPair_analz [elim!]:
      "[| \<lbrace>X,Y\<rbrace> \<in> analz H;
              [| X \<in> analz H; Y \<in> analz H |] ==> P
@@ -440,7 +440,7 @@ done
 
 lemmas analz_insertI = subset_insertI [THEN analz_mono, THEN [2] rev_subsetD]
 
-subsubsection{*General equational properties*}
+subsubsection\<open>General equational properties\<close>
 
 lemma analz_empty [simp]: "analz{} = {}"
 apply safe
@@ -455,7 +455,7 @@ by (intro Un_least analz_mono Un_upper1 Un_upper2)
 lemma analz_insert: "insert X (analz H) \<subseteq> analz(insert X H)"
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
-subsubsection{*Rewrite rules for pulling out atomic messages*}
+subsubsection\<open>Rewrite rules for pulling out atomic messages\<close>
 
 lemmas analz_insert_eq_I = equalityI [OF subsetI analz_insert]
 
@@ -568,7 +568,7 @@ apply (erule analz.induct, auto)
 done
 
 
-subsubsection{*Idempotence and transitivity*}
+subsubsection\<open>Idempotence and transitivity\<close>
 
 lemma analz_analzD [dest!]: "X\<in> analz (analz H) ==> X\<in> analz H"
 by (erule analz.induct, blast+)
@@ -594,7 +594,7 @@ lemma analz_insert_eq: "X\<in> analz H ==> analz (insert X H) = analz H"
 by (blast intro: analz_cut analz_insertI)
 
 
-text{*A congruence rule for "analz"*}
+text\<open>A congruence rule for "analz"\<close>
 
 lemma analz_subset_cong:
      "[| analz G \<subseteq> analz G'; analz H \<subseteq> analz H'
@@ -631,12 +631,12 @@ lemma analz_UN_analz [simp]: "analz (\<Union>i\<in>A. analz (H i)) = analz (\<Un
 by (blast intro: analz_UN_analz_lemma analz_mono [THEN [2] rev_subsetD])
 
 
-subsection{*Inductive relation "synth"*}
+subsection\<open>Inductive relation "synth"\<close>
 
-text{*Inductive definition of "synth" -- what can be built up from a set of
+text\<open>Inductive definition of "synth" -- what can be built up from a set of
     messages.  A form of upward closure.  Pairs can be built, messages
     encrypted with known keys.  Agent names are public domain.
-    Numbers can be guessed, but Nonces cannot be.*}
+    Numbers can be guessed, but Nonces cannot be.\<close>
 
 inductive_set
   synth :: "msg set => msg set"
@@ -668,7 +668,7 @@ inductive_cases Pan_synth   [elim!]: "Pan A \<in> synth H"
 lemma synth_increasing: "H \<subseteq> synth(H)"
 by blast
 
-subsubsection{*Unions*}
+subsubsection\<open>Unions\<close>
 
 (*Converse fails: we can synth more from the union than from the
   separate parts, building a compound message using elements of each.*)
@@ -678,7 +678,7 @@ by (intro Un_least synth_mono Un_upper1 Un_upper2)
 lemma synth_insert: "insert X (synth H) \<subseteq> synth(insert X H)"
 by (blast intro: synth_mono [THEN [2] rev_subsetD])
 
-subsubsection{*Idempotence and transitivity*}
+subsubsection\<open>Idempotence and transitivity\<close>
 
 lemma synth_synthD [dest!]: "X\<in> synth (synth H) ==> X\<in> synth H"
 by (erule synth.induct, blast+)
@@ -716,7 +716,7 @@ lemma keysFor_synth [simp]:
 by (unfold keysFor_def, blast)
 
 
-subsubsection{*Combinations of parts, analz and synth*}
+subsubsection\<open>Combinations of parts, analz and synth\<close>
 
 lemma parts_synth [simp]: "parts (synth H) = parts H \<union> synth H"
 apply (rule equalityI)
@@ -745,7 +745,7 @@ apply (simp (no_asm_use))
 done
 
 
-subsubsection{*For reasoning about the Fake rule in traces*}
+subsubsection\<open>For reasoning about the Fake rule in traces\<close>
 
 lemma parts_insert_subset_Un: "X\<in> G ==> parts(insert X H) \<subseteq> parts G \<union> parts H"
 by (rule subset_trans [OF parts_mono parts_Un_subset2], blast)
@@ -806,8 +806,8 @@ by blast
 declare parts.Body [rule del]
 
 
-text{*Rewrites to push in Key and Crypt messages, so that other messages can
-    be pulled out using the @{text analz_insert} rules*}
+text\<open>Rewrites to push in Key and Crypt messages, so that other messages can
+    be pulled out using the \<open>analz_insert\<close> rules\<close>
 
 lemmas pushKeys =
   insert_commute [of "Key K" "Agent C"]
@@ -828,15 +828,15 @@ lemmas pushCrypts =
   insert_commute [of "Crypt X K" "MPair X' Y"]
   for X K C N PAN X' Y
 
-text{*Cannot be added with @{text "[simp]"} -- messages should not always be
-  re-ordered.*}
+text\<open>Cannot be added with \<open>[simp]\<close> -- messages should not always be
+  re-ordered.\<close>
 lemmas pushes = pushKeys pushCrypts
 
 
-subsection{*Tactics useful for many protocol proofs*}
+subsection\<open>Tactics useful for many protocol proofs\<close>
 (*<*)
 ML
-{*
+\<open>
 (*Analysis of Fake cases.  Also works for messages that forward unknown parts,
   but this application is no longer necessary if analz_insert_eq is used.
   DEPENDS UPON "X" REFERRING TO THE FRADULENT MESSAGE *)
@@ -873,7 +873,7 @@ fun spy_analz_tac ctxt i =
        simp_tac ctxt 1,
        REPEAT (FIRSTGOAL (resolve_tac ctxt [allI,impI,notI,conjI,iffI])),
        DEPTH_SOLVE (atomic_spy_analz_tac ctxt 1)]) i);
-*}
+\<close>
 (*>*)
 
 
@@ -901,7 +901,7 @@ apply (simp add: synth_idem)
 apply (blast intro: synth_analz_mono [THEN [2] rev_subsetD])
 done
 
-text{*Two generalizations of @{text analz_insert_eq}*}
+text\<open>Two generalizations of \<open>analz_insert_eq\<close>\<close>
 lemma gen_analz_insert_eq [rule_format]:
      "X \<in> analz H ==> ALL G. H \<subseteq> G --> analz (insert X G) = analz G"
 by (blast intro: analz_cut analz_insertI analz_mono [THEN [2] rev_subsetD])
@@ -922,16 +922,16 @@ done
 
 lemmas Fake_parts_sing_imp_Un = Fake_parts_sing [THEN [2] rev_subsetD]
 
-method_setup spy_analz = {*
-    Scan.succeed (SIMPLE_METHOD' o spy_analz_tac) *}
+method_setup spy_analz = \<open>
+    Scan.succeed (SIMPLE_METHOD' o spy_analz_tac)\<close>
     "for proving the Fake case when analz is involved"
 
-method_setup atomic_spy_analz = {*
-    Scan.succeed (SIMPLE_METHOD' o atomic_spy_analz_tac) *}
+method_setup atomic_spy_analz = \<open>
+    Scan.succeed (SIMPLE_METHOD' o atomic_spy_analz_tac)\<close>
     "for debugging spy_analz"
 
-method_setup Fake_insert_simp = {*
-    Scan.succeed (SIMPLE_METHOD' o Fake_insert_simp_tac) *}
+method_setup Fake_insert_simp = \<open>
+    Scan.succeed (SIMPLE_METHOD' o Fake_insert_simp_tac)\<close>
     "for debugging spy_analz"
 
 end

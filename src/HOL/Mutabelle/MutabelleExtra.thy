@@ -15,9 +15,9 @@ ML_file "mutabelle.ML"
 ML_file "mutabelle_extra.ML"
 
 
-section {* configuration *}
+section \<open>configuration\<close>
 
-ML {* val log_directory = "" *}
+ML \<open>val log_directory = ""\<close>
 
 
 quickcheck_params [quiet, finite_types = false, report = false, size = 5, iterations = 1000]
@@ -27,25 +27,25 @@ nitpick_params [timeout = 5, sat_solver = MiniSat_JNI, no_overlord, verbose, car
 refute_params [maxtime = 10, minsize = 1, maxsize = 5, satsolver = jerusat]
 *)
 
-ML {* val mtds = [
+ML \<open>val mtds = [
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.finite_types false) "random",
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.finite_types true) "random",
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.finite_types false) "small",
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.finite_types true) "small"
 ]
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun mutation_testing_of (name, thy) =
   (MutabelleExtra.init_random 1.0;
   MutabelleExtra.thms_of false thy
   |> MutabelleExtra.take_random 200
   |> (fn thms => MutabelleExtra.mutate_theorems_and_write_report
          @{theory} (1, 50) mtds thms (log_directory ^ "/" ^ name)))
-*}
+\<close>
   
 
-text {* Uncomment the following ML code to check the counterexample generation with all theorems of Complex_Main. *}
+text \<open>Uncomment the following ML code to check the counterexample generation with all theorems of Complex_Main.\<close>
 
 (*
 ML {*
@@ -64,9 +64,9 @@ ML {*
  *}
 *)
 
-section {* Mutation testing Isabelle theories *}
+section \<open>Mutation testing Isabelle theories\<close>
 
-subsection {* List theory *}
+subsection \<open>List theory\<close>
 
 (*
 ML {*
@@ -74,9 +74,9 @@ mutation_testing_of ("List", @{theory List})
  *}
 *)
 
-section {* Mutation testing AFP theories *}
+section \<open>Mutation testing AFP theories\<close>
 
-subsection {* AVL-Trees *}
+subsection \<open>AVL-Trees\<close>
 
 (*
 ML {*
@@ -84,7 +84,7 @@ mutation_testing_of ("AVL-Trees", @{theory AVL})
  *}
 *)
 
-subsection {* BinaryTree *}
+subsection \<open>BinaryTree\<close>
 
 (*
 ML {*
@@ -92,7 +92,7 @@ mutation_testing_of ("BinaryTree", @{theory BinaryTree})
  *}
 *)
 
-subsection {* Huffman *}
+subsection \<open>Huffman\<close>
 
 (*
 ML {*
@@ -100,7 +100,7 @@ mutation_testing_of ("Huffman", @{theory Huffman})
  *}
 *)
 
-subsection {* List_Index *}
+subsection \<open>List_Index\<close>
 
 (*
 ML {*
@@ -108,7 +108,7 @@ mutation_testing_of ("List_Index", @{theory List_Index})
  *}
 *)
 
-subsection {* Matrix *}
+subsection \<open>Matrix\<close>
 
 (*
 ML {*
@@ -116,7 +116,7 @@ mutation_testing_of ("Matrix", @{theory Matrix})
  *}
 *)
 
-subsection {* NBE *}
+subsection \<open>NBE\<close>
 
 (*
 ML {*
@@ -124,7 +124,7 @@ mutation_testing_of ("NBE", @{theory NBE})
  *}
 *)
 
-subsection {* Polynomial *}
+subsection \<open>Polynomial\<close>
 
 (*
 ML {*
@@ -132,7 +132,7 @@ mutation_testing_of ("Polynomial", @{theory Polynomial})
  *}
 *)
 
-subsection {* Presburger Automata *}
+subsection \<open>Presburger Automata\<close>
 
 (*
 ML {*

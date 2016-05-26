@@ -5,7 +5,7 @@
 Metis example featuring the transitive closure.
 *)
 
-section {* Metis Example Featuring the Transitive Closure *}
+section \<open>Metis Example Featuring the Transitive Closure\<close>
 
 theory Trans_Closure
 imports Main
@@ -16,11 +16,11 @@ declare [[metis_new_skolem]]
 type_synonym addr = nat
 
 datatype val
-  = Unit        -- "dummy result value of void expressions"
-  | Null        -- "null reference"
-  | Bool bool   -- "Boolean value"
-  | Intg int    -- "integer value"
-  | Addr addr   -- "addresses of objects in the heap"
+  = Unit        \<comment> "dummy result value of void expressions"
+  | Null        \<comment> "null reference"
+  | Bool bool   \<comment> "Boolean value"
+  | Intg int    \<comment> "integer value"
+  | Addr addr   \<comment> "addresses of objects in the heap"
 
 consts R :: "(addr \<times> addr) set"
 

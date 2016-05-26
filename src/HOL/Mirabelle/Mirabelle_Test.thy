@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Munich
 *)
 
-section {* Simple test theory for Mirabelle actions *}
+section \<open>Simple test theory for Mirabelle actions\<close>
 
 theory Mirabelle_Test
 imports Main Mirabelle
@@ -16,9 +16,9 @@ ML_file "Tools/mirabelle_sledgehammer.ML"
 ML_file "Tools/mirabelle_sledgehammer_filter.ML"
 ML_file "Tools/mirabelle_try0.ML"
 
-text {*
+text \<open>
   Only perform type-checking of the actions,
   any reasonable test would be too complicated.
-*}
+\<close>
 
 end

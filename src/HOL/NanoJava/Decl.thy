@@ -8,10 +8,10 @@ section "Types, class Declarations, and whole programs"
 theory Decl imports Term begin
 
 datatype ty
-  = NT           --{* null type  *}
-  | Class cname  --{* class type *}
+  = NT           \<comment>\<open>null type\<close>
+  | Class cname  \<comment>\<open>class type\<close>
 
-text{* Field declaration *}
+text\<open>Field declaration\<close>
 type_synonym fdecl           
         = "fname \<times> ty"
 
@@ -21,7 +21,7 @@ record  methd
           lcl ::"(vname \<times> ty) list"
           bdy :: stmt
 
-text{* Method declaration *}
+text\<open>Method declaration\<close>
 type_synonym mdecl
         = "mname \<times> methd"
 
@@ -30,7 +30,7 @@ record  "class"
           flds    ::"fdecl list"
           methods ::"mdecl list"
 
-text{* Class declaration *}
+text\<open>Class declaration\<close>
 type_synonym cdecl
         = "cname \<times> class"
 
@@ -45,9 +45,9 @@ translations
   (type) "prog " \<leftharpoondown> (type) "cdecl list"
 
 axiomatization
-  Prog    :: prog       --{* program as a global value *}
+  Prog    :: prog       \<comment>\<open>program as a global value\<close>
 and
-  Object  :: cname      --{* name of root class *}
+  Object  :: cname      \<comment>\<open>name of root class\<close>
 
 
 definition "class" :: "cname \<rightharpoonup> class" where

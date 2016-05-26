@@ -9,17 +9,17 @@ begin
 
 atom_decl name
 
-text {* 
+text \<open>
   Curry-style lambda terms in locally nameless 
   representation without any binders           
-*}
+\<close>
 nominal_datatype llam = 
     lPar "name"
   | lVar "nat"
   | lApp "llam" "llam"
   | lLam "llam"
 
-text {* definition of vsub - at the moment a bit cumbersome *}
+text \<open>definition of vsub - at the moment a bit cumbersome\<close>
 
 lemma llam_cases:
   "(\<exists>a. t = lPar a) \<or> (\<exists>n. t = lVar n) \<or> (\<exists>t1 t2. t = lApp t1 t2) \<or> 
@@ -66,7 +66,7 @@ lemma freshen_eqvt[eqvt]:
   shows "pi\<bullet>(freshen t p) = freshen (pi\<bullet>t) (pi\<bullet>p)"
 by (simp add: vsub_eqvt freshen_def perm_nat_def)
 
-text {* types *}
+text \<open>types\<close>
 
 nominal_datatype ty =
     TVar "nat"
@@ -79,7 +79,7 @@ lemma ty_fresh[simp]:
 by (induct T rule: ty.induct) 
    (simp_all add: fresh_nat)
 
-text {* valid contexts *}
+text \<open>valid contexts\<close>
 
 type_synonym cxt = "(name\<times>ty) list"
 
@@ -96,7 +96,7 @@ lemma v2_elim:
   shows   "a\<sharp>\<Gamma> \<and> valid \<Gamma>"
 using a by (cases) (auto)
 
-text {* "weak" typing relation *}
+text \<open>"weak" typing relation\<close>
 
 inductive
   typing :: "cxt\<Rightarrow>llam\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [60,60,60] 60)
@@ -112,18 +112,18 @@ lemma typing_implies_valid:
   shows "valid \<Gamma>"
 using a by (induct) (auto dest: v2_elim)
 
-text {* 
+text \<open>
   we have to explicitly state that nominal_inductive should strengthen 
   over the variable x (since x is not a binder)
-*}
+\<close>
 nominal_inductive typing
   avoids t_lLam: x
   by (auto simp add: fresh_prod dest: v2_elim typing_implies_valid)
   
-text {* strong induction principle for typing *}
+text \<open>strong induction principle for typing\<close>
 thm typing.strong_induct
 
-text {* sub-contexts *}
+text \<open>sub-contexts\<close>
 
 abbreviation
   "sub_context" :: "cxt \<Rightarrow> cxt \<Rightarrow> bool" ("_ \<subseteq> _" [60,60] 60) 

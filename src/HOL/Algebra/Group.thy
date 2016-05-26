@@ -26,7 +26,7 @@ definition
 
 definition
   Units :: "_ => 'a set"
-  --\<open>The set of invertible elements\<close>
+  \<comment>\<open>The set of invertible elements\<close>
   where "Units G = {y. y \<in> carrier G & (\<exists>x \<in> carrier G. x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> & y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)}"
 
 consts
@@ -98,7 +98,7 @@ proof -
   moreover from x y xinv yinv have "x \<otimes> (y \<otimes> y') \<otimes> x' = \<one>" by simp
   moreover note x y
   ultimately show ?thesis unfolding Units_def
-    -- "Must avoid premature use of @{text hyp_subst_tac}."
+    \<comment> "Must avoid premature use of \<open>hyp_subst_tac\<close>."
     apply (rule_tac CollectI)
     apply (rule)
     apply (fast)
@@ -486,8 +486,8 @@ qed
 
 text \<open>
   Since @{term H} is nonempty, it contains some element @{term x}.  Since
-  it is closed under inverse, it contains @{text "inv x"}.  Since
-  it is closed under product, it contains @{text "x \<otimes> inv x = \<one>"}.
+  it is closed under inverse, it contains \<open>inv x\<close>.  Since
+  it is closed under product, it contains \<open>x \<otimes> inv x = \<one>\<close>.
 \<close>
 
 lemma (in group) one_in_subset:

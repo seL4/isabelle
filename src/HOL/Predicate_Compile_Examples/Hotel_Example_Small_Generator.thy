@@ -42,19 +42,19 @@ instance ..
 
 end
 
-ML {* 
+ML \<open>
 val small_15_active = Attrib.setup_config_bool @{binding quickcheck_small_14_active} (K false);
 val small_14_active = Attrib.setup_config_bool @{binding quickcheck_small_15_active} (K false);
-*}
+\<close>
 
-setup {*
+setup \<open>
   Context.theory_map (Quickcheck.add_tester ("small_generators_depth_14",
     (small_14_active, Predicate_Compile_Quickcheck.test_goals
       (Predicate_Compile_Aux.Pos_Generator_DSeq, true, true, 14))))
   #> Context.theory_map (Quickcheck.add_tester ("small_generators_depth_15",
     (small_15_active, Predicate_Compile_Quickcheck.test_goals
       (Predicate_Compile_Aux.Pos_Generator_DSeq, true, true, 15))))
-*}
+\<close>
 
 lemma
   "hotel s ==> feels_safe s r ==> g \<in> isin s r ==> owns s r = Some g"

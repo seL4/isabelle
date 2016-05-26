@@ -5,7 +5,7 @@
 Examples featuring Nitpick's functional core.
 *)
 
-section {* Examples Featuring Nitpick's Functional Core *}
+section \<open>Examples Featuring Nitpick's Functional Core\<close>
 
 theory Core_Nits
 imports Main
@@ -14,7 +14,7 @@ begin
 nitpick_params [verbose, card = 1-6, unary_ints, max_potential = 0,
                 sat_solver = MiniSat_JNI, max_threads = 1, timeout = 240]
 
-subsection {* Curry in a Hurry *}
+subsection \<open>Curry in a Hurry\<close>
 
 lemma "(\<lambda>f x y. (curry o case_prod) f x y) = (\<lambda>f x y. (\<lambda>x. x) f x y)"
 nitpick [card = 1-12, expect = none]
@@ -36,7 +36,7 @@ lemma "case_prod (\<lambda>x y. f (x, y)) = f"
 nitpick [card = 1-12, expect = none]
 by auto
 
-subsection {* Representations *}
+subsection \<open>Representations\<close>
 
 lemma "\<exists>f. f = (\<lambda>x. x) \<and> f y = y"
 nitpick [expect = none]
@@ -156,7 +156,7 @@ lemma "f = (\<lambda>x::'a\<times>'b. x)"
 nitpick [card = 8, expect = genuine]
 oops
 
-subsection {* Quantifiers *}
+subsection \<open>Quantifiers\<close>
 
 lemma "x = y"
 nitpick [card 'a = 1, expect = none]
@@ -264,7 +264,7 @@ lemma "let x = (\<forall>x::'a \<times> 'b. P x) in if x then x else \<not> x"
 nitpick [expect = none]
 by auto
 
-subsection {* Schematic Variables *}
+subsection \<open>Schematic Variables\<close>
 
 schematic_goal "x = ?x"
 nitpick [expect = none]
@@ -290,7 +290,7 @@ schematic_goal "\<exists>x. ?x = ?y"
 nitpick [expect = none]
 by auto
 
-subsection {* Known Constants *}
+subsection \<open>Known Constants\<close>
 
 lemma "x \<equiv> Pure.all \<Longrightarrow> False"
 nitpick [card = 1, expect = genuine]
@@ -678,7 +678,7 @@ lemma "All finite"
 nitpick [expect = none]
 oops
 
-subsection {* The and Eps *}
+subsection \<open>The and Eps\<close>
 
 lemma "x = The"
 nitpick [card = 5, expect = genuine]
@@ -919,7 +919,7 @@ sorry
 
 nitpick_params [max_potential = 0]
 
-subsection {* Destructors and Recursors *}
+subsection \<open>Destructors and Recursors\<close>
 
 lemma "(x::'a) = (case True of True \<Rightarrow> x | False \<Rightarrow> x)"
 nitpick [card = 2, expect = none]

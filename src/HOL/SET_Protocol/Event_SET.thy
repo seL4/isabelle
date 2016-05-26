@@ -4,34 +4,34 @@
     Author:     Lawrence C Paulson
 *)
 
-section{*Theory of Events for SET*}
+section\<open>Theory of Events for SET\<close>
 
 theory Event_SET
 imports Message_SET
 begin
 
-text{*The Root Certification Authority*}
+text\<open>The Root Certification Authority\<close>
 abbreviation "RCA == CA 0"
 
 
-text{*Message events*}
+text\<open>Message events\<close>
 datatype
   event = Says  agent agent msg
         | Gets  agent       msg
         | Notes agent       msg
 
 
-text{*compromised agents: keys known, Notes visible*}
+text\<open>compromised agents: keys known, Notes visible\<close>
 consts bad :: "agent set"
 
-text{*Spy has access to his own key for spoof messages, but RCA is secure*}
+text\<open>Spy has access to his own key for spoof messages, but RCA is secure\<close>
 specification (bad)
   Spy_in_bad     [iff]: "Spy \<in> bad"
   RCA_not_bad [iff]: "RCA \<notin> bad"
     by (rule exI [of _ "{Spy}"], simp)
 
 
-subsection{*Agents' Knowledge*}
+subsection\<open>Agents' Knowledge\<close>
 
 consts  (*Initial states of agents -- parameter of the construction*)
   initState :: "agent => msg set"
@@ -60,7 +60,7 @@ where
              if A'=A then insert X (knows A evs) else knows A evs))"
 
 
-subsection{*Used Messages*}
+subsection\<open>Used Messages\<close>
 
 primrec used :: "event list => msg set"
 where
@@ -88,8 +88,8 @@ lemma knows_Spy_Says [simp]:
      "knows Spy (Says A B X # evs) = insert X (knows Spy evs)"
 by auto
 
-text{*Letting the Spy see "bad" agents' notes avoids redundant case-splits
-      on whether @{term "A=Spy"} and whether @{term "A\<in>bad"}*}
+text\<open>Letting the Spy see "bad" agents' notes avoids redundant case-splits
+      on whether @{term "A=Spy"} and whether @{term "A\<in>bad"}\<close>
 lemma knows_Spy_Notes [simp]:
      "knows Spy (Notes A X # evs) =
           (if A:bad then insert X (knows Spy evs) else knows Spy evs)"
@@ -130,7 +130,7 @@ lemmas knows_Spy_partsEs =
      parts.Body [elim_format]
 
 
-subsection{*The Function @{term used}*}
+subsection\<open>The Function @{term used}\<close>
 
 lemma parts_knows_Spy_subset_used: "parts (knows Spy evs) <= used evs"
 apply (induct_tac "evs")
@@ -163,15 +163,15 @@ apply (rename_tac [2] a evs')
 apply (induct_tac [2] "a", auto)
 done
 
-text{*NOTE REMOVAL--laws above are cleaner, as they don't involve "case"*}
+text\<open>NOTE REMOVAL--laws above are cleaner, as they don't involve "case"\<close>
 declare knows_Cons [simp del]
         used_Nil [simp del] used_Cons [simp del]
 
 
-text{*For proving theorems of the form @{term "X \<notin> analz (knows Spy evs) --> P"}
+text\<open>For proving theorems of the form @{term "X \<notin> analz (knows Spy evs) --> P"}
   New events added by induction to "evs" are discarded.  Provided 
   this information isn't needed, the proof will be much shorter, since
-  it will omit complicated reasoning about @{term analz}.*}
+  it will omit complicated reasoning about @{term analz}.\<close>
 
 lemmas analz_mono_contra =
        knows_Spy_subset_knows_Spy_Says [THEN analz_mono, THEN contra_subsetD]
@@ -181,15 +181,15 @@ lemmas analz_mono_contra =
 lemmas analz_impI = impI [where P = "Y \<notin> analz (knows Spy evs)"] for Y evs
 
 ML
-{*
+\<open>
 fun analz_mono_contra_tac ctxt = 
   resolve_tac ctxt @{thms analz_impI} THEN' 
   REPEAT1 o (dresolve_tac ctxt @{thms analz_mono_contra})
   THEN' mp_tac ctxt
-*}
+\<close>
 
-method_setup analz_mono_contra = {*
-    Scan.succeed (fn ctxt => SIMPLE_METHOD (REPEAT_FIRST (analz_mono_contra_tac ctxt))) *}
+method_setup analz_mono_contra = \<open>
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (REPEAT_FIRST (analz_mono_contra_tac ctxt)))\<close>
     "for proving theorems of the form X \<notin> analz (knows Spy evs) --> P"
 
 end

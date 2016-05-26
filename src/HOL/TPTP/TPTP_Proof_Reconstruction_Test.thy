@@ -23,9 +23,9 @@ text "This function wraps all the reconstruction-related functions. Simply
  proof have been imported), but note that you can get the theory value from
  the theorem value."
 
-ML {*
+ML \<open>
   reconstruct_leo2 (Path.explode "$THF_PROOFS/NUM667^1.p.out") @{theory}
-*}
+\<close>
 
 section "Prep for testing the component functions"
 
@@ -43,7 +43,7 @@ declare [[ML_exception_trace, ML_print_depth = 200]]
 
 section "Importing proofs"
 
-ML {*
+ML \<open>
 val probs =
   (* "$THF_PROOFS/SYN991^1.p.out" *) (*lacks conjecture*)
   (* "$THF_PROOFS/SYO040^2.p.out" *)
@@ -59,19 +59,19 @@ val probs =
 val prob_names =
   probs
   |> map (Path.base #> Path.implode #> TPTP_Problem_Name.Nonstandard)
-*}
+\<close>
 
-setup {*
+setup \<open>
   if test_all @{context} then I
   else
     fold
      (fn path =>
        TPTP_Reconstruct.import_thm true [Path.dir path, Path.explode "$THF_PROOFS"] path leo2_on_load)
      probs
-*}
+\<close>
 
 text "Display nicely."
-ML {*
+ML \<open>
 fun display_nicely ctxt (fms : TPTP_Reconstruct.formula_meaning list) =
   List.app (fn ((n, data) : TPTP_Reconstruct.formula_meaning) =>
     Pretty.writeln
@@ -100,9 +100,9 @@ else
    (test_fmla @{theory}
     |> map TPTP_Reconstruct.structure_fmla_meaning)
 *)
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun step_range_tester f_x f_exn ctxt prob_name from until =
   let
     val max =
@@ -126,9 +126,9 @@ val step_range_tester_tracing =
   step_range_tester
    (fn x => tracing ("@step " ^ Int.toString x))
    (fn e => tracing ("!!" ^ @{make_string} e))
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*try to reconstruct each inference step*)
 if test_all @{context} orelse prob_names = []
 orelse true (*NOTE currently disabled*)
@@ -144,48 +144,48 @@ else
   in
     step_range_tester_tracing @{context} (hd prob_names) heur_start heur_end
   end
-*}
+\<close>
 
 
 section "Building metadata and tactics"
 
 subsection "Building the skeleton"
-ML {*
+ML \<open>
 if test_all @{context} orelse prob_names = [] then []
 else TPTP_Reconstruct.make_skeleton @{context} (test_pannot @{theory});
 
 length it
-*}
+\<close>
 
 
 subsection "The 'one shot' tactic approach"
-ML {*
+ML \<open>
 val the_tactic =
   if test_all @{context} then []
   else
     map (fn prob_name =>
       (TPTP_Reconstruct.naive_reconstruct_tac @{context} interpret_leo2_inference (* auto_based_reconstruction_tac *) (* oracle_based_reconstruction_tac *) prob_name))
      prob_names;
-*}
+\<close>
 
 
 subsection "The 'piecemeal' approach"
-ML {*
+ML \<open>
 val the_tactics =
   if test_all @{context} then []
   else
     map (fn prob_name =>
       TPTP_Reconstruct.naive_reconstruct_tacs interpret_leo2_inference (* auto_based_reconstruction_tac *) (* oracle_based_reconstruction_tac *) prob_name @{context})
      prob_names;
-*}
+\<close>
 
 declare [[ML_print_depth = 2000]]
 
-ML {*
+ML \<open>
 the_tactics
 |> map (filter (fn (_, _, x) => is_none x)
         #> map (fn (x, SOME y, _) => (x, cterm_of @{theory} y)))
-*}
+\<close>
 
 
 section "Using metadata and tactics"
@@ -194,7 +194,7 @@ text "There are various ways of testing the two ways (whole tactics or lists of 
 
 subsection "The 'one shot' tactic approach"
 text "First we test whole tactics."
-ML {*
+ML \<open>
 (*produce thm*)
 if test_all @{context} then []
 else
@@ -204,18 +204,18 @@ else
        TPTP_Reconstruct.naive_reconstruct_tac @{context} interpret_leo2_inference prob_name
      (* oracle_based_reconstruction_tac *))))
    prob_names
-*}
+\<close>
 
 
 subsection "The 'piecemeal' approach"
-ML {*
+ML \<open>
 fun attac n = List.nth (List.nth (the_tactics, 0), n) |> #3 |> the |> snd
 fun attac_to n 0 = attac n
   | attac_to n m = attac n THEN attac_to (n + 1) (m - 1)
 fun shotac n = List.nth (List.nth (the_tactics, 0), n) |> #3 |> the |> fst
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*Given a list of reconstructed inferences (as in "the_tactics" above,
   count the number of failures and successes, and list the failed inference
   reconstructions.*)
@@ -234,11 +234,11 @@ fun evaluate_the_tactics [] acc = acc
       end
   | evaluate_the_tactics ((_, (_, _, SOME _)) :: xs) ((fai, suc), inf_list) =
       evaluate_the_tactics xs ((fai, suc + 1), inf_list)
-*}
+\<close>
 
 
 text "Now we build a tactic by combining lists of tactics"
-ML {*
+ML \<open>
 (*given a list of tactics to be applied in sequence (i.e., they
   follow a skeleton), we build a single tactic, interleaving
   some tracing info to help with debugging.*)
@@ -261,9 +261,9 @@ fun step_by_step_tacs ctxt verbose (thm_tacs : (thm * tactic) list) : tactic =
         |> uncurry interleave_tacs
       else EVERY (map #2 thm_tacs)
     end
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*apply step_by_step_tacs to all problems under test*)
 fun narrated_tactics ctxt =
  map (map (#3 #> the)
@@ -278,13 +278,13 @@ else
          TPTP_Reconstruct.reconstruct @{context}
            (fn _ => tac) prob_name)
     (ListPair.zip (prob_names, narrated_tactics @{context}))
-*}
+\<close>
 
 
 subsection "Manually using 'piecemeal' approach"
 text "Another testing possibility involves manually creating a lemma
 and running through the list of tactics generating to prove that lemma. The following code shows the goal of each problem under test, and then for each problem returns the list of tactics which can be invoked individually as shown below."
-ML {*
+ML \<open>
 fun show_goal ctxt prob_name =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -301,36 +301,36 @@ fun show_goal ctxt prob_name =
 if test_all @{context} then []
 else
   map (show_goal @{context}) prob_names;
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*project out the list of tactics from "the_tactics"*)
 val just_the_tacs  =
  map (map (#3 #> the #> #2))
    the_tactics;
 
 map length just_the_tacs
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*like just_the_tacs, but extract the thms, to inspect their thys*)
 val just_the_thms  =
  map (map (#3 #> the #> #1))
    the_tactics;
 
 map length just_the_thms;
-*}
+\<close>
 
-ML {*
+ML \<open>
 val axms_of_thy =
   `Theory.axioms_of
   #> apsnd cterm_of
   #> swap
   #> apsnd (map snd)
   #> uncurry map
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*Show the skeleton-level inference which is done by each element of just_the_tacs. This is useful when debugging using the technique shown next*)
 if test_all @{context} orelse prob_names = [] then ()
 else
@@ -339,12 +339,12 @@ else
   |> map #1
   |> TPTP_Reconstruct_Library.enumerate 0
   |> List.app (@{make_string} #> writeln)
-  *}
+\<close>
 
-ML {*
+ML \<open>
 fun leo2_tac_wrap ctxt prob_name step i st =
   rtac (interpret_leo2_inference ctxt prob_name step) i st
-*}
+\<close>
 
 (*FIXME move these examples elsewhere*)
 (*
@@ -552,7 +552,7 @@ e.g. the following should prove the goal at a go:
 
 section "Testing against benchmark"
 
-ML {*
+ML \<open>
 (*if reconstruction_info value is NONE then a big error must have occurred*)
 type reconstruction_info =
   ((int(*no of failures*) * int(*no of successes*)) *
@@ -567,9 +567,9 @@ datatype proof_contents =
 fun erase_inference_fmlas (Nonempty (SOME (outline, inf_info))) =
       Nonempty (SOME (outline, map (fn (inf_name, _, count) => (inf_name, NONE, count)) inf_info))
   | erase_inference_fmlas x = x
-*}
+\<close>
 
-ML {*
+ML \<open>
 (*Report on how many inferences in a proof are reconstructed, and give some
   info about the inferences for which reconstruction failed.*)
 fun test_partial_reconstruction thy prob_file =
@@ -626,9 +626,9 @@ interpret_leo2_inference (* auto_based_reconstruction_tac *) (* oracle_based_rec
     if is_some fms andalso List.null (the fms) then Empty
     else Nonempty result'
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
   (*default timeout is 1 min*)
   fun reconstruct timeout light_output file thy =
     let
@@ -642,9 +642,9 @@ ML {*
              " t=" ^ (Timer.checkRealTimer timer |> Time.toMilliseconds |> @{make_string}))))
        file
     end
-*}
+\<close>
 
-ML {*
+ML \<open>
   (*this version of "reconstruct" builds theorems, instead of lists of reconstructed inferences*)
   (*default timeout is 1 min*)
   fun reconstruct timeout file thy =
@@ -671,17 +671,17 @@ ML {*
              " t=" ^ (Timer.checkRealTimer timer |> Time.toMilliseconds |> @{make_string}))))
        prob_name
     end
-*}
+\<close>
 
-ML {*
+ML \<open>
   fun reconstruction_test timeout ctxt =
     test_fn ctxt
      (fn file => reconstruct timeout file (Proof_Context.theory_of ctxt))
      "reconstructor"
      ()
-*}
+\<close>
 
-ML {*
+ML \<open>
 datatype examination_results =
     Whole_proof of string(*filename*) * proof_contents
   | Specific_rule of string(*filename*) * string(*inference rule*) * term option list
@@ -713,9 +713,9 @@ fun examine_failed_inferences ctxt filename rule_name =
     |> is_some rule_name ? (fn x =>
                              filter_failures (the rule_name) x)
   end
-*}
+\<close>
 
-ML {*
+ML \<open>
 exception NONSENSE
 
 fun annotation_or_id (TPTP_Reconstruct.Step n) = n
@@ -748,9 +748,9 @@ fun pre_classify_failures [] alist = alist
 fun classify_failures (Whole_proof (_, Nonempty (SOME (((_, _), inferences))))) = pre_classify_failures inferences []
   | classify_failures (Specific_rule (_, rule, t)) = [(rule, length t)]
   | classify_failures _ = raise NONSENSE
-*}
+\<close>
 
-ML {*
+ML \<open>
 val regressions = map (fn s => "$THF_PROOFS/" ^ s)
   ["SEV405^5.p.out",
    (*"SYO377^5.p.out", Always seems to raise Interrupt on my laptop -- probably because node 475 has lots of premises*)
@@ -775,9 +775,9 @@ val regressions = map (fn s => "$THF_PROOFS/" ^ s)
    "SYO006^1.p.out",
    "SYO371^5.p.out" (*has contorted splitting, like SYO006^1.p.out, but doesn't involve definitions*)
   ]
-*}
+\<close>
 
-ML {*
+ML \<open>
 val experiment = examine_failed_inferences @{context}
   (List.last regressions) NONE;
 
@@ -790,7 +790,7 @@ val experiment_focus =
 count_failures experiment_focus
 classify_failures experiment
 *)
-*}
+\<close>
 
 text "Run reconstruction on all problems in a benchmark (provided via a script)
 and report on partial success."
@@ -800,19 +800,19 @@ declare [[
   tptp_test_timeout = 10
 ]]
 
-ML {*
+ML \<open>
   (*problem source*)
   val tptp_probs_dir =
     Path.explode "$THF_PROOFS"
     |> Path.expand;
-*}
+\<close>
 
-ML {*
+ML \<open>
   if test_all @{context} then
     (report @{context} "Reconstructing proofs";
     S timed_test (reconstruction_test (get_timeout @{context})) @{context} (TPTP_Syntax.get_file_list tptp_probs_dir))
   else ()
-*}
+\<close>
 
 (*
 Debugging strategy:

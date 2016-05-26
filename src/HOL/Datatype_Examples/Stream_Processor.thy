@@ -6,7 +6,7 @@
 Stream processors---a syntactic representation of continuous functions on streams.
 *)
 
-section {* Stream Processors---A Syntactic Representation of Continuous Functions on Streams *}
+section \<open>Stream Processors---A Syntactic Representation of Continuous Functions on Streams\<close>
 
 theory Stream_Processor
 imports "~~/src/HOL/Library/Stream" "~~/src/HOL/Library/BNF_Axiomatization"
@@ -15,7 +15,7 @@ begin
 declare [[typedef_overloaded]]
 
 
-section {* Continuous Functions on Streams *}
+section \<open>Continuous Functions on Streams\<close>
 
 datatype ('a, 'b, 'c) sp\<^sub>\<mu> =
   Get "'a \<Rightarrow> ('a, 'b, 'c) sp\<^sub>\<mu>"
@@ -37,10 +37,10 @@ primcorec copy :: "('a, 'a) sp\<^sub>\<nu>" where
 lemma run\<^sub>\<nu>_copy: "run\<^sub>\<nu> copy s = s"
   by (coinduction arbitrary: s) simp
 
-text {*
+text \<open>
 To use the function package for the definition of composition the
 wellfoundedness of the subtree relation needs to be proved first.
-*}
+\<close>
 
 definition "sub \<equiv> {(f a, Get f) | a f. True}"
 
@@ -88,7 +88,7 @@ proof (rule ext, unfold comp_apply)
   qed
 qed
 
-text {* Alternative definition of composition using primrec instead of function *}
+text \<open>Alternative definition of composition using primrec instead of function\<close>
 
 primrec sp\<^sub>\<mu>_comp2R  where
   "sp\<^sub>\<mu>_comp2R f (Put b sp) = f b (out sp)"
@@ -125,7 +125,7 @@ proof (rule ext, unfold comp_apply)
   qed
 qed
 
-text {* The two definitions are equivalent *}
+text \<open>The two definitions are equivalent\<close>
 
 lemma sp\<^sub>\<mu>_comp_sp\<^sub>\<mu>_comp2[simp]: "sp o\<^sub>\<mu> sp' = sp o\<^sup>*\<^sub>\<mu> sp'"
   by (induct sp sp' rule: sp\<^sub>\<mu>_comp.induct) auto
@@ -134,7 +134,7 @@ lemma sp\<^sub>\<mu>_comp_sp\<^sub>\<mu>_comp2[simp]: "sp o\<^sub>\<mu> sp' = sp
 lemma sp\<^sub>\<mu>_rel_map_map[unfolded vimage2p_def, simp]:
   "rel_sp\<^sub>\<mu> R1 R2 (map_sp\<^sub>\<mu> f1 f2 sp) (map_sp\<^sub>\<mu> g1 g2 sp') =
   rel_sp\<^sub>\<mu> (BNF_Def.vimage2p f1 g1 R1) (BNF_Def.vimage2p f2 g2 R2) sp sp'"
-by (tactic {*
+by (tactic \<open>
   let
     val ks = 1 upto 2;
     val ctxt = @{context};
@@ -157,7 +157,7 @@ by (tactic {*
       hyp_subst_tac ctxt,
       assume_tac ctxt])
   end
-*})
+\<close>)
 
 lemma sp\<^sub>\<mu>_rel_self: "\<lbrakk>op = \<le> R1; op = \<le> R2\<rbrakk> \<Longrightarrow> rel_sp\<^sub>\<mu> R1 R2 x x"
   by (erule (1) predicate2D[OF sp\<^sub>\<mu>.rel_mono]) (simp only: sp\<^sub>\<mu>.rel_eq)
@@ -166,7 +166,7 @@ lemma sp\<^sub>\<nu>_comp_sp\<^sub>\<nu>_comp2: "sp o\<^sub>\<nu> sp' = sp o\<^s
   by (coinduction arbitrary: sp sp') (auto intro!: sp\<^sub>\<mu>_rel_self)
 
 
-section {* Generalization to an Arbitrary BNF as Codomain *}
+section \<open>Generalization to an Arbitrary BNF as Codomain\<close>
 
 bnf_axiomatization ('a, 'b) F for map: F
 

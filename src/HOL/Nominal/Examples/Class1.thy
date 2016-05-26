@@ -2,11 +2,11 @@ theory Class1
 imports "../Nominal" 
 begin
 
-section {* Term-Calculus from Urban's PhD *}
+section \<open>Term-Calculus from Urban's PhD\<close>
 
 atom_decl name coname
 
-text {* types *}
+text \<open>types\<close>
 
 nominal_datatype ty =
     PR "string"
@@ -44,7 +44,7 @@ lemma fresh_ty:
 by (nominal_induct T rule: ty.strong_induct)
    (auto simp add: fresh_string)
 
-text {* terms *}
+text \<open>terms\<close>
 
 nominal_datatype trm = 
     Ax   "name" "coname"
@@ -60,15 +60,15 @@ nominal_datatype trm =
   | ImpR "\<guillemotleft>name\<guillemotright>(\<guillemotleft>coname\<guillemotright>trm)" "coname"       ("ImpR (_).<_>._ _" [100,100,100,100] 100)
   | ImpL "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm" "name"     ("ImpL <_>._ (_)._ _" [100,100,100,100,100] 100)
 
-text {* named terms *}
+text \<open>named terms\<close>
 
 nominal_datatype ntrm = Na "\<guillemotleft>name\<guillemotright>trm" ("((_):_)" [100,100] 100)
 
-text {* conamed terms *}
+text \<open>conamed terms\<close>
 
 nominal_datatype ctrm = Co "\<guillemotleft>coname\<guillemotright>trm" ("(<_>:_)" [100,100] 100)
 
-text {* renaming functions *}
+text \<open>renaming functions\<close>
 
 nominal_primrec (freshness_context: "(d::coname,e::coname)") 
   crename :: "trm \<Rightarrow> coname \<Rightarrow> coname \<Rightarrow> trm"  ("_[_\<turnstile>c>_]" [100,100,100] 100) 
@@ -307,7 +307,7 @@ apply(nominal_induct M avoiding: x y z a rule: trm.strong_induct)
 apply(simp_all add: trm.inject split: if_splits)
 done
 
-text {* substitution functions *}
+text \<open>substitution functions\<close>
 
 lemma fresh_perm_coname:
   fixes c::"coname"
@@ -2835,7 +2835,7 @@ lemmas subst_comm = substn_crename_comm substc_crename_comm
 lemmas subst_comm' = substn_crename_comm' substc_crename_comm'
                      substn_nrename_comm' substc_nrename_comm'
 
-text {* typing contexts *}
+text \<open>typing contexts\<close>
 
 type_synonym ctxtn = "(name\<times>ty) list"
 type_synonym ctxtc = "(coname\<times>ty) list"
@@ -2868,7 +2868,7 @@ next
   show "x\<sharp>\<Delta>" by (induct \<Delta>) (auto simp add: fresh_list_nil fresh_list_cons fresh_prod fresh_atm fresh_ty)
 qed
 
-text {* cut-reductions *}
+text \<open>cut-reductions\<close>
 
 declare abs_perm[eqvt]
 
@@ -4692,7 +4692,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-text {* axioms do not reduce *}
+text \<open>axioms do not reduce\<close>
 
 lemma ax_do_not_l_reduce:
   shows "Ax x a \<longrightarrow>\<^sub>l M \<Longrightarrow> False"
@@ -5160,7 +5160,7 @@ apply(rule perm_compose)
 apply(simp add: calc_atm perm_swap)
 done
 
-text {* Transitive Closure*}
+text \<open>Transitive Closure\<close>
 
 abbreviation
  a_star_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>a* _" [100,100] 100)
@@ -5189,7 +5189,7 @@ lemma a_star_trans[trans]:
 using a2 a1
 by (induct) (auto)
 
-text {* congruence rules for \<open>\<longrightarrow>\<^sub>a*\<close> *}
+text \<open>congruence rules for \<open>\<longrightarrow>\<^sub>a*\<close>\<close>
 
 lemma ax_do_not_a_star_reduce:
   shows "Ax x a \<longrightarrow>\<^sub>a* M \<Longrightarrow> M = Ax x a"
@@ -5379,7 +5379,7 @@ apply(drule a_redu_ImpL_elim)
 apply(auto simp add: alpha trm.inject)
 done
 
-text {* Substitution *}
+text \<open>Substitution\<close>
 
 lemma subst_not_fin1:
   shows "\<not>fin(M{x:=<c>.P}) x"
@@ -5644,7 +5644,7 @@ apply(rule exists_fresh'(1)[OF fs_name1])
 apply(drule fic_elims, simp)
 done
 
-text {* Reductions *}
+text \<open>Reductions\<close>
 
 lemma fin_l_reduce:
   assumes  a: "fin M x"
@@ -5782,7 +5782,7 @@ apply(induct set: rtranclp)
 apply(auto simp add: fic_a_reduce)
 done
 
-text {* substitution properties *}
+text \<open>substitution properties\<close>
 
 lemma subst_with_ax1:
   shows "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]"
@@ -6295,7 +6295,7 @@ next
     using fs by simp
 qed
 
-text {* substitution lemmas *}
+text \<open>substitution lemmas\<close>
 
 lemma not_Ax1:
   shows "\<not>(b\<sharp>M) \<Longrightarrow> M{b:=(y).Q} \<noteq> Ax x a"

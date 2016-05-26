@@ -38,7 +38,7 @@ quickcheck[generator=predicate_compile_wo_ff]
 oops
 *)
 
-section {* Equivalences *}
+section \<open>Equivalences\<close>
 
 inductive is_ten :: "nat => bool"
 where
@@ -53,7 +53,7 @@ lemma
 quickcheck[tester = smart_exhaustive, iterations = 1, size = 1, expect = counterexample]
 oops
 
-section {* Context Free Grammar *}
+section \<open>Context Free Grammar\<close>
 
 datatype alphabet = a | b
 
@@ -169,14 +169,14 @@ oops
 
 hide_const a b
 
-subsection {* Lexicographic order *}
+subsection \<open>Lexicographic order\<close>
 (* TODO *)
 (*
 lemma
   "(u, v) : lexord r ==> (x @ u, y @ v) : lexord r"
 oops
 *)
-subsection {* IMP *}
+subsection \<open>IMP\<close>
 
 type_synonym var = nat
 type_synonym state = "int list"
@@ -206,7 +206,7 @@ lemma
   quickcheck[tester = smart_exhaustive, size=2, iterations=20, expect = counterexample]
 oops
 
-subsection {* Lambda *}
+subsection \<open>Lambda\<close>
 
 datatype type =
     Atom nat
@@ -261,7 +261,7 @@ lemma
 quickcheck[tester = smart_exhaustive, size = 7, iterations = 10]
 oops
 
-subsection {* JAD *}
+subsection \<open>JAD\<close>
 
 definition matrix :: "('a :: semiring_0) list list \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
   "matrix M rs cs \<longleftrightarrow> (\<forall> row \<in> set M. length row = cs) \<and> length M = rs"
@@ -294,10 +294,10 @@ definition "scalar_product v w = (\<Sum> (x, y)\<leftarrow>zip v w. x * y)"
 
 definition mv :: "('a :: semiring_0) list list \<Rightarrow> 'a list \<Rightarrow> 'a list"
   where [simp]: "mv M v = map (scalar_product v) M"
-text {*
+text \<open>
   This defines the matrix vector multiplication. To work properly @{term
 "matrix M m n \<and> length v = n"} must hold.
-*}
+\<close>
 
 subsection "Compressed matrix"
 

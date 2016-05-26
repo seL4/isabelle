@@ -2,13 +2,13 @@
     Author:     John Matthews, Galois Connections; Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 
-section {* Monadic arrays *}
+section \<open>Monadic arrays\<close>
 
 theory Array
 imports Heap_Monad
 begin
 
-subsection {* Primitives *}
+subsection \<open>Primitives\<close>
 
 definition present :: "heap \<Rightarrow> 'a::heap array \<Rightarrow> bool" where
   "present h a \<longleftrightarrow> addr_of_array a < lim h"
@@ -36,7 +36,7 @@ definition noteq :: "'a::heap array \<Rightarrow> 'b::heap array \<Rightarrow> b
   "r =!!= s \<longleftrightarrow> TYPEREP('a) \<noteq> TYPEREP('b) \<or> addr_of_array r \<noteq> addr_of_array s"
 
 
-subsection {* Monad operations *}
+subsection \<open>Monad operations\<close>
 
 definition new :: "nat \<Rightarrow> 'a::heap \<Rightarrow> 'a array Heap" where
   [code del]: "new n x = Heap_Monad.heap (alloc (replicate n x))"
@@ -70,12 +70,12 @@ definition freeze :: "'a::heap array \<Rightarrow> 'a list Heap" where
   [code del]: "freeze a = Heap_Monad.tap (\<lambda>h. get h a)"
 
 
-subsection {* Properties *}
+subsection \<open>Properties\<close>
 
-text {* FIXME: Does there exist a "canonical" array axiomatisation in
-the literature?  *}
+text \<open>FIXME: Does there exist a "canonical" array axiomatisation in
+the literature?\<close>
 
-text {* Primitives *}
+text \<open>Primitives\<close>
 
 lemma noteq_sym: "a =!!= b \<Longrightarrow> b =!!= a"
   and unequal [simp]: "a \<noteq> a' \<longleftrightarrow> a =!!= a'"
@@ -160,7 +160,7 @@ lemma not_present_alloc [simp]:
   by (simp add: present_def alloc_def Let_def)
 
 
-text {* Monad operations *}
+text \<open>Monad operations\<close>
 
 lemma execute_new [execute_simps]:
   "execute (new n x) h = Some (alloc (replicate n x) h)"
@@ -352,9 +352,9 @@ lemma array_of_list_make [code]:
 hide_const (open) present get set alloc length update noteq new of_list make len nth upd map_entry swap freeze
 
 
-subsection {* Code generator setup *}
+subsection \<open>Code generator setup\<close>
 
-subsubsection {* Logical intermediate layer *}
+subsubsection \<open>Logical intermediate layer\<close>
 
 definition new' where
   [code del]: "new' = Array.new o nat_of_integer"
@@ -439,7 +439,7 @@ qed
 hide_const (open) new' make' len' nth' upd'
 
 
-text {* SML *}
+text \<open>SML\<close>
 
 code_printing type_constructor array \<rightharpoonup> (SML) "_/ array"
 code_printing constant Array \<rightharpoonup> (SML) "raise/ (Fail/ \"bare Array\")"
@@ -454,7 +454,7 @@ code_printing constant "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarro
 code_reserved SML Array
 
 
-text {* OCaml *}
+text \<open>OCaml\<close>
 
 code_printing type_constructor array \<rightharpoonup> (OCaml) "_/ array"
 code_printing constant Array \<rightharpoonup> (OCaml) "failwith/ \"bare Array\""
@@ -470,7 +470,7 @@ code_printing constant "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarro
 code_reserved OCaml Array
 
 
-text {* Haskell *}
+text \<open>Haskell\<close>
 
 code_printing type_constructor array \<rightharpoonup> (Haskell) "Heap.STArray/ Heap.RealWorld/ _"
 code_printing constant Array \<rightharpoonup> (Haskell) "error/ \"bare Array\""
@@ -484,7 +484,7 @@ code_printing constant "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarro
 code_printing class_instance array :: HOL.equal \<rightharpoonup> (Haskell) -
 
 
-text {* Scala *}
+text \<open>Scala\<close>
 
 code_printing type_constructor array \<rightharpoonup> (Scala) "!collection.mutable.ArraySeq[_]"
 code_printing constant Array \<rightharpoonup> (Scala) "!sys.error(\"bare Array\")"

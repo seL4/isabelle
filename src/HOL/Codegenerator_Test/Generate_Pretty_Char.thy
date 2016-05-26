@@ -1,7 +1,7 @@
 
 (* Author: Florian Haftmann, TU Muenchen *)
 
-section {* Pervasive test of code generator *}
+section \<open>Pervasive test of code generator\<close>
 
 theory Generate_Pretty_Char
 imports
@@ -11,10 +11,10 @@ imports
   "~~/src/HOL/Library/Code_Char"
 begin
 
-text {*
+text \<open>
   If any of the checks fails, inspect the code generated
-  by a corresponding @{text export_code} command.
-*}
+  by a corresponding \<open>export_code\<close> command.
+\<close>
 
 export_code _ checking SML OCaml? Haskell? Scala
 

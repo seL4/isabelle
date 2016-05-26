@@ -29,7 +29,7 @@ theory Cong
 imports Primes
 begin
 
-subsection \<open>Turn off @{text One_nat_def}\<close>
+subsection \<open>Turn off \<open>One_nat_def\<close>\<close>
 
 lemma power_eq_one_eq_nat [simp]: "((x::nat)^m = 1) = (m = 0 | x = 1)"
   by (induct m) auto

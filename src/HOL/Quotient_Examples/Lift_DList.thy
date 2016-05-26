@@ -6,7 +6,7 @@ theory Lift_DList
 imports Main
 begin
 
-subsection {* The type of distinct lists *}
+subsection \<open>The type of distinct lists\<close>
 
 typedef 'a dlist = "{xs::'a list. distinct xs}"
   morphisms list_of_dlist Abs_dlist
@@ -16,7 +16,7 @@ qed
 
 setup_lifting type_definition_dlist
 
-text {* Fundamental operations: *}
+text \<open>Fundamental operations:\<close>
 
 lift_definition empty :: "'a dlist" is "[]"
 by simp
@@ -33,7 +33,7 @@ by simp
 lift_definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist" is List.filter
 by simp
 
-text {* Derived operations: *}
+text \<open>Derived operations:\<close>
 
 lift_definition null :: "'a dlist \<Rightarrow> bool" is List.null .
 
@@ -47,7 +47,7 @@ lift_definition foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> '
 
 lift_definition concat :: "'a dlist dlist \<Rightarrow> 'a dlist" is "remdups o List.concat" by auto
 
-text {* We can export code: *}
+text \<open>We can export code:\<close>
 
 export_code empty insert remove map filter null member length fold foldr concat in SML
 

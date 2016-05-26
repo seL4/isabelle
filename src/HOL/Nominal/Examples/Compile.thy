@@ -46,7 +46,7 @@ nominal_datatype trmI =
   | ISeq "trmI" "trmI" ("_;;_" [100,100] 100)
   | Iif "trmI" "trmI" "trmI"
 
-text {* valid contexts *}
+text \<open>valid contexts\<close>
 
 inductive 
   valid :: "(name\<times>'a::pt_name) list \<Rightarrow> bool"
@@ -54,7 +54,7 @@ where
   v1[intro]: "valid []"
 | v2[intro]: "\<lbrakk>valid \<Gamma>;a\<sharp>\<Gamma>\<rbrakk>\<Longrightarrow> valid ((a,\<sigma>)#\<Gamma>)" (* maybe dom of \<Gamma> *)
 
-text {* typing judgements for trms *}
+text \<open>typing judgements for trms\<close>
 
 inductive 
   typing :: "(name\<times>ty) list\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [80,80,80] 80)
@@ -72,7 +72,7 @@ where
              ((x1,Data(\<sigma>1))#\<Gamma>) \<turnstile> e1 : \<tau>; ((x2,Data(\<sigma>2))#\<Gamma>) \<turnstile> e2 : \<tau>\<rbrakk> 
              \<Longrightarrow> \<Gamma> \<turnstile> (Case e of inl x1 \<rightarrow> e1 | inr x2 \<rightarrow> e2) : \<tau>"
 
-text {* typing judgements for Itrms *}
+text \<open>typing judgements for Itrms\<close>
 
 inductive 
   Ityping :: "(name\<times>tyI) list\<Rightarrow>trmI\<Rightarrow>tyI\<Rightarrow>bool" (" _ I\<turnstile> _ : _ " [80,80,80] 80)
@@ -88,7 +88,7 @@ where
 | t8[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e1 : DataI(NatI); \<Gamma> I\<turnstile> e2 : \<tau>\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> e1;;e2 : \<tau>"
 | t9[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e: DataI(NatI); \<Gamma> I\<turnstile> e1 : \<tau>; \<Gamma> I\<turnstile> e2 : \<tau>\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> Iif e e1 e2 : \<tau>"
 
-text {* capture-avoiding substitution *}
+text \<open>capture-avoiding substitution\<close>
 
 class subst =
   fixes subst :: "'a \<Rightarrow> name \<Rightarrow> 'a \<Rightarrow> 'a"  ("_[_::=_]" [100,100,100] 100)
@@ -179,7 +179,7 @@ apply(rule Isubst_supp)
 apply(simp add: abs_supp)
 done
 
-text {* big-step evaluation for trms *}
+text \<open>big-step evaluation for trms\<close>
 
 inductive 
   big :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<Down> _" [80,80] 80)
@@ -210,7 +210,7 @@ where
 | m8[intro]: "\<lbrakk>(m,e)I\<Down>(m',INat(n)); n\<noteq>0; (m',e1)I\<Down>(m'',e)\<rbrakk> \<Longrightarrow> (m,Iif e e1 e2)I\<Down>(m'',e)"
 | m9[intro]: "\<lbrakk>(m,e)I\<Down>(m',INat(0)); (m',e2)I\<Down>(m'',e)\<rbrakk> \<Longrightarrow> (m,Iif e e1 e2)I\<Down>(m'',e)"
 
-text {* Translation functions *}
+text \<open>Translation functions\<close>
 
 nominal_primrec
   trans :: "trm \<Rightarrow> trmI"

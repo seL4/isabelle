@@ -2,7 +2,7 @@ theory Lambda_mu
   imports "../Nominal" 
 begin
 
-section {* Lambda-Mu according to a paper by Gavin Bierman *}
+section \<open>Lambda-Mu according to a paper by Gavin Bierman\<close>
 
 atom_decl var mvar
 

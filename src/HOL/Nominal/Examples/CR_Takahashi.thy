@@ -30,7 +30,7 @@ apply(simp add: abs_fresh)
 apply(fresh_guess)+
 done
 
-section {* Lemmas about Capture-Avoiding Substitution *}
+section \<open>Lemmas about Capture-Avoiding Substitution\<close>
  
 lemma  subst_eqvt[eqvt]:
   fixes pi::"name prm"
@@ -63,7 +63,7 @@ using a
 by (nominal_induct t avoiding: x y s rule: lam.strong_induct)
    (auto simp add: swap_simps fresh_atm abs_fresh)
 
-section {* Beta-Reduction *}
+section \<open>Beta-Reduction\<close>
 
 inductive 
   "Beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>\<beta> _" [80,80] 80)
@@ -73,7 +73,7 @@ where
 | b3[intro]: "t1 \<longrightarrow>\<^sub>\<beta> t2 \<Longrightarrow> Lam [x].t1 \<longrightarrow>\<^sub>\<beta> Lam [x].t2"
 | b4[intro]: "App (Lam [x].t) s \<longrightarrow>\<^sub>\<beta> t[x::=s]"
 
-section {* Transitive Closure of Beta *}
+section \<open>Transitive Closure of Beta\<close>
 
 inductive 
   "Beta_star" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>\<beta>\<^sup>* _" [80,80] 80)
@@ -82,7 +82,7 @@ where
 | bs2[intro]: "t \<longrightarrow>\<^sub>\<beta> s \<Longrightarrow> t \<longrightarrow>\<^sub>\<beta>\<^sup>* s"
 | bs3[intro,trans]: "\<lbrakk>t1\<longrightarrow>\<^sub>\<beta>\<^sup>* t2; t2 \<longrightarrow>\<^sub>\<beta>\<^sup>* t3\<rbrakk> \<Longrightarrow> t1 \<longrightarrow>\<^sub>\<beta>\<^sup>* t3"
 
-section {* One-Reduction *}
+section \<open>One-Reduction\<close>
 
 inductive 
   One :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>1 _" [80,80] 80)
@@ -145,7 +145,7 @@ using a
 by (cases rule: One.strong_cases)
    (auto dest: One_Lam simp add: lam.inject abs_fresh alpha fresh_prod)
 
-section {* Transitive Closure of One *}
+section \<open>Transitive Closure of One\<close>
 
 inductive 
   "One_star" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>1\<^sup>* _" [80,80] 80)
@@ -154,7 +154,7 @@ where
 | os2[intro]: "t \<longrightarrow>\<^sub>1 s \<Longrightarrow> t \<longrightarrow>\<^sub>1\<^sup>* s"
 | os3[intro]: "\<lbrakk>t1\<longrightarrow>\<^sub>1\<^sup>* t2; t2 \<longrightarrow>\<^sub>1\<^sup>* t3\<rbrakk> \<Longrightarrow> t1 \<longrightarrow>\<^sub>1\<^sup>* t3"
 
-section {* Complete Development Reduction *}
+section \<open>Complete Development Reduction\<close>
 
 inductive 
   Dev :: "lam \<Rightarrow> lam \<Rightarrow> bool" (" _ \<longrightarrow>\<^sub>d _" [80,80]80)
@@ -248,7 +248,7 @@ lemma CR_for_One_star:
     shows "\<exists>t3. t2 \<longrightarrow>\<^sub>1\<^sup>* t3 \<and> t1 \<longrightarrow>\<^sub>1\<^sup>* t3"
 using a Rectangle_for_One by (induct arbitrary: t2) (blast)+
 
-section {* Establishing the Equivalence of Beta-star and One-star *}
+section \<open>Establishing the Equivalence of Beta-star and One-star\<close>
 
 lemma Beta_Lam_cong: 
   assumes a: "t1 \<longrightarrow>\<^sub>\<beta>\<^sup>* t2" 
@@ -295,7 +295,7 @@ next
   then show "t1 \<longrightarrow>\<^sub>1\<^sup>* t2" by (induct) (auto intro: Beta_implies_One_star)
 qed
 
-section {* The Church-Rosser Theorem *}
+section \<open>The Church-Rosser Theorem\<close>
 
 theorem CR_for_Beta_star: 
   assumes a: "t \<longrightarrow>\<^sub>\<beta>\<^sup>* t1" "t\<longrightarrow>\<^sub>\<beta>\<^sup>* t2" 

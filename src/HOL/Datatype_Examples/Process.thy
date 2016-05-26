@@ -5,7 +5,7 @@
 Processes.
 *)
 
-section {* Processes *}
+section \<open>Processes\<close>
 
 theory Process
 imports "~~/src/HOL/Library/Stream"
@@ -17,7 +17,7 @@ codatatype 'a process =
 
 (* Read: prefix of, continuation of, choice 1 of, choice 2 of *)
 
-subsection {* Basic properties *}
+subsection \<open>Basic properties\<close>
 
 (* Constructors versus discriminators *)
 theorem isAction_isChoice:
@@ -28,7 +28,7 @@ theorem not_isAction_isChoice: "\<not> (isAction p \<and> isChoice p)"
 by (cases rule: process.exhaust[of p]) auto
 
 
-subsection{* Coinduction *}
+subsection\<open>Coinduction\<close>
 
 theorem process_coind[elim, consumes 1, case_names iss Action Choice, induct pred: "HOL.eq"]:
   assumes phi: "\<phi> p p'" and
@@ -50,19 +50,19 @@ theorem process_strong_coind[elim, consumes 1, case_names iss Action Choice]:
   by (coinduct rule: process.coinduct_strong) (metis process.collapse(1,2) process.disc(3))
 
 
-subsection {* Coiteration (unfold) *}
+subsection \<open>Coiteration (unfold)\<close>
 
 
-section{* Coinductive definition of the notion of trace *}
+section\<open>Coinductive definition of the notion of trace\<close>
 coinductive trace where
 "trace p as \<Longrightarrow> trace (Action a p) (a ## as)"
 |
 "trace p as \<or> trace q as \<Longrightarrow> trace (Choice p q) as"
 
 
-section{* Examples of corecursive definitions: *}
+section\<open>Examples of corecursive definitions:\<close>
 
-subsection{* Single-guard fixpoint definition *}
+subsection\<open>Single-guard fixpoint definition\<close>
 
 primcorec BX where
   "isAction BX"
@@ -70,7 +70,7 @@ primcorec BX where
 | "contOf BX = BX"
 
 
-subsection{* Multi-guard fixpoint definitions, simulated with auxiliary arguments *}
+subsection\<open>Multi-guard fixpoint definitions, simulated with auxiliary arguments\<close>
 
 datatype x_y_ax = x | y | ax
 
@@ -94,7 +94,7 @@ using X_Y_AX by simp_all
 
 
 
-section{* Case study: Multi-guard fixpoint definitions, without auxiliary arguments *}
+section\<open>Case study: Multi-guard fixpoint definitions, without auxiliary arguments\<close>
 
 hide_const x y ax X Y AX
 

@@ -12,10 +12,10 @@ subsection \<open>Product Operator for Commutative Monoids\<close>
 
 subsubsection \<open>Inductive Definition of a Relation for Products over Sets\<close>
 
-text \<open>Instantiation of locale @{text LC} of theory @{text Finite_Set} is not
+text \<open>Instantiation of locale \<open>LC\<close> of theory \<open>Finite_Set\<close> is not
   possible, because here we have explicit typing rules like 
-  @{text "x \<in> carrier G"}.  We introduce an explicit argument for the domain
-  @{text D}.\<close>
+  \<open>x \<in> carrier G\<close>.  We introduce an explicit argument for the domain
+  \<open>D\<close>.\<close>
 
 inductive_set
   foldSetD :: "['a set, 'b => 'a => 'a, 'a] => ('b set * 'a) set"
@@ -111,7 +111,7 @@ lemma (in LCD) foldSetD_determ_aux:
   apply (erule foldSetD.cases)
    apply blast
   apply clarify
-  txt \<open>force simplification of @{text "card A < card (insert ...)"}.\<close>
+  txt \<open>force simplification of \<open>card A < card (insert ...)\<close>.\<close>
   apply (erule rev_mp)
   apply (simp add: less_Suc_eq_le)
   apply (rule impI)
@@ -221,7 +221,7 @@ lemma (in LCD) foldD_nest_Un_disjoint:
     ==> foldD D f e (A Un B) = foldD D f (foldD D f e B) A"
   by (simp add: foldD_nest_Un_Int)
 
--- \<open>Delete rules to do with @{text foldSetD} relation.\<close>
+\<comment> \<open>Delete rules to do with \<open>foldSetD\<close> relation.\<close>
 
 declare foldSetD_imp_finite [simp del]
   empty_foldSetDE [rule del]
@@ -233,8 +233,8 @@ declare (in LCD)
 text \<open>Commutative Monoids\<close>
 
 text \<open>
-  We enter a more restrictive context, with @{text "f :: 'a => 'a => 'a"}
-  instead of @{text "'b => 'a => 'a"}.
+  We enter a more restrictive context, with \<open>f :: 'a => 'a => 'a\<close>
+  instead of \<open>'b => 'a => 'a\<close>.
 \<close>
 
 locale ACeD =
@@ -299,7 +299,7 @@ syntax
       ("(3\<Otimes>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
   "\<Otimes>\<^bsub>G\<^esub>i\<in>A. b" \<rightleftharpoons> "CONST finprod G (%i. b) A"
-  -- \<open>Beware of argument permutation!\<close>
+  \<comment> \<open>Beware of argument permutation!\<close>
 
 lemma (in comm_monoid) finprod_empty [simp]: 
   "finprod G f {} = \<one>"
@@ -367,7 +367,7 @@ lemma finprod_Un_Int:
   "[| finite A; finite B; g \<in> A \<rightarrow> carrier G; g \<in> B \<rightarrow> carrier G |] ==>
      finprod G g (A Un B) \<otimes> finprod G g (A Int B) =
      finprod G g A \<otimes> finprod G g B"
--- \<open>The reversed orientation looks more natural, but LOOPS as a simprule!\<close>
+\<comment> \<open>The reversed orientation looks more natural, but LOOPS as a simprule!\<close>
 proof (induct set: finite)
   case empty then show ?case by simp
 next
@@ -451,7 +451,7 @@ lemma finprod_cong:
   by (rule finprod_cong') (auto simp add: simp_implies_def)
 
 text \<open>Usually, if this rule causes a failed congruence proof error,
-  the reason is that the premise @{text "g \<in> B \<rightarrow> carrier G"} cannot be shown.
+  the reason is that the premise \<open>g \<in> B \<rightarrow> carrier G\<close> cannot be shown.
   Adding @{thm [source] Pi_def} to the simpset is often useful.
   For this reason, @{thm [source] finprod_cong}
   is not added to the simpset by default.

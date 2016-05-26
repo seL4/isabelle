@@ -5,13 +5,13 @@
 Well-order embeddings.
 *)
 
-section {* Well-Order Embeddings *}
+section \<open>Well-Order Embeddings\<close>
 
 theory Wellorder_Embedding
 imports BNF_Wellorder_Embedding Fun_More Wellorder_Relation
 begin
 
-subsection {* Auxiliaries *}
+subsection \<open>Auxiliaries\<close>
 
 lemma UNION_bij_betw_ofilter:
 assumes WELL: "Well_order r" and
@@ -27,8 +27,8 @@ proof-
 qed
 
 
-subsection {* (Well-order) embeddings, strict embeddings, isomorphisms and order-compatible
-functions *}
+subsection \<open>(Well-order) embeddings, strict embeddings, isomorphisms and order-compatible
+functions\<close>
 
 lemma embed_halfcong:
 assumes EQ: "\<And> a. a \<in> Field r \<Longrightarrow> f a = g a" and
@@ -103,7 +103,7 @@ corollary one_type_greater:
 using one_set_greater[of UNIV UNIV] by auto
 
 
-subsection {* Uniqueness of embeddings *}
+subsection \<open>Uniqueness of embeddings\<close>
 
 lemma comp_embedS:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"

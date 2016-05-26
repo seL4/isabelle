@@ -10,8 +10,7 @@ begin
 
 text \<open>
   This is just a tiny example demonstrating the use of inductive
-  definitions in classical mathematics.  We define the least @{text
-  \<sigma>}-algebra over a given set of sets.
+  definitions in classical mathematics.  We define the least \<open>\<sigma>\<close>-algebra over a given set of sets.
 \<close>
 
 inductive_set \<sigma>_algebra :: "'a set set \<Rightarrow> 'a set set"
@@ -24,7 +23,7 @@ where
 
 text \<open>
   The following basic facts are consequences of the closure properties
-  of any @{text \<sigma>}-algebra, merely using the introduction rules, but
+  of any \<open>\<sigma>\<close>-algebra, merely using the introduction rules, but
   no induction nor cases.
 \<close>
 

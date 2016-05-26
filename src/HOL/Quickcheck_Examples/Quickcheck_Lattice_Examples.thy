@@ -9,8 +9,8 @@ begin
 
 declare [[quickcheck_finite_type_size=5]]
 
-text {* We show how other default types help to find counterexamples to propositions if
-  the standard default type @{typ int} is insufficient. *}
+text \<open>We show how other default types help to find counterexamples to propositions if
+  the standard default type @{typ int} is insufficient.\<close>
 
 notation
   less_eq  (infix "\<sqsubseteq>" 50) and
@@ -22,7 +22,7 @@ notation
 
 declare [[quickcheck_narrowing_active = false, quickcheck_timeout = 3600]]
 
-subsection {* Distributive lattices *}
+subsection \<open>Distributive lattices\<close>
 
 lemma sup_inf_distrib2:
  "((y :: 'a :: distrib_lattice) \<sqinter> z) \<squnion> x = (y \<squnion> x) \<sqinter> (z \<squnion> x)"
@@ -49,7 +49,7 @@ lemma inf_sup_distrib2_1:
   quickcheck[expect = counterexample]
   oops
 
-subsection {* Bounded lattices *}
+subsection \<open>Bounded lattices\<close>
 
 lemma inf_bot_left [simp]:
   "\<bottom> \<sqinter> (x :: 'a :: bounded_lattice_bot) = \<bottom>"

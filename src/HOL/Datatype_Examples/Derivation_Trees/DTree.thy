@@ -5,7 +5,7 @@
 Derivation trees with nonterminal internal nodes and terminal leaves.
 *)
 
-section {* Trees with Nonterminal Internal Nodes and Terminal Leaves *}
+section \<open>Trees with Nonterminal Internal Nodes and Terminal Leaves\<close>
 
 theory DTree
 imports Prelim
@@ -16,7 +16,7 @@ typedecl T
 
 codatatype dtree = NNode (root: N) (ccont: "(T + dtree) fset")
 
-subsection{* Transporting the Characteristic Lemmas from @{text "fset"} to @{text "set"} *}
+subsection\<open>Transporting the Characteristic Lemmas from \<open>fset\<close> to \<open>set\<close>\<close>
 
 definition "Node n as \<equiv> NNode n (the_inv fset as)"
 definition "cont \<equiv> fset o ccont"

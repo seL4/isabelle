@@ -2,7 +2,7 @@ theory Code_Prolog_Examples
 imports "~~/src/HOL/Library/Code_Prolog"
 begin
 
-section {* Example append *}
+section \<open>Example append\<close>
 
 
 inductive append
@@ -10,13 +10,13 @@ where
   "append [] ys ys"
 | "append xs ys zs ==> append (x # xs) ys (x # zs)"
 
-setup {* Code_Prolog.map_code_options (K
+setup \<open>Code_Prolog.map_code_options (K
   {ensure_groundness = false,
    limit_globally = NONE,
    limited_types = [],
    limited_predicates = [],
    replacing = [],
-   manual_reorder = []}) *}
+   manual_reorder = []})\<close>
 
 values_prolog "{(x, y, z). append x y z}"
 
@@ -24,73 +24,73 @@ values_prolog 4 "{(z, x, y). append x y ((1::nat) # (2 # (3 # z)))}"
 
 values_prolog 3 "{(x, y, z). append x y z}"
 
-setup {* Code_Prolog.map_code_options (K
+setup \<open>Code_Prolog.map_code_options (K
   {ensure_groundness = false,
    limit_globally = NONE,
    limited_types = [],
    limited_predicates = [],
    replacing = [],
-   manual_reorder = []}) *}
+   manual_reorder = []})\<close>
 
 values_prolog "{(x, y, z). append x y z}"
 
-setup {* Code_Prolog.map_code_options (K
+setup \<open>Code_Prolog.map_code_options (K
   {ensure_groundness = false,
    limit_globally = NONE,
    limited_types = [],
    limited_predicates = [],
    replacing = [],
-   manual_reorder = []}) *}
+   manual_reorder = []})\<close>
 
 
-section {* Example queens *}
+section \<open>Example queens\<close>
 
 inductive nodiag :: "int => int => int list => bool"
 where
   "nodiag B D []"
 | "D \<noteq> N - B ==> D \<noteq> B - N ==> Da = D + 1 ==> nodiag B Da L ==> nodiag B D (N # L)"
 
-text {*
+text \<open>
 qdelete(A, [A|L], L).
 qdelete(X, [A|Z], [A|R]) :-
   qdelete(X, Z, R).
-*}
+\<close>
 
 inductive qdelete :: "int => int list => int list => bool"
 where
   "qdelete A (A # L) L"
 | "qdelete X Z R ==> qdelete X (A # Z) (A # R)"
 
-text {*
+text \<open>
 qperm([], []).
 qperm([X|Y], K) :-
   qdelete(U, [X|Y], Z),
   K = [U|V],
   qperm(Z, V).
-*}
+\<close>
 
 inductive qperm :: "int list => int list => bool"
 where
   "qperm [] []"
 | "qdelete U (X # Y) Z ==> qperm Z V ==> qperm (X # Y) (U # V)"
 
-text {*
+text \<open>
 safe([]).
 safe([N|L]) :-
   nodiag(N, 1, L),
   safe(L).
-*}
+\<close>
 
 inductive safe :: "int list => bool"
 where
   "safe []"
 | "nodiag N 1 L ==> safe L ==> safe (N # L)"
 
-text {*
+text \<open>
 queen(Data, Out) :-
   qperm(Data, Out),
   safe(Out)
-*}
+\<close>
 
 inductive queen :: "int list => int list => bool"
 where
@@ -103,14 +103,14 @@ where
 values_prolog 10 "{ys. queen_9 ys}"
 
 
-section {* Example symbolic derivation *}
+section \<open>Example symbolic derivation\<close>
 
 hide_const Pow
 
 datatype expr = Log expr | Mult expr expr | Div expr expr | x | Num int | Plus expr expr
   | Minus expr expr | Uminus expr | Pow expr int | Exp expr
 
-text {*
+text \<open>
 
 d(U + V, X, DU + DV) :-
   cut,
@@ -145,7 +145,7 @@ d(x, X, num(1)) :-
   cut.
 d(num(_), _, num(0)).
 
-*}
+\<close>
 
 inductive d :: "expr => expr => expr => bool"
 where
@@ -160,7 +160,7 @@ where
 | "d x X (Num 1)"
 | "d (Num n) X (Num 0)"
 
-text {*
+text \<open>
 ops8(E) :-
   d((x + num(1)) * ((^(x, 2) + num(2)) * (^(x, 3) + num(3))), x, E).
 
@@ -172,7 +172,7 @@ log10(E) :-
 
 times10(E) :-
   d(((((((((x * x) * x) * x) * x) * x) * x) * x) * x) * x, x, E)
-*}
+\<close>
 
 inductive ops8 :: "expr => bool"
 where
@@ -195,7 +195,7 @@ values_prolog "{e. divide10 e}"
 values_prolog "{e. log10 e}"
 values_prolog "{e. times10 e}"
 
-section {* Example negation *}
+section \<open>Example negation\<close>
 
 datatype abc = A | B | C
 
@@ -203,13 +203,13 @@ inductive notB :: "abc => bool"
 where
   "y \<noteq> B \<Longrightarrow> notB y"
 
-setup {* Code_Prolog.map_code_options (K
+setup \<open>Code_Prolog.map_code_options (K
   {ensure_groundness = true,
    limit_globally = NONE,
    limited_types = [],
    limited_predicates = [],
    replacing = [],
-   manual_reorder = []}) *}
+   manual_reorder = []})\<close>
 
 values_prolog 2 "{y. notB y}"
 
@@ -219,7 +219,7 @@ where
 
 values_prolog 5 "{y. notAB y}"
 
-section {* Example prolog conform variable names *}
+section \<open>Example prolog conform variable names\<close>
 
 inductive equals :: "abc => abc => bool"
 where

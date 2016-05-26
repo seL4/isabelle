@@ -2,7 +2,7 @@
     Author:   David von Oheimb (based on a theory by Tobias Nipkow et al), TUM
 *)
 
-section {* Semantics of arithmetic and boolean expressions, Syntax of commands *}
+section \<open>Semantics of arithmetic and boolean expressions, Syntax of commands\<close>
 
 theory Com
 imports Main
@@ -83,10 +83,10 @@ definition
   "WT_bodies = (!(pn,b):set bodies. WT b)"
 
 
-ML {*
+ML \<open>
   fun make_imp_tac ctxt =
     EVERY' [resolve_tac ctxt [mp], fn i => assume_tac ctxt (i + 1), eresolve_tac ctxt [thin_rl]]
-*}
+\<close>
 
 lemma finite_dom_body: "finite (dom body)"
 apply (unfold body_def)

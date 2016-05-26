@@ -2,21 +2,21 @@
     Author:     Ondrej Kuncar
 *)
 
-section {* Example of lifting definitions with contravariant or co/contravariant type variables *}
+section \<open>Example of lifting definitions with contravariant or co/contravariant type variables\<close>
 
 
 theory Lift_Fun
 imports Main "~~/src/HOL/Library/Quotient_Syntax"
 begin
 
-text {* This file is meant as a test case. 
+text \<open>This file is meant as a test case. 
   It contains examples of lifting definitions with quotients that have contravariant 
-  type variables or type variables which are covariant and contravariant in the same time. *}
+  type variables or type variables which are covariant and contravariant in the same time.\<close>
 
-subsection {* Contravariant type variables *}
+subsection \<open>Contravariant type variables\<close>
 
-text {* 'a is a contravariant type variable and we are able to map over this variable
-  in the following four definitions. This example is based on HOL/Fun.thy. *}
+text \<open>'a is a contravariant type variable and we are able to map over this variable
+  in the following four definitions. This example is based on HOL/Fun.thy.\<close>
 
 quotient_type
 ('a, 'b) fun' (infixr "\<rightarrow>" 55) = "'a \<Rightarrow> 'b" / "op =" 
@@ -36,10 +36,10 @@ quotient_definition "inj_on' :: ('a \<rightarrow> 'b) \<rightarrow> 'a set \<rig
 quotient_definition "bij_betw' :: ('a \<rightarrow> 'b) \<rightarrow> 'a set \<rightarrow> 'b set \<rightarrow> bool" is bij_betw done
 
 
-subsection {* Co/Contravariant type variables *} 
+subsection \<open>Co/Contravariant type variables\<close> 
 
-text {* 'a is a covariant and contravariant type variable in the same time.
-  The following example is a bit artificial. We haven't had a natural one yet. *}
+text \<open>'a is a covariant and contravariant type variable in the same time.
+  The following example is a bit artificial. We haven't had a natural one yet.\<close>
 
 quotient_type 'a endofun = "'a \<Rightarrow> 'a" / "op =" by (simp add: identity_equivp)
 
@@ -49,7 +49,7 @@ definition map_endofun' :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow
 quotient_definition "map_endofun :: ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a endofun \<Rightarrow> 'b endofun" is
   map_endofun' done
 
-text {* Registration of the map function for 'a endofun. *}
+text \<open>Registration of the map function for 'a endofun.\<close>
 
 functor map_endofun : map_endofun
 proof -
@@ -63,7 +63,7 @@ proof -
     by (auto simp: map_endofun_def map_endofun'_def map_fun_def fun_eq_iff) (simp add: a o_assoc) 
 qed
 
-text {* Relator for 'a endofun. *}
+text \<open>Relator for 'a endofun.\<close>
 
 definition
   rel_endofun' :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> bool" 
@@ -110,8 +110,8 @@ thm  endofun_id_id_def
 
 quotient_type 'a endofun' = "'a endofun" / "op =" by (simp add: identity_equivp)
 
-text {* We have to map "'a endofun" to "('a endofun') endofun", i.e., mapping (lifting)
-  over a type variable which is a covariant and contravariant type variable. *}
+text \<open>We have to map "'a endofun" to "('a endofun') endofun", i.e., mapping (lifting)
+  over a type variable which is a covariant and contravariant type variable.\<close>
 
 quotient_definition "endofun'_id_id :: ('a endofun') endofun'" is endofun_id_id done
 

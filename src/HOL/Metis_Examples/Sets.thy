@@ -5,7 +5,7 @@
 Metis example featuring typed set theory.
 *)
 
-section {* Metis Example Featuring Typed Set Theory *}
+section \<open>Metis Example Featuring Typed Set Theory\<close>
 
 theory Sets
 imports Main
@@ -177,10 +177,10 @@ proof -
   thus "\<exists>z. S \<subseteq> {z}" by metis
 qed
 
-text {*
+text \<open>
   From W. W. Bledsoe and Guohui Feng, SET-VAR. JAR 11 (3), 1993, pages
   293-314.
-*}
+\<close>
 
 (* Notes: (1) The numbering doesn't completely agree with the paper.
    (2) We must rename set variables to avoid type clashes. *)

@@ -2,7 +2,7 @@ theory W
 imports "../Nominal"
 begin
 
-text {* Example for strong induction rules avoiding sets of atoms. *}
+text \<open>Example for strong induction rules avoiding sets of atoms.\<close>
 
 atom_decl tvar var 
 
@@ -56,7 +56,7 @@ where
 type_synonym 
   Ctxt  = "(var\<times>tyS) list" 
 
-text {* free type variables *}
+text \<open>free type variables\<close>
 
 consts ftv :: "'a \<Rightarrow> tvar list"
 
@@ -140,7 +140,7 @@ lemma ftv_Ctxt_eqvt[eqvt]:
   shows "pi\<bullet>(ftv \<Gamma>) = ftv (pi\<bullet>\<Gamma>)"
 by (induct \<Gamma>) (auto simp add: eqvts)
 
-text {* Valid *}
+text \<open>Valid\<close>
 inductive
   valid :: "Ctxt \<Rightarrow> bool"
 where
@@ -149,7 +149,7 @@ where
 
 equivariance valid
 
-text {* General *}
+text \<open>General\<close>
 primrec gen :: "ty \<Rightarrow> tvar list \<Rightarrow> tyS" where
   "gen T [] = Ty T"
 | "gen T (X#Xs) = \<forall>[X].(gen T Xs)"
@@ -171,7 +171,7 @@ lemma close_eqvt[eqvt]:
   shows "pi\<bullet>(close \<Gamma> T) = close (pi\<bullet>\<Gamma>) (pi\<bullet>T)"
 by (simp_all only: eqvts)
   
-text {* Substitution *}
+text \<open>Substitution\<close>
 
 type_synonym Subst = "(tvar\<times>ty) list"
 
@@ -301,7 +301,7 @@ lemma subst_freshfact2_ty:
 by (nominal_induct T rule: ty.strong_induct)
    (auto simp add: fresh_atm)
 
-text {* instance of a type scheme *}
+text \<open>instance of a type scheme\<close>
 inductive
   inst :: "ty \<Rightarrow> tyS \<Rightarrow> bool"("_ \<prec> _" [50,51] 50)  
 where
@@ -352,7 +352,7 @@ apply(simp)
 done
 
 
-text{* typing judgements *}
+text\<open>typing judgements\<close>
 inductive
   typing :: "Ctxt \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow> bool" (" _ \<turnstile> _ : _ " [60,60,60] 60) 
 where

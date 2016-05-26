@@ -9,7 +9,7 @@ theory TPTP_Test
 imports TPTP_Parser
 begin
 
-ML {*
+ML \<open>
   val tptp_test_out = Attrib.setup_config_string @{binding "tptp_test_out"} (K "")
   val tptp_test_all = Attrib.setup_config_bool @{binding "tptp_test_all"} (K false)
   val tptp_test_timeout =
@@ -17,27 +17,27 @@ ML {*
   fun test_all ctxt = Config.get ctxt tptp_test_all
   fun get_timeout ctxt = Config.get ctxt tptp_test_timeout
   fun S x y z = x z (y z)
-*}
+\<close>
 
 section "Parser tests"
 
-ML {*
+ML \<open>
   fun payload_of (TPTP_Syntax.Annotated_Formula (_, _, _, _, fmla, _)) = fmla
   val payloads_of = map payload_of
-*}
+\<close>
 
 
 section "Source problems"
-ML {*
+ML \<open>
   (*problem source*)
   val tptp_probs_dir =
     Path.explode "$TPTP/Problems"
     |> Path.expand;
-*}
+\<close>
 
 
 section "Supporting test functions"
-ML {*
+ML \<open>
   fun report ctxt str =
     let
       val tptp_test_out = Config.get ctxt tptp_test_out
@@ -85,10 +85,10 @@ ML {*
       report ctxt ("Test timing: " ^ Timing.message time ^ "\n(about " ^ average ^
        "s per problem)")
     end
-*}
+\<close>
 
 
-ML {*
+ML \<open>
   fun situate file_name = Path.append tptp_probs_dir (Path.explode file_name);
 
   fun parser_test ctxt = (*FIXME argument order*)
@@ -103,6 +103,6 @@ ML {*
 
   fun parse_timed file =
     Timing.timing TPTP_Parser.parse_file (Path.implode file)
-*}
+\<close>
 
 end

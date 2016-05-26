@@ -4,9 +4,9 @@ imports Proc1 Proc2
 begin
 (*>*)
 
-chapter {* Principles of VC generation *}
+chapter \<open>Principles of VC generation\<close>
 
-text {*
+text \<open>
 \label{sec:vc-principles}
 In this section, we will discuss some aspects of VC generation that are
 useful for understanding and optimizing the VCs produced by the \SPARK{}
@@ -145,7 +145,7 @@ for \texttt{Proc2} contains only one such VC for the path from assertion 1 to as
 The VC for the path from assertion 2 to assertion 1 is trivial, and so is the VC for the
 path from assertion 2 to the postcondition, expressing that the loop invariant implies
 the postcondition when the loop has terminated.
-*}
+\<close>
 
 (*<*)
 end

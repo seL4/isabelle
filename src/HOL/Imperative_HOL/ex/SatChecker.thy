@@ -2,22 +2,22 @@
     Author:     Lukas Bulwahn, TU Muenchen
 *)
 
-section {* An efficient checker for proofs from a SAT solver *}
+section \<open>An efficient checker for proofs from a SAT solver\<close>
 
 theory SatChecker
 imports "~~/src/HOL/Library/RBT_Impl" Sorted_List "../Imperative_HOL"
 begin
 
-section{* General settings and functions for our representation of clauses *}
+section\<open>General settings and functions for our representation of clauses\<close>
 
-subsection{* Types for Literals, Clauses and ProofSteps *}
-text {* We encode Literals as integers and Clauses as sorted Lists. *}
+subsection\<open>Types for Literals, Clauses and ProofSteps\<close>
+text \<open>We encode Literals as integers and Clauses as sorted Lists.\<close>
 
 type_synonym ClauseId = nat
 type_synonym Lit = int
 type_synonym Clause = "Lit list"
 
-text {* This resembles exactly to Isat's Proof Steps *}
+text \<open>This resembles exactly to Isat's Proof Steps\<close>
 
 type_synonym Resolvants = "ClauseId * (Lit * ClauseId) list"
 datatype ProofStep =
@@ -27,8 +27,8 @@ datatype ProofStep =
   | Delete ClauseId
   | Xstep ClauseId ClauseId
 
-subsection{* Interpretation of Literals, Clauses, and an array of Clauses *} 
-text {* Specific definitions for Literals as integers *}
+subsection\<open>Interpretation of Literals, Clauses, and an array of Clauses\<close> 
+text \<open>Specific definitions for Literals as integers\<close>
 
 definition compl :: "Lit \<Rightarrow> Lit"
 where
@@ -54,7 +54,7 @@ unfolding compl_def by simp
 lemma compl_exists: "\<exists>l'. l = compl l'"
 unfolding compl_def by arith
 
-text {* Specific definitions for Clauses as sorted lists *}
+text \<open>Specific definitions for Clauses as sorted lists\<close>
 
 definition interpClause :: "(nat \<Rightarrow> bool) \<Rightarrow> Clause \<Rightarrow> bool"
 where
@@ -116,12 +116,12 @@ lemma implies_empty_inconsistent:
 unfolding inconsistent_def correctClause_def
 by auto
 
-text {* Specific definition for derived clauses in the Array *}
+text \<open>Specific definition for derived clauses in the Array\<close>
 
 definition
   array_ran :: "('a::heap) option array \<Rightarrow> heap \<Rightarrow> 'a set" where
   "array_ran a h = {e. Some e \<in> set (Array.get h a)}"
-    -- {*FIXME*}
+    \<comment> \<open>FIXME\<close>
 
 lemma array_ranI: "\<lbrakk> Some b = Array.get h a ! i; i < Array.length h a \<rbrakk> \<Longrightarrow> b \<in> array_ran a h"
 unfolding array_ran_def Array.length_def by simp
@@ -165,11 +165,11 @@ lemma correctClause_mono:
   by auto
 
 
-section{* Improved version of SatChecker *}
+section\<open>Improved version of SatChecker\<close>
 
-text{* This version just uses a single list traversal. *}
+text\<open>This version just uses a single list traversal.\<close>
 
-subsection{* Function definitions *}
+subsection\<open>Function definitions\<close>
 
 primrec res_mem :: "Lit \<Rightarrow> Clause \<Rightarrow> Clause Heap"
 where
@@ -209,7 +209,7 @@ where
 
 declare res_mem.simps [simp del] resolve1.simps [simp del] resolve2.simps [simp del] res_thm'.simps [simp del]
 
-subsection {* Proofs about these functions *}
+subsection \<open>Proofs about these functions\<close>
 
 lemma res_mem:
 assumes "effect (res_mem l xs) h h' r"
@@ -408,7 +408,7 @@ proof -
     done
 qed
 
-subsection {* res_thm and doProofStep *}
+subsection \<open>res_thm and doProofStep\<close>
 
 definition get_clause :: "Clause option array \<Rightarrow> ClauseId \<Rightarrow> Clause Heap"
 where
@@ -598,9 +598,9 @@ apply (simp add:correctArray_def)
 apply (drule bspec)
 by (rule array_ranI, auto)
 
-section {* Functional version with Lists as Array *}
+section \<open>Functional version with Lists as Array\<close>
 
-subsection {* List specific definitions *}
+subsection \<open>List specific definitions\<close>
 
 definition list_ran :: "'a option list \<Rightarrow> 'a set"
 where
@@ -636,7 +636,7 @@ where
   "correctList rootcls xs =
   (\<forall>cl \<in> list_ran xs. correctClause rootcls cl \<and> sorted cl \<and> distinct cl)"
 
-subsection {* Checker functions *}
+subsection \<open>Checker functions\<close>
 
 primrec lres_thm :: "Clause option list \<Rightarrow> (Lit * ClauseId) \<Rightarrow> Clause \<Rightarrow> Clause Heap" 
 where
@@ -670,7 +670,7 @@ where
   }"
 
 
-section {* Functional version with RedBlackTrees *}
+section \<open>Functional version with RedBlackTrees\<close>
 
 primrec tres_thm :: "(ClauseId, Clause) RBT_Impl.rbt \<Rightarrow> Lit \<times> ClauseId \<Rightarrow> Clause \<Rightarrow> Clause Heap"
 where

@@ -8,7 +8,7 @@ theory Quotient_Message
 imports Main "~~/src/HOL/Library/Quotient_Syntax"
 begin
 
-subsection{*Defining the Free Algebra*}
+subsection\<open>Defining the Free Algebra\<close>
 
 datatype
   freemsg = NONCE  nat
@@ -30,7 +30,7 @@ where
 
 lemmas msgrel.intros[intro]
 
-text{*Proving that it is an equivalence relation*}
+text\<open>Proving that it is an equivalence relation\<close>
 
 lemma msgrel_refl: "X \<sim> X"
 by (induct X) (auto intro: msgrel.intros)
@@ -42,9 +42,9 @@ proof (rule equivpI)
   show "transp msgrel" by (rule transpI) (blast intro: msgrel.TRANS)
 qed
 
-subsection{*Some Functions on the Free Algebra*}
+subsection\<open>Some Functions on the Free Algebra\<close>
 
-subsubsection{*The Set of Nonces*}
+subsubsection\<open>The Set of Nonces\<close>
 
 primrec
   freenonces :: "freemsg \<Rightarrow> nat set"
@@ -59,10 +59,10 @@ theorem msgrel_imp_eq_freenonces:
   shows "freenonces U = freenonces V"
   using a by (induct) (auto)
 
-subsubsection{*The Left Projection*}
+subsubsection\<open>The Left Projection\<close>
 
-text{*A function to return the left part of the top pair in a message.  It will
-be lifted to the initial algebra, to serve as an example of that process.*}
+text\<open>A function to return the left part of the top pair in a message.  It will
+be lifted to the initial algebra, to serve as an example of that process.\<close>
 primrec
   freeleft :: "freemsg \<Rightarrow> freemsg"
 where
@@ -71,9 +71,9 @@ where
 | "freeleft (CRYPT K X) = freeleft X"
 | "freeleft (DECRYPT K X) = freeleft X"
 
-text{*This theorem lets us prove that the left function respects the
+text\<open>This theorem lets us prove that the left function respects the
 equivalence relation.  It also helps us prove that MPair
-  (the abstract constructor) is injective*}
+  (the abstract constructor) is injective\<close>
 lemma msgrel_imp_eqv_freeleft_aux:
   shows "freeleft U \<sim> freeleft U"
   by (fact msgrel_refl)
@@ -84,9 +84,9 @@ theorem msgrel_imp_eqv_freeleft:
   using a
   by (induct) (auto intro: msgrel_imp_eqv_freeleft_aux)
 
-subsubsection{*The Right Projection*}
+subsubsection\<open>The Right Projection\<close>
 
-text{*A function to return the right part of the top pair in a message.*}
+text\<open>A function to return the right part of the top pair in a message.\<close>
 primrec
   freeright :: "freemsg \<Rightarrow> freemsg"
 where
@@ -95,9 +95,9 @@ where
 | "freeright (CRYPT K X) = freeright X"
 | "freeright (DECRYPT K X) = freeright X"
 
-text{*This theorem lets us prove that the right function respects the
+text\<open>This theorem lets us prove that the right function respects the
 equivalence relation.  It also helps us prove that MPair
-  (the abstract constructor) is injective*}
+  (the abstract constructor) is injective\<close>
 lemma msgrel_imp_eqv_freeright_aux:
   shows "freeright U \<sim> freeright U"
   by (fact msgrel_refl)
@@ -108,9 +108,9 @@ theorem msgrel_imp_eqv_freeright:
   using a
   by (induct) (auto intro: msgrel_imp_eqv_freeright_aux)
 
-subsubsection{*The Discriminator for Constructors*}
+subsubsection\<open>The Discriminator for Constructors\<close>
 
-text{*A function to distinguish nonces, mpairs and encryptions*}
+text\<open>A function to distinguish nonces, mpairs and encryptions\<close>
 primrec
   freediscrim :: "freemsg \<Rightarrow> int"
 where
@@ -119,18 +119,18 @@ where
  | "freediscrim (CRYPT K X) = freediscrim X + 2"
  | "freediscrim (DECRYPT K X) = freediscrim X - 2"
 
-text{*This theorem helps us prove @{term "Nonce N \<noteq> MPair X Y"}*}
+text\<open>This theorem helps us prove @{term "Nonce N \<noteq> MPair X Y"}\<close>
 theorem msgrel_imp_eq_freediscrim:
   assumes a: "U \<sim> V"
   shows "freediscrim U = freediscrim V"
   using a by (induct) (auto)
 
-subsection{*The Initial Algebra: A Quotiented Message Type*}
+subsection\<open>The Initial Algebra: A Quotiented Message Type\<close>
 
 quotient_type msg = freemsg / msgrel
   by (rule equiv_msgrel)
 
-text{*The abstract message constructors*}
+text\<open>The abstract message constructors\<close>
 
 quotient_definition
   "Nonce :: nat \<Rightarrow> msg"
@@ -156,7 +156,7 @@ is
   "DECRYPT"
 by (rule DECRYPT)
 
-text{*Establishing these two equations is the point of the whole exercise*}
+text\<open>Establishing these two equations is the point of the whole exercise\<close>
 theorem CD_eq [simp]:
   shows "Crypt K (Decrypt K X) = X"
   by (lifting CD)
@@ -165,7 +165,7 @@ theorem DC_eq [simp]:
   shows "Decrypt K (Crypt K X) = X"
   by (lifting DC)
 
-subsection{*The Abstract Function to Return the Set of Nonces*}
+subsection\<open>The Abstract Function to Return the Set of Nonces\<close>
 
 quotient_definition
    "nonces:: msg \<Rightarrow> nat set"
@@ -173,7 +173,7 @@ is
   "freenonces"
 by (rule msgrel_imp_eq_freenonces)
 
-text{*Now prove the four equations for @{term nonces}*}
+text\<open>Now prove the four equations for @{term nonces}\<close>
 
 lemma nonces_Nonce [simp]:
   shows "nonces (Nonce N) = {N}"
@@ -191,7 +191,7 @@ lemma nonces_Decrypt [simp]:
   shows "nonces (Decrypt K X) = nonces X"
   by (lifting freenonces.simps(4))
 
-subsection{*The Abstract Function to Return the Left Part*}
+subsection\<open>The Abstract Function to Return the Left Part\<close>
 
 quotient_definition
   "left:: msg \<Rightarrow> msg"
@@ -215,7 +215,7 @@ lemma left_Decrypt [simp]:
   shows "left (Decrypt K X) = left X"
   by (lifting freeleft.simps(4))
 
-subsection{*The Abstract Function to Return the Right Part*}
+subsection\<open>The Abstract Function to Return the Right Part\<close>
 
 quotient_definition
   "right:: msg \<Rightarrow> msg"
@@ -223,7 +223,7 @@ is
   "freeright"
 by (rule msgrel_imp_eqv_freeright)
 
-text{*Now prove the four equations for @{term right}*}
+text\<open>Now prove the four equations for @{term right}\<close>
 
 lemma right_Nonce [simp]:
   shows "right (Nonce N) = Nonce N"
@@ -241,9 +241,9 @@ lemma right_Decrypt [simp]:
   shows "right (Decrypt K X) = right X"
   by (lifting freeright.simps(4))
 
-subsection{*Injectivity Properties of Some Constructors*}
+subsection\<open>Injectivity Properties of Some Constructors\<close>
 
-text{*Can also be proved using the function @{term nonces}*}
+text\<open>Can also be proved using the function @{term nonces}\<close>
 lemma Nonce_Nonce_eq [iff]:
   shows "(Nonce m = Nonce n) = (m = n)"
 proof
@@ -273,13 +273,13 @@ theorem Nonce_neq_MPair [iff]:
   shows "Nonce N \<noteq> MPair X Y"
   by (descending) (auto dest: msgrel_imp_eq_freediscrim)
 
-text{*Example suggested by a referee*}
+text\<open>Example suggested by a referee\<close>
 
 theorem Crypt_Nonce_neq_Nonce:
   shows "Crypt K (Nonce M) \<noteq> Nonce N"
   by (descending) (auto dest: msgrel_imp_eq_freediscrim) 
 
-text{*...and many similar results*}
+text\<open>...and many similar results\<close>
 
 theorem Crypt2_Nonce_neq_Nonce:
   shows "Crypt K (Crypt K' (Nonce M)) \<noteq> Nonce N"
@@ -317,10 +317,10 @@ lemma msg_induct [case_names Nonce MPair Crypt Decrypt, cases type: msg]:
   by (descending) (auto intro: freemsg.induct)
 
 
-subsection{*The Abstract Discriminator*}
+subsection\<open>The Abstract Discriminator\<close>
 
-text{*However, as @{text Crypt_Nonce_neq_Nonce} above illustrates, we don't
-need this function in order to prove discrimination theorems.*}
+text\<open>However, as \<open>Crypt_Nonce_neq_Nonce\<close> above illustrates, we don't
+need this function in order to prove discrimination theorems.\<close>
 
 quotient_definition
   "discrim:: msg \<Rightarrow> int"
@@ -328,7 +328,7 @@ is
   "freediscrim"
 by (rule msgrel_imp_eq_freediscrim)
 
-text{*Now prove the four equations for @{term discrim}*}
+text\<open>Now prove the four equations for @{term discrim}\<close>
 
 lemma discrim_Nonce [simp]:
   shows "discrim (Nonce N) = 0"

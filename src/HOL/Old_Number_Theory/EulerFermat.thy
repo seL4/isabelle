@@ -54,11 +54,11 @@ definition zcongm :: "int => int => int => bool"
   where "zcongm m = (\<lambda>a b. zcong a b m)"
 
 lemma abs_eq_1_iff [iff]: "(\<bar>z\<bar> = (1::int)) = (z = 1 \<or> z = -1)"
-  -- \<open>LCP: not sure why this lemma is needed now\<close>
+  \<comment> \<open>LCP: not sure why this lemma is needed now\<close>
   by (auto simp add: abs_if)
 
 
-text \<open>\medskip @{text norRRset}\<close>
+text \<open>\medskip \<open>norRRset\<close>\<close>
 
 declare BnorRset.simps [simp del]
 
@@ -249,7 +249,7 @@ lemma Bnor_prod_power [rule_format]:
       \<Prod>(BnorRset a m) * x^card (BnorRset a m)"
   apply (induct a m rule: BnorRset_induct)
    prefer 2
-   apply (simplesubst BnorRset.simps)  --\<open>multiple redexes\<close>
+   apply (simplesubst BnorRset.simps)  \<comment>\<open>multiple redexes\<close>
    apply (unfold Let_def, auto)
   apply (simp add: Bnor_fin Bnor_mem_zle_swap)
   apply (subst setprod.insert)

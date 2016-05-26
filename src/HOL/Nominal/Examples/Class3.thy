@@ -2,7 +2,7 @@ theory Class3
 imports Class2
 begin
 
-text {* 3rd Main Lemma *}
+text \<open>3rd Main Lemma\<close>
 
 lemma Cut_a_redu_elim:
   assumes a: "Cut <a>.M (x).N \<longrightarrow>\<^sub>a R"
@@ -2246,7 +2246,7 @@ apply(drule nrename_aredu)
 apply(blast)+
 done
 
-text {* helper-stuff to set up the induction *}
+text \<open>helper-stuff to set up the induction\<close>
 
 abbreviation
   SNa_set :: "trm set"
@@ -2359,7 +2359,7 @@ apply(rule sym)
 apply(simp add: alpha fresh_prod fresh_atm)
 done
 
-text {* 3rd lemma *}
+text \<open>3rd lemma\<close>
 
 lemma CUT_SNa_aux:
   assumes a1: "<a>:M \<in> (\<parallel><B>\<parallel>)"
@@ -4927,7 +4927,7 @@ apply(auto)
 done
 
 
-text {* typing relation *}
+text \<open>typing relation\<close>
 
 inductive
    typing :: "ctxtn \<Rightarrow> trm \<Rightarrow> ctxtc \<Rightarrow> bool" ("_ \<turnstile> _ \<turnstile> _" [100,100,100] 100)

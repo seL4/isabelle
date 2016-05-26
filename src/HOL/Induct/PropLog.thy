@@ -14,8 +14,8 @@ text \<open>
   Inductive definition of propositional logic.  Soundness and
   completeness w.r.t.\ truth-tables.
 
-  Prove: If @{text "H |= p"} then @{text "G |= p"} where @{text "G \<in>
-  Fin(H)"}
+  Prove: If \<open>H |= p\<close> then \<open>G |= p\<close> where \<open>G \<in>
+  Fin(H)\<close>
 \<close>
 
 subsection \<open>The datatype of propositions\<close>
@@ -49,8 +49,8 @@ where
 | eval_imp: "tt[[p->q]] = (tt[[p]] --> tt[[q]])"
 
 text \<open>
-  A finite set of hypotheses from @{text t} and the @{text Var}s in
-  @{text p}.
+  A finite set of hypotheses from \<open>t\<close> and the \<open>Var\<close>s in
+  \<open>p\<close>.
 \<close>
 
 primrec hyps :: "['a pl, 'a set] => 'a pl set"
@@ -63,8 +63,8 @@ where
 subsubsection \<open>Logical consequence\<close>
 
 text \<open>
-  For every valuation, if all elements of @{text H} are true then so
-  is @{text p}.
+  For every valuation, if all elements of \<open>H\<close> are true then so
+  is \<open>p\<close>.
 \<close>
 
 definition sat :: "['a pl set, 'a pl] => bool"  (infixl "|=" 50)
@@ -80,14 +80,14 @@ apply (auto intro: thms.intros)
 done
 
 lemma thms_I: "H |- p->p"
-  -- \<open>Called @{text I} for Identity Combinator, not for Introduction.\<close>
+  \<comment> \<open>Called \<open>I\<close> for Identity Combinator, not for Introduction.\<close>
 by (best intro: thms.K thms.S thms.MP)
 
 
 subsubsection \<open>Weakening, left and right\<close>
 
 lemma weaken_left: "[| G \<subseteq> H;  G|-p |] ==> H|-p"
-  -- \<open>Order of premises is convenient with @{text THEN}\<close>
+  \<comment> \<open>Order of premises is convenient with \<open>THEN\<close>\<close>
   by (erule thms_mono [THEN predicate1D])
 
 lemma weaken_left_insert: "G |- p \<Longrightarrow> insert a G |- p"
@@ -146,7 +146,7 @@ apply (metis H MP insert_iff weaken_left_insert)
 done
 
 lemma hyps_thms_if: "hyps p tt |- (if tt[[p]] then p else p->false)"
-  -- \<open>Typical example of strengthening the induction statement.\<close>
+  \<comment> \<open>Typical example of strengthening the induction statement.\<close>
 apply simp
 apply (induct p)
 apply (simp_all add: thms_I thms.H)
@@ -155,8 +155,8 @@ apply (blast intro: weaken_left_Un1 weaken_left_Un2 weaken_right
 done
 
 lemma sat_thms_p: "{} |= p ==> hyps p tt |- p"
-  -- \<open>Key lemma for completeness; yields a set of assumptions
-        satisfying @{text p}\<close>
+  \<comment> \<open>Key lemma for completeness; yields a set of assumptions
+        satisfying \<open>p\<close>\<close>
 unfolding sat_def
 by (metis (full_types) empty_iff hyps_thms_if)
 
@@ -178,7 +178,7 @@ done
 
 lemma thms_excluded_middle_rule:
     "[| insert p H |- q;  insert (p->false) H |- q |] ==> H |- q"
-  -- \<open>Hard to prove directly because it requires cuts\<close>
+  \<comment> \<open>Hard to prove directly because it requires cuts\<close>
 by (rule thms_excluded_middle [THEN thms.MP, THEN thms.MP], auto)
 
 
@@ -200,7 +200,7 @@ text \<open>
 lemma hyps_insert: "hyps p (insert v t) <= insert (#v) (hyps p t-{#v->false})"
 by (induct p) auto
 
-text \<open>Two lemmas for use with @{text weaken_left}\<close>
+text \<open>Two lemmas for use with \<open>weaken_left\<close>\<close>
 
 lemma insert_Diff_same: "B-C <= insert a (B-insert a C)"
 by fast
@@ -234,12 +234,12 @@ lemma completeness_0_lemma:
     "{} |= p ==> \<forall>t. hyps p t - hyps p t0 |- p"
 apply (rule hyps_subset [THEN hyps_finite [THEN finite_subset_induct]])
  apply (simp add: sat_thms_p, safe)
- txt\<open>Case @{text"hyps p t-insert(#v,Y) |- p"}\<close>
+ txt\<open>Case \<open>hyps p t-insert(#v,Y) |- p\<close>\<close>
  apply (iprover intro: thms_excluded_middle_rule
                      insert_Diff_same [THEN weaken_left]
                      insert_Diff_subset2 [THEN weaken_left]
                      hyps_Diff [THEN Diff_weaken_left])
-txt\<open>Case @{text"hyps p t-insert(#v -> false,Y) |- p"}\<close>
+txt\<open>Case \<open>hyps p t-insert(#v -> false,Y) |- p\<close>\<close>
  apply (iprover intro: thms_excluded_middle_rule
                      insert_Diff_same [THEN weaken_left]
                      insert_Diff_subset2 [THEN weaken_left]

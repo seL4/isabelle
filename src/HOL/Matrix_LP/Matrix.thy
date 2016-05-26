@@ -265,13 +265,13 @@ definition commutative :: "('a \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 
 definition associative :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> bool" where
 "associative f == ! x y z. f (f x y) z = f x (f y z)"
 
-text{*
+text\<open>
 To reason about associativity and commutativity of operations on matrices,
 let's take a step back and look at the general situtation: Assume that we have
 sets $A$ and $B$ with $B \subset A$ and an abstraction $u: A \rightarrow B$. This abstraction has to fulfill $u(b) = b$ for all $b \in B$, but is arbitrary otherwise.
 Each function $f: A \times A \rightarrow A$ now induces a function $f': B \times B \rightarrow B$ by $f' = u \circ f$.
 It is obvious that commutativity of $f$ implies commutativity of $f'$: $f' x y = u (f x y) = u (f y x) = f' y x.$
-*}
+\<close>
 
 lemma combine_infmatrix_commute:
   "commutative f \<Longrightarrow> commutative (combine_infmatrix f)"
@@ -281,14 +281,14 @@ lemma combine_matrix_commute:
 "commutative f \<Longrightarrow> commutative (combine_matrix f)"
 by (simp add: combine_matrix_def commutative_def combine_infmatrix_def)
 
-text{*
+text\<open>
 On the contrary, given an associative function $f$ we cannot expect $f'$ to be associative. A counterexample is given by $A=\ganz$, $B=\{-1, 0, 1\}$,
 as $f$ we take addition on $\ganz$, which is clearly associative. The abstraction is given by  $u(a) = 0$ for $a \notin B$. Then we have
 \[ f' (f' 1 1) -1 = u(f (u (f 1 1)) -1) = u(f (u 2) -1) = u (f 0 -1) = -1, \]
 but on the other hand we have
 \[ f' 1 (f' 1 -1) = u (f 1 (u (f 1 -1))) = u (f 1 0) = 1.\]
 A way out of this problem is to assume that $f(A\times A)\subset A$ holds, and this is what we are going to do:
-*}
+\<close>
 
 lemma nonzero_positions_combine_infmatrix[simp]: "f 0 0 = 0 \<Longrightarrow> nonzero_positions (combine_infmatrix f A B) \<subseteq> (nonzero_positions A) \<union> (nonzero_positions B)"
 by (rule subsetI, simp add: nonzero_positions_def combine_infmatrix_def, auto)
@@ -303,7 +303,7 @@ apply (simp add: matrix_def)
 apply (rule finite_subset[of _ "(nonzero_positions (Rep_matrix A)) \<union> (nonzero_positions (Rep_matrix B))"])
 by (simp_all)
 
-text {* We need the next two lemmas only later, but it is analog to the above one, so we prove them now: *}
+text \<open>We need the next two lemmas only later, but it is analog to the above one, so we prove them now:\<close>
 lemma nonzero_positions_apply_infmatrix[simp]: "f 0 = 0 \<Longrightarrow> nonzero_positions (apply_infmatrix f A) \<subseteq> nonzero_positions A"
 by (rule subsetI, simp add: nonzero_positions_def apply_infmatrix_def, auto)
 

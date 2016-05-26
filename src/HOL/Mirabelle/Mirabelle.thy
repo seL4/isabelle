@@ -9,13 +9,13 @@ begin
 ML_file "Tools/mirabelle.ML"
 ML_file "../TPTP/sledgehammer_tactics.ML"
 
-ML {* Toplevel.add_hook Mirabelle.step_hook *}
+ML \<open>Toplevel.add_hook Mirabelle.step_hook\<close>
 
-ML {*
+ML \<open>
 signature MIRABELLE_ACTION =
 sig
   val invoke : (string * string) list -> theory -> theory
 end
-*}
+\<close>
 
 end

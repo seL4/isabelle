@@ -2,10 +2,10 @@ theory Height
   imports "../Nominal"
 begin
 
-text {*  
+text \<open>
   A small problem suggested by D. Wang. It shows how
   the height of a lambda-terms behaves under substitution.
-*}
+\<close>
 
 atom_decl name
 
@@ -14,7 +14,7 @@ nominal_datatype lam =
   | App "lam" "lam"
   | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-text {* Definition of the height-function on lambda-terms. *} 
+text \<open>Definition of the height-function on lambda-terms.\<close> 
 
 nominal_primrec
   height :: "lam \<Rightarrow> int"
@@ -28,7 +28,7 @@ where
   apply(fresh_guess add: perm_int_def)+
   done
 
-text {* Definition of capture-avoiding substitution. *}
+text \<open>Definition of capture-avoiding substitution.\<close>
 
 nominal_primrec
   subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
@@ -42,16 +42,16 @@ apply(simp add: abs_fresh)
 apply(fresh_guess)+
 done
 
-text{* The next lemma is needed in the Var-case of the theorem below. *}
+text\<open>The next lemma is needed in the Var-case of the theorem below.\<close>
 
 lemma height_ge_one: 
   shows "1 \<le> (height e)"
 by (nominal_induct e rule: lam.strong_induct) (simp_all)
 
-text {* 
+text \<open>
   Unlike the proplem suggested by Wang, however, the 
   theorem is here formulated entirely by using functions. 
-*}
+\<close>
 
 theorem height_subst:
   shows "height (e[x::=e']) \<le> ((height e) - 1) + (height e')"

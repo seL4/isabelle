@@ -507,7 +507,7 @@ lemma (in weak_partial_order) sup_of_singleton_closed [simp]:
   unfolding sup_def
   by (rule someI2) (auto intro: sup_of_singletonI)
 
-text \<open>Condition on @{text A}: supremum exists.\<close>
+text \<open>Condition on \<open>A\<close>: supremum exists.\<close>
 
 lemma (in weak_upper_semilattice) sup_insertI:
   "[| !!s. least L s (Upper L (insert x A)) ==> P s;
@@ -638,7 +638,7 @@ lemma (in weak_upper_semilattice) weak_join_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "x \<squnion> (y \<squnion> z) .= \<Squnion>{x, y, z}"
 proof (rule finite_sup_insertI)
-  -- \<open>The textbook argument in Jacobson I, p 457\<close>
+  \<comment> \<open>The textbook argument in Jacobson I, p 457\<close>
   fix s
   assume sup: "least L s (Upper L {x, y, z})"
   show "x \<squnion> (y \<squnion> z) .= s"
@@ -652,7 +652,7 @@ proof (rule finite_sup_insertI)
   qed (simp_all add: L least_closed [OF sup])
 qed (simp_all add: L)
 
-text \<open>Commutativity holds for @{text "="}.\<close>
+text \<open>Commutativity holds for \<open>=\<close>.\<close>
 
 lemma join_comm:
   fixes L (structure)
@@ -747,7 +747,7 @@ lemma (in weak_partial_order) inf_of_singleton_closed:
   unfolding inf_def
   by (rule someI2) (auto intro: inf_of_singletonI)
 
-text \<open>Condition on @{text A}: infimum exists.\<close>
+text \<open>Condition on \<open>A\<close>: infimum exists.\<close>
 
 lemma (in weak_lower_semilattice) inf_insertI:
   "[| !!i. greatest L i (Lower L (insert x A)) ==> P i;
@@ -1090,7 +1090,7 @@ qed
 (* TODO: prove dual version *)
 
 
-subsection \<open>Orders and Lattices where @{text eq} is the Equality\<close>
+subsection \<open>Orders and Lattices where \<open>eq\<close> is the Equality\<close>
 
 locale partial_order = weak_partial_order +
   assumes eq_is_equal: "op .= = op ="
@@ -1172,7 +1172,7 @@ lemma (in partial_order) inf_of_singleton [simp]:
   "x \<in> carrier L ==> \<Sqinter>{x} = x"
   using weak_inf_of_singleton unfolding eq_is_equal .
 
-text \<open>Condition on @{text A}: infimum exists.\<close>
+text \<open>Condition on \<open>A\<close>: infimum exists.\<close>
 
 lemma (in lower_semilattice) meet_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"

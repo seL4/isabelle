@@ -1648,7 +1648,7 @@ proof -
       using sums_If_finite[of "\<lambda>r. r < f x" "\<lambda>_. 1 :: ennreal"]
       by (cases "f x") (simp_all add: sums_def of_nat_tendsto_top_ennreal)
     also have "(\<lambda>i. (if i < f x then 1 else 0)) = (\<lambda>i. indicator (F i) x)"
-      using `x \<in> space M` by (simp add: one_ennreal_def F_def fun_eq_iff)
+      using \<open>x \<in> space M\<close> by (simp add: one_ennreal_def F_def fun_eq_iff)
     finally have "ennreal_of_enat (f x) = (\<Sum>i. indicator (F i) x)"
       by (simp add: sums_iff) }
   then have "(\<integral>\<^sup>+x. ennreal_of_enat (f x) \<partial>M) = (\<integral>\<^sup>+x. (\<Sum>i. indicator (F i) x) \<partial>M)"

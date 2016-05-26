@@ -85,7 +85,7 @@ by (auto simp add: r_coset_def m_assoc [symmetric]
 
 lemma (in group) coset_join2:
      "\<lbrakk>x \<in> carrier G;  subgroup H G;  x\<in>H\<rbrakk> \<Longrightarrow> H #> x = H"
-  --\<open>Alternative proof is to put @{term "x=\<one>"} in @{text repr_independence}.\<close>
+  \<comment>\<open>Alternative proof is to put @{term "x=\<one>"} in \<open>repr_independence\<close>.\<close>
 by (force simp add: subgroup.m_closed r_coset_def solve_equation)
 
 lemma (in monoid) r_coset_subset_G:
@@ -171,7 +171,7 @@ proof -
   qed
 qed
 
-text \<open>Step one for lemma @{text "rcos_module"}\<close>
+text \<open>Step one for lemma \<open>rcos_module\<close>\<close>
 lemma (in subgroup) rcos_module_imp:
   assumes "group G"
   assumes xcarr: "x \<in> carrier G"
@@ -211,7 +211,7 @@ proof -
       show "x' \<otimes> (inv x) \<in> H" by simp
 qed
 
-text \<open>Step two for lemma @{text "rcos_module"}\<close>
+text \<open>Step two for lemma \<open>rcos_module\<close>\<close>
 lemma (in subgroup) rcos_module_rev:
   assumes "group G"
   assumes carr: "x \<in> carrier G" "x' \<in> carrier G"
@@ -524,7 +524,7 @@ apply (auto simp add: subgroup.one_closed subgroup.subset [THEN subsetD])
 done
 
 
-subsubsection \<open>Set of Inverses of an @{text r_coset}.\<close>
+subsubsection \<open>Set of Inverses of an \<open>r_coset\<close>.\<close>
 
 lemma (in normal) rcos_inv:
   assumes x:     "x \<in> carrier G"
@@ -549,7 +549,7 @@ proof (simp add: r_coset_def SET_INV_def x inv_mult_group, safe)
 qed
 
 
-subsubsection \<open>Theorems for @{text "<#>"} with @{text "#>"} or @{text "<#"}.\<close>
+subsubsection \<open>Theorems for \<open><#>\<close> with \<open>#>\<close> or \<open><#\<close>.\<close>
 
 lemma (in group) setmult_rcos_assoc:
      "\<lbrakk>H \<subseteq> carrier G; K \<subseteq> carrier G; x \<in> carrier G\<rbrakk>
@@ -584,7 +584,7 @@ lemma (in normal) rcos_sum:
 by (simp add: rcos_mult_step1 rcos_mult_step2 rcos_mult_step3)
 
 lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M = M"
-  -- \<open>generalizes @{text subgroup_mult_id}\<close>
+  \<comment> \<open>generalizes \<open>subgroup_mult_id\<close>\<close>
   by (auto simp add: RCOSETS_def subset
         setmult_rcos_assoc subgroup_mult_id normal.axioms normal_axioms)
 
@@ -628,7 +628,7 @@ proof -
   qed
 qed
 
-text\<open>Equivalence classes of @{text rcong} correspond to left cosets.
+text\<open>Equivalence classes of \<open>rcong\<close> correspond to left cosets.
   Was there a mistake in the definitions? I'd have expected them to
   correspond to right cosets.\<close>
 
@@ -679,7 +679,7 @@ proof -
 qed
 
 
-subsection \<open>Further lemmas for @{text "r_congruent"}\<close>
+subsection \<open>Further lemmas for \<open>r_congruent\<close>\<close>
 
 text \<open>The relation is a congruence\<close>
 
@@ -780,7 +780,7 @@ apply (auto simp add: RCOSETS_def)
 apply (simp add: r_coset_subset_G [THEN finite_subset])
 done
 
-text\<open>The next two lemmas support the proof of @{text card_cosets_equal}.\<close>
+text\<open>The next two lemmas support the proof of \<open>card_cosets_equal\<close>.\<close>
 lemma (in group) inj_on_f:
     "\<lbrakk>H \<subseteq> carrier G;  a \<in> carrier G\<rbrakk> \<Longrightarrow> inj_on (\<lambda>y. y \<otimes> inv a) (H #> a)"
 apply (rule inj_onI)
@@ -831,7 +831,7 @@ subsection \<open>Quotient Groups: Factorization of a Group\<close>
 
 definition
   FactGroup :: "[('a,'b) monoid_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "Mod" 65)
-    --\<open>Actually defined for groups rather than monoids\<close>
+    \<comment>\<open>Actually defined for groups rather than monoids\<close>
    where "FactGroup G H = \<lparr>carrier = rcosets\<^bsub>G\<^esub> H, mult = set_mult G, one = H\<rparr>"
 
 lemma (in normal) setmult_closed:
@@ -897,7 +897,7 @@ text\<open>The quotient by the kernel of a homomorphism is isomorphic to the
 
 definition
   kernel :: "('a, 'm) monoid_scheme \<Rightarrow> ('b, 'n) monoid_scheme \<Rightarrow>  ('a \<Rightarrow> 'b) \<Rightarrow> 'a set"
-    --\<open>the kernel of a homomorphism\<close>
+    \<comment>\<open>the kernel of a homomorphism\<close>
   where "kernel G H h = {x. x \<in> carrier G & h x = \<one>\<^bsub>H\<^esub>}"
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel G H h) G"

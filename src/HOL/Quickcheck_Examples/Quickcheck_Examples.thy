@@ -3,13 +3,13 @@
     Copyright   2004 - 2010 TU Muenchen
 *)
 
-section {* Examples for the 'quickcheck' command *}
+section \<open>Examples for the 'quickcheck' command\<close>
 
 theory Quickcheck_Examples
 imports Complex_Main "~~/src/HOL/Library/Dlist" "~~/src/HOL/Library/DAList_Multiset"
 begin
 
-text {*
+text \<open>
 The 'quickcheck' command allows to find counterexamples by evaluating
 formulae.
 Currently, there are two different exploration schemes:
@@ -19,11 +19,11 @@ Currently, there are two different exploration schemes:
 
 quickcheck can handle quantifiers on finite universes.
 
-*}
+\<close>
 
 declare [[quickcheck_timeout = 3600]]
 
-subsection {* Lists *}
+subsection \<open>Lists\<close>
 
 theorem "map g (map f xs) = map (g o f) xs"
   quickcheck[random, expect = no_counterexample]
@@ -61,7 +61,7 @@ theorem "rev xs = xs"
 oops
 
 
-text {* An example involving functions inside other data structures *}
+text \<open>An example involving functions inside other data structures\<close>
 
 primrec app :: "('a \<Rightarrow> 'a) list \<Rightarrow> 'a \<Rightarrow> 'a" where
   "app [] x = x"
@@ -85,9 +85,9 @@ primrec del1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "del1 a [] = []"
   | "del1 a (x#xs) = (if (x=a) then xs else (x#del1 a xs))"
 
-text {* A lemma, you'd think to be true from our experience with delAll *}
+text \<open>A lemma, you'd think to be true from our experience with delAll\<close>
 lemma "Suc (occurs a (del1 a xs)) = occurs a xs"
-  -- {* Wrong. Precondition needed.*}
+  \<comment> \<open>Wrong. Precondition needed.\<close>
   quickcheck[random, expect = counterexample]
   quickcheck[exhaustive, expect = counterexample]
   oops
@@ -95,7 +95,7 @@ lemma "Suc (occurs a (del1 a xs)) = occurs a xs"
 lemma "xs ~= [] \<longrightarrow> Suc (occurs a (del1 a xs)) = occurs a xs"
   quickcheck[random, expect = counterexample]
   quickcheck[exhaustive, expect = counterexample]
-    -- {* Also wrong.*}
+    \<comment> \<open>Also wrong.\<close>
   oops
 
 lemma "0 < occurs a xs \<longrightarrow> Suc (occurs a (del1 a xs)) = occurs a xs"
@@ -111,7 +111,7 @@ primrec replace :: "'a \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a l
 lemma "occurs a xs = occurs b (replace a b xs)"
   quickcheck[random, expect = counterexample]
   quickcheck[exhaustive, expect = counterexample]
-  -- {* Wrong. Precondition needed.*}
+  \<comment> \<open>Wrong. Precondition needed.\<close>
   oops
 
 lemma "occurs b xs = 0 \<or> a=b \<longrightarrow> occurs a xs = occurs b (replace a b xs)"
@@ -120,7 +120,7 @@ lemma "occurs b xs = 0 \<or> a=b \<longrightarrow> occurs a xs = occurs b (repla
   by (induct xs) simp_all
 
 
-subsection {* Trees *}
+subsection \<open>Trees\<close>
 
 datatype 'a tree = Twig |  Leaf 'a | Branch "'a tree" "'a tree"
 
@@ -141,13 +141,13 @@ primrec mirror :: "'a tree \<Rightarrow> 'a tree" where
 theorem "plant (rev (leaves xt)) = mirror xt"
   quickcheck[random, expect = counterexample]
   quickcheck[exhaustive, expect = counterexample]
-    --{* Wrong! *} 
+    \<comment>\<open>Wrong!\<close> 
   oops
 
 theorem "plant((leaves xt) @ (leaves yt)) = Branch xt yt"
   quickcheck[random, expect = counterexample]
   quickcheck[exhaustive, expect = counterexample]
-    --{* Wrong! *} 
+    \<comment>\<open>Wrong!\<close> 
   oops
 
 datatype 'a ntree = Tip "'a" | Node "'a" "'a ntree" "'a ntree"
@@ -163,14 +163,14 @@ primrec root :: "'a ntree \<Rightarrow> 'a" where
 theorem "hd (inOrder xt) = root xt"
   quickcheck[random, expect = counterexample]
   quickcheck[exhaustive, expect = counterexample]
-  --{* Wrong! *} 
+  \<comment>\<open>Wrong!\<close> 
   oops
 
 
-subsection {* Exhaustive Testing beats Random Testing *}
+subsection \<open>Exhaustive Testing beats Random Testing\<close>
 
-text {* Here are some examples from mutants from the List theory
-where exhaustive testing beats random testing *}
+text \<open>Here are some examples from mutants from the List theory
+where exhaustive testing beats random testing\<close>
 
 lemma
   "[] ~= xs ==> hd xs = last (x # xs)"
@@ -245,7 +245,7 @@ quickcheck[random]
 quickcheck[exhaustive, expect = counterexample]
 oops
 
-subsection {* Random Testing beats Exhaustive Testing *}
+subsection \<open>Random Testing beats Exhaustive Testing\<close>
 
 lemma mult_inj_if_coprime_nat:
   "inj_on f A \<Longrightarrow> inj_on g B
@@ -254,11 +254,11 @@ quickcheck[exhaustive]
 quickcheck[random]
 oops
 
-subsection {* Examples with quantifiers *}
+subsection \<open>Examples with quantifiers\<close>
 
-text {*
+text \<open>
   These examples show that we can handle quantifiers.
-*}
+\<close>
 
 lemma "(\<exists>x. P x) \<longrightarrow> (\<forall>x. P x)"
   quickcheck[random, expect = counterexample]
@@ -276,7 +276,7 @@ lemma "(\<exists>x. P x) \<longrightarrow> (EX! x. P x)"
 oops
 
 
-subsection {* Examples with sets *}
+subsection \<open>Examples with sets\<close>
 
 lemma
   "{} = A Un - A"
@@ -289,7 +289,7 @@ quickcheck[exhaustive, expect = counterexample]
 oops
 
 
-subsection {* Examples with relations *}
+subsection \<open>Examples with relations\<close>
 
 lemma
   "acyclic (R :: ('a * 'a) set) ==> acyclic S ==> acyclic (R Un S)"
@@ -323,7 +323,7 @@ quickcheck[exhaustive, expect = counterexample]
 oops
 
 
-subsection {* Examples with the descriptive operator *}
+subsection \<open>Examples with the descriptive operator\<close>
 
 lemma
   "(THE x. x = a) = b"
@@ -331,7 +331,7 @@ quickcheck[random, expect = counterexample]
 quickcheck[exhaustive, expect = counterexample]
 oops
 
-subsection {* Examples with Multisets *}
+subsection \<open>Examples with Multisets\<close>
 
 lemma
   "X + Y = Y + (Z :: 'a multiset)"
@@ -351,11 +351,11 @@ quickcheck[random, expect = counterexample]
 quickcheck[exhaustive, expect = counterexample]
 oops
 
-subsection {* Examples with numerical types *}
+subsection \<open>Examples with numerical types\<close>
 
-text {*
+text \<open>
 Quickcheck supports the common types nat, int, rat and real.
-*}
+\<close>
 
 lemma
   "(x :: nat) > 0 ==> y > 0 ==> z > 0 ==> x * x + y * y \<noteq> z * z"
@@ -391,7 +391,7 @@ quickcheck[random, expect = counterexample]
 quickcheck[exhaustive, expect = counterexample]
 oops
 
-subsubsection {* floor and ceiling functions *}
+subsubsection \<open>floor and ceiling functions\<close>
 
 lemma "\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor> = \<lfloor>x + y :: rat\<rfloor>"
 quickcheck[expect = counterexample]
@@ -409,7 +409,7 @@ lemma "\<lceil>x\<rceil> + \<lceil>y\<rceil> = \<lceil>x + y :: real\<rceil>"
 quickcheck[expect = counterexample]
 oops
 
-subsection {* Examples with abstract types *}
+subsection \<open>Examples with abstract types\<close>
 
 lemma
   "Dlist.length (Dlist.remove x xs) = Dlist.length xs - 1"
@@ -423,7 +423,7 @@ quickcheck[exhaustive]
 quickcheck[random]
 oops
 
-subsection {* Examples with Records *}
+subsection \<open>Examples with Records\<close>
 
 record point =
   xpos :: nat
@@ -446,7 +446,7 @@ quickcheck[exhaustive, expect = counterexample]
 quickcheck[random, expect = counterexample]
 oops
 
-subsection {* Examples with locales *}
+subsection \<open>Examples with locales\<close>
 
 locale Truth
 
@@ -499,7 +499,7 @@ quickcheck[exhaustive, expect = counterexample]
 oops
 
 
-subsection {* Examples with HOL quantifiers *}
+subsection \<open>Examples with HOL quantifiers\<close>
 
 lemma
   "\<forall> xs ys. xs = [] --> xs = ys"
@@ -516,7 +516,7 @@ lemma
 quickcheck[exhaustive, expect = counterexample]
 oops
 
-subsection {* Examples with underspecified/partial functions *}
+subsection \<open>Examples with underspecified/partial functions\<close>
 
 lemma
   "xs = [] ==> hd xs \<noteq> x"
@@ -538,7 +538,7 @@ quickcheck[random, report = false, expect = no_counterexample]
 quickcheck[random, report = true, expect = no_counterexample]
 oops
 
-text {* with the simple testing scheme *}
+text \<open>with the simple testing scheme\<close>
 
 setup Exhaustive_Generators.setup_exhaustive_datatype_interpretation
 declare [[quickcheck_full_support = false]]
@@ -560,7 +560,7 @@ oops
 declare [[quickcheck_full_support = true]]
 
 
-subsection {* Equality Optimisation *}
+subsection \<open>Equality Optimisation\<close>
 
 lemma
   "f x = y ==> y = (0 :: nat)"
