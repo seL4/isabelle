@@ -80,9 +80,10 @@ val trace = Attrib.setup_config_bool @{binding "code_runtime_trace"} (K false);
 
 fun compile_ML verbose code context =
  (if Config.get_generic context trace then tracing code else ();
-  ML_Context.exec (fn () => ML_Compiler0.ML ML_Env.context
+  Code_Preproc.timed "compiling ML" Context.proof_of
+    (ML_Context.exec (fn () => ML_Compiler0.ML ML_Env.context
     {line = 0, file = "generated code", verbose = verbose,
-       debug = false} code) context);
+       debug = false} code)) context);
 
 fun value ctxt (get, put, put_ml) (prelude, value) =
   let
@@ -92,7 +93,8 @@ fun value ctxt (get, put, put_ml) (prelude, value) =
     val ctxt' = ctxt
       |> put (fn () => error ("Bad computation for " ^ quote put_ml))
       |> Context.proof_map (compile_ML false code);
-  in get ctxt' () end;
+    val computator = get ctxt';
+  in Code_Preproc.timed_exec "running ML" computator ctxt' end;
 
 
 (* computation as evaluation into ML language values *)
@@ -300,7 +302,10 @@ fun compile_computation cookie ctxt cs_code cTs T { program, deps } =
     val ml_name_for_const = the o AList.lookup (op =) const_map;
     val (ml_names, of_term_code) = print_of_term ctxt ml_name_for_const T cTs
     val of_term = value ctxt cookie (context_code ^ "\n" ^ of_term_code, List.last ml_names);
-  in fn ctxt' => fn t => fn _ => fn _ => Exn.interruptible_capture (of_term ctxt') t end;
+  in
+    Code_Preproc.timed_value "computing" 
+      (fn ctxt' => fn t => fn _ => fn _ => Exn.interruptible_capture (of_term ctxt') t)
+  end;
 
 fun fully_static_value_exn cookie { ctxt, lift_postproc, consts, T } =
   let

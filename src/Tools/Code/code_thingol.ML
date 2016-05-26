@@ -786,15 +786,17 @@ fun invoke_generation ignore_cache ctxt generate thing =
 
 (* program generation *)
 
-fun invoke_generation_for_consts ctxt { ignore_cache, permissive }
-  { algebra, eqngr } consts =
-  invoke_generation ignore_cache ctxt
-    (fold_map (ensure_const ctxt algebra eqngr permissive)) consts;
+fun invoke_generation_for_consts ctxt { ignore_cache, permissive } { algebra, eqngr } consts =
+  Code_Preproc.timed "translating program" #ctxt
+  (fn { ctxt, algebra, eqngr, consts } => invoke_generation ignore_cache ctxt
+    (fold_map (ensure_const ctxt algebra eqngr permissive)) consts)
+    { ctxt = ctxt, algebra = algebra, eqngr = eqngr, consts = consts };
 
 fun invoke_generation_for_consts' ctxt ignore_cache_and_permissive consts =
   invoke_generation_for_consts ctxt
     { ignore_cache = ignore_cache_and_permissive, permissive = ignore_cache_and_permissive }
-    (Code_Preproc.obtain ignore_cache_and_permissive ctxt consts []) consts
+    (Code_Preproc.obtain ignore_cache_and_permissive
+      { ctxt = ctxt, consts = consts, terms = []}) consts
   |> snd;
 
 fun invoke_generation_for_consts'' ctxt algebra_eqngr =
@@ -850,7 +852,10 @@ fun ensure_value ctxt algbr eqngr t =
 fun dynamic_evaluation eval ctxt algebra eqngr t =
   let
     val ((program, (vs_ty_t', deps)), _) =
-      invoke_generation false ctxt (ensure_value ctxt algebra eqngr) t;
+      Code_Preproc.timed "translating term" #ctxt
+      (fn { ctxt, algebra, eqngr, t } =>
+        invoke_generation false ctxt (ensure_value ctxt algebra eqngr) t)
+        { ctxt = ctxt, algebra = algebra, eqngr = eqngr, t = t };
   in eval program t vs_ty_t' deps end;
 
 fun dynamic_conv ctxt conv =
@@ -869,7 +874,10 @@ fun static_evaluation_thingol ctxt consts (algebra_eqngr as { algebra, eqngr }) 
     fun evaluation program dynamic_eval ctxt t =
       let
         val ((_, ((vs_ty', t'), deps)), _) =
-          ensure_value ctxt algebra eqngr t ([], program);
+          Code_Preproc.timed "translating term" #ctxt
+          (fn { ctxt, t } =>
+            ensure_value ctxt algebra eqngr t ([], program))
+            { ctxt = ctxt, t = t };
       in dynamic_eval ctxt t (vs_ty', t') deps end;
   in
     static_evaluation ctxt consts algebra_eqngr (fn program_deps =>
@@ -935,7 +943,8 @@ fun read_const_exprs ctxt const_exprs =
 
 fun code_depgr ctxt consts =
   let
-    val { eqngr, ... } = Code_Preproc.obtain true ctxt consts [];
+    val { eqngr, ... } = Code_Preproc.obtain true
+      { ctxt = ctxt, consts = consts, terms = [] };
     val all_consts = Graph.all_succs eqngr consts;
   in Graph.restrict (member (op =) all_consts) eqngr end;
 

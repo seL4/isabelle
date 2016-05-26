@@ -343,7 +343,10 @@ fun invoke_serializer ctxt target_name some_width raw_module_name args program a
       else (check_name true raw_module_name; raw_module_name)
     val (mounted_serializer, (prepared_syms, prepared_program)) =
       mount_serializer ctxt target_name some_width module_name args program syms;
-  in mounted_serializer prepared_program (if all_public then [] else prepared_syms) end;
+  in
+    Code_Preproc.timed_exec "serializing"
+      (fn () => mounted_serializer prepared_program (if all_public then [] else prepared_syms)) ctxt
+  end;
 
 fun assert_module_name "" = error "Empty module name not allowed here"
   | assert_module_name module_name = module_name;
@@ -417,7 +420,10 @@ fun computation_text ctxt target_name program syms =
   let
     val (mounted_serializer, (_, prepared_program)) =
       mount_serializer ctxt target_name NONE generatedN [] program syms;
-  in dynamic_computation_text mounted_serializer prepared_program syms end;
+  in
+    Code_Preproc.timed_exec "serializing"
+    (fn () => dynamic_computation_text mounted_serializer prepared_program syms) ctxt
+  end;
 
 end; (* local *)
 

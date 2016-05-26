@@ -30,9 +30,11 @@ structure Simpset = Theory_Data
   val merge = merge_ss;
 );
 
-fun map_ss f thy = Simpset.map (simpset_map (Proof_Context.init_global thy) f) thy;
+fun map_ss f thy =
+  Simpset.map (simpset_map (Proof_Context.init_global thy) f) thy;
 
-fun simpset_default ctxt some_ss = the_default (Simpset.get (Proof_Context.theory_of ctxt)) some_ss;
+fun simpset_default ctxt some_ss =
+  the_default (Simpset.get (Proof_Context.theory_of ctxt)) some_ss;
 
 
 (* diagnostic *)
@@ -60,13 +62,18 @@ fun add_stmt (Code_Thingol.Fun ((_, eqs), some_cong)) ss =
 
 val add_program = Code_Symbol.Graph.fold (add_stmt o fst o snd);
 
-fun simpset_program ctxt some_ss program =
-  simpset_map ctxt (add_program program) (simpset_default ctxt some_ss);
+val simpset_program =
+  Code_Preproc.timed "building simpset" #ctxt
+  (fn { ctxt, some_ss, program } => simpset_map ctxt (add_program program) (simpset_default ctxt some_ss));
 
 fun rewrite_modulo ctxt some_ss program =
   let
-    val ss = simpset_program ctxt some_ss program;
-  in fn ctxt => Simplifier.full_rewrite (ctxt |> put_simpset ss |> set_trace) end;
+    val ss = simpset_program
+      { ctxt = ctxt, some_ss = some_ss, program = program };
+  in fn ctxt => 
+    Code_Preproc.timed_conv "simplifying"
+      Simplifier.full_rewrite (ctxt |> put_simpset ss |> set_trace)
+  end;
 
 fun conclude_tac ctxt some_ss =
   let
@@ -95,7 +102,9 @@ val _ = Theory.setup
 
 fun static_conv { ctxt, simpset, consts } =
   Code_Thingol.static_conv_isa { ctxt = ctxt, consts = consts }
-    (fn program => K o rewrite_modulo ctxt simpset program);
+    (fn program => let
+       val conv = rewrite_modulo ctxt simpset program
+     in fn ctxt => fn _ => conv ctxt end);
 
 fun static_tac { ctxt, simpset, consts } =
   let

@@ -8,8 +8,10 @@ signature NBE =
 sig
   val dynamic_conv: Proof.context -> conv
   val dynamic_value: Proof.context -> term -> term
-  val static_conv: { ctxt: Proof.context, consts: string list } -> Proof.context -> conv
-  val static_value: { ctxt: Proof.context, consts: string list } -> Proof.context -> term -> term
+  val static_conv: { ctxt: Proof.context, consts: string list }
+    -> Proof.context -> conv
+  val static_value: { ctxt: Proof.context, consts: string list }
+    -> Proof.context -> term -> term
 
   datatype Univ =
       Const of int * Univ list               (*named (uninterpreted) constants*)
@@ -21,7 +23,8 @@ sig
                                              (*abstractions as closures*)
   val same: Univ * Univ -> bool
 
-  val put_result: (unit -> Univ list -> Univ list) -> Proof.context -> Proof.context
+  val put_result: (unit -> Univ list -> Univ list)
+    -> Proof.context -> Proof.context
   val trace: bool Config.T
 
   val add_const_alias: thm -> theory -> theory
@@ -477,7 +480,7 @@ fun compile_stmts ctxt stmts_deps =
       #-> fold (fn (name, univ) => (Code_Symbol.Graph.map_node name o apfst) (K (SOME univ))))
   end;
 
-fun compile_program ctxt program =
+fun compile_program { ctxt, program } =
   let
     fun add_stmts names (nbe_program, (maxidx, idx_tab)) = if exists ((can o Code_Symbol.Graph.get_node) nbe_program) names
       then (nbe_program, (maxidx, idx_tab))
@@ -554,7 +557,7 @@ fun normalize_term (nbe_program, idx_tab) raw_ctxt t_original ((vs, ty) : typsch
       if null (Term.add_tvars t' []) then t'
       else error ("Illegal schematic type variables in normalized term: " ^ string_of_term t');
   in
-    compile_and_reconstruct_term
+    Code_Preproc.timed "computing NBE expression" #ctxt compile_and_reconstruct_term
       { ctxt = ctxt, nbe_program = nbe_program, idx_tab = idx_tab, deps = deps, term = (vs, t) }
     |> traced ctxt (fn t => "Normalized:\n" ^ string_of_term t)
     |> type_infer
@@ -576,7 +579,8 @@ fun compile ignore_cache ctxt program =
   let
     val (nbe_program, (_, idx_tab)) =
       Nbe_Functions.change (if ignore_cache then NONE else SOME (Proof_Context.theory_of ctxt))
-        (compile_program ctxt program);
+        (Code_Preproc.timed "compiling NBE program" #ctxt
+          compile_program { ctxt = ctxt, program = program });
   in (nbe_program, idx_tab) end;
 
 
@@ -608,13 +612,13 @@ fun dynamic_value ctxt = lift_triv_classes_rew ctxt
 fun static_conv (ctxt_consts as { ctxt, ... }) =
   let
     val conv = Code_Thingol.static_conv_thingol ctxt_consts
-      (fn { program, ... } => oracle (compile true ctxt program));
+      (fn { program, deps = _ } => oracle (compile true ctxt program));
   in fn ctxt' => lift_triv_classes_conv ctxt' conv end;
 
 fun static_value { ctxt, consts } =
   let
     val comp = Code_Thingol.static_value { ctxt = ctxt, lift_postproc = I, consts = consts }
-      (fn { program, ... } => normalize_term (compile false ctxt program));
+      (fn { program, deps = _ } => normalize_term (compile false ctxt program));
   in fn ctxt' => lift_triv_classes_rew ctxt' (comp ctxt') end;
 
 end;

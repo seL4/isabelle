@@ -21,7 +21,7 @@ sig
   val sortargs: code_graph -> string -> sort list
   val all: code_graph -> string list
   val pretty: Proof.context -> code_graph -> Pretty.T
-  val obtain: bool -> Proof.context -> string list -> term list ->
+  val obtain: bool -> { ctxt: Proof.context, consts: string list, terms: term list } ->
     { algebra: code_algebra, eqngr: code_graph }
   val dynamic_conv: Proof.context
     -> (code_algebra -> code_graph -> term -> conv) -> conv
@@ -38,10 +38,40 @@ sig
   val trace_all: Context.generic -> Context.generic
   val trace_only: string list -> Context.generic -> Context.generic
   val trace_only_ext: string list -> Context.generic -> Context.generic
+
+  val timing: bool Config.T
+  val timed: string -> ('a -> Proof.context) -> ('a -> 'b) -> 'a -> 'b
+  val timed_exec: string -> (unit -> 'a) -> Proof.context -> 'a
+  val timed_conv: string -> (Proof.context -> conv) -> Proof.context -> conv
+  val timed_value: string -> (Proof.context -> term -> 'a) -> Proof.context -> term -> 'a
 end
 
 structure Code_Preproc : CODE_PREPROC =
 struct
+
+(** timing **)
+
+val timing = Attrib.setup_config_bool @{binding code_timing} (K false);
+
+fun timed msg ctxt_of f x =
+  if Config.get (ctxt_of x) timing
+  then timeap_msg msg f x
+  else f x;
+
+fun timed_exec msg f ctxt =
+  if Config.get ctxt timing
+  then timeap_msg msg f ()
+  else f ();
+
+fun timed' msg f ctxt x =
+  if Config.get ctxt timing
+  then timeap_msg msg (f ctxt) x
+  else f ctxt x;
+
+val timed_conv = timed';
+val timed_value = timed';
+
+
 
 (** preprocessor administration **)
 
@@ -212,7 +242,10 @@ fun simplifier_conv_sandwich ctxt =
     fun post_conv ctxt'' =
       Axclass.overload_conv ctxt''
       #> trans_conv_rule (Simplifier.rewrite (put_simpset post ctxt''))
-  in fn ctxt' => pre_conv ctxt' #> pair post_conv end;
+  in
+    fn ctxt' => timed_conv "preprocessing term" pre_conv ctxt'
+      #> pair (timed_conv "postprocessing term" post_conv)
+  end;
 
 fun simplifier_sandwich ctxt =
   Sandwich.lift (simplifier_conv_sandwich ctxt);
@@ -550,20 +583,22 @@ structure Wellsorted = Code_Data
   * "evaluation" is a lifting of an evaluator
 *)
 
-fun obtain ignore_cache ctxt consts ts = apsnd snd
-  (Wellsorted.change_yield (if ignore_cache then NONE else SOME (Proof_Context.theory_of ctxt))
-    (extend_arities_eqngr ctxt consts ts))
-  |> (fn (algebra, eqngr) => { algebra = algebra, eqngr = eqngr });
+fun obtain ignore_cache =
+  timed "preprocessing equations" #ctxt (fn { ctxt, consts, terms } =>
+    apsnd snd (Wellsorted.change_yield
+    (if ignore_cache then NONE else SOME (Proof_Context.theory_of ctxt))
+    (extend_arities_eqngr ctxt consts terms)))
+  #> (fn (algebra, eqngr) => { algebra = algebra, eqngr = eqngr });
 
 fun dynamic_evaluation eval ctxt t =
   let
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t [];
-    val { algebra, eqngr } = obtain false ctxt consts [t];
+    val { algebra, eqngr } = obtain false { ctxt = ctxt, consts = consts, terms = [t] };
   in eval algebra eqngr t end;
 
 fun static_evaluation ctxt consts eval =
-  eval (obtain true ctxt consts []);
+  eval (obtain true { ctxt = ctxt, consts = consts, terms = [] });
 
 fun dynamic_conv ctxt conv =
   Sandwich.conversion (value_sandwich ctxt)
