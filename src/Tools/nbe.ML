@@ -392,7 +392,7 @@ fun assemble_eqnss ctxt idx_of deps eqnss =
   in ml_abs deps_vars (ml_Let (ml_fundefs (flat fun_vars)) (ml_list fun_vals)) end;
 
 
-(* compile equations *)
+(* compilation of equations *)
 
 fun compile_eqnss ctxt nbe_program raw_deps [] = []
   | compile_eqnss ctxt nbe_program raw_deps eqnss =
@@ -415,7 +415,7 @@ fun compile_eqnss ctxt nbe_program raw_deps [] = []
       end;
 
 
-(* extract equations from statements *)
+(* extraction of equations from statements *)
 
 fun dummy_const sym dss =
   IConst { sym = sym, typargs = [], dicts = dss,
@@ -450,7 +450,7 @@ fun eqns_of_stmt (_, Code_Thingol.NoStmt) =
         @ map (IConst o fst o snd o fst) inst_params)]))];
 
 
-(* compile whole programs *)
+(* compilation of whole programs *)
 
 fun ensure_const_idx name (nbe_program, (maxidx, idx_tab)) =
   if can (Code_Symbol.Graph.get_node nbe_program) name
@@ -491,9 +491,9 @@ fun compile_program ctxt program =
 
 (** normalization **)
 
-(* term normalization by compilation *)
+(* compilation and reconstruction of terms *)
 
-fun compile_term ctxt nbe_program deps (vs : (string * sort) list, t) =
+fun compile_term { ctxt, nbe_program, deps, term = (vs, t) } =
   let 
     val dict_frees = maps (fn (v, sort) => map_index (curry DFree v o fst) sort) vs;
   in
@@ -503,10 +503,7 @@ fun compile_term ctxt nbe_program deps (vs : (string * sort) list, t) =
     |> (fn t => apps t (rev dict_frees))
   end;
 
-
-(* reconstruction *)
-
-fun term_of_univ ctxt (idx_tab : Code_Symbol.T Inttab.table) t =
+fun reconstruct_term ctxt (idx_tab : Code_Symbol.T Inttab.table) t =
   let
     fun take_until f [] = []
       | take_until f (x :: xs) = if f x then [] else x :: take_until f xs;
@@ -538,10 +535,12 @@ fun term_of_univ ctxt (idx_tab : Code_Symbol.T Inttab.table) t =
           |-> (fn t' => pair (Term.Abs ("u", dummyT, t')))
   in of_univ 0 t 0 |> fst end;
 
+fun compile_and_reconstruct_term { ctxt, nbe_program, idx_tab, deps, term } =
+  compile_term
+    { ctxt = ctxt, nbe_program = nbe_program, deps = deps, term = term }
+  |> reconstruct_term ctxt idx_tab;
 
-(* normalize with type reconstruction *)
-
-fun normalize (nbe_program, idx_tab) raw_ctxt t_original ((vs, ty) : typscheme, t) deps =
+fun normalize_term (nbe_program, idx_tab) raw_ctxt t_original ((vs, ty) : typscheme, t) deps =
   let
     val ctxt = Syntax.init_pretty_global (Proof_Context.theory_of raw_ctxt);
     val string_of_term = Syntax.string_of_term (Config.put show_types true ctxt);
@@ -555,8 +554,8 @@ fun normalize (nbe_program, idx_tab) raw_ctxt t_original ((vs, ty) : typscheme, 
       if null (Term.add_tvars t' []) then t'
       else error ("Illegal schematic type variables in normalized term: " ^ string_of_term t');
   in
-    compile_term ctxt nbe_program deps (vs, t)
-    |> term_of_univ ctxt idx_tab
+    compile_and_reconstruct_term
+      { ctxt = ctxt, nbe_program = nbe_program, idx_tab = idx_tab, deps = deps, term = (vs, t) }
     |> traced ctxt (fn t => "Normalized:\n" ^ string_of_term t)
     |> type_infer
     |> traced ctxt (fn t => "Types inferred:\n" ^ string_of_term t)
@@ -593,7 +592,7 @@ fun mk_equals ctxt lhs raw_rhs =
 val (_, raw_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding normalization_by_evaluation},
     fn (nbe_program_idx_tab, ctxt, vs_ty_t, deps, ct) =>
-      mk_equals ctxt ct (normalize nbe_program_idx_tab ctxt (Thm.term_of ct) vs_ty_t deps))));
+      mk_equals ctxt ct (normalize_term nbe_program_idx_tab ctxt (Thm.term_of ct) vs_ty_t deps))));
 
 fun oracle nbe_program_idx_tab ctxt vs_ty_t deps ct =
   raw_oracle (nbe_program_idx_tab, ctxt, vs_ty_t, deps, ct);
@@ -604,7 +603,7 @@ fun dynamic_conv ctxt = lift_triv_classes_conv ctxt
 
 fun dynamic_value ctxt = lift_triv_classes_rew ctxt
   (Code_Thingol.dynamic_value ctxt I (fn program =>
-    normalize (compile false ctxt program) ctxt));
+    normalize_term (compile false ctxt program) ctxt));
 
 fun static_conv (ctxt_consts as { ctxt, ... }) =
   let
@@ -615,7 +614,7 @@ fun static_conv (ctxt_consts as { ctxt, ... }) =
 fun static_value { ctxt, consts } =
   let
     val comp = Code_Thingol.static_value { ctxt = ctxt, lift_postproc = I, consts = consts }
-      (fn { program, ... } => normalize (compile false ctxt program));
+      (fn { program, ... } => normalize_term (compile false ctxt program));
   in fn ctxt' => lift_triv_classes_rew ctxt' (comp ctxt') end;
 
 end;
