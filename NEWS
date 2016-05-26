@@ -91,6 +91,13 @@ typesetting. E.g. to produce proof holes in examples and documentation.
 Isabelle2016). INCOMPATIBILITY, use "standard" instead.
 
 
+*** Pure ***
+
+* Code generator: config option "code_timinger" triggers
+measurements of different phases of code generation.  See
+src/HOL/ex/Code_Timing.thy for examples.
+
+
 *** HOL ***
 
 * Probability/Random_Permutations.thy contains some theory about 
