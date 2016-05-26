@@ -101,6 +101,11 @@ list in random order.
 permutations of a set, i.e. the set of all lists that contain every 
 element of the carrier set exactly once.
 
+* Static evaluators (Code_Evaluation.static_* in Isabelle/ML) rely on
+explicitly provided auxiliary definitions for required type class
+dictionaries rather than half-working magic.  INCOMPATIBILITY, see
+the tutorial on code generation for details.
+
 * New abbreviations for negated existence (but not bounded existence):
 
   \<nexists>x. P x \<equiv> \<not> (\<exists>x. P x)

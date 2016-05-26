@@ -9,14 +9,14 @@ sig
   val dynamic_value: Proof.context -> term -> term option
   val dynamic_value_strict: Proof.context -> term -> term
   val dynamic_value_exn: Proof.context -> term -> term Exn.result
-  val static_value: { ctxt: Proof.context, consts: string list, Ts: typ list }
+  val static_value: { ctxt: Proof.context, consts: string list }
     -> Proof.context -> term -> term option
-  val static_value_strict: { ctxt: Proof.context, consts: string list, Ts: typ list }
+  val static_value_strict: { ctxt: Proof.context, consts: string list }
     -> Proof.context -> term -> term
-  val static_value_exn: { ctxt: Proof.context, consts: string list, Ts: typ list }
+  val static_value_exn: { ctxt: Proof.context, consts: string list }
     -> Proof.context -> term -> term Exn.result
   val dynamic_conv: Proof.context -> conv
-  val static_conv: { ctxt: Proof.context, consts: string list, Ts: typ list }
+  val static_conv: { ctxt: Proof.context, consts: string list }
     -> Proof.context -> conv
   val put_term: (unit -> term) -> Proof.context -> Proof.context
   val tracing: string -> 'a -> 'a
@@ -183,8 +183,6 @@ val cookie = (Evaluation.get, put_term, "Code_Evaluation.put_term");
 
 fun mk_term_of t = HOLogic.mk_term_of (fastype_of t) t;
 
-fun term_of_const_for thy = Axclass.unoverload_const thy o dest_Const o HOLogic.term_of_const;
-
 fun gen_dynamic_value computation ctxt t =
   computation cookie ctxt NONE I (mk_term_of t) [];
 
@@ -192,11 +190,10 @@ val dynamic_value = gen_dynamic_value Code_Runtime.dynamic_value;
 val dynamic_value_strict = gen_dynamic_value Code_Runtime.dynamic_value_strict;
 val dynamic_value_exn = gen_dynamic_value Code_Runtime.dynamic_value_exn;
 
-fun gen_static_value computation { ctxt, consts, Ts } =
+fun gen_static_value computation { ctxt, consts } =
   let
     val computation' = computation cookie
-      { ctxt = ctxt, target = NONE, lift_postproc = I, consts =
-        union (op =) (map (term_of_const_for (Proof_Context.theory_of ctxt)) Ts) consts }
+      { ctxt = ctxt, target = NONE, lift_postproc = I, consts = consts }
   in fn ctxt' => computation' ctxt' o mk_term_of end;
 
 val static_value = gen_static_value Code_Runtime.static_value;
@@ -219,13 +216,12 @@ fun certify_eval ctxt value conv ct =
 fun dynamic_conv ctxt = certify_eval ctxt dynamic_value
   Code_Runtime.dynamic_holds_conv;
 
-fun static_conv { ctxt, consts, Ts }  =
+fun static_conv { ctxt, consts }  =
   let
-    val eqs = @{const_name Pure.eq} :: @{const_name HOL.eq} ::
-      map (fn T => Axclass.unoverload_const (Proof_Context.theory_of ctxt)
-        (@{const_name HOL.equal}, T)) Ts; (*assumes particular code equations for Pure.eq etc.*)
-    val value = static_value { ctxt = ctxt, consts = consts, Ts = Ts };
-    val holds = Code_Runtime.static_holds_conv { ctxt = ctxt, consts = union (op =) eqs consts };
+    val value = static_value { ctxt = ctxt, consts = consts };
+    val holds = Code_Runtime.static_holds_conv { ctxt = ctxt,
+      consts = insert (op =) @{const_name Pure.eq} consts
+        (*assumes particular code equation for Pure.eq*) };
   in
     fn ctxt' => certify_eval ctxt' value holds
   end;

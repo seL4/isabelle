@@ -68,6 +68,19 @@ no_notation App (infixl "<\<cdot>>" 70)
 
 subsection \<open>Tools setup and evaluation\<close>
 
+context
+begin
+
+qualified definition TERM_OF :: "'a::term_of itself"
+where
+  "TERM_OF = snd (Code_Evaluation.term_of :: 'a \<Rightarrow> _, TYPE('a))"
+
+qualified definition TERM_OF_EQUAL :: "'a::term_of itself"
+where
+  "TERM_OF_EQUAL = snd (\<lambda>(a::'a). (Code_Evaluation.term_of a, HOL.eq a), TYPE('a))"
+
+end
+
 lemma eq_eq_TrueD:
   fixes x y :: "'a::{}"
   assumes "(x \<equiv> y) \<equiv> Trueprop True"

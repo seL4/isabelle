@@ -143,7 +143,7 @@ text \<open>
     \item Evaluation of @{term t} terminates with a result @{term
       "t'"}.
 
-    \item Evaluation of @{term t} terminates which en exception
+    \item Evaluation of @{term t} terminates which an exception
       indicating a pattern match failure or a non-implemented
       function.  As sketched in \secref{sec:partiality}, this can be
       interpreted as partiality.
@@ -195,18 +195,36 @@ text \<open>
   \end{tabular}
 \<close>
 
+text \<open>
+  \noindent Note that @{ML Code_Evaluation.static_value} and
+  @{ML Code_Evaluation.static_conv} require certain code equations to
+  reconstruct Isabelle terms from results and certify results.  This is
+  achieved as follows:
+
+  \<^enum> Identify which result types are expected.
+
+  \<^enum> Define an auxiliary operation which for each possible result type @{text \<tau>}
+    contains a term @{const Code_Evaluation.TERM_OF} of type @{text "\<tau> itself"}
+    (for @{ML Code_Evaluation.static_value}) or
+    a term @{const Code_Evaluation.TERM_OF_EQUAL} of type @{text "\<tau> itself"}
+    (for @{ML Code_Evaluation.static_conv}) respectively.
+
+  \<^enum> Include that auxiliary operation into the set of constants when generating
+    the static conversion.
+\<close>
+
 
 subsection \<open>Preprocessing HOL terms into evaluable shape\<close>
 
 text \<open>
-  When integration decision procedures developed inside HOL into HOL itself,
+  When integrating decision procedures developed inside HOL into HOL itself,
   it is necessary to somehow get from the Isabelle/ML representation to
   the representation used by the decision procedure itself (``reification'').
   One option is to hardcode it using code antiquotations (see \secref{sec:code_antiq}).
   Another option is to use pre-existing infrastructure in HOL:
   @{ML "Reification.conv"} and @{ML "Reification.tac"}
 
-  An simplistic example:
+  A simplistic example:
 \<close>
 
 datatype %quote form_ord = T | F | Less nat nat
