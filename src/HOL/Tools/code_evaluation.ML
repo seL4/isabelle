@@ -185,19 +185,19 @@ fun mk_term_of t = HOLogic.mk_term_of (fastype_of t) t;
 
 fun term_of_const_for thy = Axclass.unoverload_const thy o dest_Const o HOLogic.term_of_const;
 
-fun gen_dynamic_value dynamic_value ctxt t =
-  dynamic_value cookie ctxt NONE I (mk_term_of t) [];
+fun gen_dynamic_value computation ctxt t =
+  computation cookie ctxt NONE I (mk_term_of t) [];
 
 val dynamic_value = gen_dynamic_value Code_Runtime.dynamic_value;
 val dynamic_value_strict = gen_dynamic_value Code_Runtime.dynamic_value_strict;
 val dynamic_value_exn = gen_dynamic_value Code_Runtime.dynamic_value_exn;
 
-fun gen_static_value static_value { ctxt, consts, Ts } =
+fun gen_static_value computation { ctxt, consts, Ts } =
   let
-    val static_value' = static_value cookie
+    val computation' = computation cookie
       { ctxt = ctxt, target = NONE, lift_postproc = I, consts =
         union (op =) (map (term_of_const_for (Proof_Context.theory_of ctxt)) Ts) consts }
-  in fn ctxt' => fn t => static_value' ctxt' (mk_term_of t) end;
+  in fn ctxt' => computation' ctxt' o mk_term_of end;
 
 val static_value = gen_static_value Code_Runtime.static_value;
 val static_value_strict = gen_static_value Code_Runtime.static_value_strict;

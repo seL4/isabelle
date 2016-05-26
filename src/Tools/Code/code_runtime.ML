@@ -53,7 +53,7 @@ struct
 
 open Basic_Code_Symbol;
 
-(** evaluation **)
+(** computation **)
 
 (* technical prerequisites *)
 
@@ -90,29 +90,25 @@ fun value ctxt (get, put, put_ml) (prelude, value) =
       prelude ^ "\nval _ = Context.put_generic_context (SOME (Context.map_proof (" ^
       put_ml ^ " (fn () => " ^ value ^ ")) (Context.the_generic_context ())))";
     val ctxt' = ctxt
-      |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
+      |> put (fn () => error ("Bad computation for " ^ quote put_ml))
       |> Context.proof_map (exec ctxt false code);
   in get ctxt' () end;
 
 
-(* evaluation into target language values *)
+(* computation as evaluation into ML language values *)
 
 type 'a cookie = (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string;
 
 fun reject_vars ctxt t =
   ((Sign.no_frees ctxt o Sign.no_vars ctxt o map_types (K dummyT)) t; t);
 
-fun obtain_evaluator ctxt some_target program consts =
-  let
-    val evaluator' = Code_Target.evaluator ctxt (the_default target some_target) program consts false;
-  in
-    evaluator'
-    #> apfst (fn ml_modules => space_implode "\n\n" (map snd ml_modules))
-  end;
+fun build_computation_text ctxt some_target program consts =
+  Code_Target.computation_text ctxt (the_default target some_target) program consts false
+  #>> (fn ml_modules => space_implode "\n\n" (map snd ml_modules));
 
-fun evaluation cookie ctxt evaluator vs_t args =
+fun run_computation_text cookie ctxt comp vs_t args =
   let
-    val (program_code, value_name) = evaluator vs_t;
+    val (program_code, value_name) = comp vs_t;
     val value_code = space_implode " "
       (value_name :: "()" :: map (enclose "(" ")") args);
   in Exn.interruptible_capture (value ctxt cookie) (program_code, value_code) end;
@@ -128,9 +124,9 @@ fun dynamic_value_exn cookie ctxt some_target postproc t args =
     val _ = if Config.get ctxt trace
       then tracing ("Evaluation of term " ^ quote (Syntax.string_of_term ctxt t))
       else ()
-    fun evaluator program _ vs_ty_t deps =
-      evaluation cookie ctxt (obtain_evaluator ctxt some_target program deps) vs_ty_t args;
-  in Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) evaluator t end;
+    fun comp program _ vs_ty_t deps =
+      run_computation_text cookie ctxt (build_computation_text ctxt some_target program deps) vs_ty_t args;
+  in Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) comp t end;
 
 fun dynamic_value_strict cookie ctxt some_target postproc t args =
   Exn.release (dynamic_value_exn cookie ctxt some_target postproc t args);
@@ -138,18 +134,17 @@ fun dynamic_value_strict cookie ctxt some_target postproc t args =
 fun dynamic_value cookie ctxt some_target postproc t args =
   partiality_as_none (dynamic_value_exn cookie ctxt some_target postproc t args);
 
-fun static_evaluator cookie ctxt some_target { program, deps } =
-  let
-    val evaluator = obtain_evaluator ctxt some_target program (map Constant deps);
-    val evaluation' = evaluation cookie ctxt evaluator;
-  in fn _ => fn _ => fn vs_ty_t => fn _ => evaluation' vs_ty_t [] end;
-
 fun static_value_exn cookie { ctxt, target, lift_postproc, consts } =
   let
-    val evaluator = Code_Thingol.static_value { ctxt = ctxt,
+    fun computation' { program, deps } =
+      let
+        val computation'' = run_computation_text cookie ctxt
+          (build_computation_text ctxt target program (map Constant deps));
+      in fn _ => fn _ => fn vs_ty_t => fn _ => computation'' vs_ty_t [] end;
+    val computation = Code_Thingol.static_value { ctxt = ctxt,
       lift_postproc = Exn.map_res o lift_postproc, consts = consts }
-      (static_evaluator cookie ctxt target);
-  in fn ctxt' => evaluator ctxt' o reject_vars ctxt' end;
+      computation';
+  in fn ctxt' => computation ctxt' o reject_vars ctxt' end;
 
 fun static_value_strict cookie = Exn.release ooo static_value_exn cookie;
 
@@ -178,7 +173,7 @@ fun check_holds ctxt evaluator vs_t ct =
       then error ("Not a proposition: " ^ Syntax.string_of_term ctxt t)
       else ();
     val iff = Thm.cterm_of ctxt (Term.Const (@{const_name Pure.eq}, propT --> propT --> propT));
-    val result = case partiality_as_none (evaluation truth_cookie ctxt evaluator vs_t [])
+    val result = case partiality_as_none (run_computation_text truth_cookie ctxt evaluator vs_t [])
      of SOME Holds => true
       | _ => false;
   in
@@ -196,12 +191,12 @@ in
 
 fun dynamic_holds_conv ctxt = Code_Thingol.dynamic_conv ctxt
   (fn program => fn vs_t => fn deps =>
-    check_holds_oracle ctxt (obtain_evaluator ctxt NONE program deps) vs_t)
+    check_holds_oracle ctxt (build_computation_text ctxt NONE program deps) vs_t)
       o reject_vars ctxt;
 
 fun static_holds_conv (ctxt_consts as { ctxt, ... }) =
   Code_Thingol.static_conv_thingol ctxt_consts (fn { program, deps } => fn ctxt' => fn vs_t =>
-    K (check_holds_oracle ctxt' (obtain_evaluator ctxt NONE program (map Constant deps)) vs_t o reject_vars ctxt'));
+    K (check_holds_oracle ctxt' (build_computation_text ctxt NONE program (map Constant deps)) vs_t o reject_vars ctxt'));
 
 end; (*local*)
 

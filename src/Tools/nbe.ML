@@ -487,9 +487,9 @@ fun compile_program ctxt program =
   end;
 
 
-(** evaluation **)
+(** normalization **)
 
-(* term evaluation by compilation *)
+(* term normalization by compilation *)
 
 fun compile_term ctxt nbe_program deps (vs : (string * sort) list, t) =
   let 
@@ -537,9 +537,9 @@ fun term_of_univ ctxt (idx_tab : Code_Symbol.T Inttab.table) t =
   in of_univ 0 t 0 |> fst end;
 
 
-(* evaluation with type reconstruction *)
+(* normalize with type reconstruction *)
 
-fun eval_term (nbe_program, idx_tab) raw_ctxt t_original ((vs, ty) : typscheme, t) deps =
+fun normalize (nbe_program, idx_tab) raw_ctxt t_original ((vs, ty) : typscheme, t) deps =
   let
     val ctxt = Syntax.init_pretty_global (Proof_Context.theory_of raw_ctxt);
     val string_of_term = Syntax.string_of_term (Config.put show_types true ctxt);
@@ -591,27 +591,29 @@ fun mk_equals ctxt lhs raw_rhs =
 val (_, raw_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding normalization_by_evaluation},
     fn (nbe_program_idx_tab, ctxt, vs_ty_t, deps, ct) =>
-      mk_equals ctxt ct (eval_term nbe_program_idx_tab ctxt (Thm.term_of ct) vs_ty_t deps))));
+      mk_equals ctxt ct (normalize nbe_program_idx_tab ctxt (Thm.term_of ct) vs_ty_t deps))));
 
 fun oracle nbe_program_idx_tab ctxt vs_ty_t deps ct =
   raw_oracle (nbe_program_idx_tab, ctxt, vs_ty_t, deps, ct);
 
 fun dynamic_conv ctxt = lift_triv_classes_conv ctxt
-  (Code_Thingol.dynamic_conv ctxt (fn program => oracle (compile false ctxt program) ctxt));
+  (Code_Thingol.dynamic_conv ctxt (fn program =>
+    oracle (compile false ctxt program) ctxt));
 
 fun dynamic_value ctxt = lift_triv_classes_rew ctxt
-  (Code_Thingol.dynamic_value ctxt I (fn program => eval_term (compile false ctxt program) ctxt));
+  (Code_Thingol.dynamic_value ctxt I (fn program =>
+    normalize (compile false ctxt program) ctxt));
 
 fun static_conv (ctxt_consts as { ctxt, ... }) =
   let
-    val evaluator = Code_Thingol.static_conv_thingol ctxt_consts
+    val conv = Code_Thingol.static_conv_thingol ctxt_consts
       (fn { program, ... } => oracle (compile true ctxt program));
-  in fn ctxt' => lift_triv_classes_conv ctxt' (evaluator ctxt') end;
+  in fn ctxt' => lift_triv_classes_conv ctxt' (conv ctxt') end;
 
 fun static_value { ctxt, consts } =
   let
-    val evaluator = Code_Thingol.static_value { ctxt = ctxt, lift_postproc = I, consts = consts }
-      (fn { program, ... } => eval_term (compile false ctxt program));
-  in fn ctxt' => lift_triv_classes_rew ctxt' (evaluator ctxt') end;
+    val comp = Code_Thingol.static_value { ctxt = ctxt, lift_postproc = I, consts = consts }
+      (fn { program, ... } => normalize (compile false ctxt program));
+  in fn ctxt' => lift_triv_classes_rew ctxt' (comp ctxt') end;
 
 end;

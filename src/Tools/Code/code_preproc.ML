@@ -127,7 +127,7 @@ structure Sandwich : sig
   val chain: T -> T -> T
   val lift: (Proof.context -> cterm -> (cterm -> thm) * thm) -> T
   val conversion: T -> (Proof.context -> term -> conv) -> Proof.context -> conv;
-  val evaluation: T -> ((term -> term) -> 'a -> 'b) ->
+  val computation: T -> ((term -> term) -> 'a -> 'b) ->
     (Proof.context -> term -> 'a) -> Proof.context -> term -> 'b;
 end = struct
 
@@ -151,7 +151,7 @@ fun conversion sandwich conv ctxt ct =
     val (postproc, ct') = sandwich ctxt ct;
   in postproc (conv ctxt (Thm.term_of ct') ct') end;
 
-fun evaluation sandwich lift_postproc eval ctxt t =
+fun computation sandwich lift_postproc eval ctxt t =
   let
     val (postproc, ct') = sandwich ctxt (Thm.cterm_of ctxt t);
   in
@@ -538,32 +538,45 @@ structure Wellsorted = Code_Data
 
 (** retrieval and evaluation interfaces **)
 
+(*
+  naming conventions
+  * evaluator "eval" is either
+    * conversion "conv"
+    * value computation "comp"
+  * "evaluation" is a lifting of an evaluator
+*)
+
 fun obtain ignore_cache ctxt consts ts = apsnd snd
   (Wellsorted.change_yield (if ignore_cache then NONE else SOME (Proof_Context.theory_of ctxt))
     (extend_arities_eqngr ctxt consts ts));
 
-fun dynamic_evaluator eval ctxt t =
+fun dynamic_evaluation eval ctxt t =
   let
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t [];
     val (algebra, eqngr) = obtain false ctxt consts [t];
   in eval algebra eqngr t end;
 
+fun static_evaluation ctxt consts eval =
+  let
+    val (algebra, eqngr) = obtain true ctxt consts [];
+  in eval { algebra = algebra, eqngr = eqngr } end;
+
 fun dynamic_conv ctxt conv =
-  Sandwich.conversion (value_sandwich ctxt) (dynamic_evaluator conv) ctxt;
+  Sandwich.conversion (value_sandwich ctxt)
+    (dynamic_evaluation conv) ctxt;
 
 fun dynamic_value ctxt lift_postproc evaluator =
-  Sandwich.evaluation (value_sandwich ctxt) lift_postproc (dynamic_evaluator evaluator) ctxt;
+  Sandwich.computation (value_sandwich ctxt) lift_postproc
+    (dynamic_evaluation evaluator) ctxt;
 
 fun static_conv { ctxt, consts } conv =
-  let
-    val (algebra, eqngr) = obtain true ctxt consts [];
-  in Sandwich.conversion (value_sandwich ctxt) (conv { algebra = algebra, eqngr = eqngr }) end;
+  Sandwich.conversion (value_sandwich ctxt)
+    (static_evaluation ctxt consts conv);
 
-fun static_value { ctxt, lift_postproc, consts } evaluator =
-  let
-    val (algebra, eqngr) = obtain true ctxt consts [];
-  in Sandwich.evaluation (value_sandwich ctxt) lift_postproc (evaluator { algebra = algebra, eqngr = eqngr }) end;
+fun static_value { ctxt, lift_postproc, consts } comp =
+  Sandwich.computation (value_sandwich ctxt) lift_postproc
+    (static_evaluation ctxt consts comp);
 
 
 (** setup **)

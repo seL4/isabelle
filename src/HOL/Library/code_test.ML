@@ -177,7 +177,7 @@ fun dynamic_value_strict ctxt t compiler =
     val with_dir = if debug then with_overlord_dir else Isabelle_System.with_tmp_dir
     fun evaluate f = with_dir "Code_Test" (driver ctxt f) |> parse_result compiler
     fun evaluator program _ vs_ty deps =
-      Exn.interruptible_capture evaluate (Code_Target.evaluator ctxt target program deps true vs_ty);
+      Exn.interruptible_capture evaluate (Code_Target.computation_text ctxt target program deps true vs_ty);
     fun postproc f = map (apsnd (map_option (map f)))
   in
     Exn.release (Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) evaluator t)

@@ -839,49 +839,59 @@ fun ensure_value ctxt algbr eqngr t =
     #> term_value
   end;
 
-fun dynamic_evaluator ctxt evaluator algebra eqngr t =
+fun dynamic_evaluation eval ctxt algebra eqngr t =
   let
     val ((program, (vs_ty_t', deps)), _) =
-      invoke_generation false (Proof_Context.theory_of ctxt) (algebra, eqngr) ensure_value t;
-  in evaluator program t vs_ty_t' deps end;
+      invoke_generation false (Proof_Context.theory_of ctxt)
+        (algebra, eqngr) ensure_value t;
+  in eval program t vs_ty_t' deps end;
 
 fun dynamic_conv ctxt conv =
-  Code_Preproc.dynamic_conv ctxt (dynamic_evaluator ctxt (fn program => fn _ => conv program));
+  Code_Preproc.dynamic_conv ctxt
+    (dynamic_evaluation (fn program => fn _ => conv program) ctxt);
 
-fun dynamic_value ctxt postproc evaluator =
-  Code_Preproc.dynamic_value ctxt postproc (dynamic_evaluator ctxt evaluator);
+fun dynamic_value ctxt postproc comp =
+  Code_Preproc.dynamic_value ctxt postproc
+    (dynamic_evaluation comp ctxt);
 
-fun static_subevaluator ctxt subevaluator algebra eqngr program t =
-  let
-    val ((_, ((vs_ty', t'), deps)), _) =
-      ensure_value ctxt algebra eqngr t ([], program);
-  in subevaluator ctxt t (vs_ty', t') deps end;
-
-fun static_evaluator_thingol ctxt evaluator consts { algebra, eqngr } =
+fun static_evaluation ctxt consts algebra eqngr static_eval =
   let
     fun generate_consts ctxt algebra eqngr =
       fold_map (ensure_const ctxt algebra eqngr false);
     val (deps, program) =
-      invoke_generation true (Proof_Context.theory_of ctxt) (algebra, eqngr) generate_consts consts;
-    val subevaluator = evaluator { program = program, deps = deps };
-  in fn ctxt' => static_subevaluator ctxt' subevaluator algebra eqngr program end;
+      invoke_generation true (Proof_Context.theory_of ctxt)
+        (algebra, eqngr) generate_consts consts;
+  in static_eval { program = program, deps = deps } end;
 
-fun static_evaluator_isa ctxt evaluator consts { algebra, eqngr } =
+fun static_evaluation_thingol ctxt consts algebra eqngr static_eval =
   let
-    fun generate_consts ctxt algebra eqngr =
-      fold_map (ensure_const ctxt algebra eqngr false);
-    val (_, program) =
-      invoke_generation true (Proof_Context.theory_of ctxt) (algebra, eqngr) generate_consts consts;
-  in evaluator (program: program) end;
+    fun evaluation' program dynamic_eval ctxt t =
+      let
+        val ((_, ((vs_ty', t'), deps)), _) =
+          ensure_value ctxt algebra eqngr t ([], program);
+      in dynamic_eval ctxt t (vs_ty', t') deps end;
+    fun evaluation static_eval { program, deps } =
+      evaluation' program (static_eval { program = program, deps = deps });
+  in
+    static_evaluation ctxt consts algebra eqngr
+      (evaluation static_eval)
+  end;
+
+fun static_evaluation_isa ctxt consts algebra eqngr static_eval =
+  static_evaluation ctxt consts algebra eqngr
+    (fn { program, ... } => static_eval (program: program));
 
 fun static_conv_thingol (ctxt_consts as { ctxt, consts }) conv =
-  Code_Preproc.static_conv ctxt_consts (static_evaluator_thingol ctxt (K oo conv) consts);
+  Code_Preproc.static_conv ctxt_consts (fn { algebra, eqngr } =>
+    static_evaluation_thingol ctxt consts algebra eqngr (K oo conv));
 
 fun static_conv_isa (ctxt_consts as { ctxt, consts }) conv =
-  Code_Preproc.static_conv ctxt_consts (static_evaluator_isa ctxt conv consts);
+  Code_Preproc.static_conv ctxt_consts (fn { algebra, eqngr } =>
+    static_evaluation_isa ctxt consts algebra eqngr conv);
 
-fun static_value (ctxt_postproc_consts as { ctxt, consts, ... }) evaluator =
-  Code_Preproc.static_value ctxt_postproc_consts (static_evaluator_thingol ctxt evaluator consts);
+fun static_value (ctxt_postproc_consts as { ctxt, consts, ... }) comp =
+  Code_Preproc.static_value ctxt_postproc_consts (fn { algebra, eqngr } =>
+    static_evaluation_thingol ctxt consts algebra eqngr comp);
 
 
 (** constant expressions **)
