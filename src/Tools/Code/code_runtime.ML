@@ -338,7 +338,7 @@ fun register_code new_tycos new_consts ctxt =
     val ((tycos, consts), _) = Code_Antiq_Data.get ctxt;
     val tycos' = fold (insert (op =)) new_tycos tycos;
     val consts' = fold (insert (op =)) new_consts consts;
-    val program = Code_Thingol.consts_program (Proof_Context.theory_of ctxt) consts';
+    val program = Code_Thingol.consts_program ctxt consts';
     val acc_code = Lazy.lazy (fn () =>
       evaluation_code ctxt structure_generated program tycos' consts'
       |> apsnd snd);
@@ -440,7 +440,7 @@ fun gen_code_reflect prep_type prep_const raw_datatypes raw_functions module_nam
       |> apsnd flat;
     val functions = map (prep_const thy) raw_functions;
     val consts = constrs @ functions;
-    val program = Code_Thingol.consts_program (Proof_Context.theory_of ctxt) consts;
+    val program = Code_Thingol.consts_program ctxt consts;
     val result = evaluation_code ctxt module_name program tycos consts
       |> (apsnd o apsnd) (chop (length constrs));
   in

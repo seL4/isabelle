@@ -84,7 +84,7 @@ sig
       * ((Code_Symbol.T * stmt) list * (Code_Symbol.T * stmt) list)) list
 
   val read_const_exprs: Proof.context -> string list -> string list
-  val consts_program: theory -> string list -> program
+  val consts_program: Proof.context -> string list -> program
   val dynamic_conv: Proof.context -> (program
     -> typscheme * iterm -> Code_Symbol.T list -> conv)
     -> conv
@@ -776,22 +776,23 @@ structure Program = Code_Data
   val empty = Code_Symbol.Graph.empty;
 );
 
-fun invoke_generation ignore_cache thy (algebra, eqngr) generate thing =
-  Program.change_yield (if ignore_cache then NONE else SOME thy)
+fun invoke_generation ignore_cache ctxt (algebra, eqngr) generate thing =
+  Program.change_yield
+    (if ignore_cache then NONE else SOME (Proof_Context.theory_of ctxt))
     (fn program => ([], program)
-      |> generate (Proof_Context.init_global thy) algebra eqngr thing
+      |> generate ctxt algebra eqngr thing
       |-> (fn thing => fn (_, program) => (thing, program)));
 
 
 (* program generation *)
 
-fun consts_program_internal thy permissive consts =
+fun consts_program_internal ctxt permissive consts =
   let
     fun generate_consts ctxt algebra eqngr =
       fold_map (ensure_const ctxt algebra eqngr permissive);
   in
-    invoke_generation permissive thy
-      (Code_Preproc.obtain false (Proof_Context.init_global thy) consts [])
+    invoke_generation permissive ctxt
+      (Code_Preproc.obtain false ctxt consts [])
       generate_consts consts
     |> snd
   end;
@@ -842,7 +843,7 @@ fun ensure_value ctxt algbr eqngr t =
 fun dynamic_evaluation eval ctxt algebra eqngr t =
   let
     val ((program, (vs_ty_t', deps)), _) =
-      invoke_generation false (Proof_Context.theory_of ctxt)
+      invoke_generation false ctxt
         (algebra, eqngr) ensure_value t;
   in eval program t vs_ty_t' deps end;
 
@@ -859,7 +860,7 @@ fun static_evaluation ctxt consts algebra eqngr static_eval =
     fun generate_consts ctxt algebra eqngr =
       fold_map (ensure_const ctxt algebra eqngr false);
     val (deps, program) =
-      invoke_generation true (Proof_Context.theory_of ctxt)
+      invoke_generation true ctxt
         (algebra, eqngr) generate_consts consts;
   in static_eval { program = program, deps = deps } end;
 
@@ -919,9 +920,10 @@ fun read_const_exprs_all ctxt = op @ o read_const_exprs_internal ctxt;
 
 fun read_const_exprs ctxt const_exprs =
   let
-    val (consts, consts_permissive) = read_const_exprs_internal ctxt const_exprs;
+    val (consts, consts_permissive) =
+      read_const_exprs_internal ctxt const_exprs;
     val consts' = implemented_deps
-      (consts_program_permissive (Proof_Context.theory_of ctxt) consts_permissive);
+      (consts_program_permissive ctxt consts_permissive);
   in union (op =) consts' consts end;
 
 

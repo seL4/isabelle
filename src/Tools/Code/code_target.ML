@@ -429,8 +429,7 @@ fun prep_destination "" = NONE
 
 fun export_code ctxt all_public cs seris =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val program = Code_Thingol.consts_program thy cs;
+    val program = Code_Thingol.consts_program ctxt cs;
     val _ = map (fn (((target_name, module_name), some_path), args) =>
       export_code_for ctxt some_path target_name NONE module_name args program all_public (map Constant cs)) seris;
   in () end;
@@ -442,20 +441,17 @@ fun export_code_cmd all_public raw_cs seris ctxt =
 
 fun produce_code ctxt all_public cs target_name some_width some_module_name args =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val program = Code_Thingol.consts_program thy cs;
+    val program = Code_Thingol.consts_program ctxt cs;
   in produce_code_for ctxt target_name some_width some_module_name args program all_public (map Constant cs) end;
 
 fun present_code ctxt cs syms target_name some_width some_module_name args =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val program = Code_Thingol.consts_program thy cs;
+    val program = Code_Thingol.consts_program ctxt cs;
   in present_code_for ctxt target_name some_width some_module_name args program (map Constant cs, syms) end;
 
 fun check_code ctxt all_public cs seris =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val program = Code_Thingol.consts_program thy cs;
+    val program = Code_Thingol.consts_program ctxt cs;
     val _ = map (fn ((target_name, strict), args) =>
       check_code_for ctxt target_name strict args program all_public (map Constant cs)) seris;
   in () end;
