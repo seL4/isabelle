@@ -50,7 +50,7 @@ fun mk_gfp_rec_sugar_transfer_tac ctxt f_def corec_def type_definitions dtor_cor
     val transfer_rules =
       @{thm Abs_transfer[OF type_definition_id_bnf_UNIV type_definition_id_bnf_UNIV]} ::
       map (fn thm => @{thm Abs_transfer} OF [thm, thm]) type_definitions @
-      map (Local_Defs.unfold ctxt rel_pre_defs) dtor_corec_transfers;
+      map (Local_Defs.unfold0 ctxt rel_pre_defs) dtor_corec_transfers;
     val add_transfer_rule = Thm.attribute_declaration Transfer.transfer_add;
     val ctxt' = Context.proof_map (fold add_transfer_rule transfer_rules) ctxt;
 

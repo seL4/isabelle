@@ -1080,7 +1080,7 @@ proof -
             unfolding real_norm_def abs_mult
             using le mult_right_mono by fastforce
         qed (rule powser_insidea[OF converges[OF \<open>R' \<in> {-R <..< R}\<close>] \<open>norm x < norm R'\<close>])
-        from this[THEN summable_mult2[where c=x], unfolded mult.assoc, unfolded mult.commute]
+        from this[THEN summable_mult2[where c=x], simplified mult.assoc, simplified mult.commute]
         show "summable (?f x)" by auto
       }
       show "summable (?f' x0)"
@@ -3241,12 +3241,13 @@ lemma sumr_pos_lt_pair:
   shows "\<lbrakk>summable f;
         \<And>d. 0 < f (k + (Suc(Suc 0) * d)) + f (k + ((Suc(Suc 0) * d) + 1))\<rbrakk>
       \<Longrightarrow> setsum f {..<k} < suminf f"
-unfolding One_nat_def
+apply (simp only: One_nat_def)
 apply (subst suminf_split_initial_segment [where k=k], assumption, simp)
 apply (drule_tac k=k in summable_ignore_initial_segment)
 apply (drule_tac k="Suc (Suc 0)" in sums_group [OF summable_sums], simp)
 apply simp
-by (metis (no_types, lifting) add.commute suminf_pos summable_def sums_unique)
+apply (metis (no_types, lifting) add.commute suminf_pos summable_def sums_unique)
+done
 
 lemma cos_two_less_zero [simp]:
   "cos 2 < (0::real)"
@@ -5128,7 +5129,7 @@ proof -
     next
       fix x :: real
       assume "(\<lambda> n. if even n then f (n div 2) else 0) sums x"
-      from LIMSEQ_linear[OF this[unfolded sums_def] pos2, unfolded sum_split_even_odd[unfolded mult.commute]]
+      from LIMSEQ_linear[OF this[simplified sums_def] pos2, simplified sum_split_even_odd[simplified mult.commute]]
       show "f sums x" unfolding sums_def by auto
     qed
     hence "op sums f = op sums (\<lambda> n. if even n then f (n div 2) else 0)" ..

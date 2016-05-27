@@ -60,12 +60,12 @@ fun side_constraint_tac bnf constr_defs ctxt =
     val thms = constr_defs @ map mk_sym [rel_eq_of_bnf bnf, rel_conversep_of_bnf bnf,
       rel_OO_of_bnf bnf]
   in
-    SELECT_GOAL (Local_Defs.unfold_tac ctxt thms) THEN' rtac ctxt (rel_mono_of_bnf bnf)
+    SELECT_GOAL (Local_Defs.unfold0_tac ctxt thms) THEN' rtac ctxt (rel_mono_of_bnf bnf)
       THEN_ALL_NEW assume_tac ctxt
   end
 
 fun bi_constraint_tac constr_iff sided_constr_intros ctxt =
-  SELECT_GOAL (Local_Defs.unfold_tac ctxt [constr_iff]) THEN'
+  SELECT_GOAL (Local_Defs.unfold0_tac ctxt [constr_iff]) THEN'
     CONJ_WRAP' (fn thm => rtac ctxt thm THEN_ALL_NEW
       (REPEAT_DETERM o etac ctxt conjE THEN' assume_tac ctxt)) sided_constr_intros
 
@@ -153,7 +153,7 @@ fun Domainp_tac bnf pred_def ctxt =
     val n = live_of_bnf bnf
     val set_map's = set_map_of_bnf bnf
   in
-    EVERY' [rtac ctxt ext, SELECT_GOAL (Local_Defs.unfold_tac ctxt [@{thm Domainp.simps},
+    EVERY' [rtac ctxt ext, SELECT_GOAL (Local_Defs.unfold0_tac ctxt [@{thm Domainp.simps},
         in_rel_of_bnf bnf, pred_def]), rtac ctxt iffI,
         REPEAT_DETERM o eresolve_tac ctxt [exE, conjE, CollectE], hyp_subst_tac ctxt,
         CONJ_WRAP' (fn set_map => EVERY' [rtac ctxt ballI, dtac ctxt (set_map RS equalityD1 RS set_mp),

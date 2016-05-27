@@ -857,7 +857,7 @@ lemma DERIV_pow: "((\<lambda>x. x ^ n) has_field_derivative real n * (x ^ (n - S
 lemma DERIV_chain': "(f has_field_derivative D) (at x within s) \<Longrightarrow> DERIV g (f x) :> E \<Longrightarrow> 
   ((\<lambda>x. g (f x)) has_field_derivative E * D) (at x within s)"
   using has_derivative_compose[of f "op * D" x s g "op * E"]
-  unfolding has_field_derivative_def mult_commute_abs ac_simps .
+  by (simp only: has_field_derivative_def mult_commute_abs ac_simps)
 
 corollary DERIV_chain2: "DERIV f (g x) :> Da \<Longrightarrow> (g has_field_derivative Db) (at x within s) \<Longrightarrow>
   ((\<lambda>x. f (g x)) has_field_derivative Da * Db) (at x within s)"

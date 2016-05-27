@@ -592,7 +592,7 @@ fun map_products f (Const (@{const_name Pair}, T) $ t1 $ t2) =
 
 fun prepare_split_thm ctxt split_thm =
     (split_thm RS @{thm iffD2})
-    |> Local_Defs.unfold ctxt [@{thm atomize_conjL[symmetric]},
+    |> Local_Defs.unfold0 ctxt [@{thm atomize_conjL[symmetric]},
       @{thm atomize_all[symmetric]}, @{thm atomize_imp[symmetric]}]
 
 fun find_split_thm thy (Const (name, _)) =

@@ -514,9 +514,10 @@ proof -
   proof -
     have "(sqrt y * lb_arctan_horner prec n 1 y) \<le> ?S n"
       using bounds(1) \<open>0 \<le> sqrt y\<close>
-      unfolding power_add power_one_right mult.assoc[symmetric] setsum_left_distrib[symmetric]
-      unfolding mult.commute[where 'a=real] mult.commute[of _ "2::nat"] power_mult
-      by (auto intro!: mult_left_mono)
+      apply (simp only: power_add power_one_right mult.assoc[symmetric] setsum_left_distrib[symmetric])
+      apply (simp only: mult.commute[where 'a=real] mult.commute[of _ "2::nat"] power_mult)
+      apply (auto intro!: mult_left_mono)
+      done
     also have "\<dots> \<le> arctan (sqrt y)" using arctan_bounds ..
     finally show ?thesis .
   qed
@@ -526,9 +527,10 @@ proof -
     have "arctan (sqrt y) \<le> ?S (Suc n)" using arctan_bounds ..
     also have "\<dots> \<le> (sqrt y * ub_arctan_horner prec (Suc n) 1 y)"
       using bounds(2)[of "Suc n"] \<open>0 \<le> sqrt y\<close>
-      unfolding power_add power_one_right mult.assoc[symmetric] setsum_left_distrib[symmetric]
-      unfolding mult.commute[where 'a=real] mult.commute[of _ "2::nat"] power_mult
-      by (auto intro!: mult_left_mono)
+      apply (simp only: power_add power_one_right mult.assoc[symmetric] setsum_left_distrib[symmetric])
+      apply (simp only: mult.commute[where 'a=real] mult.commute[of _ "2::nat"] power_mult)
+      apply (auto intro!: mult_left_mono)
+      done
     finally show ?thesis .
   qed
   ultimately show ?thesis by auto
@@ -1210,9 +1212,10 @@ proof -
   from horner_bounds[where lb="lb_sin_cos_aux prec" and ub="ub_sin_cos_aux prec" and j'=0,
     OF \<open>0 \<le> real_of_float (x * x)\<close> f_eq lb_sin_cos_aux.simps ub_sin_cos_aux.simps]
   show "?lb" and "?ub" using \<open>0 \<le> real_of_float x\<close>
-    unfolding power_add power_one_right mult.assoc[symmetric] setsum_left_distrib[symmetric]
-    unfolding mult.commute[where 'a=real] of_nat_fact
-    by (auto intro!: mult_left_mono simp add: power_mult power2_eq_square[of "real_of_float x"])
+    apply (simp_all only: power_add power_one_right mult.assoc[symmetric] setsum_left_distrib[symmetric])
+    apply (simp_all only: mult.commute[where 'a=real] of_nat_fact)
+    apply (auto intro!: mult_left_mono simp add: power_mult power2_eq_square[of "real_of_float x"])
+    done
 qed
 
 lemma sin_boundaries:

@@ -1761,8 +1761,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               (fn {context = ctxt, prems = _} =>
                  mk_rel_map0_tac ctxt live (Lazy.force rel_OO) (Lazy.force rel_conversep)
                   (Lazy.force rel_Grp) (Lazy.force map_id)))
-            |> map (unfold_thms lthy @{thms vimage2p_def[of id, unfolded id_apply]
-                 vimage2p_def[of _ id, unfolded id_apply]})
+            |> map (unfold_thms lthy @{thms vimage2p_def[of id, simplified id_apply]
+                 vimage2p_def[of _ id, simplified id_apply]})
             |> map Thm.close_derivation
           end;
 

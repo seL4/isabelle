@@ -334,7 +334,7 @@ in
           val rules = Transfer.get_transfer_raw ctxt'
           val rules = constraint :: OO_rules @ rules
           val tac =
-            K (Local_Defs.unfold_tac ctxt' [pcr_def]) THEN' REPEAT_ALL_NEW (resolve_tac ctxt' rules)
+            K (Local_Defs.unfold0_tac ctxt' [pcr_def]) THEN' REPEAT_ALL_NEW (resolve_tac ctxt' rules)
         in
           (singleton (Variable.export ctxt' ctxt) o Goal.conclude) (the (SINGLE (tac 1) init_goal))
         end

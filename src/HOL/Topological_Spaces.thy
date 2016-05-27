@@ -75,22 +75,22 @@ lemma closed_UN [continuous_intros, intro]: "finite A \<Longrightarrow> \<forall
   using closed_Union [of "B ` A"] by simp
 
 lemma open_closed: "open S \<longleftrightarrow> closed (- S)"
-  unfolding closed_def by simp
+  by (simp add: closed_def)
 
 lemma closed_open: "closed S \<longleftrightarrow> open (- S)"
-  unfolding closed_def by simp
+  by (rule closed_def)
 
 lemma open_Diff [continuous_intros, intro]: "open S \<Longrightarrow> closed T \<Longrightarrow> open (S - T)"
-  unfolding closed_open Diff_eq by (rule open_Int)
+  by (simp add: closed_open Diff_eq open_Int)
 
 lemma closed_Diff [continuous_intros, intro]: "closed S \<Longrightarrow> open T \<Longrightarrow> closed (S - T)"
-  unfolding open_closed Diff_eq by (rule closed_Int)
+  by (simp add: open_closed Diff_eq closed_Int)
 
 lemma open_Compl [continuous_intros, intro]: "closed S \<Longrightarrow> open (- S)"
-  unfolding closed_open .
+  by (simp add: closed_open)
 
 lemma closed_Compl [continuous_intros, intro]: "open S \<Longrightarrow> closed (- S)"
-  unfolding open_closed .
+  by (simp add: open_closed)
 
 lemma open_Collect_neg: "closed {x. P x} \<Longrightarrow> open {x. \<not> P x}"
   unfolding Collect_neg_eq by (rule open_Compl)

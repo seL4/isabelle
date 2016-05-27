@@ -25,16 +25,16 @@ fun Quotient_tac bnf ctxt i =
     val UNIVs = map (fn var => HOLogic.mk_UNIV (var |> dest_Var |> snd |> dest_Type |> snd |> hd)) vars
     val inst = map dest_Var vars ~~ map (Thm.cterm_of ctxt) UNIVs
     val rel_Grp_UNIV_sym = rel_Grp |> Drule.instantiate_normalize ([], inst) 
-      |> Local_Defs.unfold ctxt @{thms subset_UNIV[THEN eqTrueI] UNIV_def[symmetric] simp_thms(21)}
+      |> Local_Defs.unfold0 ctxt @{thms subset_UNIV[THEN eqTrueI] UNIV_def[symmetric] simp_thms(21)}
       |> (fn thm => thm RS sym)
     val rel_mono = rel_mono_of_bnf bnf
     val rel_conversep_sym = rel_conversep_of_bnf bnf RS sym
   in
-    EVERY' [SELECT_GOAL (Local_Defs.unfold_tac ctxt [@{thm Quotient_alt_def5}]), 
-      REPEAT_DETERM o (etac ctxt conjE), rtac ctxt conjI, SELECT_GOAL (Local_Defs.unfold_tac ctxt [rel_Grp_UNIV_sym]),
-      rtac ctxt rel_mono THEN_ALL_NEW assume_tac ctxt, rtac ctxt conjI, SELECT_GOAL (Local_Defs.unfold_tac ctxt
+    EVERY' [SELECT_GOAL (Local_Defs.unfold0_tac ctxt [@{thm Quotient_alt_def5}]), 
+      REPEAT_DETERM o (etac ctxt conjE), rtac ctxt conjI, SELECT_GOAL (Local_Defs.unfold0_tac ctxt [rel_Grp_UNIV_sym]),
+      rtac ctxt rel_mono THEN_ALL_NEW assume_tac ctxt, rtac ctxt conjI, SELECT_GOAL (Local_Defs.unfold0_tac ctxt
         [rel_conversep_sym, rel_Grp_UNIV_sym]), rtac ctxt rel_mono THEN_ALL_NEW assume_tac ctxt,
-      SELECT_GOAL (Local_Defs.unfold_tac ctxt [rel_conversep_sym, rel_OO_of_bnf bnf RS sym]),
+      SELECT_GOAL (Local_Defs.unfold0_tac ctxt [rel_conversep_sym, rel_OO_of_bnf bnf RS sym]),
       hyp_subst_tac ctxt, rtac ctxt refl] i
   end
 

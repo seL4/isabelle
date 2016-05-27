@@ -1487,8 +1487,7 @@ proof -
       by (auto simp add: algebra_simps)
     also have "\<dots> \<le> 1 / (B * 2) * norm (g' (z - f x)) + norm (f x - y)"
       using e0(2)[rule_format, OF *]
-      unfolding algebra_simps **
-      by auto
+      by (simp only: algebra_simps **) auto
     also have "\<dots> \<le> 1 / (B * 2) * norm (g' (z - f x)) + e/2"
       using as(1)[unfolded mem_cball dist_norm]
       by auto

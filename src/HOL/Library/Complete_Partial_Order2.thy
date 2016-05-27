@@ -308,7 +308,8 @@ proof(rule monotoneI)
   fix x y
   assume "x \<sqsubseteq> y"
   show "?fixp x \<le> ?fixp y"
-    unfolding ccpo.fixp_def[OF ccpo_fun] fun_lub_apply using chain
+    apply (simp only: ccpo.fixp_def[OF ccpo_fun] fun_lub_apply)
+    using chain
   proof(rule ccpo_Sup_least)
     fix x'
     assume "x' \<in> (\<lambda>f. f x) ` ?iter"
@@ -599,7 +600,8 @@ proof(intro conjI monotoneI contI)
     fix x y
     assume "x \<sqsubseteq> y"
     show "?fixp x \<le> ?fixp y"
-      unfolding ccpo.fixp_def[OF ccpo_fun] fun_lub_apply using chain
+      apply (simp only: ccpo.fixp_def[OF ccpo_fun] fun_lub_apply)
+      using chain
     proof(rule ccpo_Sup_least)
       fix x'
       assume "x' \<in> (\<lambda>f. f x) ` ?iter"

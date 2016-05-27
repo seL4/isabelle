@@ -921,7 +921,7 @@ proof -
 qed
 
 lemma open_contains_ball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. ball x e \<subseteq> S)"
-  unfolding open_dist subset_eq mem_ball Ball_def dist_commute ..
+  by (simp add: open_dist subset_eq mem_ball Ball_def dist_commute)
 
 lemma openI [intro?]: "(\<And>x. x\<in>S \<Longrightarrow> \<exists>e>0. ball x e \<subseteq> S) \<Longrightarrow> open S"
   by (auto simp: open_contains_ball)
@@ -5611,8 +5611,7 @@ proof
           using N[THEN spec[where x=n]]
           using d[THEN bspec[where x="x n"], THEN bspec[where x="y n"]]
           using x and y
-          unfolding dist_commute
-          by simp
+          by (simp add: dist_commute)
       }
       then have "\<exists>N. \<forall>n\<ge>N. dist (f (x n)) (f (y n)) < e"
         by auto
@@ -5854,8 +5853,8 @@ proof -
   have *: "\<forall>x. x \<in> s \<and> f x \<in> t \<longleftrightarrow> x \<in> s \<and> f x \<in> (t \<inter> f ` s)"
     by auto
   have "closedin (subtopology euclidean (f ` s)) (t \<inter> f ` s)"
-    using closedin_closed_Int[of t "f ` s", OF assms(2)] unfolding Int_commute
-    by auto
+    using closedin_closed_Int[of t "f ` s", OF assms(2)]
+    by (simp add: Int_commute)
   then show ?thesis
     using assms(1)[unfolded continuous_on_closed, THEN spec[where x="t \<inter> f ` s"]]
     using * by auto

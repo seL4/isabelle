@@ -81,7 +81,7 @@ fun all_overloaded_size_defs_of ctxt =
       can (Logic.dest_equals o Thm.prop_of) overloaded_size_def ? cons overloaded_size_def)
     (Data.get (Context.Proof ctxt)) [];
 
-val size_gen_o_map_simps = @{thms inj_on_id snd_comp_apfst[unfolded apfst_def]};
+val size_gen_o_map_simps = @{thms inj_on_id snd_comp_apfst[simplified apfst_def]};
 
 fun mk_size_gen_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
   unfold_thms_tac ctxt [size_def] THEN

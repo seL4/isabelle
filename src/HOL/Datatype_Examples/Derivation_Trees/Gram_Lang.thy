@@ -480,8 +480,8 @@ lemma wf_deftr: "wf (deftr n)"
 proof-
   {fix tr assume "\<exists> n. tr = deftr n" hence "wf tr"
    apply(induct rule: wf_raw_coind) apply safe
-   unfolding deftr_simps image_comp map_sum.comp id_comp
-   root_o_deftr map_sum.id image_id id_apply apply(rule S_P)
+   apply (simp only: deftr_simps image_comp map_sum.comp id_comp
+   root_o_deftr map_sum.id image_id id_apply) apply(rule S_P)
    unfolding inj_on_def by auto
   }
   thus ?thesis by auto

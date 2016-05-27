@@ -192,7 +192,7 @@ fun resolve_inc_tyvars ctxt tha i thb =
       | _ =>
         let
           val thaa'bb' as [(tha', _), (thb', _)] =
-            map (`(Local_Defs.unfold ctxt meta_not_not)) [tha, thb]
+            map (`(Local_Defs.unfold0 ctxt meta_not_not)) [tha, thb]
         in
           if forall Thm.eq_thm_prop thaa'bb' then
             raise THM ("resolve_inc_tyvars: unique result expected", i, [tha, thb])

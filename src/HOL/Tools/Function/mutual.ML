@@ -186,7 +186,7 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
     Goal.prove simp_ctxt [] []
       (HOLogic.Trueprop $ HOLogic.mk_eq (list_comb (f, args), rhs))
       (fn _ =>
-        Local_Defs.unfold_tac ctxt all_orig_fdefs
+        Local_Defs.unfold0_tac ctxt all_orig_fdefs
           THEN EqSubst.eqsubst_tac ctxt [0] [simp] 1
           THEN (simp_tac ctxt) 1)
     |> restore_cond

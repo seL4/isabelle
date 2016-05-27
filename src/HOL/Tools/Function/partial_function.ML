@@ -68,7 +68,7 @@ fun lookup_mode ctxt =
 (*rewrite conclusion with k-th assumtion*)
 fun rewrite_with_asm_tac ctxt k =
   Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
-    Local_Defs.unfold_tac ctxt' [nth prems k]) ctxt;
+    Local_Defs.unfold0_tac ctxt' [nth prems k]) ctxt;
 
 fun dest_case ctxt t =
   case strip_comb t of
@@ -107,7 +107,7 @@ val split_cases_tac = Subgoal.FOCUS_PARAMS (fn {context = ctxt, ...} =>
 
 (*monotonicity proof: apply rules + split case expressions*)
 fun mono_tac ctxt =
-  K (Local_Defs.unfold_tac ctxt [@{thm curry_def}])
+  K (Local_Defs.unfold0_tac ctxt [@{thm curry_def}])
   THEN' (TRY o REPEAT_ALL_NEW
    (resolve_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems partial_function_mono}))
      ORELSE' split_cases_tac ctxt));

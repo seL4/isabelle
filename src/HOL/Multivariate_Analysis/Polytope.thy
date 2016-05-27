@@ -1859,7 +1859,7 @@ next
           with faceq [OF that] show ?thesis by simp
         qed
         moreover have "(1 - T) *\<^sub>R w + T *\<^sub>R y \<in> affine hull S"
-          apply (rule affine_affine_hull [unfolded affine_alt, rule_format])
+          apply (rule affine_affine_hull [simplified affine_alt, rule_format])
           apply (simp add: \<open>w \<in> affine hull S\<close>)
           using yaff apply blast
           done
@@ -1874,7 +1874,7 @@ next
         have yeq: "y = (1 - inverse T) *\<^sub>R w + c /\<^sub>R T"
           using \<open>0 < T\<close> by (simp add: c_def algebra_simps)
         show "y \<in> affine hull (S \<inter> {y. a h \<bullet> y = b h})"
-          by (metis yeq affine_affine_hull [unfolded affine_alt, rule_format, OF waff caff])
+          by (metis yeq affine_affine_hull [simplified affine_alt, rule_format, OF waff caff])
       qed
     qed
     ultimately show ?thesis

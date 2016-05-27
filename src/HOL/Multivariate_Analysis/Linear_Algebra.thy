@@ -1398,11 +1398,11 @@ lemmas inner_simps = inner_add_left inner_add_right inner_diff_right inner_diff_
   inner_scaleR_left inner_scaleR_right
 
 lemma dot_norm: "x \<bullet> y = ((norm (x + y))\<^sup>2 - (norm x)\<^sup>2 - (norm y)\<^sup>2) / 2"
-  unfolding power2_norm_eq_inner inner_simps inner_commute by auto
+  by (simp only: power2_norm_eq_inner inner_simps inner_commute) auto
 
 lemma dot_norm_neg: "x \<bullet> y = (((norm x)\<^sup>2 + (norm y)\<^sup>2) - (norm (x - y))\<^sup>2) / 2"
-  unfolding power2_norm_eq_inner inner_simps inner_commute
-  by (auto simp add: algebra_simps)
+  by (simp only: power2_norm_eq_inner inner_simps inner_commute)
+    (auto simp add: algebra_simps)
 
 text\<open>Equality of vectors in terms of @{term "op \<bullet>"} products.\<close>
 
@@ -2434,7 +2434,7 @@ proof -
         apply simp unfolding inner_simps
         apply (clarsimp simp add: inner_add inner_setsum_left)
         apply (rule setsum.neutral, rule ballI)
-        unfolding inner_commute
+        apply (simp only: inner_commute)
         apply (auto simp add: x field_simps
           intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])
         done

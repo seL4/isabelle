@@ -97,7 +97,7 @@ lemma mono_lift:
   "order r \<Longrightarrow> app_mono r app n A \<Longrightarrow> bounded (err_step n app step) n \<Longrightarrow>
   \<forall>s p t. s \<in> A \<and> p < n \<and> s <=_r t \<longrightarrow> app p t \<longrightarrow> step p s \<le>|r| step p t \<Longrightarrow>
   mono (Err.le r) (err_step n app step) n (err A)"
-apply (unfold app_mono_def mono_def err_step_def)
+apply (simp only: app_mono_def mono_def err_step_def)
 apply clarify
 apply (case_tac s)
  apply simp 

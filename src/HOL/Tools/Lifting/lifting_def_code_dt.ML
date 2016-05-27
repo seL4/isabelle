@@ -296,7 +296,7 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
             val f_alt_def_goal = HOLogic.mk_Trueprop (HOLogic.mk_eq (f_alt_def_goal_lhs, f_alt_def_goal_rhs));
             fun f_alt_def_tac ctxt i =
               EVERY' [Transfer.gen_frees_tac [] ctxt, DETERM o Transfer.transfer_tac true ctxt,
-                SELECT_GOAL (Local_Defs.unfold_tac ctxt [id_apply]), rtac ctxt refl] i;
+                SELECT_GOAL (Local_Defs.unfold0_tac ctxt [id_apply]), rtac ctxt refl] i;
             val rep_isom_transfer = transfer_of_rep_isom_data rep_isom_data
             val (_, transfer_lthy) = Proof_Context.note_thmss "" [((Binding.empty, []),
               [([rep_isom_transfer], [Transfer.transfer_add])])] lthy
@@ -320,7 +320,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
   let
     (* logical definition of qty qty_isom isomorphism *) 
     val uTname = unique_Tname (rty, qty)
-    fun eq_onp_to_top_tac ctxt = SELECT_GOAL (Local_Defs.unfold_tac ctxt 
+    fun eq_onp_to_top_tac ctxt = SELECT_GOAL (Local_Defs.unfold0_tac ctxt 
       (@{thm eq_onp_top_eq_eq[symmetric]} :: Lifting_Info.get_relator_eq_onp_rules ctxt))
     fun lift_isom_tac ctxt = HEADGOAL (eq_onp_to_top_tac ctxt
       THEN' (rtac ctxt @{thm id_transfer}));
@@ -437,9 +437,9 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     val typedef_goal = mk_type_definition qty_isom qty rep_isom abs_isom (HOLogic.mk_UNIV qty) |>
       HOLogic.mk_Trueprop;
     fun typ_isom_tac ctxt i =
-      EVERY' [ SELECT_GOAL (Local_Defs.unfold_tac ctxt @{thms type_definition_def}),
+      EVERY' [ SELECT_GOAL (Local_Defs.unfold0_tac ctxt @{thms type_definition_def}),
         DETERM o Transfer.transfer_tac true ctxt,
-          SELECT_GOAL (Local_Defs.unfold_tac ctxt @{thms eq_onp_top_eq_eq}) (* normalize *), 
+          SELECT_GOAL (Local_Defs.unfold0_tac ctxt @{thms eq_onp_top_eq_eq}) (* normalize *), 
           Raw_Simplifier.rewrite_goal_tac ctxt 
           (map safe_mk_meta_eq @{thms id_apply simp_thms Ball_def}),
          rtac ctxt TrueI] i;
@@ -564,7 +564,7 @@ and constr qty (quot_thm, (lthy, rel_eq_onps)) =
 
         fun non_empty_typedef_tac non_empty_pred ctxt i =
           (Method.insert_tac ctxt [non_empty_pred] THEN' 
-            SELECT_GOAL (Local_Defs.unfold_tac ctxt [mem_Collect_eq]) THEN' assume_tac ctxt) i
+            SELECT_GOAL (Local_Defs.unfold0_tac ctxt [mem_Collect_eq]) THEN' assume_tac ctxt) i
         val uTname = unique_Tname (rty, qty)
         val Tdef_set = HOLogic.mk_Collect ("x", rty, pred $ Free("x", rty));
         val ((_, tcode_dt), lthy) = conceal_naming_result (typedef (Binding.concealed uTname, TFrees, NoSyn)

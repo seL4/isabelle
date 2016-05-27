@@ -119,11 +119,11 @@ fun rem_inv_img ctxt =
   resolve_tac ctxt @{thms subsetI} 1
   THEN eresolve_tac ctxt @{thms CollectE} 1
   THEN REPEAT (eresolve_tac ctxt @{thms exE} 1)
-  THEN Local_Defs.unfold_tac ctxt @{thms inv_image_def}
+  THEN Local_Defs.unfold0_tac ctxt @{thms inv_image_def}
   THEN resolve_tac ctxt @{thms CollectI} 1
   THEN eresolve_tac ctxt @{thms conjE} 1
   THEN eresolve_tac ctxt @{thms ssubst} 1
-  THEN Local_Defs.unfold_tac ctxt @{thms split_conv triv_forall_equality sum.case}
+  THEN Local_Defs.unfold0_tac ctxt @{thms split_conv triv_forall_equality sum.case}
 
 
 (* Sets *)
@@ -249,7 +249,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
                 THEN mset_pwleq_tac ctxt 1
                 THEN EVERY (map2 (less_proof false) qs ps)
                 THEN (if strict orelse qs <> lq
-                      then Local_Defs.unfold_tac ctxt set_of_simps
+                      then Local_Defs.unfold0_tac ctxt set_of_simps
                            THEN steps_tac MAX true
                            (subtract (op =) qs lq) (subtract (op =) ps lp)
                       else all_tac)
@@ -280,7 +280,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
          THEN (resolve_tac ctxt [order_rpair ms_rp label] 1)
          THEN PRIMITIVE (Thm.instantiate' [] [SOME level_mapping])
          THEN unfold_tac ctxt @{thms rp_inv_image_def}
-         THEN Local_Defs.unfold_tac ctxt @{thms split_conv fst_conv snd_conv}
+         THEN Local_Defs.unfold0_tac ctxt @{thms split_conv fst_conv snd_conv}
          THEN REPEAT (SOMEGOAL (resolve_tac ctxt [@{thm Un_least}, @{thm empty_subsetI}]))
          THEN EVERY (map (prove_lev true) sl)
          THEN EVERY (map (prove_lev false) (subtract (op =) sl (0 upto length cs - 1))))

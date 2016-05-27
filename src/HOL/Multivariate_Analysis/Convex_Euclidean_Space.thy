@@ -3315,7 +3315,7 @@ proof safe
   then show "\<exists>s. finite s \<and> s \<subseteq> p \<and> card s \<le> DIM('a) + 1 \<and> x \<in> convex hull s"
     apply (rule_tac x=s in exI)
     using hull_subset[of s convex]
-    using convex_convex_hull[unfolded convex_explicit, of s,
+    using convex_convex_hull[simplified convex_explicit, of s,
       THEN spec[where x=s], THEN spec[where x=u]]
     apply auto
     done

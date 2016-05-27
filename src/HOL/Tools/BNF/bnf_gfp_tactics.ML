@@ -99,13 +99,13 @@ open BNF_Util
 open BNF_FP_Util
 open BNF_GFP_Util
 
-val fst_convol_fun_cong_sym = @{thm fst_convol[unfolded convol_def]} RS fun_cong RS sym;
+val fst_convol_fun_cong_sym = @{thm fst_convol[simplified convol_def]} RS fun_cong RS sym;
 val list_inject_iffD1 = @{thm list.inject[THEN iffD1]};
 val nat_induct = @{thm nat_induct};
 val o_apply_trans_sym = o_apply RS trans RS sym;
 val ord_eq_le_trans = @{thm ord_eq_le_trans};
 val ordIso_ordLeq_trans = @{thm ordIso_ordLeq_trans};
-val snd_convol_fun_cong_sym = @{thm snd_convol[unfolded convol_def]} RS fun_cong RS sym;
+val snd_convol_fun_cong_sym = @{thm snd_convol[simplified convol_def]} RS fun_cong RS sym;
 val sum_case_cong_weak = @{thm sum.case_cong_weak};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
 val Collect_splitD_set_mp = @{thm Collect_case_prodD[OF set_mp]};

@@ -991,7 +991,8 @@ proof -
       have th0: "\<And>b (x::'a::comm_ring_1). (if b then 1 else 0)*x = (if b then x else 0)"
         "\<And>b (x::'a::comm_ring_1). x*(if b then 1 else 0) = (if b then x else 0)"
         by simp_all
-      from fd[rule_format, of "axis i 1" "axis j 1", unfolded matrix_works[OF lf, symmetric] dot_matrix_vector_mul]
+      from fd[rule_format, of "axis i 1" "axis j 1",
+        simplified matrix_works[OF lf, symmetric] dot_matrix_vector_mul]
       have "?A$i$j = ?m1 $ i $ j"
         by (simp add: inner_vec_def matrix_matrix_mult_def columnvector_def rowvector_def
             th0 setsum.delta[OF fU] mat_def axis_def)
@@ -1006,8 +1007,8 @@ proof -
   {
     assume lf: "linear f" and om: "orthogonal_matrix ?mf"
     from lf om have ?lhs
-      unfolding orthogonal_matrix_def norm_eq orthogonal_transformation
-      unfolding matrix_works[OF lf, symmetric]
+      apply (simp only: orthogonal_matrix_def norm_eq orthogonal_transformation)
+      apply (simp only: matrix_works[OF lf, symmetric])
       apply (subst dot_matrix_vector_mul)
       apply (simp add: dot_matrix_product matrix_mul_lid)
       done

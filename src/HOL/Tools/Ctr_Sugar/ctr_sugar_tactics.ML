@@ -48,7 +48,7 @@ fun select_prem_tac ctxt n tac k = DETERM o (EVERY' [REPEAT_DETERM_N (k - 1) o e
   tac, REPEAT_DETERM_N (n - k) o etac ctxt thin_rl]);
 
 fun unfold_thms_tac _ [] = all_tac
-  | unfold_thms_tac ctxt thms = Local_Defs.unfold_tac ctxt (distinct Thm.eq_thm_prop thms);
+  | unfold_thms_tac ctxt thms = Local_Defs.unfold0_tac ctxt (distinct Thm.eq_thm_prop thms);
 
 fun if_P_or_not_P_OF pos thm = thm RS (if pos then @{thm if_P} else @{thm if_not_P});
 

@@ -152,7 +152,7 @@ fun split_all_pairs thy th =
     val th'' =
       Goal.prove ctxt (Term.add_free_names t' []) [] t'
         (fn _ => ALLGOALS (Skip_Proof.cheat_tac ctxt))
-    val th''' = Local_Defs.unfold ctxt [@{thm split_conv}, @{thm fst_conv}, @{thm snd_conv}] th''
+    val th''' = Local_Defs.unfold0 ctxt [@{thm split_conv}, @{thm fst_conv}, @{thm snd_conv}] th''
   in
     th'''
   end;

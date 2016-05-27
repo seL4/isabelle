@@ -616,7 +616,7 @@ fun nnf_neg ctxt = nnf ctxt Z3_Proof.Nnf_Neg
 
 fun arith_th_lemma_tac ctxt prems =
   Method.insert_tac ctxt prems
-  THEN' SELECT_GOAL (Local_Defs.unfold_tac ctxt @{thms z3div_def z3mod_def})
+  THEN' SELECT_GOAL (Local_Defs.unfold0_tac ctxt @{thms z3div_def z3mod_def})
   THEN' Arith_Data.arith_tac ctxt
 
 fun arith_th_lemma ctxt thms t =

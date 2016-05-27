@@ -2559,8 +2559,7 @@ lemma has_integral_sub:
   "(f has_integral k) s \<Longrightarrow> (g has_integral l) s \<Longrightarrow>
     ((\<lambda>x. f x - g x) has_integral (k - l)) s"
   using has_integral_add[OF _ has_integral_neg, of f k s g l]
-  unfolding algebra_simps
-  by auto
+  by (auto simp: algebra_simps) 
 
 lemma integral_0 [simp]:
   "integral s (\<lambda>x::'n::euclidean_space. 0::'m::real_normed_vector) = 0"
@@ -6703,9 +6702,10 @@ proof -
           using inj(1) unfolding inj_on_def by fastforce
         have "(\<Sum>(x, k)\<in>(\<lambda>(x, k). (g x, g ` k)) ` p. content k *\<^sub>R f x) - i = r *\<^sub>R (\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - i" (is "?l = _")
           using assms(7)
-          unfolding algebra_simps add_left_cancel scaleR_right.setsum
-          by (subst setsum.reindex_bij_betw[symmetric, where h="\<lambda>(x, k). (g x, g ` k)" and S=p])
-             (auto intro!: * setsum.cong simp: bij_betw_def dest!: p(4))
+          apply (simp only: algebra_simps add_left_cancel scaleR_right.setsum)
+          apply (subst setsum.reindex_bij_betw[symmetric, where h="\<lambda>(x, k). (g x, g ` k)" and S=p])
+          apply (auto intro!: * setsum.cong simp: bij_betw_def dest!: p(4))
+          done
       also have "\<dots> = r *\<^sub>R ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i)" (is "_ = ?r")
         unfolding scaleR_diff_right scaleR_scaleR
         using assms(1)
@@ -7759,7 +7759,7 @@ proof -
     assume as: "c \<le> t" "t < c + ?d"
     have *: "integral {a .. c} f = integral {a .. b} f - integral {c .. b} f"
       "integral {a .. t} f = integral {a .. b} f - integral {t .. b} f"
-      unfolding algebra_simps
+      apply (simp_all only: algebra_simps)
       apply (rule_tac[!] integral_combine)
       using assms as
       apply auto

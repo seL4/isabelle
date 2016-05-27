@@ -325,7 +325,7 @@ val map_fun_unfolded =
   @{thm map_fun_def[abs_def]} |>
   unabs_def @{context} |>
   unabs_def @{context} |>
-  Local_Defs.unfold @{context} [@{thm comp_def}]
+  Local_Defs.unfold0 @{context} [@{thm comp_def}]
 
 fun unfold_fun_maps ctm =
   let
@@ -360,7 +360,7 @@ fun prove_rel ctxt rsp_thm (rty, qty) =
 exception CODE_CERT_GEN of string
 
 fun simplify_code_eq ctxt def_thm = 
-  Local_Defs.unfold ctxt [@{thm o_apply}, @{thm map_fun_def}, @{thm id_apply}] def_thm
+  Local_Defs.unfold0 ctxt [@{thm o_apply}, @{thm map_fun_def}, @{thm id_apply}] def_thm
 
 (*
   quot_thm - quotient theorem (Quotient R Abs Rep T).

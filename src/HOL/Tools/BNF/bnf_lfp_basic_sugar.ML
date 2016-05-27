@@ -102,8 +102,8 @@ fun fp_sugar_of_sum ctxt =
         set_selssss = [[[@{thms set_sum_sel(1)}], [[]]], [[[]], [@{thms set_sum_sel(2)}]]],
         set_introssss = [[[@{thms setl.intros[OF refl]}], [[]]],
           [[[]], [@{thms setr.intros[OF refl]}]]],
-        set_cases = @{thms setl.cases[unfolded hypsubst_in_prems]
-          setr.cases[unfolded hypsubst_in_prems]}},
+        set_cases = @{thms setl.cases[simplified hypsubst_in_prems]
+          setr.cases[simplified hypsubst_in_prems]}},
      fp_co_induct_sugar =
        {co_rec = Const (@{const_name case_sum}, map (fn Ts => (Ts ---> C)) ctr_Tss ---> fpT --> C),
         common_co_inducts = @{thms sum.induct},
@@ -172,10 +172,10 @@ fun fp_sugar_of_prod ctxt =
         pred_injects = @{thms pred_prod_inject},
         set_thms = @{thms prod_set_simps},
         set_selssss = [[[@{thms fsts.intros}, []]], [[[], @{thms snds.intros}]]],
-        set_introssss = [[[@{thms fsts.intros[of "(a, b)" for a b, unfolded fst_conv]}, []]],
-          [[[], @{thms snds.intros[of "(a, b)" for a b, unfolded snd_conv]}]]],
-        set_cases = @{thms fsts.cases[unfolded eq_fst_iff ex_neg_all_pos]
-          snds.cases[unfolded eq_snd_iff ex_neg_all_pos]}},
+        set_introssss = [[[@{thms fsts.intros[of "(a, b)" for a b, simplified fst_conv]}, []]],
+          [[[], @{thms snds.intros[of "(a, b)" for a b, simplified snd_conv]}]]],
+        set_cases = @{thms fsts.cases[simplified eq_fst_iff ex_neg_all_pos]
+          snds.cases[simplified eq_snd_iff ex_neg_all_pos]}},
      fp_co_induct_sugar =
        {co_rec = Const (@{const_name case_prod}, (ctr_Ts ---> C) --> fpT --> C),
         common_co_inducts = @{thms prod.induct},

@@ -381,7 +381,7 @@ fun mk_natural_from_transfer_tac ctxt m alives transfer map_ids rel_Grps subst_r
     unfold_thms_tac ctxt (map_ids @ @{thms Grp_def rel_fun_def}) THEN
     HEADGOAL (REPEAT_DETERM_N m o rtac ctxt ext THEN'
       asm_full_simp_tac (ss_only_silent @{thms simp_thms id_apply o_apply mem_Collect_eq
-        top_greatest UNIV_I subset_UNIV[unfolded UNIV_def]} ctxt)) THEN
+        top_greatest UNIV_I subset_UNIV[simplified UNIV_def]} ctxt)) THEN
     ALLGOALS (REPEAT_DETERM o etac ctxt @{thm meta_allE} THEN' REPEAT_DETERM o etac ctxt allE THEN'
       forward_tac ctxt [sym] THEN' assume_tac ctxt)
   end;
