@@ -1596,7 +1596,7 @@ lemma Pow_empty [simp]: "Pow {} = {{}}"
   by (auto simp add: Pow_def)
 
 lemma Pow_singleton_iff [simp]: "Pow X = {Y} \<longleftrightarrow> X = {} \<and> Y = {}"
-by blast
+  by blast
 
 lemma Pow_insert: "Pow (insert a A) = Pow A \<union> (insert a ` Pow A)"
   by (blast intro: image_eqI [where ?x = "u - {a}" for u])

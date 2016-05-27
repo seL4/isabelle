@@ -331,7 +331,7 @@ proof
   have *: "{False <..} = {True}" "{..< True} = {False}"
     by auto
   have "A = UNIV \<or> A = {} \<or> A = {False <..} \<or> A = {..< True}"
-    using subset_UNIV[of A] unfolding UNIV_bool * by auto
+    using subset_UNIV[of A] unfolding UNIV_bool * by blast
   then show "open A"
     by auto
 qed
@@ -1194,7 +1194,7 @@ proof atomize_elim
     fix S assume "open S" "x \<in> S"
     from incl[OF this] obtain i where "F i \<subseteq> S" unfolding F_def by auto
     moreover have "\<And>j. i \<le> j \<Longrightarrow> F j \<subseteq> F i"
-      by (auto simp: F_def)
+      by (simp add: Inf_superset_mono F_def image_mono)
     ultimately show "eventually (\<lambda>i. F i \<subseteq> S) sequentially"
       by (auto simp: eventually_sequentially)
   qed
@@ -1210,7 +1210,7 @@ proof -
   show thesis
   proof
     show "decseq (\<lambda>n. \<Inter>i\<le>n. A i)"
-      by (auto simp: decseq_def)
+      by (simp add: antimono_iff_le_Suc atMost_Suc)
     show "\<And>n. x \<in> (\<Inter>i\<le>n. A i)" "\<And>n. open (\<Inter>i\<le>n. A i)"
       using A by auto
     show "nhds x = (INF n. principal (\<Inter>i\<le>n. A i))"
@@ -1735,7 +1735,7 @@ qed
 
 lemma continuous_within_compose3:
   "isCont g (f x) \<Longrightarrow> continuous (at x within s) f \<Longrightarrow> continuous (at x within s) (\<lambda>x. g (f x))"
-  using continuous_within_compose2[of x s f g] by (simp add: continuous_at_imp_continuous_at_within)
+  using continuous_at_imp_continuous_at_within continuous_within_compose2 by blast
 
 lemma filtermap_nhds_open_map:
   assumes cont: "isCont f a" and open_map: "\<And>S. open S \<Longrightarrow> open (f`S)"
@@ -2091,7 +2091,7 @@ proof safe
     unfolding continuous_on_open_invariant by (simp add: open_discrete)
   from this[of True] this[of False]
   obtain t f where "open t" "open f" and *: "f \<inter> S = P -` {False} \<inter> S" "t \<inter> S = P -` {True} \<inter> S"
-    by auto
+    by meson
   then have "t \<inter> S = {} \<or> f \<inter> S = {}"
     by (intro connectedD[OF \<open>connected S\<close>])  auto
   then show "\<exists>c. \<forall>s\<in>S. P s = c"
@@ -2253,7 +2253,7 @@ proof (rule connectedI)
         using open_right[OF \<open>open A\<close> \<open>?z \<in> A\<close> \<open>?z < y\<close>] by auto
       moreover obtain b where "b \<in> B" "x < b" "b < min a y"
         using cInf_less_iff[of "B \<inter> {x <..}" "min a y"] \<open>?z < a\<close> \<open>?z < y\<close> \<open>x < y\<close> \<open>y \<in> B\<close>
-        by (auto intro: less_imp_le)
+        by auto
       moreover have "?z \<le> b"
         using \<open>b \<in> B\<close> \<open>x < b\<close>
         by (intro cInf_lower) auto
@@ -2593,7 +2593,7 @@ lemma totally_bounded_empty[iff]: "totally_bounded {}"
   by (auto simp add: totally_bounded_def)
 
 lemma totally_bounded_subset: "totally_bounded S \<Longrightarrow> T \<subseteq> S \<Longrightarrow> totally_bounded T"
-  by (force simp add: totally_bounded_def)
+  by (fastforce simp add: totally_bounded_def)
 
 lemma totally_bounded_Union[intro]:
   assumes M: "finite M" "\<And>S. S \<in> M \<Longrightarrow> totally_bounded S" shows "totally_bounded (\<Union>M)"

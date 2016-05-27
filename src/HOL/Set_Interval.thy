@@ -1071,7 +1071,7 @@ proof
     qed
   qed
 next
-  show "?B <= ?A" by auto
+  show "?B <= ?A" by fastforce
 qed
 
 lemma UN_le_add_shift:

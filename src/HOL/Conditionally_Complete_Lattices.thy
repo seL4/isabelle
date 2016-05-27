@@ -631,7 +631,7 @@ proof -
   qed
   ultimately show ?thesis
     unfolding greaterThanAtMost_def greaterThanLessThan_def atLeastAtMost_def atLeastLessThan_def
-    by (elim exE disjE) auto
+    by (metis inf_bot_left inf_bot_right inf_top.left_neutral inf_top.right_neutral)
 qed
 
 lemma cSUP_eq_cINF_D:
