@@ -184,8 +184,9 @@ apply (blast elim!: mem_not_refl [THEN notE])
 apply (blast dest: ordermap_mono intro: mem_asym)
 done
 
-lemmas ordermap_surj =
-    ordermap_type [THEN surj_image, unfolded ordertype_def [symmetric]]
+lemma ordermap_surj: "ordermap(A, r) \<in> surj(A, ordertype(A, r))"
+  unfolding ordertype_def
+  by (rule surj_image) (rule ordermap_type)
 
 lemma ordermap_bij:
     "well_ord(A,r) ==> ordermap(A,r) \<in> bij(A, ordertype(A,r))"
