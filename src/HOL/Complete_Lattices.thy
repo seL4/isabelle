@@ -484,11 +484,11 @@ begin
 
 lemma sup_INF:
   "a \<squnion> (\<Sqinter>b\<in>B. f b) = (\<Sqinter>b\<in>B. a \<squnion> f b)"
-  unfolding sup_Inf by simp
+  by (simp add: sup_Inf)
 
 lemma inf_SUP:
   "a \<sqinter> (\<Squnion>b\<in>B. f b) = (\<Squnion>b\<in>B. a \<sqinter> f b)"
-  unfolding inf_Sup by simp
+  by (simp add: inf_Sup)
 
 lemma dual_complete_distrib_lattice:
   "class.complete_distrib_lattice Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom>"
@@ -607,19 +607,19 @@ lemma complete_linorder_sup_max: "sup = max"
 
 lemma Inf_less_iff:
   "\<Sqinter>S \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>S. x \<sqsubset> a)"
-  unfolding not_le [symmetric] le_Inf_iff by auto
+  by (simp add: not_le [symmetric] le_Inf_iff)
 
 lemma INF_less_iff:
   "(\<Sqinter>i\<in>A. f i) \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>A. f x \<sqsubset> a)"
-  using Inf_less_iff [of "f ` A"] by simp
+  by (simp add: Inf_less_iff [of "f ` A"])
 
 lemma less_Sup_iff:
   "a \<sqsubset> \<Squnion>S \<longleftrightarrow> (\<exists>x\<in>S. a \<sqsubset> x)"
-  unfolding not_le [symmetric] Sup_le_iff by auto
+  by (simp add: not_le [symmetric] Sup_le_iff)
 
 lemma less_SUP_iff:
   "a \<sqsubset> (\<Squnion>i\<in>A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a \<sqsubset> f x)"
-  using less_Sup_iff [of _ "f ` A"] by simp
+  by (simp add: less_Sup_iff [of _ "f ` A"])
 
 lemma Sup_eq_top_iff [simp]:
   "\<Squnion>A = \<top> \<longleftrightarrow> (\<forall>x<\<top>. \<exists>i\<in>A. x < i)"
@@ -628,7 +628,7 @@ proof
   show "(\<forall>x<\<top>. \<exists>i\<in>A. x < i)" unfolding * [symmetric]
   proof (intro allI impI)
     fix x assume "x < \<Squnion>A" then show "\<exists>i\<in>A. x < i"
-      unfolding less_Sup_iff by auto
+      by (simp add: less_Sup_iff)
   qed
 next
   assume *: "\<forall>x<\<top>. \<exists>i\<in>A. x < i"

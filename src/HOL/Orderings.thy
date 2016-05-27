@@ -134,7 +134,7 @@ lemma less_irrefl [iff]: "\<not> x < x"
 by (simp add: less_le_not_le)
 
 lemma less_imp_le: "x < y \<Longrightarrow> x \<le> y"
-unfolding less_le_not_le by blast
+by (simp add: less_le_not_le)
 
 
 text \<open>Asymmetry.\<close>
@@ -202,7 +202,7 @@ lemma le_less: "x \<le> y \<longleftrightarrow> x < y \<or> x = y"
 by (fact order.order_iff_strict)
 
 lemma le_imp_less_or_eq: "x \<le> y \<Longrightarrow> x < y \<or> x = y"
-unfolding less_le by blast
+by (simp add: less_le)
 
 
 text \<open>Useful for simplification, but too risky to include by default.\<close>

@@ -416,7 +416,7 @@ definition Chains :: "('a \<times> 'a) set \<Rightarrow> 'a set set" where
 
 lemma chains_extend:
   "[| c \<in> chains S; z \<in> S; \<forall>x \<in> c. x \<subseteq> (z:: 'a set) |] ==> {z} Un c \<in> chains S"
-  by (unfold chains_def chain_subset_def) blast
+  unfolding chains_def chain_subset_def by blast
 
 lemma mono_Chains: "r \<subseteq> s \<Longrightarrow> Chains r \<subseteq> Chains s"
   unfolding Chains_def by blast
@@ -453,10 +453,10 @@ lemma Zorn_Lemma2:
 text\<open>Various other lemmas\<close>
 
 lemma chainsD: "[| c \<in> chains S; x \<in> c; y \<in> c |] ==> x \<subseteq> y | y \<subseteq> x"
-by (unfold chains_def chain_subset_def) blast
+  unfolding chains_def chain_subset_def by blast
 
 lemma chainsD2: "!!(c :: 'a set set). c \<in> chains S ==> c \<subseteq> S"
-by (unfold chains_def) blast
+  unfolding chains_def by blast
 
 lemma Zorns_po_lemma:
   assumes po: "Partial_order r"
@@ -682,11 +682,11 @@ proof -
     moreover have "Total ?m" using \<open>Total m\<close> and Fm by (auto simp: total_on_def)
     moreover have "wf (?m - Id)"
     proof -
-      have "wf ?s" using \<open>x \<notin> Field m\<close> unfolding wf_eq_minimal Field_def
-        by (auto simp: Bex_def)
+      have "wf ?s" using \<open>x \<notin> Field m\<close> 
+        by (auto simp: wf_eq_minimal Field_def Bex_def)
       thus ?thesis using \<open>wf (m - Id)\<close> and \<open>x \<notin> Field m\<close>
         wf_subset [OF \<open>wf ?s\<close> Diff_subset]
-        unfolding Un_Diff Field_def by (auto intro: wf_Un)
+        by (auto simp: Un_Diff Field_def intro: wf_Un)
     qed
     ultimately have "Well_order ?m" by (simp add: order_on_defs)
 \<comment>\<open>We show that the extension is above m\<close>
