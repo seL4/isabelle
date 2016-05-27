@@ -29,6 +29,9 @@ sig
   val unfold: Proof.context -> thm list -> thm -> thm
   val unfold_goals: Proof.context -> thm list -> thm -> thm
   val unfold_tac: Proof.context -> thm list -> tactic
+  val unfold0: Proof.context -> thm list -> thm -> thm
+  val unfold0_goals: Proof.context -> thm list -> thm -> thm
+  val unfold0_tac: Proof.context -> thm list -> tactic
   val fold: Proof.context -> thm list -> thm -> thm
   val fold_tac: Proof.context -> thm list -> tactic
   val derived_def: Proof.context -> {conditional: bool} -> term ->
@@ -202,27 +205,40 @@ val meta_rewrite_rule = Conv.fconv_rule o meta_rewrite_conv;
 fun abs_def_rule ctxt = meta_rewrite_rule ctxt #> Drule.abs_def;
 
 
-(* rewriting with object-level rules *)
+(* unfold object-level rules *)
 
 val unfold_abs_def_raw = Config.declare ("unfold_abs_def", @{here}) (K (Config.Bool false));
 val unfold_abs_def = Config.bool unfold_abs_def_raw;
 
 local
 
-fun meta_abs f ctxt =
-  f ctxt o map (meta_rewrite_rule ctxt #> Config.get ctxt unfold_abs_def ? Drule.abs_def);
+fun gen_unfold rewrite ctxt rews =
+  let val meta_rews = map (meta_rewrite_rule ctxt) rews in
+    if Config.get ctxt unfold_abs_def then
+      rewrite ctxt meta_rews #>
+      rewrite ctxt (map (perhaps (try Drule.abs_def)) meta_rews)
+    else rewrite ctxt meta_rews
+  end;
 
-fun meta f ctxt = f ctxt o map (meta_rewrite_rule ctxt);
+val no_unfold_abs_def = Config.put unfold_abs_def false;
 
 in
 
-val unfold       = meta_abs Raw_Simplifier.rewrite_rule;
-val unfold_goals = meta_abs Raw_Simplifier.rewrite_goals_rule;
-val unfold_tac   = meta_abs Raw_Simplifier.rewrite_goals_tac;
-val fold         = meta Raw_Simplifier.fold_rule;
-val fold_tac     = meta Raw_Simplifier.fold_goals_tac;
+val unfold = gen_unfold Raw_Simplifier.rewrite_rule;
+val unfold_goals = gen_unfold Raw_Simplifier.rewrite_goals_rule;
+val unfold_tac = PRIMITIVE oo unfold_goals;
 
-end;
+val unfold0 = unfold o no_unfold_abs_def;
+val unfold0_goals = unfold_goals o no_unfold_abs_def;
+val unfold0_tac = unfold_tac o no_unfold_abs_def;
+
+end
+
+
+(* fold object-level rules *)
+
+fun fold ctxt rews = Raw_Simplifier.fold_rule ctxt (map (meta_rewrite_rule ctxt) rews);
+fun fold_tac ctxt rews = Raw_Simplifier.fold_goals_tac ctxt (map (meta_rewrite_rule ctxt) rews);
 
 
 (* derived defs -- potentially within the object-logic *)
