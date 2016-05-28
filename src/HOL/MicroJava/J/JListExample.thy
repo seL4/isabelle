@@ -15,12 +15,29 @@ consts
   append_name :: mname
 
 axiomatization val_nam next_nam l_nam l1_nam l2_nam l3_nam l4_nam :: vnam
-where distinct_fields: "val_name \<noteq> next_name"
-  and distinct_vars:
-  "l_nam \<noteq> l1_nam" "l_nam \<noteq> l2_nam" "l_nam \<noteq> l3_nam" "l_nam \<noteq> l4_nam"
-  "l1_nam \<noteq> l2_nam" "l1_nam \<noteq> l3_nam" "l1_nam \<noteq> l4_nam"
-  "l2_nam \<noteq> l3_nam" "l2_nam \<noteq> l4_nam"
-  "l3_nam \<noteq> l4_nam"
+where distinct_fields: "val_nam \<noteq> next_nam"
+  and distinct_vars1: "l_nam \<noteq> l1_nam"
+  and distinct_vars2: "l_nam \<noteq> l2_nam"
+  and distinct_vars3: "l_nam \<noteq> l3_nam"
+  and distinct_vars4: "l_nam \<noteq> l4_nam"
+  and distinct_vars5: "l1_nam \<noteq> l2_nam"
+  and distinct_vars6: "l1_nam \<noteq> l3_nam"
+  and distinct_vars7: "l1_nam \<noteq> l4_nam"
+  and distinct_vars8: "l2_nam \<noteq> l3_nam"
+  and distinct_vars9: "l2_nam \<noteq> l4_nam"
+  and distinct_vars10: "l3_nam \<noteq> l4_nam"
+
+lemmas distinct_vars =
+  distinct_vars1
+  distinct_vars2
+  distinct_vars3
+  distinct_vars4
+  distinct_vars5
+  distinct_vars6
+  distinct_vars7
+  distinct_vars8
+  distinct_vars9
+  distinct_vars10
 
 definition list_name :: cname where
   "list_name = Cname list_nam"
