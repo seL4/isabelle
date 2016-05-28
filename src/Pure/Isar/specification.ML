@@ -25,16 +25,12 @@ sig
     (((binding * typ) * mixfix) list * (Attrib.binding * term) list) * Proof.context
   val read_multi_specs: (binding * string option * mixfix) list -> multi_specs_cmd -> Proof.context ->
     (((binding * typ) * mixfix) list * (Attrib.binding * term) list) * Proof.context
-  val check_specification: (binding * typ option * mixfix) list -> term list ->
-    (Attrib.binding * term list) list -> Proof.context ->
-    (((binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
-  val read_specification: (binding * string option * mixfix) list -> string list ->
-    (Attrib.binding * string list) list -> Proof.context ->
-    (((binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
-  val axiomatization: (binding * typ option * mixfix) list -> term list ->
-    (Attrib.binding * term list) list -> theory -> (term list * thm list list) * theory
-  val axiomatization_cmd: (binding * string option * mixfix) list -> string list ->
-    (Attrib.binding * string list) list -> theory -> (term list * thm list list) * theory
+  val axiomatization: (binding * typ option * mixfix) list ->
+    (binding * typ option * mixfix) list -> term list ->
+    (Attrib.binding * term) list -> theory -> (term list * thm list) * theory
+  val axiomatization_cmd: (binding * string option * mixfix) list ->
+    (binding * string option * mixfix) list -> string list ->
+    (Attrib.binding * string) list -> theory -> (term list * thm list) * theory
   val axiom: Attrib.binding * term -> theory -> thm * theory
   val definition: (binding * typ option * mixfix) option -> term list ->
     Attrib.binding * term -> local_theory -> (term * (string * thm)) * local_theory
@@ -192,32 +188,35 @@ fun check_multi_specs xs specs =
 fun read_multi_specs xs specs =
   prep_specs Proof_Context.read_var Syntax.parse_prop Attrib.check_src true xs specs #>> #1;
 
-fun check_specification xs As Bs =
-  prepare Proof_Context.cert_var (K I) (K I) true xs [(Bs, As)] #>> #1;
-
-fun read_specification xs As Bs =
-  prepare Proof_Context.read_var Syntax.parse_prop Attrib.check_src true xs [(Bs, As)] #>> #1;
-
 end;
 
 
 (* axiomatization -- within global theory *)
 
-fun gen_axioms prep raw_decls raw_prems raw_concls thy =
+fun gen_axioms prep_stmt prep_att raw_decls raw_fixes raw_prems raw_concls thy =
   let
-    val ((decls, specs), _) = prep raw_decls raw_prems raw_concls (Proof_Context.init_global thy);
-    val xs = map (fn ((b, T), _) => (Variable.check_name b, T)) decls;
+    (*specification*)
+    val ((vars, [prems, concls], _, _), vars_ctxt) =
+      Proof_Context.init_global thy
+      |> prep_stmt (raw_decls @ raw_fixes) ((map o map) (rpair []) [raw_prems, map snd raw_concls]);
+    val (decls, fixes) = chop (length raw_decls) vars;
+
+    val frees =
+      rev ((fold o fold) (Variable.add_frees vars_ctxt) [prems, concls] [])
+      |> map (fn (x, T) => (x, Free (x, T)));
+    val close = Logic.close_prop (map #2 fixes @ frees) prems;
+    val specs =
+      map ((apsnd o map) (prep_att vars_ctxt) o fst) raw_concls ~~ map close concls;
 
     (*consts*)
-    val (consts, consts_thy) = thy |> fold_map Theory.specify_const decls;
-    val subst = Term.subst_atomic (map Free xs ~~ consts);
+    val (consts, consts_thy) = thy
+      |> fold_map (fn ((b, _, mx), (_, t)) => Theory.specify_const ((b, Term.type_of t), mx)) decls;
+    val subst = Term.subst_atomic (map (#2 o #2) decls ~~ consts);
 
     (*axioms*)
-    val (axioms, axioms_thy) = (specs, consts_thy) |-> fold_map (fn ((b, atts), props) =>
-        fold_map Thm.add_axiom_global
-          (map (apfst (fn a => Binding.map_name (K a) b))
-            (Global_Theory.name_multi (Binding.name_of b) (map subst props)))
-        #>> (fn ths => ((b, atts), [(map #2 ths, [])])));
+    val (axioms, axioms_thy) =
+      (specs, consts_thy) |-> fold_map (fn ((b, atts), prop) =>
+        Thm.add_axiom_global (b, subst prop) #>> (fn (_, th) => ((b, atts), [([th], [])])));
 
     (*facts*)
     val (facts, facts_lthy) = axioms_thy
@@ -225,12 +224,12 @@ fun gen_axioms prep raw_decls raw_prems raw_concls thy =
       |> Spec_Rules.add Spec_Rules.Unknown (consts, maps (maps #1 o #2) axioms)
       |> Local_Theory.notes axioms;
 
-  in ((consts, map #2 facts), Local_Theory.exit_global facts_lthy) end;
+  in ((consts, map (the_single o #2) facts), Local_Theory.exit_global facts_lthy) end;
 
-val axiomatization = gen_axioms check_specification;
-val axiomatization_cmd = gen_axioms read_specification;
+val axiomatization = gen_axioms Proof_Context.cert_stmt (K I);
+val axiomatization_cmd = gen_axioms Proof_Context.read_stmt Attrib.check_src;
 
-fun axiom (b, ax) = axiomatization [] [] [(b, [ax])] #>> (hd o hd o snd);
+fun axiom (b, ax) = axiomatization [] [] [] [(b, ax)] #>> (hd o snd);
 
 
 (* definition *)

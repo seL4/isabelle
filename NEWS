@@ -70,6 +70,10 @@ statement.
 eigen-context, e.g. 'axiomatization', 'definition', 'inductive',
 'function'.
 
+* Command 'axiomatization' has become more restrictive to correspond
+better to internal axioms as singleton facts with mandatory name. Minor
+INCOMPATIBILITY.
+
 * Toplevel theorem statements support eigen-context notation with 'if' /
 'for' (in postix), which corresponds to 'assumes' / 'fixes' in the
 traditional long statement form (in prefix). Local premises are called

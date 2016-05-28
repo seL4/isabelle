@@ -337,9 +337,12 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command axiomatization} @{syntax "fixes"}? (@'where' specs)?
+    @@{command axiomatization} @{syntax "fixes"}? (@'where' axiomatization)?
     ;
-    specs: (@{syntax thmdecl}? @{syntax props} + @'and')
+    axiomatization: (@{syntax thmdecl} @{syntax prop} + @'and')
+      prems @{syntax for_fixes}
+    ;
+    prems: (@'if' ((@{syntax prop}+) + @'and'))?
   \<close>}
 
   \<^descr> \<^theory_text>\<open>axiomatization c\<^sub>1 \<dots> c\<^sub>m where \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n\<close> introduces several constants
