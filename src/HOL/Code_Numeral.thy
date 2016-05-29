@@ -893,9 +893,9 @@ lemma [code abstype]:
   "Nat (integer_of_natural n) = n"
   by transfer simp
 
-lemma [code abstract]:
-  "integer_of_natural (natural_of_nat n) = of_nat n"
-  by simp
+lemma [code]:
+  "natural_of_nat n = natural_of_integer (integer_of_nat n)"
+  by transfer simp
 
 lemma [code abstract]:
   "integer_of_natural (natural_of_integer k) = max 0 k"
@@ -969,7 +969,11 @@ lifting_update natural.lifting
 lifting_forget natural.lifting
 
 code_reflect Code_Numeral
-  datatypes natural = _
-  functions integer_of_natural natural_of_integer
+  datatypes natural
+  functions "Code_Numeral.Suc" "0 :: natural" "1 :: natural"
+    "plus :: natural \<Rightarrow> _" "minus :: natural \<Rightarrow> _"
+    "times :: natural \<Rightarrow> _" "divide :: natural \<Rightarrow> _"
+    "Divides.mod :: natural \<Rightarrow> _"
+    integer_of_natural natural_of_integer
 
 end

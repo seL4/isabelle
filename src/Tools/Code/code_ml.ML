@@ -772,13 +772,18 @@ fun ml_program_of_program ctxt module_name reserved identifiers =
     fun modify_funs stmts = single (SOME
       (Code_Namespace.Opaque, ML_Funs (map_split ml_binding_of_stmt stmts |> (apsnd o map_filter o Option.map) fst)))
     fun modify_datatypes stmts =
-      map_filter
-        (fn (Type_Constructor tyco, (export, Code_Thingol.Datatype stmt)) => SOME (export, (tyco, stmt)) | _ => NONE) stmts
-      |> split_list
-      |> apfst Code_Namespace.join_exports
-      |> apsnd ML_Datas
-      |> SOME
-      |> single;
+      let
+        val datas = map_filter
+          (fn (Type_Constructor tyco, (export, Code_Thingol.Datatype stmt)) => SOME (export, (tyco, stmt)) | _ => NONE) stmts
+      in
+        if null datas then [] (*for abstract types wrt. code_reflect*)
+        else datas
+          |> split_list
+          |> apfst Code_Namespace.join_exports
+          |> apsnd ML_Datas
+          |> SOME
+          |> single
+      end;
     fun modify_class stmts =
       the_single (map_filter
         (fn (Type_Class class, (export, Code_Thingol.Class stmt)) => SOME (export, (class, stmt)) | _ => NONE) stmts)

@@ -100,6 +100,9 @@ examples.
 
 *** HOL ***
 
+* Command 'code_reflect' accepts empty constructor lists for datatypes,
+which renders those abstract effectively.
+
 * Probability/Random_Permutations.thy contains some theory about 
 choosing a permutation of a set uniformly at random and folding over a 
 list in random order.

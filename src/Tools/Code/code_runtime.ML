@@ -375,20 +375,21 @@ end; (*local*)
 
 fun check_datatype thy tyco some_consts =
   let
-    val constrs = (map fst o snd o fst o Code.get_type thy) tyco;
-    val _ = case some_consts
-     of SOME consts =>
+    val declared_constrs = (map fst o snd o fst o Code.get_type thy) tyco;
+    val constrs = case some_consts
+     of SOME [] => []
+      | SOME consts =>
           let
-            val missing_constrs = subtract (op =) consts constrs;
+            val missing_constrs = subtract (op =) consts declared_constrs;
             val _ = if null missing_constrs then []
               else error ("Missing constructor(s) " ^ commas_quote missing_constrs
                 ^ " for datatype " ^ quote tyco);
-            val false_constrs = subtract (op =) constrs consts;
+            val false_constrs = subtract (op =) declared_constrs consts;
             val _ = if null false_constrs then []
               else error ("Non-constructor(s) " ^ commas_quote false_constrs
                 ^ " for datatype " ^ quote tyco)
-          in () end
-      | NONE => ();
+          in consts end
+      | NONE => declared_constrs;
   in (tyco, constrs) end;
 
 fun add_eval_tyco (tyco, tyco') thy =
@@ -465,16 +466,16 @@ val _ =
 local
 
 val parse_datatype =
-  Parse.name --| @{keyword "="} --
+  Parse.name -- Scan.optional (@{keyword "="} |--
     (((Parse.sym_ident || Parse.string) >> (fn "_" => NONE | _ => Scan.fail ()))
-    || ((Parse.term ::: (Scan.repeat (@{keyword "|"} |-- Parse.term))) >> SOME));
+    || ((Parse.term ::: (Scan.repeat (@{keyword "|"} |-- Parse.term))) >> SOME))) (SOME []);
 
 in
 
 val _ =
   Outer_Syntax.command @{command_keyword code_reflect}
     "enrich runtime environment with generated code"
-    (Parse.name -- Scan.optional (@{keyword "datatypes"} |-- Parse.!!!  (parse_datatype
+    (Parse.name -- Scan.optional (@{keyword "datatypes"} |-- Parse.!!! (parse_datatype
       ::: Scan.repeat (@{keyword "and"} |-- parse_datatype))) []
     -- Scan.optional (@{keyword "functions"} |-- Parse.!!!  (Scan.repeat1 Parse.name)) []
     -- Scan.option (@{keyword "file"} |-- Parse.!!! Parse.name)
