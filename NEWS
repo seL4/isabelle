@@ -103,6 +103,10 @@ examples.
 * Command 'code_reflect' accepts empty constructor lists for datatypes,
 which renders those abstract effectively.
 
+* Command 'export_code' checks given constants for abstraction violations:
+a small guarantee that given constants specify a safe interface for the
+generated code.
+
 * Probability/Random_Permutations.thy contains some theory about 
 choosing a permutation of a set uniformly at random and folding over a 
 list in random order.

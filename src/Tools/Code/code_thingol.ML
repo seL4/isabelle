@@ -786,11 +786,23 @@ fun invoke_generation ignore_cache ctxt generate thing =
 
 (* program generation *)
 
+fun check_abstract_constructors thy consts =
+  case filter (Code.is_abstr thy) consts of
+    [] => ()
+  | abstrs => error ("Cannot export abstract constructor(s): "
+      ^ commas (map (Code.string_of_const thy) abstrs));
+
 fun invoke_generation_for_consts ctxt { ignore_cache, permissive } { algebra, eqngr } consts =
-  Code_Preproc.timed "translating program" #ctxt
-  (fn { ctxt, algebra, eqngr, consts } => invoke_generation ignore_cache ctxt
-    (fold_map (ensure_const ctxt algebra eqngr permissive)) consts)
-    { ctxt = ctxt, algebra = algebra, eqngr = eqngr, consts = consts };
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val _ = if permissive then ()
+      else check_abstract_constructors thy consts;
+  in
+    Code_Preproc.timed "translating program" #ctxt
+    (fn { ctxt, algebra, eqngr, consts } => invoke_generation ignore_cache ctxt
+      (fold_map (ensure_const ctxt algebra eqngr permissive)) consts)
+      { ctxt = ctxt, algebra = algebra, eqngr = eqngr, consts = consts }
+  end;
 
 fun invoke_generation_for_consts' ctxt ignore_cache_and_permissive consts =
   invoke_generation_for_consts ctxt
@@ -914,7 +926,8 @@ fun read_const_exprs_internal ctxt =
     val thy = Proof_Context.theory_of ctxt;
     fun consts_of thy' =
       fold (fn (c, (_, NONE)) => cons c | _ => I)
-        (#constants (Consts.dest (Sign.consts_of thy'))) [];
+        (#constants (Consts.dest (Sign.consts_of thy'))) []
+      |> filter_out (Code.is_abstr thy);
     fun belongs_here thy' c = forall
       (fn thy'' => not (Sign.declared_const thy'' c)) (Theory.parents_of thy');
     fun consts_of_select thy' = filter (belongs_here thy') (consts_of thy');
@@ -934,8 +947,10 @@ fun read_const_exprs ctxt const_exprs =
   let
     val (consts, consts_permissive) =
       read_const_exprs_internal ctxt const_exprs;
-    val consts' = implemented_deps
-      (consts_program_permissive ctxt consts_permissive);
+    val consts' = 
+      consts_program_permissive ctxt consts_permissive
+      |> implemented_deps
+      |> filter_out (Code.is_abstr (Proof_Context.theory_of ctxt));
   in union (op =) consts' consts end;
 
 

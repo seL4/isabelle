@@ -344,7 +344,7 @@ text \<open>
 \<close>
 
 code_reflect %quote Rat
-  datatypes rat = Frct
+  datatypes rat
   functions Fract
     "(plus :: rat \<Rightarrow> rat \<Rightarrow> rat)" "(minus :: rat \<Rightarrow> rat \<Rightarrow> rat)"
     "(times :: rat \<Rightarrow> rat \<Rightarrow> rat)" "(divide :: rat \<Rightarrow> rat \<Rightarrow> rat)"
