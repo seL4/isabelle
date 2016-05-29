@@ -127,6 +127,10 @@ lemma prefix_same_cases:
   "prefix (xs\<^sub>1::'a list) ys \<Longrightarrow> prefix xs\<^sub>2 ys \<Longrightarrow> prefix xs\<^sub>1 xs\<^sub>2 \<or> prefix xs\<^sub>2 xs\<^sub>1"
   unfolding prefix_def by (force simp: append_eq_append_conv2)
 
+lemma prefix_length_prefix:
+  "prefix ps xs \<Longrightarrow> prefix qs xs \<Longrightarrow> length ps \<le> length qs \<Longrightarrow> prefix ps qs"
+by (auto simp: prefix_def) (metis append_Nil2 append_eq_append_conv_if)
+
 lemma set_mono_prefix: "prefix xs ys \<Longrightarrow> set xs \<subseteq> set ys"
   by (auto simp add: prefix_def)
 
@@ -224,6 +228,128 @@ lemma prefixes_eq_Snoc:
   "prefixes ys = xs @ [x] \<longleftrightarrow>
   (ys = [] \<and> xs = [] \<or> (\<exists>z zs. ys = zs@[z] \<and> xs = prefixes zs)) \<and> x = ys"
 by (cases ys rule: rev_cases) auto
+
+
+subsection \<open>Longest Common Prefix\<close>
+
+definition Longest_common_prefix :: "'a list set \<Rightarrow> 'a list" where
+"Longest_common_prefix L = (GREATEST ps WRT length. \<forall>xs \<in> L. prefix ps xs)"
+
+lemma Longest_common_prefix_ex: "L \<noteq> {} \<Longrightarrow>
+  \<exists>ps. (\<forall>xs \<in> L. prefix ps xs) \<and> (\<forall>qs. (\<forall>xs \<in> L. prefix qs xs) \<longrightarrow> size qs \<le> size ps)"
+  (is "_ \<Longrightarrow> \<exists>ps. ?P L ps")
+proof(induction "LEAST n. \<exists>xs \<in>L. n = length xs" arbitrary: L)
+  case 0
+  have "[] : L" using "0.hyps" LeastI[of "\<lambda>n. \<exists>xs\<in>L. n = length xs"] \<open>L \<noteq> {}\<close>
+    by auto
+  hence "?P L []" by(auto)
+  thus ?case ..
+next
+  case (Suc n)
+  let ?EX = "\<lambda>n. \<exists>xs\<in>L. n = length xs"
+  obtain x xs where xxs: "x#xs \<in> L" "size xs = n" using Suc.prems Suc.hyps(2)
+    by(metis LeastI_ex[of ?EX] Suc_length_conv ex_in_conv)
+  hence "[] \<notin> L" using Suc.hyps(2) by auto
+  show ?case
+  proof (cases "\<forall>xs \<in> L. \<exists>ys. xs = x#ys")
+    case True
+    let ?L = "{ys. x#ys \<in> L}"
+    have 1: "(LEAST n. \<exists>xs \<in> ?L. n = length xs) = n"
+      using xxs Suc.prems Suc.hyps(2) Least_le[of "?EX"]
+      by - (rule Least_equality, fastforce+)
+    have 2: "?L \<noteq> {}" using \<open>x # xs \<in> L\<close> by auto
+    from Suc.hyps(1)[OF 1[symmetric] 2] obtain ps where IH: "?P ?L ps" ..
+    { fix qs
+      assume "\<forall>qs. (\<forall>xa. x # xa \<in> L \<longrightarrow> prefix qs xa) \<longrightarrow> length qs \<le> length ps"
+      and "\<forall>xs\<in>L. prefix qs xs"
+      hence "length (tl qs) \<le> length ps"
+        by (metis Cons_prefix_Cons hd_Cons_tl list.sel(2) Nil_prefix) 
+      hence "length qs \<le> Suc (length ps)" by auto
+    }
+    hence "?P L (x#ps)" using True IH by auto
+    thus ?thesis ..
+  next
+    case False
+    then obtain y ys where yys: "x\<noteq>y" "y#ys \<in> L" using \<open>[] \<notin> L\<close>
+      by (auto) (metis list.exhaust)
+    have "\<forall>qs. (\<forall>xs\<in>L. prefix qs xs) \<longrightarrow> qs = []" using yys \<open>x#xs \<in> L\<close>
+      by auto (metis Cons_prefix_Cons prefix_Cons)
+    hence "?P L []" by auto
+    thus ?thesis ..
+  qed
+qed
+
+lemma Longest_common_prefix_unique: "L \<noteq> {} \<Longrightarrow>
+  \<exists>! ps. (\<forall>xs \<in> L. prefix ps xs) \<and> (\<forall>qs. (\<forall>xs \<in> L. prefix qs xs) \<longrightarrow> size qs \<le> size ps)"
+by(rule ex_ex1I[OF Longest_common_prefix_ex];
+   meson equals0I prefix_length_prefix prefix_order.antisym)
+
+lemma Longest_common_prefix_eq:
+ "\<lbrakk> L \<noteq> {};  \<forall>xs \<in> L. prefix ps xs;
+    \<forall>qs. (\<forall>xs \<in> L. prefix qs xs) \<longrightarrow> size qs \<le> size ps \<rbrakk>
+  \<Longrightarrow> Longest_common_prefix L = ps"
+unfolding Longest_common_prefix_def GreatestM_def
+by(rule some1_equality[OF Longest_common_prefix_unique]) auto
+
+lemma Longest_common_prefix_prefix:
+  "xs \<in> L \<Longrightarrow> prefix (Longest_common_prefix L) xs"
+unfolding Longest_common_prefix_def GreatestM_def
+by(rule someI2_ex[OF Longest_common_prefix_ex]) auto
+
+lemma Longest_common_prefix_longest:
+  "L \<noteq> {} \<Longrightarrow> \<forall>xs\<in>L. prefix ps xs \<Longrightarrow> length ps \<le> length(Longest_common_prefix L)"
+unfolding Longest_common_prefix_def GreatestM_def
+by(rule someI2_ex[OF Longest_common_prefix_ex]) auto
+
+lemma Longest_common_prefix_max_prefix:
+  "L \<noteq> {} \<Longrightarrow> \<forall>xs\<in>L. prefix ps xs \<Longrightarrow> prefix ps (Longest_common_prefix L)"
+by(metis Longest_common_prefix_prefix Longest_common_prefix_longest
+     prefix_length_prefix ex_in_conv)
+
+lemma Longest_common_prefix_Nil: "[] \<in> L \<Longrightarrow> Longest_common_prefix L = []"
+using Longest_common_prefix_prefix prefix_Nil by blast
+
+lemma Longest_common_prefix_image_Cons: "L \<noteq> {} \<Longrightarrow>
+  Longest_common_prefix (op # x ` L) = x # Longest_common_prefix L"
+apply(rule Longest_common_prefix_eq)
+  apply(simp)
+ apply (simp add: Longest_common_prefix_prefix)
+apply simp
+by(metis Longest_common_prefix_longest[of L] Cons_prefix_Cons Nitpick.size_list_simp(2)
+     Suc_le_mono hd_Cons_tl order.strict_implies_order zero_less_Suc)
+
+lemma Longest_common_prefix_eq_Cons: assumes "L \<noteq> {}" "[] \<notin> L"  "\<forall>xs\<in>L. hd xs = x"
+shows "Longest_common_prefix L = x # Longest_common_prefix {ys. x#ys \<in> L}"
+proof -
+  have "L = op # x ` {ys. x#ys \<in> L}" using assms(2,3)
+    by (auto simp: image_def)(metis hd_Cons_tl)
+  thus ?thesis
+    by (metis Longest_common_prefix_image_Cons image_is_empty assms(1))
+qed
+
+lemma Longest_common_prefix_eq_Nil:
+  "\<lbrakk>x#ys \<in> L; y#zs \<in> L; x \<noteq> y \<rbrakk> \<Longrightarrow> Longest_common_prefix L = []"
+by (metis Longest_common_prefix_prefix list.inject prefix_Cons)
+
+
+fun longest_common_prefix :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"longest_common_prefix (x#xs) (y#ys) =
+  (if x=y then x # longest_common_prefix xs ys else [])" |
+"longest_common_prefix _ _ = []"
+
+lemma longest_common_prefix_prefix1:
+  "prefix (longest_common_prefix xs ys) xs"
+by(induction xs ys rule: longest_common_prefix.induct) auto
+
+lemma longest_common_prefix_prefix2:
+  "prefix (longest_common_prefix xs ys) ys"
+by(induction xs ys rule: longest_common_prefix.induct) auto
+
+lemma longest_common_prefix_max_prefix:
+  "\<lbrakk> prefix ps xs; prefix ps ys \<rbrakk>
+   \<Longrightarrow> prefix ps (longest_common_prefix xs ys)"
+by(induction xs ys arbitrary: ps rule: longest_common_prefix.induct)
+  (auto simp: prefix_Cons)
 
 
 subsection \<open>Parallel lists\<close>

@@ -227,10 +227,11 @@ pave way for a possible future different type class instantiation
 for polynomials over factorial rings.  INCOMPATIBILITY.
 
 * Library/Sublist.thy: added function "prefixes" and renamed
- prefixeq -> prefix
- prefix -> strict_prefix
- suffixeq -> suffix
- suffix -> strict_suffix
+  prefixeq -> prefix
+  prefix -> strict_prefix
+  suffixeq -> suffix
+  suffix -> strict_suffix
+  Added theory of longest common prefixes.
 
 * Dropped various legacy fact bindings, whose replacements are often
 of a more general type also:

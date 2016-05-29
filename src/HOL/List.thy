@@ -1002,6 +1002,12 @@ lemma append_eq_Cons_conv: "(ys@zs = x#xs) =
  (ys = [] & zs = x#xs | (EX ys'. ys = x#ys' & ys'@zs = xs))"
 by(cases ys) auto
 
+lemma longest_common_prefix:
+  "\<exists>ps xs' ys'. xs = ps @ xs' \<and> ys = ps @ ys'
+       \<and> (xs' = [] \<or> ys' = [] \<or> hd xs' \<noteq> hd ys')"
+by (induct xs ys rule: list_induct2')
+   (blast, blast, blast,
+    metis (no_types, hide_lams) append_Cons append_Nil list.sel(1))
 
 text \<open>Trivial rules for solving \<open>@\<close>-equations automatically.\<close>
 
@@ -1960,6 +1966,12 @@ by (induct xs) simp_all
 lemma snoc_eq_iff_butlast:
   "xs @ [x] = ys \<longleftrightarrow> (ys \<noteq> [] & butlast ys = xs & last ys = x)"
 by fastforce
+
+corollary longest_common_suffix:
+  "\<exists>ss xs' ys'. xs = xs' @ ss \<and> ys = ys' @ ss
+       \<and> (xs' = [] \<or> ys' = [] \<or> last xs' \<noteq> last ys')"
+using longest_common_prefix[of "rev xs" "rev ys"]
+unfolding rev_swap rev_append by (metis last_rev rev_is_Nil_conv)
 
 
 subsubsection \<open>@{const take} and @{const drop}\<close>
