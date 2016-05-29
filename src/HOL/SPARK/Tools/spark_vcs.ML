@@ -1020,7 +1020,7 @@ fun add_def prfx types pfuns consts (id, (s, e)) (ids as (tab, ctxt), thy) =
             "\ndoes not match type " ^ ty' ^ " in definition");
         val id' = mk_rulename id;
         val ((t', (_, th)), lthy') = Named_Target.theory_init thy
-          |> Specification.definition NONE []
+          |> Specification.definition NONE [] []
             ((id', []), HOLogic.mk_Trueprop (HOLogic.mk_eq (Free (s, T), t)));
         val phi =
           Proof_Context.export_morphism lthy'

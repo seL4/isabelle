@@ -66,13 +66,13 @@ statement.
 
 *** Isar ***
 
-* Many specification elements support structured statements with 'if'
-eigen-context, e.g. 'axiomatization', 'definition', 'inductive',
-'function'.
-
 * Command 'axiomatization' has become more restrictive to correspond
 better to internal axioms as singleton facts with mandatory name. Minor
 INCOMPATIBILITY.
+
+* Many specification elements support structured statements with 'if' /
+'for' eigen-context, e.g. 'axiomatization', 'abbreviation',
+'definition', 'inductive', 'function'.
 
 * Toplevel theorem statements support eigen-context notation with 'if' /
 'for' (in postix), which corresponds to 'assumes' / 'fixes' in the
