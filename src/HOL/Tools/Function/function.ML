@@ -274,7 +274,7 @@ val _ =
   Outer_Syntax.local_theory_to_proof' @{command_keyword function}
     "define general recursive functions"
     (function_parser default_config
-      >> (fn ((config, fixes), statements) => function_cmd fixes statements config))
+      >> (fn (config, (fixes, specs)) => function_cmd fixes specs config))
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword termination}

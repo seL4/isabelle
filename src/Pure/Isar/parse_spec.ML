@@ -12,10 +12,10 @@ sig
   val simple_spec: (Attrib.binding * string) parser
   val simple_specs: (Attrib.binding * string list) parser
   val if_assumes: string list parser
-  val spec: (string list * (Attrib.binding * string)) parser
   val multi_specs: Specification.multi_specs_cmd parser
   val where_multi_specs: Specification.multi_specs_cmd parser
-  val specification: (string list * (Attrib.binding * string list) list) parser
+  val specification:
+    ((binding * string option * mixfix) list * Specification.multi_specs_cmd) parser
   val constdecl: (binding * string option * mixfix) parser
   val includes: (xstring * Position.T) list parser
   val locale_fixes: (binding * string option * mixfix) list parser
@@ -60,17 +60,14 @@ val if_assumes =
   Scan.optional (Parse.$$$ "if" |-- Parse.!!! (Parse.and_list1 (Scan.repeat1 Parse.prop) >> flat))
     [];
 
-val spec = (opt_thm_name ":" -- Parse.prop) -- if_assumes >> swap;
-
 val multi_specs =
   Parse.enum1 "|"
-    (opt_thm_name ":" -- Parse.prop -- if_assumes --|
+    ((opt_thm_name ":" -- Parse.prop -- if_assumes -- Parse.for_fixes >> Scan.triple1) --|
       Scan.option (Scan.ahead (Parse.name || Parse.$$$ "[") -- Parse.!!! (Parse.$$$ "|")));
 
 val where_multi_specs = Parse.where_ |-- Parse.!!! multi_specs;
 
-val specification =
-  Parse.and_list1 (opt_thm_name ":" -- Scan.repeat1 Parse.prop) -- if_assumes >> swap;
+val specification = Parse.fixes -- where_multi_specs;
 
 
 (* basic constant specifications *)

@@ -133,7 +133,7 @@ function:
 *}
 
 axiomatization f :: "nat \<Rightarrow> nat"
-  where f_ax: "f(f(n)) < f(Suc(n))"
+  where f_ax: "f(f(n)) < f(Suc(n))" for n :: nat
 
 text{*
 \begin{warn}

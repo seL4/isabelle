@@ -610,7 +610,7 @@ val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
 
 fun ind_cases_rules ctxt raw_props raw_fixes =
   let
-    val (props, ctxt' ) = Specification.read_props raw_props raw_fixes ctxt;
+    val (props, ctxt') = Specification.read_props raw_props raw_fixes ctxt;
     val rules = Proof_Context.export ctxt' ctxt (map (mk_cases ctxt') props);
   in rules end;
 

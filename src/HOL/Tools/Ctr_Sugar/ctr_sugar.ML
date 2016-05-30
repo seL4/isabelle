@@ -623,11 +623,11 @@ fun prepare_free_constructors kind prep_plugins prep_term
                 else if Binding.eq_name (b, equal_binding) then
                   pair (Term.lambda u exist_xs_u_eq_ctr, refl)
                 else
-                  Specification.definition (SOME (b, NONE, NoSyn)) []
+                  Specification.definition (SOME (b, NONE, NoSyn)) [] []
                     ((Thm.def_binding b, []), disc_spec b exist_xs_u_eq_ctr) #>> apsnd snd)
               ks exist_xs_u_eq_ctrs disc_bindings
             ||>> apfst split_list o fold_map (fn (b, proto_sels) =>
-              Specification.definition (SOME (b, NONE, NoSyn)) []
+              Specification.definition (SOME (b, NONE, NoSyn)) [] []
                 ((Thm.def_binding b, []), sel_spec b proto_sels) #>> apsnd snd) sel_infos
             ||> `Local_Theory.close_target;
 

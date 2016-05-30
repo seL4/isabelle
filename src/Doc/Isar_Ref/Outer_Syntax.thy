@@ -450,6 +450,31 @@ text \<open>
 \<close>
 
 
+subsection \<open>Structured specifications\<close>
+
+text \<open>
+  Structured specifications use propositions with explicit notation for the
+  ``eigen-context'' to describe rule structure: \<open>\<And>x. A x \<Longrightarrow> \<dots> \<Longrightarrow> B x\<close> is
+  expressed as \<^theory_text>\<open>B x if A x and \<dots> for x\<close>. It is also possible to use dummy
+  terms ``\<open>_\<close>'' (underscore) to refer to locally fixed variables anonymously.
+
+  Multiple specifications are delimited by ``\<open>|\<close>'' to emphasize separate
+  cases: each with its own scope of inferred types for free variables.
+
+
+  @{rail \<open>
+    @{syntax_def multi_specs}: (@{syntax structured_spec} + '|')
+    ;
+    @{syntax_def structured_spec}:
+      @{syntax thmdecl}? @{syntax prop} @{syntax spec_prems} @{syntax for_fixes}
+    ;
+    @{syntax_def spec_prems}: (@'if' ((@{syntax prop}+) + @'and'))?
+    ;
+    @{syntax_def specification}: @{syntax "fixes"} @'where' @{syntax multi_specs}
+  \<close>}
+\<close>
+
+
 section \<open>Diagnostic commands\<close>
 
 text \<open>

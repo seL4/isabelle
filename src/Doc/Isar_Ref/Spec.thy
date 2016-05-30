@@ -285,14 +285,18 @@ text \<open>
   ``abbreviation''.
 
   @{rail \<open>
-    @@{command definition} (decl @'where')? @{syntax thmdecl}? @{syntax prop}
+    @@{command definition} decl? definition
     ;
-    @@{command abbreviation} @{syntax mode}? \<newline>
-      (decl @'where')? @{syntax prop}
-    ;
-    decl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
+    @@{command abbreviation} @{syntax mode}? decl? abbreviation
     ;
     @@{command print_abbrevs} ('!'?)
+    ;
+    decl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}? @'where'
+    ;
+    definition: @{syntax thmdecl}? @{syntax prop}
+      @{syntax spec_prems} @{syntax for_fixes}
+    ;
+    abbreviation: @{syntax prop} @{syntax for_fixes}
   \<close>}
 
   \<^descr> \<^theory_text>\<open>definition c where eq\<close> produces an internal definition \<open>c \<equiv> t\<close> according
@@ -337,9 +341,10 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command axiomatization} @{syntax "fixes"}? (@'where' specs)?
+    @@{command axiomatization} @{syntax "fixes"}? (@'where' axiomatization)?
     ;
-    specs: (@{syntax thmdecl}? @{syntax props} + @'and')
+    axiomatization: (@{syntax thmdecl} @{syntax prop} + @'and')
+      @{syntax spec_prems} @{syntax for_fixes}
   \<close>}
 
   \<^descr> \<^theory_text>\<open>axiomatization c\<^sub>1 \<dots> c\<^sub>m where \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n\<close> introduces several constants

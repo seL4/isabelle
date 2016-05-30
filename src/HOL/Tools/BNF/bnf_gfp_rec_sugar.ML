@@ -1588,7 +1588,7 @@ fun primcorec_ursive_cmd auto opts (raw_fixes, raw_specs_of) lthy =
     val (raw_specs, of_specs_opt) =
       split_list raw_specs_of ||> map (Option.map (Syntax.read_term lthy));
     val (fixes, specs) =
-      fst (Specification.read_multi_specs raw_fixes (map (rpair []) raw_specs) lthy);
+      fst (Specification.read_multi_specs raw_fixes (map (fn spec => (spec, [], [])) raw_specs) lthy);
   in
     primcorec_ursive auto opts fixes specs of_specs_opt lthy
   end;

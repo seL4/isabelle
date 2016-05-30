@@ -109,9 +109,17 @@ where pos_cps_of_set_code [code]: "pos_cps_of_set (set xs) f i = find_first f xs
 
 axiomatization find_first' :: "('b Quickcheck_Exhaustive.unknown => 'a Quickcheck_Exhaustive.three_valued)
     => 'b list => 'a Quickcheck_Exhaustive.three_valued"
-where find_first'_code [code]:
-  "find_first' f [] = Quickcheck_Exhaustive.No_value"
-  "find_first' f (x # xs) = (case f (Quickcheck_Exhaustive.Known x) of Quickcheck_Exhaustive.No_value => find_first' f xs | Quickcheck_Exhaustive.Value x => Quickcheck_Exhaustive.Value x | Quickcheck_Exhaustive.Unknown_value => (case find_first' f xs of Quickcheck_Exhaustive.Value x => Quickcheck_Exhaustive.Value x | _ => Quickcheck_Exhaustive.Unknown_value))"
+where find_first'_Nil: "find_first' f [] = Quickcheck_Exhaustive.No_value"
+  and find_first'_Cons: "find_first' f (x # xs) =
+    (case f (Quickcheck_Exhaustive.Known x) of
+      Quickcheck_Exhaustive.No_value => find_first' f xs
+    | Quickcheck_Exhaustive.Value x => Quickcheck_Exhaustive.Value x
+    | Quickcheck_Exhaustive.Unknown_value =>
+        (case find_first' f xs of Quickcheck_Exhaustive.Value x =>
+          Quickcheck_Exhaustive.Value x
+        | _ => Quickcheck_Exhaustive.Unknown_value))"
+
+lemmas find_first'_code [code] = find_first'_Nil find_first'_Cons
 
 axiomatization neg_cps_of_set :: "'a set => ('a Quickcheck_Exhaustive.unknown => term list Quickcheck_Exhaustive.three_valued) => natural => term list Quickcheck_Exhaustive.three_valued"
 where neg_cps_of_set_code [code]: "neg_cps_of_set (set xs) f i = find_first' f xs"

@@ -174,6 +174,6 @@ val _ =
   Outer_Syntax.local_theory' @{command_keyword fun}
     "define general recursive functions (short version)"
     (function_parser fun_config
-      >> (fn ((config, fixes), statements) => add_fun_cmd fixes statements config))
+      >> (fn (config, (fixes, specs)) => add_fun_cmd fixes specs config))
 
 end

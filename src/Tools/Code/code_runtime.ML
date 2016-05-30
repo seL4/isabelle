@@ -549,7 +549,7 @@ end;
 fun add_definiendum (ml_name, (b, T)) thy =
   thy
   |> Code_Target.add_reserved target ml_name
-  |> Specification.axiomatization [(b, SOME T, NoSyn)] [] []
+  |> Specification.axiomatization [(b, SOME T, NoSyn)] [] [] []
   |-> (fn ([Const (const, _)], _) =>
     Code_Target.set_printings (Constant (const,
       [(target, SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Code_Printer.str) ml_name)))]))

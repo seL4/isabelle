@@ -334,7 +334,7 @@ fun gen_fixrec
     val (skips, raw_spec) = ListPair.unzip raw_spec'
     val (fixes : ((binding * typ) * mixfix) list,
          spec : (Attrib.binding * term) list) =
-          fst (prep_spec raw_fixes (map (rpair []) raw_spec) lthy)
+          fst (prep_spec raw_fixes (map (fn s => (s, [], [])) raw_spec) lthy)
     val names = map (Binding.name_of o fst o fst) fixes
     fun check_head name =
         member (op =) names name orelse

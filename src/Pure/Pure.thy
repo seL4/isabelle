@@ -343,19 +343,24 @@ local
 
 val _ =
   Outer_Syntax.local_theory' @{command_keyword definition} "constant definition"
-    (Scan.option Parse_Spec.constdecl -- Parse_Spec.spec
-      >> (fn (a, (b, c)) => #2 oo Specification.definition_cmd a b c));
+    (Scan.option Parse_Spec.constdecl -- (Parse_Spec.opt_thm_name ":" -- Parse.prop) --
+      Parse_Spec.if_assumes -- Parse.for_fixes >> (fn (((decl, spec), prems), params) =>
+        #2 oo Specification.definition_cmd decl params prems spec));
 
 val _ =
   Outer_Syntax.local_theory' @{command_keyword abbreviation} "constant abbreviation"
-    (Parse.syntax_mode -- (Scan.option Parse_Spec.constdecl -- Parse.prop)
-      >> (fn (mode, (a, b)) => Specification.abbreviation_cmd mode a b));
+    (Parse.syntax_mode -- Scan.option Parse_Spec.constdecl -- Parse.prop -- Parse.for_fixes
+      >> (fn (((mode, decl), spec), params) => Specification.abbreviation_cmd mode decl params spec));
+
+val axiomatization =
+  Parse.and_list1 (Parse_Spec.thm_name ":" -- Parse.prop) --
+  Parse_Spec.if_assumes -- Parse.for_fixes >> (fn ((a, b), c) => (c, b, a));
 
 val _ =
   Outer_Syntax.command @{command_keyword axiomatization} "axiomatic constant specification"
     (Scan.optional Parse.fixes [] --
-      Scan.optional (Parse.where_ |-- Parse.!!! Parse_Spec.specification) ([], [])
-      >> (fn (a, (b, c)) => Toplevel.theory (#2 o Specification.axiomatization_cmd a b c)));
+      Scan.optional (Parse.where_ |-- Parse.!!! axiomatization) ([], [], [])
+      >> (fn (a, (b, c, d)) => Toplevel.theory (#2 o Specification.axiomatization_cmd a b c d)));
 
 in end\<close>
 
