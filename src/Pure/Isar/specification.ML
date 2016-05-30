@@ -9,8 +9,6 @@ signature SPECIFICATION =
 sig
   val read_props: string list -> (binding * string option * mixfix) list -> Proof.context ->
     term list * Proof.context
-  val read_prop: string -> (binding * string option * mixfix) list -> Proof.context ->
-    term * Proof.context
   val check_spec_open: (binding * typ option * mixfix) list ->
     (binding * typ option * mixfix) list -> term list -> term -> Proof.context ->
     ((binding * typ option * mixfix) list * string list * (string -> Position.T) * term) *
@@ -89,10 +87,6 @@ fun read_props raw_props raw_fixes ctxt =
     val props3 = Syntax.check_props ctxt2 props2;
     val ctxt3 = ctxt2 |> fold Variable.declare_term props3;
   in (props3, ctxt3) end;
-
-fun read_prop raw_prop raw_fixes ctxt =
-  let val ([prop], ctxt') = read_props [raw_prop] raw_fixes ctxt
-  in (prop, ctxt') end;
 
 
 (* prepare specification *)
