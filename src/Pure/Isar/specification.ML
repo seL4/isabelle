@@ -17,8 +17,10 @@ sig
     (binding * string option * mixfix) list -> string list -> string -> Proof.context ->
     ((binding * typ option * mixfix) list * string list * (string -> Position.T) * term) *
     Proof.context
-  type multi_specs = ((Attrib.binding * term) * term list) list
-  type multi_specs_cmd = ((Attrib.binding * string) * string list) list
+  type multi_specs =
+    ((Attrib.binding * term) * term list * (binding * typ option * mixfix) list) list
+  type multi_specs_cmd =
+    ((Attrib.binding * string) * string list * (binding * string option * mixfix) list) list
   val check_multi_specs: (binding * typ option * mixfix) list -> multi_specs -> Proof.context ->
     (((binding * typ) * mixfix) list * (Attrib.binding * term) list) * Proof.context
   val read_multi_specs: (binding * string option * mixfix) list -> multi_specs_cmd -> Proof.context ->
@@ -106,8 +108,8 @@ fun prep_decls prep_var raw_vars ctxt =
           map (Variable.markup_entity_def ctxt'' ##> Properties.remove Markup.kindN) xs);
   in ((vars, xs), ctxt'') end;
 
-fun close_form ctxt prems concl =
-  let val xs = rev (fold (Variable.add_free_names ctxt) (prems @ [concl]) []);
+fun close_form ctxt ys prems concl =
+  let val xs = rev (fold (Variable.add_free_names ctxt) (prems @ [concl]) (rev ys));
   in Logic.close_prop_constraint (Variable.default_type ctxt) (xs ~~ xs) prems concl end;
 
 fun dummy_frees ctxt xs tss =
@@ -155,11 +157,13 @@ fun prep_specs prep_var parse_prop prep_att raw_vars raw_specss ctxt =
     val ((vars, xs), vars_ctxt) = prep_decls prep_var raw_vars ctxt;
 
     val propss0 =
-      map (fn ((_, raw_concl), raw_prems) => raw_concl :: raw_prems) raw_specss
-      |> burrow (grouped 10 Par_List.map_independent (parse_prop vars_ctxt));
+      raw_specss |> map (fn ((_, raw_concl), raw_prems, raw_params) =>
+        let val (ys, ctxt') = vars_ctxt |> fold_map prep_var raw_params |-> Proof_Context.add_fixes
+        in (ys, map (pair ctxt') (raw_concl :: raw_prems)) end);
     val props =
-      dummy_frees vars_ctxt xs propss0
-      |> map (fn concl :: prems => close_form vars_ctxt prems concl);
+      burrow (grouped 10 Par_List.map_independent (uncurry parse_prop)) (map #2 propss0)
+      |> dummy_frees vars_ctxt xs
+      |> map2 (fn (ys, _) => fn concl :: prems => close_form vars_ctxt ys prems concl) propss0;
 
     val specs = Syntax.check_props vars_ctxt props;
     val specs_ctxt = vars_ctxt |> fold Variable.declare_term specs;
@@ -175,8 +179,10 @@ in
 val check_spec_open = prep_spec_open Proof_Context.cert_var (K I);
 val read_spec_open = prep_spec_open Proof_Context.read_var Syntax.parse_prop;
 
-type multi_specs = ((Attrib.binding * term) * term list) list;
-type multi_specs_cmd = ((Attrib.binding * string) * string list) list;
+type multi_specs =
+  ((Attrib.binding * term) * term list * (binding * typ option * mixfix) list) list;
+type multi_specs_cmd =
+  ((Attrib.binding * string) * string list * (binding * string option * mixfix) list) list;
 
 fun check_multi_specs xs specs =
   prep_specs Proof_Context.cert_var (K I) (K I) xs specs;

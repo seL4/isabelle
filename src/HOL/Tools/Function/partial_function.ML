@@ -226,7 +226,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
         "Known modes are " ^ commas_quote (known_modes lthy) ^ "."]);
     val Setup_Data {fixp, mono, fixp_eq, fixp_induct, fixp_induct_user} = setup_data;
 
-    val ((fixes, [(eq_abinding, eqn)]), _) = prep fixes_raw [(eqn_raw, [])] lthy;
+    val ((fixes, [(eq_abinding, eqn)]), _) = prep fixes_raw [(eqn_raw, [], [])] lthy;
     val ((_, plain_eqn), args_ctxt) = Variable.focus NONE eqn lthy;
 
     val ((f_binding, fT), mixfix) = the_single fixes;

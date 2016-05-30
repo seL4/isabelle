@@ -60,7 +60,7 @@ val if_assumes =
 
 val multi_specs =
   Parse.enum1 "|"
-    (opt_thm_name ":" -- Parse.prop -- if_assumes --|
+    ((opt_thm_name ":" -- Parse.prop -- if_assumes -- Parse.for_fixes >> Scan.triple1) --|
       Scan.option (Scan.ahead (Parse.name || Parse.$$$ "[") -- Parse.!!! (Parse.$$$ "|")));
 
 val where_multi_specs = Parse.where_ |-- Parse.!!! multi_specs;

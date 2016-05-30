@@ -255,7 +255,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
             (Free (nth perm_names_types' i) $
                Free ("pi", mk_permT (TFree ("'x", @{sort type}))) $
                list_comb (c, args),
-             list_comb (c, map perm_arg (dts ~~ args))))), [])
+             list_comb (c, map perm_arg (dts ~~ args))))), [], [])
         end) constrs
       end) descr;
 

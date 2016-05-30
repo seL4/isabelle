@@ -109,9 +109,7 @@ text \<open>
     (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
       @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set})
       @{syntax "fixes"} @{syntax "for_fixes"} \<newline>
-      (@'where' clauses)? (@'monos' @{syntax thms})?
-    ;
-    clauses: (@{syntax thmdecl}? @{syntax prop} + '|')
+      (@'where' @{syntax multi_specs})? (@'monos' @{syntax thms})?
     ;
     @@{command print_inductives} ('!'?)
     ;
@@ -266,15 +264,12 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) primrec} @{syntax "fixes"} @'where' equations
+    @@{command (HOL) primrec} @{syntax "fixes"} @'where' @{syntax multi_specs}
     ;
-    (@@{command (HOL) fun} | @@{command (HOL) function}) functionopts?
-      @{syntax "fixes"} \<newline> @'where' equations
+    (@@{command (HOL) fun} | @@{command (HOL) function}) function_opts? \<newline>
+      @{syntax "fixes"} @'where' @{syntax multi_specs}
     ;
-
-    equations: (@{syntax thmdecl}? @{syntax prop} + '|')
-    ;
-    functionopts: '(' (('sequential' | 'domintros') + ',') ')'
+    function_opts: '(' (('sequential' | 'domintros') + ',') ')'
     ;
     @@{command (HOL) termination} @{syntax term}?
     ;
@@ -568,8 +563,8 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) partial_function} '(' @{syntax name} ')' @{syntax "fixes"} \<newline>
-      @'where' @{syntax thmdecl}? @{syntax prop}
+    @@{command (HOL) partial_function} '(' @{syntax name} ')' \<newline>
+      @{syntax "fixes"} @'where' @{syntax multi_specs}
   \<close>}
 
   \<^descr> @{command (HOL) "partial_function"}~\<open>(mode)\<close> defines

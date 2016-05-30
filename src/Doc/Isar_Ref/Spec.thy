@@ -293,9 +293,8 @@ text \<open>
     ;
     decl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}? @'where'
     ;
-    definition: @{syntax thmdecl}? @{syntax prop} prems @{syntax for_fixes}
-    ;
-    prems: (@'if' ((@{syntax prop}+) + @'and'))?
+    definition: @{syntax thmdecl}? @{syntax prop}
+      @{syntax spec_prems} @{syntax for_fixes}
     ;
     abbreviation: @{syntax prop} @{syntax for_fixes}
   \<close>}
@@ -345,9 +344,7 @@ text \<open>
     @@{command axiomatization} @{syntax "fixes"}? (@'where' axiomatization)?
     ;
     axiomatization: (@{syntax thmdecl} @{syntax prop} + @'and')
-      prems @{syntax for_fixes}
-    ;
-    prems: (@'if' ((@{syntax prop}+) + @'and'))?
+      @{syntax spec_prems} @{syntax for_fixes}
   \<close>}
 
   \<^descr> \<^theory_text>\<open>axiomatization c\<^sub>1 \<dots> c\<^sub>m where \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n\<close> introduces several constants
