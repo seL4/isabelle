@@ -54,6 +54,9 @@ val parse_match_kind =
 fun nameable_match m = (case m of Match_Fact _ => true | Match_Prems _ => true | _ => false);
 fun prop_match m = (case m of Match_Term _ => false | _ => true);
 
+val bound_thm : (thm, binding) Parse_Tools.parse_val parser =
+  Parse_Tools.parse_thm_val Parse.binding;
+
 val bound_term : (term, binding) Parse_Tools.parse_val parser =
   Parse_Tools.parse_term_val Parse.binding;
 
@@ -69,7 +72,7 @@ fun pos_of dyn = Parse_Tools.the_parse_val dyn |> Binding.pos_of;
 (*FIXME: Dynamic facts modify the background theory, so we have to resort
   to token replacement for matched facts. *)
 val dynamic_fact =
-  Scan.lift bound_term -- Attrib.opt_attribs;
+  Scan.lift bound_thm -- Attrib.opt_attribs;
 
 type match_args = {multi : bool, cut : int};
 
@@ -190,7 +193,7 @@ fun parse_named_pats match_kind =
                     |> snd
                     |> Variable.declare_maxidx (Thm.maxidx_of head_thm);
                 in
-                  (SOME (Thm.prop_of head_thm, att) :: tms, ctxt''')
+                  (SOME (head_thm, att) :: tms, ctxt''')
                 end
             | upd_ctxt NONE _ (tms, ctxt) = (NONE :: tms, ctxt);
 
@@ -221,7 +224,7 @@ fun parse_named_pats match_kind =
             in src' end;
 
           val binds' =
-            map (Option.map (fn (t, atts) => (Morphism.term morphism t, map close_src atts))) binds;
+            map (Option.map (fn (t, atts) => (Morphism.thm morphism t, map close_src atts))) binds;
 
           val _ =
             ListPair.app
@@ -245,13 +248,14 @@ fun parse_named_pats match_kind =
         end));
 
 
-fun dest_internal_fact t =
+fun dest_internal_term t =
   (case try Logic.dest_conjunction t of
     SOME (params, head) =>
      (params |> Logic.dest_conjunctions |> map Logic.dest_term,
       head |> Logic.dest_term)
   | NONE => ([], t |> Logic.dest_term));
 
+fun dest_internal_fact thm = dest_internal_term (Thm.prop_of thm);
 
 fun inst_thm ctxt env ts params thm =
   let
@@ -266,7 +270,7 @@ fun do_inst fact_insts' env text ctxt =
         (fn ((((SOME ((_, head), att), _), _), _), thms) => SOME (head, (thms, att))
           | _ => NONE) fact_insts';
 
-    fun try_dest_term thm = try (Thm.prop_of #> dest_internal_fact #> snd) thm;
+    fun try_dest_term thm = try (dest_internal_fact #> snd) thm;
 
     fun expand_fact fact_insts thm =
       the_default [thm]

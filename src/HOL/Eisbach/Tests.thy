@@ -262,8 +262,20 @@ ML \<open>test_internal_fact @{context} "uses_test\<^sub>1_uses"\<close>
 ML \<open>test_internal_fact @{context} "Tests.uses_test\<^sub>1_uses"\<close>
 ML \<open>test_internal_fact @{context} "Tests.uses_test\<^sub>1.uses_test\<^sub>1_uses"\<close>
 
+subsection \<open>Basic fact passing\<close>
+
+method find_fact for x y :: bool uses facts1 facts2 =
+  (match facts1 in U: "x" \<Rightarrow> \<open>insert U,
+      match facts2 in U: "y" \<Rightarrow> \<open>insert U\<close>\<close>)
+
+lemma assumes A: A and B: B shows "A \<and> B"
+  apply (find_fact "A" "B" facts1: A facts2: B)
+  apply (rule conjI; assumption)
+  done
+
 
 subsection \<open>Testing term and fact passing in recursion\<close>
+
 
 method recursion_example for x :: bool uses facts =
   (match (x) in
@@ -529,5 +541,54 @@ lemma
   apply (test_method' a b rule: refl)?
   apply (test_method' a b rule: assms [symmetric])?
   done
+
+subsection \<open>Eisbach methods in locales\<close>
+
+locale my_locale1 = fixes A assumes A: A begin
+
+method apply_A =
+  (match conclusion in "A" \<Rightarrow>
+    \<open>match A in U:"A" \<Rightarrow>
+      \<open>print_term A, print_fact A, rule U\<close>\<close>)
+
+end
+
+locale my_locale2 = fixes B assumes B: B begin
+
+interpretation my_locale1 B by (unfold_locales; rule B)
+
+lemma B by apply_A
+
+end
+
+context fixes C assumes C: C begin
+
+interpretation my_locale1 C by (unfold_locales; rule C)
+
+lemma C by apply_A
+
+end
+
+context begin
+
+interpretation my_locale1 "True \<longrightarrow> True" by (unfold_locales; blast)
+
+lemma "True \<longrightarrow> True" by apply_A
+
+end
+
+locale locale_poly = fixes P assumes P: "\<And>x :: 'a. P x" begin
+
+method solve_P for z :: 'a = (rule P[where x = z]) 
+
+end
+
+context begin
+
+interpretation locale_poly "\<lambda>x:: nat. 0 \<le> x" by (unfold_locales; blast)
+
+lemma "0 \<le> (n :: nat)" by (solve_P n)
+
+end
 
 end

@@ -260,14 +260,18 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
 
     val text' = (Method.map_source o map) (Token.transform morphism) text;
     val term_args' = map (Morphism.term morphism) term_args;
+    val full_name = Local_Theory.full_name lthy name;
   in
     lthy3
     |> Local_Theory.close_target
     |> Proof_Context.restore_naming lthy
     |> put_closure name
         {vars = term_args', named_thms = named_thms, methods = method_args, body = text'}
-    |> Method.local_setup name (parser term_args' (recursive_method term_args' text')) ""
-    |> pair (Local_Theory.full_name lthy name)
+    |> Method.local_setup name 
+        (Args.context :|-- (fn ctxt =>
+          let val {body, vars, ...} = get_closure ctxt full_name in
+            parser vars (recursive_method vars body) end)) ""
+    |> pair full_name
   end;
 
 in

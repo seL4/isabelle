@@ -20,6 +20,8 @@ sig
 
   val parse_term_val : 'b parser -> (term, 'b) parse_val parser
   val name_term : (term, string) parse_val parser
+
+  val parse_thm_val : 'b parser -> (thm, 'b) parse_val parser
 end;
 
 structure Parse_Tools: PARSE_TOOLS =
@@ -35,6 +37,11 @@ fun parse_term_val scan =
       | ((tok, NONE), v) => Parse_Val (v, fn t => ignore (Token.assign (SOME (Token.Term t)) tok)));
 
 val name_term = parse_term_val Args.embedded_inner_syntax;
+
+fun parse_thm_val scan =
+  Scan.ahead Parse.not_eof -- Scan.ahead (Scan.option (Args.internal_fact >> the_single)) -- scan >>
+    (fn ((_, SOME t), _) => Real_Val t
+      | ((tok, NONE), v) => Parse_Val (v, fn t => ignore (Token.assign (SOME (Token.Fact (NONE, [t]))) tok)));
 
 fun is_real_val (Real_Val _) = true
   | is_real_val _ = false;
