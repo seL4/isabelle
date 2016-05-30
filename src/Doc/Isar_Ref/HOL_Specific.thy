@@ -264,12 +264,11 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) primrec} @{syntax "fixes"} @'where' @{syntax multi_specs}
+    @@{command (HOL) primrec} @{syntax specification}
     ;
-    (@@{command (HOL) fun} | @@{command (HOL) function}) function_opts? \<newline>
-      @{syntax "fixes"} @'where' @{syntax multi_specs}
+    (@@{command (HOL) fun} | @@{command (HOL) function}) opts? @{syntax specification}
     ;
-    function_opts: '(' (('sequential' | 'domintros') + ',') ')'
+    opts: '(' (('sequential' | 'domintros') + ',') ')'
     ;
     @@{command (HOL) termination} @{syntax term}?
     ;
@@ -563,8 +562,8 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) partial_function} '(' @{syntax name} ')' \<newline>
-      @{syntax "fixes"} @'where' @{syntax multi_specs}
+    @@{command (HOL) partial_function} '(' @{syntax name} ')'
+      @{syntax specification}
   \<close>}
 
   \<^descr> @{command (HOL) "partial_function"}~\<open>(mode)\<close> defines

@@ -14,6 +14,8 @@ sig
   val if_assumes: string list parser
   val multi_specs: Specification.multi_specs_cmd parser
   val where_multi_specs: Specification.multi_specs_cmd parser
+  val specification:
+    ((binding * string option * mixfix) list * Specification.multi_specs_cmd) parser
   val constdecl: (binding * string option * mixfix) parser
   val includes: (xstring * Position.T) list parser
   val locale_fixes: (binding * string option * mixfix) list parser
@@ -64,6 +66,8 @@ val multi_specs =
       Scan.option (Scan.ahead (Parse.name || Parse.$$$ "[") -- Parse.!!! (Parse.$$$ "|")));
 
 val where_multi_specs = Parse.where_ |-- Parse.!!! multi_specs;
+
+val specification = Parse.fixes -- where_multi_specs;
 
 
 (* basic constant specifications *)

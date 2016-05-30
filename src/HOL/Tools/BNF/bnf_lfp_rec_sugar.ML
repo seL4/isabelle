@@ -687,8 +687,7 @@ val rec_option_parser = Parse.group (K "option")
 val _ = Outer_Syntax.local_theory @{command_keyword primrec}
   "define primitive recursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 rec_option_parser)
-      --| @{keyword ")"}) []) --
-    (Parse.fixes -- Parse_Spec.where_multi_specs)
+      --| @{keyword ")"}) []) -- Parse_Spec.specification
     >> (fn (opts, (fixes, specs)) => snd o primrec_cmd opts fixes specs));
 
 end;

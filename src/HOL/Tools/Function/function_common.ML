@@ -99,8 +99,7 @@ sig
   val import_last_function : Proof.context -> info option
   val default_config : function_config
   val function_parser : function_config ->
-    ((function_config * (binding * string option * mixfix) list) *
-      Specification.multi_specs_cmd) parser
+    (function_config * ((binding * string option * mixfix) list * Specification.multi_specs_cmd)) parser
 end
 
 structure Function_Common : FUNCTION_COMMON =
@@ -374,7 +373,7 @@ local
      >> (fn opts => fold apply_opt opts default)
 in
   fun function_parser default_cfg =
-      config_parser default_cfg -- Parse.fixes -- Parse_Spec.where_multi_specs
+      config_parser default_cfg -- Parse_Spec.specification
 end
 
 

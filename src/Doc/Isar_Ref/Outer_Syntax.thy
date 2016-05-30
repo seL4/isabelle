@@ -469,6 +469,8 @@ text \<open>
       @{syntax thmdecl}? @{syntax prop} @{syntax spec_prems} @{syntax for_fixes}
     ;
     @{syntax_def spec_prems}: (@'if' ((@{syntax prop}+) + @'and'))?
+    ;
+    @{syntax_def specification}: @{syntax "fixes"} @'where' @{syntax multi_specs}
   \<close>}
 \<close>
 
