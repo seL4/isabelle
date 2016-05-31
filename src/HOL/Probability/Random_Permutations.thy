@@ -102,7 +102,11 @@ lemma fold_random_permutation_fold:
              map_pmf (\<lambda>xs. fold f xs x) (pmf_of_set (permutations_of_set A))"
   by (subst fold_random_permutation_foldl [OF assms], intro map_pmf_cong)
      (simp_all add: foldl_conv_fold)
-
+     
+lemma fold_random_permutation_code [code]: 
+  "fold_random_permutation f x (set xs) =
+     map_pmf (foldl (\<lambda>x y. f y x) x) (pmf_of_set (permutations_of_set (set xs)))"
+  by (simp add: fold_random_permutation_foldl)
 
 text \<open>
   We now introduce a slightly generalised version of the above fold 
@@ -134,7 +138,7 @@ text \<open>
   We now show that the recursive definition is equivalent to 
   a random fold followed by a monadic bind.
 \<close>
-lemma fold_bind_random_permutation_altdef:
+lemma fold_bind_random_permutation_altdef [code]:
   "fold_bind_random_permutation f g x A = fold_random_permutation f x A \<bind> g"
 proof (induction f x A rule: fold_random_permutation.induct [case_names empty infinite remove])
   case (remove A f x)

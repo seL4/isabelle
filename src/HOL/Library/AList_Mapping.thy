@@ -63,9 +63,43 @@ proof -
     by (auto intro!: map_of_eqI) (auto dest!: map_of_eq_dom intro: aux)
 qed
 
+lemma map_values_Mapping [code]:
+  fixes f :: "'a \<Rightarrow> 'b" and xs :: "('c \<times> 'a) list"
+  shows "Mapping.map_values f (Mapping xs) = Mapping (map (\<lambda>(x,y). (x, f y)) xs)"
+proof (transfer, rule ext, goal_cases)
+  case (1 f xs x)
+  thus ?case by (induction xs) auto
+qed
+
+lemma combine_code [code]: 
+  "Mapping.combine f (Mapping xs) (Mapping ys) =
+     Mapping.tabulate (remdups (map fst xs @ map fst ys)) 
+       (\<lambda>x. the (combine_options f (map_of xs x) (map_of ys x)))"
+proof (transfer, rule ext, rule sym, goal_cases)
+  case (1 f xs ys x)
+  show ?case
+  by (cases "map_of xs x"; cases "map_of ys x"; simp)
+     (force simp: map_of_eq_None_iff combine_options_altdef option.the_def o_def image_iff
+            dest: map_of_SomeD split: option.splits)+
+qed
+
+(* TODO: Move? *)
+lemma map_of_filter_distinct:
+  assumes "distinct (map fst xs)"
+  shows   "map_of (filter P xs) x = 
+             (case map_of xs x of None \<Rightarrow> None | Some y \<Rightarrow> if P (x,y) then Some y else None)"
+  using assms
+  by (auto simp: map_of_eq_None_iff filter_map distinct_map_filter dest: map_of_SomeD
+           simp del: map_of_eq_Some_iff intro!: map_of_is_SomeI split: option.splits)
+(* END TODO *)
+  
+lemma filter_Mapping [code]:
+  "Mapping.filter P (Mapping xs) = Mapping (filter (\<lambda>(k,v). P k v) (AList.clearjunk xs))"
+ by (transfer, rule ext)
+    (subst map_of_filter_distinct, simp_all add: map_of_clearjunk split: option.split)
+
 lemma [code nbe]:
   "HOL.equal (x :: ('a, 'b) mapping) x \<longleftrightarrow> True"
   by (fact equal_refl)
 
 end
-

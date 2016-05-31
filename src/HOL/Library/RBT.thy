@@ -67,12 +67,22 @@ by (simp add: rbt_union_is_rbt)
 
 lift_definition foldi :: "('c \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a :: linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c"
   is RBT_Impl.foldi .
+  
+lift_definition combine_with_key :: "('a \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a::linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
+  is RBT_Impl.rbt_union_with_key by (rule is_rbt_rbt_unionwk)
+
+lift_definition combine :: "('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a::linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
+  is RBT_Impl.rbt_union_with by (rule rbt_unionw_is_rbt)
 
 subsection \<open>Derived operations\<close>
 
 definition is_empty :: "('a::linorder, 'b) rbt \<Rightarrow> bool" where
   [code]: "is_empty t = (case impl_of t of RBT_Impl.Empty \<Rightarrow> True | _ \<Rightarrow> False)"
 
+(* TODO: Is deleting more efficient than re-building the tree? 
+   (Probably more difficult to prove though *)
+definition filter :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a::linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt" where
+  [code]: "filter P t = fold (\<lambda>k v t. if P k v then insert k v t else t) t empty" 
 
 subsection \<open>Abstract lookup properties\<close>
 
@@ -128,6 +138,17 @@ lemma lookup_map [simp]:
   "lookup (map f t) k = map_option (f k) (lookup t k)"
   by transfer (rule rbt_lookup_map)
 
+lemma lookup_combine_with_key [simp]:
+  "lookup (combine_with_key f t1 t2) k = combine_options (f k) (lookup t1 k) (lookup t2 k)"
+  by transfer (simp_all add: combine_options_def rbt_lookup_rbt_unionwk)
+
+lemma combine_altdef: "combine f t1 t2 = combine_with_key (\<lambda>_. f) t1 t2"
+  by transfer (simp add: rbt_union_with_def)
+
+lemma lookup_combine [simp]:
+  "lookup (combine f t1 t2) k = combine_options f (lookup t1 k) (lookup t2 k)"
+  by (simp add: combine_altdef)
+
 lemma fold_fold:
   "fold f t = List.fold (case_prod f) (entries t)"
   by transfer (rule RBT_Impl.fold_def)
@@ -181,6 +202,26 @@ lemma non_empty_keys: "t \<noteq> empty \<Longrightarrow> keys t \<noteq> []"
 lemma keys_def_alt:
   "keys t = List.map fst (entries t)"
   by transfer (simp add: RBT_Impl.keys_def)
+
+context
+begin
+
+private lemma lookup_filter_aux:
+  assumes "distinct (List.map fst xs)"
+  shows   "lookup (List.fold (\<lambda>(k, v) t. if P k v then insert k v t else t) xs t) k =
+             (case map_of xs k of 
+                None \<Rightarrow> lookup t k
+              | Some v \<Rightarrow> if P k v then Some v else lookup t k)"
+  using assms by (induction xs arbitrary: t) (force split: option.splits)+
+
+lemma lookup_filter: 
+  "lookup (filter P t) k = 
+     (case lookup t k of None \<Rightarrow> None | Some v \<Rightarrow> if P k v then Some v else None)"
+  unfolding filter_def using lookup_filter_aux[of "entries t" P empty k]
+  by (simp add: fold_fold distinct_entries split: option.splits)
+  
+end
+
 
 subsection \<open>Quickcheck generators\<close>
 

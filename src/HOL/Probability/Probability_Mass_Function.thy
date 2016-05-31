@@ -1787,6 +1787,58 @@ by(rule rel_funI) simp
 end
 
 
+primrec replicate_pmf :: "nat \<Rightarrow> 'a pmf \<Rightarrow> 'a list pmf" where
+  "replicate_pmf 0 _ = return_pmf []"
+| "replicate_pmf (Suc n) p = do {x \<leftarrow> p; xs \<leftarrow> replicate_pmf n p; return_pmf (x#xs)}"
+
+lemma replicate_pmf_1: "replicate_pmf 1 p = map_pmf (\<lambda>x. [x]) p"
+  by (simp add: map_pmf_def bind_return_pmf)
+  
+lemma set_replicate_pmf: 
+  "set_pmf (replicate_pmf n p) = {xs\<in>lists (set_pmf p). length xs = n}"
+  by (induction n) (auto simp: length_Suc_conv)
+
+lemma replicate_pmf_distrib:
+  "replicate_pmf (m + n) p = 
+     do {xs \<leftarrow> replicate_pmf m p; ys \<leftarrow> replicate_pmf n p; return_pmf (xs @ ys)}"
+  by (induction m) (simp_all add: bind_return_pmf bind_return_pmf' bind_assoc_pmf)
+
+lemma power_diff': 
+  assumes "b \<le> a"
+  shows   "x ^ (a - b) = (if x = 0 \<and> a = b then 1 else x ^ a / (x::'a::field) ^ b)"
+proof (cases "x = 0")
+  case True
+  with assms show ?thesis by (cases "a - b") simp_all
+qed (insert assms, simp_all add: power_diff)
+
+  
+lemma binomial_pmf_Suc:
+  assumes "p \<in> {0..1}"
+  shows   "binomial_pmf (Suc n) p = 
+             do {b \<leftarrow> bernoulli_pmf p; 
+                 k \<leftarrow> binomial_pmf n p; 
+                 return_pmf ((if b then 1 else 0) + k)}" (is "_ = ?rhs")
+proof (intro pmf_eqI)
+  fix k
+  have A: "indicator {Suc a} (Suc b) = indicator {a} b" for a b
+    by (simp add: indicator_def)
+  show "pmf (binomial_pmf (Suc n) p) k = pmf ?rhs k"
+    by (cases k; cases "k > n")
+       (insert assms, auto simp: pmf_bind measure_pmf_single A divide_simps algebra_simps
+          not_less less_eq_Suc_le [symmetric] power_diff')
+qed
+
+lemma binomial_pmf_0: "p \<in> {0..1} \<Longrightarrow> binomial_pmf 0 p = return_pmf 0"
+  by (rule pmf_eqI) (simp_all add: indicator_def)
+
+lemma binomial_pmf_altdef:
+  assumes "p \<in> {0..1}"
+  shows   "binomial_pmf n p = map_pmf (length \<circ> filter id) (replicate_pmf n (bernoulli_pmf p))"
+  by (induction n) 
+     (insert assms, auto simp: binomial_pmf_Suc map_pmf_def bind_return_pmf bind_assoc_pmf 
+        bind_return_pmf' binomial_pmf_0 intro!: bind_pmf_cong)
+
+
 subsection \<open>PMFs from assiciation lists\<close>
 
 definition pmf_of_list ::" ('a \<times> real) list \<Rightarrow> 'a pmf" where 
@@ -1920,5 +1972,53 @@ lemma measure_pmf_of_list:
   shows   "measure (pmf_of_list xs) A = listsum (map snd (filter (\<lambda>x. fst x \<in> A) xs))"
   using assms unfolding pmf_of_list_wf_def Sigma_Algebra.measure_def
   by (subst emeasure_pmf_of_list [OF assms], subst enn2real_ennreal) (auto intro!: listsum_nonneg)
+
+(* TODO Move? *)
+lemma listsum_nonneg_eq_zero_iff:
+  fixes xs :: "'a :: linordered_ab_group_add list"
+  shows "(\<And>x. x \<in> set xs \<Longrightarrow> x \<ge> 0) \<Longrightarrow> listsum xs = 0 \<longleftrightarrow> set xs \<subseteq> {0}"
+proof (induction xs)
+  case (Cons x xs)
+  from Cons.prems have "listsum (x#xs) = 0 \<longleftrightarrow> x = 0 \<and> listsum xs = 0"
+    unfolding listsum_simps by (subst add_nonneg_eq_0_iff) (auto intro: listsum_nonneg)
+  with Cons.IH Cons.prems show ?case by simp
+qed simp_all
+
+lemma listsum_filter_nonzero:
+  "listsum (filter (\<lambda>x. x \<noteq> 0) xs) = listsum xs"
+  by (induction xs) simp_all
+(* END MOVE *)
+  
+lemma set_pmf_of_list_eq:
+  assumes "pmf_of_list_wf xs" "\<And>x. x \<in> snd ` set xs \<Longrightarrow> x > 0"
+  shows   "set_pmf (pmf_of_list xs) = fst ` set xs"
+proof
+  {
+    fix x assume A: "x \<in> fst ` set xs" and B: "x \<notin> set_pmf (pmf_of_list xs)"
+    then obtain y where y: "(x, y) \<in> set xs" by auto
+    from B have "listsum (map snd [z\<leftarrow>xs. fst z = x]) = 0"
+      by (simp add: pmf_pmf_of_list[OF assms(1)] set_pmf_eq)
+    moreover from y have "y \<in> snd ` {xa \<in> set xs. fst xa = x}" by force
+    ultimately have "y = 0" using assms(1) 
+      by (subst (asm) listsum_nonneg_eq_zero_iff) (auto simp: pmf_of_list_wf_def)
+    with assms(2) y have False by force
+  }
+  thus "fst ` set xs \<subseteq> set_pmf (pmf_of_list xs)" by blast
+qed (insert set_pmf_of_list[OF assms(1)], simp_all)
+  
+lemma pmf_of_list_remove_zeros:
+  assumes "pmf_of_list_wf xs"
+  defines "xs' \<equiv> filter (\<lambda>z. snd z \<noteq> 0) xs"
+  shows   "pmf_of_list_wf xs'" "pmf_of_list xs' = pmf_of_list xs"
+proof -
+  have "map snd [z\<leftarrow>xs . snd z \<noteq> 0] = filter (\<lambda>x. x \<noteq> 0) (map snd xs)"
+    by (induction xs) simp_all
+  with assms(1) show wf: "pmf_of_list_wf xs'"
+    by (auto simp: pmf_of_list_wf_def xs'_def listsum_filter_nonzero)
+  have "listsum (map snd [z\<leftarrow>xs' . fst z = i]) = listsum (map snd [z\<leftarrow>xs . fst z = i])" for i
+    unfolding xs'_def by (induction xs) simp_all
+  with assms(1) wf show "pmf_of_list xs' = pmf_of_list xs"
+    by (intro pmf_eqI) (simp_all add: pmf_pmf_of_list)
+qed
 
 end

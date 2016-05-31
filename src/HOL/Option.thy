@@ -136,6 +136,43 @@ lemma rel_option_iff:
     | _ \<Rightarrow> False)"
   by (auto split: prod.split option.split)
 
+
+definition combine_options :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a option \<Rightarrow> 'a option \<Rightarrow> 'a option"
+  where "combine_options f x y = 
+           (case x of None \<Rightarrow> y | Some x \<Rightarrow> (case y of None \<Rightarrow> Some x | Some y \<Rightarrow> Some (f x y)))"
+
+lemma combine_options_simps [simp]:
+  "combine_options f None y = y"
+  "combine_options f x None = x"
+  "combine_options f (Some a) (Some b) = Some (f a b)"
+  by (simp_all add: combine_options_def split: option.splits)
+  
+lemma combine_options_cases [case_names None1 None2 Some]:
+  "(x = None \<Longrightarrow> P x y) \<Longrightarrow> (y = None \<Longrightarrow> P x y) \<Longrightarrow> 
+     (\<And>a b. x = Some a \<Longrightarrow> y = Some b \<Longrightarrow> P x y) \<Longrightarrow> P x y"
+  by (cases x; cases y) simp_all
+
+lemma combine_options_commute: 
+  "(\<And>x y. f x y = f y x) \<Longrightarrow> combine_options f x y = combine_options f y x"
+  using combine_options_cases[of x ]
+  by (induction x y rule: combine_options_cases) simp_all
+
+lemma combine_options_assoc:
+  "(\<And>x y z. f (f x y) z = f x (f y z)) \<Longrightarrow> 
+     combine_options f (combine_options f x y) z =
+     combine_options f x (combine_options f y z)"
+  by (auto simp: combine_options_def split: option.splits)
+
+lemma combine_options_left_commute:
+  "(\<And>x y. f x y = f y x) \<Longrightarrow> (\<And>x y z. f (f x y) z = f x (f y z)) \<Longrightarrow> 
+     combine_options f y (combine_options f x z) =
+     combine_options f x (combine_options f y z)"
+  by (auto simp: combine_options_def split: option.splits)
+
+lemmas combine_options_ac = 
+  combine_options_commute combine_options_assoc combine_options_left_commute
+
+
 context
 begin
 

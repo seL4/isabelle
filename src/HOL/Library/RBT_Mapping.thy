@@ -77,6 +77,24 @@ by transfer (simp add: map_of_map_restrict fun_eq_iff)
 
 end
 
+lemma map_values_Mapping [code]: 
+  "Mapping.map_values f (Mapping t) = Mapping (RBT.map f t)"
+  by (transfer fixing: t) (auto simp: fun_eq_iff)
+
+lemma filter_Mapping [code]: 
+  "Mapping.filter P (Mapping t) = Mapping (RBT.filter P t)"
+  by (transfer' fixing: P t) (simp add: RBT.lookup_filter fun_eq_iff)
+
+lemma combine_with_key_Mapping [code]:
+  "Mapping.combine_with_key f (Mapping t1) (Mapping t2) =
+     Mapping (RBT.combine_with_key f t1 t2)"
+  by (transfer fixing: f t1 t2) (simp_all add: fun_eq_iff)
+
+lemma combine_Mapping [code]:
+  "Mapping.combine f (Mapping t1) (Mapping t2) =
+     Mapping (RBT.combine f t1 t2)"
+  by (transfer fixing: f t1 t2) (simp_all add: fun_eq_iff)
+
 lemma equal_Mapping [code]:
   "HOL.equal (Mapping t1) (Mapping t2) \<longleftrightarrow> RBT.entries t1 = RBT.entries t2"
   by (transfer fixing: t1 t2) (simp add: entries_lookup)

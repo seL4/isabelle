@@ -838,10 +838,10 @@ lemma sorted_list_set[code]: "sorted_list_of_set (Set t) = RBT.keys t"
 
 lemma Bleast_code [code]:
   "Bleast (Set t) P =
-    (case filter P (RBT.keys t) of
+    (case List.filter P (RBT.keys t) of
       x # xs \<Rightarrow> x
     | [] \<Rightarrow> abort_Bleast (Set t) P)"
-proof (cases "filter P (RBT.keys t)")
+proof (cases "List.filter P (RBT.keys t)")
   case Nil
   thus ?thesis by (simp add: Bleast_def abort_Bleast_def)
 next
