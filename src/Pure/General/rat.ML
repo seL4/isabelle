@@ -32,18 +32,16 @@ end;
 structure Rat : RAT =
 struct
 
-fun common (p1, q1) (p2, q2) =
-  let
-    val m = Integer.lcm q1 q2;
-  in ((p1 * (m div q1), p2 * (m div q2)), m) end;
-
 datatype rat = Rat of int * int;  (*nominator, denominator (positive!)*)
+
+fun common (p1, q1) (p2, q2) =
+  let val m = PolyML.IntInf.lcm (q1, q2)
+  in ((p1 * (m div q1), p2 * (m div q2)), m) end;
 
 exception DIVZERO;
 
 fun rat_of_quotient (p, q) =
-  let
-    val m = Integer.gcd (Int.abs p) q
+  let val m = PolyML.IntInf.gcd (p, q)
   in Rat (p div m, q div m) end handle Div => raise DIVZERO;
 
 fun quotient_of_rat (Rat r) = r;
