@@ -344,7 +344,11 @@ from ereal to ennreal:
   nn_integral :: 'a measure => ('a => ennreal) => ennreal
 INCOMPATIBILITY.
 
+
 *** ML ***
+
+* Ad-hoc overloading for standard operations on type Rat.rat: + - * / =
+< <= > >= <>. INCOMPATIBILITY, need to use + instead of +/ etc.
 
 * The ML function "ML" provides easy access to run-time compilation.
 This is particularly useful for conditional compilation, without

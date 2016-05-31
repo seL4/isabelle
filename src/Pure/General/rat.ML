@@ -102,17 +102,13 @@ fun roundup (Rat (p, q)) =
 
 end;
 
-infix 7 */ //;
-infix 6 +/ -/;
-infix 4 =/ </ <=/ >/ >=/ <>/;
-
-fun a +/ b = Rat.add a b;
-fun a -/ b = a +/ Rat.neg b;
-fun a */ b = Rat.mult a b;
-fun a // b = a */ Rat.inv b;
-fun a =/ b = Rat.eq (a, b);
-fun a </ b = Rat.lt a b;
-fun a <=/ b = Rat.le a b;
-fun a >/ b = b </ a;
-fun a >=/ b = b <=/ a;
-fun a <>/ b = not (a =/ b);
+ML_system_overload (uncurry Rat.add) "+";
+ML_system_overload (fn (a, b) => Rat.add a (Rat.neg b)) "-";
+ML_system_overload (uncurry Rat.mult) "*";
+ML_system_overload (fn (a, b) => Rat.mult a (Rat.inv b)) "/";
+ML_system_overload Rat.eq "=";
+ML_system_overload (uncurry Rat.lt) "<";
+ML_system_overload (uncurry Rat.le) "<=";
+ML_system_overload (fn (a, b) => Rat.lt b a) ">";
+ML_system_overload (fn (a, b) => Rat.le b a) ">=";
+ML_system_overload (not o Rat.eq) "<>";

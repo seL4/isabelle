@@ -585,27 +585,27 @@ fun gen_gen_real_arith ctxt (mk_numeric,
 
 (* A linear arithmetic prover *)
 local
-  val linear_add = FuncUtil.Ctermfunc.combine (curry op +/) (fn z => z =/ Rat.zero)
-  fun linear_cmul c = FuncUtil.Ctermfunc.map (fn _ => fn x => c */ x)
+  val linear_add = FuncUtil.Ctermfunc.combine (curry op +) (fn z => z = Rat.zero)
+  fun linear_cmul c = FuncUtil.Ctermfunc.map (fn _ => fn x => c * x)
   val one_tm = @{cterm "1::real"}
   fun contradictory p (e,_) = ((FuncUtil.Ctermfunc.is_empty e) andalso not(p Rat.zero)) orelse
      ((eq_set (op aconvc) (FuncUtil.Ctermfunc.dom e, [one_tm])) andalso
        not(p(FuncUtil.Ctermfunc.apply e one_tm)))
 
   fun linear_ineqs vars (les,lts) =
-    case find_first (contradictory (fn x => x >/ Rat.zero)) lts of
+    case find_first (contradictory (fn x => x > Rat.zero)) lts of
       SOME r => r
     | NONE =>
-      (case find_first (contradictory (fn x => x >/ Rat.zero)) les of
+      (case find_first (contradictory (fn x => x > Rat.zero)) les of
          SOME r => r
        | NONE =>
          if null vars then error "linear_ineqs: no contradiction" else
          let
            val ineqs = les @ lts
            fun blowup v =
-             length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero =/ Rat.zero) ineqs) +
-             length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero >/ Rat.zero) ineqs) *
-             length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero </ Rat.zero) ineqs)
+             length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero = Rat.zero) ineqs) +
+             length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero > Rat.zero) ineqs) *
+             length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero < Rat.zero) ineqs)
            val v = fst(hd(sort (fn ((_,i),(_,j)) => int_ord (i,j))
              (map (fn v => (v,blowup v)) vars)))
            fun addup (e1,p1) (e2,p2) acc =
@@ -613,7 +613,7 @@ local
                val c1 = FuncUtil.Ctermfunc.tryapplyd e1 v Rat.zero
                val c2 = FuncUtil.Ctermfunc.tryapplyd e2 v Rat.zero
              in
-               if c1 */ c2 >=/ Rat.zero then acc else
+               if c1 * c2 >= Rat.zero then acc else
                let
                  val e1' = linear_cmul (Rat.abs c2) e1
                  val e2' = linear_cmul (Rat.abs c1) e2
@@ -623,13 +623,13 @@ local
                end
              end
            val (les0,les1) =
-             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero =/ Rat.zero) les
+             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero = Rat.zero) les
            val (lts0,lts1) =
-             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero =/ Rat.zero) lts
+             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero = Rat.zero) lts
            val (lesp,lesn) =
-             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero >/ Rat.zero) les1
+             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero > Rat.zero) les1
            val (ltsp,ltsn) =
-             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero >/ Rat.zero) lts1
+             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero > Rat.zero) lts1
            val les' = fold_rev (fn ep1 => fold_rev (addup ep1) lesp) lesn les0
            val lts' = fold_rev (fn ep1 => fold_rev (addup ep1) (lesp@ltsp)) ltsn
                       (fold_rev (fn ep1 => fold_rev (addup ep1) (lesn@ltsn)) ltsp lts0)
@@ -637,7 +637,7 @@ local
          end)
 
   fun linear_eqs(eqs,les,lts) =
-    case find_first (contradictory (fn x => x =/ Rat.zero)) eqs of
+    case find_first (contradictory (fn x => x = Rat.zero)) eqs of
       SOME r => r
     | NONE =>
       (case eqs of
@@ -651,9 +651,9 @@ local
            val (x,c) = FuncUtil.Ctermfunc.choose (FuncUtil.Ctermfunc.delete_safe one_tm e)
            fun xform (inp as (t,q)) =
              let val d = FuncUtil.Ctermfunc.tryapplyd t x Rat.zero in
-               if d =/ Rat.zero then inp else
+               if d = Rat.zero then inp else
                let
-                 val k = (Rat.neg d) */ Rat.abs c // c
+                 val k = (Rat.neg d) * Rat.abs c / c
                  val e' = linear_cmul k e
                  val t' = linear_cmul (Rat.abs c) t
                  val p' = Eqmul(FuncUtil.Monomialfunc.onefunc (FuncUtil.Ctermfunc.empty, k),p)

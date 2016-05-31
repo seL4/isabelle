@@ -28,14 +28,14 @@ struct
             find_normedterms (Thm.dest_arg1 t) (find_normedterms (Thm.dest_arg t) acc)
       | @{term "op * :: real => _"}$_$_ =>
             if not (is_ratconst (Thm.dest_arg1 t)) then acc else
-            augment_norm (dest_ratconst (Thm.dest_arg1 t) >=/ Rat.zero)
+            augment_norm (dest_ratconst (Thm.dest_arg1 t) >= Rat.zero)
                       (Thm.dest_arg t) acc
       | _ => augment_norm true t acc
 
  val cterm_lincomb_neg = FuncUtil.Ctermfunc.map (K Rat.neg)
  fun cterm_lincomb_cmul c t =
-    if c =/ Rat.zero then FuncUtil.Ctermfunc.empty else FuncUtil.Ctermfunc.map (fn _ => fn x => x */ c) t
- fun cterm_lincomb_add l r = FuncUtil.Ctermfunc.combine (curry op +/) (fn x => x =/ Rat.zero) l r
+    if c = Rat.zero then FuncUtil.Ctermfunc.empty else FuncUtil.Ctermfunc.map (fn _ => fn x => x * c) t
+ fun cterm_lincomb_add l r = FuncUtil.Ctermfunc.combine (curry op +) (fn x => x = Rat.zero) l r
  fun cterm_lincomb_sub l r = cterm_lincomb_add l (cterm_lincomb_neg r)
  fun cterm_lincomb_eq l r = FuncUtil.Ctermfunc.is_empty (cterm_lincomb_sub l r)
 
@@ -43,8 +43,8 @@ struct
  val int_lincomb_neg = FuncUtil.Intfunc.map (K Rat.neg)
 *)
  fun int_lincomb_cmul c t =
-    if c =/ Rat.zero then FuncUtil.Intfunc.empty else FuncUtil.Intfunc.map (fn _ => fn x => x */ c) t
- fun int_lincomb_add l r = FuncUtil.Intfunc.combine (curry op +/) (fn x => x =/ Rat.zero) l r
+    if c = Rat.zero then FuncUtil.Intfunc.empty else FuncUtil.Intfunc.map (fn _ => fn x => x * c) t
+ fun int_lincomb_add l r = FuncUtil.Intfunc.combine (curry op +) (fn x => x = Rat.zero) l r
 (*
  fun int_lincomb_sub l r = int_lincomb_add l (int_lincomb_neg r)
  fun int_lincomb_eq l r = FuncUtil.Intfunc.is_empty (int_lincomb_sub l r)
@@ -84,7 +84,7 @@ fun vector_lincomb t = case Thm.term_of t of
 fun replacenegnorms cv t = case Thm.term_of t of
   @{term "op + :: real => _"}$_$_ => binop_conv (replacenegnorms cv) t
 | @{term "op * :: real => _"}$_$_ =>
-    if dest_ratconst (Thm.dest_arg1 t) </ Rat.zero then arg_conv cv t else Thm.reflexive t
+    if dest_ratconst (Thm.dest_arg1 t) < Rat.zero then arg_conv cv t else Thm.reflexive t
 | _ => Thm.reflexive t
 (*
 fun flip v eq =
@@ -96,7 +96,7 @@ fun allsubsets s = case s of
 |(a::t) => let val res = allsubsets t in
                map (cons a) res @ res end
 fun evaluate env lin =
- FuncUtil.Intfunc.fold (fn (x,c) => fn s => s +/ c */ (FuncUtil.Intfunc.apply env x))
+ FuncUtil.Intfunc.fold (fn (x,c) => fn s => s + c * (FuncUtil.Intfunc.apply env x))
    lin Rat.zero
 
 fun solve (vs,eqs) = case (vs,eqs) of
@@ -129,11 +129,11 @@ fun vertices vs eqs =
     NONE => NONE
    | SOME soln => SOME (map (fn v => FuncUtil.Intfunc.tryapplyd soln v Rat.zero) vs)
   val rawvs = map_filter vertex (combinations (length vs) eqs)
-  val unset = filter (forall (fn c => c >=/ Rat.zero)) rawvs
- in fold_rev (insert (eq_list op =/)) unset []
+  val unset = filter (forall (fn c => c >= Rat.zero)) rawvs
+ in fold_rev (insert (eq_list op =)) unset []
  end
 
-val subsumes = eq_list (fn (x, y) => Rat.abs x <=/ Rat.abs y)
+val subsumes = eq_list (fn (x, y) => Rat.abs x <= Rat.abs y)
 
 fun subsume todo dun = case todo of
  [] => dun
@@ -297,18 +297,18 @@ local
        fun check_solution v =
         let
           val f = fold_rev FuncUtil.Intfunc.update (nvs ~~ v) (FuncUtil.Intfunc.onefunc (0, Rat.one))
-        in forall (fn e => evaluate f e =/ Rat.zero) flippedequations
+        in forall (fn e => evaluate f e = Rat.zero) flippedequations
         end
        val goodverts = filter check_solution rawverts
        val signfixups = map (fn n => if member (op =) f n then ~1 else 1) nvs
-      in map (map2 (fn s => fn c => Rat.rat_of_int s */ c) signfixups) goodverts
+      in map (map2 (fn s => fn c => Rat.rat_of_int s * c) signfixups) goodverts
       end
      val allverts = fold_rev append (map plausiblevertices (allsubsets nvs)) []
     in subsume allverts []
     end
    fun compute_ineq v =
     let
-     val ths = map_filter (fn (v,t) => if v =/ Rat.zero then NONE
+     val ths = map_filter (fn (v,t) => if v = Rat.zero then NONE
                                      else SOME(norm_cmul_rule v t))
                             (v ~~ nubs)
      fun end_itlist f xs = split_last xs |> uncurry (fold_rev f)

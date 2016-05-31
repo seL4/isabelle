@@ -923,7 +923,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cr = dest_frac c
         val clt = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
-        val neg = cr </ Rat.zero
+        val neg = cr < Rat.zero
         val cthp = Simplifier.rewrite ctxt
                (Thm.apply @{cterm "Trueprop"}
                   (if neg then Thm.apply (Thm.apply clt c) cz
@@ -946,7 +946,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cr = dest_frac c
         val clt = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
-        val neg = cr </ Rat.zero
+        val neg = cr < Rat.zero
         val cthp = Simplifier.rewrite ctxt
                (Thm.apply @{cterm "Trueprop"}
                   (if neg then Thm.apply (Thm.apply clt c) cz
@@ -968,7 +968,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cr = dest_frac c
         val clt = Thm.cterm_of ctxt (Const (@{const_name ord_class.less}, T --> T --> @{typ bool}))
         val cz = Thm.dest_arg ct
-        val neg = cr </ Rat.zero
+        val neg = cr < Rat.zero
         val cthp = Simplifier.rewrite ctxt
                (Thm.apply @{cterm "Trueprop"}
                   (if neg then Thm.apply (Thm.apply clt c) cz
@@ -993,7 +993,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cr = dest_frac c
         val clt = Thm.cterm_of ctxt (Const (@{const_name ord_class.less}, T --> T --> @{typ bool}))
         val cz = Thm.dest_arg ct
-        val neg = cr </ Rat.zero
+        val neg = cr < Rat.zero
         val cthp = Simplifier.rewrite ctxt
                (Thm.apply @{cterm "Trueprop"}
                   (if neg then Thm.apply (Thm.apply clt c) cz
