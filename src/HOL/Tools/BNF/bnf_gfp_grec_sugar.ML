@@ -1436,14 +1436,26 @@ fun extract_rho_from_equation
                   let
                     val arg_ts' = map fst exp_arg_ts;
                     val fun_t' = Const (s, fun_U);
-                    val t' = build_function_after_encapsulation fun_t fun_t' params arg_ts arg_ts';
+
+                    fun finish_off () =
+                      let
+                        val t' =
+                          build_function_after_encapsulation fun_t fun_t' params arg_ts arg_ts';
+                      in
+                        if can type_of1 (bound_Us, t') then
+                          (if fun_T = fun_U orelse is_special_parametric_const (s, fun_T) then ()
+                           else add_parametric_const s general_T fun_T fun_U;
+                           t')
+                        else
+                          explore params t
+                      end;
                   in
-                    if can type_of1 (bound_Us, t') then
-                      (if fun_T = fun_U orelse is_special_parametric_const (s, fun_T) then ()
-                       else add_parametric_const s general_T fun_T fun_U;
-                       t')
+                    if polymorphic then
+                      finish_off ()
                     else
-                      explore params t
+                      (case try finish_off () of
+                        SOME t' => t'
+                      | NONE => explore params t)
                   end
                 | NONE => explore params t)
               end
