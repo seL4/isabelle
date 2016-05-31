@@ -3045,8 +3045,11 @@ fun corec_info_of res_T lthy =
     let
       val (exprs, lthy) = nonempty_corec_info_exprs_of fpT_name lthy;
       val thy = Proof_Context.theory_of lthy;
-      val SOME expr =
-        find_first ((fn {fpT, ...} => Sign.typ_instance thy (res_T, fpT)) o corec_ad_of_expr) exprs;
+      val expr =
+        (case find_first ((fn {fpT, ...} => Sign.typ_instance thy (res_T, fpT)) o corec_ad_of_expr)
+            exprs of
+          SOME expr => expr
+        | NONE => error ("Invalid type: " ^ Syntax.string_of_typ lthy res_T));
       val (info, lthy) = corec_info_of_expr expr lthy;
     in
       (instantiate_corec_info thy res_T info, lthy |> is_Ad expr ? register_corec_info info)
