@@ -32,8 +32,8 @@ structure Method_Definition = Proof_Data
 (
   type T =
     (Proof.context -> Method.method) Symtab.table *  (*dynamic methods*)
-    (term list -> Proof.context -> Method.method)  (*recursive method*);
-  fun init _ : T = (Symtab.empty, fn _ => fn _ => Method.fail);
+    (term list -> Proof.context -> Method.method) Symtab.table  (*recursive methods*);
+  fun init _ : T = (Symtab.empty, Symtab.empty);
 );
 
 fun lookup_dynamic_method ctxt full_name =
@@ -43,8 +43,12 @@ fun lookup_dynamic_method ctxt full_name =
 
 val update_dynamic_method = Method_Definition.map o apfst o Symtab.update;
 
-fun get_recursive_method ts ctxt = #2 (Method_Definition.get ctxt) ts ctxt;
-val put_recursive_method = Method_Definition.map o apsnd o K;
+fun get_recursive_method full_name ts ctxt =
+  (case Symtab.lookup (#2 (Method_Definition.get ctxt)) full_name of
+    SOME m => m ts ctxt
+  | NONE => error ("Illegal use of internal Eisbach method: " ^ quote full_name));
+
+val put_recursive_method = Method_Definition.map o apsnd o Symtab.update;
 
 
 (* stored method closures *)
@@ -136,9 +140,9 @@ fun method_instantiate vars body ts ctxt =
 
 (** apply method closure **)
 
-fun recursive_method vars body ts =
+fun recursive_method full_name vars body ts =
   let val m = method_instantiate vars body
-  in put_recursive_method m #> m ts end;
+  in put_recursive_method (full_name, m) #> m ts end;
 
 fun apply_method ctxt method_name terms facts methods =
   let
@@ -151,7 +155,7 @@ fun apply_method ctxt method_name terms facts methods =
   in
     declare_facts named_thms facts
     #> fold update_dynamic_method (method_args ~~ methods)
-    #> recursive_method vars body terms
+    #> recursive_method method_name vars body terms
   end;
 
 
@@ -244,9 +248,12 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
           Scan.succeed (fold Named_Theorems.clear uses_internal context, ())) --
          Method.sections modifiers)) >> (fn (ts, decl) => meth ts o decl);
 
+    val full_name = Local_Theory.full_name lthy name;
+
     val lthy3 = lthy2
       |> Method.local_setup (Binding.make (Binding.name_of name, Position.none))
-        (parser term_args get_recursive_method) "(internal)";
+        (parser term_args (get_recursive_method full_name)) "(internal)"
+      |> put_recursive_method (full_name, fn _ => fn _ => Method.fail);
 
     val (text, src) =
       read_closure (Config.put Proof_Context.dynamic_facts_dummy true lthy3) source;
@@ -260,7 +267,6 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
 
     val text' = (Method.map_source o map) (Token.transform morphism) text;
     val term_args' = map (Morphism.term morphism) term_args;
-    val full_name = Local_Theory.full_name lthy name;
   in
     lthy3
     |> Local_Theory.close_target
@@ -270,7 +276,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
     |> Method.local_setup name 
         (Args.context :|-- (fn ctxt =>
           let val {body, vars, ...} = get_closure ctxt full_name in
-            parser vars (recursive_method vars body) end)) ""
+            parser vars (recursive_method full_name vars body) end)) ""
     |> pair full_name
   end;
 

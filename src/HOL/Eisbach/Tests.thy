@@ -591,4 +591,17 @@ lemma "0 \<le> (n :: nat)" by (solve_P n)
 
 end
 
+subsection \<open>Mutual recursion via higher-order methods\<close>
+
+experiment begin
+
+method inner_method methods passed_method = (rule conjI; passed_method)
+
+method outer_method = (inner_method \<open>outer_method\<close> | assumption)
+
+lemma "Q \<Longrightarrow> R \<Longrightarrow> P \<Longrightarrow> (Q \<and> R) \<and> P"
+  by outer_method
+
+end
+
 end
