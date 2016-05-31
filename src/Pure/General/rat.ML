@@ -41,8 +41,10 @@ fun common (p1, q1) (p2, q2) =
 exception DIVZERO;
 
 fun rat_of_quotient (p, q) =
-  let val m = PolyML.IntInf.gcd (p, q)
-  in Rat (p div m, q div m) end handle Div => raise DIVZERO;
+  let
+    val m = PolyML.IntInf.gcd (p, q);
+    val (p', q') = (p div m, q div m) handle Div => raise DIVZERO;
+  in Rat (if q' < 0 then (~ p', ~ q') else (p', q')) end
 
 fun quotient_of_rat (Rat r) = r;
 
