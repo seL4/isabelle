@@ -156,7 +156,7 @@ let
          if we choose to do so here, the simpset used by arith must be able to
          perform the same simplifications. *)
       (* quotient 's / t', where the denominator t can be NONE *)
-      (* Note: will raise Rat.DIVZERO iff m' is @0 *)
+      (* Note: will raise Div iff m' is @0 *)
       if of_field_sort thy (domain_type T) then
         let
           val (os',m') = demult (s, m);
@@ -235,7 +235,7 @@ in
   | @{const_name Orderings.less_eq} => SOME (p, i, "<=", q, j)
   | @{const_name HOL.eq}            => SOME (p, i, "=", q, j)
   | _                   => NONE
-end handle Rat.DIVZERO => NONE;
+end handle General.Div => NONE;
 
 fun of_lin_arith_sort thy U =
   Sign.of_sort thy (U, @{sort Rings.linordered_idom});

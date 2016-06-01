@@ -8,7 +8,6 @@ Canonical implementation of exact rational numbers.
 signature RAT =
 sig
   eqtype rat
-  exception DIVZERO
   val of_int: int -> rat
   val make: int * int -> rat
   val dest: rat -> int * int
@@ -37,13 +36,12 @@ fun common (p1, q1) (p2, q2) =
   let val m = PolyML.IntInf.lcm (q1, q2)
   in ((p1 * (m div q1), p2 * (m div q2)), m) end;
 
-exception DIVZERO;
-
-fun make (p, q) =
-  let
-    val m = PolyML.IntInf.gcd (p, q);
-    val (p', q') = (p div m, q div m) handle Div => raise DIVZERO;
-  in Rat (if q' < 0 then (~ p', ~ q') else (p', q')) end
+fun make (p, 0) = raise Div
+  | make (p, q) =
+    let
+      val m = PolyML.IntInf.gcd (p, q);
+      val (p', q') = (p div m, q div m);
+    in Rat (if q' < 0 then (~ p', ~ q') else (p', q')) end
 
 fun dest (Rat r) = r;
 
@@ -86,7 +84,7 @@ fun neg (Rat (p, q)) = Rat (~ p, q);
 fun inv (Rat (p, q)) =
   (case Integer.sign p of
     LESS => Rat (~ q, ~ p)
-  | EQUAL => raise DIVZERO
+  | EQUAL => raise Div
   | GREATER => Rat (q, p));
 
 fun floor (Rat (p, q)) = p div q;
