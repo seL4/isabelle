@@ -32,7 +32,7 @@ end;
 structure Rat : RAT =
 struct
 
-datatype rat = Rat of int * int;  (*nominator, denominator (positive!)*)
+datatype rat = Rat of int * int;  (*numerator, positive (!) denominator*)
 
 fun common (p1, q1) (p2, q2) =
   let val m = PolyML.IntInf.lcm (q1, q2)
@@ -60,45 +60,43 @@ fun string_of_rat (Rat (p, q)) =
 fun eq (Rat (p1, q1), Rat (p2, q2)) = (p1 = p2 andalso q1 = q2);
 
 fun ord (Rat (p1, q1), Rat (p2, q2)) =
- case (Integer.sign p1, Integer.sign p2)
- of (LESS, EQUAL) => LESS
+  (case (Integer.sign p1, Integer.sign p2) of
+    (LESS, EQUAL) => LESS
   | (LESS, GREATER) => LESS
   | (EQUAL, LESS) => GREATER
   | (EQUAL, EQUAL) => EQUAL
   | (EQUAL, GREATER) => LESS
   | (GREATER, LESS) => GREATER
   | (GREATER, EQUAL) => GREATER
-  | _ => int_ord (fst (common (p1, q1) (p2, q2)));
+  | _ => int_ord (fst (common (p1, q1) (p2, q2))));
 
 fun le a b = not (ord (a, b) = GREATER);
-fun lt a b = (ord (a, b) = LESS);
+fun lt a b = ord (a, b) = LESS;
 
 fun sign (Rat (p, _)) = Integer.sign p;
 
 fun abs (Rat (p, q)) = Rat (Int.abs p, q);
 
 fun add (Rat (p1, q1)) (Rat (p2, q2)) =
-  let
-    val ((m1, m2), n) = common (p1, q1) (p2, q2);
+  let val ((m1, m2), n) = common (p1, q1) (p2, q2)
   in make (m1 + m2, n) end;
 
-fun mult (Rat (p1, q1)) (Rat (p2, q2)) =
-  make (p1 * p2, q1 * q2);
+fun mult (Rat (p1, q1)) (Rat (p2, q2)) = make (p1 * p2, q1 * q2);
 
 fun neg (Rat (p, q)) = Rat (~ p, q);
 
 fun inv (Rat (p, q)) =
- case Integer.sign p
- of LESS => Rat (~ q, ~ p)
+  (case Integer.sign p of
+    LESS => Rat (~ q, ~ p)
   | EQUAL => raise DIVZERO
-  | GREATER => Rat (q, p);
+  | GREATER => Rat (q, p));
 
 fun rounddown (Rat (p, q)) = Rat (p div q, 1);
 
 fun roundup (Rat (p, q)) =
- case Integer.div_mod p q
- of (m, 0) => Rat (m, 1)
-  | (m, _) => Rat (m + 1, 1);
+  (case Integer.div_mod p q of
+    (m, 0) => Rat (m, 1)
+  | (m, _) => Rat (m + 1, 1));
 
 end;
 
