@@ -89,7 +89,7 @@ fun floor (Rat (p, q)) = p div q;
 fun ceil (Rat (p, q)) =
   (case Integer.div_mod p q of
     (m, 0) => m
-  | (m, _) => m);
+  | (m, _) => m + 1);
 
 end;
 
