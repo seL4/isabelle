@@ -31,6 +31,8 @@ struct
 
 datatype rat = Rat of int * int;  (*numerator, positive (!) denominator*)
 
+fun of_int i = Rat (i, 1);
+
 fun common (p1, q1) (p2, q2) =
   let val m = PolyML.IntInf.lcm (q1, q2)
   in ((p1 * (m div q1), p2 * (m div q2)), m) end;
@@ -43,8 +45,6 @@ fun make (_, 0) = raise Div
     in Rat (if q' < 0 then (~ p', ~ q') else (p', q')) end
 
 fun dest (Rat r) = r;
-
-fun of_int i = Rat (i, 1);
 
 fun string_of_rat (Rat (p, 1)) = string_of_int p
   | string_of_rat (Rat (p, q)) = string_of_int p ^ "/" ^ string_of_int q;
@@ -70,8 +70,8 @@ fun sign (Rat (p, _)) = Integer.sign p;
 
 fun abs (r as Rat (p, q)) = if p < 0 then Rat (~ p, q) else r;
 
-fun add (Rat (p1, q1)) (Rat (p2, q2)) =
-  let val ((m1, m2), n) = common (p1, q1) (p2, q2)
+fun add (Rat r1) (Rat r2) =
+  let val ((m1, m2), n) = common r1 r2
   in make (m1 + m2, n) end;
 
 fun mult (Rat (p1, q1)) (Rat (p2, q2)) = make (p1 * p2, q1 * q2);
