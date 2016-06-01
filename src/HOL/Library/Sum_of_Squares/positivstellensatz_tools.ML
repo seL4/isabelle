@@ -18,15 +18,6 @@ struct
 
 local
 
-fun string_of_rat r =
-  let
-    val (nom, den) = Rat.dest r
-  in
-    if den = 1 then string_of_int nom
-    else string_of_int nom ^ "/" ^ string_of_int den
-  end
-
-
 (* map polynomials to strings *)
 
 fun string_of_varpow x k =
@@ -49,9 +40,9 @@ fun string_of_monomial m =
     in foldr1 (fn (s, t) => s ^ "*" ^ t) vps end
 
 fun string_of_cmonomial (m,c) =
-  if FuncUtil.Ctermfunc.is_empty m then string_of_rat c
+  if FuncUtil.Ctermfunc.is_empty m then Rat.string_of_rat c
   else if c = @1 then string_of_monomial m
-  else string_of_rat c ^ "*" ^ string_of_monomial m
+  else Rat.string_of_rat c ^ "*" ^ string_of_monomial m
 
 fun string_of_poly p =
   if FuncUtil.Monomialfunc.is_empty p then "0"
@@ -67,9 +58,9 @@ fun string_of_poly p =
 fun pss_to_cert (RealArith.Axiom_eq i) = "A=" ^ string_of_int i
   | pss_to_cert (RealArith.Axiom_le i) = "A<=" ^ string_of_int i
   | pss_to_cert (RealArith.Axiom_lt i) = "A<" ^ string_of_int i
-  | pss_to_cert (RealArith.Rational_eq r) = "R=" ^ string_of_rat r
-  | pss_to_cert (RealArith.Rational_le r) = "R<=" ^ string_of_rat r
-  | pss_to_cert (RealArith.Rational_lt r) = "R<" ^ string_of_rat r
+  | pss_to_cert (RealArith.Rational_eq r) = "R=" ^ Rat.string_of_rat r
+  | pss_to_cert (RealArith.Rational_le r) = "R<=" ^ Rat.string_of_rat r
+  | pss_to_cert (RealArith.Rational_lt r) = "R<" ^ Rat.string_of_rat r
   | pss_to_cert (RealArith.Square p) = "[" ^ string_of_poly p ^ "]^2"
   | pss_to_cert (RealArith.Eqmul (p, pss)) =
       "([" ^ string_of_poly p ^ "] * " ^ pss_to_cert pss ^ ")"

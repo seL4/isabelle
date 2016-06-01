@@ -13,6 +13,7 @@ sig
   val make: int * int -> rat
   val dest: rat -> int * int
   val string_of_rat: rat -> string
+  val signed_string_of_rat: rat -> string
   val eq: rat * rat -> bool
   val ord: rat * rat -> order
   val le: rat -> rat -> bool
@@ -48,8 +49,11 @@ fun dest (Rat r) = r;
 
 fun of_int i = Rat (i, 1);
 
-fun string_of_rat (Rat (p, q)) =
-  string_of_int p ^ "/" ^ string_of_int q;
+fun string_of_rat (Rat (p, 1)) = string_of_int p
+  | string_of_rat (Rat (p, q)) = string_of_int p ^ "/" ^ string_of_int q;
+
+fun signed_string_of_rat (Rat (p, 1)) = signed_string_of_int p
+  | signed_string_of_rat (Rat (p, q)) = signed_string_of_int p ^ "/" ^ string_of_int q;
 
 fun eq (Rat (p1, q1), Rat (p2, q2)) = (p1 = p2 andalso q1 = q2);
 
