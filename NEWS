@@ -347,8 +347,13 @@ INCOMPATIBILITY.
 
 *** ML ***
 
-* Ad-hoc overloading for standard operations on type Rat.rat: + - * / =
-< <= > >= <> ~ abs. INCOMPATIBILITY, need to use + instead of +/ etc.
+* Structure Rat for rational numbers is now an integral part of
+Isabelle/ML, with special notation @int/nat for numerals (an
+abbreviation for antiquotation @{Pure.rat int/nat}) and ML pretty
+printing. Standard operations on type Rat.rat are provided via ad-hoc
+overloading of + - * / = < <= > >= <> ~ abs. INCOMPATIBILITY, need to
+use + instead of +/ etc. Moreover, exception Rat.DIVZERO has been
+superseded by General.Div.
 
 * The ML function "ML" provides easy access to run-time compilation.
 This is particularly useful for conditional compilation, without
