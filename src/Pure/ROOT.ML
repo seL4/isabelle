@@ -52,7 +52,6 @@ section "Bootstrap phase 2: towards ML within Isar context";
 subsection "Library of general tools";
 
 ML_file "General/integer.ML";
-ML_file "General/rat.ML";
 ML_file "General/stack.ML";
 ML_file "General/queue.ML";
 ML_file "General/heap.ML";
@@ -62,6 +61,7 @@ ML_file "General/balanced_tree.ML";
 ML_file "General/linear_set.ML";
 ML_file "General/buffer.ML";
 ML_file "General/pretty.ML";
+ML_file "General/rat.ML";
 ML_file "PIDE/xml.ML";
 ML_file "General/path.ML";
 ML_file "General/url.ML";

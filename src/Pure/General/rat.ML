@@ -108,3 +108,5 @@ ML_system_overload (uncurry Rat.le) "<=";
 ML_system_overload (fn (a, b) => Rat.lt b a) ">";
 ML_system_overload (fn (a, b) => Rat.le b a) ">=";
 ML_system_overload (not o Rat.eq) "<>";
+
+ML_system_pp (fn _ => fn _ => fn x => Pretty.to_polyml (Pretty.str ("@" ^ Rat.string_of_rat x)));
