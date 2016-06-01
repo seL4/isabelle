@@ -1381,12 +1381,28 @@ text %mlref \<open>
   practice.\<^footnote>\<open>The size limit for integer bit patterns in memory is 64\,MB for
   32-bit Poly/ML, and much higher for 64-bit systems.\<close>
 
-  Literal integers in ML text are forced to be of this one true integer type
-  --- adhoc overloading of SML97 is disabled.
-
   Structure @{ML_structure IntInf} of SML97 is obsolete and superseded by
   @{ML_structure Int}. Structure @{ML_structure Integer} in @{file
   "~~/src/Pure/General/integer.ML"} provides some additional operations.
+\<close>
+
+
+subsection \<open>Rational numbers\<close>
+
+text %mlref \<open>
+  \begin{mldecls}
+  @{index_ML_type Rat.rat} \\
+  \end{mldecls}
+
+  \<^descr> Type @{ML_type Rat.rat} represents rational numbers, based on the
+  unbounded integers of Poly/ML.
+
+  Literal rationals may be written with special antiquotation syntax
+  \<^verbatim>\<open>@\<close>\<open>int\<close>\<^verbatim>\<open>/\<close>\<open>nat\<close> or \<^verbatim>\<open>@\<close>\<open>int\<close> (without any white space). For example
+  \<^verbatim>\<open>@~1/4\<close> or \<^verbatim>\<open>@10\<close>. The ML toplevel pretty printer uses the same format.
+
+  Standard operations are provided via ad-hoc overloading of \<^verbatim>\<open>+\<close>, \<^verbatim>\<open>-\<close>, \<^verbatim>\<open>*\<close>,
+  \<^verbatim>\<open>/\<close>, etc.
 \<close>
 
 
