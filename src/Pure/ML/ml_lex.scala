@@ -190,6 +190,9 @@ object ML_Lex
         sign ~ ("0x" ~ hex ^^ { case x ~ y => x + y } | dec) ^^
           { case x ~ y => Token(Kind.INT, x + y) }
 
+      val rat =
+        decint ~ opt("/" ~ dec) ^^ { case x ~ None => x case x ~ Some(y ~ z) => x + y + z }
+
       val real =
         (decint ~ "." ~ dec ~ (opt(exp) ^^ { case Some(x) => x case None => "" }) ^^
           { case x ~ y ~ z ~ w => x + y + z + w } |
@@ -203,7 +206,9 @@ object ML_Lex
       val keyword = literal(lexicon) ^^ (x => Token(Kind.KEYWORD, x))
 
       val ml_control = control ^^ (x => Token(Kind.CONTROL, x))
-      val ml_antiq = antiq ^^ (x => Token(Kind.ANTIQ, x))
+      val ml_antiq =
+        "@" ~ rat ^^ { case x ~ y => Token(Kind.ANTIQ, x + y) } |
+        antiq ^^ (x => Token(Kind.ANTIQ, x))
 
       val bad = one(_ => true) ^^ (x => Token(Kind.ERROR, x))
 

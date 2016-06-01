@@ -29,7 +29,12 @@ val _ = Theory.setup
             ML_Syntax.print_position pos ^ "));\n";
           val body =
             "(fn x => (" ^ struct_name ^ "." ^ a ^ " (" ^ ML_Pretty.make_string_fn ^ " x); x))";
-        in (K (env, body), ctxt') end));
+        in (K (env, body), ctxt') end) #>
+
+  ML_Antiquotation.value @{binding rat}
+    (Scan.lift (Scan.optional (Args.$$$ "~" >> K ~1) 1 -- Parse.nat --
+      Scan.optional (Args.$$$ "/" |-- Parse.nat) 1) >> (fn ((sign, a), b) =>
+        "Rat.make " ^ ML_Syntax.print_pair ML_Syntax.print_int ML_Syntax.print_int (sign * a, b))))
 
 
 (* formal entities *)
