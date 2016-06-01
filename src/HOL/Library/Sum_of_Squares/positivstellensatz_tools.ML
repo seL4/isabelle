@@ -50,7 +50,7 @@ fun string_of_monomial m =
 
 fun string_of_cmonomial (m,c) =
   if FuncUtil.Ctermfunc.is_empty m then string_of_rat c
-  else if c = Rat.one then string_of_monomial m
+  else if c = @1 then string_of_monomial m
   else string_of_rat c ^ "*" ^ string_of_monomial m
 
 fun string_of_poly p =
@@ -121,7 +121,7 @@ fun parse_monomial ctxt = repeat_sep "*" (parse_varpow ctxt) >>
 
 fun parse_cmonomial ctxt =
   rat_int --| str "*" -- (parse_monomial ctxt) >> swap ||
-  (parse_monomial ctxt) >> (fn m => (m, Rat.one)) ||
+  (parse_monomial ctxt) >> (fn m => (m, @1)) ||
   rat_int >> (fn r => (FuncUtil.Ctermfunc.empty, r))
 
 fun parse_poly ctxt = repeat_sep "+" (parse_cmonomial ctxt) >>

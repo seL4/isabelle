@@ -28,14 +28,14 @@ struct
             find_normedterms (Thm.dest_arg1 t) (find_normedterms (Thm.dest_arg t) acc)
       | @{term "op * :: real => _"}$_$_ =>
             if not (is_ratconst (Thm.dest_arg1 t)) then acc else
-            augment_norm (dest_ratconst (Thm.dest_arg1 t) >= Rat.zero)
+            augment_norm (dest_ratconst (Thm.dest_arg1 t) >= @0)
                       (Thm.dest_arg t) acc
       | _ => augment_norm true t acc
 
  val cterm_lincomb_neg = FuncUtil.Ctermfunc.map (K Rat.neg)
  fun cterm_lincomb_cmul c t =
-    if c = Rat.zero then FuncUtil.Ctermfunc.empty else FuncUtil.Ctermfunc.map (fn _ => fn x => x * c) t
- fun cterm_lincomb_add l r = FuncUtil.Ctermfunc.combine (curry op +) (fn x => x = Rat.zero) l r
+    if c = @0 then FuncUtil.Ctermfunc.empty else FuncUtil.Ctermfunc.map (fn _ => fn x => x * c) t
+ fun cterm_lincomb_add l r = FuncUtil.Ctermfunc.combine (curry op +) (fn x => x = @0) l r
  fun cterm_lincomb_sub l r = cterm_lincomb_add l (cterm_lincomb_neg r)
  fun cterm_lincomb_eq l r = FuncUtil.Ctermfunc.is_empty (cterm_lincomb_sub l r)
 
@@ -43,8 +43,8 @@ struct
  val int_lincomb_neg = FuncUtil.Intfunc.map (K Rat.neg)
 *)
  fun int_lincomb_cmul c t =
-    if c = Rat.zero then FuncUtil.Intfunc.empty else FuncUtil.Intfunc.map (fn _ => fn x => x * c) t
- fun int_lincomb_add l r = FuncUtil.Intfunc.combine (curry op +) (fn x => x = Rat.zero) l r
+    if c = @0 then FuncUtil.Intfunc.empty else FuncUtil.Intfunc.map (fn _ => fn x => x * c) t
+ fun int_lincomb_add l r = FuncUtil.Intfunc.combine (curry op +) (fn x => x = @0) l r
 (*
  fun int_lincomb_sub l r = int_lincomb_add l (int_lincomb_neg r)
  fun int_lincomb_eq l r = FuncUtil.Intfunc.is_empty (int_lincomb_sub l r)
@@ -64,11 +64,11 @@ fun vector_lincomb t = case Thm.term_of t of
    let
      val b = ((snd o HOLogic.dest_number o term_of o Thm.dest_arg) t = 0
                handle TERM _=> false)
-   in if b then FuncUtil.Ctermfunc.onefunc (t,Rat.one)
+   in if b then FuncUtil.Ctermfunc.onefunc (t,@1)
       else FuncUtil.Ctermfunc.empty
    end
 *)
- | _ => FuncUtil.Ctermfunc.onefunc (t,Rat.one)
+ | _ => FuncUtil.Ctermfunc.onefunc (t,@1)
 
  fun vector_lincombs ts =
   fold_rev
@@ -84,7 +84,7 @@ fun vector_lincomb t = case Thm.term_of t of
 fun replacenegnorms cv t = case Thm.term_of t of
   @{term "op + :: real => _"}$_$_ => binop_conv (replacenegnorms cv) t
 | @{term "op * :: real => _"}$_$_ =>
-    if dest_ratconst (Thm.dest_arg1 t) < Rat.zero then arg_conv cv t else Thm.reflexive t
+    if dest_ratconst (Thm.dest_arg1 t) < @0 then arg_conv cv t else Thm.reflexive t
 | _ => Thm.reflexive t
 (*
 fun flip v eq =
@@ -97,10 +97,10 @@ fun allsubsets s = case s of
                map (cons a) res @ res end
 fun evaluate env lin =
  FuncUtil.Intfunc.fold (fn (x,c) => fn s => s + c * (FuncUtil.Intfunc.apply env x))
-   lin Rat.zero
+   lin @0
 
 fun solve (vs,eqs) = case (vs,eqs) of
-  ([],[]) => SOME (FuncUtil.Intfunc.onefunc (0,Rat.one))
+  ([],[]) => SOME (FuncUtil.Intfunc.onefunc (0,@1))
  |(_,eq::oeqs) =>
    (case filter (member (op =) vs) (FuncUtil.Intfunc.dom eq) of (*FIXME use find_first here*)
      [] => NONE
@@ -127,9 +127,9 @@ fun vertices vs eqs =
  let
   fun vertex cmb = case solve(vs,cmb) of
     NONE => NONE
-   | SOME soln => SOME (map (fn v => FuncUtil.Intfunc.tryapplyd soln v Rat.zero) vs)
+   | SOME soln => SOME (map (fn v => FuncUtil.Intfunc.tryapplyd soln v @0) vs)
   val rawvs = map_filter vertex (combinations (length vs) eqs)
-  val unset = filter (forall (fn c => c >= Rat.zero)) rawvs
+  val unset = filter (forall (fn c => c >= @0)) rawvs
  in fold_rev (insert (eq_list op =)) unset []
  end
 
@@ -242,7 +242,7 @@ fun vector_canon_conv ctxt ct = case Thm.term_of ct of
 (* FIXME
 | Const(@{const_name vec},_)$n =>
   let val n = Thm.dest_arg ct
-  in if is_ratconst n andalso not (dest_ratconst n =/ Rat.zero)
+  in if is_ratconst n andalso not (dest_ratconst n =/ @0)
      then Thm.reflexive ct else apply_pth1 ct
   end
 *)
@@ -288,7 +288,7 @@ local
       in fold_rev (fn (f,v) => fn g => if FuncUtil.Ctermfunc.defined f x then FuncUtil.Intfunc.update (v, FuncUtil.Ctermfunc.apply f x) g else g) srccombs inp
       end
      val equations = map coefficients vvs
-     val inequalities = map (fn n => FuncUtil.Intfunc.onefunc (n,Rat.one)) nvs
+     val inequalities = map (fn n => FuncUtil.Intfunc.onefunc (n,@1)) nvs
      fun plausiblevertices f =
       let
        val flippedequations = map (fold_rev int_flip f) equations
@@ -296,8 +296,8 @@ local
        val rawverts = vertices nvs constraints
        fun check_solution v =
         let
-          val f = fold_rev FuncUtil.Intfunc.update (nvs ~~ v) (FuncUtil.Intfunc.onefunc (0, Rat.one))
-        in forall (fn e => evaluate f e = Rat.zero) flippedequations
+          val f = fold_rev FuncUtil.Intfunc.update (nvs ~~ v) (FuncUtil.Intfunc.onefunc (0, @1))
+        in forall (fn e => evaluate f e = @0) flippedequations
         end
        val goodverts = filter check_solution rawverts
        val signfixups = map (fn n => if member (op =) f n then ~1 else 1) nvs
@@ -308,7 +308,7 @@ local
     end
    fun compute_ineq v =
     let
-     val ths = map_filter (fn (v,t) => if v = Rat.zero then NONE
+     val ths = map_filter (fn (v,t) => if v = @0 then NONE
                                      else SOME(norm_cmul_rule v t))
                             (v ~~ nubs)
      fun end_itlist f xs = split_last xs |> uncurry (fold_rev f)

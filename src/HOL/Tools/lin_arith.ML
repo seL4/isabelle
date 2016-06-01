@@ -156,11 +156,11 @@ let
          if we choose to do so here, the simpset used by arith must be able to
          perform the same simplifications. *)
       (* quotient 's / t', where the denominator t can be NONE *)
-      (* Note: will raise Rat.DIVZERO iff m' is Rat.zero *)
+      (* Note: will raise Rat.DIVZERO iff m' is @0 *)
       if of_field_sort thy (domain_type T) then
         let
           val (os',m') = demult (s, m);
-          val (ot',p) = demult (t, Rat.one)
+          val (ot',p) = demult (t, @1)
         in (case (os',ot') of
             (SOME s', SOME t') => SOME (mC $ s' $ t')
           | (SOME s', NONE) => SOME s'
@@ -172,7 +172,7 @@ let
       else (SOME atom, m)
     (* terms that evaluate to numeric constants *)
     | demult (Const (@{const_name Groups.uminus}, _) $ t, m) = demult (t, Rat.neg m)
-    | demult (Const (@{const_name Groups.zero}, _), _) = (NONE, Rat.zero)
+    | demult (Const (@{const_name Groups.zero}, _), _) = (NONE, @0)
     | demult (Const (@{const_name Groups.one}, _), m) = (NONE, m)
     (*Warning: in rare cases (neg_)numeral encloses a non-numeral,
       in which case dest_numeral raises TERM; hence all the handles below.
@@ -227,8 +227,8 @@ let
         if member (op =) inj_consts f then poly (x, m, pi) else add_atom all m pi
     | poly (all, m, pi) =
         add_atom all m pi
-  val (p, i) = poly (lhs, Rat.one, ([], Rat.zero))
-  val (q, j) = poly (rhs, Rat.one, ([], Rat.zero))
+  val (p, i) = poly (lhs, @1, ([], @0))
+  val (q, j) = poly (rhs, @1, ([], @0))
 in
   case rel of
     @{const_name Orderings.less}    => SOME (p, i, "<", q, j)
