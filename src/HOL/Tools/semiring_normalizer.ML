@@ -115,11 +115,11 @@ val semiring_norm_ss =
 val semiring_funs =
    {is_const = can HOLogic.dest_number o Thm.term_of,
     dest_const = (fn ct =>
-      Rat.rat_of_int (snd
+      Rat.of_int (snd
         (HOLogic.dest_number (Thm.term_of ct)
           handle TERM _ => error "ring_dest_const"))),
     mk_const = (fn cT => fn x => Numeral.mk_cnumber cT
-      (case Rat.quotient_of_rat x of (i, 1) => i | _ => error "int_of_rat: bad int")),
+      (case Rat.dest x of (i, 1) => i | _ => error "int_of_rat: bad int")),
     conv = (fn ctxt =>
       Simplifier.rewrite (put_simpset semiring_norm_ss ctxt)
       then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_One}))};
@@ -137,13 +137,13 @@ val field_funs =
      | t => can HOLogic.dest_number t
     fun dest_const ct = ((case Thm.term_of ct of
        Const (@{const_name Rings.divide},_) $ a $ b=>
-        Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
+        Rat.make (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
      | Const (@{const_name Fields.inverse},_)$t =>
-                   Rat.inv (Rat.rat_of_int (snd (HOLogic.dest_number t)))
-     | t => Rat.rat_of_int (snd (HOLogic.dest_number t)))
+                   Rat.inv (Rat.of_int (snd (HOLogic.dest_number t)))
+     | t => Rat.of_int (snd (HOLogic.dest_number t)))
        handle TERM _ => error "ring_dest_const")
     fun mk_const cT x =
-      let val (a, b) = Rat.quotient_of_rat x
+      let val (a, b) = Rat.dest x
       in if b = 1 then Numeral.mk_cnumber cT a
         else Thm.apply
              (Thm.apply (Thm.instantiate_cterm ([(divide_tvar, cT)], []) divide_const)

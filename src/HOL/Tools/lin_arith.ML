@@ -179,10 +179,10 @@ let
       Same for Suc-terms that turn out not to be numerals -
       although the simplifier should eliminate those anyway ...*)
     | demult (t as Const ("Num.numeral_class.numeral", _) $ n, m) =
-      ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_numeral n)))
+      ((NONE, Rat.mult m (Rat.of_int (HOLogic.dest_numeral n)))
         handle TERM _ => (SOME t, m))
     | demult (t as Const (@{const_name Suc}, _) $ _, m) =
-      ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_nat t)))
+      ((NONE, Rat.mult m (Rat.of_int (HOLogic.dest_nat t)))
         handle TERM _ => (SOME t, m))
     (* injection constants are ignored *)
     | demult (t as Const f $ x, m) =
@@ -209,7 +209,7 @@ let
         (p, Rat.add i m)
     | poly (all as Const ("Num.numeral_class.numeral", Type(_,[_,_])) $ t, m, pi as (p, i)) =
         (let val k = HOLogic.dest_numeral t
-        in (p, Rat.add i (Rat.mult m (Rat.rat_of_int k))) end
+        in (p, Rat.add i (Rat.mult m (Rat.of_int k))) end
         handle TERM _ => add_atom all m pi)
     | poly (Const (@{const_name Suc}, _) $ t, m, (p, i)) =
         poly (t, m, (p, Rat.add i m))

@@ -287,7 +287,7 @@ fun literals_conv bops uops cv =
 
 fun cterm_of_rat x =
   let
-    val (a, b) = Rat.quotient_of_rat x
+    val (a, b) = Rat.dest x
   in
     if b = 1 then Numeral.mk_cnumber @{ctyp "real"} a
     else Thm.apply (Thm.apply @{cterm "op / :: real => _"}
@@ -297,8 +297,8 @@ fun cterm_of_rat x =
 
 fun dest_ratconst t =
   case Thm.term_of t of
-    Const(@{const_name divide}, _)$a$b => Rat.rat_of_quotient(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
-  | _ => Rat.rat_of_int (HOLogic.dest_number (Thm.term_of t) |> snd)
+    Const(@{const_name divide}, _)$a$b => Rat.make(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
+  | _ => Rat.of_int (HOLogic.dest_number (Thm.term_of t) |> snd)
 fun is_ratconst t = can dest_ratconst t
 
 (*

@@ -22,18 +22,18 @@ struct
 val rat_0 = Rat.zero;
 val rat_1 = Rat.one;
 val rat_2 = Rat.two;
-val rat_10 = Rat.rat_of_int 10;
+val rat_10 = Rat.of_int 10;
 val max = Integer.max;
 
-val denominator_rat = Rat.quotient_of_rat #> snd #> Rat.rat_of_int;
+val denominator_rat = Rat.dest #> snd #> Rat.of_int;
 
 fun int_of_rat a =
-  (case Rat.quotient_of_rat a of
+  (case Rat.dest a of
     (i, 1) => i
   | _ => error "int_of_rat: not an int");
 
 fun lcm_rat x y =
-  Rat.rat_of_int (Integer.lcm (int_of_rat x) (int_of_rat y));
+  Rat.of_int (Integer.lcm (int_of_rat x) (int_of_rat y));
 
 fun rat_pow r i =
  let fun pow r i =
@@ -45,9 +45,9 @@ fun rat_pow r i =
 
 fun round_rat r =
   let
-    val (a,b) = Rat.quotient_of_rat (Rat.abs r)
+    val (a,b) = Rat.dest (Rat.abs r)
     val d = a div b
-    val s = if r < rat_0 then (Rat.neg o Rat.rat_of_int) else Rat.rat_of_int
+    val s = if r < rat_0 then (Rat.neg o Rat.of_int) else Rat.of_int
     val x2 = 2 * (a - (b * d))
   in s (if x2 >= b then d + 1 else d) end
 
@@ -302,11 +302,11 @@ fun index_char str chr pos =
   else index_char str chr (pos + 1);
 
 fun rat_of_quotient (a,b) =
-  if b = 0 then rat_0 else Rat.rat_of_quotient (a, b);
+  if b = 0 then rat_0 else Rat.make (a, b);
 
 fun rat_of_string s =
   let val n = index_char s #"/" 0 in
-    if n = ~1 then s |> Int.fromString |> the |> Rat.rat_of_int
+    if n = ~1 then s |> Int.fromString |> the |> Rat.of_int
     else
       let
         val SOME numer = Int.fromString(String.substring(s,0,n))
@@ -365,7 +365,7 @@ local
   fun maximal_element fld amat acc =
     fld (fn (_,c) => fn maxa => max_rat maxa (abs_rat c)) amat acc
   fun float_of_rat x =
-    let val (a,b) = Rat.quotient_of_rat x
+    let val (a,b) = Rat.dest x
     in Real.fromInt a / Real.fromInt b end;
   fun int_of_float x = (trunc x handle Overflow => 0 | Domain => 0)
 in
@@ -438,7 +438,7 @@ fun tri_eliminate_all_equations one =
               val v = choose_variable eq
               val a = Inttriplefunc.apply eq v
               val eq' =
-                tri_equation_cmul ((Rat.rat_of_int ~1) / a) (Inttriplefunc.delete_safe v eq)
+                tri_equation_cmul ((Rat.of_int ~1) / a) (Inttriplefunc.delete_safe v eq)
               fun elim e =
                 let val b = Inttriplefunc.tryapplyd e v rat_0 in
                   if b = rat_0 then e
@@ -608,7 +608,7 @@ fun bmatrix_cmul c bm =
   if c = rat_0 then Inttriplefunc.empty
   else Inttriplefunc.map (fn _ => fn x => c * x) bm;
 
-val bmatrix_neg = bmatrix_cmul (Rat.rat_of_int ~1);
+val bmatrix_neg = bmatrix_cmul (Rat.of_int ~1);
 
 (* Smash a block matrix into components.                                     *)
 
@@ -729,10 +729,10 @@ fun real_positivnullstellensatz_general ctxt prover linf d eqs leqs pol =
       in (vec, map diag allmats) end
     val (vec, ratdias) =
       if null pvs then find_rounding rat_1
-      else tryfind find_rounding (map Rat.rat_of_int (1 upto 31) @ map pow2 (5 upto 66))
+      else tryfind find_rounding (map Rat.of_int (1 upto 31) @ map pow2 (5 upto 66))
     val newassigs =
       fold_rev (fn k => Inttriplefunc.update (nth pvs (k - 1), int_element vec k))
-        (1 upto dim vec) (Inttriplefunc.onefunc ((0, 0, 0), Rat.rat_of_int ~1))
+        (1 upto dim vec) (Inttriplefunc.onefunc ((0, 0, 0), Rat.of_int ~1))
     val finalassigs =
       Inttriplefunc.fold (fn (v, e) => fn a =>
         Inttriplefunc.update (v, tri_equation_eval newassigs e) a) allassig newassigs

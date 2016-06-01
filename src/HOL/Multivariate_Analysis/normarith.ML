@@ -16,9 +16,9 @@ struct
  open Conv;
  val bool_eq = op = : bool *bool -> bool
   fun dest_ratconst t = case Thm.term_of t of
-   Const(@{const_name divide}, _)$a$b => Rat.rat_of_quotient(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
- | Const(@{const_name inverse}, _)$a => Rat.rat_of_quotient(1, HOLogic.dest_number a |> snd)
- | _ => Rat.rat_of_int (HOLogic.dest_number (Thm.term_of t) |> snd)
+   Const(@{const_name divide}, _)$a$b => Rat.make(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
+ | Const(@{const_name inverse}, _)$a => Rat.make(1, HOLogic.dest_number a |> snd)
+ | _ => Rat.of_int (HOLogic.dest_number (Thm.term_of t) |> snd)
  fun is_ratconst t = can dest_ratconst t
  fun augment_norm b t acc = case Thm.term_of t of
      Const(@{const_name norm}, _) $ _ => insert (eq_pair bool_eq (op aconvc)) (b,Thm.dest_arg t) acc
@@ -146,7 +146,7 @@ fun subsume todo dun = case todo of
 fun match_mp PQ P = P RS PQ;
 
 fun cterm_of_rat x =
-let val (a, b) = Rat.quotient_of_rat x
+let val (a, b) = Rat.dest x
 in
  if b = 1 then Numeral.mk_cnumber @{ctyp "real"} a
   else Thm.apply (Thm.apply @{cterm "op / :: real => _"}
@@ -301,7 +301,7 @@ local
         end
        val goodverts = filter check_solution rawverts
        val signfixups = map (fn n => if member (op =) f n then ~1 else 1) nvs
-      in map (map2 (fn s => fn c => Rat.rat_of_int s * c) signfixups) goodverts
+      in map (map2 (fn s => fn c => Rat.of_int s * c) signfixups) goodverts
       end
      val allverts = fold_rev append (map plausiblevertices (allsubsets nvs)) []
     in subsume allverts []

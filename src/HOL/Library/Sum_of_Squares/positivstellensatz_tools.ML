@@ -20,7 +20,7 @@ local
 
 fun string_of_rat r =
   let
-    val (nom, den) = Rat.quotient_of_rat r
+    val (nom, den) = Rat.dest r
   in
     if den = 1 then string_of_int nom
     else string_of_int nom ^ "/" ^ string_of_int den
@@ -103,8 +103,8 @@ val number =
 
 val nat = number
 val int = Scan.optional (str "~" >> K ~1) 1 -- nat >> op *
-val rat = int --| str "/" -- int >> Rat.rat_of_quotient
-val rat_int = rat || int >> Rat.rat_of_int
+val rat = int --| str "/" -- int >> Rat.make
+val rat_int = rat || int >> Rat.of_int
 
 
 (* polynomial parsers *)

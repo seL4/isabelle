@@ -11,9 +11,9 @@ sig
   val zero: rat
   val one: rat
   val two: rat
-  val rat_of_int: int -> rat
-  val rat_of_quotient: int * int -> rat
-  val quotient_of_rat: rat -> int * int
+  val of_int: int -> rat
+  val make: int * int -> rat
+  val dest: rat -> int * int
   val string_of_rat: rat -> string
   val eq: rat * rat -> bool
   val ord: rat * rat -> order
@@ -40,19 +40,19 @@ fun common (p1, q1) (p2, q2) =
 
 exception DIVZERO;
 
-fun rat_of_quotient (p, q) =
+fun make (p, q) =
   let
     val m = PolyML.IntInf.gcd (p, q);
     val (p', q') = (p div m, q div m) handle Div => raise DIVZERO;
   in Rat (if q' < 0 then (~ p', ~ q') else (p', q')) end
 
-fun quotient_of_rat (Rat r) = r;
+fun dest (Rat r) = r;
 
-fun rat_of_int i = Rat (i, 1);
+fun of_int i = Rat (i, 1);
 
-val zero = rat_of_int 0;
-val one = rat_of_int 1;
-val two = rat_of_int 2;
+val zero = of_int 0;
+val one = of_int 1;
+val two = of_int 2;
 
 fun string_of_rat (Rat (p, q)) =
   string_of_int p ^ "/" ^ string_of_int q;
@@ -80,10 +80,10 @@ fun abs (Rat (p, q)) = Rat (Int.abs p, q);
 fun add (Rat (p1, q1)) (Rat (p2, q2)) =
   let
     val ((m1, m2), n) = common (p1, q1) (p2, q2);
-  in rat_of_quotient (m1 + m2, n) end;
+  in make (m1 + m2, n) end;
 
 fun mult (Rat (p1, q1)) (Rat (p2, q2)) =
-  rat_of_quotient (p1 * p2, q1 * q2);
+  make (p1 * p2, q1 * q2);
 
 fun neg (Rat (p, q)) = Rat (~ p, q);
 

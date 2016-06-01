@@ -35,10 +35,10 @@ fun dest_binary ct ct' =
 val rat_0 = Rat.zero;
 val rat_1 = Rat.one;
 val minus_rat = Rat.neg;
-val denominator_rat = Rat.quotient_of_rat #> snd #> Rat.rat_of_int;
+val denominator_rat = Rat.dest #> snd #> Rat.of_int;
 fun int_of_rat a =
-    case Rat.quotient_of_rat a of (i,1) => i | _ => error "int_of_rat: not an int";
-val lcm_rat = fn x => fn y => Rat.rat_of_int (Integer.lcm (int_of_rat x) (int_of_rat y));
+    case Rat.dest a of (i,1) => i | _ => error "int_of_rat: not an int";
+val lcm_rat = fn x => fn y => Rat.of_int (Integer.lcm (int_of_rat x) (int_of_rat y));
 
 val (eqF_intr, eqF_elim) =
   let val [th1,th2] = @{thms PFalse}
