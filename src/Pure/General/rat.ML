@@ -25,8 +25,8 @@ sig
   val mult: rat -> rat -> rat
   val neg: rat -> rat
   val inv: rat -> rat
-  val rounddown: rat -> rat
-  val roundup: rat -> rat
+  val round_down: rat -> rat
+  val round_up: rat -> rat
 end;
 
 structure Rat : RAT =
@@ -91,9 +91,9 @@ fun inv (Rat (p, q)) =
   | EQUAL => raise DIVZERO
   | GREATER => Rat (q, p));
 
-fun rounddown (Rat (p, q)) = Rat (p div q, 1);
+fun round_down (Rat (p, q)) = Rat (p div q, 1);
 
-fun roundup (Rat (p, q)) =
+fun round_up (Rat (p, q)) =
   (case Integer.div_mod p q of
     (m, 0) => Rat (m, 1)
   | (m, _) => Rat (m + 1, 1));
