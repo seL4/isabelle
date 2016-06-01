@@ -90,6 +90,15 @@ instance
 
 end
 
+context
+begin
+
+qualified definition is_empty :: "'a multiset \<Rightarrow> bool" where
+  [code_abbrev]: "is_empty A \<longleftrightarrow> A = {#}"
+
+end
+
+
 lift_definition single :: "'a \<Rightarrow> 'a multiset" is "\<lambda>a b. if b = a then 1 else 0"
 by (rule only1_in_multiset)
 
@@ -2582,6 +2591,9 @@ code_datatype mset
 
 lemma [code]: "{#} = mset []"
   by simp
+
+lemma [code]: "Multiset.is_empty (mset xs) \<longleftrightarrow> List.null xs"
+  by (simp add: Multiset.is_empty_def List.null_def)
 
 lemma [code]: "{#x#} = mset [x]"
   by simp

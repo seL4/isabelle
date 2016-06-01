@@ -64,11 +64,23 @@ proof -
 qed
 
 lemma map_values_Mapping [code]:
-  fixes f :: "'a \<Rightarrow> 'b" and xs :: "('c \<times> 'a) list"
-  shows "Mapping.map_values f (Mapping xs) = Mapping (map (\<lambda>(x,y). (x, f y)) xs)"
+  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> 'b" and xs :: "('c \<times> 'a) list"
+  shows "Mapping.map_values f (Mapping xs) = Mapping (map (\<lambda>(x,y). (x, f x y)) xs)"
 proof (transfer, rule ext, goal_cases)
   case (1 f xs x)
   thus ?case by (induction xs) auto
+qed
+
+lemma combine_with_key_code [code]: 
+  "Mapping.combine_with_key f (Mapping xs) (Mapping ys) =
+     Mapping.tabulate (remdups (map fst xs @ map fst ys)) 
+       (\<lambda>x. the (combine_options (f x) (map_of xs x) (map_of ys x)))"
+proof (transfer, rule ext, rule sym, goal_cases)
+  case (1 f xs ys x)
+  show ?case
+  by (cases "map_of xs x"; cases "map_of ys x"; simp)
+     (force simp: map_of_eq_None_iff combine_options_def option.the_def o_def image_iff
+            dest: map_of_SomeD split: option.splits)+
 qed
 
 lemma combine_code [code]: 
@@ -79,7 +91,7 @@ proof (transfer, rule ext, rule sym, goal_cases)
   case (1 f xs ys x)
   show ?case
   by (cases "map_of xs x"; cases "map_of ys x"; simp)
-     (force simp: map_of_eq_None_iff combine_options_altdef option.the_def o_def image_iff
+     (force simp: map_of_eq_None_iff combine_options_def option.the_def o_def image_iff
             dest: map_of_SomeD split: option.splits)+
 qed
 

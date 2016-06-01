@@ -240,6 +240,32 @@ end
 
 subsection \<open>Properties\<close>
 
+lemma mapping_eqI:
+  "(\<And>x. lookup m x = lookup m' x) \<Longrightarrow> m = m'"
+  by transfer (simp add: fun_eq_iff)
+
+lemma mapping_eqI': 
+  assumes "\<And>x. x \<in> Mapping.keys m \<Longrightarrow> Mapping.lookup_default d m x = Mapping.lookup_default d m' x" 
+      and "Mapping.keys m = Mapping.keys m'"
+  shows   "m = m'"
+proof (intro mapping_eqI)
+  fix x
+  show "Mapping.lookup m x = Mapping.lookup m' x"
+  proof (cases "Mapping.lookup m x")
+    case None
+    hence "x \<notin> Mapping.keys m" by transfer (simp add: dom_def)
+    hence "x \<notin> Mapping.keys m'" by (simp add: assms)
+    hence "Mapping.lookup m' x = None" by transfer (simp add: dom_def)
+    with None show ?thesis by simp
+  next
+    case (Some y)
+    hence A: "x \<in> Mapping.keys m" by transfer (simp add: dom_def)
+    hence "x \<in> Mapping.keys m'" by (simp add: assms)
+    hence "\<exists>y'. Mapping.lookup m' x = Some y'" by transfer (simp add: dom_def)
+    with Some assms(1)[OF A] show ?thesis by (auto simp add: lookup_default_def)
+  qed
+qed
+
 lemma lookup_update:
   "lookup (update k v m) k = Some v" 
   by transfer simp
@@ -313,6 +339,51 @@ lemma lookup_default_neutral_combine:
   shows   "Mapping.lookup_default d (combine f m1 m2) x = 
              f (Mapping.lookup_default d m1 x) (Mapping.lookup_default d m2 x)"
   by (auto simp: lookup_default_def lookup_combine assms split: option.splits)
+
+lemma lookup_map_entry:
+  "lookup (map_entry x f m) x = map_option f (lookup m x)"
+  by transfer (auto split: option.splits)
+
+lemma lookup_map_entry_neq:
+  "x \<noteq> y \<Longrightarrow> lookup (map_entry x f m) y = lookup m y"
+  by transfer (auto split: option.splits)
+
+lemma lookup_map_entry':
+  "lookup (map_entry x f m) y = 
+     (if x = y then map_option f (lookup m y) else lookup m y)"
+  by transfer (auto split: option.splits)
+  
+lemma lookup_default:
+  "lookup (default x d m) x = Some (lookup_default d m x)"
+    unfolding lookup_default_def default_def
+    by transfer (auto split: option.splits)
+
+lemma lookup_default_neq:
+  "x \<noteq> y \<Longrightarrow> lookup (default x d m) y = lookup m y"
+    unfolding lookup_default_def default_def
+    by transfer (auto split: option.splits)
+
+lemma lookup_default':
+  "lookup (default x d m) y = 
+     (if x = y then Some (lookup_default d m x) else lookup m y)"
+  unfolding lookup_default_def default_def
+  by transfer (auto split: option.splits)
+  
+lemma lookup_map_default:
+  "lookup (map_default x d f m) x = Some (f (lookup_default d m x))"
+    unfolding lookup_default_def default_def
+    by (simp add: map_default_def lookup_map_entry lookup_default lookup_default_def)
+
+lemma lookup_map_default_neq:
+  "x \<noteq> y \<Longrightarrow> lookup (map_default x d f m) y = lookup m y"
+    unfolding lookup_default_def default_def
+    by (simp add: map_default_def lookup_map_entry_neq lookup_default_neq) 
+
+lemma lookup_map_default':
+  "lookup (map_default x d f m) y = 
+     (if x = y then Some (f (lookup_default d m x)) else lookup m y)"
+    unfolding lookup_default_def default_def
+    by (simp add: map_default_def lookup_map_entry' lookup_default' lookup_default_def)  
 
 lemma lookup_tabulate: 
   assumes "distinct xs"

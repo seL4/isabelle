@@ -12,6 +12,8 @@ text \<open>Delete prexisting code equations\<close>
 
 lemma [code, code del]: "{#} = {#}" ..
 
+lemma [code, code del]: "Multiset.is_empty = Multiset.is_empty" ..
+
 lemma [code, code del]: "single = single" ..
 
 lemma [code, code del]: "plus = (plus :: 'a multiset \<Rightarrow> _)" ..
@@ -186,6 +188,27 @@ lemma count_Bag [simp, code]: "count (Bag xs) = count_of (DAList.impl_of xs)"
 
 lemma Mempty_Bag [code]: "{#} = Bag (DAList.empty)"
   by (simp add: multiset_eq_iff alist.Alist_inverse DAList.empty_def)
+
+lift_definition is_empty_Bag_impl :: "('a, nat) alist \<Rightarrow> bool" is
+  "\<lambda>xs. list_all (\<lambda>x. snd x = 0) xs" .
+
+lemma is_empty_Bag [code]: "Multiset.is_empty (Bag xs) \<longleftrightarrow> is_empty_Bag_impl xs"
+proof -
+  have "Multiset.is_empty (Bag xs) \<longleftrightarrow> (\<forall>x. count (Bag xs) x = 0)"
+    unfolding Multiset.is_empty_def multiset_eq_iff by simp
+  also have "\<dots> \<longleftrightarrow> (\<forall>x\<in>fst ` set (alist.impl_of xs). count (Bag xs) x = 0)"
+  proof (intro iffI allI ballI)
+    fix x assume A: "\<forall>x\<in>fst ` set (alist.impl_of xs). count (Bag xs) x = 0"
+    thus "count (Bag xs) x = 0"
+    proof (cases "x \<in> fst ` set (alist.impl_of xs)")
+      case False
+      thus ?thesis by (force simp: count_of_def split: option.splits)
+    qed (insert A, auto)
+  qed simp_all
+  also have "\<dots> \<longleftrightarrow> list_all (\<lambda>x. snd x = 0) (alist.impl_of xs)" 
+    by (auto simp: count_of_def list_all_def)
+  finally show ?thesis by (simp add: is_empty_Bag_impl.rep_eq)
+qed
 
 lemma single_Bag [code]: "{#x#} = Bag (DAList.update x 1 DAList.empty)"
   by (simp add: multiset_eq_iff alist.Alist_inverse update.rep_eq empty.rep_eq)
