@@ -218,6 +218,8 @@ val scan_word =
 
 val scan_int = scan_sign @@@ ($$$ "0" @@@ $$$ "x" @@@ scan_hex || scan_dec);
 
+val scan_rat = scan_decint @@@ Scan.optional ($$$ "/" @@@ scan_dec) [];
+
 val scan_real =
   scan_decint @@@ $$$ "." @@@ scan_dec @@@ Scan.optional scan_exp [] ||
   scan_decint @@@ scan_exp;
@@ -265,6 +267,19 @@ val recover_string =
 end;
 
 
+(* rat antiquotation *)
+
+val rat_name = Symbol_Pos.explode ("Pure.rat ", Position.none);
+
+val scan_rat_antiq =
+  Symbol_Pos.scan_pos -- ($$ "@" |-- Symbol_Pos.scan_pos -- scan_rat) -- Symbol_Pos.scan_pos
+    >> (fn ((pos1, (pos2, body)), pos3) =>
+      {start = Position.range_position (pos1, pos2),
+       stop = Position.none,
+       range = Position.range (pos1, pos3),
+       body = rat_name @ body});
+
+
 (* scan tokens *)
 
 local
@@ -290,6 +305,7 @@ val scan_sml = scan_ml >> Antiquote.Text;
 val scan_ml_antiq =
   Antiquote.scan_control >> Antiquote.Control ||
   Antiquote.scan_antiq >> Antiquote.Antiq ||
+  scan_rat_antiq >> Antiquote.Antiq ||
   scan_ml >> Antiquote.Text;
 
 fun recover msg =

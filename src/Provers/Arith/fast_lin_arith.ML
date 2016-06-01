@@ -482,10 +482,10 @@ fun coeff poly atom =
   AList.lookup Envir.aeconv poly atom |> the_default 0;
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
-let val (rn,rd) = Rat.quotient_of_rat r and (sn,sd) = Rat.quotient_of_rat s
-    val m = Integer.lcms(map (abs o snd o Rat.quotient_of_rat) (r :: s :: map snd rlhs @ map snd rrhs))
+let val (rn,rd) = Rat.dest r and (sn,sd) = Rat.dest s
+    val m = Integer.lcms(map (abs o snd o Rat.dest) (r :: s :: map snd rlhs @ map snd rrhs))
     fun mult(t,r) =
-        let val (i,j) = Rat.quotient_of_rat r
+        let val (i,j) = Rat.dest r
         in (t,i * (m div j)) end
 in (m,(map mult rlhs, rn*(m div rd), rel, map mult rrhs, sn*(m div sd), d)) end
 

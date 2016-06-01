@@ -18,15 +18,6 @@ struct
 
 local
 
-fun string_of_rat r =
-  let
-    val (nom, den) = Rat.quotient_of_rat r
-  in
-    if den = 1 then string_of_int nom
-    else string_of_int nom ^ "/" ^ string_of_int den
-  end
-
-
 (* map polynomials to strings *)
 
 fun string_of_varpow x k =
@@ -49,9 +40,9 @@ fun string_of_monomial m =
     in foldr1 (fn (s, t) => s ^ "*" ^ t) vps end
 
 fun string_of_cmonomial (m,c) =
-  if FuncUtil.Ctermfunc.is_empty m then string_of_rat c
-  else if c = Rat.one then string_of_monomial m
-  else string_of_rat c ^ "*" ^ string_of_monomial m
+  if FuncUtil.Ctermfunc.is_empty m then Rat.string_of_rat c
+  else if c = @1 then string_of_monomial m
+  else Rat.string_of_rat c ^ "*" ^ string_of_monomial m
 
 fun string_of_poly p =
   if FuncUtil.Monomialfunc.is_empty p then "0"
@@ -67,9 +58,9 @@ fun string_of_poly p =
 fun pss_to_cert (RealArith.Axiom_eq i) = "A=" ^ string_of_int i
   | pss_to_cert (RealArith.Axiom_le i) = "A<=" ^ string_of_int i
   | pss_to_cert (RealArith.Axiom_lt i) = "A<" ^ string_of_int i
-  | pss_to_cert (RealArith.Rational_eq r) = "R=" ^ string_of_rat r
-  | pss_to_cert (RealArith.Rational_le r) = "R<=" ^ string_of_rat r
-  | pss_to_cert (RealArith.Rational_lt r) = "R<" ^ string_of_rat r
+  | pss_to_cert (RealArith.Rational_eq r) = "R=" ^ Rat.string_of_rat r
+  | pss_to_cert (RealArith.Rational_le r) = "R<=" ^ Rat.string_of_rat r
+  | pss_to_cert (RealArith.Rational_lt r) = "R<" ^ Rat.string_of_rat r
   | pss_to_cert (RealArith.Square p) = "[" ^ string_of_poly p ^ "]^2"
   | pss_to_cert (RealArith.Eqmul (p, pss)) =
       "([" ^ string_of_poly p ^ "] * " ^ pss_to_cert pss ^ ")"
@@ -103,8 +94,8 @@ val number =
 
 val nat = number
 val int = Scan.optional (str "~" >> K ~1) 1 -- nat >> op *
-val rat = int --| str "/" -- int >> Rat.rat_of_quotient
-val rat_int = rat || int >> Rat.rat_of_int
+val rat = int --| str "/" -- int >> Rat.make
+val rat_int = rat || int >> Rat.of_int
 
 
 (* polynomial parsers *)
@@ -121,7 +112,7 @@ fun parse_monomial ctxt = repeat_sep "*" (parse_varpow ctxt) >>
 
 fun parse_cmonomial ctxt =
   rat_int --| str "*" -- (parse_monomial ctxt) >> swap ||
-  (parse_monomial ctxt) >> (fn m => (m, Rat.one)) ||
+  (parse_monomial ctxt) >> (fn m => (m, @1)) ||
   rat_int >> (fn r => (FuncUtil.Ctermfunc.empty, r))
 
 fun parse_poly ctxt = repeat_sep "+" (parse_cmonomial ctxt) >>

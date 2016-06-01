@@ -11,8 +11,6 @@ theory Nat
 imports Inductive Typedef Fun Rings
 begin
 
-ML_file "~~/src/Tools/rat.ML"
-
 named_theorems arith "arith facts -- only ground formulas"
 ML_file "Tools/arith_data.ML"
 

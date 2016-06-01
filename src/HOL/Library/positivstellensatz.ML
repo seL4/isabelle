@@ -287,7 +287,7 @@ fun literals_conv bops uops cv =
 
 fun cterm_of_rat x =
   let
-    val (a, b) = Rat.quotient_of_rat x
+    val (a, b) = Rat.dest x
   in
     if b = 1 then Numeral.mk_cnumber @{ctyp "real"} a
     else Thm.apply (Thm.apply @{cterm "op / :: real => _"}
@@ -297,8 +297,8 @@ fun cterm_of_rat x =
 
 fun dest_ratconst t =
   case Thm.term_of t of
-    Const(@{const_name divide}, _)$a$b => Rat.rat_of_quotient(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
-  | _ => Rat.rat_of_int (HOLogic.dest_number (Thm.term_of t) |> snd)
+    Const(@{const_name divide}, _)$a$b => Rat.make(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
+  | _ => Rat.of_int (HOLogic.dest_number (Thm.term_of t) |> snd)
 fun is_ratconst t = can dest_ratconst t
 
 (*
@@ -338,7 +338,7 @@ fun cterm_of_monomial m =
 
 fun cterm_of_cmonomial (m,c) =
   if FuncUtil.Ctermfunc.is_empty m then cterm_of_rat c
-  else if c = Rat.one then cterm_of_monomial m
+  else if c = @1 then cterm_of_monomial m
   else Thm.apply (Thm.apply @{cterm "op *::real => _"} (cterm_of_rat c)) (cterm_of_monomial m);
 
 fun cterm_of_poly p =
@@ -585,51 +585,51 @@ fun gen_gen_real_arith ctxt (mk_numeric,
 
 (* A linear arithmetic prover *)
 local
-  val linear_add = FuncUtil.Ctermfunc.combine (curry op +/) (fn z => z =/ Rat.zero)
-  fun linear_cmul c = FuncUtil.Ctermfunc.map (fn _ => fn x => c */ x)
+  val linear_add = FuncUtil.Ctermfunc.combine (curry op +) (fn z => z = @0)
+  fun linear_cmul c = FuncUtil.Ctermfunc.map (fn _ => fn x => c * x)
   val one_tm = @{cterm "1::real"}
-  fun contradictory p (e,_) = ((FuncUtil.Ctermfunc.is_empty e) andalso not(p Rat.zero)) orelse
+  fun contradictory p (e,_) = ((FuncUtil.Ctermfunc.is_empty e) andalso not(p @0)) orelse
      ((eq_set (op aconvc) (FuncUtil.Ctermfunc.dom e, [one_tm])) andalso
        not(p(FuncUtil.Ctermfunc.apply e one_tm)))
 
   fun linear_ineqs vars (les,lts) =
-    case find_first (contradictory (fn x => x >/ Rat.zero)) lts of
+    case find_first (contradictory (fn x => x > @0)) lts of
       SOME r => r
     | NONE =>
-      (case find_first (contradictory (fn x => x >/ Rat.zero)) les of
+      (case find_first (contradictory (fn x => x > @0)) les of
          SOME r => r
        | NONE =>
          if null vars then error "linear_ineqs: no contradiction" else
          let
            val ineqs = les @ lts
            fun blowup v =
-             length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero =/ Rat.zero) ineqs) +
-             length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero >/ Rat.zero) ineqs) *
-             length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero </ Rat.zero) ineqs)
+             length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v @0 = @0) ineqs) +
+             length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v @0 > @0) ineqs) *
+             length(filter (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v @0 < @0) ineqs)
            val v = fst(hd(sort (fn ((_,i),(_,j)) => int_ord (i,j))
              (map (fn v => (v,blowup v)) vars)))
            fun addup (e1,p1) (e2,p2) acc =
              let
-               val c1 = FuncUtil.Ctermfunc.tryapplyd e1 v Rat.zero
-               val c2 = FuncUtil.Ctermfunc.tryapplyd e2 v Rat.zero
+               val c1 = FuncUtil.Ctermfunc.tryapplyd e1 v @0
+               val c2 = FuncUtil.Ctermfunc.tryapplyd e2 v @0
              in
-               if c1 */ c2 >=/ Rat.zero then acc else
+               if c1 * c2 >= @0 then acc else
                let
-                 val e1' = linear_cmul (Rat.abs c2) e1
-                 val e2' = linear_cmul (Rat.abs c1) e2
-                 val p1' = Product(Rational_lt(Rat.abs c2),p1)
-                 val p2' = Product(Rational_lt(Rat.abs c1),p2)
+                 val e1' = linear_cmul (abs c2) e1
+                 val e2' = linear_cmul (abs c1) e2
+                 val p1' = Product(Rational_lt (abs c2), p1)
+                 val p2' = Product(Rational_lt (abs c1), p2)
                in (linear_add e1' e2',Sum(p1',p2'))::acc
                end
              end
            val (les0,les1) =
-             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero =/ Rat.zero) les
+             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v @0 = @0) les
            val (lts0,lts1) =
-             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero =/ Rat.zero) lts
+             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v @0 = @0) lts
            val (lesp,lesn) =
-             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero >/ Rat.zero) les1
+             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v @0 > @0) les1
            val (ltsp,ltsn) =
-             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v Rat.zero >/ Rat.zero) lts1
+             List.partition (fn (e,_) => FuncUtil.Ctermfunc.tryapplyd e v @0 > @0) lts1
            val les' = fold_rev (fn ep1 => fold_rev (addup ep1) lesp) lesn les0
            val lts' = fold_rev (fn ep1 => fold_rev (addup ep1) (lesp@ltsp)) ltsn
                       (fold_rev (fn ep1 => fold_rev (addup ep1) (lesn@ltsn)) ltsp lts0)
@@ -637,7 +637,7 @@ local
          end)
 
   fun linear_eqs(eqs,les,lts) =
-    case find_first (contradictory (fn x => x =/ Rat.zero)) eqs of
+    case find_first (contradictory (fn x => x = @0)) eqs of
       SOME r => r
     | NONE =>
       (case eqs of
@@ -650,14 +650,14 @@ local
          let
            val (x,c) = FuncUtil.Ctermfunc.choose (FuncUtil.Ctermfunc.delete_safe one_tm e)
            fun xform (inp as (t,q)) =
-             let val d = FuncUtil.Ctermfunc.tryapplyd t x Rat.zero in
-               if d =/ Rat.zero then inp else
+             let val d = FuncUtil.Ctermfunc.tryapplyd t x @0 in
+               if d = @0 then inp else
                let
-                 val k = (Rat.neg d) */ Rat.abs c // c
+                 val k = ~ d * abs c / c
                  val e' = linear_cmul k e
-                 val t' = linear_cmul (Rat.abs c) t
+                 val t' = linear_cmul (abs c) t
                  val p' = Eqmul(FuncUtil.Monomialfunc.onefunc (FuncUtil.Ctermfunc.empty, k),p)
-                 val q' = Product(Rational_lt(Rat.abs c),q)
+                 val q' = Product(Rational_lt (abs c), q)
                in (linear_add e' t',Sum(p',q'))
                end
              end
@@ -674,12 +674,12 @@ local
 
   fun lin_of_hol ct =
     if ct aconvc @{cterm "0::real"} then FuncUtil.Ctermfunc.empty
-    else if not (is_comb ct) then FuncUtil.Ctermfunc.onefunc (ct, Rat.one)
+    else if not (is_comb ct) then FuncUtil.Ctermfunc.onefunc (ct, @1)
     else if is_ratconst ct then FuncUtil.Ctermfunc.onefunc (one_tm, dest_ratconst ct)
     else
       let val (lop,r) = Thm.dest_comb ct
       in
-        if not (is_comb lop) then FuncUtil.Ctermfunc.onefunc (ct, Rat.one)
+        if not (is_comb lop) then FuncUtil.Ctermfunc.onefunc (ct, @1)
         else
           let val (opr,l) = Thm.dest_comb lop
           in
@@ -687,7 +687,7 @@ local
             then linear_add (lin_of_hol l) (lin_of_hol r)
             else if opr aconvc @{cterm "op * :: real =>_"}
                     andalso is_ratconst l then FuncUtil.Ctermfunc.onefunc (r, dest_ratconst l)
-            else FuncUtil.Ctermfunc.onefunc (ct, Rat.one)
+            else FuncUtil.Ctermfunc.onefunc (ct, @1)
           end
       end
 
@@ -707,7 +707,7 @@ fun real_linear_prover translator (eq,le,lt) =
     val aliens = filter is_alien
       (fold_rev (union (op aconvc) o FuncUtil.Ctermfunc.dom)
                 (eq_pols @ le_pols @ lt_pols) [])
-    val le_pols' = le_pols @ map (fn v => FuncUtil.Ctermfunc.onefunc (v,Rat.one)) aliens
+    val le_pols' = le_pols @ map (fn v => FuncUtil.Ctermfunc.onefunc (v,@1)) aliens
     val (_,proof) = linear_prover (eq_pols,le_pols',lt_pols)
     val le' = le @ map (fn a => Thm.instantiate' [] [SOME (Thm.dest_arg a)] @{thm of_nat_0_le_iff}) aliens
   in ((translator (eq,le',lt) proof), Trivial)

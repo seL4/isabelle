@@ -32,13 +32,10 @@ fun dest_binary ct ct' =
   if is_binop ct ct' then Thm.dest_binop ct'
   else raise CTERM ("dest_binary: bad binop", [ct, ct'])
 
-val rat_0 = Rat.zero;
-val rat_1 = Rat.one;
-val minus_rat = Rat.neg;
-val denominator_rat = Rat.quotient_of_rat #> snd #> Rat.rat_of_int;
+val denominator_rat = Rat.dest #> snd #> Rat.of_int;
 fun int_of_rat a =
-    case Rat.quotient_of_rat a of (i,1) => i | _ => error "int_of_rat: not an int";
-val lcm_rat = fn x => fn y => Rat.rat_of_int (Integer.lcm (int_of_rat x) (int_of_rat y));
+    case Rat.dest a of (i,1) => i | _ => error "int_of_rat: not an int";
+val lcm_rat = fn x => fn y => Rat.of_int (Integer.lcm (int_of_rat x) (int_of_rat y));
 
 val (eqF_intr, eqF_elim) =
   let val [th1,th2] = @{thms PFalse}
@@ -72,7 +69,7 @@ fun morder_lt m1 m2=
 
 (* Arithmetic on canonical polynomials. *)
 
-fun grob_neg l = map (fn (c,m) => (minus_rat c,m)) l;
+fun grob_neg l = map (fn (c,m) => (Rat.neg c,m)) l;
 
 fun grob_add l1 l2 =
   case (l1,l2) of
@@ -80,14 +77,14 @@ fun grob_add l1 l2 =
   | (l1,[]) => l1
   | ((c1,m1)::o1,(c2,m2)::o2) =>
         if m1 = m2 then
-          let val c = c1+/c2 val rest = grob_add o1 o2 in
-          if c =/ rat_0 then rest else (c,m1)::rest end
+          let val c = c1 + c2 val rest = grob_add o1 o2 in
+          if c = @0 then rest else (c,m1)::rest end
         else if morder_lt m2 m1 then (c1,m1)::(grob_add o1 l2)
         else (c2,m2)::(grob_add l1 o2);
 
 fun grob_sub l1 l2 = grob_add l1 (grob_neg l2);
 
-fun grob_mmul (c1,m1) (c2,m2) = (c1*/c2, ListPair.map (op +) (m1, m2));
+fun grob_mmul (c1,m1) (c2,m2) = (c1 * c2, ListPair.map (op +) (m1, m2));
 
 fun grob_cmul cm pol = map (grob_mmul cm) pol;
 
@@ -99,33 +96,33 @@ fun grob_mul l1 l2 =
 fun grob_inv l =
   case l of
     [(c,vs)] => if (forall (fn x => x = 0) vs) then
-                  if (c =/ rat_0) then error "grob_inv: division by zero"
-                  else [(rat_1 // c,vs)]
+                  if c = @0 then error "grob_inv: division by zero"
+                  else [(@1 / c,vs)]
               else error "grob_inv: non-constant divisor polynomial"
   | _ => error "grob_inv: non-constant divisor polynomial";
 
 fun grob_div l1 l2 =
   case l2 of
     [(c,l)] => if (forall (fn x => x = 0) l) then
-                 if c =/ rat_0 then error "grob_div: division by zero"
-                 else grob_cmul (rat_1 // c,l) l1
+                 if c = @0 then error "grob_div: division by zero"
+                 else grob_cmul (@1 / c,l) l1
              else error "grob_div: non-constant divisor polynomial"
   | _ => error "grob_div: non-constant divisor polynomial";
 
 fun grob_pow vars l n =
   if n < 0 then error "grob_pow: negative power"
-  else if n = 0 then [(rat_1,map (K 0) vars)]
+  else if n = 0 then [(@1,map (K 0) vars)]
   else grob_mul l (grob_pow vars l (n - 1));
 
 (* Monomial division operation. *)
 
 fun mdiv (c1,m1) (c2,m2) =
-  (c1//c2,
+  (c1 / c2,
    map2 (fn n1 => fn n2 => if n1 < n2 then error "mdiv" else n1 - n2) m1 m2);
 
 (* Lowest common multiple of two monomials. *)
 
-fun mlcm (_,m1) (_,m2) = (rat_1, ListPair.map Int.max (m1, m2));
+fun mlcm (_,m1) (_,m2) = (@1, ListPair.map Int.max (m1, m2));
 
 (* Reduce monomial cm by polynomial pol, returning replacement for cm.  *)
 
@@ -133,8 +130,8 @@ fun reduce1 cm (pol,hpol) =
   case pol of
     [] => error "reduce1"
   | cm1::cms => ((let val (c,m) = mdiv cm cm1 in
-                    (grob_cmul (minus_rat c,m) cms,
-                     Mmul((minus_rat c,m),hpol)) end)
+                    (grob_cmul (~ c, m) cms,
+                     Mmul ((~ c,m),hpol)) end)
                 handle  ERROR _ => error "reduce1");
 
 (* Try this for all polynomials in a basis.  *)
@@ -171,15 +168,15 @@ fun spoly cm ph1 ph2 =
         (grob_sub (grob_cmul (mdiv cm cm1) ptl1)
                   (grob_cmul (mdiv cm cm2) ptl2),
          Add(Mmul(mdiv cm cm1,his1),
-             Mmul(mdiv (minus_rat(fst cm),snd cm) cm2,his2)));
+             Mmul(mdiv (~ (fst cm),snd cm) cm2,his2)));
 
 (* Make a polynomial monic.                                                  *)
 
 fun monic (pol,hist) =
   if null pol then (pol,hist) else
   let val (c',m') = hd pol in
-  (map (fn (c,m) => (c//c',m)) pol,
-   Mmul((rat_1 // c',map (K 0) m'),hist)) end;
+  (map (fn (c,m) => (c / c',m)) pol,
+   Mmul((@1 / c',map (K 0) m'),hist)) end;
 
 (* The most popular heuristic is to order critical pairs by LCM monomial.    *)
 
@@ -190,14 +187,14 @@ fun poly_lt  p q =
     (_,[]) => false
   | ([],_) => true
   | ((c1,m1)::o1,(c2,m2)::o2) =>
-        c1 </ c2 orelse
-        c1 =/ c2 andalso ((morder_lt m1 m2) orelse m1 = m2 andalso poly_lt o1 o2);
+        c1 < c2 orelse
+        c1 = c2 andalso ((morder_lt m1 m2) orelse m1 = m2 andalso poly_lt o1 o2);
 
 fun align  ((p,hp),(q,hq)) =
   if poly_lt p q then ((p,hp),(q,hq)) else ((q,hq),(p,hp));
 
 fun poly_eq p1 p2 =
-  eq_list (fn ((c1, m1), (c2, m2)) => c1 =/ c2 andalso (m1: int list) = m2) (p1, p2);
+  eq_list (fn ((c1, m1), (c2, m2)) => c1 = c2 andalso (m1: int list) = m2) (p1, p2);
 
 fun memx ((p1,_),(p2,_)) ppairs =
   not (exists (fn ((q1,_),(q2,_)) => poly_eq p1 q1 andalso poly_eq p2 q2) ppairs);
@@ -299,7 +296,7 @@ fun grobner_refute pols =
 fun resolve_proof vars prf =
   case prf of
     Start(~1) => []
-  | Start m => [(m,[(rat_1,map (K 0) vars)])]
+  | Start m => [(m,[(@1,map (K 0) vars)])]
   | Mmul(pol,lin) =>
         let val lis = resolve_proof vars lin in
             map (fn (n,p) => (n,grob_cmul pol p)) lis end
@@ -317,8 +314,8 @@ fun resolve_proof vars prf =
 fun grobner_weak vars pols =
     let val cert = resolve_proof vars (grobner_refute pols)
         val l =
-            fold_rev (fold_rev (lcm_rat o denominator_rat o fst) o snd) cert (rat_1) in
-        (l,map (fn (i,p) => (i,map (fn (d,m) => (l*/d,m)) p)) cert) end;
+            fold_rev (fold_rev (lcm_rat o denominator_rat o fst) o snd) cert @1 in
+        (l,map (fn (i,p) => (i,map (fn (d,m) => (l * d,m)) p)) cert) end;
 
 (* Prove a polynomial is in ideal generated by others, using Grobner basis.  *)
 
@@ -331,8 +328,8 @@ fun grobner_ideal vars pols pol =
 
 fun grobner_strong vars pols pol =
     let val vars' = @{cterm "True"}::vars
-        val grob_z = [(rat_1,1::(map (K 0) vars))]
-        val grob_1 = [(rat_1,(map (K 0) vars'))]
+        val grob_z = [(@1, 1::(map (K 0) vars))]
+        val grob_1 = [(@1, (map (K 0) vars'))]
         fun augment p= map (fn (c,m) => (c,0::m)) p
         val pols' = map augment pols
         val pol' = augment pol
@@ -605,10 +602,10 @@ let
 
 fun grobify_term vars tm =
 ((if not (member (op aconvc) vars tm) then raise CTERM ("Not a variable", [tm]) else
-     [(rat_1,map (fn i => if i aconvc tm then 1 else 0) vars)])
+     [(@1, map (fn i => if i aconvc tm then 1 else 0) vars)])
 handle  CTERM _ =>
  ((let val x = dest_const tm
- in if x =/ rat_0 then [] else [(x,map (K 0) vars)]
+ in if x = @0 then [] else [(x,map (K 0) vars)]
  end)
  handle ERROR _ =>
   ((grob_neg(grobify_term vars (ring_dest_neg tm)))
@@ -662,15 +659,15 @@ val holify_polynomial =
    in end_itlist ring_mk_mul (mk_const c :: xps)
   end
  fun holify_polynomial vars p =
-     if null p then mk_const (rat_0)
+     if null p then mk_const @0
      else end_itlist ring_mk_add (map (holify_monomial vars) p)
  in holify_polynomial
  end ;
 
 fun idom_rule ctxt = simplify (put_simpset HOL_basic_ss ctxt addsimps [idom_thm]);
 fun prove_nz n = eqF_elim
-                 (ring_eq_conv(mk_binop eq_tm (mk_const n) (mk_const(rat_0))));
-val neq_01 = prove_nz (rat_1);
+                 (ring_eq_conv(mk_binop eq_tm (mk_const n) (mk_const @0)));
+val neq_01 = prove_nz @1;
 fun neq_rule n th = [prove_nz n, th] MRS neq_thm;
 fun mk_add th1 = Thm.combination (Drule.arg_cong_rule ring_add_tm th1);
 
@@ -712,13 +709,13 @@ fun refute ctxt tm =
        val th2 = funpow deg (idom_rule ctxt o HOLogic.conj_intr ctxt th1) neq_01
       in (vars,l,cert,th2)
       end)
-    val cert_pos = map (fn (i,p) => (i,filter (fn (c,_) => c >/ rat_0) p)) cert
-    val cert_neg = map (fn (i,p) => (i,map (fn (c,m) => (minus_rat c,m))
-                                            (filter (fn (c,_) => c </ rat_0) p))) cert
+    val cert_pos = map (fn (i,p) => (i,filter (fn (c,_) => c > @0) p)) cert
+    val cert_neg = map (fn (i,p) => (i,map (fn (c,m) => (~ c,m))
+                                            (filter (fn (c,_) => c < @0) p))) cert
     val  herts_pos = map (fn (i,p) => (i,holify_polynomial vars p)) cert_pos
     val  herts_neg = map (fn (i,p) => (i,holify_polynomial vars p)) cert_neg
     fun thm_fn pols =
-        if null pols then Thm.reflexive(mk_const rat_0) else
+        if null pols then Thm.reflexive(mk_const @0) else
         end_itlist mk_add
             (map (fn (i,p) => Drule.arg_cong_rule (Thm.apply ring_mul_tm p)
               (nth eths i |> mk_meta_eq)) pols)
