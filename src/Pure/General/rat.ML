@@ -1,5 +1,6 @@
 (*  Title:      Pure/General/rat.ML
     Author:     Tobias Nipkow, Florian Haftmann, TU Muenchen
+    Author:     Makarius
 
 Canonical implementation of exact rational numbers.
 *)
@@ -8,9 +9,6 @@ signature RAT =
 sig
   eqtype rat
   exception DIVZERO
-  val zero: rat
-  val one: rat
-  val two: rat
   val of_int: int -> rat
   val make: int * int -> rat
   val dest: rat -> int * int
@@ -49,10 +47,6 @@ fun make (p, q) =
 fun dest (Rat r) = r;
 
 fun of_int i = Rat (i, 1);
-
-val zero = of_int 0;
-val one = of_int 1;
-val two = of_int 2;
 
 fun string_of_rat (Rat (p, q)) =
   string_of_int p ^ "/" ^ string_of_int q;
