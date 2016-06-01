@@ -20,3 +20,4 @@ syntax: regexp
 ^doc/.*\.pdf
 ^doc/.*\.ps
 ^src/Tools/jEdit/dist/
+^Admin/jenkins/ci-extras/target/

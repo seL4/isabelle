@@ -341,6 +341,16 @@ lemma stake_cycle: "u \<noteq> [] \<Longrightarrow>
 lemma sdrop_cycle: "u \<noteq> [] \<Longrightarrow> sdrop n (cycle u) = cycle (rotate (n mod length u) u)"
   by (induct n arbitrary: u) (auto simp: rotate1_rotate_swap rotate1_hd_tl rotate_conv_mod[symmetric])
 
+lemma sset_cycle[simp]:
+  assumes "xs \<noteq> []" 
+  shows "sset (cycle xs) = set xs"
+proof (intro set_eqI iffI)
+  fix x
+  assume "x \<in> sset (cycle xs)"
+  then show "x \<in> set xs" using assms
+    by (induction "cycle xs" arbitrary: xs rule: sset_induct) (fastforce simp: neq_Nil_conv)+
+qed (metis assms UnI1 cycle_decomp sset_shift)
+
 
 subsection \<open>iterated application of a function\<close>
 
