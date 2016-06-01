@@ -615,10 +615,10 @@ local
              in
                if c1 * c2 >= @0 then acc else
                let
-                 val e1' = linear_cmul (Rat.abs c2) e1
-                 val e2' = linear_cmul (Rat.abs c1) e2
-                 val p1' = Product(Rational_lt(Rat.abs c2),p1)
-                 val p2' = Product(Rational_lt(Rat.abs c1),p2)
+                 val e1' = linear_cmul (abs c2) e1
+                 val e2' = linear_cmul (abs c1) e2
+                 val p1' = Product(Rational_lt (abs c2), p1)
+                 val p2' = Product(Rational_lt (abs c1), p2)
                in (linear_add e1' e2',Sum(p1',p2'))::acc
                end
              end
@@ -653,11 +653,11 @@ local
              let val d = FuncUtil.Ctermfunc.tryapplyd t x @0 in
                if d = @0 then inp else
                let
-                 val k = (Rat.neg d) * Rat.abs c / c
+                 val k = ~ d * abs c / c
                  val e' = linear_cmul k e
-                 val t' = linear_cmul (Rat.abs c) t
+                 val t' = linear_cmul (abs c) t
                  val p' = Eqmul(FuncUtil.Monomialfunc.onefunc (FuncUtil.Ctermfunc.empty, k),p)
-                 val q' = Product(Rational_lt(Rat.abs c),q)
+                 val q' = Product(Rational_lt (abs c), q)
                in (linear_add e' t',Sum(p',q'))
                end
              end

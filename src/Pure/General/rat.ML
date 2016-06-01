@@ -13,7 +13,6 @@ sig
   val dest: rat -> int * int
   val string_of_rat: rat -> string
   val signed_string_of_rat: rat -> string
-  val eq: rat * rat -> bool
   val ord: rat * rat -> order
   val le: rat -> rat -> bool
   val lt: rat -> rat -> bool
@@ -36,7 +35,7 @@ fun common (p1, q1) (p2, q2) =
   let val m = PolyML.IntInf.lcm (q1, q2)
   in ((p1 * (m div q1), p2 * (m div q2)), m) end;
 
-fun make (p, 0) = raise Div
+fun make (_, 0) = raise Div
   | make (p, q) =
     let
       val m = PolyML.IntInf.gcd (p, q);
@@ -53,8 +52,6 @@ fun string_of_rat (Rat (p, 1)) = string_of_int p
 fun signed_string_of_rat (Rat (p, 1)) = signed_string_of_int p
   | signed_string_of_rat (Rat (p, q)) = signed_string_of_int p ^ "/" ^ string_of_int q;
 
-fun eq (Rat (p1, q1), Rat (p2, q2)) = (p1 = p2 andalso q1 = q2);
-
 fun ord (Rat (p1, q1), Rat (p2, q2)) =
   (case (Integer.sign p1, Integer.sign p2) of
     (LESS, EQUAL) => LESS
@@ -66,12 +63,12 @@ fun ord (Rat (p1, q1), Rat (p2, q2)) =
   | (GREATER, EQUAL) => GREATER
   | _ => int_ord (fst (common (p1, q1) (p2, q2))));
 
-fun le a b = not (ord (a, b) = GREATER);
+fun le a b = ord (a, b) <> GREATER;
 fun lt a b = ord (a, b) = LESS;
 
 fun sign (Rat (p, _)) = Integer.sign p;
 
-fun abs (Rat (p, q)) = Rat (Int.abs p, q);
+fun abs (r as Rat (p, q)) = if p < 0 then Rat (~ p, q) else r;
 
 fun add (Rat (p1, q1)) (Rat (p2, q2)) =
   let val ((m1, m2), n) = common (p1, q1) (p2, q2)
@@ -100,11 +97,11 @@ ML_system_overload (uncurry Rat.add) "+";
 ML_system_overload (fn (a, b) => Rat.add a (Rat.neg b)) "-";
 ML_system_overload (uncurry Rat.mult) "*";
 ML_system_overload (fn (a, b) => Rat.mult a (Rat.inv b)) "/";
-ML_system_overload Rat.eq "=";
 ML_system_overload (uncurry Rat.lt) "<";
 ML_system_overload (uncurry Rat.le) "<=";
 ML_system_overload (fn (a, b) => Rat.lt b a) ">";
 ML_system_overload (fn (a, b) => Rat.le b a) ">=";
-ML_system_overload (not o Rat.eq) "<>";
+ML_system_overload Rat.neg "~";
+ML_system_overload Rat.abs "abs";
 
 ML_system_pp (fn _ => fn _ => fn x => Pretty.to_polyml (Pretty.str ("@" ^ Rat.string_of_rat x)));

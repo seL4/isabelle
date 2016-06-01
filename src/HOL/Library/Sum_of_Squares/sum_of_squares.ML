@@ -41,15 +41,11 @@ fun rat_pow r i =
 
 fun round_rat r =
   let
-    val (a,b) = Rat.dest (Rat.abs r)
+    val (a,b) = Rat.dest (abs r)
     val d = a div b
-    val s = if r < @0 then (Rat.neg o Rat.of_int) else Rat.of_int
+    val s = if r < @0 then ~ o Rat.of_int else Rat.of_int
     val x2 = 2 * (a - (b * d))
   in s (if x2 >= b then d + 1 else d) end
-
-val abs_rat = Rat.abs;
-val pow2 = rat_pow @2;
-val pow10 = rat_pow @10;
 
 
 val trace = Attrib.setup_config_bool @{binding sos_trace} (K false);
@@ -74,8 +70,8 @@ datatype proof_method =
 local
 
 fun normalize y =
-  if abs_rat y < @1/10 then normalize (@10 * y) - 1
-  else if abs_rat y >= @1 then normalize (y / @10) + 1
+  if abs y < @1/10 then normalize (@10 * y) - 1
+  else if abs y >= @1 then normalize (y / @10) + 1
   else 0
 
 in
@@ -84,10 +80,10 @@ fun decimalize d x =
   if x = @0 then "0.0"
   else
     let
-      val y = Rat.abs x
+      val y = abs x
       val e = normalize y
-      val z = pow10(~ e) * y + @1
-      val k = int_of_rat (round_rat(pow10 d * z))
+      val z = rat_pow @10 (~ e) * y + @1
+      val k = int_of_rat (round_rat (rat_pow @10 d * z))
     in
       (if x < @0 then "-0." else "0.") ^
       implode (tl (raw_explode(string_of_int k))) ^
@@ -182,7 +178,7 @@ fun poly_cmul c p =
   if c = @0 then poly_0
   else FuncUtil.Monomialfunc.map (fn _ => fn x => c * x) p;
 
-fun poly_neg p = FuncUtil.Monomialfunc.map (K Rat.neg) p;
+fun poly_neg p = FuncUtil.Monomialfunc.map (K ~) p;
 
 
 fun poly_add p1 p2 =
@@ -319,7 +315,7 @@ fun isnum x = member (op =) ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] x
 val numeral = Scan.one isnum
 val decimalint = Scan.repeat1 numeral >> (rat_of_string o implode)
 val decimalfrac = Scan.repeat1 numeral
-  >> (fn s => rat_of_string(implode s) / pow10 (length s))
+  >> (fn s => rat_of_string(implode s) / rat_pow @10 (length s))
 val decimalsig =
   decimalint -- Scan.option (Scan.$$ "." |-- decimalfrac)
   >> (fn (h,NONE) => h | (h,SOME x) => h + x)
@@ -333,7 +329,7 @@ fun emptyin def xs = if null xs then (def, xs) else Scan.fail xs
 val exponent = ($$ "e" || $$ "E") |-- signed decimalint;
 
 val decimal = signed decimalsig -- (emptyin @0|| exponent)
-  >> (fn (h, x) => h * pow10 (int_of_rat x));
+  >> (fn (h, x) => h * rat_pow @10 (int_of_rat x));
 
 fun mkparser p s =
   let val (x,rst) = p (raw_explode s)
@@ -359,7 +355,7 @@ local
   fun common_denominator fld amat acc =
     fld (fn (_,c) => fn a => lcm_rat (denominator_rat c) a) amat acc
   fun maximal_element fld amat acc =
-    fld (fn (_,c) => fn maxa => max_rat maxa (abs_rat c)) amat acc
+    fld (fn (_,c) => fn maxa => max_rat maxa (abs c)) amat acc
   fun float_of_rat x =
     let val (a,b) = Rat.dest x
     in Real.fromInt a / Real.fromInt b end;
@@ -374,8 +370,8 @@ fun tri_scale_then solver (obj:vector) mats =
     val obj' = vector_cmul cd2 obj
     val max1 = fold_rev (maximal_element Inttriplefunc.fold) mats' @0
     val max2 = maximal_element FuncUtil.Intfunc.fold (snd obj') @0
-    val scal1 = pow2 (20 - int_of_float(Math.ln (float_of_rat max1) / Math.ln 2.0))
-    val scal2 = pow2 (20 - int_of_float(Math.ln (float_of_rat max2) / Math.ln 2.0))
+    val scal1 = rat_pow @2 (20 - int_of_float(Math.ln (float_of_rat max1) / Math.ln 2.0))
+    val scal2 = rat_pow @2 (20 - int_of_float(Math.ln (float_of_rat max2) / Math.ln 2.0))
     val mats'' = map (Inttriplefunc.map (fn _ => fn x => x * scal1)) mats'
     val obj'' = vector_cmul scal2 obj'
   in solver obj'' mats'' end
@@ -438,7 +434,7 @@ fun tri_eliminate_all_equations one =
               fun elim e =
                 let val b = Inttriplefunc.tryapplyd e v @0 in
                   if b = @0 then e
-                  else tri_equation_add e (tri_equation_cmul (Rat.neg b / a) eq)
+                  else tri_equation_add e (tri_equation_cmul (~ b / a) eq)
                 end
             in
               eliminate (Inttriplefunc.update(v, eq') (Inttriplefunc.map (K elim) dun))
@@ -559,7 +555,7 @@ fun enumerate_products d pols =
 
 fun epoly_of_poly p =
   FuncUtil.Monomialfunc.fold (fn (m, c) => fn a =>
-      FuncUtil.Monomialfunc.update (m, Inttriplefunc.onefunc ((0, 0, 0), Rat.neg c)) a)
+      FuncUtil.Monomialfunc.update (m, Inttriplefunc.onefunc ((0, 0, 0), ~ c)) a)
     p FuncUtil.Monomialfunc.empty;
 
 (* String for block diagonal matrix numbered k.                              *)
@@ -725,7 +721,7 @@ fun real_positivnullstellensatz_general ctxt prover linf d eqs leqs pol =
       in (vec, map diag allmats) end
     val (vec, ratdias) =
       if null pvs then find_rounding @1
-      else tryfind find_rounding (map Rat.of_int (1 upto 31) @ map pow2 (5 upto 66))
+      else tryfind find_rounding (map Rat.of_int (1 upto 31) @ map (rat_pow @2) (5 upto 66))
     val newassigs =
       fold_rev (fn k => Inttriplefunc.update (nth pvs (k - 1), int_element vec k))
         (1 upto dim vec) (Inttriplefunc.onefunc ((0, 0, 0), Rat.of_int ~1))

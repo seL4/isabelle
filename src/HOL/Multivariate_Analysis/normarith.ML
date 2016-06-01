@@ -32,7 +32,7 @@ struct
                       (Thm.dest_arg t) acc
       | _ => augment_norm true t acc
 
- val cterm_lincomb_neg = FuncUtil.Ctermfunc.map (K Rat.neg)
+ val cterm_lincomb_neg = FuncUtil.Ctermfunc.map (K ~)
  fun cterm_lincomb_cmul c t =
     if c = @0 then FuncUtil.Ctermfunc.empty else FuncUtil.Ctermfunc.map (fn _ => fn x => x * c) t
  fun cterm_lincomb_add l r = FuncUtil.Ctermfunc.combine (curry op +) (fn x => x = @0) l r
@@ -40,7 +40,7 @@ struct
  fun cterm_lincomb_eq l r = FuncUtil.Ctermfunc.is_empty (cterm_lincomb_sub l r)
 
 (*
- val int_lincomb_neg = FuncUtil.Intfunc.map (K Rat.neg)
+ val int_lincomb_neg = FuncUtil.Intfunc.map (K ~)
 *)
  fun int_lincomb_cmul c t =
     if c = @0 then FuncUtil.Intfunc.empty else FuncUtil.Intfunc.map (fn _ => fn x => x * c) t
@@ -89,7 +89,7 @@ fun replacenegnorms cv t = case Thm.term_of t of
 (*
 fun flip v eq =
   if FuncUtil.Ctermfunc.defined eq v
-  then FuncUtil.Ctermfunc.update (v, Rat.neg (FuncUtil.Ctermfunc.apply eq v)) eq else eq
+  then FuncUtil.Ctermfunc.update (v, ~ (FuncUtil.Ctermfunc.apply eq v)) eq else eq
 *)
 fun allsubsets s = case s of
   [] => [[]]
@@ -109,7 +109,7 @@ fun solve (vs,eqs) = case (vs,eqs) of
        then
         let
          val c = FuncUtil.Intfunc.apply eq v
-         val vdef = int_lincomb_cmul (Rat.neg (Rat.inv c)) eq
+         val vdef = int_lincomb_cmul (~ (Rat.inv c)) eq
          fun eliminate eqn = if not (FuncUtil.Intfunc.defined eqn v) then eqn
                              else int_lincomb_add (int_lincomb_cmul (FuncUtil.Intfunc.apply eqn v) vdef) eqn
         in (case solve (remove (op =) v vs, map eliminate oeqs) of
@@ -254,7 +254,7 @@ fun norm_canon_conv ctxt ct = case Thm.term_of ct of
 
 fun int_flip v eq =
   if FuncUtil.Intfunc.defined eq v
-  then FuncUtil.Intfunc.update (v, Rat.neg (FuncUtil.Intfunc.apply eq v)) eq else eq;
+  then FuncUtil.Intfunc.update (v, ~ (FuncUtil.Intfunc.apply eq v)) eq else eq;
 
 local
  val pth_zero = @{thm norm_zero}
@@ -283,8 +283,10 @@ local
     let
      fun coefficients x =
       let
-       val inp = if FuncUtil.Ctermfunc.defined d x then FuncUtil.Intfunc.onefunc (0, Rat.neg(FuncUtil.Ctermfunc.apply d x))
-                      else FuncUtil.Intfunc.empty
+       val inp =
+        if FuncUtil.Ctermfunc.defined d x
+        then FuncUtil.Intfunc.onefunc (0, ~ (FuncUtil.Ctermfunc.apply d x))
+        else FuncUtil.Intfunc.empty
       in fold_rev (fn (f,v) => fn g => if FuncUtil.Ctermfunc.defined f x then FuncUtil.Intfunc.update (v, FuncUtil.Ctermfunc.apply f x) g else g) srccombs inp
       end
      val equations = map coefficients vvs

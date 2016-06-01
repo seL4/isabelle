@@ -171,7 +171,7 @@ let
         end
       else (SOME atom, m)
     (* terms that evaluate to numeric constants *)
-    | demult (Const (@{const_name Groups.uminus}, _) $ t, m) = demult (t, Rat.neg m)
+    | demult (Const (@{const_name Groups.uminus}, _) $ t, m) = demult (t, ~ m)
     | demult (Const (@{const_name Groups.zero}, _), _) = (NONE, @0)
     | demult (Const (@{const_name Groups.one}, _), m) = (NONE, m)
     (*Warning: in rare cases (neg_)numeral encloses a non-numeral,
@@ -200,9 +200,9 @@ let
   fun poly (Const (@{const_name Groups.plus}, _) $ s $ t,
         m : Rat.rat, pi : (term * Rat.rat) list * Rat.rat) = poly (s, m, poly (t, m, pi))
     | poly (all as Const (@{const_name Groups.minus}, T) $ s $ t, m, pi) =
-        if nT T then add_atom all m pi else poly (s, m, poly (t, Rat.neg m, pi))
+        if nT T then add_atom all m pi else poly (s, m, poly (t, ~ m, pi))
     | poly (all as Const (@{const_name Groups.uminus}, T) $ t, m, pi) =
-        if nT T then add_atom all m pi else poly (t, Rat.neg m, pi)
+        if nT T then add_atom all m pi else poly (t, ~ m, pi)
     | poly (Const (@{const_name Groups.zero}, _), _, pi) =
         pi
     | poly (Const (@{const_name Groups.one}, _), m, (p, i)) =

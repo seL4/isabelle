@@ -32,7 +32,6 @@ fun dest_binary ct ct' =
   if is_binop ct ct' then Thm.dest_binop ct'
   else raise CTERM ("dest_binary: bad binop", [ct, ct'])
 
-val minus_rat = Rat.neg;
 val denominator_rat = Rat.dest #> snd #> Rat.of_int;
 fun int_of_rat a =
     case Rat.dest a of (i,1) => i | _ => error "int_of_rat: not an int";
@@ -70,7 +69,7 @@ fun morder_lt m1 m2=
 
 (* Arithmetic on canonical polynomials. *)
 
-fun grob_neg l = map (fn (c,m) => (minus_rat c,m)) l;
+fun grob_neg l = map (fn (c,m) => (Rat.neg c,m)) l;
 
 fun grob_add l1 l2 =
   case (l1,l2) of
@@ -131,8 +130,8 @@ fun reduce1 cm (pol,hpol) =
   case pol of
     [] => error "reduce1"
   | cm1::cms => ((let val (c,m) = mdiv cm cm1 in
-                    (grob_cmul (minus_rat c,m) cms,
-                     Mmul((minus_rat c,m),hpol)) end)
+                    (grob_cmul (~ c, m) cms,
+                     Mmul ((~ c,m),hpol)) end)
                 handle  ERROR _ => error "reduce1");
 
 (* Try this for all polynomials in a basis.  *)
@@ -169,7 +168,7 @@ fun spoly cm ph1 ph2 =
         (grob_sub (grob_cmul (mdiv cm cm1) ptl1)
                   (grob_cmul (mdiv cm cm2) ptl2),
          Add(Mmul(mdiv cm cm1,his1),
-             Mmul(mdiv (minus_rat(fst cm),snd cm) cm2,his2)));
+             Mmul(mdiv (~ (fst cm),snd cm) cm2,his2)));
 
 (* Make a polynomial monic.                                                  *)
 
@@ -711,7 +710,7 @@ fun refute ctxt tm =
       in (vars,l,cert,th2)
       end)
     val cert_pos = map (fn (i,p) => (i,filter (fn (c,_) => c > @0) p)) cert
-    val cert_neg = map (fn (i,p) => (i,map (fn (c,m) => (minus_rat c,m))
+    val cert_neg = map (fn (i,p) => (i,map (fn (c,m) => (~ c,m))
                                             (filter (fn (c,_) => c < @0) p))) cert
     val  herts_pos = map (fn (i,p) => (i,holify_polynomial vars p)) cert_pos
     val  herts_neg = map (fn (i,p) => (i,holify_polynomial vars p)) cert_neg
