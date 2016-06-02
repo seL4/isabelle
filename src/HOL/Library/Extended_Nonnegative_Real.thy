@@ -951,15 +951,15 @@ lemma ennreal_plus[simp]:
 lemma setsum_ennreal[simp]: "(\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> (\<Sum>i\<in>I. ennreal (f i)) = ennreal (setsum f I)"
   by (induction I rule: infinite_finite_induct) (auto simp: setsum_nonneg)
 
-lemma listsum_ennreal[simp]: 
-  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x \<ge> 0" 
+lemma listsum_ennreal[simp]:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x \<ge> 0"
   shows   "listsum (map (\<lambda>x. ennreal (f x)) xs) = ennreal (listsum (map f xs))"
 using assms
 proof (induction xs)
   case (Cons x xs)
-  from Cons have "(\<Sum>x\<leftarrow>x # xs. ennreal (f x)) = ennreal (f x) + ennreal (listsum (map f xs))" 
+  from Cons have "(\<Sum>x\<leftarrow>x # xs. ennreal (f x)) = ennreal (f x) + ennreal (listsum (map f xs))"
     by simp
-  also from Cons.prems have "\<dots> = ennreal (f x + listsum (map f xs))" 
+  also from Cons.prems have "\<dots> = ennreal (f x + listsum (map f xs))"
     by (intro ennreal_plus [symmetric] listsum_nonneg) auto
   finally show ?case by simp
 qed simp_all
@@ -1616,7 +1616,7 @@ lemma ennreal_SUP_add_left:
   apply (auto intro: SUP_upper2 ereal_add_nonneg_nonneg)
   done
 
-lemma ennreal_SUP_const_minus:
+lemma ennreal_SUP_const_minus: (* TODO: rename: ennreal_SUP_const_minus *)
   fixes f :: "'a \<Rightarrow> ennreal"
   shows "I \<noteq> {} \<Longrightarrow> c < top \<Longrightarrow> (INF x:I. c - f x) = c - (SUP x:I. f x)"
   apply (transfer fixing: I)
@@ -1756,5 +1756,212 @@ qed simp
 
 lifting_update ennreal.lifting
 lifting_forget ennreal.lifting
+
+
+subsection \<open>@{typ ennreal} theorems\<close>
+
+lemma neq_top_trans: fixes x y :: ennreal shows "\<lbrakk> y \<noteq> top; x \<le> y \<rbrakk> \<Longrightarrow> x \<noteq> top"
+by (auto simp: top_unique)
+
+lemma diff_diff_ennreal: fixes a b :: ennreal shows "a \<le> b \<Longrightarrow> b \<noteq> \<infinity> \<Longrightarrow> b - (b - a) = a"
+  by (cases a b rule: ennreal2_cases)
+     (auto simp: ennreal_minus top_unique)
+
+lemma ennreal_less_one_iff[simp]: "ennreal x < 1 \<longleftrightarrow> x < 1"
+  by (cases "0 \<le> x")
+     (auto simp: ennreal_neg ennreal_1[symmetric] ennreal_less_iff simp del: ennreal_1)
+
+lemma SUP_const_minus_ennreal:
+  fixes f :: "'a \<Rightarrow> ennreal" shows "I \<noteq> {} \<Longrightarrow> (SUP x:I. c - f x) = c - (INF x:I. f x)"
+  including ennreal.lifting
+  by (transfer fixing: I)
+     (simp add: sup_ereal_def[symmetric] SUP_sup_distrib[symmetric] SUP_ereal_minus_right
+           del: sup_ereal_def)
+
+lemma zero_minus_ennreal[simp]: "0 - (a::ennreal) = 0"
+  including ennreal.lifting
+  by transfer (simp split: split_max)
+
+lemma diff_diff_commute_ennreal:
+  fixes a b c :: ennreal shows "a - b - c = a - c - b"
+  by (cases a b c rule: ennreal3_cases) (simp_all add: ennreal_minus field_simps)
+
+lemma diff_gr0_ennreal: "b < (a::ennreal) \<Longrightarrow> 0 < a - b"
+  including ennreal.lifting by transfer (auto simp: ereal_diff_gr0 ereal_diff_positive split: split_max)
+
+lemma divide_le_posI_ennreal:
+  fixes x y z :: ennreal
+  shows "x > 0 \<Longrightarrow> z \<le> x * y \<Longrightarrow> z / x \<le> y"
+  by (cases x y z rule: ennreal3_cases)
+     (auto simp: divide_ennreal ennreal_mult[symmetric] field_simps top_unique)
+
+lemma add_diff_eq_ennreal:
+  fixes x y z :: ennreal
+  shows "z \<le> y \<Longrightarrow> x + (y - z) = x + y - z"
+  including ennreal.lifting
+  by transfer
+     (insert ereal_add_mono[of 0], auto simp add: ereal_diff_positive max.absorb2 add_diff_eq_ereal)
+
+lemma add_diff_inverse_ennreal:
+  fixes x y :: ennreal shows "x \<le> y \<Longrightarrow> x + (y - x) = y"
+  by (cases x) (simp_all add: top_unique add_diff_eq_ennreal)
+
+lemma add_diff_eq_iff_ennreal[simp]:
+  fixes x y :: ennreal shows "x + (y - x) = y \<longleftrightarrow> x \<le> y"
+proof
+  assume *: "x + (y - x) = y" show "x \<le> y"
+    by (subst *[symmetric]) simp
+qed (simp add: add_diff_inverse_ennreal)
+
+lemma add_diff_le_ennreal: "a + b - c \<le> a + (b - c::ennreal)"
+  apply (cases a b c rule: ennreal3_cases)
+  subgoal for a' b' c'
+    by (cases "0 \<le> b' - c'")
+       (simp_all add: ennreal_minus ennreal_plus[symmetric] top_add ennreal_neg
+                 del: ennreal_plus)
+  apply (simp_all add: top_add ennreal_plus[symmetric] del: ennreal_plus)
+  done
+
+lemma diff_eq_0_ennreal: "a < top \<Longrightarrow> a \<le> b \<Longrightarrow> a - b = (0::ennreal)"
+  using ennreal_minus_pos_iff gr_zeroI not_less by blast
+
+lemma diff_diff_ennreal': fixes x y z :: ennreal shows "z \<le> y \<Longrightarrow> y - z \<le> x \<Longrightarrow> x - (y - z) = x + z - y"
+  by (cases x; cases y; cases z)
+     (auto simp add: top_add add_top minus_top_ennreal ennreal_minus ennreal_plus[symmetric] top_unique
+           simp del: ennreal_plus)
+
+lemma diff_diff_ennreal'': fixes x y z :: ennreal
+  shows "z \<le> y \<Longrightarrow> x - (y - z) = (if y - z \<le> x then x + z - y else 0)"
+  by (cases x; cases y; cases z)
+     (auto simp add: top_add add_top minus_top_ennreal ennreal_minus ennreal_plus[symmetric] top_unique ennreal_neg
+           simp del: ennreal_plus)
+
+lemma power_less_top_ennreal: fixes x :: ennreal shows "x ^ n < top \<longleftrightarrow> x < top \<or> n = 0"
+  using power_eq_top_ennreal[of x n] by (auto simp: less_top)
+
+lemma ennreal_divide_times: "(a / b) * c = a * (c / b :: ennreal)"
+  by (simp add: mult.commute ennreal_times_divide)
+
+lemma diff_less_top_ennreal: "a - b < top \<longleftrightarrow>  a < (top :: ennreal)"
+  by (cases a; cases b) (auto simp: ennreal_minus)
+
+lemma divide_less_ennreal: "b \<noteq> 0 \<Longrightarrow> b < top \<Longrightarrow> a / b < c \<longleftrightarrow> a < (c * b :: ennreal)"
+  by (cases a; cases b; cases c)
+     (auto simp: divide_ennreal ennreal_mult[symmetric] ennreal_less_iff field_simps ennreal_top_mult ennreal_top_divide)
+
+lemma one_less_numeral[simp]: "1 < (numeral n::ennreal) \<longleftrightarrow> (num.One < n)"
+  by (simp del: ennreal_1 ennreal_numeral add: ennreal_1[symmetric] ennreal_numeral[symmetric] ennreal_less_iff)
+
+lemma divide_eq_1_ennreal: "a / b = (1::ennreal) \<longleftrightarrow> (b \<noteq> top \<and> b \<noteq> 0 \<and> b = a)"
+  by (cases a ; cases b; cases "b = 0") (auto simp: ennreal_top_divide divide_ennreal split: if_split_asm)
+
+lemma ennreal_mult_cancel_left: "(a * b = a * c) = (a = top \<and> b \<noteq> 0 \<and> c \<noteq> 0 \<or> a = 0 \<or> b = (c::ennreal))"
+  by (cases a; cases b; cases c) (auto simp: ennreal_mult[symmetric] ennreal_mult_top ennreal_top_mult)
+
+lemma ennreal_minus_if: "ennreal a - ennreal b = ennreal (if 0 \<le> b then (if b \<le> a then a - b else 0) else a)"
+  by (auto simp: ennreal_minus ennreal_neg)
+
+lemma ennreal_plus_if: "ennreal a + ennreal b = ennreal (if 0 \<le> a then (if 0 \<le> b then a + b else a) else b)"
+  by (auto simp: ennreal_neg)
+
+lemma power_le_one_iff: "0 \<le> (a::real) \<Longrightarrow> a ^ n \<le> 1 \<longleftrightarrow> (n = 0 \<or> a \<le> 1)"
+  by (metis (mono_tags, hide_lams) le_less neq0_conv not_le one_le_power power_0 power_eq_imp_eq_base power_le_one zero_le_one)
+
+lemma ennreal_diff_le_mono_left: "a \<le> b \<Longrightarrow> a - c \<le> (b::ennreal)"
+  using ennreal_mono_minus[of 0 c a, THEN order_trans, of b] by simp
+
+lemma ennreal_minus_le_iff: "a - b \<le> c \<longleftrightarrow> (a \<le> b + (c::ennreal) \<and> (a = top \<and> b = top \<longrightarrow> c = top))"
+  by (cases a; cases b; cases c)
+     (auto simp: top_unique top_add add_top ennreal_minus ennreal_plus[symmetric]
+           simp del: ennreal_plus)
+
+lemma ennreal_le_minus_iff: "a \<le> b - c \<longleftrightarrow> (a + c \<le> (b::ennreal) \<or> (a = 0 \<and> b \<le> c))"
+  by (cases a; cases b; cases c)
+     (auto simp: top_unique top_add add_top ennreal_minus ennreal_plus[symmetric] ennreal_le_iff2
+           simp del: ennreal_plus)
+
+lemma diff_add_eq_diff_diff_swap_ennreal: "x - (y + z :: ennreal) = x - y - z"
+  by (cases x; cases y; cases z)
+     (auto simp: ennreal_plus[symmetric] ennreal_minus_if add_top top_add simp del: ennreal_plus)
+
+lemma diff_add_assoc2_ennreal: "b \<le> a \<Longrightarrow> (a - b + c::ennreal) = a + c - b"
+  by (cases a; cases b; cases c)
+     (auto simp add: ennreal_minus_if ennreal_plus_if add_top top_add top_unique simp del: ennreal_plus)
+
+lemma diff_gt_0_iff_gt_ennreal: "0 < a - b \<longleftrightarrow> (a = top \<and> b = top \<or> b < (a::ennreal))"
+  by (cases a; cases b) (auto simp: ennreal_minus_if ennreal_less_iff)
+
+lemma diff_eq_0_iff_ennreal: "(a - b::ennreal) = 0 \<longleftrightarrow> (a < top \<and> a \<le> b)"
+  by (cases a) (auto simp: ennreal_minus_eq_0 diff_eq_0_ennreal)
+
+lemma add_diff_self_ennreal: "a + (b - a::ennreal) = (if a \<le> b then b else a)"
+  by (auto simp: diff_eq_0_iff_ennreal less_top)
+
+lemma diff_add_self_ennreal: "(b - a + a::ennreal) = (if a \<le> b then b else a)"
+  by (auto simp: diff_add_cancel_ennreal diff_eq_0_iff_ennreal less_top)
+
+lemma ennreal_minus_cancel_iff:
+  fixes a b c :: ennreal
+  shows "a - b = a - c \<longleftrightarrow> (b = c \<or> (a \<le> b \<and> a \<le> c) \<or> a = top)"
+  by (cases a; cases b; cases c) (auto simp: ennreal_minus_if)
+
+lemma SUP_diff_ennreal:
+  "c < top \<Longrightarrow> (SUP i:I. f i - c :: ennreal) = (SUP i:I. f i) - c"
+  by (auto intro!: SUP_eqI ennreal_minus_mono SUP_least intro: SUP_upper
+           simp: ennreal_minus_cancel_iff ennreal_minus_le_iff less_top[symmetric])
+
+lemma ennreal_SUP_add_right:
+  fixes c :: ennreal shows "I \<noteq> {} \<Longrightarrow> c + (SUP i:I. f i) = (SUP i:I. c + f i)"
+  using ennreal_SUP_add_left[of I f c] by (simp add: add.commute)
+
+lemma SUP_add_directed_ennreal:
+  fixes f g :: "_ \<Rightarrow> ennreal"
+  assumes directed: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. f i + g j \<le> f k + g k"
+  shows "(SUP i:I. f i + g i) = (SUP i:I. f i) + (SUP i:I. g i)"
+proof cases
+  assume "I = {}" then show ?thesis
+    by (simp add: bot_ereal_def)
+next
+  assume "I \<noteq> {}"
+  show ?thesis
+  proof (rule antisym)
+    show "(SUP i:I. f i + g i) \<le> (SUP i:I. f i) + (SUP i:I. g i)"
+      by (rule SUP_least; intro add_mono SUP_upper)
+  next
+    have "(SUP i:I. f i) + (SUP i:I. g i) = (SUP i:I. f i + (SUP i:I. g i))"
+      by (intro ennreal_SUP_add_left[symmetric] \<open>I \<noteq> {}\<close>)
+    also have "\<dots> = (SUP i:I. (SUP j:I. f i + g j))"
+      by (intro SUP_cong refl ennreal_SUP_add_right \<open>I \<noteq> {}\<close>)
+    also have "\<dots> \<le> (SUP i:I. f i + g i)"
+      using directed by (intro SUP_least) (blast intro: SUP_upper2)
+    finally show "(SUP i:I. f i) + (SUP i:I. g i) \<le> (SUP i:I. f i + g i)" .
+  qed
+qed
+
+lemma enn2real_eq_0_iff: "enn2real x = 0 \<longleftrightarrow> x = 0 \<or> x = top"
+  by (cases x) auto
+
+lemma (in -) continuous_on_diff_ereal:
+  "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>) \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> \<bar>g x\<bar> \<noteq> \<infinity>) \<Longrightarrow> continuous_on A (\<lambda>z. f z - g z::ereal)"
+  apply (auto simp: continuous_on_def)
+  apply (intro tendsto_diff_ereal)
+  apply metis+
+  done
+
+lemma (in -) continuous_on_diff_ennreal:
+  "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> top) \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> g x \<noteq> top) \<Longrightarrow> continuous_on A (\<lambda>z. f z - g z::ennreal)"
+  including ennreal.lifting
+proof (transfer fixing: A, simp add: top_ereal_def)
+  fix f g :: "'a \<Rightarrow> ereal" assume "\<forall>x. 0 \<le> f x" "\<forall>x. 0 \<le> g x" "continuous_on A f" "continuous_on A g"
+  moreover assume "f x \<noteq> \<infinity>" "g x \<noteq> \<infinity>" if "x \<in> A" for x
+  ultimately show "continuous_on A (\<lambda>z. max 0 (f z - g z))"
+    by (intro continuous_on_max continuous_on_const continuous_on_diff_ereal) auto
+qed
+
+lemma (in -) tendsto_diff_ennreal:
+  "(f \<longlongrightarrow> x) F \<Longrightarrow> (g \<longlongrightarrow> y) F \<Longrightarrow> x \<noteq> top \<Longrightarrow> y \<noteq> top \<Longrightarrow> ((\<lambda>z. f z - g z::ennreal) \<longlongrightarrow> x - y) F"
+  using continuous_on_tendsto_compose[where f="\<lambda>x. fst x - snd x::ennreal" and s="{(x, y). x \<noteq> top \<and> y \<noteq> top}" and g="\<lambda>x. (f x, g x)" and l="(x, y)" and F="F",
+    OF continuous_on_diff_ennreal]
+  by (auto simp: tendsto_Pair eventually_conj_iff less_top order_tendstoD continuous_on_fst continuous_on_snd continuous_on_id)
 
 end

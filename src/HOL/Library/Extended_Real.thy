@@ -3930,6 +3930,109 @@ proof -
   finally show "Limsup F (\<lambda>x. inverse (f x)) = inverse (Liminf F f)" .
 qed
 
+lemma ereal_diff_le_mono_left: "\<lbrakk> x \<le> z; 0 \<le> y \<rbrakk> \<Longrightarrow> x - y \<le> (z :: ereal)"
+by(cases x y z rule: ereal3_cases) simp_all
+
+lemma neg_0_less_iff_less_erea [simp]: "0 < - a \<longleftrightarrow> (a :: ereal) < 0"
+by(cases a) simp_all
+
+lemma not_infty_ereal: "\<bar>x\<bar> \<noteq> \<infinity> \<longleftrightarrow> (\<exists>x'. x = ereal x')"
+by(cases x) simp_all
+
+lemma neq_PInf_trans: fixes x y :: ereal shows "\<lbrakk> y \<noteq> \<infinity>; x \<le> y \<rbrakk> \<Longrightarrow> x \<noteq> \<infinity>"
+by auto
+
+lemma mult_2_ereal: "ereal 2 * x = x + x"
+by(cases x) simp_all
+
+lemma ereal_diff_le_self: "0 \<le> y \<Longrightarrow> x - y \<le> (x :: ereal)"
+by(cases x y rule: ereal2_cases) simp_all
+
+lemma ereal_le_add_self: "0 \<le> y \<Longrightarrow> x \<le> x + (y :: ereal)"
+by(cases x y rule: ereal2_cases) simp_all
+
+lemma ereal_le_add_self2: "0 \<le> y \<Longrightarrow> x \<le> y + (x :: ereal)"
+by(cases x y rule: ereal2_cases) simp_all
+
+lemma ereal_le_add_mono1: "\<lbrakk> x \<le> y; 0 \<le> (z :: ereal) \<rbrakk> \<Longrightarrow> x \<le> y + z"
+using add_mono by fastforce
+
+lemma ereal_le_add_mono2: "\<lbrakk> x \<le> z; 0 \<le> (y :: ereal) \<rbrakk> \<Longrightarrow> x \<le> y + z"
+using add_mono by fastforce
+
+lemma ereal_diff_nonpos:
+  fixes a b :: ereal shows "\<lbrakk> a \<le> b; a = \<infinity> \<Longrightarrow> b \<noteq> \<infinity>; a = -\<infinity> \<Longrightarrow> b \<noteq> -\<infinity> \<rbrakk> \<Longrightarrow> a - b \<le> 0"
+  by (cases rule: ereal2_cases[of a b]) auto
+
+lemma minus_ereal_0 [simp]: "x - ereal 0 = x"
+by(simp add: zero_ereal_def[symmetric])
+
+lemma ereal_diff_eq_0_iff: fixes a b :: ereal
+  shows "(\<bar>a\<bar> = \<infinity> \<Longrightarrow> \<bar>b\<bar> \<noteq> \<infinity>) \<Longrightarrow> a - b = 0 \<longleftrightarrow> a = b"
+by(cases a b rule: ereal2_cases) simp_all
+
+lemma SUP_ereal_eq_0_iff_nonneg:
+  fixes f :: "_ \<Rightarrow> ereal" and A
+  assumes nonneg: "\<forall>x\<in>A. f x \<ge> 0"
+  and A:"A \<noteq> {}"
+  shows "(SUP x:A. f x) = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)" (is "?lhs \<longleftrightarrow> ?rhs")
+proof(intro iffI ballI)
+  fix x
+  assume "?lhs" "x \<in> A"
+  from \<open>x \<in> A\<close> have "f x \<le> (SUP x:A. f x)" by(rule SUP_upper)
+  with \<open>?lhs\<close> show "f x = 0" using nonneg \<open>x \<in> A\<close> by auto
+qed(simp cong: SUP_cong add: A)
+
+lemma ereal_divide_le_posI:
+  fixes x y z :: ereal
+  shows "x > 0 \<Longrightarrow> z \<noteq> - \<infinity> \<Longrightarrow> z \<le> x * y \<Longrightarrow> z / x \<le> y"
+by (cases rule: ereal3_cases[of x y z])(auto simp: field_simps split: if_split_asm)
+
+lemma add_diff_eq_ereal: fixes x y z :: ereal
+  shows "x + (y - z) = x + y - z"
+by(cases x y z rule: ereal3_cases) simp_all
+
+lemma ereal_diff_gr0:
+  fixes a b :: ereal shows "a < b \<Longrightarrow> 0 < b - a"
+  by (cases rule: ereal2_cases[of a b]) auto
+
+lemma ereal_minus_minus: fixes x y z :: ereal shows
+  "(\<bar>y\<bar> = \<infinity> \<Longrightarrow> \<bar>z\<bar> \<noteq> \<infinity>) \<Longrightarrow> x - (y - z) = x + z - y"
+by(cases x y z rule: ereal3_cases) simp_all
+
+lemma diff_add_eq_ereal: fixes a b c :: ereal shows "a - b + c = a + c - b"
+by(cases a b c rule: ereal3_cases) simp_all
+
+lemma diff_diff_commute_ereal: fixes x y z :: ereal shows "x - y - z = x - z - y"
+by(cases x y z rule: ereal3_cases) simp_all
+
+lemma ereal_diff_eq_MInfty_iff: fixes x y :: ereal shows "x - y = -\<infinity> \<longleftrightarrow> x = -\<infinity> \<and> y \<noteq> -\<infinity> \<or> y = \<infinity> \<and> \<bar>x\<bar> \<noteq> \<infinity>"
+by(cases x y rule: ereal2_cases) simp_all
+
+lemma ereal_diff_add_inverse: fixes x y :: ereal shows "\<bar>x\<bar> \<noteq> \<infinity> \<Longrightarrow> x + y - x = y"
+by(cases x y rule: ereal2_cases) simp_all
+
+lemma tendsto_diff_ereal:
+  fixes x y :: ereal
+  assumes x: "\<bar>x\<bar> \<noteq> \<infinity>" and y: "\<bar>y\<bar> \<noteq> \<infinity>"
+  assumes f: "(f \<longlongrightarrow> x) F" and g: "(g \<longlongrightarrow> y) F"
+  shows "((\<lambda>x. f x - g x) \<longlongrightarrow> x - y) F"
+proof -
+  from x obtain r where x': "x = ereal r" by (cases x) auto
+  with f have "((\<lambda>i. real_of_ereal (f i)) \<longlongrightarrow> r) F" by simp
+  moreover
+  from y obtain p where y': "y = ereal p" by (cases y) auto
+  with g have "((\<lambda>i. real_of_ereal (g i)) \<longlongrightarrow> p) F" by simp
+  ultimately have "((\<lambda>i. real_of_ereal (f i) - real_of_ereal (g i)) \<longlongrightarrow> r - p) F"
+    by (rule tendsto_diff)
+  moreover
+  from eventually_finite[OF x f] eventually_finite[OF y g]
+  have "eventually (\<lambda>x. f x - g x = ereal (real_of_ereal (f x) - real_of_ereal (g x))) F"
+    by eventually_elim auto
+  ultimately show ?thesis
+    by (simp add: x' y' cong: filterlim_cong)
+qed
+
 subsubsection \<open>Tests for code generator\<close>
 
 (* A small list of simple arithmetic expressions *)
