@@ -1565,7 +1565,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val ctors = mk_ctors params';
     val ctor_defs = map (fn def => Morphism.thm phi def RS meta_eq_to_obj_eq) ctor_def_frees;
 
-    val ctor_o_dtor_thms = map2 (fold_thms lthy o single) ctor_defs unfold_o_dtor_thms;
+    val ctor_o_dtor_thms = map2 (Local_Defs.fold lthy o single) ctor_defs unfold_o_dtor_thms;
 
     val dtor_o_ctor_thms =
       let
@@ -2496,8 +2496,8 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
             unfold_thms_tac ctxt Jset_defs THEN mk_set_map0_tac ctxt col))
           (transpose col_natural_thmss);
 
-        val Jbd_card_orders = map (fn def => fold_thms lthy [def] sbd_card_order) Jbd_defs;
-        val Jbd_Cinfinites = map (fn def => fold_thms lthy [def] sbd_Cinfinite) Jbd_defs;
+        val Jbd_card_orders = map (fn def => Local_Defs.fold lthy [def] sbd_card_order) Jbd_defs;
+        val Jbd_Cinfinites = map (fn def => Local_Defs.fold lthy [def] sbd_Cinfinite) Jbd_defs;
 
         val bd_co_tacs = map (fn thm => fn ctxt => rtac ctxt thm 1) Jbd_card_orders;
         val bd_cinf_tacs = map (fn thm => fn ctxt => rtac ctxt (thm RS conjunct1) 1) Jbd_Cinfinites;

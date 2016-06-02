@@ -1165,7 +1165,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val dtors = mk_dtors params';
     val dtor_defs = map (fn def => Morphism.thm phi def RS meta_eq_to_obj_eq) dtor_def_frees;
 
-    val ctor_o_dtor_thms = map2 (fold_thms lthy o single) dtor_defs ctor_o_fold_thms;
+    val ctor_o_dtor_thms = map2 (Local_Defs.fold lthy o single) dtor_defs ctor_o_fold_thms;
 
     val dtor_o_ctor_thms =
       let

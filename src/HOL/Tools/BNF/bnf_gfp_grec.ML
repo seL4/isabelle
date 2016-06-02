@@ -1933,7 +1933,7 @@ fun derive_cong_general fp_b version fpT dead_ssig_bnf dead_pre_bnf eval Retr eq
 
     val cong_locale = derive_cong_locale lthy rel eval Retr cong_locale_tac;
 
-    val fold_cong_def = fold_thms lthy [cong_def];
+    val fold_cong_def = Local_Defs.fold lthy [cong_def];
 
     fun instance_of_gen thm = fold_cong_def (thm OF [cong_locale]);
 
@@ -1981,8 +1981,8 @@ fun derive_cong_base fp_b version fpT dead_ssig_bnf ssig_fp_bnf_sugar dead_pre_b
 
 fun update_cong_alg_intros ctxt cong_def cong_locale old_cong_def old_cong_locale emb =
   let
-    fun instance_of_gen thm = fold_thms ctxt [cong_def] (thm OF [cong_locale]);
-    fun instance_of_old_gen thm = fold_thms ctxt [old_cong_def] (thm OF [old_cong_locale]);
+    fun instance_of_gen thm = Local_Defs.fold ctxt [cong_def] (thm OF [cong_locale]);
+    fun instance_of_old_gen thm = Local_Defs.fold ctxt [old_cong_def] (thm OF [old_cong_locale]);
 
     val emb_idem = @{thm ord_le_eq_trans} OF [emb, instance_of_gen @{thm cong.gen_cong_idem}];
     fun mk_rel_mono bnf = instance_of_old_gen @{thm cong.leq_gen_cong} RS rel_mono_of_bnf bnf RS
@@ -2010,7 +2010,7 @@ fun derive_cong_step fp_b version fpT dead_ssig_bnf dead_pre_bnf eval eval_thm e
 
     val gen_cong_emb =
       (@{thm gen_cong_emb} OF [old_cong_locale, cong_locale, eval_embL, embL_transfer])
-      |> fold_thms lthy [old_cong_def, cong_def];
+      |> Local_Defs.fold lthy [old_cong_def, cong_def];
 
     val cong_alg_intros = update_cong_alg_intros lthy cong_def cong_locale old_cong_def
       old_cong_locale gen_cong_emb old_all_dead_k_bnfs old_cong_alg_intros;
@@ -2038,9 +2038,9 @@ fun derive_cong_merge fp_b version fpT old1_friend_names old2_friend_names dead_
         Retr_coinduct eval_thm eval_core_transfer lthy;
 
     val emb1 = (@{thm gen_cong_emb} OF [old1_cong_locale, cong_locale, eval_embLL, embLL_transfer])
-      |> fold_thms lthy [old1_cong_def, cong_def];
+      |> Local_Defs.fold lthy [old1_cong_def, cong_def];
     val emb2 = (@{thm gen_cong_emb} OF [old2_cong_locale, cong_locale, eval_embLR, embLR_transfer])
-      |> fold_thms lthy [old2_cong_def, cong_def];
+      |> Local_Defs.fold lthy [old2_cong_def, cong_def];
 
     val cong_alg_intros1 = update_cong_alg_intros lthy cong_def cong_locale old1_cong_def
       old1_cong_locale emb1 old1_all_dead_k_bnfs old1_cong_alg_intros;

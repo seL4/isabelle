@@ -101,8 +101,6 @@ sig
   val no_refl: thm list -> thm list
   val no_reflexive: thm list -> thm list
 
-  val fold_thms: Proof.context -> thm list -> thm -> thm
-
   val parse_type_args_named_constrained: (binding option * (string * string option)) list parser
   val parse_map_rel_pred_bindings: (binding * binding * binding) parser
 
@@ -454,7 +452,5 @@ val is_concl_refl = is_refl_prop o Logic.strip_imp_concl o Thm.prop_of;
 
 val no_refl = filter_out is_refl;
 val no_reflexive = filter_out Thm.is_reflexive;
-
-fun fold_thms ctxt thms = Local_Defs.fold ctxt (distinct Thm.eq_thm_prop thms);
 
 end;

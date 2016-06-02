@@ -703,7 +703,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
         val cyIns = map2 (mk_cIn (Term.map_types B_ify_T ctor)) ks yss;
 
         fun mk_map_thm ctr_def' cxIn =
-          fold_thms lthy [ctr_def']
+          Local_Defs.fold lthy [ctr_def']
             (unfold_thms lthy (o_apply :: pre_map_def ::
                  (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_map @ abs_inverses)
                (infer_instantiate' lthy (map (SOME o Thm.cterm_of lthy) fs @ [SOME cxIn])
@@ -712,7 +712,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
           |> singleton (Proof_Context.export names_lthy lthy);
 
         fun mk_set0_thm fp_set_thm ctr_def' cxIn =
-          fold_thms lthy [ctr_def']
+          Local_Defs.fold lthy [ctr_def']
             (unfold_thms lthy (pre_set_defs @ fp_nesting_set_maps @ live_nesting_set_maps @
                  (if fp = Least_FP then [] else [dtor_ctor]) @ basic_sumprod_thms_set @
                  @{thms UN_Un sup_assoc[THEN sym]} @ abs_inverses)
@@ -730,7 +730,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
         val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
 
         fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
-          fold_thms lthy ctr_defs'
+          Local_Defs.fold lthy ctr_defs'
             (unfold_thms lthy (pre_rel_def :: abs_inverses @
                  (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_rel @
                  @{thms vimage2p_def sum.inject sum.distinct(1)[THEN eq_False[THEN iffD2]]})

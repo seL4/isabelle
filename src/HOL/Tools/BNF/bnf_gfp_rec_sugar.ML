@@ -1324,7 +1324,7 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                   fp_nesting_maps fp_nesting_map_ident0s fp_nesting_map_comps corec_sel k m
                   excludesss)
             |> Thm.close_derivation
-            |> `(is_some code_rhs_opt ? fold_thms lthy sel_defs) (*mildly too aggressive*)
+            |> `(is_some code_rhs_opt ? Local_Defs.fold lthy sel_defs) (*mildly too aggressive*)
             |> pair sel
             |> pair eqn_pos
           end;
@@ -1372,7 +1372,7 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                 Goal.prove_sorry lthy [] [] goal
                   (fn {context = ctxt, prems = _} =>
                     mk_primcorec_ctr_tac ctxt m collapse disc_thm_opt sel_thms)
-                |> is_some code_rhs_opt ? fold_thms lthy sel_defs (*mildly too aggressive*)
+                |> is_some code_rhs_opt ? Local_Defs.fold lthy sel_defs (*mildly too aggressive*)
                 |> Thm.close_derivation
                 |> pair ctr
                 |> pair eqn_pos

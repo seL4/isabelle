@@ -264,12 +264,12 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         (trans OF [size_def', simp0])
         |> Simplifier.asm_full_simplify (ss_only (@{thms inj_on_convol_ident id_def o_def
           snd_conv} @ all_inj_maps @ nested_size_maps) lthy2)
-        |> fold_thms lthy2 size_defs_unused_0;
+        |> Local_Defs.fold lthy2 size_defs_unused_0;
 
       fun derive_overloaded_size_simp overloaded_size_def' simp0 =
         (trans OF [overloaded_size_def', simp0])
         |> unfold_thms lthy2 @{thms add_0_left add_0_right}
-        |> fold_thms lthy2 (overloaded_size_defs @ all_overloaded_size_defs_of lthy2);
+        |> Local_Defs.fold lthy2 (overloaded_size_defs @ all_overloaded_size_defs_of lthy2);
 
       val size_simpss = map2 (map o derive_size_simp) size_defs' rec_thmss;
       val size_simps = flat size_simpss;
