@@ -15,6 +15,7 @@ setup \<open>Context.theory_map ML_Env.init_bootstrap\<close>
 SML_import \<open>
   structure Output_Primitives = Output_Primitives_Virtual;
   structure Thread_Data = Thread_Data_Virtual;
+  fun ML_system_pp (_: int -> 'a -> 'b -> PolyML_Pretty.pretty) = ();
 \<close>
 
 
