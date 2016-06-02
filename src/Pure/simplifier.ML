@@ -45,6 +45,7 @@ sig
   val prems_of: Proof.context -> thm list
   val add_simp: thm -> Proof.context -> Proof.context
   val del_simp: thm -> Proof.context -> Proof.context
+  val init_simpset: thm list -> Proof.context -> Proof.context
   val add_eqcong: thm -> Proof.context -> Proof.context
   val del_eqcong: thm -> Proof.context -> Proof.context
   val add_cong: thm -> Proof.context -> Proof.context

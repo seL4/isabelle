@@ -90,6 +90,7 @@ sig
   val prems_of: Proof.context -> thm list
   val add_simp: thm -> Proof.context -> Proof.context
   val del_simp: thm -> Proof.context -> Proof.context
+  val init_simpset: thm list -> Proof.context -> Proof.context
   val add_eqcong: thm -> Proof.context -> Proof.context
   val del_eqcong: thm -> Proof.context -> Proof.context
   val add_cong: thm -> Proof.context -> Proof.context
@@ -588,6 +589,12 @@ fun add_simp thm ctxt = ctxt addsimps [thm];
 fun del_simp thm ctxt = ctxt delsimps [thm];
 
 end;
+
+fun init_simpset thms ctxt = ctxt
+  |> Context_Position.set_visible false
+  |> empty_simpset
+  |> fold add_simp thms
+  |> Context_Position.restore_visible ctxt;
 
 
 (* congs *)
@@ -1314,8 +1321,7 @@ val simple_prover =
 
 fun rewrite _ _ [] = Thm.reflexive
   | rewrite ctxt full thms =
-      rewrite_cterm (full, false, false) simple_prover
-        (empty_simpset ctxt addsimps thms);
+      rewrite_cterm (full, false, false) simple_prover (init_simpset thms ctxt);
 
 fun rewrite_rule ctxt = Conv.fconv_rule o rewrite ctxt true;
 
@@ -1328,7 +1334,7 @@ fun rewrite_thm mode prover ctxt = Conv.fconv_rule (rewrite_cterm mode prover ct
 (*Rewrite the subgoals of a proof state (represented by a theorem)*)
 fun rewrite_goals_rule ctxt thms th =
   Conv.fconv_rule (Conv.prems_conv ~1 (rewrite_cterm (true, true, true) simple_prover
-    (empty_simpset ctxt addsimps thms))) th;
+    (init_simpset thms ctxt))) th;
 
 
 (** meta-rewriting tactics **)
@@ -1342,9 +1348,8 @@ fun generic_rewrite_goal_tac mode prover_tac ctxt i thm =
     Seq.single (Conv.gconv_rule (rewrite_cterm mode (SINGLE o prover_tac) ctxt) i thm)
   else Seq.empty;
 
-fun rewrite_goal_tac ctxt rews =
-  generic_rewrite_goal_tac (true, false, false) (K no_tac)
-    (empty_simpset ctxt addsimps rews);
+fun rewrite_goal_tac ctxt thms =
+  generic_rewrite_goal_tac (true, false, false) (K no_tac) (init_simpset thms ctxt);
 
 (*Prunes all redundant parameters from the proof state by rewriting.*)
 fun prune_params_tac ctxt = rewrite_goals_tac ctxt [Drule.triv_forall_equality];
@@ -1387,11 +1392,15 @@ fun gen_norm_hhf ss ctxt =
   Variable.gen_all ctxt;
 
 val hhf_ss =
-  simpset_of (empty_simpset (Context.the_local_context ()) addsimps Drule.norm_hhf_eqs);
+  Context.the_local_context ()
+  |> init_simpset Drule.norm_hhf_eqs
+  |> simpset_of;
 
 val hhf_protect_ss =
-  simpset_of (empty_simpset (Context.the_local_context ())
-    addsimps Drule.norm_hhf_eqs |> add_eqcong Drule.protect_cong);
+  Context.the_local_context ()
+  |> init_simpset Drule.norm_hhf_eqs
+  |> add_eqcong Drule.protect_cong
+  |> simpset_of;
 
 in
 
