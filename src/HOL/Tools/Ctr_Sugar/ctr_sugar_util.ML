@@ -214,7 +214,7 @@ fun fo_match ctxt t pat =
   let val thy = Proof_Context.theory_of ctxt
   in Pattern.first_order_match thy (pat, t) (Vartab.empty, Vartab.empty) end;
 
-fun unfold_thms ctxt thms = Local_Defs.unfold0 ctxt (distinct Thm.eq_thm_prop thms);
+val unfold_thms = Local_Defs.unfold0;
 
 fun name_noted_thms _ _ [] = []
   | name_noted_thms qualifier base ((local_name, thms) :: noted) =

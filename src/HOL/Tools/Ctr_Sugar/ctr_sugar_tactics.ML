@@ -47,8 +47,7 @@ val meta_mp = @{thm meta_mp};
 fun select_prem_tac ctxt n tac k = DETERM o (EVERY' [REPEAT_DETERM_N (k - 1) o etac ctxt thin_rl,
   tac, REPEAT_DETERM_N (n - k) o etac ctxt thin_rl]);
 
-fun unfold_thms_tac _ [] = all_tac
-  | unfold_thms_tac ctxt thms = Local_Defs.unfold0_tac ctxt (distinct Thm.eq_thm_prop thms);
+val unfold_thms_tac = Local_Defs.unfold0_tac;
 
 fun if_P_or_not_P_OF pos thm = thm RS (if pos then @{thm if_P} else @{thm if_not_P});
 
