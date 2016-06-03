@@ -401,6 +401,10 @@ discontinued. Potential INCOMPATIBILITY.
 executables are found within the shell search $PATH: "isabelle" and
 "isabelle_scala_script".
 
+* Isabelle tools may consist of .scala files: the Scala compiler is
+invoked on the spot. The source needs to define some object that extends
+Isabelle_Tool.Body.
+
 * The Isabelle ML process is now managed directly by Isabelle/Scala, and
 shell scripts merely provide optional command-line access. In
 particular:
