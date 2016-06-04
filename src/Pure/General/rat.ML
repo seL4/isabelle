@@ -34,13 +34,13 @@ datatype rat = Rat of int * int;  (*numerator, positive (!) denominator*)
 fun of_int i = Rat (i, 1);
 
 fun common (p1, q1) (p2, q2) =
-  let val m = PolyML.IntInf.lcm (q1, q2)
+  let val m = Integer.lcm q1 q2
   in ((p1 * (m div q1), p2 * (m div q2)), m) end;
 
 fun make (_, 0) = raise Div
   | make (p, q) =
     let
-      val m = PolyML.IntInf.gcd (p, q);
+      val m = Integer.gcd p q;
       val (p', q') = (p div m, q div m);
     in Rat (if q' < 0 then (~ p', ~ q') else (p', q')) end
 

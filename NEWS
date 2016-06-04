@@ -347,6 +347,11 @@ INCOMPATIBILITY.
 
 *** ML ***
 
+* Integer.gcd and Integer.lcm use efficient operations from the Poly/ML
+(notably for big integers). Subtle change of semantics: Integer.gcd and
+Integer.lcm both normalize the sign, results are never negative. This
+coincides with the definitions in HOL/GCD.thy. INCOMPATIBILITY.
+
 * Structure Rat for rational numbers is now an integral part of
 Isabelle/ML, with special notation @int/nat or @int for numerals (an
 abbreviation for antiquotation @{Pure.rat argument}) and ML pretty

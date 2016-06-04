@@ -248,7 +248,7 @@ fun add_ineq (Lineq (k1,ty1,l1,just1)) (Lineq (k2,ty2,l2,just2)) =
 
 fun elim_var v (i1 as Lineq(_,ty1,l1,_)) (i2 as Lineq(_,ty2,l2,_)) =
   let val c1 = nth l1 v and c2 = nth l2 v
-      val m = Integer.lcm (abs c1) (abs c2)
+      val m = Integer.lcm c1 c2
       val m1 = m div (abs c1) and m2 = m div (abs c2)
       val (n1,n2) =
         if (c1 >= 0) = (c2 >= 0)
@@ -483,7 +483,7 @@ fun coeff poly atom =
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
 let val (rn,rd) = Rat.dest r and (sn,sd) = Rat.dest s
-    val m = Integer.lcms(map (abs o snd o Rat.dest) (r :: s :: map snd rlhs @ map snd rrhs))
+    val m = Integer.lcms(map (snd o Rat.dest) (r :: s :: map snd rlhs @ map snd rrhs))
     fun mult(t,r) =
         let val (i,j) = Rat.dest r
         in (t,i * (m div j)) end
