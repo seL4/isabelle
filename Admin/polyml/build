@@ -87,6 +87,12 @@ esac
 )
 
 mkdir -p "$TARGET"
+for X in "$TARGET"/*
+do
+  [ -d "$X" ] && rm -rf "$X"
+done
+rm -rf "$TARGET/polyml"
+cp -a "$THIS/polyi" "$TARGET/"
 mv "$SOURCE/$TARGET/bin/"* "$TARGET/"
 mv "$SOURCE/$TARGET/lib/"* "$TARGET/"
 rmdir "$SOURCE/$TARGET/bin" "$SOURCE/$TARGET/lib"

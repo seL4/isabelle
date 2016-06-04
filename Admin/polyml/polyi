@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 #
-# Minimal Poly/ML startup script
+# Portable Poly/ML command-line tool
 
 THIS="$(cd "$(dirname "$0")"; pwd)"
 
 export LD_LIBRARY_PATH="$THIS:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="$THIS:$DYLD_LIBRARY_PATH"
 
-exec "$THIS/poly" "$@"
+if type -p rlwrap > /dev/null
+then
+  exec rlwrap "$THIS/poly" "$@"
+else
+  exec "$THIS/poly" "$@"
+fi
