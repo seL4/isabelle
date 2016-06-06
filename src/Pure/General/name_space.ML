@@ -267,12 +267,16 @@ fun completion context space (xname, pos) =
         | ord => ord);
       val Name_Space {kind, internals, ...} = space;
       val ext = extern_shortest (Context.proof_of context) space;
+      val full = Name.clean xname = "";
     in
       Change_Table.fold
         (fn (xname', (name :: _, _)) =>
-            if completed xname' andalso not (is_concealed space name) then
-              cons (xname' = ext name, (xname', (kind, name)))
-            else I
+              if completed xname' andalso not (is_concealed space name) then
+                let val xname'' = ext name in
+                  if xname' <> xname'' andalso full then I
+                  else cons (xname' = xname'', (xname', (kind, name)))
+                end
+              else I
           | _ => I) internals []
       |> sort_distinct result_ord
       |> map #2
