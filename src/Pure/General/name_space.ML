@@ -269,9 +269,9 @@ fun completion context space (xname, pos) =
       val ext = extern_shortest (Context.proof_of context) space;
     in
       Change_Table.fold
-        (fn (a, (name :: _, _)) =>
-            if completed a andalso not (is_concealed space name) then
-              cons (a = ext name, (a, (kind, name)))
+        (fn (xname', (name :: _, _)) =>
+            if completed xname' andalso not (is_concealed space name) then
+              cons (xname' = ext name, (xname', (kind, name)))
             else I
           | _ => I) internals []
       |> sort_distinct result_ord
