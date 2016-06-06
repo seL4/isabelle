@@ -513,7 +513,7 @@ fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
       | _ => ();
   in () end;
 
-fun gen_assert_eqn thy check_patterns (thm, proper) =
+fun assert_eqn' thy check_patterns (thm, proper) =
   let
     val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
       handle TERM _ => bad_thm "Not an equation"
@@ -522,7 +522,7 @@ fun gen_assert_eqn thy check_patterns (thm, proper) =
       allow_consts = not (proper andalso check_patterns), allow_pats = true } thm (lhs, rhs);
   in (thm, proper) end;
 
-fun assert_abs_eqn thy some_tyco thm =
+fun assert_abs_eqn' thy some_tyco thm =
   let
     val (full_lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
       handle TERM _ => bad_thm "Not an equation"
@@ -548,27 +548,29 @@ fun assert_abs_eqn thy some_tyco thm =
       else error ("Type arguments do not satisfy sort constraints of abstype certificate.");
   in (thm, tyco) end;
 
-fun assert_eqn thy = gen_assert_eqn thy true;
+fun assert_eqn thy = error_thm (assert_eqn' thy true) thy;
+
+fun assert_abs_eqn thy some_tyco = error_abs_thm (assert_abs_eqn' thy some_tyco) thy;
 
 fun meta_rewrite thy = Local_Defs.meta_rewrite_rule (Proof_Context.init_global thy);
 
-fun mk_eqn thy = error_thm (gen_assert_eqn thy false) thy o
+fun mk_eqn thy = error_thm (assert_eqn' thy false) thy o
   apfst (meta_rewrite thy);
 
 fun mk_eqn_liberal thy = Option.map (fn (thm, _) => (thm, is_linear thm))
-  o try_thm (gen_assert_eqn thy false) o rpair false o meta_rewrite thy;
+  o try_thm (assert_eqn' thy false) o rpair false o meta_rewrite thy;
 
 fun mk_eqn_maybe_abs thy raw_thm =
   let
     val thm = meta_rewrite thy raw_thm;
-    val some_abs_thm = try_thm (assert_abs_eqn thy NONE) thm;
+    val some_abs_thm = try_thm (assert_abs_eqn' thy NONE) thm;
   in case some_abs_thm
    of SOME (thm, tyco) => SOME ((thm, true), SOME tyco)
     | NONE => (Option.map (fn (thm, _) => ((thm, is_linear thm), NONE))
-        o warning_thm (gen_assert_eqn thy false) thy) (thm, false)
+        o warning_thm (assert_eqn' thy false) thy) (thm, false)
   end;
 
-fun mk_abs_eqn thy = error_abs_thm (assert_abs_eqn thy NONE) thy o meta_rewrite thy;
+fun mk_abs_eqn thy = error_abs_thm (assert_abs_eqn' thy NONE) thy o meta_rewrite thy;
 
 val head_eqn = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
 
@@ -753,7 +755,7 @@ fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
       let
         val thy = Proof_Context.theory_of ctxt;
         val eqns = burrow_fst (canonize_thms thy) raw_eqns;
-        val _ = map (error_thm (assert_eqn thy) thy) eqns;
+        val _ = map (assert_eqn thy) eqns;
         val (thms, propers) = split_list eqns;
         val _ = map (fn thm => if c = const_eqn thy thm then ()
           else error ("Wrong head of code equation,\nexpected constant "
