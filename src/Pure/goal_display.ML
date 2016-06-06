@@ -12,6 +12,8 @@ sig
   val pretty_goals: Proof.context -> thm -> Pretty.T list
   val pretty_goal: Proof.context -> thm -> Pretty.T
   val string_of_goal: Proof.context -> thm -> string
+
+  val set_goal_print_cache_limit: int -> unit
 end;
 
 structure Goal_Display: GOAL_DISPLAY =
@@ -20,6 +22,8 @@ struct
 val goals_limit = Config.declare_option_int ("goals_limit", \<^here>);
 val show_main_goal = Config.declare_option_bool ("show_main_goal", \<^here>);
 
+val print_cache_limit = Unsynchronized.ref (0 : int);
+fun set_goal_print_cache_limit limit = print_cache_limit := limit;
 
 (*print thm A1,...,An/B in "goal style" -- premises as numbered subgoals*)
 
@@ -50,6 +54,20 @@ fun consts_of t = sort_cnsts (add_consts t []);
 fun vars_of t = sort_idxs (add_vars t []);
 fun varsT_of t = rev (sort_idxs (Term.fold_types add_varsT t []));
 
+val cache = Unsynchronized.ref ([] : (term * Pretty.T) list);
+
+fun cache_eq (subgoal, subgoal') = subgoal = subgoal';
+
+fun check_cache subgoal = AList.lookup cache_eq (take (!print_cache_limit) (!cache)) subgoal
+
+fun add_cache subgoal pretty = if !print_cache_limit = 0 then () else
+Unsynchronized.change cache (fn cache_val =>
+  let
+    val next_cache = (subgoal, pretty) :: cache_val
+    val result = take (!print_cache_limit) next_cache;
+  in result end)
+
+
 in
 
 fun pretty_goals ctxt0 state =
@@ -66,10 +84,16 @@ fun pretty_goals ctxt0 state =
 
     val prt_sort = Syntax.pretty_sort ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
-    val prt_term =
+    val prt_term' =
       singleton (Syntax.uncheck_terms ctxt) #>
       Type_Annotation.ignore_free_types #>
       Syntax.unparse_term ctxt;
+
+    fun prt_term t = case check_cache t of SOME pretty => pretty | NONE =>
+      let
+        val pretty = prt_term' t
+        val _ = add_cache t pretty;
+      in pretty end;
 
     fun prt_atoms prt prtT (X, xs) = Pretty.block
       [Pretty.block (Pretty.commas (map prt xs)), Pretty.str " ::",
