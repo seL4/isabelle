@@ -401,31 +401,39 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def caret_focus(caret_range: Text.Range, visible_range: Text.Range): Set[Long] =
   {
-    val focus_results =
-      snapshot.cumulate[Set[Long]](caret_range, Set.empty, Rendering.caret_focus_elements, _ =>
+    def focus(is_def: Boolean): Set[Long] =
+    {
+      val results =
+        snapshot.cumulate[Set[Long]](caret_range, Set.empty, Rendering.caret_focus_elements, _ =>
+            {
+              case (serials, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+                props match {
+                  case Markup.Entity.Def(i) if is_def => Some(serials + i)
+                  case Markup.Entity.Ref(i) if !is_def => Some(serials + i)
+                  case _ => None
+                }
+              case _ => None
+            })
+      (Set.empty[Long] /: results){ case (s1, Text.Info(_, s2)) => s1 ++ s2 }
+    }
+
+    val focus_defs = focus(true)
+    if (focus_defs.nonEmpty) focus_defs
+    else {
+      val focus_refs = focus(false)
+
+      def active(range: Text.Range): Boolean =
+        snapshot.cumulate[Boolean](range, false, Rendering.caret_focus_elements, _ =>
           {
-            case (serials, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+            case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
               props match {
-                case Markup.Entity.Def(i) => Some(serials + i)
-                case Markup.Entity.Ref(i) => Some(serials + i)
+                case Markup.Entity.Def(i) if focus_refs(i) => Some(true)
                 case _ => None
               }
-            case _ => None
-          })
-    val focus = (Set.empty[Long] /: focus_results){ case (s1, Text.Info(_, s2)) => s1 ++ s2 }
-
-    def visible_focus(range: Text.Range): Boolean =
-      snapshot.cumulate[Boolean](range, false, Rendering.caret_focus_elements, _ =>
-        {
-          case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-            props match {
-              case Markup.Entity.Def(i) if focus(i) => Some(true)
-              case _ => None
-            }
-        }).exists({ case Text.Info(_, visible) => visible })
-
-    if (focus.nonEmpty && (visible_focus(caret_range) || visible_focus(visible_range))) focus
-    else Set.empty[Long]
+          }).exists({ case Text.Info(_, visible) => visible })
+      if (focus_refs.nonEmpty && (active(caret_range) || active(visible_range))) focus_refs
+      else Set.empty[Long]
+    }
   }
 
   def entity_ref(range: Text.Range, focus: Set[Long]): List[Text.Info[Color]] =
