@@ -108,6 +108,9 @@ examples.
 
 *** HOL ***
 
+* Conventional syntax "%(). t" for unit abstractions.  Slight syntactic
+INCOMPATIBILITY.
+
 * Command 'code_reflect' accepts empty constructor lists for datatypes,
 which renders those abstract effectively.
 

@@ -305,6 +305,7 @@ syntax
   "_pattern"    :: "[pttrn, patterns] => pttrn"         ("'(_,/ _')")
   ""            :: "pttrn => patterns"                  ("_")
   "_patterns"   :: "[pttrn, patterns] => patterns"      ("_,/ _")
+  "_unit"       :: pttrn                                ("'(')")
 
 translations
   "(x, y)" \<rightleftharpoons> "CONST Pair x y"
@@ -317,6 +318,8 @@ translations
   \<comment> \<open>This rule accommodates tuples in \<open>case C \<dots> (x, y) \<dots> \<Rightarrow> \<dots>\<close>:
      The \<open>(x, y)\<close> is parsed as \<open>Pair x y\<close> because it is \<open>logic\<close>,
      not \<open>pttrn\<close>.\<close>
+  "\<lambda>(). b" \<rightleftharpoons> "CONST case_unit b"
+  "_abs (CONST Unity) t" \<rightharpoonup> "\<lambda>(). t"
 
 text \<open>print @{term "case_prod f"} as @{term "\<lambda>(x, y). f x y"} and
   @{term "case_prod (\<lambda>x. f x)"} as @{term "\<lambda>(x, y). f x y"}\<close>
