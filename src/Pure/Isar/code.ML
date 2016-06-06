@@ -428,20 +428,24 @@ fun is_abstr thy c = case get_type_of_constr_or_abstr thy c
 *)
 
 exception BAD_THM of string;
+
 fun bad_thm msg = raise BAD_THM msg;
-fun error_thm f thy (thm, proper) = f (thm, proper)
-  handle BAD_THM msg => error (msg ^ ", in theorem:\n" ^ Thm.string_of_thm_global thy thm);
-fun error_abs_thm f thy thm = f thm
-  handle BAD_THM msg => error (msg ^ ", in theorem:\n" ^ Thm.string_of_thm_global thy thm);
-fun warning_thm f thy (thm, proper) = SOME (f (thm, proper))
-  handle BAD_THM msg => (warning (msg ^ ", in theorem:\n" ^ Thm.string_of_thm_global thy thm); NONE)
-fun try_thm f thm_proper = SOME (f thm_proper)
-  handle BAD_THM _ => NONE;
+
+datatype strictness = Silent | Liberal | Strict
+
+fun handle_strictness thm_of f strictness thy x = SOME (f x)
+  handle BAD_THM msg => case strictness of
+    Silent => NONE
+  | Liberal => (warning (msg ^ ", in theorem:\n" ^ Thm.string_of_thm_global thy (thm_of x)); NONE)
+  | Strict => error (msg ^ ", in theorem:\n" ^ Thm.string_of_thm_global thy (thm_of x));
 
 fun is_linear thm =
-  let val (_, args) = (strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm
-  in not (has_duplicates (op =) ((fold o fold_aterms)
-    (fn Var (v, _) => cons v | _ => I) args [])) end;
+  let
+    val (_, args) = (strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm
+  in
+    not (has_duplicates (op =) ((fold o fold_aterms)
+      (fn Var (v, _) => cons v | _ => I) args []))
+  end;
 
 fun check_decl_ty thy (c, ty) =
   let
@@ -507,7 +511,9 @@ fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
       | _ => ();
   in () end;
 
-fun assert_eqn' thy check_patterns (thm, proper) =
+local
+
+fun raw_assert_eqn thy check_patterns (thm, proper) =
   let
     val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
       handle TERM _ => bad_thm "Not an equation"
@@ -516,7 +522,7 @@ fun assert_eqn' thy check_patterns (thm, proper) =
       allow_consts = not (proper andalso check_patterns), allow_pats = true } thm (lhs, rhs);
   in (thm, proper) end;
 
-fun assert_abs_eqn' thy some_tyco thm =
+fun raw_assert_abs_eqn thy some_tyco thm =
   let
     val (full_lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
       handle TERM _ => bad_thm "Not an equation"
@@ -542,29 +548,19 @@ fun assert_abs_eqn' thy some_tyco thm =
       else error ("Type arguments do not satisfy sort constraints of abstype certificate.");
   in (thm, tyco) end;
 
-fun assert_eqn thy = error_thm (assert_eqn' thy true) thy;
+in
 
-fun assert_abs_eqn thy some_tyco = error_abs_thm (assert_abs_eqn' thy some_tyco) thy;
+fun generic_assert_eqn strictness thy check_patterns thm_proper =
+  handle_strictness fst (raw_assert_eqn thy check_patterns) strictness thy thm_proper;
 
-fun meta_rewrite thy = Local_Defs.meta_rewrite_rule (Proof_Context.init_global thy);
+fun generic_assert_abs_eqn strictness thy check_patterns thm =
+  handle_strictness I (raw_assert_abs_eqn thy check_patterns) strictness thy thm;
 
-fun mk_eqn thy = error_thm (assert_eqn' thy false) thy o
-  apfst (meta_rewrite thy);
+end;
 
-fun mk_eqn_liberal thy = Option.map (fn (thm, _) => (thm, is_linear thm))
-  o try_thm (assert_eqn' thy false) o rpair false o meta_rewrite thy;
+fun assert_eqn thy = the o generic_assert_eqn Strict thy true;
 
-fun mk_eqn_maybe_abs thy raw_thm =
-  let
-    val thm = meta_rewrite thy raw_thm;
-    val some_abs_thm = try_thm (assert_abs_eqn' thy NONE) thm;
-  in case some_abs_thm
-   of SOME (thm, tyco) => SOME ((thm, true), SOME tyco)
-    | NONE => (Option.map (fn (thm, _) => ((thm, is_linear thm), NONE))
-        o warning_thm (assert_eqn' thy false) thy) (thm, false)
-  end;
-
-fun mk_abs_eqn thy = error_abs_thm (assert_abs_eqn' thy NONE) thy o meta_rewrite thy;
+fun assert_abs_eqn thy some_tyco = the o generic_assert_abs_eqn Strict thy some_tyco;
 
 val head_eqn = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
 
@@ -588,6 +584,8 @@ fun mk_proj tyco vs ty abs rep =
 
 
 (* technical transformations of code equations *)
+
+fun meta_rewrite thy = Local_Defs.meta_rewrite_rule (Proof_Context.init_global thy);
 
 fun expand_eta thy k thm =
   let
@@ -642,7 +640,9 @@ fun canonize_thms thy = desymbolize_tvars thy #> same_arity thy #> map (desymbol
 
 (* abstype certificates *)
 
-fun check_abstype_cert thy proto_thm =
+local
+
+fun raw_abstype_cert thy proto_thm =
   let
     val thm = (Axclass.unoverload (Proof_Context.init_global thy) o meta_rewrite thy) proto_thm;
     val (lhs, rhs) = Logic.dest_equals (Thm.plain_prop_of thm)
@@ -666,6 +666,13 @@ fun check_abstype_cert thy proto_thm =
     val ty = domain_type ty';
     val (vs', _) = typscheme thy (abs, ty');
   in (tyco, (vs ~~ sorts, ((abs, (vs', ty)), (rep, thm)))) end;
+
+in
+
+fun check_abstype_cert strictness thy proto_thm =
+  handle_strictness I (raw_abstype_cert thy) strictness thy proto_thm;
+
+end;
 
 
 (* code equation certificates *)
@@ -1070,6 +1077,12 @@ fun print_codesetup thy =
   processual distinction:
     thm * proper  for concrete equations
     thm  for abstract equations
+
+  strictness wrt. shape of theorem propositions:
+    * default attributes: silent
+    * user attributes: warnings (after morphism application!)
+    * Isabelle/ML functions: strict
+    * internal processing after storage: strict
 *)
 
 fun gen_add_eqn default (raw_thm, proper) thy =
@@ -1113,31 +1126,49 @@ fun gen_add_abs_eqn default raw_thm thy =
 
 datatype kind = Equation | Nbe | Abstract;
 
-fun add_eqn (kind, default) thm thy =
-  case (kind, default) of
-    (Equation, true) => (case mk_eqn_liberal thy thm of
-      SOME eqn => gen_add_eqn true eqn thy
-    | NONE => thy)
-  | (Equation, false) => gen_add_eqn false (mk_eqn thy (thm, true)) thy
-  | (Nbe, _) => gen_add_eqn default (mk_eqn thy (thm, false)) thy
-  | (Abstract, _) => gen_add_abs_eqn default (mk_abs_eqn thy thm) thy;
+fun mk_eqn strictness thy = generic_assert_eqn strictness thy false o
+  apfst (meta_rewrite thy);
+
+fun mk_abs_eqn strictness thy = generic_assert_abs_eqn strictness thy NONE o
+  meta_rewrite thy;
+
+fun mk_maybe_abs_eqn thy raw_thm =
+  let
+    val thm = meta_rewrite thy raw_thm;
+    val some_abs_thm = generic_assert_abs_eqn Silent thy NONE thm;
+  in case some_abs_thm
+   of SOME (thm, tyco) => SOME ((thm, true), SOME tyco)
+    | NONE => Option.map (fn (thm, _) => ((thm, is_linear thm), NONE))
+        (generic_assert_eqn Liberal thy false (thm, false))
+  end;
+
+fun generic_add_eqn strictness (kind, default) thm thy =
+  case kind of
+    Equation => fold (gen_add_eqn default)
+      (the_list (mk_eqn strictness thy (thm, true))) thy
+  | Nbe => fold (gen_add_eqn default)
+      (the_list (mk_eqn strictness thy (thm, false))) thy
+  | Abstract => fold (gen_add_abs_eqn default)
+      (the_list (mk_abs_eqn strictness thy thm)) thy;
+
+val add_eqn = generic_add_eqn Strict;
 
 fun lift_attribute f = Thm.declaration_attribute
   (fn thm => Context.mapping (f thm) I);
 
 fun add_default_eqn_attribute kind =
-  lift_attribute (add_eqn (kind, true));
+  lift_attribute (generic_add_eqn Silent (kind, true));
 
 fun add_default_eqn_attrib kind =
   Attrib.internal (K (add_default_eqn_attribute kind));
 
-fun add_eqn_maybe_abs thm thy =
-  case mk_eqn_maybe_abs thy thm
+fun add_maybe_abs_eqn_liberal thm thy =
+  case mk_maybe_abs_eqn thy thm
    of SOME (eqn, NONE) => gen_add_eqn false eqn thy
     | SOME ((thm, _), SOME tyco) => gen_add_abs_eqn false (thm, tyco) thy
     | NONE => thy;
 
-fun del_eqn thm thy = case mk_eqn_liberal thy thm
+fun del_eqn thm thy = case mk_eqn Liberal thy (thm, true)
  of SOME (thm, _) =>
       let
         fun del_eqn' (Eqns_Default _) = initial_fun_spec
@@ -1267,20 +1298,18 @@ fun abstype_interpretation f =
     (fn tyco =>
       Local_Theory.background_theory (fn thy => f (tyco, get_abstype_spec thy tyco) thy));
 
-fun gen_add_abstype default proto_thm thy =
-  let
-    val (tyco, (vs, (abs_ty as (abs, (_, ty)), (rep, cert)))) =
-      error_abs_thm (check_abstype_cert thy) thy proto_thm;
-  in
-    thy
-    |> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
-    |> change_fun_spec rep
-      (K (Proj ((Logic.varify_types_global (mk_proj tyco vs ty abs rep), tyco), default)))
-    |> Named_Target.theory_map (Abstype_Plugin.data_default tyco)
-  end;
+fun generic_add_abstype strictness default proto_thm thy =
+  case check_abstype_cert strictness thy proto_thm of
+    SOME (tyco, (vs, (abs_ty as (abs, (_, ty)), (rep, cert)))) =>
+      thy
+      |> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
+      |> change_fun_spec rep
+        (K (Proj ((Logic.varify_types_global (mk_proj tyco vs ty abs rep), tyco), default)))
+      |> Named_Target.theory_map (Abstype_Plugin.data_default tyco)
+  | NONE => thy;
 
-val add_abstype = gen_add_abstype false;
-val add_abstype_default = gen_add_abstype true;
+val add_abstype = generic_add_abstype Strict false;
+val add_abstype_default = generic_add_abstype Strict true;
 
 
 (* setup *)
@@ -1290,14 +1319,14 @@ val _ = Theory.setup
     fun lift_const_attribute f cs =
       lift_attribute (K (fold (fn c => fn thy => f (read_const thy c) thy) cs));
     val code_attribute_parser =
-      Args.$$$ "equation" |-- Scan.succeed (lift_attribute (add_eqn (Equation, false)))
-      || Args.$$$ "nbe" |-- Scan.succeed (lift_attribute (add_eqn (Nbe, false)))
-      || Args.$$$ "abstract" |-- Scan.succeed (lift_attribute (add_eqn (Abstract, false)))
-      || Args.$$$ "abstype" |-- Scan.succeed (lift_attribute add_abstype)
+      Args.$$$ "equation" |-- Scan.succeed (lift_attribute (generic_add_eqn Liberal (Equation, false)))
+      || Args.$$$ "nbe" |-- Scan.succeed (lift_attribute (generic_add_eqn Liberal (Nbe, false)))
+      || Args.$$$ "abstract" |-- Scan.succeed (lift_attribute (generic_add_eqn Liberal (Abstract, false)))
+      || Args.$$$ "abstype" |-- Scan.succeed (lift_attribute (generic_add_abstype Liberal false))
       || Args.del |-- Scan.succeed (lift_attribute del_eqn)
       || Args.$$$ "drop" -- Args.colon |-- (Scan.repeat1 Parse.term >> lift_const_attribute del_eqns)
       || Args.$$$ "abort" -- Args.colon |-- (Scan.repeat1 Parse.term >> lift_const_attribute del_exception)
-      || Scan.succeed (lift_attribute add_eqn_maybe_abs);
+      || Scan.succeed (lift_attribute add_maybe_abs_eqn_liberal);
   in
     Attrib.setup @{binding code} (Scan.lift code_attribute_parser)
         "declare theorems for code generation"
