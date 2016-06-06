@@ -368,9 +368,11 @@ val const_decl = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> Scan.triple1;
 val const_binding = binding -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> Scan.triple1;
 
 val param_mixfix = binding -- Scan.option ($$$ "::" |-- typ) -- mixfix' >> (single o Scan.triple1);
+
 val params =
-  Scan.repeat1 binding -- Scan.option ($$$ "::" |-- !!! typ)
-    >> (fn (xs, T) => map (fn x => (x, T, NoSyn)) xs);
+  (binding -- Scan.repeat binding) -- Scan.option ($$$ "::" |-- !!! (Scan.ahead typ -- embedded))
+    >> (fn ((x, ys), T) =>
+        (x, Option.map #1 T, NoSyn) :: map (fn y => (y, Option.map #2 T, NoSyn)) ys);
 
 val fixes = and_list1 (param_mixfix || params) >> flat;
 val for_fixes = Scan.optional ($$$ "for" |-- !!! fixes) [];
