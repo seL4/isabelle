@@ -10,10 +10,8 @@ signature CODE =
 sig
   (*constants*)
   val check_const: theory -> term -> string
-  val read_bare_const: theory -> string -> string * typ
   val read_const: theory -> string -> string
   val string_of_const: theory -> string -> string
-  val const_typ: theory -> string -> typ
   val args_number: theory -> string -> int
 
   (*constructor sets*)
@@ -21,12 +19,8 @@ sig
     -> string * ((string * sort) list * (string * ((string * sort) list * typ list)) list)
 
   (*code equations and certificates*)
-  val mk_eqn: theory -> thm * bool -> thm * bool
-  val mk_eqn_liberal: theory -> thm -> (thm * bool) option
   val assert_eqn: theory -> thm * bool -> thm * bool
   val assert_abs_eqn: theory -> string option -> thm -> thm * string
-  val const_typ_eqn: theory -> thm -> string * typ
-  val expand_eta: theory -> int -> thm -> thm
   type cert
   val constrain_cert: theory -> sort list -> cert -> cert
   val conclude_cert: cert -> cert
