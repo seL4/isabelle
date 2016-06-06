@@ -418,20 +418,20 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     }
 
     val focus_defs = focus(true)
+
     if (focus_defs.nonEmpty) focus_defs
     else {
       val focus_refs = focus(false)
-
-      def active(range: Text.Range): Boolean =
-        snapshot.cumulate[Boolean](range, false, Rendering.caret_focus_elements, _ =>
+      def visible_def: Boolean =
+        snapshot.cumulate[Boolean](visible_range, false, Rendering.caret_focus_elements, _ =>
           {
             case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
               props match {
                 case Markup.Entity.Def(i) if focus_refs(i) => Some(true)
                 case _ => None
               }
-          }).exists({ case Text.Info(_, visible) => visible })
-      if (focus_refs.nonEmpty && (active(caret_range) || active(visible_range))) focus_refs
+          }).exists(info => info.info)
+      if (focus_refs.nonEmpty && visible_def) focus_refs
       else Set.empty[Long]
     }
   }
