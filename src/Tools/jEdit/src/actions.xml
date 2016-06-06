@@ -62,6 +62,11 @@
 	    isabelle.jedit.Isabelle.decrease_font_size();
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.select-entity">
+	  <CODE>
+	    isabelle.jedit.Isabelle.select_entity(textArea);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.complete">
 	  <CODE>
 	    isabelle.jedit.Isabelle.complete(view, false);

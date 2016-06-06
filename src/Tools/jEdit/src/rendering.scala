@@ -436,6 +436,25 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     }
   }
 
+  def caret_focus_ranges(caret_range: Text.Range, visible_range: Text.Range): List[Text.Range] =
+  {
+    val focus = caret_focus(caret_range, visible_range)
+    if (focus.nonEmpty) {
+      val results =
+        snapshot.cumulate[Boolean](visible_range, false, Rendering.caret_focus_elements, _ =>
+          {
+            case (_, Text.Info(_, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
+              props match {
+                case Markup.Entity.Def(i) if focus(i) => Some(true)
+                case Markup.Entity.Ref(i) if focus(i) => Some(true)
+                case _ => None
+              }
+          })
+      for (info <- results if info.info) yield info.range
+    }
+    else Nil
+  }
+
   def entity_ref(range: Text.Range, focus: Set[Long]): List[Text.Info[Color]] =
     snapshot.select(range, Rendering.caret_focus_elements, _ =>
       {

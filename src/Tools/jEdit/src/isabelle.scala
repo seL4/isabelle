@@ -16,7 +16,7 @@ import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.textarea.{JEditTextArea, StructureMatcher}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, StructureMatcher, Selection}
 import org.gjt.sp.jedit.syntax.TokenMarker
 import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
 import org.jedit.options.CombinedOptions
@@ -287,6 +287,26 @@ object Isabelle
             case None =>
           }
         case _ =>
+      }
+    }
+  }
+
+
+  /* selection */
+
+  def select_entity(text_area: JEditTextArea)
+  {
+    for {
+      doc_view <- PIDE.document_view(text_area)
+      rendering = doc_view.get_rendering()
+    } {
+      val caret_range = JEdit_Lib.caret_range(text_area)
+      val buffer_range = JEdit_Lib.buffer_range(text_area.getBuffer)
+      val active_focus = rendering.caret_focus_ranges(caret_range, buffer_range)
+      if (active_focus.nonEmpty) {
+        text_area.selectNone()
+        for (r <- active_focus)
+          text_area.addToSelection(new Selection.Range(r.start, r.stop))
       }
     }
   }
