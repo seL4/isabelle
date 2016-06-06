@@ -287,7 +287,7 @@ text \<open>
 
 inductive Even :: "nat \<Rightarrow> bool" where
   zero: "Even 0"
-| double: "Even n \<Longrightarrow> Even (2 * n)"
+| double: "Even (2 * n)" if "Even n" for n
 
 lemma
   assumes "Even n"
@@ -349,8 +349,8 @@ text \<open>
 inductive Evn :: "nat \<Rightarrow> bool" and Odd :: "nat \<Rightarrow> bool"
 where
   zero: "Evn 0"
-| succ_Evn: "Evn n \<Longrightarrow> Odd (Suc n)"
-| succ_Odd: "Odd n \<Longrightarrow> Evn (Suc n)"
+| succ_Evn: "Odd (Suc n)" if "Evn n" for n
+| succ_Odd: "Evn (Suc n)" if "Odd n" for n
 
 lemma
     "Evn n \<Longrightarrow> P1 n"
@@ -384,8 +384,8 @@ text \<open>
 
 inductive star :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" for r
 where
-  refl: "star r x x"
-| step: "r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
+  refl: "star r x x" for x
+| step: "star r x z" if "r x y" and "star r y z" for x y z
 
 text \<open>Underscores are replaced by the default name hyps:\<close>
 
