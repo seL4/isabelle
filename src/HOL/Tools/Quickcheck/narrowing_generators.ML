@@ -111,7 +111,7 @@ fun add_partial_term_of_code tyco raw_vs raw_cs thy =
   in
     thy
     |> Code.del_eqns const
-    |> fold Code.add_eqn eqs
+    |> fold (Code.add_eqn (Code.Equation, false)) eqs (*FIXME default code equation!?*)
   end
 
 fun ensure_partial_term_of_code (tyco, (raw_vs, cs)) thy =

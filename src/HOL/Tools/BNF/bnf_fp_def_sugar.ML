@@ -1146,7 +1146,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
             |> Proof_Context.export names_lthy lthy
           end;
 
-        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
 
         val anonymous_notes =
           [(rel_code_thms, code_attrs @ nitpicksimp_attrs)]
@@ -1577,7 +1577,7 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
 
     val rec_thmss = mk_rec_thmss (the rec_args_typess) recs rec_defs ctor_rec_thms;
 
-    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
   in
     ((induct_thms, induct_thm, mk_induct_attrs ctrss),
      (rec_thmss, code_attrs @ nitpicksimp_attrs @ simp_attrs))
@@ -2234,7 +2234,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val fpTs = map (domain_type o fastype_of) dtors;
     val fpBTs = map B_ify_T fpTs;
 
-    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
 
     val ctr_Tsss = map (map (map (Term.typ_subst_atomic (Xs ~~ fpTs)))) ctrXs_Tsss;
     val ns = map length ctr_Tsss;

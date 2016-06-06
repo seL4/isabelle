@@ -810,7 +810,7 @@ fun extract thm_vss thy =
                       (Proof_Checker.thm_of_proof thy'
                        (fst (Proofterm.freeze_thaw_prf prf))))))
              |> snd
-             |> fold Code.add_default_eqn def_thms
+             |> fold (Code.add_eqn (Code.Equation, true)) def_thms
            end
        | SOME _ => thy);
 

@@ -354,7 +354,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
           end;
 
       (* Ideally, the "[code]" attribute would be generated only if the "code" plugin is enabled. *)
-      val code_attrs = Code.add_default_eqn_attrib;
+      val code_attrs = Code.add_default_eqn_attrib Code.Equation;
 
       val massage_multi_notes =
         maps (fn (thmN, thmss, attrs) =>

@@ -1522,7 +1522,7 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
         val common_name = mk_common_name fun_names;
         val common_qualify = fold_rev I qualifys;
 
-        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
 
         val anonymous_notes =
           [(flat disc_iff_or_disc_thmss, simp_attrs)]

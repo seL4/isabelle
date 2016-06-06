@@ -112,8 +112,8 @@ fun add_equality fcT fcT_name As ctrs inject_thms distinct_thms =
     #-> fold Code.del_eqn
     #> `(mk_free_ctr_equations fcT ctrs inject_thms distinct_thms)
     #-> (fn (thms, thm) => Global_Theory.note_thmss Thm.theoremK
-      [((qualify reflN, [Code.add_nbe_default_eqn_attribute]), [([thm], [])]),
-        ((qualify simpsN, [Code.add_default_eqn_attribute]), [(rev thms, [])])])
+      [((qualify reflN, [Code.add_default_eqn_attribute Code.Nbe]), [([thm], [])]),
+        ((qualify simpsN, [Code.add_default_eqn_attribute Code.Equation]), [(rev thms, [])])])
     #> snd
   end;
 
@@ -127,7 +127,7 @@ fun add_ctr_code fcT_name raw_As raw_ctrs inject_thms distinct_thms case_thms th
     if can (Code.constrset_of_consts thy) unover_ctrs then
       thy
       |> Code.add_datatype ctrs
-      |> fold_rev Code.add_default_eqn case_thms
+      |> fold_rev (Code.add_eqn (Code.Equation, true)) case_thms
       |> Code.add_case (mk_case_certificate (Proof_Context.init_global thy) case_thms)
       |> not (Sorts.has_instance (Sign.classes_of thy) fcT_name [HOLogic.class_equal])
         ? add_equality fcT fcT_name As ctrs inject_thms distinct_thms

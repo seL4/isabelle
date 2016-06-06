@@ -93,7 +93,7 @@ fun add_term_of_code tyco vs raw_cs thy =
  in
     thy
     |> Code.del_eqns const
-    |> fold Code.add_eqn eqs
+    |> fold (Code.add_eqn (Code.Equation, false)) eqs
   end;
 
 fun ensure_term_of_code (tyco, (vs, cs)) =
@@ -125,7 +125,7 @@ fun add_abs_term_of_code tyco vs abs raw_ty_rep proj thy =
  in
     thy
     |> Code.del_eqns const
-    |> Code.add_eqn eq
+    |> Code.add_eqn (Code.Equation, false) eq
   end;
 
 fun ensure_abs_term_of_code (tyco, (vs, ((abs, (_, ty)), (proj, _)))) =

@@ -385,7 +385,7 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
         fold (fn (name, eq) => Local_Theory.note
           ((Binding.qualify true prfx
               (Binding.qualify true name (Binding.name "simps")),
-             [Code.add_default_eqn_attrib]), [eq]) #> snd)
+             [Code.add_default_eqn_attrib Code.Equation]), [eq]) #> snd)
           (names ~~ eqs) lthy
       end)
 

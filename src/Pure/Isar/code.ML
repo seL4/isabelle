@@ -46,18 +46,13 @@ sig
   val abstype_interpretation:
     (string * ((string * sort) list * ((string * ((string * sort) list * typ)) * (string * thm)))
       -> theory -> theory) -> theory -> theory
-  val add_eqn: thm -> theory -> theory
-  val add_nbe_eqn: thm -> theory -> theory
-  val add_abs_eqn: thm -> theory -> theory
-  val add_default_eqn: thm -> theory -> theory
-  val add_default_eqn_attribute: attribute
-  val add_default_eqn_attrib: Token.src
-  val add_nbe_default_eqn: thm -> theory -> theory
-  val add_nbe_default_eqn_attribute: attribute
-  val add_nbe_default_eqn_attrib: Token.src
-  val add_abs_default_eqn: thm -> theory -> theory
-  val add_abs_default_eqn_attribute: attribute
-  val add_abs_default_eqn_attrib: Token.src
+  type kind
+  val Equation: kind
+  val Nbe: kind
+  val Abstract: kind
+  val add_eqn: kind * bool -> thm -> theory -> theory
+  val add_default_eqn_attribute: kind -> attribute
+  val add_default_eqn_attrib: kind -> Token.src
   val del_eqn: thm -> theory -> theory
   val del_eqns: string -> theory -> theory
   val del_exception: string -> theory -> theory
@@ -1073,6 +1068,14 @@ fun print_codesetup thy =
 
 (* code equations *)
 
+(*
+  external distinction:
+    kind * default
+  processual distinction:
+    thm * proper  for concrete equations
+    thm  for abstract equations
+*)
+
 fun gen_add_eqn default (raw_thm, proper) thy =
   let
     val thm = Thm.close_derivation raw_thm;
@@ -1112,34 +1115,25 @@ fun gen_add_abs_eqn default raw_thm thy =
     val c = const_abs_eqn thy abs_thm;
   in change_fun_spec c (K (Abstr ((abs_thm, tyco), default))) thy end;
 
-fun add_eqn thm thy =
-  gen_add_eqn false (mk_eqn thy (thm, true)) thy;
+datatype kind = Equation | Nbe | Abstract;
 
-fun add_nbe_eqn thm thy =
-  gen_add_eqn false (mk_eqn thy (thm, false)) thy;
+fun add_eqn (kind, default) thm thy =
+  case (kind, default) of
+    (Equation, true) => (case mk_eqn_liberal thy thm of
+      SOME eqn => gen_add_eqn true eqn thy
+    | NONE => thy)
+  | (Equation, false) => gen_add_eqn false (mk_eqn thy (thm, true)) thy
+  | (Nbe, _) => gen_add_eqn default (mk_eqn thy (thm, false)) thy
+  | (Abstract, _) => gen_add_abs_eqn default (mk_abs_eqn thy thm) thy;
 
-fun add_default_eqn thm thy =
-  case mk_eqn_liberal thy thm
-   of SOME eqn => gen_add_eqn true eqn thy
-    | NONE => thy;
+fun lift_attribute f = Thm.declaration_attribute
+  (fn thm => Context.mapping (f thm) I);
 
-val add_default_eqn_attribute = Thm.declaration_attribute
-  (fn thm => Context.mapping (add_default_eqn thm) I);
-val add_default_eqn_attrib = Attrib.internal (K add_default_eqn_attribute);
+fun add_default_eqn_attribute kind =
+  lift_attribute (add_eqn (kind, true));
 
-fun add_nbe_default_eqn thm thy =
-  gen_add_eqn true (mk_eqn thy (thm, false)) thy;
-
-val add_nbe_default_eqn_attribute = Thm.declaration_attribute
-  (fn thm => Context.mapping (add_nbe_default_eqn thm) I);
-val add_nbe_default_eqn_attrib = Attrib.internal (K add_nbe_default_eqn_attribute);
-
-fun add_abs_eqn raw_thm thy = gen_add_abs_eqn false (mk_abs_eqn thy raw_thm) thy;
-fun add_abs_default_eqn raw_thm thy = gen_add_abs_eqn true (mk_abs_eqn thy raw_thm) thy;
-
-val add_abs_default_eqn_attribute = Thm.declaration_attribute
-  (fn thm => Context.mapping (add_abs_default_eqn thm) I);
-val add_abs_default_eqn_attrib = Attrib.internal (K add_abs_default_eqn_attribute);
+fun add_default_eqn_attrib kind =
+  Attrib.internal (K (add_default_eqn_attribute kind));
 
 fun add_eqn_maybe_abs thm thy =
   case mk_eqn_maybe_abs thy thm
@@ -1297,18 +1291,17 @@ val add_abstype_default = gen_add_abstype true;
 
 val _ = Theory.setup
   (let
-    fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
-    fun mk_const_attribute f cs =
-      mk_attribute (K (fold (fn c => fn thy => f (read_const thy c) thy) cs));
+    fun lift_const_attribute f cs =
+      lift_attribute (K (fold (fn c => fn thy => f (read_const thy c) thy) cs));
     val code_attribute_parser =
-      Args.$$$ "equation" |-- Scan.succeed (mk_attribute add_eqn)
-      || Args.$$$ "nbe" |-- Scan.succeed (mk_attribute add_nbe_eqn)
-      || Args.$$$ "abstype" |-- Scan.succeed (mk_attribute add_abstype)
-      || Args.$$$ "abstract" |-- Scan.succeed (mk_attribute add_abs_eqn)
-      || Args.del |-- Scan.succeed (mk_attribute del_eqn)
-      || Args.$$$ "drop" -- Args.colon |-- (Scan.repeat1 Parse.term >> mk_const_attribute del_eqns)
-      || Args.$$$ "abort" -- Args.colon |-- (Scan.repeat1 Parse.term >> mk_const_attribute del_exception)
-      || Scan.succeed (mk_attribute add_eqn_maybe_abs);
+      Args.$$$ "equation" |-- Scan.succeed (lift_attribute (add_eqn (Equation, false)))
+      || Args.$$$ "nbe" |-- Scan.succeed (lift_attribute (add_eqn (Nbe, false)))
+      || Args.$$$ "abstract" |-- Scan.succeed (lift_attribute (add_eqn (Abstract, false)))
+      || Args.$$$ "abstype" |-- Scan.succeed (lift_attribute add_abstype)
+      || Args.del |-- Scan.succeed (lift_attribute del_eqn)
+      || Args.$$$ "drop" -- Args.colon |-- (Scan.repeat1 Parse.term >> lift_const_attribute del_eqns)
+      || Args.$$$ "abort" -- Args.colon |-- (Scan.repeat1 Parse.term >> lift_const_attribute del_exception)
+      || Scan.succeed (lift_attribute add_eqn_maybe_abs);
   in
     Attrib.setup @{binding code} (Scan.lift code_attribute_parser)
         "declare theorems for code generation"

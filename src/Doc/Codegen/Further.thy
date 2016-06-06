@@ -242,7 +242,7 @@ subsubsection \<open>Managing executable content\<close>
 text %mlref \<open>
   \begin{mldecls}
   @{index_ML Code.read_const: "theory -> string -> string"} \\
-  @{index_ML Code.add_eqn: "thm -> theory -> theory"} \\
+  @{index_ML Code.add_eqn: "Code.kind * bool -> thm -> theory -> theory"} \\
   @{index_ML Code.del_eqn: "thm -> theory -> theory"} \\
   @{index_ML Code_Preproc.map_pre: "(Proof.context -> Proof.context) -> theory -> theory"} \\
   @{index_ML Code_Preproc.map_post: "(Proof.context -> Proof.context) -> theory -> theory"} \\
@@ -261,11 +261,11 @@ text %mlref \<open>
   \item @{ML Code.read_const}~@{text thy}~@{text s}
      reads a constant as a concrete term expression @{text s}.
 
-  \item @{ML Code.add_eqn}~@{text "thm"}~@{text "thy"} adds function
-     theorem @{text "thm"} to executable content.
+  \item @{ML Code.add_eqn}~@{text "(kind, default)"}~@{text "thm"}~@{text "thy"} adds code equation
+     @{text "thm"} to executable content.
 
-  \item @{ML Code.del_eqn}~@{text "thm"}~@{text "thy"} removes function
-     theorem @{text "thm"} from executable content, if present.
+  \item @{ML Code.del_eqn}~@{text "thm"}~@{text "thy"} removes code equation
+     @{text "thm"} from executable content, if present.
 
   \item @{ML Code_Preproc.map_pre}~@{text "f"}~@{text "thy"} changes
      the preprocessor simpset.

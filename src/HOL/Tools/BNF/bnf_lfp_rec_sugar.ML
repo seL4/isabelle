@@ -638,7 +638,7 @@ fun gen_primrec old_primrec prep_spec opts raw_fixes raw_specs lthy =
     val nonexhaustive = exists (can (fn Nonexhaustive_Option => ())) opts;
     val transfer = exists (can (fn Transfer_Option => ())) opts;
 
-    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+    val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
 
     val (fixes, specs) = fst (prep_spec raw_fixes raw_specs lthy);
 

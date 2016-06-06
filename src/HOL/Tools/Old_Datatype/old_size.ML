@@ -196,8 +196,7 @@ fun prove_size_thms (info : Old_Datatype_Aux.info) new_type_names thy =
           |> Global_Theory.note_thmss ""
             [((Binding.name "size",
                 [Simplifier.simp_add, Named_Theorems.add @{named_theorems nitpick_simp},
-                 Thm.declaration_attribute (fn thm =>
-                   Context.mapping (Code.add_default_eqn thm) I)]),
+                 Code.add_default_eqn_attribute Code.Equation]),
               [(size_eqns, [])])];
 
       in

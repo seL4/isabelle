@@ -275,7 +275,7 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
   let
     val (fixes, spec) = fst (prep_spec raw_fixes raw_spec lthy);
     fun attr_bindings prefix = map (fn ((b, attrs), _) =>
-      (Binding.qualify false prefix b, Code.add_default_eqn_attrib :: attrs)) spec;
+      (Binding.qualify false prefix b, Code.add_default_eqn_attrib Code.Equation :: attrs)) spec;
     fun simp_attr_binding prefix =
       (Binding.qualify true prefix (Binding.name "simps"), @{attributes [simp, nitpick_simp]});
   in

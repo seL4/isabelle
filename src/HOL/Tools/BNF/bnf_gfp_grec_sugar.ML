@@ -2147,7 +2147,7 @@ fun prepare_corec_ursive_cmd long_cmd opts (raw_fixes, raw_eq) lthy =
           |> derive_and_update_coinduct_cong_intross [corec_info];
         val cong_intros_pairs = AList.group (op =) cong_intro_pairs;
 
-        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
 
         val anonymous_notes = [];
 (* TODO:

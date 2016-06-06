@@ -455,7 +455,7 @@ fun interpretation name prefs f =
   Old_Datatype_Data.interpretation (old_interpretation_of prefs f)
   #> fp_sugars_interpretation name (Local_Theory.background_theory o new_interpretation_of prefs f);
 
-val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: @{attributes [nitpick_simp, simp]};
+val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib Code.Equation :: @{attributes [nitpick_simp, simp]};
 
 fun datatype_compat fpT_names lthy =
   let

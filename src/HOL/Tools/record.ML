@@ -1778,7 +1778,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
     in
       thy
       |> Code.add_datatype [ext]
-      |> fold Code.add_default_eqn simps
+      |> fold (Code.add_eqn (Code.Equation, true)) simps
       |> Class.instantiation ([ext_tyco], vs, [HOLogic.class_equal])
       |> `(fn lthy => Syntax.check_term lthy eq)
       |-> (fn eq => Specification.definition NONE [] [] (Attrib.empty_binding, eq))
@@ -1787,8 +1787,8 @@ fun add_code ext_tyco vs extT ext simps inject thy =
       |-> (fn eq_def => fn thy =>
             thy
             |> Code.del_eqn eq_def
-            |> Code.add_default_eqn (mk_eq (Proof_Context.init_global thy) eq_def))
-      |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl (Proof_Context.init_global thy)) thy)
+            |> Code.add_eqn (Code.Equation, true) (mk_eq (Proof_Context.init_global thy) eq_def))
+      |> (fn thy => Code.add_eqn (Code.Nbe, true) (mk_eq_refl (Proof_Context.init_global thy)) thy)
       |> ensure_random_record ext_tyco vs (fst ext) (binder_types (snd ext))
       |> ensure_exhaustive_record ext_tyco vs (fst ext) (binder_types (snd ext))
     end
@@ -2045,7 +2045,7 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
           ||>> (Global_Theory.add_defs false o
                 map (Thm.no_attributes o apfst (Binding.concealed o Binding.name))) upd_specs
           ||>> (Global_Theory.add_defs false o
-                map (rpair [Code.add_default_eqn_attribute]
+                map (rpair [Code.add_default_eqn_attribute Code.Equation]
                 o apfst (Binding.concealed o Binding.name)))
             [make_spec, fields_spec, extend_spec, truncate_spec]);
     val defs_ctxt = Proof_Context.init_global defs_thy;

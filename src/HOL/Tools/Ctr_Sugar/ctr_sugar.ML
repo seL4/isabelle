@@ -1068,7 +1068,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
         val cases_type_attr = Attrib.internal (K (Induct.cases_type fcT_name));
 
-        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
+        val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib Code.Equation] else [];
 
         val nontriv_disc_eq_thmss =
           map (map (fn th => th RS @{thm eq_False[THEN iffD2]}

@@ -260,7 +260,7 @@ fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_
     val lthy3 = lthy2 |> Spec_Rules.add Spec_Rules.Equational ([lhs], [th]);
 
     val ([(def_name, [th'])], lthy4) = lthy3
-      |> Local_Theory.notes [((name, Code.add_default_eqn_attrib :: atts), [([th], [])])];
+      |> Local_Theory.notes [((name, Code.add_default_eqn_attrib Code.Equation :: atts), [([th], [])])];
 
     val lhs' = Morphism.term (Local_Theory.target_morphism lthy4) lhs;
 

@@ -45,7 +45,7 @@ open Function_Lib
 open Function_Common
 
 val simp_attribs =
-  @{attributes [simp, nitpick_simp]} @ [Attrib.internal (K Code.add_default_eqn_attribute)]
+  @{attributes [simp, nitpick_simp]} @ [Code.add_default_eqn_attrib Code.Equation]
 
 val psimp_attribs =
   @{attributes [nitpick_psimp]}
