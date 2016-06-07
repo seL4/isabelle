@@ -716,12 +716,9 @@ end;
 
 (* chain *)
 
-fun clean_facts ctxt =
-  set_facts (filter_out Thm.is_dummy (the_facts ctxt)) ctxt;
-
 val chain =
   assert_forward
-  #> clean_facts
+  #> (fn state => set_facts (Method.clean_facts (the_facts state)) state)
   #> enter_chain;
 
 fun chain_facts facts =
