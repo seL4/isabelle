@@ -14,6 +14,8 @@ sig
   val string_of_goal: Proof.context -> thm -> string
 
   val set_goal_print_cache_limit: int -> unit
+
+  val quick_print_enabled: unit -> bool
 end;
 
 structure Goal_Display: GOAL_DISPLAY =
@@ -24,6 +26,8 @@ val show_main_goal = Config.declare_option_bool ("show_main_goal", \<^here>);
 
 val print_cache_limit = Unsynchronized.ref (0 : int);
 fun set_goal_print_cache_limit limit = print_cache_limit := limit;
+
+fun quick_print_enabled () = Options.default_bool "quick_print";
 
 (*print thm A1,...,An/B in "goal style" -- premises as numbered subgoals*)
 
@@ -84,16 +88,18 @@ fun pretty_goals ctxt0 state =
 
     val prt_sort = Syntax.pretty_sort ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
-    val prt_term' =
+    val prt_term =
       singleton (Syntax.uncheck_terms ctxt) #>
       Type_Annotation.ignore_free_types #>
       Syntax.unparse_term ctxt;
 
-    fun prt_term t = case check_cache t of SOME pretty => pretty | NONE =>
+    fun prt_subgoal' t = case check_cache t of SOME pretty => pretty | NONE =>
       let
-        val pretty = prt_term' t
+        val pretty = prt_term t
         val _ = add_cache t pretty;
       in pretty end;
+
+    fun prt_subgoal t = if (quick_print_enabled ()) then prt_subgoal' (Const ("Pure.prop", dummyT) $ t) else prt_subgoal' t
 
     fun prt_atoms prt prtT (X, xs) = Pretty.block
       [Pretty.block (Pretty.commas (map prt xs)), Pretty.str " ::",
@@ -114,7 +120,7 @@ fun pretty_goals ctxt0 state =
       | pretty_list name prt lst = [Pretty.big_list name (map prt lst)];
 
     fun pretty_subgoal s A =
-      Pretty.markup (Markup.subgoal s) [Pretty.str (" " ^ s ^ ". "), prt_term A];
+      Pretty.markup (Markup.subgoal s) [Pretty.str (" " ^ s ^ ". "), prt_subgoal A];
     val pretty_subgoals = map_index (fn (i, A) => pretty_subgoal (string_of_int (i + 1)) A);
 
     val pretty_ffpairs = pretty_list "flex-flex pairs:" (Syntax.pretty_flexpair ctxt);
@@ -128,7 +134,7 @@ fun pretty_goals ctxt0 state =
     val (As, B) = Logic.strip_horn prop;
     val ngoals = length As;
   in
-    (if show_main_goal then [Pretty.mark Markup.goal (prt_term B)] else []) @
+    (if show_main_goal then [Pretty.mark Markup.goal (prt_subgoal B)] else []) @
      (if ngoals = 0 then [Pretty.str "No subgoals!"]
       else if ngoals > goals_limit then
         pretty_subgoals (take goals_limit As) @

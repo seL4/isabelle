@@ -100,6 +100,8 @@ option strict_facts : bool = false
   -- "force lazy facts when defined in context"
 public option defer_proofs : bool = false
   -- "defer proof processing"
+public option quick_print : bool = false
+  -- "skip typed print translations when printing goal states"
 
 
 section "Global Session Parameters"

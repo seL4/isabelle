@@ -287,6 +287,37 @@ object Isabelle
     load()
   }
 
+/* quick print */
+
+  private val QUICK_PRINT = "quick_print"
+
+  def quick_print: Boolean = PIDE.options.bool(QUICK_PRINT)
+
+  def quick_print_=(b: Boolean)
+  {
+    GUI_Thread.require()
+
+    if (quick_print != b) {
+      PIDE.options.bool(QUICK_PRINT) = b
+      PIDE.plugin.options_changed()
+      PIDE.session.update_options(PIDE.options.value)
+      PIDE.editor.flush()
+    }
+  }
+
+  def set_quick_print() { quick_print = true }
+  def reset_quick_print() { quick_print = false }
+  def toggle_quick_print() { quick_print = !quick_print }
+
+  class Quick_Print extends CheckBox("Quick Print")
+  {
+    tooltip = "Skip typed print translations"
+    reactions += { case ButtonClicked(_) => quick_print = selected }
+    def load() { selected = quick_print }
+    load()
+  }
+
+
   /* required document nodes */
 
   def set_node_required(view: View) { Document_Model.view_node_required(view, set = true) }
