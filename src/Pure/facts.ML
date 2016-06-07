@@ -30,9 +30,9 @@ sig
   val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
   val defined: T -> string -> bool
   val is_dynamic: T -> string -> bool
-  val lookup: Context.generic -> T -> string -> (bool * thm list) option
+  val lookup: Context.generic -> T -> string -> {dynamic: bool, thms: thm list} option
   val retrieve: Context.generic -> T -> xstring * Position.T ->
-    {name: string, static: bool, thms: thm list}
+    {name: string, dynamic: bool, thms: thm list}
   val fold_static: (string * thm list -> 'a -> 'a) -> T -> 'a -> 'a
   val dest_static: bool -> T list -> T -> (string * thm list) list
   val dest_all: Context.generic -> bool -> T list -> T -> (string * thm list) list
@@ -178,22 +178,23 @@ fun is_dynamic facts name =
 fun lookup context facts name =
   (case Name_Space.lookup (facts_of facts) name of
     NONE => NONE
-  | SOME (Static ths) => SOME (true, ths)
-  | SOME (Dynamic f) => SOME (false, f context));
+  | SOME (Static ths) => SOME {dynamic = false, thms = ths}
+  | SOME (Dynamic f) => SOME {dynamic = true, thms = f context});
 
 fun retrieve context facts (xname, pos) =
   let
     val name = check context facts (xname, pos);
-    val (static, thms) =
+    val {dynamic, thms} =
       (case lookup context facts name of
-        SOME (static, thms) =>
-          (if static then ()
-           else Context_Position.report_generic context pos (Markup.dynamic_fact name);
-           (static, thms))
+        SOME res =>
+          (if #dynamic res
+           then Context_Position.report_generic context pos (Markup.dynamic_fact name)
+           else ();
+           res)
       | NONE => error ("Unknown fact " ^ quote name ^ Position.here pos));
   in
    {name = name,
-    static = static,
+    dynamic = dynamic,
     thms = map (Thm.transfer (Context.theory_of context)) thms}
   end;
 
