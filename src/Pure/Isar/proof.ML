@@ -315,7 +315,7 @@ fun assert_current_goal g state =
     else state
   end;
 
-fun put_goal goal = map_top (fn (ctxt, using, mode, _) => (ctxt, using, mode, goal));
+fun put_goal goal = map_top (fn (ctxt, facts, mode, _) => (ctxt, facts, mode, goal));
 
 val set_goal = put_goal o SOME;
 val reset_goal = put_goal NONE;
@@ -553,15 +553,15 @@ fun finished_goal pos state =
 (* goal views -- corresponding to methods *)
 
 fun raw_goal state =
-  let val (ctxt, (facts, goal)) = get_goal state
-  in {context = ctxt, facts = facts, goal = goal} end;
+  let val (ctxt, (using, goal)) = get_goal state
+  in {context = ctxt, facts = using, goal = goal} end;
 
 val goal = raw_goal o refine_insert [];
 
 fun simple_goal state =
   let
-    val (_, (facts, _)) = get_goal state;
-    val (ctxt, (_, goal)) = get_goal (refine_insert facts state);
+    val (_, (using, _)) = get_goal state;
+    val (ctxt, (_, goal)) = get_goal (refine_insert using state);
   in {context = ctxt, goal = goal} end;
 
 fun status_markup state =
