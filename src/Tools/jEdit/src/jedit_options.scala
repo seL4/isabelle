@@ -105,6 +105,18 @@ object JEdit_Options {
       tooltip = "Defer proof checking"
     }
   }
+
+  object quick_print extends Bool_Access("quick_print") {
+    override def changed(): Unit = GUI_Thread.require {
+      super.changed()
+      PIDE.editor.flush_edits(hidden = true)
+      PIDE.editor.flush()
+    }
+
+    class GUI extends Bool_GUI(this, "Quick print") {
+      tooltip = "Skip typed print translations"
+    }
+  }
 }
 
 class JEdit_Options(init_options: Options) extends Options_Variable(init_options) {
