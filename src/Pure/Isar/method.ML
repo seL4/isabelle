@@ -55,8 +55,6 @@ sig
   val frule: Proof.context -> int -> thm list -> method
   val set_tactic: (morphism -> thm list -> tactic) -> Context.generic -> Context.generic
   val clean_facts: thm list -> thm list
-  val get_facts: Proof.context -> thm list
-  val update_facts: (thm list -> thm list) -> Proof.context -> Proof.context
   type combinator_info
   val no_combinator_info: combinator_info
   datatype combinator = Then | Then_All_New | Orelse | Try | Repeat1 | Select_Goals of int
