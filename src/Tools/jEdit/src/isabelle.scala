@@ -222,6 +222,13 @@ object Isabelle {
   def toggle_defer_proofs():Unit = { JEdit_Options.defer_proofs.toggle() }
 
 
+/* quick print */
+
+  def set_quick_print():Unit = { JEdit_Options.quick_print.set() }
+  def reset_quick_print():Unit = { JEdit_Options.quick_print.reset() }
+  def toggle_quick_print():Unit = { JEdit_Options.quick_print.toggle() }
+
+
   /* required document nodes */
 
   def set_node_required(view: View): Unit = Document_Model.view_node_required(view, set = true)
