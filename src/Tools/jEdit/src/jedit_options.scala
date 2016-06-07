@@ -104,6 +104,17 @@ object JEdit_Options {
     }
   }
 
+  object quick_print extends Bool_Access("quick_print") {
+    override def changed(): Unit = GUI_Thread.require {
+      super.changed()
+      JEdit_Editor.flush_edits(hidden = true)
+      JEdit_Editor.flush_edits()
+    }
+
+    class GUI extends Bool_GUI(this, "Quick print") {
+      tooltip = "Skip typed print translations"
+    }
+  }
 
 
   /* editor pane for plugin options */
