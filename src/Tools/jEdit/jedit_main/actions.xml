@@ -62,6 +62,21 @@
 	    isabelle.jedit.Isabelle.toggle_defer_proofs();
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.set-quick-print">
+	  <CODE>
+	    isabelle.jedit.Isabelle.set_quick_print();
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.reset-quick-print">
+	  <CODE>
+	    isabelle.jedit.Isabelle.reset_quick_print();
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.toggle-quick-print">
+	  <CODE>
+	    isabelle.jedit.Isabelle.toggle_quick_print();
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.set-node-required">
 	  <CODE>
 	    isabelle.jedit.Isabelle.set_node_required(view);

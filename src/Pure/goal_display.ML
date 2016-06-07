@@ -12,6 +12,8 @@ sig
   val pretty_goals: Proof.context -> thm -> Pretty.T list
   val pretty_goal: Proof.context -> thm -> Pretty.T
   val print_goal: Proof.context -> string -> thm -> string
+
+  val quick_print_enabled: unit -> bool
 end;
 
 structure Goal_Display: GOAL_DISPLAY =
@@ -20,6 +22,8 @@ struct
 val goals_limit = Config.declare_option_int ("goals_limit", \<^here>);
 val show_main_goal = Config.declare_option_bool ("show_main_goal", \<^here>);
 
+
+fun quick_print_enabled () = Options.default_bool "quick_print";
 
 (*print thm A1,...,An/B in "goal style" -- premises as numbered subgoals*)
 
@@ -71,6 +75,8 @@ fun pretty_goals ctxt0 state =
       Type_Annotation.ignore_free_types #>
       Syntax.unparse_term ctxt;
 
+    fun prt_subgoal t = if (quick_print_enabled ()) then prt_term (Const ("Pure.prop", dummyT) $ t) else prt_term t
+
     fun prt_atoms prt prtT (X, xs) = Pretty.block
       [Pretty.item (Pretty.commas (map prt xs)), Pretty.str " ::",
         Pretty.brk 1, prtT X];
@@ -90,7 +96,7 @@ fun pretty_goals ctxt0 state =
       | pretty_list name prt lst = [Pretty.big_list name (map prt lst)];
 
     fun pretty_subgoal s A =
-      Pretty.markup (Markup.subgoal s) [Pretty.str (" " ^ s ^ ". "), prt_term A];
+      Pretty.markup (Markup.subgoal s) [Pretty.str (" " ^ s ^ ". "), prt_subgoal A];
     val pretty_subgoals = map_index (fn (i, A) => pretty_subgoal (string_of_int (i + 1)) A);
 
     val pretty_ffpairs = pretty_list "flex-flex pairs:" (Pretty.item o Syntax.pretty_flexpair ctxt);
@@ -104,7 +110,7 @@ fun pretty_goals ctxt0 state =
     val (As, B) = Logic.strip_horn prop;
     val ngoals = length As;
   in
-    (if show_main_goal then [Pretty.mark Markup.goal (prt_term B)] else []) @
+    (if show_main_goal then [Pretty.mark Markup.goal (prt_subgoal B)] else []) @
      (if ngoals = 0 then [Pretty.str "No subgoals!"]
       else if ngoals > goals_limit then
         pretty_subgoals (take goals_limit As) @
