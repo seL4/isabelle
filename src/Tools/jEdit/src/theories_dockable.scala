@@ -45,8 +45,11 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private val defer_proofs = new JEdit_Options.defer_proofs.GUI
   defer_proofs.focusable = false
 
+  private val quick_print = new JEdit_Options.quick_print.GUI
+  quick_print.focusable = false
+
   private val controls =
-    Wrap_Panel(List(purge, skip_proofs, defer_proofs, continuous_checking, session_phase, logic))
+    Wrap_Panel(List(purge, skip_proofs, defer_proofs, quick_print, continuous_checking, session_phase, logic))
 
   add(controls.peer, BorderLayout.NORTH)
 
@@ -65,6 +68,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later {
           skip_proofs.load()
           defer_proofs.load()
+          quick_print.load()
           continuous_checking.load()
           logic.load()
           theories.refresh()
