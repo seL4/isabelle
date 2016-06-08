@@ -354,7 +354,7 @@ proof -
         obtain D fs where
           hp: "hp (the_Addr x) = Some (D,fs)" and
           D:  "G \<turnstile> D \<preceq>C C"
-          by - (drule non_npD, assumption, clarsimp)
+          by (auto dest: non_npD)
         hence "hp (the_Addr x) \<noteq> None" (is ?P1) by simp
         moreover
         from wf mth hp D
@@ -366,9 +366,9 @@ proof -
         hence "list_all2 (conf G hp) (rev aps) (rev (rev apTs))"
           by (simp only: list_all2_rev)
         hence "list_all2 (conf G hp) (rev aps) apTs" by simp
-        with wf widen        
+        from wf this widen
         have "list_all2 (conf G hp) (rev aps) ps" (is ?P3)
-          by - (rule list_all2_conf_widen) 
+          by (rule list_all2_conf_widen) 
         ultimately
         have "?P1 \<and> ?P2 \<and> ?P3" by blast
       }

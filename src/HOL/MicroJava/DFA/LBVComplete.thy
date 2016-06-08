@@ -65,7 +65,7 @@ lemma (in lbvc) cert_approx [intro?]:
 
 lemma (in lbv) le_top [simp, intro]:
   "x <=_r \<top>"
-  by (insert top) simp
+  using top by simp
   
 
 lemma (in lbv) merge_mono:

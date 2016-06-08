@@ -135,14 +135,14 @@ lemma (in Semilat) trans_r [trans, intro?]: "\<lbrakk>x \<sqsubseteq>\<^sub>r y;
   (*<*) by (auto intro: order_trans) (*>*)
   
 lemma (in Semilat) ub1 [simp, intro?]: "\<lbrakk> x \<in> A; y \<in> A \<rbrakk> \<Longrightarrow> x \<sqsubseteq>\<^sub>r x \<squnion>\<^sub>f y"
-  (*<*) by (insert semilat) (unfold semilat_Def, simp) (*>*)
+  (*<*) using semilat by (simp add: semilat_Def) (*>*)
 
 lemma (in Semilat) ub2 [simp, intro?]: "\<lbrakk> x \<in> A; y \<in> A \<rbrakk> \<Longrightarrow> y \<sqsubseteq>\<^sub>r x \<squnion>\<^sub>f y"
-  (*<*) by (insert semilat) (unfold semilat_Def, simp) (*>*)
+  (*<*) using semilat by (simp add: semilat_Def) (*>*)
 
 lemma (in Semilat) lub [simp, intro?]:
   "\<lbrakk> x \<sqsubseteq>\<^sub>r z; y \<sqsubseteq>\<^sub>r z; x \<in> A; y \<in> A; z \<in> A \<rbrakk> \<Longrightarrow> x \<squnion>\<^sub>f y \<sqsubseteq>\<^sub>r z"
-  (*<*) by (insert semilat) (unfold semilat_Def, simp) (*>*)
+  (*<*) using semilat by (simp add: semilat_Def) (*>*)
 
 lemma (in Semilat) plus_le_conv [simp]:
   "\<lbrakk> x \<in> A; y \<in> A; z \<in> A \<rbrakk> \<Longrightarrow> (x \<squnion>\<^sub>f y \<sqsubseteq>\<^sub>r z) = (x \<sqsubseteq>\<^sub>r z \<and> y \<sqsubseteq>\<^sub>r z)"

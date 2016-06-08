@@ -121,7 +121,7 @@ qed
 
 lemma (in lbv) bottom_le [simp, intro]:
   "\<bottom> <=_r x"
-  by (insert bot) (simp add: bottom_def)
+  using bot by (simp add: bottom_def)
 
 lemma (in lbv) le_bottom [simp]:
   "x <=_r \<bottom> = (x = \<bottom>)"

@@ -4,7 +4,7 @@
 
 (* Exact position in theory hierarchy still to be determined *)
 theory TypeInf
-imports "../J/WellType" "~~/src/HOL/Eisbach/Eisbach"
+imports "../J/WellType"
 begin
 
 
