@@ -55,6 +55,8 @@ sig
   val frule: Proof.context -> int -> thm list -> method
   val set_tactic: (morphism -> thm list -> tactic) -> Context.generic -> Context.generic
   val clean_facts: thm list -> thm list
+  val set_facts: thm list -> Proof.context -> Proof.context
+  val get_facts: Proof.context -> thm list
   type combinator_info
   val no_combinator_info: combinator_info
   datatype combinator = Then | Then_All_New | Orelse | Try | Repeat1 | Select_Goals of int
@@ -377,12 +379,12 @@ val parse_tactic =
 
 val clean_facts = filter_out Thm.is_dummy;
 
+fun set_facts facts =
+  (Context.proof_map o map_data)
+    (fn (methods, ml_tactic, _) => (methods, ml_tactic, SOME (clean_facts facts)));
+
 val get_facts_generic = these o #facts o Data.get;
 val get_facts = get_facts_generic o Context.Proof;
-
-fun update_facts f =
-  (Context.proof_map o map_data)
-    (fn (methods, ml_tactic, facts) => (methods, ml_tactic, SOME (clean_facts (f (these facts)))));
 
 val _ =
   Theory.setup
@@ -571,7 +573,7 @@ fun evaluate text static_ctxt =
       | eval (Source src) = eval0 (method_cmd static_ctxt src static_ctxt)
       | eval (Combinator (_, c, txts)) = combinator c (map eval txts);
     val method = eval text;
-  in fn facts => fn (ctxt, st) => method (Seq.Result (update_facts (K facts) ctxt, st)) end;
+  in fn facts => fn (ctxt, st) => method (Seq.Result (set_facts facts ctxt, st)) end;
 
 end;
 
