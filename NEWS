@@ -98,6 +98,16 @@ typesetting. E.g. to produce proof holes in examples and documentation.
 * The old proof method "default" has been removed (legacy since
 Isabelle2016). INCOMPATIBILITY, use "standard" instead.
 
+* Proof methods may refer to the main facts via the dynamic fact
+"method_facts". This is particularly useful for Eisbach method
+definitions.
+
+* Eisbach provides method "use" to modify the main facts of a given
+method expression, e.g.
+
+  (use facts in simp)
+  (use facts in \<open>simp add: ...\<close>)
+
 
 *** Pure ***
 
