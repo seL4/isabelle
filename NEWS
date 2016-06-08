@@ -122,6 +122,8 @@ generated code.
 choosing a permutation of a set uniformly at random and folding over a 
 list in random order.
 
+* Probability/SPMF formalises discrete subprobability distributions.
+
 * Library/Set_Permutations.thy (executably) defines the set of 
 permutations of a set, i.e. the set of all lists that contain every 
 element of the carrier set exactly once.
@@ -1264,9 +1266,9 @@ allows to adjust large-scale tests (e.g. AFP) to overall hardware
 performance.
 
 * Property values in etc/symbols may contain spaces, if written with the
-replacement character "␣" (Unicode point 0x2324). For example:
+replacement character "?" (Unicode point 0x2324). For example:
 
-    \<star>  code: 0x0022c6  group: operator  font: Deja␣Vu␣Sans␣Mono
+    \<star>  code: 0x0022c6  group: operator  font: Deja?Vu?Sans?Mono
 
 * Java runtime environment for x86_64-windows allows to use larger heap
 space.

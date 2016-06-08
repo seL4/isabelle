@@ -17,6 +17,9 @@ Contributions to this Isabelle version
   Reasoning support for monotonicity, continuity and
   admissibility in chain-complete partial orders.
 
+* June 2016: Andreas Lochbihler
+  Formalisation of discrete subprobability distributions.
+
 Contributions to Isabelle2016
 -----------------------------
 
