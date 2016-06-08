@@ -565,15 +565,14 @@ fun combinator Then = Seq.EVERY
 
 in
 
-fun evaluate text static_ctxt =
+fun evaluate text ctxt0 facts =
   let
-    fun eval0 m =
-      Seq.single #> Seq.maps_results (fn (ctxt, st) => m (get_facts ctxt) (ctxt, st));
-    fun eval (Basic m) = eval0 (m static_ctxt)
-      | eval (Source src) = eval0 (method_cmd static_ctxt src static_ctxt)
+    val ctxt = set_facts facts ctxt0;
+    fun eval0 m = Seq.single #> Seq.maps_results (m facts);
+    fun eval (Basic m) = eval0 (m ctxt)
+      | eval (Source src) = eval0 (method_cmd ctxt src ctxt)
       | eval (Combinator (_, c, txts)) = combinator c (map eval txts);
-    val method = eval text;
-  in fn facts => fn (ctxt, st) => method (Seq.Result (set_facts facts ctxt, st)) end;
+  in eval text o Seq.Result end;
 
 end;
 
