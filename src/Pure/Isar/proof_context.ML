@@ -116,7 +116,7 @@ sig
     (term list list * (indexname * term) list)
   val fact_tac: Proof.context -> thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
-  val lookup_fact: Proof.context -> string -> (bool * thm list) option
+  val lookup_fact: Proof.context -> string -> {dynamic: bool, thms: thm list} option
   val dynamic_facts_dummy: bool Config.T
   val get_fact_generic: Context.generic -> Facts.ref -> string option * thm list
   val get_fact: Proof.context -> Facts.ref -> thm list
@@ -1008,23 +1008,23 @@ fun retrieve pick context (Facts.Fact s) =
   | retrieve pick context (Facts.Named ((xname, pos), sel)) =
       let
         val thy = Context.theory_of context;
-        fun immediate thm = {name = xname, static = true, thms = [Thm.transfer thy thm]};
-        val {name, static, thms} =
+        fun immediate thm = {name = xname, dynamic = false, thms = [Thm.transfer thy thm]};
+        val {name, dynamic, thms} =
           (case xname of
             "" => immediate Drule.dummy_thm
           | "_" => immediate Drule.asm_rl
           | _ => retrieve_generic context (xname, pos));
         val thms' =
-          if not static andalso Config.get_generic context dynamic_facts_dummy
+          if dynamic andalso Config.get_generic context dynamic_facts_dummy
           then [Drule.free_dummy_thm]
           else Facts.select (Facts.Named ((name, pos), sel)) thms;
-      in pick (static orelse is_some sel) (name, pos) thms' end;
+      in pick (dynamic andalso is_none sel) (name, pos) thms' end;
 
 in
 
 val get_fact_generic =
-  retrieve (fn static => fn (name, _) => fn thms =>
-    (if static then NONE else SOME name, thms));
+  retrieve (fn dynamic => fn (name, _) => fn thms =>
+    (if dynamic then SOME name else NONE, thms));
 
 val get_fact = retrieve (K (K I)) o Context.Proof;
 val get_fact_single = retrieve (K Facts.the_single) o Context.Proof;

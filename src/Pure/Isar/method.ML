@@ -54,6 +54,9 @@ sig
   val drule: Proof.context -> int -> thm list -> method
   val frule: Proof.context -> int -> thm list -> method
   val set_tactic: (morphism -> thm list -> tactic) -> Context.generic -> Context.generic
+  val clean_facts: thm list -> thm list
+  val set_facts: thm list -> Proof.context -> Proof.context
+  val get_facts: Proof.context -> thm list
   type combinator_info
   val no_combinator_info: combinator_info
   datatype combinator = Then | Then_All_New | Orelse | Try | Repeat1 | Select_Goals of int
@@ -322,26 +325,37 @@ val try_intros_tac = gen_intros_tac TRYALL;
 structure Data = Generic_Data
 (
   type T =
-    ((Token.src -> Proof.context -> method) * string) Name_Space.table *  (*methods*)
-    (morphism -> thm list -> tactic) option;  (*ML tactic*)
-  val empty : T = (Name_Space.empty_table "method", NONE);
+   {methods: ((Token.src -> Proof.context -> method) * string) Name_Space.table,
+    ml_tactic: (morphism -> thm list -> tactic) option,
+    facts: thm list option};
+  val empty : T =
+    {methods = Name_Space.empty_table "method", ml_tactic = NONE, facts = NONE};
   val extend = I;
-  fun merge ((tab, tac), (tab', tac')) : T =
-    (Name_Space.merge_tables (tab, tab'), merge_options (tac, tac'));
+  fun merge
+    ({methods = methods1, ml_tactic = ml_tactic1, facts = facts1},
+     {methods = methods2, ml_tactic = ml_tactic2, facts = facts2}) : T =
+    {methods = Name_Space.merge_tables (methods1, methods2),
+     ml_tactic = merge_options (ml_tactic1, ml_tactic2),
+     facts = merge_options (facts1, facts2)};
 );
 
-val get_methods = fst o Data.get;
-val map_methods = Data.map o apfst;
+fun map_data f = Data.map (fn {methods, ml_tactic, facts} =>
+  let val (methods', ml_tactic', facts') = f (methods, ml_tactic, facts)
+  in {methods = methods', ml_tactic = ml_tactic', facts = facts'} end);
 
-val ops_methods = {get_data = get_methods, put_data = map_methods o K};
+val get_methods = #methods o Data.get;
+
+val ops_methods =
+ {get_data = get_methods,
+  put_data = fn methods => map_data (fn (_, ml_tactic, facts) => (methods, ml_tactic, facts))};
 
 
 (* ML tactic *)
 
-val set_tactic = Data.map o apsnd o K o SOME;
+fun set_tactic ml_tactic = map_data (fn (methods, _, facts) => (methods, SOME ml_tactic, facts));
 
 fun the_tactic context =
-  (case snd (Data.get context) of
+  (case #ml_tactic (Data.get context) of
     SOME tac => tac
   | NONE => raise Fail "Undefined ML tactic");
 
@@ -359,6 +373,22 @@ val parse_tactic =
       in
         fn phi => set_tactic (fn _ => Context.setmp_generic_context (SOME context) (tac phi))
       end)) >> (fn decl => Morphism.form (the_tactic (Morphism.form decl context))));
+
+
+(* method facts *)
+
+val clean_facts = filter_out Thm.is_dummy;
+
+fun set_facts facts =
+  (Context.proof_map o map_data)
+    (fn (methods, ml_tactic, _) => (methods, ml_tactic, SOME (clean_facts facts)));
+
+val get_facts_generic = these o #facts o Data.get;
+val get_facts = get_facts_generic o Context.Proof;
+
+val _ =
+  Theory.setup
+    (Global_Theory.add_thms_dynamic (Binding.make ("method_facts", @{here}), get_facts_generic));
 
 
 (* method text *)
@@ -535,18 +565,14 @@ fun combinator Then = Seq.EVERY
 
 in
 
-fun evaluate text ctxt =
+fun evaluate text ctxt0 facts =
   let
-    fun eval0 m facts = Seq.single #> Seq.maps_results (m facts);
+    val ctxt = set_facts facts ctxt0;
+    fun eval0 m = Seq.single #> Seq.maps_results (m facts);
     fun eval (Basic m) = eval0 (m ctxt)
       | eval (Source src) = eval0 (method_cmd ctxt src ctxt)
-      | eval (Combinator (_, c, txts)) =
-          let
-            val comb = combinator c;
-            val meths = map eval txts;
-          in fn facts => comb (map (fn meth => meth facts) meths) end;
-    val meth = eval text;
-  in fn facts => fn ctxt_st => meth facts (Seq.Result ctxt_st) end;
+      | eval (Combinator (_, c, txts)) = combinator c (map eval txts);
+  in eval text o Seq.Result end;
 
 end;
 

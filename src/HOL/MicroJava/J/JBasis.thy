@@ -6,7 +6,12 @@ chapter \<open>Java Source Language \label{cha:j}\<close>
 
 section \<open>Some Auxiliary Definitions\<close>
 
-theory JBasis imports Main "~~/src/HOL/Library/Transitive_Closure_Table" begin 
+theory JBasis
+imports
+  Main
+  "~~/src/HOL/Library/Transitive_Closure_Table"
+  "~~/src/HOL/Eisbach/Eisbach"
+begin
 
 lemmas [simp] = Let_def
 

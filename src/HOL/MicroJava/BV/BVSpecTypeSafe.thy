@@ -89,10 +89,9 @@ proof (induct et)
     from set
     have "C \<in> set (match_any G pc (e#es))" by simp
     moreover
-    from False C
+    from False
     have "\<not> match_exception_entry G C pc e"
-      by - (erule contrapos_nn, 
-            auto simp add: match_exception_entry_def)
+      by (rule contrapos_nn) (use C in \<open>auto simp add: match_exception_entry_def\<close>)
     with m
     have "match_exception_table G C pc (e#es) = Some pc'" by simp
     moreover note C
@@ -571,7 +570,7 @@ proof -
       }
       ultimately
       show ?thesis by (rule that)
-    qed (insert xp', auto) \<comment> "the other instructions don't generate exceptions"
+    qed (use xp' in auto) \<comment> "the other instructions don't generate exceptions"
 
     from state' meth hp_ok "class" frames phi_pc' frame' prehp
     have ?thesis by (unfold correct_state_def) simp
@@ -772,10 +771,9 @@ proof -
     (is "state' = Norm (?hp', ?f # frs)")
     by simp    
   moreover
-  from wf hp heap_ok is_class_X
+  from hp heap_ok
   have hp': "G \<turnstile>h ?hp' \<surd>"
-    by - (rule hconf_newref, 
-          auto simp add: oconf_def dest: fields_is_type)
+    by (rule hconf_newref) (use wf is_class_X in \<open>auto simp add: oconf_def dest: fields_is_type\<close>)
   moreover
   from hp
   have sup: "hp \<le>| ?hp'" by (rule hext_new)
@@ -786,10 +784,9 @@ proof -
     apply (blast intro: approx_stk_sup_heap approx_loc_sup_heap sup)
     done      
   moreover
-  from hp frames wf heap_ok is_class_X
+  from hp frames
   have "correct_frames G ?hp' phi rT sig frs"
-    by - (rule correct_frames_newref, 
-          auto simp add: oconf_def dest: fields_is_type)
+    by (rule correct_frames_newref)
   moreover
   from hp prealloc have "preallocated ?hp'" by (rule preallocated_newref)
   ultimately
@@ -851,10 +848,8 @@ proof -
     s': "phi C sig ! Suc pc = Some (ST', LT')"
     by (simp add: norm_eff_def split_paired_Ex) blast
 
-  from X 
-  obtain T where
-    X_Ref: "X = RefT T"
-    by - (drule widen_RefT2, erule exE, rule that)
+  from X obtain T where X_Ref: "X = RefT T"
+    by (blast dest: widen_RefT2)
   
   from s ins frame 
   obtain 
@@ -871,7 +866,7 @@ proof -
     stk':   "stk = opTs @ oX # stk'" and
     l_o:    "length opTs = length apTs" 
             "length stk' = length ST"  
-    by - (drule approx_stk_append, auto)
+    by (auto dest: approx_stk_append)
 
   from oX X_Ref
   have oX_conf: "G,hp \<turnstile> oX ::\<preceq> RefT T"
@@ -909,7 +904,7 @@ proof -
         "G \<turnstile> rT' \<preceq> rT0"
     by (auto dest: subtype_widen_methd intro: that)
   
-  from mX mD have rT': "G \<turnstile> rT' \<preceq> rT" by - (rule widen_trans)
+  from mD(2) mX(2) have rT': "G \<turnstile> rT' \<preceq> rT" by (rule widen_trans)
   
   from is_class X'_subcls D_subcls
   have is_class_D: "is_class G D" by (auto dest: subcls_is_class2)
@@ -1351,19 +1346,18 @@ lemma
   apply (auto simp add: sup_state_conv approx_val_def dest!: widen_RefT split: err.splits)
   done  
 
-theorem
-  fixes G :: jvm_prog ("\<Gamma>") and Phi :: prog_type ("\<Phi>")
-  assumes welltyped:   "wt_jvm_prog \<Gamma> \<Phi>" and
-          main_method: "is_class \<Gamma> C" "method (\<Gamma>,C) (m,[]) = Some (C, b)"  
-  shows typesafe:
-  "G \<turnstile> start_state \<Gamma> C m \<midarrow>jvm\<rightarrow> s  \<Longrightarrow>  \<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
+theorem typesafe:
+  fixes G :: jvm_prog ("\<Gamma>")
+    and Phi :: prog_type ("\<Phi>")
+  assumes welltyped:   "wt_jvm_prog \<Gamma> \<Phi>"
+    and main_method: "is_class \<Gamma> C" "method (\<Gamma>,C) (m,[]) = Some (C, b)"
+    and exec_all: "G \<turnstile> start_state \<Gamma> C m \<midarrow>jvm\<rightarrow> s"
+  shows "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
 proof -
-  from welltyped main_method
-  have "\<Gamma>,\<Phi> \<turnstile>JVM start_state \<Gamma> C m \<surd>" by (rule BV_correct_initial)
-  moreover
-  assume "G \<turnstile> start_state \<Gamma> C m \<midarrow>jvm\<rightarrow> s"
-  ultimately  
-  show "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>" using welltyped by - (rule BV_correct)
+  from welltyped main_method have "\<Gamma>,\<Phi> \<turnstile>JVM start_state \<Gamma> C m \<surd>"
+    by (rule BV_correct_initial)
+  with welltyped exec_all show "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>" 
+    by (rule BV_correct)
 qed
   
 end

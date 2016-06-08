@@ -55,7 +55,7 @@ proof (induct "a")
     fix b 
     assume "length (l # ls) = length (b::ty list)" 
     with Cons
-    show "?Q (l # ls) b" by - (cases b, auto)
+    show "?Q (l # ls) b" by (cases b) auto
   qed
 qed
  

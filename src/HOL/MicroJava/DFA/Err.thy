@@ -131,7 +131,7 @@ lemma not_Err_less [rule_format, iff]:
 lemma semilat_errI [intro]:
   assumes semilat: "semilat (A, r, f)"
   shows "semilat(err A, Err.le r, lift2(%x y. OK(f x y)))"
-  apply(insert semilat)
+  using semilat
   apply (simp only: semilat_Def closed_def plussub_def lesub_def 
     lift2_def Err.le_def err_def)
   apply (simp split: err.split)

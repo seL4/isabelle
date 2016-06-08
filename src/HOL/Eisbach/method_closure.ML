@@ -122,7 +122,7 @@ fun method_evaluate text ctxt =
       text |> (Method.map_source o map o Token.map_facts)
         (fn SOME name =>
               (case Proof_Context.lookup_fact ctxt name of
-                SOME (false, ths) => K ths
+                SOME {dynamic = true, thms} => K thms
               | _ => I)
           | NONE => I);
     val ctxt' = Config.put Method.closure false ctxt;
