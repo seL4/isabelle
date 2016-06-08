@@ -2405,7 +2405,7 @@ proof -
   define bl where "bl = bitlen m - 1"
   have "0 < real_of_int m" and "\<And>X. (0 :: real) < 2^X" and "0 < (2 :: real)" and "m \<noteq> 0"
     using assms by auto
-  hence "0 \<le> bl" by (simp add: bitlen_def bl_def)
+  hence "0 \<le> bl" by (simp add: bitlen_alt_def bl_def)
   show ?thesis
   proof (cases "0 \<le> e")
     case True
@@ -2544,7 +2544,7 @@ next
       done
     define bl where "bl = bitlen m - 1"
     hence "bl \<ge> 0"
-      using \<open>m > 0\<close> by (simp add: bitlen_def)
+      using \<open>m > 0\<close> by (simp add: bitlen_alt_def)
     have "1 \<le> Float m e"
       using \<open>1 \<le> x\<close> Float unfolding less_eq_float_def by auto
     from bitlen_div[OF \<open>0 < m\<close>] float_gt1_scale[OF \<open>1 \<le> Float m e\<close>] \<open>bl \<ge> 0\<close>

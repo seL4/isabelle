@@ -857,68 +857,158 @@ qualified lemma compute_float_up[code]: "float_up p x = - float_down p (-x)"
 
 end
 
+definition floorlog :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+  where "floorlog b a = (if a > 0 \<and> b > 1 then nat \<lfloor>log b a\<rfloor> + 1 else 0)"
 
-subsection \<open>Compute bitlen of integers\<close>
-
-definition bitlen :: "int \<Rightarrow> int"
-  where "bitlen a = (if a > 0 then \<lfloor>log 2 a\<rfloor> + 1 else 0)"
-
-lemma bitlen_nonneg: "0 \<le> bitlen x"
+lemma floorlog_nonneg: "0 \<le> floorlog b x"
 proof -
-  have "-1 < log 2 (-x)" if "0 > x"
+  have "-1 < log b (-x)" if "0 > x" "b > 1"
   proof -
-    have "-1 = log 2 (inverse 2)"
+    have "-1 = log b (inverse b)" using that
       by (subst log_inverse) simp_all
-    also have "\<dots> < log 2 (-x)"
+    also have "\<dots> < log b (-x)"
       using \<open>0 > x\<close> by auto
     finally show ?thesis .
   qed
   then show ?thesis
-    unfolding bitlen_def by (auto intro!: add_nonneg_nonneg)
+    unfolding floorlog_def by (auto intro!: add_nonneg_nonneg)
 qed
+
+lemma floorlog_bounds:
+  assumes "x > 0" "b > 1"
+  shows "b ^ (floorlog b x - 1) \<le> x \<and> x < b ^ (floorlog b x)"
+proof
+  show "b ^ (floorlog b x - 1) \<le> x"
+  proof -
+    have "(b::real) ^ nat \<lfloor>log b (real_of_int x)\<rfloor> = b powr real_of_int \<lfloor>log b (real_of_int x)\<rfloor>"
+      using powr_realpow[symmetric, of b "nat \<lfloor>log b (real_of_int x)\<rfloor>"] \<open>x > 0\<close> \<open>b > 1\<close>
+      by simp
+    also have "\<dots> \<le> b powr log b (real_of_int x)"
+      using \<open>b > 1\<close>
+      by simp
+    also have "\<dots> = real_of_int x"
+      using \<open>0 < x\<close> \<open>b > 1\<close> by simp
+    finally have "b ^ nat \<lfloor>log b (real_of_int x)\<rfloor> \<le> real_of_int x"
+      by simp
+    then show ?thesis
+      using \<open>0 < x\<close> \<open>b > 1\<close> of_nat_le_iff
+      by (fastforce simp add: floorlog_def)
+  qed
+  show "x < b ^ (floorlog b x)"
+  proof -
+    have "x \<le> b powr (log b x)"
+      using \<open>x > 0\<close> \<open>b > 1\<close> by simp
+    also have "\<dots> < b powr (\<lfloor>log b x\<rfloor> + 1)"
+      using assms
+      by (intro powr_less_mono) auto
+    also have "\<dots> = b ^ nat (\<lfloor>log b (real_of_int x)\<rfloor> + 1)"
+      using assms
+      by (simp add: powr_realpow[symmetric])
+    finally
+    have "x < b ^ nat (\<lfloor>log (real b) (real_of_int (int x))\<rfloor> + 1)"
+      by (rule of_nat_less_imp_less)
+    then show ?thesis
+      using \<open>x > 0\<close> \<open>b > 1\<close>
+      by (simp add: floorlog_def nat_add_distrib)
+  qed
+qed
+
+lemma floorlog_power[simp]:
+  assumes "a > 0" "b > 1"
+  shows "floorlog b (a * b ^ c) = floorlog b a + c"
+proof -
+  have "\<lfloor>log (real b) (real a) + real c\<rfloor> = \<lfloor>log (real b) (real a)\<rfloor> + c"
+    by arith
+  then show ?thesis using assms
+    by (auto simp: floorlog_def log_mult powr_realpow[symmetric] nat_add_distrib)
+qed
+
+lemma
+  floor_log_add_eqI:
+  fixes a::nat and b::nat and r::real
+  assumes "b > 1"
+  assumes "a \<ge> 1" "0 \<le> r" "r < 1"
+  shows "\<lfloor>log b (a + r)\<rfloor> = \<lfloor>log b a\<rfloor>"
+proof (rule floor_eq2)
+  have "log (real b) (real a) \<le> log (real b) (real a + r)"
+    using assms by force
+  then show "\<lfloor>log (real b) (real a)\<rfloor> \<le> log (real b) (real a + r)"
+    by arith
+next
+  define l::int where "l = int b ^ (nat \<lfloor>log b a\<rfloor> + 1)"
+  have l_def_real: "l = b powr (\<lfloor>log b a\<rfloor> + 1)"
+    using assms by (simp add: l_def powr_add powr_real_of_int)
+  have "a < l"
+  proof -
+    have "a = b powr (log b a)" using assms by simp
+    also have "\<dots> < b powr floor ((log b a) + 1)"
+      using assms(1) by auto
+    also have "\<dots> = l"
+      using assms
+      by (simp add: l_def powr_real_of_int powr_add)
+    finally show ?thesis by simp
+  qed
+  then have "a + r < l" using assms by simp
+  then have "log b (a + r) < log b l"
+    using assms by simp
+  also have "\<dots> = real_of_int \<lfloor>log b a\<rfloor> + 1"
+    using assms by (simp add: l_def_real)
+  finally show "log b (a + r) < real_of_int \<lfloor>log b a\<rfloor> + 1" .
+qed
+
+lemma
+  divide_nat_diff_div_nat_less_one:
+  fixes x b::nat shows "x / b - x div b < 1"
+  by (metis One_nat_def add_diff_cancel_left' divide_1 divide_self_if floor_divide_of_nat_eq
+    less_eq_real_def mod_div_trivial nat.simps(3) of_nat_eq_0_iff real_of_nat_div3 real_of_nat_div_aux)
+
+context
+begin
+
+qualified lemma compute_floorlog[code]: "floorlog b x = (if x > 0 \<and> b > 1 then floorlog b (x div b) + 1 else 0)"
+proof -
+  {
+    assume prems: "x > 0" "b > 1" "0 < x div b"
+    have "\<lfloor>log (real b) (real x)\<rfloor> = \<lfloor>log (real b) (x / b * b)\<rfloor>"
+      using prems by simp
+    also have "\<dots> = \<lfloor>log b (x / b) + log b b\<rfloor>"
+      using prems
+      by (subst log_mult) auto
+    also have "\<dots> = \<lfloor>log b (x / b)\<rfloor> + 1" using prems by simp
+    also have "\<lfloor>log b (x / b)\<rfloor> = \<lfloor>log b (x div b + (x / b - x div b))\<rfloor>"
+      by simp
+    also have "\<dots> = \<lfloor>log b (x div b)\<rfloor>"
+      using prems real_of_nat_div4 divide_nat_diff_div_nat_less_one
+      by (intro floor_log_add_eqI) auto
+    finally have ?thesis using prems by (simp add: floorlog_def nat_add_distrib)
+  } then show ?thesis
+    by (auto simp: floorlog_def div_eq_0_iff intro!: floor_eq2)
+qed
+
+end
+
+definition bitlen :: "int \<Rightarrow> int" where "bitlen a = floorlog 2 (nat a)"
+
+lemma bitlen_alt_def: "bitlen a = (if a > 0 then \<lfloor>log 2 a\<rfloor> + 1 else 0)"
+  by (simp add: bitlen_def floorlog_def)
+
+lemma bitlen_nonneg: "0 \<le> bitlen x"
+  using floorlog_nonneg by (simp add: bitlen_def)
 
 lemma bitlen_bounds:
   assumes "x > 0"
   shows "2 ^ nat (bitlen x - 1) \<le> x \<and> x < 2 ^ nat (bitlen x)"
-proof
-  show "2 ^ nat (bitlen x - 1) \<le> x"
-  proof -
-    have "(2::real) ^ nat \<lfloor>log 2 (real_of_int x)\<rfloor> = 2 powr real_of_int \<lfloor>log 2 (real_of_int x)\<rfloor>"
-      using powr_realpow[symmetric, of 2 "nat \<lfloor>log 2 (real_of_int x)\<rfloor>"] \<open>x > 0\<close>
-      by simp
-    also have "\<dots> \<le> 2 powr log 2 (real_of_int x)"
-      by simp
-    also have "\<dots> = real_of_int x"
-      using \<open>0 < x\<close> by simp
-    finally have "2 ^ nat \<lfloor>log 2 (real_of_int x)\<rfloor> \<le> real_of_int x"
-      by simp
-    then show ?thesis
-      using \<open>0 < x\<close> by (simp add: bitlen_def)
-  qed
-  show "x < 2 ^ nat (bitlen x)"
-  proof -
-    have "x \<le> 2 powr (log 2 x)"
-      using \<open>x > 0\<close> by simp
-    also have "\<dots> < 2 ^ nat (\<lfloor>log 2 (real_of_int x)\<rfloor> + 1)"
-      apply (simp add: powr_realpow[symmetric])
-      using \<open>x > 0\<close> apply simp
-      done
-    finally show ?thesis
-      using \<open>x > 0\<close> by (simp add: bitlen_def ac_simps)
-  qed
+proof -
+  from assms have "bitlen x \<ge> 1" by (auto simp: bitlen_alt_def)
+  with assms floorlog_bounds[of "nat x" 2] show ?thesis
+    by (auto simp add: bitlen_def le_nat_iff nat_less_iff nat_diff_distrib)
 qed
 
 lemma bitlen_pow2[simp]:
   assumes "b > 0"
   shows "bitlen (b * 2 ^ c) = bitlen b + c"
-proof -
-  from assms have "b * 2 ^ c > 0"
-    by auto
-  then show ?thesis
-    using floor_add[of "log 2 b" c] assms 
-    apply (auto simp add: log_mult log_nat_power bitlen_def)
-    by (metis add.right_neutral frac_lt_1 frac_of_int of_int_of_nat_eq)
-qed
+  using assms
+  by (simp add: bitlen_def nat_mult_distrib nat_power_eq)
 
 lemma bitlen_Float:
   fixes m e
@@ -926,7 +1016,7 @@ lemma bitlen_Float:
   shows "bitlen (\<bar>mantissa f\<bar>) + exponent f = (if m = 0 then 0 else bitlen \<bar>m\<bar> + e)"
 proof (cases "m = 0")
   case True
-  then show ?thesis by (simp add: f_def bitlen_def Float_def)
+  then show ?thesis by (simp add: f_def bitlen_alt_def Float_def)
 next
   case False
   then have "f \<noteq> float_of 0"
@@ -943,51 +1033,8 @@ context
 begin
 
 qualified lemma compute_bitlen[code]: "bitlen x = (if x > 0 then bitlen (x div 2) + 1 else 0)"
-proof -
-  { assume "2 \<le> x"
-    then have "\<lfloor>log 2 (x div 2)\<rfloor> + 1 = \<lfloor>log 2 (x - x mod 2)\<rfloor>"
-      by (simp add: log_mult zmod_zdiv_equality')
-    also have "\<dots> = \<lfloor>log 2 (real_of_int x)\<rfloor>"
-    proof (cases "x mod 2 = 0")
-      case True
-      then show ?thesis by simp
-    next
-      case False
-      define n where "n = \<lfloor>log 2 (real_of_int x)\<rfloor>"
-      then have "0 \<le> n"
-        using \<open>2 \<le> x\<close> by simp
-      from \<open>2 \<le> x\<close> False have "x mod 2 = 1" "\<not> 2 dvd x"
-        by (auto simp add: dvd_eq_mod_eq_0)
-      with \<open>2 \<le> x\<close> have "x \<noteq> 2 ^ nat n"
-        by (cases "nat n") auto
-      moreover
-      { have "real_of_int (2^nat n :: int) = 2 powr (nat n)"
-          by (simp add: powr_realpow)
-        also have "\<dots> \<le> 2 powr (log 2 x)"
-          using \<open>2 \<le> x\<close> by (simp add: n_def del: powr_log_cancel)
-        finally have "2^nat n \<le> x" using \<open>2 \<le> x\<close> by simp }
-      ultimately have "2^nat n \<le> x - 1" by simp
-      then have "2^nat n \<le> real_of_int (x - 1)"
-        using numeral_power_le_real_of_int_cancel_iff by blast
-      { have "n = \<lfloor>log 2 (2^nat n)\<rfloor>"
-          using \<open>0 \<le> n\<close> by (simp add: log_nat_power)
-        also have "\<dots> \<le> \<lfloor>log 2 (x - 1)\<rfloor>"
-          using \<open>2^nat n \<le> real_of_int (x - 1)\<close> \<open>0 \<le> n\<close> \<open>2 \<le> x\<close> by (auto intro: floor_mono)
-        finally have "n \<le> \<lfloor>log 2 (x - 1)\<rfloor>" . }
-      moreover have "\<lfloor>log 2 (x - 1)\<rfloor> \<le> n"
-        using \<open>2 \<le> x\<close> by (auto simp add: n_def intro!: floor_mono)
-      ultimately show "\<lfloor>log 2 (x - x mod 2)\<rfloor> = \<lfloor>log 2 x\<rfloor>"
-        unfolding n_def \<open>x mod 2 = 1\<close> by auto
-    qed
-    finally have "\<lfloor>log 2 (x div 2)\<rfloor> + 1 = \<lfloor>log 2 x\<rfloor>" . }
-  moreover
-  { assume "x < 2" "0 < x"
-    then have "x = 1" by simp
-    then have "\<lfloor>log 2 (real_of_int x)\<rfloor> = 0" by simp }
-  ultimately show ?thesis
-    unfolding bitlen_def
-    by (auto simp: pos_imp_zdiv_pos_iff not_le)
-qed
+  unfolding bitlen_def
+  by (subst Float.compute_floorlog) (simp add: nat_div_distrib)
 
 end
 
@@ -1004,7 +1051,7 @@ proof -
   proof (cases "0 \<le> e")
     case True
     then show ?thesis
-      using \<open>0 < m\<close> by (simp add: bitlen_def)
+      using \<open>0 < m\<close> by (simp add: bitlen_alt_def)
   next
     case False
     have "(1::int) < 2" by simp
@@ -1048,7 +1095,7 @@ proof -
   have "m \<noteq> 0"
     using assms by auto
   have "0 \<le> bitlen m - 1"
-    using \<open>0 < m\<close> by (auto simp: bitlen_def)
+    using \<open>0 < m\<close> by (auto simp: bitlen_alt_def)
 
   have "m < 2^nat(bitlen m)"
     using bitlen_bounds[OF \<open>0 <m\<close>] ..
@@ -1201,7 +1248,7 @@ qualified lemma compute_float_round_down[code]:
              else Float m e)"
   using Float.compute_float_down[of "Suc prec - bitlen \<bar>m\<bar> - e" m e, symmetric]
   by transfer
-    (simp add: field_simps abs_mult log_mult bitlen_def truncate_down_def
+    (simp add: field_simps abs_mult log_mult bitlen_alt_def truncate_down_def
       cong del: if_weak_cong)
 
 qualified lemma compute_float_round_up[code]:
@@ -1249,7 +1296,7 @@ proof -
       auto
         intro!: floor_eq2
         intro: powr_strict powr
-        simp: powr_divide2[symmetric] powr_add divide_simps algebra_simps bitlen_def)+
+        simp: powr_divide2[symmetric] powr_add divide_simps algebra_simps)+
   finally
   show ?thesis by simp
 qed
@@ -1259,7 +1306,7 @@ lemma truncate_down_rat_precision:
   and truncate_up_rat_precision:
     "truncate_up prec (real x / real y) = round_up (rat_precision prec x y) (real x / real y)"
   unfolding truncate_down_def truncate_up_def rat_precision_def
-  by (cases x; cases y) (auto simp: floor_log_divide_eq algebra_simps bitlen_def)
+  by (cases x; cases y) (auto simp: floor_log_divide_eq algebra_simps bitlen_alt_def)
 
 lift_definition lapprox_posrat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> float"
   is "\<lambda>prec (x::nat) (y::nat). truncate_down prec (x / y)"
@@ -1346,7 +1393,7 @@ proof -
     by (simp add: log_mult)
   then have "bitlen (int x) < bitlen (int y)"
     using assms
-    by (simp add: bitlen_def del: floor_add_one)
+    by (simp add: bitlen_alt_def del: floor_add_one)
       (auto intro!: floor_mono simp add: floor_add_one[symmetric] simp del: floor_add floor_add_one)
   then show ?thesis
     using assms
@@ -1577,8 +1624,8 @@ lemma truncate_down_log2_eqI:
   using assms by (auto simp: truncate_down_def round_down_def)
 
 lemma bitlen_eq_zero_iff: "bitlen x = 0 \<longleftrightarrow> x \<le> 0"
-  by (clarsimp simp add: bitlen_def)
-    (metis Float.compute_bitlen add.commute bitlen_def bitlen_nonneg less_add_same_cancel2 not_less
+  by (clarsimp simp add: bitlen_alt_def)
+    (metis Float.compute_bitlen add.commute bitlen_alt_def bitlen_nonneg less_add_same_cancel2 not_less
       zero_less_one)
 
 lemma sum_neq_zeroI:
@@ -1782,7 +1829,7 @@ proof -
     by simp
 
   then have "\<bar>real_of_int m2\<bar> < 2 powr -(?shift + 1)"
-    unfolding powr_minus_divide by (auto simp: bitlen_def field_simps powr_mult_base abs_mult)
+    unfolding powr_minus_divide by (auto simp: bitlen_alt_def field_simps powr_mult_base abs_mult)
   also have "\<dots> \<le> 2 powr real_of_int (e1 - e2 - 2)"
     by simp
   finally have b_less_quarter: "\<bar>?b\<bar> < 1/4 * 2 powr real_of_int e1"
@@ -1850,7 +1897,7 @@ proof -
         by (auto simp add: log_minus_eq_powr powr_minus_divide intro!: floor_mono)
       finally
       have "int p - \<lfloor>log 2 \<bar>?a + ?b\<bar>\<rfloor> \<le> p - (bitlen \<bar>m1\<bar>) - e1 + 2"
-        by (auto simp: algebra_simps bitlen_def \<open>m1 \<noteq> 0\<close>)
+        by (auto simp: algebra_simps bitlen_alt_def \<open>m1 \<noteq> 0\<close>)
       also have "\<dots> \<le> - ?e"
         using bitlen_nonneg[of "\<bar>m1\<bar>"] by (simp add: k1_def)
       finally show "?f \<le> - ?e" by simp
@@ -2003,7 +2050,7 @@ lemma mantissa_1: "mantissa 1 = 1"
   using mantissa_float[of 1 0] by (simp add: one_float_def)
 
 lemma bitlen_1: "bitlen 1 = 1"
-  by (simp add: bitlen_def)
+  by (simp add: bitlen_alt_def)
 
 lemma mantissa_eq_zero_iff: "mantissa x = 0 \<longleftrightarrow> x = 0"
   (is "?lhs \<longleftrightarrow> ?rhs")
