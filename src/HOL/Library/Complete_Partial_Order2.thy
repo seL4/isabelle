@@ -1701,10 +1701,48 @@ lemma mcont2mcont_snd [cont_intro, simp]:
   \<Longrightarrow> mcont lub ord lubb ordb (\<lambda>x. snd (t x))"
 by(auto intro!: mcontI monotoneI contI dest: mcont_monoD mcont_contD simp add: rel_prod_sel split_beta prod_lub_def image_image)
 
+lemma monotone_Pair:
+  "\<lbrakk> monotone ord orda f; monotone ord ordb g \<rbrakk>
+  \<Longrightarrow> monotone ord (rel_prod orda ordb) (\<lambda>x. (f x, g x))"
+by(simp add: monotone_def)
+
+lemma cont_Pair:
+  "\<lbrakk> cont lub ord luba orda f; cont lub ord lubb ordb g \<rbrakk>
+  \<Longrightarrow> cont lub ord (prod_lub luba lubb) (rel_prod orda ordb) (\<lambda>x. (f x, g x))"
+by(rule contI)(auto simp add: prod_lub_def image_image dest!: contD)
+
+lemma mcont_Pair:
+  "\<lbrakk> mcont lub ord luba orda f; mcont lub ord lubb ordb g \<rbrakk>
+  \<Longrightarrow> mcont lub ord (prod_lub luba lubb) (rel_prod orda ordb) (\<lambda>x. (f x, g x))"
+by(rule mcontI)(simp_all add: monotone_Pair mcont_mono cont_Pair)
+
 context partial_function_definitions begin
 text \<open>Specialised versions of @{thm [source] mcont_call} for admissibility proofs for parallel fixpoint inductions\<close>
 lemmas mcont_call_fst [cont_intro] = mcont_call[THEN mcont2mcont, OF mcont_fst]
 lemmas mcont_call_snd [cont_intro] = mcont_call[THEN mcont2mcont, OF mcont_snd]
 end
+
+lemma map_option_mono [partial_function_mono]:
+  "mono_option B \<Longrightarrow> mono_option (\<lambda>f. map_option g (B f))"
+unfolding map_conv_bind_option by(rule bind_mono) simp_all
+
+lemma compact_flat_lub [cont_intro]: "compact (flat_lub x) (flat_ord x) y"
+using flat_interpretation[THEN ccpo]
+proof(rule ccpo.compactI[OF _ ccpo.admissibleI])
+  fix A
+  assume chain: "Complete_Partial_Order.chain (flat_ord x) A"
+    and A: "A \<noteq> {}"
+    and *: "\<forall>z\<in>A. \<not> flat_ord x y z"
+  from A obtain z where "z \<in> A" by blast
+  with * have z: "\<not> flat_ord x y z" ..
+  hence y: "x \<noteq> y" "y \<noteq> z" by(auto simp add: flat_ord_def)
+  { assume "\<not> A \<subseteq> {x}"
+    then obtain z' where "z' \<in> A" "z' \<noteq> x" by auto
+    then have "(THE z. z \<in> A - {x}) = z'"
+      by(intro the_equality)(auto dest: chainD[OF chain] simp add: flat_ord_def)
+    moreover have "z' \<noteq> y" using \<open>z' \<in> A\<close> * by(auto simp add: flat_ord_def)
+    ultimately have "y \<noteq> (THE z. z \<in> A - {x})" by simp }
+  with z show "\<not> flat_ord x y (flat_lub x A)" by(simp add: flat_ord_def flat_lub_def)
+qed
 
 end
