@@ -31,6 +31,7 @@ sig
   val new_group: local_theory -> local_theory
   val reset_group: local_theory -> local_theory
   val standard_morphism: local_theory -> Proof.context -> morphism
+  val standard_morphism_theory: local_theory -> morphism
   val standard_form: local_theory -> Proof.context -> (morphism -> 'a) -> 'a
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
@@ -194,6 +195,9 @@ fun standard_morphism lthy ctxt =
   Proof_Context.norm_export_morphism lthy ctxt $>
   Morphism.binding_morphism "Local_Theory.standard_binding"
     (Name_Space.transform_binding (Proof_Context.naming_of lthy));
+
+fun standard_morphism_theory lthy =
+  standard_morphism lthy (Proof_Context.init_global (Proof_Context.theory_of lthy));
 
 fun standard_form lthy ctxt x =
   Morphism.form (Morphism.transform (standard_morphism lthy ctxt) x);

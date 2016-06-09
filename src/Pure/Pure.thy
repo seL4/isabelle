@@ -32,6 +32,7 @@ keywords
     "parse_ast_translation" "parse_translation" "print_translation"
     "typed_print_translation" "print_ast_translation" "oracle" :: thy_decl % "ML"
   and "bundle" :: thy_decl
+  and "bundle_target" :: thy_decl_block
   and "include" "including" :: prf_decl
   and "print_bundles" :: diag
   and "context" "locale" "experiment" :: thy_decl_block
@@ -494,6 +495,10 @@ val _ =
   Outer_Syntax.local_theory @{command_keyword bundle} "define bundle of declarations"
     ((Parse.binding --| @{keyword "="}) -- Parse.thms1 -- Parse.for_fixes
       >> (uncurry Bundle.bundle_cmd));
+
+val _ =
+  Outer_Syntax.command @{command_keyword bundle_target} "define bundle of declarations"
+    (Parse.binding --| Parse.begin >> (Toplevel.begin_local_theory true o Bundle.init));
 
 val _ =
   Outer_Syntax.command @{command_keyword include}
