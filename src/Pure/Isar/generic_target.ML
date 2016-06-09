@@ -20,6 +20,12 @@ sig
   val background_abbrev: binding * term -> term list -> local_theory -> (term * term) * local_theory
 
   (*nested local theories primitives*)
+  val standard_facts: local_theory -> Proof.context ->
+    (Attrib.binding * Attrib.thms) list -> (Attrib.binding * Attrib.thms) list
+  val standard_notes: (int * int -> bool) -> string -> (Attrib.binding * Attrib.thms) list ->
+    local_theory -> local_theory
+  val standard_declaration: (int * int -> bool) ->
+    (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory
   val standard_const: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
 
