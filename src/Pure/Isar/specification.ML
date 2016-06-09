@@ -51,7 +51,7 @@ sig
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val theorems: string ->
-    (Attrib.binding * (thm list * Token.src list) list) list ->
+    (Attrib.binding * Attrib.thms) list ->
     (binding * typ option * mixfix) list ->
     bool -> local_theory -> (string * thm list) list * local_theory
   val theorems_cmd: string ->

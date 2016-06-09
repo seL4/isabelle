@@ -10,6 +10,7 @@ type generic_theory = Context.generic;
 structure Attrib =
 struct
   type binding = binding * Token.src list;
+  type thms = (thm list * Token.src list) list;
 end;
 
 signature LOCAL_THEORY =
@@ -45,10 +46,10 @@ sig
   val define_internal: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
   val note: Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
-  val notes: (Attrib.binding * (thm list * Token.src list) list) list ->
-    local_theory -> (string * thm list) list * local_theory
-  val notes_kind: string -> (Attrib.binding * (thm list * Token.src list) list) list ->
-    local_theory -> (string * thm list) list * local_theory
+  val notes: (Attrib.binding * Attrib.thms) list -> local_theory ->
+    (string * thm list) list * local_theory
+  val notes_kind: string -> (Attrib.binding * Attrib.thms) list -> local_theory ->
+    (string * thm list) list * local_theory
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
   val declaration: {syntax: bool, pervasive: bool} -> declaration -> local_theory -> local_theory
@@ -85,9 +86,8 @@ struct
 type operations =
  {define: bool -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory,
-  notes: string ->
-    (Attrib.binding * (thm list * Token.src list) list) list ->
-    local_theory -> (string * thm list) list * local_theory,
+  notes: string -> (Attrib.binding * Attrib.thms) list -> local_theory ->
+    (string * thm list) list * local_theory,
   abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
   declaration: {syntax: bool, pervasive: bool} -> declaration -> local_theory -> local_theory,

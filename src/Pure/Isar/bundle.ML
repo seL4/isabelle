@@ -6,11 +6,10 @@ Bundled declarations (notes etc.).
 
 signature BUNDLE =
 sig
-  type bundle = (thm list * Token.src list) list
   val check: Proof.context -> xstring * Position.T -> string
-  val get_bundle: Proof.context -> string -> bundle
-  val get_bundle_cmd: Proof.context -> xstring * Position.T -> bundle
-  val bundle: binding * (thm list * Token.src list) list ->
+  val get_bundle: Proof.context -> string -> Attrib.thms
+  val get_bundle_cmd: Proof.context -> xstring * Position.T -> Attrib.thms
+  val bundle: binding * Attrib.thms ->
     (binding * typ option * mixfix) list -> local_theory -> local_theory
   val bundle_cmd: binding * (Facts.ref * Token.src list) list ->
     (binding * string option * mixfix) list -> local_theory -> local_theory
@@ -32,14 +31,12 @@ struct
 
 (* maintain bundles *)
 
-type bundle = (thm list * Token.src list) list;
-
-fun transform_bundle phi : bundle -> bundle =
+fun transform_bundle phi =
   map (fn (fact, atts) => (Morphism.fact phi fact, (map o map) (Token.transform phi) atts));
 
 structure Data = Generic_Data
 (
-  type T = bundle Name_Space.table;
+  type T = Attrib.thms Name_Space.table;
   val empty : T = Name_Space.empty_table "bundle";
   val extend = I;
   val merge = Name_Space.merge_tables;
