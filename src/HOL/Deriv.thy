@@ -931,6 +931,21 @@ lemma DERIV_mirror:
   by (simp add: DERIV_def filterlim_at_split filterlim_at_left_to_right
                 tendsto_minus_cancel_left field_simps conj_commute)
 
+lemma floor_has_real_derivative:
+  fixes f::"real \<Rightarrow> 'a::{floor_ceiling,order_topology}"
+  assumes "isCont f x"
+  assumes "f x \<notin> \<int>"
+  shows "((\<lambda>x. floor (f x)) has_real_derivative 0) (at x)"
+proof (subst DERIV_cong_ev[OF refl _ refl])
+  show "((\<lambda>_. floor (f x)) has_real_derivative 0) (at x)" by simp
+  have "\<forall>\<^sub>F y in at x. \<lfloor>f y\<rfloor> = \<lfloor>f x\<rfloor>"
+    by (rule eventually_floor_eq[OF assms[unfolded continuous_at]])
+  then show "\<forall>\<^sub>F y in nhds x. real_of_int \<lfloor>f y\<rfloor> = real_of_int \<lfloor>f x\<rfloor>"
+    unfolding eventually_at_filter
+    by eventually_elim auto
+qed
+
+
 text \<open>Caratheodory formulation of derivative at a point\<close>
 
 lemma CARAT_DERIV: (*FIXME: SUPERSEDED BY THE ONE IN Deriv.thy. But still used by NSA/HDeriv.thy*)

@@ -1847,7 +1847,7 @@ proof -
       thus ?thesis unfolding True power_0_left by auto
     next
       case False hence "real_of_float x < 0" using \<open>real_of_float x \<le> 0\<close> by auto
-      show ?thesis by (rule less_imp_le, auto simp add: power_less_zero_eq \<open>real_of_float x < 0\<close>)
+      show ?thesis by (rule less_imp_le, auto simp add: \<open>real_of_float x < 0\<close>)
     qed
     obtain t where "\<bar>t\<bar> \<le> \<bar>real_of_float x\<bar>"
       and "exp x = (\<Sum>m = 0..<get_odd n. (real_of_float x) ^ m / (fact m)) + exp t / (fact (get_odd n)) * (real_of_float x) ^ (get_odd n)"
@@ -2100,7 +2100,7 @@ proof -
 
       have "exp x \<le> (1 :: float) / lb_exp prec (-x)"
         using lb_exp lb_exp_pos[OF \<open>\<not> 0 < -x\<close>, of prec]
-        by (simp del: lb_exp.simps add: exp_minus inverse_eq_divide field_simps)
+        by (simp del: lb_exp.simps add: exp_minus field_simps)
       also have "\<dots> \<le> float_divr prec 1 (lb_exp prec (-x))"
         using float_divr .
       finally show ?thesis
@@ -2550,8 +2550,8 @@ next
     from bitlen_div[OF \<open>0 < m\<close>] float_gt1_scale[OF \<open>1 \<le> Float m e\<close>] \<open>bl \<ge> 0\<close>
     have x_bnds: "0 \<le> real_of_float (?x - 1)" "real_of_float (?x - 1) < 1"
       unfolding bl_def[symmetric]
-      by (auto simp: powr_realpow[symmetric] field_simps inverse_eq_divide)
-         (auto simp : powr_minus field_simps inverse_eq_divide)
+      by (auto simp: powr_realpow[symmetric] field_simps)
+         (auto simp : powr_minus field_simps)
 
     {
       have "float_round_down prec (lb_ln2 prec * ?s) \<le> ln 2 * (e + (bitlen m - 1))"
@@ -2822,6 +2822,7 @@ datatype floatarith
   | Powr floatarith floatarith
   | Ln floatarith
   | Power floatarith nat
+  | Floor floatarith
   | Var nat
   | Num float
 
@@ -2841,6 +2842,7 @@ fun interpret_floatarith :: "floatarith \<Rightarrow> real list \<Rightarrow> re
 "interpret_floatarith (Powr a b) vs   = interpret_floatarith a vs powr interpret_floatarith b vs" |
 "interpret_floatarith (Ln a) vs       = ln (interpret_floatarith a vs)" |
 "interpret_floatarith (Power a n) vs  = (interpret_floatarith a vs)^n" |
+"interpret_floatarith (Floor a) vs      = floor (interpret_floatarith a vs)" |
 "interpret_floatarith (Num f) vs      = f" |
 "interpret_floatarith (Var n) vs     = vs ! n"
 
@@ -2879,6 +2881,10 @@ lemma interpret_floatarith_num:
     and "interpret_floatarith (Num (Float (numeral a) 0)) vs = numeral a"
     and "interpret_floatarith (Num (Float (- numeral a) 0)) vs = - numeral a"
   by auto
+
+lemma interpret_floatarith_ceiling:
+  "interpret_floatarith (Minus (Floor (Minus a))) vs = ceiling (interpret_floatarith a vs)"
+  unfolding ceiling_def interpret_floatarith.simps of_int_minus ..
 
 
 subsection "Implement approximation function"
@@ -2960,6 +2966,7 @@ fun approx approx' :: "nat \<Rightarrow> floatarith \<Rightarrow> (float * float
 "approx prec (Powr a b) bs  = lift_bin (approx' prec a bs) (approx' prec b bs) (bnds_powr prec)" |
 "approx prec (Ln a) bs      = lift_un (approx' prec a bs) (\<lambda> l u. (lb_ln prec l, ub_ln prec u))" |
 "approx prec (Power a n) bs = lift_un' (approx' prec a bs) (float_power_bnds prec n)" |
+"approx prec (Floor a) bs = lift_un' (approx' prec a bs) (\<lambda> l u. (floor_fl l, floor_fl u))" |
 "approx prec (Num f) bs     = Some (f, f)" |
 "approx prec (Var i) bs    = (if i < length bs then bs ! i else None)"
 
@@ -3419,6 +3426,10 @@ next
   case (Power a n)
   with lift_un'_bnds[OF bnds_power] show ?case by auto
 next
+  case (Floor a)
+  from lift_un'[OF Floor.prems[unfolded approx.simps] Floor.hyps]
+  show ?case by (auto simp: floor_fl.rep_eq floor_mono)
+next
   case (Num f)
   thus ?case by auto
 next
@@ -3621,9 +3632,10 @@ fun isDERIV :: "nat \<Rightarrow> floatarith \<Rightarrow> real list \<Rightarro
 "isDERIV x Pi vs                = True" |
 "isDERIV x (Sqrt a) vs          = (isDERIV x a vs \<and> interpret_floatarith a vs > 0)" |
 "isDERIV x (Exp a) vs           = isDERIV x a vs" |
-"isDERIV x (Powr a b) vs        = 
+"isDERIV x (Powr a b) vs        =
     (isDERIV x a vs \<and> isDERIV x b vs \<and> interpret_floatarith a vs > 0)" |
 "isDERIV x (Ln a) vs            = (isDERIV x a vs \<and> interpret_floatarith a vs > 0)" |
+"isDERIV x (Floor a) vs         = (isDERIV x a vs \<and> interpret_floatarith a vs \<notin> \<int>)" |
 "isDERIV x (Power a 0) vs       = True" |
 "isDERIV x (Power a (Suc n)) vs = isDERIV x a vs" |
 "isDERIV x (Num f) vs           = True" |
@@ -3647,6 +3659,7 @@ fun DERIV_floatarith :: "nat \<Rightarrow> floatarith \<Rightarrow> floatarith" 
 "DERIV_floatarith x (Ln a)            = Mult (Inverse a) (DERIV_floatarith x a)" |
 "DERIV_floatarith x (Power a 0)       = Num 0" |
 "DERIV_floatarith x (Power a (Suc n)) = Mult (Num (Float (int (Suc n)) 0)) (Mult (Power a n) (DERIV_floatarith x a))" |
+"DERIV_floatarith x (Floor a)         = Num 0" |
 "DERIV_floatarith x (Num f)           = Num 0" |
 "DERIV_floatarith x (Var n)          = (if x = n then Num 1 else Num 0)"
 
@@ -3692,6 +3705,10 @@ next
   thus ?case
     by (cases n) (auto intro!: derivative_eq_intros simp del: power_Suc)
 next
+  case (Floor a)
+  thus ?case
+    by (auto intro!: derivative_eq_intros DERIV_isCont floor_has_real_derivative)
+next
   case (Ln a)
   thus ?case by (auto intro!: derivative_eq_intros simp add: divide_inverse)
 next
@@ -3726,6 +3743,8 @@ fun isDERIV_approx :: "nat \<Rightarrow> nat \<Rightarrow> floatarith \<Rightarr
 "isDERIV_approx prec x (Ln a) vs            =
   (isDERIV_approx prec x a vs \<and> (case approx prec a vs of Some (l, u) \<Rightarrow> 0 < l | None \<Rightarrow> False))" |
 "isDERIV_approx prec x (Power a 0) vs       = True" |
+"isDERIV_approx prec x (Floor a) vs         =
+  (isDERIV_approx prec x a vs \<and> (case approx prec a vs of Some (l, u) \<Rightarrow> l > floor u \<and> u < ceiling l | None \<Rightarrow> False))" |
 "isDERIV_approx prec x (Power a (Suc n)) vs = isDERIV_approx prec x a vs" |
 "isDERIV_approx prec x (Num f) vs           = True" |
 "isDERIV_approx prec x (Var n) vs           = True"
@@ -3769,6 +3788,15 @@ next
   with approx[OF \<open>bounded_by xs vs\<close> a]
     have "0 < interpret_floatarith a xs" by auto
   with Powr show ?case by auto
+next
+  case (Floor a)
+  then obtain l u where approx_Some: "Some (l, u) = approx prec a vs"
+    and "real_of_int \<lfloor>real_of_float u\<rfloor> < real_of_float l" "real_of_float u < real_of_int \<lceil>real_of_float l\<rceil>"
+    and "isDERIV x a xs"
+    by (cases "approx prec a vs") auto
+  with approx[OF \<open>bounded_by xs vs\<close> approx_Some] le_floor_iff
+  show ?case
+    by (force elim!: Ints_cases)
 qed auto
 
 lemma bounded_by_update_var:
@@ -4263,7 +4291,7 @@ subsection \<open>Implement proof method \texttt{approximation}\<close>
 
 lemmas interpret_form_equations = interpret_form.simps interpret_floatarith.simps interpret_floatarith_num
   interpret_floatarith_divide interpret_floatarith_diff interpret_floatarith_tan interpret_floatarith_log
-  interpret_floatarith_sin
+  interpret_floatarith_sin interpret_floatarith_ceiling
 
 oracle approximation_oracle = \<open>fn (thy, t) =>
 let
@@ -4309,6 +4337,7 @@ let
     | floatarith_of_term (@{term Ln} $ a) = @{code Ln} (floatarith_of_term a)
     | floatarith_of_term (@{term Power} $ a $ n) =
         @{code Power} (floatarith_of_term a, nat_of_term n)
+    | floatarith_of_term (@{term Floor} $ a) = @{code Floor} (floatarith_of_term a)
     | floatarith_of_term (@{term Var} $ n) = @{code Var} (nat_of_term n)
     | floatarith_of_term (@{term Num} $ m) = @{code Num} (float_of_term m)
     | floatarith_of_term t = bad t;

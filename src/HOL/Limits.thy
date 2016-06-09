@@ -1509,6 +1509,67 @@ proof (intro filterlim_at_infinity[THEN iffD2] allI impI)
 qed simp
 
 
+subsection \<open>Floor and Ceiling\<close>
+
+lemma eventually_floor_less:
+  fixes f::"'a \<Rightarrow> 'b::{order_topology, floor_ceiling}"
+  assumes f: "(f \<longlongrightarrow> l) F"
+  assumes l: "l \<notin> \<int>"
+  shows "\<forall>\<^sub>F x in F. of_int (floor l) < f x"
+  by (intro order_tendstoD[OF f]) (metis Ints_of_int antisym_conv2 floor_correct l)
+
+lemma eventually_less_ceiling:
+  fixes f::"'a \<Rightarrow> 'b::{order_topology, floor_ceiling}"
+  assumes f: "(f \<longlongrightarrow> l) F"
+  assumes l: "l \<notin> \<int>"
+  shows "\<forall>\<^sub>F x in F. f x < of_int (ceiling l)"
+  by (intro order_tendstoD[OF f]) (metis Ints_of_int l le_of_int_ceiling less_le)
+
+lemma eventually_floor_eq:
+  fixes f::"'a \<Rightarrow> 'b::{order_topology, floor_ceiling}"
+  assumes f: "(f \<longlongrightarrow> l) F"
+  assumes l: "l \<notin> \<int>"
+  shows "\<forall>\<^sub>F x in F. floor (f x) = floor l"
+  using eventually_floor_less[OF assms] eventually_less_ceiling[OF assms]
+  by eventually_elim (meson floor_less_iff less_ceiling_iff not_less_iff_gr_or_eq)
+
+lemma eventually_ceiling_eq:
+  fixes f::"'a \<Rightarrow> 'b::{order_topology, floor_ceiling}"
+  assumes f: "(f \<longlongrightarrow> l) F"
+  assumes l: "l \<notin> \<int>"
+  shows "\<forall>\<^sub>F x in F. ceiling (f x) = ceiling l"
+  using eventually_floor_less[OF assms] eventually_less_ceiling[OF assms]
+  by eventually_elim (meson floor_less_iff less_ceiling_iff not_less_iff_gr_or_eq)
+
+lemma tendsto_of_int_floor:
+  fixes f::"'a \<Rightarrow> 'b::{order_topology, floor_ceiling}"
+  assumes "(f \<longlongrightarrow> l) F"
+  assumes "l \<notin> \<int>"
+  shows "((\<lambda>x. of_int (floor (f x))::'c::{ring_1, topological_space}) \<longlongrightarrow> of_int (floor l)) F"
+  using eventually_floor_eq[OF assms]
+  by (simp add: eventually_mono topological_tendstoI)
+
+lemma tendsto_of_int_ceiling:
+  fixes f::"'a \<Rightarrow> 'b::{order_topology, floor_ceiling}"
+  assumes "(f \<longlongrightarrow> l) F"
+  assumes "l \<notin> \<int>"
+  shows "((\<lambda>x. of_int (ceiling (f x))::'c::{ring_1, topological_space}) \<longlongrightarrow> of_int (ceiling l)) F"
+  using eventually_ceiling_eq[OF assms]
+  by (simp add: eventually_mono topological_tendstoI)
+
+lemma continuous_on_of_int_floor:
+  "continuous_on (UNIV - \<int>::'a::{order_topology, floor_ceiling} set)
+    (\<lambda>x. of_int (floor x)::'b::{ring_1, topological_space})"
+  unfolding continuous_on_def
+  by (auto intro!: tendsto_of_int_floor)
+
+lemma continuous_on_of_int_ceiling:
+  "continuous_on (UNIV - \<int>::'a::{order_topology, floor_ceiling} set)
+    (\<lambda>x. of_int (ceiling x)::'b::{ring_1, topological_space})"
+  unfolding continuous_on_def
+  by (auto intro!: tendsto_of_int_ceiling)
+
+
 subsection \<open>Limits of Sequences\<close>
 
 lemma [trans]: "X = Y \<Longrightarrow> Y \<longlonglongrightarrow> z \<Longrightarrow> X \<longlonglongrightarrow> z"
