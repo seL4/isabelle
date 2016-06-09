@@ -206,6 +206,7 @@ section \<open>Bundled declarations \label{sec:bundle}\<close>
 text \<open>
   \begin{matharray}{rcl}
     @{command_def "bundle"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "bundle_definition"} & : & \<open>theory \<rightarrow> local_theory\<close> \\
     @{command_def "print_bundles"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
     @{command_def "include"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
     @{command_def "including"} & : & \<open>proof(prove) \<rightarrow> proof(prove)\<close> \\
@@ -228,6 +229,8 @@ text \<open>
   @{rail \<open>
     @@{command bundle} @{syntax name} '=' @{syntax thms} @{syntax for_fixes}
     ;
+    @@{command bundle_definition} @{syntax name} @'begin'
+    ;
     @@{command print_bundles} ('!'?)
     ;
     (@@{command include} | @@{command including}) (@{syntax name}+)
@@ -240,6 +243,13 @@ text \<open>
   defined in local theory targets are subject to transformations via
   morphisms, when moved into different application contexts; this works
   analogously to any other local theory specification.
+
+  \<^descr> \<^theory_text>\<open>bundle_definition b begin body end\<close> defines a bundle of declarations
+  from the \<open>body\<close> of local theory specifications. It may consist of commands
+  that are technically equivalent to \<^theory_text>\<open>declare\<close> or \<^theory_text>\<open>declaration\<close>, which also
+  includes \<^theory_text>\<open>notation\<close>, for example. Named fact declarations like ``\<^theory_text>\<open>lemmas a
+  [simp] = b\<close>'' or ``\<^theory_text>\<open>lemma a [simp]: B \<proof>\<close>'' are also admitted, but
+  the name bindings are not recorded in the bundle.
 
   \<^descr> \<^theory_text>\<open>print_bundles\<close> prints the named bundles that are available in the
   current context; the ``\<open>!\<close>'' option indicates extra verbosity.

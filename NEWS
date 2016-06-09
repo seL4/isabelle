@@ -35,6 +35,10 @@ is superseded by "(\<open>unbreabable\<close>" --- rare INCOMPATIBILITY.
 * Old 'header' command is no longer supported (legacy since
 Isabelle2015).
 
+* Command 'bundle_definition' provides a local theory target to define a
+bundle from the body of specification commands (e.g. 'declare',
+'declaration', 'notation', 'lemmas', 'lemma').
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
