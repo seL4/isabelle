@@ -526,11 +526,12 @@ lemma emeasure_lborel_countable:
   shows "emeasure lborel A = 0"
 proof -
   have "A \<subseteq> (\<Union>i. {from_nat_into A i})" using from_nat_into_surj assms by force
-  moreover have "emeasure lborel (\<Union>i. {from_nat_into A i}) = 0"
+  then have "emeasure lborel A \<le> emeasure lborel (\<Union>i. {from_nat_into A i})"
+    by (intro emeasure_mono) auto
+  also have "emeasure lborel (\<Union>i. {from_nat_into A i}) = 0"
     by (rule emeasure_UN_eq_0) auto
-  ultimately have "emeasure lborel A \<le> 0" using emeasure_mono
-    by (smt UN_E emeasure_empty equalityI from_nat_into order_refl singletonD subsetI)
-  thus ?thesis by (auto simp add: )
+  finally show ?thesis
+    by (auto simp add: )
 qed
 
 lemma countable_imp_null_set_lborel: "countable A \<Longrightarrow> A \<in> null_sets lborel"
