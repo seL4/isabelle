@@ -47,6 +47,7 @@ sig
   val attribute_setup: bstring * Position.T -> Input.source -> string ->
     local_theory -> local_theory
   val internal: (morphism -> attribute) -> Token.src
+  val internal_declaration: declaration -> (thm list * Token.src list) list
   val add_del: attribute -> attribute -> attribute context_parser
   val thm: thm context_parser
   val thms: thm list context_parser
@@ -242,6 +243,9 @@ val internal_attribute_name =
 fun internal att =
   internal_attribute_name ::
     [Token.make_string ("<attribute>", Position.none) |> Token.assign (SOME (Token.Attribute att))];
+
+fun internal_declaration decl =
+  [([Drule.dummy_thm], [internal (fn phi => Thm.declaration_attribute (K (decl phi)))])];
 
 
 (* add/del syntax *)
