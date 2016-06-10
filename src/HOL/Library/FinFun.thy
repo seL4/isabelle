@@ -189,12 +189,19 @@ proof -
   thus "curry f a \<in> finfun" unfolding finfun_def by auto
 qed
 
-bundle finfun =
-  fst_finfun[simp] snd_finfun[simp] Abs_finfun_inverse[simp] 
-  finfun_apply_inverse[simp] Abs_finfun_inject[simp] finfun_apply_inject[simp]
-  Diag_finfun[simp] finfun_curry[simp]
-  const_finfun[iff] fun_upd_finfun[iff] finfun_apply[iff] map_of_finfun[iff]
-  finfun_left_compose[intro] fst_finfun[intro] snd_finfun[intro]
+bundle finfun
+begin
+
+lemmas [simp] =
+  fst_finfun snd_finfun Abs_finfun_inverse
+  finfun_apply_inverse Abs_finfun_inject finfun_apply_inject
+  Diag_finfun finfun_curry
+lemmas [iff] =
+  const_finfun fun_upd_finfun finfun_apply map_of_finfun
+lemmas [intro] =
+  finfun_left_compose fst_finfun snd_finfun
+
+end
 
 lemma Abs_finfun_inject_finite:
   fixes x y :: "'a \<Rightarrow> 'b"
@@ -730,8 +737,8 @@ locale finfun_rec_wf = finfun_rec_wf_aux +
   "finite (UNIV :: 'a set) \<Longrightarrow> Finite_Set.fold (\<lambda>a. upd a b') (cnst b) (UNIV :: 'a set) = cnst b'"
 begin
 
-lemma finfun_rec_const [simp]: includes finfun shows
-  "finfun_rec cnst upd (K$ c) = cnst c"
+lemma finfun_rec_const [simp]: "finfun_rec cnst upd (K$ c) = cnst c"
+  including finfun
 proof(cases "finite (UNIV :: 'a set)")
   case False
   hence "finfun_default ((K$ c) :: 'a \<Rightarrow>f 'b) = c" by(simp add: finfun_default_const)
@@ -980,9 +987,9 @@ lemma finfun_comp2_const [code, simp]: "finfun_comp2 (K$ c) f = (K$ c)"
 by(simp add: finfun_comp2_def finfun_const_def comp_def)
 
 lemma finfun_comp2_update:
-  includes finfun
   assumes inj: "inj f"
   shows "finfun_comp2 (g(b $:= c)) f = (if b \<in> range f then (finfun_comp2 g f)(inv f b $:= c) else finfun_comp2 g f)"
+  including finfun
 proof(cases "b \<in> range f")
   case True
   from inj have "\<And>x. (op $ g)(f x := c) \<circ> f = (op $ g \<circ> f)(x := c)" by(auto intro!: ext dest: injD)
