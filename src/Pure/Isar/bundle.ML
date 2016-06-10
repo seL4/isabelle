@@ -159,7 +159,7 @@ fun bundle_notes kind facts lthy =
   in
     lthy
     |> augment_target (transform_bundle (Local_Theory.standard_morphism_theory lthy) bundle)
-    |> Generic_Target.standard_notes (K true) kind facts
+    |> Generic_Target.standard_notes (op <>) kind facts
     |> Attrib.local_notes kind facts
   end;
 
