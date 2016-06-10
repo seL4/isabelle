@@ -27,7 +27,7 @@ sig
   val parse_spans: Token.T list -> Command_Span.span list
   val side_comments: Token.T list -> Token.T list
   val command_reports: theory -> Token.T -> Position.report_text list
-  val check_command: Proof.context -> string * Position.T -> string
+  val check_command: Proof.context -> command_keyword -> string
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
