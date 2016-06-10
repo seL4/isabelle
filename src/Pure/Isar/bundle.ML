@@ -137,8 +137,9 @@ fun conclude invisible binding =
     |> invisible ? Context_Position.set_visible_global false
     |> Context.Theory
     |> define_bundle (binding, the_target thy)
-    ||> Context.the_theory
-    ||> reset_target);
+    ||> (Context.the_theory
+      #> invisible ? Context_Position.restore_visible_global thy
+      #> reset_target));
 
 fun pretty binding lthy =
   let
