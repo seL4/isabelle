@@ -2163,32 +2163,7 @@ lemma face_of_polyhedron_polyhedron:
   fixes S :: "'a :: euclidean_space set"
   assumes "polyhedron S" "c face_of S"
     shows "polyhedron c"
-proof -
-  obtain F where "finite F" and seq: "S = affine hull S \<inter> \<Inter>F"
-             and faces: "\<And>h. h \<in> F \<Longrightarrow> \<exists>a b. a \<noteq> 0 \<and> h = {x. a \<bullet> x \<le> b}"
-             and min:   "\<And>F'. F' \<subset> F \<Longrightarrow> S \<subset> (affine hull S) \<inter> \<Inter>F'"
-    using assms by (simp add: polyhedron_Int_affine_minimal) meson
-  then obtain a b where ab: "\<And>h. h \<in> F \<Longrightarrow> a h \<noteq> 0 \<and> h = {x. a h \<bullet> x \<le> b h}"
-    by metis
-  show ?thesis
-  proof (cases "c = {} \<or> c = S")
-    case True with assms show ?thesis
-      by auto
-  next
-    case False
-    let ?ab = "\<lambda>h. {x. a h \<bullet> x = b h}"
-    have "{S \<inter> ?ab h |h. h \<in> F \<and> c \<subseteq> S \<inter> ?ab h} \<subseteq> {S \<inter> ?ab h |h. h \<in> F}"
-      by blast
-    then have fin: "finite ({S \<inter> ?ab h |h. h \<in> F \<and> c \<subseteq> S \<inter> ?ab h})"
-      by (rule finite_subset) (simp add: \<open>finite F\<close>)
-    then have "polyhedron (\<Inter>{S \<inter> ?ab h |h. h \<in> F \<and> c \<subseteq> S \<inter> ?ab h})"
-      by (auto simp: \<open>polyhedron S\<close> polyhedron_hyperplane)
-    with False show ?thesis
-      using face_of_polyhedron_explicit [OF \<open>finite F\<close> seq ab min] assms
-      by auto
-  qed
-qed
-
+by (metis assms face_of_imp_eq_affine_Int polyhedron_Int polyhedron_affine_hull polyhedron_imp_closed polyhedron_imp_convex)
 
 lemma finite_polyhedron_faces:
   fixes S :: "'a :: euclidean_space set"

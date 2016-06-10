@@ -29,7 +29,7 @@ Known problems:
         the formulae get into the wrong order (see WRONG below).
 
   With substition for equalities (hyp_subst_tac):
-        When substitution affects an unsage formula or literal, it is moved
+        When substitution affects an unsafe formula or literal, it is moved
         back to the list of safe formulae.
         But there's no way of putting it in the right place.  A "moved" or
         "no DETERM" flag would prevent proofs failing here.
@@ -82,7 +82,7 @@ val (stats, _) = Attrib.config_bool @{binding blast_stats} (K false);
 
 
 datatype term =
-    Const  of string * term list  (*typargs constant--as a terms!*)
+    Const  of string * term list  (*typargs constant--as a term!*)
   | Skolem of string * term option Unsynchronized.ref list
   | Free   of string
   | Var    of term option Unsynchronized.ref
@@ -110,15 +110,15 @@ datatype state = State of
   nclosed: int Unsynchronized.ref,
   ntried: int Unsynchronized.ref}
 
-fun reject_const thy c =
+fun reserved_const thy c =
   is_some (Sign.const_type thy c) andalso
-    error ("blast: theory contains illegal constant " ^ quote c);
+    error ("blast: theory contains reserved constant " ^ quote c);
 
 fun initialize ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val _ = reject_const thy "*Goal*";
-    val _ = reject_const thy "*False*";
+    val _ = reserved_const thy "*Goal*";
+    val _ = reserved_const thy "*False*";
   in
     State
      {ctxt = ctxt,
@@ -558,6 +558,10 @@ fun toTerm 0 _             = dummyVar
   | toTerm d (Abs(a,_))    = dummyVar
   | toTerm d (f $ u)       = Term.$ (toTerm d f, toTerm (d-1) u);
 
+(*Too flexible assertions or goals. Motivated by examples such as "(\<And>P. ~P) \<Longrightarrow> 0==1"*)
+fun isVarForm (Var _) = true
+  | isVarForm (Const (c, _) $ Var _) = (c = Data.not_name)
+  | isVarForm _ = false;
 
 fun netMkRules state P vars (nps: Classical.netpair list) =
   case P of
@@ -566,6 +570,8 @@ fun netMkRules state P vars (nps: Classical.netpair list) =
             val intrs = maps (fn (inet,_) => Net.unify_term inet pG) nps
         in  map (fromIntrRule state vars o #2) (order_list intrs)  end
     | _ =>
+        if isVarForm P then [] (*The formula is too flexible, reject*)
+        else
         let val pP = mk_Trueprop (toTerm 3 P)
             val elims = maps (fn (_,enet) => Net.unify_term enet pP) nps
         in  map_filter (fromRule state vars o #2) (order_list elims)  end;
