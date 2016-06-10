@@ -79,13 +79,13 @@ fun augment_target thms =
 fun pretty_bundle ctxt (markup_name, bundle) =
   let
     val prt_thm = Pretty.cartouche o Thm.pretty_thm ctxt;
-
+    fun prt_thm_attribs atts th =
+      Pretty.block (Pretty.breaks (prt_thm th :: Attrib.pretty_attribs ctxt atts));
     fun prt_thms (ths, []) = map prt_thm ths
-      | prt_thms (ths, atts) = Pretty.enclose "(" ")"
-          (Pretty.breaks (map prt_thm ths)) :: Attrib.pretty_attribs ctxt atts;
+      | prt_thms (ths, atts) = map (prt_thm_attribs atts) ths;
   in
     Pretty.block ([Pretty.keyword1 "bundle", Pretty.str " ", Pretty.mark_str markup_name] @
-      (if null bundle then [] else Pretty.breaks (Pretty.str " =" :: maps prt_thms bundle)))
+      (if null bundle then [] else Pretty.fbreaks (Pretty.str " =" :: maps prt_thms bundle)))
   end;
 
 fun print_bundles verbose ctxt =
@@ -131,17 +131,21 @@ local
 
 fun bad_operation _ = error "Not possible in bundle target";
 
-fun conclude binding =
+fun conclude invisible binding =
   Local_Theory.background_theory_result (fn thy =>
-    let
-      val (name, Context.Theory thy') =
-        define_bundle (binding, the_target thy) (Context.Theory thy);
-    in (name, reset_target thy') end);
+    thy
+    |> invisible ? Context_Position.set_visible_global false
+    |> Context.Theory
+    |> define_bundle (binding, the_target thy)
+    ||> Context.the_theory
+    ||> reset_target);
 
 fun pretty binding lthy =
   let
     val bundle = the_target (Proof_Context.theory_of lthy);
-    val (name, lthy') = conclude binding lthy;
+    val (name, lthy') = lthy
+      |> Local_Theory.raw_theory (Context_Position.set_visible_global false)
+      |> conclude true binding;
     val thy_ctxt' = Proof_Context.init_global (Proof_Context.theory_of lthy');
     val markup_name =
       Name_Space.markup_extern thy_ctxt' (Name_Space.space_of_table (get_bundles thy_ctxt')) name;
@@ -179,7 +183,7 @@ fun init binding thy =
       theory_registration = bad_operation,
       locale_dependency = bad_operation,
       pretty = pretty binding,
-      exit = conclude binding #> #2 #> Local_Theory.target_of #> Sign.change_end_local}
+      exit = conclude false binding #> #2 #> Local_Theory.target_of #> Sign.change_end_local}
 
 end;
 
