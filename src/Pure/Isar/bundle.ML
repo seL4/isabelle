@@ -15,6 +15,8 @@ sig
   val bundle_cmd: binding * (Facts.ref * Token.src list) list ->
     (binding * string option * mixfix) list -> local_theory -> local_theory
   val init: binding -> theory -> local_theory
+  val unbundle: string list -> local_theory -> local_theory
+  val unbundle_cmd: (xstring * Position.T) list -> local_theory -> local_theory
   val includes: string list -> Proof.context -> Proof.context
   val includes_cmd: (xstring * Position.T) list -> Proof.context -> Proof.context
   val include_: string list -> Proof.state -> Proof.state
@@ -190,17 +192,19 @@ end;
 
 
 
-(** include bundles **)
+(** activate bundles **)
 
 local
 
-fun gen_includes get args ctxt =
+fun gen_activate notes get args ctxt =
   let val decls = maps (get ctxt) args in
     ctxt
     |> Context_Position.set_visible false
-    |> Attrib.local_notes "" [((Binding.empty, []), decls)] |> #2
+    |> notes [((Binding.empty, []), decls)] |> #2
     |> Context_Position.restore_visible ctxt
   end;
+
+fun gen_includes get = gen_activate (Attrib.local_notes "") get;
 
 fun gen_context get prep_decl raw_incls raw_elems gthy =
   let
@@ -216,6 +220,9 @@ fun gen_context get prep_decl raw_incls raw_elems gthy =
   end;
 
 in
+
+val unbundle = gen_activate Local_Theory.notes get_bundle;
+val unbundle_cmd = gen_activate Local_Theory.notes get_bundle_cmd;
 
 val includes = gen_includes get_bundle;
 val includes_cmd = gen_includes get_bundle_cmd;

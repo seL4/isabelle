@@ -32,6 +32,7 @@ keywords
     "parse_ast_translation" "parse_translation" "print_translation"
     "typed_print_translation" "print_ast_translation" "oracle" :: thy_decl % "ML"
   and "bundle" :: thy_decl_block
+  and "unbundle" :: thy_decl
   and "include" "including" :: prf_decl
   and "print_bundles" :: diag
   and "context" "locale" "experiment" :: thy_decl_block
@@ -498,13 +499,18 @@ val _ =
     (Parse.binding --| Parse.begin >> Bundle.init);
 
 val _ =
+  Outer_Syntax.local_theory @{command_keyword unbundle}
+    "activate declarations from bundle in local theory"
+    (Scan.repeat1 (Parse.position Parse.name) >> Bundle.unbundle_cmd);
+
+val _ =
   Outer_Syntax.command @{command_keyword include}
-    "include declarations from bundle in proof body"
+    "activate declarations from bundle in proof body"
     (Scan.repeat1 (Parse.position Parse.name) >> (Toplevel.proof o Bundle.include_cmd));
 
 val _ =
   Outer_Syntax.command @{command_keyword including}
-    "include declarations from bundle in goal refinement"
+    "activate declarations from bundle in goal refinement"
     (Scan.repeat1 (Parse.position Parse.name) >> (Toplevel.proof o Bundle.including_cmd));
 
 val _ =

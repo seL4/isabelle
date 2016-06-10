@@ -45,6 +45,10 @@ begin
   declare b [intro]
 end
 
+* Command 'unbundle' is like 'include', but works within a local theory
+context. Unlike "context includes ... begin", the effect of 'unbundle'
+on the target context persists, until different declarations are given.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

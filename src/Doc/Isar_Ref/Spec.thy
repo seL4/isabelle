@@ -253,9 +253,13 @@ text \<open>
   \<^descr> \<^theory_text>\<open>print_bundles\<close> prints the named bundles that are available in the
   current context; the ``\<open>!\<close>'' option indicates extra verbosity.
 
-  \<^descr> \<^theory_text>\<open>include b\<^sub>1 \<dots> b\<^sub>n\<close> includes the declarations from the given bundles into
-  the current proof body context. This is analogous to \<^theory_text>\<open>note\<close>
-  (\secref{sec:proof-facts}) with the expanded bundles.
+  \<^descr> \<^theory_text>\<open>unbundle b\<^sub>1 \<dots> b\<^sub>n\<close> activates the declarations from the given bundles in
+  the current local theory context. This is analogous to \<^theory_text>\<open>lemmas\<close>
+  (\secref{sec:theorems}) with the expanded bundles.
+
+  \<^descr> \<^theory_text>\<open>include\<close> is similar to \<^theory_text>\<open>unbundle\<close>, but works in a proof body (forward
+  mode). This is analogous to \<^theory_text>\<open>note\<close> (\secref{sec:proof-facts}) with the
+  expanded bundles.
 
   \<^descr> \<^theory_text>\<open>including\<close> is similar to \<^theory_text>\<open>include\<close>, but works in proof refinement
   (backward mode). This is analogous to \<^theory_text>\<open>using\<close> (\secref{sec:proof-facts})
