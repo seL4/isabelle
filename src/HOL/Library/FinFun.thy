@@ -1534,14 +1534,38 @@ definition "card_UNIV = Phantom('a \<Rightarrow>f 'b)
 instance by intro_classes (simp add: card_UNIV_finfun_def card_UNIV Let_def card_UNIV_finfun)
 end
 
-text \<open>Deactivate syntax again. Import theory \<open>FinFun_Syntax\<close> to reactivate it again\<close>
+
+subsubsection \<open>Bundles for concrete syntax\<close>
+
+bundle finfun_syntax
+begin
+
+type_notation finfun ("(_ \<Rightarrow>f /_)" [22, 21] 21)
+
+notation
+  finfun_const ("K$/ _" [0] 1) and
+  finfun_update ("_'(_ $:= _')" [1000, 0, 0] 1000) and
+  finfun_apply (infixl "$" 999) and
+  finfun_comp (infixr "\<circ>$" 55) and
+  finfun_comp2 (infixr "$\<circ>" 55) and
+  finfun_Diag ("(1'($_,/ _$'))" [0, 0] 1000)
+
+notation (ASCII)
+  finfun_comp (infixr "o$" 55) and
+  finfun_comp2 (infixr "$o" 55)
+
+end
+
+
+bundle no_finfun_syntax
+begin
 
 no_type_notation
   finfun ("(_ \<Rightarrow>f /_)" [22, 21] 21)
 
 no_notation
   finfun_const ("K$/ _" [0] 1) and
-  finfun_update ("_'(_ $:= _')" [1000,0,0] 1000) and
+  finfun_update ("_'(_ $:= _')" [1000, 0, 0] 1000) and
   finfun_apply (infixl "$" 999) and
   finfun_comp (infixr "\<circ>$" 55) and
   finfun_comp2 (infixr "$\<circ>" 55) and
@@ -1550,5 +1574,9 @@ no_notation
 no_notation (ASCII) 
   finfun_comp (infixr "o$" 55) and
   finfun_comp2 (infixr "$o" 55)
+
+end
+
+unbundle no_finfun_syntax
 
 end

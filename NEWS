@@ -148,6 +148,11 @@ list in random order.
 
 * Probability/SPMF formalises discrete subprobability distributions.
 
+* Library/FinFun.thy: bundles "finfun_syntax" and "no_finfun_syntax"
+allow to control optional syntax in local contexts; this supersedes
+former Library/FinFun_Syntax.thy. INCOMPATIBILITY, e.g. use "unbundle
+finfun_syntax" to imitate import of "~~/src/HOL/Library/FinFun_Syntax".
+
 * Library/Set_Permutations.thy (executably) defines the set of 
 permutations of a set, i.e. the set of all lists that contain every 
 element of the carrier set exactly once.

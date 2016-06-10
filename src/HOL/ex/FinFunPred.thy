@@ -1,10 +1,12 @@
 (*  Author:     Andreas Lochbihler *)
 
-section \<open>
-  Predicates modelled as FinFuns
-\<close>
+section \<open>Predicates modelled as FinFuns\<close>
 
-theory FinFunPred imports "~~/src/HOL/Library/FinFun_Syntax" begin
+theory FinFunPred
+imports "~~/src/HOL/Library/FinFun"
+begin
+
+unbundle finfun_syntax
 
 text \<open>Instantiate FinFun predicates just like predicates\<close>
 

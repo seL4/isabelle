@@ -545,7 +545,6 @@ session "HOL-ex" in ex = HOL +
     Hebrew
     Chinese
     Serbian
-    "~~/src/HOL/Library/FinFun_Syntax"
     "~~/src/HOL/Library/Refute"
     "~~/src/HOL/Library/Transitive_Closure_Table"
     Cartouche_Examples
