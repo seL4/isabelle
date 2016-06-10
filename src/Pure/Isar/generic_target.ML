@@ -20,6 +20,12 @@ sig
   val background_abbrev: binding * term -> term list -> local_theory -> (term * term) * local_theory
 
   (*nested local theories primitives*)
+  val standard_facts: local_theory -> Proof.context ->
+    (Attrib.binding * Attrib.thms) list -> (Attrib.binding * Attrib.thms) list
+  val standard_notes: (int * int -> bool) -> string -> (Attrib.binding * Attrib.thms) list ->
+    local_theory -> local_theory
+  val standard_declaration: (int * int -> bool) ->
+    (morphism -> Context.generic -> Context.generic) -> local_theory -> local_theory
   val standard_const: (int * int -> bool) -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
 
@@ -29,9 +35,9 @@ sig
     bool -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
   val notes:
-    (string -> (Attrib.binding * (thm list * Token.src list) list) list ->
-      (Attrib.binding * (thm list * Token.src list) list) list -> local_theory -> local_theory) ->
-    string -> (Attrib.binding * (thm list * Token.src list) list) list -> local_theory ->
+    (string -> (Attrib.binding * Attrib.thms) list ->
+      (Attrib.binding * Attrib.thms) list -> local_theory -> local_theory) ->
+    string -> (Attrib.binding * Attrib.thms) list -> local_theory ->
     (string * thm list) list * local_theory
   val abbrev: (Syntax.mode -> binding * mixfix -> term ->
       term list * term list -> local_theory -> local_theory) ->
@@ -40,10 +46,8 @@ sig
   (*theory target primitives*)
   val theory_target_foundation: ((binding * typ) * mixfix) * (binding * term) ->
      term list * term list -> local_theory -> (term * thm) * local_theory
-  val theory_target_notes: string ->
-    (Attrib.binding * (thm list * Token.src list) list) list ->
-    (Attrib.binding * (thm list * Token.src list) list) list ->
-    local_theory -> local_theory
+  val theory_target_notes: string -> (Attrib.binding * Attrib.thms) list ->
+    (Attrib.binding * Attrib.thms) list -> local_theory -> local_theory
   val theory_target_abbrev: Syntax.mode -> (binding * mixfix) -> term -> term list * term list ->
     local_theory -> local_theory
 
@@ -55,10 +59,8 @@ sig
     local_theory -> local_theory
 
   (*locale target primitives*)
-  val locale_target_notes: string -> string ->
-    (Attrib.binding * (thm list * Token.src list) list) list ->
-    (Attrib.binding * (thm list * Token.src list) list) list ->
-    local_theory -> local_theory
+  val locale_target_notes: string -> string -> (Attrib.binding * Attrib.thms) list ->
+    (Attrib.binding * Attrib.thms) list -> local_theory -> local_theory
   val locale_target_abbrev: string -> Syntax.mode -> (binding * mixfix) -> term -> term list * term list ->
     local_theory -> local_theory
   val locale_target_declaration: string -> bool -> declaration -> local_theory -> local_theory

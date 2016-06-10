@@ -35,7 +35,7 @@ sig
     thm option * thm option -> thm list ->
     Element.context_i list ->
     declaration list ->
-    (string * (Attrib.binding * (thm list * Token.src list) list) list) list ->
+    (string * (Attrib.binding * Attrib.thms) list) list ->
     (string * morphism) list -> theory -> theory
   val intern: theory -> xstring -> string
   val check: theory -> xstring * Position.T -> string
@@ -50,7 +50,7 @@ sig
   val specification_of: theory -> string -> term option * term list
 
   (* Storing results *)
-  val add_thmss: string -> string -> (Attrib.binding * (thm list * Token.src list) list) list ->
+  val add_thmss: string -> string -> (Attrib.binding * Attrib.thms) list ->
     Proof.context -> Proof.context
   val add_declaration: string -> bool -> declaration -> Proof.context -> Proof.context
 
@@ -135,7 +135,7 @@ datatype locale = Loc of {
   (*syntax declarations*)
   syntax_decls: (declaration * serial) list,
   (*theorem declarations*)
-  notes: ((string * (Attrib.binding * (thm list * Token.src list) list) list) * serial) list,
+  notes: ((string * (Attrib.binding * Attrib.thms) list) * serial) list,
   (*locale dependencies (sublocale relation) in reverse order*)
   dependencies: ((string * (morphism * morphism)) * serial) list,
   (*mixin part of dependencies*)
@@ -612,21 +612,10 @@ end;
 
 (* Declarations *)
 
-local
-
-fun add_decl loc decl =
-  add_thmss loc ""
-    [((Binding.empty, [Attrib.internal (fn phi => Thm.declaration_attribute (K (decl phi)))]),
-      [([Drule.dummy_thm], [])])];
-
-in
-
 fun add_declaration loc syntax decl =
   syntax ?
     Proof_Context.background_theory ((change_locale loc o apfst o apfst) (cons (decl, serial ())))
-  #> add_decl loc decl;
-
-end;
+  #> add_thmss loc "" [(Attrib.empty_binding, Attrib.internal_declaration decl)];
 
 
 (*** Reasoning about locales ***)
