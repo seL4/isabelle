@@ -1266,7 +1266,9 @@ fun raw_blast start ctxt lim st =
             | cell => (cond_tracing (trace orelse stats)
                         (fn () => Timing.message (Timing.result start) ^ " for reconstruction");
                        Seq.make(fn()=> cell))
-          end
+          end handle TERM _ =>
+            (cond_tracing trace (fn () => "PROOF RAISED EXN TERM for depth " ^ string_of_int lim);
+                       backtrack trace choices)
   in
     prove (state, start, [initBranch (mkGoal concl :: hyps, lim)], cont)
   end
