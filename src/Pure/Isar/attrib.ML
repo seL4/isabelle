@@ -33,11 +33,12 @@ sig
   val map_facts_refs: ('a list -> 'att list) -> ('b -> 'fact) ->
     (('c * 'a list) * ('b * 'a list) list) list ->
     (('c * 'att list) * ('fact * 'att list) list) list
-  val global_notes: string -> (binding * (thm list * Token.src list) list) list ->
+  type thms = (thm list * Token.src list) list
+  val global_notes: string -> (binding * thms) list ->
     theory -> (string * thm list) list * theory
-  val local_notes: string -> (binding * (thm list * Token.src list) list) list ->
+  val local_notes: string -> (binding * thms) list ->
     Proof.context -> (string * thm list) list * Proof.context
-  val generic_notes: string -> (binding * (thm list * Token.src list) list) list ->
+  val generic_notes: string -> (binding * thms) list ->
     Context.generic -> (string * thm list) list * Context.generic
   val eval_thms: Proof.context -> (Facts.ref * Token.src list) list -> thm list
   val attribute_syntax: attribute context_parser -> Token.src -> attribute
@@ -47,16 +48,13 @@ sig
   val attribute_setup: bstring * Position.T -> Input.source -> string ->
     local_theory -> local_theory
   val internal: (morphism -> attribute) -> Token.src
+  val internal_declaration: declaration -> thms
   val add_del: attribute -> attribute -> attribute context_parser
   val thm: thm context_parser
   val thms: thm list context_parser
   val multi_thm: thm list context_parser
-  val transform_facts: morphism ->
-    (Attrib.binding * (thm list * Token.src list) list) list ->
-    (Attrib.binding * (thm list * Token.src list) list) list
-  val partial_evaluation: Proof.context ->
-    (binding * (thm list * Token.src list) list) list ->
-    (binding * (thm list * Token.src list) list) list
+  val transform_facts: morphism -> (Attrib.binding * thms) list -> (Attrib.binding * thms) list
+  val partial_evaluation: Proof.context -> (binding * thms) list -> (binding * thms) list
   val print_options: bool -> Proof.context -> unit
   val config_bool: Binding.binding ->
     (Context.generic -> bool) -> bool Config.T * (theory -> theory)
@@ -194,6 +192,8 @@ fun map_facts_refs f g = map_facts f #> map (apsnd (map (apfst g)));
 
 (* fact expressions *)
 
+type thms = (thm list * Token.src list) list;
+
 fun global_notes kind facts thy = thy |>
   Global_Theory.note_thmss kind (map_facts (map (attribute_global thy)) facts);
 
@@ -242,6 +242,9 @@ val internal_attribute_name =
 fun internal att =
   internal_attribute_name ::
     [Token.make_string ("<attribute>", Position.none) |> Token.assign (SOME (Token.Attribute att))];
+
+fun internal_declaration decl =
+  [([Drule.dummy_thm], [internal (fn phi => Thm.declaration_attribute (K (decl phi)))])];
 
 
 (* add/del syntax *)

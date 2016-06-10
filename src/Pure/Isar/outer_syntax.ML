@@ -11,6 +11,8 @@ sig
   type command_keyword = string * Position.T
   val command: command_keyword -> string ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
+  val maybe_begin_local_theory: command_keyword -> string ->
+    (local_theory -> local_theory) parser -> (theory -> local_theory) parser -> unit
   val local_theory': command_keyword -> string ->
     (bool -> local_theory -> local_theory) parser -> unit
   val local_theory: command_keyword -> string ->
@@ -25,7 +27,7 @@ sig
   val parse_spans: Token.T list -> Command_Span.span list
   val side_comments: Token.T list -> Token.T list
   val command_reports: theory -> Token.T -> Position.report_text list
-  val check_command: Proof.context -> string * Position.T -> string
+  val check_command: Proof.context -> command_keyword -> string
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -147,6 +149,14 @@ fun raw_command (name, pos) comment command_parser =
 
 fun command (name, pos) comment parse =
   raw_command (name, pos) comment (Parser parse);
+
+fun maybe_begin_local_theory command_keyword comment parse_local parse_global =
+  raw_command command_keyword comment
+    (Restricted_Parser (fn restricted =>
+      Parse.opt_target -- parse_local
+        >> (fn (target, f) => Toplevel.local_theory restricted target f) ||
+      (if is_some restricted then Scan.fail
+       else parse_global >> Toplevel.begin_local_theory true)));
 
 fun local_theory_command trans command_keyword comment parse =
   raw_command command_keyword comment

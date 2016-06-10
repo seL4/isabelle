@@ -40,14 +40,14 @@ fun get_data lthy =
   else NONE;
 
 fun is_theory lthy =
-  case get_data lthy of
+  (case get_data lthy of
     SOME ("", _) => true
-  | _ => false;
+  | _ => false);
 
 fun target_of lthy =
-  case get_data lthy of
+  (case get_data lthy of
     NONE => error "Not in a named target"
-  | SOME (target, _) => target;
+  | SOME (target, _) => target);
 
 fun locale_name_of NONE = NONE
   | locale_name_of (SOME ("", _)) = NONE
@@ -58,9 +58,9 @@ val locale_of = locale_name_of o get_data;
 val bottom_locale_of = locale_name_of o get_bottom_data;
 
 fun class_of lthy =
-  case get_data lthy of
+  (case get_data lthy of
     SOME (class, true) => SOME class
-  | _ => NONE;
+  | _ => NONE);
 
 
 (* operations *)
