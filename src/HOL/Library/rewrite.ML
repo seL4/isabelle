@@ -333,7 +333,7 @@ val _ =
         val sep = (Args.$$$ "at" >> K At) || (Args.$$$ "in" >> K In)
         val atom =  (Args.$$$ "asm" >> K Asm) ||
           (Args.$$$ "concl" >> K Concl) ||
-          (Args.$$$ "for" |-- Args.parens (Scan.optional Parse.fixes []) >> For) ||
+          (Args.$$$ "for" |-- Args.parens (Scan.optional Parse.vars []) >> For) ||
           (Parse.term >> Term)
         val sep_atom = sep -- atom >> (fn (s,a) => [s,a])
 

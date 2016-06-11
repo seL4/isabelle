@@ -2394,13 +2394,13 @@ fun consolidate_global thy =
 val _ = Outer_Syntax.local_theory @{command_keyword corec}
   "define nonprimitive corecursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 corec_option_parser)
-      --| @{keyword ")"}) []) -- (Parse.fixes --| Parse.where_ -- Parse.prop)
+      --| @{keyword ")"}) []) -- (Parse.vars --| Parse.where_ -- Parse.prop)
    >> uncurry corec_cmd);
 
 val _ = Outer_Syntax.local_theory_to_proof @{command_keyword corecursive}
   "define nonprimitive corecursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 corec_option_parser)
-      --| @{keyword ")"}) []) -- (Parse.fixes --| Parse.where_ -- Parse.prop)
+      --| @{keyword ")"}) []) -- (Parse.vars --| Parse.where_ -- Parse.prop)
    >> uncurry corecursive_cmd);
 
 val _ = Outer_Syntax.local_theory_to_proof @{command_keyword friend_of_corec}

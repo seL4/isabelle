@@ -159,7 +159,7 @@ text \<open>
   \<phi>[t]\<close>.
 
   @{rail \<open>
-    @@{command fix} @{syntax "fixes"}
+    @@{command fix} @{syntax vars}
     ;
     (@@{command assume} | @@{command presume}) concl prems @{syntax for_fixes}
     ;
@@ -167,8 +167,8 @@ text \<open>
     ;
     prems: (@'if' (@{syntax props'} + @'and'))?
     ;
-    @@{command define} (@{syntax "fixes"} + @'and')
-      @'where' (@{syntax props} + @'and') @{syntax for_fixes}
+    @@{command define} @{syntax vars} @'where'
+      (@{syntax props} + @'and') @{syntax for_fixes}
     ;
     @@{command def} (def + @'and')
     ;
@@ -417,7 +417,7 @@ text \<open>
     ;
     @{syntax_def obtain_clauses}: (@{syntax par_name}? obtain_case + '|')
     ;
-    @{syntax_def obtain_case}: (@{syntax vars} + @'and') @'where'
+    @{syntax_def obtain_case}: @{syntax vars} @'where'
       (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
   \<close>}
 
@@ -1335,14 +1335,14 @@ text \<open>
   @{rail \<open>
     @@{command consider} @{syntax obtain_clauses}
     ;
-    @@{command obtain} @{syntax par_name}? (@{syntax "fixes"} + @'and') \<newline>
+    @@{command obtain} @{syntax par_name}? @{syntax vars} \<newline>
       @'where' concl prems @{syntax for_fixes}
     ;
     concl: (@{syntax props} + @'and')
     ;
     prems: (@'if' (@{syntax props'} + @'and'))?
     ;
-    @@{command guess} (@{syntax "fixes"} + @'and')
+    @@{command guess} @{syntax vars}
   \<close>}
 
   \<^descr> @{command consider}~\<open>(a) \<^vec>x \<WHERE> \<^vec>A \<^vec>x | (b)

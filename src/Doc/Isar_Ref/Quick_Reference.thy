@@ -15,7 +15,7 @@ text \<open>
     \<open>main\<close> & = & \<^theory_text>\<open>notepad begin "statement\<^sup>*" end\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>theorem name: props "proof"\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>theorem name:\<close> \\
-    & & \quad\<^theory_text>\<open>fixes "var\<^sup>+"\<close> \\
+    & & \quad\<^theory_text>\<open>fixes vars\<close> \\
     & & \quad\<^theory_text>\<open>assumes name: props\<close> \\
     & & \quad\<^theory_text>\<open>shows name: props "proof"\<close> \\
     \<open>proof\<close> & = & \<^theory_text>\<open>"refinement\<^sup>*" proof "method\<^sup>?" "statement\<^sup>*" qed "method\<^sup>?"\<close> \\
@@ -23,7 +23,7 @@ text \<open>
     \<open>refinement\<close> & = &  \<^theory_text>\<open>apply method\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>supply facts\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>subgoal "proof"\<close> \\
-    & \<open>|\<close> & \<^theory_text>\<open>subgoal for "var\<^sup>+" "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>subgoal for vars "proof"\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>using facts\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>unfolding facts\<close> \\
     \<open>statement\<close> & = & \<^theory_text>\<open>{ "statement\<^sup>*" }\<close> \\
@@ -31,14 +31,14 @@ text \<open>
     & \<open>|\<close> & \<^theory_text>\<open>note name = facts\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>let "term" = "term"\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>write name  (mixfix)\<close> \\
-    & \<open>|\<close> & \<^theory_text>\<open>fix "var\<^sup>+"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>fix vars\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>assume name: props\<close> \\
-    & \<open>|\<close> & \<^theory_text>\<open>assume name: props if props for "var\<^sup>+"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>assume name: props if props for vars\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>then"\<^sup>?" goal\<close> \\
     \<open>goal\<close> & = & \<^theory_text>\<open>have name: props "proof"\<close> \\
-    & \<open>|\<close> & \<^theory_text>\<open>have name: props if name: props for "var\<^sup>+" "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>have name: props if name: props for vars "proof"\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>show name: props "proof"\<close> \\
-    & \<open>|\<close> & \<^theory_text>\<open>show name: props if name: props for "var\<^sup>+" "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>show name: props if name: props for vars "proof"\<close> \\
   \end{tabular}
 \<close>
 

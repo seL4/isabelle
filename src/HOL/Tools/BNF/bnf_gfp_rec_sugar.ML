@@ -1615,13 +1615,13 @@ val _ = Outer_Syntax.local_theory_to_proof @{command_keyword primcorecursive}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |--
       Parse.!!! (Parse.list1 corec_option_parser) --| @{keyword ")"}) []) --
-    (Parse.fixes -- where_alt_props_of_parser) >> uncurry primcorecursive_cmd);
+    (Parse.vars -- where_alt_props_of_parser) >> uncurry primcorecursive_cmd);
 
 val _ = Outer_Syntax.local_theory @{command_keyword primcorec}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 corec_option_parser)
       --| @{keyword ")"}) []) --
-    (Parse.fixes -- where_alt_props_of_parser) >> uncurry primcorec_cmd);
+    (Parse.vars -- where_alt_props_of_parser) >> uncurry primcorec_cmd);
 
 val _ = Theory.setup (gfp_rec_sugar_interpretation transfer_plugin
   gfp_rec_sugar_transfer_interpretation);

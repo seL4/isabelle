@@ -67,7 +67,7 @@ val multi_specs =
 
 val where_multi_specs = Parse.where_ |-- Parse.!!! multi_specs;
 
-val specification = Parse.fixes -- where_multi_specs;
+val specification = Parse.vars -- where_multi_specs;
 
 
 (* basic constant specifications *)
@@ -157,7 +157,7 @@ val cond_statement =
 
 val obtain_case =
   Parse.parbinding --
-    (Scan.optional (Parse.and_list1 Parse.fixes --| Parse.where_ >> flat) [] --
+    (Scan.optional (Parse.and_list1 Parse.vars --| Parse.where_ >> flat) [] --
       (Parse.and_list1 (Scan.repeat1 Parse.prop) >> flat));
 
 val obtains = Parse.enum1 "|" obtain_case;

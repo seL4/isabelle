@@ -88,7 +88,7 @@ sig
   val const_decl: (string * string * mixfix) parser
   val const_binding: (binding * string * mixfix) parser
   val params: (binding * string option * mixfix) list parser
-  val fixes: (binding * string option * mixfix) list parser
+  val vars: (binding * string option * mixfix) list parser
   val for_fixes: (binding * string option * mixfix) list parser
   val ML_source: Input.source parser
   val document_source: Input.source parser
@@ -374,8 +374,9 @@ val params =
     >> (fn ((x, ys), T) =>
         (x, Option.map #1 T, NoSyn) :: map (fn y => (y, Option.map #2 T, NoSyn)) ys);
 
-val fixes = and_list1 (param_mixfix || params) >> flat;
-val for_fixes = Scan.optional ($$$ "for" |-- !!! fixes) [];
+val vars = and_list1 (param_mixfix || params) >> flat;
+
+val for_fixes = Scan.optional ($$$ "for" |-- !!! vars) [];
 
 
 (* embedded source text *)
