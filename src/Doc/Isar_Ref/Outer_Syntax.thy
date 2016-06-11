@@ -346,7 +346,9 @@ text \<open>
   to introduce multiple such items simultaneously.
 
   @{rail \<open>
-    @{syntax_def vars}: (@{syntax name} +) ('::' @{syntax type})?
+    @{syntax_def vars}:
+      (((@{syntax name} +) ('::' @{syntax type})? |
+        @{syntax name} ('::' @{syntax type})? @{syntax mixfix}) + @'and')
     ;
     @{syntax_def props}: @{syntax thmdecl}? (@{syntax prop} @{syntax prop_pat}? +)
     ;
@@ -361,20 +363,6 @@ text \<open>
   another level of iteration, with explicit @{keyword_ref "and"} separators;
   e.g.\ see @{command "fix"} and @{command "assume"} in
   \secref{sec:proof-context}.
-
-  @{rail \<open>
-    @{syntax_def "fixes"}:
-      ((@{syntax name} ('::' @{syntax type})? @{syntax mixfix}? | @{syntax vars}) + @'and')
-    ;
-    @{syntax_def "for_fixes"}: (@'for' @{syntax "fixes"})?
-  \<close>}
-
-  The category @{syntax "fixes"} is a richer variant of @{syntax vars}: it
-  admits specification of mixfix syntax for the entities that are introduced
-  into the context. An optional suffix ``@{keyword "for"}~\<open>fixes\<close>'' is
-  admitted in many situations to indicate a so-called ``eigen-context'' of a
-  formal element: the result will be exported and thus generalized over the
-  given variables.
 \<close>
 
 
@@ -463,6 +451,8 @@ text \<open>
 
 
   @{rail \<open>
+    @{syntax_def for_fixes}: (@'for' @{syntax vars})?
+    ;
     @{syntax_def multi_specs}: (@{syntax structured_spec} + '|')
     ;
     @{syntax_def structured_spec}:
@@ -470,7 +460,7 @@ text \<open>
     ;
     @{syntax_def spec_prems}: (@'if' ((@{syntax prop}+) + @'and'))?
     ;
-    @{syntax_def specification}: @{syntax "fixes"} @'where' @{syntax multi_specs}
+    @{syntax_def specification}: @{syntax vars} @'where' @{syntax multi_specs}
   \<close>}
 \<close>
 

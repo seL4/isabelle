@@ -403,8 +403,8 @@ val options =
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword nominal_primrec}
     "define primitive recursive functions on nominal datatypes"
-    (options -- Parse.fixes -- Parse.for_fixes -- Parse_Spec.where_multi_specs
-      >> (fn ((((invs, fctxt), fixes), params), specs) =>
-        primrec_cmd invs fctxt fixes params specs));
+    (options -- Parse.vars -- Parse.for_fixes -- Parse_Spec.where_multi_specs
+      >> (fn ((((invs, fctxt), vars), params), specs) =>
+        primrec_cmd invs fctxt vars params specs));
 
 end;

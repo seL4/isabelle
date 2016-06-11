@@ -400,7 +400,7 @@ val multi_specs' : (bool * (Attrib.binding * string)) list parser =
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword fixrec} "define recursive functions (HOLCF)"
-    (Parse.fixes -- (Parse.where_ |-- Parse.!!! multi_specs')
-      >> (fn (fixes, specs) => add_fixrec_cmd fixes specs))
+    (Parse.vars -- (Parse.where_ |-- Parse.!!! multi_specs')
+      >> (fn (vars, specs) => add_fixrec_cmd vars specs))
 
 end

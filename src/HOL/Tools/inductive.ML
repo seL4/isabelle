@@ -1169,7 +1169,7 @@ fun infer_intro_vars thy elim arity intros =
 (** outer syntax **)
 
 fun gen_ind_decl mk_def coind =
-  Parse.fixes -- Parse.for_fixes --
+  Parse.vars -- Parse.for_fixes --
   Scan.optional Parse_Spec.where_multi_specs [] --
   Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.thms1) []
   >> (fn (((preds, params), specs), monos) =>

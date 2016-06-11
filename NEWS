@@ -93,7 +93,7 @@ INCOMPATIBILITY.
 'definition', 'inductive', 'function'.
 
 * Toplevel theorem statements support eigen-context notation with 'if' /
-'for' (in postix), which corresponds to 'assumes' / 'fixes' in the
+'for' (in postfix), which corresponds to 'assumes' / 'fixes' in the
 traditional long statement form (in prefix). Local premises are called
 "that" or "assms", respectively. Empty premises are *not* bound in the
 context: INCOMPATIBILITY.

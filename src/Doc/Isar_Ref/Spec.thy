@@ -354,7 +354,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command axiomatization} @{syntax "fixes"}? (@'where' axiomatization)?
+    @@{command axiomatization} @{syntax vars}? (@'where' axiomatization)?
     ;
     axiomatization: (@{syntax thmdecl} @{syntax prop} + @'and')
       @{syntax spec_prems} @{syntax for_fixes}
@@ -516,7 +516,7 @@ text \<open>
       @{syntax locale_expr} ('+' (@{syntax context_elem}+))?
     ;
     @{syntax_def context_elem}:
-      @'fixes' @{syntax "fixes"} |
+      @'fixes' @{syntax vars} |
       @'constrains' (@{syntax name} '::' @{syntax type} + @'and') |
       @'assumes' (@{syntax props} + @'and') |
       @'defines' (@{syntax thmdecl}? @{syntax prop} @{syntax prop_pat}? + @'and') |

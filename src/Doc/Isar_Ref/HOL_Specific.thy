@@ -108,7 +108,7 @@ text \<open>
   @{rail \<open>
     (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
       @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set})
-      @{syntax "fixes"} @{syntax "for_fixes"} \<newline>
+      @{syntax vars} @{syntax for_fixes} \<newline>
       (@'where' @{syntax multi_specs})? (@'monos' @{syntax thms})?
     ;
     @@{command print_inductives} ('!'?)

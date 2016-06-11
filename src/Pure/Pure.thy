@@ -359,7 +359,7 @@ val axiomatization =
 
 val _ =
   Outer_Syntax.command @{command_keyword axiomatization} "axiomatic constant specification"
-    (Scan.optional Parse.fixes [] --
+    (Scan.optional Parse.vars [] --
       Scan.optional (Parse.where_ |-- Parse.!!! axiomatization) ([], [], [])
       >> (fn (a, (b, c, d)) => Toplevel.theory (#2 o Specification.axiomatization_cmd a b c d)));
 
@@ -756,7 +756,7 @@ val structured_statement =
 
 val _ =
   Outer_Syntax.command @{command_keyword fix} "fix local variables (Skolem constants)"
-    (Parse.fixes >> (Toplevel.proof o Proof.fix_cmd));
+    (Parse.vars >> (Toplevel.proof o Proof.fix_cmd));
 
 val _ =
   Outer_Syntax.command @{command_keyword assume} "assume propositions"
@@ -768,7 +768,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword define} "local definition (non-polymorphic)"
-    ((Parse.fixes --| Parse.where_) -- Parse_Spec.statement -- Parse.for_fixes
+    ((Parse.vars --| Parse.where_) -- Parse_Spec.statement -- Parse.for_fixes
       >> (fn ((a, b), c) => Toplevel.proof (Proof.define_cmd a c b)));
 
 val _ =
@@ -786,12 +786,12 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword obtain} "generalized elimination"
-    (Parse.parbinding -- Scan.optional (Parse.fixes --| Parse.where_) [] -- structured_statement
+    (Parse.parbinding -- Scan.optional (Parse.vars --| Parse.where_) [] -- structured_statement
       >> (fn ((a, b), (c, d, e)) => Toplevel.proof' (Obtain.obtain_cmd a b c d e)));
 
 val _ =
   Outer_Syntax.command @{command_keyword guess} "wild guessing (unstructured)"
-    (Scan.optional Parse.fixes [] >> (Toplevel.proof' o Obtain.guess_cmd));
+    (Scan.optional Parse.vars [] >> (Toplevel.proof' o Obtain.guess_cmd));
 
 val _ =
   Outer_Syntax.command @{command_keyword let} "bind text variables"
