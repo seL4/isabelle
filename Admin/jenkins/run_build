@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# Do not run this script manually, it is only to be executed by Jenkins.
+
+set -x
+set -e
+
+PROFILE="$1"
+shift
+
+bin/isabelle components -a
+bin/isabelle jedit -bf
+bin/isabelle "ci_build_$PROFILE" "$@"

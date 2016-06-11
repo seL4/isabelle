@@ -101,6 +101,7 @@ declare -a SOURCES=(
   Tools/build_doc.scala
   Tools/check_keywords.scala
   Tools/check_sources.scala
+  Tools/ci_profile.scala
   Tools/debugger.scala
   Tools/doc.scala
   Tools/main.scala
