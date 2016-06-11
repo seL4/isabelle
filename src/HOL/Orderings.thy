@@ -15,71 +15,71 @@ ML_file "~~/src/Provers/quasi.ML"  (* FIXME unused? *)
 subsection \<open>Abstract ordering\<close>
 
 locale ordering =
-  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<preceq>" 50)
-   and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<prec>" 50)
-  assumes strict_iff_order: "a \<prec> b \<longleftrightarrow> a \<preceq> b \<and> a \<noteq> b"
-  assumes refl: "a \<preceq> a" \<comment> \<open>not \<open>iff\<close>: makes problems due to multiple (dual) interpretations\<close>
-    and antisym: "a \<preceq> b \<Longrightarrow> b \<preceq> a \<Longrightarrow> a = b"
-    and trans: "a \<preceq> b \<Longrightarrow> b \<preceq> c \<Longrightarrow> a \<preceq> c"
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<^bold>\<le>" 50)
+   and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<^bold><" 50)
+  assumes strict_iff_order: "a \<^bold>< b \<longleftrightarrow> a \<^bold>\<le> b \<and> a \<noteq> b"
+  assumes refl: "a \<^bold>\<le> a" \<comment> \<open>not \<open>iff\<close>: makes problems due to multiple (dual) interpretations\<close>
+    and antisym: "a \<^bold>\<le> b \<Longrightarrow> b \<^bold>\<le> a \<Longrightarrow> a = b"
+    and trans: "a \<^bold>\<le> b \<Longrightarrow> b \<^bold>\<le> c \<Longrightarrow> a \<^bold>\<le> c"
 begin
 
 lemma strict_implies_order:
-  "a \<prec> b \<Longrightarrow> a \<preceq> b"
+  "a \<^bold>< b \<Longrightarrow> a \<^bold>\<le> b"
   by (simp add: strict_iff_order)
 
 lemma strict_implies_not_eq:
-  "a \<prec> b \<Longrightarrow> a \<noteq> b"
+  "a \<^bold>< b \<Longrightarrow> a \<noteq> b"
   by (simp add: strict_iff_order)
 
 lemma not_eq_order_implies_strict:
-  "a \<noteq> b \<Longrightarrow> a \<preceq> b \<Longrightarrow> a \<prec> b"
+  "a \<noteq> b \<Longrightarrow> a \<^bold>\<le> b \<Longrightarrow> a \<^bold>< b"
   by (simp add: strict_iff_order)
 
 lemma order_iff_strict:
-  "a \<preceq> b \<longleftrightarrow> a \<prec> b \<or> a = b"
+  "a \<^bold>\<le> b \<longleftrightarrow> a \<^bold>< b \<or> a = b"
   by (auto simp add: strict_iff_order refl)
 
 lemma irrefl: \<comment> \<open>not \<open>iff\<close>: makes problems due to multiple (dual) interpretations\<close>
-  "\<not> a \<prec> a"
+  "\<not> a \<^bold>< a"
   by (simp add: strict_iff_order)
 
 lemma asym:
-  "a \<prec> b \<Longrightarrow> b \<prec> a \<Longrightarrow> False"
+  "a \<^bold>< b \<Longrightarrow> b \<^bold>< a \<Longrightarrow> False"
   by (auto simp add: strict_iff_order intro: antisym)
 
 lemma strict_trans1:
-  "a \<preceq> b \<Longrightarrow> b \<prec> c \<Longrightarrow> a \<prec> c"
+  "a \<^bold>\<le> b \<Longrightarrow> b \<^bold>< c \<Longrightarrow> a \<^bold>< c"
   by (auto simp add: strict_iff_order intro: trans antisym)
 
 lemma strict_trans2:
-  "a \<prec> b \<Longrightarrow> b \<preceq> c \<Longrightarrow> a \<prec> c"
+  "a \<^bold>< b \<Longrightarrow> b \<^bold>\<le> c \<Longrightarrow> a \<^bold>< c"
   by (auto simp add: strict_iff_order intro: trans antisym)
 
 lemma strict_trans:
-  "a \<prec> b \<Longrightarrow> b \<prec> c \<Longrightarrow> a \<prec> c"
+  "a \<^bold>< b \<Longrightarrow> b \<^bold>< c \<Longrightarrow> a \<^bold>< c"
   by (auto intro: strict_trans1 strict_implies_order)
 
 end
 
 locale ordering_top = ordering +
-  fixes top :: "'a"
-  assumes extremum [simp]: "a \<preceq> top"
+  fixes top :: "'a"  ("\<^bold>\<top>")
+  assumes extremum [simp]: "a \<^bold>\<le> \<^bold>\<top>"
 begin
 
 lemma extremum_uniqueI:
-  "top \<preceq> a \<Longrightarrow> a = top"
+  "\<^bold>\<top> \<^bold>\<le> a \<Longrightarrow> a = \<^bold>\<top>"
   by (rule antisym) auto
 
 lemma extremum_unique:
-  "top \<preceq> a \<longleftrightarrow> a = top"
+  "\<^bold>\<top> \<^bold>\<le> a \<longleftrightarrow> a = \<^bold>\<top>"
   by (auto intro: antisym)
 
 lemma extremum_strict [simp]:
-  "\<not> (top \<prec> a)"
+  "\<not> (\<^bold>\<top> \<^bold>< a)"
   using extremum [of a] by (auto simp add: order_iff_strict intro: asym irrefl)
 
 lemma not_eq_extremum:
-  "a \<noteq> top \<longleftrightarrow> a \<prec> top"
+  "a \<noteq> \<^bold>\<top> \<longleftrightarrow> a \<^bold>< \<^bold>\<top>"
   by (auto simp add: order_iff_strict intro: not_eq_order_implies_strict extremum)
 
 end

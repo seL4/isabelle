@@ -42,17 +42,17 @@ text \<open>
 \<close>
 
 locale semigroup =
-  fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "*" 70)
-  assumes assoc [ac_simps]: "a * b * c = a * (b * c)"
+  fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<^bold>*" 70)
+  assumes assoc [ac_simps]: "a \<^bold>* b \<^bold>* c = a \<^bold>* (b \<^bold>* c)"
 
 locale abel_semigroup = semigroup +
-  assumes commute [ac_simps]: "a * b = b * a"
+  assumes commute [ac_simps]: "a \<^bold>* b = b \<^bold>* a"
 begin
 
 lemma left_commute [ac_simps]:
-  "b * (a * c) = a * (b * c)"
+  "b \<^bold>* (a \<^bold>* c) = a \<^bold>* (b \<^bold>* c)"
 proof -
-  have "(b * a) * c = (a * b) * c"
+  have "(b \<^bold>* a) \<^bold>* c = (a \<^bold>* b) \<^bold>* c"
     by (simp only: commute)
   then show ?thesis
     by (simp only: assoc)
@@ -61,13 +61,13 @@ qed
 end
 
 locale monoid = semigroup +
-  fixes z :: 'a ("1")
-  assumes left_neutral [simp]: "1 * a = a"
-  assumes right_neutral [simp]: "a * 1 = a"
+  fixes z :: 'a ("\<^bold>1")
+  assumes left_neutral [simp]: "\<^bold>1 \<^bold>* a = a"
+  assumes right_neutral [simp]: "a \<^bold>* \<^bold>1 = a"
 
 locale comm_monoid = abel_semigroup +
-  fixes z :: 'a ("1")
-  assumes comm_neutral: "a * 1 = a"
+  fixes z :: 'a ("\<^bold>1")
+  assumes comm_neutral: "a \<^bold>* \<^bold>1 = a"
 begin
 
 sublocale monoid

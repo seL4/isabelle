@@ -16,17 +16,14 @@ text \<open>
   undesired effects may occur due to interpretation.
 \<close>
 
-no_notation times (infixl "*" 70)
-no_notation Groups.one ("1")
-
 locale semilattice = abel_semigroup +
-  assumes idem [simp]: "a * a = a"
+  assumes idem [simp]: "a \<^bold>* a = a"
 begin
 
-lemma left_idem [simp]: "a * (a * b) = a * b"
+lemma left_idem [simp]: "a \<^bold>* (a \<^bold>* b) = a \<^bold>* b"
 by (simp add: assoc [symmetric])
 
-lemma right_idem [simp]: "(a * b) * b = a * b"
+lemma right_idem [simp]: "(a \<^bold>* b) \<^bold>* b = a \<^bold>* b"
 by (simp add: assoc)
 
 end
@@ -34,109 +31,109 @@ end
 locale semilattice_neutr = semilattice + comm_monoid
 
 locale semilattice_order = semilattice +
-  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<preceq>" 50)
-    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<prec>" 50)
-  assumes order_iff: "a \<preceq> b \<longleftrightarrow> a = a * b"
-    and strict_order_iff: "a \<prec> b \<longleftrightarrow> a = a * b \<and> a \<noteq> b"
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<^bold>\<le>" 50)
+    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<^bold><" 50)
+  assumes order_iff: "a \<^bold>\<le> b \<longleftrightarrow> a = a \<^bold>* b"
+    and strict_order_iff: "a \<^bold>< b \<longleftrightarrow> a = a \<^bold>* b \<and> a \<noteq> b"
 begin
 
 lemma orderI:
-  "a = a * b \<Longrightarrow> a \<preceq> b"
+  "a = a \<^bold>* b \<Longrightarrow> a \<^bold>\<le> b"
   by (simp add: order_iff)
 
 lemma orderE:
-  assumes "a \<preceq> b"
-  obtains "a = a * b"
+  assumes "a \<^bold>\<le> b"
+  obtains "a = a \<^bold>* b"
   using assms by (unfold order_iff)
 
 sublocale ordering less_eq less
 proof
   fix a b
-  show "a \<prec> b \<longleftrightarrow> a \<preceq> b \<and> a \<noteq> b"
+  show "a \<^bold>< b \<longleftrightarrow> a \<^bold>\<le> b \<and> a \<noteq> b"
     by (simp add: order_iff strict_order_iff)
 next
   fix a
-  show "a \<preceq> a"
+  show "a \<^bold>\<le> a"
     by (simp add: order_iff)
 next
   fix a b
-  assume "a \<preceq> b" "b \<preceq> a"
-  then have "a = a * b" "a * b = b"
+  assume "a \<^bold>\<le> b" "b \<^bold>\<le> a"
+  then have "a = a \<^bold>* b" "a \<^bold>* b = b"
     by (simp_all add: order_iff commute)
   then show "a = b" by simp
 next
   fix a b c
-  assume "a \<preceq> b" "b \<preceq> c"
-  then have "a = a * b" "b = b * c"
+  assume "a \<^bold>\<le> b" "b \<^bold>\<le> c"
+  then have "a = a \<^bold>* b" "b = b \<^bold>* c"
     by (simp_all add: order_iff commute)
-  then have "a = a * (b * c)"
+  then have "a = a \<^bold>* (b \<^bold>* c)"
     by simp
-  then have "a = (a * b) * c"
+  then have "a = (a \<^bold>* b) \<^bold>* c"
     by (simp add: assoc)
-  with \<open>a = a * b\<close> [symmetric] have "a = a * c" by simp
-  then show "a \<preceq> c" by (rule orderI)
+  with \<open>a = a \<^bold>* b\<close> [symmetric] have "a = a \<^bold>* c" by simp
+  then show "a \<^bold>\<le> c" by (rule orderI)
 qed
 
 lemma cobounded1 [simp]:
-  "a * b \<preceq> a"
+  "a \<^bold>* b \<^bold>\<le> a"
   by (simp add: order_iff commute)  
 
 lemma cobounded2 [simp]:
-  "a * b \<preceq> b"
+  "a \<^bold>* b \<^bold>\<le> b"
   by (simp add: order_iff)
 
 lemma boundedI:
-  assumes "a \<preceq> b" and "a \<preceq> c"
-  shows "a \<preceq> b * c"
+  assumes "a \<^bold>\<le> b" and "a \<^bold>\<le> c"
+  shows "a \<^bold>\<le> b \<^bold>* c"
 proof (rule orderI)
-  from assms obtain "a * b = a" and "a * c = a" by (auto elim!: orderE)
-  then show "a = a * (b * c)" by (simp add: assoc [symmetric])
+  from assms obtain "a \<^bold>* b = a" and "a \<^bold>* c = a" by (auto elim!: orderE)
+  then show "a = a \<^bold>* (b \<^bold>* c)" by (simp add: assoc [symmetric])
 qed
 
 lemma boundedE:
-  assumes "a \<preceq> b * c"
-  obtains "a \<preceq> b" and "a \<preceq> c"
+  assumes "a \<^bold>\<le> b \<^bold>* c"
+  obtains "a \<^bold>\<le> b" and "a \<^bold>\<le> c"
   using assms by (blast intro: trans cobounded1 cobounded2)
 
 lemma bounded_iff [simp]:
-  "a \<preceq> b * c \<longleftrightarrow> a \<preceq> b \<and> a \<preceq> c"
+  "a \<^bold>\<le> b \<^bold>* c \<longleftrightarrow> a \<^bold>\<le> b \<and> a \<^bold>\<le> c"
   by (blast intro: boundedI elim: boundedE)
 
 lemma strict_boundedE:
-  assumes "a \<prec> b * c"
-  obtains "a \<prec> b" and "a \<prec> c"
+  assumes "a \<^bold>< b \<^bold>* c"
+  obtains "a \<^bold>< b" and "a \<^bold>< c"
   using assms by (auto simp add: commute strict_iff_order elim: orderE intro!: that)+
 
 lemma coboundedI1:
-  "a \<preceq> c \<Longrightarrow> a * b \<preceq> c"
+  "a \<^bold>\<le> c \<Longrightarrow> a \<^bold>* b \<^bold>\<le> c"
   by (rule trans) auto
 
 lemma coboundedI2:
-  "b \<preceq> c \<Longrightarrow> a * b \<preceq> c"
+  "b \<^bold>\<le> c \<Longrightarrow> a \<^bold>* b \<^bold>\<le> c"
   by (rule trans) auto
 
 lemma strict_coboundedI1:
-  "a \<prec> c \<Longrightarrow> a * b \<prec> c"
+  "a \<^bold>< c \<Longrightarrow> a \<^bold>* b \<^bold>< c"
   using irrefl
     by (auto intro: not_eq_order_implies_strict coboundedI1 strict_implies_order elim: strict_boundedE)
 
 lemma strict_coboundedI2:
-  "b \<prec> c \<Longrightarrow> a * b \<prec> c"
+  "b \<^bold>< c \<Longrightarrow> a \<^bold>* b \<^bold>< c"
   using strict_coboundedI1 [of b c a] by (simp add: commute)
 
-lemma mono: "a \<preceq> c \<Longrightarrow> b \<preceq> d \<Longrightarrow> a * b \<preceq> c * d"
+lemma mono: "a \<^bold>\<le> c \<Longrightarrow> b \<^bold>\<le> d \<Longrightarrow> a \<^bold>* b \<^bold>\<le> c \<^bold>* d"
   by (blast intro: boundedI coboundedI1 coboundedI2)
 
-lemma absorb1: "a \<preceq> b \<Longrightarrow> a * b = a"
+lemma absorb1: "a \<^bold>\<le> b \<Longrightarrow> a \<^bold>* b = a"
   by (rule antisym) (auto simp add: refl)
 
-lemma absorb2: "b \<preceq> a \<Longrightarrow> a * b = b"
+lemma absorb2: "b \<^bold>\<le> a \<Longrightarrow> a \<^bold>* b = b"
   by (rule antisym) (auto simp add: refl)
 
-lemma absorb_iff1: "a \<preceq> b \<longleftrightarrow> a * b = a"
+lemma absorb_iff1: "a \<^bold>\<le> b \<longleftrightarrow> a \<^bold>* b = a"
   using order_iff by auto
 
-lemma absorb_iff2: "b \<preceq> a \<longleftrightarrow> a * b = b"
+lemma absorb_iff2: "b \<^bold>\<le> a \<longleftrightarrow> a \<^bold>* b = b"
   using order_iff by (auto simp add: commute)
 
 end
@@ -144,13 +141,10 @@ end
 locale semilattice_neutr_order = semilattice_neutr + semilattice_order
 begin
 
-sublocale ordering_top less_eq less 1
+sublocale ordering_top less_eq less "\<^bold>1"
   by standard (simp add: order_iff)
 
 end
-
-notation times (infixl "*" 70)
-notation Groups.one ("1")
 
 
 subsection \<open>Syntactic infimum and supremum operations\<close>

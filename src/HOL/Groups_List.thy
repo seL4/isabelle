@@ -6,26 +6,23 @@ theory Groups_List
 imports List
 begin
 
-no_notation times (infixl "*" 70)
-no_notation Groups.one ("1")
- 
 locale monoid_list = monoid
 begin
  
 definition F :: "'a list \<Rightarrow> 'a"
 where
-  eq_foldr [code]: "F xs = foldr f xs 1"
+  eq_foldr [code]: "F xs = foldr f xs \<^bold>1"
  
 lemma Nil [simp]:
-  "F [] = 1"
+  "F [] = \<^bold>1"
   by (simp add: eq_foldr)
  
 lemma Cons [simp]:
-  "F (x # xs) = x * F xs"
+  "F (x # xs) = x \<^bold>* F xs"
   by (simp add: eq_foldr)
  
 lemma append [simp]:
-  "F (xs @ ys) = F xs * F ys"
+  "F (xs @ ys) = F xs \<^bold>* F ys"
   by (induct xs) (simp_all add: assoc)
  
 end
@@ -51,9 +48,6 @@ lemma set_conv_list [code]:
   by (simp add: distinct_set_conv_list [symmetric])
 
 end
-
-notation times (infixl "*" 70)
-notation Groups.one ("1")
 
 
 subsection \<open>List summation\<close>

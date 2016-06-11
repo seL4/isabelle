@@ -1562,16 +1562,13 @@ lemma replicate_mset_eq_iff:
 
 subsection \<open>Big operators\<close>
 
-no_notation times (infixl "*" 70)
-no_notation Groups.one ("1")
-
 locale comm_monoid_mset = comm_monoid
 begin
 
 definition F :: "'a multiset \<Rightarrow> 'a"
-  where eq_fold: "F M = fold_mset f 1 M"
+  where eq_fold: "F M = fold_mset f \<^bold>1 M"
 
-lemma empty [simp]: "F {#} = 1"
+lemma empty [simp]: "F {#} = \<^bold>1"
   by (simp add: eq_fold)
 
 lemma singleton [simp]: "F {#x#} = x"
@@ -1581,7 +1578,7 @@ proof -
   show ?thesis by (simp add: eq_fold)
 qed
 
-lemma union [simp]: "F (M + N) = F M * F N"
+lemma union [simp]: "F (M + N) = F M \<^bold>* F N"
 proof -
   interpret comp_fun_commute f
     by standard (simp add: fun_eq_iff left_commute)
@@ -1598,9 +1595,6 @@ declare comp_fun_commute.fold_mset_insert[OF comp_fun_commute_plus_mset, simp]
 
 lemma in_mset_fold_plus_iff[iff]: "x \<in># fold_mset (op +) M NN \<longleftrightarrow> x \<in># M \<or> (\<exists>N. N \<in># NN \<and> x \<in># N)"
   by (induct NN) auto
-
-notation times (infixl "*" 70)
-notation Groups.one ("1")
 
 context comm_monoid_add
 begin

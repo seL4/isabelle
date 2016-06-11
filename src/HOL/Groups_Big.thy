@@ -11,9 +11,6 @@ begin
 
 subsection \<open>Generic monoid operation over a set\<close>
 
-no_notation times (infixl "*" 70)
-no_notation Groups.one ("1")
-
 locale comm_monoid_set = comm_monoid
 begin
 
@@ -25,24 +22,24 @@ interpretation comp?: comp_fun_commute "f \<circ> g"
 
 definition F :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
 where
-  eq_fold: "F g A = Finite_Set.fold (f \<circ> g) 1 A"
+  eq_fold: "F g A = Finite_Set.fold (f \<circ> g) \<^bold>1 A"
 
 lemma infinite [simp]:
-  "\<not> finite A \<Longrightarrow> F g A = 1"
+  "\<not> finite A \<Longrightarrow> F g A = \<^bold>1"
   by (simp add: eq_fold)
 
 lemma empty [simp]:
-  "F g {} = 1"
+  "F g {} = \<^bold>1"
   by (simp add: eq_fold)
 
 lemma insert [simp]:
   assumes "finite A" and "x \<notin> A"
-  shows "F g (insert x A) = g x * F g A"
+  shows "F g (insert x A) = g x \<^bold>* F g A"
   using assms by (simp add: eq_fold)
 
 lemma remove:
   assumes "finite A" and "x \<in> A"
-  shows "F g A = g x * F g (A - {x})"
+  shows "F g A = g x \<^bold>* F g (A - {x})"
 proof -
   from \<open>x \<in> A\<close> obtain B where A: "A = insert x B" and "x \<notin> B"
     by (auto dest: mk_disjoint_insert)
@@ -52,21 +49,21 @@ qed
 
 lemma insert_remove:
   assumes "finite A"
-  shows "F g (insert x A) = g x * F g (A - {x})"
+  shows "F g (insert x A) = g x \<^bold>* F g (A - {x})"
   using assms by (cases "x \<in> A") (simp_all add: remove insert_absorb)
 
 lemma neutral:
-  assumes "\<forall>x\<in>A. g x = 1"
-  shows "F g A = 1"
+  assumes "\<forall>x\<in>A. g x = \<^bold>1"
+  shows "F g A = \<^bold>1"
   using assms by (induct A rule: infinite_finite_induct) simp_all
 
 lemma neutral_const [simp]:
-  "F (\<lambda>_. 1) A = 1"
+  "F (\<lambda>_. \<^bold>1) A = \<^bold>1"
   by (simp add: neutral)
 
 lemma union_inter:
   assumes "finite A" and "finite B"
-  shows "F g (A \<union> B) * F g (A \<inter> B) = F g A * F g B"
+  shows "F g (A \<union> B) \<^bold>* F g (A \<inter> B) = F g A \<^bold>* F g B"
   \<comment> \<open>The reversed orientation looks more natural, but LOOPS as a simprule!\<close>
 using assms proof (induct A)
   case empty then show ?case by simp
@@ -77,19 +74,19 @@ qed
 
 corollary union_inter_neutral:
   assumes "finite A" and "finite B"
-  and I0: "\<forall>x \<in> A \<inter> B. g x = 1"
-  shows "F g (A \<union> B) = F g A * F g B"
+  and I0: "\<forall>x \<in> A \<inter> B. g x = \<^bold>1"
+  shows "F g (A \<union> B) = F g A \<^bold>* F g B"
   using assms by (simp add: union_inter [symmetric] neutral)
 
 corollary union_disjoint:
   assumes "finite A" and "finite B"
   assumes "A \<inter> B = {}"
-  shows "F g (A \<union> B) = F g A * F g B"
+  shows "F g (A \<union> B) = F g A \<^bold>* F g B"
   using assms by (simp add: union_inter_neutral)
 
 lemma union_diff2:
   assumes "finite A" and "finite B"
-  shows "F g (A \<union> B) = F g (A - B) * F g (B - A) * F g (A \<inter> B)"
+  shows "F g (A \<union> B) = F g (A - B) \<^bold>* F g (B - A) \<^bold>* F g (A \<inter> B)"
 proof -
   have "A \<union> B = A - B \<union> (B - A) \<union> A \<inter> B"
     by auto
@@ -98,12 +95,12 @@ qed
 
 lemma subset_diff:
   assumes "B \<subseteq> A" and "finite A"
-  shows "F g A = F g (A - B) * F g B"
+  shows "F g A = F g (A - B) \<^bold>* F g B"
 proof -
   from assms have "finite (A - B)" by auto
   moreover from assms have "finite B" by (rule finite_subset)
   moreover from assms have "(A - B) \<inter> B = {}" by auto
-  ultimately have "F g (A - B \<union> B) = F g (A - B) * F g B" by (rule union_disjoint)
+  ultimately have "F g (A - B \<union> B) = F g (A - B) \<^bold>* F g B" by (rule union_disjoint)
   moreover from assms have "A \<union> B = A" by auto
   ultimately show ?thesis by simp
 qed
@@ -114,10 +111,10 @@ lemma setdiff_irrelevant:
   using assms by (induct A) (simp_all add: insert_Diff_if)
 
 lemma not_neutral_contains_not_neutral:
-  assumes "F g A \<noteq> z"
-  obtains a where "a \<in> A" and "g a \<noteq> z"
+  assumes "F g A \<noteq> \<^bold>1"
+  obtains a where "a \<in> A" and "g a \<noteq> \<^bold>1"
 proof -
-  from assms have "\<exists>a\<in>A. g a \<noteq> z"
+  from assms have "\<exists>a\<in>A. g a \<noteq> \<^bold>1"
   proof (induct A rule: infinite_finite_induct)
     case (insert a A)
     then show ?case by simp (rule, simp)
@@ -180,7 +177,7 @@ proof cases
 qed (auto dest: finite_UnionD intro: infinite)
 
 lemma distrib:
-  "F (\<lambda>x. g x * h x) A = F g A * F h A"
+  "F (\<lambda>x. g x \<^bold>* h x) A = F g A \<^bold>* F h A"
   by (induct A rule: infinite_finite_induct) (simp_all add: assoc commute left_commute)
 
 lemma Sigma:
@@ -197,14 +194,14 @@ apply (simp add: comp_def)
 done
 
 lemma related:
-  assumes Re: "R 1 1"
-  and Rop: "\<forall>x1 y1 x2 y2. R x1 x2 \<and> R y1 y2 \<longrightarrow> R (x1 * y1) (x2 * y2)"
+  assumes Re: "R \<^bold>1 \<^bold>1"
+  and Rop: "\<forall>x1 y1 x2 y2. R x1 x2 \<and> R y1 y2 \<longrightarrow> R (x1 \<^bold>* y1) (x2 \<^bold>* y2)"
   and fS: "finite S" and Rfg: "\<forall>x\<in>S. R (h x) (g x)"
   shows "R (F h S) (F g S)"
   using fS by (rule finite_subset_induct) (insert assms, auto)
 
 lemma mono_neutral_cong_left:
-  assumes "finite T" and "S \<subseteq> T" and "\<forall>i \<in> T - S. h i = 1"
+  assumes "finite T" and "S \<subseteq> T" and "\<forall>i \<in> T - S. h i = \<^bold>1"
   and "\<And>x. x \<in> S \<Longrightarrow> g x = h x" shows "F g S = F h T"
 proof-
   have eq: "T = S \<union> (T - S)" using \<open>S \<subseteq> T\<close> by blast
@@ -216,16 +213,16 @@ proof-
 qed
 
 lemma mono_neutral_cong_right:
-  "\<lbrakk> finite T; S \<subseteq> T; \<forall>i \<in> T - S. g i = 1; \<And>x. x \<in> S \<Longrightarrow> g x = h x \<rbrakk>
+  "\<lbrakk> finite T; S \<subseteq> T; \<forall>i \<in> T - S. g i = \<^bold>1; \<And>x. x \<in> S \<Longrightarrow> g x = h x \<rbrakk>
    \<Longrightarrow> F g T = F h S"
   by (auto intro!: mono_neutral_cong_left [symmetric])
 
 lemma mono_neutral_left:
-  "\<lbrakk> finite T; S \<subseteq> T; \<forall>i \<in> T - S. g i = 1 \<rbrakk> \<Longrightarrow> F g S = F g T"
+  "\<lbrakk> finite T; S \<subseteq> T; \<forall>i \<in> T - S. g i = \<^bold>1 \<rbrakk> \<Longrightarrow> F g S = F g T"
   by (blast intro: mono_neutral_cong_left)
 
 lemma mono_neutral_right:
-  "\<lbrakk> finite T;  S \<subseteq> T;  \<forall>i \<in> T - S. g i = 1 \<rbrakk> \<Longrightarrow> F g T = F g S"
+  "\<lbrakk> finite T;  S \<subseteq> T;  \<forall>i \<in> T - S. g i = \<^bold>1 \<rbrakk> \<Longrightarrow> F g T = F g S"
   by (blast intro!: mono_neutral_left [symmetric])
 
 lemma reindex_bij_betw: "bij_betw h S T \<Longrightarrow> F (\<lambda>x. g (h x)) S = F g T"
@@ -275,10 +272,10 @@ qed
 
 lemma reindex_nontrivial:
   assumes "finite A"
-  and nz: "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> h x = h y \<Longrightarrow> g (h x) = 1"
+  and nz: "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<noteq> y \<Longrightarrow> h x = h y \<Longrightarrow> g (h x) = \<^bold>1"
   shows "F g (h ` A) = F (g \<circ> h) A"
 proof (subst reindex_bij_betw_not_neutral [symmetric])
-  show "bij_betw h (A - {x \<in> A. (g \<circ> h) x = 1}) (h ` A - h ` {x \<in> A. (g \<circ> h) x = 1})"
+  show "bij_betw h (A - {x \<in> A. (g \<circ> h) x = \<^bold>1}) (h ` A - h ` {x \<in> A. (g \<circ> h) x = \<^bold>1})"
     using nz by (auto intro!: inj_onI simp: bij_betw_def)
 qed (insert \<open>finite A\<close>, auto)
 
@@ -307,11 +304,11 @@ qed
 
 lemma delta:
   assumes fS: "finite S"
-  shows "F (\<lambda>k. if k = a then b k else 1) S = (if a \<in> S then b a else 1)"
+  shows "F (\<lambda>k. if k = a then b k else \<^bold>1) S = (if a \<in> S then b a else \<^bold>1)"
 proof-
-  let ?f = "(\<lambda>k. if k=a then b k else 1)"
+  let ?f = "(\<lambda>k. if k=a then b k else \<^bold>1)"
   { assume a: "a \<notin> S"
-    hence "\<forall>k\<in>S. ?f k = 1" by simp
+    hence "\<forall>k\<in>S. ?f k = \<^bold>1" by simp
     hence ?thesis  using a by simp }
   moreover
   { assume a: "a \<in> S"
@@ -320,7 +317,7 @@ proof-
     have eq: "S = ?A \<union> ?B" using a by blast
     have dj: "?A \<inter> ?B = {}" by simp
     from fS have fAB: "finite ?A" "finite ?B" by auto
-    have "F ?f S = F ?f ?A * F ?f ?B"
+    have "F ?f S = F ?f ?A \<^bold>* F ?f ?B"
       using union_disjoint [OF fAB dj, of ?f, unfolded eq [symmetric]]
       by simp
     then have ?thesis using a by simp }
@@ -329,14 +326,14 @@ qed
 
 lemma delta':
   assumes fS: "finite S"
-  shows "F (\<lambda>k. if a = k then b k else 1) S = (if a \<in> S then b a else 1)"
+  shows "F (\<lambda>k. if a = k then b k else \<^bold>1) S = (if a \<in> S then b a else \<^bold>1)"
   using delta [OF fS, of a b, symmetric] by (auto intro: cong)
 
 lemma If_cases:
   fixes P :: "'b \<Rightarrow> bool" and g h :: "'b \<Rightarrow> 'a"
   assumes fA: "finite A"
   shows "F (\<lambda>x. if P x then h x else g x) A =
-    F h (A \<inter> {x. P x}) * F g (A \<inter> - {x. P x})"
+    F h (A \<inter> {x. P x}) \<^bold>* F g (A \<inter> - {x. P x})"
 proof -
   have a: "A = A \<inter> {x. P x} \<union> A \<inter> -{x. P x}"
           "(A \<inter> {x. P x}) \<inter> (A \<inter> -{x. P x}) = {}"
@@ -363,10 +360,10 @@ done
 
 lemma inter_restrict:
   assumes "finite A"
-  shows "F g (A \<inter> B) = F (\<lambda>x. if x \<in> B then g x else 1) A"
+  shows "F g (A \<inter> B) = F (\<lambda>x. if x \<in> B then g x else \<^bold>1) A"
 proof -
-  let ?g = "\<lambda>x. if x \<in> A \<inter> B then g x else 1"
-  have "\<forall>i\<in>A - A \<inter> B. (if i \<in> A \<inter> B then g i else 1) = 1"
+  let ?g = "\<lambda>x. if x \<in> A \<inter> B then g x else \<^bold>1"
+  have "\<forall>i\<in>A - A \<inter> B. (if i \<in> A \<inter> B then g i else \<^bold>1) = \<^bold>1"
    by simp
   moreover have "A \<inter> B \<subseteq> A" by blast
   ultimately have "F ?g (A \<inter> B) = F ?g A" using \<open>finite A\<close>
@@ -375,12 +372,12 @@ proof -
 qed
 
 lemma inter_filter:
-  "finite A \<Longrightarrow> F g {x \<in> A. P x} = F (\<lambda>x. if P x then g x else 1) A"
+  "finite A \<Longrightarrow> F g {x \<in> A. P x} = F (\<lambda>x. if P x then g x else \<^bold>1) A"
   by (simp add: inter_restrict [symmetric, of A "{x. P x}" g, simplified mem_Collect_eq] Int_def)
 
 lemma Union_comp:
   assumes "\<forall>A \<in> B. finite A"
-    and "\<And>A1 A2 x. A1 \<in> B \<Longrightarrow> A2 \<in> B  \<Longrightarrow> A1 \<noteq> A2 \<Longrightarrow> x \<in> A1 \<Longrightarrow> x \<in> A2 \<Longrightarrow> g x = 1"
+    and "\<And>A1 A2 x. A1 \<in> B \<Longrightarrow> A2 \<in> B  \<Longrightarrow> A1 \<noteq> A2 \<Longrightarrow> x \<in> A1 \<Longrightarrow> x \<in> A2 \<Longrightarrow> g x = \<^bold>1"
   shows "F g (\<Union>B) = (F \<circ> F) g B"
 using assms proof (induct B rule: infinite_finite_induct)
   case (infinite A)
@@ -391,9 +388,9 @@ next
 next
   case (insert A B)
   then have "finite A" "finite B" "finite (\<Union>B)" "A \<notin> B"
-    and "\<forall>x\<in>A \<inter> \<Union>B. g x = 1"
+    and "\<forall>x\<in>A \<inter> \<Union>B. g x = \<^bold>1"
     and H: "F g (\<Union>B) = (F o F) g B" by auto
-  then have "F g (A \<union> \<Union>B) = F g A * F g (\<Union>B)"
+  then have "F g (A \<union> \<Union>B) = F g A \<^bold>* F g (\<Union>B)"
     by (simp add: union_inter_neutral)
   with \<open>finite B\<close> \<open>A \<notin> B\<close> show ?case
     by (simp add: H)
@@ -412,7 +409,7 @@ lemma commute_restrict:
 lemma Plus:
   fixes A :: "'b set" and B :: "'c set"
   assumes fin: "finite A" "finite B"
-  shows "F g (A <+> B) = F (g \<circ> Inl) A * F (g \<circ> Inr) B"
+  shows "F g (A <+> B) = F (g \<circ> Inl) A \<^bold>* F (g \<circ> Inr) B"
 proof -
   have "A <+> B = Inl ` A \<union> Inr ` B" by auto
   moreover from fin have "finite (Inl ` A :: ('b + 'c) set)" "finite (Inr ` B :: ('b + 'c) set)"
@@ -427,7 +424,7 @@ qed
 lemma same_carrier:
   assumes "finite C"
   assumes subset: "A \<subseteq> C" "B \<subseteq> C"
-  assumes trivial: "\<And>a. a \<in> C - A \<Longrightarrow> g a = 1" "\<And>b. b \<in> C - B \<Longrightarrow> h b = 1"
+  assumes trivial: "\<And>a. a \<in> C - A \<Longrightarrow> g a = \<^bold>1" "\<And>b. b \<in> C - B \<Longrightarrow> h b = \<^bold>1"
   shows "F g A = F h B \<longleftrightarrow> F g C = F h C"
 proof -
   from \<open>finite C\<close> subset have
@@ -437,12 +434,12 @@ proof -
   from subset have [simp]: "B - (C - B) = B" by auto
   from subset have "C = A \<union> (C - A)" by auto
   then have "F g C = F g (A \<union> (C - A))" by simp
-  also have "\<dots> = F g (A - (C - A)) * F g (C - A - A) * F g (A \<inter> (C - A))"
+  also have "\<dots> = F g (A - (C - A)) \<^bold>* F g (C - A - A) \<^bold>* F g (A \<inter> (C - A))"
     using \<open>finite A\<close> \<open>finite (C - A)\<close> by (simp only: union_diff2)
   finally have P: "F g C = F g A" using trivial by simp
   from subset have "C = B \<union> (C - B)" by auto
   then have "F h C = F h (B \<union> (C - B))" by simp
-  also have "\<dots> = F h (B - (C - B)) * F h (C - B - B) * F h (B \<inter> (C - B))"
+  also have "\<dots> = F h (B - (C - B)) \<^bold>* F h (C - B - B) \<^bold>* F h (B \<inter> (C - B))"
     using \<open>finite B\<close> \<open>finite (C - B)\<close> by (simp only: union_diff2)
   finally have Q: "F h C = F h B" using trivial by simp
   from P Q show ?thesis by simp
@@ -451,15 +448,12 @@ qed
 lemma same_carrierI:
   assumes "finite C"
   assumes subset: "A \<subseteq> C" "B \<subseteq> C"
-  assumes trivial: "\<And>a. a \<in> C - A \<Longrightarrow> g a = 1" "\<And>b. b \<in> C - B \<Longrightarrow> h b = 1"
+  assumes trivial: "\<And>a. a \<in> C - A \<Longrightarrow> g a = \<^bold>1" "\<And>b. b \<in> C - B \<Longrightarrow> h b = \<^bold>1"
   assumes "F g C = F h C"
   shows "F g A = F h B"
   using assms same_carrier [of C A B] by simp
 
 end
-
-notation times (infixl "*" 70)
-notation Groups.one ("1")
 
 
 subsection \<open>Generalized summation over a set\<close>

@@ -132,6 +132,14 @@ examples.
 
 *** HOL ***
 
+* Abstract locales semigroup, abel_semigroup, semilattice,
+semilattice_neutr, ordering, ordering_top, semilattice_order,
+semilattice_neutr_order, comm_monoid_set, semilattice_set,
+semilattice_neutr_set, semilattice_order_set, semilattice_order_neutr_set
+monoid_list, comm_monoid_list, comm_monoid_list_set, comm_monoid_mset,
+comm_monoid_fun use boldified syntax uniformly that does not clash
+with corresponding global syntax.  INCOMPATIBILITY.
+
 * Conventional syntax "%(). t" for unit abstractions.  Slight syntactic
 INCOMPATIBILITY.
 

@@ -11,10 +11,6 @@ begin
 
 subsection \<open>Generic lattice operations over a set\<close>
 
-no_notation times (infixl "*" 70)
-no_notation Groups.one ("1")
-
-
 subsubsection \<open>Without neutral element\<close>
 
 locale semilattice_set = semilattice
@@ -48,20 +44,20 @@ lemma singleton [simp]:
 
 lemma insert_not_elem:
   assumes "finite A" and "x \<notin> A" and "A \<noteq> {}"
-  shows "F (insert x A) = x * F A"
+  shows "F (insert x A) = x \<^bold>* F A"
 proof -
   from \<open>A \<noteq> {}\<close> obtain b where "b \<in> A" by blast
   then obtain B where *: "A = insert b B" "b \<notin> B" by (blast dest: mk_disjoint_insert)
   with \<open>finite A\<close> and \<open>x \<notin> A\<close>
     have "finite (insert x B)" and "b \<notin> insert x B" by auto
-  then have "F (insert b (insert x B)) = x * F (insert b B)"
+  then have "F (insert b (insert x B)) = x \<^bold>* F (insert b B)"
     by (simp add: eq_fold)
   then show ?thesis by (simp add: * insert_commute)
 qed
 
 lemma in_idem:
   assumes "finite A" and "x \<in> A"
-  shows "x * F A = F A"
+  shows "x \<^bold>* F A = F A"
 proof -
   from assms have "A \<noteq> {}" by auto
   with \<open>finite A\<close> show ?thesis using \<open>x \<in> A\<close>
@@ -70,17 +66,17 @@ qed
 
 lemma insert [simp]:
   assumes "finite A" and "A \<noteq> {}"
-  shows "F (insert x A) = x * F A"
+  shows "F (insert x A) = x \<^bold>* F A"
   using assms by (cases "x \<in> A") (simp_all add: insert_absorb in_idem insert_not_elem)
 
 lemma union:
   assumes "finite A" "A \<noteq> {}" and "finite B" "B \<noteq> {}"
-  shows "F (A \<union> B) = F A * F B"
+  shows "F (A \<union> B) = F A \<^bold>* F B"
   using assms by (induct A rule: finite_ne_induct) (simp_all add: ac_simps)
 
 lemma remove:
   assumes "finite A" and "x \<in> A"
-  shows "F A = (if A - {x} = {} then x else x * F (A - {x}))"
+  shows "F A = (if A - {x} = {} then x else x \<^bold>* F (A - {x}))"
 proof -
   from assms obtain B where "A = insert x B" and "x \<notin> B" by (blast dest: mk_disjoint_insert)
   with assms show ?thesis by simp
@@ -88,19 +84,19 @@ qed
 
 lemma insert_remove:
   assumes "finite A"
-  shows "F (insert x A) = (if A - {x} = {} then x else x * F (A - {x}))"
+  shows "F (insert x A) = (if A - {x} = {} then x else x \<^bold>* F (A - {x}))"
   using assms by (cases "x \<in> A") (simp_all add: insert_absorb remove)
 
 lemma subset:
   assumes "finite A" "B \<noteq> {}" and "B \<subseteq> A"
-  shows "F B * F A = F A"
+  shows "F B \<^bold>* F A = F A"
 proof -
   from assms have "A \<noteq> {}" and "finite B" by (auto dest: finite_subset)
   with assms show ?thesis by (simp add: union [symmetric] Un_absorb1)
 qed
 
 lemma closed:
-  assumes "finite A" "A \<noteq> {}" and elem: "\<And>x y. x * y \<in> {x, y}"
+  assumes "finite A" "A \<noteq> {}" and elem: "\<And>x y. x \<^bold>* y \<in> {x, y}"
   shows "F A \<in> A"
 using \<open>finite A\<close> \<open>A \<noteq> {}\<close> proof (induct rule: finite_ne_induct)
   case singleton then show ?case by simp
@@ -109,17 +105,17 @@ next
 qed
 
 lemma hom_commute:
-  assumes hom: "\<And>x y. h (x * y) = h x * h y"
+  assumes hom: "\<And>x y. h (x \<^bold>* y) = h x \<^bold>* h y"
   and N: "finite N" "N \<noteq> {}"
   shows "h (F N) = F (h ` N)"
 using N proof (induct rule: finite_ne_induct)
   case singleton thus ?case by simp
 next
   case (insert n N)
-  then have "h (F (insert n N)) = h (n * F N)" by simp
-  also have "\<dots> = h n * h (F N)" by (rule hom)
+  then have "h (F (insert n N)) = h (n \<^bold>* F N)" by simp
+  also have "\<dots> = h n \<^bold>* h (F N)" by (rule hom)
   also have "h (F N) = F (h ` N)" by (rule insert)
-  also have "h n * \<dots> = F (insert (h n) (h ` N))"
+  also have "h n \<^bold>* \<dots> = F (insert (h n) (h ` N))"
     using insert by simp
   also have "insert (h n) (h ` N) = h ` insert n N" by simp
   finally show ?case .
@@ -135,25 +131,25 @@ begin
 
 lemma bounded_iff:
   assumes "finite A" and "A \<noteq> {}"
-  shows "x \<preceq> F A \<longleftrightarrow> (\<forall>a\<in>A. x \<preceq> a)"
+  shows "x \<^bold>\<le> F A \<longleftrightarrow> (\<forall>a\<in>A. x \<^bold>\<le> a)"
   using assms by (induct rule: finite_ne_induct) (simp_all add: bounded_iff)
 
 lemma boundedI:
   assumes "finite A"
   assumes "A \<noteq> {}"
-  assumes "\<And>a. a \<in> A \<Longrightarrow> x \<preceq> a"
-  shows "x \<preceq> F A"
+  assumes "\<And>a. a \<in> A \<Longrightarrow> x \<^bold>\<le> a"
+  shows "x \<^bold>\<le> F A"
   using assms by (simp add: bounded_iff)
 
 lemma boundedE:
-  assumes "finite A" and "A \<noteq> {}" and "x \<preceq> F A"
-  obtains "\<And>a. a \<in> A \<Longrightarrow> x \<preceq> a"
+  assumes "finite A" and "A \<noteq> {}" and "x \<^bold>\<le> F A"
+  obtains "\<And>a. a \<in> A \<Longrightarrow> x \<^bold>\<le> a"
   using assms by (simp add: bounded_iff)
 
 lemma coboundedI:
   assumes "finite A"
     and "a \<in> A"
-  shows "F A \<preceq> a"
+  shows "F A \<^bold>\<le> a"
 proof -
   from assms have "A \<noteq> {}" by auto
   from \<open>finite A\<close> \<open>A \<noteq> {}\<close> \<open>a \<in> A\<close> show ?thesis
@@ -168,15 +164,15 @@ qed
 
 lemma antimono:
   assumes "A \<subseteq> B" and "A \<noteq> {}" and "finite B"
-  shows "F B \<preceq> F A"
+  shows "F B \<^bold>\<le> F A"
 proof (cases "A = B")
   case True then show ?thesis by (simp add: refl)
 next
   case False
   have B: "B = A \<union> (B - A)" using \<open>A \<subseteq> B\<close> by blast
   then have "F B = F (A \<union> (B - A))" by simp
-  also have "\<dots> = F A * F (B - A)" using False assms by (subst union) (auto intro: finite_subset)
-  also have "\<dots> \<preceq> F A" by simp
+  also have "\<dots> = F A \<^bold>* F (B - A)" using False assms by (subst union) (auto intro: finite_subset)
+  also have "\<dots> \<^bold>\<le> F A" by simp
   finally show ?thesis .
 qed
 
@@ -193,24 +189,24 @@ interpretation comp_fun_idem f
 
 definition F :: "'a set \<Rightarrow> 'a"
 where
-  eq_fold: "F A = Finite_Set.fold f 1 A"
+  eq_fold: "F A = Finite_Set.fold f \<^bold>1 A"
 
 lemma infinite [simp]:
-  "\<not> finite A \<Longrightarrow> F A = 1"
+  "\<not> finite A \<Longrightarrow> F A = \<^bold>1"
   by (simp add: eq_fold)
 
 lemma empty [simp]:
-  "F {} = 1"
+  "F {} = \<^bold>1"
   by (simp add: eq_fold)
 
 lemma insert [simp]:
   assumes "finite A"
-  shows "F (insert x A) = x * F A"
+  shows "F (insert x A) = x \<^bold>* F A"
   using assms by (simp add: eq_fold)
 
 lemma in_idem:
   assumes "finite A" and "x \<in> A"
-  shows "x * F A = F A"
+  shows "x \<^bold>* F A = F A"
 proof -
   from assms have "A \<noteq> {}" by auto
   with \<open>finite A\<close> show ?thesis using \<open>x \<in> A\<close>
@@ -219,12 +215,12 @@ qed
 
 lemma union:
   assumes "finite A" and "finite B"
-  shows "F (A \<union> B) = F A * F B"
+  shows "F (A \<union> B) = F A \<^bold>* F B"
   using assms by (induct A) (simp_all add: ac_simps)
 
 lemma remove:
   assumes "finite A" and "x \<in> A"
-  shows "F A = x * F (A - {x})"
+  shows "F A = x \<^bold>* F (A - {x})"
 proof -
   from assms obtain B where "A = insert x B" and "x \<notin> B" by (blast dest: mk_disjoint_insert)
   with assms show ?thesis by simp
@@ -232,19 +228,19 @@ qed
 
 lemma insert_remove:
   assumes "finite A"
-  shows "F (insert x A) = x * F (A - {x})"
+  shows "F (insert x A) = x \<^bold>* F (A - {x})"
   using assms by (cases "x \<in> A") (simp_all add: insert_absorb remove)
 
 lemma subset:
   assumes "finite A" and "B \<subseteq> A"
-  shows "F B * F A = F A"
+  shows "F B \<^bold>* F A = F A"
 proof -
   from assms have "finite B" by (auto dest: finite_subset)
   with assms show ?thesis by (simp add: union [symmetric] Un_absorb1)
 qed
 
 lemma closed:
-  assumes "finite A" "A \<noteq> {}" and elem: "\<And>x y. x * y \<in> {x, y}"
+  assumes "finite A" "A \<noteq> {}" and elem: "\<And>x y. x \<^bold>* y \<in> {x, y}"
   shows "F A \<in> A"
 using \<open>finite A\<close> \<open>A \<noteq> {}\<close> proof (induct rule: finite_ne_induct)
   case singleton then show ?case by simp
@@ -259,24 +255,24 @@ begin
 
 lemma bounded_iff:
   assumes "finite A"
-  shows "x \<preceq> F A \<longleftrightarrow> (\<forall>a\<in>A. x \<preceq> a)"
+  shows "x \<^bold>\<le> F A \<longleftrightarrow> (\<forall>a\<in>A. x \<^bold>\<le> a)"
   using assms by (induct A) (simp_all add: bounded_iff)
 
 lemma boundedI:
   assumes "finite A"
-  assumes "\<And>a. a \<in> A \<Longrightarrow> x \<preceq> a"
-  shows "x \<preceq> F A"
+  assumes "\<And>a. a \<in> A \<Longrightarrow> x \<^bold>\<le> a"
+  shows "x \<^bold>\<le> F A"
   using assms by (simp add: bounded_iff)
 
 lemma boundedE:
-  assumes "finite A" and "x \<preceq> F A"
-  obtains "\<And>a. a \<in> A \<Longrightarrow> x \<preceq> a"
+  assumes "finite A" and "x \<^bold>\<le> F A"
+  obtains "\<And>a. a \<in> A \<Longrightarrow> x \<^bold>\<le> a"
   using assms by (simp add: bounded_iff)
 
 lemma coboundedI:
   assumes "finite A"
     and "a \<in> A"
-  shows "F A \<preceq> a"
+  shows "F A \<^bold>\<le> a"
 proof -
   from assms have "A \<noteq> {}" by auto
   from \<open>finite A\<close> \<open>A \<noteq> {}\<close> \<open>a \<in> A\<close> show ?thesis
@@ -291,22 +287,19 @@ qed
 
 lemma antimono:
   assumes "A \<subseteq> B" and "finite B"
-  shows "F B \<preceq> F A"
+  shows "F B \<^bold>\<le> F A"
 proof (cases "A = B")
   case True then show ?thesis by (simp add: refl)
 next
   case False
   have B: "B = A \<union> (B - A)" using \<open>A \<subseteq> B\<close> by blast
   then have "F B = F (A \<union> (B - A))" by simp
-  also have "\<dots> = F A * F (B - A)" using False assms by (subst union) (auto intro: finite_subset)
-  also have "\<dots> \<preceq> F A" by simp
+  also have "\<dots> = F A \<^bold>* F (B - A)" using False assms by (subst union) (auto intro: finite_subset)
+  also have "\<dots> \<^bold>\<le> F A" by simp
   finally show ?thesis .
 qed
 
 end
-
-notation times (infixl "*" 70)
-notation Groups.one ("1")
 
 
 subsection \<open>Lattice operations on finite sets\<close>
