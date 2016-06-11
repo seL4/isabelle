@@ -16,42 +16,42 @@ text \<open>
 \<close>
 
 theorem Schroeder_Bernstein:
-  fixes f :: "'a \<Rightarrow> 'b"
-    and g :: "'b \<Rightarrow> 'a"
-  assumes "inj f" and "inj g"
-  shows "\<exists>h :: 'a \<Rightarrow> 'b. inj h \<and> surj h"
+  fixes f :: \<open>'a \<Rightarrow> 'b\<close>
+    and g :: \<open>'b \<Rightarrow> 'a\<close>
+  assumes \<open>inj f\<close> and \<open>inj g\<close>
+  shows \<open>\<exists>h :: 'a \<Rightarrow> 'b. inj h \<and> surj h\<close>
 proof
-  define A where "A = lfp (\<lambda>X. - (g ` (- (f ` X))))"
-  define g' where "g' = inv g"
-  let ?h = "\<lambda>z. if z \<in> A then f z else g' z"
+  define A where \<open>A = lfp (\<lambda>X. - (g ` (- (f ` X))))\<close>
+  define g' where \<open>g' = inv g\<close>
+  let ?h = \<open>\<lambda>z. if z \<in> A then f z else g' z\<close>
 
-  have "A = - (g ` (- (f ` A)))"
+  have \<open>A = - (g ` (- (f ` A)))\<close>
     unfolding A_def by (rule lfp_unfold) (blast intro: monoI)
-  then have A_compl: "- A = g ` (- (f ` A))" by blast
-  then have *: "g' ` (- A) = - (f ` A)"
+  then have A_compl: \<open>- A = g ` (- (f ` A))\<close> by blast
+  then have *: \<open>g' ` (- A) = - (f ` A)\<close>
     using g'_def \<open>inj g\<close> by auto
 
-  show "inj ?h \<and> surj ?h"
+  show \<open>inj ?h \<and> surj ?h\<close>
   proof
-    from * show "surj ?h" by auto
-    have "inj_on f A"
+    from * show \<open>surj ?h\<close> by auto
+    have \<open>inj_on f A\<close>
       using \<open>inj f\<close> by (rule subset_inj_on) blast
     moreover
-    have "inj_on g' (- A)"
+    have \<open>inj_on g' (- A)\<close>
       unfolding g'_def
     proof (rule inj_on_inv_into)
-      have "g ` (- (f ` A)) \<subseteq> range g" by blast
-      then show "- A \<subseteq> range g" by (simp only: A_compl)
+      have \<open>g ` (- (f ` A)) \<subseteq> range g\<close> by blast
+      then show \<open>- A \<subseteq> range g\<close> by (simp only: A_compl)
     qed
     moreover
-    have False if eq: "f a = g' b" and a: "a \<in> A" and b: "b \<in> - A" for a b
+    have False if eq: \<open>f a = g' b\<close> and a: \<open>a \<in> A\<close> and b: \<open>b \<in> - A\<close> for a b
     proof -
-      from a have fa: "f a \<in> f ` A" by (rule imageI)
-      from b have "g' b \<in> g' ` (- A)" by (rule imageI)
-      with * have "g' b \<in> - (f ` A)" by simp
+      from a have fa: \<open>f a \<in> f ` A\<close> by (rule imageI)
+      from b have \<open>g' b \<in> g' ` (- A)\<close> by (rule imageI)
+      with * have \<open>g' b \<in> - (f ` A)\<close> by simp
       with eq fa show False by simp
     qed
-    ultimately show "inj ?h"
+    ultimately show \<open>inj ?h\<close>
       unfolding inj_on_def by (metis ComplI)
   qed
 qed
