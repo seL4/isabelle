@@ -13,7 +13,7 @@ subsection \<open>Main grammar \label{ap:main-grammar}\<close>
 text \<open>
   \begin{tabular}{rcl}
     \<open>main\<close> & = & \<^theory_text>\<open>notepad begin "statement\<^sup>*" end\<close> \\
-    & \<open>|\<close> & \<^theory_text>\<open>theorem name: props if props for vars "proof"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>theorem name: props if name: props for vars "proof"\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>theorem name:\<close> \\
     & & \quad\<^theory_text>\<open>fixes vars\<close> \\
     & & \quad\<^theory_text>\<open>assumes name: props\<close> \\
@@ -25,13 +25,13 @@ text \<open>
     \<open>proof\<close> & = & \<^theory_text>\<open>"refinement\<^sup>*" proof "method\<^sup>?" "statement\<^sup>*" qed "method\<^sup>?"\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>"refinement\<^sup>*" done\<close> \\
     \<open>refinement\<close> & = &  \<^theory_text>\<open>apply method\<close> \\
-    & \<open>|\<close> & \<^theory_text>\<open>supply facts\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>supply name = thms\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>subgoal premises name for vars "proof"\<close> \\
-    & \<open>|\<close> & \<^theory_text>\<open>using facts\<close> \\
-    & \<open>|\<close> & \<^theory_text>\<open>unfolding facts\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>using thms\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>unfolding thms\<close> \\
     \<open>statement\<close> & = & \<^theory_text>\<open>{ "statement\<^sup>*" }\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>next\<close> \\
-    & \<open>|\<close> & \<^theory_text>\<open>note name = facts\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>note name = thms\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>let "term" = "term"\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>write name  (mixfix)\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>fix vars\<close> \\
