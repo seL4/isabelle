@@ -9103,6 +9103,22 @@ proof -
     done
 qed
 
+lemma integrable_union:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b :: banach"
+  assumes "negligible (A \<inter> B)" "f integrable_on A" "f integrable_on B"
+  shows   "f integrable_on (A \<union> B)"
+proof -
+  from assms obtain y z where "(f has_integral y) A" "(f has_integral z) B" 
+     by (auto simp: integrable_on_def)
+  from has_integral_union[OF this assms(1)] show ?thesis by (auto simp: integrable_on_def)
+qed
+
+lemma integrable_union':
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b :: banach"
+  assumes "f integrable_on A" "f integrable_on B" "negligible (A \<inter> B)" "C = A \<union> B"
+  shows   "f integrable_on C"
+  using integrable_union[of A B f] assms by simp
+
 lemma has_integral_unions:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes "finite t"
@@ -12774,5 +12790,182 @@ proof -
     by auto
   finally show ?thesis .
 qed
+
+
+subsection \<open>Definite integrals for exponential and power function\<close>
+
+lemma has_integral_exp_minus_to_infinity: 
+  assumes a: "a > 0"
+  shows   "((\<lambda>x::real. exp (-a*x)) has_integral exp (-a*c)/a) {c..}"
+proof -
+  define f where "f = (\<lambda>k x. if x \<in> {c..real k} then exp (-a*x) else 0)"
+
+  {
+    fix k :: nat assume k: "of_nat k \<ge> c"
+    from k a 
+      have "((\<lambda>x. exp (-a*x)) has_integral (-exp (-a*real k)/a - (-exp (-a*c)/a))) {c..real k}"
+      by (intro fundamental_theorem_of_calculus)
+         (auto intro!: derivative_eq_intros
+               simp: has_field_derivative_iff_has_vector_derivative [symmetric])
+    hence "(f k has_integral (exp (-a*c)/a - exp (-a*real k)/a)) {c..}" unfolding f_def
+      by (subst has_integral_restrict) simp_all
+  } note has_integral_f = this
+
+  have [simp]: "f k = (\<lambda>_. 0)" if "of_nat k < c" for k using that by (auto simp: fun_eq_iff f_def)
+  have integral_f: "integral {c..} (f k) = 
+                      (if real k \<ge> c then exp (-a*c)/a - exp (-a*real k)/a else 0)"
+    for k using integral_unique[OF has_integral_f[of k]] by simp
+
+  have A: "(\<lambda>x. exp (-a*x)) integrable_on {c..} \<and>
+             (\<lambda>k. integral {c..} (f k)) \<longlonglongrightarrow> integral {c..} (\<lambda>x. exp (-a*x))"
+  proof (intro monotone_convergence_increasing allI ballI)
+    fix k ::nat
+    have "(\<lambda>x. exp (-a*x)) integrable_on {c..of_real k}" (is ?P)
+      unfolding f_def by (auto intro!: continuous_intros integrable_continuous_real)
+    hence int: "(f k) integrable_on {c..of_real k}"
+      by (rule integrable_eq[rotated]) (simp add: f_def)
+    show "f k integrable_on {c..}"
+      by (rule integrable_on_superset[OF _ _ int]) (auto simp: f_def)
+  next
+    fix x assume x: "x \<in> {c..}"
+    have "sequentially \<le> principal {nat \<lceil>x\<rceil>..}" unfolding at_top_def by (simp add: Inf_lower)
+    also have "{nat \<lceil>x\<rceil>..} \<subseteq> {k. x \<le> real k}" by auto
+    also have "inf (principal \<dots>) (principal {k. \<not>x \<le> real k}) =
+                 principal ({k. x \<le> real k} \<inter> {k. \<not>x \<le> real k})" by simp
+    also have "{k. x \<le> real k} \<inter> {k. \<not>x \<le> real k} = {}" by blast
+    finally have "inf sequentially (principal {k. \<not>x \<le> real k}) = bot"
+      by (simp add: inf.coboundedI1 bot_unique)
+    with x show "(\<lambda>k. f k x) \<longlonglongrightarrow> exp (-a*x)" unfolding f_def
+      by (intro filterlim_If) auto
+  next
+    have "\<bar>integral {c..} (f k)\<bar> \<le> exp (-a*c)/a" for k
+    proof (cases "c > of_nat k")
+      case False
+      hence "abs (integral {c..} (f k)) = abs (exp (- (a * c)) / a - exp (- (a * real k)) / a)"
+        by (simp add: integral_f)
+      also have "abs (exp (- (a * c)) / a - exp (- (a * real k)) / a) = 
+                   exp (- (a * c)) / a - exp (- (a * real k)) / a" 
+        using False a by (intro abs_of_nonneg) (simp_all add: field_simps)
+      also have "\<dots> \<le> exp (- a * c) / a" using a by simp
+      finally show ?thesis .
+    qed (insert a, simp_all add: integral_f)
+    thus "bounded {integral {c..} (f k) |k. True}"
+      by (intro bounded_realI[of _ "exp (-a*c)/a"]) auto
+  qed (auto simp: f_def)
+
+  from eventually_gt_at_top[of "nat \<lceil>c\<rceil>"] have "eventually (\<lambda>k. of_nat k > c) sequentially"
+    by eventually_elim linarith
+  hence "eventually (\<lambda>k. exp (-a*c)/a - exp (-a * of_nat k)/a = integral {c..} (f k)) sequentially"
+    by eventually_elim (simp add: integral_f)
+  moreover have "(\<lambda>k. exp (-a*c)/a - exp (-a * of_nat k)/a) \<longlonglongrightarrow> exp (-a*c)/a - 0/a"
+    by (intro tendsto_intros filterlim_compose[OF exp_at_bot] 
+          filterlim_tendsto_neg_mult_at_bot[OF tendsto_const] filterlim_real_sequentially)+
+       (insert a, simp_all)
+  ultimately have "(\<lambda>k. integral {c..} (f k)) \<longlonglongrightarrow> exp (-a*c)/a - 0/a"
+    by (rule Lim_transform_eventually)
+  from LIMSEQ_unique[OF conjunct2[OF A] this]
+    have "integral {c..} (\<lambda>x. exp (-a*x)) = exp (-a*c)/a" by simp
+  with conjunct1[OF A] show ?thesis
+    by (simp add: has_integral_integral)
+qed
+
+lemma integrable_on_exp_minus_to_infinity: "a > 0 \<Longrightarrow> (\<lambda>x. exp (-a*x) :: real) integrable_on {c..}"
+  using has_integral_exp_minus_to_infinity[of a c] unfolding integrable_on_def by blast
+
+lemma has_integral_powr_from_0:
+  assumes a: "a > (-1::real)" and c: "c \<ge> 0"
+  shows   "((\<lambda>x. x powr a) has_integral (c powr (a+1) / (a+1))) {0..c}"
+proof (cases "c = 0")
+  case False
+  define f where "f = (\<lambda>k x. if x \<in> {inverse (of_nat (Suc k))..c} then x powr a else 0)"
+  define F where "F = (\<lambda>k. if inverse (of_nat (Suc k)) \<le> c then 
+                             c powr (a+1)/(a+1) - inverse (real (Suc k)) powr (a+1)/(a+1) else 0)"
+  
+  {
+    fix k :: nat
+    have "(f k has_integral F k) {0..c}"
+    proof (cases "inverse (of_nat (Suc k)) \<le> c")
+      case True
+      {
+        fix x assume x: "x \<ge> inverse (1 + real k)"
+        have "0 < inverse (1 + real k)" by simp
+        also note x
+        finally have "x > 0" .
+      } note x = this
+      hence "((\<lambda>x. x powr a) has_integral c powr (a + 1) / (a + 1) - 
+               inverse (real (Suc k)) powr (a + 1) / (a + 1)) {inverse (real (Suc k))..c}" 
+        using True a by (intro fundamental_theorem_of_calculus)
+           (auto intro!: derivative_eq_intros continuous_on_powr' continuous_on_const 
+             continuous_on_id simp: has_field_derivative_iff_has_vector_derivative [symmetric])
+      with True show ?thesis unfolding f_def F_def by (subst has_integral_restrict) simp_all
+    next
+      case False
+      thus ?thesis unfolding f_def F_def by (subst has_integral_restrict) auto
+    qed
+  } note has_integral_f = this
+  have integral_f: "integral {0..c} (f k) = F k" for k
+    using has_integral_f[of k] by (rule integral_unique) 
+  
+  have A: "(\<lambda>x. x powr a) integrable_on {0..c} \<and> 
+           (\<lambda>k. integral {0..c} (f k)) \<longlonglongrightarrow> integral {0..c} (\<lambda>x. x powr a)"
+  proof (intro monotone_convergence_increasing ballI allI)
+    fix k from has_integral_f[of k] show "f k integrable_on {0..c}"
+      by (auto simp: integrable_on_def)
+  next
+    fix k :: nat and x :: real
+    {
+      assume x: "inverse (real (Suc k)) \<le> x"
+      have "inverse (real (Suc (Suc k))) \<le> inverse (real (Suc k))" by (simp add: field_simps)
+      also note x
+      finally have "inverse (real (Suc (Suc k))) \<le> x" .
+    }
+    thus "f k x \<le> f (Suc k) x" by (auto simp: f_def simp del: of_nat_Suc)
+  next
+    fix x assume x: "x \<in> {0..c}"
+    show "(\<lambda>k. f k x) \<longlonglongrightarrow> x powr a"
+    proof (cases "x = 0")
+      case False
+      with x have "x > 0" by simp
+      from order_tendstoD(2)[OF LIMSEQ_inverse_real_of_nat this]
+        have "eventually (\<lambda>k. x powr a = f k x) sequentially"
+        by eventually_elim (insert x, simp add: f_def)
+      moreover have "(\<lambda>_. x powr a) \<longlonglongrightarrow> x powr a" by simp
+      ultimately show ?thesis by (rule Lim_transform_eventually)
+    qed (simp_all add: f_def)
+  next
+    {
+      fix k
+      from a have "F k \<le> c powr (a + 1) / (a + 1)"
+        by (auto simp add: F_def divide_simps)
+      also from a have "F k \<ge> 0" 
+        by (auto simp: F_def divide_simps simp del: of_nat_Suc intro!: powr_mono2)
+      hence "F k = abs (F k)" by simp
+      finally have "abs (F k) \<le>  c powr (a + 1) / (a + 1)" .
+    }
+    thus "bounded {integral {0..c} (f k) |k. True}"
+      by (intro bounded_realI[of _ "c powr (a+1) / (a+1)"]) (auto simp: integral_f)
+  qed
+
+  from False c have "c > 0" by simp
+  from order_tendstoD(2)[OF LIMSEQ_inverse_real_of_nat this]
+    have "eventually (\<lambda>k. c powr (a + 1) / (a + 1) - inverse (real (Suc k)) powr (a+1) / (a+1) =
+            integral {0..c} (f k)) sequentially"
+    by eventually_elim (simp add: integral_f F_def)
+  moreover have "(\<lambda>k. c powr (a + 1) / (a + 1) - inverse (real (Suc k)) powr (a + 1) / (a + 1))
+                   \<longlonglongrightarrow> c powr (a + 1) / (a + 1) - 0 powr (a + 1) / (a + 1)"
+    using a by (intro tendsto_intros LIMSEQ_inverse_real_of_nat) auto
+  hence "(\<lambda>k. c powr (a + 1) / (a + 1) - inverse (real (Suc k)) powr (a + 1) / (a + 1))
+          \<longlonglongrightarrow> c powr (a + 1) / (a + 1)" by simp
+  ultimately have "(\<lambda>k. integral {0..c} (f k)) \<longlonglongrightarrow> c powr (a+1) / (a+1)"
+    by (rule Lim_transform_eventually)
+  with A have "integral {0..c} (\<lambda>x. x powr a) = c powr (a+1) / (a+1)"
+    by (blast intro: LIMSEQ_unique)
+  with A show ?thesis by (simp add: has_integral_integral)
+qed (simp_all add: has_integral_refl)
+
+lemma integrable_on_powr_from_0:
+  assumes a: "a > (-1::real)" and c: "c \<ge> 0"
+  shows   "(\<lambda>x. x powr a) integrable_on {0..c}"
+  using has_integral_powr_from_0[OF assms] unfolding integrable_on_def by blast
 
 end

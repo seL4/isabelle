@@ -1588,8 +1588,8 @@ lemma powr_real_real:
 
 lemma powr_of_real:
   fixes x::real and y::real
-  shows "0 < x \<Longrightarrow> of_real x powr (of_real y::complex) = of_real (x powr y)"
-  by (simp add: powr_def) (metis exp_of_real of_real_mult Ln_of_real)
+  shows "0 \<le> x \<Longrightarrow> of_real x powr (of_real y::complex) = of_real (x powr y)"
+  by (simp_all add: powr_def exp_eq_polar)
 
 lemma norm_powr_real_mono:
     "\<lbrakk>w \<in> \<real>; 1 < Re w\<rbrakk>

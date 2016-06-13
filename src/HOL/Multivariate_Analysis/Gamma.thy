@@ -2604,6 +2604,211 @@ proof -
 qed
 
 
+subsubsection \<open>Integral form\<close>
+
+lemma integrable_Gamma_integral_bound:
+  fixes a c :: real
+  assumes a: "a > -1" and c: "c \<ge> 0"
+  defines "f \<equiv> \<lambda>x. if x \<in> {0..c} then x powr a else exp (-x/2)"
+  shows   "f integrable_on {0..}"
+proof -
+  have "f integrable_on {0..c}"
+    by (rule integrable_spike_finite[of "{}", OF _ _ integrable_on_powr_from_0[of a c]])
+       (insert a c, simp_all add: f_def)
+  moreover have A: "(\<lambda>x. exp (-x/2)) integrable_on {c..}"
+    using integrable_on_exp_minus_to_infinity[of "1/2"] by simp
+  have "f integrable_on {c..}"
+    by (rule integrable_spike_finite[of "{c}", OF _ _ A]) (simp_all add: f_def)
+  ultimately show "f integrable_on {0..}" 
+    by (rule integrable_union') (insert c, auto simp: max_def)
+qed  
+
+lemma Gamma_integral_complex:
+  assumes z: "Re z > 0"
+  shows   "((\<lambda>t. of_real t powr (z - 1) / of_real (exp t)) has_integral Gamma z) {0..}"
+proof -
+  have A: "((\<lambda>t. (of_real t) powr (z - 1) * of_real ((1 - t) ^ n))
+          has_integral (fact n / pochhammer z (n+1))) {0..1}"
+    if "Re z > 0" for n z using that
+  proof (induction n arbitrary: z)
+    case 0
+    have "((\<lambda>t. complex_of_real t powr (z - 1)) has_integral
+            (of_real 1 powr z / z - of_real 0 powr z / z)) {0..1}" using 0
+      by (intro fundamental_theorem_of_calculus_interior)
+         (auto intro!: continuous_intros derivative_eq_intros has_vector_derivative_real_complex)
+    thus ?case by simp
+  next
+    case (Suc n)
+    let ?f = "\<lambda>t. complex_of_real t powr z / z"
+    let ?f' = "\<lambda>t. complex_of_real t powr (z - 1)"
+    let ?g = "\<lambda>t. (1 - complex_of_real t) ^ Suc n"
+    let ?g' = "\<lambda>t. - ((1 - complex_of_real t) ^ n) * of_nat (Suc n)"
+    have "((\<lambda>t. ?f' t * ?g t) has_integral
+            (of_nat (Suc n)) * fact n / pochhammer z (n+2)) {0..1}"
+      (is "(_ has_integral ?I) _")
+    proof (rule integration_by_parts_interior[where f' = ?f' and g = ?g])
+      from Suc.prems show "continuous_on {0..1} ?f" "continuous_on {0..1} ?g"
+        by (auto intro!: continuous_intros)
+    next
+      fix t :: real assume t: "t \<in> {0<..<1}"
+      show "(?f has_vector_derivative ?f' t) (at t)" using t Suc.prems
+        by (auto intro!: derivative_eq_intros has_vector_derivative_real_complex)
+      show "(?g has_vector_derivative ?g' t) (at t)"
+        by (rule has_vector_derivative_real_complex derivative_eq_intros refl)+ simp_all
+    next
+      from Suc.prems have [simp]: "z \<noteq> 0" by auto
+      from Suc.prems have A: "Re (z + of_nat n) > 0" for n by simp
+      have [simp]: "z + of_nat n \<noteq> 0" "z + 1 + of_nat n \<noteq> 0" for n
+        using A[of n] A[of "Suc n"] by (auto simp add: add.assoc simp del: plus_complex.sel)
+      have "((\<lambda>x. of_real x powr z * of_real ((1 - x) ^ n) * (- of_nat (Suc n) / z)) has_integral
+              fact n / pochhammer (z+1) (n+1) * (- of_nat (Suc n) / z)) {0..1}"
+        (is "(?A has_integral ?B) _")
+        using Suc.IH[of "z+1"] Suc.prems by (intro has_integral_mult_left) (simp_all add: add_ac pochhammer_rec)
+      also have "?A = (\<lambda>t. ?f t * ?g' t)" by (intro ext) (simp_all add: field_simps)
+      also have "?B = - (of_nat (Suc n) * fact n / pochhammer z (n+2))"
+        by (simp add: divide_simps setprod_nat_ivl_1_Suc pochhammer_rec
+              setprod_shift_bounds_cl_Suc_ivl del: of_nat_Suc)
+      finally show "((\<lambda>t. ?f t * ?g' t) has_integral (?f 1 * ?g 1 - ?f 0 * ?g 0 - ?I)) {0..1}"
+        by simp
+    qed (simp_all add: bounded_bilinear_mult)
+    thus ?case by simp
+  qed
+
+  have B: "((\<lambda>t. if t \<in> {0..of_nat n} then
+             of_real t powr (z - 1) * (1 - of_real t / of_nat n) ^ n else 0)
+           has_integral (of_nat n powr z * fact n / pochhammer z (n+1))) {0..}" for n
+  proof (cases "n > 0")
+    case [simp]: True
+    hence [simp]: "n \<noteq> 0" by auto
+    with has_integral_affinity01[OF A[OF z, of n], of "inverse (of_nat n)" 0]
+      have "((\<lambda>x. (of_nat n - of_real x) ^ n * (of_real x / of_nat n) powr (z - 1) / of_nat n ^ n)
+              has_integral fact n * of_nat n / pochhammer z (n+1)) ((\<lambda>x. real n * x)`{0..1})"
+      (is "(?f has_integral ?I) ?ivl") by (simp add: field_simps scaleR_conv_of_real)
+    also from True have "((\<lambda>x. real n*x)`{0..1}) = {0..real n}"
+      by (subst image_mult_atLeastAtMost) simp_all
+    also have "?f = (\<lambda>x. (of_real x / of_nat n) powr (z - 1) * (1 - of_real x / of_nat n) ^ n)"
+      using True by (intro ext) (simp add: field_simps)
+    finally have "((\<lambda>x. (of_real x / of_nat n) powr (z - 1) * (1 - of_real x / of_nat n) ^ n)
+                    has_integral ?I) {0..real n}" (is ?P) .
+    also have "?P \<longleftrightarrow> ((\<lambda>x. exp ((z - 1) * of_real (ln (x / of_nat n))) * (1 - of_real x / of_nat n) ^ n)
+                        has_integral ?I) {0..real n}"
+      by (intro has_integral_spike_finite_eq[of "{0}"]) (auto simp: powr_def Ln_of_real [symmetric])
+    also have "\<dots> \<longleftrightarrow> ((\<lambda>x. exp ((z - 1) * of_real (ln x - ln (of_nat n))) * (1 - of_real x / of_nat n) ^ n)
+                        has_integral ?I) {0..real n}"
+      by (intro has_integral_spike_finite_eq[of "{0}"]) (simp_all add: ln_div)
+    finally have \<dots> .
+    note B = has_integral_mult_right[OF this, of "exp ((z - 1) * ln (of_nat n))"]
+    have "((\<lambda>x. exp ((z - 1) * of_real (ln x)) * (1 - of_real x / of_nat n) ^ n)
+            has_integral (?I * exp ((z - 1) * ln (of_nat n)))) {0..real n}" (is ?P)
+      by (insert B, subst (asm) mult.assoc [symmetric], subst (asm) exp_add [symmetric])
+         (simp add: Ln_of_nat algebra_simps)
+    also have "?P \<longleftrightarrow> ((\<lambda>x. of_real x powr (z - 1) * (1 - of_real x / of_nat n) ^ n)
+            has_integral (?I * exp ((z - 1) * ln (of_nat n)))) {0..real n}"
+      by (intro has_integral_spike_finite_eq[of "{0}"]) (simp_all add: powr_def Ln_of_real)
+    also have "fact n * of_nat n / pochhammer z (n+1) * exp ((z - 1) * Ln (of_nat n)) =
+                 (of_nat n powr z * fact n / pochhammer z (n+1))"
+      by (auto simp add: powr_def algebra_simps exp_diff)
+    finally show ?thesis by (subst has_integral_restrict) simp_all
+  next
+    case False
+    thus ?thesis by (subst has_integral_restrict) (simp_all add: has_integral_refl)
+  qed
+
+  have "eventually (\<lambda>n. Gamma_series z n =
+          of_nat n powr z * fact n / pochhammer z (n+1)) sequentially"
+    using eventually_gt_at_top[of "0::nat"]
+    by eventually_elim (simp add: powr_def algebra_simps Ln_of_nat Gamma_series_def)
+  from this and Gamma_series_LIMSEQ[of z]
+    have C: "(\<lambda>k. of_nat k powr z * fact k / pochhammer z (k+1)) \<longlonglongrightarrow> Gamma z"
+    by (rule Lim_transform_eventually)
+
+  {
+    fix x :: real assume x: "x \<ge> 0"
+    have lim_exp: "(\<lambda>k. (1 - x / real k) ^ k) \<longlonglongrightarrow> exp (-x)"
+      using tendsto_exp_limit_sequentially[of "-x"] by simp
+    have "(\<lambda>k. of_real x powr (z - 1) * of_real ((1 - x / of_nat k) ^ k))
+            \<longlonglongrightarrow> of_real x powr (z - 1) * of_real (exp (-x))" (is ?P)
+      by (intro tendsto_intros lim_exp)
+    also from eventually_gt_at_top[of "nat \<lceil>x\<rceil>"]
+      have "eventually (\<lambda>k. of_nat k > x) sequentially" by eventually_elim linarith
+    hence "?P \<longleftrightarrow> (\<lambda>k. if x \<le> of_nat k then
+                 of_real x powr (z - 1) * of_real ((1 - x / of_nat k) ^ k) else 0)
+                   \<longlonglongrightarrow> of_real x powr (z - 1) * of_real (exp (-x))"
+      by (intro tendsto_cong) (auto elim!: eventually_mono)
+    finally have \<dots> .
+  }
+  hence D: "\<forall>x\<in>{0..}. (\<lambda>k. if x \<in> {0..real k} then
+              of_real x powr (z - 1) * (1 - of_real x / of_nat k) ^ k else 0)
+             \<longlonglongrightarrow> of_real x powr (z - 1) / of_real (exp x)"
+    by (simp add: exp_minus field_simps cong: if_cong)
+
+  have "((\<lambda>x. (Re z - 1) * (ln x / x)) \<longlongrightarrow> (Re z - 1) * 0) at_top"
+    by (intro tendsto_intros ln_x_over_x_tendsto_0)
+  hence "((\<lambda>x. ((Re z - 1) * ln x) / x) \<longlongrightarrow> 0) at_top" by simp
+  from order_tendstoD(2)[OF this, of "1/2"]
+    have "eventually (\<lambda>x. (Re z - 1) * ln x / x < 1/2) at_top" by simp
+  from eventually_conj[OF this eventually_gt_at_top[of 0]]
+    obtain x0 where "\<forall>x\<ge>x0. (Re z - 1) * ln x / x < 1/2 \<and> x > 0"
+    by (auto simp: eventually_at_top_linorder)
+  hence x0: "x0 > 0" "\<And>x. x \<ge> x0 \<Longrightarrow> (Re z - 1) * ln x < x / 2" by auto
+
+  define h where "h = (\<lambda>x. if x \<in> {0..x0} then x powr (Re z - 1) else exp (-x/2))"
+  have le_h: "x powr (Re z - 1) * exp (-x) \<le> h x" if x: "x \<ge> 0" for x
+  proof (cases "x > x0")
+    case True
+    from True x0(1) have "x powr (Re z - 1) * exp (-x) = exp ((Re z - 1) * ln x - x)"
+      by (simp add: powr_def exp_diff exp_minus field_simps exp_add)
+    also from x0(2)[of x] True have "\<dots> < exp (-x/2)"
+      by (simp add: field_simps)
+    finally show ?thesis using True by (auto simp add: h_def)
+  next
+    case False
+    from x have "x powr (Re z - 1) * exp (- x) \<le> x powr (Re z - 1) * 1"
+      by (intro mult_left_mono) simp_all
+    with False show ?thesis by (auto simp add: h_def)
+  qed
+
+  have E: "\<forall>x\<in>{0..}. cmod (if x \<in> {0..real k} then of_real x powr (z - 1) *
+                   (1 - complex_of_real x / of_nat k) ^ k else 0) \<le> h x"
+    (is "\<forall>x\<in>_. ?f x \<le> _") for k
+  proof safe
+    fix x :: real assume x: "x \<ge> 0"
+    {
+      fix x :: real and n :: nat assume x: "x \<le> of_nat n"
+      have "(1 - complex_of_real x / of_nat n) = complex_of_real ((1 - x / of_nat n))" by simp
+      also have "norm \<dots> = \<bar>(1 - x / real n)\<bar>" by (subst norm_of_real) (rule refl)
+      also from x have "\<dots> = (1 - x / real n)" by (intro abs_of_nonneg) (simp_all add: divide_simps)
+      finally have "cmod (1 - complex_of_real x / of_nat n) = 1 - x / real n" .
+    } note D = this
+    from D[of x k] x
+      have "?f x \<le> (if of_nat k \<ge> x \<and> k > 0 then x powr (Re z - 1) * (1 - x / real k) ^ k else 0)"
+      by (auto simp: norm_mult norm_powr_real_powr norm_power intro!: mult_nonneg_nonneg)
+    also have "\<dots> \<le> x powr (Re z - 1) * exp  (-x)"
+      by (auto intro!: mult_left_mono exp_ge_one_minus_x_over_n_power_n)
+    also from x have "\<dots> \<le> h x" by (rule le_h)
+    finally show "?f x \<le> h x" .
+  qed
+  
+  have F: "h integrable_on {0..}" unfolding h_def
+    by (rule integrable_Gamma_integral_bound) (insert assms x0(1), simp_all)
+  show ?thesis
+    by (rule has_integral_dominated_convergence[OF B F E D C])
+qed
+
+lemma Gamma_integral_real:
+  assumes x: "x > (0 :: real)"
+  shows   "((\<lambda>t. t powr (x - 1) / exp t) has_integral Gamma x) {0..}"
+proof -
+  have A: "((\<lambda>t. complex_of_real t powr (complex_of_real x - 1) /
+          complex_of_real (exp t)) has_integral complex_of_real (Gamma x)) {0..}"
+    using Gamma_integral_complex[of x] assms by (simp_all add: Gamma_complex_of_real powr_of_real)
+  have "((\<lambda>t. complex_of_real (t powr (x - 1) / exp t)) has_integral of_real (Gamma x)) {0..}"
+    by (rule has_integral_eq[OF _ A]) (simp_all add: powr_of_real [symmetric])
+  from has_integral_linear[OF this bounded_linear_Re] show ?thesis by (simp add: o_def)
+qed
+
+
+
 subsection \<open>The Weierstraß product formula for the sine\<close>
 
 lemma sin_product_formula_complex:
