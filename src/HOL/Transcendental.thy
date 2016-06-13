@@ -2059,6 +2059,34 @@ proof -
   qed
 qed
 
+lemma ln_x_over_x_tendsto_0:
+  "((\<lambda>x::real. ln x / x) \<longlongrightarrow> 0) at_top"
+proof (rule lhospital_at_top_at_top[where f' = inverse and g' = "\<lambda>_. 1"])
+  from eventually_gt_at_top[of "0::real"]
+    show "\<forall>\<^sub>F x in at_top. (ln has_real_derivative inverse x) (at x)"
+     by eventually_elim (auto intro!: derivative_eq_intros simp: field_simps)
+qed (insert tendsto_inverse_0,
+     auto simp: filterlim_ident dest!: tendsto_mono[OF at_top_le_at_infinity])
+
+lemma exp_ge_one_plus_x_over_n_power_n:
+  assumes "x \<ge> - real n" "n > 0"
+  shows   "(1 + x / of_nat n) ^ n \<le> exp x"
+proof (cases "x = -of_nat n")
+  case False
+  from assms False have "(1 + x / of_nat n) ^ n = exp (of_nat n * ln (1 + x / of_nat n))"
+    by (subst exp_of_nat_mult, subst exp_ln) (simp_all add: field_simps)
+  also from assms False have "ln (1 + x / real n) \<le> x / real n"
+    by (intro ln_add_one_self_le_self2) (simp_all add: field_simps)
+  with assms have "exp (of_nat n * ln (1 + x / of_nat n)) \<le> exp x"
+    by (simp add: field_simps)
+  finally show ?thesis .
+qed (simp_all add: zero_power)
+
+lemma exp_ge_one_minus_x_over_n_power_n:
+  assumes "x \<le> real n" "n > 0"
+  shows   "(1 - x / of_nat n) ^ n \<le> exp (-x)"
+  using exp_ge_one_plus_x_over_n_power_n[of n "-x"] assms by simp
+
 lemma exp_at_bot: "(exp \<longlongrightarrow> (0::real)) at_bot"
   unfolding tendsto_Zfun_iff
 proof (rule ZfunI, simp add: eventually_at_bot_dense)
@@ -2564,7 +2592,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma tendsto_powr [tendsto_intros]:
+lemma tendsto_powr:
   fixes a::real
   assumes f: "(f \<longlongrightarrow> a) F" and g: "(g \<longlongrightarrow> b) F" and a: "a \<noteq> 0"
   shows "((\<lambda>x. f x powr g x) \<longlongrightarrow> a powr b) F"
@@ -2573,6 +2601,38 @@ proof (rule filterlim_If)
   from f show "((\<lambda>x. 0) \<longlongrightarrow> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x = 0}))"
     by simp (auto simp: filterlim_iff eventually_inf_principal elim: eventually_mono dest: t1_space_nhds)
 qed (insert f g a, auto intro!: tendsto_intros intro: tendsto_mono inf_le1)
+
+lemma tendsto_powr'[tendsto_intros]:
+  fixes a::real
+  assumes f: "(f \<longlongrightarrow> a) F" and g: "(g \<longlongrightarrow> b) F" 
+      and a: "a \<noteq> 0 \<or> (b > 0 \<and> eventually (\<lambda>x. f x \<ge> 0) F)"
+  shows "((\<lambda>x. f x powr g x) \<longlongrightarrow> a powr b) F"
+proof -
+  from a consider "a \<noteq> 0" | "a = 0" "b > 0" "eventually (\<lambda>x. f x \<ge> 0) F" by auto
+  thus ?thesis
+  proof cases
+    assume "a \<noteq> 0"
+    from f g this show ?thesis by (rule tendsto_powr)
+  next
+    assume a: "a = 0" and b: "b > 0" and f_nonneg: "eventually (\<lambda>x. f x \<ge> 0) F"
+    hence "((\<lambda>x. if f x = 0 then 0 else exp (g x * ln (f x))) \<longlongrightarrow> 0) F"
+    proof (intro filterlim_If)
+      have "filterlim f (principal {0<..}) (inf F (principal {z. f z \<noteq> 0}))"
+        using f_nonneg by (auto simp add: filterlim_iff eventually_inf_principal 
+                             eventually_principal elim: eventually_mono)
+      moreover have "filterlim f (nhds a) (inf F (principal {z. f z \<noteq> 0}))"
+        by (rule tendsto_mono[OF _ f]) simp_all
+      ultimately have f: "filterlim f (at_right 0) (inf F (principal {x. f x \<noteq> 0}))"
+        by (simp add: at_within_def filterlim_inf a)
+      have g: "(g \<longlongrightarrow> b) (inf F (principal {z. f z \<noteq> 0}))"
+        by (rule tendsto_mono[OF _ g]) simp_all
+      show "((\<lambda>x. exp (g x * ln (f x))) \<longlongrightarrow> 0) (inf F (principal {x. f x \<noteq> 0}))"
+        by (rule filterlim_compose[OF exp_at_bot] filterlim_tendsto_pos_mult_at_bot
+                 filterlim_compose[OF ln_at_0] f g b)+
+    qed simp_all
+    with a show ?thesis by (simp add: powr_def)
+  qed
+qed
 
 lemma continuous_powr:
   assumes "continuous F f"
@@ -2597,27 +2657,12 @@ lemma continuous_on_powr[continuous_intros]:
   assumes "continuous_on s f" "continuous_on s g" and "\<forall>x\<in>s. f x \<noteq> (0::real)"
   shows "continuous_on s (\<lambda>x. (f x) powr (g x))"
   using assms unfolding continuous_on_def by (fast intro: tendsto_powr)
-
+  
 lemma tendsto_powr2:
   fixes a::real
   assumes f: "(f \<longlongrightarrow> a) F" and g: "(g \<longlongrightarrow> b) F" and f_nonneg: "\<forall>\<^sub>F x in F. 0 \<le> f x" and b: "0 < b"
   shows "((\<lambda>x. f x powr g x) \<longlongrightarrow> a powr b) F"
-  unfolding powr_def
-proof (rule filterlim_If)
-  from f show "((\<lambda>x. 0) \<longlongrightarrow> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x = 0}))"
-    by simp (auto simp: filterlim_iff eventually_inf_principal elim: eventually_mono dest: t1_space_nhds)
-next
-  { assume "a = 0"
-    with f f_nonneg have "LIM x inf F (principal {x. f x \<noteq> 0}). f x :> at_right 0"
-      by (auto simp add: filterlim_at eventually_inf_principal le_less
-               elim: eventually_mono intro: tendsto_mono inf_le1)
-    then have "((\<lambda>x. exp (g x * ln (f x))) \<longlongrightarrow> 0) (inf F (principal {x. f x \<noteq> 0}))"
-      by (auto intro!: filterlim_compose[OF exp_at_bot] filterlim_compose[OF ln_at_0]
-                       filterlim_tendsto_pos_mult_at_bot[OF _ \<open>0 < b\<close>]
-               intro: tendsto_mono inf_le1 g) }
-  then show "((\<lambda>x. exp (g x * ln (f x))) \<longlongrightarrow> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x \<noteq> 0}))"
-    using f g by (auto intro!: tendsto_intros intro: tendsto_mono inf_le1)
-qed
+  using tendsto_powr'[of f a F g b] assms by auto
 
 lemma DERIV_powr:
   fixes r::real
@@ -2660,6 +2705,27 @@ lemma tendsto_zero_powrI:
   assumes "(f \<longlongrightarrow> (0::real)) F" "(g \<longlongrightarrow> b) F" "\<forall>\<^sub>F x in F. 0 \<le> f x" "0 < b"
   shows "((\<lambda>x. f x powr g x) \<longlongrightarrow> 0) F"
   using tendsto_powr2[OF assms] by simp
+
+lemma continuous_on_powr':
+  assumes "continuous_on s f" "continuous_on s g" and
+    "\<forall>x\<in>s. f x \<ge> (0::real) \<and> (f x = 0 \<longrightarrow> g x > 0)"
+  shows "continuous_on s (\<lambda>x. (f x) powr (g x))"
+  unfolding continuous_on_def
+proof
+  fix x assume x: "x \<in> s"
+  from assms x show "((\<lambda>x. f x powr g x) \<longlongrightarrow> f x powr g x) (at x within s)"
+  proof (cases "f x = 0")
+    case True
+    from assms(3) have "eventually (\<lambda>x. f x \<ge> 0) (at x within s)"
+      by (auto simp: at_within_def eventually_inf_principal)
+    with True x assms show ?thesis
+      by (auto intro!: tendsto_zero_powrI[of f _ g "g x"] simp: continuous_on_def)
+  next
+    case False
+    with assms x show ?thesis
+      by (auto intro!: tendsto_powr' simp: continuous_on_def)
+  qed
+qed
 
 lemma tendsto_neg_powr:
   assumes "s < 0"

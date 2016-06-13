@@ -38,6 +38,27 @@ qed
 lemma plus_one_in_nonpos_Ints_imp: "z + 1 \<in> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> z \<in> \<int>\<^sub>\<le>\<^sub>0"
   using nonpos_Ints_diff_Nats[of "z+1" "1"] by simp_all
 
+lemma of_int_in_nonpos_Ints_iff:
+  "(of_int n :: 'a :: ring_char_0) \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n \<le> 0"
+  by (auto simp: nonpos_Ints_def)
+
+lemma one_plus_of_int_in_nonpos_Ints_iff:
+  "(1 + of_int n :: 'a :: ring_char_0) \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n \<le> -1"
+proof -
+  have "1 + of_int n = (of_int (n + 1) :: 'a)" by simp
+  also have "\<dots> \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n + 1 \<le> 0" by (subst of_int_in_nonpos_Ints_iff) simp_all
+  also have "\<dots> \<longleftrightarrow> n \<le> -1" by presburger
+  finally show ?thesis .
+qed
+
+lemma one_minus_of_nat_in_nonpos_Ints_iff:
+  "(1 - of_nat n :: 'a :: ring_char_0) \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n > 0"
+proof -
+  have "(1 - of_nat n :: 'a) = of_int (1 - int n)" by simp
+  also have "\<dots> \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n > 0" by (subst of_int_in_nonpos_Ints_iff) presburger
+  finally show ?thesis .
+qed
+
 lemma fraction_not_in_ints:
   assumes "\<not>(n dvd m)" "n \<noteq> 0"
   shows   "of_int m / of_int n \<notin> (\<int> :: 'a :: {division_ring,ring_char_0} set)"
@@ -1046,17 +1067,19 @@ lemma Gamma_0 [simp]: "Gamma 0 = 0"
 
 lemma Gamma_1 [simp]: "Gamma 1 = 1" unfolding Gamma_def by simp
 
-lemma Gamma_fact: "Gamma (of_nat (Suc n)) = fact n"
-  by (simp add: pochhammer_fact pochhammer_Gamma of_nat_in_nonpos_Ints_iff)
+lemma Gamma_fact: "Gamma (1 + of_nat n) = fact n"
+  by (simp add: pochhammer_fact pochhammer_Gamma of_nat_in_nonpos_Ints_iff 
+        of_nat_Suc [symmetric] del: of_nat_Suc)
 
 lemma Gamma_numeral: "Gamma (numeral n) = fact (pred_numeral n)"
-  by (subst of_nat_numeral[symmetric], subst numeral_eq_Suc, subst Gamma_fact) (rule refl)
+  by (subst of_nat_numeral[symmetric], subst numeral_eq_Suc, 
+      subst of_nat_Suc, subst Gamma_fact) (rule refl)
 
 lemma Gamma_of_int: "Gamma (of_int n) = (if n > 0 then fact (nat (n - 1)) else 0)"
 proof (cases "n > 0")
   case True
   hence "Gamma (of_int n) = Gamma (of_nat (Suc (nat (n - 1))))" by (subst of_nat_Suc) simp_all
-  with True show ?thesis by (subst (asm) Gamma_fact) simp
+  with True show ?thesis by (subst (asm) of_nat_Suc, subst (asm) Gamma_fact) simp
 qed (simp_all add: Gamma_eq_zero_iff nonpos_Ints_of_int)
 
 lemma rGamma_of_int: "rGamma (of_int n) = (if n > 0 then inverse (fact (nat (n - 1))) else 0)"
@@ -1656,6 +1679,15 @@ lemma has_field_derivative_Beta1 [derivative_intros]:
                (at x within A)" unfolding Beta_altdef
   by (rule DERIV_cong, (rule derivative_intros assms)+) (simp add: algebra_simps)
 
+lemma Beta_pole1: "x \<in> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Beta x y = 0"
+  by (auto simp add: Beta_def elim!: nonpos_Ints_cases')
+
+lemma Beta_pole2: "y \<in> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Beta x y = 0"
+  by (auto simp add: Beta_def elim!: nonpos_Ints_cases')
+  
+lemma Beta_zero: "x + y \<in> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Beta x y = 0"
+  by (auto simp add: Beta_def elim!: nonpos_Ints_cases')
+  
 lemma has_field_derivative_Beta2 [derivative_intros]:
   assumes "y \<notin> \<int>\<^sub>\<le>\<^sub>0" "x + y \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "((\<lambda>y. Beta x y) has_field_derivative (Beta x y * (Digamma y - Digamma (x + y))))
@@ -1676,7 +1708,7 @@ proof -
 qed
 
 lemma Beta_plus1_left:
-  assumes "x \<notin> \<int>\<^sub>\<le>\<^sub>0" "y \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  assumes "x \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "(x + y) * Beta (x + 1) y = x * Beta x y"
 proof -
   have "(x + y) * Beta (x + 1) y = Gamma (x + 1) * Gamma y * ((x + y) * rGamma ((x + y) + 1))"
@@ -1687,12 +1719,12 @@ proof -
 qed
 
 lemma Beta_plus1_right:
-  assumes "x \<notin> \<int>\<^sub>\<le>\<^sub>0" "y \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  assumes "y \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "(x + y) * Beta x (y + 1) = y * Beta x y"
-  using Beta_plus1_left[of y x] assms by (simp add: Beta_commute add.commute)
+  using Beta_plus1_left[of y x] assms by (simp_all add: Beta_commute add.commute)
 
 lemma Gamma_Gamma_Beta:
-  assumes "x \<notin> \<int>\<^sub>\<le>\<^sub>0" "y \<notin> \<int>\<^sub>\<le>\<^sub>0" "x + y \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  assumes "x + y \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "Gamma x * Gamma y = Beta x y * Gamma (x + y)"
   unfolding Beta_altdef using assms Gamma_eq_zero_iff[of "x+y"]
   by (simp add: rGamma_inverse_Gamma)
@@ -2459,7 +2491,7 @@ qed
 
 subsubsection \<open>Binomial coefficient form\<close>
 
-lemma Gamma_binomial:
+lemma Gamma_gbinomial:
   "(\<lambda>n. ((z + of_nat n) gchoose n) * exp (-z * of_real (ln (of_nat n)))) \<longlonglongrightarrow> rGamma (z+1)"
 proof (cases "z = 0")
   case False
@@ -2484,14 +2516,25 @@ proof (cases "z = 0")
   qed
 qed (simp_all add: binomial_gbinomial [symmetric])
 
+lemma gbinomial_minus': "(a + of_nat b) gchoose b = (- 1) ^ b * (- (a + 1) gchoose b)"
+  by (subst gbinomial_minus) (simp add: power_mult_distrib [symmetric])
+
+lemma gbinomial_asymptotic:
+  fixes z :: "'a :: Gamma"
+  shows "(\<lambda>n. (z gchoose n) / ((-1)^n / exp ((z+1) * of_real (ln (real n))))) \<longlonglongrightarrow> 
+           inverse (Gamma (- z))"
+  unfolding rGamma_inverse_Gamma [symmetric] using Gamma_gbinomial[of "-z-1"] 
+  by (subst (asm) gbinomial_minus')
+     (simp add: add_ac mult_ac divide_inverse power_inverse [symmetric])
+
 lemma fact_binomial_limit:
   "(\<lambda>n. of_nat ((k + n) choose n) / of_nat (n ^ k) :: 'a :: Gamma) \<longlonglongrightarrow> 1 / fact k"
 proof (rule Lim_transform_eventually)
   have "(\<lambda>n. of_nat ((k + n) choose n) / of_real (exp (of_nat k * ln (real_of_nat n))))
             \<longlonglongrightarrow> 1 / Gamma (of_nat (Suc k) :: 'a)" (is "?f \<longlonglongrightarrow> _")
-    using Gamma_binomial[of "of_nat k :: 'a"]
+    using Gamma_gbinomial[of "of_nat k :: 'a"]
     by (simp add: binomial_gbinomial add_ac Gamma_def divide_simps exp_of_real [symmetric] exp_minus)
-  also have "Gamma (of_nat (Suc k)) = fact k" by (rule Gamma_fact)
+  also have "Gamma (of_nat (Suc k)) = fact k" by (simp add: Gamma_fact)
   finally show "?f \<longlonglongrightarrow> 1 / fact k" .
 
   show "eventually (\<lambda>n. ?f n = of_nat ((k + n) choose n) / of_nat (n ^ k)) sequentially"
@@ -2504,9 +2547,61 @@ proof (rule Lim_transform_eventually)
   qed
 qed
 
-lemma binomial_asymptotic:
+lemma binomial_asymptotic':
   "(\<lambda>n. of_nat ((k + n) choose n) / (of_nat (n ^ k) / fact k) :: 'a :: Gamma) \<longlonglongrightarrow> 1"
   using tendsto_mult[OF fact_binomial_limit[of k] tendsto_const[of "fact k :: 'a"]] by simp
+
+lemma gbinomial_Beta:
+  assumes "z + 1 \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  shows   "((z::'a::Gamma) gchoose n) = inverse ((z + 1) * Beta (z - of_nat n + 1) (of_nat n + 1))"
+using assms
+proof (induction n arbitrary: z)
+  case 0
+  hence "z + 2 \<notin> \<int>\<^sub>\<le>\<^sub>0"
+    using plus_one_in_nonpos_Ints_imp[of "z+1"] by (auto simp: add.commute)
+  with 0 show ?case
+    by (auto simp: Beta_def Gamma_eq_zero_iff Gamma_plus1 [symmetric] add.commute)
+next
+  case (Suc n z)
+  show ?case
+  proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
+    case True
+    with Suc.prems have "z = 0"
+      by (auto elim!: nonpos_Ints_cases simp: algebra_simps one_plus_of_int_in_nonpos_Ints_iff)
+    show ?thesis
+    proof (cases "n = 0")
+      case True
+      with \<open>z = 0\<close> show ?thesis
+        by (simp add: Beta_def Gamma_eq_zero_iff Gamma_plus1 [symmetric])
+    next
+      case False
+      with \<open>z = 0\<close> show ?thesis
+        by (simp_all add: Beta_pole1 one_minus_of_nat_in_nonpos_Ints_iff gbinomial_1)
+    qed
+  next
+    case False
+    have "(z gchoose (Suc n)) = ((z - 1 + 1) gchoose (Suc n))" by simp
+    also have "\<dots> = (z - 1 gchoose n) * ((z - 1) + 1) / of_nat (Suc n)"
+      by (subst gbinomial_factors) (simp add: field_simps)
+    also from False have "\<dots> = inverse (of_nat (Suc n) * Beta (z - of_nat n) (of_nat (Suc n)))" 
+      (is "_ = inverse ?x") by (subst Suc.IH) (simp_all add: field_simps Beta_pole1)
+    also have "of_nat (Suc n) \<notin> (\<int>\<^sub>\<le>\<^sub>0 :: 'a set)" by (subst of_nat_in_nonpos_Ints_iff) simp_all
+    hence "?x = (z + 1) * Beta (z - of_nat (Suc n) + 1) (of_nat (Suc n) + 1)"
+      by (subst Beta_plus1_right [symmetric]) simp_all
+    finally show ?thesis .
+  qed
+qed
+
+lemma gbinomial_Gamma:
+  assumes "z + 1 \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  shows   "(z gchoose n) = Gamma (z + 1) / (fact n * Gamma (z - of_nat n + 1))"
+proof -
+  have "(z gchoose n) = Gamma (z + 2) / (z + 1) / (fact n * Gamma (z - of_nat n + 1))"
+    by (subst gbinomial_Beta[OF assms]) (simp_all add: Beta_def Gamma_fact [symmetric] add_ac)
+  also from assms have "Gamma (z + 2) / (z + 1) = Gamma (z + 1)"
+    using Gamma_plus1[of "z+1"] by (auto simp add: divide_simps mult_ac add_ac)
+  finally show ?thesis .
+qed
 
 
 subsection \<open>The Weierstraß product formula for the sine\<close>
@@ -2649,6 +2744,5 @@ proof -
   ultimately show ?thesis unfolding K_def
     by (auto simp add: sums_iff power_divide inverse_eq_divide)
 qed
-
 
 end

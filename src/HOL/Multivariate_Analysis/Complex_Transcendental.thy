@@ -1646,8 +1646,124 @@ lemma holomorphic_on_powr_right:
 by (metis (full_types) DERIV_chain' has_field_derivative_powr_right)
 
 lemma norm_powr_real_powr:
-  "w \<in> \<real> \<Longrightarrow> 0 < Re w \<Longrightarrow> norm(w powr z) = Re w powr Re z"
-  by (auto simp add: norm_powr_real powr_def Im_Ln_eq_0 complex_is_Real_iff in_Reals_norm)
+  "w \<in> \<real> \<Longrightarrow> 0 \<le> Re w \<Longrightarrow> cmod (w powr z) = Re w powr Re z"
+  by (cases "w = 0") (auto simp add: norm_powr_real powr_def Im_Ln_eq_0 
+                                     complex_is_Real_iff in_Reals_norm complex_eq_iff)
+
+lemma tendsto_ln_complex [tendsto_intros]:
+  assumes "(f \<longlongrightarrow> a) F" "a \<notin> \<real>\<^sub>\<le>\<^sub>0"
+  shows   "((\<lambda>z. ln (f z :: complex)) \<longlongrightarrow> ln a) F"
+  using tendsto_compose[OF continuous_at_Ln[of a, unfolded isCont_def] assms(1)] assms(2) by simp
+
+lemma tendsto_powr_complex:
+  fixes f g :: "_ \<Rightarrow> complex"
+  assumes a: "a \<notin> \<real>\<^sub>\<le>\<^sub>0"
+  assumes f: "(f \<longlongrightarrow> a) F" and g: "(g \<longlongrightarrow> b) F"
+  shows   "((\<lambda>z. f z powr g z) \<longlongrightarrow> a powr b) F"
+proof -
+  from a have [simp]: "a \<noteq> 0" by auto
+  from f g a have "((\<lambda>z. exp (g z * ln (f z))) \<longlongrightarrow> a powr b) F" (is ?P)
+    by (auto intro!: tendsto_intros simp: powr_def)
+  also {
+    have "eventually (\<lambda>z. z \<noteq> 0) (nhds a)"
+      by (intro t1_space_nhds) simp_all
+    with f have "eventually (\<lambda>z. f z \<noteq> 0) F" using filterlim_iff by blast
+  }
+  hence "?P \<longleftrightarrow> ((\<lambda>z. f z powr g z) \<longlongrightarrow> a powr b) F"
+    by (intro tendsto_cong refl) (simp_all add: powr_def mult_ac)
+  finally show ?thesis .
+qed
+
+lemma tendsto_powr_complex_0:
+  fixes f g :: "'a \<Rightarrow> complex"
+  assumes f: "(f \<longlongrightarrow> 0) F" and g: "(g \<longlongrightarrow> b) F" and b: "Re b > 0"
+  shows   "((\<lambda>z. f z powr g z) \<longlongrightarrow> 0) F"
+proof (rule tendsto_norm_zero_cancel)
+  define h where
+    "h = (\<lambda>z. if f z = 0 then 0 else exp (Re (g z) * ln (cmod (f z)) + abs (Im (g z)) * pi))"
+  {
+    fix z :: 'a assume z: "f z \<noteq> 0"
+    define c where "c = abs (Im (g z)) * pi"
+    from mpi_less_Im_Ln[OF z] Im_Ln_le_pi[OF z]
+      have "abs (Im (Ln (f z))) \<le> pi" by simp
+    from mult_left_mono[OF this, of "abs (Im (g z))"]
+      have "abs (Im (g z) * Im (ln (f z))) \<le> c" by (simp add: abs_mult c_def)
+    hence "-Im (g z) * Im (ln (f z)) \<le> c" by simp
+    hence "norm (f z powr g z) \<le> h z" by (simp add: powr_def field_simps h_def c_def)
+  }
+  hence le: "norm (f z powr g z) \<le> h z" for z by (cases "f x = 0") (simp_all add: h_def)
+
+  have g': "(g \<longlongrightarrow> b) (inf F (principal {z. f z \<noteq> 0}))"
+    by (rule tendsto_mono[OF _ g]) simp_all
+  have "((\<lambda>x. norm (f x)) \<longlongrightarrow> 0) (inf F (principal {z. f z \<noteq> 0}))"
+    by (subst tendsto_norm_zero_iff, rule tendsto_mono[OF _ f]) simp_all
+  moreover {
+    have "filterlim (\<lambda>x. norm (f x)) (principal {0<..}) (principal {z. f z \<noteq> 0})"
+      by (auto simp: filterlim_def)
+    hence "filterlim (\<lambda>x. norm (f x)) (principal {0<..})
+             (inf F (principal {z. f z \<noteq> 0}))"
+      by (rule filterlim_mono) simp_all
+  }
+  ultimately have norm: "filterlim (\<lambda>x. norm (f x)) (at_right 0) (inf F (principal {z. f z \<noteq> 0}))"
+    by (simp add: filterlim_inf at_within_def)
+
+  have A: "LIM x inf F (principal {z. f z \<noteq> 0}). Re (g x) * -ln (cmod (f x)) :> at_top"
+    by (rule filterlim_tendsto_pos_mult_at_top tendsto_intros g' b
+          filterlim_compose[OF filterlim_uminus_at_top_at_bot] filterlim_compose[OF ln_at_0] norm)+
+  have B: "LIM x inf F (principal {z. f z \<noteq> 0}).
+          -\<bar>Im (g x)\<bar> * pi + -(Re (g x) * ln (cmod (f x))) :> at_top"
+    by (rule filterlim_tendsto_add_at_top tendsto_intros g')+ (insert A, simp_all)
+  have C: "(h \<longlongrightarrow> 0) F" unfolding h_def
+    by (intro filterlim_If tendsto_const filterlim_compose[OF exp_at_bot])
+       (insert B, auto simp: filterlim_uminus_at_bot algebra_simps)
+  show "((\<lambda>x. norm (f x powr g x)) \<longlongrightarrow> 0) F"
+    by (rule Lim_null_comparison[OF always_eventually C]) (insert le, auto)
+qed
+
+lemma tendsto_powr_complex' [tendsto_intros]:
+  fixes f g :: "_ \<Rightarrow> complex"
+  assumes fz: "a \<notin> \<real>\<^sub>\<le>\<^sub>0 \<or> (a = 0 \<and> Re b > 0)"
+  assumes fg: "(f \<longlongrightarrow> a) F" "(g \<longlongrightarrow> b) F"
+  shows   "((\<lambda>z. f z powr g z) \<longlongrightarrow> a powr b) F"
+proof (cases "a = 0")
+  case True
+  with assms show ?thesis by (auto intro!: tendsto_powr_complex_0)
+next
+  case False
+  with assms show ?thesis by (auto intro!: tendsto_powr_complex elim!: nonpos_Reals_cases)
+qed
+
+lemma continuous_powr_complex:
+  assumes "f (netlimit F) \<notin> \<real>\<^sub>\<le>\<^sub>0" "continuous F f" "continuous F g"
+  shows   "continuous F (\<lambda>z. f z powr g z :: complex)"
+  using assms unfolding continuous_def by (intro tendsto_powr_complex) simp_all
+
+lemma isCont_powr_complex [continuous_intros]:
+  assumes "f z \<notin> \<real>\<^sub>\<le>\<^sub>0" "isCont f z" "isCont g z"
+  shows   "isCont (\<lambda>z. f z powr g z :: complex) z"
+  using assms unfolding isCont_def by (intro tendsto_powr_complex) simp_all
+
+lemma continuous_on_powr_complex [continuous_intros]:
+  assumes "A \<subseteq> {z. Re (f z) \<ge> 0 \<or> Im (f z) \<noteq> 0}"
+  assumes "\<And>z. z \<in> A \<Longrightarrow> f z = 0 \<Longrightarrow> Re (g z) > 0"
+  assumes "continuous_on A f" "continuous_on A g"
+  shows   "continuous_on A (\<lambda>z. f z powr g z)"
+  unfolding continuous_on_def
+proof
+  fix z assume z: "z \<in> A"
+  show "((\<lambda>z. f z powr g z) \<longlongrightarrow> f z powr g z) (at z within A)"
+  proof (cases "f z = 0")
+    case False
+    from assms(1,2) z have "Re (f z) \<ge> 0 \<or> Im (f z) \<noteq> 0" "f z = 0 \<longrightarrow> Re (g z) > 0" by auto
+    with assms(3,4) z show ?thesis
+      by (intro tendsto_powr_complex')
+         (auto elim!: nonpos_Reals_cases simp: complex_eq_iff continuous_on_def)
+  next
+    case True
+    with assms z show ?thesis
+      by (auto intro!: tendsto_powr_complex_0 simp: continuous_on_def)
+  qed
+qed
 
 
 subsection\<open>Some Limits involving Logarithms\<close>

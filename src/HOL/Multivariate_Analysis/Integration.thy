@@ -2820,6 +2820,72 @@ lemma blinfun_apply_integral:
   shows "blinfun_apply (integral s f) x = integral s (\<lambda>y. blinfun_apply (f y) x)"
   by (metis (no_types, lifting) assms blinfun.prod_left.rep_eq integral_blinfun_apply integral_cong)
 
+lemma has_integral_componentwise_iff:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  shows "(f has_integral y) A \<longleftrightarrow> (\<forall>b\<in>Basis. ((\<lambda>x. f x \<bullet> b) has_integral (y \<bullet> b)) A)"
+proof safe
+  fix b :: 'b assume "(f has_integral y) A"
+  from has_integral_linear[OF this(1) bounded_linear_component, of b]
+    show "((\<lambda>x. f x \<bullet> b) has_integral (y \<bullet> b)) A" by (simp add: o_def)
+next
+  assume "(\<forall>b\<in>Basis. ((\<lambda>x. f x \<bullet> b) has_integral (y \<bullet> b)) A)"
+  hence "\<forall>b\<in>Basis. (((\<lambda>x. x *\<^sub>R b) \<circ> (\<lambda>x. f x \<bullet> b)) has_integral ((y \<bullet> b) *\<^sub>R b)) A"
+    by (intro ballI has_integral_linear) (simp_all add: bounded_linear_scaleR_left)
+  hence "((\<lambda>x. \<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b) has_integral (\<Sum>b\<in>Basis. (y \<bullet> b) *\<^sub>R b)) A"
+    by (intro has_integral_setsum) (simp_all add: o_def)
+  thus "(f has_integral y) A" by (simp add: euclidean_representation)
+qed
+
+lemma has_integral_componentwise:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  shows "(\<And>b. b \<in> Basis \<Longrightarrow> ((\<lambda>x. f x \<bullet> b) has_integral (y \<bullet> b)) A) \<Longrightarrow> (f has_integral y) A"
+  by (subst has_integral_componentwise_iff) blast
+
+lemma integrable_componentwise_iff:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  shows "f integrable_on A \<longleftrightarrow> (\<forall>b\<in>Basis. (\<lambda>x. f x \<bullet> b) integrable_on A)"
+proof
+  assume "f integrable_on A"
+  then obtain y where "(f has_integral y) A" by (auto simp: integrable_on_def)
+  hence "(\<forall>b\<in>Basis. ((\<lambda>x. f x \<bullet> b) has_integral (y \<bullet> b)) A)"
+    by (subst (asm) has_integral_componentwise_iff)
+  thus "(\<forall>b\<in>Basis. (\<lambda>x. f x \<bullet> b) integrable_on A)" by (auto simp: integrable_on_def)
+next
+  assume "(\<forall>b\<in>Basis. (\<lambda>x. f x \<bullet> b) integrable_on A)"
+  then obtain y where "\<forall>b\<in>Basis. ((\<lambda>x. f x \<bullet> b) has_integral y b) A"
+    unfolding integrable_on_def by (subst (asm) bchoice_iff) blast
+  hence "\<forall>b\<in>Basis. (((\<lambda>x. x *\<^sub>R b) \<circ> (\<lambda>x. f x \<bullet> b)) has_integral (y b *\<^sub>R b)) A"
+    by (intro ballI has_integral_linear) (simp_all add: bounded_linear_scaleR_left)
+  hence "((\<lambda>x. \<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b) has_integral (\<Sum>b\<in>Basis. y b *\<^sub>R b)) A"
+    by (intro has_integral_setsum) (simp_all add: o_def)
+  thus "f integrable_on A" by (auto simp: integrable_on_def o_def euclidean_representation)
+qed
+
+lemma integrable_componentwise:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  shows "(\<And>b. b \<in> Basis \<Longrightarrow> (\<lambda>x. f x \<bullet> b) integrable_on A) \<Longrightarrow> f integrable_on A"
+  by (subst integrable_componentwise_iff) blast
+
+lemma integral_componentwise:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  assumes "f integrable_on A"
+  shows "integral A f = (\<Sum>b\<in>Basis. integral A (\<lambda>x. (f x \<bullet> b) *\<^sub>R b))"
+proof -
+  from assms have integrable: "\<forall>b\<in>Basis. (\<lambda>x. x *\<^sub>R b) \<circ> (\<lambda>x. (f x \<bullet> b)) integrable_on A"
+    by (subst (asm) integrable_componentwise_iff, intro integrable_linear ballI)
+       (simp_all add: bounded_linear_scaleR_left)
+  have "integral A f = integral A (\<lambda>x. \<Sum>b\<in>Basis. (f x \<bullet> b) *\<^sub>R b)"
+    by (simp add: euclidean_representation)
+  also from integrable have "\<dots> = (\<Sum>a\<in>Basis. integral A (\<lambda>x. (f x \<bullet> a) *\<^sub>R a))"
+    by (subst integral_setsum) (simp_all add: o_def)
+  finally show ?thesis .
+qed
+
+lemma integrable_component:
+  "f integrable_on A \<Longrightarrow> (\<lambda>x. f x \<bullet> (y :: 'b :: euclidean_space)) integrable_on A"
+  by (drule integrable_linear[OF _ bounded_linear_component[of y]]) (simp add: o_def)
+
+
 
 subsection \<open>Cauchy-type criterion for integrability.\<close>
 
@@ -11943,16 +12009,16 @@ qed
 
 subsection \<open>Dominated convergence\<close>
 
-(* GENERALIZE the following theorems *)
+context
+begin
 
-lemma dominated_convergence:
+private lemma dominated_convergence_real:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
   assumes "\<And>k. (f k) integrable_on s" "h integrable_on s"
     and "\<And>k. \<forall>x \<in> s. norm (f k x) \<le> h x"
     and "\<forall>x \<in> s. ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
-  shows "g integrable_on s"
-    and "((\<lambda>k. integral s (f k)) \<longlongrightarrow> integral s g) sequentially"
-proof -
+  shows "g integrable_on s \<and> ((\<lambda>k. integral s (f k)) \<longlongrightarrow> integral s g) sequentially"
+proof
   have bdd_below[simp]: "\<And>x P. x \<in> s \<Longrightarrow> bdd_below {f n x |n. P n}"
   proof (safe intro!: bdd_belowI)
     fix n x show "x \<in> s \<Longrightarrow> - h x \<le> f n x"
@@ -12223,8 +12289,53 @@ proof -
   qed
 qed
 
+lemma dominated_convergence:
+  fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes f: "\<And>k. (f k) integrable_on s" and h: "h integrable_on s"
+    and le: "\<And>k. \<forall>x \<in> s. norm (f k x) \<le> h x"
+    and conv: "\<forall>x \<in> s. ((\<lambda>k. f k x) \<longlongrightarrow> g x) sequentially"
+  shows "g integrable_on s"
+    and "((\<lambda>k. integral s (f k)) \<longlongrightarrow> integral s g) sequentially"
+proof -
+  {
+    fix b :: 'm assume b: "b \<in> Basis"
+    have A: "(\<lambda>x. g x \<bullet> b) integrable_on s \<and>
+               (\<lambda>k. integral s (\<lambda>x. f k x \<bullet> b)) \<longlonglongrightarrow> integral s (\<lambda>x. g x \<bullet> b)"
+    proof (rule dominated_convergence_real)
+      fix k :: nat
+      from f show "(\<lambda>x. f k x \<bullet> b) integrable_on s" by (rule integrable_component)
+    next
+      from h show "h integrable_on s" .
+    next
+      fix k :: nat
+      show "\<forall>x\<in>s. norm (f k x \<bullet> b) \<le> h x"
+      proof
+        fix x assume x: "x \<in> s"
+        have "norm (f k x \<bullet> b) \<le> norm (f k x)" by (simp add: Basis_le_norm b)
+        also have "\<dots> \<le> h x" using le[of k] x by simp
+        finally show "norm (f k x \<bullet> b) \<le> h x" .
+      qed
+    next
+      from conv show "\<forall>x\<in>s. (\<lambda>k. f k x \<bullet> b) \<longlonglongrightarrow> g x \<bullet> b"
+        by (auto intro!: tendsto_inner)
+    qed
+    have B: "integral s ((\<lambda>x. x *\<^sub>R b) \<circ> (\<lambda>x. f k x \<bullet> b)) = integral s (\<lambda>x. f k x \<bullet> b) *\<^sub>R b"
+      for k by (rule integral_linear)
+               (simp_all add: f integrable_component bounded_linear_scaleR_left)
+    have C: "integral s ((\<lambda>x. x *\<^sub>R b) \<circ> (\<lambda>x. g x \<bullet> b)) = integral s (\<lambda>x. g x \<bullet> b) *\<^sub>R b"
+      using A by (intro integral_linear)
+                 (simp_all add: integrable_component bounded_linear_scaleR_left)
+    note A B C
+  } note A = this
+
+  show "g integrable_on s" by (rule integrable_componentwise) (insert A, blast)
+  with A f show "((\<lambda>k. integral s (f k)) \<longlongrightarrow> integral s g) sequentially"
+    by (subst (1 2) integral_componentwise)
+       (auto intro!: tendsto_setsum tendsto_scaleR simp: o_def)
+qed
+
 lemma has_integral_dominated_convergence:
-  fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
+  fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "\<And>k. (f k has_integral y k) s" "h integrable_on s"
     "\<And>k. \<forall>x\<in>s. norm (f k x) \<le> h x" "\<forall>x\<in>s. (\<lambda>k. f k x) \<longlonglongrightarrow> g x"
     and x: "y \<longlonglongrightarrow> x"
@@ -12245,7 +12356,84 @@ proof -
     by simp
 qed
 
-subsection\<open>Compute a double integral using iterated integrals and switching the order of integration\<close>
+end
+
+
+subsection \<open>Integration by parts\<close>
+
+lemma integration_by_parts_interior_strong:
+  assumes bilinear: "bounded_bilinear (prod :: _ \<Rightarrow> _ \<Rightarrow> 'b :: banach)"
+  assumes s: "finite s" and le: "a \<le> b"
+  assumes cont [continuous_intros]: "continuous_on {a..b} f" "continuous_on {a..b} g"
+  assumes deriv: "\<And>x. x\<in>{a<..<b} - s \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+                 "\<And>x. x\<in>{a<..<b} - s \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
+  assumes int: "((\<lambda>x. prod (f x) (g' x)) has_integral 
+                  (prod (f b) (g b) - prod (f a) (g a) - y)) {a..b}"
+  shows   "((\<lambda>x. prod (f' x) (g x)) has_integral y) {a..b}"
+proof -
+  interpret bounded_bilinear prod by fact
+  have "((\<lambda>x. prod (f x) (g' x) + prod (f' x) (g x)) has_integral
+          (prod (f b) (g b) - prod (f a) (g a))) {a..b}"
+    using deriv by (intro fundamental_theorem_of_calculus_interior_strong[OF s le])
+                   (auto intro!: continuous_intros continuous_on has_vector_derivative)
+  from has_integral_sub[OF this int] show ?thesis by (simp add: algebra_simps)
+qed
+
+lemma integration_by_parts_interior:
+  assumes "bounded_bilinear (prod :: _ \<Rightarrow> _ \<Rightarrow> 'b :: banach)" "a \<le> b"
+          "continuous_on {a..b} f" "continuous_on {a..b} g"
+  assumes "\<And>x. x\<in>{a<..<b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+          "\<And>x. x\<in>{a<..<b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
+  assumes "((\<lambda>x. prod (f x) (g' x)) has_integral (prod (f b) (g b) - prod (f a) (g a) - y)) {a..b}"
+  shows   "((\<lambda>x. prod (f' x) (g x)) has_integral y) {a..b}"
+  by (rule integration_by_parts_interior_strong[of _ "{}" _ _ f g f' g']) (insert assms, simp_all)
+
+lemma integration_by_parts:
+  assumes "bounded_bilinear (prod :: _ \<Rightarrow> _ \<Rightarrow> 'b :: banach)" "a \<le> b"
+          "continuous_on {a..b} f" "continuous_on {a..b} g"
+  assumes "\<And>x. x\<in>{a..b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+          "\<And>x. x\<in>{a..b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
+  assumes "((\<lambda>x. prod (f x) (g' x)) has_integral (prod (f b) (g b) - prod (f a) (g a) - y)) {a..b}"
+  shows   "((\<lambda>x. prod (f' x) (g x)) has_integral y) {a..b}"
+  by (rule integration_by_parts_interior[of _ _ _ f g f' g']) (insert assms, simp_all)
+
+lemma integrable_by_parts_interior_strong:
+  assumes bilinear: "bounded_bilinear (prod :: _ \<Rightarrow> _ \<Rightarrow> 'b :: banach)"
+  assumes s: "finite s" and le: "a \<le> b"
+  assumes cont [continuous_intros]: "continuous_on {a..b} f" "continuous_on {a..b} g"
+  assumes deriv: "\<And>x. x\<in>{a<..<b} - s \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+                 "\<And>x. x\<in>{a<..<b} - s \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
+  assumes int: "(\<lambda>x. prod (f x) (g' x)) integrable_on {a..b}"
+  shows   "(\<lambda>x. prod (f' x) (g x)) integrable_on {a..b}"
+proof -
+  from int obtain I where "((\<lambda>x. prod (f x) (g' x)) has_integral I) {a..b}"
+    unfolding integrable_on_def by blast
+  hence "((\<lambda>x. prod (f x) (g' x)) has_integral (prod (f b) (g b) - prod (f a) (g a) -
+           (prod (f b) (g b) - prod (f a) (g a) - I))) {a..b}" by simp
+  from integration_by_parts_interior_strong[OF assms(1-7) this]
+    show ?thesis unfolding integrable_on_def by blast
+qed
+
+lemma integrable_by_parts_interior:
+  assumes "bounded_bilinear (prod :: _ \<Rightarrow> _ \<Rightarrow> 'b :: banach)" "a \<le> b"
+          "continuous_on {a..b} f" "continuous_on {a..b} g"
+  assumes "\<And>x. x\<in>{a<..<b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+          "\<And>x. x\<in>{a<..<b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
+  assumes "(\<lambda>x. prod (f x) (g' x)) integrable_on {a..b}"
+  shows   "(\<lambda>x. prod (f' x) (g x)) integrable_on {a..b}"
+  by (rule integrable_by_parts_interior_strong[of _ "{}" _ _ f g f' g']) (insert assms, simp_all)
+
+lemma integrable_by_parts:
+  assumes "bounded_bilinear (prod :: _ \<Rightarrow> _ \<Rightarrow> 'b :: banach)" "a \<le> b"
+          "continuous_on {a..b} f" "continuous_on {a..b} g"
+  assumes "\<And>x. x\<in>{a..b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+          "\<And>x. x\<in>{a..b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
+  assumes "(\<lambda>x. prod (f x) (g' x)) integrable_on {a..b}"
+  shows   "(\<lambda>x. prod (f' x) (g x)) integrable_on {a..b}"
+  by (rule integrable_by_parts_interior_strong[of _ "{}" _ _ f g f' g']) (insert assms, simp_all)
+
+
+subsection \<open>Compute a double integral using iterated integrals and switching the order of integration\<close>
 
 lemma setcomp_dot1: "{z. P (z \<bullet> (i,0))} = {(x,y). P(x \<bullet> i)}"
   by auto

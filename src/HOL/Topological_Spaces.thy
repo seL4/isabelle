@@ -429,6 +429,10 @@ lemma (in topological_space) eventually_nhds_in_open:
   "open s \<Longrightarrow> x \<in> s \<Longrightarrow> eventually (\<lambda>y. y \<in> s) (nhds x)"
   by (subst eventually_nhds) blast
 
+lemma eventually_nhds_x_imp_x:
+  "eventually P (nhds x) \<Longrightarrow> P x"
+  by (subst (asm) eventually_nhds) blast
+
 lemma nhds_neq_bot [simp]: "nhds a \<noteq> bot"
   unfolding trivial_limit_def eventually_nhds by simp
 
@@ -500,6 +504,34 @@ proof -
   show ?thesis
     unfolding nhds_generated_topology[OF open_generated_order] INF_union 1 INF_image comp_def ..
 qed
+
+lemma filterlim_at_within_If:
+  assumes "filterlim f G (at x within (A \<inter> {x. P x}))"
+  assumes "filterlim g G (at x within (A \<inter> {x. \<not>P x}))"
+  shows   "filterlim (\<lambda>x. if P x then f x else g x) G (at x within A)"
+proof (rule filterlim_If)
+  note assms(1)
+  also have "at x within (A \<inter> {x. P x}) = inf (nhds x) (principal (A \<inter> Collect P - {x}))"
+    by (simp add: at_within_def)
+  also have "A \<inter> Collect P - {x} = (A - {x}) \<inter> Collect P" by blast
+  also have "inf (nhds x) (principal \<dots>) = inf (at x within A) (principal (Collect P))"
+    by (simp add: at_within_def inf_assoc)
+  finally show "filterlim f G (inf (at x within A) (principal (Collect P)))" .
+next
+  note assms(2)
+  also have "at x within (A \<inter> {x. \<not>P x}) = inf (nhds x) (principal (A \<inter> {x. \<not>P x} - {x}))"
+    by (simp add: at_within_def)
+  also have "A \<inter> {x. \<not>P x} - {x} = (A - {x}) \<inter> {x. \<not>P x}" by blast
+  also have "inf (nhds x) (principal \<dots>) = inf (at x within A) (principal {x. \<not>P x})"
+    by (simp add: at_within_def inf_assoc)
+  finally show "filterlim g G (inf (at x within A) (principal {x. \<not>P x}))" .
+qed
+
+lemma filterlim_at_If:
+  assumes "filterlim f G (at x within {x. P x})"
+  assumes "filterlim g G (at x within {x. \<not>P x})"
+  shows   "filterlim (\<lambda>x. if P x then f x else g x) G (at x)"
+  using assms by (intro filterlim_at_within_If) simp_all
 
 lemma (in linorder_topology) at_within_order: "UNIV \<noteq> {x} \<Longrightarrow>
   at x within s = inf (INF a:{x <..}. principal ({..< a} \<inter> s - {x}))
@@ -1694,6 +1726,18 @@ abbreviation isCont :: "('a::t2_space \<Rightarrow> 'b::topological_space) \<Rig
 
 lemma isCont_def: "isCont f a \<longleftrightarrow> f \<midarrow>a\<rightarrow> f a"
   by (rule continuous_at)
+
+lemma isCont_cong:
+  assumes "eventually (\<lambda>x. f x = g x) (nhds x)"
+  shows   "isCont f x \<longleftrightarrow> isCont g x"
+proof -
+  from assms have [simp]: "f x = g x" by (rule eventually_nhds_x_imp_x)
+  from assms have "eventually (\<lambda>x. f x = g x) (at x)"
+    by (auto simp: eventually_at_filter elim!: eventually_mono)
+  with assms have "isCont f x \<longleftrightarrow> isCont g x" unfolding isCont_def
+    by (intro filterlim_cong) (auto elim!: eventually_mono)
+  with assms show ?thesis by simp
+qed
 
 lemma continuous_at_imp_continuous_at_within: "isCont f x \<Longrightarrow> continuous (at x within s) f"
   by (auto intro: tendsto_mono at_le simp: continuous_at continuous_within)
