@@ -15,15 +15,12 @@ text \<open>
   \<^item> Springer LNCS 828 (cover page)
 \<close>
 
-theorem Schroeder_Bernstein:
-  fixes f :: \<open>'a \<Rightarrow> 'b\<close>
-    and g :: \<open>'b \<Rightarrow> 'a\<close>
-  assumes \<open>inj f\<close> and \<open>inj g\<close>
-  shows \<open>\<exists>h :: 'a \<Rightarrow> 'b. inj h \<and> surj h\<close>
+theorem Schroeder_Bernstein: \<open>\<exists>h :: 'a \<Rightarrow> 'b. inj h \<and> surj h\<close> if \<open>inj f\<close> and \<open>inj g\<close>
+  for f :: \<open>'a \<Rightarrow> 'b\<close> and g :: \<open>'b \<Rightarrow> 'a\<close>
 proof
   define A where \<open>A = lfp (\<lambda>X. - (g ` (- (f ` X))))\<close>
   define g' where \<open>g' = inv g\<close>
-  let ?h = \<open>\<lambda>z. if z \<in> A then f z else g' z\<close>
+  let \<open>?h\<close> = \<open>\<lambda>z. if z \<in> A then f z else g' z\<close>
 
   have \<open>A = - (g ` (- (f ` A)))\<close>
     unfolding A_def by (rule lfp_unfold) (blast intro: monoI)
@@ -44,12 +41,12 @@ proof
       then show \<open>- A \<subseteq> range g\<close> by (simp only: A_compl)
     qed
     moreover
-    have False if eq: \<open>f a = g' b\<close> and a: \<open>a \<in> A\<close> and b: \<open>b \<in> - A\<close> for a b
+    have \<open>False\<close> if eq: \<open>f a = g' b\<close> and a: \<open>a \<in> A\<close> and b: \<open>b \<in> - A\<close> for a b
     proof -
       from a have fa: \<open>f a \<in> f ` A\<close> by (rule imageI)
       from b have \<open>g' b \<in> g' ` (- A)\<close> by (rule imageI)
       with * have \<open>g' b \<in> - (f ` A)\<close> by simp
-      with eq fa show False by simp
+      with eq fa show \<open>False\<close> by simp
     qed
     ultimately show \<open>inj ?h\<close>
       unfolding inj_on_def by (metis ComplI)
