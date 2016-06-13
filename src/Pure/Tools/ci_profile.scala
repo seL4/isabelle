@@ -44,7 +44,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
   {
     List("ML_PLATFORM", "ML_HOME", "ML_SYSTEM", "ML_OPTIONS").foreach(print_variable)
     val isabelle_home = Path.explode(Isabelle_System.getenv_strict("ISABELLE_HOME"))
-    println(s"Build for repository Isabelle/${hg_id(isabelle_home)}")
+    println(s"Build for Isabelle id ${hg_id(isabelle_home)}")
 
     val options =
       Options.init()
