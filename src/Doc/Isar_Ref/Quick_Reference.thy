@@ -22,13 +22,14 @@ text \<open>
     & & \quad\<^theory_text>\<open>fixes vars\<close> \\
     & & \quad\<^theory_text>\<open>assumes name: props\<close> \\
     & & \quad\<^theory_text>\<open>obtains (name) vars where props | \<dots> "proof"\<close> \\
-    \<open>proof\<close> & = & \<^theory_text>\<open>"refinement\<^sup>*" proof "method\<^sup>?" "statement\<^sup>*" qed "method\<^sup>?"\<close> \\
-    & \<open>|\<close> & \<^theory_text>\<open>"refinement\<^sup>*" done\<close> \\
+    \<open>proof\<close> & = & \<^theory_text>\<open>"refinement\<^sup>*" main_proof\<close> \\
     \<open>refinement\<close> & = &  \<^theory_text>\<open>apply method\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>supply name = thms\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>subgoal premises name for vars "proof"\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>using thms\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>unfolding thms\<close> \\
+    \<open>main_proof\<close> & = & \<^theory_text>\<open>proof "method\<^sup>?" "statement\<^sup>*" qed "method\<^sup>?"\<close> \\
+    & \<open>|\<close> & \<^theory_text>\<open>done\<close> \\
     \<open>statement\<close> & = & \<^theory_text>\<open>{ "statement\<^sup>*" }\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>next\<close> \\
     & \<open>|\<close> & \<^theory_text>\<open>note name = thms\<close> \\
