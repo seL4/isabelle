@@ -1,6 +1,5 @@
-(*
-  Theory: Characteristic_Functions.thy
-  Authors: Jeremy Avigad, Luke Serafin
+(*  Title:     Characteristic_Functions.thy
+    Authors:   Jeremy Avigad (CMU), Luke Serafin (CMU), Johannes Hölzl (TUM)
 *)
 
 section \<open>Characteristic Functions\<close>
@@ -29,7 +28,7 @@ proof -
   qed
 qed
 
-lemma limseq_even_odd: 
+lemma limseq_even_odd:
   assumes "(\<lambda>n. f (2 * n)) \<longlonglongrightarrow> (l :: 'a :: topological_space)"
       and "(\<lambda>n. f (2 * n + 1)) \<longlonglongrightarrow> l"
   shows "f \<longlonglongrightarrow> l"
@@ -63,7 +62,7 @@ where
 lemma (in real_distribution) char_zero: "char M 0 = 1"
   unfolding char_def by (simp del: space_eq_univ add: prob_space)
 
-lemma (in prob_space) integrable_iexp: 
+lemma (in prob_space) integrable_iexp:
   assumes f: "f \<in> borel_measurable M" "\<And>x. Im (f x) = 0"
   shows "integrable M (\<lambda>x. exp (ii * (f x)))"
 proof (intro integrable_const_bound [of _ 1])
@@ -96,7 +95,7 @@ lemma (in real_distribution) char_measurable [measurable]: "char M \<in> borel_m
 
 subsection \<open>Independence\<close>
 
-(* the automation can probably be improved *)  
+(* the automation can probably be improved *)
 lemma (in prob_space) char_distr_sum:
   fixes X1 X2 :: "'a \<Rightarrow> real" and t :: real
   assumes "indep_var borel X1 borel X2"
@@ -145,13 +144,13 @@ proof -
   let ?F = "\<lambda>s. complex_of_real(-((x - s) ^ (Suc n) / (Suc n))) * iexp s"
   have "x^(Suc n) / (Suc n) = (CLBINT s=0..x. (f s n * iexp s + (ii * iexp s) * -(f s (Suc n) / (Suc n))))" (is "?LHS = ?RHS")
   proof -
-    have "?RHS = (CLBINT s=0..x. (f s n * iexp s + (ii * iexp s) * 
+    have "?RHS = (CLBINT s=0..x. (f s n * iexp s + (ii * iexp s) *
       complex_of_real(-((x - s) ^ (Suc n) / (Suc n)))))"
       by (cases "0 \<le> x") (auto intro!: simp: f_def[abs_def])
     also have "... = ?F x - ?F 0"
       unfolding zero_ereal_def using 1
       by (intro interval_integral_FTC_finite)
-         (auto simp: f_def add_nonneg_eq_0_iff complex_eq_iff 
+         (auto simp: f_def add_nonneg_eq_0_iff complex_eq_iff
                intro!: continuous_at_imp_continuous_on continuous_intros)
     finally show ?thesis
       by auto
@@ -184,7 +183,7 @@ qed
 
 lemma iexp_eq2:
   fixes x :: real
-  defines "f s m \<equiv> complex_of_real ((x - s) ^ m)" 
+  defines "f s m \<equiv> complex_of_real ((x - s) ^ m)"
   shows "iexp x = (\<Sum>k\<le>Suc n. (ii*x)^k/fact k) + ii^Suc n/fact n * (CLBINT s=0..x. f s n*(iexp s - 1))"
 proof -
   have isCont_f: "isCont (\<lambda>s. f s n) x" for n x
@@ -224,7 +223,7 @@ proof -
                intro!: interval_integral_cong)
     then show ?thesis by simp
   next
-    assume "\<not> (0 \<le> x \<or> even n)" 
+    assume "\<not> (0 \<le> x \<or> even n)"
     then have "(LBINT s=0..x. \<bar>(x - s)^n\<bar>) = LBINT s=0..x. -((x - s)^n)"
       by (auto simp add: zero_ereal_def power_abs min_absorb1 max_absorb2
                          ereal_min[symmetric] ereal_max[symmetric] power_minus_odd[symmetric]
@@ -307,11 +306,11 @@ lemma (in real_distribution) char_approx1:
 proof -
   have integ_iexp: "integrable M (\<lambda>x. iexp (t * x))"
     by (intro integrable_const_bound) auto
-  
+
   define c where [abs_def]: "c k x = (ii * t)^k / fact k * complex_of_real (x^k)" for k x
   have integ_c: "\<And>k. k \<le> n \<Longrightarrow> integrable M (\<lambda>x. c k x)"
     unfolding c_def by (intro integrable_mult_right integrable_of_real integrable_moments)
-  
+
   have "k \<le> n \<Longrightarrow> expectation (c k) = (\<i>*t) ^ k * (expectation (\<lambda>x. x ^ k)) / fact k" for k
     unfolding c_def integral_mult_right_zero integral_complex_of_real by simp
   then have "norm (char M t - ?t1) = norm (char M t - (CLINT x | M. (\<Sum>k \<le> n. c k x)))"
@@ -342,7 +341,7 @@ lemma (in real_distribution) char_approx2:
 proof -
   have integ_iexp: "integrable M (\<lambda>x. iexp (t * x))"
     by (intro integrable_const_bound) auto
-  
+
   define c where [abs_def]: "c k x = (ii * t)^k / fact k * complex_of_real (x^k)" for k x
   have integ_c: "\<And>k. k \<le> n \<Longrightarrow> integrable M (\<lambda>x. c k x)"
     unfolding c_def by (intro integrable_mult_right integrable_of_real integrable_moments)
@@ -355,7 +354,7 @@ proof -
     apply (simp_all add: field_simps abs_mult del: fact_Suc)
     apply (simp_all add: field_simps)
     done
-  
+
   have "k \<le> n \<Longrightarrow> expectation (c k) = (\<i>*t) ^ k * (expectation (\<lambda>x. x ^ k)) / fact k" for k
     unfolding c_def integral_mult_right_zero integral_complex_of_real by simp
   then have "norm (char M t - ?t1) = norm (char M t - (CLINT x | M. (\<Sum>k \<le> n. c k x)))"
@@ -399,9 +398,9 @@ lemma (in real_distribution) char_approx3:
 proof -
   note real_distribution.char_approx2 [of M 2 t, simplified]
   have [simp]: "prob UNIV = 1" by (metis prob_space space_eq_univ)
-  from integral_2 have [simp]: "expectation (\<lambda>x. x * x) = \<sigma>2" 
+  from integral_2 have [simp]: "expectation (\<lambda>x. x * x) = \<sigma>2"
     by (simp add: integral_1 numeral_eq_Suc)
-  have 1: "k \<le> 2 \<Longrightarrow> integrable M (\<lambda>x. x^k)" for k 
+  have 1: "k \<le> 2 \<Longrightarrow> integrable M (\<lambda>x. x^k)" for k
     using assms by (auto simp: eval_nat_numeral le_Suc_eq)
   note char_approx1
   note 2 = char_approx1 [of 2 t, OF 1, simplified]
@@ -417,7 +416,7 @@ proof -
 qed
 
 text \<open>
-  This is a more familiar textbook formulation in terms of random variables, but 
+  This is a more familiar textbook formulation in terms of random variables, but
   we will use the previous version for the CLT.
 \<close>
 

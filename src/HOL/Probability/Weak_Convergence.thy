@@ -1,6 +1,5 @@
-(*
-  Theory: Weak_Convergence.thy
-  Authors: Jeremy Avigad, Luke Serafin
+(*  Title:     HOL/Probability/Weak_Convergence.thy
+    Authors:   Jeremy Avigad (CMU), Johannes Hölzl (TUM)
 *)
 
 section \<open>Weak Convergence of Functions and Distributions\<close>

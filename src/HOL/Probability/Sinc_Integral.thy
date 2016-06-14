@@ -1,6 +1,6 @@
-(*
-  Theory: Sinc_Integral.thy
-  Authors: Jeremy Avigad, Luke Serafin, Johannes Hölzl
+(*  Title:     HOL/Probability/Sinc_Integral.thy
+    Authors:   Jeremy Avigad (CMU), Luke Serafin (CMU)
+    Authors:   Johannes Hölzl, TU München
 *)
 
 section \<open>Integral of sinc\<close>

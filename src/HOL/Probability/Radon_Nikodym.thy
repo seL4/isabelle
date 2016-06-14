@@ -8,8 +8,9 @@ theory Radon_Nikodym
 imports Bochner_Integration
 begin
 
-definition "diff_measure M N =
-  measure_of (space M) (sets M) (\<lambda>A. emeasure M A - emeasure N A)"
+definition diff_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
+where
+  "diff_measure M N = measure_of (space M) (sets M) (\<lambda>A. emeasure M A - emeasure N A)"
 
 lemma
   shows space_diff_measure[simp]: "space (diff_measure M N) = space M"
@@ -36,7 +37,7 @@ proof (rule emeasure_measure_of_sigma)
       (\<Sum>i. emeasure M (A i)) - (\<Sum>i. emeasure N (A i))"
       using fin pos[of "A _"]
       by (intro ennreal_suminf_minus)
-         (auto simp: sets_eq finite_measure.emeasure_eq_measure suminf_emeasure measure_nonneg)
+         (auto simp: sets_eq finite_measure.emeasure_eq_measure suminf_emeasure)
     then show "(\<Sum>i. emeasure M (A i) - emeasure N (A i)) =
       emeasure M (\<Union>i. A i) - emeasure N (\<Union>i. A i) "
       by (simp add: suminf)
@@ -53,6 +54,8 @@ proof -
     disjoint: "disjoint_family A"
     using sigma_finite_disjoint by blast
   let ?B = "\<lambda>i. 2^Suc i * emeasure M (A i)"
+  have [measurable]: "\<And>i. A i \<in> sets M"
+    using range by fastforce+
   have "\<forall>i. \<exists>x. 0 < x \<and> x < inverse (?B i)"
   proof
     fix i show "\<exists>x. 0 < x \<and> x < inverse (?B i)"
@@ -65,9 +68,7 @@ proof -
   let ?h = "\<lambda>x. \<Sum>i. n i * indicator (A i) x"
   show ?thesis
   proof (safe intro!: bexI[of _ ?h] del: notI)
-    have "\<And>i. A i \<in> sets M"
-      using range by fastforce+
-    then have "integral\<^sup>N M ?h = (\<Sum>i. n i * emeasure M (A i))" using pos
+    have "integral\<^sup>N M ?h = (\<Sum>i. n i * emeasure M (A i))" using pos
       by (simp add: nn_integral_suminf nn_integral_cmult_indicator)
     also have "\<dots> \<le> (\<Sum>i. ennreal ((1/2)^Suc i))"
     proof (intro suminf_le allI)
@@ -81,10 +82,8 @@ proof -
                  del: power_Suc)
       also have "\<dots> \<le> inverse (ennreal 2) ^ Suc N"
         using measure[of N]
-        apply (cases "emeasure M (A N)" rule: ennreal_cases)
-        apply (cases "emeasure M (A N) = 0")
-        apply (auto simp: inverse_ennreal ennreal_mult[symmetric] divide_ennreal_def simp del: power_Suc)
-        done
+        by (cases "emeasure M (A N)"; cases "emeasure M (A N) = 0")
+           (auto simp: inverse_ennreal ennreal_mult[symmetric] divide_ennreal_def simp del: power_Suc)
       also have "\<dots> = ennreal (inverse 2 ^ Suc N)"
         by (subst ennreal_power[symmetric], simp) (simp add: inverse_ennreal)
       finally show "n N * emeasure M (A N) \<le> ennreal ((1/2)^Suc N)"
@@ -92,11 +91,8 @@ proof -
     qed auto
     also have "\<dots> < top"
       unfolding less_top[symmetric]
-      apply (rule ennreal_suminf_neq_top)
-      apply (subst summable_Suc_iff)
-      apply (subst summable_geometric)
-      apply auto
-      done
+      by (rule ennreal_suminf_neq_top)
+         (auto simp: summable_geometric summable_Suc_iff simp del: power_Suc)
     finally show "integral\<^sup>N M ?h \<noteq> \<infinity>"
       by (auto simp: top_unique)
   next
@@ -214,7 +210,7 @@ proof -
       by (auto simp add: not_less)
     { fix n have "?d (A n) \<le> - real n * e"
       proof (induct n)
-        case (Suc n) with dA_epsilon[of n, OF B] show ?case by (simp del: A_simps add: of_nat_Suc field_simps)
+        case (Suc n) with dA_epsilon[of n, OF B] show ?case by (simp del: A_simps add: field_simps)
       next
         case 0 with measure_empty show ?case by (simp add: zero_ennreal_def)
       qed } note dA_less = this
@@ -236,8 +232,7 @@ qed
 
 lemma (in finite_measure) Radon_Nikodym_aux:
   assumes "finite_measure N" and sets_eq: "sets N = sets M"
-  shows "\<exists>A\<in>sets M. measure M (space M) - measure N (space M) \<le>
-                    measure M A - measure N A \<and>
+  shows "\<exists>A\<in>sets M. measure M (space M) - measure N (space M) \<le> measure M A - measure N A \<and>
                     (\<forall>B\<in>sets M. B \<subseteq> A \<longrightarrow> 0 \<le> measure M B - measure N B)"
 proof -
   interpret N: finite_measure N by fact
@@ -293,24 +288,20 @@ qed
 lemma (in finite_measure) Radon_Nikodym_finite_measure:
   assumes "finite_measure N" and sets_eq: "sets N = sets M"
   assumes "absolutely_continuous M N"
-  shows "\<exists>f \<in> borel_measurable M. (\<forall>x. 0 \<le> f x) \<and> density M f = N"
+  shows "\<exists>f \<in> borel_measurable M. density M f = N"
 proof -
   interpret N: finite_measure N by fact
-  define G where "G =
-    {g \<in> borel_measurable M. (\<forall>x. 0 \<le> g x) \<and> (\<forall>A\<in>sets M. (\<integral>\<^sup>+x. g x * indicator A x \<partial>M) \<le> N A)}"
+  define G where "G = {g \<in> borel_measurable M. \<forall>A\<in>sets M. (\<integral>\<^sup>+x. g x * indicator A x \<partial>M) \<le> N A}"
   { fix f have "f \<in> G \<Longrightarrow> f \<in> borel_measurable M" by (auto simp: G_def) }
   note this[measurable_dest]
   have "(\<lambda>x. 0) \<in> G" unfolding G_def by auto
   hence "G \<noteq> {}" by auto
-  { fix f g assume f: "f \<in> G" and g: "g \<in> G"
+  { fix f g assume f[measurable]: "f \<in> G" and g[measurable]: "g \<in> G"
     have "(\<lambda>x. max (g x) (f x)) \<in> G" (is "?max \<in> G") unfolding G_def
     proof safe
-      show "?max \<in> borel_measurable M" using f g unfolding G_def by auto
       let ?A = "{x \<in> space M. f x \<le> g x}"
       have "?A \<in> sets M" using f g unfolding G_def by auto
-      fix A assume "A \<in> sets M"
-      hence sets: "?A \<inter> A \<in> sets M" "(space M - ?A) \<inter> A \<in> sets M" using \<open>?A \<in> sets M\<close> by auto
-      hence sets': "?A \<inter> A \<in> sets N" "(space M - ?A) \<inter> A \<in> sets N" by (auto simp: sets_eq)
+      fix A assume [measurable]: "A \<in> sets M"
       have union: "((?A \<inter> A) \<union> ((space M - ?A) \<inter> A)) = A"
         using sets.sets_into_space[OF \<open>A \<in> sets M\<close>] by auto
       have "\<And>x. x \<in> space M \<Longrightarrow> max (g x) (f x) * indicator A x =
@@ -319,24 +310,19 @@ proof -
       hence "(\<integral>\<^sup>+x. max (g x) (f x) * indicator A x \<partial>M) =
         (\<integral>\<^sup>+x. g x * indicator (?A \<inter> A) x \<partial>M) +
         (\<integral>\<^sup>+x. f x * indicator ((space M - ?A) \<inter> A) x \<partial>M)"
-        using f g sets unfolding G_def
         by (auto cong: nn_integral_cong intro!: nn_integral_add)
       also have "\<dots> \<le> N (?A \<inter> A) + N ((space M - ?A) \<inter> A)"
-        using f g sets unfolding G_def by (auto intro!: add_mono)
+        using f g unfolding G_def by (auto intro!: add_mono)
       also have "\<dots> = N A"
-        using plus_emeasure[OF sets'] union by auto
+        using union by (subst plus_emeasure) (auto simp: sets_eq)
       finally show "(\<integral>\<^sup>+x. max (g x) (f x) * indicator A x \<partial>M) \<le> N A" .
-    next
-      fix x show "0 \<le> max (g x) (f x)" using f g by (auto simp: G_def split: split_max)
-    qed }
+    qed auto }
   note max_in_G = this
   { fix f assume  "incseq f" and f: "\<And>i. f i \<in> G"
     then have [measurable]: "\<And>i. f i \<in> borel_measurable M" by (auto simp: G_def)
     have "(\<lambda>x. SUP i. f i x) \<in> G" unfolding G_def
     proof safe
       show "(\<lambda>x. SUP i. f i x) \<in> borel_measurable M" by measurable
-      { fix x show "0 \<le> (SUP i. f i x)"
-          using f by (auto simp: G_def intro: SUP_upper2) }
     next
       fix A assume "A \<in> sets M"
       have "(\<integral>\<^sup>+x. (SUP i. f i x) * indicator A x \<partial>M) =
@@ -394,9 +380,6 @@ proof -
       by (auto intro!: SUP_mono nn_integral_mono Max_ge)
   qed
   finally have int_f_eq_y: "integral\<^sup>N M f = ?y" .
-  have "\<And>x. 0 \<le> f x"
-    unfolding f_def using \<open>\<And>i. gs i \<in> G\<close>
-    by (auto intro!: SUP_upper2 Max_ge_iff[THEN iffD2] simp: G_def)
   let ?t = "\<lambda>A. N A - (\<integral>\<^sup>+x. ?F A x \<partial>M)"
   let ?M = "diff_measure N (density M f)"
   have f_le_N: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>\<^sup>+x. ?F A x \<partial>M) \<le> N A"
@@ -445,9 +428,9 @@ proof -
       using M'.finite_emeasure_space by (auto simp: top_unique)
     moreover
     define b where "b = ?M (space M) / emeasure M (space M) / 2"
-    ultimately have b: "b \<noteq> 0 \<and> 0 \<le> b \<and> b \<noteq> \<infinity>"
+    ultimately have b: "b \<noteq> 0 \<and> b \<noteq> \<infinity>"
       by (auto simp: ennreal_divide_eq_top_iff)
-    then have b: "b \<noteq> 0" "0 \<le> b" "0 < b"  "b \<noteq> \<infinity>"
+    then have b: "b \<noteq> 0" "0 < b"  "b \<noteq> \<infinity>"
       by (auto simp: less_le)
     let ?Mb = "density M (\<lambda>_. b)"
     have Mb: "finite_measure ?Mb" "sets ?Mb = sets ?M"
@@ -460,7 +443,7 @@ proof -
     { fix B assume B: "B \<in> sets M" "B \<subseteq> A0"
       with *[OF this] have "b * emeasure M B \<le> ?M B"
         using b unfolding M'.emeasure_eq_measure emeasure_eq_measure
-        by (cases b rule: ennreal_cases) (auto simp: ennreal_mult[symmetric] measure_nonneg) }
+        by (cases b rule: ennreal_cases) (auto simp: ennreal_mult[symmetric]) }
     note bM_le_t = this
     let ?f0 = "\<lambda>x. f x + b * indicator A0 x"
     { fix A assume A: "A \<in> sets M"
@@ -487,7 +470,7 @@ proof -
         unfolding emeasure_M[OF \<open>A \<in> sets M\<close>]
         using f_le_v N.emeasure_eq_measure[of A]
         by (cases "\<integral>\<^sup>+x. ?F A x \<partial>M" "N A" rule: ennreal2_cases)
-           (auto simp: top_unique measure_nonneg ennreal_minus ennreal_plus[symmetric] simp del: ennreal_plus)
+           (auto simp: top_unique ennreal_minus ennreal_plus[symmetric] simp del: ennreal_plus)
       finally have "(\<integral>\<^sup>+x. ?f0 x * indicator A x \<partial>M) \<le> N A" . }
     hence "?f0 \<in> G" using \<open>A0 \<in> sets M\<close> b \<open>f \<in> G\<close> by (auto simp: G_def)
     have int_f_finite: "integral\<^sup>N M f \<noteq> \<infinity>"
@@ -501,7 +484,7 @@ proof -
       by simp
     with b have "?M A0 \<noteq> 0"
       by (cases b rule: ennreal_cases)
-         (auto simp: M'.emeasure_eq_measure measure_nonneg mult_less_0_iff not_le[symmetric])
+         (auto simp: M'.emeasure_eq_measure mult_less_0_iff not_le[symmetric])
     then have "emeasure M A0 \<noteq> 0"
       using ac \<open>A0 \<in> sets M\<close> by (auto simp: absolutely_continuous_def null_sets_def)
     then have "0 < emeasure M A0"
@@ -661,7 +644,7 @@ qed
 
 lemma (in finite_measure) Radon_Nikodym_finite_measure_infinite:
   assumes "absolutely_continuous M N" and sets_eq: "sets N = sets M"
-  shows "\<exists>f\<in>borel_measurable M. (\<forall>x. 0 \<le> f x) \<and> density M f = N"
+  shows "\<exists>f\<in>borel_measurable M. density M f = N"
 proof -
   from split_space_into_finite_sets_and_rest[OF assms]
   obtain Q0 and Q :: "nat \<Rightarrow> 'a set"
@@ -671,7 +654,7 @@ proof -
     and Q_fin: "\<And>i. N (Q i) \<noteq> \<infinity>" by force
   from Q have Q_sets: "\<And>i. Q i \<in> sets M" by auto
   let ?N = "\<lambda>i. density N (indicator (Q i))" and ?M = "\<lambda>i. density M (indicator (Q i))"
-  have "\<forall>i. \<exists>f\<in>borel_measurable (?M i). (\<forall>x. 0 \<le> f x) \<and> density (?M i) f = ?N i"
+  have "\<forall>i. \<exists>f\<in>borel_measurable (?M i). density (?M i) f = ?N i"
   proof (intro allI finite_measure.Radon_Nikodym_finite_measure)
     fix i
     from Q show "finite_measure (?M i)"
@@ -705,7 +688,6 @@ proof -
   proof (safe intro!: bexI[of _ ?f])
     show "?f \<in> borel_measurable M" using Q0 borel Q_sets
       by (auto intro!: measurable_If)
-    show "\<And>x. 0 \<le> ?f x" using borel by (auto intro!: suminf_0_le simp: indicator_def)
     show "density M ?f = N"
     proof (rule measure_eqI)
       fix A assume "A \<in> sets (density M ?f)"
@@ -745,7 +727,7 @@ qed
 
 lemma (in sigma_finite_measure) Radon_Nikodym:
   assumes ac: "absolutely_continuous M N" assumes sets_eq: "sets N = sets M"
-  shows "\<exists>f \<in> borel_measurable M. (\<forall>x. 0 \<le> f x) \<and> density M f = N"
+  shows "\<exists>f \<in> borel_measurable M. density M f = N"
 proof -
   from Ex_finite_integrable_function
   obtain h where finite: "integral\<^sup>N M h \<noteq> \<infinity>" and
@@ -770,7 +752,7 @@ proof -
       by (auto simp: absolutely_continuous_def)
   qed (auto simp add: sets_eq)
   from T.Radon_Nikodym_finite_measure_infinite[OF this]
-  obtain f where f_borel: "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x" "density ?MT f = N" by auto
+  obtain f where f_borel: "f \<in> borel_measurable M" "density ?MT f = N" by auto
   with nn borel show ?thesis
     by (auto intro!: bexI[of _ "\<lambda>x. h x * f x"] simp: density_density_eq)
 qed

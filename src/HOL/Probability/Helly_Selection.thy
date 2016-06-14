@@ -1,6 +1,6 @@
-(*
-  Theory: Helly_Selection.thy
-  Authors: Jeremy Avigad, Luke Serafin
+(*  Title:     HOL/Probability/Helly_Selection.thy
+    Authors:   Jeremy Avigad (CMU), Luke Serafin (CMU)
+    Authors:   Johannes Hölzl, TU München
 *)
 
 section \<open>Helly's selection theorem\<close>
@@ -36,7 +36,7 @@ proof -
     fix n :: nat and s :: "nat \<Rightarrow> nat" assume s: "subseq s"
     have "bounded {-M..M}"
       using bounded_closed_interval by auto
-    moreover have "\<And>k. f (s k) (r n) \<in> {-M..M}" 
+    moreover have "\<And>k. f (s k) (r n) \<in> {-M..M}"
       using bdd by (simp add: abs_le_iff minus_le_iff)
     ultimately have "\<exists>l s'. subseq s' \<and> ((\<lambda>k. f (s k) (r n)) \<circ> s') \<longlonglongrightarrow> l"
       using compact_Icc compact_imp_seq_compact seq_compactE by metis

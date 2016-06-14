@@ -1,5 +1,5 @@
 (*  Title:      HOL/Probability/Set_Integral.thy
-    Author:     Jeremy Avigad, Johannes Hölzl, Luke Serafin
+    Author:     Jeremy Avigad (CMU), Johannes Hölzl (TUM), Luke Serafin (CMU)
 
 Notation and useful facts for working with integrals over a set.
 

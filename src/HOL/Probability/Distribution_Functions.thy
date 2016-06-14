@@ -1,6 +1,5 @@
-(*
-  Title    : Distribution_Functions.thy
-  Authors  : Jeremy Avigad and Luke Serafin
+(*  Title:    Distribution_Functions.thy
+    Authors:  Jeremy Avigad (CMU) and Luke Serafin (CMU)
 *)
 
 section \<open>Distribution Functions\<close>

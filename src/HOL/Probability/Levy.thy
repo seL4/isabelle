@@ -1,5 +1,5 @@
-(*  Theory: Levy.thy
-    Author: Jeremy Avigad
+(*  Title:     HOL/Probability/Levy.thy
+    Authors:   Jeremy Avigad (CMU)
 *)
 
 section \<open>The Levy inversion theorem, and the Levy continuity theorem.\<close>

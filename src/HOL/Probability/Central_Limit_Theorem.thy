@@ -1,5 +1,5 @@
-(*  Theory: Central_Limit_Theorem.thy
-    Authors: Jeremy Avigad, Luke Serafin
+(*  Title:     HOL/Probability/Central_Limit_Theorem.thy
+    Authors:   Jeremy Avigad (CMU), Luke Serafin (CMU)
 *)
 
 section \<open>The Central Limit Theorem\<close>
@@ -73,20 +73,20 @@ proof -
       using \<sigma>_pos by (simp add: power_divide)
     also have "t^2 / n / 2 = (t^2 / 2) / n"
       by simp
-    finally have **: "norm (\<psi> n t - (1 + (-(t^2) / 2) / n)) \<le> 
+    finally have **: "norm (\<psi> n t - (1 + (-(t^2) / 2) / n)) \<le>
       ?t\<^sup>2 / 6 * (LINT x|\<mu>. min (6 * x\<^sup>2) (\<bar>?t\<bar> * \<bar>x\<bar> ^ 3))" by simp
 
-    have "norm (\<phi> n t - (complex_of_real (1 + (-(t^2) / 2) / n))^n) \<le> 
+    have "norm (\<phi> n t - (complex_of_real (1 + (-(t^2) / 2) / n))^n) \<le>
          n * norm (\<psi> n t - (complex_of_real (1 + (-(t^2) / 2) / n)))"
       using n
       by (auto intro!: norm_power_diff \<mu>.cmod_char_le_1 abs_leI
                simp del: of_real_diff simp: of_real_diff[symmetric] divide_le_eq \<phi>_eq \<psi>_def)
     also have "\<dots> \<le> n * (?t\<^sup>2 / 6 * (LINT x|\<mu>. min (6 * x\<^sup>2) (\<bar>?t\<bar> * \<bar>x\<bar> ^ 3)))"
       by (rule mult_left_mono [OF **], simp)
-    also have "\<dots> = (t\<^sup>2 / (6 * \<sigma>\<^sup>2) * (LINT x|\<mu>. min (6 * x\<^sup>2) (\<bar>?t\<bar> * \<bar>x\<bar> ^ 3)))" 
+    also have "\<dots> = (t\<^sup>2 / (6 * \<sigma>\<^sup>2) * (LINT x|\<mu>. min (6 * x\<^sup>2) (\<bar>?t\<bar> * \<bar>x\<bar> ^ 3)))"
       using \<sigma>_pos by (simp add: field_simps min_absorb2)
-    finally show "norm (\<phi> n t - (1 + (-(t^2) / 2) / n)^n) \<le> 
-        (t\<^sup>2 / (6 * \<sigma>\<^sup>2) * (LINT x|\<mu>. min (6 * x\<^sup>2) (\<bar>?t\<bar> * \<bar>x\<bar> ^ 3)))" 
+    finally show "norm (\<phi> n t - (1 + (-(t^2) / 2) / n)^n) \<le>
+        (t\<^sup>2 / (6 * \<sigma>\<^sup>2) * (LINT x|\<mu>. min (6 * x\<^sup>2) (\<bar>?t\<bar> * \<bar>x\<bar> ^ 3)))"
       by simp
   qed
 
@@ -95,7 +95,7 @@ proof -
     fix t
     let ?t = "\<lambda>n. t / sqrt (\<sigma>\<^sup>2 * n)"
     have "\<And>x. (\<lambda>n. min (6 * x\<^sup>2) (\<bar>t\<bar> * \<bar>x\<bar> ^ 3 / \<bar>sqrt (\<sigma>\<^sup>2 * real n)\<bar>)) \<longlonglongrightarrow> 0"
-      using \<sigma>_pos 
+      using \<sigma>_pos
       by (auto simp: real_sqrt_mult min_absorb2
                intro!: tendsto_min[THEN tendsto_eq_rhs] sqrt_at_top[THEN filterlim_compose]
                        filterlim_tendsto_pos_mult_at_top filterlim_at_top_imp_at_infinity
