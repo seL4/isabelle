@@ -756,8 +756,9 @@ corollary DERIV_isCont: "DERIV f x :> D \<Longrightarrow> isCont f x"
   by (rule DERIV_continuous)
 
 lemma DERIV_continuous_on:
-  "(\<And>x. x \<in> s \<Longrightarrow> (f has_field_derivative (D x)) (at x)) \<Longrightarrow> continuous_on s f"
-  by (metis DERIV_continuous continuous_at_imp_continuous_on)
+  "(\<And>x. x \<in> s \<Longrightarrow> (f has_field_derivative (D x)) (at x within s)) \<Longrightarrow> continuous_on s f"
+  unfolding continuous_on_eq_continuous_within
+  by (intro continuous_at_imp_continuous_on ballI DERIV_continuous) 
 
 lemma DERIV_mult':
   "(f has_field_derivative D) (at x within s) \<Longrightarrow> (g has_field_derivative E) (at x within s) \<Longrightarrow>

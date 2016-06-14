@@ -12487,6 +12487,61 @@ lemma integrable_by_parts:
   by (rule integrable_by_parts_interior_strong[of _ "{}" _ _ f g f' g']) (insert assms, simp_all)
 
 
+subsection \<open>Integration by substitution\<close>
+
+
+lemma has_integral_substitution_strong:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g :: "real \<Rightarrow> real"
+  assumes s: "finite s" and le: "a \<le> b" "c \<le> d" "g a \<le> g b"
+      and subset: "g ` {a..b} \<subseteq> {c..d}"
+      and f [continuous_intros]: "continuous_on {c..d} f"
+      and g [continuous_intros]: "continuous_on {a..b} g"
+      and deriv [derivative_intros]:
+              "\<And>x. x \<in> {a..b} - s \<Longrightarrow> (g has_field_derivative g' x) (at x within {a..b})"
+    shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (integral {g a..g b} f)) {a..b}"
+proof -
+  let ?F = "\<lambda>x. integral {c..g x} f"
+  have cont_int: "continuous_on {a..b} ?F"
+    by (rule continuous_on_compose2[OF _ g subset] indefinite_integral_continuous
+          f integrable_continuous_real)+
+  have deriv: "(((\<lambda>x. integral {c..x} f) \<circ> g) has_vector_derivative g' x *\<^sub>R f (g x))
+                 (at x within {a..b})" if "x \<in> {a..b} - s" for x
+    apply (rule has_vector_derivative_eq_rhs)
+    apply (rule vector_diff_chain_within)
+    apply (subst has_field_derivative_iff_has_vector_derivative [symmetric])
+    apply (rule deriv that)+
+    apply (rule has_vector_derivative_within_subset)
+    apply (rule integral_has_vector_derivative f)+
+    using that le subset
+    apply blast+
+    done
+  have deriv: "(?F has_vector_derivative g' x *\<^sub>R f (g x))
+                  (at x)" if "x \<in> {a..b} - (s \<union> {a,b})" for x
+    using deriv[of x] that by (simp add: at_within_closed_interval o_def)
+
+
+  have "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (?F b - ?F a)) {a..b}"
+    using le cont_int s deriv cont_int
+    by (intro fundamental_theorem_of_calculus_interior_strong[of "s \<union> {a,b}"]) simp_all
+  also from subset have "g x \<in> {c..d}" if "x \<in> {a..b}" for x using that by blast
+  from this[of a] this[of b] le have "c \<le> g a" "g b \<le> d" by auto
+  hence "integral {c..g a} f + integral {g a..g b} f = integral {c..g b} f"
+    by (intro integral_combine integrable_continuous_real continuous_on_subset[OF f] le) simp_all
+  hence "integral {c..g b} f - integral {c..g a} f = integral {g a..g b} f"
+    by (simp add: algebra_simps)
+  finally show ?thesis .
+qed
+
+lemma has_integral_substitution:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g :: "real \<Rightarrow> real"
+  assumes "a \<le> b" "c \<le> d" "g a \<le> g b" "g ` {a..b} \<subseteq> {c..d}"
+      and "continuous_on {c..d} f"
+      and "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_field_derivative g' x) (at x within {a..b})"
+    shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (integral {g a..g b} f)) {a..b}"
+  by (intro has_integral_substitution_strong[of "{}" a b c d] assms)
+     (auto intro: DERIV_continuous_on assms)
+
+
 subsection \<open>Compute a double integral using iterated integrals and switching the order of integration\<close>
 
 lemma setcomp_dot1: "{z. P (z \<bullet> (i,0))} = {(x,y). P(x \<bullet> i)}"
