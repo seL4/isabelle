@@ -146,6 +146,7 @@ sig
   val trim_line: string -> string
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
+  val align_right: string -> int -> string -> string
   val match_string: string -> string -> bool
 
   (*reals*)
@@ -719,6 +720,12 @@ fun replicate_string (0: int) _ = ""
       else replicate_string (k div 2) (a ^ a) ^ a;
 
 fun translate_string f = String.translate (f o String.str);
+
+fun align_right c k s =
+  let
+    val _ = if size c <> 1 orelse size s > k
+      then raise Fail "align_right" else ()
+  in replicate_string (k - size s) c ^ s end;
 
 (*crude matching of str against simple glob pat*)
 fun match_string pat str =
