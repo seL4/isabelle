@@ -19,7 +19,7 @@ sig
       Dict of (class * class) list * plain_dict
   and plain_dict = 
       Dict_Const of (string * class) * dict list list
-    | Dict_Var of { var: vname, index: int, length: int };
+    | Dict_Var of { var: vname, index: int, length: int, class: class, unique: bool };
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname;
@@ -55,6 +55,7 @@ sig
   val is_IAbs: iterm -> bool
   val eta_expand: int -> const * iterm list -> iterm
   val contains_dict_var: iterm -> bool
+  val unambiguous_dictss: dict list list -> bool
   val add_constsyms: iterm -> Code_Symbol.T list -> Code_Symbol.T list
   val add_tyconames: iterm -> string list -> string list
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
@@ -132,7 +133,7 @@ datatype dict =
     Dict of (class * class) list * plain_dict
 and plain_dict = 
     Dict_Const of (string * class) * dict list list
-  | Dict_Var of { var: vname, index: int, length: int };
+  | Dict_Var of { var: vname, index: int, length: int, class: class, unique: bool };
 
 datatype itype =
     `%% of string * itype list
@@ -259,17 +260,18 @@ fun eta_expand k (const as { dom = tys, ... }, ts) =
       (Name.invent_names vars "a" ((take l o drop j) tys));
   in vs_tys `|==> IConst const `$$ ts @ map (IVar o fst) vs_tys end;
 
-fun contains_dict_var t =
-  let
-    fun cont_dict (Dict (_, d)) = cont_plain_dict d
-    and cont_plain_dict (Dict_Const (_, dss)) = (exists o exists) cont_dict dss
-      | cont_plain_dict (Dict_Var _) = true;
-    fun cont_term (IConst { dicts = dss, ... }) = (exists o exists) cont_dict dss
-      | cont_term (IVar _) = false
-      | cont_term (t1 `$ t2) = cont_term t1 orelse cont_term t2
-      | cont_term (_ `|=> t) = cont_term t
-      | cont_term (ICase { primitive = t, ... }) = cont_term t;
-  in cont_term t end;
+fun exists_dict_var f (Dict (_, d)) = exists_plain_dict_var_pred f d
+and exists_plain_dict_var_pred f (Dict_Const (_, dss)) = exists_dictss_var f dss
+  | exists_plain_dict_var_pred f (Dict_Var x) = f x
+and exists_dictss_var f dss = (exists o exists) (exists_dict_var f) dss;
+
+fun contains_dict_var (IConst { dicts = dss, ... }) = exists_dictss_var (K true) dss
+  | contains_dict_var (IVar _) = false
+  | contains_dict_var (t1 `$ t2) = contains_dict_var t1 orelse contains_dict_var t2
+  | contains_dict_var (_ `|=> t) = contains_dict_var t
+  | contains_dict_var (ICase { primitive = t, ... }) = contains_dict_var t;
+
+val unambiguous_dictss = not o exists_dictss_var (fn { unique, ... } => not unique);
 
 
 (** statements, abstract programs **)
@@ -469,20 +471,27 @@ datatype typarg_witness =
     Weakening of (class * class) list * plain_typarg_witness
 and plain_typarg_witness =
     Global of (string * class) * typarg_witness list list
-  | Local of string * (int * sort);
+  | Local of { var: string, index: int, sort: sort, unique: bool };
+
+fun brand_unique unique (w as Global _) = w
+  | brand_unique unique (Local { var, index, sort, unique = _ }) =
+      Local { var = var, index = index, sort = sort, unique = unique };
 
 fun construct_dictionaries ctxt (proj_sort, algebra) permissive some_thm (ty, sort) (deps, program) =
   let
-    fun class_relation ((Weakening (classrels, x)), sub_class) super_class =
-      Weakening ((sub_class, super_class) :: classrels, x);
+    fun class_relation unique (Weakening (classrels, x), sub_class) super_class =
+      Weakening ((sub_class, super_class) :: classrels, brand_unique unique x);
     fun type_constructor (tyco, _) dss class =
       Weakening ([], Global ((tyco, class), (map o map) fst dss));
     fun type_variable (TFree (v, sort)) =
       let
         val sort' = proj_sort sort;
-      in map_index (fn (n, class) => (Weakening ([], Local (v, (n, sort'))), class)) sort' end;
+      in map_index (fn (n, class) => (Weakening ([], Local
+        { var = v, index = n, sort = sort', unique = true }), class)) sort'
+      end;
     val typarg_witnesses = Sorts.of_sort_derivation algebra
-      {class_relation = fn _ => fn _ => Sorts.classrel_derivation algebra class_relation,
+      {class_relation = fn _ => fn unique =>
+         Sorts.classrel_derivation algebra (class_relation unique),
        type_constructor = type_constructor,
        type_variable = type_variable} (ty, proj_sort sort)
       handle Sorts.CLASS_ERROR e => not_wellsorted ctxt permissive some_thm deps ty sort e;
@@ -752,16 +761,18 @@ and translate_tyvar_sort ctxt (algbr as (proj_sort, _)) eqngr permissive (v, sor
   #>> (fn sort => (unprefix "'" v, sort))
 and translate_dicts ctxt algbr eqngr permissive some_thm (ty, sort) =
   let
-    fun mk_dict (Weakening (classrels, x)) =
+    fun mk_dict (Weakening (classrels, d)) =
           fold_map (ensure_classrel ctxt algbr eqngr permissive) classrels
-          ##>> mk_plain_dict x
+          ##>> mk_plain_dict d
           #>> Dict 
     and mk_plain_dict (Global (inst, dss)) =
           ensure_inst ctxt algbr eqngr permissive inst
           ##>> (fold_map o fold_map) mk_dict dss
-          #>> (fn (inst, dss) => Dict_Const (inst, dss))
-      | mk_plain_dict (Local (v, (index, sort))) =
-          pair (Dict_Var { var = unprefix "'" v, index = index, length = length sort })
+          #>> Dict_Const
+      | mk_plain_dict (Local { var, index, sort, unique }) =
+          ensure_class ctxt algbr eqngr permissive (nth sort index)
+          #>> (fn class => Dict_Var { var = unprefix "'" var, index = index,
+            length = length sort, class = class, unique = unique })
   in
     construct_dictionaries ctxt algbr permissive some_thm (ty, sort)
     #-> (fn typarg_witnesses => fold_map mk_dict typarg_witnesses)

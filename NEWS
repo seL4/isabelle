@@ -132,6 +132,9 @@ examples.
 
 *** HOL ***
 
+* Code generation for scala: ambiguous implicts in class diagrams
+are spelt out explicitly.
+
 * Abstract locales semigroup, abel_semigroup, semilattice,
 semilattice_neutr, ordering, ordering_top, semilattice_order,
 semilattice_neutr_order, comm_monoid_set, semilattice_set,

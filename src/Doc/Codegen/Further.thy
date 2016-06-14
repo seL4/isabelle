@@ -39,71 +39,8 @@ text \<open>
   the type arguments are just appended.  Otherwise they are ignored;
   hence user-defined adaptations for polymorphic constants have to be
   designed very carefully to avoid ambiguity.
-
-  Isabelle's type classes are mapped onto @{text Scala} implicits; in
-  cases with diamonds in the subclass hierarchy this can lead to
-  ambiguities in the generated code:
 \<close>
 
-class %quote class1 =
-  fixes foo :: "'a \<Rightarrow> 'a"
-
-class %quote class2 = class1
-
-class %quote class3 = class1
-
-text \<open>
-  \noindent Here both @{class class2} and @{class class3} inherit from @{class class1},
-  forming the upper part of a diamond.
-\<close>
-
-definition %quote bar :: "'a :: {class2, class3} \<Rightarrow> 'a" where
-  "bar = foo"
-
-text \<open>
-  \noindent This yields the following code:
-\<close>
-
-text %quotetypewriter \<open>
-  @{code_stmts bar (Scala)}
-\<close>
-
-text \<open>
-  \noindent This code is rejected by the @{text Scala} compiler: in
-  the definition of @{text bar}, it is not clear from where to derive
-  the implicit argument for @{text foo}.
-
-  The solution to the problem is to close the diamond by a further
-  class with inherits from both @{class class2} and @{class class3}:
-\<close>
-
-class %quote class4 = class2 + class3
-
-text \<open>
-  \noindent Then the offending code equation can be restricted to
-  @{class class4}:
-\<close>
-
-lemma %quote [code]:
-  "(bar :: 'a::class4 \<Rightarrow> 'a) = foo"
-  by (simp only: bar_def)
-
-text \<open>
-  \noindent with the following code:
-\<close>
-
-text %quotetypewriter \<open>
-  @{code_stmts bar (Scala)}
-\<close>
-
-text \<open>
-  \noindent which exposes no ambiguity.
-
-  Since the preprocessor (cf.~\secref{sec:preproc}) propagates sort
-  constraints through a system of code equations, it is usually not
-  very difficult to identify the set of code equations which actually
-  needs more restricted sort constraints.
-\<close>
 
 subsection \<open>Modules namespace\<close>
 

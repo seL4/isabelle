@@ -53,7 +53,16 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
             str "=>", print_typ tyvars NOBR ty];
     fun constraint p1 p2 = Pretty.block [p1, str ":", Pretty.brk 1, p2];
     fun print_var vars NONE = str "_"
-      | print_var vars (SOME v) = (str o lookup_var vars) v
+      | print_var vars (SOME v) = (str o lookup_var vars) v;
+    fun applify_dict tyvars (Dict (_, d)) = applify_plain_dict tyvars d
+    and applify_plain_dict tyvars (Dict_Const (inst, dss)) =
+          applify_dictss tyvars ((str o deresolve o Class_Instance) inst) dss
+      | applify_plain_dict tyvars (Dict_Var { var, class, ... }) =
+          Pretty.block [str "implicitly",
+            enclose "[" "]" [Pretty.block [(str o deresolve_class) class,
+              enclose "[" "]" [(str o lookup_tyvar tyvars) var]]]]
+    and applify_dictss tyvars p dss =
+      applify "(" ")" (applify_dict tyvars) NOBR p (flat dss)
     fun print_term tyvars is_pat some_thm vars fxy (IConst const) =
           print_app tyvars is_pat some_thm vars fxy (const, [])
       | print_term tyvars is_pat some_thm vars fxy (t as (t1 `$ t2)) =
@@ -88,22 +97,29 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
              ], vars')
            end
     and print_app tyvars is_pat some_thm vars fxy
-        (app as ({ sym, typargs, dom, ... }, ts)) =
+        (app as ({ sym, typargs, dom, dicts, ... }, ts)) =
       let
         val k = length ts;
         val typargs' = if is_pat then [] else typargs;
         val syntax = case sym of
             Constant const => const_syntax const
           | _ => NONE;
+        val applify_dicts =
+          if is_pat orelse is_some syntax orelse is_constr sym
+            orelse Code_Thingol.unambiguous_dictss dicts
+          then fn p => K p
+          else applify_dictss tyvars;
         val (l, print') = case syntax of
-            NONE => (args_num sym, fn fxy => fn ts => gen_applify (is_constr sym) "(" ")"
+            NONE => (args_num sym, fn fxy => fn ts => applify_dicts
+              (gen_applify (is_constr sym) "(" ")"
               (print_term tyvars is_pat some_thm vars NOBR) fxy
                 (applify "[" "]" (print_typ tyvars NOBR)
-                  NOBR ((str o deresolve) sym) typargs') ts)
-          | SOME (k, Plain_printer s) => (k, fn fxy => fn ts => applify "(" ")"
+                  NOBR ((str o deresolve) sym) typargs') ts) dicts)
+          | SOME (k, Plain_printer s) => (k, fn fxy => fn ts => applify_dicts
+              (applify "(" ")"
               (print_term tyvars is_pat some_thm vars NOBR) fxy
                 (applify "[" "]" (print_typ tyvars NOBR)
-                  NOBR (str s) typargs') ts)
+                  NOBR (str s) typargs') ts) dicts)
           | SOME (k, Complex_printer print) =>
               (k, fn fxy => fn ts => print (print_term tyvars is_pat some_thm) some_thm vars fxy
                 (ts ~~ take k dom))

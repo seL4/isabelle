@@ -87,13 +87,13 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
           ((str o deresolve_inst) inst ::
             (if is_pseudo_fun (Class_Instance inst) then [str "()"]
             else map_filter (print_dicts is_pseudo_fun BR) dss))
-      | print_plain_dict is_pseudo_fun fxy (Dict_Var { var, index, length }) =
+      | print_plain_dict is_pseudo_fun fxy (Dict_Var { var, index, length, ... }) =
           [str (if length = 1 then Name.enforce_case true var ^ "_"
             else Name.enforce_case true var ^ string_of_int (index + 1) ^ "_")]
     and print_dicts is_pseudo_fun = tuplify (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
-      (map_index (fn (i, _) =>
-        Dict ([], Dict_Var { var = v, index = i, length = length sort })) sort));
+      (map_index (fn (i, _) => Dict ([],
+         Dict_Var { var = v, index = i, length = length sort, class = nth sort i, unique = true })) sort));
     fun print_term is_pseudo_fun some_thm vars fxy (IConst const) =
           print_app is_pseudo_fun some_thm vars fxy (const, [])
       | print_term is_pseudo_fun some_thm vars fxy (IVar NONE) =
@@ -399,13 +399,13 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
           brackify BR ((str o deresolve_inst) inst ::
             (if is_pseudo_fun (Class_Instance inst) then [str "()"]
             else map_filter (print_dicts is_pseudo_fun BR) dss))
-      | print_plain_dict is_pseudo_fun fxy (Dict_Var { var, index, length }) =
+      | print_plain_dict is_pseudo_fun fxy (Dict_Var { var, index, length, ... }) =
           str (if length = 1 then "_" ^ Name.enforce_case true var
             else "_" ^ Name.enforce_case true var ^ string_of_int (index + 1))
     and print_dicts is_pseudo_fun = tuplify (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
-      (map_index (fn (i, _) =>
-        Dict ([], Dict_Var { var = v, index = i, length = length sort })) sort));
+      (map_index (fn (i, _) => Dict ([],
+         Dict_Var { var = v, index = i, length = length sort, class = nth sort i, unique = true })) sort));
     fun print_term is_pseudo_fun some_thm vars fxy (IConst const) =
           print_app is_pseudo_fun some_thm vars fxy (const, [])
       | print_term is_pseudo_fun some_thm vars fxy (IVar NONE) =
