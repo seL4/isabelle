@@ -611,21 +611,21 @@ lemma tendsto_add_zero:
 
 lemma tendsto_setsum [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::topological_comm_monoid_add"
-  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i \<longlongrightarrow> a i) F"
-  shows "((\<lambda>x. \<Sum>i\<in>S. f i x) \<longlongrightarrow> (\<Sum>i\<in>S. a i)) F"
-proof (cases "finite S")
-  assume "finite S" thus ?thesis using assms
+  assumes "\<And>i. i \<in> I \<Longrightarrow> (f i \<longlongrightarrow> a i) F"
+  shows "((\<lambda>x. \<Sum>i\<in>I. f i x) \<longlongrightarrow> (\<Sum>i\<in>I. a i)) F"
+proof (cases "finite I")
+  assume "finite I" thus ?thesis using assms
     by (induct, simp, simp add: tendsto_add)
 qed simp
 
 lemma continuous_setsum [continuous_intros]:
   fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::topological_comm_monoid_add"
-  shows "(\<And>i. i \<in> S \<Longrightarrow> continuous F (f i)) \<Longrightarrow> continuous F (\<lambda>x. \<Sum>i\<in>S. f i x)"
+  shows "(\<And>i. i \<in> I \<Longrightarrow> continuous F (f i)) \<Longrightarrow> continuous F (\<lambda>x. \<Sum>i\<in>I. f i x)"
   unfolding continuous_def by (rule tendsto_setsum)
 
 lemma continuous_on_setsum [continuous_intros]:
   fixes f :: "'a \<Rightarrow> 'b::topological_space \<Rightarrow> 'c::topological_comm_monoid_add"
-  shows "(\<And>i. i \<in> S \<Longrightarrow> continuous_on s (f i)) \<Longrightarrow> continuous_on s (\<lambda>x. \<Sum>i\<in>S. f i x)"
+  shows "(\<And>i. i \<in> I \<Longrightarrow> continuous_on S (f i)) \<Longrightarrow> continuous_on S (\<lambda>x. \<Sum>i\<in>I. f i x)"
   unfolding continuous_on_def by (auto intro: tendsto_setsum)
 
 instance nat :: topological_comm_monoid_add

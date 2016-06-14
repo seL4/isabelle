@@ -299,6 +299,20 @@ by(cases x) auto
 
 subsection \<open>Misc lemmas\<close>
 
+lemma countable_subset_image:
+   "countable B \<and> B \<subseteq> (f ` A) \<longleftrightarrow> (\<exists>A'. countable A' \<and> A' \<subseteq> A \<and> (B = f ` A'))"
+   (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply (rule_tac x="inv_into A f ` B" in exI)
+    apply (auto simp: f_inv_into_f subset_iff image_inv_into_cancel inv_into_into)
+    done
+next
+  assume ?rhs
+  then show ?lhs by force
+qed
+
 lemma infinite_countable_subset':
   assumes X: "infinite X" shows "\<exists>C\<subseteq>X. countable C \<and> infinite C"
 proof -

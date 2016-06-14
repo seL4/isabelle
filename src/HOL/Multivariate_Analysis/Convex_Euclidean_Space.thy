@@ -6196,7 +6196,7 @@ proof -
     done
 qed
 
-lemma midpoint_eq_endpoint:
+lemma midpoint_eq_endpoint [simp]:
   "midpoint a b = a \<longleftrightarrow> a = b"
   "midpoint a b = b \<longleftrightarrow> a = b"
   unfolding midpoint_eq_iff by auto
@@ -6431,6 +6431,17 @@ lemma convex_intermediate_ball:
   shows "\<lbrakk>ball a r \<subseteq> T; T \<subseteq> cball a r\<rbrakk> \<Longrightarrow> convex T"
 apply (simp add: convex_contains_open_segment, clarify)
 by (metis (no_types, hide_lams) less_le_trans mem_ball mem_cball subsetCE dist_decreases_open_segment)
+
+lemma csegment_midpoint_subset: "closed_segment (midpoint a b) b \<subseteq> closed_segment a b"
+  apply (clarsimp simp: midpoint_def in_segment)
+  apply (rule_tac x="(1 + u) / 2" in exI)
+  apply (auto simp: algebra_simps add_divide_distrib diff_divide_distrib)
+  by (metis real_sum_of_halves scaleR_left.add)
+
+lemma notin_segment_midpoint:
+  fixes a :: "'a :: euclidean_space"
+  shows "a \<noteq> b \<Longrightarrow> a \<notin> closed_segment (midpoint a b) b"
+by (auto simp: dist_midpoint dest!: dist_in_closed_segment)
 
 subsubsection\<open>More lemmas, especially for working with the underlying formula\<close>
 
@@ -10243,7 +10254,7 @@ lemma setdist_empty1 [simp]: "setdist {} t = 0"
 lemma setdist_empty2 [simp]: "setdist t {} = 0"
   by (simp add: setdist_def)
 
-lemma setdist_pos_le: "0 \<le> setdist s t"
+lemma setdist_pos_le [simp]: "0 \<le> setdist s t"
   by (auto simp: setdist_def ex_in_conv [symmetric] intro: cInf_greatest)
 
 lemma le_setdistI:
@@ -10307,10 +10318,10 @@ lemma setdist_Lipschitz: "\<bar>setdist {x} s - setdist {y} s\<bar> \<le> dist x
   apply (subst setdist_singletons [symmetric])
   by (metis abs_diff_le_iff diff_le_eq setdist_triangle setdist_sym)
 
-lemma continuous_at_setdist: "continuous (at x) (\<lambda>y. (setdist {y} s))"
+lemma continuous_at_setdist [continuous_intros]: "continuous (at x) (\<lambda>y. (setdist {y} s))"
   by (force simp: continuous_at_eps_delta dist_real_def intro: le_less_trans [OF setdist_Lipschitz])
 
-lemma continuous_on_setdist: "continuous_on t (\<lambda>y. (setdist {y} s))"
+lemma continuous_on_setdist [continuous_intros]: "continuous_on t (\<lambda>y. (setdist {y} s))"
   by (metis continuous_at_setdist continuous_at_imp_continuous_on)
 
 lemma uniformly_continuous_on_setdist: "uniformly_continuous_on t (\<lambda>y. (setdist {y} s))"
@@ -10424,34 +10435,44 @@ lemma setdist_closest_point:
   apply (auto simp: closest_point_in_set)
   done
 
-lemma setdist_eq_0_sing_1 [simp]:
-  fixes s :: "'a::euclidean_space set"
-  shows "setdist {x} s = 0 \<longleftrightarrow> s = {} \<or> x \<in> closure s"
-by (auto simp: setdist_eq_0_bounded)
+lemma setdist_eq_0_sing_1:
+    fixes s :: "'a::euclidean_space set"
+    shows "setdist {x} s = 0 \<longleftrightarrow> s = {} \<or> x \<in> closure s"
+  by (auto simp: setdist_eq_0_bounded)
 
-lemma setdist_eq_0_sing_2 [simp]:
-  fixes s :: "'a::euclidean_space set"
-  shows "setdist s {x} = 0 \<longleftrightarrow> s = {} \<or> x \<in> closure s"
-by (auto simp: setdist_eq_0_bounded)
+lemma setdist_eq_0_sing_2:
+    fixes s :: "'a::euclidean_space set"
+    shows "setdist s {x} = 0 \<longleftrightarrow> s = {} \<or> x \<in> closure s"
+  by (auto simp: setdist_eq_0_bounded)
 
 lemma setdist_neq_0_sing_1:
     fixes s :: "'a::euclidean_space set"
     shows "\<lbrakk>setdist {x} s = a; a \<noteq> 0\<rbrakk> \<Longrightarrow> s \<noteq> {} \<and> x \<notin> closure s"
-by auto
+  by (auto simp: setdist_eq_0_sing_1)
 
 lemma setdist_neq_0_sing_2:
-  fixes s :: "'a::euclidean_space set"
+    fixes s :: "'a::euclidean_space set"
     shows "\<lbrakk>setdist s {x} = a; a \<noteq> 0\<rbrakk> \<Longrightarrow> s \<noteq> {} \<and> x \<notin> closure s"
-by auto
+  by (auto simp: setdist_eq_0_sing_2)
 
 lemma setdist_sing_in_set:
-  fixes s :: "'a::euclidean_space set"
-  shows "x \<in> s \<Longrightarrow> setdist {x} s = 0"
-using closure_subset by force
+    fixes s :: "'a::euclidean_space set"
+    shows "x \<in> s \<Longrightarrow> setdist {x} s = 0"
+  using closure_subset by (auto simp: setdist_eq_0_sing_1)
 
 lemma setdist_le_sing: "x \<in> s ==> setdist s t \<le> setdist {x} t"
   using setdist_subset_left by auto
 
+lemma setdist_eq_0_closed:
+  fixes s :: "'a::euclidean_space set"
+  shows  "closed s \<Longrightarrow> (setdist {x} s = 0 \<longleftrightarrow> s = {} \<or> x \<in> s)"
+by (simp add: setdist_eq_0_sing_1)
+
+lemma setdist_eq_0_closedin:
+  fixes s :: "'a::euclidean_space set"
+  shows "\<lbrakk>closedin (subtopology euclidean u) s; x \<in> u\<rbrakk>
+         \<Longrightarrow> (setdist {x} s = 0 \<longleftrightarrow> s = {} \<or> x \<in> s)"
+  by (auto simp: closedin_limpt setdist_eq_0_sing_1 closure_def)
 
 subsection\<open>Basic lemmas about hyperplanes and halfspaces\<close>
 
@@ -10505,6 +10526,294 @@ lemma halfspace_eq_empty_ge:
    "{x. a \<bullet> x \<ge> b} = {} \<longleftrightarrow> a = 0 \<and> b > 0"
 using halfspace_eq_empty_le [of "-a" "-b"]
 by simp
+
+subsection\<open>Use set distance for an easy proof of separation properties\<close>
+
+proposition separation_closures:
+  fixes S :: "'a::euclidean_space set"
+  assumes "S \<inter> closure T = {}" "T \<inter> closure S = {}"
+  obtains U V where "U \<inter> V = {}" "open U" "open V" "S \<subseteq> U" "T \<subseteq> V"
+proof (cases "S = {} \<or> T = {}")
+  case True with that show ?thesis by auto
+next
+  case False
+  define f where "f \<equiv> \<lambda>x. setdist {x} T - setdist {x} S"
+  have contf: "\<And>x. isCont f x"
+    unfolding f_def by (intro continuous_intros continuous_at_setdist)
+  show ?thesis
+  proof (rule_tac U = "{x. f x > 0}" and V = "{x. f x < 0}" in that)
+    show "{x. 0 < f x} \<inter> {x. f x < 0} = {}"
+      by auto
+    show "open {x. 0 < f x}"
+      by (simp add: open_Collect_less contf)
+    show "open {x. f x < 0}"
+      by (simp add: open_Collect_less contf)
+    show "S \<subseteq> {x. 0 < f x}"
+      apply (clarsimp simp add: f_def setdist_sing_in_set)
+      using assms
+      by (metis False IntI empty_iff le_less setdist_eq_0_sing_2 setdist_pos_le setdist_sym)
+    show "T \<subseteq> {x. f x < 0}"
+      apply (clarsimp simp add: f_def setdist_sing_in_set)
+      using assms
+      by (metis False IntI empty_iff le_less setdist_eq_0_sing_2 setdist_pos_le setdist_sym)
+  qed
+qed
+
+lemma separation_normal:
+  fixes S :: "'a::euclidean_space set"
+  assumes "closed S" "closed T" "S \<inter> T = {}"
+  obtains U V where "open U" "open V" "S \<subseteq> U" "T \<subseteq> V" "U \<inter> V = {}"
+using separation_closures [of S T]
+by (metis assms closure_closed disjnt_def inf_commute)
+
+
+lemma separation_normal_local:
+  fixes S :: "'a::euclidean_space set"
+  assumes US: "closedin (subtopology euclidean U) S"
+      and UT: "closedin (subtopology euclidean U) T"
+      and "S \<inter> T = {}"
+  obtains S' T' where "openin (subtopology euclidean U) S'"
+                      "openin (subtopology euclidean U) T'"
+                      "S \<subseteq> S'"  "T \<subseteq> T'"  "S' \<inter> T' = {}"
+proof (cases "S = {} \<or> T = {}")
+  case True with that show ?thesis
+    apply safe
+    using UT closedin_subset apply blast
+    using US closedin_subset apply blast
+    done
+next
+  case False
+  define f where "f \<equiv> \<lambda>x. setdist {x} T - setdist {x} S"
+  have contf: "continuous_on U f"
+    unfolding f_def by (intro continuous_intros)
+  show ?thesis
+  proof (rule_tac S' = "{x\<in>U. f x > 0}" and T' = "{x\<in>U. f x < 0}" in that)
+    show "{x \<in> U. 0 < f x} \<inter> {x \<in> U. f x < 0} = {}"
+      by auto
+    have "openin (subtopology euclidean U) {x \<in> U. f x \<in> {0<..}}"
+      apply (rule continuous_openin_preimage [where T=UNIV])
+        apply (simp_all add: contf)
+      using open_greaterThan open_openin by blast
+    then show "openin (subtopology euclidean U) {x \<in> U. 0 < f x}" by simp
+  next
+    have "openin (subtopology euclidean U) {x \<in> U. f x \<in> {..<0}}"
+      apply (rule continuous_openin_preimage [where T=UNIV])
+        apply (simp_all add: contf)
+      using open_lessThan open_openin by blast
+    then show "openin (subtopology euclidean U) {x \<in> U. f x < 0}" by simp
+  next
+    show "S \<subseteq> {x \<in> U. 0 < f x}"
+      apply (clarsimp simp add: f_def setdist_sing_in_set)
+      using assms
+      by (metis False Int_insert_right closedin_imp_subset empty_not_insert insert_absorb insert_subset linorder_neqE_linordered_idom not_le setdist_eq_0_closedin setdist_pos_le)
+    show "T \<subseteq> {x \<in> U. f x < 0}"
+      apply (clarsimp simp add: f_def setdist_sing_in_set)
+      using assms
+      by (metis False closedin_subset disjoint_iff_not_equal insert_absorb insert_subset linorder_neqE_linordered_idom not_less setdist_eq_0_closedin setdist_pos_le topspace_euclidean_subtopology)
+  qed
+qed
+
+lemma separation_normal_compact:
+  fixes S :: "'a::euclidean_space set"
+  assumes "compact S" "closed T" "S \<inter> T = {}"
+  obtains U V where "open U" "compact(closure U)" "open V" "S \<subseteq> U" "T \<subseteq> V" "U \<inter> V = {}"
+proof -
+  have "closed S" "bounded S"
+    using assms by (auto simp: compact_eq_bounded_closed)
+  then obtain r where "r>0" and r: "S \<subseteq> ball 0 r"
+    by (auto dest!: bounded_subset_ballD)
+  have **: "closed (T \<union> - ball 0 r)" "S \<inter> (T \<union> - ball 0 r) = {}"
+    using assms r by blast+
+  then show ?thesis
+    apply (rule separation_normal [OF \<open>closed S\<close>])
+    apply (rule_tac U=U and V=V in that)
+    by auto (meson bounded_ball bounded_subset compl_le_swap2 disjoint_eq_subset_Compl)
+qed
+
+subsection\<open>Proper maps, including projections out of compact sets\<close>
+
+lemma finite_indexed_bound:
+  assumes A: "finite A" "\<And>x. x \<in> A \<Longrightarrow> \<exists>n::'a::linorder. P x n"
+    shows "\<exists>m. \<forall>x \<in> A. \<exists>k\<le>m. P x k"
+using A
+proof (induction A)
+  case empty then show ?case by force
+next
+  case (insert a A)
+    then obtain m n where "\<forall>x \<in> A. \<exists>k\<le>m. P x k" "P a n"
+      by force
+    then show ?case
+      apply (rule_tac x="max m n" in exI, safe)
+      using max.cobounded2 apply blast
+      by (meson le_max_iff_disj)
+qed
+
+proposition proper_map:
+  fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
+  assumes "closedin (subtopology euclidean S) K"
+      and com: "\<And>U. \<lbrakk>U \<subseteq> T; compact U\<rbrakk> \<Longrightarrow> compact {x \<in> S. f x \<in> U}"
+      and "f ` S \<subseteq> T"
+    shows "closedin (subtopology euclidean T) (f ` K)"
+proof -
+  have "K \<subseteq> S"
+    using assms closedin_imp_subset by metis
+  obtain C where "closed C" and Keq: "K = S \<inter> C"
+    using assms by (auto simp: closedin_closed)
+  have *: "y \<in> f ` K" if "y \<in> T" and y: "y islimpt f ` K" for y
+  proof -
+    obtain h where "\<forall>n. (\<exists>x\<in>K. h n = f x) \<and> h n \<noteq> y" "inj h" and hlim: "(h \<longlongrightarrow> y) sequentially"
+      using \<open>y \<in> T\<close> y by (force simp: limpt_sequential_inj)
+    then obtain X where X: "\<And>n. X n \<in> K \<and> h n = f (X n) \<and> h n \<noteq> y"
+      by metis
+    then have fX: "\<And>n. f (X n) = h n"
+      by metis
+    have "compact (C \<inter> {a \<in> S. f a \<in> insert y (range (\<lambda>i. f(X(n + i))))})" for n
+      apply (rule closed_Int_compact [OF \<open>closed C\<close>])
+      apply (rule com)
+       using X \<open>K \<subseteq> S\<close> \<open>f ` S \<subseteq> T\<close> \<open>y \<in> T\<close> apply blast
+      apply (rule compact_sequence_with_limit)
+      apply (simp add: fX add.commute [of n] LIMSEQ_ignore_initial_segment [OF hlim])
+      done
+    then have comf: "compact {a \<in> K. f a \<in> insert y (range (\<lambda>i. f(X(n + i))))}" for n
+      by (simp add: Keq Int_def conj_commute)
+    have ne: "\<Inter>\<F> \<noteq> {}"
+             if "finite \<F>"
+                and \<F>: "\<And>t. t \<in> \<F> \<Longrightarrow>
+                           (\<exists>n. t = {a \<in> K. f a \<in> insert y (range (\<lambda>i. f (X (n + i))))})"
+             for \<F>
+    proof -
+      obtain m where m: "\<And>t. t \<in> \<F> \<Longrightarrow> \<exists>k\<le>m. t = {a \<in> K. f a \<in> insert y (range (\<lambda>i. f (X (k + i))))}"
+        apply (rule exE)
+        apply (rule finite_indexed_bound [OF \<open>finite \<F>\<close> \<F>], assumption, force)
+        done
+      have "X m \<in> \<Inter>\<F>"
+        using X le_Suc_ex by (fastforce dest: m)
+      then show ?thesis by blast
+    qed
+    have "\<Inter>{{a. a \<in> K \<and> f a \<in> insert y (range (\<lambda>i. f(X(n + i))))} |n. n \<in> UNIV}
+               \<noteq> {}"
+      apply (rule compact_fip_heine_borel)
+       using comf apply force
+      using ne  apply (simp add: subset_iff del: insert_iff)
+      done
+    then have "\<exists>x. x \<in> (\<Inter>n. {a \<in> K. f a \<in> insert y (range (\<lambda>i. f (X (n + i))))})"
+      by blast
+    then show ?thesis
+      apply (simp add: image_iff fX)
+      by (metis \<open>inj h\<close> le_add1 not_less_eq_eq rangeI range_ex1_eq)
+  qed
+  with assms closedin_subset show ?thesis
+    by (force simp: closedin_limpt)
+qed
+
+
+lemma compact_continuous_image_eq:
+  fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
+  assumes f: "inj_on f S"
+  shows "continuous_on S f \<longleftrightarrow> (\<forall>T. compact T \<and> T \<subseteq> S \<longrightarrow> compact(f ` T))"
+           (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    by (metis continuous_on_subset compact_continuous_image)
+next
+  assume RHS: ?rhs
+  obtain g where gf: "\<And>x. x \<in> S \<Longrightarrow> g (f x) = x"
+    by (metis inv_into_f_f f)
+  then have *: "{x \<in> S. f x \<in> U} = g ` U" if "U \<subseteq> f ` S" for U
+    using that by fastforce
+  have gfim: "g ` f ` S \<subseteq> S" using gf by auto
+  have **: "compact {x \<in> f ` S. g x \<in> C}" if C: "C \<subseteq> S" "compact C" for C
+  proof -
+    obtain h :: "'a set \<Rightarrow> 'a" where "h C \<in> C \<and> h C \<notin> S \<or> compact (f ` C)"
+      by (force simp: C RHS)
+    moreover have "f ` C = {b \<in> f ` S. g b \<in> C}"
+      using C gf by auto
+    ultimately show "compact {b \<in> f ` S. g b \<in> C}"
+      using C by auto
+  qed
+  show ?lhs
+    using proper_map [OF _ _ gfim] **
+    by (simp add: continuous_on_closed * closedin_imp_subset)
+qed
+
+lemma proper_map_from_compact:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes contf: "continuous_on S f" and imf: "f ` S \<subseteq> T" and "compact S"
+          "closedin (subtopology euclidean T) K"
+  shows "compact {x. x \<in> S \<and> f x \<in> K}"
+by (rule closedin_compact [OF \<open>compact S\<close>] continuous_closedin_preimage_gen assms)+
+
+lemma proper_map_fst:
+  assumes "compact T" "K \<subseteq> S" "compact K"
+    shows "compact {z \<in> S \<times> T. fst z \<in> K}"
+proof -
+  have "{z \<in> S \<times> T. fst z \<in> K} = K \<times> T"
+    using assms by auto
+  then show ?thesis by (simp add: assms compact_Times)
+qed
+
+lemma closed_map_fst:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "compact T" "closedin (subtopology euclidean (S \<times> T)) c"
+   shows "closedin (subtopology euclidean S) (fst ` c)"
+proof -
+  have *: "fst ` (S \<times> T) \<subseteq> S"
+    by auto
+  show ?thesis
+    using proper_map [OF _ _ *] by (simp add: proper_map_fst assms)
+qed
+
+lemma proper_map_snd:
+  assumes "compact S" "K \<subseteq> T" "compact K"
+    shows "compact {z \<in> S \<times> T. snd z \<in> K}"
+proof -
+  have "{z \<in> S \<times> T. snd z \<in> K} = S \<times> K"
+    using assms by auto
+  then show ?thesis by (simp add: assms compact_Times)
+qed
+
+lemma closed_map_snd:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "compact S" "closedin (subtopology euclidean (S \<times> T)) c"
+   shows "closedin (subtopology euclidean T) (snd ` c)"
+proof -
+  have *: "snd ` (S \<times> T) \<subseteq> T"
+    by auto
+  show ?thesis
+    using proper_map [OF _ _ *] by (simp add: proper_map_snd assms)
+qed
+
+lemma closedin_compact_projection:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "compact S" and clo: "closedin (subtopology euclidean (S \<times> T)) U"
+    shows "closedin (subtopology euclidean T) {y. \<exists>x. x \<in> S \<and> (x, y) \<in> U}"
+proof -
+  have "U \<subseteq> S \<times> T"
+    by (metis clo closedin_imp_subset)
+  then have "{y. \<exists>x. x \<in> S \<and> (x, y) \<in> U} = snd ` U"
+    by force
+  moreover have "closedin (subtopology euclidean T) (snd ` U)"
+    by (rule closed_map_snd [OF assms])
+  ultimately show ?thesis
+    by simp
+qed
+
+
+lemma closed_compact_projection:
+  fixes S :: "'a::euclidean_space set"
+    and T :: "('a * 'b::euclidean_space) set"
+  assumes "compact S" and clo: "closed T"
+    shows "closed {y. \<exists>x. x \<in> S \<and> (x, y) \<in> T}"
+proof -
+  have *: "{y. \<exists>x. x \<in> S \<and> Pair x y \<in> T} =
+        {y. \<exists>x. x \<in> S \<and> Pair x y \<in> ((S \<times> UNIV) \<inter> T)}"
+    by auto
+  show ?thesis
+    apply (subst *)
+    apply (rule closedin_closed_trans [OF _ closed_UNIV])
+    apply (rule closedin_compact_projection [OF \<open>compact S\<close>])
+    by (simp add: clo closedin_closed_Int)
+qed
 
 subsubsection\<open>Representing affine hull as a finite intersection of hyperplanes\<close>
 
@@ -12081,5 +12390,152 @@ next
   ultimately show ?thesis
     by (rule that)
 qed
+
+subsection\<open>Several Variants of Paracompactness\<close>
+
+proposition paracompact:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "S \<subseteq> \<Union>\<C>" and opC: "\<And>T. T \<in> \<C> \<Longrightarrow> open T"
+  obtains \<C>' where "S \<subseteq> \<Union> \<C>'"
+               and "\<And>U. U \<in> \<C>' \<Longrightarrow> open U \<and> (\<exists>T. T \<in> \<C> \<and> U \<subseteq> T)"
+               and "\<And>x. x \<in> S
+                       \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and>
+                               finite {U. U \<in> \<C>' \<and> (U \<inter> V \<noteq> {})}"
+proof (cases "S = {}")
+  case True with that show ?thesis by blast
+next
+  case False
+  have "\<exists>T U. x \<in> U \<and> open U \<and> closure U \<subseteq> T \<and> T \<in> \<C>" if "x \<in> S" for x
+  proof -
+    obtain T where "x \<in> T" "T \<in> \<C>" "open T"
+      using assms \<open>x \<in> S\<close> by blast
+    then obtain e where "e > 0" "cball x e \<subseteq> T"
+      by (force simp: open_contains_cball)
+    then show ?thesis
+      apply (rule_tac x = T in exI)
+      apply (rule_tac x = "ball x e" in exI)
+      using  \<open>T \<in> \<C>\<close>
+      apply (simp add: closure_minimal)
+      done
+  qed
+  then obtain F G where Gin: "x \<in> G x" and oG: "open (G x)"
+                    and clos: "closure (G x) \<subseteq> F x" and Fin: "F x \<in> \<C>"
+         if "x \<in> S" for x
+    by metis
+  then obtain \<F> where "\<F> \<subseteq> G ` S" "countable \<F>" "\<Union>\<F> = UNION S G"
+    using Lindelof [of "G ` S"] by (metis image_iff)
+  then obtain K where K: "K \<subseteq> S" "countable K" and eq: "UNION K G = UNION S G"
+    by (metis countable_subset_image)
+  with False Gin have "K \<noteq> {}" by force
+  then obtain a :: "nat \<Rightarrow> 'a" where "range a = K"
+    by (metis range_from_nat_into \<open>countable K\<close>)
+  then have odif: "\<And>n. open (F (a n) - \<Union>{closure (G (a m)) |m. m < n})"
+    using \<open>K \<subseteq> S\<close> Fin opC by (fastforce simp add:)
+  let ?C = "range (\<lambda>n. F(a n) - \<Union>{closure(G(a m)) |m. m < n})"
+  have enum_S: "\<exists>n. x \<in> F(a n) \<and> x \<in> G(a n)" if "x \<in> S" for x
+  proof -
+    have "\<exists>y \<in> K. x \<in> G y" using eq that Gin by fastforce
+    then show ?thesis
+      using clos K \<open>range a = K\<close> closure_subset by blast
+  qed
+  have 1: "S \<subseteq> Union ?C"
+  proof
+    fix x assume "x \<in> S"
+    define n where "n \<equiv> LEAST n. x \<in> F(a n)"
+    have n: "x \<in> F(a n)"
+      using enum_S [OF \<open>x \<in> S\<close>] by (force simp: n_def intro: LeastI)
+    have notn: "x \<notin> F(a m)" if "m < n" for m
+      using that not_less_Least by (force simp: n_def)
+    then have "x \<notin> \<Union>{closure (G (a m)) |m. m < n}"
+      using n \<open>K \<subseteq> S\<close> \<open>range a = K\<close> clos notn by fastforce
+    with n show "x \<in> Union ?C"
+      by blast
+  qed
+  have 3: "\<exists>V. open V \<and> x \<in> V \<and> finite {U. U \<in> ?C \<and> (U \<inter> V \<noteq> {})}" if "x \<in> S" for x
+  proof -
+    obtain n where n: "x \<in> F(a n)" "x \<in> G(a n)"
+      using \<open>x \<in> S\<close> enum_S by auto
+    have "{U \<in> ?C. U \<inter> G (a n) \<noteq> {}} \<subseteq> (\<lambda>n. F(a n) - \<Union>{closure(G(a m)) |m. m < n}) ` atMost n"
+    proof clarsimp
+      fix k  assume "(F (a k) - \<Union>{closure (G (a m)) |m. m < k}) \<inter> G (a n) \<noteq> {}"
+      then have "k \<le> n"
+        by auto (metis closure_subset not_le subsetCE)
+      then show "F (a k) - \<Union>{closure (G (a m)) |m. m < k}
+                 \<in> (\<lambda>n. F (a n) - \<Union>{closure (G (a m)) |m. m < n}) ` {..n}"
+        by force
+    qed
+    moreover have "finite ((\<lambda>n. F(a n) - \<Union>{closure(G(a m)) |m. m < n}) ` atMost n)"
+      by force
+    ultimately have *: "finite {U \<in> ?C. U \<inter> G (a n) \<noteq> {}}"
+      using finite_subset by blast
+    show ?thesis
+      apply (rule_tac x="G (a n)" in exI)
+      apply (intro conjI oG n *)
+      using \<open>K \<subseteq> S\<close> \<open>range a = K\<close> apply blast
+      done
+  qed
+  show ?thesis
+    apply (rule that [OF 1 _ 3])
+    using Fin \<open>K \<subseteq> S\<close> \<open>range a = K\<close>  apply (auto simp: odif)
+    done
+qed
+
+
+corollary paracompact_closedin:
+  fixes S :: "'a :: euclidean_space set"
+  assumes cin: "closedin (subtopology euclidean U) S"
+      and oin: "\<And>T. T \<in> \<C> \<Longrightarrow> openin (subtopology euclidean U) T"
+      and "S \<subseteq> \<Union>\<C>"
+  obtains \<C>' where "S \<subseteq> \<Union> \<C>'"
+               and "\<And>V. V \<in> \<C>' \<Longrightarrow> openin (subtopology euclidean U) V \<and> (\<exists>T. T \<in> \<C> \<and> V \<subseteq> T)"
+               and "\<And>x. x \<in> U
+                       \<Longrightarrow> \<exists>V. openin (subtopology euclidean U) V \<and> x \<in> V \<and>
+                               finite {X. X \<in> \<C>' \<and> (X \<inter> V \<noteq> {})}"
+proof -
+  have "\<exists>Z. open Z \<and> (T = U \<inter> Z)" if "T \<in> \<C>" for T
+    using oin [OF that] by (auto simp: openin_open)
+  then obtain F where opF: "open (F T)" and intF: "U \<inter> F T = T" if "T \<in> \<C>" for T
+    by metis
+  obtain K where K: "closed K" "U \<inter> K = S"
+    using cin by (auto simp: closedin_closed)
+  have 1: "U \<subseteq> \<Union>insert (- K) (F ` \<C>)"
+    by clarsimp (metis Int_iff Union_iff \<open>U \<inter> K = S\<close> \<open>S \<subseteq> \<Union>\<C>\<close> subsetD intF)
+  have 2: "\<And>T. T \<in> insert (- K) (F ` \<C>) \<Longrightarrow> open T"
+    using \<open>closed K\<close> by (auto simp: opF)
+  obtain \<D> where "U \<subseteq> \<Union>\<D>"
+             and D1: "\<And>U. U \<in> \<D> \<Longrightarrow> open U \<and> (\<exists>T. T \<in> insert (- K) (F ` \<C>) \<and> U \<subseteq> T)"
+             and D2: "\<And>x. x \<in> U \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and> finite {U \<in> \<D>. U \<inter> V \<noteq> {}}"
+    using paracompact [OF 1 2] by auto
+  let ?C = "{U \<inter> V |V. V \<in> \<D> \<and> (V \<inter> K \<noteq> {})}"
+  show ?thesis
+  proof (rule_tac \<C>' = "{U \<inter> V |V. V \<in> \<D> \<and> (V \<inter> K \<noteq> {})}" in that)
+    show "S \<subseteq> \<Union>?C"
+      using \<open>U \<inter> K = S\<close> \<open>U \<subseteq> \<Union>\<D>\<close> K by (blast dest!: subsetD)
+    show "\<And>V. V \<in> ?C \<Longrightarrow> openin (subtopology euclidean U) V \<and> (\<exists>T. T \<in> \<C> \<and> V \<subseteq> T)"
+      using D1 intF by fastforce
+    have *: "{X. (\<exists>V. X = U \<inter> V \<and> V \<in> \<D> \<and> V \<inter> K \<noteq> {}) \<and> X \<inter> (U \<inter> V) \<noteq> {}} \<subseteq>
+             (\<lambda>x. U \<inter> x) ` {U \<in> \<D>. U \<inter> V \<noteq> {}}" for V
+      by blast
+    show "\<exists>V. openin (subtopology euclidean U) V \<and> x \<in> V \<and> finite {X \<in> ?C. X \<inter> V \<noteq> {}}"
+         if "x \<in> U" for x
+      using D2 [OF that]
+      apply clarify
+      apply (rule_tac x="U \<inter> V" in exI)
+      apply (auto intro: that finite_subset [OF *])
+      done
+    qed
+qed
+
+corollary paracompact_closed:
+  fixes S :: "'a :: euclidean_space set"
+  assumes "closed S"
+      and opC: "\<And>T. T \<in> \<C> \<Longrightarrow> open T"
+      and "S \<subseteq> \<Union>\<C>"
+  obtains \<C>' where "S \<subseteq> \<Union>\<C>'"
+               and "\<And>U. U \<in> \<C>' \<Longrightarrow> open U \<and> (\<exists>T. T \<in> \<C> \<and> U \<subseteq> T)"
+               and "\<And>x. \<exists>V. open V \<and> x \<in> V \<and>
+                               finite {U. U \<in> \<C>' \<and> (U \<inter> V \<noteq> {})}"
+using paracompact_closedin [of UNIV S \<C>] assms
+by (auto simp: open_openin [symmetric] closed_closedin [symmetric])
 
 end

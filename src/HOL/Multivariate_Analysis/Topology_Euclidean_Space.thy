@@ -1906,12 +1906,12 @@ qed
 lemma islimpt_in_closure: "(x islimpt S) = (x:closure(S-{x}))"
   unfolding closure_def using islimpt_punctured by blast
 
-lemma connected_imp_connected_closure: "connected s \<Longrightarrow> connected (closure s)"
+lemma connected_imp_connected_closure: "connected S \<Longrightarrow> connected (closure S)"
     by (rule connectedI) (meson closure_subset open_Int open_Int_closure_eq_empty subset_trans connectedD)
 
 lemma limpt_of_limpts:
       fixes x :: "'a::metric_space"
-      shows "x islimpt {y. y islimpt s} \<Longrightarrow> x islimpt s"
+      shows "x islimpt {y. y islimpt S} \<Longrightarrow> x islimpt S"
   apply (clarsimp simp add: islimpt_approachable)
   apply (drule_tac x="e/2" in spec)
   apply (auto simp: simp del: less_divide_eq_numeral1)
@@ -1920,26 +1920,36 @@ lemma limpt_of_limpts:
   apply (erule rev_bexI)
   by (metis dist_commute dist_triangle_half_r less_trans less_irrefl)
 
-lemma closed_limpts:  "closed {x::'a::metric_space. x islimpt s}"
+lemma closed_limpts:  "closed {x::'a::metric_space. x islimpt S}"
   using closed_limpt limpt_of_limpts by blast
 
 lemma limpt_of_closure:
       fixes x :: "'a::metric_space"
-      shows "x islimpt closure s \<longleftrightarrow> x islimpt s"
+      shows "x islimpt closure S \<longleftrightarrow> x islimpt S"
   by (auto simp: closure_def islimpt_Un dest: limpt_of_limpts)
 
 lemma closedin_limpt:
-   "closedin (subtopology euclidean t) s \<longleftrightarrow> s \<subseteq> t \<and> (\<forall>x. x islimpt s \<and> x \<in> t \<longrightarrow> x \<in> s)"
+   "closedin (subtopology euclidean T) S \<longleftrightarrow> S \<subseteq> T \<and> (\<forall>x. x islimpt S \<and> x \<in> T \<longrightarrow> x \<in> S)"
   apply (simp add: closedin_closed, safe)
   apply (simp add: closed_limpt islimpt_subset)
-  apply (rule_tac x="closure s" in exI)
+  apply (rule_tac x="closure S" in exI)
   apply simp
   apply (force simp: closure_def)
   done
 
 lemma closedin_closed_eq:
-    "closed s \<Longrightarrow> (closedin (subtopology euclidean s) t \<longleftrightarrow> closed t \<and> t \<subseteq> s)"
+    "closed S \<Longrightarrow> (closedin (subtopology euclidean S) T \<longleftrightarrow> closed T \<and> T \<subseteq> S)"
   by (meson closedin_limpt closed_subset closedin_closed_trans)
+
+lemma closedin_subset_trans:
+   "\<lbrakk>closedin (subtopology euclidean U) S; S \<subseteq> T; T \<subseteq> U\<rbrakk>
+    \<Longrightarrow> closedin (subtopology euclidean T) S"
+by (meson closedin_limpt subset_iff)
+
+lemma closedin_Times:
+   "\<lbrakk>closedin (subtopology euclidean S) S'; closedin (subtopology euclidean T) T'\<rbrakk>
+    \<Longrightarrow> closedin (subtopology euclidean (S \<times> T)) (S' \<times> T')"
+unfolding closedin_closed using closed_Times by blast
 
 lemma bdd_below_closure:
   fixes A :: "real set"
@@ -2438,14 +2448,13 @@ lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f
   by (rule topological_tendstoI, auto elim: eventually_mono)
 
 lemma Lim_transform_within_set:
-  fixes a l :: "'a::real_normed_vector"
-  shows "\<lbrakk>(f \<longlongrightarrow> l) (at a within s); eventually (\<lambda>x. x \<in> s \<longleftrightarrow> x \<in> t) (at a)\<rbrakk>
-         \<Longrightarrow> (f \<longlongrightarrow> l) (at a within t)"
+  fixes a :: "'a::metric_space" and l :: "'b::metric_space"
+  shows "\<lbrakk>(f \<longlongrightarrow> l) (at a within S); eventually (\<lambda>x. x \<in> S \<longleftrightarrow> x \<in> T) (at a)\<rbrakk>
+         \<Longrightarrow> (f \<longlongrightarrow> l) (at a within T)"
 apply (clarsimp simp: eventually_at Lim_within)
 apply (drule_tac x=e in spec, clarify)
 apply (rename_tac k)
-apply (rule_tac x="min d k" in exI)
-apply (simp add:)
+apply (rule_tac x="min d k" in exI, simp)
 done
 
 lemma Lim_transform_within_set_eq:
@@ -2453,6 +2462,31 @@ lemma Lim_transform_within_set_eq:
   shows "eventually (\<lambda>x. x \<in> s \<longleftrightarrow> x \<in> t) (at a)
          \<Longrightarrow> ((f \<longlongrightarrow> l) (at a within s) \<longleftrightarrow> (f \<longlongrightarrow> l) (at a within t))"
 by (force intro: Lim_transform_within_set elim: eventually_mono)
+
+lemma Lim_transform_within_openin:
+  fixes a :: "'a::metric_space"
+  assumes f: "(f \<longlongrightarrow> l) (at a within T)"
+      and "openin (subtopology euclidean T) S" "a \<in> S"
+      and eq: "\<And>x. \<lbrakk>x \<in> S; x \<noteq> a\<rbrakk> \<Longrightarrow> f x = g x"
+  shows "(g \<longlongrightarrow> l) (at a within T)"
+proof -
+  obtain \<epsilon> where "0 < \<epsilon>" and \<epsilon>: "ball a \<epsilon> \<inter> T \<subseteq> S"
+    using assms by (force simp: openin_contains_ball)
+  then have "a \<in> ball a \<epsilon>"
+    by force
+  show ?thesis
+    apply (rule Lim_transform_within [OF f \<open>0 < \<epsilon>\<close> eq])
+    using \<epsilon> apply (auto simp: dist_commute subset_iff)
+    done
+qed
+
+lemma continuous_transform_within_openin:
+  fixes a :: "'a::metric_space"
+  assumes "continuous (at a within T) f"
+      and "openin (subtopology euclidean T) S" "a \<in> S"
+      and eq: "\<And>x. x \<in> S \<Longrightarrow> f x = g x"
+  shows "continuous (at a within T) g"
+using assms by (simp add: Lim_transform_within_openin continuous_within)
 
 text\<open>The expected monotonicity property.\<close>
 
@@ -2544,6 +2578,72 @@ qed
 
 text\<open>Another limit point characterization.\<close>
 
+lemma limpt_sequential_inj:
+  fixes x :: "'a::metric_space"
+  shows "x islimpt S \<longleftrightarrow>
+         (\<exists>f. (\<forall>n::nat. f n \<in> S - {x}) \<and> inj f \<and> (f \<longlongrightarrow> x) sequentially)"
+         (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then have "\<forall>e>0. \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < e"
+    by (force simp: islimpt_approachable)
+  then obtain y where y: "\<And>e. e>0 \<Longrightarrow> y e \<in> S \<and> y e \<noteq> x \<and> dist (y e) x < e"
+    by metis
+  define f where "f \<equiv> rec_nat (y 1) (\<lambda>n fn. y (min (inverse(2 ^ (Suc n))) (dist fn x)))"
+  have [simp]: "f 0 = y 1"
+               "f(Suc n) = y (min (inverse(2 ^ (Suc n))) (dist (f n) x))" for n
+    by (simp_all add: f_def)
+  have f: "f n \<in> S \<and> (f n \<noteq> x) \<and> dist (f n) x < inverse(2 ^ n)" for n
+  proof (induction n)
+    case 0 show ?case
+      by (simp add: y)
+  next
+    case (Suc n) then show ?case
+      apply (auto simp: y)
+      by (metis half_gt_zero_iff inverse_positive_iff_positive less_divide_eq_numeral1(1) min_less_iff_conj y zero_less_dist_iff zero_less_numeral zero_less_power)
+  qed
+  show ?rhs
+  proof (rule_tac x=f in exI, intro conjI allI)
+    show "\<And>n. f n \<in> S - {x}"
+      using f by blast
+    have "dist (f n) x < dist (f m) x" if "m < n" for m n
+    using that
+    proof (induction n)
+      case 0 then show ?case by simp
+    next
+      case (Suc n)
+      then consider "m < n" | "m = n" using less_Suc_eq by blast
+      then show ?case
+      proof cases
+        assume "m < n"
+        have "dist (f(Suc n)) x = dist (y (min (inverse(2 ^ (Suc n))) (dist (f n) x))) x"
+          by simp
+        also have "... < dist (f n) x"
+          by (metis dist_pos_lt f min.strict_order_iff min_less_iff_conj y)
+        also have "... < dist (f m) x"
+          using Suc.IH \<open>m < n\<close> by blast
+        finally show ?thesis .
+      next
+        assume "m = n" then show ?case
+          by simp (metis dist_pos_lt f half_gt_zero_iff inverse_positive_iff_positive min_less_iff_conj y zero_less_numeral zero_less_power)
+      qed
+    qed
+    then show "inj f"
+      by (metis less_irrefl linorder_injI)
+    show "f \<longlonglongrightarrow> x"
+      apply (rule tendstoI)
+      apply (rule_tac c="nat (ceiling(1/e))" in eventually_sequentiallyI)
+      apply (rule less_trans [OF f [THEN conjunct2, THEN conjunct2]])
+      apply (simp add: field_simps)
+      by (meson le_less_trans mult_less_cancel_left not_le of_nat_less_two_power)
+  qed
+next
+  assume ?rhs
+  then show ?lhs
+    by (fastforce simp add: islimpt_approachable lim_sequentially)
+qed
+
+(*could prove directly from islimpt_sequential_inj, but only for metric spaces*)
 lemma islimpt_sequential:
   fixes x :: "'a::first_countable_topology"
   shows "x islimpt S \<longleftrightarrow> (\<exists>f. (\<forall>n::nat. f n \<in> S - {x}) \<and> (f \<longlongrightarrow> x) sequentially)"
@@ -5822,6 +5922,36 @@ lemma continuous_on_open:
   unfolding continuous_on_open_invariant openin_open Int_def vimage_def Int_commute
   by (simp add: imp_ex imageI conj_commute eq_commute cong: conj_cong)
 
+lemma continuous_on_open_gen:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  assumes "f ` S \<subseteq> T"
+    shows "continuous_on S f \<longleftrightarrow>
+             (\<forall>U. openin (subtopology euclidean T) U
+                  \<longrightarrow> openin (subtopology euclidean S) {x \<in> S. f x \<in> U})"
+     (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply (auto simp: openin_euclidean_subtopology_iff continuous_on_iff)
+    by (metis assms image_subset_iff)
+next
+  have ope: "openin (subtopology euclidean T) (ball y e \<inter> T)" for y e
+    by (simp add: Int_commute openin_open_Int)
+  assume ?rhs
+  then show ?lhs
+    apply (clarsimp simp add: continuous_on_iff)
+    apply (drule_tac x = "ball (f x) e \<inter> T" in spec)
+    apply (clarsimp simp add: ope openin_euclidean_subtopology_iff [of S])
+    by (metis (no_types, hide_lams) assms dist_commute dist_self image_subset_iff)
+qed
+
+lemma continuous_openin_preimage:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  shows
+   "\<lbrakk>continuous_on S f; f ` S \<subseteq> T; openin (subtopology euclidean T) U\<rbrakk>
+        \<Longrightarrow> openin (subtopology euclidean S) {x \<in> S. f x \<in> U}"
+by (simp add: continuous_on_open_gen)
+
 text \<open>Similarly in terms of closed sets.\<close>
 
 lemma continuous_on_closed:
@@ -5831,9 +5961,37 @@ lemma continuous_on_closed:
   unfolding continuous_on_closed_invariant closedin_closed Int_def vimage_def Int_commute
   by (simp add: imp_ex imageI conj_commute eq_commute cong: conj_cong)
 
+lemma continuous_on_closed_gen:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  assumes "f ` S \<subseteq> T"
+    shows "continuous_on S f \<longleftrightarrow>
+             (\<forall>U. closedin (subtopology euclidean T) U
+                  \<longrightarrow> closedin (subtopology euclidean S) {x \<in> S. f x \<in> U})"
+proof -
+  have *: "U \<subseteq> T \<Longrightarrow> {x \<in> S. f x \<in> T \<and> f x \<notin> U} = S - {x \<in> S. f x \<in> U}" for U
+    using assms by blast
+  show ?thesis
+    apply (simp add: continuous_on_open_gen [OF assms], safe)
+    apply (drule_tac [!] x="T-U" in spec)
+    apply (force simp: closedin_def *)
+    apply (force simp: openin_closedin_eq *)
+    done
+qed
+
+lemma continuous_closedin_preimage_gen:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
+  assumes "continuous_on S f" "f ` S \<subseteq> T" "closedin (subtopology euclidean T) U"
+    shows "closedin (subtopology euclidean S) {x \<in> S. f x \<in> U}"
+using assms continuous_on_closed_gen by blast
+
+lemma continuous_on_imp_closedin:
+  assumes "continuous_on S f" "closedin (subtopology euclidean (f ` S)) T"
+    shows "closedin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> T}"
+using assms continuous_on_closed by blast
+
 subsection \<open>Half-global and completely global cases.\<close>
 
-lemma continuous_openin_preimage:
+lemma continuous_openin_preimage_gen:
   assumes "continuous_on s f"  "open t"
   shows "openin (subtopology euclidean s) {x \<in> s. f x \<in> t}"
 proof -
@@ -5867,7 +6025,7 @@ lemma continuous_open_preimage:
   shows "open {x \<in> s. f x \<in> t}"
 proof-
   obtain T where T: "open T" "{x \<in> s. f x \<in> t} = s \<inter> T"
-    using continuous_openin_preimage[OF assms(1,3)] unfolding openin_open by auto
+    using continuous_openin_preimage_gen[OF assms(1,3)] unfolding openin_open by auto
   then show ?thesis
     using open_Int[of s T, OF assms(2)] by auto
 qed
@@ -6753,7 +6911,7 @@ proof (cases, safe)
   proof safe
     fix y
     assume "y \<in> s"
-    from continuous_openin_preimage[OF f open_ball]
+    from continuous_openin_preimage_gen[OF f open_ball]
     obtain T where "open T" and T: "{x \<in> s. f x \<in> ball (f y) (e/2)} = T \<inter> s"
       unfolding openin_subtopology open_openin by metis
     then obtain d where "ball y d \<subseteq> T" "0 < d"
@@ -9257,12 +9415,12 @@ lemma finite_ball_avoid:
   assumes "open S" "finite X" "p \<in> S"
   shows "\<exists>e>0. \<forall>w\<in>ball p e. w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)"
 proof -
-  obtain e1 where "0 < e1" and e1_b:"ball p e1 \<subseteq> S" 
+  obtain e1 where "0 < e1" and e1_b:"ball p e1 \<subseteq> S"
     using open_contains_ball_eq[OF \<open>open S\<close>] assms by auto
-  obtain e2 where "0 < e2" and "\<forall>x\<in>X. x \<noteq> p \<longrightarrow> e2 \<le> dist p x" 
+  obtain e2 where "0 < e2" and "\<forall>x\<in>X. x \<noteq> p \<longrightarrow> e2 \<le> dist p x"
     using finite_set_avoid[OF \<open>finite X\<close>,of p] by auto
   hence "\<forall>w\<in>ball p (min e1 e2). w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)" using e1_b by auto
-  thus "\<exists>e>0. \<forall>w\<in>ball p e. w \<in> S \<and> (w \<noteq> p \<longrightarrow> w \<notin> X)" using \<open>e2>0\<close> \<open>e1>0\<close> 
+  thus "\<exists>e>0. \<forall>w\<in>ball p e. w \<in> S \<and> (w \<noteq> p \<longrightarrow> w \<notin> X)" using \<open>e2>0\<close> \<open>e1>0\<close>
     apply (rule_tac x="min e1 e2" in exI)
     by auto
 qed
@@ -9272,13 +9430,187 @@ lemma finite_cball_avoid:
   assumes "open S" "finite X" "p \<in> S"
   shows "\<exists>e>0. \<forall>w\<in>cball p e. w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)"
 proof -
-  obtain e1 where "e1>0" and e1: "\<forall>w\<in>ball p e1. w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)" 
+  obtain e1 where "e1>0" and e1: "\<forall>w\<in>ball p e1. w\<in>S \<and> (w\<noteq>p \<longrightarrow> w\<notin>X)"
     using finite_ball_avoid[OF assms] by auto
   define e2 where "e2 \<equiv> e1/2"
   have "e2>0" and "e2 < e1" unfolding e2_def using \<open>e1>0\<close> by auto
   then have "cball p e2 \<subseteq> ball p e1" by (subst cball_subset_ball_iff,auto)
   then show "\<exists>e>0. \<forall>w\<in>cball p e. w \<in> S \<and> (w \<noteq> p \<longrightarrow> w \<notin> X)" using \<open>e2>0\<close> e1 by auto
 qed
+
+subsection\<open>Various separability-type properties\<close>
+
+lemma univ_second_countable:
+  obtains \<B> :: "'a::euclidean_space set set"
+  where "countable \<B>" "\<And>C. C \<in> \<B> \<Longrightarrow> open C"
+       "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<B> \<and> S = \<Union>U"
+by (metis ex_countable_basis topological_basis_def)
+
+lemma univ_second_countable_sequence:
+  obtains B :: "nat \<Rightarrow> 'a::euclidean_space set"
+    where "inj B" "\<And>n. open(B n)" "\<And>S. open S \<Longrightarrow> \<exists>k. S = \<Union>{B n |n. n \<in> k}"
+proof -
+  obtain \<B> :: "'a set set"
+  where "countable \<B>"
+    and op: "\<And>C. C \<in> \<B> \<Longrightarrow> open C"
+    and Un: "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<B> \<and> S = \<Union>U"
+    using univ_second_countable by blast
+  have *: "infinite (range (\<lambda>n. ball (0::'a) (inverse(Suc n))))"
+    apply (rule Infinite_Set.range_inj_infinite)
+    apply (simp add: inj_on_def ball_eq_ball_iff)
+    done
+  have "infinite \<B>"
+  proof
+    assume "finite \<B>"
+    then have "finite (Union ` (Pow \<B>))"
+      by simp
+    then have "finite (range (\<lambda>n. ball (0::'a) (inverse(Suc n))))"
+      apply (rule rev_finite_subset)
+      by (metis (no_types, lifting) PowI image_eqI image_subset_iff Un [OF open_ball])
+    with * show False by simp
+  qed
+  obtain f :: "nat \<Rightarrow> 'a set" where "\<B> = range f" "inj f"
+    by (blast intro: countable_as_injective_image [OF \<open>countable \<B>\<close> \<open>infinite \<B>\<close>])
+  have *: "\<exists>k. S = \<Union>{f n |n. n \<in> k}" if "open S" for S
+    using Un [OF that]
+    apply clarify
+    apply (rule_tac x="f-`U" in exI)
+    using \<open>inj f\<close> \<open>\<B> = range f\<close> apply force
+    done
+  show ?thesis
+    apply (rule that [OF \<open>inj f\<close> _ *])
+    apply (auto simp: \<open>\<B> = range f\<close> op)
+    done
+qed
+
+proposition Lindelof:
+  fixes \<F> :: "'a::euclidean_space set set"
+  assumes \<F>: "\<And>S. S \<in> \<F> \<Longrightarrow> open S"
+  obtains \<F>' where "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
+proof -
+  obtain \<B> :: "'a set set"
+    where "countable \<B>" "\<And>C. C \<in> \<B> \<Longrightarrow> open C"
+      and \<B>: "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<B> \<and> S = \<Union>U"
+    using univ_second_countable by blast
+  define \<D> where "\<D> \<equiv> {S. S \<in> \<B> \<and> (\<exists>U. U \<in> \<F> \<and> S \<subseteq> U)}"
+  have "countable \<D>"
+    apply (rule countable_subset [OF _ \<open>countable \<B>\<close>])
+    apply (force simp: \<D>_def)
+    done
+  have "\<And>S. \<exists>U. S \<in> \<D> \<longrightarrow> U \<in> \<F> \<and> S \<subseteq> U"
+    by (simp add: \<D>_def)
+  then obtain G where G: "\<And>S. S \<in> \<D> \<longrightarrow> G S \<in> \<F> \<and> S \<subseteq> G S"
+    by metis
+  have "\<Union>\<F> \<subseteq> \<Union>\<D>"
+    unfolding \<D>_def by (blast dest: \<F> \<B>)
+  moreover have "\<Union>\<D> \<subseteq> \<Union>\<F>"
+    using \<D>_def by blast
+  ultimately have eq1: "\<Union>\<F> = \<Union>\<D>" ..
+  have eq2: "\<Union>\<D> = UNION \<D> G"
+    using G eq1 by auto
+  show ?thesis
+    apply (rule_tac \<F>' = "G ` \<D>" in that)
+    using G \<open>countable \<D>\<close>  apply (auto simp: eq1 eq2)
+    done
+qed
+
+lemma Lindelof_openin:
+  fixes \<F> :: "'a::euclidean_space set set"
+  assumes "\<And>S. S \<in> \<F> \<Longrightarrow> openin (subtopology euclidean U) S"
+  obtains \<F>' where "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
+proof -
+  have "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>T. open T \<and> S = U \<inter> T"
+    using assms by (simp add: openin_open)
+  then obtain tf where tf: "\<And>S. S \<in> \<F> \<Longrightarrow> open (tf S) \<and> (S = U \<inter> tf S)"
+    by metis
+  have [simp]: "\<And>\<F>'. \<F>' \<subseteq> \<F> \<Longrightarrow> \<Union>\<F>' = U \<inter> \<Union>(tf ` \<F>')"
+    using tf by fastforce
+  obtain \<G> where "countable \<G> \<and> \<G> \<subseteq> tf ` \<F>" "\<Union>\<G> = UNION \<F> tf"
+    using tf by (force intro: Lindelof [of "tf ` \<F>"])
+  then obtain \<F>' where \<F>': "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
+    by (clarsimp simp add: countable_subset_image)
+  then show ?thesis ..
+qed
+
+lemma countable_disjoint_open_subsets:
+  fixes \<F> :: "'a::euclidean_space set set"
+  assumes "\<And>S. S \<in> \<F> \<Longrightarrow> open S" and pw: "pairwise disjnt \<F>"
+    shows "countable \<F>"
+proof -
+  obtain \<F>' where "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
+    by (meson assms Lindelof)
+  with pw have "\<F> \<subseteq> insert {} \<F>'"
+    by (fastforce simp add: pairwise_def disjnt_iff)
+  then show ?thesis
+    by (simp add: \<open>countable \<F>'\<close> countable_subset)
+qed
+
+lemma closedin_compact:
+   "\<lbrakk>compact S; closedin (subtopology euclidean S) T\<rbrakk> \<Longrightarrow> compact T"
+by (metis closedin_closed compact_Int_closed)
+
+lemma closedin_compact_eq:
+  fixes S :: "'a::t2_space set"
+  shows
+   "compact S
+         \<Longrightarrow> (closedin (subtopology euclidean S) T \<longleftrightarrow>
+              compact T \<and> T \<subseteq> S)"
+by (metis closedin_imp_subset closedin_compact closed_subset compact_imp_closed)
+
+subsection\<open> Finite intersection property\<close>
+
+text\<open>Also developed in HOL's toplogical spaces theory, but the Heine-Borel type class isn't available there.\<close>
+
+lemma closed_imp_fip:
+  fixes S :: "'a::heine_borel set"
+  assumes "closed S"
+      and T: "T \<in> \<F>" "bounded T"
+      and clof: "\<And>T. T \<in> \<F> \<Longrightarrow> closed T"
+      and none: "\<And>\<F>'. \<lbrakk>finite \<F>'; \<F>' \<subseteq> \<F>\<rbrakk> \<Longrightarrow> S \<inter> \<Inter>\<F>' \<noteq> {}"
+    shows "S \<inter> \<Inter>\<F> \<noteq> {}"
+proof -
+  have "compact (S \<inter> T)"
+    using \<open>closed S\<close> clof compact_eq_bounded_closed T by blast
+  then have "(S \<inter> T) \<inter> \<Inter>\<F> \<noteq> {}"
+    apply (rule compact_imp_fip)
+     apply (simp add: clof)
+    by (metis Int_assoc complete_lattice_class.Inf_insert finite_insert insert_subset none \<open>T \<in> \<F>\<close>)
+  then show ?thesis by blast
+qed
+
+lemma closed_imp_fip_compact:
+  fixes S :: "'a::heine_borel set"
+  shows
+   "\<lbrakk>closed S; \<And>T. T \<in> \<F> \<Longrightarrow> compact T;
+     \<And>\<F>'. \<lbrakk>finite \<F>'; \<F>' \<subseteq> \<F>\<rbrakk> \<Longrightarrow> S \<inter> \<Inter>\<F>' \<noteq> {}\<rbrakk>
+        \<Longrightarrow> S \<inter> \<Inter>\<F> \<noteq> {}"
+by (metis Inf_greatest closed_imp_fip compact_eq_bounded_closed empty_subsetI finite.emptyI inf.orderE)
+
+lemma closed_fip_heine_borel:
+  fixes \<F> :: "'a::heine_borel set set"
+  assumes "closed S" "T \<in> \<F>" "bounded T"
+      and "\<And>T. T \<in> \<F> \<Longrightarrow> closed T"
+      and "\<And>\<F>'. \<lbrakk>finite \<F>'; \<F>' \<subseteq> \<F>\<rbrakk> \<Longrightarrow> \<Inter>\<F>' \<noteq> {}"
+    shows "\<Inter>\<F> \<noteq> {}"
+proof -
+  have "UNIV \<inter> \<Inter>\<F> \<noteq> {}"
+    using assms closed_imp_fip [OF closed_UNIV] by auto
+  then show ?thesis by simp
+qed
+
+lemma compact_fip_heine_borel:
+  fixes \<F> :: "'a::heine_borel set set"
+  assumes clof: "\<And>T. T \<in> \<F> \<Longrightarrow> compact T"
+      and none: "\<And>\<F>'. \<lbrakk>finite \<F>'; \<F>' \<subseteq> \<F>\<rbrakk> \<Longrightarrow> \<Inter>\<F>' \<noteq> {}"
+    shows "\<Inter>\<F> \<noteq> {}"
+by (metis InterI all_not_in_conv clof closed_fip_heine_borel compact_eq_bounded_closed none)
+
+lemma compact_sequence_with_limit:
+  fixes f :: "nat \<Rightarrow> 'a::heine_borel"
+  shows "(f \<longlongrightarrow> l) sequentially \<Longrightarrow> compact (insert l (range f))"
+apply (simp add: compact_eq_bounded_closed, auto)
+apply (simp add: convergent_imp_bounded)
+by (simp add: closed_limpt islimpt_insert sequence_unique_limpt)
 
 no_notation
   eucl_less (infix "<e" 50)

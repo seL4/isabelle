@@ -933,7 +933,8 @@ next
       by (simp add: \<open>open U\<close> closed_Compl)
     define f :: "'a \<Rightarrow> 'a \<times> 'b" where "f \<equiv> \<lambda>x. (x, One /\<^sub>R setdist {x} (- U))"
     have "continuous_on U (\<lambda>x. (x, One /\<^sub>R setdist {x} (- U)))"
-      by (auto simp: Ucomp continuous_intros continuous_on_setdist)
+      apply (intro continuous_intros continuous_on_setdist)
+      by (simp add: Ucomp setdist_eq_0_sing_1)
     then have homU: "homeomorphism U (f`U) f fst"
       by (auto simp: f_def homeomorphism_def image_iff continuous_intros)
     have cloS: "closedin (subtopology euclidean U) S"
@@ -945,9 +946,9 @@ next
     have *: "r *\<^sub>R b = One \<Longrightarrow> b = (1 / r) *\<^sub>R One" for r and b::'b
       by (metis One_non_0 nonzero_divide_eq_eq real_vector.scale_eq_0_iff real_vector.scale_scale scaleR_one)
     have "f ` U = {z. (setdist {fst z} (- U) *\<^sub>R snd z) \<in> {One}}"
-      apply (auto simp: f_def field_simps Ucomp)
+      apply (auto simp: f_def setdist_eq_0_sing_1 field_simps Ucomp)
       apply (rule_tac x=a in image_eqI)
-      apply (auto simp: * dest: setdist1D)
+      apply (auto simp: * setdist_eq_0_sing_1 dest: setdist1D)
       done
     then have clfU: "closed (f ` U)"
       apply (rule ssubst)
@@ -1102,5 +1103,177 @@ corollary homeomorphic_convex_compact:
   shows "s homeomorphic t"
   using assms
   by (meson zero_less_one homeomorphic_trans homeomorphic_convex_compact_cball homeomorphic_sym)
+
+subsection\<open>Covering spaces and lifting results for them\<close>
+
+definition covering_space
+           :: "'a::topological_space set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
+  where
+  "covering_space c p s \<equiv>
+       continuous_on c p \<and> p ` c = s \<and>
+       (\<forall>x \<in> s. \<exists>t. x \<in> t \<and> openin (subtopology euclidean s) t \<and>
+                    (\<exists>v. \<Union>v = {x. x \<in> c \<and> p x \<in> t} \<and>
+                        (\<forall>u \<in> v. openin (subtopology euclidean c) u) \<and>
+                        pairwise disjnt v \<and>
+                        (\<forall>u \<in> v. \<exists>q. homeomorphism u t p q)))"
+
+lemma covering_space_imp_continuous: "covering_space c p s \<Longrightarrow> continuous_on c p"
+  by (simp add: covering_space_def)
+
+lemma covering_space_imp_surjective: "covering_space c p s \<Longrightarrow> p ` c = s"
+  by (simp add: covering_space_def)
+
+lemma homeomorphism_imp_covering_space: "homeomorphism s t f g \<Longrightarrow> covering_space s f t"
+  apply (simp add: homeomorphism_def covering_space_def, clarify)
+  apply (rule_tac x=t in exI, simp)
+  apply (rule_tac x="{s}" in exI, auto)
+  done
+
+lemma covering_space_local_homeomorphism:
+  assumes "covering_space c p s" "x \<in> c"
+  obtains t u q where "x \<in> t" "openin (subtopology euclidean c) t"
+                      "p x \<in> u" "openin (subtopology euclidean s) u"
+                      "homeomorphism t u p q"
+using assms
+apply (simp add: covering_space_def, clarify)
+apply (drule_tac x="p x" in bspec, force)
+by (metis (no_types, lifting) Union_iff mem_Collect_eq)
+
+
+lemma covering_space_local_homeomorphism_alt:
+  assumes p: "covering_space c p s" and "y \<in> s"
+  obtains x t u q where "p x = y"
+                        "x \<in> t" "openin (subtopology euclidean c) t"
+                        "y \<in> u" "openin (subtopology euclidean s) u"
+                          "homeomorphism t u p q"
+proof -
+  obtain x where "p x = y" "x \<in> c"
+    using assms covering_space_imp_surjective by blast
+  show ?thesis
+    apply (rule covering_space_local_homeomorphism [OF p \<open>x \<in> c\<close>])
+    using that \<open>p x = y\<close> by blast
+qed
+
+proposition covering_space_open_map:
+  fixes s :: "'a :: metric_space set" and t :: "'b :: metric_space set"
+  assumes p: "covering_space c p s" and t: "openin (subtopology euclidean c) t"
+    shows "openin (subtopology euclidean s) (p ` t)"
+proof -
+  have pce: "p ` c = s"
+   and covs:
+       "\<And>x. x \<in> s \<Longrightarrow>
+            \<exists>X VS. x \<in> X \<and> openin (subtopology euclidean s) X \<and>
+                  \<Union>VS = {x. x \<in> c \<and> p x \<in> X} \<and>
+                  (\<forall>u \<in> VS. openin (subtopology euclidean c) u) \<and>
+                  pairwise disjnt VS \<and>
+                  (\<forall>u \<in> VS. \<exists>q. homeomorphism u X p q)"
+    using p by (auto simp: covering_space_def)
+  have "t \<subseteq> c"  by (metis openin_euclidean_subtopology_iff t)
+  have "\<exists>T. openin (subtopology euclidean s) T \<and> y \<in> T \<and> T \<subseteq> p ` t"
+          if "y \<in> p ` t" for y
+  proof -
+    have "y \<in> s" using \<open>t \<subseteq> c\<close> pce that by blast
+    obtain U VS where "y \<in> U" and U: "openin (subtopology euclidean s) U"
+                  and VS: "\<Union>VS = {x. x \<in> c \<and> p x \<in> U}"
+                  and openVS: "\<forall>V \<in> VS. openin (subtopology euclidean c) V"
+                  and homVS: "\<And>V. V \<in> VS \<Longrightarrow> \<exists>q. homeomorphism V U p q"
+      using covs [OF \<open>y \<in> s\<close>] by auto
+    obtain x where "x \<in> c" "p x \<in> U" "x \<in> t" "p x = y"
+      apply simp
+      using t [unfolded openin_euclidean_subtopology_iff] \<open>y \<in> U\<close> \<open>y \<in> p ` t\<close> by blast
+    with VS obtain V where "x \<in> V" "V \<in> VS" by auto
+    then obtain q where q: "homeomorphism V U p q" using homVS by blast
+    then have ptV: "p ` (t \<inter> V) = U \<inter> {z. q z \<in> (t \<inter> V)}"
+      using VS \<open>V \<in> VS\<close> by (auto simp: homeomorphism_def)
+    have ocv: "openin (subtopology euclidean c) V"
+      by (simp add: \<open>V \<in> VS\<close> openVS)
+    have "openin (subtopology euclidean U) {z \<in> U. q z \<in> t \<inter> V}"
+      apply (rule continuous_on_open [THEN iffD1, rule_format])
+       using homeomorphism_def q apply blast
+      using openin_subtopology_Int_subset [of c] q t unfolding homeomorphism_def
+      by (metis inf.absorb_iff2 Int_commute ocv openin_euclidean_subtopology_iff)
+    then have os: "openin (subtopology euclidean s) (U \<inter> {z. q z \<in> t \<inter> V})"
+      using openin_trans [of U] by (simp add: Collect_conj_eq U)
+    show ?thesis
+      apply (rule_tac x = "p ` (t \<inter> V)" in exI)
+      apply (rule conjI)
+      apply (simp only: ptV os)
+      using \<open>p x = y\<close> \<open>x \<in> V\<close> \<open>x \<in> t\<close> apply blast
+      done
+  qed
+  with openin_subopen show ?thesis by blast
+qed
+
+lemma covering_space_lift_unique_gen:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
+  fixes g1 :: "'a \<Rightarrow> 'c::real_normed_vector"
+  assumes cov: "covering_space c p s"
+      and eq: "g1 a = g2 a"
+      and f: "continuous_on t f"  "f ` t \<subseteq> s"
+      and g1: "continuous_on t g1"  "g1 ` t \<subseteq> c"
+      and fg1: "\<And>x. x \<in> t \<Longrightarrow> f x = p(g1 x)"
+      and g2: "continuous_on t g2"  "g2 ` t \<subseteq> c"
+      and fg2: "\<And>x. x \<in> t \<Longrightarrow> f x = p(g2 x)"
+      and u_compt: "u \<in> components t" and "a \<in> u" "x \<in> u"
+    shows "g1 x = g2 x"
+proof -
+  have "u \<subseteq> t" by (rule in_components_subset [OF u_compt])
+  def G12 \<equiv> "{x \<in> u. g1 x - g2 x = 0}"
+  have "connected u" by (rule in_components_connected [OF u_compt])
+  have contu: "continuous_on u g1" "continuous_on u g2"
+       using \<open>u \<subseteq> t\<close> continuous_on_subset g1 g2 by blast+
+  have o12: "openin (subtopology euclidean u) G12"
+  unfolding G12_def
+  proof (subst openin_subopen, clarify)
+    fix z
+    assume z: "z \<in> u" "g1 z - g2 z = 0"
+    obtain v w q where "g1 z \<in> v" and ocv: "openin (subtopology euclidean c) v"
+                   and "p (g1 z) \<in> w" and osw: "openin (subtopology euclidean s) w"
+                   and hom: "homeomorphism v w p q"
+      apply (rule_tac x = "g1 z" in covering_space_local_homeomorphism [OF cov])
+       using \<open>u \<subseteq> t\<close> \<open>z \<in> u\<close> g1(2) apply blast+
+      done
+    have "g2 z \<in> v" using \<open>g1 z \<in> v\<close> z by auto
+    have gg: "{x \<in> u. g x \<in> v} = {x \<in> u. g x \<in> (v \<inter> g ` u)}" for g
+      by auto
+    have "openin (subtopology euclidean (g1 ` u)) (v \<inter> g1 ` u)"
+      using ocv \<open>u \<subseteq> t\<close> g1 by (fastforce simp add: openin_open)
+    then have 1: "openin (subtopology euclidean u) {x \<in> u. g1 x \<in> v}"
+      unfolding gg by (blast intro: contu continuous_on_open [THEN iffD1, rule_format])
+    have "openin (subtopology euclidean (g2 ` u)) (v \<inter> g2 ` u)"
+      using ocv \<open>u \<subseteq> t\<close> g2 by (fastforce simp add: openin_open)
+    then have 2: "openin (subtopology euclidean u) {x \<in> u. g2 x \<in> v}"
+      unfolding gg by (blast intro: contu continuous_on_open [THEN iffD1, rule_format])
+    show "\<exists>T. openin (subtopology euclidean u) T \<and>
+              z \<in> T \<and> T \<subseteq> {z \<in> u. g1 z - g2 z = 0}"
+      using z
+      apply (rule_tac x = "{x. x \<in> u \<and> g1 x \<in> v} \<inter> {x. x \<in> u \<and> g2 x \<in> v}" in exI)
+      apply (intro conjI)
+      apply (rule openin_Int [OF 1 2])
+      using \<open>g1 z \<in> v\<close>  \<open>g2 z \<in> v\<close>  apply (force simp:, clarify)
+      apply (metis \<open>u \<subseteq> t\<close> subsetD eq_iff_diff_eq_0 fg1 fg2 hom homeomorphism_def)
+      done
+  qed
+  have c12: "closedin (subtopology euclidean u) G12"
+    unfolding G12_def
+    by (intro continuous_intros continuous_closedin_preimage_constant contu)
+  have "G12 = {} \<or> G12 = u"
+    by (intro connected_clopen [THEN iffD1, rule_format] \<open>connected u\<close> conjI o12 c12)
+  with eq \<open>a \<in> u\<close> have "\<And>x. x \<in> u \<Longrightarrow> g1 x - g2 x = 0" by (auto simp: G12_def)
+  then show ?thesis
+    using \<open>x \<in> u\<close> by force
+qed
+
+proposition covering_space_lift_unique:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
+  fixes g1 :: "'a \<Rightarrow> 'c::real_normed_vector"
+  assumes "covering_space c p s"
+          "g1 a = g2 a"
+          "continuous_on t f"  "f ` t \<subseteq> s"
+          "continuous_on t g1"  "g1 ` t \<subseteq> c"  "\<And>x. x \<in> t \<Longrightarrow> f x = p(g1 x)"
+          "continuous_on t g2"  "g2 ` t \<subseteq> c"  "\<And>x. x \<in> t \<Longrightarrow> f x = p(g2 x)"
+          "connected t"  "a \<in> t"   "x \<in> t"
+   shows "g1 x = g2 x"
+using covering_space_lift_unique_gen [of c p s] in_components_self assms ex_in_conv by blast
 
 end

@@ -146,7 +146,7 @@ lemma separation_t1:
   shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> x \<in> U \<and> y \<notin> U)"
   using t1_space[of x y] by blast
 
-lemma closed_singleton:
+lemma closed_singleton [iff]:
   fixes a :: "'a::t1_space"
   shows "closed {a}"
 proof -
@@ -1610,6 +1610,9 @@ qed
 lemma continuous_on_id[continuous_intros]: "continuous_on s (\<lambda>x. x)"
   unfolding continuous_on_def by fast
 
+lemma continuous_on_id'[continuous_intros]: "continuous_on s id"
+  unfolding continuous_on_def id_def by fast
+
 lemma continuous_on_const[continuous_intros]: "continuous_on s (\<lambda>x. c)"
   unfolding continuous_on_def by auto
 
@@ -1840,6 +1843,8 @@ qed
 
 lemma inj_setminus: "inj_on uminus (A::'a set set)"
   by (auto simp: inj_on_def)
+
+subsection\<open> Finite intersection property\<close>
 
 lemma compact_fip:
   "compact U \<longleftrightarrow>

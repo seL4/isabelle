@@ -2088,6 +2088,11 @@ proof -
     by (simp add: \<open>continuous_on t r\<close> continuous_on_diff continuous_on_id continuous_on_norm)
 qed
 
+lemma closedin_self [simp]:
+    fixes S :: "'a :: real_normed_vector set"
+    shows "closedin (subtopology euclidean S) S"
+  by (simp add: closedin_retract)
+
 lemma retract_of_contractible:
   assumes "contractible t" "s retract_of t"
     shows "contractible s"
@@ -2194,5 +2199,98 @@ apply (simp add: homotopic_with retract_of_def retraction_def, clarify)
 apply (rule_tac x="r o h" in exI)
 apply (rule conjI continuous_intros | erule continuous_on_subset | force simp: image_subset_iff)+
 done
+
+subsection\<open>Borsuk-style characterization of separation\<close>
+
+lemma continuous_on_Borsuk_map:
+   "a \<notin> s \<Longrightarrow>  continuous_on s (\<lambda>x. inverse(norm (x - a)) *\<^sub>R (x - a))"
+by (rule continuous_intros | force)+
+
+lemma Borsuk_map_into_sphere:
+   "(\<lambda>x. inverse(norm (x - a)) *\<^sub>R (x - a)) ` s \<subseteq> sphere 0 1 \<longleftrightarrow> (a \<notin> s)"
+  by auto (metis eq_iff_diff_eq_0 left_inverse norm_eq_zero)
+
+lemma Borsuk_maps_homotopic_in_path_component:
+  assumes "path_component (- s) a b"
+    shows "homotopic_with (\<lambda>x. True) s (sphere 0 1)
+                   (\<lambda>x. inverse(norm(x - a)) *\<^sub>R (x - a))
+                   (\<lambda>x. inverse(norm(x - b)) *\<^sub>R (x - b))"
+proof -
+  obtain g where "path g" "path_image g \<subseteq> -s" "pathstart g = a" "pathfinish g = b"
+    using assms by (auto simp: path_component_def)
+  then show ?thesis
+    apply (simp add: path_def path_image_def pathstart_def pathfinish_def homotopic_with_def)
+    apply (rule_tac x = "\<lambda>z. inverse(norm(snd z - (g o fst)z)) *\<^sub>R (snd z - (g o fst)z)" in exI)
+    apply (intro conjI continuous_intros)
+    apply (rule continuous_intros | erule continuous_on_subset | fastforce simp: divide_simps sphere_def)+
+    done
+qed
+
+lemma non_extensible_Borsuk_map:
+  fixes a :: "'a :: euclidean_space"
+  assumes "compact s" and cin: "c \<in> components(- s)" and boc: "bounded c" and "a \<in> c"
+    shows "~ (\<exists>g. continuous_on (s \<union> c) g \<and>
+                  g ` (s \<union> c) \<subseteq> sphere 0 1 \<and>
+                  (\<forall>x \<in> s. g x = inverse(norm(x - a)) *\<^sub>R (x - a)))"
+proof -
+  have "closed s" using assms by (simp add: compact_imp_closed)
+  have "c \<subseteq> -s"
+    using assms by (simp add: in_components_subset)
+  with \<open>a \<in> c\<close> have "a \<notin> s" by blast
+  then have ceq: "c = connected_component_set (- s) a"
+    by (metis \<open>a \<in> c\<close> cin components_iff connected_component_eq)
+  then have "bounded (s \<union> connected_component_set (- s) a)"
+    using \<open>compact s\<close> boc compact_imp_bounded by auto
+  with bounded_subset_ballD obtain r where "0 < r" and r: "(s \<union> connected_component_set (- s) a) \<subseteq> ball a r"
+    by blast
+  { fix g
+    assume "continuous_on (s \<union> c) g"
+            "g ` (s \<union> c) \<subseteq> sphere 0 1"
+       and [simp]: "\<And>x. x \<in> s \<Longrightarrow> g x = (x - a) /\<^sub>R norm (x - a)"
+    then have [simp]: "\<And>x. x \<in> s \<union> c \<Longrightarrow> norm (g x) = 1"
+      by force
+    have cb_eq: "cball a r = (s \<union> connected_component_set (- s) a) \<union>
+                      (cball a r - connected_component_set (- s) a)"
+      using ball_subset_cball [of a r] r by auto
+    have cont1: "continuous_on (s \<union> connected_component_set (- s) a)
+                     (\<lambda>x. a + r *\<^sub>R g x)"
+      apply (rule continuous_intros)+
+      using \<open>continuous_on (s \<union> c) g\<close> ceq by blast
+    have cont2: "continuous_on (cball a r - connected_component_set (- s) a)
+            (\<lambda>x. a + r *\<^sub>R ((x - a) /\<^sub>R norm (x - a)))"
+      by (rule continuous_intros | force simp: \<open>a \<notin> s\<close>)+
+    have 1: "continuous_on (cball a r)
+             (\<lambda>x. if connected_component (- s) a x
+                  then a + r *\<^sub>R g x
+                  else a + r *\<^sub>R ((x - a) /\<^sub>R norm (x - a)))"
+      apply (subst cb_eq)
+      apply (rule continuous_on_cases [OF _ _ cont1 cont2])
+        using ceq cin
+      apply (auto intro: closed_Un_complement_component
+                  simp: \<open>closed s\<close> open_Compl open_connected_component)
+      done
+    have 2: "(\<lambda>x. a + r *\<^sub>R g x) ` (cball a r \<inter> connected_component_set (- s) a)
+             \<subseteq> sphere a r "
+      using \<open>0 < r\<close> by (force simp: dist_norm ceq)
+    have "retraction (cball a r) (sphere a r)
+            (\<lambda>x. if x \<in> connected_component_set (- s) a
+                 then a + r *\<^sub>R g x
+                 else a + r *\<^sub>R ((x - a) /\<^sub>R norm (x - a)))"
+      using  \<open>0 < r\<close>
+      apply (simp add: retraction_def dist_norm 1 2, safe)
+      apply (force simp: dist_norm abs_if mult_less_0_iff divide_simps \<open>a \<notin> s\<close>)
+      using r
+      by (auto simp: dist_norm norm_minus_commute)
+    then have False
+      using no_retraction_cball
+             [OF \<open>0 < r\<close>, of a, unfolded retract_of_def, simplified, rule_format,
+              of "\<lambda>x. if x \<in> connected_component_set (- s) a
+                      then a + r *\<^sub>R g x
+                      else a + r *\<^sub>R inverse(norm(x - a)) *\<^sub>R (x - a)"]
+      by blast
+  }
+  then show ?thesis
+    by blast
+qed
 
 end

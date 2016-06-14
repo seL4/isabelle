@@ -1928,6 +1928,9 @@ lemma pairwise_subset: "\<lbrakk>pairwise P S; T \<subseteq> S\<rbrakk> \<Longri
 
 definition disjnt where "disjnt A B \<equiv> A \<inter> B = {}"
 
+lemma disjnt_iff: "disjnt A B \<longleftrightarrow> (\<forall>x. ~ (x \<in> A \<and> x \<in> B))"
+  by (force simp: disjnt_def)
+
 lemma pairwise_empty [simp]: "pairwise P {}"
   by (simp add: pairwise_def)
 

@@ -1433,8 +1433,8 @@ proof -
   ultimately show False
     using *[unfolded connected_local not_ex, rule_format,
       of "{x\<in>{0..1}. g x \<in> e1}" "{x\<in>{0..1}. g x \<in> e2}"]
-    using continuous_openin_preimage[OF g(1)[unfolded path_def] as(1)]
-    using continuous_openin_preimage[OF g(1)[unfolded path_def] as(2)]
+    using continuous_openin_preimage_gen[OF g(1)[unfolded path_def] as(1)]
+    using continuous_openin_preimage_gen[OF g(1)[unfolded path_def] as(2)]
     by auto
 qed
 
@@ -4605,6 +4605,24 @@ apply (erule homeomorphism_locally_imp)
 using eq homeomorphism_sym homeomorphism_symD [OF hom] apply blast+
 done
 
+lemma homeomorphic_locally:
+  fixes S:: "'a::metric_space set" and T:: "'b::metric_space set"
+  assumes hom: "S homeomorphic T"
+          and iff: "\<And>X Y. X homeomorphic Y \<Longrightarrow> (P X \<longleftrightarrow> Q Y)"
+    shows "locally P S \<longleftrightarrow> locally Q T"
+proof -
+  obtain f g where hom: "homeomorphism S T f g"
+    using assms by (force simp: homeomorphic_def)
+  then show ?thesis
+    using homeomorphic_def local.iff
+    by (blast intro!: homeomorphism_locally)
+qed
+
+lemma homeomorphic_local_compactness:
+  fixes S:: "'a::metric_space set" and T:: "'b::metric_space set"
+  shows "S homeomorphic T \<Longrightarrow> locally compact S \<longleftrightarrow> locally compact T"
+by (simp add: homeomorphic_compactness homeomorphic_locally)
+
 lemma locally_translation:
   fixes P :: "'a :: real_normed_vector set \<Rightarrow> bool"
   shows
@@ -4650,6 +4668,107 @@ proof (clarsimp simp add: locally_def)
     apply (force simp: \<open>f x = y\<close> rev_image_eqI intro: Q)
     done
 qed
+
+subsection\<open>Sort of induction principle for connected sets\<close>
+
+lemma connected_induction:
+  assumes "connected S"
+      and opD: "\<And>T a. \<lbrakk>openin (subtopology euclidean S) T; a \<in> T\<rbrakk> \<Longrightarrow> \<exists>z. z \<in> T \<and> P z"
+      and opI: "\<And>a. a \<in> S
+             \<Longrightarrow> \<exists>T. openin (subtopology euclidean S) T \<and> a \<in> T \<and>
+                     (\<forall>x \<in> T. \<forall>y \<in> T. P x \<and> P y \<and> Q x \<longrightarrow> Q y)"
+      and etc: "a \<in> S" "b \<in> S" "P a" "P b" "Q a"
+    shows "Q b"
+proof -
+  have 1: "openin (subtopology euclidean S)
+             {b. \<exists>T. openin (subtopology euclidean S) T \<and>
+                     b \<in> T \<and> (\<forall>x\<in>T. P x \<longrightarrow> Q x)}"
+    apply (subst openin_subopen, clarify)
+    apply (rule_tac x=T in exI, auto)
+    done
+  have 2: "openin (subtopology euclidean S)
+             {b. \<exists>T. openin (subtopology euclidean S) T \<and>
+                     b \<in> T \<and> (\<forall>x\<in>T. P x \<longrightarrow> ~ Q x)}"
+    apply (subst openin_subopen, clarify)
+    apply (rule_tac x=T in exI, auto)
+    done
+  show ?thesis
+    using \<open>connected S\<close>
+    apply (simp only: connected_openin HOL.not_ex HOL.de_Morgan_conj)
+    apply (elim disjE allE)
+         apply (blast intro: 1)
+        apply (blast intro: 2, simp_all)
+       apply clarify apply (metis opI)
+      using opD apply (blast intro: etc elim: dest:)
+     using opI etc apply meson+
+    done
+qed
+
+lemma connected_equivalence_relation_gen:
+  assumes "connected S"
+      and etc: "a \<in> S" "b \<in> S" "P a" "P b"
+      and trans: "\<And>x y z. \<lbrakk>R x y; R y z\<rbrakk> \<Longrightarrow> R x z"
+      and opD: "\<And>T a. \<lbrakk>openin (subtopology euclidean S) T; a \<in> T\<rbrakk> \<Longrightarrow> \<exists>z. z \<in> T \<and> P z"
+      and opI: "\<And>a. a \<in> S
+             \<Longrightarrow> \<exists>T. openin (subtopology euclidean S) T \<and> a \<in> T \<and>
+                     (\<forall>x \<in> T. \<forall>y \<in> T. P x \<and> P y \<longrightarrow> R x y)"
+    shows "R a b"
+proof -
+  have "\<And>a b c. \<lbrakk>a \<in> S; P a; b \<in> S; c \<in> S; P b; P c; R a b\<rbrakk> \<Longrightarrow> R a c"
+    apply (rule connected_induction [OF \<open>connected S\<close> opD], simp_all)
+    by (meson trans opI)
+  then show ?thesis by (metis etc opI)
+qed
+
+lemma connected_induction_simple:
+  assumes "connected S"
+      and etc: "a \<in> S" "b \<in> S" "P a"
+      and opI: "\<And>a. a \<in> S
+             \<Longrightarrow> \<exists>T. openin (subtopology euclidean S) T \<and> a \<in> T \<and>
+                     (\<forall>x \<in> T. \<forall>y \<in> T. P x \<longrightarrow> P y)"
+    shows "P b"
+apply (rule connected_induction [OF \<open>connected S\<close> _, where P = "\<lambda>x. True"], blast)
+apply (frule opI)
+using etc apply simp_all
+done
+
+lemma connected_equivalence_relation:
+  assumes "connected S"
+      and etc: "a \<in> S" "b \<in> S"
+      and sym: "\<And>x y z. R x y \<Longrightarrow> R y x"
+      and trans: "\<And>x y z. R x y \<and> R y z \<Longrightarrow> R x z"
+      and opI: "\<And>a. a \<in> S
+             \<Longrightarrow> \<exists>T. openin (subtopology euclidean S) T \<and> a \<in> T \<and> (\<forall>x \<in> T. R a x)"
+    shows "R a b"
+proof -
+  have "\<And>a b c. \<lbrakk>a \<in> S; b \<in> S; c \<in> S; R a b\<rbrakk> \<Longrightarrow> R a c"
+    apply (rule connected_induction_simple [OF \<open>connected S\<close>], simp_all)
+    by (meson local.sym local.trans opI)
+  then show ?thesis by (metis etc opI)
+qed
+
+
+lemma locally_constant_imp_constant:
+  assumes "connected S"
+      and opI: "\<And>a. a \<in> S
+             \<Longrightarrow> \<exists>T. openin (subtopology euclidean S) T \<and> a \<in> T \<and> (\<forall>x \<in> T. f x = f a)"
+    shows "f constant_on S"
+proof -
+  have "\<And>x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> f x = f y"
+    apply (rule connected_equivalence_relation [OF \<open>connected S\<close>], simp_all)
+    by (metis opI)
+  then show ?thesis
+    by (metis constant_on_def)
+qed
+
+lemma locally_constant:
+     "connected S \<Longrightarrow> locally (\<lambda>U. f constant_on U) S \<longleftrightarrow> f constant_on S"
+apply (simp add: locally_def)
+apply (rule iffI)
+ apply (rule locally_constant_imp_constant, assumption)
+ apply (metis (mono_tags, hide_lams) constant_on_def constant_on_subset openin_subtopology_self)
+by (meson constant_on_subset openin_imp_subset order_refl)
+
 
 subsection\<open>Basic properties of local compactness\<close>
 
@@ -5145,7 +5264,7 @@ subsection\<open>Components, continuity, openin, closedin\<close>
 lemma continuous_openin_preimage_eq:
    "continuous_on S f \<longleftrightarrow>
     (\<forall>t. open t \<longrightarrow> openin (subtopology euclidean S) {x. x \<in> S \<and> f x \<in> t})"
-apply (auto simp: continuous_openin_preimage)
+apply (auto simp: continuous_openin_preimage_gen)
 apply (fastforce simp add: continuous_on_open openin_open)
 done
 
@@ -5171,7 +5290,7 @@ proof (clarsimp simp: continuous_openin_preimage_eq)
     using Union_components by blast
   then show "openin (subtopology euclidean S) {x \<in> S. f x \<in> t}"
     using \<open>open t\<close> assms
-    by (fastforce intro: openin_trans continuous_openin_preimage)
+    by (fastforce intro: openin_trans continuous_openin_preimage_gen)
 qed
 
 lemma continuous_on_components:
