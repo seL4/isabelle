@@ -11,6 +11,25 @@ imports
   "~~/src/HOL/Library/Set_Algebras"
 begin
 
+(*FIXME move up e.g. to Library/Convex.thy, but requires the "support" primitive*)
+lemma convex_supp_setsum:
+  assumes "convex S" and 1: "supp_setsum u I = 1"
+      and "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> u i \<and> (u i = 0 \<or> f i \<in> S)"
+    shows "supp_setsum (\<lambda>i. u i *\<^sub>R f i) I \<in> S"
+proof -
+  have fin: "finite {i \<in> I. u i \<noteq> 0}"
+    using 1 setsum.infinite by (force simp: supp_setsum_def support_def)
+  then have eq: "supp_setsum(\<lambda>i. u i *\<^sub>R f i) I =
+            setsum (\<lambda>i. u i *\<^sub>R f i) {i \<in> I. u i \<noteq> 0}"
+    by (force intro: setsum.mono_neutral_left simp: supp_setsum_def support_def)
+  show ?thesis
+    apply (simp add: eq)
+    apply (rule convex_setsum [OF fin \<open>convex S\<close>])
+    using 1 assms apply (auto simp: supp_setsum_def support_def)
+    done
+qed
+
+
 lemma dim_image_eq:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes lf: "linear f"

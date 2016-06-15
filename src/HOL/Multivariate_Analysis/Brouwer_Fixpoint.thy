@@ -1,5 +1,5 @@
 (*  Author:     John Harrison
-    Author:     Robert Himmelmann, TU Muenchen (Translation from HOL light)
+    Author:     Robert Himmelmann, TU Muenchen (Translation from HOL light) and LCP
 *)
 
 (* ========================================================================= *)
@@ -2292,5 +2292,1074 @@ proof -
   then show ?thesis
     by blast
 qed
+
+subsection\<open>Absolute retracts, Etc.\<close>
+
+text\<open>Absolute retracts (AR), absolute neighbourhood retracts (ANR) and also
+ Euclidean neighbourhood retracts (ENR). We define AR and ANR by
+ specializing the standard definitions for a set to embedding in
+spaces of higher dimension. This turns out to be sufficient (since any set in
+R^n can be embedded as a closed subset of a convex subset of R^{n+1}) to
+derive the usual definitions, but we need to split them into two
+implications because of the lack of type quantifiers. Then ENR turns out
+to be equivalent to ANR plus local compactness.\<close>
+
+definition AR :: "'a::topological_space set => bool"
+  where
+   "AR S \<equiv> \<forall>U. \<forall>S'::('a * real) set. S homeomorphic S' \<and> closedin (subtopology euclidean U) S'
+                \<longrightarrow> S' retract_of U"
+
+definition ANR :: "'a::topological_space set => bool"
+  where
+   "ANR S \<equiv> \<forall>U. \<forall>S'::('a * real) set. S homeomorphic S' \<and> closedin (subtopology euclidean U) S'
+                \<longrightarrow> (\<exists>T. openin (subtopology euclidean U) T \<and>
+                        S' retract_of T)"
+
+definition ENR :: "'a::topological_space set => bool"
+  where "ENR S \<equiv> \<exists>U. open U \<and> S retract_of U"
+
+text\<open> First, show that we do indeed get the "usual" properties of ARs and ANRs.\<close>
+
+proposition AR_imp_absolute_extensor:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "AR S" and contf: "continuous_on T f" and "f ` T \<subseteq> S"
+      and cloUT: "closedin (subtopology euclidean U) T"
+  obtains g where "continuous_on U g" "g ` U \<subseteq> S" "\<And>x. x \<in> T \<Longrightarrow> g x = f x"
+proof -
+  have "aff_dim S < int (DIM('b \<times> real))"
+    using aff_dim_le_DIM [of S] by simp
+  then obtain C and S' :: "('b * real) set"
+          where C: "convex C" "C \<noteq> {}"
+            and cloCS: "closedin (subtopology euclidean C) S'"
+            and hom: "S homeomorphic S'"
+    by (metis that homeomorphic_closedin_convex)
+  then have "S' retract_of C"
+    using \<open>AR S\<close> by (simp add: AR_def)
+  then obtain r where "S' \<subseteq> C" and contr: "continuous_on C r"
+                  and "r ` C \<subseteq> S'" and rid: "\<And>x. x\<in>S' \<Longrightarrow> r x = x"
+    by (auto simp: retraction_def retract_of_def)
+  obtain g h where "homeomorphism S S' g h"
+    using hom by (force simp: homeomorphic_def)
+  then have "continuous_on (f ` T) g"
+    by (meson \<open>f ` T \<subseteq> S\<close> continuous_on_subset homeomorphism_def)
+  then have contgf: "continuous_on T (g o f)"
+    by (metis continuous_on_compose contf)
+  have gfTC: "(g \<circ> f) ` T \<subseteq> C"
+  proof -
+    have "g ` S = S'"
+      by (metis (no_types) \<open>homeomorphism S S' g h\<close> homeomorphism_def)
+    with \<open>S' \<subseteq> C\<close> \<open>f ` T \<subseteq> S\<close> show ?thesis by force
+  qed
+  obtain f' where f': "continuous_on U f'"  "f' ` U \<subseteq> C"
+                      "\<And>x. x \<in> T \<Longrightarrow> f' x = (g \<circ> f) x"
+    by (metis Dugundji [OF C cloUT contgf gfTC])
+  show ?thesis
+  proof (rule_tac g = "h o r o f'" in that)
+    show "continuous_on U (h \<circ> r \<circ> f')"
+      apply (intro continuous_on_compose f')
+       using continuous_on_subset contr f' apply blast
+      by (meson \<open>homeomorphism S S' g h\<close> \<open>r ` C \<subseteq> S'\<close> continuous_on_subset \<open>f' ` U \<subseteq> C\<close> homeomorphism_def image_mono)
+    show "(h \<circ> r \<circ> f') ` U \<subseteq> S"
+      using \<open>homeomorphism S S' g h\<close> \<open>r ` C \<subseteq> S'\<close> \<open>f' ` U \<subseteq> C\<close>
+      by (fastforce simp: homeomorphism_def)
+    show "\<And>x. x \<in> T \<Longrightarrow> (h \<circ> r \<circ> f') x = f x"
+      using \<open>homeomorphism S S' g h\<close> \<open>f ` T \<subseteq> S\<close> f'
+      by (auto simp: rid homeomorphism_def)
+  qed
+qed
+
+lemma AR_imp_absolute_retract:
+  fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
+  assumes "AR S" "S homeomorphic S'"
+      and clo: "closedin (subtopology euclidean U) S'"
+    shows "S' retract_of U"
+proof -
+  obtain g h where hom: "homeomorphism S S' g h"
+    using assms by (force simp: homeomorphic_def)
+  have h: "continuous_on S' h" " h ` S' \<subseteq> S"
+    using hom homeomorphism_def apply blast
+    apply (metis hom equalityE homeomorphism_def)
+    done
+  obtain h' where h': "continuous_on U h'" "h' ` U \<subseteq> S"
+              and h'h: "\<And>x. x \<in> S' \<Longrightarrow> h' x = h x"
+    by (blast intro: AR_imp_absolute_extensor [OF \<open>AR S\<close> h clo])
+  have [simp]: "S' \<subseteq> U" using clo closedin_limpt by blast
+  show ?thesis
+  proof (simp add: retraction_def retract_of_def, intro exI conjI)
+    show "continuous_on U (g o h')"
+      apply (intro continuous_on_compose h')
+      apply (meson hom continuous_on_subset h' homeomorphism_cont1)
+      done
+    show "(g \<circ> h') ` U \<subseteq> S'"
+      using h'  by clarsimp (metis hom subsetD homeomorphism_def imageI)
+    show "\<forall>x\<in>S'. (g \<circ> h') x = x"
+      by clarsimp (metis h'h hom homeomorphism_def)
+  qed
+qed
+
+lemma AR_imp_absolute_retract_UNIV:
+  fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
+  assumes "AR S" and hom: "S homeomorphic S'"
+      and clo: "closed S'"
+    shows "S' retract_of UNIV"
+apply (rule AR_imp_absolute_retract [OF \<open>AR S\<close> hom])
+using clo closed_closedin by auto
+
+lemma absolute_extensor_imp_AR:
+  fixes S :: "'a::euclidean_space set"
+  assumes "\<And>f :: 'a * real \<Rightarrow> 'a.
+           \<And>U T. \<lbrakk>continuous_on T f;  f ` T \<subseteq> S;
+                  closedin (subtopology euclidean U) T\<rbrakk>
+                 \<Longrightarrow> \<exists>g. continuous_on U g \<and> g ` U \<subseteq> S \<and> (\<forall>x \<in> T. g x = f x)"
+  shows "AR S"
+proof (clarsimp simp: AR_def)
+  fix U and T :: "('a * real) set"
+  assume "S homeomorphic T" and clo: "closedin (subtopology euclidean U) T"
+  then obtain g h where hom: "homeomorphism S T g h"
+    by (force simp: homeomorphic_def)
+  have h: "continuous_on T h" " h ` T \<subseteq> S"
+    using hom homeomorphism_def apply blast
+    apply (metis hom equalityE homeomorphism_def)
+    done
+  obtain h' where h': "continuous_on U h'" "h' ` U \<subseteq> S"
+              and h'h: "\<forall>x\<in>T. h' x = h x"
+    using assms [OF h clo] by blast
+  have [simp]: "T \<subseteq> U"
+    using clo closedin_imp_subset by auto
+  show "T retract_of U"
+  proof (simp add: retraction_def retract_of_def, intro exI conjI)
+    show "continuous_on U (g o h')"
+      apply (intro continuous_on_compose h')
+      apply (meson hom continuous_on_subset h' homeomorphism_cont1)
+      done
+    show "(g \<circ> h') ` U \<subseteq> T"
+      using h'  by clarsimp (metis hom subsetD homeomorphism_def imageI)
+    show "\<forall>x\<in>T. (g \<circ> h') x = x"
+      by clarsimp (metis h'h hom homeomorphism_def)
+  qed
+qed
+
+lemma AR_eq_absolute_extensor:
+  fixes S :: "'a::euclidean_space set"
+  shows "AR S \<longleftrightarrow>
+       (\<forall>f :: 'a * real \<Rightarrow> 'a.
+        \<forall>U T. continuous_on T f \<longrightarrow> f ` T \<subseteq> S \<longrightarrow>
+               closedin (subtopology euclidean U) T \<longrightarrow>
+                (\<exists>g. continuous_on U g \<and> g ` U \<subseteq> S \<and> (\<forall>x \<in> T. g x = f x)))"
+apply (rule iffI)
+ apply (metis AR_imp_absolute_extensor)
+apply (simp add: absolute_extensor_imp_AR)
+done
+
+lemma AR_imp_retract:
+  fixes S :: "'a::euclidean_space set"
+  assumes "AR S \<and> closedin (subtopology euclidean U) S"
+    shows "S retract_of U"
+using AR_imp_absolute_retract assms homeomorphic_refl by blast
+
+lemma AR_homeomorphic_AR:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "AR T" "S homeomorphic T"
+    shows "AR S"
+unfolding AR_def
+by (metis assms AR_imp_absolute_retract homeomorphic_trans [of _ S] homeomorphic_sym)
+
+lemma homeomorphic_AR_iff_AR:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  shows "S homeomorphic T \<Longrightarrow> AR S \<longleftrightarrow> AR T"
+by (metis AR_homeomorphic_AR homeomorphic_sym)
+
+
+proposition ANR_imp_absolute_neighbourhood_extensor:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "ANR S" and contf: "continuous_on T f" and "f ` T \<subseteq> S"
+      and cloUT: "closedin (subtopology euclidean U) T"
+  obtains V g where "T \<subseteq> V" "openin (subtopology euclidean U) V"
+                    "continuous_on V g"
+                    "g ` V \<subseteq> S" "\<And>x. x \<in> T \<Longrightarrow> g x = f x"
+proof -
+  have "aff_dim S < int (DIM('b \<times> real))"
+    using aff_dim_le_DIM [of S] by simp
+  then obtain C and S' :: "('b * real) set"
+          where C: "convex C" "C \<noteq> {}"
+            and cloCS: "closedin (subtopology euclidean C) S'"
+            and hom: "S homeomorphic S'"
+    by (metis that homeomorphic_closedin_convex)
+  then obtain D where opD: "openin (subtopology euclidean C) D" and "S' retract_of D"
+    using \<open>ANR S\<close> by (auto simp: ANR_def)
+  then obtain r where "S' \<subseteq> D" and contr: "continuous_on D r"
+                  and "r ` D \<subseteq> S'" and rid: "\<And>x. x \<in> S' \<Longrightarrow> r x = x"
+    by (auto simp: retraction_def retract_of_def)
+  obtain g h where homgh: "homeomorphism S S' g h"
+    using hom by (force simp: homeomorphic_def)
+  have "continuous_on (f ` T) g"
+    by (meson \<open>f ` T \<subseteq> S\<close> continuous_on_subset homeomorphism_def homgh)
+  then have contgf: "continuous_on T (g o f)"
+    by (intro continuous_on_compose contf)
+  have gfTC: "(g \<circ> f) ` T \<subseteq> C"
+  proof -
+    have "g ` S = S'"
+      by (metis (no_types) homeomorphism_def homgh)
+    then show ?thesis
+      by (metis (no_types) assms(3) cloCS closedin_def image_comp image_mono order.trans topspace_euclidean_subtopology)
+  qed
+  obtain f' where contf': "continuous_on U f'"
+              and "f' ` U \<subseteq> C"
+              and eq: "\<And>x. x \<in> T \<Longrightarrow> f' x = (g \<circ> f) x"
+    by (metis Dugundji [OF C cloUT contgf gfTC])
+  show ?thesis
+  proof (rule_tac V = "{x \<in> U. f' x \<in> D}" and g = "h o r o f'" in that)
+    show "T \<subseteq> {x \<in> U. f' x \<in> D}"
+      using cloUT closedin_imp_subset \<open>S' \<subseteq> D\<close> \<open>f ` T \<subseteq> S\<close> eq homeomorphism_image1 homgh
+      by fastforce
+    show ope: "openin (subtopology euclidean U) {x \<in> U. f' x \<in> D}"
+      using  \<open>f' ` U \<subseteq> C\<close> by (auto simp: opD contf' continuous_openin_preimage)
+    have conth: "continuous_on (r ` f' ` {x \<in> U. f' x \<in> D}) h"
+      apply (rule continuous_on_subset [of S'])
+      using homeomorphism_def homgh apply blast
+      using \<open>r ` D \<subseteq> S'\<close> by blast
+    show "continuous_on {x \<in> U. f' x \<in> D} (h \<circ> r \<circ> f')"
+      apply (intro continuous_on_compose conth
+                   continuous_on_subset [OF contr] continuous_on_subset [OF contf'], auto)
+      done
+    show "(h \<circ> r \<circ> f') ` {x \<in> U. f' x \<in> D} \<subseteq> S"
+      using \<open>homeomorphism S S' g h\<close>  \<open>f' ` U \<subseteq> C\<close>  \<open>r ` D \<subseteq> S'\<close>
+      by (auto simp: homeomorphism_def)
+    show "\<And>x. x \<in> T \<Longrightarrow> (h \<circ> r \<circ> f') x = f x"
+      using \<open>homeomorphism S S' g h\<close> \<open>f ` T \<subseteq> S\<close> eq
+      by (auto simp: rid homeomorphism_def)
+  qed
+qed
+
+
+corollary ANR_imp_absolute_neighbourhood_retract:
+  fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
+  assumes "ANR S" "S homeomorphic S'"
+      and clo: "closedin (subtopology euclidean U) S'"
+  obtains V where "openin (subtopology euclidean U) V" "S' retract_of V"
+proof -
+  obtain g h where hom: "homeomorphism S S' g h"
+    using assms by (force simp: homeomorphic_def)
+  have h: "continuous_on S' h" " h ` S' \<subseteq> S"
+    using hom homeomorphism_def apply blast
+    apply (metis hom equalityE homeomorphism_def)
+    done
+    from ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> h clo]
+  obtain V h' where "S' \<subseteq> V" and opUV: "openin (subtopology euclidean U) V"
+                and h': "continuous_on V h'" "h' ` V \<subseteq> S"
+                and h'h:"\<And>x. x \<in> S' \<Longrightarrow> h' x = h x"
+    by (blast intro: ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> h clo])
+  have "S' retract_of V"
+  proof (simp add: retraction_def retract_of_def, intro exI conjI \<open>S' \<subseteq> V\<close>)
+    show "continuous_on V (g o h')"
+      apply (intro continuous_on_compose h')
+      apply (meson hom continuous_on_subset h' homeomorphism_cont1)
+      done
+    show "(g \<circ> h') ` V \<subseteq> S'"
+      using h'  by clarsimp (metis hom subsetD homeomorphism_def imageI)
+    show "\<forall>x\<in>S'. (g \<circ> h') x = x"
+      by clarsimp (metis h'h hom homeomorphism_def)
+  qed
+  then show ?thesis
+    by (rule that [OF opUV])
+qed
+
+corollary ANR_imp_absolute_neighbourhood_retract_UNIV:
+  fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
+  assumes "ANR S" and hom: "S homeomorphic S'" and clo: "closed S'"
+  obtains V where "open V" "S' retract_of V"
+  using ANR_imp_absolute_neighbourhood_retract [OF \<open>ANR S\<close> hom]
+by (metis clo closed_closedin open_openin subtopology_UNIV)
+
+lemma absolute_neighbourhood_extensor_imp_ANR:
+  fixes S :: "'a::euclidean_space set"
+  assumes "\<And>f :: 'a * real \<Rightarrow> 'a.
+           \<And>U T. \<lbrakk>continuous_on T f;  f ` T \<subseteq> S;
+                  closedin (subtopology euclidean U) T\<rbrakk>
+                 \<Longrightarrow> \<exists>V g. T \<subseteq> V \<and> openin (subtopology euclidean U) V \<and>
+                       continuous_on V g \<and> g ` V \<subseteq> S \<and> (\<forall>x \<in> T. g x = f x)"
+  shows "ANR S"
+proof (clarsimp simp: ANR_def)
+  fix U and T :: "('a * real) set"
+  assume "S homeomorphic T" and clo: "closedin (subtopology euclidean U) T"
+  then obtain g h where hom: "homeomorphism S T g h"
+    by (force simp: homeomorphic_def)
+  have h: "continuous_on T h" " h ` T \<subseteq> S"
+    using hom homeomorphism_def apply blast
+    apply (metis hom equalityE homeomorphism_def)
+    done
+  obtain V h' where "T \<subseteq> V" and opV: "openin (subtopology euclidean U) V"
+                and h': "continuous_on V h'" "h' ` V \<subseteq> S"
+              and h'h: "\<forall>x\<in>T. h' x = h x"
+    using assms [OF h clo] by blast
+  have [simp]: "T \<subseteq> U"
+    using clo closedin_imp_subset by auto
+  have "T retract_of V"
+  proof (simp add: retraction_def retract_of_def, intro exI conjI \<open>T \<subseteq> V\<close>)
+    show "continuous_on V (g o h')"
+      apply (intro continuous_on_compose h')
+      apply (meson hom continuous_on_subset h' homeomorphism_cont1)
+      done
+    show "(g \<circ> h') ` V \<subseteq> T"
+      using h'  by clarsimp (metis hom subsetD homeomorphism_def imageI)
+    show "\<forall>x\<in>T. (g \<circ> h') x = x"
+      by clarsimp (metis h'h hom homeomorphism_def)
+  qed
+  then show "\<exists>V. openin (subtopology euclidean U) V \<and> T retract_of V"
+    using opV by blast
+qed
+
+lemma ANR_eq_absolute_neighbourhood_extensor:
+  fixes S :: "'a::euclidean_space set"
+  shows "ANR S \<longleftrightarrow>
+         (\<forall>f :: 'a * real \<Rightarrow> 'a.
+          \<forall>U T. continuous_on T f \<longrightarrow> f ` T \<subseteq> S \<longrightarrow>
+                closedin (subtopology euclidean U) T \<longrightarrow>
+               (\<exists>V g. T \<subseteq> V \<and> openin (subtopology euclidean U) V \<and>
+                       continuous_on V g \<and> g ` V \<subseteq> S \<and> (\<forall>x \<in> T. g x = f x)))"
+apply (rule iffI)
+ apply (metis ANR_imp_absolute_neighbourhood_extensor)
+apply (simp add: absolute_neighbourhood_extensor_imp_ANR)
+done
+
+lemma ANR_imp_neighbourhood_retract:
+  fixes S :: "'a::euclidean_space set"
+  assumes "ANR S" "closedin (subtopology euclidean U) S"
+  obtains V where "openin (subtopology euclidean U) V" "S retract_of V"
+using ANR_imp_absolute_neighbourhood_retract assms homeomorphic_refl by blast
+
+lemma ANR_imp_absolute_closed_neighbourhood_retract:
+  fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
+  assumes "ANR S" "S homeomorphic S'" and US': "closedin (subtopology euclidean U) S'"
+  obtains V W
+    where "openin (subtopology euclidean U) V"
+          "closedin (subtopology euclidean U) W"
+          "S' \<subseteq> V" "V \<subseteq> W" "S' retract_of W"
+proof -
+  obtain Z where "openin (subtopology euclidean U) Z" and S'Z: "S' retract_of Z"
+    by (blast intro: assms ANR_imp_absolute_neighbourhood_retract)
+  then have UUZ: "closedin (subtopology euclidean U) (U - Z)"
+    by auto
+  have "S' \<inter> (U - Z) = {}"
+    using \<open>S' retract_of Z\<close> closedin_retract closedin_subtopology by fastforce
+  then obtain V W
+      where "openin (subtopology euclidean U) V"
+        and "openin (subtopology euclidean U) W"
+        and "S' \<subseteq> V" "U - Z \<subseteq> W" "V \<inter> W = {}"
+      using separation_normal_local [OF US' UUZ]  by auto
+  moreover have "S' retract_of U - W"
+    apply (rule retract_of_subset [OF S'Z])
+    using US' \<open>S' \<subseteq> V\<close> \<open>V \<inter> W = {}\<close> closedin_subset apply fastforce
+    using Diff_subset_conv \<open>U - Z \<subseteq> W\<close> by blast
+  ultimately show ?thesis
+    apply (rule_tac V=V and W = "U-W" in that)
+    using openin_imp_subset apply (force simp:)+
+    done
+qed
+
+lemma ANR_imp_closed_neighbourhood_retract:
+  fixes S :: "'a::euclidean_space set"
+  assumes "ANR S" "closedin (subtopology euclidean U) S"
+  obtains V W where "openin (subtopology euclidean U) V"
+                    "closedin (subtopology euclidean U) W"
+                    "S \<subseteq> V" "V \<subseteq> W" "S retract_of W"
+by (meson ANR_imp_absolute_closed_neighbourhood_retract assms homeomorphic_refl)
+
+lemma ANR_homeomorphic_ANR:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "ANR T" "S homeomorphic T"
+    shows "ANR S"
+unfolding ANR_def
+by (metis assms ANR_imp_absolute_neighbourhood_retract homeomorphic_trans [of _ S] homeomorphic_sym)
+
+lemma homeomorphic_ANR_iff_ANR:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  shows "S homeomorphic T \<Longrightarrow> ANR S \<longleftrightarrow> ANR T"
+by (metis ANR_homeomorphic_ANR homeomorphic_sym)
+
+subsection\<open> Analogous properties of ENRs.\<close>
+
+proposition ENR_imp_absolute_neighbourhood_retract:
+  fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
+  assumes "ENR S" and hom: "S homeomorphic S'"
+      and "S' \<subseteq> U"
+  obtains V where "openin (subtopology euclidean U) V" "S' retract_of V"
+proof -
+  obtain X where "open X" "S retract_of X"
+    using \<open>ENR S\<close> by (auto simp: ENR_def)
+  then obtain r where "retraction X S r"
+    by (auto simp: retract_of_def)
+  have "locally compact S'"
+    using retract_of_locally_compact open_imp_locally_compact
+          homeomorphic_local_compactness \<open>S retract_of X\<close> \<open>open X\<close> hom by blast
+  then obtain W where UW: "openin (subtopology euclidean U) W"
+                  and WS': "closedin (subtopology euclidean W) S'"
+    apply (rule locally_compact_closedin_open)
+    apply (rename_tac W)
+    apply (rule_tac W = "U \<inter> W" in that, blast)
+    by (simp add: \<open>S' \<subseteq> U\<close> closedin_limpt)
+  obtain f g where hom: "homeomorphism S S' f g"
+    using assms by (force simp: homeomorphic_def)
+  have contg: "continuous_on S' g"
+    using hom homeomorphism_def by blast
+  moreover have "g ` S' \<subseteq> S" by (metis hom equalityE homeomorphism_def)
+  ultimately obtain h where conth: "continuous_on W h" and hg: "\<And>x. x \<in> S' \<Longrightarrow> h x = g x"
+    using Tietze_unbounded [of S' g W] WS' by blast
+  have "W \<subseteq> U" using UW openin_open by auto
+  have "S' \<subseteq> W" using WS' closedin_closed by auto
+  have him: "\<And>x. x \<in> S' \<Longrightarrow> h x \<in> X"
+    by (metis (no_types) \<open>S retract_of X\<close> hg hom homeomorphism_def image_insert insert_absorb insert_iff retract_of_imp_subset subset_eq)
+  have "S' retract_of {x \<in> W. h x \<in> X}"
+  proof (simp add: retraction_def retract_of_def, intro exI conjI)
+    show "S' \<subseteq> {x \<in> W. h x \<in> X}"
+      using him WS' closedin_imp_subset by blast
+    show "continuous_on {x \<in> W. h x \<in> X} (f o r o h)"
+    proof (intro continuous_on_compose)
+      show "continuous_on {x \<in> W. h x \<in> X} h"
+        by (metis (no_types) Collect_restrict conth continuous_on_subset)
+      show "continuous_on (h ` {x \<in> W. h x \<in> X}) r"
+      proof -
+        have "h ` {b \<in> W. h b \<in> X} \<subseteq> X"
+          by blast
+        then show "continuous_on (h ` {b \<in> W. h b \<in> X}) r"
+          by (meson \<open>retraction X S r\<close> continuous_on_subset retraction)
+      qed
+      show "continuous_on (r ` h ` {x \<in> W. h x \<in> X}) f"
+        apply (rule continuous_on_subset [of S])
+         using hom homeomorphism_def apply blast
+        apply clarify
+        apply (meson \<open>retraction X S r\<close> subsetD imageI retraction_def)
+        done
+    qed
+    show "(f \<circ> r \<circ> h) ` {x \<in> W. h x \<in> X} \<subseteq> S'"
+      using \<open>retraction X S r\<close> hom
+      by (auto simp: retraction_def homeomorphism_def)
+    show "\<forall>x\<in>S'. (f \<circ> r \<circ> h) x = x"
+      using \<open>retraction X S r\<close> hom by (auto simp: retraction_def homeomorphism_def hg)
+  qed
+  then show ?thesis
+    apply (rule_tac V = "{x. x \<in> W \<and> h x \<in> X}" in that)
+     apply (rule openin_trans [OF _ UW])
+     using \<open>continuous_on W h\<close> \<open>open X\<close> continuous_openin_preimage_eq apply blast+
+     done
+qed
+
+corollary ENR_imp_absolute_neighbourhood_retract_UNIV:
+  fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
+  assumes "ENR S" "S homeomorphic S'"
+  obtains T' where "open T'" "S' retract_of T'"
+by (metis ENR_imp_absolute_neighbourhood_retract UNIV_I assms(1) assms(2) open_openin subsetI subtopology_UNIV)
+
+lemma ENR_homeomorphic_ENR:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "ENR T" "S homeomorphic T"
+    shows "ENR S"
+unfolding ENR_def
+by (meson ENR_imp_absolute_neighbourhood_retract_UNIV assms homeomorphic_sym)
+
+lemma homeomorphic_ENR_iff_ENR:
+  fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T"
+    shows "ENR S \<longleftrightarrow> ENR T"
+by (meson ENR_homeomorphic_ENR assms homeomorphic_sym)
+
+lemma ENR_translation:
+  fixes S :: "'a::euclidean_space set"
+  shows "ENR(image (\<lambda>x. a + x) S) \<longleftrightarrow> ENR S"
+by (meson homeomorphic_sym homeomorphic_translation homeomorphic_ENR_iff_ENR)
+
+lemma ENR_linear_image_eq:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "inj f"
+  shows "ENR (image f S) \<longleftrightarrow> ENR S"
+apply (rule homeomorphic_ENR_iff_ENR)
+using assms homeomorphic_sym linear_homeomorphic_image by auto
+
+subsection\<open>Some relations among the concepts\<close>
+
+text\<open>We also relate AR to being a retract of UNIV, which is often a more convenient proxy in the closed case.\<close>
+
+lemma AR_imp_ANR: "AR S \<Longrightarrow> ANR S"
+  using ANR_def AR_def by fastforce
+
+lemma ENR_imp_ANR:
+  fixes S :: "'a::euclidean_space set"
+  shows "ENR S \<Longrightarrow> ANR S"
+apply (simp add: ANR_def)
+by (metis ENR_imp_absolute_neighbourhood_retract closedin_imp_subset)
+
+lemma ENR_ANR:
+  fixes S :: "'a::euclidean_space set"
+  shows "ENR S \<longleftrightarrow> ANR S \<and> locally compact S"
+proof
+  assume "ENR S"
+  then have "locally compact S"
+    using ENR_def open_imp_locally_compact retract_of_locally_compact by auto
+  then show "ANR S \<and> locally compact S"
+    using ENR_imp_ANR \<open>ENR S\<close> by blast
+next
+  assume "ANR S \<and> locally compact S"
+  then have "ANR S" "locally compact S" by auto
+  then obtain T :: "('a * real) set" where "closed T" "S homeomorphic T"
+    using locally_compact_homeomorphic_closed
+    by (metis DIM_prod DIM_real Suc_eq_plus1 lessI)
+  then show "ENR S"
+    using \<open>ANR S\<close>
+    apply (simp add: ANR_def)
+    apply (drule_tac x=UNIV in spec)
+    apply (drule_tac x=T in spec)
+    apply (auto simp: closed_closedin)
+    apply (meson ENR_def ENR_homeomorphic_ENR open_openin)
+    done
+qed
+
+
+proposition AR_ANR:
+  fixes S :: "'a::euclidean_space set"
+  shows "AR S \<longleftrightarrow> ANR S \<and> contractible S \<and> S \<noteq> {}"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  obtain C and S' :: "('a * real) set"
+    where "convex C" "C \<noteq> {}" "closedin (subtopology euclidean C) S'" "S homeomorphic S'"
+      apply (rule homeomorphic_closedin_convex [of S, where 'n = "'a * real"])
+      using aff_dim_le_DIM [of S] by auto
+  with \<open>AR S\<close> have "contractible S"
+    apply (simp add: AR_def)
+    apply (drule_tac x=C in spec)
+    apply (drule_tac x="S'" in spec, simp)
+    using convex_imp_contractible homeomorphic_contractible_eq retract_of_contractible by fastforce
+  with \<open>AR S\<close> show ?rhs
+    apply (auto simp: AR_imp_ANR)
+    apply (force simp: AR_def)
+    done
+next
+  assume ?rhs
+  then obtain a and h:: "real \<times> 'a \<Rightarrow> 'a"
+      where conth: "continuous_on ({0..1} \<times> S) h"
+        and hS: "h ` ({0..1} \<times> S) \<subseteq> S"
+        and [simp]: "\<And>x. h(0, x) = x"
+        and [simp]: "\<And>x. h(1, x) = a"
+        and "ANR S" "S \<noteq> {}"
+    by (auto simp: contractible_def homotopic_with_def)
+  then have "a \<in> S"
+    by (metis all_not_in_conv atLeastAtMost_iff image_subset_iff mem_Sigma_iff order_refl zero_le_one)
+  have "\<exists>g. continuous_on W g \<and> g ` W \<subseteq> S \<and> (\<forall>x\<in>T. g x = f x)"
+         if      f: "continuous_on T f" "f ` T \<subseteq> S"
+            and WT: "closedin (subtopology euclidean W) T"
+         for W T and f :: "'a \<times> real \<Rightarrow> 'a"
+  proof -
+    obtain U g
+      where "T \<subseteq> U" and WU: "openin (subtopology euclidean W) U"
+        and contg: "continuous_on U g"
+        and "g ` U \<subseteq> S" and gf: "\<And>x. x \<in> T \<Longrightarrow> g x = f x"
+      using iffD1 [OF ANR_eq_absolute_neighbourhood_extensor \<open>ANR S\<close>, rule_format, OF f WT]
+      by auto
+    have WWU: "closedin (subtopology euclidean W) (W - U)"
+      using WU closedin_diff by fastforce
+    moreover have "(W - U) \<inter> T = {}"
+      using \<open>T \<subseteq> U\<close> by auto
+    ultimately obtain V V'
+      where WV': "openin (subtopology euclidean W) V'"
+        and WV: "openin (subtopology euclidean W) V"
+        and "W - U \<subseteq> V'" "T \<subseteq> V" "V' \<inter> V = {}"
+      using separation_normal_local [of W "W-U" T] WT by blast
+    then have WVT: "T \<inter> (W - V) = {}"
+      by auto
+    have WWV: "closedin (subtopology euclidean W) (W - V)"
+      using WV closedin_diff by fastforce
+    obtain j :: " 'a \<times> real \<Rightarrow> real"
+      where contj: "continuous_on W j"
+        and j:  "\<And>x. x \<in> W \<Longrightarrow> j x \<in> {0..1}"
+        and j0: "\<And>x. x \<in> W - V \<Longrightarrow> j x = 1"
+        and j1: "\<And>x. x \<in> T \<Longrightarrow> j x = 0"
+      by (rule Urysohn_local [OF WT WWV WVT, of 0 "1::real"]) (auto simp: in_segment)
+    have Weq: "W = (W - V) \<union> (W - V')"
+      using \<open>V' \<inter> V = {}\<close> by force
+    show ?thesis
+    proof (intro conjI exI)
+      have *: "continuous_on (W - V') (\<lambda>x. h (j x, g x))"
+        apply (rule continuous_on_compose2 [OF conth continuous_on_Pair])
+          apply (rule continuous_on_subset [OF contj Diff_subset])
+         apply (rule continuous_on_subset [OF contg])
+         apply (metis Diff_subset_conv Un_commute \<open>W - U \<subseteq> V'\<close>)
+        using j \<open>g ` U \<subseteq> S\<close> \<open>W - U \<subseteq> V'\<close> apply fastforce
+        done
+      show "continuous_on W (\<lambda>x. if x \<in> W - V then a else h (j x, g x))"
+        apply (subst Weq)
+        apply (rule continuous_on_cases_local)
+            apply (simp_all add: Weq [symmetric] WWV continuous_on_const *)
+          using WV' closedin_diff apply fastforce
+         apply (auto simp: j0 j1)
+        done
+    next
+      have "h (j (x, y), g (x, y)) \<in> S" if "(x, y) \<in> W" "(x, y) \<in> V" for x y
+      proof -
+        have "j(x, y) \<in> {0..1}"
+          using j that by blast
+        moreover have "g(x, y) \<in> S"
+          using \<open>V' \<inter> V = {}\<close> \<open>W - U \<subseteq> V'\<close> \<open>g ` U \<subseteq> S\<close> that by fastforce
+        ultimately show ?thesis
+          using hS by blast
+      qed
+      with \<open>a \<in> S\<close> \<open>g ` U \<subseteq> S\<close>
+      show "(\<lambda>x. if x \<in> W - V then a else h (j x, g x)) ` W \<subseteq> S"
+        by auto
+    next
+      show "\<forall>x\<in>T. (if x \<in> W - V then a else h (j x, g x)) = f x"
+        using \<open>T \<subseteq> V\<close> by (auto simp: j0 j1 gf)
+    qed
+  qed
+  then show ?lhs
+    by (simp add: AR_eq_absolute_extensor)
+qed
+
+
+lemma ANR_retract_of_ANR:
+  fixes S :: "'a::euclidean_space set"
+  assumes "ANR T" "S retract_of T"
+  shows "ANR S"
+using assms
+apply (simp add: ANR_eq_absolute_neighbourhood_extensor retract_of_def retraction_def)
+apply (clarsimp elim!: all_forward)
+apply (erule impCE, metis subset_trans)
+apply (clarsimp elim!: ex_forward)
+apply (rule_tac x="r o g" in exI)
+by (metis comp_apply continuous_on_compose continuous_on_subset subsetD imageI image_comp image_mono subset_trans)
+
+lemma AR_retract_of_AR:
+  fixes S :: "'a::euclidean_space set"
+  shows "\<lbrakk>AR T; S retract_of T\<rbrakk> \<Longrightarrow> AR S"
+using ANR_retract_of_ANR AR_ANR retract_of_contractible by fastforce
+
+lemma ENR_retract_of_ENR:
+   "\<lbrakk>ENR T; S retract_of T\<rbrakk> \<Longrightarrow> ENR S"
+by (meson ENR_def retract_of_trans)
+
+lemma retract_of_UNIV:
+  fixes S :: "'a::euclidean_space set"
+  shows "S retract_of UNIV \<longleftrightarrow> AR S \<and> closed S"
+by (metis AR_ANR AR_imp_retract ENR_def ENR_imp_ANR closed_UNIV closed_closedin contractible_UNIV empty_not_UNIV open_UNIV retract_of_closed retract_of_contractible retract_of_empty(1) subtopology_UNIV)
+
+lemma compact_AR [simp]:
+  fixes S :: "'a::euclidean_space set"
+  shows "compact S \<and> AR S \<longleftrightarrow> compact S \<and> S retract_of UNIV"
+using compact_imp_closed retract_of_UNIV by blast
+
+subsection\<open>More properties of ARs, ANRs and ENRs\<close>
+
+lemma not_AR_empty [simp]: "~ AR({})"
+  by (auto simp: AR_def)
+
+lemma ENR_empty [simp]: "ENR {}"
+  by (simp add: ENR_def)
+
+lemma ANR_empty [simp]: "ANR ({} :: 'a::euclidean_space set)"
+  by (simp add: ENR_imp_ANR)
+
+lemma convex_imp_AR:
+  fixes S :: "'a::euclidean_space set"
+  shows "\<lbrakk>convex S; S \<noteq> {}\<rbrakk> \<Longrightarrow> AR S"
+apply (rule absolute_extensor_imp_AR)
+apply (rule Dugundji, assumption+)
+by blast
+
+lemma convex_imp_ANR:
+  fixes S :: "'a::euclidean_space set"
+  shows "convex S \<Longrightarrow> ANR S"
+using ANR_empty AR_imp_ANR convex_imp_AR by blast
+
+lemma ENR_convex_closed:
+  fixes S :: "'a::euclidean_space set"
+  shows "\<lbrakk>closed S; convex S\<rbrakk> \<Longrightarrow> ENR S"
+using ENR_def ENR_empty convex_imp_AR retract_of_UNIV by blast
+
+lemma AR_UNIV [simp]: "AR (UNIV :: 'a::euclidean_space set)"
+  using retract_of_UNIV by auto
+
+lemma ANR_UNIV [simp]: "ANR (UNIV :: 'a::euclidean_space set)"
+  by (simp add: AR_imp_ANR)
+
+lemma ENR_UNIV [simp]:"ENR UNIV"
+  using ENR_def by blast
+
+lemma AR_singleton:
+    fixes a :: "'a::euclidean_space"
+    shows "AR {a}"
+  using retract_of_UNIV by blast
+
+lemma ANR_singleton:
+    fixes a :: "'a::euclidean_space"
+    shows "ANR {a}"
+  by (simp add: AR_imp_ANR AR_singleton)
+
+lemma ENR_singleton: "ENR {a}"
+  using ENR_def by blast
+
+subsection\<open>ARs closed under union\<close>
+
+lemma AR_closed_Un_local_aux:
+  fixes U :: "'a::euclidean_space set"
+  assumes "closedin (subtopology euclidean U) S"
+          "closedin (subtopology euclidean U) T"
+          "AR S" "AR T" "AR(S \<inter> T)"
+  shows "(S \<union> T) retract_of U"
+proof -
+  have "S \<inter> T \<noteq> {}"
+    using assms AR_def by fastforce
+  have "S \<subseteq> U" "T \<subseteq> U"
+    using assms by (auto simp: closedin_imp_subset)
+  define S' where "S' \<equiv> {x \<in> U. setdist {x} S \<le> setdist {x} T}"
+  define T' where "T' \<equiv> {x \<in> U. setdist {x} T \<le> setdist {x} S}"
+  define W  where "W \<equiv> {x \<in> U. setdist {x} S = setdist {x} T}"
+  have US': "closedin (subtopology euclidean U) S'"
+    using continuous_closedin_preimage [of U "\<lambda>x. setdist {x} S - setdist {x} T" "{..0}"]
+    by (simp add: S'_def continuous_intros)
+  have UT': "closedin (subtopology euclidean U) T'"
+    using continuous_closedin_preimage [of U "\<lambda>x. setdist {x} T - setdist {x} S" "{..0}"]
+    by (simp add: T'_def continuous_intros)
+  have "S \<subseteq> S'"
+    using S'_def \<open>S \<subseteq> U\<close> setdist_sing_in_set by fastforce
+  have "T \<subseteq> T'"
+    using T'_def \<open>T \<subseteq> U\<close> setdist_sing_in_set by fastforce
+  have "S \<inter> T \<subseteq> W" "W \<subseteq> U"
+    using \<open>S \<subseteq> U\<close> by (auto simp: W_def setdist_sing_in_set)
+  have "(S \<inter> T) retract_of W"
+    apply (rule AR_imp_absolute_retract [OF \<open>AR(S \<inter> T)\<close>])
+     apply (simp add: homeomorphic_refl)
+    apply (rule closedin_subset_trans [of U])
+    apply (simp_all add: assms closedin_Int \<open>S \<inter> T \<subseteq> W\<close> \<open>W \<subseteq> U\<close>)
+    done
+  then obtain r0
+    where "S \<inter> T \<subseteq> W" and contr0: "continuous_on W r0"
+      and "r0 ` W \<subseteq> S \<inter> T"
+      and r0 [simp]: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> r0 x = x"
+      by (auto simp: retract_of_def retraction_def)
+  have ST: "x \<in> W \<Longrightarrow> x \<in> S \<longleftrightarrow> x \<in> T" for x
+    using setdist_eq_0_closedin \<open>S \<inter> T \<noteq> {}\<close> assms
+    by (force simp: W_def setdist_sing_in_set)
+  have "S' \<inter> T' = W"
+    by (auto simp: S'_def T'_def W_def)
+  then have cloUW: "closedin (subtopology euclidean U) W"
+    using closedin_Int US' UT' by blast
+  define r where "r \<equiv> \<lambda>x. if x \<in> W then r0 x else x"
+  have "r ` (W \<union> S) \<subseteq> S" "r ` (W \<union> T) \<subseteq> T"
+    using \<open>r0 ` W \<subseteq> S \<inter> T\<close> r_def by auto
+  have contr: "continuous_on (W \<union> (S \<union> T)) r"
+  unfolding r_def
+  proof (rule continuous_on_cases_local [OF _ _ contr0 continuous_on_id])
+    show "closedin (subtopology euclidean (W \<union> (S \<union> T))) W"
+      using \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close> \<open>W \<subseteq> U\<close> \<open>closedin (subtopology euclidean U) W\<close> closedin_subset_trans by fastforce
+    show "closedin (subtopology euclidean (W \<union> (S \<union> T))) (S \<union> T)"
+      by (meson \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close> \<open>W \<subseteq> U\<close> assms closedin_Un closedin_subset_trans sup.bounded_iff sup.cobounded2)
+    show "\<And>x. x \<in> W \<and> x \<notin> W \<or> x \<in> S \<union> T \<and> x \<in> W \<Longrightarrow> r0 x = x"
+      by (auto simp: ST)
+  qed
+  have cloUWS: "closedin (subtopology euclidean U) (W \<union> S)"
+    by (simp add: cloUW assms closedin_Un)
+  obtain g where contg: "continuous_on U g"
+             and "g ` U \<subseteq> S" and geqr: "\<And>x. x \<in> W \<union> S \<Longrightarrow> g x = r x"
+    apply (rule AR_imp_absolute_extensor [OF \<open>AR S\<close> _ _ cloUWS])
+      apply (rule continuous_on_subset [OF contr])
+      using \<open>r ` (W \<union> S) \<subseteq> S\<close> apply auto
+    done
+  have cloUWT: "closedin (subtopology euclidean U) (W \<union> T)"
+    by (simp add: cloUW assms closedin_Un)
+  obtain h where conth: "continuous_on U h"
+             and "h ` U \<subseteq> T" and heqr: "\<And>x. x \<in> W \<union> T \<Longrightarrow> h x = r x"
+    apply (rule AR_imp_absolute_extensor [OF \<open>AR T\<close> _ _ cloUWT])
+      apply (rule continuous_on_subset [OF contr])
+      using \<open>r ` (W \<union> T) \<subseteq> T\<close> apply auto
+    done
+  have "U = S' \<union> T'"
+    by (force simp: S'_def T'_def)
+  then have cont: "continuous_on U (\<lambda>x. if x \<in> S' then g x else h x)"
+    apply (rule ssubst)
+    apply (rule continuous_on_cases_local)
+    using US' UT' \<open>S' \<inter> T' = W\<close> \<open>U = S' \<union> T'\<close>
+          contg conth continuous_on_subset geqr heqr apply auto
+    done
+  have UST: "(\<lambda>x. if x \<in> S' then g x else h x) ` U \<subseteq> S \<union> T"
+    using \<open>g ` U \<subseteq> S\<close> \<open>h ` U \<subseteq> T\<close> by auto
+  show ?thesis
+    apply (simp add: retract_of_def retraction_def \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close>)
+    apply (rule_tac x="\<lambda>x. if x \<in> S' then g x else h x" in exI)
+    apply (intro conjI cont UST)
+    by (metis IntI ST Un_iff \<open>S \<subseteq> S'\<close> \<open>S' \<inter> T' = W\<close> \<open>T \<subseteq> T'\<close> subsetD geqr heqr r0 r_def)
+qed
+
+
+proposition AR_closed_Un_local:
+  fixes S :: "'a::euclidean_space set"
+  assumes STS: "closedin (subtopology euclidean (S \<union> T)) S"
+      and STT: "closedin (subtopology euclidean (S \<union> T)) T"
+      and "AR S" "AR T" "AR(S \<inter> T)"
+    shows "AR(S \<union> T)"
+proof -
+  have "C retract_of U"
+       if hom: "S \<union> T homeomorphic C" and UC: "closedin (subtopology euclidean U) C"
+       for U and C :: "('a * real) set"
+  proof -
+    obtain f g where hom: "homeomorphism (S \<union> T) C f g"
+      using hom by (force simp: homeomorphic_def)
+    have US: "closedin (subtopology euclidean U) {x \<in> C. g x \<in> S}"
+      apply (rule closedin_trans [OF _ UC])
+      apply (rule continuous_closedin_preimage_gen [OF _ _ STS])
+      using hom homeomorphism_def apply blast
+      apply (metis hom homeomorphism_def set_eq_subset)
+      done
+    have UT: "closedin (subtopology euclidean U) {x \<in> C. g x \<in> T}"
+      apply (rule closedin_trans [OF _ UC])
+      apply (rule continuous_closedin_preimage_gen [OF _ _ STT])
+      using hom homeomorphism_def apply blast
+      apply (metis hom homeomorphism_def set_eq_subset)
+      done
+    have ARS: "AR {x \<in> C. g x \<in> S}"
+      apply (rule AR_homeomorphic_AR [OF \<open>AR S\<close>])
+      apply (simp add: homeomorphic_def)
+      apply (rule_tac x=g in exI)
+      apply (rule_tac x=f in exI)
+      using hom apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
+      apply (rule_tac x="f x" in image_eqI, auto)
+      done
+    have ART: "AR {x \<in> C. g x \<in> T}"
+      apply (rule AR_homeomorphic_AR [OF \<open>AR T\<close>])
+      apply (simp add: homeomorphic_def)
+      apply (rule_tac x=g in exI)
+      apply (rule_tac x=f in exI)
+      using hom apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
+      apply (rule_tac x="f x" in image_eqI, auto)
+      done
+    have ARI: "AR ({x \<in> C. g x \<in> S} \<inter> {x \<in> C. g x \<in> T})"
+      apply (rule AR_homeomorphic_AR [OF \<open>AR (S \<inter> T)\<close>])
+      apply (simp add: homeomorphic_def)
+      apply (rule_tac x=g in exI)
+      apply (rule_tac x=f in exI)
+      using hom
+      apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
+      apply (rule_tac x="f x" in image_eqI, auto)
+      done
+    have "C = {x \<in> C. g x \<in> S} \<union> {x \<in> C. g x \<in> T}"
+      using hom  by (auto simp: homeomorphism_def)
+    then show ?thesis
+      by (metis AR_closed_Un_local_aux [OF US UT ARS ART ARI])
+  qed
+  then show ?thesis
+    by (force simp: AR_def)
+qed
+
+corollary AR_closed_Un:
+  fixes S :: "'a::euclidean_space set"
+  shows "\<lbrakk>closed S; closed T; AR S; AR T; AR (S \<inter> T)\<rbrakk> \<Longrightarrow> AR (S \<union> T)"
+by (metis AR_closed_Un_local_aux closed_closedin retract_of_UNIV subtopology_UNIV)
+
+subsection\<open>ANRs closed under union\<close>
+
+lemma ANR_closed_Un_local_aux:
+  fixes U :: "'a::euclidean_space set"
+  assumes US: "closedin (subtopology euclidean U) S"
+      and UT: "closedin (subtopology euclidean U) T"
+      and "ANR S" "ANR T" "ANR(S \<inter> T)"
+  obtains V where "openin (subtopology euclidean U) V" "(S \<union> T) retract_of V"
+proof (cases "S = {} \<or> T = {}")
+  case True with assms that show ?thesis
+    by (auto simp: intro: ANR_imp_neighbourhood_retract)
+next
+  case False
+  then have [simp]: "S \<noteq> {}" "T \<noteq> {}" by auto
+  have "S \<subseteq> U" "T \<subseteq> U"
+    using assms by (auto simp: closedin_imp_subset)
+  define S' where "S' \<equiv> {x \<in> U. setdist {x} S \<le> setdist {x} T}"
+  define T' where "T' \<equiv> {x \<in> U. setdist {x} T \<le> setdist {x} S}"
+  define W  where "W \<equiv> {x \<in> U. setdist {x} S = setdist {x} T}"
+  have cloUS': "closedin (subtopology euclidean U) S'"
+    using continuous_closedin_preimage [of U "\<lambda>x. setdist {x} S - setdist {x} T" "{..0}"]
+    by (simp add: S'_def continuous_intros)
+  have cloUT': "closedin (subtopology euclidean U) T'"
+    using continuous_closedin_preimage [of U "\<lambda>x. setdist {x} T - setdist {x} S" "{..0}"]
+    by (simp add: T'_def continuous_intros)
+  have "S \<subseteq> S'"
+    using S'_def \<open>S \<subseteq> U\<close> setdist_sing_in_set by fastforce
+  have "T \<subseteq> T'"
+    using T'_def \<open>T \<subseteq> U\<close> setdist_sing_in_set by fastforce
+  have "S' \<union> T' = U"
+    by (auto simp: S'_def T'_def)
+  have "W \<subseteq> S'"
+    by (simp add: Collect_mono S'_def W_def)
+  have "W \<subseteq> T'"
+    by (simp add: Collect_mono T'_def W_def)
+  have ST_W: "S \<inter> T \<subseteq> W" and "W \<subseteq> U"
+    using \<open>S \<subseteq> U\<close> by (force simp: W_def setdist_sing_in_set)+
+  have "S' \<inter> T' = W"
+    by (auto simp: S'_def T'_def W_def)
+  then have cloUW: "closedin (subtopology euclidean U) W"
+    using closedin_Int cloUS' cloUT' by blast
+  obtain W' W0 where "openin (subtopology euclidean W) W'"
+                 and cloWW0: "closedin (subtopology euclidean W) W0"
+                 and "S \<inter> T \<subseteq> W'" "W' \<subseteq> W0"
+                 and ret: "(S \<inter> T) retract_of W0"
+    apply (rule ANR_imp_closed_neighbourhood_retract [OF \<open>ANR(S \<inter> T)\<close>])
+    apply (rule closedin_subset_trans [of U, OF _ ST_W \<open>W \<subseteq> U\<close>])
+    apply (blast intro: assms)+
+    done
+  then obtain U0 where opeUU0: "openin (subtopology euclidean U) U0"
+                   and U0: "S \<inter> T \<subseteq> U0" "U0 \<inter> W \<subseteq> W0"
+    unfolding openin_open  using \<open>W \<subseteq> U\<close> by blast
+  have "W0 \<subseteq> U"
+    using \<open>W \<subseteq> U\<close> cloWW0 closedin_subset by fastforce
+  obtain r0
+    where "S \<inter> T \<subseteq> W0" and contr0: "continuous_on W0 r0" and "r0 ` W0 \<subseteq> S \<inter> T"
+      and r0 [simp]: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> r0 x = x"
+    using ret  by (force simp add: retract_of_def retraction_def)
+  have ST: "x \<in> W \<Longrightarrow> x \<in> S \<longleftrightarrow> x \<in> T" for x
+    using assms by (auto simp: W_def setdist_sing_in_set dest!: setdist_eq_0_closedin)
+  define r where "r \<equiv> \<lambda>x. if x \<in> W0 then r0 x else x"
+  have "r ` (W0 \<union> S) \<subseteq> S" "r ` (W0 \<union> T) \<subseteq> T"
+    using \<open>r0 ` W0 \<subseteq> S \<inter> T\<close> r_def by auto
+  have contr: "continuous_on (W0 \<union> (S \<union> T)) r"
+  unfolding r_def
+  proof (rule continuous_on_cases_local [OF _ _ contr0 continuous_on_id])
+    show "closedin (subtopology euclidean (W0 \<union> (S \<union> T))) W0"
+      apply (rule closedin_subset_trans [of U])
+      using cloWW0 cloUW closedin_trans \<open>W0 \<subseteq> U\<close> \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close> apply blast+
+      done
+    show "closedin (subtopology euclidean (W0 \<union> (S \<union> T))) (S \<union> T)"
+      by (meson \<open>S \<subseteq> U\<close> \<open>T \<subseteq> U\<close> \<open>W0 \<subseteq> U\<close> assms closedin_Un closedin_subset_trans sup.bounded_iff sup.cobounded2)
+    show "\<And>x. x \<in> W0 \<and> x \<notin> W0 \<or> x \<in> S \<union> T \<and> x \<in> W0 \<Longrightarrow> r0 x = x"
+      using ST cloWW0 closedin_subset by fastforce
+  qed
+  have cloS'WS: "closedin (subtopology euclidean S') (W0 \<union> S)"
+    by (meson closedin_subset_trans US cloUS' \<open>S \<subseteq> S'\<close> \<open>W \<subseteq> S'\<close> cloUW cloWW0 
+              closedin_Un closedin_imp_subset closedin_trans)
+  obtain W1 g where "W0 \<union> S \<subseteq> W1" and contg: "continuous_on W1 g"
+                and opeSW1: "openin (subtopology euclidean S') W1"
+                and "g ` W1 \<subseteq> S" and geqr: "\<And>x. x \<in> W0 \<union> S \<Longrightarrow> g x = r x"
+    apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> _ \<open>r ` (W0 \<union> S) \<subseteq> S\<close> cloS'WS])
+     apply (rule continuous_on_subset [OF contr])
+    apply (blast intro:  elim: )+
+    done
+  have cloT'WT: "closedin (subtopology euclidean T') (W0 \<union> T)"
+    by (meson closedin_subset_trans UT cloUT' \<open>T \<subseteq> T'\<close> \<open>W \<subseteq> T'\<close> cloUW cloWW0 
+              closedin_Un closedin_imp_subset closedin_trans)
+  obtain W2 h where "W0 \<union> T \<subseteq> W2" and conth: "continuous_on W2 h"
+                and opeSW2: "openin (subtopology euclidean T') W2"
+                and "h ` W2 \<subseteq> T" and heqr: "\<And>x. x \<in> W0 \<union> T \<Longrightarrow> h x = r x"
+    apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR T\<close> _ \<open>r ` (W0 \<union> T) \<subseteq> T\<close> cloT'WT])
+     apply (rule continuous_on_subset [OF contr])
+    apply (blast intro:  elim: )+
+    done
+  have "S' \<inter> T' = W"
+    by (force simp: S'_def T'_def W_def)
+  obtain O1 O2 where "open O1" "W1 = S' \<inter> O1" "open O2" "W2 = T' \<inter> O2"
+    using opeSW1 opeSW2 by (force simp add: openin_open)
+  show ?thesis
+  proof
+    have eq: "W1 - (W - U0) \<union> (W2 - (W - U0)) =
+         ((U - T') \<inter> O1 \<union> (U - S') \<inter> O2 \<union> U \<inter> O1 \<inter> O2) - (W - U0)"
+     using \<open>U0 \<inter> W \<subseteq> W0\<close> \<open>W0 \<union> S \<subseteq> W1\<close> \<open>W0 \<union> T \<subseteq> W2\<close>
+      by (auto simp: \<open>S' \<union> T' = U\<close> [symmetric] \<open>S' \<inter> T' = W\<close> [symmetric] \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close>)
+    show "openin (subtopology euclidean U) (W1 - (W - U0) \<union> (W2 - (W - U0)))"
+      apply (subst eq)
+      apply (intro openin_Un openin_Int_open openin_diff closedin_diff cloUW opeUU0 cloUS' cloUT' \<open>open O1\<close> \<open>open O2\<close>)
+      apply simp_all
+      done
+    have cloW1: "closedin (subtopology euclidean (W1 - (W - U0) \<union> (W2 - (W - U0)))) (W1 - (W - U0))"
+      using cloUS' apply (simp add: closedin_closed)
+      apply (erule ex_forward)
+      using U0 \<open>W0 \<union> S \<subseteq> W1\<close>
+      apply (auto simp add: \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close> \<open>S' \<union> T' = U\<close> [symmetric]\<open>S' \<inter> T' = W\<close> [symmetric])
+      done
+    have cloW2: "closedin (subtopology euclidean (W1 - (W - U0) \<union> (W2 - (W - U0)))) (W2 - (W - U0))"
+      using cloUT' apply (simp add: closedin_closed)
+      apply (erule ex_forward)
+      using U0 \<open>W0 \<union> T \<subseteq> W2\<close>
+      apply (auto simp add: \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close> \<open>S' \<union> T' = U\<close> [symmetric]\<open>S' \<inter> T' = W\<close> [symmetric])
+      done
+    have *: "\<forall>x\<in>S \<union> T. (if x \<in> S' then g x else h x) = x"
+      using ST \<open>S' \<inter> T' = W\<close> cloT'WT closedin_subset geqr heqr 
+      apply (auto simp: r_def)
+       apply fastforce
+      using \<open>S \<subseteq> S'\<close> \<open>T \<subseteq> T'\<close> \<open>W0 \<union> S \<subseteq> W1\<close> \<open>W1 = S' \<inter> O1\<close>  by auto
+    have "\<exists>r. continuous_on (W1 - (W - U0) \<union> (W2 - (W - U0))) r \<and>
+              r ` (W1 - (W - U0) \<union> (W2 - (W - U0))) \<subseteq> S \<union> T \<and> 
+              (\<forall>x\<in>S \<union> T. r x = x)"
+      apply (rule_tac x = "\<lambda>x. if  x \<in> S' then g x else h x" in exI)
+      apply (intro conjI *)
+      apply (rule continuous_on_cases_local 
+                  [OF cloW1 cloW2 continuous_on_subset [OF contg] continuous_on_subset [OF conth]])
+      using \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close> \<open>S' \<inter> T' = W\<close>
+            \<open>g ` W1 \<subseteq> S\<close> \<open>h ` W2 \<subseteq> T\<close> apply auto
+      using \<open>U0 \<inter> W \<subseteq> W0\<close> \<open>W0 \<union> S \<subseteq> W1\<close> apply (fastforce simp add: geqr heqr)+
+      done
+    then show "S \<union> T retract_of W1 - (W - U0) \<union> (W2 - (W - U0))"
+      using  \<open>W0 \<union> S \<subseteq> W1\<close> \<open>W0 \<union> T \<subseteq> W2\<close> ST opeUU0 U0
+      by (auto simp add: retract_of_def retraction_def)
+  qed
+qed
+
+
+proposition ANR_closed_Un_local:
+  fixes S :: "'a::euclidean_space set"
+  assumes STS: "closedin (subtopology euclidean (S \<union> T)) S"
+      and STT: "closedin (subtopology euclidean (S \<union> T)) T"
+      and "ANR S" "ANR T" "ANR(S \<inter> T)" 
+    shows "ANR(S \<union> T)"
+proof -
+  have "\<exists>T. openin (subtopology euclidean U) T \<and> C retract_of T"
+       if hom: "S \<union> T homeomorphic C" and UC: "closedin (subtopology euclidean U) C"
+       for U and C :: "('a * real) set"
+  proof -
+    obtain f g where hom: "homeomorphism (S \<union> T) C f g"
+      using hom by (force simp: homeomorphic_def)
+    have US: "closedin (subtopology euclidean U) {x \<in> C. g x \<in> S}"
+      apply (rule closedin_trans [OF _ UC])
+      apply (rule continuous_closedin_preimage_gen [OF _ _ STS])
+      using hom [unfolded homeomorphism_def] apply blast
+      apply (metis hom homeomorphism_def set_eq_subset)
+      done
+    have UT: "closedin (subtopology euclidean U) {x \<in> C. g x \<in> T}"
+      apply (rule closedin_trans [OF _ UC])
+      apply (rule continuous_closedin_preimage_gen [OF _ _ STT])
+      using hom [unfolded homeomorphism_def] apply blast
+      apply (metis hom homeomorphism_def set_eq_subset)
+      done
+    have ANRS: "ANR {x \<in> C. g x \<in> S}"
+      apply (rule ANR_homeomorphic_ANR [OF \<open>ANR S\<close>])
+      apply (simp add: homeomorphic_def)
+      apply (rule_tac x=g in exI)
+      apply (rule_tac x=f in exI)
+      using hom apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
+      apply (rule_tac x="f x" in image_eqI, auto)
+      done
+    have ANRT: "ANR {x \<in> C. g x \<in> T}"
+      apply (rule ANR_homeomorphic_ANR [OF \<open>ANR T\<close>])
+      apply (simp add: homeomorphic_def)
+      apply (rule_tac x=g in exI)
+      apply (rule_tac x=f in exI)
+      using hom apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
+      apply (rule_tac x="f x" in image_eqI, auto)
+      done
+    have ANRI: "ANR ({x \<in> C. g x \<in> S} \<inter> {x \<in> C. g x \<in> T})"
+      apply (rule ANR_homeomorphic_ANR [OF \<open>ANR (S \<inter> T)\<close>])
+      apply (simp add: homeomorphic_def)
+      apply (rule_tac x=g in exI)
+      apply (rule_tac x=f in exI)
+      using hom
+      apply (auto simp: homeomorphism_def elim!: continuous_on_subset)
+      apply (rule_tac x="f x" in image_eqI, auto)
+      done
+    have "C = {x. x \<in> C \<and> g x \<in> S} \<union> {x. x \<in> C \<and> g x \<in> T}"
+      by auto (metis Un_iff hom homeomorphism_def imageI)
+    then show ?thesis
+      by (metis ANR_closed_Un_local_aux [OF US UT ANRS ANRT ANRI])
+  qed
+  then show ?thesis
+    by (auto simp: ANR_def)
+qed    
+
+corollary ANR_closed_Un:
+  fixes S :: "'a::euclidean_space set"
+  shows "\<lbrakk>closed S; closed T; ANR S; ANR T; ANR (S \<inter> T)\<rbrakk> \<Longrightarrow> ANR (S \<union> T)"
+by (simp add: ANR_closed_Un_local closedin_def diff_eq open_Compl openin_open_Int)
 
 end

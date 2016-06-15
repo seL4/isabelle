@@ -5,7 +5,7 @@
 section \<open>Continuous paths and path-connected sets\<close>
 
 theory Path_Connected
-imports Convex_Euclidean_Space
+imports Extension
 begin
 
 subsection \<open>Paths and Arcs\<close>
@@ -5762,5 +5762,252 @@ lemma homeomorphic_simply_connected:
 lemma homeomorphic_simply_connected_eq:
     "S homeomorphic T \<Longrightarrow> (simply_connected S \<longleftrightarrow> simply_connected T)"
   by (metis homeomorphic_simply_connected homeomorphic_sym)
+
+subsection\<open>Homotopy equivalence\<close>
+
+definition homotopy_eqv :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
+             (infix "homotopy'_eqv" 50)
+  where "S homotopy_eqv T \<equiv>
+        \<exists>f g. continuous_on S f \<and> f ` S \<subseteq> T \<and>
+              continuous_on T g \<and> g ` T \<subseteq> S \<and>
+              homotopic_with (\<lambda>x. True) S S (g o f) id \<and>
+              homotopic_with (\<lambda>x. True) T T (f o g) id"
+
+lemma homeomorphic_imp_homotopy_eqv: "S homeomorphic T \<Longrightarrow> S homotopy_eqv T"
+  unfolding homeomorphic_def homotopy_eqv_def homeomorphism_def
+  by (fastforce intro!: homotopic_with_equal continuous_on_compose)
+
+lemma homotopy_eqv_refl: "S homotopy_eqv S"
+  by (rule homeomorphic_imp_homotopy_eqv homeomorphic_refl)+
+
+lemma homotopy_eqv_sym: "S homotopy_eqv T \<longleftrightarrow> T homotopy_eqv S"
+  by (auto simp: homotopy_eqv_def)
+
+lemma homotopy_eqv_trans [trans]:
+    fixes S :: "'a::real_normed_vector set" and U :: "'c::real_normed_vector set"
+  assumes ST: "S homotopy_eqv T" and TU: "T homotopy_eqv U"
+    shows "S homotopy_eqv U"
+proof -
+  obtain f1 g1 where f1: "continuous_on S f1" "f1 ` S \<subseteq> T"
+                 and g1: "continuous_on T g1" "g1 ` T \<subseteq> S"
+                 and hom1: "homotopic_with (\<lambda>x. True) S S (g1 o f1) id"
+                           "homotopic_with (\<lambda>x. True) T T (f1 o g1) id"
+    using ST by (auto simp: homotopy_eqv_def)
+  obtain f2 g2 where f2: "continuous_on T f2" "f2 ` T \<subseteq> U"
+                 and g2: "continuous_on U g2" "g2 ` U \<subseteq> T"
+                 and hom2: "homotopic_with (\<lambda>x. True) T T (g2 o f2) id"
+                           "homotopic_with (\<lambda>x. True) U U (f2 o g2) id"
+    using TU by (auto simp: homotopy_eqv_def)
+  have "homotopic_with (\<lambda>f. True) S T (g2 \<circ> f2 \<circ> f1) (id \<circ> f1)"
+    by (rule homotopic_with_compose_continuous_right hom2 f1)+
+  then have "homotopic_with (\<lambda>f. True) S T (g2 \<circ> (f2 \<circ> f1)) (id \<circ> f1)"
+    by (simp add: o_assoc)
+  then have "homotopic_with (\<lambda>x. True) S S
+         (g1 \<circ> (g2 \<circ> (f2 \<circ> f1))) (g1 o (id o f1))"
+    by (simp add: g1 homotopic_with_compose_continuous_left)
+  moreover have "homotopic_with (\<lambda>x. True) S S (g1 o id o f1) id"
+    using hom1 by simp
+  ultimately have SS: "homotopic_with (\<lambda>x. True) S S (g1 \<circ> g2 \<circ> (f2 \<circ> f1)) id"
+    apply (simp add: o_assoc)
+    apply (blast intro: homotopic_with_trans)
+    done
+  have "homotopic_with (\<lambda>f. True) U T (f1 \<circ> g1 \<circ> g2) (id \<circ> g2)"
+    by (rule homotopic_with_compose_continuous_right hom1 g2)+
+  then have "homotopic_with (\<lambda>f. True) U T (f1 \<circ> (g1 \<circ> g2)) (id \<circ> g2)"
+    by (simp add: o_assoc)
+  then have "homotopic_with (\<lambda>x. True) U U
+         (f2 \<circ> (f1 \<circ> (g1 \<circ> g2))) (f2 o (id o g2))"
+    by (simp add: f2 homotopic_with_compose_continuous_left)
+  moreover have "homotopic_with (\<lambda>x. True) U U (f2 o id o g2) id"
+    using hom2 by simp
+  ultimately have UU: "homotopic_with (\<lambda>x. True) U U (f2 \<circ> f1 \<circ> (g1 \<circ> g2)) id"
+    apply (simp add: o_assoc)
+    apply (blast intro: homotopic_with_trans)
+    done
+  show ?thesis
+    unfolding homotopy_eqv_def
+    apply (rule_tac x = "f2 \<circ> f1" in exI)
+    apply (rule_tac x = "g1 \<circ> g2" in exI)
+    apply (intro conjI continuous_on_compose SS UU)
+    using f1 f2 g1 g2  apply (force simp: elim!: continuous_on_subset)+
+    done
+qed
+
+lemma homotopy_eqv_inj_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "inj f"
+    shows "(f ` S) homotopy_eqv S"
+apply (rule homeomorphic_imp_homotopy_eqv)
+using assms homeomorphic_sym linear_homeomorphic_image by auto
+
+lemma homotopy_eqv_translation:
+    fixes S :: "'a::real_normed_vector set"
+    shows "op + a ` S homotopy_eqv S"
+  apply (rule homeomorphic_imp_homotopy_eqv)
+  using homeomorphic_translation homeomorphic_sym by blast
+
+lemma homotopy_eqv_homotopic_triviality_imp:
+  fixes S :: "'a::real_normed_vector set"
+    and T :: "'b::real_normed_vector set"
+    and U :: "'c::real_normed_vector set"
+  assumes "S homotopy_eqv T"
+      and f: "continuous_on U f" "f ` U \<subseteq> T"
+      and g: "continuous_on U g" "g ` U \<subseteq> T"
+      and homUS: "\<And>f g. \<lbrakk>continuous_on U f; f ` U \<subseteq> S;
+                         continuous_on U g; g ` U \<subseteq> S\<rbrakk>
+                         \<Longrightarrow> homotopic_with (\<lambda>x. True) U S f g"
+    shows "homotopic_with (\<lambda>x. True) U T f g"
+proof -
+  obtain h k where h: "continuous_on S h" "h ` S \<subseteq> T"
+               and k: "continuous_on T k" "k ` T \<subseteq> S"
+               and hom: "homotopic_with (\<lambda>x. True) S S (k o h) id"
+                        "homotopic_with (\<lambda>x. True) T T (h o k) id"
+    using assms by (auto simp: homotopy_eqv_def)
+  have "homotopic_with (\<lambda>f. True) U S (k \<circ> f) (k \<circ> g)"
+    apply (rule homUS)
+    using f g k
+    apply (safe intro!: continuous_on_compose h k f elim!: continuous_on_subset)
+    apply (force simp: o_def)+
+    done
+  then have "homotopic_with (\<lambda>x. True) U T (h o (k o f)) (h o (k o g))"
+    apply (rule homotopic_with_compose_continuous_left)
+    apply (simp_all add: h)
+    done
+  moreover have "homotopic_with (\<lambda>x. True) U T (h o k o f) (id o f)"
+    apply (rule homotopic_with_compose_continuous_right [where X=T and Y=T])
+    apply (auto simp: hom f)
+    done
+  moreover have "homotopic_with (\<lambda>x. True) U T (h o k o g) (id o g)"
+    apply (rule homotopic_with_compose_continuous_right [where X=T and Y=T])
+    apply (auto simp: hom g)
+    done
+  ultimately show "homotopic_with (\<lambda>x. True) U T f g"
+    apply (simp add: o_assoc)
+    using homotopic_with_trans homotopic_with_sym by blast
+qed
+
+lemma homotopy_eqv_homotopic_triviality:
+  fixes S :: "'a::real_normed_vector set"
+    and T :: "'b::real_normed_vector set"
+    and U :: "'c::real_normed_vector set"
+  assumes "S homotopy_eqv T"
+    shows "(\<forall>f g. continuous_on U f \<and> f ` U \<subseteq> S \<and>
+                   continuous_on U g \<and> g ` U \<subseteq> S
+                   \<longrightarrow> homotopic_with (\<lambda>x. True) U S f g) \<longleftrightarrow>
+           (\<forall>f g. continuous_on U f \<and> f ` U \<subseteq> T \<and>
+                  continuous_on U g \<and> g ` U \<subseteq> T
+                  \<longrightarrow> homotopic_with (\<lambda>x. True) U T f g)"
+apply (rule iffI)
+apply (metis assms homotopy_eqv_homotopic_triviality_imp)
+by (metis (no_types) assms homotopy_eqv_homotopic_triviality_imp homotopy_eqv_sym)
+
+
+lemma homotopy_eqv_cohomotopic_triviality_null_imp:
+  fixes S :: "'a::real_normed_vector set"
+    and T :: "'b::real_normed_vector set"
+    and U :: "'c::real_normed_vector set"
+  assumes "S homotopy_eqv T"
+      and f: "continuous_on T f" "f ` T \<subseteq> U"
+      and homSU: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> U\<rbrakk>
+                      \<Longrightarrow> \<exists>c. homotopic_with (\<lambda>x. True) S U f (\<lambda>x. c)"
+  obtains c where "homotopic_with (\<lambda>x. True) T U f (\<lambda>x. c)"
+proof -
+  obtain h k where h: "continuous_on S h" "h ` S \<subseteq> T"
+               and k: "continuous_on T k" "k ` T \<subseteq> S"
+               and hom: "homotopic_with (\<lambda>x. True) S S (k o h) id"
+                        "homotopic_with (\<lambda>x. True) T T (h o k) id"
+    using assms by (auto simp: homotopy_eqv_def)
+  obtain c where "homotopic_with (\<lambda>x. True) S U (f \<circ> h) (\<lambda>x. c)"
+    apply (rule exE [OF homSU [of "f \<circ> h"]])
+    apply (intro continuous_on_compose h)
+    using h f  apply (force elim!: continuous_on_subset)+
+    done
+  then have "homotopic_with (\<lambda>x. True) T U ((f o h) o k) ((\<lambda>x. c) o k)"
+    apply (rule homotopic_with_compose_continuous_right [where X=S])
+    using k by auto
+  moreover have "homotopic_with (\<lambda>x. True) T U (f \<circ> id) (f \<circ> (h \<circ> k))"
+    apply (rule homotopic_with_compose_continuous_left [where Y=T])
+      apply (simp add: hom homotopic_with_symD)
+     using f apply auto
+    done
+  ultimately show ?thesis
+    apply (rule_tac c=c in that)
+    apply (simp add: o_def)
+    using homotopic_with_trans by blast
+qed
+
+lemma homotopy_eqv_cohomotopic_triviality_null:
+  fixes S :: "'a::real_normed_vector set"
+    and T :: "'b::real_normed_vector set"
+    and U :: "'c::real_normed_vector set"
+  assumes "S homotopy_eqv T"
+    shows "(\<forall>f. continuous_on S f \<and> f ` S \<subseteq> U
+                \<longrightarrow> (\<exists>c. homotopic_with (\<lambda>x. True) S U f (\<lambda>x. c))) \<longleftrightarrow>
+           (\<forall>f. continuous_on T f \<and> f ` T \<subseteq> U
+                \<longrightarrow> (\<exists>c. homotopic_with (\<lambda>x. True) T U f (\<lambda>x. c)))"
+apply (rule iffI)
+apply (metis assms homotopy_eqv_cohomotopic_triviality_null_imp)
+by (metis assms homotopy_eqv_cohomotopic_triviality_null_imp homotopy_eqv_sym)
+
+
+lemma homotopy_eqv_contractible_sets:
+  fixes S :: "'a::real_normed_vector set"
+    and T :: "'b::real_normed_vector set"
+  assumes "contractible S" "contractible T" "S = {} \<longleftrightarrow> T = {}"
+    shows "S homotopy_eqv T"
+proof (cases "S = {}")
+  case True with assms show ?thesis
+    by (simp add: homeomorphic_imp_homotopy_eqv)
+next
+  case False
+  with assms obtain a b where "a \<in> S" "b \<in> T"
+    by auto
+  then show ?thesis
+    unfolding homotopy_eqv_def
+    apply (rule_tac x="\<lambda>x. b" in exI)
+    apply (rule_tac x="\<lambda>x. a" in exI)
+    apply (intro assms conjI continuous_on_id' homotopic_into_contractible)
+    apply (auto simp: o_def continuous_on_const)
+    done
+qed
+
+lemma homotopy_eqv_empty1 [simp]:
+  fixes S :: "'a::real_normed_vector set"
+  shows "S homotopy_eqv ({}::'b::real_normed_vector set) \<longleftrightarrow> S = {}"
+apply (rule iffI)
+using homotopy_eqv_def apply fastforce
+by (simp add: homotopy_eqv_contractible_sets contractible_empty)
+
+lemma homotopy_eqv_empty2 [simp]:
+  fixes S :: "'a::real_normed_vector set"
+  shows "({}::'b::real_normed_vector set) homotopy_eqv S \<longleftrightarrow> S = {}"
+by (metis homotopy_eqv_empty1 homotopy_eqv_sym)
+
+lemma homotopy_eqv_contractibility:
+  fixes S :: "'a::real_normed_vector set" and T :: "'b::real_normed_vector set"
+  shows "S homotopy_eqv T \<Longrightarrow> (contractible S \<longleftrightarrow> contractible T)"
+unfolding homotopy_eqv_def
+by (blast intro: homotopy_dominated_contractibility)
+
+lemma homotopy_eqv_sing:
+  fixes S :: "'a::real_normed_vector set" and a :: "'b::real_normed_vector"
+  shows "S homotopy_eqv {a} \<longleftrightarrow> S \<noteq> {} \<and> contractible S"
+proof (cases "S = {}")
+  case True then show ?thesis
+    by simp
+next
+  case False then show ?thesis
+    by (metis contractible_sing empty_not_insert homotopy_eqv_contractibility homotopy_eqv_contractible_sets)
+qed
+
+lemma homeomorphic_contractible_eq:
+  fixes S :: "'a::real_normed_vector set" and T :: "'b::real_normed_vector set"
+  shows "S homeomorphic T \<Longrightarrow> (contractible S \<longleftrightarrow> contractible T)"
+by (simp add: homeomorphic_imp_homotopy_eqv homotopy_eqv_contractibility)
+
+lemma homeomorphic_contractible:
+  fixes S :: "'a::real_normed_vector set" and T :: "'b::real_normed_vector set"
+  shows "\<lbrakk>contractible S; S homeomorphic T\<rbrakk> \<Longrightarrow> contractible T"
+by (metis homeomorphic_contractible_eq)
 
 end

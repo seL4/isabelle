@@ -15,6 +15,157 @@ imports
   Norm_Arith
 begin
 
+
+(*FIXME: move elsewhere and use the existing locales*)
+
+subsection \<open>Using additivity of lifted function to encode definedness.\<close>
+
+definition "neutral opp = (SOME x. \<forall>y. opp x y = y \<and> opp y x = y)"
+
+fun lifted where
+  "lifted (opp :: 'a \<Rightarrow> 'a \<Rightarrow> 'b) (Some x) (Some y) = Some (opp x y)"
+| "lifted opp None _ = (None::'b option)"
+| "lifted opp _ None = None"
+
+lemma lifted_simp_1[simp]: "lifted opp v None = None"
+  by (induct v) auto
+
+definition "monoidal opp \<longleftrightarrow>
+  (\<forall>x y. opp x y = opp y x) \<and>
+  (\<forall>x y z. opp x (opp y z) = opp (opp x y) z) \<and>
+  (\<forall>x. opp (neutral opp) x = x)"
+
+lemma monoidalI:
+  assumes "\<And>x y. opp x y = opp y x"
+    and "\<And>x y z. opp x (opp y z) = opp (opp x y) z"
+    and "\<And>x. opp (neutral opp) x = x"
+  shows "monoidal opp"
+  unfolding monoidal_def using assms by fastforce
+
+lemma monoidal_ac:
+  assumes "monoidal opp"
+  shows [simp]: "opp (neutral opp) a = a"
+    and [simp]: "opp a (neutral opp) = a"
+    and "opp a b = opp b a"
+    and "opp (opp a b) c = opp a (opp b c)"
+    and "opp a (opp b c) = opp b (opp a c)"
+  using assms unfolding monoidal_def by metis+
+
+lemma neutral_lifted [cong]:
+  assumes "monoidal opp"
+  shows "neutral (lifted opp) = Some (neutral opp)"
+proof -
+  { fix x
+    assume "\<forall>y. lifted opp x y = y \<and> lifted opp y x = y"
+    then have "Some (neutral opp) = x"
+      apply (induct x)
+      apply force
+      by (metis assms lifted.simps(1) monoidal_ac(2) option.inject) }
+  note [simp] = this
+  show ?thesis
+    apply (subst neutral_def)
+    apply (intro some_equality allI)
+    apply (induct_tac y)
+    apply (auto simp add:monoidal_ac[OF assms])
+    done
+qed
+
+lemma monoidal_lifted[intro]:
+  assumes "monoidal opp"
+  shows "monoidal (lifted opp)"
+  unfolding monoidal_def split_option_all neutral_lifted[OF assms]
+  using monoidal_ac[OF assms]
+  by auto
+
+definition "support opp f s = {x. x\<in>s \<and> f x \<noteq> neutral opp}"
+definition "fold' opp e s = (if finite s then Finite_Set.fold opp e s else e)"
+definition "iterate opp s f = fold' (\<lambda>x a. opp (f x) a) (neutral opp) (support opp f s)"
+
+lemma support_subset[intro]: "support opp f s \<subseteq> s"
+  unfolding support_def by auto
+
+lemma support_empty[simp]: "support opp f {} = {}"
+  using support_subset[of opp f "{}"] by auto
+
+lemma comp_fun_commute_monoidal[intro]:
+  assumes "monoidal opp"
+  shows "comp_fun_commute opp"
+  unfolding comp_fun_commute_def
+  using monoidal_ac[OF assms]
+  by auto
+
+lemma support_clauses:
+  "\<And>f g s. support opp f {} = {}"
+  "\<And>f g s. support opp f (insert x s) =
+    (if f(x) = neutral opp then support opp f s else insert x (support opp f s))"
+  "\<And>f g s. support opp f (s - {x}) = (support opp f s) - {x}"
+  "\<And>f g s. support opp f (s \<union> t) = (support opp f s) \<union> (support opp f t)"
+  "\<And>f g s. support opp f (s \<inter> t) = (support opp f s) \<inter> (support opp f t)"
+  "\<And>f g s. support opp f (s - t) = (support opp f s) - (support opp f t)"
+  "\<And>f g s. support opp g (f ` s) = f ` (support opp (g \<circ> f) s)"
+  unfolding support_def by auto
+
+lemma finite_support[intro]: "finite s \<Longrightarrow> finite (support opp f s)"
+  unfolding support_def by auto
+
+lemma iterate_empty[simp]: "iterate opp {} f = neutral opp"
+  unfolding iterate_def fold'_def by auto
+
+lemma iterate_insert[simp]:
+  assumes "monoidal opp"
+    and "finite s"
+  shows "iterate opp (insert x s) f =
+         (if x \<in> s then iterate opp s f else opp (f x) (iterate opp s f))"
+proof (cases "x \<in> s")
+  case True
+  then show ?thesis by (auto simp: insert_absorb iterate_def)
+next
+  case False
+  note * = comp_fun_commute.comp_comp_fun_commute [OF comp_fun_commute_monoidal[OF assms(1)]]
+  show ?thesis
+  proof (cases "f x = neutral opp")
+    case True
+    then show ?thesis
+      using assms \<open>x \<notin> s\<close>
+      by (auto simp: iterate_def support_clauses)
+  next
+    case False
+    with \<open>x \<notin> s\<close> \<open>finite s\<close> support_subset show ?thesis
+      apply (simp add: iterate_def fold'_def support_clauses)
+      apply (subst comp_fun_commute.fold_insert[OF * finite_support, simplified comp_def])
+      apply (force simp add: )+
+      done
+  qed
+qed
+
+lemma iterate_some:
+    "\<lbrakk>monoidal opp; finite s\<rbrakk> \<Longrightarrow> iterate (lifted opp) s (\<lambda>x. Some(f x)) = Some (iterate opp s f)"
+  by (erule finite_induct) (auto simp: monoidal_lifted)
+
+lemma neutral_add[simp]: "neutral op + = (0::'a::comm_monoid_add)"
+  unfolding neutral_def
+  by (force elim: allE [where x=0])
+
+lemma support_if: "a \<noteq> neutral opp \<Longrightarrow> support opp (\<lambda>x. if P x then a else neutral opp) A = {x \<in> A. P x}"
+unfolding support_def
+by (force intro: Collect_cong)
+
+lemma support_if_subset: "support opp (\<lambda>x. if P x then a else neutral opp) A \<subseteq> {x \<in> A. P x}"
+by (simp add: subset_iff support_def)
+
+definition supp_setsum where "supp_setsum f A \<equiv> setsum f (support op+ f A)"
+
+lemma supp_setsum_divide_distrib:
+    "supp_setsum f A / (r::'a::field) = supp_setsum (\<lambda>n. f n / r) A"
+apply (cases "r = 0")
+apply (simp add: supp_setsum_def)
+apply (simp add: supp_setsum_def setsum_divide_distrib support_def)
+done
+
+(*END OF SUPPORT, ETC.*)
+
+
+
 lemma image_affinity_interval:
   fixes c :: "'a::ordered_real_vector"
   shows "((\<lambda>x. m *\<^sub>R x + c) ` {a..b}) = (if {a..b}={} then {}
@@ -691,6 +842,11 @@ text \<open>Basic "localization" results are handy for connectedness.\<close>
 lemma openin_open: "openin (subtopology euclidean U) S \<longleftrightarrow> (\<exists>T. open T \<and> (S = U \<inter> T))"
   by (auto simp add: openin_subtopology open_openin[symmetric])
 
+lemma openin_Int_open:
+   "\<lbrakk>openin (subtopology euclidean U) S; open T\<rbrakk>
+        \<Longrightarrow> openin (subtopology euclidean U) (S \<inter> T)"
+by (metis open_Int Int_assoc openin_open)
+
 lemma openin_open_Int[intro]: "open S \<Longrightarrow> openin (subtopology euclidean U) (U \<inter> S)"
   by (auto simp add: openin_open)
 
@@ -713,6 +869,11 @@ lemma closed_closedin_trans:
 
 lemma closed_subset: "S \<subseteq> T \<Longrightarrow> closed S \<Longrightarrow> closedin (subtopology euclidean T) S"
   by (auto simp add: closedin_closed)
+
+lemma closedin_singleton [simp]:
+  fixes a :: "'a::t1_space"
+  shows "closedin (subtopology euclidean U) {a} \<longleftrightarrow> a \<in> U"
+using closedin_subset  by (force intro: closed_subset)
 
 lemma openin_euclidean_subtopology_iff:
   fixes S U :: "'a::metric_space set"
