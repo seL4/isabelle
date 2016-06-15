@@ -6,7 +6,7 @@
 section \<open>Topological Spaces\<close>
 
 theory Topological_Spaces
-imports Main Conditionally_Complete_Lattices
+imports Main
 begin
 
 named_theorems continuous_intros "structural introduction rules for continuity"
@@ -1801,6 +1801,58 @@ qed (metis filterlim_iff tendsto_at_iff_tendsto_nhds isCont_def eventually_filte
 lemma continuous_at_split:
   "continuous (at (x::'a::linorder_topology)) f = (continuous (at_left x) f \<and> continuous (at_right x) f)"
   by (simp add: continuous_within filterlim_at_split)
+
+(* The following open/closed Collect lemmas are ported from Sébastien Gouëzel's Ergodic_Theory *)
+lemma open_Collect_neq:
+  fixes f g :: "'a :: topological_space \<Rightarrow> 'b::t2_space"
+  assumes f: "continuous_on UNIV f" and g: "continuous_on UNIV g"
+  shows "open {x. f x \<noteq> g x}"
+proof (rule openI)
+  fix t assume "t \<in> {x. f x \<noteq> g x}"
+  then obtain U V where *: "open U" "open V" "f t \<in> U" "g t \<in> V" "U \<inter> V = {}"
+    by (auto simp add: separation_t2)
+  with open_vimage[OF \<open>open U\<close> f] open_vimage[OF \<open>open V\<close> g]
+  show "\<exists>T. open T \<and> t \<in> T \<and> T \<subseteq> {x. f x \<noteq> g x}"
+    by (intro exI[of _ "f -` U \<inter> g -` V"]) auto
+qed
+
+lemma closed_Collect_eq:
+  fixes f g :: "'a :: topological_space \<Rightarrow> 'b::t2_space"
+  assumes f: "continuous_on UNIV f" and g: "continuous_on UNIV g"
+  shows "closed {x. f x = g x}"
+  using open_Collect_neq[OF f g] by (simp add: closed_def Collect_neg_eq)
+
+lemma open_Collect_less:
+  fixes f g :: "'a :: topological_space \<Rightarrow> 'b::linorder_topology"
+  assumes f: "continuous_on UNIV f" and g: "continuous_on UNIV g"
+  shows "open {x. f x < g x}"
+proof (rule openI)
+  fix t assume t: "t \<in> {x. f x < g x}"
+  show "\<exists>T. open T \<and> t \<in> T \<and> T \<subseteq> {x. f x < g x}"
+  proof (cases)
+    assume "\<exists>z. f t < z \<and> z < g t"
+    then obtain z where z: "f t < z \<and> z < g t" by blast
+    then show ?thesis
+      using open_vimage[OF _ f, of "{..< z}"] open_vimage[OF _ g, of "{z <..}"]
+      by (intro exI[of _ "f -` {..<z} \<inter> g -` {z<..}"]) auto
+  next
+    assume "\<not>(\<exists>z. f t < z \<and> z < g t)"
+    then have *: "{g t ..} = {f t <..}" "{..< g t} = {.. f t}"
+      using t by (auto intro: leI)
+    show ?thesis
+      using open_vimage[OF _ f, of "{..< g t}"] open_vimage[OF _ g, of "{f t <..}"] t
+      apply (intro exI[of _ "f -` {..< g t} \<inter> g -` {f t<..}"])
+      apply (simp add: open_Int)
+      apply (auto simp add: *)
+      done
+  qed
+qed
+
+lemma closed_Collect_le:
+  fixes f g :: "'a :: topological_space \<Rightarrow> 'b::linorder_topology"
+  assumes f: "continuous_on UNIV f" and g: "continuous_on UNIV g"
+  shows "closed {x. f x \<le> g x}"
+  using open_Collect_less[OF g f] by (simp add: closed_def Collect_neg_eq[symmetric] not_le)
 
 subsubsection \<open>Open-cover compactness\<close>
 

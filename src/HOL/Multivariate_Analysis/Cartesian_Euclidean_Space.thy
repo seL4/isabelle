@@ -486,7 +486,7 @@ definition vector_matrix_mult :: "'a ^ 'm \<Rightarrow> ('a::semiring_1) ^'n^'m 
   where "v v* m == (\<chi> j. setsum (\<lambda>i. ((m$i)$j) * (v$i)) (UNIV :: 'm set)) :: 'a^'n"
 
 definition "(mat::'a::zero => 'a ^'n^'n) k = (\<chi> i j. if i = j then k else 0)"
-definition transpose where 
+definition transpose where
   "(transpose::'a^'n^'m \<Rightarrow> 'a^'m^'n) A = (\<chi> i j. ((A$j)$i))"
 definition "(row::'m => 'a ^'n^'m \<Rightarrow> 'a ^'n) i A = (\<chi> j. ((A$i)$j))"
 definition "(column::'n =>'a^'n^'m =>'a^'m) j A = (\<chi> i. ((A$i)$j))"
@@ -942,7 +942,7 @@ lemma continuous_on_component: "continuous_on s f \<Longrightarrow> continuous_o
   unfolding continuous_on_def by (fast intro: tendsto_vec_nth)
 
 lemma closed_positive_orthant: "closed {x::real^'n. \<forall>i. 0 \<le>x$i}"
-  by (simp add: Collect_all_eq closed_INT closed_Collect_le)
+  by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_const continuous_on_id continuous_on_component)
 
 lemma bounded_component_cart: "bounded s \<Longrightarrow> bounded ((\<lambda>x. x $ i) ` s)"
   unfolding bounded_def
@@ -1091,12 +1091,12 @@ lemma inter_interval_cart:
 lemma closed_interval_left_cart:
   fixes b :: "real^'n"
   shows "closed {x::real^'n. \<forall>i. x$i \<le> b$i}"
-  by (simp add: Collect_all_eq closed_INT closed_Collect_le)
+  by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_const continuous_on_id continuous_on_component)
 
 lemma closed_interval_right_cart:
   fixes a::"real^'n"
   shows "closed {x::real^'n. \<forall>i. a$i \<le> x$i}"
-  by (simp add: Collect_all_eq closed_INT closed_Collect_le)
+  by (simp add: Collect_all_eq closed_INT closed_Collect_le continuous_on_const continuous_on_id continuous_on_component)
 
 lemma is_interval_cart:
   "is_interval (s::(real^'n) set) \<longleftrightarrow>
@@ -1104,16 +1104,16 @@ lemma is_interval_cart:
   by (simp add: is_interval_def Ball_def Basis_vec_def inner_axis imp_ex)
 
 lemma closed_halfspace_component_le_cart: "closed {x::real^'n. x$i \<le> a}"
-  by (simp add: closed_Collect_le)
+  by (simp add: closed_Collect_le continuous_on_const continuous_on_id continuous_on_component)
 
 lemma closed_halfspace_component_ge_cart: "closed {x::real^'n. x$i \<ge> a}"
-  by (simp add: closed_Collect_le)
+  by (simp add: closed_Collect_le continuous_on_const continuous_on_id continuous_on_component)
 
 lemma open_halfspace_component_lt_cart: "open {x::real^'n. x$i < a}"
-  by (simp add: open_Collect_less)
+  by (simp add: open_Collect_less continuous_on_const continuous_on_id continuous_on_component)
 
 lemma open_halfspace_component_gt_cart: "open {x::real^'n. x$i  > a}"
-  by (simp add: open_Collect_less)
+  by (simp add: open_Collect_less continuous_on_const continuous_on_id continuous_on_component)
 
 lemma Lim_component_le_cart:
   fixes f :: "'a \<Rightarrow> real^'n"
@@ -1149,7 +1149,7 @@ lemma closed_substandard_cart:
 proof -
   { fix i::'n
     have "closed {x::'a ^ 'n. P i \<longrightarrow> x$i = 0}"
-      by (cases "P i") (simp_all add: closed_Collect_eq) }
+      by (cases "P i") (simp_all add: closed_Collect_eq continuous_on_const continuous_on_id continuous_on_component) }
   thus ?thesis
     unfolding Collect_all_eq by (simp add: closed_INT)
 qed
@@ -1201,7 +1201,7 @@ lemma vector_cart:
   shows "(\<chi> i. f (axis i 1)) = (\<Sum>i\<in>Basis. f i *\<^sub>R i)"
   unfolding euclidean_eq_iff[where 'a="real^'n"]
   by simp (simp add: Basis_vec_def inner_axis)
-  
+
 lemma const_vector_cart:"((\<chi> i. d)::real^'n) = (\<Sum>i\<in>Basis. d *\<^sub>R i)"
   by (rule vector_cart)
 

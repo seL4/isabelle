@@ -1437,7 +1437,7 @@ qed
 
 lemma closed_unit_cube: "closed unit_cube"
   unfolding unit_cube_def Collect_ball_eq Collect_conj_eq
-  by (rule closed_INT, auto intro!: closed_Collect_le)
+  by (rule closed_INT, auto intro!: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
 
 lemma compact_unit_cube: "compact unit_cube" (is "compact ?C")
   unfolding compact_eq_seq_compact_metric
@@ -1903,7 +1903,7 @@ proof -
   proof (rule interiorI)
     let ?I = "(\<Inter>i\<in>Basis. {x::'a. 0 < x \<bullet> i} \<inter> {x. x \<bullet> i < 1})"
     show "open ?I"
-      by (intro open_INT finite_Basis ballI open_Int, auto intro: open_Collect_less)
+      by (intro open_INT finite_Basis ballI open_Int, auto intro: open_Collect_less simp: continuous_on_inner continuous_on_const continuous_on_id)
     show "\<Sum>Basis /\<^sub>R 2 \<in> ?I"
       by simp
     show "?I \<subseteq> unit_cube"

@@ -10557,16 +10557,16 @@ proof (cases "S = {} \<or> T = {}")
 next
   case False
   define f where "f \<equiv> \<lambda>x. setdist {x} T - setdist {x} S"
-  have contf: "\<And>x. isCont f x"
-    unfolding f_def by (intro continuous_intros continuous_at_setdist)
+  have contf: "continuous_on UNIV f"
+    unfolding f_def by (intro continuous_intros continuous_on_setdist)
   show ?thesis
   proof (rule_tac U = "{x. f x > 0}" and V = "{x. f x < 0}" in that)
     show "{x. 0 < f x} \<inter> {x. f x < 0} = {}"
       by auto
     show "open {x. 0 < f x}"
-      by (simp add: open_Collect_less contf)
+      by (simp add: open_Collect_less contf continuous_on_const)
     show "open {x. f x < 0}"
-      by (simp add: open_Collect_less contf)
+      by (simp add: open_Collect_less contf continuous_on_const)
     show "S \<subseteq> {x. 0 < f x}"
       apply (clarsimp simp add: f_def setdist_sing_in_set)
       using assms

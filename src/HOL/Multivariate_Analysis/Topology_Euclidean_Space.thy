@@ -7732,51 +7732,6 @@ lemma isCont_closed_vimage:
   using assms unfolding closed_def vimage_Compl [symmetric]
   by (rule isCont_open_vimage)
 
-lemma open_Collect_less:
-  fixes f g :: "'a::t2_space \<Rightarrow> real"
-  assumes f: "\<And>x. isCont f x"
-    and g: "\<And>x. isCont g x"
-  shows "open {x. f x < g x}"
-proof -
-  have "open ((\<lambda>x. g x - f x) -` {0<..})"
-    using isCont_diff [OF g f] open_real_greaterThan
-    by (rule isCont_open_vimage)
-  also have "((\<lambda>x. g x - f x) -` {0<..}) = {x. f x < g x}"
-    by auto
-  finally show ?thesis .
-qed
-
-lemma closed_Collect_le:
-  fixes f g :: "'a::t2_space \<Rightarrow> real"
-  assumes f: "\<And>x. isCont f x"
-    and g: "\<And>x. isCont g x"
-  shows "closed {x. f x \<le> g x}"
-proof -
-  have "closed ((\<lambda>x. g x - f x) -` {0..})"
-    using isCont_diff [OF g f] closed_real_atLeast
-    by (rule isCont_closed_vimage)
-  also have "((\<lambda>x. g x - f x) -` {0..}) = {x. f x \<le> g x}"
-    by auto
-  finally show ?thesis .
-qed
-
-lemma closed_Collect_eq:
-  fixes f g :: "'a::t2_space \<Rightarrow> 'b::t2_space"
-  assumes f: "\<And>x. isCont f x"
-    and g: "\<And>x. isCont g x"
-  shows "closed {x. f x = g x}"
-proof -
-  have "open {(x::'b, y::'b). x \<noteq> y}"
-    unfolding open_prod_def by (auto dest!: hausdorff)
-  then have "closed {(x::'b, y::'b). x = y}"
-    unfolding closed_def split_def Collect_neg_eq .
-  with isCont_Pair [OF f g]
-  have "closed ((\<lambda>x. (f x, g x)) -` {(x, y). x = y})"
-    by (rule isCont_closed_vimage)
-  also have "\<dots> = {x. f x = g x}" by auto
-  finally show ?thesis .
-qed
-
 lemma continuous_on_closed_Collect_le:
   fixes f g :: "'a::t2_space \<Rightarrow> real"
   assumes f: "continuous_on s f" and g: "continuous_on s g" and s: "closed s"
@@ -7794,29 +7749,29 @@ lemma continuous_at_inner: "continuous (at x) (inner a)"
   unfolding continuous_at by (intro tendsto_intros)
 
 lemma closed_halfspace_le: "closed {x. inner a x \<le> b}"
-  by (simp add: closed_Collect_le)
+  by (simp add: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
 
 lemma closed_halfspace_ge: "closed {x. inner a x \<ge> b}"
-  by (simp add: closed_Collect_le)
+  by (simp add: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
 
 lemma closed_hyperplane: "closed {x. inner a x = b}"
-  by (simp add: closed_Collect_eq)
+  by (simp add: closed_Collect_eq continuous_on_inner continuous_on_const continuous_on_id)
 
 lemma closed_halfspace_component_le: "closed {x::'a::euclidean_space. x\<bullet>i \<le> a}"
-  by (simp add: closed_Collect_le)
+  by (simp add: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
 
 lemma closed_halfspace_component_ge: "closed {x::'a::euclidean_space. x\<bullet>i \<ge> a}"
-  by (simp add: closed_Collect_le)
+  by (simp add: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
 
 lemma closed_interval_left:
   fixes b :: "'a::euclidean_space"
   shows "closed {x::'a. \<forall>i\<in>Basis. x\<bullet>i \<le> b\<bullet>i}"
-  by (simp add: Collect_ball_eq closed_INT closed_Collect_le)
+  by (simp add: Collect_ball_eq closed_INT closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
 
 lemma closed_interval_right:
   fixes a :: "'a::euclidean_space"
   shows "closed {x::'a. \<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i}"
-  by (simp add: Collect_ball_eq closed_INT closed_Collect_le)
+  by (simp add: Collect_ball_eq closed_INT closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
 
 lemma continuous_le_on_closure:
   fixes a::real
@@ -7840,16 +7795,16 @@ lemma continuous_ge_on_closure:
 text \<open>Openness of halfspaces.\<close>
 
 lemma open_halfspace_lt: "open {x. inner a x < b}"
-  by (simp add: open_Collect_less)
+  by (simp add: open_Collect_less continuous_on_inner continuous_on_const continuous_on_id)
 
 lemma open_halfspace_gt: "open {x. inner a x > b}"
-  by (simp add: open_Collect_less)
+  by (simp add: open_Collect_less continuous_on_inner continuous_on_const continuous_on_id)
 
 lemma open_halfspace_component_lt: "open {x::'a::euclidean_space. x\<bullet>i < a}"
-  by (simp add: open_Collect_less)
+  by (simp add: open_Collect_less continuous_on_inner continuous_on_const continuous_on_id)
 
 lemma open_halfspace_component_gt: "open {x::'a::euclidean_space. x\<bullet>i > a}"
-  by (simp add: open_Collect_less)
+  by (simp add: open_Collect_less continuous_on_inner continuous_on_const continuous_on_id)
 
 text \<open>This gives a simple derivation of limit component bounds.\<close>
 
@@ -8347,7 +8302,7 @@ lemma closed_Collect_eucl_le[simp, intro]:
   shows "closed {x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i}"
     "closed {x. \<forall>i\<in>Basis. x \<bullet> i \<le> a \<bullet> i}"
   unfolding eucl_le_eq_halfspaces
-  by (simp_all add: closed_INT closed_Collect_le)
+  by (simp_all add: closed_INT closed_Collect_le  continuous_on_inner continuous_on_const continuous_on_id)
 
 lemma image_affinity_cbox: fixes m::real
   fixes a b c :: "'a::euclidean_space"
@@ -9024,7 +8979,7 @@ lemma closed_substandard:
 proof -
   let ?D = "{i\<in>Basis. P i}"
   have "closed (\<Inter>i\<in>?D. {x::'a. x\<bullet>i = 0})"
-    by (simp add: closed_INT closed_Collect_eq)
+    by (simp add: closed_INT closed_Collect_eq continuous_on_inner continuous_on_const continuous_on_id)
   also have "(\<Inter>i\<in>?D. {x::'a. x\<bullet>i = 0}) = ?A"
     by auto
   finally show "closed ?A" .

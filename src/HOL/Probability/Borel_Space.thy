@@ -15,26 +15,6 @@ lemma sets_Collect_eventually_sequentially[measurable]:
   "(\<And>i. {x\<in>space M. P x i} \<in> sets M) \<Longrightarrow> {x\<in>space M. eventually (P x) sequentially} \<in> sets M"
   unfolding eventually_sequentially by simp
 
-lemma open_Collect_less:
-  fixes f g :: "'i::topological_space \<Rightarrow> 'a :: {dense_linorder, linorder_topology}"
-  assumes "continuous_on UNIV f"
-  assumes "continuous_on UNIV g"
-  shows "open {x. f x < g x}"
-proof -
-  have "open (\<Union>y. {x \<in> UNIV. f x \<in> {..< y}} \<inter> {x \<in> UNIV. g x \<in> {y <..}})" (is "open ?X")
-    by (intro open_UN ballI open_Int continuous_open_preimage assms) auto
-  also have "?X = {x. f x < g x}"
-    by (auto intro: dense)
-  finally show ?thesis .
-qed
-
-lemma closed_Collect_le:
-  fixes f g :: "'i::topological_space \<Rightarrow> 'a :: {dense_linorder, linorder_topology}"
-  assumes f: "continuous_on UNIV f"
-  assumes g: "continuous_on UNIV g"
-  shows "closed {x. f x \<le> g x}"
-  using open_Collect_less[OF g f] unfolding not_less[symmetric] Collect_neg_eq open_closed .
-
 lemma topological_basis_trivial: "topological_basis {A. open A}"
   by (auto simp: topological_basis_def)
 
@@ -794,7 +774,7 @@ lemma borel_measurableI_ge:
   by (rule borel_measurableI_less) (auto simp: not_le[symmetric])
 
 lemma borel_measurable_less[measurable]:
-  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, dense_linorder, linorder_topology}"
+  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, linorder_topology}"
   assumes "f \<in> borel_measurable M"
   assumes "g \<in> borel_measurable M"
   shows "{w \<in> space M. f w < g w} \<in> sets M"
@@ -808,7 +788,7 @@ proof -
 qed
 
 lemma
-  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, dense_linorder, linorder_topology}"
+  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, linorder_topology}"
   assumes f[measurable]: "f \<in> borel_measurable M"
   assumes g[measurable]: "g \<in> borel_measurable M"
   shows borel_measurable_le[measurable]: "{w \<in> space M. f w \<le> g w} \<in> sets M"
@@ -947,19 +927,19 @@ lemma [measurable (raw)]:
   unfolding liminf_SUP_INF limsup_INF_SUP using assms by auto
 
 lemma measurable_convergent[measurable (raw)]:
-  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_linorder, second_countable_topology, dense_linorder, linorder_topology}"
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_linorder, second_countable_topology, linorder_topology}"
   assumes [measurable]: "\<And>i. f i \<in> borel_measurable M"
   shows "Measurable.pred M (\<lambda>x. convergent (\<lambda>i. f i x))"
   unfolding convergent_ereal by measurable
 
 lemma sets_Collect_convergent[measurable]:
-  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_linorder, second_countable_topology, dense_linorder, linorder_topology}"
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_linorder, second_countable_topology, linorder_topology}"
   assumes f[measurable]: "\<And>i. f i \<in> borel_measurable M"
   shows "{x\<in>space M. convergent (\<lambda>i. f i x)} \<in> sets M"
   by measurable
 
 lemma borel_measurable_lim[measurable (raw)]:
-  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_linorder, second_countable_topology, dense_linorder, linorder_topology}"
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_linorder, second_countable_topology, linorder_topology}"
   assumes [measurable]: "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. lim (\<lambda>i. f i x)) \<in> borel_measurable M"
 proof -
@@ -970,7 +950,7 @@ proof -
 qed
 
 lemma borel_measurable_LIMSEQ_order:
-  fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_linorder, second_countable_topology, dense_linorder, linorder_topology}"
+  fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_linorder, second_countable_topology, linorder_topology}"
   assumes u': "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. u i x) \<longlonglongrightarrow> u' x"
   and u: "\<And>i. u i \<in> borel_measurable M"
   shows "u' \<in> borel_measurable M"
@@ -999,7 +979,7 @@ proof cases
 qed simp
 
 lemma borel_measurable_suminf_order[measurable (raw)]:
-  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_linorder, second_countable_topology, dense_linorder, linorder_topology, topological_comm_monoid_add}"
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::{complete_linorder, second_countable_topology, linorder_topology, topological_comm_monoid_add}"
   assumes f[measurable]: "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. suminf (\<lambda>i. f i x)) \<in> borel_measurable M"
   unfolding suminf_def sums_def[abs_def] lim_def[symmetric] by simp
