@@ -564,8 +564,14 @@ lemma poly_monom:
   fixes a x :: "'a::{comm_semiring_1}"
   shows "poly (monom a n) x = a * x ^ n"
   by (cases "a = 0", simp_all)
-    (induct n, simp_all add: mult.left_commute poly_def)
+    (induct n, simp_all add: mult.left_commute poly_def)  
 
+lemma monom_eq_iff': "monom c n = monom d m \<longleftrightarrow>  c = d \<and> (c = 0 \<or> n = m)"
+  by (auto simp: poly_eq_iff)
+  
+lemma monom_eq_const_iff: "monom c n = [:d:] \<longleftrightarrow> c = d \<and> (c = 0 \<or> n = 0)"
+  using monom_eq_iff'[of c n d 0] by (simp add: monom_0)
+  
     
 subsection \<open>Addition and subtraction\<close>
 
@@ -869,6 +875,9 @@ lemma smult_pCons [simp]:
 lemma smult_monom: "smult a (monom b n) = monom (a * b) n"
   by (induct n, simp add: monom_0, simp add: monom_Suc)
 
+lemma smult_Poly: "smult c (Poly xs) = Poly (map (op * c) xs)"
+  by (auto simp add: poly_eq_iff coeff_Poly_eq nth_default_def)
+
 lemma degree_smult_eq [simp]:
   fixes a :: "'a::idom"
   shows "degree (smult a p) = (if a = 0 then 0 else degree p)"
@@ -878,7 +887,7 @@ lemma smult_eq_0_iff [simp]:
   fixes a :: "'a::idom"
   shows "smult a p = 0 \<longleftrightarrow> a = 0 \<or> p = 0"
   by (simp add: poly_eq_iff)
-
+  
 lemma coeffs_smult [code abstract]:
   fixes p :: "'a::idom poly"
   shows "coeffs (smult a p) = (if a = 0 then [] else map (Groups.times a) (coeffs p))"
@@ -985,6 +994,13 @@ lemma coeff_1 [simp]: "coeff 1 n = (if n = 0 then 1 else 0)"
 lemma monom_eq_1 [simp]:
   "monom 1 0 = 1"
   by (simp add: monom_0 one_poly_def)
+
+lemma monom_eq_1_iff: "monom c n = 1 \<longleftrightarrow> c = 1 \<and> n = 0"
+  using monom_eq_const_iff[of c n 1] by (auto simp: one_poly_def)
+
+lemma monom_altdef:
+  "monom c n = smult c ([:0, 1:]^n)"
+  by (induction n) (simp_all add: monom_0 monom_Suc one_poly_def)
   
 lemma degree_1 [simp]: "degree 1 = 0"
   unfolding one_poly_def
@@ -2854,6 +2870,14 @@ lemma pcompose_idR[simp]:
   shows "pcompose p [: 0, 1 :] = p"
   by (induct p; simp add: pcompose_pCons)
 
+lemma pcompose_setsum: "pcompose (setsum f A) p = setsum (\<lambda>i. pcompose (f i) p) A"
+  by (cases "finite A", induction rule: finite_induct)
+     (simp_all add: pcompose_1 pcompose_add)
+
+lemma pcompose_setprod: "pcompose (setprod f A) p = setprod (\<lambda>i. pcompose (f i) p) A"
+  by (cases "finite A", induction rule: finite_induct)
+     (simp_all add: pcompose_1 pcompose_mult)
+
 
 (* The remainder of this section and the next were contributed by Wenda Li *)
 
@@ -2940,6 +2964,12 @@ unfolding lead_coeff_def by auto
 lemma lead_coeff_0[simp]:"lead_coeff 0 =0" 
   unfolding lead_coeff_def by auto
 
+lemma coeff_0_listprod: "coeff (listprod xs) 0 = listprod (map (\<lambda>p. coeff p 0) xs)"
+  by (induction xs) (simp_all add: coeff_mult)
+
+lemma coeff_0_power: "coeff (p ^ n) 0 = coeff p 0 ^ n"
+  by (induction n) (simp_all add: coeff_mult)
+
 lemma lead_coeff_mult:
    fixes p q::"'a ::idom poly"
    shows "lead_coeff (p * q) = lead_coeff p * lead_coeff q"
@@ -3013,6 +3043,200 @@ lemma lead_coeff_power:
 
 lemma lead_coeff_nonzero: "p \<noteq> 0 \<Longrightarrow> lead_coeff p \<noteq> 0"
   by (simp add: lead_coeff_def)
+
+
+subsection \<open>Shifting polynomials\<close>
+
+definition poly_shift :: "nat \<Rightarrow> ('a::zero) poly \<Rightarrow> 'a poly" where
+  "poly_shift n p = Abs_poly (\<lambda>i. coeff p (i + n))"
+
+lemma nth_default_drop: "nth_default x (drop n xs) m = nth_default x xs (m + n)"
+  by (auto simp add: nth_default_def add_ac)
+  
+lemma nth_default_take: "nth_default x (take n xs) m = (if m < n then nth_default x xs m else x)"
+  by (auto simp add: nth_default_def add_ac)
+  
+  
+lemma coeff_poly_shift: "coeff (poly_shift n p) i = coeff p (i + n)"
+proof -
+  from MOST_coeff_eq_0[of p] obtain m where "\<forall>k>m. coeff p k = 0" by (auto simp: MOST_nat)
+  hence "\<forall>k>m. coeff p (k + n) = 0" by auto
+  hence "\<forall>\<^sub>\<infinity>k. coeff p (k + n) = 0" by (auto simp: MOST_nat)
+  thus ?thesis by (simp add: poly_shift_def poly.Abs_poly_inverse)
+qed
+
+lemma poly_shift_id [simp]: "poly_shift 0 = (\<lambda>x. x)"
+  by (simp add: poly_eq_iff fun_eq_iff coeff_poly_shift)
+
+lemma poly_shift_0 [simp]: "poly_shift n 0 = 0"
+  by (simp add: poly_eq_iff coeff_poly_shift)
+  
+lemma poly_shift_1: "poly_shift n 1 = (if n = 0 then 1 else 0)"
+  by (simp add: poly_eq_iff coeff_poly_shift)
+
+lemma poly_shift_monom: "poly_shift n (monom c m) = (if m \<ge> n then monom c (m - n) else 0)"
+  by (auto simp add: poly_eq_iff coeff_poly_shift)
+
+lemma coeffs_shift_poly [code abstract]: "coeffs (poly_shift n p) = drop n (coeffs p)"
+proof (cases "p = 0")
+  case False
+  thus ?thesis
+    by (intro coeffs_eqI)
+       (simp_all add: coeff_poly_shift nth_default_drop last_coeffs_not_0 nth_default_coeffs_eq)
+qed simp_all
+
+
+subsection \<open>Truncating polynomials\<close>
+
+definition poly_cutoff where
+  "poly_cutoff n p = Abs_poly (\<lambda>k. if k < n then coeff p k else 0)"
+
+lemma coeff_poly_cutoff: "coeff (poly_cutoff n p) k = (if k < n then coeff p k else 0)"
+  unfolding poly_cutoff_def
+  by (subst poly.Abs_poly_inverse) (auto simp: MOST_nat intro: exI[of _ n])
+
+lemma poly_cutoff_0 [simp]: "poly_cutoff n 0 = 0"
+  by (simp add: poly_eq_iff coeff_poly_cutoff)
+
+lemma poly_cutoff_1 [simp]: "poly_cutoff n 1 = (if n = 0 then 0 else 1)"
+  by (simp add: poly_eq_iff coeff_poly_cutoff)
+
+lemma coeffs_poly_cutoff [code abstract]: 
+  "coeffs (poly_cutoff n p) = strip_while (op = 0) (take n (coeffs p))"
+proof (cases "strip_while (op = 0) (take n (coeffs p)) = []")
+  case True
+  hence "coeff (poly_cutoff n p) k = 0" for k
+    unfolding coeff_poly_cutoff
+    by (auto simp: nth_default_coeffs_eq [symmetric] nth_default_def set_conv_nth)
+  hence "poly_cutoff n p = 0" by (simp add: poly_eq_iff)
+  thus ?thesis by (subst True) simp_all
+next
+  case False
+  have "no_trailing (op = 0) (strip_while (op = 0) (take n (coeffs p)))" by simp
+  with False have "last (strip_while (op = 0) (take n (coeffs p))) \<noteq> 0" 
+    unfolding no_trailing_unfold by auto
+  thus ?thesis
+    by (intro coeffs_eqI)
+       (simp_all add: coeff_poly_cutoff last_coeffs_not_0 nth_default_take nth_default_coeffs_eq)
+qed
+
+
+subsection \<open>Reflecting polynomials\<close>
+
+definition reflect_poly where
+  "reflect_poly p = Poly (rev (coeffs p))"
+  
+lemma coeffs_reflect_poly [code abstract]:
+    "coeffs (reflect_poly p) = rev (dropWhile (op = 0) (coeffs p))"
+  unfolding reflect_poly_def by simp
+  
+lemma reflect_poly_0 [simp]: "reflect_poly 0 = 0"
+  by (simp add: reflect_poly_def)
+
+lemma reflect_poly_1 [simp]: "reflect_poly 1 = 1"
+  by (simp add: reflect_poly_def one_poly_def)
+
+lemma coeff_reflect_poly:
+  "coeff (reflect_poly p) n = (if n > degree p then 0 else coeff p (degree p - n))"
+  by (cases "p = 0") (auto simp add: reflect_poly_def coeff_Poly_eq nth_default_def
+                                     rev_nth degree_eq_length_coeffs coeffs_nth not_less
+                                dest: le_imp_less_Suc)
+
+lemma coeff_0_reflect_poly_0_iff [simp]: "coeff (reflect_poly p) 0 = 0 \<longleftrightarrow> p = 0"
+  by (simp add: coeff_reflect_poly)
+
+lemma reflect_poly_at_0_eq_0_iff [simp]: "poly (reflect_poly p) 0 = 0 \<longleftrightarrow> p = 0"
+  by (simp add: coeff_reflect_poly poly_0_coeff_0)
+
+lemma reflect_poly_pCons':
+  "p \<noteq> 0 \<Longrightarrow> reflect_poly (pCons c p) = reflect_poly p + monom c (Suc (degree p))"
+  by (intro poly_eqI)
+     (auto simp: coeff_reflect_poly coeff_pCons not_less Suc_diff_le split: nat.split)
+
+lemma reflect_poly_const [simp]: "reflect_poly [:a:] = [:a:]"
+  by (cases "a = 0") (simp_all add: reflect_poly_def)
+
+lemma poly_reflect_poly_nz:
+  "(x :: 'a :: field) \<noteq> 0 \<Longrightarrow> poly (reflect_poly p) x = x ^ degree p * poly p (inverse x)"
+  by (induction rule: pCons_induct) (simp_all add: field_simps reflect_poly_pCons' poly_monom)
+
+lemma coeff_0_reflect_poly [simp]: "coeff (reflect_poly p) 0 = lead_coeff p"
+  by (simp add: coeff_reflect_poly lead_coeff_def)
+
+lemma poly_reflect_poly_0 [simp]: "poly (reflect_poly p) 0 = lead_coeff p"
+  by (simp add: poly_0_coeff_0)
+
+lemma reflect_poly_reflect_poly [simp]: "coeff p 0 \<noteq> 0 \<Longrightarrow> reflect_poly (reflect_poly p) = p"
+  by (cases p rule: pCons_cases) (simp add: reflect_poly_def )
+
+lemma degree_reflect_poly_le: "degree (reflect_poly p) \<le> degree p"
+  by (simp add: degree_eq_length_coeffs coeffs_reflect_poly length_dropWhile_le diff_le_mono)
+
+lemma reflect_poly_pCons:
+  "a \<noteq> 0 \<Longrightarrow> reflect_poly (pCons a p) = Poly (rev (a # coeffs p))"
+  by (subst coeffs_eq_iff) (simp add: coeffs_reflect_poly)
+  
+lemma degree_reflect_poly_eq [simp]: "coeff p 0 \<noteq> 0 \<Longrightarrow> degree (reflect_poly p) = degree p"
+  by (cases p rule: pCons_cases) (simp add: reflect_poly_pCons degree_eq_length_coeffs)
+  
+(* TODO: does this work for non-idom as well? *)
+lemma reflect_poly_mult:
+  "reflect_poly (p * q) = reflect_poly p * reflect_poly (q :: _ :: idom poly)"
+proof (cases "p = 0 \<or> q = 0")
+  case False
+  hence [simp]: "p \<noteq> 0" "q \<noteq> 0" by auto
+  show ?thesis
+  proof (rule poly_eqI)
+    fix i :: nat
+    show "coeff (reflect_poly (p * q)) i = coeff (reflect_poly p * reflect_poly q) i"
+    proof (cases "i \<le> degree (p * q)")
+      case True
+      def A \<equiv> "{..i} \<inter> {i - degree q..degree p}"
+      def B \<equiv> "{..degree p} \<inter> {degree p - i..degree (p*q) - i}"
+      let ?f = "\<lambda>j. degree p - j"
+
+      from True have "coeff (reflect_poly (p * q)) i = coeff (p * q) (degree (p * q) - i)"
+        by (simp add: coeff_reflect_poly)
+      also have "\<dots> = (\<Sum>j\<le>degree (p * q) - i. coeff p j * coeff q (degree (p * q) - i - j))"
+        unfolding coeff_mult by simp
+      also have "\<dots> = (\<Sum>j\<in>B. coeff p j * coeff q (degree (p * q) - i - j))"
+        by (intro setsum.mono_neutral_right) (auto simp: B_def degree_mult_eq not_le coeff_eq_0)
+      also from True have "\<dots> = (\<Sum>j\<in>A. coeff p (degree p - j) * coeff q (degree q - (i - j)))"
+        by (intro setsum.reindex_bij_witness[of _ ?f ?f])
+           (auto simp: A_def B_def degree_mult_eq add_ac)
+      also have "\<dots> = (\<Sum>j\<le>i. if j \<in> {i - degree q..degree p} then
+                 coeff p (degree p - j) * coeff q (degree q - (i - j)) else 0)"
+        by (subst setsum.inter_restrict [symmetric]) (simp_all add: A_def)
+       also have "\<dots> = coeff (reflect_poly p * reflect_poly q) i"
+          by (fastforce simp: coeff_mult coeff_reflect_poly intro!: setsum.cong)
+       finally show ?thesis .
+    qed (auto simp: coeff_mult coeff_reflect_poly coeff_eq_0 degree_mult_eq intro!: setsum.neutral)
+  qed
+qed auto
+
+lemma reflect_poly_smult: 
+  "reflect_poly (Polynomial.smult (c::'a::idom) p) = Polynomial.smult c (reflect_poly p)"
+  using reflect_poly_mult[of "[:c:]" p] by simp
+
+lemma reflect_poly_power:
+    "reflect_poly (p ^ n :: 'a :: idom poly) = reflect_poly p ^ n"
+  by (induction n) (simp_all add: reflect_poly_mult)
+
+lemma reflect_poly_setprod:
+  "reflect_poly (setprod (f :: _ \<Rightarrow> _ :: idom poly) A) = setprod (\<lambda>x. reflect_poly (f x)) A"
+  by (cases "finite A", induction rule: finite_induct) (simp_all add: reflect_poly_mult)
+
+lemma reflect_poly_listprod:
+  "reflect_poly (listprod (xs :: _ :: idom poly list)) = listprod (map reflect_poly xs)"
+  by (induction xs) (simp_all add: reflect_poly_mult)
+
+lemma reflect_poly_Poly_nz: 
+  "xs \<noteq> [] \<Longrightarrow> last xs \<noteq> 0 \<Longrightarrow> reflect_poly (Poly xs) = Poly (rev xs)"
+  unfolding reflect_poly_def coeffs_Poly by simp
+
+lemmas reflect_poly_simps = 
+  reflect_poly_0 reflect_poly_1 reflect_poly_const reflect_poly_smult reflect_poly_mult
+  reflect_poly_power reflect_poly_setprod reflect_poly_listprod
 
 
 subsection \<open>Derivatives of univariate polynomials\<close>
@@ -3545,6 +3769,15 @@ next
   ultimately show ?case using Suc by auto
 qed
 
+lemma order_0_monom [simp]:
+  assumes "c \<noteq> 0"
+  shows   "order 0 (monom c n) = n"
+  using assms order_power_n_n[of 0 n] by (simp add: monom_altdef order_smult)
+
+lemma dvd_imp_order_le:
+  "q \<noteq> 0 \<Longrightarrow> p dvd q \<Longrightarrow> Polynomial.order a p \<le> Polynomial.order a q"
+  by (auto simp: order_mult elim: dvdE)
+
 text\<open>Now justify the standard squarefree decomposition, i.e. f / gcd(f,f').\<close>
 
 lemma order_divides: "[:-a, 1:] ^ n dvd p \<longleftrightarrow> p = 0 \<or> n \<le> order a p"
@@ -3553,6 +3786,11 @@ apply (drule order_2 [where a=a and p=p])
 apply (metis not_less_eq_eq power_le_dvd)
 apply (erule power_le_dvd [OF order_1])
 done
+
+lemma monom_1_dvd_iff:
+  assumes "p \<noteq> 0"
+  shows   "monom 1 n dvd p \<longleftrightarrow> n \<le> Polynomial.order 0 p"
+  using assms order_divides[of 0 n p] by (simp add: monom_altdef)
 
 lemma poly_squarefree_decomp_order:
   assumes "pderiv (p :: 'a :: field_char_0 poly) \<noteq> 0"
@@ -3639,6 +3877,35 @@ proof -
     by (simp add: rsquarefree_def order_root)
 qed
 
+lemma coeff_monom_mult: 
+  "coeff (monom c n * p) k = (if k < n then 0 else c * coeff p (k - n))"
+proof -
+  have "coeff (monom c n * p) k = (\<Sum>i\<le>k. (if n = i then c else 0) * coeff p (k - i))"
+    by (simp add: coeff_mult)
+  also have "\<dots> = (\<Sum>i\<le>k. (if n = i then c * coeff p (k - i) else 0))"
+    by (intro setsum.cong) simp_all
+  also have "\<dots> = (if k < n then 0 else c * coeff p (k - n))" by (simp add: setsum.delta')
+  finally show ?thesis .
+qed
+
+lemma monom_1_dvd_iff':
+  "monom 1 n dvd p \<longleftrightarrow> (\<forall>k<n. coeff p k = 0)"
+proof
+  assume "monom 1 n dvd p"
+  then obtain r where r: "p = monom 1 n * r" by (elim dvdE)
+  thus "\<forall>k<n. coeff p k = 0" by (simp add: coeff_mult)
+next
+  assume zero: "(\<forall>k<n. coeff p k = 0)"
+  define r where "r = Abs_poly (\<lambda>k. coeff p (k + n))"
+  have "\<forall>\<^sub>\<infinity>k. coeff p (k + n) = 0"
+    by (subst cofinite_eq_sequentially, subst eventually_sequentially_seg, 
+        subst cofinite_eq_sequentially [symmetric]) transfer
+  hence coeff_r [simp]: "coeff r k = coeff p (k + n)" for k unfolding r_def
+    by (subst poly.Abs_poly_inverse) simp_all
+  have "p = monom 1 n * r"
+    by (intro poly_eqI, subst coeff_monom_mult) (insert zero, simp_all)
+  thus "monom 1 n dvd p" by simp
+qed
 
 no_notation cCons (infixr "##" 65)
 

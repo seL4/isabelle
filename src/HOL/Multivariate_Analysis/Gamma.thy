@@ -71,6 +71,18 @@ proof
   with assms(1) show False by contradiction
 qed
 
+lemma fraction_not_in_nats:
+  assumes "\<not>n dvd m" "n \<noteq> 0"
+  shows   "of_int m / of_int n \<notin> (\<nat> :: 'a :: {division_ring,ring_char_0} set)"
+proof
+  assume "of_int m / of_int n \<in> (\<nat> :: 'a set)"
+  also note Nats_subset_Ints
+  finally have "of_int m / of_int n \<in> (\<int> :: 'a set)" .
+  moreover have "of_int m / of_int n \<notin> (\<int> :: 'a set)"
+    using assms by (intro fraction_not_in_ints)
+  ultimately show False by contradiction
+qed
+
 lemma not_in_Ints_imp_not_in_nonpos_Ints: "z \<notin> \<int> \<Longrightarrow> z \<notin> \<int>\<^sub>\<le>\<^sub>0"
   by (auto simp: Ints_def nonpos_Ints_def)
 

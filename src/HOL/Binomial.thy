@@ -672,6 +672,10 @@ proof (induction n)
   finally show ?case .
 qed simp
 
+lemma fact_double:
+  "fact (2 * n) = (2 ^ (2 * n) * pochhammer (1 / 2) n * fact n :: 'a :: field_char_0)"
+  using pochhammer_double[of "1/2::'a" n] by (simp add: pochhammer_fact)
+
 lemma pochhammer_absorb_comp:
   "((r :: 'a :: comm_ring_1) - of_nat k) * pochhammer (- r) k = r * pochhammer (-r + 1) k"
   (is "?lhs = ?rhs")

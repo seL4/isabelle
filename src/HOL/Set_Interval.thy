@@ -1907,6 +1907,9 @@ by (simp add:setprod_shift_bounds_nat_ivl[where k="Suc 0", simplified])
 lemma setprod_lessThan_Suc: "setprod f {..<Suc n} = setprod f {..<n} * f n"
   by (simp add: lessThan_Suc mult.commute)
 
+lemma setprod_lessThan_Suc_shift:"(\<Prod>i<Suc n. f i) = f 0 * (\<Prod>i<n. f (Suc i))"
+  by (induction n) (simp_all add: lessThan_Suc mult_ac)
+
 lemma setprod_atLeastLessThan_Suc: "a \<le> b \<Longrightarrow> setprod f {a..<Suc b} = setprod f {a..<b} * f b"
   by (simp add: atLeastLessThanSuc mult.commute)
 

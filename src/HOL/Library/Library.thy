@@ -58,6 +58,7 @@ imports
   Permutation
   Permutations
   Polynomial
+  Polynomial_FPS
   Preorder
   Product_Vector
   Quadratic_Discriminant

@@ -363,6 +363,23 @@ lemma dvd_mod: "k dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd (m mod
 lemma dvd_mod_iff: "k dvd n \<Longrightarrow> k dvd (m mod n) \<longleftrightarrow> k dvd m"
 by (blast intro: dvd_mod_imp_dvd dvd_mod)
 
+lemma div_div_eq_right:
+  assumes "c dvd b" "b dvd a"
+  shows   "a div (b div c) = a div b * c"
+proof -
+  from assms have "a div b * c = (a * c) div b"
+    by (subst dvd_div_mult) simp_all
+  also from assms have "\<dots> = (a * c) div ((b div c) * c)" by simp
+  also have "a * c div (b div c * c) = a div (b div c)"
+    by (cases "c = 0") simp_all
+  finally show ?thesis ..
+qed
+
+lemma div_div_div_same:
+  assumes "d dvd a" "d dvd b" "b dvd a"
+  shows   "(a div d) div (b div d) = a div b"
+  using assms by (subst dvd_div_mult2_eq [symmetric]) simp_all
+
 end
 
 class ring_div = comm_ring_1 + semiring_div

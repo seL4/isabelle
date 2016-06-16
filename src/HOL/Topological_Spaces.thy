@@ -1008,6 +1008,9 @@ apply (induct_tac k)
 apply (auto intro: less_trans)
 done
 
+lemma subseq_add: "subseq (\<lambda>n. n + k)"
+  by (auto simp: subseq_Suc_iff)
+
 text\<open>for any sequence, there is a monotonic subsequence\<close>
 lemma seq_monosub:
   fixes s :: "nat => 'a::linorder"

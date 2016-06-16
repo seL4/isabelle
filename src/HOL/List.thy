@@ -3039,6 +3039,9 @@ by (induct j) (auto simp add: less_Suc_eq nth_append split: nat_diff_split)
 lemma hd_upt[simp]: "i < j \<Longrightarrow> hd[i..<j] = i"
 by(simp add:upt_conv_Cons)
 
+lemma tl_upt: "tl [m..<n] = [Suc m..<n]"
+  by (simp add: upt_rec)
+
 lemma last_upt[simp]: "i < j \<Longrightarrow> last[i..<j] = j - 1"
 by(cases j)(auto simp: upt_Suc_append)
 

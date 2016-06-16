@@ -369,6 +369,10 @@ proof -
   with assms(1) show ?thesis by simp
 qed
 
+lemma listprod_zero_iff: 
+  "listprod xs = 0 \<longleftrightarrow> (0 :: 'a :: {semiring_no_zero_divisors, semiring_1}) \<in> set xs"
+  by (induction xs) simp_all
+
 text \<open>Some syntactic sugar:\<close>
 
 syntax (ASCII)
