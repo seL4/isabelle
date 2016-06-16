@@ -22,14 +22,14 @@ lemma indicator_pos_le[intro, simp]: "(0::'a::linordered_semidom) \<le> indicato
 lemma indicator_abs_le_1: "\<bar>indicator S x\<bar> \<le> (1::'a::linordered_idom)"
   unfolding indicator_def by auto
 
-lemma indicator_eq_0_iff: "indicator A x = (0::_::zero_neq_one) \<longleftrightarrow> x \<notin> A"
+lemma indicator_eq_0_iff: "indicator A x = (0::'a::zero_neq_one) \<longleftrightarrow> x \<notin> A"
   by (auto simp: indicator_def)
 
-lemma indicator_eq_1_iff: "indicator A x = (1::_::zero_neq_one) \<longleftrightarrow> x \<in> A"
+lemma indicator_eq_1_iff: "indicator A x = (1::'a::zero_neq_one) \<longleftrightarrow> x \<in> A"
   by (auto simp: indicator_def)
 
 lemma indicator_leI:
-  "(x \<in> A \<Longrightarrow> y \<in> B) \<Longrightarrow> (indicator A x :: 'a :: linordered_nonzero_semiring) \<le> indicator B y"
+  "(x \<in> A \<Longrightarrow> y \<in> B) \<Longrightarrow> (indicator A x :: 'a::linordered_nonzero_semiring) \<le> indicator B y"
   by (auto simp: indicator_def)
 
 lemma split_indicator: "P (indicator S x) \<longleftrightarrow> ((x \<in> S \<longrightarrow> P 1) \<and> (x \<notin> S \<longrightarrow> P 0))"
@@ -41,55 +41,60 @@ lemma split_indicator_asm: "P (indicator S x) \<longleftrightarrow> (\<not> (x \
 lemma indicator_inter_arith: "indicator (A \<inter> B) x = indicator A x * (indicator B x::'a::semiring_1)"
   unfolding indicator_def by (auto simp: min_def max_def)
 
-lemma indicator_union_arith: "indicator (A \<union> B) x = indicator A x + indicator B x - indicator A x * (indicator B x::'a::ring_1)"
+lemma indicator_union_arith:
+  "indicator (A \<union> B) x = indicator A x + indicator B x - indicator A x * (indicator B x :: 'a::ring_1)"
   unfolding indicator_def by (auto simp: min_def max_def)
 
 lemma indicator_inter_min: "indicator (A \<inter> B) x = min (indicator A x) (indicator B x::'a::linordered_semidom)"
   and indicator_union_max: "indicator (A \<union> B) x = max (indicator A x) (indicator B x::'a::linordered_semidom)"
   unfolding indicator_def by (auto simp: min_def max_def)
 
-lemma indicator_disj_union: "A \<inter> B = {} \<Longrightarrow>  indicator (A \<union> B) x = (indicator A x + indicator B x::'a::linordered_semidom)"
+lemma indicator_disj_union:
+  "A \<inter> B = {} \<Longrightarrow> indicator (A \<union> B) x = (indicator A x + indicator B x :: 'a::linordered_semidom)"
   by (auto split: split_indicator)
 
-lemma indicator_compl: "indicator (- A) x = 1 - (indicator A x::'a::ring_1)"
-  and indicator_diff: "indicator (A - B) x = indicator A x * (1 - indicator B x::'a::ring_1)"
+lemma indicator_compl: "indicator (- A) x = 1 - (indicator A x :: 'a::ring_1)"
+  and indicator_diff: "indicator (A - B) x = indicator A x * (1 - indicator B x ::'a::ring_1)"
   unfolding indicator_def by (auto simp: min_def max_def)
 
-lemma indicator_times: "indicator (A \<times> B) x = indicator A (fst x) * (indicator B (snd x)::'a::semiring_1)"
+lemma indicator_times:
+  "indicator (A \<times> B) x = indicator A (fst x) * (indicator B (snd x) :: 'a::semiring_1)"
   unfolding indicator_def by (cases x) auto
 
-lemma indicator_sum: "indicator (A <+> B) x = (case x of Inl x \<Rightarrow> indicator A x | Inr x \<Rightarrow> indicator B x)"
+lemma indicator_sum:
+  "indicator (A <+> B) x = (case x of Inl x \<Rightarrow> indicator A x | Inr x \<Rightarrow> indicator B x)"
   unfolding indicator_def by (cases x) auto
 
 lemma indicator_image: "inj f \<Longrightarrow> indicator (f ` X) (f x) = (indicator X x::_::zero_neq_one)"
   by (auto simp: indicator_def inj_on_def)
 
 lemma indicator_vimage: "indicator (f -` A) x = indicator A (f x)"
-by(auto split: split_indicator)
+  by (auto split: split_indicator)
 
-lemma
-  fixes f :: "'a \<Rightarrow> 'b::semiring_1" assumes "finite A"
+lemma  (* FIXME unnamed!? *)
+  fixes f :: "'a \<Rightarrow> 'b::semiring_1"
+  assumes "finite A"
   shows setsum_mult_indicator[simp]: "(\<Sum>x \<in> A. f x * indicator B x) = (\<Sum>x \<in> A \<inter> B. f x)"
-  and setsum_indicator_mult[simp]: "(\<Sum>x \<in> A. indicator B x * f x) = (\<Sum>x \<in> A \<inter> B. f x)"
+    and setsum_indicator_mult[simp]: "(\<Sum>x \<in> A. indicator B x * f x) = (\<Sum>x \<in> A \<inter> B. f x)"
   unfolding indicator_def
   using assms by (auto intro!: setsum.mono_neutral_cong_right split: if_split_asm)
 
 lemma setsum_indicator_eq_card:
   assumes "finite A"
   shows "(\<Sum>x \<in> A. indicator B x) = card (A Int B)"
-  using setsum_mult_indicator[OF assms, of "%x. 1::nat"]
+  using setsum_mult_indicator [OF assms, of "\<lambda>x. 1::nat"]
   unfolding card_eq_setsum by simp
 
 lemma setsum_indicator_scaleR[simp]:
   "finite A \<Longrightarrow>
-    (\<Sum>x \<in> A. indicator (B x) (g x) *\<^sub>R f x) = (\<Sum>x \<in> {x\<in>A. g x \<in> B x}. f x::'a::real_vector)"
+    (\<Sum>x \<in> A. indicator (B x) (g x) *\<^sub>R f x) = (\<Sum>x \<in> {x\<in>A. g x \<in> B x}. f x :: 'a::real_vector)"
   by (auto intro!: setsum.mono_neutral_cong_right split: if_split_asm simp: indicator_def)
 
 lemma LIMSEQ_indicator_incseq:
   assumes "incseq A"
-  shows "(\<lambda>i. indicator (A i) x :: 'a :: {topological_space, one, zero}) \<longlonglongrightarrow> indicator (\<Union>i. A i) x"
-proof cases
-  assume "\<exists>i. x \<in> A i"
+  shows "(\<lambda>i. indicator (A i) x :: 'a::{topological_space,one,zero}) \<longlonglongrightarrow> indicator (\<Union>i. A i) x"
+proof (cases "\<exists>i. x \<in> A i")
+  case True
   then obtain i where "x \<in> A i"
     by auto
   then have
@@ -98,10 +103,13 @@ proof cases
     using incseqD[OF \<open>incseq A\<close>, of i "n + i" for n] \<open>x \<in> A i\<close> by (auto simp: indicator_def)
   then show ?thesis
     by (rule_tac LIMSEQ_offset[of _ i]) simp
-qed (auto simp: indicator_def)
+next
+  case False
+  then show ?thesis by (simp add: indicator_def)
+qed
 
 lemma LIMSEQ_indicator_UN:
-  "(\<lambda>k. indicator (\<Union>i<k. A i) x :: 'a :: {topological_space, one, zero}) \<longlonglongrightarrow> indicator (\<Union>i. A i) x"
+  "(\<lambda>k. indicator (\<Union>i<k. A i) x :: 'a::{topological_space,one,zero}) \<longlonglongrightarrow> indicator (\<Union>i. A i) x"
 proof -
   have "(\<lambda>k. indicator (\<Union>i<k. A i) x::'a) \<longlonglongrightarrow> indicator (\<Union>k. \<Union>i<k. A i) x"
     by (intro LIMSEQ_indicator_incseq) (auto simp: incseq_def intro: less_le_trans)
@@ -112,9 +120,9 @@ qed
 
 lemma LIMSEQ_indicator_decseq:
   assumes "decseq A"
-  shows "(\<lambda>i. indicator (A i) x :: 'a :: {topological_space, one, zero}) \<longlonglongrightarrow> indicator (\<Inter>i. A i) x"
-proof cases
-  assume "\<exists>i. x \<notin> A i"
+  shows "(\<lambda>i. indicator (A i) x :: 'a::{topological_space,one,zero}) \<longlonglongrightarrow> indicator (\<Inter>i. A i) x"
+proof (cases "\<exists>i. x \<notin> A i")
+  case True
   then obtain i where "x \<notin> A i"
     by auto
   then have
@@ -123,10 +131,13 @@ proof cases
     using decseqD[OF \<open>decseq A\<close>, of i "n + i" for n] \<open>x \<notin> A i\<close> by (auto simp: indicator_def)
   then show ?thesis
     by (rule_tac LIMSEQ_offset[of _ i]) simp
-qed (auto simp: indicator_def)
+next
+  case False
+  then show ?thesis by (simp add: indicator_def)
+qed
 
 lemma LIMSEQ_indicator_INT:
-  "(\<lambda>k. indicator (\<Inter>i<k. A i) x :: 'a :: {topological_space, one, zero}) \<longlonglongrightarrow> indicator (\<Inter>i. A i) x"
+  "(\<lambda>k. indicator (\<Inter>i<k. A i) x :: 'a::{topological_space,one,zero}) \<longlonglongrightarrow> indicator (\<Inter>i. A i) x"
 proof -
   have "(\<lambda>k. indicator (\<Inter>i<k. A i) x::'a) \<longlonglongrightarrow> indicator (\<Inter>k. \<Inter>i<k. A i) x"
     by (intro LIMSEQ_indicator_decseq) (auto simp: decseq_def intro: less_le_trans)
@@ -149,30 +160,33 @@ lemma abs_indicator: "\<bar>indicator A x :: 'a::linordered_idom\<bar> = indicat
   by (simp split: split_indicator)
 
 lemma mult_indicator_subset:
-  "A \<subseteq> B \<Longrightarrow> indicator A x * indicator B x = (indicator A x :: 'a::{comm_semiring_1})"
+  "A \<subseteq> B \<Longrightarrow> indicator A x * indicator B x = (indicator A x :: 'a::comm_semiring_1)"
   by (auto split: split_indicator simp: fun_eq_iff)
 
 lemma indicator_sums:
   assumes "\<And>i j. i \<noteq> j \<Longrightarrow> A i \<inter> A j = {}"
   shows "(\<lambda>i. indicator (A i) x::real) sums indicator (\<Union>i. A i) x"
-proof cases
-  assume "\<exists>i. x \<in> A i"
+proof (cases "\<exists>i. x \<in> A i")
+  case True
   then obtain i where i: "x \<in> A i" ..
   with assms have "(\<lambda>i. indicator (A i) x::real) sums (\<Sum>i\<in>{i}. indicator (A i) x)"
     by (intro sums_finite) (auto split: split_indicator)
   also have "(\<Sum>i\<in>{i}. indicator (A i) x) = indicator (\<Union>i. A i) x"
     using i by (auto split: split_indicator)
   finally show ?thesis .
-qed simp
+next
+  case False
+  then show ?thesis by simp
+qed
 
 text \<open>
-  The indicator function of the union of a disjoint family of sets is the 
+  The indicator function of the union of a disjoint family of sets is the
   sum over all the individual indicators.
 \<close>
+
 lemma indicator_UN_disjoint:
-  assumes "finite A" "disjoint_family_on f A"
-  shows   "indicator (UNION A f) x = (\<Sum>y\<in>A. indicator (f y) x)"
-  using assms by (induction A rule: finite_induct)
-                 (auto simp: disjoint_family_on_def indicator_def split: if_splits)
+  "finite A \<Longrightarrow> disjoint_family_on f A \<Longrightarrow> indicator (UNION A f) x = (\<Sum>y\<in>A. indicator (f y) x)"
+  by (induct A rule: finite_induct)
+    (auto simp: disjoint_family_on_def indicator_def split: if_splits)
 
 end
