@@ -389,8 +389,12 @@ next
 qed
 
 lemma sets_PiM_eq_proj:
-  "I \<noteq> {} \<Longrightarrow> sets (PiM I M) = sets (\<Squnion>\<^sub>\<sigma> i\<in>I. vimage_algebra (\<Pi>\<^sub>E i\<in>I. space (M i)) (\<lambda>x. x i) (M i))"
-  apply (simp add: sets_PiM_single sets_Sup_sigma)
+  "I \<noteq> {} \<Longrightarrow> sets (PiM I M) = sets (SUP i:I. vimage_algebra (\<Pi>\<^sub>E i\<in>I. space (M i)) (\<lambda>x. x i) (M i))"
+  apply (simp add: sets_PiM_single)
+  apply (subst sets_Sup_eq[where X="\<Pi>\<^sub>E i\<in>I. space (M i)"])
+  apply auto []
+  apply auto []
+  apply simp
   apply (subst SUP_cong[OF refl])
   apply (rule sets_vimage_algebra2)
   apply auto []
@@ -418,10 +422,10 @@ next
   let ?F = "\<lambda>i. {(\<lambda>x. x i) -` A \<inter> Pi\<^sub>E I \<Omega> |A. A \<in> E i}"
   assume "I \<noteq> {}"
   then have "sets (Pi\<^sub>M I (\<lambda>i. sigma (\<Omega> i) (E i))) =
-      sets (\<Squnion>\<^sub>\<sigma> i\<in>I. vimage_algebra (\<Pi>\<^sub>E i\<in>I. \<Omega> i) (\<lambda>x. x i) (sigma (\<Omega> i) (E i)))"
+      sets (SUP i:I. vimage_algebra (\<Pi>\<^sub>E i\<in>I. \<Omega> i) (\<lambda>x. x i) (sigma (\<Omega> i) (E i)))"
     by (subst sets_PiM_eq_proj) (auto simp: space_measure_of_conv)
-  also have "\<dots> = sets (\<Squnion>\<^sub>\<sigma> i\<in>I. sigma (Pi\<^sub>E I \<Omega>) (?F i))"
-    using E by (intro SUP_sigma_cong arg_cong[where f=sets] vimage_algebra_sigma) auto
+  also have "\<dots> = sets (SUP i:I. sigma (Pi\<^sub>E I \<Omega>) (?F i))"
+    using E by (intro sets_SUP_cong arg_cong[where f=sets] vimage_algebra_sigma) auto
   also have "\<dots> = sets (sigma (Pi\<^sub>E I \<Omega>) (\<Union>i\<in>I. ?F i))"
     using \<open>I \<noteq> {}\<close> by (intro arg_cong[where f=sets] SUP_sigma_sigma) auto
   also have "\<dots> = sets (sigma (Pi\<^sub>E I \<Omega>) P)"

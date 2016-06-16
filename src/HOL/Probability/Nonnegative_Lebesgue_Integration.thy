@@ -1525,6 +1525,18 @@ qed (insert bound, auto simp add: le_fun_def INF_apply[abs_def] top_fun_def intr
 
 subsection \<open>Integral under concrete measures\<close>
 
+lemma nn_integral_mono_measure:
+  assumes "sets M = sets N" "M \<le> N" shows "nn_integral M f \<le> nn_integral N f"
+  unfolding nn_integral_def
+proof (intro SUP_subset_mono)
+  note \<open>sets M = sets N\<close>[simp]  \<open>sets M = sets N\<close>[THEN sets_eq_imp_space_eq, simp]
+  show "{g. simple_function M g \<and> g \<le> f} \<subseteq> {g. simple_function N g \<and> g \<le> f}"
+    by (simp add: simple_function_def)
+  show "integral\<^sup>S M x \<le> integral\<^sup>S N x" for x
+    using le_measureD3[OF \<open>M \<le> N\<close>]
+    by (auto simp add: simple_integral_def intro!: setsum_mono mult_mono)
+qed
+
 lemma nn_integral_empty:
   assumes "space M = {}"
   shows "nn_integral M f = 0"
@@ -1533,6 +1545,9 @@ proof -
     by(rule nn_integral_cong)(simp add: assms)
   thus ?thesis by simp
 qed
+
+lemma nn_integral_bot[simp]: "nn_integral bot f = 0"
+  by (simp add: nn_integral_empty)
 
 subsubsection \<open>Distributions\<close>
 

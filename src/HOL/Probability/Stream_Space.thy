@@ -94,16 +94,16 @@ lemma measurable_Stream[measurable (raw)]:
   shows "(\<lambda>x. f x ## g x) \<in> measurable N (stream_space M)"
   by (rule measurable_stream_space2) (simp add: Stream_snth)
 
-lemma measurable_smap[measurable]: 
+lemma measurable_smap[measurable]:
   assumes X[measurable]: "X \<in> measurable N M"
   shows "smap X \<in> measurable (stream_space N) (stream_space M)"
   by (rule measurable_stream_space2) simp
 
-lemma measurable_stake[measurable]: 
+lemma measurable_stake[measurable]:
   "stake i \<in> measurable (stream_space (count_space UNIV)) (count_space (UNIV :: 'a::countable list set))"
   by (induct i) auto
 
-lemma measurable_shift[measurable]: 
+lemma measurable_shift[measurable]:
   assumes f: "f \<in> measurable N (stream_space M)"
   assumes [measurable]: "g \<in> measurable N (stream_space M)"
   shows "(\<lambda>x. stake n (f x) @- g x) \<in> measurable N (stream_space M)"
@@ -168,7 +168,7 @@ qed
 lemma (in prob_space) nn_integral_stream_space:
   assumes [measurable]: "f \<in> borel_measurable (stream_space M)"
   shows "(\<integral>\<^sup>+X. f X \<partial>stream_space M) = (\<integral>\<^sup>+x. (\<integral>\<^sup>+X. f (x ## X) \<partial>stream_space M) \<partial>M)"
-proof -                  
+proof -
   interpret S: sequence_space M ..
   interpret P: pair_sigma_finite M "\<Pi>\<^sub>M i::nat\<in>UNIV. M" ..
 
@@ -230,7 +230,7 @@ proof -
     apply (simp add: AE_iff_nn_integral[symmetric])
     done
 qed
-  
+
 lemma (in prob_space) AE_stream_all:
   assumes [measurable]: "Measurable.pred M P" and P: "AE x in M. P x"
   shows "AE x in stream_space M. stream_all P x"
@@ -271,14 +271,14 @@ lemma sets_stream_space_in_sets:
   assumes sets: "\<And>i. (\<lambda>x. x !! i) \<in> measurable N M"
   shows "sets (stream_space M) \<subseteq> sets N"
   unfolding stream_space_def sets_distr
-  by (auto intro!: sets_image_in_sets measurable_Sup_sigma2 measurable_vimage_algebra2 del: subsetI equalityI 
+  by (auto intro!: sets_image_in_sets measurable_Sup2 measurable_vimage_algebra2 del: subsetI equalityI
            simp add: sets_PiM_eq_proj snth_in space sets cong: measurable_cong_sets)
 
 lemma sets_stream_space_eq: "sets (stream_space M) =
-    sets (\<Squnion>\<^sub>\<sigma> i\<in>UNIV. vimage_algebra (streams (space M)) (\<lambda>s. s !! i) M)"
+    sets (SUP i:UNIV. vimage_algebra (streams (space M)) (\<lambda>s. s !! i) M)"
   by (auto intro!: sets_stream_space_in_sets sets_Sup_in_sets sets_image_in_sets
-                   measurable_Sup_sigma1  snth_in measurable_vimage_algebra1 del: subsetI
-           simp: space_Sup_sigma space_stream_space)
+                   measurable_Sup1 snth_in measurable_vimage_algebra1 del: subsetI
+           simp: space_Sup_eq_UN space_stream_space)
 
 lemma sets_restrict_stream_space:
   assumes S[measurable]: "S \<in> sets M"
@@ -288,16 +288,16 @@ lemma sets_restrict_stream_space:
   apply (simp add: space_stream_space streams_mono2)
   apply (subst vimage_algebra_cong[OF refl refl sets_stream_space_eq])
   apply (subst sets_stream_space_eq)
-  apply (subst sets_vimage_Sup_eq)
+  apply (subst sets_vimage_Sup_eq[where Y="streams (space M)"])
   apply simp
+  apply auto []
   apply (auto intro: streams_mono) []
+  apply auto []
   apply (simp add: image_image space_restrict_space)
-  apply (intro SUP_sigma_cong)
   apply (simp add: vimage_algebra_cong[OF refl refl restrict_space_eq_vimage_algebra])
   apply (subst (1 2) vimage_algebra_vimage_algebra_eq)
-  apply (auto simp: streams_mono snth_in)
+  apply (auto simp: streams_mono snth_in )
   done
-
 
 primrec sstart :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a stream set" where
   "sstart S [] = streams S"

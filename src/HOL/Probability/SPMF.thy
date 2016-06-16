@@ -302,7 +302,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma integral_measure_spmf: 
+lemma integral_measure_spmf:
   assumes "integrable (measure_spmf p) f"
   shows "(\<integral> x. f x \<partial>measure_spmf p) = \<integral> x. spmf p x * f x \<partial>count_space UNIV"
 proof -
@@ -340,7 +340,7 @@ lemma SUP_spmf_neq_top: "(SUP i. ennreal (spmf (Y i) x)) \<noteq> \<top>"
 proof(rule neq_top_trans)
   show "(SUP i. ennreal (spmf (Y i) x)) \<le> 1" by(rule SUP_least)(simp add: pmf_le_1)
 qed simp
-                 
+
 lemma SUP_emeasure_spmf_neq_top: "(SUP p:Y. emeasure (measure_spmf p) A) \<noteq> \<top>"
 proof(rule neq_top_trans)
   show "(SUP p:Y. emeasure (measure_spmf p) A) \<le> 1"
@@ -453,7 +453,7 @@ end
 
 lemma set_map_spmf [simp]: "set_spmf (map_spmf f p) = f ` set_spmf p"
 by(simp add: set_spmf_def image_bind bind_image o_def Option.option.set_map)
-        
+
 lemma map_spmf_cong:
   "\<lbrakk> p = q; \<And>x. x \<in> set_spmf q \<Longrightarrow> f x = g x \<rbrakk>
   \<Longrightarrow> map_spmf f p = map_spmf g q"
@@ -576,7 +576,7 @@ proof(rule measure_eqI)
     by(simp add: sets_bind[where N="count_space UNIV"] space_measure_spmf)
 next
   fix A :: "'a set"
-  have "emeasure ?lhs A = \<integral>\<^sup>+ x. emeasure (measure_spmf (f x)) A \<partial>measure_pmf p" 
+  have "emeasure ?lhs A = \<integral>\<^sup>+ x. emeasure (measure_spmf (f x)) A \<partial>measure_pmf p"
     by(simp add: measure_spmf_def emeasure_distr space_restrict_space emeasure_restrict_space bind_spmf_def)
   also have "\<dots> = emeasure ?rhs A"
     by(simp add: emeasure_bind[where N="count_space UNIV"] space_measure_spmf space_subprob_algebra)
@@ -591,13 +591,13 @@ proof(rule measure_eqI)
 next
   fix A :: "'a set"
   let ?A = "the -` A \<inter> range Some"
-  have "emeasure ?lhs A = \<integral>\<^sup>+ x. emeasure (measure_pmf (case x of None \<Rightarrow> return_pmf None | Some x \<Rightarrow> f x)) ?A \<partial>measure_pmf p" 
+  have "emeasure ?lhs A = \<integral>\<^sup>+ x. emeasure (measure_pmf (case x of None \<Rightarrow> return_pmf None | Some x \<Rightarrow> f x)) ?A \<partial>measure_pmf p"
     by(simp add: measure_spmf_def emeasure_distr space_restrict_space emeasure_restrict_space bind_spmf_def)
   also have "\<dots> =  \<integral>\<^sup>+ x. emeasure (measure_pmf (f (the x))) ?A * indicator (range Some) x \<partial>measure_pmf p"
     by(rule nn_integral_cong)(auto split: option.split simp add: indicator_def)
   also have "\<dots> = \<integral>\<^sup>+ x. emeasure (measure_spmf (f x)) A \<partial>measure_spmf p"
     by(simp add: measure_spmf_def nn_integral_distr nn_integral_restrict_space emeasure_distr space_restrict_space emeasure_restrict_space)
-  also have "\<dots> = emeasure ?rhs A" 
+  also have "\<dots> = emeasure ?rhs A"
     by(simp add: emeasure_bind[where N="count_space UNIV"] space_measure_spmf space_subprob_algebra)
   finally show "emeasure ?lhs A = emeasure ?rhs A" .
 qed
@@ -663,7 +663,7 @@ using pmf.rel_mono[of A B] by(simp add: le_fun_def)
 
 lemma rel_spmf_mono:
   "\<lbrakk>rel_spmf A f g; \<And>x y. A x y \<Longrightarrow> B x y \<rbrakk> \<Longrightarrow> rel_spmf B f g"
-apply(erule rel_pmf_mono) 
+apply(erule rel_pmf_mono)
 using option.rel_mono[of A B] by(simp add: le_fun_def)
 
 lemma rel_spmf_mono_strong:
@@ -684,7 +684,7 @@ by(rule rel_pmf.intros[where pq="map_pmf (\<lambda>x. case x of None \<Rightarro
 
 lemma rel_spmfE [elim?, consumes 1, case_names rel_spmf]:
   assumes "rel_spmf P p q"
-  obtains pq where 
+  obtains pq where
     "\<And>x y. (x, y) \<in> set_spmf pq \<Longrightarrow> P x y"
     "p = map_spmf fst pq"
     "q = map_spmf snd pq"
@@ -847,7 +847,7 @@ using measure_pmf.prob_space[of p] by(simp add: spmf_of_pmf_def weight_spmf_def)
 lemma weight_spmf_nonneg: "weight_spmf p \<ge> 0"
 by(fact measure_nonneg)
 
-lemma (in finite_measure) integrable_weight_spmf [simp]: 
+lemma (in finite_measure) integrable_weight_spmf [simp]:
   "(\<lambda>x. weight_spmf (f x)) \<in> borel_measurable M \<Longrightarrow> integrable M (\<lambda>x. weight_spmf (f x))"
 by(rule integrable_const_bound[where B=1])(simp_all add: weight_spmf_nonneg weight_spmf_le_1)
 
@@ -1068,7 +1068,7 @@ lemma ord_pmf_increaseI:
   and refl: "\<And>x. x \<in> set_spmf p \<Longrightarrow> R x x"
   shows "ord_spmf R p q"
 proof(rule rel_pmf.intros)
-  define pq where "pq = embed_pmf 
+  define pq where "pq = embed_pmf
     (\<lambda>(x, y). case x of Some x' \<Rightarrow> (case y of Some y' \<Rightarrow> if x' = y' then spmf p x' else 0 | None \<Rightarrow> 0)
       | None \<Rightarrow> (case y of None \<Rightarrow> pmf q None | Some y' \<Rightarrow> spmf q y' - spmf p y'))"
      (is "_ = embed_pmf ?f")
@@ -1077,8 +1077,8 @@ proof(rule rel_pmf.intros)
   have integral: "(\<integral>\<^sup>+ xy. ?f xy \<partial>count_space UNIV) = 1" (is "nn_integral ?M _ = _")
   proof -
     have "(\<integral>\<^sup>+ xy. ?f xy \<partial>count_space UNIV) =
-      \<integral>\<^sup>+ xy. ennreal (?f xy) * indicator {(None, None)} xy + 
-             ennreal (?f xy) * indicator (range (\<lambda>x. (None, Some x))) xy + 
+      \<integral>\<^sup>+ xy. ennreal (?f xy) * indicator {(None, None)} xy +
+             ennreal (?f xy) * indicator (range (\<lambda>x. (None, Some x))) xy +
              ennreal (?f xy) * indicator (range (\<lambda>x. (Some x, Some x))) xy \<partial>?M"
       by(rule nn_integral_cong)(auto split: split_indicator option.splits if_split_asm)
     also have "\<dots> = (\<integral>\<^sup>+ xy. ?f xy * indicator {(None, None)} xy \<partial>?M) +
@@ -1132,8 +1132,8 @@ proof(rule rel_pmf.intros)
       then show ?thesis using Some by simp
     next
       case None
-      have "(\<integral>\<^sup>+ y. pmf pq (None, y) \<partial>count_space UNIV) = 
-            (\<integral>\<^sup>+ y. ennreal (pmf pq (None, Some (the y))) * indicator (range Some) y + 
+      have "(\<integral>\<^sup>+ y. pmf pq (None, y) \<partial>count_space UNIV) =
+            (\<integral>\<^sup>+ y. ennreal (pmf pq (None, Some (the y))) * indicator (range Some) y +
                    ennreal (pmf pq (None, None)) * indicator {None} y \<partial>count_space UNIV)"
         by(rule nn_integral_cong)(auto split: split_indicator)
       also have "\<dots> = (\<integral>\<^sup>+ y. ennreal (pmf pq (None, Some (the y))) \<partial>count_space (range Some)) + pmf pq (None, None)"
@@ -1170,8 +1170,8 @@ proof(rule rel_pmf.intros)
       then show ?thesis using None by simp
     next
       case (Some y)
-      have "(\<integral>\<^sup>+ x. pmf pq (x, Some y) \<partial>count_space UNIV) = 
-        (\<integral>\<^sup>+ x. ennreal (pmf pq (x, Some y)) * indicator (range Some) x + 
+      have "(\<integral>\<^sup>+ x. pmf pq (x, Some y) \<partial>count_space UNIV) =
+        (\<integral>\<^sup>+ x. ennreal (pmf pq (x, Some y)) * indicator (range Some) x +
                ennreal (pmf pq (None, Some y)) * indicator {None} x \<partial>count_space UNIV)"
         by(rule nn_integral_cong)(auto split: split_indicator)
       also have "\<dots> = (\<integral>\<^sup>+ x. ennreal (pmf pq (x, Some y)) * indicator (range Some) x \<partial>count_space UNIV) + pmf pq (None, Some y)"
@@ -1215,8 +1215,7 @@ lemma ord_spmf_eqD_emeasure:
 by(auto intro!: nn_integral_mono split: split_indicator dest: ord_spmf_eq_leD simp add: nn_integral_measure_spmf nn_integral_indicator[symmetric])
 
 lemma ord_spmf_eqD_measure_spmf: "ord_spmf op = p q \<Longrightarrow> measure_spmf p \<le> measure_spmf q"
-by(rule less_eq_measure.intros)(simp_all add: ord_spmf_eqD_emeasure)
-
+  by (subst le_measure) (auto simp: ord_spmf_eqD_emeasure)
 
 subsection \<open>CCPO structure for the flat ccpo @{term "ord_option op ="}\<close>
 
@@ -1224,7 +1223,7 @@ context fixes Y :: "'a spmf set" begin
 
 definition lub_spmf :: "'a spmf"
 where "lub_spmf = embed_spmf (\<lambda>x. enn2real (SUP p : Y. ennreal (spmf p x)))"
-  \<comment> \<open>We go through @{typ ennreal} to have a sensible definition even if @{term Y} is empty.\<close> 
+  \<comment> \<open>We go through @{typ ennreal} to have a sensible definition even if @{term Y} is empty.\<close>
 
 lemma lub_spmf_empty [simp]: "SPMF.lub_spmf {} = return_pmf None"
 by(simp add: SPMF.lub_spmf_def bot_ereal_def)
@@ -1259,18 +1258,18 @@ lemma ord_spmf_eq_pmf_None_eq:
 proof(rule spmf_eqI)
   fix i
   from le have le': "\<And>x. spmf p x \<le> spmf q x" by(rule ord_spmf_eq_leD)
-  have "(\<integral>\<^sup>+ x. ennreal (spmf q x) - spmf p x \<partial>count_space UNIV) = 
+  have "(\<integral>\<^sup>+ x. ennreal (spmf q x) - spmf p x \<partial>count_space UNIV) =
      (\<integral>\<^sup>+ x. spmf q x \<partial>count_space UNIV) - (\<integral>\<^sup>+ x. spmf p x \<partial>count_space UNIV)"
     by(subst nn_integral_diff)(simp_all add: AE_count_space le' nn_integral_spmf_neq_top)
   also have "\<dots> = (1 - pmf q None) - (1 - pmf p None)" unfolding pmf_None_eq_weight_spmf
     by(simp add: weight_spmf_eq_nn_integral_spmf[symmetric] ennreal_minus)
   also have "\<dots> = 0" using None by simp
-  finally have "\<And>x. spmf q x \<le> spmf p x" 
+  finally have "\<And>x. spmf q x \<le> spmf p x"
     by(simp add: nn_integral_0_iff_AE AE_count_space ennreal_minus ennreal_eq_0_iff)
   with le' show "spmf p i = spmf q i" by(rule antisym)
 qed
 
-lemma ord_spmf_eqD_pmf_None: 
+lemma ord_spmf_eqD_pmf_None:
   assumes "ord_spmf op = x y"
   shows "pmf x None \<ge> pmf y None"
 using assms
@@ -1283,7 +1282,7 @@ text \<open>
   Chains on @{typ "'a spmf"} maintain countable support.
   Thanks to Johannes Hölzl for the proof idea.
 \<close>
-lemma spmf_chain_countable: "countable (\<Union>p\<in>Y. set_spmf p)" 
+lemma spmf_chain_countable: "countable (\<Union>p\<in>Y. set_spmf p)"
 proof(cases "Y = {}")
   case Y: False
   show ?thesis
@@ -1295,13 +1294,13 @@ proof(cases "Y = {}")
   next
     case False
     define N :: "'a option pmf \<Rightarrow> real" where "N p = pmf p None" for p
-  
+
     have N_less_imp_le_spmf: "\<lbrakk> x \<in> Y; y \<in> Y; N y < N x \<rbrakk> \<Longrightarrow> ord_spmf op = x y" for x y
       using chainD[OF chain, of x y] ord_spmf_eqD_pmf_None[of x y] ord_spmf_eqD_pmf_None[of y x]
       by (auto simp: N_def)
     have N_eq_imp_eq: "\<lbrakk> x \<in> Y; y \<in> Y; N y = N x \<rbrakk> \<Longrightarrow> x = y" for x y
       using chainD[OF chain, of x y] by(auto simp add: N_def dest: ord_spmf_eq_pmf_None_eq)
-    
+
     have NC: "N ` Y \<noteq> {}" "bdd_below (N ` Y)"
       using \<open>Y \<noteq> {}\<close> by(auto intro!: bdd_belowI[of _ 0] simp: N_def)
     have NC_less: "Inf (N ` Y) < N x" if "x \<in> Y" for x unfolding cInf_less_iff[OF NC]
@@ -1314,12 +1313,12 @@ proof(cases "Y = {}")
           by cases(auto dest: N_less_imp_le_spmf N_eq_imp_eq intro: ord_spmf_reflI) }
       with False \<open>x \<in> Y\<close> show False by blast
     qed
-  
+
     from NC have "Inf (N ` Y) \<in> closure (N ` Y)" by (intro closure_contains_Inf)
     then obtain X' where "\<And>n. X' n \<in> N ` Y" and X': "X' \<longlonglongrightarrow> Inf (N ` Y)"
       unfolding closure_sequential by auto
     then obtain X where X: "\<And>n. X n \<in> Y" and "X' = (\<lambda>n. N (X n))" unfolding image_iff Bex_def by metis
-  
+
     with X' have seq: "(\<lambda>n. N (X n)) \<longlonglongrightarrow> Inf (N ` Y)" by simp
     have "(\<Union>x \<in> Y. set_spmf x) \<subseteq> (\<Union>n. set_spmf (X n))"
     proof(rule UN_least)
@@ -1343,7 +1342,7 @@ next
   let ?B = "\<Union>p\<in>Y. set_spmf p"
   have countable: "countable ?B" by(rule spmf_chain_countable)
 
-  have "(\<integral>\<^sup>+ x. (SUP p:Y. ennreal (spmf p x)) \<partial>count_space UNIV) = 
+  have "(\<integral>\<^sup>+ x. (SUP p:Y. ennreal (spmf p x)) \<partial>count_space UNIV) =
         (\<integral>\<^sup>+ x. (SUP p:Y. ennreal (spmf p x) * indicator ?B x) \<partial>count_space UNIV)"
     by(intro nn_integral_cong SUP_cong)(auto split: split_indicator simp add: spmf_eq_0_set_spmf)
   also have "\<dots> = (\<integral>\<^sup>+ x. (SUP p:Y. ennreal (spmf p x)) \<partial>count_space ?B)"
@@ -1481,8 +1480,10 @@ proof(rule measure_eqI)
   from assms obtain p where p: "p \<in> Y" by auto
   from chain have chain': "Complete_Partial_Order.chain op \<le> (measure_spmf ` Y)"
     by(rule chain_imageI)(rule ord_spmf_eqD_measure_spmf)
-  show "sets ?lhs = sets ?rhs" and "emeasure ?lhs A = emeasure ?rhs A" for A
-    using chain' Y p by(simp_all add: sets_SUP emeasure_SUP emeasure_lub_spmf)
+  show "sets ?lhs = sets ?rhs"
+    using Y by (subst sets_SUP) auto
+  show "emeasure ?lhs A = emeasure ?rhs A" for A
+    using chain' Y p by (subst emeasure_SUP_chain) (auto simp:  emeasure_lub_spmf)
 qed
 
 end
@@ -1552,11 +1553,11 @@ proof (rule monotoneI)
   ultimately show "ord_spmf op = (bind_spmf (B f) (\<lambda>y. C y f)) (bind_spmf (B g) (\<lambda>y'. C y' g))"
     by(rule bind_spmf_mono')
 qed
-  
+
 lemma monotone_bind_spmf1: "monotone (ord_spmf op =) (ord_spmf op =) (\<lambda>y. bind_spmf y g)"
 by(rule monotoneI)(simp add: bind_spmf_mono' ord_spmf_reflI)
 
-lemma monotone_bind_spmf2: 
+lemma monotone_bind_spmf2:
   assumes g: "\<And>x. monotone ord (ord_spmf op =) (\<lambda>y. g y x)"
   shows "monotone ord (ord_spmf op =) (\<lambda>y. bind_spmf p (g y))"
 by(rule monotoneI)(auto intro: bind_spmf_mono' monotoneD[OF g] ord_spmf_reflI)
@@ -1611,7 +1612,7 @@ proof(cases "Y = {}")
       using chain by(rule chain_imageI)(auto simp add: le_fun_def dest: ord_spmf_eq_leD monotoneD[OF g] intro!: mult_left_mono)
     have chain''': "Complete_Partial_Order.chain (ord_spmf op =) ((\<lambda>p. bind_spmf x (\<lambda>y. g y p)) ` Y)"
       using chain by(rule chain_imageI)(rule monotone_bind_spmf2[OF g, THEN monotoneD])
-  
+
     have "ennreal (spmf ?lhs i) = \<integral>\<^sup>+ y. (SUP p:Y. ennreal (spmf x y * spmf (g y p) i)) \<partial>count_space (set_spmf x)"
       by(simp add: ennreal_spmf_bind ennreal_spmf_lub_spmf[OF chain'] Y nn_integral_measure_spmf' SUP_mult_left_ennreal ennreal_mult)
     also have "\<dots> = (SUP p:Y. \<integral>\<^sup>+ y. ennreal (spmf x y * spmf (g y p) i) \<partial>count_space (set_spmf x))"
@@ -1707,7 +1708,7 @@ qed
 
 locale rel_spmf_characterisation =
   assumes rel_pmf_measureI:
-    "\<And>(R :: 'a option \<Rightarrow> 'b option \<Rightarrow> bool) p q. 
+    "\<And>(R :: 'a option \<Rightarrow> 'b option \<Rightarrow> bool) p q.
     (\<And>A. measure (measure_pmf p) A \<le> measure (measure_pmf q) {y. \<exists>x\<in>A. R x y})
     \<Longrightarrow> rel_pmf R p q"
   \<comment> \<open>This assumption is shown to hold in general in the AFP entry \<open>MFMC_Countable\<close>.\<close>
@@ -1911,7 +1912,7 @@ qed
 subsection \<open>Subprobability distributions of sets\<close>
 
 definition spmf_of_set :: "'a set \<Rightarrow> 'a spmf"
-where 
+where
   "spmf_of_set A = (if finite A \<and> A \<noteq> {} then spmf_of_pmf (pmf_of_set A) else return_pmf None)"
 
 lemma spmf_of_set: "spmf (spmf_of_set A) x = indicator A x / card A"
@@ -1933,7 +1934,7 @@ lemma map_spmf_of_set_inj_on [simp]:
   "inj_on f A \<Longrightarrow> map_spmf f (spmf_of_set A) = spmf_of_set (f ` A)"
 by(auto simp add: spmf_of_set_def map_pmf_of_set_inj dest: finite_imageD)
 
-lemma spmf_of_pmf_pmf_of_set [simp]: 
+lemma spmf_of_pmf_pmf_of_set [simp]:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> spmf_of_pmf (pmf_of_set A) = spmf_of_set A"
 by(simp add: spmf_of_set_def)
 
@@ -2001,7 +2002,7 @@ end
 lemma rel_pmf_of_set_bij:
   assumes f: "bij_betw f A B"
   and A: "A \<noteq> {}" "finite A"
-  and B: "B \<noteq> {}" "finite B" 
+  and B: "B \<noteq> {}" "finite B"
   and R: "\<And>x. x \<in> A \<Longrightarrow> R x (f x)"
   shows "rel_pmf R (pmf_of_set A) (pmf_of_set B)"
 proof(rule pmf.rel_mono_strong)
@@ -2056,7 +2057,7 @@ proof(rule spmf_eqI)
     by(auto intro: arg_cong[where f=card])
   also have "\<dots> = (if i then card (B \<inter> A) / card B else (card B - card (B \<inter> A)) / card B)"
     by(auto simp add: card_Diff_subset_Int assms)
-  also have "\<dots> = ennreal (spmf ?rhs i)"                               
+  also have "\<dots> = ennreal (spmf ?rhs i)"
     by(simp add: assms card_gt_0_iff field_simps card_mono Int_commute of_nat_diff)
   finally show "spmf ?lhs i = spmf ?rhs i" by simp
 qed
@@ -2233,7 +2234,7 @@ apply(subst nn_integral_cmult[symmetric])
 apply(auto simp add: max_def min_def ennreal_mult[symmetric] not_le ennreal_lt_0)
 done
 
-lemma measure_spmf_scale_spmf': 
+lemma measure_spmf_scale_spmf':
   "r \<le> 1 \<Longrightarrow> measure_spmf (scale_spmf r p) = scale_measure r (measure_spmf p)"
 unfolding measure_spmf_scale_spmf
 apply(cases "weight_spmf p > 0")
@@ -2250,7 +2251,7 @@ done
 lemma scale_spmf_0 [simp]: "scale_spmf 0 p = return_pmf None"
 by(rule spmf_eqI)(simp add: spmf_scale_spmf min_def max_def weight_spmf_le_0)
 
-lemma bind_scale_spmf: 
+lemma bind_scale_spmf:
   assumes r: "r \<le> 1"
   shows "bind_spmf (scale_spmf r p) f = bind_spmf p (\<lambda>x. scale_spmf r (f x))"
   (is "?lhs = ?rhs")
@@ -2262,7 +2263,7 @@ proof(rule spmf_eqI)
   thus "spmf ?lhs x = spmf ?rhs x" by simp
 qed
 
-lemma scale_bind_spmf: 
+lemma scale_bind_spmf:
   assumes "r \<le> 1"
   shows "scale_spmf r (bind_spmf p f) = bind_spmf p (\<lambda>x. scale_spmf r (f x))"
   (is "?lhs = ?rhs")
@@ -2298,7 +2299,7 @@ done
 lemma set_scale_spmf' [simp]: "0 < r \<Longrightarrow> set_spmf (scale_spmf r p) = set_spmf p"
 by(simp add: set_scale_spmf)
 
-lemma rel_spmf_scaleI: 
+lemma rel_spmf_scaleI:
   assumes "r > 0 \<Longrightarrow> rel_spmf A p q"
   shows "rel_spmf A (scale_spmf r p) (scale_spmf r q)"
 proof(cases "r > 0")
@@ -2319,7 +2320,7 @@ proof -
   thus ?thesis by(auto simp add: min_def max_def ennreal_mult[symmetric] split: if_split_asm)
 qed
 
-lemma weight_scale_spmf' [simp]: 
+lemma weight_scale_spmf' [simp]:
   "\<lbrakk> 0 \<le> r; r \<le> 1 \<rbrakk> \<Longrightarrow> weight_spmf (scale_spmf r p) = r * weight_spmf p"
 by(simp add: weight_scale_spmf max_def min_def)(metis antisym_conv mult_left_le order_trans weight_spmf_le_1)
 
@@ -2327,7 +2328,7 @@ lemma pmf_scale_spmf_None:
   "pmf (scale_spmf k p) None = 1 - min 1 (max 0 k * (1 - pmf p None))"
 unfolding pmf_None_eq_weight_spmf by(simp add: weight_scale_spmf)
 
-lemma scale_scale_spmf: 
+lemma scale_scale_spmf:
   "scale_spmf r (scale_spmf r' p) = scale_spmf (r * max 0 (min (inverse (weight_spmf p)) r')) p"
   (is "?lhs = ?rhs")
 proof(rule spmf_eqI)
@@ -2432,7 +2433,7 @@ done
 
 lemma set_pair_spmf [simp]: "set_spmf (pair_spmf p q) = set_spmf p \<times> set_spmf q"
 by(auto 4 3 simp add: pair_spmf_def set_spmf_bind_pmf bind_UNION in_set_spmf intro: rev_bexI split: option.splits)
-                                                 
+
 lemma spmf_pair [simp]: "spmf (pair_spmf p q) (x, y) = spmf p x * spmf q y" (is "?lhs = ?rhs")
 proof -
   have "ennreal ?lhs = \<integral>\<^sup>+ a. \<integral>\<^sup>+ b. indicator {(x, y)} (a, b) \<partial>measure_spmf q \<partial>measure_spmf p"
@@ -2483,8 +2484,8 @@ lemma pair_spmf_return_spmf [simp]: "pair_spmf (return_spmf x) (return_spmf y) =
 by(simp add: pair_spmf_return_spmf1)
 
 lemma rel_pair_spmf_prod:
-  "rel_spmf (rel_prod A B) (pair_spmf p q) (pair_spmf p' q') \<longleftrightarrow> 
-   rel_spmf A (scale_spmf (weight_spmf q) p) (scale_spmf (weight_spmf q') p') \<and> 
+  "rel_spmf (rel_prod A B) (pair_spmf p q) (pair_spmf p' q') \<longleftrightarrow>
+   rel_spmf A (scale_spmf (weight_spmf q) p) (scale_spmf (weight_spmf q') p') \<and>
    rel_spmf B (scale_spmf (weight_spmf p) q) (scale_spmf (weight_spmf p') q')"
   (is "?lhs \<longleftrightarrow> ?rhs" is "_ \<longleftrightarrow> ?A \<and> ?B" is "_ \<longleftrightarrow> rel_spmf _ ?p ?p' \<and> rel_spmf _ ?q ?q'")
 proof(intro iffI conjI)
@@ -2506,7 +2507,7 @@ proof(intro iffI conjI)
     moreover have "(weight_spmf p * weight_spmf q) * (weight_spmf p * weight_spmf q) \<le> (1 * 1) * (1 * 1)"
       by(intro mult_mono)(simp_all add: weight_spmf_nonneg weight_spmf_le_1)
     ultimately have "(weight_spmf p * weight_spmf q) * (weight_spmf p * weight_spmf q) = 1" by simp
-    hence *: "weight_spmf p * weight_spmf q = 1" 
+    hence *: "weight_spmf p * weight_spmf q = 1"
       by(metis antisym_conv less_le mult_less_cancel_left1 weight_pair_spmf weight_spmf_le_1 weight_spmf_nonneg)
     hence "weight_spmf p = 1" by(metis antisym_conv mult_left_le weight_spmf_le_1 weight_spmf_nonneg)
     moreover with * have "weight_spmf q = 1" by simp
@@ -2526,7 +2527,7 @@ proof(intro iffI conjI)
     have [simp]: "snd \<circ> ?f = map_prod snd snd" by(simp add: fun_eq_iff)
     from \<open>?rhs\<close> have eq: "weight_spmf p * weight_spmf q = weight_spmf p' * weight_spmf q'"
       by(auto dest!: rel_spmf_weightD simp add: weight_spmf_le_1 weight_spmf_nonneg)
-    
+
     have "map_spmf snd ?pq = scale_spmf ?r (pair_spmf ?p' ?q')"
       by(simp add: pair_map_spmf[symmetric] p' q' map_scale_spmf spmf.map_comp)
     also have "\<dots> = pair_spmf p' q'" using full[of p' q'] eq
@@ -2546,24 +2547,24 @@ next
     let ?f = "(\<lambda>((x, y), (x', y')). (x, x'))"
     let ?pq = "map_spmf ?f pq"
     have [simp]: "fst \<circ> ?f = fst \<circ> fst" by(simp add: split_def o_def)
-    show "map_spmf fst ?pq = scale_spmf (weight_spmf q) p" using pq 
+    show "map_spmf fst ?pq = scale_spmf (weight_spmf q) p" using pq
       by(simp add: spmf.map_comp)(simp add: spmf.map_comp[symmetric])
 
     have [simp]: "snd \<circ> ?f = fst \<circ> snd" by(simp add: split_def o_def)
-    show "map_spmf snd ?pq = scale_spmf (weight_spmf q') p'" using pq' 
+    show "map_spmf snd ?pq = scale_spmf (weight_spmf q') p'" using pq'
       by(simp add: spmf.map_comp)(simp add: spmf.map_comp[symmetric])
   qed(auto dest: * )
-    
+
   show ?B
   proof
     let ?f = "(\<lambda>((x, y), (x', y')). (y, y'))"
     let ?pq = "map_spmf ?f pq"
     have [simp]: "fst \<circ> ?f = snd \<circ> fst" by(simp add: split_def o_def)
-    show "map_spmf fst ?pq = scale_spmf (weight_spmf p) q" using pq 
+    show "map_spmf fst ?pq = scale_spmf (weight_spmf p) q" using pq
       by(simp add: spmf.map_comp)(simp add: spmf.map_comp[symmetric])
 
     have [simp]: "snd \<circ> ?f = snd \<circ> snd" by(simp add: split_def o_def)
-    show "map_spmf snd ?pq = scale_spmf (weight_spmf p') q'" using pq' 
+    show "map_spmf snd ?pq = scale_spmf (weight_spmf p') q'" using pq'
       by(simp add: spmf.map_comp)(simp add: spmf.map_comp[symmetric])
   qed(auto dest: * )
 qed
@@ -2650,7 +2651,7 @@ by(rule bind_pmf_cong)(auto split: option.split simp add: lossless_iff_set_pmf_N
 lemma rel_spmf_try_spmf:
   "\<lbrakk> rel_spmf R p p'; \<not> lossless_spmf p' \<Longrightarrow> rel_spmf R q q' \<rbrakk>
   \<Longrightarrow> rel_spmf R (TRY p ELSE q) (TRY p' ELSE q')"
-unfolding try_spmf_def 
+unfolding try_spmf_def
 apply(rule rel_pmf_bindI[where R="\<lambda>x y. rel_option R x y \<and> x \<in> set_pmf p \<and> y \<in> set_pmf p'"])
  apply(erule pmf.rel_mono_strong; simp)
 apply(auto split: option.split simp add: lossless_iff_set_pmf_None)

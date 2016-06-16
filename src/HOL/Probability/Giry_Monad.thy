@@ -162,17 +162,17 @@ qed
 
 definition subprob_algebra :: "'a measure \<Rightarrow> 'a measure measure" where
   "subprob_algebra K =
-    (\<Squnion>\<^sub>\<sigma> A\<in>sets K. vimage_algebra {M. subprob_space M \<and> sets M = sets K} (\<lambda>M. emeasure M A) borel)"
+    (SUP A : sets K. vimage_algebra {M. subprob_space M \<and> sets M = sets K} (\<lambda>M. emeasure M A) borel)"
 
 lemma space_subprob_algebra: "space (subprob_algebra A) = {M. subprob_space M \<and> sets M = sets A}"
-  by (auto simp add: subprob_algebra_def space_Sup_sigma)
+  by (auto simp add: subprob_algebra_def space_Sup_eq_UN)
 
 lemma subprob_algebra_cong: "sets M = sets N \<Longrightarrow> subprob_algebra M = subprob_algebra N"
   by (simp add: subprob_algebra_def)
 
 lemma measurable_emeasure_subprob_algebra[measurable]:
   "a \<in> sets A \<Longrightarrow> (\<lambda>M. emeasure M a) \<in> borel_measurable (subprob_algebra A)"
-  by (auto intro!: measurable_Sup_sigma1 measurable_vimage_algebra1 simp: subprob_algebra_def)
+  by (auto intro!: measurable_Sup1 measurable_vimage_algebra1 simp: subprob_algebra_def)
 
 lemma measurable_measure_subprob_algebra[measurable]:
   "a \<in> sets A \<Longrightarrow> (\<lambda>M. measure M a) \<in> borel_measurable (subprob_algebra A)"
@@ -227,7 +227,7 @@ lemma measurable_subprob_algebra:
   (\<And>a. a \<in> space M \<Longrightarrow> sets (K a) = sets N) \<Longrightarrow>
   (\<And>A. A \<in> sets N \<Longrightarrow> (\<lambda>a. emeasure (K a) A) \<in> borel_measurable M) \<Longrightarrow>
   K \<in> measurable M (subprob_algebra N)"
-  by (auto intro!: measurable_Sup_sigma2 measurable_vimage_algebra2 simp: subprob_algebra_def)
+  by (auto intro!: measurable_Sup2 measurable_vimage_algebra2 simp: subprob_algebra_def)
 
 lemma measurable_submarkov:
   "K \<in> measurable M (subprob_algebra M) \<longleftrightarrow>
@@ -1502,55 +1502,6 @@ proof -
   also have "\<dots> = (M2 \<bind> (\<lambda>y. M1 \<bind> (\<lambda>x. C x y)))"
     by (auto intro!: bind_cong simp: bind_return[where N=N] space_pair_measure bind_assoc[where N="M2 \<Otimes>\<^sub>M M1" and R=N])
   finally show ?thesis .
-qed
-
-section \<open>Measures form a $\omega$-chain complete partial order\<close>
-
-definition SUP_measure :: "(nat \<Rightarrow> 'a measure) \<Rightarrow> 'a measure" where
-  "SUP_measure M = measure_of (\<Union>i. space (M i)) (\<Union>i. sets (M i)) (\<lambda>A. SUP i. emeasure (M i) A)"
-
-lemma
-  assumes const: "\<And>i j. sets (M i) = sets (M j)"
-  shows space_SUP_measure: "space (SUP_measure M) = space (M i)" (is ?sp)
-    and sets_SUP_measure: "sets (SUP_measure M) = sets (M i)" (is ?st)
-proof -
-  have "(\<Union>i. sets (M i)) = sets (M i)"
-    using const by auto
-  moreover have "(\<Union>i. space (M i)) = space (M i)"
-    using const[THEN sets_eq_imp_space_eq] by auto
-  moreover have "\<And>i. sets (M i) \<subseteq> Pow (space (M i))"
-    by (auto dest: sets.sets_into_space)
-  ultimately show ?sp ?st
-    by (simp_all add: SUP_measure_def)
-qed
-
-lemma emeasure_SUP_measure:
-  assumes const: "\<And>i j. sets (M i) = sets (M j)"
-    and mono: "mono (\<lambda>i. emeasure (M i))"
-  shows "emeasure (SUP_measure M) A = (SUP i. emeasure (M i) A)"
-proof cases
-  assume "A \<in> sets (SUP_measure M)"
-  show ?thesis
-  proof (rule emeasure_measure_of[OF SUP_measure_def])
-    show "countably_additive (sets (SUP_measure M)) (\<lambda>A. SUP i. emeasure (M i) A)"
-    proof (rule countably_additiveI)
-      fix A :: "nat \<Rightarrow> 'a set" assume "range A \<subseteq> sets (SUP_measure M)"
-      then have "\<And>i j. A i \<in> sets (M j)"
-        using sets_SUP_measure[of M, OF const] by simp
-      moreover assume "disjoint_family A"
-      ultimately show "(\<Sum>i. SUP ia. emeasure (M ia) (A i)) = (SUP i. emeasure (M i) (\<Union>i. A i))"
-        using suminf_SUP_eq
-        using mono by (subst ennreal_suminf_SUP_eq) (auto simp: mono_def le_fun_def intro!: SUP_cong suminf_emeasure)
-    qed
-    show "positive (sets (SUP_measure M)) (\<lambda>A. SUP i. emeasure (M i) A)"
-      by (auto simp: positive_def intro: SUP_upper2)
-    show "(\<Union>i. sets (M i)) \<subseteq> Pow (\<Union>i. space (M i))"
-      using sets.sets_into_space by auto
-  qed fact
-next
-  assume "A \<notin> sets (SUP_measure M)"
-  with sets_SUP_measure[of M, OF const] show ?thesis
-    by (simp add: emeasure_notin_sets)
 qed
 
 lemma bind_return'': "sets M = sets N \<Longrightarrow> M \<bind> return N = M"

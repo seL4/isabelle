@@ -241,20 +241,25 @@ proof (rule pair_measure_eqI)
   have fg[simp]: "\<And>A. inj_on (map_prod f g) A" "\<And>A. inj_on f A" "\<And>A. inj_on g A"
     using f g by (auto simp: inj_on_def)
 
+  note complete_lattice_class.Sup_insert[simp del] ccSup_insert[simp del] SUP_insert[simp del]
+     ccSUP_insert[simp del]
   show sets: "sets ?L = sets (embed_measure (M \<Otimes>\<^sub>M N) (map_prod f g))"
     unfolding map_prod_def[symmetric]
     apply (simp add: sets_pair_eq_sets_fst_snd sets_embed_eq_vimage_algebra
       cong: vimage_algebra_cong)
-    apply (subst vimage_algebra_Sup_sigma)
+    apply (subst sets_vimage_Sup_eq[where Y="space (M \<Otimes>\<^sub>M N)"])
     apply (simp_all add: space_pair_measure[symmetric])
     apply (auto simp add: the_inv_into_f_f
                 simp del: map_prod_simp
                 del: prod_fun_imageE) []
+    apply auto []
+    apply (subst image_insert)
+    apply simp
     apply (subst (1 2 3 4 ) vimage_algebra_vimage_algebra_eq)
     apply (simp_all add: the_inv_into_in_Pi Pi_iff[of snd] Pi_iff[of fst] space_pair_measure)
     apply (simp_all add: Pi_iff[of snd] Pi_iff[of fst] the_inv_into_in_Pi vimage_algebra_vimage_algebra_eq
        space_pair_measure[symmetric] map_prod_image[symmetric])
-    apply (intro arg_cong[where f=sets] arg_cong[where f=Sup_sigma] arg_cong2[where f=insert] vimage_algebra_cong)
+    apply (intro arg_cong[where f=sets] arg_cong[where f=Sup] arg_cong2[where f=insert] vimage_algebra_cong)
     apply (auto simp: map_prod_image the_inv_into_f_f
                 simp del: map_prod_simp del: prod_fun_imageE)
     apply (simp_all add: the_inv_into_f_f space_pair_measure)
@@ -269,6 +274,19 @@ proof (rule pair_measure_eqI)
     by (simp add: map_prod_vimage sets[symmetric] emeasure_embed_measure
                   sigma_finite_measure.emeasure_pair_measure_Times)
 qed (insert assms, simp_all add: sigma_finite_embed_measure)
+
+lemma mono_embed_measure:
+  "space M = space M' \<Longrightarrow> sets M \<subseteq> sets M' \<Longrightarrow> sets (embed_measure M f) \<subseteq> sets (embed_measure M' f)"
+  unfolding embed_measure_def
+  apply (subst (1 2) sets_measure_of)
+  apply (blast dest: sets.sets_into_space)
+  apply (blast dest: sets.sets_into_space)
+  apply simp
+  apply (intro sigma_sets_mono')
+  apply safe
+  apply (simp add: subset_eq)
+  apply metis
+  done
 
 lemma density_embed_measure:
   assumes inj: "inj f" and Mg[measurable]: "g \<in> borel_measurable (embed_measure M f)"

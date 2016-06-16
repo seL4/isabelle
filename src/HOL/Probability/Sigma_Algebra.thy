@@ -2002,86 +2002,6 @@ lemma emeasure_extend_measure_Pair:
   using emeasure_extend_measure[OF M _ _ ms(2,3), of "(i,j)"] eq ms(1) \<open>I i j\<close>
   by (auto simp: subset_eq)
 
-subsubsection \<open>Supremum of a set of $\sigma$-algebras\<close>
-
-definition "Sup_sigma M = sigma (\<Union>x\<in>M. space x) (\<Union>x\<in>M. sets x)"
-
-syntax
-  "_SUP_sigma"   :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>\<^sub>\<sigma> _\<in>_./ _)" [0, 0, 10] 10)
-
-translations
-  "\<Squnion>\<^sub>\<sigma> x\<in>A. B"   == "CONST Sup_sigma ((\<lambda>x. B) ` A)"
-
-lemma space_Sup_sigma: "space (Sup_sigma M) = (\<Union>x\<in>M. space x)"
-  unfolding Sup_sigma_def by (rule space_measure_of) (auto dest: sets.sets_into_space)
-
-lemma sets_Sup_sigma: "sets (Sup_sigma M) = sigma_sets (\<Union>x\<in>M. space x) (\<Union>x\<in>M. sets x)"
-  unfolding Sup_sigma_def by (rule sets_measure_of) (auto dest: sets.sets_into_space)
-
-lemma in_Sup_sigma: "m \<in> M \<Longrightarrow> A \<in> sets m \<Longrightarrow> A \<in> sets (Sup_sigma M)"
-  unfolding sets_Sup_sigma by auto
-
-lemma SUP_sigma_cong:
-  assumes *: "\<And>i. i \<in> I \<Longrightarrow> sets (M i) = sets (N i)" shows "sets (\<Squnion>\<^sub>\<sigma> i\<in>I. M i) = sets (\<Squnion>\<^sub>\<sigma> i\<in>I. N i)"
-  using * sets_eq_imp_space_eq[OF *] by (simp add: Sup_sigma_def)
-
-lemma sets_Sup_in_sets:
-  assumes "M \<noteq> {}"
-  assumes "\<And>m. m \<in> M \<Longrightarrow> space m = space N"
-  assumes "\<And>m. m \<in> M \<Longrightarrow> sets m \<subseteq> sets N"
-  shows "sets (Sup_sigma M) \<subseteq> sets N"
-proof -
-  have *: "UNION M space = space N"
-    using assms by auto
-  show ?thesis
-    unfolding sets_Sup_sigma * using assms by (auto intro!: sets.sigma_sets_subset)
-qed
-
-lemma measurable_Sup_sigma1:
-  assumes m: "m \<in> M" and f: "f \<in> measurable m N"
-    and const_space: "\<And>m n. m \<in> M \<Longrightarrow> n \<in> M \<Longrightarrow> space m = space n"
-  shows "f \<in> measurable (Sup_sigma M) N"
-proof -
-  have "space (Sup_sigma M) = space m"
-    using m by (auto simp add: space_Sup_sigma dest: const_space)
-  then show ?thesis
-    using m f unfolding measurable_def by (auto intro: in_Sup_sigma)
-qed
-
-lemma measurable_Sup_sigma2:
-  assumes M: "M \<noteq> {}"
-  assumes f: "\<And>m. m \<in> M \<Longrightarrow> f \<in> measurable N m"
-  shows "f \<in> measurable N (Sup_sigma M)"
-  unfolding Sup_sigma_def
-proof (rule measurable_measure_of)
-  show "f \<in> space N \<rightarrow> UNION M space"
-    using measurable_space[OF f] M by auto
-qed (auto intro: measurable_sets f dest: sets.sets_into_space)
-
-lemma Sup_sigma_sigma:
-  assumes [simp]: "M \<noteq> {}" and M: "\<And>m. m \<in> M \<Longrightarrow> m \<subseteq> Pow \<Omega>"
-  shows "(\<Squnion>\<^sub>\<sigma> m\<in>M. sigma \<Omega> m) = sigma \<Omega> (\<Union>M)"
-proof (rule measure_eqI)
-  { fix a m assume "a \<in> sigma_sets \<Omega> m" "m \<in> M"
-    then have "a \<in> sigma_sets \<Omega> (\<Union>M)"
-     by induction (auto intro: sigma_sets.intros) }
-  then show "sets (\<Squnion>\<^sub>\<sigma> m\<in>M. sigma \<Omega> m) = sets (sigma \<Omega> (\<Union>M))"
-    apply (simp add: sets_Sup_sigma space_measure_of_conv M Union_least)
-    apply (rule sigma_sets_eqI)
-    apply auto
-    done
-qed (simp add: Sup_sigma_def emeasure_sigma)
-
-lemma SUP_sigma_sigma:
-  assumes M: "M \<noteq> {}" "\<And>m. m \<in> M \<Longrightarrow> f m \<subseteq> Pow \<Omega>"
-  shows "(\<Squnion>\<^sub>\<sigma> m\<in>M. sigma \<Omega> (f m)) = sigma \<Omega> (\<Union>m\<in>M. f m)"
-proof -
-  have "Sup_sigma (sigma \<Omega> ` f ` M) = sigma \<Omega> (\<Union>(f ` M))"
-    using M by (intro Sup_sigma_sigma) auto
-  then show ?thesis
-    by (simp add: image_image)
-qed
-
 subsection \<open>The smallest $\sigma$-algebra regarding a function\<close>
 
 definition
@@ -2156,31 +2076,6 @@ proof (rule measure_eqI)
   with * show "sets ?VV = sets ?V"
     by (simp add: sets_vimage_algebra2 ex_simps[symmetric] vimage_comp comp_def del: ex_simps)
 qed (simp add: vimage_algebra_def emeasure_sigma)
-
-lemma sets_vimage_Sup_eq:
-  assumes *: "M \<noteq> {}" "\<And>m. m \<in> M \<Longrightarrow> f \<in> X \<rightarrow> space m"
-  shows "sets (vimage_algebra X f (Sup_sigma M)) = sets (\<Squnion>\<^sub>\<sigma> m \<in> M. vimage_algebra X f m)"
-  (is "?IS = ?SI")
-proof
-  show "?IS \<subseteq> ?SI"
-    by (intro sets_image_in_sets measurable_Sup_sigma2 measurable_Sup_sigma1)
-       (auto simp: space_Sup_sigma measurable_vimage_algebra1 *)
-  { fix m assume "m \<in> M"
-    moreover then have "f \<in> X \<rightarrow> space (Sup_sigma M)" "f \<in> X \<rightarrow> space m"
-      using * by (auto simp: space_Sup_sigma)
-    ultimately have "f \<in> measurable (vimage_algebra X f (Sup_sigma M)) m"
-      by (auto simp add: measurable_def sets_vimage_algebra2 intro: in_Sup_sigma) }
-  then show "?SI \<subseteq> ?IS"
-    by (auto intro!: sets_image_in_sets sets_Sup_in_sets del: subsetI simp: *)
-qed
-
-lemma vimage_algebra_Sup_sigma:
-  assumes [simp]: "MM \<noteq> {}" and "\<And>M. M \<in> MM \<Longrightarrow> f \<in> X \<rightarrow> space M"
-  shows "vimage_algebra X f (Sup_sigma MM) = Sup_sigma (vimage_algebra X f ` MM)"
-proof (rule measure_eqI)
-  show "sets (vimage_algebra X f (Sup_sigma MM)) = sets (Sup_sigma (vimage_algebra X f ` MM))"
-    using assms by (rule sets_vimage_Sup_eq)
-qed (simp add: vimage_algebra_def Sup_sigma_def emeasure_sigma)
 
 subsubsection \<open>Restricted Space Sigma Algebra\<close>
 

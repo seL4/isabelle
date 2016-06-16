@@ -26,7 +26,7 @@ proof -
   proof (rule SUP_eqI)
     fix y :: ennreal assume "\<And>n. n \<in> UNIV \<Longrightarrow> (if i < n then f i else 0) \<le> y"
     from this[of "Suc i"] show "f i \<le> y" by auto
-  qed (insert assms, simp add: zero_le)
+  qed (insert assms, simp)
   ultimately show ?thesis using assms
     by (subst suminf_eq_SUP) (auto simp: indicator_def)
 qed
@@ -325,7 +325,7 @@ proof safe
     by (auto simp: UN_disjointed_eq disjoint_family_disjointed)
   moreover have "(\<lambda>n. (\<Sum>i<n. f (disjointed A i))) \<longlonglongrightarrow> (\<Sum>i. f (disjointed A i))"
     using f(1)[unfolded positive_def] dA
-    by (auto intro!: summable_LIMSEQ summableI)
+    by (auto intro!: summable_LIMSEQ)
   from LIMSEQ_Suc[OF this]
   have "(\<lambda>n. (\<Sum>i\<le>n. f (disjointed A i))) \<longlonglongrightarrow> (\<Sum>i. f (disjointed A i))"
     unfolding lessThan_Suc_atMost .
@@ -1395,7 +1395,7 @@ proof (rule ring_of_setsI)
 qed (auto dest: sets.sets_into_space)
 
 lemma measure_nonneg[simp]: "0 \<le> measure M A"
-  unfolding measure_def by (auto simp: enn2real_nonneg)
+  unfolding measure_def by auto
 
 lemma zero_less_measure_iff: "0 < measure M A \<longleftrightarrow> measure M A \<noteq> 0"
   using measure_nonneg[of M A] by (auto simp add: le_less)
@@ -1418,13 +1418,13 @@ lemma measure_eq_emeasure_eq_ennreal: "0 \<le> x \<Longrightarrow> emeasure M A 
   by (cases "A \<in> M") (auto simp: measure_notin_sets emeasure_notin_sets)
 
 lemma enn2real_plus:"a < top \<Longrightarrow> b < top \<Longrightarrow> enn2real (a + b) = enn2real a + enn2real b"
-  by (simp add: enn2real_def plus_ennreal.rep_eq real_of_ereal_add enn2ereal_nonneg less_top
+  by (simp add: enn2real_def plus_ennreal.rep_eq real_of_ereal_add less_top
            del: real_of_ereal_enn2ereal)
 
 lemma measure_Union:
   "emeasure M A \<noteq> \<infinity> \<Longrightarrow> emeasure M B \<noteq> \<infinity> \<Longrightarrow> A \<in> sets M \<Longrightarrow> B \<in> sets M \<Longrightarrow> A \<inter> B = {} \<Longrightarrow>
     measure M (A \<union> B) = measure M A + measure M B"
-  by (simp add: measure_def enn2ereal_nonneg plus_emeasure[symmetric] enn2real_plus less_top)
+  by (simp add: measure_def plus_emeasure[symmetric] enn2real_plus less_top)
 
 lemma disjoint_family_on_insert:
   "i \<notin> I \<Longrightarrow> disjoint_family_on A (insert i I) \<longleftrightarrow> A i \<inter> (\<Union>i\<in>I. A i) = {} \<and> disjoint_family_on A I"
@@ -1462,8 +1462,7 @@ proof -
     then have "emeasure M (A i) = ennreal ((measure M (A i)))"
       using finite by (intro emeasure_eq_ennreal_measure) (auto simp: top_unique) }
   ultimately show ?thesis using finite
-    by (subst (asm) (2) emeasure_eq_ennreal_measure)
-       (simp_all add: measure_nonneg)
+    by (subst (asm) (2) emeasure_eq_ennreal_measure) simp_all
 qed
 
 lemma measure_subadditive:
@@ -1494,7 +1493,7 @@ proof -
   show ?thesis
     using emeasure_subadditive_finite[OF A] fin
     unfolding emeasure_eq_ennreal_measure[OF *]
-    by (simp_all add: setsum_ennreal measure_nonneg setsum_nonneg emeasure_eq_ennreal_measure)
+    by (simp_all add: setsum_nonneg emeasure_eq_ennreal_measure)
 qed
 
 lemma measure_subadditive_countably:
@@ -2161,185 +2160,1124 @@ lemma scale_scale_measure [simp]:
 lemma scale_null_measure [simp]: "scale_measure r (null_measure M) = null_measure M"
   by (rule measure_eqI) simp_all
 
-subsection \<open>Measures form a chain-complete partial order\<close>
+
+subsection \<open>Complete lattice structure on measures\<close>
+
+lemma (in finite_measure) finite_measure_Diff':
+  "A \<in> sets M \<Longrightarrow> B \<in> sets M \<Longrightarrow> measure M (A - B) = measure M A - measure M (A \<inter> B)"
+  using finite_measure_Diff[of A "A \<inter> B"] by (auto simp: Diff_Int)
+
+lemma (in finite_measure) finite_measure_Union':
+  "A \<in> sets M \<Longrightarrow> B \<in> sets M \<Longrightarrow> measure M (A \<union> B) = measure M A + measure M (B - A)"
+  using finite_measure_Union[of A "B - A"] by auto
+
+lemma finite_unsigned_Hahn_decomposition:
+  assumes "finite_measure M" "finite_measure N" and [simp]: "sets N = sets M"
+  shows "\<exists>Y\<in>sets M. (\<forall>X\<in>sets M. X \<subseteq> Y \<longrightarrow> N X \<le> M X) \<and> (\<forall>X\<in>sets M. X \<inter> Y = {} \<longrightarrow> M X \<le> N X)"
+proof -
+  interpret M: finite_measure M by fact
+  interpret N: finite_measure N by fact
+
+  define d where "d X = measure M X - measure N X" for X
+
+  have [intro]: "bdd_above (d`sets M)"
+    using sets.sets_into_space[of _ M]
+    by (intro bdd_aboveI[where M="measure M (space M)"])
+       (auto simp: d_def field_simps subset_eq intro!: add_increasing M.finite_measure_mono)
+
+  define \<gamma> where "\<gamma> = (SUP X:sets M. d X)"
+  have le_\<gamma>[intro]: "X \<in> sets M \<Longrightarrow> d X \<le> \<gamma>" for X
+    by (auto simp: \<gamma>_def intro!: cSUP_upper)
+
+  have "\<exists>f. \<forall>n. f n \<in> sets M \<and> d (f n) > \<gamma> - 1 / 2^n"
+  proof (intro choice_iff[THEN iffD1] allI)
+    fix n
+    have "\<exists>X\<in>sets M. \<gamma> - 1 / 2^n < d X"
+      unfolding \<gamma>_def by (intro less_cSUP_iff[THEN iffD1]) auto
+    then show "\<exists>y. y \<in> sets M \<and> \<gamma> - 1 / 2 ^ n < d y"
+      by auto
+  qed
+  then obtain E where [measurable]: "E n \<in> sets M" and E: "d (E n) > \<gamma> - 1 / 2^n" for n
+    by auto
+
+  define F where "F m n = (if m \<le> n then \<Inter>i\<in>{m..n}. E i else space M)" for m n
+
+  have [measurable]: "m \<le> n \<Longrightarrow> F m n \<in> sets M" for m n
+    by (auto simp: F_def)
+
+  have 1: "\<gamma> - 2 / 2 ^ m + 1 / 2 ^ n \<le> d (F m n)" if "m \<le> n" for m n
+    using that
+  proof (induct rule: dec_induct)
+    case base with E[of m] show ?case
+      by (simp add: F_def field_simps)
+  next
+    case (step i)
+    have F_Suc: "F m (Suc i) = F m i \<inter> E (Suc i)"
+      using \<open>m \<le> i\<close> by (auto simp: F_def le_Suc_eq)
+
+    have "\<gamma> + (\<gamma> - 2 / 2^m + 1 / 2 ^ Suc i) \<le> (\<gamma> - 1 / 2^Suc i) + (\<gamma> - 2 / 2^m + 1 / 2^i)"
+      by (simp add: field_simps)
+    also have "\<dots> \<le> d (E (Suc i)) + d (F m i)"
+      using E[of "Suc i"] by (intro add_mono step) auto
+    also have "\<dots> = d (E (Suc i)) + d (F m i - E (Suc i)) + d (F m (Suc i))"
+      using \<open>m \<le> i\<close> by (simp add: d_def field_simps F_Suc M.finite_measure_Diff' N.finite_measure_Diff')
+    also have "\<dots> = d (E (Suc i) \<union> F m i) + d (F m (Suc i))"
+      using \<open>m \<le> i\<close> by (simp add: d_def field_simps M.finite_measure_Union' N.finite_measure_Union')
+    also have "\<dots> \<le> \<gamma> + d (F m (Suc i))"
+      using \<open>m \<le> i\<close> by auto
+    finally show ?case
+      by auto
+  qed
+
+  define F' where "F' m = (\<Inter>i\<in>{m..}. E i)" for m
+  have F'_eq: "F' m = (\<Inter>i. F m (i + m))" for m
+    by (fastforce simp: le_iff_add[of m] F'_def F_def)
+
+  have [measurable]: "F' m \<in> sets M" for m
+    by (auto simp: F'_def)
+
+  have \<gamma>_le: "\<gamma> - 0 \<le> d (\<Union>m. F' m)"
+  proof (rule LIMSEQ_le)
+    show "(\<lambda>n. \<gamma> - 2 / 2 ^ n) \<longlonglongrightarrow> \<gamma> - 0"
+      by (intro tendsto_intros LIMSEQ_divide_realpow_zero) auto
+    have "incseq F'"
+      by (auto simp: incseq_def F'_def)
+    then show "(\<lambda>m. d (F' m)) \<longlonglongrightarrow> d (\<Union>m. F' m)"
+      unfolding d_def
+      by (intro tendsto_diff M.finite_Lim_measure_incseq N.finite_Lim_measure_incseq) auto
+
+    have "\<gamma> - 2 / 2 ^ m + 0 \<le> d (F' m)" for m
+    proof (rule LIMSEQ_le)
+      have *: "decseq (\<lambda>n. F m (n + m))"
+        by (auto simp: decseq_def F_def)
+      show "(\<lambda>n. d (F m n)) \<longlonglongrightarrow> d (F' m)"
+        unfolding d_def F'_eq
+        by (rule LIMSEQ_offset[where k=m])
+           (auto intro!: tendsto_diff M.finite_Lim_measure_decseq N.finite_Lim_measure_decseq *)
+      show "(\<lambda>n. \<gamma> - 2 / 2 ^ m + 1 / 2 ^ n) \<longlonglongrightarrow> \<gamma> - 2 / 2 ^ m + 0"
+        by (intro tendsto_add LIMSEQ_divide_realpow_zero tendsto_const) auto
+      show "\<exists>N. \<forall>n\<ge>N. \<gamma> - 2 / 2 ^ m + 1 / 2 ^ n \<le> d (F m n)"
+        using 1[of m] by (intro exI[of _ m]) auto
+    qed
+    then show "\<exists>N. \<forall>n\<ge>N. \<gamma> - 2 / 2 ^ n \<le> d (F' n)"
+      by auto
+  qed
+
+  show ?thesis
+  proof (safe intro!: bexI[of _ "\<Union>m. F' m"])
+    fix X assume [measurable]: "X \<in> sets M" and X: "X \<subseteq> (\<Union>m. F' m)"
+    have "d (\<Union>m. F' m) - d X = d ((\<Union>m. F' m) - X)"
+      using X by (auto simp: d_def M.finite_measure_Diff N.finite_measure_Diff)
+    also have "\<dots> \<le> \<gamma>"
+      by auto
+    finally have "0 \<le> d X"
+      using \<gamma>_le by auto
+    then show "emeasure N X \<le> emeasure M X"
+      by (auto simp: d_def M.emeasure_eq_measure N.emeasure_eq_measure)
+  next
+    fix X assume [measurable]: "X \<in> sets M" and X: "X \<inter> (\<Union>m. F' m) = {}"
+    then have "d (\<Union>m. F' m) + d X = d (X \<union> (\<Union>m. F' m))"
+      by (auto simp: d_def M.finite_measure_Union N.finite_measure_Union)
+    also have "\<dots> \<le> \<gamma>"
+      by auto
+    finally have "d X \<le> 0"
+      using \<gamma>_le by auto
+    then show "emeasure M X \<le> emeasure N X"
+      by (auto simp: d_def M.emeasure_eq_measure N.emeasure_eq_measure)
+  qed auto
+qed
+
+lemma unsigned_Hahn_decomposition:
+  assumes [simp]: "sets N = sets M" and [measurable]: "A \<in> sets M"
+    and [simp]: "emeasure M A \<noteq> top" "emeasure N A \<noteq> top"
+  shows "\<exists>Y\<in>sets M. Y \<subseteq> A \<and> (\<forall>X\<in>sets M. X \<subseteq> Y \<longrightarrow> N X \<le> M X) \<and> (\<forall>X\<in>sets M. X \<subseteq> A \<longrightarrow> X \<inter> Y = {} \<longrightarrow> M X \<le> N X)"
+proof -
+  have "\<exists>Y\<in>sets (restrict_space M A).
+    (\<forall>X\<in>sets (restrict_space M A). X \<subseteq> Y \<longrightarrow> (restrict_space N A) X \<le> (restrict_space M A) X) \<and>
+    (\<forall>X\<in>sets (restrict_space M A). X \<inter> Y = {} \<longrightarrow> (restrict_space M A) X \<le> (restrict_space N A) X)"
+  proof (rule finite_unsigned_Hahn_decomposition)
+    show "finite_measure (restrict_space M A)" "finite_measure (restrict_space N A)"
+      by (auto simp: space_restrict_space emeasure_restrict_space less_top intro!: finite_measureI)
+  qed (simp add: sets_restrict_space)
+  then guess Y ..
+  then show ?thesis
+    apply (intro bexI[of _ Y] conjI ballI conjI)
+    apply (simp_all add: sets_restrict_space emeasure_restrict_space)
+    apply safe
+    subgoal for X Z
+      by (erule ballE[of _ _ X]) (auto simp add: Int_absorb1)
+    subgoal for X Z
+      by (erule ballE[of _ _ X])  (auto simp add: Int_absorb1 ac_simps)
+    apply auto
+    done
+qed
+
+text \<open>
+  Define a lexicographical order on @{type measure}, in the order space, sets and measure. The parts
+  of the lexicographical order are point-wise ordered.
+\<close>
 
 instantiation measure :: (type) order_bot
 begin
 
-definition bot_measure :: "'a measure" where
-  "bot_measure = sigma {} {{}}"
-
-lemma space_bot[simp]: "space bot = {}"
-  unfolding bot_measure_def by (rule space_measure_of) auto
-
-lemma sets_bot[simp]: "sets bot = {{}}"
-  unfolding bot_measure_def by (subst sets_measure_of) auto
-
-lemma emeasure_bot[simp]: "emeasure bot = (\<lambda>x. 0)"
-  unfolding bot_measure_def by (rule emeasure_sigma)
-
 inductive less_eq_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> bool" where
-  "sets N = sets M \<Longrightarrow> (\<And>A. A \<in> sets M \<Longrightarrow> emeasure M A \<le> emeasure N A) \<Longrightarrow> less_eq_measure M N"
-| "less_eq_measure bot N"
+  "space M \<subset> space N \<Longrightarrow> less_eq_measure M N"
+| "space M = space N \<Longrightarrow> sets M \<subset> sets N \<Longrightarrow> less_eq_measure M N"
+| "space M = space N \<Longrightarrow> sets M = sets N \<Longrightarrow> emeasure M \<le> emeasure N \<Longrightarrow> less_eq_measure M N"
+
+lemma le_measure_iff:
+  "M \<le> N \<longleftrightarrow> (if space M = space N then
+    if sets M = sets N then emeasure M \<le> emeasure N else sets M \<subseteq> sets N else space M \<subseteq> space N)"
+  by (auto elim: less_eq_measure.cases intro: less_eq_measure.intros)
 
 definition less_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> bool" where
   "less_measure M N \<longleftrightarrow> (M \<le> N \<and> \<not> N \<le> M)"
 
-instance
-proof (standard, goal_cases)
-  case 1 then show ?case
-    unfolding less_measure_def ..
-next
-  case (2 M) then show ?case
-    by (intro less_eq_measure.intros) auto
-next
-  case (3 M N L) then show ?case
-    apply (safe elim!: less_eq_measure.cases)
-    apply (simp_all add: less_eq_measure.intros)
-    apply (rule less_eq_measure.intros)
-    apply simp
-    apply (blast intro: order_trans) []
-    unfolding less_eq_measure.simps
-    apply (rule disjI2)
-    apply simp
-    apply (rule measure_eqI)
-    apply (auto intro!: antisym)
-    done
-next
-  case (4 M N) then show ?case
-    apply (safe elim!: less_eq_measure.cases intro!: measure_eqI)
-    apply simp
-    apply simp
-    apply (blast intro: antisym)
-    apply (simp)
-    apply simp
-    done
-qed (rule less_eq_measure.intros)
-end
-
-lemma le_emeasureD: "M \<le> N \<Longrightarrow> emeasure M A \<le> emeasure N A"
-  by (cases "A \<in> sets M") (auto elim!: less_eq_measure.cases simp: emeasure_notin_sets)
-
-lemma le_sets: "N \<le> M \<Longrightarrow> sets N \<le> sets M"
-  unfolding less_eq_measure.simps by auto
-
-instantiation measure :: (type) ccpo
-begin
-
-definition Sup_measure :: "'a measure set \<Rightarrow> 'a measure" where
-  "Sup_measure A = measure_of (SUP a:A. space a) (SUP a:A. sets a) (SUP a:A. emeasure a)"
+definition bot_measure :: "'a measure" where
+  "bot_measure = sigma {} {}"
 
 lemma
-  assumes A: "Complete_Partial_Order.chain op \<le> A" and a: "a \<noteq> bot" "a \<in> A"
-  shows space_Sup: "space (Sup A) = space a"
-    and sets_Sup: "sets (Sup A) = sets a"
+  shows space_bot[simp]: "space bot = {}"
+    and sets_bot[simp]: "sets bot = {{}}"
+    and emeasure_bot[simp]: "emeasure bot X = 0"
+  by (auto simp: bot_measure_def sigma_sets_empty_eq emeasure_sigma)
+
+instance
+proof standard
+  show "bot \<le> a" for a :: "'a measure"
+    by (simp add: le_measure_iff bot_measure_def sigma_sets_empty_eq emeasure_sigma le_fun_def)
+qed (auto simp: le_measure_iff less_measure_def split: if_split_asm intro: measure_eqI)
+
+end
+
+lemma le_measure: "sets M = sets N \<Longrightarrow> M \<le> N \<longleftrightarrow> (\<forall>A\<in>sets M. emeasure M A \<le> emeasure N A)"
+  apply (auto simp: le_measure_iff le_fun_def dest: sets_eq_imp_space_eq)
+  subgoal for X
+    by (cases "X \<in> sets M") (auto simp: emeasure_notin_sets)
+  done
+
+definition sup_measure' :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
+where
+  "sup_measure' A B = measure_of (space A) (sets A) (\<lambda>X. SUP Y:sets A. emeasure A (X \<inter> Y) + emeasure B (X \<inter> - Y))"
+
+lemma assumes [simp]: "sets B = sets A"
+  shows space_sup_measure'[simp]: "space (sup_measure' A B) = space A"
+    and sets_sup_measure'[simp]: "sets (sup_measure' A B) = sets A"
+  using sets_eq_imp_space_eq[OF assms] by (simp_all add: sup_measure'_def)
+
+lemma emeasure_sup_measure':
+  assumes sets_eq[simp]: "sets B = sets A" and [simp, intro]: "X \<in> sets A"
+  shows "emeasure (sup_measure' A B) X = (SUP Y:sets A. emeasure A (X \<inter> Y) + emeasure B (X \<inter> - Y))"
+    (is "_ = ?S X")
 proof -
-  have sets: "(SUP a:A. sets a) = sets a"
-  proof (intro antisym SUP_least)
-    fix a' show "a' \<in> A \<Longrightarrow> sets a' \<subseteq> sets a"
-      using a chainD[OF A, of a a'] by (auto elim!: less_eq_measure.cases)
-  qed (insert \<open>a\<in>A\<close>, auto)
-  have space: "(SUP a:A. space a) = space a"
-  proof (intro antisym SUP_least)
-    fix a' show "a' \<in> A \<Longrightarrow> space a' \<subseteq> space a"
-      using a chainD[OF A, of a a'] by (intro sets_le_imp_space_le) (auto elim!: less_eq_measure.cases)
-  qed (insert \<open>a\<in>A\<close>, auto)
-  show "space (Sup A) = space a"
-    unfolding Sup_measure_def sets space sets.space_measure_of_eq ..
-  show "sets (Sup A) = sets a"
-    unfolding Sup_measure_def sets space sets.sets_measure_of_eq ..
+  note sets_eq_imp_space_eq[OF sets_eq, simp]
+  show ?thesis
+    using sup_measure'_def
+  proof (rule emeasure_measure_of)
+    let ?d = "\<lambda>X Y. emeasure A (X \<inter> Y) + emeasure B (X \<inter> - Y)"
+    show "countably_additive (sets (sup_measure' A B)) (\<lambda>X. SUP Y : sets A. emeasure A (X \<inter> Y) + emeasure B (X \<inter> - Y))"
+    proof (rule countably_additiveI, goal_cases)
+      case (1 X)
+      then have [measurable]: "\<And>i. X i \<in> sets A" and "disjoint_family X"
+        by auto
+      have "(\<Sum>i. ?S (X i)) = (SUP Y:sets A. \<Sum>i. ?d (X i) Y)"
+      proof (rule ennreal_suminf_SUP_eq_directed)
+        fix J :: "nat set" and a b assume "finite J" and [measurable]: "a \<in> sets A" "b \<in> sets A"
+        have "\<exists>c\<in>sets A. c \<subseteq> X i \<and> (\<forall>a\<in>sets A. ?d (X i) a \<le> ?d (X i) c)" for i
+        proof cases
+          assume "emeasure A (X i) = top \<or> emeasure B (X i) = top"
+          then show ?thesis
+          proof
+            assume "emeasure A (X i) = top" then show ?thesis
+              by (intro bexI[of _ "X i"]) auto
+          next
+            assume "emeasure B (X i) = top" then show ?thesis
+              by (intro bexI[of _ "{}"]) auto
+          qed
+        next
+          assume finite: "\<not> (emeasure A (X i) = top \<or> emeasure B (X i) = top)"
+          then have "\<exists>Y\<in>sets A. Y \<subseteq> X i \<and> (\<forall>C\<in>sets A. C \<subseteq> Y \<longrightarrow> B C \<le> A C) \<and> (\<forall>C\<in>sets A. C \<subseteq> X i \<longrightarrow> C \<inter> Y = {} \<longrightarrow> A C \<le> B C)"
+            using unsigned_Hahn_decomposition[of B A "X i"] by simp
+          then obtain Y where [measurable]: "Y \<in> sets A" and [simp]: "Y \<subseteq> X i"
+            and B_le_A: "\<And>C. C \<in> sets A \<Longrightarrow> C \<subseteq> Y \<Longrightarrow> B C \<le> A C"
+            and A_le_B: "\<And>C. C \<in> sets A \<Longrightarrow> C \<subseteq> X i \<Longrightarrow> C \<inter> Y = {} \<Longrightarrow> A C \<le> B C"
+            by auto
+
+          show ?thesis
+          proof (intro bexI[of _ Y] ballI conjI)
+            fix a assume [measurable]: "a \<in> sets A"
+            have *: "(X i \<inter> a \<inter> Y \<union> (X i \<inter> a - Y)) = X i \<inter> a" "(X i - a) \<inter> Y \<union> (X i - a - Y) = X i \<inter> - a"
+              for a Y by auto
+            then have "?d (X i) a =
+              (A (X i \<inter> a \<inter> Y) + A (X i \<inter> a \<inter> - Y)) + (B (X i \<inter> - a \<inter> Y) + B (X i \<inter> - a \<inter> - Y))"
+              by (subst (1 2) plus_emeasure) (auto simp: Diff_eq[symmetric])
+            also have "\<dots> \<le> (A (X i \<inter> a \<inter> Y) + B (X i \<inter> a \<inter> - Y)) + (A (X i \<inter> - a \<inter> Y) + B (X i \<inter> - a \<inter> - Y))"
+              by (intro add_mono order_refl B_le_A A_le_B) (auto simp: Diff_eq[symmetric])
+            also have "\<dots> \<le> (A (X i \<inter> Y \<inter> a) + A (X i \<inter> Y \<inter> - a)) + (B (X i \<inter> - Y \<inter> a) + B (X i \<inter> - Y \<inter> - a))"
+              by (simp add: ac_simps)
+            also have "\<dots> \<le> A (X i \<inter> Y) + B (X i \<inter> - Y)"
+              by (subst (1 2) plus_emeasure) (auto simp: Diff_eq[symmetric] *)
+            finally show "?d (X i) a \<le> ?d (X i) Y" .
+          qed auto
+        qed
+        then obtain C where [measurable]: "C i \<in> sets A" and "C i \<subseteq> X i"
+          and C: "\<And>a. a \<in> sets A \<Longrightarrow> ?d (X i) a \<le> ?d (X i) (C i)" for i
+          by metis
+        have *: "X i \<inter> (\<Union>i. C i) = X i \<inter> C i" for i
+        proof safe
+          fix x j assume "x \<in> X i" "x \<in> C j"
+          moreover have "i = j \<or> X i \<inter> X j = {}"
+            using \<open>disjoint_family X\<close> by (auto simp: disjoint_family_on_def)
+          ultimately show "x \<in> C i"
+            using \<open>C i \<subseteq> X i\<close> \<open>C j \<subseteq> X j\<close> by auto
+        qed auto
+        have **: "X i \<inter> - (\<Union>i. C i) = X i \<inter> - C i" for i
+        proof safe
+          fix x j assume "x \<in> X i" "x \<notin> C i" "x \<in> C j"
+          moreover have "i = j \<or> X i \<inter> X j = {}"
+            using \<open>disjoint_family X\<close> by (auto simp: disjoint_family_on_def)
+          ultimately show False
+            using \<open>C i \<subseteq> X i\<close> \<open>C j \<subseteq> X j\<close> by auto
+        qed auto
+        show "\<exists>c\<in>sets A. \<forall>i\<in>J. ?d (X i) a \<le> ?d (X i) c \<and> ?d (X i) b \<le> ?d (X i) c"
+          apply (intro bexI[of _ "\<Union>i. C i"])
+          unfolding * **
+          apply (intro C ballI conjI)
+          apply auto
+          done
+      qed
+      also have "\<dots> = ?S (\<Union>i. X i)"
+        unfolding UN_extend_simps(4)
+        by (auto simp add: suminf_add[symmetric] Diff_eq[symmetric] simp del: UN_simps
+                 intro!: SUP_cong arg_cong2[where f="op +"] suminf_emeasure
+                         disjoint_family_on_bisimulation[OF \<open>disjoint_family X\<close>])
+      finally show "(\<Sum>i. ?S (X i)) = ?S (\<Union>i. X i)" .
+    qed
+  qed (auto dest: sets.sets_into_space simp: positive_def intro!: SUP_const)
 qed
 
-lemma emeasure_Sup:
-  assumes A: "Complete_Partial_Order.chain op \<le> A" "A \<noteq> {}"
-  assumes "X \<in> sets (Sup A)"
-  shows "emeasure (Sup A) X = (SUP a:A. emeasure a) X"
-proof (rule emeasure_measure_of[OF Sup_measure_def])
-  show "countably_additive (sets (Sup A)) (SUP a:A. emeasure a)"
-    unfolding countably_additive_def
-  proof safe
-    fix F :: "nat \<Rightarrow> 'a set" assume F: "range F \<subseteq> sets (Sup A)" "disjoint_family F"
-    show "(\<Sum>i. (SUP a:A. emeasure a) (F i)) = SUPREMUM A emeasure (UNION UNIV F)"
-      unfolding SUP_apply
-    proof (subst ennreal_suminf_SUP_eq_directed)
-      fix N i j assume "i \<in> A" "j \<in> A"
-      with A(1)
-      show "\<exists>k\<in>A. \<forall>n\<in>N. emeasure i (F n) \<le> emeasure k (F n) \<and> emeasure j (F n) \<le> emeasure k (F n)"
-        by (blast elim: chainE dest: le_emeasureD)
-    next
-      show "(SUP n:A. \<Sum>i. emeasure n (F i)) = (SUP y:A. emeasure y (UNION UNIV F))"
-      proof (intro SUP_cong refl)
-        fix a assume "a \<in> A" then show "(\<Sum>i. emeasure a (F i)) = emeasure a (UNION UNIV F)"
-          using sets_Sup[OF A(1), of a] F by (cases "a = bot") (auto simp: suminf_emeasure)
-      qed
-    qed
+lemma le_emeasure_sup_measure'1:
+  assumes "sets B = sets A" "X \<in> sets A" shows "emeasure A X \<le> emeasure (sup_measure' A B) X"
+  by (subst emeasure_sup_measure'[OF assms]) (auto intro!: SUP_upper2[of "X"] assms)
+
+lemma le_emeasure_sup_measure'2:
+  assumes "sets B = sets A" "X \<in> sets A" shows "emeasure B X \<le> emeasure (sup_measure' A B) X"
+  by (subst emeasure_sup_measure'[OF assms]) (auto intro!: SUP_upper2[of "{}"] assms)
+
+lemma emeasure_sup_measure'_le2:
+  assumes [simp]: "sets B = sets C" "sets A = sets C" and [measurable]: "X \<in> sets C"
+  assumes A: "\<And>Y. Y \<subseteq> X \<Longrightarrow> Y \<in> sets A \<Longrightarrow> emeasure A Y \<le> emeasure C Y"
+  assumes B: "\<And>Y. Y \<subseteq> X \<Longrightarrow> Y \<in> sets A \<Longrightarrow> emeasure B Y \<le> emeasure C Y"
+  shows "emeasure (sup_measure' A B) X \<le> emeasure C X"
+proof (subst emeasure_sup_measure')
+  show "(SUP Y:sets A. emeasure A (X \<inter> Y) + emeasure B (X \<inter> - Y)) \<le> emeasure C X"
+    unfolding \<open>sets A = sets C\<close>
+  proof (intro SUP_least)
+    fix Y assume [measurable]: "Y \<in> sets C"
+    have [simp]: "X \<inter> Y \<union> (X - Y) = X"
+      by auto
+    have "emeasure A (X \<inter> Y) + emeasure B (X \<inter> - Y) \<le> emeasure C (X \<inter> Y) + emeasure C (X \<inter> - Y)"
+      by (intro add_mono A B) (auto simp: Diff_eq[symmetric])
+    also have "\<dots> = emeasure C X"
+      by (subst plus_emeasure) (auto simp: Diff_eq[symmetric])
+    finally show "emeasure A (X \<inter> Y) + emeasure B (X \<inter> - Y) \<le> emeasure C X" .
   qed
-qed (insert \<open>A \<noteq> {}\<close> \<open>X \<in> sets (Sup A)\<close>, auto simp: positive_def dest: sets.sets_into_space intro: SUP_upper2)
+qed simp_all
+
+definition sup_lexord :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b::order) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+where
+  "sup_lexord A B k s c =
+    (if k A = k B then c else if \<not> k A \<le> k B \<and> \<not> k B \<le> k A then s else if k B \<le> k A then A else B)"
+
+lemma sup_lexord:
+  "(k A < k B \<Longrightarrow> P B) \<Longrightarrow> (k B < k A \<Longrightarrow> P A) \<Longrightarrow> (k A = k B \<Longrightarrow> P c) \<Longrightarrow>
+    (\<not> k B \<le> k A \<Longrightarrow> \<not> k A \<le> k B \<Longrightarrow> P s) \<Longrightarrow> P (sup_lexord A B k s c)"
+  by (auto simp: sup_lexord_def)
+
+lemmas le_sup_lexord = sup_lexord[where P="\<lambda>a. c \<le> a" for c]
+
+lemma sup_lexord1: "k A = k B \<Longrightarrow> sup_lexord A B k s c = c"
+  by (simp add: sup_lexord_def)
+
+lemma sup_lexord_commute: "sup_lexord A B k s c = sup_lexord B A k s c"
+  by (auto simp: sup_lexord_def)
+
+lemma sigma_sets_le_sets_iff: "(sigma_sets (space x) \<A> \<subseteq> sets x) = (\<A> \<subseteq> sets x)"
+  using sets.sigma_sets_subset[of \<A> x] by auto
+
+lemma sigma_le_iff: "\<A> \<subseteq> Pow \<Omega> \<Longrightarrow> sigma \<Omega> \<A> \<le> x \<longleftrightarrow> (\<Omega> \<subseteq> space x \<and> (space x = \<Omega> \<longrightarrow> \<A> \<subseteq> sets x))"
+  by (cases "\<Omega> = space x")
+     (simp_all add: eq_commute[of _ "sets x"] le_measure_iff emeasure_sigma le_fun_def
+                    sigma_sets_superset_generator sigma_sets_le_sets_iff)
+
+instantiation measure :: (type) semilattice_sup
+begin
+
+definition sup_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
+where
+  "sup_measure A B =
+    sup_lexord A B space (sigma (space A \<union> space B) {})
+      (sup_lexord A B sets (sigma (space A) (sets A \<union> sets B)) (sup_measure' A B))"
 
 instance
 proof
-  fix A and x :: "'a measure" assume A: "Complete_Partial_Order.chain op \<le> A" and x: "x \<in> A"
-  show "x \<le> Sup A"
-  proof cases
-    assume "x \<noteq> bot"
-    show ?thesis
-    proof
-      show "sets (Sup A) = sets x"
-        using A \<open>x \<noteq> bot\<close> x by (rule sets_Sup)
-      with x show "\<And>a. a \<in> sets x \<Longrightarrow> emeasure x a \<le> emeasure (Sup A) a"
-        by (subst emeasure_Sup[OF A]) (auto intro: SUP_upper)
-    qed
-  qed simp
-next
-  fix A and x :: "'a measure" assume A: "Complete_Partial_Order.chain op \<le> A" and x: "\<And>z. z \<in> A \<Longrightarrow> z \<le> x"
-  consider "A = {}" | "A = {bot}" | x where "x\<in>A" "x \<noteq> bot"
-    by blast
-  then show "Sup A \<le> x"
-  proof cases
-    assume "A = {}"
-    moreover have "Sup ({}::'a measure set) = bot"
-      by (auto simp add: Sup_measure_def sigma_sets_empty_eq intro!: measure_eqI)
-    ultimately show ?thesis
-      by simp
+  fix x y z :: "'a measure"
+  show "x \<le> sup x y"
+    unfolding sup_measure_def
+  proof (intro le_sup_lexord)
+    assume "space x = space y"
+    then have *: "sets x \<union> sets y \<subseteq> Pow (space x)"
+      using sets.space_closed by auto
+    assume "\<not> sets y \<subseteq> sets x" "\<not> sets x \<subseteq> sets y"
+    then have "sets x \<subset> sets x \<union> sets y"
+      by auto
+    also have "\<dots> \<le> sigma (space x) (sets x \<union> sets y)"
+      by (subst sets_measure_of[OF *]) (rule sigma_sets_superset_generator)
+    finally show "x \<le> sigma (space x) (sets x \<union> sets y)"
+      by (simp add: space_measure_of[OF *] less_eq_measure.intros(2))
   next
-    assume "A = {bot}"
-    moreover have "Sup ({bot}::'a measure set) = bot"
-      by (auto simp add: Sup_measure_def sigma_sets_empty_eq intro!: measure_eqI)
-     ultimately show ?thesis
-      by simp
+    assume "\<not> space y \<subseteq> space x" "\<not> space x \<subseteq> space y"
+    then show "x \<le> sigma (space x \<union> space y) {}"
+      by (intro less_eq_measure.intros) auto
   next
-    fix a assume "a \<in> A" "a \<noteq> bot"
-    then have "a \<le> x" "x \<noteq> bot" "a \<noteq> bot"
-      using x[OF \<open>a \<in> A\<close>] by (auto simp: bot_unique)
-    then have "sets x = sets a"
-      by (auto elim: less_eq_measure.cases)
-
-    show "Sup A \<le> x"
-    proof (rule less_eq_measure.intros)
-      show "sets x = sets (Sup A)"
-        by (subst sets_Sup[OF A \<open>a \<noteq> bot\<close> \<open>a \<in> A\<close>]) fact
+    assume "sets x = sets y" then show "x \<le> sup_measure' x y"
+      by (simp add: le_measure le_emeasure_sup_measure'1)
+  qed (auto intro: less_eq_measure.intros)
+  show "y \<le> sup x y"
+    unfolding sup_measure_def
+  proof (intro le_sup_lexord)
+    assume **: "space x = space y"
+    then have *: "sets x \<union> sets y \<subseteq> Pow (space y)"
+      using sets.space_closed by auto
+    assume "\<not> sets y \<subseteq> sets x" "\<not> sets x \<subseteq> sets y"
+    then have "sets y \<subset> sets x \<union> sets y"
+      by auto
+    also have "\<dots> \<le> sigma (space y) (sets x \<union> sets y)"
+      by (subst sets_measure_of[OF *]) (rule sigma_sets_superset_generator)
+    finally show "y \<le> sigma (space x) (sets x \<union> sets y)"
+      by (simp add: ** space_measure_of[OF *] less_eq_measure.intros(2))
+  next
+    assume "\<not> space y \<subseteq> space x" "\<not> space x \<subseteq> space y"
+    then show "y \<le> sigma (space x \<union> space y) {}"
+      by (intro less_eq_measure.intros) auto
+  next
+    assume "sets x = sets y" then show "y \<le> sup_measure' x y"
+      by (simp add: le_measure le_emeasure_sup_measure'2)
+  qed (auto intro: less_eq_measure.intros)
+  show "x \<le> y \<Longrightarrow> z \<le> y \<Longrightarrow> sup x z \<le> y"
+    unfolding sup_measure_def
+  proof (intro sup_lexord[where P="\<lambda>x. x \<le> y"])
+    assume "x \<le> y" "z \<le> y" and [simp]: "space x = space z" "sets x = sets z"
+    from \<open>x \<le> y\<close> show "sup_measure' x z \<le> y"
+    proof cases
+      case 1 then show ?thesis
+        by (intro less_eq_measure.intros(1)) simp
     next
-      fix X assume "X \<in> sets (Sup A)"
-      then have "emeasure (Sup A) X \<le> (SUP a:A. emeasure a X)"
-        using \<open>a\<in>A\<close> by (subst emeasure_Sup[OF A _]) auto
-      also have "\<dots> \<le> emeasure x X"
-        by (intro SUP_least le_emeasureD x)
-      finally show "emeasure (Sup A) X \<le> emeasure x X" .
+      case 2 then show ?thesis
+        by (intro less_eq_measure.intros(2)) simp_all
+    next
+      case 3 with \<open>z \<le> y\<close> \<open>x \<le> y\<close> show ?thesis
+        by (auto simp add: le_measure intro!: emeasure_sup_measure'_le2)
     qed
+  next
+    assume **: "x \<le> y" "z \<le> y" "space x = space z" "\<not> sets z \<subseteq> sets x" "\<not> sets x \<subseteq> sets z"
+    then have *: "sets x \<union> sets z \<subseteq> Pow (space x)"
+      using sets.space_closed by auto
+    show "sigma (space x) (sets x \<union> sets z) \<le> y"
+      unfolding sigma_le_iff[OF *] using ** by (auto simp: le_measure_iff split: if_split_asm)
+  next
+    assume "x \<le> y" "z \<le> y" "\<not> space z \<subseteq> space x" "\<not> space x \<subseteq> space z"
+    then have "space x \<subseteq> space y" "space z \<subseteq> space y"
+      by (auto simp: le_measure_iff split: if_split_asm)
+    then show "sigma (space x \<union> space z) {} \<le> y"
+      by (simp add: sigma_le_iff)
   qed
 qed
+
 end
 
-lemma
-  assumes A: "Complete_Partial_Order.chain op \<le> (f ` A)" and a: "a \<in> A" "f a \<noteq> bot"
-  shows space_SUP: "space (SUP M:A. f M) = space (f a)"
-    and sets_SUP: "sets (SUP M:A. f M) = sets (f a)"
-by(rule space_Sup[OF A a(2) imageI[OF a(1)]] sets_Sup[OF A a(2) imageI[OF a(1)]])+
+lemma space_empty_eq_bot: "space a = {} \<longleftrightarrow> a = bot"
+  using space_empty[of a] by (auto intro!: measure_eqI)
+
+interpretation sup_measure: comm_monoid_set sup "bot :: 'a measure"
+  proof qed (auto intro!: antisym)
+
+lemma sup_measure_F_mono':
+  "finite J \<Longrightarrow> finite I \<Longrightarrow> sup_measure.F id I \<le> sup_measure.F id (I \<union> J)"
+proof (induction J rule: finite_induct)
+  case empty then show ?case
+    by simp
+next
+  case (insert i J)
+  show ?case
+  proof cases
+    assume "i \<in> I" with insert show ?thesis
+      by (auto simp: insert_absorb)
+  next
+    assume "i \<notin> I"
+    have "sup_measure.F id I \<le> sup_measure.F id (I \<union> J)"
+      by (intro insert)
+    also have "\<dots> \<le> sup_measure.F id (insert i (I \<union> J))"
+      using insert \<open>i \<notin> I\<close> by (subst sup_measure.insert) auto
+    finally show ?thesis
+      by auto
+  qed
+qed
+
+lemma sup_measure_F_mono: "finite I \<Longrightarrow> J \<subseteq> I \<Longrightarrow> sup_measure.F id J \<le> sup_measure.F id I"
+  using sup_measure_F_mono'[of I J] by (auto simp: finite_subset Un_absorb1)
+
+lemma sets_eq_iff_bounded: "A \<le> B \<Longrightarrow> B \<le> C \<Longrightarrow> sets A = sets C \<Longrightarrow> sets B = sets A"
+  by (auto dest: sets_eq_imp_space_eq simp add: le_measure_iff split: if_split_asm)
+
+lemma sets_sup: "sets A = sets M \<Longrightarrow> sets B = sets M \<Longrightarrow> sets (sup A B) = sets M"
+  by (auto simp add: sup_measure_def sup_lexord_def dest: sets_eq_imp_space_eq)
+
+lemma sets_sup_measure_F:
+  "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> sets i = sets M) \<Longrightarrow> sets (sup_measure.F id I) = sets M"
+  by (induction I rule: finite_ne_induct) (simp_all add: sets_sup)
+
+lemma le_measureD1: "A \<le> B \<Longrightarrow> space A \<le> space B"
+  by (auto simp: le_measure_iff split: if_split_asm)
+
+lemma le_measureD2: "A \<le> B \<Longrightarrow> space A = space B \<Longrightarrow> sets A \<le> sets B"
+  by (auto simp: le_measure_iff split: if_split_asm)
+
+lemma le_measureD3: "A \<le> B \<Longrightarrow> sets A = sets B \<Longrightarrow> emeasure A X \<le> emeasure B X"
+  by (auto simp: le_measure_iff le_fun_def dest: sets_eq_imp_space_eq split: if_split_asm)
+
+definition Sup_measure' :: "'a measure set \<Rightarrow> 'a measure"
+where
+  "Sup_measure' M = measure_of (\<Union>a\<in>M. space a) (\<Union>a\<in>M. sets a)
+    (\<lambda>X. (SUP P:{P. finite P \<and> P \<subseteq> M }. sup_measure.F id P X))"
+
+lemma UN_space_closed: "UNION S sets \<subseteq> Pow (UNION S space)"
+  using sets.space_closed by auto
+
+lemma space_Sup_measure'2: "space (Sup_measure' M) = (\<Union>m\<in>M. space m)"
+  unfolding Sup_measure'_def by (intro space_measure_of[OF UN_space_closed])
+
+lemma sets_Sup_measure'2: "sets (Sup_measure' M) = sigma_sets (\<Union>m\<in>M. space m) (\<Union>m\<in>M. sets m)"
+  unfolding Sup_measure'_def by (intro sets_measure_of[OF UN_space_closed])
+
+lemma sets_Sup_measure':
+  assumes sets_eq[simp]: "\<And>m. m \<in> M \<Longrightarrow> sets m = sets A" and "M \<noteq> {}"
+  shows "sets (Sup_measure' M) = sets A"
+  using sets_eq[THEN sets_eq_imp_space_eq, simp] \<open>M \<noteq> {}\<close> by (simp add: Sup_measure'_def)
+
+lemma space_Sup_measure':
+  assumes sets_eq[simp]: "\<And>m. m \<in> M \<Longrightarrow> sets m = sets A" and "M \<noteq> {}"
+  shows "space (Sup_measure' M) = space A"
+  using sets_eq[THEN sets_eq_imp_space_eq, simp] \<open>M \<noteq> {}\<close>
+  by (simp add: Sup_measure'_def )
+
+lemma emeasure_Sup_measure':
+  assumes sets_eq[simp]: "\<And>m. m \<in> M \<Longrightarrow> sets m = sets A" and "X \<in> sets A" "M \<noteq> {}"
+  shows "emeasure (Sup_measure' M) X = (SUP P:{P. finite P \<and> P \<subseteq> M}. sup_measure.F id P X)"
+    (is "_ = ?S X")
+  using Sup_measure'_def
+proof (rule emeasure_measure_of)
+  note sets_eq[THEN sets_eq_imp_space_eq, simp]
+  have *: "sets (Sup_measure' M) = sets A" "space (Sup_measure' M) = space A"
+    using \<open>M \<noteq> {}\<close> by (simp_all add: Sup_measure'_def)
+  let ?\<mu> = "sup_measure.F id"
+  show "countably_additive (sets (Sup_measure' M)) ?S"
+  proof (rule countably_additiveI, goal_cases)
+    case (1 F)
+    then have **: "range F \<subseteq> sets A"
+      by (auto simp: *)
+    show "(\<Sum>i. ?S (F i)) = ?S (\<Union>i. F i)"
+    proof (subst ennreal_suminf_SUP_eq_directed)
+      fix i j and N :: "nat set" assume ij: "i \<in> {P. finite P \<and> P \<subseteq> M}" "j \<in> {P. finite P \<and> P \<subseteq> M}"
+      have "(i \<noteq> {} \<longrightarrow> sets (?\<mu> i) = sets A) \<and> (j \<noteq> {} \<longrightarrow> sets (?\<mu> j) = sets A) \<and>
+        (i \<noteq> {} \<or> j \<noteq> {} \<longrightarrow> sets (?\<mu> (i \<union> j)) = sets A)"
+        using ij by (intro impI sets_sup_measure_F conjI) auto
+      then have "?\<mu> j (F n) \<le> ?\<mu> (i \<union> j) (F n) \<and> ?\<mu> i (F n) \<le> ?\<mu> (i \<union> j) (F n)" for n
+        using ij
+        by (cases "i = {}"; cases "j = {}")
+           (auto intro!: le_measureD3 sup_measure_F_mono simp: sets_sup_measure_F
+                 simp del: id_apply)
+      with ij show "\<exists>k\<in>{P. finite P \<and> P \<subseteq> M}. \<forall>n\<in>N. ?\<mu> i (F n) \<le> ?\<mu> k (F n) \<and> ?\<mu> j (F n) \<le> ?\<mu> k (F n)"
+        by (safe intro!: bexI[of _ "i \<union> j"]) auto
+    next
+      show "(SUP P : {P. finite P \<and> P \<subseteq> M}. \<Sum>n. ?\<mu> P (F n)) = (SUP P : {P. finite P \<and> P \<subseteq> M}. ?\<mu> P (UNION UNIV F))"
+      proof (intro SUP_cong refl)
+        fix i assume i: "i \<in> {P. finite P \<and> P \<subseteq> M}"
+        show "(\<Sum>n. ?\<mu> i (F n)) = ?\<mu> i (UNION UNIV F)"
+        proof cases
+          assume "i \<noteq> {}" with i ** show ?thesis
+            apply (intro suminf_emeasure \<open>disjoint_family F\<close>)
+            apply (subst sets_sup_measure_F[OF _ _ sets_eq])
+            apply auto
+            done
+        qed simp
+      qed
+    qed
+  qed
+  show "positive (sets (Sup_measure' M)) ?S"
+    by (auto simp: positive_def bot_ennreal[symmetric])
+  show "X \<in> sets (Sup_measure' M)"
+    using assms * by auto
+qed (rule UN_space_closed)
+
+definition Sup_lexord :: "('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> ('a set \<Rightarrow> 'a) \<Rightarrow> ('a set \<Rightarrow> 'a) \<Rightarrow> 'a set \<Rightarrow> 'a"
+where
+  "Sup_lexord k c s A = (let U = (SUP a:A. k a) in if \<exists>a\<in>A. k a = U then c {a\<in>A. k a = U} else s A)"
+
+lemma Sup_lexord:
+  "(\<And>a S. a \<in> A \<Longrightarrow> k a = (SUP a:A. k a) \<Longrightarrow> S = {a'\<in>A. k a' = k a} \<Longrightarrow> P (c S)) \<Longrightarrow> ((\<And>a. a \<in> A \<Longrightarrow> k a \<noteq> (SUP a:A. k a)) \<Longrightarrow> P (s A)) \<Longrightarrow>
+    P (Sup_lexord k c s A)"
+  by (auto simp: Sup_lexord_def Let_def)
+
+lemma Sup_lexord1:
+  assumes A: "A \<noteq> {}" "(\<And>a. a \<in> A \<Longrightarrow> k a = (\<Union>a\<in>A. k a))" "P (c A)"
+  shows "P (Sup_lexord k c s A)"
+  unfolding Sup_lexord_def Let_def
+proof (clarsimp, safe)
+  show "\<forall>a\<in>A. k a \<noteq> (\<Union>x\<in>A. k x) \<Longrightarrow> P (s A)"
+    by (metis assms(1,2) ex_in_conv)
+next
+  fix a assume "a \<in> A" "k a = (\<Union>x\<in>A. k x)"
+  then have "{a \<in> A. k a = (\<Union>x\<in>A. k x)} = {a \<in> A. k a = k a}"
+    by (metis A(2)[symmetric])
+  then show "P (c {a \<in> A. k a = (\<Union>x\<in>A. k x)})"
+    by (simp add: A(3))
+qed
+
+instantiation measure :: (type) complete_lattice
+begin
+
+definition Sup_measure :: "'a measure set \<Rightarrow> 'a measure"
+where
+  "Sup_measure = Sup_lexord space (Sup_lexord sets Sup_measure'
+    (\<lambda>U. sigma (\<Union>u\<in>U. space u) (\<Union>u\<in>U. sets u))) (\<lambda>U. sigma (\<Union>u\<in>U. space u) {})"
+
+definition Inf_measure :: "'a measure set \<Rightarrow> 'a measure"
+where
+  "Inf_measure A = Sup {x. \<forall>a\<in>A. x \<le> a}"
+
+definition inf_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
+where
+  "inf_measure a b = Inf {a, b}"
+
+definition top_measure :: "'a measure"
+where
+  "top_measure = Inf {}"
+
+instance
+proof
+  note UN_space_closed [simp]
+  show upper: "x \<le> Sup A" if x: "x \<in> A" for x :: "'a measure" and A
+    unfolding Sup_measure_def
+  proof (intro Sup_lexord[where P="\<lambda>y. x \<le> y"])
+    assume "\<And>a. a \<in> A \<Longrightarrow> space a \<noteq> (\<Union>a\<in>A. space a)"
+    from this[OF \<open>x \<in> A\<close>] \<open>x \<in> A\<close> show "x \<le> sigma (\<Union>a\<in>A. space a) {}"
+      by (intro less_eq_measure.intros) auto
+  next
+    fix a S assume "a \<in> A" and a: "space a = (\<Union>a\<in>A. space a)" and S: "S = {a' \<in> A. space a' = space a}"
+      and neq: "\<And>aa. aa \<in> S \<Longrightarrow> sets aa \<noteq> (\<Union>a\<in>S. sets a)"
+    have sp_a: "space a = (UNION S space)"
+      using \<open>a\<in>A\<close> by (auto simp: S)
+    show "x \<le> sigma (UNION S space) (UNION S sets)"
+    proof cases
+      assume [simp]: "space x = space a"
+      have "sets x \<subset> (\<Union>a\<in>S. sets a)"
+        using \<open>x\<in>A\<close> neq[of x] by (auto simp: S)
+      also have "\<dots> \<subseteq> sigma_sets (\<Union>x\<in>S. space x) (\<Union>x\<in>S. sets x)"
+        by (rule sigma_sets_superset_generator)
+      finally show ?thesis
+        by (intro less_eq_measure.intros(2)) (simp_all add: sp_a)
+    next
+      assume "space x \<noteq> space a"
+      moreover have "space x \<le> space a"
+        unfolding a using \<open>x\<in>A\<close> by auto
+      ultimately show ?thesis
+        by (intro less_eq_measure.intros) (simp add: less_le sp_a)
+    qed
+  next
+    fix a b S S' assume "a \<in> A" and a: "space a = (\<Union>a\<in>A. space a)" and S: "S = {a' \<in> A. space a' = space a}"
+      and "b \<in> S" and b: "sets b = (\<Union>a\<in>S. sets a)" and S': "S' = {a' \<in> S. sets a' = sets b}"
+    then have "S' \<noteq> {}" "space b = space a"
+      by auto
+    have sets_eq: "\<And>x. x \<in> S' \<Longrightarrow> sets x = sets b"
+      by (auto simp: S')
+    note sets_eq[THEN sets_eq_imp_space_eq, simp]
+    have *: "sets (Sup_measure' S') = sets b" "space (Sup_measure' S') = space b"
+      using \<open>S' \<noteq> {}\<close> by (simp_all add: Sup_measure'_def sets_eq)
+    show "x \<le> Sup_measure' S'"
+    proof cases
+      assume "x \<in> S"
+      with \<open>b \<in> S\<close> have "space x = space b"
+        by (simp add: S)
+      show ?thesis
+      proof cases
+        assume "x \<in> S'"
+        show "x \<le> Sup_measure' S'"
+        proof (intro le_measure[THEN iffD2] ballI)
+          show "sets x = sets (Sup_measure' S')"
+            using \<open>x\<in>S'\<close> * by (simp add: S')
+          fix X assume "X \<in> sets x"
+          show "emeasure x X \<le> emeasure (Sup_measure' S') X"
+          proof (subst emeasure_Sup_measure'[OF _ \<open>X \<in> sets x\<close>])
+            show "emeasure x X \<le> (SUP P : {P. finite P \<and> P \<subseteq> S'}. emeasure (sup_measure.F id P) X)"
+              using \<open>x\<in>S'\<close> by (intro SUP_upper2[where i="{x}"]) auto
+          qed (insert \<open>x\<in>S'\<close> S', auto)
+        qed
+      next
+        assume "x \<notin> S'"
+        then have "sets x \<noteq> sets b"
+          using \<open>x\<in>S\<close> by (auto simp: S')
+        moreover have "sets x \<le> sets b"
+          using \<open>x\<in>S\<close> unfolding b by auto
+        ultimately show ?thesis
+          using * \<open>x \<in> S\<close>
+          by (intro less_eq_measure.intros(2))
+             (simp_all add: * \<open>space x = space b\<close> less_le)
+      qed
+    next
+      assume "x \<notin> S"
+      with \<open>x\<in>A\<close> \<open>x \<notin> S\<close> \<open>space b = space a\<close> show ?thesis
+        by (intro less_eq_measure.intros)
+           (simp_all add: * less_le a SUP_upper S)
+    qed
+  qed
+  show least: "Sup A \<le> x" if x: "\<And>z. z \<in> A \<Longrightarrow> z \<le> x" for x :: "'a measure" and A
+    unfolding Sup_measure_def
+  proof (intro Sup_lexord[where P="\<lambda>y. y \<le> x"])
+    assume "\<And>a. a \<in> A \<Longrightarrow> space a \<noteq> (\<Union>a\<in>A. space a)"
+    show "sigma (UNION A space) {} \<le> x"
+      using x[THEN le_measureD1] by (subst sigma_le_iff) auto
+  next
+    fix a S assume "a \<in> A" "space a = (\<Union>a\<in>A. space a)" and S: "S = {a' \<in> A. space a' = space a}"
+      "\<And>a. a \<in> S \<Longrightarrow> sets a \<noteq> (\<Union>a\<in>S. sets a)"
+    have "UNION S space \<subseteq> space x"
+      using S le_measureD1[OF x] by auto
+    moreover
+    have "UNION S space = space a"
+      using \<open>a\<in>A\<close> S by auto
+    then have "space x = UNION S space \<Longrightarrow> UNION S sets \<subseteq> sets x"
+      using \<open>a \<in> A\<close> le_measureD2[OF x] by (auto simp: S)
+    ultimately show "sigma (UNION S space) (UNION S sets) \<le> x"
+      by (subst sigma_le_iff) simp_all
+  next
+    fix a b S S' assume "a \<in> A" and a: "space a = (\<Union>a\<in>A. space a)" and S: "S = {a' \<in> A. space a' = space a}"
+      and "b \<in> S" and b: "sets b = (\<Union>a\<in>S. sets a)" and S': "S' = {a' \<in> S. sets a' = sets b}"
+    then have "S' \<noteq> {}" "space b = space a"
+      by auto
+    have sets_eq: "\<And>x. x \<in> S' \<Longrightarrow> sets x = sets b"
+      by (auto simp: S')
+    note sets_eq[THEN sets_eq_imp_space_eq, simp]
+    have *: "sets (Sup_measure' S') = sets b" "space (Sup_measure' S') = space b"
+      using \<open>S' \<noteq> {}\<close> by (simp_all add: Sup_measure'_def sets_eq)
+    show "Sup_measure' S' \<le> x"
+    proof cases
+      assume "space x = space a"
+      show ?thesis
+      proof cases
+        assume **: "sets x = sets b"
+        show ?thesis
+        proof (intro le_measure[THEN iffD2] ballI)
+          show ***: "sets (Sup_measure' S') = sets x"
+            by (simp add: * **)
+          fix X assume "X \<in> sets (Sup_measure' S')"
+          show "emeasure (Sup_measure' S') X \<le> emeasure x X"
+            unfolding ***
+          proof (subst emeasure_Sup_measure'[OF _ \<open>X \<in> sets (Sup_measure' S')\<close>])
+            show "(SUP P : {P. finite P \<and> P \<subseteq> S'}. emeasure (sup_measure.F id P) X) \<le> emeasure x X"
+            proof (safe intro!: SUP_least)
+              fix P assume P: "finite P" "P \<subseteq> S'"
+              show "emeasure (sup_measure.F id P) X \<le> emeasure x X"
+              proof cases
+                assume "P = {}" then show ?thesis
+                  by auto
+              next
+                assume "P \<noteq> {}"
+                from P have "finite P" "P \<subseteq> A"
+                  unfolding S' S by (simp_all add: subset_eq)
+                then have "sup_measure.F id P \<le> x"
+                  by (induction P) (auto simp: x)
+                moreover have "sets (sup_measure.F id P) = sets x"
+                  using \<open>finite P\<close> \<open>P \<noteq> {}\<close> \<open>P \<subseteq> S'\<close> \<open>sets x = sets b\<close>
+                  by (intro sets_sup_measure_F) (auto simp: S')
+                ultimately show "emeasure (sup_measure.F id P) X \<le> emeasure x X"
+                  by (rule le_measureD3)
+              qed
+            qed
+            show "m \<in> S' \<Longrightarrow> sets m = sets (Sup_measure' S')" for m
+              unfolding * by (simp add: S')
+          qed fact
+        qed
+      next
+        assume "sets x \<noteq> sets b"
+        moreover have "sets b \<le> sets x"
+          unfolding b S using x[THEN le_measureD2] \<open>space x = space a\<close> by auto
+        ultimately show "Sup_measure' S' \<le> x"
+          using \<open>space x = space a\<close> \<open>b \<in> S\<close>
+          by (intro less_eq_measure.intros(2)) (simp_all add: * S)
+      qed
+    next
+      assume "space x \<noteq> space a"
+      then have "space a < space x"
+        using le_measureD1[OF x[OF \<open>a\<in>A\<close>]] by auto
+      then show "Sup_measure' S' \<le> x"
+        by (intro less_eq_measure.intros) (simp add: * \<open>space b = space a\<close>)
+    qed
+  qed
+  show "Sup {} = (bot::'a measure)" "Inf {} = (top::'a measure)"
+    by (auto intro!: antisym least simp: top_measure_def)
+  show lower: "x \<in> A \<Longrightarrow> Inf A \<le> x" for x :: "'a measure" and A
+    unfolding Inf_measure_def by (intro least) auto
+  show greatest: "(\<And>z. z \<in> A \<Longrightarrow> x \<le> z) \<Longrightarrow> x \<le> Inf A" for x :: "'a measure" and A
+    unfolding Inf_measure_def by (intro upper) auto
+  show "inf x y \<le> x" "inf x y \<le> y" "x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> inf y z" for x y z :: "'a measure"
+    by (auto simp: inf_measure_def intro!: lower greatest)
+qed
+
+end
+
+lemma sets_SUP:
+  assumes "\<And>x. x \<in> I \<Longrightarrow> sets (M x) = sets N"
+  shows "I \<noteq> {} \<Longrightarrow> sets (SUP i:I. M i) = sets N"
+  unfolding Sup_measure_def
+  using assms assms[THEN sets_eq_imp_space_eq]
+    sets_Sup_measure'[where A=N and M="M`I"]
+  by (intro Sup_lexord1[where P="\<lambda>x. sets x = sets N"]) auto
 
 lemma emeasure_SUP:
-  assumes A: "Complete_Partial_Order.chain op \<le> (f ` A)" "A \<noteq> {}"
-  assumes "X \<in> sets (SUP M:A. f M)"
-  shows "emeasure (SUP M:A. f M) X = (SUP M:A. emeasure (f M)) X"
-using \<open>X \<in> _\<close> by(subst emeasure_Sup[OF A(1)]; simp add: A)
+  assumes sets: "\<And>i. i \<in> I \<Longrightarrow> sets (M i) = sets N" "X \<in> sets N" "I \<noteq> {}"
+  shows "emeasure (SUP i:I. M i) X = (SUP J:{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I}. emeasure (SUP i:J. M i) X)"
+proof -
+  have eq: "finite J \<Longrightarrow> sup_measure.F id J = (SUP i:J. i)" for J :: "'b measure set"
+    by (induction J rule: finite_induct) auto
+  have 1: "J \<noteq> {} \<Longrightarrow> J \<subseteq> I \<Longrightarrow> sets (SUP x:J. M x) = sets N" for J
+    by (intro sets_SUP sets) (auto )
+
+  from \<open>I \<noteq> {}\<close> obtain i where "i\<in>I" by auto
+  have "Sup_measure' (M`I) X = (SUP P:{P. finite P \<and> P \<subseteq> M`I}. sup_measure.F id P X)"
+    using sets by (intro emeasure_Sup_measure') auto
+  also have "Sup_measure' (M`I) = (SUP i:I. M i)"
+    unfolding Sup_measure_def using \<open>I \<noteq> {}\<close> sets sets(1)[THEN sets_eq_imp_space_eq]
+    by (intro Sup_lexord1[where P="\<lambda>x. _ = x"]) auto
+  also have "(SUP P:{P. finite P \<and> P \<subseteq> M`I}. sup_measure.F id P X) =
+    (SUP J:{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I}. (SUP i:J. M i) X)"
+  proof (intro SUP_eq)
+    fix J assume "J \<in> {P. finite P \<and> P \<subseteq> M`I}"
+    then obtain J' where J': "J' \<subseteq> I" "finite J'" and J: "J = M`J'" and "finite J"
+      using finite_subset_image[of J M I] by auto
+    show "\<exists>j\<in>{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I}. sup_measure.F id J X \<le> (SUP i:j. M i) X"
+    proof cases
+      assume "J' = {}" with \<open>i \<in> I\<close> show ?thesis
+        by (auto simp add: J)
+    next
+      assume "J' \<noteq> {}" with J J' show ?thesis
+        by (intro bexI[of _ "J'"]) (auto simp add: eq simp del: id_apply)
+    qed
+  next
+    fix J assume J: "J \<in> {P. P \<noteq> {} \<and> finite P \<and> P \<subseteq> I}"
+    show "\<exists>J'\<in>{J. finite J \<and> J \<subseteq> M`I}. (SUP i:J. M i) X \<le> sup_measure.F id J' X"
+      using J by (intro bexI[of _ "M`J"]) (auto simp add: eq simp del: id_apply)
+  qed
+  finally show ?thesis .
+qed
+
+lemma emeasure_SUP_chain:
+  assumes sets: "\<And>i. i \<in> A \<Longrightarrow> sets (M i) = sets N" "X \<in> sets N"
+  assumes ch: "Complete_Partial_Order.chain op \<le> (M ` A)" and "A \<noteq> {}"
+  shows "emeasure (SUP i:A. M i) X = (SUP i:A. emeasure (M i) X)"
+proof (subst emeasure_SUP[OF sets \<open>A \<noteq> {}\<close>])
+  show "(SUP J:{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> A}. emeasure (SUPREMUM J M) X) = (SUP i:A. emeasure (M i) X)"
+  proof (rule SUP_eq)
+    fix J assume "J \<in> {J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> A}"
+    then have J: "Complete_Partial_Order.chain op \<le> (M ` J)" "finite J" "J \<noteq> {}" and "J \<subseteq> A"
+      using ch[THEN chain_subset, of "M`J"] by auto
+    with in_chain_finite[OF J(1)] obtain j where "j \<in> J" "(SUP j:J. M j) = M j"
+      by auto
+    with \<open>J \<subseteq> A\<close> show "\<exists>j\<in>A. emeasure (SUPREMUM J M) X \<le> emeasure (M j) X"
+      by auto
+  next
+    fix j assume "j\<in>A" then show "\<exists>i\<in>{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> A}. emeasure (M j) X \<le> emeasure (SUPREMUM i M) X"
+      by (intro bexI[of _ "{j}"]) auto
+  qed
+qed
+
+subsubsection \<open>Supremum of a set of $\sigma$-algebras\<close>
+
+lemma space_Sup_eq_UN: "space (Sup M) = (\<Union>x\<in>M. space x)"
+  unfolding Sup_measure_def
+  apply (intro Sup_lexord[where P="\<lambda>x. space x = _"])
+  apply (subst space_Sup_measure'2)
+  apply auto []
+  apply (subst space_measure_of[OF UN_space_closed])
+  apply auto
+  done
+
+lemma sets_Sup_eq:
+  assumes *: "\<And>m. m \<in> M \<Longrightarrow> space m = X" and "M \<noteq> {}"
+  shows "sets (Sup M) = sigma_sets X (\<Union>x\<in>M. sets x)"
+  unfolding Sup_measure_def
+  apply (rule Sup_lexord1)
+  apply fact
+  apply (simp add: assms)
+  apply (rule Sup_lexord)
+  subgoal premises that for a S
+    unfolding that(3) that(2)[symmetric]
+    using that(1)
+    apply (subst sets_Sup_measure'2)
+    apply (intro arg_cong2[where f=sigma_sets])
+    apply (auto simp: *)
+    done
+  apply (subst sets_measure_of[OF UN_space_closed])
+  apply (simp add:  assms)
+  done
+
+lemma in_sets_Sup: "(\<And>m. m \<in> M \<Longrightarrow> space m = X) \<Longrightarrow> m \<in> M \<Longrightarrow> A \<in> sets m \<Longrightarrow> A \<in> sets (Sup M)"
+  by (subst sets_Sup_eq[where X=X]) auto
+
+lemma Sup_lexord_rel:
+  assumes "\<And>i. i \<in> I \<Longrightarrow> k (A i) = k (B i)"
+    "R (c (A ` {a \<in> I. k (B a) = (SUP x:I. k (B x))})) (c (B ` {a \<in> I. k (B a) = (SUP x:I. k (B x))}))"
+    "R (s (A`I)) (s (B`I))"
+  shows "R (Sup_lexord k c s (A`I)) (Sup_lexord k c s (B`I))"
+proof -
+  have "A ` {a \<in> I. k (B a) = (SUP x:I. k (B x))} =  {a \<in> A ` I. k a = (SUP x:I. k (B x))}"
+    using assms(1) by auto
+  moreover have "B ` {a \<in> I. k (B a) = (SUP x:I. k (B x))} =  {a \<in> B ` I. k a = (SUP x:I. k (B x))}"
+    by auto
+  ultimately show ?thesis
+    using assms by (auto simp: Sup_lexord_def Let_def)
+qed
+
+lemma sets_SUP_cong:
+  assumes eq: "\<And>i. i \<in> I \<Longrightarrow> sets (M i) = sets (N i)" shows "sets (SUP i:I. M i) = sets (SUP i:I. N i)"
+  unfolding Sup_measure_def
+  using eq eq[THEN sets_eq_imp_space_eq]
+  apply (intro Sup_lexord_rel[where R="\<lambda>x y. sets x = sets y"])
+  apply simp
+  apply simp
+  apply (simp add: sets_Sup_measure'2)
+  apply (intro arg_cong2[where f="\<lambda>x y. sets (sigma x y)"])
+  apply auto
+  done
+
+lemma sets_Sup_in_sets:
+  assumes "M \<noteq> {}"
+  assumes "\<And>m. m \<in> M \<Longrightarrow> space m = space N"
+  assumes "\<And>m. m \<in> M \<Longrightarrow> sets m \<subseteq> sets N"
+  shows "sets (Sup M) \<subseteq> sets N"
+proof -
+  have *: "UNION M space = space N"
+    using assms by auto
+  show ?thesis
+    unfolding * using assms by (subst sets_Sup_eq[of M "space N"]) (auto intro!: sets.sigma_sets_subset)
+qed
+
+lemma measurable_Sup1:
+  assumes m: "m \<in> M" and f: "f \<in> measurable m N"
+    and const_space: "\<And>m n. m \<in> M \<Longrightarrow> n \<in> M \<Longrightarrow> space m = space n"
+  shows "f \<in> measurable (Sup M) N"
+proof -
+  have "space (Sup M) = space m"
+    using m by (auto simp add: space_Sup_eq_UN dest: const_space)
+  then show ?thesis
+    using m f unfolding measurable_def by (auto intro: in_sets_Sup[OF const_space])
+qed
+
+lemma measurable_Sup2:
+  assumes M: "M \<noteq> {}"
+  assumes f: "\<And>m. m \<in> M \<Longrightarrow> f \<in> measurable N m"
+    and const_space: "\<And>m n. m \<in> M \<Longrightarrow> n \<in> M \<Longrightarrow> space m = space n"
+  shows "f \<in> measurable N (Sup M)"
+proof -
+  from M obtain m where "m \<in> M" by auto
+  have space_eq: "\<And>n. n \<in> M \<Longrightarrow> space n = space m"
+    by (intro const_space \<open>m \<in> M\<close>)
+  have "f \<in> measurable N (sigma (\<Union>m\<in>M. space m) (\<Union>m\<in>M. sets m))"
+  proof (rule measurable_measure_of)
+    show "f \<in> space N \<rightarrow> UNION M space"
+      using measurable_space[OF f] M by auto
+  qed (auto intro: measurable_sets f dest: sets.sets_into_space)
+  also have "measurable N (sigma (\<Union>m\<in>M. space m) (\<Union>m\<in>M. sets m)) = measurable N (Sup M)"
+    apply (intro measurable_cong_sets refl)
+    apply (subst sets_Sup_eq[OF space_eq M])
+    apply simp
+    apply (subst sets_measure_of[OF UN_space_closed])
+    apply (simp add: space_eq M)
+    done
+  finally show ?thesis .
+qed
+
+lemma sets_Sup_sigma:
+  assumes [simp]: "M \<noteq> {}" and M: "\<And>m. m \<in> M \<Longrightarrow> m \<subseteq> Pow \<Omega>"
+  shows "sets (SUP m:M. sigma \<Omega> m) = sets (sigma \<Omega> (\<Union>M))"
+proof -
+  { fix a m assume "a \<in> sigma_sets \<Omega> m" "m \<in> M"
+    then have "a \<in> sigma_sets \<Omega> (\<Union>M)"
+     by induction (auto intro: sigma_sets.intros) }
+  then show "sets (SUP m:M. sigma \<Omega> m) = sets (sigma \<Omega> (\<Union>M))"
+    apply (subst sets_Sup_eq[where X="\<Omega>"])
+    apply (auto simp add: M) []
+    apply auto []
+    apply (simp add: space_measure_of_conv M Union_least)
+    apply (rule sigma_sets_eqI)
+    apply auto
+    done
+qed
+
+lemma Sup_sigma:
+  assumes [simp]: "M \<noteq> {}" and M: "\<And>m. m \<in> M \<Longrightarrow> m \<subseteq> Pow \<Omega>"
+  shows "(SUP m:M. sigma \<Omega> m) = (sigma \<Omega> (\<Union>M))"
+proof (intro antisym SUP_least)
+  have *: "\<Union>M \<subseteq> Pow \<Omega>"
+    using M by auto
+  show "sigma \<Omega> (\<Union>M) \<le> (SUP m:M. sigma \<Omega> m)"
+  proof (intro less_eq_measure.intros(3))
+    show "space (sigma \<Omega> (\<Union>M)) = space (SUP m:M. sigma \<Omega> m)"
+      "sets (sigma \<Omega> (\<Union>M)) = sets (SUP m:M. sigma \<Omega> m)"
+      using sets_Sup_sigma[OF assms] sets_Sup_sigma[OF assms, THEN sets_eq_imp_space_eq]
+      by auto
+  qed (simp add: emeasure_sigma le_fun_def)
+  fix m assume "m \<in> M" then show "sigma \<Omega> m \<le> sigma \<Omega> (\<Union>M)"
+    by (subst sigma_le_iff) (auto simp add: M *)
+qed
+
+lemma SUP_sigma_sigma:
+  "M \<noteq> {} \<Longrightarrow> (\<And>m. m \<in> M \<Longrightarrow> f m \<subseteq> Pow \<Omega>) \<Longrightarrow> (SUP m:M. sigma \<Omega> (f m)) = sigma \<Omega> (\<Union>m\<in>M. f m)"
+  using Sup_sigma[of "f`M" \<Omega>] by auto
+
+lemma sets_vimage_Sup_eq:
+  assumes *: "M \<noteq> {}" "f \<in> X \<rightarrow> Y" "\<And>m. m \<in> M \<Longrightarrow> space m = Y"
+  shows "sets (vimage_algebra X f (Sup M)) = sets (SUP m : M. vimage_algebra X f m)"
+  (is "?IS = ?SI")
+proof
+  show "?IS \<subseteq> ?SI"
+    apply (intro sets_image_in_sets measurable_Sup2)
+    apply (simp add: space_Sup_eq_UN *)
+    apply (simp add: *)
+    apply (intro measurable_Sup1)
+    apply (rule imageI)
+    apply assumption
+    apply (rule measurable_vimage_algebra1)
+    apply (auto simp: *)
+    done
+  show "?SI \<subseteq> ?IS"
+    apply (intro sets_Sup_in_sets)
+    apply (auto simp: *) []
+    apply (auto simp: *) []
+    apply (elim imageE)
+    apply simp
+    apply (rule sets_image_in_sets)
+    apply simp
+    apply (simp add: measurable_def)
+    apply (simp add: * space_Sup_eq_UN sets_vimage_algebra2)
+    apply (auto intro: in_sets_Sup[OF *(3)])
+    done
+qed
+
+lemma restrict_space_eq_vimage_algebra':
+  "sets (restrict_space M \<Omega>) = sets (vimage_algebra (\<Omega> \<inter> space M) (\<lambda>x. x) M)"
+proof -
+  have *: "{A \<inter> (\<Omega> \<inter> space M) |A. A \<in> sets M} = {A \<inter> \<Omega> |A. A \<in> sets M}"
+    using sets.sets_into_space[of _ M] by blast
+
+  show ?thesis
+    unfolding restrict_space_def
+    by (subst sets_measure_of)
+       (auto simp add: image_subset_iff sets_vimage_algebra * dest: sets.sets_into_space intro!: arg_cong2[where f=sigma_sets])
+qed
+
+lemma sigma_le_sets:
+  assumes [simp]: "A \<subseteq> Pow X" shows "sets (sigma X A) \<subseteq> sets N \<longleftrightarrow> X \<in> sets N \<and> A \<subseteq> sets N"
+proof
+  have "X \<in> sigma_sets X A" "A \<subseteq> sigma_sets X A"
+    by (auto intro: sigma_sets_top)
+  moreover assume "sets (sigma X A) \<subseteq> sets N"
+  ultimately show "X \<in> sets N \<and> A \<subseteq> sets N"
+    by auto
+next
+  assume *: "X \<in> sets N \<and> A \<subseteq> sets N"
+  { fix Y assume "Y \<in> sigma_sets X A" from this * have "Y \<in> sets N"
+      by induction auto }
+  then show "sets (sigma X A) \<subseteq> sets N"
+    by auto
+qed
+
+lemma measurable_iff_sets:
+  "f \<in> measurable M N \<longleftrightarrow> (f \<in> space M \<rightarrow> space N \<and> sets (vimage_algebra (space M) f N) \<subseteq> sets M)"
+proof -
+  have *: "{f -` A \<inter> space M |A. A \<in> sets N} \<subseteq> Pow (space M)"
+    by auto
+  show ?thesis
+    unfolding measurable_def
+    by (auto simp add: vimage_algebra_def sigma_le_sets[OF *])
+qed
+
+lemma sets_vimage_algebra_space: "X \<in> sets (vimage_algebra X f M)"
+  using sets.top[of "vimage_algebra X f M"] by simp
+
+lemma measurable_mono:
+  assumes N: "sets N' \<le> sets N" "space N = space N'"
+  assumes M: "sets M \<le> sets M'" "space M = space M'"
+  shows "measurable M N \<subseteq> measurable M' N'"
+  unfolding measurable_def
+proof safe
+  fix f A assume "f \<in> space M \<rightarrow> space N" "A \<in> sets N'"
+  moreover assume "\<forall>y\<in>sets N. f -` y \<inter> space M \<in> sets M" note this[THEN bspec, of A]
+  ultimately show "f -` A \<inter> space M' \<in> sets M'"
+    using assms by auto
+qed (insert N M, auto)
+
+lemma measurable_Sup_measurable:
+  assumes f: "f \<in> space N \<rightarrow> A"
+  shows "f \<in> measurable N (Sup {M. space M = A \<and> f \<in> measurable N M})"
+proof (rule measurable_Sup2)
+  show "{M. space M = A \<and> f \<in> measurable N M} \<noteq> {}"
+    using f unfolding ex_in_conv[symmetric]
+    by (intro exI[of _ "sigma A {}"]) (auto intro!: measurable_measure_of)
+qed auto
+
+lemma (in sigma_algebra) sigma_sets_subset':
+  assumes a: "a \<subseteq> M" "\<Omega>' \<in> M"
+  shows "sigma_sets \<Omega>' a \<subseteq> M"
+proof
+  show "x \<in> M" if x: "x \<in> sigma_sets \<Omega>' a" for x
+    using x by (induct rule: sigma_sets.induct) (insert a, auto)
+qed
+
+lemma in_sets_SUP: "i \<in> I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> space (M i) = Y) \<Longrightarrow> X \<in> sets (M i) \<Longrightarrow> X \<in> sets (SUP i:I. M i)"
+  by (intro in_sets_Sup[where X=Y]) auto
+
+lemma measurable_SUP1:
+  "i \<in> I \<Longrightarrow> f \<in> measurable (M i) N \<Longrightarrow> (\<And>m n. m \<in> I \<Longrightarrow> n \<in> I \<Longrightarrow> space (M m) = space (M n)) \<Longrightarrow>
+    f \<in> measurable (SUP i:I. M i) N"
+  by (auto intro: measurable_Sup1)
+
+lemma sets_image_in_sets':
+  assumes X: "X \<in> sets N"
+  assumes f: "\<And>A. A \<in> sets M \<Longrightarrow> f -` A \<inter> X \<in> sets N"
+  shows "sets (vimage_algebra X f M) \<subseteq> sets N"
+  unfolding sets_vimage_algebra
+  by (rule sets.sigma_sets_subset') (auto intro!: measurable_sets X f)
+
+lemma mono_vimage_algebra:
+  "sets M \<le> sets N \<Longrightarrow> sets (vimage_algebra X f M) \<subseteq> sets (vimage_algebra X f N)"
+  using sets.top[of "sigma X {f -` A \<inter> X |A. A \<in> sets N}"]
+  unfolding vimage_algebra_def
+  apply (subst (asm) space_measure_of)
+  apply auto []
+  apply (subst sigma_le_sets)
+  apply auto
+  done
+
+lemma mono_restrict_space: "sets M \<le> sets N \<Longrightarrow> sets (restrict_space M X) \<subseteq> sets (restrict_space N X)"
+  unfolding sets_restrict_space by (rule image_mono)
+
+lemma sets_eq_bot: "sets M = {{}} \<longleftrightarrow> M = bot"
+  apply safe
+  apply (intro measure_eqI)
+  apply auto
+  done
+
+lemma sets_eq_bot2: "{{}} = sets M \<longleftrightarrow> M = bot"
+  using sets_eq_bot[of M] by blast
 
 end

@@ -266,7 +266,7 @@ lemma measurable_finite[measurable (raw)]:
   unfolding finite_nat_set_iff_bounded by (simp add: Ball_def)
 
 lemma measurable_Least[measurable]:
-  assumes [measurable]: "(\<And>i::nat. (\<lambda>x. P i x) \<in> measurable M (count_space UNIV))"q
+  assumes [measurable]: "(\<And>i::nat. (\<lambda>x. P i x) \<in> measurable M (count_space UNIV))"
   shows "(\<lambda>x. LEAST i. P i x) \<in> measurable M (count_space UNIV)"
   unfolding measurable_def by (safe intro!: sets_Least) simp_all
 
